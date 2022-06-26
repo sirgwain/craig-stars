@@ -13,6 +13,7 @@ type Race struct {
 	CreatedAt         time.Time      `json:"createdAt,omitempty"`
 	UpdatedAt         time.Time      `json:"updatedat,omitempty"`
 	DeletedAt         gorm.DeletedAt `gorm:"index" json:"deletedAt,omitempty"`
+	UserID            uint           `json:"userId,omitempty"`
 	PlayerID          uint           `json:"playerId,omitempty"`
 	Name              string         `json:"name,omitempty"`
 	PluralName        string         `json:"pluralName,omitempty"`

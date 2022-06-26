@@ -8,10 +8,31 @@ import (
 	"github.com/sirgwain/craig-stars/game"
 )
 
+type HostGameBind struct {
+	Settings game.GameSettings `json:"settings,omitempty"`
+}
+
 func (s *server) PlayerGames(c *gin.Context) {
 	user := s.GetSessionUser(c)
 
-	games := s.ctx.DB.GetGamesByUser(user.ID)
+	games, err := s.ctx.DB.GetGamesByUser(user.ID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, games)
+}
+
+func (s *server) HostedGames(c *gin.Context) {
+	user := s.GetSessionUser(c)
+
+	games, err := s.ctx.DB.GetGamesHostedByUser(user.ID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	c.JSON(http.StatusOK, games)
 }
 
@@ -36,6 +57,28 @@ func (s *server) PlayerGame(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"game": game, "player": player})
+
+}
+
+// Submit a turn for the player
+func (s *server) HostGame(c *gin.Context) {
+	user := s.GetSessionUser(c)
+
+	body := HostGameBind{}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	game, err := s.gameRunner.HostGame(user.ID, &body.Settings)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	_ = game
+
+	c.JSON(http.StatusOK, gin.H{})
 
 }
 

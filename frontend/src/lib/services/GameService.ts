@@ -1,8 +1,16 @@
+import type { Game } from '$lib/types/Game';
 import type { GameContext } from '$lib/types/GameContext';
-import type { Player } from '$lib/types/Player';
 import { Service } from './Service';
 
 export class GameService extends Service {
+	async loadPlayerGames(): Promise<Game[]> {
+		return this.get<Game[]>('/api/games');
+	}
+
+	async loadHostedGames(): Promise<Game[]> {
+		return this.get<Game[]>('/api/games/hosted');
+	}
+
 	async loadGame(gameId: number): Promise<GameContext> {
 		const response = await fetch(`/api/games/${gameId}`, {
 			method: 'GET',

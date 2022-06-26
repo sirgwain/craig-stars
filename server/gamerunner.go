@@ -1,6 +1,9 @@
 package server
 
 import (
+	"fmt"
+	"math/rand"
+
 	"github.com/sirgwain/craig-stars/db"
 	"github.com/sirgwain/craig-stars/game"
 )
@@ -20,13 +23,36 @@ func NewGameRunner(db db.Service) *GameRunner {
 	return &GameRunner{db}
 }
 
-func (gr *GameRunner) NewGame(hostID uint) *game.Game {
-	game := game.NewGame()
-	game.HostID = hostID
+// host a new game
+func (gr *GameRunner) HostGame(hostID uint, settings *game.GameSettings) (*game.Game, error) {
+	g := game.NewGame().WithSettings(settings)
+	g.HostID = hostID
 
-	gr.db.CreateGame(game)
+	for _, player := range settings.Players {
+		if player.Type == game.NewGamePlayerTypeHost {
 
-	return game
+			// add the host player with the host race
+			race, err := gr.db.FindRaceById(player.RaceID)
+			if err != nil {
+				return nil, err
+			}
+			if race.UserID != hostID {
+				return nil, fmt.Errorf("user %d does not own Race %d", hostID, race.ID)
+			}
+			g.AddPlayer(game.NewPlayer(hostID, race))
+		}
+	}
+
+	err := gr.db.CreateGame(g)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := gr.GenerateUniverse(g.ID); err != nil {
+		return nil, err
+	}
+
+	return g, nil
 }
 
 func (gr *GameRunner) AddPlayer(gameID uint, player *game.Player) error {
@@ -62,13 +88,26 @@ func (gr *GameRunner) GenerateUniverse(gameID uint) error {
 
 // load a full game
 func (gr *GameRunner) LoadGame(gameID uint) (*game.Game, error) {
-	game, err := gr.db.FindGameById(gameID)
+	g, err := gr.db.FindGameById(gameID)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return game, nil
+	// init the random generator after load
+	g.Rules.Random = rand.New(rand.NewSource(g.Rules.Seed))
+
+	if g.Rules.TechsID == 0 {
+		g.Rules.Techs = &game.StaticTechStore
+	} else {
+		techs, err := gr.db.FindTechStoreById(g.Rules.TechsID)
+		if err != nil {
+			return nil, err
+		}
+		g.Rules.Techs = techs
+	}
+
+	return g, nil
 }
 
 // load a player and the light version of the player game
@@ -80,7 +119,7 @@ func (gr *GameRunner) LoadPlayerGame(gameID uint, userID uint) (*game.Game, *gam
 		return nil, nil, err
 	}
 
-	if g.Rules.TechsID != 0 {
+	if g.Rules.TechsID == 0 {
 		g.Rules.Techs = &game.StaticTechStore
 	} else {
 		techs, err := gr.db.FindTechStoreById(g.Rules.TechsID)

@@ -11,7 +11,12 @@ type idBind struct {
 }
 
 func (s *server) Games(c *gin.Context) {
-	games := s.ctx.DB.GetGames()
+	games, err := s.ctx.DB.GetGames()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	c.JSON(http.StatusOK, games)
 }
 

@@ -48,10 +48,16 @@ func addDeleteGameCmd() {
 		Use:   "game",
 		Short: "Delete game",
 		Long:  `Delete game from the database`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := appcontext.Initialize()
 			ctx.DB.DeleteGameById(id)
-			PrintTable("Remaining Games", ctx.DB.GetGames())
+			games, err := ctx.DB.GetGames()
+			if err != nil {
+				return err
+			}
+
+			PrintTable("Remaining Games", games)
+			return nil
 		},
 	}
 

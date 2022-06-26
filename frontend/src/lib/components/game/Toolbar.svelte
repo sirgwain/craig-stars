@@ -5,15 +5,19 @@
 
 	export let game = getContext<GameContext>('game').game;
 
+	const updateTitle = () => (document.title = `${game.name} - ${game.year}`);
+	$: game && updateTitle();
 	const dispatch = createEventDispatcher();
 </script>
 
 <div class="flex py-5">
 	<div class="flux-none">
-		<h1 class="text-3xl mb-2">{game.name} - {game.year}</h1>
+		<div class="prose">
+			<h2>{game.name} - {game.year}</h2>
+		</div>
 	</div>
 	<div class="flux-1 grow">
-		<button on:click={() => dispatch('submit-turn')} class="last:float-right button"
+		<button on:click={() => dispatch('submit-turn')} class="last:float-right btn btn-primary"
 			>Submit Turn</button
 		>
 	</div>

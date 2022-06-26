@@ -24,26 +24,37 @@
 	$: loginError = '';
 </script>
 
-<div class="flex items-center justify-center min-h-screen ">
-	<div
-		class="px-8 py-6 mt-4 text-left shadow-lg rounded-md bg-white dark:bg-slate-800 border dark:border dark:border-slate-600 "
-	>
-		<h3 class="text-2xl font-bold text-center">Login</h3>
+<div class="flex items-center justify-center min-h-screen card">
+	<div class="px-8 py-6 mt-4 bg-base-200 shadow-xl">
+		<h2 class="text-2xl card-title">Login</h2>
+		<div class="card-body">
+			<form on:submit|preventDefault={onSubmit}>
+				<label class="label block">
+					<div class="label-text">Username</div>
+					<input
+						bind:value={username}
+						required
+						type="text"
+						name="username"
+						class="input input-bordered"
+					/>
+				</label>
 
-		<form on:submit|preventDefault={onSubmit}>
-			<label class="block">
-				<span class="label-text">Username</span>
-				<input bind:value={username} autofocus required type="text" name="username" class="input" />
-			</label>
-
-			<label class="block">
-				<span class="label-text">Password</span>
-				<input bind:value={password} required type="password" name="password" class="input" />
-			</label>
-			<button class="submit-button" type="submit">Submit</button>
-		</form>
-		{#if loginError}
-			<div class="text-red-600">{loginError}</div>
-		{/if}
+				<label class="label block">
+					<div class="label-text">Password</div>
+					<input
+						bind:value={password}
+						required
+						type="password"
+						name="password"
+						class="input input-bordered"
+					/>
+				</label>
+				<button class="btn btn-primary" type="submit">Submit</button>
+			</form>
+			{#if loginError}
+				<div class="text-red-600">{loginError}</div>
+			{/if}
+		</div>
 	</div>
 </div>

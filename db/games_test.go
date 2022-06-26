@@ -68,8 +68,8 @@ func TestDB_GetGames(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := db.GetGames(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("DB.GetGames() = %v, want %v", got, tt.want)
+			if got, err := db.GetGames(); !reflect.DeepEqual(got, tt.want) || err != nil {
+				t.Errorf("DB.GetGames() = %v, want %v, err %v", got, tt.want, err)
 			}
 		})
 	}
@@ -149,8 +149,8 @@ func TestDB_GetGamesByUser(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			db := &DB{}
-			if got := db.GetGamesByUser(tt.args.userID); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("DB.GetGamesByUser() = %v, want %v", got, tt.want)
+			if got, err := db.GetGamesByUser(tt.args.userID); !reflect.DeepEqual(got, tt.want) || err != nil {
+				t.Errorf("DB.GetGamesByUser() = %v, want %v, err %v", got, tt.want, err)
 			}
 		})
 	}

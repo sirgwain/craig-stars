@@ -1,4 +1,9 @@
 <script lang="ts">
+	import Races from '$lib/components/Races.svelte';
 </script>
 
-<h1 class="text-3xl mb-2">Races</h1>
+<div class="prose">
+	<h2>Races</h2>
+</div>
+
+<Races />

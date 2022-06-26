@@ -689,7 +689,7 @@ var planetNames = []string{
 	"Mesarthim",
 	"Miaplacidus",
 	"Midgard",
-	"Midnight",
+	"Midbusiness",
 	"Milky Way",
 	"Mimosa",
 	"Mira",

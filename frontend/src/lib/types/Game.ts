@@ -1,6 +1,70 @@
 import type { Cost } from './Cost';
 import type { Vector } from './Vector';
 
+export enum Size {
+	Tiny = 'Tiny',
+	TinyWide = 'TinyWide',
+	Small = 'Small',
+	SmallWide = 'SmallWide',
+	Medium = 'Medium',
+	MediumWide = 'MediumWide',
+	Large = 'Large',
+	LargeWide = 'LargeWide',
+	Huge = 'Huge',
+	HugeWide = 'HugeWide'
+}
+
+export enum Density {
+	Sparse = 'Sparse',
+	Normal = 'Normal',
+	Dense = 'Dense',
+	Packed = 'Packed'
+}
+
+export enum PlayerPositions {
+	Close = 'Close',
+	Moderate = 'Moderate',
+	Farther = 'Farther',
+	Distant = 'Distant'
+}
+
+export enum GameStartMode {
+	Normal = 'Normal', // regular start
+	MidGame = 'MidGame', // further tech levels, pop growth
+	LateGame = 'LateGame',
+	EndGame = 'EndGame'
+}
+
+export enum NewGamePlayerType {
+	Host = 'Host',
+	Invite = 'Invite',
+	Open = 'Open',
+	AI = 'AI'
+}
+
+export interface NewGamePlayer {
+	type: NewGamePlayerType;
+	userId?: number;
+	raceId?: number;
+}
+
+export interface GameSettings {
+	name: string;
+	quickStartTurns?: number;
+	size: Size;
+	area?: Vector;
+	density: Density;
+	playerPositions: PlayerPositions;
+	randomEvents: boolean;
+	computerPlayersFormAlliances: boolean;
+	publicPlayerScores: boolean;
+	startMode: GameStartMode;
+	year?: number;
+	state?: string;
+	victoryConditions?: VictoryConditions;
+	players: NewGamePlayer[];
+}
+
 export interface Game {
 	id: number;
 	createdAt: string;
@@ -8,14 +72,14 @@ export interface Game {
 	deletedAt: null;
 	name: string;
 	quickStartTurns: number;
-	size: string;
+	size: Size;
 	area: Vector;
-	density: string;
-	playerPositions: string;
+	density: Density;
+	playerPositions: PlayerPositions;
 	randomEvents: boolean;
 	computerPlayersFormAlliances: boolean;
 	publicPlayerScores: boolean;
-	startMode: string;
+	startMode: GameStartMode;
 	year: number;
 	state: string;
 	victoryConditions: VictoryConditions;

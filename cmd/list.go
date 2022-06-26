@@ -40,15 +40,22 @@ func addListGamesCmd() {
 		Use:   "games",
 		Short: "List games",
 		Long:  `List games in the database`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := appcontext.Initialize()
 			var games []game.Game
+			var err error
 			if userID != 0 {
-				games = ctx.DB.GetGamesByUser(userID)
+				games, err = ctx.DB.GetGamesByUser(userID)
 			} else {
-				games = ctx.DB.GetGames()
+				games, err = ctx.DB.GetGames()
 			}
+
+			if err != nil {
+				return err
+			}
+
 			PrintTable("Games", games)
+			return nil
 		},
 	}
 
