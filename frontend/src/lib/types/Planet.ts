@@ -18,8 +18,59 @@ export interface Planet extends MapObject {
 	homeworld?: boolean;
 	scanner?: boolean;
 	reportAge?: number;
+	productionQueue?: ProductionQueueItem[];
 	spec?: PlanetSpec;
 }
+
+export interface ProductionQueueItem {
+	id?: number;
+	createdAt?: string;
+	updatedat?: string;
+	deletedAt?: null;
+	type: QueueItemType;
+	quantity: number;
+}
+
+export enum QueueItemType {
+	IroniumMineralPacket = 'IroniumMineralPacket',
+	BoraniumMineralPacket = 'BoraniumMineralPacket',
+	GermaniumMineralPacket = 'GermaniumMineralPacket',
+	MixedMineralPacket = 'MixedMineralPacket',
+	Factory = 'Factory',
+	Mine = 'Mine',
+	Defenses = 'Defenses',
+	MineralAlchemy = 'MineralAlchemy',
+	TerraformEnvironment = 'TerraformEnvironment',
+	AutoMines = 'AutoMines',
+	AutoFactories = 'AutoFactories',
+	AutoDefenses = 'AutoDefenses',
+	AutoMineralAlchemy = 'AutoMineralAlchemy',
+	AutoMinTerraform = 'AutoMinTerraform',
+	AutoMaxTerraform = 'AutoMaxTerraform',
+	AutoMineralPacket = 'AutoMineralPacket',
+	ShipToken = 'ShipToken',
+	Starbase = 'Starbase'
+}
+
+/**
+ * Determine if a ProductionQueueItem is an auto item
+ * @param type The type to check
+ * @returns
+ */
+export const isAuto = (type: QueueItemType): boolean => {
+	switch (type) {
+		case QueueItemType.AutoMines:
+		case QueueItemType.AutoFactories:
+		case QueueItemType.AutoDefenses:
+		case QueueItemType.AutoMineralAlchemy:
+		case QueueItemType.AutoMinTerraform:
+		case QueueItemType.AutoMaxTerraform:
+		case QueueItemType.AutoMineralPacket:
+			return true;
+		default:
+			return false;
+	}
+};
 
 export interface PlanetSpec {
 	maxMines: number;

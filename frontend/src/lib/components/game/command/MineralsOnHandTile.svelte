@@ -6,7 +6,7 @@
 </script>
 
 <CommandTile title="Minerals on Hand">
-	<div class="flex justify-between pt-2">
+	<div class="flex justify-between">
 		<div class="text-ironium">Ironium</div>
 		<div>{planet.cargo.ironium}kT</div>
 	</div>
@@ -19,7 +19,9 @@
 		<div>{planet.cargo.germanium}kT</div>
 	</div>
 
-	<div class="flex justify-between border-t-2 border-slate-700 mt-2 pt-2">
+	<div class="divider p-0 m-0" />
+
+	<div class="flex justify-between">
 		<div>Mines</div>
 		<div>{planet.mines}</div>
 	</div>

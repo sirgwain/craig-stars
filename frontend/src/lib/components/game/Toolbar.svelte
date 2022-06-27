@@ -13,7 +13,7 @@
 <div class="flex py-5">
 	<div class="flux-none">
 		<div class="prose">
-			<h2>{game.name} - {game.year}</h2>
+			<h2 class="text-primary">{game.name} - {game.year}</h2>
 		</div>
 	</div>
 	<div class="flux-1 grow">
