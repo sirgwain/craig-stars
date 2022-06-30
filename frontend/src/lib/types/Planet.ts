@@ -31,16 +31,12 @@ export interface ProductionQueueItem {
 	quantity: number;
 }
 
+export const fromQueueItemType = (type: QueueItemType): ProductionQueueItem => ({
+	type,
+	quantity: 0
+});
+
 export enum QueueItemType {
-	IroniumMineralPacket = 'IroniumMineralPacket',
-	BoraniumMineralPacket = 'BoraniumMineralPacket',
-	GermaniumMineralPacket = 'GermaniumMineralPacket',
-	MixedMineralPacket = 'MixedMineralPacket',
-	Factory = 'Factory',
-	Mine = 'Mine',
-	Defenses = 'Defenses',
-	MineralAlchemy = 'MineralAlchemy',
-	TerraformEnvironment = 'TerraformEnvironment',
 	AutoMines = 'AutoMines',
 	AutoFactories = 'AutoFactories',
 	AutoDefenses = 'AutoDefenses',
@@ -48,9 +44,22 @@ export enum QueueItemType {
 	AutoMinTerraform = 'AutoMinTerraform',
 	AutoMaxTerraform = 'AutoMaxTerraform',
 	AutoMineralPacket = 'AutoMineralPacket',
+	Factory = 'Factory',
+	Mine = 'Mine',
+	Defenses = 'Defenses',
+	MineralAlchemy = 'MineralAlchemy',
+	TerraformEnvironment = 'TerraformEnvironment',
+	IroniumMineralPacket = 'IroniumMineralPacket',
+	BoraniumMineralPacket = 'BoraniumMineralPacket',
+	GermaniumMineralPacket = 'GermaniumMineralPacket',
+	MixedMineralPacket = 'MixedMineralPacket',
 	ShipToken = 'ShipToken',
 	Starbase = 'Starbase'
 }
+
+export const stringToQueueItemType = (value: string): QueueItemType => {
+	return QueueItemType[value as keyof typeof QueueItemType];
+};
 
 /**
  * Determine if a ProductionQueueItem is an auto item
@@ -91,4 +100,8 @@ export interface PlanetSpec {
 	scanner: string;
 	scanRange: number;
 	scanRangePen: number;
+	canTerraform: boolean;
+	terraformAmount: boolean;
+	hasMassDriver: boolean;
+	dockCapacity: number;
 }

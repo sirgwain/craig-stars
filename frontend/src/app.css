@@ -3,6 +3,9 @@
 @tailwind utilities;
 
 @layer components {
+  .btn {
+      @apply normal-case;    
+  }
     .text-ironium {
       @apply text-[#0960ff]
     }

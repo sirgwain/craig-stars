@@ -28,8 +28,8 @@ func (c *Cost) Total() int {
 	return c.Ironium + c.Boranium + c.Germanium + c.Resources
 }
 
-func (c *Cost) Add(other *Cost) *Cost {
-	return &Cost{
+func (c *Cost) Add(other Cost) Cost {
+	return Cost{
 		Ironium:   c.Ironium + other.Ironium,
 		Boranium:  c.Boranium + other.Boranium,
 		Germanium: c.Germanium + other.Germanium,

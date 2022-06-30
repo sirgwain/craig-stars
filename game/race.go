@@ -492,7 +492,7 @@ func computeRaceSpec(race *Race, rules *Rules) *RaceSpec {
 		spec.StartingTechLevels.Biotechnology += lrtSpec.StartingTechLevels.Biotechnology
 
 		spec.NewTechCostFactor += lrtSpec.NewTechCostFactor
-		spec.TerraformCostOffset.Add(&lrtSpec.TerraformCostOffset)
+		spec.TerraformCostOffset.Add(lrtSpec.TerraformCostOffset)
 		spec.MiniaturizationMax += lrtSpec.MiniaturizationMax
 		spec.MiniaturizationPerLevel += lrtSpec.MiniaturizationPerLevel
 		spec.ScanRangeFactor += lrtSpec.ScanRangeFactor
@@ -517,5 +517,41 @@ func computeRaceSpec(race *Race, rules *Rules) *RaceSpec {
 			spec.NoAdvancedScanners = true
 		}
 	}
+
+	factoryGermaniumOffset := 0
+	if race.FactoriesCostLess {
+		factoryGermaniumOffset = -1
+	}
+
+	spec.Costs = map[QueueItemType]Cost{
+
+		QueueItemTypeMine:                   {Resources: race.MineCost},
+		QueueItemTypeAutoMines:              {Resources: race.MineCost},
+		QueueItemTypeFactory:                {Germanium: rules.FactoryCostGermanium + factoryGermaniumOffset, Resources: race.FactoryCost},
+		QueueItemTypeAutoFactories:          {Germanium: rules.FactoryCostGermanium + factoryGermaniumOffset, Resources: race.FactoryCost},
+		QueueItemTypeMineralAlchemy:         {Resources: rules.MineralAlchemyCost + spec.MineralAlchemyCostOffset},
+		QueueItemTypeAutoMineralAlchemy:     {Resources: rules.MineralAlchemyCost + spec.MineralAlchemyCostOffset},
+		QueueItemTypeDefenses:               rules.DefenseCost,
+		QueueItemTypeAutoDefenses:           rules.DefenseCost,
+		QueueItemTypeTerraformEnvironment:   rules.TerraformCost.Add(spec.TerraformCostOffset),
+		QueueItemTypeAutoMaxTerraform:       rules.TerraformCost.Add(spec.TerraformCostOffset),
+		QueueItemTypeAutoMinTerraform:       rules.TerraformCost.Add(spec.TerraformCostOffset),
+		QueueItemTypeIroniumMineralPacket:   {Resources: spec.PacketResourceCost, Ironium: int(float64(spec.MineralsPerSingleMineralPacket) * spec.PacketMineralCostFactor)},
+		QueueItemTypeBoraniumMineralPacket:  {Resources: spec.PacketResourceCost, Boranium: int(float64(spec.MineralsPerSingleMineralPacket) * spec.PacketMineralCostFactor)},
+		QueueItemTypeGermaniumMineralPacket: {Resources: spec.PacketResourceCost, Germanium: int(float64(spec.MineralsPerSingleMineralPacket) * spec.PacketMineralCostFactor)},
+		QueueItemTypeMixedMineralPacket: {
+			Resources: spec.PacketResourceCost,
+			Ironium:   int(float64(spec.MineralsPerMixedMineralPacket) * spec.PacketMineralCostFactor),
+			Boranium:  int(float64(spec.MineralsPerMixedMineralPacket) * spec.PacketMineralCostFactor),
+			Germanium: int(float64(spec.MineralsPerMixedMineralPacket) * spec.PacketMineralCostFactor),
+		},
+		QueueItemTypeAutoMineralPacket: {
+			Resources: spec.PacketResourceCost,
+			Ironium:   int(float64(spec.MineralsPerMixedMineralPacket) * spec.PacketMineralCostFactor),
+			Boranium:  int(float64(spec.MineralsPerMixedMineralPacket) * spec.PacketMineralCostFactor),
+			Germanium: int(float64(spec.MineralsPerMixedMineralPacket) * spec.PacketMineralCostFactor),
+		},
+	}
+
 	return &spec
 }
