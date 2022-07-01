@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { getQuantityModifier } from '$lib/quantityModifier';
+	import { commandedPlanet } from '$lib/services/Context';
 	import { PlanetService } from '$lib/services/PlanetService';
 	import type { Cost } from '$lib/types/Cost';
 	import type { GameContext } from '$lib/types/GameContext';
@@ -13,7 +14,8 @@
 		XCircle
 	} from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { getContext } from 'svelte';
+	import hotkeys from 'hotkeys-js';
+	import { createEventDispatcher, getContext } from 'svelte';
 	import { $enum as eu } from 'ts-enum-util';
 	import CostComponent from './Cost.svelte';
 
@@ -135,11 +137,13 @@
 		planet.productionQueue = queueItems;
 		planet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
 		planetService.updatePlanet(planet);
+		dispatch('ok');
 	};
 
 	const cancel = () => {
 		queueItems = planet.productionQueue?.map((item) => ({ ...item } as ProductionQueueItem));
 		contributesOnlyLeftoverToResearch = planet.contributesOnlyLeftoverToResearch;
+		dispatch('cancel');
 	};
 
 	const getSelectedItemCost = (): Cost | undefined => {
@@ -172,6 +176,11 @@
 		selectedAvailableItem = availableItems.length > 0 ? availableItems[0] : selectedAvailableItem;
 		contributesOnlyLeftoverToResearch = planet.contributesOnlyLeftoverToResearch;
 	}
+
+	const dispatch = createEventDispatcher();
+
+	hotkeys('Esc', () => cancel());
+	hotkeys('Enter', () => ok());
 
 	export let planet: Planet;
 	const { player } = getContext<GameContext>('game');

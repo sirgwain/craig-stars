@@ -16,6 +16,8 @@ func (db *DB) MigrateAll() error {
 		&game.TechStore{},
 		&game.TechEngine{},
 		&game.TechPlanetaryScanner{},
+		&game.TechDefense{},
+		&game.TechHullComponent{},
 		&game.Rules{},
 		&game.Game{},
 		&game.Planet{},

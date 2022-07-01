@@ -1,10 +1,11 @@
 <script lang="ts">
-	import { getCommandedPlanet } from '$lib/services/Context';
+	import { EventManager } from '$lib/EventManager';
+
+	import { commandedPlanet } from '$lib/services/Context';
 	import { PlanetService } from '$lib/services/PlanetService';
 	import { isAuto, QueueItemType } from '$lib/types/Planet';
 	import CommandTile from './CommandTile.svelte';
 
-	const planet = getCommandedPlanet();
 	const planetService = new PlanetService();
 
 	const getShortName = (type: QueueItemType): string => {
@@ -33,18 +34,22 @@
 
 	const clear = async () => {
 		if (confirm('Are you sure you want to clear the planet production queue?')) {
-			planet.productionQueue = [];
-			await planetService.updatePlanet(planet);
+			$commandedPlanet.productionQueue = [];
+			await planetService.updatePlanet($commandedPlanet);
 		}
+	};
+
+	const change = () => {
+		EventManager.publishProductionQueueDialogRequestedEvent($commandedPlanet);
 	};
 </script>
 
 <CommandTile title="Production">
 	<div class="bg-base-100 h-20 overflow-y-auto">
-		{#if planet.productionQueue}
+		{#if $commandedPlanet.productionQueue}
 			<table class="w-full h-full">
 				<tbody>
-					{#each planet.productionQueue as queueItem}
+					{#each $commandedPlanet.productionQueue as queueItem}
 						<tr>
 							<td class="pl-1 {isAuto(queueItem.type) ? 'italic' : ''}"
 								>{getShortName(queueItem.type)}</td
@@ -61,7 +66,7 @@
 		<span>{''}</span>
 	</div>
 	<div class="justify-center">
-		<button class="btn btn-sm">Change</button>
+		<button on:click={change} class="btn btn-sm">Change</button>
 		<button on:click={clear} class="btn btn-sm">Clear</button>
 		<button class="btn btn-sm">Route</button>
 	</div>
