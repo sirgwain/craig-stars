@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { User } from '$lib/types/User';
 	import DarkModeToggler from './DarkModeToggler.svelte';
-	import MenuIcon from './MenuIcon.svelte';
 
 	export let user: User;
 </script>
@@ -20,6 +19,9 @@
 		</div>
 	</div>
 	<div class="navbar-end">
+		{#if user}
+			<div class="mr-2"><a class="link" href="/logout">{user.username}</a></div>
+		{/if}
 		<DarkModeToggler />
 	</div>
 </div>

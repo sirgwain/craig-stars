@@ -21,6 +21,7 @@
 			techs = techs.concat(techStore.planetaryScanners);
 			techs = techs.concat(techStore.defenses);
 			techs = techs.concat(techStore.hullComponents);
+			techs = techs.concat(techStore.hulls);
 		} else {
 			console.error(response);
 		}

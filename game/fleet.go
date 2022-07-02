@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"time"
 
 	"gorm.io/gorm"
@@ -8,14 +9,14 @@ import (
 
 type Fleet struct {
 	MapObject
-	PlanetID     uint        `json:"-"`        // for starbase fleets that are owned by a planet
+	PlanetID     uint        `json:"-"` // for starbase fleets that are owned by a planet
 	BaseName     string      `json:"baseName"`
 	Fuel         int         `json:"fuel"`
 	BattlePlanID uint        `json:"battlePlan"`
-	Waypoints    []Waypoint  `json:"waypoints" gorm:"constraint:OnDelete:CASCADE;"`
-	Tokens       []ShipToken `json:"tokens" gorm:"constraint:OnDelete:CASCADE;"`
 	DockCapacity int         `json:"dockCapacity"`
-	Spec         *FleetSpec  `json:"spec" gorm:"-"`
+	Tokens       []ShipToken `json:"tokens" gorm:"constraint:OnDelete:CASCADE;"`
+	Waypoints    []Waypoint  `json:"waypoints" gorm:"serializer:json"`
+	Spec         *FleetSpec  `json:"spec" gorm:"serializer:json"`
 }
 
 type FleetSpec struct {
@@ -46,15 +47,45 @@ type ShipToken struct {
 	UpdatedAt time.Time      `json:"updatedat"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deletedAt"`
 	FleetID   uint           `json:"gameId"`
+	Design    *ShipDesign    `json:"-" gorm:"foreignKey:DesignID"`
 	DesignID  uint           `json:"designId"`
 	Quantity  int            `json:"quantity"`
 }
 
 type Waypoint struct {
 	FleetID          uint   `json:"-"`
-	TargetID         uint   `json:"targetId"`
-	Position         Vector `json:"position" gorm:"embedded"`
-	WarpFactor       int    `json:"warpFactor"`
-	TransferToPlayer int    `json:"transferToPlayer"`
-	TargetName       string `json:"targetName"`
+	TargetID         uint   `json:"targetId,omitempty"`
+	Position         Vector `json:"position,omitempty" gorm:"embedded"`
+	WarpFactor       int    `json:"warpFactor,omitempty"`
+	TargetPlanetNum  *int   `json:"targetPlanetNum,omitempty"`
+	TransferToPlayer *int   `json:"transferToPlayer,omitempty"`
+	TargetName       string `json:"targetName,omitempty"`
+}
+
+func NewFleet(player *Player, design *ShipDesign, num int, name string, waypoints []Waypoint) Fleet {
+	return Fleet{
+		MapObject: MapObject{
+			GameID:    player.GameID,
+			PlayerID:  player.ID,
+			PlayerNum: &player.Num,
+			Dirty:     true,
+			Num:       num,
+			Name:      fmt.Sprintf("%s #%d", name, num),
+			Position:  waypoints[0].Position,
+		},
+		BaseName: name,
+		Tokens: []ShipToken{
+			{Design: design, Quantity: 1},
+		},
+		Waypoints: waypoints,
+	}
+}
+
+func NewPlanetWaypoint(planet *Planet, warpFactor int) Waypoint {
+	return Waypoint{
+		Position:        planet.Position,
+		TargetPlanetNum: &planet.Num,
+		TargetName:      planet.Name,
+		WarpFactor:      warpFactor,
+	}
 }

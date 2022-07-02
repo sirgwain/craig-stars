@@ -71,15 +71,30 @@ func generateWormholes(game *Game) {
 
 }
 
-func generatePlayerTechLevelss(game *Game) {
+func generatePlayerTechLevels(game *Game) {
+	for i := range game.Players {
+		// the first time we allocate an array of planets
+		player := &game.Players[i]
+		player.TechLevels = TechLevel(player.Race.Spec.StartingTechLevels)
+	}
+}
+
+func generatePlayerPlans(game *Game) {
 
 }
 
-func generatePlayerPlanss(game *Game) {
-
-}
-
-func generatePlayerShipDesignss(game *Game) {
+func generatePlayerShipDesigns(game *Game) {
+	for i := range game.Players {
+		// the first time we allocate an array of planets
+		player := &game.Players[i]
+		for _, startingFleet := range player.Race.Spec.StartingFleets {
+			techStore := game.Rules.Techs
+			hull := techStore.GetHull(string(startingFleet.HullName))
+			design := designShip(techStore, hull, startingFleet.Name, player, player.DefaultHullSet, startingFleet.Purpose)
+			design.Spec = computeShipDesignSpec(&game.Rules, player, design)
+			player.Designs = append(player.Designs, design)
+		}
+	}
 
 }
 
@@ -120,36 +135,61 @@ func generatePlayerHomeworlds(game *Game, area Vector) error {
 	for playerIndex := range game.Players {
 		player := &game.Players[playerIndex]
 		minPlayerDistance := (area.X + area.Y) / 2.0 / float64(len(game.Players))
+		fleetNum := 1
 
-		// find a homeworld that is a min distance from other homeworlds
-		var homeworld *Planet
-		for i := range game.Planets {
-			planet := &game.Planets[i]
-			if !planet.Owned() && (len(ownedPlanets) == 0 || planet.shortestDistanceToPlanets(&ownedPlanets) > minPlayerDistance) {
-				homeworld = planet
-				break
+		for startingPlanetIndex, startingPlanet := range player.Race.Spec.StartingPlanets {
+			// find a playerPlanet that is a min distance from other homeworlds
+			var playerPlanet *Planet
+			for i := range game.Planets {
+				planet := &game.Planets[i]
+				if !planet.Owned() && (len(ownedPlanets) == 0 || planet.shortestDistanceToPlanets(&ownedPlanets) > minPlayerDistance) {
+					playerPlanet = planet
+					break
+				}
 			}
+
+			if playerPlanet == nil {
+				return fmt.Errorf("failed to find homeworld for player %v among %d planets", player, len(game.Planets))
+			}
+
+			ownedPlanets = append(ownedPlanets, *playerPlanet)
+
+			if startingPlanetIndex == 0 {
+				// first planet is a homeworld
+				// make a new homeworld
+				if err := playerPlanet.initHomeworld(player, &game.Rules, homeworldMinConc, homeworldSurfaceMinerals); err != nil {
+					return err
+				}
+				// generate some fleets on the homeworld
+				if err := generatePlayerFleets(game, player, playerPlanet, &fleetNum, player.Race.Spec.StartingFleets); err != nil {
+					return err
+				}
+			} else {
+				// generate some fleets on the homeworld
+				if err := generatePlayerFleets(game, player, playerPlanet, &fleetNum, startingPlanet.StartingFleets); err != nil {
+					return err
+				}
+			}
+
 		}
-
-		if homeworld == nil {
-			return fmt.Errorf("failed to find homeworld for player %v among %d planets", player, len(game.Planets))
-		}
-
-		ownedPlanets = append(ownedPlanets, *homeworld)
-
-		// make a new homeworld
-
-		if err := homeworld.initHomeworld(player, &game.Rules, homeworldMinConc, homeworldSurfaceMinerals); err != nil {
-			return err
-		}
-		// player.Planets = append(player.Planets, *homeworld)
 	}
 
 	return nil
 }
 
-func generatePlayerFleets(game *Game) {
+func generatePlayerFleets(game *Game, player *Player, planet *Planet, fleetNum *int, startingFleets []StartingFleet) error {
+	for _, startingFleet := range startingFleets {
+		design := player.GetDesign(string(startingFleet.Name))
+		if design == nil {
+			return fmt.Errorf("no design named %s found for player %s", startingFleet.Name, player)
+		}
 
+		fleet := NewFleet(player, design, *fleetNum, startingFleet.Name, []Waypoint{NewPlanetWaypoint(planet, design.Spec.IdealSpeed)})
+		game.Fleets = append(game.Fleets, fleet)
+		(*fleetNum)++ // increment the fleet num
+	}
+
+	return nil
 }
 
 func applyGameStartModeModifier(game *Game) {

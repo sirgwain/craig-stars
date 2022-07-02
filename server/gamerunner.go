@@ -2,7 +2,6 @@ package server
 
 import (
 	"fmt"
-	"math/rand"
 
 	"github.com/sirgwain/craig-stars/db"
 	"github.com/sirgwain/craig-stars/game"
@@ -92,19 +91,6 @@ func (gr *GameRunner) LoadGame(gameID uint) (*game.Game, error) {
 
 	if err != nil {
 		return nil, err
-	}
-
-	// init the random generator after load
-	g.Rules.Random = rand.New(rand.NewSource(g.Rules.Seed))
-
-	if g.Rules.TechsID == 0 {
-		g.Rules.Techs = &game.StaticTechStore
-	} else {
-		techs, err := gr.db.FindTechStoreById(g.Rules.TechsID)
-		if err != nil {
-			return nil, err
-		}
-		g.Rules.Techs = techs
 	}
 
 	return g, nil

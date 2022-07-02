@@ -1,7 +1,7 @@
 import type { Hab } from './Hab';
 import type { Cost } from './Cost';
 import type { QueueItemType } from './Planet';
-import type { TechLevels } from './Player';
+import type { TechLevel } from './Player';
 
 export interface Race {
 	id: number;
@@ -41,10 +41,10 @@ type EnumDictionary<T extends string | symbol | number, U> = {
 
 export interface RaceSpec {
 	costs: EnumDictionary<QueueItemType, Cost>;
-	startingTechLevels: TechLevels;
+	startingTechLevels: TechLevel;
 	startingFleets: StartingFleet[];
 	startingPlanets: StartingPlanet[];
-	techCostOffset: TechLevels;
+	techCostOffset: TechLevel;
 	mineralsPerSingleMineralPacket: number;
 	mineralsPerMixedMineralPacket: number;
 	packetResourceCost: number;
@@ -57,7 +57,7 @@ export interface RaceSpec {
 	techsCostExtraLevel: number;
 	growthFactor: number;
 	maxPopulationOffset: number;
-	stealsResearch: TechLevels;
+	stealsResearch: TechLevel;
 	mineFieldMinDecayFactor: number;
 	mineFieldBaseDecayRate: number;
 	mineFieldPlanetDecayRate: number;
@@ -68,7 +68,7 @@ export interface RaceSpec {
 	repairFactor: number;
 	starbaseRepairFactor: number;
 	canBuildDefenses: boolean;
-	terraformCostOffset: TechLevels;
+	terraformCostOffset: TechLevel;
 	starbaseCostFactor: number;
 }
 

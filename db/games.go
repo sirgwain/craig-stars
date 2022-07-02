@@ -2,6 +2,7 @@ package db
 
 import (
 	"errors"
+	"math/rand"
 
 	"github.com/sirgwain/craig-stars/game"
 	"gorm.io/gorm"
@@ -42,15 +43,15 @@ func (db *DB) CreateGame(game *game.Game) error {
 		return err
 	}
 
-	err = db.sqlDB.Session(&gorm.Session{CreateBatchSize: 20}).Model(game).Association("Players").Replace(game.Players)
+	err = db.sqlDB.Session(&gorm.Session{CreateBatchSize: 20, FullSaveAssociations: true}).Model(game).Association("Players").Replace(game.Players)
 	if err != nil {
 		return err
 	}
-	err = db.sqlDB.Session(&gorm.Session{CreateBatchSize: 20}).Model(game).Association("Planets").Replace(game.Planets)
+	err = db.sqlDB.Session(&gorm.Session{CreateBatchSize: 20, FullSaveAssociations: true}).Model(game).Association("Planets").Replace(game.Planets)
 	if err != nil {
 		return err
 	}
-	err = db.sqlDB.Session(&gorm.Session{CreateBatchSize: 20}).Model(game).Association("Fleets").Replace(game.Fleets)
+	err = db.sqlDB.Session(&gorm.Session{CreateBatchSize: 20, FullSaveAssociations: true}).Model(game).Association("Fleets").Replace(game.Fleets)
 	if err != nil {
 		return err
 	}
@@ -58,15 +59,16 @@ func (db *DB) CreateGame(game *game.Game) error {
 	// save each player's data
 	for i := range game.Players {
 		player := &game.Players[i]
-		err = db.sqlDB.Omit("PlanetIntels", "Fleets").Save(player).Error
+		err = db.sqlDB.Omit("Messages", "Designs", "Planets", "Fleets", "PlanetIntels").Save(player).Error
 		if err != nil {
 			return err
 		}
-		err = db.sqlDB.Session(&gorm.Session{CreateBatchSize: 20}).Model(player).Association("PlanetIntels").Replace(player.PlanetIntels)
+
+		err = db.sqlDB.Session(&gorm.Session{CreateBatchSize: 20, FullSaveAssociations: true}).Model(player).Association("Messages").Replace(player.Messages)
 		if err != nil {
 			return err
 		}
-		err = db.sqlDB.Session(&gorm.Session{CreateBatchSize: 20}).Model(player).Association("Fleets").Replace(player.Fleets)
+		err = db.sqlDB.Session(&gorm.Session{CreateBatchSize: 20, FullSaveAssociations: true}).Model(player).Association("PlanetIntels").Replace(player.PlanetIntels)
 		if err != nil {
 			return err
 		}
@@ -77,7 +79,7 @@ func (db *DB) CreateGame(game *game.Game) error {
 func (db *DB) SaveGame(game *game.Game) error {
 
 	// rules don't change after game is created
-	err := db.sqlDB.Omit("Planets", "Fleets", "Players").Save(game).Error
+	err := db.sqlDB.Omit("Planets", "Fleets", "Players", "Players").Save(game).Error
 	if err != nil {
 		return err
 	}
@@ -85,7 +87,7 @@ func (db *DB) SaveGame(game *game.Game) error {
 	for i := range game.Planets {
 		planet := &game.Planets[i]
 		if planet.Dirty {
-			err = db.sqlDB.Save(planet).Error
+			err = db.SavePlanet(planet)
 			if err != nil {
 				return err
 			}
@@ -105,7 +107,13 @@ func (db *DB) SaveGame(game *game.Game) error {
 	for i := range game.Players {
 		player := &game.Players[i]
 		// race doesn't change after game is created
-		err = db.sqlDB.Omit("Race", "PlanetIntels", "Planets", "Fleets").Save(player).Error
+		err = db.sqlDB.Omit("Race", "PlanetIntels", "Messages", "Planets", "Fleets", "Designs").Save(player).Error
+		if err != nil {
+			return err
+		}
+
+		// replace messages
+		err := db.sqlDB.Model(player).Association("Messages").Replace(player.Messages)
 		if err != nil {
 			return err
 		}
@@ -119,35 +127,18 @@ func (db *DB) SaveGame(game *game.Game) error {
 				}
 			}
 		}
-		for j := range player.Planets {
-			planet := &player.Planets[j]
-			if planet.Dirty {
-				err = db.sqlDB.Save(&player.Planets[j]).Error
-				if err != nil {
-					return err
-				}
-			}
-		}
-		for j := range player.Fleets {
-			fleet := &player.Fleets[j]
-			if fleet.Dirty {
-				err = db.sqlDB.Save(&player.Fleets[j]).Error
-				if err != nil {
-					return err
-				}
-			}
-		}
-
 	}
 
 	return nil
 }
 
 func (db *DB) FindGameById(id uint) (*game.Game, error) {
-	game := game.Game{}
-	if err := db.sqlDB.Preload(clause.Associations).Preload("Planets.ProductionQueue", func(db *gorm.DB) *gorm.DB {
+	g := game.Game{}
+	if err := db.sqlDB.Preload(clause.Associations).Preload("Planets", func(db *gorm.DB) *gorm.DB {
+		return db.Order("planets.num")
+	}).Preload("Planets.ProductionQueue", func(db *gorm.DB) *gorm.DB {
 		return db.Order("production_queue_items.sort_order")
-	}).Preload("Players.Race").Preload("Players.PlanetIntels").Preload("Players.Fleets").First(&game, id).Error; err != nil {
+	}).Preload("Players.Race").Preload("Players.PlanetIntels").Preload("Players.Fleets").Preload("Players.Messages").First(&g, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		} else {
@@ -155,7 +146,20 @@ func (db *DB) FindGameById(id uint) (*game.Game, error) {
 		}
 	}
 
-	return &game, nil
+	if g.Rules.TechsID == 0 {
+		g.Rules.Techs = &game.StaticTechStore
+	} else {
+		techs, err := db.FindTechStoreById(g.Rules.TechsID)
+		if err != nil {
+			return nil, err
+		}
+		g.Rules.Techs = techs
+	}
+
+	// init the random generator after load
+	g.Rules.Random = rand.New(rand.NewSource(g.Rules.Seed))
+
+	return &g, nil
 }
 
 func (db *DB) FindGameByIdLight(id uint) (*game.Game, error) {

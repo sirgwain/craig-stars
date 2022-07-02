@@ -57,7 +57,7 @@ type ResearchCost struct {
 
 type RaceSpec struct {
 	Costs                            map[QueueItemType]Cost `json:"costs,omitempty"`
-	StartingTechLevels               StartingTechLevels     `json:"startingTechLevels,omitempty"`
+	StartingTechLevels               TechLevel              `json:"startingTechLevels,omitempty"`
 	StartingFleets                   []StartingFleet        `json:"startingFleets,omitempty"`
 	StartingPlanets                  []StartingPlanet       `json:"startingPlanets,omitempty"`
 	TechCostOffset                   TechCostOffset         `json:"techCostOffset,omitempty"`
@@ -83,7 +83,7 @@ type RaceSpec struct {
 	GrowthFactor                     float64                `json:"growthFactor,omitempty"`
 	MaxPopulationOffset              float64                `json:"maxPopulationOffset,omitempty"`
 	BuiltInCloakUnits                int                    `json:"builtInCloakUnits,omitempty"`
-	StealsResearch                   StartingTechLevels     `json:"stealsResearch,omitempty"`
+	StealsResearch                   TechLevel              `json:"stealsResearch,omitempty"`
 	FreeCargoCloaking                bool                   `json:"freeCargoCloaking,omitempty"`
 	MineFieldsAreScanners            bool                   `json:"mineFieldsAreScanners,omitempty"`
 	MineFieldRateMoveFactor          float64                `json:"mineFieldRateMoveFactor,omitempty"`
@@ -317,9 +317,55 @@ func (r *Race) WithGrowthRate(growthRate int) *Race {
 func (r *Race) GetPlanetHabitability(hab Hab) int {
 	planetValuePoints, redValue, ideality := 0, 0, 10000
 
-	r.GetPlanetHabitabilityHabComponent(hab.Grav, r.HabCenter().Grav, r.HabLow.Grav, r.HabHigh.Grav, r.ImmuneGrav, &planetValuePoints, &ideality, &redValue)
-	r.GetPlanetHabitabilityHabComponent(hab.Temp, r.HabCenter().Temp, r.HabLow.Temp, r.HabHigh.Temp, r.ImmuneTemp, &planetValuePoints, &ideality, &redValue)
-	r.GetPlanetHabitabilityHabComponent(hab.Rad, r.HabCenter().Rad, r.HabLow.Rad, r.HabHigh.Rad, r.ImmuneRad, &planetValuePoints, &ideality, &redValue)
+	habValues := [3]int{hab.Grav, hab.Temp, hab.Rad}
+	habCenters := [3]int{r.HabCenter().Grav, r.HabCenter().Temp, r.HabCenter().Rad}
+	habLows := [3]int{r.HabLow.Grav, r.HabLow.Temp, r.HabLow.Rad}
+	habHighs := [3]int{r.HabHigh.Grav, r.HabHigh.Temp, r.HabHigh.Rad}
+	immune := [3]bool{r.ImmuneGrav, r.ImmuneTemp, r.ImmuneRad}
+
+	var fromIdeal, tmp, habRadius, poorPlanetMod, habRed int
+
+	for i := range habValues {
+		habValue, habLower, habUpper, habCenter := habValues[i], habLows[i], habHighs[i], habCenters[i]
+
+		if immune[i] {
+			planetValuePoints += 10000
+		} else {
+			if habLower <= habValue && habUpper >= habValue {
+				// green planet
+				fromIdeal = int(math.Abs(float64(habValue-habCenter)) * 100)
+				if habCenter > habValue {
+					habRadius = habCenter - habLower
+					fromIdeal /= habRadius
+					tmp = habCenter - habValue
+				} else {
+					habRadius = habUpper - habCenter
+					fromIdeal /= habRadius
+					tmp = habValue - habCenter
+				}
+				poorPlanetMod = ((tmp) * 2) - habRadius
+				fromIdeal = 100 - fromIdeal
+				planetValuePoints += fromIdeal * fromIdeal
+				if poorPlanetMod > 0 {
+					ideality *= habRadius*2 - poorPlanetMod
+					ideality /= habRadius * 2
+				}
+			} else {
+				// red planet
+				if habLower <= habValue {
+					habRed = habValue - habUpper
+				} else {
+					habRed = habLower - habValue
+				}
+
+				if habRed > 15 {
+					habRed = 15
+				}
+
+				redValue += habRed
+			}
+		}
+	}
 
 	if redValue != 0 {
 		return -redValue
@@ -329,48 +375,6 @@ func (r *Race) GetPlanetHabitability(hab Hab) int {
 	planetValuePoints = planetValuePoints * ideality / 10000
 
 	return planetValuePoints
-}
-
-func (r *Race) GetPlanetHabitabilityHabComponent(habValue int, habCenter int, habLower int, habUpper int, immune bool, planetValuePoints *int, ideality *int, redValue *int) {
-	var fromIdeal, tmp, habRadius, poorPlanetMod, habRed int
-	if immune {
-		*planetValuePoints += 10000
-	} else {
-		if habLower <= habValue && habUpper >= habValue {
-			// green planet
-			fromIdeal = int(math.Abs(float64(habValue-habCenter)) * 100)
-			if habCenter > habValue {
-				habRadius = habCenter - habLower
-				fromIdeal /= habRadius
-				tmp = habCenter - habValue
-			} else {
-				habRadius = habUpper - habCenter
-				fromIdeal /= habRadius
-				tmp = habValue - habCenter
-			}
-			poorPlanetMod = ((tmp) * 2) - habRadius
-			fromIdeal = 100 - fromIdeal
-			*planetValuePoints += fromIdeal * fromIdeal
-			if poorPlanetMod > 0 {
-				*ideality *= habRadius*2 - poorPlanetMod
-				*ideality /= habRadius * 2
-			}
-		} else {
-			// red planet
-			if habLower <= habValue {
-				habRed = habValue - habUpper
-			} else {
-				habRed = habLower - habValue
-			}
-
-			if habRed > 15 {
-				habRed = 15
-			}
-
-			*redValue += habRed
-		}
-	}
-
 }
 
 // compute the spec for this race

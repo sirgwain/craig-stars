@@ -31,26 +31,26 @@ func newRandomGame() *game.Game {
 	return g
 }
 
-func compareAsJSON(t *testing.T, g1 *game.Game, g2 *game.Game) bool {
-	if g1 == nil && g2 == nil {
+func compareAsJSON(t *testing.T, got *game.Game, want *game.Game) bool {
+	if got == nil && want == nil {
 		return true
-	} else if g1 == nil && g2 != nil || g1 != nil && g2 == nil {
+	} else if got == nil && want != nil || got != nil && want == nil {
 		return false
 	} else {
-		json1, err := json.MarshalIndent(g1, "", "  ")
+		json1, err := json.MarshalIndent(got, "", "  ")
 		if err != nil {
-			t.Errorf("Failed to compare %s, error = %v", g1, err)
+			t.Errorf("Failed to compare %s, error = %v", got, err)
 		}
-		json2, err := json.MarshalIndent(g2, "", "  ")
+		json2, err := json.MarshalIndent(want, "", "  ")
 		if err != nil {
-			t.Errorf("Failed to compare %s, error = %v", g2, err)
+			t.Errorf("Failed to compare %s, error = %v", want, err)
 		}
 
 		if string(json1) != string(json2) {
 			log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 			zerolog.SetGlobalLevel(zerolog.DebugLevel)
-			log.Debug().Msgf("\n\njson1: %s\n", string(json1))
-			log.Debug().Msgf("\n\njson2: %s\n", string(json2))
+			log.Debug().Msgf("\n\ngot: %s\n", string(json1))
+			log.Debug().Msgf("\n\nwant: %s\n", string(json2))
 			return false
 		} else {
 			return true
@@ -119,6 +119,11 @@ func TestDB_SaveGame(t *testing.T) {
 	g.Planets[0].Dirty = true
 	g.Players[0].PlanetIntels[0].Population = uint(pop)
 	g.Players[0].PlanetIntels[0].Dirty = true
+
+	// add a production queue item
+	previousItemCount := len(g.Planets[0].ProductionQueue)
+	g.Planets[0].ProductionQueue = append(g.Planets[0].ProductionQueue, game.ProductionQueueItem{Type: game.QueueItemTypeMine, Quantity: 5})
+
 	err = db.SaveGame(g)
 	if err != nil {
 		t.Error(err)
@@ -132,6 +137,11 @@ func TestDB_SaveGame(t *testing.T) {
 	// make sure our pop saved
 	assert.Equal(t, pop, loaded.Planets[0].Population())
 	assert.Equal(t, pop, int(loaded.Players[0].PlanetIntels[0].Population))
+	assert.Equal(t, previousItemCount+1, len(loaded.Planets[0].ProductionQueue))
+	
+	// make sure our production queue item saved
+	assert.Equal(t, game.QueueItemTypeMine, loaded.Planets[0].ProductionQueue[len(loaded.Planets[0].ProductionQueue)-1].Type)
+	assert.Equal(t, 5, loaded.Planets[0].ProductionQueue[len(loaded.Planets[0].ProductionQueue)-1].Quantity)
 }
 
 func TestDB_GetGamesByUser(t *testing.T) {
