@@ -1,6 +1,7 @@
 package game
 
 import (
+	"math"
 	"time"
 
 	"gorm.io/gorm"
@@ -163,17 +164,20 @@ const (
 type HullSlotType Bitmask
 
 const (
-	HullSlotTypeArmor HullSlotType = 1 << iota
-	HullSlotTypeBomb
-	HullSlotTypeElectrical
-	HullSlotTypeEngine
-	HullSlotTypeMechanical
-	HullSlotTypeMineLayer
-	HullSlotTypeOrbital
+	HullSlotTypeNone                = 0
+	HullSlotTypeEngine HullSlotType = 1 << iota
 	HullSlotTypeScanner
-	HullSlotTypeShield
+	HullSlotTypeMechanical
+	HullSlotTypeBomb
 	HullSlotTypeMining
+	HullSlotTypeElectrical
+	HullSlotTypeShield
+	HullSlotTypeArmor
+	HullSlotTypeCargo
+	HullSlotTypeSpaceDock
 	HullSlotTypeWeapon
+	HullSlotTypeOrbital
+	HullSlotTypeMineLayer
 
 	HullSlotTypeOrbitalElectrical                = HullSlotTypeOrbital | HullSlotTypeElectrical
 	HullSlotTypeShieldElectricalMechanical       = HullSlotTypeShield | HullSlotTypeElectrical | HullSlotTypeMechanical
@@ -219,4 +223,74 @@ func NewTech(name string, cost Cost, requirements TechRequirements, ranking int,
 		Ranking:      ranking,
 		Category:     category,
 	}
+}
+
+func (t *Tech) String() string { return t.Name }
+func (t *TechHull) String() string { return t.Name }
+func (t *TechHullComponent) String() string { return t.Name }
+func (t *TechEngine) String() string { return t.Name }
+func (t *TechPlanetaryScanner) String() string { return t.Name }
+func (t *TechDefense) String() string { return t.Name }
+func (t *TechTerraform) String() string { return t.Name }
+
+func (t *Tech) GetPlayerCost(player *Player) Cost {
+	// figure out miniaturization
+	// this is 4% per level above the required tech we have.
+	// We count the smallest diff, i.e. if you have
+	// tech level 10 energy, 12 bio and the tech costs 9 energy, 4 bio
+	// the smallest level difference you have is 1 energy level (not 8 bio levels)
+
+	levelDiff := TechLevel{-1, -1, -1, -1, -1, -1}
+
+	// From the diff between the player level and the requirements, find the lowest difference
+	// i.e. 1 energey level in the example above
+	numTechLevelsAboveRequired := math.MaxInt
+	if t.Requirements.Energy > 0 {
+		levelDiff.Energy = player.TechLevels.Energy - t.Requirements.Energy
+		numTechLevelsAboveRequired = MinInt(levelDiff.Energy, numTechLevelsAboveRequired)
+	}
+	if t.Requirements.Weapons > 0 {
+		levelDiff.Weapons = player.TechLevels.Weapons - t.Requirements.Weapons
+		numTechLevelsAboveRequired = MinInt(levelDiff.Weapons, numTechLevelsAboveRequired)
+	}
+	if t.Requirements.Propulsion > 0 {
+		levelDiff.Propulsion = player.TechLevels.Propulsion - t.Requirements.Propulsion
+		numTechLevelsAboveRequired = MinInt(levelDiff.Propulsion, numTechLevelsAboveRequired)
+	}
+	if t.Requirements.Construction > 0 {
+		levelDiff.Construction = player.TechLevels.Construction - t.Requirements.Construction
+		numTechLevelsAboveRequired = MinInt(levelDiff.Construction, numTechLevelsAboveRequired)
+	}
+	if t.Requirements.Electronics > 0 {
+		levelDiff.Electronics = player.TechLevels.Electronics - t.Requirements.Electronics
+		numTechLevelsAboveRequired = MinInt(levelDiff.Electronics, numTechLevelsAboveRequired)
+	}
+	if t.Requirements.Biotechnology > 0 {
+		levelDiff.Biotechnology = player.TechLevels.Biotechnology - t.Requirements.Biotechnology
+		numTechLevelsAboveRequired = MinInt(levelDiff.Biotechnology, numTechLevelsAboveRequired)
+	}
+
+	// for starter techs, they are all 0 requirements, so just use our lowest field
+	if numTechLevelsAboveRequired == math.MaxInt {
+		numTechLevelsAboveRequired = player.TechLevels.Min()
+	}
+
+	// As we learn techs, they get cheaper. We start off with full priced techs, but every additional level of research we learn makes
+	// techs cost a little less, maxing out at some discount (i.e. 75% or 80% for races with BET)
+	miniaturization := math.Min(player.Race.Spec.MiniaturizationMax, player.Race.Spec.MiniaturizationPerLevel*float64(numTechLevelsAboveRequired))
+	// New techs cost BET races 2x
+	// new techs will have 0 for miniaturization.
+	miniaturizationFactor := player.Race.Spec.NewTechCostFactor
+	if numTechLevelsAboveRequired > 0 {
+		miniaturizationFactor = 1 - miniaturization
+	}
+
+	return Cost{
+		int(math.Ceil(float64(t.Cost.Ironium) * miniaturizationFactor)),
+		int(math.Ceil(float64(t.Cost.Boranium) * miniaturizationFactor)),
+		int(math.Ceil(float64(t.Cost.Germanium) * miniaturizationFactor)),
+		int(math.Ceil(float64(t.Cost.Resources) * miniaturizationFactor)),
+	}
+	// if we are at level 26, a beginner tech would cost (26 * .04)
+	// return cost * (1 - Math.Min(.75, .04 * lowestRequiredDiff));
 }

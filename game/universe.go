@@ -91,7 +91,7 @@ func generatePlayerShipDesigns(game *Game) {
 			techStore := game.Rules.Techs
 			hull := techStore.GetHull(string(startingFleet.HullName))
 			design := designShip(techStore, hull, startingFleet.Name, player, player.DefaultHullSet, startingFleet.Purpose)
-			design.Spec = computeShipDesignSpec(&game.Rules, player, design)
+			design.Spec = ComputeShipDesignSpec(&game.Rules, player, design)
 			player.Designs = append(player.Designs, design)
 		}
 	}
@@ -185,6 +185,7 @@ func generatePlayerFleets(game *Game, player *Player, planet *Planet, fleetNum *
 		}
 
 		fleet := NewFleet(player, design, *fleetNum, startingFleet.Name, []Waypoint{NewPlanetWaypoint(planet, design.Spec.IdealSpeed)})
+		fleet.Spec = ComputeFleetSpec(&game.Rules, player, &fleet)
 		game.Fleets = append(game.Fleets, fleet)
 		(*fleetNum)++ // increment the fleet num
 	}

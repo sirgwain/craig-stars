@@ -24,3 +24,7 @@ func (c *Cargo) AddMineral(other Mineral) Cargo {
 		Colonists: c.Colonists,
 	}
 }
+
+func (c *Cargo) Total() int {
+	return c.Ironium + c.Boranium + c.Germanium + c.Colonists
+}

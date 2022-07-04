@@ -32,7 +32,7 @@ func (db *DB) FindPlayerByGameId(gameID uint, userID uint) (*game.Player, error)
 func (db *DB) FindPlayerByGameIdLight(gameID uint, userID uint) (*game.Player, error) {
 	player := game.Player{}
 
-	if err := db.sqlDB.Where("game_id = ? AND user_id = ?", gameID, userID).First(&player).Error; err != nil {
+	if err := db.sqlDB.Where("game_id = ? AND user_id = ?", gameID, userID).Preload("Race").First(&player).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		} else {

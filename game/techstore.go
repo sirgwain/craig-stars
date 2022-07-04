@@ -44,6 +44,7 @@ func init() {
 
 type TechFinder interface {
 	GetBestPlanetaryScanner(player *Player) *TechPlanetaryScanner
+	GetBestDefense(player *Player) *TechDefense
 	GetBestScanner(player *Player) *TechHullComponent
 	GetBestEngine(player *Player) *TechEngine
 	GetEngine(name string) *TechEngine
@@ -105,6 +106,18 @@ func (store *TechStore) GetBestPlanetaryScanner(player *Player) *TechPlanetarySc
 	return bestTech
 }
 
+// get the best defense for a player
+func (store *TechStore) GetBestDefense(player *Player) *TechDefense {
+	bestTech := &store.Defenses[0]
+	for i := range store.Defenses {
+		tech := &store.Defenses[i]
+		if player.HasTech(&tech.Tech) {
+			bestTech = tech
+		}
+	}
+	return bestTech
+}
+
 // get the best engine for a player
 func (store *TechStore) GetBestEngine(player *Player) *TechEngine {
 	bestTech := &store.Engines[0]
@@ -119,10 +132,10 @@ func (store *TechStore) GetBestEngine(player *Player) *TechEngine {
 
 // get the best engine for a player
 func (store *TechStore) GetBestScanner(player *Player) *TechHullComponent {
-	bestTech := &store.HullComponents[0]
+	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
-		if tech.ScanRange > 0 || tech.ScanRangePen > 0 && player.HasTech(&tech.Tech) {
+		if (tech.ScanRange > 0 || tech.ScanRangePen > 0) && player.HasTech(&tech.Tech) {
 			bestTech = tech
 		}
 	}

@@ -291,7 +291,7 @@ func (p *Planet) getGrowthAmount(player *Player, maxPopulation int) int {
 	}
 }
 
-func computePlanetSpec(rules *Rules, planet *Planet, player *Player) *PlanetSpec {
+func ComputePlanetSpec(rules *Rules, planet *Planet, player *Player) *PlanetSpec {
 	spec := PlanetSpec{}
 	race := &player.Race
 	spec.Habitability = race.GetPlanetHabitability(planet.Hab)
@@ -328,6 +328,9 @@ func computePlanetSpec(rules *Rules, planet *Planet, player *Player) *PlanetSpec
 
 	if race.Spec.CanBuildDefenses {
 		spec.MaxDefenses = 100
+		spec.Defense = player.Spec.Defense.Name
+		spec.DefenseCoverage = float64(1.0 - (math.Pow((1 - (player.Spec.Defense.DefenseCoverage / 100)), float64(clamp(planet.Defenses, 0, spec.MaxDefenses)))))
+		spec.DefenseCoverageSmart = float64(1.0 - (math.Pow((1 - (player.Spec.Defense.DefenseCoverage / 100 * rules.SmartDefenseCoverageFactor)), float64(clamp(planet.Defenses, 0, spec.MaxDefenses)))))
 	}
 
 	if planet.Scanner {
@@ -336,6 +339,7 @@ func computePlanetSpec(rules *Rules, planet *Planet, player *Player) *PlanetSpec
 		spec.ScanRange = scanner.ScanRange
 		spec.ScanRangePen = scanner.ScanRangePen
 	}
+
 	return &spec
 }
 
@@ -487,7 +491,7 @@ func (planet *Planet) buildItems(player *Player, item ProductionQueueItem, numBu
 		fallthrough
 	case QueueItemTypeDefenses:
 		planet.Defenses += numBuilt
-		messager.factoriesBuilt(player, planet, numBuilt)
+		messager.defensesBuilt(player, planet, numBuilt)
 	}
 }
 

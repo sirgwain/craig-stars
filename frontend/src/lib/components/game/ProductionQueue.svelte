@@ -1,10 +1,9 @@
 <script lang="ts">
 	import { getQuantityModifier } from '$lib/quantityModifier';
-	import { commandedPlanet } from '$lib/services/Context';
+	import { commandedPlanet, player } from '$lib/services/Context';
 	import { PlanetService } from '$lib/services/PlanetService';
 	import type { Cost } from '$lib/types/Cost';
-	import type { GameContext } from '$lib/types/GameContext';
-	import type { Planet, ProductionQueueItem } from '$lib/types/Planet';
+	import type { ProductionQueueItem } from '$lib/types/Planet';
 	import { isAuto, QueueItemType } from '$lib/types/Planet';
 	import {
 		ArrowNarrowDown,
@@ -15,7 +14,7 @@
 	} from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import hotkeys from 'hotkeys-js';
-	import { createEventDispatcher, getContext } from 'svelte';
+	import { createEventDispatcher, onDestroy } from 'svelte';
 	import { $enum as eu } from 'ts-enum-util';
 	import CostComponent from './Cost.svelte';
 
@@ -133,22 +132,25 @@
 		selectedQueueItemIndex = -1;
 	};
 
-	const ok = () => {
-		planet.productionQueue = queueItems;
-		planet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
-		planetService.updatePlanet(planet);
+	const ok = async () => {
+		$commandedPlanet.productionQueue = queueItems;
+		$commandedPlanet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
+		const result = await planetService.updatePlanet($commandedPlanet);
+		commandedPlanet.update((p) => (p = result));
 		dispatch('ok');
 	};
 
 	const cancel = () => {
-		queueItems = planet.productionQueue?.map((item) => ({ ...item } as ProductionQueueItem));
-		contributesOnlyLeftoverToResearch = planet.contributesOnlyLeftoverToResearch;
+		queueItems = $commandedPlanet.productionQueue?.map(
+			(item) => ({ ...item } as ProductionQueueItem)
+		);
+		contributesOnlyLeftoverToResearch = $commandedPlanet.contributesOnlyLeftoverToResearch;
 		dispatch('cancel');
 	};
 
 	const getSelectedItemCost = (): Cost | undefined => {
 		if (player && selectedQueueItem) {
-			const typeCost = player.race.spec.costs[selectedQueueItem.type];
+			const typeCost = $player.race.spec.costs[selectedQueueItem.type];
 			if (typeCost) {
 				return {
 					ironium: (typeCost.ironium ?? 0) * selectedQueueItem.quantity,
@@ -163,27 +165,18 @@
 
 	const getAvailableItemCost = (): Cost | undefined => {
 		if (player && selectedAvailableItem) {
-			return player.race.spec.costs[selectedAvailableItem.type];
+			return $player.race.spec.costs[selectedAvailableItem.type];
 		}
 		return;
 	};
 
-	// clone the production queue for this planet when it's first loaded
-	$: if (planet && queueItems === undefined) {
-		queueItems = planet.productionQueue?.map((item) => ({ ...item } as ProductionQueueItem));
-		availableItems = planetService.getAvailableProductionQueueItems(planet, player);
-
-		selectedAvailableItem = availableItems.length > 0 ? availableItems[0] : selectedAvailableItem;
-		contributesOnlyLeftoverToResearch = planet.contributesOnlyLeftoverToResearch;
-	}
-
 	const dispatch = createEventDispatcher();
 
 	hotkeys('Esc', () => cancel());
-	hotkeys('Enter', () => ok());
+	hotkeys('Enter', () => {
+		ok();
+	});
 
-	export let planet: Planet;
-	const { player } = getContext<GameContext>('game');
 	const planetService = new PlanetService();
 
 	let availableItems: ProductionQueueItem[] | undefined;
@@ -196,6 +189,19 @@
 	let selectedQueueItemIndex = -1;
 	let selectedQueueItem: ProductionQueueItem | undefined;
 	let selectedQueueItemCost = getSelectedItemCost();
+
+	// clone the production queue for this planet when it's first loaded
+	const unsubscribe = commandedPlanet.subscribe((planet) => {
+		queueItems = $commandedPlanet.productionQueue?.map(
+			(item) => ({ ...item } as ProductionQueueItem)
+		);
+		availableItems = planetService.getAvailableProductionQueueItems($commandedPlanet, $player);
+
+		selectedAvailableItem = availableItems.length > 0 ? availableItems[0] : selectedAvailableItem;
+		contributesOnlyLeftoverToResearch = $commandedPlanet.contributesOnlyLeftoverToResearch;
+	});
+
+	onDestroy(() => unsubscribe());
 </script>
 
 {#if queueItems && availableItems}

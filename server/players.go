@@ -154,9 +154,16 @@ func (s *server) UpdatePlanetOrders(c *gin.Context) {
 		return
 	}
 
+	rules, err := s.ctx.DB.FindGameRulesByGameId(planet.GameID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	// copy user modifiable things to the existing planet
 	existing.ContributesOnlyLeftoverToResearch = planet.ContributesOnlyLeftoverToResearch
 	existing.ProductionQueue = planet.ProductionQueue
+	existing.Spec = game.ComputePlanetSpec(rules, existing, player)
 	s.ctx.DB.SavePlanet(existing)
 
 	c.JSON(http.StatusOK, existing)

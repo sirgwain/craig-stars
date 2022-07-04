@@ -210,7 +210,7 @@ func (g *Game) computeSpecs() {
 		planet := &g.Planets[i]
 		if planet.Owned() {
 			player := &g.Players[*planet.PlayerNum]
-			planet.Spec = computePlanetSpec(&g.Rules, planet, player)
+			planet.Spec = ComputePlanetSpec(&g.Rules, planet, player)
 		}
 	}
 }

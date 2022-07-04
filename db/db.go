@@ -39,6 +39,7 @@ type Service interface {
 	GetGamesByUser(userID uint) ([]game.Game, error)
 	FindGameById(id uint) (*game.Game, error)
 	FindGameByIdLight(id uint) (*game.Game, error)
+	FindGameRulesByGameId(gameId uint) (*game.Rules, error)
 	CreateGame(game *game.Game) error
 	SaveGame(game *game.Game) error
 	DeleteGameById(id uint) error
