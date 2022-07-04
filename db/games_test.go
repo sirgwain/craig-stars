@@ -138,7 +138,7 @@ func TestDB_SaveGame(t *testing.T) {
 	assert.Equal(t, pop, loaded.Planets[0].Population())
 	assert.Equal(t, pop, int(loaded.Players[0].PlanetIntels[0].Population))
 	assert.Equal(t, previousItemCount+1, len(loaded.Planets[0].ProductionQueue))
-	
+
 	// make sure our production queue item saved
 	assert.Equal(t, game.QueueItemTypeMine, loaded.Planets[0].ProductionQueue[len(loaded.Planets[0].ProductionQueue)-1].Type)
 	assert.Equal(t, 5, loaded.Planets[0].ProductionQueue[len(loaded.Planets[0].ProductionQueue)-1].Quantity)
@@ -188,11 +188,18 @@ func TestDB_DeleteGameById(t *testing.T) {
 func TestDB_FindGameById(t *testing.T) {
 
 	db := connectDB()
-	g := newRandomGame()
-	g.Name = "Test Game"
-	err := db.CreateGame(g)
 
-	if err != nil {
+	g := game.NewGame()
+	g.AddPlayer(game.NewPlayer(1, game.NewRace()))
+	if err := db.CreateGame(g); err != nil {
+		t.Error(err)
+	}
+
+	if err := g.GenerateUniverse(); err != nil {
+		t.Error(err)
+	}
+
+	if err := db.SaveGame(g); err != nil {
 		t.Error(err)
 	}
 

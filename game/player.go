@@ -29,15 +29,17 @@ type Player struct {
 	Researching           TechField       `json:"researching,omitempty"`
 	BattlePlans           []BattlePlan    `json:"battlePlans,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
 	Messages              []PlayerMessage `json:"messages,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
-	Designs               []*ShipDesign   `json:"designs,omitempty" gorm:"foreignKey:PlayerID;references:ID;->"`
+	Designs               []*ShipDesign   `json:"designs,omitempty" gorm:"foreignKey:PlayerID;references:ID"`
 	Fleets                []Fleet         `json:"fleets,omitempty" gorm:"foreignKey:PlayerID;references:ID"`
 	Planets               []Planet        `json:"planets,omitempty" gorm:"foreignKey:PlayerID;references:ID"`
 	PlanetIntels          []PlanetIntel   `json:"planetIntels,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
 	Spec                  *PlayerSpec     `json:"spec,omitempty" gorm:"serializer:json"`
+	LeftoverResources     int             `json:"-" gorm:"-"`
 }
 
 type PlayerSpec struct {
-	PlanetaryScanner TechPlanetaryScanner `json:"planetaryScanner"`
+	PlanetaryScanner  TechPlanetaryScanner `json:"planetaryScanner"`
+	ResourcesLeftover int                  `json:"resourcesAvailable,omitempty"`
 }
 
 type BattlePlan struct {
@@ -137,7 +139,8 @@ func (p *Player) GetDesign(name string) *ShipDesign {
 func computePlayerSpec(player *Player, rules *Rules) *PlayerSpec {
 	techs := rules.Techs
 	spec := PlayerSpec{
-		PlanetaryScanner: *techs.GetBestPlanetaryScanner(player),
+		PlanetaryScanner:  *techs.GetBestPlanetaryScanner(player),
+		ResourcesLeftover: 0,
 	}
 
 	return &spec

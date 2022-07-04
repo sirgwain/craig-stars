@@ -10,6 +10,8 @@ func generateTurn(game *Game) error {
 
 	for i := range game.Players {
 		player := &game.Players[i]
+		player.Messages = []PlayerMessage{}
+		player.LeftoverResources = 0
 		player.Spec = computePlayerSpec(player, &game.Rules)
 		playerScan(game, player)
 	}
@@ -47,6 +49,12 @@ func mine(game *Game) {
 }
 
 func produce(game *Game) {
+	for i := range game.Planets {
+		planet := &game.Planets[i]
+		if planet.Owned() && len(planet.ProductionQueue) > 0 {
+			planet.produce(game)
+		}
+	}
 }
 
 func research(game *Game) {
