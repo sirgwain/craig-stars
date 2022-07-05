@@ -65,9 +65,11 @@
 		<span>Route to</span>
 		<span>{''}</span>
 	</div>
-	<div class="justify-center">
-		<button on:click={change} class="btn btn-sm">Change</button>
-		<button on:click={clear} class="btn btn-sm">Clear</button>
-		<button class="btn btn-sm">Route</button>
+	<div class="flex justify-between">
+		<button on:click={change} class="btn btn-outline btn-sm normal-case btn-secondary"
+			>Change</button
+		>
+		<button on:click={clear} class="btn btn-outline btn-sm normal-case btn-secondary">Clear</button>
+		<button class="btn btn-outline btn-sm normal-case btn-secondary">Route</button>
 	</div>
 </CommandTile>

@@ -41,7 +41,7 @@ type GameSettings struct {
 type Game struct {
 	ID                           uint              `gorm:"primaryKey" json:"id" header:"Name"`
 	CreatedAt                    time.Time         `json:"createdAt"`
-	UpdatedAt                    time.Time         `json:"updatedat"`
+	UpdatedAt                    time.Time         `json:"updatedAt"`
 	DeletedAt                    gorm.DeletedAt    `gorm:"index" json:"deletedAt"`
 	Name                         string            `json:"name" header:"Name"`
 	HostID                       uint              `json:"hostId"`

@@ -171,6 +171,7 @@ func generatePlayerHomeworlds(game *Game, area Vector) error {
 				}
 			}
 
+			messager.longMessage(player)
 		}
 	}
 

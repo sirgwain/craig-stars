@@ -10,7 +10,7 @@ import (
 type ShipDesign struct {
 	ID        uint              `gorm:"primaryKey" json:"id" header:"Username"`
 	CreatedAt time.Time         `json:"createdAt"`
-	UpdatedAt time.Time         `json:"updatedat"`
+	UpdatedAt time.Time         `json:"updatedAt"`
 	DeletedAt gorm.DeletedAt    `gorm:"index" json:"deletedAt"`
 	GameID    uint              `json:"gameId"`
 	PlayerID  uint              `json:"playerId"`
@@ -114,8 +114,8 @@ func ComputeShipDesignSpec(rules *Rules, player *Player, design *ShipDesign) *Sh
 		TorpedoInaccuracyFactor: 1,
 		ImmuneToOwnDetonation:   hull.ImmuneToOwnDetonation,
 		RepairBonus:             hull.RepairBonus,
-		ScanRange: NoScanner,
-		ScanRangePen: NoScanner,
+		ScanRange:               NoScanner,
+		ScanRangePen:            NoScanner,
 	}
 
 	numTachyonDetectors := 0

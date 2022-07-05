@@ -60,7 +60,7 @@ type PlayerSpec struct {
 type BattlePlan struct {
 	ID              uint             `gorm:"primaryKey" json:"id" header:"Username"`
 	CreatedAt       time.Time        `json:"createdAt"`
-	UpdatedAt       time.Time        `json:"updatedat"`
+	UpdatedAt       time.Time        `json:"updatedAt"`
 	DeletedAt       gorm.DeletedAt   `gorm:"index" json:"deletedAt"`
 	PlayerID        uint             `json:"playerId"`
 	Name            string           `json:"name"`

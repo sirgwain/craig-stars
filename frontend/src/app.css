@@ -3,17 +3,16 @@
 @tailwind utilities;
 
 @layer components {
-  .btn {
-      @apply normal-case;    
-  }
-    .text-ironium {
-      @apply text-[#0960ff]
-    }
-    .text-boranium {
-      @apply text-[#08810a]
-    }
-    .text-germanium {
-      @apply text-[#feff00]
-    }
-  }
-  
+	.btn-default {
+		@apply btn-outline btn-sm normal-case;
+	}
+	.text-ironium {
+		@apply text-[#0960ff];
+	}
+	.text-boranium {
+		@apply text-[#08810a];
+	}
+	.text-germanium {
+		@apply text-[#feff00];
+	}
+}

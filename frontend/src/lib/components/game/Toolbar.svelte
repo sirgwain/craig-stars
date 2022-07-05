@@ -16,7 +16,7 @@
 		</div>
 		<div class="flux-1 grow">
 			<div class="dropdown dropdown-hover">
-				<label for="reports" tabindex="0" class="btn">Reports</label>
+				<label for="reports" tabindex="0" class="btn btn-outline btn-secondary">Reports</label>
 				<ul
 					id="reports"
 					tabindex="0"

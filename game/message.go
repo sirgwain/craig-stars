@@ -10,12 +10,12 @@ import (
 type PlayerMessage struct {
 	ID         uint                    `gorm:"primaryKey" json:"id" header:"Username"`
 	CreatedAt  time.Time               `json:"createdAt"`
-	UpdatedAt  time.Time               `json:"updatedat"`
+	UpdatedAt  time.Time               `json:"updatedAt"`
 	DeletedAt  gorm.DeletedAt          `gorm:"index" json:"deletedAt"`
 	PlayerID   uint                    `json:"playerId"`
 	Type       PlayerMessageType       `json:"type,omitempty"`
 	Text       string                  `json:"text,omitempty"`
-	TargetID   uint                    `json:"targetID,omitempty"`
+	TargetID   uint                    `json:"targetId,omitempty"`
 	TargetType PlayerMessageTargetType `json:"targetType,omitempty"`
 }
 
@@ -101,6 +101,11 @@ var messager = messageClient{}
 func (m *messageClient) homePlanet(player *Player, planet *Planet) {
 	text := fmt.Sprintf("Your home planet is %s. Your people are ready to leave the nest and explore the universe.  Good luck.", planet.Name)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageHomePlanet, Text: text, TargetType: TargetPlanet, TargetID: planet.ID})
+}
+
+func (m *messageClient) longMessage(player *Player) {
+	text := fmt.Sprintf("Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.")
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageHomePlanet, Text: text})
 }
 
 func (m *messageClient) minesBuilt(player *Player, planet *Planet, num int) {

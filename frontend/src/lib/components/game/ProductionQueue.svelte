@@ -237,27 +237,37 @@
 					</div>
 					<div class="flex-none h-full mx-0.5 w-32 px-1">
 						<div class="flex-row gap-y-2">
-							<button on:click={() => addAvailableItem()} class="btn btn-sm block w-full"
+							<button
+								on:click={() => addAvailableItem()}
+								class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
 								>Add <Icon
 									src={ArrowNarrowRight}
 									size="16"
 									class="hover:stroke-accent inline"
 								/></button
 							>
-							<button on:click={removeItem} class="btn btn-sm block w-full"
+							<button
+								on:click={removeItem}
+								class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
 								><Icon src={ArrowNarrowLeft} size="16" class="hover:stroke-accent inline" /> Remove
 							</button>
-							<button on:click={itemUp} class="btn btn-sm block w-full"
+							<button
+								on:click={itemUp}
+								class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
 								>Item Up <Icon src={ArrowNarrowUp} size="16" class="hover:stroke-accent inline" />
 							</button>
-							<button on:click={itemDown} class="btn btn-sm block w-full"
+							<button
+								on:click={itemDown}
+								class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
 								>Item Down <Icon
 									src={ArrowNarrowDown}
 									size="16"
 									class="hover:stroke-accent inline"
 								/>
 							</button>
-							<button on:click={clear} class="btn btn-sm block w-full"
+							<button
+								on:click={clear}
+								class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
 								>Clear <Icon src={XCircle} size="16" class="hover:stroke-accent inline" />
 							</button>
 						</div>

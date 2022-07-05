@@ -43,7 +43,7 @@ const (
 type Tech struct {
 	ID           uint             `gorm:"primaryKey" json:"id" header:"Username"`
 	CreatedAt    time.Time        `json:"createdAt"`
-	UpdatedAt    time.Time        `json:"updatedat"`
+	UpdatedAt    time.Time        `json:"updatedAt"`
 	DeletedAt    gorm.DeletedAt   `gorm:"index" json:"deletedAt"`
 	TechStoreID  uint             `json:"techStoreId"`
 	Name         string           `json:"name"`
@@ -225,13 +225,13 @@ func NewTech(name string, cost Cost, requirements TechRequirements, ranking int,
 	}
 }
 
-func (t *Tech) String() string { return t.Name }
-func (t *TechHull) String() string { return t.Name }
-func (t *TechHullComponent) String() string { return t.Name }
-func (t *TechEngine) String() string { return t.Name }
+func (t *Tech) String() string                 { return t.Name }
+func (t *TechHull) String() string             { return t.Name }
+func (t *TechHullComponent) String() string    { return t.Name }
+func (t *TechEngine) String() string           { return t.Name }
 func (t *TechPlanetaryScanner) String() string { return t.Name }
-func (t *TechDefense) String() string { return t.Name }
-func (t *TechTerraform) String() string { return t.Name }
+func (t *TechDefense) String() string          { return t.Name }
+func (t *TechTerraform) String() string        { return t.Name }
 
 func (t *Tech) GetPlayerCost(player *Player) Cost {
 	// figure out miniaturization
