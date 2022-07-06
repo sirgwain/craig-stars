@@ -8,21 +8,23 @@ import (
 )
 
 type ShipDesign struct {
-	ID        uint              `gorm:"primaryKey" json:"id" header:"Username"`
-	CreatedAt time.Time         `json:"createdAt"`
-	UpdatedAt time.Time         `json:"updatedAt"`
-	DeletedAt gorm.DeletedAt    `gorm:"index" json:"deletedAt"`
-	GameID    uint              `json:"gameId"`
-	PlayerID  uint              `json:"playerId"`
-	PlayerNum int               `json:"playerNum"`
-	Dirty     bool              `json:"-"`
-	Name      string            `json:"name"`
-	Version   int               `json:"version"`
-	Hull      string            `json:"hull"`
-	Armor     int               `json:"armor"`
-	Slots     []ShipDesignSlot  `json:"slots" gorm:"serializer:json"`
-	Purpose   ShipDesignPurpose `json:"purpose,omitempty"`
-	Spec      *ShipDesignSpec   `json:"spec" gorm:"serializer:json"`
+	ID            uint              `gorm:"primaryKey" json:"id" header:"Username"`
+	CreatedAt     time.Time         `json:"createdAt"`
+	UpdatedAt     time.Time         `json:"updatedAt"`
+	DeletedAt     gorm.DeletedAt    `gorm:"index" json:"deletedAt"`
+	GameID        uint              `json:"gameId"`
+	PlayerID      uint              `json:"playerId"`
+	PlayerNum     int               `json:"playerNum"`
+	Dirty         bool              `json:"-"`
+	Name          string            `json:"name"`
+	Version       int               `json:"version"`
+	Hull          string            `json:"hull"`
+	Armor         int               `json:"armor"`
+	HullSetNumber int               `json:"hullSetNumber"`
+	CanDelete     bool              `json:"canDelete,omitempty"`
+	Slots         []ShipDesignSlot  `json:"slots" gorm:"serializer:json"`
+	Purpose       ShipDesignPurpose `json:"purpose,omitempty"`
+	Spec          *ShipDesignSpec   `json:"spec" gorm:"serializer:json"`
 }
 
 type ShipDesignSlot struct {
@@ -98,7 +100,24 @@ const (
 )
 
 func NewShipDesign(player *Player) *ShipDesign {
-	return &ShipDesign{GameID: player.GameID, PlayerID: player.ID, PlayerNum: player.Num, Dirty: true}
+	return &ShipDesign{GameID: player.GameID, PlayerID: player.ID, PlayerNum: player.Num, Dirty: true, Slots: []ShipDesignSlot{}}
+}
+
+func (sd *ShipDesign) WithName(name string) *ShipDesign {
+	sd.Name = name
+	return sd
+}
+func (sd *ShipDesign) WithHull(hull string) *ShipDesign {
+	sd.Hull = hull
+	return sd
+}
+func (sd *ShipDesign) WithPurpose(purpose ShipDesignPurpose) *ShipDesign {
+	sd.Purpose = purpose
+	return sd
+}
+func (sd *ShipDesign) WithHullSetNumber(num int) *ShipDesign {
+	sd.HullSetNumber = num
+	return sd
 }
 
 func ComputeShipDesignSpec(rules *Rules, player *Player, design *ShipDesign) *ShipDesignSpec {
@@ -291,7 +310,7 @@ func (spec *ShipDesignSpec) ComputeScanRanges(rules *Rules, player *Player, desi
 
 func designShip(techStore *TechStore, hull *TechHull, name string, player *Player, hullSetNumber int, purpose ShipDesignPurpose) *ShipDesign {
 
-	design := ShipDesign{Name: name, PlayerID: player.ID, PlayerNum: player.Num, Hull: hull.Name, Dirty: true}
+	design := NewShipDesign(player).WithName(name).WithHull(hull.Name)
 
 	engine := techStore.GetBestEngine(player)
 	scanner := techStore.GetBestScanner(player)
@@ -313,5 +332,5 @@ func designShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 		}
 	}
 
-	return &design
+	return design
 }

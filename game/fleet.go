@@ -135,7 +135,7 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) *FleetSpec {
 
 		// spec all mine layers in the fleet
 		if token.Design.Spec.CanLayMines {
-			for key, _ := range token.Design.Spec.MineLayingRateByMineType {
+			for key := range token.Design.Spec.MineLayingRateByMineType {
 				if _, ok := spec.MineLayingRateByMineType[key]; ok {
 					spec.MineLayingRateByMineType[key] = 0
 				}

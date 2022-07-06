@@ -1,21 +1,19 @@
 package db
 
 import (
-	"os"
 	"reflect"
 	"testing"
 
-	"github.com/goccy/go-json"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/config"
 	"github.com/sirgwain/craig-stars/game"
+	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
 )
 
 func connectDB() *DB {
 	db := &DB{}
 	cfg := &config.Config{}
+	// cfg.Database.Filename = "../tmp/test-data.db"
 	cfg.Database.Filename = ":memory:"
 	db.Connect(cfg)
 	db.MigrateAll()
@@ -29,33 +27,6 @@ func newRandomGame() *game.Game {
 	g.AddPlayer(game.NewPlayer(1, game.NewRace()))
 	g.GenerateUniverse()
 	return g
-}
-
-func compareAsJSON(t *testing.T, got *game.Game, want *game.Game) bool {
-	if got == nil && want == nil {
-		return true
-	} else if got == nil && want != nil || got != nil && want == nil {
-		return false
-	} else {
-		json1, err := json.MarshalIndent(got, "", "  ")
-		if err != nil {
-			t.Errorf("Failed to compare %s, error = %v", got, err)
-		}
-		json2, err := json.MarshalIndent(want, "", "  ")
-		if err != nil {
-			t.Errorf("Failed to compare %s, error = %v", want, err)
-		}
-
-		if string(json1) != string(json2) {
-			log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-			zerolog.SetGlobalLevel(zerolog.DebugLevel)
-			log.Debug().Msgf("\n\ngot: %s\n", string(json1))
-			log.Debug().Msgf("\n\nwant: %s\n", string(json2))
-			return false
-		} else {
-			return true
-		}
-	}
 }
 
 func TestDB_GetGames(t *testing.T) {
@@ -220,7 +191,7 @@ func TestDB_FindGameById(t *testing.T) {
 				return
 			}
 			if got != nil || tt.want != nil {
-				if !compareAsJSON(t, got, tt.want) {
+				if !test.CompareAsJSON(t, got, tt.want) {
 					t.Errorf("DB.FindGameById() = %v, want %v", got, tt.want)
 				}
 			}

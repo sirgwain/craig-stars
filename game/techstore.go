@@ -14,19 +14,20 @@ const NoGate = -1
 const InfinteGate = math.MaxInt
 
 type TechStore struct {
-	ID                   uint                          `gorm:"primaryKey" json:"id" header:"Username"`
-	CreatedAt            time.Time                     `json:"createdAt"`
-	UpdatedAt            time.Time                     `json:"updatedAt"`
-	DeletedAt            gorm.DeletedAt                `gorm:"index" json:"deletedAt"`
-	RulesID              uint                          `json:"rulesId"`
-	Engines              []TechEngine                  `json:"engines"`
-	PlanetaryScanners    []TechPlanetaryScanner        `json:"planetaryScanners"`
-	Defenses             []TechDefense                 `json:"defenses"`
-	HullComponents       []TechHullComponent           `json:"hullComponents"`
-	Hulls                []TechHull                    `json:"hulls,omitempty"`
-	HullComponentsByName map[string]*TechHullComponent `json:"-" gorm:"-"`
-	HullsByName          map[string]*TechHull          `json:"-" gorm:"-"`
-	EnginesByName        map[string]*TechEngine        `json:"-" gorm:"-"`
+	ID                       uint                                  `gorm:"primaryKey" json:"id" header:"Username"`
+	CreatedAt                time.Time                             `json:"createdAt"`
+	UpdatedAt                time.Time                             `json:"updatedAt"`
+	DeletedAt                gorm.DeletedAt                        `gorm:"index" json:"deletedAt"`
+	RulesID                  uint                                  `json:"rulesId"`
+	Engines                  []TechEngine                          `json:"engines"`
+	PlanetaryScanners        []TechPlanetaryScanner                `json:"planetaryScanners"`
+	Defenses                 []TechDefense                         `json:"defenses"`
+	HullComponents           []TechHullComponent                   `json:"hullComponents"`
+	Hulls                    []TechHull                            `json:"hulls,omitempty"`
+	HullComponentsByName     map[string]*TechHullComponent         `json:"-" gorm:"-"`
+	HullsByName              map[string]*TechHull                  `json:"-" gorm:"-"`
+	EnginesByName            map[string]*TechEngine                `json:"-" gorm:"-"`
+	HullComponetnsByCategory map[TechCategory][]*TechHullComponent `json:"-" gorm:"-"`
 }
 
 // simple static tech store
@@ -50,6 +51,7 @@ type TechFinder interface {
 	GetEngine(name string) *TechEngine
 	GetHull(name string) *TechHull
 	GetHullComponent(name string) *TechHullComponent
+	GetHullComponentsByCategory(category TechCategory) []TechHullComponent
 }
 
 func NewTechStore() TechFinder {
@@ -63,6 +65,7 @@ func (store *TechStore) Init() {
 	store.HullsByName = make(map[string]*TechHull, len(store.Hulls))
 	store.EnginesByName = make(map[string]*TechEngine, len(store.Engines))
 	store.HullComponentsByName = make(map[string]*TechHullComponent, len(store.Engines)+len(store.HullComponents))
+	store.HullComponetnsByCategory = map[TechCategory][]*TechHullComponent{}
 
 	for i := range store.Hulls {
 		tech := &store.Hulls[i]
@@ -78,6 +81,11 @@ func (store *TechStore) Init() {
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		store.HullComponentsByName[tech.Name] = tech
+
+		if _, ok := store.HullComponetnsByCategory[tech.Category]; !ok {
+			store.HullComponetnsByCategory[tech.Category] = []*TechHullComponent{}
+		}
+		store.HullComponetnsByCategory[tech.Category] = append(store.HullComponetnsByCategory[tech.Category], tech)
 	}
 
 }
@@ -92,6 +100,18 @@ func (store *TechStore) GetHull(name string) *TechHull {
 
 func (store *TechStore) GetHullComponent(name string) *TechHullComponent {
 	return store.HullComponentsByName[name]
+}
+
+// get all techs by category
+func (store *TechStore) GetHullComponentsByCategory(category TechCategory) []TechHullComponent {
+	techs := []TechHullComponent{}
+	for _, tech := range store.HullComponents {
+		if tech.Category == category {
+			techs = append(techs, tech)
+		}
+	}
+
+	return techs
 }
 
 // get the best planetary scanner for a player
@@ -1960,10 +1980,10 @@ var OrbitalFort = TechHull{Tech: NewTech("Orbital Fort", NewCost(24, 0, 34, 80),
 	RepairBonus:             .03, // 8% total repair rate
 	Slots: []TechHullSlot{
 		{Type: HullSlotTypeOrbitalElectrical, Capacity: 1},
-		{Type: HullSlotTypeWeapon, Capacity: 2},
-		{Type: HullSlotTypeShieldArmor, Capacity: 2},
-		{Type: HullSlotTypeWeapon, Capacity: 2},
-		{Type: HullSlotTypeShieldArmor, Capacity: 2},
+		{Type: HullSlotTypeWeapon, Capacity: 12},
+		{Type: HullSlotTypeShieldArmor, Capacity: 12},
+		{Type: HullSlotTypeWeapon, Capacity: 12},
+		{Type: HullSlotTypeShieldArmor, Capacity: 12},
 	},
 }
 var SpaceStation = TechHull{Tech: NewTech("Space Station", NewCost(120, 80, 250, 600), TechRequirements{TechLevel: TechLevel{}}, 20, TechCategoryStarbaseHull),
@@ -1976,17 +1996,17 @@ var SpaceStation = TechHull{Tech: NewTech("Space Station", NewCost(120, 80, 250,
 	RepairBonus: .15, // 20% total repair rate
 	Slots: []TechHullSlot{
 		{Type: HullSlotTypeOrbitalElectrical, Capacity: 1},
-		{Type: HullSlotTypeWeapon, Capacity: 6},
-		{Type: HullSlotTypeShield, Capacity: 6},
-		{Type: HullSlotTypeWeapon, Capacity: 6},
-		{Type: HullSlotTypeShieldArmor, Capacity: 6},
-		{Type: HullSlotTypeShield, Capacity: 6},
+		{Type: HullSlotTypeWeapon, Capacity: 16},
+		{Type: HullSlotTypeShield, Capacity: 16},
+		{Type: HullSlotTypeWeapon, Capacity: 16},
+		{Type: HullSlotTypeShieldArmor, Capacity: 16},
+		{Type: HullSlotTypeShield, Capacity: 16},
 		{Type: HullSlotTypeElectrical, Capacity: 3},
-		{Type: HullSlotTypeWeapon, Capacity: 6},
+		{Type: HullSlotTypeWeapon, Capacity: 16},
 		{Type: HullSlotTypeElectrical, Capacity: 3},
-		{Type: HullSlotTypeWeapon, Capacity: 6},
+		{Type: HullSlotTypeWeapon, Capacity: 16},
 		{Type: HullSlotTypeOrbitalElectrical, Capacity: 1},
-		{Type: HullSlotTypeShieldArmor, Capacity: 6},
+		{Type: HullSlotTypeShieldArmor, Capacity: 16},
 	},
 }
 var UltraStation = TechHull{Tech: NewTech("Ultra Station", NewCost(120, 80, 300, 600), TechRequirements{TechLevel: TechLevel{Construction: 12}, LRTsRequired: ISB}, 30, TechCategoryStarbaseHull),
@@ -1999,21 +2019,21 @@ var UltraStation = TechHull{Tech: NewTech("Ultra Station", NewCost(120, 80, 300,
 	InnateScanRangePenFactor: .5,  // AR races get half innate scanning range for pen scanning
 	Slots: []TechHullSlot{
 		{Type: HullSlotTypeOrbitalElectrical, Capacity: 1},
-		{Type: HullSlotTypeWeapon, Capacity: 6},
+		{Type: HullSlotTypeWeapon, Capacity: 16},
 		{Type: HullSlotTypeElectrical, Capacity: 3},
 		{Type: HullSlotTypeWeapon, Capacity: 6},
-		{Type: HullSlotTypeShield, Capacity: 0},
-		{Type: HullSlotTypeShield, Capacity: 0},
+		{Type: HullSlotTypeShield, Capacity: 20},
+		{Type: HullSlotTypeShield, Capacity: 20},
 		{Type: HullSlotTypeElectrical, Capacity: 3},
-		{Type: HullSlotTypeWeapon, Capacity: 6},
+		{Type: HullSlotTypeWeapon, Capacity: 16},
 		{Type: HullSlotTypeElectrical, Capacity: 3},
-		{Type: HullSlotTypeWeapon, Capacity: 6},
+		{Type: HullSlotTypeWeapon, Capacity: 16},
 		{Type: HullSlotTypeOrbitalElectrical, Capacity: 1},
-		{Type: HullSlotTypeShieldArmor, Capacity: 0},
-		{Type: HullSlotTypeWeapon, Capacity: 6},
-		{Type: HullSlotTypeShieldArmor, Capacity: 0},
+		{Type: HullSlotTypeShieldArmor, Capacity: 20},
+		{Type: HullSlotTypeWeapon, Capacity: 16},
+		{Type: HullSlotTypeShieldArmor, Capacity: 20},
 		{Type: HullSlotTypeElectrical, Capacity: 3},
-		{Type: HullSlotTypeWeapon, Capacity: 6},
+		{Type: HullSlotTypeWeapon, Capacity: 16},
 	},
 }
 var DeathStar = TechHull{Tech: NewTech("Death Star", NewCost(120, 80, 350, 750), TechRequirements{TechLevel: TechLevel{Construction: 17}, PRTRequired: AR}, 40, TechCategoryStarbaseHull),
@@ -2026,21 +2046,21 @@ var DeathStar = TechHull{Tech: NewTech("Death Star", NewCost(120, 80, 350, 750),
 	InnateScanRangePenFactor: .5,  // AR races get half innate scanning range for pen scanning
 	Slots: []TechHullSlot{
 		{Type: HullSlotTypeOrbitalElectrical, Capacity: 1},
-		{Type: HullSlotTypeWeapon, Capacity: 2},
+		{Type: HullSlotTypeWeapon, Capacity: 32},
 		{Type: HullSlotTypeElectrical, Capacity: 4},
 		{Type: HullSlotTypeElectrical, Capacity: 4},
-		{Type: HullSlotTypeShield, Capacity: 0},
-		{Type: HullSlotTypeShield, Capacity: 0},
+		{Type: HullSlotTypeShield, Capacity: 20},
+		{Type: HullSlotTypeShield, Capacity: 20},
 		{Type: HullSlotTypeElectrical, Capacity: 4},
-		{Type: HullSlotTypeWeapon, Capacity: 2},
+		{Type: HullSlotTypeWeapon, Capacity: 32},
 		{Type: HullSlotTypeElectrical, Capacity: 4},
-		{Type: HullSlotTypeWeapon, Capacity: 2},
+		{Type: HullSlotTypeWeapon, Capacity: 32},
 		{Type: HullSlotTypeOrbitalElectrical, Capacity: 1},
-		{Type: HullSlotTypeShieldArmor, Capacity: 0},
+		{Type: HullSlotTypeShieldArmor, Capacity: 20},
 		{Type: HullSlotTypeElectrical, Capacity: 4},
-		{Type: HullSlotTypeShieldArmor, Capacity: 0},
+		{Type: HullSlotTypeShieldArmor, Capacity: 20},
 		{Type: HullSlotTypeElectrical, Capacity: 4},
-		{Type: HullSlotTypeWeapon, Capacity: 2},
+		{Type: HullSlotTypeWeapon, Capacity: 32},
 	},
 }
 

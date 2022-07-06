@@ -1,11 +1,11 @@
 import type { Vector } from './Vector';
 
 export interface MapObject {
-	id: number;
-	createdAt: string;
-	updatedat: string;
-	deletedAt: null;
-	gameId: number;
+	id?: number;
+	createdAt?: string;
+	updatedat?: string;
+	deletedAt?: null;
+	gameId?: number;
 	position: Vector;
 	name: string;
 	num: number;

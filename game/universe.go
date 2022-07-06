@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/rs/zerolog/log"
 )
@@ -94,6 +95,11 @@ func generatePlayerShipDesigns(game *Game) {
 			design.Spec = ComputeShipDesignSpec(&game.Rules, player, design)
 			player.Designs = append(player.Designs, design)
 		}
+
+		for _, design := range getStartingStarbaseDesigns(game.Rules.Techs, player) {
+			design.Spec = ComputeShipDesignSpec(&game.Rules, player, &design)
+			player.Designs = append(player.Designs, &design)
+		}
 	}
 
 }
@@ -115,7 +121,7 @@ func generatePlayerPlanetReports(game *Game) error {
 
 func generatePlayerHomeworlds(game *Game, area Vector) error {
 
-	ownedPlanets := []Planet{}
+	ownedPlanets := []*Planet{}
 	rules := game.Rules
 	random := game.Rules.Random
 
@@ -152,7 +158,8 @@ func generatePlayerHomeworlds(game *Game, area Vector) error {
 				return fmt.Errorf("failed to find homeworld for player %v among %d planets", player, len(game.Planets))
 			}
 
-			ownedPlanets = append(ownedPlanets, *playerPlanet)
+			ownedPlanets = append(ownedPlanets, playerPlanet)
+			player.Planets = append(player.Planets, playerPlanet)
 
 			if startingPlanetIndex == 0 {
 				// first planet is a homeworld
@@ -196,4 +203,90 @@ func generatePlayerFleets(game *Game, player *Player, planet *Planet, fleetNum *
 
 func applyGameStartModeModifier(game *Game) {
 
+}
+
+// get the initial starbase designs for a player
+func getStartingStarbaseDesigns(techStore *TechStore, player *Player) []ShipDesign {
+	designs := []ShipDesign{}
+
+	if player.Race.Spec.LivesOnStarbases {
+		// create a starter colony for AR races
+		starterColony := NewShipDesign(player).
+			WithName("Starter Colony").
+			WithHull(OrbitalFort.Name).
+			WithPurpose(ShipDesignPurposeStarterColony).
+			WithHullSetNumber(player.DefaultHullSet)
+		starterColony.CanDelete = false
+		designs = append(designs, *starterColony)
+	}
+
+	starbase := NewShipDesign(player).
+		WithName("Starbase").
+		WithHull(SpaceStation.Name).
+		WithPurpose(ShipDesignPurposeStarbase).
+		WithHullSetNumber(player.DefaultHullSet)
+
+	startingPlanets := player.Race.Spec.StartingPlanets
+
+	fillStarbaseSlots(techStore, starbase, &player.Race, startingPlanets[0])
+	designs = append(designs, *starbase)
+
+	// add an orbital fort for players that start with extra planets
+	if len(startingPlanets) > 1 {
+		fort := NewShipDesign(player).
+			WithName("Accelerator Platform").
+			WithHull(OrbitalFort.Name).
+			WithPurpose(ShipDesignPurposeFort).
+			WithHullSetNumber(player.DefaultHullSet)
+		// TODO: Do we want to support a PRT that includes more than 2 planets but only some of them with
+		// stargates?
+		fillStarbaseSlots(techStore, fort, &player.Race, startingPlanets[1])
+		designs = append(designs, *fort)
+
+	}
+
+	return designs
+}
+
+// Player starting starbases are all the same, regardless of starting tech level
+// They get half filled with the starter beam, shield, and armor
+func fillStarbaseSlots(techStore *TechStore, starbase *ShipDesign, race *Race, startingPlanet StartingPlanet) {
+	hull := techStore.GetHull(starbase.Hull)
+	beamWeapon := techStore.GetHullComponentsByCategory(TechCategoryBeamWeapon)[0]
+	shield := techStore.GetHullComponentsByCategory(TechCategoryShield)[0]
+	var massDriver TechHullComponent
+	var stargate TechHullComponent
+	for _, hc := range techStore.GetHullComponentsByCategory(TechCategoryOrbital) {
+		if hc.PacketSpeed > 0 {
+			massDriver = hc
+			break
+		}
+	}
+
+	for _, hc := range techStore.GetHullComponentsByCategory(TechCategoryOrbital) {
+		if hc.SafeRange > 0 {
+			stargate = hc
+			break
+		}
+	}
+
+	placedMassDriver := false
+	placedStargate := false
+	for index, slot := range hull.Slots {
+		switch slot.Type {
+		case HullSlotTypeWeapon:
+			starbase.Slots = append(starbase.Slots, ShipDesignSlot{beamWeapon.Name, index + 1, int(math.Round(float64(slot.Capacity) / 2))})
+		case HullSlotTypeShield:
+			starbase.Slots = append(starbase.Slots, ShipDesignSlot{shield.Name, index + 1, int(math.Round(float64(slot.Capacity) / 2))})
+		case HullSlotTypeOrbital:
+		case HullSlotTypeOrbitalElectrical:
+			if startingPlanet.HasStargate && !placedStargate {
+				starbase.Slots = append(starbase.Slots, ShipDesignSlot{stargate.Name, index + 1, 1})
+				placedStargate = true
+			} else if startingPlanet.HasMassDriver && !placedMassDriver {
+				starbase.Slots = append(starbase.Slots, ShipDesignSlot{massDriver.Name, index + 1, 1})
+				placedMassDriver = true
+			}
+		}
+	}
 }

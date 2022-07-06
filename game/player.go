@@ -31,8 +31,8 @@ type Player struct {
 	BattlePlans           []BattlePlan      `json:"battlePlans,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
 	Messages              []PlayerMessage   `json:"messages,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
 	Designs               []*ShipDesign     `json:"designs,omitempty" gorm:"foreignKey:PlayerID;references:ID"`
-	Fleets                []Fleet           `json:"fleets,omitempty" gorm:"foreignKey:PlayerID;references:ID"`
-	Planets               []Planet          `json:"planets,omitempty" gorm:"foreignKey:PlayerID;references:ID"`
+	Fleets                []*Fleet          `json:"fleets,omitempty" gorm:"foreignKey:PlayerID;references:ID"`
+	Planets               []*Planet         `json:"planets,omitempty" gorm:"foreignKey:PlayerID;references:ID"`
 	PlanetIntels          []PlanetIntel     `json:"planetIntels,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
 	Spec                  *PlayerSpec       `json:"spec,omitempty" gorm:"serializer:json"`
 	LeftoverResources     int               `json:"-" gorm:"-"`
@@ -188,3 +188,5 @@ func (p *Player) CanLearnTech(tech *Tech) bool {
 
 	return true
 }
+
+

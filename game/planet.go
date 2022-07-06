@@ -25,6 +25,7 @@ type Planet struct {
 	Homeworld                         bool                  `json:"homeworld,omitempty"`
 	ContributesOnlyLeftoverToResearch bool                  `json:"contributesOnlyLeftoverToResearch,omitempty"`
 	Scanner                           bool                  `json:"scanner,omitempty"`
+	PacketSpeed                       int                   `json:"packetSpeed,omitempty"`
 	Spec                              *PlanetSpec           `json:"spec,omitempty" gorm:"serializer:json"`
 }
 
@@ -221,10 +222,13 @@ func (p *Planet) initHomeworld(player *Player, rules *Rules, concentration Miner
 	p.ContributesOnlyLeftoverToResearch = true
 	p.Scanner = true
 
-	// TODO
 	// // the homeworld gets a starbase
-	// var design = Game.DesignsByGuid[player.GetLatestDesign(ShipDesignPurpose.Starbase).Guid];
-	// CreateStarbaseOnPlanet(player, planet, design);
+	starbaseDesign := player.GetDesign("Starbase")
+	starbase := NewFleet(player, starbaseDesign, 0, starbaseDesign.Name, []Waypoint{NewPlanetWaypoint(p, 0)})
+	starbase.Spec = ComputeFleetSpec(rules, player, &starbase)
+	// p.Starbase = &starbase
+
+	// p.PacketSpeed = p.Starbase.Spec.SafePacketSpeed
 
 	// // apply the default plan, but remove the terraforming item because our homeworld is perfect
 	// planetService.ApplyProductionPlan(planet.ProductionQueue.Items, player, player.ProductionPlans[0]);
@@ -250,7 +254,7 @@ func (p *Planet) GetInnateMines(player *Player) int {
 	return 0
 }
 
-func (p *Planet) shortestDistanceToPlanets(otherPlanets *[]Planet) float64 {
+func (p *Planet) shortestDistanceToPlanets(otherPlanets *[]*Planet) float64 {
 	minDistanceSquared := math.MaxFloat64
 	for _, planet := range *otherPlanets {
 		distSquared := p.Position.DistanceSquaredTo(&planet.Position)
