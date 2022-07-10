@@ -11,6 +11,10 @@ export class GameService extends Service {
 		return this.get<Game[]>('/api/games/hosted');
 	}
 
+	async loadOpenGames(): Promise<Game[]> {
+		return this.get<Game[]>('/api/games/open');
+	}
+
 	async loadGame(gameId: number): Promise<GameContext> {
 		const response = await fetch(`/api/games/${gameId}`, {
 			method: 'GET',

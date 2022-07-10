@@ -24,7 +24,7 @@ type Service interface {
 	GetUsers() *[]game.User
 	SaveUser(user *game.User) error
 	FindUserById(id uint) (*game.User, error)
-	FindUserByUsername(username string) *game.User
+	FindUserByUsername(username string) (*game.User, error)
 	DeleteUserById(id uint)
 
 	Migrate(item interface{})
@@ -37,6 +37,7 @@ type Service interface {
 	GetGames() ([]game.Game, error)
 	GetGamesHostedByUser(userID uint) ([]game.Game, error)
 	GetGamesByUser(userID uint) ([]game.Game, error)
+	GetOpenGames() ([]game.Game, error)
 	FindGameById(id uint) (*game.Game, error)
 	FindGameByIdLight(id uint) (*game.Game, error)
 	FindGameRulesByGameId(gameId uint) (*game.Rules, error)

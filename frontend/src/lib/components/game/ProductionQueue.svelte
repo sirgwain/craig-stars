@@ -150,7 +150,7 @@
 
 	const getSelectedItemCost = (): Cost | undefined => {
 		if (player && selectedQueueItem) {
-			const typeCost = $player.race.spec.costs[selectedQueueItem.type];
+			const typeCost = $player.race.spec?.costs[selectedQueueItem.type];
 			if (typeCost) {
 				return {
 					ironium: (typeCost.ironium ?? 0) * selectedQueueItem.quantity,
@@ -165,7 +165,7 @@
 
 	const getAvailableItemCost = (): Cost | undefined => {
 		if (player && selectedAvailableItem) {
-			return $player.race.spec.costs[selectedAvailableItem.type];
+			return $player.race.spec?.costs[selectedAvailableItem.type];
 		}
 		return;
 	};

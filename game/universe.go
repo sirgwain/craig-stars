@@ -56,8 +56,8 @@ func generatePlanets(g *Game, area Vector) error {
 		planet.Position = pos
 		planet.Randomize(&g.Rules)
 
-		g.Planets[i] = planet
-		planetsByPosition[pos] = &planet
+		g.Planets[i] = *planet
+		planetsByPosition[pos] = planet
 		occupiedLocations = append(occupiedLocations, pos)
 	}
 

@@ -4,12 +4,12 @@ import type { Race } from './Race';
 import type { ShipDesign } from './ShipDesign';
 
 export interface Player {
-	id: number;
-	createdAt: string;
-	updatedat: string;
-	deletedAt: null;
+	id?: number;
+	createdAt?: string;
+	updatedat?: string;
+	deletedAt?: null;
 	gameId: number;
-	userId: number;
+	userId?: number;
 	num: number;
 	race: Race;
 	ready?: boolean;

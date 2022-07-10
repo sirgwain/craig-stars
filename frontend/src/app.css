@@ -6,6 +6,9 @@
 	.btn-default {
 		@apply btn-outline btn-sm normal-case;
 	}
+	.card-body {
+		@apply text-base;
+	}
 	.text-ironium {
 		@apply text-[#0960ff];
 	}
@@ -33,5 +36,935 @@
 	.germanium-concentration {
 		@apply stroke-[#7f7f00];
 	}
+}
+
+.tech-avatar {
+	width: 64px;
+	height: 64px;
+}
+
+.settlers-delight {
+	background: url(/images/techs02.png) 0 -64px;
+}
+
+.quick-jump-5 {
+	background: url(/images/techs02.png) 0px 0px;
+}
+
+.long-hump-6 {
+	background: url(/images/techs02.png) -64px 0px;
+}
+
+.fuel-mizer {
+	background: url(/images/techs02.png) -64px -64px;
+}
+
+.daddy-long-legs-7 {
+	background: url(/images/techs02.png) -128px 0px;
+}
+
+.alpha-drive-8 {
+	background: url(/images/techs02.png) -192px 0px;
+}
+
+.trans-galactic-drive {
+	background: url(/images/techs02.png) -256px 0px;
+}
+
+.interspace-10 {
+	background: url(/images/techs02.png) -256px -64px;
+}
+
+.trans-star-10 {
+	background: url(/images/techs04.png) -320px -128px;
+}
+
+.radiating-hydro-ram-scoop {
+	background: url(/images/techs02.png) -448px 0px;
+}
+
+.sub-galactic-fuel-scoop {
+	background: url(/images/techs02.png) -320px 0px;
+}
+
+.trans-galactic-fuel-scoop {
+	background: url(/images/techs02.png) -384px 0px;
+}
+
+.trans-galactic-super-scoop {
+	background: url(/images/techs02.png) -128px -64px;
+}
+
+.trans-galactic-mizer-scoop {
+	background: url(/images/techs02.png) -192px -64px;
+}
+
+.galaxy-scoop {
+	background: url(/images/techs06.png) -448px -192px;
+}
+
+.viewer-50 {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.viewer-90 {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.scoper-150 {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.scoper-220 {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.scoper-280 {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.snooper-320-x {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.snooper-400-x {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.snooper-500-x {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.snooper-620-x {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.sdi {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.missile-battery {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.laser-battery {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.planetary-shield {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.neutron-shield {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.stargate-100-250 {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.stargate-100-any {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.stargate-150-600 {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.stargate-300-500 {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.stargateany-300 {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.stargateany-800 {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.stargateany-any {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.mass-driver-5 {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.mass-driver-6 {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.mass-driver-7 {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.super-driver-8 {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.super-driver-9 {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.ultra-driver-10 {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.ultra-driver-11 {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.ultra-driver-12 {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.ultra-driver-13 {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.robo-miner {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.robo-maxi-miner {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.robo-midget-miner {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.robo-mini-miner {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.robo-super-miner {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.robo-ultra-miner {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.orbital-adjuster {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.lady-finger-bomb {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.black-cat-bomb {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.m-70-bomb {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.m-80-bomb {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.cherry-bomb {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.lbu-17-bomb {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.lbu-32-bomb {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.lbu-74-bomb {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.retro-bomb {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.smart-bomb {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.neutron-bomb {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.enriched-neutron-bomb {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.peerless-bomb {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.annihilator-bomb {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.bat-scanner {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.rhino-scanner {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.mole-scanner {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.pick-pocket-scanner {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.possum-scanner {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.dna-scanner {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.chameleon-scanner {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.ferret-scanner {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.rna-scanner {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.gazelle-scanner {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.dolphin-scanner {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.cheetah-scanner {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.eagle-eye-scanner {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.elephant-scanner {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.peerless-scanner {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.robber-baron-scanner {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.tritanium {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.crobmnium {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.carbonic-armor {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.strobnium {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.organic-armor {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.kelarium {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.fielded-kelarium {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.depleted-neutronium {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.neutronium {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.valanium {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.superlatanium {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.transport-cloaking {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.stealth-cloak {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.super-stealth-cloak {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.ultra-stealth-cloak {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.battle-computer {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.battle-super-computer {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.battle-nexus {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.jammer-10 {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.jammer-20 {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.jammer-30 {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.jammer-50 {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.energy-capacitor {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.flux-capacitor {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.energy-dampener {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.tachyon-detector {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.anti-matter-generator {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.mine-dispenser-40 {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.mine-dispenser-50 {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.mine-dispenser-80 {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.mine-dispenser-130 {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.heavy-dispenser-50 {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.heavy-dispenser-110 {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.heavy-dispenser-200 {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.speed-trap-20 {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.speed-trap-30 {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.speed-trap-50 {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.colonization-module {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.orbital-construction-module {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.cargo-pod {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.super-cargo-pod {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.fuel-tank {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.super-fuel-tank {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.maneuvering-jet {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.overthruster {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.beam-deflector {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.laser {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.x-ray-laser {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.mini-gun {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.yakimora-light-phaser {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.blackjack {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.phaser-bazooka {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.pulsed-sapper {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.colloidal-phaser {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.gatling-gun {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.mini-blaster {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.bludgeon {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.mark-iv-blaster {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.phased-sapper {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.heavy-blaster {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.gatling-neutrino-cannon {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.myopic-disruptor {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.blunderbuss {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.disruptor {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.syncro-sapper {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.mega-disruptor {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.big-mutha-cannon {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.streaming-pulverizer {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.anti-matter-pulverizer {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.alpha-torpedo {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.armageddon-missile {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.beta-torpedo {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.delta-torpedo {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.doomsday-missile {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.epsilon-torpedo {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.jihad-missile {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.juggernaut-missile {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.omega-torpedo {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.rho-torpedo {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.upsilon-torpedo {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.mole-skin-shield {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.cow-hide-shield {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.wolverine-diffuse-shield {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.croby-sharmor {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.shadow-shield {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.bear-neutrino-barrier {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.gorilla-delagator {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.elephant-hide-fortress {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.complete-phase-shield {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.small-freighter {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.medium-freighter {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.large-freighter {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.super-freighter {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.scout {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.frigate {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.destroyer {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.cruiser {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.battle-cruiser {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.battleship {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.dreadnought {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.privateer {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.rogue {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.galleon {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.mini-colony-ship {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.colony-ship {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.mini-bomber {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.b-17-bomber {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.stealth-bomber {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.b-52-bomber {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.midget-miner {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.mini-miner {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.miner {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.maxi-miner {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.ultra-miner {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.fuel-transport {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.super-fuel-xport {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.mini-mine-layer {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.super-mine-layer {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.nubian {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.meta-morph {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.orbital-fort {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.space-station {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.ultra-station {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+.death-star {
+	background: url(/images/techs01.png) 0px 0px;
+}
+
+
+
+.total-terraform-3 {
+	background: url(/images/techs06.png) 0px 0px;
+}
+
+
+.total-terraform-5 {
+	background: url(/images/techs06.png) 0px 0px;
+}
+
+
+.total-terraform-7 {
+	background: url(/images/techs06.png) 0px 0px;
+}
+
+
+.total-terraform-10 {
+	background: url(/images/techs06.png) 0px 0px;
+}
+
+
+.total-terraform-15 {
+	background: url(/images/techs06.png) 0px 0px;
+}
+
+
+.total-terraform-20 {
+	background: url(/images/techs06.png) 0px 0px;
+}
+
+
+.total-terraform-25 {
+	background: url(/images/techs06.png) 0px 0px;
+}
+
+
+.total-terraform-30 {
+	background: url(/images/techs06.png) 0px 0px;
+}
+
+
+.gravity-terraform-3 {
+	background: url(/images/techs06.png) 0px 0px;
+}
+
+
+.gravity-terraform-7 {
+	background: url(/images/techs06.png) 0px 0px;
+}
+
+
+.gravity-terraform-11 {
+	background: url(/images/techs06.png) 0px 0px;
+}
+
+
+.gravity-terraform-15 {
+	background: url(/images/techs06.png) 0px 0px;
+}
+
+
+.temp-terraform-3 {
+	background: url(/images/techs06.png) 0px 0px;
+}
+
+
+.temp-terraform-7 {
+	background: url(/images/techs06.png) 0px 0px;
+}
+
+
+.temp-terraform-11 {
+	background: url(/images/techs06.png) 0px 0px;
+}
+
+
+.temp-terraform-15 {
+	background: url(/images/techs06.png) 0px 0px;
+}
+
+
+.radiation-terraform-3 {
+	background: url(/images/techs06.png) 0px 0px;
+}
+
+
+.radiation-terraform-7 {
+	background: url(/images/techs06.png) 0px 0px;
+}
+
+
+.radiation-terraform-11 {
+	background: url(/images/techs06.png) 0px 0px;
+}
+
+
+.radiation-terraform-15 {
+	background: url(/images/techs06.png) 0px 0px;
 }
 

@@ -56,7 +56,11 @@ func (s *server) Login(c *gin.Context) {
 		return
 	}
 
-	user := s.ctx.DB.FindUserByUsername(creds.Username)
+	user, err := s.ctx.DB.FindUserByUsername(creds.Username)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find user"})
+		return
+	}
 
 	// Check for username and password match, usually from a database
 	if user == nil || user.Password != creds.Password {

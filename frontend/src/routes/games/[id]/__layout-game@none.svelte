@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import ProductionQueue from '$lib/components/game/ProductionQueue.svelte';
-	import Toolbar from '$lib/components/game/Toolbar.svelte';
+	import GameMenu from '$lib/components/game/GameMenu.svelte';
 	import { EventManager } from '$lib/EventManager';
 	import { commandPlanet, game, player, selectPlanet } from '$lib/services/Context';
 	import { GameService } from '$lib/services/GameService';
@@ -54,24 +54,20 @@
 </script>
 
 {#if $game && $player}
-	<div class="flex flex-col h-full">
+	<main class="flex flex-col h-screen">
 		<div class="flex-none">
-			<Toolbar on:submit-turn={onSubmitTurn} />
+			<GameMenu on:submit-turn={onSubmitTurn} />
 		</div>
-
-		<div class="flex-1">
-			<div class="flex h-full">
-				<slot />
-			</div>
+		<div class="p-2 flex-1">
+			<slot>Game</slot>
 		</div>
-
-		<div class="modal" class:modal-open={productionQueueDialogOpen}>
-			<div class="modal-box max-w-full max-h-max h-full lg:max-w-[40rem] lg:max-h-[48rem]">
-				<ProductionQueue
-					on:ok={() => (productionQueueDialogOpen = false)}
-					on:cancel={() => (productionQueueDialogOpen = false)}
-				/>
-			</div>
+	</main>
+	<div class="modal" class:modal-open={productionQueueDialogOpen}>
+		<div class="modal-box max-w-full max-h-max h-full lg:max-w-[40rem] lg:max-h-[48rem]">
+			<ProductionQueue
+				on:ok={() => (productionQueueDialogOpen = false)}
+				on:cancel={() => (productionQueueDialogOpen = false)}
+			/>
 		</div>
 	</div>
 {/if}

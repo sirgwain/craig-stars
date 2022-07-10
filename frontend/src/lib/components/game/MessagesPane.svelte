@@ -16,12 +16,12 @@
 </script>
 
 <div
-	class="card bg-base-200 shadow-xl w-[31rem] max-h-fit min-h-fit rounded-sm border-2 border-base-300"
+	class="card bg-base-200 shadow-xl w-[29rem] max-h-fit min-h-fit rounded-sm border-2 border-base-300"
 >
-	<div class="card-body p-4 text-base gap-0">
+	<div class="card-body p-4 gap-0">
 		<div class="flex flex-row items-center">
 			<input type="checkbox" class="flex-none checkbox checkbox-xs" />
-			<div class="flex-1 text-center text-xl font-semibold text-secondary">
+			<div class="flex-1 text-center text-lg font-semibold text-secondary">
 				Year: {$game.year} Message {messageNum + 1} of {$player.messages.length}
 			</div>
 		</div>

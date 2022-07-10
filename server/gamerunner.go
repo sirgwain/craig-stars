@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 
+	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/db"
 	"github.com/sirgwain/craig-stars/game"
 )
@@ -38,16 +39,18 @@ func (gr *GameRunner) HostGame(hostID uint, settings *game.GameSettings) (*game.
 			if race.UserID != hostID {
 				return nil, fmt.Errorf("user %d does not own Race %d", hostID, race.ID)
 			}
+			log.Debug().Uint("hostID", hostID).Msgf("Adding host to game")
 			g.AddPlayer(game.NewPlayer(hostID, race))
+		} else if player.Type == game.NewGamePlayerTypeAI {
+			// g.AddPlayer(game.NewAIPlayer())
+		} else if player.Type == game.NewGamePlayerTypeOpen {
+			g.OpenPlayerSlots++
+			log.Debug().Uint("openPlayerSlots", g.OpenPlayerSlots).Msgf("Added open player slot")
 		}
 	}
 
 	err := gr.db.CreateGame(g)
 	if err != nil {
-		return nil, err
-	}
-
-	if err := gr.GenerateUniverse(g.ID); err != nil {
 		return nil, err
 	}
 

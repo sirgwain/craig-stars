@@ -36,6 +36,16 @@ func (s *server) HostedGames(c *gin.Context) {
 	c.JSON(http.StatusOK, games)
 }
 
+func (s *server) OpenGames(c *gin.Context) {
+	games, err := s.ctx.DB.GetOpenGames()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, games)
+}
+
 func (s *server) PlayerGame(c *gin.Context) {
 	user := s.GetSessionUser(c)
 

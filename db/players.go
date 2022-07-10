@@ -14,6 +14,9 @@ func (db *DB) FindPlayerByGameId(gameID uint, userID uint) (*game.Player, error)
 	if err := db.sqlDB.
 		Preload(clause.Associations).
 		Preload("Designs").
+		Preload("ProductionPlans.Items").
+		Preload("BattlePlans").
+		Preload("TransportPlans").
 		Preload("Fleets", func(db *gorm.DB) *gorm.DB {
 			return db.Order("fleets.num")
 		}).

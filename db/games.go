@@ -37,6 +37,15 @@ func (db *DB) GetGamesHostedByUser(userID uint) ([]game.Game, error) {
 	return games, nil
 }
 
+func (db *DB) GetOpenGames() ([]game.Game, error) {
+	games := []game.Game{}
+	if err := db.sqlDB.Raw("SELECT * from games g WHERE g.state = ? AND g.open_player_slots > 0", game.GameStateSetup).Scan(&games).Error; err != nil {
+		return nil, err
+	}
+
+	return games, nil
+}
+
 func (db *DB) CreateGame(game *game.Game) error {
 	err := db.sqlDB.Omit("Planets", "Fleets", "Players").Create(game).Error
 	if err != nil {
@@ -163,6 +172,8 @@ func (db *DB) FindGameById(id uint) (*game.Game, error) {
 		Preload("Players.Designs").
 		Preload("Players.PlanetIntels").
 		Preload("Players.BattlePlans").
+		Preload("Players.ProductionPlans").
+		Preload("Players.TransportPlans").
 		Preload("Players.Messages").
 		First(&g, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

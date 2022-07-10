@@ -62,7 +62,7 @@
 	let error = '';
 </script>
 
-<div class="prose"><h2>Host New Game</h2></div>
+<h2 class="font-semibold text-xl">Host New Game</h2>
 <form on:submit|preventDefault={onSubmit}>
 	<fieldset name="settings" class="form-control">
 		<label class="label" for="name">Name</label>

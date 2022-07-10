@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Game } from '$lib/types/Game';
-	import { onMount } from 'svelte';
-
+	import { format,parseJSON } from 'date-fns';
+	
 	export let games: Game[];
 
 	$: games &&
@@ -20,7 +20,9 @@
 				{#each games as game}
 					<tr
 						><td>{game.id}</td>
-						<td><a href={`/games/${game.id}`}>{game.name}</a></td><td>{game.createdAt}</td></tr
+						<td><a href={`/games/${game.id}`}>{game.name}</a></td><td
+							>{format(parseJSON(game.createdAt), 'E, MMM do yyyy hh:mm aaa')}</td
+						></tr
 					>
 				{/each}
 			{/if}

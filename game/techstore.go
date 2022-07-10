@@ -11,16 +11,17 @@ const ScanWithZeroRange = 1
 const UnlimitedSpaceDock = -1
 const NoScanner = -1
 const NoGate = -1
-const InfinteGate = math.MaxInt
+const InfinteGate = math.MaxInt32
 
 type TechStore struct {
-	ID                       uint                                  `gorm:"primaryKey" json:"id" header:"Username"`
+	ID                       uint                                  `gorm:"primaryKey" json:"id"`
 	CreatedAt                time.Time                             `json:"createdAt"`
 	UpdatedAt                time.Time                             `json:"updatedAt"`
 	DeletedAt                gorm.DeletedAt                        `gorm:"index" json:"deletedAt"`
 	RulesID                  uint                                  `json:"rulesId"`
 	Engines                  []TechEngine                          `json:"engines"`
 	PlanetaryScanners        []TechPlanetaryScanner                `json:"planetaryScanners"`
+	Terraforms               []TechTerraform                       `json:"terraforms"`
 	Defenses                 []TechDefense                         `json:"defenses"`
 	HullComponents           []TechHullComponent                   `json:"hullComponents"`
 	Hulls                    []TechHull                            `json:"hulls,omitempty"`
@@ -34,6 +35,7 @@ type TechStore struct {
 var StaticTechStore = TechStore{
 	Engines:           TechEngines(),
 	PlanetaryScanners: TechPlanetaryScanners(),
+	Terraforms:        TechTerraforms(),
 	Defenses:          TechDefenses(),
 	HullComponents:    TechHullComponents(),
 	Hulls:             TechHulls(),
@@ -269,7 +271,7 @@ var AlphaDrive8 = TechEngine{
 	},
 }
 var TransGalacticDrive = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Galactic Drive", NewCost(20, 20, 9, 50), TechRequirements{TechLevel: TechLevel{Propulsion: 9}}, 70, TechCategoryEngine), Mass: 25},
+	TechHullComponent: TechHullComponent{Tech: NewTech("Trans-Galactic Drive", NewCost(20, 20, 9, 50), TechRequirements{TechLevel: TechLevel{Propulsion: 9}}, 70, TechCategoryEngine), Mass: 25},
 	IdealSpeed:        9,
 	FuelUsage: [11]int{
 		0,
@@ -428,50 +430,124 @@ var GalaxyScoop = TechEngine{
 	},
 }
 
+// TechTerraforms
+
+var TotalTerraform3 = TechTerraform{Tech: NewTech("Total Terraform ±3", NewCost(0, 0, 0, 70), TechRequirements{TechLevel: TechLevel{}, LRTsRequired: TT}, 0, TechCategoryTerraforming),
+	Ability: 3,
+	HabType: TerraformHabTypeAll,
+}
+var TotalTerraform5 = TechTerraform{Tech: NewTech("Total Terraform ±5", NewCost(0, 0, 0, 70), TechRequirements{TechLevel: TechLevel{Biotechnology: 3}, LRTsRequired: TT}, 10, TechCategoryTerraforming),
+	Ability: 5,
+	HabType: TerraformHabTypeAll,
+}
+var TotalTerraform7 = TechTerraform{Tech: NewTech("Total Terraform ±7", NewCost(0, 0, 0, 70), TechRequirements{TechLevel: TechLevel{Biotechnology: 6}, LRTsRequired: TT}, 20, TechCategoryTerraforming),
+	Ability: 7,
+	HabType: TerraformHabTypeAll,
+}
+var TotalTerraform10 = TechTerraform{Tech: NewTech("Total Terraform ±10", NewCost(0, 0, 0, 70), TechRequirements{TechLevel: TechLevel{Biotechnology: 9}, LRTsRequired: TT}, 30, TechCategoryTerraforming),
+	Ability: 10,
+	HabType: TerraformHabTypeAll,
+}
+var TotalTerraform15 = TechTerraform{Tech: NewTech("Total Terraform ±15", NewCost(0, 0, 0, 70), TechRequirements{TechLevel: TechLevel{Biotechnology: 13}, LRTsRequired: TT}, 40, TechCategoryTerraforming),
+	Ability: 15,
+	HabType: TerraformHabTypeAll,
+}
+var TotalTerraform20 = TechTerraform{Tech: NewTech("Total Terraform ±20", NewCost(0, 0, 0, 70), TechRequirements{TechLevel: TechLevel{Biotechnology: 17}, LRTsRequired: TT}, 50, TechCategoryTerraforming),
+	Ability: 20,
+	HabType: TerraformHabTypeAll,
+}
+var TotalTerraform25 = TechTerraform{Tech: NewTech("Total Terraform ±25", NewCost(0, 0, 0, 70), TechRequirements{TechLevel: TechLevel{Biotechnology: 22}, LRTsRequired: TT}, 60, TechCategoryTerraforming),
+	Ability: 25,
+	HabType: TerraformHabTypeAll,
+}
+var TotalTerraform30 = TechTerraform{Tech: NewTech("Total Terraform ±30", NewCost(0, 0, 0, 70), TechRequirements{TechLevel: TechLevel{Biotechnology: 25}, LRTsRequired: TT}, 70, TechCategoryTerraforming),
+	Ability: 30,
+	HabType: TerraformHabTypeAll,
+}
+var GravityTerraform3 = TechTerraform{Tech: NewTech("Gravity Terraform ±3", NewCost(0, 0, 0, 100), TechRequirements{TechLevel: TechLevel{Propulsion: 1, Biotechnology: 1}}, 80, TechCategoryTerraforming),
+	Ability: 3,
+	HabType: TerraformHabTypeGravity,
+}
+var GravityTerraform7 = TechTerraform{Tech: NewTech("Gravity Terraform ±7", NewCost(0, 0, 0, 100), TechRequirements{TechLevel: TechLevel{Propulsion: 5, Biotechnology: 2}}, 90, TechCategoryTerraforming),
+	Ability: 7,
+	HabType: TerraformHabTypeGravity,
+}
+var GravityTerraform11 = TechTerraform{Tech: NewTech("Gravity Terraform ±11", NewCost(0, 0, 0, 100), TechRequirements{TechLevel: TechLevel{Propulsion: 10, Biotechnology: 3}}, 100, TechCategoryTerraforming),
+	Ability: 11,
+	HabType: TerraformHabTypeGravity,
+}
+var GravityTerraform15 = TechTerraform{Tech: NewTech("Gravity Terraform ±15", NewCost(0, 0, 0, 100), TechRequirements{TechLevel: TechLevel{Propulsion: 16, Biotechnology: 4}}, 110, TechCategoryTerraforming),
+	Ability: 15,
+	HabType: TerraformHabTypeGravity,
+}
+var TempTerraform3 = TechTerraform{Tech: NewTech("Temp Terraform ±3", NewCost(0, 0, 0, 100), TechRequirements{TechLevel: TechLevel{Energy: 1, Biotechnology: 1}}, 120, TechCategoryTerraforming),
+	Ability: 3,
+	HabType: TerraformHabTypeTemperature,
+}
+var TempTerraform7 = TechTerraform{Tech: NewTech("Temp Terraform ±7", NewCost(0, 0, 0, 100), TechRequirements{TechLevel: TechLevel{Energy: 5, Biotechnology: 2}}, 130, TechCategoryTerraforming),
+	Ability: 7,
+	HabType: TerraformHabTypeTemperature,
+}
+var TempTerraform11 = TechTerraform{Tech: NewTech("Temp Terraform ±11", NewCost(0, 0, 0, 100), TechRequirements{TechLevel: TechLevel{Energy: 10, Biotechnology: 3}}, 140, TechCategoryTerraforming),
+	Ability: 11,
+	HabType: TerraformHabTypeTemperature,
+}
+var TempTerraform15 = TechTerraform{Tech: NewTech("Temp Terraform ±15", NewCost(0, 0, 0, 100), TechRequirements{TechLevel: TechLevel{Energy: 16, Biotechnology: 4}}, 150, TechCategoryTerraforming),
+	Ability: 15,
+	HabType: TerraformHabTypeTemperature,
+}
+var RadiationTerraform3 = TechTerraform{Tech: NewTech("Radiation Terraform ±3", NewCost(0, 0, 0, 100), TechRequirements{TechLevel: TechLevel{Weapons: 1, Biotechnology: 1}}, 160, TechCategoryTerraforming),
+	Ability: 3,
+	HabType: TerraformHabTypeRadiation,
+}
+var RadiationTerraform7 = TechTerraform{Tech: NewTech("Radiation Terraform ±7", NewCost(0, 0, 0, 100), TechRequirements{TechLevel: TechLevel{Weapons: 5, Biotechnology: 2}}, 170, TechCategoryTerraforming),
+	Ability: 7,
+	HabType: TerraformHabTypeRadiation,
+}
+var RadiationTerraform11 = TechTerraform{Tech: NewTech("Radiation Terraform ±11", NewCost(0, 0, 0, 100), TechRequirements{TechLevel: TechLevel{Weapons: 10, Biotechnology: 3}}, 180, TechCategoryTerraforming),
+	Ability: 11,
+	HabType: TerraformHabTypeRadiation,
+}
+var RadiationTerraform15 = TechTerraform{Tech: NewTech("Radiation Terraform ±15", NewCost(0, 0, 0, 100), TechRequirements{TechLevel: TechLevel{Weapons: 16, Biotechnology: 4}}, 190, TechCategoryTerraforming),
+	Ability: 15,
+	HabType: TerraformHabTypeRadiation,
+}
+
 // TechPlanetaryScanners
 
 var Viewer50 = TechPlanetaryScanner{Tech: NewTech("Viewer 50", NewCost(10, 10, 70, 100), TechRequirements{PRTDenied: AR}, 0, TechCategoryPlanetaryScanner),
-
 	ScanRange:    50,
 	ScanRangePen: 0,
 }
 var Viewer90 = TechPlanetaryScanner{Tech: NewTech("Viewer 90", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Electronics: 1}, PRTDenied: AR}, 1, TechCategoryPlanetaryScanner),
-
 	ScanRange:    90,
 	ScanRangePen: 0,
 }
 var Scoper150 = TechPlanetaryScanner{Tech: NewTech("Scoper 150", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Electronics: 3}, PRTDenied: AR}, 30, TechCategoryPlanetaryScanner),
-
 	ScanRange:    150,
 	ScanRangePen: 0,
 }
 var Scoper220 = TechPlanetaryScanner{Tech: NewTech("Scoper 220", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Electronics: 6}, PRTDenied: AR}, 40, TechCategoryPlanetaryScanner),
-
 	ScanRange:    220,
 	ScanRangePen: 0,
 }
 var Scoper280 = TechPlanetaryScanner{Tech: NewTech("Scoper 280", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Electronics: 8}, PRTDenied: AR}, 50, TechCategoryPlanetaryScanner),
-
 	ScanRange:    280,
 	ScanRangePen: 0,
 }
 var Snooper320X = TechPlanetaryScanner{Tech: NewTech("Snooper 320X", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Energy: 3, Electronics: 10, Biotechnology: 3}, PRTDenied: AR, LRTsDenied: NAS}, 60, TechCategoryPlanetaryScanner),
-
 	ScanRange:    320,
 	ScanRangePen: 160,
 }
 var Snooper400X = TechPlanetaryScanner{Tech: NewTech("Snooper 400X", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Energy: 4, Electronics: 13, Biotechnology: 6}, PRTDenied: AR, LRTsDenied: NAS}, 70, TechCategoryPlanetaryScanner),
-
 	ScanRange:    400,
 	ScanRangePen: 200,
 }
 var Snooper500X = TechPlanetaryScanner{Tech: NewTech("Snooper 500X", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Energy: 5, Electronics: 16, Biotechnology: 7}, PRTDenied: AR, LRTsDenied: NAS}, 80, TechCategoryPlanetaryScanner),
-
 	ScanRange:    500,
 	ScanRangePen: 250,
 }
 var Snooper620X = TechPlanetaryScanner{Tech: NewTech("Snooper 620X", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Energy: 7, Electronics: 23, Biotechnology: 9}, PRTDenied: AR, LRTsDenied: NAS}, 90, TechCategoryPlanetaryScanner),
-
 	ScanRange:    620,
 	ScanRangePen: 310,
 }
@@ -2081,6 +2157,31 @@ func TechEngines() []TechEngine {
 		TransGalacticSuperScoop,
 		TransGalacticMizerScoop,
 		GalaxyScoop,
+	}
+}
+
+func TechTerraforms() []TechTerraform {
+	return []TechTerraform{
+		TotalTerraform3,
+		TotalTerraform5,
+		TotalTerraform7,
+		TotalTerraform10,
+		TotalTerraform15,
+		TotalTerraform20,
+		TotalTerraform25,
+		TotalTerraform30,
+		GravityTerraform3,
+		GravityTerraform7,
+		GravityTerraform11,
+		GravityTerraform15,
+		TempTerraform3,
+		TempTerraform7,
+		TempTerraform11,
+		TempTerraform15,
+		RadiationTerraform3,
+		RadiationTerraform7,
+		RadiationTerraform11,
+		RadiationTerraform15,
 	}
 }
 

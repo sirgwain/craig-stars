@@ -30,7 +30,7 @@ type Planet struct {
 }
 
 type ProductionQueueItem struct {
-	ID         uint           `gorm:"primaryKey" json:"id" header:"Username"`
+	ID         uint           `gorm:"primaryKey" json:"id"`
 	CreatedAt  time.Time      `json:"createdAt"`
 	UpdatedAt  time.Time      `json:"updatedAt"`
 	DeletedAt  gorm.DeletedAt `gorm:"index" json:"deletedAt"`
@@ -95,8 +95,23 @@ func (item *ProductionQueueItem) String() string {
 	return fmt.Sprintf("ProductionQueueItem %d %s (%s)", item.Quantity, item.Type, item.DesignName)
 }
 
-func NewPlanet(gameID uint) Planet {
-	return Planet{MapObject: MapObject{GameID: gameID, Dirty: true}}
+func NewPlanet(gameID uint) *Planet {
+	return &Planet{MapObject: MapObject{GameID: gameID, Dirty: true}}
+}
+
+func (p *Planet) WithMines(mines int) *Planet {
+	p.Mines = mines
+	return p
+}
+
+func (p *Planet) WithMineralConcentration(mineralConcentration Mineral) *Planet {
+	p.MineralConcentration = mineralConcentration
+	return p
+}
+
+func (p *Planet) WithMineYears(mineYears Mineral) *Planet {
+	p.MineYears = mineYears
+	return p
 }
 
 func (p *Planet) String() string {
@@ -569,4 +584,39 @@ func (planet *Planet) maxBuildable(t QueueItemType) int {
 	}
 	// default to infinite
 	return math.MaxInt
+}
+
+// reduce the mineral concentrations of a planet after mining.
+func (planet *Planet) reduceMineralConcentration(game *Game) {
+	mineralDecayFactor := game.Rules.MineralDecayFactor
+	minMineralConcentration := game.Rules.MinMineralConcentration
+	if planet.Homeworld {
+		minMineralConcentration = game.Rules.MinHomeworldMineralConcentration
+	}
+
+	planetMineYears := planet.MineYears.ToSplice()
+	planetMineralConcentration := planet.MineralConcentration.ToSplice()
+	for i := 0; i < 3; i++ {
+		conc := planetMineralConcentration[i]
+		if conc < minMineralConcentration {
+			// can't have less than min, make sure we have that at least
+			conc = minMineralConcentration
+			planetMineralConcentration[i] = conc
+		}
+
+		minesPer := mineralDecayFactor / conc / conc
+		mineYears := planetMineYears[i]
+		if mineYears > minesPer {
+			conc -= mineYears / minesPer
+			if conc < minMineralConcentration {
+				conc = minMineralConcentration
+			}
+			mineYears %= minesPer
+
+			planetMineYears[i] = mineYears
+			planetMineralConcentration[i] = conc
+		}
+	}
+	planet.MineYears = NewMineral(planetMineYears)
+	planet.MineralConcentration = NewMineral(planetMineralConcentration)
 }
