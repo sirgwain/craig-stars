@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
-	"gorm.io/gorm"
 )
 
 type Tags map[string]string
@@ -52,7 +51,6 @@ type Game struct {
 	ID                           uint              `gorm:"primaryKey" json:"id" header:"ID"`
 	CreatedAt                    time.Time         `json:"createdAt"`
 	UpdatedAt                    time.Time         `json:"updatedAt"`
-	DeletedAt                    gorm.DeletedAt    `gorm:"index" json:"deletedAt"`
 	Name                         string            `json:"name" header:"Name"`
 	HostID                       uint              `json:"hostId"`
 	QuickStartTurns              int               `json:"quickStartTurns"`

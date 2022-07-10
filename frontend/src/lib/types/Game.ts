@@ -71,7 +71,7 @@ export interface Game {
 	id: number;
 	createdAt: string;
 	updatedat: string;
-	deletedAt: null;
+
 	name: string;
 	quickStartTurns: number;
 	size: Size;
@@ -93,7 +93,7 @@ export interface Rules {
 	id?: number;
 	createdAt?: string;
 	updatedat?: string;
-	deletedAt?: null;
+
 	gameId?: number;
 	tachyonCloakReduction: number;
 	maxPopulation: number;

@@ -3,15 +3,12 @@ package game
 import (
 	"fmt"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type Player struct {
 	ID                    uint              `gorm:"primaryKey" json:"id,omitempty"`
 	CreatedAt             time.Time         `json:"createdAt,omitempty"`
 	UpdatedAt             time.Time         `json:"updatedat,omitempty"`
-	DeletedAt             gorm.DeletedAt    `gorm:"index" json:"deletedAt,omitempty"`
 	GameID                uint              `json:"gameId,omitempty"`
 	UserID                uint              `json:"userId,omitempty"`
 	Name                  string            `json:"name,omitempty"`
@@ -30,7 +27,7 @@ type Player struct {
 	Researching           TechField         `json:"researching,omitempty"`
 	BattlePlans           []BattlePlan      `json:"battlePlans,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
 	ProductionPlans       []ProductionPlan  `json:"productionPlans,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
-	TransportPlans        []TransportPlan   `json:"transportPlans,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
+	TransportPlans        []TransportPlan   `json:"transportPlans,omitempty" gorm:"serializer:json"`
 	Messages              []PlayerMessage   `json:"messages,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
 	Designs               []*ShipDesign     `json:"designs,omitempty" gorm:"foreignKey:PlayerID;references:ID"`
 	Fleets                []*Fleet          `json:"fleets,omitempty" gorm:"foreignKey:PlayerID;references:ID"`
@@ -60,10 +57,10 @@ type PlayerSpec struct {
 }
 
 type BattlePlan struct {
-	ID              uint             `gorm:"primaryKey" json:"id"`
-	CreatedAt       time.Time        `json:"createdAt"`
-	UpdatedAt       time.Time        `json:"updatedAt"`
-	DeletedAt       gorm.DeletedAt   `gorm:"index" json:"deletedAt"`
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+
 	PlayerID        uint             `json:"playerId"`
 	Name            string           `json:"name"`
 	PrimaryTarget   BattleTargetType `json:"primaryTarget"`
@@ -108,13 +105,13 @@ const (
 )
 
 type TransportPlan struct {
-	ID        uint                   `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time              `json:"createdAt"`
-	UpdatedAt time.Time              `json:"updatedAt"`
-	DeletedAt gorm.DeletedAt         `gorm:"index" json:"deletedAt"`
-	PlayerID  uint                   `json:"playerId"`
-	Name      string                 `json:"name"`
-	Tasks     WaypointTransportTasks `json:"tasks,omitempty" gorm:"-"`
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+
+	PlayerID uint                   `json:"playerId"`
+	Name     string                 `json:"name"`
+	Tasks    WaypointTransportTasks `json:"tasks,omitempty" gorm:"serializer:json"`
 }
 
 type WaypointTransportTasks struct {
@@ -177,26 +174,26 @@ const (
 )
 
 type ProductionPlan struct {
-	ID        uint                 `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time            `json:"createdAt"`
-	UpdatedAt time.Time            `json:"updatedAt"`
-	DeletedAt gorm.DeletedAt       `gorm:"index" json:"deletedAt"`
-	PlayerID  uint                 `json:"playerId"`
-	Name      string               `json:"name"`
-	Items     []ProductionPlanItem `json:"items" gorm:"constraint:OnDelete:CASCADE;"`
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+
+	PlayerID uint                 `json:"playerId"`
+	Name     string               `json:"name"`
+	Items    []ProductionPlanItem `json:"items" gorm:"serializer:json"`
 }
 
 type ProductionPlanItem struct {
-	ID               uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt        time.Time      `json:"createdAt"`
-	UpdatedAt        time.Time      `json:"updatedAt"`
-	DeletedAt        gorm.DeletedAt `gorm:"index" json:"deletedAt"`
-	ProductionPlanID uint           `json:"-"`
-	Type             QueueItemType  `json:"type"`
-	DesignName       string         `json:"designName"`
-	Quantity         int            `json:"quantity"`
-	Allocated        Cost           `json:"allocated" gorm:"embedded;embeddedPrefix:allocated_"`
-	SortOrder        int            `json:"-"`
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+
+	ProductionPlanID uint          `json:"-"`
+	Type             QueueItemType `json:"type"`
+	DesignName       string        `json:"designName"`
+	Quantity         int           `json:"quantity"`
+	Allocated        Cost          `json:"allocated" gorm:"embedded;embeddedPrefix:allocated_"`
+	SortOrder        int           `json:"-"`
 }
 
 // create a new player with an existing race. The race
@@ -208,7 +205,6 @@ func NewPlayer(userID uint, race *Race) *Player {
 	playerRace.ID = 0
 	playerRace.CreatedAt = time.Time{}
 	playerRace.UpdatedAt = time.Time{}
-	playerRace.DeletedAt = gorm.DeletedAt{}
 
 	return &Player{
 		UserID:            userID,

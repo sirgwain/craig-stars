@@ -4,7 +4,7 @@ export interface ShipDesign {
 	id: number;
 	createdAt: string;
 	updatedat: string;
-	deletedAt: null;
+
 	gameId: number;
 	playerId: number;
 	playerNum: number;

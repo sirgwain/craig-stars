@@ -3,18 +3,15 @@ package game
 import (
 	"errors"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type User struct {
-	ID        uint           `gorm:"primaryKey" json:"id" header:"ID"`
-	CreatedAt time.Time      `json:"createdAt"`
-	UpdatedAt time.Time      `json:"updatedAt"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"deletedAt"`
-	Username  string         `json:"username" header:"Username"`
-	Password  string         `json:"password"`
-	Role      Role           `json:"role"`
+	ID        uint      `gorm:"primaryKey" json:"id" header:"ID"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+	Username  string    `json:"username" header:"Username"`
+	Password  string    `json:"password"`
+	Role      Role      `json:"role"`
 }
 
 type Role string

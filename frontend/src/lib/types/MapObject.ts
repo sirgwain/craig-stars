@@ -4,7 +4,7 @@ export interface MapObject {
 	id?: number;
 	createdAt?: string;
 	updatedat?: string;
-	deletedAt?: null;
+
 	gameId?: number;
 	position: Vector;
 	name: string;

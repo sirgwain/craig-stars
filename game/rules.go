@@ -4,15 +4,13 @@ import (
 	"fmt"
 	"math/rand"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type Rules struct {
-	ID                                 uint                                `gorm:"primaryKey" json:"id"`
-	CreatedAt                          time.Time                           `json:"createdAt"`
-	UpdatedAt                          time.Time                           `json:"updatedAt"`
-	DeletedAt                          gorm.DeletedAt                      `gorm:"index" json:"deletedAt"`
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+
 	GameID                             uint                                `json:"gameId"`
 	Seed                               int64                               `json:"seed"`
 	TachyonCloakReduction              int                                 `json:"tachyonCloakReduction"`

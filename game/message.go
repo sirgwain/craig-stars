@@ -3,15 +3,13 @@ package game
 import (
 	"fmt"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type PlayerMessage struct {
-	ID                 uint                    `gorm:"primaryKey" json:"id"`
-	CreatedAt          time.Time               `json:"createdAt"`
-	UpdatedAt          time.Time               `json:"updatedAt"`
-	DeletedAt          gorm.DeletedAt          `gorm:"index" json:"deletedAt"`
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+
 	PlayerID           uint                    `json:"playerId"`
 	Type               PlayerMessageType       `json:"type,omitempty"`
 	Text               string                  `json:"text,omitempty"`

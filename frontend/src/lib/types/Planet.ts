@@ -26,7 +26,7 @@ export interface ProductionQueueItem {
 	id?: number;
 	createdAt?: string;
 	updatedat?: string;
-	deletedAt?: null;
+
 	type: QueueItemType;
 	quantity: number;
 }

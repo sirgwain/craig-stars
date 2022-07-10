@@ -20,7 +20,7 @@ export interface Tech {
 	id?: number;
 	createdAt?: string;
 	updatedat?: string;
-	deletedAt?: null;
+
 	techStoreId?: number;
 	name: string;
 	cost: Cost;

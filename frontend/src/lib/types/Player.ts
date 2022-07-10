@@ -7,7 +7,7 @@ export interface Player {
 	id?: number;
 	createdAt?: string;
 	updatedat?: string;
-	deletedAt?: null;
+
 	gameId: number;
 	userId?: number;
 	num: number;
@@ -37,7 +37,7 @@ export interface Message {
 	id: number;
 	createdAt: string;
 	updatedat: string;
-	deletedAt: null;
+
 	playerId: number;
 	type: string;
 	text: string;

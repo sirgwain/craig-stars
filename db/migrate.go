@@ -17,7 +17,6 @@ func (db *DB) MigrateAll() error {
 		&game.BattlePlan{},
 		&game.ProductionPlan{},
 		&game.ProductionPlanItem{},
-		&game.TransportPlan{},
 		&game.TechStore{},
 		&game.TechEngine{},
 		&game.TechPlanetaryScanner{},
