@@ -12,9 +12,9 @@ jobs:
       with:
         go-version: ${{ matrix.go-version }}
     - uses: actions/checkout@v3
-    - name: Create frontend/build folder for embedded assets
+    - name: Create frontend/build folder for empty embedded assets during tests
       run: |
-        mkdir -p frontend/build
+        mkdir -p ./frontend/build && touch ./frontend/build/embedfile
     - run: go test ./...
 
   test-cache:
@@ -24,9 +24,6 @@ jobs:
       with:
         go-version: 1.18.x
     - uses: actions/checkout@v3
-    - name: Create frontend/build folder for embedded assets
-      run: |
-        mkdir -p frontend/build
     - uses: actions/cache@v3
       with:
         # In order:
@@ -38,4 +35,7 @@ jobs:
         key: ${{ runner.os }}-go-${{ matrix.go-version }}-${{ hashFiles('**/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-go-${{ matrix.go-version }}-
+    - name: Create frontend/build folder for empty embedded assets during tests
+      run: |
+        mkdir -p ./frontend/build && touch ./frontend/build/embedfile
     - run: go test ./...
