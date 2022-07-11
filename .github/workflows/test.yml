@@ -4,12 +4,12 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v3
     - uses: actions/setup-go@v3
       with:
         go-version: 1.18.x
         check-latest: true
         cache: true
-    - uses: actions/checkout@v3
     - name: Create frontend/build folder for empty embedded assets during tests
       run: |
         mkdir -p ./frontend/build && touch ./frontend/build/embedfile
