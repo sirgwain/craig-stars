@@ -17,6 +17,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - run: npm --prefix ./frontend install
       - run: npm --prefix ./frontend run build
+      - run: tar -cvf ./dist/frontend.tgz -C frontend/build .
 
       # build the binary
       - uses: actions/setup-go@v3
@@ -24,6 +25,12 @@ jobs:
           go-version: ${{ matrix.go-version }}
       - run: mkdir -p dist/
       - run: go mod tidy && CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -o dist/craig-stars main.go
+      - run: tar -cvf ./dist/craig-stars ./dist/craig-stars.tgz
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: dist-artifact
+          path: ./dist/
 
   release:
     name: Create Release
@@ -33,6 +40,14 @@ jobs:
       release_upload_url: ${{ steps.create_release.outputs.upload_url }}
       release_id: ${{ steps.create_release.outputs.id }}
     steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: dist-artifact
+          path: ./dist/
+      - name: Display structure of downloaded files
+        run: ls -R
+        working-directory: ./dist/
+
       - name: Create latest Release
         id: create_release
         uses: ncipollo/release-action@v1.8.10
@@ -43,12 +58,6 @@ jobs:
           prerelease: true
           allowUpdates: true
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      # create a frontend archive
-      - run: tar -cvf ./dist/frontend.tgz -C frontend/build .
-
-      # create a binary archive
-      - run: tar -cvf ./dist/craig-stars ./dist/craig-stars.tgz
 
       # upload the front end
       - name: Upload Release Assets - Server
