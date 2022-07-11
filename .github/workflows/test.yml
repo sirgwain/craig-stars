@@ -2,39 +2,14 @@ on: [push, pull_request]
 name: Test
 jobs:
   test:
-    strategy:
-      matrix:
-        go-version: [1.18.x]
-        os: [ubuntu-latest]
-    runs-on: ${{ matrix.os }}
-    steps:
-    - uses: actions/setup-go@v3
-      with:
-        go-version: ${{ matrix.go-version }}
-    - uses: actions/checkout@v3
-    - name: Create frontend/build folder for empty embedded assets during tests
-      run: |
-        mkdir -p ./frontend/build && touch ./frontend/build/embedfile
-    - run: go test ./...
-
-  test-cache:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/setup-go@v3
       with:
         go-version: 1.18.x
+        check-latest: true
+        cache: true
     - uses: actions/checkout@v3
-    - uses: actions/cache@v3
-      with:
-        # In order:
-        # * Module download cache
-        # * Build cache (Linux)
-        path: |
-          ~/go/pkg/mod
-          ~/.cache/go-build
-        key: ${{ runner.os }}-go-${{ matrix.go-version }}-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-${{ matrix.go-version }}-
     - name: Create frontend/build folder for empty embedded assets during tests
       run: |
         mkdir -p ./frontend/build && touch ./frontend/build/embedfile
