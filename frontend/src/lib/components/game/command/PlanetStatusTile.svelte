@@ -3,7 +3,7 @@
 	import CommandTile from './CommandTile.svelte';
 </script>
 
-{#if $commandedPlanet && $commandedPlanet.spec}
+{#if $commandedPlanet && $commandedPlanet.spec && $commandedPlanet.cargo}
 	<CommandTile title="Planet Status">
 		<div class="flex justify-between">
 			<div>Population</div>

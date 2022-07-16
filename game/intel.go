@@ -6,17 +6,18 @@ import (
 )
 
 type MapObjectIntel struct {
-	ID        uint      `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
-	Dirty     bool      `json:"-" gorm:"-"`
-	GameID    uint      `json:"gameId"`
-	Position  Vector    `json:"position" gorm:"embedded"`
-	Name      string    `json:"name"`
-	Num       int       `json:"num"`
-	PlayerNum *int      `json:"playerNum"`
-	PlayerID  uint      `json:"playerId"`
-	ReportAge int       `json:"reportAge"`
+	ID        uint          `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time     `json:"createdAt"`
+	UpdatedAt time.Time     `json:"updatedAt"`
+	Type      MapObjectType `json:"type"`
+	Dirty     bool          `json:"-" gorm:"-"`
+	GameID    uint          `json:"gameId"`
+	Position  Vector        `json:"position" gorm:"embedded"`
+	Name      string        `json:"name"`
+	Num       int           `json:"num"`
+	PlayerNum *int          `json:"playerNum"`
+	PlayerID  uint          `json:"playerId"`
+	ReportAge int           `json:"reportAge"`
 }
 
 func (mo *MapObjectIntel) String() string {
@@ -58,6 +59,7 @@ func discoverPlanet(rules *Rules, player *Player, planet *Planet, penScanned boo
 		intel.PlayerID = player.ID // this player owns this intel
 		intel.Dirty = true
 		intel.ReportAge = -1
+		intel.Type = MapObjectTypePlanet
 	}
 
 	// everyone knows these about planets

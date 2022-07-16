@@ -55,6 +55,7 @@ type Waypoint struct {
 func NewFleet(player *Player, design *ShipDesign, num int, name string, waypoints []Waypoint) Fleet {
 	return Fleet{
 		MapObject: MapObject{
+			Type:      MapObjectTypeFleet,
 			GameID:    player.GameID,
 			PlayerID:  player.ID,
 			PlayerNum: &player.Num,

@@ -4,12 +4,22 @@ export interface MapObject {
 	id?: number;
 	createdAt?: string;
 	updatedat?: string;
-
+	type: MapObjectType;
 	gameId?: number;
 	position: Vector;
 	name: string;
 	num: number;
 	playerNum: number | null;
+}
+
+export enum MapObjectType {
+	Planet = 'Planet',
+	Fleet = 'Fleet',
+	Wormhole = 'Wormhole',
+	MineField = 'MineField',
+	MysteryTrader = 'MysteryTrader',
+	Salvage = 'Salvage',
+	MineralPacket = 'MineralPacket'
 }
 
 /**
@@ -30,3 +40,5 @@ export function ownedBy(mo: MapObject, playerNum: number): boolean {
 export function owned(mo: MapObject): boolean {
 	return mo.playerNum != null;
 }
+
+export const positionKey = (mo: MapObject) => `${mo.position.x},${mo.position.y}`;

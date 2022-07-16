@@ -11,6 +11,7 @@ export interface ShipDesign {
 	name: string;
 	version: number;
 	hull: string;
+	hullSetNumber: number
 	armor: number;
 	slots: ShipDesignSlot[];
 	spec: Spec;

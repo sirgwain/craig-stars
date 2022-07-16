@@ -1,2 +1,10 @@
-export const clamp = (num: number, min: number, max: number) =>
-	num <= min ? min : num >= max ? max : num;
+export const clamp = (value: number, min: number, max: number) => {
+	if (value < min) {
+		return min;
+	} else {
+		if (value > max) {
+			return max;
+		}
+	}
+	return value;
+};

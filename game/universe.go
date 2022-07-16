@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 
+	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/rs/zerolog/log"
 )
 
@@ -88,17 +89,28 @@ func generatePlayerShipDesigns(game *Game) {
 	for i := range game.Players {
 		// the first time we allocate an array of planets
 		player := &game.Players[i]
-		for _, startingFleet := range player.Race.Spec.StartingFleets {
-			techStore := game.Rules.Techs
-			hull := techStore.GetHull(string(startingFleet.HullName))
-			design := designShip(techStore, hull, startingFleet.Name, player, player.DefaultHullSet, startingFleet.Purpose)
-			design.Spec = ComputeShipDesignSpec(&game.Rules, player, design)
-			player.Designs = append(player.Designs, design)
+		designNames := mapset.NewSet[string]()
+		for _, startingPlanet := range player.Race.Spec.StartingPlanets {
+			for _, startingFleet := range startingPlanet.StartingFleets {
+				if designNames.Contains(startingFleet.Name) {
+					// only one design per name, i.e. Scout, Armored Probe
+					continue
+				}
+				techStore := game.Rules.Techs
+				hull := techStore.GetHull(string(startingFleet.HullName))
+				design := designShip(techStore, hull, startingFleet.Name, player, player.DefaultHullSet, startingFleet.Purpose)
+				design.HullSetNumber = int(startingFleet.HullSetNumber)
+				design.Spec = ComputeShipDesignSpec(&game.Rules, player, design)
+				player.Designs = append(player.Designs, design)
+			}
 		}
 
-		for _, design := range getStartingStarbaseDesigns(game.Rules.Techs, player) {
-			design.Spec = ComputeShipDesignSpec(&game.Rules, player, &design)
-			player.Designs = append(player.Designs, &design)
+		starbaseDesigns := getStartingStarbaseDesigns(game.Rules.Techs, player)
+
+		for i := range starbaseDesigns {
+			design := &starbaseDesigns[i]
+			design.Spec = ComputeShipDesignSpec(&game.Rules, player, design)
+			player.Designs = append(player.Designs, design)
 		}
 	}
 
@@ -138,44 +150,67 @@ func generatePlayerHomeworlds(game *Game, area Vector) error {
 		Germanium: rules.MinStartingMineralSurface + random.Intn(rules.MaxStartingMineralSurface),
 	}
 
+	extraWorldSurfaceMinerals := Mineral{
+		Ironium:   rules.MinStartingMineralSurface + random.Intn(rules.MaxStartingMineralSurface),
+		Boranium:  rules.MinStartingMineralSurface + random.Intn(rules.MaxStartingMineralSurface),
+		Germanium: rules.MinStartingMineralSurface + random.Intn(rules.MaxStartingMineralSurface),
+	}
+
 	for playerIndex := range game.Players {
 		player := &game.Players[playerIndex]
-		minPlayerDistance := (area.X + area.Y) / 2.0 / float64(len(game.Players))
+		minPlayerDistance := float64(area.X+area.Y) / 2.0 / float64(len(game.Players)+1)
 		fleetNum := 1
+		var homeworld *Planet
 
 		for startingPlanetIndex, startingPlanet := range player.Race.Spec.StartingPlanets {
 			// find a playerPlanet that is a min distance from other homeworlds
 			var playerPlanet *Planet
-			for i := range game.Planets {
-				planet := &game.Planets[i]
-				if !planet.Owned() && (len(ownedPlanets) == 0 || planet.shortestDistanceToPlanets(&ownedPlanets) > minPlayerDistance) {
-					playerPlanet = planet
-					break
+			if startingPlanetIndex > 0 {
+
+				// extra planets are close to the homeworld
+				for i := range game.Planets {
+					planet := &game.Planets[i]
+					distToHomeworld := planet.Position.DistanceSquaredTo(&homeworld.Position)
+					if !planet.Owned() && (distToHomeworld <= float64(rules.MaxExtraWorldDistance*rules.MaxExtraWorldDistance) && distToHomeworld >= float64(rules.MinExtraWorldDistance*rules.MinExtraWorldDistance)) {
+						playerPlanet = planet
+						break
+					}
 				}
+
+			} else {
+				// homeworld should be distant from other players
+				for i := range game.Planets {
+					planet := &game.Planets[i]
+					if !planet.Owned() && (len(ownedPlanets) == 0 || planet.shortestDistanceToPlanets(&ownedPlanets) > minPlayerDistance) {
+						playerPlanet = planet
+						break
+					}
+				}
+
+				homeworld = playerPlanet
 			}
 
 			if playerPlanet == nil {
-				return fmt.Errorf("failed to find homeworld for player %v among %d planets", player, len(game.Planets))
+				return fmt.Errorf("failed to find homeworld for player %v among %d planets, minDistance: %0.1f", player, len(game.Planets), minPlayerDistance)
 			}
 
 			ownedPlanets = append(ownedPlanets, playerPlanet)
 			player.Planets = append(player.Planets, playerPlanet)
 
-			if startingPlanetIndex == 0 {
-				// first planet is a homeworld
-				// make a new homeworld
-				if err := playerPlanet.initHomeworld(player, &game.Rules, homeworldMinConc, homeworldSurfaceMinerals); err != nil {
-					return err
-				}
-				// generate some fleets on the homeworld
-				if err := generatePlayerFleets(game, player, playerPlanet, &fleetNum, player.Race.Spec.StartingFleets); err != nil {
-					return err
-				}
-			} else {
-				// generate some fleets on the homeworld
-				if err := generatePlayerFleets(game, player, playerPlanet, &fleetNum, startingPlanet.StartingFleets); err != nil {
-					return err
-				}
+			// our starting planet starts with default fleets
+			surfaceMinerals := homeworldSurfaceMinerals
+			if startingPlanetIndex != 0 {
+				surfaceMinerals = extraWorldSurfaceMinerals
+			}
+
+			// first planet is a homeworld
+			// make a new homeworld
+			if err := playerPlanet.initStartingWorld(player, &game.Rules, startingPlanet, homeworldMinConc, surfaceMinerals); err != nil {
+				return err
+			}
+			// generate some fleets on the homeworld
+			if err := generatePlayerFleets(game, player, playerPlanet, &fleetNum, startingPlanet.StartingFleets); err != nil {
+				return err
 			}
 
 			messager.longMessage(player)
@@ -220,29 +255,34 @@ func getStartingStarbaseDesigns(techStore *TechStore, player *Player) []ShipDesi
 		designs = append(designs, *starterColony)
 	}
 
+	startingPlanets := player.Race.Spec.StartingPlanets
+
 	starbase := NewShipDesign(player).
-		WithName("Starbase").
-		WithHull(SpaceStation.Name).
+		WithName(startingPlanets[0].StarbaseDesignName).
+		WithHull(startingPlanets[0].StarbaseHull).
 		WithPurpose(ShipDesignPurposeStarbase).
 		WithHullSetNumber(player.DefaultHullSet)
-
-	startingPlanets := player.Race.Spec.StartingPlanets
 
 	fillStarbaseSlots(techStore, starbase, &player.Race, startingPlanets[0])
 	designs = append(designs, *starbase)
 
 	// add an orbital fort for players that start with extra planets
 	if len(startingPlanets) > 1 {
-		fort := NewShipDesign(player).
-			WithName("Accelerator Platform").
-			WithHull(OrbitalFort.Name).
-			WithPurpose(ShipDesignPurposeFort).
-			WithHullSetNumber(player.DefaultHullSet)
-		// TODO: Do we want to support a PRT that includes more than 2 planets but only some of them with
-		// stargates?
-		fillStarbaseSlots(techStore, fort, &player.Race, startingPlanets[1])
-		designs = append(designs, *fort)
-
+		for i := range startingPlanets {
+			if i == 0 {
+				continue
+			}
+			startingPlanet := startingPlanets[i]
+			fort := NewShipDesign(player).
+				WithName(startingPlanet.StarbaseDesignName).
+				WithHull(startingPlanet.StarbaseHull).
+				WithPurpose(ShipDesignPurposeFort).
+				WithHullSetNumber(player.DefaultHullSet)
+			// TODO: Do we want to support a PRT that includes more than 2 planets but only some of them with
+			// stargates?
+			fillStarbaseSlots(techStore, fort, &player.Race, startingPlanets[i])
+			designs = append(designs, *fort)
+		}
 	}
 
 	return designs

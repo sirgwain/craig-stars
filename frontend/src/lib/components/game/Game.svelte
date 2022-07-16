@@ -1,13 +1,30 @@
 <script lang="ts">
 	import CommandPane from '$lib/components/game/command/CommandPane.svelte';
-	import Viewport from '$lib/components/game/Scanner.svelte';
+	import HighlightedMapObjectStats from './HighlightedMapObjectStats.svelte';
+	import MapObjectSummary from './MapObjectSummary.svelte';
+	import MessagesPane from './MessagesPane.svelte';
+	import Scanner from './scanner/Scanner.svelte';
 </script>
 
 <div class="flex flex-row h-full w-full">
-	<div class="flex-none w-[31rem] h-full">
-		<CommandPane />
+	<div class="flex-initial w-[15rem] lg:w-[29rem] overflow-y-auto">
+		<div class="flex flex-col">
+			<div class="flex-1">
+				<div class="flex flex-row flex-wrap gap-3.5 justify-between">
+					<CommandPane />
+				</div>
+			</div>
+			<div class="hidden mt-3 lg:block flex-initial"><MessagesPane /></div>
+			<div class="hidden mt-3 lg:block flex-initial"><MapObjectSummary /></div>
+		</div>
 	</div>
-	<div class="grow ml-5 h-full border-gray-700 border-2 shadow-sm">
-		<Viewport />
+
+	<div class="flex-1 flex flex-col h-full ml-3">
+		<div class="flex-1 border-gray-700 border-2 shadow-sm">
+			<Scanner />
+		</div>
+		<HighlightedMapObjectStats />
+		<div class="lg:hidden mt-3 block flex-initial"><MessagesPane /></div>
+		<div class="lg:hidden mt-3 block flex-initial"><MapObjectSummary /></div>
 	</div>
 </div>

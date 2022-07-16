@@ -3,7 +3,11 @@
 
 	import type { Mineral } from '$lib/types/Mineral';
 
+	import {
+	player
+	} from '$lib/services/Context';
 	import type { Planet } from '$lib/types/Planet';
+	import { findMyPlanet } from '$lib/types/Player';
 
 	export let planet: Planet;
 	export let scale = 1.0;
@@ -22,12 +26,15 @@
 	};
 
 	$: {
+		planet = findMyPlanet($player, planet) ?? planet;
 		if (planet && planet.cargo) {
 			barPercent = {
 				ironium: clamp(planet.cargo.ironium ? (planet.cargo.ironium / max) * 100 : 0, 0, 100),
 				boranium: clamp(planet.cargo.boranium ? (planet.cargo.boranium / max) * 100 : 0, 0, 100),
 				germanium: clamp(planet.cargo.germanium ? (planet.cargo.germanium / max) * 100 : 0, 0, 100)
 			};
+		} else {
+			barPercent = { ironium: 0, boranium: 0, germanium: 0 };
 		}
 	}
 </script>
@@ -38,9 +45,7 @@
 		<div class="text-boranium">Boranium</div>
 		<div class="text-germanium">Germanium</div>
 	</div>
-	<div
-		class="grow flex flex-col justify-evenly mx-1 px-0.5 py-1 bg-black line gap-2"
-	>
+	<div class="grow flex flex-col justify-evenly mx-1 px-0.5 py-1 bg-black line gap-2">
 		<div style={`width: ${barPercent.ironium?.toFixed()}%`} class="ironium-bar h-full" />
 		<div style={`width: ${barPercent.boranium?.toFixed()}%`} class="boranium-bar h-full" />
 		<div style={`width: ${barPercent.germanium?.toFixed()}%`} class="germanium-bar h-full" />

@@ -95,7 +95,7 @@ func (item *ProductionQueueItem) String() string {
 }
 
 func NewPlanet(gameID uint) *Planet {
-	return &Planet{MapObject: MapObject{GameID: gameID, Dirty: true}}
+	return &Planet{MapObject: MapObject{Type: MapObjectTypePlanet, GameID: gameID, Dirty: true}}
 }
 
 func (p *Planet) WithMines(mines int) *Planet {
@@ -191,7 +191,7 @@ func (p *Planet) Randomize(rules *Rules) {
 }
 
 // Initialize a planet to be a homeworld for a payer with ideal hab, starting mineral concentration, etc
-func (p *Planet) initHomeworld(player *Player, rules *Rules, concentration Mineral, surface Mineral) error {
+func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet StartingPlanet, concentration Mineral, surface Mineral) error {
 
 	if player.Race.Spec == nil || len(player.Race.Spec.StartingPlanets) == 0 {
 		return fmt.Errorf("no starting planets defined for player %v, race %v", player, player.Race)
@@ -199,12 +199,17 @@ func (p *Planet) initHomeworld(player *Player, rules *Rules, concentration Miner
 
 	log.Debug().Msgf("Assigning %s to %s as homeworld", p, player)
 
-	startingPlanet := player.Race.Spec.StartingPlanets[0]
-
 	p.Homeworld = true
 	p.PlayerNum = &player.Num
 	p.PlayerID = player.ID
-	p.Hab = player.Race.HabCenter()
+
+	habWidth := player.Race.HabWidth()
+	habCenter := player.Race.HabCenter()
+	p.Hab = Hab{
+		Grav: habCenter.Grav + int(float64((habWidth.Grav-rules.Random.Intn(habWidth.Grav-1)))/2*startingPlanet.HabPenaltyFactor),
+		Temp: habCenter.Temp + int(float64((habWidth.Temp-rules.Random.Intn(habWidth.Temp-1)))/2*startingPlanet.HabPenaltyFactor),
+		Rad:  habCenter.Rad + int(float64((habWidth.Rad-rules.Random.Intn(habWidth.Rad-1)))/2*startingPlanet.HabPenaltyFactor),
+	}
 	p.MineralConcentration = concentration
 	p.Cargo = surface.ToCargo()
 
@@ -216,8 +221,7 @@ func (p *Planet) initHomeworld(player *Player, rules *Rules, concentration Miner
 	raceSpec := player.Race.Spec
 
 	// set the homeworld pop to our starting planet pop
-	p.SetPopulation(startingPlanet.Population)
-	p.Population()
+	p.SetPopulation(int(float64(startingPlanet.Population) * raceSpec.StartingPopulationFactor))
 
 	if raceSpec.InnateMining {
 		p.Mines = p.GetInnateMines(player)
@@ -237,7 +241,7 @@ func (p *Planet) initHomeworld(player *Player, rules *Rules, concentration Miner
 	p.Scanner = true
 
 	// // the homeworld gets a starbase
-	starbaseDesign := player.GetDesign("Starbase")
+	starbaseDesign := player.GetDesign(startingPlanet.StarbaseDesignName)
 	starbase := NewFleet(player, starbaseDesign, 0, starbaseDesign.Name, []Waypoint{NewPlanetWaypoint(p, 0)})
 	starbase.Spec = ComputeFleetSpec(rules, player, &starbase)
 	// p.Starbase = &starbase

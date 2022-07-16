@@ -579,15 +579,17 @@ var Stargate100_250 = TechHullComponent{Tech: NewTech("Stargate 100-250", NewCos
 	MaxRange:     1250,
 	HullSlotType: HullSlotTypeOrbital,
 }
-var Stargate100_Any = TechHullComponent{Tech: NewTech("Stargate 100-any", NewCost(50, 20, 20, 700), TechRequirements{TechLevel: TechLevel{Propulsion: 16, Construction: 12}, PRTRequired: IT, PRTDenied: HE}, 10, TechCategoryOrbital),
+
+var StargateAny_300 = TechHullComponent{Tech: NewTech("Stargate any-300", NewCost(50, 20, 20, 250), TechRequirements{TechLevel: TechLevel{Propulsion: 6, Construction: 10}, PRTRequired: IT, PRTDenied: HE}, 10, TechCategoryOrbital),
 
 	Mass:         0,
-	SafeHullMass: 100,
-	MaxHullMass:  500,
-	SafeRange:    InfinteGate,
-	MaxRange:     InfinteGate,
+	SafeHullMass: InfinteGate,
+	MaxHullMass:  InfinteGate,
+	SafeRange:    300,
+	MaxRange:     1500,
 	HullSlotType: HullSlotTypeOrbital,
 }
+
 var Stargate150_600 = TechHullComponent{Tech: NewTech("Stargate 150-600", NewCost(50, 20, 20, 500), TechRequirements{TechLevel: TechLevel{Propulsion: 11, Construction: 7}, PRTDenied: HE}, 20, TechCategoryOrbital),
 
 	Mass:         0,
@@ -606,13 +608,13 @@ var Stargate300_500 = TechHullComponent{Tech: NewTech("Stargate 300-500", NewCos
 	MaxRange:     2500,
 	HullSlotType: HullSlotTypeOrbital,
 }
-var StargateAny_300 = TechHullComponent{Tech: NewTech("Stargate any-300", NewCost(50, 20, 20, 250), TechRequirements{TechLevel: TechLevel{Propulsion: 6, Construction: 10}, PRTRequired: IT, PRTDenied: HE}, 40, TechCategoryOrbital),
+var Stargate100_Any = TechHullComponent{Tech: NewTech("Stargate 100-any", NewCost(50, 20, 20, 700), TechRequirements{TechLevel: TechLevel{Propulsion: 16, Construction: 12}, PRTRequired: IT, PRTDenied: HE}, 40, TechCategoryOrbital),
 
 	Mass:         0,
-	SafeHullMass: InfinteGate,
-	MaxHullMass:  InfinteGate,
-	SafeRange:    300,
-	MaxRange:     1500,
+	SafeHullMass: 100,
+	MaxHullMass:  500,
+	SafeRange:    InfinteGate,
+	MaxRange:     InfinteGate,
 	HullSlotType: HullSlotTypeOrbital,
 }
 var StargateAny_800 = TechHullComponent{Tech: NewTech("Stargate any-800", NewCost(50, 20, 20, 700), TechRequirements{TechLevel: TechLevel{Propulsion: 12, Construction: 18}, PRTRequired: IT, PRTDenied: HE}, 50, TechCategoryOrbital),
@@ -977,7 +979,7 @@ var Kelarium = TechHullComponent{Tech: NewTech("Kelarium", NewCost(9, 1, 0, 25),
 	Armor:        180,
 	HullSlotType: HullSlotTypeArmor,
 }
-var Fielded = TechHullComponent{Tech: NewTech("Fielded Kelarium", NewCost(10, 0, 2, 28), TechRequirements{TechLevel: TechLevel{Energy: 4, Construction: 10}, PRTRequired: IS}, 70, TechCategoryArmor),
+var FieldedKelarium = TechHullComponent{Tech: NewTech("Fielded Kelarium", NewCost(10, 0, 2, 28), TechRequirements{TechLevel: TechLevel{Energy: 4, Construction: 10}, PRTRequired: IS}, 70, TechCategoryArmor),
 
 	Mass:         50,
 	Shield:       50,
@@ -1447,17 +1449,7 @@ var AlphaTorpedo = TechHullComponent{Tech: NewTech("Alpha Torpedo", NewCost(8, 3
 	HullSlotType: HullSlotTypeWeapon,
 	Range:        4,
 }
-var ArmageddonMissile = TechHullComponent{Tech: NewTech("Armageddon Missile", NewCost(67, 23, 16, 24), TechRequirements{TechLevel: TechLevel{Weapons: 24, Propulsion: 10}}, 0, TechCategoryTorpedo),
-
-	Mass:               35,
-	Initiative:         3,
-	Accuracy:           30,
-	CapitalShipMissile: true,
-	Power:              525,
-	HullSlotType:       HullSlotTypeWeapon,
-	Range:              6,
-}
-var BetaTorpedo = TechHullComponent{Tech: NewTech("Beta Torpedo", NewCost(18, 6, 4, 6), TechRequirements{TechLevel: TechLevel{Weapons: 5, Propulsion: 1}}, 0, TechCategoryTorpedo),
+var BetaTorpedo = TechHullComponent{Tech: NewTech("Beta Torpedo", NewCost(18, 6, 4, 6), TechRequirements{TechLevel: TechLevel{Weapons: 5, Propulsion: 1}}, 10, TechCategoryTorpedo),
 
 	Mass:         25,
 	Initiative:   1,
@@ -1466,7 +1458,7 @@ var BetaTorpedo = TechHullComponent{Tech: NewTech("Beta Torpedo", NewCost(18, 6,
 	HullSlotType: HullSlotTypeWeapon,
 	Range:        4,
 }
-var DeltaTorpedo = TechHullComponent{Tech: NewTech("Delta Torpedo", NewCost(22, 8, 5, 8), TechRequirements{TechLevel: TechLevel{Weapons: 10, Propulsion: 2}}, 0, TechCategoryTorpedo),
+var DeltaTorpedo = TechHullComponent{Tech: NewTech("Delta Torpedo", NewCost(22, 8, 5, 8), TechRequirements{TechLevel: TechLevel{Weapons: 10, Propulsion: 2}}, 20, TechCategoryTorpedo),
 
 	Mass:         25,
 	Initiative:   1,
@@ -1475,17 +1467,8 @@ var DeltaTorpedo = TechHullComponent{Tech: NewTech("Delta Torpedo", NewCost(22, 
 	HullSlotType: HullSlotTypeWeapon,
 	Range:        4,
 }
-var DoomsdayMissile = TechHullComponent{Tech: NewTech("Doomsday Missile", NewCost(60, 20, 13, 20), TechRequirements{TechLevel: TechLevel{Weapons: 20, Propulsion: 10}}, 0, TechCategoryTorpedo),
 
-	Mass:               35,
-	Initiative:         2,
-	Accuracy:           25,
-	CapitalShipMissile: true,
-	Power:              280,
-	HullSlotType:       HullSlotTypeWeapon,
-	Range:              6,
-}
-var EpsilonTorpedo = TechHullComponent{Tech: NewTech("Epsilon Torpedo", NewCost(30, 10, 6, 10), TechRequirements{TechLevel: TechLevel{Weapons: 14, Propulsion: 3}}, 0, TechCategoryTorpedo),
+var EpsilonTorpedo = TechHullComponent{Tech: NewTech("Epsilon Torpedo", NewCost(30, 10, 6, 10), TechRequirements{TechLevel: TechLevel{Weapons: 14, Propulsion: 3}}, 30, TechCategoryTorpedo),
 
 	Mass:         25,
 	Initiative:   2,
@@ -1494,7 +1477,35 @@ var EpsilonTorpedo = TechHullComponent{Tech: NewTech("Epsilon Torpedo", NewCost(
 	HullSlotType: HullSlotTypeWeapon,
 	Range:        5,
 }
-var JihadMissile = TechHullComponent{Tech: NewTech("Jihad Missile", NewCost(37, 13, 9, 13), TechRequirements{TechLevel: TechLevel{Weapons: 12, Propulsion: 6}}, 0, TechCategoryTorpedo),
+
+var OmegaTorpedo = TechHullComponent{Tech: NewTech("Omega Torpedo", NewCost(52, 18, 12, 18), TechRequirements{TechLevel: TechLevel{Weapons: 26, Propulsion: 6}}, 40, TechCategoryTorpedo),
+
+	Mass:         25,
+	Initiative:   4,
+	Accuracy:     80,
+	Power:        316,
+	HullSlotType: HullSlotTypeWeapon,
+	Range:        5,
+}
+var RhoTorpedo = TechHullComponent{Tech: NewTech("Rho Torpedo", NewCost(34, 12, 8, 12), TechRequirements{TechLevel: TechLevel{Weapons: 18, Propulsion: 4}}, 50, TechCategoryTorpedo),
+
+	Mass:         25,
+	Initiative:   2,
+	Accuracy:     75,
+	Power:        90,
+	HullSlotType: HullSlotTypeWeapon,
+	Range:        5,
+}
+var UpsilonTorpedo = TechHullComponent{Tech: NewTech("Upsilon Torpedo", NewCost(40, 14, 9, 15), TechRequirements{TechLevel: TechLevel{Weapons: 22, Propulsion: 5}}, 60, TechCategoryTorpedo),
+
+	Mass:         25,
+	Initiative:   3,
+	Accuracy:     75,
+	Power:        169,
+	HullSlotType: HullSlotTypeWeapon,
+	Range:        5,
+}
+var JihadMissile = TechHullComponent{Tech: NewTech("Jihad Missile", NewCost(37, 13, 9, 13), TechRequirements{TechLevel: TechLevel{Weapons: 12, Propulsion: 6}}, 70, TechCategoryTorpedo),
 
 	Mass:               35,
 	Accuracy:           20,
@@ -1503,7 +1514,7 @@ var JihadMissile = TechHullComponent{Tech: NewTech("Jihad Missile", NewCost(37, 
 	HullSlotType:       HullSlotTypeWeapon,
 	Range:              5,
 }
-var JuggernautMissile = TechHullComponent{Tech: NewTech("Juggernaut Missile", NewCost(48, 16, 11, 16), TechRequirements{TechLevel: TechLevel{Weapons: 16, Propulsion: 8}}, 0, TechCategoryTorpedo),
+var JuggernautMissile = TechHullComponent{Tech: NewTech("Juggernaut Missile", NewCost(48, 16, 11, 16), TechRequirements{TechLevel: TechLevel{Weapons: 16, Propulsion: 8}}, 80, TechCategoryTorpedo),
 
 	Mass:               35,
 	Initiative:         1,
@@ -1513,32 +1524,27 @@ var JuggernautMissile = TechHullComponent{Tech: NewTech("Juggernaut Missile", Ne
 	HullSlotType:       HullSlotTypeWeapon,
 	Range:              5,
 }
-var OmegaTorpedo = TechHullComponent{Tech: NewTech("Omega Torpedo", NewCost(52, 18, 12, 18), TechRequirements{TechLevel: TechLevel{Weapons: 26, Propulsion: 6}}, 0, TechCategoryTorpedo),
 
-	Mass:         25,
-	Initiative:   4,
-	Accuracy:     80,
-	Power:        316,
-	HullSlotType: HullSlotTypeWeapon,
-	Range:        5,
+var DoomsdayMissile = TechHullComponent{Tech: NewTech("Doomsday Missile", NewCost(60, 20, 13, 20), TechRequirements{TechLevel: TechLevel{Weapons: 20, Propulsion: 10}}, 90, TechCategoryTorpedo),
+
+	Mass:               35,
+	Initiative:         2,
+	Accuracy:           25,
+	CapitalShipMissile: true,
+	Power:              280,
+	HullSlotType:       HullSlotTypeWeapon,
+	Range:              6,
 }
-var RhoTorpedo = TechHullComponent{Tech: NewTech("Rho Torpedo", NewCost(34, 12, 8, 12), TechRequirements{TechLevel: TechLevel{Weapons: 18, Propulsion: 4}}, 0, TechCategoryTorpedo),
 
-	Mass:         25,
-	Initiative:   2,
-	Accuracy:     75,
-	Power:        90,
-	HullSlotType: HullSlotTypeWeapon,
-	Range:        5,
-}
-var UpsilonTorpedo = TechHullComponent{Tech: NewTech("Upsilon Torpedo", NewCost(40, 14, 9, 15), TechRequirements{TechLevel: TechLevel{Weapons: 22, Propulsion: 5}}, 0, TechCategoryTorpedo),
+var ArmageddonMissile = TechHullComponent{Tech: NewTech("Armageddon Missile", NewCost(67, 23, 16, 24), TechRequirements{TechLevel: TechLevel{Weapons: 24, Propulsion: 10}}, 100, TechCategoryTorpedo),
 
-	Mass:         25,
-	Initiative:   3,
-	Accuracy:     75,
-	Power:        169,
-	HullSlotType: HullSlotTypeWeapon,
-	Range:        5,
+	Mass:               35,
+	Initiative:         3,
+	Accuracy:           30,
+	CapitalShipMissile: true,
+	Power:              525,
+	HullSlotType:       HullSlotTypeWeapon,
+	Range:              6,
 }
 var MoleSkinShield = TechHullComponent{Tech: NewTech("Mole-skin Shield", NewCost(1, 0, 1, 4), TechRequirements{TechLevel: TechLevel{}}, 10, TechCategoryShield),
 
@@ -2060,7 +2066,27 @@ var OrbitalFort = TechHull{Tech: NewTech("Orbital Fort", NewCost(24, 0, 34, 80),
 		{Type: HullSlotTypeShieldArmor, Capacity: 12},
 	},
 }
-var SpaceStation = TechHull{Tech: NewTech("Space Station", NewCost(120, 80, 250, 600), TechRequirements{TechLevel: TechLevel{}}, 20, TechCategoryStarbaseHull),
+
+var SpaceDock = TechHull{Tech: NewTech("Space Dock", NewCost(40, 10, 50, 200), TechRequirements{TechLevel: TechLevel{Construction: 4}, LRTsRequired: ISB}, 20, TechCategoryStarbaseHull),
+	Type:        TechHullTypeStarbase,
+	SpaceDock:   200,
+	Armor:       250,
+	Initiative:  12,
+	RangeBonus:  1,
+	Starbase:    true,
+	RepairBonus: .03, // 8% total repair rate
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeOrbitalElectrical, Capacity: 1},
+		{Type: HullSlotTypeWeapon, Capacity: 16},
+		{Type: HullSlotTypeShieldArmor, Capacity: 24},
+		{Type: HullSlotTypeWeapon, Capacity: 16},
+		{Type: HullSlotTypeShield, Capacity: 24},
+		{Type: HullSlotTypeElectrical, Capacity: 2},
+		{Type: HullSlotTypeElectrical, Capacity: 2},
+		{Type: HullSlotTypeWeapon, Capacity: 16},
+	},
+}
+var SpaceStation = TechHull{Tech: NewTech("Space Station", NewCost(120, 80, 250, 600), TechRequirements{TechLevel: TechLevel{}}, 30, TechCategoryStarbaseHull),
 	Type:        TechHullTypeStarbase,
 	SpaceDock:   UnlimitedSpaceDock,
 	Armor:       500,
@@ -2083,7 +2109,7 @@ var SpaceStation = TechHull{Tech: NewTech("Space Station", NewCost(120, 80, 250,
 		{Type: HullSlotTypeShieldArmor, Capacity: 16},
 	},
 }
-var UltraStation = TechHull{Tech: NewTech("Ultra Station", NewCost(120, 80, 300, 600), TechRequirements{TechLevel: TechLevel{Construction: 12}, LRTsRequired: ISB}, 30, TechCategoryStarbaseHull),
+var UltraStation = TechHull{Tech: NewTech("Ultra Station", NewCost(120, 80, 300, 600), TechRequirements{TechLevel: TechLevel{Construction: 12}, LRTsRequired: ISB}, 40, TechCategoryStarbaseHull),
 	Type:                     TechHullTypeStarbase,
 	SpaceDock:                UnlimitedSpaceDock,
 	Armor:                    1000,
@@ -2110,7 +2136,7 @@ var UltraStation = TechHull{Tech: NewTech("Ultra Station", NewCost(120, 80, 300,
 		{Type: HullSlotTypeWeapon, Capacity: 16},
 	},
 }
-var DeathStar = TechHull{Tech: NewTech("Death Star", NewCost(120, 80, 350, 750), TechRequirements{TechLevel: TechLevel{Construction: 17}, PRTRequired: AR}, 40, TechCategoryStarbaseHull),
+var DeathStar = TechHull{Tech: NewTech("Death Star", NewCost(120, 80, 350, 750), TechRequirements{TechLevel: TechLevel{Construction: 17}, PRTRequired: AR}, 50, TechCategoryStarbaseHull),
 	Type:                     TechHullTypeStarbase,
 	SpaceDock:                UnlimitedSpaceDock,
 	Armor:                    1500,
@@ -2243,6 +2269,7 @@ func TechHulls() []TechHull {
 		Nubian,
 		MetaMorph,
 		OrbitalFort,
+		SpaceDock,
 		SpaceStation,
 		UltraStation,
 		DeathStar,
@@ -2253,10 +2280,10 @@ func TechHullComponents() []TechHullComponent {
 
 	return []TechHullComponent{
 		Stargate100_250,
-		Stargate100_Any,
+		StargateAny_300,
 		Stargate150_600,
 		Stargate300_500,
-		StargateAny_300,
+		Stargate100_Any,
 		StargateAny_800,
 		StargateAny_Any,
 		MassDriver5,
@@ -2311,7 +2338,7 @@ func TechHullComponents() []TechHullComponent {
 		Strobnium,
 		Organic,
 		Kelarium,
-		Fielded,
+		FieldedKelarium,
 		DepletedNeutronium,
 		Neutronium,
 		Valanium,
@@ -2375,16 +2402,16 @@ func TechHullComponents() []TechHullComponent {
 		StreamingPulverizer,
 		AntiMatterPulverizer,
 		AlphaTorpedo,
-		ArmageddonMissile,
 		BetaTorpedo,
 		DeltaTorpedo,
-		DoomsdayMissile,
 		EpsilonTorpedo,
-		JihadMissile,
-		JuggernautMissile,
 		OmegaTorpedo,
 		RhoTorpedo,
 		UpsilonTorpedo,
+		JihadMissile,
+		JuggernautMissile,
+		DoomsdayMissile,
+		ArmageddonMissile,
 		MoleSkinShield,
 		CowHideShield,
 		WolverineDiffuseShield,

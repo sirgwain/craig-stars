@@ -136,7 +136,8 @@
 		designs: [],
 		planets: [],
 		fleets: [],
-		planetIntels: []
+		planetIntels: [],
+		fleetIntels: []
 	};
 </script>
 

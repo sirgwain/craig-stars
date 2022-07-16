@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { getQuantityModifier } from '$lib/quantityModifier';
-	import { commandPlanet, commandedPlanet, player } from '$lib/services/Context';
+	import { commandedPlanet, commandMapObject, player } from '$lib/services/Context';
 	import { PlanetService } from '$lib/services/PlanetService';
 	import type { Cost } from '$lib/types/Cost';
 	import type { ProductionQueueItem } from '$lib/types/Planet';
@@ -133,19 +133,24 @@
 	};
 
 	const ok = async () => {
-		$commandedPlanet.productionQueue = queueItems;
-		$commandedPlanet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
-		const result = await planetService.updatePlanet($commandedPlanet);
-		commandPlanet(result);
-		dispatch('ok');
+		if ($commandedPlanet) {
+			$commandedPlanet.productionQueue = queueItems;
+			$commandedPlanet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
+			const result = await planetService.updatePlanet($commandedPlanet);
+			commandMapObject(result);
+			dispatch('ok');
+		}
 	};
 
 	const cancel = () => {
-		queueItems = $commandedPlanet.productionQueue?.map(
-			(item) => ({ ...item } as ProductionQueueItem)
-		);
-		contributesOnlyLeftoverToResearch = $commandedPlanet.contributesOnlyLeftoverToResearch ?? false;
-		dispatch('cancel');
+		if ($commandedPlanet) {
+			queueItems = $commandedPlanet.productionQueue?.map(
+				(item) => ({ ...item } as ProductionQueueItem)
+			);
+			contributesOnlyLeftoverToResearch =
+				$commandedPlanet.contributesOnlyLeftoverToResearch ?? false;
+			dispatch('cancel');
+		}
 	};
 
 	const getSelectedItemCost = (): Cost | undefined => {
@@ -192,20 +197,25 @@
 
 	// clone the production queue for this planet when it's first loaded
 	const unsubscribe = commandedPlanet.subscribe((planet) => {
-		queueItems = $commandedPlanet.productionQueue?.map(
-			(item) => ({ ...item } as ProductionQueueItem)
-		);
-		availableItems = planetService.getAvailableProductionQueueItems($commandedPlanet, $player);
+		if (planet) {
+			queueItems = planet.productionQueue?.map((item) => ({ ...item } as ProductionQueueItem));
+			availableItems = planetService.getAvailableProductionQueueItems(planet, $player);
 
-		selectedAvailableItem = availableItems.length > 0 ? availableItems[0] : selectedAvailableItem;
-		contributesOnlyLeftoverToResearch = $commandedPlanet.contributesOnlyLeftoverToResearch ?? false;
+			selectedAvailableItem = availableItems.length > 0 ? availableItems[0] : selectedAvailableItem;
+			contributesOnlyLeftoverToResearch = planet.contributesOnlyLeftoverToResearch ?? false;
+		} else {
+			queueItems = undefined;
+			availableItems = undefined;
+		}
 	});
 
 	onDestroy(() => unsubscribe());
 </script>
 
 {#if queueItems && availableItems}
-	<div class="flex h-full bg-base-200 shadow-xl max-h-fit min-h-fit rounded-sm border-2 border-base-300">
+	<div
+		class="flex h-full bg-base-200 shadow-xl max-h-fit min-h-fit rounded-sm border-2 border-base-300"
+	>
 		<div class="flex-col h-full w-full">
 			<div class="flex flex-col h-full w-full">
 				<div class="flex flex-row h-full w-full grid-cols-3">

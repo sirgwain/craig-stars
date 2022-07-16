@@ -12,7 +12,7 @@ type Player struct {
 	GameID                uint              `json:"gameId,omitempty"`
 	UserID                uint              `json:"userId,omitempty"`
 	Name                  string            `json:"name,omitempty"`
-	Num                   int               `json:"num,omitempty"`
+	Num                   int               `json:"num"`
 	Ready                 bool              `json:"ready,omitempty"`
 	AIControlled          bool              `json:"aIControlled,omitempty"`
 	SubmittedTurn         bool              `json:"submittedTurn,omitempty"`
