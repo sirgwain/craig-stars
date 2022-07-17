@@ -21,3 +21,6 @@ dist/
 .vscode/*.log
 
 .DS_Store
+
+ansible/
+frontend/static/images/
