@@ -7,7 +7,7 @@
 	let messageNum = 0;
 	let message: Message | undefined;
 
-	$: $player && (message = $player.messages[messageNum]);
+	$: $player?.messages?.length && (message = $player.messages[messageNum]);
 
 	const previous = () => {
 		messageNum--;
@@ -24,7 +24,7 @@
 			<div class="flex flex-row items-center">
 				<input type="checkbox" class="flex-initial checkbox checkbox-xs" />
 				<div class="flex-1 text-center text-lg font-semibold text-secondary">
-					Year: {$game.year} Message {messageNum + 1} of {$player.messages.length}
+					Year: {$game.year} Message {messageNum + 1} of {$player?.messages?.length}
 				</div>
 			</div>
 			{#if message}
@@ -62,7 +62,7 @@
 								<div class="tooltip" data-tip="next">
 									<button
 										on:click={next}
-										disabled={messageNum === $player.messages.length - 1}
+										disabled={$player?.messages && messageNum === $player.messages.length - 1}
 										class="btn btn-outline btn-sm normal-case btn-secondary"
 										title="next"
 										><Icon

@@ -1,6 +1,6 @@
 import type { Cost } from './Cost';
 import type { EnumDictionary } from './EnumDictionary';
-import type { MineFieldType } from './Tech';
+import type { MineFieldType, TechStore } from './Tech';
 import type { Vector } from './Vector';
 
 export enum Size {
@@ -67,12 +67,22 @@ export interface GameSettings {
 	players: NewGamePlayer[];
 }
 
+export enum GameState {
+	Setup = 'Setup',
+	WaitingForPlayers = 'WaitingForPlayers',
+	GeneratingTurn = 'GeneratingTurn'
+}
+
 export interface Game {
 	id: number;
 	createdAt: string;
 	updatedat: string;
+	hostId: number;
 
 	name: string;
+	state: GameState;
+	numPlayers: number;
+	openPlayerSlots: number;
 	quickStartTurns: number;
 	size: Size;
 	area: Vector;
@@ -83,7 +93,6 @@ export interface Game {
 	publicPlayerScores: boolean;
 	startMode: GameStartMode;
 	year: number;
-	state: string;
 	victoryConditions: VictoryConditions;
 	victorDeclared: boolean;
 	rules: Rules;
@@ -148,6 +157,7 @@ export interface Rules {
 	packetDecayRate: { [key: number]: number };
 	maxTechLevel: number;
 	techBaseCost: number[];
+	techs: TechStore;
 	prtSpecs: any;
 	lrtSpecs: any;
 }

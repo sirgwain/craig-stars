@@ -50,15 +50,9 @@ func generateTestGame(ctx *appcontext.AppContext) error {
 	gameRunner := server.NewGameRunner(ctx.DB)
 
 	// admin user will host a game with an ai player
-	game1, err := gameRunner.HostGame(admin.ID, game.NewGameSettings().
+	if _, err := gameRunner.HostGame(admin.ID, game.NewGameSettings().
 		WithHost(adminRace.ID).
-		WithAIPlayer(game.AIDifficultyNormal))
-	if err != nil {
-		return err
-	}
-
-	// generate the universe for game 1
-	if err := gameRunner.GenerateUniverse(game1.ID); err != nil {
+		WithAIPlayer(game.AIDifficultyNormal)); err != nil {
 		return err
 	}
 
@@ -101,7 +95,14 @@ func createTestUser(db db.Service, username string, password string, role game.R
 
 	var race *game.Race
 	if len(races) == 0 {
-		race = game.NewRace()
+		race = game.Humanoids()
+		race.UserID = user.ID
+
+		if err := db.CreateRace(race); err != nil {
+			return nil, nil, err
+		}
+
+		race = game.PPs()
 		race.UserID = user.ID
 
 		if err := db.CreateRace(race); err != nil {

@@ -5,7 +5,7 @@
 	import { createEventDispatcher } from 'svelte';
 	import DarkModeToggler from '../DarkModeToggler.svelte';
 
-	const updateTitle = () => (document.title = `${$game.name} - ${$game.year}`);
+	const updateTitle = () => (document.title = `${$game?.name} - ${$game?.year}`);
 	$: $game && updateTitle();
 	const dispatch = createEventDispatcher();
 </script>

@@ -248,7 +248,7 @@ func NewRace() *Race {
 	return &Race{
 		Name:       "Humanoid",
 		PluralName: "Humanoids",
-		PRT:        PP,
+		PRT:        JoaT,
 		LRTs:       LRTNone,
 		HabLow: Hab{
 			Grav: 15,
@@ -277,6 +277,14 @@ func NewRace() *Race {
 			Biotechnology: ResearchCostStandard,
 		},
 	}
+}
+
+func Humanoids() *Race {
+	return NewRace()
+}
+
+func PPs() *Race {
+	return NewRace().WithPRT(PP).WithName("Thrower").WithPluralName("Throwers")
 }
 
 func (r *Race) String() string {
@@ -310,6 +318,16 @@ func (r *Race) WithLRT(lrt LRT) *Race {
 
 func (r *Race) WithPRT(prt PRT) *Race {
 	r.PRT = prt
+	return r
+}
+
+func (r *Race) WithName(name string) *Race {
+	r.Name = name
+	return r
+}
+
+func (r *Race) WithPluralName(pluralname string) *Race {
+	r.PluralName = pluralname
 	return r
 }
 

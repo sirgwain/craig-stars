@@ -27,7 +27,7 @@ func (s *server) GameById(c *gin.Context) {
 		return
 	}
 
-	game, err := s.ctx.DB.FindGameById(id.ID)
+	game, err := s.ctx.DB.FindGameByIdLight(id.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -38,4 +38,34 @@ func (s *server) GameById(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, game)
+}
+
+func (s *server) DeleteGameById(c *gin.Context) {
+	user := s.GetSessionUser(c)
+
+	var id idBind
+	if err := c.ShouldBindUri(&id); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// validate
+	game, err := s.ctx.DB.FindGameByIdLight(id.ID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if game.HostID != user.ID {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Only the host can delete a game"})
+		return
+	}
+
+	// delete it
+	if err := s.ctx.DB.DeleteGameById(id.ID); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{})
 }

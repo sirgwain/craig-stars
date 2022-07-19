@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { RaceService } from '$lib/services/RaceService';
-	import { Icon } from '@steeze-ui/svelte-icon';
 	import { PlusCircle } from '@steeze-ui/heroicons';
+	import { Icon } from '@steeze-ui/svelte-icon';
 
 	import {
 		Density,
@@ -10,11 +9,8 @@
 		NewGamePlayerType,
 		PlayerPositions,
 		Size,
-		type Game,
 		type GameSettings
 	} from '$lib/types/Game';
-	import type { Race } from '$lib/types/Race';
-	import { onMount } from 'svelte';
 	import NewGamePlayer from './_NewGamePlayer.svelte';
 
 	let settings: GameSettings = {

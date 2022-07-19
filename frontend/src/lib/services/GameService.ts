@@ -15,6 +15,20 @@ export class GameService extends Service {
 		return this.get<Game[]>('/api/games/open');
 	}
 
+	async deleteGame(gameId: number): Promise<any> {
+		const response = await fetch(`/api/games/${gameId}`, {
+			method: 'DELETE',
+			headers: {
+				accept: 'application/json'
+			}
+		});
+
+		if (!response.ok) {
+			const error = await response.json();
+			throw new Error('Failed to delete game', error);
+		}
+	}
+
 	async loadGame(gameId: number): Promise<GameContext> {
 		const response = await fetch(`/api/games/${gameId}`, {
 			method: 'GET',
@@ -25,6 +39,22 @@ export class GameService extends Service {
 
 		if (response.ok) {
 			return (await response.json()) as GameContext;
+		} else {
+			console.log(response);
+			throw new Error('Failed to load game');
+		}
+	}
+
+	async loadOpenGame(gameId: number): Promise<Game> {
+		const response = await fetch(`/api/games/open/${gameId}`, {
+			method: 'GET',
+			headers: {
+				accept: 'application/json'
+			}
+		});
+
+		if (response.ok) {
+			return (await response.json()) as Game;
 		} else {
 			console.log(response);
 			throw new Error('Failed to load game');

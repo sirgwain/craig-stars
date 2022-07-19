@@ -58,7 +58,7 @@ func Start(ctx *appcontext.AppContext) {
 
 	r.POST("/api/login", server.Login)
 	r.GET("/api/logout", server.Logout)
-	
+
 	// techs are public
 	r.GET("/api/techs", server.Techs)
 
@@ -77,8 +77,11 @@ func Start(ctx *appcontext.AppContext) {
 	ar.GET("/games", server.PlayerGames)
 	ar.GET("/games/hosted", server.HostedGames)
 	ar.GET("/games/open", server.OpenGames)
+	ar.GET("/games/open/:id", server.OpenGame)
 	ar.POST("/games", server.HostGame)
+	ar.POST("/games/open/:id", server.JoinGame)
 	ar.GET("/games/:id", server.PlayerGame)
+	ar.DELETE("/games/:id", server.DeleteGameById)
 	ar.POST("/games/:id/submit-turn", server.SubmitTurn)
 	ar.PUT("/planets/:id", server.UpdatePlanetOrders)
 

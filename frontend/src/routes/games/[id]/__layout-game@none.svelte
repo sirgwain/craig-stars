@@ -14,12 +14,15 @@
 	let gameService: GameService = new GameService();
 
 	onMount(async () => {
+		game.update(() => undefined);
+		player.update(() => undefined);
+
 		// load the game on mount
 		const result = await gameService.loadGame(id);
-		game.update((store) => (store = result.game));
-		player.update((store) => (store = result.player));
+		game.update(() => (result.game));
+		player.update(() => (result.player));
 
-		playerService = new PlayerService($player);
+		playerService = new PlayerService(result.player);
 	});
 
 	// all other components will use this context

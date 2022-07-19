@@ -6,8 +6,8 @@
 	import { kebabCase } from 'lodash-es';
 
 	// for ssr, we start with techs from a json file
-	let techStore: TechStore = techjson as TechStore;
-	let techs: Tech[] = [
+	export let techStore: TechStore = techjson as TechStore;
+	export let techs: Tech[] = [
 		...techStore.engines,
 		...techStore.planetaryScanners,
 		...techStore.defenses,

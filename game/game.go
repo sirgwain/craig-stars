@@ -64,6 +64,7 @@ type Game struct {
 	Year                         int               `json:"year"`
 	State                        GameState         `json:"state"`
 	OpenPlayerSlots              uint              `json:"openPlayerSlots"`
+	NumPlayers                   int               `json:"numPlayers"`
 	VictoryConditions            VictoryConditions `json:"victoryConditions" gorm:"embedded;embeddedPrefix:victory_condition_"`
 	VictorDeclared               bool              `json:"victorDeclared"`
 	Area                         Vector            `json:"area,omitempty" gorm:"embedded;embeddedPrefix:area_"`
@@ -257,8 +258,12 @@ func (g *Game) WithSettings(settings *GameSettings) *Game {
 // Add the player to the game, and compute the player's spec based on the game rules
 func (g *Game) AddPlayer(p *Player) *Player {
 	p.Race.Spec = computeRaceSpec(&p.Race, &g.Rules)
+	p.GameID = g.ID
 	g.Players = append(g.Players, *p)
-	return p
+	g.NumPlayers = len(g.Players)
+	g.OpenPlayerSlots = uint(clamp(int(g.OpenPlayerSlots-1), 0, g.NumPlayers))
+
+	return &g.Players[len(g.Players)-1]
 }
 
 // compute the specs for a universe, i.e. planets, designs, fleets

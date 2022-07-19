@@ -54,33 +54,54 @@ func (gr *GameRunner) HostGame(hostID uint, settings *game.GameSettings) (*game.
 		return nil, err
 	}
 
+	// generate the universe if this game is done
+	if g.OpenPlayerSlots == 0 {
+		gr.GenerateUniverse(g.ID)
+	}
+
 	return g, nil
 }
 
-func (gr *GameRunner) AddPlayer(gameID uint, player *game.Player) error {
-	game, err := gr.LoadGame(gameID)
+// add a player to an existing game
+func (gr *GameRunner) AddPlayer(gameID uint, userID uint, race *game.Race) error {
+
+	g, err := gr.db.FindGameById(gameID)
 	if err != nil {
 		return err
 	}
 
-	game.AddPlayer(player)
-	gr.db.SaveGame(game)
+	player := g.AddPlayer(game.NewPlayer(userID, race))
+	if err := gr.db.SavePlayer(player); err != nil {
+		return err
+	}
+	if err := gr.db.SaveGame(g); err != nil {
+		return err
+	}
+
+	// generate the universe if this game is ready
+	if g.OpenPlayerSlots == 0 {
+		if err := gr.GenerateUniverse(g.ID); err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
 
 func (gr *GameRunner) GenerateUniverse(gameID uint) error {
-	game, err := gr.LoadGame(gameID)
+	g, err := gr.LoadGame(gameID)
 	if err != nil {
 		return err
 	}
 
-	err = game.GenerateUniverse()
+	err = g.GenerateUniverse()
 	if err != nil {
 		return err
 	}
 
-	err = gr.db.SaveGame(game)
+	g.State = game.GameStateWaitingForPlayers
+
+	err = gr.db.SaveGame(g)
 	if err != nil {
 		return err
 	}
