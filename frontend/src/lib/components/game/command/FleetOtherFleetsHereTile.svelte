@@ -1,14 +1,10 @@
 <script lang="ts">
-	import { commandedFleet, myMapObjectsByPosition, commandMapObject } from '$lib/services/Context';
+	import { EventManager } from '$lib/EventManager';
+	import { commandedFleet,commandMapObject,myMapObjectsByPosition } from '$lib/services/Context';
 	import { PlanetService } from '$lib/services/PlanetService';
 	import type { Fleet } from '$lib/types/Fleet';
-	import { MapObjectType, positionKey } from '$lib/types/MapObject';
-	import CargoBar from '$lib/components/game/CargoBar.svelte';
+	import { MapObjectType,positionKey } from '$lib/types/MapObject';
 	import CommandTile from './CommandTile.svelte';
-	import FuelBar from '$lib/components/game/FuelBar.svelte';
-	import { EventManager } from '$lib/EventManager';
-	import { ExternalLink } from '@steeze-ui/heroicons';
-	import { Icon } from '@steeze-ui/svelte-icon';
 
 	const planetService = new PlanetService();
 
