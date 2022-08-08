@@ -16,7 +16,7 @@
 	import hotkeys from 'hotkeys-js';
 	import { createEventDispatcher, onDestroy } from 'svelte';
 	import { $enum as eu } from 'ts-enum-util';
-	import CostComponent from './Cost.svelte';
+	import CostComponent from '../Cost.svelte';
 
 	const getFullName = (type: QueueItemType) => {
 		switch (type) {
@@ -154,7 +154,7 @@
 	};
 
 	const getSelectedItemCost = (): Cost | undefined => {
-		if (player && selectedQueueItem) {
+		if ($player && selectedQueueItem) {
 			const typeCost = $player.race.spec?.costs[selectedQueueItem.type];
 			if (typeCost) {
 				return {
@@ -169,7 +169,7 @@
 	};
 
 	const getAvailableItemCost = (): Cost | undefined => {
-		if (player && selectedAvailableItem) {
+		if ($player && selectedAvailableItem) {
 			return $player.race.spec?.costs[selectedAvailableItem.type];
 		}
 		return;
@@ -197,7 +197,7 @@
 
 	// clone the production queue for this planet when it's first loaded
 	const unsubscribe = commandedPlanet.subscribe((planet) => {
-		if (planet) {
+		if (planet && $player) {
 			queueItems = planet.productionQueue?.map((item) => ({ ...item } as ProductionQueueItem));
 			availableItems = planetService.getAvailableProductionQueueItems(planet, $player);
 

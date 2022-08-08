@@ -3,9 +3,7 @@
 
 	import type { Mineral } from '$lib/types/Mineral';
 
-	import {
-	player
-	} from '$lib/services/Context';
+	import { player } from '$lib/services/Context';
 	import type { Planet } from '$lib/types/Planet';
 	import { findMyPlanet } from '$lib/types/Player';
 
@@ -26,15 +24,21 @@
 	};
 
 	$: {
-		planet = findMyPlanet($player, planet) ?? planet;
-		if (planet && planet.cargo) {
-			barPercent = {
-				ironium: clamp(planet.cargo.ironium ? (planet.cargo.ironium / max) * 100 : 0, 0, 100),
-				boranium: clamp(planet.cargo.boranium ? (planet.cargo.boranium / max) * 100 : 0, 0, 100),
-				germanium: clamp(planet.cargo.germanium ? (planet.cargo.germanium / max) * 100 : 0, 0, 100)
-			};
-		} else {
-			barPercent = { ironium: 0, boranium: 0, germanium: 0 };
+		if ($player) {
+			planet = findMyPlanet($player, planet) ?? planet;
+			if (planet && planet.cargo) {
+				barPercent = {
+					ironium: clamp(planet.cargo.ironium ? (planet.cargo.ironium / max) * 100 : 0, 0, 100),
+					boranium: clamp(planet.cargo.boranium ? (planet.cargo.boranium / max) * 100 : 0, 0, 100),
+					germanium: clamp(
+						planet.cargo.germanium ? (planet.cargo.germanium / max) * 100 : 0,
+						0,
+						100
+					)
+				};
+			} else {
+				barPercent = { ironium: 0, boranium: 0, germanium: 0 };
+			}
 		}
 	}
 </script>

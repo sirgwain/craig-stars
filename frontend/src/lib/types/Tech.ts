@@ -3,10 +3,11 @@ import type { Cost } from './Cost';
 import type { TechLevel as TechLevel } from './Player';
 import type { PRT } from './Race';
 
+export const ScanWithZeroRange = 1;
+export const UnlimitedSpaceDock = -1;
 export const NoScanner = -1;
 export const NoGate = -1;
 export const InfinteGate = 2147483647;
-export const ScanWithZeroRange = 1;
 
 export interface TechStore {
 	engines: TechEngine[];

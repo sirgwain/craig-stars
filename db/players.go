@@ -17,12 +17,14 @@ func (db *DB) FindPlayerByGameId(gameID uint, userID uint) (*game.Player, error)
 		Preload("ProductionPlans").
 		Preload("BattlePlans").
 		Preload("Fleets", func(db *gorm.DB) *gorm.DB {
-			return db.Order("fleets.num")
+			return db.Where("fleets.planet_id = 0").Order("fleets.num")
 		}).
 		Preload("Fleets.Tokens").
 		Preload("Planets", func(db *gorm.DB) *gorm.DB {
 			return db.Order("planets.num")
 		}).
+		Preload("Planets.Starbase").
+		Preload("Planets.Starbase.Tokens").
 		Preload("Planets.ProductionQueue", func(db *gorm.DB) *gorm.DB {
 			return db.Order("production_queue_items.sort_order")
 		}).Where("game_id = ? AND user_id = ?", gameID, userID).First(&player).Error; err != nil {

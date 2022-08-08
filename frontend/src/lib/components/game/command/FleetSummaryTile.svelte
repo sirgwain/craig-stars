@@ -10,7 +10,7 @@
 	$: {
 		// console.log('loading icon of $commandedFleet: ', $commandedFleet);
 		icon = '';
-		if ($commandedFleet && $commandedFleet?.tokens?.length > 0) {
+		if ($player && $commandedFleet && $commandedFleet?.tokens?.length > 0) {
 			const designId = $commandedFleet.tokens[0].designId;
 			design = $player.designs.find((d) => d.id == designId);
 			if (design) {

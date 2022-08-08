@@ -15,8 +15,10 @@
 		localStorage.theme = isDark ? 'business' : 'emerald';
 		if (isDark) {
 			document.documentElement.dataset.theme = 'business';
+			document.documentElement.className = 'dark';
 		} else {
 			document.documentElement.dataset.theme = 'emerald';
+			document.documentElement.className = 'light';
 		}
 	}
 </script>

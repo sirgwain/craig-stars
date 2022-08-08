@@ -256,6 +256,11 @@ func (p *Player) WithTechLevels(tl TechLevel) *Player {
 	return p
 }
 
+func (p *Player) WithSpec(rules *Rules) *Player {
+	p.Spec = computePlayerSpec(p, rules)
+	return p
+}
+
 func (p *Player) String() string {
 	return fmt.Sprintf("Player %d (%d) %s", p.Num, p.ID, p.Race.PluralName)
 }

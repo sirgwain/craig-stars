@@ -4,3 +4,8 @@ export interface Mineral {
 	germanium?: number;
 }
 
+export enum MineralType {
+	Ironium,
+	Boranium,
+	Germanium
+}

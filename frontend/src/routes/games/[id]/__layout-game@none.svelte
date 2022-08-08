@@ -1,11 +1,21 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import CargoTransferDialog from '$lib/components/game/dialogs/cargo/CargoTransferDialog.svelte';
+	import ProductionQueueDialog from '$lib/components/game/dialogs/ProductionQueueDialog.svelte';
 	import GameMenu from '$lib/components/game/GameMenu.svelte';
-	import ProductionQueue from '$lib/components/game/ProductionQueue.svelte';
 	import { EventManager } from '$lib/EventManager';
-	import { commandMapObject, game, player, selectMapObject } from '$lib/services/Context';
+import { bindQuantityModifier, unbindQuantityModifier } from '$lib/quantityModifier';
+	import {
+		commandMapObject,
+		game,
+		myMapObjectsByPosition,
+		player,
+		selectMapObject
+	} from '$lib/services/Context';
 	import { GameService } from '$lib/services/GameService';
 	import { PlayerService } from '$lib/services/PlayerService';
+	import type { Fleet } from '$lib/types/Fleet';
+	import { MapObjectType, positionKey } from '$lib/types/MapObject';
 	import type { Planet } from '$lib/types/Planet';
 	import { onMount } from 'svelte';
 
@@ -13,16 +23,23 @@
 	let playerService: PlayerService;
 	let gameService: GameService = new GameService();
 
+	let source: Fleet | undefined;
+	let dest: Fleet | Planet | undefined;
+
 	onMount(async () => {
 		game.update(() => undefined);
 		player.update(() => undefined);
 
 		// load the game on mount
 		const result = await gameService.loadGame(id);
-		game.update(() => (result.game));
-		player.update(() => (result.player));
+		game.update(() => result.game);
+		player.update(() => result.player);
 
 		playerService = new PlayerService(result.player);
+
+		// setup the quantityModifier
+		bindQuantityModifier();
+		return () => unbindQuantityModifier();
 	});
 
 	// all other components will use this context
@@ -51,7 +68,34 @@
 		productionQueueDialogOpen = !productionQueueDialogOpen;
 	};
 
+	let cargoTransferDialogOpen: boolean;
+	const showCargoTransferDialog = (src: Fleet, target?: Fleet | Planet): void => {
+		if (!$myMapObjectsByPosition) {
+			return;
+		}
+
+		if (src.spec.cargoCapacity === 0 && target?.type != MapObjectType.Fleet) {
+			// can't transfer cargo with no cargo capcity
+			// we can only transfer fuel to another fleet, so don't show the dialog at all in this case
+			return;
+		}
+
+		if (!target) {
+			// no explicit target checked, see if this fleet is orbiting a planet, otherwise it's a jettison
+			const key = positionKey(src);
+			const myMapObjectsAtPosition = $myMapObjectsByPosition[key];
+			dest = myMapObjectsAtPosition.find((mo) => mo.type == MapObjectType.Planet) as Planet;
+		} else {
+			dest = target;
+		}
+
+		source = src;
+		cargoTransferDialogOpen = !cargoTransferDialogOpen;
+	};
+
 	EventManager.productionQueueDialogRequestedEvent = (planet) => showProductionQueueDialog(planet);
+	EventManager.cargoTransferDialogRequestedEvent = (src, target) =>
+		showCargoTransferDialog(src, target);
 </script>
 
 {#if $game && $player}
@@ -59,15 +103,26 @@
 		<div class="flex-initial">
 			<GameMenu on:submit-turn={onSubmitTurn} />
 		</div>
-		<div class="p-2 flex-1">
+		<div class="p-2 flex-1 overflow-y-auto">
 			<slot>Game</slot>
 		</div>
 	</main>
 	<div class="modal" class:modal-open={productionQueueDialogOpen}>
 		<div class="modal-box max-w-full max-h-max h-full lg:max-w-[40rem] lg:max-h-[48rem]">
-			<ProductionQueue
+			<ProductionQueueDialog
 				on:ok={() => (productionQueueDialogOpen = false)}
 				on:cancel={() => (productionQueueDialogOpen = false)}
+			/>
+		</div>
+	</div>
+
+	<div class="modal" class:modal-open={cargoTransferDialogOpen}>
+		<div class="modal-box max-w-full max-h-max h-full lg:max-w-[40rem] lg:max-h-[48rem]">
+			<CargoTransferDialog
+				src={source}
+				{dest}
+				on:ok={() => (cargoTransferDialogOpen = false)}
+				on:cancel={() => (cargoTransferDialogOpen = false)}
 			/>
 		</div>
 	</div>

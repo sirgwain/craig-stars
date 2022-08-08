@@ -1,6 +1,6 @@
 import type { Fleet } from '$lib/types/Fleet';
 import type { Game } from '$lib/types/Game';
-import { MapObjectType, ownedBy, type MapObject } from '$lib/types/MapObject';
+import { MapObjectType, ownedBy, positionKey, type MapObject } from '$lib/types/MapObject';
 import type { Planet } from '$lib/types/Planet';
 import type { Player } from '$lib/types/Player';
 import type { User } from '$lib/types/User';
@@ -25,7 +25,7 @@ export const mapObjectsByPosition = derived(player, ($player) => {
 
 	const dict: MapObjectsByPosition = {};
 	const addtoDict = (mo: MapObject) => {
-		const key = `${mo.position.x},${mo.position.y}`;
+		const key = positionKey(mo);
 		if (!dict[key]) {
 			dict[key] = [];
 		}
@@ -47,7 +47,7 @@ export const myMapObjectsByPosition = derived(player, ($player) => {
 		if (!ownedBy(mo, $player.num)) {
 			return;
 		}
-		const key = `${mo.position.x},${mo.position.y}`;
+		const key = positionKey(mo);
 		if (!dict[key]) {
 			dict[key] = [];
 		}
