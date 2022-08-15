@@ -41,8 +41,8 @@ type ShipDesignSpec struct {
 	FuelCapacity              int                   `json:"fuelCapacity,omitempty"`
 	CargoCapacity             int                   `json:"cargoCapacity,omitempty"`
 	CloakUnits                int                   `json:"cloakUnits,omitempty"`
-	ScanRange                 int                   `json:"ScanRange,omitempty"`
-	ScanRangePen              int                   `json:"ScanRangePen,omitempty"`
+	ScanRange                 int                   `json:"scanRange,omitempty"`
+	ScanRangePen              int                   `json:"scanRangePen,omitempty"`
 	RepairBonus               float64               `json:"repairBonus,omitempty"`
 	TorpedoInaccuracyFactor   float64               `json:"torpedoInaccuracyFactor,omitempty"`
 	Initiative                int                   `json:"initiative,omitempty"`

@@ -7,7 +7,7 @@ import type { ShipDesign } from './ShipDesign';
 export interface Player {
 	id?: number;
 	createdAt?: string;
-	updatedat?: string;
+	updatedAt?: string;
 
 	gameId: number;
 	userId?: number;
@@ -38,7 +38,7 @@ export interface TechLevel {
 export interface Message {
 	id: number;
 	createdAt: string;
-	updatedat: string;
+	updatedAt: string;
 
 	playerId: number;
 	type: string;

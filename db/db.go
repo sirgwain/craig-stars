@@ -56,6 +56,10 @@ type Service interface {
 
 	FindPlanetById(id uint) (*game.Planet, error)
 	SavePlanet(planet *game.Planet) error
+
+	FindFleetById(id uint) (*game.Fleet, error)
+	SaveFleet(fleet *game.Fleet) error
+
 }
 
 func (db *DB) Connect(config *config.Config) {

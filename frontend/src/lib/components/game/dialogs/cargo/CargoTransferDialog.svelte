@@ -18,6 +18,7 @@
 	import TransferButtons from './TransferButtons.svelte';
 	import { getQuantityModifier } from '$lib/quantityModifier';
 	import { clamp } from '$lib/services/Math';
+	import { FleetService } from '$lib/services/FleetService';
 
 	export let src: Fleet | undefined;
 	export let dest: Fleet | Planet | undefined;
@@ -27,47 +28,70 @@
 	let fuelTransferAmount: number = 0;
 	let fuel: number = 0;
 
+	const reset = () => {
+		transferAmount = emptyCargo();
+		fuelTransferAmount = 0;
+		cargo = emptyCargo();
+		fuel = 0;
+	};
+
 	const ok = async () => {
-		dispatch('ok');
+		if (src) {
+			const fleetService = new FleetService();
+			try {
+				const result = await fleetService.transferCargo(src, dest, transferAmount);
+				// TODO: should the parent do this? or do we update the src/dest here?
+				src.cargo = result.cargo;
+				if (dest?.cargo) {
+					dest.cargo = subtract(dest.cargo, transferAmount);
+				}
+				reset();
+				dispatch('ok', result);
+			} catch (e) {
+				console.error(e);
+			}
+		}
 	};
 
 	const cancel = () => {
+		reset();
 		dispatch('cancel');
 	};
 
+	// get the available space to transfer into this fleet based on the current transferAmount set in the UI, the cargo capacity,
+	// and the total cargo already in the hold when we opened the dialog
+	const availableSpace = () =>
+		(src?.spec.cargoCapacity ?? 0) - totalCargo(transferAmount) - totalCargo(src?.cargo ?? {});
+
 	const transferIronium = (amount: number) => {
-		const available = (src?.spec.cargoCapacity ?? 0) - totalCargo(transferAmount);
 		transferAmount.ironium = clamp(
 			(transferAmount.ironium ?? 0) + amount,
 			-(cargo.ironium ?? 0),
-			(transferAmount.ironium ?? 0) + available
+			(transferAmount.ironium ?? 0) + availableSpace()
 		);
 	};
 
 	const transferBoranium = (amount: number) => {
-		const available = (src?.spec.cargoCapacity ?? 0) - totalCargo(transferAmount);
 		transferAmount.boranium = clamp(
 			(transferAmount.boranium ?? 0) + amount,
 			-(cargo.boranium ?? 0),
-			(transferAmount.boranium ?? 0) + available
+			(transferAmount.boranium ?? 0) + availableSpace()
 		);
 	};
 
 	const transferGermanium = (amount: number) => {
-		const available = (src?.spec.cargoCapacity ?? 0) - totalCargo(transferAmount);
 		transferAmount.germanium = clamp(
 			(transferAmount.germanium ?? 0) + amount,
 			-(cargo.germanium ?? 0),
-			(transferAmount.germanium ?? 0) + available
+			(transferAmount.germanium ?? 0) + availableSpace()
 		);
 	};
 
 	const transferColonists = (amount: number) => {
-		const available = (src?.spec.cargoCapacity ?? 0) - totalCargo(transferAmount);
 		transferAmount.colonists = clamp(
 			(transferAmount.colonists ?? 0) + amount,
 			-(cargo.colonists ?? 0),
-			(transferAmount.colonists ?? 0) + available
+			(transferAmount.colonists ?? 0) + availableSpace()
 		);
 	};
 
@@ -82,10 +106,6 @@
 
 	$: src && (cargo = src.cargo);
 	$: src && (fuel = src.fuel);
-
-	function minus(cargo: Cargo, transferAmount: Cargo): Cargo {
-		throw new Error('Function not implemented.');
-	}
 </script>
 
 {#if src}
@@ -102,8 +122,8 @@
 							{fuelTransferAmount}
 							{cargo}
 							{fuel}
-							cargoCapacity={src.spec.cargoCapacity}
-							fuelCapacity={src.spec.fuelCapacity}
+							cargoCapacity={src.spec.cargoCapacity ?? 0}
+							fuelCapacity={src.spec.fuelCapacity ?? 0}
 						/>
 					</div>
 					<div class="flex-none h-full mx-0.5 w-20 px-1 mt-8">

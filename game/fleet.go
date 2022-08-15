@@ -72,6 +72,11 @@ func NewFleet(player *Player, design *ShipDesign, num int, name string, waypoint
 	}
 }
 
+func (f *Fleet) WithCargo(cargo Cargo) *Fleet {
+	f.Cargo = cargo
+	return f
+}
+
 func NewPlanetWaypoint(planet *Planet, warpFactor int) Waypoint {
 	return Waypoint{
 		Position:        planet.Position,
@@ -80,7 +85,6 @@ func NewPlanetWaypoint(planet *Planet, warpFactor int) Waypoint {
 		WarpFactor:      warpFactor,
 	}
 }
-
 
 func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) *FleetSpec {
 	spec := FleetSpec{
@@ -187,4 +191,44 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) *FleetSpec {
 	}
 
 	return &spec
+}
+
+func (f *Fleet) AvailableCargoSpace() int {
+	return clamp(f.Spec.CargoCapacity-f.Cargo.Total(), 0, f.Spec.CargoCapacity)
+}
+
+// transfer cargo from a planet to/from a fleet
+func (f *Fleet) TransferPlanetCargo(planet *Planet, transferAmount Cargo) error {
+
+	if f.AvailableCargoSpace() < transferAmount.Total() {
+		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", f.Name, f.AvailableCargoSpace(), transferAmount.Total(), planet.Name)
+	}
+
+	if !planet.Cargo.CanTransfer(transferAmount) {
+		return fmt.Errorf("fleet %s cannot transfer %v from %s, there is not enough to transfer", f.Name, transferAmount, planet.Name)
+	}
+
+	// transfer the cargo
+	f.Cargo = f.Cargo.Add(transferAmount)
+	planet.Cargo = planet.Cargo.Subtract(transferAmount)
+
+	return nil
+}
+
+// transfer cargo from a fleet to/from a fleet
+func (f *Fleet) TransferFleetCargo(fleet *Fleet, transferAmount Cargo) error {
+
+	if f.AvailableCargoSpace() < transferAmount.Total() {
+		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", f.Name, f.AvailableCargoSpace(), transferAmount.Total(), fleet.Name)
+	}
+
+	if !fleet.Cargo.CanTransfer(transferAmount) {
+		return fmt.Errorf("fleet %s cannot transfer %v from %s, there is not enough to transfer", f.Name, transferAmount, fleet.Name)
+	}
+
+	// transfer the cargo
+	f.Cargo = f.Cargo.Add(transferAmount)
+	fleet.Cargo = fleet.Cargo.Subtract(transferAmount)
+
+	return nil
 }

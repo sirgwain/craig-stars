@@ -76,7 +76,7 @@ export enum GameState {
 export interface Game {
 	id: number;
 	createdAt: string;
-	updatedat: string;
+	updatedAt: string;
 	hostId: number;
 
 	name: string;
@@ -101,7 +101,7 @@ export interface Game {
 export interface Rules {
 	id?: number;
 	createdAt?: string;
-	updatedat?: string;
+	updatedAt?: string;
 
 	gameId?: number;
 	tachyonCloakReduction: number;

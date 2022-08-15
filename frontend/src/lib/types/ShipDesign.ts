@@ -3,7 +3,7 @@ import type { Cost } from './Cost';
 export interface ShipDesign {
 	id: number;
 	createdAt: string;
-	updatedat: string;
+	updatedAt: string;
 
 	gameId: number;
 	playerId: number;
@@ -11,7 +11,7 @@ export interface ShipDesign {
 	name: string;
 	version: number;
 	hull: string;
-	hullSetNumber: number
+	hullSetNumber: number;
 	armor: number;
 	slots: ShipDesignSlot[];
 	spec: Spec;

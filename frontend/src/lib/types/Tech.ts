@@ -21,7 +21,7 @@ export interface TechStore {
 export interface Tech {
 	id?: number;
 	createdAt?: string;
-	updatedat?: string;
+	updatedAt?: string;
 
 	techStoreId?: number;
 	name: string;

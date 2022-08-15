@@ -1,9 +1,13 @@
 <script lang="ts">
 	import PlanetMineralsGraph from '$lib/components/game/PlanetMineralsGraph.svelte';
+import { MapObjectType } from '$lib/types/MapObject';
 
 	import type { Planet } from '$lib/types/Planet';
+import TestBreadcrumb from '../_TestBreadcrumb.svelte';
 
 	const planet1: Planet = {
+		type: MapObjectType.Planet,
+		reportAge: 0,
 		name: 'New Planet',
 		position: { x: 0, y: 0 },
 		num: 0,
@@ -13,6 +17,8 @@
 	};
 
 	const planet2: Planet = {
+		type: MapObjectType.Planet,
+		reportAge: 0,
 		name: 'New Planet2',
 		position: { x: 0, y: 0 },
 		num: 0,
@@ -22,6 +28,8 @@
 	};
 
 </script>
+
+<TestBreadcrumb title="PlanetMikneralsGraph" />
 
 <h1 class='text-xl'>Planet 1</h1>
 <PlanetMineralsGraph planet={planet1} />

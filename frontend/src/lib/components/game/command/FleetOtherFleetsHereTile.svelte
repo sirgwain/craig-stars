@@ -1,15 +1,18 @@
 <script lang="ts">
 	import { EventManager } from '$lib/EventManager';
-	import { commandedFleet,commandMapObject,myMapObjectsByPosition } from '$lib/services/Context';
-	import { PlanetService } from '$lib/services/PlanetService';
+	import {
+		commandedFleet,
+		commandedMapObjectName,
+		commandMapObject,
+		myMapObjectsByPosition
+	} from '$lib/services/Context';
 	import type { Fleet } from '$lib/types/Fleet';
-	import { MapObjectType,positionKey } from '$lib/types/MapObject';
+	import { MapObjectType, positionKey } from '$lib/types/MapObject';
 	import CommandTile from './CommandTile.svelte';
-
-	const planetService = new PlanetService();
 
 	let fleetsInOrbit: Fleet[];
 	let selectedFleet: Fleet | undefined;
+	let selectedFleetIndex = 0;
 
 	$: {
 		if ($commandedFleet && $myMapObjectsByPosition) {
@@ -18,13 +21,16 @@
 				(mo) => mo.type == MapObjectType.Fleet && mo != $commandedFleet
 			) as Fleet[];
 			if (fleetsInOrbit.length > 0) {
-				selectedFleet = fleetsInOrbit[0];
+				selectedFleet = fleetsInOrbit[selectedFleetIndex];
 			}
 		}
 	}
 
+	commandedMapObjectName.subscribe(() => (selectedFleetIndex = 0));
+
 	const onSelectedFleetChange = (index: number) => {
-		selectedFleet = fleetsInOrbit[index];
+		selectedFleetIndex = index;
+		selectedFleet = fleetsInOrbit[selectedFleetIndex];
 	};
 
 	const transfer = () => {
@@ -44,7 +50,6 @@
 			// EventManager.publishFleetMergeDialogRequestedEvent($commandedFleet, selectedFleet);
 		}
 	};
-
 </script>
 
 {#if $commandedFleet}
@@ -65,8 +70,7 @@
 						on:click={gotoTarget}
 						disabled={!selectedFleet}
 						class="btn btn-outline btn-sm normal-case btn-secondary p-2"
-						title="goto"
-						>Goto</button
+						title="goto">Goto</button
 					>
 				</div>
 				<div class="tooltip" data-tip="merge fleet">

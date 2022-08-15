@@ -97,6 +97,11 @@ func NewPlanet(gameID uint) *Planet {
 	return &Planet{MapObject: MapObject{Type: MapObjectTypePlanet, GameID: gameID, Dirty: true}}
 }
 
+func (p *Planet) WithCargo(cargo Cargo) *Planet {
+	p.Cargo = cargo
+	return p
+}
+
 func (p *Planet) WithMines(mines int) *Planet {
 	p.Mines = mines
 	return p

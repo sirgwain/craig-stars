@@ -84,6 +84,7 @@ func Start(ctx *appcontext.AppContext) {
 	ar.DELETE("/games/:id", server.DeleteGameById)
 	ar.POST("/games/:id/submit-turn", server.SubmitTurn)
 	ar.PUT("/planets/:id", server.UpdatePlanetOrders)
+	ar.POST("/fleets/:id/transfer-cargo", server.TransferCargo)
 
 	r.GET("/api/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{

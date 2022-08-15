@@ -19,6 +19,7 @@ export const commandedFleet = writable<Fleet | undefined>();
 export const selectedMapObject = writable<MapObject>();
 export const commandedMapObject = writable<MapObject>();
 export const highlightedMapObject = writable<MapObject | undefined>();
+export const commandedMapObjectName = writable<string>();
 
 export const mapObjectsByPosition = derived(player, ($player) => {
 	if (!$player) return undefined;
@@ -75,6 +76,8 @@ export const commandMapObject = (mo: MapObject) => {
 		commandedPlanet.update(() => undefined);
 		commandedFleet.update(() => mo as Fleet);
 	}
+
+	commandedMapObjectName.update(() => mo.name);
 };
 
 export const highlightMapObject = (mo: MapObject | undefined) => {

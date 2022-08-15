@@ -1,19 +1,36 @@
 <script lang="ts">
-	import { commandedPlanet, myMapObjectsByPosition, commandMapObject } from '$lib/services/Context';
-	import { PlanetService } from '$lib/services/PlanetService';
-	import type { Fleet } from '$lib/types/Fleet';
-	import { MapObjectType, positionKey } from '$lib/types/MapObject';
 	import CargoBar from '$lib/components/game/CargoBar.svelte';
-	import CommandTile from './CommandTile.svelte';
 	import FuelBar from '$lib/components/game/FuelBar.svelte';
 	import { EventManager } from '$lib/EventManager';
+	import {
+		commandedMapObjectName,
+		commandedPlanet,
+		commandMapObject,
+		myMapObjectsByPosition
+	} from '$lib/services/Context';
+	import type { Fleet } from '$lib/types/Fleet';
+	import { MapObjectType, positionKey } from '$lib/types/MapObject';
 	import { ExternalLink } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-
-	const planetService = new PlanetService();
+	import { onMount } from 'svelte';
+	import CommandTile from './CommandTile.svelte';
 
 	let fleetsInOrbit: Fleet[];
 	let selectedFleet: Fleet | undefined;
+	let selectedFleetIndex = 0;
+
+	onMount(() => {
+		const unsubscribe = EventManager.subscribeCargoTransferredEvent((mo) => {
+			if (selectedFleet == mo) {
+				// trigger a reaction
+				selectedFleet.cargo = (mo as Fleet).cargo;
+			}
+		});
+
+		return () => unsubscribe();
+	});
+
+	commandedMapObjectName.subscribe(() => (selectedFleetIndex = 0));
 
 	$: {
 		if ($commandedPlanet && $myMapObjectsByPosition) {
@@ -22,13 +39,14 @@
 				(mo) => mo.type == MapObjectType.Fleet
 			) as Fleet[];
 			if (fleetsInOrbit.length > 0) {
-				selectedFleet = fleetsInOrbit[0];
+				selectedFleet = fleetsInOrbit[selectedFleetIndex];
 			}
 		}
 	}
 
 	const onSelectedFleetChange = (index: number) => {
 		selectedFleet = fleetsInOrbit[index];
+		selectedFleetIndex = index;
 	};
 
 	const transfer = () => {

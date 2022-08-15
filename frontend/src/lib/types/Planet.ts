@@ -30,7 +30,7 @@ export interface Planet extends MapObject {
 export interface ProductionQueueItem {
 	id?: number;
 	createdAt?: string;
-	updatedat?: string;
+	updatedAt?: string;
 
 	type: QueueItemType;
 	quantity: number;
