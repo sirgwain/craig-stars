@@ -51,9 +51,24 @@ func generateTestGame(ctx *appcontext.AppContext) error {
 
 	// admin user will host a game with an ai player
 	if _, err := gameRunner.HostGame(admin.ID, game.NewGameSettings().
+		// WithSize(game.SizeTiny).
+		// WithDensity(game.DensitySparse).
 		WithHost(adminRace.ID).
 		WithAIPlayer(game.AIDifficultyNormal)); err != nil {
 		return err
+	}
+
+	// also create a medium size game with 25 turns generated
+	mediumGame, err := gameRunner.HostGame(admin.ID, game.NewGameSettings().
+		WithName("Medium Game").
+		WithHost(adminRace.ID).
+		WithAIPlayer(game.AIDifficultyNormal))
+	if err != nil {
+		return err
+	}
+	for i := 0; i < 25; i++ {
+		gameRunner.SubmitTurn(mediumGame.ID, mediumGame.HostID)
+		gameRunner.CheckAndGenerateTurn(mediumGame.ID)
 	}
 
 	// user2 will also host a game so with an open player slot
@@ -102,12 +117,12 @@ func createTestUser(db db.Service, username string, password string, role game.R
 			return nil, nil, err
 		}
 
-		race = game.PPs()
-		race.UserID = user.ID
+		// race = game.PPs()
+		// race.UserID = user.ID
 
-		if err := db.CreateRace(race); err != nil {
-			return nil, nil, err
-		}
+		// if err := db.CreateRace(race); err != nil {
+		// 	return nil, nil, err
+		// }
 	} else {
 		race = &races[0]
 	}

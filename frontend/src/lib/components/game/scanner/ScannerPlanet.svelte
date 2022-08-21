@@ -4,14 +4,11 @@
  -->
 <script lang="ts">
 	import {
-		commandedPlanet,
-		commandedMapObject,
-		player,
-		mapObjectsByPosition,
-		myMapObjectsByPosition
+	commandedMapObject,mapObjectsByPosition,
+	myMapObjectsByPosition,player
 	} from '$lib/services/Context';
-	import { MapObjectType, positionKey, type MapObject } from '$lib/types/MapObject';
-	import { Unexplored, type Planet } from '$lib/types/Planet';
+	import { positionKey } from '$lib/types/MapObject';
+	import { Unexplored,type Planet } from '$lib/types/Planet';
 	import { getContext } from 'svelte';
 
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext('LayerCake');

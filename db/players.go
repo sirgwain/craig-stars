@@ -14,12 +14,16 @@ func (db *DB) FindPlayerByGameId(gameID uint, userID uint) (*game.Player, error)
 	if err := db.sqlDB.
 		Preload(clause.Associations).
 		Preload("Designs").
+		Preload("PlanetIntels").
+		Preload("FleetIntels").
+		Preload("DesignIntels").
+		Preload("MineralPacketIntels").
 		Preload("ProductionPlans").
 		Preload("BattlePlans").
 		Preload("Fleets", func(db *gorm.DB) *gorm.DB {
-			return db.Where("fleets.planet_id = 0").Order("fleets.num")
+			return db.Where("fleets.starbase != ?", true).Order("fleets.num")
 		}).
-		Preload("Fleets.Tokens").
+		Preload("Fleets.Tokens.Design").
 		Preload("Planets", func(db *gorm.DB) *gorm.DB {
 			return db.Order("planets.num")
 		}).
@@ -34,6 +38,9 @@ func (db *DB) FindPlayerByGameId(gameID uint, userID uint) (*game.Player, error)
 			return nil, err
 		}
 	}
+
+	// build the non-serialized player map objects
+	player.BuildMaps()
 
 	return &player, nil
 }

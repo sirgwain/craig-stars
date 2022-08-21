@@ -17,6 +17,8 @@
 	import { Html, LayerCake, Svg } from 'layercake';
 	import MapObjectQuadTreeFinder from './MapObjectQuadTreeFinder.svelte';
 	import ScannerPlanets from './ScannerPlanets.svelte';
+	import ScannerScanners from './ScannerScanners.svelte';
+	import ScannerWaypoints from './ScannerWaypoints.svelte';
 	import SelectedMapObject from './SelectedMapObject.svelte';
 
 	const xGetter = (mo: MapObject) => mo?.position?.x;
@@ -24,6 +26,7 @@
 
 	let clientWidth = 100;
 	let clientHeight = 100;
+	let aspectRatio = 1;
 	let transform: ZoomTransform;
 	let zoomBehavior: ZoomBehavior<HTMLElement, any>;
 	let root: HTMLElement;
@@ -38,12 +41,12 @@
 			zoomBehavior = zoom<HTMLElement, any>()
 				.extent([
 					[0, 0],
-					[clientWidth, clientHeight]
+					[clientWidth * aspectRatio, clientHeight * aspectRatio]
 				])
 				.scaleExtent([1, 5])
 				.translateExtent([
 					[0, 0],
-					[clientWidth, clientHeight]
+					[clientWidth * aspectRatio, clientHeight * aspectRatio]
 				])
 				.on('zoom', handleZoom);
 		}
@@ -52,6 +55,7 @@
 	function handleResize() {
 		clientWidth = root?.clientWidth ?? 100;
 		clientHeight = root?.clientHeight ?? 100;
+		aspectRatio = clientHeight / clientWidth;
 	}
 
 	function handleZoom(e: D3ZoomEvent<HTMLElement, any>) {
@@ -63,18 +67,18 @@
 	$: if (root && $game?.area) {
 		select(root).call(zoomBehavior).on('dblclick.zoom', null);
 		// if ($commandedPlanet) {
-			// set initial zoom
-			select(root).call(zoomBehavior.transform, zoomIdentity);
+		// set initial zoom
+		select(root).call(zoomBehavior.transform, zoomIdentity);
 
-			// select(root).call(
-			// 	zoomBehavior.transform,
-			// 	zoomIdentity
-			// 		.scale(2)
-			// 		.translate(
-			// 			clamp(-($game.area.x - $commandedPlanet.position.x) / 2, -root.clientWidth, 0),
-			// 			clamp(($game.area.y - $commandedPlanet.position.y) / 2, -$game.area.y, 0)
-			// 		)
-			// );
+		// select(root).call(
+		// 	zoomBehavior.transform,
+		// 	zoomIdentity
+		// 		.scale(2)
+		// 		.translate(
+		// 			clamp(-($game.area.x - $commandedPlanet.position.x) / 2, -root.clientWidth, 0),
+		// 			clamp(($game.area.y - $commandedPlanet.position.y) / 2, -$game.area.y, 0)
+		// 		)
+		// );
 		// }
 	}
 
@@ -139,12 +143,15 @@
 			y={yGetter}
 			xDomain={[0, $game.area.x]}
 			yDomain={[0, $game.area.y]}
-			xRange={[0, clientWidth]}
-			yRange={[clientHeight, 0]}
+			xRange={[0, clientWidth * aspectRatio]}
+			yRange={[clientHeight * aspectRatio, 0]}
 			bind:element={root}
 		>
+			<!-- <Svg viewBox={`0 0 ${$game.area.x} ${$game.area.y}`}> -->
 			<Svg>
 				<g transform={transform?.toString()}>
+					<ScannerScanners />
+					<ScannerWaypoints />
 					<ScannerPlanets />
 					<SelectedMapObject />
 				</g>

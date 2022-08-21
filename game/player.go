@@ -2,39 +2,55 @@ package game
 
 import (
 	"fmt"
+	"sort"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Player struct {
-	ID                    uint              `gorm:"primaryKey" json:"id,omitempty"`
-	CreatedAt             time.Time         `json:"createdAt,omitempty"`
-	UpdatedAt             time.Time         `json:"updatedat,omitempty"`
-	GameID                uint              `json:"gameId,omitempty"`
-	UserID                uint              `json:"userId,omitempty"`
-	Name                  string            `json:"name,omitempty"`
-	Num                   int               `json:"num"`
-	Ready                 bool              `json:"ready,omitempty"`
-	AIControlled          bool              `json:"aIControlled,omitempty"`
-	SubmittedTurn         bool              `json:"submittedTurn,omitempty"`
-	Color                 string            `json:"color,omitempty"`
-	DefaultHullSet        int               `json:"defaultHullSet,omitempty"`
-	Race                  Race              `json:"race,omitempty"`
-	TechLevels            TechLevel         `json:"techLevels,omitempty" gorm:"embedded;embeddedPrefix:tech_levels_"`
-	TechLevelsSpent       TechLevel         `json:"techLevelsSpent,omitempty" gorm:"embedded;embeddedPrefix:tech_levels_spent"`
-	ResearchAmount        int               `json:"researchAmount,omitempty"`
-	ResearchSpentLastYear int               `json:"researchSpentLastYear,omitempty"`
-	NextResearchField     NextResearchField `json:"nextResearchField,omitempty"`
-	Researching           TechField         `json:"researching,omitempty"`
-	BattlePlans           []BattlePlan      `json:"battlePlans,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
-	ProductionPlans       []ProductionPlan  `json:"productionPlans,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
-	TransportPlans        []TransportPlan   `json:"transportPlans,omitempty" gorm:"serializer:json"`
-	Messages              []PlayerMessage   `json:"messages,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
-	Designs               []*ShipDesign     `json:"designs,omitempty" gorm:"foreignKey:PlayerID;references:ID"`
-	Fleets                []*Fleet          `json:"fleets,omitempty" gorm:"foreignKey:PlayerID;references:ID"`
-	Planets               []*Planet         `json:"planets,omitempty" gorm:"foreignKey:PlayerID;references:ID"`
-	PlanetIntels          []PlanetIntel     `json:"planetIntels,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
-	Spec                  *PlayerSpec       `json:"spec,omitempty" gorm:"serializer:json"`
-	LeftoverResources     int               `json:"-" gorm:"-"`
+	ID                    uint                           `gorm:"primaryKey" json:"id,omitempty"`
+	CreatedAt             time.Time                      `json:"createdAt,omitempty"`
+	UpdatedAt             time.Time                      `json:"updatedat,omitempty"`
+	GameID                uint                           `json:"gameId,omitempty"`
+	UserID                uint                           `json:"userId,omitempty"`
+	Name                  string                         `json:"name,omitempty"`
+	Num                   int                            `json:"num"`
+	Ready                 bool                           `json:"ready,omitempty"`
+	AIControlled          bool                           `json:"aIControlled,omitempty"`
+	SubmittedTurn         bool                           `json:"submittedTurn,omitempty"`
+	Color                 string                         `json:"color,omitempty"`
+	DefaultHullSet        int                            `json:"defaultHullSet,omitempty"`
+	Race                  Race                           `json:"race,omitempty"`
+	TechLevels            TechLevel                      `json:"techLevels,omitempty" gorm:"embedded;embeddedPrefix:tech_levels_"`
+	TechLevelsSpent       TechLevel                      `json:"techLevelsSpent,omitempty" gorm:"embedded;embeddedPrefix:tech_levels_spent"`
+	ResearchAmount        int                            `json:"researchAmount,omitempty"`
+	ResearchSpentLastYear int                            `json:"researchSpentLastYear,omitempty"`
+	NextResearchField     NextResearchField              `json:"nextResearchField,omitempty"`
+	Researching           TechField                      `json:"researching,omitempty"`
+	BattlePlans           []BattlePlan                   `json:"battlePlans,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
+	ProductionPlans       []ProductionPlan               `json:"productionPlans,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
+	TransportPlans        []TransportPlan                `json:"transportPlans,omitempty" gorm:"serializer:json"`
+	Messages              []PlayerMessage                `json:"messages,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
+	Designs               []*ShipDesign                  `json:"designs,omitempty" gorm:"foreignKey:PlayerID;references:ID"`
+	Fleets                []*Fleet                       `json:"fleets,omitempty" gorm:"foreignKey:PlayerID;references:ID"`
+	Planets               []*Planet                      `json:"planets,omitempty" gorm:"foreignKey:PlayerID;references:ID"`
+	MineralPackets        []*MineralPacket               `json:"mineralPackets,omitempty" gorm:"foreignKey:PlayerID;references:ID"`
+	PlanetIntels          []PlanetIntel                  `json:"planetIntels,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
+	FleetIntels           []FleetIntel                   `json:"fleetIntels,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
+	DesignIntels          []ShipDesignIntel              `json:"designIntels,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
+	MineralPacketIntels   []MineralPacketIntel           `json:"mineralPacketIntels,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
+	Spec                  *PlayerSpec                    `json:"spec,omitempty" gorm:"serializer:json"`
+	Stats                 *PlayerStats                   `json:"stats,omitempty" gorm:"serializer:json"`
+	FleetIntelsByKey      map[string]*FleetIntel         `json:"-" gorm:"-"`
+	DesignIntelsByKey     map[uuid.UUID]*ShipDesignIntel `json:"-" gorm:"-"`
+	LeftoverResources     int                            `json:"-" gorm:"-"`
+}
+
+type PlayerStats struct {
+	FleetsBuilt      int `json:"fleetsBuilt,omitempty"`
+	TokensBuilt      int `json:"tokensBuilt,omitempty"`
+	PlanetsColonized int `json:"planetsColonized,omitempty"`
 }
 
 type NextResearchField string
@@ -208,6 +224,7 @@ func NewPlayer(userID uint, race *Race) *Player {
 
 	return &Player{
 		UserID:            userID,
+		Stats:             &PlayerStats{},
 		Race:              playerRace,
 		ResearchAmount:    15,
 		NextResearchField: NextResearchFieldLowestField,
@@ -265,6 +282,29 @@ func (p *Player) String() string {
 	return fmt.Sprintf("Player %d (%d) %s", p.Num, p.ID, p.Race.PluralName)
 }
 
+func (p *Player) getNextFleetNum() int {
+	num := 1
+
+	orderedFleets := make([]*Fleet, len(p.Fleets))
+	copy(orderedFleets, p.Fleets)
+	sort.Slice(orderedFleets, func(i, j int) bool { return orderedFleets[i].Num < orderedFleets[j].Num })
+
+	for i := 0; i < len(orderedFleets); i++ {
+		// todo figure out starbasees
+		fleet := orderedFleets[i]
+		if i > 0 {
+			// if we are past fleet #1 and we skipped a number, used the skipped number
+			if fleet.Num > 1 && fleet.Num != orderedFleets[i-1].Num+1 {
+				return orderedFleets[i-1].Num + 1
+			}
+		}
+		// we are the next num...
+		num = fleet.Num + 1
+	}
+
+	return num
+}
+
 // Get a player ShipDesign by name, or nil if no design found
 func (p *Player) GetDesign(name string) *ShipDesign {
 	for i := range p.Designs {
@@ -274,6 +314,37 @@ func (p *Player) GetDesign(name string) *ShipDesign {
 		}
 	}
 	return nil
+}
+
+// get the latest ship design by purpose
+func (p *Player) GetLatestDesign(purpose ShipDesignPurpose) *ShipDesign {
+	var latest *ShipDesign = nil
+	for i := range p.Designs {
+		design := p.Designs[i]
+		if design.Purpose == purpose {
+			if latest == nil {
+				latest = design
+			} else {
+				if latest.Version < design.Version {
+					latest = design
+				}
+			}
+
+		}
+	}
+
+	return latest
+}
+
+// get all planets the player owns that can build ships of mass mass
+func (p *Player) GetBuildablePlanets(mass int) []*Planet {
+	planets := []*Planet{}
+	for _, planet := range p.Planets {
+		if planet.CanBuild(mass) {
+			planets = append(planets, planet)
+		}
+	}
+	return planets
 }
 
 func computePlayerSpec(player *Player, rules *Rules) *PlayerSpec {
@@ -310,4 +381,24 @@ func (p *Player) CanLearnTech(tech *Tech) bool {
 	}
 
 	return true
+}
+
+func (p *Player) clearTransientReports() {
+	p.FleetIntels = []FleetIntel{}
+	p.FleetIntelsByKey = map[string]*FleetIntel{}
+}
+
+func (p *Player) BuildMaps() {
+	p.FleetIntelsByKey = map[string]*FleetIntel{}
+	for i := range p.FleetIntels {
+		intel := &p.FleetIntels[i]
+		p.FleetIntelsByKey[intel.String()] = intel
+	}
+
+	p.DesignIntelsByKey = map[uuid.UUID]*ShipDesignIntel{}
+	for i := range p.DesignIntels {
+		intel := &p.DesignIntels[i]
+		p.DesignIntelsByKey[intel.UUID] = intel
+	}
+
 }

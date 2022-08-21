@@ -28,10 +28,15 @@ func (db *DB) MigrateAll() error {
 		&game.Planet{},
 		&game.PlanetIntel{},
 		&game.FleetIntel{},
+		&game.ShipDesignIntel{},
+		&game.MineralPacketIntel{},
 		&game.ProductionQueueItem{},
 		&game.Fleet{},
 		&game.ShipToken{},
 		&game.ShipDesign{},
+		&game.MineralPacket{},
+		&game.Wormohole{},
+		&game.MineField{},
 	}
 
 	for _, t := range types {

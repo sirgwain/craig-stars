@@ -84,7 +84,7 @@ type LRTSpec struct {
 	ShieldStrengthFactor         float64        `json:"shieldStrengthFactor"`
 	ShieldRegenerationRate       float64        `json:"shieldRegenerationRate"`
 	EngineFailureRate            float64        `json:"engineFailureRate"`
-	EngineReliableSpeed          float64        `json:"engineReliableSpeed"`
+	EngineReliableSpeed          int            `json:"engineReliableSpeed"`
 }
 
 type TechCostOffset struct {

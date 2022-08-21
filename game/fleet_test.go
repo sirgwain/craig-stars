@@ -47,6 +47,24 @@ func testSmallFreighter(player *Player, rules *Rules) *Fleet {
 
 }
 
+func testCloakedScout(player *Player, rules *Rules) *Fleet {
+	fleet := &Fleet{
+		BaseName: "Cloaked Scout",
+		Tokens: []ShipToken{
+			{Quantity: 1, Design: NewShipDesign(player).
+				WithHull(Scout.Name).
+				WithSlots([]ShipDesignSlot{
+					{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+					{HullComponent: RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
+					{HullComponent: StealthCloak.Name, HullSlotIndex: 3, Quantity: 1},
+				}).
+				WithSpec(rules, player)},
+		},
+	}
+	fleet.Spec = ComputeFleetSpec(rules, player, fleet)
+	return fleet
+}
+
 func TestComputeFleetSpec(t *testing.T) {
 	rules := NewRules()
 	starterHumanoidPlayer := NewPlayer(1, NewRace().WithSpec(&rules)).WithTechLevels(TechLevel{3, 3, 3, 3, 3, 3})
@@ -62,11 +80,14 @@ func TestComputeFleetSpec(t *testing.T) {
 		args args
 		want FleetSpec
 	}{
-		{"empty", args{&rules, NewPlayer(1, NewRace().WithSpec(&rules)), &Fleet{}}, FleetSpec{ShipDesignSpec: ShipDesignSpec{
-			ScanRange:    NoScanner,
-			ScanRangePen: NoScanner,
-			SpaceDock:    UnlimitedSpaceDock,
-		}}},
+		{"empty", args{&rules, NewPlayer(1, NewRace().WithSpec(&rules)), &Fleet{}}, FleetSpec{
+			ShipDesignSpec: ShipDesignSpec{
+				ScanRange:    NoScanner,
+				ScanRangePen: NoScanner,
+				SpaceDock:    UnlimitedSpaceDock,
+			},
+			Purposes: map[ShipDesignPurpose]bool{},
+		}},
 		{"Starter Humanoid Long Range Scout", args{&rules, starterHumanoidPlayer, &Fleet{
 			BaseName: "Long Range Scout",
 			Tokens: []ShipToken{
@@ -85,10 +106,12 @@ func TestComputeFleetSpec(t *testing.T) {
 				FuelCapacity: 300,
 				ScanRange:    66,
 				ScanRangePen: 30,
+				Scanner:      true,
 				Mass:         20,
 				Armor:        20,
-				Engine:       "Quick Jump 5",
+				IdealSpeed:   5,
 			},
+			Purposes:         map[ShipDesignPurpose]bool{},
 			MassEmpty:        20,
 			BaseCloakedCargo: 20,
 			TotalShips:       1,
@@ -121,9 +144,71 @@ func TestComputeFleetSpec(t *testing.T) {
 				ScanRangePen: NoScanner,
 				HasWeapons:   true,
 			},
+			Purposes:         map[ShipDesignPurpose]bool{},
 			MassEmpty:        48,
 			BaseCloakedCargo: 48,
 			TotalShips:       1,
+		}},
+
+		{"Cloaked Scout", args{&rules, starterHumanoidPlayer, &Fleet{
+			BaseName: "Cloaked Scout",
+			Tokens: []ShipToken{
+				{Quantity: 1, Design: NewShipDesign(starterHumanoidPlayer).
+					WithHull(Scout.Name).
+					WithSlots([]ShipDesignSlot{
+						{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+						{HullComponent: RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
+						{HullComponent: StealthCloak.Name, HullSlotIndex: 3, Quantity: 1},
+					}).
+					WithSpec(&rules, starterHumanoidPlayer)},
+			},
+		}}, FleetSpec{
+			ShipDesignSpec: ShipDesignSpec{
+				Cost:         Cost{12, 2, 9, 20},
+				FuelCapacity: 50,
+				ScanRange:    66,
+				ScanRangePen: 30,
+				Scanner:      true,
+				Mass:         19,
+				Armor:        20,
+				CloakUnits:   70,
+				CloakPercent: 35,
+				IdealSpeed:   5,
+			},
+			Purposes:         map[ShipDesignPurpose]bool{},
+			MassEmpty:        19,
+			BaseCloakedCargo: 0,
+			TotalShips:       1,
+		}},
+		{"2 Cloaked Scouts", args{&rules, starterHumanoidPlayer, &Fleet{
+			BaseName: "Cloaked Scout",
+			Tokens: []ShipToken{
+				{Quantity: 2, Design: NewShipDesign(starterHumanoidPlayer).
+					WithHull(Scout.Name).
+					WithSlots([]ShipDesignSlot{
+						{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+						{HullComponent: RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
+						{HullComponent: StealthCloak.Name, HullSlotIndex: 3, Quantity: 1},
+					}).
+					WithSpec(&rules, starterHumanoidPlayer)},
+			},
+		}}, FleetSpec{
+			ShipDesignSpec: ShipDesignSpec{
+				Cost:         Cost{12, 2, 9, 20}.MultiplyInt(2),
+				FuelCapacity: 50 * 2,
+				ScanRange:    66,
+				ScanRangePen: 30,
+				Scanner:      true,
+				Mass:         19 * 2,
+				Armor:        20 * 2,
+				CloakUnits:   70,
+				CloakPercent: 35, // still 35%
+				IdealSpeed:   5,
+			},
+			Purposes:         map[ShipDesignPurpose]bool{},
+			MassEmpty:        19 * 2,
+			BaseCloakedCargo: 0,
+			TotalShips:       2,
 		}},
 	}
 	for _, tt := range tests {
@@ -176,7 +261,7 @@ func TestFleet_TransferFleetCargo(t *testing.T) {
 	// scout := testLongRangeScout(player, &rules)
 	freighter := testSmallFreighter(player, &rules)
 	type args struct {
-		fleet         *Fleet
+		fleet          *Fleet
 		transferAmount Cargo
 	}
 	tests := []struct {

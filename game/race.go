@@ -127,7 +127,7 @@ type RaceSpec struct {
 	ShieldStrengthFactor             float64                `json:"shieldStrengthFactor,omitempty"`
 	ShieldRegenerationRate           float64                `json:"shieldRegenerationRate,omitempty"`
 	EngineFailureRate                float64                `json:"engineFailureRate,omitempty"`
-	EngineReliableSpeed              float64                `json:"engineReliableSpeed,omitempty"`
+	EngineReliableSpeed              int                    `json:"engineReliableSpeed,omitempty"`
 }
 
 type StealsResearch struct {

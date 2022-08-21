@@ -13,7 +13,7 @@ func isPositionValid(pos Vector, occupiedLocations *[]Vector, minDistance float6
 	minDistanceSquared := minDistance * minDistance
 
 	for _, to := range *occupiedLocations {
-		if pos.DistanceSquaredTo(&to) <= minDistanceSquared {
+		if pos.DistanceSquaredTo(to) <= minDistanceSquared {
 			return false
 		}
 	}
@@ -85,6 +85,7 @@ func generatePlayerPlans(game *Game) {
 
 }
 
+// generate designs for each player
 func generatePlayerShipDesigns(game *Game) {
 	for i := range game.Players {
 		// the first time we allocate an array of planets
@@ -100,6 +101,7 @@ func generatePlayerShipDesigns(game *Game) {
 				hull := techStore.GetHull(string(startingFleet.HullName))
 				design := designShip(techStore, hull, startingFleet.Name, player, player.DefaultHullSet, startingFleet.Purpose)
 				design.HullSetNumber = int(startingFleet.HullSetNumber)
+				design.Purpose = startingFleet.Purpose
 				design.Spec = ComputeShipDesignSpec(&game.Rules, player, design)
 				player.Designs = append(player.Designs, design)
 			}
@@ -109,6 +111,7 @@ func generatePlayerShipDesigns(game *Game) {
 
 		for i := range starbaseDesigns {
 			design := &starbaseDesigns[i]
+			design.Purpose = ShipDesignPurposeStarbase
 			design.Spec = ComputeShipDesignSpec(&game.Rules, player, design)
 			player.Designs = append(player.Designs, design)
 		}
@@ -170,7 +173,7 @@ func generatePlayerHomeworlds(game *Game, area Vector) error {
 				// extra planets are close to the homeworld
 				for i := range game.Planets {
 					planet := &game.Planets[i]
-					distToHomeworld := planet.Position.DistanceSquaredTo(&homeworld.Position)
+					distToHomeworld := planet.Position.DistanceSquaredTo(homeworld.Position)
 					if !planet.Owned() && (distToHomeworld <= float64(rules.MaxExtraWorldDistance*rules.MaxExtraWorldDistance) && distToHomeworld >= float64(rules.MinExtraWorldDistance*rules.MinExtraWorldDistance)) {
 						playerPlanet = planet
 						break
@@ -227,7 +230,8 @@ func generatePlayerFleets(game *Game, player *Player, planet *Planet, fleetNum *
 			return fmt.Errorf("no design named %s found for player %s", startingFleet.Name, player)
 		}
 
-		fleet := NewFleet(player, design, *fleetNum, startingFleet.Name, []Waypoint{NewPlanetWaypoint(planet, design.Spec.IdealSpeed)})
+		fleet := NewFleet(player, design, *fleetNum, startingFleet.Name, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, design.Spec.IdealSpeed)})
+		fleet.Orbiting = true
 		fleet.Spec = ComputeFleetSpec(&game.Rules, player, &fleet)
 		fleet.Fuel = fleet.Spec.FuelCapacity
 		game.Fleets = append(game.Fleets, fleet)

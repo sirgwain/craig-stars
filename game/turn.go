@@ -1,8 +1,16 @@
 package game
 
+import "github.com/rs/zerolog/log"
+
 func generateTurn(game *Game) error {
+	log.Debug().
+		Uint("GameID", game.ID).
+		Str("Name", game.Name).
+		Int("Year", game.Year).
+		Msgf("begin generating turn")
 	game.Year++
 	game.computeSpecs()
+	game.buildMaps()
 
 	// reset players for start of the turn
 	for i := range game.Players {
@@ -58,20 +66,32 @@ func generateTurn(game *Game) error {
 	game.remoteTerraform()
 
 	// reset all players
+	// and do player specific things like scanning
+	// and patrol orders
 	for i := range game.Players {
 		player := &game.Players[i]
 
 		player.Spec = computePlayerSpec(player, &game.Rules)
 
-		game.playerScan(player)
+		game.updatePlayerOwnedObjects(player)
+
+		if err := game.playerScan(player); err != nil {
+			return err
+		}
 		game.playerInfoDiscover(player)
 		game.fleetPatrol(player)
 		game.calculateScore(player)
 		game.checkVictory(player)
 
 		player.SubmittedTurn = false
+		processTurn(player)
 	}
 
+	log.Info().
+		Uint("GameID", game.ID).
+		Str("Name", game.Name).
+		Int("Year", game.Year-1).
+		Msgf("generated turn")
 	return nil
 }
 
@@ -117,6 +137,43 @@ func (game *Game) mysteryTraderMove() {
 
 func (game *Game) fleetMove() {
 
+	for i := range game.Fleets {
+		fleet := &game.Fleets[i]
+		if !fleet.Starbase {
+			// remove the fleet from the list of map objects at it's current location
+			originalPosition := fleet.Position
+
+			if len(fleet.Waypoints) > 1 {
+				player := &game.Players[fleet.PlayerNum]
+				wp0 := fleet.Waypoints[0]
+				wp1 := fleet.Waypoints[1]
+				totalDist := fleet.Position.DistanceTo(wp1.Position)
+
+				if wp1.WarpFactor == StargateWarpFactor {
+					// yeah, gate!
+					fleet.gateFleet(&game.Rules, player, wp0, wp1, totalDist)
+				} else {
+					fleet.moveFleet(game, &game.Rules, player, wp0, wp1, totalDist)
+				}
+
+				// remove the previous waypoint, it's been processed already
+				if fleet.RepeatOrders && !wp0.PartiallyComplete {
+					// if we are supposed to repeat orders,
+					fleet.Waypoints = append(fleet.Waypoints, wp0)
+				}
+
+				// update the game dictionaries with this fleet's new position
+				delete(game.FleetsByPosition, originalPosition)
+				game.FleetsByPosition[fleet.Position] = fleet
+				fleet.Dirty = true
+			} else {
+				fleet.PreviousPosition = &originalPosition
+				fleet.WarpSpeed = 0
+				fleet.Heading = Vector{}
+			}
+		}
+
+	}
 }
 
 func (game *Game) fleetReproduce() {
@@ -276,18 +333,9 @@ func (game *Game) remoteTerraform() {
 
 }
 
-// scan planets, fleets, etc for a player
-func (game *Game) playerScan(player *Player) {
-
-	for i := range game.Planets {
-		planet := &game.Planets[i]
-		if planet.OwnedBy(player.Num) {
-			discoverPlanet(&game.Rules, player, planet, false)
-		}
-	}
-
-}
-
+// Update a player's information about other players
+// If a player scanned another player's fleet or planet, they discover the player's
+// race name
 func (game *Game) playerInfoDiscover(player *Player) {
 
 }

@@ -15,6 +15,10 @@ require (
 	gorm.io/gorm v1.23.5
 )
 
+require github.com/google/uuid v1.3.0
+
+require golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e
+
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/deckarep/golang-set/v2 v2.1.0

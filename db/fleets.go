@@ -32,3 +32,4 @@ func (db *DB) SaveFleet(fleet *game.Fleet) error {
 
 	return err
 }
+
