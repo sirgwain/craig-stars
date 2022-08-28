@@ -18,23 +18,29 @@ const PatrolWarpFactorAutomatic = -1
 // target fleets in any range when patrolling
 const PatrolRangeInfinite = -1
 
+// fleet not orbiting a planet
+const NotOrbitingPlanet = -1
+
+// no target planet, player, etc
+const NoTarget = -1
+
 type Fleet struct {
 	MapObject
-	PlanetID         uint        `json:"-"` // for starbase fleets that are owned by a planet
-	BaseName         string      `json:"baseName"`
-	Cargo            Cargo       `json:"cargo,omitempty" gorm:"embedded;embeddedPrefix:cargo_"`
-	Fuel             int         `json:"fuel"`
-	Damage           int         `json:"damage"`
-	BattlePlanID     uint        `json:"battlePlan"`
-	Tokens           []ShipToken `json:"tokens" gorm:"constraint:OnDelete:CASCADE;"`
-	Waypoints        []Waypoint  `json:"waypoints" gorm:"serializer:json"`
-	RepeatOrders     bool        `json:"repeatOrders,omitempty"`
-	Heading          Vector      `json:"heading,omitempty" gorm:"embedded;embeddedPrefix:heading_"`
-	WarpSpeed        int         `json:"warpSpeed,omitempty"`
-	PreviousPosition *Vector     `json:"previousPosition,omitempty" gorm:"embedded;embeddedPrefix:previous_position_"`
-	Orbiting         bool        `json:"orbiting,omitempty"`
-	Starbase         bool        `json:"starbase,omitempty"`
-	Spec             *FleetSpec  `json:"spec" gorm:"serializer:json"`
+	PlanetID          uint        `json:"-"` // for starbase fleets that are owned by a planet
+	BaseName          string      `json:"baseName"`
+	Cargo             Cargo       `json:"cargo,omitempty" gorm:"embedded;embeddedPrefix:cargo_"`
+	Fuel              int         `json:"fuel"`
+	Damage            int         `json:"damage"`
+	BattlePlanID      uint        `json:"battlePlan"`
+	Tokens            []ShipToken `json:"tokens" gorm:"constraint:OnDelete:CASCADE;"`
+	Waypoints         []Waypoint  `json:"waypoints" gorm:"serializer:json"`
+	RepeatOrders      bool        `json:"repeatOrders,omitempty"`
+	Heading           Vector      `json:"heading,omitempty" gorm:"embedded;embeddedPrefix:heading_"`
+	WarpSpeed         int         `json:"warpSpeed,omitempty"`
+	PreviousPosition  *Vector     `json:"previousPosition,omitempty" gorm:"embedded;embeddedPrefix:previous_position_"`
+	OrbitingPlanetNum int         `json:"orbitingPlanetNum,omitempty"`
+	Starbase          bool        `json:"starbase,omitempty"`
+	Spec              *FleetSpec  `json:"spec" gorm:"serializer:json"`
 }
 
 type FleetSpec struct {
@@ -61,18 +67,96 @@ type ShipToken struct {
 }
 
 type Waypoint struct {
-	FleetID           uint          `json:"-"`
-	TargetID          uint          `json:"targetId,omitempty"`
-	Position          Vector        `json:"position,omitempty" gorm:"embedded"`
-	WarpFactor        int           `json:"warpFactor,omitempty"`
-	WaitAtWaypoint    bool          `json:"waitAtWaypoint,omitempty"`
-	TargetType        MapObjectType `json:"targetType,omitempty"`
-	TargetNum         *int          `json:"targetNum,omitempty"`
-	TargetPlayerNum   *int          `json:"targetPlayerNum,omitempty"`
-	TransferToPlayer  *int          `json:"transferToPlayer,omitempty"`
-	TargetName        string        `json:"targetName,omitempty"`
-	PartiallyComplete bool          `json:"partiallyComplete,omitempty"`
+	FleetID           uint                   `json:"-"`
+	TargetID          uint                   `json:"targetId,omitempty"`
+	Position          Vector                 `json:"position,omitempty" gorm:"embedded"`
+	WarpFactor        int                    `json:"warpFactor,omitempty"`
+	Task              WaypointTask           `json:"waypointTask,omitempty"`
+	TransportTasks    WaypointTransportTasks `json:"transportTasks,omitempty"`
+	WaitAtWaypoint    bool                   `json:"waitAtWaypoint,omitempty"`
+	TargetType        MapObjectType          `json:"targetType,omitempty"`
+	TargetNum         int                    `json:"targetNum,omitempty"`
+	TargetPlayerNum   int                    `json:"targetPlayerNum,omitempty"`
+	TransferToPlayer  int                    `json:"transferToPlayer,omitempty"`
+	TargetName        string                 `json:"targetName,omitempty"`
+	PartiallyComplete bool                   `json:"partiallyComplete,omitempty"`
 }
+
+type WaypointTask string
+
+const (
+	WaypointTaskNone           = ""
+	WaypointTaskTransport      = "Transport"
+	WaypointTaskColonize       = "Colonize"
+	WaypointTaskRemoteMining   = "RemoteMining"
+	WaypointTaskMergeWithFleet = "MergeWithFleet"
+	WaypointTaskScrapFleet     = "ScrapFleet"
+	WaypointTaskLayMineField   = "LayMineField"
+	WaypointTaskPatrol         = "Patrol"
+	WaypointTaskRoute          = "Route"
+	WaypointTaskTransferFleet  = "TransferFleet"
+)
+
+type WaypointTransportTasks struct {
+	Fuel      WaypointTransportTask `json:"fuel,omitempty"`
+	Ironium   WaypointTransportTask `json:"ironium,omitempty"`
+	Boranium  WaypointTransportTask `json:"boranium,omitempty"`
+	Germanium WaypointTransportTask `json:"germanium,omitempty"`
+	Colonists WaypointTransportTask `json:"colonists,omitempty"`
+}
+
+type WaypointTransportTask struct {
+	Amount int                         `json:"amount,omitempty"`
+	Action WaypointTaskTransportAction `json:"action,omitempty"`
+}
+
+type WaypointTaskTransportAction string
+
+type transportTaskByType map[CargoType]WaypointTransportTask
+
+const (
+	// No transport task for the specified cargo.
+	TransportActionNone WaypointTaskTransportAction = ""
+
+	// (fuel only) Load or unload fuel until the fleet carries only the exact amount
+	// needed to reach the next waypoint. You can use this task to send a fleet
+	// loaded with fuel to rescue a stranded fleet. The rescue fleet will transfer
+	// only the amount of fuel it can spare without stranding itself.
+	TransportActionLoadOptimal WaypointTaskTransportAction = "LoadOptimal"
+
+	// Load as much of the specified cargo as the fleet can hold.
+	TransportActionLoadAll WaypointTaskTransportAction = "LoadAll"
+
+	// Unload all the specified cargo at the waypoint.
+	TransportActionUnloadAll WaypointTaskTransportAction = "UnloadAll"
+
+	// Load the amount specified only if there is room in the hold.
+	TransportActionLoadAmount WaypointTaskTransportAction = "LoadAmount"
+
+	// Unload the amount specified only if the fleet is carrying that amount.
+	TransportActionUnloadAmount WaypointTaskTransportAction = "UnloadAmount"
+
+	// Loads up to the specified portion of the cargo hold subject to amount available at waypoint and room left in hold.
+	TransportActionFillPercent WaypointTaskTransportAction = "FillPercent"
+
+	// Remain at the waypoint until exactly X % of the hold is filled.
+	TransportActionWaitForPercent WaypointTaskTransportAction = "WaitForPercent"
+
+	// (minerals and colonists only) This command waits until all other loads and unloads are complete,
+	// then loads as many colonists or amount of a mineral as will fit in the remaining space. For example,
+	// setting Load All Germanium, Load Dunnage Ironium, will load all the Germanium that is available,
+	// then as much Ironium as possible. If more than one dunnage cargo is specified, they are loaded in
+	// the order of Ironium, Boranium, Germanium, and Colonists.
+	TransportActionLoadDunnage WaypointTaskTransportAction = "LoadDunnage"
+
+	// Load or unload the cargo until the amount on board is the amount specified.
+	// If less than the specified cargo is available, the fleet will not move on.
+	TransportActionSetAmountTo WaypointTaskTransportAction = "SetAmountTo"
+
+	// Load or unload the cargo until the amount at the waypoint is the amount specified.
+	// This order is always carried out to the best of the fleet’s ability that turn but does not prevent the fleet from moving on.
+	TransportActionSetWaypointTo WaypointTaskTransportAction = "SetWaypointTo"
+)
 
 // create a new fleet
 func NewFleet(player *Player, design *ShipDesign, num int, name string, waypoints []Waypoint) Fleet {
@@ -91,13 +175,15 @@ func NewFleet(player *Player, design *ShipDesign, num int, name string, waypoint
 		Tokens: []ShipToken{
 			{Design: design, Quantity: 1},
 		},
-		Waypoints: waypoints,
+		Waypoints:         waypoints,
+		OrbitingPlanetNum: NotOrbitingPlanet,
 	}
 }
 
 // create a new fleet that is a starbase
 func NewStarbase(player *Player, planet *Planet, design *ShipDesign, name string) Fleet {
 	fleet := NewFleet(player, design, 0, name, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 1)})
+	fleet.PlanetID = planet.ID
 	fleet.Starbase = true
 
 	return fleet
@@ -119,13 +205,76 @@ func (f *Fleet) WithPosition(position Vector) *Fleet {
 	return f
 }
 
+func (f *Fleet) WithWaypoints(waypoints []Waypoint) *Fleet {
+	f.Waypoints = waypoints
+	return f
+}
+
+func (f *Fleet) Orbiting() bool {
+	return f.OrbitingPlanetNum != NotOrbitingPlanet
+}
+
 func NewPlanetWaypoint(position Vector, num int, name string, warpFactor int) Waypoint {
 	return Waypoint{
-		Position:   position,
-		TargetNum:  &num,
-		TargetName: name,
-		WarpFactor: warpFactor,
+		Position:        position,
+		TargetType:      MapObjectTypePlanet,
+		TargetNum:       num,
+		TargetName:      name,
+		TargetPlayerNum: NoTarget,
+		WarpFactor:      warpFactor,
 	}
+}
+
+func NewFleetWaypoint(position Vector, num int, playerNum int, name string, warpFactor int) Waypoint {
+	return Waypoint{
+		Position:        position,
+		TargetType:      MapObjectTypeFleet,
+		TargetNum:       num,
+		TargetPlayerNum: playerNum,
+		TargetName:      name,
+		WarpFactor:      warpFactor,
+	}
+}
+
+func NewPositionWaypoint(position Vector, warpFactor int) Waypoint {
+	return Waypoint{
+		Position:        position,
+		WarpFactor:      warpFactor,
+		TargetNum:       NoTarget,
+		TargetPlayerNum: NoTarget,
+	}
+}
+
+func (wp Waypoint) WithTask(task WaypointTask) Waypoint {
+	wp.Task = task
+	return wp
+}
+
+func (wp Waypoint) WithTransportTasks(transportTasks WaypointTransportTasks) Waypoint {
+	wp.TransportTasks = transportTasks
+	return wp
+}
+
+// get a list of transport tasks keyed by cargotype
+func (wp Waypoint) getTransportTasks() transportTaskByType {
+	tasks := transportTaskByType{}
+	if wp.TransportTasks.Fuel.Action != TransportActionNone {
+		tasks[Fuel] = wp.TransportTasks.Fuel
+	}
+	if wp.TransportTasks.Ironium.Action != TransportActionNone {
+		tasks[Ironium] = wp.TransportTasks.Ironium
+	}
+	if wp.TransportTasks.Boranium.Action != TransportActionNone {
+		tasks[Boranium] = wp.TransportTasks.Boranium
+	}
+	if wp.TransportTasks.Germanium.Action != TransportActionNone {
+		tasks[Germanium] = wp.TransportTasks.Germanium
+	}
+	if wp.TransportTasks.Colonists.Action != TransportActionNone {
+		tasks[Colonists] = wp.TransportTasks.Colonists
+	}
+
+	return tasks
 }
 
 func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) *FleetSpec {
@@ -271,6 +420,59 @@ func (f *Fleet) AvailableCargoSpace() int {
 	return clamp(f.Spec.CargoCapacity-f.Cargo.Total(), 0, f.Spec.CargoCapacity)
 }
 
+// transfer cargo from a fleet to a cargo holder
+func (f *Fleet) TransferCargoItem(dest CargoHolder, cargoType CargoType, transferAmount int) error {
+	destCargo := dest.GetCargo()
+	if f.AvailableCargoSpace() < transferAmount {
+		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", f.Name, f.AvailableCargoSpace(), transferAmount, dest.GetMapObject().Name)
+	}
+
+	if !destCargo.CanTransferAmount(cargoType, transferAmount) {
+		return fmt.Errorf("fleet %s cannot transfer %v from %s, there is not enough to transfer", f.Name, transferAmount, dest.GetMapObject().Name)
+	}
+
+	// transfer the cargo
+	f.Cargo = f.Cargo.AddAmount(cargoType, transferAmount)
+
+	switch cargoType {
+	case Ironium:
+		destCargo.Ironium -= transferAmount
+	case Boranium:
+		destCargo.Boranium -= transferAmount
+	case Germanium:
+		destCargo.Germanium -= transferAmount
+	case Colonists:
+		destCargo.Colonists -= transferAmount
+	}
+
+	return nil
+}
+
+// transfer cargo from a fleet to a cargo holder
+func (f *Fleet) TransferCargo(dest CargoHolder, transferAmount Cargo) error {
+	destCargo := dest.GetCargo()
+	if f.AvailableCargoSpace() < transferAmount.Total() {
+		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", f.Name, f.AvailableCargoSpace(), transferAmount.Total(), dest.GetMapObject().Name)
+	}
+
+	if !destCargo.CanTransfer(transferAmount) {
+		return fmt.Errorf("fleet %s cannot transfer %v from %s, there is not enough to transfer", f.Name, transferAmount, dest.GetMapObject().Name)
+	}
+
+	// transfer the cargo
+	f.Cargo = f.Cargo.Add(transferAmount)
+
+	// update the dest cargo. It's a pointer to a cargo, so
+	// we need to update each value
+	updatedDestCargo := destCargo.Subtract(transferAmount)
+	destCargo.Ironium = updatedDestCargo.Ironium
+	destCargo.Boranium = updatedDestCargo.Boranium
+	destCargo.Germanium = updatedDestCargo.Germanium
+	destCargo.Colonists = updatedDestCargo.Colonists
+
+	return nil
+}
+
 // transfer cargo from a planet to/from a fleet
 func (f *Fleet) TransferPlanetCargo(planet *Planet, transferAmount Cargo) error {
 
@@ -307,7 +509,11 @@ func (f *Fleet) TransferFleetCargo(fleet *Fleet, transferAmount Cargo) error {
 	return nil
 }
 
-func (fleet *Fleet) moveFleet(game *Game, rules *Rules, player *Player, wp0, wp1 Waypoint, totalDist float64) {
+func (fleet *Fleet) moveFleet(game *Game, rules *Rules, player *Player) {
+	wp0 := fleet.Waypoints[0]
+	wp1 := fleet.Waypoints[1]
+	totalDist := fleet.Position.DistanceTo(wp1.Position)
+
 	fleet.PreviousPosition = &Vector{fleet.Position.X, fleet.Position.Y}
 	dist := float64(wp1.WarpFactor * wp1.WarpFactor)
 	// round up, if we are <1 away, i.e. the target is 81.9 ly away, warp 9 (81 ly travel) should be able to make it there
@@ -372,8 +578,8 @@ func (fleet *Fleet) moveFleet(game *Game, rules *Rules, player *Player, wp0, wp1
 	}
 
 	// assuming we move at all, make sure we are no longer orbiting any planets
-	if dist > 0 && fleet.Orbiting {
-		fleet.Orbiting = false
+	if dist > 0 && fleet.Orbiting() {
+		fleet.OrbitingPlanetNum = NotOrbitingPlanet
 	}
 
 	// TODO: repeat orders, can we just append wp0 to waypoints when we repeat?
@@ -388,7 +594,9 @@ func (fleet *Fleet) moveFleet(game *Game, rules *Rules, player *Player, wp0, wp1
 		// move this fleet closer to the next waypoint
 		fleet.WarpSpeed = wp1.WarpFactor
 		fleet.Heading = (wp1.Position.Subtract(fleet.Position)).Normalized()
-		wp0.TargetNum = nil
+		wp0.TargetType = MapObjectTypeNone
+		wp0.TargetNum = NoTarget
+		wp0.TargetPlayerNum = NoTarget
 		wp0.TargetName = ""
 		wp0.PartiallyComplete = true
 
@@ -399,7 +607,7 @@ func (fleet *Fleet) moveFleet(game *Game, rules *Rules, player *Player, wp0, wp1
 	}
 }
 
-func (fleet *Fleet) gateFleet(rules *Rules, player *Player, wp0, wp1 Waypoint, totalDist float64) {
+func (fleet *Fleet) gateFleet(rules *Rules, player *Player) {
 	panic("unimplemented")
 }
 
@@ -491,20 +699,25 @@ func (fleet *Fleet) completeMove(game *Game, wp0 Waypoint, wp1 Waypoint) {
 
 	// find out if we arrived at a planet, either by reaching our target fleet
 	// or reaching a planet
-	if wp1.TargetType == MapObjectTypeFleet && wp1.TargetPlayerNum != nil && wp1.TargetNum != nil {
-		target := game.getFleet(*wp1.TargetPlayerNum, *wp1.TargetNum)
-		fleet.Orbiting = target.Orbiting
-	}
+	if wp1.TargetType == MapObjectTypeFleet && wp1.TargetPlayerNum != NoTarget && wp1.TargetNum != NoTarget {
+		target := game.getFleet(wp1.TargetPlayerNum, wp1.TargetNum)
+		fleet.OrbitingPlanetNum = target.OrbitingPlanetNum
 
-	if wp1.TargetType == MapObjectTypePlanet && wp1.TargetNum != nil {
-		target := game.getPlanet(*wp1.TargetNum)
-		fleet.Orbiting = true
+		// we are orbiting a friendly planet
+		targetPlanet := game.getPlanet(fleet.OrbitingPlanetNum)
+		if fleet.PlayerNum == targetPlanet.PlayerNum && targetPlanet.Spec.HasStarbase {
+			// refuel at starbases
+			fleet.Fuel = fleet.Spec.FuelCapacity
+		}
+	} else if wp1.TargetType == MapObjectTypePlanet && wp1.TargetNum != NoTarget {
+		target := game.getPlanet(wp1.TargetNum)
+		fleet.OrbitingPlanetNum = target.Num
 		if fleet.PlayerNum == target.PlayerNum && target.Spec.HasStarbase {
 			// refuel at starbases
 			fleet.Fuel = fleet.Spec.FuelCapacity
 		}
-	} else if wp1.TargetType == MapObjectTypeWormhole {
-		target := game.getWormhole(*wp1.TargetNum)
+	} else if wp1.TargetType == MapObjectTypeWormhole && wp1.TargetNum != NoTarget {
+		target := game.getWormhole(wp1.TargetNum)
 		dest := game.getWormhole(target.DestinationNum)
 		fleet.Position = dest.Position
 	}
@@ -524,4 +737,91 @@ func (fleet *Fleet) completeMove(game *Game, wp0 Waypoint, wp1 Waypoint) {
 		fleet.WarpSpeed = wp1.WarpFactor
 		fleet.Heading = (wp1.Position.Subtract(fleet.Position)).Normalized()
 	}
+}
+
+// colonize a planet
+func (fleet *Fleet) colonizePlanet(rules *Rules, player *Player, planet *Planet) {
+	planet.Dirty = true
+	planet.PlayerNum = player.Num
+	planet.PlayerID = player.ID
+	planet.ProductionQueue = []ProductionQueueItem{}
+	planet.Cargo = planet.Cargo.Add(fleet.Cargo)
+
+	if len(player.ProductionPlans) > 0 {
+		// TODO: apply production plan
+		plan := player.ProductionPlans[0]
+		planet.ContributesOnlyLeftoverToResearch = plan.ContributesOnlyLeftoverToResearch
+	}
+
+	if player.Race.Spec.InnateMining {
+		planet.Mines = planet.GetInnateMines(player)
+	}
+
+	if fleet.Spec.OrbitalConstructionModule {
+		design := player.GetLatestDesign(ShipDesignPurposeStarterColony)
+		if design != nil {
+			starbase := NewStarbase(player, planet, design, design.Name)
+			starbase.Spec = ComputeFleetSpec(rules, player, &starbase)
+			planet.Starbase = &starbase
+		}
+	}
+
+	planet.Spec = ComputePlanetSpec(rules, planet, player)
+}
+
+// scrap a fleet giving a planet resources or creating salvage
+func (fleet *Fleet) scrap(game *Game, player *Player, planet *Planet) {
+	cost := fleet.getScrapAmount(&game.Rules, player, planet)
+
+	if planet != nil {
+		// scrap over a planet
+		planet.Cargo = planet.Cargo.AddCostMinerals(cost)
+		if planet.OwnedBy(player.Num) {
+			planet.BonusResources += cost.Resources
+		}
+	} else {
+		// create salvage
+		salvage := NewSalvage(player.Num, fleet.Position, cost.ToCargo())
+		game.Salvage = append(game.Salvage, salvage)
+	}
+
+	fleet.Delete = true
+}
+
+// get the minerals and resources recovered from a scrapped fleet
+func (fleet *Fleet) getScrapAmount(rules *Rules, player *Player, planet *Planet) Cost {
+
+	// create a new cargo instance out of our fleet cost
+	scrappedCost := fleet.Spec.Cost
+
+	scrapMineralFactor := rules.ScrapMineralAmount
+	scrapResourceFactor := rules.ScrapResourceAmount
+	extraResources := 0
+	planetResources := 0
+
+	if planet != nil && planet.OwnedBy(player.Num) {
+		planetResources = planet.Spec.ResourcesPerYear + planet.BonusResources
+		// UR races get resources when scrapping
+		if planet.Spec.HasStarbase {
+			// scrapping over a planet we own with a starbase, calculate bonus minerals and resources
+			scrapMineralFactor += player.Race.Spec.ScrapMineralOffsetStarbase
+			scrapResourceFactor += player.Race.Spec.ScrapResourcesOffsetStarbase
+		} else {
+			// scrapping over a planet we own without a starbase, calculate bonus minerals and resources
+			scrapMineralFactor += player.Race.Spec.ScrapMineralOffset
+			scrapResourceFactor += player.Race.Spec.ScrapResourcesOffset
+		}
+	}
+
+	// figure out much cargo and resources we get
+	scrappedCost = scrappedCost.MultiplyFloat64(scrapMineralFactor)
+
+	if scrapResourceFactor > 0 {
+		// Formula for calculating resources: (Current planet production * Extra resources)/(Current planet production + Extra Resources)
+		extraResources = int(float64(fleet.Spec.Cost.Resources)*scrapResourceFactor + .5)
+		extraResources = int(float64(planetResources*extraResources) / float64(planetResources+extraResources))
+		scrappedCost.Resources += extraResources
+	}
+
+	return scrappedCost
 }

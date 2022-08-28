@@ -13,6 +13,7 @@ type MapObject struct {
 	GameID    uint          `json:"gameId"`
 	PlayerID  uint          `json:"-"`
 	Dirty     bool          `json:"-" gorm:"-"`
+	Delete    bool          `json:"-" gorm:"-"`
 	Position  Vector        `json:"position" gorm:"embedded"`
 	Name      string        `json:"name"`
 	Num       int           `json:"num"`

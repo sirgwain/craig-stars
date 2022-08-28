@@ -10,6 +10,14 @@ import (
 const Unexplored = -1
 const Unowned = -1
 
+type discover struct {
+	game *Game
+}
+
+type discoverer interface {
+	playerInfoDiscover(player *Player)
+}
+
 type Intel struct {
 	ID        uint      `gorm:"primaryKey" json:"id"`
 	CreatedAt time.Time `json:"createdAt"`
@@ -104,9 +112,14 @@ func NewFleetIntel(playerNum int, name string) FleetIntel {
 	}
 }
 
-// true if we havne't explored this planet
+// true if we haven't explored this planet
 func (intel *PlanetIntel) Unexplored() bool {
 	return intel.ReportAge == Unexplored
+}
+
+// true if we have explored this planet
+func (intel *PlanetIntel) Explored() bool {
+	return intel.ReportAge != Unexplored
 }
 
 // discover a planet and add it to the player's intel
@@ -239,5 +252,9 @@ func discoverDesign(player *Player, design *ShipDesign, discoverSlots bool) {
 		intel.Armor = design.Spec.Armor
 		intel.Shields = design.Spec.Shield
 	}
+}
 
+func (d discover) playerInfoDiscover(player *Player) {
+	// d.game <- players to discover
+	// discover info about other players
 }

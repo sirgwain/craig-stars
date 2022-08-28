@@ -13,7 +13,7 @@
 		type TechEngine,
 		type TechHullComponent
 	} from '$lib/types/Tech';
-import TestBreadcrumb from '../_TestBreadcrumb.svelte';
+	import TestBreadcrumb from '../_TestBreadcrumb.svelte';
 
 	const settlersDelight: TechEngine = {
 		techStoreId: 1,
@@ -138,8 +138,10 @@ import TestBreadcrumb from '../_TestBreadcrumb.svelte';
 		planets: [],
 		fleets: [],
 		planetIntels: [],
-		fleetIntels: []
+		fleetIntels: [],
+		color: '#0000FF'
 	};
+	
 </script>
 
 <TestBreadcrumb title="Techs" />

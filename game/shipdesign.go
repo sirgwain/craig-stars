@@ -326,9 +326,12 @@ func (spec *ShipDesignSpec) ComputeScanRanges(rules *Rules, player *Player, desi
 func designShip(techStore *TechStore, hull *TechHull, name string, player *Player, hullSetNumber int, purpose ShipDesignPurpose) *ShipDesign {
 
 	design := NewShipDesign(player).WithName(name).WithHull(hull.Name)
+	design.Purpose = purpose
 
 	engine := techStore.GetBestEngine(player)
 	scanner := techStore.GetBestScanner(player)
+	fuelTank := techStore.GetBestFuelTank(player)
+	colonizationModule := techStore.GetBestColonizationModule(player)
 
 	for i, hullSlot := range hull.Slots {
 		slot := ShipDesignSlot{HullSlotIndex: i + 1}
@@ -339,6 +342,24 @@ func designShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 			slot.HullComponent = engine.Name
 		case HullSlotTypeScanner:
 			slot.HullComponent = scanner.Name
+		case HullSlotTypeMechanical:
+			fallthrough
+		case HullSlotTypeArmorScannerElectricalMechanical:
+			switch purpose {
+			case ShipDesignPurposeColonizer:
+				fallthrough
+			case ShipDesignPurposeColonistFreighter:
+				if colonizationModule != nil {
+					slot.HullComponent = colonizationModule.Name
+					slot.Quantity = 1 // we only need 1 colonization module
+				}
+			}
+
+		case HullSlotTypeGeneral:
+			switch purpose {
+			default:
+				slot.HullComponent = fuelTank.Name
+			}
 		}
 
 		// we filled it, add it

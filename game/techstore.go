@@ -143,18 +143,46 @@ func (store *TechStore) GetBestEngine(player *Player) *TechEngine {
 	for i := range store.Engines {
 		tech := &store.Engines[i]
 		if player.HasTech(&tech.Tech) {
+			// techs are sorted by rank, so the latest is the best
 			bestTech = tech
 		}
 	}
 	return bestTech
 }
 
-// get the best engine for a player
+// get the best scanner for a player
 func (store *TechStore) GetBestScanner(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if (tech.ScanRange > 0 || tech.ScanRangePen > 0) && player.HasTech(&tech.Tech) {
+			// techs are sorted by rank, so the latest is the best
+			bestTech = tech
+		}
+	}
+	return bestTech
+}
+
+// get the best fuel tank for a player
+func (store *TechStore) GetBestFuelTank(player *Player) *TechHullComponent {
+	var bestTech *TechHullComponent
+	for i := range store.HullComponents {
+		tech := &store.HullComponents[i]
+		if (tech.FuelBonus > 0) && player.HasTech(&tech.Tech) {
+			// techs are sorted by rank, so the latest is the best
+			bestTech = tech
+		}
+	}
+	return bestTech
+}
+
+// get the best fuel tank for a player
+func (store *TechStore) GetBestColonizationModule(player *Player) *TechHullComponent {
+	var bestTech *TechHullComponent
+	for i := range store.HullComponents {
+		tech := &store.HullComponents[i]
+		if tech.ColonizationModule && player.HasTech(&tech.Tech) {
+			// techs are sorted by rank, so the latest is the best
 			bestTech = tech
 		}
 	}

@@ -12,6 +12,7 @@ func newTestPlayerPlanet() (game *Game, player *Player, planet *Planet) {
 	game.AddPlayer(NewPlayer(1, NewRace()))
 	player = &game.Players[0]
 	planet = &Planet{}
+	planet.PlayerID = player.ID
 	planet.PlayerNum = player.Num
 
 	return game, player, planet

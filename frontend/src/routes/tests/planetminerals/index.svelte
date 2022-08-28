@@ -29,8 +29,6 @@ import TestBreadcrumb from '../_TestBreadcrumb.svelte';
 
 </script>
 
-<TestBreadcrumb title="PlanetMikneralsGraph" />
-
 <h1 class='text-xl'>Planet 1</h1>
 <PlanetMineralsGraph planet={planet1} />
 

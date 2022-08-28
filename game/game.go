@@ -78,6 +78,7 @@ type Game struct {
 	Fleets                       []Fleet                   `json:"fleets,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
 	Wormholes                    []Wormohole               `json:"wormholes,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
 	MineralPackets               []MineralPacket           `json:"mineralPackets,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
+	Salvage                      []Salvage                 `json:"salvage,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
 	FleetsByPosition             map[Vector]*Fleet         `json:"-" gorm:"-"`
 	FleetsByNum                  map[playerFleetNum]*Fleet `json:"-" gorm:"-"`
 	Rules                        Rules                     `json:"rules" gorm:"constraint:OnDelete:CASCADE;"`
@@ -295,9 +296,32 @@ func (g *Game) getFleet(playerNum int, num int) *Fleet {
 	return g.FleetsByNum[playerFleetNum{playerNum, num}]
 }
 
+// // remove a fleet from the fleets list
+// func (g *Game) removeFleet(fleet *Fleet) {
+// 	key := playerFleetNum{fleet.PlayerNum, fleet.Num}
+// 	delete(g.FleetsByNum, key)
+// 	fleets := make([]Fleet, 0, len(g.Fleets)-1)
+// 	for i := range g.Fleets {
+// 		if &g.Fleets[i] != fleet {
+// 			fleets = append(g.Fleets, g.Fleets[i])
+// 		}
+// 	}
+// 	g.Fleets = fleets
+// }
+
 // Get a wormhole by number
 func (g *Game) getWormhole(num int) *Wormohole {
 	return &g.Wormholes[num]
+}
+
+func (g *Game) getCargoHolder(mapObjectType MapObjectType, num int, playerNum int) CargoHolder {
+	switch mapObjectType {
+	case MapObjectTypePlanet:
+		return g.getPlanet(num)
+	case MapObjectTypeFleet:
+		return g.getFleet(playerNum, num)
+	}
+	return nil
 }
 
 // build any maps that are part of this game and used during turn generation
@@ -401,6 +425,7 @@ func (g *Game) GenerateUniverse() error {
 	// setup all the specs for planets, fleets, etc
 	g.computeSpecs()
 
+	disoverer := discover{g}
 	for i := range g.Players {
 		player := &g.Players[i]
 
@@ -408,10 +433,11 @@ func (g *Game) GenerateUniverse() error {
 			return err
 		}
 
-		g.playerInfoDiscover(player)
+		disoverer.playerInfoDiscover(player)
 
 		// TODO: check for AI player
-		processTurn(player)
+		ai := NewAIPlayer(player)
+		ai.processTurn()
 	}
 
 	return nil
@@ -419,8 +445,8 @@ func (g *Game) GenerateUniverse() error {
 
 // generate a new turn
 func (g *Game) GenerateTurn() error {
-	generateTurn(g)
-	return nil
+	turnGenerator := NewTurnGenerator(g)
+	return turnGenerator.generateTurn()
 }
 
 // check if all players have submitted their turn
@@ -433,7 +459,7 @@ func (g *Game) CheckAllPlayersSubmitted() bool {
 	return true
 }
 
-func (g *Game) GetOwnedPlanets() []Planet {
+func (g *Game) getOwnedPlanets() []Planet {
 	var ownedPlanets []Planet
 
 	for _, p := range g.Planets {
@@ -443,4 +469,54 @@ func (g *Game) GetOwnedPlanets() []Planet {
 	}
 
 	return ownedPlanets
+}
+
+// transfer cargo from one cargo holder to another
+func (g *Game) Transfer(source *Fleet, dest CargoHolder, cargoType CargoType, transferAmount int) {
+	source.TransferCargoItem(dest, cargoType, transferAmount)
+
+	// if (cargoType == CargoType.Fuel)	{
+	// 	cargoTransferer.Transfer(source, dest, Cargo.Empty, transferAmount);
+	// }	else if (cargoType == CargoType.Colonists)	{
+	// 	// invasion?
+	// 	if (dest is Planet planet && planet.PlayerNum != source.PlayerNum)		{
+	// 		if (transferAmount > 0)			{
+	// 			invasions.Add(new PlanetInvasion()
+	// 			{
+	// 				Planet = planet,
+	// 				Fleet = source,
+	// 				ColonistsToDrop = transferAmount * 100
+	// 			});
+	// 			// remove colonists from our cargo
+	// 			source.Cargo = source.Cargo - Cargo.OfAmount(cargoType, transferAmount);
+	// 		}
+	// 		else			{
+	// 			// can't beam enemy colonists onto your ship...
+	// 			// TODO: send a message
+	// 			log.Warn($"{Game.Year}: {source.PlayerNum} {source.Name} tried to beam colonists up from: {dest}");
+	// 		}
+	// 	}		else if (dest is Fleet otherFleet && otherFleet.PlayerNum != source.PlayerNum)		{
+	// 		// ignore this, but send a message
+	// 		// TODO: send a message
+	// 		log.Warn($"{Game.Year}: {source.PlayerNum} {source.Name} tried to transfer colonists to/from a fleet they don't own: {otherFleet}");
+	// 	}		else		{
+	// 		cargoTransferer.Transfer(source, dest, Cargo.OfAmount(cargoType, transferAmount), 0);
+	// 		log.Debug($"{Game.Year}: {source.PlayerNum} {source.Name} transferred {transferAmount}kT of {cargoType} to {dest.Name}");
+	// 	}
+	// }	else	{
+	// 	// if this is a planet that is owned by someone else and we don't have "steal cargo from planets" ability in this fleet, make sure we are only giving cargo, not taking
+	// 	if (dest is Planet planet && !planet.OwnedBy(source.PlayerNum) && !cargoTransferer.GetCanStealPlanetCargo(source, Game.MapObjectsByLocation))		{
+	// 		transferAmount = Math.Max(0, transferAmount);
+	// 	}
+
+	// 	// if this is a fleet that is owned by someone else and we don't have "steal cargo from fleets" ability in this fleet, make sre we are only giving cargo, not taking it
+	// 	if (dest is Fleet fleet && !fleet.OwnedBy(source.PlayerNum) && !cargoTransferer.GetCanStealFleetCargo(source, Game.MapObjectsByLocation))		{
+	// 		transferAmount = Math.Max(0, transferAmount);
+	// 	}
+
+	// 	if (transferAmount != 0)		{
+	// 		cargoTransferer.Transfer(source, dest, Cargo.OfAmount(cargoType, transferAmount), 0);
+	// 		log.Debug($"{Game.Year}: {source.PlayerNum} {source.Name} transferred {transferAmount}kT of {cargoType} to {dest.Name}");
+	// 	}
+	// }
 }

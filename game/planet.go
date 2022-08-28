@@ -25,6 +25,7 @@ type Planet struct {
 	ContributesOnlyLeftoverToResearch bool                  `json:"contributesOnlyLeftoverToResearch,omitempty"`
 	Scanner                           bool                  `json:"scanner,omitempty"`
 	PacketSpeed                       int                   `json:"packetSpeed,omitempty"`
+	BonusResources                    int                   `json:"-" gorm:"-"`
 	Spec                              *PlanetSpec           `json:"spec,omitempty" gorm:"serializer:json"`
 }
 
@@ -139,7 +140,7 @@ func (p *Planet) CanBuild(mass int) bool {
 	return p.Spec.HasStarbase && (p.Starbase.Spec.SpaceDock == UnlimitedSpaceDock || p.Starbase.Spec.SpaceDock >= mass)
 }
 
-func (p *Planet) Empty() {
+func (p *Planet) empty() {
 	p.Hab = Hab{}
 	p.BaseHab = Hab{}
 	p.TerraformedAmount = Hab{}
@@ -149,9 +150,9 @@ func (p *Planet) Empty() {
 	p.MineYears = Mineral{}
 }
 
-// Randomize a planet with new hab range, minerals, etc
-func (p *Planet) Randomize(rules *Rules) {
-	p.Empty()
+// randomize a planet with new hab range, minerals, etc
+func (p *Planet) randomize(rules *Rules) {
+	p.empty()
 
 	// From @SuicideJunkie's tests and @edmundmk's previous research, grav and temp are weighted slightly towards
 	// the center, rad is completely random
@@ -258,7 +259,6 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 	starbaseDesign := player.GetDesign(startingPlanet.StarbaseDesignName)
 	starbase := NewStarbase(player, p, starbaseDesign, starbaseDesign.Name)
 	starbase.Spec = ComputeFleetSpec(rules, player, &starbase)
-	starbase.PlanetID = p.ID
 	p.Starbase = &starbase
 
 	// p.PacketSpeed = p.Starbase.Spec.SafePacketSpeed
@@ -574,6 +574,7 @@ func (planet *Planet) buildFleet(game *Game, player *Player, designName string, 
 		fleet.BattlePlanID = player.BattlePlans[0].ID
 		fleet.Spec = ComputeFleetSpec(&game.Rules, player, &fleet)
 		fleet.Fuel = fleet.Spec.FuelCapacity
+		fleet.OrbitingPlanetNum = planet.Num
 
 		// TODO: probably won't matter, but this logic isn't very thread safe
 		game.Fleets = append(game.Fleets, fleet)

@@ -30,7 +30,7 @@ func Test_GenerateUniverse(t *testing.T) {
 			}
 
 			assert.True(t, len(game.Planets) >= 24, "GenerateUniverse() did not generate planets")
-			assert.True(t, len(game.GetOwnedPlanets()) > 0, "GenerateUniverse() did not create player planets")
+			assert.True(t, len(game.getOwnedPlanets()) > 0, "GenerateUniverse() did not create player planets")
 			assert.True(t, len(game.Players[0].PlanetIntels) > 0, "GenerateUniverse() did not discover planets for player")
 		})
 	}

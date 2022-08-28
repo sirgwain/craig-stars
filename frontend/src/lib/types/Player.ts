@@ -12,6 +12,7 @@ export interface Player {
 	gameId: number;
 	userId?: number;
 	num: number;
+	color: string;
 	race: Race;
 	ready?: boolean;
 	aIControlled?: boolean;

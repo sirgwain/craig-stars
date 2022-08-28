@@ -32,16 +32,18 @@ type Player struct {
 	ProductionPlans       []ProductionPlan               `json:"productionPlans,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
 	TransportPlans        []TransportPlan                `json:"transportPlans,omitempty" gorm:"serializer:json"`
 	Messages              []PlayerMessage                `json:"messages,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
-	Designs               []*ShipDesign                  `json:"designs,omitempty" gorm:"foreignKey:PlayerID;references:ID"`
-	Fleets                []*Fleet                       `json:"fleets,omitempty" gorm:"foreignKey:PlayerID;references:ID"`
-	Planets               []*Planet                      `json:"planets,omitempty" gorm:"foreignKey:PlayerID;references:ID"`
-	MineralPackets        []*MineralPacket               `json:"mineralPackets,omitempty" gorm:"foreignKey:PlayerID;references:ID"`
-	PlanetIntels          []PlanetIntel                  `json:"planetIntels,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
-	FleetIntels           []FleetIntel                   `json:"fleetIntels,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
-	DesignIntels          []ShipDesignIntel              `json:"designIntels,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
-	MineralPacketIntels   []MineralPacketIntel           `json:"mineralPacketIntels,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
+	Designs               []*ShipDesign                  `json:"designs" gorm:"foreignKey:PlayerID;references:ID"`
+	Fleets                []*Fleet                       `json:"fleets" gorm:"foreignKey:PlayerID;references:ID"`
+	Planets               []*Planet                      `json:"planets" gorm:"foreignKey:PlayerID;references:ID"`
+	MineralPackets        []*MineralPacket               `json:"mineralPackets" gorm:"foreignKey:PlayerID;references:ID"`
+	PlanetIntels          []PlanetIntel                  `json:"planetIntels" gorm:"constraint:OnDelete:CASCADE;"`
+	FleetIntels           []FleetIntel                   `json:"fleetIntels" gorm:"constraint:OnDelete:CASCADE;"`
+	DesignIntels          []ShipDesignIntel              `json:"designIntels" gorm:"constraint:OnDelete:CASCADE;"`
+	MineralPacketIntels   []MineralPacketIntel           `json:"mineralPacketIntels" gorm:"constraint:OnDelete:CASCADE;"`
 	Spec                  *PlayerSpec                    `json:"spec,omitempty" gorm:"serializer:json"`
 	Stats                 *PlayerStats                   `json:"stats,omitempty" gorm:"serializer:json"`
+	PlanetsByNum          map[int]*Planet                `json:"-" gorm:"-"`
+	FleetsByNum           map[int]*Fleet                 `json:"-" gorm:"-"`
 	FleetIntelsByKey      map[string]*FleetIntel         `json:"-" gorm:"-"`
 	DesignIntelsByKey     map[uuid.UUID]*ShipDesignIntel `json:"-" gorm:"-"`
 	LeftoverResources     int                            `json:"-" gorm:"-"`
@@ -130,73 +132,15 @@ type TransportPlan struct {
 	Tasks    WaypointTransportTasks `json:"tasks,omitempty" gorm:"serializer:json"`
 }
 
-type WaypointTransportTasks struct {
-	Fuel      WaypointTransportTask `json:"fuel,omitempty"`
-	Ironium   WaypointTransportTask `json:"ironium,omitempty"`
-	Boranium  WaypointTransportTask `json:"boranium,omitempty"`
-	Germanium WaypointTransportTask `json:"germanium,omitempty"`
-	Colonists WaypointTransportTask `json:"colonists,omitempty"`
-}
-
-type WaypointTransportTask struct {
-	Amount int                         `json:"amount,omitempty"`
-	Action WaypointTaskTransportAction `json:"action,omitempty"`
-}
-
-type WaypointTaskTransportAction string
-
-const (
-	// No transport task for the specified cargo.
-	TransportActionNone WaypointTaskTransportAction = ""
-
-	// (fuel only) Load or unload fuel until the fleet carries only the exact amount
-	// needed to reach the next waypoint. You can use this task to send a fleet
-	// loaded with fuel to rescue a stranded fleet. The rescue fleet will transfer
-	// only the amount of fuel it can spare without stranding itself.
-	TransportActionLoadOptimal WaypointTaskTransportAction = "LoadOptimal"
-
-	// Load as much of the specified cargo as the fleet can hold.
-	TransportActionLoadAll WaypointTaskTransportAction = "LoadAll"
-
-	// Unload all the specified cargo at the waypoint.
-	TransportActionUnloadAll WaypointTaskTransportAction = "UnloadAll"
-
-	// Load the amount specified only if there is room in the hold.
-	TransportActionLoadAmount WaypointTaskTransportAction = "LoadAmount"
-
-	// Unload the amount specified only if the fleet is carrying that amount.
-	TransportActionUnloadAmount WaypointTaskTransportAction = "UnloadAmount"
-
-	// Loads up to the specified portion of the cargo hold subject to amount available at waypoint and room left in hold.
-	TransportActionFillPercent WaypointTaskTransportAction = "FillPercent"
-
-	// Remain at the waypoint until exactly X % of the hold is filled.
-	TransportActionWaitForPercent WaypointTaskTransportAction = "WaitForPercent"
-
-	// (minerals and colonists only) This command waits until all other loads and unloads are complete,
-	// then loads as many colonists or amount of a mineral as will fit in the remaining space. For example,
-	// setting Load All Germanium, Load Dunnage Ironium, will load all the Germanium that is available,
-	// then as much Ironium as possible. If more than one dunnage cargo is specified, they are loaded in
-	// the order of Ironium, Boranium, Germanium, and Colonists.
-	TransportActionLoadDunnage WaypointTaskTransportAction = "LoadDunnage"
-
-	// Load or unload the cargo until the amount on board is the amount specified.
-	// If less than the specified cargo is available, the fleet will not move on.
-	TransportActionSetAmountTo WaypointTaskTransportAction = "SetAmountTo"
-
-	// Load or unload the cargo until the amount at the waypoint is the amount specified.
-	// This order is always carried out to the best of the fleet’s ability that turn but does not prevent the fleet from moving on.
-	TransportActionSetWaypointTo WaypointTaskTransportAction = "SetWaypointTo"
-)
-
 type ProductionPlan struct {
 	ID        uint      `gorm:"primaryKey" json:"id"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 
-	PlayerID uint                 `json:"playerId"`
-	Name     string               `json:"name"`
-	Items    []ProductionPlanItem `json:"items" gorm:"serializer:json"`
+	PlayerID                          uint                 `json:"playerId"`
+	Name                              string               `json:"name"`
+	Items                             []ProductionPlanItem `json:"items" gorm:"serializer:json"`
+	ContributesOnlyLeftoverToResearch bool                 `json:"contributesOnlyLeftoverToResearch,omitempty"`
 }
 
 type ProductionPlanItem struct {
@@ -226,6 +170,7 @@ func NewPlayer(userID uint, race *Race) *Player {
 		UserID:            userID,
 		Stats:             &PlayerStats{},
 		Race:              playerRace,
+		Color:             "#0000FF", // default to blue
 		ResearchAmount:    15,
 		NextResearchField: NextResearchFieldLowestField,
 		BattlePlans: []BattlePlan{
@@ -303,6 +248,38 @@ func (p *Player) getNextFleetNum() int {
 	}
 
 	return num
+}
+
+// get a player owned planet by num, or nil if it doesn't exist
+func (p *Player) GetPlanet(num int) *Planet {
+	return p.PlanetsByNum[num]
+}
+
+func (p *Player) AddPlanet(planet *Planet) {
+	p.Planets = append(p.Planets, planet)
+	p.PlanetsByNum[planet.Num] = planet
+}
+
+// get a player owned planet by num, or nil if it doesn't exist
+func (p *Player) GetFleet(num int) *Fleet {
+	return p.FleetsByNum[num]
+}
+
+func (p *Player) AddFleet(fleet *Fleet) {
+	p.Fleets = append(p.Fleets, fleet)
+	p.FleetsByNum[fleet.Num] = fleet
+}
+
+func (p *Player) RemoveFleet(fleet *Fleet) {
+	delete(p.FleetsByNum, fleet.Num)
+
+	fleets := make([]*Fleet, 0, len(p.Fleets)-1)
+	for _, f := range p.Fleets {
+		if f.Num != fleet.Num {
+			fleets = append(fleets, f)
+		}
+	}
+	p.Fleets = fleets
 }
 
 // Get a player ShipDesign by name, or nil if no design found
@@ -388,6 +365,7 @@ func (p *Player) clearTransientReports() {
 	p.FleetIntelsByKey = map[string]*FleetIntel{}
 }
 
+// build maps used for quick lookups for various player objects
 func (p *Player) BuildMaps() {
 	p.FleetIntelsByKey = map[string]*FleetIntel{}
 	for i := range p.FleetIntels {
@@ -399,6 +377,16 @@ func (p *Player) BuildMaps() {
 	for i := range p.DesignIntels {
 		intel := &p.DesignIntels[i]
 		p.DesignIntelsByKey[intel.UUID] = intel
+	}
+
+	p.PlanetsByNum = make(map[int]*Planet, len(p.Planets))
+	for _, planet := range p.Planets {
+		p.PlanetsByNum[planet.Num] = planet
+	}
+
+	p.FleetsByNum = make(map[int]*Fleet, len(p.Fleets))
+	for _, fleet := range p.Fleets {
+		p.FleetsByNum[fleet.Num] = fleet
 	}
 
 }

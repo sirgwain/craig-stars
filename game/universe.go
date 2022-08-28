@@ -55,7 +55,7 @@ func generatePlanets(g *Game, area Vector) error {
 		planet.Name = names[i]
 		planet.Num = int(i + 1)
 		planet.Position = pos
-		planet.Randomize(&g.Rules)
+		planet.randomize(&g.Rules)
 
 		g.Planets[i] = *planet
 		planetsByPosition[pos] = planet
@@ -231,7 +231,7 @@ func generatePlayerFleets(game *Game, player *Player, planet *Planet, fleetNum *
 		}
 
 		fleet := NewFleet(player, design, *fleetNum, startingFleet.Name, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, design.Spec.IdealSpeed)})
-		fleet.Orbiting = true
+		fleet.OrbitingPlanetNum = planet.Num
 		fleet.Spec = ComputeFleetSpec(&game.Rules, player, &fleet)
 		fleet.Fuel = fleet.Spec.FuelCapacity
 		game.Fleets = append(game.Fleets, fleet)
