@@ -112,6 +112,7 @@ func (db *DB) SaveGame(game *game.Game) error {
 	for i := range game.Planets {
 		planet := &game.Planets[i]
 		if planet.Dirty {
+			planet.GameID = game.ID
 			err = db.SavePlanet(planet)
 			if err != nil {
 				return err
@@ -121,6 +122,7 @@ func (db *DB) SaveGame(game *game.Game) error {
 	for i := 0; i < len(game.Fleets); i++ {
 		fleet := &game.Fleets[i]
 		if fleet.Dirty {
+			fleet.GameID = game.ID
 			err = db.sqlDB.Save(fleet).Error
 			if err != nil {
 				return err
@@ -165,6 +167,7 @@ func (db *DB) SaveGame(game *game.Game) error {
 		for j := range player.Planets {
 			planet := player.Planets[j]
 			if planet.Dirty {
+				planet.GameID = game.ID
 				err = db.SavePlanet(planet)
 				if err != nil {
 					return err
@@ -175,6 +178,7 @@ func (db *DB) SaveGame(game *game.Game) error {
 		for j := range player.Fleets {
 			fleet := player.Fleets[j]
 			if fleet.Dirty {
+				fleet.GameID = game.ID
 				err = db.SaveFleet(fleet)
 				if err != nil {
 					return err

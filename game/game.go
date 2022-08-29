@@ -3,8 +3,6 @@ package game
 import (
 	"fmt"
 	"time"
-
-	"github.com/rs/zerolog/log"
 )
 
 type Tags map[string]string
@@ -47,11 +45,6 @@ type GameSettings struct {
 	Players                      []NewGamePlayer   `json:"players,omitempty"`
 }
 
-type playerFleetNum struct {
-	PlayerNum int
-	Num       int
-}
-
 type Game struct {
 	ID                           uint                      `gorm:"primaryKey" json:"id" header:"ID"`
 	CreatedAt                    time.Time                 `json:"createdAt"`
@@ -79,7 +72,6 @@ type Game struct {
 	Wormholes                    []Wormohole               `json:"wormholes,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
 	MineralPackets               []MineralPacket           `json:"mineralPackets,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
 	Salvage                      []Salvage                 `json:"salvage,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
-	FleetsByPosition             map[Vector]*Fleet         `json:"-" gorm:"-"`
 	FleetsByNum                  map[playerFleetNum]*Fleet `json:"-" gorm:"-"`
 	Rules                        Rules                     `json:"rules" gorm:"constraint:OnDelete:CASCADE;"`
 }
@@ -286,16 +278,6 @@ func (g *Game) AddPlayer(p *Player) *Player {
 	return &g.Players[len(g.Players)-1]
 }
 
-// Get a planet by number
-func (g *Game) getPlanet(num int) *Planet {
-	return &g.Planets[num-1]
-}
-
-// Get a fleet by player number and number
-func (g *Game) getFleet(playerNum int, num int) *Fleet {
-	return g.FleetsByNum[playerFleetNum{playerNum, num}]
-}
-
 // // remove a fleet from the fleets list
 // func (g *Game) removeFleet(fleet *Fleet) {
 // 	key := playerFleetNum{fleet.PlayerNum, fleet.Num}
@@ -308,30 +290,6 @@ func (g *Game) getFleet(playerNum int, num int) *Fleet {
 // 	}
 // 	g.Fleets = fleets
 // }
-
-// Get a wormhole by number
-func (g *Game) getWormhole(num int) *Wormohole {
-	return &g.Wormholes[num]
-}
-
-func (g *Game) getCargoHolder(mapObjectType MapObjectType, num int, playerNum int) CargoHolder {
-	switch mapObjectType {
-	case MapObjectTypePlanet:
-		return g.getPlanet(num)
-	case MapObjectTypeFleet:
-		return g.getFleet(playerNum, num)
-	}
-	return nil
-}
-
-// build any maps that are part of this game and used during turn generation
-func (g *Game) buildMaps() {
-	g.FleetsByPosition = map[Vector]*Fleet{}
-	for i := range g.Fleets {
-		fleet := &g.Fleets[i]
-		g.FleetsByPosition[fleet.Position] = fleet
-	}
-}
 
 // update a player's planets, fleets, mineralpackets, etc
 func (g *Game) updatePlayerOwnedObjects(player *Player) {
@@ -380,65 +338,20 @@ func (g *Game) computeSpecs() {
 
 // Generate a new universe
 func (g *Game) GenerateUniverse() error {
-	log.Debug().Msgf("%s: Generating universe", g)
-	area, err := g.Rules.GetArea(g.Size)
+	ug := NewUniverseGenerator(g.Size, g.Density, g.Players, &g.Rules)
+	universe, err := ug.Generate()
+
 	if err != nil {
 		return err
 	}
 
-	if err := generatePlanets(g, area); err != nil {
-		return err
-	}
-
-	// save our area
-	g.Area = area
-
-	generateWormholes(g)
-
-	generatePlayerTechLevels(g)
-	generatePlayerPlans(g)
-	generatePlayerShipDesigns(g)
-
-	if err := generatePlayerHomeworlds(g, area); err != nil {
-		return err
-	}
-
-	if err := generatePlayerPlanetReports(g); err != nil {
-		return err
-	}
-
-	// assign created fleets to player's list
-	// future queries from the DB will handle this, but for initial universe generation
-	// we want to make sure our player has pointers to any fleets the game has assigned to them
-	for i := range g.Fleets {
-		fleet := &g.Fleets[i]
-
-		if !fleet.Starbase {
-			player := &g.Players[fleet.PlayerNum]
-			player.Fleets = append(player.Fleets, fleet)
-		}
-	}
-
-	// generatePlayerFleets(g)
-	applyGameStartModeModifier(g)
-
-	// setup all the specs for planets, fleets, etc
-	g.computeSpecs()
-
-	disoverer := discover{g}
-	for i := range g.Players {
-		player := &g.Players[i]
-
-		if err := g.playerScan(player); err != nil {
-			return err
-		}
-
-		disoverer.playerInfoDiscover(player)
-
-		// TODO: check for AI player
-		ai := NewAIPlayer(player)
-		ai.processTurn()
-	}
+	// todo save universe separately
+	g.Area = universe.Area
+	g.Planets = universe.Planets
+	g.Fleets = universe.Fleets
+	g.Wormholes = universe.Wormholes
+	g.MineralPackets = universe.MineralPackets
+	g.Salvage = universe.Salvage
 
 	return nil
 }

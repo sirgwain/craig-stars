@@ -6,27 +6,6 @@ import (
 	"github.com/sirgwain/craig-stars/test"
 )
 
-func Test_generatePlanets(t *testing.T) {
-	type args struct {
-		g    *Game
-		area Vector
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{"Generate Planets for empty game", args{NewGame(), Vector{800, 800}}, false},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := generatePlanets(tt.args.g, tt.args.area); (err != nil) != tt.wantErr {
-				t.Errorf("generatePlanets() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
 func Test_getStartingStarbaseDesigns(t *testing.T) {
 	player := NewPlayer(1, NewRace())
 	player.Race.PRT = JoaT
@@ -59,7 +38,8 @@ func Test_getStartingStarbaseDesigns(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := getStartingStarbaseDesigns(tt.args.techStore, tt.args.player)
+			gu := generatedUniverse{}
+			got := gu.getStartingStarbaseDesigns(tt.args.techStore, tt.args.player)
 
 			// uuids are random, so just make our want/got's the same
 			for i := range got {

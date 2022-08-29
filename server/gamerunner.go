@@ -102,7 +102,7 @@ func (gr *GameRunner) GenerateUniverse(gameID uint) error {
 	g.State = game.GameStateWaitingForPlayers
 
 	err = gr.db.SaveGame(g)
-	if err != nil {
+if err != nil {
 		return err
 	}
 

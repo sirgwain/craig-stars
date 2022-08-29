@@ -11,9 +11,26 @@ type scanner struct {
 	CloakReduction      float64
 }
 
+type playerScan struct {
+	universe *Universe
+	rules *Rules
+	player *Player
+}
+
+type playerScanner interface {
+	scan() error
+}
+
+func newPlayerScanner(universe *Universe, rules *Rules, player *Player) playerScanner {
+	return &playerScan{universe, rules, player}
+}
+
 // scan planets, fleets, etc for a player
-func (game *Game) playerScan(player *Player) error {
+func (scan playerScan) scan() error {
 	// clear out any reports that we recreate each year
+	player := scan.player
+	universe := scan.universe
+	rules := scan.rules
 	player.clearTransientReports()
 
 	for i := range player.PlanetIntels {
@@ -28,12 +45,12 @@ func (game *Game) playerScan(player *Player) error {
 	cargoScanners := getCargoScanners(player.Fleets)
 
 	// scan planets
-	if err := scanPlanets(&game.Rules, game.Planets, player, scanners, cargoScanners); err != nil {
+	if err := scanPlanets(rules, universe.Planets, player, scanners, cargoScanners); err != nil {
 		return err
 	}
 
 	// scan fleets
-	scanFleets(game.Fleets, player, scanners, cargoScanners)
+	scanFleets(universe.Fleets, player, scanners, cargoScanners)
 
 	return nil
 }
