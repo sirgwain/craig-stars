@@ -27,7 +27,7 @@ type playerFleetNum struct {
 // build the maps used for the Get functions
 func (u *Universe) buildMaps() {
 	u.FleetsByPosition = make(map[Vector]*Fleet, len(u.Fleets))
-	u.FleetsByNum	 = make(map[playerFleetNum]*Fleet, len(u.Fleets))
+	u.FleetsByNum = make(map[playerFleetNum]*Fleet, len(u.Fleets))
 	for i := range u.Fleets {
 		fleet := &u.Fleets[i]
 		u.FleetsByPosition[fleet.Position] = fleet
@@ -37,7 +37,7 @@ func (u *Universe) buildMaps() {
 
 // Get a planet by num
 func (u *Universe) GetPlanet(num int) *Planet {
-	return &u.Planets[num]
+	return &u.Planets[num-1]
 }
 
 // Get a fleet by player num and fleet num
@@ -77,4 +77,11 @@ func (u *Universe) DeleteFleet(fleet *Fleet) {
 	fleet.Delete = true
 	delete(u.FleetsByNum, playerFleetNum{fleet.PlayerNum, fleet.Num})
 	delete(u.FleetsByPosition, fleet.Position)
+}
+
+// move a fleet from one position to another
+func (u *Universe) MoveFleet(fleet *Fleet, originalPosition Vector) {
+	fleet.Dirty = true
+	delete(u.FleetsByPosition, originalPosition)
+	u.FleetsByPosition[originalPosition] = fleet
 }
