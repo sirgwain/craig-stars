@@ -8,8 +8,8 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func (db *DB) FindPlayerByGameId(gameID uint, userID uint) (*game.Player, error) {
-	player := game.Player{}
+func (db *DB) FindPlayerByGameId(gameID uint, userID uint) (*game.FullPlayer, error) {
+	player := game.FullPlayer{}
 
 	if err := db.sqlDB.
 		Preload(clause.Associations).

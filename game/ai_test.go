@@ -3,12 +3,14 @@ package game
 import (
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_getClosestPlanet(t *testing.T) {
 	rules := NewRules()
 	player := NewPlayer(1, NewRace().WithSpec(&rules))
-	aiPlayer := NewAIPlayer(player)
+	aiPlayer := NewAIPlayer(player, PlayerMapObjects{})
 
 	planetAt0_0 := PlanetIntel{
 		MapObjectIntel: MapObjectIntel{Position: Vector{0, 0}},
@@ -54,4 +56,21 @@ func Test_getClosestPlanet(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestAIPlayer_GetPlanet(t *testing.T) {
+	player := NewAIPlayer(NewPlayer(1, NewRace()), PlayerMapObjects{})
+
+	// no planet by that id
+	assert.Nil(t, player.GetPlanet(1))
+
+	// should have a planet by this id
+	planet := NewPlanet()
+	planet.Num = 1
+	player.Planets = append(player.Planets, planet)
+	player.buildMaps()
+
+	assert.Same(t, planet, player.GetPlanet(1))
+
+	assert.Nil(t, player.GetPlanet(2))
 }

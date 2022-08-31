@@ -32,7 +32,7 @@ type Fleet struct {
 	Fuel              int         `json:"fuel"`
 	Damage            int         `json:"damage"`
 	BattlePlanID      uint        `json:"battlePlan"`
-	Tokens            []ShipToken `json:"tokens" gorm:"constraint:OnDelete:CASCADE;"`
+	Tokens            []ShipToken `json:"tokens"`
 	Waypoints         []Waypoint  `json:"waypoints" gorm:"serializer:json"`
 	RepeatOrders      bool        `json:"repeatOrders,omitempty"`
 	Heading           Vector      `json:"heading,omitempty" gorm:"embedded;embeddedPrefix:heading_"`
@@ -61,9 +61,9 @@ type ShipToken struct {
 	CreatedAt time.Time   `json:"createdAt"`
 	UpdatedAt time.Time   `json:"updatedAt"`
 	FleetID   uint        `json:"gameId"`
-	Design    *ShipDesign `json:"-" gorm:"foreignKey:DesignID"`
 	DesignID  uint        `json:"designId"`
 	Quantity  int         `json:"quantity"`
+	Design    *ShipDesign `json:"-" gorm:"foreignKey:DesignID"`
 }
 
 type Waypoint struct {
@@ -180,6 +180,25 @@ func NewFleet(player *Player, design *ShipDesign, num int, name string, waypoint
 	}
 }
 
+func NewFleetForToken(player *Player, num int, token ShipToken, waypoints []Waypoint) Fleet {
+	return Fleet{
+		MapObject: MapObject{
+			Type:      MapObjectTypeFleet,
+			GameID:    player.GameID,
+			PlayerID:  player.ID,
+			PlayerNum: player.Num,
+			Dirty:     true,
+			Num:       num,
+			Name:      fmt.Sprintf("%s #%d", token.Design.Name, num),
+			Position:  waypoints[0].Position,
+		},
+		BaseName:          token.Design.Name,
+		Tokens:            []ShipToken{token},
+		Waypoints:         waypoints,
+		OrbitingPlanetNum: NotOrbitingPlanet,
+	}
+}
+
 // create a new fleet that is a starbase
 func NewStarbase(player *Player, planet *Planet, design *ShipDesign, name string) Fleet {
 	fleet := NewFleet(player, design, 0, name, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 1)})
@@ -191,6 +210,11 @@ func NewStarbase(player *Player, planet *Planet, design *ShipDesign, name string
 
 func (f *Fleet) String() string {
 	return fmt.Sprintf("Fleet %s #%d", f.BaseName, f.Num)
+}
+
+func (f *Fleet) WithPlayerNum(playerNum int) *Fleet {
+	f.PlayerNum = playerNum
+	return f
 }
 
 func (f *Fleet) WithCargo(cargo Cargo) *Fleet {
@@ -300,7 +324,7 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) *FleetSpec {
 		// use the lowest ideal speed for this fleet
 		// if we have multiple engines
 		if token.Design.Spec.Engine != "" {
-			engine := rules.Techs.GetEngine(token.Design.Spec.Engine)
+			engine := rules.techs.GetEngine(token.Design.Spec.Engine)
 			if spec.IdealSpeed == 0 {
 				spec.IdealSpeed = engine.IdealSpeed
 			} else {
@@ -528,13 +552,13 @@ func (fleet *Fleet) moveFleet(mapObjectGetter MapObjectGetter, rules *Rules, pla
 	dist = math.Min(totalDist, dist)
 
 	// check for CE engine failure
-	if player.Race.Spec.EngineFailureRate > 0 && wp1.WarpFactor > player.Race.Spec.EngineReliableSpeed && player.Race.Spec.EngineFailureRate >= rules.Random.Float64() {
+	if player.Race.Spec.EngineFailureRate > 0 && wp1.WarpFactor > player.Race.Spec.EngineReliableSpeed && player.Race.Spec.EngineFailureRate >= rules.random.Float64() {
 		messager.fleetEngineFailure(player, fleet)
 		return
 	}
 
 	// get the cost for the fleet
-	fuelCost := fleet.GetFuelCost(rules.Techs, player, wp1.WarpFactor, dist)
+	fuelCost := fleet.GetFuelCost(rules.techs, player, wp1.WarpFactor, dist)
 	var fuelGenerated int = 0
 	if fuelCost > fleet.Fuel {
 		// we will run out of fuel
@@ -547,14 +571,14 @@ func (fleet *Fleet) moveFleet(mapObjectGetter MapObjectGetter, rules *Rules, pla
 		// dist = CheckForMineFields(fleet, player, wp1, dist)
 
 		fleet.Fuel = 0
-		wp1.WarpFactor = fleet.getNoFuelWarpFactor(rules.Techs, player)
+		wp1.WarpFactor = fleet.getNoFuelWarpFactor(rules.techs, player)
 		messager.fleetOutOfFuel(player, fleet, wp1.WarpFactor)
 
 		// if we ran out of fuel 60% of the way to our normal distance, the remaining 40% of our time
 		// was spent travelling at fuel generation speeds:
 		remainingDistanceTravelled := (1 - distanceFactor) * float64(wp1.WarpFactor*wp1.WarpFactor)
 		dist += remainingDistanceTravelled
-		fuelGenerated = fleet.getFuelGeneration(rules.Techs, player, wp1.WarpFactor, remainingDistanceTravelled)
+		fuelGenerated = fleet.getFuelGeneration(rules.techs, player, wp1.WarpFactor, remainingDistanceTravelled)
 	} else {
 		// collide with minefields on route, but don't hit a minefield if we run out of fuel beforehand
 		// TODO: add back in minefield check
@@ -562,12 +586,12 @@ func (fleet *Fleet) moveFleet(mapObjectGetter MapObjectGetter, rules *Rules, pla
 		actualDist := dist
 		if actualDist != dist {
 			dist = actualDist
-			fuelCost = fleet.GetFuelCost(rules.Techs, player, wp1.WarpFactor, dist)
+			fuelCost = fleet.GetFuelCost(rules.techs, player, wp1.WarpFactor, dist)
 			// we hit a minefield, update fuel usage
 		}
 
 		fleet.Fuel -= fuelCost
-		fuelGenerated = fleet.getFuelGeneration(rules.Techs, player, wp1.WarpFactor, dist)
+		fuelGenerated = fleet.getFuelGeneration(rules.techs, player, wp1.WarpFactor, dist)
 	}
 
 	// message the player about fuel generation
@@ -769,9 +793,9 @@ func (fleet *Fleet) colonizePlanet(rules *Rules, player *Player, planet *Planet)
 	planet.Spec = ComputePlanetSpec(rules, planet, player)
 }
 
-// scrap a fleet giving a planet resources or creating salvage
-func (fleet *Fleet) scrap(game *Game, player *Player, planet *Planet) {
-	cost := fleet.getScrapAmount(&game.Rules, player, planet)
+// scrap a fleet giving a planet resources or returning salvage
+func (fleet *Fleet) scrap(rules *Rules, player *Player, planet *Planet) *Salvage {
+	cost := fleet.getScrapAmount(rules, player, planet)
 
 	if planet != nil {
 		// scrap over a planet
@@ -782,10 +806,11 @@ func (fleet *Fleet) scrap(game *Game, player *Player, planet *Planet) {
 	} else {
 		// create salvage
 		salvage := NewSalvage(player.Num, fleet.Position, cost.ToCargo())
-		game.Salvage = append(game.Salvage, salvage)
+		return &salvage
 	}
 
 	fleet.Delete = true
+	return nil
 }
 
 // get the minerals and resources recovered from a scrapped fleet

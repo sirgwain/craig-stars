@@ -309,12 +309,13 @@ func (r *Race) WithSpec(rules *Rules) *Race {
 	return r
 }
 
-func Humanoids() *Race {
-	return NewRace()
+func Humanoids() Race {
+	return *NewRace()
 }
 
-func PPs() *Race {
-	return NewRace().WithPRT(PP).WithName("Thrower").WithPluralName("Throwers")
+func PPs() Race {
+	r := NewRace()
+	return *r.WithPRT(PP).WithName("Thrower").WithPluralName("Throwers")
 }
 
 func (r *Race) String() string {

@@ -7,21 +7,43 @@ import (
 )
 
 type aiPlayer struct {
-	Player *Player
-	Config aiPlayerConfig
+	*Player
+	PlayerMapObjects
+	config       aiPlayerConfig
+	planetsByNum map[int]*Planet
+	fleetsByNum  map[int]*Fleet
 }
 
 type aiPlayerConfig struct {
 	colonizerPopulationDensity float64
 }
 
-func NewAIPlayer(player *Player) *aiPlayer {
-	return &aiPlayer{
+func NewAIPlayer(player *Player, playerMapObjects PlayerMapObjects) *aiPlayer {
+	aiPlayer := aiPlayer{
 		Player: player,
-		Config: aiPlayerConfig{
+		config: aiPlayerConfig{
 			colonizerPopulationDensity: .25, // default to requiring 25% pop density before sending off colonizers
 		},
+		PlayerMapObjects: playerMapObjects,
 	}
+
+	aiPlayer.buildMaps()
+
+	return &aiPlayer
+}
+
+// build maps used for quick lookups for various player objects
+func (p *aiPlayer) buildMaps() {
+	p.planetsByNum = make(map[int]*Planet, len(p.Planets))
+	for _, planet := range p.Planets {
+		p.planetsByNum[planet.Num] = planet
+	}
+
+	p.fleetsByNum = make(map[int]*Fleet, len(p.Fleets))
+	for _, fleet := range p.Fleets {
+		p.fleetsByNum[fleet.Num] = fleet
+	}
+
 }
 
 // process an AI player's turn
@@ -34,7 +56,7 @@ func (ai *aiPlayer) processTurn() {
 func (ai *aiPlayer) scout() {
 	design := ai.Player.GetLatestDesign(ShipDesignPurposeScout)
 	unknownPlanetsByNum := map[int]PlanetIntel{}
-	buildablePlanets := ai.Player.GetBuildablePlanets(design.Spec.Mass)
+	buildablePlanets := ai.GetBuildablePlanets(design.Spec.Mass)
 
 	// find all the unexplored planets
 	for _, planet := range ai.Player.PlanetIntels {
@@ -45,7 +67,7 @@ func (ai *aiPlayer) scout() {
 
 	// find all idle fleets that have scanners
 	scannerFleets := []*Fleet{}
-	for _, fleet := range ai.Player.Fleets {
+	for _, fleet := range ai.Fleets {
 		if _, contains := fleet.Spec.Purposes[ShipDesignPurposeScout]; contains && fleet.Spec.Scanner {
 			if len(fleet.Waypoints) <= 1 {
 				// this fleet can be sent to scan a planet
@@ -84,7 +106,7 @@ func (ai *aiPlayer) scout() {
 func (ai *aiPlayer) colonize() {
 	design := ai.Player.GetLatestDesign(ShipDesignPurposeColonizer)
 	colonizablePlanets := map[int]PlanetIntel{}
-	buildablePlanets := ai.Player.GetBuildablePlanets(design.Spec.Mass)
+	buildablePlanets := ai.GetBuildablePlanets(design.Spec.Mass)
 
 	// find all the unexplored planets
 	for _, planet := range ai.Player.PlanetIntels {
@@ -95,11 +117,11 @@ func (ai *aiPlayer) colonize() {
 
 	// find all idle fleets that are colonizers
 	colonizerFleets := []*Fleet{}
-	for _, fleet := range ai.Player.Fleets {
+	for _, fleet := range ai.Fleets {
 		if _, contains := fleet.Spec.Purposes[ShipDesignPurposeColonizer]; contains && fleet.Spec.Colonizer && fleet.Orbiting() {
 			if len(fleet.Waypoints) <= 1 {
-				planet := ai.Player.GetPlanet(fleet.OrbitingPlanetNum)
-				if planet != nil && planet.OwnedBy(ai.Player.Num) && planet.Spec.PopulationDensity > ai.Config.colonizerPopulationDensity {
+				planet := ai.GetPlanet(fleet.OrbitingPlanetNum)
+				if planet != nil && planet.OwnedBy(ai.Player.Num) && planet.Spec.PopulationDensity > ai.config.colonizerPopulationDensity {
 					// this fleet can be sent to colonize a planet
 					colonizerFleets = append(colonizerFleets, fleet)
 				}
@@ -142,6 +164,27 @@ func (ai *aiPlayer) colonize() {
 			planet.Dirty = true
 		}
 	}
+}
+
+// get a player owned planet by num, or nil if it doesn't exist
+func (p *aiPlayer) GetPlanet(num int) *Planet {
+	return p.planetsByNum[num]
+}
+
+// get a player owned planet by num, or nil if it doesn't exist
+func (p *aiPlayer) GetFleet(num int) *Fleet {
+	return p.fleetsByNum[num]
+}
+
+// get all planets the player owns that can build ships of mass mass
+func (p *aiPlayer) GetBuildablePlanets(mass int) []*Planet {
+	planets := []*Planet{}
+	for _, planet := range p.Planets {
+		if planet.CanBuild(mass) {
+			planets = append(planets, planet)
+		}
+	}
+	return planets
 }
 
 // get the closest planet to this fleet from a list of unknown planets

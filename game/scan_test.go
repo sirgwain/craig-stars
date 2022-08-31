@@ -8,40 +8,46 @@ import (
 func Test_getScanners(t *testing.T) {
 	rules := NewRules()
 	player := NewPlayer(1, NewRace().WithSpec(&rules)).WithTechLevels(TechLevel{3, 3, 3, 3, 3, 3}).WithSpec(&rules)
+	player.Num = 1
 
 	type args struct {
-		planets          []*Planet
-		fleets           []*Fleet
-		mineFields       []*MineField
-		mineralPackets   []*MineralPacket
-		planetaryScanner TechPlanetaryScanner
+		planets        []Planet
+		fleets         []Fleet
+		mineFields     []MineField
+		mineralPackets []MineralPacket
 	}
 	tests := []struct {
 		name string
 		args args
 		want []scanner
 	}{
-		{"Single Planet", args{planets: []*Planet{NewPlanet().WithScanner(true)}, planetaryScanner: Scoper150}, []scanner{
+		{"Single Planet", args{planets: []Planet{*NewPlanet().WithPlayerNum(1).WithScanner(true)}}, []scanner{
 			{RangeSquared: 150 * 150, RangePenSquared: 0},
 		}},
-		{"Single Long Range Scout", args{fleets: []*Fleet{testLongRangeScout(player, &rules)}, planetaryScanner: Scoper150}, []scanner{
+		{"Single Long Range Scout", args{fleets: []Fleet{*testLongRangeScout(player, &rules).WithPlayerNum(1)}}, []scanner{
 			{RangeSquared: 66 * 66, RangePenSquared: 30 * 30},
 		}},
-		{"Planet and Scout same position", args{planets: []*Planet{NewPlanet().WithScanner(true)}, fleets: []*Fleet{testLongRangeScout(player, &rules)}, planetaryScanner: Scoper150}, []scanner{
+		{"Planet and Scout same position", args{planets: []Planet{*NewPlanet().WithPlayerNum(1).WithScanner(true)}, fleets: []Fleet{*testLongRangeScout(player, &rules).WithPlayerNum(1)}}, []scanner{
 			{RangeSquared: 150 * 150, RangePenSquared: 30 * 30},
 		}},
-		{"Planet and Scout, diff position", args{planets: []*Planet{NewPlanet().WithScanner(true)}, fleets: []*Fleet{testLongRangeScout(player, &rules).WithPosition(Vector{1, 1})}, planetaryScanner: Scoper150}, []scanner{
+		{"Planet and Scout, diff position", args{planets: []Planet{*NewPlanet().WithPlayerNum(1).WithScanner(true)}, fleets: []Fleet{*testLongRangeScout(player, &rules).WithPlayerNum(1).WithPosition(Vector{1, 1})}}, []scanner{
 			{RangeSquared: 150 * 150, RangePenSquared: 0},
 			{RangeSquared: 66 * 66, RangePenSquared: 30 * 30, Position: Vector{1, 1}},
 		}},
-		{"Planet and two fleets, diff position", args{planets: []*Planet{NewPlanet().WithScanner(true)}, fleets: []*Fleet{testLongRangeScout(player, &rules).WithPosition(Vector{1, 1}), testSmallFreighter(player, &rules).WithPosition(Vector{1, 1})}, planetaryScanner: Scoper150}, []scanner{
+		{"Planet and two fleets, diff position", args{planets: []Planet{*NewPlanet().WithPlayerNum(1).WithScanner(true)}, fleets: []Fleet{*testLongRangeScout(player, &rules).WithPlayerNum(1).WithPosition(Vector{1, 1}), *testSmallFreighter(player, &rules).WithPlayerNum(1).WithPosition(Vector{1, 1})}}, []scanner{
 			{RangeSquared: 150 * 150, RangePenSquared: 0},
 			{RangeSquared: 66 * 66, RangePenSquared: 30 * 30, Position: Vector{1, 1}},
 		}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := getScanners(tt.args.planets, tt.args.fleets, tt.args.mineralPackets, tt.args.mineFields, tt.args.planetaryScanner); !reflect.DeepEqual(got, tt.want) {
+			scan := playerScan{&Universe{
+				Planets:        tt.args.planets,
+				Fleets:         tt.args.fleets,
+				MineralPackets: tt.args.mineralPackets,
+				MineFields:     tt.args.mineFields,
+			}, &rules, player}
+			if got := scan.getScanners(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("getScanners() = \n%v, want \n%v", got, tt.want)
 			}
 		})
@@ -69,7 +75,8 @@ func Test_fleetInScannerRange(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := fleetInScannerRange(tt.args.player, tt.args.fleet, tt.args.scanner); got != tt.want {
+			scan := playerScan{player: tt.args.player}
+			if got := scan.fleetInScannerRange(tt.args.fleet, tt.args.scanner); got != tt.want {
 				t.Errorf("fleetInScannerRange() = %v, want %v", got, tt.want)
 			}
 		})

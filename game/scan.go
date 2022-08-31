@@ -13,8 +13,8 @@ type scanner struct {
 
 type playerScan struct {
 	universe *Universe
-	rules *Rules
-	player *Player
+	rules    *Rules
+	player   *Player
 }
 
 type playerScanner interface {
@@ -26,11 +26,9 @@ func newPlayerScanner(universe *Universe, rules *Rules, player *Player) playerSc
 }
 
 // scan planets, fleets, etc for a player
-func (scan playerScan) scan() error {
+func (scan *playerScan) scan() error {
 	// clear out any reports that we recreate each year
 	player := scan.player
-	universe := scan.universe
-	rules := scan.rules
 	player.clearTransientReports()
 
 	for i := range player.PlanetIntels {
@@ -41,26 +39,26 @@ func (scan playerScan) scan() error {
 	}
 
 	// TODO: add in player mineral packets, minefields, etc
-	scanners := getScanners(player.Planets, player.Fleets, []*MineralPacket{}, []*MineField{}, *player.Spec.PlanetaryScanner)
-	cargoScanners := getCargoScanners(player.Fleets)
+	scanners := scan.getScanners()
+	cargoScanners := scan.getCargoScanners()
 
 	// scan planets
-	if err := scanPlanets(rules, universe.Planets, player, scanners, cargoScanners); err != nil {
+	if err := scan.scanPlanets(scanners, cargoScanners); err != nil {
 		return err
 	}
 
 	// scan fleets
-	scanFleets(universe.Fleets, player, scanners, cargoScanners)
+	scan.scanFleets(scanners, cargoScanners)
 
 	return nil
 }
 
 // scan all planets with this player's scanners
-func scanPlanets(rules *Rules, planets []Planet, player *Player, scanners []scanner, cargoScanners []scanner) error {
-	for i := range planets {
-		planet := &planets[i]
-		if planet.OwnedBy(player.Num) {
-			if err := discoverPlanet(rules, player, planet, false); err != nil {
+func (scan *playerScan) scanPlanets(scanners []scanner, cargoScanners []scanner) error {
+	for i := range scan.universe.Planets {
+		planet := &scan.universe.Planets[i]
+		if planet.OwnedBy(scan.player.Num) {
+			if err := discoverPlanet(scan.rules, scan.player, planet, false); err != nil {
 				return err
 			}
 			continue
@@ -68,7 +66,7 @@ func scanPlanets(rules *Rules, planets []Planet, player *Player, scanners []scan
 
 		// try and scan the planet with this scanner
 		for _, scanner := range scanners {
-			scanned, err := scanPlanet(rules, player, planet, scanner)
+			scanned, err := scan.scanPlanet(planet, scanner)
 			if err != nil {
 				return err
 			}
@@ -79,7 +77,7 @@ func scanPlanets(rules *Rules, planets []Planet, player *Player, scanners []scan
 
 		// try and scan the planet with a cargo scanner
 		for _, scanner := range cargoScanners {
-			scanned, err := scanPlanet(rules, player, planet, scanner)
+			scanned, err := scan.scanPlanet(planet, scanner)
 			if err != nil {
 				return err
 			}
@@ -93,15 +91,15 @@ func scanPlanets(rules *Rules, planets []Planet, player *Player, scanners []scan
 }
 
 // scan this planet
-func scanPlanet(rules *Rules, player *Player, planet *Planet, scanner scanner) (bool, error) {
+func (scan *playerScan) scanPlanet(planet *Planet, scanner scanner) (bool, error) {
 	dist := scanner.Position.DistanceSquaredTo(planet.Position)
 	_ = dist
 	if float64(scanner.RangePenSquared) >= scanner.Position.DistanceSquaredTo(planet.Position) {
-		if err := discoverPlanet(rules, player, planet, true); err != nil {
+		if err := discoverPlanet(scan.rules, scan.player, planet, true); err != nil {
 			return false, err
 		}
 		if scanner.DiscoverPlanetCargo {
-			if err := discoverPlanetCargo(player, planet); err != nil {
+			if err := discoverPlanetCargo(scan.player, planet); err != nil {
 				return false, err
 			}
 		}
@@ -111,20 +109,20 @@ func scanPlanet(rules *Rules, player *Player, planet *Planet, scanner scanner) (
 }
 
 // scan all fleets and discover their designs if we should
-func scanFleets(fleets []Fleet, player *Player, scanners []scanner, cargoScanners []scanner) {
+func (scan *playerScan) scanFleets(scanners []scanner, cargoScanners []scanner) {
 	// scan fleets
 	fleetsToScan := []*Fleet{}
 	fleetsToCargoScan := []*Fleet{}
-	for i := range fleets {
-		fleet := &fleets[i]
-		if fleet.OwnedBy(player.Num) {
+	for i := range scan.universe.Fleets {
+		fleet := &scan.universe.Fleets[i]
+		if fleet.OwnedBy(scan.player.Num) {
 			// The player already gets a copy of all their own fleets
 			continue
 		}
 
 		// try and scan the planet with this scanner
 		for _, scanner := range scanners {
-			if fleetInScannerRange(player, fleet, scanner) {
+			if scan.fleetInScannerRange(fleet, scanner) {
 				fleetsToScan = append(fleetsToScan, fleet)
 				break
 			}
@@ -132,7 +130,7 @@ func scanFleets(fleets []Fleet, player *Player, scanners []scanner, cargoScanner
 
 		// try and scan the planet with a cargo scanner
 		for _, scanner := range cargoScanners {
-			if fleetInScannerRange(player, fleet, scanner) {
+			if scan.fleetInScannerRange(fleet, scanner) {
 				fleetsToCargoScan = append(fleetsToScan, fleet)
 				break
 			}
@@ -140,22 +138,22 @@ func scanFleets(fleets []Fleet, player *Player, scanners []scanner, cargoScanner
 	}
 
 	for _, fleet := range fleetsToScan {
-		discoverFleet(player, fleet)
-		if player.Race.Spec.DiscoverDesignOnScan {
+		discoverFleet(scan.player, fleet)
+		if scan.player.Race.Spec.DiscoverDesignOnScan {
 			for _, token := range fleet.Tokens {
-				discoverDesign(player, token.Design, true)
+				discoverDesign(scan.player, token.Design, true)
 			}
 		}
 	}
 
 	for _, fleet := range fleetsToCargoScan {
-		discoverFleetCargo(player, fleet)
+		discoverFleetCargo(scan.player, fleet)
 	}
 }
 
 // return true if this scanner successfully scans this fleet, taking into account cloaking
 // and the fleet's cloak penetration
-func fleetInScannerRange(player *Player, fleet *Fleet, scanner scanner) bool {
+func (scan *playerScan) fleetInScannerRange(fleet *Fleet, scanner scanner) bool {
 	var cloakFactor = 1 - (float64(fleet.Spec.CloakPercent) * (1 - scanner.CloakReduction) / 100.0)
 	var distance = scanner.Position.DistanceSquaredTo(fleet.Position)
 
@@ -174,11 +172,12 @@ func fleetInScannerRange(player *Player, fleet *Fleet, scanner scanner) bool {
 
 // get a list of unique scanners per player.
 // This is a minimal list only containing the best scanner values for each position
-func getScanners(planets []*Planet, fleets []*Fleet, mineralPackets []*MineralPacket, mineFields []*MineField, planetaryScanner TechPlanetaryScanner) []scanner {
+func (scan *playerScan) getScanners() []scanner {
+	planetaryScanner := scan.player.Spec.PlanetaryScanner
 	scanningFleetsByPosition := map[Vector]scanner{}
-	for i := range fleets {
-		fleet := fleets[i]
-		if fleet.Spec.Scanner {
+	for i := range scan.universe.Fleets {
+		fleet := &scan.universe.Fleets[i]
+		if fleet.PlayerNum == scan.player.Num && fleet.Spec.Scanner {
 			scanner, found := scanningFleetsByPosition[fleet.Position]
 			if !found {
 				// start with NoScanner (-1)
@@ -195,9 +194,9 @@ func getScanners(planets []*Planet, fleets []*Fleet, mineralPackets []*MineralPa
 
 	// build a list of scanners for this player
 	scanners := []scanner{}
-	for i := range planets {
-		planet := planets[i]
-		if planet.Scanner {
+	for i := range scan.universe.Planets {
+		planet := &scan.universe.Planets[i]
+		if planet.PlayerNum == scan.player.Num && planet.Scanner {
 			scanner := scanner{
 				Position:        planet.Position,
 				RangeSquared:    planetaryScanner.ScanRange * planetaryScanner.ScanRange,
@@ -239,13 +238,13 @@ func getScanners(planets []*Planet, fleets []*Fleet, mineralPackets []*MineralPa
 }
 
 // get a list of scanners that can scan cargo from fleets or planets
-func getCargoScanners(fleets []*Fleet) []scanner {
+func (scan *playerScan) getCargoScanners() []scanner {
 	scanners := []scanner{}
 	scanningFleetsByPosition := map[Vector]scanner{}
 
-	for i := range fleets {
-		fleet := fleets[i]
-		if fleet.Spec.Scanner && (fleet.Spec.CanStealFleetCargo || fleet.Spec.CanStealPlanetCargo) {
+	for i := range scan.universe.Fleets {
+		fleet := scan.universe.Fleets[i]
+		if fleet.PlayerNum == scan.player.Num && fleet.Spec.Scanner && (fleet.Spec.CanStealFleetCargo || fleet.Spec.CanStealPlanetCargo) {
 			scanner, found := scanningFleetsByPosition[fleet.Position]
 			if !found {
 				// start with NoScanner (-1)

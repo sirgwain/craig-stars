@@ -66,11 +66,11 @@ type Rules struct {
 	PacketDecayRate                    map[int]float64                     `json:"packetDecayRate" gorm:"serializer:json"`
 	MaxTechLevel                       int                                 `json:"maxTechLevel"`
 	TechBaseCost                       []int                               `json:"techBaseCost" gorm:"serializer:json"`
-	Random                             *rand.Rand                          `json:"-" gorm:"-"`
 	PRTSpecs                           map[PRT]PRTSpec                     `json:"prtSpecs" gorm:"serializer:json"`
 	LRTSpecs                           map[LRT]LRTSpec                     `json:"lrtSpecs" gorm:"serializer:json"`
 	TechsID                            uint                                `json:"techsId"`
-	Techs                              *TechStore                          `json:"techs" gorm:"-"`
+	random                             *rand.Rand
+	techs                              *TechStore
 }
 
 type RandomEvent string
@@ -97,7 +97,12 @@ const (
 // Seed the random number generator with the rules Seed value
 // This should be called after deserializing
 func (r *Rules) ResetSeed() {
-	r.Random = rand.New(rand.NewSource(r.Seed))
+	r.random = rand.New(rand.NewSource(r.Seed))
+}
+
+func (r *Rules) WithTechStore(techStore *TechStore) *Rules {
+	r.techs = techStore
+	return r
 }
 
 func NewRules() Rules {
@@ -107,7 +112,7 @@ func NewRules() Rules {
 
 	return Rules{
 		Seed:                          seed,
-		Random:                        random,
+		random:                        random,
 		TachyonCloakReduction:         5,
 		MaxPopulation:                 1000000,
 		FleetsScanWhileMoving:         false,
@@ -325,7 +330,7 @@ func NewRules() Rules {
 			MA:   MASpec(),
 			CE:   CESpec(),
 		},
-		Techs: &StaticTechStore,
+		techs: &StaticTechStore,
 	}
 }
 

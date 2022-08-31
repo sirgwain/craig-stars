@@ -46,34 +46,33 @@ type GameSettings struct {
 }
 
 type Game struct {
-	ID                           uint                      `gorm:"primaryKey" json:"id" header:"ID"`
-	CreatedAt                    time.Time                 `json:"createdAt"`
-	UpdatedAt                    time.Time                 `json:"updatedAt"`
-	Name                         string                    `json:"name" header:"Name"`
-	HostID                       uint                      `json:"hostId"`
-	QuickStartTurns              int                       `json:"quickStartTurns"`
-	Size                         Size                      `json:"size"`
-	Density                      Density                   `json:"density"`
-	PlayerPositions              PlayerPositions           `json:"playerPositions"`
-	RandomEvents                 bool                      `json:"randomEvents"`
-	ComputerPlayersFormAlliances bool                      `json:"computerPlayersFormAlliances"`
-	PublicPlayerScores           bool                      `json:"publicPlayerScores"`
-	StartMode                    GameStartMode             `json:"startMode"`
-	Year                         int                       `json:"year"`
-	State                        GameState                 `json:"state"`
-	OpenPlayerSlots              uint                      `json:"openPlayerSlots"`
-	NumPlayers                   int                       `json:"numPlayers"`
-	VictoryConditions            VictoryConditions         `json:"victoryConditions" gorm:"embedded;embeddedPrefix:victory_condition_"`
-	VictorDeclared               bool                      `json:"victorDeclared"`
-	Area                         Vector                    `json:"area,omitempty" gorm:"embedded;embeddedPrefix:area_"`
-	Players                      []Player                  `json:"players,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
-	Planets                      []Planet                  `json:"planets,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
-	Fleets                       []Fleet                   `json:"fleets,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
-	Wormholes                    []Wormohole               `json:"wormholes,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
-	MineralPackets               []MineralPacket           `json:"mineralPackets,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
-	Salvage                      []Salvage                 `json:"salvage,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
-	FleetsByNum                  map[playerFleetNum]*Fleet `json:"-" gorm:"-"`
-	Rules                        Rules                     `json:"rules" gorm:"constraint:OnDelete:CASCADE;"`
+	ID                           uint              `gorm:"primaryKey" json:"id" header:"ID" badgerhold:"key"`
+	CreatedAt                    time.Time         `json:"createdAt"`
+	UpdatedAt                    time.Time         `json:"updatedAt"`
+	Name                         string            `json:"name" header:"Name"`
+	HostID                       uint              `json:"hostId"`
+	QuickStartTurns              int               `json:"quickStartTurns"`
+	Size                         Size              `json:"size"`
+	Density                      Density           `json:"density"`
+	PlayerPositions              PlayerPositions   `json:"playerPositions"`
+	RandomEvents                 bool              `json:"randomEvents"`
+	ComputerPlayersFormAlliances bool              `json:"computerPlayersFormAlliances"`
+	PublicPlayerScores           bool              `json:"publicPlayerScores"`
+	StartMode                    GameStartMode     `json:"startMode"`
+	Year                         int               `json:"year"`
+	State                        GameState         `json:"state"`
+	OpenPlayerSlots              uint              `json:"openPlayerSlots"`
+	NumPlayers                   int               `json:"numPlayers"`
+	VictoryConditions            VictoryConditions `json:"victoryConditions" gorm:"embedded;embeddedPrefix:victory_condition_"`
+	VictorDeclared               bool              `json:"victorDeclared"`
+	Rules                        Rules             `json:"rules"`
+}
+
+// A game with players and a universe, used in universe and turn generation
+type FullGame struct {
+	*Game
+	*Universe
+	Players []*Player `json:"players,omitempty" gorm:"foreignKey:GameID;references:ID"`
 }
 
 type VictoryConditions struct {
@@ -252,7 +251,7 @@ func (g *Game) String() string {
 }
 
 // update the game with new settings
-func (g *Game) WithSettings(settings *GameSettings) *Game {
+func (g *Game) WithSettings(settings GameSettings) *Game {
 	g.Name = settings.Name
 	g.QuickStartTurns = settings.QuickStartTurns
 	g.Size = settings.Size
@@ -265,123 +264,6 @@ func (g *Game) WithSettings(settings *GameSettings) *Game {
 	g.VictoryConditions = settings.VictoryConditions
 
 	return g
-}
-
-// Add the player to the game, and compute the player's spec based on the game rules
-func (g *Game) AddPlayer(p *Player) *Player {
-	p.Race.Spec = computeRaceSpec(&p.Race, &g.Rules)
-	p.GameID = g.ID
-	g.Players = append(g.Players, *p)
-	g.NumPlayers = len(g.Players)
-	g.OpenPlayerSlots = uint(clamp(int(g.OpenPlayerSlots-1), 0, g.NumPlayers))
-
-	return &g.Players[len(g.Players)-1]
-}
-
-// // remove a fleet from the fleets list
-// func (g *Game) removeFleet(fleet *Fleet) {
-// 	key := playerFleetNum{fleet.PlayerNum, fleet.Num}
-// 	delete(g.FleetsByNum, key)
-// 	fleets := make([]Fleet, 0, len(g.Fleets)-1)
-// 	for i := range g.Fleets {
-// 		if &g.Fleets[i] != fleet {
-// 			fleets = append(g.Fleets, g.Fleets[i])
-// 		}
-// 	}
-// 	g.Fleets = fleets
-// }
-
-// update a player's planets, fleets, mineralpackets, etc
-func (g *Game) updatePlayerOwnedObjects(player *Player) {
-	// update player arrays of fleets and planets before we scan
-	player.Fleets = []*Fleet{}
-	for i := range g.Fleets {
-		gameFleet := &g.Fleets[i]
-		if gameFleet.PlayerNum == player.Num {
-			player.Fleets = append(player.Fleets, gameFleet)
-		}
-	}
-
-	player.Planets = []*Planet{}
-	for i := range g.Planets {
-		gamePlanet := &g.Planets[i]
-		if gamePlanet.PlayerNum == player.Num {
-			player.Planets = append(player.Planets, gamePlanet)
-		}
-	}
-
-	player.MineralPackets = []*MineralPacket{}
-	for i := range g.MineralPackets {
-		gameMineralPacket := &g.MineralPackets[i]
-		if gameMineralPacket.PlayerNum == player.Num {
-			player.MineralPackets = append(player.MineralPackets, gameMineralPacket)
-		}
-	}
-
-}
-
-// compute the specs for a universe, i.e. planets, designs, fleets
-func (g *Game) computeSpecs() {
-	for i := range g.Players {
-		player := &g.Players[i]
-		player.Spec = computePlayerSpec(player, &g.Rules)
-	}
-
-	for i := range g.Planets {
-		planet := &g.Planets[i]
-		if planet.Owned() {
-			player := &g.Players[planet.PlayerNum]
-			planet.Spec = ComputePlanetSpec(&g.Rules, planet, player)
-		}
-	}
-}
-
-// Generate a new universe
-func (g *Game) GenerateUniverse() error {
-	ug := NewUniverseGenerator(g.Size, g.Density, g.Players, &g.Rules)
-	universe, err := ug.Generate()
-
-	if err != nil {
-		return err
-	}
-
-	// todo save universe separately
-	g.Area = universe.Area
-	g.Planets = universe.Planets
-	g.Fleets = universe.Fleets
-	g.Wormholes = universe.Wormholes
-	g.MineralPackets = universe.MineralPackets
-	g.Salvage = universe.Salvage
-
-	return nil
-}
-
-// generate a new turn
-func (g *Game) GenerateTurn() error {
-	turnGenerator := NewTurnGenerator(g)
-	return turnGenerator.generateTurn()
-}
-
-// check if all players have submitted their turn
-func (g *Game) CheckAllPlayersSubmitted() bool {
-	for _, player := range g.Players {
-		if !player.SubmittedTurn {
-			return false
-		}
-	}
-	return true
-}
-
-func (g *Game) getOwnedPlanets() []Planet {
-	var ownedPlanets []Planet
-
-	for _, p := range g.Planets {
-		if p.Owned() {
-			ownedPlanets = append(ownedPlanets, p)
-		}
-	}
-
-	return ownedPlanets
 }
 
 // transfer cargo from one cargo holder to another

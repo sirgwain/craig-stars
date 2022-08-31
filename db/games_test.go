@@ -19,13 +19,23 @@ func connectDB() *DB {
 	return db
 }
 
-func newRandomGame() *game.Game {
-	g := game.NewGame()
-	// g.Size = game.SizeTiny
-	// g.Density = game.DensitySparse
-	g.AddPlayer(game.NewPlayer(1, game.NewRace()))
-	g.GenerateUniverse()
-	return g
+func newRandomGame() *game.FullGame {
+	client := game.NewClient()
+	g := client.CreateGame(1, *game.NewGameSettings())
+	player := client.NewPlayer(1, game.Humanoids(), &g.Rules)
+	players := []*game.Player{player}
+	universe, err := client.GenerateUniverse(&g, players)
+	if err != nil {
+		panic(err)
+	}
+
+	fg := game.FullGame{
+		Game:     &g,
+		Players:  players,
+		Universe: universe,
+	}
+
+	return &fg
 }
 
 func TestDB_GetGames(t *testing.T) {
@@ -54,7 +64,7 @@ func TestDB_CreateGame(t *testing.T) {
 		name string
 		args args
 	}{
-		{"Create Game", args{newRandomGame()}},
+		{"Create Game", args{&game.Game{}}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -63,9 +73,6 @@ func TestDB_CreateGame(t *testing.T) {
 				t.Error(err)
 			}
 			assert.NotZero(t, tt.args.game.ID)
-			assert.NotZero(t, tt.args.game.Players[0].ID)
-			assert.NotZero(t, tt.args.game.Players[0].Race.ID)
-			assert.NotZero(t, tt.args.game.Planets[0].ID)
 		})
 	}
 }
@@ -76,7 +83,7 @@ func TestDB_SaveGame(t *testing.T) {
 
 	db := connectDB()
 	g := newRandomGame()
-	err := db.CreateGame(g)
+	err := db.SaveGame(g)
 	if err != nil {
 		t.Error(err)
 	}
@@ -159,16 +166,7 @@ func TestDB_FindGameById(t *testing.T) {
 
 	db := connectDB()
 
-	g := game.NewGame()
-	g.AddPlayer(game.NewPlayer(1, game.NewRace()))
-	if err := db.CreateGame(g); err != nil {
-		t.Error(err)
-	}
-
-	if err := g.GenerateUniverse(); err != nil {
-		t.Error(err)
-	}
-
+	g := newRandomGame()
 	if err := db.SaveGame(g); err != nil {
 		t.Error(err)
 	}
@@ -176,7 +174,7 @@ func TestDB_FindGameById(t *testing.T) {
 	tests := []struct {
 		name    string
 		id      uint
-		want    *game.Game
+		want    *game.FullGame
 		wantErr bool
 	}{
 		{"No Game", 2, nil, false},

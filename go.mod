@@ -17,7 +17,12 @@ require (
 
 require github.com/google/uuid v1.3.0
 
-require golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e
+require (
+	github.com/timshannon/bolthold v0.0.0-20210913165410-232392fc8a6a
+	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e
+)
+
+require go.etcd.io/bbolt v1.3.6 // indirect
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect

@@ -7,15 +7,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func newTestPlayerPlanet() (game *Game, player *Player, planet *Planet) {
-	game = NewGame()
-	game.AddPlayer(NewPlayer(1, NewRace()))
-	player = &game.Players[0]
+func newTestPlayerPlanet() (player *Player, planet *Planet) {
+	rules := NewRules()
+	player = NewPlayer(1, NewRace())
+	player.Race.Spec = computeRaceSpec(&player.Race, &rules)
 	planet = &Planet{}
 	planet.PlayerID = player.ID
 	planet.PlayerNum = player.Num
 
-	return game, player, planet
+	return player, planet
 }
 
 func TestPlanet_String(t *testing.T) {
@@ -115,7 +115,7 @@ func TestQueueItemType_IsAuto(t *testing.T) {
 }
 
 func TestPlanet_produce(t *testing.T) {
-	game, player, planet := newTestPlayerPlanet()
+	player, planet := newTestPlayerPlanet()
 
 	// build 1 mine
 	planet.ProductionQueue = []ProductionQueueItem{{Type: QueueItemTypeMine, Quantity: 1}}
@@ -124,7 +124,7 @@ func TestPlanet_produce(t *testing.T) {
 	planet.Mines = 0
 
 	// should build 1 mine, leaving empty queue
-	planet.produce(game)
+	planet.produce(player)
 	assert.Equal(t, 1, planet.Mines)
 	assert.Equal(t, 0, len(planet.ProductionQueue))
 	assert.Equal(t, 1, len(player.Messages))
@@ -137,7 +137,7 @@ func TestPlanet_produce(t *testing.T) {
 	player.Messages = []PlayerMessage{}
 
 	// should build 5 mine, leaving the auto build in the queu
-	planet.produce(game)
+	planet.produce(player)
 	assert.Equal(t, 5, planet.Mines)
 	assert.Equal(t, 1, len(planet.ProductionQueue))
 	assert.Equal(t, QueueItemTypeAutoMines, planet.ProductionQueue[0].Type)
@@ -146,7 +146,7 @@ func TestPlanet_produce(t *testing.T) {
 }
 
 func TestPlanet_produce2(t *testing.T) {
-	game, player, planet := newTestPlayerPlanet()
+	player, planet := newTestPlayerPlanet()
 
 	// build 5 auto factories, leaving them in the queue
 	planet.ProductionQueue = []ProductionQueueItem{{Type: QueueItemTypeAutoFactories, Quantity: 5}}
@@ -156,7 +156,7 @@ func TestPlanet_produce2(t *testing.T) {
 	player.Messages = []PlayerMessage{}
 
 	// should build 5 mine, leaving the auto build in the queu
-	planet.produce(game)
+	planet.produce(player)
 	assert.Equal(t, 5, planet.Factories)
 	assert.Equal(t, 1, len(planet.ProductionQueue))
 	assert.Equal(t, QueueItemTypeAutoFactories, planet.ProductionQueue[0].Type)
@@ -166,7 +166,7 @@ func TestPlanet_produce2(t *testing.T) {
 }
 
 func TestPlanet_produce3(t *testing.T) {
-	game, player, planet := newTestPlayerPlanet()
+	player, planet := newTestPlayerPlanet()
 
 	// build 2/5 auto factories, leaving them in the queue
 	planet.ProductionQueue = []ProductionQueueItem{
@@ -179,7 +179,7 @@ func TestPlanet_produce3(t *testing.T) {
 	player.Messages = []PlayerMessage{}
 
 	// should build 2 factories and 5 mines, leaving the auto builds in the queue
-	planet.produce(game)
+	planet.produce(player)
 	assert.Equal(t, 2, planet.Factories)
 	assert.Equal(t, 5, planet.Mines)
 	assert.Equal(t, 2, len(planet.ProductionQueue))
@@ -190,7 +190,7 @@ func TestPlanet_produce3(t *testing.T) {
 }
 
 func TestPlanet_produce4(t *testing.T) {
-	game, player, planet := newTestPlayerPlanet()
+	player, planet := newTestPlayerPlanet()
 
 	// build 2/5 auto factories and one partial mine
 	planet.ProductionQueue = []ProductionQueueItem{
@@ -203,7 +203,7 @@ func TestPlanet_produce4(t *testing.T) {
 	player.Messages = []PlayerMessage{}
 
 	// should build 2 factories, 1 mine and one partial mine, leaving the auto builds in the queue
-	planet.produce(game)
+	planet.produce(player)
 	assert.Equal(t, 2, planet.Factories)
 	assert.Equal(t, 1, planet.Mines)
 	assert.Equal(t, 3, len(planet.ProductionQueue))
@@ -218,7 +218,7 @@ func TestPlanet_produce4(t *testing.T) {
 }
 
 func TestPlanet_allocatePartialBuild(t *testing.T) {
-	_, _, planet := newTestPlayerPlanet()
+	_, planet := newTestPlayerPlanet()
 
 	type args struct {
 		costPerItem Cost
@@ -242,9 +242,9 @@ func TestPlanet_allocatePartialBuild(t *testing.T) {
 }
 
 func TestPlanet_reduceMineralConcentration(t *testing.T) {
-	game := NewGame()
+	rules := NewRules()
 	type args struct {
-		game *Game
+		rules Rules
 	}
 	tests := []struct {
 		name   string
@@ -252,20 +252,20 @@ func TestPlanet_reduceMineralConcentration(t *testing.T) {
 		args   args
 		want   Mineral
 	}{
-		{"Redcue empty planet min conc", NewPlanet(), args{game}, Mineral{1, 1, 1}},
+		{"Redcue empty planet min conc", NewPlanet(), args{rules}, Mineral{1, 1, 1}},
 		{
 			"150 mines should reduce 100% conc by 1 if we have 151 mineyears",
 			NewPlanet().
 				WithMineralConcentration(Mineral{100, 100, 100}).
 				WithMines(150).
 				WithMineYears(Mineral{151, 151, 151}),
-			args{game},
+			args{rules},
 			Mineral{99, 99, 99},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.planet.reduceMineralConcentration(tt.args.game)
+			tt.planet.reduceMineralConcentration(&tt.args.rules)
 
 			if got := tt.planet.MineralConcentration; !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Planet.reduceMineralConcentration() = %v, want %v", got, tt.want)

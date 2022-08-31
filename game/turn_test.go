@@ -7,58 +7,51 @@ import (
 )
 
 func Test_generateTurn(t *testing.T) {
-	game := NewGame()
-	game.AddPlayer(NewPlayer(1, NewRace()))
-	player := &game.Players[0]
+	client := NewClient()
+	game := client.CreateGame(1, *NewGameSettings())
+	player := client.NewPlayer(1, *NewRace(), &game.Rules)
+	players := []*Player{player}
 	player.AIControlled = true
+	universe, _ := client.GenerateUniverse(&game, players)
 
-	game.GenerateUniverse()
+	startingFleets := len(universe.Fleets)
 
-	startingFleets := len(player.Fleets)
-
-	game.GenerateTurn()
+	client.GenerateTurn(&game, universe, players)
 
 	assert.Equal(t, 2401, game.Year)
 
 	// should have intel about planets
-	assert.Equal(t, len(game.Planets), len(player.PlanetIntels))
+	assert.Equal(t, len(universe.Planets), len(player.PlanetIntels))
 
 	// should have built a new scout
-	assert.Greater(t, len(player.Fleets), startingFleets)
+	assert.Greater(t, len(universe.Fleets), startingFleets)
 
 	// should have grown pop
-	assert.Greater(t, player.Planets[0].Population(), player.Race.Spec.StartingPlanets[0].Population)
+	assert.Greater(t, universe.Planets[0].Population(), player.Race.Spec.StartingPlanets[0].Population)
 }
 
 func Test_generateTurns(t *testing.T) {
-	game := NewGame()
-	game.AddPlayer(NewPlayer(1, NewRace()))
-	player := &game.Players[0]
+	client := NewClient()
+	game := client.CreateGame(1, *NewGameSettings())
+	player := client.NewPlayer(1, *NewRace(), &game.Rules)
 	player.AIControlled = true
-
-	game.GenerateUniverse()
-
-	planetMinerals := player.Planets[0].Cargo.ToMineral()
+	players := []*Player{player}
+	universe, _ := client.GenerateUniverse(&game, players)
 
 	// generate many turns
 	for i := 0; i < 100; i++ {
-		game.GenerateTurn()
+		client.GenerateTurn(&game, universe, players)
 	}
 
 	assert.Equal(t, 2500, game.Year)
-	// should have intel about planets
-	assert.Equal(t, len(game.Planets), len(player.PlanetIntels))
 
 	// should have fleets
-	assert.True(t, len(player.Fleets) > 0)
+	assert.True(t, len(universe.Fleets) > 0)
 
 	// should have grown pop
-	assert.Greater(t, player.Planets[0].Population(), player.Race.Spec.StartingPlanets[0].Population)
+	assert.Greater(t, universe.Planets[0].Population(), player.Race.Spec.StartingPlanets[0].Population)
 
 	// should have built factories
-	assert.Greater(t, player.Planets[0].Factories, game.Rules.StartingFactories)
-
-	// should have mined minerals
-	assert.Greater(t, player.Planets[0].Cargo.ToMineral().Total(), planetMinerals.Total())
+	assert.Greater(t, universe.Planets[0].Factories, game.Rules.StartingFactories)
 
 }
