@@ -5,6 +5,8 @@ import type { Cost } from './Cost';
 import type { MapObject, MapObjectType } from './MapObject';
 import type { Vector } from './Vector';
 
+export const NotOrbitingPlanet = -1;
+
 export interface Fleet extends MapObject {
 	baseName: string;
 	fuel?: number;
@@ -17,7 +19,7 @@ export interface Fleet extends MapObject {
 	repeatOrders?: boolean;
 	heading?: Vector;
 	warpSpeed?: number;
-	orbiting?: boolean;
+	orbitingPlanetNum?: number;
 	starbase?: boolean;
 	spec?: Spec;
 }
@@ -35,7 +37,7 @@ export interface ShipToken {
 export interface Waypoint {
 	position: Vector;
 	warpFactor: number;
-
+	task?: WaypointTask;
 	waitAtWaypoint?: boolean;
 	targetType?: MapObjectType;
 	targetNum?: number;
@@ -43,6 +45,19 @@ export interface Waypoint {
 	targetPlayerNum?: number;
 	transferToPlayer?: number;
 	partiallyComplete?: boolean;
+}
+
+export enum WaypointTask {
+	None = '',
+	Transport = 'Transport',
+	Colonize = 'Colonize',
+	RemoteMining = 'RemoteMining',
+	MergeWithFleet = 'MergeWithFleet',
+	ScrapFleet = 'ScrapFleet',
+	LayMineField = 'LayMineField',
+	Patrol = 'Patrol',
+	Route = 'Route',
+	TransferFleet = 'TransferFleet'
 }
 
 export interface Spec {

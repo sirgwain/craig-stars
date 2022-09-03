@@ -27,7 +27,7 @@ const (
 
 type NewGamePlayer struct {
 	Type         NewGamePlayerType `json:"type,omitempty"`
-	RaceID       uint              `json:"raceID,omitempty"`
+	RaceID       uint64            `json:"raceID,omitempty"`
 	AIDifficulty AIDifficulty      `json:"aiDifficulty,omitempty"`
 }
 
@@ -46,11 +46,11 @@ type GameSettings struct {
 }
 
 type Game struct {
-	ID                           uint              `gorm:"primaryKey" json:"id" header:"ID" badgerhold:"key"`
+	ID                           uint64            `gorm:"primaryKey" json:"id" header:"ID" boltholdKey:"ID"`
 	CreatedAt                    time.Time         `json:"createdAt"`
 	UpdatedAt                    time.Time         `json:"updatedAt"`
 	Name                         string            `json:"name" header:"Name"`
-	HostID                       uint              `json:"hostId"`
+	HostID                       uint64            `json:"hostId"`
 	QuickStartTurns              int               `json:"quickStartTurns"`
 	Size                         Size              `json:"size"`
 	Density                      Density           `json:"density"`
@@ -65,7 +65,8 @@ type Game struct {
 	NumPlayers                   int               `json:"numPlayers"`
 	VictoryConditions            VictoryConditions `json:"victoryConditions" gorm:"embedded;embeddedPrefix:victory_condition_"`
 	VictorDeclared               bool              `json:"victorDeclared"`
-	Rules                        Rules             `json:"rules"`
+	Rules                        Rules             `json:"rules" gorm:"serializer:json"`
+	Area                         Vector            `json:"area,omitempty" gorm:"embedded;embeddedPrefix:area_"`
 }
 
 // A game with players and a universe, used in universe and turn generation
@@ -229,7 +230,7 @@ func (settings *GameSettings) WithDensity(density Density) *GameSettings {
 }
 
 // add a host to this game
-func (settings *GameSettings) WithHost(raceID uint) *GameSettings {
+func (settings *GameSettings) WithHost(raceID uint64) *GameSettings {
 	settings.Players = append(settings.Players, NewGamePlayer{Type: NewGamePlayerTypeHost, RaceID: raceID})
 	return settings
 }

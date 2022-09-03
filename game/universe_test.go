@@ -6,39 +6,39 @@ func TestUniverse_getNextFleetNum(t *testing.T) {
 
 	tests := []struct {
 		name   string
-		fleets []Fleet
+		fleets []*Fleet
 		want   int
 	}{
-		{"No Fleets", []Fleet{}, 1},
-		{"Simple fleet", []Fleet{{MapObject: MapObject{PlayerNum: 1, Num: 1}}}, 2},
-		{"Skipped num in fleets", []Fleet{
+		{"No Fleets", []*Fleet{}, 1},
+		{"Simple fleet", []*Fleet{{MapObject: MapObject{PlayerNum: 1, Num: 1}}}, 2},
+		{"Skipped num in fleets", []*Fleet{
 			{MapObject: MapObject{PlayerNum: 1, Num: 1}},
 			{MapObject: MapObject{PlayerNum: 1, Num: 3}},
 		}, 2},
-		{"Skipped num in fleets 2", []Fleet{
+		{"Skipped num in fleets 2", []*Fleet{
 			{MapObject: MapObject{PlayerNum: 1, Num: 1}},
 			{MapObject: MapObject{PlayerNum: 1, Num: 2}},
 			{MapObject: MapObject{PlayerNum: 1, Num: 3}},
 			{MapObject: MapObject{PlayerNum: 1, Num: 5}},
 		}, 4},
-		{"Many fleets", []Fleet{
+		{"Many fleets", []*Fleet{
 			{MapObject: MapObject{PlayerNum: 1, Num: 1}},
 			{MapObject: MapObject{PlayerNum: 1, Num: 2}},
 			{MapObject: MapObject{PlayerNum: 1, Num: 3}},
 			{MapObject: MapObject{PlayerNum: 1, Num: 4}},
 		}, 5},
-		{"Out of order", []Fleet{
+		{"Out of order", []*Fleet{
 			{MapObject: MapObject{PlayerNum: 1, Num: 4}},
 			{MapObject: MapObject{PlayerNum: 1, Num: 2}},
 			{MapObject: MapObject{PlayerNum: 1, Num: 3}},
 			{MapObject: MapObject{PlayerNum: 1, Num: 1}},
 		}, 5},
-		{"Out of order, missing number", []Fleet{
+		{"Out of order, missing number", []*Fleet{
 			{MapObject: MapObject{PlayerNum: 1, Num: 4}},
 			{MapObject: MapObject{PlayerNum: 1, Num: 2}},
 			{MapObject: MapObject{PlayerNum: 1, Num: 1}},
 		}, 3},
-		{"Multiple fleet num 1 for starbases", []Fleet{
+		{"Multiple fleet num 1 for starbases", []*Fleet{
 			{MapObject: MapObject{PlayerNum: 1, Num: 1}},
 			{MapObject: MapObject{PlayerNum: 1, Num: 1}},
 			{MapObject: MapObject{PlayerNum: 1, Num: 1}},

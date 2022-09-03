@@ -24,7 +24,7 @@ export interface Player {
 	planets: Planet[];
 	fleets: Fleet[];
 	planetIntels: Planet[];
-	fleetIntels: Fleet[];
+	fleetIntels?: Fleet[];
 }
 
 export interface TechLevel {

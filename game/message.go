@@ -6,11 +6,11 @@ import (
 )
 
 type PlayerMessage struct {
-	ID        uint      `gorm:"primaryKey" json:"id"`
+	ID        uint64    `gorm:"primaryKey" json:"id"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 
-	PlayerID           uint                    `json:"playerId"`
+	PlayerID           uint64                  `json:"playerId"`
 	Type               PlayerMessageType       `json:"type,omitempty"`
 	Text               string                  `json:"text,omitempty"`
 	TargetMapObjectNum int                     `json:"targetMapObjectNum,omitempty"`

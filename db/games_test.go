@@ -42,9 +42,9 @@ func TestDB_GetGames(t *testing.T) {
 	db := connectDB()
 	tests := []struct {
 		name string
-		want []game.Game
+		want []*game.Game
 	}{
-		{"No games", []game.Game{}},
+		{"No games", []*game.Game{}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -64,7 +64,7 @@ func TestDB_CreateGame(t *testing.T) {
 		name string
 		args args
 	}{
-		{"Create Game", args{&game.Game{}}},
+		{"Create Game", args{&game.Game{Rules: game.NewRules()}}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -123,7 +123,7 @@ func TestDB_SaveGame(t *testing.T) {
 
 func TestDB_GetGamesByUser(t *testing.T) {
 	type args struct {
-		userID uint
+		userID uint64
 	}
 	tests := []struct {
 		name string
@@ -145,7 +145,7 @@ func TestDB_GetGamesByUser(t *testing.T) {
 
 func TestDB_DeleteGameById(t *testing.T) {
 	type args struct {
-		id uint
+		gameID uint64
 	}
 	tests := []struct {
 		name string
@@ -157,7 +157,7 @@ func TestDB_DeleteGameById(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			db := &DB{}
-			db.DeleteGameById(tt.args.id)
+			db.DeleteGameById(tt.args.gameID)
 		})
 	}
 }
@@ -173,7 +173,7 @@ func TestDB_FindGameById(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		id      uint
+		id      uint64
 		want    *game.FullGame
 		wantErr bool
 	}{

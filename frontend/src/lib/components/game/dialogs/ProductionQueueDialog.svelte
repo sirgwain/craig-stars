@@ -1,28 +1,27 @@
 <script lang="ts">
 	import { getQuantityModifier } from '$lib/quantityModifier';
-	import { commandedPlanet, commandMapObject, player } from '$lib/services/Context';
+	import { commandedPlanet,commandMapObject,player } from '$lib/services/Context';
 	import { PlanetService } from '$lib/services/PlanetService';
 	import type { Cost } from '$lib/types/Cost';
 	import type { ProductionQueueItem } from '$lib/types/Planet';
-	import { isAuto, QueueItemType } from '$lib/types/Planet';
+	import { isAuto,QueueItemType } from '$lib/types/Planet';
 	import {
-		ArrowNarrowDown,
-		ArrowNarrowLeft,
-		ArrowNarrowRight,
-		ArrowNarrowUp,
-		XCircle
+	ArrowNarrowDown,
+	ArrowNarrowLeft,
+	ArrowNarrowRight,
+	ArrowNarrowUp,
+	XCircle
 	} from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import hotkeys from 'hotkeys-js';
-	import { createEventDispatcher, onDestroy } from 'svelte';
-	import { $enum as eu } from 'ts-enum-util';
+	import { createEventDispatcher,onDestroy } from 'svelte';
 	import CostComponent from '../Cost.svelte';
 
-	const getFullName = (type: QueueItemType) => {
-		switch (type) {
+	const getFullName = (item: ProductionQueueItem) => {
+		switch (item.type) {
 			case QueueItemType.Starbase:
 			case QueueItemType.ShipToken:
-				return ''; //$"{Design?.Name} v{Design?.Version}";
+				return item.designName ?? '';
 			case QueueItemType.AutoMineralAlchemy:
 				return 'Alchemy (Auto Build)';
 			case QueueItemType.MineralAlchemy:
@@ -50,7 +49,7 @@
 			case QueueItemType.AutoMineralPacket:
 				return 'Mixed Mineral Packet (Auto)';
 			default:
-				return type.toString();
+				return item.type.toString();
 		}
 	};
 
@@ -232,14 +231,14 @@
 											: ''}
 									{isAuto(item.type) ? ' italic' : ''}"
 									>
-										{getFullName(eu(QueueItemType).getValueOrThrow(item.type))}
+										{getFullName(item)}
 									</li>
 								{/each}
 							</ul>
 							<div class="divider" />
 							<div class="h-32">
 								{#if selectedAvailableItem}
-									<h3>Cost of one {getFullName(selectedAvailableItem.type)}</h3>
+									<h3>Cost of one {getFullName(selectedAvailableItem)}</h3>
 									<CostComponent cost={selectedAvailableItemCost} />
 								{/if}
 							</div>
@@ -305,7 +304,7 @@
 										>
 											<div class="flex justify-between ">
 												<div>
-													{getFullName(queueItem.type)}
+													{getFullName(queueItem)}
 												</div>
 												<div>
 													{queueItem.quantity}
@@ -319,7 +318,7 @@
 							<div class="h-32">
 								{#if selectedQueueItem}
 									<h3>
-										Cost of {getFullName(selectedQueueItem.type)} x {selectedQueueItem.quantity}
+										Cost of {getFullName(selectedQueueItem)} x {selectedQueueItem.quantity}
 									</h3>
 									<CostComponent cost={selectedQueueItemCost} />
 								{/if}

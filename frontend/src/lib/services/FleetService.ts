@@ -1,9 +1,14 @@
 import type { Cargo } from '$lib/types/Cargo';
 import type { ErrorResponse } from '$lib/types/ErrorResponse';
-import type { Fleet } from '$lib/types/Fleet';
+import type { Fleet, Waypoint } from '$lib/types/Fleet';
 import type { MapObject } from '$lib/types/MapObject';
 import type { Planet } from '$lib/types/Planet';
 import { Service } from './Service';
+
+// orders sent to the server
+export class FleetOrders {
+	constructor(private waypoints: Waypoint[], private repeatOrders: boolean = false) {}
+}
 
 export class FleetService extends Service {
 	async transferCargo(
@@ -31,7 +36,8 @@ export class FleetService extends Service {
 		}
 	}
 
-	async updateFleet(fleet: Fleet): Promise<Fleet> {
-		return this.update<Fleet>(fleet, `/api/fleets/${fleet.gameId}`);
+	async updateFleetOrders(fleet: Fleet): Promise<void> {
+		const fleetOrders = new FleetOrders(fleet.waypoints, fleet.repeatOrders);
+		this.update<FleetOrders>(fleetOrders, `/api/fleets/${fleet.id}`);
 	}
 }

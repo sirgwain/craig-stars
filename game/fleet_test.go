@@ -332,7 +332,7 @@ func TestFleet_moveFleet(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			universe := Universe{Fleets: []Fleet{*tt.fleet}}
+			universe := Universe{Fleets: []*Fleet{tt.fleet}}
 
 			tt.fleet.moveFleet(&universe, &rules, tt.args.player)
 

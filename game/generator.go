@@ -68,8 +68,7 @@ func (gu *generatedUniverse) Generate() (*Universe, error) {
 		player.Spec = computePlayerSpec(player, gu.rules)
 	}
 
-	for i := range gu.universe.Planets {
-		planet := &gu.universe.Planets[i]
+	for _, planet := range gu.universe.Planets {
 		if planet.Owned() {
 			player := gu.players[planet.PlayerNum]
 			planet.Spec = ComputePlanetSpec(gu.rules, planet, player)
@@ -118,7 +117,7 @@ func (gu *generatedUniverse) generatePlanets(area Vector) error {
 	names := planetNames
 	gu.rules.random.Shuffle(len(names), func(i, j int) { names[i], names[j] = names[j], names[i] })
 
-	gu.universe.Planets = make([]Planet, numPlanets)
+	gu.universe.Planets = make([]*Planet, numPlanets)
 
 	planetsByPosition := make(map[Vector]*Planet, numPlanets)
 	occupiedLocations := make([]Vector, numPlanets)
@@ -143,7 +142,7 @@ func (gu *generatedUniverse) generatePlanets(area Vector) error {
 		planet.Position = pos
 		planet.randomize(gu.rules)
 
-		gu.universe.Planets[i] = *planet
+		gu.universe.Planets[i] = planet
 		planetsByPosition[pos] = planet
 		occupiedLocations = append(occupiedLocations, pos)
 	}
@@ -204,9 +203,10 @@ func (gu *generatedUniverse) generatePlayerShipDesigns() {
 // have each player discover all the planets in the universe
 func (gu *generatedUniverse) generatePlayerPlanetReports() error {
 	for _, player := range gu.players {
+		discoverer := newDiscoverer(player)
 		player.PlanetIntels = make([]PlanetIntel, len(gu.universe.Planets))
 		for j := range gu.universe.Planets {
-			if err := discoverPlanet(gu.rules, player, &gu.universe.Planets[j], false); err != nil {
+			if err := discoverer.discoverPlanet(gu.rules, player, gu.universe.Planets[j], false); err != nil {
 				return err
 			}
 		}
@@ -250,8 +250,7 @@ func (gu *generatedUniverse) generatePlayerHomeworlds(area Vector) error {
 			if startingPlanetIndex > 0 {
 
 				// extra planets are close to the homeworld
-				for i := range gu.universe.Planets {
-					planet := &gu.universe.Planets[i]
+				for _, planet := range gu.universe.Planets {
 					distToHomeworld := planet.Position.DistanceSquaredTo(homeworld.Position)
 					if !planet.Owned() && (distToHomeworld <= float64(rules.MaxExtraWorldDistance*rules.MaxExtraWorldDistance) && distToHomeworld >= float64(rules.MinExtraWorldDistance*rules.MinExtraWorldDistance)) {
 						playerPlanet = planet
@@ -261,8 +260,7 @@ func (gu *generatedUniverse) generatePlayerHomeworlds(area Vector) error {
 
 			} else {
 				// homeworld should be distant from other players
-				for i := range gu.universe.Planets {
-					planet := &gu.universe.Planets[i]
+				for _, planet := range gu.universe.Planets {
 					if !planet.Owned() && (len(ownedPlanets) == 0 || planet.shortestDistanceToPlanets(&ownedPlanets) > minPlayerDistance) {
 						playerPlanet = planet
 						break
@@ -312,7 +310,7 @@ func (gu *generatedUniverse) generatePlayerFleets(player *Player, planet *Planet
 		fleet.OrbitingPlanetNum = planet.Num
 		fleet.Spec = ComputeFleetSpec(gu.rules, player, &fleet)
 		fleet.Fuel = fleet.Spec.FuelCapacity
-		gu.universe.Fleets = append(gu.universe.Fleets, fleet)
+		gu.universe.Fleets = append(gu.universe.Fleets, &fleet)
 		(*fleetNum)++ // increment the fleet num
 	}
 

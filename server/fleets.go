@@ -14,6 +14,64 @@ type cargoTransferBind struct {
 	TransferAmount game.Cargo     `json:"transferAmount,omitempty"`
 }
 
+// Allow a user to update a fleet's orders
+func (s *server) UpdateFleetOrders(c *gin.Context) {
+	user := s.GetSessionUser(c)
+
+	var fleetID idBind
+	if err := c.ShouldBindUri(&fleetID); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// find the existing fleet by id
+	existing, err := s.ctx.DB.FindFleetByID(fleetID.ID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// find the player for this user
+	player, err := s.ctx.DB.FindPlayerByGameIdLight(existing.GameID, user.ID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// verify the user actually owns this fleet
+	if existing.PlayerNum != player.Num {
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Errorf("%s does not own %s", player, existing)})
+		return
+	}
+
+	orders := game.FleetOrders{}
+	if err := c.ShouldBindJSON(&orders); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// copy user modifiable things to the existing fleet
+	existing.RepeatOrders = orders.RepeatOrders
+	wp0 := &existing.Waypoints[0]
+	newWP0 := orders.Waypoints[0]
+
+	// TODO: do we want to lookup the target?
+	wp0.WarpFactor = newWP0.WarpFactor
+	wp0.Task = newWP0.Task
+	wp0.TransportTasks = newWP0.TransportTasks
+	wp0.WaitAtWaypoint = newWP0.WaitAtWaypoint
+	wp0.TargetName = newWP0.TargetName
+	wp0.TargetType = newWP0.TargetType
+	wp0.TargetNum = newWP0.TargetNum
+	wp0.TargetPlayerNum = newWP0.TargetPlayerNum
+	wp0.TransferToPlayer = newWP0.TransferToPlayer
+
+	existing.Waypoints = append(existing.Waypoints[:1], orders.Waypoints[1:]...)
+	s.ctx.DB.SaveFleet(fleetID.ID, existing)
+
+	c.JSON(http.StatusOK, existing)
+}
+
 // Transfer cargo to/from a player's fleet
 func (s *server) TransferCargo(c *gin.Context) {
 	user := s.GetSessionUser(c)
@@ -24,7 +82,7 @@ func (s *server) TransferCargo(c *gin.Context) {
 		return
 	}
 
-	fleet, err := s.ctx.DB.FindFleetById(id.ID)
+	fleet, err := s.ctx.DB.FindFleetByID(id.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -62,7 +120,7 @@ func (s *server) TransferCargo(c *gin.Context) {
 // transfer cargo from a fleet to/from a planet
 func (s *server) transferCargoFleetPlanet(c *gin.Context, fleet *game.Fleet, transfer cargoTransferBind) {
 	// find the planet planet by id so we can perform the transfer
-	planet, err := s.ctx.DB.FindPlanetById(transfer.MO.ID)
+	planet, err := s.ctx.DB.FindPlanetByID(transfer.MO.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -78,12 +136,12 @@ func (s *server) transferCargoFleetPlanet(c *gin.Context, fleet *game.Fleet, tra
 		return
 	}
 
-	s.ctx.DB.SavePlanet(planet)
-	s.ctx.DB.SaveFleet(fleet)
+	s.ctx.DB.SavePlanet(planet.GameID, planet)
+	s.ctx.DB.SaveFleet(fleet.GameID, fleet)
 
 	log.Info().
-		Uint("GameID", fleet.GameID).
-		Uint("Player", uint(fleet.PlayerNum)).
+		Uint64("GameID", fleet.GameID).
+		Int("Player", fleet.PlayerNum).
 		Str("Fleet", fleet.Name).
 		Str("Planet", planet.Name).
 		Str("TransferAmount", fmt.Sprintf("%v", transfer.TransferAmount)).
@@ -96,7 +154,7 @@ func (s *server) transferCargoFleetPlanet(c *gin.Context, fleet *game.Fleet, tra
 // transfer cargo from a fleet to/from a fleet
 func (s *server) transferCargoFleetFleet(c *gin.Context, fleet *game.Fleet, transfer cargoTransferBind) {
 	// find the dest dest by id so we can perform the transfer
-	dest, err := s.ctx.DB.FindFleetById(transfer.MO.ID)
+	dest, err := s.ctx.DB.FindFleetByID(transfer.MO.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -112,12 +170,12 @@ func (s *server) transferCargoFleetFleet(c *gin.Context, fleet *game.Fleet, tran
 		return
 	}
 
-	s.ctx.DB.SaveFleet(dest)
-	s.ctx.DB.SaveFleet(fleet)
+	s.ctx.DB.SaveFleet(dest.GameID, dest)
+	s.ctx.DB.SaveFleet(fleet.GameID, fleet)
 
 	log.Info().
-		Uint("GameID", fleet.GameID).
-		Uint("Player", uint(fleet.PlayerNum)).
+		Uint64("GameID", fleet.GameID).
+		Int("Player", fleet.PlayerNum).
 		Str("Fleet", fleet.Name).
 		Str("Planet", dest.Name).
 		Str("TransferAmount", fmt.Sprintf("%v", transfer.TransferAmount)).

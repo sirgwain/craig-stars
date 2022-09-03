@@ -54,7 +54,7 @@ func (s *server) CreateRace(c *gin.Context) {
 	}
 
 	race.UserID = user.ID
-	err := s.ctx.DB.CreateRace(&race)
+	err := s.ctx.DB.SaveRace(&race)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

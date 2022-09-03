@@ -19,9 +19,14 @@ var listUsersCmd = &cobra.Command{
 	Use:   "users",
 	Short: "List users",
 	Long:  `List users in the database`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := appcontext.Initialize()
-		PrintTable("Users", *ctx.DB.GetUsers())
+		users, err := ctx.DB.GetUsers()
+		if err != nil {
+			return err
+		}
+		PrintTable("Users", users)
+		return nil
 	},
 }
 
@@ -33,7 +38,7 @@ func init() {
 }
 
 func addListGamesCmd() {
-	var userID uint
+	var userID uint64
 
 	// listUsersCmd represents the listUsers command
 	var listGamesCmd = &cobra.Command{
@@ -42,7 +47,7 @@ func addListGamesCmd() {
 		Long:  `List games in the database`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := appcontext.Initialize()
-			var games []game.Game
+			var games []*game.Game
 			var err error
 			if userID != 0 {
 				games, err = ctx.DB.GetGamesByUser(userID)
@@ -59,7 +64,7 @@ func addListGamesCmd() {
 		},
 	}
 
-	listGamesCmd.Flags().UintVarP(&userID, "user-id", "u", 0, "List games for user id")
+	listGamesCmd.Flags().Uint64VarP(&userID, "user-id", "u", 0, "List games for user id")
 	listCmd.AddCommand(listGamesCmd)
 
 }
