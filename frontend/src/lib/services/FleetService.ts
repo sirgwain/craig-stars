@@ -36,8 +36,22 @@ export class FleetService extends Service {
 		}
 	}
 
-	async updateFleetOrders(fleet: Fleet): Promise<void> {
+	async updateFleetOrders(fleet: Fleet): Promise<Fleet> {
 		const fleetOrders = new FleetOrders(fleet.waypoints, fleet.repeatOrders);
-		this.update<FleetOrders>(fleetOrders, `/api/fleets/${fleet.id}`);
+
+		const response = await fetch(`/api/fleets/${fleet.id}`, {
+			method: 'PUT',
+			headers: {
+				accept: 'application/json'
+			},
+			body: JSON.stringify(fleetOrders)
+		});
+
+		if (response.ok) {
+			return (await response.json()) as Fleet;
+		} else {
+			console.error(response);
+		}
+		return Promise.resolve(fleet);
 	}
 }

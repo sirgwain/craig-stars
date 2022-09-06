@@ -110,6 +110,10 @@ func (t *turn) GenerateTurn() error {
 		pmo := t.game.GetPlayerMapObjects(player.Num)
 		ai := NewAIPlayer(player, pmo)
 		ai.processTurn()
+
+		for _, f := range pmo.Fleets {
+			f.ComputeFuelUsage(ai.Player)
+		}
 	}
 
 	log.Info().

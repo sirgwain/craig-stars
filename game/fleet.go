@@ -73,6 +73,7 @@ type ShipToken struct {
 type Waypoint struct {
 	Position          Vector                 `json:"position,omitempty" gorm:"embedded"`
 	WarpFactor        int                    `json:"warpFactor,omitempty"`
+	EstFuelUsage      int                    `json:"estFuelUsage,omitempty"`
 	Task              WaypointTask           `json:"task,omitempty"`
 	TransportTasks    WaypointTransportTasks `json:"transportTasks,omitempty"`
 	WaitAtWaypoint    bool                   `json:"waitAtWaypoint,omitempty"`
@@ -336,6 +337,7 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) *FleetSpec {
 			} else {
 				spec.IdealSpeed = MinInt(spec.IdealSpeed, engine.IdealSpeed)
 			}
+			spec.FuelUsage = engine.FuelUsage
 		}
 		// cost
 		spec.Cost = token.Design.Spec.Cost.MultiplyInt(token.Quantity)
@@ -427,6 +429,19 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) *FleetSpec {
 	spec.CloakPercent = fleet.computeFleetCloakPercent(&spec, player.Race.Spec.FreeCargoCloaking)
 
 	return &spec
+}
+
+func (f *Fleet) ComputeFuelUsage(player *Player) {
+	for i := range f.Waypoints {
+		wp := &f.Waypoints[i]
+		if i > 0 {
+			wpPrevious := f.Waypoints[i-1]
+			fuelUsage := f.GetFuelCost(player, wp.WarpFactor, wp.Position.DistanceTo(wpPrevious.Position))
+			wp.EstFuelUsage = fuelUsage
+		} else {
+			wp.EstFuelUsage = 0
+		}
+	}
 }
 
 // compute a fleet's cloak percent based on its current cargo/mass/cloak units
@@ -564,7 +579,7 @@ func (fleet *Fleet) moveFleet(mapObjectGetter MapObjectGetter, rules *Rules, pla
 	}
 
 	// get the cost for the fleet
-	fuelCost := fleet.GetFuelCost(rules.techs, player, wp1.WarpFactor, dist)
+	fuelCost := fleet.GetFuelCost(player, wp1.WarpFactor, dist)
 	var fuelGenerated int = 0
 	if fuelCost > fleet.Fuel {
 		// we will run out of fuel
@@ -592,7 +607,7 @@ func (fleet *Fleet) moveFleet(mapObjectGetter MapObjectGetter, rules *Rules, pla
 		actualDist := dist
 		if actualDist != dist {
 			dist = actualDist
-			fuelCost = fleet.GetFuelCost(rules.techs, player, wp1.WarpFactor, dist)
+			fuelCost = fleet.GetFuelCost(player, wp1.WarpFactor, dist)
 			// we hit a minefield, update fuel usage
 		}
 
@@ -642,7 +657,7 @@ func (fleet *Fleet) gateFleet(rules *Rules, player *Player) {
 }
 
 // Engine fuel usage calculation courtesy of m.a@stars
-func (fleet *Fleet) getFuelCostForEngine(warpFactor int, mass int, dist float64, ifeFactor float64, engine *TechEngine) int {
+func (fleet *Fleet) getFuelCostForEngine(warpFactor int, mass int, dist float64, ifeFactor float64, fuelUsage [11]int) int {
 	if warpFactor == 0 {
 		return 0
 	}
@@ -654,7 +669,7 @@ func (fleet *Fleet) getFuelCostForEngine(warpFactor int, mass int, dist float64,
 
 	// IFE is applied to drive specifications, just as the helpfile hints.
 	// Stars! probably does it outside here once per turn per engine to save time.
-	engineEfficiency := math.Ceil(ifeFactor * float64(engine.FuelUsage[warpFactor]))
+	engineEfficiency := math.Ceil(ifeFactor * float64(fuelUsage[warpFactor]))
 
 	// 20000 = 200*100
 	// Safe bet is Stars! does all this with integer math tricks.
@@ -675,7 +690,7 @@ func (fleet *Fleet) getFuelCostForEngine(warpFactor int, mass int, dist float64,
 }
 
 // Get the Fuel cost for this fleet to travel a certain distance at a certain speed
-func (fleet *Fleet) GetFuelCost(techStore *TechStore, player *Player, warpFactor int, distance float64) int {
+func (fleet *Fleet) GetFuelCost(player *Player, warpFactor int, distance float64) int {
 
 	// figure out how much fuel we're going to use
 	efficiencyFactor := 1 - player.Race.Spec.FuelEfficiencyOffset
@@ -685,7 +700,6 @@ func (fleet *Fleet) GetFuelCost(techStore *TechStore, player *Player, warpFactor
 	// compute each ship stack separately
 	for _, token := range fleet.Tokens {
 		// figure out this ship stack's mass as well as it's proportion of the cargo
-		engine := techStore.GetEngine(token.Design.Spec.Engine)
 		mass := token.Design.Spec.Mass * token.Quantity
 		fleetCargo := fleet.Cargo.Total()
 		stackCapacity := token.Design.Spec.CargoCapacity * token.Quantity
@@ -695,7 +709,7 @@ func (fleet *Fleet) GetFuelCost(techStore *TechStore, player *Player, warpFactor
 			mass += int(float64(fleetCargo) * (float64(stackCapacity) / float64(fleetCapacity)))
 		}
 
-		fuelCost += fleet.getFuelCostForEngine(warpFactor, mass, distance, efficiencyFactor, engine)
+		fuelCost += fleet.getFuelCostForEngine(warpFactor, mass, distance, efficiencyFactor, token.Design.Spec.FuelUsage)
 	}
 
 	return fuelCost

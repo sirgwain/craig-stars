@@ -86,8 +86,13 @@ func (gu *generatedUniverse) Generate() (*Universe, error) {
 		// disoverer.playerInfoDiscover(player)
 
 		// TODO: check for AI player
-		ai := NewAIPlayer(player, gu.universe.GetPlayerMapObjects(player.Num))
+		pmo := gu.universe.GetPlayerMapObjects(player.Num)
+		ai := NewAIPlayer(player, pmo)
 		ai.processTurn()
+
+		for _, f := range pmo.Fleets {
+			f.ComputeFuelUsage(ai.Player)
+		}
 	}
 
 	return &gu.universe, nil

@@ -35,6 +35,7 @@ type ShipDesignSlot struct {
 type ShipDesignSpec struct {
 	IdealSpeed                int                   `json:"idealSpeed,omitempty"`
 	Engine                    string                `json:"engine,omitempty"`
+	FuelUsage                 [11]int               `json:"fuelUsage,omitempty"`
 	NumEngines                int                   `json:"numEngines,omitempty"`
 	Cost                      Cost                  `json:"cost,omitempty"`
 	Mass                      int                   `json:"mass,omitempty"`
@@ -162,6 +163,7 @@ func ComputeShipDesignSpec(rules *Rules, player *Player, design *ShipDesign) *Sh
 				spec.Engine = engine.Name
 				spec.IdealSpeed = engine.IdealSpeed
 				spec.NumEngines = slot.Quantity
+				spec.FuelUsage = engine.FuelUsage
 			}
 
 			if component.Category == TechCategoryBeamWeapon && component.Power > 0 && (component.Range+hull.RangeBonus) > 0 {

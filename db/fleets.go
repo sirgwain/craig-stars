@@ -10,7 +10,7 @@ import (
 
 func (db *DB) FindFleetByID(id uint64) (*game.Fleet, error) {
 	fleet := game.Fleet{}
-	if err := db.sqlDB.Preload(clause.Associations).First(&fleet, id).Error; err != nil {
+	if err := db.sqlDB.Preload(clause.Associations).Preload("Tokens.Design").First(&fleet, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		} else {
@@ -45,4 +45,3 @@ func (db *DB) SaveFleet(gameID uint64, fleet *game.Fleet) error {
 
 	return err
 }
-

@@ -67,6 +67,7 @@ func (s *server) UpdateFleetOrders(c *gin.Context) {
 	wp0.TransferToPlayer = newWP0.TransferToPlayer
 
 	existing.Waypoints = append(existing.Waypoints[:1], orders.Waypoints[1:]...)
+	existing.ComputeFuelUsage(player)
 	s.ctx.DB.SaveFleet(fleetID.ID, existing)
 
 	c.JSON(http.StatusOK, existing)
