@@ -10,7 +10,7 @@ export async function authGuard(): Promise<User | undefined> {
 	});
 
 	if (!response.ok) {
-		document.location = '/login';
+		// no user
 	} else {
 		// update the logged in user in the context
 		const user = (await response.json()) as User;

@@ -135,8 +135,14 @@ func (t *turn) computePlanetSpecs() {
 	}
 
 }
-func (t *turn) fleetAge() {
 
+// update the age of each fleet by 1
+func (t *turn) fleetAge() {
+	for _, player := range t.game.Players {
+		for _, fleet := range player.FleetIntels {
+			fleet.ReportAge++
+		}
+	}
 }
 
 func (t *turn) fleetScrap() {

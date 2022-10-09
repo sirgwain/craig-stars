@@ -6,6 +6,11 @@ build_frontend:
 	yarn --cwd frontend install
 	yarn --cwd frontend run build
 
+package_frontend: 
+	yarn --cwd frontend install
+	yarn --cwd frontend run build
+	tar -cvf dist/frontend.tgz -C frontend/build .
+
 build_server_all:
 	mkdir -p dist
 	GOARCH=amd64 GOOS=darwin go build -o dist/${BINARY_NAME}-darwin-amd64 main.go
@@ -18,8 +23,8 @@ build:
 	GOARCH=arm64 GOOS=darwin go build -o dist/${BINARY_NAME}-darwin-arm64 main.go
 
 build_docker:
-	docker build . -t craig-stars-builder
-	docker run -v ${CURDIR}/dist:/dist craig-stars-builder
+	docker build --platform linux/amd64 . -t brew-builder
+	docker run --platform linux/amd64 -v ${CURDIR}/dist:/dist brew-builder
 
 test:
 	go test ./...

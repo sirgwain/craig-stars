@@ -286,7 +286,7 @@ func (d *discover) discoverDesign(player *Player, design *ShipDesign, discoverSl
 	}
 }
 
-func (d discover) playerInfoDiscover(player *Player) {
+func (d* discover) playerInfoDiscover(player *Player) {
 	// d.game <- players to discover
 	// discover info about other players
 }
