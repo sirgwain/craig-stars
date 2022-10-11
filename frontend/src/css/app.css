@@ -28,13 +28,13 @@
 		@apply bg-[#ffffff];
 	}
 	.ironium-concentration {
-		@apply stroke-[#020085];
+		@apply stroke-[#020085] fill-[#020085];
 	}
 	.boranium-concentration {
-		@apply stroke-[#008100];
+		@apply stroke-[#008100] fill-[#008100];
 	}
 	.germanium-concentration {
-		@apply stroke-[#7f7f00];
+		@apply stroke-[#7f7f00] fill-[#7f7f00];
 	}
 	.fuel-bar {
 		@apply bg-[#FF0000];

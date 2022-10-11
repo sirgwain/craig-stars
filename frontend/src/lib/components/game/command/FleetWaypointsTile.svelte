@@ -13,6 +13,7 @@
 	import type { MapObjectType, MapObject } from '$lib/types/MapObject';
 	import { findMapObject } from '$lib/types/Player';
 	import { distance } from '$lib/types/Vector';
+	import { merge } from 'lodash-es';
 	import WarpFactorBar from '../WarpFactorBar.svelte';
 	import CommandTile from './CommandTile.svelte';
 
@@ -72,24 +73,32 @@
 			: 0;
 
 	const onRepeatOrdersChanged = async (repeatOrders: boolean) => {
-		if ($commandedFleet && $selectedWaypoint) {
+		if ($commandedFleet && $selectedWaypoint && $player) {
 			$commandedFleet.repeatOrders = repeatOrders;
 			const fleet = await fleetService.updateFleetOrders($commandedFleet);
-			commandedFleet.update(() => fleet);
-			selectedWaypoint.update(() => fleet.waypoints[selectedWaypointIndex]);
+
+			// update the player fleet
+			merge($commandedFleet, fleet);
+
+			// update the commanded object
 			updateNextPrevWaypoints();
 		}
 	};
 
 	const onWarpFactorChanged = async (warpFactor: number) => {
-		if ($commandedFleet && $selectedWaypoint) {
+		if ($commandedFleet && $selectedWaypoint && $player) {
 			$selectedWaypoint.warpFactor = warpFactor;
 			const fleet = await fleetService.updateFleetOrders($commandedFleet);
-			commandedFleet.update(() => fleet);
-			selectedWaypoint.update(() => fleet.waypoints[selectedWaypointIndex]);
+
+			// update the player fleet
+			// update the player fleet
+			merge($commandedFleet, fleet);
+
+			// update the commanded object
 			updateNextPrevWaypoints();
 		}
 	};
+
 </script>
 
 {#if $commandedFleet && $selectedWaypoint}
@@ -120,7 +129,7 @@
 				<span class="flex-1 ml-1"
 					><WarpFactorBar
 						on:valuechanged={(e) => onWarpFactorChanged(e.detail)}
-						value={$selectedWaypoint.warpFactor}
+						bind:value={$selectedWaypoint.warpFactor}
 					/></span
 				>
 			</div>

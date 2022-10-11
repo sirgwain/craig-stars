@@ -99,47 +99,39 @@
 			return;
 		}
 
-		const myMapObjectsAtPosition = $myMapObjectsByPosition[positionKey(mo)];
+		const me = $player;
+
 		let myMapObject = mo;
 		if (ownedBy(mo, $player.num) && mo.type === MapObjectType.Planet) {
 			myMapObject = findMyPlanet($player, mo as Planet) as MapObject;
 		}
-
 
 		const commandedIntelObject = findIntelMapObject($player, $commandedMapObject);
 
 		if ($selectedMapObject !== myMapObject) {
 			// we selected a different object, so just select it
 			selectMapObject(myMapObject);
-		} else if (
-			ownedBy(mo, $player.num) &&
-			myMapObjectsAtPosition?.length > 1 && // there are fleets orbiting this planet
-			myMapObjectsAtPosition.find((m) => m === mo) && // the object we selected is in the things orbiting the planet
-			myMapObjectsAtPosition.find((m) => m === commandedIntelObject) // the commanded object is also the planet or orbiting the planet
-		) {
-			// we selected one of our mapobjects and it's not currently commanded
-			commandedMapObjectIndex =
-				commandedMapObjectIndex >= myMapObjectsAtPosition.length - 1
-					? 0
-					: commandedMapObjectIndex + 1;
-			// command the next object at this position
-			const nextMapObject = myMapObjectsAtPosition[commandedMapObjectIndex];
-			if (nextMapObject.type === MapObjectType.Planet) {
-				commandMapObject(findMyPlanet($player, nextMapObject as Planet) as MapObject);
-				commandedMapObjectIndex = 0;
-			} else {
-				commandMapObject(nextMapObject);
-			}
-		} else if (
-			mo.playerNum == $player.num &&
-			$selectedMapObject == myMapObject &&
-			commandedIntelObject != $selectedMapObject
-		) {
-			if (mo.type === MapObjectType.Planet) {
-				commandMapObject(findMyPlanet($player, mo as Planet) as MapObject);
-				commandedMapObjectIndex = 0;
-			} else {
-				commandMapObject(mo);
+		} else {
+			// we selected the same mapobject twice
+			const myMapObjectsAtPosition = $myMapObjectsByPosition[positionKey(mo)];
+			if ($player && myMapObjectsAtPosition?.length > 0) {
+				// if our currently commanded map object is not at this location, reset the index
+				if (!myMapObjectsAtPosition.find((mo) => mo == commandedIntelObject)) {
+					commandedMapObjectIndex = 0;
+				} else {
+					// command the next one
+					commandedMapObjectIndex =
+						commandedMapObjectIndex >= myMapObjectsAtPosition.length - 1
+							? 0
+							: commandedMapObjectIndex + 1;
+				}
+				const nextMapObject = myMapObjectsAtPosition[commandedMapObjectIndex];
+				if (nextMapObject.type === MapObjectType.Planet) {
+					commandMapObject(findMyPlanet($player, nextMapObject as Planet) as MapObject);
+					commandedMapObjectIndex = 0;
+				} else {
+					commandMapObject(nextMapObject);
+				}
 			}
 		}
 	}

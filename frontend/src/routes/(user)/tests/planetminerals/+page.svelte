@@ -1,9 +1,8 @@
 <script lang="ts">
 	import PlanetMineralsGraph from '$lib/components/game/PlanetMineralsGraph.svelte';
-import { MapObjectType } from '$lib/types/MapObject';
+	import { MapObjectType } from '$lib/types/MapObject';
 
 	import type { Planet } from '$lib/types/Planet';
-import TestBreadcrumb from '../TestBreadcrumb.svelte';
 
 	const planet1: Planet = {
 		type: MapObjectType.Planet,
@@ -26,16 +25,15 @@ import TestBreadcrumb from '../TestBreadcrumb.svelte';
 		mineralConcentration: { ironium: 130, boranium: 20, germanium: 30 },
 		cargo: { ironium: 10000, boranium: 2000, germanium: 4000, colonists: 2500 }
 	};
-
 </script>
 
-<h1 class='text-xl'>Planet 1</h1>
+<h1 class="text-xl">Planet 1</h1>
 <PlanetMineralsGraph planet={planet1} />
 
-<h1 class='text-xl'>Planet 2</h1>
+<h1 class="text-xl">Planet 2</h1>
 <PlanetMineralsGraph planet={planet2} />
 
-<h1 class='text-xl'>Planet 2 - Small scale</h1>
+<h1 class="text-xl">Planet 2 - Small scale</h1>
 <PlanetMineralsGraph planet={planet2} max={1000} />
-<h1 class='text-xl'>Planet 2 - Large scale</h1>
+<h1 class="text-xl">Planet 2 - Large scale</h1>
 <PlanetMineralsGraph planet={planet2} max={25000} />

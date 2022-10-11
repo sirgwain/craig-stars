@@ -12,8 +12,9 @@
 	import type { Planet } from '$lib/types/Planet';
 	import type { ZoomTransform } from 'node_modules.nosync/@types/d3-zoom';
 	import { createEventDispatcher } from 'svelte';
+	import type { LayerCake } from 'layercake';
 
-	const { data, xGet, yGet, width, height } = getContext('LayerCake');
+	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 	const dispatch = createEventDispatcher();
 
 	let found: MapObject | undefined;

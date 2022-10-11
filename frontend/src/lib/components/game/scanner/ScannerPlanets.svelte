@@ -5,10 +5,11 @@
 <script lang="ts">
 	import { MapObjectType, type MapObject } from '$lib/types/MapObject';
 	import type { Planet } from '$lib/types/Planet';
+	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 	import ScannerPlanet from './ScannerPlanet.svelte';
 
-	const { data, xGet, yGet, xScale, yScale, width, height } = getContext('LayerCake');
+	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
 	let planets: Planet[] = [];
 

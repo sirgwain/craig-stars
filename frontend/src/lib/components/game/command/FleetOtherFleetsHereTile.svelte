@@ -17,11 +17,13 @@
 	$: {
 		if ($commandedFleet && $myMapObjectsByPosition) {
 			const mapObjectsByPosition = $myMapObjectsByPosition[positionKey($commandedFleet)];
-			fleetsInOrbit = mapObjectsByPosition.filter(
-				(mo) => mo.type == MapObjectType.Fleet && mo != $commandedFleet
-			) as Fleet[];
-			if (fleetsInOrbit.length > 0) {
-				selectedFleet = fleetsInOrbit[selectedFleetIndex];
+			if (mapObjectsByPosition) {
+				fleetsInOrbit = mapObjectsByPosition.filter(
+					(mo) => mo.type == MapObjectType.Fleet && mo != $commandedFleet
+				) as Fleet[];
+				if (fleetsInOrbit.length > 0) {
+					selectedFleet = fleetsInOrbit[selectedFleetIndex];
+				}
 			}
 		}
 	}

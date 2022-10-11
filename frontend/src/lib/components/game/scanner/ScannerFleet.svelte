@@ -9,13 +9,14 @@
 		myMapObjectsByPosition,
 		player
 	} from '$lib/services/Context';
-	import { positionKey } from '$lib/types/MapObject';
-	import { NotOrbitingPlanet, type Fleet } from '$lib/types/Fleet';
-	import { getContext } from 'svelte';
-	import { determinant, dot, normalized } from '$lib/types/Vector';
 	import { radiansToDegrees } from '$lib/services/Math';
+	import { NotOrbitingPlanet, type Fleet } from '$lib/types/Fleet';
+	import { positionKey } from '$lib/types/MapObject';
+	import { normalized } from '$lib/types/Vector';
+	import { getContext } from 'svelte';
+	import type { LayerCake } from 'layercake';
 
-	const { data, xGet, yGet, xScale, yScale, width, height } = getContext('LayerCake');
+	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
 	export let fleet: Fleet;
 
