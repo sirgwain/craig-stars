@@ -1,21 +1,26 @@
 <script lang="ts">
 	import {
+		commandedFleet,
 		commandedMapObject,
-		commandedPlanet,
 		commandMapObject,
 		game,
 		myMapObjectsByPosition,
 		player,
 		selectedMapObject,
-		selectMapObject
+		selectedWaypoint,
+		selectMapObject,
+		selectWaypoint
 	} from '$lib/services/Context';
+	import { FleetService } from '$lib/services/FleetService';
 	import { NotOrbitingPlanet } from '$lib/types/Fleet';
 	import { MapObjectType, ownedBy, positionKey, type MapObject } from '$lib/types/MapObject';
 	import type { Planet } from '$lib/types/Planet';
 	import { findIntelMapObject, findMyPlanet } from '$lib/types/Player';
+	import { equal, type Vector } from '$lib/types/Vector';
 	import { select } from 'd3-selection';
 	import { zoom, zoomIdentity, ZoomTransform, type D3ZoomEvent, type ZoomBehavior } from 'd3-zoom';
 	import { Html, LayerCake, Svg } from 'layercake';
+	import { merge } from 'lodash-es';
 	import MapObjectQuadTreeFinder from './MapObjectQuadTreeFinder.svelte';
 	import ScannerFleets from './ScannerFleets.svelte';
 	import ScannerPlanets from './ScannerPlanets.svelte';
@@ -25,6 +30,8 @@
 
 	const xGetter = (mo: MapObject) => mo?.position?.x;
 	const yGetter = (mo: MapObject) => mo?.position?.y;
+
+	const fleetService = new FleetService();
 
 	let clientWidth = 100;
 	let clientHeight = 100;
@@ -88,6 +95,46 @@
 		// }
 	}
 
+	// if the shift key is held, add a waypoint instead of selecting a mapobject
+	async function addWaypoint(options: { mo?: MapObject; position?: Vector }) {
+		if (!$myMapObjectsByPosition || !$player || !$commandedFleet) {
+			return;
+		}
+		debugger;
+
+		let waypointIndex = $commandedFleet.waypoints.findIndex((wp) => $selectedWaypoint == wp);
+		if (waypointIndex == -1) {
+			waypointIndex = 0;
+		}
+
+		if (options.mo) {
+			const mo = options.mo;
+			$commandedFleet.waypoints.splice(waypointIndex + 1, 0, {
+				position: mo.position,
+				warpFactor: $commandedFleet.spec?.idealSpeed ?? 5,
+				targetName: mo.name,
+				targetPlayerNum: mo.playerNum,
+				targetNum: mo.num,
+				targetType: mo.type
+			});
+		} else if (options.position) {
+			$commandedFleet.waypoints.splice(waypointIndex + 1, 0, {
+				position: options.position,
+				warpFactor: $commandedFleet.spec?.idealSpeed ?? 5
+			});
+		}
+
+		// select the new waypoint
+		selectWaypoint($commandedFleet.waypoints[$commandedFleet.waypoints.length - 1]);
+
+		// save the commanded fleet
+		const fleet = await fleetService.updateFleetOrders($commandedFleet);
+
+		// update the player fleet
+		merge($commandedFleet, fleet);
+
+		commandedFleet.update(() => $commandedFleet);
+	}
 	/**
 	 * When a mapobject is selected we go through a few steps.
 	 * - We select it if it's a new selection
@@ -99,8 +146,6 @@
 			return;
 		}
 
-		const me = $player;
-
 		let myMapObject = mo;
 		if (ownedBy(mo, $player.num) && mo.type === MapObjectType.Planet) {
 			myMapObject = findMyPlanet($player, mo as Planet) as MapObject;
@@ -111,6 +156,16 @@
 		if ($selectedMapObject !== myMapObject) {
 			// we selected a different object, so just select it
 			selectMapObject(myMapObject);
+
+			// if we selected a mapobject that is a waypoint, select the waypoint as well
+			if ($commandedFleet) {
+				const selectedWaypoint = $commandedFleet.waypoints.find((wp) =>
+					equal(wp.position, myMapObject.position)
+				);
+				if (selectedWaypoint) {
+					selectWaypoint(selectedWaypoint);
+				}
+			}
 		} else {
 			// we selected the same mapobject twice
 			const myMapObjectsAtPosition = $myMapObjectsByPosition[positionKey(mo)];
@@ -176,6 +231,7 @@
 				{#if transform}
 					<MapObjectQuadTreeFinder
 						on:mapobject-selected={(mo) => mapobjectSelected(mo.detail)}
+						on:add-waypoint={(mo) => addWaypoint(mo.detail)}
 						searchRadius={20}
 						let:x
 						let:y

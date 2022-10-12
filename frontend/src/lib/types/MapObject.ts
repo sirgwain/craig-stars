@@ -9,10 +9,11 @@ export interface MapObject {
 	position: Vector;
 	name: string;
 	num: number;
-	playerNum: number | null;
+	playerNum: number | undefined;
 }
 
 export enum MapObjectType {
+	None = '',
 	Planet = 'Planet',
 	Fleet = 'Fleet',
 	Wormhole = 'Wormhole',

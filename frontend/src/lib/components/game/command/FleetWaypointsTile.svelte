@@ -1,18 +1,18 @@
 <script lang="ts">
-	import { EventManager } from '$lib/EventManager';
 	import {
-		player,
 		commandedFleet,
 		commandedMapObjectName,
+		player,
 		selectedWaypoint,
 		selectMapObject,
 		selectWaypoint
 	} from '$lib/services/Context';
 	import { FleetService } from '$lib/services/FleetService';
 	import type { Waypoint } from '$lib/types/Fleet';
-	import type { MapObjectType, MapObject } from '$lib/types/MapObject';
+	import type { MapObject } from '$lib/types/MapObject';
 	import { findMapObject } from '$lib/types/Player';
 	import { distance } from '$lib/types/Vector';
+	import hotkeys from 'hotkeys-js';
 	import { merge } from 'lodash-es';
 	import WarpFactorBar from '../WarpFactorBar.svelte';
 	import CommandTile from './CommandTile.svelte';
@@ -59,11 +59,6 @@
 		updateNextPrevWaypoints();
 	};
 
-	commandedMapObjectName.subscribe(() => {
-		selectedWaypointIndex = 0;
-		updateNextPrevWaypoints();
-	});
-
 	$: dist =
 		$selectedWaypoint && (nextWaypoint || previousWaypoint)
 			? distance(
@@ -91,7 +86,6 @@
 			const fleet = await fleetService.updateFleetOrders($commandedFleet);
 
 			// update the player fleet
-			// update the player fleet
 			merge($commandedFleet, fleet);
 
 			// update the commanded object
@@ -99,6 +93,67 @@
 		}
 	};
 
+	const deleteWaypoint = () => {
+		if ($player && $commandedFleet && selectedWaypointIndex != 0) {
+			$commandedFleet.waypoints = $commandedFleet?.waypoints.filter(
+				(wp) => wp != $selectedWaypoint
+			);
+			selectedWaypointIndex--;
+
+			onSelectWaypoint($commandedFleet.waypoints[selectedWaypointIndex], selectedWaypointIndex);
+
+			fleetService.updateFleetOrders($commandedFleet).then((fleet) => {
+				// update the player fleet
+				merge($commandedFleet, fleet);
+
+				updateNextPrevWaypoints();
+			});
+		}
+	};
+
+	const onNextWaypoint = () => {
+		if ($commandedFleet && selectedWaypointIndex + 1 < $commandedFleet?.waypoints.length) {
+			onSelectWaypoint(
+				$commandedFleet.waypoints[selectedWaypointIndex + 1],
+				selectedWaypointIndex + 1
+			);
+		}
+	};
+
+	const onPrevWaypoint = () => {
+		if ($commandedFleet && selectedWaypointIndex > 0) {
+			onSelectWaypoint(
+				$commandedFleet.waypoints[selectedWaypointIndex - 1],
+				selectedWaypointIndex - 1
+			);
+		}
+	};
+
+	commandedMapObjectName.subscribe(() => {
+		selectedWaypointIndex = 0;
+		updateNextPrevWaypoints();
+	});
+
+	selectedWaypoint?.subscribe(() => {
+		if ($commandedFleet) {
+			selectedWaypointIndex = $commandedFleet?.waypoints.findIndex((wp) => wp == $selectedWaypoint);
+			if (selectedWaypointIndex == -1) {
+				selectedWaypointIndex = 0;
+			}
+			updateNextPrevWaypoints();
+
+			if (waypointRefs.length > selectedWaypointIndex) {
+				waypointRefs[selectedWaypointIndex]?.scrollIntoView();
+			}
+		}
+	});
+
+	let waypointRefs: (HTMLLIElement | null)[] = [];
+
+	hotkeys('Delete', () => deleteWaypoint());
+	hotkeys('Backspace', () => deleteWaypoint());
+	hotkeys('down', () => onNextWaypoint());
+	hotkeys('up', () => onPrevWaypoint());
 </script>
 
 {#if $commandedFleet && $selectedWaypoint}
@@ -108,6 +163,7 @@
 				{#each $commandedFleet.waypoints as wp, index}
 					<li
 						on:click={() => onSelectWaypoint(wp, index)}
+						bind:this={waypointRefs[index]}
 						class="pl-1 {selectedWaypointIndex == index ? 'bg-primary-focus' : ''}"
 					>
 						{getTargetName(wp)}
