@@ -20,7 +20,8 @@ export enum MapObjectType {
 	MineField = 'MineField',
 	MysteryTrader = 'MysteryTrader',
 	Salvage = 'Salvage',
-	MineralPacket = 'MineralPacket'
+	MineralPacket = 'MineralPacket',
+	PositionWaypoint = 'PositionWaypoint'
 }
 
 /**

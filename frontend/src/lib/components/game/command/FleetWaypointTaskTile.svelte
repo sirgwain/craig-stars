@@ -24,7 +24,7 @@
 {#if $commandedFleet && $selectedWaypoint}
 	<CommandTile title="Waypoint Task">
 		<select
-			class="select select-bordered"
+			class="select select-outline select-secondary select-sm py-0 text-sm"
 			bind:value={$selectedWaypoint.task}
 			on:change={(e) =>
 				onSelectedWaypointTaskChange(
