@@ -12,8 +12,7 @@
 		selectWaypoint
 	} from '$lib/services/Context';
 	import { FleetService } from '$lib/services/FleetService';
-	import { emptyCargo } from '$lib/types/Cargo';
-	import { NotOrbitingPlanet, type Waypoint } from '$lib/types/Fleet';
+	import { NotOrbitingPlanet } from '$lib/types/Fleet';
 	import { MapObjectType, ownedBy, positionKey, type MapObject } from '$lib/types/MapObject';
 	import type { Planet } from '$lib/types/Planet';
 	import { findIntelMapObject, findMyPlanet } from '$lib/types/Player';

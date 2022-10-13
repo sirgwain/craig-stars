@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import CargoTransferDialog from '$lib/components/game/dialogs/cargo/CargoTransferDialog.svelte';
-	import ProductionQueueDialog from '$lib/components/game/dialogs/ProductionQueueDialog.svelte';
-	import GameMenu from '$lib/components/game/GameMenu.svelte';
+	import CargoTransferDialog from './dialogs/cargo/CargoTransferDialog.svelte';
+	import ProductionQueueDialog from './dialogs/ProductionQueueDialog.svelte';
+	import GameMenu from './GameMenu.svelte';
 	import { EventManager } from '$lib/EventManager';
 	import { bindQuantityModifier, unbindQuantityModifier } from '$lib/quantityModifier';
 	import {

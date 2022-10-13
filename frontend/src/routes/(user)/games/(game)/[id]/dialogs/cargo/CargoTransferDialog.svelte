@@ -1,13 +1,11 @@
 <script lang="ts">
+	import { getQuantityModifier } from '$lib/quantityModifier';
 	import { game } from '$lib/services/Context';
+	import { FleetService } from '$lib/services/FleetService';
+	import { clamp } from '$lib/services/Math';
 	import { PlanetService } from '$lib/services/PlanetService';
 	import {
-		negativeCargo,
-		emptyCargo,
-		type Cargo,
-		totalCargo,
-		subtract,
-		add
+		emptyCargo, negativeCargo, subtract, totalCargo, type Cargo
 	} from '$lib/types/Cargo';
 	import type { Fleet } from '$lib/types/Fleet';
 	import { MapObjectType } from '$lib/types/MapObject';
@@ -17,9 +15,6 @@
 	import FleetTransfer from './FleetTransfer.svelte';
 	import PlanetTransfer from './PlanetTransfer.svelte';
 	import TransferButtons from './TransferButtons.svelte';
-	import { getQuantityModifier } from '$lib/quantityModifier';
-	import { clamp } from '$lib/services/Math';
-	import { FleetService } from '$lib/services/FleetService';
 
 	export let src: Fleet | undefined;
 	export let dest: Fleet | Planet | undefined;
@@ -40,7 +35,7 @@
 		if ($game && src) {
 			const fleetService = new FleetService();
 			try {
-				const result = await fleetService.transferCargo($game.id, src, dest, transferAmount);
+				const result = await fleetService.transferCargo(src, dest, transferAmount);
 				// TODO: should the parent do this? or do we update the src/dest here?
 				src.cargo = result.cargo;
 				if (dest?.cargo) {

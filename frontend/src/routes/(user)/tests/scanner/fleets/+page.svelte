@@ -1,5 +1,5 @@
 <script lang="ts">
-	import ScannerFleets from '$lib/components/game/scanner/ScannerFleets.svelte';
+	import ScannerFleets from 'src/routes/(user)/games/(game)/[id]/scanner/ScannerFleets.svelte';
 	import { commandMapObject, player, selectMapObject } from '$lib/services/Context';
 
 	import type { Fleet } from '$lib/types/Fleet';

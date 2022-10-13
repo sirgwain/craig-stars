@@ -3,7 +3,7 @@
 	import { Menu, Upload } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { createEventDispatcher } from 'svelte';
-	import DarkModeToggler from '../DarkModeToggler.svelte';
+	import DarkModeToggler from '$lib/components/DarkModeToggler.svelte';
 
 	const updateTitle = () => (document.title = `${$game?.name} - ${$game?.year}`);
 	$: $game && updateTitle();
