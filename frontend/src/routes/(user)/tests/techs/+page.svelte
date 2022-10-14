@@ -1,15 +1,12 @@
 <script lang="ts">
-	import PlanetMineralsGraph from '$lib/components/game/PlanetMineralsGraph.svelte';
 	import TechSummary from '$lib/components/tech/TechSummary.svelte';
 
-	import type { Planet } from '$lib/types/Planet';
 	import type { Player } from '$lib/types/Player';
 	import { humanoid, PRT } from '$lib/types/Race';
 	import {
 		HullSlotType,
 		MineFieldType,
 		TechCategory,
-		type Tech,
 		type TechEngine,
 		type TechHullComponent
 	} from '$lib/types/Tech';
@@ -141,7 +138,6 @@
 		fleetIntels: [],
 		color: '#0000FF'
 	};
-	
 </script>
 
 <TestBreadcrumb title="Techs" />

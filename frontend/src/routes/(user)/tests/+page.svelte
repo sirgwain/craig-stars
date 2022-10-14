@@ -1,5 +1,4 @@
 <script lang="ts">
-	import TestBreadcrumb from './TestBreadcrumb.svelte';
 </script>
 
 <ul>
