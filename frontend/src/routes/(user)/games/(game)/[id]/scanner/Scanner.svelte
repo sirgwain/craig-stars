@@ -1,5 +1,7 @@
 <script lang="ts">
 	import {
+		zoomTarget,
+		commandedPlanet,
 		commandedFleet,
 		commandedMapObject,
 		commandMapObject,
@@ -12,6 +14,7 @@
 		selectWaypoint
 	} from '$lib/services/Context';
 	import { FleetService } from '$lib/services/FleetService';
+	import { clamp } from '$lib/services/Math';
 	import { NotOrbitingPlanet } from '$lib/types/Fleet';
 	import { MapObjectType, ownedBy, positionKey, type MapObject } from '$lib/types/MapObject';
 	import type { Planet } from '$lib/types/Planet';
@@ -40,6 +43,8 @@
 	let zoomBehavior: ZoomBehavior<HTMLElement, any>;
 	let root: HTMLElement;
 	let commandedMapObjectIndex = 0;
+	let scale = 2;
+	let padding = 20; // 20 px, used in zooming
 
 	// handle zoom in/out
 	// this behavior controls how the zoom behaves
@@ -50,12 +55,12 @@
 			zoomBehavior = zoom<HTMLElement, any>()
 				.extent([
 					[0, 0],
-					[clientWidth * aspectRatio, clientHeight * aspectRatio]
+					[clientWidth, clientHeight]
 				])
 				.scaleExtent([1, 5])
 				.translateExtent([
-					[0, 0],
-					[clientWidth * aspectRatio, clientHeight * aspectRatio]
+					[-20, -20],
+					[clientWidth, clientHeight]
 				])
 				.on('zoom', handleZoom);
 		}
@@ -73,26 +78,36 @@
 
 	function handleZoom(e: D3ZoomEvent<HTMLElement, any>) {
 		transform = e.transform;
-		// console.log(transform);
+		scale = transform.k;
+		// console.log('initialZoom', initialZoom, transform);
 	}
 
 	// attach the zoom behavior to the root element
-	$: if (root && $game?.area) {
+	$: if (root) {
+		// disable double click on zoom, we use this to cycle commanded mapobjects
 		select(root).call(zoomBehavior).on('dblclick.zoom', null);
-		// if ($commandedPlanet) {
-		// set initial zoom
-		select(root).call(zoomBehavior.transform, zoomIdentity);
+	}
 
-		// select(root).call(
-		// 	zoomBehavior.transform,
-		// 	zoomIdentity
-		// 		.scale(2)
-		// 		.translate(
-		// 			clamp(-($game.area.x - $commandedPlanet.position.x) / 2, -root.clientWidth, 0),
-		// 			clamp(($game.area.y - $commandedPlanet.position.y) / 2, -$game.area.y, 0)
-		// 		)
-		// );
-		// }
+	// zoom to the commanded map object every time it changes
+	$: if (root && $zoomTarget) {
+		zoomToPosition($zoomTarget.position);
+	}
+
+	// zoom the display to a point on the map
+	function zoomToPosition(position: Vector) {
+		if (root) {
+			select(root).call(
+				zoomBehavior.transform,
+				zoomIdentity
+					.translate(clientWidth / 2 + padding, clientHeight / 2 + padding) // translate to center
+					.scale(scale)
+					.translate(
+						// translate to selected mapobject
+						clamp(-position.x / 2 - padding, -(clientWidth / 2 + padding) * scale, 0),
+						clamp(-position.y / 2 + padding, -(clientHeight / 2 + padding) * scale, 0)
+					)
+			);
+		}
 	}
 
 	// if the shift key is held, add a waypoint instead of selecting a mapobject
@@ -231,7 +246,7 @@
 
 <svelte:window on:resize={handleResize} />
 
-<div class="flex-1 h-full bg-black overflow-hidden p-5">
+<div class={`flex-1 h-full bg-black overflow-hidden p-[${padding}px]`}>
 	{#if $game && $player}
 		<LayerCake
 			{data}

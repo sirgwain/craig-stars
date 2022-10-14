@@ -10,7 +10,8 @@
 		game,
 		myMapObjectsByPosition,
 		player,
-		selectMapObject
+		selectMapObject,
+		zoomToMapObject
 	} from '$lib/services/Context';
 	import { GameService } from '$lib/services/GameService';
 	import { PlayerService } from '$lib/services/PlayerService';
@@ -67,9 +68,11 @@
 		if (homeworld) {
 			commandMapObject(homeworld);
 			selectMapObject(homeworld);
+			zoomToMapObject(homeworld);
 		} else {
 			commandMapObject($player.planets[0]);
 			selectMapObject($player.planets[0]);
+			zoomToMapObject($player.planets[0]);
 		}
 	}
 
