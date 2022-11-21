@@ -39,11 +39,11 @@ const (
 )
 
 type Tech struct {
-	ID        uint64    `gorm:"primaryKey" json:"id"`
+	ID        int64     `gorm:"primaryKey" json:"id"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 
-	TechStoreID  uint64           `json:"techStoreId"`
+	TechStoreID  int64            `json:"techStoreId"`
 	Name         string           `json:"name"`
 	Cost         Cost             `json:"cost" gorm:"embedded;embeddedPrefix:cost_"`
 	Requirements TechRequirements `json:"requirements"  gorm:"embedded;embeddedPrefix:requirements_"`

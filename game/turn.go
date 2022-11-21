@@ -25,7 +25,7 @@ func NewTurnGenerator(game *FullGame) turnGenerator {
 // generate a new turn
 func (t *turn) GenerateTurn() error {
 	log.Debug().
-		Uint64("GameID", t.game.ID).
+		Int64("GameID", t.game.ID).
 		Str("Name", t.game.Name).
 		Int("Year", t.game.Year).
 		Msgf("begin generating turn")
@@ -117,7 +117,7 @@ func (t *turn) GenerateTurn() error {
 	}
 
 	log.Info().
-		Uint64("GameID", t.game.ID).
+		Int64("GameID", t.game.ID).
 		Str("Name", t.game.Name).
 		Int("Year", t.game.Year-1).
 		Msgf("generated turn")
@@ -167,8 +167,8 @@ func (t *turn) fleetColonize() {
 			if wp0.TargetNum == NoTarget {
 				err := fmt.Errorf("%s attempted to colonize a planet but didn't target a planet", fleet.Name)
 				log.Err(err).
-					Uint64("GameID", t.game.ID).
-					Uint64("PlayerID", player.ID).
+					Int64("GameID", t.game.ID).
+					Int64("PlayerID", player.ID).
 					Str("Fleet", fleet.Name)
 				messager.error(player, err)
 				continue
@@ -191,7 +191,7 @@ func (t *turn) fleetColonize() {
 			}
 
 			log.Debug().
-				Uint64("GameID", t.game.ID).
+				Int64("GameID", t.game.ID).
 				Str("Name", t.game.Name).
 				Int("Year", t.game.Year).
 				Int("Player", player.Num).

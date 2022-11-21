@@ -12,9 +12,9 @@ type scanner struct {
 }
 
 type playerScan struct {
-	universe *Universe
-	rules    *Rules
-	player   *Player
+	universe   *Universe
+	rules      *Rules
+	player     *Player
 	discoverer discoverer
 }
 

@@ -8,11 +8,11 @@ import (
 )
 
 type ShipDesign struct {
-	ID            uint64            `gorm:"primaryKey" json:"id"`
+	ID            int64             `gorm:"primaryKey" json:"id"`
 	CreatedAt     time.Time         `json:"createdAt"`
 	UpdatedAt     time.Time         `json:"updatedAt"`
-	GameID        uint64            `json:"gameId"`
-	PlayerID      uint64            `json:"playerId"`
+	GameID        int64             `json:"gameId"`
+	PlayerID      int64             `json:"playerId"`
 	PlayerNum     int               `json:"playerNum"`
 	Dirty         bool              `json:"-"`
 	UUID          uuid.UUID         `json:"uuid,omitempty"`

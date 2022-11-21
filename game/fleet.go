@@ -27,12 +27,12 @@ const NoTarget = -1
 type Fleet struct {
 	MapObject
 	FleetOrders
-	PlanetID          uint64      `json:"-"` // for starbase fleets that are owned by a planet
+	PlanetID          int64       `json:"-"` // for starbase fleets that are owned by a planet
 	BaseName          string      `json:"baseName"`
 	Cargo             Cargo       `json:"cargo,omitempty" gorm:"embedded;embeddedPrefix:cargo_"`
 	Fuel              int         `json:"fuel"`
 	Damage            int         `json:"damage"`
-	BattlePlanID      uint64      `json:"battlePlan"`
+	BattlePlanID      int64       `json:"battlePlan"`
 	Tokens            []ShipToken `json:"tokens"`
 	Heading           Vector      `json:"heading,omitempty" gorm:"embedded;embeddedPrefix:heading_"`
 	WarpSpeed         int         `json:"warpSpeed,omitempty"`
@@ -61,11 +61,11 @@ type FleetSpec struct {
 }
 
 type ShipToken struct {
-	ID        uint64      `gorm:"primaryKey" json:"id"`
+	ID        int64       `gorm:"primaryKey" json:"id"`
 	CreatedAt time.Time   `json:"createdAt"`
 	UpdatedAt time.Time   `json:"updatedAt"`
-	FleetID   uint64      `json:"gameId"`
-	DesignID  uint64      `json:"designId"`
+	FleetID   int64       `json:"gameId"`
+	DesignID  int64       `json:"designId"`
 	Quantity  int         `json:"quantity"`
 	Design    *ShipDesign `json:"-" gorm:"foreignKey:DesignID"`
 }

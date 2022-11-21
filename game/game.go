@@ -27,7 +27,7 @@ const (
 
 type NewGamePlayer struct {
 	Type         NewGamePlayerType `json:"type,omitempty"`
-	RaceID       uint64            `json:"raceID,omitempty"`
+	RaceID       int64             `json:"raceID,omitempty"`
 	AIDifficulty AIDifficulty      `json:"aiDifficulty,omitempty"`
 }
 
@@ -46,7 +46,7 @@ type GameSettings struct {
 }
 
 type Game struct {
-	ID                           uint64            `gorm:"primaryKey" json:"id" header:"ID" boltholdKey:"ID"`
+	ID                           int64             `gorm:"primaryKey" json:"id" header:"ID" boltholdKey:"ID"`
 	CreatedAt                    time.Time         `json:"createdAt"`
 	UpdatedAt                    time.Time         `json:"updatedAt"`
 	Name                         string            `json:"name" header:"Name"`
@@ -230,7 +230,7 @@ func (settings *GameSettings) WithDensity(density Density) *GameSettings {
 }
 
 // add a host to this game
-func (settings *GameSettings) WithHost(raceID uint64) *GameSettings {
+func (settings *GameSettings) WithHost(raceID int64) *GameSettings {
 	settings.Players = append(settings.Players, NewGamePlayer{Type: NewGamePlayerTypeHost, RaceID: raceID})
 	return settings
 }

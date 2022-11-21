@@ -12,7 +12,7 @@ type Race struct {
 	CreatedAt                 time.Time              `json:"createdAt,omitempty"`
 	UpdatedAt                 time.Time              `json:"updatedAt,omitempty"`
 	UserID                    int64                  `json:"userId,omitempty"`
-	PlayerID                  *uint64                 `json:"playerId,omitempty"`
+	PlayerID                  *int64                 `json:"playerId,omitempty"`
 	Name                      string                 `json:"name,omitempty"`
 	PluralName                string                 `json:"pluralName,omitempty"`
 	PRT                       game.PRT               `json:"prt,omitempty"`
@@ -176,7 +176,7 @@ func (c *client) CreateRace(race *game.Race) error {
 		return err
 	}
 
-	race.ID = uint64(id)
+	race.ID = int64(id)
 
 	return nil
 }

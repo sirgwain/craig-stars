@@ -19,7 +19,7 @@ func (c *client) GetRaces(userID int64) ([]*game.Race, error) {
 	return races, nil
 }
 
-func (c *client) FindRaceById(id uint64) (*game.Race, error) {
+func (c *client) FindRaceById(id int64) (*game.Race, error) {
 	race := game.Race{}
 	if err := c.sqlDB.First(&race, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

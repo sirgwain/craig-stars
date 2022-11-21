@@ -179,7 +179,7 @@ func (c *client) SaveGame(g *game.FullGame) error {
 	return nil
 }
 
-func (c *client) FindGameById(id uint64) (*game.FullGame, error) {
+func (c *client) FindGameById(id int64) (*game.FullGame, error) {
 	g := game.FullGame{
 		Game:     &game.Game{},
 		Universe: &game.Universe{},
@@ -246,7 +246,7 @@ func (c *client) FindGameById(id uint64) (*game.FullGame, error) {
 	return &g, nil
 }
 
-func (c *client) FindGameByIdLight(id uint64) (*game.Game, error) {
+func (c *client) FindGameByIdLight(id int64) (*game.Game, error) {
 	game := game.Game{}
 	if err := c.sqlDB.First(&game, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -259,7 +259,7 @@ func (c *client) FindGameByIdLight(id uint64) (*game.Game, error) {
 	return &game, nil
 }
 
-func (c *client) FindGameRulesByGameID(gameID uint64) (*game.Rules, error) {
+func (c *client) FindGameRulesByGameID(gameID int64) (*game.Rules, error) {
 	rules := game.Rules{}
 	if err := c.sqlDB.
 		Where("game_id = ? ", gameID).
@@ -275,6 +275,6 @@ func (c *client) FindGameRulesByGameID(gameID uint64) (*game.Rules, error) {
 	return &rules, nil
 }
 
-func (c *client) DeleteGameById(id uint64) error {
+func (c *client) DeleteGameById(id int64) error {
 	return c.sqlDB.Delete(&game.Game{ID: id}).Error
 }

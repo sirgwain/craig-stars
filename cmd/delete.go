@@ -51,7 +51,7 @@ func addDeleteUserCmd() {
 
 }
 func addDeleteGameCmd() {
-	var id uint64
+	var id int64
 
 	// deleteUsersCmd represents the deleteUsers command
 	var deleteGameCmd = &cobra.Command{
@@ -74,7 +74,7 @@ func addDeleteGameCmd() {
 		},
 	}
 
-	deleteGameCmd.Flags().Uint64VarP(&id, "game-id", "g", 0, "Delete game by id")
+	deleteGameCmd.Flags().Int64VarP(&id, "game-id", "g", 0, "Delete game by id")
 	deleteGameCmd.MarkFlagRequired("game-id")
 	deleteCmd.AddCommand(deleteGameCmd)
 }

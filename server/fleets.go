@@ -141,7 +141,7 @@ func (s *server) transferCargoFleetPlanet(c *gin.Context, fleet *game.Fleet, tra
 	s.db.SaveFleet(fleet.GameID, fleet)
 
 	log.Info().
-		Uint64("GameID", fleet.GameID).
+		Int64("GameID", fleet.GameID).
 		Int("Player", fleet.PlayerNum).
 		Str("Fleet", fleet.Name).
 		Str("Planet", planet.Name).
@@ -175,7 +175,7 @@ func (s *server) transferCargoFleetFleet(c *gin.Context, fleet *game.Fleet, tran
 	s.db.SaveFleet(fleet.GameID, fleet)
 
 	log.Info().
-		Uint64("GameID", fleet.GameID).
+		Int64("GameID", fleet.GameID).
 		Int("Player", fleet.PlayerNum).
 		Str("Fleet", fleet.Name).
 		Str("Planet", dest.Name).

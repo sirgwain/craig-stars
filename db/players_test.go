@@ -23,7 +23,7 @@ func TestDB_FindPlayerByGameId(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		gameId  uint64
+		gameId  int64
 		userId  int64
 		want    *game.Player
 		wantErr bool

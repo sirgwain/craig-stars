@@ -24,16 +24,16 @@ func (c *GameConverter) ConvertGameUser(source *game.User) *User {
 }
 func (c *GameConverter) ConvertRace(source Race) game.Race {
 	var gameRace game.Race
-	gameRace.ID = Int64ToUInt64(source.ID)
+	gameRace.ID = source.ID
 	gameRace.CreatedAt = TimeToTime(source.CreatedAt)
 	gameRace.UpdatedAt = TimeToTime(source.UpdatedAt)
 	gameRace.UserID = source.UserID
-	var pUint64 *uint64
+	var pInt64 *int64
 	if source.PlayerID != nil {
-		xuint64 := *source.PlayerID
-		pUint64 = &xuint64
+		xint64 := *source.PlayerID
+		pInt64 = &xint64
 	}
-	gameRace.PlayerID = pUint64
+	gameRace.PlayerID = pInt64
 	gameRace.Name = source.Name
 	gameRace.PluralName = source.PluralName
 	gameRace.PRT = game.PRT(source.PRT)
@@ -182,16 +182,16 @@ func (c *GameConverter) gameRaceSpecToGameRaceSpec(source game.RaceSpec) game.Ra
 }
 func (c *GameConverter) gameRaceToDbsqlxRace(source game.Race) Race {
 	var dbsqlxRace Race
-	dbsqlxRace.ID = Uint64ToInt64(source.ID)
+	dbsqlxRace.ID = source.ID
 	dbsqlxRace.CreatedAt = TimeToTime(source.CreatedAt)
 	dbsqlxRace.UpdatedAt = TimeToTime(source.UpdatedAt)
 	dbsqlxRace.UserID = source.UserID
-	var pUint64 *uint64
+	var pInt64 *int64
 	if source.PlayerID != nil {
-		xuint64 := *source.PlayerID
-		pUint64 = &xuint64
+		xint64 := *source.PlayerID
+		pInt64 = &xint64
 	}
-	dbsqlxRace.PlayerID = pUint64
+	dbsqlxRace.PlayerID = pInt64
 	dbsqlxRace.Name = source.Name
 	dbsqlxRace.PluralName = source.PluralName
 	dbsqlxRace.PRT = game.PRT(source.PRT)
