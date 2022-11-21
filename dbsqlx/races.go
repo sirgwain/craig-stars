@@ -2,6 +2,9 @@ package dbsqlx
 
 import (
 	"database/sql"
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/sirgwain/craig-stars/game"
@@ -42,7 +45,34 @@ type Race struct {
 	ResearchCostElectronics   game.ResearchCostLevel `json:"researchCostElectronics,omitempty"`
 	ResearchCostBiotechnology game.ResearchCostLevel `json:"researchCostBiotechnology,omitempty"`
 	TechsStartHigh            bool                   `json:"techsStartHigh,omitempty"`
-	Spec                      *game.RaceSpec         `json:"spec,omitempty"`
+	Spec                      *RaceSpec              `json:"spec,omitempty"`
+}
+
+// we json serialize these types with custom Scan/Value methods
+type RaceSpec game.RaceSpec
+
+// db serializer to serialize this to JSON
+func (item *RaceSpec) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
+	data, err := json.Marshal(item)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+// db deserializer to read this from JSON
+func (item *RaceSpec) Scan(src interface{}) error {
+	switch v := src.(type) {
+	case []byte:
+		return json.Unmarshal(v, item)
+	case string:
+		return json.Unmarshal([]byte(v), item)
+	}
+	return errors.New("type assertion failed")
 }
 
 func (c *client) GetRaces() ([]game.Race, error) {

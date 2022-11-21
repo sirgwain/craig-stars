@@ -6,6 +6,39 @@ import game "github.com/sirgwain/craig-stars/game"
 
 type GameConverter struct{}
 
+func (c *GameConverter) ConvertGame(source Game) game.Game {
+	var gameGame game.Game
+	gameGame.ID = source.ID
+	gameGame.CreatedAt = TimeToTime(source.CreatedAt)
+	gameGame.UpdatedAt = TimeToTime(source.UpdatedAt)
+	gameGame.Name = source.Name
+	gameGame.HostID = source.HostID
+	gameGame.QuickStartTurns = source.QuickStartTurns
+	gameGame.Size = game.Size(source.Size)
+	gameGame.Density = game.Density(source.Density)
+	gameGame.PlayerPositions = game.PlayerPositions(source.PlayerPositions)
+	gameGame.RandomEvents = source.RandomEvents
+	gameGame.ComputerPlayersFormAlliances = source.ComputerPlayersFormAlliances
+	gameGame.PublicPlayerScores = source.PublicPlayerScores
+	gameGame.StartMode = game.GameStartMode(source.StartMode)
+	gameGame.Year = source.Year
+	gameGame.State = game.GameState(source.State)
+	gameGame.OpenPlayerSlots = source.OpenPlayerSlots
+	gameGame.NumPlayers = source.NumPlayers
+	gameGame.VictoryConditions = ExtendVictoryConditions(source)
+	gameGame.VictorDeclared = source.VictorDeclared
+	gameGame.Rules = RulesToGameRules(source.Rules)
+	gameGame.Area = ExtendArea(source)
+	return gameGame
+}
+func (c *GameConverter) ConvertGameGame(source *game.Game) *Game {
+	var pDbsqlxGame *Game
+	if source != nil {
+		dbsqlxGame := c.gameGameToDbsqlxGame(*source)
+		pDbsqlxGame = &dbsqlxGame
+	}
+	return pDbsqlxGame
+}
 func (c *GameConverter) ConvertGameRace(source *game.Race) *Race {
 	var pDbsqlxRace *Race
 	if source != nil {
@@ -21,6 +54,13 @@ func (c *GameConverter) ConvertGameUser(source *game.User) *User {
 		pDbsqlxUser = &dbsqlxUser
 	}
 	return pDbsqlxUser
+}
+func (c *GameConverter) ConvertGames(source []Game) []game.Game {
+	gameGameList := make([]game.Game, len(source))
+	for i := 0; i < len(source); i++ {
+		gameGameList[i] = c.ConvertGame(source[i])
+	}
+	return gameGameList
 }
 func (c *GameConverter) ConvertRace(source Race) game.Race {
 	var gameRace game.Race
@@ -54,12 +94,7 @@ func (c *GameConverter) ConvertRace(source Race) game.Race {
 	gameRace.NumMines = source.NumMines
 	gameRace.ResearchCost = ExtendResearchCost(source)
 	gameRace.TechsStartHigh = source.TechsStartHigh
-	var pGameRaceSpec *game.RaceSpec
-	if source.Spec != nil {
-		gameRaceSpec := c.gameRaceSpecToGameRaceSpec(*source.Spec)
-		pGameRaceSpec = &gameRaceSpec
-	}
-	gameRace.Spec = pGameRaceSpec
+	gameRace.Spec = RaceSpecToGameRaceSpec(source.Spec)
 	return gameRace
 }
 func (c *GameConverter) ConvertRaces(source []Race) []game.Race {
@@ -86,99 +121,41 @@ func (c *GameConverter) ConvertUsers(source []User) []game.User {
 	}
 	return gameUserList
 }
-func (c *GameConverter) gameCostToGameCost(source game.Cost) game.Cost {
-	var gameCost game.Cost
-	gameCost.Ironium = source.Ironium
-	gameCost.Boranium = source.Boranium
-	gameCost.Germanium = source.Germanium
-	gameCost.Resources = source.Resources
-	return gameCost
-}
-func (c *GameConverter) gameRaceSpecToGameRaceSpec(source game.RaceSpec) game.RaceSpec {
-	var gameRaceSpec game.RaceSpec
-	mapGameQueueItemTypeGameCost := make(map[game.QueueItemType]game.Cost, len(source.Costs))
-	for key, value := range source.Costs {
-		mapGameQueueItemTypeGameCost[game.QueueItemType(key)] = c.gameCostToGameCost(value)
-	}
-	gameRaceSpec.Costs = mapGameQueueItemTypeGameCost
-	gameRaceSpec.StartingTechLevels = c.gameTechLevelToGameTechLevel(source.StartingTechLevels)
-	gameStartingPlanetList := make([]game.StartingPlanet, len(source.StartingPlanets))
-	for i := 0; i < len(source.StartingPlanets); i++ {
-		gameStartingPlanetList[i] = c.gameStartingPlanetToGameStartingPlanet(source.StartingPlanets[i])
-	}
-	gameRaceSpec.StartingPlanets = gameStartingPlanetList
-	gameRaceSpec.TechCostOffset = c.gameTechCostOffsetToGameTechCostOffset(source.TechCostOffset)
-	gameRaceSpec.MineralsPerSingleMineralPacket = source.MineralsPerSingleMineralPacket
-	gameRaceSpec.MineralsPerMixedMineralPacket = source.MineralsPerMixedMineralPacket
-	gameRaceSpec.PacketResourceCost = source.PacketResourceCost
-	gameRaceSpec.PacketMineralCostFactor = source.PacketMineralCostFactor
-	gameRaceSpec.PacketReceiverFactor = source.PacketReceiverFactor
-	gameRaceSpec.PacketDecayFactor = source.PacketDecayFactor
-	gameRaceSpec.PacketOverSafeWarpPenalty = source.PacketOverSafeWarpPenalty
-	gameRaceSpec.PacketBuiltInScanner = source.PacketBuiltInScanner
-	gameRaceSpec.DetectPacketDestinationStarbases = source.DetectPacketDestinationStarbases
-	gameRaceSpec.DetectAllPackets = source.DetectAllPackets
-	gameRaceSpec.PacketTerraformChance = source.PacketTerraformChance
-	gameRaceSpec.PacketPermaformChance = source.PacketPermaformChance
-	gameRaceSpec.PacketPermaTerraformSizeUnit = source.PacketPermaTerraformSizeUnit
-	gameRaceSpec.CanGateCargo = source.CanGateCargo
-	gameRaceSpec.CanDetectStargatePlanets = source.CanDetectStargatePlanets
-	gameRaceSpec.ShipsVanishInVoid = source.ShipsVanishInVoid
-	gameRaceSpec.BuiltInScannerMultiplier = source.BuiltInScannerMultiplier
-	gameRaceSpec.TechsCostExtraLevel = source.TechsCostExtraLevel
-	gameRaceSpec.FreighterGrowthFactor = source.FreighterGrowthFactor
-	gameRaceSpec.GrowthFactor = source.GrowthFactor
-	gameRaceSpec.MaxPopulationOffset = source.MaxPopulationOffset
-	gameRaceSpec.BuiltInCloakUnits = source.BuiltInCloakUnits
-	gameRaceSpec.StealsResearch = c.gameTechLevelToGameTechLevel(source.StealsResearch)
-	gameRaceSpec.FreeCargoCloaking = source.FreeCargoCloaking
-	gameRaceSpec.MineFieldsAreScanners = source.MineFieldsAreScanners
-	gameRaceSpec.MineFieldRateMoveFactor = source.MineFieldRateMoveFactor
-	gameRaceSpec.MineFieldSafeWarpBonus = source.MineFieldSafeWarpBonus
-	gameRaceSpec.MineFieldMinDecayFactor = source.MineFieldMinDecayFactor
-	gameRaceSpec.MineFieldBaseDecayRate = source.MineFieldBaseDecayRate
-	gameRaceSpec.MineFieldPlanetDecayRate = source.MineFieldPlanetDecayRate
-	gameRaceSpec.MineFieldMaxDecayRate = source.MineFieldMaxDecayRate
-	gameRaceSpec.CanDetonateMineFields = source.CanDetonateMineFields
-	gameRaceSpec.MineFieldDetonateDecayRate = source.MineFieldDetonateDecayRate
-	gameRaceSpec.DiscoverDesignOnScan = source.DiscoverDesignOnScan
-	gameRaceSpec.CanRemoteMineOwnPlanets = source.CanRemoteMineOwnPlanets
-	gameRaceSpec.InvasionAttackBonus = source.InvasionAttackBonus
-	gameRaceSpec.InvasionDefendBonus = source.InvasionDefendBonus
-	gameRaceSpec.MovementBonus = source.MovementBonus
-	gameRaceSpec.Instaforming = source.Instaforming
-	gameRaceSpec.PermaformChance = source.PermaformChance
-	gameRaceSpec.PermaformPopulation = source.PermaformPopulation
-	gameRaceSpec.RepairFactor = source.RepairFactor
-	gameRaceSpec.StarbaseRepairFactor = source.StarbaseRepairFactor
-	gameRaceSpec.InnateMining = source.InnateMining
-	gameRaceSpec.InnateResources = source.InnateResources
-	gameRaceSpec.InnateScanner = source.InnateScanner
-	gameRaceSpec.InnatePopulationFactor = source.InnatePopulationFactor
-	gameRaceSpec.CanBuildDefenses = source.CanBuildDefenses
-	gameRaceSpec.LivesOnStarbases = source.LivesOnStarbases
-	gameRaceSpec.NewTechCostFactor = source.NewTechCostFactor
-	gameRaceSpec.MiniaturizationMax = source.MiniaturizationMax
-	gameRaceSpec.MiniaturizationPerLevel = source.MiniaturizationPerLevel
-	gameRaceSpec.NoAdvancedScanners = source.NoAdvancedScanners
-	gameRaceSpec.ScanRangeFactor = source.ScanRangeFactor
-	gameRaceSpec.FuelEfficiencyOffset = source.FuelEfficiencyOffset
-	gameRaceSpec.TerraformCostOffset = c.gameCostToGameCost(source.TerraformCostOffset)
-	gameRaceSpec.MineralAlchemyCostOffset = source.MineralAlchemyCostOffset
-	gameRaceSpec.ScrapMineralOffset = source.ScrapMineralOffset
-	gameRaceSpec.ScrapMineralOffsetStarbase = source.ScrapMineralOffsetStarbase
-	gameRaceSpec.ScrapResourcesOffset = source.ScrapResourcesOffset
-	gameRaceSpec.ScrapResourcesOffsetStarbase = source.ScrapResourcesOffsetStarbase
-	gameRaceSpec.StartingPopulationFactor = source.StartingPopulationFactor
-	gameRaceSpec.StarbaseBuiltInCloakUnits = source.StarbaseBuiltInCloakUnits
-	gameRaceSpec.StarbaseCostFactor = source.StarbaseCostFactor
-	gameRaceSpec.ResearchFactor = source.ResearchFactor
-	gameRaceSpec.ResearchSplashDamage = source.ResearchSplashDamage
-	gameRaceSpec.ShieldStrengthFactor = source.ShieldStrengthFactor
-	gameRaceSpec.ShieldRegenerationRate = source.ShieldRegenerationRate
-	gameRaceSpec.EngineFailureRate = source.EngineFailureRate
-	gameRaceSpec.EngineReliableSpeed = source.EngineReliableSpeed
-	return gameRaceSpec
+func (c *GameConverter) gameGameToDbsqlxGame(source game.Game) Game {
+	var dbsqlxGame Game
+	dbsqlxGame.ID = source.ID
+	dbsqlxGame.CreatedAt = TimeToTime(source.CreatedAt)
+	dbsqlxGame.UpdatedAt = TimeToTime(source.UpdatedAt)
+	dbsqlxGame.Name = source.Name
+	dbsqlxGame.HostID = source.HostID
+	dbsqlxGame.QuickStartTurns = source.QuickStartTurns
+	dbsqlxGame.Size = game.Size(source.Size)
+	dbsqlxGame.Density = game.Density(source.Density)
+	dbsqlxGame.PlayerPositions = game.PlayerPositions(source.PlayerPositions)
+	dbsqlxGame.RandomEvents = source.RandomEvents
+	dbsqlxGame.ComputerPlayersFormAlliances = source.ComputerPlayersFormAlliances
+	dbsqlxGame.PublicPlayerScores = source.PublicPlayerScores
+	dbsqlxGame.StartMode = game.GameStartMode(source.StartMode)
+	dbsqlxGame.Year = source.Year
+	dbsqlxGame.State = game.GameState(source.State)
+	dbsqlxGame.OpenPlayerSlots = source.OpenPlayerSlots
+	dbsqlxGame.NumPlayers = source.NumPlayers
+	dbsqlxGame.VictoryConditionsConditions = c.gameVictoryConditionListToDbsqlxVictoryConditions(source.VictoryConditions.Conditions)
+	dbsqlxGame.VictoryConditionsNumCriteriaRequired = source.VictoryConditions.NumCriteriaRequired
+	dbsqlxGame.VictoryConditionsYearsPassed = source.VictoryConditions.YearsPassed
+	dbsqlxGame.VictoryConditionsOwnPlanets = source.VictoryConditions.OwnPlanets
+	dbsqlxGame.VictoryConditionsAttainTechLevel = source.VictoryConditions.AttainTechLevel
+	dbsqlxGame.VictoryConditionsAttainTechLevelNumFields = source.VictoryConditions.AttainTechLevelNumFields
+	dbsqlxGame.VictoryConditionsExceedsScore = source.VictoryConditions.ExceedsScore
+	dbsqlxGame.VictoryConditionsExceedsSecondPlaceScore = source.VictoryConditions.ExceedsSecondPlaceScore
+	dbsqlxGame.VictoryConditionsProductionCapacity = source.VictoryConditions.ProductionCapacity
+	dbsqlxGame.VictoryConditionsOwnCapitalShips = source.VictoryConditions.OwnCapitalShips
+	dbsqlxGame.VictoryConditionsHighestScoreAfterYears = source.VictoryConditions.HighestScoreAfterYears
+	dbsqlxGame.VictorDeclared = source.VictorDeclared
+	dbsqlxGame.Rules = GameRulesToRules(source.Rules)
+	dbsqlxGame.AreaX = source.Area.X
+	dbsqlxGame.AreaY = source.Area.Y
+	return dbsqlxGame
 }
 func (c *GameConverter) gameRaceToDbsqlxRace(source game.Race) Race {
 	var dbsqlxRace Race
@@ -221,55 +198,8 @@ func (c *GameConverter) gameRaceToDbsqlxRace(source game.Race) Race {
 	dbsqlxRace.ResearchCostElectronics = game.ResearchCostLevel(source.ResearchCost.Electronics)
 	dbsqlxRace.ResearchCostBiotechnology = game.ResearchCostLevel(source.ResearchCost.Biotechnology)
 	dbsqlxRace.TechsStartHigh = source.TechsStartHigh
-	var pGameRaceSpec *game.RaceSpec
-	if source.Spec != nil {
-		gameRaceSpec := c.gameRaceSpecToGameRaceSpec(*source.Spec)
-		pGameRaceSpec = &gameRaceSpec
-	}
-	dbsqlxRace.Spec = pGameRaceSpec
+	dbsqlxRace.Spec = GameRaceSpecToRaceSpec(source.Spec)
 	return dbsqlxRace
-}
-func (c *GameConverter) gameStartingFleetToGameStartingFleet(source game.StartingFleet) game.StartingFleet {
-	var gameStartingFleet game.StartingFleet
-	gameStartingFleet.Name = source.Name
-	gameStartingFleet.HullName = game.StartingFleetHull(source.HullName)
-	gameStartingFleet.HullSetNumber = source.HullSetNumber
-	gameStartingFleet.Purpose = game.ShipDesignPurpose(source.Purpose)
-	return gameStartingFleet
-}
-func (c *GameConverter) gameStartingPlanetToGameStartingPlanet(source game.StartingPlanet) game.StartingPlanet {
-	var gameStartingPlanet game.StartingPlanet
-	gameStartingPlanet.Population = source.Population
-	gameStartingPlanet.HabPenaltyFactor = source.HabPenaltyFactor
-	gameStartingPlanet.HasStargate = source.HasStargate
-	gameStartingPlanet.HasMassDriver = source.HasMassDriver
-	gameStartingPlanet.StarbaseDesignName = source.StarbaseDesignName
-	gameStartingPlanet.StarbaseHull = source.StarbaseHull
-	gameStartingFleetList := make([]game.StartingFleet, len(source.StartingFleets))
-	for i := 0; i < len(source.StartingFleets); i++ {
-		gameStartingFleetList[i] = c.gameStartingFleetToGameStartingFleet(source.StartingFleets[i])
-	}
-	gameStartingPlanet.StartingFleets = gameStartingFleetList
-	return gameStartingPlanet
-}
-func (c *GameConverter) gameTechCostOffsetToGameTechCostOffset(source game.TechCostOffset) game.TechCostOffset {
-	var gameTechCostOffset game.TechCostOffset
-	gameTechCostOffset.Engine = source.Engine
-	gameTechCostOffset.BeamWeapon = source.BeamWeapon
-	gameTechCostOffset.Torpedo = source.Torpedo
-	gameTechCostOffset.Bomb = source.Bomb
-	gameTechCostOffset.PlanetaryDefense = source.PlanetaryDefense
-	return gameTechCostOffset
-}
-func (c *GameConverter) gameTechLevelToGameTechLevel(source game.TechLevel) game.TechLevel {
-	var gameTechLevel game.TechLevel
-	gameTechLevel.Energy = source.Energy
-	gameTechLevel.Weapons = source.Weapons
-	gameTechLevel.Propulsion = source.Propulsion
-	gameTechLevel.Construction = source.Construction
-	gameTechLevel.Electronics = source.Electronics
-	gameTechLevel.Biotechnology = source.Biotechnology
-	return gameTechLevel
 }
 func (c *GameConverter) gameUserToDbsqlxUser(source game.User) User {
 	var dbsqlxUser User
@@ -280,4 +210,11 @@ func (c *GameConverter) gameUserToDbsqlxUser(source game.User) User {
 	dbsqlxUser.Password = source.Password
 	dbsqlxUser.Role = string(source.Role)
 	return dbsqlxUser
+}
+func (c *GameConverter) gameVictoryConditionListToDbsqlxVictoryConditions(source []game.VictoryCondition) VictoryConditions {
+	dbsqlxVictoryConditions := make(VictoryConditions, len(source))
+	for i := 0; i < len(source); i++ {
+		dbsqlxVictoryConditions[i] = game.VictoryCondition(source[i])
+	}
+	return dbsqlxVictoryConditions
 }
