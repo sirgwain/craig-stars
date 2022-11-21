@@ -13,9 +13,10 @@ func connectTestDB() *client {
 		converter: &GameConverter{},
 	}
 	cfg := &config.Config{}
-	// cfg.Database.Filename = "../data/sqlx.db"
-	cfg.Database.Filename = ":memory:"
+	cfg.Database.Filename = "../data/sqlx.db"
+	// cfg.Database.Filename = ":memory:"
 	cfg.Database.Recreate = true
+	cfg.Database.DebugLogging = true
 	if err := c.Connect(cfg); err != nil {
 		panic(fmt.Errorf("Failed to connect to test database, %w", err))
 	}
@@ -27,4 +28,15 @@ func connectTestDB() *client {
 	}
 
 	return &c
+}
+
+func (c *client) createTestGame() *game.Game {
+
+	g := game.NewGame()
+	g.HostID = 1
+	if err := c.CreateGame(g); err != nil {
+		panic(fmt.Errorf("Failed to create test database game, %w", err))
+	}
+
+	return g
 }

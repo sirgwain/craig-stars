@@ -1,4 +1,4 @@
-//go:generate go run github.com/jmattheis/goverter/cmd/goverter --packageName dbsqlx --output ./dbsqlx/generated.go --packagePath github.com/sirgwain/craig-stars/dbsqlx github.com/sirgwain/craigstars/dbsqlx
+//go:generate go run github.com/jmattheis/goverter/cmd/goverter --packageName dbsqlx --output ./dbsqlx/generated.go --packagePath github.com/sirgwain/craig-stars/dbsqlx --ignoreUnexportedFields github.com/sirgwain/craigstars/dbsqlx
 package dbsqlx
 
 import (
@@ -7,15 +7,20 @@ import (
 	"github.com/sirgwain/craig-stars/game"
 )
 
-// generate converter with
-
 // goverter:converter
 // goverter:extend TimeToTime
 // goverter:extend RulesToGameRules
 // goverter:extend GameRulesToRules
 // goverter:extend RaceSpecToGameRaceSpec
 // goverter:extend GameRaceSpecToRaceSpec
-// goverter:extend RaceSpecToRaceSpec
+// goverter:extend ProductionPlansToGameProductionPlans
+// goverter:extend GameProductionPlansToProductionPlans
+// goverter:extend TransportPlansToGameTransportPlans
+// goverter:extend GameTransportPlansToTransportPlans
+// goverter:extend PlayerSpecToGamePlayerSpec
+// goverter:extend GamePlayerSpecToPlayerSpec
+// goverter:extend PlayerStatsToGamePlayerStats
+// goverter:extend GamePlayerStatsToPlayerStats
 // goverter:name GameConverter
 type Converter interface {
 	ConvertUser(source User) game.User
@@ -67,30 +72,88 @@ type Converter interface {
 	// goverter:map Area.X AreaX
 	// goverter:map Area.Y AreaY
 	ConvertGameGame(source *game.Game) *Game
+
+	// goverter:mapExtend TechLevels ExtendTechLevels
+	// goverter:mapExtend TechLevelsSpent ExtendTechLevelsSpent
+	// goverter:ignore Race
+	// goverter:ignore Messages
+	// goverter:ignore BattlePlans
+	// goverter:ignore Designs
+	// goverter:ignore PlanetIntels
+	// goverter:ignore FleetIntels
+	// goverter:ignore DesignIntels
+	// goverter:ignore MineralPacketIntels
+	// goverter:ignore MineFieldIntels
+	ConvertPlayer(source Player) game.Player
+	// goverter:mapExtend TechLevels ExtendTechLevels
+	// goverter:mapExtend TechLevelsSpent ExtendTechLevelsSpent
+	ConvertPlayers(source []Player) []game.Player
+
+	// goverter:map TechLevels.Energy TechLevelsEnergy
+	// goverter:map TechLevels.Weapons TechLevelsWeapons
+	// goverter:map TechLevels.Propulsion TechLevelsPropulsion
+	// goverter:map TechLevels.Construction TechLevelsConstruction
+	// goverter:map TechLevels.Electronics TechLevelsElectronics
+	// goverter:map TechLevels.Biotechnology TechLevelsBiotechnology
+	// goverter:map TechLevelsSpent.Energy TechLevelsSpentEnergy
+	// goverter:map TechLevelsSpent.Weapons TechLevelsSpentWeapons
+	// goverter:map TechLevelsSpent.Propulsion TechLevelsSpentPropulsion
+	// goverter:map TechLevelsSpent.Construction TechLevelsSpentConstruction
+	// goverter:map TechLevelsSpent.Electronics TechLevelsSpentElectronics
+	// goverter:map TechLevelsSpent.Biotechnology TechLevelsSpentBiotechnology
+	ConvertGamePlayer(source *game.Player) *Player
 }
 
-func TimeToTime(t time.Time) time.Time {
-	return t
+func TimeToTime(source time.Time) time.Time {
+	return source
 }
 
-func RulesToGameRules(r Rules) game.Rules {
-	return game.Rules(r)
+func RulesToGameRules(source Rules) game.Rules {
+	return game.Rules(source)
 }
 
-func GameRulesToRules(r game.Rules) Rules {
-	return Rules(r)
+func GameRulesToRules(source game.Rules) Rules {
+	return Rules(source)
 }
 
-func RaceSpecToGameRaceSpec(r *RaceSpec) *game.RaceSpec {
-	return (*game.RaceSpec)(r)
+func RaceSpecToGameRaceSpec(source *RaceSpec) *game.RaceSpec {
+	return (*game.RaceSpec)(source)
 }
 
-func GameRaceSpecToRaceSpec(r *game.RaceSpec) *RaceSpec {
-	return (*RaceSpec)(r)
+func GameRaceSpecToRaceSpec(source *game.RaceSpec) *RaceSpec {
+	return (*RaceSpec)(source)
 }
 
-func RaceSpecToRaceSpec(s *game.RaceSpec) *game.RaceSpec {
-	return s
+func ProductionPlansToGameProductionPlans(source ProductionPlans) []game.ProductionPlan {
+	return ([]game.ProductionPlan)(source)
+}
+
+func GameProductionPlansToProductionPlans(source []game.ProductionPlan) ProductionPlans {
+	return (ProductionPlans)(source)
+}
+
+func TransportPlansToGameTransportPlans(source TransportPlans) []game.TransportPlan {
+	return ([]game.TransportPlan)(source)
+}
+
+func GameTransportPlansToTransportPlans(source []game.TransportPlan) TransportPlans {
+	return (TransportPlans)(source)
+}
+
+func PlayerSpecToGamePlayerSpec(source *PlayerSpec) *game.PlayerSpec {
+	return (*game.PlayerSpec)(source)
+}
+
+func GamePlayerSpecToPlayerSpec(source *game.PlayerSpec) *PlayerSpec {
+	return (*PlayerSpec)(source)
+}
+
+func PlayerStatsToGamePlayerStats(source *PlayerStats) *game.PlayerStats {
+	return (*game.PlayerStats)(source)
+}
+
+func GamePlayerStatsToPlayerStats(source *game.PlayerStats) *PlayerStats {
+	return (*PlayerStats)(source)
 }
 
 func ExtendResearchCost(source Race) game.ResearchCost {
@@ -140,5 +203,27 @@ func ExtendArea(source Game) game.Vector {
 	return game.Vector{
 		X: source.AreaX,
 		Y: source.AreaY,
+	}
+}
+
+func ExtendTechLevels(source Player) game.TechLevel {
+	return game.TechLevel{
+		Energy:        source.TechLevelsEnergy,
+		Weapons:       source.TechLevelsWeapons,
+		Propulsion:    source.TechLevelsPropulsion,
+		Construction:  source.TechLevelsConstruction,
+		Electronics:   source.TechLevelsElectronics,
+		Biotechnology: source.TechLevelsBiotechnology,
+	}
+}
+
+func ExtendTechLevelsSpent(source Player) game.TechLevel {
+	return game.TechLevel{
+		Energy:        source.TechLevelsSpentEnergy,
+		Weapons:       source.TechLevelsSpentWeapons,
+		Propulsion:    source.TechLevelsSpentPropulsion,
+		Construction:  source.TechLevelsSpentConstruction,
+		Electronics:   source.TechLevelsSpentElectronics,
+		Biotechnology: source.TechLevelsSpentBiotechnology,
 	}
 }

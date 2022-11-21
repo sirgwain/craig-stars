@@ -9,11 +9,14 @@ import (
 	"github.com/sirgwain/craig-stars/config"
 	"github.com/sirgwain/craig-stars/game"
 
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/jmoiron/sqlx/reflectx"
+	"github.com/mattn/go-sqlite3"
 	_ "github.com/mattn/go-sqlite3"
+	sqldblogger "github.com/simukti/sqldb-logger"
 )
 
 type client struct {
@@ -54,10 +57,19 @@ func (c *client) Connect(config *config.Config) error {
 		}
 	}
 
-	localdb, err := sqlx.Connect("sqlite3", config.Database.Filename)
-	if err != nil {
-		return err
+	log.Debug().Msgf("Connecting to database %s", config.Database.Filename)
+
+	// create a new logger for logging database calls
+	var zlogger zerolog.Logger
+	if config.Database.DebugLogging {
+		zlogger = zerolog.New(os.Stderr).With().Timestamp().Logger().Output(zerolog.ConsoleWriter{Out: os.Stderr}).Level(zerolog.DebugLevel)
+	} else {
+		zlogger = zerolog.New(os.Stderr).With().Timestamp().Logger().Level(zerolog.WarnLevel)
 	}
+	loggerAdapter := NewLoggerWithLogger(&zlogger)
+	db := sqldblogger.OpenDriver(config.Database.Filename, &sqlite3.SQLiteDriver{}, loggerAdapter /*, ...options */)
+
+	localdb := sqlx.NewDb(db, "sqlite3")
 
 	if _, err := localdb.Exec("PRAGMA foreign_keys = ON;"); err != nil {
 		return err

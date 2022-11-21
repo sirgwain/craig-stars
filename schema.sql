@@ -42,8 +42,10 @@ CREATE TABLE races (
   researchCostBiotechnology TEXT,
   techsStartHigh NUMERIC,
   spec TEXT,
-  FOREIGN KEY (userId) REFERENCES users (id) ON DELETE SET NULL,
-  FOREIGN KEY (playerId) REFERENCES players (id) ON DELETE SET NULL
+  FOREIGN KEY (userId) REFERENCES users (id) ON DELETE
+  SET NULL,
+    FOREIGN KEY (playerId) REFERENCES players (id) ON DELETE
+  SET NULL
 );
 CREATE TABLE games (
   id INTEGER PRIMARY KEY,
@@ -155,19 +157,18 @@ CREATE TABLE players (
   submittedTurn NUMERIC,
   color TEXT,
   defaultHullSet INTEGER,
-  race TEXT,
   techLevelsEnergy INTEGER,
   techLevelsWeapons INTEGER,
   techLevelsPropulsion INTEGER,
   techLevelsConstruction INTEGER,
   techLevelsElectronics INTEGER,
   techLevelsBiotechnology INTEGER,
-  techLevelsSpentenergy INTEGER,
-  techLevelsSpentweapons INTEGER,
-  techLevelsSpentpropulsion INTEGER,
-  techLevelsSpentconstruction INTEGER,
-  techLevelsSpentelectronics INTEGER,
-  techLevelsSpentbiotechnology INTEGER,
+  techLevelsSpentEnergy INTEGER,
+  techLevelsSpentWeapons INTEGER,
+  techLevelsSpentPropulsion INTEGER,
+  techLevelsSpentConstruction INTEGER,
+  techLevelsSpentElectronics INTEGER,
+  techLevelsSpentBiotechnology INTEGER,
   researchAmount INTEGER,
   researchSpentLastYear INTEGER,
   nextResearchField TEXT,
@@ -175,7 +176,9 @@ CREATE TABLE players (
   productionPlans TEXT,
   transportPlans TEXT,
   stats TEXT,
-  spec TEXT
+  spec TEXT,
+  FOREIGN KEY (gameId) REFERENCES games (id),
+  FOREIGN KEY (userId) REFERENCES users (id)
 );
 CREATE TABLE playerMessages (
   id INTEGER PRIMARY KEY,
