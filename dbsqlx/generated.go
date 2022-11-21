@@ -92,18 +92,8 @@ func (c *GameConverter) ConvertPlayer(source Player) game.Player {
 	gamePlayer.Researching = game.TechField(source.Researching)
 	gamePlayer.ProductionPlans = ProductionPlansToGameProductionPlans(source.ProductionPlans)
 	gamePlayer.TransportPlans = TransportPlansToGameTransportPlans(source.TransportPlans)
-	var pGamePlayerStats *game.PlayerStats
-	if source.Stats != nil {
-		gamePlayerStats := c.gamePlayerStatsToGamePlayerStats(*source.Stats)
-		pGamePlayerStats = &gamePlayerStats
-	}
-	gamePlayer.Stats = pGamePlayerStats
-	var pGamePlayerSpec *game.PlayerSpec
-	if source.Spec != nil {
-		gamePlayerSpec := c.gamePlayerSpecToGamePlayerSpec(*source.Spec)
-		pGamePlayerSpec = &gamePlayerSpec
-	}
-	gamePlayer.Spec = pGamePlayerSpec
+	gamePlayer.Stats = PlayerStatsToGamePlayerStats(source.Stats)
+	gamePlayer.Spec = PlayerSpecToGamePlayerSpec(source.Spec)
 	return gamePlayer
 }
 func (c *GameConverter) ConvertPlayers(source []Player) []game.Player {
@@ -172,14 +162,6 @@ func (c *GameConverter) ConvertUsers(source []User) []game.User {
 	}
 	return gameUserList
 }
-func (c *GameConverter) gameCostToGameCost(source game.Cost) game.Cost {
-	var gameCost game.Cost
-	gameCost.Ironium = source.Ironium
-	gameCost.Boranium = source.Boranium
-	gameCost.Germanium = source.Germanium
-	gameCost.Resources = source.Resources
-	return gameCost
-}
 func (c *GameConverter) gameGameToDbsqlxGame(source game.Game) Game {
 	var dbsqlxGame Game
 	dbsqlxGame.ID = source.ID
@@ -216,30 +198,6 @@ func (c *GameConverter) gameGameToDbsqlxGame(source game.Game) Game {
 	dbsqlxGame.AreaY = source.Area.Y
 	return dbsqlxGame
 }
-func (c *GameConverter) gamePlayerSpecToGamePlayerSpec(source game.PlayerSpec) game.PlayerSpec {
-	var gamePlayerSpec game.PlayerSpec
-	var pGameTechPlanetaryScanner *game.TechPlanetaryScanner
-	if source.PlanetaryScanner != nil {
-		gameTechPlanetaryScanner := c.gameTechPlanetaryScannerToGameTechPlanetaryScanner(*source.PlanetaryScanner)
-		pGameTechPlanetaryScanner = &gameTechPlanetaryScanner
-	}
-	gamePlayerSpec.PlanetaryScanner = pGameTechPlanetaryScanner
-	var pGameTechDefense *game.TechDefense
-	if source.Defense != nil {
-		gameTechDefense := c.gameTechDefenseToGameTechDefense(*source.Defense)
-		pGameTechDefense = &gameTechDefense
-	}
-	gamePlayerSpec.Defense = pGameTechDefense
-	gamePlayerSpec.ResourcesLeftover = source.ResourcesLeftover
-	return gamePlayerSpec
-}
-func (c *GameConverter) gamePlayerStatsToGamePlayerStats(source game.PlayerStats) game.PlayerStats {
-	var gamePlayerStats game.PlayerStats
-	gamePlayerStats.FleetsBuilt = source.FleetsBuilt
-	gamePlayerStats.TokensBuilt = source.TokensBuilt
-	gamePlayerStats.PlanetsColonized = source.PlanetsColonized
-	return gamePlayerStats
-}
 func (c *GameConverter) gamePlayerToDbsqlxPlayer(source game.Player) Player {
 	var dbsqlxPlayer Player
 	dbsqlxPlayer.ID = source.ID
@@ -272,18 +230,8 @@ func (c *GameConverter) gamePlayerToDbsqlxPlayer(source game.Player) Player {
 	dbsqlxPlayer.Researching = game.TechField(source.Researching)
 	dbsqlxPlayer.ProductionPlans = GameProductionPlansToProductionPlans(source.ProductionPlans)
 	dbsqlxPlayer.TransportPlans = GameTransportPlansToTransportPlans(source.TransportPlans)
-	var pGamePlayerStats *game.PlayerStats
-	if source.Stats != nil {
-		gamePlayerStats := c.gamePlayerStatsToGamePlayerStats(*source.Stats)
-		pGamePlayerStats = &gamePlayerStats
-	}
-	dbsqlxPlayer.Stats = pGamePlayerStats
-	var pGamePlayerSpec *game.PlayerSpec
-	if source.Spec != nil {
-		gamePlayerSpec := c.gamePlayerSpecToGamePlayerSpec(*source.Spec)
-		pGamePlayerSpec = &gamePlayerSpec
-	}
-	dbsqlxPlayer.Spec = pGamePlayerSpec
+	dbsqlxPlayer.Stats = GamePlayerStatsToPlayerStats(source.Stats)
+	dbsqlxPlayer.Spec = GamePlayerSpecToPlayerSpec(source.Spec)
 	return dbsqlxPlayer
 }
 func (c *GameConverter) gameRaceToDbsqlxRace(source game.Race) Race {
@@ -329,51 +277,6 @@ func (c *GameConverter) gameRaceToDbsqlxRace(source game.Race) Race {
 	dbsqlxRace.TechsStartHigh = source.TechsStartHigh
 	dbsqlxRace.Spec = GameRaceSpecToRaceSpec(source.Spec)
 	return dbsqlxRace
-}
-func (c *GameConverter) gameTechDefenseToGameTechDefense(source game.TechDefense) game.TechDefense {
-	var gameTechDefense game.TechDefense
-	gameTechDefense.Tech = c.gameTechToGameTech(source.Tech)
-	gameTechDefense.DefenseCoverage = source.DefenseCoverage
-	return gameTechDefense
-}
-func (c *GameConverter) gameTechLevelToGameTechLevel(source game.TechLevel) game.TechLevel {
-	var gameTechLevel game.TechLevel
-	gameTechLevel.Energy = source.Energy
-	gameTechLevel.Weapons = source.Weapons
-	gameTechLevel.Propulsion = source.Propulsion
-	gameTechLevel.Construction = source.Construction
-	gameTechLevel.Electronics = source.Electronics
-	gameTechLevel.Biotechnology = source.Biotechnology
-	return gameTechLevel
-}
-func (c *GameConverter) gameTechPlanetaryScannerToGameTechPlanetaryScanner(source game.TechPlanetaryScanner) game.TechPlanetaryScanner {
-	var gameTechPlanetaryScanner game.TechPlanetaryScanner
-	gameTechPlanetaryScanner.Tech = c.gameTechToGameTech(source.Tech)
-	gameTechPlanetaryScanner.ScanRange = source.ScanRange
-	gameTechPlanetaryScanner.ScanRangePen = source.ScanRangePen
-	return gameTechPlanetaryScanner
-}
-func (c *GameConverter) gameTechRequirementsToGameTechRequirements(source game.TechRequirements) game.TechRequirements {
-	var gameTechRequirements game.TechRequirements
-	gameTechRequirements.TechLevel = c.gameTechLevelToGameTechLevel(source.TechLevel)
-	gameTechRequirements.PRTDenied = game.PRT(source.PRTDenied)
-	gameTechRequirements.LRTsRequired = game.LRT(source.LRTsRequired)
-	gameTechRequirements.LRTsDenied = game.LRT(source.LRTsDenied)
-	gameTechRequirements.PRTRequired = game.PRT(source.PRTRequired)
-	return gameTechRequirements
-}
-func (c *GameConverter) gameTechToGameTech(source game.Tech) game.Tech {
-	var gameTech game.Tech
-	gameTech.ID = source.ID
-	gameTech.CreatedAt = TimeToTime(source.CreatedAt)
-	gameTech.UpdatedAt = TimeToTime(source.UpdatedAt)
-	gameTech.TechStoreID = source.TechStoreID
-	gameTech.Name = source.Name
-	gameTech.Cost = c.gameCostToGameCost(source.Cost)
-	gameTech.Requirements = c.gameTechRequirementsToGameTechRequirements(source.Requirements)
-	gameTech.Ranking = source.Ranking
-	gameTech.Category = game.TechCategory(source.Category)
-	return gameTech
 }
 func (c *GameConverter) gameUserToDbsqlxUser(source game.User) User {
 	var dbsqlxUser User
