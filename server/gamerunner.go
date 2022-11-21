@@ -30,7 +30,7 @@ func timeTrack(start time.Time, name string) {
 }
 
 // host a new game
-func (gr *GameRunner) HostGame(hostID uint64, settings *game.GameSettings) (*game.FullGame, error) {
+func (gr *GameRunner) HostGame(hostID int64, settings *game.GameSettings) (*game.FullGame, error) {
 	client := game.NewClient()
 	g := client.CreateGame(hostID, *settings)
 
@@ -53,7 +53,7 @@ func (gr *GameRunner) HostGame(hostID uint64, settings *game.GameSettings) (*gam
 			if race.UserID != hostID {
 				return nil, fmt.Errorf("user %d does not own Race %d", hostID, race.ID)
 			}
-			log.Debug().Uint64("hostID", hostID).Msgf("Adding host to game")
+			log.Debug().Int64("hostID", hostID).Msgf("Adding host to game")
 			player := client.NewPlayer(hostID, *race, &g.Rules)
 			player.GameID = g.ID
 			players = append(players, player)
@@ -85,7 +85,7 @@ func (gr *GameRunner) HostGame(hostID uint64, settings *game.GameSettings) (*gam
 }
 
 // add a player to an existing game
-func (gr *GameRunner) AddPlayer(gameID uint64, userID uint64, race *game.Race) error {
+func (gr *GameRunner) AddPlayer(gameID uint64, userID int64, race *game.Race) error {
 
 	g, err := gr.db.FindGameById(gameID)
 	if err != nil {
@@ -150,7 +150,7 @@ func (gr *GameRunner) LoadGame(gameID uint64) (*game.FullGame, error) {
 }
 
 // load a player and the light version of the player game
-func (gr *GameRunner) LoadPlayerGame(gameID uint64, userID uint64) (*game.Game, *game.FullPlayer, error) {
+func (gr *GameRunner) LoadPlayerGame(gameID uint64, userID int64) (*game.Game, *game.FullPlayer, error) {
 
 	g, err := gr.db.FindGameByIdLight(gameID)
 
@@ -178,7 +178,7 @@ func (gr *GameRunner) LoadPlayerGame(gameID uint64, userID uint64) (*game.Game, 
 }
 
 // submit a turn for a player
-func (gr *GameRunner) SubmitTurn(gameID uint64, userID uint64) error {
+func (gr *GameRunner) SubmitTurn(gameID uint64, userID int64) error {
 	player, err := gr.db.FindPlayerByGameIdLight(gameID, userID)
 	if err != nil {
 		return fmt.Errorf("failed to find player for user %d, game %d: %w", userID, gameID, err)

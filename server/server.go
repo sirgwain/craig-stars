@@ -5,7 +5,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/sirgwain/craig-stars/appcontext"
+	"github.com/sirgwain/craig-stars/config"
+	"github.com/sirgwain/craig-stars/db"
 
 	"github.com/gin-contrib/sessions"
 	gormsessions "github.com/gin-contrib/sessions/gorm"
@@ -16,15 +17,17 @@ import (
 )
 
 type server struct {
-	ctx        *appcontext.AppContext
+	db         db.Client
+	config     config.Config
 	gameRunner *GameRunner
 }
 
-func Start(ctx *appcontext.AppContext) {
+func Start(db db.Client, config config.Config) {
 
 	server := &server{
-		ctx:        ctx,
-		gameRunner: NewGameRunner(ctx.DB),
+		db:         db,
+		config:     config,
+		gameRunner: NewGameRunner(db),
 	}
 
 	// create the data dir
@@ -32,11 +35,11 @@ func Start(ctx *appcontext.AppContext) {
 		panic(err)
 	}
 
-	db, err := gorm.Open(sqlite.Open("data/session.db"), &gorm.Config{})
+	sessionDB, err := gorm.Open(sqlite.Open("data/session.db"), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
-	store := gormsessions.NewStore(db, true, []byte("secret"))
+	store := gormsessions.NewStore(sessionDB, true, []byte("secret"))
 
 	r := gin.Default()
 	r.Use(sessions.Sessions("session", store))
@@ -66,6 +69,7 @@ func Start(ctx *appcontext.AppContext) {
 	ar := r.Group("/api")
 	ar.Use(server.AuthRequired)
 	ar.GET("/me", server.Me)
+	ar.GET("/users", server.Users)
 
 	ar.GET("/rules", server.Rules)
 

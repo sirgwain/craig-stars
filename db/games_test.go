@@ -9,14 +9,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func connectDB() *DB {
-	db := &DB{}
+func connectDB() *client {
+	c := &client{}
 	cfg := &config.Config{}
 	// cfg.Database.Filename = "../tmp/test-data.db"
 	cfg.Database.Filename = ":memory:"
-	db.Connect(cfg)
-	db.MigrateAll()
-	return db
+	c.Connect(cfg)
+	c.MigrateAll()
+	return c
 }
 
 func newRandomGame() *game.FullGame {
@@ -39,7 +39,7 @@ func newRandomGame() *game.FullGame {
 }
 
 func TestDB_GetGames(t *testing.T) {
-	db := connectDB()
+	c := connectDB()
 	tests := []struct {
 		name string
 		want []*game.Game
@@ -48,15 +48,15 @@ func TestDB_GetGames(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got, err := db.GetGames(); !reflect.DeepEqual(got, tt.want) || err != nil {
-				t.Errorf("DB.GetGames() = %v, want %v, err %v", got, tt.want, err)
+			if got, err := c.GetGames(); !reflect.DeepEqual(got, tt.want) || err != nil {
+				t.Errorf("c.GetGames() = %v, want %v, err %v", got, tt.want, err)
 			}
 		})
 	}
 }
 
 func TestDB_CreateGame(t *testing.T) {
-	db := connectDB()
+	c := connectDB()
 	type args struct {
 		game *game.Game
 	}
@@ -68,7 +68,7 @@ func TestDB_CreateGame(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := db.CreateGame(tt.args.game)
+			err := c.CreateGame(tt.args.game)
 			if err != nil {
 				t.Error(err)
 			}
@@ -81,14 +81,14 @@ func TestDB_SaveGame(t *testing.T) {
 	// log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	// zerolog.SetGlobalLevel(zerolog.DebugLevel)
 
-	db := connectDB()
+	c := connectDB()
 	g := newRandomGame()
-	err := db.SaveGame(g)
+	err := c.SaveGame(g)
 	if err != nil {
 		t.Error(err)
 	}
 
-	g, _ = db.FindGameById(g.ID)
+	g, _ = c.FindGameById(g.ID)
 
 	// set a pop value
 	pop := 100_000
@@ -101,12 +101,12 @@ func TestDB_SaveGame(t *testing.T) {
 	previousItemCount := len(g.Planets[0].ProductionQueue)
 	g.Planets[0].ProductionQueue = append(g.Planets[0].ProductionQueue, game.ProductionQueueItem{Type: game.QueueItemTypeMine, Quantity: 5})
 
-	err = db.SaveGame(g)
+	err = c.SaveGame(g)
 	if err != nil {
 		t.Error(err)
 	}
 
-	loaded, err := db.FindGameById(g.ID)
+	loaded, err := c.FindGameById(g.ID)
 	if err != nil {
 		t.Error(err)
 	}
@@ -123,11 +123,11 @@ func TestDB_SaveGame(t *testing.T) {
 
 func TestDB_GetGamesByUser(t *testing.T) {
 	type args struct {
-		userID uint64
+		userID int64
 	}
 	tests := []struct {
 		name string
-		db   *DB
+		db   *client
 		args args
 		want []game.Game
 	}{
@@ -135,9 +135,9 @@ func TestDB_GetGamesByUser(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			db := &DB{}
-			if got, err := db.GetGamesByUser(tt.args.userID); !reflect.DeepEqual(got, tt.want) || err != nil {
-				t.Errorf("DB.GetGamesByUser() = %v, want %v, err %v", got, tt.want, err)
+			c := &client{}
+			if got, err := c.GetGamesByUser(tt.args.userID); !reflect.DeepEqual(got, tt.want) || err != nil {
+				t.Errorf("c.GetGamesByUser() = %v, want %v, err %v", got, tt.want, err)
 			}
 		})
 	}
@@ -149,25 +149,25 @@ func TestDB_DeleteGameById(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		db   *DB
+		db   *client
 		args args
 	}{
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			db := &DB{}
-			db.DeleteGameById(tt.args.gameID)
+			c := &client{}
+			c.DeleteGameById(tt.args.gameID)
 		})
 	}
 }
 
 func TestDB_FindGameById(t *testing.T) {
 
-	db := connectDB()
+	c := connectDB()
 
 	g := newRandomGame()
-	if err := db.SaveGame(g); err != nil {
+	if err := c.SaveGame(g); err != nil {
 		t.Error(err)
 	}
 
@@ -182,16 +182,16 @@ func TestDB_FindGameById(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := db.FindGameById(tt.id)
+			got, err := c.FindGameById(tt.id)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("DB.FindGameById() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("c.FindGameById() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != nil || tt.want != nil {
 				// TODO: figure out a better way to test equivalence
 				// this is fragile because the DB modifies the data on save
 				// if !test.CompareAsJSON(t, got, tt.want) {
-				// 	t.Errorf("DB.FindGameById() = %v, want %v", got, tt.want)
+				// 	t.Errorf("c.FindGameById() = %v, want %v", got, tt.want)
 				// }
 			}
 		})

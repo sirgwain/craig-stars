@@ -7,7 +7,7 @@ import (
 	"github.com/sirgwain/craig-stars/game"
 )
 
-func (db *DB) MigrateAll() error {
+func (c *client) MigrateAll() error {
 
 	types := []interface{}{
 		&game.User{},
@@ -40,7 +40,7 @@ func (db *DB) MigrateAll() error {
 
 	for _, t := range types {
 		log.Info().Msgf("Migrating %v", reflect.TypeOf(t))
-		err := db.sqlDB.AutoMigrate(t)
+		err := c.sqlDB.AutoMigrate(t)
 		if err != nil {
 			return err
 		}

@@ -1,6 +1,9 @@
 package game
 
 import (
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"math"
 	"time"
@@ -10,8 +13,8 @@ type Race struct {
 	ID                uint64       `gorm:"primaryKey" json:"id,omitempty" boltholdKey:"ID"`
 	CreatedAt         time.Time    `json:"createdAt,omitempty"`
 	UpdatedAt         time.Time    `json:"updatedat,omitempty"`
-	UserID            uint64       `json:"userId,omitempty"`
-	PlayerID          uint64       `json:"playerId,omitempty"`
+	UserID            int64        `json:"userId,omitempty"`
+	PlayerID          *uint64      `json:"playerId,omitempty"`
 	Name              string       `json:"name,omitempty"`
 	PluralName        string       `json:"pluralName,omitempty"`
 	PRT               PRT          `json:"prt,omitempty"`
@@ -276,6 +279,11 @@ func NewRace() *Race {
 			Biotechnology: ResearchCostStandard,
 		},
 	}
+}
+
+func (r *Race) WithUserID(userID int64) *Race {
+	r.UserID = userID
+	return r
 }
 
 func (r *Race) WithLRT(lrt LRT) *Race {
@@ -593,4 +601,33 @@ func computeRaceSpec(race *Race, rules *Rules) *RaceSpec {
 	}
 
 	return &spec
+}
+
+// db serializer to serialize this to JSON
+func (spec *RaceSpec) Value() (driver.Value, error) {
+	if spec == nil {
+		return nil, nil
+	}
+	
+	data, err := json.Marshal(spec)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+// db deserializer to read this from JSON
+func (spec *RaceSpec) Scan(src interface{}) error {
+	var source []byte
+	switch src := src.(type) {
+	case string:
+		source = []byte(src)
+	case []byte:
+		source = src
+	default:
+		return errors.New("incompatible type for JSON")
+	}
+
+	return json.Unmarshal(source, spec)
+
 }

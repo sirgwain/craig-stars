@@ -50,7 +50,7 @@ type Game struct {
 	CreatedAt                    time.Time         `json:"createdAt"`
 	UpdatedAt                    time.Time         `json:"updatedAt"`
 	Name                         string            `json:"name" header:"Name"`
-	HostID                       uint64            `json:"hostId"`
+	HostID                       int64             `json:"hostId"`
 	QuickStartTurns              int               `json:"quickStartTurns"`
 	Size                         Size              `json:"size"`
 	Density                      Density           `json:"density"`

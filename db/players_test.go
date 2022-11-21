@@ -12,10 +12,10 @@ func TestDB_FindPlayerByGameId(t *testing.T) {
 	// log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	// zerolog.SetGlobalLevel(zerolog.DebugLevel)
 
-	db := connectDB()
+	c := connectDB()
 
 	g := newRandomGame()
-	if err := db.SaveGame(g); err != nil {
+	if err := c.SaveGame(g); err != nil {
 		t.Error(err)
 	}
 
@@ -24,7 +24,7 @@ func TestDB_FindPlayerByGameId(t *testing.T) {
 	tests := []struct {
 		name    string
 		gameId  uint64
-		userId  uint64
+		userId  int64
 		want    *game.Player
 		wantErr bool
 	}{
@@ -33,9 +33,9 @@ func TestDB_FindPlayerByGameId(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := db.FindPlayerByGameId(tt.gameId, tt.userId)
+			got, err := c.FindPlayerByGameId(tt.gameId, tt.userId)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("DB.FindGameById() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("c.FindGameById() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			_ = got
@@ -43,7 +43,7 @@ func TestDB_FindPlayerByGameId(t *testing.T) {
 			// TODO: figure out a better way to test equivalence
 			// this is fragile because the DB modifies the data on save
 			// if !test.CompareAsJSON(t, got, tt.want) {
-			// 	t.Errorf("DB.FindGameById() = %v, want %v", got, tt.want)
+			// 	t.Errorf("c.FindGameById() = %v, want %v", got, tt.want)
 			// }
 			// }
 		})

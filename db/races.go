@@ -7,9 +7,9 @@ import (
 	"gorm.io/gorm"
 )
 
-func (db *DB) GetRaces(userID uint64) ([]*game.Race, error) {
+func (c *client) GetRaces(userID int64) ([]*game.Race, error) {
 	races := []*game.Race{}
-	if err := db.sqlDB.
+	if err := c.sqlDB.
 		Where("user_id = ? AND player_id = 0", userID).
 		Find(&races).
 		Error; err != nil {
@@ -19,9 +19,9 @@ func (db *DB) GetRaces(userID uint64) ([]*game.Race, error) {
 	return races, nil
 }
 
-func (db *DB) FindRaceById(id uint64) (*game.Race, error) {
+func (c *client) FindRaceById(id uint64) (*game.Race, error) {
 	race := game.Race{}
-	if err := db.sqlDB.First(&race, id).Error; err != nil {
+	if err := c.sqlDB.First(&race, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		} else {
@@ -32,8 +32,8 @@ func (db *DB) FindRaceById(id uint64) (*game.Race, error) {
 	return &race, nil
 }
 
-func (db *DB) SaveRace(race *game.Race) error {
-	err := db.sqlDB.Save(race).Error
+func (c *client) SaveRace(race *game.Race) error {
+	err := c.sqlDB.Save(race).Error
 	if err != nil {
 		return err
 	}

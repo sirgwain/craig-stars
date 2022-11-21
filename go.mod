@@ -18,11 +18,13 @@ require (
 require github.com/google/uuid v1.3.0
 
 require (
+	github.com/jmoiron/sqlx v1.3.5
 	github.com/timshannon/bolthold v0.0.0-20210913165410-232392fc8a6a
+	go.etcd.io/bbolt v1.3.6
 	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e
 )
 
-require go.etcd.io/bbolt v1.3.6 // indirect
+require github.com/wader/gormstore/v2 v2.0.0 // indirect
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -50,7 +52,7 @@ require (
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
-	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
+	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
@@ -64,7 +66,6 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.3.0 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
-	github.com/wader/gormstore/v2 v2.0.0 // indirect
 	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4 // indirect
 	golang.org/x/net v0.0.0-20220520000938-2e3eb7b945c2 // indirect
 	golang.org/x/sys v0.0.0-20220829200755-d48e67d00261 // indirect

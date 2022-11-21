@@ -25,14 +25,14 @@ func (s *server) UpdateFleetOrders(c *gin.Context) {
 	}
 
 	// find the existing fleet by id
-	existing, err := s.ctx.DB.FindFleetByID(fleetID.ID)
+	existing, err := s.db.FindFleetByID(fleetID.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	// find the player for this user
-	player, err := s.ctx.DB.FindPlayerByGameIdLight(existing.GameID, user.ID)
+	player, err := s.db.FindPlayerByGameIdLight(existing.GameID, user.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -68,7 +68,7 @@ func (s *server) UpdateFleetOrders(c *gin.Context) {
 
 	existing.Waypoints = append(existing.Waypoints[:1], orders.Waypoints[1:]...)
 	existing.ComputeFuelUsage(player)
-	s.ctx.DB.SaveFleet(fleetID.ID, existing)
+	s.db.SaveFleet(fleetID.ID, existing)
 
 	c.JSON(http.StatusOK, existing)
 }
@@ -83,14 +83,14 @@ func (s *server) TransferCargo(c *gin.Context) {
 		return
 	}
 
-	fleet, err := s.ctx.DB.FindFleetByID(id.ID)
+	fleet, err := s.db.FindFleetByID(id.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	// find the player for this user
-	player, err := s.ctx.DB.FindPlayerByGameIdLight(fleet.GameID, user.ID)
+	player, err := s.db.FindPlayerByGameIdLight(fleet.GameID, user.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -121,7 +121,7 @@ func (s *server) TransferCargo(c *gin.Context) {
 // transfer cargo from a fleet to/from a planet
 func (s *server) transferCargoFleetPlanet(c *gin.Context, fleet *game.Fleet, transfer cargoTransferBind) {
 	// find the planet planet by id so we can perform the transfer
-	planet, err := s.ctx.DB.FindPlanetByID(transfer.MO.ID)
+	planet, err := s.db.FindPlanetByID(transfer.MO.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -137,8 +137,8 @@ func (s *server) transferCargoFleetPlanet(c *gin.Context, fleet *game.Fleet, tra
 		return
 	}
 
-	s.ctx.DB.SavePlanet(planet.GameID, planet)
-	s.ctx.DB.SaveFleet(fleet.GameID, fleet)
+	s.db.SavePlanet(planet.GameID, planet)
+	s.db.SaveFleet(fleet.GameID, fleet)
 
 	log.Info().
 		Uint64("GameID", fleet.GameID).
@@ -155,7 +155,7 @@ func (s *server) transferCargoFleetPlanet(c *gin.Context, fleet *game.Fleet, tra
 // transfer cargo from a fleet to/from a fleet
 func (s *server) transferCargoFleetFleet(c *gin.Context, fleet *game.Fleet, transfer cargoTransferBind) {
 	// find the dest dest by id so we can perform the transfer
-	dest, err := s.ctx.DB.FindFleetByID(transfer.MO.ID)
+	dest, err := s.db.FindFleetByID(transfer.MO.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -171,8 +171,8 @@ func (s *server) transferCargoFleetFleet(c *gin.Context, fleet *game.Fleet, tran
 		return
 	}
 
-	s.ctx.DB.SaveFleet(dest.GameID, dest)
-	s.ctx.DB.SaveFleet(fleet.GameID, fleet)
+	s.db.SaveFleet(dest.GameID, dest)
+	s.db.SaveFleet(fleet.GameID, fleet)
 
 	log.Info().
 		Uint64("GameID", fleet.GameID).

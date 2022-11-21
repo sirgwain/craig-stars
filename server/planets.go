@@ -19,7 +19,7 @@ func (s *server) UpdatePlanetOrders(c *gin.Context) {
 	}
 
 	// find the player for this user
-	player, err := s.ctx.DB.FindPlayerByGameIdLight(id.ID, user.ID)
+	player, err := s.db.FindPlayerByGameIdLight(id.ID, user.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -32,7 +32,7 @@ func (s *server) UpdatePlanetOrders(c *gin.Context) {
 	}
 
 	// find the existing planet by id
-	existing, err := s.ctx.DB.FindPlanetByID(planet.ID)
+	existing, err := s.db.FindPlanetByID(planet.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -44,7 +44,7 @@ func (s *server) UpdatePlanetOrders(c *gin.Context) {
 		return
 	}
 
-	rules, err := s.ctx.DB.FindGameRulesByGameID(planet.GameID)
+	rules, err := s.db.FindGameRulesByGameID(planet.GameID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -59,7 +59,7 @@ func (s *server) UpdatePlanetOrders(c *gin.Context) {
 	existing.ContributesOnlyLeftoverToResearch = planet.ContributesOnlyLeftoverToResearch
 	existing.ProductionQueue = planet.ProductionQueue
 	existing.Spec = game.ComputePlanetSpec(rules, existing, player)
-	s.ctx.DB.SavePlanet(existing.GameID, existing)
+	s.db.SavePlanet(existing.GameID, existing)
 
 	c.JSON(http.StatusOK, existing)
 }

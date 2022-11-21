@@ -7,11 +7,11 @@ import (
 )
 
 func TestDB_MigrateAll(t *testing.T) {
-	db := &DB{}
+	c := &client{}
 	cfg := &config.Config{}
 	cfg.Database.Filename = ":memory:"
-	db.Connect(cfg)
-	if err := db.MigrateAll(); err != nil {
-		t.Errorf("DB.MigrateAll() error = %v", err)
+	c.Connect(cfg)
+	if err := c.MigrateAll(); err != nil {
+		t.Errorf("c.MigrateAll() error = %v", err)
 	}
 }
