@@ -67,3 +67,22 @@ func (c *client) createTestGameWithPlayer() (*game.Game, *game.Player) {
 
 	return g, player
 }
+
+func (c *client) createTestFullGame() *game.FullGame {
+	gameClient := game.NewClient()
+	g, player := c.createTestGameWithPlayer()
+
+	players := []*game.Player{player}
+	universe, err := gameClient.GenerateUniverse(g, players)
+	if err != nil {
+		panic(err)
+	}
+
+	fg := game.FullGame{
+		Game:     g,
+		Players:  players,
+		Universe: universe,
+	}
+
+	return &fg
+}

@@ -50,6 +50,51 @@ type Converter interface {
 	// goverter:map ResearchCost.Biotechnology ResearchCostBiotechnology
 	ConvertGameRace(source *game.Race) *Race
 
+	// goverter:map MapObject.ID ID
+	// goverter:map MapObject.GameID GameID
+	// goverter:map MapObject.CreatedAt CreatedAt
+	// goverter:map MapObject.UpdatedAt UpdatedAt
+	// goverter:map MapObject.Type Type
+	// goverter:map MapObject.PlayerID PlayerID
+	// goverter:map MapObject.Dirty Dirty
+	// goverter:map MapObject.Delete Delete
+	// goverter:map MapObject.Position.X X
+	// goverter:map MapObject.Position.Y Y
+	// goverter:map MapObject.Name Name
+	// goverter:map MapObject.Num Num
+	// goverter:map MapObject.PlayerNum	 PlayerNum
+	// goverter:ignore Tags
+	// goverter:map Hab.Grav Grav
+	// goverter:map Hab.Temp Temp
+	// goverter:map Hab.Rad Rad
+	// goverter:map BaseHab.Grav BaseGrav
+	// goverter:map BaseHab.Temp BaseTemp
+	// goverter:map BaseHab.Rad BaseRad
+	// goverter:map TerraformedAmount.Grav TerraformedAmountGrav
+	// goverter:map TerraformedAmount.Temp TerraformedAmountTemp
+	// goverter:map TerraformedAmount.Rad TerraformedAmountRad
+	// goverter:map MineralConcentration.Ironium MineralConcIronium
+	// goverter:map MineralConcentration.Boranium MineralConcBoranium
+	// goverter:map MineralConcentration.Germanium MineralConcGermanium
+	// goverter:map MineYears.Ironium MineYearsIronium
+	// goverter:map MineYears.Boranium MineYearsBoranium
+	// goverter:map MineYears.Germanium MineYearsGermanium
+	// goverter:map Cargo.Ironium Ironium
+	// goverter:map Cargo.Boranium Boranium
+	// goverter:map Cargo.Germanium Germanium
+	// goverter:map Cargo.Colonists Colonists
+	ConvertGamePlanet(source *game.Planet) *Planet
+
+	// goverter:mapExtend Hab ExtendHab
+	// goverter:mapExtend BaseHab ExtendBaseHab
+	// goverter:mapExtend TerraformedAmount ExtendTerraformedAmount
+	// goverter:mapExtend MineralConcentration ExtendMineralConcentration
+	// goverter:mapExtend MineYears ExtendMineYears
+	// goverter:mapExtend Cargo ExtendPlanetCargo
+	// goverter:mapExtend MapObject ExtendPlanetMapObject
+	// goverter:ignore Starbase
+	ConvertPlanet(source *Planet) *game.Planet
+
 	// goverter:mapExtend VictoryConditions ExtendVictoryConditions
 	// goverter:mapExtend Area ExtendArea
 	ConvertGame(source Game) game.Game
@@ -225,5 +270,73 @@ func ExtendTechLevelsSpent(source Player) game.TechLevel {
 		Construction:  source.TechLevelsSpentConstruction,
 		Electronics:   source.TechLevelsSpentElectronics,
 		Biotechnology: source.TechLevelsSpentBiotechnology,
+	}
+}
+
+func ExtendPlanetMapObject(source Planet) game.MapObject {
+	return game.MapObject{
+		Type:      game.MapObjectTypePlanet,
+		ID:        source.ID,
+		GameID:    source.GameID,
+		CreatedAt: source.CreatedAt,
+		UpdatedAt: source.UpdatedAt,
+		PlayerID:  source.PlayerID,
+		Position: game.Vector{
+			X: source.X,
+			Y: source.Y,
+		},
+		Name:      source.Name,
+		Num:       source.Num,
+		PlayerNum: source.PlayerNum,
+		// Tags:      source.Tags,
+	}
+}
+
+func ExtendHab(source Planet) game.Hab {
+	return game.Hab{
+		Grav: source.Grav,
+		Temp: source.Temp,
+		Rad:  source.Rad,
+	}
+}
+
+func ExtendBaseHab(source Planet) game.Hab {
+	return game.Hab{
+		Grav: source.BaseGrav,
+		Temp: source.BaseTemp,
+		Rad:  source.BaseRad,
+	}
+}
+
+func ExtendTerraformedAmount(source Planet) game.Hab {
+	return game.Hab{
+		Grav: source.TerraformedAmountGrav,
+		Temp: source.TerraformedAmountTemp,
+		Rad:  source.TerraformedAmountRad,
+	}
+}
+
+func ExtendMineralConcentration(source Planet) game.Mineral {
+	return game.Mineral{
+		Ironium:   source.MineralConcIronium,
+		Boranium:  source.MineralConcBoranium,
+		Germanium: source.MineralConcGermanium,
+	}
+}
+
+func ExtendMineYears(source Planet) game.Mineral {
+	return game.Mineral{
+		Ironium:   source.MineYearsIronium,
+		Boranium:  source.MineYearsBoranium,
+		Germanium: source.MineYearsGermanium,
+	}
+}
+
+func ExtendPlanetCargo(source Planet) game.Cargo {
+	return game.Cargo{
+		Ironium:   source.Ironium,
+		Boranium:  source.Boranium,
+		Germanium: source.Germanium,
+		Colonists: source.Colonists,
 	}
 }
