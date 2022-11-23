@@ -62,7 +62,7 @@ func TestGetPlayerMessage(t *testing.T) {
 		wantErr bool
 	}{
 		{"No results", args{id: 0}, nil, false},
-		{"Got playerMessage", args{id: int64(playerMessage.ID)}, &playerMessage, false},
+		{"Got playerMessage", args{id: playerMessage.ID}, &playerMessage, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

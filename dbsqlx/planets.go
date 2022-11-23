@@ -158,7 +158,7 @@ func (c *client) GetPlanet(id int64) (*game.Planet, error) {
 	return planet, nil
 }
 
-func (c *client) GetPlanetsForGame(gameId int64) ([]*game.Planet, error) {
+func (c *client) getPlanetsForGame(gameId int64) ([]*game.Planet, error) {
 
 	// don't include password in bulk select
 	items := []Planet{}

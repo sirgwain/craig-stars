@@ -117,7 +117,6 @@ func (c *client) SaveGame(g *game.FullGame) error {
 		for j := range player.Designs {
 			design := player.Designs[j]
 			if design.Dirty {
-				design.GameID = g.ID
 				design.PlayerID = player.ID
 				err = c.sqlDB.Save(&player.Designs[j]).Error
 				if err != nil {
@@ -129,7 +128,6 @@ func (c *client) SaveGame(g *game.FullGame) error {
 		for j := range player.PlanetIntels {
 			intel := &player.PlanetIntels[j]
 			if intel.Dirty {
-				intel.GameID = g.ID
 				intel.PlayerID = player.ID
 				err = c.sqlDB.Save(&player.PlanetIntels[j]).Error
 				if err != nil {
@@ -141,7 +139,6 @@ func (c *client) SaveGame(g *game.FullGame) error {
 		for j := range player.FleetIntels {
 			intel := &player.FleetIntels[j]
 			if intel.Dirty {
-				intel.GameID = g.ID
 				intel.PlayerID = player.ID
 				err = c.sqlDB.Save(&player.FleetIntels[j]).Error
 				if err != nil {
@@ -153,7 +150,6 @@ func (c *client) SaveGame(g *game.FullGame) error {
 		for j := range player.DesignIntels {
 			intel := &player.DesignIntels[j]
 			if intel.Dirty {
-				intel.GameID = g.ID
 				intel.PlayerID = player.ID
 				err = c.sqlDB.Save(&player.DesignIntels[j]).Error
 				if err != nil {
@@ -165,7 +161,6 @@ func (c *client) SaveGame(g *game.FullGame) error {
 		for j := range player.MineralPacketIntels {
 			intel := &player.MineralPacketIntels[j]
 			if intel.Dirty {
-				intel.GameID = g.ID
 				intel.PlayerID = player.ID
 				err = c.sqlDB.Save(&player.MineralPacketIntels[j]).Error
 				if err != nil {

@@ -333,7 +333,7 @@ func (c *client) CreatePlayer(player *game.Player) error {
 		return err
 	}
 
-	player.ID = int64(id)
+	player.ID = id
 
 	return nil
 }

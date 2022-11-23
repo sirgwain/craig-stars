@@ -27,7 +27,7 @@ const (
 
 type NewGamePlayer struct {
 	Type         NewGamePlayerType `json:"type,omitempty"`
-	RaceID       int64             `json:"raceID,omitempty"`
+	RaceID       int64             `json:"raceId,omitempty"`
 	AIDifficulty AIDifficulty      `json:"aiDifficulty,omitempty"`
 }
 

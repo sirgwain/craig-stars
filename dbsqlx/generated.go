@@ -6,6 +6,14 @@ import game "github.com/sirgwain/craig-stars/game"
 
 type GameConverter struct{}
 
+func (c *GameConverter) ConvertFleet(source *Fleet) *game.Fleet {
+	var pGameFleet *game.Fleet
+	if source != nil {
+		gameFleet := c.dbsqlxFleetToGameFleet(*source)
+		pGameFleet = &gameFleet
+	}
+	return pGameFleet
+}
 func (c *GameConverter) ConvertGame(source Game) game.Game {
 	var gameGame game.Game
 	gameGame.ID = source.ID
@@ -30,6 +38,14 @@ func (c *GameConverter) ConvertGame(source Game) game.Game {
 	gameGame.Rules = RulesToGameRules(source.Rules)
 	gameGame.Area = ExtendArea(source)
 	return gameGame
+}
+func (c *GameConverter) ConvertGameFleet(source *game.Fleet) *Fleet {
+	var pDbsqlxFleet *Fleet
+	if source != nil {
+		dbsqlxFleet := c.gameFleetToDbsqlxFleet(*source)
+		pDbsqlxFleet = &dbsqlxFleet
+	}
+	return pDbsqlxFleet
 }
 func (c *GameConverter) ConvertGameGame(source *game.Game) *Game {
 	var pDbsqlxGame *Game
@@ -62,6 +78,14 @@ func (c *GameConverter) ConvertGameRace(source *game.Race) *Race {
 		pDbsqlxRace = &dbsqlxRace
 	}
 	return pDbsqlxRace
+}
+func (c *GameConverter) ConvertGameShipDesign(source *game.ShipDesign) *ShipDesign {
+	var pDbsqlxShipDesign *ShipDesign
+	if source != nil {
+		dbsqlxShipDesign := c.gameShipDesignToDbsqlxShipDesign(*source)
+		pDbsqlxShipDesign = &dbsqlxShipDesign
+	}
+	return pDbsqlxShipDesign
 }
 func (c *GameConverter) ConvertGameUser(source *game.User) *User {
 	var pDbsqlxUser *User
@@ -161,6 +185,14 @@ func (c *GameConverter) ConvertRaces(source []Race) []game.Race {
 	}
 	return gameRaceList
 }
+func (c *GameConverter) ConvertShipDesign(source *ShipDesign) *game.ShipDesign {
+	var pGameShipDesign *game.ShipDesign
+	if source != nil {
+		gameShipDesign := c.dbsqlxShipDesignToGameShipDesign(*source)
+		pGameShipDesign = &gameShipDesign
+	}
+	return pGameShipDesign
+}
 func (c *GameConverter) ConvertUser(source User) game.User {
 	var gameUser game.User
 	gameUser.ID = source.ID
@@ -178,32 +210,22 @@ func (c *GameConverter) ConvertUsers(source []User) []game.User {
 	}
 	return gameUserList
 }
-func (c *GameConverter) dbsqlxPlanetSpecToGamePlanetSpec(source PlanetSpec) game.PlanetSpec {
-	var gamePlanetSpec game.PlanetSpec
-	gamePlanetSpec.Habitability = source.Habitability
-	gamePlanetSpec.MaxMines = source.MaxMines
-	gamePlanetSpec.MaxPossibleMines = source.MaxPossibleMines
-	gamePlanetSpec.MaxFactories = source.MaxFactories
-	gamePlanetSpec.MaxPossibleFactories = source.MaxPossibleFactories
-	gamePlanetSpec.MaxDefenses = source.MaxDefenses
-	gamePlanetSpec.PopulationDensity = source.PopulationDensity
-	gamePlanetSpec.MaxPopulation = source.MaxPopulation
-	gamePlanetSpec.GrowthAmount = source.GrowthAmount
-	gamePlanetSpec.MineralOutput = c.gameMineralToGameMineral(source.MineralOutput)
-	gamePlanetSpec.ResourcesPerYear = source.ResourcesPerYear
-	gamePlanetSpec.ResourcesPerYearAvailable = source.ResourcesPerYearAvailable
-	gamePlanetSpec.ResourcesPerYearResearch = source.ResourcesPerYearResearch
-	gamePlanetSpec.Defense = source.Defense
-	gamePlanetSpec.DefenseCoverage = source.DefenseCoverage
-	gamePlanetSpec.DefenseCoverageSmart = source.DefenseCoverageSmart
-	gamePlanetSpec.Scanner = source.Scanner
-	gamePlanetSpec.ScanRange = source.ScanRange
-	gamePlanetSpec.ScanRangePen = source.ScanRangePen
-	gamePlanetSpec.CanTerraform = source.CanTerraform
-	gamePlanetSpec.TerraformAmount = c.gameHabToGameHab(source.TerraformAmount)
-	gamePlanetSpec.HasStarbase = source.HasStarbase
-	gamePlanetSpec.DockCapacity = source.DockCapacity
-	return gamePlanetSpec
+func (c *GameConverter) dbsqlxFleetToGameFleet(source Fleet) game.Fleet {
+	var gameFleet game.Fleet
+	gameFleet.MapObject = ExtendFleetMapObject(source)
+	gameFleet.FleetOrders = ExtendFleetFleetOrders(source)
+	gameFleet.PlanetID = source.PlanetID
+	gameFleet.BaseName = source.BaseName
+	gameFleet.Cargo = ExtendFleetCargo(source)
+	gameFleet.Fuel = source.Fuel
+	gameFleet.Damage = source.Damage
+	gameFleet.BattlePlanID = source.BattlePlanID
+	gameFleet.Heading = ExtendFleetHeading(source)
+	gameFleet.WarpSpeed = source.WarpSpeed
+	gameFleet.PreviousPosition = ExtendFleetPreviousPosition(source)
+	gameFleet.OrbitingPlanetNum = source.OrbitingPlanetNum
+	gameFleet.Spec = FleetSpecToGameFleetSpec(source.Spec)
+	return gameFleet
 }
 func (c *GameConverter) dbsqlxPlanetToGamePlanet(source Planet) game.Planet {
 	var gamePlanet game.Planet
@@ -223,12 +245,7 @@ func (c *GameConverter) dbsqlxPlanetToGamePlanet(source Planet) game.Planet {
 	gamePlanet.PacketSpeed = source.PacketSpeed
 	gamePlanet.BonusResources = source.BonusResources
 	gamePlanet.ProductionQueue = c.dbsqlxProductionQueueItemsToGameProductionQueueItemList(source.ProductionQueue)
-	var pGamePlanetSpec *game.PlanetSpec
-	if source.Spec != nil {
-		gamePlanetSpec := c.dbsqlxPlanetSpecToGamePlanetSpec(*source.Spec)
-		pGamePlanetSpec = &gamePlanetSpec
-	}
-	gamePlanet.Spec = pGamePlanetSpec
+	gamePlanet.Spec = PlanetSpecToGamePlanetSpec(source.Spec)
 	return gamePlanet
 }
 func (c *GameConverter) dbsqlxProductionQueueItemsToGameProductionQueueItemList(source ProductionQueueItems) []game.ProductionQueueItem {
@@ -238,6 +255,24 @@ func (c *GameConverter) dbsqlxProductionQueueItemsToGameProductionQueueItemList(
 	}
 	return gameProductionQueueItemList
 }
+func (c *GameConverter) dbsqlxShipDesignToGameShipDesign(source ShipDesign) game.ShipDesign {
+	var gameShipDesign game.ShipDesign
+	gameShipDesign.ID = source.ID
+	gameShipDesign.CreatedAt = TimeToTime(source.CreatedAt)
+	gameShipDesign.UpdatedAt = TimeToTime(source.UpdatedAt)
+	gameShipDesign.PlayerID = source.PlayerID
+	gameShipDesign.PlayerNum = source.PlayerNum
+	gameShipDesign.UUID = UUIDToUUID(source.UUID)
+	gameShipDesign.Name = source.Name
+	gameShipDesign.Version = source.Version
+	gameShipDesign.Hull = source.Hull
+	gameShipDesign.HullSetNumber = source.HullSetNumber
+	gameShipDesign.CanDelete = source.CanDelete
+	gameShipDesign.Slots = ShipDesignSlotsToGameShipDesignSlots(source.Slots)
+	gameShipDesign.Purpose = game.ShipDesignPurpose(source.Purpose)
+	gameShipDesign.Spec = ShipDesignSpecToGameShipDesignSpec(source.Spec)
+	return gameShipDesign
+}
 func (c *GameConverter) gameCostToGameCost(source game.Cost) game.Cost {
 	var gameCost game.Cost
 	gameCost.Ironium = source.Ironium
@@ -245,6 +280,57 @@ func (c *GameConverter) gameCostToGameCost(source game.Cost) game.Cost {
 	gameCost.Germanium = source.Germanium
 	gameCost.Resources = source.Resources
 	return gameCost
+}
+func (c *GameConverter) gameFleetToDbsqlxFleet(source game.Fleet) Fleet {
+	var dbsqlxFleet Fleet
+	dbsqlxFleet.ID = source.MapObject.ID
+	dbsqlxFleet.GameID = source.MapObject.GameID
+	dbsqlxFleet.CreatedAt = TimeToTime(source.MapObject.CreatedAt)
+	dbsqlxFleet.UpdatedAt = TimeToTime(source.MapObject.UpdatedAt)
+	dbsqlxFleet.PlayerID = source.MapObject.PlayerID
+	dbsqlxFleet.X = source.MapObject.Position.X
+	dbsqlxFleet.Y = source.MapObject.Position.Y
+	dbsqlxFleet.Name = source.MapObject.Name
+	dbsqlxFleet.Num = source.MapObject.Num
+	dbsqlxFleet.PlayerNum = source.MapObject.PlayerNum
+	dbsqlxFleet.Waypoints = GameWaypointsToWaypoints(source.FleetOrders.Waypoints)
+	dbsqlxFleet.RepeatOrders = source.FleetOrders.RepeatOrders
+	dbsqlxFleet.PlanetID = source.PlanetID
+	dbsqlxFleet.BaseName = source.BaseName
+	dbsqlxFleet.Ironium = source.Cargo.Ironium
+	dbsqlxFleet.Boranium = source.Cargo.Boranium
+	dbsqlxFleet.Germanium = source.Cargo.Germanium
+	dbsqlxFleet.Colonists = source.Cargo.Colonists
+	dbsqlxFleet.Fuel = source.Fuel
+	dbsqlxFleet.Damage = source.Damage
+	dbsqlxFleet.BattlePlanID = source.BattlePlanID
+	dbsqlxFleet.HeadingX = source.Heading.X
+	dbsqlxFleet.HeadingY = source.Heading.Y
+	dbsqlxFleet.WarpSpeed = source.WarpSpeed
+	var pFloat64 *float64
+	if source.PreviousPosition != nil {
+		pFloat64 = &source.PreviousPosition.X
+	}
+	var pFloat642 *float64
+	if pFloat64 != nil {
+		xfloat64 := *pFloat64
+		pFloat642 = &xfloat64
+	}
+	dbsqlxFleet.PreviousPositionX = pFloat642
+	var pFloat643 *float64
+	if source.PreviousPosition != nil {
+		pFloat643 = &source.PreviousPosition.Y
+	}
+	var pFloat644 *float64
+	if pFloat643 != nil {
+		xfloat642 := *pFloat643
+		pFloat644 = &xfloat642
+	}
+	dbsqlxFleet.PreviousPositionY = pFloat644
+	dbsqlxFleet.OrbitingPlanetNum = source.OrbitingPlanetNum
+	dbsqlxFleet.Starbase = source.Starbase
+	dbsqlxFleet.Spec = GameFleetSpecToFleetSpec(source.Spec)
+	return dbsqlxFleet
 }
 func (c *GameConverter) gameGameToDbsqlxGame(source game.Game) Game {
 	var dbsqlxGame Game
@@ -281,47 +367,6 @@ func (c *GameConverter) gameGameToDbsqlxGame(source game.Game) Game {
 	dbsqlxGame.AreaX = source.Area.X
 	dbsqlxGame.AreaY = source.Area.Y
 	return dbsqlxGame
-}
-func (c *GameConverter) gameHabToGameHab(source game.Hab) game.Hab {
-	var gameHab game.Hab
-	gameHab.Grav = source.Grav
-	gameHab.Temp = source.Temp
-	gameHab.Rad = source.Rad
-	return gameHab
-}
-func (c *GameConverter) gameMineralToGameMineral(source game.Mineral) game.Mineral {
-	var gameMineral game.Mineral
-	gameMineral.Ironium = source.Ironium
-	gameMineral.Boranium = source.Boranium
-	gameMineral.Germanium = source.Germanium
-	return gameMineral
-}
-func (c *GameConverter) gamePlanetSpecToDbsqlxPlanetSpec(source game.PlanetSpec) PlanetSpec {
-	var dbsqlxPlanetSpec PlanetSpec
-	dbsqlxPlanetSpec.Habitability = source.Habitability
-	dbsqlxPlanetSpec.MaxMines = source.MaxMines
-	dbsqlxPlanetSpec.MaxPossibleMines = source.MaxPossibleMines
-	dbsqlxPlanetSpec.MaxFactories = source.MaxFactories
-	dbsqlxPlanetSpec.MaxPossibleFactories = source.MaxPossibleFactories
-	dbsqlxPlanetSpec.MaxDefenses = source.MaxDefenses
-	dbsqlxPlanetSpec.PopulationDensity = source.PopulationDensity
-	dbsqlxPlanetSpec.MaxPopulation = source.MaxPopulation
-	dbsqlxPlanetSpec.GrowthAmount = source.GrowthAmount
-	dbsqlxPlanetSpec.MineralOutput = c.gameMineralToGameMineral(source.MineralOutput)
-	dbsqlxPlanetSpec.ResourcesPerYear = source.ResourcesPerYear
-	dbsqlxPlanetSpec.ResourcesPerYearAvailable = source.ResourcesPerYearAvailable
-	dbsqlxPlanetSpec.ResourcesPerYearResearch = source.ResourcesPerYearResearch
-	dbsqlxPlanetSpec.Defense = source.Defense
-	dbsqlxPlanetSpec.DefenseCoverage = source.DefenseCoverage
-	dbsqlxPlanetSpec.DefenseCoverageSmart = source.DefenseCoverageSmart
-	dbsqlxPlanetSpec.Scanner = source.Scanner
-	dbsqlxPlanetSpec.ScanRange = source.ScanRange
-	dbsqlxPlanetSpec.ScanRangePen = source.ScanRangePen
-	dbsqlxPlanetSpec.CanTerraform = source.CanTerraform
-	dbsqlxPlanetSpec.TerraformAmount = c.gameHabToGameHab(source.TerraformAmount)
-	dbsqlxPlanetSpec.HasStarbase = source.HasStarbase
-	dbsqlxPlanetSpec.DockCapacity = source.DockCapacity
-	return dbsqlxPlanetSpec
 }
 func (c *GameConverter) gamePlanetToDbsqlxPlanet(source game.Planet) Planet {
 	var dbsqlxPlanet Planet
@@ -363,12 +408,7 @@ func (c *GameConverter) gamePlanetToDbsqlxPlanet(source game.Planet) Planet {
 	dbsqlxPlanet.PacketSpeed = source.PacketSpeed
 	dbsqlxPlanet.BonusResources = source.BonusResources
 	dbsqlxPlanet.ProductionQueue = c.gameProductionQueueItemListToDbsqlxProductionQueueItems(source.ProductionQueue)
-	var pDbsqlxPlanetSpec *PlanetSpec
-	if source.Spec != nil {
-		dbsqlxPlanetSpec := c.gamePlanetSpecToDbsqlxPlanetSpec(*source.Spec)
-		pDbsqlxPlanetSpec = &dbsqlxPlanetSpec
-	}
-	dbsqlxPlanet.Spec = pDbsqlxPlanetSpec
+	dbsqlxPlanet.Spec = GamePlanetSpecToPlanetSpec(source.Spec)
 	return dbsqlxPlanet
 }
 func (c *GameConverter) gamePlayerToDbsqlxPlayer(source game.Player) Player {
@@ -465,6 +505,24 @@ func (c *GameConverter) gameRaceToDbsqlxRace(source game.Race) Race {
 	dbsqlxRace.TechsStartHigh = source.TechsStartHigh
 	dbsqlxRace.Spec = GameRaceSpecToRaceSpec(source.Spec)
 	return dbsqlxRace
+}
+func (c *GameConverter) gameShipDesignToDbsqlxShipDesign(source game.ShipDesign) ShipDesign {
+	var dbsqlxShipDesign ShipDesign
+	dbsqlxShipDesign.ID = source.ID
+	dbsqlxShipDesign.CreatedAt = TimeToTime(source.CreatedAt)
+	dbsqlxShipDesign.UpdatedAt = TimeToTime(source.UpdatedAt)
+	dbsqlxShipDesign.PlayerID = source.PlayerID
+	dbsqlxShipDesign.PlayerNum = source.PlayerNum
+	dbsqlxShipDesign.UUID = UUIDToUUID(source.UUID)
+	dbsqlxShipDesign.Name = source.Name
+	dbsqlxShipDesign.Version = source.Version
+	dbsqlxShipDesign.Hull = source.Hull
+	dbsqlxShipDesign.HullSetNumber = source.HullSetNumber
+	dbsqlxShipDesign.CanDelete = source.CanDelete
+	dbsqlxShipDesign.Slots = GameShipDesignSlotsToShipDesignSlots(source.Slots)
+	dbsqlxShipDesign.Purpose = game.ShipDesignPurpose(source.Purpose)
+	dbsqlxShipDesign.Spec = GameShipDesignSpecToShipDesignSpec(source.Spec)
+	return dbsqlxShipDesign
 }
 func (c *GameConverter) gameUserToDbsqlxUser(source game.User) User {
 	var dbsqlxUser User

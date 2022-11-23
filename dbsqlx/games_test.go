@@ -53,7 +53,7 @@ func TestUpdateGame(t *testing.T) {
 		return
 	}
 
-	updated, err := c.GetGame(int64(game.ID))
+	updated, err := c.GetGame(game.ID)
 
 	if err != nil {
 		t.Errorf("failed to get game %s", err)
@@ -83,7 +83,7 @@ func TestGetGame(t *testing.T) {
 		wantErr bool
 	}{
 		{"No results", args{id: 0}, nil, false},
-		{"Got game", args{id: int64(g.ID)}, &g, false},
+		{"Got game", args{id: g.ID}, &g, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -141,7 +141,7 @@ func TestDeleteGames(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result))
 
-	if err := c.DeleteGame(int64(game.ID)); err != nil {
+	if err := c.DeleteGame(game.ID); err != nil {
 		t.Errorf("failed to delete game %s", err)
 		return
 	}

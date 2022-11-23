@@ -206,7 +206,7 @@ func (c *client) CreateRace(race *game.Race) error {
 		return err
 	}
 
-	race.ID = int64(id)
+	race.ID = id
 
 	return nil
 }

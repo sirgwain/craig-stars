@@ -11,7 +11,6 @@ type ShipDesign struct {
 	ID            int64             `gorm:"primaryKey" json:"id"`
 	CreatedAt     time.Time         `json:"createdAt"`
 	UpdatedAt     time.Time         `json:"updatedAt"`
-	GameID        int64             `json:"gameId"`
 	PlayerID      int64             `json:"playerId"`
 	PlayerNum     int               `json:"playerNum"`
 	Dirty         bool              `json:"-"`
@@ -101,7 +100,7 @@ const (
 )
 
 func NewShipDesign(player *Player) *ShipDesign {
-	return &ShipDesign{GameID: player.GameID, PlayerID: player.ID, PlayerNum: player.Num, UUID: uuid.New(), Dirty: true, Slots: []ShipDesignSlot{}}
+	return &ShipDesign{PlayerID: player.ID, PlayerNum: player.Num, UUID: uuid.New(), Dirty: true, Slots: []ShipDesignSlot{}}
 }
 
 func (sd *ShipDesign) WithName(name string) *ShipDesign {

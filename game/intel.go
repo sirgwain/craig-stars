@@ -50,11 +50,10 @@ type Intel struct {
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 	Dirty     bool      `json:"-" gorm:"-"`
-	GameID    int64     `json:"gameId"`
+	PlayerID  int64     `json:"playerId"`
 	Name      string    `json:"name"`
 	Num       int       `json:"num"`
 	PlayerNum int       `json:"playerNum"`
-	PlayerID  int64     `json:"-"`
 	ReportAge int       `json:"reportAge"`
 }
 
@@ -65,7 +64,7 @@ type MapObjectIntel struct {
 }
 
 func (intel *Intel) String() string {
-	return fmt.Sprintf("GameID: %5d, ID: %5d, Num: %3d %s", intel.GameID, intel.ID, intel.Num, intel.Name)
+	return fmt.Sprintf("PlayerID: %5d, ID: %5d, Num: %3d %s", intel.PlayerID, intel.ID, intel.Num, intel.Name)
 }
 
 type PlanetIntel struct {
@@ -128,10 +127,11 @@ func (d *ShipDesignIntel) String() string {
 }
 
 // create a new FleetIntel object by key
-func NewFleetIntel(playerNum int, name string) FleetIntel {
+func NewFleetIntel(playerID int64, playerNum int, name string) FleetIntel {
 	return FleetIntel{
 		MapObjectIntel: MapObjectIntel{
 			Intel: Intel{
+				PlayerID:  playerID,
 				Name:      name,
 				PlayerNum: playerNum,
 			},
@@ -178,7 +178,6 @@ func (d *discover) discoverPlanet(rules *Rules, player *Player, planet *Planet, 
 	}
 
 	// everyone knows these about planets
-	intel.GameID = planet.GameID
 	intel.Position = planet.Position
 	intel.Name = planet.Name
 	intel.Num = planet.Num
@@ -230,11 +229,10 @@ func (d *discover) discoverPlanetCargo(player *Player, planet *Planet) error {
 
 // discover a fleet and add it to the player's fleet intel
 func (d *discover) discoverFleet(player *Player, fleet *Fleet) {
-	intel := NewFleetIntel(fleet.PlayerNum, fleet.Name)
+	intel := NewFleetIntel(player.ID, fleet.PlayerNum, fleet.Name)
 
 	intel.Name = fleet.Name
 	intel.PlayerNum = fleet.PlayerNum
-	intel.GameID = fleet.GameID
 	intel.Position = fleet.Position
 
 	player.FleetIntels = append(player.FleetIntels, intel)
@@ -243,7 +241,7 @@ func (d *discover) discoverFleet(player *Player, fleet *Fleet) {
 
 // discover cargo for an existing fleet
 func (d *discover) discoverFleetCargo(player *Player, fleet *Fleet) {
-	key := NewFleetIntel(fleet.PlayerNum, fleet.Name)
+	key := NewFleetIntel(player.ID, fleet.PlayerNum, fleet.Name)
 
 	existingIntel, found := d.fleetIntelsByKey[key.String()]
 	if found {
@@ -261,7 +259,7 @@ func (d *discover) discoverDesign(player *Player, design *ShipDesign, discoverSl
 		// create a new intel for this design
 		intel = &ShipDesignIntel{
 			Intel: Intel{
-				GameID:    design.GameID,
+				PlayerID:  player.ID,
 				Dirty:     true,
 				Name:      design.Name,
 				PlayerNum: design.PlayerNum,
