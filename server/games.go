@@ -27,7 +27,7 @@ func (s *server) GameById(c *gin.Context) {
 		return
 	}
 
-	game, err := s.db.FindGameByIdLight(id.ID)
+	game, err := s.db.GetGame(id.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -40,7 +40,7 @@ func (s *server) GameById(c *gin.Context) {
 	c.JSON(http.StatusOK, game)
 }
 
-func (s *server) DeleteGameById(c *gin.Context) {
+func (s *server) DeleteGame(c *gin.Context) {
 	user := s.GetSessionUser(c)
 
 	var id idBind
@@ -50,7 +50,7 @@ func (s *server) DeleteGameById(c *gin.Context) {
 	}
 
 	// validate
-	game, err := s.db.FindGameByIdLight(id.ID)
+	game, err := s.db.GetGame(id.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -62,7 +62,7 @@ func (s *server) DeleteGameById(c *gin.Context) {
 	}
 
 	// delete it
-	if err := s.db.DeleteGameById(id.ID); err != nil {
+	if err := s.db.DeleteGame(id.ID); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

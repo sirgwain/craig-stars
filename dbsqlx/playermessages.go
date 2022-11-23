@@ -8,7 +8,6 @@ import (
 
 func (c *client) GetPlayerMessages() ([]game.PlayerMessage, error) {
 
-	// don't include password in bulk select
 	items := []game.PlayerMessage{}
 	if err := c.db.Select(&items, `SELECT * FROM playerMessages`); err != nil {
 		if err == sql.ErrNoRows {
@@ -22,7 +21,6 @@ func (c *client) GetPlayerMessages() ([]game.PlayerMessage, error) {
 
 func (c *client) GetPlayerMessagesForPlayer(playerID int64) ([]game.PlayerMessage, error) {
 
-	// don't include password in bulk select
 	items := []game.PlayerMessage{}
 	if err := c.db.Select(&items, `SELECT * FROM playerMessages WHERE playerId = ?`, playerID); err != nil {
 		if err == sql.ErrNoRows {

@@ -47,7 +47,6 @@ func newServeCmd() *cobra.Command {
 
 func generateTestGame(db db.Client, config config.Config) error {
 	defer timeTrack(time.Now(), "generateTestGame")
-	db.MigrateAll()
 
 	admin, adminRace, err := createTestUser(db, "admin", config.GeneratedUserPassword, game.RoleAdmin)
 	if err != nil {
@@ -126,7 +125,7 @@ func createTestUser(db db.Client, username string, password string, role game.Ro
 		race = game.Humanoids()
 		race.UserID = user.ID
 
-		if err := db.SaveRace(&race); err != nil {
+		if err := db.CreateRace(&race); err != nil {
 			return nil, nil, err
 		}
 

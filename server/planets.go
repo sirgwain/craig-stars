@@ -32,7 +32,7 @@ func (s *server) UpdatePlanetOrders(c *gin.Context) {
 	}
 
 	// find the existing planet by id
-	existing, err := s.db.FindPlanetByID(planet.ID)
+	existing, err := s.db.GetPlanet(planet.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -59,7 +59,7 @@ func (s *server) UpdatePlanetOrders(c *gin.Context) {
 	existing.ContributesOnlyLeftoverToResearch = planet.ContributesOnlyLeftoverToResearch
 	existing.ProductionQueue = planet.ProductionQueue
 	existing.Spec = game.ComputePlanetSpec(rules, existing, player)
-	s.db.SavePlanet(existing.GameID, existing)
+	s.db.UpdatePlanet(existing)
 
 	c.JSON(http.StatusOK, existing)
 }

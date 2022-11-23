@@ -15,7 +15,6 @@ func connectDB() *client {
 	// cfg.Database.Filename = "../tmp/test-data.db"
 	cfg.Database.Filename = ":memory:"
 	c.Connect(cfg)
-	c.MigrateAll()
 	return c
 }
 
@@ -83,12 +82,12 @@ func TestDB_SaveGame(t *testing.T) {
 
 	c := connectDB()
 	g := newRandomGame()
-	err := c.SaveGame(g)
+	err := c.UpdateFullGame(g)
 	if err != nil {
 		t.Error(err)
 	}
 
-	g, _ = c.FindGameById(g.ID)
+	g, _ = c.GetFullGame(g.ID)
 
 	// set a pop value
 	pop := 100_000
@@ -101,12 +100,12 @@ func TestDB_SaveGame(t *testing.T) {
 	previousItemCount := len(g.Planets[0].ProductionQueue)
 	g.Planets[0].ProductionQueue = append(g.Planets[0].ProductionQueue, game.ProductionQueueItem{Type: game.QueueItemTypeMine, Quantity: 5})
 
-	err = c.SaveGame(g)
+	err = c.UpdateFullGame(g)
 	if err != nil {
 		t.Error(err)
 	}
 
-	loaded, err := c.FindGameById(g.ID)
+	loaded, err := c.GetFullGame(g.ID)
 	if err != nil {
 		t.Error(err)
 	}
@@ -157,7 +156,7 @@ func TestDB_DeleteGameById(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &client{}
-			c.DeleteGameById(tt.args.gameID)
+			c.DeleteGame(tt.args.gameID)
 		})
 	}
 }
@@ -167,7 +166,7 @@ func TestDB_FindGameById(t *testing.T) {
 	c := connectDB()
 
 	g := newRandomGame()
-	if err := c.SaveGame(g); err != nil {
+	if err := c.UpdateFullGame(g); err != nil {
 		t.Error(err)
 	}
 
@@ -182,16 +181,16 @@ func TestDB_FindGameById(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := c.FindGameById(tt.id)
+			got, err := c.GetFullGame(tt.id)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("c.FindGameById() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("c.GetFullGame() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != nil || tt.want != nil {
 				// TODO: figure out a better way to test equivalence
 				// this is fragile because the DB modifies the data on save
 				// if !test.CompareAsJSON(t, got, tt.want) {
-				// 	t.Errorf("c.FindGameById() = %v, want %v", got, tt.want)
+				// 	t.Errorf("c.GetFullGame() = %v, want %v", got, tt.want)
 				// }
 			}
 		})

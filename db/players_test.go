@@ -15,7 +15,7 @@ func TestDB_FindPlayerByGameId(t *testing.T) {
 	c := connectDB()
 
 	g := newRandomGame()
-	if err := c.SaveGame(g); err != nil {
+	if err := c.UpdateFullGame(g); err != nil {
 		t.Error(err)
 	}
 
@@ -35,7 +35,7 @@ func TestDB_FindPlayerByGameId(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.FindPlayerByGameId(tt.gameId, tt.userId)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("c.FindGameById() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("c.GetFullGame() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			_ = got
@@ -43,7 +43,7 @@ func TestDB_FindPlayerByGameId(t *testing.T) {
 			// TODO: figure out a better way to test equivalence
 			// this is fragile because the DB modifies the data on save
 			// if !test.CompareAsJSON(t, got, tt.want) {
-			// 	t.Errorf("c.FindGameById() = %v, want %v", got, tt.want)
+			// 	t.Errorf("c.GetFullGame() = %v, want %v", got, tt.want)
 			// }
 			// }
 		})

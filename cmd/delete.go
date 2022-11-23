@@ -63,7 +63,7 @@ func addDeleteGameCmd() {
 			cfg := config.GetConfig()
 			db.Connect(cfg)
 
-			db.DeleteGameById(id)
+			db.DeleteGame(id)
 			games, err := db.GetGames()
 			if err != nil {
 				return err

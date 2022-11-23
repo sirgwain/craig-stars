@@ -160,7 +160,6 @@ func (c *client) GetPlanet(id int64) (*game.Planet, error) {
 
 func (c *client) getPlanetsForGame(gameId int64) ([]*game.Planet, error) {
 
-	// don't include password in bulk select
 	items := []Planet{}
 	if err := c.db.Select(&items, `SELECT * FROM planets WHERE gameId = ?`, gameId); err != nil {
 		if err == sql.ErrNoRows {

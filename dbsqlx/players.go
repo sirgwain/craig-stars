@@ -169,7 +169,6 @@ func (item *PlayerStats) Scan(src interface{}) error {
 
 func (c *client) GetPlayers() ([]game.Player, error) {
 
-	// don't include password in bulk select
 	items := []Player{}
 	if err := c.db.Select(&items, `SELECT * FROM players`); err != nil {
 		if err == sql.ErrNoRows {
@@ -183,7 +182,6 @@ func (c *client) GetPlayers() ([]game.Player, error) {
 
 func (c *client) GetPlayersForUser(userID int64) ([]game.Player, error) {
 
-	// don't include password in bulk select
 	items := []Player{}
 	if err := c.db.Select(&items, `SELECT * FROM players WHERE userId = ?`, userID); err != nil {
 		if err == sql.ErrNoRows {
@@ -197,7 +195,6 @@ func (c *client) GetPlayersForUser(userID int64) ([]game.Player, error) {
 
 func (c *client) GetPlayersForGame(gameID int64) ([]*game.Player, error) {
 
-	// don't include password in bulk select
 	items := []Player{}
 	if err := c.db.Select(&items, `SELECT * FROM players WHERE gameId = ?`, gameID); err != nil {
 		if err == sql.ErrNoRows {

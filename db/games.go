@@ -28,7 +28,7 @@ func (c *client) GetGamesByUser(userID int64) ([]*game.Game, error) {
 	return games, nil
 }
 
-func (c *client) GetGamesHostedByUser(userID int64) ([]*game.Game, error) {
+func (c *client) GetGamesForHost(userID int64) ([]*game.Game, error) {
 	games := []*game.Game{}
 	if err := c.sqlDB.Raw("SELECT * from games g WHERE g.host_id = ?", userID).Scan(&games).Error; err != nil {
 		return nil, err
@@ -50,8 +50,8 @@ func (c *client) CreateGame(game *game.Game) error {
 	return c.sqlDB.Create(game).Error
 }
 
-func (c *client) SaveGame(g *game.FullGame) error {
-	defer timeTrack(time.Now(), "SaveGame")
+func (c *client) UpdateFullGame(g *game.FullGame) error {
+	defer timeTrack(time.Now(), "UpdateFullGame")
 
 	// rules don't change after game is created
 	if (g.Game.Area == game.Vector{}) {
@@ -65,7 +65,7 @@ func (c *client) SaveGame(g *game.FullGame) error {
 	for _, planet := range g.Universe.Planets {
 		if planet.Dirty {
 			planet.GameID = g.ID
-			err = c.SavePlanet(g.ID, planet)
+			err = c.UpdatePlanet(planet)
 			if err != nil {
 				return err
 			}
@@ -174,7 +174,7 @@ func (c *client) SaveGame(g *game.FullGame) error {
 	return nil
 }
 
-func (c *client) FindGameById(id int64) (*game.FullGame, error) {
+func (c *client) GetFullGame(id int64) (*game.FullGame, error) {
 	g := game.FullGame{
 		Game:     &game.Game{},
 		Universe: &game.Universe{},
@@ -241,7 +241,7 @@ func (c *client) FindGameById(id int64) (*game.FullGame, error) {
 	return &g, nil
 }
 
-func (c *client) FindGameByIdLight(id int64) (*game.Game, error) {
+func (c *client) GetGame(id int64) (*game.Game, error) {
 	game := game.Game{}
 	if err := c.sqlDB.First(&game, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -270,6 +270,6 @@ func (c *client) FindGameRulesByGameID(gameID int64) (*game.Rules, error) {
 	return &rules, nil
 }
 
-func (c *client) DeleteGameById(id int64) error {
+func (c *client) DeleteGame(id int64) error {
 	return c.sqlDB.Delete(&game.Game{ID: id}).Error
 }
