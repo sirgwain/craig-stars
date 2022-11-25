@@ -336,7 +336,6 @@ func GameProductionQueueItemsToProductionQueueItems(source []game.ProductionQueu
 	return (*ProductionQueueItems)(&source)
 }
 
-
 func FleetSpecToGameFleetSpec(source *FleetSpec) *game.FleetSpec {
 	return (*game.FleetSpec)(source)
 }
@@ -578,7 +577,7 @@ func ExtendPlanetIntelMapObjectIntel(source PlanetIntel) game.MapObjectIntel {
 			PlayerNum: source.PlayerNum,
 			ReportAge: source.ReportAge,
 		},
-		Type: source.Type,
+		Type: game.MapObjectTypePlanet,
 		Position: game.Vector{
 			X: source.X,
 			Y: source.Y,

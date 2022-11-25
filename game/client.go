@@ -51,6 +51,9 @@ func (c *client) GenerateUniverse(game *Game, players []*Player) (*Universe, err
 		return nil, err
 	}
 
+	// save our area back to the game object now that it's been generated
+	game.Area = ug.Area()
+
 	return universe, nil
 }
 

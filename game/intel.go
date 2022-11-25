@@ -130,6 +130,7 @@ func (d *ShipDesignIntel) String() string {
 func NewFleetIntel(playerID int64, playerNum int, name string) FleetIntel {
 	return FleetIntel{
 		MapObjectIntel: MapObjectIntel{
+			Type: MapObjectTypeFleet,
 			Intel: Intel{
 				PlayerID:  playerID,
 				Name:      name,

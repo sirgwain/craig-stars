@@ -53,10 +53,6 @@ func (c *client) CreateGame(game *game.Game) error {
 func (c *client) UpdateFullGame(g *game.FullGame) error {
 	defer timeTrack(time.Now(), "UpdateFullGame")
 
-	// rules don't change after game is created
-	if (g.Game.Area == game.Vector{}) {
-		g.Game.Area = g.Universe.Area
-	}
 	err := c.sqlDB.Save(g.Game).Error
 	if err != nil {
 		return err

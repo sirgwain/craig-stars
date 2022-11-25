@@ -8,20 +8,22 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type generatedUniverse struct {
+type universeGenerator struct {
 	universe Universe
 	players  []*Player
 	size     Size
 	density  Density
 	rules    *Rules
+	area     Vector
 }
 
 type UniverseGenerator interface {
 	Generate() (*Universe, error)
+	Area() Vector
 }
 
 func NewUniverseGenerator(size Size, density Density, players []*Player, rules *Rules) UniverseGenerator {
-	return &generatedUniverse{
+	return &universeGenerator{
 		size:    size,
 		density: density,
 		players: players,
@@ -29,55 +31,58 @@ func NewUniverseGenerator(size Size, density Density, players []*Player, rules *
 	}
 }
 
-// Generate a new universe using a UniverseGenerator
-func (gu *generatedUniverse) Generate() (*Universe, error) {
-	log.Debug().Msgf("%s: Generating universe", gu.size)
+func (ug *universeGenerator) Area() Vector {
+	return ug.area
+}
 
-	gu.universe = Universe{}
-	area, err := gu.rules.GetArea(gu.size)
+// Generate a new universe using a UniverseGenerator
+func (ug *universeGenerator) Generate() (*Universe, error) {
+	log.Debug().Msgf("%s: Generating universe", ug.size)
+
+	ug.universe = Universe{}
+	area, err := ug.rules.GetArea(ug.size)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := gu.generatePlanets(area); err != nil {
+	ug.area = area
+
+	if err := ug.generatePlanets(ug.area); err != nil {
 		return nil, err
 	}
 
-	// save our area
-	gu.universe.Area = area
+	ug.generateWormholes()
 
-	gu.generateWormholes()
+	ug.generatePlayerTechLevels()
+	ug.generatePlayerPlans()
+	ug.generatePlayerShipDesigns()
 
-	gu.generatePlayerTechLevels()
-	gu.generatePlayerPlans()
-	gu.generatePlayerShipDesigns()
-
-	if err := gu.generatePlayerHomeworlds(area); err != nil {
+	if err := ug.generatePlayerHomeworlds(ug.area); err != nil {
 		return nil, err
 	}
 
-	if err := gu.generatePlayerPlanetReports(); err != nil {
+	if err := ug.generatePlayerPlanetReports(); err != nil {
 		return nil, err
 	}
 
 	// generatePlayerFleets(g)
-	gu.applyGameStartModeModifier()
+	ug.applyGameStartModeModifier()
 
 	// setup all the specs for planets, fleets, etc
-	for _, player := range gu.players {
-		player.Spec = computePlayerSpec(player, gu.rules)
+	for _, player := range ug.players {
+		player.Spec = computePlayerSpec(player, ug.rules)
 	}
 
-	for _, planet := range gu.universe.Planets {
+	for _, planet := range ug.universe.Planets {
 		if planet.Owned() {
-			player := gu.players[planet.PlayerNum]
-			planet.Spec = ComputePlanetSpec(gu.rules, planet, player)
+			player := ug.players[planet.PlayerNum]
+			planet.Spec = ComputePlanetSpec(ug.rules, planet, player)
 		}
 	}
 	// disoverer := discover{g}
-	for _, player := range gu.players {
+	for _, player := range ug.players {
 
-		scanner := newPlayerScanner(&gu.universe, gu.rules, player)
+		scanner := newPlayerScanner(&ug.universe, ug.rules, player)
 		if err := scanner.scan(); err != nil {
 			return nil, err
 		}
@@ -86,7 +91,7 @@ func (gu *generatedUniverse) Generate() (*Universe, error) {
 		// disoverer.playerInfoDiscover(player)
 
 		// TODO: check for AI player
-		pmo := gu.universe.GetPlayerMapObjects(player.Num)
+		pmo := ug.universe.GetPlayerMapObjects(player.Num)
 		ai := NewAIPlayer(player, pmo)
 		ai.processTurn()
 
@@ -95,11 +100,11 @@ func (gu *generatedUniverse) Generate() (*Universe, error) {
 		}
 	}
 
-	return &gu.universe, nil
+	return &ug.universe, nil
 }
 
 // Check if a position vector is a mininum distance away from all other points
-func (gu *generatedUniverse) isPositionValid(pos Vector, occupiedLocations *[]Vector, minDistance float64) bool {
+func (ug *universeGenerator) isPositionValid(pos Vector, occupiedLocations *[]Vector, minDistance float64) bool {
 	minDistanceSquared := minDistance * minDistance
 
 	for _, to := range *occupiedLocations {
@@ -110,9 +115,9 @@ func (gu *generatedUniverse) isPositionValid(pos Vector, occupiedLocations *[]Ve
 	return true
 }
 
-func (gu *generatedUniverse) generatePlanets(area Vector) error {
+func (ug *universeGenerator) generatePlanets(area Vector) error {
 
-	numPlanets, err := gu.rules.GetNumPlanets(gu.size, gu.density)
+	numPlanets, err := ug.rules.GetNumPlanets(ug.size, ug.density)
 	if err != nil {
 		return err
 	}
@@ -120,9 +125,9 @@ func (gu *generatedUniverse) generatePlanets(area Vector) error {
 	log.Debug().Msgf("Generating %d planets in universe size %v for ", numPlanets, area)
 
 	names := planetNames
-	gu.rules.random.Shuffle(len(names), func(i, j int) { names[i], names[j] = names[j], names[i] })
+	ug.rules.random.Shuffle(len(names), func(i, j int) { names[i], names[j] = names[j], names[i] })
 
-	gu.universe.Planets = make([]*Planet, numPlanets)
+	ug.universe.Planets = make([]*Planet, numPlanets)
 
 	planetsByPosition := make(map[Vector]*Planet, numPlanets)
 	occupiedLocations := make([]Vector, numPlanets)
@@ -131,12 +136,12 @@ func (gu *generatedUniverse) generatePlanets(area Vector) error {
 
 		// find a valid position for the planet
 		posCheckCount := 0
-		pos := Vector{X: float64(gu.rules.random.Intn(int(area.X))), Y: float64(gu.rules.random.Intn(int(area.Y)))}
-		for !gu.isPositionValid(pos, &occupiedLocations, float64(gu.rules.PlanetMinDistance)) {
-			pos = Vector{X: float64(gu.rules.random.Intn(int(area.X))), Y: float64(gu.rules.random.Intn(int(area.Y)))}
+		pos := Vector{X: float64(ug.rules.random.Intn(int(area.X))), Y: float64(ug.rules.random.Intn(int(area.Y)))}
+		for !ug.isPositionValid(pos, &occupiedLocations, float64(ug.rules.PlanetMinDistance)) {
+			pos = Vector{X: float64(ug.rules.random.Intn(int(area.X))), Y: float64(ug.rules.random.Intn(int(area.Y)))}
 			posCheckCount++
 			if posCheckCount > 1000 {
-				return fmt.Errorf("failed to find a valid position for a planet in 1000 tries, min: %d, numPlanets: %d, area: %v", gu.rules.PlanetMinDistance, numPlanets, area)
+				return fmt.Errorf("failed to find a valid position for a planet in 1000 tries, min: %d, numPlanets: %d, area: %v", ug.rules.PlanetMinDistance, numPlanets, area)
 			}
 		}
 
@@ -145,9 +150,9 @@ func (gu *generatedUniverse) generatePlanets(area Vector) error {
 		planet.Name = names[i]
 		planet.Num = int(i + 1)
 		planet.Position = pos
-		planet.randomize(gu.rules)
+		planet.randomize(ug.rules)
 
-		gu.universe.Planets[i] = planet
+		ug.universe.Planets[i] = planet
 		planetsByPosition[pos] = planet
 		occupiedLocations = append(occupiedLocations, pos)
 	}
@@ -159,23 +164,23 @@ func (gu *generatedUniverse) generatePlanets(area Vector) error {
 	return nil
 }
 
-func (gu *generatedUniverse) generateWormholes() {
+func (ug *universeGenerator) generateWormholes() {
 
 }
 
-func (gu *generatedUniverse) generatePlayerTechLevels() {
-	for _, player := range gu.players {
+func (ug *universeGenerator) generatePlayerTechLevels() {
+	for _, player := range ug.players {
 		player.TechLevels = TechLevel(player.Race.Spec.StartingTechLevels)
 	}
 }
 
-func (gu *generatedUniverse) generatePlayerPlans() {
+func (ug *universeGenerator) generatePlayerPlans() {
 
 }
 
 // generate designs for each player
-func (gu *generatedUniverse) generatePlayerShipDesigns() {
-	for _, player := range gu.players {
+func (ug *universeGenerator) generatePlayerShipDesigns() {
+	for _, player := range ug.players {
 		designNames := mapset.NewSet[string]()
 		for _, startingPlanet := range player.Race.Spec.StartingPlanets {
 			for _, startingFleet := range startingPlanet.StartingFleets {
@@ -183,22 +188,22 @@ func (gu *generatedUniverse) generatePlayerShipDesigns() {
 					// only one design per name, i.e. Scout, Armored Probe
 					continue
 				}
-				techStore := gu.rules.techs
+				techStore := ug.rules.techs
 				hull := techStore.GetHull(string(startingFleet.HullName))
 				design := designShip(techStore, hull, startingFleet.Name, player, player.DefaultHullSet, startingFleet.Purpose)
 				design.HullSetNumber = int(startingFleet.HullSetNumber)
 				design.Purpose = startingFleet.Purpose
-				design.Spec = ComputeShipDesignSpec(gu.rules, player, design)
+				design.Spec = ComputeShipDesignSpec(ug.rules, player, design)
 				player.Designs = append(player.Designs, *design)
 			}
 		}
 
-		starbaseDesigns := gu.getStartingStarbaseDesigns(gu.rules.techs, player)
+		starbaseDesigns := ug.getStartingStarbaseDesigns(ug.rules.techs, player)
 
 		for i := range starbaseDesigns {
 			design := &starbaseDesigns[i]
 			design.Purpose = ShipDesignPurposeStarbase
-			design.Spec = ComputeShipDesignSpec(gu.rules, player, design)
+			design.Spec = ComputeShipDesignSpec(ug.rules, player, design)
 			player.Designs = append(player.Designs, *design)
 		}
 	}
@@ -206,12 +211,12 @@ func (gu *generatedUniverse) generatePlayerShipDesigns() {
 }
 
 // have each player discover all the planets in the universe
-func (gu *generatedUniverse) generatePlayerPlanetReports() error {
-	for _, player := range gu.players {
+func (ug *universeGenerator) generatePlayerPlanetReports() error {
+	for _, player := range ug.players {
 		discoverer := newDiscoverer(player)
-		player.PlanetIntels = make([]PlanetIntel, len(gu.universe.Planets))
-		for j := range gu.universe.Planets {
-			if err := discoverer.discoverPlanet(gu.rules, player, gu.universe.Planets[j], false); err != nil {
+		player.PlanetIntels = make([]PlanetIntel, len(ug.universe.Planets))
+		for j := range ug.universe.Planets {
+			if err := discoverer.discoverPlanet(ug.rules, player, ug.universe.Planets[j], false); err != nil {
 				return err
 			}
 		}
@@ -219,11 +224,11 @@ func (gu *generatedUniverse) generatePlayerPlanetReports() error {
 	return nil
 }
 
-func (gu *generatedUniverse) generatePlayerHomeworlds(area Vector) error {
+func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 
 	ownedPlanets := []*Planet{}
-	rules := gu.rules
-	random := gu.rules.random
+	rules := ug.rules
+	random := ug.rules.random
 
 	// each player homeworld has the same random mineral concentration, for fairness
 	homeworldMinConc := Mineral{
@@ -244,8 +249,8 @@ func (gu *generatedUniverse) generatePlayerHomeworlds(area Vector) error {
 		Germanium: rules.MinStartingMineralSurface + random.Intn(rules.MaxStartingMineralSurface),
 	}
 
-	for _, player := range gu.players {
-		minPlayerDistance := float64(area.X+area.Y) / 2.0 / float64(len(gu.players)+1)
+	for _, player := range ug.players {
+		minPlayerDistance := float64(area.X+area.Y) / 2.0 / float64(len(ug.players)+1)
 		fleetNum := 1
 		var homeworld *Planet
 
@@ -255,7 +260,7 @@ func (gu *generatedUniverse) generatePlayerHomeworlds(area Vector) error {
 			if startingPlanetIndex > 0 {
 
 				// extra planets are close to the homeworld
-				for _, planet := range gu.universe.Planets {
+				for _, planet := range ug.universe.Planets {
 					distToHomeworld := planet.Position.DistanceSquaredTo(homeworld.Position)
 					if !planet.Owned() && (distToHomeworld <= float64(rules.MaxExtraWorldDistance*rules.MaxExtraWorldDistance) && distToHomeworld >= float64(rules.MinExtraWorldDistance*rules.MinExtraWorldDistance)) {
 						playerPlanet = planet
@@ -265,7 +270,7 @@ func (gu *generatedUniverse) generatePlayerHomeworlds(area Vector) error {
 
 			} else {
 				// homeworld should be distant from other players
-				for _, planet := range gu.universe.Planets {
+				for _, planet := range ug.universe.Planets {
 					if !planet.Owned() && (len(ownedPlanets) == 0 || planet.shortestDistanceToPlanets(&ownedPlanets) > minPlayerDistance) {
 						playerPlanet = planet
 						break
@@ -276,7 +281,7 @@ func (gu *generatedUniverse) generatePlayerHomeworlds(area Vector) error {
 			}
 
 			if playerPlanet == nil {
-				return fmt.Errorf("failed to find homeworld for player %v among %d planets, minDistance: %0.1f", player, len(gu.universe.Planets), minPlayerDistance)
+				return fmt.Errorf("failed to find homeworld for player %v among %d planets, minDistance: %0.1f", player, len(ug.universe.Planets), minPlayerDistance)
 			}
 
 			ownedPlanets = append(ownedPlanets, playerPlanet)
@@ -289,11 +294,11 @@ func (gu *generatedUniverse) generatePlayerHomeworlds(area Vector) error {
 
 			// first planet is a homeworld
 			// make a new homeworld
-			if err := playerPlanet.initStartingWorld(player, gu.rules, startingPlanet, homeworldMinConc, surfaceMinerals); err != nil {
+			if err := playerPlanet.initStartingWorld(player, ug.rules, startingPlanet, homeworldMinConc, surfaceMinerals); err != nil {
 				return err
 			}
 			// generate some fleets on the homeworld
-			if err := gu.generatePlayerFleets(player, playerPlanet, &fleetNum, startingPlanet.StartingFleets); err != nil {
+			if err := ug.generatePlayerFleets(player, playerPlanet, &fleetNum, startingPlanet.StartingFleets); err != nil {
 				return err
 			}
 
@@ -304,7 +309,7 @@ func (gu *generatedUniverse) generatePlayerHomeworlds(area Vector) error {
 	return nil
 }
 
-func (gu *generatedUniverse) generatePlayerFleets(player *Player, planet *Planet, fleetNum *int, startingFleets []StartingFleet) error {
+func (ug *universeGenerator) generatePlayerFleets(player *Player, planet *Planet, fleetNum *int, startingFleets []StartingFleet) error {
 	for _, startingFleet := range startingFleets {
 		design := player.GetDesign(string(startingFleet.Name))
 		if design == nil {
@@ -313,21 +318,21 @@ func (gu *generatedUniverse) generatePlayerFleets(player *Player, planet *Planet
 
 		fleet := NewFleet(player, design, *fleetNum, startingFleet.Name, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, design.Spec.IdealSpeed)})
 		fleet.OrbitingPlanetNum = planet.Num
-		fleet.Spec = ComputeFleetSpec(gu.rules, player, &fleet)
+		fleet.Spec = ComputeFleetSpec(ug.rules, player, &fleet)
 		fleet.Fuel = fleet.Spec.FuelCapacity
-		gu.universe.Fleets = append(gu.universe.Fleets, &fleet)
+		ug.universe.Fleets = append(ug.universe.Fleets, &fleet)
 		(*fleetNum)++ // increment the fleet num
 	}
 
 	return nil
 }
 
-func (gu *generatedUniverse) applyGameStartModeModifier() {
+func (ug *universeGenerator) applyGameStartModeModifier() {
 
 }
 
 // get the initial starbase designs for a player
-func (gu *generatedUniverse) getStartingStarbaseDesigns(techStore *TechStore, player *Player) []ShipDesign {
+func (ug *universeGenerator) getStartingStarbaseDesigns(techStore *TechStore, player *Player) []ShipDesign {
 	designs := []ShipDesign{}
 
 	if player.Race.Spec.LivesOnStarbases {

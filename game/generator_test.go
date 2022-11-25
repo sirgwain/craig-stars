@@ -38,7 +38,7 @@ func Test_getStartingStarbaseDesigns(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gu := generatedUniverse{}
+			gu := universeGenerator{}
 			got := gu.getStartingStarbaseDesigns(tt.args.techStore, tt.args.player)
 
 			// uuids are random, so just make our want/got's the same

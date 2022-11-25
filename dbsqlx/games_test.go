@@ -69,6 +69,8 @@ func TestUpdateGame(t *testing.T) {
 func TestGetGame(t *testing.T) {
 	c := connectTestDB()
 	g := game.NewGame().WithSettings(*game.NewGameSettings().WithHost(1).WithName("test"))
+	g.Area = game.Vector{X: 1, Y: 2}
+
 	if err := c.CreateGame(g); err != nil {
 		t.Errorf("failed to create game %s", err)
 		return
