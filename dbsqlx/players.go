@@ -3,7 +3,6 @@ package dbsqlx
 import (
 	"database/sql"
 	"database/sql/driver"
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -40,8 +39,8 @@ type Player struct {
 	ResearchSpentLastYear        int                    `json:"researchSpentLastYear,omitempty"`
 	NextResearchField            game.NextResearchField `json:"nextResearchField,omitempty"`
 	Researching                  game.TechField         `json:"researching,omitempty"`
-	ProductionPlans              ProductionPlans        `json:"productionPlans,omitempty"`
-	TransportPlans               TransportPlans         `json:"transportPlans,omitempty"`
+	ProductionPlans              *ProductionPlans       `json:"productionPlans,omitempty"`
+	TransportPlans               *TransportPlans        `json:"transportPlans,omitempty"`
 	Race                         *PlayerRace            `json:"race,omitempty"`
 	Stats                        *PlayerStats           `json:"stats,omitempty"`
 	Spec                         *PlayerSpec            `json:"spec,omitempty"`
@@ -55,48 +54,28 @@ type PlayerSpec game.PlayerSpec
 type PlayerStats game.PlayerStats
 
 // db serializer to serialize this to JSON
-func (item ProductionPlans) Value() (driver.Value, error) {
-	if item == nil {
-		return nil, nil
-	}
-
-	data, err := json.Marshal(item)
-	if err != nil {
-		return nil, err
-	}
-	return data, nil
+func (item *ProductionPlans) Value() (driver.Value, error) {
+	return valueJSON(item)
 }
 
 // db deserializer to read this from JSON
-func (item ProductionPlans) Scan(src interface{}) error {
+func (item *ProductionPlans) Scan(src interface{}) error {
 	return scanJSON(src, &item)
 }
 
 // db serializer to serialize this to JSON
-func (item TransportPlans) Value() (driver.Value, error) {
-	if item == nil {
-		return nil, nil
-	}
-
-	data, err := json.Marshal(item)
-	if err != nil {
-		return nil, err
-	}
-	return data, nil
+func (item *TransportPlans) Value() (driver.Value, error) {
+	return valueJSON(item)
 }
 
 // db deserializer to read this from JSON
-func (item TransportPlans) Scan(src interface{}) error {
-	return scanJSON(src, &item)
+func (item *TransportPlans) Scan(src interface{}) error {
+	return scanJSON(src, item)
 }
 
 // db serializer to serialize this to JSON
 func (item *PlayerRace) Value() (driver.Value, error) {
-	data, err := json.Marshal(item)
-	if err != nil {
-		return nil, err
-	}
-	return data, nil
+	return valueJSON(item)
 }
 
 // db deserializer to read this from JSON
@@ -106,15 +85,7 @@ func (item *PlayerRace) Scan(src interface{}) error {
 
 // db serializer to serialize this to JSON
 func (item *PlayerSpec) Value() (driver.Value, error) {
-	if item == nil {
-		return nil, nil
-	}
-
-	data, err := json.Marshal(item)
-	if err != nil {
-		return nil, err
-	}
-	return data, nil
+	return valueJSON(item)
 }
 
 // db deserializer to read this from JSON
@@ -125,15 +96,7 @@ func (item *PlayerSpec) Scan(src interface{}) error {
 
 // db serializer to serialize this to JSON
 func (item *PlayerStats) Value() (driver.Value, error) {
-	if item == nil {
-		return nil, nil
-	}
-
-	data, err := json.Marshal(item)
-	if err != nil {
-		return nil, err
-	}
-	return data, nil
+	return valueJSON(item)
 }
 
 // db deserializer to read this from JSON

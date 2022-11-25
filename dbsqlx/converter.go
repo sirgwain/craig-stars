@@ -31,6 +31,8 @@ import (
 // goverter:name GameConverter
 // goverter:extend PlanetSpecToGamePlanetSpec
 // goverter:extend GamePlanetSpecToPlanetSpec
+// goverter:extend ProductionQueueItemsToGameProductionQueueItems
+// goverter:extend GameProductionQueueItemsToProductionQueueItems
 // goverter:extend FleetSpecToGameFleetSpec
 // goverter:extend GameFleetSpecToFleetSpec
 // goverter:extend WaypointsToGameWaypoints
@@ -278,20 +280,20 @@ func GameRaceSpecToRaceSpec(source *game.RaceSpec) *RaceSpec {
 	return (*RaceSpec)(source)
 }
 
-func ProductionPlansToGameProductionPlans(source ProductionPlans) []game.ProductionPlan {
-	return ([]game.ProductionPlan)(source)
+func ProductionPlansToGameProductionPlans(source *ProductionPlans) []game.ProductionPlan {
+	return ([]game.ProductionPlan)(*source)
 }
 
-func GameProductionPlansToProductionPlans(source []game.ProductionPlan) ProductionPlans {
-	return (ProductionPlans)(source)
+func GameProductionPlansToProductionPlans(source []game.ProductionPlan) *ProductionPlans {
+	return (*ProductionPlans)(&source)
 }
 
-func TransportPlansToGameTransportPlans(source TransportPlans) []game.TransportPlan {
-	return ([]game.TransportPlan)(source)
+func TransportPlansToGameTransportPlans(source *TransportPlans) []game.TransportPlan {
+	return ([]game.TransportPlan)(*source)
 }
 
-func GameTransportPlansToTransportPlans(source []game.TransportPlan) TransportPlans {
-	return (TransportPlans)(source)
+func GameTransportPlansToTransportPlans(source []game.TransportPlan) *TransportPlans {
+	return (*TransportPlans)(&source)
 }
 
 func PlayerRaceToGameRace(source *PlayerRace) game.Race {
@@ -326,6 +328,15 @@ func GamePlanetSpecToPlanetSpec(source *game.PlanetSpec) *PlanetSpec {
 	return (*PlanetSpec)(source)
 }
 
+func ProductionQueueItemsToGameProductionQueueItems(source *ProductionQueueItems) []game.ProductionQueueItem {
+	return ([]game.ProductionQueueItem)(*source)
+}
+
+func GameProductionQueueItemsToProductionQueueItems(source []game.ProductionQueueItem) *ProductionQueueItems {
+	return (*ProductionQueueItems)(&source)
+}
+
+
 func FleetSpecToGameFleetSpec(source *FleetSpec) *game.FleetSpec {
 	return (*game.FleetSpec)(source)
 }
@@ -334,12 +345,12 @@ func GameFleetSpecToFleetSpec(source *game.FleetSpec) *FleetSpec {
 	return (*FleetSpec)(source)
 }
 
-func WaypointsToGameWaypoints(source Waypoints) []game.Waypoint {
-	return ([]game.Waypoint)(source)
+func WaypointsToGameWaypoints(source *Waypoints) []game.Waypoint {
+	return ([]game.Waypoint)(*source)
 }
 
-func GameWaypointsToWaypoints(source []game.Waypoint) Waypoints {
-	return (Waypoints)(source)
+func GameWaypointsToWaypoints(source []game.Waypoint) *Waypoints {
+	return (*Waypoints)(&source)
 }
 
 func ShipDesignSpecToGameShipDesignSpec(source *ShipDesignSpec) *game.ShipDesignSpec {

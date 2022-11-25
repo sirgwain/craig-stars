@@ -3,53 +3,52 @@ package dbsqlx
 import (
 	"database/sql"
 	"database/sql/driver"
-	"encoding/json"
 	"time"
 
 	"github.com/sirgwain/craig-stars/game"
 )
 
 type Planet struct {
-	ID                                int64                `json:"id,omitempty"`
-	GameID                            int64                `json:"gameId,omitempty"`
-	CreatedAt                         time.Time            `json:"createdAt,omitempty"`
-	UpdatedAt                         time.Time            `json:"updatedAt,omitempty"`
-	PlayerID                          int64                `json:"playerId,omitempty"`
-	X                                 float64              `json:"x,omitempty"`
-	Y                                 float64              `json:"y,omitempty"`
-	Name                              string               `json:"name,omitempty"`
-	Num                               int                  `json:"num,omitempty"`
-	PlayerNum                         int                  `json:"playerNum,omitempty"`
-	Tags                              Tags                 `json:"tags,omitempty"`
-	Grav                              int                  `json:"grav,omitempty"`
-	Temp                              int                  `json:"temp,omitempty"`
-	Rad                               int                  `json:"rad,omitempty"`
-	BaseGrav                          int                  `json:"baseGrav,omitempty"`
-	BaseTemp                          int                  `json:"baseTemp,omitempty"`
-	BaseRad                           int                  `json:"baseRad,omitempty"`
-	TerraformedAmountGrav             int                  `json:"terraformedAmountGrav,omitempty"`
-	TerraformedAmountTemp             int                  `json:"terraformedAmountTemp,omitempty"`
-	TerraformedAmountRad              int                  `json:"terraformedAmountRad,omitempty"`
-	MineralConcIronium                int                  `json:"mineralConcIronium,omitempty"`
-	MineralConcBoranium               int                  `json:"mineralConcBoranium,omitempty"`
-	MineralConcGermanium              int                  `json:"mineralConcGermanium,omitempty"`
-	MineYearsIronium                  int                  `json:"mineYearsIronium,omitempty"`
-	MineYearsBoranium                 int                  `json:"mineYearsBoranium,omitempty"`
-	MineYearsGermanium                int                  `json:"mineYearsGermanium,omitempty"`
-	Ironium                           int                  `json:"ironium,omitempty"`
-	Boranium                          int                  `json:"boranium,omitempty"`
-	Germanium                         int                  `json:"germanium,omitempty"`
-	Colonists                         int                  `json:"colonists,omitempty"`
-	Mines                             int                  `json:"mines,omitempty"`
-	Factories                         int                  `json:"factories,omitempty"`
-	Defenses                          int                  `json:"defenses,omitempty"`
-	Homeworld                         bool                 `json:"homeworld,omitempty"`
-	ContributesOnlyLeftoverToResearch bool                 `json:"contributesOnlyLeftoverToResearch,omitempty"`
-	Scanner                           bool                 `json:"scanner,omitempty"`
-	PacketSpeed                       int                  `json:"packetSpeed,omitempty"`
-	BonusResources                    int                  `json:"bonusResources,omitempty"`
-	ProductionQueue                   ProductionQueueItems `json:"productionQueue,omitempty"`
-	Spec                              *PlanetSpec          `json:"spec,omitempty"`
+	ID                                int64                 `json:"id,omitempty"`
+	GameID                            int64                 `json:"gameId,omitempty"`
+	CreatedAt                         time.Time             `json:"createdAt,omitempty"`
+	UpdatedAt                         time.Time             `json:"updatedAt,omitempty"`
+	PlayerID                          int64                 `json:"playerId,omitempty"`
+	X                                 float64               `json:"x,omitempty"`
+	Y                                 float64               `json:"y,omitempty"`
+	Name                              string                `json:"name,omitempty"`
+	Num                               int                   `json:"num,omitempty"`
+	PlayerNum                         int                   `json:"playerNum,omitempty"`
+	Tags                              Tags                  `json:"tags,omitempty"`
+	Grav                              int                   `json:"grav,omitempty"`
+	Temp                              int                   `json:"temp,omitempty"`
+	Rad                               int                   `json:"rad,omitempty"`
+	BaseGrav                          int                   `json:"baseGrav,omitempty"`
+	BaseTemp                          int                   `json:"baseTemp,omitempty"`
+	BaseRad                           int                   `json:"baseRad,omitempty"`
+	TerraformedAmountGrav             int                   `json:"terraformedAmountGrav,omitempty"`
+	TerraformedAmountTemp             int                   `json:"terraformedAmountTemp,omitempty"`
+	TerraformedAmountRad              int                   `json:"terraformedAmountRad,omitempty"`
+	MineralConcIronium                int                   `json:"mineralConcIronium,omitempty"`
+	MineralConcBoranium               int                   `json:"mineralConcBoranium,omitempty"`
+	MineralConcGermanium              int                   `json:"mineralConcGermanium,omitempty"`
+	MineYearsIronium                  int                   `json:"mineYearsIronium,omitempty"`
+	MineYearsBoranium                 int                   `json:"mineYearsBoranium,omitempty"`
+	MineYearsGermanium                int                   `json:"mineYearsGermanium,omitempty"`
+	Ironium                           int                   `json:"ironium,omitempty"`
+	Boranium                          int                   `json:"boranium,omitempty"`
+	Germanium                         int                   `json:"germanium,omitempty"`
+	Colonists                         int                   `json:"colonists,omitempty"`
+	Mines                             int                   `json:"mines,omitempty"`
+	Factories                         int                   `json:"factories,omitempty"`
+	Defenses                          int                   `json:"defenses,omitempty"`
+	Homeworld                         bool                  `json:"homeworld,omitempty"`
+	ContributesOnlyLeftoverToResearch bool                  `json:"contributesOnlyLeftoverToResearch,omitempty"`
+	Scanner                           bool                  `json:"scanner,omitempty"`
+	PacketSpeed                       int                   `json:"packetSpeed,omitempty"`
+	BonusResources                    int                   `json:"bonusResources,omitempty"`
+	ProductionQueue                   *ProductionQueueItems `json:"productionQueue,omitempty"`
+	Spec                              *PlanetSpec           `json:"spec,omitempty"`
 }
 
 // we json serialize these types with custom Scan/Value methods
@@ -58,35 +57,19 @@ type PlanetSpec game.PlanetSpec
 type Tags game.Tags
 
 // db serializer to serialize this to JSON
-func (item ProductionQueueItems) Value() (driver.Value, error) {
-	if item == nil {
-		return nil, nil
-	}
-
-	data, err := json.Marshal(item)
-	if err != nil {
-		return nil, err
-	}
-	return data, nil
+func (item *ProductionQueueItems) Value() (driver.Value, error) {
+	return valueJSON(item)
 }
 
 // db deserializer to read this from JSON
-func (item ProductionQueueItems) Scan(src interface{}) error {
+func (item *ProductionQueueItems) Scan(src interface{}) error {
 	return scanJSON(src, &item)
 
 }
 
 // db serializer to serialize this to JSON
 func (item *PlanetSpec) Value() (driver.Value, error) {
-	if item == nil {
-		return nil, nil
-	}
-
-	data, err := json.Marshal(item)
-	if err != nil {
-		return nil, err
-	}
-	return data, nil
+	return valueJSON(item)
 }
 
 // db deserializer to read this from JSON
@@ -95,21 +78,13 @@ func (item *PlanetSpec) Scan(src interface{}) error {
 }
 
 // db serializer to serialize this to JSON
-func (item Tags) Value() (driver.Value, error) {
-	if item == nil {
-		return nil, nil
-	}
-
-	data, err := json.Marshal(item)
-	if err != nil {
-		return nil, err
-	}
-	return data, nil
+func (item *Tags) Value() (driver.Value, error) {
+	return valueJSON(item)
 }
 
 // db deserializer to read this from JSON
-func (item Tags) Scan(src interface{}) error {
-	return scanJSON(src, &item)
+func (item *Tags) Scan(src interface{}) error {
+	return scanJSON(src, item)
 }
 
 // get a planet by id
