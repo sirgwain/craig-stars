@@ -7,8 +7,8 @@ import (
 	"gorm.io/gorm"
 )
 
-func (c *client) GetRaces(userID int64) ([]*game.Race, error) {
-	races := []*game.Race{}
+func (c *client) GetRacesForUser(userID int64) ([]game.Race, error) {
+	races := []game.Race{}
 	if err := c.sqlDB.
 		Where("user_id = ? AND player_id = 0", userID).
 		Find(&races).

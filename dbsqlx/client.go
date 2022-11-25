@@ -2,6 +2,9 @@ package dbsqlx
 
 import (
 	"database/sql"
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -36,13 +39,22 @@ type Client interface {
 	DeleteUser(id int64) error
 
 	GetRaces() ([]game.Race, error)
+	GetRacesForUser(userID int64) ([]game.Race, error)
 	GetRace(id int64) (*game.Race, error)
 	CreateRace(race *game.Race) error
 	UpdateRace(race *game.Race) error
 	DeleteRace(id int64) error
 
+	GetTechStores() ([]game.TechStore, error)
+	CreateTechStore(tech *game.TechStore) error
+	GetTechStore(id int64) (*game.TechStore, error)
+
+	GetRulesForGame(gameID int64) (*game.Rules, error)
+
 	GetGames() ([]game.Game, error)
 	GetGamesForHost(userID int64) ([]game.Game, error)
+	GetGamesForUser(userID int64) ([]game.Game, error)
+	GetOpenGames() ([]game.Game, error)
 	GetGame(id int64) (*game.Game, error)
 	GetFullGame(id int64) (*game.FullGame, error)
 	CreateGame(game *game.Game) error
@@ -52,13 +64,12 @@ type Client interface {
 
 	GetPlayers() ([]game.Player, error)
 	GetPlayersForUser(userID int64) ([]game.Player, error)
-	GetPlayersForGame(gameID int64) ([]*game.Player, error)
 	GetPlayer(id int64) (*game.Player, error)
-	GetFullPlayer(id int64) (*game.Player, error)
+	GetPlayerForGame(gameID, userID int64) (*game.Player, error)
+	GetFullPlayerForGame(gameID, userID int64) (*game.FullPlayer, error)
 	CreatePlayer(player *game.Player) error
 	UpdatePlayer(player *game.Player) error
-	UpdateFullPlayer(player *game.Player) error
-	DeletePlayer(id int64) error	
+	DeletePlayer(id int64) error
 
 	GetPlanet(id int64) (*game.Planet, error)
 	UpdatePlanet(planet *game.Planet) error
@@ -74,8 +85,9 @@ func NewClient() Client {
 }
 
 // interface to support NamedExec as either a transaction or db
-type NamedExecer interface {
+type SQLExecer interface {
 	NamedExec(query string, arg interface{}) (sql.Result, error)
+	Exec(query string, args ...any) (sql.Result, error)
 }
 
 func (c *client) Connect(config *config.Config) error {
@@ -127,4 +139,33 @@ func (c *client) ExecSchema(schemaPath string) {
 	// exec the schema or fail; multi-statement Exec behavior varies between
 	// database drivers;  pq will exec them all, sqlite3 won't, ymmv
 	c.db.MustExec(schema)
+}
+
+// helper to convert an item into JSON
+func valueJSON(item interface{}) (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
+	data, err := json.Marshal(item)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+// helper to scan a text JSON column back into a struct
+func scanJSON(src interface{}, dest interface{}) error {
+	if src == nil {
+		// leave empty
+		return nil
+	}
+
+	switch v := src.(type) {
+	case []byte:
+		return json.Unmarshal(v, dest)
+	case string:
+		return json.Unmarshal([]byte(v), dest)
+	}
+	return errors.New("type assertion failed")
 }

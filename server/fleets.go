@@ -32,7 +32,7 @@ func (s *server) UpdateFleetOrders(c *gin.Context) {
 	}
 
 	// find the player for this user
-	player, err := s.db.FindPlayerByGameIdLight(existing.GameID, user.ID)
+	player, err := s.db.GetPlayerForGame(existing.GameID, user.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -90,7 +90,7 @@ func (s *server) TransferCargo(c *gin.Context) {
 	}
 
 	// find the player for this user
-	player, err := s.db.FindPlayerByGameIdLight(fleet.GameID, user.ID)
+	player, err := s.db.GetPlayerForGame(fleet.GameID, user.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

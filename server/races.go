@@ -11,7 +11,7 @@ import (
 func (s *server) Races(c *gin.Context) {
 	user := s.GetSessionUser(c)
 
-	races, err := s.db.GetRaces(user.ID)
+	races, err := s.db.GetRacesForUser(user.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+// a player and all mapobjects the player owns
+// this is used by the UI when loading a player's game
 type FullPlayer struct {
 	Player
 	PlayerMapObjects

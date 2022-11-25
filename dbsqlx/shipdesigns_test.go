@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/sirgwain/craig-stars/game"
+	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -26,7 +27,7 @@ func TestCreateShipDesign(t *testing.T) {
 			want := *tt.args.shipDesign
 			_, player := tt.args.c.createTestGameWithPlayer()
 			tt.args.shipDesign.PlayerID = player.ID
-			err := tt.args.c.CreateShipDesign(tt.args.shipDesign, tt.args.c.db)
+			err := tt.args.c.CreateShipDesign(tt.args.shipDesign)
 
 			// id is automatically added
 			want.PlayerID = player.ID
@@ -43,11 +44,11 @@ func TestCreateShipDesign(t *testing.T) {
 }
 
 func TestGetShipDesign(t *testing.T) {
+	rules := game.NewRules()
 	c := connectTestDB()
 	_, player := c.createTestGameWithPlayer()
-	shipDesign := game.ShipDesign{Name: "name"}
-	shipDesign.PlayerID = player.ID
-	if err := c.CreateShipDesign(&shipDesign, c.db); err != nil {
+	shipDesign := game.NewShipDesign(player).WithHull(game.Scout.Name).WithSpec(&rules, player)
+	if err := c.CreateShipDesign(shipDesign); err != nil {
 		t.Errorf("failed to create shipDesign %s", err)
 		return
 	}
@@ -62,7 +63,7 @@ func TestGetShipDesign(t *testing.T) {
 		wantErr bool
 	}{
 		{"No results", args{id: 0}, nil, false},
-		{"Got shipDesign", args{id: shipDesign.ID}, &shipDesign, false},
+		{"Got shipDesign", args{id: shipDesign.ID}, shipDesign, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -75,7 +76,7 @@ func TestGetShipDesign(t *testing.T) {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt
 			}
-			if !reflect.DeepEqual(got, tt.want) {
+			if !test.CompareAsJSON(t, got, tt.want) {
 				t.Errorf("GetShipDesign() = %v, want %v", got, tt.want)
 			}
 		})
@@ -92,7 +93,7 @@ func TestGetShipDesigns(t *testing.T) {
 	assert.Equal(t, []game.ShipDesign{}, result)
 
 	shipDesign := game.ShipDesign{PlayerID: player.ID, Name: "name"}
-	if err := c.CreateShipDesign(&shipDesign, c.db); err != nil {
+	if err := c.CreateShipDesign(&shipDesign); err != nil {
 		t.Errorf("failed to create shipDesign %s", err)
 		return
 	}
@@ -112,7 +113,7 @@ func TestDeleteShipDesigns(t *testing.T) {
 	assert.Equal(t, []game.ShipDesign{}, result)
 
 	shipDesign := game.ShipDesign{PlayerID: player.ID, Name: "name"}
-	if err := c.CreateShipDesign(&shipDesign, c.db); err != nil {
+	if err := c.CreateShipDesign(&shipDesign); err != nil {
 		t.Errorf("failed to create shipDesign %s", err)
 		return
 	}

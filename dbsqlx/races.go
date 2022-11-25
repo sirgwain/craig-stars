@@ -115,11 +115,15 @@ func (c *client) GetRace(id int64) (*game.Race, error) {
 	return &race, nil
 }
 
-// create a new race
 func (c *client) CreateRace(race *game.Race) error {
+	return c.createRace(race, c.db)
+}
+
+// create a new race
+func (c *client) createRace(race *game.Race, tx SQLExecer) error {
 
 	item := c.converter.ConvertGameRace(race)
-	result, err := c.db.NamedExec(`
+	result, err := tx.NamedExec(`
 	INSERT INTO races (
 		createdAt,
 		updatedAt,

@@ -49,7 +49,20 @@ func TestCreateFleet(t *testing.T) {
 func TestGetFleet(t *testing.T) {
 	c := connectTestDB()
 	g, player := c.createTestGameWithPlayer()
-	fleet := game.Fleet{MapObject: game.MapObject{GameID: g.ID, PlayerID: player.ID, Name: "name", Type: game.MapObjectTypeFleet}}
+	design := game.NewShipDesign(player).WithHull(game.Scout.Name)
+	c.createTestShipDesign(player, design)
+
+	fleet := game.Fleet{
+		MapObject: game.MapObject{GameID: g.ID, PlayerID: player.ID, Name: "name", Type: game.MapObjectTypeFleet},
+		Tokens: []game.ShipToken{
+			{Quantity: 1, Design: design},
+		},
+		FleetOrders: game.FleetOrders{
+			Waypoints: []game.Waypoint{
+				game.NewPositionWaypoint(game.Vector{X: 2, Y: 3}, 4),
+			},
+		},
+	}
 	if err := c.createFleet(&fleet, c.db); err != nil {
 		t.Errorf("failed to create fleet %s", err)
 		return
@@ -77,6 +90,10 @@ func TestGetFleet(t *testing.T) {
 			if got != nil {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt
+				for i := range got.Tokens {
+					tt.want.Tokens[i].CreatedAt = got.Tokens[i].CreatedAt
+					tt.want.Tokens[i].UpdatedAt = got.Tokens[i].UpdatedAt
+				}
 			}
 			if !test.CompareAsJSON(t, got, tt.want) {
 				t.Errorf("GetFleet() = %v, want %v", got, tt.want)
@@ -94,8 +111,8 @@ func TestGetFleets(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, []*game.Fleet{}, result)
 
-	planet := game.Fleet{MapObject: game.MapObject{GameID: g.ID}}
-	if err := c.createFleet(&planet, c.db); err != nil {
+	fleet := game.Fleet{MapObject: game.MapObject{GameID: g.ID}}
+	if err := c.createFleet(&fleet, c.db); err != nil {
 		t.Errorf("failed to create planet %s", err)
 		return
 	}

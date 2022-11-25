@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/sirgwain/craig-stars/config"
-	"github.com/sirgwain/craig-stars/db"
 
 	"github.com/gin-contrib/sessions"
 	gormsessions "github.com/gin-contrib/sessions/gorm"
@@ -17,12 +16,12 @@ import (
 )
 
 type server struct {
-	db         db.Client
+	db         DBClient
 	config     config.Config
 	gameRunner *GameRunner
 }
 
-func Start(db db.Client, config config.Config) {
+func Start(db DBClient, config config.Config) {
 
 	server := &server{
 		db:         db,

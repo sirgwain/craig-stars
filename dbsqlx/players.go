@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 
@@ -43,6 +42,7 @@ type Player struct {
 	Researching                  game.TechField         `json:"researching,omitempty"`
 	ProductionPlans              ProductionPlans        `json:"productionPlans,omitempty"`
 	TransportPlans               TransportPlans         `json:"transportPlans,omitempty"`
+	Race                         *PlayerRace            `json:"race,omitempty"`
 	Stats                        *PlayerStats           `json:"stats,omitempty"`
 	Spec                         *PlayerSpec            `json:"spec,omitempty"`
 }
@@ -50,6 +50,7 @@ type Player struct {
 // we json serialize these types with custom Scan/Value methods
 type ProductionPlans []game.ProductionPlan
 type TransportPlans []game.TransportPlan
+type PlayerRace game.Race
 type PlayerSpec game.PlayerSpec
 type PlayerStats game.PlayerStats
 
@@ -68,18 +69,7 @@ func (item ProductionPlans) Value() (driver.Value, error) {
 
 // db deserializer to read this from JSON
 func (item ProductionPlans) Scan(src interface{}) error {
-	if src == nil {
-		// leave empty
-		return nil
-	}
-
-	switch v := src.(type) {
-	case []byte:
-		return json.Unmarshal(v, &item)
-	case string:
-		return json.Unmarshal([]byte(v), &item)
-	}
-	return errors.New("type assertion failed")
+	return scanJSON(src, &item)
 }
 
 // db serializer to serialize this to JSON
@@ -97,18 +87,21 @@ func (item TransportPlans) Value() (driver.Value, error) {
 
 // db deserializer to read this from JSON
 func (item TransportPlans) Scan(src interface{}) error {
-	if src == nil {
-		// leave empty
-		return nil
-	}
+	return scanJSON(src, &item)
+}
 
-	switch v := src.(type) {
-	case []byte:
-		return json.Unmarshal(v, &item)
-	case string:
-		return json.Unmarshal([]byte(v), &item)
+// db serializer to serialize this to JSON
+func (item *PlayerRace) Value() (driver.Value, error) {
+	data, err := json.Marshal(item)
+	if err != nil {
+		return nil, err
 	}
-	return errors.New("type assertion failed")
+	return data, nil
+}
+
+// db deserializer to read this from JSON
+func (item *PlayerRace) Scan(src interface{}) error {
+	return scanJSON(src, item)
 }
 
 // db serializer to serialize this to JSON
@@ -126,17 +119,8 @@ func (item *PlayerSpec) Value() (driver.Value, error) {
 
 // db deserializer to read this from JSON
 func (item *PlayerSpec) Scan(src interface{}) error {
-	if src == nil {
-		return nil
-	}
+	return scanJSON(src, item)
 
-	switch v := src.(type) {
-	case []byte:
-		return json.Unmarshal(v, item)
-	case string:
-		return json.Unmarshal([]byte(v), item)
-	}
-	return errors.New("type assertion failed")
 }
 
 // db serializer to serialize this to JSON
@@ -154,17 +138,7 @@ func (item *PlayerStats) Value() (driver.Value, error) {
 
 // db deserializer to read this from JSON
 func (item *PlayerStats) Scan(src interface{}) error {
-	if src == nil {
-		return nil
-	}
-
-	switch v := src.(type) {
-	case []byte:
-		return json.Unmarshal(v, item)
-	case string:
-		return json.Unmarshal([]byte(v), item)
-	}
-	return errors.New("type assertion failed")
+	return scanJSON(src, item)
 }
 
 func (c *client) GetPlayers() ([]game.Player, error) {
@@ -193,7 +167,8 @@ func (c *client) GetPlayersForUser(userID int64) ([]game.Player, error) {
 	return c.converter.ConvertPlayers(items), nil
 }
 
-func (c *client) GetPlayersForGame(gameID int64) ([]*game.Player, error) {
+// get all the players for a game, with data loaded
+func (c *client) getPlayersForGame(gameID int64) ([]*game.Player, error) {
 
 	items := []Player{}
 	if err := c.db.Select(&items, `SELECT * FROM players WHERE gameId = ?`, gameID); err != nil {
@@ -207,6 +182,12 @@ func (c *client) GetPlayersForGame(gameID int64) ([]*game.Player, error) {
 	for i := range items {
 		player := c.converter.ConvertPlayer(items[i])
 		players[i] = &player
+
+		designs, err := c.GetShipDesignsForPlayer(player.ID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get designs for player %w", err)
+		}
+		player.Designs = designs
 	}
 
 	return players, nil
@@ -226,10 +207,9 @@ func (c *client) GetPlayer(id int64) (*game.Player, error) {
 	return &player, nil
 }
 
-// get a full player by id with all dependencies loaded
-func (c *client) GetFullPlayer(id int64) (*game.Player, error) {
+func (c *client) GetPlayerForGame(gameID, userID int64) (*game.Player, error) {
 	item := Player{}
-	if err := c.db.Get(&item, "SELECT * FROM players WHERE id = ?", id); err != nil {
+	if err := c.db.Get(&item, "SELECT * FROM players WHERE gameId = ? AND userId = ?", gameID, userID); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
@@ -237,6 +217,23 @@ func (c *client) GetFullPlayer(id int64) (*game.Player, error) {
 	}
 
 	player := c.converter.ConvertPlayer(item)
+	return &player, nil
+}
+
+// get a full player by id with all dependencies loaded
+func (c *client) GetFullPlayerForGame(gameID, userID int64) (*game.FullPlayer, error) {
+	player := game.FullPlayer{}
+
+	item := Player{}
+	if err := c.db.Get(&item, "SELECT * FROM players WHERE gameId = ? AND userId = ?", gameID, userID); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	// load the player component from the DB
+	player.Player = c.converter.ConvertPlayer(item)
 
 	// load player deps
 	messages, err := c.GetPlayerMessagesForPlayer(player.ID)
@@ -245,13 +242,41 @@ func (c *client) GetFullPlayer(id int64) (*game.Player, error) {
 	}
 	player.Messages = messages
 
+	designs, err := c.GetShipDesignsForPlayer(player.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get player designs %w", err)
+	}
+	player.Designs = designs
+
+	planets, err := c.getPlanetsForPlayer(player.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get player planets %w", err)
+	}
+	player.Planets = planets
+
+	fleets, err := c.getFleetsForPlayer(player.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get player fleets %w", err)
+	}
+	player.Fleets = fleets
+
+	planetIntels, err := c.GetPlanetIntelsForPlayer(player.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get player planetIntels %w", err)
+	}
+	player.PlanetIntels = planetIntels
+
 	return &player, nil
 }
 
-// create a new game
 func (c *client) CreatePlayer(player *game.Player) error {
+	return c.createPlayer(player, c.db)
+}
+
+// create a new game
+func (c *client) createPlayer(player *game.Player, tx SQLExecer) error {
 	item := c.converter.ConvertGamePlayer(player)
-	result, err := c.db.NamedExec(`
+	result, err := tx.NamedExec(`
 	INSERT INTO players (
 		createdAt,
 		updatedAt,
@@ -282,6 +307,7 @@ func (c *client) CreatePlayer(player *game.Player) error {
 		researching,
 		productionPlans,
 		transportPlans,
+		race,
 		stats,
 		spec
 	)
@@ -315,6 +341,7 @@ func (c *client) CreatePlayer(player *game.Player) error {
 		:researching,
 		:productionPlans,
 		:transportPlans,
+		:race,
 		:stats,
 		:spec
 	)
@@ -341,7 +368,7 @@ func (c *client) UpdatePlayer(player *game.Player) error {
 }
 
 // helper to update a player using a transaction or DB
-func (c *client) updatePlayerWithNamedExecer(player *game.Player, tx NamedExecer) error {
+func (c *client) updatePlayerWithNamedExecer(player *game.Player, tx SQLExecer) error {
 	item := c.converter.ConvertGamePlayer(player)
 
 	if _, err := tx.NamedExec(`
@@ -374,6 +401,7 @@ func (c *client) updatePlayerWithNamedExecer(player *game.Player, tx NamedExecer
 		researching = :researching,
 		productionPlans = :productionPlans,
 		transportPlans = :transportPlans,
+		race = :race,
 		stats = :stats,
 		spec = :spec
 	WHERE id = :id
@@ -384,7 +412,7 @@ func (c *client) updatePlayerWithNamedExecer(player *game.Player, tx NamedExecer
 	return nil
 }
 
-func (c *client) UpdateFullPlayer(player *game.Player) error {
+func (c *client) updateFullPlayer(player *game.Player) error {
 	tx, err := c.db.Beginx()
 	if err != nil {
 		return err
@@ -418,7 +446,36 @@ func (c *client) updateFullPlayerWithTransaction(player *game.Player, tx *sqlx.T
 		}
 	}
 
-	tx.Commit()
+	for i := range player.Designs {
+		design := &player.Designs[i]
+		if design.ID == 0 {
+			if err := c.createShipDesign(design, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("failed to create design %w", err)
+			}
+		} else if design.Dirty {
+			if err := c.updateShipDesign(design, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("failed to update design %w", err)
+			}
+		}
+	}
+
+	for i := range player.PlanetIntels {
+		planetIntel := &player.PlanetIntels[i]
+		if planetIntel.ID == 0 {
+			if err := c.createPlanetIntel(planetIntel, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("failed to create planetintel %w", err)
+			}
+		} else if planetIntel.Dirty {
+			if err := c.updatePlanetIntel(planetIntel, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("failed to update planetintel %w", err)
+			}
+		}
+	}
+
 	return nil
 }
 

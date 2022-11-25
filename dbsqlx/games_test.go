@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/sirgwain/craig-stars/game"
+	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -67,8 +68,8 @@ func TestUpdateGame(t *testing.T) {
 
 func TestGetGame(t *testing.T) {
 	c := connectTestDB()
-	g := game.Game{HostID: 1, Name: "Test"}
-	if err := c.CreateGame(&g); err != nil {
+	g := game.NewGame().WithSettings(*game.NewGameSettings().WithHost(1).WithName("test"))
+	if err := c.CreateGame(g); err != nil {
 		t.Errorf("failed to create game %s", err)
 		return
 	}
@@ -83,7 +84,7 @@ func TestGetGame(t *testing.T) {
 		wantErr bool
 	}{
 		{"No results", args{id: 0}, nil, false},
-		{"Got game", args{id: g.ID}, &g, false},
+		{"Got game", args{id: g.ID}, g, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -96,7 +97,7 @@ func TestGetGame(t *testing.T) {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt
 			}
-			if !reflect.DeepEqual(got, tt.want) {
+			if !test.CompareAsJSON(t, got, tt.want) {
 				t.Errorf("GetGame() = %v, want %v", got, tt.want)
 			}
 		})
@@ -121,6 +122,36 @@ func TestGetGames(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result))
 
+}
+
+func TestGetOpenGames(t *testing.T) {
+	c := connectTestDB()
+
+	// start with 1 game from connectTestDB
+	result, err := c.GetOpenGames()
+	assert.Nil(t, err)
+	assert.Equal(t, []game.Game{}, result)
+
+	g1 := game.Game{HostID: 1, Name: "Test", State: game.GameStateSetup, OpenPlayerSlots: 1}
+	if err := c.CreateGame(&g1); err != nil {
+		t.Errorf("failed to create game %s", err)
+		return
+	}
+
+	result, err = c.GetOpenGames()
+	assert.Nil(t, err)
+	assert.Equal(t, 1, len(result))
+
+	// create a second closed game
+	g2 := game.Game{HostID: 1, Name: "Test", State: game.GameStateSetup, OpenPlayerSlots: 0}
+	if err := c.CreateGame(&g2); err != nil {
+		t.Errorf("failed to create game %s", err)
+		return
+	}
+
+	result, err = c.GetOpenGames()
+	assert.Nil(t, err)
+	assert.Equal(t, 1, len(result))
 }
 
 func TestDeleteGames(t *testing.T) {

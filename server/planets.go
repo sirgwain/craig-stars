@@ -19,7 +19,7 @@ func (s *server) UpdatePlanetOrders(c *gin.Context) {
 	}
 
 	// find the player for this user
-	player, err := s.db.FindPlayerByGameIdLight(id.ID, user.ID)
+	player, err := s.db.GetPlayerForGame(id.ID, user.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -44,7 +44,7 @@ func (s *server) UpdatePlanetOrders(c *gin.Context) {
 		return
 	}
 
-	rules, err := s.db.FindGameRulesByGameID(planet.GameID)
+	rules, err := s.db.GetRulesForGame(planet.GameID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

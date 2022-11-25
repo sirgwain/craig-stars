@@ -11,7 +11,6 @@ type Rules struct {
 	CreatedAt                          time.Time                           `json:"createdAt"`
 	UpdatedAt                          time.Time                           `json:"updatedAt"`
 	GameID                             int64                               `json:"gameId"`
-	Seed                               int64                               `json:"seed"`
 	TachyonCloakReduction              int                                 `json:"tachyonCloakReduction"`
 	MaxPopulation                      int                                 `json:"maxPopulation"`
 	FleetsScanWhileMoving              bool                                `json:"fleetsScanWhileMoving"`
@@ -95,8 +94,8 @@ const (
 
 // Seed the random number generator with the rules Seed value
 // This should be called after deserializing
-func (r *Rules) ResetSeed() {
-	r.random = rand.New(rand.NewSource(r.Seed))
+func (r *Rules) ResetSeed(seed int64) {
+	r.random = rand.New(rand.NewSource(seed))
 }
 
 func (r *Rules) WithTechStore(techStore *TechStore) *Rules {
@@ -107,10 +106,13 @@ func (r *Rules) WithTechStore(techStore *TechStore) *Rules {
 func NewRules() Rules {
 	// create the random number generator for these rules
 	seed := time.Now().UnixNano()
+	return NewRulesWithSeed(seed)
+}
+
+func NewRulesWithSeed(seed int64) Rules {
 	random := rand.New(rand.NewSource(seed))
 
 	return Rules{
-		Seed:                          seed,
 		random:                        random,
 		TachyonCloakReduction:         5,
 		MaxPopulation:                 1000000,

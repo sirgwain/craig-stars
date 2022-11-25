@@ -55,17 +55,24 @@ func (c *client) createTestGameWithPlayer() (*game.Game, *game.Player) {
 	player.GameID = g.ID
 
 	if err := c.CreatePlayer(player); err != nil {
-		panic(fmt.Errorf("Failed to create test database game player, %w", err))
+		panic(fmt.Errorf("Failed to create test database game player %w", err))
 	}
 
 	// add the player's race into the db
 	player.Race.PlayerID = &player.ID
 	player.Race.UserID = player.UserID
 	if err := c.CreateRace(&player.Race); err != nil {
-		panic(fmt.Errorf("Failed to create test database game race, %w", err))
+		panic(fmt.Errorf("Failed to create test database game race %w", err))
 	}
 
 	return g, player
+}
+
+func (c *client) createTestShipDesign(player *game.Player, design *game.ShipDesign) {
+	design.PlayerID = player.ID
+	if err := c.CreateShipDesign(design); err != nil {
+		panic(fmt.Errorf("failed to create test design %w", err))
+	}
 }
 
 func (c *client) createTestFullGame() *game.FullGame {

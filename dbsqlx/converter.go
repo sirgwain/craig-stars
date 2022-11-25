@@ -2,6 +2,7 @@
 package dbsqlx
 
 import (
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -10,6 +11,8 @@ import (
 
 // goverter:converter
 // goverter:extend TimeToTime
+// goverter:extend NullTimeToTime
+// goverter:extend TimeToNullTime
 // goverter:extend UUIDToUUID
 // goverter:extend RulesToGameRules
 // goverter:extend GameRulesToRules
@@ -19,6 +22,8 @@ import (
 // goverter:extend GameProductionPlansToProductionPlans
 // goverter:extend TransportPlansToGameTransportPlans
 // goverter:extend GameTransportPlansToTransportPlans
+// goverter:extend GameRaceToPlayerRace
+// goverter:extend PlayerRaceToGameRace
 // goverter:extend PlayerSpecToGamePlayerSpec
 // goverter:extend GamePlayerSpecToPlayerSpec
 // goverter:extend PlayerStatsToGamePlayerStats
@@ -64,6 +69,7 @@ type Converter interface {
 
 	// goverter:mapExtend VictoryConditions ExtendVictoryConditions
 	// goverter:mapExtend Area ExtendArea
+	// goverter:mapExtend Rules ExtendDefaultRules
 	ConvertGame(source Game) game.Game
 
 	// goverter:mapExtend VictoryConditions ExtendVictoryConditions
@@ -87,7 +93,6 @@ type Converter interface {
 
 	// goverter:mapExtend TechLevels ExtendTechLevels
 	// goverter:mapExtend TechLevelsSpent ExtendTechLevelsSpent
-	// goverter:ignore Race
 	// goverter:ignore Messages
 	// goverter:ignore BattlePlans
 	// goverter:ignore Designs
@@ -198,22 +203,71 @@ type Converter interface {
 	ConvertGameShipDesign(source *game.ShipDesign) *ShipDesign
 	// goverter:ignore Dirty
 	ConvertShipDesign(source *ShipDesign) *game.ShipDesign
+
+	ConvertGameShipToken(source game.ShipToken) ShipToken
+	// goverter:ignore Design
+	ConvertShipToken(source ShipToken) game.ShipToken
+
+	// goverter:map MapObjectIntel.Intel.ID ID
+	// goverter:map MapObjectIntel.Intel.CreatedAt CreatedAt
+	// goverter:map MapObjectIntel.Intel.UpdatedAt UpdatedAt
+	// goverter:map MapObjectIntel.Intel.Dirty Dirty
+	// goverter:map MapObjectIntel.Intel.PlayerID PlayerID
+	// goverter:map MapObjectIntel.Intel.Name Name
+	// goverter:map MapObjectIntel.Intel.Num Num
+	// goverter:map MapObjectIntel.Intel.PlayerNum PlayerNum
+	// goverter:map MapObjectIntel.Intel.ReportAge ReportAge
+	// goverter:map MapObjectIntel.Position.X X
+	// goverter:map MapObjectIntel.Position.Y Y
+	// goverter:map MapObjectIntel.Type	Type
+	// goverter:map Hab.Grav Grav
+	// goverter:map Hab.Temp Temp
+	// goverter:map Hab.Rad Rad
+	// goverter:map MineralConcentration.Ironium MineralConcIronium
+	// goverter:map MineralConcentration.Boranium MineralConcBoranium
+	// goverter:map MineralConcentration.Germanium MineralConcGermanium
+	// goverter:map Cargo.Ironium Ironium
+	// goverter:map Cargo.Boranium Boranium
+	// goverter:map Cargo.Germanium Germanium
+	// goverter:map Cargo.Colonists Colonists
+	ConvertGamePlanetIntel(source *game.PlanetIntel) *PlanetIntel
+
+	// goverter:mapExtend Hab ExtendPlanetIntelHab
+	// goverter:mapExtend MineralConcentration ExtendPlanetIntelMineralConcentration
+	// goverter:mapExtend Cargo ExtendPlanetIntelCargo
+	// goverter:mapExtend MapObjectIntel ExtendPlanetIntelMapObjectIntel
+	// goverter:ignore Starbase
+	ConvertPlanetIntel(source *PlanetIntel) *game.PlanetIntel
 }
 
 func TimeToTime(source time.Time) time.Time {
 	return source
 }
 
+func NullTimeToTime(source sql.NullTime) time.Time {
+	if source.Valid {
+		return source.Time
+	}
+	return time.Time{}
+}
+
+func TimeToNullTime(source time.Time) sql.NullTime {
+	return sql.NullTime{
+		Valid: true,
+		Time:  source,
+	}
+}
+
 func UUIDToUUID(source uuid.UUID) uuid.UUID {
 	return source
 }
 
-func RulesToGameRules(source Rules) game.Rules {
-	return game.Rules(source)
+func RulesToGameRules(source *Rules) game.Rules {
+	return game.Rules(*source)
 }
 
-func GameRulesToRules(source game.Rules) Rules {
-	return Rules(source)
+func GameRulesToRules(source game.Rules) *Rules {
+	return (*Rules)(&source)
 }
 
 func RaceSpecToGameRaceSpec(source *RaceSpec) *game.RaceSpec {
@@ -238,6 +292,14 @@ func TransportPlansToGameTransportPlans(source TransportPlans) []game.TransportP
 
 func GameTransportPlansToTransportPlans(source []game.TransportPlan) TransportPlans {
 	return (TransportPlans)(source)
+}
+
+func PlayerRaceToGameRace(source *PlayerRace) game.Race {
+	return game.Race(*source)
+}
+
+func GameRaceToPlayerRace(source game.Race) *PlayerRace {
+	return (*PlayerRace)(&source)
 }
 
 func PlayerSpecToGamePlayerSpec(source *PlayerSpec) *game.PlayerSpec {
@@ -288,12 +350,12 @@ func GameShipDesignSpecToShipDesignSpec(source *game.ShipDesignSpec) *ShipDesign
 	return (*ShipDesignSpec)(source)
 }
 
-func ShipDesignSlotsToGameShipDesignSlots(source ShipDesignSlots) []game.ShipDesignSlot {
-	return ([]game.ShipDesignSlot)(source)
+func ShipDesignSlotsToGameShipDesignSlots(source *ShipDesignSlots) []game.ShipDesignSlot {
+	return ([]game.ShipDesignSlot)(*source)
 }
 
-func GameShipDesignSlotsToShipDesignSlots(source []game.ShipDesignSlot) ShipDesignSlots {
-	return (ShipDesignSlots)(source)
+func GameShipDesignSlotsToShipDesignSlots(source []game.ShipDesignSlot) *ShipDesignSlots {
+	return (*ShipDesignSlots)(&source)
 }
 
 func ExtendResearchCost(source Race) game.ResearchCost {
@@ -325,7 +387,7 @@ func ExtendHabHigh(source Race) game.Hab {
 
 func ExtendVictoryConditions(source Game) game.VictoryConditions {
 	return game.VictoryConditions{
-		Conditions:               source.VictoryConditionsConditions,
+		Conditions:               *source.VictoryConditionsConditions,
 		NumCriteriaRequired:      source.VictoryConditionsNumCriteriaRequired,
 		YearsPassed:              source.VictoryConditionsYearsPassed,
 		OwnPlanets:               source.VictoryConditionsOwnPlanets,
@@ -344,6 +406,10 @@ func ExtendArea(source Game) game.Vector {
 		X: source.AreaX,
 		Y: source.AreaY,
 	}
+}
+
+func ExtendDefaultRules(source Game) game.Rules {
+	return game.NewRules()
 }
 
 func ExtendTechLevels(source Player) game.TechLevel {
@@ -457,7 +523,7 @@ func ExtendFleetMapObject(source Fleet) game.MapObject {
 
 func ExtendFleetFleetOrders(source Fleet) game.FleetOrders {
 	return game.FleetOrders{
-		Waypoints:    source.Waypoints,
+		Waypoints:    *source.Waypoints,
 		RepeatOrders: source.RepeatOrders,
 	}
 }
@@ -485,5 +551,51 @@ func ExtendFleetPreviousPosition(source Fleet) *game.Vector {
 	return &game.Vector{
 		X: *source.PreviousPositionX,
 		Y: *source.PreviousPositionY,
+	}
+}
+
+func ExtendPlanetIntelMapObjectIntel(source PlanetIntel) game.MapObjectIntel {
+	return game.MapObjectIntel{
+		Intel: game.Intel{
+			ID:        source.ID,
+			CreatedAt: source.CreatedAt,
+			UpdatedAt: source.UpdatedAt,
+			Dirty:     source.Dirty,
+			PlayerID:  source.PlayerID,
+			Name:      source.Name,
+			Num:       source.Num,
+			PlayerNum: source.PlayerNum,
+			ReportAge: source.ReportAge,
+		},
+		Type: source.Type,
+		Position: game.Vector{
+			X: source.X,
+			Y: source.Y,
+		},
+	}
+}
+
+func ExtendPlanetIntelHab(source PlanetIntel) game.Hab {
+	return game.Hab{
+		Grav: source.Grav,
+		Temp: source.Temp,
+		Rad:  source.Rad,
+	}
+}
+
+func ExtendPlanetIntelMineralConcentration(source PlanetIntel) game.Mineral {
+	return game.Mineral{
+		Ironium:   source.MineralConcIronium,
+		Boranium:  source.MineralConcBoranium,
+		Germanium: source.MineralConcGermanium,
+	}
+}
+
+func ExtendPlanetIntelCargo(source PlanetIntel) game.Cargo {
+	return game.Cargo{
+		Ironium:   source.Ironium,
+		Boranium:  source.Boranium,
+		Germanium: source.Germanium,
+		Colonists: source.Colonists,
 	}
 }
