@@ -160,11 +160,22 @@ func (c *client) GetFullGame(id int64) (*game.FullGame, error) {
 	}
 	universe.Planets = planets
 
+	// load fleets and starbases
 	fleets, err := c.getFleetsForGame(g.ID)
 	if err != nil {
 		return nil, fmt.Errorf("load fleets for game %w", err)
 	}
-	universe.Fleets = fleets
+	// pre-instantiate the fleets/starbases arrays (make it a little bigger than necessary)
+	universe.Fleets = make([]*game.Fleet, 0, len(fleets))
+	universe.Starbases = make([]*game.Fleet, 0, len(planets))
+	for i := range fleets {
+		fleet := fleets[i]
+		if fleet.Starbase {
+			universe.Starbases = append(universe.Starbases, fleet)
+		} else {
+			universe.Fleets = append(universe.Fleets, fleet)
+		}
+	}
 
 	if g.Rules.TechsID == 0 {
 		g.Rules.WithTechStore(&game.StaticTechStore)
@@ -362,15 +373,18 @@ func (c *client) UpdateFullGame(g *game.FullGame) error {
 				tx.Rollback()
 				return fmt.Errorf("create planet %w", err)
 			}
+			log.Debug().Int64("GameID", planet.GameID).Int64("ID", planet.ID).Msgf("Created planet %s", planet.Name)
 		} else if planet.Dirty {
 			if err := c.updatePlanet(planet, tx); err != nil {
 				tx.Rollback()
 				return fmt.Errorf("update planet %w", err)
 			}
+			log.Debug().Int64("GameID", planet.GameID).Int64("ID", planet.ID).Msgf("Updated planet %s", planet.Name)
 		}
 	}
 
-	for _, fleet := range g.Fleets {
+	// save fleets and starbases
+	for _, fleet := range append(g.Fleets, g.Starbases...) {
 		if fleet.ID == 0 {
 			fleet.GameID = g.ID
 			if err := c.createFleet(fleet, tx); err != nil {

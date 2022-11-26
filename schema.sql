@@ -203,7 +203,7 @@ CREATE TABLE fleets (
   playerNum INTEGER,
   waypoints TEXT,
   repeatOrders NUMERIC,
-  planetId INTEGER,
+  planetNum INTEGER,
   baseName TEXT NOT NULL,
   ironium INTEGER,
   boranium INTEGER,

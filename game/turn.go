@@ -164,7 +164,7 @@ func (t *turn) fleetColonize() {
 				continue
 			}
 
-			if wp0.TargetNum == NoTarget {
+			if wp0.TargetNum == None {
 				err := fmt.Errorf("%s attempted to colonize a planet but didn't target a planet", fleet.Name)
 				log.Err(err).
 					Int64("GameID", t.game.ID).

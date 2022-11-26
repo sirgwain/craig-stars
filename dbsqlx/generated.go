@@ -247,7 +247,7 @@ func (c *GameConverter) dbsqlxFleetToGameFleet(source Fleet) game.Fleet {
 	var gameFleet game.Fleet
 	gameFleet.MapObject = ExtendFleetMapObject(source)
 	gameFleet.FleetOrders = ExtendFleetFleetOrders(source)
-	gameFleet.PlanetID = source.PlanetID
+	gameFleet.PlanetNum = source.PlanetNum
 	gameFleet.BaseName = source.BaseName
 	gameFleet.Cargo = ExtendFleetCargo(source)
 	gameFleet.Fuel = source.Fuel
@@ -257,6 +257,7 @@ func (c *GameConverter) dbsqlxFleetToGameFleet(source Fleet) game.Fleet {
 	gameFleet.WarpSpeed = source.WarpSpeed
 	gameFleet.PreviousPosition = ExtendFleetPreviousPosition(source)
 	gameFleet.OrbitingPlanetNum = source.OrbitingPlanetNum
+	gameFleet.Starbase = source.Starbase
 	gameFleet.Spec = FleetSpecToGameFleetSpec(source.Spec)
 	return gameFleet
 }
@@ -313,7 +314,7 @@ func (c *GameConverter) gameFleetToDbsqlxFleet(source game.Fleet) Fleet {
 	dbsqlxFleet.PlayerNum = source.MapObject.PlayerNum
 	dbsqlxFleet.Waypoints = GameWaypointsToWaypoints(source.FleetOrders.Waypoints)
 	dbsqlxFleet.RepeatOrders = source.FleetOrders.RepeatOrders
-	dbsqlxFleet.PlanetID = source.PlanetID
+	dbsqlxFleet.PlanetNum = source.PlanetNum
 	dbsqlxFleet.BaseName = source.BaseName
 	dbsqlxFleet.Ironium = source.Cargo.Ironium
 	dbsqlxFleet.Boranium = source.Cargo.Boranium

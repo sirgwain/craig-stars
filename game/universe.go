@@ -9,6 +9,7 @@ import (
 type Universe struct {
 	Planets           []*Planet                            `json:"planets,omitempty" gorm:"foreignKey:GameID;references:ID"`
 	Fleets            []*Fleet                             `json:"fleets,omitempty" gorm:"foreignKey:GameID;references:ID"`
+	Starbases         []*Fleet                             `json:"starbases,omitempty" gorm:"foreignKey:GameID;references:ID"`
 	Wormholes         []*Wormohole                         `json:"wormholes,omitempty" gorm:"foreignKey:GameID;references:ID"`
 	MineralPackets    []*MineralPacket                     `json:"mineralPackets,omitempty" gorm:"foreignKey:GameID;references:ID"`
 	MineFields        []*MineField                         `json:"mineFields,omitempty" gorm:"foreignKey:GameID;references:ID"`
@@ -83,6 +84,10 @@ func (u *Universe) buildMaps(players []*Player) {
 			token := &fleet.Tokens[i]
 			token.design = u.designsByUUID[token.DesignUUID]
 		}
+	}
+
+	for _, starbase := range u.Starbases {
+		u.Planets[starbase.PlanetNum-1].starbase = starbase
 	}
 
 }

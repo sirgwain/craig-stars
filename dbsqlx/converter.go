@@ -171,7 +171,6 @@ type Converter interface {
 	// goverter:mapExtend MineYears ExtendMineYears
 	// goverter:mapExtend Cargo ExtendPlanetCargo
 	// goverter:mapExtend MapObject ExtendPlanetMapObject
-	// goverter:ignore Starbase
 	ConvertPlanet(source *Planet) *game.Planet
 
 	// goverter:map MapObject.ID ID
@@ -206,7 +205,6 @@ type Converter interface {
 	// goverter:mapExtend MapObject ExtendFleetMapObject
 	// goverter:mapExtend FleetOrders ExtendFleetFleetOrders
 	// goverter:ignore Tokens
-	// goverter:ignore Starbase
 	ConvertFleet(source *Fleet) *game.Fleet
 
 	ConvertGameShipDesign(source *game.ShipDesign) *ShipDesign

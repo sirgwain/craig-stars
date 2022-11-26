@@ -25,7 +25,7 @@ type Planet struct {
 	BonusResources                    int                   `json:"-" gorm:"-"`
 	ProductionQueue                   []ProductionQueueItem `json:"productionQueue,omitempty" gorm:"serializer:json"`
 	Spec                              *PlanetSpec           `json:"spec,omitempty" gorm:"serializer:json"`
-	Starbase                          *Fleet                `json:"starbase,omitempty"`
+	starbase                          *Fleet
 }
 
 type ProductionQueueItem struct {
@@ -136,7 +136,7 @@ func (p *Planet) SetPopulation(pop int) {
 
 // true if this planet can build a ship with a given mass
 func (p *Planet) CanBuild(mass int) bool {
-	return p.Spec.HasStarbase && (p.Starbase.Spec.SpaceDock == UnlimitedSpaceDock || p.Starbase.Spec.SpaceDock >= mass)
+	return p.Spec.HasStarbase && (p.starbase.Spec.SpaceDock == UnlimitedSpaceDock || p.starbase.Spec.SpaceDock >= mass)
 }
 
 func (p *Planet) empty() {
@@ -258,7 +258,7 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 	starbaseDesign := player.GetDesign(startingPlanet.StarbaseDesignName)
 	starbase := NewStarbase(player, p, starbaseDesign, starbaseDesign.Name)
 	starbase.Spec = ComputeFleetSpec(rules, player, &starbase)
-	p.Starbase = &starbase
+	p.starbase = &starbase	
 
 	// p.PacketSpeed = p.Starbase.Spec.SafePacketSpeed
 
@@ -373,7 +373,7 @@ func ComputePlanetSpec(rules *Rules, planet *Planet, player *Player) *PlanetSpec
 		spec.ScanRangePen = scanner.ScanRangePen
 	}
 
-	spec.HasStarbase = planet.Starbase != nil
+	spec.HasStarbase = planet.starbase != nil
 
 	return &spec
 }

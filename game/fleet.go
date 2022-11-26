@@ -24,12 +24,12 @@ const PatrolRangeInfinite = -1
 const NotOrbitingPlanet = -1
 
 // no target planet, player, etc
-const NoTarget = -1
+const None = -1
 
 type Fleet struct {
 	MapObject
 	FleetOrders
-	PlanetID          int64       `json:"-"` // for starbase fleets that are owned by a planet
+	PlanetNum         int         `json:"planetNum"` // for starbase fleets that are owned by a planet
 	BaseName          string      `json:"baseName"`
 	Cargo             Cargo       `json:"cargo,omitempty" gorm:"embedded;embeddedPrefix:cargo_"`
 	Fuel              int         `json:"fuel"`
@@ -216,7 +216,7 @@ func NewFleetForToken(player *Player, num int, token ShipToken, waypoints []Wayp
 // create a new fleet that is a starbase
 func NewStarbase(player *Player, planet *Planet, design *ShipDesign, name string) Fleet {
 	fleet := NewFleet(player, design, 0, name, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 1)})
-	fleet.PlanetID = planet.ID
+	fleet.PlanetNum = planet.Num
 	fleet.Starbase = true
 
 	return fleet
@@ -258,7 +258,7 @@ func NewPlanetWaypoint(position Vector, num int, name string, warpFactor int) Wa
 		TargetType:      MapObjectTypePlanet,
 		TargetNum:       num,
 		TargetName:      name,
-		TargetPlayerNum: NoTarget,
+		TargetPlayerNum: None,
 		WarpFactor:      warpFactor,
 	}
 }
@@ -278,8 +278,8 @@ func NewPositionWaypoint(position Vector, warpFactor int) Waypoint {
 	return Waypoint{
 		Position:        position,
 		WarpFactor:      warpFactor,
-		TargetNum:       NoTarget,
-		TargetPlayerNum: NoTarget,
+		TargetNum:       None,
+		TargetPlayerNum: None,
 	}
 }
 
@@ -645,8 +645,8 @@ func (fleet *Fleet) moveFleet(mapObjectGetter MapObjectGetter, rules *Rules, pla
 		fleet.WarpSpeed = wp1.WarpFactor
 		fleet.Heading = (wp1.Position.Subtract(fleet.Position)).Normalized()
 		wp0.TargetType = MapObjectTypeNone
-		wp0.TargetNum = NoTarget
-		wp0.TargetPlayerNum = NoTarget
+		wp0.TargetNum = None
+		wp0.TargetPlayerNum = None
 		wp0.TargetName = ""
 		wp0.PartiallyComplete = true
 
@@ -748,7 +748,7 @@ func (fleet *Fleet) completeMove(mapObjectGetter MapObjectGetter, wp0 Waypoint, 
 
 	// find out if we arrived at a planet, either by reaching our target fleet
 	// or reaching a planet
-	if wp1.TargetType == MapObjectTypeFleet && wp1.TargetPlayerNum != NoTarget && wp1.TargetNum != NoTarget {
+	if wp1.TargetType == MapObjectTypeFleet && wp1.TargetPlayerNum != None && wp1.TargetNum != None {
 		target := mapObjectGetter.GetFleet(wp1.TargetPlayerNum, wp1.TargetNum)
 		fleet.OrbitingPlanetNum = target.OrbitingPlanetNum
 
@@ -758,14 +758,14 @@ func (fleet *Fleet) completeMove(mapObjectGetter MapObjectGetter, wp0 Waypoint, 
 			// refuel at starbases
 			fleet.Fuel = fleet.Spec.FuelCapacity
 		}
-	} else if wp1.TargetType == MapObjectTypePlanet && wp1.TargetNum != NoTarget {
+	} else if wp1.TargetType == MapObjectTypePlanet && wp1.TargetNum != None {
 		target := mapObjectGetter.GetPlanet(wp1.TargetNum)
 		fleet.OrbitingPlanetNum = target.Num
 		if fleet.PlayerNum == target.PlayerNum && target.Spec.HasStarbase {
 			// refuel at starbases
 			fleet.Fuel = fleet.Spec.FuelCapacity
 		}
-	} else if wp1.TargetType == MapObjectTypeWormhole && wp1.TargetNum != NoTarget {
+	} else if wp1.TargetType == MapObjectTypeWormhole && wp1.TargetNum != None {
 		target := mapObjectGetter.GetWormhole(wp1.TargetNum)
 		dest := mapObjectGetter.GetWormhole(target.DestinationNum)
 		fleet.Position = dest.Position
@@ -811,7 +811,7 @@ func (fleet *Fleet) colonizePlanet(rules *Rules, player *Player, planet *Planet)
 		if design != nil {
 			starbase := NewStarbase(player, planet, design, design.Name)
 			starbase.Spec = ComputeFleetSpec(rules, player, &starbase)
-			planet.Starbase = &starbase
+			planet.starbase = &starbase
 		}
 	}
 
