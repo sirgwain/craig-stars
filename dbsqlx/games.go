@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/game"
 )
 
@@ -152,6 +153,18 @@ func (c *client) GetFullGame(id int64) (*game.FullGame, error) {
 	}
 
 	universe := game.Universe{}
+
+	planets, err := c.getPlanetsForGame(g.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load planets for game %w", err)
+	}
+	universe.Planets = planets
+
+	fleets, err := c.getFleetsForGame(g.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load fleets for game %w", err)
+	}
+	universe.Fleets = fleets
 
 	if g.Rules.TechsID == 0 {
 		g.Rules.WithTechStore(&game.StaticTechStore)
@@ -364,11 +377,13 @@ func (c *client) UpdateFullGame(g *game.FullGame) error {
 				tx.Rollback()
 				return fmt.Errorf("failed to create fleet %w", err)
 			}
+			log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Created fleet %s", fleet.Name)
 		} else if fleet.Dirty {
 			if err := c.updateFleet(fleet, tx); err != nil {
 				tx.Rollback()
 				return fmt.Errorf("failed to update fleet %w", err)
 			}
+			log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Updated fleet %s", fleet.Name)
 		}
 	}
 

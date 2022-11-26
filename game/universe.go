@@ -1,19 +1,26 @@
 package game
 
-import "sort"
+import (
+	"sort"
+
+	"github.com/google/uuid"
+)
 
 type Universe struct {
-	Planets          []*Planet                 `json:"planets,omitempty" gorm:"foreignKey:GameID;references:ID"`
-	Fleets           []*Fleet                  `json:"fleets,omitempty" gorm:"foreignKey:GameID;references:ID"`
-	Wormholes        []*Wormohole              `json:"wormholes,omitempty" gorm:"foreignKey:GameID;references:ID"`
-	MineralPackets   []*MineralPacket          `json:"mineralPackets,omitempty" gorm:"foreignKey:GameID;references:ID"`
-	MineFields       []*MineField              `json:"mineFields,omitempty" gorm:"foreignKey:GameID;references:ID"`
-	Salvage          []*Salvage                `json:"salvage,omitempty" gorm:"foreignKey:GameID;references:ID"`
-	fleetsByPosition map[Vector]*Fleet         `json:"-"`
-	fleetsByNum      map[playerFleetNum]*Fleet `json:"-"`
+	Planets           []*Planet                            `json:"planets,omitempty" gorm:"foreignKey:GameID;references:ID"`
+	Fleets            []*Fleet                             `json:"fleets,omitempty" gorm:"foreignKey:GameID;references:ID"`
+	Wormholes         []*Wormohole                         `json:"wormholes,omitempty" gorm:"foreignKey:GameID;references:ID"`
+	MineralPackets    []*MineralPacket                     `json:"mineralPackets,omitempty" gorm:"foreignKey:GameID;references:ID"`
+	MineFields        []*MineField                         `json:"mineFields,omitempty" gorm:"foreignKey:GameID;references:ID"`
+	Salvage           []*Salvage                           `json:"salvage,omitempty" gorm:"foreignKey:GameID;references:ID"`
+	fleetsByPosition  map[Vector]*Fleet                    `json:"-"`
+	fleetsByNum       map[playerFleetNum]*Fleet            `json:"-"`
+	designsByUUID     map[uuid.UUID]*ShipDesign            `json:"-"`
+	battlePlansByName map[playerBattlePlanName]*BattlePlan `json:"-"`
 }
 
 type MapObjectGetter interface {
+	GetShipDesign(uuid uuid.UUID) *ShipDesign
 	GetPlanet(num int) *Planet
 	GetFleet(playerNum int, num int) *Fleet
 	GetWormhole(num int) *Wormohole
@@ -33,14 +40,51 @@ type playerFleetNum struct {
 	Num       int
 }
 
+type playerBattlePlanName struct {
+	PlayerNum int
+	Name      string
+}
+
 // build the maps used for the Get functions
-func (u *Universe) buildMaps() {
+func (u *Universe) buildMaps(players []*Player) {
+
+	// build a map of designs by uuid
+	// so we can inject the design into each token
+	numDesigns := 0
+	numBattlePlans := 0
+	for _, p := range players {
+		numDesigns += len(p.Designs)
+		numBattlePlans += len(p.BattlePlans)
+	}
+	u.designsByUUID = make(map[uuid.UUID]*ShipDesign, numDesigns)
+	u.battlePlansByName = make(map[playerBattlePlanName]*BattlePlan, numBattlePlans)
+
+	for _, p := range players {
+		for i := range p.Designs {
+			design := &p.Designs[i]
+			u.designsByUUID[design.UUID] = design
+		}
+
+		for i := range p.BattlePlans {
+			plan := &p.BattlePlans[i]
+			u.battlePlansByName[playerBattlePlanName{PlayerNum: p.Num, Name: plan.Name}] = plan
+		}
+	}
+
 	u.fleetsByPosition = make(map[Vector]*Fleet, len(u.Fleets))
 	u.fleetsByNum = make(map[playerFleetNum]*Fleet, len(u.Fleets))
 	for _, fleet := range u.Fleets {
 		u.fleetsByPosition[fleet.Position] = fleet
 		u.fleetsByNum[playerFleetNum{fleet.PlayerNum, fleet.Num}] = fleet
+
+		fleet.battlePlan = u.battlePlansByName[playerBattlePlanName{fleet.PlayerNum, fleet.BattlePlanName}]
+		// inject the design into this
+		for i := range fleet.Tokens {
+			token := &fleet.Tokens[i]
+			token.design = u.designsByUUID[token.DesignUUID]
+		}
 	}
+
 }
 
 // get all commandable map objects for a player
@@ -52,6 +96,11 @@ func (u *Universe) GetPlayerMapObjects(playerNum int) PlayerMapObjects {
 	pmo.MineFields = u.GetMineFields(playerNum)
 
 	return pmo
+}
+
+// get a ship design by uuid
+func (u *Universe) GetShipDesign(uuid uuid.UUID) *ShipDesign {
+	return u.designsByUUID[uuid]
 }
 
 // Get a planet by num

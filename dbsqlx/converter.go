@@ -20,6 +20,8 @@ import (
 // goverter:extend GameRaceSpecToRaceSpec
 // goverter:extend ProductionPlansToGameProductionPlans
 // goverter:extend GameProductionPlansToProductionPlans
+// goverter:extend BattlePlansToGameBattlePlans
+// goverter:extend GameBattlePlansToBattlePlans
 // goverter:extend TransportPlansToGameTransportPlans
 // goverter:extend GameTransportPlansToTransportPlans
 // goverter:extend GameRaceToPlayerRace
@@ -96,7 +98,6 @@ type Converter interface {
 	// goverter:mapExtend TechLevels ExtendTechLevels
 	// goverter:mapExtend TechLevelsSpent ExtendTechLevelsSpent
 	// goverter:ignore Messages
-	// goverter:ignore BattlePlans
 	// goverter:ignore Designs
 	// goverter:ignore PlanetIntels
 	// goverter:ignore FleetIntels
@@ -278,6 +279,14 @@ func RaceSpecToGameRaceSpec(source *RaceSpec) *game.RaceSpec {
 
 func GameRaceSpecToRaceSpec(source *game.RaceSpec) *RaceSpec {
 	return (*RaceSpec)(source)
+}
+
+func BattlePlansToGameBattlePlans(source *BattlePlans) []game.BattlePlan {
+	return ([]game.BattlePlan)(*source)
+}
+
+func GameBattlePlansToBattlePlans(source []game.BattlePlan) *BattlePlans {
+	return (*BattlePlans)(&source)
 }
 
 func ProductionPlansToGameProductionPlans(source *ProductionPlans) []game.ProductionPlan {

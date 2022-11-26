@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // warpfactor for using a stargate vs moving with warp drive
@@ -32,7 +34,7 @@ type Fleet struct {
 	Cargo             Cargo       `json:"cargo,omitempty" gorm:"embedded;embeddedPrefix:cargo_"`
 	Fuel              int         `json:"fuel"`
 	Damage            int         `json:"damage"`
-	BattlePlanID      int64       `json:"battlePlan"`
+	BattlePlanName    string      `json:"battlePlan"`
 	Tokens            []ShipToken `json:"tokens"`
 	Heading           Vector      `json:"heading,omitempty" gorm:"embedded;embeddedPrefix:heading_"`
 	WarpSpeed         int         `json:"warpSpeed,omitempty"`
@@ -40,6 +42,7 @@ type Fleet struct {
 	OrbitingPlanetNum int         `json:"orbitingPlanetNum,omitempty"`
 	Starbase          bool        `json:"starbase,omitempty"`
 	Spec              *FleetSpec  `json:"spec" gorm:"serializer:json"`
+	battlePlan        *BattlePlan
 }
 
 type FleetOrders struct {
@@ -65,11 +68,11 @@ type ShipToken struct {
 	CreatedAt       time.Time   `json:"createdAt"`
 	UpdatedAt       time.Time   `json:"updatedAt"`
 	FleetID         int64       `json:"fleetId"`
-	DesignID        int64       `json:"designId"`
+	DesignUUID      uuid.UUID   `json:"designUuid,omitempty"`
 	Quantity        int         `json:"quantity"`
 	Damage          float64     `json:"damage"`
 	QuantityDamaged int         `json:"quantityDamaged"`
-	Design          *ShipDesign `json:"-" gorm:"foreignKey:DesignID"`
+	design          *ShipDesign `json:"-" gorm:"-"`
 }
 
 type Waypoint struct {
@@ -178,12 +181,14 @@ func NewFleet(player *Player, design *ShipDesign, num int, name string, waypoint
 		},
 		BaseName: name,
 		Tokens: []ShipToken{
-			{Design: design, Quantity: 1},
+			{design: design, DesignUUID: design.UUID, Quantity: 1},
 		},
 		FleetOrders: FleetOrders{
 			Waypoints: waypoints,
 		},
 		OrbitingPlanetNum: NotOrbitingPlanet,
+		BattlePlanName:    player.BattlePlans[0].Name,
+		battlePlan:        &player.BattlePlans[0],
 	}
 }
 
@@ -196,10 +201,10 @@ func NewFleetForToken(player *Player, num int, token ShipToken, waypoints []Wayp
 			PlayerNum: player.Num,
 			Dirty:     true,
 			Num:       num,
-			Name:      fmt.Sprintf("%s #%d", token.Design.Name, num),
+			Name:      fmt.Sprintf("%s #%d", token.design.Name, num),
 			Position:  waypoints[0].Position,
 		},
-		BaseName: token.Design.Name,
+		BaseName: token.design.Name,
 		Tokens:   []ShipToken{token},
 		FleetOrders: FleetOrders{
 			Waypoints: waypoints,
@@ -326,103 +331,103 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) *FleetSpec {
 		// update our total ship count
 		spec.TotalShips += token.Quantity
 
-		if token.Design.Purpose != ShipDesignPurposeNone {
-			spec.Purposes[token.Design.Purpose] = true
+		if token.design.Purpose != ShipDesignPurposeNone {
+			spec.Purposes[token.design.Purpose] = true
 		}
 
 		// use the lowest ideal speed for this fleet
 		// if we have multiple engines
-		if token.Design.Spec.Engine != "" {
+		if token.design.Spec.Engine != "" {
 			if spec.IdealSpeed == 0 {
-				spec.IdealSpeed = token.Design.Spec.IdealSpeed
+				spec.IdealSpeed = token.design.Spec.IdealSpeed
 			} else {
-				spec.IdealSpeed = MinInt(spec.IdealSpeed, token.Design.Spec.IdealSpeed)
+				spec.IdealSpeed = MinInt(spec.IdealSpeed, token.design.Spec.IdealSpeed)
 			}
 		}
 		// cost
-		spec.Cost = token.Design.Spec.Cost.MultiplyInt(token.Quantity)
+		spec.Cost = token.design.Spec.Cost.MultiplyInt(token.Quantity)
 
 		// mass
-		spec.Mass += token.Design.Spec.Mass * token.Quantity
-		spec.MassEmpty += token.Design.Spec.Mass * token.Quantity
+		spec.Mass += token.design.Spec.Mass * token.Quantity
+		spec.MassEmpty += token.design.Spec.Mass * token.Quantity
 
 		// armor
-		spec.Armor += token.Design.Spec.Armor * token.Quantity
+		spec.Armor += token.design.Spec.Armor * token.Quantity
 
 		// shield
-		spec.Shield += token.Design.Spec.Shield * token.Quantity
+		spec.Shield += token.design.Spec.Shield * token.Quantity
 
 		// cargo
-		spec.CargoCapacity += token.Design.Spec.CargoCapacity * token.Quantity
+		spec.CargoCapacity += token.design.Spec.CargoCapacity * token.Quantity
 
 		// fuel
-		spec.FuelCapacity += token.Design.Spec.FuelCapacity * token.Quantity
+		spec.FuelCapacity += token.design.Spec.FuelCapacity * token.Quantity
 
 		// minesweep
-		spec.MineSweep += token.Design.Spec.MineSweep * token.Quantity
+		spec.MineSweep += token.design.Spec.MineSweep * token.Quantity
 
 		// remote mining
-		spec.MiningRate += token.Design.Spec.MiningRate * token.Quantity
+		spec.MiningRate += token.design.Spec.MiningRate * token.Quantity
 
 		// remote terraforming
-		spec.TerraformRate += token.Design.Spec.TerraformRate * token.Quantity
+		spec.TerraformRate += token.design.Spec.TerraformRate * token.Quantity
 
 		// colonization
-		spec.Colonizer = spec.Colonizer || token.Design.Spec.Colonizer
-		spec.OrbitalConstructionModule = spec.OrbitalConstructionModule || token.Design.Spec.OrbitalConstructionModule
+		spec.Colonizer = spec.Colonizer || token.design.Spec.Colonizer
+		spec.OrbitalConstructionModule = spec.OrbitalConstructionModule || token.design.Spec.OrbitalConstructionModule
 
 		// spec all mine layers in the fleet
-		if token.Design.Spec.CanLayMines {
-			for key := range token.Design.Spec.MineLayingRateByMineType {
+		if token.design.Spec.CanLayMines {
+			for key := range token.design.Spec.MineLayingRateByMineType {
 				if _, ok := spec.MineLayingRateByMineType[key]; ok {
 					spec.MineLayingRateByMineType[key] = 0
 				}
-				spec.MineLayingRateByMineType[key] += token.Design.Spec.MineLayingRateByMineType[key] * token.Quantity
+				spec.MineLayingRateByMineType[key] += token.design.Spec.MineLayingRateByMineType[key] * token.Quantity
 			}
 		}
 
 		// We should only have one ship stack with spacdock capabilities, but for this logic just go with the max
-		spec.SpaceDock = MaxInt(spec.SpaceDock, token.Design.Spec.SpaceDock)
+		spec.SpaceDock = MaxInt(spec.SpaceDock, token.design.Spec.SpaceDock)
 
 		// sadly, the fleet only gets the best repair bonus from one design
-		spec.RepairBonus = math.Max(spec.RepairBonus, token.Design.Spec.RepairBonus)
+		spec.RepairBonus = math.Max(spec.RepairBonus, token.design.Spec.RepairBonus)
 
-		spec.ScanRange = MaxInt(spec.ScanRange, token.Design.Spec.ScanRange)
-		spec.ScanRangePen = MaxInt(spec.ScanRangePen, token.Design.Spec.ScanRangePen)
-		if token.Design.Spec.Scanner {
+		spec.ScanRange = MaxInt(spec.ScanRange, token.design.Spec.ScanRange)
+		spec.ScanRangePen = MaxInt(spec.ScanRangePen, token.design.Spec.ScanRangePen)
+		if token.design.Spec.Scanner {
 			spec.Scanner = true
 		}
 
 		// add bombs
-		if token.Design.Spec.Bomber {
+		if token.design.Spec.Bomber {
 			spec.Bomber = true
-			spec.Bombs = append(spec.Bombs, token.Design.Spec.Bombs...)
-			spec.SmartBombs = append(spec.SmartBombs, token.Design.Spec.SmartBombs...)
-			spec.RetroBombs = append(spec.RetroBombs, token.Design.Spec.RetroBombs...)
+			spec.Bombs = append(spec.Bombs, token.design.Spec.Bombs...)
+			spec.SmartBombs = append(spec.SmartBombs, token.design.Spec.SmartBombs...)
+			spec.RetroBombs = append(spec.RetroBombs, token.design.Spec.RetroBombs...)
 		}
 
 		// check if any tokens have weapons
 		// we process weapon slots per stack, so we don't need to spec all
 		// weapons in a fleet
-		if token.Design.Spec.HasWeapons {
+		if token.design.Spec.HasWeapons {
 			spec.HasWeapons = true
 		}
 
-		if token.Design.Spec.CloakUnits > 0 {
+		if token.design.Spec.CloakUnits > 0 {
 			// calculate the cloak units for this token based on the design's cloak units (i.e. 70 cloak units / kT for a stealh cloak)
-			spec.CloakUnits += token.Design.Spec.CloakUnits
+			spec.CloakUnits += token.design.Spec.CloakUnits
 		} else {
 			// if this ship doesn't have cloaking, it counts as cargo (except for races with free cargo cloaking)
 			if !player.Race.Spec.FreeCargoCloaking {
-				spec.BaseCloakedCargo += token.Design.Spec.Mass * token.Quantity
+				spec.BaseCloakedCargo += token.design.Spec.Mass * token.Quantity
 			}
 		}
 
 		// choose the best tachyon detector ship
-		spec.ReduceCloaking = math.Max(spec.ReduceCloaking, token.Design.Spec.ReduceCloaking)
+		spec.ReduceCloaking = math.Max(spec.ReduceCloaking, token.design.Spec.ReduceCloaking)
 
-		spec.CanStealFleetCargo = spec.CanStealFleetCargo || token.Design.Spec.CanStealFleetCargo
-		spec.CanStealPlanetCargo = spec.CanStealPlanetCargo || token.Design.Spec.CanStealPlanetCargo
+		spec.CanStealFleetCargo = spec.CanStealFleetCargo || token.design.Spec.CanStealFleetCargo
+		spec.CanStealPlanetCargo = spec.CanStealPlanetCargo || token.design.Spec.CanStealPlanetCargo
 	}
 
 	// compute the cloaking based on the cloak units and cargo
@@ -700,16 +705,16 @@ func (fleet *Fleet) GetFuelCost(player *Player, warpFactor int, distance float64
 	// compute each ship stack separately
 	for _, token := range fleet.Tokens {
 		// figure out this ship stack's mass as well as it's proportion of the cargo
-		mass := token.Design.Spec.Mass * token.Quantity
+		mass := token.design.Spec.Mass * token.Quantity
 		fleetCargo := fleet.Cargo.Total()
-		stackCapacity := token.Design.Spec.CargoCapacity * token.Quantity
+		stackCapacity := token.design.Spec.CargoCapacity * token.Quantity
 		fleetCapacity := fleet.Spec.CargoCapacity
 
 		if fleetCapacity > 0 {
 			mass += int(float64(fleetCargo) * (float64(stackCapacity) / float64(fleetCapacity)))
 		}
 
-		fuelCost += fleet.getFuelCostForEngine(warpFactor, mass, distance, efficiencyFactor, token.Design.Spec.FuelUsage)
+		fuelCost += fleet.getFuelCostForEngine(warpFactor, mass, distance, efficiencyFactor, token.design.Spec.FuelUsage)
 	}
 
 	return fuelCost
@@ -720,7 +725,7 @@ func (fleet *Fleet) getNoFuelWarpFactor(techStore *TechStore, player *Player) in
 	// find the lowest freeSpeed from all the fleet's engines
 	var freeSpeed = math.MaxInt
 	for _, token := range fleet.Tokens {
-		engine := techStore.GetEngine(token.Design.Spec.Engine)
+		engine := techStore.GetEngine(token.design.Spec.Engine)
 		freeSpeed = MinInt(freeSpeed, engine.FreeSpeed)
 	}
 	return freeSpeed
@@ -731,7 +736,7 @@ func (fleet *Fleet) getFuelGeneration(techStore *TechStore, player *Player, warp
 	// find the lowest freeSpeed from all the fleet's engines
 	var freeSpeed = math.MaxInt
 	for _, token := range fleet.Tokens {
-		engine := techStore.GetEngine(token.Design.Spec.Engine)
+		engine := techStore.GetEngine(token.design.Spec.Engine)
 		freeSpeed = MinInt(freeSpeed, engine.FreeSpeed)
 	}
 	return freeSpeed
