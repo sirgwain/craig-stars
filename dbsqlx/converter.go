@@ -24,6 +24,18 @@ import (
 // goverter:extend GameBattlePlansToBattlePlans
 // goverter:extend TransportPlansToGameTransportPlans
 // goverter:extend GameTransportPlansToTransportPlans
+// goverter:extend PlayerMessagesToGamePlayerMessages
+// goverter:extend GamePlayerMessagesToPlayerMessages
+// goverter:extend PlanetIntelsToGamePlanetIntels
+// goverter:extend GamePlanetIntelsToPlanetIntels
+// goverter:extend FleetIntelsToGameFleetIntels
+// goverter:extend GameFleetIntelsToFleetIntels
+// goverter:extend ShipDesignIntelsToGameShipDesignIntels
+// goverter:extend GameShipDesignIntelsToShipDesignIntels
+// goverter:extend MineralPacketIntelsToGameMineralPacketIntels
+// goverter:extend GameMineralPacketIntelsToMineralPacketIntels
+// goverter:extend MineFieldIntelsToGameMineFieldIntels
+// goverter:extend GameMineFieldIntelsToMineFieldIntels
 // goverter:extend GameRaceToPlayerRace
 // goverter:extend PlayerRaceToGameRace
 // goverter:extend PlayerSpecToGamePlayerSpec
@@ -97,13 +109,7 @@ type Converter interface {
 
 	// goverter:mapExtend TechLevels ExtendTechLevels
 	// goverter:mapExtend TechLevelsSpent ExtendTechLevelsSpent
-	// goverter:ignore Messages
 	// goverter:ignore Designs
-	// goverter:ignore PlanetIntels
-	// goverter:ignore FleetIntels
-	// goverter:ignore DesignIntels
-	// goverter:ignore MineralPacketIntels
-	// goverter:ignore MineFieldIntels
 	ConvertPlayer(source Player) game.Player
 	// goverter:mapExtend TechLevels ExtendTechLevels
 	// goverter:mapExtend TechLevelsSpent ExtendTechLevelsSpent
@@ -210,37 +216,6 @@ type Converter interface {
 	ConvertGameShipToken(source game.ShipToken) ShipToken
 	// goverter:ignore Design
 	ConvertShipToken(source ShipToken) game.ShipToken
-
-	// goverter:map MapObjectIntel.Intel.ID ID
-	// goverter:map MapObjectIntel.Intel.CreatedAt CreatedAt
-	// goverter:map MapObjectIntel.Intel.UpdatedAt UpdatedAt
-	// goverter:map MapObjectIntel.Intel.Dirty Dirty
-	// goverter:map MapObjectIntel.Intel.PlayerID PlayerID
-	// goverter:map MapObjectIntel.Intel.Name Name
-	// goverter:map MapObjectIntel.Intel.Num Num
-	// goverter:map MapObjectIntel.Intel.PlayerNum PlayerNum
-	// goverter:map MapObjectIntel.Intel.ReportAge ReportAge
-	// goverter:map MapObjectIntel.Position.X X
-	// goverter:map MapObjectIntel.Position.Y Y
-	// goverter:map MapObjectIntel.Type	Type
-	// goverter:map Hab.Grav Grav
-	// goverter:map Hab.Temp Temp
-	// goverter:map Hab.Rad Rad
-	// goverter:map MineralConcentration.Ironium MineralConcIronium
-	// goverter:map MineralConcentration.Boranium MineralConcBoranium
-	// goverter:map MineralConcentration.Germanium MineralConcGermanium
-	// goverter:map Cargo.Ironium Ironium
-	// goverter:map Cargo.Boranium Boranium
-	// goverter:map Cargo.Germanium Germanium
-	// goverter:map Cargo.Colonists Colonists
-	ConvertGamePlanetIntel(source *game.PlanetIntel) *PlanetIntel
-
-	// goverter:mapExtend Hab ExtendPlanetIntelHab
-	// goverter:mapExtend MineralConcentration ExtendPlanetIntelMineralConcentration
-	// goverter:mapExtend Cargo ExtendPlanetIntelCargo
-	// goverter:mapExtend MapObjectIntel ExtendPlanetIntelMapObjectIntel
-	// goverter:ignore Starbase
-	ConvertPlanetIntel(source *PlanetIntel) *game.PlanetIntel
 }
 
 func TimeToTime(source time.Time) time.Time {
@@ -304,6 +279,55 @@ func TransportPlansToGameTransportPlans(source *TransportPlans) []game.Transport
 func GameTransportPlansToTransportPlans(source []game.TransportPlan) *TransportPlans {
 	return (*TransportPlans)(&source)
 }
+
+func PlayerMessagesToGamePlayerMessages(source *PlayerMessages) []game.PlayerMessage {
+	return ([]game.PlayerMessage)(*source)
+}
+
+func GamePlayerMessagesToPlayerMessages(source []game.PlayerMessage) *PlayerMessages {
+	return (*PlayerMessages)(&source)
+}
+
+func PlanetIntelsToGamePlanetIntels(source *PlanetIntels) []game.PlanetIntel {
+	return ([]game.PlanetIntel)(*source)
+}
+
+func GamePlanetIntelsToPlanetIntels(source []game.PlanetIntel) *PlanetIntels {
+	return (*PlanetIntels)(&source)
+}
+
+func FleetIntelsToGameFleetIntels(source *FleetIntels) []game.FleetIntel {
+	return ([]game.FleetIntel)(*source)
+}
+
+func GameFleetIntelsToFleetIntels(source []game.FleetIntel) *FleetIntels {
+	return (*FleetIntels)(&source)
+}
+
+func ShipDesignIntelsToGameShipDesignIntels(source *ShipDesignIntels) []game.ShipDesignIntel {
+	return ([]game.ShipDesignIntel)(*source)
+}
+
+func GameShipDesignIntelsToShipDesignIntels(source []game.ShipDesignIntel) *ShipDesignIntels {
+	return (*ShipDesignIntels)(&source)
+}
+
+func MineralPacketIntelsToGameMineralPacketIntels(source *MineralPacketIntels) []game.MineralPacketIntel {
+	return ([]game.MineralPacketIntel)(*source)
+}
+
+func GameMineralPacketIntelsToMineralPacketIntels(source []game.MineralPacketIntel) *MineralPacketIntels {
+	return (*MineralPacketIntels)(&source)
+}
+
+func MineFieldIntelsToGameMineFieldIntels(source *MineFieldIntels) []game.MineFieldIntel {
+	return ([]game.MineFieldIntel)(*source)
+}
+
+func GameMineFieldIntelsToMineFieldIntels(source []game.MineFieldIntel) *MineFieldIntels {
+	return (*MineFieldIntels)(&source)
+}
+
 
 func PlayerRaceToGameRace(source *PlayerRace) game.Race {
 	return game.Race(*source)
@@ -573,48 +597,3 @@ func ExtendFleetPreviousPosition(source Fleet) *game.Vector {
 	}
 }
 
-func ExtendPlanetIntelMapObjectIntel(source PlanetIntel) game.MapObjectIntel {
-	return game.MapObjectIntel{
-		Intel: game.Intel{
-			ID:        source.ID,
-			CreatedAt: source.CreatedAt,
-			UpdatedAt: source.UpdatedAt,
-			Dirty:     source.Dirty,
-			PlayerID:  source.PlayerID,
-			Name:      source.Name,
-			Num:       source.Num,
-			PlayerNum: source.PlayerNum,
-			ReportAge: source.ReportAge,
-		},
-		Type: game.MapObjectTypePlanet,
-		Position: game.Vector{
-			X: source.X,
-			Y: source.Y,
-		},
-	}
-}
-
-func ExtendPlanetIntelHab(source PlanetIntel) game.Hab {
-	return game.Hab{
-		Grav: source.Grav,
-		Temp: source.Temp,
-		Rad:  source.Rad,
-	}
-}
-
-func ExtendPlanetIntelMineralConcentration(source PlanetIntel) game.Mineral {
-	return game.Mineral{
-		Ironium:   source.MineralConcIronium,
-		Boranium:  source.MineralConcBoranium,
-		Germanium: source.MineralConcGermanium,
-	}
-}
-
-func ExtendPlanetIntelCargo(source PlanetIntel) game.Cargo {
-	return game.Cargo{
-		Ironium:   source.Ironium,
-		Boranium:  source.Boranium,
-		Germanium: source.Germanium,
-		Colonists: source.Colonists,
-	}
-}

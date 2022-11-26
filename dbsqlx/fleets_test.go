@@ -64,7 +64,7 @@ func TestGetFleet(t *testing.T) {
 		},
 	}
 	if err := c.createFleet(&fleet, c.db); err != nil {
-		t.Errorf("failed to create fleet %s", err)
+		t.Errorf("create fleet %s", err)
 		return
 	}
 
@@ -113,7 +113,7 @@ func TestGetFleets(t *testing.T) {
 
 	fleet := game.Fleet{MapObject: game.MapObject{GameID: g.ID}}
 	if err := c.createFleet(&fleet, c.db); err != nil {
-		t.Errorf("failed to create planet %s", err)
+		t.Errorf("create planet %s", err)
 		return
 	}
 
@@ -128,20 +128,20 @@ func TestUpdateFleet(t *testing.T) {
 	g := c.createTestGame()
 	planet := game.Fleet{MapObject: game.MapObject{GameID: g.ID}}
 	if err := c.createFleet(&planet, c.db); err != nil {
-		t.Errorf("failed to create planet %s", err)
+		t.Errorf("create planet %s", err)
 		return
 	}
 
 	planet.Name = "Test2"
 	if err := c.UpdateFleet(&planet); err != nil {
-		t.Errorf("failed to update planet %s", err)
+		t.Errorf("update planet %s", err)
 		return
 	}
 
 	updated, err := c.GetFleet(planet.ID)
 
 	if err != nil {
-		t.Errorf("failed to get planet %s", err)
+		t.Errorf("get planet %s", err)
 		return
 	}
 

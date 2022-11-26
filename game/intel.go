@@ -36,9 +36,9 @@ func newDiscoverer(player *Player) discoverer {
 		d.fleetIntelsByKey[intel.String()] = intel
 	}
 
-	d.designIntelsByKey = make(map[uuid.UUID]*ShipDesignIntel, len(player.DesignIntels))
-	for i := range player.DesignIntels {
-		intel := &player.DesignIntels[i]
+	d.designIntelsByKey = make(map[uuid.UUID]*ShipDesignIntel, len(player.ShipDesignIntels))
+	for i := range player.ShipDesignIntels {
+		intel := &player.ShipDesignIntels[i]
 		d.designIntelsByKey[intel.UUID] = intel
 	}
 
@@ -271,8 +271,8 @@ func (d *discover) discoverDesign(player *Player, design *ShipDesign, discoverSl
 		}
 
 		// save this new design to our intel
-		player.DesignIntels = append(player.DesignIntels, *intel)
-		intel = &player.DesignIntels[len(player.DesignIntels)-1]
+		player.ShipDesignIntels = append(player.ShipDesignIntels, *intel)
+		intel = &player.ShipDesignIntels[len(player.ShipDesignIntels)-1]
 		d.designIntelsByKey[intel.UUID] = intel
 	}
 

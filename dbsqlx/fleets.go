@@ -184,7 +184,7 @@ func (c *client) GetFleet(id int64) (*game.Fleet, error) {
 	fleets := c.scanFleetJoin(rows)
 
 	if len(fleets) != 1 {
-		return nil, fmt.Errorf("failed to scan fleetJoin rows")
+		return nil, fmt.Errorf("scan fleetJoin rows")
 	}
 
 	return fleets[0], nil
@@ -207,7 +207,7 @@ func (c *client) getFleetsForGame(gameId int64) ([]*game.Fleet, error) {
 	fleets := c.scanFleetJoin(rows)
 
 	if len(fleets) == 0 {
-		return nil, fmt.Errorf("failed to scan fleetJoin rows")
+		return nil, fmt.Errorf("scan fleetJoin rows")
 	}
 
 	return fleets, nil
@@ -230,7 +230,7 @@ func (c *client) getFleetsForPlayer(playerId int64) ([]*game.Fleet, error) {
 	fleets := c.scanFleetJoin(rows)
 
 	if len(fleets) == 0 {
-		return nil, fmt.Errorf("failed to scan fleetJoin rows")
+		return nil, fmt.Errorf("scan fleetJoin rows")
 	}
 
 	return fleets, nil
@@ -316,7 +316,7 @@ func (c *client) createFleet(fleet *game.Fleet, tx SQLExecer) error {
 		token := &fleet.Tokens[i]
 		token.FleetID = fleet.ID
 		if err := c.createShipToken(token, tx); err != nil {
-			return fmt.Errorf("failed to create ShipToken %w", err)
+			return fmt.Errorf("create ShipToken %w", err)
 		}
 	}
 
@@ -402,7 +402,7 @@ func (c *client) updateFleet(fleet *game.Fleet, tx SQLExecer) error {
 	}
 
 	if _, err := tx.Exec("DELETE FROM shipTokens WHERE fleetId = ?", fleet.ID); err != nil {
-		return fmt.Errorf("failed to delete existing shipTokens for fleet %w", err)
+		return fmt.Errorf("delete existing shipTokens for fleet %w", err)
 	}
 
 	for i := range fleet.Tokens {
@@ -410,7 +410,7 @@ func (c *client) updateFleet(fleet *game.Fleet, tx SQLExecer) error {
 		token.ID = 0
 		token.FleetID = fleet.ID
 		if err := c.createShipToken(token, tx); err != nil {
-			return fmt.Errorf("failed to create ShipToken %w", err)
+			return fmt.Errorf("create ShipToken %w", err)
 		}
 	}
 	return nil

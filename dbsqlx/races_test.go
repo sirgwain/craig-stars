@@ -43,21 +43,21 @@ func TestUpdateRace(t *testing.T) {
 	c := connectTestDB()
 	race := game.Race{UserID: 1, Name: "Test"}
 	if err := c.CreateRace(&race); err != nil {
-		t.Errorf("failed to create race %s", err)
+		t.Errorf("create race %s", err)
 		return
 	}
 
 	race.Name = "Test2"
 	race.PluralName = "Testers"
 	if err := c.UpdateRace(&race); err != nil {
-		t.Errorf("failed to update race %s", err)
+		t.Errorf("update race %s", err)
 		return
 	}
 
 	updated, err := c.GetRace(race.ID)
 
 	if err != nil {
-		t.Errorf("failed to get race %s", err)
+		t.Errorf("get race %s", err)
 		return
 	}
 
@@ -71,7 +71,7 @@ func TestGetRace(t *testing.T) {
 	c := connectTestDB()
 	race := game.Race{UserID: 1, Name: "Test", PluralName: "testers"}
 	if err := c.CreateRace(&race); err != nil {
-		t.Errorf("failed to create race %s", err)
+		t.Errorf("create race %s", err)
 		return
 	}
 
@@ -115,7 +115,7 @@ func TestGetRaces(t *testing.T) {
 
 	race := game.Race{UserID: 1, Name: "Test", PluralName: "testers"}
 	if err := c.CreateRace(&race); err != nil {
-		t.Errorf("failed to create race %s", err)
+		t.Errorf("create race %s", err)
 		return
 	}
 
@@ -134,7 +134,7 @@ func TestDeleteRaces(t *testing.T) {
 
 	race := game.Race{UserID: 1, Name: "Test", PluralName: "Testers"}
 	if err := c.CreateRace(&race); err != nil {
-		t.Errorf("failed to create race %s", err)
+		t.Errorf("create race %s", err)
 		return
 	}
 
@@ -144,7 +144,7 @@ func TestDeleteRaces(t *testing.T) {
 	assert.Equal(t, 1, len(result))
 
 	if err := c.DeleteRace(race.ID); err != nil {
-		t.Errorf("failed to delete race %s", err)
+		t.Errorf("delete race %s", err)
 		return
 	}
 

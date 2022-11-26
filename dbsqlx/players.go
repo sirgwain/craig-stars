@@ -42,6 +42,12 @@ type Player struct {
 	BattlePlans                  *BattlePlans           `json:"battlePlans,omitempty"`
 	ProductionPlans              *ProductionPlans       `json:"productionPlans,omitempty"`
 	TransportPlans               *TransportPlans        `json:"transportPlans,omitempty"`
+	Messages                     *PlayerMessages        `json:"messages,omitempty"`
+	PlanetIntels                 *PlanetIntels          `json:"planetIntels,omitempty"`
+	FleetIntels                  *FleetIntels           `json:"fleetIntels,omitempty"`
+	ShipDesignIntels             *ShipDesignIntels      `json:"shipDesignIntels,omitempty"`
+	MineralPacketIntels          *MineralPacketIntels   `json:"mineralPacketIntels,omitempty"`
+	MineFieldIntels              *MineFieldIntels       `json:"mineFieldIntels,omitempty"`
 	Race                         *PlayerRace            `json:"race,omitempty"`
 	Stats                        *PlayerStats           `json:"stats,omitempty"`
 	Spec                         *PlayerSpec            `json:"spec,omitempty"`
@@ -51,6 +57,12 @@ type Player struct {
 type BattlePlans []game.BattlePlan
 type ProductionPlans []game.ProductionPlan
 type TransportPlans []game.TransportPlan
+type PlayerMessages []game.PlayerMessage
+type PlanetIntels []game.PlanetIntel
+type FleetIntels []game.FleetIntel
+type ShipDesignIntels []game.ShipDesignIntel
+type MineralPacketIntels []game.MineralPacketIntel
+type MineFieldIntels []game.MineFieldIntel
 type PlayerRace game.Race
 type PlayerSpec game.PlayerSpec
 type PlayerStats game.PlayerStats
@@ -116,6 +128,54 @@ func (item *PlayerStats) Scan(src interface{}) error {
 	return scanJSON(src, item)
 }
 
+func (item *PlayerMessages) Value() (driver.Value, error) {
+	return valueJSON(item)
+}
+
+func (item *PlayerMessages) Scan(src interface{}) error {
+	return scanJSON(src, item)
+}
+
+func (item *PlanetIntels) Value() (driver.Value, error) {
+	return valueJSON(item)
+}
+
+func (item *PlanetIntels) Scan(src interface{}) error {
+	return scanJSON(src, item)
+}
+
+func (item *FleetIntels) Value() (driver.Value, error) {
+	return valueJSON(item)
+}
+
+func (item *FleetIntels) Scan(src interface{}) error {
+	return scanJSON(src, item)
+}
+
+func (item *ShipDesignIntels) Value() (driver.Value, error) {
+	return valueJSON(item)
+}
+
+func (item *ShipDesignIntels) Scan(src interface{}) error {
+	return scanJSON(src, item)
+}
+
+func (item *MineralPacketIntels) Value() (driver.Value, error) {
+	return valueJSON(item)
+}
+
+func (item *MineralPacketIntels) Scan(src interface{}) error {
+	return scanJSON(src, item)
+}
+
+func (item *MineFieldIntels) Value() (driver.Value, error) {
+	return valueJSON(item)
+}
+
+func (item *MineFieldIntels) Scan(src interface{}) error {
+	return scanJSON(src, item)
+}
+
 func (c *client) GetPlayers() ([]game.Player, error) {
 
 	items := []Player{}
@@ -160,7 +220,7 @@ func (c *client) getPlayersForGame(gameID int64) ([]*game.Player, error) {
 
 		designs, err := c.GetShipDesignsForPlayer(player.ID)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get designs for player %w", err)
+			return nil, fmt.Errorf("get designs for player %w", err)
 		}
 		player.Designs = designs
 	}
@@ -210,36 +270,23 @@ func (c *client) GetFullPlayerForGame(gameID, userID int64) (*game.FullPlayer, e
 	// load the player component from the DB
 	player.Player = c.converter.ConvertPlayer(item)
 
-	// load player deps
-	messages, err := c.GetPlayerMessagesForPlayer(player.ID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get player messages %w", err)
-	}
-	player.Messages = messages
-
 	designs, err := c.GetShipDesignsForPlayer(player.ID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get player designs %w", err)
+		return nil, fmt.Errorf("get player designs %w", err)
 	}
 	player.Designs = designs
 
 	planets, err := c.getPlanetsForPlayer(player.ID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get player planets %w", err)
+		return nil, fmt.Errorf("get player planets %w", err)
 	}
 	player.Planets = planets
 
 	fleets, err := c.getFleetsForPlayer(player.ID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get player fleets %w", err)
+		return nil, fmt.Errorf("get player fleets %w", err)
 	}
 	player.Fleets = fleets
-
-	planetIntels, err := c.GetPlanetIntelsForPlayer(player.ID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get player planetIntels %w", err)
-	}
-	player.PlanetIntels = planetIntels
 
 	return &player, nil
 }
@@ -283,6 +330,12 @@ func (c *client) createPlayer(player *game.Player, tx SQLExecer) error {
 		battlePlans,
 		productionPlans,
 		transportPlans,
+		messages,
+		planetIntels,
+		fleetIntels,
+		shipDesignIntels,
+		mineralPacketIntels,
+		mineFieldIntels,
 		race,
 		stats,
 		spec
@@ -318,6 +371,12 @@ func (c *client) createPlayer(player *game.Player, tx SQLExecer) error {
 		:battlePlans,
 		:productionPlans,
 		:transportPlans,
+		:messages,
+		:planetIntels,
+		:fleetIntels,
+		:shipDesignIntels,
+		:mineralPacketIntels,
+		:mineFieldIntels,
 		:race,
 		:stats,
 		:spec
@@ -379,6 +438,12 @@ func (c *client) updatePlayerWithNamedExecer(player *game.Player, tx SQLExecer) 
 		battlePlans = :battlePlans,
 		productionPlans = :productionPlans,
 		transportPlans = :transportPlans,
+		messages = :messages,
+		planetIntels = :planetIntels,
+		fleetIntels = :fleetIntels,
+		shipDesignIntels = :shipDesignIntels,
+		mineralPacketIntels = :mineralPacketIntels,
+		mineFieldIntels = :mineFieldIntels,
 		race = :race,
 		stats = :stats,
 		spec = :spec
@@ -410,18 +475,7 @@ func (c *client) updateFullPlayerWithTransaction(player *game.Player, tx *sqlx.T
 
 	if err := c.updatePlayerWithNamedExecer(player, tx); err != nil {
 		tx.Rollback()
-		return fmt.Errorf("failed to update player %w", err)
-	}
-
-	// replace player messages
-	tx.Exec("DELETE FROM playerMessages WHERE playerId = ?", player.ID)
-	for i := range player.Messages {
-		message := &player.Messages[i]
-		message.PlayerID = player.ID
-		if err := c.CreatePlayerMessage(message, tx); err != nil {
-			tx.Rollback()
-			return fmt.Errorf("failed to create player message %w", err)
-		}
+		return fmt.Errorf("update player %w", err)
 	}
 
 	for i := range player.Designs {
@@ -429,27 +483,12 @@ func (c *client) updateFullPlayerWithTransaction(player *game.Player, tx *sqlx.T
 		if design.ID == 0 {
 			if err := c.createShipDesign(design, tx); err != nil {
 				tx.Rollback()
-				return fmt.Errorf("failed to create design %w", err)
+				return fmt.Errorf("create design %w", err)
 			}
 		} else if design.Dirty {
 			if err := c.updateShipDesign(design, tx); err != nil {
 				tx.Rollback()
-				return fmt.Errorf("failed to update design %w", err)
-			}
-		}
-	}
-
-	for i := range player.PlanetIntels {
-		planetIntel := &player.PlanetIntels[i]
-		if planetIntel.ID == 0 {
-			if err := c.createPlanetIntel(planetIntel, tx); err != nil {
-				tx.Rollback()
-				return fmt.Errorf("failed to create planetintel %w", err)
-			}
-		} else if planetIntel.Dirty {
-			if err := c.updatePlanetIntel(planetIntel, tx); err != nil {
-				tx.Rollback()
-				return fmt.Errorf("failed to update planetintel %w", err)
+				return fmt.Errorf("update design %w", err)
 			}
 		}
 	}

@@ -149,20 +149,20 @@ func (c *client) GetFullGame(id int64) (*game.FullGame, error) {
 
 	players, err := c.getPlayersForGame(g.ID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load players for game %w", err)
+		return nil, fmt.Errorf("load players for game %w", err)
 	}
 
 	universe := game.Universe{}
 
 	planets, err := c.getPlanetsForGame(g.ID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load planets for game %w", err)
+		return nil, fmt.Errorf("load planets for game %w", err)
 	}
 	universe.Planets = planets
 
 	fleets, err := c.getFleetsForGame(g.ID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load fleets for game %w", err)
+		return nil, fmt.Errorf("load fleets for game %w", err)
 	}
 	universe.Fleets = fleets
 
@@ -338,7 +338,7 @@ func (c *client) UpdateFullGame(g *game.FullGame) error {
 
 	if err := c.updateGameWithNamedExecer(g.Game, tx); err != nil {
 		tx.Rollback()
-		return fmt.Errorf("failed to update game %w", err)
+		return fmt.Errorf("update game %w", err)
 	}
 
 	for _, player := range g.Players {
@@ -346,12 +346,12 @@ func (c *client) UpdateFullGame(g *game.FullGame) error {
 			player.GameID = g.ID
 			if err := c.createPlayer(player, tx); err != nil {
 				tx.Rollback()
-				return fmt.Errorf("failed to create player %w", err)
+				return fmt.Errorf("create player %w", err)
 			}
 		}
 		if err := c.updateFullPlayerWithTransaction(player, tx); err != nil {
 			tx.Rollback()
-			return fmt.Errorf("failed to update player %w", err)
+			return fmt.Errorf("update player %w", err)
 		}
 	}
 
@@ -360,12 +360,12 @@ func (c *client) UpdateFullGame(g *game.FullGame) error {
 			planet.GameID = g.ID
 			if err := c.createPlanet(planet, tx); err != nil {
 				tx.Rollback()
-				return fmt.Errorf("failed to create planet %w", err)
+				return fmt.Errorf("create planet %w", err)
 			}
 		} else if planet.Dirty {
 			if err := c.updatePlanet(planet, tx); err != nil {
 				tx.Rollback()
-				return fmt.Errorf("failed to update planet %w", err)
+				return fmt.Errorf("update planet %w", err)
 			}
 		}
 	}
@@ -375,13 +375,13 @@ func (c *client) UpdateFullGame(g *game.FullGame) error {
 			fleet.GameID = g.ID
 			if err := c.createFleet(fleet, tx); err != nil {
 				tx.Rollback()
-				return fmt.Errorf("failed to create fleet %w", err)
+				return fmt.Errorf("create fleet %w", err)
 			}
 			log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Created fleet %s", fleet.Name)
 		} else if fleet.Dirty {
 			if err := c.updateFleet(fleet, tx); err != nil {
 				tx.Rollback()
-				return fmt.Errorf("failed to update fleet %w", err)
+				return fmt.Errorf("update fleet %w", err)
 			}
 			log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Updated fleet %s", fleet.Name)
 		}

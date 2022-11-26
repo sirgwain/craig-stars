@@ -18,13 +18,13 @@ func connectTestDB() *client {
 	cfg.Database.Recreate = true
 	cfg.Database.DebugLogging = true
 	if err := c.Connect(cfg); err != nil {
-		panic(fmt.Errorf("Failed to connect to test database, %w", err))
+		panic(fmt.Errorf("connect to test database, %w", err))
 	}
 	c.ExecSchema("../schema.sql")
 
 	// create a test user
 	if err := c.CreateUser(game.NewUser("admin", "admin", game.RoleAdmin)); err != nil {
-		panic(fmt.Errorf("Failed to create test database user, %w", err))
+		panic(fmt.Errorf("create test database user, %w", err))
 	}
 
 	return &c
@@ -36,7 +36,7 @@ func (c *client) createTestGame() *game.Game {
 	g := game.NewGame()
 	g.HostID = 1
 	if err := c.CreateGame(g); err != nil {
-		panic(fmt.Errorf("Failed to create test database game, %w", err))
+		panic(fmt.Errorf("create test database game, %w", err))
 	}
 
 	return g
@@ -48,21 +48,21 @@ func (c *client) createTestGameWithPlayer() (*game.Game, *game.Player) {
 	g := game.NewGame()
 	g.HostID = 1
 	if err := c.CreateGame(g); err != nil {
-		panic(fmt.Errorf("Failed to create test database game, %w", err))
+		panic(fmt.Errorf("create test database game, %w", err))
 	}
 
 	player := game.NewPlayer(1, game.NewRace().WithSpec(&g.Rules))
 	player.GameID = g.ID
 
 	if err := c.CreatePlayer(player); err != nil {
-		panic(fmt.Errorf("Failed to create test database game player %w", err))
+		panic(fmt.Errorf("create test database game player %w", err))
 	}
 
 	// add the player's race into the db
 	player.Race.PlayerID = &player.ID
 	player.Race.UserID = player.UserID
 	if err := c.CreateRace(&player.Race); err != nil {
-		panic(fmt.Errorf("Failed to create test database game race %w", err))
+		panic(fmt.Errorf("create test database game race %w", err))
 	}
 
 	return g, player
@@ -71,7 +71,7 @@ func (c *client) createTestGameWithPlayer() (*game.Game, *game.Player) {
 func (c *client) createTestShipDesign(player *game.Player, design *game.ShipDesign) {
 	design.PlayerID = player.ID
 	if err := c.CreateShipDesign(design); err != nil {
-		panic(fmt.Errorf("failed to create test design %w", err))
+		panic(fmt.Errorf("create test design %w", err))
 	}
 }
 

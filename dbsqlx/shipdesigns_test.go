@@ -49,7 +49,7 @@ func TestGetShipDesign(t *testing.T) {
 	_, player := c.createTestGameWithPlayer()
 	shipDesign := game.NewShipDesign(player).WithHull(game.Scout.Name).WithSpec(&rules, player)
 	if err := c.CreateShipDesign(shipDesign); err != nil {
-		t.Errorf("failed to create shipDesign %s", err)
+		t.Errorf("create shipDesign %s", err)
 		return
 	}
 
@@ -94,7 +94,7 @@ func TestGetShipDesigns(t *testing.T) {
 
 	shipDesign := game.ShipDesign{PlayerID: player.ID, Name: "name"}
 	if err := c.CreateShipDesign(&shipDesign); err != nil {
-		t.Errorf("failed to create shipDesign %s", err)
+		t.Errorf("create shipDesign %s", err)
 		return
 	}
 
@@ -114,7 +114,7 @@ func TestDeleteShipDesigns(t *testing.T) {
 
 	shipDesign := game.ShipDesign{PlayerID: player.ID, Name: "name"}
 	if err := c.CreateShipDesign(&shipDesign); err != nil {
-		t.Errorf("failed to create shipDesign %s", err)
+		t.Errorf("create shipDesign %s", err)
 		return
 	}
 
@@ -124,7 +124,7 @@ func TestDeleteShipDesigns(t *testing.T) {
 	assert.Equal(t, 1, len(result))
 
 	if err := c.DeleteShipDesign(shipDesign.ID); err != nil {
-		t.Errorf("failed to delete shipDesign %s", err)
+		t.Errorf("delete shipDesign %s", err)
 		return
 	}
 

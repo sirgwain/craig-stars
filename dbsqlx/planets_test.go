@@ -57,7 +57,7 @@ func TestGetPlanets(t *testing.T) {
 
 	planet := game.Planet{MapObject: game.MapObject{GameID: g.ID}}
 	if err := c.createPlanet(&planet, c.db); err != nil {
-		t.Errorf("failed to create planet %s", err)
+		t.Errorf("create planet %s", err)
 		return
 	}
 
@@ -72,7 +72,7 @@ func TestGetPlanet(t *testing.T) {
 	g := c.createTestGame()
 	planet := game.Planet{MapObject: game.MapObject{GameID: g.ID, Name: "name", Type: game.MapObjectTypePlanet}}
 	if err := c.createPlanet(&planet, c.db); err != nil {
-		t.Errorf("failed to create planet %s", err)
+		t.Errorf("create planet %s", err)
 		return
 	}
 
@@ -111,20 +111,20 @@ func TestUpdatePlanet(t *testing.T) {
 	g := c.createTestGame()
 	planet := game.Planet{MapObject: game.MapObject{GameID: g.ID}}
 	if err := c.createPlanet(&planet, c.db); err != nil {
-		t.Errorf("failed to create planet %s", err)
+		t.Errorf("create planet %s", err)
 		return
 	}
 
 	planet.Name = "Test2"
 	if err := c.UpdatePlanet(&planet); err != nil {
-		t.Errorf("failed to update planet %s", err)
+		t.Errorf("update planet %s", err)
 		return
 	}
 
 	updated, err := c.GetPlanet(planet.ID)
 
 	if err != nil {
-		t.Errorf("failed to get planet %s", err)
+		t.Errorf("get planet %s", err)
 		return
 	}
 

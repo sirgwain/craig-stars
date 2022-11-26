@@ -61,7 +61,7 @@ func (s *server) Login(c *gin.Context) {
 
 	user, err := s.db.GetUserByUsername(creds.Username)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find user"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": " find user"})
 		return
 	}
 
@@ -75,7 +75,7 @@ func (s *server) Login(c *gin.Context) {
 	sesionUser := &sessionUser{ID: user.ID, Username: user.Username, Role: user.Role}
 	session.Set(userkey, sesionUser)
 	if err := session.Save(); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save session"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": " save session"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Successfully authenticated user"})
@@ -90,7 +90,7 @@ func (s *server) Logout(c *gin.Context) {
 	}
 	session.Delete(userkey)
 	if err := session.Save(); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save session"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": " save session"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Successfully logged out"})
@@ -124,8 +124,8 @@ func (s *server) Users(c *gin.Context) {
 
 	users, err := s.db.GetUsers()
 	if err != nil {
-		log.Error().Err(err).Msg("failed to load users")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to load users"})
+		log.Error().Err(err).Msg("load users")
+		c.JSON(http.StatusBadRequest, gin.H{"error": " load users"})
 		return
 	}
 

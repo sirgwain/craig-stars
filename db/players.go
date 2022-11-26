@@ -14,11 +14,6 @@ func (c *client) GetFullPlayerForGame(gameID int64, userID int64) (*game.FullPla
 	if err := c.sqlDB.
 		Preload(clause.Associations).
 		Preload("Designs").
-		Preload("PlanetIntels").
-		Preload("FleetIntels").
-		Preload("DesignIntels").
-		Preload("MineralPacketIntels").
-		Preload("BattlePlans").
 		Where("game_id = ? AND user_id = ?", gameID, userID).
 		First(&player.Player).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -29,7 +24,7 @@ func (c *client) GetFullPlayerForGame(gameID int64, userID int64) (*game.FullPla
 	}
 
 	if err := c.sqlDB.
-		Preload("Tokens.Design").
+		Preload("Tokens").
 		Where("player_id = ? and starbase != ?", player.ID, true).
 		Order("num").
 		Find(&player.Fleets).Error; err != nil {

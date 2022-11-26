@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	"log"
 	"time"
 
+	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/config"
 	"github.com/sirgwain/craig-stars/dbsqlx"
 	"github.com/sirgwain/craig-stars/game"
@@ -14,7 +14,7 @@ import (
 
 func timeTrack(start time.Time, name string) {
 	elapsed := time.Since(start)
-	log.Printf("%s took %s", name, elapsed)
+	log.Debug().Msgf("%s took %s", name, elapsed)
 }
 
 func newServeCmd() *cobra.Command {
@@ -79,7 +79,9 @@ func generateTestGame(db server.DBClient, config config.Config) error {
 	}
 	for i := 0; i < 25; i++ {
 		gameRunner.SubmitTurn(mediumGame.ID, mediumGame.HostID)
-		gameRunner.CheckAndGenerateTurn(mediumGame.ID)
+		if _, err := gameRunner.CheckAndGenerateTurn(mediumGame.ID); err != nil {
+			log.Error().Err(err).Msg("check and generate new turn")
+		}
 	}
 
 	// user2 will also host a game so with an open player slot

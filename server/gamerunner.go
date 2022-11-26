@@ -98,16 +98,16 @@ func (gr *GameRunner) AddPlayer(gameID int64, userID int64, race *game.Race) err
 	player := client.NewPlayer(userID, *race, &g.Rules)
 	player.GameID = g.ID
 	if err := gr.db.CreatePlayer(player); err != nil {
-		return fmt.Errorf("failed to save player %s for game %d: %w", player, gameID, err)
+		return fmt.Errorf("save player %s for game %d: %w", player, gameID, err)
 	}
 	if err := gr.db.UpdateFullGame(g); err != nil {
-		return fmt.Errorf("failed to save game %d: %w", gameID, err)
+		return fmt.Errorf("save game %d: %w", gameID, err)
 	}
 
 	// generate the universe if this game is ready
 	if g.OpenPlayerSlots == 0 {
 		if _, err := gr.GenerateUniverse(g.ID); err != nil {
-			return fmt.Errorf("failed to generate universe: %d: %w", gameID, err)
+			return fmt.Errorf("generate universe: %d: %w", gameID, err)
 		}
 	}
 
@@ -118,13 +118,13 @@ func (gr *GameRunner) GenerateUniverse(gameID int64) (*game.Universe, error) {
 	defer timeTrack(time.Now(), "GenerateUniverse")
 	g, err := gr.LoadGame(gameID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load game %d: %w", gameID, err)
+		return nil, fmt.Errorf("load game %d: %w", gameID, err)
 	}
 
 	client := game.NewClient()
 	universe, err := client.GenerateUniverse(g.Game, g.Players)
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate universe for game %d: %w", gameID, err)
+		return nil, fmt.Errorf("generate universe for game %d: %w", gameID, err)
 	}
 
 	g.State = game.GameStateWaitingForPlayers
@@ -132,7 +132,7 @@ func (gr *GameRunner) GenerateUniverse(gameID int64) (*game.Universe, error) {
 
 	err = gr.db.UpdateFullGame(g)
 	if err != nil {
-		return nil, fmt.Errorf("failed to save game %d: %w", gameID, err)
+		return nil, fmt.Errorf("save game %d: %w", gameID, err)
 	}
 
 	return g.Universe, nil
@@ -145,7 +145,7 @@ func (gr *GameRunner) LoadGame(gameID int64) (*game.FullGame, error) {
 	g, err := gr.db.GetFullGame(gameID)
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to load game %d: %w", gameID, err)
+		return nil, fmt.Errorf("load game %d: %w", gameID, err)
 	}
 
 	return g, nil
@@ -183,7 +183,7 @@ func (gr *GameRunner) LoadPlayerGame(gameID int64, userID int64) (*game.Game, *g
 func (gr *GameRunner) SubmitTurn(gameID int64, userID int64) error {
 	player, err := gr.db.GetPlayerForGame(gameID, userID)
 	if err != nil {
-		return fmt.Errorf("failed to find player for user %d, game %d: %w", userID, gameID, err)
+		return fmt.Errorf("find player for user %d, game %d: %w", userID, gameID, err)
 	}
 
 	if player == nil {
@@ -207,8 +207,12 @@ func (gr *GameRunner) CheckAndGenerateTurn(gameID int64) (TurnGenerationCheckRes
 	// if everyone submitted their turn, generate a new turn
 	client := game.NewClient()
 	if client.CheckAllPlayersSubmitted(g.Players) {
-		client.GenerateTurn(g.Game, g.Universe, g.Players)
-		gr.db.UpdateFullGame(g)
+		if err := client.GenerateTurn(g.Game, g.Universe, g.Players); err != nil {
+			return TurnNotGenerated, fmt.Errorf("generate turn -> %w", err)
+		}
+		if err := gr.db.UpdateFullGame(g); err != nil {
+			return TurnNotGenerated, fmt.Errorf("save game after turn generation -> %w", err)
+		}
 		return TurnGenerated, nil
 	}
 
