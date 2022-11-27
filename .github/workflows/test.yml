@@ -14,16 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # build the frontend
-      - uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'yarn'
-          cache-dependency-path: frontend/yarn.lock
-      - run: yarn --cwd frontend install
-      - run: yarn --cwd frontend run build
-
-      # build the binary
+      # build the binary (fast)
       - uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go-version }}
@@ -32,3 +23,12 @@ jobs:
       - run: go test ./...          
       - run: mkdir -p dist/
       - run: go mod tidy && CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -ldflags='-s -w -extldflags "-static"' -o dist/craig-stars main.go
+
+      # build the frontend (slow)
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'yarn'
+          cache-dependency-path: frontend/yarn.lock
+      - run: yarn --cwd frontend install
+      - run: yarn --cwd frontend run build
