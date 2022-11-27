@@ -2,13 +2,10 @@ package db
 
 import (
 	"database/sql"
-	"database/sql/driver"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
-	"reflect"
 	"strings"
 
 	"github.com/sirgwain/craig-stars/config"
@@ -30,7 +27,7 @@ type client struct {
 
 type Client interface {
 	Connect(config *config.Config) error
-	ExecSchema(schemaPath string)
+	ExecSQL(schemaPath string)
 
 	GetUsers() ([]game.User, error)
 	GetUser(id int64) (*game.User, error)
@@ -94,11 +91,29 @@ type SQLExecer interface {
 }
 
 func (c *client) Connect(config *config.Config) error {
-	if config.Database.Recreate && config.Database.Filename != ":memory:" {
-		info, _ := os.Stat(config.Database.Filename)
-		if info != nil {
+
+	// exec the create schema sql if we are recreating the DB or using an in memory db
+	execSchemaSql := config.Database.Recreate || config.Database.Filename == ":memory:"
+
+	// if we are using a file based db, we have to exec the schema sql when we first
+	// set it up
+	if config.Database.Filename != ":memory:" {
+		// check if the db exists
+		info, err := os.Stat(config.Database.Filename)
+		if err != nil && !errors.Is(err, os.ErrNotExist) {
+			return err
+		}
+
+		// delete the db and recreate it if we are configured for that
+		if info != nil && config.Database.Recreate {
 			log.Debug().Msgf("Deleting existing database %s", config.Database.Filename)
 			os.Remove(config.Database.Filename)
+		}
+
+		if info == nil {
+			// first time creating the db, so exec schema for it
+			log.Debug().Msgf("Executing create schema %s", config.Database.Schema)
+			execSchemaSql = true
 		}
 	}
 
@@ -114,73 +129,33 @@ func (c *client) Connect(config *config.Config) error {
 	loggerAdapter := NewLoggerWithLogger(&zlogger)
 	db := sqldblogger.OpenDriver(config.Database.Filename, &sqlite3.SQLiteDriver{}, loggerAdapter /*, ...options */)
 
-	localdb := sqlx.NewDb(db, "sqlite3")
+	c.db = sqlx.NewDb(db, "sqlite3")
 
-	if _, err := localdb.Exec("PRAGMA foreign_keys = ON;"); err != nil {
+	if _, err := c.db.Exec("PRAGMA foreign_keys = ON;"); err != nil {
 		return err
 	}
 
-	// localc.MapperFunc(MapperFunc()) // snake_case
-	// localc.MapperFunc(func(s string) string { return s }) // identity
-
 	// Create a new mapper which will use the struct field tag "json" instead of "db"
-	localdb.Mapper = reflectx.NewMapperFunc("json", strings.ToLower)
+	c.db.Mapper = reflectx.NewMapperFunc("json", strings.ToLower)
 
-	c.db = localdb
+	// recreate the schema if we are in memory or recreated the db
+	if execSchemaSql {
+		c.ExecSQL(config.Database.Schema)
+	}
 	return nil
 }
 
 // execute a schema file to create/update tables
-func (c *client) ExecSchema(schemaPath string) {
+func (c *client) ExecSQL(schemaPath string) {
 	schemaBytes, err := ioutil.ReadFile(schemaPath)
 	if err != nil {
 		panic(fmt.Errorf("load schema file %s, %w", schemaPath, err))
 	}
 
 	schema := string(schemaBytes)
-	log.Info().Msg("Creating schema")
+	log.Info().Str("schemaPath", schemaPath).Msg("Executing sql")
+
 	// exec the schema or fail; multi-statement Exec behavior varies between
 	// database drivers;  pq will exec them all, sqlite3 won't, ymmv
 	c.db.MustExec(schema)
-}
-
-// helper to convert an item into JSON
-func valueJSON(item interface{}) (driver.Value, error) {
-	if isNil(item) {
-		return nil, nil
-	}
-
-	data, err := json.Marshal(item)
-	if err != nil {
-		return nil, err
-	}
-	return data, nil
-}
-
-// helper to scan a text JSON column back into a struct
-func scanJSON(src interface{}, dest interface{}) error {
-	if src == nil {
-		// leave empty
-		return nil
-	}
-
-	switch v := src.(type) {
-	case []byte:
-		return json.Unmarshal(v, dest)
-	case string:
-		return json.Unmarshal([]byte(v), dest)
-	}
-	return errors.New("type assertion failed")
-}
-
-func isNil(i interface{}) bool {
-	if i == nil {
-		return true
-	}
-	switch reflect.TypeOf(i).Kind() {
-	case reflect.Ptr, reflect.Map, reflect.Array, reflect.Chan, reflect.Slice:
-		//use of IsNil method
-		return reflect.ValueOf(i).IsNil()
-	}
-	return false
 }
