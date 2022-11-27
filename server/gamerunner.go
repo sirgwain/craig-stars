@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
-	"github.com/sirgwain/craig-stars/dbsqlx"
+	"github.com/sirgwain/craig-stars/db"
 	"github.com/sirgwain/craig-stars/game"
 )
 
@@ -16,7 +16,7 @@ const (
 	TurnGenerated
 )
 
-type DBClient dbsqlx.Client
+type DBClient db.Client
 
 type GameRunner struct {
 	db DBClient

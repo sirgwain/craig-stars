@@ -1,4 +1,4 @@
-package dbsqlx
+package db
 
 import (
 	"fmt"

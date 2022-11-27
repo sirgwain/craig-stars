@@ -1,4 +1,4 @@
-package dbsqlx
+package db
 
 import "github.com/sirgwain/craig-stars/game"
 
