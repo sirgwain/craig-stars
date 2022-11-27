@@ -74,7 +74,7 @@ func (ug *universeGenerator) Generate() (*Universe, error) {
 	}
 
 	for _, planet := range ug.universe.Planets {
-		if planet.Owned() {
+		if planet.owned() {
 			player := ug.players[planet.PlayerNum]
 			planet.Spec = ComputePlanetSpec(ug.rules, planet, player)
 		}
@@ -92,7 +92,7 @@ func (ug *universeGenerator) Generate() (*Universe, error) {
 
 		// TODO: check for AI player
 		pmo := ug.universe.GetPlayerMapObjects(player.Num)
-		ai := NewAIPlayer(player, pmo)
+		ai := newAIPlayer(player, pmo)
 		ai.processTurn()
 
 		for _, f := range pmo.Fleets {
@@ -270,7 +270,7 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 				// extra planets are close to the homeworld
 				for _, planet := range ug.universe.Planets {
 					distToHomeworld := planet.Position.DistanceSquaredTo(homeworld.Position)
-					if !planet.Owned() && (distToHomeworld <= float64(rules.MaxExtraWorldDistance*rules.MaxExtraWorldDistance) && distToHomeworld >= float64(rules.MinExtraWorldDistance*rules.MinExtraWorldDistance)) {
+					if !planet.owned() && (distToHomeworld <= float64(rules.MaxExtraWorldDistance*rules.MaxExtraWorldDistance) && distToHomeworld >= float64(rules.MinExtraWorldDistance*rules.MinExtraWorldDistance)) {
 						playerPlanet = planet
 						break
 					}
@@ -279,7 +279,7 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 			} else {
 				// homeworld should be distant from other players
 				for _, planet := range ug.universe.Planets {
-					if !planet.Owned() && (len(ownedPlanets) == 0 || planet.shortestDistanceToPlanets(&ownedPlanets) > minPlayerDistance) {
+					if !planet.owned() && (len(ownedPlanets) == 0 || planet.shortestDistanceToPlanets(&ownedPlanets) > minPlayerDistance) {
 						playerPlanet = planet
 						break
 					}

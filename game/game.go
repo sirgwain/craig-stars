@@ -271,8 +271,8 @@ func (g *Game) WithSettings(settings GameSettings) *Game {
 }
 
 // transfer cargo from one cargo holder to another
-func (g *Game) Transfer(source *Fleet, dest CargoHolder, cargoType CargoType, transferAmount int) {
-	source.TransferCargoItem(dest, cargoType, transferAmount)
+func (g *Game) transfer(source *Fleet, dest CargoHolder, cargoType CargoType, transferAmount int) {
+	source.transferCargoItem(dest, cargoType, transferAmount)
 
 	// if (cargoType == CargoType.Fuel)	{
 	// 	cargoTransferer.Transfer(source, dest, Cargo.Empty, transferAmount);

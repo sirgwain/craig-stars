@@ -177,10 +177,10 @@ func (d *discover) discoverPlanet(rules *Rules, player *Player, planet *Planet, 
 
 		// players know their planet pops, but other planets are slightly off
 		if ownedByPlayer {
-			intel.Population = uint(planet.Population())
+			intel.Population = uint(planet.population())
 		} else {
 			var randomPopulationError = rules.random.Float64()*(rules.PopulationScannerError-(-rules.PopulationScannerError)) - rules.PopulationScannerError
-			intel.Population = uint(float64(planet.Population()) * (1 - randomPopulationError))
+			intel.Population = uint(float64(planet.population()) * (1 - randomPopulationError))
 		}
 	}
 	return nil

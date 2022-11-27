@@ -126,16 +126,16 @@ func (p *Planet) String() string {
 	return fmt.Sprintf("Planet %s", &p.MapObject)
 }
 
-func (p *Planet) Population() int {
+func (p *Planet) population() int {
 	return p.Cargo.Colonists * 100
 }
 
-func (p *Planet) SetPopulation(pop int) {
+func (p *Planet) setPopulation(pop int) {
 	p.Cargo.Colonists = pop / 100
 }
 
 // true if this planet can build a ship with a given mass
-func (p *Planet) CanBuild(mass int) bool {
+func (p *Planet) canBuild(mass int) bool {
 	return p.Spec.HasStarbase && (p.starbase.Spec.SpaceDock == UnlimitedSpaceDock || p.starbase.Spec.SpaceDock >= mass)
 }
 
@@ -235,10 +235,10 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 	raceSpec := player.Race.Spec
 
 	// set the homeworld pop to our starting planet pop
-	p.SetPopulation(int(float64(startingPlanet.Population) * raceSpec.StartingPopulationFactor))
+	p.setPopulation(int(float64(startingPlanet.Population) * raceSpec.StartingPopulationFactor))
 
 	if raceSpec.InnateMining {
-		p.Mines = p.GetInnateMines(player)
+		p.Mines = p.innateMines(player)
 		p.Factories = 0
 	} else {
 		p.Mines = rules.StartingMines
@@ -276,9 +276,9 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 }
 
 // Get the number of innate mines this player would have on this planet
-func (p *Planet) GetInnateMines(player *Player) int {
+func (p *Planet) innateMines(player *Player) int {
 	if player.Race.Spec.InnateMining {
-		return int(math.Sqrt(float64(p.Population()) * float64(.1)))
+		return int(math.Sqrt(float64(p.population()) * float64(.1)))
 	}
 	return 0
 }
@@ -305,10 +305,10 @@ func (p *Planet) getMineralOutput(numMines int, mineOutput int) Mineral {
 func (p *Planet) getGrowthAmount(player *Player, maxPopulation int) int {
 	race := &player.Race
 	growthFactor := race.Spec.GrowthFactor
-	capacity := float64(p.Population()) / float64(maxPopulation)
+	capacity := float64(p.population()) / float64(maxPopulation)
 	habValue := race.GetPlanetHabitability(p.Hab)
 	if habValue > 0 {
-		popGrowth := int(float64(p.Population())*float64(race.GrowthRate)*growthFactor/100.0*float64(habValue)/100.0 + .5)
+		popGrowth := int(float64(p.population())*float64(race.GrowthRate)*growthFactor/100.0*float64(habValue)/100.0 + .5)
 
 		if capacity > .25 {
 			crowdingFactor := 16.0 / 9.0 * (1.0 - capacity) * (1.0 - capacity)
@@ -319,7 +319,7 @@ func (p *Planet) getGrowthAmount(player *Player, maxPopulation int) int {
 		return roundToNearest100(popGrowth)
 	} else {
 		// kill off (habValue / 10)% colonists every year. I.e. a habValue of -4% kills off .4%
-		deathAmount := int(float64(p.Population()) * (float64(habValue) / 1000.0))
+		deathAmount := int(float64(p.population()) * (float64(habValue) / 1000.0))
 		return roundToNearest100(clamp(deathAmount, deathAmount, -100))
 	}
 }
@@ -329,26 +329,26 @@ func ComputePlanetSpec(rules *Rules, planet *Planet, player *Player) PlanetSpec 
 	race := &player.Race
 	spec.Habitability = race.GetPlanetHabitability(planet.Hab)
 	spec.MaxPopulation = getMaxPopulation(rules, spec.Habitability, player)
-	spec.PopulationDensity = float64(planet.Population()) / float64(spec.MaxPopulation)
+	spec.PopulationDensity = float64(planet.population()) / float64(spec.MaxPopulation)
 	spec.GrowthAmount = planet.getGrowthAmount(player, spec.MaxPopulation)
 	spec.MineralOutput = planet.getMineralOutput(planet.Mines, race.MineOutput)
 
 	if !race.Spec.InnateMining {
-		spec.MaxMines = planet.Population() * race.NumMines / 10000
+		spec.MaxMines = planet.population() * race.NumMines / 10000
 		spec.MaxPossibleMines = spec.MaxPopulation * race.NumMines / 10000
 	}
 
 	if race.Spec.InnateResources {
-		spec.ResourcesPerYear = int(math.Sqrt(float64(planet.Population()) * float64(player.TechLevels.Energy) / float64(race.PopEfficiency)))
+		spec.ResourcesPerYear = int(math.Sqrt(float64(planet.population()) * float64(player.TechLevels.Energy) / float64(race.PopEfficiency)))
 	} else {
 		// compute resources from population
-		resourcesFromPop := planet.Population() / (race.PopEfficiency * 100)
+		resourcesFromPop := planet.population() / (race.PopEfficiency * 100)
 
 		// compute resources from factories
 		resourcesFromFactories := planet.Factories * race.FactoryOutput / 10
 
 		spec.ResourcesPerYear = resourcesFromPop + resourcesFromFactories
-		spec.MaxFactories = planet.Population() * race.NumFactories / 10000
+		spec.MaxFactories = planet.population() * race.NumFactories / 10000
 		spec.MaxPossibleFactories = spec.MaxPopulation * race.NumFactories / 10000
 	}
 
@@ -448,9 +448,9 @@ func (planet *Planet) produce(player *Player) ProductionResult {
 		if (cost != Cost{}) {
 			// figure out how many we can build
 			// and make sure we only build up to the quantity, and we don't build more than the planet supports
-			numBuilt := MaxInt(0, available.NumBuildable(cost))
-			numBuilt = MinInt(numBuilt, item.Quantity)
-			numBuilt = MinInt(numBuilt, planet.maxBuildable(item.Type))
+			numBuilt := maxInt(0, available.NumBuildable(cost))
+			numBuilt = minInt(numBuilt, item.Quantity)
+			numBuilt = minInt(numBuilt, planet.maxBuildable(item.Type))
 
 			if numBuilt > 0 {
 				// build the items on the planet and remove from our available
@@ -578,7 +578,7 @@ func (planet *Planet) allocatePartialBuild(costPerItem Cost, allocated Cost) Cos
 	}
 
 	// figure out the lowest percentage
-	minPerc := MinFloat64(ironiumPerc, boraniumPerc, germaniumPerc, resourcesPerc)
+	minPerc := minFloat64(ironiumPerc, boraniumPerc, germaniumPerc, resourcesPerc)
 
 	// allocate the lowest percentage of each cost
 	newAllocated := Cost{
@@ -630,8 +630,8 @@ func (planet *Planet) reduceMineralConcentration(rules *Rules) {
 		minMineralConcentration = rules.MinHomeworldMineralConcentration
 	}
 
-	planetMineYears := planet.MineYears.ToSplice()
-	planetMineralConcentration := planet.MineralConcentration.ToSplice()
+	planetMineYears := planet.MineYears.ToSlice()
+	planetMineralConcentration := planet.MineralConcentration.ToSlice()
 	for i := 0; i < 3; i++ {
 		conc := planetMineralConcentration[i]
 		if conc < minMineralConcentration {

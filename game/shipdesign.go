@@ -265,14 +265,14 @@ func ComputeShipDesignSpec(rules *Rules, player *Player, design *ShipDesign) Shi
 		}
 	}
 
-	spec.ComputeScanRanges(rules, player, design, hull)
+	spec.computeScanRanges(rules, player, design, hull)
 
 	return spec
 }
 
 // Compute the scan ranges for this ship design The formula is: (scanner1**4 + scanner2**4 + ...
 // + scannerN**4)**(.25)
-func (spec *ShipDesignSpec) ComputeScanRanges(rules *Rules, player *Player, design *ShipDesign, hull *TechHull) {
+func (spec *ShipDesignSpec) computeScanRanges(rules *Rules, player *Player, design *ShipDesign, hull *TechHull) {
 	spec.ScanRange = NoScanner
 	spec.ScanRangePen = NoScanner
 

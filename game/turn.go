@@ -11,10 +11,10 @@ type turn struct {
 }
 
 type turnGenerator interface {
-	GenerateTurn() error
+	generateTurn() error
 }
 
-func NewTurnGenerator(game *FullGame) turnGenerator {
+func newTurnGenerator(game *FullGame) turnGenerator {
 	t := turn{game}
 
 	t.game.Universe.buildMaps(game.Players)
@@ -23,7 +23,7 @@ func NewTurnGenerator(game *FullGame) turnGenerator {
 }
 
 // generate a new turn
-func (t *turn) GenerateTurn() error {
+func (t *turn) generateTurn() error {
 	log.Debug().
 		Int64("GameID", t.game.ID).
 		Str("Name", t.game.Name).
@@ -108,7 +108,7 @@ func (t *turn) GenerateTurn() error {
 
 		player.SubmittedTurn = false
 		pmo := t.game.GetPlayerMapObjects(player.Num)
-		ai := NewAIPlayer(player, pmo)
+		ai := newAIPlayer(player, pmo)
 		ai.processTurn()
 
 		for _, f := range pmo.Fleets {
@@ -128,7 +128,7 @@ func (t *turn) GenerateTurn() error {
 // useful before turn generation and after building
 func (t *turn) computePlanetSpecs() {
 	for _, planet := range t.game.Planets {
-		if planet.Owned() {
+		if planet.owned() {
 			player := t.game.Players[planet.PlayerNum]
 			planet.Spec = ComputePlanetSpec(&t.game.Rules, planet, player)
 		}
@@ -175,7 +175,7 @@ func (t *turn) fleetColonize() {
 			}
 
 			planet := t.game.GetPlanet(wp0.TargetNum)
-			if planet.Owned() {
+			if planet.owned() {
 				messager.colonizeOwnedPlanet(player, fleet)
 				continue
 			}
@@ -230,12 +230,12 @@ func (t *turn) fleetLoad0() {
 				switch task.Action {
 				case TransportActionLoadAll:
 					// load all available, based on our constraints
-					transferAmount = MinInt(availableToLoad, capacity)
+					transferAmount = minInt(availableToLoad, capacity)
 				}
 
 				if transferAmount != 0 {
 					transferCargo = transferCargo.WithCargo(cargoType, transferAmount)
-					t.game.Transfer(fleet, dest, cargoType, transferAmount)
+					t.game.transfer(fleet, dest, cargoType, transferAmount)
 					messager.fleetTransportedCargo(player, fleet, dest, cargoType, transferAmount)
 				}
 			}
@@ -324,7 +324,7 @@ func (t *turn) detonateMines() {
 // mine all owned planets for minerals
 func (t *turn) planetMine() {
 	for _, planet := range t.game.Planets {
-		if planet.Owned() {
+		if planet.owned() {
 			planet.Cargo = planet.Cargo.AddMineral(planet.Spec.MineralOutput)
 			planet.MineYears.AddInt(planet.Mines)
 			planet.reduceMineralConcentration(&t.game.Rules)
@@ -338,7 +338,7 @@ func (t *turn) fleetRemoteMineAR() {
 
 func (t *turn) planetProduction() {
 	for _, planet := range t.game.Planets {
-		if planet.Owned() && len(planet.ProductionQueue) > 0 {
+		if planet.owned() && len(planet.ProductionQueue) > 0 {
 			player := t.game.Players[planet.PlayerNum]
 			result := planet.produce(player)
 			for _, token := range result.tokens {
@@ -381,9 +381,9 @@ func (t *turn) permaform() {
 // grow all owned planets by some population
 func (t *turn) planetGrow() {
 	for _, planet := range t.game.Planets {
-		if planet.Owned() {
+		if planet.owned() {
 			// player := t.game.Players[*planet.PlayerNum]
-			planet.SetPopulation(planet.Population() + planet.Spec.GrowthAmount)
+			planet.setPopulation(planet.population() + planet.Spec.GrowthAmount)
 			planet.Dirty = true // flag for update
 		}
 	}
