@@ -20,6 +20,7 @@ jobs:
           go-version: ${{ matrix.go-version }}
           check-latest: true
           cache: true
+      # the go binary embeds the front end, so create a mock one for quick unit tests
       - run: mkdir -p frontend/build
       - run: touch frontend/build/testfile
       - run: go test ./...          
