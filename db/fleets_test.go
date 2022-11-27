@@ -11,8 +11,8 @@ import (
 
 func TestCreateFleet(t *testing.T) {
 	type args struct {
-		c      *client
-		planet *game.Fleet
+		c     *client
+		fleet *game.Fleet
 	}
 	tests := []struct {
 		name    string
@@ -27,20 +27,21 @@ func TestCreateFleet(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// create a test game
-			g := tt.args.c.createTestGame()
-			tt.args.planet.GameID = g.ID
+			g, player := tt.args.c.createTestGameWithPlayer()
+			tt.args.fleet.GameID = g.ID
+			tt.args.fleet.PlayerID = player.ID
 
-			want := *tt.args.planet
-			err := tt.args.c.createFleet(tt.args.planet, tt.args.c.db)
+			want := *tt.args.fleet
+			err := tt.args.c.createFleet(tt.args.fleet, tt.args.c.db)
 
 			// id is automatically added
-			want.ID = tt.args.planet.ID
+			want.ID = tt.args.fleet.ID
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CreateFleet() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(tt.args.planet, &want) {
-				t.Errorf("CreateFleet() = \n%v, want \n%v", tt.args.planet, want)
+			if !reflect.DeepEqual(tt.args.fleet, &want) {
+				t.Errorf("CreateFleet() = \n%v, want \n%v", tt.args.fleet, want)
 			}
 		})
 	}
@@ -104,14 +105,14 @@ func TestGetFleet(t *testing.T) {
 
 func TestGetFleets(t *testing.T) {
 	c := connectTestDB()
-	g := c.createTestGame()
+	g, player := c.createTestGameWithPlayer()
 
 	// start with 1 planet from connectTestDB
 	result, err := c.getFleetsForGame(g.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, []*game.Fleet{}, result)
 
-	fleet := game.Fleet{MapObject: game.MapObject{GameID: g.ID}}
+	fleet := game.Fleet{MapObject: game.MapObject{GameID: g.ID, PlayerID: player.ID}}
 	if err := c.createFleet(&fleet, c.db); err != nil {
 		t.Errorf("create planet %s", err)
 		return
@@ -125,8 +126,8 @@ func TestGetFleets(t *testing.T) {
 
 func TestUpdateFleet(t *testing.T) {
 	c := connectTestDB()
-	g := c.createTestGame()
-	planet := game.Fleet{MapObject: game.MapObject{GameID: g.ID}}
+	g, player := c.createTestGameWithPlayer()
+	planet := game.Fleet{MapObject: game.MapObject{GameID: g.ID, PlayerID: player.ID}}
 	if err := c.createFleet(&planet, c.db); err != nil {
 		t.Errorf("create planet %s", err)
 		return

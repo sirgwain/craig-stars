@@ -177,6 +177,18 @@ func (c *client) GetFullGame(id int64) (*game.FullGame, error) {
 		}
 	}
 
+	wormholes, err := c.getWormholesForGame(g.ID)
+	if err != nil {
+		return nil, fmt.Errorf("load wormholes for game %w", err)
+	}
+	universe.Wormholes = wormholes
+
+	salvages, err := c.getSalvagesForGame(g.ID)
+	if err != nil {
+		return nil, fmt.Errorf("load salvages for game %w", err)
+	}
+	universe.Salvages = salvages
+
 	if g.Rules.TechsID == 0 {
 		g.Rules.WithTechStore(&game.StaticTechStore)
 	} else {
@@ -400,6 +412,42 @@ func (c *client) UpdateFullGame(g *game.FullGame) error {
 			log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Updated fleet %s", fleet.Name)
 		}
 	}
+
+	// save wormholes
+	for _, wormhole := range g.Wormholes {
+		if wormhole.ID == 0 {
+			wormhole.GameID = g.ID
+			if err := c.createWormhole(wormhole, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("create wormhole %w", err)
+			}
+			log.Debug().Int64("GameID", wormhole.GameID).Int64("ID", wormhole.ID).Msgf("Created wormhole %s", wormhole.Name)
+		} else if wormhole.Dirty {
+			if err := c.updateWormhole(wormhole, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("update wormhole %w", err)
+			}
+			log.Debug().Int64("GameID", wormhole.GameID).Int64("ID", wormhole.ID).Msgf("Updated wormhole %s", wormhole.Name)
+		}
+	}
+
+	// save salvages
+	for _, salvage := range g.Salvages {
+		if salvage.ID == 0 {
+			salvage.GameID = g.ID
+			if err := c.createSalvage(salvage, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("create salvage %w", err)
+			}
+			log.Debug().Int64("GameID", salvage.GameID).Int64("ID", salvage.ID).Msgf("Created salvage %s", salvage.Name)
+		} else if salvage.Dirty {
+			if err := c.updateSalvage(salvage, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("update salvage %w", err)
+			}
+			log.Debug().Int64("GameID", salvage.GameID).Int64("ID", salvage.ID).Msgf("Updated salvage %s", salvage.Name)
+		}
+	}	
 
 	tx.Commit()
 	return nil

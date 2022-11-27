@@ -41,52 +41,60 @@ func (c *GameConverter) ConvertGame(source Game) game.Game {
 	return gameGame
 }
 func (c *GameConverter) ConvertGameFleet(source *game.Fleet) *Fleet {
-	var pDbsqlxFleet *Fleet
+	var pDbFleet *Fleet
 	if source != nil {
-		dbFleet := c.gameFleetToDbsqlxFleet(*source)
-		pDbsqlxFleet = &dbFleet
+		dbFleet := c.gameFleetToDbFleet(*source)
+		pDbFleet = &dbFleet
 	}
-	return pDbsqlxFleet
+	return pDbFleet
 }
 func (c *GameConverter) ConvertGameGame(source *game.Game) *Game {
-	var pDbsqlxGame *Game
+	var pDbGame *Game
 	if source != nil {
-		dbGame := c.gameGameToDbsqlxGame(*source)
-		pDbsqlxGame = &dbGame
+		dbGame := c.gameGameToDbGame(*source)
+		pDbGame = &dbGame
 	}
-	return pDbsqlxGame
+	return pDbGame
 }
 func (c *GameConverter) ConvertGamePlanet(source *game.Planet) *Planet {
-	var pDbsqlxPlanet *Planet
+	var pDbPlanet *Planet
 	if source != nil {
-		dbPlanet := c.gamePlanetToDbsqlxPlanet(*source)
-		pDbsqlxPlanet = &dbPlanet
+		dbPlanet := c.gamePlanetToDbPlanet(*source)
+		pDbPlanet = &dbPlanet
 	}
-	return pDbsqlxPlanet
+	return pDbPlanet
 }
 func (c *GameConverter) ConvertGamePlayer(source *game.Player) *Player {
-	var pDbsqlxPlayer *Player
+	var pDbPlayer *Player
 	if source != nil {
-		dbPlayer := c.gamePlayerToDbsqlxPlayer(*source)
-		pDbsqlxPlayer = &dbPlayer
+		dbPlayer := c.gamePlayerToDbPlayer(*source)
+		pDbPlayer = &dbPlayer
 	}
-	return pDbsqlxPlayer
+	return pDbPlayer
 }
 func (c *GameConverter) ConvertGameRace(source *game.Race) *Race {
-	var pDbsqlxRace *Race
+	var pDbRace *Race
 	if source != nil {
-		dbRace := c.gameRaceToDbsqlxRace(*source)
-		pDbsqlxRace = &dbRace
+		dbRace := c.gameRaceToDbRace(*source)
+		pDbRace = &dbRace
 	}
-	return pDbsqlxRace
+	return pDbRace
+}
+func (c *GameConverter) ConvertGameSalvage(source *game.Salvage) *Salvage {
+	var pDbSalvage *Salvage
+	if source != nil {
+		dbSalvage := c.gameSalvageToDbSalvage(*source)
+		pDbSalvage = &dbSalvage
+	}
+	return pDbSalvage
 }
 func (c *GameConverter) ConvertGameShipDesign(source *game.ShipDesign) *ShipDesign {
-	var pDbsqlxShipDesign *ShipDesign
+	var pDbShipDesign *ShipDesign
 	if source != nil {
-		dbShipDesign := c.gameShipDesignToDbsqlxShipDesign(*source)
-		pDbsqlxShipDesign = &dbShipDesign
+		dbShipDesign := c.gameShipDesignToDbShipDesign(*source)
+		pDbShipDesign = &dbShipDesign
 	}
-	return pDbsqlxShipDesign
+	return pDbShipDesign
 }
 func (c *GameConverter) ConvertGameShipToken(source game.ShipToken) ShipToken {
 	var dbShipToken ShipToken
@@ -101,12 +109,20 @@ func (c *GameConverter) ConvertGameShipToken(source game.ShipToken) ShipToken {
 	return dbShipToken
 }
 func (c *GameConverter) ConvertGameUser(source *game.User) *User {
-	var pDbsqlxUser *User
+	var pDbUser *User
 	if source != nil {
-		dbUser := c.gameUserToDbsqlxUser(*source)
-		pDbsqlxUser = &dbUser
+		dbUser := c.gameUserToDbUser(*source)
+		pDbUser = &dbUser
 	}
-	return pDbsqlxUser
+	return pDbUser
+}
+func (c *GameConverter) ConvertGameWormhole(source *game.Wormhole) *Wormhole {
+	var pDbWormhole *Wormhole
+	if source != nil {
+		dbWormhole := c.gameWormholeToDbWormhole(*source)
+		pDbWormhole = &dbWormhole
+	}
+	return pDbWormhole
 }
 func (c *GameConverter) ConvertGames(source []Game) []game.Game {
 	gameGameList := make([]game.Game, len(source))
@@ -200,6 +216,14 @@ func (c *GameConverter) ConvertRaces(source []Race) []game.Race {
 	}
 	return gameRaceList
 }
+func (c *GameConverter) ConvertSalvage(source *Salvage) *game.Salvage {
+	var pGameSalvage *game.Salvage
+	if source != nil {
+		gameSalvage := c.dbSalvageToGameSalvage(*source)
+		pGameSalvage = &gameSalvage
+	}
+	return pGameSalvage
+}
 func (c *GameConverter) ConvertShipDesign(source *ShipDesign) *game.ShipDesign {
 	var pGameShipDesign *game.ShipDesign
 	if source != nil {
@@ -236,6 +260,14 @@ func (c *GameConverter) ConvertUsers(source []User) []game.User {
 		gameUserList[i] = c.ConvertUser(source[i])
 	}
 	return gameUserList
+}
+func (c *GameConverter) ConvertWormhole(source *Wormhole) *game.Wormhole {
+	var pGameWormhole *game.Wormhole
+	if source != nil {
+		gameWormhole := c.dbWormholeToGameWormhole(*source)
+		pGameWormhole = &gameWormhole
+	}
+	return pGameWormhole
 }
 func (c *GameConverter) dbFleetToGameFleet(source Fleet) game.Fleet {
 	var gameFleet game.Fleet
@@ -276,6 +308,12 @@ func (c *GameConverter) dbPlanetToGamePlanet(source Planet) game.Planet {
 	gamePlanet.Spec = PlanetSpecToGamePlanetSpec(source.Spec)
 	return gamePlanet
 }
+func (c *GameConverter) dbSalvageToGameSalvage(source Salvage) game.Salvage {
+	var gameSalvage game.Salvage
+	gameSalvage.MapObject = ExtendSalvageMapObject(source)
+	gameSalvage.Cargo = ExtendSalvageCargo(source)
+	return gameSalvage
+}
 func (c *GameConverter) dbShipDesignToGameShipDesign(source ShipDesign) game.ShipDesign {
 	var gameShipDesign game.ShipDesign
 	gameShipDesign.ID = source.ID
@@ -294,7 +332,15 @@ func (c *GameConverter) dbShipDesignToGameShipDesign(source ShipDesign) game.Shi
 	gameShipDesign.Spec = ShipDesignSpecToGameShipDesignSpec(source.Spec)
 	return gameShipDesign
 }
-func (c *GameConverter) gameFleetToDbsqlxFleet(source game.Fleet) Fleet {
+func (c *GameConverter) dbWormholeToGameWormhole(source Wormhole) game.Wormhole {
+	var gameWormhole game.Wormhole
+	gameWormhole.MapObject = ExtendWormholeMapObject(source)
+	gameWormhole.DestinationNum = source.DestinationNum
+	gameWormhole.Stability = game.WormholeStability(source.Stability)
+	gameWormhole.YearsAtStability = source.YearsAtStability
+	return gameWormhole
+}
+func (c *GameConverter) gameFleetToDbFleet(source game.Fleet) Fleet {
 	var dbFleet Fleet
 	dbFleet.ID = source.MapObject.ID
 	dbFleet.GameID = source.MapObject.GameID
@@ -345,7 +391,7 @@ func (c *GameConverter) gameFleetToDbsqlxFleet(source game.Fleet) Fleet {
 	dbFleet.Spec = GameFleetSpecToFleetSpec(source.Spec)
 	return dbFleet
 }
-func (c *GameConverter) gameGameToDbsqlxGame(source game.Game) Game {
+func (c *GameConverter) gameGameToDbGame(source game.Game) Game {
 	var dbGame Game
 	dbGame.ID = source.ID
 	dbGame.CreatedAt = TimeToTime(source.CreatedAt)
@@ -364,7 +410,7 @@ func (c *GameConverter) gameGameToDbsqlxGame(source game.Game) Game {
 	dbGame.State = game.GameState(source.State)
 	dbGame.OpenPlayerSlots = source.OpenPlayerSlots
 	dbGame.NumPlayers = source.NumPlayers
-	dbVictoryConditions := c.gameVictoryConditionListToDbsqlxVictoryConditions(source.VictoryConditions.Conditions)
+	dbVictoryConditions := c.gameVictoryConditionListToDbVictoryConditions(source.VictoryConditions.Conditions)
 	dbGame.VictoryConditionsConditions = &dbVictoryConditions
 	dbGame.VictoryConditionsNumCriteriaRequired = source.VictoryConditions.NumCriteriaRequired
 	dbGame.VictoryConditionsYearsPassed = source.VictoryConditions.YearsPassed
@@ -383,7 +429,7 @@ func (c *GameConverter) gameGameToDbsqlxGame(source game.Game) Game {
 	dbGame.AreaY = source.Area.Y
 	return dbGame
 }
-func (c *GameConverter) gamePlanetToDbsqlxPlanet(source game.Planet) Planet {
+func (c *GameConverter) gamePlanetToDbPlanet(source game.Planet) Planet {
 	var dbPlanet Planet
 	dbPlanet.ID = source.MapObject.ID
 	dbPlanet.GameID = source.MapObject.GameID
@@ -426,7 +472,7 @@ func (c *GameConverter) gamePlanetToDbsqlxPlanet(source game.Planet) Planet {
 	dbPlanet.Spec = GamePlanetSpecToPlanetSpec(source.Spec)
 	return dbPlanet
 }
-func (c *GameConverter) gamePlayerToDbsqlxPlayer(source game.Player) Player {
+func (c *GameConverter) gamePlayerToDbPlayer(source game.Player) Player {
 	var dbPlayer Player
 	dbPlayer.ID = source.ID
 	dbPlayer.CreatedAt = TimeToTime(source.CreatedAt)
@@ -470,7 +516,7 @@ func (c *GameConverter) gamePlayerToDbsqlxPlayer(source game.Player) Player {
 	dbPlayer.Spec = GamePlayerSpecToPlayerSpec(source.Spec)
 	return dbPlayer
 }
-func (c *GameConverter) gameRaceToDbsqlxRace(source game.Race) Race {
+func (c *GameConverter) gameRaceToDbRace(source game.Race) Race {
 	var dbRace Race
 	dbRace.ID = source.ID
 	dbRace.CreatedAt = TimeToTime(source.CreatedAt)
@@ -508,7 +554,24 @@ func (c *GameConverter) gameRaceToDbsqlxRace(source game.Race) Race {
 	dbRace.Spec = GameRaceSpecToRaceSpec(source.Spec)
 	return dbRace
 }
-func (c *GameConverter) gameShipDesignToDbsqlxShipDesign(source game.ShipDesign) ShipDesign {
+func (c *GameConverter) gameSalvageToDbSalvage(source game.Salvage) Salvage {
+	var dbSalvage Salvage
+	dbSalvage.ID = source.MapObject.ID
+	dbSalvage.GameID = source.MapObject.GameID
+	dbSalvage.CreatedAt = TimeToTime(source.MapObject.CreatedAt)
+	dbSalvage.UpdatedAt = TimeToTime(source.MapObject.UpdatedAt)
+	dbSalvage.PlayerID = source.MapObject.PlayerID
+	dbSalvage.X = source.MapObject.Position.X
+	dbSalvage.Y = source.MapObject.Position.Y
+	dbSalvage.Name = source.MapObject.Name
+	dbSalvage.Num = source.MapObject.Num
+	dbSalvage.PlayerNum = source.MapObject.PlayerNum
+	dbSalvage.Ironium = source.Cargo.Ironium
+	dbSalvage.Boranium = source.Cargo.Boranium
+	dbSalvage.Germanium = source.Cargo.Germanium
+	return dbSalvage
+}
+func (c *GameConverter) gameShipDesignToDbShipDesign(source game.ShipDesign) ShipDesign {
 	var dbShipDesign ShipDesign
 	dbShipDesign.ID = source.ID
 	dbShipDesign.CreatedAt = TimeToTime(source.CreatedAt)
@@ -526,7 +589,7 @@ func (c *GameConverter) gameShipDesignToDbsqlxShipDesign(source game.ShipDesign)
 	dbShipDesign.Spec = GameShipDesignSpecToShipDesignSpec(source.Spec)
 	return dbShipDesign
 }
-func (c *GameConverter) gameUserToDbsqlxUser(source game.User) User {
+func (c *GameConverter) gameUserToDbUser(source game.User) User {
 	var dbUser User
 	dbUser.ID = source.ID
 	dbUser.CreatedAt = TimeToTime(source.CreatedAt)
@@ -536,10 +599,25 @@ func (c *GameConverter) gameUserToDbsqlxUser(source game.User) User {
 	dbUser.Role = string(source.Role)
 	return dbUser
 }
-func (c *GameConverter) gameVictoryConditionListToDbsqlxVictoryConditions(source []game.VictoryCondition) VictoryConditions {
+func (c *GameConverter) gameVictoryConditionListToDbVictoryConditions(source []game.VictoryCondition) VictoryConditions {
 	dbVictoryConditions := make(VictoryConditions, len(source))
 	for i := 0; i < len(source); i++ {
 		dbVictoryConditions[i] = game.VictoryCondition(source[i])
 	}
 	return dbVictoryConditions
+}
+func (c *GameConverter) gameWormholeToDbWormhole(source game.Wormhole) Wormhole {
+	var dbWormhole Wormhole
+	dbWormhole.ID = source.MapObject.ID
+	dbWormhole.GameID = source.MapObject.GameID
+	dbWormhole.CreatedAt = TimeToTime(source.MapObject.CreatedAt)
+	dbWormhole.UpdatedAt = TimeToTime(source.MapObject.UpdatedAt)
+	dbWormhole.X = source.MapObject.Position.X
+	dbWormhole.Y = source.MapObject.Position.Y
+	dbWormhole.Name = source.MapObject.Name
+	dbWormhole.Num = source.MapObject.Num
+	dbWormhole.DestinationNum = source.DestinationNum
+	dbWormhole.Stability = game.WormholeStability(source.Stability)
+	dbWormhole.YearsAtStability = source.YearsAtStability
+	return dbWormhole
 }

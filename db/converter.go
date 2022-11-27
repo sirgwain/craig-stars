@@ -1,4 +1,4 @@
-//go:generate go run github.com/jmattheis/goverter/cmd/goverter --packageName db --output ./db/generated.go --packagePath github.com/sirgwain/craig-stars/db --ignoreUnexportedFields github.com/sirgwain/craigstars/db
+//go:generate go run github.com/jmattheis/goverter/cmd/goverter --packageName db --output ./db/generated.go --packagePath github.com/sirgwain/craig-stars/db --ignoreUnexportedFields ./db
 package db
 
 import (
@@ -214,6 +214,47 @@ type Converter interface {
 	ConvertGameShipToken(source game.ShipToken) ShipToken
 	// goverter:ignore Design
 	ConvertShipToken(source ShipToken) game.ShipToken
+
+	// goverter:map MapObject.ID ID
+	// goverter:map MapObject.GameID GameID
+	// goverter:map MapObject.CreatedAt CreatedAt
+	// goverter:map MapObject.UpdatedAt UpdatedAt
+	// goverter:map MapObject.Type Type
+	// goverter:map MapObject.Dirty Dirty
+	// goverter:map MapObject.Delete Delete
+	// goverter:map MapObject.Position.X X
+	// goverter:map MapObject.Position.Y Y
+	// goverter:map MapObject.Name Name
+	// goverter:map MapObject.Num Num
+	// goverter:ignore PlayerID
+	// goverter:ignore PlayerNum
+	ConvertGameWormhole(source *game.Wormhole) *Wormhole
+
+	// goverter:mapExtend MapObject ExtendWormholeMapObject
+	ConvertWormhole(source *Wormhole) *game.Wormhole
+
+	// goverter:map MapObject.ID ID
+	// goverter:map MapObject.GameID GameID
+	// goverter:map MapObject.CreatedAt CreatedAt
+	// goverter:map MapObject.UpdatedAt UpdatedAt
+	// goverter:map MapObject.Type Type
+	// goverter:map MapObject.PlayerID PlayerID
+	// goverter:map MapObject.Dirty Dirty
+	// goverter:map MapObject.Delete Delete
+	// goverter:map MapObject.Position.X X
+	// goverter:map MapObject.Position.Y Y
+	// goverter:map MapObject.Name Name
+	// goverter:map MapObject.Num Num
+	// goverter:map MapObject.PlayerNum	 PlayerNum
+	// goverter:ignore Tags
+	// goverter:map Cargo.Ironium Ironium
+	// goverter:map Cargo.Boranium Boranium
+	// goverter:map Cargo.Germanium Germanium
+	ConvertGameSalvage(source *game.Salvage) *Salvage
+
+	// goverter:mapExtend MapObject ExtendSalvageMapObject
+	// goverter:mapExtend Cargo ExtendSalvageCargo
+	ConvertSalvage(source *Salvage) *game.Salvage
 }
 
 func TimeToTime(source time.Time) time.Time {
@@ -632,5 +673,47 @@ func ExtendFleetPreviousPosition(source Fleet) *game.Vector {
 	return &game.Vector{
 		X: *source.PreviousPositionX,
 		Y: *source.PreviousPositionY,
+	}
+}
+
+func ExtendWormholeMapObject(source Wormhole) game.MapObject {
+	return game.MapObject{
+		Type:      game.MapObjectTypeWormhole,
+		ID:        source.ID,
+		GameID:    source.GameID,
+		CreatedAt: source.CreatedAt,
+		UpdatedAt: source.UpdatedAt,
+		Position: game.Vector{
+			X: source.X,
+			Y: source.Y,
+		},
+		Name: source.Name,
+		Num:  source.Num,
+	}
+}
+
+func ExtendSalvageMapObject(source Salvage) game.MapObject {
+	return game.MapObject{
+		Type:      game.MapObjectTypeSalvage,
+		ID:        source.ID,
+		GameID:    source.GameID,
+		CreatedAt: source.CreatedAt,
+		UpdatedAt: source.UpdatedAt,
+		PlayerID:  source.PlayerID,
+		Position: game.Vector{
+			X: source.X,
+			Y: source.Y,
+		},
+		Name:      source.Name,
+		Num:       source.Num,
+		PlayerNum: source.PlayerNum,
+		// Tags:      source.Tags,
+	}
+}
+func ExtendSalvageCargo(source Salvage) game.Cargo {
+	return game.Cargo{
+		Ironium:   source.Ironium,
+		Boranium:  source.Boranium,
+		Germanium: source.Germanium,
 	}
 }

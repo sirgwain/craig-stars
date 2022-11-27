@@ -146,7 +146,7 @@ CREATE TABLE players (
   createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
   updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
   gameId INTEGER NOT NULL,
-  userId INTEGER NOT NULL,
+  userId INTEGER,
   name TEXT NOT NULL,
   num INTEGER,
   ready NUMERIC,
@@ -216,6 +216,7 @@ CREATE TABLE fleets (
   orbitingPlanetNum INTEGER,
   starbase NUMERIC,
   spec TEXT,
+  CONSTRAINT fkPlayersFleets FOREIGN KEY (playerId) REFERENCES players (id),
   CONSTRAINT fkGamesFleets FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
 );
 CREATE TABLE shipDesigns (
@@ -292,50 +293,46 @@ CREATE TABLE mineralPackets (
   gameId INTEGER NOT NULL,
   createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
   updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
-  playerId INTEGER NOT NULL,
-  x REAL,
-  y REAL,
-  name TEXT NOT NULL,
-  num INTEGER,
-  playerNum INTEGER,
-  targetPlanetNum INTEGER,
-  cargoIronium INTEGER,
-  cargoBoranium INTEGER,
-  cargoGermanium INTEGER,
-  cargoColonists INTEGER,
-  safeWarpSpeed INTEGER,
-  warpFactor INTEGER,
-  distanceTravelled REAL,
-  headingX REAL,
-  headingY REAL,
-  CONSTRAINT fkPlayersMineralPackets FOREIGN KEY (playerId) REFERENCES players (id) ON DELETE
-  SET NULL,
-    CONSTRAINT fkGamesMineralPackets FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
-);
-CREATE TABLE salvages (
-  id INTEGER PRIMARY KEY,
-  gameId INTEGER NOT NULL,
-  createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
-  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
   playerId INTEGER,
   x REAL,
   y REAL,
   name TEXT NOT NULL,
   num INTEGER,
   playerNum INTEGER,
-  cargoIronium INTEGER,
-  cargoBoranium INTEGER,
-  cargoGermanium INTEGER,
-  cargoColonists INTEGER,
-  CONSTRAINT fkPlayersSalvages FOREIGN KEY (playerId) REFERENCES players (id) ON DELETE
-  SET NULL,
-    CONSTRAINT fkGamesSalvages FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
+  targetPlanetNum INTEGER,
+  ironium INTEGER,
+  boranium INTEGER,
+  germanium INTEGER,
+  safeWarpSpeed INTEGER,
+  warpFactor INTEGER,
+  distanceTravelled REAL,
+  headingX REAL,
+  headingY REAL,
+  CONSTRAINT fkPlayersMineralPackets FOREIGN KEY (playerId) REFERENCES players (id),
+  CONSTRAINT fkGamesMineralPackets FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
 );
-CREATE TABLE wormoholes (
+CREATE TABLE salvages (
   id INTEGER PRIMARY KEY,
-  gameId INTEGER NOT NULL,
   createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
   updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
+  gameId INTEGER NOT NULL,
+  playerId INTEGER,
+  x REAL,
+  y REAL,
+  name TEXT NOT NULL,
+  num INTEGER,
+  playerNum INTEGER,
+  ironium INTEGER,
+  boranium INTEGER,
+  germanium INTEGER,
+  CONSTRAINT fkPlayersSalvages FOREIGN KEY (playerId) REFERENCES players (id),
+  CONSTRAINT fkGamesSalvages FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
+);
+CREATE TABLE wormholes (
+  id INTEGER PRIMARY KEY,
+  createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
+  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
+  gameId INTEGER NOT NULL,
   x REAL,
   y REAL,
   name TEXT NOT NULL,
@@ -347,10 +344,10 @@ CREATE TABLE wormoholes (
 );
 CREATE TABLE mineFields (
   id INTEGER PRIMARY KEY,
-  gameId INTEGER NOT NULL,
   createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
   updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
-  playerId INTEGER NOT NULL,
+  gameId INTEGER NOT NULL,
+  playerId INTEGER,
   x REAL,
   y REAL,
   name TEXT NOT NULL,
@@ -358,9 +355,8 @@ CREATE TABLE mineFields (
   playerNum INTEGER,
   numMines INTEGER,
   detonate NUMERIC,
-  CONSTRAINT fkPlayersMineFields FOREIGN KEY (playerId) REFERENCES players (id) ON DELETE
-  SET NULL,
-    CONSTRAINT fkGamesMineFields FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
+  CONSTRAINT fkPlayersMineFields FOREIGN KEY (playerId) REFERENCES players (id),
+  CONSTRAINT fkGamesMineFields FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
 );
 CREATE TABLE techStores (
   id INTEGER PRIMARY KEY,

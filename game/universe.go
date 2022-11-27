@@ -10,10 +10,10 @@ type Universe struct {
 	Planets           []*Planet                            `json:"planets,omitempty"`
 	Fleets            []*Fleet                             `json:"fleets,omitempty"`
 	Starbases         []*Fleet                             `json:"starbases,omitempty"`
-	Wormholes         []*Wormohole                         `json:"wormholes,omitempty"`
+	Wormholes         []*Wormhole                          `json:"wormholes,omitempty"`
 	MineralPackets    []*MineralPacket                     `json:"mineralPackets,omitempty"`
 	MineFields        []*MineField                         `json:"mineFields,omitempty"`
-	Salvage           []*Salvage                           `json:"salvage,omitempty"`
+	Salvages          []*Salvage                           `json:"salvage,omitempty"`
 	fleetsByPosition  map[Vector]*Fleet                    `json:"-"`
 	fleetsByNum       map[playerFleetNum]*Fleet            `json:"-"`
 	designsByUUID     map[uuid.UUID]*ShipDesign            `json:"-"`
@@ -24,7 +24,7 @@ type MapObjectGetter interface {
 	GetShipDesign(uuid uuid.UUID) *ShipDesign
 	GetPlanet(num int) *Planet
 	GetFleet(playerNum int, num int) *Fleet
-	GetWormhole(num int) *Wormohole
+	GetWormhole(num int) *Wormhole
 	GetSalvage(num int) *Salvage
 	GetCargoHolder(mapObjectType MapObjectType, num int, playerNum int) CargoHolder
 }
@@ -116,13 +116,13 @@ func (u *Universe) GetFleet(playerNum int, num int) *Fleet {
 }
 
 // Get a planet by num
-func (u *Universe) GetWormhole(num int) *Wormohole {
+func (u *Universe) GetWormhole(num int) *Wormhole {
 	return u.Wormholes[num]
 }
 
 // Get a salvage by num
 func (u *Universe) GetSalvage(num int) *Salvage {
-	return u.Salvage[num]
+	return u.Salvages[num]
 }
 
 // Get a mineralpacket by num
