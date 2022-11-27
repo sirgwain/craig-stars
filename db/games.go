@@ -189,6 +189,18 @@ func (c *client) GetFullGame(id int64) (*game.FullGame, error) {
 	}
 	universe.Salvages = salvages
 
+	mineFields, err := c.getMineFieldsForGame(g.ID)
+	if err != nil {
+		return nil, fmt.Errorf("load mineFields for game %w", err)
+	}
+	universe.MineFields = mineFields
+
+	mineralPackets, err := c.getMineralPacketsForGame(g.ID)
+	if err != nil {
+		return nil, fmt.Errorf("load mineralPackets for game %w", err)
+	}
+	universe.MineralPackets = mineralPackets
+
 	if g.Rules.TechsID == 0 {
 		g.Rules.WithTechStore(&game.StaticTechStore)
 	} else {
@@ -447,8 +459,43 @@ func (c *client) UpdateFullGame(g *game.FullGame) error {
 			}
 			log.Debug().Int64("GameID", salvage.GameID).Int64("ID", salvage.ID).Msgf("Updated salvage %s", salvage.Name)
 		}
-	}	
+	}
 
+	// save mineFields
+	for _, mineField := range g.MineFields {
+		if mineField.ID == 0 {
+			mineField.GameID = g.ID
+			if err := c.createMineField(mineField, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("create mineField %w", err)
+			}
+			log.Debug().Int64("GameID", mineField.GameID).Int64("ID", mineField.ID).Msgf("Created mineField %s", mineField.Name)
+		} else if mineField.Dirty {
+			if err := c.updateMineField(mineField, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("update mineField %w", err)
+			}
+			log.Debug().Int64("GameID", mineField.GameID).Int64("ID", mineField.ID).Msgf("Updated mineField %s", mineField.Name)
+		}
+	}
+
+	// save mineralPackets
+	for _, mineralPacket := range g.MineralPackets {
+		if mineralPacket.ID == 0 {
+			mineralPacket.GameID = g.ID
+			if err := c.createMineralPacket(mineralPacket, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("create mineralPacket %w", err)
+			}
+			log.Debug().Int64("GameID", mineralPacket.GameID).Int64("ID", mineralPacket.ID).Msgf("Created mineralPacket %s", mineralPacket.Name)
+		} else if mineralPacket.Dirty {
+			if err := c.updateMineralPacket(mineralPacket, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("update mineralPacket %w", err)
+			}
+			log.Debug().Int64("GameID", mineralPacket.GameID).Int64("ID", mineralPacket.ID).Msgf("Updated mineralPacket %s", mineralPacket.Name)
+		}
+	}
 	tx.Commit()
 	return nil
 

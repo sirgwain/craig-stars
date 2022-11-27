@@ -273,6 +273,32 @@ type Converter interface {
 
 	// goverter:mapExtend MapObject ExtendMineFieldMapObject
 	ConvertMineField(source *MineField) *game.MineField
+
+	// goverter:map MapObject.ID ID
+	// goverter:map MapObject.GameID GameID
+	// goverter:map MapObject.CreatedAt CreatedAt
+	// goverter:map MapObject.UpdatedAt UpdatedAt
+	// goverter:map MapObject.Type Type
+	// goverter:map MapObject.PlayerID PlayerID
+	// goverter:map MapObject.Dirty Dirty
+	// goverter:map MapObject.Delete Delete
+	// goverter:map MapObject.Position.X X
+	// goverter:map MapObject.Position.Y Y
+	// goverter:map MapObject.Name Name
+	// goverter:map MapObject.Num Num
+	// goverter:map MapObject.PlayerNum	 PlayerNum
+	// goverter:ignore Tags
+	// goverter:map Cargo.Ironium Ironium
+	// goverter:map Cargo.Boranium Boranium
+	// goverter:map Cargo.Germanium Germanium
+	// goverter:map Heading.X HeadingX
+	// goverter:map Heading.Y HeadingY
+	ConvertGameMineralPacket(source *game.MineralPacket) *MineralPacket
+
+	// goverter:mapExtend MapObject ExtendMineralPacketMapObject
+	// goverter:mapExtend Cargo ExtendMineralPacketCargo
+	// goverter:mapExtend Heading ExtendMineralPacketHeading
+	ConvertMineralPacket(source *MineralPacket) *game.MineralPacket	
 }
 
 func TimeToTime(source time.Time) time.Time {
@@ -758,5 +784,39 @@ func ExtendMineFieldMapObject(source MineField) game.MapObject {
 		Num:       source.Num,
 		PlayerNum: source.PlayerNum,
 		// Tags:      source.Tags,
+	}
+}
+
+func ExtendMineralPacketHeading(source MineralPacket) game.Vector {
+	return game.Vector{
+		X: source.HeadingX,
+		Y: source.HeadingY,
+	}
+}
+
+func ExtendMineralPacketMapObject(source MineralPacket) game.MapObject {
+	return game.MapObject{
+		Type:      game.MapObjectTypeMineralPacket,
+		ID:        source.ID,
+		GameID:    source.GameID,
+		CreatedAt: source.CreatedAt,
+		UpdatedAt: source.UpdatedAt,
+		PlayerID:  source.PlayerID,
+		Position: game.Vector{
+			X: source.X,
+			Y: source.Y,
+		},
+		Name:      source.Name,
+		Num:       source.Num,
+		PlayerNum: source.PlayerNum,
+		// Tags:      source.Tags,
+	}
+}
+
+func ExtendMineralPacketCargo(source MineralPacket) game.Cargo {
+	return game.Cargo{
+		Ironium:   source.Ironium,
+		Boranium:  source.Boranium,
+		Germanium: source.Germanium,
 	}
 }

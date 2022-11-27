@@ -64,6 +64,14 @@ func (c *GameConverter) ConvertGameMineField(source *game.MineField) *MineField 
 	}
 	return pDbMineField
 }
+func (c *GameConverter) ConvertGameMineralPacket(source *game.MineralPacket) *MineralPacket {
+	var pDbMineralPacket *MineralPacket
+	if source != nil {
+		dbMineralPacket := c.gameMineralPacketToDbMineralPacket(*source)
+		pDbMineralPacket = &dbMineralPacket
+	}
+	return pDbMineralPacket
+}
 func (c *GameConverter) ConvertGamePlanet(source *game.Planet) *Planet {
 	var pDbPlanet *Planet
 	if source != nil {
@@ -146,6 +154,14 @@ func (c *GameConverter) ConvertMineField(source *MineField) *game.MineField {
 		pGameMineField = &gameMineField
 	}
 	return pGameMineField
+}
+func (c *GameConverter) ConvertMineralPacket(source *MineralPacket) *game.MineralPacket {
+	var pGameMineralPacket *game.MineralPacket
+	if source != nil {
+		gameMineralPacket := c.dbMineralPacketToGameMineralPacket(*source)
+		pGameMineralPacket = &gameMineralPacket
+	}
+	return pGameMineralPacket
 }
 func (c *GameConverter) ConvertPlanet(source *Planet) *game.Planet {
 	var pGamePlanet *game.Planet
@@ -311,6 +327,17 @@ func (c *GameConverter) dbMineFieldToGameMineField(source MineField) game.MineFi
 	gameMineField.Detonate = source.Detonate
 	return gameMineField
 }
+func (c *GameConverter) dbMineralPacketToGameMineralPacket(source MineralPacket) game.MineralPacket {
+	var gameMineralPacket game.MineralPacket
+	gameMineralPacket.MapObject = ExtendMineralPacketMapObject(source)
+	gameMineralPacket.TargetPlanetNum = source.TargetPlanetNum
+	gameMineralPacket.Cargo = ExtendMineralPacketCargo(source)
+	gameMineralPacket.SafeWarpSpeed = source.SafeWarpSpeed
+	gameMineralPacket.WarpFactor = source.WarpFactor
+	gameMineralPacket.DistanceTravelled = source.DistanceTravelled
+	gameMineralPacket.Heading = ExtendMineralPacketHeading(source)
+	return gameMineralPacket
+}
 func (c *GameConverter) dbPlanetToGamePlanet(source Planet) game.Planet {
 	var gamePlanet game.Planet
 	gamePlanet.MapObject = ExtendPlanetMapObject(source)
@@ -469,6 +496,29 @@ func (c *GameConverter) gameMineFieldToDbMineField(source game.MineField) MineFi
 	dbMineField.NumMines = source.NumMines
 	dbMineField.Detonate = source.Detonate
 	return dbMineField
+}
+func (c *GameConverter) gameMineralPacketToDbMineralPacket(source game.MineralPacket) MineralPacket {
+	var dbMineralPacket MineralPacket
+	dbMineralPacket.ID = source.MapObject.ID
+	dbMineralPacket.GameID = source.MapObject.GameID
+	dbMineralPacket.CreatedAt = TimeToTime(source.MapObject.CreatedAt)
+	dbMineralPacket.UpdatedAt = TimeToTime(source.MapObject.UpdatedAt)
+	dbMineralPacket.PlayerID = source.MapObject.PlayerID
+	dbMineralPacket.X = source.MapObject.Position.X
+	dbMineralPacket.Y = source.MapObject.Position.Y
+	dbMineralPacket.Name = source.MapObject.Name
+	dbMineralPacket.Num = source.MapObject.Num
+	dbMineralPacket.PlayerNum = source.MapObject.PlayerNum
+	dbMineralPacket.TargetPlanetNum = source.TargetPlanetNum
+	dbMineralPacket.Ironium = source.Cargo.Ironium
+	dbMineralPacket.Boranium = source.Cargo.Boranium
+	dbMineralPacket.Germanium = source.Cargo.Germanium
+	dbMineralPacket.SafeWarpSpeed = source.SafeWarpSpeed
+	dbMineralPacket.WarpFactor = source.WarpFactor
+	dbMineralPacket.DistanceTravelled = source.DistanceTravelled
+	dbMineralPacket.HeadingX = source.Heading.X
+	dbMineralPacket.HeadingY = source.Heading.Y
+	return dbMineralPacket
 }
 func (c *GameConverter) gamePlanetToDbPlanet(source game.Planet) Planet {
 	var dbPlanet Planet

@@ -1,0 +1,158 @@
+package db
+
+import (
+	"database/sql"
+	"time"
+
+	"github.com/sirgwain/craig-stars/game"
+)
+
+type MineralPacket struct {
+	ID                int64     `json:"id,omitempty"`
+	GameID            int64     `json:"gameId,omitempty"`
+	CreatedAt         time.Time `json:"createdAt,omitempty"`
+	UpdatedAt         time.Time `json:"updatedAt,omitempty"`
+	PlayerID          int64     `json:"playerId,omitempty"`
+	X                 float64   `json:"x,omitempty"`
+	Y                 float64   `json:"y,omitempty"`
+	Name              string    `json:"name,omitempty"`
+	Num               int       `json:"num,omitempty"`
+	PlayerNum         int       `json:"playerNum,omitempty"`
+	Tags              Tags      `json:"tags,omitempty"`
+	TargetPlanetNum   uint      `json:"targetPlanetNum,omitempty"`
+	Ironium           int       `json:"ironium,omitempty"`
+	Boranium          int       `json:"boranium,omitempty"`
+	Germanium         int       `json:"germanium,omitempty"`
+	SafeWarpSpeed     int       `json:"safeWarpSpeed,omitempty"`
+	WarpFactor        int       `json:"warpFactor,omitempty"`
+	DistanceTravelled float64   `json:"distanceTravelled,omitempty"`
+	HeadingX          float64   `json:"headingX,omitempty"`
+	HeadingY          float64   `json:"headingY,omitempty"`
+}
+
+// get a mineralPacket by id
+func (c *client) GetMineralPacket(id int64) (*game.MineralPacket, error) {
+	item := MineralPacket{}
+	if err := c.db.Get(&item, "SELECT * FROM mineralPackets WHERE id = ?", id); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	mineralPacket := c.converter.ConvertMineralPacket(&item)
+	return mineralPacket, nil
+}
+
+func (c *client) getMineralPacketsForGame(gameID int64) ([]*game.MineralPacket, error) {
+
+	items := []MineralPacket{}
+	if err := c.db.Select(&items, `SELECT * FROM mineralPackets WHERE gameId = ?`, gameID); err != nil {
+		if err == sql.ErrNoRows {
+			return []*game.MineralPacket{}, nil
+		}
+		return nil, err
+	}
+
+	results := make([]*game.MineralPacket, len(items))
+	for i := range items {
+		results[i] = c.converter.ConvertMineralPacket(&items[i])
+	}
+
+	return results, nil
+}
+
+// create a new game
+func (c *client) createMineralPacket(mineralPacket *game.MineralPacket, tx SQLExecer) error {
+	item := c.converter.ConvertGameMineralPacket(mineralPacket)
+	result, err := tx.NamedExec(`
+	INSERT INTO mineralPackets (
+		createdAt,
+		updatedAt,
+		gameId,
+		playerId,
+		x,
+		y,
+		name,
+		num,
+		playerNum,
+		targetPlanetNum,
+		ironium,
+		boranium,
+		germanium,
+		safeWarpSpeed,
+		warpFactor,
+		distanceTravelled,
+		headingX,
+		headingY
+	)
+	VALUES (
+		CURRENT_TIMESTAMP,
+		CURRENT_TIMESTAMP,
+		:gameId,
+		:playerId,
+		:x,
+		:y,
+		:name,
+		:num,
+		:playerNum,
+		:targetPlanetNum,
+		:ironium,
+		:boranium,
+		:germanium,
+		:safeWarpSpeed,
+		:warpFactor,
+		:distanceTravelled,
+		:headingX,
+		:headingY
+	)
+	`, item)
+
+	if err != nil {
+		return err
+	}
+
+	// update the id of our passed in game
+	mineralPacket.ID, err = result.LastInsertId()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *client) UpdateMineralPacket(mineralPacket *game.MineralPacket) error {
+	return c.updateMineralPacket(mineralPacket, c.db)
+}
+
+// update an existing mineralPacket
+func (c *client) updateMineralPacket(mineralPacket *game.MineralPacket, tx SQLExecer) error {
+
+	item := c.converter.ConvertGameMineralPacket(mineralPacket)
+
+	if _, err := tx.NamedExec(`
+	UPDATE mineralPackets SET
+		updatedAt = CURRENT_TIMESTAMP,
+		gameId = :gameId,
+		playerId = :playerId,
+		x = :x,
+		y = :y,
+		name = :name,
+		num = :num,
+		playerNum = :playerNum,
+		targetPlanetNum = :targetPlanetNum,
+		ironium = :ironium,
+		boranium = :boranium,
+		germanium = :germanium,
+		safeWarpSpeed = :safeWarpSpeed,
+		warpFactor = :warpFactor,
+		distanceTravelled = :distanceTravelled,
+		headingX = :headingX,
+		headingY = :headingY
+	WHERE id = :id
+	`, item); err != nil {
+		return err
+	}
+
+	return nil
+}
