@@ -21,6 +21,7 @@ jobs:
           check-latest: true
           cache: true
       - run: mkdir -p frontend/build
+      - run: touch frontend/build/testfile
       - run: go test ./...          
       - run: rm -rf frontend/build
 
