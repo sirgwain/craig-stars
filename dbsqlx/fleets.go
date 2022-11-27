@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/game"
 )
 
@@ -195,6 +196,12 @@ func (c *client) GetFleet(id int64) (*game.Fleet, error) {
 		designUUIDs = append(designUUIDs, fleet.Tokens[i].DesignUUID)
 	}
 
+	// this might be an error case, or we're in a unit test
+	if len(designUUIDs) == 0 {
+		log.Warn().Int64("ID", fleet.ID).Msg("fleet has no designs associated with tokens")
+		return fleet, nil
+	}
+
 	designs, err := c.getShipDesignsByUUIDs(designUUIDs)
 	if err != nil {
 		return nil, fmt.Errorf("get designs by UUIDs -> %w", err)
@@ -208,7 +215,7 @@ func (c *client) GetFleet(id int64) (*game.Fleet, error) {
 
 	fleet.InjectDesigns(designsByUUIDs)
 
-	return fleets[0], nil
+	return fleet, nil
 }
 
 func (c *client) getFleetsForGame(gameId int64) ([]*game.Fleet, error) {
