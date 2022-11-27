@@ -1,16 +1,34 @@
 on: [push, pull_request]
+branches:
+  - '*'
+  - '!develop'
 name: Test
 jobs:
   test:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: [1.18.x]
+        node-version: [18]
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-go@v3
-      with:
-        go-version: 1.18.x
-        check-latest: true
-        cache: true
-    - name: Create frontend/build folder for empty embedded assets during tests
-      run: |
-        mkdir -p ./frontend/build && touch ./frontend/build/embedfile
-    - run: go test ./...
+      - uses: actions/checkout@v3
+
+      # build the frontend
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'yarn'
+          cache-dependency-path: frontend/yarn.lock
+      - run: yarn --cwd frontend install
+      - run: yarn --cwd frontend run build
+
+      # build the binary
+      - uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go-version }}
+          check-latest: true
+          cache: true
+      - run: go test ./...          
+      - run: mkdir -p dist/
+      - run: go mod tidy && CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -ldflags='-s -w -extldflags "-static"' -o dist/craig-stars main.go
