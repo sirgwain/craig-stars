@@ -43,7 +43,7 @@ func (s *server) UpdatePlanetOrders(c *gin.Context) {
 
 	// verify the user actually owns this planet
 	if existing.PlayerNum != player.Num {
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Errorf("%s does not own %s", player, existing)})
+		c.JSON(http.StatusForbidden, gin.H{"error": fmt.Errorf("%s does not own %s", player, existing)})
 		return
 	}
 
@@ -66,6 +66,7 @@ func (s *server) UpdatePlanetOrders(c *gin.Context) {
 	if err := s.db.UpdatePlanet(existing); err != nil {
 		log.Error().Err(err).Int64("ID", existing.ID).Msg("update planet in database")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to save planet to database"})
+		return
 	}
 
 	c.JSON(http.StatusOK, existing)
