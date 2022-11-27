@@ -11,7 +11,6 @@ type Race struct {
 	CreatedAt         time.Time    `json:"createdAt,omitempty"`
 	UpdatedAt         time.Time    `json:"updatedat,omitempty"`
 	UserID            int64        `json:"userId,omitempty"`
-	PlayerID          *int64       `json:"playerId,omitempty"`
 	Name              string       `json:"name,omitempty"`
 	PluralName        string       `json:"pluralName,omitempty"`
 	PRT               PRT          `json:"prt,omitempty"`

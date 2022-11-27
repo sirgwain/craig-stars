@@ -170,12 +170,6 @@ func (c *GameConverter) ConvertRace(source Race) game.Race {
 	gameRace.CreatedAt = TimeToTime(source.CreatedAt)
 	gameRace.UpdatedAt = TimeToTime(source.UpdatedAt)
 	gameRace.UserID = source.UserID
-	var pInt64 *int64
-	if source.PlayerID != nil {
-		xint64 := *source.PlayerID
-		pInt64 = &xint64
-	}
-	gameRace.PlayerID = pInt64
 	gameRace.Name = source.Name
 	gameRace.PluralName = source.PluralName
 	gameRace.PRT = game.PRT(source.PRT)
@@ -482,12 +476,6 @@ func (c *GameConverter) gameRaceToDbsqlxRace(source game.Race) Race {
 	dbsqlxRace.CreatedAt = TimeToTime(source.CreatedAt)
 	dbsqlxRace.UpdatedAt = TimeToTime(source.UpdatedAt)
 	dbsqlxRace.UserID = source.UserID
-	var pInt64 *int64
-	if source.PlayerID != nil {
-		xint64 := *source.PlayerID
-		pInt64 = &xint64
-	}
-	dbsqlxRace.PlayerID = pInt64
 	dbsqlxRace.Name = source.Name
 	dbsqlxRace.PluralName = source.PluralName
 	dbsqlxRace.PRT = game.PRT(source.PRT)

@@ -13,7 +13,6 @@ type Race struct {
 	CreatedAt                 time.Time              `json:"createdAt,omitempty"`
 	UpdatedAt                 time.Time              `json:"updatedAt,omitempty"`
 	UserID                    int64                  `json:"userId,omitempty"`
-	PlayerID                  *int64                 `json:"playerId,omitempty"`
 	Name                      string                 `json:"name,omitempty"`
 	PluralName                string                 `json:"pluralName,omitempty"`
 	PRT                       game.PRT               `json:"prt,omitempty"`
@@ -112,7 +111,6 @@ func (c *client) createRace(race *game.Race, tx SQLExecer) error {
 		createdAt,
 		updatedAt,
 		userId,
-		playerId,
 		name,
 		pluralName,
 		prt,
@@ -148,7 +146,6 @@ func (c *client) createRace(race *game.Race, tx SQLExecer) error {
 		CURRENT_TIMESTAMP,
 		CURRENT_TIMESTAMP,
 		:userId,
-		:playerId,
 		:name,
 		:pluralName,
 		:prt,
@@ -206,7 +203,6 @@ func (c *client) UpdateRace(race *game.Race) error {
 	UPDATE races SET
 		updatedAt = CURRENT_TIMESTAMP,
 		userId = :userId,
-		playerId = :playerId,
 		name = :name,
 		pluralName = :pluralName,
 		prt = :prt,

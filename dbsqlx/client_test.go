@@ -58,13 +58,6 @@ func (c *client) createTestGameWithPlayer() (*game.Game, *game.Player) {
 		panic(fmt.Errorf("create test database game player %w", err))
 	}
 
-	// add the player's race into the db
-	player.Race.PlayerID = &player.ID
-	player.Race.UserID = player.UserID
-	if err := c.CreateRace(&player.Race); err != nil {
-		panic(fmt.Errorf("create test database game race %w", err))
-	}
-
 	return g, player
 }
 
