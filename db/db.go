@@ -20,6 +20,8 @@ import (
 	sqldblogger "github.com/simukti/sqldb-logger"
 )
 
+bad
+
 type client struct {
 	db        *sqlx.DB
 	converter Converter
