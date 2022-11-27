@@ -39,14 +39,14 @@ const (
 )
 
 type Tech struct {
-	ID        uint64    `gorm:"primaryKey" json:"id"`
+	ID        int64     `json:"id"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 
-	TechStoreID  uint64           `json:"techStoreId"`
+	TechStoreID  int64            `json:"techStoreId"`
 	Name         string           `json:"name"`
-	Cost         Cost             `json:"cost" gorm:"embedded;embeddedPrefix:cost_"`
-	Requirements TechRequirements `json:"requirements"  gorm:"embedded;embeddedPrefix:requirements_"`
+	Cost         Cost             `json:"cost"`
+	Requirements TechRequirements `json:"requirements" `
 	Ranking      int              `json:"ranking,omitempty"`
 	Category     TechCategory     `json:"category,omitempty"`
 }
@@ -113,7 +113,7 @@ type TechEngine struct {
 	TechHullComponent
 	IdealSpeed int     `json:"idealSpeed,omitempty"`
 	FreeSpeed  int     `json:"freeSpeed,omitempty"`
-	FuelUsage  [11]int `json:"fuelUsage,omitempty" gorm:"serializer:json"`
+	FuelUsage  [11]int `json:"fuelUsage,omitempty"`
 }
 
 type TechHull struct {
@@ -134,7 +134,7 @@ type TechHull struct {
 	OrbitalConstructionHull  bool           `json:"orbitalConstructionHull,omitempty"`
 	DoubleMineEfficiency     bool           `json:"doubleMineEfficiency,omitempty"`
 	InnateScanRangePenFactor float64        `json:"innateScanRangePenFactor,omitempty"`
-	Slots                    []TechHullSlot `json:"slots,omitempty" gorm:"serializer:json"`
+	Slots                    []TechHullSlot `json:"slots,omitempty"`
 }
 
 type TechHullSlot struct {
@@ -245,27 +245,27 @@ func (t *Tech) GetPlayerCost(player *Player) Cost {
 	numTechLevelsAboveRequired := math.MaxInt
 	if t.Requirements.Energy > 0 {
 		levelDiff.Energy = player.TechLevels.Energy - t.Requirements.Energy
-		numTechLevelsAboveRequired = MinInt(levelDiff.Energy, numTechLevelsAboveRequired)
+		numTechLevelsAboveRequired = minInt(levelDiff.Energy, numTechLevelsAboveRequired)
 	}
 	if t.Requirements.Weapons > 0 {
 		levelDiff.Weapons = player.TechLevels.Weapons - t.Requirements.Weapons
-		numTechLevelsAboveRequired = MinInt(levelDiff.Weapons, numTechLevelsAboveRequired)
+		numTechLevelsAboveRequired = minInt(levelDiff.Weapons, numTechLevelsAboveRequired)
 	}
 	if t.Requirements.Propulsion > 0 {
 		levelDiff.Propulsion = player.TechLevels.Propulsion - t.Requirements.Propulsion
-		numTechLevelsAboveRequired = MinInt(levelDiff.Propulsion, numTechLevelsAboveRequired)
+		numTechLevelsAboveRequired = minInt(levelDiff.Propulsion, numTechLevelsAboveRequired)
 	}
 	if t.Requirements.Construction > 0 {
 		levelDiff.Construction = player.TechLevels.Construction - t.Requirements.Construction
-		numTechLevelsAboveRequired = MinInt(levelDiff.Construction, numTechLevelsAboveRequired)
+		numTechLevelsAboveRequired = minInt(levelDiff.Construction, numTechLevelsAboveRequired)
 	}
 	if t.Requirements.Electronics > 0 {
 		levelDiff.Electronics = player.TechLevels.Electronics - t.Requirements.Electronics
-		numTechLevelsAboveRequired = MinInt(levelDiff.Electronics, numTechLevelsAboveRequired)
+		numTechLevelsAboveRequired = minInt(levelDiff.Electronics, numTechLevelsAboveRequired)
 	}
 	if t.Requirements.Biotechnology > 0 {
 		levelDiff.Biotechnology = player.TechLevels.Biotechnology - t.Requirements.Biotechnology
-		numTechLevelsAboveRequired = MinInt(levelDiff.Biotechnology, numTechLevelsAboveRequired)
+		numTechLevelsAboveRequired = minInt(levelDiff.Biotechnology, numTechLevelsAboveRequired)
 	}
 
 	// for starter techs, they are all 0 requirements, so just use our lowest field

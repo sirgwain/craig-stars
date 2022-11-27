@@ -1,10 +1,10 @@
 package cmd
 
 import (
-	"log"
 	"time"
 
-	"github.com/sirgwain/craig-stars/appcontext"
+	"github.com/rs/zerolog/log"
+	"github.com/sirgwain/craig-stars/config"
 	"github.com/sirgwain/craig-stars/db"
 	"github.com/sirgwain/craig-stars/game"
 	"github.com/sirgwain/craig-stars/server"
@@ -14,7 +14,7 @@ import (
 
 func timeTrack(start time.Time, name string) {
 	elapsed := time.Since(start)
-	log.Printf("%s took %s", name, elapsed)
+	log.Debug().Msgf("%s took %s", name, elapsed)
 }
 
 func newServeCmd() *cobra.Command {
@@ -24,15 +24,19 @@ func newServeCmd() *cobra.Command {
 		Short: "Start the webserver",
 		Long:  `Start a local gin-gonic webserver and serve requests.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx := appcontext.Initialize()
-			// ctx.DB.EnableDebugLogging()
+
+			db := db.NewClient()
+			cfg := config.GetConfig()
+			if err := db.Connect(cfg); err != nil {
+				return err
+			}
 
 			if generateUniverse {
-				if err := generateTestGame(ctx); err != nil {
+				if err := generateTestGame(db, *cfg); err != nil {
 					return err
 				}
 			}
-			server.Start(ctx)
+			server.Start(db, *cfg)
 			return nil
 		},
 	}
@@ -41,22 +45,21 @@ func newServeCmd() *cobra.Command {
 	return serveCmd
 }
 
-func generateTestGame(ctx *appcontext.AppContext) error {
+func generateTestGame(db server.DBClient, config config.Config) error {
 	defer timeTrack(time.Now(), "generateTestGame")
-	ctx.DB.MigrateAll()
 
-	admin, adminRace, err := createTestUser(ctx.DB, "admin", ctx.Config.GeneratedUserPassword, game.RoleAdmin)
+	admin, adminRace, err := createTestUser(db, "admin", config.GeneratedUserPassword, game.RoleAdmin)
 	if err != nil {
 		return err
 	}
 
-	user2, user2Race, err := createTestUser(ctx.DB, "craig", ctx.Config.GeneratedUserPassword, game.RoleUser)
+	user2, user2Race, err := createTestUser(db, "craig", config.GeneratedUserPassword, game.RoleUser)
 	if err != nil {
 		return err
 	}
 
 	// create a game runner to host some games
-	gameRunner := server.NewGameRunner(ctx.DB)
+	gameRunner := server.NewGameRunner(db)
 
 	// admin user will host a game with an ai player
 	if _, err := gameRunner.HostGame(admin.ID, game.NewGameSettings().
@@ -70,6 +73,7 @@ func generateTestGame(ctx *appcontext.AppContext) error {
 	// also create a medium size game with 25 turns generated
 	mediumGame, err := gameRunner.HostGame(admin.ID, game.NewGameSettings().
 		WithName("Medium Game").
+		WithSize(game.SizeMedium).
 		WithHost(adminRace.ID).
 		WithAIPlayer(game.AIDifficultyNormal))
 	if err != nil {
@@ -77,7 +81,9 @@ func generateTestGame(ctx *appcontext.AppContext) error {
 	}
 	for i := 0; i < 25; i++ {
 		gameRunner.SubmitTurn(mediumGame.ID, mediumGame.HostID)
-		gameRunner.CheckAndGenerateTurn(mediumGame.ID)
+		if _, err := gameRunner.CheckAndGenerateTurn(mediumGame.ID); err != nil {
+			log.Error().Err(err).Msg("check and generate new turn")
+		}
 	}
 
 	// user2 will also host a game so with an open player slot
@@ -92,8 +98,8 @@ func generateTestGame(ctx *appcontext.AppContext) error {
 	return nil
 }
 
-func createTestUser(db db.Client, username string, password string, role game.Role) (*game.User, *game.Race, error) {
-	user, err := db.FindUserByUsername(username)
+func createTestUser(db server.DBClient, username string, password string, role game.Role) (*game.User, *game.Race, error) {
+	user, err := db.GetUserByUsername(username)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -105,14 +111,14 @@ func createTestUser(db db.Client, username string, password string, role game.Ro
 
 	if user == nil {
 		user = game.NewUser(username, password, role)
-		err := db.SaveUser(user)
+		err := db.CreateUser(user)
 		if err != nil {
 			return nil, nil, err
 		}
 
 	}
 
-	races, err := db.GetRaces(user.ID)
+	races, err := db.GetRacesForUser(user.ID)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -122,7 +128,7 @@ func createTestUser(db db.Client, username string, password string, role game.Ro
 		race = game.Humanoids()
 		race.UserID = user.ID
 
-		if err := db.SaveRace(&race); err != nil {
+		if err := db.CreateRace(&race); err != nil {
 			return nil, nil, err
 		}
 
@@ -133,7 +139,7 @@ func createTestUser(db db.Client, username string, password string, role game.Ro
 		// 	return nil, nil, err
 		// }
 	} else {
-		race = *races[0]
+		race = races[0]
 	}
 
 	return user, &race, nil

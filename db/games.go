@@ -1,239 +1,210 @@
 package db
 
 import (
-	"errors"
+	"database/sql"
+	"database/sql/driver"
+	"fmt"
 	"time"
 
+	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/game"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
-func (db *DB) GetGames() ([]*game.Game, error) {
+type Game struct {
+	ID                                        int64                `json:"id,omitempty"`
+	CreatedAt                                 time.Time            `json:"createdAt,omitempty"`
+	UpdatedAt                                 time.Time            `json:"updatedAt,omitempty"`
+	Name                                      string               `json:"name,omitempty"`
+	HostID                                    int64                `json:"hostId,omitempty"`
+	QuickStartTurns                           int                  `json:"quickStartTurns,omitempty"`
+	Size                                      game.Size            `json:"size,omitempty"`
+	Density                                   game.Density         `json:"density,omitempty"`
+	PlayerPositions                           game.PlayerPositions `json:"playerPositions,omitempty"`
+	RandomEvents                              bool                 `json:"randomEvents,omitempty"`
+	ComputerPlayersFormAlliances              bool                 `json:"computerPlayersFormAlliances,omitempty"`
+	PublicPlayerScores                        bool                 `json:"publicPlayerScores,omitempty"`
+	StartMode                                 game.GameStartMode   `json:"startMode,omitempty"`
+	Year                                      int                  `json:"year,omitempty"`
+	State                                     game.GameState       `json:"state,omitempty"`
+	OpenPlayerSlots                           uint                 `json:"openPlayerSlots,omitempty"`
+	NumPlayers                                int                  `json:"numPlayers,omitempty"`
+	VictoryConditionsConditions               *VictoryConditions   `json:"victoryConditionsConditions,omitempty"`
+	VictoryConditionsNumCriteriaRequired      int                  `json:"victoryConditionsNumCriteriaRequired,omitempty"`
+	VictoryConditionsYearsPassed              int                  `json:"victoryConditionsYearsPassed,omitempty"`
+	VictoryConditionsOwnPlanets               int                  `json:"victoryConditionsOwnPlanets,omitempty"`
+	VictoryConditionsAttainTechLevel          int                  `json:"victoryConditionsAttainTechLevel,omitempty"`
+	VictoryConditionsAttainTechLevelNumFields int                  `json:"victoryConditionsAttainTechLevelNumFields,omitempty"`
+	VictoryConditionsExceedsScore             int                  `json:"victoryConditionsExceedsScore,omitempty"`
+	VictoryConditionsExceedsSecondPlaceScore  int                  `json:"victoryConditionsExceedsSecondPlaceScore,omitempty"`
+	VictoryConditionsProductionCapacity       int                  `json:"victoryConditionsProductionCapacity,omitempty"`
+	VictoryConditionsOwnCapitalShips          int                  `json:"victoryConditionsOwnCapitalShips,omitempty"`
+	VictoryConditionsHighestScoreAfterYears   int                  `json:"victoryConditionsHighestScoreAfterYears,omitempty"`
+	VictorDeclared                            bool                 `json:"victorDeclared,omitempty"`
+	Seed                                      int64                `json:"seed,omitempty"`
+	Rules                                     *Rules               `json:"rules,omitempty"`
+	AreaX                                     float64              `json:"areaX,omitempty"`
+	AreaY                                     float64              `json:"areaY,omitempty"`
+}
 
-	games := []*game.Game{}
-	if err := db.sqlDB.Find(&games).Error; err != nil {
+// we json serialize these types with custom Scan/Value methods
+type VictoryConditions []game.VictoryCondition
+type Rules game.Rules
+
+// db serializer to serialize this to JSON
+func (item *VictoryConditions) Value() (driver.Value, error) {
+	return valueJSON(item)
+}
+
+// db deserializer to read this from JSON
+func (item *VictoryConditions) Scan(src interface{}) error {
+	return scanJSON(src, item)
+}
+
+// db serializer to serialize this to JSON
+func (item *Rules) Value() (driver.Value, error) {
+	return valueJSON(item)
+}
+
+// db deserializer to read this from JSON
+func (item *Rules) Scan(src interface{}) error {
+	return scanJSON(src, item)
+}
+
+func (c *client) GetGames() ([]game.Game, error) {
+
+	items := []Game{}
+	if err := c.db.Select(&items, `SELECT * FROM Games`); err != nil {
+		if err == sql.ErrNoRows {
+			return []game.Game{}, nil
+		}
 		return nil, err
 	}
 
-	return games, nil
+	return c.converter.ConvertGames(items), nil
 }
 
-func (db *DB) GetGamesByUser(userID uint64) ([]*game.Game, error) {
-	games := []*game.Game{}
-	if err := db.sqlDB.Raw("SELECT * from games g WHERE g.id in (SELECT game_id from players p WHERE p.user_id = ?)", userID).Scan(&games).Error; err != nil {
+func (c *client) GetGamesForHost(userID int64) ([]game.Game, error) {
+
+	items := []Game{}
+	if err := c.db.Select(&items, `SELECT * FROM Games WHERE hostId = ?`, userID); err != nil {
+		if err == sql.ErrNoRows {
+			return []game.Game{}, nil
+		}
 		return nil, err
 	}
 
-	return games, nil
+	return c.converter.ConvertGames(items), nil
 }
 
-func (db *DB) GetGamesHostedByUser(userID uint64) ([]*game.Game, error) {
-	games := []*game.Game{}
-	if err := db.sqlDB.Raw("SELECT * from games g WHERE g.host_id = ?", userID).Scan(&games).Error; err != nil {
+func (c *client) GetGamesForUser(userID int64) ([]game.Game, error) {
+
+	items := []Game{}
+	if err := c.db.Select(&items, `SELECT * from games g WHERE g.id in (SELECT gameId from players p WHERE p.userId = ?)`, userID); err != nil {
+		if err == sql.ErrNoRows {
+			return []game.Game{}, nil
+		}
 		return nil, err
 	}
 
-	return games, nil
+	return c.converter.ConvertGames(items), nil
 }
 
-func (db *DB) GetOpenGames() ([]*game.Game, error) {
-	games := []*game.Game{}
-	if err := db.sqlDB.Raw("SELECT * from games g WHERE g.state = ? AND g.open_player_slots > 0", game.GameStateSetup).Scan(&games).Error; err != nil {
+func (c *client) GetOpenGames() ([]game.Game, error) {
+	items := []Game{}
+	if err := c.db.Select(&items, `SELECT * from games g WHERE g.state = ? AND g.openPlayerSlots > 0`, game.GameStateSetup); err != nil {
+		if err == sql.ErrNoRows {
+			return []game.Game{}, nil
+		}
 		return nil, err
 	}
 
-	return games, nil
+	return c.converter.ConvertGames(items), nil
 }
 
-func (db *DB) CreateGame(game *game.Game) error {
-	return db.sqlDB.Create(game).Error
-}
-
-func (db *DB) SaveGame(g *game.FullGame) error {
-	defer timeTrack(time.Now(), "SaveGame")
-
-	// rules don't change after game is created
-	if (g.Game.Area == game.Vector{}) {
-		g.Game.Area = g.Universe.Area
-	}
-	err := db.sqlDB.Save(g.Game).Error
-	if err != nil {
-		return err
-	}
-
-	for _, planet := range g.Universe.Planets {
-		if planet.Dirty {
-			planet.GameID = g.ID
-			err = db.SavePlanet(g.ID, planet)
-			if err != nil {
-				return err
-			}
-		}
-	}
-	for i := 0; i < len(g.Universe.Fleets); i++ {
-		fleet := g.Universe.Fleets[i]
-		if fleet.Dirty {
-			fleet.GameID = g.ID
-			err = db.sqlDB.Save(fleet).Error
-			if err != nil {
-				return err
-			}
-		}
-		if fleet.Delete {
-			err = db.sqlDB.Delete(fleet).Error
-			if err != nil {
-				return err
-			}
-			g.Universe.Fleets = append(g.Universe.Fleets[:i], g.Universe.Fleets[i+1:]...)
-			i--
-		}
-	}
-
-	for _, packet := range g.Universe.MineralPackets {
-		if packet.Dirty {
-			err = db.sqlDB.Save(packet).Error
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	// save each player's data
-	for _, player := range g.Players {
-		player.GameID = g.ID
-		// race doesn't change after game is created
-		err = db.sqlDB.Omit("PlanetIntels", "FleetIntels", "DesignIntels", "MineralPacketIntels", "Messages", "Designs").Save(player).Error
-		if err != nil {
-			return err
-		}
-
-		// replace messages
-		err := db.sqlDB.Model(player).Association("Messages").Replace(player.Messages)
-		if err != nil {
-			return err
-		}
-
-		for j := range player.Designs {
-			design := player.Designs[j]
-			if design.Dirty {
-				design.GameID = g.ID
-				design.PlayerID = player.ID
-				err = db.sqlDB.Save(&player.Designs[j]).Error
-				if err != nil {
-					return err
-				}
-			}
-		}
-
-		for j := range player.PlanetIntels {
-			intel := &player.PlanetIntels[j]
-			if intel.Dirty {
-				intel.GameID = g.ID
-				intel.PlayerID = player.ID
-				err = db.sqlDB.Save(&player.PlanetIntels[j]).Error
-				if err != nil {
-					return err
-				}
-			}
-		}
-
-		for j := range player.FleetIntels {
-			intel := &player.FleetIntels[j]
-			if intel.Dirty {
-				intel.GameID = g.ID
-				intel.PlayerID = player.ID
-				err = db.sqlDB.Save(&player.FleetIntels[j]).Error
-				if err != nil {
-					return err
-				}
-			}
-		}
-
-		for j := range player.DesignIntels {
-			intel := &player.DesignIntels[j]
-			if intel.Dirty {
-				intel.GameID = g.ID
-				intel.PlayerID = player.ID
-				err = db.sqlDB.Save(&player.DesignIntels[j]).Error
-				if err != nil {
-					return err
-				}
-			}
-		}
-
-		for j := range player.MineralPacketIntels {
-			intel := &player.MineralPacketIntels[j]
-			if intel.Dirty {
-				intel.GameID = g.ID
-				intel.PlayerID = player.ID
-				err = db.sqlDB.Save(&player.MineralPacketIntels[j]).Error
-				if err != nil {
-					return err
-				}
-			}
-		}
-
-	}
-
-	return nil
-}
-
-func (db *DB) FindGameById(id uint64) (*game.FullGame, error) {
-	g := game.FullGame{
-		Game:     &game.Game{},
-		Universe: &game.Universe{},
-		Players:  []*game.Player{},
-	}
-	if err := db.sqlDB.First(&g.Game, id).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+// get a game by id
+func (c *client) GetGame(id int64) (*game.Game, error) {
+	item := Game{}
+	if err := c.db.Get(&item, "SELECT * FROM games WHERE id = ?", id); err != nil {
+		if err == sql.ErrNoRows {
 			return nil, nil
+		}
+		return nil, err
+	}
+
+	game := c.converter.ConvertGame(item)
+	return &game, nil
+}
+
+// get a game by id
+func (c *client) GetFullGame(id int64) (*game.FullGame, error) {
+	item := Game{}
+	if err := c.db.Get(&item, "SELECT * FROM games WHERE id = ?", id); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	g := c.converter.ConvertGame(item)
+
+	players, err := c.getPlayersForGame(g.ID)
+	if err != nil {
+		return nil, fmt.Errorf("load players for game %w", err)
+	}
+
+	universe := game.Universe{}
+
+	planets, err := c.getPlanetsForGame(g.ID)
+	if err != nil {
+		return nil, fmt.Errorf("load planets for game %w", err)
+	}
+	universe.Planets = planets
+
+	// load fleets and starbases
+	fleets, err := c.getFleetsForGame(g.ID)
+	if err != nil {
+		return nil, fmt.Errorf("load fleets for game %w", err)
+	}
+	// pre-instantiate the fleets/starbases arrays (make it a little bigger than necessary)
+	universe.Fleets = make([]*game.Fleet, 0, len(fleets))
+	universe.Starbases = make([]*game.Fleet, 0, len(planets))
+	for i := range fleets {
+		fleet := fleets[i]
+		if fleet.Starbase {
+			universe.Starbases = append(universe.Starbases, fleet)
 		} else {
-			return nil, err
+			universe.Fleets = append(universe.Fleets, fleet)
 		}
 	}
 
-	if err := db.sqlDB.
-		Preload("Starbase").
-		Where("game_id = ?", id).
-		Order("planets.num").
-		Find(&g.Universe.Planets).
-		Error; err != nil {
-		return nil, err
+	wormholes, err := c.getWormholesForGame(g.ID)
+	if err != nil {
+		return nil, fmt.Errorf("load wormholes for game %w", err)
 	}
+	universe.Wormholes = wormholes
 
-	if err := db.sqlDB.
-		Preload("Tokens.Design").
-		Where("game_id = ?", id).
-		Order("fleets.num").
-		Find(&g.Universe.Fleets).
-		Error; err != nil {
-		return nil, err
+	salvages, err := c.getSalvagesForGame(g.ID)
+	if err != nil {
+		return nil, fmt.Errorf("load salvages for game %w", err)
 	}
+	universe.Salvages = salvages
 
-	players := []game.Player{}
-	if err := db.sqlDB.
-		Preload(clause.Associations).
-		Preload("Designs").
-		Preload("PlanetIntels").
-		Preload("FleetIntels").
-		Preload("DesignIntels").
-		Preload("BattlePlans").
-		Preload("Messages").
-		Order("num").
-		Where("game_id = ?", id).
-		Find(&players).
-		Error; err != nil {
-		return nil, err
+	mineFields, err := c.getMineFieldsForGame(g.ID)
+	if err != nil {
+		return nil, fmt.Errorf("load mineFields for game %w", err)
 	}
-	for i := range players {
-		g.Players = append(g.Players, &players[i])
+	universe.MineFields = mineFields
+
+	mineralPackets, err := c.getMineralPacketsForGame(g.ID)
+	if err != nil {
+		return nil, fmt.Errorf("load mineralPackets for game %w", err)
 	}
+	universe.MineralPackets = mineralPackets
 
 	if g.Rules.TechsID == 0 {
 		g.Rules.WithTechStore(&game.StaticTechStore)
 	} else {
-		techs, err := db.FindTechStoreById(g.Rules.TechsID)
+		techs, err := c.GetTechStore(g.Rules.TechsID)
 		if err != nil {
 			return nil, err
 		}
@@ -241,40 +212,300 @@ func (db *DB) FindGameById(id uint64) (*game.FullGame, error) {
 	}
 
 	// init the random generator after load
-	(&g.Rules).ResetSeed()
+	(&g.Rules).ResetSeed(g.Seed)
 
-	return &g, nil
+	fg := game.FullGame{
+		Game:     &g,
+		Players:  players,
+		Universe: &universe,
+	}
+
+	return &fg, nil
 }
 
-func (db *DB) FindGameByIdLight(id uint64) (*game.Game, error) {
-	game := game.Game{}
-	if err := db.sqlDB.First(&game, id).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		} else {
-			return nil, err
+// create a new game
+func (c *client) CreateGame(game *game.Game) error {
+
+	item := c.converter.ConvertGameGame(game)
+	result, err := c.db.NamedExec(`
+	INSERT INTO games (
+		createdAt,
+		updatedAt,
+		name,
+		hostId,
+		quickStartTurns,
+		size,
+		density,
+		playerPositions,
+		randomEvents,
+		computerPlayersFormAlliances,
+		publicPlayerScores,
+		startMode,
+		year,
+		state,
+		openPlayerSlots,
+		numPlayers,
+		victoryConditionsConditions,
+		victoryConditionsNumCriteriaRequired,
+		victoryConditionsYearsPassed,
+		victoryConditionsOwnPlanets,
+		victoryConditionsAttainTechLevel,
+		victoryConditionsAttainTechLevelNumFields,
+		victoryConditionsExceedsScore,
+		victoryConditionsExceedsSecondPlaceScore,
+		victoryConditionsProductionCapacity,
+		victoryConditionsOwnCapitalShips,
+		victoryConditionsHighestScoreAfterYears,
+		victorDeclared,
+		seed,
+		rules,
+		areaX,
+		areaY
+	)
+	VALUES (
+		CURRENT_TIMESTAMP,
+		CURRENT_TIMESTAMP,
+		:name,
+		:hostId,
+		:quickStartTurns,
+		:size,
+		:density,
+		:playerPositions,
+		:randomEvents,
+		:computerPlayersFormAlliances,
+		:publicPlayerScores,
+		:startMode,
+		:year,
+		:state,
+		:openPlayerSlots,
+		:numPlayers,
+		:victoryConditionsConditions,
+		:victoryConditionsNumCriteriaRequired,
+		:victoryConditionsYearsPassed,
+		:victoryConditionsOwnPlanets,
+		:victoryConditionsAttainTechLevel,
+		:victoryConditionsAttainTechLevelNumFields,
+		:victoryConditionsExceedsScore,
+		:victoryConditionsExceedsSecondPlaceScore,
+		:victoryConditionsProductionCapacity,
+		:victoryConditionsOwnCapitalShips,
+		:victoryConditionsHighestScoreAfterYears,
+		:victorDeclared,
+		:seed,
+		:rules,
+		:areaX,
+		:areaY
+	)
+	`, item)
+
+	if err != nil {
+		return err
+	}
+
+	// update the id of our passed in game
+	id, err := result.LastInsertId()
+	if err != nil {
+		return err
+	}
+
+	game.ID = id
+
+	return nil
+}
+
+// update an existing game
+func (c *client) UpdateGame(game *game.Game) error {
+	return c.updateGameWithNamedExecer(game, c.db)
+}
+
+// update a game inside a transaction
+func (c *client) updateGameWithNamedExecer(game *game.Game, tx SQLExecer) error {
+
+	item := c.converter.ConvertGameGame(game)
+
+	if _, err := tx.NamedExec(`
+	UPDATE games SET
+		updatedAt = CURRENT_TIMESTAMP,
+		name = :name,
+		hostId = :hostId,
+		quickStartTurns = :quickStartTurns,
+		size = :size,
+		density = :density,
+		playerPositions = :playerPositions,
+		randomEvents = :randomEvents,
+		computerPlayersFormAlliances = :computerPlayersFormAlliances,
+		publicPlayerScores = :publicPlayerScores,
+		startMode = :startMode,
+		year = :year,
+		state = :state,
+		openPlayerSlots = :openPlayerSlots,
+		numPlayers = :numPlayers,
+		victoryConditionsConditions = :victoryConditionsConditions,
+		victoryConditionsNumCriteriaRequired = :victoryConditionsNumCriteriaRequired,
+		victoryConditionsYearsPassed = :victoryConditionsYearsPassed,
+		victoryConditionsOwnPlanets = :victoryConditionsOwnPlanets,
+		victoryConditionsAttainTechLevel = :victoryConditionsAttainTechLevel,
+		victoryConditionsAttainTechLevelNumFields = :victoryConditionsAttainTechLevelNumFields,
+		victoryConditionsExceedsScore = :victoryConditionsExceedsScore,
+		victoryConditionsExceedsSecondPlaceScore = :victoryConditionsExceedsSecondPlaceScore,
+		victoryConditionsProductionCapacity = :victoryConditionsProductionCapacity,
+		victoryConditionsOwnCapitalShips = :victoryConditionsOwnCapitalShips,
+		victoryConditionsHighestScoreAfterYears = :victoryConditionsHighestScoreAfterYears,
+		victorDeclared = :victorDeclared,
+		rules = :rules,
+		seed = :seed,
+		areaX = :areaX,
+		areaY = :areaY
+	WHERE id = :id
+	`, item); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// update a full game
+func (c *client) UpdateFullGame(g *game.FullGame) error {
+	tx, err := c.db.Beginx()
+	if err != nil {
+		return err
+	}
+
+	if err := c.updateGameWithNamedExecer(g.Game, tx); err != nil {
+		tx.Rollback()
+		return fmt.Errorf("update game %w", err)
+	}
+
+	for _, player := range g.Players {
+		if player.ID == 0 {
+			player.GameID = g.ID
+			if err := c.createPlayer(player, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("create player %w", err)
+			}
+		}
+		if err := c.updateFullPlayerWithTransaction(player, tx); err != nil {
+			tx.Rollback()
+			return fmt.Errorf("update player %w", err)
 		}
 	}
 
-	return &game, nil
-}
-
-func (db *DB) FindGameRulesByGameID(gameID uint64) (*game.Rules, error) {
-	rules := game.Rules{}
-	if err := db.sqlDB.
-		Where("game_id = ? ", gameID).
-		First(&rules).
-		Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		} else {
-			return nil, err
+	for _, planet := range g.Planets {
+		if planet.ID == 0 {
+			planet.GameID = g.ID
+			if err := c.createPlanet(planet, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("create planet %w", err)
+			}
+			log.Debug().Int64("GameID", planet.GameID).Int64("ID", planet.ID).Msgf("Created planet %s", planet.Name)
+		} else if planet.Dirty {
+			if err := c.updatePlanet(planet, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("update planet %w", err)
+			}
+			log.Debug().Int64("GameID", planet.GameID).Int64("ID", planet.ID).Msgf("Updated planet %s", planet.Name)
 		}
 	}
 
-	return &rules, nil
+	// save fleets and starbases
+	for _, fleet := range append(g.Fleets, g.Starbases...) {
+		if fleet.ID == 0 {
+			fleet.GameID = g.ID
+			if err := c.createFleet(fleet, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("create fleet %w", err)
+			}
+			log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Created fleet %s", fleet.Name)
+		} else if fleet.Dirty {
+			if err := c.updateFleet(fleet, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("update fleet %w", err)
+			}
+			log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Updated fleet %s", fleet.Name)
+		}
+	}
+
+	// save wormholes
+	for _, wormhole := range g.Wormholes {
+		if wormhole.ID == 0 {
+			wormhole.GameID = g.ID
+			if err := c.createWormhole(wormhole, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("create wormhole %w", err)
+			}
+			log.Debug().Int64("GameID", wormhole.GameID).Int64("ID", wormhole.ID).Msgf("Created wormhole %s", wormhole.Name)
+		} else if wormhole.Dirty {
+			if err := c.updateWormhole(wormhole, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("update wormhole %w", err)
+			}
+			log.Debug().Int64("GameID", wormhole.GameID).Int64("ID", wormhole.ID).Msgf("Updated wormhole %s", wormhole.Name)
+		}
+	}
+
+	// save salvages
+	for _, salvage := range g.Salvages {
+		if salvage.ID == 0 {
+			salvage.GameID = g.ID
+			if err := c.createSalvage(salvage, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("create salvage %w", err)
+			}
+			log.Debug().Int64("GameID", salvage.GameID).Int64("ID", salvage.ID).Msgf("Created salvage %s", salvage.Name)
+		} else if salvage.Dirty {
+			if err := c.updateSalvage(salvage, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("update salvage %w", err)
+			}
+			log.Debug().Int64("GameID", salvage.GameID).Int64("ID", salvage.ID).Msgf("Updated salvage %s", salvage.Name)
+		}
+	}
+
+	// save mineFields
+	for _, mineField := range g.MineFields {
+		if mineField.ID == 0 {
+			mineField.GameID = g.ID
+			if err := c.createMineField(mineField, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("create mineField %w", err)
+			}
+			log.Debug().Int64("GameID", mineField.GameID).Int64("ID", mineField.ID).Msgf("Created mineField %s", mineField.Name)
+		} else if mineField.Dirty {
+			if err := c.updateMineField(mineField, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("update mineField %w", err)
+			}
+			log.Debug().Int64("GameID", mineField.GameID).Int64("ID", mineField.ID).Msgf("Updated mineField %s", mineField.Name)
+		}
+	}
+
+	// save mineralPackets
+	for _, mineralPacket := range g.MineralPackets {
+		if mineralPacket.ID == 0 {
+			mineralPacket.GameID = g.ID
+			if err := c.createMineralPacket(mineralPacket, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("create mineralPacket %w", err)
+			}
+			log.Debug().Int64("GameID", mineralPacket.GameID).Int64("ID", mineralPacket.ID).Msgf("Created mineralPacket %s", mineralPacket.Name)
+		} else if mineralPacket.Dirty {
+			if err := c.updateMineralPacket(mineralPacket, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("update mineralPacket %w", err)
+			}
+			log.Debug().Int64("GameID", mineralPacket.GameID).Int64("ID", mineralPacket.ID).Msgf("Updated mineralPacket %s", mineralPacket.Name)
+		}
+	}
+	tx.Commit()
+	return nil
+
 }
 
-func (db *DB) DeleteGameById(id uint64) error {
-	return db.sqlDB.Delete(&game.Game{ID: id}).Error
+// delete a game by id
+func (c *client) DeleteGame(id int64) error {
+	if _, err := c.db.Exec("DELETE FROM games WHERE id = ?", id); err != nil {
+		return err
+	}
+
+	return nil
 }

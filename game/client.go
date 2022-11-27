@@ -9,8 +9,8 @@ type client struct {
 }
 
 type Client interface {
-	CreateGame(hostID uint64, settings GameSettings) Game
-	NewPlayer(userID uint64, race Race) *Player
+	CreateGame(hostID int64, settings GameSettings) Game
+	NewPlayer(userID int64, race Race) *Player
 	GenerateUniverse(game *Game, players []*Player) (*Universe, error)
 	SubmitTurn(player *Player)
 	GenerateTurn(game *FullGame) error
@@ -25,7 +25,7 @@ func timeTrack(start time.Time, name string) {
 	log.Printf("%s took %s", name, elapsed)
 }
 
-func (c *client) CreateGame(hostID uint64, settings GameSettings) Game {
+func (c *client) CreateGame(hostID int64, settings GameSettings) Game {
 	g := NewGame().WithSettings(settings)
 	g.HostID = hostID
 
@@ -33,7 +33,7 @@ func (c *client) CreateGame(hostID uint64, settings GameSettings) Game {
 }
 
 // create a new player
-func (c *client) NewPlayer(userID uint64, race Race, rules *Rules) *Player {
+func (c *client) NewPlayer(userID int64, race Race, rules *Rules) *Player {
 	player := NewPlayer(userID, &race)
 	player.Race.Spec = computeRaceSpec(&player.Race, rules)
 
@@ -50,6 +50,9 @@ func (c *client) GenerateUniverse(game *Game, players []*Player) (*Universe, err
 	if err != nil {
 		return nil, err
 	}
+
+	// save our area back to the game object now that it's been generated
+	game.Area = ug.Area()
 
 	return universe, nil
 }
@@ -72,6 +75,6 @@ func (c *client) CheckAllPlayersSubmitted(players []*Player) bool {
 // generate a new turn for this game
 func (c *client) GenerateTurn(game *Game, universe *Universe, players []*Player) error {
 	defer timeTrack(time.Now(), "GenerateTurn")
-	turnGenerator := NewTurnGenerator(&FullGame{game, universe, players})
-	return turnGenerator.GenerateTurn()
+	turnGenerator := newTurnGenerator(&FullGame{game, universe, players})
+	return turnGenerator.generateTurn()
 }

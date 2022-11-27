@@ -2,7 +2,6 @@ package game
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/google/uuid"
 )
@@ -12,8 +11,8 @@ const Unowned = -1
 
 type discover struct {
 	player            *Player
-	fleetIntelsByKey  map[string]*FleetIntel         `json:"-" gorm:"-"`
-	designIntelsByKey map[uuid.UUID]*ShipDesignIntel `json:"-" gorm:"-"`
+	fleetIntelsByKey  map[string]*FleetIntel
+	designIntelsByKey map[uuid.UUID]*ShipDesignIntel
 }
 
 type discoverer interface {
@@ -23,7 +22,7 @@ type discoverer interface {
 	discoverPlanetCargo(player *Player, planet *Planet) error
 	discoverFleet(player *Player, fleet *Fleet)
 	discoverFleetCargo(player *Player, fleet *Fleet)
-	discoverDesign(player *Player, design *ShipDesign, discoverSlots bool)	
+	discoverDesign(player *Player, design *ShipDesign, discoverSlots bool)
 }
 
 func newDiscoverer(player *Player) discoverer {
@@ -36,9 +35,9 @@ func newDiscoverer(player *Player) discoverer {
 		d.fleetIntelsByKey[intel.String()] = intel
 	}
 
-	d.designIntelsByKey = make(map[uuid.UUID]*ShipDesignIntel, len(player.DesignIntels))
-	for i := range player.DesignIntels {
-		intel := &player.DesignIntels[i]
+	d.designIntelsByKey = make(map[uuid.UUID]*ShipDesignIntel, len(player.ShipDesignIntels))
+	for i := range player.ShipDesignIntels {
+		intel := &player.ShipDesignIntels[i]
 		d.designIntelsByKey[intel.UUID] = intel
 	}
 
@@ -46,35 +45,29 @@ func newDiscoverer(player *Player) discoverer {
 }
 
 type Intel struct {
-	ID        uint64    `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
-	Dirty     bool      `json:"-" gorm:"-"`
-	GameID    uint64    `json:"gameId"`
-	Name      string    `json:"name"`
-	Num       int       `json:"num"`
-	PlayerNum int       `json:"playerNum"`
-	PlayerID  uint64    `json:"-"`
-	ReportAge int       `json:"reportAge"`
+	Name      string `json:"name"`
+	Num       int    `json:"num"`
+	PlayerNum int    `json:"playerNum"`
+	ReportAge int    `json:"reportAge"`
 }
 
 type MapObjectIntel struct {
 	Intel
 	Type     MapObjectType `json:"type"`
-	Position Vector        `json:"position" gorm:"embedded"`
+	Position Vector        `json:"position"`
 }
 
 func (intel *Intel) String() string {
-	return fmt.Sprintf("GameID: %5d, ID: %5d, Num: %3d %s", intel.GameID, intel.ID, intel.Num, intel.Name)
+	return fmt.Sprintf("Num: %3d %s", intel.Num, intel.Name)
 }
 
 type PlanetIntel struct {
 	MapObjectIntel
-	Hab                  Hab         `json:"hab,omitempty" gorm:"embedded;embeddedPrefix:hab_"`
-	MineralConcentration Mineral     `json:"mineralConcentration,omitempty" gorm:"embedded;embeddedPrefix:mineral_conc_"`
+	Hab                  Hab         `json:"hab,omitempty"`
+	MineralConcentration Mineral     `json:"mineralConcentration,omitempty"`
 	Population           uint        `json:"population,omitempty"`
 	Starbase             *FleetIntel `json:"starbase,omitempty"`
-	Cargo                Cargo       `json:"cargo,omitempty" gorm:"embedded;embeddedPrefix:cargo_"`
+	Cargo                Cargo       `json:"cargo,omitempty"`
 	CargoDiscovered      bool        `json:"cargoDiscovered,omitempty"`
 }
 
@@ -87,21 +80,21 @@ type ShipDesignIntel struct {
 	Version       int              `json:"version,omitempty"`
 	Armor         int              `json:"armor,omitempty"`
 	Shields       int              `json:"shields,omitempty"`
-	Slots         []ShipDesignSlot `json:"slots,omitempty" gorm:"serializer:json"`
+	Slots         []ShipDesignSlot `json:"slots,omitempty"`
 }
 
 type FleetIntel struct {
 	MapObjectIntel
-	PlanetIntelID   uint64 `json:"-"` // for starbase fleets that are owned by a planet
-	Cargo           Cargo  `json:"cargo,omitempty" gorm:"embedded;embeddedPrefix:cargo_"`
-	CargoDiscovered bool   `json:"cargoDiscovered,omitempty"`
+	PlanetIntelID   int64 `json:"-"` // for starbase fleets that are owned by a planet
+	Cargo           Cargo `json:"cargo,omitempty"`
+	CargoDiscovered bool  `json:"cargoDiscovered,omitempty"`
 }
 
 type MineralPacketIntel struct {
 	MapObjectIntel
 	WarpFactor uint   `json:"warpFactor,omitempty"`
-	Heading    Vector `json:"position" gorm:"embedded;embeddedPrefix:heading_"`
-	Cargo      Cargo  `json:"cargo,omitempty" gorm:"embedded;embeddedPrefix:cargo_"`
+	Heading    Vector `json:"position"`
+	Cargo      Cargo  `json:"cargo,omitempty"`
 }
 
 type SalvageIntel struct {
@@ -131,6 +124,7 @@ func (d *ShipDesignIntel) String() string {
 func NewFleetIntel(playerNum int, name string) FleetIntel {
 	return FleetIntel{
 		MapObjectIntel: MapObjectIntel{
+			Type: MapObjectTypeFleet,
 			Intel: Intel{
 				Name:      name,
 				PlayerNum: playerNum,
@@ -166,19 +160,7 @@ func (d *discover) discoverPlanet(rules *Rules, player *Player, planet *Planet, 
 
 	intel = &player.PlanetIntels[planetIndex]
 
-	// if this intel is new, make sure it saves to the DB
-	// once we create the object in the DB, it only gets saved to the DB
-	// again if pen scanned
-	if intel.PlayerID == 0 {
-		intel.PlayerID = player.ID // this player owns this intel
-		intel.Dirty = true
-		intel.ReportAge = Unexplored
-		intel.Type = MapObjectTypePlanet
-		intel.PlayerNum = Unowned
-	}
-
 	// everyone knows these about planets
-	intel.GameID = planet.GameID
 	intel.Position = planet.Position
 	intel.Name = planet.Name
 	intel.Num = planet.Num
@@ -186,7 +168,6 @@ func (d *discover) discoverPlanet(rules *Rules, player *Player, planet *Planet, 
 	ownedByPlayer := planet.PlayerNum != Unowned && player.Num == planet.PlayerNum
 
 	if penScanned || ownedByPlayer {
-		intel.Dirty = true // flag for update
 		intel.PlayerNum = planet.PlayerNum
 
 		// if we pen scanned the planet, we learn some things
@@ -196,10 +177,10 @@ func (d *discover) discoverPlanet(rules *Rules, player *Player, planet *Planet, 
 
 		// players know their planet pops, but other planets are slightly off
 		if ownedByPlayer {
-			intel.Population = uint(planet.Population())
+			intel.Population = uint(planet.population())
 		} else {
 			var randomPopulationError = rules.random.Float64()*(rules.PopulationScannerError-(-rules.PopulationScannerError)) - rules.PopulationScannerError
-			intel.Population = uint(float64(planet.Population()) * (1 - randomPopulationError))
+			intel.Population = uint(float64(planet.population()) * (1 - randomPopulationError))
 		}
 	}
 	return nil
@@ -234,7 +215,6 @@ func (d *discover) discoverFleet(player *Player, fleet *Fleet) {
 
 	intel.Name = fleet.Name
 	intel.PlayerNum = fleet.PlayerNum
-	intel.GameID = fleet.GameID
 	intel.Position = fleet.Position
 
 	player.FleetIntels = append(player.FleetIntels, intel)
@@ -261,8 +241,6 @@ func (d *discover) discoverDesign(player *Player, design *ShipDesign, discoverSl
 		// create a new intel for this design
 		intel = &ShipDesignIntel{
 			Intel: Intel{
-				GameID:    design.GameID,
-				Dirty:     true,
 				Name:      design.Name,
 				PlayerNum: design.PlayerNum,
 			},
@@ -272,8 +250,8 @@ func (d *discover) discoverDesign(player *Player, design *ShipDesign, discoverSl
 		}
 
 		// save this new design to our intel
-		player.DesignIntels = append(player.DesignIntels, *intel)
-		intel = &player.DesignIntels[len(player.DesignIntels)-1]
+		player.ShipDesignIntels = append(player.ShipDesignIntels, *intel)
+		intel = &player.ShipDesignIntels[len(player.ShipDesignIntels)-1]
 		d.designIntelsByKey[intel.UUID] = intel
 	}
 
@@ -286,7 +264,7 @@ func (d *discover) discoverDesign(player *Player, design *ShipDesign, discoverSl
 	}
 }
 
-func (d* discover) playerInfoDiscover(player *Player) {
+func (d *discover) playerInfoDiscover(player *Player) {
 	// d.game <- players to discover
 	// discover info about other players
 }

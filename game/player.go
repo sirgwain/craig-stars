@@ -5,17 +5,19 @@ import (
 	"time"
 )
 
+// a player and all mapobjects the player owns
+// this is used by the UI when loading a player's game
 type FullPlayer struct {
 	Player
 	PlayerMapObjects
 }
 
 type Player struct {
-	ID                    uint64               `gorm:"primaryKey" json:"id,omitempty"`
+	ID                    int64                `json:"id,omitempty"`
 	CreatedAt             time.Time            `json:"createdAt,omitempty"`
 	UpdatedAt             time.Time            `json:"updatedat,omitempty"`
-	GameID                uint64               `json:"gameId,omitempty"`
-	UserID                uint64               `json:"userId,omitempty"`
+	GameID                int64                `json:"gameId,omitempty"`
+	UserID                int64                `json:"userId,omitempty"`
 	Name                  string               `json:"name,omitempty"`
 	Num                   int                  `json:"num"`
 	Ready                 bool                 `json:"ready,omitempty"`
@@ -23,26 +25,26 @@ type Player struct {
 	SubmittedTurn         bool                 `json:"submittedTurn,omitempty"`
 	Color                 string               `json:"color,omitempty"`
 	DefaultHullSet        int                  `json:"defaultHullSet,omitempty"`
-	Race                  Race                 `json:"race,omitempty"  gorm:"serializer:json"`
-	TechLevels            TechLevel            `json:"techLevels,omitempty" gorm:"embedded;embeddedPrefix:tech_levels_"`
-	TechLevelsSpent       TechLevel            `json:"techLevelsSpent,omitempty" gorm:"embedded;embeddedPrefix:tech_levels_spent"`
+	Race                  Race                 `json:"race,omitempty" `
+	TechLevels            TechLevel            `json:"techLevels,omitempty"`
+	TechLevelsSpent       TechLevel            `json:"techLevelsSpent,omitempty"`
 	ResearchAmount        int                  `json:"researchAmount,omitempty"`
 	ResearchSpentLastYear int                  `json:"researchSpentLastYear,omitempty"`
 	NextResearchField     NextResearchField    `json:"nextResearchField,omitempty"`
 	Researching           TechField            `json:"researching,omitempty"`
-	Messages              []PlayerMessage      `json:"messages,omitempty"`
 	BattlePlans           []BattlePlan         `json:"battlePlans,omitempty"`
-	ProductionPlans       []ProductionPlan     `json:"productionPlans,omitempty" gorm:"serializer:json"`
-	TransportPlans        []TransportPlan      `json:"transportPlans,omitempty" gorm:"serializer:json"`
-	Designs               []ShipDesign         `json:"designs" gorm:"foreignKey:PlayerID;references:ID"`
+	ProductionPlans       []ProductionPlan     `json:"productionPlans,omitempty"`
+	TransportPlans        []TransportPlan      `json:"transportPlans,omitempty"`
+	Messages              []PlayerMessage      `json:"messages,omitempty"`
+	Designs               []ShipDesign         `json:"designs"`
 	PlanetIntels          []PlanetIntel        `json:"planetIntels,omitempty"`
 	FleetIntels           []FleetIntel         `json:"fleetIntels,omitempty"`
-	DesignIntels          []ShipDesignIntel    `json:"designIntels,omitempty"`
+	ShipDesignIntels      []ShipDesignIntel    `json:"shipDesignIntels,omitempty"`
 	MineralPacketIntels   []MineralPacketIntel `json:"mineralPacketIntels,omitempty"`
 	MineFieldIntels       []MineFieldIntel     `json:"mineFieldIntels,omitempty"`
-	Stats                 *PlayerStats         `json:"stats,omitempty" gorm:"serializer:json"`
-	Spec                  *PlayerSpec          `json:"spec,omitempty" gorm:"serializer:json"`
-	leftoverResources     int                  `json:"-" gorm:"-"`
+	Spec                  PlayerSpec           `json:"spec,omitempty"`
+	Stats                 *PlayerStats         `json:"stats,omitempty"`
+	leftoverResources     int
 }
 
 type PlayerStats struct {
@@ -71,11 +73,6 @@ type PlayerSpec struct {
 }
 
 type BattlePlan struct {
-	ID        uint64    `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
-
-	PlayerID        uint64           `json:"playerId"`
 	Name            string           `json:"name"`
 	PrimaryTarget   BattleTargetType `json:"primaryTarget"`
 	SecondaryTarget BattleTargetType `json:"secondaryTarget"`
@@ -119,13 +116,13 @@ const (
 )
 
 type TransportPlan struct {
-	Name      string                 `json:"name"`
-	Tasks     WaypointTransportTasks `json:"tasks,omitempty" gorm:"serializer:json"`
+	Name  string                 `json:"name"`
+	Tasks WaypointTransportTasks `json:"tasks,omitempty"`
 }
 
 type ProductionPlan struct {
 	Name                              string               `json:"name"`
-	Items                             []ProductionPlanItem `json:"items" gorm:"serializer:json"`
+	Items                             []ProductionPlanItem `json:"items"`
 	ContributesOnlyLeftoverToResearch bool                 `json:"contributesOnlyLeftoverToResearch,omitempty"`
 }
 
@@ -133,20 +130,21 @@ type ProductionPlanItem struct {
 	Type       QueueItemType `json:"type"`
 	DesignName string        `json:"designName"`
 	Quantity   int           `json:"quantity"`
-	Allocated  Cost          `json:"allocated" gorm:"embedded;embeddedPrefix:allocated_"`
+	Allocated  Cost          `json:"allocated"`
 }
 
 // All mapobjects that a player can issue commands to
 type PlayerMapObjects struct {
-	Planets        []*Planet        `json:"planets" gorm:"foreignKey:PlayerID;references:ID"`
-	Fleets         []*Fleet         `json:"fleets" gorm:"foreignKey:PlayerID;references:ID"`
-	MineFields     []*MineField     `json:"mineFields" gorm:"foreignKey:PlayerID;references:ID"`
-	MineralPackets []*MineralPacket `json:"mineralPackets" gorm:"foreignKey:PlayerID;references:ID"`
+	Planets        []*Planet        `json:"planets"`
+	Fleets         []*Fleet         `json:"fleets"`
+	Starbases      []*Fleet         `json:"starbases"`
+	MineFields     []*MineField     `json:"mineFields"`
+	MineralPackets []*MineralPacket `json:"mineralPackets"`
 }
 
 // create a new player with an existing race. The race
 // will be copied for the player
-func NewPlayer(userID uint64, race *Race) *Player {
+func NewPlayer(userID int64, race *Race) *Player {
 
 	// copy this race for the player
 	playerRace := *race
@@ -246,7 +244,7 @@ func (p *Player) GetLatestDesign(purpose ShipDesignPurpose) *ShipDesign {
 	return latest
 }
 
-func computePlayerSpec(player *Player, rules *Rules) *PlayerSpec {
+func computePlayerSpec(player *Player, rules *Rules) PlayerSpec {
 	techs := rules.techs
 	spec := PlayerSpec{
 		PlanetaryScanner:  techs.GetBestPlanetaryScanner(player),
@@ -254,7 +252,7 @@ func computePlayerSpec(player *Player, rules *Rules) *PlayerSpec {
 		ResourcesLeftover: 0,
 	}
 
-	return &spec
+	return spec
 }
 
 // return true if the player currently has this tech

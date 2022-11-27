@@ -10,8 +10,10 @@ import (
 
 type Config struct {
 	Database struct {
-		Recreate bool   `yaml:"Recreate,omitempty"`
-		Filename string `yaml:"Filename,omitempty"`
+		Recreate     bool   `yaml:"Recreate,omitempty"`
+		Filename     string `yaml:"Filename,omitempty"`
+		Schema       string `yaml:"Schema,omitempty"`
+		DebugLogging bool   `yaml:"DebugLogging,omitempty"`
 	}
 	GeneratedUserPassword string
 }
@@ -28,6 +30,7 @@ func GetConfig() *Config {
 
 		// Set default value
 		viper.SetDefault("Database.Filename", "data/data.db")
+		viper.SetDefault("Database.Schema", "schema.sql")
 
 		// write config if not present
 		if err := os.MkdirAll(path, os.ModePerm); err != nil {

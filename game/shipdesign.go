@@ -8,11 +8,10 @@ import (
 )
 
 type ShipDesign struct {
-	ID            uint64            `gorm:"primaryKey" json:"id"`
+	ID            int64             `json:"id"`
 	CreatedAt     time.Time         `json:"createdAt"`
 	UpdatedAt     time.Time         `json:"updatedAt"`
-	GameID        uint64            `json:"gameId"`
-	PlayerID      uint64            `json:"playerId"`
+	PlayerID      int64             `json:"playerId"`
 	PlayerNum     int               `json:"playerNum"`
 	Dirty         bool              `json:"-"`
 	UUID          uuid.UUID         `json:"uuid,omitempty"`
@@ -21,9 +20,9 @@ type ShipDesign struct {
 	Hull          string            `json:"hull"`
 	HullSetNumber int               `json:"hullSetNumber"`
 	CanDelete     bool              `json:"canDelete,omitempty"`
-	Slots         []ShipDesignSlot  `json:"slots" gorm:"serializer:json"`
+	Slots         []ShipDesignSlot  `json:"slots"`
 	Purpose       ShipDesignPurpose `json:"purpose,omitempty"`
-	Spec          *ShipDesignSpec   `json:"spec" gorm:"serializer:json"`
+	Spec          ShipDesignSpec    `json:"spec"`
 }
 
 type ShipDesignSlot struct {
@@ -101,7 +100,7 @@ const (
 )
 
 func NewShipDesign(player *Player) *ShipDesign {
-	return &ShipDesign{GameID: player.GameID, PlayerID: player.ID, PlayerNum: player.Num, UUID: uuid.New(), Dirty: true, Slots: []ShipDesignSlot{}}
+	return &ShipDesign{PlayerID: player.ID, PlayerNum: player.Num, UUID: uuid.New(), Dirty: true, Slots: []ShipDesignSlot{}}
 }
 
 func (sd *ShipDesign) WithName(name string) *ShipDesign {
@@ -132,7 +131,7 @@ func (sd *ShipDesign) WithSpec(rules *Rules, player *Player) *ShipDesign {
 	return sd
 }
 
-func ComputeShipDesignSpec(rules *Rules, player *Player, design *ShipDesign) *ShipDesignSpec {
+func ComputeShipDesignSpec(rules *Rules, player *Player, design *ShipDesign) ShipDesignSpec {
 	hull := rules.techs.GetHull(design.Hull)
 	spec := ShipDesignSpec{
 		Mass:                    hull.Mass,
@@ -266,14 +265,14 @@ func ComputeShipDesignSpec(rules *Rules, player *Player, design *ShipDesign) *Sh
 		}
 	}
 
-	spec.ComputeScanRanges(rules, player, design, hull)
+	spec.computeScanRanges(rules, player, design, hull)
 
-	return &spec
+	return spec
 }
 
 // Compute the scan ranges for this ship design The formula is: (scanner1**4 + scanner2**4 + ...
 // + scannerN**4)**(.25)
-func (spec *ShipDesignSpec) ComputeScanRanges(rules *Rules, player *Player, design *ShipDesign, hull *TechHull) {
+func (spec *ShipDesignSpec) computeScanRanges(rules *Rules, player *Player, design *ShipDesign, hull *TechHull) {
 	spec.ScanRange = NoScanner
 	spec.ScanRangePen = NoScanner
 

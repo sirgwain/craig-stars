@@ -30,7 +30,7 @@ export interface ShipToken {
 	updatedAt?: string;
 
 	gameId?: number;
-	designId: number;
+	designUuid: string;
 	quantity: number;
 }
 

@@ -51,6 +51,14 @@
             "mode": "test",
             "program": "${relativeFileDirname}",
         },
+        {
+            "name": "test TestGetFleet",
+            "type": "go",
+            "request": "launch",
+            "mode": "test",
+            "program": "${workspaceFolder}/dbsqlx/fleets_test.go",
+            "args": ["-test.run", "TestGetFleet"]
+        },
 
     ]
 }

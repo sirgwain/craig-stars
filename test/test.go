@@ -20,11 +20,11 @@ func CompareAsJSON(t *testing.T, got interface{}, want interface{}) bool {
 	} else {
 		gotJson, err := json.MarshalIndent(got, "", "  ")
 		if err != nil {
-			t.Errorf("Failed to compare %s, error = %v", got, err)
+			t.Errorf("compare %s, error = %v", got, err)
 		}
 		wantJson, err := json.MarshalIndent(want, "", "  ")
 		if err != nil {
-			t.Errorf("Failed to compare %s, error = %v", want, err)
+			t.Errorf("compare %s, error = %v", want, err)
 		}
 
 		if string(gotJson) != string(wantJson) {

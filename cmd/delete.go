@@ -1,7 +1,8 @@
 package cmd
 
 import (
-	"github.com/sirgwain/craig-stars/appcontext"
+	"github.com/sirgwain/craig-stars/config"
+	"github.com/sirgwain/craig-stars/db"
 
 	"github.com/spf13/cobra"
 )
@@ -21,7 +22,7 @@ func init() {
 }
 
 func addDeleteUserCmd() {
-	var id uint64
+	var id int64
 
 	// deleteUserCmd represents the deleteUsers command
 	var deleteUserCmd = &cobra.Command{
@@ -29,9 +30,12 @@ func addDeleteUserCmd() {
 		Short: "Delete user",
 		Long:  `Delete user from the database`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx := appcontext.Initialize()
-			ctx.DB.DeleteUserById(id)
-			users, err := ctx.DB.GetUsers()
+			db := db.NewClient()
+			cfg := config.GetConfig()
+			db.Connect(cfg)
+
+			db.DeleteUser(id)
+			users, err := db.GetUsers()
 			if err != nil {
 				return err
 			}
@@ -40,14 +44,14 @@ func addDeleteUserCmd() {
 			return nil
 		},
 	}
-	deleteUserCmd.Flags().Uint64VarP(&id, "user-id", "u", 0, "Delete games for user id")
+	deleteUserCmd.Flags().Int64VarP(&id, "user-id", "u", 0, "Delete games for user id")
 	deleteUserCmd.MarkFlagRequired("user-id")
 
 	deleteCmd.AddCommand(deleteUserCmd)
 
 }
 func addDeleteGameCmd() {
-	var id uint64
+	var id int64
 
 	// deleteUsersCmd represents the deleteUsers command
 	var deleteGameCmd = &cobra.Command{
@@ -55,9 +59,12 @@ func addDeleteGameCmd() {
 		Short: "Delete game",
 		Long:  `Delete game from the database`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx := appcontext.Initialize()
-			ctx.DB.DeleteGameById(id)
-			games, err := ctx.DB.GetGames()
+			db := db.NewClient()
+			cfg := config.GetConfig()
+			db.Connect(cfg)
+
+			db.DeleteGame(id)
+			games, err := db.GetGames()
 			if err != nil {
 				return err
 			}
@@ -67,7 +74,7 @@ func addDeleteGameCmd() {
 		},
 	}
 
-	deleteGameCmd.Flags().Uint64VarP(&id, "game-id", "g", 0, "Delete game by id")
+	deleteGameCmd.Flags().Int64VarP(&id, "game-id", "g", 0, "Delete game by id")
 	deleteGameCmd.MarkFlagRequired("game-id")
 	deleteCmd.AddCommand(deleteGameCmd)
 }

@@ -12,7 +12,7 @@ func testLongRangeScout(player *Player, rules *Rules) *Fleet {
 	fleet := &Fleet{
 		BaseName: "Long Range Scout",
 		Tokens: []ShipToken{
-			{Quantity: 1, Design: NewShipDesign(player).
+			{Quantity: 1, design: NewShipDesign(player).
 				WithHull(Scout.Name).
 				WithSlots([]ShipDesignSlot{
 					{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
@@ -33,7 +33,7 @@ func testSmallFreighter(player *Player, rules *Rules) *Fleet {
 	fleet := &Fleet{
 		BaseName: "Small Freighter",
 		Tokens: []ShipToken{
-			{Quantity: 1, Design: NewShipDesign(player).
+			{Quantity: 1, design: NewShipDesign(player).
 				WithHull(SmallFreighter.Name).
 				WithSlots([]ShipDesignSlot{
 					{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
@@ -54,7 +54,7 @@ func testCloakedScout(player *Player, rules *Rules) *Fleet {
 	fleet := &Fleet{
 		BaseName: "Cloaked Scout",
 		Tokens: []ShipToken{
-			{Quantity: 1, Design: NewShipDesign(player).
+			{Quantity: 1, design: NewShipDesign(player).
 				WithHull(Scout.Name).
 				WithSlots([]ShipDesignSlot{
 					{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
@@ -95,7 +95,7 @@ func TestComputeFleetSpec(t *testing.T) {
 		{"Starter Humanoid Long Range Scout", args{&rules, starterHumanoidPlayer, &Fleet{
 			BaseName: "Long Range Scout",
 			Tokens: []ShipToken{
-				{Quantity: 1, Design: NewShipDesign(starterHumanoidPlayer).
+				{Quantity: 1, design: NewShipDesign(starterHumanoidPlayer).
 					WithHull(Scout.Name).
 					WithSlots([]ShipDesignSlot{
 						{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
@@ -123,7 +123,7 @@ func TestComputeFleetSpec(t *testing.T) {
 		{"Starter Starbase", args{&rules, starterHumanoidPlayer, &Fleet{
 			BaseName: "Starbase",
 			Tokens: []ShipToken{
-				{Quantity: 1, Design: NewShipDesign(starterHumanoidPlayer).
+				{Quantity: 1, design: NewShipDesign(starterHumanoidPlayer).
 					WithHull(SpaceStation.Name).
 					WithSlots([]ShipDesignSlot{
 						{HullComponent: Laser.Name, HullSlotIndex: 2, Quantity: 8},
@@ -157,7 +157,7 @@ func TestComputeFleetSpec(t *testing.T) {
 		{"Cloaked Scout", args{&rules, starterHumanoidPlayer, &Fleet{
 			BaseName: "Cloaked Scout",
 			Tokens: []ShipToken{
-				{Quantity: 1, Design: NewShipDesign(starterHumanoidPlayer).
+				{Quantity: 1, design: NewShipDesign(starterHumanoidPlayer).
 					WithHull(Scout.Name).
 					WithSlots([]ShipDesignSlot{
 						{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
@@ -187,7 +187,7 @@ func TestComputeFleetSpec(t *testing.T) {
 		{"2 Cloaked Scouts", args{&rules, starterHumanoidPlayer, &Fleet{
 			BaseName: "Cloaked Scout",
 			Tokens: []ShipToken{
-				{Quantity: 2, Design: NewShipDesign(starterHumanoidPlayer).
+				{Quantity: 2, design: NewShipDesign(starterHumanoidPlayer).
 					WithHull(Scout.Name).
 					WithSlots([]ShipDesignSlot{
 						{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
@@ -217,7 +217,7 @@ func TestComputeFleetSpec(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := *ComputeFleetSpec(tt.args.rules, tt.args.player, tt.args.fleet); !reflect.DeepEqual(got, tt.want) {
+			if got := ComputeFleetSpec(tt.args.rules, tt.args.player, tt.args.fleet); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("ComputeFleetSpec() = \n%v, want \n%v", got, tt.want)
 			}
 		})

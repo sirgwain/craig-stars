@@ -23,7 +23,7 @@ func (ch *Planet) GetCargpCapacity() int {
 }
 
 func (ch *Planet) GetFuel() int {
-	if ch.Spec != nil && ch.Spec.HasStarbase {
+	if ch.Spec.HasStarbase {
 		return Unlimited
 	} else {
 		return 0

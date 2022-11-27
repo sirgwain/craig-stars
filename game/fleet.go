@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // warpfactor for using a stargate vs moving with warp drive
@@ -22,28 +24,29 @@ const PatrolRangeInfinite = -1
 const NotOrbitingPlanet = -1
 
 // no target planet, player, etc
-const NoTarget = -1
+const None = -1
 
 type Fleet struct {
 	MapObject
 	FleetOrders
-	PlanetID          uint64      `json:"-"` // for starbase fleets that are owned by a planet
+	PlanetNum         int         `json:"planetNum"` // for starbase fleets that are owned by a planet
 	BaseName          string      `json:"baseName"`
-	Cargo             Cargo       `json:"cargo,omitempty" gorm:"embedded;embeddedPrefix:cargo_"`
+	Cargo             Cargo       `json:"cargo,omitempty"`
 	Fuel              int         `json:"fuel"`
 	Damage            int         `json:"damage"`
-	BattlePlanID      uint64      `json:"battlePlan"`
+	BattlePlanName    string      `json:"battlePlan"`
 	Tokens            []ShipToken `json:"tokens"`
-	Heading           Vector      `json:"heading,omitempty" gorm:"embedded;embeddedPrefix:heading_"`
+	Heading           Vector      `json:"heading,omitempty"`
 	WarpSpeed         int         `json:"warpSpeed,omitempty"`
-	PreviousPosition  *Vector     `json:"previousPosition,omitempty" gorm:"embedded;embeddedPrefix:previous_position_"`
+	PreviousPosition  *Vector     `json:"previousPosition,omitempty"`
 	OrbitingPlanetNum int         `json:"orbitingPlanetNum,omitempty"`
 	Starbase          bool        `json:"starbase,omitempty"`
-	Spec              *FleetSpec  `json:"spec" gorm:"serializer:json"`
+	Spec              FleetSpec   `json:"spec"`
+	battlePlan        *BattlePlan
 }
 
 type FleetOrders struct {
-	Waypoints    []Waypoint `json:"waypoints" gorm:"serializer:json"`
+	Waypoints    []Waypoint `json:"waypoints"`
 	RepeatOrders bool       `json:"repeatOrders,omitempty"`
 }
 
@@ -61,17 +64,19 @@ type FleetSpec struct {
 }
 
 type ShipToken struct {
-	ID        uint64      `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time   `json:"createdAt"`
-	UpdatedAt time.Time   `json:"updatedAt"`
-	FleetID   uint64      `json:"gameId"`
-	DesignID  uint64      `json:"designId"`
-	Quantity  int         `json:"quantity"`
-	Design    *ShipDesign `json:"-" gorm:"foreignKey:DesignID"`
+	ID              int64     `json:"id"`
+	CreatedAt       time.Time `json:"createdAt"`
+	UpdatedAt       time.Time `json:"updatedAt"`
+	FleetID         int64     `json:"fleetId"`
+	DesignUUID      uuid.UUID `json:"designUuid,omitempty"`
+	Quantity        int       `json:"quantity"`
+	Damage          float64   `json:"damage"`
+	QuantityDamaged int       `json:"quantityDamaged"`
+	design          *ShipDesign
 }
 
 type Waypoint struct {
-	Position          Vector                 `json:"position,omitempty" gorm:"embedded"`
+	Position          Vector                 `json:"position,omitempty"`
 	WarpFactor        int                    `json:"warpFactor,omitempty"`
 	EstFuelUsage      int                    `json:"estFuelUsage,omitempty"`
 	Task              WaypointTask           `json:"task,omitempty"`
@@ -176,12 +181,14 @@ func NewFleet(player *Player, design *ShipDesign, num int, name string, waypoint
 		},
 		BaseName: name,
 		Tokens: []ShipToken{
-			{Design: design, Quantity: 1},
+			{design: design, DesignUUID: design.UUID, Quantity: 1},
 		},
 		FleetOrders: FleetOrders{
 			Waypoints: waypoints,
 		},
 		OrbitingPlanetNum: NotOrbitingPlanet,
+		BattlePlanName:    player.BattlePlans[0].Name,
+		battlePlan:        &player.BattlePlans[0],
 	}
 }
 
@@ -194,10 +201,10 @@ func NewFleetForToken(player *Player, num int, token ShipToken, waypoints []Wayp
 			PlayerNum: player.Num,
 			Dirty:     true,
 			Num:       num,
-			Name:      fmt.Sprintf("%s #%d", token.Design.Name, num),
+			Name:      fmt.Sprintf("%s #%d", token.design.Name, num),
 			Position:  waypoints[0].Position,
 		},
-		BaseName: token.Design.Name,
+		BaseName: token.design.Name,
 		Tokens:   []ShipToken{token},
 		FleetOrders: FleetOrders{
 			Waypoints: waypoints,
@@ -209,7 +216,7 @@ func NewFleetForToken(player *Player, num int, token ShipToken, waypoints []Wayp
 // create a new fleet that is a starbase
 func NewStarbase(player *Player, planet *Planet, design *ShipDesign, name string) Fleet {
 	fleet := NewFleet(player, design, 0, name, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 1)})
-	fleet.PlanetID = planet.ID
+	fleet.PlanetNum = planet.Num
 	fleet.Starbase = true
 
 	return fleet
@@ -251,7 +258,7 @@ func NewPlanetWaypoint(position Vector, num int, name string, warpFactor int) Wa
 		TargetType:      MapObjectTypePlanet,
 		TargetNum:       num,
 		TargetName:      name,
-		TargetPlayerNum: NoTarget,
+		TargetPlayerNum: None,
 		WarpFactor:      warpFactor,
 	}
 }
@@ -271,8 +278,8 @@ func NewPositionWaypoint(position Vector, warpFactor int) Waypoint {
 	return Waypoint{
 		Position:        position,
 		WarpFactor:      warpFactor,
-		TargetNum:       NoTarget,
-		TargetPlayerNum: NoTarget,
+		TargetNum:       None,
+		TargetPlayerNum: None,
 	}
 }
 
@@ -308,7 +315,17 @@ func (wp Waypoint) getTransportTasks() transportTaskByType {
 	return tasks
 }
 
-func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) *FleetSpec {
+// inject designs into tokens so all the various Compute* functions work
+func (f *Fleet) InjectDesigns(designsByUUID map[uuid.UUID]*ShipDesign) {
+	// inject the design into this
+	for i := range f.Tokens {
+		token := &f.Tokens[i]
+		token.design = designsByUUID[token.DesignUUID]
+	}
+
+}
+
+func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 	spec := FleetSpec{
 		ShipDesignSpec: ShipDesignSpec{
 			ScanRange:    NoScanner,
@@ -324,109 +341,109 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) *FleetSpec {
 		// update our total ship count
 		spec.TotalShips += token.Quantity
 
-		if token.Design.Purpose != ShipDesignPurposeNone {
-			spec.Purposes[token.Design.Purpose] = true
+		if token.design.Purpose != ShipDesignPurposeNone {
+			spec.Purposes[token.design.Purpose] = true
 		}
 
 		// use the lowest ideal speed for this fleet
 		// if we have multiple engines
-		if token.Design.Spec.Engine != "" {
+		if token.design.Spec.Engine != "" {
 			if spec.IdealSpeed == 0 {
-				spec.IdealSpeed = token.Design.Spec.IdealSpeed
+				spec.IdealSpeed = token.design.Spec.IdealSpeed
 			} else {
-				spec.IdealSpeed = MinInt(spec.IdealSpeed, token.Design.Spec.IdealSpeed)
+				spec.IdealSpeed = minInt(spec.IdealSpeed, token.design.Spec.IdealSpeed)
 			}
 		}
 		// cost
-		spec.Cost = token.Design.Spec.Cost.MultiplyInt(token.Quantity)
+		spec.Cost = token.design.Spec.Cost.MultiplyInt(token.Quantity)
 
 		// mass
-		spec.Mass += token.Design.Spec.Mass * token.Quantity
-		spec.MassEmpty += token.Design.Spec.Mass * token.Quantity
+		spec.Mass += token.design.Spec.Mass * token.Quantity
+		spec.MassEmpty += token.design.Spec.Mass * token.Quantity
 
 		// armor
-		spec.Armor += token.Design.Spec.Armor * token.Quantity
+		spec.Armor += token.design.Spec.Armor * token.Quantity
 
 		// shield
-		spec.Shield += token.Design.Spec.Shield * token.Quantity
+		spec.Shield += token.design.Spec.Shield * token.Quantity
 
 		// cargo
-		spec.CargoCapacity += token.Design.Spec.CargoCapacity * token.Quantity
+		spec.CargoCapacity += token.design.Spec.CargoCapacity * token.Quantity
 
 		// fuel
-		spec.FuelCapacity += token.Design.Spec.FuelCapacity * token.Quantity
+		spec.FuelCapacity += token.design.Spec.FuelCapacity * token.Quantity
 
 		// minesweep
-		spec.MineSweep += token.Design.Spec.MineSweep * token.Quantity
+		spec.MineSweep += token.design.Spec.MineSweep * token.Quantity
 
 		// remote mining
-		spec.MiningRate += token.Design.Spec.MiningRate * token.Quantity
+		spec.MiningRate += token.design.Spec.MiningRate * token.Quantity
 
 		// remote terraforming
-		spec.TerraformRate += token.Design.Spec.TerraformRate * token.Quantity
+		spec.TerraformRate += token.design.Spec.TerraformRate * token.Quantity
 
 		// colonization
-		spec.Colonizer = spec.Colonizer || token.Design.Spec.Colonizer
-		spec.OrbitalConstructionModule = spec.OrbitalConstructionModule || token.Design.Spec.OrbitalConstructionModule
+		spec.Colonizer = spec.Colonizer || token.design.Spec.Colonizer
+		spec.OrbitalConstructionModule = spec.OrbitalConstructionModule || token.design.Spec.OrbitalConstructionModule
 
 		// spec all mine layers in the fleet
-		if token.Design.Spec.CanLayMines {
-			for key := range token.Design.Spec.MineLayingRateByMineType {
+		if token.design.Spec.CanLayMines {
+			for key := range token.design.Spec.MineLayingRateByMineType {
 				if _, ok := spec.MineLayingRateByMineType[key]; ok {
 					spec.MineLayingRateByMineType[key] = 0
 				}
-				spec.MineLayingRateByMineType[key] += token.Design.Spec.MineLayingRateByMineType[key] * token.Quantity
+				spec.MineLayingRateByMineType[key] += token.design.Spec.MineLayingRateByMineType[key] * token.Quantity
 			}
 		}
 
 		// We should only have one ship stack with spacdock capabilities, but for this logic just go with the max
-		spec.SpaceDock = MaxInt(spec.SpaceDock, token.Design.Spec.SpaceDock)
+		spec.SpaceDock = maxInt(spec.SpaceDock, token.design.Spec.SpaceDock)
 
 		// sadly, the fleet only gets the best repair bonus from one design
-		spec.RepairBonus = math.Max(spec.RepairBonus, token.Design.Spec.RepairBonus)
+		spec.RepairBonus = math.Max(spec.RepairBonus, token.design.Spec.RepairBonus)
 
-		spec.ScanRange = MaxInt(spec.ScanRange, token.Design.Spec.ScanRange)
-		spec.ScanRangePen = MaxInt(spec.ScanRangePen, token.Design.Spec.ScanRangePen)
-		if token.Design.Spec.Scanner {
+		spec.ScanRange = maxInt(spec.ScanRange, token.design.Spec.ScanRange)
+		spec.ScanRangePen = maxInt(spec.ScanRangePen, token.design.Spec.ScanRangePen)
+		if token.design.Spec.Scanner {
 			spec.Scanner = true
 		}
 
 		// add bombs
-		if token.Design.Spec.Bomber {
+		if token.design.Spec.Bomber {
 			spec.Bomber = true
-			spec.Bombs = append(spec.Bombs, token.Design.Spec.Bombs...)
-			spec.SmartBombs = append(spec.SmartBombs, token.Design.Spec.SmartBombs...)
-			spec.RetroBombs = append(spec.RetroBombs, token.Design.Spec.RetroBombs...)
+			spec.Bombs = append(spec.Bombs, token.design.Spec.Bombs...)
+			spec.SmartBombs = append(spec.SmartBombs, token.design.Spec.SmartBombs...)
+			spec.RetroBombs = append(spec.RetroBombs, token.design.Spec.RetroBombs...)
 		}
 
 		// check if any tokens have weapons
 		// we process weapon slots per stack, so we don't need to spec all
 		// weapons in a fleet
-		if token.Design.Spec.HasWeapons {
+		if token.design.Spec.HasWeapons {
 			spec.HasWeapons = true
 		}
 
-		if token.Design.Spec.CloakUnits > 0 {
+		if token.design.Spec.CloakUnits > 0 {
 			// calculate the cloak units for this token based on the design's cloak units (i.e. 70 cloak units / kT for a stealh cloak)
-			spec.CloakUnits += token.Design.Spec.CloakUnits
+			spec.CloakUnits += token.design.Spec.CloakUnits
 		} else {
 			// if this ship doesn't have cloaking, it counts as cargo (except for races with free cargo cloaking)
 			if !player.Race.Spec.FreeCargoCloaking {
-				spec.BaseCloakedCargo += token.Design.Spec.Mass * token.Quantity
+				spec.BaseCloakedCargo += token.design.Spec.Mass * token.Quantity
 			}
 		}
 
 		// choose the best tachyon detector ship
-		spec.ReduceCloaking = math.Max(spec.ReduceCloaking, token.Design.Spec.ReduceCloaking)
+		spec.ReduceCloaking = math.Max(spec.ReduceCloaking, token.design.Spec.ReduceCloaking)
 
-		spec.CanStealFleetCargo = spec.CanStealFleetCargo || token.Design.Spec.CanStealFleetCargo
-		spec.CanStealPlanetCargo = spec.CanStealPlanetCargo || token.Design.Spec.CanStealPlanetCargo
+		spec.CanStealFleetCargo = spec.CanStealFleetCargo || token.design.Spec.CanStealFleetCargo
+		spec.CanStealPlanetCargo = spec.CanStealPlanetCargo || token.design.Spec.CanStealPlanetCargo
 	}
 
 	// compute the cloaking based on the cloak units and cargo
 	spec.CloakPercent = fleet.computeFleetCloakPercent(&spec, player.Race.Spec.FreeCargoCloaking)
 
-	return &spec
+	return spec
 }
 
 func (f *Fleet) ComputeFuelUsage(player *Player) {
@@ -459,15 +476,15 @@ func (f *Fleet) computeFleetCloakPercent(spec *FleetSpec, freeCargoCloaking bool
 	return getCloakPercentForCloakUnits(cloakUnits)
 }
 
-func (f *Fleet) AvailableCargoSpace() int {
+func (f *Fleet) availableCargoSpace() int {
 	return clamp(f.Spec.CargoCapacity-f.Cargo.Total(), 0, f.Spec.CargoCapacity)
 }
 
 // transfer cargo from a fleet to a cargo holder
-func (f *Fleet) TransferCargoItem(dest CargoHolder, cargoType CargoType, transferAmount int) error {
+func (f *Fleet) transferCargoItem(dest CargoHolder, cargoType CargoType, transferAmount int) error {
 	destCargo := dest.GetCargo()
-	if f.AvailableCargoSpace() < transferAmount {
-		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", f.Name, f.AvailableCargoSpace(), transferAmount, dest.GetMapObject().Name)
+	if f.availableCargoSpace() < transferAmount {
+		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", f.Name, f.availableCargoSpace(), transferAmount, dest.GetMapObject().Name)
 	}
 
 	if !destCargo.CanTransferAmount(cargoType, transferAmount) {
@@ -494,8 +511,8 @@ func (f *Fleet) TransferCargoItem(dest CargoHolder, cargoType CargoType, transfe
 // transfer cargo from a fleet to a cargo holder
 func (f *Fleet) TransferCargo(dest CargoHolder, transferAmount Cargo) error {
 	destCargo := dest.GetCargo()
-	if f.AvailableCargoSpace() < transferAmount.Total() {
-		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", f.Name, f.AvailableCargoSpace(), transferAmount.Total(), dest.GetMapObject().Name)
+	if f.availableCargoSpace() < transferAmount.Total() {
+		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", f.Name, f.availableCargoSpace(), transferAmount.Total(), dest.GetMapObject().Name)
 	}
 
 	if !destCargo.CanTransfer(transferAmount) {
@@ -519,8 +536,8 @@ func (f *Fleet) TransferCargo(dest CargoHolder, transferAmount Cargo) error {
 // transfer cargo from a planet to/from a fleet
 func (f *Fleet) TransferPlanetCargo(planet *Planet, transferAmount Cargo) error {
 
-	if f.AvailableCargoSpace() < transferAmount.Total() {
-		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", f.Name, f.AvailableCargoSpace(), transferAmount.Total(), planet.Name)
+	if f.availableCargoSpace() < transferAmount.Total() {
+		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", f.Name, f.availableCargoSpace(), transferAmount.Total(), planet.Name)
 	}
 
 	if !planet.Cargo.CanTransfer(transferAmount) {
@@ -537,8 +554,8 @@ func (f *Fleet) TransferPlanetCargo(planet *Planet, transferAmount Cargo) error 
 // transfer cargo from a fleet to/from a fleet
 func (f *Fleet) TransferFleetCargo(fleet *Fleet, transferAmount Cargo) error {
 
-	if f.AvailableCargoSpace() < transferAmount.Total() {
-		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", f.Name, f.AvailableCargoSpace(), transferAmount.Total(), fleet.Name)
+	if f.availableCargoSpace() < transferAmount.Total() {
+		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", f.Name, f.availableCargoSpace(), transferAmount.Total(), fleet.Name)
 	}
 
 	if !fleet.Cargo.CanTransfer(transferAmount) {
@@ -614,7 +631,7 @@ func (fleet *Fleet) moveFleet(mapObjectGetter MapObjectGetter, rules *Rules, pla
 	}
 
 	// message the player about fuel generation
-	fuelGenerated = MinInt(fuelGenerated, fleet.Spec.FuelCapacity-fleet.Fuel)
+	fuelGenerated = minInt(fuelGenerated, fleet.Spec.FuelCapacity-fleet.Fuel)
 	if fuelGenerated > 0 {
 		fleet.Fuel += fuelGenerated
 		messager.fleetGeneratedFuel(player, fleet, fuelGenerated)
@@ -638,8 +655,8 @@ func (fleet *Fleet) moveFleet(mapObjectGetter MapObjectGetter, rules *Rules, pla
 		fleet.WarpSpeed = wp1.WarpFactor
 		fleet.Heading = (wp1.Position.Subtract(fleet.Position)).Normalized()
 		wp0.TargetType = MapObjectTypeNone
-		wp0.TargetNum = NoTarget
-		wp0.TargetPlayerNum = NoTarget
+		wp0.TargetNum = None
+		wp0.TargetPlayerNum = None
 		wp0.TargetName = ""
 		wp0.PartiallyComplete = true
 
@@ -698,16 +715,16 @@ func (fleet *Fleet) GetFuelCost(player *Player, warpFactor int, distance float64
 	// compute each ship stack separately
 	for _, token := range fleet.Tokens {
 		// figure out this ship stack's mass as well as it's proportion of the cargo
-		mass := token.Design.Spec.Mass * token.Quantity
+		mass := token.design.Spec.Mass * token.Quantity
 		fleetCargo := fleet.Cargo.Total()
-		stackCapacity := token.Design.Spec.CargoCapacity * token.Quantity
+		stackCapacity := token.design.Spec.CargoCapacity * token.Quantity
 		fleetCapacity := fleet.Spec.CargoCapacity
 
 		if fleetCapacity > 0 {
 			mass += int(float64(fleetCargo) * (float64(stackCapacity) / float64(fleetCapacity)))
 		}
 
-		fuelCost += fleet.getFuelCostForEngine(warpFactor, mass, distance, efficiencyFactor, token.Design.Spec.FuelUsage)
+		fuelCost += fleet.getFuelCostForEngine(warpFactor, mass, distance, efficiencyFactor, token.design.Spec.FuelUsage)
 	}
 
 	return fuelCost
@@ -718,8 +735,8 @@ func (fleet *Fleet) getNoFuelWarpFactor(techStore *TechStore, player *Player) in
 	// find the lowest freeSpeed from all the fleet's engines
 	var freeSpeed = math.MaxInt
 	for _, token := range fleet.Tokens {
-		engine := techStore.GetEngine(token.Design.Spec.Engine)
-		freeSpeed = MinInt(freeSpeed, engine.FreeSpeed)
+		engine := techStore.GetEngine(token.design.Spec.Engine)
+		freeSpeed = minInt(freeSpeed, engine.FreeSpeed)
 	}
 	return freeSpeed
 }
@@ -729,8 +746,8 @@ func (fleet *Fleet) getFuelGeneration(techStore *TechStore, player *Player, warp
 	// find the lowest freeSpeed from all the fleet's engines
 	var freeSpeed = math.MaxInt
 	for _, token := range fleet.Tokens {
-		engine := techStore.GetEngine(token.Design.Spec.Engine)
-		freeSpeed = MinInt(freeSpeed, engine.FreeSpeed)
+		engine := techStore.GetEngine(token.design.Spec.Engine)
+		freeSpeed = minInt(freeSpeed, engine.FreeSpeed)
 	}
 	return freeSpeed
 }
@@ -741,7 +758,7 @@ func (fleet *Fleet) completeMove(mapObjectGetter MapObjectGetter, wp0 Waypoint, 
 
 	// find out if we arrived at a planet, either by reaching our target fleet
 	// or reaching a planet
-	if wp1.TargetType == MapObjectTypeFleet && wp1.TargetPlayerNum != NoTarget && wp1.TargetNum != NoTarget {
+	if wp1.TargetType == MapObjectTypeFleet && wp1.TargetPlayerNum != None && wp1.TargetNum != None {
 		target := mapObjectGetter.GetFleet(wp1.TargetPlayerNum, wp1.TargetNum)
 		fleet.OrbitingPlanetNum = target.OrbitingPlanetNum
 
@@ -751,14 +768,14 @@ func (fleet *Fleet) completeMove(mapObjectGetter MapObjectGetter, wp0 Waypoint, 
 			// refuel at starbases
 			fleet.Fuel = fleet.Spec.FuelCapacity
 		}
-	} else if wp1.TargetType == MapObjectTypePlanet && wp1.TargetNum != NoTarget {
+	} else if wp1.TargetType == MapObjectTypePlanet && wp1.TargetNum != None {
 		target := mapObjectGetter.GetPlanet(wp1.TargetNum)
 		fleet.OrbitingPlanetNum = target.Num
 		if fleet.PlayerNum == target.PlayerNum && target.Spec.HasStarbase {
 			// refuel at starbases
 			fleet.Fuel = fleet.Spec.FuelCapacity
 		}
-	} else if wp1.TargetType == MapObjectTypeWormhole && wp1.TargetNum != NoTarget {
+	} else if wp1.TargetType == MapObjectTypeWormhole && wp1.TargetNum != None {
 		target := mapObjectGetter.GetWormhole(wp1.TargetNum)
 		dest := mapObjectGetter.GetWormhole(target.DestinationNum)
 		fleet.Position = dest.Position
@@ -796,7 +813,7 @@ func (fleet *Fleet) colonizePlanet(rules *Rules, player *Player, planet *Planet)
 	}
 
 	if player.Race.Spec.InnateMining {
-		planet.Mines = planet.GetInnateMines(player)
+		planet.Mines = planet.innateMines(player)
 	}
 
 	if fleet.Spec.OrbitalConstructionModule {
@@ -804,7 +821,7 @@ func (fleet *Fleet) colonizePlanet(rules *Rules, player *Player, planet *Planet)
 		if design != nil {
 			starbase := NewStarbase(player, planet, design, design.Name)
 			starbase.Spec = ComputeFleetSpec(rules, player, &starbase)
-			planet.Starbase = &starbase
+			planet.starbase = &starbase
 		}
 	}
 
@@ -818,7 +835,7 @@ func (fleet *Fleet) scrap(rules *Rules, player *Player, planet *Planet) *Salvage
 	if planet != nil {
 		// scrap over a planet
 		planet.Cargo = planet.Cargo.AddCostMinerals(cost)
-		if planet.OwnedBy(player.Num) {
+		if planet.ownedBy(player.Num) {
 			planet.BonusResources += cost.Resources
 		}
 	} else {
@@ -842,7 +859,7 @@ func (fleet *Fleet) getScrapAmount(rules *Rules, player *Player, planet *Planet)
 	extraResources := 0
 	planetResources := 0
 
-	if planet != nil && planet.OwnedBy(player.Num) {
+	if planet != nil && planet.ownedBy(player.Num) {
 		planetResources = planet.Spec.ResourcesPerYear + planet.BonusResources
 		// UR races get resources when scrapping
 		if planet.Spec.HasStarbase {

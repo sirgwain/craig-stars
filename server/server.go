@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/sirgwain/craig-stars/appcontext"
+	"github.com/sirgwain/craig-stars/config"
 
 	"github.com/gin-contrib/sessions"
 	gormsessions "github.com/gin-contrib/sessions/gorm"
@@ -16,15 +16,17 @@ import (
 )
 
 type server struct {
-	ctx        *appcontext.AppContext
+	db         DBClient
+	config     config.Config
 	gameRunner *GameRunner
 }
 
-func Start(ctx *appcontext.AppContext) {
+func Start(db DBClient, config config.Config) {
 
 	server := &server{
-		ctx:        ctx,
-		gameRunner: NewGameRunner(ctx.DB),
+		db:         db,
+		config:     config,
+		gameRunner: NewGameRunner(db),
 	}
 
 	// create the data dir
@@ -32,11 +34,11 @@ func Start(ctx *appcontext.AppContext) {
 		panic(err)
 	}
 
-	db, err := gorm.Open(sqlite.Open("data/session.db"), &gorm.Config{})
+	sessionDB, err := gorm.Open(sqlite.Open("data/session.db"), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
-	store := gormsessions.NewStore(db, true, []byte("secret"))
+	store := gormsessions.NewStore(sessionDB, true, []byte("secret"))
 
 	r := gin.Default()
 	r.Use(sessions.Sessions("session", store))
@@ -66,6 +68,7 @@ func Start(ctx *appcontext.AppContext) {
 	ar := r.Group("/api")
 	ar.Use(server.AuthRequired)
 	ar.GET("/me", server.Me)
+	ar.GET("/users", server.Users)
 
 	ar.GET("/rules", server.Rules)
 
@@ -81,7 +84,7 @@ func Start(ctx *appcontext.AppContext) {
 	ar.POST("/games", server.HostGame)
 	ar.POST("/games/open/:id", server.JoinGame)
 	ar.GET("/games/:id", server.PlayerGame)
-	ar.DELETE("/games/:id", server.DeleteGameById)
+	ar.DELETE("/games/:id", server.DeleteGame)
 	ar.POST("/games/:id/submit-turn", server.SubmitTurn)
 	ar.PUT("/planets/:id", server.UpdatePlanetOrders)
 	ar.POST("/fleets/:id/transfer-cargo", server.TransferCargo)
