@@ -6,19 +6,19 @@ import (
 )
 
 type MapObject struct {
-	ID        int64         `gorm:"primaryKey" json:"id" boltholdKey:"ID"`
+	ID        int64         `json:"id"`
 	GameID    int64         `json:"gameId" boltholdIndex:"GameID"`
 	CreatedAt time.Time     `json:"createdAt"`
 	UpdatedAt time.Time     `json:"updatedAt"`
 	Type      MapObjectType `json:"type"`
 	PlayerID  int64         `json:"-"`
-	Dirty     bool          `json:"-" gorm:"-"`
-	Delete    bool          `json:"-" gorm:"-"`
-	Position  Vector        `json:"position" gorm:"embedded"`
+	Dirty     bool          `json:"-"`
+	Delete    bool          `json:"-"`
+	Position  Vector        `json:"position"`
 	Name      string        `json:"name"`
 	Num       int           `json:"num"`
 	PlayerNum int           `json:"playerNum"`
-	// Tags      Tags           `json:"tags" gorm:"serializer:json"`
+	// Tags      Tags           `json:"tags"`
 }
 
 type MapObjectType string

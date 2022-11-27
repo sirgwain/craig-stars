@@ -6,7 +6,7 @@ import (
 )
 
 type PlayerMessage struct {
-	ID                 int64                   `gorm:"primaryKey" json:"id"`
+	ID                 int64                   `json:"id"`
 	CreatedAt          time.Time               `json:"createdAt"`
 	UpdatedAt          time.Time               `json:"updatedAt"`
 	PlayerID           int64                   `json:"playerId"`

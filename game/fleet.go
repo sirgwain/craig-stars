@@ -31,22 +31,22 @@ type Fleet struct {
 	FleetOrders
 	PlanetNum         int         `json:"planetNum"` // for starbase fleets that are owned by a planet
 	BaseName          string      `json:"baseName"`
-	Cargo             Cargo       `json:"cargo,omitempty" gorm:"embedded;embeddedPrefix:cargo_"`
+	Cargo             Cargo       `json:"cargo,omitempty"`
 	Fuel              int         `json:"fuel"`
 	Damage            int         `json:"damage"`
 	BattlePlanName    string      `json:"battlePlan"`
 	Tokens            []ShipToken `json:"tokens"`
-	Heading           Vector      `json:"heading,omitempty" gorm:"embedded;embeddedPrefix:heading_"`
+	Heading           Vector      `json:"heading,omitempty"`
 	WarpSpeed         int         `json:"warpSpeed,omitempty"`
-	PreviousPosition  *Vector     `json:"previousPosition,omitempty" gorm:"embedded;embeddedPrefix:previous_position_"`
+	PreviousPosition  *Vector     `json:"previousPosition,omitempty"`
 	OrbitingPlanetNum int         `json:"orbitingPlanetNum,omitempty"`
 	Starbase          bool        `json:"starbase,omitempty"`
-	Spec              *FleetSpec  `json:"spec" gorm:"serializer:json"`
+	Spec              *FleetSpec  `json:"spec"`
 	battlePlan        *BattlePlan
 }
 
 type FleetOrders struct {
-	Waypoints    []Waypoint `json:"waypoints" gorm:"serializer:json"`
+	Waypoints    []Waypoint `json:"waypoints"`
 	RepeatOrders bool       `json:"repeatOrders,omitempty"`
 }
 
@@ -64,19 +64,19 @@ type FleetSpec struct {
 }
 
 type ShipToken struct {
-	ID              int64       `gorm:"primaryKey" json:"id"`
-	CreatedAt       time.Time   `json:"createdAt"`
-	UpdatedAt       time.Time   `json:"updatedAt"`
-	FleetID         int64       `json:"fleetId"`
-	DesignUUID      uuid.UUID   `json:"designUuid,omitempty"`
-	Quantity        int         `json:"quantity"`
-	Damage          float64     `json:"damage"`
-	QuantityDamaged int         `json:"quantityDamaged"`
-	design          *ShipDesign `json:"-" gorm:"-"`
+	ID              int64     `json:"id"`
+	CreatedAt       time.Time `json:"createdAt"`
+	UpdatedAt       time.Time `json:"updatedAt"`
+	FleetID         int64     `json:"fleetId"`
+	DesignUUID      uuid.UUID `json:"designUuid,omitempty"`
+	Quantity        int       `json:"quantity"`
+	Damage          float64   `json:"damage"`
+	QuantityDamaged int       `json:"quantityDamaged"`
+	design          *ShipDesign
 }
 
 type Waypoint struct {
-	Position          Vector                 `json:"position,omitempty" gorm:"embedded"`
+	Position          Vector                 `json:"position,omitempty"`
 	WarpFactor        int                    `json:"warpFactor,omitempty"`
 	EstFuelUsage      int                    `json:"estFuelUsage,omitempty"`
 	Task              WaypointTask           `json:"task,omitempty"`
@@ -313,6 +313,16 @@ func (wp Waypoint) getTransportTasks() transportTaskByType {
 	}
 
 	return tasks
+}
+
+// inject designs into tokens so all the various Compute* functions work
+func (f *Fleet) InjectDesigns(designsByUUID map[uuid.UUID]*ShipDesign) {
+	// inject the design into this
+	for i := range f.Tokens {
+		token := &f.Tokens[i]
+		token.design = designsByUUID[token.DesignUUID]
+	}
+
 }
 
 func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) *FleetSpec {

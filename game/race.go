@@ -7,7 +7,7 @@ import (
 )
 
 type Race struct {
-	ID                int64        `gorm:"primaryKey" json:"id,omitempty" boltholdKey:"ID"`
+	ID                int64        `json:"id,omitempty"`
 	CreatedAt         time.Time    `json:"createdAt,omitempty"`
 	UpdatedAt         time.Time    `json:"updatedat,omitempty"`
 	UserID            int64        `json:"userId,omitempty"`
@@ -16,8 +16,8 @@ type Race struct {
 	PluralName        string       `json:"pluralName,omitempty"`
 	PRT               PRT          `json:"prt,omitempty"`
 	LRTs              Bitmask      `json:"lrts,omitempty"`
-	HabLow            Hab          `json:"habLow,omitempty" gorm:"embedded;embeddedPrefix:hab_low_"`
-	HabHigh           Hab          `json:"habHigh,omitempty" gorm:"embedded;embeddedPrefix:hab_high_"`
+	HabLow            Hab          `json:"habLow,omitempty"`
+	HabHigh           Hab          `json:"habHigh,omitempty"`
 	GrowthRate        int          `json:"growthRate,omitempty"`
 	PopEfficiency     int          `json:"popEfficiency,omitempty"`
 	FactoryOutput     int          `json:"factoryOutput,omitempty"`
@@ -30,9 +30,9 @@ type Race struct {
 	MineOutput        int          `json:"mineOutput,omitempty"`
 	MineCost          int          `json:"mineCost,omitempty"`
 	NumMines          int          `json:"numMines,omitempty"`
-	ResearchCost      ResearchCost `json:"researchCost,omitempty" gorm:"embedded;embeddedPrefix:research_cost_"`
+	ResearchCost      ResearchCost `json:"researchCost,omitempty"`
 	TechsStartHigh    bool         `json:"techsStartHigh,omitempty"`
-	Spec              *RaceSpec    `json:"spec,omitempty" gorm:"serializer:json"`
+	Spec              *RaceSpec    `json:"spec,omitempty"`
 }
 
 type ResearchCostLevel string

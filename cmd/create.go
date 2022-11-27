@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/sirgwain/craig-stars/config"
-	"github.com/sirgwain/craig-stars/db"
+	"github.com/sirgwain/craig-stars/dbsqlx"
 	"github.com/sirgwain/craig-stars/game"
 
 	"github.com/spf13/cobra"
@@ -35,7 +35,7 @@ func addCreateUserCommand() {
 		Long:  ``,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			user := game.NewUser(username, password, role)
-			db := db.NewClient()
+			db := dbsqlx.NewClient()
 			cfg := config.GetConfig()
 			db.Connect(cfg)
 

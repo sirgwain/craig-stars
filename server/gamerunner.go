@@ -181,7 +181,7 @@ func (gr *GameRunner) LoadPlayerGame(gameID int64, userID int64) (*game.Game, *g
 
 // submit a turn for a player
 func (gr *GameRunner) SubmitTurn(gameID int64, userID int64) error {
-	player, err := gr.db.GetPlayerForGame(gameID, userID)
+	player, err := gr.db.GetLightPlayerForGame(gameID, userID)
 	if err != nil {
 		return fmt.Errorf("find player for user %d, game %d: %w", userID, gameID, err)
 	}
@@ -191,7 +191,7 @@ func (gr *GameRunner) SubmitTurn(gameID int64, userID int64) error {
 	}
 
 	player.SubmittedTurn = true
-	gr.db.UpdatePlayer(player)
+	gr.db.UpdateLightPlayer(player)
 	return nil
 }
 

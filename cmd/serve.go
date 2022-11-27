@@ -72,6 +72,7 @@ func generateTestGame(db server.DBClient, config config.Config) error {
 	// also create a medium size game with 25 turns generated
 	mediumGame, err := gameRunner.HostGame(admin.ID, game.NewGameSettings().
 		WithName("Medium Game").
+		WithSize(game.SizeMedium).
 		WithHost(adminRace.ID).
 		WithAIPlayer(game.AIDifficultyNormal))
 	if err != nil {

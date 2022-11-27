@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"github.com/sirgwain/craig-stars/config"
-	"github.com/sirgwain/craig-stars/db"
+	"github.com/sirgwain/craig-stars/dbsqlx"
 
 	"github.com/spf13/cobra"
 )
@@ -30,7 +30,7 @@ func addDeleteUserCmd() {
 		Short: "Delete user",
 		Long:  `Delete user from the database`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			db := db.NewClient()
+			db := dbsqlx.NewClient()
 			cfg := config.GetConfig()
 			db.Connect(cfg)
 
@@ -59,7 +59,7 @@ func addDeleteGameCmd() {
 		Short: "Delete game",
 		Long:  `Delete game from the database`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			db := db.NewClient()
+			db := dbsqlx.NewClient()
 			cfg := config.GetConfig()
 			db.Connect(cfg)
 

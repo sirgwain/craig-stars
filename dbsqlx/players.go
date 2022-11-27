@@ -242,9 +242,28 @@ func (c *client) GetPlayer(id int64) (*game.Player, error) {
 	return &player, nil
 }
 
-func (c *client) GetPlayerForGame(gameID, userID int64) (*game.Player, error) {
+func (c *client) GetLightPlayerForGame(gameID, userID int64) (*game.Player, error) {
 	item := Player{}
-	if err := c.db.Get(&item, "SELECT * FROM players WHERE gameId = ? AND userId = ?", gameID, userID); err != nil {
+	if err := c.db.Get(&item, `
+	SELECT 
+	id,
+	createdAt,
+	updatedAt,
+	gameId,
+	userId,
+	name,
+	num,
+	ready,
+	aiControlled,
+	submittedTurn,
+	color,
+	defaultHullSet,
+	researchAmount,
+	nextResearchField,
+	researching,
+	race
+	FROM players 
+	WHERE gameId = ? AND userId = ?`, gameID, userID); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
@@ -286,7 +305,17 @@ func (c *client) GetFullPlayerForGame(gameID, userID int64) (*game.FullPlayer, e
 	if err != nil {
 		return nil, fmt.Errorf("get player fleets %w", err)
 	}
-	player.Fleets = fleets
+	// pre-instantiate the fleets/starbases arrays (make it a little bigger than necessary)
+	player.Fleets = make([]*game.Fleet, 0, len(fleets))
+	player.Starbases = make([]*game.Fleet, 0, len(planets))
+	for i := range fleets {
+		fleet := fleets[i]
+		if fleet.Starbase {
+			player.Starbases = append(player.Starbases, fleet)
+		} else {
+			player.Fleets = append(player.Fleets, fleet)
+		}
+	}
 
 	return &player, nil
 }
@@ -401,6 +430,31 @@ func (c *client) createPlayer(player *game.Player, tx SQLExecer) error {
 // update an existing player
 func (c *client) UpdatePlayer(player *game.Player) error {
 	return c.updatePlayerWithNamedExecer(player, c.db)
+}
+
+// update an existing player's lightweight fields
+func (c *client) UpdateLightPlayer(player *game.Player) error {
+	item := c.converter.ConvertGamePlayer(player)
+
+	if _, err := c.db.NamedExec(`
+	UPDATE players SET
+		updatedAt = CURRENT_TIMESTAMP,
+		name = :name,
+		num = :num,
+		ready = :ready,
+		aiControlled = :aiControlled,
+		submittedTurn = :submittedTurn,
+		color = :color,
+		defaultHullSet = :defaultHullSet,
+		researchAmount = :researchAmount,
+		nextResearchField = :nextResearchField,
+		researching = :researching	
+	WHERE id = :id
+	`, item); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // helper to update a player using a transaction or DB

@@ -39,14 +39,14 @@ const (
 )
 
 type Tech struct {
-	ID        int64     `gorm:"primaryKey" json:"id"`
+	ID        int64     `json:"id"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 
 	TechStoreID  int64            `json:"techStoreId"`
 	Name         string           `json:"name"`
-	Cost         Cost             `json:"cost" gorm:"embedded;embeddedPrefix:cost_"`
-	Requirements TechRequirements `json:"requirements"  gorm:"embedded;embeddedPrefix:requirements_"`
+	Cost         Cost             `json:"cost"`
+	Requirements TechRequirements `json:"requirements" `
 	Ranking      int              `json:"ranking,omitempty"`
 	Category     TechCategory     `json:"category,omitempty"`
 }
@@ -113,7 +113,7 @@ type TechEngine struct {
 	TechHullComponent
 	IdealSpeed int     `json:"idealSpeed,omitempty"`
 	FreeSpeed  int     `json:"freeSpeed,omitempty"`
-	FuelUsage  [11]int `json:"fuelUsage,omitempty" gorm:"serializer:json"`
+	FuelUsage  [11]int `json:"fuelUsage,omitempty"`
 }
 
 type TechHull struct {
@@ -134,7 +134,7 @@ type TechHull struct {
 	OrbitalConstructionHull  bool           `json:"orbitalConstructionHull,omitempty"`
 	DoubleMineEfficiency     bool           `json:"doubleMineEfficiency,omitempty"`
 	InnateScanRangePenFactor float64        `json:"innateScanRangePenFactor,omitempty"`
-	Slots                    []TechHullSlot `json:"slots,omitempty" gorm:"serializer:json"`
+	Slots                    []TechHullSlot `json:"slots,omitempty"`
 }
 
 type TechHullSlot struct {

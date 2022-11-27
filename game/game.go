@@ -46,7 +46,7 @@ type GameSettings struct {
 }
 
 type Game struct {
-	ID                           int64             `gorm:"primaryKey" json:"id" header:"ID" boltholdKey:"ID"`
+	ID                           int64             `json:"id" header:"ID"`
 	CreatedAt                    time.Time         `json:"createdAt"`
 	UpdatedAt                    time.Time         `json:"updatedAt"`
 	Name                         string            `json:"name" header:"Name"`
@@ -63,22 +63,22 @@ type Game struct {
 	State                        GameState         `json:"state"`
 	OpenPlayerSlots              uint              `json:"openPlayerSlots"`
 	NumPlayers                   int               `json:"numPlayers"`
-	VictoryConditions            VictoryConditions `json:"victoryConditions" gorm:"embedded;embeddedPrefix:victory_condition_"`
+	VictoryConditions            VictoryConditions `json:"victoryConditions"`
 	VictorDeclared               bool              `json:"victorDeclared"`
 	Seed                         int64             `json:"seed"`
-	Rules                        Rules             `json:"rules" gorm:"serializer:json"`
-	Area                         Vector            `json:"area,omitempty" gorm:"embedded;embeddedPrefix:area_"`
+	Rules                        Rules             `json:"rules"`
+	Area                         Vector            `json:"area,omitempty"`
 }
 
 // A game with players and a universe, used in universe and turn generation
 type FullGame struct {
 	*Game
 	*Universe
-	Players []*Player `json:"players,omitempty" gorm:"foreignKey:GameID;references:ID"`
+	Players []*Player `json:"players,omitempty"`
 }
 
 type VictoryConditions struct {
-	Conditions               []VictoryCondition `json:"conditions" gorm:"serializer:json"`
+	Conditions               []VictoryCondition `json:"conditions"`
 	NumCriteriaRequired      int                `json:"numCriteriaRequired"`
 	YearsPassed              int                `json:"yearsPassed"`
 	OwnPlanets               int                `json:"ownPlanets"`

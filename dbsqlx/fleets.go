@@ -187,6 +187,27 @@ func (c *client) GetFleet(id int64) (*game.Fleet, error) {
 		return nil, fmt.Errorf("scan fleetJoin rows")
 	}
 
+	fleet := fleets[0]
+
+	// load a fleet's designs
+	designUUIDs := make([]uuid.UUID, 0, len(fleet.Tokens))
+	for i := range fleet.Tokens {
+		designUUIDs = append(designUUIDs, fleet.Tokens[i].DesignUUID)
+	}
+
+	designs, err := c.getShipDesignsByUUIDs(designUUIDs)
+	if err != nil {
+		return nil, fmt.Errorf("get designs by UUIDs -> %w", err)
+	}
+
+	designsByUUIDs := make(map[uuid.UUID]*game.ShipDesign, len(designs))
+	for i := range designs {
+		design := &designs[i]
+		designsByUUIDs[design.UUID] = design
+	}
+
+	fleet.InjectDesigns(designsByUUIDs)
+
 	return fleets[0], nil
 }
 
