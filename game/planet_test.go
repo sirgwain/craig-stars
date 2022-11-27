@@ -40,7 +40,7 @@ func TestPlanet_String(t *testing.T) {
 }
 
 func TestPlanet_GetInnateMines(t *testing.T) {
-	player := NewPlayer(1, &Race{Spec: &RaceSpec{InnateMining: false}})
+	player := NewPlayer(1, &Race{Spec: RaceSpec{InnateMining: false}})
 	planet := Planet{}
 	planet.SetPopulation(16000)
 
@@ -120,7 +120,7 @@ func TestPlanet_produce(t *testing.T) {
 	// build 1 mine
 	planet.ProductionQueue = []ProductionQueueItem{{Type: QueueItemTypeMine, Quantity: 1}}
 	planet.Cargo = Cargo{10, 20, 30, 2500}
-	planet.Spec = &PlanetSpec{ResourcesPerYearAvailable: 100, MaxPossibleMines: 100}
+	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 100, MaxPossibleMines: 100}
 	planet.Mines = 0
 
 	// should build 1 mine, leaving empty queue
@@ -132,7 +132,7 @@ func TestPlanet_produce(t *testing.T) {
 	// build 5 auto mines, leaving them in the queue
 	planet.ProductionQueue = []ProductionQueueItem{{Type: QueueItemTypeAutoMines, Quantity: 5}}
 	planet.Cargo = Cargo{10, 20, 30, 2500}
-	planet.Spec = &PlanetSpec{ResourcesPerYearAvailable: 100, MaxMines: 100}
+	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 100, MaxMines: 100}
 	planet.Mines = 0
 	player.Messages = []PlayerMessage{}
 
@@ -151,7 +151,7 @@ func TestPlanet_produce2(t *testing.T) {
 	// build 5 auto factories, leaving them in the queue
 	planet.ProductionQueue = []ProductionQueueItem{{Type: QueueItemTypeAutoFactories, Quantity: 5}}
 	planet.Cargo = Cargo{10, 20, 30, 2500}
-	planet.Spec = &PlanetSpec{ResourcesPerYearAvailable: 100, MaxFactories: 100}
+	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 100, MaxFactories: 100}
 	planet.Factories = 0
 	player.Messages = []PlayerMessage{}
 
@@ -174,7 +174,7 @@ func TestPlanet_produce3(t *testing.T) {
 		{Type: QueueItemTypeAutoMines, Quantity: 5},
 	}
 	planet.Cargo = Cargo{0, 0, 8, 2500}
-	planet.Spec = &PlanetSpec{ResourcesPerYearAvailable: 100, MaxFactories: 100, MaxMines: 100}
+	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 100, MaxFactories: 100, MaxMines: 100}
 	planet.Factories = 0
 	player.Messages = []PlayerMessage{}
 
@@ -198,7 +198,7 @@ func TestPlanet_produce4(t *testing.T) {
 		{Type: QueueItemTypeAutoMines, Quantity: 5},
 	}
 	planet.Cargo = Cargo{0, 0, 8, 2500}
-	planet.Spec = &PlanetSpec{ResourcesPerYearAvailable: 10*2 + 8, MaxFactories: 100, MaxMines: 100}
+	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 10*2 + 8, MaxFactories: 100, MaxMines: 100}
 	planet.Factories = 0
 	player.Messages = []PlayerMessage{}
 

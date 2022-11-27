@@ -42,8 +42,8 @@ type Player struct {
 	ShipDesignIntels      []ShipDesignIntel    `json:"shipDesignIntels,omitempty"`
 	MineralPacketIntels   []MineralPacketIntel `json:"mineralPacketIntels,omitempty"`
 	MineFieldIntels       []MineFieldIntel     `json:"mineFieldIntels,omitempty"`
+	Spec                  PlayerSpec           `json:"spec,omitempty"`
 	Stats                 *PlayerStats         `json:"stats,omitempty"`
-	Spec                  *PlayerSpec          `json:"spec,omitempty"`
 	leftoverResources     int
 }
 
@@ -244,7 +244,7 @@ func (p *Player) GetLatestDesign(purpose ShipDesignPurpose) *ShipDesign {
 	return latest
 }
 
-func computePlayerSpec(player *Player, rules *Rules) *PlayerSpec {
+func computePlayerSpec(player *Player, rules *Rules) PlayerSpec {
 	techs := rules.techs
 	spec := PlayerSpec{
 		PlanetaryScanner:  techs.GetBestPlanetaryScanner(player),
@@ -252,7 +252,7 @@ func computePlayerSpec(player *Player, rules *Rules) *PlayerSpec {
 		ResourcesLeftover: 0,
 	}
 
-	return &spec
+	return spec
 }
 
 // return true if the player currently has this tech

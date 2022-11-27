@@ -305,12 +305,12 @@ func GameRulesToRules(source game.Rules) *Rules {
 	return (*Rules)(&source)
 }
 
-func RaceSpecToGameRaceSpec(source *RaceSpec) *game.RaceSpec {
-	return (*game.RaceSpec)(source)
+func RaceSpecToGameRaceSpec(source *RaceSpec) game.RaceSpec {
+	return (game.RaceSpec)(*source)
 }
 
-func GameRaceSpecToRaceSpec(source *game.RaceSpec) *RaceSpec {
-	return (*RaceSpec)(source)
+func GameRaceSpecToRaceSpec(source game.RaceSpec) *RaceSpec {
+	return (*RaceSpec)(&source)
 }
 
 func BattlePlansToGameBattlePlans(source *BattlePlans) []game.BattlePlan {
@@ -423,7 +423,7 @@ func GameMineFieldIntelsToMineFieldIntels(source []game.MineFieldIntel) *MineFie
 }
 
 func PlayerRaceToGameRace(source *PlayerRace) game.Race {
-	// return an empty object for nil
+	// return an empty object for nil to support partial loads
 	if source == nil {
 		return game.Race{}
 	}
@@ -434,12 +434,17 @@ func GameRaceToPlayerRace(source game.Race) *PlayerRace {
 	return (*PlayerRace)(&source)
 }
 
-func PlayerSpecToGamePlayerSpec(source *PlayerSpec) *game.PlayerSpec {
-	return (*game.PlayerSpec)(source)
+func PlayerSpecToGamePlayerSpec(source *PlayerSpec) game.PlayerSpec {
+	// return an empty object for nil to support partial loads
+	if source == nil {
+		return game.PlayerSpec{}
+	}
+
+	return (game.PlayerSpec)(*source)
 }
 
-func GamePlayerSpecToPlayerSpec(source *game.PlayerSpec) *PlayerSpec {
-	return (*PlayerSpec)(source)
+func GamePlayerSpecToPlayerSpec(source game.PlayerSpec) *PlayerSpec {
+	return (*PlayerSpec)(&source)
 }
 
 func PlayerStatsToGamePlayerStats(source *PlayerStats) *game.PlayerStats {
@@ -450,12 +455,12 @@ func GamePlayerStatsToPlayerStats(source *game.PlayerStats) *PlayerStats {
 	return (*PlayerStats)(source)
 }
 
-func PlanetSpecToGamePlanetSpec(source *PlanetSpec) *game.PlanetSpec {
-	return (*game.PlanetSpec)(source)
+func PlanetSpecToGamePlanetSpec(source *PlanetSpec) game.PlanetSpec {
+	return (game.PlanetSpec)(*source)
 }
 
-func GamePlanetSpecToPlanetSpec(source *game.PlanetSpec) *PlanetSpec {
-	return (*PlanetSpec)(source)
+func GamePlanetSpecToPlanetSpec(source game.PlanetSpec) *PlanetSpec {
+	return (*PlanetSpec)(&source)
 }
 
 func ProductionQueueItemsToGameProductionQueueItems(source *ProductionQueueItems) []game.ProductionQueueItem {
@@ -466,12 +471,12 @@ func GameProductionQueueItemsToProductionQueueItems(source []game.ProductionQueu
 	return (*ProductionQueueItems)(&source)
 }
 
-func FleetSpecToGameFleetSpec(source *FleetSpec) *game.FleetSpec {
-	return (*game.FleetSpec)(source)
+func FleetSpecToGameFleetSpec(source *FleetSpec) game.FleetSpec {
+	return (game.FleetSpec)(*source)
 }
 
-func GameFleetSpecToFleetSpec(source *game.FleetSpec) *FleetSpec {
-	return (*FleetSpec)(source)
+func GameFleetSpecToFleetSpec(source game.FleetSpec) *FleetSpec {
+	return (*FleetSpec)(&source)
 }
 
 func WaypointsToGameWaypoints(source *Waypoints) []game.Waypoint {
@@ -482,12 +487,12 @@ func GameWaypointsToWaypoints(source []game.Waypoint) *Waypoints {
 	return (*Waypoints)(&source)
 }
 
-func ShipDesignSpecToGameShipDesignSpec(source *ShipDesignSpec) *game.ShipDesignSpec {
-	return (*game.ShipDesignSpec)(source)
+func ShipDesignSpecToGameShipDesignSpec(source *ShipDesignSpec) game.ShipDesignSpec {
+	return (game.ShipDesignSpec)(*source)
 }
 
-func GameShipDesignSpecToShipDesignSpec(source *game.ShipDesignSpec) *ShipDesignSpec {
-	return (*ShipDesignSpec)(source)
+func GameShipDesignSpecToShipDesignSpec(source game.ShipDesignSpec) *ShipDesignSpec {
+	return (*ShipDesignSpec)(&source)
 }
 
 func ShipDesignSlotsToGameShipDesignSlots(source *ShipDesignSlots) []game.ShipDesignSlot {

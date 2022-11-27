@@ -185,8 +185,8 @@ func (c *GameConverter) ConvertPlayer(source Player) game.Player {
 	gamePlayer.ShipDesignIntels = ShipDesignIntelsToGameShipDesignIntels(source.ShipDesignIntels)
 	gamePlayer.MineralPacketIntels = MineralPacketIntelsToGameMineralPacketIntels(source.MineralPacketIntels)
 	gamePlayer.MineFieldIntels = MineFieldIntelsToGameMineFieldIntels(source.MineFieldIntels)
-	gamePlayer.Stats = PlayerStatsToGamePlayerStats(source.Stats)
 	gamePlayer.Spec = PlayerSpecToGamePlayerSpec(source.Spec)
+	gamePlayer.Stats = PlayerStatsToGamePlayerStats(source.Stats)
 	return gamePlayer
 }
 func (c *GameConverter) ConvertPlayers(source []Player) []game.Player {

@@ -22,7 +22,7 @@ type ShipDesign struct {
 	CanDelete     bool              `json:"canDelete,omitempty"`
 	Slots         []ShipDesignSlot  `json:"slots"`
 	Purpose       ShipDesignPurpose `json:"purpose,omitempty"`
-	Spec          *ShipDesignSpec   `json:"spec"`
+	Spec          ShipDesignSpec    `json:"spec"`
 }
 
 type ShipDesignSlot struct {
@@ -131,7 +131,7 @@ func (sd *ShipDesign) WithSpec(rules *Rules, player *Player) *ShipDesign {
 	return sd
 }
 
-func ComputeShipDesignSpec(rules *Rules, player *Player, design *ShipDesign) *ShipDesignSpec {
+func ComputeShipDesignSpec(rules *Rules, player *Player, design *ShipDesign) ShipDesignSpec {
 	hull := rules.techs.GetHull(design.Hull)
 	spec := ShipDesignSpec{
 		Mass:                    hull.Mass,
@@ -267,7 +267,7 @@ func ComputeShipDesignSpec(rules *Rules, player *Player, design *ShipDesign) *Sh
 
 	spec.ComputeScanRanges(rules, player, design, hull)
 
-	return &spec
+	return spec
 }
 
 // Compute the scan ranges for this ship design The formula is: (scanner1**4 + scanner2**4 + ...
