@@ -20,7 +20,9 @@ jobs:
           go-version: ${{ matrix.go-version }}
           check-latest: true
           cache: true
+      - run: mkdir -p frontend/build
       - run: go test ./...          
+      - run: rm -rf frontend/build
 
       # build the frontend (this is slow)
       - uses: actions/setup-node@v3

@@ -20,6 +20,7 @@ jobs:
           go-version: ${{ matrix.go-version }}
           check-latest: true
           cache: true
+      - run: mkdir -p frontend/build
       - run: go test ./...          
       - run: mkdir -p dist/
       - run: go mod tidy && CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -ldflags='-s -w -extldflags "-static"' -o dist/craig-stars main.go
