@@ -2,27 +2,27 @@ package game
 
 const Unlimited = -1
 
-type CargoHolder interface {
-	GetMapObject() MapObject
-	GetCargo() *Cargo
-	GetCargpCapacity() int
-	GetFuel() int
-	GetFuelCapacity() int
+type cargoHolder interface {
+	getMapObject() MapObject
+	getCargo() *Cargo
+	getCargpCapacity() int
+	getFuel() int
+	getFuelCapacity() int
 }
 
-func (ch *Planet) GetMapObject() MapObject {
+func (ch *Planet) getMapObject() MapObject {
 	return ch.MapObject
 }
 
-func (ch *Planet) GetCargo() *Cargo {
+func (ch *Planet) getCargo() *Cargo {
 	return &ch.Cargo
 }
 
-func (ch *Planet) GetCargpCapacity() int {
+func (ch *Planet) getCargpCapacity() int {
 	return Unlimited
 }
 
-func (ch *Planet) GetFuel() int {
+func (ch *Planet) getFuel() int {
 	if ch.Spec.HasStarbase {
 		return Unlimited
 	} else {
@@ -30,46 +30,46 @@ func (ch *Planet) GetFuel() int {
 	}
 }
 
-func (ch *Planet) GetFuelCapacity() int {
+func (ch *Planet) getFuelCapacity() int {
 	return 0
 }
 
-func (ch *Fleet) GetMapObject() MapObject {
+func (ch *Fleet) getMapObject() MapObject {
 	return ch.MapObject
 }
 
-func (ch *Fleet) GetCargo() *Cargo {
+func (ch *Fleet) getCargo() *Cargo {
 	return &ch.Cargo
 }
 
-func (ch *Fleet) GetFuel() int {
+func (ch *Fleet) getFuel() int {
 	return ch.Fuel
 }
 
-func (ch *Fleet) GetCargpCapacity() int {
+func (ch *Fleet) getCargpCapacity() int {
 	return ch.Spec.CargoCapacity
 }
 
-func (ch *Fleet) GetFuelCapacity() int {
+func (ch *Fleet) getFuelCapacity() int {
 	return ch.Spec.FuelCapacity
 }
 
-func (ch *Salvage) GetMapObject() MapObject {
+func (ch *Salvage) getMapObject() MapObject {
 	return ch.MapObject
 }
 
-func (ch *Salvage) GetCargo() *Cargo {
+func (ch *Salvage) getCargo() *Cargo {
 	return &ch.Cargo
 }
 
-func (ch *Salvage) GetCargpCapacity() int {
+func (ch *Salvage) getCargpCapacity() int {
 	return Unlimited
 }
 
-func (ch *Salvage) GetFuel() int {
+func (ch *Salvage) getFuel() int {
 	return 0
 }
 
-func (ch *Salvage) GetFuelCapacity() int {
+func (ch *Salvage) getFuelCapacity() int {
 	return 0
 }

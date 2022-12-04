@@ -47,22 +47,8 @@ func (s *server) UpdatePlanetOrders(c *gin.Context) {
 		return
 	}
 
-	rules, err := s.db.GetRulesForGame(planet.GameID)
-	if err != nil {
-		log.Error().Err(err).Int64("GameID", planet.GameID).Msg("load rules from database")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to load game rules from database"})
-		return
-	}
-
-	if rules == nil {
-		r := game.NewRules()
-		rules = &r
-	}
-
-	// copy user modifiable things to the existing planet
-	existing.ContributesOnlyLeftoverToResearch = planet.ContributesOnlyLeftoverToResearch
-	existing.ProductionQueue = planet.ProductionQueue
-	existing.Spec = game.ComputePlanetSpec(rules, existing, player)
+	client := game.NewClient()
+	client.UpdatePlanetOrders(player, existing, planet.ProductionQueue, planet.ContributesOnlyLeftoverToResearch)
 	if err := s.db.UpdatePlanet(existing); err != nil {
 		log.Error().Err(err).Int64("ID", existing.ID).Msg("update planet in database")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to save planet to database"})

@@ -127,11 +127,11 @@ func (sd *ShipDesign) WithHullSetNumber(num int) *ShipDesign {
 
 // Compute the spec for this ShipDesign. This function is mostly for universe generation and tests
 func (sd *ShipDesign) WithSpec(rules *Rules, player *Player) *ShipDesign {
-	sd.Spec = ComputeShipDesignSpec(rules, player, sd)
+	sd.Spec = computeShipDesignSpec(rules, player, sd)
 	return sd
 }
 
-func ComputeShipDesignSpec(rules *Rules, player *Player, design *ShipDesign) ShipDesignSpec {
+func computeShipDesignSpec(rules *Rules, player *Player, design *ShipDesign) ShipDesignSpec {
 	hull := rules.techs.GetHull(design.Hull)
 	spec := ShipDesignSpec{
 		Mass:                    hull.Mass,

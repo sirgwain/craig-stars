@@ -18,12 +18,22 @@ const (
 
 type DBClient db.Client
 
-type GameRunner struct {
+type GameRunner interface {
+	HostGame(hostID int64, settings *game.GameSettings) (*game.FullGame, error)
+	AddPlayer(gameID int64, userID int64, race *game.Race) error
+	GenerateUniverse(gameID int64) (*game.Universe, error)
+	LoadGame(gameID int64) (*game.FullGame, error)
+	LoadPlayerGame(gameID int64, userID int64) (*game.Game, *game.FullPlayer, error)
+	SubmitTurn(gameID int64, userID int64) error
+	CheckAndGenerateTurn(gameID int64) (TurnGenerationCheckResult, error)
+}
+
+type gameRunner struct {
 	db DBClient
 }
 
-func NewGameRunner(db DBClient) *GameRunner {
-	return &GameRunner{db}
+func NewGameRunner(db DBClient) GameRunner {
+	return &gameRunner{db}
 }
 
 func timeTrack(start time.Time, name string) {
@@ -32,7 +42,7 @@ func timeTrack(start time.Time, name string) {
 }
 
 // host a new game
-func (gr *GameRunner) HostGame(hostID int64, settings *game.GameSettings) (*game.FullGame, error) {
+func (gr *gameRunner) HostGame(hostID int64, settings *game.GameSettings) (*game.FullGame, error) {
 	client := game.NewClient()
 	g := client.CreateGame(hostID, *settings)
 
@@ -44,7 +54,7 @@ func (gr *GameRunner) HostGame(hostID int64, settings *game.GameSettings) (*game
 
 	players := make([]*game.Player, 0, len(settings.Players))
 
-	for _, player := range settings.Players {
+	for i, player := range settings.Players {
 		if player.Type == game.NewGamePlayerTypeHost {
 
 			// add the host player with the host race
@@ -58,6 +68,7 @@ func (gr *GameRunner) HostGame(hostID int64, settings *game.GameSettings) (*game
 			log.Debug().Int64("hostID", hostID).Msgf("Adding host to game")
 			player := client.NewPlayer(hostID, *race, &g.Rules)
 			player.GameID = g.ID
+			player.Num = i + 1
 			players = append(players, player)
 		} else if player.Type == game.NewGamePlayerTypeAI {
 			// g.AddPlayer(game.NewAIPlayer())
@@ -87,7 +98,7 @@ func (gr *GameRunner) HostGame(hostID int64, settings *game.GameSettings) (*game
 }
 
 // add a player to an existing game
-func (gr *GameRunner) AddPlayer(gameID int64, userID int64, race *game.Race) error {
+func (gr *gameRunner) AddPlayer(gameID int64, userID int64, race *game.Race) error {
 
 	g, err := gr.db.GetFullGame(gameID)
 	if err != nil {
@@ -114,7 +125,7 @@ func (gr *GameRunner) AddPlayer(gameID int64, userID int64, race *game.Race) err
 	return nil
 }
 
-func (gr *GameRunner) GenerateUniverse(gameID int64) (*game.Universe, error) {
+func (gr *gameRunner) GenerateUniverse(gameID int64) (*game.Universe, error) {
 	defer timeTrack(time.Now(), "GenerateUniverse")
 	g, err := gr.LoadGame(gameID)
 	if err != nil {
@@ -139,7 +150,7 @@ func (gr *GameRunner) GenerateUniverse(gameID int64) (*game.Universe, error) {
 }
 
 // load a full game
-func (gr *GameRunner) LoadGame(gameID int64) (*game.FullGame, error) {
+func (gr *gameRunner) LoadGame(gameID int64) (*game.FullGame, error) {
 	defer timeTrack(time.Now(), "LoadGame")
 
 	g, err := gr.db.GetFullGame(gameID)
@@ -152,7 +163,7 @@ func (gr *GameRunner) LoadGame(gameID int64) (*game.FullGame, error) {
 }
 
 // load a player and the light version of the player game
-func (gr *GameRunner) LoadPlayerGame(gameID int64, userID int64) (*game.Game, *game.FullPlayer, error) {
+func (gr *gameRunner) LoadPlayerGame(gameID int64, userID int64) (*game.Game, *game.FullPlayer, error) {
 
 	g, err := gr.db.GetGame(gameID)
 
@@ -180,7 +191,7 @@ func (gr *GameRunner) LoadPlayerGame(gameID int64, userID int64) (*game.Game, *g
 }
 
 // submit a turn for a player
-func (gr *GameRunner) SubmitTurn(gameID int64, userID int64) error {
+func (gr *gameRunner) SubmitTurn(gameID int64, userID int64) error {
 	player, err := gr.db.GetLightPlayerForGame(gameID, userID)
 	if err != nil {
 		return fmt.Errorf("find player for user %d, game %d: %w", userID, gameID, err)
@@ -196,7 +207,7 @@ func (gr *GameRunner) SubmitTurn(gameID int64, userID int64) error {
 }
 
 // check a game for every player submitted and generate a turn
-func (gr *GameRunner) CheckAndGenerateTurn(gameID int64) (TurnGenerationCheckResult, error) {
+func (gr *gameRunner) CheckAndGenerateTurn(gameID int64) (TurnGenerationCheckResult, error) {
 	defer timeTrack(time.Now(), "CheckAndGenerateTurn")
 	g, err := gr.LoadGame(gameID)
 

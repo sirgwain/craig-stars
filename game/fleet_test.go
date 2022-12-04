@@ -23,7 +23,7 @@ func testLongRangeScout(player *Player, rules *Rules) *Fleet {
 		},
 		OrbitingPlanetNum: NotOrbitingPlanet,
 	}
-	fleet.Spec = ComputeFleetSpec(rules, player, fleet)
+	fleet.Spec = computeFleetSpec(rules, player, fleet)
 	fleet.Fuel = fleet.Spec.FuelCapacity
 	return fleet
 }
@@ -45,7 +45,7 @@ func testSmallFreighter(player *Player, rules *Rules) *Fleet {
 		OrbitingPlanetNum: NotOrbitingPlanet,
 	}
 
-	fleet.Spec = ComputeFleetSpec(rules, player, fleet)
+	fleet.Spec = computeFleetSpec(rules, player, fleet)
 	return fleet
 
 }
@@ -65,7 +65,7 @@ func testCloakedScout(player *Player, rules *Rules) *Fleet {
 		},
 		OrbitingPlanetNum: NotOrbitingPlanet,
 	}
-	fleet.Spec = ComputeFleetSpec(rules, player, fleet)
+	fleet.Spec = computeFleetSpec(rules, player, fleet)
 	return fleet
 }
 
@@ -217,7 +217,7 @@ func TestComputeFleetSpec(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := ComputeFleetSpec(tt.args.rules, tt.args.player, tt.args.fleet); !reflect.DeepEqual(got, tt.want) {
+			if got := computeFleetSpec(tt.args.rules, tt.args.player, tt.args.fleet); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("ComputeFleetSpec() = \n%v, want \n%v", got, tt.want)
 			}
 		})
@@ -274,8 +274,8 @@ func TestFleet_TransferFleetCargo(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{"Should transfer from fleet", freighter, args{testSmallFreighter(player, &rules).WithCargo(Cargo{1, 2, 3, 4}), Cargo{1, 0, 0, 0}}, false},
-		{"Should fail to transfer from fleet", freighter, args{testSmallFreighter(player, &rules).WithCargo(Cargo{1, 2, 3, 4}), Cargo{2, 0, 0, 0}}, true},
+		{"Should transfer from fleet", freighter, args{testSmallFreighter(player, &rules).withCargo(Cargo{1, 2, 3, 4}), Cargo{1, 0, 0, 0}}, false},
+		{"Should fail to transfer from fleet", freighter, args{testSmallFreighter(player, &rules).withCargo(Cargo{1, 2, 3, 4}), Cargo{2, 0, 0, 0}}, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -313,19 +313,19 @@ func TestFleet_moveFleet(t *testing.T) {
 	}{
 		{
 			"move 25ly at warp5",
-			testLongRangeScout(player, &rules).WithWaypoints([]Waypoint{NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{50, 0}, 5)}),
+			testLongRangeScout(player, &rules).withWaypoints([]Waypoint{NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{50, 0}, 5)}),
 			args{player},
 			want{Vector{25, 0}, 4},
 		},
 		{
 			"move 1ly at warp 1",
-			testLongRangeScout(player, &rules).WithWaypoints([]Waypoint{NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{1, 1}, 1)}),
+			testLongRangeScout(player, &rules).withWaypoints([]Waypoint{NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{1, 1}, 1)}),
 			args{player},
 			want{Vector{1, 1}, 0},
 		},
 		{
 			"overshoot waypoint at warp 5",
-			testLongRangeScout(player, &rules).WithWaypoints([]Waypoint{NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{5, 5}, 5)}),
+			testLongRangeScout(player, &rules).withWaypoints([]Waypoint{NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{5, 5}, 5)}),
 			args{player},
 			want{Vector{5, 5}, 1},
 		},

@@ -17,8 +17,16 @@
 		if ($data && $player) {
 			const fleets = $player.fleets.filter((fleet) => fleet.waypoints.length > 1);
 			lines = fleets.map((fleet) => {
+				const coords = fleet.waypoints.map((wp) => {
+					return { position: { x: wp.position.x, y: wp.position.y } };
+				});
+				// move the first coord along the heading a bit so the line starts after our icon
+				const heading = fleet.heading ?? { x: 0, y: 0 };
+				coords[0].position.x += heading.x * 5;
+				coords[0].position.y += heading.y * 5;
+
 				return {
-					path: 'M' + fleet.waypoints.map((wp) => `${$xGet(wp)}, ${$yGet(wp)}`).join('L'),
+					path: 'M' + coords.map((coord) => `${$xGet(coord)}, ${$yGet(coord)}`).join('L'),
 					props: {
 						class: fleet == $commandedFleet ? 'waypoint-line-commanded' : 'waypoint-line'
 					}

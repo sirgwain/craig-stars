@@ -21,10 +21,10 @@ const PatrolWarpFactorAutomatic = -1
 const PatrolRangeInfinite = -1
 
 // fleet not orbiting a planet
-const NotOrbitingPlanet = -1
+const NotOrbitingPlanet = 0
 
 // no target planet, player, etc
-const None = -1
+const None = 0
 
 type Fleet struct {
 	MapObject
@@ -34,7 +34,6 @@ type Fleet struct {
 	Cargo             Cargo       `json:"cargo,omitempty"`
 	Fuel              int         `json:"fuel"`
 	Damage            int         `json:"damage"`
-	BattlePlanName    string      `json:"battlePlan"`
 	Tokens            []ShipToken `json:"tokens"`
 	Heading           Vector      `json:"heading,omitempty"`
 	WarpSpeed         int         `json:"warpSpeed,omitempty"`
@@ -46,8 +45,9 @@ type Fleet struct {
 }
 
 type FleetOrders struct {
-	Waypoints    []Waypoint `json:"waypoints"`
-	RepeatOrders bool       `json:"repeatOrders,omitempty"`
+	Waypoints      []Waypoint `json:"waypoints"`
+	RepeatOrders   bool       `json:"repeatOrders,omitempty"`
+	BattlePlanName string     `json:"battlePlanName"`
 }
 
 type FleetSpec struct {
@@ -167,7 +167,7 @@ const (
 )
 
 // create a new fleet
-func NewFleet(player *Player, design *ShipDesign, num int, name string, waypoints []Waypoint) Fleet {
+func newFleet(player *Player, design *ShipDesign, num int, name string, waypoints []Waypoint) Fleet {
 	return Fleet{
 		MapObject: MapObject{
 			Type:      MapObjectTypeFleet,
@@ -184,15 +184,15 @@ func NewFleet(player *Player, design *ShipDesign, num int, name string, waypoint
 			{design: design, DesignUUID: design.UUID, Quantity: 1},
 		},
 		FleetOrders: FleetOrders{
-			Waypoints: waypoints,
+			Waypoints:      waypoints,
+			BattlePlanName: player.BattlePlans[0].Name,
 		},
 		OrbitingPlanetNum: NotOrbitingPlanet,
-		BattlePlanName:    player.BattlePlans[0].Name,
 		battlePlan:        &player.BattlePlans[0],
 	}
 }
 
-func NewFleetForToken(player *Player, num int, token ShipToken, waypoints []Waypoint) Fleet {
+func newFleetForToken(player *Player, num int, token ShipToken, waypoints []Waypoint) Fleet {
 	return Fleet{
 		MapObject: MapObject{
 			Type:      MapObjectTypeFleet,
@@ -214,8 +214,8 @@ func NewFleetForToken(player *Player, num int, token ShipToken, waypoints []Wayp
 }
 
 // create a new fleet that is a starbase
-func NewStarbase(player *Player, planet *Planet, design *ShipDesign, name string) Fleet {
-	fleet := NewFleet(player, design, 0, name, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 1)})
+func newStarbase(player *Player, planet *Planet, design *ShipDesign, name string) Fleet {
+	fleet := newFleet(player, design, 0, name, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 1)})
 	fleet.PlanetNum = planet.Num
 	fleet.Starbase = true
 
@@ -226,24 +226,24 @@ func (f *Fleet) String() string {
 	return fmt.Sprintf("Fleet %s #%d", f.BaseName, f.Num)
 }
 
-func (f *Fleet) WithPlayerNum(playerNum int) *Fleet {
+func (f *Fleet) withPlayerNum(playerNum int) *Fleet {
 	f.PlayerNum = playerNum
 	return f
 }
 
-func (f *Fleet) WithCargo(cargo Cargo) *Fleet {
+func (f *Fleet) withCargo(cargo Cargo) *Fleet {
 	f.Cargo = cargo
 	return f
 }
 
-func (f *Fleet) WithPosition(position Vector) *Fleet {
+func (f *Fleet) withPosition(position Vector) *Fleet {
 	f.Position = position
 	// todo: should we set waypoints in a builder?
 	f.Waypoints = []Waypoint{{Position: position}}
 	return f
 }
 
-func (f *Fleet) WithWaypoints(waypoints []Waypoint) *Fleet {
+func (f *Fleet) withWaypoints(waypoints []Waypoint) *Fleet {
 	f.Waypoints = waypoints
 	return f
 }
@@ -325,7 +325,7 @@ func (f *Fleet) InjectDesigns(designsByUUID map[uuid.UUID]*ShipDesign) {
 
 }
 
-func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
+func computeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 	spec := FleetSpec{
 		ShipDesignSpec: ShipDesignSpec{
 			ScanRange:    NoScanner,
@@ -446,7 +446,8 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 	return spec
 }
 
-func (f *Fleet) ComputeFuelUsage(player *Player) {
+// compute fuel usage for each waypoint
+func (f *Fleet) computeFuelUsage(player *Player) {
 	for i := range f.Waypoints {
 		wp := &f.Waypoints[i]
 		if i > 0 {
@@ -481,14 +482,14 @@ func (f *Fleet) availableCargoSpace() int {
 }
 
 // transfer cargo from a fleet to a cargo holder
-func (f *Fleet) transferCargoItem(dest CargoHolder, cargoType CargoType, transferAmount int) error {
-	destCargo := dest.GetCargo()
+func (f *Fleet) transferCargoItem(dest cargoHolder, cargoType CargoType, transferAmount int) error {
+	destCargo := dest.getCargo()
 	if f.availableCargoSpace() < transferAmount {
-		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", f.Name, f.availableCargoSpace(), transferAmount, dest.GetMapObject().Name)
+		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", f.Name, f.availableCargoSpace(), transferAmount, dest.getMapObject().Name)
 	}
 
 	if !destCargo.CanTransferAmount(cargoType, transferAmount) {
-		return fmt.Errorf("fleet %s cannot transfer %v from %s, there is not enough to transfer", f.Name, transferAmount, dest.GetMapObject().Name)
+		return fmt.Errorf("fleet %s cannot transfer %v from %s, there is not enough to transfer", f.Name, transferAmount, dest.getMapObject().Name)
 	}
 
 	// transfer the cargo
@@ -509,14 +510,14 @@ func (f *Fleet) transferCargoItem(dest CargoHolder, cargoType CargoType, transfe
 }
 
 // transfer cargo from a fleet to a cargo holder
-func (f *Fleet) TransferCargo(dest CargoHolder, transferAmount Cargo) error {
-	destCargo := dest.GetCargo()
+func (f *Fleet) transferCargo(dest cargoHolder, transferAmount Cargo) error {
+	destCargo := dest.getCargo()
 	if f.availableCargoSpace() < transferAmount.Total() {
-		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", f.Name, f.availableCargoSpace(), transferAmount.Total(), dest.GetMapObject().Name)
+		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", f.Name, f.availableCargoSpace(), transferAmount.Total(), dest.getMapObject().Name)
 	}
 
 	if !destCargo.CanTransfer(transferAmount) {
-		return fmt.Errorf("fleet %s cannot transfer %v from %s, there is not enough to transfer", f.Name, transferAmount, dest.GetMapObject().Name)
+		return fmt.Errorf("fleet %s cannot transfer %v from %s, there is not enough to transfer", f.Name, transferAmount, dest.getMapObject().Name)
 	}
 
 	// transfer the cargo
@@ -569,7 +570,7 @@ func (f *Fleet) TransferFleetCargo(fleet *Fleet, transferAmount Cargo) error {
 	return nil
 }
 
-func (fleet *Fleet) moveFleet(mapObjectGetter MapObjectGetter, rules *Rules, player *Player) {
+func (fleet *Fleet) moveFleet(mapObjectGetter mapObjectGetter, rules *Rules, player *Player) {
 	wp0 := fleet.Waypoints[0]
 	wp1 := fleet.Waypoints[1]
 	totalDist := fleet.Position.DistanceTo(wp1.Position)
@@ -753,31 +754,31 @@ func (fleet *Fleet) getFuelGeneration(techStore *TechStore, player *Player, warp
 }
 
 // Complete a move from one waypoint to another
-func (fleet *Fleet) completeMove(mapObjectGetter MapObjectGetter, wp0 Waypoint, wp1 Waypoint) {
+func (fleet *Fleet) completeMove(mapObjectGetter mapObjectGetter, wp0 Waypoint, wp1 Waypoint) {
 	fleet.Position = wp1.Position
 
 	// find out if we arrived at a planet, either by reaching our target fleet
 	// or reaching a planet
 	if wp1.TargetType == MapObjectTypeFleet && wp1.TargetPlayerNum != None && wp1.TargetNum != None {
-		target := mapObjectGetter.GetFleet(wp1.TargetPlayerNum, wp1.TargetNum)
+		target := mapObjectGetter.getFleet(wp1.TargetPlayerNum, wp1.TargetNum)
 		fleet.OrbitingPlanetNum = target.OrbitingPlanetNum
 
 		// we are orbiting a friendly planet
-		targetPlanet := mapObjectGetter.GetPlanet(fleet.OrbitingPlanetNum)
+		targetPlanet := mapObjectGetter.getPlanet(fleet.OrbitingPlanetNum)
 		if fleet.PlayerNum == targetPlanet.PlayerNum && targetPlanet.Spec.HasStarbase {
 			// refuel at starbases
 			fleet.Fuel = fleet.Spec.FuelCapacity
 		}
 	} else if wp1.TargetType == MapObjectTypePlanet && wp1.TargetNum != None {
-		target := mapObjectGetter.GetPlanet(wp1.TargetNum)
+		target := mapObjectGetter.getPlanet(wp1.TargetNum)
 		fleet.OrbitingPlanetNum = target.Num
 		if fleet.PlayerNum == target.PlayerNum && target.Spec.HasStarbase {
 			// refuel at starbases
 			fleet.Fuel = fleet.Spec.FuelCapacity
 		}
 	} else if wp1.TargetType == MapObjectTypeWormhole && wp1.TargetNum != None {
-		target := mapObjectGetter.GetWormhole(wp1.TargetNum)
-		dest := mapObjectGetter.GetWormhole(target.DestinationNum)
+		target := mapObjectGetter.getWormhole(wp1.TargetNum)
+		dest := mapObjectGetter.getWormhole(target.DestinationNum)
 		fleet.Position = dest.Position
 	}
 
@@ -819,13 +820,13 @@ func (fleet *Fleet) colonizePlanet(rules *Rules, player *Player, planet *Planet)
 	if fleet.Spec.OrbitalConstructionModule {
 		design := player.GetLatestDesign(ShipDesignPurposeStarterColony)
 		if design != nil {
-			starbase := NewStarbase(player, planet, design, design.Name)
-			starbase.Spec = ComputeFleetSpec(rules, player, &starbase)
+			starbase := newStarbase(player, planet, design, design.Name)
+			starbase.Spec = computeFleetSpec(rules, player, &starbase)
 			planet.starbase = &starbase
 		}
 	}
 
-	planet.Spec = ComputePlanetSpec(rules, planet, player)
+	planet.Spec = computePlanetSpec(rules, planet, player)
 }
 
 // scrap a fleet giving a planet resources or returning salvage

@@ -5,14 +5,12 @@ import type { Cost } from './Cost';
 import type { MapObject, MapObjectType } from './MapObject';
 import type { Vector } from './Vector';
 
-export const NotOrbitingPlanet = -1;
-
 export interface Fleet extends MapObject {
 	baseName: string;
 	fuel?: number;
 	cargo?: Cargo;
 	damage?: number;
-	battlePlan?: number;
+	battlePlanName?: string;
 	tokens: ShipToken[];
 	waypoints: Waypoint[];
 

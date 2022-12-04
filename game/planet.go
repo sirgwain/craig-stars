@@ -256,8 +256,8 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 
 	// // the homeworld gets a starbase
 	starbaseDesign := player.GetDesign(startingPlanet.StarbaseDesignName)
-	starbase := NewStarbase(player, p, starbaseDesign, starbaseDesign.Name)
-	starbase.Spec = ComputeFleetSpec(rules, player, &starbase)
+	starbase := newStarbase(player, p, starbaseDesign, starbaseDesign.Name)
+	starbase.Spec = computeFleetSpec(rules, player, &starbase)
 	p.starbase = &starbase
 
 	// p.PacketSpeed = p.Starbase.Spec.SafePacketSpeed
@@ -324,7 +324,7 @@ func (p *Planet) getGrowthAmount(player *Player, maxPopulation int) int {
 	}
 }
 
-func ComputePlanetSpec(rules *Rules, planet *Planet, player *Player) PlanetSpec {
+func computePlanetSpec(rules *Rules, planet *Planet, player *Player) PlanetSpec {
 	spec := PlanetSpec{}
 	race := &player.Race
 	spec.Habitability = race.GetPlanetHabitability(planet.Hab)
@@ -352,12 +352,7 @@ func ComputePlanetSpec(rules *Rules, planet *Planet, player *Player) PlanetSpec 
 		spec.MaxPossibleFactories = spec.MaxPopulation * race.NumFactories / 10000
 	}
 
-	if planet.ContributesOnlyLeftoverToResearch {
-		spec.ResourcesPerYearAvailable = spec.ResourcesPerYear
-	} else {
-		spec.ResourcesPerYearResearch = int(float64(spec.ResourcesPerYear) * float64(player.ResearchAmount) / 100.0)
-		spec.ResourcesPerYearAvailable = spec.ResourcesPerYear - spec.ResourcesPerYearResearch
-	}
+	spec.computeResourcesPerYearAvailable(player, planet)
 
 	if race.Spec.CanBuildDefenses {
 		spec.MaxDefenses = 100
@@ -376,6 +371,18 @@ func ComputePlanetSpec(rules *Rules, planet *Planet, player *Player) PlanetSpec 
 	spec.HasStarbase = planet.starbase != nil
 
 	return spec
+}
+
+// update a planet spec's resources per year
+// this is called by the main ComputePlanetSpec as well as anytime a player
+// updates a planet's ContributesOnlyLeftoverToResearch field
+func (spec *PlanetSpec) computeResourcesPerYearAvailable(player *Player, planet *Planet) {
+	if planet.ContributesOnlyLeftoverToResearch {
+		spec.ResourcesPerYearAvailable = spec.ResourcesPerYear
+	} else {
+		spec.ResourcesPerYearResearch = int(float64(spec.ResourcesPerYear) * float64(player.ResearchAmount) / 100.0)
+		spec.ResourcesPerYearAvailable = spec.ResourcesPerYear - spec.ResourcesPerYearResearch
+	}
 }
 
 func getMaxPopulation(rules *Rules, hab int, player *Player) int {

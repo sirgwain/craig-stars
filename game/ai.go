@@ -56,7 +56,7 @@ func (ai *aiPlayer) processTurn() {
 func (ai *aiPlayer) scout() {
 	design := ai.Player.GetLatestDesign(ShipDesignPurposeScout)
 	unknownPlanetsByNum := map[int]PlanetIntel{}
-	buildablePlanets := ai.GetBuildablePlanets(design.Spec.Mass)
+	buildablePlanets := ai.getBuildablePlanets(design.Spec.Mass)
 
 	// find all the unexplored planets
 	for _, planet := range ai.Player.PlanetIntels {
@@ -106,7 +106,7 @@ func (ai *aiPlayer) scout() {
 func (ai *aiPlayer) colonize() {
 	design := ai.Player.GetLatestDesign(ShipDesignPurposeColonizer)
 	colonizablePlanets := map[int]PlanetIntel{}
-	buildablePlanets := ai.GetBuildablePlanets(design.Spec.Mass)
+	buildablePlanets := ai.getBuildablePlanets(design.Spec.Mass)
 
 	// find all the unexplored planets
 	for _, planet := range ai.Player.PlanetIntels {
@@ -120,7 +120,7 @@ func (ai *aiPlayer) colonize() {
 	for _, fleet := range ai.Fleets {
 		if _, contains := fleet.Spec.Purposes[ShipDesignPurposeColonizer]; contains && fleet.Spec.Colonizer {
 			if len(fleet.Waypoints) <= 1 {
-				planet := ai.GetPlanet(fleet.OrbitingPlanetNum)
+				planet := ai.getPlanet(fleet.OrbitingPlanetNum)
 				if planet != nil && planet.ownedBy(ai.Player.Num) && planet.Spec.PopulationDensity > ai.config.colonizerPopulationDensity {
 					// this fleet can be sent to colonize a planet
 					colonizerFleets = append(colonizerFleets, fleet)
@@ -167,17 +167,17 @@ func (ai *aiPlayer) colonize() {
 }
 
 // get a player owned planet by num, or nil if it doesn't exist
-func (p *aiPlayer) GetPlanet(num int) *Planet {
+func (p *aiPlayer) getPlanet(num int) *Planet {
 	return p.planetsByNum[num]
 }
 
 // get a player owned planet by num, or nil if it doesn't exist
-func (p *aiPlayer) GetFleet(num int) *Fleet {
+func (p *aiPlayer) getFleet(num int) *Fleet {
 	return p.fleetsByNum[num]
 }
 
 // get all planets the player owns that can build ships of mass mass
-func (p *aiPlayer) GetBuildablePlanets(mass int) []*Planet {
+func (p *aiPlayer) getBuildablePlanets(mass int) []*Planet {
 	planets := []*Planet{}
 	for _, planet := range p.Planets {
 		if planet.canBuild(mass) {

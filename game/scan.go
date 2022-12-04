@@ -35,7 +35,7 @@ func (scan *playerScan) scan() error {
 
 	for i := range player.PlanetIntels {
 		planet := &player.PlanetIntels[i]
-		if planet.ReportAge != Unexplored {
+		if planet.ReportAge != ReportAgeUnexplored {
 			planet.ReportAge++
 		}
 	}

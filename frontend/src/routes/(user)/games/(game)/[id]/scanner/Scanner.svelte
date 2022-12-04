@@ -15,7 +15,6 @@
 	} from '$lib/services/Context';
 	import { FleetService } from '$lib/services/FleetService';
 	import { clamp } from '$lib/services/Math';
-	import { NotOrbitingPlanet } from '$lib/types/Fleet';
 	import { MapObjectType, ownedBy, positionKey, type MapObject } from '$lib/types/MapObject';
 	import type { Planet } from '$lib/types/Planet';
 	import { findIntelMapObject, findMyPlanet } from '$lib/types/Player';
@@ -236,8 +235,8 @@
 			}
 			data = [
 				...waypoints,
-				...$player.fleets.filter((f) => f.orbitingPlanetNum == NotOrbitingPlanet),
-				...($player.fleetIntels?.filter((f) => f.orbitingPlanetNum == NotOrbitingPlanet) ?? []),
+				...$player.fleets.filter((f) => !f.orbitingPlanetNum),
+				...($player.fleetIntels?.filter((f) => !f.orbitingPlanetNum) ?? []),
 				...$player.planetIntels
 			];
 		}

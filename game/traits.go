@@ -182,43 +182,43 @@ func defaultPRTSpec() PRTSpec {
 	}
 }
 
-func HESpec() PRTSpec {
+func heSpec() PRTSpec {
 	spec := defaultPRTSpec()
 
 	return spec
 }
 
-func SSSpec() PRTSpec {
+func ssSpec() PRTSpec {
 	spec := defaultPRTSpec()
 
 	return spec
 }
 
-func WMSpec() PRTSpec {
+func wmSpec() PRTSpec {
 	spec := defaultPRTSpec()
 
 	return spec
 }
 
-func CASpec() PRTSpec {
+func caSpec() PRTSpec {
 	spec := defaultPRTSpec()
 
 	return spec
 }
 
-func ISSpec() PRTSpec {
+func isSpec() PRTSpec {
 	spec := defaultPRTSpec()
 
 	return spec
 }
 
-func SDSpec() PRTSpec {
+func sdSpec() PRTSpec {
 	spec := defaultPRTSpec()
 
 	return spec
 }
 
-func PPSpec() PRTSpec {
+func ppSpec() PRTSpec {
 	spec := defaultPRTSpec()
 
 	spec.StartingTechLevels = TechLevel{Energy: 4}
@@ -254,19 +254,19 @@ func PPSpec() PRTSpec {
 	return spec
 }
 
-func ITSpec() PRTSpec {
+func itSpec() PRTSpec {
 	spec := defaultPRTSpec()
 
 	return spec
 }
 
-func ARSpec() PRTSpec {
+func arSpec() PRTSpec {
 	spec := defaultPRTSpec()
 
 	return spec
 }
 
-func JoaTSpec() PRTSpec {
+func joatSpec() PRTSpec {
 	spec := defaultPRTSpec()
 
 	spec.StartingTechLevels = TechLevel{
@@ -292,58 +292,58 @@ func JoaTSpec() PRTSpec {
 	return spec
 }
 
-func IFESpec() LRTSpec {
+func ifeSpec() LRTSpec {
 	return LRTSpec{}
 }
 
-func TTSpec() LRTSpec {
+func ttSpec() LRTSpec {
 	return LRTSpec{}
 }
 
-func ARMSpec() LRTSpec {
+func armSpec() LRTSpec {
 	return LRTSpec{}
 }
 
-func ISBSpec() LRTSpec {
+func isbSpec() LRTSpec {
 	return LRTSpec{}
 }
 
-func GRSpec() LRTSpec {
+func grSpec() LRTSpec {
 	return LRTSpec{}
 }
 
-func URSpec() LRTSpec {
+func urSpec() LRTSpec {
 	return LRTSpec{}
 }
 
-func NRSESpec() LRTSpec {
+func nrseSpec() LRTSpec {
 	return LRTSpec{}
 }
 
-func OBRMSpec() LRTSpec {
+func obrmSpec() LRTSpec {
 	return LRTSpec{}
 }
 
-func NASSpec() LRTSpec {
+func nasSpec() LRTSpec {
 	return LRTSpec{}
 }
 
-func LSPSpec() LRTSpec {
+func lspSpec() LRTSpec {
 	return LRTSpec{}
 }
 
-func BETSpec() LRTSpec {
+func betSpec() LRTSpec {
 	return LRTSpec{}
 }
 
-func RSSpec() LRTSpec {
+func rsSpec() LRTSpec {
 	return LRTSpec{}
 }
 
-func MASpec() LRTSpec {
+func maSpec() LRTSpec {
 	return LRTSpec{}
 }
 
-func CESpec() LRTSpec {
+func ceSpec() LRTSpec {
 	return LRTSpec{}
 }

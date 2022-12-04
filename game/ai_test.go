@@ -62,7 +62,7 @@ func TestAIPlayer_GetPlanet(t *testing.T) {
 	player := newAIPlayer(NewPlayer(1, NewRace()), PlayerMapObjects{})
 
 	// no planet by that id
-	assert.Nil(t, player.GetPlanet(1))
+	assert.Nil(t, player.getPlanet(1))
 
 	// should have a planet by this id
 	planet := NewPlanet()
@@ -70,7 +70,7 @@ func TestAIPlayer_GetPlanet(t *testing.T) {
 	player.Planets = append(player.Planets, planet)
 	player.buildMaps()
 
-	assert.Same(t, planet, player.GetPlanet(1))
+	assert.Same(t, planet, player.getPlanet(1))
 
-	assert.Nil(t, player.GetPlanet(2))
+	assert.Nil(t, player.getPlanet(2))
 }

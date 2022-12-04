@@ -52,24 +52,8 @@ func (s *server) UpdateFleetOrders(c *gin.Context) {
 		return
 	}
 
-	// copy user modifiable things to the existing fleet
-	existing.RepeatOrders = orders.RepeatOrders
-	wp0 := &existing.Waypoints[0]
-	newWP0 := orders.Waypoints[0]
-
-	// TODO: do we want to lookup the target?
-	wp0.WarpFactor = newWP0.WarpFactor
-	wp0.Task = newWP0.Task
-	wp0.TransportTasks = newWP0.TransportTasks
-	wp0.WaitAtWaypoint = newWP0.WaitAtWaypoint
-	wp0.TargetName = newWP0.TargetName
-	wp0.TargetType = newWP0.TargetType
-	wp0.TargetNum = newWP0.TargetNum
-	wp0.TargetPlayerNum = newWP0.TargetPlayerNum
-	wp0.TransferToPlayer = newWP0.TransferToPlayer
-
-	existing.Waypoints = append(existing.Waypoints[:1], orders.Waypoints[1:]...)
-	existing.ComputeFuelUsage(player)
+	client := game.NewClient()
+	client.UpdateFleetOrders(player, existing, orders)
 	if err := s.db.UpdateFleet(existing); err != nil {
 		log.Error().Err(err).Msg("update fleet in database")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to update fleet in database"})

@@ -6,18 +6,28 @@ import (
 )
 
 type client struct {
+	orders orderer
 }
 
+// external interface for creating/interacting with game objects
 type Client interface {
+
+	// game creation
 	CreateGame(hostID int64, settings GameSettings) Game
 	NewPlayer(userID int64, race Race) *Player
 	GenerateUniverse(game *Game, players []*Player) (*Universe, error)
+
+	// player orders
+	UpdatePlanetOrders(player *Player, planet *Planet, productionQueue []ProductionQueueItem, contributesOnlyLeftoverToResearch bool)
+	UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrders)
+
+	// turn generation
 	SubmitTurn(player *Player)
 	GenerateTurn(game *FullGame) error
 }
 
 func NewClient() client {
-	return client{}
+	return client{orders: &orders{}}
 }
 
 func timeTrack(start time.Time, name string) {
@@ -77,4 +87,12 @@ func (c *client) GenerateTurn(game *Game, universe *Universe, players []*Player)
 	defer timeTrack(time.Now(), "GenerateTurn")
 	turnGenerator := newTurnGenerator(&FullGame{game, universe, players})
 	return turnGenerator.generateTurn()
+}
+
+func (c *client) UpdatePlanetOrders(player *Player, planet *Planet, productionQueue []ProductionQueueItem, contributesOnlyLeftoverToResearch bool) {
+	c.orders.updatePlanetOrders(player, planet, productionQueue, contributesOnlyLeftoverToResearch)
+}
+
+func (c *client) UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrders) {
+	c.orders.updateFleetOrders(player, fleet, orders)
 }

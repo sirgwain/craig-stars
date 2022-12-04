@@ -139,19 +139,19 @@ func (m *messageClient) fleetBuilt(player *Player, planet *Planet, fleet *Fleet,
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageBuiltShip, Text: text, TargetType: TargetFleet, TargetMapObjectNum: fleet.Num})
 }
 
-func (m *messageClient) fleetTransportedCargo(player *Player, fleet *Fleet, dest CargoHolder, cargoType CargoType, transferAmount int) {
+func (m *messageClient) fleetTransportedCargo(player *Player, fleet *Fleet, dest cargoHolder, cargoType CargoType, transferAmount int) {
 	text := ""
 	if cargoType == Colonists {
 		if transferAmount < 0 {
-			text = fmt.Sprintf("%s has beamed %d %s from %s", fleet.Name, -transferAmount*100, cargoType, dest.GetMapObject().Name)
+			text = fmt.Sprintf("%s has beamed %d %s from %s", fleet.Name, -transferAmount*100, cargoType, dest.getMapObject().Name)
 		} else {
-			text = fmt.Sprintf("%s has beamed %d %s to %s", fleet.Name, transferAmount*100, cargoType, dest.GetMapObject().Name)
+			text = fmt.Sprintf("%s has beamed %d %s to %s", fleet.Name, transferAmount*100, cargoType, dest.getMapObject().Name)
 		}
 	} else {
 		if transferAmount < 0 {
-			text = fmt.Sprintf("%s has loaded %d %s from %s", fleet.Name, -transferAmount, cargoType, dest.GetMapObject().Name)
+			text = fmt.Sprintf("%s has loaded %d %s from %s", fleet.Name, -transferAmount, cargoType, dest.getMapObject().Name)
 		} else {
-			text = fmt.Sprintf("%s has unloaded %d %s to %s", fleet.Name, transferAmount, cargoType, dest.GetMapObject().Name)
+			text = fmt.Sprintf("%s has unloaded %d %s to %s", fleet.Name, transferAmount, cargoType, dest.getMapObject().Name)
 		}
 	}
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageCargoTransferred, Text: text, TargetType: TargetFleet, TargetMapObjectNum: fleet.Num})
