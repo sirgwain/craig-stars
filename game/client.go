@@ -14,20 +14,25 @@ type Client interface {
 
 	// game creation
 	CreateGame(hostID int64, settings GameSettings) Game
-	NewPlayer(userID int64, race Race) *Player
-	GenerateUniverse(game *Game, players []*Player) (*Universe, error)
+	NewPlayer(userID int64, race Race, rules *Rules) *Player
 
-	// player orders
-	UpdatePlanetOrders(player *Player, planet *Planet, productionQueue []ProductionQueueItem, contributesOnlyLeftoverToResearch bool)
+	// player orders to planets, fleets, research, etc
+	UpdatePlayerOrders(player *Player, playerPlanets []*Planet, orders PlayerOrders)
+	UpdatePlanetOrders(player *Player, planet *Planet, orders PlanetOrders)
 	UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrders)
+	UpdateMineFieldOrders(player *Player, minefield *MineField, orders MineFieldOrders)
+	TransferFleetCargo(source *Fleet, dest *Fleet, transferAmount Cargo) error
+	TransferPlanetCargo(source *Fleet, dest *Planet, transferAmount Cargo) error
 
-	// turn generation
+	// universe/turn generation
+	GenerateUniverse(game *Game, players []*Player) (*Universe, error)
 	SubmitTurn(player *Player)
-	GenerateTurn(game *FullGame) error
+	GenerateTurn(game *Game, universe *Universe, players []*Player) error
+	CheckAllPlayersSubmitted(players []*Player) bool
 }
 
-func NewClient() client {
-	return client{orders: &orders{}}
+func NewClient() Client {
+	return &client{orders: &orders{}}
 }
 
 func timeTrack(start time.Time, name string) {
@@ -44,7 +49,7 @@ func (c *client) CreateGame(hostID int64, settings GameSettings) Game {
 
 // create a new player
 func (c *client) NewPlayer(userID int64, race Race, rules *Rules) *Player {
-	player := NewPlayer(userID, &race)
+	player := newPlayer(userID, &race)
 	player.Race.Spec = computeRaceSpec(&player.Race, rules)
 
 	return player
@@ -89,10 +94,26 @@ func (c *client) GenerateTurn(game *Game, universe *Universe, players []*Player)
 	return turnGenerator.generateTurn()
 }
 
-func (c *client) UpdatePlanetOrders(player *Player, planet *Planet, productionQueue []ProductionQueueItem, contributesOnlyLeftoverToResearch bool) {
-	c.orders.updatePlanetOrders(player, planet, productionQueue, contributesOnlyLeftoverToResearch)
+func (c *client) UpdatePlayerOrders(player *Player, playerPlanets []*Planet, orders PlayerOrders) {
+	c.orders.updatePlayerOrders(player, playerPlanets, orders)
+}
+
+func (c *client) UpdatePlanetOrders(player *Player, planet *Planet, orders PlanetOrders) {
+	c.orders.updatePlanetOrders(player, planet, orders)
 }
 
 func (c *client) UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrders) {
 	c.orders.updateFleetOrders(player, fleet, orders)
+}
+
+func (c *client) UpdateMineFieldOrders(player *Player, minefield *MineField, orders MineFieldOrders) {
+	c.orders.updateMineFieldOrders(player, minefield, orders)
+}
+
+func (c *client) TransferFleetCargo(source *Fleet, dest *Fleet, transferAmount Cargo) error {
+	return c.orders.transferFleetCargo(source, dest, transferAmount)
+}
+
+func (c *client) TransferPlanetCargo(source *Fleet, dest *Planet, transferAmount Cargo) error {
+	return c.orders.transferPlanetCargo(source, dest, transferAmount)
 }

@@ -40,7 +40,7 @@ type Fleet struct {
 	PreviousPosition  *Vector     `json:"previousPosition,omitempty"`
 	OrbitingPlanetNum int         `json:"orbitingPlanetNum,omitempty"`
 	Starbase          bool        `json:"starbase,omitempty"`
-	Spec              FleetSpec   `json:"spec"`
+	Spec              FleetSpec   `json:"spec,omitempty"`
 	battlePlan        *BattlePlan
 }
 
@@ -534,42 +534,6 @@ func (f *Fleet) transferCargo(dest cargoHolder, transferAmount Cargo) error {
 	return nil
 }
 
-// transfer cargo from a planet to/from a fleet
-func (f *Fleet) TransferPlanetCargo(planet *Planet, transferAmount Cargo) error {
-
-	if f.availableCargoSpace() < transferAmount.Total() {
-		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", f.Name, f.availableCargoSpace(), transferAmount.Total(), planet.Name)
-	}
-
-	if !planet.Cargo.CanTransfer(transferAmount) {
-		return fmt.Errorf("fleet %s cannot transfer %v from %s, there is not enough to transfer", f.Name, transferAmount, planet.Name)
-	}
-
-	// transfer the cargo
-	f.Cargo = f.Cargo.Add(transferAmount)
-	planet.Cargo = planet.Cargo.Subtract(transferAmount)
-
-	return nil
-}
-
-// transfer cargo from a fleet to/from a fleet
-func (f *Fleet) TransferFleetCargo(fleet *Fleet, transferAmount Cargo) error {
-
-	if f.availableCargoSpace() < transferAmount.Total() {
-		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", f.Name, f.availableCargoSpace(), transferAmount.Total(), fleet.Name)
-	}
-
-	if !fleet.Cargo.CanTransfer(transferAmount) {
-		return fmt.Errorf("fleet %s cannot transfer %v from %s, there is not enough to transfer", f.Name, transferAmount, fleet.Name)
-	}
-
-	// transfer the cargo
-	f.Cargo = f.Cargo.Add(transferAmount)
-	fleet.Cargo = fleet.Cargo.Subtract(transferAmount)
-
-	return nil
-}
-
 func (fleet *Fleet) moveFleet(mapObjectGetter mapObjectGetter, rules *Rules, player *Player) {
 	wp0 := fleet.Waypoints[0]
 	wp1 := fleet.Waypoints[1]
@@ -841,7 +805,7 @@ func (fleet *Fleet) scrap(rules *Rules, player *Player, planet *Planet) *Salvage
 		}
 	} else {
 		// create salvage
-		salvage := NewSalvage(player.Num, fleet.Position, cost.ToCargo())
+		salvage := newSalvage(player.Num, fleet.Position, cost.ToCargo())
 		return &salvage
 	}
 

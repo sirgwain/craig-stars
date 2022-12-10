@@ -24,9 +24,13 @@ type MineFieldStats struct {
 
 type MineField struct {
 	MapObject
+	MineFieldOrders
 	Type     MineFieldType `json:"type,omitempty"`
 	NumMines int           `json:"numMines,omitempty"`
-	Detonate bool          `json:"detonate,omitempty"`
+}
+
+type MineFieldOrders struct {
+	Detonate bool `json:"detonate,omitempty"`
 }
 
 // The radius of a minefield is the sqrt of its mines

@@ -29,8 +29,8 @@ func init() {
 	gob.Register(sessionUser{})
 }
 
-// AuthRequired is a simple middleware to check the session
-func (s *server) AuthRequired(c *gin.Context) {
+// authRequired is a simple middleware to check the session
+func (s *server) authRequired(c *gin.Context) {
 	session := sessions.Default(c)
 	user := session.Get(userkey)
 	if user == nil {
@@ -42,8 +42,8 @@ func (s *server) AuthRequired(c *gin.Context) {
 	c.Next()
 }
 
-// Login is a handler that parses a form and checks for specific data
-func (s *server) Login(c *gin.Context) {
+// login is a handler that parses a form and checks for specific data
+func (s *server) login(c *gin.Context) {
 	session := sessions.Default(c)
 	var creds creds
 
@@ -82,7 +82,7 @@ func (s *server) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Successfully authenticated user"})
 }
 
-func (s *server) Logout(c *gin.Context) {
+func (s *server) logout(c *gin.Context) {
 	session := sessions.Default(c)
 	user := session.Get(userkey)
 	if user == nil {
@@ -104,7 +104,7 @@ func (s *server) GetSessionUser(c *gin.Context) *sessionUser {
 
 	return &user
 }
-func (s *server) Me(c *gin.Context) {
+func (s *server) me(c *gin.Context) {
 	// session := sessions.Default(c)
 	// user := session.Get(userkey)
 	user := s.GetSessionUser(c)
@@ -116,7 +116,7 @@ func (s *server) Me(c *gin.Context) {
 }
 
 // get users
-func (s *server) Users(c *gin.Context) {
+func (s *server) users(c *gin.Context) {
 	user := s.GetSessionUser(c)
 
 	if user == nil {

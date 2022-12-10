@@ -61,6 +61,9 @@ export enum MessageTargetType {
 export const findMyPlanet = (player: Player, planet: Planet): Planet | undefined =>
 	player?.planets?.find((p) => p.num == planet.num);
 
+export const findMyPlanetByNum = (player: Player, num: number): Planet | undefined =>
+	player?.planets?.find((p) => p.num == num);
+
 export const findIntelMapObject = (player: Player, mo: MapObject): MapObject | undefined => {
 	if (mo.type === MapObjectType.Planet) {
 		return player?.planetIntels?.find((p) => p.num == mo.num) ?? mo;

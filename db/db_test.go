@@ -45,20 +45,20 @@ func (c *client) createTestGame() *game.Game {
 // create a simple game with one player
 func (c *client) createTestGameWithPlayer() (*game.Game, *game.Player) {
 
-	g := game.NewGame()
-	g.HostID = 1
-	if err := c.CreateGame(g); err != nil {
+	gameClient := game.NewClient()
+	g := gameClient.CreateGame(1, *game.NewGameSettings())
+	if err := c.CreateGame(&g); err != nil {
 		panic(fmt.Errorf("create test database game, %w", err))
 	}
 
-	player := game.NewPlayer(1, game.NewRace().WithSpec(&g.Rules))
+	player := gameClient.NewPlayer(1, game.Humanoids(), &g.Rules)
 	player.GameID = g.ID
 
 	if err := c.CreatePlayer(player); err != nil {
 		panic(fmt.Errorf("create test database game player %w", err))
 	}
 
-	return g, player
+	return &g, player
 }
 
 func (c *client) createTestShipDesign(player *game.Player, design *game.ShipDesign) {

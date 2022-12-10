@@ -72,10 +72,14 @@ type Client interface {
 	DeletePlayer(id int64) error
 
 	GetPlanet(id int64) (*game.Planet, error)
+	GetPlanetsForPlayer(playerID int64) ([]*game.Planet, error)
 	UpdatePlanet(planet *game.Planet) error
 
 	GetFleet(id int64) (*game.Fleet, error)
 	UpdateFleet(fleet *game.Fleet) error
+
+	GetMineField(id int64) (*game.MineField, error)
+	UpdateMineField(fleet *game.MineField) error
 }
 
 func NewClient() Client {

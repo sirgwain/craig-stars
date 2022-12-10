@@ -43,7 +43,7 @@ func (s *server) GameById(c *gin.Context) {
 	c.JSON(http.StatusOK, game)
 }
 
-func (s *server) DeleteGame(c *gin.Context) {
+func (s *server) deleteGame(c *gin.Context) {
 	user := s.GetSessionUser(c)
 
 	var id idBind

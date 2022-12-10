@@ -9,7 +9,7 @@ import (
 	"github.com/sirgwain/craig-stars/game"
 )
 
-func (s *server) Races(c *gin.Context) {
+func (s *server) races(c *gin.Context) {
 	user := s.GetSessionUser(c)
 
 	races, err := s.db.GetRacesForUser(user.ID)
@@ -22,7 +22,7 @@ func (s *server) Races(c *gin.Context) {
 	c.JSON(http.StatusOK, races)
 }
 
-func (s *server) Race(c *gin.Context) {
+func (s *server) race(c *gin.Context) {
 	user := s.GetSessionUser(c)
 
 	var id idBind
@@ -47,7 +47,7 @@ func (s *server) Race(c *gin.Context) {
 }
 
 // Submit a turn for the player
-func (s *server) CreateRace(c *gin.Context) {
+func (s *server) createRace(c *gin.Context) {
 	user := s.GetSessionUser(c)
 
 	race := game.Race{}
@@ -66,7 +66,7 @@ func (s *server) CreateRace(c *gin.Context) {
 	c.JSON(http.StatusOK, race)
 }
 
-func (s *server) UpdateRace(c *gin.Context) {
+func (s *server) updateRace(c *gin.Context) {
 	user := s.GetSessionUser(c)
 
 	var id idBind

@@ -9,7 +9,7 @@ import (
 
 func Test_getClosestPlanet(t *testing.T) {
 	rules := NewRules()
-	player := NewPlayer(1, NewRace().WithSpec(&rules))
+	player := newPlayer(1, NewRace().WithSpec(&rules))
 	aiPlayer := newAIPlayer(player, PlayerMapObjects{})
 
 	planetAt0_0 := PlanetIntel{
@@ -59,13 +59,13 @@ func Test_getClosestPlanet(t *testing.T) {
 }
 
 func TestAIPlayer_GetPlanet(t *testing.T) {
-	player := newAIPlayer(NewPlayer(1, NewRace()), PlayerMapObjects{})
+	player := newAIPlayer(newPlayer(1, NewRace()), PlayerMapObjects{})
 
 	// no planet by that id
 	assert.Nil(t, player.getPlanet(1))
 
 	// should have a planet by this id
-	planet := NewPlanet()
+	planet := newPlanet()
 	planet.Num = 1
 	player.Planets = append(player.Planets, planet)
 	player.buildMaps()

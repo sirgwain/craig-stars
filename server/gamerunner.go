@@ -10,13 +10,13 @@ import (
 )
 
 type TurnGenerationCheckResult uint
+type DBClient db.Client
 
 const (
 	TurnNotGenerated TurnGenerationCheckResult = iota
 	TurnGenerated
 )
 
-type DBClient db.Client
 
 type GameRunner interface {
 	HostGame(hostID int64, settings *game.GameSettings) (*game.FullGame, error)

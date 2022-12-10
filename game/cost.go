@@ -18,8 +18,8 @@ func NewCost(
 	return Cost{ironium, boranium, germanium, resources}
 }
 
-func FromMineral(m *Mineral) *Cost {
-	return &Cost{
+func FromMineral(m Mineral) Cost {
+	return Cost{
 		Ironium:   m.Ironium,
 		Boranium:  m.Boranium,
 		Germanium: m.Germanium,
@@ -34,7 +34,7 @@ func (c Cost) ToCargo() Cargo {
 	}
 }
 
-func (c *Cost) Total() int {
+func (c Cost) Total() int {
 	return c.Ironium + c.Boranium + c.Germanium + c.Resources
 }
 
