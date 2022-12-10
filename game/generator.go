@@ -146,7 +146,7 @@ func (ug *universeGenerator) generatePlanets(area Vector) error {
 		}
 
 		// setup a new planet
-		planet := NewPlanet()
+		planet := newPlanet()
 		planet.Name = names[i]
 		planet.Num = i + 1
 		planet.Position = pos

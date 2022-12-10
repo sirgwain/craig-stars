@@ -216,7 +216,7 @@ func (t *turn) fleetLoad0() {
 			player := t.game.Players[fleet.PlayerNum-1]
 			dest := t.game.getCargoHolder(wp0.TargetType, wp0.TargetNum, wp0.TargetPlayerNum)
 			if dest == nil {
-				salvage := NewSalvage(fleet.PlayerNum, fleet.Position, Cargo{})
+				salvage := newSalvage(fleet.PlayerNum, fleet.Position, Cargo{})
 				dest = &salvage
 			}
 
