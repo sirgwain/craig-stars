@@ -5,7 +5,7 @@ import (
 	"database/sql/driver"
 	"time"
 
-	"github.com/sirgwain/craig-stars/game"
+	"github.com/sirgwain/craig-stars/cs"
 )
 
 type Planet struct {
@@ -52,9 +52,9 @@ type Planet struct {
 }
 
 // we json serialize these types with custom Scan/Value methods
-type ProductionQueueItems []game.ProductionQueueItem
-type PlanetSpec game.PlanetSpec
-type Tags game.Tags
+type ProductionQueueItems []cs.ProductionQueueItem
+type PlanetSpec cs.PlanetSpec
+type Tags cs.Tags
 
 // db serializer to serialize this to JSON
 func (item *ProductionQueueItems) Value() (driver.Value, error) {
@@ -88,7 +88,7 @@ func (item *Tags) Scan(src interface{}) error {
 }
 
 // get a planet by id
-func (c *client) GetPlanet(id int64) (*game.Planet, error) {
+func (c *client) GetPlanet(id int64) (*cs.Planet, error) {
 	item := Planet{}
 	if err := c.db.Get(&item, "SELECT * FROM planets WHERE id = ?", id); err != nil {
 		if err == sql.ErrNoRows {
@@ -101,17 +101,17 @@ func (c *client) GetPlanet(id int64) (*game.Planet, error) {
 	return planet, nil
 }
 
-func (c *client) getPlanetsForGame(gameID int64) ([]*game.Planet, error) {
+func (c *client) getPlanetsForGame(gameID int64) ([]*cs.Planet, error) {
 
 	items := []Planet{}
 	if err := c.db.Select(&items, `SELECT * FROM planets WHERE gameId = ?`, gameID); err != nil {
 		if err == sql.ErrNoRows {
-			return []*game.Planet{}, nil
+			return []*cs.Planet{}, nil
 		}
 		return nil, err
 	}
 
-	results := make([]*game.Planet, len(items))
+	results := make([]*cs.Planet, len(items))
 	for i := range items {
 		results[i] = c.converter.ConvertPlanet(&items[i])
 	}
@@ -119,17 +119,17 @@ func (c *client) getPlanetsForGame(gameID int64) ([]*game.Planet, error) {
 	return results, nil
 }
 
-func (c *client) GetPlanetsForPlayer(playerID int64) ([]*game.Planet, error) {
+func (c *client) GetPlanetsForPlayer(playerID int64) ([]*cs.Planet, error) {
 
 	items := []Planet{}
 	if err := c.db.Select(&items, `SELECT * FROM planets WHERE playerId = ?`, playerID); err != nil {
 		if err == sql.ErrNoRows {
-			return []*game.Planet{}, nil
+			return []*cs.Planet{}, nil
 		}
 		return nil, err
 	}
 
-	results := make([]*game.Planet, len(items))
+	results := make([]*cs.Planet, len(items))
 	for i := range items {
 		results[i] = c.converter.ConvertPlanet(&items[i])
 	}
@@ -138,7 +138,7 @@ func (c *client) GetPlanetsForPlayer(playerID int64) ([]*game.Planet, error) {
 }
 
 // create a new game
-func (c *client) createPlanet(planet *game.Planet, tx SQLExecer) error {
+func (c *client) createPlanet(planet *cs.Planet, tx SQLExecer) error {
 	item := c.converter.ConvertGamePlanet(planet)
 	result, err := tx.NamedExec(`
 	INSERT INTO planets (
@@ -234,12 +234,12 @@ func (c *client) createPlanet(planet *game.Planet, tx SQLExecer) error {
 	return nil
 }
 
-func (c *client) UpdatePlanet(planet *game.Planet) error {
+func (c *client) UpdatePlanet(planet *cs.Planet) error {
 	return c.updatePlanet(planet, c.db)
 }
 
 // update an existing planet
-func (c *client) updatePlanet(planet *game.Planet, tx SQLExecer) error {
+func (c *client) updatePlanet(planet *cs.Planet, tx SQLExecer) error {
 
 	item := c.converter.ConvertGamePlanet(planet)
 

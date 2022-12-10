@@ -7,65 +7,65 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/sirgwain/craig-stars/game"
+	"github.com/sirgwain/craig-stars/cs"
 )
 
 type Player struct {
-	ID                           int64                  `json:"id,omitempty"`
-	CreatedAt                    time.Time              `json:"createdAt,omitempty"`
-	UpdatedAt                    time.Time              `json:"updatedAt,omitempty"`
-	GameID                       int64                  `json:"gameId,omitempty"`
-	UserID                       int64                  `json:"userId,omitempty"`
-	Name                         string                 `json:"name,omitempty"`
-	Num                          int                    `json:"num,omitempty"`
-	Ready                        bool                   `json:"ready,omitempty"`
-	AIControlled                 bool                   `json:"aiControlled,omitempty"`
-	SubmittedTurn                bool                   `json:"submittedTurn,omitempty"`
-	Color                        string                 `json:"color,omitempty"`
-	DefaultHullSet               int                    `json:"defaultHullSet,omitempty"`
-	TechLevelsEnergy             int                    `json:"techLevelsEnergy,omitempty"`
-	TechLevelsWeapons            int                    `json:"techLevelsWeapons,omitempty"`
-	TechLevelsPropulsion         int                    `json:"techLevelsPropulsion,omitempty"`
-	TechLevelsConstruction       int                    `json:"techLevelsConstruction,omitempty"`
-	TechLevelsElectronics        int                    `json:"techLevelsElectronics,omitempty"`
-	TechLevelsBiotechnology      int                    `json:"techLevelsBiotechnology,omitempty"`
-	TechLevelsSpentEnergy        int                    `json:"techLevelsSpentEnergy,omitempty"`
-	TechLevelsSpentWeapons       int                    `json:"techLevelsSpentWeapons,omitempty"`
-	TechLevelsSpentPropulsion    int                    `json:"techLevelsSpentPropulsion,omitempty"`
-	TechLevelsSpentConstruction  int                    `json:"techLevelsSpentConstruction,omitempty"`
-	TechLevelsSpentElectronics   int                    `json:"techLevelsSpentElectronics,omitempty"`
-	TechLevelsSpentBiotechnology int                    `json:"techLevelsSpentBiotechnology,omitempty"`
-	ResearchAmount               int                    `json:"researchAmount,omitempty"`
-	ResearchSpentLastYear        int                    `json:"researchSpentLastYear,omitempty"`
-	NextResearchField            game.NextResearchField `json:"nextResearchField,omitempty"`
-	Researching                  game.TechField         `json:"researching,omitempty"`
-	BattlePlans                  *BattlePlans           `json:"battlePlans,omitempty"`
-	ProductionPlans              *ProductionPlans       `json:"productionPlans,omitempty"`
-	TransportPlans               *TransportPlans        `json:"transportPlans,omitempty"`
-	Messages                     *PlayerMessages        `json:"messages,omitempty"`
-	PlanetIntels                 *PlanetIntels          `json:"planetIntels,omitempty"`
-	FleetIntels                  *FleetIntels           `json:"fleetIntels,omitempty"`
-	ShipDesignIntels             *ShipDesignIntels      `json:"shipDesignIntels,omitempty"`
-	MineralPacketIntels          *MineralPacketIntels   `json:"mineralPacketIntels,omitempty"`
-	MineFieldIntels              *MineFieldIntels       `json:"mineFieldIntels,omitempty"`
-	Race                         *PlayerRace            `json:"race,omitempty"`
-	Stats                        *PlayerStats           `json:"stats,omitempty"`
-	Spec                         *PlayerSpec            `json:"spec,omitempty"`
+	ID                           int64                `json:"id,omitempty"`
+	CreatedAt                    time.Time            `json:"createdAt,omitempty"`
+	UpdatedAt                    time.Time            `json:"updatedAt,omitempty"`
+	GameID                       int64                `json:"gameId,omitempty"`
+	UserID                       int64                `json:"userId,omitempty"`
+	Name                         string               `json:"name,omitempty"`
+	Num                          int                  `json:"num,omitempty"`
+	Ready                        bool                 `json:"ready,omitempty"`
+	AIControlled                 bool                 `json:"aiControlled,omitempty"`
+	SubmittedTurn                bool                 `json:"submittedTurn,omitempty"`
+	Color                        string               `json:"color,omitempty"`
+	DefaultHullSet               int                  `json:"defaultHullSet,omitempty"`
+	TechLevelsEnergy             int                  `json:"techLevelsEnergy,omitempty"`
+	TechLevelsWeapons            int                  `json:"techLevelsWeapons,omitempty"`
+	TechLevelsPropulsion         int                  `json:"techLevelsPropulsion,omitempty"`
+	TechLevelsConstruction       int                  `json:"techLevelsConstruction,omitempty"`
+	TechLevelsElectronics        int                  `json:"techLevelsElectronics,omitempty"`
+	TechLevelsBiotechnology      int                  `json:"techLevelsBiotechnology,omitempty"`
+	TechLevelsSpentEnergy        int                  `json:"techLevelsSpentEnergy,omitempty"`
+	TechLevelsSpentWeapons       int                  `json:"techLevelsSpentWeapons,omitempty"`
+	TechLevelsSpentPropulsion    int                  `json:"techLevelsSpentPropulsion,omitempty"`
+	TechLevelsSpentConstruction  int                  `json:"techLevelsSpentConstruction,omitempty"`
+	TechLevelsSpentElectronics   int                  `json:"techLevelsSpentElectronics,omitempty"`
+	TechLevelsSpentBiotechnology int                  `json:"techLevelsSpentBiotechnology,omitempty"`
+	ResearchAmount               int                  `json:"researchAmount,omitempty"`
+	ResearchSpentLastYear        int                  `json:"researchSpentLastYear,omitempty"`
+	NextResearchField            cs.NextResearchField `json:"nextResearchField,omitempty"`
+	Researching                  cs.TechField         `json:"researching,omitempty"`
+	BattlePlans                  *BattlePlans         `json:"battlePlans,omitempty"`
+	ProductionPlans              *ProductionPlans     `json:"productionPlans,omitempty"`
+	TransportPlans               *TransportPlans      `json:"transportPlans,omitempty"`
+	Messages                     *PlayerMessages      `json:"messages,omitempty"`
+	PlanetIntels                 *PlanetIntels        `json:"planetIntels,omitempty"`
+	FleetIntels                  *FleetIntels         `json:"fleetIntels,omitempty"`
+	ShipDesignIntels             *ShipDesignIntels    `json:"shipDesignIntels,omitempty"`
+	MineralPacketIntels          *MineralPacketIntels `json:"mineralPacketIntels,omitempty"`
+	MineFieldIntels              *MineFieldIntels     `json:"mineFieldIntels,omitempty"`
+	Race                         *PlayerRace          `json:"race,omitempty"`
+	Stats                        *PlayerStats         `json:"stats,omitempty"`
+	Spec                         *PlayerSpec          `json:"spec,omitempty"`
 }
 
 // we json serialize these types with custom Scan/Value methods
-type BattlePlans []game.BattlePlan
-type ProductionPlans []game.ProductionPlan
-type TransportPlans []game.TransportPlan
-type PlayerMessages []game.PlayerMessage
-type PlanetIntels []game.PlanetIntel
-type FleetIntels []game.FleetIntel
-type ShipDesignIntels []game.ShipDesignIntel
-type MineralPacketIntels []game.MineralPacketIntel
-type MineFieldIntels []game.MineFieldIntel
-type PlayerRace game.Race
-type PlayerSpec game.PlayerSpec
-type PlayerStats game.PlayerStats
+type BattlePlans []cs.BattlePlan
+type ProductionPlans []cs.ProductionPlan
+type TransportPlans []cs.TransportPlan
+type PlayerMessages []cs.PlayerMessage
+type PlanetIntels []cs.PlanetIntel
+type FleetIntels []cs.FleetIntel
+type ShipDesignIntels []cs.ShipDesignIntel
+type MineralPacketIntels []cs.MineralPacketIntel
+type MineFieldIntels []cs.MineFieldIntel
+type PlayerRace cs.Race
+type PlayerSpec cs.PlayerSpec
+type PlayerStats cs.PlayerStats
 
 // db serializer to serialize this to JSON
 func (item *BattlePlans) Value() (driver.Value, error) {
@@ -176,12 +176,12 @@ func (item *MineFieldIntels) Scan(src interface{}) error {
 	return scanJSON(src, item)
 }
 
-func (c *client) GetPlayers() ([]game.Player, error) {
+func (c *client) GetPlayers() ([]cs.Player, error) {
 
 	items := []Player{}
 	if err := c.db.Select(&items, `SELECT * FROM players`); err != nil {
 		if err == sql.ErrNoRows {
-			return []game.Player{}, nil
+			return []cs.Player{}, nil
 		}
 		return nil, err
 	}
@@ -189,12 +189,12 @@ func (c *client) GetPlayers() ([]game.Player, error) {
 	return c.converter.ConvertPlayers(items), nil
 }
 
-func (c *client) GetPlayersForUser(userID int64) ([]game.Player, error) {
+func (c *client) GetPlayersForUser(userID int64) ([]cs.Player, error) {
 
 	items := []Player{}
 	if err := c.db.Select(&items, `SELECT * FROM players WHERE userId = ?`, userID); err != nil {
 		if err == sql.ErrNoRows {
-			return []game.Player{}, nil
+			return []cs.Player{}, nil
 		}
 		return nil, err
 	}
@@ -203,17 +203,17 @@ func (c *client) GetPlayersForUser(userID int64) ([]game.Player, error) {
 }
 
 // get all the players for a game, with data loaded
-func (c *client) getPlayersForGame(gameID int64) ([]*game.Player, error) {
+func (c *client) getPlayersForGame(gameID int64) ([]*cs.Player, error) {
 
 	items := []Player{}
 	if err := c.db.Select(&items, `SELECT * FROM players WHERE gameId = ?`, gameID); err != nil {
 		if err == sql.ErrNoRows {
-			return []*game.Player{}, nil
+			return []*cs.Player{}, nil
 		}
 		return nil, err
 	}
 
-	players := make([]*game.Player, len(items))
+	players := make([]*cs.Player, len(items))
 	for i := range items {
 		player := c.converter.ConvertPlayer(items[i])
 		players[i] = &player
@@ -229,7 +229,7 @@ func (c *client) getPlayersForGame(gameID int64) ([]*game.Player, error) {
 }
 
 // get a player by id
-func (c *client) GetPlayer(id int64) (*game.Player, error) {
+func (c *client) GetPlayer(id int64) (*cs.Player, error) {
 	item := Player{}
 	if err := c.db.Get(&item, "SELECT * FROM players WHERE id = ?", id); err != nil {
 		if err == sql.ErrNoRows {
@@ -242,7 +242,7 @@ func (c *client) GetPlayer(id int64) (*game.Player, error) {
 	return &player, nil
 }
 
-func (c *client) GetPlayerForGame(gameID, userID int64) (*game.Player, error) {
+func (c *client) GetPlayerForGame(gameID, userID int64) (*cs.Player, error) {
 	item := Player{}
 	if err := c.db.Get(&item, "SELECT * FROM players WHERE gameId = ? AND userId = ?", gameID, userID); err != nil {
 		if err == sql.ErrNoRows {
@@ -263,7 +263,7 @@ func (c *client) GetPlayerForGame(gameID, userID int64) (*game.Player, error) {
 	return &player, nil
 }
 
-func (c *client) GetLightPlayerForGame(gameID, userID int64) (*game.Player, error) {
+func (c *client) GetLightPlayerForGame(gameID, userID int64) (*cs.Player, error) {
 	item := Player{}
 	if err := c.db.Get(&item, `
 	SELECT 
@@ -296,8 +296,8 @@ func (c *client) GetLightPlayerForGame(gameID, userID int64) (*game.Player, erro
 }
 
 // get a full player by id with all dependencies loaded
-func (c *client) GetFullPlayerForGame(gameID, userID int64) (*game.FullPlayer, error) {
-	player := game.FullPlayer{}
+func (c *client) GetFullPlayerForGame(gameID, userID int64) (*cs.FullPlayer, error) {
+	player := cs.FullPlayer{}
 
 	item := Player{}
 	if err := c.db.Get(&item, "SELECT * FROM players WHERE gameId = ? AND userId = ?", gameID, userID); err != nil {
@@ -327,8 +327,8 @@ func (c *client) GetFullPlayerForGame(gameID, userID int64) (*game.FullPlayer, e
 		return nil, fmt.Errorf("get player fleets %w", err)
 	}
 	// pre-instantiate the fleets/starbases arrays (make it a little bigger than necessary)
-	player.Fleets = make([]*game.Fleet, 0, len(fleets))
-	player.Starbases = make([]*game.Fleet, 0, len(planets))
+	player.Fleets = make([]*cs.Fleet, 0, len(fleets))
+	player.Starbases = make([]*cs.Fleet, 0, len(planets))
 	for i := range fleets {
 		fleet := fleets[i]
 		if fleet.Starbase {
@@ -341,12 +341,12 @@ func (c *client) GetFullPlayerForGame(gameID, userID int64) (*game.FullPlayer, e
 	return &player, nil
 }
 
-func (c *client) CreatePlayer(player *game.Player) error {
+func (c *client) CreatePlayer(player *cs.Player) error {
 	return c.createPlayer(player, c.db)
 }
 
 // create a new game
-func (c *client) createPlayer(player *game.Player, tx SQLExecer) error {
+func (c *client) createPlayer(player *cs.Player, tx SQLExecer) error {
 	item := c.converter.ConvertGamePlayer(player)
 	result, err := tx.NamedExec(`
 	INSERT INTO players (
@@ -449,12 +449,12 @@ func (c *client) createPlayer(player *game.Player, tx SQLExecer) error {
 }
 
 // update an existing player
-func (c *client) UpdatePlayer(player *game.Player) error {
+func (c *client) UpdatePlayer(player *cs.Player) error {
 	return c.updatePlayerWithNamedExecer(player, c.db)
 }
 
 // update an existing player's lightweight fields
-func (c *client) UpdateLightPlayer(player *game.Player) error {
+func (c *client) UpdateLightPlayer(player *cs.Player) error {
 	item := c.converter.ConvertGamePlayer(player)
 
 	if _, err := c.db.NamedExec(`
@@ -479,7 +479,7 @@ func (c *client) UpdateLightPlayer(player *game.Player) error {
 }
 
 // helper to update a player using a transaction or DB
-func (c *client) updatePlayerWithNamedExecer(player *game.Player, tx SQLExecer) error {
+func (c *client) updatePlayerWithNamedExecer(player *cs.Player, tx SQLExecer) error {
 	item := c.converter.ConvertGamePlayer(player)
 
 	if _, err := tx.NamedExec(`
@@ -530,7 +530,7 @@ func (c *client) updatePlayerWithNamedExecer(player *game.Player, tx SQLExecer) 
 	return nil
 }
 
-func (c *client) updateFullPlayer(player *game.Player) error {
+func (c *client) updateFullPlayer(player *cs.Player) error {
 	tx, err := c.db.Beginx()
 	if err != nil {
 		return err
@@ -546,7 +546,7 @@ func (c *client) updateFullPlayer(player *game.Player) error {
 }
 
 // update an existing player
-func (c *client) updateFullPlayerWithTransaction(player *game.Player, tx *sqlx.Tx) error {
+func (c *client) updateFullPlayerWithTransaction(player *cs.Player, tx *sqlx.Tx) error {
 
 	if err := c.updatePlayerWithNamedExecer(player, tx); err != nil {
 		tx.Rollback()

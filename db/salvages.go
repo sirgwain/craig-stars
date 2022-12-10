@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/sirgwain/craig-stars/game"
+	"github.com/sirgwain/craig-stars/cs"
 )
 
 type Salvage struct {
@@ -25,7 +25,7 @@ type Salvage struct {
 }
 
 // get a salvage by id
-func (c *client) GetSalvage(id int64) (*game.Salvage, error) {
+func (c *client) GetSalvage(id int64) (*cs.Salvage, error) {
 	item := Salvage{}
 	if err := c.db.Get(&item, "SELECT * FROM salvages WHERE id = ?", id); err != nil {
 		if err == sql.ErrNoRows {
@@ -38,17 +38,17 @@ func (c *client) GetSalvage(id int64) (*game.Salvage, error) {
 	return salvage, nil
 }
 
-func (c *client) getSalvagesForGame(gameID int64) ([]*game.Salvage, error) {
+func (c *client) getSalvagesForGame(gameID int64) ([]*cs.Salvage, error) {
 
 	items := []Salvage{}
 	if err := c.db.Select(&items, `SELECT * FROM salvages WHERE gameId = ?`, gameID); err != nil {
 		if err == sql.ErrNoRows {
-			return []*game.Salvage{}, nil
+			return []*cs.Salvage{}, nil
 		}
 		return nil, err
 	}
 
-	results := make([]*game.Salvage, len(items))
+	results := make([]*cs.Salvage, len(items))
 	for i := range items {
 		results[i] = c.converter.ConvertSalvage(&items[i])
 	}
@@ -57,7 +57,7 @@ func (c *client) getSalvagesForGame(gameID int64) ([]*game.Salvage, error) {
 }
 
 // create a new game
-func (c *client) createSalvage(salvage *game.Salvage, tx SQLExecer) error {
+func (c *client) createSalvage(salvage *cs.Salvage, tx SQLExecer) error {
 	item := c.converter.ConvertGameSalvage(salvage)
 	result, err := tx.NamedExec(`
 	INSERT INTO salvages (
@@ -103,12 +103,12 @@ func (c *client) createSalvage(salvage *game.Salvage, tx SQLExecer) error {
 	return nil
 }
 
-func (c *client) UpdateSalvage(salvage *game.Salvage) error {
+func (c *client) UpdateSalvage(salvage *cs.Salvage) error {
 	return c.updateSalvage(salvage, c.db)
 }
 
 // update an existing salvage
-func (c *client) updateSalvage(salvage *game.Salvage, tx SQLExecer) error {
+func (c *client) updateSalvage(salvage *cs.Salvage, tx SQLExecer) error {
 
 	item := c.converter.ConvertGameSalvage(salvage)
 

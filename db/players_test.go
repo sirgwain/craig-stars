@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sirgwain/craig-stars/game"
+	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
 )
@@ -12,20 +12,20 @@ import (
 func TestCreatePlayer(t *testing.T) {
 	type args struct {
 		c      *client
-		player *game.Player
+		player *cs.Player
 	}
 	tests := []struct {
 		name    string
 		args    args
 		wantErr bool
 	}{
-		{"Create", args{connectTestDB(), &game.Player{UserID: 1, Name: "test"}}, false},
+		{"Create", args{connectTestDB(), &cs.Player{UserID: 1, Name: "test"}}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// create a test game
-			g := tt.args.c.createTestGame()
-			tt.args.player.GameID = g.ID
+			game := tt.args.c.createTestGame()
+			tt.args.player.GameID = game.ID
 
 			want := *tt.args.player
 			err := tt.args.c.CreatePlayer(tt.args.player)
@@ -46,7 +46,7 @@ func TestCreatePlayer(t *testing.T) {
 func TestUpdatePlayer(t *testing.T) {
 	c := connectTestDB()
 	c.createTestGame()
-	player := game.Player{UserID: 1, GameID: 1, Name: "Test"}
+	player := cs.Player{UserID: 1, GameID: 1, Name: "Test"}
 	if err := c.CreatePlayer(&player); err != nil {
 		t.Errorf("create player %s", err)
 		return
@@ -73,10 +73,10 @@ func TestUpdatePlayer(t *testing.T) {
 }
 
 func TestGetPlayer(t *testing.T) {
-	rules := game.NewRules()
+	rules := cs.NewRules()
 	c := connectTestDB()
 	c.createTestGame()
-	player := game.Player{UserID: 1, GameID: 1, Name: "Test", Race: *game.NewRace().WithSpec(&rules)}
+	player := cs.Player{UserID: 1, GameID: 1, Name: "Test", Race: *cs.NewRace().WithSpec(&rules)}
 	if err := c.CreatePlayer(&player); err != nil {
 		t.Errorf("create player %s", err)
 		return
@@ -88,7 +88,7 @@ func TestGetPlayer(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *game.Player
+		want    *cs.Player
 		wantErr bool
 	}{
 		// {"No results", args{id: 0}, nil, false},
@@ -119,9 +119,9 @@ func TestGetPlayers(t *testing.T) {
 	// start with 1 player from connectTestDB
 	result, err := c.GetPlayers()
 	assert.Nil(t, err)
-	assert.Equal(t, []game.Player{}, result)
+	assert.Equal(t, []cs.Player{}, result)
 
-	player := game.Player{UserID: 1, GameID: 1, Name: "Test"}
+	player := cs.Player{UserID: 1, GameID: 1, Name: "Test"}
 	if err := c.CreatePlayer(&player); err != nil {
 		t.Errorf("create player %s", err)
 		return
@@ -139,9 +139,9 @@ func TestDeletePlayers(t *testing.T) {
 
 	result, err := c.GetPlayers()
 	assert.Nil(t, err)
-	assert.Equal(t, []game.Player{}, result)
+	assert.Equal(t, []cs.Player{}, result)
 
-	player := game.Player{UserID: 1, GameID: 1, Name: "Test"}
+	player := cs.Player{UserID: 1, GameID: 1, Name: "Test"}
 	if err := c.CreatePlayer(&player); err != nil {
 		t.Errorf("create player %s", err)
 		return
@@ -165,8 +165,8 @@ func TestDeletePlayers(t *testing.T) {
 
 func TestUpdateFullPlayer(t *testing.T) {
 	c := connectTestDB()
-	g := c.createTestGame()
-	player := game.Player{UserID: 1, GameID: g.ID, Name: "Test"}
+	game := c.createTestGame()
+	player := cs.Player{UserID: 1, GameID: game.ID, Name: "Test"}
 	if err := c.CreatePlayer(&player); err != nil {
 		t.Errorf("create player %s", err)
 		return
@@ -174,8 +174,8 @@ func TestUpdateFullPlayer(t *testing.T) {
 
 	player.Name = "Test2"
 	player.Num = 1
-	player.Messages = append(player.Messages, game.PlayerMessage{PlayerID: player.ID, Type: game.PlayerMessageInfo, Text: "message1"})
-	player.Messages = append(player.Messages, game.PlayerMessage{PlayerID: player.ID, Type: game.PlayerMessageInfo, Text: "message2"})
+	player.Messages = append(player.Messages, cs.PlayerMessage{PlayerID: player.ID, Type: cs.PlayerMessageInfo, Text: "message1"})
+	player.Messages = append(player.Messages, cs.PlayerMessage{PlayerID: player.ID, Type: cs.PlayerMessageInfo, Text: "message2"})
 	if err := c.updateFullPlayer(&player); err != nil {
 		t.Errorf("update player %s", err)
 		return

@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sirgwain/craig-stars/game"
+	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
 )
@@ -12,15 +12,15 @@ import (
 func TestCreateSalvage(t *testing.T) {
 	type args struct {
 		c       *client
-		salvage *game.Salvage
+		salvage *cs.Salvage
 	}
 	tests := []struct {
 		name    string
 		args    args
 		wantErr bool
 	}{
-		{"Create", args{connectTestDB(), &game.Salvage{
-			MapObject: game.MapObject{GameID: 1, Name: "test"},
+		{"Create", args{connectTestDB(), &cs.Salvage{
+			MapObject: cs.MapObject{GameID: 1, Name: "test"},
 		},
 		}, false},
 	}
@@ -50,11 +50,11 @@ func TestCreateSalvage(t *testing.T) {
 func TestGetSalvage(t *testing.T) {
 	c := connectTestDB()
 	g, player := c.createTestGameWithPlayer()
-	design := game.NewShipDesign(player).WithHull(game.Scout.Name)
+	design := cs.NewShipDesign(player).WithHull(cs.Scout.Name)
 	c.createTestShipDesign(player, design)
 
-	salvage := game.Salvage{
-		MapObject: game.MapObject{GameID: g.ID, PlayerID: player.ID, Name: "name", Type: game.MapObjectTypeSalvage},
+	salvage := cs.Salvage{
+		MapObject: cs.MapObject{GameID: g.ID, PlayerID: player.ID, Name: "name", Type: cs.MapObjectTypeSalvage},
 	}
 	if err := c.createSalvage(&salvage, c.db); err != nil {
 		t.Errorf("create salvage %s", err)
@@ -67,7 +67,7 @@ func TestGetSalvage(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *game.Salvage
+		want    *cs.Salvage
 		wantErr bool
 	}{
 		{"No results", args{id: 0}, nil, false},
@@ -98,9 +98,9 @@ func TestGetSalvages(t *testing.T) {
 	// start with 1 planet from connectTestDB
 	result, err := c.getSalvagesForGame(g.ID)
 	assert.Nil(t, err)
-	assert.Equal(t, []*game.Salvage{}, result)
+	assert.Equal(t, []*cs.Salvage{}, result)
 
-	salvage := game.Salvage{MapObject: game.MapObject{GameID: g.ID, PlayerID: player.ID}}
+	salvage := cs.Salvage{MapObject: cs.MapObject{GameID: g.ID, PlayerID: player.ID}}
 	if err := c.createSalvage(&salvage, c.db); err != nil {
 		t.Errorf("create planet %s", err)
 		return
@@ -115,7 +115,7 @@ func TestGetSalvages(t *testing.T) {
 func TestUpdateSalvage(t *testing.T) {
 	c := connectTestDB()
 	g, player := c.createTestGameWithPlayer()
-	planet := game.Salvage{MapObject: game.MapObject{GameID: g.ID, PlayerID: player.ID}}
+	planet := cs.Salvage{MapObject: cs.MapObject{GameID: g.ID, PlayerID: player.ID}}
 	if err := c.createSalvage(&planet, c.db); err != nil {
 		t.Errorf("create planet %s", err)
 		return

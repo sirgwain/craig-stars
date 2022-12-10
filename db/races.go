@@ -5,48 +5,48 @@ import (
 	"database/sql/driver"
 	"time"
 
-	"github.com/sirgwain/craig-stars/game"
+	"github.com/sirgwain/craig-stars/cs"
 )
 
 type Race struct {
-	ID                        int64                  `json:"id,omitempty"`
-	CreatedAt                 time.Time              `json:"createdAt,omitempty"`
-	UpdatedAt                 time.Time              `json:"updatedAt,omitempty"`
-	UserID                    int64                  `json:"userId,omitempty"`
-	Name                      string                 `json:"name,omitempty"`
-	PluralName                string                 `json:"pluralName,omitempty"`
-	PRT                       game.PRT               `json:"prt,omitempty"`
-	LRTs                      game.Bitmask           `json:"lrts,omitempty"`
-	HabLowGrav                int                    `json:"habLowGrav,omitempty"`
-	HabLowTemp                int                    `json:"habLowTemp,omitempty"`
-	HabLowRad                 int                    `json:"habLowRad,omitempty"`
-	HabHighGrav               int                    `json:"habHighGrav,omitempty"`
-	HabHighTemp               int                    `json:"habHighTemp,omitempty"`
-	HabHighRad                int                    `json:"habHighRad,omitempty"`
-	GrowthRate                int                    `json:"growthRate,omitempty"`
-	PopEfficiency             int                    `json:"popEfficiency,omitempty"`
-	FactoryOutput             int                    `json:"factoryOutput,omitempty"`
-	FactoryCost               int                    `json:"factoryCost,omitempty"`
-	NumFactories              int                    `json:"numFactories,omitempty"`
-	FactoriesCostLess         bool                   `json:"factoriesCostLess,omitempty"`
-	ImmuneGrav                bool                   `json:"immuneGrav,omitempty"`
-	ImmuneTemp                bool                   `json:"immuneTemp,omitempty"`
-	ImmuneRad                 bool                   `json:"immuneRad,omitempty"`
-	MineOutput                int                    `json:"mineOutput,omitempty"`
-	MineCost                  int                    `json:"mineCost,omitempty"`
-	NumMines                  int                    `json:"numMines,omitempty"`
-	ResearchCostEnergy        game.ResearchCostLevel `json:"researchCostEnergy,omitempty"`
-	ResearchCostWeapons       game.ResearchCostLevel `json:"researchCostWeapons,omitempty"`
-	ResearchCostPropulsion    game.ResearchCostLevel `json:"researchCostPropulsion,omitempty"`
-	ResearchCostConstruction  game.ResearchCostLevel `json:"researchCostConstruction,omitempty"`
-	ResearchCostElectronics   game.ResearchCostLevel `json:"researchCostElectronics,omitempty"`
-	ResearchCostBiotechnology game.ResearchCostLevel `json:"researchCostBiotechnology,omitempty"`
-	TechsStartHigh            bool                   `json:"techsStartHigh,omitempty"`
-	Spec                      *RaceSpec              `json:"spec,omitempty"`
+	ID                        int64                `json:"id,omitempty"`
+	CreatedAt                 time.Time            `json:"createdAt,omitempty"`
+	UpdatedAt                 time.Time            `json:"updatedAt,omitempty"`
+	UserID                    int64                `json:"userId,omitempty"`
+	Name                      string               `json:"name,omitempty"`
+	PluralName                string               `json:"pluralName,omitempty"`
+	PRT                       cs.PRT               `json:"prt,omitempty"`
+	LRTs                      cs.Bitmask           `json:"lrts,omitempty"`
+	HabLowGrav                int                  `json:"habLowGrav,omitempty"`
+	HabLowTemp                int                  `json:"habLowTemp,omitempty"`
+	HabLowRad                 int                  `json:"habLowRad,omitempty"`
+	HabHighGrav               int                  `json:"habHighGrav,omitempty"`
+	HabHighTemp               int                  `json:"habHighTemp,omitempty"`
+	HabHighRad                int                  `json:"habHighRad,omitempty"`
+	GrowthRate                int                  `json:"growthRate,omitempty"`
+	PopEfficiency             int                  `json:"popEfficiency,omitempty"`
+	FactoryOutput             int                  `json:"factoryOutput,omitempty"`
+	FactoryCost               int                  `json:"factoryCost,omitempty"`
+	NumFactories              int                  `json:"numFactories,omitempty"`
+	FactoriesCostLess         bool                 `json:"factoriesCostLess,omitempty"`
+	ImmuneGrav                bool                 `json:"immuneGrav,omitempty"`
+	ImmuneTemp                bool                 `json:"immuneTemp,omitempty"`
+	ImmuneRad                 bool                 `json:"immuneRad,omitempty"`
+	MineOutput                int                  `json:"mineOutput,omitempty"`
+	MineCost                  int                  `json:"mineCost,omitempty"`
+	NumMines                  int                  `json:"numMines,omitempty"`
+	ResearchCostEnergy        cs.ResearchCostLevel `json:"researchCostEnergy,omitempty"`
+	ResearchCostWeapons       cs.ResearchCostLevel `json:"researchCostWeapons,omitempty"`
+	ResearchCostPropulsion    cs.ResearchCostLevel `json:"researchCostPropulsion,omitempty"`
+	ResearchCostConstruction  cs.ResearchCostLevel `json:"researchCostConstruction,omitempty"`
+	ResearchCostElectronics   cs.ResearchCostLevel `json:"researchCostElectronics,omitempty"`
+	ResearchCostBiotechnology cs.ResearchCostLevel `json:"researchCostBiotechnology,omitempty"`
+	TechsStartHigh            bool                 `json:"techsStartHigh,omitempty"`
+	Spec                      *RaceSpec            `json:"spec,omitempty"`
 }
 
 // we json serialize these types with custom Scan/Value methods
-type RaceSpec game.RaceSpec
+type RaceSpec cs.RaceSpec
 
 // db serializer to serialize this to JSON
 func (item *RaceSpec) Value() (driver.Value, error) {
@@ -58,12 +58,12 @@ func (item *RaceSpec) Scan(src interface{}) error {
 	return scanJSON(src, item)
 }
 
-func (c *client) GetRaces() ([]game.Race, error) {
+func (c *client) GetRaces() ([]cs.Race, error) {
 
 	items := []Race{}
 	if err := c.db.Select(&items, `SELECT * FROM races`); err != nil {
 		if err == sql.ErrNoRows {
-			return []game.Race{}, nil
+			return []cs.Race{}, nil
 		}
 		return nil, err
 	}
@@ -71,12 +71,12 @@ func (c *client) GetRaces() ([]game.Race, error) {
 	return c.converter.ConvertRaces(items), nil
 }
 
-func (c *client) GetRacesForUser(userID int64) ([]game.Race, error) {
+func (c *client) GetRacesForUser(userID int64) ([]cs.Race, error) {
 
 	items := []Race{}
 	if err := c.db.Select(&items, `SELECT * FROM races WHERE userId = ?`, userID); err != nil {
 		if err == sql.ErrNoRows {
-			return []game.Race{}, nil
+			return []cs.Race{}, nil
 		}
 		return nil, err
 	}
@@ -85,7 +85,7 @@ func (c *client) GetRacesForUser(userID int64) ([]game.Race, error) {
 }
 
 // get a race by id
-func (c *client) GetRace(id int64) (*game.Race, error) {
+func (c *client) GetRace(id int64) (*cs.Race, error) {
 	item := Race{}
 	if err := c.db.Get(&item, "SELECT * FROM races WHERE id = ?", id); err != nil {
 		if err == sql.ErrNoRows {
@@ -98,12 +98,12 @@ func (c *client) GetRace(id int64) (*game.Race, error) {
 	return &race, nil
 }
 
-func (c *client) CreateRace(race *game.Race) error {
+func (c *client) CreateRace(race *cs.Race) error {
 	return c.createRace(race, c.db)
 }
 
 // create a new race
-func (c *client) createRace(race *game.Race, tx SQLExecer) error {
+func (c *client) createRace(race *cs.Race, tx SQLExecer) error {
 
 	item := c.converter.ConvertGameRace(race)
 	result, err := tx.NamedExec(`
@@ -195,7 +195,7 @@ func (c *client) createRace(race *game.Race, tx SQLExecer) error {
 }
 
 // update an existing race
-func (c *client) UpdateRace(race *game.Race) error {
+func (c *client) UpdateRace(race *cs.Race) error {
 
 	item := c.converter.ConvertGameRace(race)
 

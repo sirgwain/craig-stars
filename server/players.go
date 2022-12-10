@@ -6,11 +6,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
-	"github.com/sirgwain/craig-stars/game"
+	"github.com/sirgwain/craig-stars/cs"
 )
 
 type HostGameBind struct {
-	Settings game.GameSettings `json:"settings"`
+	Settings cs.GameSettings `json:"settings"`
 }
 
 type JoinGameBind struct {
@@ -195,7 +195,7 @@ func (s *server) updatePlayerOrders(c *gin.Context) {
 		return
 	}
 
-	orders := game.PlayerOrders{}
+	orders := cs.PlayerOrders{}
 	if err := c.ShouldBindJSON(&orders); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

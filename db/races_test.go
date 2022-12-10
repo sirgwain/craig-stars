@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sirgwain/craig-stars/game"
+	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
 )
@@ -13,14 +13,14 @@ func TestCreateRace(t *testing.T) {
 
 	type args struct {
 		c    *client
-		race *game.Race
+		race *cs.Race
 	}
 	tests := []struct {
 		name    string
 		args    args
 		wantErr bool
 	}{
-		{"Create", args{connectTestDB(), &game.Race{UserID: 1, Name: "test", PluralName: "testers"}}, false},
+		{"Create", args{connectTestDB(), &cs.Race{UserID: 1, Name: "test", PluralName: "testers"}}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -42,7 +42,7 @@ func TestCreateRace(t *testing.T) {
 
 func TestUpdateRace(t *testing.T) {
 	c := connectTestDB()
-	race := game.Race{UserID: 1, Name: "Test"}
+	race := cs.Race{UserID: 1, Name: "Test"}
 	if err := c.CreateRace(&race); err != nil {
 		t.Errorf("create race %s", err)
 		return
@@ -70,8 +70,8 @@ func TestUpdateRace(t *testing.T) {
 
 func TestGetRace(t *testing.T) {
 	c := connectTestDB()
-	rules := game.NewRules()
-	race := &game.Race{UserID: 1, Name: "Test", PluralName: "testers"}
+	rules := cs.NewRules()
+	race := &cs.Race{UserID: 1, Name: "Test", PluralName: "testers"}
 	race = race.WithSpec(&rules)
 
 	if err := c.CreateRace(race); err != nil {
@@ -85,7 +85,7 @@ func TestGetRace(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *game.Race
+		want    *cs.Race
 		wantErr bool
 	}{
 		{"No results", args{id: 0}, nil, false},
@@ -115,9 +115,9 @@ func TestGetRaces(t *testing.T) {
 	// start with 1 race from connectTestDB
 	result, err := c.GetRaces()
 	assert.Nil(t, err)
-	assert.Equal(t, []game.Race{}, result)
+	assert.Equal(t, []cs.Race{}, result)
 
-	race := game.Race{UserID: 1, Name: "Test", PluralName: "testers"}
+	race := cs.Race{UserID: 1, Name: "Test", PluralName: "testers"}
 	if err := c.CreateRace(&race); err != nil {
 		t.Errorf("create race %s", err)
 		return
@@ -134,9 +134,9 @@ func TestDeleteRaces(t *testing.T) {
 
 	result, err := c.GetRaces()
 	assert.Nil(t, err)
-	assert.Equal(t, []game.Race{}, result)
+	assert.Equal(t, []cs.Race{}, result)
 
-	race := game.Race{UserID: 1, Name: "Test", PluralName: "Testers"}
+	race := cs.Race{UserID: 1, Name: "Test", PluralName: "Testers"}
 	if err := c.CreateRace(&race); err != nil {
 		t.Errorf("create race %s", err)
 		return

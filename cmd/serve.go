@@ -5,8 +5,8 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/config"
+	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
-	"github.com/sirgwain/craig-stars/game"
 	"github.com/sirgwain/craig-stars/server"
 
 	"github.com/spf13/cobra"
@@ -48,12 +48,12 @@ func newServeCmd() *cobra.Command {
 func generateTestGame(db server.DBClient, config config.Config) error {
 	defer timeTrack(time.Now(), "generateTestGame")
 
-	admin, adminRace, err := createTestUser(db, "admin", config.GeneratedUserPassword, game.RoleAdmin)
+	admin, adminRace, err := createTestUser(db, "admin", config.GeneratedUserPassword, cs.RoleAdmin)
 	if err != nil {
 		return err
 	}
 
-	user2, user2Race, err := createTestUser(db, "craig", config.GeneratedUserPassword, game.RoleUser)
+	user2, user2Race, err := createTestUser(db, "craig", config.GeneratedUserPassword, cs.RoleUser)
 	if err != nil {
 		return err
 	}
@@ -62,20 +62,20 @@ func generateTestGame(db server.DBClient, config config.Config) error {
 	gameRunner := server.NewGameRunner(db)
 
 	// admin user will host a game with an ai player
-	if _, err := gameRunner.HostGame(admin.ID, game.NewGameSettings().
+	if _, err := gameRunner.HostGame(admin.ID, cs.NewGameSettings().
 		// WithSize(game.SizeTiny).
 		// WithDensity(game.DensitySparse).
 		WithHost(adminRace.ID).
-		WithAIPlayer(game.AIDifficultyNormal)); err != nil {
+		WithAIPlayer(cs.AIDifficultyNormal)); err != nil {
 		return err
 	}
 
 	// also create a medium size game with 25 turns generated
-	mediumGame, err := gameRunner.HostGame(admin.ID, game.NewGameSettings().
+	mediumGame, err := gameRunner.HostGame(admin.ID, cs.NewGameSettings().
 		WithName("Medium Game").
-		WithSize(game.SizeMedium).
+		WithSize(cs.SizeMedium).
 		WithHost(adminRace.ID).
-		WithAIPlayer(game.AIDifficultyNormal))
+		WithAIPlayer(cs.AIDifficultyNormal))
 	if err != nil {
 		return err
 	}
@@ -87,7 +87,7 @@ func generateTestGame(db server.DBClient, config config.Config) error {
 	}
 
 	// user2 will also host a game so with an open player slot
-	_, err = gameRunner.HostGame(user2.ID, game.NewGameSettings().
+	_, err = gameRunner.HostGame(user2.ID, cs.NewGameSettings().
 		WithName("Joinable Game").
 		WithHost(user2Race.ID).
 		WithOpenPlayerSlot())
@@ -98,7 +98,7 @@ func generateTestGame(db server.DBClient, config config.Config) error {
 	return nil
 }
 
-func createTestUser(db server.DBClient, username string, password string, role game.Role) (*game.User, *game.Race, error) {
+func createTestUser(db server.DBClient, username string, password string, role cs.Role) (*cs.User, *cs.Race, error) {
 	user, err := db.GetUserByUsername(username)
 	if err != nil {
 		return nil, nil, err
@@ -110,7 +110,7 @@ func createTestUser(db server.DBClient, username string, password string, role g
 	}
 
 	if user == nil {
-		user = game.NewUser(username, password, role)
+		user = cs.NewUser(username, password, role)
 		err := db.CreateUser(user)
 		if err != nil {
 			return nil, nil, err
@@ -123,9 +123,9 @@ func createTestUser(db server.DBClient, username string, password string, role g
 		return nil, nil, err
 	}
 
-	var race game.Race
+	var race cs.Race
 	if len(races) == 0 {
-		race = game.Humanoids()
+		race = cs.Humanoids()
 		race.UserID = user.ID
 
 		if err := db.CreateRace(&race); err != nil {

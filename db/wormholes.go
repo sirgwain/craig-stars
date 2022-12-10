@@ -4,25 +4,25 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/sirgwain/craig-stars/game"
+	"github.com/sirgwain/craig-stars/cs"
 )
 
 type Wormhole struct {
-	ID               int64                  `json:"id,omitempty"`
-	GameID           int64                  `json:"gameId,omitempty"`
-	CreatedAt        time.Time              `json:"createdAt,omitempty"`
-	UpdatedAt        time.Time              `json:"updatedAt,omitempty"`
-	X                float64                `json:"x,omitempty"`
-	Y                float64                `json:"y,omitempty"`
-	Name             string                 `json:"name,omitempty"`
-	Num              int                    `json:"num,omitempty"`
-	DestinationNum   int                    `json:"destinationNum,omitempty"`
-	Stability        game.WormholeStability `json:"stability,omitempty"`
-	YearsAtStability int                    `json:"yearsAtStability,omitempty"`
+	ID               int64                `json:"id,omitempty"`
+	GameID           int64                `json:"gameId,omitempty"`
+	CreatedAt        time.Time            `json:"createdAt,omitempty"`
+	UpdatedAt        time.Time            `json:"updatedAt,omitempty"`
+	X                float64              `json:"x,omitempty"`
+	Y                float64              `json:"y,omitempty"`
+	Name             string               `json:"name,omitempty"`
+	Num              int                  `json:"num,omitempty"`
+	DestinationNum   int                  `json:"destinationNum,omitempty"`
+	Stability        cs.WormholeStability `json:"stability,omitempty"`
+	YearsAtStability int                  `json:"yearsAtStability,omitempty"`
 }
 
 // get a wormhole by id
-func (c *client) GetWormhole(id int64) (*game.Wormhole, error) {
+func (c *client) GetWormhole(id int64) (*cs.Wormhole, error) {
 	item := Wormhole{}
 	if err := c.db.Get(&item, "SELECT * FROM wormholes WHERE id = ?", id); err != nil {
 		if err == sql.ErrNoRows {
@@ -35,17 +35,17 @@ func (c *client) GetWormhole(id int64) (*game.Wormhole, error) {
 	return wormhole, nil
 }
 
-func (c *client) getWormholesForGame(gameID int64) ([]*game.Wormhole, error) {
+func (c *client) getWormholesForGame(gameID int64) ([]*cs.Wormhole, error) {
 
 	items := []Wormhole{}
 	if err := c.db.Select(&items, `SELECT * FROM wormholes WHERE gameId = ?`, gameID); err != nil {
 		if err == sql.ErrNoRows {
-			return []*game.Wormhole{}, nil
+			return []*cs.Wormhole{}, nil
 		}
 		return nil, err
 	}
 
-	results := make([]*game.Wormhole, len(items))
+	results := make([]*cs.Wormhole, len(items))
 	for i := range items {
 		results[i] = c.converter.ConvertWormhole(&items[i])
 	}
@@ -54,7 +54,7 @@ func (c *client) getWormholesForGame(gameID int64) ([]*game.Wormhole, error) {
 }
 
 // create a new game
-func (c *client) createWormhole(wormhole *game.Wormhole, tx SQLExecer) error {
+func (c *client) createWormhole(wormhole *cs.Wormhole, tx SQLExecer) error {
 	item := c.converter.ConvertGameWormhole(wormhole)
 	result, err := tx.NamedExec(`
 	INSERT INTO wormholes (
@@ -96,12 +96,12 @@ func (c *client) createWormhole(wormhole *game.Wormhole, tx SQLExecer) error {
 	return nil
 }
 
-func (c *client) UpdateWormhole(wormhole *game.Wormhole) error {
+func (c *client) UpdateWormhole(wormhole *cs.Wormhole) error {
 	return c.updateWormhole(wormhole, c.db)
 }
 
 // update an existing wormhole
-func (c *client) updateWormhole(wormhole *game.Wormhole, tx SQLExecer) error {
+func (c *client) updateWormhole(wormhole *cs.Wormhole, tx SQLExecer) error {
 
 	item := c.converter.ConvertGameWormhole(wormhole)
 

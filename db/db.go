@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/sirgwain/craig-stars/config"
-	"github.com/sirgwain/craig-stars/game"
+	"github.com/sirgwain/craig-stars/cs"
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -29,57 +29,57 @@ type Client interface {
 	Connect(config *config.Config) error
 	ExecSQL(schemaPath string)
 
-	GetUsers() ([]game.User, error)
-	GetUser(id int64) (*game.User, error)
-	GetUserByUsername(username string) (*game.User, error)
-	CreateUser(user *game.User) error
-	UpdateUser(user *game.User) error
+	GetUsers() ([]cs.User, error)
+	GetUser(id int64) (*cs.User, error)
+	GetUserByUsername(username string) (*cs.User, error)
+	CreateUser(user *cs.User) error
+	UpdateUser(user *cs.User) error
 	DeleteUser(id int64) error
 
-	GetRaces() ([]game.Race, error)
-	GetRacesForUser(userID int64) ([]game.Race, error)
-	GetRace(id int64) (*game.Race, error)
-	CreateRace(race *game.Race) error
-	UpdateRace(race *game.Race) error
+	GetRaces() ([]cs.Race, error)
+	GetRacesForUser(userID int64) ([]cs.Race, error)
+	GetRace(id int64) (*cs.Race, error)
+	CreateRace(race *cs.Race) error
+	UpdateRace(race *cs.Race) error
 	DeleteRace(id int64) error
 
-	GetTechStores() ([]game.TechStore, error)
-	CreateTechStore(tech *game.TechStore) error
-	GetTechStore(id int64) (*game.TechStore, error)
+	GetTechStores() ([]cs.TechStore, error)
+	CreateTechStore(tech *cs.TechStore) error
+	GetTechStore(id int64) (*cs.TechStore, error)
 
-	GetRulesForGame(gameID int64) (*game.Rules, error)
+	GetRulesForGame(gameID int64) (*cs.Rules, error)
 
-	GetGames() ([]game.Game, error)
-	GetGamesForHost(userID int64) ([]game.Game, error)
-	GetGamesForUser(userID int64) ([]game.Game, error)
-	GetOpenGames() ([]game.Game, error)
-	GetGame(id int64) (*game.Game, error)
-	GetFullGame(id int64) (*game.FullGame, error)
-	CreateGame(game *game.Game) error
-	UpdateGame(game *game.Game) error
-	UpdateFullGame(g *game.FullGame) error
+	GetGames() ([]cs.Game, error)
+	GetGamesForHost(userID int64) ([]cs.Game, error)
+	GetGamesForUser(userID int64) ([]cs.Game, error)
+	GetOpenGames() ([]cs.Game, error)
+	GetGame(id int64) (*cs.Game, error)
+	GetFullGame(id int64) (*cs.FullGame, error)
+	CreateGame(game *cs.Game) error
+	UpdateGame(game *cs.Game) error
+	UpdateFullGame(g *cs.FullGame) error
 	DeleteGame(id int64) error
 
-	GetPlayers() ([]game.Player, error)
-	GetPlayersForUser(userID int64) ([]game.Player, error)
-	GetPlayer(id int64) (*game.Player, error)
-	GetLightPlayerForGame(gameID, userID int64) (*game.Player, error)
-	GetPlayerForGame(gameID, userID int64) (*game.Player, error)
-	GetFullPlayerForGame(gameID, userID int64) (*game.FullPlayer, error)
-	CreatePlayer(player *game.Player) error
-	UpdatePlayer(player *game.Player) error
-	UpdateLightPlayer(player *game.Player) error
+	GetPlayers() ([]cs.Player, error)
+	GetPlayersForUser(userID int64) ([]cs.Player, error)
+	GetPlayer(id int64) (*cs.Player, error)
+	GetLightPlayerForGame(gameID, userID int64) (*cs.Player, error)
+	GetPlayerForGame(gameID, userID int64) (*cs.Player, error)
+	GetFullPlayerForGame(gameID, userID int64) (*cs.FullPlayer, error)
+	CreatePlayer(player *cs.Player) error
+	UpdatePlayer(player *cs.Player) error
+	UpdateLightPlayer(player *cs.Player) error
 	DeletePlayer(id int64) error
 
-	GetPlanet(id int64) (*game.Planet, error)
-	GetPlanetsForPlayer(playerID int64) ([]*game.Planet, error)
-	UpdatePlanet(planet *game.Planet) error
+	GetPlanet(id int64) (*cs.Planet, error)
+	GetPlanetsForPlayer(playerID int64) ([]*cs.Planet, error)
+	UpdatePlanet(planet *cs.Planet) error
 
-	GetFleet(id int64) (*game.Fleet, error)
-	UpdateFleet(fleet *game.Fleet) error
+	GetFleet(id int64) (*cs.Fleet, error)
+	UpdateFleet(fleet *cs.Fleet) error
 
-	GetMineField(id int64) (*game.MineField, error)
-	UpdateMineField(fleet *game.MineField) error
+	GetMineField(id int64) (*cs.MineField, error)
+	UpdateMineField(fleet *cs.MineField) error
 }
 
 func NewClient() Client {

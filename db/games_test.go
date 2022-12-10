@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sirgwain/craig-stars/game"
+	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
 )
@@ -13,14 +13,14 @@ func TestCreateGame(t *testing.T) {
 
 	type args struct {
 		c    *client
-		game *game.Game
+		game *cs.Game
 	}
 	tests := []struct {
 		name    string
 		args    args
 		wantErr bool
 	}{
-		{"Create", args{connectTestDB(), &game.Game{HostID: 1, Name: "test"}}, false},
+		{"Create", args{connectTestDB(), &cs.Game{HostID: 1, Name: "test"}}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -42,7 +42,7 @@ func TestCreateGame(t *testing.T) {
 
 func TestUpdateGame(t *testing.T) {
 	c := connectTestDB()
-	game := game.Game{HostID: 1, Name: "Test"}
+	game := cs.Game{HostID: 1, Name: "Test"}
 	if err := c.CreateGame(&game); err != nil {
 		t.Errorf("create game %s", err)
 		return
@@ -68,10 +68,10 @@ func TestUpdateGame(t *testing.T) {
 
 func TestGetGame(t *testing.T) {
 	c := connectTestDB()
-	g := game.NewGame().WithSettings(*game.NewGameSettings().WithHost(1).WithName("test"))
-	g.Area = game.Vector{X: 1, Y: 2}
+	game := cs.NewGame().WithSettings(*cs.NewGameSettings().WithHost(1).WithName("test"))
+	game.Area = cs.Vector{X: 1, Y: 2}
 
-	if err := c.CreateGame(g); err != nil {
+	if err := c.CreateGame(game); err != nil {
 		t.Errorf("create game %s", err)
 		return
 	}
@@ -82,11 +82,11 @@ func TestGetGame(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *game.Game
+		want    *cs.Game
 		wantErr bool
 	}{
 		{"No results", args{id: 0}, nil, false},
-		{"Got game", args{id: g.ID}, g, false},
+		{"Got game", args{id: game.ID}, game, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -112,9 +112,9 @@ func TestGetGames(t *testing.T) {
 	// start with 1 game from connectTestDB
 	result, err := c.GetGames()
 	assert.Nil(t, err)
-	assert.Equal(t, []game.Game{}, result)
+	assert.Equal(t, []cs.Game{}, result)
 
-	game := game.Game{HostID: 1, Name: "Test"}
+	game := cs.Game{HostID: 1, Name: "Test"}
 	if err := c.CreateGame(&game); err != nil {
 		t.Errorf("create game %s", err)
 		return
@@ -132,9 +132,9 @@ func TestGetOpenGames(t *testing.T) {
 	// start with 1 game from connectTestDB
 	result, err := c.GetOpenGames()
 	assert.Nil(t, err)
-	assert.Equal(t, []game.Game{}, result)
+	assert.Equal(t, []cs.Game{}, result)
 
-	g1 := game.Game{HostID: 1, Name: "Test", State: game.GameStateSetup, OpenPlayerSlots: 1}
+	g1 := cs.Game{HostID: 1, Name: "Test", State: cs.GameStateSetup, OpenPlayerSlots: 1}
 	if err := c.CreateGame(&g1); err != nil {
 		t.Errorf("create game %s", err)
 		return
@@ -145,7 +145,7 @@ func TestGetOpenGames(t *testing.T) {
 	assert.Equal(t, 1, len(result))
 
 	// create a second closed game
-	g2 := game.Game{HostID: 1, Name: "Test", State: game.GameStateSetup, OpenPlayerSlots: 0}
+	g2 := cs.Game{HostID: 1, Name: "Test", State: cs.GameStateSetup, OpenPlayerSlots: 0}
 	if err := c.CreateGame(&g2); err != nil {
 		t.Errorf("create game %s", err)
 		return
@@ -161,9 +161,9 @@ func TestDeleteGames(t *testing.T) {
 
 	result, err := c.GetGames()
 	assert.Nil(t, err)
-	assert.Equal(t, []game.Game{}, result)
+	assert.Equal(t, []cs.Game{}, result)
 
-	game := game.Game{HostID: 1, Name: "Test"}
+	game := cs.Game{HostID: 1, Name: "Test"}
 	if err := c.CreateGame(&game); err != nil {
 		t.Errorf("create game %s", err)
 		return

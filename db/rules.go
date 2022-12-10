@@ -1,11 +1,11 @@
 package db
 
-import "github.com/sirgwain/craig-stars/game"
+import "github.com/sirgwain/craig-stars/cs"
 
 // Get the rules for a game
-func (c *client) GetRulesForGame(gameID int64) (*game.Rules, error) {
+func (c *client) GetRulesForGame(gameID int64) (*cs.Rules, error) {
 
 	// TODO: implement rules saving to DB
-	rules := game.NewRules()
+	rules := cs.NewRules()
 	return &rules, nil
 }

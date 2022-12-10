@@ -2,7 +2,7 @@
 
 package db
 
-import game "github.com/sirgwain/craig-stars/game"
+import game "github.com/sirgwain/craig-stars/cs"
 
 type GameConverter struct{}
 

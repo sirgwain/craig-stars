@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirgwain/craig-stars/game"
+	"github.com/sirgwain/craig-stars/cs"
 )
 
 // Allow a user to update a planet's orders
@@ -17,7 +17,7 @@ func (s *server) updatePlanetOrders(c *gin.Context) {
 		return
 	}
 
-	planet := game.Planet{}
+	planet := cs.Planet{}
 	if err := c.ShouldBindJSON(&planet); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

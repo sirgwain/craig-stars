@@ -6,12 +6,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
-	"github.com/sirgwain/craig-stars/game"
+	"github.com/sirgwain/craig-stars/cs"
 )
 
 type cargoTransferBind struct {
-	MO             game.MapObject `json:"mo,omitempty"`
-	TransferAmount game.Cargo     `json:"transferAmount,omitempty"`
+	MO             cs.MapObject `json:"mo,omitempty"`
+	TransferAmount cs.Cargo     `json:"transferAmount,omitempty"`
 }
 
 // Allow a user to update a fleet's orders
@@ -24,7 +24,7 @@ func (s *server) updateFleetOrders(c *gin.Context) {
 		return
 	}
 
-	fleet := game.Fleet{}
+	fleet := cs.Fleet{}
 	if err := c.ShouldBindJSON(&fleet); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

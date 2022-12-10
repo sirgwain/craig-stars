@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sirgwain/craig-stars/game"
+	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
 )
@@ -13,14 +13,14 @@ func TestCreateShipDesign(t *testing.T) {
 
 	type args struct {
 		c          *client
-		shipDesign *game.ShipDesign
+		shipDesign *cs.ShipDesign
 	}
 	tests := []struct {
 		name    string
 		args    args
 		wantErr bool
 	}{
-		{"Create", args{connectTestDB(), &game.ShipDesign{Name: "name"}}, false},
+		{"Create", args{connectTestDB(), &cs.ShipDesign{Name: "name"}}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -44,10 +44,10 @@ func TestCreateShipDesign(t *testing.T) {
 }
 
 func TestGetShipDesign(t *testing.T) {
-	rules := game.NewRules()
+	rules := cs.NewRules()
 	c := connectTestDB()
 	_, player := c.createTestGameWithPlayer()
-	shipDesign := game.NewShipDesign(player).WithHull(game.Scout.Name).WithSpec(&rules, player)
+	shipDesign := cs.NewShipDesign(player).WithHull(cs.Scout.Name).WithSpec(&rules, player)
 	if err := c.CreateShipDesign(shipDesign); err != nil {
 		t.Errorf("create shipDesign %s", err)
 		return
@@ -59,7 +59,7 @@ func TestGetShipDesign(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *game.ShipDesign
+		want    *cs.ShipDesign
 		wantErr bool
 	}{
 		{"No results", args{id: 0}, nil, false},
@@ -90,9 +90,9 @@ func TestGetShipDesigns(t *testing.T) {
 	// start with 1 shipDesign from connectTestDB
 	result, err := c.GetShipDesignsForPlayer(player.ID)
 	assert.Nil(t, err)
-	assert.Equal(t, []game.ShipDesign{}, result)
+	assert.Equal(t, []cs.ShipDesign{}, result)
 
-	shipDesign := game.ShipDesign{PlayerID: player.ID, Name: "name"}
+	shipDesign := cs.ShipDesign{PlayerID: player.ID, Name: "name"}
 	if err := c.CreateShipDesign(&shipDesign); err != nil {
 		t.Errorf("create shipDesign %s", err)
 		return
@@ -110,9 +110,9 @@ func TestDeleteShipDesigns(t *testing.T) {
 
 	result, err := c.GetShipDesignsForPlayer(player.ID)
 	assert.Nil(t, err)
-	assert.Equal(t, []game.ShipDesign{}, result)
+	assert.Equal(t, []cs.ShipDesign{}, result)
 
-	shipDesign := game.ShipDesign{PlayerID: player.ID, Name: "name"}
+	shipDesign := cs.ShipDesign{PlayerID: player.ID, Name: "name"}
 	if err := c.CreateShipDesign(&shipDesign); err != nil {
 		t.Errorf("create shipDesign %s", err)
 		return
