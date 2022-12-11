@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { game } from '$lib/services/Context';
+	import { game, me } from '$lib/services/Context';
 	import { Menu, Upload } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { createEventDispatcher } from 'svelte';
@@ -76,7 +76,7 @@
 						<a href={`/games/${$game.id}/techs`} class="justify-between">Techs</a>
 					</li>
 					<li><div class="divider" /></li>
-					<li><a href="/logout">Logout</a></li>
+					<li><a href="/logout">Logout, {$me?.username}</a></li>
 				</ul>
 			</div>
 		</div>

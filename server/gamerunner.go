@@ -20,20 +20,21 @@ const (
 
 type GameRunner interface {
 	HostGame(hostID int64, settings *cs.GameSettings) (*cs.FullGame, error)
-	AddPlayer(gameID int64, userID int64, race *cs.Race) error
-	GenerateUniverse(gameID int64) (*cs.Universe, error)
-	LoadGame(gameID int64) (*cs.FullGame, error)
+	JoinGame(gameID int64, userID int64, raceID int64) error
+	GenerateUniverse(gameID int64, userID int64) error
 	LoadPlayerGame(gameID int64, userID int64) (*cs.Game, *cs.FullPlayer, error)
 	SubmitTurn(gameID int64, userID int64) error
 	CheckAndGenerateTurn(gameID int64) (TurnGenerationCheckResult, error)
+	GenerateTurn(gameID int64) (TurnGenerationCheckResult, error)
 }
 
 type gameRunner struct {
-	db DBClient
+	db     DBClient
+	client cs.Gamer
 }
 
 func NewGameRunner(db DBClient) GameRunner {
-	return &gameRunner{db}
+	return &gameRunner{db, cs.NewGamer()}
 }
 
 func timeTrack(start time.Time, name string) {
@@ -43,11 +44,15 @@ func timeTrack(start time.Time, name string) {
 
 // host a new game
 func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.FullGame, error) {
-	client := cs.NewClient()
-	game := client.CreateGame(hostID, *settings)
+	game := gr.client.CreateGame(hostID, *settings)
+
+	user, err := gr.db.GetUser(hostID)
+	if err != nil {
+		return nil, err
+	}
 
 	// create the game in the database
-	err := gr.db.CreateGame(&game)
+	err = gr.db.CreateGame(game)
 	if err != nil {
 		return nil, err
 	}
@@ -66,12 +71,20 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 				return nil, fmt.Errorf("user %d does not own Race %d", hostID, race.ID)
 			}
 			log.Debug().Int64("hostID", hostID).Msgf("Adding host to game")
-			player := client.NewPlayer(hostID, *race, &game.Rules)
+			player := gr.client.NewPlayer(hostID, *race, &game.Rules)
 			player.GameID = game.ID
 			player.Num = i + 1
+			player.Name = user.Username
 			players = append(players, player)
 		} else if player.Type == cs.NewGamePlayerTypeAI {
-			// g.AddPlayer(game.NewAIPlayer())
+			log.Debug().Int64("hostID", hostID).Msgf("Adding ai player to game")
+			race := cs.NewRace()
+			player := gr.client.NewPlayer(hostID, *race, &game.Rules)
+			player.GameID = game.ID
+			player.Num = i + 1
+			player.AIControlled = true
+			player.Name = "AI Player"
+			players = append(players, player)
 		} else if player.Type == cs.NewGamePlayerTypeOpen {
 			game.OpenPlayerSlots++
 			log.Debug().Uint("openPlayerSlots", game.OpenPlayerSlots).Msgf("Added open player slot")
@@ -79,7 +92,7 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 	}
 
 	fullGame := &cs.FullGame{
-		Game:     &game,
+		Game:     game,
 		Players:  players,
 		Universe: &cs.Universe{}, // todo: populate
 	}
@@ -88,7 +101,7 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 
 	// generate the universe if this game is done
 	if game.OpenPlayerSlots == 0 {
-		fullGame.Universe, err = gr.GenerateUniverse(game.ID)
+		err = gr.generateUniverse(fullGame)
 		if err != nil {
 			return nil, err
 		}
@@ -98,83 +111,74 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 }
 
 // add a player to an existing game
-func (gr *gameRunner) AddPlayer(gameID int64, userID int64, race *cs.Race) error {
+func (gr *gameRunner) JoinGame(gameID int64, userID int64, raceID int64) error {
 
-	fullGame, err := gr.LoadGame(gameID)
+	user, err := gr.db.GetUser(userID)
+	if err != nil {
+		return fmt.Errorf("unable to load user %d: %w", userID, err)
+	}
+	if user == nil {
+		return fmt.Errorf("no user for id %d found. %w", userID, errNotFound)
+	}
+
+	fullGame, err := gr.loadGame(gameID)
 	if err != nil {
 		return fmt.Errorf("unable to load game %d: %w", gameID, err)
 	}
 
-	client := cs.NewClient()
-	player := client.NewPlayer(userID, *race, &fullGame.Rules)
+	race, err := gr.db.GetRace(raceID)
+	if err != nil {
+		log.Error().Err(err).Int64("ID", raceID).Msg("get race from database")
+		return fmt.Errorf("failed to get race from database")
+	}
+
+	// validate
+	if race == nil {
+		return fmt.Errorf("no race for id %d found. %w", raceID, errNotFound)
+	}
+
+	if race.UserID != userID {
+		return fmt.Errorf("user %d does not control race %d", userID, raceID)
+	}
+
+	if fullGame == nil {
+		return fmt.Errorf("no game for id %d found. %w", gameID, errNotFound)
+	}
+
+	if fullGame.OpenPlayerSlots == 0 {
+		return fmt.Errorf("no slots left in this game")
+	}
+
+	player := gr.client.NewPlayer(userID, *race, &fullGame.Rules)
 	player.GameID = fullGame.ID
+	player.Num = len(fullGame.Players) + 1
+	player.Name = user.Username
 	if err := gr.db.CreatePlayer(player); err != nil {
 		return fmt.Errorf("save player %s for game %d: %w", player, gameID, err)
 	}
+	fullGame.OpenPlayerSlots--
 	if err := gr.db.UpdateFullGame(fullGame); err != nil {
 		return fmt.Errorf("save game %d: %w", gameID, err)
 	}
 
-	// generate the universe if this game is ready
-	if fullGame.OpenPlayerSlots == 0 {
-		if _, err := gr.GenerateUniverse(fullGame.ID); err != nil {
-			return fmt.Errorf("generate universe: %d: %w", gameID, err)
-		}
-	}
+	log.Info().Int64("GameID", gameID).Int64("UserID", userID).Str("Race", player.Race.Name).Msgf("Joined game %s", fullGame.Name)
 
 	return nil
 }
 
-// process an ai player's turn
-func (gr *gameRunner) processAITurns(universe *cs.Universe, player *cs.Player) {
-	pmo := universe.GetPlayerMapObjects(player.Num)
-	ai := ai.NewAIPlayer(player, pmo)
-	ai.ProcessTurn()
-}
-
-func (gr *gameRunner) GenerateUniverse(gameID int64) (*cs.Universe, error) {
+func (gr *gameRunner) GenerateUniverse(gameID int64, userID int64) error {
 	defer timeTrack(time.Now(), "GenerateUniverse")
-	fullGame, err := gr.LoadGame(gameID)
+	fullGame, err := gr.loadGame(gameID)
 	if err != nil {
-		return nil, fmt.Errorf("load game %d: %w", gameID, err)
+		return fmt.Errorf("load game %d: %w", gameID, err)
 	}
 
-	client := cs.NewClient()
-	universe, err := client.GenerateUniverse(fullGame.Game, fullGame.Players)
-	if err != nil {
-		return nil, fmt.Errorf("generate universe for game %d: %w", gameID, err)
+	if fullGame.HostID != userID {
+		return fmt.Errorf("user %d is not the host for %d", userID, gameID)
 	}
 
-	// process ai players
-	for _, player := range fullGame.Players {
-		// TODO: ai only ai processing
-		// if player.AIControlled {
-		gr.processAITurns(universe, player)
-		// }
-	}
-
-	fullGame.State = cs.GameStateWaitingForPlayers
-	fullGame.Universe = universe
-
-	err = gr.db.UpdateFullGame(fullGame)
-	if err != nil {
-		return nil, fmt.Errorf("save game %d: %w", gameID, err)
-	}
-
-	return fullGame.Universe, nil
-}
-
-// load a full game
-func (gr *gameRunner) LoadGame(gameID int64) (*cs.FullGame, error) {
-	defer timeTrack(time.Now(), "LoadGame")
-
-	fullGame, err := gr.db.GetFullGame(gameID)
-
-	if err != nil {
-		return nil, fmt.Errorf("load game %d: %w", gameID, err)
-	}
-
-	return fullGame, nil
+	err = gr.generateUniverse(fullGame)
+	return err
 }
 
 // load a player and the light version of the player game
@@ -221,35 +225,97 @@ func (gr *gameRunner) SubmitTurn(gameID int64, userID int64) error {
 	return nil
 }
 
-// check a game for every player submitted and generate a turn
+//CheckAndGenerateTurn check a game for every player submitted and generate a turn
 func (gr *gameRunner) CheckAndGenerateTurn(gameID int64) (TurnGenerationCheckResult, error) {
 	defer timeTrack(time.Now(), "CheckAndGenerateTurn")
-	fullGame, err := gr.LoadGame(gameID)
+	fullGame, err := gr.loadGame(gameID)
 
 	if err != nil {
 		return TurnNotGenerated, err
 	}
 
 	// if everyone submitted their turn, generate a new turn
-	client := cs.NewClient()
-	if client.CheckAllPlayersSubmitted(fullGame.Players) {
-		if err := client.GenerateTurn(fullGame.Game, fullGame.Universe, fullGame.Players); err != nil {
-			return TurnNotGenerated, fmt.Errorf("generate turn -> %w", err)
-		}
-
-		// process ai players
-		for _, player := range fullGame.Players {
-			// TODO: ai only ai processing
-			// if player.AIControlled {
-			gr.processAITurns(fullGame.Universe, player)
-			// }
-		}
-
-		if err := gr.db.UpdateFullGame(fullGame); err != nil {
-			return TurnNotGenerated, fmt.Errorf("save game after turn generation -> %w", err)
-		}
-		return TurnGenerated, nil
+	if gr.client.CheckAllPlayersSubmitted(fullGame.Players) {
+		return gr.generateTurn(fullGame)
 	}
 
 	return TurnNotGenerated, nil
+}
+
+// GenerateTurn generate a new turn, regardless of whether player's have all submitted their turns
+func (gr *gameRunner) GenerateTurn(gameID int64) (TurnGenerationCheckResult, error) {
+	defer timeTrack(time.Now(), "GenerateTurn")
+	fullGame, err := gr.loadGame(gameID)
+
+	if err != nil {
+		return TurnNotGenerated, err
+	}
+
+	return gr.generateTurn(fullGame)
+}
+
+// load a full game
+func (gr *gameRunner) loadGame(gameID int64) (*cs.FullGame, error) {
+	defer timeTrack(time.Now(), "loadGame")
+
+	fullGame, err := gr.db.GetFullGame(gameID)
+
+	if err != nil {
+		return nil, fmt.Errorf("load game %d: %w", gameID, err)
+	}
+
+	return fullGame, nil
+}
+
+func (gr *gameRunner) generateUniverse(fullGame *cs.FullGame) error {
+
+	universe, err := gr.client.GenerateUniverse(fullGame.Game, fullGame.Players)
+	if err != nil {
+		return fmt.Errorf("generate universe for game %d: %w", fullGame.ID, err)
+	}
+
+	// ai processing
+	gr.processAITurns(fullGame)
+
+	fullGame.State = cs.GameStateWaitingForPlayers
+	fullGame.Universe = universe
+
+	err = gr.db.UpdateFullGame(fullGame)
+	if err != nil {
+		return fmt.Errorf("save game %d: %w", fullGame.ID, err)
+	}
+
+	return nil
+}
+
+// process an the ai player's turns
+func (gr *gameRunner) processAITurns(fullGame *cs.FullGame) {
+	for _, player := range fullGame.Players {
+		// TODO: make this use copies to ensure the ai only updates orders?
+		// TODO: ai only ai processing
+		pmo := fullGame.Universe.GetPlayerMapObjects(player.Num)
+		ai := ai.NewAIPlayer(player, pmo)
+		ai.ProcessTurn()
+
+		if player.AIControlled {
+			player.SubmittedTurn = true
+		}
+	}
+}
+
+// generate a turn for a game
+func (gr *gameRunner) generateTurn(fullGame *cs.FullGame) (TurnGenerationCheckResult, error) {
+	// if everyone submitted their turn, generate a new turn
+	if err := gr.client.GenerateTurn(fullGame.Game, fullGame.Universe, fullGame.Players); err != nil {
+		return TurnNotGenerated, fmt.Errorf("generate turn -> %w", err)
+	}
+
+	// ai processing
+	gr.processAITurns(fullGame)
+
+	if err := gr.db.UpdateFullGame(fullGame); err != nil {
+		return TurnNotGenerated, fmt.Errorf("save game after turn generation -> %w", err)
+	}
+	return TurnGenerated, nil
+
 }

@@ -11,38 +11,6 @@ type idBind struct {
 	ID int64 `uri:"id"`
 }
 
-func (s *server) Games(c *gin.Context) {
-	games, err := s.db.GetGames()
-	if err != nil {
-		log.Error().Err(err).Msg("get games from database")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to get games from database"})
-		return
-	}
-
-	c.JSON(http.StatusOK, games)
-}
-
-func (s *server) GameById(c *gin.Context) {
-	var id idBind
-	if err := c.ShouldBindUri(&id); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	game, err := s.db.GetGame(id.ID)
-	if err != nil {
-		log.Error().Err(err).Int64("ID", id.ID).Msg("get game from database")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to get game from database"})
-		return
-	}
-
-	if game == nil {
-		c.JSON(http.StatusNotFound, gin.H{})
-		return
-	}
-	c.JSON(http.StatusOK, game)
-}
-
 func (s *server) deleteGame(c *gin.Context) {
 	user := s.GetSessionUser(c)
 

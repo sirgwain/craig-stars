@@ -305,6 +305,18 @@ func TimeToTime(source time.Time) time.Time {
 	return source
 }
 
+func TimeToTimePointer(source time.Time) *time.Time {
+	return &source
+}
+
+func TimePointerToTime(source *time.Time) time.Time {
+	if source != nil {
+		return *source
+	} else {
+		return time.Time{}
+	}
+}
+
 func NullTimeToTime(source sql.NullTime) time.Time {
 	if source.Valid {
 		return source.Time

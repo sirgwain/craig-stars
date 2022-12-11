@@ -228,6 +228,27 @@ func (c *client) getPlayersForGame(gameID int64) ([]*cs.Player, error) {
 	return players, nil
 }
 
+// get all the players for a game, with data loaded
+func (c *client) GetPlayerStatusesForGame(gameID int64) ([]*cs.Player, error) {
+
+	items := []Player{}
+	if err := c.db.Select(&items, `SELECT id, createdAt, updatedAt, gameId, userId, name, num, ready, aiControlled, submittedTurn, color FROM players WHERE gameId = ?`, gameID); err != nil {
+		if err == sql.ErrNoRows {
+			return []*cs.Player{}, nil
+		}
+		return nil, err
+	}
+
+	players := make([]*cs.Player, len(items))
+	for i := range items {
+		player := c.converter.ConvertPlayer(items[i])
+		players[i] = &player
+	}
+
+	return players, nil
+}
+
+
 // get a player by id
 func (c *client) GetPlayer(id int64) (*cs.Player, error) {
 	item := Player{}
@@ -445,6 +466,7 @@ func (c *client) createPlayer(player *cs.Player, tx SQLExecer) error {
 
 	player.ID = id
 
+	
 	return nil
 }
 

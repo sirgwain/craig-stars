@@ -45,9 +45,9 @@ func (c *client) createTestGame() *cs.Game {
 // create a simple game with one player
 func (c *client) createTestGameWithPlayer() (*cs.Game, *cs.Player) {
 
-	gameClient := cs.NewClient()
+	gameClient := cs.NewGamer()
 	game := gameClient.CreateGame(1, *cs.NewGameSettings())
-	if err := c.CreateGame(&game); err != nil {
+	if err := c.CreateGame(game); err != nil {
 		panic(fmt.Errorf("create test database game, %w", err))
 	}
 
@@ -58,7 +58,7 @@ func (c *client) createTestGameWithPlayer() (*cs.Game, *cs.Player) {
 		panic(fmt.Errorf("create test database game player %w", err))
 	}
 
-	return &game, player
+	return game, player
 }
 
 func (c *client) createTestShipDesign(player *cs.Player, design *cs.ShipDesign) {
@@ -69,7 +69,7 @@ func (c *client) createTestShipDesign(player *cs.Player, design *cs.ShipDesign) 
 }
 
 func (c *client) createTestFullGame() *cs.FullGame {
-	gameClient := cs.NewClient()
+	gameClient := cs.NewGamer()
 	g, player := c.createTestGameWithPlayer()
 
 	players := []*cs.Player{player}

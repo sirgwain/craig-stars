@@ -130,30 +130,49 @@ func TestGetOpenGames(t *testing.T) {
 	c := connectTestDB()
 
 	// start with 1 game from connectTestDB
-	result, err := c.GetOpenGames()
+	result, err := c.GetOpenGames(1)
 	assert.Nil(t, err)
 	assert.Equal(t, []cs.Game{}, result)
 
-	g1 := cs.Game{HostID: 1, Name: "Test", State: cs.GameStateSetup, OpenPlayerSlots: 1}
+	g1 := cs.Game{HostID: 2, Name: "Test", State: cs.GameStateSetup, OpenPlayerSlots: 1}
 	if err := c.CreateGame(&g1); err != nil {
 		t.Errorf("create game %s", err)
 		return
 	}
 
-	result, err = c.GetOpenGames()
+	//
+	result, err = c.GetOpenGames(1)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result))
 
 	// create a second closed game
-	g2 := cs.Game{HostID: 1, Name: "Test", State: cs.GameStateSetup, OpenPlayerSlots: 0}
+	g2 := cs.Game{HostID: 2, Name: "Test", State: cs.GameStateSetup, OpenPlayerSlots: 0}
 	if err := c.CreateGame(&g2); err != nil {
 		t.Errorf("create game %s", err)
 		return
 	}
 
-	result, err = c.GetOpenGames()
+	result, err = c.GetOpenGames(1)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result))
+
+}
+
+func TestGetOpenGames2(t *testing.T) {
+	c := connectTestDB()
+
+	// host a game
+	g1 := cs.Game{HostID: 1, Name: "Test", State: cs.GameStateSetup, OpenPlayerSlots: 0}
+	if err := c.CreateGame(&g1); err != nil {
+		t.Errorf("create game %s", err)
+		return
+	}
+
+	// make sure we don't see our own games
+	result, err := c.GetOpenGames(1)
+	assert.Nil(t, err)
+	assert.Equal(t, 0, len(result))
+
 }
 
 func TestDeleteGames(t *testing.T) {

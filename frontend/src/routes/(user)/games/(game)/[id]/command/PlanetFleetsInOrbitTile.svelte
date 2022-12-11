@@ -73,7 +73,7 @@
 			{/each}
 		</select>
 
-		{#if selectedFleet}
+		{#if selectedFleet && selectedFleet.spec}
 			<div class="flex justify-between my-1">
 				<div class="w-12">Fuel</div>
 				<div class="ml-1 h-full w-full">

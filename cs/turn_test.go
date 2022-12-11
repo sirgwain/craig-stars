@@ -7,13 +7,13 @@ import (
 )
 
 func Test_generateTurn(t *testing.T) {
-	client := NewClient()
+	client := NewGamer()
 	game := client.CreateGame(1, *NewGameSettings())
 	player := client.NewPlayer(1, *NewRace(), &game.Rules)
 	players := []*Player{player}
 	player.AIControlled = true
 	player.Num = 1
-	universe, _ := client.GenerateUniverse(&game, players)
+	universe, _ := client.GenerateUniverse(game, players)
 
 	// build a ship on the planet
 	pmo := universe.GetPlayerMapObjects(player.Num)
@@ -22,7 +22,7 @@ func Test_generateTurn(t *testing.T) {
 
 	startingFleets := len(universe.Fleets)
 
-	client.GenerateTurn(&game, universe, players)
+	client.GenerateTurn(game, universe, players)
 
 	assert.Equal(t, 2401, game.Year)
 
@@ -37,17 +37,17 @@ func Test_generateTurn(t *testing.T) {
 }
 
 func Test_generateTurns(t *testing.T) {
-	client := NewClient()
+	client := NewGamer()
 	game := client.CreateGame(1, *NewGameSettings())
 	player := client.NewPlayer(1, *NewRace(), &game.Rules)
 	player.AIControlled = true
 	player.Num = 1
 	players := []*Player{player}
-	universe, _ := client.GenerateUniverse(&game, players)
+	universe, _ := client.GenerateUniverse(game, players)
 
 	// generate many turns
 	for i := 0; i < 100; i++ {
-		client.GenerateTurn(&game, universe, players)
+		client.GenerateTurn(game, universe, players)
 	}
 
 	assert.Equal(t, 2500, game.Year)
