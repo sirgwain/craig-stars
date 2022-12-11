@@ -71,7 +71,7 @@ func testCloakedScout(player *Player, rules *Rules) *Fleet {
 
 func TestComputeFleetSpec(t *testing.T) {
 	rules := NewRules()
-	starterHumanoidPlayer := newPlayer(1, NewRace().WithSpec(&rules)).WithTechLevels(TechLevel{3, 3, 3, 3, 3, 3})
+	starterHumanoidPlayer := NewPlayer(1, NewRace().WithSpec(&rules)).WithTechLevels(TechLevel{3, 3, 3, 3, 3, 3})
 	starterHumanoidPlayer.Race.Spec = computeRaceSpec(&starterHumanoidPlayer.Race, &rules)
 
 	type args struct {
@@ -84,7 +84,7 @@ func TestComputeFleetSpec(t *testing.T) {
 		args args
 		want FleetSpec
 	}{
-		{"empty", args{&rules, newPlayer(1, NewRace().WithSpec(&rules)), &Fleet{}}, FleetSpec{
+		{"empty", args{&rules, NewPlayer(1, NewRace().WithSpec(&rules)), &Fleet{}}, FleetSpec{
 			ShipDesignSpec: ShipDesignSpec{
 				ScanRange:    NoScanner,
 				ScanRangePen: NoScanner,
@@ -226,7 +226,7 @@ func TestComputeFleetSpec(t *testing.T) {
 
 func TestFleet_moveFleet(t *testing.T) {
 	rules := NewRules()
-	player := newPlayer(1, NewRace().WithSpec(&rules))
+	player := NewPlayer(1, NewRace().WithSpec(&rules))
 
 	type args struct {
 		player *Player

@@ -8,7 +8,7 @@ import (
 
 func Test_transferPlanetCargo(t *testing.T) {
 	rules := NewRules()
-	player := newPlayer(1, NewRace().WithSpec(&rules))
+	player := NewPlayer(1, NewRace().WithSpec(&rules))
 	// scout := testLongRangeScout(player, &rules)
 	freighter := testSmallFreighter(player, &rules)
 	type args struct {
@@ -21,15 +21,15 @@ func Test_transferPlanetCargo(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{"Should transfer from planet", freighter, args{newPlanet().WithCargo(Cargo{1, 2, 3, 4}), Cargo{1, 0, 0, 0}}, false},
-		{"Should fail to transfer from planet", freighter, args{newPlanet().WithCargo(Cargo{1, 2, 3, 4}), Cargo{2, 0, 0, 0}}, true},
+		{"Should transfer from planet", freighter, args{NewPlanet().WithCargo(Cargo{1, 2, 3, 4}), Cargo{1, 0, 0, 0}}, false},
+		{"Should fail to transfer from planet", freighter, args{NewPlanet().WithCargo(Cargo{1, 2, 3, 4}), Cargo{2, 0, 0, 0}}, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			sourceCargo := tt.fleet.Cargo
 			destCargo := tt.args.planet.Cargo
 			o := orders{}
-			if err := o.transferPlanetCargo(tt.fleet, tt.args.planet, tt.args.transferAmount); (err != nil) != tt.wantErr {
+			if err := o.TransferPlanetCargo(tt.fleet, tt.args.planet, tt.args.transferAmount); (err != nil) != tt.wantErr {
 				t.Errorf("Fleet.TransferPlanetCargo() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if !tt.wantErr {
@@ -44,7 +44,7 @@ func Test_transferPlanetCargo(t *testing.T) {
 
 func Test_transferFleetCargo(t *testing.T) {
 	rules := NewRules()
-	player := newPlayer(1, NewRace().WithSpec(&rules))
+	player := NewPlayer(1, NewRace().WithSpec(&rules))
 	// scout := testLongRangeScout(player, &rules)
 	freighter := testSmallFreighter(player, &rules)
 	type args struct {
@@ -66,7 +66,7 @@ func Test_transferFleetCargo(t *testing.T) {
 			destCargo := tt.args.fleet.Cargo
 			o := orders{}
 
-			if err := o.transferFleetCargo(tt.fleet, tt.args.fleet, tt.args.transferAmount); (err != nil) != tt.wantErr {
+			if err := o.TransferFleetCargo(tt.fleet, tt.args.fleet, tt.args.transferAmount); (err != nil) != tt.wantErr {
 				t.Errorf("Fleet.TransferFleetCargo() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if !tt.wantErr {

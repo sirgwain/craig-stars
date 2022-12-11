@@ -6,7 +6,6 @@ import (
 )
 
 type client struct {
-	orders orderer
 }
 
 // external interface for creating/interacting with game objects
@@ -16,14 +15,6 @@ type Client interface {
 	CreateGame(hostID int64, settings GameSettings) Game
 	NewPlayer(userID int64, race Race, rules *Rules) *Player
 
-	// player orders to planets, fleets, research, etc
-	UpdatePlayerOrders(player *Player, playerPlanets []*Planet, orders PlayerOrders)
-	UpdatePlanetOrders(player *Player, planet *Planet, orders PlanetOrders)
-	UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrders)
-	UpdateMineFieldOrders(player *Player, minefield *MineField, orders MineFieldOrders)
-	TransferFleetCargo(source *Fleet, dest *Fleet, transferAmount Cargo) error
-	TransferPlanetCargo(source *Fleet, dest *Planet, transferAmount Cargo) error
-
 	// universe/turn generation
 	GenerateUniverse(game *Game, players []*Player) (*Universe, error)
 	SubmitTurn(player *Player)
@@ -32,7 +23,7 @@ type Client interface {
 }
 
 func NewClient() Client {
-	return &client{orders: &orders{}}
+	return &client{}
 }
 
 func timeTrack(start time.Time, name string) {
@@ -49,7 +40,7 @@ func (c *client) CreateGame(hostID int64, settings GameSettings) Game {
 
 // create a new player
 func (c *client) NewPlayer(userID int64, race Race, rules *Rules) *Player {
-	player := newPlayer(userID, &race)
+	player := NewPlayer(userID, &race)
 	player.Race.Spec = computeRaceSpec(&player.Race, rules)
 
 	return player
@@ -94,26 +85,3 @@ func (c *client) GenerateTurn(game *Game, universe *Universe, players []*Player)
 	return turnGenerator.generateTurn()
 }
 
-func (c *client) UpdatePlayerOrders(player *Player, playerPlanets []*Planet, orders PlayerOrders) {
-	c.orders.updatePlayerOrders(player, playerPlanets, orders)
-}
-
-func (c *client) UpdatePlanetOrders(player *Player, planet *Planet, orders PlanetOrders) {
-	c.orders.updatePlanetOrders(player, planet, orders)
-}
-
-func (c *client) UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrders) {
-	c.orders.updateFleetOrders(player, fleet, orders)
-}
-
-func (c *client) UpdateMineFieldOrders(player *Player, minefield *MineField, orders MineFieldOrders) {
-	c.orders.updateMineFieldOrders(player, minefield, orders)
-}
-
-func (c *client) TransferFleetCargo(source *Fleet, dest *Fleet, transferAmount Cargo) error {
-	return c.orders.transferFleetCargo(source, dest, transferAmount)
-}
-
-func (c *client) TransferPlanetCargo(source *Fleet, dest *Planet, transferAmount Cargo) error {
-	return c.orders.transferPlanetCargo(source, dest, transferAmount)
-}

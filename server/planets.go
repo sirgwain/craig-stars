@@ -8,7 +8,7 @@ import (
 )
 
 // Allow a user to update a planet's orders
-func (s *server) updatePlanetOrders(c *gin.Context) {
+func (s *server) UpdatePlanetOrders(c *gin.Context) {
 	user := s.GetSessionUser(c)
 
 	var planetID idBind

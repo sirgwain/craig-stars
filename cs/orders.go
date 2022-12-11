@@ -3,20 +3,24 @@ package cs
 import "fmt"
 
 // handle player orders
-type orderer interface {
-	updatePlayerOrders(player *Player, playerPlanets []*Planet, order PlayerOrders)
-	updatePlanetOrders(player *Player, planet *Planet, orders PlanetOrders)
-	updateFleetOrders(player *Player, fleet *Fleet, orders FleetOrders)
-	updateMineFieldOrders(player *Player, minefield *MineField, orders MineFieldOrders)
-	transferFleetCargo(source *Fleet, dest *Fleet, transferAmount Cargo) error
-	transferPlanetCargo(source *Fleet, dest *Planet, transferAmount Cargo) error
+type Orderer interface {
+	UpdatePlayerOrders(player *Player, playerPlanets []*Planet, order PlayerOrders)
+	UpdatePlanetOrders(player *Player, planet *Planet, orders PlanetOrders)
+	UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrders)
+	UpdateMineFieldOrders(player *Player, minefield *MineField, orders MineFieldOrders)
+	TransferFleetCargo(source *Fleet, dest *Fleet, transferAmount Cargo) error
+	TransferPlanetCargo(source *Fleet, dest *Planet, transferAmount Cargo) error
 }
 
 type orders struct {
 }
 
+func NewOrderer() Orderer {
+	return &orders{}
+}
+
 // update a player's orders
-func (o *orders) updatePlayerOrders(player *Player, playerPlanets []*Planet, orders PlayerOrders) {
+func (o *orders) UpdatePlayerOrders(player *Player, playerPlanets []*Planet, orders PlayerOrders) {
 	researchAmountUpdated := orders.ResearchAmount != player.ResearchAmount
 
 	// save the new orders
@@ -36,15 +40,16 @@ func (o *orders) updatePlayerOrders(player *Player, playerPlanets []*Planet, ord
 }
 
 // update a planet orders
-func (o *orders) updatePlanetOrders(player *Player, planet *Planet, orders PlanetOrders) {
+func (o *orders) UpdatePlanetOrders(player *Player, planet *Planet, orders PlanetOrders) {
 	planet.PlanetOrders = orders
 
 	spec := &planet.Spec
 	spec.computeResourcesPerYearAvailable(player, planet)
+	planet.Dirty = true
 }
 
 // update the orders to a fleet
-func (o *orders) updateFleetOrders(player *Player, fleet *Fleet, orders FleetOrders) {
+func (o *orders) UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrders) {
 	// copy user modifiable things to the fleet fleet
 	fleet.RepeatOrders = orders.RepeatOrders
 	wp0 := &fleet.Waypoints[0]
@@ -63,14 +68,15 @@ func (o *orders) updateFleetOrders(player *Player, fleet *Fleet, orders FleetOrd
 
 	fleet.Waypoints = append(fleet.Waypoints[:1], orders.Waypoints[1:]...)
 	fleet.computeFuelUsage(player)
+	fleet.Dirty = true
 }
 
-func (o *orders) updateMineFieldOrders(player *Player, minefield *MineField, orders MineFieldOrders) {
+func (o *orders) UpdateMineFieldOrders(player *Player, minefield *MineField, orders MineFieldOrders) {
 	minefield.MineFieldOrders = orders
 }
 
 // transfer cargo from a fleet to/from a fleet
-func (o *orders) transferFleetCargo(source *Fleet, dest *Fleet, transferAmount Cargo) error {
+func (o *orders) TransferFleetCargo(source *Fleet, dest *Fleet, transferAmount Cargo) error {
 
 	if source.availableCargoSpace() < transferAmount.Total() {
 		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", source.Name, source.availableCargoSpace(), transferAmount.Total(), dest.Name)
@@ -88,7 +94,7 @@ func (o *orders) transferFleetCargo(source *Fleet, dest *Fleet, transferAmount C
 }
 
 // transfer cargo from a planet to/from a fleet
-func (o *orders) transferPlanetCargo(source *Fleet, dest *Planet, transferAmount Cargo) error {
+func (o *orders) TransferPlanetCargo(source *Fleet, dest *Planet, transferAmount Cargo) error {
 	if source.availableCargoSpace() < transferAmount.Total() {
 		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", source.Name, source.availableCargoSpace(), transferAmount.Total(), dest.Name)
 	}

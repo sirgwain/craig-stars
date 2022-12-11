@@ -15,7 +15,7 @@ type cargoTransferBind struct {
 }
 
 // Allow a user to update a fleet's orders
-func (s *server) updateFleetOrders(c *gin.Context) {
+func (s *server) UpdateFleetOrders(c *gin.Context) {
 	user := s.GetSessionUser(c)
 
 	var fleetID idBind

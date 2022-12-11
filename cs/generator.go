@@ -89,15 +89,6 @@ func (ug *universeGenerator) Generate() (*Universe, error) {
 
 		// todo: Do player discoverer to help player's disover about other players
 		// disoverer.playerInfoDiscover(player)
-
-		// TODO: check for AI player
-		pmo := ug.universe.getPlayerMapObjects(player.Num)
-		ai := newAIPlayer(player, pmo)
-		ai.processTurn()
-
-		for _, f := range pmo.Fleets {
-			f.computeFuelUsage(ai.Player)
-		}
 	}
 
 	return &ug.universe, nil
@@ -146,7 +137,7 @@ func (ug *universeGenerator) generatePlanets(area Vector) error {
 		}
 
 		// setup a new planet
-		planet := newPlanet()
+		planet := NewPlanet()
 		planet.Name = names[i]
 		planet.Num = i + 1
 		planet.Position = pos

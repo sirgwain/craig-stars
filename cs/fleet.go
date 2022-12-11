@@ -800,7 +800,7 @@ func (fleet *Fleet) scrap(rules *Rules, player *Player, planet *Planet) *Salvage
 	if planet != nil {
 		// scrap over a planet
 		planet.Cargo = planet.Cargo.AddCostMinerals(cost)
-		if planet.ownedBy(player.Num) {
+		if planet.OwnedBy(player.Num) {
 			planet.BonusResources += cost.Resources
 		}
 	} else {
@@ -824,7 +824,7 @@ func (fleet *Fleet) getScrapAmount(rules *Rules, player *Player, planet *Planet)
 	extraResources := 0
 	planetResources := 0
 
-	if planet != nil && planet.ownedBy(player.Num) {
+	if planet != nil && planet.OwnedBy(player.Num) {
 		planetResources = planet.Spec.ResourcesPerYear + planet.BonusResources
 		// UR races get resources when scrapping
 		if planet.Spec.HasStarbase {

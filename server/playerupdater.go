@@ -11,7 +11,7 @@ import (
 var errNotFound = errors.New("resource was not found")
 
 type playerUpdater struct {
-	client cs.Client
+	orderer cs.Orderer
 	db     DBClient
 }
 
@@ -24,7 +24,7 @@ type PlayerUpdater interface {
 }
 
 func newPlayerUpdater(db DBClient) PlayerUpdater {
-	return &playerUpdater{client: cs.NewClient(), db: db}
+	return &playerUpdater{orderer: cs.NewOrderer(), db: db}
 }
 
 // update a player's orders (i.e. research settings) and return the updated planets
@@ -46,7 +46,7 @@ func (pu *playerUpdater) UpdatePlayerOrders(userID int64, playerID int64, orders
 	}
 
 	// update this player's orders
-	pu.client.UpdatePlayerOrders(player, planets, orders)
+	pu.orderer.UpdatePlayerOrders(player, planets, orders)
 
 	for _, planet := range planets {
 		if planet.Dirty {
@@ -86,8 +86,7 @@ func (pu *playerUpdater) UpdatePlanetOrders(userID int64, planetID int64, orders
 		return nil, fmt.Errorf("%s does not own planet %s", player, planet)
 	}
 
-	client := cs.NewClient()
-	client.UpdatePlanetOrders(player, planet, orders)
+	pu.orderer.UpdatePlanetOrders(player, planet, orders)
 
 	if err := pu.db.UpdatePlanet(planet); err != nil {
 		log.Error().Err(err).Int64("ID", planet.ID).Msg("update planet in database")
@@ -121,8 +120,7 @@ func (pu *playerUpdater) UpdateFleetOrders(userID int64, fleetID int64, orders c
 		return nil, fmt.Errorf("%s does not own fleet %s", player, fleet)
 	}
 
-	client := cs.NewClient()
-	client.UpdateFleetOrders(player, fleet, orders)
+	pu.orderer.UpdateFleetOrders(player, fleet, orders)
 
 	if err := pu.db.UpdateFleet(fleet); err != nil {
 		log.Error().Err(err).Int64("ID", fleet.ID).Msg("update fleet in database")
@@ -156,8 +154,7 @@ func (pu *playerUpdater) UpdateMineFieldOrders(userID int64, mineFieldID int64, 
 		return nil, fmt.Errorf("%s does not own minefield %s", player, mineField)
 	}
 
-	client := cs.NewClient()
-	client.UpdateMineFieldOrders(player, mineField, orders)
+	pu.orderer.UpdateMineFieldOrders(player, mineField, orders)
 
 	if err := pu.db.UpdateMineField(mineField); err != nil {
 		log.Error().Err(err).Int64("ID", mineField.ID).Msg("update mineField in database")
@@ -213,7 +210,7 @@ func (pu *playerUpdater) transferCargoFleetPlanet(fleet *cs.Fleet, destID int64,
 		return fmt.Errorf("no planet for id %d found. %w", destID, errNotFound)
 	}
 
-	if err := pu.client.TransferPlanetCargo(fleet, planet, transferAmount); err != nil {
+	if err := pu.orderer.TransferPlanetCargo(fleet, planet, transferAmount); err != nil {
 		log.Error().Err(err).Msg("transfer cargo")
 		return fmt.Errorf("failed to transfer cargo")
 	}
@@ -253,7 +250,7 @@ func (pu *playerUpdater) transferCargoFleetFleet(fleet *cs.Fleet, destID int64, 
 		return fmt.Errorf("no fleet for id %d found. %w", destID, errNotFound)
 	}
 
-	if err := pu.client.TransferFleetCargo(fleet, dest, transferAmount); err != nil {
+	if err := pu.orderer.TransferFleetCargo(fleet, dest, transferAmount); err != nil {
 		return fmt.Errorf(err.Error())
 	}
 

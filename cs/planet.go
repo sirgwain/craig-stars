@@ -92,7 +92,7 @@ func (item *ProductionQueueItem) String() string {
 	return fmt.Sprintf("ProductionQueueItem %d %s (%s)", item.Quantity, item.Type, item.DesignName)
 }
 
-func newPlanet() *Planet {
+func NewPlanet() *Planet {
 	return &Planet{MapObject: MapObject{Type: MapObjectTypePlanet, Dirty: true, PlayerNum: Unowned}}
 }
 
@@ -139,7 +139,7 @@ func (p *Planet) setPopulation(pop int) {
 }
 
 // true if this planet can build a ship with a given mass
-func (p *Planet) canBuild(mass int) bool {
+func (p *Planet) CanBuild(mass int) bool {
 	return p.Spec.HasStarbase && (p.starbase.Spec.SpaceDock == UnlimitedSpaceDock || p.starbase.Spec.SpaceDock >= mass)
 }
 
