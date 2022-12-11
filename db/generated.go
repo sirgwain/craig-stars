@@ -215,8 +215,8 @@ func (c *GameConverter) ConvertPlayers(source []Player) []game.Player {
 func (c *GameConverter) ConvertRace(source Race) game.Race {
 	var gameRace game.Race
 	gameRace.ID = source.ID
-	gameRace.CreatedAt = TimeToTimePointer(source.CreatedAt)
-	gameRace.UpdatedAt = TimeToTimePointer(source.UpdatedAt)
+	gameRace.CreatedAt = TimeToTime(source.CreatedAt)
+	gameRace.UpdatedAt = TimeToTime(source.UpdatedAt)
 	gameRace.UserID = source.UserID
 	gameRace.Name = source.Name
 	gameRace.PluralName = source.PluralName
@@ -610,8 +610,8 @@ func (c *GameConverter) gamePlayerToDbPlayer(source game.Player) Player {
 func (c *GameConverter) gameRaceToDbRace(source game.Race) Race {
 	var dbRace Race
 	dbRace.ID = source.ID
-	dbRace.CreatedAt = TimePointerToTime(source.CreatedAt)
-	dbRace.UpdatedAt = TimePointerToTime(source.UpdatedAt)
+	dbRace.CreatedAt = TimeToTime(source.CreatedAt)
+	dbRace.UpdatedAt = TimeToTime(source.UpdatedAt)
 	dbRace.UserID = source.UserID
 	dbRace.Name = source.Name
 	dbRace.PluralName = source.PluralName

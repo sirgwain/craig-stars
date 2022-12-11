@@ -161,6 +161,8 @@ func NewPlayer(userID int64, race *Race) *Player {
 	// copy this race for the player
 	playerRace := *race
 	playerRace.ID = 0
+	playerRace.UpdatedAt = time.Time{}
+	playerRace.CreatedAt = time.Time{}
 
 	return &Player{
 		UserID: userID,
