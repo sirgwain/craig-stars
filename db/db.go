@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	_ "embed"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -19,6 +20,9 @@ import (
 	"github.com/mattn/go-sqlite3"
 	sqldblogger "github.com/simukti/sqldb-logger"
 )
+
+//go:embed schema.sql
+var schema string
 
 type client struct {
 	db        *sqlx.DB
@@ -152,15 +156,20 @@ func (c *client) Connect(config *config.Config) error {
 
 // execute a schema file to create/update tables
 func (c *client) ExecSQL(schemaPath string) {
-	schemaBytes, err := ioutil.ReadFile(schemaPath)
-	if err != nil {
-		panic(fmt.Errorf("load schema file %s, %w", schemaPath, err))
-	}
 
-	schema := string(schemaBytes)
-	log.Info().Str("schemaPath", schemaPath).Msg("Executing sql")
+	sql := schema
+	if schemaPath != "" {
+		schemaBytes, err := ioutil.ReadFile(schemaPath)
+		if err != nil {
+			panic(fmt.Errorf("load schema file %s, %w", schemaPath, err))
+		}
+		sql = string(schemaBytes)
+		log.Info().Str("schemaPath", schemaPath).Msg("Executing sql")
+	} else {
+		log.Info().Msg("Executing embedded sql")
+	}
 
 	// exec the schema or fail; multi-statement Exec behavior varies between
 	// database drivers;  pq will exec them all, sqlite3 won't, ymmv
-	c.db.MustExec(schema)
+	c.db.MustExec(sql)
 }
