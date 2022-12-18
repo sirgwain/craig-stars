@@ -22,7 +22,7 @@ func connectTestDB() *client {
 	}
 
 	// create a test user
-	if err := c.CreateUser(cs.NewUser("admin", "admin", cs.RoleAdmin)); err != nil {
+	if err := c.CreateUser(cs.NewUser("admin", "admin", "admin@craig-stars.net", cs.RoleAdmin)); err != nil {
 		panic(fmt.Errorf("create test database user, %w", err))
 	}
 

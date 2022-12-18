@@ -25,6 +25,7 @@ func init() {
 func addCreateUserCommand() {
 
 	var username string
+	var email string
 	var password string
 	var role cs.Role = cs.RoleUser
 
@@ -34,7 +35,7 @@ func addCreateUserCommand() {
 		Short: "A brief description of your command",
 		Long:  ``,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			user := cs.NewUser(username, password, role)
+			user := cs.NewUser(username, password, email, role)
 			db := db.NewClient()
 			cfg := config.GetConfig()
 			db.Connect(cfg)
@@ -51,9 +52,11 @@ func addCreateUserCommand() {
 
 	createUserCmd.Flags().StringVarP(&username, "username", "u", "", "username to create")
 	createUserCmd.Flags().StringVarP(&password, "password", "p", "", "password for user")
+	createUserCmd.Flags().StringVarP(&email, "email", "e", "", "email for user")
 	createUserCmd.Flags().Var(&role, "role", "role for user")
 	createUserCmd.MarkFlagRequired("username")
 	createUserCmd.MarkFlagRequired("password")
+	createUserCmd.MarkFlagRequired("email")
 
 	createCmd.AddCommand(createUserCmd)
 }

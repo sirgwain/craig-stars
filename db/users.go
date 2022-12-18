@@ -8,12 +8,15 @@ import (
 )
 
 type User struct {
-	ID        int64     `json:"id"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
-	Username  string    `json:"username,omitempty" header:"Username"`
-	Password  string    `json:"password,omitempty"`
-	Role      string    `json:"role,omitempty"`
+	ID          int64     `json:"id" header:"ID"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
+	Username    string    `json:"username" header:"Username"`
+	Password    string    `json:"password"`
+	Email       string    `json:"email"`
+	Role        cs.Role   `json:"role"`
+	Verified    bool      `json:"verified"`
+	VerifyToken string    `json:"verifyToken"`
 }
 
 func (c *client) GetUsers() ([]cs.User, error) {
@@ -25,6 +28,8 @@ func (c *client) GetUsers() ([]cs.User, error) {
 		createdAt,
 		updatedAt,
 		username,
+		email,
+		verified,
 		role
 	FROM Users
 	`); err != nil {
@@ -68,20 +73,27 @@ func (c *client) GetUserByUsername(username string) (*cs.User, error) {
 // create a new user
 func (c *client) CreateUser(user *cs.User) error {
 	item := c.converter.ConvertGameUser(user)
+
 	result, err := c.db.NamedExec(`
 	INSERT INTO users (
 		createdAt,
 		updatedAt,
 		username,
 		password,
-		role
+		email,
+		role,
+		verified,
+		verifyToken
 	) 
 	VALUES (
 		CURRENT_TIMESTAMP,
 		CURRENT_TIMESTAMP,
 		:username,
 		:password,
-		:role
+		:email,
+		:role,
+		:verified,
+		:verifyToken
 	)
 	`, item)
 
@@ -108,7 +120,13 @@ func (c *client) UpdateUser(user *cs.User) error {
 		updatedAt = CURRENT_TIMESTAMP,
 		username = :username,
 		password = :password,
-		role = :role
+		username = :username,
+		password = :password,
+		email = :email,
+		verified = :verified,
+		role = :role,
+		verified = :verified,
+		verifyToken = :verifyToken
 	WHERE id = :id
 	`, item); err != nil {
 		return err

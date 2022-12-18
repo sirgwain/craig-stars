@@ -30,7 +30,7 @@
 		});
 
 		if (response.ok) {
-			goto('/');
+			goto(`/games/${id}`);
 		} else {
 			const resolvedResponse = await response?.json();
 			error = resolvedResponse.error;
