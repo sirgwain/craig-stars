@@ -65,39 +65,40 @@
 	let error = '';
 </script>
 
-<div class="md:max-w-md mx-auto">
-	<form on:submit|preventDefault={onSubmit}>
-		<div class="w-full flex justify-end gap-2">
-			<button class="btn btn-success" type="submit">Create Game</button>
-		</div>
+<form on:submit|preventDefault={onSubmit}>
+	<div class="w-full flex justify-end gap-2">
+		<button class="btn btn-success" type="submit">Create Game</button>
+	</div>
 
-		<ItemTitle>Host New Game</ItemTitle>
+	<ItemTitle>Host New Game</ItemTitle>
 
-		<div class="flex flex-row flex-wrap">
-			<TextInput name="name" bind:value={settings.name} />
-			<EnumSelect name="size" enumType={Size} bind:value={settings.size} />
-			<EnumSelect name="density" enumType={Density} bind:value={settings.density} />
-			<EnumSelect
-				name="playerPositions"
-				enumType={PlayerPositions}
-				bind:value={settings.playerPositions}
-			/>
-			<CheckboxInput name="randomEvents" bind:checked={settings.randomEvents} />
-			<CheckboxInput name="publicPlayerScores" bind:checked={settings.publicPlayerScores} />
-			<CheckboxInput name="computerPlayersFormAlliances" bind:checked={settings.computerPlayersFormAlliances} />
-		</div>
+	<div class="flex flex-row flex-wrap">
+		<TextInput name="name" bind:value={settings.name} />
+		<EnumSelect name="size" enumType={Size} bind:value={settings.size} />
+		<EnumSelect name="density" enumType={Density} bind:value={settings.density} />
+		<EnumSelect
+			name="playerPositions"
+			enumType={PlayerPositions}
+			bind:value={settings.playerPositions}
+		/>
+		<CheckboxInput name="randomEvents" bind:checked={settings.randomEvents} />
+		<CheckboxInput name="publicPlayerScores" bind:checked={settings.publicPlayerScores} />
+		<CheckboxInput
+			name="computerPlayersFormAlliances"
+			bind:checked={settings.computerPlayersFormAlliances}
+		/>
+	</div>
 
-		<SectionHeader>
-			<button class="btn-ghost w-full flex flex-row" on:click|preventDefault={addPlayer}>
-				Players
-				<div class="ml-auto">
-					<Icon src={PlusCircle} size="24" class="hover:stroke-accent" />
-				</div>
-			</button></SectionHeader
-		>
+	<SectionHeader>
+		<button class="btn-ghost w-full flex flex-row" on:click|preventDefault={addPlayer}>
+			Players
+			<div class="ml-auto">
+				<Icon src={PlusCircle} size="24" class="hover:stroke-accent" />
+			</div>
+		</button></SectionHeader
+	>
 
-		{#each settings.players as player, i}
-			<NewGamePlayer bind:player index={i + 1} />
-		{/each}
-	</form>
-</div>
+	{#each settings.players as player, i}
+		<NewGamePlayer bind:player index={i + 1} />
+	{/each}
+</form>

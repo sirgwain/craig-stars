@@ -6,7 +6,6 @@
 	.link {
 		@apply text-success;
 	}
-
 	.card-body {
 		@apply text-base;
 	}
@@ -85,4 +84,9 @@
 
 .light {
 	color-scheme: light;
+}
+
+/* daisyui is setting this to z-index to 11 for some reason... */
+.table th:first-child {
+	z-index: 0;
 }
