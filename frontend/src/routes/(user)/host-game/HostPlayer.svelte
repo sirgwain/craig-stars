@@ -1,4 +1,6 @@
 <script lang="ts">
+	import ColorInput from '$lib/components/ColorInput.svelte';
+	import Select from '$lib/components/Select.svelte';
 	import { RaceService } from '$lib/services/RaceService';
 	import type { NewGamePlayer } from '$lib/types/Game';
 	import type { Race } from '$lib/types/Race';
@@ -6,6 +8,7 @@
 
 	// races for the host
 	let hostRaces: Race[];
+
 	export let player: NewGamePlayer;
 
 	const raceService = new RaceService();
@@ -16,10 +19,13 @@
 </script>
 
 {#if hostRaces}
-	<label class="label" for="hostRace">Host Race</label>
-	<select name="hostRaceId" class="select select-bordered" bind:value={player.raceId}>
-		{#each hostRaces as race}
-			<option value={race.id}>{race.name}</option>
-		{/each}
-	</select>
+	<Select
+		values={hostRaces.map((r) => {
+			return { value: r.id, title: r.pluralName };
+		})}
+		name="race"
+		bind:value={player.raceId}
+	/>
+
+	<ColorInput bind:value={player.color} name="color" />
 {/if}
