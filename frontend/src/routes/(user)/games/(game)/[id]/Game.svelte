@@ -7,7 +7,7 @@
 </script>
 
 <div class="flex flex-row h-full w-full">
-	<div class="flex-initial w-[16rem] lg:w-[30rem] overflow-y-auto">
+	<div class="hidden sm:block flex-initial w-[16rem] lg:w-[30rem] overflow-y-auto">
 		<div class="flex flex-col">
 			<div class="flex-1">
 				<div class="flex flex-row flex-wrap gap-3.5 justify-between">
@@ -20,10 +20,11 @@
 	</div>
 
 	<div class="flex-1 flex flex-col h-full ml-3">
-		<div class="flex-1 border-gray-700 border-2 shadow-sm">
+		<div class="flex-1 border-gray-700 border-2 shadow-sm min-h-[50%]">
 			<Scanner />
 		</div>
 		<HighlightedMapObjectStats />
+		<div class="md:hidden mt-3 block flex-initial"><CommandPane /></div>
 		<div class="lg:hidden mt-3 block flex-initial"><MessagesPane /></div>
 		<div class="lg:hidden mt-3 block flex-initial"><MapObjectSummary /></div>
 	</div>

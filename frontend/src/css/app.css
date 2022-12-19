@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 @layer components {
+	.link {
+		@apply text-success;
+	}
+
 	.card-body {
 		@apply text-base;
 	}

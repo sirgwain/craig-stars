@@ -11,10 +11,8 @@
 
 	export let player: NewGamePlayer;
 
-	const raceService = new RaceService();
-
 	onMount(async () => {
-		hostRaces = await raceService.loadRaces();
+		hostRaces = await RaceService.load();
 	});
 </script>
 

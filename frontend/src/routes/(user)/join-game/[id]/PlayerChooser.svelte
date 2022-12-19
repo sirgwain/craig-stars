@@ -8,10 +8,8 @@
 	let races: Race[];
 	export let raceId: number;
 
-	const raceService = new RaceService();
-
 	onMount(async () => {
-		races = await raceService.loadRaces();
+		races = await RaceService.load();
 	});
 </script>
 

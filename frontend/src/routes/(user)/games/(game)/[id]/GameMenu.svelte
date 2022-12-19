@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { game, me } from '$lib/services/Context';
-	import { Menu, Upload } from '@steeze-ui/heroicons';
+	import { Bars3, ArrowUpTray } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { createEventDispatcher } from 'svelte';
 	import DarkModeToggler from '$lib/components/DarkModeToggler.svelte';
@@ -40,7 +40,7 @@
 			<div class="tooltip tooltip-bottom" data-tip="submit turn">
 				<button on:click={() => dispatch('submit-turn')} class="btn btn-primary" title="submit turn"
 					><span class="hidden md:inline-block mr-1">Submit Turn</span><Icon
-						src={Upload}
+						src={ArrowUpTray}
 						size="16"
 					/></button
 				>
@@ -48,7 +48,7 @@
 			<div class="dropdown dropdown-end">
 				<label for="menu" tabindex="0" class="btn btn-ghost">
 					<div id="menu">
-						<Icon src={Menu} size="24" />
+						<Icon src={Bars3} size="24" />
 					</div>
 				</label>
 				<ul

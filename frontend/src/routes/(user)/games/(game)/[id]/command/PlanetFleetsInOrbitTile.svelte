@@ -10,7 +10,7 @@
 	} from '$lib/services/Context';
 	import type { Fleet } from '$lib/types/Fleet';
 	import { MapObjectType, positionKey } from '$lib/types/MapObject';
-	import { ExternalLink } from '@steeze-ui/heroicons';
+	import { ArrowTopRightOnSquare } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onMount } from 'svelte';
 	import CommandTile from './CommandTile.svelte';
@@ -99,7 +99,7 @@
 						disabled={!selectedFleet}
 						class="btn btn-outline btn-sm normal-case btn-secondary"
 						title="goto"
-						>Goto<Icon src={ExternalLink} size="16" class="hover:stroke-accent inline" /></button
+						>Goto<Icon src={ArrowTopRightOnSquare} size="16" class="hover:stroke-accent inline" /></button
 					>
 				</div>
 			</div>

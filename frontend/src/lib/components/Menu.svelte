@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { User } from '$lib/types/User';
-	import { Menu } from '@steeze-ui/heroicons';
+	import { Bars3 } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import DarkModeToggler from './DarkModeToggler.svelte';
 
@@ -27,7 +27,7 @@
 		<div class="dropdown dropdown-end">
 			<label for="menu" tabindex="0" class="btn btn-ghost">
 				<div id="menu">
-					<Icon src={Menu} size="24" />
+					<Icon src={Bars3} size="24" />
 				</div>
 			</label>
 			<ul

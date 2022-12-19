@@ -1,5 +1,5 @@
 export abstract class Service {
-	protected async get<T>(url: string, body?: BodyInit): Promise<T> {
+	static async get<T>(url: string, body?: BodyInit): Promise<T> {
 		const response = await fetch(url, {
 			method: 'GET',
 			headers: {
@@ -15,7 +15,7 @@ export abstract class Service {
 			throw new Error(`${response}`);
 		}
 	}
-	protected async update<T>(item: T, url: string): Promise<T> {
+	static async update<T>(item: T, url: string): Promise<T> {
 		const response = await fetch(url, {
 			method: 'PUT',
 			headers: {
@@ -32,5 +32,21 @@ export abstract class Service {
 		return Promise.resolve(item);
 	}
 
+	static async delete<T>(id: number, url: string): Promise<void> {
+		const response = await fetch(`${url}/${id}`, {
+			method: 'DELETE',
+			headers: {
+				accept: 'application/json'
+			}
+		});
 
+		if (!response.ok) {
+			const result = await response.json();
+			if ('error' in result) {
+				console.error(`Failed to delete ${url}/${id}`, result);
+				throw new Error(`Failed to delete ${url}/${id} ${JSON.stringify(result)}`);
+			}
+		}
+		return Promise.resolve();
+	}
 }
