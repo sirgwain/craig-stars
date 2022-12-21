@@ -12,7 +12,6 @@ type MineField struct {
 	GameID    int64            `json:"gameId,omitempty"`
 	CreatedAt time.Time        `json:"createdAt,omitempty"`
 	UpdatedAt time.Time        `json:"updatedAt,omitempty"`
-	PlayerID  int64            `json:"playerId,omitempty"`
 	X         float64          `json:"x,omitempty"`
 	Y         float64          `json:"y,omitempty"`
 	Name      string           `json:"name,omitempty"`
@@ -64,7 +63,6 @@ func (c *client) createMineField(mineField *cs.MineField, tx SQLExecer) error {
 		createdAt,
 		updatedAt,
 		gameId,
-		playerId,
 		x,
 		y,
 		name,
@@ -78,7 +76,6 @@ func (c *client) createMineField(mineField *cs.MineField, tx SQLExecer) error {
 		CURRENT_TIMESTAMP,
 		CURRENT_TIMESTAMP,
 		:gameId,
-		:playerId,
 		:x,
 		:y,
 		:name,
@@ -116,7 +113,6 @@ func (c *client) updateMineField(mineField *cs.MineField, tx SQLExecer) error {
 	UPDATE mineFields SET
 		updatedAt = CURRENT_TIMESTAMP,
 		gameId = :gameId,
-		playerId = :playerId,
 		x = :x,
 		y = :y,
 		name = :name,

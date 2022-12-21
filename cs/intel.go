@@ -10,9 +10,10 @@ const ReportAgeUnexplored = -1
 const Unowned = 0
 
 type discover struct {
-	player            *Player
-	fleetIntelsByKey  map[string]*FleetIntel
-	designIntelsByKey map[uuid.UUID]*ShipDesignIntel
+	player              *Player
+	fleetIntelsByKey    map[string]*FleetIntel
+	wormholeIntelsByKey map[int]*WormholeIntel
+	designIntelsByKey   map[uuid.UUID]*ShipDesignIntel
 }
 
 type discoverer interface {
@@ -22,7 +23,10 @@ type discoverer interface {
 	discoverPlanetCargo(player *Player, planet *Planet) error
 	discoverFleet(player *Player, fleet *Fleet)
 	discoverFleetCargo(player *Player, fleet *Fleet)
+	discoverWormhole(player *Player, wormhole *Wormhole)
 	discoverDesign(player *Player, design *ShipDesign, discoverSlots bool)
+
+	getWormholeIntel(num int) *WormholeIntel
 }
 
 func newDiscoverer(player *Player) discoverer {
@@ -33,6 +37,12 @@ func newDiscoverer(player *Player) discoverer {
 	for i := range player.FleetIntels {
 		intel := &player.FleetIntels[i]
 		d.fleetIntelsByKey[intel.String()] = intel
+	}
+
+	d.wormholeIntelsByKey = make(map[int]*WormholeIntel, len(player.WormholeIntels))
+	for i := range player.WormholeIntels {
+		intel := &player.WormholeIntels[i]
+		d.wormholeIntelsByKey[intel.Num] = intel
 	}
 
 	d.designIntelsByKey = make(map[uuid.UUID]*ShipDesignIntel, len(player.ShipDesignIntels))
@@ -112,6 +122,21 @@ type MineFieldIntel struct {
 	Type     MineFieldType `json:"type,omitempty"`
 }
 
+type WormholeIntel struct {
+	MapObjectIntel
+	DestinationNum int               `json:"destinationNum,omitempty"`
+	Stability      WormholeStability `json:"stability,omitempty"`
+}
+
+type PlayerIntel struct {
+	Name           string `json:"name,omitempty"`
+	Num            int    `json:"num,omitempty"`
+	Color          string `json:"color,omitempty"`
+	Seen           bool   `json:"seen,omitempty"`
+	RaceName       string `json:"raceName,omitempty"`
+	RacePluralName string `json:"racePluralName,omitempty"`
+}
+
 func (p *PlanetIntel) String() string {
 	return fmt.Sprintf("Planet %s", &p.MapObjectIntel)
 }
@@ -132,6 +157,18 @@ func newFleetIntel(playerNum int, name string) FleetIntel {
 			Intel: Intel{
 				Name:      name,
 				PlayerNum: playerNum,
+			},
+		},
+	}
+}
+
+// create a new WormholeIntel object by key
+func newWormholeIntel(num int) *WormholeIntel {
+	return &WormholeIntel{
+		MapObjectIntel: MapObjectIntel{
+			Type: MapObjectTypeWormhole,
+			Intel: Intel{
+				Num: num,
 			},
 		},
 	}
@@ -237,6 +274,21 @@ func (d *discover) discoverFleetCargo(player *Player, fleet *Fleet) {
 
 }
 
+// discover a wormhole and add it to the player's wormhole intel
+func (d *discover) discoverWormhole(player *Player, wormhole *Wormhole) {
+	intel, found := d.wormholeIntelsByKey[wormhole.Num]
+	if !found {
+		// discover this new wormhole
+		player.WormholeIntels = append(player.WormholeIntels, *newWormholeIntel(wormhole.Num))
+		intel = &player.WormholeIntels[len(player.WormholeIntels)-1]
+		d.wormholeIntelsByKey[intel.Num] = intel
+	}
+
+	intel.Name = wormhole.Name
+	intel.Position = wormhole.Position
+	intel.Stability = wormhole.Stability
+}
+
 // discover a player's design. This is a noop if we already know about
 // the design and aren't discovering slots
 func (d *discover) discoverDesign(player *Player, design *ShipDesign, discoverSlots bool) {
@@ -271,4 +323,8 @@ func (d *discover) discoverDesign(player *Player, design *ShipDesign, discoverSl
 func (d *discover) playerInfoDiscover(player *Player) {
 	// d.game <- players to discover
 	// discover info about other players
+}
+
+func (d *discover) getWormholeIntel(num int) *WormholeIntel {
+	return d.wormholeIntelsByKey[num]
 }

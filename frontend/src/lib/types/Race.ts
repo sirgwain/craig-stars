@@ -9,7 +9,6 @@ export interface Race {
 	createdAt?: string;
 	updatedAt?: string;
 
-	playerId?: number;
 	name: string;
 	pluralName: string;
 	prt: PRT;

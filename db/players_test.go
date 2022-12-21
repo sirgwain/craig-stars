@@ -174,8 +174,8 @@ func TestUpdateFullPlayer(t *testing.T) {
 
 	player.Name = "Test2"
 	player.Num = 1
-	player.Messages = append(player.Messages, cs.PlayerMessage{PlayerID: player.ID, Type: cs.PlayerMessageInfo, Text: "message1"})
-	player.Messages = append(player.Messages, cs.PlayerMessage{PlayerID: player.ID, Type: cs.PlayerMessageInfo, Text: "message2"})
+	player.Messages = append(player.Messages, cs.PlayerMessage{Type: cs.PlayerMessageInfo, Text: "message1"})
+	player.Messages = append(player.Messages, cs.PlayerMessage{Type: cs.PlayerMessageInfo, Text: "message2"})
 	if err := c.updateFullPlayer(&player); err != nil {
 		t.Errorf("update player %s", err)
 		return

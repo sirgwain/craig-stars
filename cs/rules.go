@@ -2,6 +2,7 @@ package cs
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 	"time"
 )
@@ -29,7 +30,7 @@ type Rules struct {
 	RandomEventChances                 map[RandomEvent]float64             `json:"randomEventChances"`
 	RandomMineralDepositBonusRange     [2]int                              `json:"randomMineralDepositBonusRange"`
 	WormholeCloak                      int                                 `json:"wormholeCloak"`
-	WormholeMinDistance                int                                 `json:"wormholeMinDistance"`
+	WormholeMinPlanetDistance          int                                 `json:"wormholeMinDistance"`
 	WormholeStatsByStability           map[WormholeStability]WormholeStats `json:"wormholeStatsByStability"`
 	WormholePairsForSize               map[Size]int                        `json:"wormholePairsForSize"`
 	MineFieldStatsByType               map[MineFieldType]MineFieldStats    `json:"mineFieldStatsByType"`
@@ -138,41 +139,41 @@ func NewRulesWithSeed(seed int64) Rules {
 		},
 		RandomMineralDepositBonusRange: [2]int{20, 50},
 		WormholeCloak:                  75,
-		WormholeMinDistance:            30,
+		WormholeMinPlanetDistance:      30,
 		WormholeStatsByStability: map[WormholeStability]WormholeStats{
 			WormholeStabilityRockSolid: {
-				YearsToDegrade: 0,
-				ChanceToJump:   0.0,
+				YearsToDegrade: 10,
+				ChanceToJump:   0,
 				JiggleDistance: 10,
 			},
 			WormholeStabilityStable: {
-				YearsToDegrade: 0,
-				ChanceToJump:   0.0,
+				YearsToDegrade: 5,
+				ChanceToJump:   0.005,
 				JiggleDistance: 10,
 			},
 			WormholeStabilityMostlyStable: {
-				YearsToDegrade: 0,
-				ChanceToJump:   0.0,
+				YearsToDegrade: 5,
+				ChanceToJump:   0.02,
 				JiggleDistance: 10,
 			},
 			WormholeStabilityAverage: {
-				YearsToDegrade: 0,
-				ChanceToJump:   0.0,
+				YearsToDegrade: 5,
+				ChanceToJump:   0.04,
 				JiggleDistance: 10,
 			},
 			WormholeStabilitySlightlyVolatile: {
-				YearsToDegrade: 0,
-				ChanceToJump:   0.0,
+				YearsToDegrade: 5,
+				ChanceToJump:   0.03,
 				JiggleDistance: 10,
 			},
 			WormholeStabilityVolatile: {
-				YearsToDegrade: 0,
-				ChanceToJump:   0.0,
+				YearsToDegrade: 5,
+				ChanceToJump:   0.06,
 				JiggleDistance: 10,
 			},
 			WormholeStabilityExtremelyVolatile: {
-				YearsToDegrade: 0,
-				ChanceToJump:   0.0,
+				YearsToDegrade: math.MaxInt,
+				ChanceToJump:   0.04,
 				JiggleDistance: 10,
 			},
 		},

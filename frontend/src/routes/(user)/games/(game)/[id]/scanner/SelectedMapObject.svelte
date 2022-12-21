@@ -7,7 +7,7 @@
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 
-	const { xGet, yGet } = getContext<LayerCake>('LayerCake');
+	const { xGet, yGet, xScale, yScale } = getContext<LayerCake>('LayerCake');
 </script>
 
 <svg
@@ -15,7 +15,7 @@
 	y={$yGet($selectedMapObject)}
 	fill="none"
 	stroke="currentColor"
-	stroke-width="2"
+	stroke-width={$xScale(2)}
 >
 	<path stroke-linecap="round" stroke-linejoin="round" d="M5 15l5-5 5 5" />
 </svg>

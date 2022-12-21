@@ -12,7 +12,6 @@ func newTestPlayerPlanet() (player *Player, planet *Planet) {
 	player = NewPlayer(1, NewRace())
 	player.Race.Spec = computeRaceSpec(&player.Race, &rules)
 	planet = &Planet{}
-	planet.PlayerID = player.ID
 	planet.PlayerNum = player.Num
 
 	return player, planet

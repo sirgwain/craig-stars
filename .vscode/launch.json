@@ -52,12 +52,12 @@
             "program": "${relativeFileDirname}",
         },
         {
-            "name": "test TestGetFleet",
+            "name": "test Test_gameRunner_GenerateTurns",
             "type": "go",
             "request": "launch",
             "mode": "test",
-            "program": "${workspaceFolder}/dbsqlx/fleets_test.go",
-            "args": ["-test.run", "TestGetFleet"]
+            "program": "${workspaceFolder}/server/gamerunner_test.go",
+            "args": ["-test.run", "Test_gameRunner_GenerateTurns"]
         },
 
     ]

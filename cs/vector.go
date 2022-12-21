@@ -11,7 +11,7 @@ type Vector struct {
 }
 
 func (v Vector) String() string {
-	return fmt.Sprintf("(%f, %f)", v.X, v.Y)
+	return fmt.Sprintf("(%0.0f, %0.0f)", v.X, v.Y)
 }
 
 func (v Vector) DistanceSquaredTo(to Vector) float64 {

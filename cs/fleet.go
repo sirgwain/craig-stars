@@ -172,7 +172,6 @@ func newFleet(player *Player, design *ShipDesign, num int, name string, waypoint
 		MapObject: MapObject{
 			Type:      MapObjectTypeFleet,
 			GameID:    player.GameID,
-			PlayerID:  player.ID,
 			PlayerNum: player.Num,
 			Dirty:     true,
 			Num:       num,
@@ -197,7 +196,6 @@ func newFleetForToken(player *Player, num int, token ShipToken, waypoints []Wayp
 		MapObject: MapObject{
 			Type:      MapObjectTypeFleet,
 			GameID:    player.GameID,
-			PlayerID:  player.ID,
 			PlayerNum: player.Num,
 			Dirty:     true,
 			Num:       num,
@@ -767,7 +765,6 @@ func (fleet *Fleet) completeMove(mapObjectGetter mapObjectGetter, wp0 Waypoint, 
 func (fleet *Fleet) colonizePlanet(rules *Rules, player *Player, planet *Planet) {
 	planet.Dirty = true
 	planet.PlayerNum = player.Num
-	planet.PlayerID = player.ID
 	planet.ProductionQueue = []ProductionQueueItem{}
 	planet.Cargo = planet.Cargo.Add(fleet.Cargo)
 
@@ -791,26 +788,6 @@ func (fleet *Fleet) colonizePlanet(rules *Rules, player *Player, planet *Planet)
 	}
 
 	planet.Spec = computePlanetSpec(rules, planet, player)
-}
-
-// scrap a fleet giving a planet resources or returning salvage
-func (fleet *Fleet) scrap(rules *Rules, player *Player, planet *Planet) *Salvage {
-	cost := fleet.getScrapAmount(rules, player, planet)
-
-	if planet != nil {
-		// scrap over a planet
-		planet.Cargo = planet.Cargo.AddCostMinerals(cost)
-		if planet.OwnedBy(player.Num) {
-			planet.BonusResources += cost.Resources
-		}
-	} else {
-		// create salvage
-		salvage := newSalvage(player.Num, fleet.Position, cost.ToCargo())
-		return &salvage
-	}
-
-	fleet.Delete = true
-	return nil
 }
 
 // get the minerals and resources recovered from a scrapped fleet

@@ -26,11 +26,13 @@ func TestCreateShipDesign(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			want := *tt.args.shipDesign
 			_, player := tt.args.c.createTestGameWithPlayer()
-			tt.args.shipDesign.PlayerID = player.ID
+			tt.args.shipDesign.GameID = player.GameID
+			tt.args.shipDesign.PlayerNum = player.Num
 			err := tt.args.c.CreateShipDesign(tt.args.shipDesign)
 
 			// id is automatically added
-			want.PlayerID = player.ID
+			want.GameID = player.GameID
+			want.PlayerNum = player.Num
 			want.ID = tt.args.shipDesign.ID
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CreateShipDesign() error = %v, wantErr %v", err, tt.wantErr)
@@ -88,17 +90,17 @@ func TestGetShipDesigns(t *testing.T) {
 	_, player := c.createTestGameWithPlayer()
 
 	// start with 1 shipDesign from connectTestDB
-	result, err := c.GetShipDesignsForPlayer(player.ID)
+	result, err := c.GetShipDesignsForPlayer(player.GameID, player.Num)
 	assert.Nil(t, err)
 	assert.Equal(t, []cs.ShipDesign{}, result)
 
-	shipDesign := cs.ShipDesign{PlayerID: player.ID, Name: "name"}
+	shipDesign := cs.ShipDesign{GameID: player.GameID, PlayerNum: player.Num, Name: "name"}
 	if err := c.CreateShipDesign(&shipDesign); err != nil {
 		t.Errorf("create shipDesign %s", err)
 		return
 	}
 
-	result, err = c.GetShipDesignsForPlayer(player.ID)
+	result, err = c.GetShipDesignsForPlayer(player.GameID, player.Num)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result))
 
@@ -108,18 +110,18 @@ func TestDeleteShipDesigns(t *testing.T) {
 	c := connectTestDB()
 	_, player := c.createTestGameWithPlayer()
 
-	result, err := c.GetShipDesignsForPlayer(player.ID)
+	result, err := c.GetShipDesignsForPlayer(player.GameID, player.Num)
 	assert.Nil(t, err)
 	assert.Equal(t, []cs.ShipDesign{}, result)
 
-	shipDesign := cs.ShipDesign{PlayerID: player.ID, Name: "name"}
+	shipDesign := cs.ShipDesign{GameID: player.GameID, PlayerNum: player.Num, Name: "name"}
 	if err := c.CreateShipDesign(&shipDesign); err != nil {
 		t.Errorf("create shipDesign %s", err)
 		return
 	}
 
 	// should have our shipDesign in the db
-	result, err = c.GetShipDesignsForPlayer(player.ID)
+	result, err = c.GetShipDesignsForPlayer(player.GameID, player.Num)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result))
 
@@ -129,7 +131,7 @@ func TestDeleteShipDesigns(t *testing.T) {
 	}
 
 	// should be no shipDesigns left in db
-	result, err = c.GetShipDesignsForPlayer(player.ID)
+	result, err = c.GetShipDesignsForPlayer(player.GameID, player.Num)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(result))
 }

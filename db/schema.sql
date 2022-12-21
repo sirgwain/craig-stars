@@ -151,7 +151,7 @@ CREATE TABLE players (
   gameId INTEGER NOT NULL,
   userId INTEGER,
   name TEXT NOT NULL,
-  num INTEGER,
+  num INTEGER NOT NULL,
   ready NUMERIC,
   aiControlled NUMERIC,
   submittedTurn NUMERIC,
@@ -176,15 +176,19 @@ CREATE TABLE players (
   battlePlans TEXT,
   productionPlans TEXT,
   transportPlans TEXT,
+  relations TEXT,
   messages TEXT,
+  playerIntels TEXT,
   planetIntels TEXT,
   fleetIntels TEXT,
   shipDesignIntels TEXT,
   mineralPacketIntels TEXT,
   mineFieldIntels TEXT,
+  wormholeIntels TEXT,
   race TEXT,
   stats TEXT,
   spec TEXT,
+  UNIQUE (gameId, num),
   CONSTRAINT fkUsersPlayers FOREIGN KEY (userId) REFERENCES users (id) ON DELETE
   SET NULL,
     CONSTRAINT fkGamesPlayers FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
@@ -194,7 +198,6 @@ CREATE TABLE fleets (
   createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
   updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
   gameId INTEGER NOT NULL,
-  playerId INTEGER NOT NULL,
   battlePlanName TEXT NOT NULL,
   x REAL,
   y REAL,
@@ -219,14 +222,14 @@ CREATE TABLE fleets (
   orbitingPlanetNum INTEGER,
   starbase NUMERIC,
   spec TEXT,
-  CONSTRAINT fkPlayersFleets FOREIGN KEY (playerId) REFERENCES players (id),
+  CONSTRAINT fkPlayersFleets FOREIGN KEY (gameId, playerNum) REFERENCES players(gameId, num) ON DELETE CASCADE,
   CONSTRAINT fkGamesFleets FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
 );
 CREATE TABLE shipDesigns (
   id INTEGER PRIMARY KEY,
   createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
   updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
-  playerId INTEGER NOT NULL,
+  gameId INTEGER NOT NULL,
   playerNum INTEGER,
   uuid TEXT,
   name TEXT NOT NULL,
@@ -237,7 +240,7 @@ CREATE TABLE shipDesigns (
   slots TEXT,
   purpose TEXT,
   spec TEXT,
-  CONSTRAINT fkPlayersDesigns FOREIGN KEY (playerId) REFERENCES players(id) ON DELETE CASCADE
+  CONSTRAINT fkPlayersDesigns FOREIGN KEY (gameId, playerNum) REFERENCES players(gameId, num) ON DELETE CASCADE
 );
 CREATE TABLE shipTokens (
   id INTEGER PRIMARY KEY,
@@ -255,7 +258,6 @@ CREATE TABLE planets (
   gameId INTEGER NOT NULL,
   createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
   updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
-  playerId INTEGER,
   x REAL,
   y REAL,
   name TEXT NOT NULL,
@@ -296,7 +298,6 @@ CREATE TABLE mineralPackets (
   createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
   updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
   gameId INTEGER NOT NULL,
-  playerId INTEGER,
   x REAL,
   y REAL,
   name TEXT NOT NULL,
@@ -311,7 +312,7 @@ CREATE TABLE mineralPackets (
   distanceTravelled REAL,
   headingX REAL,
   headingY REAL,
-  CONSTRAINT fkPlayersMineralPackets FOREIGN KEY (playerId) REFERENCES players (id),
+  CONSTRAINT fkPlayersMineralPackets FOREIGN KEY (gameId, playerNum) REFERENCES players (gameId, num),
   CONSTRAINT fkGamesMineralPackets FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
 );
 CREATE TABLE salvages (
@@ -319,7 +320,6 @@ CREATE TABLE salvages (
   createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
   updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
   gameId INTEGER NOT NULL,
-  playerId INTEGER,
   x REAL,
   y REAL,
   name TEXT NOT NULL,
@@ -328,7 +328,7 @@ CREATE TABLE salvages (
   ironium INTEGER,
   boranium INTEGER,
   germanium INTEGER,
-  CONSTRAINT fkPlayersSalvages FOREIGN KEY (playerId) REFERENCES players (id),
+  CONSTRAINT fkPlayersSalvages FOREIGN KEY (gameId, playerNum) REFERENCES players (gameId, num),
   CONSTRAINT fkGamesSalvages FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
 );
 CREATE TABLE wormholes (
@@ -343,6 +343,7 @@ CREATE TABLE wormholes (
   destinationNum INTEGER,
   stability TEXT,
   yearsAtStability INTEGER,
+  spec TEXT,
   CONSTRAINT fkGamesWormholes FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
 );
 CREATE TABLE mineFields (
@@ -350,7 +351,6 @@ CREATE TABLE mineFields (
   createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
   updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
   gameId INTEGER NOT NULL,
-  playerId INTEGER,
   x REAL,
   y REAL,
   name TEXT NOT NULL,
@@ -359,7 +359,7 @@ CREATE TABLE mineFields (
   numMines INTEGER,
   detonate NUMERIC,
   type TEXT,
-  CONSTRAINT fkPlayersMineFields FOREIGN KEY (playerId) REFERENCES players (id),
+  CONSTRAINT fkPlayersMineFields FOREIGN KEY (gameId, playerNum) REFERENCES players (gameId, num),
   CONSTRAINT fkGamesMineFields FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
 );
 CREATE TABLE techStores (

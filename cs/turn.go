@@ -79,6 +79,7 @@ func (t *turn) generateTurn() error {
 	// wp1 tasks
 	t.fleetUnload1()
 	t.fleetColonize() // colonize wp1 after arriving at a planet
+	t.fleetScrap()
 	t.fleetLoad1()
 	t.fleetLoadDunnage1()
 	t.decayMines()
@@ -138,8 +139,40 @@ func (t *turn) fleetAge() {
 	}
 }
 
+// scrap a fleet at wp0/wp1
 func (t *turn) fleetScrap() {
+	for _, fleet := range t.game.Fleets {
+		wp0 := fleet.Waypoints[0]
+		if wp0.Task == WaypointTaskScrapFleet {
+			t.scrapFleet(fleet)
+		}
+	}
+}
 
+// scrap a fleet giving a planet resources or creating salvage
+func (t *turn) scrapFleet(fleet *Fleet) {
+	player := t.game.Players[fleet.PlayerNum-1]
+
+	var planet *Planet
+	if fleet.OrbitingPlanetNum != None {
+		planet = t.game.getPlanet(fleet.OrbitingPlanetNum)
+	}
+
+	cost := fleet.getScrapAmount(&t.game.Rules, player, planet)
+
+	if planet != nil {
+		// scrap over a planet
+		planet.Cargo = planet.Cargo.AddCostMinerals(cost)
+		if planet.OwnedBy(player.Num) {
+			planet.BonusResources += cost.Resources
+		}
+	} else {
+		// create salvage
+		t.game.createSalvage(fleet.Position, player.Num, cost.ToCargo())
+	}
+
+	messager.fleetScrapped(player, fleet, cost.ToCargo().Total(), cost.Resources, planet)
+	t.game.deleteFleet(fleet)
 }
 
 func (t *turn) fleetUnload0() {
@@ -161,7 +194,6 @@ func (t *turn) fleetColonize() {
 				err := fmt.Errorf("%s attempted to colonize a planet but didn't target a planet", fleet.Name)
 				log.Err(err).
 					Int64("GameID", t.game.ID).
-					Int64("PlayerID", player.ID).
 					Str("Fleet", fleet.Name)
 				messager.error(player, err)
 				continue
@@ -194,8 +226,8 @@ func (t *turn) fleetColonize() {
 
 			// colonize the planet and scrap the fleet
 			fleet.colonizePlanet(&t.game.Rules, player, planet)
-			fleet.scrap(&t.game.Rules, player, planet)
-			t.game.Universe.deleteFleet(fleet)
+			t.scrapFleet(fleet)
+			t.game.deleteFleet(fleet)
 			messager.planetColonized(player, planet)
 		}
 	}
@@ -208,9 +240,10 @@ func (t *turn) fleetLoad0() {
 		if wp0.Task == WaypointTaskTransport {
 			player := t.game.Players[fleet.PlayerNum-1]
 			dest := t.game.getCargoHolder(wp0.TargetType, wp0.TargetNum, wp0.TargetPlayerNum)
+			var salvage *Salvage
 			if dest == nil {
-				salvage := newSalvage(fleet.PlayerNum, fleet.Position, Cargo{})
-				dest = &salvage
+				salvage = t.game.createSalvage(fleet.Position, fleet.PlayerNum, Cargo{})
+				dest = salvage
 			}
 
 			// build a cargo object for each transfer
@@ -234,6 +267,11 @@ func (t *turn) fleetLoad0() {
 				}
 			}
 
+			// we tried to load/unload from empty space but we didn't deposit any cargo
+			// into the salvage, so remove this empty salvage
+			if salvage != nil && salvage.Cargo.Total() == 0 {
+				t.game.deleteSalvage(salvage)
+			}
 		}
 	}
 }
@@ -307,12 +345,48 @@ func (t *turn) decayPackets() {
 
 }
 
+// jiggle, degrade, and jump wormholes
 func (t *turn) wormholeJiggle() {
+	planetPositions := make([]Vector, len(t.game.Planets))
+	wormholePositions := make([]Vector, len(t.game.Wormholes))
 
+	latestNum := t.game.Wormholes[len(t.game.Wormholes)-1].Num
+	for _, wormhole := range t.game.Wormholes {
+		originalPosition := wormhole.Position
+		wormhole.jiggle(t.game.Universe, t.game.Rules.random)
+		t.game.moveWormhole(wormhole, originalPosition)
+
+		wormhole.degrade()
+		if wormhole.shouldJump(t.game.Rules.random) {
+			// this wormhole jumped. We actually delete the previous one and create a new one. This way scanner history is reset
+			position, _, err := generateWormhole(t.game.Universe, latestNum+1, t.game.Area, t.game.Rules.random, planetPositions, wormholePositions, t.game.Rules.WormholeMinPlanetDistance)
+			if err != nil {
+				// don't kill turn generation over this, just move on without a new wormhole
+				log.Error().Err(err).Msgf("failed to generate new wormhole after wormhole jump")
+				continue
+			}
+
+			// create the new wormhole
+			companion := t.game.Universe.getWormhole(wormhole.DestinationNum)
+			newWormhole := t.game.createWormhole(position, WormholeStabilityRockSolid, companion)
+
+			// queue the old wormhole for deletion and add the new wormhole to the universe
+			t.game.deleteWormhole(wormhole)
+
+			log.Debug().
+				Int64("GameID", t.game.ID).
+				Str("Name", t.game.Name).
+				Int("Year", t.game.Year).
+				Msgf("generated new wormhole %d (%v) after jump", newWormhole.Num, newWormhole.Position)
+
+		}
+
+		// update the spec
+		wormhole.Spec = computeWormholeSpec(wormhole, &t.game.Rules)
+	}
 }
 
 func (t *turn) detonateMines() {
-
 }
 
 // mine all owned planets for minerals

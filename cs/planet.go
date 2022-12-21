@@ -219,7 +219,6 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 
 	p.Homeworld = true
 	p.PlayerNum = player.Num
-	p.PlayerID = player.ID
 
 	habWidth := player.Race.HabWidth()
 	habCenter := player.Race.HabCenter()
@@ -551,7 +550,6 @@ func (planet *Planet) buildItems(player *Player, item ProductionQueueItem, numBu
 	}
 
 	log.Debug().
-		Int64("PlayerID", player.ID).
 		Int("Player", player.Num).
 		Str("Planet", planet.Name).
 		Str("Item", string(item.Type)).

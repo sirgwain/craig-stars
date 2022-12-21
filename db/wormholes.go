@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"database/sql/driver"
 	"time"
 
 	"github.com/sirgwain/craig-stars/cs"
@@ -19,6 +20,20 @@ type Wormhole struct {
 	DestinationNum   int                  `json:"destinationNum,omitempty"`
 	Stability        cs.WormholeStability `json:"stability,omitempty"`
 	YearsAtStability int                  `json:"yearsAtStability,omitempty"`
+	Spec             *WormholeSpec        `json:"spec,omitempty"`
+}
+
+// we json serialize these types with custom Scan/Value methods
+type WormholeSpec cs.WormholeSpec
+
+// db serializer to serialize this to JSON
+func (item *WormholeSpec) Value() (driver.Value, error) {
+	return valueJSON(item)
+}
+
+// db deserializer to read this from JSON
+func (item *WormholeSpec) Scan(src interface{}) error {
+	return scanJSON(src, item)
 }
 
 // get a wormhole by id
@@ -67,7 +82,8 @@ func (c *client) createWormhole(wormhole *cs.Wormhole, tx SQLExecer) error {
 		num,
 		destinationNum,
 		stability,
-		yearsAtStability
+		yearsAtStability,
+		spec
 	)
 	VALUES (
 		CURRENT_TIMESTAMP,
@@ -79,7 +95,8 @@ func (c *client) createWormhole(wormhole *cs.Wormhole, tx SQLExecer) error {
 		:num,
 		:destinationNum,
 		:stability,
-		:yearsAtStability
+		:yearsAtStability,
+		:spec
 	)
 	`, item)
 
@@ -115,7 +132,8 @@ func (c *client) updateWormhole(wormhole *cs.Wormhole, tx SQLExecer) error {
 		num = :num,
 		destinationNum = :destinationNum,
 		stability = :stability,
-		yearsAtStability = :yearsAtStability
+		yearsAtStability = :yearsAtStability,
+		spec = :spec
 	WHERE id = :id
 	`, item); err != nil {
 		return err

@@ -4,7 +4,35 @@ import (
 	"testing"
 
 	"github.com/sirgwain/craig-stars/test"
+	"github.com/stretchr/testify/assert"
 )
+
+func Test_GenerateUniverse(t *testing.T) {
+	client := NewGamer()
+	game := client.CreateGame(1, *NewGameSettings())
+
+	numPlanets, err := game.Rules.GetNumPlanets(game.Size, game.Density)
+	if err != nil {
+		t.Error(err)
+	}
+	player := client.NewPlayer(1, *NewRace(), &game.Rules)
+	players := []*Player{player}
+	player.AIControlled = true
+	player.Num = 1
+	universe, _ := client.GenerateUniverse(game, players)
+
+	assert.Equal(t, len(universe.Planets), numPlanets)
+	assert.Greater(t, len(universe.Fleets), 0)
+	assert.Greater(t, len(player.Designs), 0)
+	assert.Greater(t, len(universe.Wormholes), 0)
+
+	pmo := universe.GetPlayerMapObjects(player.Num)
+
+	assert.Equal(t, 1, len(pmo.Planets))
+	homeworld := pmo.Planets[0]
+	assert.Equal(t, 25_000, homeworld.population())
+	assert.True(t, homeworld.Spec.HasStarbase)
+}
 
 func Test_getStartingStarbaseDesigns(t *testing.T) {
 	player := NewPlayer(1, NewRace())

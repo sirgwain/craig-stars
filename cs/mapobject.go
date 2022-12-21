@@ -7,17 +7,16 @@ import (
 
 type MapObject struct {
 	ID        int64         `json:"id"`
-	GameID    int64         `json:"gameId" boltholdIndex:"GameID"`
+	GameID    int64         `json:"gameId"`
 	CreatedAt time.Time     `json:"createdAt"`
 	UpdatedAt time.Time     `json:"updatedAt"`
 	Type      MapObjectType `json:"type"`
-	PlayerID  int64         `json:"-"`
 	Dirty     bool          `json:"-"`
 	Delete    bool          `json:"-"`
 	Position  Vector        `json:"position"`
-	Name      string        `json:"name"`
 	Num       int           `json:"num"`
 	PlayerNum int           `json:"playerNum"`
+	Name      string        `json:"name"`
 	// Tags      Tags           `json:"tags"`
 }
 

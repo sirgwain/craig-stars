@@ -13,7 +13,6 @@ type Planet struct {
 	GameID                            int64                 `json:"gameId,omitempty"`
 	CreatedAt                         time.Time             `json:"createdAt,omitempty"`
 	UpdatedAt                         time.Time             `json:"updatedAt,omitempty"`
-	PlayerID                          int64                 `json:"playerId,omitempty"`
 	X                                 float64               `json:"x,omitempty"`
 	Y                                 float64               `json:"y,omitempty"`
 	Name                              string                `json:"name,omitempty"`
@@ -119,10 +118,10 @@ func (c *client) getPlanetsForGame(gameID int64) ([]*cs.Planet, error) {
 	return results, nil
 }
 
-func (c *client) GetPlanetsForPlayer(playerID int64) ([]*cs.Planet, error) {
+func (c *client) GetPlanetsForPlayer(gameID int64, playerNum int) ([]*cs.Planet, error) {
 
 	items := []Planet{}
-	if err := c.db.Select(&items, `SELECT * FROM planets WHERE playerId = ?`, playerID); err != nil {
+	if err := c.db.Select(&items, `SELECT * FROM planets WHERE gameId = ? AND playerNum = ?`, gameID, playerNum); err != nil {
 		if err == sql.ErrNoRows {
 			return []*cs.Planet{}, nil
 		}
@@ -145,7 +144,6 @@ func (c *client) createPlanet(planet *cs.Planet, tx SQLExecer) error {
 		createdAt,
 		updatedAt,
 		gameId,
-		playerId,
 		x,
 		y,
 		name,
@@ -184,7 +182,6 @@ func (c *client) createPlanet(planet *cs.Planet, tx SQLExecer) error {
 		CURRENT_TIMESTAMP,
 		CURRENT_TIMESTAMP,
 		:gameId,
-		:playerId,
 		:x,
 		:y,
 		:name,
@@ -247,7 +244,6 @@ func (c *client) updatePlanet(planet *cs.Planet, tx SQLExecer) error {
 	UPDATE planets SET
 		updatedAt = CURRENT_TIMESTAMP,
 		gameId = :gameId,
-		playerId = :playerId,
 		x = :x,
 		y = :y,
 		name = :name,

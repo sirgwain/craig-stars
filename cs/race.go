@@ -78,7 +78,7 @@ type RaceSpec struct {
 	GrowthFactor                     float64                `json:"growthFactor,omitempty"`
 	MaxPopulationOffset              float64                `json:"maxPopulationOffset,omitempty"`
 	BuiltInCloakUnits                int                    `json:"builtInCloakUnits,omitempty"`
-	StealsResearch                   TechLevel              `json:"stealsResearch,omitempty"`
+	StealsResearch                   StealsResearch         `json:"stealsResearch,omitempty"`
 	FreeCargoCloaking                bool                   `json:"freeCargoCloaking,omitempty"`
 	MineFieldsAreScanners            bool                   `json:"mineFieldsAreScanners,omitempty"`
 	MineFieldRateMoveFactor          float64                `json:"mineFieldRateMoveFactor,omitempty"`
@@ -126,15 +126,6 @@ type RaceSpec struct {
 	ShieldRegenerationRate           float64                `json:"shieldRegenerationRate,omitempty"`
 	EngineFailureRate                float64                `json:"engineFailureRate,omitempty"`
 	EngineReliableSpeed              int                    `json:"engineReliableSpeed,omitempty"`
-}
-
-type StealsResearch struct {
-	Energy        float64 `json:"energy,omitempty"`
-	Weapons       float64 `json:"weapons,omitempty"`
-	Propulsion    float64 `json:"propulsion,omitempty"`
-	Construction  float64 `json:"construction,omitempty"`
-	Electronics   float64 `json:"electronics,omitempty"`
-	Biotechnology float64 `json:"biotechnology,omitempty"`
 }
 
 type PRT string
@@ -242,6 +233,19 @@ var LRTs = []LRT{
 	CE,
 }
 
+func (r *Race) IsImmune(habType HabType) bool {
+	switch habType {
+	case Grav:
+		return r.ImmuneGrav
+	case Temp:
+		return r.ImmuneTemp
+	case Rad:
+		return r.ImmuneRad
+	}
+
+	return false
+}
+
 func NewRace() *Race {
 	return &Race{
 		Name:       "Humanoid",
@@ -307,6 +311,21 @@ func (r *Race) WithGrowthRate(growthRate int) *Race {
 	return r
 }
 
+func (r *Race) withImmuneGrav(immune bool) *Race {
+	r.ImmuneGrav = immune
+	return r
+}
+
+func (r *Race) withImmuneTemp(immune bool) *Race {
+	r.ImmuneTemp = immune
+	return r
+}
+
+func (r *Race) withImmuneRad(immune bool) *Race {
+	r.ImmuneRad = immune
+	return r
+}
+
 func (r *Race) WithSpec(rules *Rules) *Race {
 	r.Spec = computeRaceSpec(r, rules)
 	return r
@@ -314,6 +333,63 @@ func (r *Race) WithSpec(rules *Rules) *Race {
 
 func Humanoids() Race {
 	return *NewRace()
+}
+
+func Rabbitoids() Race {
+	return Race{
+		Name:              "Rabbitoid",
+		PluralName:        "Rabbitoids",
+		PRT:               IT,
+		LRTs:              Bitmask(IFE) | Bitmask(TT) | Bitmask(CE) | Bitmask(NAS),
+		HabLow:            Hab{10, 35, 13},
+		HabHigh:           Hab{56, 81, 53},
+		GrowthRate:        20,
+		PopEfficiency:     10,
+		FactoryOutput:     10,
+		FactoryCost:       9,
+		NumFactories:      17,
+		FactoriesCostLess: true,
+		MineOutput:        10,
+		MineCost:          9,
+		NumMines:          10,
+		ResearchCost: ResearchCost{
+			Energy:        ResearchCostExtra,
+			Weapons:       ResearchCostExtra,
+			Propulsion:    ResearchCostLess,
+			Construction:  ResearchCostStandard,
+			Electronics:   ResearchCostStandard,
+			Biotechnology: ResearchCostLess,
+		},
+	}
+}
+
+func Insectoids() Race {
+	return Race{
+		Name:              "Insectoid",
+		PluralName:        "Insectoids",
+		PRT:               WM,
+		LRTs:              Bitmask(ISB) | Bitmask(RS) | Bitmask(CE),
+		HabLow:            Hab{-1, 0, 70},
+		HabHigh:           Hab{-1, 100, 100},
+		ImmuneGrav:        true,
+		GrowthRate:        10,
+		PopEfficiency:     10,
+		FactoryOutput:     10,
+		FactoryCost:       10,
+		NumFactories:      10,
+		FactoriesCostLess: false,
+		MineOutput:        9,
+		MineCost:          10,
+		NumMines:          6,
+		ResearchCost: ResearchCost{
+			Energy:        ResearchCostLess,
+			Weapons:       ResearchCostLess,
+			Propulsion:    ResearchCostLess,
+			Construction:  ResearchCostLess,
+			Electronics:   ResearchCostStandard,
+			Biotechnology: ResearchCostExtra,
+		},
+	}
 }
 
 func PPs() Race {
@@ -597,4 +673,498 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 	}
 
 	return spec
+}
+
+func (race *Race) ComputeRacePoints(startingPoints int) int {
+
+	prtPointCost := map[PRT]int{
+		HE:   -40,
+		SS:   -95,
+		WM:   -45,
+		CA:   -10,
+		IS:   100,
+		SD:   150,
+		PP:   -120,
+		IT:   -180,
+		AR:   -90,
+		JoaT: 66,
+	}
+
+	lrtPointCost := map[LRT]int{
+		IFE:  -235,
+		TT:   -25,
+		ARM:  -159,
+		ISB:  -201,
+		GR:   40,
+		UR:   -240,
+		MA:   -155,
+		NRSE: 160,
+		CE:   240,
+		OBRM: 255,
+		NAS:  325,
+		LSP:  180,
+		BET:  70,
+		RS:   30,
+	}
+
+	points := startingPoints
+
+	// get points for hab ranges
+	habPoints := int(race.getHabRangePoints() / 2000)
+
+	growthRateFactor := race.GrowthRate // use raw growth rate, otherwise
+	// HEs pay for GR at 2x
+	grRate := float64(growthRateFactor)
+
+	// update the points based on growth rate
+	if growthRateFactor <= 5 {
+		points += (6 - growthRateFactor) * 4200
+	} else if growthRateFactor <= 13 {
+		switch growthRateFactor {
+		case 6:
+			points += 3600
+		case 7:
+			points += 2250
+		case 8:
+			points += 600
+		case 9:
+			points += 225
+		}
+		growthRateFactor = growthRateFactor*2 - 5
+	} else if growthRateFactor < 20 {
+		growthRateFactor = (growthRateFactor - 6) * 3
+	} else {
+		growthRateFactor = 45
+	}
+
+	points -= int(habPoints*growthRateFactor) / 24
+
+	// give points for off center habs
+	numImmunities := 0
+	hc := race.HabCenter()
+	habCenter := [3]int{
+		hc.Grav,
+		hc.Temp,
+		hc.Rad,
+	}
+	for habType := 0; habType < 3; habType++ {
+		if race.IsImmune(HabType(habType)) {
+			numImmunities++
+		} else {
+			points += int(math.Abs(float64(habCenter[habType]-50)) * 4)
+		}
+	}
+
+	// multiple immunities are penalized extra
+	if numImmunities > 1 {
+		points -= 150
+	}
+
+	// determine factory costs
+	operationPoints := race.NumFactories
+	productionPoints := race.FactoryOutput
+
+	if operationPoints > 10 || productionPoints > 10 {
+		operationPoints -= 9
+		if operationPoints < 1 {
+			operationPoints = 1
+		}
+		productionPoints -= 9
+		if productionPoints < 1 {
+			productionPoints = 1
+		}
+
+		// HE penalty, 2 for all PRTs execpt 3 for HE
+		factoryProductionCost := 2
+		if race.PRT == HE {
+			factoryProductionCost = 3
+		}
+
+		productionPoints *= factoryProductionCost
+
+		// additional penalty for two- and three-immune
+		if numImmunities >= 2 {
+			points -= int(float64(productionPoints*operationPoints)*grRate) / 2
+		} else {
+			points -= int(float64(productionPoints*operationPoints)*grRate) / 9
+		}
+	}
+
+	// pop efficiency
+	popEfficiency := race.PopEfficiency
+	if popEfficiency > 25 {
+		popEfficiency = 25
+	}
+	if popEfficiency <= 7 {
+		points -= 2400
+	} else if popEfficiency == 8 {
+		points -= 1260
+	} else if popEfficiency == 9 {
+		points -= 600
+	} else if popEfficiency > 10 {
+		points += (popEfficiency - 10) * 120
+	}
+
+	// factory points (AR races have very simple points)
+	if race.PRT == AR {
+		points += 210
+	} else {
+		productionPoints = 10 - race.FactoryOutput
+		costPoints := 10 - race.FactoryCost
+		operationPoints = 10 - race.NumFactories
+		tmpPoints := 0
+
+		if productionPoints > 0 {
+			tmpPoints = productionPoints * 100
+		} else {
+			tmpPoints = productionPoints * 121
+		}
+
+		if costPoints > 0 {
+			tmpPoints += costPoints * costPoints * -60
+		} else {
+			tmpPoints += costPoints * -55
+		}
+
+		if operationPoints > 0 {
+			tmpPoints += operationPoints * 40
+		} else {
+			tmpPoints += operationPoints * 35
+		}
+
+		// limit low factory points
+		llfp := 700
+		if tmpPoints > llfp {
+			tmpPoints = (tmpPoints-llfp)/3 + llfp
+		}
+
+		if operationPoints <= -7 {
+			if operationPoints < -11 {
+				if operationPoints < -14 {
+					tmpPoints -= 360
+				} else {
+					tmpPoints += (operationPoints + 7) * 45
+				}
+			} else {
+				tmpPoints += (operationPoints + 6) * 30
+			}
+		}
+
+		if productionPoints <= -3 {
+			tmpPoints += (productionPoints + 2) * 60
+		}
+
+		points += tmpPoints
+
+		if race.FactoriesCostLess {
+			points -= 175
+		}
+
+		// mines
+		productionPoints = 10 - race.MineOutput
+		costPoints = 3 - race.MineCost
+		operationPoints = 10 - race.NumMines
+		tmpPoints = 0
+
+		if productionPoints > 0 {
+			tmpPoints = productionPoints * 100
+		} else {
+			tmpPoints = productionPoints * 169
+		}
+
+		if costPoints > 0 {
+			tmpPoints -= 360
+		} else {
+			tmpPoints += costPoints*(-65) + 80
+		}
+
+		if operationPoints > 0 {
+			tmpPoints += operationPoints * 40
+		} else {
+			tmpPoints += operationPoints * 35
+		}
+
+		points += tmpPoints
+	}
+
+	// prt and lrt point costs
+	points += prtPointCost[race.PRT]
+
+	// too many lrts
+	badLRTs := 0
+	goodLRTs := 0
+
+	// figure out how many bad vs good lrts we have.
+	for _, lrt := range LRTs {
+		if race.HasLRT(lrt) {
+
+			if lrtPointCost[lrt] >= 0 {
+				badLRTs++
+			} else {
+				goodLRTs++
+			}
+			points += lrtPointCost[lrt]
+		}
+	}
+
+	if goodLRTs+badLRTs > 4 {
+		points -= (goodLRTs + badLRTs) * (goodLRTs + badLRTs - 4) * 10
+	}
+	if badLRTs-goodLRTs > 3 {
+		points -= (badLRTs - goodLRTs - 3) * 60
+	}
+	if goodLRTs-badLRTs > 3 {
+		points -= (goodLRTs - badLRTs - 3) * 40
+	}
+
+	// No Advanced scanners is penalized in some races
+	if race.HasLRT(NAS) {
+		if race.PRT == PP {
+			points -= 280
+		} else if race.PRT == SS {
+			points -= 200
+		} else if race.PRT == JoaT {
+			points -= 40
+		}
+	}
+
+	// Techs
+	//
+	// Figure out the total number of Extra's, offset by the number of Less's
+	techcosts := 0
+	researchCost := [6]ResearchCostLevel{
+		race.ResearchCost.Energy,
+		race.ResearchCost.Weapons,
+		race.ResearchCost.Propulsion,
+		race.ResearchCost.Construction,
+		race.ResearchCost.Electronics,
+		race.ResearchCost.Biotechnology,
+	}
+	for i := 0; i < 6; i++ {
+		rc := researchCost[i]
+		if rc == ResearchCostExtra {
+			techcosts--
+		} else if rc == ResearchCostLess {
+			techcosts++
+		}
+	}
+
+	// if we have more less's then extra's, penalize the race
+	if techcosts > 0 {
+		points -= (techcosts * techcosts) * 130
+		if techcosts >= 6 {
+			points += 1430 // already paid 4680 so true cost is 3250
+		} else if techcosts == 5 {
+			points += 520 // already paid 3250 so true cost is 2730
+		}
+	} else if techcosts < 0 {
+		// if we have more extra's, give the race a bonus that increases as
+		// we have more extra's
+		scienceCost := []int{150, 330, 540, 780, 1050, 1380}
+		points += scienceCost[(-techcosts)-1]
+		if techcosts < -4 && (popEfficiency < 10) {
+			points -= 190
+		}
+	}
+	if race.TechsStartHigh {
+		points -= 180
+	}
+
+	// ART races get penalized extra for have cheap energy because it gives them such a boost
+	if race.PRT == AR && race.ResearchCost.Energy == ResearchCostLess {
+		points -= 100
+	}
+
+	return points / 3
+
+}
+
+// get points for a race's hab range
+func (race *Race) getHabRangePoints() int64 {
+	totalTerraforming := race.LRTs&Bitmask(TT) > 0
+
+	// setup the starting values for each hab type, and the widths
+	// for those
+	terraformOffset := [3]int{}
+	testHabStart := [3]int{}
+	testHabWidth := [3]int{}
+
+	points := 0.0
+
+	numIterationsGrav := 0
+	numIterationsRad := 0
+	numIterationsTemp := 0
+
+	// set the number of iterations for each hab type.  If we're immune it's just
+	// 1 because all the planets in that range will be the same.  Otherwise we loop
+	// over the entire hab range in 11 equal divisions (i.e. for Humanoids grav would be 15, 22, 29, etc. all the way to 85)
+	if race.ImmuneGrav {
+		numIterationsGrav = 1
+	} else {
+		numIterationsGrav = 11
+	}
+	if race.ImmuneTemp {
+		numIterationsTemp = 1
+	} else {
+		numIterationsTemp = 11
+	}
+	if race.ImmuneRad {
+		numIterationsRad = 1
+	} else {
+		numIterationsRad = 11
+	}
+
+	// We go through 3 main iterations.  During each the habitability of the test planet
+	// varies between the low and high of the hab range for each hab type.  So for a humanoid
+	// it goes (15, 15, 15), (15, 15, 22), (15, 15, 29), etc.   Until it's (85, 85, 85)
+	// During the various loops the TTCorrectionFactor changes to account for the race's ability
+	// to terrform.
+	for loopIndex := 0; loopIndex < 3; loopIndex++ {
+
+		// each main loop gets a different TTCorrectionFactor
+		ttCorrectionFactor := 0
+		if loopIndex == 0 {
+			ttCorrectionFactor = 0
+		} else if loopIndex == 1 {
+			if totalTerraforming {
+				ttCorrectionFactor = 8
+			} else {
+				ttCorrectionFactor = 5
+			}
+		} else {
+			if totalTerraforming {
+				ttCorrectionFactor = 17
+			} else {
+				ttCorrectionFactor = 15
+			}
+		}
+
+		// for each hab type, set up the starts and widths
+		// for this outer loop
+		for _, habType := range HabTypes {
+			// if we're immune, just make the hab values some middle value
+			if race.IsImmune(habType) {
+				testHabStart[habType] = 50
+				testHabWidth[habType] = 11
+			} else {
+				// start at the minimum hab range
+				testHabStart[habType] = clamp(race.HabLow.Get(habType)-ttCorrectionFactor, 0, 100)
+
+				// get the high range for this hab type
+				habHigh := clamp(race.HabHigh.Get(habType)+ttCorrectionFactor, 0, 100)
+
+				// figure out the width for this hab type's starting range
+				testHabWidth[habType] = habHigh - testHabStart[habType]
+			}
+		}
+
+		// 3 nested for loops, one for each hab type.  The number of iterations is 11 for non immune habs, or 1 for immune habs
+		// this starts iterations for the first hab (gravity)
+		gravitySum := 0.0
+		testPlanetHab := Hab{}
+		for iterationGrav := 0; iterationGrav < numIterationsGrav; iterationGrav++ {
+			testPlanetHab.Grav, terraformOffset[0] = race.getPlanetHabForHabIndex(iterationGrav, 0, loopIndex, numIterationsGrav, testHabStart[0], testHabWidth[0], ttCorrectionFactor)
+
+			// go through iterations for temperature
+			temperatureSum := 0.0
+			for iterationTemp := 0; iterationTemp < numIterationsTemp; iterationTemp++ {
+				testPlanetHab.Temp, terraformOffset[1] = race.getPlanetHabForHabIndex(iterationTemp, 1, loopIndex, numIterationsTemp, testHabStart[1], testHabWidth[1], ttCorrectionFactor)
+
+				// go through iterations for radiation
+				var radiationSum int64 = 0
+				for iterationRad := 0; iterationRad < numIterationsRad; iterationRad++ {
+					testPlanetHab.Rad, terraformOffset[2] = race.getPlanetHabForHabIndex(iterationRad, 2, loopIndex, numIterationsRad, testHabStart[2], testHabWidth[2], ttCorrectionFactor)
+
+					planetDesirability := int64(race.GetPlanetHabitability(testPlanetHab))
+
+					terraformOffsetSum := terraformOffset[0] + terraformOffset[1] + terraformOffset[2]
+					if terraformOffsetSum > ttCorrectionFactor {
+						// bring the planet desirability down by the difference between the terraformOffsetSum and the TTCorrectionFactor
+						planetDesirability -= int64(terraformOffsetSum - ttCorrectionFactor)
+						// make sure the planet isn't negative in desirability
+						if planetDesirability < 0 {
+							planetDesirability = 0
+						}
+					}
+					planetDesirability *= planetDesirability
+
+					// modify the planetDesirability by some factor based on which main loop we're going through
+					switch loopIndex {
+					case 0:
+						planetDesirability *= 7
+					case 1:
+						planetDesirability *= 5
+					default:
+						planetDesirability *= 6
+					}
+
+					radiationSum += planetDesirability
+
+					// log.Debug($"Hab: {testPlanetHab}, desirability: {planetDesirability}, sums: ({gravitySum}, {temperatureSum}, {radiationSum}) ");
+				}
+
+				// The radiationSum is the sum of the planetDesirability for each iteration in numIterationsRad
+				// if we're immune to radiation it'll be the same very loop, so *= by 11
+				if !race.ImmuneRad {
+					radiationSum = radiationSum * int64(testHabWidth[2]) / 100
+				} else {
+					radiationSum *= 11
+				}
+
+				temperatureSum += float64(radiationSum)
+			}
+
+			// The tempSum is the sum of the radSums
+			// if we're immune to radiation it'll be the same very loop, so *= by 11
+			if !race.ImmuneTemp {
+				temperatureSum = (temperatureSum * float64(testHabWidth[1])) / 100
+			} else {
+				temperatureSum *= 11
+			}
+
+			gravitySum += temperatureSum
+		}
+		if !race.ImmuneGrav {
+			gravitySum = (gravitySum * float64(testHabWidth[0])) / 100
+		} else {
+			gravitySum *= 11
+		}
+
+		points += gravitySum
+	}
+
+	return int64(points/10.0 + 0.5)
+}
+
+// used by race point calculator to get points for a single iteration of a hab loop
+func (race *Race) getPlanetHabForHabIndex(iterIndex int, habType HabType, loopIndex int, numIterations int, testHabStart int, testHabWidth int, ttCorrectionFactor int) (planetHab int, terraformOffset int) {
+	// on the first iteration just use the testHabStart we already defined
+	// if we're on a subsequent loop move the hab value along the habitable range of this race
+	if iterIndex == 0 || numIterations <= 1 {
+		planetHab = testHabStart
+	} else {
+		planetHab = (testHabWidth*iterIndex)/(numIterations-1) + testHabStart
+	}
+
+	habCenter := race.HabCenter().Get(habType)
+
+	// if we on a main loop other than the first one, do some
+	// stuff with the terraforming correction factor
+	if loopIndex != 0 && !race.IsImmune(HabType(habType)) {
+		offset := habCenter - planetHab
+		if int(math.Abs(float64(offset))) <= ttCorrectionFactor {
+			offset = 0
+		} else if offset < 0 {
+			offset += ttCorrectionFactor
+		} else {
+			offset -= ttCorrectionFactor
+		}
+
+		// we return this terraformOffset value for later use
+		// when we do the summing
+		terraformOffset = offset
+		planetHab = habCenter - offset
+	}
+
+	return planetHab, terraformOffset
 }

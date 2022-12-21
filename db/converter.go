@@ -24,8 +24,12 @@ import (
 // goverter:extend GameBattlePlansToBattlePlans
 // goverter:extend TransportPlansToGameTransportPlans
 // goverter:extend GameTransportPlansToTransportPlans
+// goverter:extend PlayerRelationshipsToGamePlayerRelationships
+// goverter:extend GamePlayerRelationshipsToPlayerRelationships
 // goverter:extend PlayerMessagesToGamePlayerMessages
 // goverter:extend GamePlayerMessagesToPlayerMessages
+// goverter:extend PlayerIntelsToGamePlayerIntels
+// goverter:extend GamePlayerIntelsToPlayerIntels
 // goverter:extend PlanetIntelsToGamePlanetIntels
 // goverter:extend GamePlanetIntelsToPlanetIntels
 // goverter:extend FleetIntelsToGameFleetIntels
@@ -36,6 +40,8 @@ import (
 // goverter:extend GameMineralPacketIntelsToMineralPacketIntels
 // goverter:extend MineFieldIntelsToGameMineFieldIntels
 // goverter:extend GameMineFieldIntelsToMineFieldIntels
+// goverter:extend WormholeIntelsToGameWormholeIntels
+// goverter:extend GameWormholeIntelsToWormholeIntels
 // goverter:extend GameRaceToPlayerRace
 // goverter:extend PlayerRaceToGameRace
 // goverter:extend PlayerSpecToGamePlayerSpec
@@ -55,6 +61,8 @@ import (
 // goverter:extend GameShipDesignSpecToShipDesignSpec
 // goverter:extend ShipDesignSlotsToGameShipDesignSlots
 // goverter:extend GameShipDesignSlotsToShipDesignSlots
+// goverter:extend WormholeSpecToGameWormholeSpec
+// goverter:extend GameWormholeSpecToWormholeSpec
 type Converter interface {
 	ConvertUser(source User) cs.User
 	ConvertGameUser(source *cs.User) *User
@@ -122,11 +130,13 @@ type Converter interface {
 	// goverter:map PlayerOrders.Researching Researching
 	// goverter:map PlayerOrders.NextResearchField NextResearchField
 	// goverter:map PlayerOrders.ResearchAmount ResearchAmount
+	// goverter:map PlayerIntels.PlayerIntels PlayerIntels
 	// goverter:map PlayerIntels.PlanetIntels PlanetIntels
 	// goverter:map PlayerIntels.FleetIntels FleetIntels
 	// goverter:map PlayerIntels.ShipDesignIntels ShipDesignIntels
 	// goverter:map PlayerIntels.MineralPacketIntels MineralPacketIntels
 	// goverter:map PlayerIntels.MineFieldIntels MineFieldIntels
+	// goverter:map PlayerIntels.WormholeIntels WormholeIntels
 	// goverter:map PlayerPlans.BattlePlans BattlePlans
 	// goverter:map PlayerPlans.ProductionPlans ProductionPlans
 	// goverter:map PlayerPlans.TransportPlans TransportPlans
@@ -151,7 +161,6 @@ type Converter interface {
 	// goverter:map MapObject.CreatedAt CreatedAt
 	// goverter:map MapObject.UpdatedAt UpdatedAt
 	// goverter:map MapObject.Type Type
-	// goverter:map MapObject.PlayerID PlayerID
 	// goverter:map MapObject.Dirty Dirty
 	// goverter:map MapObject.Delete Delete
 	// goverter:map MapObject.Position.X X
@@ -198,7 +207,6 @@ type Converter interface {
 	// goverter:map MapObject.CreatedAt CreatedAt
 	// goverter:map MapObject.UpdatedAt UpdatedAt
 	// goverter:map MapObject.Type Type
-	// goverter:map MapObject.PlayerID PlayerID
 	// goverter:map MapObject.Dirty Dirty
 	// goverter:map MapObject.Delete Delete
 	// goverter:map MapObject.Position.X X
@@ -247,7 +255,6 @@ type Converter interface {
 	// goverter:map MapObject.Position.Y Y
 	// goverter:map MapObject.Name Name
 	// goverter:map MapObject.Num Num
-	// goverter:ignore PlayerID
 	// goverter:ignore PlayerNum
 	ConvertGameWormhole(source *cs.Wormhole) *Wormhole
 
@@ -259,7 +266,6 @@ type Converter interface {
 	// goverter:map MapObject.CreatedAt CreatedAt
 	// goverter:map MapObject.UpdatedAt UpdatedAt
 	// goverter:map MapObject.Type Type
-	// goverter:map MapObject.PlayerID PlayerID
 	// goverter:map MapObject.Dirty Dirty
 	// goverter:map MapObject.Delete Delete
 	// goverter:map MapObject.Position.X X
@@ -281,7 +287,6 @@ type Converter interface {
 	// goverter:map MapObject.GameID GameID
 	// goverter:map MapObject.CreatedAt CreatedAt
 	// goverter:map MapObject.UpdatedAt UpdatedAt
-	// goverter:map MapObject.PlayerID PlayerID
 	// goverter:map MapObject.Dirty Dirty
 	// goverter:map MapObject.Delete Delete
 	// goverter:map MapObject.Position.X X
@@ -302,7 +307,6 @@ type Converter interface {
 	// goverter:map MapObject.CreatedAt CreatedAt
 	// goverter:map MapObject.UpdatedAt UpdatedAt
 	// goverter:map MapObject.Type Type
-	// goverter:map MapObject.PlayerID PlayerID
 	// goverter:map MapObject.Dirty Dirty
 	// goverter:map MapObject.Delete Delete
 	// goverter:map MapObject.Position.X X
@@ -399,6 +403,18 @@ func GameTransportPlansToTransportPlans(source []cs.TransportPlan) *TransportPla
 	return (*TransportPlans)(&source)
 }
 
+func PlayerRelationshipsToGamePlayerRelationships(source *PlayerRelationships) []cs.PlayerRelationship {
+	// return an empty slice for nil
+	if source == nil {
+		return []cs.PlayerRelationship{}
+	}
+	return ([]cs.PlayerRelationship)(*source)
+}
+
+func GamePlayerRelationshipsToPlayerRelationships(source []cs.PlayerRelationship) *PlayerRelationships {
+	return (*PlayerRelationships)(&source)
+}
+
 func PlayerMessagesToGamePlayerMessages(source *PlayerMessages) []cs.PlayerMessage {
 	// return an empty slice for nil
 	if source == nil {
@@ -409,6 +425,18 @@ func PlayerMessagesToGamePlayerMessages(source *PlayerMessages) []cs.PlayerMessa
 
 func GamePlayerMessagesToPlayerMessages(source []cs.PlayerMessage) *PlayerMessages {
 	return (*PlayerMessages)(&source)
+}
+
+func PlayerIntelsToGamePlayerIntels(source *PlayerIntels) []cs.PlayerIntel {
+	// return an empty slice for nil
+	if source == nil {
+		return []cs.PlayerIntel{}
+	}
+	return ([]cs.PlayerIntel)(*source)
+}
+
+func GamePlayerIntelsToPlayerIntels(source []cs.PlayerIntel) *PlayerIntels {
+	return (*PlayerIntels)(&source)
 }
 
 func PlanetIntelsToGamePlanetIntels(source *PlanetIntels) []cs.PlanetIntel {
@@ -469,6 +497,18 @@ func MineFieldIntelsToGameMineFieldIntels(source *MineFieldIntels) []cs.MineFiel
 
 func GameMineFieldIntelsToMineFieldIntels(source []cs.MineFieldIntel) *MineFieldIntels {
 	return (*MineFieldIntels)(&source)
+}
+
+func WormholeIntelsToGameWormholeIntels(source *WormholeIntels) []cs.WormholeIntel {
+	// return an empty slice for nil
+	if source == nil {
+		return []cs.WormholeIntel{}
+	}
+	return ([]cs.WormholeIntel)(*source)
+}
+
+func GameWormholeIntelsToWormholeIntels(source []cs.WormholeIntel) *WormholeIntels {
+	return (*WormholeIntels)(&source)
 }
 
 func PlayerRaceToGameRace(source *PlayerRace) cs.Race {
@@ -533,6 +573,10 @@ func ExtendPlayerPlayerPlans(source Player) cs.PlayerPlans {
 func ExtendPlayerPlayerIntels(source Player) cs.PlayerIntels {
 	intels := cs.PlayerIntels{}
 
+	if source.PlayerIntels != nil {
+		intels.PlayerIntels = *source.PlayerIntels
+	}
+
 	if source.PlanetIntels != nil {
 		intels.PlanetIntels = *source.PlanetIntels
 	}
@@ -551,6 +595,10 @@ func ExtendPlayerPlayerIntels(source Player) cs.PlayerIntels {
 
 	if source.MineFieldIntels != nil {
 		intels.MineFieldIntels = *source.MineFieldIntels
+	}
+
+	if source.WormholeIntels != nil {
+		intels.WormholeIntels = *source.WormholeIntels
 	}
 
 	return intels
@@ -603,6 +651,15 @@ func ShipDesignSlotsToGameShipDesignSlots(source *ShipDesignSlots) []cs.ShipDesi
 func GameShipDesignSlotsToShipDesignSlots(source []cs.ShipDesignSlot) *ShipDesignSlots {
 	return (*ShipDesignSlots)(&source)
 }
+
+func WormholeSpecToGameWormholeSpec(source *WormholeSpec) cs.WormholeSpec {
+	return (cs.WormholeSpec)(*source)
+}
+
+func GameWormholeSpecToWormholeSpec(source cs.WormholeSpec) *WormholeSpec {
+	return (*WormholeSpec)(&source)
+}
+
 
 func ExtendResearchCost(source Race) cs.ResearchCost {
 	return cs.ResearchCost{
@@ -687,7 +744,6 @@ func ExtendPlanetMapObject(source Planet) cs.MapObject {
 		GameID:    source.GameID,
 		CreatedAt: source.CreatedAt,
 		UpdatedAt: source.UpdatedAt,
-		PlayerID:  source.PlayerID,
 		Position: cs.Vector{
 			X: source.X,
 			Y: source.Y,
@@ -762,7 +818,6 @@ func ExtendFleetMapObject(source Fleet) cs.MapObject {
 		GameID:    source.GameID,
 		CreatedAt: source.CreatedAt,
 		UpdatedAt: source.UpdatedAt,
-		PlayerID:  source.PlayerID,
 		Position: cs.Vector{
 			X: source.X,
 			Y: source.Y,
@@ -831,7 +886,6 @@ func ExtendSalvageMapObject(source Salvage) cs.MapObject {
 		GameID:    source.GameID,
 		CreatedAt: source.CreatedAt,
 		UpdatedAt: source.UpdatedAt,
-		PlayerID:  source.PlayerID,
 		Position: cs.Vector{
 			X: source.X,
 			Y: source.Y,
@@ -858,7 +912,6 @@ func ExtendMineFieldMapObject(source MineField) cs.MapObject {
 		GameID:    source.GameID,
 		CreatedAt: source.CreatedAt,
 		UpdatedAt: source.UpdatedAt,
-		PlayerID:  source.PlayerID,
 		Position: cs.Vector{
 			X: source.X,
 			Y: source.Y,
@@ -890,7 +943,6 @@ func ExtendMineralPacketMapObject(source MineralPacket) cs.MapObject {
 		GameID:    source.GameID,
 		CreatedAt: source.CreatedAt,
 		UpdatedAt: source.UpdatedAt,
-		PlayerID:  source.PlayerID,
 		Position: cs.Vector{
 			X: source.X,
 			Y: source.Y,

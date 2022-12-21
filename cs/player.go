@@ -16,35 +16,38 @@ type Player struct {
 	PlayerOrders
 	PlayerIntels
 	PlayerPlans
-	ID                    int64           `json:"id,omitempty"`
-	CreatedAt             time.Time       `json:"createdAt,omitempty"`
-	UpdatedAt             time.Time       `json:"updatedAt,omitempty"`
-	GameID                int64           `json:"gameId,omitempty"`
-	UserID                int64           `json:"userId,omitempty"`
-	Name                  string          `json:"name,omitempty"`
-	Num                   int             `json:"num,omitempty"`
-	Ready                 bool            `json:"ready,omitempty"`
-	AIControlled          bool            `json:"aIControlled,omitempty"`
-	SubmittedTurn         bool            `json:"submittedTurn,omitempty"`
-	Color                 string          `json:"color,omitempty"`
-	DefaultHullSet        int             `json:"defaultHullSet,omitempty"`
-	Race                  Race            `json:"race,omitempty"`
-	TechLevels            TechLevel       `json:"techLevels,omitempty"`
-	TechLevelsSpent       TechLevel       `json:"techLevelsSpent,omitempty"`
-	ResearchSpentLastYear int             `json:"researchSpentLastYear,omitempty"`
-	Messages              []PlayerMessage `json:"messages,omitempty"`
-	Designs               []ShipDesign    `json:"designs,omitempty"`
-	Spec                  PlayerSpec      `json:"spec,omitempty"`
-	Stats                 *PlayerStats    `json:"stats,omitempty"`
+	ID                    int64                `json:"id,omitempty"`
+	CreatedAt             time.Time            `json:"createdAt,omitempty"`
+	UpdatedAt             time.Time            `json:"updatedAt,omitempty"`
+	GameID                int64                `json:"gameId,omitempty"`
+	UserID                int64                `json:"userId,omitempty"`
+	Name                  string               `json:"name,omitempty"`
+	Num                   int                  `json:"num,omitempty"`
+	Ready                 bool                 `json:"ready,omitempty"`
+	AIControlled          bool                 `json:"aIControlled,omitempty"`
+	SubmittedTurn         bool                 `json:"submittedTurn,omitempty"`
+	Color                 string               `json:"color,omitempty"`
+	DefaultHullSet        int                  `json:"defaultHullSet,omitempty"`
+	Race                  Race                 `json:"race,omitempty"`
+	TechLevels            TechLevel            `json:"techLevels,omitempty"`
+	TechLevelsSpent       TechLevel            `json:"techLevelsSpent,omitempty"`
+	ResearchSpentLastYear int                  `json:"researchSpentLastYear,omitempty"`
+	Relations             []PlayerRelationship `json:"relations,omitempty"`
+	Messages              []PlayerMessage      `json:"messages,omitempty"`
+	Designs               []ShipDesign         `json:"designs,omitempty"`
+	Spec                  PlayerSpec           `json:"spec,omitempty"`
+	Stats                 *PlayerStats         `json:"stats,omitempty"`
 	leftoverResources     int
 }
 
 type PlayerIntels struct {
+	PlayerIntels        []PlayerIntel        `json:"playerIntels,omitempty"`
 	PlanetIntels        []PlanetIntel        `json:"planetIntels,omitempty"`
 	FleetIntels         []FleetIntel         `json:"fleetIntels,omitempty"`
 	ShipDesignIntels    []ShipDesignIntel    `json:"shipDesignIntels,omitempty"`
 	MineralPacketIntels []MineralPacketIntel `json:"mineralPacketIntels,omitempty"`
 	MineFieldIntels     []MineFieldIntel     `json:"mineFieldIntels,omitempty"`
+	WormholeIntels      []WormholeIntel      `json:"wormholeIntels,omitempty"`
 }
 
 type PlayerPlans struct {
@@ -64,6 +67,19 @@ type PlayerStats struct {
 	TokensBuilt      int `json:"tokensBuilt,omitempty"`
 	PlanetsColonized int `json:"planetsColonized,omitempty"`
 }
+
+type PlayerRelationship struct {
+	Relation PlayerRelation `json:"relation,omitempty"`
+	ShareMap bool           `json:"shareMap,omitempty"`
+}
+
+type PlayerRelation string
+
+const (
+	PlayerRelationNeutral PlayerRelation = "Neutral"
+	PlayerRelationFriend  PlayerRelation = "Friend"
+	PlayerRelationEnemy   PlayerRelation = "Enemy"
+)
 
 type NextResearchField string
 

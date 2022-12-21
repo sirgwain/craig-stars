@@ -12,7 +12,6 @@ type MineralPacket struct {
 	GameID            int64     `json:"gameId,omitempty"`
 	CreatedAt         time.Time `json:"createdAt,omitempty"`
 	UpdatedAt         time.Time `json:"updatedAt,omitempty"`
-	PlayerID          int64     `json:"playerId,omitempty"`
 	X                 float64   `json:"x,omitempty"`
 	Y                 float64   `json:"y,omitempty"`
 	Name              string    `json:"name,omitempty"`
@@ -70,7 +69,6 @@ func (c *client) createMineralPacket(mineralPacket *cs.MineralPacket, tx SQLExec
 		createdAt,
 		updatedAt,
 		gameId,
-		playerId,
 		x,
 		y,
 		name,
@@ -90,7 +88,6 @@ func (c *client) createMineralPacket(mineralPacket *cs.MineralPacket, tx SQLExec
 		CURRENT_TIMESTAMP,
 		CURRENT_TIMESTAMP,
 		:gameId,
-		:playerId,
 		:x,
 		:y,
 		:name,
@@ -134,7 +131,6 @@ func (c *client) updateMineralPacket(mineralPacket *cs.MineralPacket, tx SQLExec
 	UPDATE mineralPackets SET
 		updatedAt = CURRENT_TIMESTAMP,
 		gameId = :gameId,
-		playerId = :playerId,
 		x = :x,
 		y = :y,
 		name = :name,
