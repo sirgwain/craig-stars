@@ -4,7 +4,7 @@ import "fmt"
 
 // handle player orders
 type Orderer interface {
-	UpdatePlayerOrders(player *Player, playerPlanets []*Planet, order PlayerOrders)
+	UpdatePlayerOrders(player *Player, playerPlanets []*Planet, order PlayerOrders, rules *Rules)
 	UpdatePlanetOrders(player *Player, planet *Planet, orders PlanetOrders)
 	UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrders)
 	UpdateMineFieldOrders(player *Player, minefield *MineField, orders MineFieldOrders)
@@ -20,7 +20,7 @@ func NewOrderer() Orderer {
 }
 
 // update a player's orders
-func (o *orders) UpdatePlayerOrders(player *Player, playerPlanets []*Planet, orders PlayerOrders) {
+func (o *orders) UpdatePlayerOrders(player *Player, playerPlanets []*Planet, orders PlayerOrders, rules *Rules) {
 	researchAmountUpdated := orders.ResearchAmount != player.ResearchAmount
 
 	// save the new orders
@@ -37,9 +37,7 @@ func (o *orders) UpdatePlayerOrders(player *Player, playerPlanets []*Planet, ord
 		}
 	}
 
-	// TODO: pass this in
-	rules := NewRules()
-	player.Spec = computePlayerSpec(player, &rules, playerPlanets)
+	player.Spec = computePlayerSpec(player, rules, playerPlanets)
 
 }
 

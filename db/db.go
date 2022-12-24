@@ -85,6 +85,7 @@ type Client interface {
 	GetPlanet(id int64) (*cs.Planet, error)
 	GetPlanetsForPlayer(gameID int64, playerNum int) ([]*cs.Planet, error)
 	UpdatePlanet(planet *cs.Planet) error
+	UpdatePlanetSpec(planet *cs.Planet) error
 
 	GetFleet(id int64) (*cs.Fleet, error)
 	UpdateFleet(fleet *cs.Fleet) error

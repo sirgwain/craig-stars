@@ -24,8 +24,8 @@
 			<Scanner />
 		</div>
 		<HighlightedMapObjectStats />
-		<div class="md:hidden mt-3 block flex-initial"><CommandPane /></div>
-		<div class="lg:hidden mt-3 block flex-initial"><MessagesPane /></div>
 		<div class="lg:hidden mt-3 block flex-initial"><MapObjectSummary /></div>
+		<div class="lg:hidden mt-3 block flex-initial"><MessagesPane /></div>
+		<div class="md:hidden mt-3 block flex-initial"><CommandPane /></div>
 	</div>
 </div>

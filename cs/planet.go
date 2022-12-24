@@ -64,6 +64,7 @@ const (
 
 type PlanetSpec struct {
 	Habitability              int     `json:"habitability,omitempty"`
+	TerraformedHabitability   int     `json:"terraformedHabitability,omitempty"`
 	MaxMines                  int     `json:"maxMines,omitempty"`
 	MaxPossibleMines          int     `json:"maxPossibleMines,omitempty"`
 	MaxFactories              int     `json:"maxFactories,omitempty"`
@@ -546,7 +547,7 @@ func (planet *Planet) buildItems(player *Player, item ProductionQueueItem, numBu
 		messager.defensesBuilt(player, planet, numBuilt)
 	case QueueItemTypeShipToken:
 		design := player.GetDesign(item.DesignName)
-		result.tokens = append(result.tokens, ShipToken{Quantity: numBuilt, design: design, DesignUUID: design.UUID})		
+		result.tokens = append(result.tokens, ShipToken{Quantity: numBuilt, design: design, DesignUUID: design.UUID})
 	}
 
 	log.Debug().

@@ -64,7 +64,6 @@ func (c *client) GenerateUniverse(game *Game, players []*Player) (*Universe, err
 }
 
 func (c *client) SubmitTurn(player *Player) {
-	// TODO: anything else to do on turn submit?
 	player.SubmittedTurn = true
 }
 

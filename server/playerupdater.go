@@ -46,7 +46,13 @@ func (pu *playerUpdater) UpdatePlayerOrders(userID int64, playerID int64, orders
 	}
 
 	// update this player's orders
-	pu.orderer.UpdatePlayerOrders(player, planets, orders)
+	rules, err := pu.db.GetRulesForGame(player.GameID)
+	if err != nil {
+		log.Error().Err(err).Int64("GameID", player.GameID).Msg("loading game rules from database")
+		return nil, nil, fmt.Errorf("failed to load game rules from database")
+	}
+
+	pu.orderer.UpdatePlayerOrders(player, planets, orders, rules)
 
 	if err := pu.db.UpdateLightPlayer(player); err != nil {
 		log.Error().Err(err).Int64("ID", playerID).Msg("updating player orders in database")

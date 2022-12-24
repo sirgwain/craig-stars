@@ -334,7 +334,6 @@ func (u *Universe) getNextFleetNum(playerNum int) int {
 	sort.Slice(orderedFleets, func(i, j int) bool { return orderedFleets[i].Num < orderedFleets[j].Num })
 
 	for i := 0; i < len(orderedFleets); i++ {
-		// todo figure out starbasees
 		fleet := orderedFleets[i]
 		if i > 0 {
 			// if we are past fleet #1 and we skipped a number, used the skipped number

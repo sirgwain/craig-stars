@@ -1,15 +1,11 @@
 <script lang="ts">
 	import { clamp } from '$lib/services/Math';
-
 	import type { Mineral } from '$lib/types/Mineral';
-
-	import { player } from '$lib/services/Context';
 	import type { Planet } from '$lib/types/Planet';
-	import { findMyPlanet } from '$lib/types/Player';
 	import MineralConcentrationPoint from '$lib/components/game/MineralConcentrationPoint.svelte';
 
 	export let planet: Planet;
-	export let scale = 1.0;
+	// export let scale = 1.0;
 	export let max = 5000.0;
 	let numDivisions = 6; // gridlines show 20% on line class
 	let divisions: string[] = ['0'];
@@ -31,26 +27,19 @@
 	};
 
 	$: {
-		if ($player) {
-			planet = findMyPlanet($player, planet) ?? planet;
-			if (planet && planet.cargo) {
-				barPercent = {
-					ironium: clamp(planet.cargo.ironium ? (planet.cargo.ironium / max) * 100 : 0, 0, 100),
-					boranium: clamp(planet.cargo.boranium ? (planet.cargo.boranium / max) * 100 : 0, 0, 100),
-					germanium: clamp(
-						planet.cargo.germanium ? (planet.cargo.germanium / max) * 100 : 0,
-						0,
-						100
-					)
-				};
-			} else {
-				barPercent = { ironium: 0, boranium: 0, germanium: 0 };
-			}
+		if (planet.cargo) {
+			barPercent = {
+				ironium: clamp(planet.cargo.ironium ? (planet.cargo.ironium / max) * 100 : 0, 0, 100),
+				boranium: clamp(planet.cargo.boranium ? (planet.cargo.boranium / max) * 100 : 0, 0, 100),
+				germanium: clamp(planet.cargo.germanium ? (planet.cargo.germanium / max) * 100 : 0, 0, 100)
+			};
+		} else {
+			barPercent = { ironium: 0, boranium: 0, germanium: 0 };
 		}
 	}
 
 	$: {
-		if (planet && planet.mineralConcentration) {
+		if (planet.mineralConcentration) {
 			concentrationPercent = {
 				ironium: clamp(
 					planet.mineralConcentration.ironium

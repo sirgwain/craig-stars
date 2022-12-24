@@ -77,12 +77,15 @@ func (intel *Intel) Owned() bool {
 
 type PlanetIntel struct {
 	MapObjectIntel
-	Hab                  Hab         `json:"hab,omitempty"`
-	MineralConcentration Mineral     `json:"mineralConcentration,omitempty"`
-	Population           uint        `json:"population,omitempty"`
-	Starbase             *FleetIntel `json:"starbase,omitempty"`
-	Cargo                Cargo       `json:"cargo,omitempty"`
-	CargoDiscovered      bool        `json:"cargoDiscovered,omitempty"`
+	Hab                           Hab         `json:"hab,omitempty"`
+	MineralConcentration          Mineral     `json:"mineralConcentration,omitempty"`
+	Population                    uint        `json:"population,omitempty"`
+	Starbase                      *FleetIntel `json:"starbase,omitempty"`
+	Cargo                         Cargo       `json:"cargo,omitempty"`
+	CargoDiscovered               bool        `json:"cargoDiscovered,omitempty"`
+	PlanetHabitability            int         `json:"planetHabitability,omitempty"`
+	PlanetHabitabilityTerraformed int         `json:"planetHabitabilityTerraformed,omitempty"`
+	Spec                          PlanetSpec  `json:"spec,omitempty"`
 }
 
 type ShipDesignIntel struct {
@@ -215,6 +218,8 @@ func (d *discover) discoverPlanet(rules *Rules, player *Player, planet *Planet, 
 		intel.Hab = planet.Hab
 		intel.MineralConcentration = planet.MineralConcentration
 		intel.ReportAge = 0
+		intel.Spec.Habitability = player.Race.GetPlanetHabitability(intel.Hab)
+		intel.Spec.TerraformedHabitability = player.Race.GetPlanetHabitability(intel.Hab) // TODO compute with terraform
 
 		// players know their planet pops, but other planets are slightly off
 		if ownedByPlayer {

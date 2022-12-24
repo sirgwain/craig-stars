@@ -74,6 +74,7 @@ func (rc ResearchCost) Get(field TechField) ResearchCostLevel {
 }
 
 type RaceSpec struct {
+	HabCenter                        Hab                    `json:"habCenter,omitempty"`
 	Costs                            map[QueueItemType]Cost `json:"costs,omitempty"`
 	StartingTechLevels               TechLevel              `json:"startingTechLevels,omitempty"`
 	StartingPlanets                  []StartingPlanet       `json:"startingPlanets,omitempty"`
@@ -516,6 +517,7 @@ func (r *Race) GetPlanetHabitability(hab Hab) int {
 func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 	prtSpec := rules.PRTSpecs[PRT(race.PRT)]
 	spec := RaceSpec{
+		HabCenter:                race.HabCenter(),
 		StartingTechLevels:       prtSpec.StartingTechLevels,
 		StartingPlanets:          prtSpec.StartingPlanets,
 		TechCostOffset:           prtSpec.TechCostOffset,

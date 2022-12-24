@@ -6,6 +6,7 @@
 	import type { Planet } from '$lib/types/Planet';
 	import { MapObjectType } from '$lib/types/MapObject';
 	import UnknownSummary from './UnknownSummary.svelte';
+	import { findMyPlanet } from '$lib/types/Player';
 
 	let title = '';
 
@@ -16,8 +17,10 @@
 	}
 
 	let selectedPlanet: Planet | undefined;
-	$: selectedPlanet =
-		$selectedMapObject?.type == MapObjectType.Planet ? ($selectedMapObject as Planet) : undefined;
+	$: {
+		selectedPlanet =
+			$selectedMapObject?.type == MapObjectType.Planet ? ($selectedMapObject as Planet) : undefined;
+	}
 </script>
 
 <div class="card bg-base-200 shadow-xl rounded-sm border-2 border-base-300">
@@ -28,8 +31,8 @@
 			</div>
 			<Icon src={PaperAirplane} size="16" class="hover:stroke-accent" />
 		</div>
-		{#if selectedPlanet}
-			<PlanetSummary />
+		{#if selectedPlanet && $player}
+			<PlanetSummary planet={selectedPlanet} player={$player} />
 		{:else}
 			<UnknownSummary />
 		{/if}
