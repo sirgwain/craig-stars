@@ -71,14 +71,19 @@ func (ug *universeGenerator) Generate() (*Universe, error) {
 
 	// setup all the specs for planets, fleets, etc
 	for _, player := range ug.players {
-		player.Spec = computePlayerSpec(player, ug.rules)
+		player.Spec = computePlayerSpec(player, ug.rules, ug.universe.Planets)
 	}
 
 	for _, planet := range ug.universe.Planets {
 		if planet.owned() {
 			player := ug.players[planet.PlayerNum-1]
-			planet.Spec = computePlanetSpec(ug.rules, planet, player)
+			planet.Spec = computePlanetSpec(ug.rules, player, planet)
 		}
+	}
+
+	// TODO: chicken and egg problem. Player spec needs planet spec for resources, planet spec needs player spec for defense/scanner
+	for _, player := range ug.players {
+		player.Spec = computePlayerSpec(player, ug.rules, ug.universe.Planets)
 	}
 
 	// do one scan run

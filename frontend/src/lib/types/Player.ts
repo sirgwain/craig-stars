@@ -3,8 +3,9 @@ import { MapObjectType, type MapObject } from './MapObject';
 import type { Planet } from './Planet';
 import type { Race } from './Race';
 import type { ShipDesign } from './ShipDesign';
+import type { TechDefense, TechPlanetaryScanner } from './Tech';
 
-export interface Player {
+export type Player = {
 	id?: number;
 	createdAt?: string;
 	updatedAt?: string;
@@ -26,16 +27,52 @@ export interface Player {
 	fleets: Fleet[];
 	planetIntels: Planet[];
 	fleetIntels?: Fleet[];
+	researchSpentLastYear?: number;
+	spec: PlayerSpec;
+} & PlayerOrders;
+
+export type PlayerOrders = {
+	researching: TechField;
+	nextResearchField: NextResearchField;
+	researchAmount: number;
+};
+
+export type PlayerSpec = {
+	planetaryScanner?: TechPlanetaryScanner;
+	defense?: TechDefense;
+	resourcesPerYear?: number;
+	resourcesPerYearResearch?: number;
+	currentResearchCost?: number;
+};
+
+export enum NextResearchField {
+	SameField = 'SameField',
+	Energy = 'Energy',
+	Weapons = 'Weapons',
+	Propulsion = 'Propulsion',
+	Construction = 'Construction',
+	Electronics = 'Electronics',
+	Biotechnology = 'Biotechnology',
+	LowestField = 'LowestField'
 }
 
-export interface TechLevel {
+export enum TechField {
+	Energy = 'Energy',
+	Weapons = 'Weapons',
+	Propulsion = 'Propulsion',
+	Construction = 'Construction',
+	Electronics = 'Electronics',
+	Biotechnology = 'Biotechnology'
+}
+
+export type TechLevel = {
 	energy?: number;
 	weapons?: number;
 	propulsion?: number;
 	construction?: number;
 	electronics?: number;
 	biotechnology?: number;
-}
+};
 
 export interface Message {
 	type: string;

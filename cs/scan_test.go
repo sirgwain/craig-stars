@@ -7,7 +7,7 @@ import (
 
 func Test_getScanners(t *testing.T) {
 	rules := NewRules()
-	player := NewPlayer(1, NewRace().WithSpec(&rules)).WithTechLevels(TechLevel{3, 3, 3, 3, 3, 3}).WithSpec(&rules)
+	player := NewPlayer(1, NewRace().WithSpec(&rules)).WithTechLevels(TechLevel{3, 3, 3, 3, 3, 3}).withSpec(&rules)
 	player.Num = 1
 
 	type args struct {
@@ -46,7 +46,7 @@ func Test_getScanners(t *testing.T) {
 				Fleets:         tt.args.fleets,
 				MineralPackets: tt.args.mineralPackets,
 				MineFields:     tt.args.mineFields,
-				rules: &rules,
+				rules:          &rules,
 			}, &rules, player, newDiscoverer(player)}
 			if got := scan.getScanners(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("getScanners() = \n%v, want \n%v", got, tt.want)
@@ -57,7 +57,7 @@ func Test_getScanners(t *testing.T) {
 
 func Test_fleetInScannerRange(t *testing.T) {
 	rules := NewRules()
-	player := NewPlayer(1, NewRace().WithSpec(&rules)).WithTechLevels(TechLevel{3, 3, 3, 3, 3, 3}).WithSpec(&rules)
+	player := NewPlayer(1, NewRace().WithSpec(&rules)).WithTechLevels(TechLevel{3, 3, 3, 3, 3, 3}).withSpec(&rules)
 
 	type args struct {
 		player  *Player

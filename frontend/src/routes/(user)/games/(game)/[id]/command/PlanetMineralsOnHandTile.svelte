@@ -21,15 +21,15 @@
 	<CommandTile title="Minerals on Hand">
 		<div class="flex justify-between">
 			<div class="text-ironium">Ironium</div>
-			<div>{$commandedPlanet.cargo?.ironium}kT</div>
+			<div>{$commandedPlanet.cargo?.ironium ?? 0}kT</div>
 		</div>
 		<div class="flex justify-between">
 			<div class="text-boranium">Boranium</div>
-			<div>{$commandedPlanet.cargo?.boranium}kT</div>
+			<div>{$commandedPlanet.cargo?.boranium ?? 0}kT</div>
 		</div>
 		<div class="flex justify-between">
 			<div class="text-germanium">Germanium</div>
-			<div>{$commandedPlanet.cargo?.germanium}kT</div>
+			<div>{$commandedPlanet.cargo?.germanium ?? 0}kT</div>
 		</div>
 
 		<div class="divider p-0 m-0" />

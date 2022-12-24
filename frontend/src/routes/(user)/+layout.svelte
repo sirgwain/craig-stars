@@ -12,7 +12,7 @@
 	<div class="sticky top-0 z-10">
 		<Menu user={$me} />
 	</div>
-	<div class="w-full mx-auto md:max-w-lg">
+	<div class="w-full mx-auto md:max-w-2xl">
 		<slot>This is the main content</slot>
 	</div>
 </main>

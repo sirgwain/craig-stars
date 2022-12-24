@@ -216,6 +216,11 @@ func (s *server) updatePlayerOrders(c *gin.Context) {
 		return
 	}
 
+	if orders.ResearchAmount < 0 || orders.ResearchAmount > 100 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "research ammount must be between 0 and 100"})
+		return
+	}
+
 	player, planets, err := s.playerUpdater.UpdatePlayerOrders(user.ID, id.ID, orders)
 
 	if err != nil {
@@ -223,6 +228,7 @@ func (s *server) updatePlayerOrders(c *gin.Context) {
 		return
 	}
 
+	log.Info().Int64("GameID", id.ID).Int64("PlayerID", player.ID).Msg("update orders")
 	c.JSON(http.StatusOK, gin.H{
 		"player":  player,
 		"planets": planets,

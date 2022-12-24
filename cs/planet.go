@@ -254,7 +254,7 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 		p.Defenses = 0
 	}
 
-	p.ContributesOnlyLeftoverToResearch = true
+	p.ContributesOnlyLeftoverToResearch = false
 	p.Scanner = true
 
 	// // the homeworld gets a starbase
@@ -327,7 +327,7 @@ func (p *Planet) getGrowthAmount(player *Player, maxPopulation int) int {
 	}
 }
 
-func computePlanetSpec(rules *Rules, planet *Planet, player *Player) PlanetSpec {
+func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec {
 	spec := PlanetSpec{}
 	race := &player.Race
 	spec.Habitability = race.GetPlanetHabitability(planet.Hab)

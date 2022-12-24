@@ -48,6 +48,11 @@ func (pu *playerUpdater) UpdatePlayerOrders(userID int64, playerID int64, orders
 	// update this player's orders
 	pu.orderer.UpdatePlayerOrders(player, planets, orders)
 
+	if err := pu.db.UpdateLightPlayer(player); err != nil {
+		log.Error().Err(err).Int64("ID", playerID).Msg("updating player orders in database")
+		return nil, nil, fmt.Errorf("failed to update player orders in database")
+	}
+
 	for _, planet := range planets {
 		if planet.Dirty {
 			// TODO: only update the planet spec? that's all that changes

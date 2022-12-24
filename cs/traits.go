@@ -173,7 +173,7 @@ func defaultPRTSpec() PRTSpec {
 		MineFieldDetonateDecayRate:       .25,
 		DiscoverDesignOnScan:             false,
 		CanRemoteMineOwnPlanets:          false,
-		InvasionAttackBonus:              1,
+		InvasionAttackBonus:              1.1,
 		InvasionDefendBonus:              1,
 		MovementBonus:                    0,
 		Instaforming:                     false,

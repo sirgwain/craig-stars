@@ -5,9 +5,10 @@ const Unlimited = -1
 type cargoHolder interface {
 	getMapObject() MapObject
 	getCargo() *Cargo
-	getCargpCapacity() int
+	getCargoCapacity() int
 	getFuel() int
 	getFuelCapacity() int
+	canLoad(playerNum int) bool
 }
 
 func (ch *Planet) getMapObject() MapObject {
@@ -18,7 +19,7 @@ func (ch *Planet) getCargo() *Cargo {
 	return &ch.Cargo
 }
 
-func (ch *Planet) getCargpCapacity() int {
+func (ch *Planet) getCargoCapacity() int {
 	return Unlimited
 }
 
@@ -34,6 +35,11 @@ func (ch *Planet) getFuelCapacity() int {
 	return 0
 }
 
+// players can load from unowned planets or planets they own
+func (ch *Planet) canLoad(playerNum int) bool {
+	return !ch.owned() || ch.OwnedBy(playerNum)
+}
+
 func (ch *Fleet) getMapObject() MapObject {
 	return ch.MapObject
 }
@@ -46,12 +52,17 @@ func (ch *Fleet) getFuel() int {
 	return ch.Fuel
 }
 
-func (ch *Fleet) getCargpCapacity() int {
+func (ch *Fleet) getCargoCapacity() int {
 	return ch.Spec.CargoCapacity
 }
 
 func (ch *Fleet) getFuelCapacity() int {
 	return ch.Spec.FuelCapacity
+}
+
+// players can load from fleets they own
+func (ch *Fleet) canLoad(playerNum int) bool {
+	return ch.OwnedBy(playerNum)
 }
 
 func (ch *Salvage) getMapObject() MapObject {
@@ -62,7 +73,7 @@ func (ch *Salvage) getCargo() *Cargo {
 	return &ch.Cargo
 }
 
-func (ch *Salvage) getCargpCapacity() int {
+func (ch *Salvage) getCargoCapacity() int {
 	return Unlimited
 }
 
@@ -72,4 +83,9 @@ func (ch *Salvage) getFuel() int {
 
 func (ch *Salvage) getFuelCapacity() int {
 	return 0
+}
+
+// players can load from all salvage
+func (ch *Salvage) canLoad(playerNum int) bool {
+	return true
 }
