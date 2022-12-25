@@ -3,6 +3,7 @@ import type { Game } from '$lib/types/Game';
 import { MapObjectType, ownedBy, positionKey, type MapObject } from '$lib/types/MapObject';
 import type { Planet } from '$lib/types/Planet';
 import type { Player } from '$lib/types/Player';
+import { PlayerSettings } from '$lib/types/PlayerSettings';
 import { emptyUser, type User } from '$lib/types/User';
 import { derived, writable } from 'svelte/store';
 
@@ -13,6 +14,7 @@ export type MapObjectsByPosition = {
 export const me = writable<User>(emptyUser);
 export const game = writable<Game | undefined>();
 export const player = writable<Player | undefined>();
+export const settings = writable<PlayerSettings>(loadSettingsOrDefault());
 
 export const commandedPlanet = writable<Planet | undefined>();
 export const commandedFleet = writable<Fleet | undefined>();
@@ -95,3 +97,19 @@ export const highlightMapObject = (mo: MapObject | undefined) => {
 export const zoomToMapObject = (mo: MapObject) => {
 	zoomTarget.update(() => mo);
 };
+
+settings.subscribe((value) => {
+	localStorage.setItem('playerSettings', JSON.stringify(value));
+});
+
+function loadSettingsOrDefault(): PlayerSettings {
+	const json = localStorage.getItem('playerSettings');
+	if (json) {
+		const settings = JSON.parse(json) as PlayerSettings;
+		if (settings) {
+			return settings;
+		}
+	}
+
+	return new PlayerSettings();
+}

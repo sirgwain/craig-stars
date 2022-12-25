@@ -1,9 +1,16 @@
 <script lang="ts">
+	import { settings } from '$lib/services/Context';
+	import type { Game } from '$lib/types/Game';
+	import type { Player } from '$lib/types/Player';
 	import CommandPane from './command/CommandPane.svelte';
 	import HighlightedMapObjectStats from './HighlightedMapObjectStats.svelte';
 	import MapObjectSummary from './MapObjectSummary.svelte';
 	import MessagesPane from './MessagesPane.svelte';
 	import Scanner from './scanner/Scanner.svelte';
+	import ScannerToolbar from './scanner/ScannerToolbar.svelte';
+
+	export let game: Game;
+	export let player: Player;
 </script>
 
 <div class="flex flex-row h-full w-full">
@@ -19,8 +26,9 @@
 		</div>
 	</div>
 
-	<div class="flex-1 flex flex-col h-full ml-3">
-		<div class="flex-1 border-gray-700 border-2 shadow-sm min-h-[50%]">
+	<div class="flex-1 flex flex-col grow ml-3">
+		<div class="flex flex-col border-gray-700 border-2 shadow-sm min-h-[68%]">
+			<ScannerToolbar />
 			<Scanner />
 		</div>
 		<HighlightedMapObjectStats />

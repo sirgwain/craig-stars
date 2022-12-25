@@ -1,7 +1,5 @@
 <script lang="ts">
 	import {
-		zoomTarget,
-		commandedPlanet,
 		commandedFleet,
 		commandedMapObject,
 		commandMapObject,
@@ -11,7 +9,8 @@
 		selectedMapObject,
 		selectedWaypoint,
 		selectMapObject,
-		selectWaypoint
+		selectWaypoint,
+		zoomTarget
 	} from '$lib/services/Context';
 	import { FleetService } from '$lib/services/FleetService';
 	import { clamp } from '$lib/services/Math';
@@ -245,7 +244,7 @@
 
 <svelte:window on:resize={handleResize} />
 
-<div class={`flex-1 h-full bg-black overflow-hidden p-[${padding}px]`}>
+<div class={`grow bg-black overflow-hidden p-[${padding}px]`}>
 	{#if $game && $player}
 		<LayerCake
 			{data}

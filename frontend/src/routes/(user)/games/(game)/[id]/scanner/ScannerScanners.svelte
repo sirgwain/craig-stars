@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { player } from '$lib/services/Context';
+	import { player, settings } from '$lib/services/Context';
 
 	import { positionKey } from '$lib/types/MapObject';
 	import type { Vector } from '$lib/types/Vector';
@@ -51,21 +51,23 @@
 	}
 </script>
 
-{#each scanners as scanner}
-	<circle
-		cx={$xGet({ position: scanner.position })}
-		cy={$yGet({ position: scanner.position })}
-		r={$xScale(scanner.scanRange)}
-		class="scanner"
-	/>
-{/each}
-{#each scanners as scanner}
-	{#if scanner.scanRangePen > 0}
+{#if $settings.showScanners}
+	{#each scanners as scanner}
 		<circle
 			cx={$xGet({ position: scanner.position })}
 			cy={$yGet({ position: scanner.position })}
-			r={$xScale(scanner.scanRangePen)}
-			class="scanner-pen"
+			r={$xScale(scanner.scanRange)}
+			class="scanner"
 		/>
-	{/if}
-{/each}
+	{/each}
+	{#each scanners as scanner}
+		{#if scanner.scanRangePen > 0}
+			<circle
+				cx={$xGet({ position: scanner.position })}
+				cy={$yGet({ position: scanner.position })}
+				r={$xScale(scanner.scanRangePen)}
+				class="scanner-pen"
+			/>
+		{/if}
+	{/each}
+{/if}
