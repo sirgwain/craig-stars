@@ -78,12 +78,13 @@ export type TechLevel = {
 export interface Message {
 	type: string;
 	text: string;
-	targetType: MessageTargetType;
-	targetId?: number;
+	targetType?: MessageTargetType;
+	targetNum?: number;
+	targetPlayerNum?: number;
 }
 
 export enum MessageTargetType {
-	None = 'None',
+	None = '',
 	Planet = 'Planet',
 	Fleet = 'Fleet',
 	Wormhole = 'Wormhole',

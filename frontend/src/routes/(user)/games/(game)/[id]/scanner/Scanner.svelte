@@ -22,12 +22,14 @@
 	import { zoom, zoomIdentity, ZoomTransform, type D3ZoomEvent, type ZoomBehavior } from 'd3-zoom';
 	import { Html, LayerCake, Svg } from 'layercake';
 	import { merge } from 'lodash-es';
+	import type { ScaleLinear } from 'd3-scale';
 	import MapObjectQuadTreeFinder from './MapObjectQuadTreeFinder.svelte';
 	import ScannerFleets from './ScannerFleets.svelte';
 	import ScannerPlanets from './ScannerPlanets.svelte';
 	import ScannerScanners from './ScannerScanners.svelte';
 	import ScannerWaypoints from './ScannerWaypoints.svelte';
 	import SelectedMapObject from './SelectedMapObject.svelte';
+	import { scaleLinear } from 'd3-scale';
 
 	const xGetter = (mo: MapObject) => mo?.position?.x;
 	const yGetter = (mo: MapObject) => mo?.position?.y;
@@ -41,15 +43,27 @@
 	let zoomBehavior: ZoomBehavior<HTMLElement, any>;
 	let root: HTMLElement;
 	let commandedMapObjectIndex = 0;
-	let scale = 2;
+	let scale = 3;
 	let padding = 20; // 20 px, used in zooming
+	let scaleX: ScaleLinear<number, number, never>;
+	let scaleY: ScaleLinear<number, number, never>;
 
 	// handle zoom in/out
 	// this behavior controls how the zoom behaves
 	// below we handle zooming events by updating a transform
 	$: {
-		if (root) {
+		if (root && $game) {
 			handleResize();
+
+			// compute scales
+			scaleX = scaleLinear()
+				.range([0, clientWidth * aspectRatio])
+				.domain([0, $game.area.x]);
+			scaleY = scaleLinear()
+				.range([-clientHeight * aspectRatio, 0])
+				.domain([-$game.area.y, 0]);
+
+			// console.log(`Setting up viewport with ${clientWidth}x${clientHeight}`);
 			zoomBehavior = zoom<HTMLElement, any>()
 				.extent([
 					[0, 0],
@@ -61,6 +75,11 @@
 					[clientWidth, clientHeight]
 				])
 				.on('zoom', handleZoom);
+
+			// disable double click on zoom, we use this to cycle commanded mapobjects
+			select(root).call(zoomBehavior).on('dblclick.zoom', null);
+			// jump to 0,0 at our scale
+			select(root).call(zoomBehavior.scaleTo, scale).call(zoomBehavior.translateTo, 0, 0);
 		}
 	}
 
@@ -77,34 +96,26 @@
 	function handleZoom(e: D3ZoomEvent<HTMLElement, any>) {
 		transform = e.transform;
 		scale = transform.k;
-		// console.log('initialZoom', initialZoom, transform);
-	}
-
-	// attach the zoom behavior to the root element
-	$: if (root) {
-		// disable double click on zoom, we use this to cycle commanded mapobjects
-		select(root).call(zoomBehavior).on('dblclick.zoom', null);
+		// console.log('handleZoom', e, transform);
 	}
 
 	// zoom to the commanded map object every time it changes
 	$: if (root && $zoomTarget) {
-		zoomToPosition($zoomTarget.position);
+		translateViewport($zoomTarget.position);
 	}
 
 	// zoom the display to a point on the map
-	function zoomToPosition(position: Vector) {
+	function translateViewport(position: Vector, scaleTo?: number) {
 		if (root) {
-			select(root).call(
-				zoomBehavior.transform,
-				zoomIdentity
-					.translate(clientWidth / 2 + padding, clientHeight / 2 + padding) // translate to center
-					.scale(scale)
-					.translate(
-						// translate to selected mapobject
-						clamp(-position.x / 2 - padding, -(clientWidth / 2 + padding) * scale, 0),
-						clamp(-position.y / 2 + padding, -(clientHeight / 2 + padding) * scale, 0)
-					)
-			);
+			const scaled: Vector = {
+				x: scaleX(position.x),
+				y: scaleY(position.y)
+			};
+			if (scaleTo) {
+				scale = scaleTo;
+			}
+			// console.log(`${position.x}, ${position.y} -> scaled: ${scaled.x}, ${scaled.y}`);
+			select(root).call(zoomBehavior.translateTo, scaled.x, scaled.y).call(zoomBehavior.scaleTo, scale);
 		}
 	}
 

@@ -2,7 +2,7 @@ import type { Fleet, Waypoint } from '$lib/types/Fleet';
 import type { Game } from '$lib/types/Game';
 import { MapObjectType, ownedBy, positionKey, type MapObject } from '$lib/types/MapObject';
 import type { Planet } from '$lib/types/Planet';
-import type { Player } from '$lib/types/Player';
+import { findMyPlanet, type Player } from '$lib/types/Player';
 import { PlayerSettings } from '$lib/types/PlayerSettings';
 import { emptyUser, type User } from '$lib/types/User';
 import { derived, writable } from 'svelte/store';
@@ -66,6 +66,41 @@ export const myMapObjectsByPosition = derived(player, ($player) => {
 
 	return dict;
 });
+
+// get a mapobject by type, number, and optionally player num
+export const getMapObject = (
+	player: Player,
+	type: MapObjectType,
+	num: number,
+	playerNum?: number
+): MapObject | undefined => {
+	let mo: MapObject;
+	switch (type) {
+		case MapObjectType.Planet:
+			mo = player.planetIntels[num - 1];
+			if (mo.playerNum == player.num) {
+				return findMyPlanet(player, mo as Planet);
+			}
+			return mo;
+		case MapObjectType.Fleet:
+			if (playerNum == player.num) {
+				return player.fleets.find((f) => f.num == num);
+			}
+			return player.fleetIntels?.find((f) => f.num == num && f.playerNum == playerNum);
+		case MapObjectType.Wormhole:
+			break;
+		case MapObjectType.MineField:
+			break;
+		case MapObjectType.MysteryTrader:
+			break;
+		case MapObjectType.Salvage:
+			break;
+		case MapObjectType.MineralPacket:
+			break;
+		case MapObjectType.PositionWaypoint:
+			break;
+	}
+};
 
 export const selectMapObject = (mo: MapObject) => {
 	selectedMapObject.update(() => mo);
