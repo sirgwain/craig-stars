@@ -3,9 +3,7 @@
 		commandedFleet,
 		commandedMapObject,
 		commandMapObject,
-		game,
 		myMapObjectsByPosition,
-		player,
 		selectedMapObject,
 		selectedWaypoint,
 		selectMapObject,
@@ -13,23 +11,26 @@
 		zoomTarget
 	} from '$lib/services/Context';
 	import { FleetService } from '$lib/services/FleetService';
-	import { clamp } from '$lib/services/Math';
+	import type { Game } from '$lib/types/Game';
 	import { MapObjectType, ownedBy, positionKey, type MapObject } from '$lib/types/MapObject';
 	import type { Planet } from '$lib/types/Planet';
-	import { findIntelMapObject, findMyPlanet } from '$lib/types/Player';
+	import { findIntelMapObject, findMyPlanet, type Player } from '$lib/types/Player';
 	import { emptyVector, equal, type Vector } from '$lib/types/Vector';
+	import type { ScaleLinear } from 'd3-scale';
+	import { scaleLinear } from 'd3-scale';
 	import { select } from 'd3-selection';
-	import { zoom, zoomIdentity, ZoomTransform, type D3ZoomEvent, type ZoomBehavior } from 'd3-zoom';
+	import { zoom, ZoomTransform, type D3ZoomEvent, type ZoomBehavior } from 'd3-zoom';
 	import { Html, LayerCake, Svg } from 'layercake';
 	import { merge } from 'lodash-es';
-	import type { ScaleLinear } from 'd3-scale';
 	import MapObjectQuadTreeFinder from './MapObjectQuadTreeFinder.svelte';
 	import ScannerFleets from './ScannerFleets.svelte';
 	import ScannerPlanets from './ScannerPlanets.svelte';
 	import ScannerScanners from './ScannerScanners.svelte';
 	import ScannerWaypoints from './ScannerWaypoints.svelte';
 	import SelectedMapObject from './SelectedMapObject.svelte';
-	import { scaleLinear } from 'd3-scale';
+
+	export let game: Game;
+	export let player: Player;
 
 	const xGetter = (mo: MapObject) => mo?.position?.x;
 	const yGetter = (mo: MapObject) => mo?.position?.y;
@@ -52,16 +53,8 @@
 	// this behavior controls how the zoom behaves
 	// below we handle zooming events by updating a transform
 	$: {
-		if (root && $game) {
+		if (root) {
 			handleResize();
-
-			// compute scales
-			scaleX = scaleLinear()
-				.range([0, clientWidth * aspectRatio])
-				.domain([0, $game.area.x]);
-			scaleY = scaleLinear()
-				.range([-clientHeight * aspectRatio, 0])
-				.domain([-$game.area.y, 0]);
 
 			// console.log(`Setting up viewport with ${clientWidth}x${clientHeight}`);
 			zoomBehavior = zoom<HTMLElement, any>()
@@ -69,19 +62,22 @@
 					[0, 0],
 					[clientWidth, clientHeight]
 				])
-				.scaleExtent([1, 5])
+				.scaleExtent([1, 8])
 				.translateExtent([
 					[-20, -20],
-					[clientWidth, clientHeight]
+					[clientWidth + padding, clientHeight + padding]
 				])
 				.on('zoom', handleZoom);
 
 			// disable double click on zoom, we use this to cycle commanded mapobjects
 			select(root).call(zoomBehavior).on('dblclick.zoom', null);
 			// jump to 0,0 at our scale
-			select(root).call(zoomBehavior.scaleTo, scale).call(zoomBehavior.translateTo, 0, 0);
+			// select(root).call(zoomBehavior.scaleTo, scale).call(zoomBehavior.translateTo, 0, 0);
 		}
 	}
+
+	const xRange = () => [0, clientWidth < clientHeight ? clientWidth : clientHeight];
+	const yRange = () => [0, clientWidth < clientHeight ? clientWidth : clientHeight];
 
 	function handleResize() {
 		clientWidth = root?.clientWidth ?? 100;
@@ -91,6 +87,20 @@
 		} else {
 			aspectRatio = clientWidth / clientHeight;
 		}
+
+		// compute scales
+		scaleX = scaleLinear()
+			.range([0, clientWidth * aspectRatio])
+			.domain([0, game.area.x]);
+		scaleY = scaleLinear()
+			.range([-clientHeight * aspectRatio, 0])
+			.domain([-game.area.y, 0]);
+
+		// console.log(
+		// 	`clientWidth/Height: ${clientWidth}, ${clientHeight}, aspectRatio: ${aspectRatio}, scaled: ${(
+		// 		clientHeight * aspectRatio
+		// 	).toFixed()}, ${(clientWidth * aspectRatio).toFixed()}`
+		// );
 	}
 
 	function handleZoom(e: D3ZoomEvent<HTMLElement, any>) {
@@ -111,17 +121,20 @@
 				x: scaleX(position.x),
 				y: scaleY(position.y)
 			};
+			let localScale = scale;
 			if (scaleTo) {
-				scale = scaleTo;
+				localScale = scaleTo;
 			}
 			// console.log(`${position.x}, ${position.y} -> scaled: ${scaled.x}, ${scaled.y}`);
-			select(root).call(zoomBehavior.translateTo, scaled.x, scaled.y).call(zoomBehavior.scaleTo, scale);
+			select(root)
+				.call(zoomBehavior.translateTo, scaled.x, scaled.y)
+				.call(zoomBehavior.scaleTo, localScale);
 		}
 	}
 
 	// if the shift key is held, add a waypoint instead of selecting a mapobject
 	async function addWaypoint(options: { mo?: MapObject; position?: Vector }) {
-		if (!$myMapObjectsByPosition || !$player || !$commandedFleet) {
+		if (!$myMapObjectsByPosition || !$commandedFleet) {
 			return;
 		}
 
@@ -176,16 +189,16 @@
 	 * @param mo
 	 */
 	function mapobjectSelected(mo: MapObject) {
-		if (!$myMapObjectsByPosition || !$player) {
+		if (!$myMapObjectsByPosition) {
 			return;
 		}
 
 		let myMapObject = mo;
-		if (ownedBy(mo, $player.num) && mo.type === MapObjectType.Planet) {
-			myMapObject = findMyPlanet($player, mo as Planet) as MapObject;
+		if (ownedBy(mo, player.num) && mo.type === MapObjectType.Planet) {
+			myMapObject = findMyPlanet(player, mo as Planet) as MapObject;
 		}
 
-		const commandedIntelObject = findIntelMapObject($player, $commandedMapObject);
+		const commandedIntelObject = findIntelMapObject(player, $commandedMapObject);
 
 		if ($selectedMapObject !== myMapObject) {
 			// we selected a different object, so just select it
@@ -203,7 +216,7 @@
 		} else {
 			// we selected the same mapobject twice
 			const myMapObjectsAtPosition = $myMapObjectsByPosition[positionKey(mo)];
-			if ($player && myMapObjectsAtPosition?.length > 0) {
+			if (myMapObjectsAtPosition?.length > 0) {
 				// if our currently commanded map object is not at this location, reset the index
 				if (!myMapObjectsAtPosition.find((mo) => mo == commandedIntelObject)) {
 					commandedMapObjectIndex = 0;
@@ -216,7 +229,7 @@
 				}
 				const nextMapObject = myMapObjectsAtPosition[commandedMapObjectIndex];
 				if (nextMapObject.type === MapObjectType.Planet) {
-					commandMapObject(findMyPlanet($player, nextMapObject as Planet) as MapObject);
+					commandMapObject(findMyPlanet(player, nextMapObject as Planet) as MapObject);
 					commandedMapObjectIndex = 0;
 				} else {
 					commandMapObject(nextMapObject);
@@ -227,69 +240,66 @@
 
 	let data: MapObject[] = [];
 	$: {
-		if ($player) {
-			const waypoints: MapObject[] = [];
-			if ($commandedFleet) {
-				waypoints.push(
-					...$commandedFleet.waypoints.map(
-						(wp) =>
-							({
-								position: wp.position,
-								type: wp.targetType ?? MapObjectType.PositionWaypoint,
-								name: wp.targetName ?? '',
-								num: wp.targetNum ?? 0,
-								playerNum: wp.targetPlayerNum ?? 0
-							} as MapObject)
-					)
-				);
-			}
-			data = [
-				...waypoints,
-				...$player.fleets.filter((f) => !f.orbitingPlanetNum),
-				...($player.fleetIntels?.filter((f) => !f.orbitingPlanetNum) ?? []),
-				...$player.planetIntels
-			];
+		const waypoints: MapObject[] = [];
+		if ($commandedFleet) {
+			waypoints.push(
+				...$commandedFleet.waypoints.map(
+					(wp) =>
+						({
+							position: wp.position,
+							type: wp.targetType ?? MapObjectType.PositionWaypoint,
+							name: wp.targetName ?? '',
+							num: wp.targetNum ?? 0,
+							playerNum: wp.targetPlayerNum ?? 0
+						} as MapObject)
+				)
+			);
 		}
+		data = [
+			...waypoints,
+			...player.fleets.filter((f) => !f.orbitingPlanetNum),
+			...(player.fleetIntels?.filter((f) => !f.orbitingPlanetNum) ?? []),
+			...player.planetIntels
+		];
 	}
 </script>
 
 <svelte:window on:resize={handleResize} />
 
 <div class={`grow bg-black overflow-hidden p-[${padding}px]`}>
-	{#if $game && $player}
-		<LayerCake
-			{data}
-			x={xGetter}
-			y={yGetter}
-			xDomain={[0, $game.area.x]}
-			yDomain={[0, $game.area.y]}
-			xRange={[0, clientWidth * aspectRatio]}
-			yRange={[0, clientHeight * aspectRatio]}
-			yReverse={true}
-			bind:element={root}
-		>
-			<!-- <Svg viewBox={`0 0 ${$game.area.x} ${$game.area.y}`}> -->
-			<Svg>
-				<g transform={transform?.toString()}>
-					<ScannerScanners />
-					<ScannerWaypoints />
-					<ScannerPlanets />
-					<ScannerFleets />
-					<SelectedMapObject />
-				</g>
-			</Svg>
-			<Html>
-				{#if transform}
-					<MapObjectQuadTreeFinder
-						on:mapobject-selected={(mo) => mapobjectSelected(mo.detail)}
-						on:add-waypoint={(mo) => addWaypoint(mo.detail)}
-						searchRadius={20}
-						let:x
-						let:y
-						let:found
-						{transform}
-					>
-						<!-- <div
+	<LayerCake
+		{data}
+		x={xGetter}
+		y={yGetter}
+		xDomain={[0, game.area.x]}
+		yDomain={[0, game.area.y]}
+		{xRange}
+		{yRange}
+		yReverse={true}
+		bind:element={root}
+	>
+		<!-- <Svg viewBox={`0 0 ${game.area.x} ${game.area.y}`}> -->
+		<Svg>
+			<g transform={transform?.toString()}>
+				<ScannerScanners />
+				<ScannerWaypoints />
+				<ScannerPlanets />
+				<ScannerFleets />
+				<SelectedMapObject />
+			</g>
+		</Svg>
+		<Html>
+			{#if transform}
+				<MapObjectQuadTreeFinder
+					on:mapobject-selected={(mo) => mapobjectSelected(mo.detail)}
+					on:add-waypoint={(mo) => addWaypoint(mo.detail)}
+					searchRadius={20}
+					let:x
+					let:y
+					let:found
+					{transform}
+				>
+					<!-- <div
 							class="border-b-2 border-info absolute rounded-b-box"
 							style="top:{transform.applyY(y - 10)}px;left:{transform.applyX(
 								x - 10
@@ -297,9 +307,8 @@
 								? 'block'
 								: 'none'};"
 						/> -->
-					</MapObjectQuadTreeFinder>
-				{/if}
-			</Html>
-		</LayerCake>
-	{/if}
+				</MapObjectQuadTreeFinder>
+			{/if}
+		</Html>
+	</LayerCake>
 </div>
