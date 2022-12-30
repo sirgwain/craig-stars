@@ -142,11 +142,11 @@
 			}
 			updateNextPrevWaypoints();
 
-			if (waypointRefs.length > selectedWaypointIndex) {
-				// TODO: this is making small screens jump by scrolling
-				// to the waypoint
-				// waypointRefs[selectedWaypointIndex]?.scrollIntoView();
-			}
+			// if (waypointRefs.length > selectedWaypointIndex) {
+			// 	// TODO: this is making small screens jump by scrolling
+			// 	// to the waypoint
+			// 	// waypointRefs[selectedWaypointIndex]?.scrollIntoView();
+			// }
 		}
 	});
 

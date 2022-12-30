@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { EventManager } from '$lib/EventManager';
-	import { commandedPlanet } from '$lib/services/Context';
 	import { PlanetService } from '$lib/services/PlanetService';
-	import { isAuto, QueueItemType, type ProductionQueueItem } from '$lib/types/Planet';
+	import { isAuto, QueueItemType, type Planet, type ProductionQueueItem } from '$lib/types/Planet';
 	import CommandTile from './CommandTile.svelte';
+
+	export let planet: Planet;
 
 	const planetService = new PlanetService();
 
@@ -33,49 +34,45 @@
 
 	const clear = async () => {
 		if (
-			$commandedPlanet &&
+			planet &&
 			confirm('Are you sure you want to clear the planet production queue?')
 		) {
-			$commandedPlanet.productionQueue = [];
-			$commandedPlanet = await planetService.updatePlanet($commandedPlanet);
+			planet.productionQueue = [];
+			planet = await planetService.updatePlanet(planet);
 		}
 	};
 
 	const change = () => {
-		EventManager.publishProductionQueueDialogRequestedEvent($commandedPlanet);
+		EventManager.publishProductionQueueDialogRequestedEvent(planet);
 	};
 </script>
 
-{#if $commandedPlanet}
-	<CommandTile title="Production">
-		<div class="bg-base-100 h-20 overflow-y-auto">
-			{#if $commandedPlanet.productionQueue}
-				<table class="w-full h-full">
-					<tbody>
-						{#each $commandedPlanet.productionQueue as queueItem}
-							<tr>
-								<td class="pl-1 {isAuto(queueItem.type) ? 'italic' : ''}"
-									>{getShortName(queueItem)}</td
-								>
-								<td class="pr-1 text-right">{queueItem.quantity}</td>
-							</tr>
-						{/each}
-					</tbody>
-				</table>
-			{/if}
-		</div>
-		<div class="flex justify-between mt-1">
-			<span>Route to</span>
-			<span>{''}</span>
-		</div>
-		<div class="flex justify-between">
-			<button on:click={change} class="btn btn-outline btn-sm normal-case btn-secondary"
-				>Change</button
-			>
-			<button on:click={clear} class="btn btn-outline btn-sm normal-case btn-secondary"
-				>Clear</button
-			>
-			<button class="btn btn-outline btn-sm normal-case btn-secondary">Route</button>
-		</div>
-	</CommandTile>
-{/if}
+<CommandTile title="Production">
+	<div class="bg-base-100 h-20 overflow-y-auto">
+		{#if planet.productionQueue}
+			<table class="w-full h-full">
+				<tbody>
+					{#each planet.productionQueue as queueItem}
+						<tr>
+							<td class="pl-1 {isAuto(queueItem.type) ? 'italic' : ''}"
+								>{getShortName(queueItem)}</td
+							>
+							<td class="pr-1 text-right">{queueItem.quantity}</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		{/if}
+	</div>
+	<div class="flex justify-between mt-1">
+		<span>Route to</span>
+		<span>{''}</span>
+	</div>
+	<div class="flex justify-between">
+		<button on:click={change} class="btn btn-outline btn-sm normal-case btn-secondary"
+			>Change</button
+		>
+		<button on:click={clear} class="btn btn-outline btn-sm normal-case btn-secondary">Clear</button>
+		<button class="btn btn-outline btn-sm normal-case btn-secondary">Route</button>
+	</div>
+</CommandTile>

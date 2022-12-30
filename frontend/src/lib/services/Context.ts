@@ -5,7 +5,8 @@ import type { Planet } from '$lib/types/Planet';
 import { findMyPlanet, type Player } from '$lib/types/Player';
 import { PlayerSettings } from '$lib/types/PlayerSettings';
 import { emptyUser, type User } from '$lib/types/User';
-import { derived, writable } from 'svelte/store';
+import { derived, get, writable } from 'svelte/store';
+import { rollover } from './Math';
 
 export type MapObjectsByPosition = {
 	[k: string]: MapObject[];
@@ -24,6 +25,58 @@ export const commandedMapObject = writable<MapObject>();
 export const highlightedMapObject = writable<MapObject | undefined>();
 export const commandedMapObjectName = writable<string>();
 export const zoomTarget = writable<MapObject | undefined>();
+
+export const currentMapObjectIndex = derived(
+	[player, commandedFleet, commandedPlanet],
+	([$player, $commandedFleet, $commandedPlanet]) => {
+		if ($player && $commandedPlanet) {
+			return $player.planets.findIndex((p) => p === $commandedPlanet);
+		}
+		if ($player && $commandedFleet) {
+			return $player.fleets.findIndex((f) => f === $commandedFleet);
+		}
+		return 0;
+	}
+);
+
+// command the previous mapObject for this type, i.e. the previous planet or fleet
+export const previousMapObject = () => {
+	const p = get(player);
+	if (!p) {
+		return;
+	}
+	const i = get(currentMapObjectIndex);
+	const mo = get(commandedMapObject);
+
+	if (mo.type == MapObjectType.Planet) {
+		const prevIndex = rollover(i - 1, 0, p.planets.length - 1);
+		commandMapObject(p.planets[prevIndex]);
+		zoomToMapObject(p.planets[prevIndex]);
+	} else if (mo.type == MapObjectType.Fleet) {
+		const prevIndex = rollover(i - 1, 0, p.fleets.length - 1);
+		commandMapObject(p.fleets[prevIndex]);
+		zoomToMapObject(p.fleets[prevIndex]);
+	}
+};
+
+// command the next mapObject for this type, i.e. the next planet or fleet
+export const nextMapObject = () => {
+	const p = get(player);
+	if (!p) {
+		return;
+	}
+	const i = get(currentMapObjectIndex);
+	const mo = get(commandedMapObject);
+	if (mo.type == MapObjectType.Planet) {
+		const nextIndex = rollover(i + 1, 0, p.planets.length - 1);
+		commandMapObject(p.planets[nextIndex]);
+		zoomToMapObject(p.planets[nextIndex]);
+	} else if (mo.type == MapObjectType.Fleet) {
+		const nextIndex = rollover(i + 1, 0, p.fleets.length - 1);
+		commandMapObject(p.fleets[nextIndex]);
+		zoomToMapObject(p.fleets[nextIndex]);
+	}
+};
 
 export const mapObjectsByPosition = derived(player, ($player) => {
 	if (!$player) return undefined;
@@ -148,3 +201,11 @@ function loadSettingsOrDefault(): PlayerSettings {
 
 	return new PlayerSettings();
 }
+
+export const playerName = (num: number) => {
+	const p = get(player);
+	if (p && num > 0 && num <= p.playerIntels.length) {
+		const intel = p.playerIntels[num - 1];
+		return intel.racePluralName ?? intel.name;
+	}
+};

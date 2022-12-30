@@ -11,8 +11,8 @@ export interface Fleet extends MapObject {
 	cargo?: Cargo;
 	damage?: number;
 	battlePlanName?: string;
-	tokens: ShipToken[];
-	waypoints: Waypoint[];
+	tokens?: ShipToken[];
+	waypoints?: Waypoint[];
 
 	repeatOrders?: boolean;
 	heading?: Vector;

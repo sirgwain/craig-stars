@@ -49,7 +49,7 @@
 			</div>
 
 			<div class="tooltip tooltip-bottom" data-tip="submit turn">
-				<button on:click={() => dispatch('submit-turn')} class="btn btn-primary touch-manipulation" title="submit turn"
+				<button on:click={() => dispatch('submit-turn')} class="btn btn-primary" title="submit turn"
 					><span class="hidden md:inline-block mr-1">Submit Turn</span><Icon
 						src={ArrowUpTray}
 						size="16"

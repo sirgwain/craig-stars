@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { commandedPlanet } from '$lib/services/Context';
+	import type { Planet } from '$lib/types/Planet';
+	import type { Player } from '$lib/types/Player';
 	import CommandTile from './CommandTile.svelte';
+
+	export let player: Player;
+	export let planet: Planet;
 </script>
 
 {#if $commandedPlanet && $commandedPlanet.spec && $commandedPlanet.cargo}

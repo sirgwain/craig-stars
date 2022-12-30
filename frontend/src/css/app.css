@@ -3,6 +3,9 @@
 @tailwind utilities;
 
 @layer components {
+	.btn {
+		@apply touch-manipulation
+	}
 	.link {
 		@apply text-success;
 	}
