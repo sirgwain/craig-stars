@@ -74,7 +74,7 @@
 		href="#add-waypoint"
 		class="btn btn-ghost btn-xs h-full indicator"
 		on:click|preventDefault={() => (showMessages = !showMessages)}
-		><Icon src={Envelope} class="w-6 h-6" />
+		><Icon src={Envelope} class={`w-6 h-6 ${showMessages ? 'stroke-accent' : 'stroke-base-content'}`} />
 		<span class="indicator-item badge badge-secondary">{player.messages.length}</span>
 	</a>
 </div>
