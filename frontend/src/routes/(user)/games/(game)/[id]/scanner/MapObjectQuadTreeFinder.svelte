@@ -5,7 +5,8 @@
   The quadtree searches across both the x and y dimensions at the same time. But if you want to only search across one, set the `x` and `y` props to the same value. For example, the [shared tooltip component](https://layercake.graphics/components/SharedTooltip.html.svelte) sets `y='x'` since it's nicer behavior to only pick up on the nearest x-value.
  -->
 <script lang="ts">
-	import { highlightMapObject, settings } from '$lib/services/Context';
+	import { highlightMapObject } from '$lib/services/Context';
+	import { settings } from '$lib/services/Settings';
 	import type { MapObject } from '$lib/types/MapObject';
 	import type { Planet } from '$lib/types/Planet';
 	import type { Vector } from '$lib/types/Vector';

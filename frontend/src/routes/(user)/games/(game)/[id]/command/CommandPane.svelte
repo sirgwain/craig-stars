@@ -14,7 +14,6 @@
 	import PlanetStatusTile from './PlanetStatusTile.svelte';
 	import PlanetSummaryTile from './PlanetSummaryTile.svelte';
 
-	export let game: Game;
 	export let player: Player;
 </script>
 
@@ -23,12 +22,12 @@
 	<PlanetProductionTile planet={$commandedPlanet} />
 	<PlanetMineralsOnHandTile planet={$commandedPlanet} />
 	<PlanetStarbaseTile {player} planet={$commandedPlanet} />
-	<PlanetStatusTile {player} planet={$commandedPlanet} />
+	<PlanetStatusTile planet={$commandedPlanet} />
 	<PlanetFleetsInOrbitTile planet={$commandedPlanet} />
 {:else if $commandedFleet}
 	<FleetSummaryTile {player} fleet={$commandedFleet} />
-	<FleetFuelAndCargoTile />
-	<FleetOtherFleetsHereTile />
-	<FleetWaypointsTile />
-	<FleetWaypointTaskTile />
+	<FleetFuelAndCargoTile fleet={$commandedFleet} />
+	<FleetOtherFleetsHereTile fleet={$commandedFleet} />
+	<FleetWaypointsTile fleet={$commandedFleet} />
+	<FleetWaypointTaskTile fleet={$commandedFleet} />
 {:else}{/if}

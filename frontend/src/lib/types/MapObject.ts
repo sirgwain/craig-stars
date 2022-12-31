@@ -45,4 +45,13 @@ export function owned(mo: MapObject): boolean {
 	return mo.playerNum != null;
 }
 
-export const positionKey = (mo: MapObject) => `${mo.position.x},${mo.position.y}`;
+export const positionKey = (pos: MapObject | Vector): string => {
+	const mo = pos as MapObject;
+	const v = pos as Vector;
+	if (mo) {
+		return `${mo.position.x},${mo.position.y}`;
+	} else {
+		return `${v.x},${v.y}`;
+	}
+	return '';
+};

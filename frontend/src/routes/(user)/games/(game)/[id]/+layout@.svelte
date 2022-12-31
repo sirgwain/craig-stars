@@ -6,7 +6,7 @@
 	import {
 		commandMapObject,
 		game,
-		myMapObjectsByPosition,
+		getMyMapObjectsByPosition,
 		player,
 		selectMapObject,
 		zoomToMapObject
@@ -15,7 +15,7 @@
 	import { PlayerService } from '$lib/services/PlayerService';
 	import type { Fleet } from '$lib/types/Fleet';
 	import { GameState } from '$lib/types/Game';
-	import { MapObjectType, positionKey } from '$lib/types/MapObject';
+	import { MapObjectType } from '$lib/types/MapObject';
 	import type { Planet } from '$lib/types/Planet';
 	import { onMount } from 'svelte';
 	import CargoTransferDialog from './dialogs/cargo/CargoTransferDialog.svelte';
@@ -102,10 +102,6 @@
 
 	let cargoTransferDialogOpen: boolean;
 	const showCargoTransferDialog = (src: Fleet, target?: Fleet | Planet): void => {
-		if (!$myMapObjectsByPosition) {
-			return;
-		}
-
 		if (src.spec?.cargoCapacity === 0 && target?.type != MapObjectType.Fleet) {
 			// can't transfer cargo with no cargo capcity
 			// we can only transfer fuel to another fleet, so don't show the dialog at all in this case
@@ -114,8 +110,7 @@
 
 		if (!target) {
 			// no explicit target checked, see if this fleet is orbiting a planet, otherwise it's a jettison
-			const key = positionKey(src);
-			const myMapObjectsAtPosition = $myMapObjectsByPosition[key];
+			const myMapObjectsAtPosition = getMyMapObjectsByPosition(src);
 			dest = myMapObjectsAtPosition.find((mo) => mo.type == MapObjectType.Planet) as Planet;
 		} else {
 			dest = target;
@@ -138,7 +133,7 @@
 {#if $game && $player}
 	<main class="flex flex-col h-screen">
 		<div class="flex-initial">
-			<GameMenu on:submit-turn={onSubmitTurn} />
+			<GameMenu game={$game} on:submit-turn={onSubmitTurn} />
 		</div>
 		<div class="p-2 flex-1 overflow-y-auto">
 			<slot>Game</slot>

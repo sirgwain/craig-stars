@@ -16,7 +16,7 @@
 		<div class="flex flex-col">
 			<div class="flex-1">
 				<div class="flex flex-row flex-wrap gap-3.5 justify-between">
-					<CommandPane {game} {player} />
+					<CommandPane {player} />
 				</div>
 			</div>
 			<div class="hidden mt-3 lg:block flex-initial"><MapObjectSummary {player} /></div>
@@ -30,6 +30,6 @@
 		</div>
 		<HighlightedMapObjectStats />
 		<div class="lg:hidden mt-3 block flex-initial"><MapObjectSummary {player} /></div>
-		<div class="md:hidden mt-3 block flex-initial"><CommandPane {game} {player} /></div>
+		<div class="md:hidden mt-3 block flex-initial"><CommandPane {player} /></div>
 	</div>
 </div>

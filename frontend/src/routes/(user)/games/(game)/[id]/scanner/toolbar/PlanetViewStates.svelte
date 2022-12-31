@@ -1,8 +1,8 @@
 <script lang="ts">
 	import PlanetWithStarbase from '$lib/components/icons/PlanetWithStarbase.svelte';
 	import Population from '$lib/components/icons/Population.svelte';
-	import { settings } from '$lib/services/Context';
 	import { PlanetViewState } from '$lib/types/PlayerSettings';
+	import { settings } from '$lib/services/Settings';
 
 	export let style = '';
 </script>
@@ -51,7 +51,7 @@
 			class:btn-primary={$settings.planetViewState == PlanetViewState.Population}
 			class:btn-ghost={$settings.planetViewState != PlanetViewState.Population}
 			on:click|preventDefault={() => ($settings.planetViewState = PlanetViewState.Population)}
-			class="btn btn-xs h-full fill-base-content"><Population class="w-6 h-6" /></a
+			class="btn btn-xs h-full fill-current"><Population class="w-6 h-6" /></a
 		>
 	</li>
 </ul>

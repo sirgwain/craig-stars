@@ -11,7 +11,7 @@ export class FleetOrders {
 }
 
 export class FleetService extends Service {
-	async transferCargo(
+	static async transferCargo(
 		fleet: Fleet,
 		dest: Planet | Fleet | undefined,
 		transferAmount: Cargo
@@ -36,8 +36,8 @@ export class FleetService extends Service {
 		}
 	}
 
-	async updateFleetOrders(fleet: Fleet): Promise<Fleet> {
-		const fleetOrders = new FleetOrders(fleet.waypoints, fleet.repeatOrders);
+	static async updateFleetOrders(fleet: Fleet): Promise<Fleet> {
+		const fleetOrders = new FleetOrders(fleet.waypoints ?? [], fleet.repeatOrders);
 
 		const response = await fetch(`/api/fleets/${fleet.id}`, {
 			method: 'PUT',

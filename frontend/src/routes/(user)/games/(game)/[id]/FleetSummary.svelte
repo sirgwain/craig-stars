@@ -36,28 +36,43 @@
 		<div class="text-center">{playerName(fleet.playerNum ?? 0)}</div>
 	</div>
 	<div class="flex flex-col grow">
-		<div>
-			Ship Count: {fleet.tokens
-				? fleet.tokens.reduce((count, t) => count + t.quantity, 0)
-				: 'unknown'}
-		</div>
-		<div>Fleet Mass: {fleet.spec?.mass ?? 0}kT</div>
 		<div class="flex flex-row">
-			<div>Fuel:</div>
+			<div class="w-24">Ship Count:</div>
+			<div>
+				{fleet.tokens ? fleet.tokens.reduce((count, t) => count + t.quantity, 0) : 'unknown'}
+			</div>
+		</div>
+		<div class="flex flex-row">
+			<div class="w-24">Fleet Mass:</div>
+			<div>
+				{fleet.spec?.mass ?? 0}kT
+			</div>
+		</div>
+		<div class="flex flex-row">
+			<div class="w-24">Fuel:</div>
 			<div class="grow">
 				<FuelBar value={fleet.fuel ?? 0} capacity={fleet.spec?.fuelCapacity ?? 0} />
 			</div>
 		</div>
 		<div class="flex flex-row">
-			<div>Cargo:</div>
+			<div class="w-24">Cargo:</div>
 			<div class="grow">
 				<CargoBar value={fleet.cargo} capacity={fleet.spec?.cargoCapacity ?? 0} />
 			</div>
 		</div>
 		{#if fleet.waypoints && fleet.waypoints.length > 1}
-			<div>Next Waypoint: {fleet.waypoints[1].targetName}</div>
-			<div>Task: {startCase(fleet.waypoints[1].task)}</div>
+			<div class="flex flex-row">
+				<div class="w-24">Next Waypoint:</div>
+				<div>{fleet.waypoints[1].targetName}</div>
+			</div>
+			<div class="flex flex-row">
+				<div class="w-24">Task:</div>
+				<div>{startCase(fleet.waypoints[1].task)}</div>
+			</div>
 		{/if}
-		<div>Warp Speed: {fleet.warpSpeed ?? 0}</div>
+		<div class="flex flex-row">
+			<div class="w-24">Warp Speed:</div>
+			<div>{fleet.warpSpeed ?? 0}</div>
+		</div>
 	</div>
 </div>

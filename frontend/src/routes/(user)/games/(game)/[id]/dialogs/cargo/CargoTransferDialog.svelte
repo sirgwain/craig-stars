@@ -1,12 +1,9 @@
 <script lang="ts">
 	import { getQuantityModifier } from '$lib/quantityModifier';
-	import { game } from '$lib/services/Context';
 	import { FleetService } from '$lib/services/FleetService';
 	import { clamp } from '$lib/services/Math';
 	import { PlanetService } from '$lib/services/PlanetService';
-	import {
-		emptyCargo, negativeCargo, subtract, totalCargo, type Cargo
-	} from '$lib/types/Cargo';
+	import { emptyCargo, negativeCargo, subtract, totalCargo, type Cargo } from '$lib/types/Cargo';
 	import type { Fleet } from '$lib/types/Fleet';
 	import { MapObjectType } from '$lib/types/MapObject';
 	import type { Planet } from '$lib/types/Planet';
@@ -32,10 +29,10 @@
 	};
 
 	const ok = async () => {
-		if ($game && src) {
+		if (src) {
 			const fleetService = new FleetService();
 			try {
-				const result = await fleetService.transferCargo(src, dest, transferAmount);
+				const result = await FleetService.transferCargo(src, dest, transferAmount);
 				// TODO: should the parent do this? or do we update the src/dest here?
 				src.cargo = result.cargo;
 				if (dest?.cargo) {
@@ -104,7 +101,7 @@
 	$: src && src.fuel && (fuel = src.fuel);
 </script>
 
-{#if src && src.spec}
+{#if src?.spec}
 	<div
 		class="flex h-full bg-base-200 shadow-xl max-h-fit min-h-fit rounded-sm border-2 border-base-300"
 	>

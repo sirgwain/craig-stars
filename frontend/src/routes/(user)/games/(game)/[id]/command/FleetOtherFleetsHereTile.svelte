@@ -1,30 +1,26 @@
 <script lang="ts">
 	import { EventManager } from '$lib/EventManager';
 	import {
-		commandedFleet,
 		commandedMapObjectName,
 		commandMapObject,
-		myMapObjectsByPosition
+		getMapObjectsByPosition
 	} from '$lib/services/Context';
 	import type { Fleet } from '$lib/types/Fleet';
-	import { MapObjectType, positionKey } from '$lib/types/MapObject';
+	import { MapObjectType } from '$lib/types/MapObject';
 	import CommandTile from './CommandTile.svelte';
+
+	export let fleet: Fleet;
 
 	let fleetsInOrbit: Fleet[];
 	let selectedFleet: Fleet | undefined;
 	let selectedFleetIndex = 0;
 
 	$: {
-		if ($commandedFleet && $myMapObjectsByPosition) {
-			const mapObjectsByPosition = $myMapObjectsByPosition[positionKey($commandedFleet)];
-			if (mapObjectsByPosition) {
-				fleetsInOrbit = mapObjectsByPosition.filter(
-					(mo) => mo.type == MapObjectType.Fleet && mo != $commandedFleet
-				) as Fleet[];
-				if (fleetsInOrbit.length > 0) {
-					selectedFleet = fleetsInOrbit[selectedFleetIndex];
-				}
-			}
+		fleetsInOrbit = getMapObjectsByPosition(fleet).filter(
+			(mo) => mo.type == MapObjectType.Fleet && mo != fleet
+		) as Fleet[];
+		if (fleetsInOrbit.length > 0) {
+			selectedFleet = fleetsInOrbit[selectedFleetIndex];
 		}
 	}
 
@@ -36,8 +32,8 @@
 	};
 
 	const transfer = () => {
-		if ($commandedFleet && selectedFleet) {
-			EventManager.publishCargoTransferDialogRequestedEvent($commandedFleet, selectedFleet);
+		if (selectedFleet) {
+			EventManager.publishCargoTransferDialogRequestedEvent(fleet, selectedFleet);
 		}
 	};
 
@@ -49,12 +45,12 @@
 
 	const mergeTarget = () => {
 		if (selectedFleet) {
-			// EventManager.publishFleetMergeDialogRequestedEvent($commandedFleet, selectedFleet);
+			// EventManager.publishFleetMergeDialogRequestedEvent(fleet, selectedFleet);
 		}
 	};
 </script>
 
-{#if $commandedFleet}
+{#if fleet}
 	<CommandTile title="Other Fleets Here">
 		<select
 			on:change={(e) => onSelectedFleetChange(parseInt(e.currentTarget.value))}

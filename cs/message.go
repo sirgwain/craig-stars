@@ -257,3 +257,8 @@ func (m *messageClient) techLevel(player *Player, field TechField, level int, ne
 	text := fmt.Sprintf("Your scientists have completed research into Tech Level %d for %v.  They will continue their efforts in the %v field.", level, field, nextField)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text})
 }
+
+func (m *messageClient) playerDiscovered(player *Player, otherPlayer *Player) {
+	text := fmt.Sprintf("You have discovered a new species, the %s. You are not alone in the universe!", otherPlayer.Race.PluralName)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlayerDiscovery, Text: text})
+}

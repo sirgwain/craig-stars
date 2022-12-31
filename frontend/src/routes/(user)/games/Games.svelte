@@ -43,13 +43,13 @@
 <h2 class="font-semibold text-xl my-2">Games</h2>
 <div class="flex justify-evenly">
 	<a class="btn gap-2" href="/host-game">
-		<Galaxy class="fill-base-content w-12 h-12" />
+		<Galaxy class="fill-current w-12 h-12" />
 		Host
 	</a>
-	<button class="btn gap-2" href="/single-player-game">
-		<Processor class="fill-base-content w-12 h-12" />
+	<a class="btn gap-2" href="/single-player-game">
+		<Processor class="fill-current w-12 h-12" />
 		Single Player
-	</button>
+	</a>
 </div>
 <div class="mt-2 grid grid-cols-12 gap-1">
 	{#if myGames?.length > 0}

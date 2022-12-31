@@ -5,11 +5,10 @@
 <script lang="ts">
 	import {
 		commandedMapObject,
-		mapObjectsByPosition,
-		myMapObjectsByPosition,
+		getMapObjectsByPosition,
+		getMyMapObjectsByPosition,
 		player
 	} from '$lib/services/Context';
-	import { positionKey } from '$lib/types/MapObject';
 	import { Unexplored, type Planet } from '$lib/types/Planet';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
@@ -23,17 +22,14 @@
 	let ringProps: any | undefined = undefined;
 
 	$: {
-		if ($mapObjectsByPosition && $myMapObjectsByPosition && $player) {
+		if ($player) {
 			// green for us, gray for unexplored, white for explored
 			let color = '#555';
 			let strokeWidth = 0;
 			let strokeColor = '#555';
 
-			const key = positionKey(planet);
-			const mapObjectsAtPosition = $mapObjectsByPosition[key];
-			const myMapObjectsAtPosition = $myMapObjectsByPosition[key];
 			if (
-				myMapObjectsAtPosition?.find(
+				getMyMapObjectsByPosition(planet).find(
 					(m) => m.type == $commandedMapObject.type && m.id == $commandedMapObject.id
 				)
 			) {
@@ -50,7 +46,7 @@
 			}
 
 			// if anything is orbiting our planet, put a ring on it
-			if (mapObjectsAtPosition.length > 1) {
+			if (getMapObjectsByPosition(planet).length > 1) {
 				ringProps = {
 					cx: $xGet(planet),
 					cy: $yGet(planet),
