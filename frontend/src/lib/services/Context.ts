@@ -248,11 +248,19 @@ export const zoomToMapObject = (mo: MapObject) => {
 	zoomTarget.update(() => mo);
 };
 
-
-export const playerName = (num: number) => {
+export const playerName = (playerNum: number | undefined) => {
 	const p = get(player);
-	if (p && num > 0 && num <= p.playerIntels.length) {
-		const intel = p.playerIntels[num - 1];
+	if (p && playerNum && playerNum > 0 && playerNum <= p.playerIntels.length) {
+		const intel = p.playerIntels[playerNum - 1];
 		return intel.racePluralName ?? intel.name;
 	}
+};
+
+export const playerColor = (playerNum: number | undefined): string => {
+	const p = get(player);
+	if (p && playerNum && playerNum > 0 && playerNum <= p.playerIntels.length) {
+		const intel = p.playerIntels[playerNum - 1];
+		return intel.color ?? '#FF0000';
+	}
+	return '#FF0000';
 };

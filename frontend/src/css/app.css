@@ -4,7 +4,7 @@
 
 @layer components {
 	.btn {
-		@apply touch-manipulation
+		@apply touch-manipulation;
 	}
 	.link {
 		@apply text-success;
@@ -90,7 +90,6 @@
 	.scanner-pen {
 		@apply fill-[#7F7F00];
 	}
-
 }
 
 .waypoint-line {
@@ -107,6 +106,10 @@
 	stroke-linecap: round;
 	stroke-width: 3px;
 	stroke: #8480ff;
+}
+
+.fleet-commanded {
+	fill: '#FFFF00' !important;
 }
 
 .dark {

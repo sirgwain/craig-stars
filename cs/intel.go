@@ -103,9 +103,11 @@ type ShipDesignIntel struct {
 
 type FleetIntel struct {
 	MapObjectIntel
-	PlanetIntelID   int64 `json:"-"` // for starbase fleets that are owned by a planet
-	Cargo           Cargo `json:"cargo,omitempty"`
-	CargoDiscovered bool  `json:"cargoDiscovered,omitempty"`
+	PlanetIntelID   int64  `json:"-"` // for starbase fleets that are owned by a planet
+	Heading         Vector `json:"heading,omitempty"`
+	WarpSpeed       int    `json:"warpSpeed,omitempty"`
+	Cargo           Cargo  `json:"cargo,omitempty"`
+	CargoDiscovered bool   `json:"cargoDiscovered,omitempty"`
 }
 
 type MineralPacketIntel struct {
@@ -263,6 +265,8 @@ func (d *discover) discoverFleet(player *Player, fleet *Fleet) {
 	intel.Name = fleet.Name
 	intel.PlayerNum = fleet.PlayerNum
 	intel.Position = fleet.Position
+	intel.Heading = fleet.Heading
+	intel.WarpSpeed = fleet.WarpSpeed
 
 	player.FleetIntels = append(player.FleetIntels, intel)
 	d.fleetIntelsByKey[intel.String()] = &intel
