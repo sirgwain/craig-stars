@@ -6,6 +6,60 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func createTestFullGame() *FullGame {
+	client := NewGamer()
+	game := client.CreateGame(1, *NewGameSettings())
+	player := client.NewPlayer(1, *NewRace(), &game.Rules)
+	players := []*Player{player}
+	player.AIControlled = true
+	player.Num = 1
+	universe, err := client.GenerateUniverse(game, players)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return &FullGame{
+		Game:     game,
+		Players:  players,
+		Universe: universe,
+	}
+}
+
+func createSingleUnitGame() *FullGame {
+	client := NewGamer()
+	game := client.CreateGame(1, *NewGameSettings())
+	player := client.NewPlayer(1, *NewRace(), &game.Rules).withSpec(&game.Rules)
+	player.Num = 1
+	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}} // friends with themselves
+
+	planet := &Planet{
+		MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 1", Num: 1, PlayerNum: player.Num},
+	}
+	planet.Spec = computePlanetSpec(&game.Rules, player, planet)
+
+	fleet := testLongRangeScout(player, &game.Rules)
+	fleet.OrbitingPlanetNum = planet.Num
+	fleet.Waypoints = []Waypoint{
+		NewPlanetWaypoint(Vector{}, 1, "Planet 1", 5),
+	}
+	player.Designs = []*ShipDesign{
+		fleet.Tokens[0].design,
+	}
+
+	players := []*Player{player}
+
+	return &FullGame{
+		Game:    game,
+		Players: players,
+		Universe: &Universe{
+			Planets: []*Planet{planet},
+			Fleets:  []*Fleet{fleet},
+		},
+	}
+
+}
+
 func Test_generateTurn(t *testing.T) {
 	client := NewGamer()
 	game := client.CreateGame(1, *NewGameSettings())
@@ -64,4 +118,58 @@ func Test_generateTurns(t *testing.T) {
 	// should have researched
 	assert.NotEqual(t, player.TechLevels, TechLevel{3, 3, 3, 3, 3, 3})
 
+}
+
+func Test_turn_fleetRoute(t *testing.T) {
+	game := createSingleUnitGame()
+
+	// add a second planet target
+	game.Planets = append(game.Planets, &Planet{
+		MapObject: MapObject{Type: MapObjectTypePlanet, Num: 2, Position: Vector{10, 10}},
+	})
+
+	player := game.Players[0]
+	planet := game.Planets[0]
+	target := game.Planets[1]
+	fleet := game.Fleets[0]
+
+	planet.TargetType = MapObjectTypePlanet
+	planet.TargetNum = 2
+
+	fleet.Waypoints[0].Task = WaypointTaskRoute
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// route to planet 2
+	// move
+	turn.fleetRoute()
+
+	assert.Equal(t, 2, len(fleet.Waypoints))
+	assert.Equal(t, target.Num, fleet.Waypoints[1].TargetNum)
+	assert.Equal(t, target.Type, fleet.Waypoints[1].TargetType)
+	assert.Equal(t, target.PlayerNum, fleet.Waypoints[1].TargetPlayerNum)
+	assert.Equal(t, 1, len(player.Messages))
+}
+
+func Test_turn_fleetMove(t *testing.T) {
+	game := createSingleUnitGame()
+
+	fleet := game.Fleets[0]
+
+	fleet.Waypoints = append(fleet.Waypoints, NewPositionWaypoint(Vector{10, 10}, 5))
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// move to place
+	turn.fleetMove()
+
+	// should have consumed that waypoint and moved to the space
+	assert.Equal(t, 1, len(fleet.Waypoints))
+	assert.Equal(t, Vector{10, 10}, fleet.Position)
 }

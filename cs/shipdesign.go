@@ -3,8 +3,6 @@ package cs
 import (
 	"math"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type ShipDesign struct {
@@ -12,10 +10,10 @@ type ShipDesign struct {
 	GameID        int64             `json:"gameId"`
 	CreatedAt     time.Time         `json:"createdAt"`
 	UpdatedAt     time.Time         `json:"updatedAt"`
+	Num           int               `json:"num,omitempty"`
 	PlayerNum     int               `json:"playerNum"`
-	Dirty         bool              `json:"-"`
-	UUID          uuid.UUID         `json:"uuid,omitempty"`
 	Name          string            `json:"name"`
+	Dirty         bool              `json:"-"`
 	Version       int               `json:"version"`
 	Hull          string            `json:"hull"`
 	HullSetNumber int               `json:"hullSetNumber"`
@@ -99,8 +97,8 @@ const (
 	ShipDesignPurposeStarterColony     ShipDesignPurpose = "StarterColony"
 )
 
-func NewShipDesign(player *Player) *ShipDesign {
-	return &ShipDesign{GameID: player.GameID, PlayerNum: player.Num, UUID: uuid.New(), Dirty: true, Slots: []ShipDesignSlot{}}
+func NewShipDesign(player *Player, num int) *ShipDesign {
+	return &ShipDesign{GameID: player.GameID, PlayerNum: player.Num, Num: num, Dirty: true, Slots: []ShipDesignSlot{}}
 }
 
 func (sd *ShipDesign) WithName(name string) *ShipDesign {
@@ -324,9 +322,9 @@ func (spec *ShipDesignSpec) computeScanRanges(rules *Rules, player *Player, desi
 	spec.Scanner = spec.ScanRange != NoScanner || spec.ScanRangePen != NoScanner
 }
 
-func designShip(techStore *TechStore, hull *TechHull, name string, player *Player, hullSetNumber int, purpose ShipDesignPurpose) *ShipDesign {
+func designShip(techStore *TechStore, hull *TechHull, name string, player *Player, num int, hullSetNumber int, purpose ShipDesignPurpose) *ShipDesign {
 
-	design := NewShipDesign(player).WithName(name).WithHull(hull.Name)
+	design := NewShipDesign(player, num).WithName(name).WithHull(hull.Name)
 	design.Purpose = purpose
 
 	engine := techStore.GetBestEngine(player)

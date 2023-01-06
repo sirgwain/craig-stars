@@ -12,7 +12,7 @@
 	import type { Vector } from '$lib/types/Vector';
 	import { quadtree } from 'd3-quadtree';
 	import type { LayerCake } from 'layercake';
-	import type { ZoomTransform } from 'node_modules.nosync/@types/d3-zoom';
+	import type { ZoomTransform } from 'd3-zoom';
 	import { createEventDispatcher, getContext } from 'svelte';
 
 	const { data, xGet, yGet, xScale, yScale, xReverse, yReverse, width, height } =

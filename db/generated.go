@@ -72,6 +72,14 @@ func (c *GameConverter) ConvertGameMineralPacket(source *cs.MineralPacket) *Mine
 	}
 	return pDbMineralPacket
 }
+func (c *GameConverter) ConvertGameMysteryTrader(source *cs.MysteryTrader) *MysteryTrader {
+	var pDbMysteryTrader *MysteryTrader
+	if source != nil {
+		dbMysteryTrader := c.csMysteryTraderToDbMysteryTrader(*source)
+		pDbMysteryTrader = &dbMysteryTrader
+	}
+	return pDbMysteryTrader
+}
 func (c *GameConverter) ConvertGamePlanet(source *cs.Planet) *Planet {
 	var pDbPlanet *Planet
 	if source != nil {
@@ -118,7 +126,7 @@ func (c *GameConverter) ConvertGameShipToken(source cs.ShipToken) ShipToken {
 	dbShipToken.CreatedAt = TimeToNullTime(source.CreatedAt)
 	dbShipToken.UpdatedAt = TimeToNullTime(source.UpdatedAt)
 	dbShipToken.FleetID = source.FleetID
-	dbShipToken.DesignUUID = UUIDToUUID(source.DesignUUID)
+	dbShipToken.DesignNum = source.DesignNum
 	dbShipToken.Quantity = source.Quantity
 	dbShipToken.Damage = source.Damage
 	dbShipToken.QuantityDamaged = source.QuantityDamaged
@@ -162,6 +170,14 @@ func (c *GameConverter) ConvertMineralPacket(source *MineralPacket) *cs.MineralP
 		pCsMineralPacket = &csMineralPacket
 	}
 	return pCsMineralPacket
+}
+func (c *GameConverter) ConvertMysteryTrader(source *MysteryTrader) *cs.MysteryTrader {
+	var pCsMysteryTrader *cs.MysteryTrader
+	if source != nil {
+		csMysteryTrader := c.dbMysteryTraderToCsMysteryTrader(*source)
+		pCsMysteryTrader = &csMysteryTrader
+	}
+	return pCsMysteryTrader
 }
 func (c *GameConverter) ConvertPlanet(source *Planet) *cs.Planet {
 	var pCsPlanet *cs.Planet
@@ -263,7 +279,7 @@ func (c *GameConverter) ConvertShipToken(source ShipToken) cs.ShipToken {
 	csShipToken.CreatedAt = NullTimeToTime(source.CreatedAt)
 	csShipToken.UpdatedAt = NullTimeToTime(source.UpdatedAt)
 	csShipToken.FleetID = source.FleetID
-	csShipToken.DesignUUID = UUIDToUUID(source.DesignUUID)
+	csShipToken.DesignNum = source.DesignNum
 	csShipToken.Quantity = source.Quantity
 	csShipToken.Damage = source.Damage
 	csShipToken.QuantityDamaged = source.QuantityDamaged
@@ -423,6 +439,22 @@ func (c *GameConverter) csMineralPacketToDbMineralPacket(source cs.MineralPacket
 	dbMineralPacket.HeadingY = source.Heading.Y
 	return dbMineralPacket
 }
+func (c *GameConverter) csMysteryTraderToDbMysteryTrader(source cs.MysteryTrader) MysteryTrader {
+	var dbMysteryTrader MysteryTrader
+	dbMysteryTrader.ID = source.MapObject.ID
+	dbMysteryTrader.GameID = source.MapObject.GameID
+	dbMysteryTrader.CreatedAt = TimeToTime(source.MapObject.CreatedAt)
+	dbMysteryTrader.UpdatedAt = TimeToTime(source.MapObject.UpdatedAt)
+	dbMysteryTrader.X = source.MapObject.Position.X
+	dbMysteryTrader.Y = source.MapObject.Position.Y
+	dbMysteryTrader.Name = source.MapObject.Name
+	dbMysteryTrader.Num = source.MapObject.Num
+	dbMysteryTrader.HeadingX = source.Heading.X
+	dbMysteryTrader.HeadingY = source.Heading.Y
+	dbMysteryTrader.WarpSpeed = source.WarpSpeed
+	dbMysteryTrader.Spec = GameMysteryTraderSpecToMysteryTraderSpec(source.Spec)
+	return dbMysteryTrader
+}
 func (c *GameConverter) csPlanetToDbPlanet(source cs.Planet) Planet {
 	var dbPlanet Planet
 	dbPlanet.ID = source.MapObject.ID
@@ -572,8 +604,8 @@ func (c *GameConverter) csShipDesignToDbShipDesign(source cs.ShipDesign) ShipDes
 	dbShipDesign.GameID = source.GameID
 	dbShipDesign.CreatedAt = TimeToTime(source.CreatedAt)
 	dbShipDesign.UpdatedAt = TimeToTime(source.UpdatedAt)
+	dbShipDesign.Num = source.Num
 	dbShipDesign.PlayerNum = source.PlayerNum
-	dbShipDesign.UUID = UUIDToUUID(source.UUID)
 	dbShipDesign.Name = source.Name
 	dbShipDesign.Version = source.Version
 	dbShipDesign.Hull = source.Hull
@@ -656,6 +688,14 @@ func (c *GameConverter) dbMineralPacketToCsMineralPacket(source MineralPacket) c
 	csMineralPacket.Heading = ExtendMineralPacketHeading(source)
 	return csMineralPacket
 }
+func (c *GameConverter) dbMysteryTraderToCsMysteryTrader(source MysteryTrader) cs.MysteryTrader {
+	var csMysteryTrader cs.MysteryTrader
+	csMysteryTrader.MapObject = ExtendMysteryTraderMapObject(source)
+	csMysteryTrader.Heading = ExtendMysteryTraderHeading(source)
+	csMysteryTrader.WarpSpeed = source.WarpSpeed
+	csMysteryTrader.Spec = MysteryTraderSpecToGameMysteryTraderSpec(source.Spec)
+	return csMysteryTrader
+}
 func (c *GameConverter) dbPlanetToCsPlanet(source Planet) cs.Planet {
 	var csPlanet cs.Planet
 	csPlanet.MapObject = ExtendPlanetMapObject(source)
@@ -688,8 +728,8 @@ func (c *GameConverter) dbShipDesignToCsShipDesign(source ShipDesign) cs.ShipDes
 	csShipDesign.GameID = source.GameID
 	csShipDesign.CreatedAt = TimeToTime(source.CreatedAt)
 	csShipDesign.UpdatedAt = TimeToTime(source.UpdatedAt)
+	csShipDesign.Num = source.Num
 	csShipDesign.PlayerNum = source.PlayerNum
-	csShipDesign.UUID = UUIDToUUID(source.UUID)
 	csShipDesign.Name = source.Name
 	csShipDesign.Version = source.Version
 	csShipDesign.Hull = source.Hull

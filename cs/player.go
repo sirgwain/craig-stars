@@ -34,7 +34,7 @@ type Player struct {
 	ResearchSpentLastYear int                  `json:"researchSpentLastYear,omitempty"`
 	Relations             []PlayerRelationship `json:"relations,omitempty"`
 	Messages              []PlayerMessage      `json:"messages,omitempty"`
-	Designs               []ShipDesign         `json:"designs,omitempty"`
+	Designs               []*ShipDesign         `json:"designs,omitempty"`
 	Spec                  PlayerSpec           `json:"spec,omitempty"`
 	Stats                 *PlayerStats         `json:"stats,omitempty"`
 	leftoverResources     int
@@ -258,7 +258,7 @@ func (p *Player) String() string {
 // Get a player ShipDesign by name, or nil if no design found
 func (p *Player) GetDesign(name string) *ShipDesign {
 	for i := range p.Designs {
-		design := &p.Designs[i]
+		design := p.Designs[i]
 		if design.Name == name {
 			return design
 		}
@@ -273,10 +273,10 @@ func (p *Player) GetLatestDesign(purpose ShipDesignPurpose) *ShipDesign {
 		design := p.Designs[i]
 		if design.Purpose == purpose {
 			if latest == nil {
-				latest = &design
+				latest = design
 			} else {
 				if latest.Version < design.Version {
-					latest = &design
+					latest = design
 				}
 			}
 
@@ -328,4 +328,12 @@ func (p *Player) CanLearnTech(tech *Tech) bool {
 	}
 
 	return true
+}
+
+func (p *Player) IsFriend(playerNum int) bool {
+	return playerNum > 0 && playerNum <= len(p.Relations) && p.Relations[playerNum-1].Relation == PlayerRelationFriend
+}
+
+func (p *Player) IsEnemy(playerNum int) bool {
+	return playerNum > 0 && playerNum <= len(p.Relations) && p.Relations[playerNum-1].Relation == PlayerRelationEnemy
 }

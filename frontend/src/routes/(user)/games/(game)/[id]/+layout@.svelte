@@ -1,22 +1,26 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import Menu from '$lib/components/Menu.svelte';
+	import NotFound from '$lib/components/NotFound.svelte';
 	import { EventManager } from '$lib/EventManager';
 	import { bindNavigationHotkeys, unbindNavigationHotkeys } from '$lib/navigationHotkeys';
 	import { bindQuantityModifier, unbindQuantityModifier } from '$lib/quantityModifier';
 	import {
 		commandMapObject,
 		game,
+		commandedPlanet,
 		getMyMapObjectsByPosition,
 		player,
 		selectMapObject,
-		zoomToMapObject
+		zoomToMapObject,
+		me
 	} from '$lib/services/Context';
 	import { GameService } from '$lib/services/GameService';
 	import { PlayerService } from '$lib/services/PlayerService';
 	import type { Fleet } from '$lib/types/Fleet';
 	import { GameState } from '$lib/types/Game';
 	import { MapObjectType } from '$lib/types/MapObject';
-	import type { Planet } from '$lib/types/Planet';
+	import type { CommandedPlanet, Planet } from '$lib/types/Planet';
 	import { onMount } from 'svelte';
 	import CargoTransferDialog from './dialogs/cargo/CargoTransferDialog.svelte';
 	import ProductionQueueDialog from './dialogs/ProductionQueueDialog.svelte';
@@ -28,15 +32,21 @@
 	let source: Fleet | undefined;
 	let dest: Fleet | Planet | undefined;
 
+	let loadAttempted = false;
+
 	onMount(async () => {
 		if ($game?.id !== id || !$game || !$player) {
 			game.update(() => undefined);
 			player.update(() => undefined);
 
-			// load the game on mount
-			const result = await gameService.loadGame(id);
-			game.update(() => result.game);
-			player.update(() => result.player);
+			try {
+				// load the game on mount
+				const result = await gameService.loadGame(id);
+				game.update(() => result.game);
+				player.update(() => result.player);
+			} finally {
+				loadAttempted = true;
+			}
 		}
 
 		// setup the quantityModifier
@@ -96,7 +106,7 @@
 	}
 
 	let productionQueueDialogOpen: boolean;
-	const showProductionQueueDialog = (planet?: Planet | undefined) => {
+	const showProductionQueueDialog = (planet: CommandedPlanet) => {
 		productionQueueDialogOpen = !productionQueueDialogOpen;
 	};
 
@@ -140,11 +150,17 @@
 		</div>
 	</main>
 	<div class="modal" class:modal-open={productionQueueDialogOpen}>
-		<div class="modal-box max-w-full max-h-max h-full lg:max-w-[40rem] lg:max-h-[48rem]">
-			<ProductionQueueDialog
-				on:ok={() => (productionQueueDialogOpen = false)}
-				on:cancel={() => (productionQueueDialogOpen = false)}
-			/>
+		<div
+			class="modal-box max-w-full max-h-max h-full w-full lg:max-w-[40rem] lg:max-h-[48rem] p-0 md:p-[1.25rem]"
+		>
+			{#if $commandedPlanet}
+				<ProductionQueueDialog
+					player={$player}
+					planet={$commandedPlanet}
+					on:ok={() => (productionQueueDialogOpen = false)}
+					on:cancel={() => (productionQueueDialogOpen = false)}
+				/>
+			{/if}
 		</div>
 	</div>
 
@@ -158,4 +174,6 @@
 			/>
 		</div>
 	</div>
+{:else if loadAttempted}
+	<NotFound title="Game not found" />
 {/if}

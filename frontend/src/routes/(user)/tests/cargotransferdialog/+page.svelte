@@ -3,18 +3,16 @@
 
 	import type { Fleet } from '$lib/types/Fleet';
 	import { MapObjectType } from '$lib/types/MapObject';
-	import type { Planet } from '$lib/types/Planet';
-	
-	const planet: Planet = {
+	import { CommandedPlanet, type Planet } from '$lib/types/Planet';
+
+	const planet: Planet = new CommandedPlanet();
+	Object.assign(planet, {
 		type: MapObjectType.Planet,
 		reportAge: 0,
 		name: 'Obrin',
-		position: { x: 0, y: 0 },
-		num: 0,
-		playerNum: undefined,
 		mineralConcentration: { ironium: 10, boranium: 20, germanium: 30 },
 		cargo: { ironium: 1000, boranium: 2000, germanium: 4000, colonists: 2500 }
-	};
+	});
 
 	const fleet: Fleet = {
 		id: 5,
@@ -36,14 +34,14 @@
 		},
 		fuel: 200,
 		damage: 0,
-		battlePlan: 0,
+		battlePlanName: 'default',
 		tokens: [
 			{
 				id: 5,
 				createdAt: '2022-08-13T18:08:12.897362-07:00',
 				updatedAt: '2022-08-14T12:33:39.894893-07:00',
 				gameId: 5,
-				designUuid: '',
+				designNum: 1,
 				quantity: 1
 			}
 		],
@@ -54,7 +52,8 @@
 					y: 752
 				},
 				warpFactor: 5,
-				targetPlanetNum: 1,
+				targetType: MapObjectType.Planet,
+				targetNum: 1,
 				targetName: 'Megrez'
 			}
 		],

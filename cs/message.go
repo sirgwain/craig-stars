@@ -195,6 +195,116 @@ func (m *messageClient) fleetScrapped(player *Player, fleet *Fleet, totalMineral
 	}
 }
 
+func (m *messageClient) fleetMerged(player *Player, fleet *Fleet, mergedInto *Fleet) {
+	text := fmt.Sprintf("%s has been merged into %s.", fleet.Name, mergedInto.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetMerged, Text: text, TargetType: TargetFleet, TargetNum: mergedInto.Num, TargetPlayerNum: mergedInto.Num})
+}
+
+func (m *messageClient) fleetInvalidMergeNotFleet(player *Player, fleet *Fleet) {
+	text := fmt.Sprintf("%s was unable to complete it's merge orders as the waypoint destination wasn't a fleet.", fleet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetInvalidMergeNotFleet, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+}
+
+func (m *messageClient) fleetInvalidMergeNotOwned(player *Player, fleet *Fleet) {
+	text := fmt.Sprintf("%s was unable to complete it's merge orders as the destination fleet wasn't one of yours.", fleet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetInvalidMergeUnowned, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+}
+
+func (m *messageClient) fleetPatrolTargeted(player *Player, fleet *Fleet, target *Fleet) {
+	text := fmt.Sprintf("Your patrolling %s has targeted %s for intercept.", fleet.Name, target.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetPatrolTargeted, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+}
+
+func (m *messageClient) fleetInvalidRouteNotPlanet(player *Player, fleet *Fleet) {
+	text := fmt.Sprintf("%s could not be routed because it is not at a planet.", fleet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetInvalidRouteNotPlanet, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+}
+
+func (m *messageClient) fleetInvalidRouteNotFriendlyPlanet(player *Player, fleet *Fleet, planet *Planet) {
+	text := fmt.Sprintf("%s could not be routed because you are not friends with the owners of %s", fleet.Name, planet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetInvalidRouteNotFriendlyPlanet, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+}
+
+func (m *messageClient) fleetInvalidRouteNoRouteTarget(player *Player, fleet *Fleet, planet *Planet) {
+	text := fmt.Sprintf("%s could not be routed because %s has no route set.", fleet.Name, planet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetInvalidRouteNoRouteTarget, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+}
+
+func (m *messageClient) fleetRouted(player *Player, fleet *Fleet, planet *Planet, target string) {
+	text := fmt.Sprintf("%s has been routed by the citizens of %s to %s", fleet.Name, planet.Name, target)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetRoute, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+}
+
+func (m *messageClient) fleetBuiltForComposition(player *Player, fleet *Fleet) {
+	text := fmt.Sprintf("%s", fleet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetScrapped, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+}
+
+func (m *messageClient) fleetStargateInvalidSource(player *Player, fleet *Fleet) {
+	text := fmt.Sprintf("%s", fleet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetScrapped, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+}
+
+func (m *messageClient) fleetStargateInvalidSourceOwner(player *Player, fleet *Fleet) {
+	text := fmt.Sprintf("%s", fleet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetScrapped, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+}
+
+func (m *messageClient) fleetStargateInvalidDest(player *Player, fleet *Fleet) {
+	text := fmt.Sprintf("%s", fleet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetScrapped, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+}
+
+func (m *messageClient) fleetStargateInvalidDestOwner(player *Player, fleet *Fleet) {
+	text := fmt.Sprintf("%s", fleet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetScrapped, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+}
+
+func (m *messageClient) fleetStargateInvalidRange(player *Player, fleet *Fleet) {
+	text := fmt.Sprintf("%s", fleet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetScrapped, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+}
+
+func (m *messageClient) fleetStargateInvalidMass(player *Player, fleet *Fleet) {
+	text := fmt.Sprintf("%s", fleet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetScrapped, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+}
+
+func (m *messageClient) fleetStargateInvalidColonists(player *Player, fleet *Fleet) {
+	text := fmt.Sprintf("%s", fleet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetScrapped, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+}
+
+func (m *messageClient) fleetStargateDumpedCargo(player *Player, fleet *Fleet) {
+	text := fmt.Sprintf("%s", fleet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetScrapped, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+}
+
+func (m *messageClient) fleetStargateDestroyed(player *Player, fleet *Fleet) {
+	text := fmt.Sprintf("%s", fleet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetScrapped, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+}
+
+func (m *messageClient) fleetStargateDamaged(player *Player, fleet *Fleet) {
+	text := fmt.Sprintf("%s", fleet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetScrapped, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+}
+
+func (m *messageClient) fleetReproduce(player *Player, fleet *Fleet) {
+	text := fmt.Sprintf("%s", fleet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetScrapped, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+}
+
+func (m *messageClient) fleetCompletedAssignedOrders(player *Player, fleet *Fleet) {
+	text := fmt.Sprintf("%s", fleet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetScrapped, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+}
+
+func (m *messageClient) fleetHitMineField(player *Player, fleet *Fleet) {
+	text := fmt.Sprintf("%s", fleet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetScrapped, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+}
+
 func (m *messageClient) colonizeNonPlanet(player *Player, fleet *Fleet) {
 	text := fmt.Sprintf("%s has attempted to colonize a waypoint with no Planet.", fleet.Name)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum})

@@ -186,6 +186,7 @@ func (ug *universeGenerator) generatePlayerTechLevels() {
 func (ug *universeGenerator) generatePlayerShipDesigns() {
 	for _, player := range ug.players {
 		designNames := mapset.NewSet[string]()
+		num := 0
 		for _, startingPlanet := range player.Race.Spec.StartingPlanets {
 			for _, startingFleet := range startingPlanet.StartingFleets {
 				if designNames.Contains(startingFleet.Name) {
@@ -194,21 +195,22 @@ func (ug *universeGenerator) generatePlayerShipDesigns() {
 				}
 				techStore := ug.rules.techs
 				hull := techStore.GetHull(string(startingFleet.HullName))
-				design := designShip(techStore, hull, startingFleet.Name, player, player.DefaultHullSet, startingFleet.Purpose)
+				design := designShip(techStore, hull, startingFleet.Name, player, num, player.DefaultHullSet, startingFleet.Purpose)
 				design.HullSetNumber = int(startingFleet.HullSetNumber)
 				design.Purpose = startingFleet.Purpose
 				design.Spec = computeShipDesignSpec(ug.rules, player, design)
-				player.Designs = append(player.Designs, *design)
+				player.Designs = append(player.Designs, design)
+				num++
 			}
 		}
 
-		starbaseDesigns := ug.getStartingStarbaseDesigns(ug.rules.techs, player)
+		starbaseDesigns := ug.getStartingStarbaseDesigns(ug.rules.techs, player, num)
 
 		for i := range starbaseDesigns {
 			design := &starbaseDesigns[i]
 			design.Purpose = ShipDesignPurposeStarbase
 			design.Spec = computeShipDesignSpec(ug.rules, player, design)
-			player.Designs = append(player.Designs, *design)
+			player.Designs = append(player.Designs, design)
 		}
 	}
 
@@ -345,29 +347,31 @@ func (ug *universeGenerator) applyGameStartModeModifier() {
 }
 
 // get the initial starbase designs for a player
-func (ug *universeGenerator) getStartingStarbaseDesigns(techStore *TechStore, player *Player) []ShipDesign {
+func (ug *universeGenerator) getStartingStarbaseDesigns(techStore *TechStore, player *Player, designNumStart int) []ShipDesign {
 	designs := []ShipDesign{}
 
 	if player.Race.Spec.LivesOnStarbases {
 		// create a starter colony for AR races
-		starterColony := NewShipDesign(player).
+		starterColony := NewShipDesign(player, designNumStart).
 			WithName("Starter Colony").
 			WithHull(OrbitalFort.Name).
 			WithPurpose(ShipDesignPurposeStarterColony).
 			WithHullSetNumber(player.DefaultHullSet)
 		starterColony.CanDelete = false
+		designNumStart++
 		designs = append(designs, *starterColony)
 	}
 
 	startingPlanets := player.Race.Spec.StartingPlanets
 
-	starbase := NewShipDesign(player).
+	starbase := NewShipDesign(player, designNumStart).
 		WithName(startingPlanets[0].StarbaseDesignName).
 		WithHull(startingPlanets[0].StarbaseHull).
 		WithPurpose(ShipDesignPurposeStarbase).
 		WithHullSetNumber(player.DefaultHullSet)
 
 	fillStarbaseSlots(techStore, starbase, &player.Race, startingPlanets[0])
+	designNumStart++
 	designs = append(designs, *starbase)
 
 	// add an orbital fort for players that start with extra planets
@@ -377,7 +381,7 @@ func (ug *universeGenerator) getStartingStarbaseDesigns(techStore *TechStore, pl
 				continue
 			}
 			startingPlanet := startingPlanets[i]
-			fort := NewShipDesign(player).
+			fort := NewShipDesign(player, designNumStart).
 				WithName(startingPlanet.StarbaseDesignName).
 				WithHull(startingPlanet.StarbaseHull).
 				WithPurpose(ShipDesignPurposeFort).
@@ -385,6 +389,7 @@ func (ug *universeGenerator) getStartingStarbaseDesigns(techStore *TechStore, pl
 			// TODO: Do we want to support a PRT that includes more than 2 planets but only some of them with
 			// stargates?
 			fillStarbaseSlots(techStore, fort, &player.Race, startingPlanets[i])
+			designNumStart++
 			designs = append(designs, *fort)
 		}
 	}

@@ -10,16 +10,20 @@ import (
 // create a new long rang scout fleet for testing
 func testLongRangeScout(player *Player, rules *Rules) *Fleet {
 	fleet := &Fleet{
-		BaseName: "Long Range Scout",
+		MapObject: MapObject{Type: MapObjectTypeFleet, Num: 1, PlayerNum: player.Num},
+		BaseName:  "Long Range Scout",
 		Tokens: []ShipToken{
-			{Quantity: 1, design: NewShipDesign(player).
-				WithHull(Scout.Name).
-				WithSlots([]ShipDesignSlot{
-					{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
-					{HullComponent: RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
-					{HullComponent: FuelTank.Name, HullSlotIndex: 3, Quantity: 1},
-				}).
-				WithSpec(rules, player)},
+			{
+				Quantity:  1,
+				DesignNum: 1,
+				design: NewShipDesign(player, 1).
+					WithHull(Scout.Name).
+					WithSlots([]ShipDesignSlot{
+						{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
+						{HullComponent: RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
+						{HullComponent: FuelTank.Name, HullSlotIndex: 3, Quantity: 1},
+					}).
+					WithSpec(rules, player)},
 		},
 		OrbitingPlanetNum: NotOrbitingPlanet,
 	}
@@ -33,19 +37,23 @@ func testSmallFreighter(player *Player, rules *Rules) *Fleet {
 	fleet := &Fleet{
 		BaseName: "Small Freighter",
 		Tokens: []ShipToken{
-			{Quantity: 1, design: NewShipDesign(player).
-				WithHull(SmallFreighter.Name).
-				WithSlots([]ShipDesignSlot{
-					{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
-					{HullComponent: CargoPod.Name, HullSlotIndex: 2, Quantity: 1},
-					{HullComponent: BatScanner.Name, HullSlotIndex: 3, Quantity: 1},
-				}).
-				WithSpec(rules, player)},
+			{
+				Quantity:  1,
+				DesignNum: 1,
+				design: NewShipDesign(player, 1).
+					WithHull(SmallFreighter.Name).
+					WithSlots([]ShipDesignSlot{
+						{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+						{HullComponent: CargoPod.Name, HullSlotIndex: 2, Quantity: 1},
+						{HullComponent: BatScanner.Name, HullSlotIndex: 3, Quantity: 1},
+					}).
+					WithSpec(rules, player)},
 		},
 		OrbitingPlanetNum: NotOrbitingPlanet,
 	}
 
 	fleet.Spec = computeFleetSpec(rules, player, fleet)
+	fleet.Fuel = fleet.Spec.FuelCapacity
 	return fleet
 
 }
@@ -54,18 +62,22 @@ func testCloakedScout(player *Player, rules *Rules) *Fleet {
 	fleet := &Fleet{
 		BaseName: "Cloaked Scout",
 		Tokens: []ShipToken{
-			{Quantity: 1, design: NewShipDesign(player).
-				WithHull(Scout.Name).
-				WithSlots([]ShipDesignSlot{
-					{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
-					{HullComponent: RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
-					{HullComponent: StealthCloak.Name, HullSlotIndex: 3, Quantity: 1},
-				}).
-				WithSpec(rules, player)},
+			{
+				DesignNum: 1,
+				Quantity:  1,
+				design: NewShipDesign(player, 1).
+					WithHull(Scout.Name).
+					WithSlots([]ShipDesignSlot{
+						{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+						{HullComponent: RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
+						{HullComponent: StealthCloak.Name, HullSlotIndex: 3, Quantity: 1},
+					}).
+					WithSpec(rules, player)},
 		},
 		OrbitingPlanetNum: NotOrbitingPlanet,
 	}
 	fleet.Spec = computeFleetSpec(rules, player, fleet)
+	fleet.Fuel = fleet.Spec.FuelCapacity
 	return fleet
 }
 
@@ -95,14 +107,17 @@ func Test_computeFleetSpec(t *testing.T) {
 		{"Starter Humanoid Long Range Scout", args{&rules, starterHumanoidPlayer, &Fleet{
 			BaseName: "Long Range Scout",
 			Tokens: []ShipToken{
-				{Quantity: 1, design: NewShipDesign(starterHumanoidPlayer).
-					WithHull(Scout.Name).
-					WithSlots([]ShipDesignSlot{
-						{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
-						{HullComponent: RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
-						{HullComponent: FuelTank.Name, HullSlotIndex: 3, Quantity: 1},
-					}).
-					WithSpec(&rules, starterHumanoidPlayer)},
+				{
+					DesignNum: 1,
+					Quantity:  1,
+					design: NewShipDesign(starterHumanoidPlayer, 1).
+						WithHull(Scout.Name).
+						WithSlots([]ShipDesignSlot{
+							{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+							{HullComponent: RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
+							{HullComponent: FuelTank.Name, HullSlotIndex: 3, Quantity: 1},
+						}).
+						WithSpec(&rules, starterHumanoidPlayer)},
 			},
 		}}, FleetSpec{
 			ShipDesignSpec: ShipDesignSpec{
@@ -123,17 +138,20 @@ func Test_computeFleetSpec(t *testing.T) {
 		{"Starter Starbase", args{&rules, starterHumanoidPlayer, &Fleet{
 			BaseName: "Starbase",
 			Tokens: []ShipToken{
-				{Quantity: 1, design: NewShipDesign(starterHumanoidPlayer).
-					WithHull(SpaceStation.Name).
-					WithSlots([]ShipDesignSlot{
-						{HullComponent: Laser.Name, HullSlotIndex: 2, Quantity: 8},
-						{HullComponent: MoleSkinShield.Name, HullSlotIndex: 3, Quantity: 8},
-						{HullComponent: Laser.Name, HullSlotIndex: 4, Quantity: 8},
-						{HullComponent: MoleSkinShield.Name, HullSlotIndex: 6, Quantity: 8},
-						{HullComponent: Laser.Name, HullSlotIndex: 8, Quantity: 8},
-						{HullComponent: Laser.Name, HullSlotIndex: 10, Quantity: 8},
-					}).
-					WithSpec(&rules, starterHumanoidPlayer)},
+				{
+					Quantity:  1,
+					DesignNum: 1,
+					design: NewShipDesign(starterHumanoidPlayer, 1).
+						WithHull(SpaceStation.Name).
+						WithSlots([]ShipDesignSlot{
+							{HullComponent: Laser.Name, HullSlotIndex: 2, Quantity: 8},
+							{HullComponent: MoleSkinShield.Name, HullSlotIndex: 3, Quantity: 8},
+							{HullComponent: Laser.Name, HullSlotIndex: 4, Quantity: 8},
+							{HullComponent: MoleSkinShield.Name, HullSlotIndex: 6, Quantity: 8},
+							{HullComponent: Laser.Name, HullSlotIndex: 8, Quantity: 8},
+							{HullComponent: Laser.Name, HullSlotIndex: 10, Quantity: 8},
+						}).
+						WithSpec(&rules, starterHumanoidPlayer)},
 			},
 		}}, FleetSpec{
 			ShipDesignSpec: ShipDesignSpec{
@@ -157,14 +175,17 @@ func Test_computeFleetSpec(t *testing.T) {
 		{"Cloaked Scout", args{&rules, starterHumanoidPlayer, &Fleet{
 			BaseName: "Cloaked Scout",
 			Tokens: []ShipToken{
-				{Quantity: 1, design: NewShipDesign(starterHumanoidPlayer).
-					WithHull(Scout.Name).
-					WithSlots([]ShipDesignSlot{
-						{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
-						{HullComponent: RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
-						{HullComponent: StealthCloak.Name, HullSlotIndex: 3, Quantity: 1},
-					}).
-					WithSpec(&rules, starterHumanoidPlayer)},
+				{
+					Quantity:  1,
+					DesignNum: 1,
+					design: NewShipDesign(starterHumanoidPlayer, 1).
+						WithHull(Scout.Name).
+						WithSlots([]ShipDesignSlot{
+							{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+							{HullComponent: RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
+							{HullComponent: StealthCloak.Name, HullSlotIndex: 3, Quantity: 1},
+						}).
+						WithSpec(&rules, starterHumanoidPlayer)},
 			},
 		}}, FleetSpec{
 			ShipDesignSpec: ShipDesignSpec{
@@ -187,14 +208,17 @@ func Test_computeFleetSpec(t *testing.T) {
 		{"2 Cloaked Scouts", args{&rules, starterHumanoidPlayer, &Fleet{
 			BaseName: "Cloaked Scout",
 			Tokens: []ShipToken{
-				{Quantity: 2, design: NewShipDesign(starterHumanoidPlayer).
-					WithHull(Scout.Name).
-					WithSlots([]ShipDesignSlot{
-						{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
-						{HullComponent: RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
-						{HullComponent: StealthCloak.Name, HullSlotIndex: 3, Quantity: 1},
-					}).
-					WithSpec(&rules, starterHumanoidPlayer)},
+				{
+					Quantity:  2,
+					DesignNum: 1,
+					design: NewShipDesign(starterHumanoidPlayer, 1).
+						WithHull(Scout.Name).
+						WithSlots([]ShipDesignSlot{
+							{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+							{HullComponent: RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
+							{HullComponent: StealthCloak.Name, HullSlotIndex: 3, Quantity: 1},
+						}).
+						WithSpec(&rules, starterHumanoidPlayer)},
 			},
 		}}, FleetSpec{
 			ShipDesignSpec: ShipDesignSpec{
@@ -279,9 +303,9 @@ func TestFleet_getCargoLoadAmount(t *testing.T) {
 	planet := NewPlanet().WithCargo(Cargo{Ironium: 1000, Boranium: 1000, Germanium: 1000, Colonists: 1000})
 
 	type args struct {
-		dest             cargoHolder
-		cargoType        CargoType
-		task             WaypointTransportTask
+		dest      cargoHolder
+		cargoType CargoType
+		task      WaypointTransportTask
 	}
 	tests := []struct {
 		name               string

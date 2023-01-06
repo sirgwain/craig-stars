@@ -50,8 +50,6 @@ func TestCreateSalvage(t *testing.T) {
 func TestGetSalvage(t *testing.T) {
 	c := connectTestDB()
 	g, player := c.createTestGameWithPlayer()
-	design := cs.NewShipDesign(player).WithHull(cs.Scout.Name)
-	c.createTestShipDesign(player, design)
 
 	salvage := cs.Salvage{
 		MapObject: cs.MapObject{GameID: g.ID, PlayerNum: player.Num, Name: "name", Type: cs.MapObjectTypeSalvage},

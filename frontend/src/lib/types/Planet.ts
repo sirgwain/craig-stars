@@ -1,8 +1,9 @@
 import type { Cargo } from './Cargo';
 import type { Fleet } from './Fleet';
 import type { Hab } from './Hab';
-import type { MapObject } from './MapObject';
+import { MapObjectType, type MapObject } from './MapObject';
 import type { Mineral } from './Mineral';
+import type { Vector } from './Vector';
 
 export const Unexplored = -1;
 
@@ -22,7 +23,6 @@ export interface Planet extends MapObject {
 	scanner?: boolean;
 	reportAge: number;
 	productionQueue?: ProductionQueueItem[];
-	starbase?: Fleet;
 	spec: PlanetSpec;
 }
 
@@ -34,6 +34,60 @@ export interface ProductionQueueItem {
 	type: QueueItemType;
 	quantity: number;
 	designName?: string;
+}
+
+export class CommandedPlanet implements Planet {
+	id = 0;
+	gameId = 0;
+	createdAt?: string | undefined;
+	updatedAt?: string | undefined;
+	readonly type = MapObjectType.Planet;
+
+	hab: Hab = { grav: 0, temp: 0, rad: 0 };
+	baseHab: Hab = { grav: 0, temp: 0, rad: 0 };
+	terraformedAmount = { grav: 0, temp: 0, rad: 0 };
+	mineralConcentration: Mineral = { ironium: 0, boranium: 0, germanium: 0 };
+	mineYears: Mineral = { ironium: 0, boranium: 0, germanium: 0 };
+	cargo: Cargo = { ironium: 0, boranium: 0, germanium: 0, colonists: 0 };
+	mines = 0;
+	factories = 0;
+	defenses = 0;
+	contributesOnlyLeftoverToResearch = false;
+	homeworld = false;
+	scanner = false;
+	reportAge = 0;
+	productionQueue: ProductionQueueItem[] = [];
+	position: Vector = { x: 0, y: 0 };
+	name = '';
+	num = 0;
+	playerNum = 0;
+	spec: PlanetSpec = {
+		habitability: 0,
+		habitabilityTerraformed: 0,
+		maxMines: 0,
+		maxPossibleMines: 0,
+		maxFactories: 0,
+		maxPossibleFactories: 0,
+		maxDefenses: 0,
+		populationDensity: 0,
+		maxPopulation: 0,
+		growthAmount: 0,
+		mineralOutput: { ironium: 0, boranium: 0, germanium: 0 },
+		resourcesPerYear: 0,
+		resourcesPerYearAvailable: 0,
+		resourcesPerYearResearch: 0,
+		defense: '',
+		defenseCoverage: 0,
+		defenseCoverageSmart: 0,
+		scanner: '',
+		scanRange: 0,
+		scanRangePen: 0,
+		canTerraform: false,
+		terraformAmount: { grav: 0, temp: 0, rad: 0 },
+		hasMassDriver: false,
+		hasStarbase: false,
+		dockCapacity: 0
+	};
 }
 
 export const fromQueueItemType = (type: QueueItemType): ProductionQueueItem => ({
@@ -108,7 +162,7 @@ export interface PlanetSpec {
 	scanRange: number;
 	scanRangePen: number;
 	canTerraform: boolean;
-	terraformAmount: boolean;
+	terraformAmount?: Hab;
 	hasMassDriver: boolean;
 	hasStarbase: boolean;
 	dockCapacity: number;
