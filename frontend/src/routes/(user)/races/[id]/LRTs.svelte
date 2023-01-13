@@ -1,8 +1,5 @@
 <script lang="ts">
-	
-	import {
-		LRT, type Race
-	} from '$lib/types/Race';
+	import { LRT, type Race } from '$lib/types/Race';
 
 	export let race: Race;
 
@@ -43,102 +40,87 @@
 </script>
 
 <div class="flex flex-row flex-wrap justify-between gap-1">
-    <div class="tooltip" data-tip={getDescriptionForLRT(LRT.IFE)}>
-        <button
-            on:click|preventDefault={() => (race.lrts ^= LRT.IFE)}
-            class:btn-primary={race.lrts & LRT.IFE}
-            class="btn w-[10rem]">Improved Fuel Efficiency</button
-        >
-    </div>
-    <div class="tooltip" data-tip={getDescriptionForLRT(LRT.TT)}>
-        <button
-            on:click|preventDefault={() => (race.lrts ^= LRT.TT)}
-            class:btn-primary={race.lrts & LRT.TT}
-            class="btn w-[10rem]">Total Terraforming</button
-        >
-    </div>
-    <div class="tooltip" data-tip={getDescriptionForLRT(LRT.ARM)}>
-        <button
-            on:click|preventDefault={() => (race.lrts ^= LRT.ARM)}
-            class:btn-primary={race.lrts & LRT.ARM}
-            class="btn w-[10rem]">Advanced Remote Mining</button
-        >
-    </div>
-    <div class="tooltip" data-tip={getDescriptionForLRT(LRT.ISB)}>
-        <button
-            on:click|preventDefault={() => (race.lrts ^= LRT.ISB)}
-            class:btn-primary={race.lrts & LRT.ISB}
-            class="btn w-[10rem]">Improved Starbases</button
-        >
-    </div>
-    <div class="tooltip" data-tip={getDescriptionForLRT(LRT.GR)}>
-        <button
-            on:click|preventDefault={() => (race.lrts ^= LRT.GR)}
-            class:btn-primary={race.lrts & LRT.GR}
-            class="btn w-[10rem]">Generalized Research</button
-        >
-    </div>
-    <div class="tooltip" data-tip={getDescriptionForLRT(LRT.UR)}>
-        <button
-            on:click|preventDefault={() => (race.lrts ^= LRT.UR)}
-            class:btn-primary={race.lrts & LRT.UR}
-            class="btn w-[10rem]">Ultimate Recycling</button
-        >
-    </div>
-    <div class="tooltip" data-tip={getDescriptionForLRT(LRT.NRSE)}>
-        <button
-            on:click|preventDefault={() => (race.lrts ^= LRT.NRSE)}
-            class:btn-primary={race.lrts & LRT.NRSE}
-            class="btn w-[10rem]">No Ramscoop Engines</button
-        >
-    </div>
-    <div class="tooltip" data-tip={getDescriptionForLRT(LRT.OBRM)}>
-        <button
-            on:click|preventDefault={() => (race.lrts ^= LRT.OBRM)}
-            class:btn-primary={race.lrts & LRT.OBRM}
-            class="btn w-[10rem]">Only Basic Remote Mining</button
-        >
-    </div>
-    <div class="tooltip" data-tip={getDescriptionForLRT(LRT.NAS)}>
-        <button
-            on:click|preventDefault={() => (race.lrts ^= LRT.NAS)}
-            class:btn-primary={race.lrts & LRT.NAS}
-            class="btn w-[10rem]">No Advanced Scanners</button
-        >
-    </div>
-    <div class="tooltip" data-tip={getDescriptionForLRT(LRT.LSP)}>
-        <button
-            on:click|preventDefault={() => (race.lrts ^= LRT.LSP)}
-            class:btn-primary={race.lrts & LRT.LSP}
-            class="btn w-[10rem]">Low Starting Population</button
-        >
-    </div>
-    <div class="tooltip" data-tip={getDescriptionForLRT(LRT.BET)}>
-        <button
-            on:click|preventDefault={() => (race.lrts ^= LRT.BET)}
-            class:btn-primary={race.lrts & LRT.BET}
-            class="btn w-[10rem]">Bleeding Edge Technology</button
-        >
-    </div>
-    <div class="tooltip" data-tip={getDescriptionForLRT(LRT.RS)}>
-        <button
-            on:click|preventDefault={() => (race.lrts ^= LRT.RS)}
-            class:btn-primary={race.lrts & LRT.RS}
-            class="btn w-[10rem]">Regenerating Shields</button
-        >
-    </div>
-    <div class="tooltip" data-tip={getDescriptionForLRT(LRT.MA)}>
-        <button
-            on:click|preventDefault={() => (race.lrts ^= LRT.MA)}
-            class:btn-primary={race.lrts & LRT.MA}
-            class="btn w-[10rem]">Mineral Alchemy</button
-        >
-    </div>
-    <div class="tooltip" data-tip={getDescriptionForLRT(LRT.CE)}>
-        <button
-            on:click|preventDefault={() => (race.lrts ^= LRT.CE)}
-            class:btn-primary={race.lrts & LRT.CE}
-            class="btn w-[10rem]">Cheap Engines</button
-        >
-    </div>
+	<button
+		on:click|preventDefault={() => (race.lrts ^= LRT.IFE)}
+		class:btn-primary={race.lrts & LRT.IFE}
+		class="btn w-[11rem]">Improved Fuel Efficiency</button
+	>
+
+	<button
+		on:click|preventDefault={() => (race.lrts ^= LRT.TT)}
+		class:btn-primary={race.lrts & LRT.TT}
+		class="btn w-[11rem]">Total Terraforming</button
+	>
+
+	<button
+		on:click|preventDefault={() => (race.lrts ^= LRT.ARM)}
+		class:btn-primary={race.lrts & LRT.ARM}
+		class="btn w-[11rem]">Advanced Remote Mining</button
+	>
+
+	<button
+		on:click|preventDefault={() => (race.lrts ^= LRT.ISB)}
+		class:btn-primary={race.lrts & LRT.ISB}
+		class="btn w-[11rem]">Improved Starbases</button
+	>
+
+	<button
+		on:click|preventDefault={() => (race.lrts ^= LRT.GR)}
+		class:btn-primary={race.lrts & LRT.GR}
+		class="btn w-[11rem]">Generalized Research</button
+	>
+
+	<button
+		on:click|preventDefault={() => (race.lrts ^= LRT.UR)}
+		class:btn-primary={race.lrts & LRT.UR}
+		class="btn w-[11rem]">Ultimate Recycling</button
+	>
+
+	<button
+		on:click|preventDefault={() => (race.lrts ^= LRT.NRSE)}
+		class:btn-primary={race.lrts & LRT.NRSE}
+		class="btn w-[11rem]">No Ramscoop Engines</button
+	>
+
+	<button
+		on:click|preventDefault={() => (race.lrts ^= LRT.OBRM)}
+		class:btn-primary={race.lrts & LRT.OBRM}
+		class="btn w-[11rem]">Only Basic Remote Mining</button
+	>
+
+	<button
+		on:click|preventDefault={() => (race.lrts ^= LRT.NAS)}
+		class:btn-primary={race.lrts & LRT.NAS}
+		class="btn w-[11rem]">No Advanced Scanners</button
+	>
+
+	<button
+		on:click|preventDefault={() => (race.lrts ^= LRT.LSP)}
+		class:btn-primary={race.lrts & LRT.LSP}
+		class="btn w-[11rem]">Low Starting Population</button
+	>
+
+	<button
+		on:click|preventDefault={() => (race.lrts ^= LRT.BET)}
+		class:btn-primary={race.lrts & LRT.BET}
+		class="btn w-[11rem]">Bleeding Edge Technology</button
+	>
+
+	<button
+		on:click|preventDefault={() => (race.lrts ^= LRT.RS)}
+		class:btn-primary={race.lrts & LRT.RS}
+		class="btn w-[11rem]">Regenerating Shields</button
+	>
+
+	<button
+		on:click|preventDefault={() => (race.lrts ^= LRT.MA)}
+		class:btn-primary={race.lrts & LRT.MA}
+		class="btn w-[11rem]">Mineral Alchemy</button
+	>
+
+	<button
+		on:click|preventDefault={() => (race.lrts ^= LRT.CE)}
+		class:btn-primary={race.lrts & LRT.CE}
+		class="btn w-[11rem]">Cheap Engines</button
+	>
 </div>
