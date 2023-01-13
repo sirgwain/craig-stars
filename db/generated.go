@@ -120,18 +120,6 @@ func (c *GameConverter) ConvertGameShipDesign(source *cs.ShipDesign) *ShipDesign
 	}
 	return pDbShipDesign
 }
-func (c *GameConverter) ConvertGameShipToken(source cs.ShipToken) ShipToken {
-	var dbShipToken ShipToken
-	dbShipToken.ID = source.ID
-	dbShipToken.CreatedAt = TimeToNullTime(source.CreatedAt)
-	dbShipToken.UpdatedAt = TimeToNullTime(source.UpdatedAt)
-	dbShipToken.FleetID = source.FleetID
-	dbShipToken.DesignNum = source.DesignNum
-	dbShipToken.Quantity = source.Quantity
-	dbShipToken.Damage = source.Damage
-	dbShipToken.QuantityDamaged = source.QuantityDamaged
-	return dbShipToken
-}
 func (c *GameConverter) ConvertGameUser(source *cs.User) *User {
 	var pDbUser *User
 	if source != nil {
@@ -229,6 +217,7 @@ func (c *GameConverter) ConvertRace(source Race) cs.Race {
 	csRace.UserID = source.UserID
 	csRace.Name = source.Name
 	csRace.PluralName = source.PluralName
+	csRace.SpendLeftoverPointsOn = cs.SpendLeftoverPointsOn(source.SpendLeftoverPointsOn)
 	csRace.PRT = cs.PRT(source.PRT)
 	csRace.LRTs = cs.Bitmask(source.LRTs)
 	csRace.HabLow = ExtendHabLow(source)
@@ -273,18 +262,6 @@ func (c *GameConverter) ConvertShipDesign(source *ShipDesign) *cs.ShipDesign {
 	}
 	return pCsShipDesign
 }
-func (c *GameConverter) ConvertShipToken(source ShipToken) cs.ShipToken {
-	var csShipToken cs.ShipToken
-	csShipToken.ID = source.ID
-	csShipToken.CreatedAt = NullTimeToTime(source.CreatedAt)
-	csShipToken.UpdatedAt = NullTimeToTime(source.UpdatedAt)
-	csShipToken.FleetID = source.FleetID
-	csShipToken.DesignNum = source.DesignNum
-	csShipToken.Quantity = source.Quantity
-	csShipToken.Damage = source.Damage
-	csShipToken.QuantityDamaged = source.QuantityDamaged
-	return csShipToken
-}
 func (c *GameConverter) ConvertUser(source User) cs.User {
 	var csUser cs.User
 	csUser.ID = source.ID
@@ -324,6 +301,7 @@ func (c *GameConverter) csFleetToDbFleet(source cs.Fleet) Fleet {
 	dbFleet.Name = source.MapObject.Name
 	dbFleet.Num = source.MapObject.Num
 	dbFleet.PlayerNum = source.MapObject.PlayerNum
+	dbFleet.Tokens = GameShipTokensToShipTokens(source.Tokens)
 	dbFleet.Waypoints = GameWaypointsToWaypoints(source.FleetOrders.Waypoints)
 	dbFleet.RepeatOrders = source.FleetOrders.RepeatOrders
 	dbFleet.PlanetNum = source.PlanetNum
@@ -552,6 +530,7 @@ func (c *GameConverter) csRaceToDbRace(source cs.Race) Race {
 	dbRace.UserID = source.UserID
 	dbRace.Name = source.Name
 	dbRace.PluralName = source.PluralName
+	dbRace.SpendLeftoverPointsOn = cs.SpendLeftoverPointsOn(source.SpendLeftoverPointsOn)
 	dbRace.PRT = cs.PRT(source.PRT)
 	dbRace.LRTs = cs.Bitmask(source.LRTs)
 	dbRace.HabLowGrav = source.HabLow.Grav
@@ -661,6 +640,7 @@ func (c *GameConverter) dbFleetToCsFleet(source Fleet) cs.Fleet {
 	csFleet.Cargo = ExtendFleetCargo(source)
 	csFleet.Fuel = source.Fuel
 	csFleet.Damage = source.Damage
+	csFleet.Tokens = ShipTokensToGameShipTokens(source.Tokens)
 	csFleet.Heading = ExtendFleetHeading(source)
 	csFleet.WarpSpeed = source.WarpSpeed
 	csFleet.PreviousPosition = ExtendFleetPreviousPosition(source)

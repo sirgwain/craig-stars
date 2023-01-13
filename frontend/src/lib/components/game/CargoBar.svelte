@@ -28,7 +28,10 @@
 	}
 </script>
 
-<div on:click={() => dispatch('cargo-transfer')} class="border border-secondary h-[1rem] text-[0rem] relative cursor-pointer">
+<div
+	on:click={() => dispatch('cargo-transfer')}
+	class="border border-secondary h-[1rem] text-[0rem] relative cursor-pointer"
+>
 	<div
 		class="font-semibold text-sm text-center align-middle text-secondary w-full bg-blend-difference absolute"
 	>

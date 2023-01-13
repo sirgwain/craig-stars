@@ -1,0 +1,17 @@
+{
+  "folders": [
+    {
+      // Source code
+      "name": "root",
+      "path": "./",
+    },
+    {
+      // Docs and release notes
+      "name": "frontend",
+      "path": "frontend"
+    },
+  ],
+  "settings": {
+    "testing.automaticallyOpenPeekView": "never"
+  }
+}

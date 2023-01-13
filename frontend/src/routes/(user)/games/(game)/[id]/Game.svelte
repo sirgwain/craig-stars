@@ -11,25 +11,39 @@
 	export let player: Player;
 </script>
 
-<div class="flex flex-row h-full w-full">
-	<div class="hidden sm:block flex-initial w-[16rem] lg:w-[30rem] overflow-y-auto">
-		<div class="flex flex-col">
-			<div class="flex-1">
-				<div class="flex flex-row flex-wrap gap-3.5 justify-between">
-					<CommandPane {player} />
-				</div>
-			</div>
-			<div class="hidden mt-3 lg:block flex-initial"><MapObjectSummary {player} /></div>
+<!-- for small mobile displays we put the scanner on top and the command pane below it-->
+<div class="flex flex-col h-full md:flex-row md:flex-wrap">
+	<!-- for medium+ displays, command pane goes on the left -->
+	<div class="hidden md:flex md:flex-col justify-between md:w-[14.5rem] lg:w-[29rem] max-h-full overflow-y-auto">
+		<div class="flex flex-row flex-wrap gap-2 justify-center place-items-stretch">
+			<CommandPane {player} />
+		</div>
+		<div class="hidden lg:block lg:p-1 mb-2">
+			<MapObjectSummary {player} />
 		</div>
 	</div>
 
-	<div class="flex-1 flex flex-col grow ml-3">
-		<div class="flex flex-col border-gray-700 border-2 shadow-sm grow min-h-[68%]">
+	<div class="flex flex-col grow min-h-[515px] md:h-full">
+		<div class="flex flex-col grow border-gray-700 border-2 shadow-sm">
 			<ScannerToolbar {game} {player} />
 			<Scanner {game} {player} />
 		</div>
-		<HighlightedMapObjectStats />
-		<div class="lg:hidden mt-3 block flex-initial"><MapObjectSummary {player} /></div>
-		<div class="md:hidden mt-3 block flex-initial"><CommandPane {player} /></div>
+		<div>
+			<HighlightedMapObjectStats />
+		</div>
+		<div class="hidden md:block md:w-full lg:hidden mb-2">
+			<MapObjectSummary {player} />
+		</div>
+	</div>
+
+	<div class="carousel md:hidden">
+		<div class="carousel-item">
+			<div class="w-screen">
+				<MapObjectSummary {player} />
+			</div>
+		</div>
+		<div class="carousel-item">
+			<CommandPane {player} />
+		</div>
 	</div>
 </div>

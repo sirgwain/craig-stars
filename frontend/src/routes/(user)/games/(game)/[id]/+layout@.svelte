@@ -145,7 +145,8 @@
 		<div class="flex-initial">
 			<GameMenu game={$game} on:submit-turn={onSubmitTurn} />
 		</div>
-		<div class="p-2 flex-1 overflow-y-auto">
+		<!-- We want our main game view to only fill the screen (minus the toolbar) -->
+		<div class="grow max-h-[calc(100vh-4rem)]">
 			<slot>Game</slot>
 		</div>
 	</main>

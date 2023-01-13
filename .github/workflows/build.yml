@@ -33,6 +33,7 @@ jobs:
           cache: 'yarn'
           cache-dependency-path: frontend/yarn.lock
       - run: yarn --cwd frontend install
+      - run: yarn --cwd frontend run test
       - run: yarn --cwd frontend run build
       - run: mkdir -p dist/
       - run: tar -cvf ./dist/frontend.tgz -C frontend/build .

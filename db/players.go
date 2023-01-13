@@ -372,7 +372,7 @@ func (c *client) GetFullPlayerForGame(gameID, userID int64) (*cs.FullPlayer, err
 	}
 	player.Planets = planets
 
-	fleets, err := c.getFleetsForPlayer(player.GameID, player.Num)
+	fleets, err := c.GetFleetsForPlayer(player.GameID, player.Num)
 	if err != nil {
 		return nil, fmt.Errorf("get player fleets %w", err)
 	}

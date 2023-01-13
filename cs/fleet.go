@@ -3,7 +3,6 @@ package cs
 import (
 	"fmt"
 	"math"
-	"time"
 )
 
 // warpfactor for using a stargate vs moving with warp drive
@@ -62,14 +61,10 @@ type FleetSpec struct {
 }
 
 type ShipToken struct {
-	ID              int64     `json:"id"`
-	CreatedAt       time.Time `json:"createdAt"`
-	UpdatedAt       time.Time `json:"updatedAt"`
-	FleetID         int64     `json:"fleetId"`
-	DesignNum       int       `json:"designNum,omitempty"`
-	Quantity        int       `json:"quantity"`
-	Damage          float64   `json:"damage"`
-	QuantityDamaged int       `json:"quantityDamaged"`
+	DesignNum       int     `json:"designNum,omitempty"`
+	Quantity        int     `json:"quantity"`
+	Damage          float64 `json:"damage"`
+	QuantityDamaged int     `json:"quantityDamaged"`
 	design          *ShipDesign
 }
 

@@ -55,6 +55,8 @@ import (
 // goverter:extend GameProductionQueueItemsToProductionQueueItems
 // goverter:extend FleetSpecToGameFleetSpec
 // goverter:extend GameFleetSpecToFleetSpec
+// goverter:extend ShipTokensToGameShipTokens
+// goverter:extend GameShipTokensToShipTokens
 // goverter:extend WaypointsToGameWaypoints
 // goverter:extend GameWaypointsToWaypoints
 // goverter:extend ShipDesignSpecToGameShipDesignSpec
@@ -235,16 +237,11 @@ type Converter interface {
 	// goverter:mapExtend Cargo ExtendFleetCargo
 	// goverter:mapExtend MapObject ExtendFleetMapObject
 	// goverter:mapExtend FleetOrders ExtendFleetFleetOrders
-	// goverter:ignore Tokens
 	ConvertFleet(source *Fleet) *cs.Fleet
 
 	ConvertGameShipDesign(source *cs.ShipDesign) *ShipDesign
 	// goverter:ignore Dirty
 	ConvertShipDesign(source *ShipDesign) *cs.ShipDesign
-
-	ConvertGameShipToken(source cs.ShipToken) ShipToken
-	// goverter:ignore Design
-	ConvertShipToken(source ShipToken) cs.ShipToken
 
 	// goverter:map MapObject.ID ID
 	// goverter:map MapObject.GameID GameID
@@ -648,6 +645,14 @@ func FleetSpecToGameFleetSpec(source *FleetSpec) cs.FleetSpec {
 
 func GameFleetSpecToFleetSpec(source cs.FleetSpec) *FleetSpec {
 	return (*FleetSpec)(&source)
+}
+
+func ShipTokensToGameShipTokens(source *ShipTokens) []cs.ShipToken {
+	return ([]cs.ShipToken)(*source)
+}
+
+func GameShipTokensToShipTokens(source []cs.ShipToken) *ShipTokens {
+	return (*ShipTokens)(&source)
 }
 
 func WaypointsToGameWaypoints(source *Waypoints) []cs.Waypoint {

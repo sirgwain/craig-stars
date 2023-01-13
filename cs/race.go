@@ -9,31 +9,32 @@ import (
 )
 
 type Race struct {
-	ID                int64        `json:"id,omitempty"`
-	CreatedAt         time.Time    `json:"createdAt,omitempty"`
-	UpdatedAt         time.Time    `json:"updatedAt,omitempty"`
-	UserID            int64        `json:"userId,omitempty"`
-	Name              string       `json:"name,omitempty"`
-	PluralName        string       `json:"pluralName,omitempty"`
-	PRT               PRT          `json:"prt,omitempty"`
-	LRTs              Bitmask      `json:"lrts,omitempty"`
-	HabLow            Hab          `json:"habLow,omitempty"`
-	HabHigh           Hab          `json:"habHigh,omitempty"`
-	GrowthRate        int          `json:"growthRate,omitempty"`
-	PopEfficiency     int          `json:"popEfficiency,omitempty"`
-	FactoryOutput     int          `json:"factoryOutput,omitempty"`
-	FactoryCost       int          `json:"factoryCost,omitempty"`
-	NumFactories      int          `json:"numFactories,omitempty"`
-	FactoriesCostLess bool         `json:"factoriesCostLess,omitempty"`
-	ImmuneGrav        bool         `json:"immuneGrav,omitempty"`
-	ImmuneTemp        bool         `json:"immuneTemp,omitempty"`
-	ImmuneRad         bool         `json:"immuneRad,omitempty"`
-	MineOutput        int          `json:"mineOutput,omitempty"`
-	MineCost          int          `json:"mineCost,omitempty"`
-	NumMines          int          `json:"numMines,omitempty"`
-	ResearchCost      ResearchCost `json:"researchCost,omitempty"`
-	TechsStartHigh    bool         `json:"techsStartHigh,omitempty"`
-	Spec              RaceSpec     `json:"spec,omitempty"`
+	ID                    int64                 `json:"id,omitempty"`
+	CreatedAt             time.Time             `json:"createdAt,omitempty"`
+	UpdatedAt             time.Time             `json:"updatedAt,omitempty"`
+	UserID                int64                 `json:"userId,omitempty"`
+	Name                  string                `json:"name,omitempty"`
+	PluralName            string                `json:"pluralName,omitempty"`
+	SpendLeftoverPointsOn SpendLeftoverPointsOn `json:"spendLeftoverPointsOn,omitempty"`
+	PRT                   PRT                   `json:"prt,omitempty"`
+	LRTs                  Bitmask               `json:"lrts,omitempty"`
+	HabLow                Hab                   `json:"habLow,omitempty"`
+	HabHigh               Hab                   `json:"habHigh,omitempty"`
+	GrowthRate            int                   `json:"growthRate,omitempty"`
+	PopEfficiency         int                   `json:"popEfficiency,omitempty"`
+	FactoryOutput         int                   `json:"factoryOutput,omitempty"`
+	FactoryCost           int                   `json:"factoryCost,omitempty"`
+	NumFactories          int                   `json:"numFactories,omitempty"`
+	FactoriesCostLess     bool                  `json:"factoriesCostLess,omitempty"`
+	ImmuneGrav            bool                  `json:"immuneGrav,omitempty"`
+	ImmuneTemp            bool                  `json:"immuneTemp,omitempty"`
+	ImmuneRad             bool                  `json:"immuneRad,omitempty"`
+	MineOutput            int                   `json:"mineOutput,omitempty"`
+	MineCost              int                   `json:"mineCost,omitempty"`
+	NumMines              int                   `json:"numMines,omitempty"`
+	ResearchCost          ResearchCost          `json:"researchCost,omitempty"`
+	TechsStartHigh        bool                  `json:"techsStartHigh,omitempty"`
+	Spec                  RaceSpec              `json:"spec,omitempty"`
 }
 
 type ResearchCostLevel string
@@ -42,6 +43,16 @@ const (
 	ResearchCostExtra    ResearchCostLevel = "Extra"
 	ResearchCostStandard ResearchCostLevel = "Standard"
 	ResearchCostLess     ResearchCostLevel = "Less"
+)
+
+type SpendLeftoverPointsOn string
+
+const (
+	SpendLeftoverPointsOnSurfaceMinerals       SpendLeftoverPointsOn = "SurfaceMinerals"
+	SpendLeftoverPointsOnMineralConcentrations SpendLeftoverPointsOn = "MineralConcentrations"
+	SpendLeftoverPointsOnMines                 SpendLeftoverPointsOn = "Mines"
+	SpendLeftoverPointsOnFactories             SpendLeftoverPointsOn = "Factories"
+	SpendLeftoverPointsOnDefenses              SpendLeftoverPointsOn = "Defenses"
 )
 
 type ResearchCost struct {
