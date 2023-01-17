@@ -1,3 +1,9 @@
+export enum HabType {
+	Gravity = 'Gravity',
+	Temperature = 'Temperature',
+	Radiation = 'Radiation'
+}
+
 export interface Hab {
 	grav?: number;
 	temp?: number;
@@ -21,4 +27,16 @@ export function getTempString(temp: number): string {
 
 export function getRadString(rad: number): string {
 	return `${rad}mR`;
+}
+
+export function getHabValueString(habType: HabType, value: number): string {
+	switch (habType) {
+		case HabType.Gravity:
+			return getGravString(value);
+		case HabType.Temperature:
+			return getTempString(value);
+		case HabType.Radiation:
+			return getRadString(value);
+	}
+	return `${value}`;
 }

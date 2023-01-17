@@ -5,8 +5,6 @@
 
 	export let field: TechField;
 	export let value: ResearchCostLevel;
-
-	$: console.log(value);
 </script>
 
 <div class="card bg-base-200 shadow-xl rounded-sm border-2 border-base-300 w-full md:w-auto">
