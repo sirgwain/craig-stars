@@ -22,6 +22,7 @@ type TechStore struct {
 	Defenses                 []TechDefense                         `json:"defenses"`
 	HullComponents           []TechHullComponent                   `json:"hullComponents"`
 	Hulls                    []TechHull                            `json:"hulls,omitempty"`
+	techsByName              map[string]interface{}                `json:"-"`
 	hullComponentsByName     map[string]*TechHullComponent         `json:"-"`
 	hullsByName              map[string]*TechHull                  `json:"-"`
 	enginesByName            map[string]*TechEngine                `json:"-"`
@@ -48,6 +49,7 @@ type TechFinder interface {
 	GetBestScanner(player *Player) *TechHullComponent
 	GetBestEngine(player *Player) *TechEngine
 	GetEngine(name string) *TechEngine
+	GetTech(name string) interface{}
 	GetHull(name string) *TechHull
 	GetHullComponent(name string) *TechHullComponent
 	GetHullComponentsByCategory(category TechCategory) []TechHullComponent
@@ -61,6 +63,13 @@ func NewTechStore() TechFinder {
 }
 
 func (store *TechStore) Init() {
+	store.techsByName = make(map[string]interface{},
+		len(store.Engines)+
+			len(store.PlanetaryScanners)+
+			len(store.Terraforms)+
+			len(store.Defenses)+
+			len(store.HullComponents)+
+			len(store.Hulls))
 	store.hullsByName = make(map[string]*TechHull, len(store.Hulls))
 	store.enginesByName = make(map[string]*TechEngine, len(store.Engines))
 	store.hullComponentsByName = make(map[string]*TechHullComponent, len(store.Engines)+len(store.HullComponents))
@@ -68,17 +77,20 @@ func (store *TechStore) Init() {
 
 	for i := range store.Hulls {
 		tech := &store.Hulls[i]
+		store.techsByName[tech.Name] = tech
 		store.hullsByName[tech.Name] = tech
 	}
 
 	for i := range store.Engines {
 		tech := &store.Engines[i]
+		store.techsByName[tech.Name] = tech
 		store.enginesByName[tech.Name] = tech
 		store.hullComponentsByName[tech.Name] = &tech.TechHullComponent
 	}
 
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
+		store.techsByName[tech.Name] = tech
 		store.hullComponentsByName[tech.Name] = tech
 
 		if _, ok := store.hullComponetnsByCategory[tech.Category]; !ok {
@@ -87,6 +99,24 @@ func (store *TechStore) Init() {
 		store.hullComponetnsByCategory[tech.Category] = append(store.hullComponetnsByCategory[tech.Category], tech)
 	}
 
+	for i := range store.PlanetaryScanners {
+		tech := &store.PlanetaryScanners[i]
+		store.techsByName[tech.Name] = tech
+	}
+
+	for i := range store.Terraforms {
+		tech := &store.Terraforms[i]
+		store.techsByName[tech.Name] = tech
+	}
+
+	for i := range store.Defenses {
+		tech := &store.Defenses[i]
+		store.techsByName[tech.Name] = tech
+	}
+}
+
+func (store *TechStore) GetTech(name string) interface{} {
+	return store.techsByName[name]
 }
 
 func (store *TechStore) GetEngine(name string) *TechEngine {
@@ -100,6 +130,7 @@ func (store *TechStore) GetHull(name string) *TechHull {
 func (store *TechStore) GetHullComponent(name string) *TechHullComponent {
 	return store.hullComponentsByName[name]
 }
+
 
 // get all techs by category
 func (store *TechStore) GetHullComponentsByCategory(category TechCategory) []TechHullComponent {
@@ -226,7 +257,7 @@ var QuickJump5 = TechEngine{
 	},
 }
 var LongHump6 = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Long Hump 6", NewCost(5, 0, 1, 6), TechRequirements{TechLevel: TechLevel{Propulsion: 3}}, 30, TechCategoryEngine), Mass: 9},
+	TechHullComponent: TechHullComponent{Tech: NewTech("Long Hump 6", NewCost(5, 0, 1, 6), TechRequirements{TechLevel: TechLevel{Propulsion: 3}}, 40, TechCategoryEngine), Mass: 9},
 	IdealSpeed:        6,
 	FuelUsage: [11]int{
 		0,    // 0
@@ -243,7 +274,7 @@ var LongHump6 = TechEngine{
 	},
 }
 var FuelMizer = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Fuel Mizer", NewCost(8, 0, 0, 11), TechRequirements{TechLevel: TechLevel{Propulsion: 2}, LRTsRequired: IFE}, 40, TechCategoryEngine), Mass: 6},
+	TechHullComponent: TechHullComponent{Tech: NewTech("Fuel Mizer", NewCost(8, 0, 0, 11), TechRequirements{TechLevel: TechLevel{Propulsion: 2}, LRTsRequired: IFE}, 30, TechCategoryEngine), Mass: 6},
 	IdealSpeed:        6,
 	FreeSpeed:         4,
 	FuelUsage: [11]int{
@@ -880,12 +911,11 @@ var MoleScanner = TechHullComponent{Tech: NewTech("Mole Scanner", NewCost(2, 0, 
 	Mass:      2,
 	ScanRange: 100,
 }
-var PickPocketScanner = TechHullComponent{Tech: NewTech("Pick Pocket Scanner", NewCost(8, 10, 6, 35), TechRequirements{TechLevel: TechLevel{Energy: 4, Electronics: 4, Biotechnology: 4}, PRTRequired: SS}, 40, TechCategoryScanner),
+var DNAScanner = TechHullComponent{Tech: NewTech("DNA Scanner", NewCost(1, 1, 1, 5), TechRequirements{TechLevel: TechLevel{Propulsion: 3, Biotechnology: 6}}, 40, TechCategoryScanner),
 
-	HullSlotType:       HullSlotTypeScanner,
-	Mass:               15,
-	CanStealFleetCargo: true,
-	ScanRange:          80,
+	HullSlotType: HullSlotTypeScanner,
+	Mass:         2,
+	ScanRange:    125,
 }
 var PossumScanner = TechHullComponent{Tech: NewTech("Possum Scanner", NewCost(3, 0, 3, 18), TechRequirements{TechLevel: TechLevel{Electronics: 5}}, 50, TechCategoryScanner),
 
@@ -893,11 +923,12 @@ var PossumScanner = TechHullComponent{Tech: NewTech("Possum Scanner", NewCost(3,
 	Mass:         3,
 	ScanRange:    150,
 }
-var DNAScanner = TechHullComponent{Tech: NewTech("DNA Scanner", NewCost(1, 1, 1, 5), TechRequirements{TechLevel: TechLevel{Propulsion: 3, Biotechnology: 6}}, 60, TechCategoryScanner),
+var PickPocketScanner = TechHullComponent{Tech: NewTech("Pick Pocket Scanner", NewCost(8, 10, 6, 35), TechRequirements{TechLevel: TechLevel{Energy: 4, Electronics: 4, Biotechnology: 4}, PRTRequired: SS}, 60, TechCategoryScanner),
 
-	HullSlotType: HullSlotTypeScanner,
-	Mass:         2,
-	ScanRange:    125,
+	HullSlotType:       HullSlotTypeScanner,
+	Mass:               15,
+	CanStealFleetCargo: true,
+	ScanRange:          80,
 }
 var ChameleonScanner = TechHullComponent{Tech: NewTech("Chameleon Scanner", NewCost(4, 6, 4, 25), TechRequirements{TechLevel: TechLevel{Energy: 3, Electronics: 6}, PRTRequired: SS}, 70, TechCategoryScanner),
 
@@ -915,12 +946,12 @@ var FerretScanner = TechHullComponent{Tech: NewTech("Ferret Scanner", NewCost(2,
 	ScanRange:    185,
 	ScanRangePen: 50,
 }
-var RNAScanner = TechHullComponent{Tech: NewTech("RNA Scanner", NewCost(1, 1, 2, 20), TechRequirements{TechLevel: TechLevel{Propulsion: 5, Biotechnology: 10}}, 90, TechCategoryScanner),
+var DolphinScanner = TechHullComponent{Tech: NewTech("Dolphin Scanner", NewCost(5, 5, 10, 40), TechRequirements{TechLevel: TechLevel{Energy: 5, Electronics: 10, Biotechnology: 4}, LRTsDenied: NAS}, 90, TechCategoryScanner),
 
 	HullSlotType: HullSlotTypeScanner,
-
-	Mass:      2,
-	ScanRange: 230,
+	Mass:         4,
+	ScanRange:    220,
+	ScanRangePen: 100,
 }
 var GazelleScanner = TechHullComponent{Tech: NewTech("Gazelle Scanner", NewCost(4, 0, 5, 24), TechRequirements{TechLevel: TechLevel{Energy: 4, Electronics: 8}}, 100, TechCategoryScanner),
 
@@ -928,24 +959,18 @@ var GazelleScanner = TechHullComponent{Tech: NewTech("Gazelle Scanner", NewCost(
 	Mass:         5,
 	ScanRange:    225,
 }
-var DolphinScanner = TechHullComponent{Tech: NewTech("Dolphin Scanner", NewCost(5, 5, 10, 40), TechRequirements{TechLevel: TechLevel{Energy: 5, Electronics: 10, Biotechnology: 4}, LRTsDenied: NAS}, 110, TechCategoryScanner),
+var RNAScanner = TechHullComponent{Tech: NewTech("RNA Scanner", NewCost(1, 1, 2, 20), TechRequirements{TechLevel: TechLevel{Propulsion: 5, Biotechnology: 10}}, 110, TechCategoryScanner),
 
 	HullSlotType: HullSlotTypeScanner,
-	Mass:         4,
-	ScanRange:    220,
-	ScanRangePen: 100,
+
+	Mass:      2,
+	ScanRange: 230,
 }
-var CheetahScanner = TechHullComponent{Tech: NewTech("Cheetah Scanner", NewCost(3, 1, 13, 50), TechRequirements{TechLevel: TechLevel{Energy: 5, Electronics: 11}}, 115, TechCategoryScanner),
+var CheetahScanner = TechHullComponent{Tech: NewTech("Cheetah Scanner", NewCost(3, 1, 13, 50), TechRequirements{TechLevel: TechLevel{Energy: 5, Electronics: 11}}, 120, TechCategoryScanner),
 
 	HullSlotType: HullSlotTypeScanner,
 	Mass:         4,
 	ScanRange:    275,
-}
-var EagleEyeScanner = TechHullComponent{Tech: NewTech("Eagle Eye Scanner", NewCost(3, 2, 21, 64), TechRequirements{TechLevel: TechLevel{Energy: 6, Electronics: 14}}, 120, TechCategoryScanner),
-
-	HullSlotType: HullSlotTypeScanner,
-	Mass:         3,
-	ScanRange:    335,
 }
 var ElephantScanner = TechHullComponent{Tech: NewTech("Elephant Scanner", NewCost(8, 5, 14, 70), TechRequirements{TechLevel: TechLevel{Energy: 6, Electronics: 16, Biotechnology: 7}, LRTsDenied: NAS}, 130, TechCategoryScanner),
 
@@ -954,14 +979,13 @@ var ElephantScanner = TechHullComponent{Tech: NewTech("Elephant Scanner", NewCos
 	ScanRange:    300,
 	ScanRangePen: 200,
 }
-var PeerlessScanner = TechHullComponent{Tech: NewTech("Peerless Scanner", NewCost(3, 2, 30, 90), TechRequirements{TechLevel: TechLevel{Energy: 7, Electronics: 24}}, 140, TechCategoryScanner),
+var EagleEyeScanner = TechHullComponent{Tech: NewTech("Eagle Eye Scanner", NewCost(3, 2, 21, 64), TechRequirements{TechLevel: TechLevel{Energy: 6, Electronics: 14}}, 140, TechCategoryScanner),
 
 	HullSlotType: HullSlotTypeScanner,
-
-	Mass:      4,
-	ScanRange: 500,
+	Mass:         3,
+	ScanRange:    335,
 }
-var RobberBaronScanner = TechHullComponent{Tech: NewTech("Robber Baron Scanner", NewCost(10, 10, 10, 90), TechRequirements{TechLevel: TechLevel{Energy: 10, Electronics: 15, Biotechnology: 10}, PRTRequired: SS}, 160, TechCategoryScanner),
+var RobberBaronScanner = TechHullComponent{Tech: NewTech("Robber Baron Scanner", NewCost(10, 10, 10, 90), TechRequirements{TechLevel: TechLevel{Energy: 10, Electronics: 15, Biotechnology: 10}, PRTRequired: SS}, 150, TechCategoryScanner),
 
 	HullSlotType:        HullSlotTypeScanner,
 	Mass:                20,
@@ -969,6 +993,13 @@ var RobberBaronScanner = TechHullComponent{Tech: NewTech("Robber Baron Scanner",
 	CanStealPlanetCargo: true,
 	ScanRange:           220,
 	ScanRangePen:        120,
+}
+var PeerlessScanner = TechHullComponent{Tech: NewTech("Peerless Scanner", NewCost(3, 2, 30, 90), TechRequirements{TechLevel: TechLevel{Energy: 7, Electronics: 24}}, 160, TechCategoryScanner),
+
+	HullSlotType: HullSlotTypeScanner,
+
+	Mass:      4,
+	ScanRange: 500,
 }
 var Tritanium = TechHullComponent{Tech: NewTech("Tritanium", NewCost(5, 0, 0, 9), TechRequirements{TechLevel: TechLevel{}}, 10, TechCategoryArmor),
 
@@ -1505,16 +1536,7 @@ var EpsilonTorpedo = TechHullComponent{Tech: NewTech("Epsilon Torpedo", NewCost(
 	Range:        5,
 }
 
-var OmegaTorpedo = TechHullComponent{Tech: NewTech("Omega Torpedo", NewCost(52, 18, 12, 18), TechRequirements{TechLevel: TechLevel{Weapons: 26, Propulsion: 6}}, 40, TechCategoryTorpedo),
-
-	Mass:         25,
-	Initiative:   4,
-	Accuracy:     80,
-	Power:        316,
-	HullSlotType: HullSlotTypeWeapon,
-	Range:        5,
-}
-var RhoTorpedo = TechHullComponent{Tech: NewTech("Rho Torpedo", NewCost(34, 12, 8, 12), TechRequirements{TechLevel: TechLevel{Weapons: 18, Propulsion: 4}}, 50, TechCategoryTorpedo),
+var RhoTorpedo = TechHullComponent{Tech: NewTech("Rho Torpedo", NewCost(34, 12, 8, 12), TechRequirements{TechLevel: TechLevel{Weapons: 18, Propulsion: 4}}, 40, TechCategoryTorpedo),
 
 	Mass:         25,
 	Initiative:   2,
@@ -1523,12 +1545,23 @@ var RhoTorpedo = TechHullComponent{Tech: NewTech("Rho Torpedo", NewCost(34, 12, 
 	HullSlotType: HullSlotTypeWeapon,
 	Range:        5,
 }
-var UpsilonTorpedo = TechHullComponent{Tech: NewTech("Upsilon Torpedo", NewCost(40, 14, 9, 15), TechRequirements{TechLevel: TechLevel{Weapons: 22, Propulsion: 5}}, 60, TechCategoryTorpedo),
+
+var UpsilonTorpedo = TechHullComponent{Tech: NewTech("Upsilon Torpedo", NewCost(40, 14, 9, 15), TechRequirements{TechLevel: TechLevel{Weapons: 22, Propulsion: 5}}, 50, TechCategoryTorpedo),
 
 	Mass:         25,
 	Initiative:   3,
 	Accuracy:     75,
 	Power:        169,
+	HullSlotType: HullSlotTypeWeapon,
+	Range:        5,
+}
+
+var OmegaTorpedo = TechHullComponent{Tech: NewTech("Omega Torpedo", NewCost(52, 18, 12, 18), TechRequirements{TechLevel: TechLevel{Weapons: 26, Propulsion: 6}}, 60, TechCategoryTorpedo),
+
+	Mass:         25,
+	Initiative:   4,
+	Accuracy:     80,
+	Power:        316,
 	HullSlotType: HullSlotTypeWeapon,
 	Range:        5,
 }
@@ -2195,8 +2228,8 @@ func TechEngines() []TechEngine {
 	return []TechEngine{
 		SettlersDelight,
 		QuickJump5,
-		LongHump6,
 		FuelMizer,
+		LongHump6,
 		DaddyLongLegs7,
 		AlphaDrive8,
 		TransGalacticDrive,
@@ -2346,19 +2379,19 @@ func TechHullComponents() []TechHullComponent {
 		BatScanner,
 		RhinoScanner,
 		MoleScanner,
-		PickPocketScanner,
-		PossumScanner,
 		DNAScanner,
+		PossumScanner,
+		PickPocketScanner,
 		ChameleonScanner,
 		FerretScanner,
-		RNAScanner,
-		GazelleScanner,
 		DolphinScanner,
+		GazelleScanner,
+		RNAScanner,
 		CheetahScanner,
-		EagleEyeScanner,
 		ElephantScanner,
-		PeerlessScanner,
+		EagleEyeScanner,
 		RobberBaronScanner,
+		PeerlessScanner,
 		Tritanium,
 		Crobmnium,
 		Carbonic,
@@ -2432,9 +2465,9 @@ func TechHullComponents() []TechHullComponent {
 		BetaTorpedo,
 		DeltaTorpedo,
 		EpsilonTorpedo,
-		OmegaTorpedo,
 		RhoTorpedo,
 		UpsilonTorpedo,
+		OmegaTorpedo,
 		JihadMissile,
 		JuggernautMissile,
 		DoomsdayMissile,
