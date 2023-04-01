@@ -14,6 +14,8 @@ func newTestPlayerPlanet() (player *Player, planet *Planet) {
 	planet = &Planet{}
 	planet.PlayerNum = player.Num
 
+	player.Spec = computePlayerSpec(player, &rules, []*Planet{planet})
+
 	return player, planet
 }
 
@@ -213,6 +215,29 @@ func TestPlanet_produce4(t *testing.T) {
 	assert.Equal(t, 5, planet.ProductionQueue[1].Quantity)
 	assert.Equal(t, QueueItemTypeAutoMines, planet.ProductionQueue[2].Type)
 	assert.Equal(t, 5, planet.ProductionQueue[2].Quantity)
+
+}
+
+func TestPlanet_produceTerraform(t *testing.T) {
+	player, planet := newTestPlayerPlanet()
+
+	// build 2/5 auto factories and one partial mine
+	planet.ProductionQueue = []ProductionQueueItem{
+		{Type: QueueItemTypeTerraformEnvironment, Quantity: 5},
+	}
+	planet.Cargo = Cargo{0, 0, 8, 2500}
+	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 1000}
+	planet.BaseHab = Hab{40, 40, 40}
+	planet.Hab = Hab{40, 40, 40}
+
+	player.Spec.Terraform[TerraformHabTypeAll] = &TotalTerraform3
+	player.Messages = []PlayerMessage{}
+
+	// build 5 terraform steps, make planet better, log some messages
+	planet.produce(player)
+	assert.Equal(t, Hab{42, 42, 41}, planet.Hab)
+	assert.Equal(t, 0, len(planet.ProductionQueue))
+	assert.Equal(t, 5, len(player.Messages))
 
 }
 

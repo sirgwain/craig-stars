@@ -548,6 +548,18 @@ func (planet *Planet) buildItems(player *Player, item ProductionQueueItem, numBu
 	case QueueItemTypeDefenses:
 		planet.Defenses += numBuilt
 		messager.defensesBuilt(player, planet, numBuilt)
+	case QueueItemTypeAutoMaxTerraform:
+		fallthrough
+	case QueueItemTypeAutoMinTerraform:
+		fallthrough
+	case QueueItemTypeTerraformEnvironment:
+		terraformer := NewTerraformer()
+		for i := 0; i < numBuilt; i++ {
+			// terraform one at a time to ensure the best things get terraformed
+			result := terraformer.TerraformOneStep(planet, player, nil, false)
+			messager.terraform(player, planet, result.Type, result.Direction)
+		}
+		
 	case QueueItemTypeShipToken:
 		design := player.GetDesign(item.DesignName)
 		result.tokens = append(result.tokens, ShipToken{Quantity: numBuilt, design: design, DesignNum: design.Num})
