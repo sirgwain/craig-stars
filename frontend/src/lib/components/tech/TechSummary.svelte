@@ -51,7 +51,7 @@
 		class="card bg-base-200 shadow-xl w-full max-h-fit min-h-fit rounded-sm border-2 border-base-300"
 	>
 		<div class="card-body p-3 gap-0">
-			<h2 class="text-lg font-semibold text-center mb-1 text-secondary">{tech.name}</h2>
+			<h2 class="text-lg font-semibold text-center mb-1 text-secondary"><a href="/techs/{kebabCase(tech.name)}">{tech.name}</a></h2>
 
 			<div class="flex flex-row gap-2">
 				<div class="flex flex-col flex-initial min-w-[6rem]">

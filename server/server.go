@@ -65,6 +65,7 @@ func Start(db DBClient, config config.Config) {
 
 	// techs are public
 	r.GET("/api/techs", server.techs)
+	r.GET("/api/techs/:name", server.tech)
 
 	//
 	// authorized routes
