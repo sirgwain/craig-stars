@@ -409,7 +409,7 @@ func (t *turn) fleetMove() {
 
 				if wp1.WarpFactor == StargateWarpFactor {
 					// yeah, gate!
-					fleet.gateFleet(&t.game.Rules, player)
+					fleet.gateFleet(t.game.Universe, t.game, &t.game.Rules, player)
 				} else {
 					fleet.moveFleet(t.game.Universe, &t.game.Rules, player)
 				}

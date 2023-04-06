@@ -68,6 +68,10 @@ type ShipDesignSpec struct {
 	OrbitalConstructionModule bool                  `json:"orbitalConstructionModule,omitempty"`
 	HasWeapons                bool                  `json:"hasWeapons,omitempty"`
 	WeaponSlots               []ShipDesignSlot      `json:"weaponSlots"`
+	SafeHullMass              int                   `json:"safeHullMass,omitempty"`
+	SafeRange                 int                   `json:"safeRange,omitempty"`
+	MaxHullMass               int                   `json:"maxHullMass,omitempty"`
+	MaxRange                  int                   `json:"maxRange,omitempty"`
 }
 
 type MineLayingRateByMineType struct {
@@ -242,6 +246,20 @@ func computeShipDesignSpec(rules *Rules, player *Player, design *ShipDesign) Shi
 
 			if hullSlot.Type&HullSlotTypeSpaceDock > 0 {
 				spec.SpaceDock = hullSlot.Capacity
+			}
+
+			// stargate fields
+			if component.SafeHullMass != 0 {
+				spec.SafeHullMass = component.SafeHullMass
+			}
+			if component.MaxHullMass != 0 {
+				spec.MaxHullMass = component.MaxHullMass
+			}
+			if component.SafeRange != 0 {
+				spec.SafeRange = component.SafeRange
+			}
+			if component.MaxRange != 0 {
+				spec.MaxRange = component.MaxRange
 			}
 		}
 

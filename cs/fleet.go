@@ -58,14 +58,10 @@ type FleetSpec struct {
 	HasMassDriver    bool                       `json:"hasMassDriver,omitempty"`
 	HasStargate      bool                       `json:"hasStargate,omitempty"`
 	Stargate         string                     `json:"stargate,omitempty"`
-}
-
-type ShipToken struct {
-	DesignNum       int     `json:"designNum,omitempty"`
-	Quantity        int     `json:"quantity"`
-	Damage          float64 `json:"damage"`
-	QuantityDamaged int     `json:"quantityDamaged"`
-	design          *ShipDesign
+	SafeHullMass     int                        `json:"safeHullMass,omitempty"`
+	SafeRange        int                        `json:"safeRange,omitempty"`
+	MaxHullMass      int                        `json:"maxHullMass,omitempty"`
+	MaxRange         int                        `json:"maxRange,omitempty"`
 }
 
 type Waypoint struct {
@@ -237,6 +233,11 @@ func (f *Fleet) withPosition(position Vector) *Fleet {
 
 func (f *Fleet) withWaypoints(waypoints []Waypoint) *Fleet {
 	f.Waypoints = waypoints
+	return f
+}
+
+func (f *Fleet) withOrbitingPlanetNum(num int) *Fleet {
+	f.OrbitingPlanetNum = num
 	return f
 }
 
@@ -437,6 +438,21 @@ func computeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 
 		spec.CanStealFleetCargo = spec.CanStealFleetCargo || token.design.Spec.CanStealFleetCargo
 		spec.CanStealPlanetCargo = spec.CanStealPlanetCargo || token.design.Spec.CanStealPlanetCargo
+
+		// stargate fields
+		if token.design.Spec.SafeHullMass != 0 {
+			spec.SafeHullMass = token.design.Spec.SafeHullMass
+		}
+		if token.design.Spec.MaxHullMass != 0 {
+			spec.MaxHullMass = token.design.Spec.MaxHullMass
+		}
+		if token.design.Spec.SafeRange != 0 {
+			spec.SafeRange = token.design.Spec.SafeRange
+		}
+		if token.design.Spec.MaxRange != 0 {
+			spec.MaxRange = token.design.Spec.MaxRange
+		}
+
 	}
 
 	// compute the cloaking based on the cloak units and cargo
@@ -605,8 +621,143 @@ func (fleet *Fleet) moveFleet(mapObjectGetter mapObjectGetter, rules *Rules, pla
 	}
 }
 
-func (fleet *Fleet) gateFleet(rules *Rules, player *Player) {
-	panic("unimplemented")
+// GateFleet moves the fleet the cool way, with stargates!
+func (fleet *Fleet) gateFleet(mapObjectGetter mapObjectGetter, playerGetter playerGetter, rules *Rules, player *Player) {
+	wp0 := fleet.Waypoints[0]
+	wp1 := fleet.Waypoints[1]
+	totalDist := fleet.Position.DistanceTo(wp1.Position)
+
+	// if we got here, both source and dest have stargates
+	sourcePlanet := mapObjectGetter.getPlanet(fleet.OrbitingPlanetNum)
+	destPlanet := mapObjectGetter.getPlanet(wp1.TargetNum)
+
+	if sourcePlanet == nil || !sourcePlanet.Spec.HasStargate {
+		messager.fleetStargateInvalidSource(player, fleet, wp0)
+		return
+	}
+	if destPlanet == nil || !destPlanet.Spec.HasStargate {
+		messager.fleetStargateInvalidDest(player, fleet, wp0, wp1)
+		return
+	}
+
+	sourcePlanetPlayer := playerGetter.getPlayer(sourcePlanet.PlayerNum)
+	destPlanetPlayer := playerGetter.getPlayer(destPlanet.PlayerNum)
+
+	if !sourcePlanetPlayer.IsFriend(player.Num) {
+		messager.fleetStargateInvalidSourceOwner(player, fleet, wp0, wp1)
+		return
+	}
+	if !destPlanetPlayer.IsFriend(player.Num) {
+		messager.fleetStargateInvalidDestOwner(player, fleet, wp0, wp1)
+		return
+	}
+	if fleet.Cargo.Colonists > 0 && !sourcePlanet.OwnedBy(player.Num) {
+		messager.fleetStargateInvalidColonists(player, fleet, wp0, wp1)
+		return
+	}
+
+	sourceStargate := sourcePlanet.Spec
+	destStargate := destPlanet.Spec
+
+	// only the source gate matters for range
+	minSafeRange := sourceStargate.SafeRange
+	minSafeHullMass := minInt(sourceStargate.SafeHullMass, destStargate.SafeHullMass)
+
+	// check if we are exceeding the max distance
+	if totalDist > float64(minSafeRange*rules.StargateMaxRangeFactor) {
+		messager.fleetStargateInvalidRange(player, fleet, wp0, wp1, totalDist)
+		return
+	}
+
+	// check if any ships exceed the max mass allowed
+	for _, token := range fleet.Tokens {
+		if token.design.Spec.Mass > minSafeHullMass*rules.StargateMaxHullMassFactor {
+			messager.fleetStargateInvalidMass(player, fleet, wp0, wp1)
+			return
+		}
+	}
+
+	// dump cargo if we aren't IT
+	if fleet.Cargo.Total() > 0 && !player.Race.Spec.CanGateCargo {
+		messager.fleetStargateDumpedCargo(player, fleet, wp0, wp1, fleet.Cargo)
+		sourcePlanet.Cargo = sourcePlanet.Cargo.Add(fleet.Cargo)
+		fleet.Cargo = Cargo{}
+	}
+
+	// apply overgate damage and delete tokens (and possibly the fleet)
+	// also vanish tokens for non IT races
+	fleet.ApplyOvergatePenalty(player, rules, totalDist, wp0, wp1, sourceStargate, destStargate)
+
+	if len(fleet.Tokens) > 0 {
+		// if we survived, warp it!
+		fleet.completeMove(mapObjectGetter, wp0, wp1)
+	}
+}
+
+// ApplyOvergatePenalty applies damage (if any) to each token that overgated
+func (fleet *Fleet) ApplyOvergatePenalty(player *Player, rules *Rules, distance float64, wp0, wp1 Waypoint, sourceStargate, destStargate PlanetSpec) {
+	var totalDamage, shipsLostToDamage, shipsLostToTheVoid, startingShips int
+	for _, token := range fleet.Tokens {
+		startingShips += token.Quantity
+		// Inner stellar travellers never lose ships to the void, but everyone else does
+		if player.Race.Spec.ShipsVanishInVoid {
+			rangeVanishChance := token.getStargateRangeVanishingChance(distance, sourceStargate.SafeRange)
+			massVanishingChance := token.getStargateMassVanishingChance(sourceStargate.SafeHullMass, rules.StargateMaxHullMassFactor)
+			// Combined vanishing chance idea courtesy of ekolis
+			vanishingChance := 1 - (1-rangeVanishChance)*(1-massVanishingChance)
+
+			if rangeVanishChance > 0 || massVanishingChance > 0 {
+				for i := 0; i < token.Quantity; i++ {
+					// check if it vanishes due to range, if not, check if it vanishes due
+					// to mass. Each ship can only vanish once
+					if vanishingChance > rules.random.Float64() {
+						// oh no, we lost a ship!
+						shipsLostToTheVoid++
+						token.Quantity--
+						i--
+						if token.QuantityDamaged > 0 {
+							// get rid of the damaged ships first and redistribute the damage
+							// i.e. if we have 2 damaged ships with 20 total damage
+							// we get rid of one of them and leave one with 10 damage
+							token.Damage = math.Max(0, token.Damage/float64(token.QuantityDamaged))
+							token.QuantityDamaged--
+							// can't have damage without damaged ships
+							// I don't think this should ever come up
+							if token.QuantityDamaged == 0 {
+								token.Damage = 0
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// if we didn't lose tokens in
+		if token.Quantity > 0 {
+			tokenDamage := token.applyOvergateDamage(distance, sourceStargate.SafeRange, sourceStargate.SafeHullMass, destStargate.SafeHullMass, rules.StargateMaxHullMassFactor)
+
+			totalDamage += tokenDamage.damage
+			shipsLostToDamage += tokenDamage.shipsDestroyed
+		}
+	}
+
+	// remove any tokens that were lost completely
+	var newTokens []ShipToken
+	for _, token := range fleet.Tokens {
+		if token.Quantity > 0 {
+			newTokens = append(newTokens, token)
+		}
+	}
+	fleet.Tokens = newTokens
+
+	if len(fleet.Tokens) == 0 {
+		// gm.eventManager.PublishMapObjectDeletedEvent(fleet)
+		messager.fleetStargateDestroyed(player, fleet, wp0, wp1)
+	} else {
+		if totalDamage > 0 || shipsLostToTheVoid > 0 {
+			messager.fleetStargateDamaged(player, fleet, wp0, wp1, totalDamage, startingShips, shipsLostToDamage, shipsLostToTheVoid)
+		}
+	}
 }
 
 // Engine fuel usage calculation courtesy of m.a@stars

@@ -240,54 +240,131 @@ func (m *messageClient) fleetBuiltForComposition(player *Player, fleet *Fleet) {
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetScrapped, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
 }
 
-func (m *messageClient) fleetStargateInvalidSource(player *Player, fleet *Fleet) {
-	text := fmt.Sprintf("%s", fleet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetScrapped, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+func (m *messageClient) fleetStargateInvalidSource(player *Player, fleet *Fleet, wp0 Waypoint) {
+	player.Messages = append(player.Messages, PlayerMessage{
+		Type:            PlayerMessageInvalid,
+		Text:            fmt.Sprintf("%s attempted to use a stargate at %s, but no stargate exists there.", fleet.Name, wp0.TargetName),
+		TargetType:      TargetFleet,
+		TargetPlayerNum: fleet.PlayerNum,
+		TargetNum:       fleet.Num,
+	})
 }
 
-func (m *messageClient) fleetStargateInvalidSourceOwner(player *Player, fleet *Fleet) {
-	text := fmt.Sprintf("%s", fleet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetScrapped, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+func (m *messageClient) fleetStargateInvalidSourceOwner(player *Player, fleet *Fleet, wp0, wp1 Waypoint) {
+	player.Messages = append(player.Messages, PlayerMessage{
+		Type:            PlayerMessageInvalid,
+		Text:            fmt.Sprintf("%s attempted to use a stargate at %s, but could not because the starbase is not owned by you or a friend of yours.", fleet.Name, wp0.TargetName),
+		TargetType:      TargetFleet,
+		TargetPlayerNum: fleet.PlayerNum,
+		TargetNum:       fleet.Num,
+	})
 }
 
-func (m *messageClient) fleetStargateInvalidDest(player *Player, fleet *Fleet) {
-	text := fmt.Sprintf("%s", fleet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetScrapped, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+func (m *messageClient) fleetStargateInvalidDest(player *Player, fleet *Fleet, wp0, wp1 Waypoint) {
+	player.Messages = append(player.Messages, PlayerMessage{
+		Type:            PlayerMessageInvalid,
+		Text:            fmt.Sprintf("%s attempted to use a stargate at %s to reach %s, but no stargate could be detected at the destination.", fleet.Name, wp0.TargetName, wp1.TargetName),
+		TargetType:      TargetFleet,
+		TargetPlayerNum: fleet.PlayerNum,
+		TargetNum:       fleet.Num,
+	})
 }
 
-func (m *messageClient) fleetStargateInvalidDestOwner(player *Player, fleet *Fleet) {
-	text := fmt.Sprintf("%s", fleet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetScrapped, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+func (m *messageClient) fleetStargateInvalidDestOwner(player *Player, fleet *Fleet, wp0, wp1 Waypoint) {
+	player.Messages = append(player.Messages, PlayerMessage{
+		Type:            PlayerMessageInvalid,
+		Text:            fmt.Sprintf("%s attempted to use a stargate at %s to reach %s, but could not because the destination starbase is not owned by you or a friend of yours.", fleet.Name, wp0.TargetName, wp1.TargetName),
+		TargetType:      TargetFleet,
+		TargetPlayerNum: fleet.PlayerNum,
+		TargetNum:       fleet.Num,
+	})
 }
 
-func (m *messageClient) fleetStargateInvalidRange(player *Player, fleet *Fleet) {
-	text := fmt.Sprintf("%s", fleet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetScrapped, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+func (m *messageClient) fleetStargateInvalidRange(player *Player, fleet *Fleet, wp0, wp1 Waypoint, totalDist float64) {
+	player.Messages = append(player.Messages, PlayerMessage{
+		Type:            PlayerMessageInvalid,
+		Text:            fmt.Sprintf("%s attempted to use a stargate at %s to reach %s, but the distance of %.1f l.y. was outside the max range of the stargates.", fleet.Name, wp0.TargetName, wp1.TargetName, totalDist),
+		TargetType:      TargetFleet,
+		TargetPlayerNum: fleet.PlayerNum,
+		TargetNum:       fleet.Num,
+	})
 }
 
-func (m *messageClient) fleetStargateInvalidMass(player *Player, fleet *Fleet) {
-	text := fmt.Sprintf("%s", fleet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetScrapped, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+func (m *messageClient) fleetStargateInvalidMass(player *Player, fleet *Fleet, wp0, wp1 Waypoint) {
+	player.Messages = append(player.Messages, PlayerMessage{
+		Type:            PlayerMessageInvalid,
+		Text:            fmt.Sprintf("%s attempted to use a stargate at %s to reach %s, but your ships are too massive.", fleet.Name, wp0.TargetName, wp1.TargetName),
+		TargetType:      TargetFleet,
+		TargetPlayerNum: fleet.PlayerNum,
+		TargetNum:       fleet.Num,
+	})
 }
 
-func (m *messageClient) fleetStargateInvalidColonists(player *Player, fleet *Fleet) {
-	text := fmt.Sprintf("%s", fleet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetScrapped, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+func (m *messageClient) fleetStargateInvalidColonists(player *Player, fleet *Fleet, wp0 Waypoint, wp1 Waypoint) {
+	player.Messages = append(player.Messages, PlayerMessage{
+		Type:            PlayerMessageInvalid,
+		Text:            fmt.Sprintf("%s attempted to use a stargate at %s to reach %s, but you are carrying colonists and can't drop them off as you don't own the planet.", fleet.Name, wp0.TargetName, wp1.TargetName),
+		TargetType:      TargetFleet,
+		TargetPlayerNum: fleet.PlayerNum,
+		TargetNum:       fleet.Num,
+	})
 }
 
-func (m *messageClient) fleetStargateDumpedCargo(player *Player, fleet *Fleet) {
-	text := fmt.Sprintf("%s", fleet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetScrapped, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+func (m *messageClient) fleetStargateDumpedCargo(player *Player, fleet *Fleet, wp0 Waypoint, wp1 Waypoint, cargo Cargo) {
+	var text string
+	if cargo.HasColonists() && cargo.HasMinerals() {
+		text = fmt.Sprintf("%s has unloaded %d colonists and %dkt of minerals in preparation for jumping through the stargate at %s to reach %s.", fleet.Name, cargo.Colonists*100, cargo.Total()-cargo.Colonists, wp0.TargetName, wp1.TargetName)
+	} else if cargo.HasColonists() {
+		text = fmt.Sprintf("%s has unloaded %d colonists in preparation for jumping through the stargate at %s to reach %s.", fleet.Name, cargo.Colonists*100, wp0.TargetName, wp1.TargetName)
+	} else {
+		text = fmt.Sprintf("%s has unloaded %dkt of minerals in preparation for jumping through the stargate at %s to reach %s.", fleet.Name, cargo.Total(), wp0.TargetName, wp1.TargetName)
+	}
+	player.Messages = append(player.Messages, PlayerMessage{
+		Type:            PlayerMessageInvalid,
+		Text:            text,
+		TargetType:      TargetFleet,
+		TargetPlayerNum: fleet.PlayerNum,
+		TargetNum:       fleet.Num,
+	})
 }
 
-func (m *messageClient) fleetStargateDestroyed(player *Player, fleet *Fleet) {
-	text := fmt.Sprintf("%s", fleet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetScrapped, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+func (m *messageClient) fleetStargateDestroyed(player *Player, fleet *Fleet, wp0 Waypoint, wp1 Waypoint) {
+	player.Messages = append(player.Messages, PlayerMessage{
+		Type:            PlayerMessageFleetStargateDamaged,
+		Text:            fmt.Sprintf("Heedless to the danger, %s attempted to use the stargate at %s to reach %s. The fleet never arrived. The distance or mass must have been too great.", fleet.Name, wp0.TargetName, wp1.TargetName),
+		TargetType:      TargetFleet,
+		TargetPlayerNum: fleet.PlayerNum,
+		TargetNum:       fleet.Num,
+	})
 }
 
-func (m *messageClient) fleetStargateDamaged(player *Player, fleet *Fleet) {
-	text := fmt.Sprintf("%s", fleet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetScrapped, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+func (m *messageClient) fleetStargateDamaged(player *Player, fleet *Fleet, wp0 Waypoint, wp1 Waypoint, damage int, startingShips int, shipsLostToDamage int, shipsLostToTheVoid int) {
+	totalShipsLost := shipsLostToDamage + shipsLostToTheVoid
+	var text string
+	if totalShipsLost == 0 {
+		text = fmt.Sprintf("%s used the stargate at %s to reach %s losing no ships but suffering %d dp of damage. They exceeded the capability of the gates.", fleet.Name, wp0.TargetName, wp1.TargetName, damage)
+	} else if totalShipsLost < 5 {
+		text = fmt.Sprintf("%s used the stargate at %s to reach %s losing only %d ship%s to the treacherous void. They were fortunate. They exceeded the capability of the gates.", fleet.Name, wp0.TargetName, wp1.TargetName, totalShipsLost, func() string {
+			if totalShipsLost == 1 {
+				return ""
+			} else {
+				return "s"
+			}
+		}())
+	} else if totalShipsLost >= 5 && totalShipsLost <= 10 {
+		text = fmt.Sprintf("%s used the stargate at %s to reach %s losing %d ships to the unforgiving void. Exceeding the capability of your stargates is not recommended.", fleet.Name, wp0.TargetName, wp1.TargetName, totalShipsLost)
+	} else if totalShipsLost >= 10 && totalShipsLost <= 50 {
+		text = fmt.Sprintf("%s used the stargate at %s to reach %s unfortunately losing %d ships to the great unknown. Exceeding the capability of your stargates is dangerous.", fleet.Name, wp0.TargetName, wp1.TargetName, totalShipsLost)
+	} else if totalShipsLost >= 50 {
+		text = fmt.Sprintf("%s used the stargate at %s to reach %s losing an unbelievable %d ships. The jump was far in excess of the capabilities of starbases involved..", fleet.Name, wp0.TargetName, wp1.TargetName, totalShipsLost)
+	}
+	player.Messages = append(player.Messages, PlayerMessage{
+		Type:            PlayerMessageFleetStargateDamaged,
+		Text:            text,
+		TargetType:      TargetFleet,
+		TargetPlayerNum: fleet.PlayerNum,
+		TargetNum:       fleet.Num,
+	})
 }
 
 func (m *messageClient) fleetReproduce(player *Player, fleet *Fleet) {
