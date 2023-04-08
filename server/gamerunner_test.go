@@ -20,7 +20,11 @@ func createTestGameRunner() GameRunner {
 	}
 
 	// create a test user with a single race
-	if err := db.CreateUser(cs.NewUser("admin", "admin", "admin@craig-stars.net", cs.RoleAdmin)); err != nil {
+	user, err := cs.NewUser("admin", "admin", "admin@craig-stars.net", cs.RoleAdmin)
+	if (err != nil) {
+		panic(fmt.Errorf("generate test user, %w", err))
+	}
+	if err := db.CreateUser(user); err != nil {
 		panic(fmt.Errorf("create test database user, %w", err))
 	}
 

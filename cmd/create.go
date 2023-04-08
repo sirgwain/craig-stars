@@ -35,12 +35,16 @@ func addCreateUserCommand() {
 		Short: "A brief description of your command",
 		Long:  ``,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			user := cs.NewUser(username, password, email, role)
+			user, err := cs.NewUser(username, password, email, role)
+			if err != nil {
+				return err
+			}
+
 			db := db.NewClient()
 			cfg := config.GetConfig()
 			db.Connect(cfg)
 
-			err := db.CreateUser(user)
+			err = db.CreateUser(user)
 			if err != nil {
 				return err
 			}
