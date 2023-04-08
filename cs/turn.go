@@ -233,7 +233,7 @@ func (t *turn) fleetColonize() {
 	}
 }
 
-//fleetUnload executes wp0/wp1 unload transport tasks for fleets
+// fleetUnload executes wp0/wp1 unload transport tasks for fleets
 func (t *turn) fleetUnload() {
 	for _, fleet := range t.game.Fleets {
 		wp := fleet.Waypoints[0]
@@ -511,7 +511,8 @@ func (t *turn) planetProduction() {
 	for _, planet := range t.game.Planets {
 		if planet.owned() && len(planet.ProductionQueue) > 0 {
 			player := t.game.Players[planet.PlayerNum-1]
-			result := planet.produce(player)
+			producer := newProducer(planet, player)
+			result := producer.produce()
 			for _, token := range result.tokens {
 				fleet := t.buildFleet(player, planet, token)
 				messager.fleetBuilt(player, planet, &fleet, token.Quantity)

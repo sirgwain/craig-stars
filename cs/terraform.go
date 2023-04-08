@@ -7,6 +7,8 @@ type Terraformer interface {
 	PermaformOneStep(planet *Planet, player *Player, habType HabType) TerraformResult
 	TerraformOneStep(planet *Planet, player *Player, terraformer *Player, reverse bool) TerraformResult
 	GetBestTerraform(planet *Planet, player *Player, terraformer *Player) *HabType
+	getTerraformAmount(planet *Planet, player, terraformer *Player) Hab
+	getMinTerraformAmount(planet *Planet, player *Player, terraformer *Player) Hab
 }
 
 type TerraformResult struct {
