@@ -2,49 +2,15 @@
 
 A web based Stars! clone.
 
-## Tech
+## Tech Stack
 
 - [gin-gonic](https://github.com/gin-gonic/gin)
 - [cobra](https://github.com/spf13/cobra) (for cli)
 - [viper](https://github.com/spf13/viper) (for config)
-- [gorm](https://gorm.io) + sqlite (for session/user management)
+- [sqlx](https://github.com/jmoiron/sqlx) + sqlite (for session/user management)
 - [sveltekit](https://kit.svelte.dev) (with static adaptor)
 - [tailwindcss](https://tailwindcss.com)
 - [daisyui](https://daisyui.com)
-- [svelteui](https://www.svelteui.org)
-
-# build
-
-To build both the front end and the go binary, call:
-
-```zsh
-make
-```
-
-# run
-
-To run the app
-
-```zsh
-make run
-```
-
-Point your browser at [http://localhost:8080](http://localhost:8080)
-
-# user management
-
-To create a new user, call the cli
-
-```zsh
-> ./dist/craig-stars-darwin-universal create user -u admin -p admin
-> ./dist/craig-stars-darwin-universal list users
-
-Users
-
-│ USERNAME │
-│──────────│
-│ admin    │
-```
 
 # dev
 
@@ -83,19 +49,16 @@ running...
 Launch the frontend in development mode with
 
 ```zsh
-yarn --cwd run dev
+yarn --cwd frontend run dev
 ```
 
-Point your browser at [http://localhost:3000](http://localhost:3000) to see a live reloading frontend proxied to the go server on port `:8080`. Updating go code will relaunch the backend automatically. Updating frontend code will do a hot reload with sveltekit/vite.
+Point your browser at [http://localhost:5173](http://localhost:5173) to see a live reloading frontend proxied to the go server on port `:8080`. Updating go code will relaunch the backend automatically. Updating frontend code will do a hot reload with sveltekit/vite.
 
 # test
-
-## frontend
-
-Install playwright `npx playwright install`
 
 Run tests
 
 ```zsh
+go test ./...
 yarn --cwd frontend run test
 ```

@@ -13,8 +13,8 @@ package_frontend:
 
 build_server_all:
 	mkdir -p dist
-	GOARCH=amd64 GOOS=darwin go build -o dist/${BINARY_NAME}-darwin-amd64 main.go
 	GOARCH=arm64 GOOS=darwin go build -o dist/${BINARY_NAME}-darwin-arm64 main.go
+	GOARCH=amd64 GOOS=darwin go build -o dist/${BINARY_NAME}-darwin-amd64 main.go
 	GOARCH=amd64 GOOS=linux go build -o dist/${BINARY_NAME}-linux main.go
 	lipo -create -output dist/${BINARY_NAME}-darwin-universal dist/${BINARY_NAME}-darwin-amd64 dist/${BINARY_NAME}-darwin-arm64
 
@@ -33,7 +33,7 @@ reset_db:
 	rm data/data.db && go run main.go migrate && go run main.go create user -u admin -p admin
 
 serve:
-	./dist/${BINARY_NAME}-darwin-universal serve
+	./dist/${BINARY_NAME}-darwin-arm64 serve
 
 build_and_run: build run
 
