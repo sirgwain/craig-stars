@@ -112,7 +112,13 @@ type TechHull struct {
 	Armor                    int            `json:"armor,omitempty"`
 	FuelCapacity             int            `json:"fuelCapacity,omitempty"`
 	CargoCapacity            int            `json:"cargoCapacity,omitempty"`
+	CargoSlotPosition        Vector         `json:"cargoSlotPosition,omitempty"`
+	CargoSlotSize            Vector         `json:"cargoSlotSize,omitempty"`
+	CargoSlotCircle          bool           `json:"cargoSlotCircle,omitempty"`
 	SpaceDock                int            `json:"spaceDock,omitempty"`
+	SpaceDockSlotPosition    Vector         `json:"spaceDockSlotPosition,omitempty"`
+	SpaceDockSlotSize        Vector         `json:"spaceDockSlotSize,omitempty"`
+	SpaceDockSlotCircle      bool           `json:"spaceDockSlotCircle,omitempty"`
 	MineLayingFactor         int            `json:"mineLayingFactor,omitempty"`
 	BuiltInScanner           bool           `json:"builtInScanner,omitempty"`
 	Initiative               int            `json:"initiative,omitempty"`
@@ -130,6 +136,7 @@ type TechHullSlot struct {
 	Type     HullSlotType `json:"type"`
 	Capacity int          `json:"capacity"`
 	Required bool         `json:"required,omitempty"`
+	Position Vector       `json:"position"`
 }
 
 type TechHullType string

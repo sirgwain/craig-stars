@@ -4,6 +4,7 @@
 
 	export let type: HullSlotType = HullSlotType.General;
 	export let capacity: number = 1;
+	export let required = false;
 
 	function typeDescription() {
 		switch (type) {
@@ -37,5 +38,9 @@
 
 <div class="flex flex-col justify-between border border-slate-900 bg-base-300 tech-avatar text-sm">
 	<div class="flex-grow whitespace-pre-wrap text-center">{typeDescription()}</div>
-	<div class="text-center font-bold">Up to {capacity}</div>
+	{#if required}
+		<div class="text-center text-red-500 font-bold">needs {capacity}</div>
+	{:else}
+		<div class="text-center font-bold">Up to {capacity}</div>
+	{/if}
 </div>
