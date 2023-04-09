@@ -141,7 +141,7 @@
 </script>
 
 {#if $game && $player}
-	<main class="flex flex-col">
+	<main class="flex flex-col mb-20 md:mb-0">
 		<div class="flex-initial">
 			<GameMenu game={$game} on:submit-turn={onSubmitTurn} />
 		</div>
