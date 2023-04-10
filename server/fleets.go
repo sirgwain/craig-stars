@@ -30,7 +30,7 @@ func (s *server) UpdateFleetOrders(c *gin.Context) {
 		return
 	}
 
-	updated, err := s.playerUpdater.UpdateFleetOrders(user.ID, fleetID.ID, fleet.FleetOrders)
+	updated, err := s.playerUpdater.updateFleetOrders(user.ID, fleetID.ID, fleet.FleetOrders)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -57,7 +57,7 @@ func (s *server) transferCargo(c *gin.Context) {
 		return
 	}
 
-	updated, err := s.playerUpdater.TransferCargo(user.ID, id.ID, transfer.MO.ID, transfer.MO.Type, transfer.TransferAmount)
+	updated, err := s.playerUpdater.transferCargo(user.ID, id.ID, transfer.MO.ID, transfer.MO.Type, transfer.TransferAmount)
 	if err != nil {
 		if errors.Is(err, errNotFound) {
 			log.Error().Err(err).Msg("planet not found")

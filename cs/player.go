@@ -287,6 +287,15 @@ func (p *Player) GetLatestDesign(purpose ShipDesignPurpose) *ShipDesign {
 	return latest
 }
 
+// get the next design number to use
+func (p *Player) GetNextDesignNum() int {
+	num := 0
+	for _, design := range p.Designs {
+		num = maxInt(num, design.Num)
+	}
+	return num + 1
+}
+
 func computePlayerSpec(player *Player, rules *Rules, planets []*Planet) PlayerSpec {
 	researcher := NewResearcher(rules)
 	techs := rules.techs

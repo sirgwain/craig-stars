@@ -1,6 +1,7 @@
 package cs
 
 import (
+	"fmt"
 	"math"
 	"time"
 )
@@ -182,6 +183,57 @@ const (
 	HullSlotTypeWeaponShield                     = HullSlotTypeShield | HullSlotTypeWeapon
 	HullSlotTypeGeneral                          = HullSlotTypeScanner | HullSlotTypeMechanical | HullSlotTypeElectrical | HullSlotTypeShield | HullSlotTypeArmor | HullSlotTypeWeapon | HullSlotTypeMineLayer
 )
+
+func (hst HullSlotType) String() string {
+	switch hst {
+	case HullSlotTypeNone:
+		return "none"
+	case HullSlotTypeEngine:
+		return "engine"
+	case HullSlotTypeScanner:
+		return "scanner"
+	case HullSlotTypeMechanical:
+		return "mechanical"
+	case HullSlotTypeBomb:
+		return "bomb"
+	case HullSlotTypeMining:
+		return "mining"
+	case HullSlotTypeElectrical:
+		return "electrical"
+	case HullSlotTypeShield:
+		return "shield"
+	case HullSlotTypeArmor:
+		return "armor"
+	case HullSlotTypeCargo:
+		return "cargo"
+	case HullSlotTypeSpaceDock:
+		return "space dock"
+	case HullSlotTypeWeapon:
+		return "weapon"
+	case HullSlotTypeOrbital:
+		return "orbital"
+	case HullSlotTypeMineLayer:
+		return "mine layer"
+	case HullSlotTypeOrbitalElectrical:
+		return "orbital electrical"
+	case HullSlotTypeShieldElectricalMechanical:
+		return "shield electrical mechanical"
+	case HullSlotTypeScannerElectricalMechanical:
+		return "scanner electrical mechanical"
+	case HullSlotTypeArmorScannerElectricalMechanical:
+		return "armor scanner electrical mechanical"
+	case HullSlotTypeMineElectricalMechanical:
+		return "mine electrical mechanical"
+	case HullSlotTypeShieldArmor:
+		return "shield armor"
+	case HullSlotTypeWeaponShield:
+		return "weapon shield"
+	case HullSlotTypeGeneral:
+		return "general"
+	default:
+		return fmt.Sprintf("unknown slot type (%d)", hst)
+	}
+}
 
 type TechPlanetaryScanner struct {
 	Tech

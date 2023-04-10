@@ -246,7 +246,7 @@ func (store *TechStore) GetBestColonizationModule(player *Player) *TechHullCompo
 
 // TechEngines
 var SettlersDelight = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Settler's Delight", NewCost(1, 0, 1, 2), TechRequirements{PRTRequired: HE}, 10, TechCategoryEngine), Mass: 2},
+	TechHullComponent: TechHullComponent{Tech: NewTech("Settler's Delight", NewCost(1, 0, 1, 2), TechRequirements{PRTRequired: HE}, 10, TechCategoryEngine), Mass: 2, HullSlotType: HullSlotTypeEngine},
 	IdealSpeed:        6,
 	FreeSpeed:         6,
 	FuelUsage: [11]int{
@@ -264,7 +264,7 @@ var SettlersDelight = TechEngine{
 	},
 }
 var QuickJump5 = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Quick Jump 5", NewCost(3, 0, 1, 3), TechRequirements{}, 20, TechCategoryEngine), Mass: 4},
+	TechHullComponent: TechHullComponent{Tech: NewTech("Quick Jump 5", NewCost(3, 0, 1, 3), TechRequirements{}, 20, TechCategoryEngine), Mass: 4, HullSlotType: HullSlotTypeEngine},
 	IdealSpeed:        5,
 	FuelUsage: [11]int{
 		0,    // 0
@@ -281,7 +281,7 @@ var QuickJump5 = TechEngine{
 	},
 }
 var LongHump6 = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Long Hump 6", NewCost(5, 0, 1, 6), TechRequirements{TechLevel: TechLevel{Propulsion: 3}}, 40, TechCategoryEngine), Mass: 9},
+	TechHullComponent: TechHullComponent{Tech: NewTech("Long Hump 6", NewCost(5, 0, 1, 6), TechRequirements{TechLevel: TechLevel{Propulsion: 3}}, 40, TechCategoryEngine), Mass: 9, HullSlotType: HullSlotTypeEngine},
 	IdealSpeed:        6,
 	FuelUsage: [11]int{
 		0,    // 0
@@ -298,7 +298,7 @@ var LongHump6 = TechEngine{
 	},
 }
 var FuelMizer = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Fuel Mizer", NewCost(8, 0, 0, 11), TechRequirements{TechLevel: TechLevel{Propulsion: 2}, LRTsRequired: IFE}, 30, TechCategoryEngine), Mass: 6},
+	TechHullComponent: TechHullComponent{Tech: NewTech("Fuel Mizer", NewCost(8, 0, 0, 11), TechRequirements{TechLevel: TechLevel{Propulsion: 2}, LRTsRequired: IFE}, 30, TechCategoryEngine), Mass: 6, HullSlotType: HullSlotTypeEngine},
 	IdealSpeed:        6,
 	FreeSpeed:         4,
 	FuelUsage: [11]int{
@@ -317,7 +317,7 @@ var FuelMizer = TechEngine{
 }
 
 var DaddyLongLegs7 = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Daddy Long Legs 7", NewCost(11, 0, 3, 12), TechRequirements{TechLevel: TechLevel{Propulsion: 5}}, 50, TechCategoryEngine), Mass: 13},
+	TechHullComponent: TechHullComponent{Tech: NewTech("Daddy Long Legs 7", NewCost(11, 0, 3, 12), TechRequirements{TechLevel: TechLevel{Propulsion: 5}}, 50, TechCategoryEngine), Mass: 13, HullSlotType: HullSlotTypeEngine},
 	IdealSpeed:        7,
 	FuelUsage: [11]int{
 		0,   // 0
@@ -334,7 +334,7 @@ var DaddyLongLegs7 = TechEngine{
 	},
 }
 var AlphaDrive8 = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Alpha Drive 8", NewCost(16, 0, 3, 28), TechRequirements{TechLevel: TechLevel{Propulsion: 7}}, 60, TechCategoryEngine), Mass: 17},
+	TechHullComponent: TechHullComponent{Tech: NewTech("Alpha Drive 8", NewCost(16, 0, 3, 28), TechRequirements{TechLevel: TechLevel{Propulsion: 7}}, 60, TechCategoryEngine), Mass: 17, HullSlotType: HullSlotTypeEngine},
 	IdealSpeed:        8,
 	FuelUsage: [11]int{
 		0,
@@ -351,7 +351,7 @@ var AlphaDrive8 = TechEngine{
 	},
 }
 var TransGalacticDrive = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Trans-Galactic Drive", NewCost(20, 20, 9, 50), TechRequirements{TechLevel: TechLevel{Propulsion: 9}}, 70, TechCategoryEngine), Mass: 25},
+	TechHullComponent: TechHullComponent{Tech: NewTech("Trans-Galactic Drive", NewCost(20, 20, 9, 50), TechRequirements{TechLevel: TechLevel{Propulsion: 9}}, 70, TechCategoryEngine), Mass: 25, HullSlotType: HullSlotTypeEngine},
 	IdealSpeed:        9,
 	FuelUsage: [11]int{
 		0,
@@ -368,7 +368,7 @@ var TransGalacticDrive = TechEngine{
 	},
 }
 var Interspace10 = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Interspace-10", NewCost(18, 25, 10, 60), TechRequirements{TechLevel: TechLevel{Propulsion: 11}, LRTsRequired: NRSE}, 80, TechCategoryEngine), Mass: 25},
+	TechHullComponent: TechHullComponent{Tech: NewTech("Interspace-10", NewCost(18, 25, 10, 60), TechRequirements{TechLevel: TechLevel{Propulsion: 11}, LRTsRequired: NRSE}, 80, TechCategoryEngine), Mass: 25, HullSlotType: HullSlotTypeEngine},
 	IdealSpeed:        10,
 	FuelUsage: [11]int{
 		0,
@@ -385,7 +385,7 @@ var Interspace10 = TechEngine{
 	},
 }
 var TransStar10 = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Trans-Star 10", NewCost(3, 0, 3, 10), TechRequirements{TechLevel: TechLevel{Propulsion: 23}}, 90, TechCategoryEngine), Mass: 5},
+	TechHullComponent: TechHullComponent{Tech: NewTech("Trans-Star 10", NewCost(3, 0, 3, 10), TechRequirements{TechLevel: TechLevel{Propulsion: 23}}, 90, TechCategoryEngine), Mass: 5, HullSlotType: HullSlotTypeEngine},
 	IdealSpeed:        10,
 	FuelUsage: [11]int{
 		0,
@@ -402,7 +402,7 @@ var TransStar10 = TechEngine{
 	},
 }
 var RadiatingHydroRamScoop = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Radiating Hydro-Ram Scoop", NewCost(3, 2, 9, 8), TechRequirements{TechLevel: TechLevel{Energy: 2, Propulsion: 6}, LRTsDenied: NRSE}, 100, TechCategoryEngine), Mass: 10, Radiating: true},
+	TechHullComponent: TechHullComponent{Tech: NewTech("Radiating Hydro-Ram Scoop", NewCost(3, 2, 9, 8), TechRequirements{TechLevel: TechLevel{Energy: 2, Propulsion: 6}, LRTsDenied: NRSE}, 100, TechCategoryEngine), Mass: 10, HullSlotType: HullSlotTypeEngine, Radiating: true},
 	IdealSpeed:        6,
 	FreeSpeed:         6,
 	FuelUsage: [11]int{
@@ -420,7 +420,7 @@ var RadiatingHydroRamScoop = TechEngine{
 	},
 }
 var SubGalacticFuelScoop = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Sub-Galactic Fuel Scoop", NewCost(4, 4, 7, 12), TechRequirements{TechLevel: TechLevel{Energy: 2, Propulsion: 8}, LRTsDenied: NRSE}, 110, TechCategoryEngine), Mass: 20},
+	TechHullComponent: TechHullComponent{Tech: NewTech("Sub-Galactic Fuel Scoop", NewCost(4, 4, 7, 12), TechRequirements{TechLevel: TechLevel{Energy: 2, Propulsion: 8}, LRTsDenied: NRSE}, 110, TechCategoryEngine), Mass: 20, HullSlotType: HullSlotTypeEngine},
 	IdealSpeed:        7,
 	FreeSpeed:         7,
 	FuelUsage: [11]int{
@@ -438,7 +438,7 @@ var SubGalacticFuelScoop = TechEngine{
 	},
 }
 var TransGalacticFuelScoop = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Trans-Galactic Fuel Scoop", NewCost(5, 4, 12, 18), TechRequirements{TechLevel: TechLevel{Energy: 3, Propulsion: 9}, LRTsDenied: NRSE}, 120, TechCategoryEngine), Mass: 19},
+	TechHullComponent: TechHullComponent{Tech: NewTech("Trans-Galactic Fuel Scoop", NewCost(5, 4, 12, 18), TechRequirements{TechLevel: TechLevel{Energy: 3, Propulsion: 9}, LRTsDenied: NRSE}, 120, TechCategoryEngine), Mass: 19, HullSlotType: HullSlotTypeEngine},
 	IdealSpeed:        8,
 	FreeSpeed:         8,
 	FuelUsage: [11]int{
@@ -456,7 +456,7 @@ var TransGalacticFuelScoop = TechEngine{
 	},
 }
 var TransGalacticSuperScoop = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Trans-Galactic Super Scoop", NewCost(6, 4, 16, 24), TechRequirements{TechLevel: TechLevel{Energy: 4, Propulsion: 12}, LRTsDenied: NRSE}, 130, TechCategoryEngine), Mass: 18},
+	TechHullComponent: TechHullComponent{Tech: NewTech("Trans-Galactic Super Scoop", NewCost(6, 4, 16, 24), TechRequirements{TechLevel: TechLevel{Energy: 4, Propulsion: 12}, LRTsDenied: NRSE}, 130, TechCategoryEngine), Mass: 18, HullSlotType: HullSlotTypeEngine},
 	IdealSpeed:        9,
 	FreeSpeed:         9,
 	FuelUsage: [11]int{
@@ -474,7 +474,7 @@ var TransGalacticSuperScoop = TechEngine{
 	},
 }
 var TransGalacticMizerScoop = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Trans-Galactic Mizer Scoop", NewCost(5, 2, 13, 11), TechRequirements{TechLevel: TechLevel{Energy: 4, Propulsion: 16}, LRTsDenied: NRSE}, 140, TechCategoryEngine), Mass: 11},
+	TechHullComponent: TechHullComponent{Tech: NewTech("Trans-Galactic Mizer Scoop", NewCost(5, 2, 13, 11), TechRequirements{TechLevel: TechLevel{Energy: 4, Propulsion: 16}, LRTsDenied: NRSE}, 140, TechCategoryEngine), Mass: 11, HullSlotType: HullSlotTypeEngine},
 	IdealSpeed:        10,
 	FreeSpeed:         10,
 	FuelUsage: [11]int{
@@ -492,7 +492,7 @@ var TransGalacticMizerScoop = TechEngine{
 	},
 }
 var GalaxyScoop = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Galaxy Scoop", NewCost(4, 2, 9, 12), TechRequirements{TechLevel: TechLevel{Energy: 5, Propulsion: 20}, LRTsRequired: IFE, LRTsDenied: NRSE}, 150, TechCategoryEngine), Mass: 8},
+	TechHullComponent: TechHullComponent{Tech: NewTech("Galaxy Scoop", NewCost(4, 2, 9, 12), TechRequirements{TechLevel: TechLevel{Energy: 5, Propulsion: 20}, LRTsRequired: IFE, LRTsDenied: NRSE}, 150, TechCategoryEngine), Mass: 8, HullSlotType: HullSlotTypeEngine},
 	IdealSpeed:        10,
 	FreeSpeed:         10,
 	FuelUsage: [11]int{
