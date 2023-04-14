@@ -5,6 +5,7 @@
 	import { createEventDispatcher } from 'svelte';
 	import DarkModeToggler from '$lib/components/DarkModeToggler.svelte';
 	import type { Game } from '$lib/types/Game';
+	import { page } from '$app/stores';
 
 	export let game: Game;
 
@@ -34,6 +35,7 @@
 					class=" menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52"
 				>
 					<li><a href={`/games/${game.id}/research`}>Research</a></li>
+					<li><a href={`/games/${game.id}/designs`}>Designs</a></li>
 				</ul>
 			</div>
 
@@ -46,20 +48,21 @@
 				>
 					<li><a href={`/games/${game.id}/planets`}>Planets</a></li>
 					<li><a href={`/games/${game.id}/fleets`}>Fleets</a></li>
-					<li><a href={`/games/${game.id}/designs`}>Designs</a></li>
 					<li><a href={`/games/${game.id}/messages`}>Messages</a></li>
 				</ul>
 			</div>
 		</div>
 
-		<div class="tooltip tooltip-bottom" data-tip="submit turn">
-			<button on:click={() => dispatch('submit-turn')} class="btn btn-primary" title="submit turn"
-				><span class="hidden md:inline-block mr-1">Submit Turn</span><Icon
-					src={ArrowUpTray}
-					size="16"
-				/></button
-			>
-		</div>
+		{#if $page.url.pathname === `/games/${game.id}`}
+			<div class="tooltip tooltip-bottom" data-tip="submit turn">
+				<button on:click={() => dispatch('submit-turn')} class="btn btn-primary" title="submit turn"
+					><span class="hidden md:inline-block mr-1">Submit Turn</span><Icon
+						src={ArrowUpTray}
+						size="16"
+					/></button
+				>
+			</div>
+		{/if}
 		<div class="dropdown dropdown-end">
 			<label for="menu" tabindex="0" class="btn btn-ghost">
 				<div id="menu">
@@ -77,13 +80,13 @@
 					<span>Commands</span>
 				</li>
 				<li class="md:hidden"><a href={`/games/${game.id}/research`}>Research</a></li>
+				<li class="md:hidden"><a href={`/games/${game.id}/designs`}>Ship Designer</a></li>
 
 				<li class="md:hidden menu-title">
 					<span>Reports</span>
 				</li>
 				<li class="md:hidden"><a href={`/games/${game.id}/planets`}>Planets</a></li>
 				<li class="md:hidden"><a href={`/games/${game.id}/fleets`}>Fleets</a></li>
-				<li class="md:hidden"><a href={`/games/${game.id}/designs`}>Designs</a></li>
 				<li class="md:hidden"><a href={`/games/${game.id}/messages`}>Messages</a></li>
 
 				<li class="md:hidden menu-title">

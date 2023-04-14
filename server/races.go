@@ -46,7 +46,7 @@ func (s *server) race(c *gin.Context) {
 	c.JSON(http.StatusOK, race)
 }
 
-// Submit a turn for the player
+// create a new race for a user
 func (s *server) createRace(c *gin.Context) {
 	user := s.GetSessionUser(c)
 
@@ -66,7 +66,7 @@ func (s *server) createRace(c *gin.Context) {
 	c.JSON(http.StatusOK, race)
 }
 
-// Submit a turn for the player
+// get points for a race
 func (s *server) getRacePoints(c *gin.Context) {
 
 	race := cs.Race{}

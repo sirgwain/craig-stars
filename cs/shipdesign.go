@@ -83,7 +83,6 @@ type ShipDesignPurpose string
 const (
 	ShipDesignPurposeNone              ShipDesignPurpose = ""
 	ShipDesignPurposeScout             ShipDesignPurpose = "Scout"
-	ShipDesignPurposeArmedScout        ShipDesignPurpose = "ArmedScout"
 	ShipDesignPurposeColonizer         ShipDesignPurpose = "Colonizer"
 	ShipDesignPurposeBomber            ShipDesignPurpose = "Bomber"
 	ShipDesignPurposeFighter           ShipDesignPurpose = "Fighter"
@@ -389,7 +388,15 @@ func designShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 	engine := techStore.GetBestEngine(player)
 	scanner := techStore.GetBestScanner(player)
 	fuelTank := techStore.GetBestFuelTank(player)
+	beamWeapon := techStore.GetBestBeamWeapon(player)
+	shield := techStore.GetBestShield(player)
+	armor := techStore.GetBestArmor(player)
 	colonizationModule := techStore.GetBestColonizationModule(player)
+	battleComputer := techStore.GetBestBattleComputer(player)
+	miningRobot := techStore.GetBestMiningRobot(player)
+
+	numColonizationModules := 0
+	numScanners := 0
 
 	for i, hullSlot := range hull.Slots {
 		slot := ShipDesignSlot{HullSlotIndex: i + 1}
@@ -399,24 +406,107 @@ func designShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 		case HullSlotTypeEngine:
 			slot.HullComponent = engine.Name
 		case HullSlotTypeScanner:
+			numScanners++
 			slot.HullComponent = scanner.Name
-		case HullSlotTypeMechanical:
+		case HullSlotTypeWeapon:
+			slot.HullComponent = beamWeapon.Name
+		case HullSlotTypeShieldArmor:
 			fallthrough
+		case HullSlotTypeArmor:
+			slot.HullComponent = armor.Name
+		case HullSlotTypeShield:
+			slot.HullComponent = shield.Name
+		case HullSlotTypeMining:
+			slot.HullComponent = miningRobot.Name
+		case HullSlotTypeElectrical:
+			switch purpose {
+			case ShipDesignPurposeCapitalShip:
+				fallthrough
+			case ShipDesignPurposeFighter:
+				fallthrough
+			case ShipDesignPurposeFighterScout:
+				slot.HullComponent = battleComputer.Name
+			default:
+			}
+		case HullSlotTypeMechanical:
+			switch purpose {
+			case ShipDesignPurposeColonizer:
+				fallthrough
+			case ShipDesignPurposeColonistFreighter:
+				if colonizationModule != nil && numColonizationModules == 0 {
+					numColonizationModules++
+					slot.HullComponent = colonizationModule.Name
+					slot.Quantity = 1 // we only need 1 colonization module
+				} else {
+					slot.HullComponent = fuelTank.Name
+				}
+			default:
+				slot.HullComponent = fuelTank.Name
+			}
+		case HullSlotTypeScannerElectricalMechanical:
+			switch purpose {
+			case ShipDesignPurposeColonizer:
+				fallthrough
+			case ShipDesignPurposeColonistFreighter:
+				if colonizationModule != nil && numColonizationModules == 0 {
+					numColonizationModules++
+					slot.HullComponent = colonizationModule.Name
+					slot.Quantity = 1 // we only need 1 colonization module
+				} else if numScanners == 0 {
+					numScanners++
+					slot.HullComponent = scanner.Name
+				}
+			default:
+				if numScanners == 0 {
+					numScanners++
+					slot.HullComponent = scanner.Name
+				} else {
+
+				}
+			}
+
 		case HullSlotTypeArmorScannerElectricalMechanical:
 			switch purpose {
 			case ShipDesignPurposeColonizer:
 				fallthrough
 			case ShipDesignPurposeColonistFreighter:
-				if colonizationModule != nil {
+				if colonizationModule != nil && numColonizationModules == 0 {
+					numColonizationModules++
 					slot.HullComponent = colonizationModule.Name
 					slot.Quantity = 1 // we only need 1 colonization module
+				} else if numScanners == 0 {
+					slot.HullComponent = scanner.Name
+					numScanners++
+				} else {
+					slot.HullComponent = fuelTank.Name
+				}
+			default:
+				if numScanners == 0 {
+					slot.HullComponent = scanner.Name
+					numScanners++
+				} else {
+					slot.HullComponent = fuelTank.Name
 				}
 			}
 
 		case HullSlotTypeGeneral:
 			switch purpose {
+			case ShipDesignPurposeFighter:
+				fallthrough
+			case ShipDesignPurposeFighterScout:
+				if numScanners == 0 {
+					slot.HullComponent = scanner.Name
+					numScanners++
+				} else {
+					slot.HullComponent = beamWeapon.Name
+				}
 			default:
-				slot.HullComponent = fuelTank.Name
+				if numScanners == 0 {
+					slot.HullComponent = scanner.Name
+					numScanners++
+				} else {
+					slot.HullComponent = fuelTank.Name
+				}
 			}
 		}
 

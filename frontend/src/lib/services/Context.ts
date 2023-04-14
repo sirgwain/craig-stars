@@ -7,6 +7,7 @@ import { emptyUser, type User } from '$lib/types/User';
 import type { Vector } from '$lib/types/Vector';
 import { derived, get, writable } from 'svelte/store';
 import { rollover } from './Math';
+import { TechService } from './TechService';
 
 export type MapObjectsByPosition = {
 	[k: string]: MapObject[];
@@ -15,6 +16,7 @@ export type MapObjectsByPosition = {
 export const me = writable<User>(emptyUser);
 export const game = writable<Game | undefined>();
 export const player = writable<Player | undefined>();
+export const techs = writable<TechService>(new TechService());
 
 export const commandedPlanet = writable<CommandedPlanet | undefined>();
 export const commandedFleet = writable<Fleet | undefined>();

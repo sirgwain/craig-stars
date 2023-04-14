@@ -117,7 +117,7 @@ func Start(db DBClient, config config.Config) {
 	ar.GET("/games/:id/designs", server.getShipDesigns)
 	ar.GET("/games/:id/designs/:designnum", server.getShipDesign)
 	ar.POST("/games/:id/designs", server.createShipDesign)
-	ar.PUT("/games/:id/designs/:designnum", noop)
+	ar.PUT("/games/:id/designs", server.updateShipDesign)
 
 	// Update player plans
 	ar.PUT("/games/:id/battle-plans", noop)

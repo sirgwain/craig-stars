@@ -224,6 +224,7 @@ CREATE TABLE fleets (
   orbitingPlanetNum INTEGER,
   starbase NUMERIC,
   spec TEXT,
+  UNIQUE (gameId, playerNum, num),
   CONSTRAINT fkPlayersFleets FOREIGN KEY (gameId, playerNum) REFERENCES players(gameId, num) ON DELETE CASCADE,
   CONSTRAINT fkGamesFleets FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
 );
@@ -242,6 +243,7 @@ CREATE TABLE shipDesigns (
   slots TEXT,
   purpose TEXT,
   spec TEXT,
+  UNIQUE (gameId, playerNum, num),
   CONSTRAINT fkPlayersDesigns FOREIGN KEY (gameId, playerNum) REFERENCES players(gameId, num) ON DELETE CASCADE
 );
 CREATE TABLE planets (
@@ -282,6 +284,7 @@ CREATE TABLE planets (
   packetSpeed INTEGER,
   productionQueue TEXT,
   spec TEXT,
+  UNIQUE (gameId, num),
   CONSTRAINT fkGamesPlanets FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
 );
 CREATE TABLE mineralPackets (
@@ -303,6 +306,7 @@ CREATE TABLE mineralPackets (
   distanceTravelled REAL,
   headingX REAL,
   headingY REAL,
+  UNIQUE (gameId, playerNum, num),
   CONSTRAINT fkPlayersMineralPackets FOREIGN KEY (gameId, playerNum) REFERENCES players (gameId, num),
   CONSTRAINT fkGamesMineralPackets FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
 );
@@ -319,6 +323,7 @@ CREATE TABLE salvages (
   ironium INTEGER,
   boranium INTEGER,
   germanium INTEGER,
+  UNIQUE (gameId, num),
   CONSTRAINT fkPlayersSalvages FOREIGN KEY (gameId, playerNum) REFERENCES players (gameId, num),
   CONSTRAINT fkGamesSalvages FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
 );
@@ -335,6 +340,7 @@ CREATE TABLE wormholes (
   stability TEXT,
   yearsAtStability INTEGER,
   spec TEXT,
+  UNIQUE (gameId, num),
   CONSTRAINT fkGamesWormholes FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
 );
 CREATE TABLE mysteryTraders (
@@ -350,6 +356,7 @@ CREATE TABLE mysteryTraders (
   headingY REAL,
   warpSpeed INTEGER,
   spec TEXT,
+  UNIQUE (gameId, num),
   CONSTRAINT fkGamesMysteryTraders FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
 );
 
@@ -366,6 +373,7 @@ CREATE TABLE mineFields (
   numMines INTEGER,
   detonate NUMERIC,
   type TEXT,
+  UNIQUE (gameId, playerNum, num),
   CONSTRAINT fkPlayersMineFields FOREIGN KEY (gameId, playerNum) REFERENCES players (gameId, num),
   CONSTRAINT fkGamesMineFields FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
 );
