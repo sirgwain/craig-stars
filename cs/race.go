@@ -85,6 +85,7 @@ func (rc ResearchCost) Get(field TechField) ResearchCostLevel {
 }
 
 type RaceSpec struct {
+	MiniaturizationSpec
 	HabCenter                        Hab                    `json:"habCenter,omitempty"`
 	Costs                            map[QueueItemType]Cost `json:"costs,omitempty"`
 	StartingTechLevels               TechLevel              `json:"startingTechLevels,omitempty"`
@@ -139,9 +140,6 @@ type RaceSpec struct {
 	InnatePopulationFactor           float64                `json:"innatePopulationFactor,omitempty"`
 	CanBuildDefenses                 bool                   `json:"canBuildDefenses,omitempty"`
 	LivesOnStarbases                 bool                   `json:"livesOnStarbases,omitempty"`
-	NewTechCostFactor                float64                `json:"newTechCostFactor,omitempty"`
-	MiniaturizationMax               float64                `json:"miniaturizationMax,omitempty"`
-	MiniaturizationPerLevel          float64                `json:"miniaturizationPerLevel,omitempty"`
 	NoAdvancedScanners               bool                   `json:"noAdvancedScanners,omitempty"`
 	ScanRangeFactor                  float64                `json:"scanRangeFactor,omitempty"`
 	FuelEfficiencyOffset             float64                `json:"fuelEfficiencyOffset,omitempty"`
@@ -160,6 +158,12 @@ type RaceSpec struct {
 	ShieldRegenerationRate           float64                `json:"shieldRegenerationRate,omitempty"`
 	EngineFailureRate                float64                `json:"engineFailureRate,omitempty"`
 	EngineReliableSpeed              int                    `json:"engineReliableSpeed,omitempty"`
+}
+
+type MiniaturizationSpec struct {
+	NewTechCostFactor       float64 `json:"newTechCostFactor,omitempty"`
+	MiniaturizationMax      float64 `json:"miniaturizationMax,omitempty"`
+	MiniaturizationPerLevel float64 `json:"miniaturizationPerLevel,omitempty"`
 }
 
 type PRT string
@@ -528,19 +532,21 @@ func (r *Race) GetPlanetHabitability(hab Hab) int {
 func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 	prtSpec := rules.PRTSpecs[PRT(race.PRT)]
 	spec := RaceSpec{
-		HabCenter:                race.HabCenter(),
-		StartingTechLevels:       prtSpec.StartingTechLevels,
-		StartingPlanets:          prtSpec.StartingPlanets,
-		TechCostOffset:           prtSpec.TechCostOffset,
-		MaxPopulationOffset:      prtSpec.MaxPopulationOffset,
-		NewTechCostFactor:        1,
-		MiniaturizationMax:       .75,
-		MiniaturizationPerLevel:  .04,
+		HabCenter:           race.HabCenter(),
+		StartingTechLevels:  prtSpec.StartingTechLevels,
+		StartingPlanets:     prtSpec.StartingPlanets,
+		TechCostOffset:      prtSpec.TechCostOffset,
+		MaxPopulationOffset: prtSpec.MaxPopulationOffset,
 		ScanRangeFactor:          1,
 		StartingPopulationFactor: 1,
 		ResearchFactor:           1,
 		ShieldStrengthFactor:     1,
 		EngineReliableSpeed:      10,
+		MiniaturizationSpec: MiniaturizationSpec{
+			NewTechCostFactor:       1,
+			MiniaturizationMax:      .75,
+			MiniaturizationPerLevel: .04,
+		},
 
 		// PP
 		MineralsPerSingleMineralPacket:   prtSpec.MineralsPerSingleMineralPacket,

@@ -13,12 +13,20 @@ module.exports = {
 		extend: {}
 	},
 
-	plugins: [require('@tailwindcss/forms'), require('@tailwindcss/typography'), require('daisyui')],
+	plugins: [require('@tailwindcss/typography'), require('daisyui')],
 
 	darkMode: 'class',
 
 	daisyui: {
-		themes: ['emerald', 'business'],
+		themes: [
+			{
+				business: {
+					...require("daisyui/src/colors/themes")["[data-theme=business]"],
+					// 'base-100': '#333333'
+				}
+			},
+			'emerald',
+		],
 		darkTheme: 'business'
 	}
 };

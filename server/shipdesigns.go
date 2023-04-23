@@ -147,3 +147,28 @@ func (s *server) updateShipDesign(c *gin.Context) {
 
 	c.JSON(http.StatusOK, shipdesign)
 }
+
+func (s *server) deleteShipDesign(c *gin.Context) {
+	user := s.GetSessionUser(c)
+
+	var gameID idBind
+	if err := c.ShouldBindUri(&gameID); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var designNum designNumBind
+	if err := c.ShouldBindUri(&designNum); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// delete the ship design
+	fleets, starbases, err := s.playerUpdater.deleteShipDesign(user.ID, gameID.ID, designNum.DesignNum)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"fleets": fleets, "starbases": starbases})
+}

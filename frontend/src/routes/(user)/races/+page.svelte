@@ -35,23 +35,16 @@
 
 	export const removeItem = async (item: Race) => {
 		if (item.id && confirm(`Are you sure you want to delete ${item.name}`)) {
-			await RaceService.delete(item.id);
+			await RaceService.delete(item);
 			races = races.filter((b) => b.id != item.id);
 		}
 	};
 
 	onMount(async () => {
-		const response = await fetch(`/api/races`, {
-			method: 'GET',
-			headers: {
-				accept: 'application/json'
-			}
-		});
-
-		if (response.ok) {
-			races = (await response.json()) as Race[];
-		} else {
-			console.error(response);
+		try {
+			races = await RaceService.load();
+		} catch (err) {
+			// TODO: show error
 		}
 	});
 </script>
@@ -79,7 +72,7 @@
 
 		<span slot="cell">
 			{#if column.key == 'pluralName'}
-				<a href="/races/{row.id}" class="link text-2xl">{cell}</a>
+				<a class="cs-link text-2xl" href="/races/{row.id}">{cell}</a>
 			{:else if column.key == 'createdAt'}
 				{format(parseJSON(cell), 'E, MMM do yyyy hh:mm aaa')}
 			{:else if column.key == 'action'}

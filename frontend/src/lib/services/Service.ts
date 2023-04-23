@@ -1,3 +1,5 @@
+import type { ErrorResponse } from '$lib/types/ErrorResponse';
+
 export abstract class Service {
 	static async get<T>(url: string, body?: BodyInit): Promise<T> {
 		const response = await fetch(url, {
@@ -11,8 +13,9 @@ export abstract class Service {
 		if (response.ok) {
 			return (await response.json()) as T;
 		} else {
-			console.error(response);
-			throw new Error(`${response}`);
+			const errorResponse = (await response.json()) as ErrorResponse;
+			console.error(errorResponse);
+			throw new Error(errorResponse.error);
 		}
 	}
 	static async update<T>(item: T, url: string): Promise<T> {
@@ -27,13 +30,14 @@ export abstract class Service {
 		if (response.ok) {
 			return (await response.json()) as T;
 		} else {
-			console.error(response);
+			const errorResponse = (await response.json()) as ErrorResponse;
+			console.error(errorResponse);
+			throw new Error(errorResponse.error);
 		}
-		return Promise.resolve(item);
 	}
 
-	static async delete<T>(id: number, url: string): Promise<void> {
-		const response = await fetch(`${url}/${id}`, {
+	static async delete(url: string): Promise<void> {
+		const response = await fetch(`${url}`, {
 			method: 'DELETE',
 			headers: {
 				accept: 'application/json'
@@ -41,11 +45,9 @@ export abstract class Service {
 		});
 
 		if (!response.ok) {
-			const result = await response.json();
-			if ('error' in result) {
-				console.error(`Failed to delete ${url}/${id}`, result);
-				throw new Error(`Failed to delete ${url}/${id} ${JSON.stringify(result)}`);
-			}
+			const errorResponse = (await response.json()) as ErrorResponse;
+			console.error(errorResponse);
+			throw new Error(errorResponse.error);
 		}
 		return Promise.resolve();
 	}

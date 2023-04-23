@@ -1,51 +1,46 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import ItemTitle from '$lib/components/ItemTitle.svelte';
-	import TechAvatar from '$lib/components/tech/TechAvatar.svelte';
-	import { game, player, techs } from '$lib/services/Context';
+	import DesignCard from '$lib/components/game/DesignCard.svelte';
+	import Design from '$lib/components/game/design/Design.svelte';
+	import { DesignService } from '$lib/services/DesignService';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import { onMount } from 'svelte';
 
-	let gameId = $page.params.id;
+	let gameId = parseInt($page.params.id);
 
 	let designs: ShipDesign[] = [];
 
 	onMount(async () => {
-		const response = await fetch(`/api/games/${gameId}/designs`, {
-			method: 'GET',
-			headers: {
-				accept: 'application/json'
-			}
-		});
-
-		if (response.ok) {
-			designs = (await response.json()) as ShipDesign[];
-		} else {
-			console.error(response);
+		try {
+			designs = await DesignService.load(gameId);
+		} catch (error) {
+			// TODO: handle error
 		}
 	});
+
+	function onDeleted(design: ShipDesign): void {
+		designs = designs.filter((d) => d.num !== design.num);
+	}
 </script>
 
 <div class="w-full mx-auto md:max-w-2xl">
-	<div class="w-full flex justify-end gap-2">
-		<button class="btn btn-secondary" type="submit">Create Design</button>
+	<div class="w-full flex justify-between gap-2 border-primary border-b-2 mb-2">
+		<div class="breadcrumbs">
+			<ul>
+				<li>Designs</li>
+			</ul>
+		</div>
+
+		<a class="cs-link btn btn-sm" href={`/games/${gameId}/designs/create`}>Create</a>
 	</div>
 
-	<ItemTitle>Designs</ItemTitle>
-	{#if designs?.length}
-		<ul class="px-1">
-			{#each designs as design}
-				<li>
-					<div class="flex flex-row place-items-center">
-						<div class="mr-2 mb-2">
-							<TechAvatar tech={$techs.getHull(design.hull)} hullSetNumber={design.hullSetNumber} />
-						</div>
-						<div>
-							<a class="link" href={`/games/${gameId}/designs/${design.num}`}>{design.name}</a>
-						</div>
-					</div>
-				</li>
+	{#if designs?.length && gameId != undefined}
+		<div class="flex flex-wrap justify-center">
+			{#each designs as design (design.num)}
+				<div class="mb-2">
+					<DesignCard {design} {gameId} on:deleted={(e) => onDeleted(e.detail.design)} />
+				</div>
 			{/each}
-		</ul>
+		</div>
 	{/if}
 </div>

@@ -7,6 +7,8 @@
 	import { $enum as eu } from 'ts-enum-util';
 	import SectionHeader from './SectionHeader.svelte';
 	import TableSearchInput from './TableSearchInput.svelte';
+	import { player } from '$lib/services/Context';
+	import { canLearnTech, hasRequiredLevels } from '$lib/types/Player';
 
 	// for ssr, we start with techs from a json file
 	export let techStore: TechStore = techjson as TechStore;
@@ -20,6 +22,7 @@
 	];
 
 	let filter = '';
+	let showAll = !$player ?? false;
 
 	let techsByCategory: Record<TechCategory, Tech[]> = {
 		Armor: [],
@@ -63,7 +66,11 @@
 		};
 	}
 
-	$: filteredTechs = techs.filter((t) => t.name.toLocaleLowerCase().indexOf(filter.toLocaleLowerCase()) != -1);
+	$: filteredTechs = techs.filter(
+		(t) =>
+			t.name.toLocaleLowerCase().indexOf(filter.toLocaleLowerCase()) != -1 ||
+			t.category.toLocaleLowerCase().indexOf(filter.toLocaleLowerCase()) != -1
+	);
 
 	$: {
 		clearTechsByCategory();
@@ -95,18 +102,27 @@
 	});
 </script>
 
-<TableSearchInput bind:value={filter} />
-
+<div class="flex justify-between">
+	<div><TableSearchInput bind:value={filter} /></div>
+	<div class="form-control" class:hidden={!$player}>
+		<label class="label cursor-pointer">
+			<span class="label-text mr-1">Show All</span>
+			<input type="checkbox" class="toggle" bind:checked={showAll} />
+		</label>
+	</div>
+</div>
 {#each eu(TechCategory).getKeys() as category}
 	{#if techsByCategory[category].length > 0}
 		<a id={kebabCase(category)} href={`#${kebabCase(category)}`}
 			><SectionHeader title={startCase(category)} /></a
 		>
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-			{#each techsByCategory[category] as tech}
-				<div>
-					<TechSummary {tech} />
-				</div>
+			{#each techsByCategory[category] as tech (tech.name)}
+				{#if showAll || ($player && canLearnTech($player, tech) && hasRequiredLevels($player.techLevels, tech.requirements))}
+					<div>
+						<TechSummary {tech} />
+					</div>
+				{/if}
 			{/each}
 		</div>
 	{/if}

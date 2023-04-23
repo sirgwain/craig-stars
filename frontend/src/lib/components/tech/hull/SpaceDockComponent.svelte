@@ -6,7 +6,7 @@
 </script>
 
 <div
-	class={`flex flex-col h-full w-full justify-between border border-slate-900 bg-white text-sm ${
+	class={`flex flex-col h-full w-full justify-between border border-slate-900 bg-white text-sm text-black ${
 		rounded ? 'rounded-full p-3' : ''
 	}`}
 >

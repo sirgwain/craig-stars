@@ -2,12 +2,11 @@
 	import type { Player } from '$lib/types/Player';
 
 	import {
-		isHullComponent,
 		TechCategory,
+		isHullComponent,
 		type Tech,
 		type TechDefense,
 		type TechEngine,
-		type TechHull,
 		type TechHullComponent
 	} from '$lib/types/Tech';
 	import Cost from '../game/Cost.svelte';
@@ -17,8 +16,8 @@
 	import TechTraitRequirements from './TechTraitRequirements.svelte';
 
 	import { kebabCase } from 'lodash-es';
-	import TechDefenseGraph from './TechDefenseGraph.svelte';
 	import TechAvatar from './TechAvatar.svelte';
+	import TechDefenseGraph from './TechDefenseGraph.svelte';
 
 	export let tech: Tech;
 	export let player: Player | undefined = undefined;

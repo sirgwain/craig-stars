@@ -1,13 +1,19 @@
 <script lang="ts">
-	import { HullSlotType, type TechHullComponent } from '$lib/types/Tech';
+	import type { ShipDesignSlot } from '$lib/types/ShipDesign';
+	import { HullSlotType } from '$lib/types/Tech';
+	import { Minus, Plus, Trash } from '@steeze-ui/heroicons';
+	import { Icon } from '@steeze-ui/svelte-icon';
 	import { kebabCase } from 'lodash-es';
+	import { createEventDispatcher } from 'svelte';
 	import { $enum as eu } from 'ts-enum-util';
+
+	const dispatch = createEventDispatcher();
 
 	export let type: HullSlotType = HullSlotType.General;
 	export let capacity: number = 1;
 	export let required = false;
-	export let component: TechHullComponent | undefined = undefined;
-	export let quantity: number | undefined = undefined;
+	export let shipDesignSlot: ShipDesignSlot | undefined = undefined;
+	export let selected = false;
 
 	function typeDescription() {
 		switch (type) {
@@ -38,22 +44,75 @@
 		}
 	}
 
-	const icon = () => {
-		return kebabCase(component?.name.replace("'", '').replace(' ', '').replace('±', ''));
+	const icon = (c: string | undefined) => {
+		return kebabCase(c?.replace("'", '').replace(' ', '').replace('±', ''));
 	};
 </script>
 
 <div
-	class="flex flex-col justify-between border border-slate-900 bg-base-300 tech-avatar text-sm avatar {icon()}"
+	class="flex bg-base-300 tech-avatar text-sm avatar {icon(shipDesignSlot?.hullComponent)}"
+	class:border={!shipDesignSlot}
+	class:border-2={selected}
+	class:border-slate-900={!shipDesignSlot && !selected}
+	class:border-accent={selected}
+	class:z-50={selected}
 >
-	{#if component}
-		<span class="mt-auto text-center font-bold">{quantity} of {capacity}</span>
-	{:else}
-		<div class="flex-grow whitespace-pre-wrap text-center">{typeDescription()}</div>
-		{#if required}
-			<div class="text-center text-red-500 font-bold">needs {capacity}</div>
-		{:else}
-			<span class="mt-auto text-center font-bold">Up to {capacity}</span>
-		{/if}
-	{/if}
+	<button
+		type="button"
+		on:click={() => {
+			dispatch('selected');
+		}}
+		class="w-full h-full"
+	>
+		<div class="flex flex-col justify-between w-full h-full">
+			{#if shipDesignSlot}
+				<div class="grow">&nbsp;</div>
+				<span class="h-[1rem] mt-auto text-center font-bold text-black"
+					>{shipDesignSlot.quantity ?? 0} of {capacity}</span
+				>
+			{:else}
+				<div class="grow whitespace-pre-wrap text-center">{typeDescription()}</div>
+				{#if required}
+					<div class="h-[1rem] mt-auto text-center text-red-500 font-bold">needs {capacity}</div>
+				{:else}
+					<span class="h-[1rem] mt-auto text-center font-bold">Up to {capacity}</span>
+				{/if}
+			{/if}
+		</div>
+	</button>
+</div>
+<div class="flex flex-row -ml-5 mt-1 gap-1" class:hidden={!selected || !shipDesignSlot}>
+	<button
+		type="button"
+		class="btn btn-sm px-1 z-50"
+		disabled={capacity === shipDesignSlot?.quantity}
+		on:click={() => shipDesignSlot?.quantity && shipDesignSlot.quantity++}
+	>
+		<Icon src={Plus} size="24" class="hover:stroke-accent" />
+	</button>
+	<button
+		type="button"
+		class="btn btn-sm px-1 z-50"
+		on:click={() => {
+			if (shipDesignSlot?.quantity != undefined) {
+				shipDesignSlot.quantity--;
+				if (shipDesignSlot.quantity === 0) {
+					dispatch('deleted');
+				} else {
+					dispatch('updated');
+				}
+			}
+		}}
+	>
+		<Icon src={Minus} size="24" class="hover:stroke-accent" />
+	</button>
+	<button
+		type="button"
+		class="btn btn-sm px-1 z-50"
+		on:click={() => {
+			dispatch('deleted');
+		}}
+	>
+		<Icon src={Trash} size="24" class="hover:stroke-accent" />
+	</button>
 </div>

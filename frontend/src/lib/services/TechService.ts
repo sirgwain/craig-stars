@@ -9,6 +9,7 @@ import type {
 	Tech
 } from '$lib/types/Tech';
 import techjson from '$lib/ssr/techs.json';
+import { kebabCase } from 'lodash-es';
 
 export class TechService implements TechStore {
 	techs: Tech[] = [];
@@ -48,7 +49,7 @@ export class TechService implements TechStore {
 		this.planetaryScanners = store.planetaryScanners ?? [];
 		this.terraforms = store.terraforms ?? [];
 		this.defenses = store.defenses ?? [];
-		this.hullComponents = store.hullComponents ?? [];
+		this.hullComponents = (store.engines ?? []).concat(store.hullComponents ?? []);
 		this.hulls = store.hulls ?? [];
 
 		this.techs = [];
@@ -59,18 +60,18 @@ export class TechService implements TechStore {
 		this.techs = this.techs.concat(store.hulls);
 		this.techs = this.techs.concat(store.terraforms);
 
-		this.techsByName = new Map(this.techs.map((t) => [t.name, t]));
+		this.techsByName = new Map(this.techs.map((t) => [kebabCase(t.name), t]));
 		this.hullComponentsByName = new Map(
-			this.hullComponents.concat(this.engines).map((t) => [t.name, t])
+			this.hullComponents.concat(this.engines).map((t) => [kebabCase(t.name), t])
 		);
-		this.hullsByName = new Map(this.hulls.map((t) => [t.name, t]));
+		this.hullsByName = new Map(this.hulls.map((t) => [kebabCase(t.name), t]));
 	}
 
 	getHull(name: string): TechHull | undefined {
-		return this.hullsByName.get(name);
+		return this.hullsByName.get(kebabCase(name));
 	}
 
 	getHullComponent(name: string): TechHullComponent | undefined {
-		return this.hullComponentsByName.get(name);
+		return this.hullComponentsByName.get(kebabCase(name));
 	}
 }

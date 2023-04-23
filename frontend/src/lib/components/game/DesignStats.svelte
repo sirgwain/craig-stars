@@ -7,11 +7,11 @@
 <div class="flex flex-col min-w-[8rem]">
 	<div class="flex justify-between">
 		<div class="font-semibold mr-5">Mass</div>
-		<div>{design.spec.mass}kT</div>
+		<div>{design.spec.mass ?? 0}kT</div>
 	</div>
 	<div class="flex justify-between">
 		<div class="font-semibold mr-5">Max Fuel</div>
-		<div>{design.spec.fuelCapacity}mg</div>
+		<div>{design.spec.fuelCapacity ?? 0}mg</div>
 	</div>
 	<div class="flex justify-between">
 		<div class="font-semibold mr-5">Armor</div>
@@ -38,8 +38,10 @@
 		<div class="font-semibold mr-5">Scanner Range</div>
 		<div>{design.spec.scanRange ?? 0}/{design.spec.scanRangePen ?? 0}</div>
 	</div>
-	<div class="flex justify-between">
-		<div class="font-semibold mr-5">Purpose</div>
-		<div>{design.purpose}</div>
-	</div>
+	{#if design.purpose}
+		<div class="flex justify-between">
+			<div class="font-semibold mr-5">Purpose</div>
+			<div>{design.purpose}</div>
+		</div>
+	{/if}
 </div>
