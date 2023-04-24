@@ -164,7 +164,7 @@ func (s *server) deleteShipDesign(c *gin.Context) {
 	}
 
 	// delete the ship design
-	fleets, starbases, err := s.playerUpdater.deleteShipDesign(user.ID, gameID.ID, designNum.DesignNum)
+	fleets, starbases, err := s.playerUpdater.deleteShipDesign(gameID.ID, user.ID, designNum.DesignNum)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
