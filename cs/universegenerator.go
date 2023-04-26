@@ -198,7 +198,7 @@ func (ug *universeGenerator) generatePlayerShipDesigns() {
 				design := designShip(techStore, hull, startingFleet.Name, player, num, player.DefaultHullSet, startingFleet.Purpose)
 				design.HullSetNumber = int(startingFleet.HullSetNumber)
 				design.Purpose = startingFleet.Purpose
-				design.Spec = computeShipDesignSpec(ug.rules, player, design)
+				design.Spec = ComputeShipDesignSpec(ug.rules, player.TechLevels, player.Race.Spec, design)
 				player.Designs = append(player.Designs, design)
 				num++
 			}
@@ -209,7 +209,7 @@ func (ug *universeGenerator) generatePlayerShipDesigns() {
 		for i := range starbaseDesigns {
 			design := &starbaseDesigns[i]
 			design.Purpose = ShipDesignPurposeStarbase
-			design.Spec = computeShipDesignSpec(ug.rules, player, design)
+			design.Spec = ComputeShipDesignSpec(ug.rules, player.TechLevels, player.Race.Spec, design)
 			player.Designs = append(player.Designs, design)
 		}
 	}
@@ -331,12 +331,12 @@ func (ug *universeGenerator) generatePlayerFleets(player *Player, planet *Planet
 			return fmt.Errorf("no design named %s found for player %s", startingFleet.Name, player)
 		}
 
-		fleet := newFleet(player, design, *fleetNum, startingFleet.Name, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, design.Spec.IdealSpeed)})		
+		fleet := newFleet(player, design, *fleetNum, startingFleet.Name, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, design.Spec.IdealSpeed)})
 		fleet.OrbitingPlanetNum = planet.Num
 		fleet.Spec = computeFleetSpec(ug.rules, player, &fleet)
 		fleet.Fuel = fleet.Spec.FuelCapacity
 		ug.universe.Fleets = append(ug.universe.Fleets, &fleet)
-		design.Spec.NumInstances++;
+		design.Spec.NumInstances++
 		(*fleetNum)++ // increment the fleet num
 	}
 

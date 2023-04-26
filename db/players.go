@@ -332,7 +332,13 @@ func (c *client) GetLightPlayerForGame(gameID, userID int64) (*cs.Player, error)
 	researchAmount,
 	nextResearchField,
 	researching,
-	race
+	race,
+	techLevelsEnergy,
+	techLevelsWeapons,
+	techLevelsPropulsion,
+	techLevelsConstruction,
+	techLevelsElectronics,
+	techLevelsBiotechnology	
 	FROM players 
 	WHERE gameId = ? AND userId = ?`, gameID, userID); err != nil {
 		if err == sql.ErrNoRows {

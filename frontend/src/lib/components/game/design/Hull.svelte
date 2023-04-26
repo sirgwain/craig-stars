@@ -2,10 +2,13 @@
 	import { techs } from '$lib/services/Context';
 	import type { ShipDesignSlot } from '$lib/types/ShipDesign';
 	import type { HullSlot, TechHull } from '$lib/types/Tech';
+	import { createEventDispatcher } from 'svelte';
 	import CargoComponent from '../../tech/hull/CargoComponent.svelte';
 	import HullComponent from '../../tech/hull/HullComponent.svelte';
 	import SpaceDockComponent from '../../tech/hull/SpaceDockComponent.svelte';
 	import { shipDesignerContext } from './ShipDesignerContext';
+
+	const dispatch = createEventDispatcher();
 
 	const componentSize = 64; // each component block is 64px
 	const containerWidth = componentSize * 5;
@@ -13,7 +16,8 @@
 
 	export let hull: TechHull;
 	export let shipDesignSlots: ShipDesignSlot[] = [];
-	export let selectedSlot: HullSlot | undefined = undefined;
+	export let highlightedSlots: HullSlot[] = [];
+	export let highlightedClass: string = '';
 </script>
 
 <div class="relative m-2" style={`width: ${containerWidth}px; height: ${containerHeight}px`}>
@@ -62,14 +66,10 @@
 				type={slot.type}
 				capacity={slot.capacity}
 				required={slot.required}
-				selected={selectedSlot && selectedSlot === slot}
-				on:selected={() => {
-					selectedSlot = slot;
-					if ($shipDesignerContext) {
-						$shipDesignerContext.selectedSlotIndex = index;
-						$shipDesignerContext.selectedSlot = slot;
-						$shipDesignerContext.selectedShipDesignSlot = shipDesignSlot;
-					}
+				highlighted={highlightedSlots.findIndex((s) => s === slot) != -1}
+				{highlightedClass}
+				on:clicked={(e) => {
+					dispatch('slot-clicked', { index, slot, shipDesignSlot });
 				}}
 				on:deleted={() => {
 					shipDesignSlots = shipDesignSlots.filter((s) => s !== shipDesignSlot);

@@ -6,7 +6,6 @@
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import DesignStats from '../DesignStats.svelte';
 
-
 	export let design: ShipDesign;
 
 	$: hull = design && $techs.getHull(design.hull);
@@ -29,7 +28,7 @@
 			<Cost cost={design.spec.cost} />
 		</div>
 		<div>
-			<DesignStats {design} />
+			<DesignStats spec={design.spec} />
 		</div>
 	</div>
 </div>
