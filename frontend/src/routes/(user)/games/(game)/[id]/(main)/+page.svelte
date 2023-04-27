@@ -12,6 +12,6 @@
 	Generating turn, refresh
 {:else if $player?.submittedTurn && $game?.state == GameState.WaitingForPlayers}
 	<WaitingForPlayers game={$game} />
-{:else if $game && $player}
+{:else if $game && $player && $player.planets && $player.race}
 	<Game game={$game} player={$player} />
 {/if}

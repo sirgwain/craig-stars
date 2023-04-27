@@ -296,6 +296,7 @@ func (pu *playerUpdater) createShipDesign(gameID, userID int64, design *cs.ShipD
 	design.PlayerNum = player.Num
 	design.GameID = player.GameID
 	design.Num = player.GetNextDesignNum()
+	design.Spec = cs.ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
 
 	if err := pu.db.CreateShipDesign(design); err != nil {
 		log.Error().Err(err).Int64("ID", player.ID).Str("DesignName", design.Name).Msg("save new player design")
