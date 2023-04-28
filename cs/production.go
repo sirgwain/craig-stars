@@ -220,6 +220,9 @@ func (p *production) buildItems(item ProductionQueueItem, numBuilt int, result *
 
 	case QueueItemTypeShipToken:
 		design := player.GetDesign(item.DesignName)
+		design.Spec.NumBuilt += numBuilt
+		design.Spec.NumInstances += numBuilt
+		design.Dirty = true
 		result.tokens = append(result.tokens, ShipToken{Quantity: numBuilt, design: design, DesignNum: design.Num})
 	}
 

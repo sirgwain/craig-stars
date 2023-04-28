@@ -75,6 +75,7 @@ type ShipDesignSpec struct {
 	MaxHullMass               int                   `json:"maxHullMass,omitempty"`
 	MaxRange                  int                   `json:"maxRange,omitempty"`
 	NumInstances              int                   `json:"numInstances,omitempty"`
+	NumBuilt                  int                   `json:"numBuilt,omitempty"`
 }
 
 type MineLayingRateByMineType struct {

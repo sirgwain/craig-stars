@@ -337,6 +337,7 @@ func (ug *universeGenerator) generatePlayerFleets(player *Player, planet *Planet
 		fleet.Fuel = fleet.Spec.FuelCapacity
 		ug.universe.Fleets = append(ug.universe.Fleets, &fleet)
 		design.Spec.NumInstances++
+		design.Spec.NumBuilt++
 		(*fleetNum)++ // increment the fleet num
 	}
 

@@ -244,6 +244,7 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 	// // the homeworld gets a starbase
 	starbaseDesign := player.GetDesign(startingPlanet.StarbaseDesignName)
 	starbaseDesign.Spec.NumInstances++
+	starbaseDesign.Spec.NumBuilt++
 	starbase := newStarbase(player, p, starbaseDesign, starbaseDesign.Name)
 	starbase.Spec = computeFleetSpec(rules, player, &starbase)
 	p.starbase = &starbase

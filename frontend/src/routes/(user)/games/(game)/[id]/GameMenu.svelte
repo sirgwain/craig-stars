@@ -27,21 +27,18 @@
 		</div>
 	</div>
 	<div class="flex-initial">
-		<div class="hidden md:inline-block">
-			{#if $page.url.pathname === `/games/${game.id}`}
-				<div class="tooltip tooltip-bottom" data-tip="submit turn">
-					<button
-						on:click={() => dispatch('submit-turn')}
-						class="btn btn-primary"
-						title="submit turn"
-						><span class="hidden md:inline-block mr-1">Submit Turn</span><Icon
-							src={ArrowUpTray}
-							size="16"
-						/></button
-					>
-				</div>
-			{/if}
+		{#if $page.url.pathname === `/games/${game.id}`}
+			<div class="tooltip tooltip-bottom" data-tip="submit turn">
+				<button on:click={() => dispatch('submit-turn')} class="btn btn-primary" title="submit turn"
+					><span class="hidden md:inline-block mr-1">Submit Turn</span><Icon
+						src={ArrowUpTray}
+						size="16"
+					/></button
+				>
+			</div>
+		{/if}
 
+		<div class="hidden md:inline-block">
 			<div class="dropdown dropdown-end">
 				<label for="reports" tabindex="0" class="btn btn-ghost">Commands</label>
 				<ul

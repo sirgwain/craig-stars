@@ -282,6 +282,12 @@ func (u *Universe) getCargoHolder(mapObjectType MapObjectType, num int, playerNu
 func (u *Universe) deleteFleet(fleet *Fleet) {
 	fleet.Delete = true
 
+	// decrease token count
+	for _, token := range fleet.Tokens {
+		token.design.Spec.NumInstances -= token.Quantity
+		token.design.Dirty = true
+	}
+
 	index := slices.Index(u.Fleets, fleet)
 	slices.Delete(u.Fleets, index, index)
 

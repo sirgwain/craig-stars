@@ -1,10 +1,9 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import ItemTitle from '$lib/components/ItemTitle.svelte';
+	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import ShipDesigner from '$lib/components/game/design/ShipDesigner.svelte';
 	import { player, techs } from '$lib/services/Context';
-	import { DesignService } from '$lib/services/DesignService';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 
 	let gameId = $page.params.id;
@@ -23,6 +22,7 @@
 
 	$: hull = $techs.getHull(hullName);
 	$: design.hull = hull?.name ?? '';
+
 	let error = '';
 
 	const onSave = async () => {
@@ -48,6 +48,16 @@
 	};
 </script>
 
-<div class="w-full mx-auto md:max-w-2xl">
-	<ShipDesigner {gameId} bind:design {hullName} on:save={(e) => onSave()} bind:error />
-</div>
+<Breadcrumb>
+	<svelte:fragment slot="crumbs">
+		<li><a class="cs-link" href={`/games/${gameId}/designs`}>Designs</a></li>
+		<li><a class="cs-link" href={`/games/${gameId}/designs/create`}>Choose Hull</a></li>
+		<li>{design.name == '' ? 'new' : design.name}</li>
+	</svelte:fragment>
+	<div slot="end" class="flex justify-end mb-1">
+		<button class="btn btn-success" type="submit" on:click={(e) => onSave()}>Save</button>
+	</div>
+</Breadcrumb>
+{#if hull}
+	<ShipDesigner {gameId} bind:design {hull} on:save={(e) => onSave()} bind:error />
+{/if}
