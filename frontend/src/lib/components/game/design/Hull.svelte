@@ -20,7 +20,7 @@
 	export let highlightedClass: string = '';
 </script>
 
-<div class="relative m-2" style={`width: ${containerWidth}px; height: ${containerHeight}px`}>
+<div class="relative m-2 bg-base-200 dark:bg-base-300" style={`width: ${containerWidth}px; height: ${containerHeight}px`}>
 	{#each hull.slots as slot, index}
 		{@const shipDesignSlot = shipDesignSlots.find((s) => s.hullSlotIndex === index + 1)}
 		{#if index == 1 && hull.cargoCapacity && hull.cargoCapacity > 0}
