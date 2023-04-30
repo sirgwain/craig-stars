@@ -53,11 +53,6 @@ func generateTestGame(db server.DBClient, config config.Config) error {
 		return err
 	}
 
-	user2, user2Race, err := createTestUser(db, "craig", config.GeneratedUserPassword, "craig@craig-stars.net", cs.RoleUser)
-	if err != nil {
-		return err
-	}
-
 	// create a game runner to host some games
 	gameRunner := server.NewGameRunner(db)
 
@@ -70,36 +65,42 @@ func generateTestGame(db server.DBClient, config config.Config) error {
 		return err
 	}
 
-	// also create a medium size game with 25 turns generated
-	mediumGame, err := gameRunner.HostGame(admin.ID, cs.NewGameSettings().
-		WithName("Medium Game").
-		WithSize(cs.SizeMedium).
-		WithHost(adminRace.ID).
-		WithAIPlayer(cs.AIDifficultyNormal))
-	if err != nil {
-		return err
-	}
-	for i := 0; i < 40; i++ {
-		gameRunner.SubmitTurn(mediumGame.ID, mediumGame.HostID)
-		if _, err := gameRunner.CheckAndGenerateTurn(mediumGame.ID); err != nil {
-			log.Error().Err(err).Msg("check and generate new turn")
-		}
-	}
+	// user2, user2Race, err := createTestUser(db, "craig", config.GeneratedUserPassword, "craig@craig-stars.net", cs.RoleUser)
+	// if err != nil {
+	// 	return err
+	// }
 
-	// user2 will also host a game so with an open player slot
-	_, err = gameRunner.HostGame(user2.ID, cs.NewGameSettings().
-		WithName("Joinable Game").
-		WithHost(user2Race.ID).
-		WithOpenPlayerSlot().
-		WithAIPlayer(cs.AIDifficultyNormal))
-	if err != nil {
-		return err
-	}
+
+	// also create a medium size game with 25 turns generated
+	// mediumGame, err := gameRunner.HostGame(admin.ID, cs.NewGameSettings().
+	// 	WithName("Medium Game").
+	// 	WithSize(cs.SizeMedium).
+	// 	WithHost(adminRace.ID).
+	// 	WithAIPlayer(cs.AIDifficultyNormal))
+	// if err != nil {
+	// 	return err
+	// }
+	// for i := 0; i < 40; i++ {
+	// 	gameRunner.SubmitTurn(mediumGame.ID, mediumGame.HostID)
+	// 	if _, err := gameRunner.CheckAndGenerateTurn(mediumGame.ID); err != nil {
+	// 		log.Error().Err(err).Msg("check and generate new turn")
+	// 	}
+	// }
+
+	// // user2 will also host a game so with an open player slot
+	// _, err = gameRunner.HostGame(user2.ID, cs.NewGameSettings().
+	// 	WithName("Joinable Game").
+	// 	WithHost(user2Race.ID).
+	// 	WithOpenPlayerSlot().
+	// 	WithAIPlayer(cs.AIDifficultyNormal))
+	// if err != nil {
+	// 	return err
+	// }
 
 	return nil
 }
 
-func createTestUser(db server.DBClient, username string, password string, email string, role cs.Role) (*cs.User, *cs.Race, error) {
+func createTestUser(db server.DBClient, username string, password string, email string, role string) (*cs.User, *cs.Race, error) {
 	user, err := db.GetUserByUsername(username)
 	if err != nil {
 		return nil, nil, err

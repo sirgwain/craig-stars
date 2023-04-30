@@ -21,6 +21,14 @@
             "args": ["-d", "serve", "--generate-test-game"]
         },
         {
+            "name": "serve-chi --generate-test-game",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/main.go",
+            "args": ["-d", "serve-chi", "--generate-test-game"]
+        },
+        {
             "name": "list users",
             "type": "go",
             "request": "launch",

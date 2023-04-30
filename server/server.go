@@ -79,12 +79,6 @@ func Start(db DBClient, config config.Config) {
 
 	ar.GET("/rules", server.rules)
 
-	// race CRUD
-	ar.GET("/races", server.races)
-	ar.GET("/races/:id", server.race)
-	ar.PUT("/races/:id", server.updateRace)
-	ar.POST("/races", server.createRace)
-	ar.POST("/races/points", server.getRacePoints)
 
 	// get various lists of games
 	ar.GET("/games", server.playerGames)

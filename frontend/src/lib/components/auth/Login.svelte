@@ -1,10 +1,13 @@
 <script lang="ts">
-	const onSubmit = async () => {
-		const data = JSON.stringify({ username, password });
+	import DiscordLink from './DiscordLink.svelte';
 
-		const response = await fetch(`/api/login`, {
-			method: 'post',
+	const onSubmit = async () => {
+		const data = JSON.stringify({ user, passwd });
+
+		const response = await fetch(`/api/auth/local/login?session=1`, {
+			method: 'POST',
 			headers: {
+				'Content-Type': 'application/json',
 				accept: 'application/json'
 			},
 			body: data
@@ -19,8 +22,8 @@
 		}
 	};
 
-	let username = '';
-	let password = '';
+	let user = '';
+	let passwd = '';
 	$: loginError = '';
 </script>
 
@@ -31,26 +34,21 @@
 			<form on:submit|preventDefault={onSubmit}>
 				<label class="label block">
 					<div class="label-text">Username</div>
-					<input
-						bind:value={username}
-						required
-						type="text"
-						name="username"
-						class="input input-bordered"
-					/>
+					<input bind:value={user} required type="text" name="user" class="input input-bordered" />
 				</label>
 
 				<label class="label block">
 					<div class="label-text">Password</div>
 					<input
-						bind:value={password}
+						bind:value={passwd}
 						required
 						type="password"
-						name="password"
+						name="passwd"
 						class="input input-bordered"
 					/>
 				</label>
 				<button class="btn btn-primary" type="submit">Submit</button>
+				<DiscordLink />
 			</form>
 			{#if loginError}
 				<div class="text-red-600">{loginError}</div>

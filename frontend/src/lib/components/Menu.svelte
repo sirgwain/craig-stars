@@ -44,7 +44,7 @@
 					<li class="md:hidden"><a href="/games">Games</a></li>
 					<li class="md:hidden"><a href="/races">Races</a></li>
 					<li class="md:hidden"><a href="/techs">Techs</a></li>
-					<li><a href="/logout">Logout, {user.username}</a></li>
+					<li><a href="/auth/logout">Logout, {user.username}</a></li>
 				{:else}
 					<li class="md:hidden"><a href="/techs">Techs</a></li>
 				{/if}

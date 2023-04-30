@@ -27,7 +27,7 @@ func addCreateUserCommand() {
 	var username string
 	var email string
 	var password string
-	var role cs.Role = cs.RoleUser
+	var role = cs.RoleUser
 
 	// createUserCmd represents the createUser command
 	createUserCmd := &cobra.Command{
@@ -57,7 +57,7 @@ func addCreateUserCommand() {
 	createUserCmd.Flags().StringVarP(&username, "username", "u", "", "username to create")
 	createUserCmd.Flags().StringVarP(&password, "password", "p", "", "password for user")
 	createUserCmd.Flags().StringVarP(&email, "email", "e", "", "email for user")
-	createUserCmd.Flags().Var(&role, "role", "role for user")
+	createUserCmd.Flags().StringVar(&role, "role", "", "role for user")
 	createUserCmd.MarkFlagRequired("username")
 	createUserCmd.MarkFlagRequired("password")
 	createUserCmd.MarkFlagRequired("email")

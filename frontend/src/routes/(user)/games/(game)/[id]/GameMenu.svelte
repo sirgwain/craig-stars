@@ -98,7 +98,7 @@
 					<a href={`/games/${game.id}/techs`} class="justify-between">Techs</a>
 				</li>
 				<li><div class="divider" /></li>
-				<li><a href="/logout">Logout, {$me?.username}</a></li>
+				<li><a href="/auth/logout">Logout, {$me?.username}</a></li>
 			</ul>
 		</div>
 	</div>

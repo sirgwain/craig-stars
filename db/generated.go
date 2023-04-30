@@ -270,9 +270,9 @@ func (c *GameConverter) ConvertUser(source User) cs.User {
 	csUser.Username = source.Username
 	csUser.Password = source.Password
 	csUser.Email = source.Email
-	csUser.Role = cs.Role(source.Role)
+	csUser.Role = source.Role
+	csUser.Banned = source.Banned
 	csUser.Verified = source.Verified
-	csUser.VerifyToken = source.VerifyToken
 	return csUser
 }
 func (c *GameConverter) ConvertUsers(source []User) []cs.User {
@@ -603,9 +603,9 @@ func (c *GameConverter) csUserToDbUser(source cs.User) User {
 	dbUser.Username = source.Username
 	dbUser.Password = source.Password
 	dbUser.Email = source.Email
-	dbUser.Role = cs.Role(source.Role)
+	dbUser.Role = source.Role
+	dbUser.Banned = source.Banned
 	dbUser.Verified = source.Verified
-	dbUser.VerifyToken = source.VerifyToken
 	return dbUser
 }
 func (c *GameConverter) csVictoryConditionListToDbVictoryConditions(source []cs.VictoryCondition) VictoryConditions {

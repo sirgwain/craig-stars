@@ -1,22 +1,23 @@
 package server
 
 import (
+	"context"
 	"encoding/gob"
 	"net/http"
 	"strings"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/go-pkgz/auth/token"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 )
 
-const userkey = "user"
 
 type sessionUser struct {
-	ID       int64   `json:"id"`
-	Username string  `json:"username"`
-	Role     cs.Role `json:"role"`
+	ID       int64  `json:"id"`
+	Username string `json:"username"`
+	Role     string `json:"role"`
 }
 
 type creds struct {
@@ -29,10 +30,44 @@ func init() {
 	gob.Register(sessionUser{})
 }
 
+func (s *server) userCtx(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user := s.mustGetUser(w, r)
+
+		ctx := context.WithValue(r.Context(), keyUser, user)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+// create a new user from a token
+func (s *server) createNewUser(tokenUser *token.User) (*cs.User, error) {
+	user, err := cs.NewUser(tokenUser.Name, "", "", cs.RoleUser)
+	if err != nil {
+		log.Error().Err(err).Str("Username", user.Username).Msg("failed to create new user")
+		return nil, err
+	}
+	err = s.db.CreateUser(user)
+	if err != nil {
+		log.Error().Err(err).Str("Username", user.Username).Msg("failed to create new user")
+		return nil, err
+	}
+	log.Info().Str("Username", user.Username).Int64("ID", user.ID).Msg("created new user from token")
+
+	// create a new test race
+	race := cs.Humanoids()
+	race.UserID = user.ID
+	err = s.db.CreateRace(&race)
+	log.Info().Str("Username", user.Username).Int64("ID", user.ID).Msg("created new race for user")
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
 // authRequired is a simple middleware to check the session
 func (s *server) authRequired(c *gin.Context) {
 	session := sessions.Default(c)
-	user := session.Get(userkey)
+	user := session.Get(keyUser)
 	if user == nil {
 		// Abort the request with the appropriate error code
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
@@ -81,7 +116,7 @@ func (s *server) login(c *gin.Context) {
 
 	// Save the username in the session
 	sesionUser := &sessionUser{ID: user.ID, Username: user.Username, Role: user.Role}
-	session.Set(userkey, sesionUser)
+	session.Set(keyUser, sesionUser)
 	if err := session.Save(); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": " save session"})
 		return
@@ -91,12 +126,12 @@ func (s *server) login(c *gin.Context) {
 
 func (s *server) logout(c *gin.Context) {
 	session := sessions.Default(c)
-	user := session.Get(userkey)
+	user := session.Get(keyUser)
 	if user == nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid session token"})
 		return
 	}
-	session.Delete(userkey)
+	session.Delete(keyUser)
 	if err := session.Save(); err != nil {
 		log.Error().Err(err).Msg("save session")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to save session"})
@@ -107,13 +142,13 @@ func (s *server) logout(c *gin.Context) {
 
 func (s *server) GetSessionUser(c *gin.Context) *sessionUser {
 	session := sessions.Default(c)
-	user := session.Get(userkey).(sessionUser)
+	user := session.Get(keyUser).(sessionUser)
 
 	return &user
 }
 func (s *server) me(c *gin.Context) {
 	// session := sessions.Default(c)
-	// user := session.Get(userkey)
+	// user := session.Get(keyUser)
 	user := s.GetSessionUser(c)
 	if user == nil {
 		c.JSON(http.StatusNotFound, gin.H{})

@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 
 	onMount(async () => {
-		const response = await fetch(`/api/logout`, {
+		const response = await fetch(`/api/auth/local/logout`, {
 			method: 'GET'
 		});
 

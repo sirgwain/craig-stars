@@ -1,12 +1,10 @@
 <script lang="ts">
-	import { techs } from '$lib/services/Context';
 	import type { ShipDesignSlot } from '$lib/types/ShipDesign';
 	import type { HullSlot, TechHull } from '$lib/types/Tech';
 	import { createEventDispatcher } from 'svelte';
 	import CargoComponent from '../../tech/hull/CargoComponent.svelte';
 	import HullComponent from '../../tech/hull/HullComponent.svelte';
 	import SpaceDockComponent from '../../tech/hull/SpaceDockComponent.svelte';
-	import { shipDesignerContext } from './ShipDesignerContext';
 
 	const dispatch = createEventDispatcher();
 

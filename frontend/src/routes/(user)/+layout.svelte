@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Login from '$lib/components/Login.svelte';
+	import Login from '$lib/components/auth/Login.svelte';
 	import Menu from '$lib/components/Menu.svelte';
 	import { me } from '$lib/services/Context';
 	import '../../css/app.css';
