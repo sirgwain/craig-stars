@@ -94,21 +94,6 @@ export class GameService extends Service {
 		}
 	}
 
-	async loadOpenGame(gameId: number): Promise<Game> {
-		const response = await fetch(`/api/games/open/${gameId}`, {
-			method: 'GET',
-			headers: {
-				accept: 'application/json'
-			}
-		});
-
-		if (response.ok) {
-			return (await response.json()) as Game;
-		} else {
-			throw new Error('Failed to load game');
-		}
-	}
-
 	async loadPlayerStatuses(gameId: number): Promise<Player[]> {
 		const response = await fetch(`/api/games/${gameId}/player-statuses`, {
 			method: 'GET',

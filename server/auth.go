@@ -4,20 +4,69 @@ import (
 	"context"
 	"encoding/gob"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/go-pkgz/auth/token"
+	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 )
-
 
 type sessionUser struct {
 	ID       int64  `json:"id"`
 	Username string `json:"username"`
 	Role     string `json:"role"`
+}
+
+// get the user from the context
+func (s *server) contextUser(r *http.Request) sessionUser {
+	return r.Context().Value(keyUser).(sessionUser)
+}
+
+func (s *server) mustGetUser(w http.ResponseWriter, r *http.Request) sessionUser {
+	userInfo, err := token.GetUserInfo(r)
+	if err != nil {
+		panic("failed to load user")
+	}
+
+	userID, err := strconv.ParseInt(userInfo.StrAttr(databaseIDAttr), 10, 64)
+	if err != nil {
+		panic("failed to load user")
+	}
+
+	return sessionUser{
+		ID:       userID,
+		Username: userInfo.Name,
+		Role:     userInfo.Role,
+	}
+}
+
+func me_chi(w http.ResponseWriter, r *http.Request) {
+
+	userInfo, err := token.GetUserInfo(r)
+	if err != nil {
+		log.Printf("failed to get user info, %s", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	userID, err := strconv.ParseInt(userInfo.StrAttr(databaseIDAttr), 10, 64)
+	if err != nil {
+		log.Printf("failed to get user info, %s", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	res := sessionUser{
+		ID:       userID,
+		Username: userInfo.Name,
+		Role:     userInfo.Role,
+	}
+
+	rest.RenderJSON(w, res)
 }
 
 type creds struct {

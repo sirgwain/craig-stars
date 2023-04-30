@@ -15,11 +15,9 @@ import (
 	"gorm.io/gorm"
 )
 
-type server struct {
-	db            DBClient
-	config        config.Config
-	gameRunner    GameRunner
-	playerUpdater PlayerUpdater
+
+type idBind struct {
+	ID int64 `uri:"id"`
 }
 
 func Start(db DBClient, config config.Config) {
@@ -63,9 +61,6 @@ func Start(db DBClient, config config.Config) {
 	r.POST("/api/login", server.login)
 	r.GET("/api/logout", server.logout)
 
-	// techs are public
-	r.GET("/api/techs", server.techs)
-	r.GET("/api/techs/:name", server.tech)
 
 	//
 	// authorized routes
@@ -79,25 +74,7 @@ func Start(db DBClient, config config.Config) {
 
 	ar.GET("/rules", server.rules)
 
-
-	// get various lists of games
-	ar.GET("/games", server.playerGames)
-	ar.GET("/games/hosted", server.hostedGames)
-	ar.GET("/games/open", server.openGames)
-	ar.GET("/games/open/:id", server.openGame)
-
-	// host, join, generate, delete games
-	ar.POST("/games", server.hostGame)
-	ar.POST("/games/open/:id", server.joinGame)
-	ar.POST("/games/:id/generate", server.generateUniverse)
-	ar.DELETE("/games/:id", server.deleteGame)
-
 	// player load/submit turn
-	ar.GET("/games/:id", server.game)
-	ar.GET("/games/:id/player", server.lightPlayer)
-	ar.GET("/games/:id/full-player", server.fullPlayer)
-	ar.GET("/games/:id/mapobjects", server.mapObjects)
-	ar.GET("/games/:id/player-statuses", server.playerStatuses)
 	ar.POST("/games/:id/submit-turn", server.submitTurn)
 
 	// update planet production

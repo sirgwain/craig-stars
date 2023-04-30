@@ -16,8 +16,9 @@ type Config struct {
 		DebugLogging bool   `yaml:"DebugLogging,omitempty"`
 	}
 	Auth struct {
-		Secret string `yaml:"Secret,omitempty"`
-		URL    string `yaml:"URL,omitempty"`
+		Secret      string `yaml:"Secret,omitempty"`
+		URL         string `yaml:"URL,omitempty"`
+		DisableXSRF bool   `yaml:"DisableXSRF,omitempty"`
 	}
 	Discord struct {
 		Enabled      bool   `yaml:"Enabled,omitempty"`
@@ -41,6 +42,7 @@ func GetConfig() *Config {
 		viper.SetDefault("Database.Filename", "data/data.db")
 		viper.SetDefault("Auth.Secret", "secret")             // default for local dev
 		viper.SetDefault("Auth.URL", "http://localhost:5173") // default for local dev
+		viper.SetDefault("Auth.DisableXSRF", true)            // default for local dev
 
 		// write config if not present
 		if err := os.MkdirAll(path, os.ModePerm); err != nil {

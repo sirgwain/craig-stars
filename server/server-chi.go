@@ -22,7 +22,6 @@ import (
 	"github.com/go-pkgz/auth/logger"
 	"github.com/go-pkgz/auth/provider"
 	"github.com/go-pkgz/auth/token"
-	"github.com/go-pkgz/rest"
 )
 
 const databaseIDAttr = "DatabaseID"
@@ -32,7 +31,17 @@ type contextKey int
 const (
 	keyUser contextKey = iota
 	keyRace
+	keyGame
+	keyPlayer
+	keyDesign
 )
+
+type server struct {
+	db            DBClient
+	config        config.Config
+	gameRunner    GameRunner
+	playerUpdater PlayerUpdater
+}
 
 func StartChi(db DBClient, config config.Config) {
 
@@ -59,7 +68,7 @@ func StartChi(db DBClient, config config.Config) {
 		}),
 		TokenDuration:     time.Minute,                           // short token, refreshed automatically
 		CookieDuration:    time.Hour * 24,                        // cookie fine to keep for long time
-		DisableXSRF:       true,                                  // don't disable XSRF in real-life applications!
+		DisableXSRF:       config.Auth.DisableXSRF,               // don't disable XSRF in real-life applications!
 		Issuer:            "craig-stars",                         // part of token, just informational
 		URL:               server.config.Auth.URL,                // base url of the protected service
 		AvatarStore:       avatar.NewLocalFS("/tmp/craig-stars"), // stores avatars locally
@@ -168,26 +177,55 @@ func StartChi(db DBClient, config config.Config) {
 	// processing should be stopped.
 	r.Use(middleware.Timeout(60 * time.Second))
 
+	// techs are public
+	r.Route("/api/techs", func(r chi.Router) {
+		r.Get("/", server.techs)
+		r.Get("/{name:[a-zA-Z0-9-\\s]+}", server.tech)
+	})
+
 	r.Group(func(r chi.Router) {
 		r.Use(m.Auth)
 		r.Use(render.SetContentType(render.ContentTypeJSON))
 		r.Use(server.userCtx)
 		r.Get("/api/me", me_chi)
-		r.Get("/api/games", server.games_chi)
-		r.Get("/api/games/open", server.gamesOpen_chi)
 
 		// race CRUD
 		r.Route("/api/races", func(r chi.Router) {
 			r.Post("/", server.createRace)
 			r.Get("/", server.races)
-			r.Get("/points", server.getRacePoints)
+			r.Post("/points", server.getRacePoints)
 
-			// Subrouters:
+			// race by id operations
 			r.Route("/{id:[0-9]+}", func(r chi.Router) {
 				r.Use(server.raceCtx)
 				r.Get("/", server.race)
 				r.Put("/", server.updateRace)
 				r.Delete("/", server.deleteRace)
+			})
+		})
+
+		// route for all operations that act on a game
+		r.Route("/api/games", func(r chi.Router) {
+			r.Post("/", server.createGame)
+			r.Get("/", server.games)
+			r.Get("/hosted", server.hostedGames)
+			r.Get("/open", server.openGames)
+
+			// game by id operations
+			r.Route("/{id:[0-9]+}", func(r chi.Router) {
+				r.Use(server.gameCtx)
+				r.Get("/", server.game)
+				r.Get("/player-statuses", server.playerStatuses)
+				r.Post("/join", server.joinGame)
+				r.Post("/generate-universe", server.generateUniverse)
+				r.Delete("/", server.deleteGame)
+
+				// player routes
+				r.Group(func(r chi.Router) {
+					r.Get("/player", server.player)
+					r.Get("/full-player", server.fullPlayer)
+					r.Get("/mapobjects", server.mapObjects)
+				})
 			})
 		})
 
@@ -203,6 +241,7 @@ func StartChi(db DBClient, config config.Config) {
 	http.ListenAndServe(":8080", r)
 }
 
+// create a new request logger with zerolog. Inspired by https://github.com/ironstar-io/chizerolog
 func requestLogger(logger *zerolog.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
@@ -232,18 +271,25 @@ func requestLogger(logger *zerolog.Logger) func(next http.Handler) http.Handler 
 				} else {
 					event = log.Info()
 				}
+
+				fields := map[string]interface{}{
+					"remote_ip":  r.RemoteAddr,
+					"url":        r.URL.Path,
+					"method":     r.Method,
+					"status":     ww.Status(),
+					"latency_ms": float64(t2.Sub(t1).Nanoseconds()) / 1000000.0,
+					"bytes_in":   r.Header.Get("Content-Length"),
+					"bytes_out":  ww.BytesWritten(),
+				}
+
+				// don't log the user_agent while we're debugging, we should know what it is
+				if zerolog.GlobalLevel() != zerolog.DebugLevel {
+					fields["user_agent"] = r.Header.Get("User-Agent")
+				}
+
 				event.
 					Timestamp().
-					Fields(map[string]interface{}{
-						"remote_ip":  r.RemoteAddr,
-						"url":        r.URL.Path,
-						"method":     r.Method,
-						"user_agent": r.Header.Get("User-Agent"),
-						"status":     ww.Status(),
-						"latency_ms": float64(t2.Sub(t1).Nanoseconds()) / 1000000.0,
-						"bytes_in":   r.Header.Get("Content-Length"),
-						"bytes_out":  ww.BytesWritten(),
-					}).Msg("")
+					Fields(fields).Msg("")
 			}()
 
 			next.ServeHTTP(ww, r)
@@ -265,76 +311,4 @@ func (s *server) int64URLParam(r *http.Request, key string) (*int64, error) {
 	}
 
 	return &num, nil
-}
-
-func (s *server) games_chi(w http.ResponseWriter, r *http.Request) {
-	user := s.mustGetUser(w, r)
-
-	games, err := s.db.GetGamesForUser(user.ID)
-	if err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-
-	render.JSON(w, r, games)
-}
-
-func (s *server) gamesOpen_chi(w http.ResponseWriter, r *http.Request) {
-	user := s.mustGetUser(w, r)
-
-	games, err := s.db.GetOpenGames(user.ID)
-	if err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-
-	render.JSON(w, r, games)
-}
-
-// get the user from the context
-func (s *server) contextUser(r *http.Request) sessionUser {
-	return r.Context().Value(keyUser).(sessionUser)
-}
-
-func (s *server) mustGetUser(w http.ResponseWriter, r *http.Request) sessionUser {
-	userInfo, err := token.GetUserInfo(r)
-	if err != nil {
-		panic("failed to load user")
-	}
-
-	userID, err := strconv.ParseInt(userInfo.StrAttr(databaseIDAttr), 10, 64)
-	if err != nil {
-		panic("failed to load user")
-	}
-
-	return sessionUser{
-		ID:       userID,
-		Username: userInfo.Name,
-		Role:     userInfo.Role,
-	}
-}
-
-func me_chi(w http.ResponseWriter, r *http.Request) {
-
-	userInfo, err := token.GetUserInfo(r)
-	if err != nil {
-		log.Printf("failed to get user info, %s", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	userID, err := strconv.ParseInt(userInfo.StrAttr(databaseIDAttr), 10, 64)
-	if err != nil {
-		log.Printf("failed to get user info, %s", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	res := sessionUser{
-		ID:       userID,
-		Username: userInfo.Name,
-		Role:     userInfo.Role,
-	}
-
-	rest.RenderJSON(w, res)
 }

@@ -11,6 +11,14 @@ import (
 	"github.com/sirgwain/craig-stars/cs"
 )
 
+type raceRequest struct {
+	*cs.Race
+}
+
+func (req *raceRequest) Bind(r *http.Request) error {
+	return nil
+}
+
 // context for /api/races/{id} calls
 func (s *server) raceCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -60,14 +68,6 @@ func (s *server) races(w http.ResponseWriter, r *http.Request) {
 func (s *server) race(w http.ResponseWriter, r *http.Request) {
 	race := r.Context().Value(keyRace).(*cs.Race)
 	rest.RenderJSON(w, race)
-}
-
-type raceRequest struct {
-	*cs.Race
-}
-
-func (req *raceRequest) Bind(r *http.Request) error {
-	return nil
 }
 
 // create a new race for a user

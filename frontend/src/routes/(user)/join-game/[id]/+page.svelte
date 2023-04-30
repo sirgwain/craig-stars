@@ -15,13 +15,13 @@
 	let raceId: number;
 
 	onMount(async () => {
-		game = await gameService.loadOpenGame(id);
+		game = await gameService.loadGame(id);
 	});
 
 	const onSubmit = async () => {
 		const data = JSON.stringify({ raceId });
 
-		const response = await fetch(`/api/games/open/${id}`, {
+		const response = await fetch(`/api/games/${id}/join`, {
 			method: 'post',
 			headers: {
 				accept: 'application/json'
