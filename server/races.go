@@ -52,6 +52,10 @@ func (s *server) raceCtx(next http.Handler) http.Handler {
 	})
 }
 
+func (s *server) contextRace(r *http.Request) *cs.Race {
+	return r.Context().Value(keyRace).(*cs.Race)
+}
+
 func (s *server) races(w http.ResponseWriter, r *http.Request) {
 	user := s.contextUser(r)
 
@@ -66,7 +70,7 @@ func (s *server) races(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) race(w http.ResponseWriter, r *http.Request) {
-	race := r.Context().Value(keyRace).(*cs.Race)
+	race := s.contextRace(r)
 	rest.RenderJSON(w, race)
 }
 
@@ -112,7 +116,7 @@ func (s *server) updateRace(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// load in the existing race from the context
-	existingRace := r.Context().Value(keyRace).(*cs.Race)
+	existingRace := s.contextRace(r)
 
 	// validate
 	if race.ID != existingRace.ID || race.UserID != existingRace.UserID {
@@ -131,7 +135,7 @@ func (s *server) updateRace(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) deleteRace(w http.ResponseWriter, r *http.Request) {
-	race := r.Context().Value(keyRace).(*cs.Race)
+	race := s.contextRace(r)
 
 	if err := s.db.DeleteRace(race.ID); err != nil {
 		log.Error().Err(err).Int64("ID", race.ID).Msg("delete race from database")

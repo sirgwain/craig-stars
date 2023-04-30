@@ -16,8 +16,6 @@ type playerUpdater struct {
 }
 
 type PlayerUpdater interface {
-	updatePlayerOrders(gameID, userID int64, orders cs.PlayerOrders) (*cs.Player, []*cs.Planet, error)
-	updatePlanetOrders(userID int64, planetID int64, orders cs.PlanetOrders) (*cs.Planet, error)
 	updateFleetOrders(userID int64, fleetID int64, orders cs.FleetOrders) (*cs.Fleet, error)
 	updateMineFieldOrders(userID int64, mineFieldID int64, orders cs.MineFieldOrders) (*cs.MineField, error)
 	transferCargo(userID int64, fleetID int64, destID int64, mapObjectType cs.MapObjectType, transferAmount cs.Cargo) (*cs.Fleet, error)
@@ -25,82 +23,6 @@ type PlayerUpdater interface {
 
 func newPlayerUpdater(db DBClient) PlayerUpdater {
 	return &playerUpdater{orderer: cs.NewOrderer(), db: db}
-}
-
-// update a player's orders (i.e. research settings) and return the updated planets
-func (pu *playerUpdater) updatePlayerOrders(gameID, userID int64, orders cs.PlayerOrders) (*cs.Player, []*cs.Planet, error) {
-	player, err := pu.db.GetPlayerForGame(gameID, userID)
-	if err != nil {
-		log.Error().Err(err).Int64("GameID", gameID).Int64("UserID", userID).Msg("load player from database")
-		return nil, nil, fmt.Errorf("failed to load player from database")
-	}
-
-	if player.UserID != userID {
-		return nil, nil, fmt.Errorf("user %d does not control player %d", userID, player.Num)
-	}
-
-	planets, err := pu.db.GetPlanetsForPlayer(player.GameID, player.Num)
-	if err != nil {
-		log.Error().Err(err).Int64("ID", player.ID).Msg("loading player planets from database")
-		return nil, nil, fmt.Errorf("failed to load player planets from database")
-	}
-
-	// update this player's orders
-	rules, err := pu.db.GetRulesForGame(player.GameID)
-	if err != nil {
-		log.Error().Err(err).Int64("GameID", player.GameID).Msg("loading game rules from database")
-		return nil, nil, fmt.Errorf("failed to load game rules from database")
-	}
-
-	pu.orderer.UpdatePlayerOrders(player, planets, orders, rules)
-
-	if err := pu.db.UpdateLightPlayer(player); err != nil {
-		log.Error().Err(err).Int64("ID", player.ID).Msg("updating player orders in database")
-		return nil, nil, fmt.Errorf("failed to update player orders in database")
-	}
-
-	for _, planet := range planets {
-		if planet.Dirty {
-			// TODO: only update the planet spec? that's all that changes
-			if err := pu.db.UpdatePlanet(planet); err != nil {
-				log.Error().Err(err).Int64("ID", player.ID).Msg("updating player planet in database")
-				return nil, nil, fmt.Errorf("failed to update player planet in database")
-			}
-		}
-	}
-
-	return player, planets, nil
-}
-
-// update the orders for a planet, i.e. production queue and research
-func (pu *playerUpdater) updatePlanetOrders(userID int64, planetID int64, orders cs.PlanetOrders) (*cs.Planet, error) {
-
-	// find the planet planet by id
-	planet, err := pu.db.GetPlanet(planetID)
-	if err != nil {
-		log.Error().Err(err).Int64("ID", planetID).Msg("load planet from database")
-		return nil, fmt.Errorf("failed to load planet from database")
-	}
-
-	player, err := pu.db.GetLightPlayerForGame(planet.GameID, userID)
-	if err != nil {
-		log.Error().Err(err).Int64("GameID", planet.GameID).Int64("UserID", userID).Msg("load player from database")
-		return nil, fmt.Errorf("failed to load player from database")
-	}
-
-	// verify the user actually owns this planet
-	if planet.PlayerNum != player.Num {
-		return nil, fmt.Errorf("%s does not own planet %s", player, planet)
-	}
-
-	pu.orderer.UpdatePlanetOrders(player, planet, orders)
-
-	if err := pu.db.UpdatePlanet(planet); err != nil {
-		log.Error().Err(err).Int64("ID", planet.ID).Msg("update planet in database")
-		return nil, fmt.Errorf("failed to save planet to database")
-	}
-
-	return planet, nil
 }
 
 // update the orders for a fleet, i.e. waypoints and battle plan

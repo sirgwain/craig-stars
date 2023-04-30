@@ -15,7 +15,6 @@ import (
 	"gorm.io/gorm"
 )
 
-
 type idBind struct {
 	ID int64 `uri:"id"`
 }
@@ -61,7 +60,6 @@ func Start(db DBClient, config config.Config) {
 	r.POST("/api/login", server.login)
 	r.GET("/api/logout", server.logout)
 
-
 	//
 	// authorized routes
 	//
@@ -72,28 +70,9 @@ func Start(db DBClient, config config.Config) {
 	ar.GET("/me", server.me)
 	ar.GET("/users", server.users)
 
-	ar.GET("/rules", server.rules)
-
-	// player load/submit turn
-	ar.POST("/games/:id/submit-turn", server.submitTurn)
-
-	// update planet production
-	ar.PUT("/planets/:id", server.UpdatePlanetOrders)
-
 	// transfer cargo, update fleet orders
 	ar.PUT("/fleets/:id", server.UpdateFleetOrders)
 	ar.POST("/fleets/:id/transfer-cargo", server.transferCargo)
-	ar.POST("/fleets/:id/split", noop)
-	ar.POST("/fleets/:id/merge", noop)
-	ar.POST("/fleets/:id/rename", noop)
-
-	// Update player plans
-	ar.PUT("/games/:id/battle-plans", noop)
-	ar.PUT("/games/:id/transport-plans", noop)
-	ar.PUT("/games/:id/production-plans", noop)
-
-	// update player reserarch, settings
-	ar.PUT("/games/:id", server.updatePlayerOrders)
 
 	r.GET("/api/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
@@ -102,11 +81,4 @@ func Start(db DBClient, config config.Config) {
 	})
 
 	r.Run() // listen and serve on 0.0.0.0:8080
-}
-
-// noop function to create test api handlers
-func noop(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"message": "noop",
-	})
 }

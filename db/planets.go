@@ -136,6 +136,21 @@ func (c *client) GetPlanetsForPlayer(gameID int64, playerNum int) ([]*cs.Planet,
 	return results, nil
 }
 
+func (c *client) GetPlanetByNum(gameID int64, num int) (*cs.Planet, error) {
+
+	item := Planet{}
+	if err := c.db.Get(&item, `SELECT * FROM planets WHERE gameId = ? AND num = ?`, gameID, num); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	planet := c.converter.ConvertPlanet(&item)
+	return planet, nil
+
+}
+
 // create a new game
 func (c *client) createPlanet(planet *cs.Planet, tx SQLExecer) error {
 	item := c.converter.ConvertGamePlanet(planet)

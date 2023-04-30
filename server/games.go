@@ -53,6 +53,10 @@ func (s *server) gameCtx(next http.Handler) http.Handler {
 	})
 }
 
+func (s *server) contextGame(r *http.Request) *cs.Game {
+	return r.Context().Value(keyGame).(*cs.Game)
+}
+
 func (s *server) games(w http.ResponseWriter, r *http.Request) {
 	user := s.contextUser(r)
 
@@ -94,7 +98,7 @@ func (s *server) openGames(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) game(w http.ResponseWriter, r *http.Request) {
 	// TODO: any need to prevent a non-player from loading this game?
-	game := r.Context().Value(keyGame).(*cs.Game)
+	game := s.contextGame(r)
 	rest.RenderJSON(w, game)
 }
 
@@ -121,7 +125,7 @@ func (s *server) createGame(w http.ResponseWriter, r *http.Request) {
 // Join an open game
 func (s *server) joinGame(w http.ResponseWriter, r *http.Request) {
 	user := s.contextUser(r)
-	game := r.Context().Value(keyGame).(*cs.Game)
+	game := s.contextGame(r)
 
 	join := joinGameRequest{}
 	if err := render.Bind(r, &join); err != nil {
@@ -139,7 +143,7 @@ func (s *server) joinGame(w http.ResponseWriter, r *http.Request) {
 // Generate a universe for a host
 func (s *server) generateUniverse(w http.ResponseWriter, r *http.Request) {
 	user := s.contextUser(r)
-	game := r.Context().Value(keyGame).(*cs.Game)
+	game := s.contextGame(r)
 
 	// validate
 	if user.ID != game.HostID {
@@ -152,7 +156,7 @@ func (s *server) generateUniverse(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) deleteGame(w http.ResponseWriter, r *http.Request) {
 	user := s.contextUser(r)
-	game := r.Context().Value(keyGame).(*cs.Game)
+	game := s.contextGame(r)
 
 	if game.HostID != user.ID {
 		log.Error().Int64("ID", game.ID).Int64("UserID", user.ID).Msg("only host can delete game")

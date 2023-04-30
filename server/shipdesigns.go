@@ -22,7 +22,7 @@ func (req *shipDesignRequest) Bind(r *http.Request) error {
 // context for /api/games/{id}/designs/{num} calls that require a shipDesign
 func (s *server) shipdDesignCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		player := r.Context().Value(keyPlayer).(*cs.Player)
+		player := s.contextPlayer(r)
 
 		num, err := s.intURLParam(r, "num")
 		if num == nil || err != nil {
@@ -46,9 +46,13 @@ func (s *server) shipdDesignCtx(next http.Handler) http.Handler {
 	})
 }
 
+func (s *server) contextShipDesign(r *http.Request) *cs.ShipDesign {
+	return r.Context().Value(keyShipDesign).(*cs.ShipDesign)
+}
+
 // CRUD for ship designs
 func (s *server) shipDesigns(w http.ResponseWriter, r *http.Request) {
-	player := r.Context().Value(keyPlayer).(*cs.Player)
+	player := s.contextPlayer(r)
 
 	shipDesigns, err := s.db.GetShipDesignsForPlayer(player.GameID, player.Num)
 	if err != nil {
@@ -61,13 +65,13 @@ func (s *server) shipDesigns(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) shipDesign(w http.ResponseWriter, r *http.Request) {
-	shipDesign := r.Context().Value(keyShipDesign).(*cs.ShipDesign)
+	shipDesign := s.contextShipDesign(r)
 	rest.RenderJSON(w, shipDesign)
 }
 
 func (s *server) createShipDesign(w http.ResponseWriter, r *http.Request) {
-	game := r.Context().Value(keyGame).(*cs.Game)
-	player := r.Context().Value(keyPlayer).(*cs.Player)
+	game := s.contextGame(r)
+	player := s.contextPlayer(r)
 
 	design := shipDesignRequest{}
 	if err := render.Bind(r, &design); err != nil {
@@ -102,8 +106,8 @@ func (s *server) createShipDesign(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) updateShipDesign(w http.ResponseWriter, r *http.Request) {
-	game := r.Context().Value(keyGame).(*cs.Game)
-	player := r.Context().Value(keyPlayer).(*cs.Player)
+	game := s.contextGame(r)
+	player := s.contextPlayer(r)
 
 	design := shipDesignRequest{}
 	if err := render.Bind(r, &design); err != nil {
@@ -112,7 +116,7 @@ func (s *server) updateShipDesign(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// load in the existing shipDesign from the context
-	existingDesign := r.Context().Value(keyShipDesign).(*cs.ShipDesign)
+	existingDesign := s.contextShipDesign(r)
 
 	// validate
 
@@ -142,9 +146,9 @@ func (s *server) updateShipDesign(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) deleteShipDesign(w http.ResponseWriter, r *http.Request) {
-	game := r.Context().Value(keyGame).(*cs.Game)
-	player := r.Context().Value(keyPlayer).(*cs.Player)
-	design := r.Context().Value(keyShipDesign).(*cs.ShipDesign)
+	game := s.contextGame(r)
+	player := s.contextPlayer(r)
+	design := s.contextShipDesign(r)
 
 	gameID := design.GameID
 
@@ -222,8 +226,8 @@ func (s *server) deleteShipDesign(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) computeShipDesignSpec(w http.ResponseWriter, r *http.Request) {
-	game := r.Context().Value(keyGame).(*cs.Game)
-	player := r.Context().Value(keyPlayer).(*cs.Player)
+	game := s.contextGame(r)
+	player := s.contextPlayer(r)
 
 	design := shipDesignRequest{}
 	if err := render.Bind(r, &design); err != nil {

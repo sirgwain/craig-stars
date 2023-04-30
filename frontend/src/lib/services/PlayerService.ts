@@ -14,7 +14,7 @@ export class PlayerService extends Service {
 			nextResearchField: player.nextResearchField,
 			researchAmount: player.researchAmount
 		};
-		const response = await fetch(`/api/games/${player.gameId}`, {
+		const response = await fetch(`/api/games/${player.gameId}/player`, {
 			method: 'PUT',
 			body: JSON.stringify(orders),
 			headers: {

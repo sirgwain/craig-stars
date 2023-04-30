@@ -227,6 +227,8 @@ func StartChi(db DBClient, config config.Config) {
 				r.Group(func(r chi.Router) {
 					r.Use(server.playerCtx)
 					r.Get("/player", server.player)
+					r.Put("/player", server.updatePlayerOrders)
+					r.Post("/submit-turn", server.submitTurn)
 
 					// ship designs
 					r.Route("/designs", func(r chi.Router) {
@@ -240,6 +242,15 @@ func StartChi(db DBClient, config config.Config) {
 							r.Get("/", server.shipDesign)
 							r.Put("/", server.updateShipDesign)
 							r.Delete("/", server.deleteShipDesign)
+						})
+					})
+
+					// planet order updates
+					r.Route("/planets", func(r chi.Router) {
+						r.Route("/{num:[0-9]+}", func(r chi.Router) {
+							r.Use(server.planetCtx)
+							r.Get("/", server.planet)
+							r.Put("/", server.updatePlanetOrders)
 						})
 					})
 

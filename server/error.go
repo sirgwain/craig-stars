@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/render"
+	"github.com/rs/zerolog/log"
 )
 
 //--
@@ -43,6 +44,7 @@ func ErrBadRequest(err error) render.Renderer {
 // this could be because of a bug in our code (like we failed to validate a unique constraint)
 // but most likely it's some server specific thing we want to view in the logs
 func ErrInternalServerError(err error) render.Renderer {
+	log.Err(err).Msg("internal server error")
 	return &ErrResponse{
 		Err:            err,
 		HTTPStatusCode: http.StatusInternalServerError,

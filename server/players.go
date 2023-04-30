@@ -2,20 +2,28 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
 	"github.com/go-chi/render"
 	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 )
 
+type playerOrdersRequest struct {
+	*cs.PlayerOrders
+}
+
+func (req *playerOrdersRequest) Bind(r *http.Request) error {
+	return nil
+}
+
 // context for /api/games/{id} calls that require a player
 func (s *server) playerCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := s.contextUser(r)
-		game := r.Context().Value(keyGame).(*cs.Game)
+		game := s.contextGame(r)
 
 		player, err := s.db.GetLightPlayerForGame(game.ID, user.ID)
 		if err != nil {
@@ -33,14 +41,18 @@ func (s *server) playerCtx(next http.Handler) http.Handler {
 	})
 }
 
+func (s *server) contextPlayer(r *http.Request) *cs.Player {
+	return r.Context().Value(keyPlayer).(*cs.Player)
+}
+
 func (s *server) player(w http.ResponseWriter, r *http.Request) {
-	player := r.Context().Value(keyPlayer).(*cs.Player)
+	player := s.contextPlayer(r)
 	rest.RenderJSON(w, player)
 }
 
 func (s *server) fullPlayer(w http.ResponseWriter, r *http.Request) {
 	user := s.contextUser(r)
-	game := r.Context().Value(keyGame).(*cs.Game)
+	game := s.contextGame(r)
 
 	player, err := s.db.GetPlayerForGame(game.ID, user.ID)
 	if err != nil {
@@ -103,69 +115,81 @@ func (s *server) playerStatuses(w http.ResponseWriter, r *http.Request) {
 	rest.RenderJSON(w, rest.JSON{"players": players})
 }
 
-// Submit a turn for the player
-func (s *server) updatePlayerOrders(c *gin.Context) {
-	user := s.GetSessionUser(c)
+// submit a player turn and return the newly generated turn if there is one
+func (s *server) submitTurn(w http.ResponseWriter, r *http.Request) {
+	player := s.contextPlayer(r)
 
-	var gameID idBind
-	if err := c.ShouldBindUri(&gameID); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	// submit the turn
+	player.SubmittedTurn = true
+	if err := s.db.UpdateLightPlayer(player); err != nil {
+		log.Error().Err(err).Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update player")
+		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	orders := cs.PlayerOrders{}
-	if err := c.ShouldBindJSON(&orders); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	// TODO: this should probably be a goroutine or something
+	_, err := s.gameRunner.CheckAndGenerateTurn(player.GameID)
+	if err != nil {
+		log.Error().Err(err).Int64("GameID", player.GameID).Msg("check and generate new turn")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	game, fullPlayer, err := s.gameRunner.LoadPlayerGame(player.GameID, player.UserID)
+	if err != nil {
+		log.Error().Err(err).Int64("GameID", player.GameID).Msg("load full game from database")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	rest.RenderJSON(w, rest.JSON{"game": game, "player": fullPlayer})
+}
+
+// Submit a turn for the player
+func (s *server) updatePlayerOrders(w http.ResponseWriter, r *http.Request) {
+	game := s.contextGame(r)
+	player := s.contextPlayer(r)
+
+	orders := playerOrdersRequest{}
+	if err := render.Bind(r, &orders); err != nil {
+		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
 
 	if orders.ResearchAmount < 0 || orders.ResearchAmount > 100 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "research ammount must be between 0 and 100"})
+		render.Render(w, r, ErrBadRequest(fmt.Errorf("research ammount must be between 0 and 100")))
 		return
 	}
 
-	player, planets, err := s.playerUpdater.updatePlayerOrders(gameID.ID, user.ID, orders)
-
+	planets, err := s.db.GetPlanetsForPlayer(player.GameID, player.Num)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		log.Error().Err(err).Int64("ID", player.ID).Msg("loading player planets from database")
+		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	log.Info().Int64("GameID", gameID.ID).Int64("PlayerID", player.ID).Msg("update orders")
-	c.JSON(http.StatusOK, gin.H{
-		"player":  player,
-		"planets": planets,
-	})
-}
+	orderer := cs.NewOrderer()
+	orderer.UpdatePlayerOrders(player, planets, *orders.PlayerOrders, &game.Rules)
 
-// Submit a turn for the player
-func (s *server) submitTurn(c *gin.Context) {
-	user := s.GetSessionUser(c)
-
-	var id idBind
-	if err := c.ShouldBindUri(&id); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	// save the player to the database
+	if err := s.db.UpdateLightPlayer(player); err != nil {
+		log.Error().Err(err).Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update player")
+		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	if err := s.gameRunner.SubmitTurn(id.ID, user.ID); err != nil {
-		log.Error().Err(err).Int64("GameID", id.ID).Int64("UserID", user.ID).Msg("submit turn")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to submit turn"})
-		return
+	for _, planet := range planets {
+		if planet.Dirty {
+			// TODO: only update the planet spec? that's all that changes
+			// TODO: do this all in one transaction?
+			if err := s.db.UpdatePlanet(planet); err != nil {
+				log.Error().Err(err).Int64("ID", player.ID).Msg("updating player planet in database")
+				render.Render(w, r, ErrInternalServerError(err))
+				return
+			}
+		}
 	}
 
-	_, err := s.gameRunner.CheckAndGenerateTurn(id.ID)
-	if err != nil {
-		log.Error().Err(err).Int64("GameID", id.ID).Msg("check and generate new turn")
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	game, player, err := s.gameRunner.LoadPlayerGame(id.ID, user.ID)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"game": game, "player": player})
-
+	log.Info().Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update orders")
+	rest.RenderJSON(w, rest.JSON{"player": player, "planets": planets})
 }

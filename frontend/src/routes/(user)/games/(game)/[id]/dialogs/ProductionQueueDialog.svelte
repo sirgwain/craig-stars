@@ -1,7 +1,7 @@
 <script lang="ts">
 	import CostComponent from '$lib/components/game/Cost.svelte';
 	import { getQuantityModifier } from '$lib/quantityModifier';
-	import { commandMapObject } from '$lib/services/Context';
+	import { commandMapObject, game } from '$lib/services/Context';
 	import { PlanetService } from '$lib/services/PlanetService';
 	import type { Cost } from '$lib/types/Cost';
 	import type { CommandedPlanet, ProductionQueueItem } from '$lib/types/Planet';
@@ -136,11 +136,13 @@
 	};
 
 	const ok = async () => {
-		planet.productionQueue = queueItems ?? [];
-		planet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
-		const result = await planetService.updatePlanet(planet);
-		commandMapObject(result);
-		dispatch('ok');
+		if ($game) {
+			planet.productionQueue = queueItems ?? [];
+			planet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
+			const result = await planetService.updatePlanet($game.id, planet);
+			commandMapObject(result);
+			dispatch('ok');
+		}
 	};
 
 	const cancel = () => {
