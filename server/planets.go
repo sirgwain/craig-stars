@@ -18,7 +18,7 @@ func (req *planetRequest) Bind(r *http.Request) error {
 	return nil
 }
 
-// context for /api/games/{id}/designs/{num} calls that require a shipDesign
+// context for /api/games/{id}/planets/{num} calls that require a shipDesign
 func (s *server) planetCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		player := s.contextPlayer(r)

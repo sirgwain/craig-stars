@@ -22,7 +22,7 @@ func newServeCmd() *cobra.Command {
 	serveCmd := &cobra.Command{
 		Use:   "serve",
 		Short: "Start the webserver",
-		Long:  `Start a local gin-gonic webserver and serve requests.`,
+		Long:  `Start a local webserver and serve requests.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			db := db.NewClient()

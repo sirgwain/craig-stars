@@ -2,6 +2,7 @@ package server
 
 import (
 	"crypto/rand"
+	"errors"
 	"fmt"
 	"time"
 
@@ -10,6 +11,8 @@ import (
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
 )
+
+var errNotFound = errors.New("resource was not found")
 
 type TurnGenerationCheckResult uint
 type DBClient db.Client

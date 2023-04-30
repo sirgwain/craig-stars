@@ -173,6 +173,21 @@ func (c *client) GetFleetsForPlayer(gameID int64, playerNum int) ([]*cs.Fleet, e
 	return results, nil
 }
 
+func (c *client) GetFleetByNum(gameID int64, num int) (*cs.Fleet, error) {
+
+	item := Fleet{}
+	if err := c.db.Get(&item, `SELECT * FROM fleets WHERE gameId = ? AND num = ?`, gameID, num); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	fleet := c.converter.ConvertFleet(&item)
+	return fleet, nil
+
+}
+
 // create a new game
 func (c *client) createFleet(fleet *cs.Fleet, tx SQLExecer) error {
 	item := c.converter.ConvertGameFleet(fleet)

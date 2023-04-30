@@ -2,7 +2,7 @@ root = "."
 testdata_dir = "testdata"
 
 [build]
-  args_bin = ["-d", "serve-chi", "--generate-test-game"]
+  args_bin = ["-d", "serve", "--generate-test-game"]
   bin = "./dist/craig-stars"
   cmd = "go build -o ./dist/craig-stars ."
   delay = 1000

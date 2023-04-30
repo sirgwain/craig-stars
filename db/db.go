@@ -85,7 +85,7 @@ type Client interface {
 	UpdateShipDesign(shipDesign *cs.ShipDesign) error
 	DeleteShipDesign(id int64) error
 	DeleteShipDesignWithFleets(id int64, fleetsToUpdate, fleetsToDelete []*cs.Fleet) error
-	
+
 	GetPlanet(id int64) (*cs.Planet, error)
 	GetPlanetByNum(gameID int64, num int) (*cs.Planet, error)
 	GetPlanetsForPlayer(gameID int64, playerNum int) ([]*cs.Planet, error)
@@ -93,6 +93,7 @@ type Client interface {
 	UpdatePlanetSpec(planet *cs.Planet) error
 
 	GetFleet(id int64) (*cs.Fleet, error)
+	GetFleetByNum(gameID int64, num int) (*cs.Fleet, error)
 	UpdateFleet(fleet *cs.Fleet) error
 	DeleteFleet(id int64) error
 	GetFleetsForPlayer(gameID int64, playerNum int) ([]*cs.Fleet, error)
