@@ -1,181 +1,237 @@
 package server
 
 import (
+	"context"
+	"fmt"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/go-chi/render"
+	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 )
 
-type designNumBind struct {
-	DesignNum int `uri:"designnum"`
+type shipDesignRequest struct {
+	*cs.ShipDesign
+}
+
+func (req *shipDesignRequest) Bind(r *http.Request) error {
+	return nil
+}
+
+// context for /api/games/{id}/designs/{num} calls that require a shipDesign
+func (s *server) shipdDesignCtx(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		player := r.Context().Value(keyPlayer).(*cs.Player)
+
+		num, err := s.intURLParam(r, "num")
+		if num == nil || err != nil {
+			render.Render(w, r, ErrBadRequest(err))
+			return
+		}
+
+		design, err := s.db.GetShipDesignByNum(player.GameID, player.Num, *num)
+		if err != nil {
+			render.Render(w, r, ErrInternalServerError(err))
+			return
+		}
+
+		if player == nil {
+			render.Render(w, r, ErrNotFound)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), keyShipDesign, design)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }
 
 // CRUD for ship designs
-func (s *server) createShipDesign(c *gin.Context) {
-	user := s.GetSessionUser(c)
+func (s *server) shipDesigns(w http.ResponseWriter, r *http.Request) {
+	player := r.Context().Value(keyPlayer).(*cs.Player)
 
-	var gameID idBind
-	if err := c.ShouldBindUri(&gameID); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	design := cs.ShipDesign{}
-	if err := c.ShouldBindJSON(&design); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	created, err := s.playerUpdater.createShipDesign(gameID.ID, user.ID, &design)
+	shipDesigns, err := s.db.GetShipDesignsForPlayer(player.GameID, player.Num)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		log.Error().Err(err).Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("get shipDesigns from database")
+		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
 
-	c.JSON(http.StatusOK, created)
+	rest.RenderJSON(w, shipDesigns)
 }
 
-func (s *server) getShipDesign(c *gin.Context) {
-	user := s.GetSessionUser(c)
-
-	var gameID idBind
-	if err := c.ShouldBindUri(&gameID); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	var designNum designNumBind
-	if err := c.ShouldBindUri(&designNum); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	player, err := s.db.GetPlayerForGame(gameID.ID, user.ID)
-	if err != nil {
-		log.Error().Err(err).Int64("GameID", gameID.ID).Int64("UserID", user.ID).Msg("load player from database")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to load player from database"})
-		return
-	}
-
-	design, err := s.db.GetShipDesignByNum(gameID.ID, player.Num, designNum.DesignNum)
-	if err != nil {
-		log.Error().Err(err).Int("DesignNum", designNum.DesignNum).Int64("GameID", gameID.ID).Int64("UserID", user.ID).Msg("load design from database")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to load design from database"})
-		return
-	}
-
-	if design == nil {
-		log.Error().Err(err).Int("DesignNum", designNum.DesignNum).Int64("GameID", gameID.ID).Int64("UserID", user.ID).Msg("not found")
-		c.JSON(http.StatusNotFound, gin.H{"error": "design not found"})
-		return
-	}
-
-	c.JSON(http.StatusOK, design)
+func (s *server) shipDesign(w http.ResponseWriter, r *http.Request) {
+	shipDesign := r.Context().Value(keyShipDesign).(*cs.ShipDesign)
+	rest.RenderJSON(w, shipDesign)
 }
 
-func (s *server) getShipDesigns(c *gin.Context) {
-	user := s.GetSessionUser(c)
+func (s *server) createShipDesign(w http.ResponseWriter, r *http.Request) {
+	game := r.Context().Value(keyGame).(*cs.Game)
+	player := r.Context().Value(keyPlayer).(*cs.Player)
 
-	var gameID idBind
-	if err := c.ShouldBindUri(&gameID); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	design := shipDesignRequest{}
+	if err := render.Bind(r, &design); err != nil {
+		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
 
-	player, err := s.db.GetPlayerWithDesignsForGame(gameID.ID, user.ID)
+	if err := design.Validate(&game.Rules, player); err != nil {
+		log.Error().Err(err).Int64("ID", player.ID).Str("DesignName", design.Name).Msg("validate new player design")
+		render.Render(w, r, ErrBadRequest(err))
+		return
+	}
+
+	designs, err := s.db.GetShipDesignsForPlayer(game.ID, player.Num)
 	if err != nil {
-		log.Error().Err(err).Int64("GameID", gameID.ID).Int64("UserID", user.ID).Msg("load player from database")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to load player from database"})
+		log.Error().Err(err).Int64("ID", player.ID).Msg("load designs for player")
+		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	c.JSON(http.StatusOK, player.Designs)
+	design.PlayerNum = player.Num
+	design.GameID = player.GameID
+	design.Num = player.GetNextDesignNum(designs)
+	design.Spec = cs.ComputeShipDesignSpec(&game.Rules, player.TechLevels, player.Race.Spec, design.ShipDesign)
 
+	if err := s.db.CreateShipDesign(design.ShipDesign); err != nil {
+		log.Error().Err(err).Int64("ID", player.ID).Str("DesignName", design.Name).Msg("save new player design")
+		render.Render(w, r, ErrInternalServerError(err))
+	}
+
+	rest.RenderJSON(w, design)
 }
 
-// update a shipdesign
-func (s *server) updateShipDesign(c *gin.Context) {
-	user := s.GetSessionUser(c)
+func (s *server) updateShipDesign(w http.ResponseWriter, r *http.Request) {
+	game := r.Context().Value(keyGame).(*cs.Game)
+	player := r.Context().Value(keyPlayer).(*cs.Player)
 
-	var gameID idBind
-	if err := c.ShouldBindUri(&gameID); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	design := shipDesignRequest{}
+	if err := render.Bind(r, &design); err != nil {
+		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
 
-	design := cs.ShipDesign{}
-	if err := c.ShouldBindJSON(&design); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	// load in the existing shipDesign from the context
+	existingDesign := r.Context().Value(keyShipDesign).(*cs.ShipDesign)
+
+	// validate
+
+	design.PlayerNum = player.Num
+	design.GameID = player.GameID
+	design.Spec = cs.ComputeShipDesignSpec(&game.Rules, player.TechLevels, player.Race.Spec, design.ShipDesign)
+
+	// edge case for bad request where the url num doesn't match the request payload
+	if design.Num != existingDesign.Num {
+		log.Error().Int64("ID", design.ID).Msgf("design.Num %d != existingDesign.Num %d", design.ID, existingDesign.ID)
+		render.Render(w, r, ErrBadRequest(fmt.Errorf("shipDesign id/user id does not match existing shipDesign")))
 		return
 	}
 
-	updated, err := s.playerUpdater.updateShipDesign(gameID.ID, user.ID, &design)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if err := design.Validate(&game.Rules, player); err != nil {
+		log.Error().Err(err).Int64("ID", player.ID).Str("DesignName", design.Name).Msg("validate player design")
+		render.Render(w, r, ErrBadRequest(fmt.Errorf("shipDesign id/user id does not match existing shipDesign")))
+	}
+
+	if err := s.db.UpdateShipDesign(design.ShipDesign); err != nil {
+		log.Error().Err(err).Int64("ID", design.ID).Msg("update shipDesign in database")
+		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	c.JSON(http.StatusOK, updated)
-
+	rest.RenderJSON(w, design)
 }
 
-func (s *server) deleteShipDesign(c *gin.Context) {
-	user := s.GetSessionUser(c)
+func (s *server) deleteShipDesign(w http.ResponseWriter, r *http.Request) {
+	game := r.Context().Value(keyGame).(*cs.Game)
+	player := r.Context().Value(keyPlayer).(*cs.Player)
+	design := r.Context().Value(keyShipDesign).(*cs.ShipDesign)
 
-	var gameID idBind
-	if err := c.ShouldBindUri(&gameID); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	var designNum designNumBind
-	if err := c.ShouldBindUri(&designNum); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+	gameID := design.GameID
 
 	// delete the ship design
-	fleets, starbases, err := s.playerUpdater.deleteShipDesign(gameID.ID, user.ID, designNum.DesignNum)
+
+	playerFleets, err := s.db.GetFleetsForPlayer(gameID, player.Num)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		log.Error().Err(err).Int64("GameID", gameID).Int("PlayerNum", player.Num).Msg("load fleets from database")
+		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"fleets": fleets, "starbases": starbases})
+	fleetsToDelete := []*cs.Fleet{}
+	fleetsToUpdate := []*cs.Fleet{}
+	for _, fleet := range playerFleets {
+		// find any tokens using this design
+		updatedTokens := make([]cs.ShipToken, 0, len(fleet.Tokens))
+		for _, token := range fleet.Tokens {
+			if token.DesignNum != design.Num {
+				updatedTokens = append(updatedTokens, token)
+			}
+		}
+		// if we have no tokens left, delete the fleet
+		if len(updatedTokens) == 0 {
+			fleetsToDelete = append(fleetsToDelete, fleet)
+		} else {
+			// if we have a different number of tokens than we
+			// had before, update this fleet
+			if len(updatedTokens) != len(fleet.Tokens) {
+				fleet.Tokens = updatedTokens
+				fleet.Spec = cs.ComputeFleetSpec(&game.Rules, player, fleet)
+				fleetsToUpdate = append(fleetsToUpdate, fleet)
+			}
+		}
+
+	}
+
+	// delete a ship design and update fleets in one transaction
+	if err := s.db.DeleteShipDesignWithFleets(design.ID, fleetsToUpdate, fleetsToDelete); err != nil {
+		log.Error().Err(err).Int64("GameID", gameID).Int("PlayerNum", player.Num).Msg("load fleets from database")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	// log what we did
+	log.Info().Int64("GameID", gameID).Int("PlayerNum", player.Num).Int("Num", design.Num).Msgf("deleted design %s", design.Name)
+
+	for _, fleet := range fleetsToUpdate {
+		log.Info().Int64("GameID", gameID).Int("PlayerNum", player.Num).Int("Num", design.Num).Msgf("updated fleet %s after deleting design", fleet.Name)
+	}
+
+	for _, fleet := range fleetsToDelete {
+		log.Info().Int64("GameID", gameID).Int("PlayerNum", player.Num).Int("Num", design.Num).Msgf("deleted fleet %s after deleting design", fleet.Name)
+	}
+
+	allFleets, err := s.db.GetFleetsForPlayer(gameID, player.Num)
+
+	if err != nil {
+		log.Error().Err(err).Int64("GameID", gameID).Int("PlayerNum", player.Num).Int("Num", design.Num).Msg("load fleets from database")
+		render.Render(w, r, ErrInternalServerError(err))
+	}
+
+	// split the player fleets into fleets and starbases
+	fleets := make([]*cs.Fleet, 0, len(allFleets))
+	starbases := make([]*cs.Fleet, 0)
+	for i := range allFleets {
+		fleet := allFleets[i]
+		if fleet.Starbase {
+			starbases = append(starbases, fleet)
+		} else {
+			fleets = append(fleets, fleet)
+		}
+	}
+	rest.RenderJSON(w, rest.JSON{"fleets": fleets, "starbases": starbases})
 }
 
-func (s *server) computeShipDesignSpec(c *gin.Context) {
-	user := s.GetSessionUser(c)
+func (s *server) computeShipDesignSpec(w http.ResponseWriter, r *http.Request) {
+	game := r.Context().Value(keyGame).(*cs.Game)
+	player := r.Context().Value(keyPlayer).(*cs.Player)
 
-	var gameID idBind
-	if err := c.ShouldBindUri(&gameID); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	design := shipDesignRequest{}
+	if err := render.Bind(r, &design); err != nil {
+		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
 
-	design := cs.ShipDesign{}
-	if err := c.ShouldBindJSON(&design); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+	design.Spec = cs.ComputeShipDesignSpec(&game.Rules, player.TechLevels, player.Race.Spec, design.ShipDesign)
 
-	player, err := s.db.GetPlayerForGame(gameID.ID, user.ID)
-	if err != nil {
-		log.Error().Err(err).Int64("GameID", player.GameID).Msg("loading player from database")
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	rules, err := s.db.GetRulesForGame(player.GameID)
-	if err != nil {
-		log.Error().Err(err).Int64("GameID", player.GameID).Msg("loading game rules from database")
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	design.Spec = cs.ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, &design)
-
-	c.JSON(http.StatusOK, design.Spec)
+	rest.RenderJSON(w, design.Spec)
 }

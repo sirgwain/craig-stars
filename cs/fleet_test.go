@@ -27,7 +27,7 @@ func testLongRangeScout(player *Player, rules *Rules) *Fleet {
 		},
 		OrbitingPlanetNum: NotOrbitingPlanet,
 	}
-	fleet.Spec = computeFleetSpec(rules, player, fleet)
+	fleet.Spec = ComputeFleetSpec(rules, player, fleet)
 	fleet.Fuel = fleet.Spec.FuelCapacity
 	return fleet
 }
@@ -52,7 +52,7 @@ func testSmallFreighter(player *Player, rules *Rules) *Fleet {
 		OrbitingPlanetNum: NotOrbitingPlanet,
 	}
 
-	fleet.Spec = computeFleetSpec(rules, player, fleet)
+	fleet.Spec = ComputeFleetSpec(rules, player, fleet)
 	fleet.Fuel = fleet.Spec.FuelCapacity
 	return fleet
 
@@ -76,7 +76,7 @@ func testCloakedScout(player *Player, rules *Rules) *Fleet {
 		},
 		OrbitingPlanetNum: NotOrbitingPlanet,
 	}
-	fleet.Spec = computeFleetSpec(rules, player, fleet)
+	fleet.Spec = ComputeFleetSpec(rules, player, fleet)
 	fleet.Fuel = fleet.Spec.FuelCapacity
 	return fleet
 }
@@ -241,7 +241,7 @@ func Test_computeFleetSpec(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := computeFleetSpec(tt.args.rules, tt.args.player, tt.args.fleet); !reflect.DeepEqual(got, tt.want) {
+			if got := ComputeFleetSpec(tt.args.rules, tt.args.player, tt.args.fleet); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("ComputeFleetSpec() = \n%v, want \n%v", got, tt.want)
 			}
 		})

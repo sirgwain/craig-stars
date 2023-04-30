@@ -87,14 +87,6 @@ func Start(db DBClient, config config.Config) {
 	ar.POST("/fleets/:id/merge", noop)
 	ar.POST("/fleets/:id/rename", noop)
 
-	// CRUD for ship designs
-	ar.GET("/games/:id/designs", server.getShipDesigns)
-	ar.GET("/games/:id/designs/:designnum", server.getShipDesign)
-	ar.DELETE("/games/:id/designs/:designnum", server.deleteShipDesign)
-	ar.POST("/games/:id/designs", server.createShipDesign)
-	ar.POST("/games/:id/designs/spec", server.computeShipDesignSpec)
-	ar.PUT("/games/:id/designs", server.updateShipDesign)
-
 	// Update player plans
 	ar.PUT("/games/:id/battle-plans", noop)
 	ar.PUT("/games/:id/transport-plans", noop)

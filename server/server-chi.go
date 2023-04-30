@@ -33,7 +33,10 @@ const (
 	keyRace
 	keyGame
 	keyPlayer
-	keyDesign
+	keyShipDesign
+	keyPlanet
+	keyFleet
+	keyMineField
 )
 
 type server struct {
@@ -220,12 +223,31 @@ func StartChi(db DBClient, config config.Config) {
 				r.Post("/generate-universe", server.generateUniverse)
 				r.Delete("/", server.deleteGame)
 
-				// player routes
+				// routes requiring a player and game
 				r.Group(func(r chi.Router) {
+					r.Use(server.playerCtx)
 					r.Get("/player", server.player)
-					r.Get("/full-player", server.fullPlayer)
-					r.Get("/mapobjects", server.mapObjects)
+
+					// ship designs
+					r.Route("/designs", func(r chi.Router) {
+						r.Get("/", server.shipDesigns)
+						r.Post("/", server.createShipDesign)
+						r.Post("/spec", server.computeShipDesignSpec)
+
+						// shipdesign by num operations
+						r.Route("/{num:[0-9]+}", func(r chi.Router) {
+							r.Use(server.shipdDesignCtx)
+							r.Get("/", server.shipDesign)
+							r.Put("/", server.updateShipDesign)
+							r.Delete("/", server.deleteShipDesign)
+						})
+					})
+
 				})
+
+				r.Get("/full-player", server.fullPlayer)
+				r.Get("/mapobjects", server.mapObjects)
+
 			})
 		})
 
@@ -256,11 +278,10 @@ func requestLogger(logger *zerolog.Logger) func(next http.Handler) http.Handler 
 				// Recover and record stack traces in case of a panic
 				if rec := recover(); rec != nil {
 					log.Error().
-						Str("type", "error").
 						Timestamp().
-						Interface("recover_info", rec).
-						Bytes("debug_stack", debug.Stack()).
-						Msg("log system error")
+						Interface("info", rec).
+						Bytes("stack", debug.Stack()).
+						Msg("system error")
 					http.Error(ww, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 				}
 
@@ -273,13 +294,13 @@ func requestLogger(logger *zerolog.Logger) func(next http.Handler) http.Handler 
 				}
 
 				fields := map[string]interface{}{
-					"remote_ip":  r.RemoteAddr,
-					"url":        r.URL.Path,
-					"method":     r.Method,
-					"status":     ww.Status(),
-					"latency_ms": float64(t2.Sub(t1).Nanoseconds()) / 1000000.0,
-					"bytes_in":   r.Header.Get("Content-Length"),
-					"bytes_out":  ww.BytesWritten(),
+					"ip":             r.RemoteAddr,
+					"url":            r.URL.Path,
+					"method":         r.Method,
+					"status":         ww.Status(),
+					"ms":             float64(t2.Sub(t1).Nanoseconds()) / 1000000.0,
+					"content-length": r.Header.Get("Content-Length"),
+					"resp_bytes":     ww.BytesWritten(),
 				}
 
 				// don't log the user_agent while we're debugging, we should know what it is
@@ -305,6 +326,21 @@ func (s *server) int64URLParam(r *http.Request, key string) (*int64, error) {
 	}
 	var num int64
 	num, err := strconv.ParseInt(param, 10, 64)
+	if err != nil {
+
+		return nil, err
+	}
+
+	return &num, nil
+}
+
+func (s *server) intURLParam(r *http.Request, key string) (*int, error) {
+	param := chi.URLParam(r, key)
+	if param == "" {
+		return nil, nil
+	}
+	var num int
+	num, err := strconv.Atoi(param)
 	if err != nil {
 
 		return nil, err

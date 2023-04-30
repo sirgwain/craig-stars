@@ -20,7 +20,6 @@ type ErrResponse struct {
 	HTTPStatusCode int   `json:"-"` // http response status code
 
 	StatusText string `json:"status"`          // user-level status message
-	AppCode    int64  `json:"code,omitempty"`  // application-specific error code
 	ErrorText  string `json:"error,omitempty"` // application-level error message, for debugging
 }
 
@@ -29,6 +28,8 @@ func (e *ErrResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
+// error for bad requests from the caller. Maybe they malformed a url or
+// sent a payload with invalid data
 func ErrBadRequest(err error) render.Renderer {
 	return &ErrResponse{
 		Err:            err,
@@ -38,21 +39,15 @@ func ErrBadRequest(err error) render.Renderer {
 	}
 }
 
-func ErrRender(err error) render.Renderer {
-	return &ErrResponse{
-		Err:            err,
-		HTTPStatusCode: http.StatusUnprocessableEntity,
-		StatusText:     "Error rendering response.",
-		ErrorText:      err.Error(),
-	}
-}
-
+// error for unexpected server issues like db connections
+// this could be because of a bug in our code (like we failed to validate a unique constraint)
+// but most likely it's some server specific thing we want to view in the logs
 func ErrInternalServerError(err error) render.Renderer {
 	return &ErrResponse{
 		Err:            err,
 		HTTPStatusCode: http.StatusInternalServerError,
 		StatusText:     "Internal Server Error.",
-		ErrorText:      err.Error(),
+		ErrorText:      "Internal Server Error.", // don't let the client know about internal server errors (i.e. db errors, system level stuff)
 	}
 }
 
