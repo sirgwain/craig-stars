@@ -58,22 +58,18 @@
 		);
 		position = { x: Math.round(x1 / $xScale(1)), y: Math.round(y1 / $yScale(1)) };
 
-		console.log(
-			'x, y',
-			[evt[xLayerKey] as number, evt[yLayerKey] as number],
-			'x1, y1',
-			[x1, y1],
-			'found',
-			found?.name,
-			'found?.position',
-			`${found?.position.x}, ${found?.position.y}`,
-			'position',
-			`${position.x}, ${position.y}`,
-			'scale',
-			`${$xScale(1)}, ${$yScale(1)}`,
-			'dimensions',
-			`${$width}, ${$height}`
-		);
+		// console.log(
+		// 	'x, y',
+		// 	[evt[xLayerKey] as number, evt[yLayerKey] as number],
+		// 	'x1, y1',
+		// 	[x1, y1],
+		// 	'found',
+		// 	found?.name,
+		// 	'found?.position',
+		// 	`${found?.position.x}, ${found?.position.y}`,
+		// 	'position',
+		// 	`${position.x}, ${position.y}`,
+		// );
 
 		highlightMapObject(found as Planet);
 	}
