@@ -3,7 +3,6 @@ CREATE TABLE users.users (
   createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
   updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
   username TEXT UNIQUE NOT NULL,
-  discord TEXT,
   password TEXT,
   email TEXT,
   verified NUMERIC,
