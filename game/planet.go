@@ -94,8 +94,8 @@ func (item *ProductionQueueItem) String() string {
 	return fmt.Sprintf("ProductionQueueItem %d %s (%s)", item.Quantity, item.Type, item.DesignName)
 }
 
-func NewPlanet(gameID uint) *Planet {
-	return &Planet{MapObject: MapObject{Type: MapObjectTypePlanet, GameID: gameID, Dirty: true, PlayerNum: Unowned}}
+func NewPlanet() *Planet {
+	return &Planet{MapObject: MapObject{Type: MapObjectTypePlanet, Dirty: true, PlayerNum: Unowned}}
 }
 
 func (p *Planet) WithCargo(cargo Cargo) *Planet {

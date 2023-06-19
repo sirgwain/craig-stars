@@ -239,8 +239,8 @@ func TestFleet_TransferPlanetCargo(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{"Should transfer from planet", freighter, args{NewPlanet(1).WithCargo(Cargo{1, 2, 3, 4}), Cargo{1, 0, 0, 0}}, false},
-		{"Should fail to transfer from planet", freighter, args{NewPlanet(1).WithCargo(Cargo{1, 2, 3, 4}), Cargo{2, 0, 0, 0}}, true},
+		{"Should transfer from planet", freighter, args{NewPlanet().WithCargo(Cargo{1, 2, 3, 4}), Cargo{1, 0, 0, 0}}, false},
+		{"Should fail to transfer from planet", freighter, args{NewPlanet().WithCargo(Cargo{1, 2, 3, 4}), Cargo{2, 0, 0, 0}}, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -332,12 +332,9 @@ func TestFleet_moveFleet(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			game := NewGame()
-			game.AddPlayer(player)
-			game.Fleets = append(game.Fleets, *tt.fleet)
-			game.buildMaps()
+			universe := Universe{Fleets: []Fleet{*tt.fleet}}
 
-			tt.fleet.moveFleet(game, &rules, tt.args.player)
+			tt.fleet.moveFleet(&universe, &rules, tt.args.player)
 
 			assert.Equal(t, tt.want.position, tt.fleet.Position)
 			assert.Equal(t, tt.want.position, tt.fleet.Waypoints[0].Position)

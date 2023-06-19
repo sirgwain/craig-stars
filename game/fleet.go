@@ -509,7 +509,7 @@ func (f *Fleet) TransferFleetCargo(fleet *Fleet, transferAmount Cargo) error {
 	return nil
 }
 
-func (fleet *Fleet) moveFleet(game *Game, rules *Rules, player *Player) {
+func (fleet *Fleet) moveFleet(mapObjectGetter MapObjectGetter, rules *Rules, player *Player) {
 	wp0 := fleet.Waypoints[0]
 	wp1 := fleet.Waypoints[1]
 	totalDist := fleet.Position.DistanceTo(wp1.Position)
@@ -589,7 +589,7 @@ func (fleet *Fleet) moveFleet(game *Game, rules *Rules, player *Player) {
 	// }
 
 	if totalDist == dist {
-		fleet.completeMove(game, wp0, wp1)
+		fleet.completeMove(mapObjectGetter, wp0, wp1)
 	} else {
 		// move this fleet closer to the next waypoint
 		fleet.WarpSpeed = wp1.WarpFactor
@@ -694,31 +694,31 @@ func (fleet *Fleet) getFuelGeneration(techStore *TechStore, player *Player, warp
 }
 
 // Complete a move from one waypoint to another
-func (fleet *Fleet) completeMove(game *Game, wp0 Waypoint, wp1 Waypoint) {
+func (fleet *Fleet) completeMove(mapObjectGetter MapObjectGetter, wp0 Waypoint, wp1 Waypoint) {
 	fleet.Position = wp1.Position
 
 	// find out if we arrived at a planet, either by reaching our target fleet
 	// or reaching a planet
 	if wp1.TargetType == MapObjectTypeFleet && wp1.TargetPlayerNum != NoTarget && wp1.TargetNum != NoTarget {
-		target := game.getFleet(wp1.TargetPlayerNum, wp1.TargetNum)
+		target := mapObjectGetter.GetFleet(wp1.TargetPlayerNum, wp1.TargetNum)
 		fleet.OrbitingPlanetNum = target.OrbitingPlanetNum
 
 		// we are orbiting a friendly planet
-		targetPlanet := game.getPlanet(fleet.OrbitingPlanetNum)
+		targetPlanet := mapObjectGetter.GetPlanet(fleet.OrbitingPlanetNum)
 		if fleet.PlayerNum == targetPlanet.PlayerNum && targetPlanet.Spec.HasStarbase {
 			// refuel at starbases
 			fleet.Fuel = fleet.Spec.FuelCapacity
 		}
 	} else if wp1.TargetType == MapObjectTypePlanet && wp1.TargetNum != NoTarget {
-		target := game.getPlanet(wp1.TargetNum)
+		target := mapObjectGetter.GetPlanet(wp1.TargetNum)
 		fleet.OrbitingPlanetNum = target.Num
 		if fleet.PlayerNum == target.PlayerNum && target.Spec.HasStarbase {
 			// refuel at starbases
 			fleet.Fuel = fleet.Spec.FuelCapacity
 		}
 	} else if wp1.TargetType == MapObjectTypeWormhole && wp1.TargetNum != NoTarget {
-		target := game.getWormhole(wp1.TargetNum)
-		dest := game.getWormhole(target.DestinationNum)
+		target := mapObjectGetter.GetWormhole(wp1.TargetNum)
+		dest := mapObjectGetter.GetWormhole(target.DestinationNum)
 		fleet.Position = dest.Position
 	}
 

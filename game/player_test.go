@@ -119,7 +119,7 @@ func TestPlayer_GetPlanet(t *testing.T) {
 	assert.Nil(t, player.GetPlanet(1))
 
 	// should have a planet by this id
-	planet := NewPlanet(1)
+	planet := NewPlanet()
 	planet.Num = 1
 	player.Planets = append(player.Planets, planet)
 	player.BuildMaps()

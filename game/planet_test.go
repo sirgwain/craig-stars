@@ -252,10 +252,10 @@ func TestPlanet_reduceMineralConcentration(t *testing.T) {
 		args   args
 		want   Mineral
 	}{
-		{"Redcue empty planet min conc", NewPlanet(1), args{game}, Mineral{1, 1, 1}},
+		{"Redcue empty planet min conc", NewPlanet(), args{game}, Mineral{1, 1, 1}},
 		{
 			"150 mines should reduce 100% conc by 1 if we have 151 mineyears",
-			NewPlanet(1).
+			NewPlanet().
 				WithMineralConcentration(Mineral{100, 100, 100}).
 				WithMines(150).
 				WithMineYears(Mineral{151, 151, 151}),

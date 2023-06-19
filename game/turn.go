@@ -7,7 +7,8 @@ import (
 )
 
 type turn struct {
-	game *Game
+	game     *Game
+	universe *Universe
 }
 
 type turnGenerator interface {
@@ -15,7 +16,20 @@ type turnGenerator interface {
 }
 
 func NewTurnGenerator(game *Game) turnGenerator {
-	return &turn{game}
+	t := turn{
+		game: game,
+		universe: &Universe{
+			Planets:        game.Planets,
+			Fleets:         game.Fleets,
+			Wormholes:      game.Wormholes,
+			MineralPackets: game.MineralPackets,
+			Salvage:        game.Salvage,
+		},
+	}
+
+	t.universe.buildMaps()
+
+	return &t
 }
 
 // generate a new turn
@@ -27,7 +41,6 @@ func (t *turn) generateTurn() error {
 		Msgf("begin generating turn")
 	t.game.Year++
 	t.game.computeSpecs()
-	t.game.buildMaps()
 
 	// reset players for start of the turn
 	for i := range t.game.Players {
@@ -100,7 +113,8 @@ func (t *turn) generateTurn() error {
 
 		t.game.updatePlayerOwnedObjects(player)
 
-		if err := t.game.playerScan(player); err != nil {
+		scanner := newPlayerScanner(t.universe, &t.game.Rules, player)
+		if err := scanner.scan(); err != nil {
 			return err
 		}
 		t.playerInfoDiscover(player)
@@ -155,7 +169,7 @@ func (t *turn) fleetColonize() {
 				continue
 			}
 
-			planet := t.game.getPlanet(wp0.TargetNum)
+			planet := t.universe.GetPlanet(wp0.TargetNum)
 			if planet.Owned() {
 				messager.colonizeOwnedPlanet(player, fleet)
 				continue
@@ -197,7 +211,7 @@ func (t *turn) fleetLoad0() {
 
 		if wp0.Task == WaypointTaskTransport {
 			player := &t.game.Players[fleet.PlayerNum]
-			dest := t.game.getCargoHolder(wp0.TargetType, wp0.TargetNum, wp0.TargetPlayerNum)
+			dest := t.universe.GetCargoHolder(wp0.TargetType, wp0.TargetNum, wp0.TargetPlayerNum)
 			if dest == nil {
 				salvage := NewSalvage(fleet.PlayerNum, fleet.Position, Cargo{})
 				dest = &salvage
@@ -265,7 +279,7 @@ func (t *turn) fleetMove() {
 					// yeah, gate!
 					fleet.gateFleet(&t.game.Rules, player)
 				} else {
-					fleet.moveFleet(t.game, &t.game.Rules, player)
+					fleet.moveFleet(t.universe, &t.game.Rules, player)
 				}
 
 				// remove the previous waypoint, it's been processed already
@@ -275,9 +289,7 @@ func (t *turn) fleetMove() {
 				}
 
 				// update the game dictionaries with this fleet's new position
-				delete(t.game.FleetsByPosition, originalPosition)
-				t.game.FleetsByPosition[fleet.Position] = fleet
-				fleet.Dirty = true
+				t.universe.DeleteFleet(fleet)
 			} else {
 				fleet.PreviousPosition = &originalPosition
 				fleet.WarpSpeed = 0
