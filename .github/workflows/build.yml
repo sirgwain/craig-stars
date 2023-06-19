@@ -15,14 +15,19 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm --prefix ./frontend install
-      - run: npm --prefix ./frontend run build
+          cache: 'yarn'
+          cache-dependency-path: frontend/yarn.lock
+      - run: yarn --cwd frontend install
+      - run: yarn --cwd frontend run build
+      - run: mkdir -p dist/
       - run: tar -cvf ./dist/frontend.tgz -C frontend/build .
 
       # build the binary
       - uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go-version }}
+          check-latest: true
+          cache: true
       - run: mkdir -p dist/
       - run: go mod tidy && CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -o dist/craig-stars main.go
       - run: tar -cvf ./dist/craig-stars ./dist/craig-stars.tgz
