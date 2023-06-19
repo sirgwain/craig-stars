@@ -6,7 +6,7 @@
 </script>
 
 <CommandTile title="Planet Status">
-	<div class="flex justify-between pt-2">
+	<div class="flex justify-between">
 		<div>Population</div>
 		<div>{planet.cargo.colonists ? planet.cargo.colonists * 100 : 0}</div>
 	</div>
@@ -15,7 +15,9 @@
 		<div>30 of 35</div>
 	</div>
 
-	<div class="flex justify-between border-t-2 border-slate-700 mt-2 pt-2">
+	<div class="divider p-0 m-0" />
+
+	<div class="flex justify-between">
 		<div>Scanner Type</div>
 		<div>{planet.spec?.scanner}</div>
 	</div>
@@ -24,7 +26,9 @@
 		<div>{planet.spec?.scanRange} l.y.</div>
 	</div>
 
-	<div class="flex justify-between border-t-2 border-slate-700 mt-2 pt-2">
+	<div class="divider p-0 m-0" />
+
+	<div class="flex justify-between">
 		<div>Defenses</div>
 		<div>{planet.defenses}</div>
 	</div>

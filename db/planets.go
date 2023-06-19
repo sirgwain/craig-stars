@@ -22,5 +22,11 @@ func (db *DB) FindPlanetById(id uint) (*game.Planet, error) {
 }
 
 func (db *DB) SavePlanet(planet *game.Planet) error {
-	return db.sqlDB.Save(planet).Error
+	if err := db.sqlDB.Save(planet).Error; err != nil {
+		return err
+	}
+
+	err := db.sqlDB.Model(planet).Association("ProductionQueue").Replace(planet.ProductionQueue)
+
+	return err
 }

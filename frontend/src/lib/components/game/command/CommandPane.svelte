@@ -6,6 +6,7 @@
 	import { PlanetService } from '$lib/services/PlanetService';
 	import MineralsOnHandTile from './MineralsOnHandTile.svelte';
 	import PlanetStatusTile from './PlanetStatusTile.svelte';
+import PlanetProductionTile from './PlanetProductionTile.svelte';
 
 	const { game, player } = getContext<GameContext>('game');
 
@@ -48,5 +49,6 @@
 	<div class="grid grid-cols-1 lg:grid-cols-2 gap-2">
 		<MineralsOnHandTile />
 		<PlanetStatusTile />
+		<PlanetProductionTile />
 	</div>
 {/if}
