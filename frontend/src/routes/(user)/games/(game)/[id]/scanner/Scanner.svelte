@@ -56,13 +56,12 @@
 		if (root) {
 			handleResize();
 
-			// console.log(`Setting up viewport with ${clientWidth}x${clientHeight}`);
 			zoomBehavior = zoom<HTMLElement, any>()
 				.extent([
 					[0, 0],
 					[clientWidth, clientHeight]
 				])
-				.scaleExtent([1, 8])
+				.scaleExtent([0.75, 8])
 				.translateExtent([
 					[-20, -20],
 					[clientWidth + padding, clientHeight + padding]
@@ -76,31 +75,39 @@
 		}
 	}
 
-	const xRange = () => [0, clientWidth < clientHeight ? clientWidth : clientHeight];
-	const yRange = () => [0, clientWidth < clientHeight ? clientWidth : clientHeight];
+	const xRange = () => {
+		if (aspectRatio > 1 && clientHeight > clientWidth) {
+			// tall skinny viewport, wide map, so fully expand on the x
+			// but shrink up height
+			return [0, clientWidth];
+		} else if (aspectRatio > 1 && clientWidth > clientHeight) {
+			// wide viewport, wide map, so fully expand on the y
+			// but shrink up height
+			return [0, clientHeight * aspectRatio];
+		}
+		return [0, Math.min(clientWidth, clientHeight)];
+	};
+	const yRange = () => {
+		if (aspectRatio > 1 && clientHeight > clientWidth) {
+			// tall skinny viewport, wide map, so fully expand on the x
+			// but shrink up height
+			return [0, clientWidth / aspectRatio];
+		} else if (aspectRatio > 1 && clientWidth > clientHeight) {
+			// wide viewport, wide map, so fully expand on the y
+			return [0, clientHeight];
+		}
+		return [0, Math.min(clientWidth, clientHeight)];
+	};
 
 	function handleResize() {
 		clientWidth = root?.clientWidth ?? 100;
 		clientHeight = root?.clientHeight ?? 100;
-		if (clientWidth > clientHeight) {
-			aspectRatio = clientHeight / clientWidth;
-		} else {
-			aspectRatio = clientWidth / clientHeight;
-		}
+		aspectRatio = game.area.x / game.area.y;
+
 
 		// compute scales
-		scaleX = scaleLinear()
-			.range([0, clientWidth * aspectRatio])
-			.domain([0, game.area.x]);
-		scaleY = scaleLinear()
-			.range([-clientHeight * aspectRatio, 0])
-			.domain([-game.area.y, 0]);
-
-		// console.log(
-		// 	`clientWidth/Height: ${clientWidth}, ${clientHeight}, aspectRatio: ${aspectRatio}, scaled: ${(
-		// 		clientHeight * aspectRatio
-		// 	).toFixed()}, ${(clientWidth * aspectRatio).toFixed()}`
-		// );
+		scaleX = scaleLinear().range(xRange()).domain([0, game.area.x]);
+		scaleY = scaleLinear().range(yRange()).domain([0, game.area.y]);
 	}
 
 	function handleZoom(e: D3ZoomEvent<HTMLElement, any>) {
@@ -117,6 +124,7 @@
 	// zoom the display to a point on the map
 	function translateViewport(position: Vector, scaleTo?: number) {
 		if (root) {
+			select(root).call(zoomBehavior.scaleTo, scale);
 			const scaled: Vector = {
 				x: scaleX(position.x),
 				y: scaleY(position.y)
@@ -125,7 +133,6 @@
 			if (scaleTo) {
 				localScale = scaleTo;
 			}
-			// console.log(`${position.x}, ${position.y} -> scaled: ${scaled.x}, ${scaled.y}`);
 			select(root)
 				.call(zoomBehavior.translateTo, scaled.x, scaled.y)
 				.call(zoomBehavior.scaleTo, localScale);
@@ -280,7 +287,7 @@
 	>
 		<!-- <Svg viewBox={`0 0 ${game.area.x} ${game.area.y}`}> -->
 		<Svg>
-			<g transform={transform?.toString()}>
+			<g preserveAspectRatio="true" transform={transform?.toString()}>
 				<ScannerScanners />
 				<ScannerWaypoints />
 				<ScannerPlanets />
