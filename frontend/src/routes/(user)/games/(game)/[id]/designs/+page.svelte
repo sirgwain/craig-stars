@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import DesignCard from '$lib/components/game/DesignCard.svelte';
 	import Design from '$lib/components/game/design/Design.svelte';
 	import { DesignService } from '$lib/services/DesignService';
@@ -23,24 +24,21 @@
 	}
 </script>
 
-<div class="w-full mx-auto md:max-w-2xl">
-	<div class="w-full flex justify-between gap-2 border-primary border-b-2 mb-2">
-		<div class="breadcrumbs">
-			<ul>
-				<li>Designs</li>
-			</ul>
-		</div>
-
+<Breadcrumb>
+	<svelte:fragment slot="crumbs">
+		<li>Designs</li>
+	</svelte:fragment>
+	<div slot="end">
 		<a class="cs-link btn btn-sm" href={`/games/${gameId}/designs/create`}>Create</a>
 	</div>
+</Breadcrumb>
 
-	{#if designs?.length && gameId != undefined}
-		<div class="flex flex-wrap justify-center">
-			{#each designs as design (design.num)}
-				<div class="mb-2">
-					<DesignCard {design} {gameId} on:deleted={(e) => onDeleted(e.detail.design)} />
-				</div>
-			{/each}
-		</div>
-	{/if}
-</div>
+{#if designs?.length && gameId != undefined}
+	<div class="flex flex-wrap justify-center">
+		{#each designs as design (design.num)}
+			<div class="mb-2">
+				<DesignCard {design} {gameId} on:deleted={(e) => onDeleted(e.detail.design)} />
+			</div>
+		{/each}
+	</div>
+{/if}

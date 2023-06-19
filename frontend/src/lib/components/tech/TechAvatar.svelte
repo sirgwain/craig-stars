@@ -3,7 +3,7 @@
 	import { kebabCase } from 'lodash-es';
 
 	export let tech: Tech | undefined = undefined;
-	export let hullSetNumber = 1;
+	export let hullSetNumber = 0;
 	export let numHullSets = 4;
 	export let hullSetChangeable = false;
 
@@ -30,5 +30,5 @@
 			hullSetNumber %= numHullSets;
 		}
 	}}
-	class="avatar border border-secondary tech-avatar {icon(hullSetNumber)}"
+	class="avatar tech-avatar {icon(hullSetNumber)}"
 />

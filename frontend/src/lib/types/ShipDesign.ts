@@ -87,4 +87,5 @@ export type Spec = {
 	maxHullMass?: number;
 	maxRange?: number;
 	numInstances?: number;
+	numBuilt?: number;
 };

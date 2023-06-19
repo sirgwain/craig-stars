@@ -12,7 +12,7 @@
 </script>
 
 <div class="flex flex-row justify-between">
-	<div>
+	<div class="border border-secondary bg-black p-1">
 		<TechAvatar tech={hull} hullSetNumber={design.hullSetNumber} />
 	</div>
 </div>

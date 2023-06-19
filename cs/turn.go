@@ -615,7 +615,13 @@ func (t *turn) playerResearch() {
 		// update design spec
 		for i := range player.Designs {
 			design := player.Designs[i]
+
+			// store the numBuilt/numInstances because they spec resets them to 0
+			numBuilt := design.Spec.NumBuilt
+			numInstances := design.Spec.NumInstances
 			design.Spec = ComputeShipDesignSpec(&t.game.Rules, player.TechLevels, player.Race.Spec, design)
+			design.Spec.NumBuilt = numBuilt
+			design.Spec.NumInstances = numInstances
 		}
 	}
 
