@@ -2,35 +2,47 @@
 
 import type { Cargo } from './Cargo';
 import type { Cost } from './Cost';
-import type { MapObject } from './MapObject';
+import type { MapObject, MapObjectType } from './MapObject';
 import type { Vector } from './Vector';
 
 export interface Fleet extends MapObject {
 	baseName: string;
-	fuel: number;
-	cargo: Cargo;
-	damage: number;
-	battlePlan: number;
+	fuel?: number;
+	cargo?: Cargo;
+	damage?: number;
+	battlePlan?: number;
 	tokens: ShipToken[];
 	waypoints: Waypoint[];
-	spec: Spec;
+
+	repeatOrders?: boolean;
+	heading?: Vector;
+	warpSpeed?: number;
+	orbiting?: boolean;
+	starbase?: boolean;
+	spec?: Spec;
 }
 
 export interface ShipToken {
-	id: number;
-	createdAt: string;
-	updatedAt: string;
+	id?: number;
+	createdAt?: string;
+	updatedAt?: string;
 
-	gameId: number;
+	gameId?: number;
 	designId: number;
 	quantity: number;
 }
 
 export interface Waypoint {
 	position: Vector;
-	targetPlanetNum: number;
-	targetName: string;
 	warpFactor: number;
+
+	waitAtWaypoint?: boolean;
+	targetType?: MapObjectType;
+	targetNum?: number;
+	targetName?: string;
+	targetPlayerNum?: number;
+	transferToPlayer?: number;
+	partiallyComplete?: boolean;
 }
 
 export interface Spec {
@@ -42,7 +54,7 @@ export interface Spec {
 	immuneToOwnDetonation: boolean;
 	mineLayingRateByMineType?: null;
 	weaponSlots?: null;
-	purposes?: string[];
+	purposes?: any;
 	totalShips: number;
 	massEmpty: number;
 	basePacketSpeed: number;
@@ -65,7 +77,7 @@ export interface Spec {
 	bombs?: number;
 	smartBombs?: number;
 	retroBombs?: number;
-	scanner?: number;
+	scanner?: boolean;
 	shield?: number;
 	colonizer?: number;
 	canLayMines?: number;

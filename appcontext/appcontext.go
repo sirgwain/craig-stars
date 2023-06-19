@@ -10,7 +10,7 @@ import (
 type AppContext struct {
 	context.Context
 	// Config *config.Config
-	DB     db.Service
+	DB     db.Client
 	Config *config.Config
 }
 

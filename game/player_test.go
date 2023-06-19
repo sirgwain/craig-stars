@@ -2,6 +2,8 @@ package game
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPlayer_HasTech(t *testing.T) {
@@ -98,7 +100,6 @@ func TestPlayer_getNextFleetNum(t *testing.T) {
 			{MapObject: MapObject{Num: 1}},
 			{MapObject: MapObject{Num: 2}},
 		}, 3},
-
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -109,4 +110,21 @@ func TestPlayer_getNextFleetNum(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestPlayer_GetPlanet(t *testing.T) {
+	player := NewPlayer(1, NewRace())
+
+	// no planet by that id
+	assert.Nil(t, player.GetPlanet(1))
+
+	// should have a planet by this id
+	planet := NewPlanet(1)
+	planet.Num = 1
+	player.Planets = append(player.Planets, planet)
+	player.BuildMaps()
+
+	assert.Same(t, planet, player.GetPlanet(1))
+
+	assert.Nil(t, player.GetPlanet(2))
 }

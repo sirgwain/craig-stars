@@ -15,14 +15,16 @@ func testLongRangeScout(player *Player, rules *Rules) *Fleet {
 			{Quantity: 1, Design: NewShipDesign(player).
 				WithHull(Scout.Name).
 				WithSlots([]ShipDesignSlot{
-					{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+					{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
 					{HullComponent: RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
 					{HullComponent: FuelTank.Name, HullSlotIndex: 3, Quantity: 1},
 				}).
 				WithSpec(rules, player)},
 		},
+		OrbitingPlanetNum: NotOrbitingPlanet,
 	}
 	fleet.Spec = ComputeFleetSpec(rules, player, fleet)
+	fleet.Fuel = fleet.Spec.FuelCapacity
 	return fleet
 }
 
@@ -40,6 +42,7 @@ func testSmallFreighter(player *Player, rules *Rules) *Fleet {
 				}).
 				WithSpec(rules, player)},
 		},
+		OrbitingPlanetNum: NotOrbitingPlanet,
 	}
 
 	fleet.Spec = ComputeFleetSpec(rules, player, fleet)
@@ -60,6 +63,7 @@ func testCloakedScout(player *Player, rules *Rules) *Fleet {
 				}).
 				WithSpec(rules, player)},
 		},
+		OrbitingPlanetNum: NotOrbitingPlanet,
 	}
 	fleet.Spec = ComputeFleetSpec(rules, player, fleet)
 	return fleet
@@ -286,6 +290,58 @@ func TestFleet_TransferFleetCargo(t *testing.T) {
 				assert.Equal(t, tt.args.fleet.Cargo, destCargo.Subtract(tt.args.transferAmount))
 			}
 
+		})
+	}
+}
+
+func TestFleet_moveFleet(t *testing.T) {
+	rules := NewRules()
+	player := NewPlayer(1, NewRace().WithSpec(&rules))
+
+	type args struct {
+		player *Player
+	}
+	type want struct {
+		position Vector
+		fuelUsed int
+	}
+	tests := []struct {
+		name  string
+		fleet *Fleet
+		args  args
+		want  want
+	}{
+		{
+			"move 25ly at warp5",
+			testLongRangeScout(player, &rules).WithWaypoints([]Waypoint{NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{50, 0}, 5)}),
+			args{player},
+			want{Vector{25, 0}, 4},
+		},
+		{
+			"move 1ly at warp 1",
+			testLongRangeScout(player, &rules).WithWaypoints([]Waypoint{NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{1, 1}, 1)}),
+			args{player},
+			want{Vector{1, 1}, 0},
+		},
+		{
+			"overshoot waypoint at warp 5",
+			testLongRangeScout(player, &rules).WithWaypoints([]Waypoint{NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{5, 5}, 5)}),
+			args{player},
+			want{Vector{5, 5}, 1},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			game := NewGame()
+			game.AddPlayer(player)
+			game.Fleets = append(game.Fleets, *tt.fleet)
+			game.buildMaps()
+
+			tt.fleet.moveFleet(game, &rules, tt.args.player)
+
+			assert.Equal(t, tt.want.position, tt.fleet.Position)
+			assert.Equal(t, tt.want.position, tt.fleet.Waypoints[0].Position)
+			assert.Equal(t, tt.want.fuelUsed, tt.fleet.Spec.FuelCapacity-tt.fleet.Fuel)
 		})
 	}
 }

@@ -16,6 +16,7 @@
 	import { zoom, zoomIdentity, ZoomTransform, type D3ZoomEvent, type ZoomBehavior } from 'd3-zoom';
 	import { Html, LayerCake, Svg } from 'layercake';
 	import MapObjectQuadTreeFinder from './MapObjectQuadTreeFinder.svelte';
+	import ScannerFleets from './ScannerFleets.svelte';
 	import ScannerPlanets from './ScannerPlanets.svelte';
 	import ScannerScanners from './ScannerScanners.svelte';
 	import ScannerWaypoints from './ScannerWaypoints.svelte';
@@ -136,9 +137,9 @@
 <svelte:window on:resize={handleResize} />
 
 <div class="flex-1 h-full bg-black overflow-hidden p-5">
-	{#if $game}
+	{#if $game && $player}
 		<LayerCake
-			data={$player?.planetIntels}
+			data={[...$player.planetIntels, ...$player.fleets, ...$player.fleetIntels]}
 			x={xGetter}
 			y={yGetter}
 			xDomain={[0, $game.area.x]}
@@ -153,6 +154,7 @@
 					<ScannerScanners />
 					<ScannerWaypoints />
 					<ScannerPlanets />
+					<ScannerFleets />
 					<SelectedMapObject />
 				</g>
 			</Svg>

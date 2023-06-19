@@ -118,13 +118,21 @@ func (db *DB) SaveGame(game *game.Game) error {
 			}
 		}
 	}
-	for i := range game.Fleets {
+	for i := 0; i < len(game.Fleets); i++ {
 		fleet := &game.Fleets[i]
 		if fleet.Dirty {
 			err = db.sqlDB.Save(fleet).Error
 			if err != nil {
 				return err
 			}
+		}
+		if fleet.Delete {
+			err = db.sqlDB.Delete(fleet).Error
+			if err != nil {
+				return err
+			}
+			game.Fleets = append(game.Fleets[:i], game.Fleets[i+1:]...)
+			i--
 		}
 	}
 

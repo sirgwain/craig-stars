@@ -149,7 +149,7 @@ func fleetInScannerRange(player *Player, fleet *Fleet, scanner scanner) bool {
 	}
 
 	// if we aren't orbiting a planet, we can be seen with regular scanners
-	if !fleet.Orbiting && float64(scanner.RangeSquared)*cloakFactor >= distance {
+	if !fleet.Orbiting() && float64(scanner.RangeSquared)*cloakFactor >= distance {
 		return true
 	}
 	return false

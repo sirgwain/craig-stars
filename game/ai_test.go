@@ -8,6 +8,7 @@ import (
 func Test_getClosestPlanet(t *testing.T) {
 	rules := NewRules()
 	player := NewPlayer(1, NewRace().WithSpec(&rules))
+	aiPlayer := NewAIPlayer(player)
 
 	planetAt0_0 := PlanetIntel{
 		MapObjectIntel: MapObjectIntel{Position: Vector{0, 0}},
@@ -48,7 +49,7 @@ func Test_getClosestPlanet(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := getClosestPlanet(tt.args.fleet, tt.args.unknownPlanetsByNum); !reflect.DeepEqual(got, tt.want) {
+			if got := aiPlayer.getClosestPlanet(tt.args.fleet, tt.args.unknownPlanetsByNum); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("getClosestPlanet() = %v, want %v", got, tt.want)
 			}
 		})

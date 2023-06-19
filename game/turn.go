@@ -1,159 +1,271 @@
 package game
 
-import "github.com/rs/zerolog/log"
+import (
+	"fmt"
 
-func generateTurn(game *Game) error {
+	"github.com/rs/zerolog/log"
+)
+
+type turn struct {
+	game *Game
+}
+
+type turnGenerator interface {
+	generateTurn() error
+}
+
+func NewTurnGenerator(game *Game) turnGenerator {
+	return &turn{game}
+}
+
+// generate a new turn
+func (t *turn) generateTurn() error {
 	log.Debug().
-		Uint("GameID", game.ID).
-		Str("Name", game.Name).
-		Int("Year", game.Year).
+		Uint("GameID", t.game.ID).
+		Str("Name", t.game.Name).
+		Int("Year", t.game.Year).
 		Msgf("begin generating turn")
-	game.Year++
-	game.computeSpecs()
-	game.buildMaps()
+	t.game.Year++
+	t.game.computeSpecs()
+	t.game.buildMaps()
 
 	// reset players for start of the turn
-	for i := range game.Players {
-		player := &game.Players[i]
+	for i := range t.game.Players {
+		player := &t.game.Players[i]
 		player.Messages = []PlayerMessage{}
 		player.LeftoverResources = 0
+		player.BuildMaps()
 	}
 
-	game.fleetAge()
-	game.fleetScrap()
-	game.fleetUnload0()
-	game.fleetColonize0()
-	game.fleetLoad0()
-	game.fleetLoadDunnage0()
-	game.fleetMerge0()
-	game.fleetRoute0()
-	game.packetMove0()
-	game.mysteryTraderMove()
-	game.fleetMove()
-	game.fleetReproduce()
-	game.decaySalvage()
-	game.decayPackets()
-	game.wormholeJiggle()
-	game.detonateMines()
-	game.planetMine()
-	game.fleetRemoteMineAR()
-	game.planetProduction()
-	game.playerResearch()
-	game.researchStealer()
-	game.permaform()
-	game.planetGrow()
-	game.packetMove1()
-	game.fleetRefuel()
-	game.randomCometStrike()
-	game.randomMineralDeposit()
-	game.randomPlanetaryChange()
-	game.fleetBattle()
-	game.fleetBomb()
-	game.mysteryTraderMeet()
-	game.fleetRemoteMine0()
-	game.fleetUnload1()
-	game.fleetColonize1()
-	game.fleetLoad1()
-	game.fleetLoadDunnage1()
-	game.decayMines()
-	game.fleetLayMines()
-	game.fleetTransfer()
-	game.fleetMerge1()
-	game.fleetRoute1()
-	game.instaform()
-	game.fleetSweepMines()
-	game.fleetRepair()
-	game.remoteTerraform()
+	t.fleetAge()
+
+	// wp0 tasks
+	t.fleetScrap()
+	t.fleetUnload0()
+	t.fleetColonize()
+	t.fleetLoad0()
+	t.fleetLoadDunnage0()
+	t.fleetMerge0()
+	t.fleetRoute0()
+	t.packetMove0()
+
+	// move stuff through space
+	t.mysteryTraderMove()
+	t.fleetMove()
+	t.fleetReproduce()
+	t.decaySalvage()
+	t.decayPackets()
+	t.wormholeJiggle()
+	t.detonateMines()
+	t.planetMine()
+	t.fleetRemoteMineAR()
+	t.planetProduction()
+	t.playerResearch()
+	t.researchStealer()
+	t.permaform()
+	t.planetGrow()
+	t.packetMove1()
+	t.fleetRefuel()
+	t.randomCometStrike()
+	t.randomMineralDeposit()
+	t.randomPlanetaryChange()
+	t.fleetBattle()
+	t.fleetBomb()
+	t.mysteryTraderMeet()
+	t.fleetRemoteMine0()
+
+	// wp1 tasks
+	t.fleetUnload1()
+	t.fleetColonize() // colonize wp1 after arriving at a planet
+	t.fleetLoad1()
+	t.fleetLoadDunnage1()
+	t.decayMines()
+	t.fleetLayMines()
+	t.fleetTransfer()
+	t.fleetMerge1()
+	t.fleetRoute1()
+	t.instaform()
+	t.fleetSweepMines()
+	t.fleetRepair()
+	t.remoteTerraform()
 
 	// reset all players
 	// and do player specific things like scanning
 	// and patrol orders
-	for i := range game.Players {
-		player := &game.Players[i]
+	for i := range t.game.Players {
+		player := &t.game.Players[i]
 
-		player.Spec = computePlayerSpec(player, &game.Rules)
+		player.Spec = computePlayerSpec(player, &t.game.Rules)
+		player.BuildMaps()
 
-		game.updatePlayerOwnedObjects(player)
+		t.game.updatePlayerOwnedObjects(player)
 
-		if err := game.playerScan(player); err != nil {
+		if err := t.game.playerScan(player); err != nil {
 			return err
 		}
-		game.playerInfoDiscover(player)
-		game.fleetPatrol(player)
-		game.calculateScore(player)
-		game.checkVictory(player)
+		t.playerInfoDiscover(player)
+		t.fleetPatrol(player)
+		t.calculateScore(player)
+		t.checkVictory(player)
 
 		player.SubmittedTurn = false
-		processTurn(player)
+		ai := NewAIPlayer(player)
+		ai.processTurn()
 	}
 
 	log.Info().
-		Uint("GameID", game.ID).
-		Str("Name", game.Name).
-		Int("Year", game.Year-1).
+		Uint("GameID", t.game.ID).
+		Str("Name", t.game.Name).
+		Int("Year", t.game.Year-1).
 		Msgf("generated turn")
 	return nil
 }
 
-func (game *Game) fleetAge() {
+func (t *turn) fleetAge() {
 
 }
 
-func (game *Game) fleetScrap() {
+func (t *turn) fleetScrap() {
 
 }
 
-func (game *Game) fleetUnload0() {
+func (t *turn) fleetUnload0() {
 
 }
 
-func (game *Game) fleetColonize0() {
+func (t *turn) fleetColonize() {
+	for i := range t.game.Fleets {
+		fleet := &t.game.Fleets[i]
+		wp0 := fleet.Waypoints[0]
+		if wp0.Task == WaypointTaskColonize {
+			player := &t.game.Players[fleet.PlayerNum]
+
+			if wp0.TargetType != MapObjectTypePlanet {
+				messager.colonizeNonPlanet(player, fleet)
+				continue
+			}
+
+			if wp0.TargetNum == NoTarget {
+				err := fmt.Errorf("%s attempted to colonize a planet but didn't target a planet", fleet.Name)
+				log.Err(err).
+					Uint("GameID", t.game.ID).
+					Uint("PlayerID", player.ID).
+					Str("Fleet", fleet.Name)
+				messager.error(player, err)
+				continue
+			}
+
+			planet := t.game.getPlanet(wp0.TargetNum)
+			if planet.Owned() {
+				messager.colonizeOwnedPlanet(player, fleet)
+				continue
+			}
+
+			if !fleet.Spec.Colonizer {
+				messager.colonizeWithNoModule(player, fleet)
+				continue
+			}
+
+			if fleet.Cargo.Colonists == 0 {
+				messager.colonizeWithNoColonists(player, fleet)
+				continue
+			}
+
+			log.Debug().
+				Uint("GameID", t.game.ID).
+				Str("Name", t.game.Name).
+				Int("Year", t.game.Year).
+				Int("Player", player.Num).
+				Str("Planet", planet.Name).
+				Str("Fleet", fleet.Name).
+				Msgf("colonized planet")
+
+			// colonize the planet and scrap the fleet
+			fleet.colonizePlanet(&t.game.Rules, player, planet)
+			fleet.scrap(t.game, player, planet)
+			player.RemoveFleet(fleet)
+			player.AddPlanet(planet)
+			messager.planetColonized(player, planet)
+		}
+	}
+}
+
+func (t *turn) fleetLoad0() {
+	for i := range t.game.Fleets {
+		fleet := &t.game.Fleets[i]
+		wp0 := fleet.Waypoints[0]
+
+		if wp0.Task == WaypointTaskTransport {
+			player := &t.game.Players[fleet.PlayerNum]
+			dest := t.game.getCargoHolder(wp0.TargetType, wp0.TargetNum, wp0.TargetPlayerNum)
+			if dest == nil {
+				salvage := NewSalvage(fleet.PlayerNum, fleet.Position, Cargo{})
+				dest = &salvage
+			}
+
+			// build a cargo object for each transfer
+			transferCargo := Cargo{}
+			for cargoType, task := range wp0.getTransportTasks() {
+				capacity := fleet.Spec.CargoCapacity - fleet.Cargo.Total() - transferCargo.Total()
+				transferAmount := 0
+				availableToLoad := dest.GetCargo().GetAmount(cargoType)
+				currentAmount := fleet.Cargo.GetAmount(cargoType)
+				_ = currentAmount
+				switch task.Action {
+				case TransportActionLoadAll:
+					// load all available, based on our constraints
+					transferAmount = MinInt(availableToLoad, capacity)
+				}
+
+				if transferAmount != 0 {
+					transferCargo = transferCargo.WithCargo(cargoType, transferAmount)
+					t.game.Transfer(fleet, dest, cargoType, transferAmount)
+					messager.fleetTransportedCargo(player, fleet, dest, cargoType, transferAmount)
+				}
+			}
+
+		}
+	}
+}
+
+func (t *turn) fleetLoadDunnage0() {
 
 }
 
-func (game *Game) fleetLoad0() {
+func (t *turn) fleetMerge0() {
 
 }
 
-func (game *Game) fleetLoadDunnage0() {
+func (t *turn) fleetRoute0() {
 
 }
 
-func (game *Game) fleetMerge0() {
+func (t *turn) packetMove0() {
 
 }
 
-func (game *Game) fleetRoute0() {
+func (t *turn) mysteryTraderMove() {
 
 }
 
-func (game *Game) packetMove0() {
+func (t *turn) fleetMove() {
 
-}
-
-func (game *Game) mysteryTraderMove() {
-
-}
-
-func (game *Game) fleetMove() {
-
-	for i := range game.Fleets {
-		fleet := &game.Fleets[i]
+	for i := range t.game.Fleets {
+		fleet := &t.game.Fleets[i]
 		if !fleet.Starbase {
 			// remove the fleet from the list of map objects at it's current location
 			originalPosition := fleet.Position
 
 			if len(fleet.Waypoints) > 1 {
-				player := &game.Players[fleet.PlayerNum]
+				player := &t.game.Players[fleet.PlayerNum]
 				wp0 := fleet.Waypoints[0]
 				wp1 := fleet.Waypoints[1]
-				totalDist := fleet.Position.DistanceTo(wp1.Position)
 
 				if wp1.WarpFactor == StargateWarpFactor {
 					// yeah, gate!
-					fleet.gateFleet(&game.Rules, player, wp0, wp1, totalDist)
+					fleet.gateFleet(&t.game.Rules, player)
 				} else {
-					fleet.moveFleet(game, &game.Rules, player, wp0, wp1, totalDist)
+					fleet.moveFleet(t.game, &t.game.Rules, player)
 				}
 
 				// remove the previous waypoint, it's been processed already
@@ -163,8 +275,8 @@ func (game *Game) fleetMove() {
 				}
 
 				// update the game dictionaries with this fleet's new position
-				delete(game.FleetsByPosition, originalPosition)
-				game.FleetsByPosition[fleet.Position] = fleet
+				delete(t.game.FleetsByPosition, originalPosition)
+				t.game.FleetsByPosition[fleet.Position] = fleet
 				fleet.Dirty = true
 			} else {
 				fleet.PreviousPosition = &originalPosition
@@ -176,178 +288,174 @@ func (game *Game) fleetMove() {
 	}
 }
 
-func (game *Game) fleetReproduce() {
+func (t *turn) fleetReproduce() {
 
 }
 
-func (game *Game) decaySalvage() {
+func (t *turn) decaySalvage() {
 
 }
 
-func (game *Game) decayPackets() {
+func (t *turn) decayPackets() {
 
 }
 
-func (game *Game) wormholeJiggle() {
+func (t *turn) wormholeJiggle() {
 
 }
 
-func (game *Game) detonateMines() {
+func (t *turn) detonateMines() {
 
 }
 
 // mine all owned planets for minerals
-func (game *Game) planetMine() {
-	for i := range game.Planets {
-		planet := &game.Planets[i]
+func (t *turn) planetMine() {
+	for i := range t.game.Planets {
+		planet := &t.game.Planets[i]
 		if planet.Owned() {
 			planet.Cargo = planet.Cargo.AddMineral(planet.Spec.MineralOutput)
 			planet.MineYears.AddInt(planet.Mines)
-			planet.reduceMineralConcentration(game)
+			planet.reduceMineralConcentration(t.game)
 		}
 	}
 }
 
-func (game *Game) fleetRemoteMineAR() {
+func (t *turn) fleetRemoteMineAR() {
 
 }
 
-func (game *Game) planetProduction() {
-	for i := range game.Planets {
-		planet := &game.Planets[i]
+func (t *turn) planetProduction() {
+	for i := range t.game.Planets {
+		planet := &t.game.Planets[i]
 		if planet.Owned() && len(planet.ProductionQueue) > 0 {
-			planet.produce(game)
+			planet.produce(t.game)
 		}
 	}
 }
 
-func (game *Game) playerResearch() {
+func (t *turn) playerResearch() {
 
 }
 
-func (game *Game) researchStealer() {
+func (t *turn) researchStealer() {
 
 }
 
-func (game *Game) permaform() {
+func (t *turn) permaform() {
 
 }
 
 // grow all owned planets by some population
-func (game *Game) planetGrow() {
-	for i := range game.Planets {
-		planet := &game.Planets[i]
+func (t *turn) planetGrow() {
+	for i := range t.game.Planets {
+		planet := &t.game.Planets[i]
 		if planet.Owned() {
-			// player := &game.Players[*planet.PlayerNum]
+			// player := &t.game.Players[*planet.PlayerNum]
 			planet.SetPopulation(planet.Population() + planet.Spec.GrowthAmount)
 			planet.Dirty = true // flag for update
 		}
 	}
 }
 
-func (game *Game) packetMove1() {
+func (t *turn) packetMove1() {
 
 }
 
-func (game *Game) fleetRefuel() {
+func (t *turn) fleetRefuel() {
 
 }
 
-func (game *Game) randomCometStrike() {
+func (t *turn) randomCometStrike() {
 
 }
 
-func (game *Game) randomMineralDeposit() {
+func (t *turn) randomMineralDeposit() {
 
 }
 
-func (game *Game) randomPlanetaryChange() {
+func (t *turn) randomPlanetaryChange() {
 
 }
 
-func (game *Game) fleetBattle() {
+func (t *turn) fleetBattle() {
 
 }
 
-func (game *Game) fleetBomb() {
+func (t *turn) fleetBomb() {
 
 }
 
-func (game *Game) mysteryTraderMeet() {
+func (t *turn) mysteryTraderMeet() {
 
 }
 
-func (game *Game) fleetRemoteMine0() {
+func (t *turn) fleetRemoteMine0() {
 
 }
 
-func (game *Game) fleetUnload1() {
+func (t *turn) fleetUnload1() {
 
 }
 
-func (game *Game) fleetColonize1() {
+func (t *turn) fleetLoad1() {
 
 }
 
-func (game *Game) fleetLoad1() {
+func (t *turn) fleetLoadDunnage1() {
 
 }
 
-func (game *Game) fleetLoadDunnage1() {
+func (t *turn) decayMines() {
 
 }
 
-func (game *Game) decayMines() {
+func (t *turn) fleetLayMines() {
 
 }
 
-func (game *Game) fleetLayMines() {
+func (t *turn) fleetTransfer() {
 
 }
 
-func (game *Game) fleetTransfer() {
+func (t *turn) fleetMerge1() {
 
 }
 
-func (game *Game) fleetMerge1() {
+func (t *turn) fleetRoute1() {
 
 }
 
-func (game *Game) fleetRoute1() {
+func (t *turn) instaform() {
 
 }
 
-func (game *Game) instaform() {
+func (t *turn) fleetSweepMines() {
 
 }
 
-func (game *Game) fleetSweepMines() {
+func (t *turn) fleetRepair() {
 
 }
 
-func (game *Game) fleetRepair() {
-
-}
-
-func (game *Game) remoteTerraform() {
+func (t *turn) remoteTerraform() {
 
 }
 
 // Update a player's information about other players
 // If a player scanned another player's fleet or planet, they discover the player's
 // race name
-func (game *Game) playerInfoDiscover(player *Player) {
+func (t *turn) playerInfoDiscover(player *Player) {
 
 }
 
-func (game *Game) fleetPatrol(player *Player) {
+func (t *turn) fleetPatrol(player *Player) {
 
 }
 
-func (game *Game) calculateScore(player *Player) {
+func (t *turn) calculateScore(player *Player) {
 
 }
 
-func (game *Game) checkVictory(player *Player) {
+func (t *turn) checkVictory(player *Player) {
 
 }

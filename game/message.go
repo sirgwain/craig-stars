@@ -140,6 +140,24 @@ func (m *messageClient) fleetBuilt(player *Player, planet *Planet, fleet *Fleet,
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageBuiltShip, Text: text, TargetType: TargetFleet, TargetMapObjectNum: fleet.Num})
 }
 
+func (m *messageClient) fleetTransportedCargo(player *Player, fleet *Fleet, dest CargoHolder, cargoType CargoType, transferAmount int) {
+	text := ""
+	if cargoType == Colonists {
+		if transferAmount < 0 {
+			text = fmt.Sprintf("%s has beamed %d %s from %s", fleet.Name, -transferAmount*100, cargoType, dest.GetMapObject().Name)
+		} else {
+			text = fmt.Sprintf("%s has beamed %d %s to %s", fleet.Name, transferAmount*100, cargoType, dest.GetMapObject().Name)
+		}
+	} else {
+		if transferAmount < 0 {
+			text = fmt.Sprintf("%s has loaded %d %s from %s", fleet.Name, -transferAmount, cargoType, dest.GetMapObject().Name)
+		} else {
+			text = fmt.Sprintf("%s has unloaded %d %s to %s", fleet.Name, transferAmount, cargoType, dest.GetMapObject().Name)
+		}
+	}
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageCargoTransferred, Text: text, TargetType: TargetFleet, TargetMapObjectNum: fleet.Num})
+}
+
 func (m *messageClient) fleetEngineFailure(player *Player, fleet *Fleet) {
 	text := fmt.Sprintf("%s was unable to engage it's engines due to balky equipment. Engineers think they have the problem fixed for the time being.", fleet.Name)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetEngineFailure, Text: text, TargetType: TargetFleet, TargetMapObjectNum: fleet.Num})
@@ -153,4 +171,31 @@ func (m *messageClient) fleetOutOfFuel(player *Player, fleet *Fleet, warpFactor 
 func (m *messageClient) fleetGeneratedFuel(player *Player, fleet *Fleet, fuelGenerated int) {
 	text := fmt.Sprintf("%s's ram scoops have produced %dmg of fuel from interstellar hydrogen.", fleet.Name, fuelGenerated)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetGeneratedFuel, Text: text, TargetType: TargetFleet, TargetMapObjectNum: fleet.Num})
+}
+
+func (m *messageClient) colonizeNonPlanet(player *Player, fleet *Fleet) {
+	text := fmt.Sprintf("%s has attempted to colonize a waypoint with no Planet.", fleet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, TargetType: TargetFleet, TargetMapObjectNum: fleet.Num})
+}
+
+func (m *messageClient) colonizeOwnedPlanet(player *Player, fleet *Fleet) {
+	text := fmt.Sprintf("%s has attempted to colonize a planet that is already inhabited.", fleet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, TargetType: TargetFleet, TargetMapObjectNum: fleet.Num})
+
+}
+
+func (m *messageClient) colonizeWithNoModule(player *Player, fleet *Fleet) {
+	text := fmt.Sprintf("%s has attempted to colonize a planet without a colonization module.", fleet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, TargetType: TargetFleet, TargetMapObjectNum: fleet.Num})
+
+}
+
+func (m *messageClient) colonizeWithNoColonists(player *Player, fleet *Fleet) {
+	text := fmt.Sprintf("%s has attempted to colonize a planet without bringing any colonists.", fleet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, TargetType: TargetFleet, TargetMapObjectNum: fleet.Num})
+}
+
+func (m *messageClient) planetColonized(player *Player, planet *Planet) {
+	text := "Your colonists are now in control of {planet.Name}"
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetColonized, Text: text, TargetType: TargetPlanet, TargetMapObjectNum: planet.Num})
 }

@@ -26,6 +26,14 @@ func FromMineral(m *Mineral) *Cost {
 	}
 }
 
+func (c Cost) ToCargo() Cargo {
+	return Cargo{
+		Ironium:   c.Ironium,
+		Boranium:  c.Boranium,
+		Germanium: c.Germanium,
+	}
+}
+
 func (c *Cost) Total() int {
 	return c.Ironium + c.Boranium + c.Germanium + c.Resources
 }
@@ -63,6 +71,15 @@ func (c Cost) MultiplyInt(factor int) Cost {
 		Boranium:  c.Boranium * factor,
 		Germanium: c.Germanium * factor,
 		Resources: c.Resources * factor,
+	}
+}
+
+func (c Cost) MultiplyFloat64(factor float64) Cost {
+	return Cost{
+		Ironium:   int(float64(c.Ironium) * factor),
+		Boranium:  int(float64(c.Boranium) * factor),
+		Germanium: int(float64(c.Germanium) * factor),
+		Resources: int(float64(c.Resources) * factor),
 	}
 }
 

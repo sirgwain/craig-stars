@@ -8,3 +8,5 @@ export const clamp = (value: number, min: number, max: number) => {
 	}
 	return value;
 };
+
+export const radiansToDegrees = (radians: number): number => radians * (180/Math.PI)

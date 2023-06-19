@@ -83,7 +83,7 @@ func generateTestGame(ctx *appcontext.AppContext) error {
 	return nil
 }
 
-func createTestUser(db db.Service, username string, password string, role game.Role) (*game.User, *game.Race, error) {
+func createTestUser(db db.Client, username string, password string, role game.Role) (*game.User, *game.Race, error) {
 	user, err := db.FindUserByUsername(username)
 	if err != nil {
 		return nil, nil, err

@@ -35,6 +35,7 @@ func (db *DB) MigrateAll() error {
 		&game.ShipToken{},
 		&game.ShipDesign{},
 		&game.MineralPacket{},
+		&game.Salvage{},
 		&game.Wormohole{},
 		&game.MineField{},
 	}

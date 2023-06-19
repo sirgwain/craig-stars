@@ -16,10 +16,10 @@ const (
 )
 
 type GameRunner struct {
-	db db.Service
+	db db.Client
 }
 
-func NewGameRunner(db db.Service) *GameRunner {
+func NewGameRunner(db db.Client) *GameRunner {
 	return &GameRunner{db}
 }
 

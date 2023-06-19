@@ -17,7 +17,7 @@ type DB struct {
 	sqlDB *gorm.DB
 }
 
-type Service interface {
+type Client interface {
 	Connect(config *config.Config)
 	EnableDebugLogging()
 
@@ -59,7 +59,6 @@ type Service interface {
 
 	FindFleetById(id uint) (*game.Fleet, error)
 	SaveFleet(fleet *game.Fleet) error
-
 }
 
 func (db *DB) Connect(config *config.Config) {
