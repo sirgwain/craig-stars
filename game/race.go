@@ -1,9 +1,6 @@
 package game
 
 import (
-	"database/sql/driver"
-	"encoding/json"
-	"errors"
 	"fmt"
 	"math"
 	"time"
@@ -601,33 +598,4 @@ func computeRaceSpec(race *Race, rules *Rules) *RaceSpec {
 	}
 
 	return &spec
-}
-
-// db serializer to serialize this to JSON
-func (spec *RaceSpec) Value() (driver.Value, error) {
-	if spec == nil {
-		return nil, nil
-	}
-
-	data, err := json.Marshal(spec)
-	if err != nil {
-		return nil, err
-	}
-	return data, nil
-}
-
-// db deserializer to read this from JSON
-func (spec *RaceSpec) Scan(src interface{}) error {
-	var source []byte
-	switch src := src.(type) {
-	case string:
-		source = []byte(src)
-	case []byte:
-		source = src
-	default:
-		return errors.New("incompatible type for JSON")
-	}
-
-	return json.Unmarshal(source, spec)
-
 }

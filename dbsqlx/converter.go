@@ -11,6 +11,11 @@ import (
 
 // goverter:converter
 // goverter:extend TimeToTime
+// goverter:extend RulesToGameRules
+// goverter:extend GameRulesToRules
+// goverter:extend RaceSpecToGameRaceSpec
+// goverter:extend GameRaceSpecToRaceSpec
+// goverter:extend RaceSpecToRaceSpec
 // goverter:name GameConverter
 type Converter interface {
 	ConvertUser(source User) game.User
@@ -39,10 +44,53 @@ type Converter interface {
 	// goverter:map ResearchCost.Electronics ResearchCostElectronics
 	// goverter:map ResearchCost.Biotechnology ResearchCostBiotechnology
 	ConvertGameRace(source *game.Race) *Race
+
+	// goverter:mapExtend VictoryConditions ExtendVictoryConditions
+	// goverter:mapExtend Area ExtendArea
+	ConvertGame(source Game) game.Game
+
+	// goverter:mapExtend VictoryConditions ExtendVictoryConditions
+	// goverter:mapExtend Area ExtendArea
+	ConvertGames(source []Game) []game.Game
+
+	// goverter:map VictoryConditions.NumCriteriaRequired VictoryConditionsNumCriteriaRequired
+	// goverter:map VictoryConditions.YearsPassed VictoryConditionsYearsPassed
+	// goverter:map VictoryConditions.OwnPlanets VictoryConditionsOwnPlanets
+	// goverter:map VictoryConditions.AttainTechLevel VictoryConditionsAttainTechLevel
+	// goverter:map VictoryConditions.AttainTechLevelNumFields VictoryConditionsAttainTechLevelNumFields
+	// goverter:map VictoryConditions.ExceedsScore VictoryConditionsExceedsScore
+	// goverter:map VictoryConditions.ExceedsSecondPlaceScore VictoryConditionsExceedsSecondPlaceScore
+	// goverter:map VictoryConditions.ProductionCapacity VictoryConditionsProductionCapacity
+	// goverter:map VictoryConditions.OwnCapitalShips VictoryConditionsOwnCapitalShips
+	// goverter:map VictoryConditions.HighestScoreAfterYears VictoryConditionsHighestScoreAfterYears
+	// goverter:map VictoryConditions.Conditions VictoryConditionsConditions
+	// goverter:map Area.X AreaX
+	// goverter:map Area.Y AreaY
+	ConvertGameGame(source *game.Game) *Game
 }
 
 func TimeToTime(t time.Time) time.Time {
 	return t
+}
+
+func RulesToGameRules(r Rules) game.Rules {
+	return game.Rules(r)
+}
+
+func GameRulesToRules(r game.Rules) Rules {
+	return Rules(r)
+}
+
+func RaceSpecToGameRaceSpec(r *RaceSpec) *game.RaceSpec {
+	return (*game.RaceSpec)(r)
+}
+
+func GameRaceSpecToRaceSpec(r *game.RaceSpec) *RaceSpec {
+	return (*RaceSpec)(r)
+}
+
+func RaceSpecToRaceSpec(s *game.RaceSpec) *game.RaceSpec {
+	return s
 }
 
 func ExtendResearchCost(source Race) game.ResearchCost {
@@ -69,5 +117,28 @@ func ExtendHabHigh(source Race) game.Hab {
 		Grav: source.HabHighGrav,
 		Temp: source.HabHighTemp,
 		Rad:  source.HabHighRad,
+	}
+}
+
+func ExtendVictoryConditions(source Game) game.VictoryConditions {
+	return game.VictoryConditions{
+		Conditions:               source.VictoryConditionsConditions,
+		NumCriteriaRequired:      source.VictoryConditionsNumCriteriaRequired,
+		YearsPassed:              source.VictoryConditionsYearsPassed,
+		OwnPlanets:               source.VictoryConditionsOwnPlanets,
+		AttainTechLevel:          source.VictoryConditionsAttainTechLevel,
+		AttainTechLevelNumFields: source.VictoryConditionsAttainTechLevelNumFields,
+		ExceedsScore:             source.VictoryConditionsExceedsScore,
+		ExceedsSecondPlaceScore:  source.VictoryConditionsExceedsSecondPlaceScore,
+		ProductionCapacity:       source.VictoryConditionsProductionCapacity,
+		OwnCapitalShips:          source.VictoryConditionsOwnCapitalShips,
+		HighestScoreAfterYears:   source.VictoryConditionsHighestScoreAfterYears,
+	}
+}
+
+func ExtendArea(source Game) game.Vector {
+	return game.Vector{
+		X: source.AreaX,
+		Y: source.AreaY,
 	}
 }
