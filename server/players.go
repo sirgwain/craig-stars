@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/game"
 )
 
@@ -19,7 +20,7 @@ type JoinGameBind struct {
 func (s *server) PlayerGames(c *gin.Context) {
 	user := s.GetSessionUser(c)
 
-	games, err := s.db.GetGamesByUser(user.ID)
+	games, err := s.db.GetGamesForUser(user.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -78,7 +79,8 @@ func (s *server) PlayerGame(c *gin.Context) {
 
 	game, player, err := s.gameRunner.LoadPlayerGame(id.ID, user.ID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		log.Error().Err(err).Msg("failed to load player and game from database")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to load game from database"})
 		return
 	}
 

@@ -54,10 +54,10 @@ func addListGamesCmd() {
 			cfg := config.GetConfig()
 			db.Connect(cfg)
 
-			var games []*game.Game
+			var games []game.Game
 			var err error
 			if userID != 0 {
-				games, err = db.GetGamesByUser(userID)
+				games, err = db.GetGamesForUser(userID)
 			} else {
 				games, err = db.GetGames()
 			}

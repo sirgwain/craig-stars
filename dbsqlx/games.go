@@ -3,8 +3,6 @@ package dbsqlx
 import (
 	"database/sql"
 	"database/sql/driver"
-	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 
@@ -29,7 +27,7 @@ type Game struct {
 	State                                     game.GameState       `json:"state,omitempty"`
 	OpenPlayerSlots                           uint                 `json:"openPlayerSlots,omitempty"`
 	NumPlayers                                int                  `json:"numPlayers,omitempty"`
-	VictoryConditionsConditions               VictoryConditions    `json:"victoryConditionsConditions,omitempty"`
+	VictoryConditionsConditions               *VictoryConditions   `json:"victoryConditionsConditions,omitempty"`
 	VictoryConditionsNumCriteriaRequired      int                  `json:"victoryConditionsNumCriteriaRequired,omitempty"`
 	VictoryConditionsYearsPassed              int                  `json:"victoryConditionsYearsPassed,omitempty"`
 	VictoryConditionsOwnPlanets               int                  `json:"victoryConditionsOwnPlanets,omitempty"`
@@ -41,7 +39,8 @@ type Game struct {
 	VictoryConditionsOwnCapitalShips          int                  `json:"victoryConditionsOwnCapitalShips,omitempty"`
 	VictoryConditionsHighestScoreAfterYears   int                  `json:"victoryConditionsHighestScoreAfterYears,omitempty"`
 	VictorDeclared                            bool                 `json:"victorDeclared,omitempty"`
-	Rules                                     Rules                `json:"rules,omitempty"`
+	Seed                                      int64                `json:"seed,omitempty"`
+	Rules                                     *Rules               `json:"rules,omitempty"`
 	AreaX                                     float64              `json:"areaX,omitempty"`
 	AreaY                                     float64              `json:"areaY,omitempty"`
 }
@@ -51,43 +50,23 @@ type VictoryConditions []game.VictoryCondition
 type Rules game.Rules
 
 // db serializer to serialize this to JSON
-func (conditions VictoryConditions) Value() (driver.Value, error) {
-	data, err := json.Marshal(conditions)
-	if err != nil {
-		return nil, err
-	}
-	return data, nil
+func (item *VictoryConditions) Value() (driver.Value, error) {
+	return valueJSON(item)
 }
 
 // db deserializer to read this from JSON
-func (s VictoryConditions) Scan(src interface{}) error {
-	switch v := src.(type) {
-	case []byte:
-		return json.Unmarshal(v, &s)
-	case string:
-		return json.Unmarshal([]byte(v), &s)
-	}
-	return errors.New("type assertion failed")
+func (item *VictoryConditions) Scan(src interface{}) error {
+	return scanJSON(src, item)
 }
 
 // db serializer to serialize this to JSON
-func (item Rules) Value() (driver.Value, error) {
-	data, err := json.Marshal(item)
-	if err != nil {
-		return nil, err
-	}
-	return data, nil
+func (item *Rules) Value() (driver.Value, error) {
+	return valueJSON(item)
 }
 
 // db deserializer to read this from JSON
-func (item Rules) Scan(src interface{}) error {
-	switch v := src.(type) {
-	case []byte:
-		return json.Unmarshal(v, &item)
-	case string:
-		return json.Unmarshal([]byte(v), &item)
-	}
-	return errors.New("type assertion failed")
+func (item *Rules) Scan(src interface{}) error {
+	return scanJSON(src, item)
 }
 
 func (c *client) GetGames() ([]game.Game, error) {
@@ -119,7 +98,19 @@ func (c *client) GetGamesForHost(userID int64) ([]game.Game, error) {
 func (c *client) GetGamesForUser(userID int64) ([]game.Game, error) {
 
 	items := []Game{}
-	if err := c.db.Select(&items, `SELECT * from games g WHERE g.id in (SELECT game_id from players p WHERE p.user_id = ?)`, userID); err != nil {
+	if err := c.db.Select(&items, `SELECT * from games g WHERE g.id in (SELECT gameId from players p WHERE p.userId = ?)`, userID); err != nil {
+		if err == sql.ErrNoRows {
+			return []game.Game{}, nil
+		}
+		return nil, err
+	}
+
+	return c.converter.ConvertGames(items), nil
+}
+
+func (c *client) GetOpenGames() ([]game.Game, error) {
+	items := []Game{}
+	if err := c.db.Select(&items, `SELECT * from games g WHERE g.state = ? AND g.openPlayerSlots > 0`, game.GameStateSetup); err != nil {
 		if err == sql.ErrNoRows {
 			return []game.Game{}, nil
 		}
@@ -155,12 +146,25 @@ func (c *client) GetFullGame(id int64) (*game.FullGame, error) {
 
 	g := c.converter.ConvertGame(item)
 
-	players, err := c.GetPlayersForGame(g.ID)
+	players, err := c.getPlayersForGame(g.ID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load players for game %w", err)
 	}
 
 	universe := game.Universe{}
+
+	if g.Rules.TechsID == 0 {
+		g.Rules.WithTechStore(&game.StaticTechStore)
+	} else {
+		techs, err := c.GetTechStore(g.Rules.TechsID)
+		if err != nil {
+			return nil, err
+		}
+		g.Rules.WithTechStore(techs)
+	}
+
+	// init the random generator after load
+	(&g.Rules).ResetSeed(g.Seed)
 
 	fg := game.FullGame{
 		Game:     &g,
@@ -205,6 +209,7 @@ func (c *client) CreateGame(game *game.Game) error {
 		victoryConditionsOwnCapitalShips,
 		victoryConditionsHighestScoreAfterYears,
 		victorDeclared,
+		seed,
 		rules,
 		areaX,
 		areaY
@@ -238,6 +243,7 @@ func (c *client) CreateGame(game *game.Game) error {
 		:victoryConditionsOwnCapitalShips,
 		:victoryConditionsHighestScoreAfterYears,
 		:victorDeclared,
+		:seed,
 		:rules,
 		:areaX,
 		:areaY
@@ -265,7 +271,7 @@ func (c *client) UpdateGame(game *game.Game) error {
 }
 
 // update a game inside a transaction
-func (c *client) updateGameWithNamedExecer(game *game.Game, tx NamedExecer) error {
+func (c *client) updateGameWithNamedExecer(game *game.Game, tx SQLExecer) error {
 
 	item := c.converter.ConvertGameGame(game)
 
@@ -299,6 +305,7 @@ func (c *client) updateGameWithNamedExecer(game *game.Game, tx NamedExecer) erro
 		victoryConditionsHighestScoreAfterYears = :victoryConditionsHighestScoreAfterYears,
 		victorDeclared = :victorDeclared,
 		rules = :rules,
+		seed = :seed,
 		areaX = :areaX,
 		areaY = :areaY
 	WHERE id = :id
@@ -321,6 +328,20 @@ func (c *client) UpdateFullGame(g *game.FullGame) error {
 		return fmt.Errorf("failed to update game %w", err)
 	}
 
+	for _, player := range g.Players {
+		if player.ID == 0 {
+			player.GameID = g.ID
+			if err := c.createPlayer(player, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("failed to create player %w", err)
+			}
+		}
+		if err := c.updateFullPlayerWithTransaction(player, tx); err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to update player %w", err)
+		}
+	}
+
 	for _, planet := range g.Planets {
 		if planet.ID == 0 {
 			planet.GameID = g.ID
@@ -336,10 +357,18 @@ func (c *client) UpdateFullGame(g *game.FullGame) error {
 		}
 	}
 
-	for _, player := range g.Players {
-		if err := c.updateFullPlayerWithTransaction(player, tx); err != nil {
-			tx.Rollback()
-			return fmt.Errorf("failed to update player %w", err)
+	for _, fleet := range g.Fleets {
+		if fleet.ID == 0 {
+			fleet.GameID = g.ID
+			if err := c.createFleet(fleet, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("failed to create fleet %w", err)
+			}
+		} else if fleet.Dirty {
+			if err := c.updateFleet(fleet, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("failed to update fleet %w", err)
+			}
 		}
 	}
 

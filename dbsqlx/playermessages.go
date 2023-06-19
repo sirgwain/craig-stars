@@ -46,7 +46,7 @@ func (c *client) GetPlayerMessage(id int64) (*game.PlayerMessage, error) {
 }
 
 // create a new playerMessage given something that can execute NamedExec (either a DB or )
-func (c *client) CreatePlayerMessage(playerMessage *game.PlayerMessage, tx NamedExecer) error {
+func (c *client) CreatePlayerMessage(playerMessage *game.PlayerMessage, tx SQLExecer) error {
 
 	result, err := tx.NamedExec(`
 	INSERT INTO playerMessages (

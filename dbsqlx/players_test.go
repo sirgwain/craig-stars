@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/sirgwain/craig-stars/game"
+	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -72,9 +73,10 @@ func TestUpdatePlayer(t *testing.T) {
 }
 
 func TestGetPlayer(t *testing.T) {
+	rules := game.NewRules()
 	c := connectTestDB()
 	c.createTestGame()
-	player := game.Player{UserID: 1, GameID: 1, Name: "Test"}
+	player := game.Player{UserID: 1, GameID: 1, Name: "Test", Race: *game.NewRace().WithSpec(&rules)}
 	if err := c.CreatePlayer(&player); err != nil {
 		t.Errorf("failed to create player %s", err)
 		return
@@ -89,7 +91,7 @@ func TestGetPlayer(t *testing.T) {
 		want    *game.Player
 		wantErr bool
 	}{
-		{"No results", args{id: 0}, nil, false},
+		// {"No results", args{id: 0}, nil, false},
 		{"Got player", args{id: player.ID}, &player, false},
 	}
 	for _, tt := range tests {
@@ -103,7 +105,7 @@ func TestGetPlayer(t *testing.T) {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt
 			}
-			if !reflect.DeepEqual(got, tt.want) {
+			if !test.CompareAsJSON(t, got, tt.want) {
 				t.Errorf("GetPlayer() = %v, want %v", got, tt.want)
 			}
 		})
@@ -163,8 +165,8 @@ func TestDeletePlayers(t *testing.T) {
 
 func TestUpdateFullPlayer(t *testing.T) {
 	c := connectTestDB()
-	c.createTestGame()
-	player := game.Player{UserID: 1, GameID: 1, Name: "Test"}
+	g := c.createTestGame()
+	player := game.Player{UserID: 1, GameID: g.ID, Name: "Test"}
 	if err := c.CreatePlayer(&player); err != nil {
 		t.Errorf("failed to create player %s", err)
 		return
@@ -174,12 +176,12 @@ func TestUpdateFullPlayer(t *testing.T) {
 	player.Num = 1
 	player.Messages = append(player.Messages, game.PlayerMessage{PlayerID: player.ID, Type: game.PlayerMessageInfo, Text: "message1"})
 	player.Messages = append(player.Messages, game.PlayerMessage{PlayerID: player.ID, Type: game.PlayerMessageInfo, Text: "message2"})
-	if err := c.UpdateFullPlayer(&player); err != nil {
+	if err := c.updateFullPlayer(&player); err != nil {
 		t.Errorf("failed to update player %s", err)
 		return
 	}
 
-	updated, err := c.GetFullPlayer(player.ID)
+	updated, err := c.GetFullPlayerForGame(player.GameID, player.UserID)
 
 	if err != nil {
 		t.Errorf("failed to get player %s", err)

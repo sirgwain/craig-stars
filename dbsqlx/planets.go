@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
-	"errors"
 	"time"
 
 	"github.com/sirgwain/craig-stars/game"
@@ -73,18 +72,8 @@ func (item ProductionQueueItems) Value() (driver.Value, error) {
 
 // db deserializer to read this from JSON
 func (item ProductionQueueItems) Scan(src interface{}) error {
-	if src == nil {
-		// leave empty
-		return nil
-	}
+	return scanJSON(src, &item)
 
-	switch v := src.(type) {
-	case []byte:
-		return json.Unmarshal(v, &item)
-	case string:
-		return json.Unmarshal([]byte(v), &item)
-	}
-	return errors.New("type assertion failed")
 }
 
 // db serializer to serialize this to JSON
@@ -102,17 +91,7 @@ func (item *PlanetSpec) Value() (driver.Value, error) {
 
 // db deserializer to read this from JSON
 func (item *PlanetSpec) Scan(src interface{}) error {
-	if src == nil {
-		return nil
-	}
-
-	switch v := src.(type) {
-	case []byte:
-		return json.Unmarshal(v, item)
-	case string:
-		return json.Unmarshal([]byte(v), item)
-	}
-	return errors.New("type assertion failed")
+	return scanJSON(src, &item)
 }
 
 // db serializer to serialize this to JSON
@@ -130,18 +109,7 @@ func (item Tags) Value() (driver.Value, error) {
 
 // db deserializer to read this from JSON
 func (item Tags) Scan(src interface{}) error {
-	if src == nil {
-		// leave empty
-		return nil
-	}
-
-	switch v := src.(type) {
-	case []byte:
-		return json.Unmarshal(v, &item)
-	case string:
-		return json.Unmarshal([]byte(v), &item)
-	}
-	return errors.New("type assertion failed")
+	return scanJSON(src, &item)
 }
 
 // get a planet by id
@@ -158,10 +126,28 @@ func (c *client) GetPlanet(id int64) (*game.Planet, error) {
 	return planet, nil
 }
 
-func (c *client) getPlanetsForGame(gameId int64) ([]*game.Planet, error) {
+func (c *client) getPlanetsForGame(gameID int64) ([]*game.Planet, error) {
 
 	items := []Planet{}
-	if err := c.db.Select(&items, `SELECT * FROM planets WHERE gameId = ?`, gameId); err != nil {
+	if err := c.db.Select(&items, `SELECT * FROM planets WHERE gameId = ?`, gameID); err != nil {
+		if err == sql.ErrNoRows {
+			return []*game.Planet{}, nil
+		}
+		return nil, err
+	}
+
+	results := make([]*game.Planet, len(items))
+	for i := range items {
+		results[i] = c.converter.ConvertPlanet(&items[i])
+	}
+
+	return results, nil
+}
+
+func (c *client) getPlanetsForPlayer(playerID int64) ([]*game.Planet, error) {
+
+	items := []Planet{}
+	if err := c.db.Select(&items, `SELECT * FROM planets WHERE playerId = ?`, playerID); err != nil {
 		if err == sql.ErrNoRows {
 			return []*game.Planet{}, nil
 		}
@@ -177,7 +163,7 @@ func (c *client) getPlanetsForGame(gameId int64) ([]*game.Planet, error) {
 }
 
 // create a new game
-func (c *client) createPlanet(planet *game.Planet, tx NamedExecer) error {
+func (c *client) createPlanet(planet *game.Planet, tx SQLExecer) error {
 	item := c.converter.ConvertGamePlanet(planet)
 	result, err := tx.NamedExec(`
 	INSERT INTO planets (
@@ -278,7 +264,7 @@ func (c *client) UpdatePlanet(planet *game.Planet) error {
 }
 
 // update an existing planet
-func (c *client) updatePlanet(planet *game.Planet, tx NamedExecer) error {
+func (c *client) updatePlanet(planet *game.Planet, tx SQLExecer) error {
 
 	item := c.converter.ConvertGamePlanet(planet)
 

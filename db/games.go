@@ -9,9 +9,9 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func (c *client) GetGames() ([]*game.Game, error) {
+func (c *client) GetGames() ([]game.Game, error) {
 
-	games := []*game.Game{}
+	games := []game.Game{}
 	if err := c.sqlDB.Find(&games).Error; err != nil {
 		return nil, err
 	}
@@ -19,8 +19,8 @@ func (c *client) GetGames() ([]*game.Game, error) {
 	return games, nil
 }
 
-func (c *client) GetGamesByUser(userID int64) ([]*game.Game, error) {
-	games := []*game.Game{}
+func (c *client) GetGamesForUser(userID int64) ([]game.Game, error) {
+	games := []game.Game{}
 	if err := c.sqlDB.Raw("SELECT * from games g WHERE g.id in (SELECT game_id from players p WHERE p.user_id = ?)", userID).Scan(&games).Error; err != nil {
 		return nil, err
 	}
@@ -28,8 +28,8 @@ func (c *client) GetGamesByUser(userID int64) ([]*game.Game, error) {
 	return games, nil
 }
 
-func (c *client) GetGamesForHost(userID int64) ([]*game.Game, error) {
-	games := []*game.Game{}
+func (c *client) GetGamesForHost(userID int64) ([]game.Game, error) {
+	games := []game.Game{}
 	if err := c.sqlDB.Raw("SELECT * from games g WHERE g.host_id = ?", userID).Scan(&games).Error; err != nil {
 		return nil, err
 	}
@@ -37,8 +37,8 @@ func (c *client) GetGamesForHost(userID int64) ([]*game.Game, error) {
 	return games, nil
 }
 
-func (c *client) GetOpenGames() ([]*game.Game, error) {
-	games := []*game.Game{}
+func (c *client) GetOpenGames() ([]game.Game, error) {
+	games := []game.Game{}
 	if err := c.sqlDB.Raw("SELECT * from games g WHERE g.state = ? AND g.open_player_slots > 0", game.GameStateSetup).Scan(&games).Error; err != nil {
 		return nil, err
 	}
@@ -228,7 +228,7 @@ func (c *client) GetFullGame(id int64) (*game.FullGame, error) {
 	if g.Rules.TechsID == 0 {
 		g.Rules.WithTechStore(&game.StaticTechStore)
 	} else {
-		techs, err := c.FindTechStoreById(g.Rules.TechsID)
+		techs, err := c.GetTechStore(g.Rules.TechsID)
 		if err != nil {
 			return nil, err
 		}
@@ -236,7 +236,7 @@ func (c *client) GetFullGame(id int64) (*game.FullGame, error) {
 	}
 
 	// init the random generator after load
-	(&g.Rules).ResetSeed()
+	(&g.Rules).ResetSeed(g.Seed)
 
 	return &g, nil
 }
@@ -254,7 +254,7 @@ func (c *client) GetGame(id int64) (*game.Game, error) {
 	return &game, nil
 }
 
-func (c *client) FindGameRulesByGameID(gameID int64) (*game.Rules, error) {
+func (c *client) GetRulesForGame(gameID int64) (*game.Rules, error) {
 	rules := game.Rules{}
 	if err := c.sqlDB.
 		Where("game_id = ? ", gameID).

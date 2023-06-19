@@ -61,13 +61,15 @@ type FleetSpec struct {
 }
 
 type ShipToken struct {
-	ID        int64       `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time   `json:"createdAt"`
-	UpdatedAt time.Time   `json:"updatedAt"`
-	FleetID   int64       `json:"gameId"`
-	DesignID  int64       `json:"designId"`
-	Quantity  int         `json:"quantity"`
-	Design    *ShipDesign `json:"-" gorm:"foreignKey:DesignID"`
+	ID              int64       `gorm:"primaryKey" json:"id"`
+	CreatedAt       time.Time   `json:"createdAt"`
+	UpdatedAt       time.Time   `json:"updatedAt"`
+	FleetID         int64       `json:"fleetId"`
+	DesignID        int64       `json:"designId"`
+	Quantity        int         `json:"quantity"`
+	Damage          float64     `json:"damage"`
+	QuantityDamaged int         `json:"quantityDamaged"`
+	Design          *ShipDesign `json:"-" gorm:"foreignKey:DesignID"`
 }
 
 type Waypoint struct {

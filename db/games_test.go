@@ -41,9 +41,9 @@ func TestDB_GetGames(t *testing.T) {
 	c := connectDB()
 	tests := []struct {
 		name string
-		want []*game.Game
+		want []game.Game
 	}{
-		{"No games", []*game.Game{}},
+		{"No games", []game.Game{}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -135,8 +135,8 @@ func TestDB_GetGamesByUser(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &client{}
-			if got, err := c.GetGamesByUser(tt.args.userID); !reflect.DeepEqual(got, tt.want) || err != nil {
-				t.Errorf("c.GetGamesByUser() = %v, want %v, err %v", got, tt.want, err)
+			if got, err := c.GetGamesForUser(tt.args.userID); !reflect.DeepEqual(got, tt.want) || err != nil {
+				t.Errorf("c.GetGamesForUser() = %v, want %v, err %v", got, tt.want, err)
 			}
 		})
 	}

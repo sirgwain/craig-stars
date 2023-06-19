@@ -65,6 +65,7 @@ type Game struct {
 	NumPlayers                   int               `json:"numPlayers"`
 	VictoryConditions            VictoryConditions `json:"victoryConditions" gorm:"embedded;embeddedPrefix:victory_condition_"`
 	VictorDeclared               bool              `json:"victorDeclared"`
+	Seed                         int64             `json:"seed"`
 	Rules                        Rules             `json:"rules" gorm:"serializer:json"`
 	Area                         Vector            `json:"area,omitempty" gorm:"embedded;embeddedPrefix:area_"`
 }
@@ -153,7 +154,8 @@ const (
 )
 
 func NewGame() *Game {
-	rules := NewRules()
+	seed := time.Now().UnixNano()
+	rules := NewRulesWithSeed(seed)
 	return &Game{
 		Name:            "A Barefoot Jaywalk",
 		Size:            SizeSmall,
@@ -180,6 +182,7 @@ func NewGame() *Game {
 			OwnCapitalShips:          100,
 			HighestScoreAfterYears:   100,
 		},
+		Seed:  seed,
 		Rules: rules,
 	}
 }
@@ -316,4 +319,3 @@ func (g *Game) Transfer(source *Fleet, dest CargoHolder, cargoType CargoType, tr
 	// 	}
 	// }
 }
-

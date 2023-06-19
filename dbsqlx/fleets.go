@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
-	"errors"
+	"fmt"
 	"time"
 
 	"github.com/sirgwain/craig-stars/game"
@@ -22,7 +22,7 @@ type Fleet struct {
 	Num               int        `json:"num,omitempty"`
 	PlayerNum         int        `json:"playerNum,omitempty"`
 	Tags              Tags       `json:"tags,omitempty"`
-	Waypoints         Waypoints  `json:"waypoints,omitempty"`
+	Waypoints         *Waypoints `json:"waypoints,omitempty"`
 	RepeatOrders      bool       `json:"repeatOrders,omitempty"`
 	PlanetID          int64      `json:"planetId,omitempty"`
 	BaseName          string     `json:"baseName,omitempty"`
@@ -43,12 +43,23 @@ type Fleet struct {
 	Spec              *FleetSpec `json:"spec,omitempty"`
 }
 
+type ShipToken struct {
+	ID              int64        `json:"id"`
+	CreatedAt       sql.NullTime `json:"createdAt"`
+	UpdatedAt       sql.NullTime `json:"updatedAt"`
+	FleetID         int64        `json:"fleetId"`
+	DesignID        int64        `json:"designId"`
+	Quantity        int          `json:"quantity"`
+	Damage          float64      `json:"damage"`
+	QuantityDamaged int          `json:"quantityDamaged"`
+}
+
 // we json serialize these types with custom Scan/Value methods
 type Waypoints []game.Waypoint
 type FleetSpec game.FleetSpec
 
 // db serializer to serialize this to JSON
-func (item Waypoints) Value() (driver.Value, error) {
+func (item *Waypoints) Value() (driver.Value, error) {
 	if item == nil {
 		return nil, nil
 	}
@@ -61,19 +72,8 @@ func (item Waypoints) Value() (driver.Value, error) {
 }
 
 // db deserializer to read this from JSON
-func (item Waypoints) Scan(src interface{}) error {
-	if src == nil {
-		// leave empty
-		return nil
-	}
-
-	switch v := src.(type) {
-	case []byte:
-		return json.Unmarshal(v, &item)
-	case string:
-		return json.Unmarshal([]byte(v), &item)
-	}
-	return errors.New("type assertion failed")
+func (item *Waypoints) Scan(src interface{}) error {
+	return scanJSON(src, item)
 }
 
 // db serializer to serialize this to JSON
@@ -91,53 +91,152 @@ func (item *FleetSpec) Value() (driver.Value, error) {
 
 // db deserializer to read this from JSON
 func (item *FleetSpec) Scan(src interface{}) error {
-	if src == nil {
-		return nil
+	return scanJSON(src, item)
+}
+
+type fleetJoin struct {
+	Fleet     `json:"fleet,omitempty"`
+	ShipToken `json:"fleetShipToken,omitempty"`
+}
+
+const fleetJoinSelect = `
+SELECT 
+	f.id AS 'fleet.id',
+	f.createdAt AS 'fleet.createdAt',
+	f.updatedAt AS 'fleet.updatedAt',
+	f.gameId AS 'fleet.gameId',
+	f.playerId AS 'fleet.playerId',
+	f.battlePlanId AS 'fleet.battlePlanId',
+	f.x AS 'fleet.x',
+	f.y AS 'fleet.y',
+	f.name AS 'fleet.name',
+	f.num AS 'fleet.num',
+	f.playerNum AS 'fleet.playerNum',
+	f.waypoints AS 'fleet.waypoints',
+	f.repeatOrders AS 'fleet.repeatOrders',
+	f.planetId AS 'fleet.planetId',
+	f.baseName AS 'fleet.baseName',
+	f.ironium AS 'fleet.ironium',
+	f.boranium AS 'fleet.boranium',
+	f.germanium AS 'fleet.germanium',
+	f.colonists AS 'fleet.colonists',
+	f.fuel AS 'fleet.fuel',
+	f.damage AS 'fleet.damage',
+	f.headingX AS 'fleet.headingX',
+	f.headingY AS 'fleet.headingY',
+	f.warpSpeed AS 'fleet.warpSpeed',
+	f.previousPositionX AS 'fleet.previousPositionX',
+	f.previousPositionY AS 'fleet.previousPositionY',
+	f.orbitingPlanetNum AS 'fleet.orbitingPlanetNum',
+	f.starbase AS 'fleet.starbase',
+	f.spec AS 'fleet.spec',
+
+	COALESCE(t.id, 0) AS 'fleetShipToken.id',
+	t.createdAt AS 'fleetShipToken.createdAt',
+	t.updatedAt AS 'fleetShipToken.updatedAt',
+	COALESCE(t.fleetId, 0) AS 'fleetShipToken.fleetId',
+	COALESCE(t.designId, 0) AS 'fleetShipToken.designId',
+	COALESCE(t.quantity, 0) AS 'fleetShipToken.quantity',
+	COALESCE(t.damage, 0) AS 'fleetShipToken.damage',
+	COALESCE(t.quantityDamaged, 0) AS 'fleetShipToken.quantityDamaged'
+	FROM fleets f
+	LEFT JOIN shipTokens t
+		ON f.id = t.fleetId
+`
+
+// scan through rows from a fleet join and return a list of fleets and their tokens
+func (c *client) scanFleetJoin(rows []fleetJoin) []*game.Fleet {
+	fleets := []*game.Fleet{}
+
+	fleet := &game.Fleet{}
+	for _, row := range rows {
+		// found a new fleet
+		if row.Fleet.ID != 0 {
+			fleet = c.converter.ConvertFleet(&row.Fleet)
+			fleet.Tokens = []game.ShipToken{}
+			fleets = append(fleets, fleet)
+		}
+
+		if row.ShipToken.ID != 0 {
+			fleet.Tokens = append(fleet.Tokens, c.converter.ConvertShipToken(row.ShipToken))
+		}
 	}
 
-	switch v := src.(type) {
-	case []byte:
-		return json.Unmarshal(v, item)
-	case string:
-		return json.Unmarshal([]byte(v), item)
-	}
-	return errors.New("type assertion failed")
+	return fleets
 }
 
 // get a fleet by id
 func (c *client) GetFleet(id int64) (*game.Fleet, error) {
-	item := Fleet{}
-	if err := c.db.Get(&item, "SELECT * FROM fleets WHERE id = ?", id); err != nil {
+	rows := []fleetJoin{}
+	if err := c.db.Select(&rows, fmt.Sprintf("%s WHERE f.id = ?", fleetJoinSelect), id); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
 		return nil, err
 	}
 
-	fleet := c.converter.ConvertFleet(&item)
-	return fleet, nil
+	// check if we have any results
+	if len(rows) == 0 {
+		return nil, nil
+	}
+
+	fleets := c.scanFleetJoin(rows)
+
+	if len(fleets) != 1 {
+		return nil, fmt.Errorf("failed to scan fleetJoin rows")
+	}
+
+	return fleets[0], nil
 }
 
 func (c *client) getFleetsForGame(gameId int64) ([]*game.Fleet, error) {
-
-	items := []Fleet{}
-	if err := c.db.Select(&items, `SELECT * FROM fleets WHERE gameId = ?`, gameId); err != nil {
+	rows := []fleetJoin{}
+	if err := c.db.Select(&rows, fmt.Sprintf("%s WHERE f.gameId = ?", fleetJoinSelect), gameId); err != nil {
 		if err == sql.ErrNoRows {
 			return []*game.Fleet{}, nil
 		}
 		return nil, err
 	}
 
-	results := make([]*game.Fleet, len(items))
-	for i := range items {
-		results[i] = c.converter.ConvertFleet(&items[i])
+	// check if we have any results
+	if len(rows) == 0 {
+		return []*game.Fleet{}, nil
 	}
 
-	return results, nil
+	fleets := c.scanFleetJoin(rows)
+
+	if len(fleets) == 0 {
+		return nil, fmt.Errorf("failed to scan fleetJoin rows")
+	}
+
+	return fleets, nil
+}
+
+func (c *client) getFleetsForPlayer(playerId int64) ([]*game.Fleet, error) {
+	rows := []fleetJoin{}
+	if err := c.db.Select(&rows, fmt.Sprintf("%s WHERE f.playerId = ?", fleetJoinSelect), playerId); err != nil {
+		if err == sql.ErrNoRows {
+			return []*game.Fleet{}, nil
+		}
+		return nil, err
+	}
+
+	// check if we have any results
+	if len(rows) == 0 {
+		return []*game.Fleet{}, nil
+	}
+
+	fleets := c.scanFleetJoin(rows)
+
+	if len(fleets) == 0 {
+		return nil, fmt.Errorf("failed to scan fleetJoin rows")
+	}
+
+	return fleets, nil
 }
 
 // create a new game
-func (c *client) createFleet(fleet *game.Fleet, tx NamedExecer) error {
+func (c *client) createFleet(fleet *game.Fleet, tx SQLExecer) error {
 	item := c.converter.ConvertGameFleet(fleet)
 	result, err := tx.NamedExec(`
 	INSERT INTO fleets (
@@ -212,10 +311,19 @@ func (c *client) createFleet(fleet *game.Fleet, tx NamedExecer) error {
 		return err
 	}
 
+	for i := range fleet.Tokens {
+		token := &fleet.Tokens[i]
+		token.FleetID = fleet.ID
+		token.DesignID = token.Design.ID
+		if err := c.createShipToken(token, tx); err != nil {
+			return fmt.Errorf("failed to create ShipToken %w", err)
+		}
+	}
+
 	return nil
 }
 
-func (c *client) createShipToken(token *game.ShipToken, tx NamedExecer) error {
+func (c *client) createShipToken(token *game.ShipToken, tx SQLExecer) error {
 	result, err := tx.NamedExec(`
 	INSERT INTO shipTokens (
 		createdAt,
@@ -255,7 +363,7 @@ func (c *client) UpdateFleet(fleet *game.Fleet) error {
 }
 
 // update an existing fleet
-func (c *client) updateFleet(fleet *game.Fleet, tx NamedExecer) error {
+func (c *client) updateFleet(fleet *game.Fleet, tx SQLExecer) error {
 
 	item := c.converter.ConvertGameFleet(fleet)
 
@@ -293,23 +401,17 @@ func (c *client) updateFleet(fleet *game.Fleet, tx NamedExecer) error {
 		return err
 	}
 
-	return nil
-}
-
-// update an existing shiptoken
-func (c *client) updateShipToken(token *game.ShipToken, tx NamedExecer) error {
-	if _, err := tx.NamedExec(`
-	UPDATE shipTokens SET
-		updatedAt = CURRENT_TIMESTAMP,
-		fleetId = :fleetId,
-		designId = :designId,
-		quantity = :quantity,
-		damage = :damage,
-		quantityDamaged = :quantityDamaged
-	WHERE id = :id
-	`, token); err != nil {
-		return err
+	if _, err := tx.Exec("DELETE FROM shipTokens WHERE fleetId = ?", fleet.ID); err != nil {
+		return fmt.Errorf("failed to delete existing shipTokens for fleet %w", err)
 	}
 
+	for i := range fleet.Tokens {
+		token := &fleet.Tokens[i]
+		token.ID = 0
+		token.FleetID = fleet.ID
+		if err := c.createShipToken(token, tx); err != nil {
+			return fmt.Errorf("failed to create ShipToken %w", err)
+		}
+	}
 	return nil
 }

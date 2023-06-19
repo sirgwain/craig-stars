@@ -3,8 +3,6 @@ package dbsqlx
 import (
 	"database/sql"
 	"database/sql/driver"
-	"encoding/json"
-	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -23,7 +21,7 @@ type ShipDesign struct {
 	Hull          string                 `json:"hull,omitempty"`
 	HullSetNumber int                    `json:"hullSetNumber,omitempty"`
 	CanDelete     bool                   `json:"canDelete,omitempty"`
-	Slots         ShipDesignSlots        `json:"slots,omitempty"`
+	Slots         *ShipDesignSlots       `json:"slots,omitempty"`
 	Purpose       game.ShipDesignPurpose `json:"purpose,omitempty"`
 	Spec          *ShipDesignSpec        `json:"spec,omitempty"`
 }
@@ -32,60 +30,23 @@ type ShipDesignSlots []game.ShipDesignSlot
 type ShipDesignSpec game.ShipDesignSpec
 
 // db serializer to serialize this to JSON
-func (item ShipDesignSlots) Value() (driver.Value, error) {
-	if item == nil {
-		return nil, nil
-	}
-
-	data, err := json.Marshal(item)
-	if err != nil {
-		return nil, err
-	}
-	return data, nil
+func (item *ShipDesignSlots) Value() (driver.Value, error) {
+	return valueJSON(item)
 }
 
 // db deserializer to read this from JSON
-func (item ShipDesignSlots) Scan(src interface{}) error {
-	if src == nil {
-		// leave empty
-		return nil
-	}
-
-	switch v := src.(type) {
-	case []byte:
-		return json.Unmarshal(v, &item)
-	case string:
-		return json.Unmarshal([]byte(v), &item)
-	}
-	return errors.New("type assertion failed")
+func (item *ShipDesignSlots) Scan(src interface{}) error {
+	return scanJSON(src, item)
 }
 
 // db serializer to serialize this to JSON
 func (item *ShipDesignSpec) Value() (driver.Value, error) {
-	if item == nil {
-		return nil, nil
-	}
-
-	data, err := json.Marshal(item)
-	if err != nil {
-		return nil, err
-	}
-	return data, nil
+	return valueJSON(item)
 }
 
 // db deserializer to read this from JSON
 func (item *ShipDesignSpec) Scan(src interface{}) error {
-	if src == nil {
-		return nil
-	}
-
-	switch v := src.(type) {
-	case []byte:
-		return json.Unmarshal(v, item)
-	case string:
-		return json.Unmarshal([]byte(v), item)
-	}
-	return errors.New("type assertion failed")
+	return scanJSON(src, item)
 }
 
 func (c *client) GetShipDesignsForPlayer(playerID int64) ([]game.ShipDesign, error) {
@@ -120,8 +81,12 @@ func (c *client) GetShipDesign(id int64) (*game.ShipDesign, error) {
 	return c.converter.ConvertShipDesign(&item), nil
 }
 
+func (c *client) CreateShipDesign(shipDesign *game.ShipDesign) error {
+	return c.createShipDesign(shipDesign, c.db)
+}
+
 // create a new shipDesign given something that can execute NamedExec (either a DB or )
-func (c *client) CreateShipDesign(shipDesign *game.ShipDesign, tx NamedExecer) error {
+func (c *client) createShipDesign(shipDesign *game.ShipDesign, tx SQLExecer) error {
 	item := c.converter.ConvertGameShipDesign(shipDesign)
 
 	result, err := tx.NamedExec(`
@@ -175,7 +140,7 @@ func (c *client) UpdateShipDesign(shipDesign *game.ShipDesign) error {
 }
 
 // update an existing shipDesign
-func (c *client) updateShipDesign(shipDesign *game.ShipDesign, tx NamedExecer) error {
+func (c *client) updateShipDesign(shipDesign *game.ShipDesign, tx SQLExecer) error {
 
 	item := c.converter.ConvertGameShipDesign(shipDesign)
 

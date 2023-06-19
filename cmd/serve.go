@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/sirgwain/craig-stars/config"
-	"github.com/sirgwain/craig-stars/db"
+	"github.com/sirgwain/craig-stars/dbsqlx"
 	"github.com/sirgwain/craig-stars/game"
 	"github.com/sirgwain/craig-stars/server"
 
@@ -25,11 +25,10 @@ func newServeCmd() *cobra.Command {
 		Long:  `Start a local gin-gonic webserver and serve requests.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			db := db.NewClient()
+			db := dbsqlx.NewClient()
 			cfg := config.GetConfig()
 			db.Connect(cfg)
-
-			// db.EnableDebugLogging()
+			db.ExecSchema("schema.sql")
 
 			if generateUniverse {
 				if err := generateTestGame(db, *cfg); err != nil {
@@ -45,7 +44,7 @@ func newServeCmd() *cobra.Command {
 	return serveCmd
 }
 
-func generateTestGame(db db.Client, config config.Config) error {
+func generateTestGame(db server.DBClient, config config.Config) error {
 	defer timeTrack(time.Now(), "generateTestGame")
 
 	admin, adminRace, err := createTestUser(db, "admin", config.GeneratedUserPassword, game.RoleAdmin)
@@ -95,7 +94,7 @@ func generateTestGame(db db.Client, config config.Config) error {
 	return nil
 }
 
-func createTestUser(db db.Client, username string, password string, role game.Role) (*game.User, *game.Race, error) {
+func createTestUser(db server.DBClient, username string, password string, role game.Role) (*game.User, *game.Race, error) {
 	user, err := db.GetUserByUsername(username)
 	if err != nil {
 		return nil, nil, err
@@ -115,7 +114,7 @@ func createTestUser(db db.Client, username string, password string, role game.Ro
 
 	}
 
-	races, err := db.GetRaces(user.ID)
+	races, err := db.GetRacesForUser(user.ID)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -136,7 +135,7 @@ func createTestUser(db db.Client, username string, password string, role game.Ro
 		// 	return nil, nil, err
 		// }
 	} else {
-		race = *races[0]
+		race = races[0]
 	}
 
 	return user, &race, nil

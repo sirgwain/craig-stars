@@ -22,7 +22,6 @@ type client struct {
 
 type Client interface {
 	Connect(config *config.Config)
-	EnableDebugLogging()
 
 	GetUsers() ([]game.User, error)
 	GetUser(id int64) (*game.User, error)
@@ -31,29 +30,31 @@ type Client interface {
 	UpdateUser(user *game.User) error
 	DeleteUser(id int64) error
 
-	GetTechStores() ([]*game.TechStore, error)
-	CreateTechStore(tech *game.TechStore) error
-	FindTechStoreById(id int64) (*game.TechStore, error)
-
-	GetGames() ([]*game.Game, error)
-	GetGamesForHost(userID int64) ([]*game.Game, error)
-	GetGamesByUser(userID int64) ([]*game.Game, error)
-	GetOpenGames() ([]*game.Game, error)
-	GetGame(id int64) (*game.Game, error)
-	GetFullGame(id int64) (*game.FullGame, error)
-	FindGameRulesByGameID(gameID int64) (*game.Rules, error)
-	CreateGame(game *game.Game) error
-	UpdateFullGame(game *game.FullGame) error
-	DeleteGame(id int64) error
-
-	GetRaces(userID int64) ([]*game.Race, error)
+	GetRacesForUser(userID int64) ([]game.Race, error)
 	GetRace(id int64) (*game.Race, error)
 	CreateRace(race *game.Race) error
 	UpdateRace(race *game.Race) error
 
-	FindPlayerByGameId(gameID int64, userID int64) (*game.FullPlayer, error)
-	FindPlayerByGameIdLight(gameID int64, userID int64) (*game.Player, error)
-	SavePlayer(player *game.Player) error
+	GetTechStores() ([]game.TechStore, error)
+	CreateTechStore(tech *game.TechStore) error
+	GetTechStore(id int64) (*game.TechStore, error)
+
+	GetRulesForGame(gameID int64) (*game.Rules, error)
+
+	GetGames() ([]game.Game, error)
+	GetGamesForHost(userID int64) ([]game.Game, error)
+	GetGamesForUser(userID int64) ([]game.Game, error)
+	GetOpenGames() ([]game.Game, error)
+	GetGame(id int64) (*game.Game, error)
+	GetFullGame(id int64) (*game.FullGame, error)
+	CreateGame(game *game.Game) error
+	UpdateFullGame(game *game.FullGame) error
+	DeleteGame(id int64) error
+
+	GetFullPlayerForGame(gameID int64, userID int64) (*game.FullPlayer, error)
+	GetPlayerForGame(gameID int64, userID int64) (*game.Player, error)
+	CreatePlayer(player *game.Player) error
+	UpdatePlayer(player *game.Player) error
 
 	GetPlanet(id int64) (*game.Planet, error)
 	UpdatePlanet(planet *game.Planet) error
@@ -81,9 +82,16 @@ func (c *client) Connect(config *config.Config) {
 	}
 
 	log.Debug().Msgf("Connecting to database %s", config.Database.Filename)
-	zlogger := zerolog.New(os.Stderr).With().Timestamp().Logger().Level(zerolog.WarnLevel)
-	dblogger := NewWithLogger(&zlogger)
 
+	// create a new logger for logging database calls
+	var zlogger zerolog.Logger
+	if config.Database.DebugLogging {
+		zlogger = zerolog.New(os.Stderr).With().Timestamp().Logger().Output(zerolog.ConsoleWriter{Out: os.Stderr}).Level(zerolog.DebugLevel)
+	} else {
+		zlogger = zerolog.New(os.Stderr).With().Timestamp().Logger().Level(zerolog.WarnLevel)
+	}
+
+	dblogger := NewWithLogger(&zlogger)
 	localdb, err := gorm.Open(sqlite.Open(config.Database.Filename), &gorm.Config{
 		Logger: dblogger,
 	})
@@ -98,10 +106,4 @@ func (c *client) Connect(config *config.Config) {
 		c.migrateAll()
 	}
 
-}
-
-func (c *client) EnableDebugLogging() {
-	zlogger := zerolog.New(os.Stderr).With().Timestamp().Logger().Output(zerolog.ConsoleWriter{Out: os.Stderr}).Level(zerolog.DebugLevel)
-	dblogger := NewWithLogger(&zlogger)
-	c.sqlDB.Logger = dblogger
 }

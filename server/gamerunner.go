@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
-	"github.com/sirgwain/craig-stars/db"
+	"github.com/sirgwain/craig-stars/dbsqlx"
 	"github.com/sirgwain/craig-stars/game"
 )
 
@@ -16,11 +16,13 @@ const (
 	TurnGenerated
 )
 
+type DBClient dbsqlx.Client
+
 type GameRunner struct {
-	db db.Client
+	db DBClient
 }
 
-func NewGameRunner(db db.Client) *GameRunner {
+func NewGameRunner(db DBClient) *GameRunner {
 	return &GameRunner{db}
 }
 
@@ -95,7 +97,7 @@ func (gr *GameRunner) AddPlayer(gameID int64, userID int64, race *game.Race) err
 	client := game.NewClient()
 	player := client.NewPlayer(userID, *race, &g.Rules)
 	player.GameID = g.ID
-	if err := gr.db.SavePlayer(player); err != nil {
+	if err := gr.db.CreatePlayer(player); err != nil {
 		return fmt.Errorf("failed to save player %s for game %d: %w", player, gameID, err)
 	}
 	if err := gr.db.UpdateFullGame(g); err != nil {
@@ -161,14 +163,14 @@ func (gr *GameRunner) LoadPlayerGame(gameID int64, userID int64) (*game.Game, *g
 	if g.Rules.TechsID == 0 {
 		g.Rules.WithTechStore(&game.StaticTechStore)
 	} else {
-		techs, err := gr.db.FindTechStoreById(g.Rules.TechsID)
+		techs, err := gr.db.GetTechStore(g.Rules.TechsID)
 		if err != nil {
 			return nil, nil, err
 		}
 		g.Rules.WithTechStore(techs)
 	}
 
-	player, err := gr.db.FindPlayerByGameId(gameID, userID)
+	player, err := gr.db.GetFullPlayerForGame(gameID, userID)
 
 	if err != nil {
 		return nil, nil, err
@@ -179,13 +181,17 @@ func (gr *GameRunner) LoadPlayerGame(gameID int64, userID int64) (*game.Game, *g
 
 // submit a turn for a player
 func (gr *GameRunner) SubmitTurn(gameID int64, userID int64) error {
-	player, err := gr.db.FindPlayerByGameIdLight(gameID, userID)
+	player, err := gr.db.GetPlayerForGame(gameID, userID)
 	if err != nil {
 		return fmt.Errorf("failed to find player for user %d, game %d: %w", userID, gameID, err)
 	}
 
+	if player == nil {
+		return fmt.Errorf("player for user %d, game %d not found", userID, gameID)
+	}
+
 	player.SubmittedTurn = true
-	gr.db.SavePlayer(player)
+	gr.db.UpdatePlayer(player)
 	return nil
 }
 

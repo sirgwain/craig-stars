@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func (c *client) FindPlayerByGameId(gameID int64, userID int64) (*game.FullPlayer, error) {
+func (c *client) GetFullPlayerForGame(gameID int64, userID int64) (*game.FullPlayer, error) {
 	player := game.FullPlayer{}
 
 	if err := c.sqlDB.
@@ -57,7 +57,7 @@ func (c *client) FindPlayerByGameId(gameID int64, userID int64) (*game.FullPlaye
 }
 
 // find a plyer for a game without loading all data
-func (c *client) FindPlayerByGameIdLight(gameID int64, userID int64) (*game.Player, error) {
+func (c *client) GetPlayerForGame(gameID int64, userID int64) (*game.Player, error) {
 	player := game.Player{}
 
 	if err := c.sqlDB.
@@ -74,6 +74,11 @@ func (c *client) FindPlayerByGameIdLight(gameID int64, userID int64) (*game.Play
 }
 
 // Save a player to the db
-func (c *client) SavePlayer(player *game.Player) error {
+func (c *client) CreatePlayer(player *game.Player) error {
+	return c.sqlDB.Save(player).Error
+}
+
+// Save a player to the db
+func (c *client) UpdatePlayer(player *game.Player) error {
 	return c.sqlDB.Save(player).Error
 }
