@@ -39,7 +39,7 @@ export enum GameStartMode {
 
 export enum NewGamePlayerType {
 	Host = 'Host',
-	Invite = 'Invite',
+	// Invite = 'Invite', // not supported yet
 	Open = 'Open',
 	AI = 'AI'
 }
@@ -48,6 +48,7 @@ export interface NewGamePlayer {
 	type: NewGamePlayerType;
 	userId?: number;
 	raceId?: number;
+	color?: string;
 }
 
 export interface GameSettings {
@@ -62,7 +63,6 @@ export interface GameSettings {
 	publicPlayerScores: boolean;
 	startMode: GameStartMode;
 	year?: number;
-	state: GameState;
 	victoryConditions?: VictoryConditions;
 	players: NewGamePlayer[];
 }

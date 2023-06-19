@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { PlusCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
+	import { $enum as eu } from 'ts-enum-util';
 
 	import {
 		Density,
@@ -12,20 +13,27 @@
 		type GameSettings
 	} from '$lib/types/Game';
 	import NewGamePlayer from './NewGamePlayer.svelte';
+	import ItemTitle from '$lib/components/ItemTitle.svelte';
+	import SectionHeader from '$lib/components/SectionHeader.svelte';
+	import TextInput from '$lib/components/TextInput.svelte';
+	import EnumSelect from '$lib/components/EnumSelect.svelte';
+	import CheckboxInput from '$lib/components/CheckboxInput.svelte';
+
+	let colors = ['#C33232', '#1F8BA7', '#43A43E', '#8D29CB', '#B88628'];
+	const getColor = (index: number) =>
+		index < colors.length ? colors[index] : '#' + Math.floor(Math.random() * 16777215).toString(16);
 
 	let settings: GameSettings = {
 		name: 'A Barefoot Jaywalk',
-		size: Size.Tiny,
+		size: Size.Small,
 		density: Density.Normal,
 		playerPositions: PlayerPositions.Moderate,
 		randomEvents: true,
 		computerPlayersFormAlliances: false,
 		publicPlayerScores: false,
 		startMode: GameStartMode.Normal,
-		players: [{ type: NewGamePlayerType.Host }]
+		players: [{ type: NewGamePlayerType.Host, color: getColor(0) }]
 	};
-
-	let sizes: string[] = Object.keys(Size).filter((v) => isNaN(Number(v)));
 
 	const onSubmit = async () => {
 		const data = JSON.stringify({ settings });
@@ -48,40 +56,48 @@
 	};
 
 	const addPlayer = () => {
-		settings.players = [...settings.players, { type: NewGamePlayerType.AI }];
-	};
-
-	const stringToSize = (size: string): Size => {
-		return Size[size as keyof typeof Size];
+		settings.players = [
+			...settings.players,
+			{ type: NewGamePlayerType.AI, color: getColor(settings.players.length + 1) }
+		];
 	};
 
 	let error = '';
 </script>
 
-<h2 class="font-semibold text-xl">Host New Game</h2>
-<form on:submit|preventDefault={onSubmit}>
-	<fieldset name="settings" class="form-control">
-		<label class="label" for="name">Name</label>
-		<input name="name" class="input input-bordered" bind:value={settings.name} />
+<div class="md:max-w-md mx-auto">
+	<form on:submit|preventDefault={onSubmit}>
+		<div class="w-full flex justify-end gap-2">
+			<button class="btn btn-success" type="submit">Create Game</button>
+		</div>
 
-		<label class="label" for="size">Universe Size</label>
-		<select name="size" class="select select-bordered" bind:value={settings.size}>
-			{#each sizes as size}
-				<option value={stringToSize(size)}>{size}</option>
-			{/each}
-		</select>
-	</fieldset>
+		<ItemTitle>Host New Game</ItemTitle>
 
-	<fieldset name="players" class="form-control mt-3">
-		<h3 class="text-2xl items-start">
-			Players <button on:click|preventDefault={addPlayer}
-				><Icon src={PlusCircle} size="24" class="hover:stroke-accent" />
-			</button>
-		</h3>
+		<div class="flex flex-row flex-wrap">
+			<TextInput name="name" bind:value={settings.name} />
+			<EnumSelect name="size" enumType={Size} bind:value={settings.size} />
+			<EnumSelect name="density" enumType={Density} bind:value={settings.density} />
+			<EnumSelect
+				name="playerPositions"
+				enumType={PlayerPositions}
+				bind:value={settings.playerPositions}
+			/>
+			<CheckboxInput name="randomEvents" bind:checked={settings.randomEvents} />
+			<CheckboxInput name="publicPlayerScores" bind:checked={settings.publicPlayerScores} />
+			<CheckboxInput name="computerPlayersFormAlliances" bind:checked={settings.computerPlayersFormAlliances} />
+		</div>
+
+		<SectionHeader>
+			<button class="btn-ghost w-full flex flex-row" on:click|preventDefault={addPlayer}>
+				Players
+				<div class="ml-auto">
+					<Icon src={PlusCircle} size="24" class="hover:stroke-accent" />
+				</div>
+			</button></SectionHeader
+		>
 
 		{#each settings.players as player, i}
 			<NewGamePlayer bind:player index={i + 1} />
 		{/each}
-	</fieldset>
-	<button class="btn btn-primary">Host</button>
-</form>
+	</form>
+</div>

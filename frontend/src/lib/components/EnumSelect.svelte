@@ -1,0 +1,29 @@
+<script lang="ts">
+	import { startCase } from 'lodash-es';
+	import { $enum as eu } from 'ts-enum-util';
+	export let name: string;
+	export let value: string | undefined;
+
+	export let title: string | undefined = undefined;
+    export let enumType: any
+	export let titleClass = "label-text w-32 text-right"
+	export let required = false;
+
+	$: !title && (title = startCase(name));
+</script>
+
+<div class="w-full flex-grow">
+    <label class="label"
+        ><span class={titleClass}>{title}</span>
+        <select
+            class="select input-bordered ml-2 flex-grow"
+            name="type"
+            {required}
+            bind:value={value}
+        >
+            {#each eu(enumType).getValues() as type}
+                <option value={type}>{startCase(type)}</option>
+            {/each}
+        </select>
+    </label>
+</div>

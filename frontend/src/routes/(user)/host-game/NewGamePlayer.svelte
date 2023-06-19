@@ -1,29 +1,26 @@
 <script lang="ts">
+	import EnumSelect from '$lib/components/EnumSelect.svelte';
 	import { NewGamePlayerType, type NewGamePlayer } from '$lib/types/Game';
-	import Host from './Host.svelte';
+	import AiPlayer from './AIPlayer.svelte';
+	import HostPlayer from './HostPlayer.svelte';
 
 	export let player: NewGamePlayer;
 	export let index: number;
-
-	let types: string[] = Object.keys(NewGamePlayerType).filter((v) => isNaN(Number(v)));
-
-	const stringToNewGamePlayerType = (value: string): NewGamePlayerType => {
-		return NewGamePlayerType[value as keyof typeof NewGamePlayerType];
-	};
 </script>
 
 {#if player}
 	<div class="block">
-		Player {index}
-
-		<select name="type" class="select select-bordered" bind:value={player.type}>
-			{#each types as type}
-				<option value={stringToNewGamePlayerType(type)}>{type}</option>
-			{/each}
-		</select>
+		<EnumSelect
+			enumType={NewGamePlayerType}
+			name="type"
+			bind:value={player.type}
+			title={`Player ${index}`}
+		/>
 
 		{#if player.type === NewGamePlayerType.Host}
-			<Host {player} />
+			<HostPlayer {player} />
+		{:else if player.type == NewGamePlayerType.AI}
+			<AiPlayer {player} />
 		{/if}
 	</div>
 {/if}
