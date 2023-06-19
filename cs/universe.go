@@ -51,6 +51,7 @@ type mapObjectGetter interface {
 	getPlanet(num int) *Planet
 	getFleet(playerNum int, num int) *Fleet
 	getMineField(playerNum int, num int) *MineField
+	getAllMineFields() []*MineField
 	getMysteryTrader(num int) *MysteryTrader
 	getWormhole(num int) *Wormhole
 	getSalvage(num int) *Salvage
@@ -270,6 +271,10 @@ func (u *Universe) getMineField(playerNum int, num int) *MineField {
 	return u.mineFieldsByNum[playerObjectKey(playerNum, num)]
 }
 
+func (u *Universe) getAllMineFields() []*MineField {
+	return u.MineFields
+}
+
 // get a minefield that is close to a position
 func (u *Universe) getMineFieldNearPosition(playerNum int, position Vector, mineFieldType MineFieldType) *MineField {
 	for _, mineField := range u.MineFields {
@@ -316,7 +321,14 @@ func (u *Universe) deleteFleet(fleet *Fleet) {
 	slices.Delete(u.Fleets, index, index)
 
 	delete(u.fleetsByNum, playerObjectKey(fleet.PlayerNum, fleet.Num))
-	delete(u.fleetsByPosition, fleet.Position)
+
+	fleetsByPosition := u.fleetsByPosition[fleet.Position]
+	positionIndex := slices.Index(fleetsByPosition, fleet)
+	slices.Delete(fleetsByPosition, positionIndex, positionIndex)
+	if len(fleetsByPosition) == 0 {
+		delete(u.fleetsByPosition, fleet.Position)
+	}
+
 	u.removeMapObjectAtPosition(fleet, fleet.Position)
 }
 
@@ -491,4 +503,25 @@ func (u *Universe) addMineField(mineField *MineField) {
 	u.MineFields = append(u.MineFields, mineField)
 	u.mineFieldsByNum[playerObjectKey(mineField.PlayerNum, mineField.Num)] = mineField
 	u.addMapObjectByPosition(mineField, mineField.Position)
+}
+
+// mark a mineField as deleted and remove it from the universe
+func (u *Universe) deleteMineField(mineField *MineField) {
+	mineField.Delete = true
+
+	index := slices.Index(u.MineFields, mineField)
+	slices.Delete(u.MineFields, index, index)
+
+	delete(u.mineFieldsByNum, playerObjectKey(mineField.PlayerNum, mineField.Num))
+	u.removeMapObjectAtPosition(mineField, mineField.Position)
+}
+
+// get the number of planets within a circle
+func (u *Universe) numPlanetsWithin(position Vector, radius float64) (numPlanets int) {
+	for _, planet := range u.Planets {
+		if isPointInCircle(planet.Position, position, radius) {
+			numPlanets++
+		}
+	}
+	return numPlanets
 }

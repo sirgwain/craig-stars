@@ -174,8 +174,8 @@ func (ai *aiPlayer) colonize() {
 
 func (ai *aiPlayer) getWarpSpeed(fleet *cs.Fleet, position cs.Vector) int {
 	dist := fleet.Position.DistanceTo(position)
-	fuelUsage := fleet.GetFuelCost(ai.Player, fleet.Spec.IdealSpeed, dist)
-	warpSpeed := fleet.Spec.IdealSpeed
+	fuelUsage := fleet.GetFuelCost(ai.Player, fleet.Spec.Engine.IdealSpeed, dist)
+	warpSpeed := fleet.Spec.Engine.IdealSpeed
 	for ; fuelUsage > fleet.Fuel && warpSpeed > 1; warpSpeed-- {
 		fuelUsage = fleet.GetFuelCost(ai.Player, warpSpeed, dist)
 	}

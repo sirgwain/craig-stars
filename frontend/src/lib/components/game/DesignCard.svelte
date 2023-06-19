@@ -20,7 +20,7 @@
 	};
 </script>
 
-<div class="card bg-base-200 shadow-xl rounded-sm border-2 border-base-300 pt-2 sm:w-[400px]">
+<div class="card bg-base-200 shadow rounded-sm border-2 border-base-300 pt-2 w-full sm:w-[400px]">
 	<figure>
 		<div class="border border-secondary bg-black p-1">
 			<a class="cs-link" href={`/games/${gameId}/designs/${design.num}`}>

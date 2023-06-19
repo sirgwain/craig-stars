@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"database/sql/driver"
+	"fmt"
 	"time"
 
 	"github.com/sirgwain/craig-stars/cs"
@@ -139,5 +140,12 @@ func (c *client) updateWormhole(wormhole *cs.Wormhole, tx SQLExecer) error {
 		return err
 	}
 
+	return nil
+}
+
+func (c *client) deleteWormhole(wormholeID int64, tx SQLExecer) error {
+	if _, err := tx.Exec("DELETE FROM wormholes where id = ?", wormholeID); err != nil {
+		return fmt.Errorf("delete wormhole %d %w", wormholeID, err)
+	}
 	return nil
 }

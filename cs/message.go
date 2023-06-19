@@ -383,9 +383,58 @@ func (m *messageClient) fleetCompletedAssignedOrders(player *Player, fleet *Flee
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetScrapped, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
 }
 
-func (m *messageClient) fleetHitMineField(player *Player, fleet *Fleet) {
-	text := fmt.Sprintf("%s", fleet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetScrapped, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+func (m *messageClient) fleetHitMineField(player *Player, fleet *Fleet, fleetPlayer *Player, mineField *MineField, damage int, shipsDestroyed int) {
+	var text string
+	if fleet.PlayerNum == player.Num {
+		// it's our fleet, it must be someone else's minefield
+		if fleet.Spec.TotalShips <= shipsDestroyed {
+			text = fmt.Sprintf("%s has been annihilated in a %s mine field at %v",
+				fleet.Name, mineField.Type, mineField.Position)
+		} else {
+			text = fmt.Sprintf("%s has been stopped in a %s mine field at %v.",
+				fleet.Name, mineField.Type, mineField.Position)
+			if damage > 0 {
+				if shipsDestroyed > 0 {
+					text += fmt.Sprintf(" Your fleet has taken %d damage points and %d ships were destroyed.",
+						damage, shipsDestroyed)
+				} else {
+					text += fmt.Sprintf(" Your fleet has taken %d damage points but none of your ships were destroyed.",
+						damage)
+				}
+			} else {
+				text = fmt.Sprintf("%s has been stopped in a %s mine field at %sv",
+					fleet.Name, mineField.Type, mineField.Position)
+			}
+		}
+	} else {
+		// it's not our fleet, it must be our minefield
+		if fleet.Spec.TotalShips <= shipsDestroyed {
+			text = fmt.Sprintf("%s %s has been annihilated in your %s mine field at %v",
+				fleetPlayer.Race.PluralName, fleet.Name, mineField.Type, mineField.Position)
+		} else {
+			text = fmt.Sprintf("%s %s has been stopped in your %s mine field at %v.",
+				fleetPlayer.Race.PluralName, fleet.Name, mineField.Type, mineField.Position)
+			if damage > 0 {
+				if shipsDestroyed > 0 {
+					text += fmt.Sprintf(" Your mines have inflicted %d damage points and destroyed %d ships.",
+						damage, shipsDestroyed)
+				} else {
+					text += fmt.Sprintf(" Your mines have inflicted %d damage points but you didn't manage to destroy any ships.",
+						damage)
+				}
+			} else {
+				text = fmt.Sprintf("%s has been stopped in your %s mine field at %s.",
+					fleet.Name, mineField.Type, mineField.Position)
+			}
+		}
+	}
+
+	player.Messages = append(player.Messages, PlayerMessage{
+		Type:       PlayerMessageMineFieldHit,
+		Text:       text,
+		TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num,
+	})
+
 }
 
 func (m *messageClient) fleetMinesLaidFailed(player *Player, fleet *Fleet) {

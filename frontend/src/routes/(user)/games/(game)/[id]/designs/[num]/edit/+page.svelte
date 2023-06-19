@@ -34,7 +34,7 @@
 {#if design && hull && $game}
 	<Breadcrumb>
 		<svelte:fragment slot="crumbs">
-			<li><a class="cs-link" href={`/games/${gameId}/designs`}>Designs</a></li>
+			<li><a class="cs-link" href={`/games/${gameId}/designs`}>Ship Designs</a></li>
 			<li>{design.name == '' ? 'new' : design.name}</li>
 		</svelte:fragment>
 		<div slot="end" class="flex justify-end mb-1">

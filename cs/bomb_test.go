@@ -267,19 +267,6 @@ func Test_bomb_getUnterraformAmount(t *testing.T) {
 	}
 }
 
-type testPlayerGetter struct {
-	players []*Player
-}
-
-func (pg *testPlayerGetter) getPlayer(num int) *Player {
-	for _, p := range pg.players {
-		if p.Num == num {
-			return p
-		}
-	}
-	return nil
-}
-
 func Test_bomb_bombPlanet(t *testing.T) {
 	fleetOwner := testPlayer().WithNum(1)
 	planetOwner := testPlayer().WithNum(2)
@@ -308,7 +295,7 @@ func Test_bomb_bombPlanet(t *testing.T) {
 				planet:       &Planet{MapObject: MapObject{PlayerNum: planetOwner.Num}, Mines: 100, Factories: 100, Defenses: 10, Cargo: Cargo{Colonists: 100}, Hab: Hab{50, 50, 50}},
 				planetOwner:  planetOwner,
 				enemyBombers: []*Fleet{testMiniBomber(fleetOwner, LadyFingerBomb)},
-				pg:           &testPlayerGetter{players: []*Player{fleetOwner, planetOwner}},
+				pg:           newTestPlayerGetter(fleetOwner, planetOwner),
 			},
 			want: want{population: 9500, mines: 98, factories: 98, defenses: 9, hab: Hab{50, 50, 50}},
 		},
@@ -318,7 +305,7 @@ func Test_bomb_bombPlanet(t *testing.T) {
 				planet:       &Planet{MapObject: MapObject{PlayerNum: planetOwner.Num}, Mines: 100, Factories: 100, Defenses: 10, Cargo: Cargo{Colonists: 100}, Hab: Hab{50, 50, 50}},
 				planetOwner:  planetOwner,
 				enemyBombers: []*Fleet{testMiniBomber(fleetOwner, LadyFingerBomb), testMiniBomber(fleetOwner, SmartBomb)},
-				pg:           &testPlayerGetter{players: []*Player{fleetOwner, planetOwner}},
+				pg:           newTestPlayerGetter(fleetOwner, planetOwner),
 			},
 			want: want{population: 9300, mines: 98, factories: 98, defenses: 9, hab: Hab{50, 50, 50}},
 		},
@@ -328,7 +315,7 @@ func Test_bomb_bombPlanet(t *testing.T) {
 				planet:       &Planet{MapObject: MapObject{PlayerNum: planetOwner.Num}, Mines: 100, Factories: 100, Defenses: 10, Cargo: Cargo{Colonists: 100}, Hab: Hab{50, 50, 50}, BaseHab: Hab{50, 49, 50}},
 				planetOwner:  planetOwner,
 				enemyBombers: []*Fleet{testMiniBomber(fleetOwner, LadyFingerBomb), testMiniBomber(fleetOwner, SmartBomb), testMiniBomber(fleetOwner, RetroBomb)},
-				pg:           &testPlayerGetter{players: []*Player{fleetOwner, planetOwner}},
+				pg:           newTestPlayerGetter(fleetOwner, planetOwner),
 			},
 			want: want{population: 9300, mines: 98, factories: 98, defenses: 9, hab: Hab{50, 49, 50}},
 		},

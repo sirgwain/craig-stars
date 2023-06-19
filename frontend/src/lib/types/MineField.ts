@@ -13,6 +13,7 @@ export type MineFieldOrders = {
 
 export type MineFieldSpec = {
 	radius: number;
+	decayRate: number;
 };
 
 export enum MineFieldType {

@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/sirgwain/craig-stars/cs"
@@ -126,5 +127,12 @@ func (c *client) updateSalvage(salvage *cs.Salvage, tx SQLExecer) error {
 		return err
 	}
 
+	return nil
+}
+
+func (c *client) deleteSalvage(salvageID int64, tx SQLExecer) error {
+	if _, err := tx.Exec("DELETE FROM salvages where id = ?", salvageID); err != nil {
+		return fmt.Errorf("delete salvage %d %w", salvageID, err)
+	}
 	return nil
 }

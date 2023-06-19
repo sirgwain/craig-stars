@@ -92,7 +92,7 @@
 					stats.push({ label: 'Maximum safe speed', text: `${mineFieldStats.maxSpeed}` });
 					stats.push({
 						label: 'Chance/l.y. of a hit',
-						text: `${mineFieldStats.chanceOfHit * 100}%`
+						text: `${(mineFieldStats.chanceOfHit * 100).toFixed(1)}%`
 					});
 					stats.push({
 						label: 'Dmg done to each ship',

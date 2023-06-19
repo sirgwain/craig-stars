@@ -4,6 +4,7 @@
 	import '../../css/app.css';
 	import '../../css/hulls.css';
 	import '../../css/planets.css';
+	import '../../css/mapobjects.css';
 	import '../../css/techs.css';
 </script>
 

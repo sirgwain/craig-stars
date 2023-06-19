@@ -1,8 +1,9 @@
 import { CommandedFleet, type Fleet, type Waypoint } from '$lib/types/Fleet';
-import { MapObjectType, None, type MapObject } from '$lib/types/MapObject';
+import { equal, MapObjectType, None, type MapObject } from '$lib/types/MapObject';
 import { CommandedPlanet } from '$lib/types/Planet';
 import { emptyUser, type User } from '$lib/types/User';
 import type { Vector } from '$lib/types/Vector';
+import { findIndex } from 'lodash-es';
 import type { ComponentType, SvelteComponent } from 'svelte';
 import { derived, get, writable } from 'svelte/store';
 import type { FullGame } from './FullGame';
@@ -41,6 +42,36 @@ const currentMapObjectIndex = derived(
 		return 0;
 	}
 );
+
+const currentSelectedMapObjectIndex = derived(
+	[game, selectedMapObject],
+	([$game, $selectedMapObject]) => {
+		if ($game) {
+			if ($selectedMapObject) {
+				const mos = $game.universe.getMapObjectsByPosition($selectedMapObject.position);
+				return findIndex(mos, (mo) => equal($selectedMapObject, mo));
+			}
+		}
+		return -1;
+	}
+);
+
+export const selectNextMapObject = () => {
+	const g = get(game);
+	const selected = get(selectedMapObject);
+	const index = get(currentSelectedMapObjectIndex);
+
+	if (index != -1 && selected) {
+		const mos = g?.universe.getMapObjectsByPosition(selected.position);
+		if (mos) {
+			if (index >= mos.length - 1) {
+				selectMapObject(mos[0]);
+			} else {
+				selectMapObject(mos[index + 1]);
+			}
+		}
+	}
+};
 
 // command the previous mapObject for this type, i.e. the previous planet or fleet
 export const previousMapObject = () => {

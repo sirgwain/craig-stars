@@ -10,7 +10,10 @@
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
 	export let mineField: MineField;
-	export let color = '#FFFFFF';
+	export let color = '#0900FF';
+	export let selected = false;
+
+	$: console.log(selected);
 </script>
 
 <!-- ScannerMineField -->
@@ -20,4 +23,11 @@
 	r={$xScale(mineField.spec.radius)}
 	mask="url(#mask-minefield)"
 	fill={color}
+	class:selected
 />
+
+<style>
+	.selected {
+		filter: brightness(0.6);
+	}
+</style>

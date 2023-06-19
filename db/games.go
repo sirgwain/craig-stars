@@ -444,6 +444,12 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 				return fmt.Errorf("create wormhole %w", err)
 			}
 			log.Debug().Int64("GameID", wormhole.GameID).Int64("ID", wormhole.ID).Msgf("Created wormhole %v", wormhole)
+		} else if wormhole.Delete {
+			if err := c.deleteWormhole(wormhole.ID, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("delete wormhole %w", err)
+			}
+			log.Debug().Int64("GameID", wormhole.GameID).Int64("ID", wormhole.ID).Msgf("Deleted wormhole %s", wormhole.Name)
 		} else if wormhole.Dirty {
 			if err := c.updateWormhole(wormhole, tx); err != nil {
 				tx.Rollback()
@@ -462,6 +468,12 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 				return fmt.Errorf("create salvage %w", err)
 			}
 			log.Debug().Int64("GameID", salvage.GameID).Int64("ID", salvage.ID).Msgf("Created salvage %s", salvage.Name)
+		} else if salvage.Delete {
+			if err := c.deleteSalvage(salvage.ID, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("delete salvage %w", err)
+			}
+			log.Debug().Int64("GameID", salvage.GameID).Int64("ID", salvage.ID).Msgf("Deleted salvage %s", salvage.Name)
 		} else if salvage.Dirty {
 			if err := c.updateSalvage(salvage, tx); err != nil {
 				tx.Rollback()
@@ -480,6 +492,12 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 				return fmt.Errorf("create mineField %w", err)
 			}
 			log.Debug().Int64("GameID", mineField.GameID).Int64("ID", mineField.ID).Msgf("Created mineField %s", mineField.Name)
+		} else if mineField.Delete {
+			if err := c.deleteMineField(mineField.ID, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("delete mineField %w", err)
+			}
+			log.Debug().Int64("GameID", mineField.GameID).Int64("ID", mineField.ID).Msgf("Deleted mineField %s", mineField.Name)
 		} else if mineField.Dirty {
 			if err := c.updateMineField(mineField, tx); err != nil {
 				tx.Rollback()
@@ -498,12 +516,42 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 				return fmt.Errorf("create mineralPacket %w", err)
 			}
 			log.Debug().Int64("GameID", mineralPacket.GameID).Int64("ID", mineralPacket.ID).Msgf("Created mineralPacket %s", mineralPacket.Name)
+		} else if mineralPacket.Delete {
+			if err := c.deleteMineralPacket(mineralPacket.ID, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("delete mineralPacket %w", err)
+			}
+			log.Debug().Int64("GameID", mineralPacket.GameID).Int64("ID", mineralPacket.ID).Msgf("Deleted mineralPacket %s", mineralPacket.Name)
 		} else if mineralPacket.Dirty {
 			if err := c.updateMineralPacket(mineralPacket, tx); err != nil {
 				tx.Rollback()
 				return fmt.Errorf("update mineralPacket %w", err)
 			}
 			log.Debug().Int64("GameID", mineralPacket.GameID).Int64("ID", mineralPacket.ID).Msgf("Updated mineralPacket %s", mineralPacket.Name)
+		}
+	}
+
+	// save mysteryTraders
+	for _, mysteryTrader := range fullGame.MysteryTraders {
+		if mysteryTrader.ID == 0 {
+			mysteryTrader.GameID = fullGame.ID
+			if err := c.createMysteryTrader(mysteryTrader, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("create mysteryTrader %w", err)
+			}
+			log.Debug().Int64("GameID", mysteryTrader.GameID).Int64("ID", mysteryTrader.ID).Msgf("Created mysteryTrader %s", mysteryTrader.Name)
+		} else if mysteryTrader.Delete {
+			if err := c.deleteMysteryTrader(mysteryTrader.ID, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("delete mysteryTrader %w", err)
+			}
+			log.Debug().Int64("GameID", mysteryTrader.GameID).Int64("ID", mysteryTrader.ID).Msgf("Deleted mysteryTrader %s", mysteryTrader.Name)
+		} else if mysteryTrader.Dirty {
+			if err := c.updateMysteryTrader(mysteryTrader, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("update mysteryTrader %w", err)
+			}
+			log.Debug().Int64("GameID", mysteryTrader.GameID).Int64("ID", mysteryTrader.ID).Msgf("Updated mysteryTrader %s", mysteryTrader.Name)
 		}
 	}
 	tx.Commit()

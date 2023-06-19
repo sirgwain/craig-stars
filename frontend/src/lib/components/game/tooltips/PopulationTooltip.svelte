@@ -16,7 +16,6 @@
 	export let player: Player;
 	export let planet: Planet;
 
-	$: console.log(player, planet);
 </script>
 
 <div class="flex flex-col sm:w-[26rem] m-auto">

@@ -1,6 +1,7 @@
 package cs
 
 import (
+	"math"
 	"math/rand"
 	"testing"
 
@@ -47,14 +48,14 @@ func createSingleUnitGame() *FullGame {
 
 	players := []*Player{player}
 
+	universe := NewUniverse(&game.Rules)
+	universe.Planets = append(universe.Planets, planet)
+	universe.Fleets = append(universe.Fleets, fleet)
+
 	return &FullGame{
-		Game:    game,
-		Players: players,
-		Universe: &Universe{
-			Planets: []*Planet{planet},
-			Fleets:  []*Fleet{fleet},
-			rules:   &game.Rules,
-		},
+		Game:     game,
+		Players:  players,
+		Universe: &universe,
 	}
 
 }
@@ -184,12 +185,12 @@ func Test_turn_fleetMoveRepeatOrders(t *testing.T) {
 	// make a new freighter for transport
 	fleet := testSmallFreighter(player)
 	player.Designs[0] = fleet.Tokens[0].design
-	fleet.Waypoints = append(fleet.Waypoints, NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 5))
 	game.Fleets[0] = fleet
 
 	// set a waypoint 2 turns away, load ironium from planet and move
 	fleet.RepeatOrders = true
 	fleet.OrbitingPlanetNum = planet.Num
+	fleet.Waypoints[0] = NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 5)
 	fleet.Waypoints[0].Task = WaypointTaskTransport
 	fleet.Waypoints[0].TransportTasks.Ironium.Action = TransportActionLoadAll
 
@@ -397,5 +398,34 @@ func Test_turn_fleetRemoteMineAR(t *testing.T) {
 			assert.Equal(t, tt.wantCargo, planet.Cargo)
 		})
 	}
+
+}
+
+func Test_turn_fleetLayMines(t *testing.T) {
+	game := createSingleUnitGame()
+	player := game.Players[0]
+
+	// make a new freighter for transport
+	fleet := testMiniMineLayer(player)
+	player.Designs[0] = fleet.Tokens[0].design
+	game.Fleets[0] = fleet
+
+	// set a waypoint 2 turns away, load ironium from planet and move
+	fleet.Waypoints[0].Task = WaypointTaskLayMineField
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// move one year
+	turn.generateTurn()
+
+	// should have loaded, moved, but still have waypoints
+	assert.Equal(t, 1, len(game.MineFields))
+	mineField := game.MineFields[0]
+	assert.Equal(t, 320, mineField.NumMines)
+	assert.Equal(t, math.Sqrt(320), mineField.Spec.Radius)
+	assert.Equal(t, Vector{0, 0}, mineField.Position)
 
 }

@@ -43,6 +43,7 @@ export type Waypoint = {
 	estFuelUsage?: number;
 	task: WaypointTask;
 	waitAtWaypoint?: boolean;
+	layMineFieldDuration?: number;
 	targetType?: MapObjectType;
 	targetNum?: number;
 	targetName?: string;

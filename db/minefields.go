@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/sirgwain/craig-stars/cs"
@@ -170,5 +171,12 @@ func (c *client) updateMineField(mineField *cs.MineField, tx SQLExecer) error {
 		return err
 	}
 
+	return nil
+}
+
+func (c *client) deleteMineField(mineFieldID int64, tx SQLExecer) error {
+	if _, err := tx.Exec("DELETE FROM mineFields where id = ?", mineFieldID); err != nil {
+		return fmt.Errorf("delete mineField %d %w", mineFieldID, err)
+	}
 	return nil
 }

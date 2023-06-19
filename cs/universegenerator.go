@@ -208,7 +208,7 @@ func (ug *universeGenerator) generatePlayerShipDesigns() {
 				}
 				techStore := ug.rules.techs
 				hull := techStore.GetHull(string(startingFleet.HullName))
-				design := designShip(techStore, hull, startingFleet.Name, player, num, player.DefaultHullSet, startingFleet.Purpose)
+				design := DesignShip(techStore, hull, startingFleet.Name, player, num, player.DefaultHullSet, startingFleet.Purpose)
 				design.HullSetNumber = int(startingFleet.HullSetNumber)
 				design.Purpose = startingFleet.Purpose
 				design.Spec = ComputeShipDesignSpec(ug.rules, player.TechLevels, player.Race.Spec, design)
@@ -331,6 +331,11 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 				return err
 			}
 
+			// // create a test minefield
+			// testMineField := newMineField(player, MineFieldTypeStandard, 1200, ug.universe.getNextMineFieldNum(), playerPlanet.Position)
+			// testMineField.Spec = computeMinefieldSpec(testMineField)
+			// ug.universe.MineFields = append(ug.universe.MineFields, testMineField)
+
 			messager.longMessage(player)
 		}
 	}
@@ -344,7 +349,7 @@ func (ug *universeGenerator) generatePlayerFleets(player *Player, planet *Planet
 		if design == nil {
 			return fmt.Errorf("no design named %s found for player %s", startingFleet.Name, player)
 		}
-		fleet := newFleet(player, design, *fleetNum, startingFleet.Name, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, design.Spec.IdealSpeed)})
+		fleet := newFleet(player, design, *fleetNum, startingFleet.Name, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, design.Spec.Engine.IdealSpeed)})
 		fleet.OrbitingPlanetNum = planet.Num
 		fleet.Spec = ComputeFleetSpec(ug.rules, player, &fleet)
 		fleet.Fuel = fleet.Spec.FuelCapacity

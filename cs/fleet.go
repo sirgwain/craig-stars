@@ -9,13 +9,13 @@ import (
 const StargateWarpFactor = 11
 
 // time period to perform a task, like patrol
-const Indefinite = -1
+const Indefinite = 0
 
 // use automatic warp factor for patrols
-const PatrolWarpFactorAutomatic = -1
+const PatrolWarpFactorAutomatic = 0
 
 // target fleets in any range when patrolling
-const PatrolRangeInfinite = -1
+const PatrolRangeInfinite = 0
 
 // fleet not orbiting a planet
 const NotOrbitingPlanet = 0
@@ -64,19 +64,20 @@ type FleetSpec struct {
 }
 
 type Waypoint struct {
-	Position          Vector                 `json:"position"`
-	WarpFactor        int                    `json:"warpFactor"`
-	EstFuelUsage      int                    `json:"estFuelUsage,omitempty"`
-	Task              WaypointTask           `json:"task"`
-	TransportTasks    WaypointTransportTasks `json:"transportTasks,omitempty"`
-	WaitAtWaypoint    bool                   `json:"waitAtWaypoint,omitempty"`
-	TargetType        MapObjectType          `json:"targetType,omitempty"`
-	TargetNum         int                    `json:"targetNum,omitempty"`
-	TargetPlayerNum   int                    `json:"targetPlayerNum,omitempty"`
-	TransferToPlayer  int                    `json:"transferToPlayer,omitempty"`
-	TargetName        string                 `json:"targetName,omitempty"`
-	PartiallyComplete bool                   `json:"partiallyComplete,omitempty"`
-	processed         bool                   `json:"-"`
+	Position             Vector                 `json:"position"`
+	WarpFactor           int                    `json:"warpFactor"`
+	EstFuelUsage         int                    `json:"estFuelUsage,omitempty"`
+	Task                 WaypointTask           `json:"task"`
+	TransportTasks       WaypointTransportTasks `json:"transportTasks,omitempty"`
+	WaitAtWaypoint       bool                   `json:"waitAtWaypoint,omitempty"`
+	LayMineFieldDuration int                    `json:"layMineFieldDuration,omitempty"`
+	TargetType           MapObjectType          `json:"targetType,omitempty"`
+	TargetNum            int                    `json:"targetNum,omitempty"`
+	TargetPlayerNum      int                    `json:"targetPlayerNum,omitempty"`
+	TransferToPlayer     int                    `json:"transferToPlayer,omitempty"`
+	TargetName           string                 `json:"targetName,omitempty"`
+	PartiallyComplete    bool                   `json:"partiallyComplete,omitempty"`
+	processed            bool                   `json:"-"`
 }
 
 type WaypointTask string
@@ -343,11 +344,11 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 
 		// use the lowest ideal speed for this fleet
 		// if we have multiple engines
-		if token.design.Spec.Engine != "" {
-			if spec.IdealSpeed == 0 {
-				spec.IdealSpeed = token.design.Spec.IdealSpeed
+		if (token.design.Spec.Engine != Engine{}) {
+			if spec.Engine.IdealSpeed == 0 {
+				spec.Engine.IdealSpeed = token.design.Spec.Engine.IdealSpeed
 			} else {
-				spec.IdealSpeed = minInt(spec.IdealSpeed, token.design.Spec.IdealSpeed)
+				spec.Engine.IdealSpeed = minInt(spec.Engine.IdealSpeed, token.design.Spec.Engine.IdealSpeed)
 			}
 		}
 		// cost
@@ -384,6 +385,10 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 
 		// spec all mine layers in the fleet
 		if token.design.Spec.CanLayMines {
+			spec.CanLayMines = true
+			if spec.MineLayingRateByMineType == nil {
+				spec.MineLayingRateByMineType = make(map[MineFieldType]int)
+			}
 			for key := range token.design.Spec.MineLayingRateByMineType {
 				if _, ok := spec.MineLayingRateByMineType[key]; ok {
 					spec.MineLayingRateByMineType[key] = 0
@@ -462,7 +467,7 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 	}
 
 	// compute the cloaking based on the cloak units and cargo
-	spec.CloakPercent = fleet.computeFleetCloakPercent(&spec, player.Race.Spec.FreeCargoCloaking)
+	spec.CloakPercent = computeFleetCloakPercent(&spec, fleet.Cargo.Total(), player.Race.Spec.FreeCargoCloaking)
 
 	return spec
 }
@@ -482,7 +487,7 @@ func (f *Fleet) computeFuelUsage(player *Player) {
 }
 
 // compute a fleet's cloak percent based on its current cargo/mass/cloak units
-func (f *Fleet) computeFleetCloakPercent(spec *FleetSpec, freeCargoCloaking bool) int {
+func computeFleetCloakPercent(spec *FleetSpec, cargoTotal int, freeCargoCloaking bool) int {
 	cloakUnits := spec.CloakUnits
 
 	// starbases have no mass or cargo, but fleet cloaking is adjusted for it
@@ -490,7 +495,7 @@ func (f *Fleet) computeFleetCloakPercent(spec *FleetSpec, freeCargoCloaking bool
 		// figure out how much cargo we are cloaking
 		cloakedCargo := 0
 		if !freeCargoCloaking {
-			cloakedCargo = f.Cargo.Total()
+			cloakedCargo = cargoTotal
 		}
 
 		cloakUnits = int(math.Round(float64(cloakUnits) * float64(spec.MassEmpty) / float64(spec.MassEmpty+cloakedCargo)))
@@ -529,7 +534,8 @@ func (f *Fleet) transferToDest(dest cargoHolder, cargoType CargoType, transferAm
 	return nil
 }
 
-func (fleet *Fleet) moveFleet(mapObjectGetter mapObjectGetter, rules *Rules, player *Player) {
+func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, playerGetter playerGetter) {
+	player := playerGetter.getPlayer(fleet.PlayerNum)
 	wp0 := fleet.Waypoints[0]
 	wp1 := fleet.Waypoints[1]
 	totalDist := fleet.Position.DistanceTo(wp1.Position)
@@ -563,8 +569,7 @@ func (fleet *Fleet) moveFleet(mapObjectGetter mapObjectGetter, rules *Rules, pla
 		dist = dist * distanceFactor
 
 		// collide with minefields on route, but don't hit a minefield if we run out of fuel beforehand
-		// TODO: add back in minefield check
-		// dist = CheckForMineFields(fleet, player, wp1, dist)
+		dist = checkForMineFieldCollision(rules, playerGetter, mapObjectGetter, fleet, wp1, dist)
 
 		fleet.Fuel = 0
 		wp1.WarpFactor = fleet.getNoFuelWarpFactor(rules.techs, player)
@@ -577,9 +582,7 @@ func (fleet *Fleet) moveFleet(mapObjectGetter mapObjectGetter, rules *Rules, pla
 		fuelGenerated = fleet.getFuelGeneration(rules.techs, player, wp1.WarpFactor, remainingDistanceTravelled)
 	} else {
 		// collide with minefields on route, but don't hit a minefield if we run out of fuel beforehand
-		// TODO: add back in minefield check
-		// actualDist := CheckForMineFields(fleet, player, wp1, dist)
-		actualDist := dist
+		actualDist := checkForMineFieldCollision(rules, playerGetter, mapObjectGetter, fleet, wp1, dist)
 		if actualDist != dist {
 			dist = actualDist
 			fuelCost = fleet.GetFuelCost(player, wp1.WarpFactor, dist)
@@ -635,7 +638,8 @@ func (fleet *Fleet) moveFleet(mapObjectGetter mapObjectGetter, rules *Rules, pla
 }
 
 // GateFleet moves the fleet the cool way, with stargates!
-func (fleet *Fleet) gateFleet(mapObjectGetter mapObjectGetter, playerGetter playerGetter, rules *Rules, player *Player) {
+func (fleet *Fleet) gateFleet(rules *Rules, mapObjectGetter mapObjectGetter, playerGetter playerGetter) {
+	player := playerGetter.getPlayer(fleet.PlayerNum)
 	wp0 := fleet.Waypoints[0]
 	wp1 := fleet.Waypoints[1]
 	totalDist := fleet.Position.DistanceTo(wp1.Position)
@@ -826,7 +830,8 @@ func (fleet *Fleet) GetFuelCost(player *Player, warpFactor int, distance float64
 			mass += int(float64(fleetCargo) * (float64(stackCapacity) / float64(fleetCapacity)))
 		}
 
-		fuelCost += fleet.getFuelCostForEngine(warpFactor, mass, distance, efficiencyFactor, token.design.Spec.FuelUsage)
+		engine := token.design.Spec.Engine
+		fuelCost += fleet.getFuelCostForEngine(warpFactor, mass, distance, efficiencyFactor, engine.FuelUsage)
 	}
 
 	return fuelCost
@@ -837,7 +842,7 @@ func (fleet *Fleet) getNoFuelWarpFactor(techStore *TechStore, player *Player) in
 	// find the lowest freeSpeed from all the fleet's engines
 	var freeSpeed = math.MaxInt
 	for _, token := range fleet.Tokens {
-		engine := techStore.GetEngine(token.design.Spec.Engine)
+		engine := token.design.Spec.Engine
 		freeSpeed = minInt(freeSpeed, engine.FreeSpeed)
 	}
 	return freeSpeed
@@ -848,7 +853,7 @@ func (fleet *Fleet) getFuelGeneration(techStore *TechStore, player *Player, warp
 	// find the lowest freeSpeed from all the fleet's engines
 	var freeSpeed = math.MaxInt
 	for _, token := range fleet.Tokens {
-		engine := techStore.GetEngine(token.design.Spec.Engine)
+		engine := token.design.Spec.Engine
 		freeSpeed = minInt(freeSpeed, engine.FreeSpeed)
 	}
 	return freeSpeed

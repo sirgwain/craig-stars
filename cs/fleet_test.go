@@ -1,9 +1,9 @@
 package cs
 
 import (
-	"reflect"
 	"testing"
 
+	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -27,6 +27,11 @@ func testLongRangeScout(player *Player) *Fleet {
 		},
 		battlePlan:        &player.BattlePlans[0],
 		OrbitingPlanetNum: NotOrbitingPlanet,
+		FleetOrders: FleetOrders{
+			Waypoints: []Waypoint{
+				NewPositionWaypoint(Vector{}, 5),
+			},
+		},
 	}
 	fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
 	fleet.Fuel = fleet.Spec.FuelCapacity
@@ -57,6 +62,49 @@ func testSmallFreighter(player *Player) *Fleet {
 		},
 		battlePlan:        &player.BattlePlans[0],
 		OrbitingPlanetNum: NotOrbitingPlanet,
+		FleetOrders: FleetOrders{
+			Waypoints: []Waypoint{
+				NewPositionWaypoint(Vector{}, 5),
+			},
+		},
+	}
+
+	fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
+	fleet.Fuel = fleet.Spec.FuelCapacity
+	return fleet
+
+}
+
+// create a new small freighter (with cargo pod) fleet for testing
+func testMiniMineLayer(player *Player) *Fleet {
+	fleet := &Fleet{
+		MapObject: MapObject{
+			Type:      MapObjectTypeFleet,
+			PlayerNum: player.Num,
+			Num:       1,
+		},
+		BaseName: "Little Hen",
+		Tokens: []ShipToken{
+			{
+				Quantity:  1,
+				DesignNum: 1,
+				design: NewShipDesign(player, 1).
+					WithHull(MiniMineLayer.Name).
+					WithSlots([]ShipDesignSlot{
+						{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+						{HullComponent: MineDispenser40.Name, HullSlotIndex: 2, Quantity: 2},
+						{HullComponent: MineDispenser40.Name, HullSlotIndex: 3, Quantity: 2},
+						{HullComponent: BatScanner.Name, HullSlotIndex: 4, Quantity: 1},
+					}).
+					WithSpec(&rules, player)},
+		},
+		battlePlan:        &player.BattlePlans[0],
+		OrbitingPlanetNum: NotOrbitingPlanet,
+		FleetOrders: FleetOrders{
+			Waypoints: []Waypoint{
+				NewPositionWaypoint(Vector{}, 5),
+			},
+		},
 	}
 
 	fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
@@ -134,7 +182,9 @@ func Test_computeFleetSpec(t *testing.T) {
 				Scanner:      true,
 				Mass:         20,
 				Armor:        20,
-				IdealSpeed:   5,
+				Engine: Engine{
+					IdealSpeed: QuickJump5.IdealSpeed,
+				},
 			},
 			Purposes:         map[ShipDesignPurpose]bool{},
 			MassEmpty:        20,
@@ -204,7 +254,9 @@ func Test_computeFleetSpec(t *testing.T) {
 				Armor:        20,
 				CloakUnits:   70,
 				CloakPercent: 35,
-				IdealSpeed:   5,
+				Engine: Engine{
+					IdealSpeed: QuickJump5.IdealSpeed,
+				},
 			},
 			Purposes:         map[ShipDesignPurpose]bool{},
 			MassEmpty:        19,
@@ -237,7 +289,9 @@ func Test_computeFleetSpec(t *testing.T) {
 				Armor:        20 * 2,
 				CloakUnits:   70,
 				CloakPercent: 35, // still 35%
-				IdealSpeed:   5,
+				Engine: Engine{
+					IdealSpeed: QuickJump5.IdealSpeed,
+				},
 			},
 			Purposes:         map[ShipDesignPurpose]bool{},
 			MassEmpty:        19 * 2,
@@ -247,7 +301,7 @@ func Test_computeFleetSpec(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := ComputeFleetSpec(tt.args.rules, tt.args.player, tt.args.fleet); !reflect.DeepEqual(got, tt.want) {
+			if got := ComputeFleetSpec(tt.args.rules, tt.args.player, tt.args.fleet); !test.CompareAsJSON(t, got, tt.want) {
 				t.Errorf("ComputeFleetSpec() = \n%v, want \n%v", got, tt.want)
 			}
 		})
@@ -293,7 +347,7 @@ func TestFleet_moveFleet(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			universe := Universe{Fleets: []*Fleet{tt.fleet}, rules: &rules}
 
-			tt.fleet.moveFleet(&universe, &rules, tt.args.player)
+			tt.fleet.moveFleet(&rules, &universe, newTestPlayerGetter(player))
 
 			assert.Equal(t, tt.want.position, tt.fleet.Position)
 			assert.Equal(t, tt.want.position, tt.fleet.Waypoints[0].Position)
@@ -354,11 +408,7 @@ func TestFleet_gateFleet(t *testing.T) {
 			universe := Universe{Fleets: []*Fleet{tt.fleet}, Planets: tt.args.planets, rules: &rules, designsByNum: map[playerObject]*ShipDesign{}}
 			universe.buildMaps(tt.args.players)
 
-			fg := FullGame{
-				Players: tt.args.players,
-			}
-
-			tt.fleet.gateFleet(&universe, &fg, &rules, tt.args.player)
+			tt.fleet.gateFleet(&rules, &universe, newTestPlayerGetter(player))
 
 			if tt.fleet.Position != tt.want.position {
 				t.Errorf("Fleet.gateFleet() position = %v, want %v", tt.fleet.Position, tt.want.position)

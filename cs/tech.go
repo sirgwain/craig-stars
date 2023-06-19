@@ -99,11 +99,15 @@ type TechHullComponent struct {
 	CapitalShipMissile        bool          `json:"capitalShipMissile,omitempty"`
 }
 
-type TechEngine struct {
-	TechHullComponent
+type Engine struct {
 	IdealSpeed int     `json:"idealSpeed,omitempty"`
 	FreeSpeed  int     `json:"freeSpeed,omitempty"`
 	FuelUsage  [11]int `json:"fuelUsage,omitempty"`
+}
+
+type TechEngine struct {
+	TechHullComponent
+	Engine
 }
 
 type TechHull struct {

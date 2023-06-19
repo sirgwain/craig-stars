@@ -11,7 +11,7 @@
 
 <Breadcrumb>
 	<svelte:fragment slot="crumbs">
-		<li><a class="cs-link" href={`/games/${gameId}/designs`}>Designs</a></li>
+		<li><a class="cs-link" href={`/games/${gameId}/designs`}>Ship Designs</a></li>
 		<li>Choose Hull</li>
 	</svelte:fragment>
 </Breadcrumb>

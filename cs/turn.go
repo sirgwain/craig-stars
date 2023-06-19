@@ -418,15 +418,14 @@ func (t *turn) fleetMove() {
 			originalPosition := fleet.Position
 
 			if len(fleet.Waypoints) > 1 {
-				player := t.game.Players[fleet.PlayerNum-1]
 				wp0 := fleet.Waypoints[0]
 				wp1 := fleet.Waypoints[1]
 
 				if wp1.WarpFactor == StargateWarpFactor {
 					// yeah, gate!
-					fleet.gateFleet(t.game.Universe, t.game, &t.game.Rules, player)
+					fleet.gateFleet(&t.game.Rules, t.game.Universe, t.game)
 				} else {
-					fleet.moveFleet(t.game.Universe, &t.game.Rules, player)
+					fleet.moveFleet(&t.game.Rules, t.game.Universe, t.game)
 				}
 
 				// remove the previous waypoint, it's been processed already
@@ -454,8 +453,15 @@ func (t *turn) fleetReproduce() {
 
 }
 
+// decay each salvage and remove it from the universe if it's empty
 func (t *turn) decaySalvage() {
+	for _, salvage := range t.game.Salvages {
+		salvage.decay(t.game.rules)
 
+		if (salvage.Cargo == Cargo{}) {
+			t.game.deleteSalvage(salvage)
+		}
+	}
 }
 
 func (t *turn) decayPackets() {
@@ -621,7 +627,7 @@ func (t *turn) buildFleet(player *Player, planet *Planet, token ShipToken) Fleet
 
 	playerFleets := t.game.getFleets(player.Num)
 	fleetNum := player.getNextFleetNum(playerFleets)
-	fleet := newFleetForToken(player, fleetNum, token, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, token.design.Spec.IdealSpeed)})
+	fleet := newFleetForToken(player, fleetNum, token, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, token.design.Spec.Engine.IdealSpeed)})
 	fleet.Position = planet.Position
 	fleet.Spec = ComputeFleetSpec(&t.game.Rules, player, &fleet)
 	fleet.Fuel = fleet.Spec.FuelCapacity
@@ -916,8 +922,18 @@ func (t *turn) mysteryTraderMeet() {
 
 }
 
+// decay MineFields and remove any minefields that are too small
 func (t *turn) decayMines() {
-
+	for _, mineField := range t.game.MineFields {
+		player := t.game.getPlayer(mineField.PlayerNum)
+		mineField.NumMines -= mineField.Spec.DecayRate
+		if mineField.NumMines <= 10 {
+			t.game.deleteMineField(mineField)
+			continue
+		}
+		mineField.Spec = computeMinefieldSpec(t.game.rules, player, mineField, t.game.Universe.numPlanetsWithin(mineField.Position, mineField.Radius()))
+		mineField.Dirty = true
+	}
 }
 
 func (t *turn) fleetLayMines() {
@@ -961,6 +977,10 @@ func (t *turn) fleetLayMines() {
 						Y: float64(minesLaid)/float64(mineField.NumMines)*(float64(fleet.Position.Y)-float64(mineField.Position.Y)) + mineField.Position.Y,
 					}
 				}
+
+				// TODO (performance): the radius will be computed in the spec as well. hmmmm
+				mineField.Spec = computeMinefieldSpec(t.game.rules, player, mineField, t.game.Universe.numPlanetsWithin(mineField.Position, mineField.Radius()))
+				mineField.Dirty = true
 			}
 		}
 	}

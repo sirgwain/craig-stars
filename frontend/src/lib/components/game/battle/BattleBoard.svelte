@@ -61,7 +61,7 @@
 					<div class="text-xl font-semibold text-center">
 						Round {action?.round ?? 0} of {battle.totalRounds}
 					</div>
-					<div class="w-full card bg-base-200 shadow-xl rounded-sm border-2 border-base-300 mb-2">
+					<div class="w-full card bg-base-200 shadow rounded-sm border-2 border-base-300 mb-2">
 						<div class="card-body p-3 gap-0">
 							<h2 class="text-lg font-semibold text-center mb-1 text-secondary">
 								{`Phase ${phase} of ${battle.totalPhases}`}
@@ -71,7 +71,7 @@
 					</div>
 				{/if}
 				{#if selectedToken}
-					<div class="w-full card bg-base-200 shadow-xl rounded-sm border-2 border-base-300">
+					<div class="w-full card bg-base-200 shadow rounded-sm border-2 border-base-300">
 						<div class="card-body p-3 gap-0">
 							<h2 class="text-lg font-semibold text-center mb-1 text-secondary">Selection</h2>
 							<BattleBoardSelectedToken {battle} {player} token={selectedToken} {phase} />

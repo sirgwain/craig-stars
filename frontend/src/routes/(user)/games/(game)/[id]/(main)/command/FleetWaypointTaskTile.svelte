@@ -33,6 +33,10 @@
 		}
 	};
 
+	function onLayMineFieldDurationChanged() {
+		FleetService.updateFleetOrders(fleet);
+	}
+
 	function applyTransportPlan(plan: TransportPlan) {
 		if ($selectedWaypoint) {
 			$selectedWaypoint.transportTasks = plan.tasks;
@@ -47,7 +51,7 @@
 		<select
 			class="select select-outline select-secondary select-sm py-0 text-sm"
 			value={selectedWaypointTask}
-			on:change={(e) =>
+			on:change|preventDefault={(e) =>
 				onSelectedWaypointTaskChange(
 					eu(WaypointTask).getValueOrDefault(e.currentTarget.value, WaypointTask.None)
 				)}
@@ -103,6 +107,19 @@
 			{:else}
 				<span class="text-error">Warning: Can only remote mine planets.</span>
 			{/if}
+		{:else if $selectedWaypoint?.task === WaypointTask.LayMineField}
+			<select
+				class="select select-outline select-secondary select-sm py-0 text-sm mt-1"
+				bind:value={$selectedWaypoint.layMineFieldDuration}
+				on:change|preventDefault={() => onLayMineFieldDurationChanged()}
+			>
+				<option value={undefined}>Indefinitely</option>
+				<option value={1}>for 1 year</option>
+				<option value={2}>for 2 years</option>
+				<option value={3}>for 3 years</option>
+				<option value={4}>for 4 years</option>
+				<option value={5}>for 5 years</option>
+			</select>
 		{:else}
 			<!-- else content here -->
 		{/if}

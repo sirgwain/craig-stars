@@ -55,3 +55,13 @@ export const positionKey = (pos: MapObject | Vector): string => {
 	}
 	return '';
 };
+
+// compare two map objects for equivalence using their natural keys (num, type, playerNum)
+export const equal = (mo1: MapObject | undefined, mo2: MapObject | undefined): boolean =>
+	!!(
+		mo1 &&
+		mo2 &&
+		mo1?.num === mo2?.num &&
+		mo1?.type === mo2?.type &&
+		mo1?.playerNum === mo2?.playerNum
+	);

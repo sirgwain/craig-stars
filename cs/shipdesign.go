@@ -31,9 +31,7 @@ type ShipDesignSlot struct {
 
 type ShipDesignSpec struct {
 	HullType                  TechHullType          `json:"hullType,omitempty"`
-	IdealSpeed                int                   `json:"idealSpeed,omitempty"`
-	Engine                    string                `json:"engine,omitempty"`
-	FuelUsage                 [11]int               `json:"fuelUsage,omitempty"`
+	Engine                    Engine                `json:"engine,omitempty"`
 	NumEngines                int                   `json:"numEngines,omitempty"`
 	Cost                      Cost                  `json:"cost,omitempty"`
 	Mass                      int                   `json:"mass,omitempty"`
@@ -234,10 +232,8 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 			// record engine details
 			if hullSlot.Type == HullSlotTypeEngine {
 				engine := rules.techs.GetEngine(slot.HullComponent)
-				spec.Engine = engine.Name
-				spec.IdealSpeed = engine.IdealSpeed
+				spec.Engine = engine.Engine
 				spec.NumEngines = slot.Quantity
-				spec.FuelUsage = engine.FuelUsage
 			}
 
 			if component.Category == TechCategoryBeamWeapon && component.Power > 0 && (component.Range+hull.RangeBonus) > 0 {
@@ -268,7 +264,11 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 
 			// Add this mine type to the layers this design has
 			if component.MineLayingRate > 0 {
-				if _, ok := spec.MineLayingRateByMineType[component.MineFieldType]; ok {
+				spec.CanLayMines = true
+				if spec.MineLayingRateByMineType == nil {
+					spec.MineLayingRateByMineType = make(map[MineFieldType]int)
+				}
+				if _, ok := spec.MineLayingRateByMineType[component.MineFieldType]; !ok {
 					spec.MineLayingRateByMineType[component.MineFieldType] = 0
 				}
 				spec.MineLayingRateByMineType[component.MineFieldType] += component.MineLayingRate * slot.Quantity * hull.MineLayingFactor
@@ -364,7 +364,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		// Movement = IdealEngineSpeed - 2 - Mass / 70 / NumEngines + NumManeuveringJets + 2*NumOverThrusters
 		// we added any MovementBonus components above
 		// we round up the slightest bit, and we can't go below 2, or above 10
-		spec.Movement = clamp((spec.IdealSpeed-2)-spec.Mass/70/spec.NumEngines+spec.Movement+raceSpec.MovementBonus, 2, 10)
+		spec.Movement = clamp((spec.Engine.IdealSpeed-2)-spec.Mass/70/spec.NumEngines+spec.Movement+raceSpec.MovementBonus, 2, 10)
 	} else {
 		spec.Movement = 0
 	}
@@ -428,7 +428,7 @@ func (spec *ShipDesignSpec) computeScanRanges(rules *Rules, scannerSpec ScannerS
 	spec.Scanner = spec.ScanRange != NoScanner || spec.ScanRangePen != NoScanner
 }
 
-func designShip(techStore *TechStore, hull *TechHull, name string, player *Player, num int, hullSetNumber int, purpose ShipDesignPurpose) *ShipDesign {
+func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Player, num int, hullSetNumber int, purpose ShipDesignPurpose) *ShipDesign {
 
 	design := NewShipDesign(player, num).WithName(name).WithHull(hull.Name)
 	design.Purpose = purpose
@@ -442,6 +442,9 @@ func designShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 	colonizationModule := techStore.GetBestColonizationModule(player)
 	battleComputer := techStore.GetBestBattleComputer(player)
 	miningRobot := techStore.GetBestMiningRobot(player)
+	standardMineLayer := techStore.GetBestMineLayer(player, MineFieldTypeStandard)
+	heavyMineLayer := techStore.GetBestMineLayer(player, MineFieldTypeHeavy)
+	speedMineLayer := techStore.GetBestMineLayer(player, MineFieldTypeSpeedBump)
 
 	numColonizationModules := 0
 	numScanners := 0
@@ -466,6 +469,17 @@ func designShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 			slot.HullComponent = shield.Name
 		case HullSlotTypeMining:
 			slot.HullComponent = miningRobot.Name
+		case HullSlotTypeMineLayer:
+			switch purpose {
+			case ShipDesignPurposeSpeedMineLayer:
+				slot.HullComponent = speedMineLayer.Name
+			default:
+				if heavyMineLayer != nil {
+					slot.HullComponent = heavyMineLayer.Name
+				} else {
+					slot.HullComponent = standardMineLayer.Name
+				}
+			}
 		case HullSlotTypeElectrical:
 			switch purpose {
 			case ShipDesignPurposeCapitalShip:

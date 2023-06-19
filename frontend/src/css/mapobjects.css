@@ -1,0 +1,32 @@
+.mapobject-avatar {
+	width: 65px;
+	height: 65px;
+}
+
+.standard-mine-field {
+	background: url(/images/misc-mapobjects.png) 0px 0px;
+}
+
+.heavy-mine-field {
+	background: url(/images/misc-mapobjects.png) -64px 0px;
+}
+
+.speed-bump-mine-field {
+	background: url(/images/misc-mapobjects.png) -128px 0px;
+}
+
+.salvage {
+	background: url(/images/misc-mapobjects.png) -192px 0px;
+}
+
+.mineral-packet {
+	background: url(/images/misc-mapobjects.png) -256px 0px;
+}
+
+.wormhole {
+	background: url(/images/misc-mapobjects.png) -320px 0px;
+}
+
+.myster-trader {
+	background: url(/images/misc-mapobjects.png) -384px 0px;
+}

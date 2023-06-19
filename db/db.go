@@ -123,12 +123,12 @@ type SQLExecer interface {
 func (c *client) Connect(config *config.Config) error {
 
 	// exec the create schema sql if we are recreating the DB or using an in memory db
-	execSchemaSql := config.Database.Recreate || config.Database.Filename == ":memory:"
-	execUsersSchema := config.Database.UsersFilename == ":memory:"
+	execSchemaSql := config.Database.Recreate || strings.Contains(config.Database.Filename, ":memory:")
+	execUsersSchema := strings.Contains(config.Database.UsersFilename, ":memory:")
 
 	// if we are using a file based db, we have to exec the schema sql when we first
 	// set it up
-	if config.Database.Filename != ":memory:" {
+	if !strings.Contains(config.Database.Filename, ":memory:") {
 		// check if the db exists
 		info, err := os.Stat(config.Database.Filename)
 		if err != nil && !errors.Is(err, os.ErrNotExist) {
@@ -147,7 +147,7 @@ func (c *client) Connect(config *config.Config) error {
 		}
 	}
 
-	if config.Database.UsersFilename != ":memory:" {
+	if !strings.Contains(config.Database.UsersFilename, ":memory:") {
 		info, err := os.Stat(config.Database.UsersFilename)
 		if err != nil && !errors.Is(err, os.ErrNotExist) {
 			return err

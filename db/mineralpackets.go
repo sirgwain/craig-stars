@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/sirgwain/craig-stars/cs"
@@ -150,5 +151,12 @@ func (c *client) updateMineralPacket(mineralPacket *cs.MineralPacket, tx SQLExec
 		return err
 	}
 
+	return nil
+}
+
+func (c *client) deleteMineralPacket(mineralPacketID int64, tx SQLExecer) error {
+	if _, err := tx.Exec("DELETE FROM mineralPackets where id = ?", mineralPacketID); err != nil {
+		return fmt.Errorf("delete mineralPacket %d %w", mineralPacketID, err)
+	}
 	return nil
 }

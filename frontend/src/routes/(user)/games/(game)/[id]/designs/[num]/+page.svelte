@@ -15,7 +15,7 @@
 {#if design}
 	<Breadcrumb>
 		<svelte:fragment slot="crumbs">
-			<li><a class="cs-link" href={`/games/${gameId}/designs`}>Designs</a></li>
+			<li><a class="cs-link" href={`/games/${gameId}/designs`}>Ship Designs</a></li>
 			<li>{design?.name}</li>
 			{#if !design.spec?.numInstances}
 				<li><a class="cs-link" href={`/games/${gameId}/designs/${design.num}/edit`}>Edit</a></li>

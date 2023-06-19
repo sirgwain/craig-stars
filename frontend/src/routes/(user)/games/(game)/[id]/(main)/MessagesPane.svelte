@@ -83,7 +83,7 @@
 	};
 </script>
 
-<div class="card bg-base-200 shadow-xl rounded-sm border-2 border-base-300">
+<div class="card bg-base-200 shadow rounded-sm border-2 border-base-300">
 	<div class="card-body p-4 gap-0">
 		<div class="flex flex-row items-center">
 			<input type="checkbox" class="flex-initial checkbox checkbox-xs" />

@@ -121,7 +121,7 @@
 			typeTitle={(prt) => getLabelForPRT(prt)}
 			bind:value={race.prt}
 		/>
-		<div class="card bg-base-200 shadow-xl">
+		<div class="card bg-base-200 shadow">
 			<div class="card-body">
 				<PRTDescription prt={race.prt} />
 			</div>

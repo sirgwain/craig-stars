@@ -101,12 +101,10 @@ func generateTestGame(db server.DBClient, config config.Config) error {
 		WithAIPlayer(cs.AIDifficultyNormal, 2).
 		WithAIPlayer(cs.AIDifficultyNormal, 3).
 		WithAIPlayer(cs.AIDifficultyNormal, 1).
-		WithAIPlayer(cs.AIDifficultyNormal, 2).
-		WithAIPlayer(cs.AIDifficultyNormal, 3))
+		WithAIPlayer(cs.AIDifficultyNormal, 2))
 	if err != nil {
 		return err
 	}
-
 
 	tinyGame.Players[0].AIControlled = true
 	db.UpdateLightPlayer(tinyGame.Players[0])

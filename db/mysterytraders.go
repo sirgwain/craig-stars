@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"database/sql/driver"
+	"fmt"
 	"time"
 
 	"github.com/sirgwain/craig-stars/cs"
@@ -139,5 +140,12 @@ func (c *client) updateMysteryTrader(mysteryTrader *cs.MysteryTrader, tx SQLExec
 		return err
 	}
 
+	return nil
+}
+
+func (c *client) deleteMysteryTrader(mysteryTraderID int64, tx SQLExecer) error {
+	if _, err := tx.Exec("DELETE FROM mysteryTraders where id = ?", mysteryTraderID); err != nil {
+		return fmt.Errorf("delete mysteryTrader %d %w", mysteryTraderID, err)
+	}
 	return nil
 }

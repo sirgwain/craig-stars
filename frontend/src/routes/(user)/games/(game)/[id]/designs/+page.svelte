@@ -9,7 +9,7 @@
 
 <Breadcrumb>
 	<svelte:fragment slot="crumbs">
-		<li>Designs</li>
+		<li>Ship Designs</li>
 	</svelte:fragment>
 	<div slot="end">
 		<a class="cs-link btn btn-sm" href={`/games/${gameId}/designs/create`}>Create</a>
@@ -17,15 +17,13 @@
 </Breadcrumb>
 
 {#if $game?.player.designs.length}
-	<div class="flex flex-wrap justify-center">
+	<div class="flex flex-wrap justify-center gap-2">
 		{#each $game?.player.designs as design (design.num)}
-			<div class="mb-2">
-				<DesignCard
-					{design}
-					{gameId}
-					on:delete={() => design.num && $game?.deleteDesign(design.num)}
-				/>
-			</div>
+			<DesignCard
+				{design}
+				{gameId}
+				on:delete={() => design.num && $game?.deleteDesign(design.num)}
+			/>
 		{/each}
 	</div>
 {/if}
