@@ -186,7 +186,7 @@ func (ug *universeGenerator) generatePlayerTechLevels() {
 func (ug *universeGenerator) generatePlayerShipDesigns() {
 	for _, player := range ug.players {
 		designNames := mapset.NewSet[string]()
-		num := 0
+		num := 1
 		for _, startingPlanet := range player.Race.Spec.StartingPlanets {
 			for _, startingFleet := range startingPlanet.StartingFleets {
 				if designNames.Contains(startingFleet.Name) {

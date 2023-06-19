@@ -13,7 +13,8 @@
 		player,
 		selectMapObject,
 		zoomToMapObject,
-		me
+		me,
+		techs
 	} from '$lib/services/Context';
 	import { GameService } from '$lib/services/GameService';
 	import { PlayerService } from '$lib/services/PlayerService';
@@ -25,6 +26,7 @@
 	import CargoTransferDialog from './dialogs/cargo/CargoTransferDialog.svelte';
 	import ProductionQueueDialog from './dialogs/ProductionQueueDialog.svelte';
 	import GameMenu from './GameMenu.svelte';
+	import { TechService } from '$lib/services/TechService';
 
 	let id = parseInt($page.params.id);
 	let gameService: GameService = new GameService();
@@ -44,6 +46,9 @@
 				const result = await gameService.loadGame(id);
 				game.update(() => result.game);
 				player.update(() => result.player);
+
+				// load techs the first time as well
+				$techs.fetch();
 			} finally {
 				loadAttempted = true;
 			}

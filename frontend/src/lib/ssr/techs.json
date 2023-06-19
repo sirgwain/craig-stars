@@ -1,8 +1,4 @@
 {
-	"id": 0,
-	"createdAt": "0001-01-01T00:00:00Z",
-	"updatedAt": "0001-01-01T00:00:00Z",
-	"rulesId": 0,
 	"engines": [
 		{
 			"id": 0,
@@ -14,7 +10,7 @@
 			"requirements": { "prtRequired": "HE" },
 			"ranking": 10,
 			"category": "Engine",
-			"hullSlotType": 0,
+			"hullSlotType": 2,
 			"mass": 2,
 			"idealSpeed": 6,
 			"freeSpeed": 6,
@@ -30,7 +26,7 @@
 			"requirements": {},
 			"ranking": 20,
 			"category": "Engine",
-			"hullSlotType": 0,
+			"hullSlotType": 2,
 			"mass": 4,
 			"idealSpeed": 5,
 			"fuelUsage": [0, 0, 25, 100, 100, 100, 180, 500, 800, 900, 1080]
@@ -45,7 +41,7 @@
 			"requirements": { "propulsion": 2, "lrtsRequired": 1 },
 			"ranking": 30,
 			"category": "Engine",
-			"hullSlotType": 0,
+			"hullSlotType": 2,
 			"mass": 6,
 			"idealSpeed": 6,
 			"freeSpeed": 4,
@@ -61,7 +57,7 @@
 			"requirements": { "propulsion": 3 },
 			"ranking": 40,
 			"category": "Engine",
-			"hullSlotType": 0,
+			"hullSlotType": 2,
 			"mass": 9,
 			"idealSpeed": 6,
 			"fuelUsage": [0, 0, 20, 60, 100, 100, 105, 450, 750, 900, 1080]
@@ -76,7 +72,7 @@
 			"requirements": { "propulsion": 5 },
 			"ranking": 50,
 			"category": "Engine",
-			"hullSlotType": 0,
+			"hullSlotType": 2,
 			"mass": 13,
 			"idealSpeed": 7,
 			"fuelUsage": [0, 0, 20, 60, 70, 100, 100, 110, 600, 750, 900]
@@ -91,7 +87,7 @@
 			"requirements": { "propulsion": 7 },
 			"ranking": 60,
 			"category": "Engine",
-			"hullSlotType": 0,
+			"hullSlotType": 2,
 			"mass": 17,
 			"idealSpeed": 8,
 			"fuelUsage": [0, 0, 15, 50, 60, 70, 100, 100, 115, 700, 840]
@@ -106,7 +102,7 @@
 			"requirements": { "propulsion": 9 },
 			"ranking": 70,
 			"category": "Engine",
-			"hullSlotType": 0,
+			"hullSlotType": 2,
 			"mass": 25,
 			"idealSpeed": 9,
 			"fuelUsage": [0, 0, 15, 35, 45, 55, 70, 80, 90, 100, 120]
@@ -121,7 +117,7 @@
 			"requirements": { "propulsion": 11, "lrtsRequired": 64 },
 			"ranking": 80,
 			"category": "Engine",
-			"hullSlotType": 0,
+			"hullSlotType": 2,
 			"mass": 25,
 			"idealSpeed": 10,
 			"fuelUsage": [0, 0, 10, 30, 40, 50, 60, 70, 80, 90, 100]
@@ -136,7 +132,7 @@
 			"requirements": { "propulsion": 23 },
 			"ranking": 90,
 			"category": "Engine",
-			"hullSlotType": 0,
+			"hullSlotType": 2,
 			"mass": 5,
 			"idealSpeed": 10,
 			"fuelUsage": [0, 0, 5, 15, 20, 25, 30, 35, 40, 45, 50]
@@ -151,7 +147,7 @@
 			"requirements": { "energy": 2, "propulsion": 6, "lrtsDenied": 64 },
 			"ranking": 100,
 			"category": "Engine",
-			"hullSlotType": 0,
+			"hullSlotType": 2,
 			"mass": 10,
 			"radiating": true,
 			"idealSpeed": 6,
@@ -168,7 +164,7 @@
 			"requirements": { "energy": 2, "propulsion": 8, "lrtsDenied": 64 },
 			"ranking": 110,
 			"category": "Engine",
-			"hullSlotType": 0,
+			"hullSlotType": 2,
 			"mass": 20,
 			"idealSpeed": 7,
 			"freeSpeed": 7,
@@ -184,7 +180,7 @@
 			"requirements": { "energy": 3, "propulsion": 9, "lrtsDenied": 64 },
 			"ranking": 120,
 			"category": "Engine",
-			"hullSlotType": 0,
+			"hullSlotType": 2,
 			"mass": 19,
 			"idealSpeed": 8,
 			"freeSpeed": 8,
@@ -200,7 +196,7 @@
 			"requirements": { "energy": 4, "propulsion": 12, "lrtsDenied": 64 },
 			"ranking": 130,
 			"category": "Engine",
-			"hullSlotType": 0,
+			"hullSlotType": 2,
 			"mass": 18,
 			"idealSpeed": 9,
 			"freeSpeed": 9,
@@ -216,7 +212,7 @@
 			"requirements": { "energy": 4, "propulsion": 16, "lrtsDenied": 64 },
 			"ranking": 140,
 			"category": "Engine",
-			"hullSlotType": 0,
+			"hullSlotType": 2,
 			"mass": 11,
 			"idealSpeed": 10,
 			"freeSpeed": 10,
@@ -232,7 +228,7 @@
 			"requirements": { "energy": 5, "propulsion": 20, "lrtsRequired": 1, "lrtsDenied": 64 },
 			"ranking": 150,
 			"category": "Engine",
-			"hullSlotType": 0,
+			"hullSlotType": 2,
 			"mass": 8,
 			"idealSpeed": 10,
 			"freeSpeed": 10,
@@ -491,7 +487,7 @@
 			"ranking": 80,
 			"category": "Terraforming",
 			"ability": 3,
-			"habType": "Gravity"
+			"habType": "Grav"
 		},
 		{
 			"id": 0,
@@ -504,7 +500,7 @@
 			"ranking": 90,
 			"category": "Terraforming",
 			"ability": 7,
-			"habType": "Gravity"
+			"habType": "Grav"
 		},
 		{
 			"id": 0,
@@ -517,7 +513,7 @@
 			"ranking": 100,
 			"category": "Terraforming",
 			"ability": 11,
-			"habType": "Gravity"
+			"habType": "Grav"
 		},
 		{
 			"id": 0,
@@ -530,7 +526,7 @@
 			"ranking": 110,
 			"category": "Terraforming",
 			"ability": 15,
-			"habType": "Gravity"
+			"habType": "Grav"
 		},
 		{
 			"id": 0,
@@ -543,7 +539,7 @@
 			"ranking": 120,
 			"category": "Terraforming",
 			"ability": 3,
-			"habType": "Temperature"
+			"habType": "Temp"
 		},
 		{
 			"id": 0,
@@ -556,7 +552,7 @@
 			"ranking": 130,
 			"category": "Terraforming",
 			"ability": 7,
-			"habType": "Temperature"
+			"habType": "Temp"
 		},
 		{
 			"id": 0,
@@ -569,7 +565,7 @@
 			"ranking": 140,
 			"category": "Terraforming",
 			"ability": 11,
-			"habType": "Temperature"
+			"habType": "Temp"
 		},
 		{
 			"id": 0,
@@ -582,7 +578,7 @@
 			"ranking": 150,
 			"category": "Terraforming",
 			"ability": 15,
-			"habType": "Temperature"
+			"habType": "Temp"
 		},
 		{
 			"id": 0,
@@ -595,7 +591,7 @@
 			"ranking": 160,
 			"category": "Terraforming",
 			"ability": 3,
-			"habType": "Radiation"
+			"habType": "Rad"
 		},
 		{
 			"id": 0,
@@ -608,7 +604,7 @@
 			"ranking": 170,
 			"category": "Terraforming",
 			"ability": 7,
-			"habType": "Radiation"
+			"habType": "Rad"
 		},
 		{
 			"id": 0,
@@ -621,7 +617,7 @@
 			"ranking": 180,
 			"category": "Terraforming",
 			"ability": 11,
-			"habType": "Radiation"
+			"habType": "Rad"
 		},
 		{
 			"id": 0,
@@ -634,7 +630,7 @@
 			"ranking": 190,
 			"category": "Terraforming",
 			"ability": 15,
-			"habType": "Radiation"
+			"habType": "Rad"
 		}
 	],
 	"defenses": [
@@ -2863,10 +2859,14 @@
 			"armor": 25,
 			"fuelCapacity": 130,
 			"cargoCapacity": 70,
+			"cargoSlotPosition": { "x": -0.5, "y": 0 },
+			"cargoSlotSize": { "x": 1, "y": 1 },
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 0, "y": 0 },
 			"slots": [
-				{ "type": 2, "capacity": 1, "required": true },
-				{ "type": 76, "capacity": 1 },
-				{ "type": 384, "capacity": 1 }
+				{ "type": 2, "capacity": 1, "required": true, "position": { "x": -1.5, "y": 0 } },
+				{ "type": 76, "capacity": 1, "position": { "x": 1.5, "y": 0 } },
+				{ "type": 384, "capacity": 1, "position": { "x": 0.5, "y": 0 } }
 			]
 		},
 		{
@@ -2884,10 +2884,14 @@
 			"armor": 50,
 			"fuelCapacity": 450,
 			"cargoCapacity": 210,
+			"cargoSlotPosition": { "x": -1, "y": 0 },
+			"cargoSlotSize": { "x": 2, "y": 1 },
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 0, "y": 0 },
 			"slots": [
-				{ "type": 2, "capacity": 1, "required": true },
-				{ "type": 76, "capacity": 2 },
-				{ "type": 384, "capacity": 2 }
+				{ "type": 2, "capacity": 1, "required": true, "position": { "x": -2, "y": 0 } },
+				{ "type": 76, "capacity": 2, "position": { "x": 2, "y": 0 } },
+				{ "type": 384, "capacity": 2, "position": { "x": 1, "y": 0 } }
 			]
 		},
 		{
@@ -2905,10 +2909,14 @@
 			"armor": 150,
 			"fuelCapacity": 2600,
 			"cargoCapacity": 1200,
+			"cargoSlotPosition": { "x": -0.5, "y": -0.5 },
+			"cargoSlotSize": { "x": 2, "y": 2 },
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 0, "y": 0 },
 			"slots": [
-				{ "type": 2, "capacity": 2, "required": true },
-				{ "type": 76, "capacity": 2 },
-				{ "type": 384, "capacity": 2 }
+				{ "type": 2, "capacity": 2, "required": true, "position": { "x": -1.5, "y": 0 } },
+				{ "type": 76, "capacity": 2, "position": { "x": 1.5, "y": -0.5 } },
+				{ "type": 384, "capacity": 2, "position": { "x": 1.5, "y": 0.5 } }
 			]
 		},
 		{
@@ -2926,11 +2934,15 @@
 			"armor": 400,
 			"fuelCapacity": 8000,
 			"cargoCapacity": 3000,
+			"cargoSlotPosition": { "x": -0.5, "y": -1 },
+			"cargoSlotSize": { "x": 2, "y": 2.975 },
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 0, "y": 0 },
 			"slots": [
-				{ "type": 2, "capacity": 3, "required": true },
-				{ "type": 76, "capacity": 3 },
-				{ "type": 384, "capacity": 5 },
-				{ "type": 64, "capacity": 2 }
+				{ "type": 2, "capacity": 3, "required": true, "position": { "x": -1.5, "y": 0 } },
+				{ "type": 76, "capacity": 3, "position": { "x": 1.5, "y": -1 } },
+				{ "type": 384, "capacity": 5, "position": { "x": 1.5, "y": 0 } },
+				{ "type": 64, "capacity": 2, "position": { "x": 1.5, "y": 0.975 } }
 			]
 		},
 		{
@@ -2947,12 +2959,16 @@
 			"mass": 8,
 			"armor": 20,
 			"fuelCapacity": 50,
+			"cargoSlotPosition": { "x": 0, "y": 0 },
+			"cargoSlotSize": { "x": 0, "y": 0 },
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 0, "y": 0 },
 			"builtInScanner": true,
 			"initiative": 1,
 			"slots": [
-				{ "type": 2, "capacity": 1, "required": true },
-				{ "type": 4, "capacity": 1 },
-				{ "type": 10700, "capacity": 1 }
+				{ "type": 2, "capacity": 1, "required": true, "position": { "x": -1, "y": 0 } },
+				{ "type": 4, "capacity": 1, "position": { "x": 0, "y": 0 } },
+				{ "type": 10700, "capacity": 1, "position": { "x": 1, "y": 0 } }
 			]
 		},
 		{
@@ -2969,13 +2985,17 @@
 			"mass": 8,
 			"armor": 45,
 			"fuelCapacity": 125,
+			"cargoSlotPosition": { "x": 0, "y": 0 },
+			"cargoSlotSize": { "x": 0, "y": 0 },
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 0, "y": 0 },
 			"builtInScanner": true,
 			"initiative": 4,
 			"slots": [
-				{ "type": 2, "capacity": 1, "required": true },
-				{ "type": 4, "capacity": 1 },
-				{ "type": 10700, "capacity": 3 },
-				{ "type": 384, "capacity": 2 }
+				{ "type": 2, "capacity": 1, "required": true, "position": { "x": -1.5, "y": 0 } },
+				{ "type": 4, "capacity": 1, "position": { "x": 1.5, "y": 0 } },
+				{ "type": 10700, "capacity": 3, "position": { "x": 0.5, "y": 0 } },
+				{ "type": 384, "capacity": 2, "position": { "x": -0.5, "y": 0 } }
 			]
 		},
 		{
@@ -2992,16 +3012,20 @@
 			"mass": 30,
 			"armor": 200,
 			"fuelCapacity": 280,
+			"cargoSlotPosition": { "x": 0, "y": 0 },
+			"cargoSlotSize": { "x": 0, "y": 0 },
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 0, "y": 0 },
 			"builtInScanner": true,
 			"initiative": 3,
 			"slots": [
-				{ "type": 2, "capacity": 1, "required": true },
-				{ "type": 2048, "capacity": 1 },
-				{ "type": 2048, "capacity": 1 },
-				{ "type": 10700, "capacity": 1 },
-				{ "type": 256, "capacity": 2 },
-				{ "type": 8, "capacity": 1 },
-				{ "type": 64, "capacity": 1 }
+				{ "type": 2, "capacity": 1, "required": true, "position": { "x": -1, "y": 0 } },
+				{ "type": 2048, "capacity": 1, "position": { "x": 0.5, "y": -1.5 } },
+				{ "type": 2048, "capacity": 1, "position": { "x": 0.5, "y": 1.5 } },
+				{ "type": 10700, "capacity": 1, "position": { "x": 1, "y": 0 } },
+				{ "type": 256, "capacity": 2, "position": { "x": 0, "y": 0 } },
+				{ "type": 8, "capacity": 1, "position": { "x": -0.5, "y": -1 } },
+				{ "type": 64, "capacity": 1, "position": { "x": -0.5, "y": 1 } }
 			]
 		},
 		{
@@ -3018,15 +3042,19 @@
 			"mass": 90,
 			"armor": 700,
 			"fuelCapacity": 600,
+			"cargoSlotPosition": { "x": 0, "y": 0 },
+			"cargoSlotSize": { "x": 0, "y": 0 },
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 0, "y": 0 },
 			"initiative": 5,
 			"slots": [
-				{ "type": 2, "capacity": 2, "required": true },
-				{ "type": 76, "capacity": 1 },
-				{ "type": 76, "capacity": 1 },
-				{ "type": 2048, "capacity": 2 },
-				{ "type": 2048, "capacity": 2 },
-				{ "type": 10700, "capacity": 2 },
-				{ "type": 384, "capacity": 2 }
+				{ "type": 2, "capacity": 2, "required": true, "position": { "x": -1.5, "y": 0 } },
+				{ "type": 76, "capacity": 1, "position": { "x": -0.5, "y": -0.5 } },
+				{ "type": 76, "capacity": 1, "position": { "x": -0.5, "y": 0.5 } },
+				{ "type": 2048, "capacity": 2, "position": { "x": 0.5, "y": -1 } },
+				{ "type": 2048, "capacity": 2, "position": { "x": 0.5, "y": 1 } },
+				{ "type": 10700, "capacity": 2, "position": { "x": 1.5, "y": 0 } },
+				{ "type": 384, "capacity": 2, "position": { "x": 0.5, "y": 0 } }
 			]
 		},
 		{
@@ -3043,15 +3071,19 @@
 			"mass": 120,
 			"armor": 1000,
 			"fuelCapacity": 1400,
+			"cargoSlotPosition": { "x": 0, "y": 0 },
+			"cargoSlotSize": { "x": 0, "y": 0 },
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 0, "y": 0 },
 			"initiative": 5,
 			"slots": [
-				{ "type": 2, "capacity": 2, "required": true },
-				{ "type": 76, "capacity": 2 },
-				{ "type": 76, "capacity": 2 },
-				{ "type": 2048, "capacity": 3 },
-				{ "type": 2048, "capacity": 3 },
-				{ "type": 10700, "capacity": 3 },
-				{ "type": 384, "capacity": 4 }
+				{ "type": 2, "capacity": 2, "required": true, "position": { "x": -1.5, "y": 0 } },
+				{ "type": 76, "capacity": 2, "position": { "x": -0.5, "y": -0.5 } },
+				{ "type": 76, "capacity": 2, "position": { "x": -0.5, "y": 0.5 } },
+				{ "type": 2048, "capacity": 3, "position": { "x": 0.5, "y": -1 } },
+				{ "type": 2048, "capacity": 3, "position": { "x": 0.5, "y": 1 } },
+				{ "type": 10700, "capacity": 3, "position": { "x": 1.5, "y": 0 } },
+				{ "type": 384, "capacity": 4, "position": { "x": 0.5, "y": 0 } }
 			]
 		},
 		{
@@ -3068,19 +3100,23 @@
 			"mass": 222,
 			"armor": 2000,
 			"fuelCapacity": 2800,
+			"cargoSlotPosition": { "x": 0, "y": 0 },
+			"cargoSlotSize": { "x": 0, "y": 0 },
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 0, "y": 0 },
 			"initiative": 10,
 			"slots": [
-				{ "type": 2, "capacity": 4, "required": true },
-				{ "type": 76, "capacity": 1 },
-				{ "type": 128, "capacity": 8 },
-				{ "type": 2048, "capacity": 6 },
-				{ "type": 2048, "capacity": 6 },
-				{ "type": 2048, "capacity": 2 },
-				{ "type": 2048, "capacity": 2 },
-				{ "type": 2048, "capacity": 4 },
-				{ "type": 256, "capacity": 6 },
-				{ "type": 64, "capacity": 3 },
-				{ "type": 64, "capacity": 3 }
+				{ "type": 2, "capacity": 4, "required": true, "position": { "x": -2, "y": 0 } },
+				{ "type": 76, "capacity": 1, "position": { "x": 2, "y": 0 } },
+				{ "type": 128, "capacity": 8, "position": { "x": 1, "y": -0.5 } },
+				{ "type": 2048, "capacity": 6, "position": { "x": 0, "y": -1 } },
+				{ "type": 2048, "capacity": 6, "position": { "x": 0, "y": 1 } },
+				{ "type": 2048, "capacity": 2, "position": { "x": -1, "y": -1.5 } },
+				{ "type": 2048, "capacity": 2, "position": { "x": -1, "y": 1.5 } },
+				{ "type": 2048, "capacity": 4, "position": { "x": 1, "y": 0.5 } },
+				{ "type": 256, "capacity": 6, "position": { "x": 0, "y": 0 } },
+				{ "type": 64, "capacity": 3, "position": { "x": -1, "y": -0.5 } },
+				{ "type": 64, "capacity": 3, "position": { "x": -1, "y": 0.5 } }
 			]
 		},
 		{
@@ -3097,21 +3133,25 @@
 			"mass": 250,
 			"armor": 4500,
 			"fuelCapacity": 4500,
+			"cargoSlotPosition": { "x": 0, "y": 0 },
+			"cargoSlotSize": { "x": 0, "y": 0 },
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 0, "y": 0 },
 			"initiative": 10,
 			"slots": [
-				{ "type": 2, "capacity": 5, "required": true },
-				{ "type": 384, "capacity": 4 },
-				{ "type": 384, "capacity": 4 },
-				{ "type": 2048, "capacity": 6 },
-				{ "type": 2048, "capacity": 6 },
-				{ "type": 64, "capacity": 4 },
-				{ "type": 64, "capacity": 4 },
-				{ "type": 2048, "capacity": 8 },
-				{ "type": 2048, "capacity": 8 },
-				{ "type": 256, "capacity": 8 },
-				{ "type": 2176, "capacity": 5 },
-				{ "type": 2176, "capacity": 5 },
-				{ "type": 10700, "capacity": 2 }
+				{ "type": 2, "capacity": 5, "required": true, "position": { "x": -2, "y": 0 } },
+				{ "type": 384, "capacity": 4, "position": { "x": -2, "y": -0.975 } },
+				{ "type": 384, "capacity": 4, "position": { "x": -2, "y": 0.975 } },
+				{ "type": 2048, "capacity": 6, "position": { "x": -1, "y": -1.5 } },
+				{ "type": 2048, "capacity": 6, "position": { "x": -1, "y": 1.5 } },
+				{ "type": 64, "capacity": 4, "position": { "x": -1, "y": -0.5 } },
+				{ "type": 64, "capacity": 4, "position": { "x": -1, "y": 0.5 } },
+				{ "type": 2048, "capacity": 8, "position": { "x": 0, "y": -1 } },
+				{ "type": 2048, "capacity": 8, "position": { "x": 0, "y": 1 } },
+				{ "type": 256, "capacity": 8, "position": { "x": 0, "y": 0 } },
+				{ "type": 2176, "capacity": 5, "position": { "x": 1, "y": -0.5 } },
+				{ "type": 2176, "capacity": 5, "position": { "x": 1, "y": 0.5 } },
+				{ "type": 10700, "capacity": 2, "position": { "x": 2, "y": 0 } }
 			]
 		},
 		{
@@ -3129,13 +3169,17 @@
 			"armor": 150,
 			"fuelCapacity": 650,
 			"cargoCapacity": 250,
+			"cargoSlotPosition": { "x": -0.5, "y": 0 },
+			"cargoSlotSize": { "x": 2, "y": 1 },
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 0, "y": 0 },
 			"initiative": 3,
 			"slots": [
-				{ "type": 2, "capacity": 1, "required": true },
-				{ "type": 384, "capacity": 2 },
-				{ "type": 76, "capacity": 1 },
-				{ "type": 10700, "capacity": 1 },
-				{ "type": 10700, "capacity": 1 }
+				{ "type": 2, "capacity": 1, "required": true, "position": { "x": -1.5, "y": 0 } },
+				{ "type": 384, "capacity": 2, "position": { "x": 1.5, "y": -0.5 } },
+				{ "type": 76, "capacity": 1, "position": { "x": 1.5, "y": 0.5 } },
+				{ "type": 10700, "capacity": 1, "position": { "x": 0.5, "y": -1 } },
+				{ "type": 10700, "capacity": 1, "position": { "x": 0.5, "y": 1 } }
 			]
 		},
 		{
@@ -3153,17 +3197,21 @@
 			"armor": 450,
 			"fuelCapacity": 2250,
 			"cargoCapacity": 500,
+			"cargoSlotPosition": { "x": -0.75, "y": -0.5 },
+			"cargoSlotSize": { "x": 1.525, "y": 2 },
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 0, "y": 0 },
 			"initiative": 4,
 			"slots": [
-				{ "type": 2, "capacity": 2, "required": true },
-				{ "type": 384, "capacity": 3 },
-				{ "type": 8264, "capacity": 2 },
-				{ "type": 4, "capacity": 1 },
-				{ "type": 10700, "capacity": 2 },
-				{ "type": 10700, "capacity": 2 },
-				{ "type": 8264, "capacity": 2 },
-				{ "type": 64, "capacity": 1 },
-				{ "type": 64, "capacity": 1 }
+				{ "type": 2, "capacity": 2, "required": true, "position": { "x": -1.75, "y": 0 } },
+				{ "type": 384, "capacity": 3, "position": { "x": 0.75, "y": 0 } },
+				{ "type": 8264, "capacity": 2, "position": { "x": 0.75, "y": -1 } },
+				{ "type": 4, "capacity": 1, "position": { "x": 1.75, "y": 0 } },
+				{ "type": 10700, "capacity": 2, "position": { "x": -0.25, "y": -1.5 } },
+				{ "type": 10700, "capacity": 2, "position": { "x": -0.25, "y": 1.5 } },
+				{ "type": 8264, "capacity": 2, "position": { "x": 0.75, "y": 1 } },
+				{ "type": 64, "capacity": 1, "position": { "x": -1.25, "y": -1.5 } },
+				{ "type": 64, "capacity": 1, "position": { "x": -1.25, "y": 1.5 } }
 			]
 		},
 		{
@@ -3181,16 +3229,20 @@
 			"armor": 900,
 			"fuelCapacity": 2500,
 			"cargoCapacity": 1000,
+			"cargoSlotPosition": { "x": -1, "y": -0.5 },
+			"cargoSlotSize": { "x": 2, "y": 2 },
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 0, "y": 0 },
 			"initiative": 4,
 			"slots": [
-				{ "type": 2, "capacity": 4, "required": true },
-				{ "type": 384, "capacity": 2 },
-				{ "type": 384, "capacity": 2 },
-				{ "type": 10700, "capacity": 3 },
-				{ "type": 10700, "capacity": 3 },
-				{ "type": 8264, "capacity": 2 },
-				{ "type": 8264, "capacity": 2 },
-				{ "type": 4, "capacity": 2 }
+				{ "type": 2, "capacity": 4, "required": true, "position": { "x": -2, "y": 0 } },
+				{ "type": 384, "capacity": 2, "position": { "x": -0.5, "y": -1.5 } },
+				{ "type": 384, "capacity": 2, "position": { "x": -0.5, "y": 1.5 } },
+				{ "type": 10700, "capacity": 3, "position": { "x": 0.5, "y": -1.5 } },
+				{ "type": 10700, "capacity": 3, "position": { "x": 0.5, "y": 1.5 } },
+				{ "type": 8264, "capacity": 2, "position": { "x": 1, "y": -0.5 } },
+				{ "type": 8264, "capacity": 2, "position": { "x": 1, "y": 0.5 } },
+				{ "type": 4, "capacity": 2, "position": { "x": 2, "y": 0 } }
 			]
 		},
 		{
@@ -3208,9 +3260,13 @@
 			"armor": 10,
 			"fuelCapacity": 150,
 			"cargoCapacity": 10,
+			"cargoSlotPosition": { "x": 0, "y": 0 },
+			"cargoSlotSize": { "x": 1, "y": 1 },
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 0, "y": 0 },
 			"slots": [
-				{ "type": 2, "capacity": 1, "required": true },
-				{ "type": 8, "capacity": 1 }
+				{ "type": 2, "capacity": 1, "required": true, "position": { "x": -1, "y": 0 } },
+				{ "type": 8, "capacity": 1, "position": { "x": 1, "y": 0 } }
 			]
 		},
 		{
@@ -3228,9 +3284,13 @@
 			"armor": 20,
 			"fuelCapacity": 200,
 			"cargoCapacity": 25,
+			"cargoSlotPosition": { "x": 0, "y": 0 },
+			"cargoSlotSize": { "x": 1, "y": 1 },
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 0, "y": 0 },
 			"slots": [
-				{ "type": 2, "capacity": 1, "required": true },
-				{ "type": 8, "capacity": 1 }
+				{ "type": 2, "capacity": 1, "required": true, "position": { "x": -1, "y": 0 } },
+				{ "type": 8, "capacity": 1, "position": { "x": 1, "y": 0 } }
 			]
 		},
 		{
@@ -3247,9 +3307,13 @@
 			"mass": 28,
 			"armor": 50,
 			"fuelCapacity": 120,
+			"cargoSlotPosition": { "x": 0, "y": 0 },
+			"cargoSlotSize": { "x": 0, "y": 0 },
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 0, "y": 0 },
 			"slots": [
-				{ "type": 2, "capacity": 1, "required": true },
-				{ "type": 16, "capacity": 2 }
+				{ "type": 2, "capacity": 1, "required": true, "position": { "x": -0.5, "y": 0 } },
+				{ "type": 16, "capacity": 2, "position": { "x": 0.5, "y": 0 } }
 			]
 		},
 		{
@@ -3266,11 +3330,15 @@
 			"mass": 69,
 			"armor": 175,
 			"fuelCapacity": 400,
+			"cargoSlotPosition": { "x": 0, "y": 0 },
+			"cargoSlotSize": { "x": 0, "y": 0 },
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 0, "y": 0 },
 			"slots": [
-				{ "type": 2, "capacity": 2, "required": true },
-				{ "type": 16, "capacity": 4 },
-				{ "type": 16, "capacity": 4 },
-				{ "type": 76, "capacity": 1 }
+				{ "type": 2, "capacity": 2, "required": true, "position": { "x": -1.5, "y": 0 } },
+				{ "type": 16, "capacity": 4, "position": { "x": -0.5, "y": 0 } },
+				{ "type": 16, "capacity": 4, "position": { "x": 0.5, "y": 0 } },
+				{ "type": 76, "capacity": 1, "position": { "x": 1.5, "y": 0 } }
 			]
 		},
 		{
@@ -3287,12 +3355,16 @@
 			"mass": 70,
 			"armor": 225,
 			"fuelCapacity": 750,
+			"cargoSlotPosition": { "x": 0, "y": 0 },
+			"cargoSlotSize": { "x": 0, "y": 0 },
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 0, "y": 0 },
 			"slots": [
-				{ "type": 2, "capacity": 2, "required": true },
-				{ "type": 16, "capacity": 4 },
-				{ "type": 16, "capacity": 4 },
-				{ "type": 76, "capacity": 1 },
-				{ "type": 64, "capacity": 3 }
+				{ "type": 2, "capacity": 2, "required": true, "position": { "x": -1, "y": 0 } },
+				{ "type": 16, "capacity": 4, "position": { "x": 0, "y": -0.5 } },
+				{ "type": 16, "capacity": 4, "position": { "x": 0, "y": 0.5 } },
+				{ "type": 76, "capacity": 1, "position": { "x": 1, "y": -0.5 } },
+				{ "type": 64, "capacity": 3, "position": { "x": 1, "y": 0.5 } }
 			]
 		},
 		{
@@ -3309,14 +3381,18 @@
 			"mass": 110,
 			"armor": 450,
 			"fuelCapacity": 750,
+			"cargoSlotPosition": { "x": 0, "y": 0 },
+			"cargoSlotSize": { "x": 0, "y": 0 },
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 0, "y": 0 },
 			"slots": [
-				{ "type": 2, "capacity": 2, "required": true },
-				{ "type": 16, "capacity": 4 },
-				{ "type": 16, "capacity": 4 },
-				{ "type": 16, "capacity": 4 },
-				{ "type": 16, "capacity": 4 },
-				{ "type": 76, "capacity": 2 },
-				{ "type": 128, "capacity": 2 }
+				{ "type": 2, "capacity": 2, "required": true, "position": { "x": -1.5, "y": 0 } },
+				{ "type": 16, "capacity": 4, "position": { "x": -0.5, "y": -1 } },
+				{ "type": 16, "capacity": 4, "position": { "x": -0.5, "y": 1 } },
+				{ "type": 16, "capacity": 4, "position": { "x": 0.5, "y": -0.5 } },
+				{ "type": 16, "capacity": 4, "position": { "x": 0.5, "y": 0.5 } },
+				{ "type": 76, "capacity": 2, "position": { "x": 1.5, "y": 0 } },
+				{ "type": 128, "capacity": 2, "position": { "x": -0.5, "y": 0 } }
 			]
 		},
 		{
@@ -3333,9 +3409,13 @@
 			"mass": 10,
 			"armor": 100,
 			"fuelCapacity": 210,
+			"cargoSlotPosition": { "x": 0, "y": 0 },
+			"cargoSlotSize": { "x": 0, "y": 0 },
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 0, "y": 0 },
 			"slots": [
-				{ "type": 2, "capacity": 1, "required": true },
-				{ "type": 32, "capacity": 2 }
+				{ "type": 2, "capacity": 1, "required": true, "position": { "x": -0.5, "y": 0 } },
+				{ "type": 32, "capacity": 2, "position": { "x": 0.5, "y": 0 } }
 			]
 		},
 		{
@@ -3352,11 +3432,15 @@
 			"mass": 80,
 			"armor": 130,
 			"fuelCapacity": 210,
+			"cargoSlotPosition": { "x": 0, "y": 0 },
+			"cargoSlotSize": { "x": 0, "y": 0 },
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 0, "y": 0 },
 			"slots": [
-				{ "type": 2, "capacity": 1, "required": true },
-				{ "type": 76, "capacity": 0 },
-				{ "type": 32, "capacity": 0 },
-				{ "type": 32, "capacity": 0 }
+				{ "type": 2, "capacity": 1, "required": true, "position": { "x": -1, "y": 0 } },
+				{ "type": 76, "capacity": 1, "position": { "x": 1, "y": 0 } },
+				{ "type": 32, "capacity": 1, "position": { "x": 0, "y": -0.5 } },
+				{ "type": 32, "capacity": 1, "position": { "x": 0, "y": 0.5 } }
 			]
 		},
 		{
@@ -3373,13 +3457,17 @@
 			"mass": 110,
 			"armor": 475,
 			"fuelCapacity": 500,
+			"cargoSlotPosition": { "x": 0, "y": 0 },
+			"cargoSlotSize": { "x": 0, "y": 0 },
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 0, "y": 0 },
 			"slots": [
-				{ "type": 2, "capacity": 2, "required": true },
-				{ "type": 332, "capacity": 2 },
-				{ "type": 32, "capacity": 2 },
-				{ "type": 32, "capacity": 1 },
-				{ "type": 32, "capacity": 2 },
-				{ "type": 32, "capacity": 1 }
+				{ "type": 2, "capacity": 2, "required": true, "position": { "x": -1.5, "y": 0 } },
+				{ "type": 332, "capacity": 2, "position": { "x": 1.5, "y": 0 } },
+				{ "type": 32, "capacity": 2, "position": { "x": -0.5, "y": -0.5 } },
+				{ "type": 32, "capacity": 1, "position": { "x": 0.5, "y": -0.5 } },
+				{ "type": 32, "capacity": 2, "position": { "x": -0.5, "y": 0.5 } },
+				{ "type": 32, "capacity": 1, "position": { "x": 0.5, "y": 0.5 } }
 			]
 		},
 		{
@@ -3396,13 +3484,17 @@
 			"mass": 110,
 			"armor": 1400,
 			"fuelCapacity": 850,
+			"cargoSlotPosition": { "x": 0, "y": 0 },
+			"cargoSlotSize": { "x": 0, "y": 0 },
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 0, "y": 0 },
 			"slots": [
-				{ "type": 2, "capacity": 3, "required": true },
-				{ "type": 332, "capacity": 2 },
-				{ "type": 32, "capacity": 4 },
-				{ "type": 32, "capacity": 1 },
-				{ "type": 32, "capacity": 4 },
-				{ "type": 32, "capacity": 1 }
+				{ "type": 2, "capacity": 3, "required": true, "position": { "x": -1.5, "y": 0 } },
+				{ "type": 332, "capacity": 2, "position": { "x": 1.5, "y": 0 } },
+				{ "type": 32, "capacity": 4, "position": { "x": -0.5, "y": -0.5 } },
+				{ "type": 32, "capacity": 1, "position": { "x": 0.5, "y": -0.5 } },
+				{ "type": 32, "capacity": 4, "position": { "x": -0.5, "y": 0.5 } },
+				{ "type": 32, "capacity": 1, "position": { "x": 0.5, "y": 0.5 } }
 			]
 		},
 		{
@@ -3419,13 +3511,17 @@
 			"mass": 100,
 			"armor": 1500,
 			"fuelCapacity": 1300,
+			"cargoSlotPosition": { "x": 0, "y": 0 },
+			"cargoSlotSize": { "x": 0, "y": 0 },
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 0, "y": 0 },
 			"slots": [
-				{ "type": 2, "capacity": 2, "required": true },
-				{ "type": 332, "capacity": 3 },
-				{ "type": 32, "capacity": 4 },
-				{ "type": 32, "capacity": 2 },
-				{ "type": 32, "capacity": 4 },
-				{ "type": 32, "capacity": 2 }
+				{ "type": 2, "capacity": 2, "required": true, "position": { "x": -1.5, "y": 0 } },
+				{ "type": 332, "capacity": 3, "position": { "x": 1.5, "y": 0 } },
+				{ "type": 32, "capacity": 4, "position": { "x": -0.5, "y": -0.5 } },
+				{ "type": 32, "capacity": 2, "position": { "x": 0.5, "y": -0.5 } },
+				{ "type": 32, "capacity": 4, "position": { "x": -0.5, "y": 0.5 } },
+				{ "type": 32, "capacity": 2, "position": { "x": 0.5, "y": 0.5 } }
 			]
 		},
 		{
@@ -3442,10 +3538,14 @@
 			"mass": 12,
 			"armor": 5,
 			"fuelCapacity": 750,
+			"cargoSlotPosition": { "x": 0, "y": 0 },
+			"cargoSlotSize": { "x": 0, "y": 0 },
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 0, "y": 0 },
 			"repairBonus": 0.05,
 			"slots": [
-				{ "type": 2, "capacity": 1, "required": true },
-				{ "type": 128, "capacity": 0 }
+				{ "type": 2, "capacity": 1, "required": true, "position": { "x": -0.5, "y": 0 } },
+				{ "type": 128, "capacity": 1, "position": { "x": 0.5, "y": 0 } }
 			]
 		},
 		{
@@ -3462,11 +3562,15 @@
 			"mass": 111,
 			"armor": 12,
 			"fuelCapacity": 2250,
+			"cargoSlotPosition": { "x": 0, "y": 0 },
+			"cargoSlotSize": { "x": 0, "y": 0 },
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 0, "y": 0 },
 			"repairBonus": 0.1,
 			"slots": [
-				{ "type": 2, "capacity": 2, "required": true },
-				{ "type": 128, "capacity": 2 },
-				{ "type": 4, "capacity": 0 }
+				{ "type": 2, "capacity": 2, "required": true, "position": { "x": -1, "y": 0 } },
+				{ "type": 128, "capacity": 2, "position": { "x": 0, "y": 0 } },
+				{ "type": 4, "capacity": 1, "position": { "x": 1, "y": 0 } }
 			]
 		},
 		{
@@ -3483,13 +3587,17 @@
 			"mass": 10,
 			"armor": 60,
 			"fuelCapacity": 400,
+			"cargoSlotPosition": { "x": 0, "y": 0 },
+			"cargoSlotSize": { "x": 0, "y": 0 },
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 0, "y": 0 },
 			"mineLayingFactor": 2,
 			"immuneToOwnDetonation": true,
 			"slots": [
-				{ "type": 2, "capacity": 1, "required": true },
-				{ "type": 8192, "capacity": 2 },
-				{ "type": 8192, "capacity": 2 },
-				{ "type": 76, "capacity": 1 }
+				{ "type": 2, "capacity": 1, "required": true, "position": { "x": -1, "y": 0 } },
+				{ "type": 8192, "capacity": 2, "position": { "x": 0, "y": -0.5 } },
+				{ "type": 8192, "capacity": 2, "position": { "x": 0, "y": 0.5125 } },
+				{ "type": 76, "capacity": 1, "position": { "x": 1, "y": 0 } }
 			]
 		},
 		{
@@ -3506,15 +3614,19 @@
 			"mass": 30,
 			"armor": 1200,
 			"fuelCapacity": 2200,
+			"cargoSlotPosition": { "x": 0, "y": 0 },
+			"cargoSlotSize": { "x": 0, "y": 0 },
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 0, "y": 0 },
 			"mineLayingFactor": 2,
 			"immuneToOwnDetonation": true,
 			"slots": [
-				{ "type": 2, "capacity": 1, "required": true },
-				{ "type": 8192, "capacity": 8 },
-				{ "type": 8192, "capacity": 8 },
-				{ "type": 384, "capacity": 4 },
-				{ "type": 76, "capacity": 3 },
-				{ "type": 8264, "capacity": 3 }
+				{ "type": 2, "capacity": 1, "required": true, "position": { "x": -1.5, "y": 0 } },
+				{ "type": 8192, "capacity": 8, "position": { "x": -0.5, "y": -0.5 } },
+				{ "type": 8192, "capacity": 8, "position": { "x": -0.5, "y": 0.5 } },
+				{ "type": 384, "capacity": 4, "position": { "x": 0.5, "y": 0 } },
+				{ "type": 76, "capacity": 3, "position": { "x": 1.5, "y": -0.5 } },
+				{ "type": 8264, "capacity": 3, "position": { "x": 1.5, "y": 0.5 } }
 			]
 		},
 		{
@@ -3531,21 +3643,25 @@
 			"mass": 100,
 			"armor": 5000,
 			"fuelCapacity": 5000,
+			"cargoSlotPosition": { "x": 0, "y": 0 },
+			"cargoSlotSize": { "x": 0, "y": 0 },
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 0, "y": 0 },
 			"initiative": 2,
 			"slots": [
-				{ "type": 2, "capacity": 3, "required": true },
-				{ "type": 10700, "capacity": 3 },
-				{ "type": 10700, "capacity": 3 },
-				{ "type": 10700, "capacity": 3 },
-				{ "type": 10700, "capacity": 3 },
-				{ "type": 10700, "capacity": 3 },
-				{ "type": 10700, "capacity": 3 },
-				{ "type": 10700, "capacity": 3 },
-				{ "type": 10700, "capacity": 3 },
-				{ "type": 10700, "capacity": 3 },
-				{ "type": 10700, "capacity": 3 },
-				{ "type": 10700, "capacity": 3 },
-				{ "type": 10700, "capacity": 3 }
+				{ "type": 2, "capacity": 3, "required": true, "position": { "x": -2, "y": 0 } },
+				{ "type": 10700, "capacity": 3, "position": { "x": -2, "y": -1 } },
+				{ "type": 10700, "capacity": 3, "position": { "x": -2, "y": 1 } },
+				{ "type": 10700, "capacity": 3, "position": { "x": -1, "y": -1.5 } },
+				{ "type": 10700, "capacity": 3, "position": { "x": -1, "y": 1.5 } },
+				{ "type": 10700, "capacity": 3, "position": { "x": -1, "y": -0.5 } },
+				{ "type": 10700, "capacity": 3, "position": { "x": -1, "y": 0.5 } },
+				{ "type": 10700, "capacity": 3, "position": { "x": 0, "y": -1 } },
+				{ "type": 10700, "capacity": 3, "position": { "x": 0, "y": 1 } },
+				{ "type": 10700, "capacity": 3, "position": { "x": 0, "y": 0 } },
+				{ "type": 10700, "capacity": 3, "position": { "x": 1, "y": -0.5 } },
+				{ "type": 10700, "capacity": 3, "position": { "x": 1, "y": 0.5 } },
+				{ "type": 10700, "capacity": 3, "position": { "x": 2, "y": 0 } }
 			]
 		},
 		{
@@ -3563,15 +3679,19 @@
 			"armor": 500,
 			"fuelCapacity": 700,
 			"cargoCapacity": 500,
+			"cargoSlotPosition": { "x": 0, "y": -0.5 },
+			"cargoSlotSize": { "x": 1, "y": 2 },
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 0, "y": 0 },
 			"initiative": 2,
 			"slots": [
-				{ "type": 2, "capacity": 3, "required": true },
-				{ "type": 10700, "capacity": 8 },
-				{ "type": 10700, "capacity": 2 },
-				{ "type": 10700, "capacity": 2 },
-				{ "type": 10700, "capacity": 1 },
-				{ "type": 10700, "capacity": 2 },
-				{ "type": 10700, "capacity": 2 }
+				{ "type": 2, "capacity": 3, "required": true, "position": { "x": -2, "y": 0 } },
+				{ "type": 10700, "capacity": 8, "position": { "x": -1, "y": 0 } },
+				{ "type": 10700, "capacity": 2, "position": { "x": 1, "y": -0.5 } },
+				{ "type": 10700, "capacity": 2, "position": { "x": 1, "y": 0.5 } },
+				{ "type": 10700, "capacity": 1, "position": { "x": 2, "y": 0 } },
+				{ "type": 10700, "capacity": 2, "position": { "x": -1, "y": -1 } },
+				{ "type": 10700, "capacity": 2, "position": { "x": -1, "y": 1 } }
 			]
 		},
 		{
@@ -3586,17 +3706,21 @@
 			"category": "StarbaseHull",
 			"type": "Starbase",
 			"armor": 100,
+			"cargoSlotPosition": { "x": 0, "y": 0 },
+			"cargoSlotSize": { "x": 0, "y": 0 },
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 0, "y": 0 },
 			"initiative": 10,
 			"repairBonus": 0.03,
 			"rangeBonus": 1,
 			"starbase": true,
 			"orbitalConstructionHull": true,
 			"slots": [
-				{ "type": 4160, "capacity": 1 },
-				{ "type": 2048, "capacity": 12 },
-				{ "type": 384, "capacity": 12 },
-				{ "type": 2048, "capacity": 12 },
-				{ "type": 384, "capacity": 12 }
+				{ "type": 4160, "capacity": 1, "position": { "x": 0, "y": 0 } },
+				{ "type": 2048, "capacity": 12, "position": { "x": 0, "y": -1 } },
+				{ "type": 384, "capacity": 12, "position": { "x": 1, "y": 0 } },
+				{ "type": 2048, "capacity": 12, "position": { "x": 0, "y": 1 } },
+				{ "type": 384, "capacity": 12, "position": { "x": -1, "y": 0 } }
 			]
 		},
 		{
@@ -3611,20 +3735,25 @@
 			"category": "StarbaseHull",
 			"type": "Starbase",
 			"armor": 250,
+			"cargoSlotPosition": { "x": 0, "y": 0 },
+			"cargoSlotSize": { "x": 0, "y": 0 },
 			"spaceDock": 200,
+			"spaceDockSlotPosition": { "x": -0.125, "y": -0.125 },
+			"spaceDockSlotSize": { "x": 1.25, "y": 1.25 },
+			"spaceDockSlotCircle": true,
 			"initiative": 12,
 			"repairBonus": 0.03,
 			"rangeBonus": 1,
 			"starbase": true,
 			"slots": [
-				{ "type": 4160, "capacity": 1 },
-				{ "type": 2048, "capacity": 16 },
-				{ "type": 384, "capacity": 24 },
-				{ "type": 2048, "capacity": 16 },
-				{ "type": 128, "capacity": 24 },
-				{ "type": 64, "capacity": 2 },
-				{ "type": 64, "capacity": 2 },
-				{ "type": 2048, "capacity": 16 }
+				{ "type": 4160, "capacity": 1, "position": { "x": -1, "y": -1 } },
+				{ "type": 2048, "capacity": 16, "position": { "x": 0, "y": -1.5 } },
+				{ "type": 384, "capacity": 24, "position": { "x": -1.5, "y": 0 } },
+				{ "type": 2048, "capacity": 16, "position": { "x": 1.5, "y": 0 } },
+				{ "type": 128, "capacity": 24, "position": { "x": 0, "y": 1.5 } },
+				{ "type": 64, "capacity": 2, "position": { "x": 1, "y": -1 } },
+				{ "type": 64, "capacity": 2, "position": { "x": 1, "y": 1 } },
+				{ "type": 2048, "capacity": 16, "position": { "x": -1, "y": 1 } }
 			]
 		},
 		{
@@ -3639,24 +3768,28 @@
 			"category": "StarbaseHull",
 			"type": "Starbase",
 			"armor": 500,
+			"cargoSlotPosition": { "x": 0, "y": 0 },
+			"cargoSlotSize": { "x": 0, "y": 0 },
 			"spaceDock": -1,
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 1, "y": 1 },
 			"initiative": 14,
 			"repairBonus": 0.15,
 			"rangeBonus": 1,
 			"starbase": true,
 			"slots": [
-				{ "type": 4160, "capacity": 1 },
-				{ "type": 2048, "capacity": 16 },
-				{ "type": 128, "capacity": 16 },
-				{ "type": 2048, "capacity": 16 },
-				{ "type": 384, "capacity": 16 },
-				{ "type": 128, "capacity": 16 },
-				{ "type": 64, "capacity": 3 },
-				{ "type": 2048, "capacity": 16 },
-				{ "type": 64, "capacity": 3 },
-				{ "type": 2048, "capacity": 16 },
-				{ "type": 4160, "capacity": 1 },
-				{ "type": 384, "capacity": 16 }
+				{ "type": 4160, "capacity": 1, "position": { "x": -1, "y": 0 } },
+				{ "type": 2048, "capacity": 16, "position": { "x": 0.5, "y": -2 } },
+				{ "type": 128, "capacity": 16, "position": { "x": -0.5, "y": -2 } },
+				{ "type": 2048, "capacity": 16, "position": { "x": 2, "y": 0.5 } },
+				{ "type": 384, "capacity": 16, "position": { "x": -2, "y": 0.5 } },
+				{ "type": 128, "capacity": 16, "position": { "x": 0.5, "y": 2 } },
+				{ "type": 64, "capacity": 3, "position": { "x": 0, "y": 1 } },
+				{ "type": 2048, "capacity": 16, "position": { "x": -0.5, "y": 2 } },
+				{ "type": 64, "capacity": 3, "position": { "x": 0, "y": -1 } },
+				{ "type": 2048, "capacity": 16, "position": { "x": -2, "y": -0.5 } },
+				{ "type": 4160, "capacity": 1, "position": { "x": 1, "y": 0 } },
+				{ "type": 384, "capacity": 16, "position": { "x": 2, "y": -0.5 } }
 			]
 		},
 		{
@@ -3671,28 +3804,32 @@
 			"category": "StarbaseHull",
 			"type": "Starbase",
 			"armor": 1000,
+			"cargoSlotPosition": { "x": 0, "y": 0 },
+			"cargoSlotSize": { "x": 0, "y": 0 },
 			"spaceDock": -1,
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 1, "y": 1 },
 			"initiative": 16,
 			"repairBonus": 0.15,
 			"starbase": true,
 			"innateScanRangePenFactor": 0.5,
 			"slots": [
-				{ "type": 4160, "capacity": 1 },
-				{ "type": 2048, "capacity": 16 },
-				{ "type": 64, "capacity": 3 },
-				{ "type": 2048, "capacity": 6 },
-				{ "type": 128, "capacity": 20 },
-				{ "type": 128, "capacity": 20 },
-				{ "type": 64, "capacity": 3 },
-				{ "type": 2048, "capacity": 16 },
-				{ "type": 64, "capacity": 3 },
-				{ "type": 2048, "capacity": 16 },
-				{ "type": 4160, "capacity": 1 },
-				{ "type": 384, "capacity": 20 },
-				{ "type": 2048, "capacity": 16 },
-				{ "type": 384, "capacity": 20 },
-				{ "type": 64, "capacity": 3 },
-				{ "type": 2048, "capacity": 16 }
+				{ "type": 4160, "capacity": 1, "position": { "x": 0, "y": -1 } },
+				{ "type": 2048, "capacity": 16, "position": { "x": -2, "y": 0.5 } },
+				{ "type": 64, "capacity": 3, "position": { "x": -1, "y": 0 } },
+				{ "type": 2048, "capacity": 6, "position": { "x": 2, "y": 0.5 } },
+				{ "type": 128, "capacity": 20, "position": { "x": -1, "y": 1 } },
+				{ "type": 128, "capacity": 20, "position": { "x": 1, "y": -1 } },
+				{ "type": 64, "capacity": 3, "position": { "x": 1, "y": 0 } },
+				{ "type": 2048, "capacity": 16, "position": { "x": -0.5, "y": -2 } },
+				{ "type": 64, "capacity": 3, "position": { "x": -0.5, "y": 2 } },
+				{ "type": 2048, "capacity": 16, "position": { "x": 2, "y": -0.5 } },
+				{ "type": 4160, "capacity": 1, "position": { "x": 0, "y": 1 } },
+				{ "type": 384, "capacity": 20, "position": { "x": 1, "y": 1 } },
+				{ "type": 2048, "capacity": 16, "position": { "x": -2, "y": -0.5 } },
+				{ "type": 384, "capacity": 20, "position": { "x": -1, "y": -1 } },
+				{ "type": 64, "capacity": 3, "position": { "x": 0.5, "y": -2 } },
+				{ "type": 2048, "capacity": 16, "position": { "x": 0.5, "y": 2 } }
 			]
 		},
 		{
@@ -3707,28 +3844,32 @@
 			"category": "StarbaseHull",
 			"type": "Starbase",
 			"armor": 1500,
+			"cargoSlotPosition": { "x": 0, "y": 0 },
+			"cargoSlotSize": { "x": 0, "y": 0 },
 			"spaceDock": -1,
+			"spaceDockSlotPosition": { "x": 0, "y": 0 },
+			"spaceDockSlotSize": { "x": 1, "y": 1 },
 			"initiative": 18,
 			"repairBonus": 0.15,
 			"starbase": true,
 			"innateScanRangePenFactor": 0.5,
 			"slots": [
-				{ "type": 4160, "capacity": 1 },
-				{ "type": 2048, "capacity": 32 },
-				{ "type": 64, "capacity": 4 },
-				{ "type": 64, "capacity": 4 },
-				{ "type": 128, "capacity": 20 },
-				{ "type": 128, "capacity": 20 },
-				{ "type": 64, "capacity": 4 },
-				{ "type": 2048, "capacity": 32 },
-				{ "type": 64, "capacity": 4 },
-				{ "type": 2048, "capacity": 32 },
-				{ "type": 4160, "capacity": 1 },
-				{ "type": 384, "capacity": 20 },
-				{ "type": 64, "capacity": 4 },
-				{ "type": 384, "capacity": 20 },
-				{ "type": 64, "capacity": 4 },
-				{ "type": 2048, "capacity": 32 }
+				{ "type": 4160, "capacity": 1, "position": { "x": 0, "y": -1.5 } },
+				{ "type": 2048, "capacity": 32, "position": { "x": -2, "y": 1 } },
+				{ "type": 64, "capacity": 4, "position": { "x": -1.5, "y": 0 } },
+				{ "type": 64, "capacity": 4, "position": { "x": 2, "y": 1 } },
+				{ "type": 128, "capacity": 20, "position": { "x": -1, "y": 1 } },
+				{ "type": 128, "capacity": 20, "position": { "x": 1, "y": -1 } },
+				{ "type": 64, "capacity": 4, "position": { "x": 1.5, "y": 0 } },
+				{ "type": 2048, "capacity": 32, "position": { "x": -1, "y": -2 } },
+				{ "type": 64, "capacity": 4, "position": { "x": -1, "y": 2 } },
+				{ "type": 2048, "capacity": 32, "position": { "x": 2, "y": -1 } },
+				{ "type": 4160, "capacity": 1, "position": { "x": 0, "y": 1.4125 } },
+				{ "type": 384, "capacity": 20, "position": { "x": 1, "y": 1 } },
+				{ "type": 64, "capacity": 4, "position": { "x": -2, "y": -1 } },
+				{ "type": 384, "capacity": 20, "position": { "x": -1, "y": -1 } },
+				{ "type": 64, "capacity": 4, "position": { "x": 1, "y": -2 } },
+				{ "type": 2048, "capacity": 32, "position": { "x": 1, "y": 2 } }
 			]
 		}
 	]

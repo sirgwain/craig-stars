@@ -1,10 +1,13 @@
 <script lang="ts">
-	import { HullSlotType } from '$lib/types/Tech';
+	import { HullSlotType, type TechHullComponent } from '$lib/types/Tech';
+	import { kebabCase } from 'lodash-es';
 	import { $enum as eu } from 'ts-enum-util';
 
 	export let type: HullSlotType = HullSlotType.General;
 	export let capacity: number = 1;
 	export let required = false;
+	export let component: TechHullComponent | undefined = undefined;
+	export let quantity: number | undefined = undefined;
 
 	function typeDescription() {
 		switch (type) {
@@ -34,13 +37,23 @@
 				return eu(HullSlotType).getKeyOrDefault(type, 'General');
 		}
 	}
+
+	const icon = () => {
+		return kebabCase(component?.name.replace("'", '').replace(' ', '').replace('±', ''));
+	};
 </script>
 
-<div class="flex flex-col justify-between border border-slate-900 bg-base-300 tech-avatar text-sm">
-	<div class="flex-grow whitespace-pre-wrap text-center">{typeDescription()}</div>
-	{#if required}
-		<div class="text-center text-red-500 font-bold">needs {capacity}</div>
+<div
+	class="flex flex-col justify-between border border-slate-900 bg-base-300 tech-avatar text-sm avatar {icon()}"
+>
+	{#if component}
+		<span class="mt-auto text-center font-bold">{quantity} of {capacity}</span>
 	{:else}
-		<div class="text-center font-bold">Up to {capacity}</div>
+		<div class="flex-grow whitespace-pre-wrap text-center">{typeDescription()}</div>
+		{#if required}
+			<div class="text-center text-red-500 font-bold">needs {capacity}</div>
+		{:else}
+			<span class="mt-auto text-center font-bold">Up to {capacity}</span>
+		{/if}
 	{/if}
 </div>

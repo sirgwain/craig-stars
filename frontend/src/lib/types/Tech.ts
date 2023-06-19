@@ -23,8 +23,8 @@ export interface Tech {
 	id?: number;
 	createdAt?: string;
 	updatedAt?: string;
-
 	techStoreId?: number;
+	
 	name: string;
 	cost: Cost;
 	requirements: TechRequirements;

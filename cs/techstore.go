@@ -218,6 +218,58 @@ func (store *TechStore) GetBestScanner(player *Player) *TechHullComponent {
 	return bestTech
 }
 
+// get the best beam weapon for a player
+func (store *TechStore) GetBestBeamWeapon(player *Player) *TechHullComponent {
+	var bestTech *TechHullComponent
+	for i := range store.HullComponents {
+		tech := &store.HullComponents[i]
+		if tech.Category == TechCategoryBeamWeapon && tech.Power > 0 && player.HasTech(&tech.Tech) {
+			// techs are sorted by rank, so the latest is the best
+			bestTech = tech
+		}
+	}
+	return bestTech
+}
+
+// get the best armor for a player
+func (store *TechStore) GetBestArmor(player *Player) *TechHullComponent {
+	var bestTech *TechHullComponent
+	for i := range store.HullComponents {
+		tech := &store.HullComponents[i]
+		if tech.Category == TechCategoryArmor && player.HasTech(&tech.Tech) {
+			// techs are sorted by rank, so the latest is the best
+			bestTech = tech
+		}
+	}
+	return bestTech
+}
+
+// get the best shield for a player
+func (store *TechStore) GetBestShield(player *Player) *TechHullComponent {
+	var bestTech *TechHullComponent
+	for i := range store.HullComponents {
+		tech := &store.HullComponents[i]
+		if tech.Category == TechCategoryShield && player.HasTech(&tech.Tech) {
+			// techs are sorted by rank, so the latest is the best
+			bestTech = tech
+		}
+	}
+	return bestTech
+}
+
+// get the best torpedo for a player
+func (store *TechStore) GetBestTorpedo(player *Player) *TechHullComponent {
+	var bestTech *TechHullComponent
+	for i := range store.HullComponents {
+		tech := &store.HullComponents[i]
+		if tech.Category == TechCategoryTorpedo && tech.Power > 0 && player.HasTech(&tech.Tech) {
+			// techs are sorted by rank, so the latest is the best
+			bestTech = tech
+		}
+	}
+	return bestTech
+}
+
 // get the best fuel tank for a player
 func (store *TechStore) GetBestFuelTank(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
@@ -237,6 +289,32 @@ func (store *TechStore) GetBestColonizationModule(player *Player) *TechHullCompo
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if tech.ColonizationModule && player.HasTech(&tech.Tech) {
+			// techs are sorted by rank, so the latest is the best
+			bestTech = tech
+		}
+	}
+	return bestTech
+}
+
+// get the best player's battle computer
+func (store *TechStore) GetBestBattleComputer(player *Player) *TechHullComponent {
+	var bestTech *TechHullComponent
+	for i := range store.HullComponents {
+		tech := &store.HullComponents[i]
+		if tech.InitiativeBonus > 0 && tech.TorpedoBonus > 0 && player.HasTech(&tech.Tech) {
+			// techs are sorted by rank, so the latest is the best
+			bestTech = tech
+		}
+	}
+	return bestTech
+}
+
+// get the best player's mining robot
+func (store *TechStore) GetBestMiningRobot(player *Player) *TechHullComponent {
+	var bestTech *TechHullComponent
+	for i := range store.HullComponents {
+		tech := &store.HullComponents[i]
+		if tech.Category == TechCategoryMineRobot && player.HasTech(&tech.Tech) {
 			// techs are sorted by rank, so the latest is the best
 			bestTech = tech
 		}
@@ -1710,8 +1788,8 @@ var MediumFreighter = TechHull{Tech: NewTech("Medium Freighter", NewCost(20, 0, 
 	CargoSlotSize:     Vector{2, 1},
 	Slots: []TechHullSlot{
 		{Position: Vector{-2, 0}, Type: HullSlotTypeEngine, Capacity: 1, Required: true},
-		{Position: Vector{2, 0}, Type: HullSlotTypeScannerElectricalMechanical, Capacity: 2},
-		{Position: Vector{1, 0}, Type: HullSlotTypeShieldArmor, Capacity: 2},
+		{Position: Vector{2, 0}, Type: HullSlotTypeScannerElectricalMechanical, Capacity: 1},
+		{Position: Vector{1, 0}, Type: HullSlotTypeShieldArmor, Capacity: 1},
 	},
 }
 var LargeFreighter = TechHull{Tech: NewTech("Large Freighter", NewCost(35, 0, 21, 100), TechRequirements{TechLevel: TechLevel{Construction: 8}}, 30, TechCategoryShipHull),
@@ -1752,8 +1830,8 @@ var Scout = TechHull{Tech: NewTech("Scout", NewCost(4, 2, 4, 10), TechRequiremen
 	FuelCapacity:   50,
 	Slots: []TechHullSlot{
 		{Position: Vector{-1, 0}, Type: HullSlotTypeEngine, Capacity: 1, Required: true},
-		{Position: Vector{0, 0}, Type: HullSlotTypeScanner, Capacity: 1},
-		{Position: Vector{1, 0}, Type: HullSlotTypeGeneral, Capacity: 1},
+		{Position: Vector{1, 0}, Type: HullSlotTypeScanner, Capacity: 1},
+		{Position: Vector{0, 0}, Type: HullSlotTypeGeneral, Capacity: 1},
 	},
 }
 var Frigate = TechHull{Tech: NewTech("Frigate", NewCost(4, 2, 5, 12), TechRequirements{TechLevel: TechLevel{Construction: 6}}, 60, TechCategoryShipHull),
