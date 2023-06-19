@@ -603,11 +603,15 @@ func (m *messageClient) battle(player *Player, planet *Planet, battle *BattleRec
 	var text string
 
 	location := fmt.Sprintf("Space (%0f, %0f)", battle.Position.X, battle.Position.Y)
+	planetNum := None
+	targetType := TargetNone
 	if planet != nil {
 		location = planet.Name
+		planetNum = planet.Num
+		targetType = TargetPlanet
 	}
 	text = fmt.Sprintf("A battle took place at %s.", location)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageBattle, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num, BattleNum: battle.Num})
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageBattle, Text: text, TargetType: targetType, TargetNum: planetNum, BattleNum: battle.Num})
 }
 
 func (m *messageClient) techLevel(player *Player, field TechField, level int, nextField TechField) {
