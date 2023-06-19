@@ -7,7 +7,7 @@
 		selectWaypoint
 	} from '$lib/services/Context';
 	import type { FullGame } from '$lib/services/FullGame';
-	import type { CommandedFleet, Waypoint } from '$lib/types/Fleet';
+	import { getTargetName, type CommandedFleet, type Waypoint } from '$lib/types/Fleet';
 	import type { MapObject } from '$lib/types/MapObject';
 	import { distance } from '$lib/types/Vector';
 	import hotkeys from 'hotkeys-js';
@@ -22,9 +22,6 @@
 	let previousWaypointMO: MapObject | undefined;
 	let nextWaypoint: Waypoint | undefined;
 	let nextWaypointMO: MapObject | undefined;
-
-	const getTargetName = (wp: Waypoint) =>
-		wp.targetName ?? `Space: (${wp.position.x}, ${wp.position.y})`;
 
 	const getWaypointTarget = (wp: Waypoint): MapObject | undefined => {
 		if (wp && wp.targetType && wp.targetNum) {

@@ -8,11 +8,10 @@
 	import { highlightMapObject } from '$lib/services/Context';
 	import { settings } from '$lib/services/Settings';
 	import type { MapObject } from '$lib/types/MapObject';
-	import type { Planet } from '$lib/types/Planet';
 	import type { Vector } from '$lib/types/Vector';
 	import { quadtree } from 'd3-quadtree';
-	import type { LayerCake } from 'layercake';
 	import type { ZoomTransform } from 'd3-zoom';
+	import type { LayerCake } from 'layercake';
 	import { createEventDispatcher, getContext } from 'svelte';
 
 	const { data, xGet, yGet, xScale, yScale, xReverse, yReverse, width, height } =
@@ -21,6 +20,8 @@
 
 	let found: MapObject | undefined;
 	let position: Vector = { x: 0, y: 0 };
+	let pointerDown = false;
+	let dragging = false;
 	let e = {};
 
 	/** The dimension to search across when moving the mouse left and right. */
@@ -42,13 +43,8 @@
 
 	$: addWaypoint = $settings.addWaypoint;
 
-	function findItem(evt: any) {
-		e = evt;
-
-		const xLayerKey = `layer${x.toUpperCase()}`;
-		const yLayerKey = `layer${y.toUpperCase()}`;
-
-		let [x1, y1] = [evt[xLayerKey] as number, evt[yLayerKey] as number];
+	function findItem(x: number, y: number) {
+		let [x1, y1] = [x, y];
 
 		if (transform) {
 			[x1, y1] = transform.invert([x1, y1]);
@@ -61,34 +57,47 @@
 		);
 		position = { x: Math.round(x1 / $xScale(1)), y: Math.round(y1 / $yScale(1)) };
 
-		// console.log(
-		// 	'x, y',
-		// 	[evt[xLayerKey] as number, evt[yLayerKey] as number],
-		// 	'x1, y1',
-		// 	[x1, y1],
-		// 	'found',
-		// 	found?.name,
-		// 	'found?.position',
-		// 	`${found?.position.x}, ${found?.position.y}`,
-		// 	'position',
-		// 	`${position.x}, ${position.y}`,
-		// );
-
-		highlightMapObject(found as Planet);
+		return { position, found };
 	}
 
-	function selectItem(evt: MouseEvent) {
+	// as the pointer moves, find the items it is under
+	function onPointerMove(e: PointerEvent) {
+		// this is not supported, but works for me...
+		const evt = e as PointerEvent & { layerX: number; layerY: number };
+		const { position, found } = findItem(evt.layerX, evt.layerY);
+		highlightMapObject(found);
+
+		if (pointerDown && found) {
+			dragging = true;
+		}
+
+		if (dragging) {
+			dispatch('drag-waypoint-move', { position, mo: found });
+		}
+	}
+
+	function onPointerDown(e: PointerEvent) {
+		pointerDown = true;
 		if (found) {
-			if (evt.shiftKey || addWaypoint) {
+			if (e.shiftKey || addWaypoint) {
 				dispatch('add-waypoint', { mo: found });
 			} else {
 				dispatch('mapobject-selected', found);
 			}
 		} else {
-			if (evt.shiftKey || addWaypoint) {
+			if (e.shiftKey || addWaypoint) {
 				dispatch('add-waypoint', { position });
 			}
 		}
+	}
+
+	// turn off dragging
+	function onPointerUp() {
+		if (dragging) {
+			dispatch('drag-waypoint-done', { position, mo: found });
+		}
+		dragging = false;
+		pointerDown = false;
 	}
 
 	$: finder = quadtree<MapObject>()
@@ -101,5 +110,10 @@
 		.addAll(dataset || $data);
 </script>
 
-<div class="absolute h-full w-full z-10" on:mousemove={findItem} on:mousedown={selectItem} />
+<div
+	class="absolute h-full w-full z-10"
+	on:pointermove={onPointerMove}
+	on:pointerdown={onPointerDown}
+	on:pointerup={onPointerUp}
+/>
 <slot x={xGetter(found) || 0} y={yGetter(found) || 0} {found} {e} />

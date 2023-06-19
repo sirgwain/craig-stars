@@ -147,3 +147,6 @@ export class CommandedFleet implements Fleet {
 		Object.assign(this, data);
 	}
 }
+
+export const getTargetName = (wp: Waypoint) =>
+	wp.targetName ?? `Space: (${wp.position.x}, ${wp.position.y})`;

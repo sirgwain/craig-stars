@@ -6,7 +6,7 @@
 	import CargoMini from '$lib/components/game/CargoMini.svelte';
 	import { commandMapObject, game, zoomToMapObject } from '$lib/services/Context';
 	import { totalCargo } from '$lib/types/Cargo';
-	import type { Fleet, Waypoint } from '$lib/types/Fleet';
+	import { getTargetName, type Fleet, type Waypoint } from '$lib/types/Fleet';
 	import { SvelteTable, type SvelteTableColumn } from '@hurtigruten/svelte-table';
 
 	let id = parseInt($page.params.id);
@@ -16,9 +16,6 @@
 		zoomToMapObject(fleet);
 		goto(`/games/${id}`);
 	};
-
-	const getTargetName = (wp: Waypoint) =>
-		wp.targetName ?? `Space: (${wp.position.x}, ${wp.position.y})`;
 
 	const getLocation = (fleet: Fleet) =>
 		fleet.orbitingPlanetNum && $game

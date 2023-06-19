@@ -9,9 +9,9 @@
 		selectWaypoint,
 		zoomTarget
 	} from '$lib/services/Context';
-	import { FleetService } from '$lib/services/FleetService';
 	import type { FullGame } from '$lib/services/FullGame';
-	import { MapObjectType, ownedBy, type MapObject } from '$lib/types/MapObject';
+	import { getTargetName } from '$lib/types/Fleet';
+	import { MapObjectType, None, ownedBy, type MapObject } from '$lib/types/MapObject';
 	import { emptyVector, equal, type Vector } from '$lib/types/Vector';
 	import type { ScaleLinear } from 'd3-scale';
 	import { scaleLinear } from 'd3-scale';
@@ -19,20 +19,19 @@
 	import { zoom, ZoomTransform, type D3ZoomEvent, type ZoomBehavior } from 'd3-zoom';
 	import { Html, LayerCake, Svg } from 'layercake';
 	import { setContext } from 'svelte';
+	import { writable } from 'svelte/store';
 	import MapObjectQuadTreeFinder from './MapObjectQuadTreeFinder.svelte';
 	import ScannerFleets from './ScannerFleets.svelte';
 	import ScannerPlanets from './ScannerPlanets.svelte';
 	import ScannerScanners from './ScannerScanners.svelte';
 	import ScannerWaypoints from './ScannerWaypoints.svelte';
 	import SelectedMapObject from './SelectedMapObject.svelte';
-	import { writable } from 'svelte/store';
+	import SelectedWaypoint from './SelectedWaypoint.svelte';
 
 	export let game: FullGame;
 
 	const xGetter = (mo: MapObject) => mo?.position?.x;
 	const yGetter = (mo: MapObject) => mo?.position?.y;
-
-	const fleetService = new FleetService();
 
 	let clientWidth = 100;
 	let clientHeight = 100;
@@ -44,8 +43,9 @@
 	let padding = 20; // 20 px, used in zooming
 	let scaleX: ScaleLinear<number, number, never>;
 	let scaleY: ScaleLinear<number, number, never>;
+	let movingWaypoint = false;
 
-	const scale = writable(1);
+	const scale = writable(game.area.y / 400); // tiny games are at 1x starting zoom, the rest zoom in based on universe size
 	const clampedScale = writable($scale);
 	$: $clampedScale = Math.min(3, $scale); // don't let the scale used for scanner objects go more than 1/2th size
 	// $: console.log('scale ', $scale, ' clampedScale', $clampedScale);
@@ -69,12 +69,14 @@
 				])
 				.on('zoom', handleZoom);
 
-			// disable double click on zoom, we use this to cycle commanded mapobjects
-			select(root).call(zoomBehavior).on('dblclick.zoom', null);
-			// jump to 0,0 at our scale
-			// select(root).call(zoomBehavior.scaleTo, scale).call(zoomBehavior.translateTo, 0, 0);
+			enableDragAndZoom();
 		}
 	}
+
+	// enable drag and zoom, but disable dblclick zoom events
+	const enableDragAndZoom = () => select(root).call(zoomBehavior).on('dblclick.zoom', null);
+	// disable drag and zoom temporarily
+	const disableDragAndZoom = () => select(root).on('.zoom', null);
 
 	const xRange = () => {
 		if (aspectRatio > 1 && clientHeight > clientWidth) {
@@ -200,6 +202,10 @@
 	 * @param mo
 	 */
 	function mapobjectSelected(mo: MapObject) {
+		// reset waypoint dragging
+		enableDragAndZoom();
+		movingWaypoint = false;
+
 		let myMapObject = mo;
 		if (ownedBy(mo, game.player.num) && mo.type === MapObjectType.Planet) {
 			myMapObject = game.getPlanet(mo.num) ?? mo;
@@ -219,14 +225,24 @@
 
 			// if we selected a mapobject that is a waypoint, select the waypoint as well
 			if ($commandedFleet?.waypoints) {
-				const selectedWaypoint = $commandedFleet.waypoints.find((wp) =>
+				const fleetWaypoint = $commandedFleet.waypoints.find((wp) =>
 					equal(wp.position, myMapObject.position)
 				);
-				if (selectedWaypoint) {
-					selectWaypoint(selectedWaypoint);
+				if (fleetWaypoint) {
+					selectWaypoint(fleetWaypoint);
 				}
 			}
 		} else {
+			if ($commandedFleet?.waypoints) {
+				const fleetWaypoint = $commandedFleet.waypoints.find((wp) =>
+					equal(wp.position, myMapObject.position)
+				);
+				if (fleetWaypoint && fleetWaypoint === $selectedWaypoint) {
+					movingWaypoint = true;
+					disableDragAndZoom();
+				}
+			}
+
 			// we selected the same mapobject twice
 			const myMapObjectsAtPosition = game.universe.getMyMapObjectsByPosition(mo);
 			if (myMapObjectsAtPosition?.length > 0) {
@@ -251,8 +267,39 @@
 		}
 	}
 
-	setContext('game', game);
-	setContext('scale', clampedScale);
+	function dragWaypointMove(position: Vector, mo: MapObject | undefined) {
+		if (
+			$selectedWaypoint &&
+			$commandedFleet &&
+			movingWaypoint &&
+			!equal($selectedWaypoint.position, $commandedFleet?.waypoints[0].position)
+		) {
+			if (mo) {
+				$selectedWaypoint.position = mo.position;
+				$selectedWaypoint.targetType = mo.type;
+				$selectedWaypoint.targetNum = mo.num;
+				$selectedWaypoint.targetPlayerNum = mo.playerNum;
+				$selectedWaypoint.targetName = mo.name;
+			} else {
+				$selectedWaypoint.position = position;
+				$selectedWaypoint.targetType = MapObjectType.None;
+				$selectedWaypoint.targetNum = None;
+				$selectedWaypoint.targetPlayerNum = None;
+				$selectedWaypoint.targetName = '';
+			}
+		}
+	}
+
+	function dragWaypointDone(position: Vector, mo: MapObject | undefined) {
+		if (
+			$selectedWaypoint &&
+			$commandedFleet &&
+			movingWaypoint &&
+			!equal($selectedWaypoint.position, $commandedFleet?.waypoints[0].position)
+		) {
+			game.updateFleetOrders($commandedFleet);
+		}
+	}
 
 	let data: MapObject[] = [];
 	$: {
@@ -278,6 +325,9 @@
 			...game.player.planetIntels
 		];
 	}
+
+	setContext('game', game);
+	setContext('scale', clampedScale);
 </script>
 
 <svelte:window on:resize={handleResize} />
@@ -299,6 +349,7 @@
 			<g preserveAspectRatio="true" transform={transform?.toString()}>
 				<ScannerScanners />
 				<ScannerWaypoints />
+				<SelectedWaypoint />
 				<ScannerPlanets />
 				<ScannerFleets />
 				<SelectedMapObject />
@@ -309,6 +360,8 @@
 				<MapObjectQuadTreeFinder
 					on:mapobject-selected={(mo) => mapobjectSelected(mo.detail)}
 					on:add-waypoint={(mo) => addWaypoint(mo.detail)}
+					on:drag-waypoint-move={(e) => dragWaypointMove(e.detail.position, e.detail.mo)}
+					on:drag-waypoint-done={(e) => dragWaypointDone(e.detail.position, e.detail.mo)}
 					searchRadius={20}
 					let:x
 					let:y

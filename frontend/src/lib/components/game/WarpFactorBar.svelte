@@ -16,7 +16,7 @@
 	let percent = 0;
 	let color = defaultColor;
 
-	let mousedown = false;
+	let pointerdown = false;
 
 	$: percent = capacity > 0 ? (value / capacity) * 100 : 0;
 
@@ -34,17 +34,17 @@
 
 	const dispatch = createEventDispatcher();
 
-	const onMouseDown = (x: number) => {
-		mousedown = true;
+	const onPointerDown = (x: number) => {
+		pointerdown = true;
 		updateValue(x);
 	};
 
-	const onMouseUp = (x: number) => {
-		mousedown = false;
+	const onPointerUp = (x: number) => {
+		pointerdown = false;
 	};
 
-	const onMouseMove = (x: number) => {
-		if (mousedown) {
+	const onPointerMove = (x: number) => {
+		if (pointerdown) {
 			updateValue(x);
 		}
 	};
@@ -60,18 +60,18 @@
 
 <div
 	class="border border-secondary w-full h-[1rem] text-[0rem] relative cursor-pointer select-none"
-	on:mousedown={(e) =>
-		onMouseDown(
+	on:pointerdown={(e) =>
+		onPointerDown(
 			(e.clientX - e.currentTarget.getBoundingClientRect().left) /
 				e.currentTarget.getBoundingClientRect().width
 		)}
-	on:mouseup={(e) =>
-		onMouseUp(
+	on:pointerup={(e) =>
+		onPointerUp(
 			(e.clientX - e.currentTarget.getBoundingClientRect().left) /
 				e.currentTarget.getBoundingClientRect().width
 		)}
-	on:mousemove={(e) =>
-		onMouseMove(
+	on:pointermove={(e) =>
+		onPointerMove(
 			(e.clientX - e.currentTarget.getBoundingClientRect().left) /
 				e.currentTarget.getBoundingClientRect().width
 		)}

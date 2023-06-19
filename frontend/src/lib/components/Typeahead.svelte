@@ -147,7 +147,7 @@
 					id="{id}-result-{index}"
 					class="cursor-pointer"
 					class:text-accent-focus={selectedIndex === index}
-					on:mousedown|preventDefault={() => {
+					on:pointerdown|preventDefault={() => {
 						selectedIndex = index;
 						select();
 					}}
