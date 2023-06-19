@@ -2,8 +2,7 @@ name: Test
 on: 
   pull_request:
     branches:
-      - '*'
-      - '!develop'
+      - 'develop'
 jobs:
   test:
     strategy:
