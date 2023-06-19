@@ -1,5 +1,5 @@
 <script lang="ts">
-	import CargoBar from '$lib/components/game/command/CargoBar.svelte';
+	import CargoBar from '$lib/components/game/CargoBar.svelte';
 	import type { Cargo } from '$lib/types/Cargo';
 
 	const cargo1: Cargo = {
