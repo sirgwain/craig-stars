@@ -80,7 +80,7 @@ func (s *server) PlayerGame(c *gin.Context) {
 	game, player, err := s.gameRunner.LoadPlayerGame(id.ID, user.ID)
 	if err != nil {
 		log.Error().Err(err).Msg("load player and game from database")
-		c.JSON(http.StatusBadRequest, gin.H{"error": " load game from database"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to load game from database"})
 		return
 	}
 

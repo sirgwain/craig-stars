@@ -9,12 +9,12 @@ import (
 
 type Planet struct {
 	MapObject
-	Hab                               Hab                   `json:"hab,omitempty" gorm:"embedded;embeddedPrefix:hab_"`
-	BaseHab                           Hab                   `json:"baseHab,omitempty" gorm:"embedded;embeddedPrefix:base_hab_"`
-	TerraformedAmount                 Hab                   `json:"terraformedAmount,omitempty" gorm:"embedded;embeddedPrefix:terraform_hab_"`
-	MineralConcentration              Mineral               `json:"mineralConcentration,omitempty" gorm:"embedded;embeddedPrefix:mineral_conc_"`
-	MineYears                         Mineral               `json:"mineYears,omitempty" gorm:"embedded;embeddedPrefix:mine_years_"`
-	Cargo                             Cargo                 `json:"cargo,omitempty" gorm:"embedded;embeddedPrefix:cargo_"`
+	Hab                               Hab                   `json:"hab,omitempty"`
+	BaseHab                           Hab                   `json:"baseHab,omitempty"`
+	TerraformedAmount                 Hab                   `json:"terraformedAmount,omitempty"`
+	MineralConcentration              Mineral               `json:"mineralConcentration,omitempty"`
+	MineYears                         Mineral               `json:"mineYears,omitempty"`
+	Cargo                             Cargo                 `json:"cargo,omitempty"`
 	Mines                             int                   `json:"mines,omitempty"`
 	Factories                         int                   `json:"factories,omitempty"`
 	Defenses                          int                   `json:"defenses,omitempty"`
@@ -22,9 +22,9 @@ type Planet struct {
 	ContributesOnlyLeftoverToResearch bool                  `json:"contributesOnlyLeftoverToResearch,omitempty"`
 	Scanner                           bool                  `json:"scanner,omitempty"`
 	PacketSpeed                       int                   `json:"packetSpeed,omitempty"`
-	BonusResources                    int                   `json:"-" gorm:"-"`
-	ProductionQueue                   []ProductionQueueItem `json:"productionQueue,omitempty" gorm:"serializer:json"`
-	Spec                              *PlanetSpec           `json:"spec,omitempty" gorm:"serializer:json"`
+	BonusResources                    int                   `json:"-"`
+	ProductionQueue                   []ProductionQueueItem `json:"productionQueue,omitempty"`
+	Spec                              *PlanetSpec           `json:"spec,omitempty"`
 	starbase                          *Fleet
 }
 
@@ -258,7 +258,7 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 	starbaseDesign := player.GetDesign(startingPlanet.StarbaseDesignName)
 	starbase := NewStarbase(player, p, starbaseDesign, starbaseDesign.Name)
 	starbase.Spec = ComputeFleetSpec(rules, player, &starbase)
-	p.starbase = &starbase	
+	p.starbase = &starbase
 
 	// p.PacketSpeed = p.Starbase.Spec.SafePacketSpeed
 

@@ -7,13 +7,13 @@ import (
 )
 
 type Universe struct {
-	Planets           []*Planet                            `json:"planets,omitempty" gorm:"foreignKey:GameID;references:ID"`
-	Fleets            []*Fleet                             `json:"fleets,omitempty" gorm:"foreignKey:GameID;references:ID"`
-	Starbases         []*Fleet                             `json:"starbases,omitempty" gorm:"foreignKey:GameID;references:ID"`
-	Wormholes         []*Wormohole                         `json:"wormholes,omitempty" gorm:"foreignKey:GameID;references:ID"`
-	MineralPackets    []*MineralPacket                     `json:"mineralPackets,omitempty" gorm:"foreignKey:GameID;references:ID"`
-	MineFields        []*MineField                         `json:"mineFields,omitempty" gorm:"foreignKey:GameID;references:ID"`
-	Salvage           []*Salvage                           `json:"salvage,omitempty" gorm:"foreignKey:GameID;references:ID"`
+	Planets           []*Planet                            `json:"planets,omitempty"`
+	Fleets            []*Fleet                             `json:"fleets,omitempty"`
+	Starbases         []*Fleet                             `json:"starbases,omitempty"`
+	Wormholes         []*Wormohole                         `json:"wormholes,omitempty"`
+	MineralPackets    []*MineralPacket                     `json:"mineralPackets,omitempty"`
+	MineFields        []*MineField                         `json:"mineFields,omitempty"`
+	Salvage           []*Salvage                           `json:"salvage,omitempty"`
 	fleetsByPosition  map[Vector]*Fleet                    `json:"-"`
 	fleetsByNum       map[playerFleetNum]*Fleet            `json:"-"`
 	designsByUUID     map[uuid.UUID]*ShipDesign            `json:"-"`
@@ -79,11 +79,8 @@ func (u *Universe) buildMaps(players []*Player) {
 		u.fleetsByNum[playerFleetNum{fleet.PlayerNum, fleet.Num}] = fleet
 
 		fleet.battlePlan = u.battlePlansByName[playerBattlePlanName{fleet.PlayerNum, fleet.BattlePlanName}]
-		// inject the design into this
-		for i := range fleet.Tokens {
-			token := &fleet.Tokens[i]
-			token.design = u.designsByUUID[token.DesignUUID]
-		}
+
+		fleet.InjectDesigns(u.designsByUUID)
 	}
 
 	for _, starbase := range u.Starbases {

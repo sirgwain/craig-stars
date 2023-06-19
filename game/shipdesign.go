@@ -8,7 +8,7 @@ import (
 )
 
 type ShipDesign struct {
-	ID            int64             `gorm:"primaryKey" json:"id"`
+	ID            int64             `json:"id"`
 	CreatedAt     time.Time         `json:"createdAt"`
 	UpdatedAt     time.Time         `json:"updatedAt"`
 	PlayerID      int64             `json:"playerId"`
@@ -20,9 +20,9 @@ type ShipDesign struct {
 	Hull          string            `json:"hull"`
 	HullSetNumber int               `json:"hullSetNumber"`
 	CanDelete     bool              `json:"canDelete,omitempty"`
-	Slots         []ShipDesignSlot  `json:"slots" gorm:"serializer:json"`
+	Slots         []ShipDesignSlot  `json:"slots"`
 	Purpose       ShipDesignPurpose `json:"purpose,omitempty"`
-	Spec          *ShipDesignSpec   `json:"spec" gorm:"serializer:json"`
+	Spec          *ShipDesignSpec   `json:"spec"`
 }
 
 type ShipDesignSlot struct {

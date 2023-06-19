@@ -27,14 +27,16 @@ func (s *server) UpdateFleetOrders(c *gin.Context) {
 	// find the existing fleet by id
 	existing, err := s.db.GetFleet(fleetID.ID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		log.Error().Err(err).Msg("get fleet from database")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to get fleet from database"})
 		return
 	}
 
 	// find the player for this user
-	player, err := s.db.GetPlayerForGame(existing.GameID, user.ID)
+	player, err := s.db.GetLightPlayerForGame(existing.GameID, user.ID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		log.Error().Err(err).Msg("load player from database")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to load player from database"})
 		return
 	}
 
@@ -68,7 +70,11 @@ func (s *server) UpdateFleetOrders(c *gin.Context) {
 
 	existing.Waypoints = append(existing.Waypoints[:1], orders.Waypoints[1:]...)
 	existing.ComputeFuelUsage(player)
-	s.db.UpdateFleet(existing)
+	if err := s.db.UpdateFleet(existing); err != nil {
+		log.Error().Err(err).Msg("update fleet in database")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to update fleet in database"})
+		return
+	}
 
 	c.JSON(http.StatusOK, existing)
 }
@@ -90,7 +96,7 @@ func (s *server) TransferCargo(c *gin.Context) {
 	}
 
 	// find the player for this user
-	player, err := s.db.GetPlayerForGame(fleet.GameID, user.ID)
+	player, err := s.db.GetLightPlayerForGame(fleet.GameID, user.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

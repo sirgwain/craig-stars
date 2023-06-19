@@ -7,7 +7,7 @@ import (
 )
 
 type Rules struct {
-	ID                                 int64                               `gorm:"primaryKey" json:"id"`
+	ID                                 int64                               `json:"id"`
 	CreatedAt                          time.Time                           `json:"createdAt"`
 	UpdatedAt                          time.Time                           `json:"updatedAt"`
 	GameID                             int64                               `json:"gameId"`
@@ -26,14 +26,14 @@ type Rules struct {
 	MineFieldCloak                     int                                 `json:"mineFieldCloak"`
 	StargateMaxRangeFactor             int                                 `json:"stargateMaxRangeFactor"`
 	StargateMaxHullMassFactor          int                                 `json:"stargateMaxHullMassFactor"`
-	RandomEventChances                 map[RandomEvent]float64             `json:"randomEventChances" gorm:"serializer:json"`
-	RandomMineralDepositBonusRange     [2]int                              `json:"randomMineralDepositBonusRange" gorm:"serializer:json"`
+	RandomEventChances                 map[RandomEvent]float64             `json:"randomEventChances"`
+	RandomMineralDepositBonusRange     [2]int                              `json:"randomMineralDepositBonusRange"`
 	WormholeCloak                      int                                 `json:"wormholeCloak"`
 	WormholeMinDistance                int                                 `json:"wormholeMinDistance"`
-	WormholeStatsByStability           map[WormholeStability]WormholeStats `json:"wormholeStatsByStability" gorm:"serializer:json"`
-	WormholePairsForSize               map[Size]int                        `json:"wormholePairsForSize" gorm:"serializer:json"`
-	MineFieldStatsByType               map[MineFieldType]MineFieldStats    `json:"mineFieldStatsByType" gorm:"serializer:json"`
-	RepairRates                        map[RepairRate]float64              `json:"repairRates" gorm:"serializer:json"`
+	WormholeStatsByStability           map[WormholeStability]WormholeStats `json:"wormholeStatsByStability"`
+	WormholePairsForSize               map[Size]int                        `json:"wormholePairsForSize"`
+	MineFieldStatsByType               map[MineFieldType]MineFieldStats    `json:"mineFieldStatsByType"`
+	RepairRates                        map[RepairRate]float64              `json:"repairRates"`
 	MaxPlayers                         int                                 `json:"maxPlayers"`
 	StartingYear                       int                                 `json:"startingYear"`
 	ShowPublicScoresAfterYears         int                                 `json:"showPublicScoresAfterYears"`
@@ -57,15 +57,15 @@ type Rules struct {
 	ScrapMineralAmount                 float64                             `json:"scrapMineralAmount"`
 	ScrapResourceAmount                float64                             `json:"scrapResourceAmount"`
 	FactoryCostGermanium               int                                 `json:"factoryCostGermanium"`
-	DefenseCost                        Cost                                `json:"defenseCost" gorm:"serializer:json"`
+	DefenseCost                        Cost                                `json:"defenseCost"`
 	MineralAlchemyCost                 int                                 `json:"mineralAlchemyCost"`
-	TerraformCost                      Cost                                `json:"terraformCost" gorm:"serializer:json"`
+	TerraformCost                      Cost                                `json:"terraformCost"`
 	StarbaseComponentCostFactor        float64                             `json:"starbaseComponentCostFactor"`
-	PacketDecayRate                    map[int]float64                     `json:"packetDecayRate" gorm:"serializer:json"`
+	PacketDecayRate                    map[int]float64                     `json:"packetDecayRate"`
 	MaxTechLevel                       int                                 `json:"maxTechLevel"`
-	TechBaseCost                       []int                               `json:"techBaseCost" gorm:"serializer:json"`
-	PRTSpecs                           map[PRT]PRTSpec                     `json:"prtSpecs" gorm:"serializer:json"`
-	LRTSpecs                           map[LRT]LRTSpec                     `json:"lrtSpecs" gorm:"serializer:json"`
+	TechBaseCost                       []int                               `json:"techBaseCost"`
+	PRTSpecs                           map[PRT]PRTSpec                     `json:"prtSpecs"`
+	LRTSpecs                           map[LRT]LRTSpec                     `json:"lrtSpecs"`
 	TechsID                            int64                               `json:"techsId"`
 	random                             *rand.Rand
 	techs                              *TechStore

@@ -11,10 +11,10 @@ import (
 )
 
 type Game struct {
-	ID                                        int64                `gorm:"primaryKey" json:"id,omitempty" header:"ID" boltholdKey:"ID"`
+	ID                                        int64                `json:"id,omitempty"`
 	CreatedAt                                 time.Time            `json:"createdAt,omitempty"`
 	UpdatedAt                                 time.Time            `json:"updatedAt,omitempty"`
-	Name                                      string               `json:"name,omitempty" header:"Name"`
+	Name                                      string               `json:"name,omitempty"`
 	HostID                                    int64                `json:"hostId,omitempty"`
 	QuickStartTurns                           int                  `json:"quickStartTurns,omitempty"`
 	Size                                      game.Size            `json:"size,omitempty"`

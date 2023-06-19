@@ -255,6 +255,11 @@ func GameRaceSpecToRaceSpec(source *game.RaceSpec) *RaceSpec {
 }
 
 func BattlePlansToGameBattlePlans(source *BattlePlans) []game.BattlePlan {
+	// return an empty slice for nil
+	if source == nil {
+		return []game.BattlePlan{}
+	}
+
 	return ([]game.BattlePlan)(*source)
 }
 
@@ -263,6 +268,10 @@ func GameBattlePlansToBattlePlans(source []game.BattlePlan) *BattlePlans {
 }
 
 func ProductionPlansToGameProductionPlans(source *ProductionPlans) []game.ProductionPlan {
+	// return an empty slice for nil
+	if source == nil {
+		return []game.ProductionPlan{}
+	}
 	return ([]game.ProductionPlan)(*source)
 }
 
@@ -271,6 +280,10 @@ func GameProductionPlansToProductionPlans(source []game.ProductionPlan) *Product
 }
 
 func TransportPlansToGameTransportPlans(source *TransportPlans) []game.TransportPlan {
+	// return an empty slice for nil
+	if source == nil {
+		return []game.TransportPlan{}
+	}
 	return ([]game.TransportPlan)(*source)
 }
 
@@ -279,6 +292,10 @@ func GameTransportPlansToTransportPlans(source []game.TransportPlan) *TransportP
 }
 
 func PlayerMessagesToGamePlayerMessages(source *PlayerMessages) []game.PlayerMessage {
+	// return an empty slice for nil
+	if source == nil {
+		return []game.PlayerMessage{}
+	}
 	return ([]game.PlayerMessage)(*source)
 }
 
@@ -287,6 +304,10 @@ func GamePlayerMessagesToPlayerMessages(source []game.PlayerMessage) *PlayerMess
 }
 
 func PlanetIntelsToGamePlanetIntels(source *PlanetIntels) []game.PlanetIntel {
+	// return an empty slice for nil
+	if source == nil {
+		return []game.PlanetIntel{}
+	}
 	return ([]game.PlanetIntel)(*source)
 }
 
@@ -295,6 +316,10 @@ func GamePlanetIntelsToPlanetIntels(source []game.PlanetIntel) *PlanetIntels {
 }
 
 func FleetIntelsToGameFleetIntels(source *FleetIntels) []game.FleetIntel {
+	// return an empty slice for nil
+	if source == nil {
+		return []game.FleetIntel{}
+	}
 	return ([]game.FleetIntel)(*source)
 }
 
@@ -303,6 +328,10 @@ func GameFleetIntelsToFleetIntels(source []game.FleetIntel) *FleetIntels {
 }
 
 func ShipDesignIntelsToGameShipDesignIntels(source *ShipDesignIntels) []game.ShipDesignIntel {
+	// return an empty slice for nil
+	if source == nil {
+		return []game.ShipDesignIntel{}
+	}
 	return ([]game.ShipDesignIntel)(*source)
 }
 
@@ -311,6 +340,10 @@ func GameShipDesignIntelsToShipDesignIntels(source []game.ShipDesignIntel) *Ship
 }
 
 func MineralPacketIntelsToGameMineralPacketIntels(source *MineralPacketIntels) []game.MineralPacketIntel {
+	// return an empty slice for nil
+	if source == nil {
+		return []game.MineralPacketIntel{}
+	}
 	return ([]game.MineralPacketIntel)(*source)
 }
 
@@ -319,6 +352,10 @@ func GameMineralPacketIntelsToMineralPacketIntels(source []game.MineralPacketInt
 }
 
 func MineFieldIntelsToGameMineFieldIntels(source *MineFieldIntels) []game.MineFieldIntel {
+	// return an empty slice for nil
+	if source == nil {
+		return []game.MineFieldIntel{}
+	}
 	return ([]game.MineFieldIntel)(*source)
 }
 
@@ -326,8 +363,11 @@ func GameMineFieldIntelsToMineFieldIntels(source []game.MineFieldIntel) *MineFie
 	return (*MineFieldIntels)(&source)
 }
 
-
 func PlayerRaceToGameRace(source *PlayerRace) game.Race {
+	// return an empty object for nil
+	if source == nil {
+		return game.Race{}
+	}
 	return game.Race(*source)
 }
 
@@ -594,4 +634,3 @@ func ExtendFleetPreviousPosition(source Fleet) *game.Vector {
 		Y: *source.PreviousPositionY,
 	}
 }
-

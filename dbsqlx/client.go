@@ -66,10 +66,11 @@ type Client interface {
 	GetPlayers() ([]game.Player, error)
 	GetPlayersForUser(userID int64) ([]game.Player, error)
 	GetPlayer(id int64) (*game.Player, error)
-	GetPlayerForGame(gameID, userID int64) (*game.Player, error)
+	GetLightPlayerForGame(gameID, userID int64) (*game.Player, error)
 	GetFullPlayerForGame(gameID, userID int64) (*game.FullPlayer, error)
 	CreatePlayer(player *game.Player) error
 	UpdatePlayer(player *game.Player) error
+	UpdateLightPlayer(player *game.Player) error
 	DeletePlayer(id int64) error
 
 	GetPlanet(id int64) (*game.Planet, error)

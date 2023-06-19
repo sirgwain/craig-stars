@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 	"github.com/sirgwain/craig-stars/game"
 )
 
@@ -53,6 +54,35 @@ func (c *client) GetShipDesignsForPlayer(playerID int64) ([]game.ShipDesign, err
 
 	items := []ShipDesign{}
 	if err := c.db.Select(&items, `SELECT * FROM shipDesigns WHERE playerId = ?`, playerID); err != nil {
+		if err == sql.ErrNoRows {
+			return []game.ShipDesign{}, nil
+		}
+		return nil, err
+	}
+
+	result := make([]game.ShipDesign, len(items))
+
+	for i := range items {
+		result[i] = *c.converter.ConvertShipDesign(&items[i])
+	}
+
+	return result, nil
+}
+
+func (c *client) getShipDesignsByUUIDs(uuids []uuid.UUID) ([]game.ShipDesign, error) {
+
+	uuidStrings := make([]string, len(uuids))
+	for i, uuid := range uuids {
+		uuidStrings[i] = uuid.String()
+	}
+	query, args, err := sqlx.In(`SELECT * FROM shipDesigns WHERE uuid IN (?)`, uuidStrings)
+	if err != nil {
+		return nil, err
+	}
+
+	query = c.db.Rebind(query)
+	items := []ShipDesign{}
+	if err := c.db.Select(&items, query, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return []game.ShipDesign{}, nil
 		}
