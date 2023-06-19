@@ -9,15 +9,17 @@ type MineralPacket struct {
 	MapObject
 	TargetPlanetNum   int    `json:"targetPlanetNum,omitempty"`
 	Cargo             Cargo  `json:"cargo,omitempty"`
-	WarpFactor        int    `json:"warpFactor"`
+	WarpSpeed         int    `json:"warpSpeed"`
 	SafeWarpSpeed     int    `json:"safeWarpSpeed,omitempty"`
 	Heading           Vector `json:"heading"`
+	ScanRange         int    `json:"scanRange"`
+	ScanRangePen      int    `json:"scanRangePen"`
 	distanceTravelled float64
 	builtThisTurn     bool
 }
 
-func newMineralPacket(player *Player, num int, warpFactor int, safeWarpSpeed int, cargo Cargo, position Vector, targetPlanetNum int) *MineralPacket {
-	return &MineralPacket{
+func newMineralPacket(player *Player, num int, warpSpeed int, safeWarpSpeed int, cargo Cargo, position Vector, targetPlanetNum int) *MineralPacket {
+	packet := MineralPacket{
 		MapObject: MapObject{
 			Type:      MapObjectTypeMineralPacket,
 			PlayerNum: player.Num,
@@ -26,24 +28,33 @@ func newMineralPacket(player *Player, num int, warpFactor int, safeWarpSpeed int
 			Name:      fmt.Sprintf("%s Mineral Packet", player.Race.PluralName),
 			Position:  position,
 		},
-		WarpFactor:      warpFactor,
+		WarpSpeed:       warpSpeed,
 		SafeWarpSpeed:   safeWarpSpeed,
 		Cargo:           cargo,
 		TargetPlanetNum: targetPlanetNum,
+		ScanRange:       NoScanner,
+		ScanRangePen:    NoScanner,
 	}
+
+	// PP packets have built in scanners
+	if player.Race.Spec.PacketBuiltInScanner {
+		packet.ScanRangePen = warpSpeed * warpSpeed
+	}
+
+	return &packet
 }
 
 // get the rate of decay for a packet between 0 and 1
 // https://wiki.starsautohost.org/wiki/%22Mass_Packet_FAQ%22_by_Barry_Kearns_1997-02-07_v2.6b
 // Depending on how fast a packet is thrown compared to it's safe speed, it decays
 func (packet *MineralPacket) getPacketDecayRate(rules *Rules, race *Race) float64 {
-	overSafeWarp := packet.WarpFactor - packet.SafeWarpSpeed
+	overSafeWarp := packet.WarpSpeed - packet.SafeWarpSpeed
 
 	// IT is always count as being at least 1 over the safe warp
 	overSafeWarp += race.Spec.PacketOverSafeWarpPenalty
 
 	// we only care about packets thrown up to 3 warp over the limit
-	overSafeWarp = minInt(packet.WarpFactor-packet.SafeWarpSpeed, 3)
+	overSafeWarp = minInt(packet.WarpSpeed-packet.SafeWarpSpeed, 3)
 
 	packetDecayRate := 0.0
 	if overSafeWarp > 0 {
@@ -58,7 +69,7 @@ func (packet *MineralPacket) getPacketDecayRate(rules *Rules, race *Race) float6
 
 // move this packet through spcae
 func (packet *MineralPacket) movePacket(rules *Rules, player *Player, target *Planet, planetPlayer *Player) {
-	dist := float64(packet.WarpFactor * packet.WarpFactor)
+	dist := float64(packet.WarpSpeed * packet.WarpSpeed)
 	totalDist := packet.Position.DistanceTo(target.Position)
 
 	// move at half distance if this packet was created this turn
@@ -112,7 +123,7 @@ func (packet *MineralPacket) completeMove(rules *Rules, player *Player, planet *
 
 	var uncaught int
 
-	if planet.Spec.HasMassDriver && planet.Spec.SafePacketSpeed >= packet.WarpFactor {
+	if planet.Spec.HasMassDriver && planet.Spec.SafePacketSpeed >= packet.WarpSpeed {
 		// caught packet successfully, transfer cargo
 		messager.mineralPacketCaught(planetPlayer, planet, packet)
 	} else if !planet.owned() {
@@ -125,7 +136,7 @@ func (packet *MineralPacket) completeMove(rules *Rules, player *Player, planet *
 			receiverDriverSpeed = planet.Spec.SafePacketSpeed
 		}
 
-		speedOfPacket := packet.WarpFactor * packet.WarpFactor
+		speedOfPacket := packet.WarpSpeed * packet.WarpSpeed
 		speedOfReceiver := receiverDriverSpeed * receiverDriverSpeed
 		percentCaughtSafely := float64(speedOfReceiver) / float64(speedOfPacket)
 		uncaught = int((1.0 - percentCaughtSafely) * float64(weight))

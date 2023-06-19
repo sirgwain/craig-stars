@@ -308,6 +308,18 @@ func (scan *playerScan) getScanners() []scanner {
 		}
 	}
 
+	// Packet Physics packets act as pen scanners
+	for _, packet := range scan.universe.MineralPackets {
+		if packet.PlayerNum == scan.player.Num && (packet.ScanRange != NoScanner || packet.ScanRangePen != NoScanner) {
+			scanner := scanner{
+				Position:     packet.Position,
+				RangeSquared: packet.ScanRange*packet.ScanRange,
+				RangePenSquared: packet.ScanRangePen*packet.ScanRangePen,
+			}
+			scanners = append(scanners, scanner)
+		}
+	}
+
 	// add in any fleet scanners that weren't on a planet
 	if len(scanners) == 0 {
 		// we have no planetary scanners (weird, but possible if all planets with scanners are destroyed)

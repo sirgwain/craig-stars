@@ -121,9 +121,9 @@ type FleetIntel struct {
 
 type MineralPacketIntel struct {
 	MapObjectIntel
-	WarpFactor uint   `json:"warpFactor,omitempty"`
-	Heading    Vector `json:"position"`
-	Cargo      Cargo  `json:"cargo,omitempty"`
+	WarpSpeed uint   `json:"warpSpeed,omitempty"`
+	Heading   Vector `json:"position"`
+	Cargo     Cargo  `json:"cargo,omitempty"`
 }
 
 type SalvageIntel struct {
@@ -166,13 +166,14 @@ func (d *ShipDesignIntel) String() string {
 }
 
 // create a new FleetIntel object by key
-func newFleetIntel(playerNum int, name string) FleetIntel {
+func newFleetIntel(playerNum int, num int, name string) FleetIntel {
 	return FleetIntel{
 		MapObjectIntel: MapObjectIntel{
 			Type: MapObjectTypeFleet,
 			Intel: Intel{
 				Name:      name,
 				PlayerNum: playerNum,
+				Num:       num,
 			},
 		},
 	}
@@ -306,7 +307,7 @@ func (d *discover) discoverPlanetCargo(player *Player, planet *Planet) error {
 
 // discover a fleet and add it to the player's fleet intel
 func (d *discover) discoverFleet(player *Player, fleet *Fleet) {
-	intel := newFleetIntel(fleet.PlayerNum, fleet.Name)
+	intel := newFleetIntel(fleet.PlayerNum, fleet.Num, fleet.Name)
 
 	intel.Name = fleet.Name
 	intel.PlayerNum = fleet.PlayerNum
@@ -323,7 +324,7 @@ func (d *discover) discoverFleet(player *Player, fleet *Fleet) {
 
 // discover cargo for an existing fleet
 func (d *discover) discoverFleetCargo(player *Player, fleet *Fleet) {
-	key := newFleetIntel(fleet.PlayerNum, fleet.Name)
+	key := newFleetIntel(fleet.PlayerNum, fleet.Num, fleet.Name)
 
 	existingIntel, found := d.fleetIntelsByKey[key.String()]
 	if found {

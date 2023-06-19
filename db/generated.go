@@ -196,6 +196,8 @@ func (c *GameConverter) ConvertPlayer(source Player) cs.Player {
 	csPlayer.Battles = BattleRecordsToGameBattleRecords(source.Battles)
 	csPlayer.Spec = PlayerSpecToGamePlayerSpec(source.Spec)
 	csPlayer.ScoreHistory = PlayerScoresToGamePlayerScores(source.ScoreHistory)
+	csPlayer.AchievedVictoryConditions = cs.Bitmask(source.AchievedVictoryConditions)
+	csPlayer.Victor = source.Victor
 	csPlayer.Stats = PlayerStatsToGamePlayerStats(source.Stats)
 	return csPlayer
 }
@@ -404,7 +406,9 @@ func (c *GameConverter) csMineralPacketToDbMineralPacket(source cs.MineralPacket
 	dbMineralPacket.Boranium = source.Cargo.Boranium
 	dbMineralPacket.Germanium = source.Cargo.Germanium
 	dbMineralPacket.SafeWarpSpeed = source.SafeWarpSpeed
-	dbMineralPacket.WarpFactor = source.WarpFactor
+	dbMineralPacket.WarpSpeed = source.WarpSpeed
+	dbMineralPacket.ScanRange = source.ScanRange
+	dbMineralPacket.ScanRangePen = source.ScanRangePen
 	dbMineralPacket.HeadingX = source.Heading.X
 	dbMineralPacket.HeadingY = source.Heading.Y
 	return dbMineralPacket
@@ -517,6 +521,8 @@ func (c *GameConverter) csPlayerToDbPlayer(source cs.Player) Player {
 	dbPlayer.Race = GameRaceToPlayerRace(source.Race)
 	dbPlayer.Stats = GamePlayerStatsToPlayerStats(source.Stats)
 	dbPlayer.ScoreHistory = GamePlayerScoresToPlayerScores(source.ScoreHistory)
+	dbPlayer.AchievedVictoryConditions = cs.Bitmask(source.AchievedVictoryConditions)
+	dbPlayer.Victor = source.Victor
 	dbPlayer.Spec = GamePlayerSpecToPlayerSpec(source.Spec)
 	return dbPlayer
 }
@@ -660,9 +666,11 @@ func (c *GameConverter) dbMineralPacketToCsMineralPacket(source MineralPacket) c
 	csMineralPacket.MapObject = ExtendMineralPacketMapObject(source)
 	csMineralPacket.TargetPlanetNum = source.TargetPlanetNum
 	csMineralPacket.Cargo = ExtendMineralPacketCargo(source)
-	csMineralPacket.WarpFactor = source.WarpFactor
+	csMineralPacket.WarpSpeed = source.WarpSpeed
 	csMineralPacket.SafeWarpSpeed = source.SafeWarpSpeed
 	csMineralPacket.Heading = ExtendMineralPacketHeading(source)
+	csMineralPacket.ScanRange = source.ScanRange
+	csMineralPacket.ScanRangePen = source.ScanRangePen
 	return csMineralPacket
 }
 func (c *GameConverter) dbMysteryTraderToCsMysteryTrader(source MysteryTrader) cs.MysteryTrader {

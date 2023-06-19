@@ -28,6 +28,7 @@ func createSingleUnitGame() *FullGame {
 	player := client.NewPlayer(1, *NewRace(), &game.Rules).withSpec(&game.Rules)
 	player.Num = 1
 	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}} // friends with themselves
+	player.PlayerIntels.PlayerIntels = player.defaultPlayerIntels([]*Player{player})
 
 	planet := &Planet{
 		MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 1", Num: 1, PlayerNum: player.Num},
@@ -36,6 +37,9 @@ func createSingleUnitGame() *FullGame {
 		},
 	}
 	planet.Spec = computePlanetSpec(&game.Rules, player, planet)
+
+	// setup initial planet intels for this planet
+	player.initDefaultPlanetIntels(&game.Rules, []*Planet{planet})
 
 	fleet := testLongRangeScout(player)
 	fleet.OrbitingPlanetNum = planet.Num
@@ -117,6 +121,10 @@ func Test_generateTurns(t *testing.T) {
 
 	// should have researched
 	assert.NotEqual(t, player.TechLevels, TechLevel{3, 3, 3, 3, 3, 3})
+
+	// no victor
+	assert.False(t, player.Victor)
+	assert.False(t, game.VictorDeclared)
 
 }
 
@@ -766,4 +774,56 @@ func Test_turn_decayPackets(t *testing.T) {
 	assert.Equal(t, packetSafe.Cargo, Cargo{100, 100, 100, 0})
 	assert.Equal(t, packetTooFast.Cargo, Cargo{50, 50, 50, 0})
 	assert.Equal(t, packetNewlyBuilt.Cargo, Cargo{75, 75, 75, 0})
+}
+
+func Test_turn_fleetPatrol(t *testing.T) {
+	game := createSingleUnitGame()
+	rules := game.rules
+
+	// make a new destroyer to patrol within 50ly
+	player := game.Players[0]
+	fleet := testStalwartDefender(player)
+	fleet.Waypoints[0].Task = WaypointTaskPatrol
+	fleet.Waypoints[0].PatrolRange = 50
+	player.Designs[0] = fleet.Tokens[0].design
+	game.Fleets[0] = fleet
+
+	// create a new enemy player with a fleet 100ly away
+	enemyPlayer := NewPlayer(2, NewRace().WithSpec(rules)).WithNum(2).withSpec(rules)
+	enemyFleet := testLongRangeScout(enemyPlayer)
+	enemyFleet.Position = Vector{60, 0}
+	enemyPlayer.Designs = []*ShipDesign{enemyFleet.Tokens[0].design}
+	game.Players = append(game.Players, enemyPlayer)
+	game.Fleets = append(game.Fleets, enemyFleet)
+
+	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
+	enemyPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
+	player.PlayerIntels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer})
+	enemyPlayer.PlayerIntels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer})
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// no patrol target
+	err := turn.generateTurn()
+	if err != nil {
+		t.Error("failed to generate turn", err)
+	}
+
+	// should not attack
+	assert.Equal(t, 1, len(fleet.Waypoints))
+
+	// move closer, should target
+	enemyFleet.Position = Vector{50, 0}
+	turn.generateTurn()
+
+	// should not attack
+	assert.Equal(t, len(fleet.Waypoints), 2)
+	assert.Equal(t, fleet.Waypoints[1].TargetType, MapObjectTypeFleet)
+	assert.Equal(t, fleet.Waypoints[1].TargetPlayerNum, enemyFleet.PlayerNum)
+	assert.Equal(t, fleet.Waypoints[1].TargetNum, enemyFleet.Num)
+	assert.Equal(t, fleet.Waypoints[1].WarpSpeed, 6)
+
 }

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import WarpFactorBar from '$lib/components/game/WarpFactorBar.svelte';
+	import WarpSpeedGauge from '$lib/components/game/WarpSpeedGauge.svelte';
 	import {
 		commandedMapObjectName,
 		selectedWaypoint,
@@ -71,9 +71,9 @@
 		}
 	};
 
-	const onWarpFactorChanged = async (warpFactor: number) => {
+	const onWarpSpeedChanged = async (warpSpeed: number) => {
 		if ($selectedWaypoint) {
-			$selectedWaypoint.warpFactor = warpFactor;
+			$selectedWaypoint.warpSpeed = warpSpeed;
 			await game.updateFleetOrders(fleet);
 
 			// update the commanded object
@@ -181,16 +181,16 @@
 			<div class="flex mt-1">
 				<span>Warp Factor</span>
 				<span class="flex-1 ml-1"
-					><WarpFactorBar
-						on:valuechanged={(e) => onWarpFactorChanged(e.detail)}
-						bind:value={$selectedWaypoint.warpFactor}
+					><WarpSpeedGauge
+						on:valuechanged={(e) => onWarpSpeedChanged(e.detail)}
+						bind:value={$selectedWaypoint.warpSpeed}
 					/></span
 				>
 			</div>
 			<div class="flex justify-between mt-1">
 				<span>Travel Time</span>
 				<span
-					>{Math.ceil(dist / ($selectedWaypoint.warpFactor * $selectedWaypoint.warpFactor))} years</span
+					>{Math.ceil(dist / ($selectedWaypoint.warpSpeed * $selectedWaypoint.warpSpeed))} years</span
 				>
 			</div>
 			<div class="flex justify-between mt-1">
@@ -216,11 +216,11 @@
 			</div>
 			<div class="flex justify-between mt-1">
 				<span>Warp Factor</span>
-				<span>{nextWaypoint.warpFactor}</span>
+				<span>{nextWaypoint.warpSpeed}</span>
 			</div>
 			<div class="flex justify-between mt-1">
 				<span>Travel Time</span>
-				<span>{Math.ceil(dist / (nextWaypoint.warpFactor * nextWaypoint.warpFactor))} years</span>
+				<span>{Math.ceil(dist / (nextWaypoint.warpSpeed * nextWaypoint.warpSpeed))} years</span>
 			</div>
 			<div class="flex justify-between mt-1">
 				<span>Est Fuel Usage</span>

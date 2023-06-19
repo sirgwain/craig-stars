@@ -64,7 +64,7 @@ func (o *orders) UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrd
 	newWP0 := orders.Waypoints[0]
 
 	// TODO: do we want to lookup the target?
-	wp0.WarpFactor = newWP0.WarpFactor
+	wp0.WarpSpeed = newWP0.WarpSpeed
 	wp0.Task = newWP0.Task
 	wp0.TransportTasks = newWP0.TransportTasks
 	wp0.LayMineFieldDuration = newWP0.LayMineFieldDuration
@@ -371,6 +371,7 @@ func (o *orders) Merge(rules *Rules, player *Player, fleets []*Fleet) (*Fleet, e
 	}
 
 	fleet.Spec = ComputeFleetSpec(rules, player, fleet)
+	fleet.MarkDirty()
 
 	return fleet, nil
 }

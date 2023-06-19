@@ -41,8 +41,8 @@
 					path: 'M' + coords.map((coord) => `${$xGet(coord)}, ${$yGet(coord)}`).join('L'),
 					props: {
 						'stroke-width': strokeWidth,
-						'stroke-dasharray': `${$xScale(dist)} ${$xScale(5)}`,
-						'stroke-dashoffset': `${$xScale(dist / 2)}`
+						'stroke-dasharray': `${$xScale(dist)-$xScale(5)} ${$xScale(5)}`,
+						'stroke-dashoffset': `${$xScale(dist / 2)-$xScale(5)}`
 					}
 				};
 			});
@@ -68,5 +68,5 @@
 	</defs>
 </svg>
 {#each lines as line}
-	<path d={line.path} {...line.props} class="packet-dest-line" marker-end="url(#packet-arrow)" />
+	<path d={line.path} {...line.props} class="packet-dest-line" marker-end="url(#packet-arrow)"/>
 {/each}

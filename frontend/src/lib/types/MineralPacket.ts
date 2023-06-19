@@ -5,7 +5,9 @@ import type { Vector } from './Vector';
 export type MineralPacket = {
 	targetPlanetNum?: number;
 	cargo: Cargo;
-	warpFactor: number;
+	warpSpeed: number;
 	safeWarpSpeed?: number;
 	heading: Vector;
+	scanRange: number;
+	scanRangePen: number;
 } & MapObject;

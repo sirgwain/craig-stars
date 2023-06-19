@@ -177,7 +177,7 @@
 			const mo = options.mo;
 			$commandedFleet.waypoints.splice(waypointIndex + 1, 0, {
 				position: mo.position,
-				warpFactor: $commandedFleet.spec?.idealSpeed ?? 5,
+				warpSpeed: $commandedFleet.spec?.idealSpeed ?? 5,
 				targetName: mo.name,
 				targetPlayerNum: mo.playerNum,
 				targetNum: mo.num,
@@ -188,7 +188,7 @@
 		} else if (options.position) {
 			$commandedFleet.waypoints.splice(waypointIndex + 1, 0, {
 				position: options.position,
-				warpFactor: $commandedFleet.spec?.idealSpeed ?? 5,
+				warpSpeed: $commandedFleet.spec?.idealSpeed ?? 5,
 				task: WaypointTask.None,
 				transportTasks: { fuel: {}, ironium: {}, boranium: {}, germanium: {}, colonists: {} }
 			});

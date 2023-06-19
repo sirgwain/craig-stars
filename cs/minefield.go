@@ -207,7 +207,7 @@ func checkForMineFieldCollision(rules *Rules, playerGetter playerGetter, mapObje
 		if mineField.PlayerNum != fleet.PlayerNum {
 			// we only check if we are going faster than allowed by the minefield.
 			stats := rules.MineFieldStatsByType[mineField.MineFieldType]
-			if dest.WarpFactor > stats.MaxSpeed+safeWarpBonus {
+			if dest.WarpSpeed > stats.MaxSpeed+safeWarpBonus {
 				// this is not our minefield, and we are going fast, check if we intersect.
 				from := fleet.Position
 				to := (dest.Position.Subtract(fleet.Position).Normalized()).Scale(distance).Add(from)
@@ -228,7 +228,7 @@ func checkForMineFieldCollision(rules *Rules, playerGetter playerGetter, mapObje
 					// the fleet is travelling through the field. A normal mine has a .3% chance
 					// of hitting a ship per extra warp over warp 4, so a warp 9 ship
 					// has a 1.5% chance of hitting a mine per lightyear travelled
-					unsafeWarp := dest.WarpFactor - (stats.MaxSpeed + safeWarpBonus)
+					unsafeWarp := dest.WarpSpeed - (stats.MaxSpeed + safeWarpBonus)
 					chanceToHit := stats.ChanceOfHit * float64(unsafeWarp)
 					for checkNum := 0; checkNum < lightYearsInField; checkNum++ {
 						if chanceToHit >= rules.random.Float64() {

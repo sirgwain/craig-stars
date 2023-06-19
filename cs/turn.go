@@ -48,7 +48,7 @@ func (t *turn) generateTurn() error {
 	t.fleetUnload()
 	t.fleetColonize()
 	t.fleetLoad()
-	t.fleetMerge0()
+	t.fleetMerge()
 	t.fleetRoute()
 	t.fleetMarkWaypointsProcessed()
 
@@ -86,8 +86,9 @@ func (t *turn) generateTurn() error {
 	t.decayMines()
 	t.fleetLayMines()
 	t.fleetTransferOwner()
-	t.fleetMerge1()
+	t.fleetMerge()
 	t.fleetRoute()
+	t.fleetNotifyIdle()
 
 	// do some final stuff like instaforming and repairing
 	t.instaform()
@@ -106,7 +107,6 @@ func (t *turn) generateTurn() error {
 		if err := scanner.scan(); err != nil {
 			return fmt.Errorf("scan universe and update player intel -> %w", err)
 		}
-		t.discoverPlayer(player)
 		t.fleetPatrol(player)
 		t.checkVictory(player)
 
@@ -136,6 +136,8 @@ func (t *turn) computePlanetSpecs() {
 // fleetInit will reset any fleet data before processing
 func (t *turn) fleetInit() {
 	for _, fleet := range t.game.Fleets {
+		// age this fleet by 1 year
+		fleet.Age++
 		wp0 := fleet.Waypoints[0]
 		wp0.processed = false
 
@@ -337,8 +339,35 @@ func (t *turn) fleetTransferCargo(fleet *Fleet, transferAmount int, cargoType Ca
 	}
 }
 
-func (t *turn) fleetMerge0() {
+func (t *turn) fleetMerge() {
+	for _, fleet := range t.game.Fleets {
+		wp := &fleet.Waypoints[0]
+		if wp.processed || wp.Task != WaypointTaskMergeWithFleet {
+			continue
+		}
 
+		player := t.game.getPlayer(fleet.PlayerNum)
+		target := t.game.getFleet(wp.TargetPlayerNum, wp.TargetNum)
+		if target == nil {
+			messager.fleetInvalidMergeNotFleet(player, fleet)
+			continue
+		}
+		if target.PlayerNum != fleet.PlayerNum {
+			messager.fleetInvalidMergeNotOwned(player, fleet)
+			continue
+		}
+
+		orderer := NewOrderer()
+		_, err := orderer.Merge(t.game.rules, player, []*Fleet{fleet, target})
+		if err != nil {
+			log.Err(err).Int64("GameID", t.game.ID).Int("PlayerNum", player.Num).Int("Num", fleet.Num).Msgf("Failed to merge %v with %v", fleet, target)
+			messager.error(player, err)
+			continue
+		}
+
+		// remove this fleet from the universe
+		t.game.deleteFleet(target)
+	}
 }
 
 func (t *turn) fleetRoute() {
@@ -373,7 +402,7 @@ func (t *turn) fleetRoute() {
 						TargetType:      planet.RouteTargetType,
 						TargetNum:       planet.RouteTargetNum,
 						TargetPlayerNum: planet.RouteTargetPlayerNum,
-						WarpFactor:      wp.WarpFactor,
+						WarpSpeed:       wp.WarpSpeed,
 					}
 
 					// if the new target is a planet and it has a target, keep routing
@@ -387,6 +416,35 @@ func (t *turn) fleetRoute() {
 					messager.fleetRouted(player, fleet, planet, mo.Name)
 				}
 			}
+		}
+	}
+}
+
+func (t *turn) fleetNotifyIdle() {
+	for _, fleet := range t.game.Fleets {
+		if fleet.Delete {
+			continue
+		}
+
+		// we were just built this turn
+		if fleet.Age == 0 {
+			continue
+		}
+
+		// we are moving
+		if len(fleet.Waypoints) > 1 {
+			fleet.IdleTurns = 0
+			continue
+		}
+
+		if fleet.Waypoints[0].Task == WaypointTaskNone {
+			if fleet.IdleTurns == 0 {
+				player := t.game.getPlayer(fleet.PlayerNum)
+				messager.fleetCompletedAssignedOrders(player, fleet)
+			}
+			fleet.IdleTurns++
+		} else {
+			fleet.IdleTurns = 0
 		}
 	}
 }
@@ -440,7 +498,7 @@ func (t *turn) fleetMove() {
 				wp0 := fleet.Waypoints[0]
 				wp1 := fleet.Waypoints[1]
 
-				if wp1.WarpFactor == StargateWarpFactor {
+				if wp1.WarpSpeed == StargateWarpSpeed {
 					// yeah, gate!
 					fleet.gateFleet(&t.game.Rules, t.game.Universe, t.game)
 				} else {
@@ -526,7 +584,7 @@ func (t *turn) decayPackets() {
 	for _, packet := range t.game.MineralPackets {
 		player := t.game.getPlayer(packet.PlayerNum)
 		// update the decay rate based on this distance traveled this turn
-		decayRate := 1 - packet.getPacketDecayRate(t.game.rules, &player.Race)*(packet.distanceTravelled/float64(packet.WarpFactor*packet.WarpFactor))
+		decayRate := 1 - packet.getPacketDecayRate(t.game.rules, &player.Race)*(packet.distanceTravelled/float64(packet.WarpSpeed*packet.WarpSpeed))
 		packet.Cargo = packet.Cargo.Multiply(decayRate)
 	}
 }
@@ -1095,10 +1153,6 @@ func (t *turn) fleetTransferOwner() {
 
 }
 
-func (t *turn) fleetMerge1() {
-
-}
-
 func (t *turn) instaform() {
 	for _, planet := range t.game.Planets {
 		if planet.owned() {
@@ -1183,18 +1237,78 @@ func (t *turn) fleetRepair() {
 }
 
 func (t *turn) remoteTerraform() {
+	for _, fleet := range t.game.Fleets {
+		if fleet.Delete {
+			continue
+		}
 
-}
+		// can't remote terraform with this fleet
+		if fleet.Spec.TerraformRate == 0 {
+			continue
+		}
 
-// Update a player's information about other players
-// If a player scanned another player's fleet or planet, they discover the player's
-// race name
-func (t *turn) discoverPlayer(player *Player) {
+		// not over a planet
+		if fleet.OrbitingPlanetNum == None {
+			continue
+		}
+
+		// don't remote terraform an unowned planet or a planet owned by us
+		planet := t.game.getPlanet(fleet.OrbitingPlanetNum)
+		if !planet.owned() || planet.OwnedBy(fleet.PlayerNum) {
+			continue
+		}
+
+		player := t.game.getPlayer(fleet.PlayerNum)
+		planetPlayer := t.game.getPlayer(planet.PlayerNum)
+		enemy := player.IsEnemy(planet.PlayerNum)
+
+		terraformer := NewTerraformer()
+		for i := 0; i < fleet.Spec.TerraformRate; i++ {
+			terraformer.TerraformOneStep(planet, planetPlayer, player, enemy)
+		}
+
+	}
 
 }
 
 func (t *turn) fleetPatrol(player *Player) {
+	for _, fleet := range t.game.Fleets {
+		if fleet.Delete || fleet.PlayerNum != player.Num {
+			continue
+		}
 
+		if len(fleet.Waypoints) != 1 {
+			continue
+		}
+
+		wp := &fleet.Waypoints[0]
+
+		distSquared := float64(wp.PatrolRange * wp.PatrolRange)
+		closestDistance := float64(math.MaxFloat32)
+		var closest *FleetIntel
+
+		for _, enemyFleet := range player.FleetIntels {
+			if player.IsEnemy(enemyFleet.PlayerNum) {
+				distSquaredToFleet := fleet.Position.DistanceSquaredTo(enemyFleet.Position)
+				if distSquaredToFleet <= distSquared {
+					if distSquaredToFleet <= closestDistance {
+						closestDistance = distSquaredToFleet
+						closest = &enemyFleet
+					}
+				}
+			}
+		}
+
+		if closest != nil {
+
+			if wp.PatrolWarpSpeed == PatrolWarpSpeedAutomatic {
+				wp.PatrolWarpSpeed = fleet.Spec.Engine.IdealSpeed
+			}
+			fleet.Waypoints = append(fleet.Waypoints, NewFleetWaypoint(closest.Position, closest.Num, closest.PlayerNum, closest.Name, wp.PatrolWarpSpeed))
+
+			messager.fleetPatrolTargeted(player, fleet, closest)
+		}
+	}
 }
 
 // Calculate the score for this year for each player

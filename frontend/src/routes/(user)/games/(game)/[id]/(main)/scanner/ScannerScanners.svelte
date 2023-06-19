@@ -3,6 +3,7 @@
 	import { settings } from '$lib/services/Settings';
 
 	import { positionKey } from '$lib/types/MapObject';
+	import { NoScanner } from '$lib/types/Tech';
 	import type { Vector } from '$lib/types/Vector';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
@@ -37,6 +38,24 @@
 						position: fleet.position,
 						scanRange: fleet.spec?.scanRange ?? 0,
 						scanRangePen: fleet.spec?.scanRangePen ?? 0
+					};
+					const existing = scannersByPosition.get(key);
+					if (existing) {
+						existing.scanRange = Math.max(existing.scanRange, scanner.scanRange);
+						existing.scanRangePen = Math.max(existing.scanRangePen, scanner.scanRangePen);
+					} else {
+						scannersByPosition.set(key, scanner);
+					}
+				});
+
+			game.universe.mineralPackets
+				.filter((packet) => packet.scanRange != NoScanner || packet.scanRangePen != NoScanner)
+				.forEach((packet) => {
+					const key = positionKey(packet);
+					const scanner = {
+						position: packet.position,
+						scanRange: packet.scanRange,
+						scanRangePen: packet.scanRangePen
 					};
 					const existing = scannersByPosition.get(key);
 					if (existing) {

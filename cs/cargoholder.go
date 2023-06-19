@@ -86,7 +86,32 @@ func (ch *Salvage) getFuelCapacity() int {
 	return 0
 }
 
-// players can load from all salvage
+// players can load from all salvages
 func (ch *Salvage) canLoad(playerNum int) bool {
+	return true
+}
+
+func (ch *MineralPacket) getMapObject() MapObject {
+	return ch.MapObject
+}
+
+func (ch *MineralPacket) getCargo() *Cargo {
+	return &ch.Cargo
+}
+
+func (ch *MineralPacket) getCargoCapacity() int {
+	return Unlimited
+}
+
+func (ch *MineralPacket) getFuel() int {
+	return 0
+}
+
+func (ch *MineralPacket) getFuelCapacity() int {
+	return 0
+}
+
+// players can load from all mineralPackets
+func (ch *MineralPacket) canLoad(playerNum int) bool {
 	return true
 }

@@ -39,7 +39,7 @@ export type ShipToken = {
 
 export type Waypoint = {
 	position: Vector;
-	warpFactor: number;
+	warpSpeed: number;
 	estFuelUsage?: number;
 	task: WaypointTask;
 	waitAtWaypoint?: boolean;

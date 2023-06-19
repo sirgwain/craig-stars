@@ -29,7 +29,7 @@
 		<div class="flex flex-row">
 			<div class="w-28 mr-2">Traveling at Warp:</div>
 			<div>
-				{mineralPacket.warpFactor}
+				{mineralPacket.warpSpeed}
 			</div>
 		</div>
 		{#if ownedBy(mineralPacket, player.num)}

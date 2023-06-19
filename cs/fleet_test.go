@@ -395,7 +395,7 @@ func TestFleet_gateFleet(t *testing.T) {
 			name: "gate between planets",
 			fleet: testLongRangeScout(player).
 				withOrbitingPlanetNum(sourcePlanet.Num).
-				withWaypoints([]Waypoint{NewPlanetWaypoint(Vector{0, 0}, 1, "planet 1", 5), NewPlanetWaypoint(Vector{50, 0}, 2, "planet 2", StargateWarpFactor)}),
+				withWaypoints([]Waypoint{NewPlanetWaypoint(Vector{0, 0}, 1, "planet 1", 5), NewPlanetWaypoint(Vector{50, 0}, 2, "planet 2", StargateWarpSpeed)}),
 			args: args{player: player, players: []*Player{player}, planets: []*Planet{sourcePlanet, destPlanet}},
 			want: want{position: Vector{50, 0}, orbitingPlanetNum: destPlanet.Num},
 		},

@@ -97,7 +97,7 @@ func Test_checkForMineFieldCollision_Hit(t *testing.T) {
 
 	// send the fleet at warp 9, straight through the minefield
 	dest := NewPositionWaypoint(Vector{20, 0}, 9)
-	dist := float64(dest.WarpFactor * dest.WarpFactor)
+	dist := float64(dest.WarpSpeed * dest.WarpSpeed)
 
 	actualDist := checkForMineFieldCollision(&rules, newTestPlayerGetter(fleetPlayer, mineFieldPlayer), u, fleet, dest, dist)
 
@@ -125,7 +125,7 @@ func Test_checkForMineFieldCollision_Miss(t *testing.T) {
 
 	// send the fleet at warp 5, straight through the minefield, should be safe at warp 5
 	dest := NewPositionWaypoint(Vector{20, 0}, 5)
-	dist := float64(dest.WarpFactor * dest.WarpFactor)
+	dist := float64(dest.WarpSpeed * dest.WarpSpeed)
 
 	actualDist := checkForMineFieldCollision(&rules, newTestPlayerGetter(fleetPlayer, mineFieldPlayer), u, fleet, dest, dist)
 

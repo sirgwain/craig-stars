@@ -24,7 +24,9 @@ type MineralPacket struct {
 	Boranium        int       `json:"boranium,omitempty"`
 	Germanium       int       `json:"germanium,omitempty"`
 	SafeWarpSpeed   int       `json:"safeWarpSpeed,omitempty"`
-	WarpFactor      int       `json:"warpFactor,omitempty"`
+	WarpSpeed       int       `json:"warpSpeed,omitempty"`
+	ScanRange       int       `json:"scanRange,omitempty"`
+	ScanRangePen    int       `json:"scanRangePen,omitempty"`
 	HeadingX        float64   `json:"headingX,omitempty"`
 	HeadingY        float64   `json:"headingY,omitempty"`
 }
@@ -97,7 +99,9 @@ func (c *client) createMineralPacket(mineralPacket *cs.MineralPacket, tx SQLExec
 		boranium,
 		germanium,
 		safeWarpSpeed,
-		warpFactor,
+		warpSpeed,
+		scanRange,
+		scanRangePen,
 		headingX,
 		headingY
 	)
@@ -115,7 +119,9 @@ func (c *client) createMineralPacket(mineralPacket *cs.MineralPacket, tx SQLExec
 		:boranium,
 		:germanium,
 		:safeWarpSpeed,
-		:warpFactor,
+		:warpSpeed,
+		:scanRange,
+		:scanRangePen,
 		:headingX,
 		:headingY
 	)
@@ -157,7 +163,9 @@ func (c *client) updateMineralPacket(mineralPacket *cs.MineralPacket, tx SQLExec
 		boranium = :boranium,
 		germanium = :germanium,
 		safeWarpSpeed = :safeWarpSpeed,
-		warpFactor = :warpFactor,
+		warpSpeed = :warpSpeed,
+		scanRange = :scanRange,
+		scanRangePen = :scanRangePen,
 		headingX = :headingX,
 		headingY = :headingY
 	WHERE id = :id

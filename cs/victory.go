@@ -82,7 +82,7 @@ func (v *victory) checkForVictor(player *Player) error {
 
 func (v *victory) checkOwnPlanets(player *Player, score PlayerScore) {
 	// i.e. if we own more than 60% of the planets, we have this victory condition
-	if score.Planets >= int(float64(len(v.game.Planets))*(float64(v.game.VictoryConditions.OwnPlanets)/100.0)) {
+	if float64(score.Planets) >= float64(len(v.game.Planets))*(float64(v.game.VictoryConditions.OwnPlanets)/100) {
 		player.AchievedVictoryConditions |= Bitmask(VictoryConditionOwnPlanets)
 	}
 }

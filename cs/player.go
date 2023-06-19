@@ -459,6 +459,25 @@ func (p *Player) defaultPlayerIntels(players []*Player) []PlayerIntel {
 	return playerIntels
 }
 
+// get the default intels for a player for other players
+func (player *Player) initDefaultPlanetIntels(rules *Rules, planets []*Planet) error {
+	discoverer := newDiscoverer(player)
+	player.PlanetIntels = make([]PlanetIntel, len(planets))
+	for j := range planets {
+		// start with some defaults
+		intel := &player.PlanetIntels[j]
+		intel.ReportAge = ReportAgeUnexplored
+		intel.Type = MapObjectTypePlanet
+		intel.PlayerNum = Unowned
+
+		if err := discoverer.discoverPlanet(rules, player, planets[j], false); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (p *Player) IsFriend(playerNum int) bool {
 	return playerNum > 0 && playerNum <= len(p.Relations) && p.Relations[playerNum-1].Relation == PlayerRelationFriend
 }

@@ -11,7 +11,7 @@ func TestMineralPacket_movePacket(t *testing.T) {
 
 	type fields struct {
 		Cargo         Cargo
-		WarpFactor    int
+		WarpSpeed     int
 		builtThisTurn bool
 	}
 	type args struct {
@@ -28,20 +28,20 @@ func TestMineralPacket_movePacket(t *testing.T) {
 	}{
 		{
 			name:   "move 25ly",
-			fields: fields{Cargo: Cargo{Ironium: 100}, WarpFactor: 5, builtThisTurn: false},
+			fields: fields{Cargo: Cargo{Ironium: 100}, WarpSpeed: 5, builtThisTurn: false},
 			args:   args{player: player, target: NewPlanet().WithNum(1).withPosition(Vector{100, 0})},
 			want:   Vector{25, 0},
 		},
 		{
 			name:   "move 18ly (just launched, warp 6)",
-			fields: fields{Cargo: Cargo{Ironium: 100}, WarpFactor: 6, builtThisTurn: true},
+			fields: fields{Cargo: Cargo{Ironium: 100}, WarpSpeed: 6, builtThisTurn: true},
 			args:   args{player: player, target: NewPlanet().WithNum(1).withPosition(Vector{100, 0})},
 			want:   Vector{18, 0},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			packet := newMineralPacket(tt.args.player, 1, tt.fields.WarpFactor, 5, tt.fields.Cargo, Vector{}, tt.args.target.Num)
+			packet := newMineralPacket(tt.args.player, 1, tt.fields.WarpSpeed, 5, tt.fields.Cargo, Vector{}, tt.args.target.Num)
 			packet.builtThisTurn = tt.fields.builtThisTurn
 
 			packet.movePacket(tt.args.rules, tt.args.player, tt.args.target, tt.args.planetPlayer)
@@ -94,7 +94,7 @@ func TestMineralPacket_completeMoveCaught(t *testing.T) {
 func TestMineralPacket_getPacketDecayRate(t *testing.T) {
 	type fields struct {
 		SafeWarpSpeed int
-		WarpFactor    int
+		WarpSpeed     int
 	}
 	type args struct {
 		race *Race
@@ -105,18 +105,18 @@ func TestMineralPacket_getPacketDecayRate(t *testing.T) {
 		args   args
 		want   float64
 	}{
-		{"no decay", fields{WarpFactor: 5, SafeWarpSpeed: 5}, args{NewRace().WithSpec(&rules)}, 0},
-		{"overwarp1", fields{WarpFactor: 6, SafeWarpSpeed: 5}, args{NewRace().WithSpec(&rules)}, .1},
-		{"overwarp2", fields{WarpFactor: 7, SafeWarpSpeed: 5}, args{NewRace().WithSpec(&rules)}, .25},
-		{"overwarp3", fields{WarpFactor: 8, SafeWarpSpeed: 5}, args{NewRace().WithSpec(&rules)}, .5},
-		{"overwarp4", fields{WarpFactor: 9, SafeWarpSpeed: 5}, args{NewRace().WithSpec(&rules)}, .5},
+		{"no decay", fields{WarpSpeed: 5, SafeWarpSpeed: 5}, args{NewRace().WithSpec(&rules)}, 0},
+		{"overwarp1", fields{WarpSpeed: 6, SafeWarpSpeed: 5}, args{NewRace().WithSpec(&rules)}, .1},
+		{"overwarp2", fields{WarpSpeed: 7, SafeWarpSpeed: 5}, args{NewRace().WithSpec(&rules)}, .25},
+		{"overwarp3", fields{WarpSpeed: 8, SafeWarpSpeed: 5}, args{NewRace().WithSpec(&rules)}, .5},
+		{"overwarp4", fields{WarpSpeed: 9, SafeWarpSpeed: 5}, args{NewRace().WithSpec(&rules)}, .5},
 		// should be equivalent to 2 levels lower
-		{"overwarp4 as PP", fields{WarpFactor: 9, SafeWarpSpeed: 5}, args{NewRace().WithPRT(PP).WithSpec(&rules)}, .25},
+		{"overwarp4 as PP", fields{WarpSpeed: 9, SafeWarpSpeed: 5}, args{NewRace().WithPRT(PP).WithSpec(&rules)}, .25},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			player := NewPlayer(1, tt.args.race).withSpec(&rules)
-			packet := newMineralPacket(player, 1, tt.fields.WarpFactor, tt.fields.SafeWarpSpeed, Cargo{}, Vector{}, 1)
+			packet := newMineralPacket(player, 1, tt.fields.WarpSpeed, tt.fields.SafeWarpSpeed, Cargo{}, Vector{}, 1)
 			if got := packet.getPacketDecayRate(&rules, tt.args.race); got != tt.want {
 				t.Errorf("MineralPacket.getPacketDecayRate() = %v, want %v", got, tt.want)
 			}

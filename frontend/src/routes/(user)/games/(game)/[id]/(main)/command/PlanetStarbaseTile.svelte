@@ -1,5 +1,5 @@
 <script lang="ts">
-	import WarpFactorBar from '$lib/components/game/WarpFactorBar.svelte';
+	import WarpSpeedGauge from '$lib/components/game/WarpSpeedGauge.svelte';
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip.svelte';
 	import { techs, commandedPlanet } from '$lib/services/Context';
@@ -123,7 +123,7 @@
 						>
 					</div>
 					<div class="w-full my-auto">
-						<WarpFactorBar
+						<WarpSpeedGauge
 							bind:value={planet.packetSpeed}
 							capacity={(planet.spec.safePacketSpeed ?? 0) + 3}
 							min={planet.spec.safePacketSpeed}
