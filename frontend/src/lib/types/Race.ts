@@ -11,6 +11,7 @@ export interface Race {
 
 	name: string;
 	pluralName: string;
+	spendLeftoverPointsOn: string;
 	prt: PRT;
 	lrts: number;
 	habLow: Hab;
@@ -19,11 +20,13 @@ export interface Race {
 	popEfficiency: number;
 	factoryOutput: number;
 	factoryCost: number;
+	factoriesCostLess?: boolean;
 	numFactories: number;
 	mineOutput: number;
 	mineCost: number;
 	numMines: number;
 	researchCost: ResearchCost;
+	techsStartHigh?: boolean;
 	spec?: RaceSpec;
 }
 
@@ -109,13 +112,27 @@ export enum LRT {
 	CE = 1 << 13
 }
 
+export enum SpendLeftoverPointsOn {
+	SurfaceMinerals = 'SurfaceMinerals',
+	MineralConcentrations = 'MineralConcentrations',
+	Mines = 'Mines',
+	Factories = 'Factories',
+	Defenses = 'Defenses'
+}
+
+export enum ResearchCostLevel {
+	Extra = 'Extra',
+	Standard = 'Standard',
+	Less = 'Less'
+}
+
 export interface ResearchCost {
-	energy: string;
-	weapons: string;
-	propulsion: string;
-	construction: string;
-	electronics: string;
-	biotechnology: string;
+	energy: ResearchCostLevel;
+	weapons: ResearchCostLevel;
+	propulsion: ResearchCostLevel;
+	construction: ResearchCostLevel;
+	electronics: ResearchCostLevel;
+	biotechnology: ResearchCostLevel;
 }
 
 export interface RaceSpec {
@@ -169,6 +186,7 @@ export interface StartingPlanet {
 export const humanoid: Race = {
 	name: 'Humanoid',
 	pluralName: 'Humanoids',
+	spendLeftoverPointsOn: SpendLeftoverPointsOn.SurfaceMinerals,
 	prt: PRT.JoaT,
 	lrts: LRT.None,
 	habLow: { grav: 15, temp: 15, rad: 15 },
@@ -182,12 +200,12 @@ export const humanoid: Race = {
 	mineCost: 5,
 	numMines: 10,
 	researchCost: {
-		energy: 'Standard',
-		weapons: 'Standard',
-		propulsion: 'Standard',
-		construction: 'Standard',
-		electronics: 'Standard',
-		biotechnology: 'Standard'
+		energy: ResearchCostLevel.Standard,
+		weapons: ResearchCostLevel.Standard,
+		propulsion: ResearchCostLevel.Standard,
+		construction: ResearchCostLevel.Standard,
+		electronics: ResearchCostLevel.Standard,
+		biotechnology: ResearchCostLevel.Standard
 	}
 };
 

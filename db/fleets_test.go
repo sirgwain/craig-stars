@@ -91,10 +91,6 @@ func TestGetFleet(t *testing.T) {
 			if got != nil {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt
-				for i := range got.Tokens {
-					tt.want.Tokens[i].CreatedAt = got.Tokens[i].CreatedAt
-					tt.want.Tokens[i].UpdatedAt = got.Tokens[i].UpdatedAt
-				}
 			}
 			if !test.CompareAsJSON(t, got, tt.want) {
 				t.Errorf("GetFleet() = %v, want %v", got, tt.want)

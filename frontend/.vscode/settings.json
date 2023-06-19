@@ -1,0 +1,14 @@
+{
+    "files.exclude": {
+        "node_modules": true,
+        "node_modules.nosync": true
+    },
+    "vitest.exclude": [
+        "**/node_modules.nosync/**",
+        "**/node_modules/**",
+        "**/dist/**",
+        "**/cypress/**",
+        "**/.{idea,git,cache,output,temp}/**"
+    ],
+    "vitest.commandLine": "yarn test:watch",
+}

@@ -7,56 +7,64 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 )
 
 type Fleet struct {
-	ID                int64      `json:"id,omitempty"`
-	GameID            int64      `json:"gameId,omitempty"`
-	CreatedAt         time.Time  `json:"createdAt,omitempty"`
-	UpdatedAt         time.Time  `json:"updatedAt,omitempty"`
-	X                 float64    `json:"x,omitempty"`
-	Y                 float64    `json:"y,omitempty"`
-	Name              string     `json:"name,omitempty"`
-	Num               int        `json:"num,omitempty"`
-	PlayerNum         int        `json:"playerNum,omitempty"`
-	Tags              Tags       `json:"tags,omitempty"`
-	Waypoints         *Waypoints `json:"waypoints,omitempty"`
-	RepeatOrders      bool       `json:"repeatOrders,omitempty"`
-	PlanetNum         int        `json:"planetNum,omitempty"`
-	BaseName          string     `json:"baseName,omitempty"`
-	Ironium           int        `json:"ironium,omitempty"`
-	Boranium          int        `json:"boranium,omitempty"`
-	Germanium         int        `json:"germanium,omitempty"`
-	Colonists         int        `json:"colonists,omitempty"`
-	Fuel              int        `json:"fuel,omitempty"`
-	Damage            int        `json:"damage,omitempty"`
-	BattlePlanName    string     `json:"battlePlanName,omitempty"`
-	HeadingX          float64    `json:"headingX,omitempty"`
-	HeadingY          float64    `json:"headingY,omitempty"`
-	WarpSpeed         int        `json:"warpSpeed,omitempty"`
-	PreviousPositionX *float64   `json:"previousPositionX,omitempty"`
-	PreviousPositionY *float64   `json:"previousPositionY,omitempty"`
-	OrbitingPlanetNum int        `json:"orbitingPlanetNum,omitempty"`
-	Starbase          bool       `json:"starbase,omitempty"`
-	Spec              *FleetSpec `json:"spec,omitempty"`
-}
-
-type ShipToken struct {
-	ID              int64        `json:"id"`
-	CreatedAt       sql.NullTime `json:"createdAt"`
-	UpdatedAt       sql.NullTime `json:"updatedAt"`
-	FleetID         int64        `json:"fleetId"`
-	DesignNum       int          `json:"designNum"`
-	Quantity        int          `json:"quantity"`
-	Damage          float64      `json:"damage"`
-	QuantityDamaged int          `json:"quantityDamaged"`
+	ID                int64       `json:"id,omitempty"`
+	GameID            int64       `json:"gameId,omitempty"`
+	CreatedAt         time.Time   `json:"createdAt,omitempty"`
+	UpdatedAt         time.Time   `json:"updatedAt,omitempty"`
+	X                 float64     `json:"x,omitempty"`
+	Y                 float64     `json:"y,omitempty"`
+	Name              string      `json:"name,omitempty"`
+	Num               int         `json:"num,omitempty"`
+	PlayerNum         int         `json:"playerNum,omitempty"`
+	Tags              Tags        `json:"tags,omitempty"`
+	Tokens            *ShipTokens `json:"tokens,omitempty"`
+	Waypoints         *Waypoints  `json:"waypoints,omitempty"`
+	RepeatOrders      bool        `json:"repeatOrders,omitempty"`
+	PlanetNum         int         `json:"planetNum,omitempty"`
+	BaseName          string      `json:"baseName,omitempty"`
+	Ironium           int         `json:"ironium,omitempty"`
+	Boranium          int         `json:"boranium,omitempty"`
+	Germanium         int         `json:"germanium,omitempty"`
+	Colonists         int         `json:"colonists,omitempty"`
+	Fuel              int         `json:"fuel,omitempty"`
+	Damage            int         `json:"damage,omitempty"`
+	BattlePlanName    string      `json:"battlePlanName,omitempty"`
+	HeadingX          float64     `json:"headingX,omitempty"`
+	HeadingY          float64     `json:"headingY,omitempty"`
+	WarpSpeed         int         `json:"warpSpeed,omitempty"`
+	PreviousPositionX *float64    `json:"previousPositionX,omitempty"`
+	PreviousPositionY *float64    `json:"previousPositionY,omitempty"`
+	OrbitingPlanetNum int         `json:"orbitingPlanetNum,omitempty"`
+	Starbase          bool        `json:"starbase,omitempty"`
+	Spec              *FleetSpec  `json:"spec,omitempty"`
 }
 
 // we json serialize these types with custom Scan/Value methods
+type ShipTokens []cs.ShipToken
 type Waypoints []cs.Waypoint
 type FleetSpec cs.FleetSpec
+
+// db serializer to serialize this to JSON
+func (item *ShipTokens) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
+	data, err := json.Marshal(item)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+// db deserializer to read this from JSON
+func (item *ShipTokens) Scan(src interface{}) error {
+	return scanJSON(src, item)
+}
 
 // db serializer to serialize this to JSON
 func (item *Waypoints) Value() (driver.Value, error) {
@@ -94,165 +102,54 @@ func (item *FleetSpec) Scan(src interface{}) error {
 	return scanJSON(src, item)
 }
 
-type fleetJoin struct {
-	Fleet     `json:"fleet,omitempty"`
-	ShipToken `json:"fleetShipToken,omitempty"`
-}
-
-const fleetJoinSelect = `
-SELECT 
-	f.id AS 'fleet.id',
-	f.createdAt AS 'fleet.createdAt',
-	f.updatedAt AS 'fleet.updatedAt',
-	f.gameId AS 'fleet.gameId',
-	f.battlePlanName AS 'fleet.battlePlanName',
-	f.x AS 'fleet.x',
-	f.y AS 'fleet.y',
-	f.name AS 'fleet.name',
-	f.num AS 'fleet.num',
-	f.playerNum AS 'fleet.playerNum',
-	f.waypoints AS 'fleet.waypoints',
-	f.repeatOrders AS 'fleet.repeatOrders',
-	f.planetNum AS 'fleet.planetNum',
-	f.baseName AS 'fleet.baseName',
-	f.ironium AS 'fleet.ironium',
-	f.boranium AS 'fleet.boranium',
-	f.germanium AS 'fleet.germanium',
-	f.colonists AS 'fleet.colonists',
-	f.fuel AS 'fleet.fuel',
-	f.damage AS 'fleet.damage',
-	f.headingX AS 'fleet.headingX',
-	f.headingY AS 'fleet.headingY',
-	f.warpSpeed AS 'fleet.warpSpeed',
-	f.previousPositionX AS 'fleet.previousPositionX',
-	f.previousPositionY AS 'fleet.previousPositionY',
-	f.orbitingPlanetNum AS 'fleet.orbitingPlanetNum',
-	f.starbase AS 'fleet.starbase',
-	f.spec AS 'fleet.spec',
-
-	COALESCE(t.id, 0) AS 'fleetShipToken.id',
-	t.createdAt AS 'fleetShipToken.createdAt',
-	t.updatedAt AS 'fleetShipToken.updatedAt',
-	COALESCE(t.fleetId, 0) AS 'fleetShipToken.fleetId',
-	COALESCE(t.designNum, 0) AS 'fleetShipToken.designNum',
-	COALESCE(t.quantity, 0) AS 'fleetShipToken.quantity',
-	COALESCE(t.damage, 0) AS 'fleetShipToken.damage',
-	COALESCE(t.quantityDamaged, 0) AS 'fleetShipToken.quantityDamaged'
-	FROM fleets f
-	LEFT JOIN shipTokens t
-		ON f.id = t.fleetId
-`
-
-// scan through rows from a fleet join and return a list of fleets and their tokens
-func (c *client) scanFleetJoin(rows []fleetJoin) []*cs.Fleet {
-	fleets := []*cs.Fleet{}
-
-	fleet := &cs.Fleet{}
-	for _, row := range rows {
-		// found a new fleet
-		if row.Fleet.ID != 0 {
-			fleet = c.converter.ConvertFleet(&row.Fleet)
-			fleet.Tokens = []cs.ShipToken{}
-			fleets = append(fleets, fleet)
-		}
-
-		if row.ShipToken.ID != 0 {
-			fleet.Tokens = append(fleet.Tokens, c.converter.ConvertShipToken(row.ShipToken))
-		}
-	}
-
-	return fleets
-}
-
 // get a fleet by id
 func (c *client) GetFleet(id int64) (*cs.Fleet, error) {
-	rows := []fleetJoin{}
-	if err := c.db.Select(&rows, fmt.Sprintf("%s WHERE f.id = ?", fleetJoinSelect), id); err != nil {
+	item := Fleet{}
+	if err := c.db.Get(&item, "SELECT * FROM fleets WHERE id = ?", id); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
 		return nil, err
 	}
 
-	// check if we have any results
-	if len(rows) == 0 {
-		return nil, nil
-	}
-
-	fleets := c.scanFleetJoin(rows)
-
-	if len(fleets) != 1 {
-		return nil, fmt.Errorf("scan fleetJoin rows")
-	}
-
-	fleet := fleets[0]
-
-	// load a fleet's designs
-	designNums := make([]int, 0, len(fleet.Tokens))
-	for i := range fleet.Tokens {
-		designNums = append(designNums, fleet.Tokens[i].DesignNum)
-	}
-
-	// this might be an error case, or we're in a unit test
-	if len(designNums) == 0 {
-		log.Warn().Int64("ID", fleet.ID).Msg("fleet has no designs associated with tokens")
-		return fleet, nil
-	}
-
-	designs, err := c.getShipDesignsByNums(designNums)
-	if err != nil {
-		return nil, fmt.Errorf("get designs by nums -> %w", err)
-	}
-
-	fleet.InjectDesigns(designs)
-
+	fleet := c.converter.ConvertFleet(&item)
 	return fleet, nil
 }
 
 func (c *client) getFleetsForGame(gameID int64) ([]*cs.Fleet, error) {
-	rows := []fleetJoin{}
-	if err := c.db.Select(&rows, fmt.Sprintf("%s WHERE f.gameId = ?", fleetJoinSelect), gameID); err != nil {
+
+	items := []Fleet{}
+	if err := c.db.Select(&items, `SELECT * FROM fleets WHERE gameId = ?`, gameID); err != nil {
 		if err == sql.ErrNoRows {
 			return []*cs.Fleet{}, nil
 		}
 		return nil, err
 	}
 
-	// check if we have any results
-	if len(rows) == 0 {
-		return []*cs.Fleet{}, nil
+	results := make([]*cs.Fleet, len(items))
+	for i := range items {
+		results[i] = c.converter.ConvertFleet(&items[i])
 	}
 
-	fleets := c.scanFleetJoin(rows)
-
-	if len(fleets) == 0 {
-		return nil, fmt.Errorf("scan fleetJoin rows")
-	}
-
-	return fleets, nil
+	return results, nil
 }
 
-func (c *client) getFleetsForPlayer(gameID int64, playerNum int) ([]*cs.Fleet, error) {
-	rows := []fleetJoin{}
-	if err := c.db.Select(&rows, fmt.Sprintf("%s WHERE f.gameId = ? AND f.playerNum = ?", fleetJoinSelect), gameID, playerNum); err != nil {
+func (c *client) GetFleetsForPlayer(gameID int64, playerNum int) ([]*cs.Fleet, error) {
+
+	items := []Fleet{}
+	if err := c.db.Select(&items, `SELECT * FROM fleets WHERE gameId = ? AND playerNum = ?`, gameID, playerNum); err != nil {
 		if err == sql.ErrNoRows {
 			return []*cs.Fleet{}, nil
 		}
 		return nil, err
 	}
 
-	// check if we have any results
-	if len(rows) == 0 {
-		return []*cs.Fleet{}, nil
+	results := make([]*cs.Fleet, len(items))
+	for i := range items {
+		results[i] = c.converter.ConvertFleet(&items[i])
 	}
 
-	fleets := c.scanFleetJoin(rows)
-
-	if len(fleets) == 0 {
-		return nil, fmt.Errorf("scan fleetJoin rows")
-	}
-
-	return fleets, nil
+	return results, nil
 }
 
 // create a new game
@@ -269,6 +166,7 @@ func (c *client) createFleet(fleet *cs.Fleet, tx SQLExecer) error {
 		name,
 		num,
 		playerNum,
+		tokens,
 		waypoints,
 		repeatOrders,
 		planetNum,
@@ -298,6 +196,7 @@ func (c *client) createFleet(fleet *cs.Fleet, tx SQLExecer) error {
 		:name,
 		:num,
 		:playerNum,
+		:tokens,
 		:waypoints,
 		:repeatOrders,
 		:planetNum,
@@ -329,49 +228,6 @@ func (c *client) createFleet(fleet *cs.Fleet, tx SQLExecer) error {
 		return err
 	}
 
-	for i := range fleet.Tokens {
-		token := &fleet.Tokens[i]
-		token.FleetID = fleet.ID
-		if err := c.createShipToken(token, tx); err != nil {
-			return fmt.Errorf("create ShipToken %w", err)
-		}
-	}
-
-	return nil
-}
-
-func (c *client) createShipToken(token *cs.ShipToken, tx SQLExecer) error {
-	result, err := tx.NamedExec(`
-	INSERT INTO shipTokens (
-		createdAt,
-		updatedAt,
-		fleetId,
-		designNum,
-		quantity,
-		damage,
-		quantityDamaged
-	)
-	VALUES (
-		CURRENT_TIMESTAMP,
-		CURRENT_TIMESTAMP,
-		:fleetId,
-		:designNum,
-		:quantity,
-		:damage,
-		:quantityDamaged
-	)
-	`, token)
-
-	if err != nil {
-		return err
-	}
-
-	// update the id of our passed in game
-	token.ID, err = result.LastInsertId()
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -394,6 +250,7 @@ func (c *client) updateFleet(fleet *cs.Fleet, tx SQLExecer) error {
 		name = :name,
 		num = :num,
 		playerNum = :playerNum,
+		tokens = :tokens,
 		waypoints = :waypoints,
 		repeatOrders = :repeatOrders,
 		planetNum = :planetNum,
@@ -417,23 +274,10 @@ func (c *client) updateFleet(fleet *cs.Fleet, tx SQLExecer) error {
 		return err
 	}
 
-	if _, err := tx.Exec("DELETE FROM shipTokens WHERE fleetId = ?", fleet.ID); err != nil {
-		return fmt.Errorf("delete existing shipTokens for fleet %w", err)
-	}
-
-	for i := range fleet.Tokens {
-		token := &fleet.Tokens[i]
-		token.ID = 0
-		token.FleetID = fleet.ID
-		if err := c.createShipToken(token, tx); err != nil {
-			return fmt.Errorf("create ShipToken %w", err)
-		}
-	}
 	return nil
 }
 
 func (c *client) deleteFleet(fleetID int64, tx SQLExecer) error {
-
 	if _, err := tx.Exec("DELETE FROM fleets where id = ?", fleetID); err != nil {
 		return fmt.Errorf("delete fleet %d %w", fleetID, err)
 	}

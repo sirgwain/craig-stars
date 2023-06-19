@@ -1,6 +1,13 @@
-import { expect, test } from '@playwright/test';
+// NOTE: jest-dom adds handy assertions to Jest and it is recommended, but not required.
+import '@testing-library/jest-dom';
 
-test('login page has expected h2', async ({ page }) => {
-	await page.goto('/');
-	expect(await page.textContent('h2')).toBe('Login');
+import { render, screen } from '@testing-library/svelte';
+
+import ItemTitle from '$lib/components/ItemTitle.svelte';
+
+test('shows proper heading when rendered', () => {
+	render(ItemTitle, {});
+	const heading = screen.getByText('');
+	expect(heading).toBeInTheDocument();
 });
+

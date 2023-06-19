@@ -16,6 +16,7 @@ CREATE TABLE races (
   userId INTEGER NOT NULL,
   name TEXT NOT NULL,
   pluralName TEXT NOT NULL,
+  spendLeftoverPointsOn TEXT NOT NULL,
   prt TEXT,
   lrts INTEGER,
   habLowGrav INTEGER,
@@ -204,6 +205,7 @@ CREATE TABLE fleets (
   name TEXT NOT NULL,
   num INTEGER,
   playerNum INTEGER,
+  tokens TEXT,
   waypoints TEXT,
   repeatOrders NUMERIC,
   planetNum INTEGER,
@@ -241,17 +243,6 @@ CREATE TABLE shipDesigns (
   purpose TEXT,
   spec TEXT,
   CONSTRAINT fkPlayersDesigns FOREIGN KEY (gameId, playerNum) REFERENCES players(gameId, num) ON DELETE CASCADE
-);
-CREATE TABLE shipTokens (
-  id INTEGER PRIMARY KEY,
-  createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
-  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
-  fleetId INTEGER NOT NULL,
-  designNum INTEGER NOT NULL,
-  quantity INTEGER,
-  damage REAL,
-  quantityDamaged INTEGER,
-  CONSTRAINT fkFleetsTokens FOREIGN KEY (fleetId) REFERENCES fleets(id) ON DELETE CASCADE
 );
 CREATE TABLE planets (
   id INTEGER PRIMARY KEY,

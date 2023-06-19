@@ -30,4 +30,6 @@
 	<FleetOtherFleetsHereTile fleet={$commandedFleet} />
 	<FleetWaypointsTile fleet={$commandedFleet} />
 	<FleetWaypointTaskTile fleet={$commandedFleet} />
+	<!-- empty div for layout -->
+	<div class="hidden md:block md:w-[14rem]" />
 {:else}{/if}
