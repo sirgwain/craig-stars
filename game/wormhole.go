@@ -1,6 +1,6 @@
 package game
 
-type Wormohole struct {
+type Wormhole struct {
 	MapObject
 	DestinationNum   int               `json:"destinationNum,omitempty"`
 	Stability        WormholeStability `json:"stability,omitempty"`
