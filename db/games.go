@@ -184,6 +184,19 @@ func (db *DB) FindGameByIdLight(id uint) (*game.Game, error) {
 	return &game, nil
 }
 
+func (db *DB) FindGameRulesByGameId(gameId uint) (*game.Rules, error) {
+	rules := game.Rules{}
+	if err := db.sqlDB.Where("game_id = ? ", gameId).First(&rules).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	}
+
+	return &rules, nil
+}
+
 func (db *DB) DeleteGameById(id uint) error {
 	return db.sqlDB.Delete(&game.Game{ID: id}).Error
 }

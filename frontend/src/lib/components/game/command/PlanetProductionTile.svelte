@@ -35,7 +35,7 @@
 	const clear = async () => {
 		if (confirm('Are you sure you want to clear the planet production queue?')) {
 			$commandedPlanet.productionQueue = [];
-			await planetService.updatePlanet($commandedPlanet);
+			$commandedPlanet = await planetService.updatePlanet($commandedPlanet);
 		}
 	};
 

@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/Context';
+	import { game, player } from '$lib/services/Context';
 
-	let { player } = getGameContext();
 </script>
 
 <div class="w-full">
@@ -11,8 +10,8 @@
 			<th>Target</th>
 		</thead>
 		<tbody>
-			{#if player.messages?.length}
-				{#each player.messages as message}
+			{#if $player.messages?.length}
+				{#each $player.messages as message}
 					<tr class="hover"> <td>{message.text}</td><td>{message.targetType}</td></tr>
 				{/each}
 			{/if}

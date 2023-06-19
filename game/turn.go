@@ -3,22 +3,25 @@ package game
 func generateTurn(game *Game) error {
 	game.Year++
 	game.computeSpecs()
-	mine(game)
-	produce(game)
-	research(game)
-	grow(game)
 
 	for i := range game.Players {
 		player := &game.Players[i]
 		player.Messages = []PlayerMessage{}
 		player.LeftoverResources = 0
-		player.Spec = computePlayerSpec(player, &game.Rules)
-		playerScan(game, player)
 	}
+
+	mine(game)
+	produce(game)
+	research(game)
+	grow(game)
 
 	// reset all players
 	for i := range game.Players {
 		player := &game.Players[i]
+
+		player.Spec = computePlayerSpec(player, &game.Rules)
+		
+		playerScan(game, player)
 		player.SubmittedTurn = false
 	}
 

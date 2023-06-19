@@ -4,7 +4,7 @@
 	import ProductionQueue from '$lib/components/game/ProductionQueue.svelte';
 	import Toolbar from '$lib/components/game/Toolbar.svelte';
 	import { EventManager } from '$lib/EventManager';
-	import { commandedPlanet,setGameContext } from '$lib/services/Context';
+	import { commandedPlanet, game, player } from '$lib/services/Context';
 	import { GameService } from '$lib/services/GameService';
 	import { PlayerService } from '$lib/services/PlayerService';
 	import type { Game } from '$lib/types/Game';
@@ -12,32 +12,34 @@
 	import type { Player } from '$lib/types/Player';
 
 	let id = parseInt($page.params.id);
-	let player: Player;
-	let game: Game;
 	let playerService: PlayerService;
 	let gameService: GameService = new GameService();
 
 	onMount(async () => {
 		// load the game on mount
-		({ game, player } = await gameService.loadGame(id));
-		playerService = new PlayerService(player);
+		const result = await gameService.loadGame(id);
+		game.update((store) => (store = result.game));
+		player.update((store) => (store = result.player));
+
+		playerService = new PlayerService($player);
 	});
 
 	// all other components will use this context
-	$: if (game && player) {
-		setGameContext(game, player);
-		const homeworld = player.planets.find((p) => p.homeworld);
+	$: if ($game && $player) {
+		// setGameContext(game, player);
+		const homeworld = $player.planets.find((p) => p.homeworld);
 		if (homeworld) {
 			commandedPlanet.update((p) => (p = homeworld));
 		} else {
-			commandedPlanet.update((p) => (p = player.planets[0]));
+			commandedPlanet.update((p) => (p = $player.planets[0]));
 		}
 	}
 
 	async function onSubmitTurn() {
 		const result = await playerService.submitTurn();
 		if (result !== undefined) {
-			({ game, player } = result);
+			game.update((store) => (store = result.game));
+			player.update((store) => (store = result.player));
 		}
 	}
 
@@ -49,15 +51,15 @@
 	EventManager.productionQueueDialogRequestedEvent = (planet) => showProductionQueueDialog(planet);
 </script>
 
-{#if player}
+{#if $game && $player}
 	<div class="flex flex-col h-full">
 		<div class="flex-none">
-			<Toolbar {game} on:submit-turn={onSubmitTurn} />
+			<Toolbar on:submit-turn={onSubmitTurn} />
 		</div>
 
 		<div class="flex-1">
 			<div class="flex h-full">
-				<slot {game} {player} />
+				<slot />
 			</div>
 		</div>
 
@@ -66,7 +68,6 @@
 				<ProductionQueue
 					on:ok={() => (productionQueueDialogOpen = false)}
 					on:cancel={() => (productionQueueDialogOpen = false)}
-					bind:planet={$commandedPlanet}
 				/>
 			</div>
 		</div>

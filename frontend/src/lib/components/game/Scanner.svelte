@@ -1,10 +1,8 @@
 <script lang="ts">
-	import type { GameContext } from '$lib/types/GameContext';
 	import { Viewport } from 'pixi-viewport';
 	import { Application, BaseTexture, Container, Sprite, Texture } from 'pixi.js-legacy';
-	import { getContext, onMount } from 'svelte';
-
-	const { game, player } = getContext<GameContext>('game');
+	import { onMount } from 'svelte';
+	import { game, player } from '$lib/services/Context';
 
 	let app: Application;
 	let viewport: Viewport;
@@ -36,8 +34,8 @@
 		viewport = new Viewport({
 			screenWidth: window.innerWidth,
 			screenHeight: window.innerHeight,
-			worldWidth: game.area.x,
-			worldHeight: game.area.y,
+			worldWidth: $game.area.x,
+			worldHeight: $game.area.y,
 			divWheel: app.renderer.view, // Ensures that when using the scroll wheel it only takes affect when the mouse is over the canvas (prevents scrolling in overlaying divs from scrolling the canvas)
 			stopPropagation: true,
 			passiveWheel: true,
@@ -50,7 +48,7 @@
 		// map = new Map(app, store, this);
 		planetsContainer = new Container();
 
-		player.planetIntels.forEach((planet) => {
+		$player.planetIntels.forEach((planet) => {
 			const sprite = new Sprite(unknownPlanetTexture);
 			sprite.position.x = planet.position.x;
 			sprite.position.y = planet.position.y;

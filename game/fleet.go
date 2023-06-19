@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"math"
 	"time"
 
 	"gorm.io/gorm"
@@ -11,6 +12,7 @@ type Fleet struct {
 	MapObject
 	PlanetID     uint        `json:"-"` // for starbase fleets that are owned by a planet
 	BaseName     string      `json:"baseName"`
+	Cargo        Cargo       `json:"cargo,omitempty" gorm:"embedded;embeddedPrefix:cargo_"`
 	Fuel         int         `json:"fuel"`
 	BattlePlanID uint        `json:"battlePlan"`
 	DockCapacity int         `json:"dockCapacity"`
@@ -20,25 +22,16 @@ type Fleet struct {
 }
 
 type FleetSpec struct {
-	Computed                 bool                  `json:"computed"`
-	Purposes                 []string              `json:"purposes"`
-	WeaponSlots              []ShipDesignSlot      `json:"weaponSlots"`
-	TotalShips               int                   `json:"totalShips"`
-	MassEmpty                int                   `json:"massEmpty"`
-	BaseCloakedCargo         int                   `json:"baseCloakedCargo"`
-	Engine                   string                `json:"engine"`
-	NumEngines               int                   `json:"numEngines"`
-	Cost                     Cost                  `json:"cost"`
-	Mass                     int                   `json:"mass"`
-	Armor                    int                   `json:"armor"`
-	FuelCapacity             int                   `json:"fuelCapacity"`
-	ScanRange                int                   `json:"scanRange"`
-	ScanRangePen             int                   `json:"scanRangePen"`
-	Bombs                    []Bomb                `json:"bombs"`
-	SmartBombs               []Bomb                `json:"smartBombs"`
-	RetroBombs               []Bomb                `json:"retroBombs"`
-	Scanner                  bool                  `json:"scanner"`
-	MineLayingRateByMineType map[MineFieldType]int `json:"mineLayingRateByMineType"`
+	ShipDesignSpec
+	Purposes         []ShipDesignPurpose `json:"purposes"`
+	TotalShips       int                 `json:"totalShips"`
+	MassEmpty        int                 `json:"massEmpty"`
+	BasePacketSpeed  int                 `json:"basePacketSpeed"`
+	SafePacketSpeed  int                 `json:"safePacketSpeed"`
+	BaseCloakedCargo int                 `json:"baseCloakedCargo"`
+	HasMassDriver    bool                `json:"hasMassDriver,omitempty"`
+	HasStargate      bool                `json:"hasStargate,omitempty"`
+	Stargate         string              `json:"stargate,omitempty"`
 }
 
 type ShipToken struct {
@@ -88,4 +81,108 @@ func NewPlanetWaypoint(planet *Planet, warpFactor int) Waypoint {
 		TargetName:      planet.Name,
 		WarpFactor:      warpFactor,
 	}
+}
+
+func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) *FleetSpec {
+	spec := FleetSpec{
+		ShipDesignSpec: ShipDesignSpec{
+			Mass:         fleet.Cargo.Total(),
+			ScanRange:    NoScanner,
+			ScanRangePen: NoScanner,
+		},
+	}
+
+	for _, token := range fleet.Tokens {
+
+		// update our total ship count
+		spec.TotalShips += token.Quantity
+
+		spec.Purposes = append(spec.Purposes, token.Design.Purpose)
+
+		// TODO: which default engine do we use for multiple fleets?
+		spec.Engine = token.Design.Spec.Engine
+		// cost
+		spec.Cost = token.Design.Spec.Cost.MultiplyInt(token.Quantity)
+
+		// mass
+		spec.Mass += token.Design.Spec.Mass * token.Quantity
+		spec.MassEmpty += token.Design.Spec.Mass * token.Quantity
+
+		// armor
+		spec.Armor += token.Design.Spec.Armor * token.Quantity
+
+		// shield
+		spec.Shield += token.Design.Spec.Shield * token.Quantity
+
+		// cargo
+		spec.CargoCapacity += token.Design.Spec.CargoCapacity * token.Quantity
+
+		// fuel
+		spec.FuelCapacity += token.Design.Spec.FuelCapacity * token.Quantity
+
+		// minesweep
+		spec.MineSweep += token.Design.Spec.MineSweep * token.Quantity
+
+		// remote mining
+		spec.MiningRate += token.Design.Spec.MiningRate * token.Quantity
+
+		// remote terraforming
+		spec.TerraformRate += token.Design.Spec.TerraformRate * token.Quantity
+
+		// colonization
+		spec.Colonizer = spec.Colonizer || token.Design.Spec.Colonizer
+		spec.OrbitalConstructionModule = spec.OrbitalConstructionModule || token.Design.Spec.OrbitalConstructionModule
+
+		// spec all mine layers in the fleet
+		if token.Design.Spec.CanLayMines {
+			for key, _ := range token.Design.Spec.MineLayingRateByMineType {
+				if _, ok := spec.MineLayingRateByMineType[key]; ok {
+					spec.MineLayingRateByMineType[key] = 0
+				}
+				spec.MineLayingRateByMineType[key] += token.Design.Spec.MineLayingRateByMineType[key] * token.Quantity
+			}
+		}
+
+		// We should only have one ship stack with spacdock capabilities, but for this logic just go with the max
+		spec.SpaceDock = MaxInt(spec.SpaceDock, token.Design.Spec.SpaceDock)
+
+		// sadly, the fleet only gets the best repair bonus from one design
+		spec.RepairBonus = math.Max(spec.RepairBonus, token.Design.Spec.RepairBonus)
+
+		spec.ScanRange = MaxInt(spec.ScanRange, token.Design.Spec.ScanRange)
+		spec.ScanRangePen = MaxInt(spec.ScanRangePen, token.Design.Spec.ScanRangePen)
+
+		// add bombs
+		if token.Design.Spec.Bomber {
+			spec.Bomber = true
+			spec.Bombs = append(spec.Bombs, token.Design.Spec.Bombs...)
+			spec.SmartBombs = append(spec.SmartBombs, token.Design.Spec.SmartBombs...)
+			spec.RetroBombs = append(spec.RetroBombs, token.Design.Spec.RetroBombs...)
+		}
+
+		// check if any tokens have weapons
+		// we process weapon slots per stack, so we don't need to spec all
+		// weapons in a fleet
+		if token.Design.Spec.HasWeapons {
+			spec.HasWeapons = true
+		}
+
+		if token.Design.Spec.CloakUnits > 0 {
+			// calculate the cloak units for this token based on the design's cloak units (i.e. 70 cloak units / kT for a stealh cloak)
+			spec.CloakUnits += token.Design.Spec.CloakUnits
+		} else {
+			// if this ship doesn't have cloaking, it counts as cargo (except for races with free cargo cloaking)
+			if !player.Race.Spec.FreeCargoCloaking {
+				spec.BaseCloakedCargo += token.Design.Spec.Mass * token.Quantity
+			}
+		}
+
+		// choose the best tachyon detector ship
+		spec.ReduceCloaking = math.Max(spec.ReduceCloaking, token.Design.Spec.ReduceCloaking)
+
+		spec.CanStealFleetCargo = spec.CanStealFleetCargo || token.Design.Spec.CanStealFleetCargo
+		spec.CanStealPlanetCargo = spec.CanStealPlanetCargo || token.Design.Spec.CanStealPlanetCargo
+	}
+
+	return &spec
 }

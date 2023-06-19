@@ -1,7 +1,5 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/Context';
-
-	let { player } = getGameContext();
+	import { game, player } from '$lib/services/Context';
 </script>
 
 <div class="w-full">
@@ -11,8 +9,8 @@
 			<th>Tokens</th>
 		</thead>
 		<tbody>
-			{#if player.fleets?.length}
-				{#each player.fleets as design}
+			{#if $player.fleets?.length}
+				{#each $player.fleets as design}
 					<tr class="hover"> <td>{design.name}</td><td>{design.tokens.length}</td></tr>
 				{/each}
 			{/if}

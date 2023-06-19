@@ -21,10 +21,10 @@
 
 	<div class="flex justify-between">
 		<div>Mines</div>
-		<div>{$commandedPlanet.mines}</div>
+		<div>{$commandedPlanet.mines} of {$commandedPlanet.spec?.maxMines}</div>
 	</div>
 	<div class="flex justify-between">
 		<div>Factories</div>
-		<div>{$commandedPlanet.factories}</div>
+		<div>{$commandedPlanet.factories} of {$commandedPlanet.spec?.maxFactories}</div>
 	</div>
 </CommandTile>

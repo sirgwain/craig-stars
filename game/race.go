@@ -386,6 +386,14 @@ func computeRaceSpec(race *Race, rules *Rules) *RaceSpec {
 		StartingPlanets:     prtSpec.StartingPlanets,
 		TechCostOffset:      prtSpec.TechCostOffset,
 		MaxPopulationOffset: prtSpec.MaxPopulationOffset,
+		NewTechCostFactor: 1,
+		MiniaturizationMax: .75,
+		MiniaturizationPerLevel: .04,
+		ScanRangeFactor: 1,
+		StartingPopulationFactor: 1,
+		ResearchFactor: 1,
+		ShieldStrengthFactor: 1,
+		EngineReliableSpeed: 10,
 
 		// PP
 		MineralsPerSingleMineralPacket:   prtSpec.MineralsPerSingleMineralPacket,

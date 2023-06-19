@@ -1,5 +1,4 @@
 import type { GameContext } from '$lib/types/GameContext';
-import type { Planet } from '$lib/types/Planet';
 import type { Player } from '$lib/types/Player';
 import { Service } from './Service';
 
