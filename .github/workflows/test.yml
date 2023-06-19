@@ -12,6 +12,9 @@ jobs:
       with:
         go-version: ${{ matrix.go-version }}
     - uses: actions/checkout@v3
+    - name: Create frontend/build folder for embedded assets
+      run: |
+        mkdir -p frontend/build
     - run: go test ./...
 
   test-cache:
@@ -21,6 +24,9 @@ jobs:
       with:
         go-version: 1.18.x
     - uses: actions/checkout@v3
+    - name: Create frontend/build folder for embedded assets
+      run: |
+        mkdir -p frontend/build
     - uses: actions/cache@v3
       with:
         # In order:
