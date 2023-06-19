@@ -90,7 +90,8 @@ func (ai *aiPlayer) scout() {
 	for _, fleet := range scannerFleets {
 		closestPlanet := ai.getClosestPlanet(fleet, unknownPlanetsByNum)
 		if closestPlanet != nil {
-			fleet.Waypoints = append(fleet.Waypoints, cs.NewPlanetWaypoint(closestPlanet.Position, closestPlanet.Num, closestPlanet.Name, fleet.Spec.IdealSpeed))
+			warpSpeed := ai.getWarpSpeed(fleet, closestPlanet.Position)
+			fleet.Waypoints = append(fleet.Waypoints, cs.NewPlanetWaypoint(closestPlanet.Position, closestPlanet.Num, closestPlanet.Name, warpSpeed))
 			ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders)
 			delete(unknownPlanetsByNum, closestPlanet.Num)
 		}
@@ -144,33 +145,42 @@ func (ai *aiPlayer) colonize() {
 	for _, fleet := range colonizerFleets {
 		bestPlanet := ai.getHighestHabPlanet(colonizablePlanets)
 		if bestPlanet != nil {
-			// fleet.Waypoints[0].Task = cs.WaypointTaskTransport
-			// fleet.Waypoints[0].TransportTasks = cs.WaypointTransportTasks{
-			// 	Colonists: cs.WaypointTransportTask{
-			// 		Action: cs.TransportActionLoadAll,
-			// 	},
-			// }
-
 			// load colonists
 			if err := ai.client.TransferPlanetCargo(fleet, ai.getPlanet(fleet.OrbitingPlanetNum), cs.Cargo{Colonists: fleet.Spec.CargoCapacity}); err != nil {
 				// something went wrong, skipi this planet
 				log.Error().Err(err).Msg("transferring colonists from planet, skipping")
 				continue
 			}
-			fleet.Waypoints = append(fleet.Waypoints, cs.NewPlanetWaypoint(bestPlanet.Position, bestPlanet.Num, bestPlanet.Name, fleet.Spec.IdealSpeed).WithTask(cs.WaypointTaskColonize))
+
+			warpSpeed := ai.getWarpSpeed(fleet, bestPlanet.Position)
+			fleet.Waypoints = append(fleet.Waypoints, cs.NewPlanetWaypoint(bestPlanet.Position, bestPlanet.Num, bestPlanet.Name, warpSpeed).WithTask(cs.WaypointTaskColonize))
 			ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders)
 			delete(colonizablePlanets, bestPlanet.Num)
 		}
 	}
 
 	for _, planet := range buildablePlanets {
-		existingQueueItemIndex := slices.IndexFunc(planet.ProductionQueue, func(item cs.ProductionQueueItem) bool { return item.DesignName == design.Name })
-		if existingQueueItemIndex == -1 {
-			// put a new scout at the front of the queue
-			planet.ProductionQueue = append([]cs.ProductionQueueItem{{Type: cs.QueueItemTypeShipToken, Quantity: 1, DesignName: design.Name}}, planet.ProductionQueue...)
-			ai.client.UpdatePlanetOrders(ai.Player, planet, planet.PlanetOrders)
+
+		if planet.Spec.PopulationDensity >= ai.config.colonizerPopulationDensity {
+			existingQueueItemIndex := slices.IndexFunc(planet.ProductionQueue, func(item cs.ProductionQueueItem) bool { return item.DesignName == design.Name })
+			if existingQueueItemIndex == -1 {
+				// put a new scout at the front of the queue
+				planet.ProductionQueue = append([]cs.ProductionQueueItem{{Type: cs.QueueItemTypeShipToken, Quantity: 1, DesignName: design.Name}}, planet.ProductionQueue...)
+				ai.client.UpdatePlanetOrders(ai.Player, planet, planet.PlanetOrders)
+			}
 		}
 	}
+}
+
+func (ai *aiPlayer) getWarpSpeed(fleet *cs.Fleet, position cs.Vector) int {
+	dist := fleet.Position.DistanceTo(position)
+	fuelUsage := fleet.GetFuelCost(ai.Player, fleet.Spec.IdealSpeed, dist)
+	warpSpeed := fleet.Spec.IdealSpeed
+	for ; fuelUsage > fleet.Fuel && warpSpeed > 1; warpSpeed-- {
+		fuelUsage = fleet.GetFuelCost(ai.Player, warpSpeed, dist)
+	}
+
+	return warpSpeed
 }
 
 // get a player owned planet by num, or nil if it doesn't exist

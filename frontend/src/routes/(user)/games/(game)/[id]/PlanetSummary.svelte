@@ -57,7 +57,7 @@
 			{/if}
 		</div>
 		<div class="ml-[5.5rem]">
-			{#if planet.reportAge == 0}
+			{#if (planet.reportAge ?? 0) == 0}
 				Report is current
 			{:else if planet.reportAge == 1}
 				Report is 1 year old

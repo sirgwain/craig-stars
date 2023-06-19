@@ -401,6 +401,10 @@ func (t *turn) decayPackets() {
 
 // jiggle, degrade, and jump wormholes
 func (t *turn) wormholeJiggle() {
+	if len(t.game.Wormholes) == 0 {
+		return
+	}
+
 	planetPositions := make([]Vector, len(t.game.Planets))
 	wormholePositions := make([]Vector, len(t.game.Wormholes))
 
