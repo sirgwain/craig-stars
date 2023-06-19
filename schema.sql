@@ -185,13 +185,12 @@ CREATE TABLE playerMessages (
   createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
   updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
   playerId INTEGER NOT NULL,
-  year INTEGER,
   type TEXT,
   text TEXT,
   targetMapObjectNum INTEGER,
   targetPlayerNum INTEGER,
   targetType TEXT,
-  CONSTRAINT fkPlayersMessages FOREIGN KEY (playerId) REFERENCES players(id)
+  FOREIGN KEY (playerId) REFERENCES players (id)
 );
 CREATE TABLE battlePlans (
   id INTEGER PRIMARY KEY,

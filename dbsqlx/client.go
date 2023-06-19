@@ -1,6 +1,7 @@
 package dbsqlx
 
 import (
+	"database/sql"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -15,7 +16,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/jmoiron/sqlx/reflectx"
 	"github.com/mattn/go-sqlite3"
-	_ "github.com/mattn/go-sqlite3"
 	sqldblogger "github.com/simukti/sqldb-logger"
 )
 
@@ -46,6 +46,11 @@ func NewClient() Client {
 	return &client{
 		converter: &GameConverter{},
 	}
+}
+
+// interface to support NamedExec as either a transaction or db
+type NamedExecer interface {
+	NamedExec(query string, arg interface{}) (sql.Result, error)
 }
 
 func (c *client) Connect(config *config.Config) error {

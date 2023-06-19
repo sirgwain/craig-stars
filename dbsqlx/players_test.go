@@ -134,7 +134,7 @@ func TestGetPlayers(t *testing.T) {
 func TestDeletePlayers(t *testing.T) {
 	c := connectTestDB()
 	c.createTestGame()
-	
+
 	result, err := c.GetPlayers()
 	assert.Nil(t, err)
 	assert.Equal(t, []game.Player{}, result)
@@ -159,4 +159,36 @@ func TestDeletePlayers(t *testing.T) {
 	result, err = c.GetPlayers()
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(result))
+}
+
+func TestUpdateFullPlayer(t *testing.T) {
+	c := connectTestDB()
+	c.createTestGame()
+	player := game.Player{UserID: 1, GameID: 1, Name: "Test"}
+	if err := c.CreatePlayer(&player); err != nil {
+		t.Errorf("failed to create player %s", err)
+		return
+	}
+
+	player.Name = "Test2"
+	player.Num = 1
+	player.Messages = append(player.Messages, game.PlayerMessage{PlayerID: player.ID, Type: game.PlayerMessageInfo, Text: "message1"})
+	player.Messages = append(player.Messages, game.PlayerMessage{PlayerID: player.ID, Type: game.PlayerMessageInfo, Text: "message2"})
+	if err := c.UpdateFullPlayer(&player); err != nil {
+		t.Errorf("failed to update player %s", err)
+		return
+	}
+
+	updated, err := c.GetFullPlayer(int64(player.ID))
+
+	if err != nil {
+		t.Errorf("failed to get player %s", err)
+		return
+	}
+
+	assert.Equal(t, player.Name, updated.Name)
+	assert.Equal(t, player.Num, updated.Num)
+	assert.Less(t, player.UpdatedAt, updated.UpdatedAt)
+	assert.Equal(t, 2, len(updated.Messages))
+
 }

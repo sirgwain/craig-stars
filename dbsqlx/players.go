@@ -5,6 +5,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/sirgwain/craig-stars/game"
@@ -41,8 +42,8 @@ type Player struct {
 	Researching                  game.TechField         `json:"researching,omitempty"`
 	ProductionPlans              ProductionPlans        `json:"productionPlans,omitempty"`
 	TransportPlans               TransportPlans         `json:"transportPlans,omitempty"`
-	Stats                        *game.PlayerStats      `json:"stats,omitempty"`
-	Spec                         *game.PlayerSpec       `json:"spec,omitempty"`
+	Stats                        *PlayerStats           `json:"stats,omitempty"`
+	Spec                         *PlayerSpec            `json:"spec,omitempty"`
 }
 
 // we json serialize these types with custom Scan/Value methods
@@ -124,6 +125,10 @@ func (item *PlayerSpec) Value() (driver.Value, error) {
 
 // db deserializer to read this from JSON
 func (item *PlayerSpec) Scan(src interface{}) error {
+	if src == nil {
+		return nil
+	}
+
 	switch v := src.(type) {
 	case []byte:
 		return json.Unmarshal(v, item)
@@ -148,6 +153,10 @@ func (item *PlayerStats) Value() (driver.Value, error) {
 
 // db deserializer to read this from JSON
 func (item *PlayerStats) Scan(src interface{}) error {
+	if src == nil {
+		return nil
+	}
+
 	switch v := src.(type) {
 	case []byte:
 		return json.Unmarshal(v, item)
@@ -196,6 +205,28 @@ func (c *client) GetPlayer(id int64) (*game.Player, error) {
 	}
 
 	player := c.converter.ConvertPlayer(item)
+	return &player, nil
+}
+
+// get a full player by id with all dependencies loaded
+func (c *client) GetFullPlayer(id int64) (*game.Player, error) {
+	item := Player{}
+	if err := c.db.Get(&item, "SELECT * FROM players WHERE id = ?", id); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	player := c.converter.ConvertPlayer(item)
+
+	// load player deps
+	messages, err := c.GetPlayerMessagesForPlayer(player.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get player messages %w", err)
+	}
+	player.Messages = messages
+
 	return &player, nil
 }
 
@@ -289,10 +320,14 @@ func (c *client) CreatePlayer(player *game.Player) error {
 
 // update an existing player
 func (c *client) UpdatePlayer(player *game.Player) error {
+	return c.updatePlayerWithNamedExecer(player, c.db)
+}
 
+// helper to update a player using a transaction or DB
+func (c *client) updatePlayerWithNamedExecer(player *game.Player, tx NamedExecer) error {
 	item := c.converter.ConvertGamePlayer(player)
 
-	if _, err := c.db.NamedExec(`
+	if _, err := tx.NamedExec(`
 	UPDATE players SET
 		updatedAt = CURRENT_TIMESTAMP,
 		gameId = :gameId,
@@ -329,6 +364,31 @@ func (c *client) UpdatePlayer(player *game.Player) error {
 		return err
 	}
 
+	return nil
+}
+
+// update an existing player
+func (c *client) UpdateFullPlayer(player *game.Player) error {
+	tx, err := c.db.Beginx()
+	if err != nil {
+		return err
+	}
+
+	if err := c.updatePlayerWithNamedExecer(player, tx); err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to update player %w", err)
+	}
+
+	// replace player messages
+	tx.Exec("DELETE FROM playerMessages WHERE playerId = ?", player.ID)
+	for i := range player.Messages {
+		if err := c.CreatePlayerMessage(&player.Messages[i], tx); err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to create player message %w", err)
+		}
+	}
+
+	tx.Commit()
 	return nil
 }
 
