@@ -19,7 +19,9 @@
 	};
 </script>
 
-<div class="card bg-base-200 shadow-xl rounded-sm border-2 border-base-300 pt-2 sm:w-[350px]">
+<div
+	class="card bg-base-200 shadow-xl rounded-sm border-2 border-base-300 pt-2 m-1 w-full sm:w-[350px]"
+>
 	<div class="card-body">
 		<h2 class="card-title">
 			<a class="cs-link" href={`/games/${gameId}/production-plans/${plan.num}`}>{plan.name}</a>

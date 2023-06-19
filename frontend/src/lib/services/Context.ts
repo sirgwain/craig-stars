@@ -1,8 +1,6 @@
 import { CommandedFleet, type Fleet, type Waypoint } from '$lib/types/Fleet';
 import { MapObjectType, None, type MapObject } from '$lib/types/MapObject';
 import { CommandedPlanet } from '$lib/types/Planet';
-import type { ShipDesign, ShipDesignIntel } from '$lib/types/ShipDesign';
-import type { Tech } from '$lib/types/Tech';
 import { emptyUser, type User } from '$lib/types/User';
 import type { Vector } from '$lib/types/Vector';
 import type { ComponentType, SvelteComponent } from 'svelte';
@@ -141,8 +139,8 @@ export const zoomToMapObject = (mo: MapObject) => {
 	zoomTarget.update(() => mo);
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const tooltipComponent = writable<
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	{ component: typeof SvelteComponent; props: any } | undefined
 >();
 export const tooltipLocation = writable<Vector>({ x: 0, y: 0 });

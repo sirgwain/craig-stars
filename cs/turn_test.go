@@ -173,6 +173,73 @@ func Test_turn_fleetMove(t *testing.T) {
 	assert.Equal(t, Vector{10, 10}, fleet.Position)
 }
 
+func Test_turn_fleetMoveRepeatOrders(t *testing.T) {
+	game := createSingleUnitGame()
+	player := game.Players[0]
+
+	planet := game.Planets[0]
+
+	planet.Cargo = Cargo{1000, 1000, 1000, 1000}
+
+	// make a new freighter for transport
+	fleet := testSmallFreighter(player)
+	player.Designs[0] = fleet.Tokens[0].design
+	fleet.Waypoints = append(fleet.Waypoints, NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 5))
+	game.Fleets[0] = fleet
+
+	// set a waypoint 2 turns away, load ironium from planet and move
+	fleet.RepeatOrders = true
+	fleet.OrbitingPlanetNum = planet.Num
+	fleet.Waypoints[0].Task = WaypointTaskTransport
+	fleet.Waypoints[0].TransportTasks.Ironium.Action = TransportActionLoadAll
+
+	// dump all ironium at this waypoint and return
+	fleet.Waypoints = append(fleet.Waypoints, NewPositionWaypoint(Vector{50, 0}, 5))
+	fleet.Waypoints[1].Task = WaypointTaskTransport
+	fleet.Waypoints[1].TransportTasks.Ironium.Action = TransportActionUnloadAll
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// move one year
+	turn.generateTurn()
+
+	// should have loaded, moved, but still have waypoints
+	assert.Equal(t, 120, fleet.Cargo.Ironium)
+	assert.Equal(t, 880, planet.Cargo.Ironium)
+	assert.Equal(t, Vector{25, 0}, fleet.Position)
+	assert.Equal(t, 3, len(fleet.Waypoints))
+
+	// generate the second turn, should move to dest and unload
+	turn.generateTurn()
+	assert.Equal(t, 0, fleet.Cargo.Ironium)
+	assert.Equal(t, Vector{50, 0}, fleet.Position)
+	assert.Equal(t, 2, len(fleet.Waypoints))
+	// should have created salvage with ironium drop
+	salvage := game.Salvages[0]
+	assert.Equal(t, 120, salvage.Cargo.Ironium)
+
+	// generate the third turn, should move back towards planet
+	turn.generateTurn()
+	assert.Equal(t, Vector{25, 0}, fleet.Position)
+	assert.Equal(t, 3, len(fleet.Waypoints))
+
+	// generate a fourth turn, should arrive at planet and load ironium
+	turn.generateTurn()
+	assert.Equal(t, Vector{0, 0}, fleet.Position)
+	assert.Equal(t, 120, fleet.Cargo.Ironium)
+	assert.Equal(t, 760, planet.Cargo.Ironium)
+	assert.Equal(t, 2, len(fleet.Waypoints))
+
+	// generate a fifth turn, should move again towards dest
+	turn.generateTurn()
+	assert.Equal(t, Vector{25, 0}, fleet.Position)
+	assert.Equal(t, 3, len(fleet.Waypoints))
+
+}
+
 func Test_turn_permaform(t *testing.T) {
 	game := createSingleUnitGame()
 

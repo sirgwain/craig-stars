@@ -623,6 +623,13 @@ func (fleet *Fleet) moveFleet(mapObjectGetter mapObjectGetter, rules *Rules, pla
 		fleet.Position = fleet.Position.Add(fleet.Heading.Scale(dist))
 		fleet.Position = fleet.Position.Round()
 		wp0.Position = fleet.Position
+
+		// don't do any transport in mid space, reset this
+		if wp0.Task == WaypointTaskTransport {
+			wp0.Task = WaypointTaskNone
+			wp0.TransportTasks = WaypointTransportTasks{}
+		}
+
 		fleet.Waypoints[0] = wp0
 	}
 }
@@ -1043,14 +1050,23 @@ func (fleet *Fleet) getCargoUnloadAmount(dest cargoHolder, cargoType CargoType, 
 		availableToUnload = fleet.Cargo.GetAmount(cargoType)
 	}
 	currentAmount := fleet.Cargo.GetAmount(cargoType)
+	capacity := dest.getCargoCapacity()
 	_ = currentAmount
 	switch task.Action {
 	case TransportActionUnloadAll:
 		// unload all available, based on our constraints
-		transferAmount = minInt(availableToUnload, dest.getCargoCapacity())
+		if capacity == Unlimited {
+			transferAmount = availableToUnload
+		} else {
+			transferAmount = minInt(availableToUnload, capacity)
+		}
 	case TransportActionUnloadAmount:
 		// don't unload more than the task says
-		transferAmount = minInt(minInt(availableToUnload, task.Amount), dest.getCargoCapacity())
+		if capacity == Unlimited {
+			transferAmount = minInt(availableToUnload, task.Amount)
+		} else {
+			transferAmount = minInt(minInt(availableToUnload, task.Amount), capacity)
+		}
 	case TransportActionSetWaypointTo:
 		// Make sure the waypoint has at least whatever we specified
 		var currentAmount = dest.getCargo().GetAmount(cargoType)
@@ -1060,7 +1076,11 @@ func (fleet *Fleet) getCargoUnloadAmount(dest cargoHolder, cargoType CargoType, 
 			break
 		} else {
 			// only transfer the min of what we have, vs what we need, vs the capacity
-			transferAmount = minInt(minInt(availableToUnload, task.Amount-currentAmount), dest.getCargoCapacity())
+			if capacity == Unlimited {
+				transferAmount = minInt(availableToUnload, task.Amount-currentAmount)
+			} else {
+				transferAmount = minInt(minInt(availableToUnload, task.Amount-currentAmount), capacity)
+			}
 			if transferAmount < task.Amount {
 				waitAtWaypoint = true
 			}

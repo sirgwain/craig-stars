@@ -49,9 +49,10 @@ func (t *turn) generateTurn() error {
 	t.fleetLoad()
 	t.fleetMerge0()
 	t.fleetRoute()
-	t.packetMove0()
+	t.fleetMarkWaypointsProcessed()
 
 	// move stuff through space
+	t.packetMove0()
 	t.mysteryTraderMove()
 	t.fleetMove()
 	t.fleetReproduce()
@@ -60,7 +61,7 @@ func (t *turn) generateTurn() error {
 	t.wormholeJiggle()
 	t.detonateMines()
 	t.planetMine()
-	t.fleetRemoteMineAR()
+	t.fleetRemoteMineAR() // sort of a wp1 task, for AR races it happens before production
 	t.planetProduction()
 	t.playerResearch()
 	t.researchStealer()
@@ -74,9 +75,9 @@ func (t *turn) generateTurn() error {
 	t.fleetBattle()
 	t.fleetBomb()
 	t.mysteryTraderMeet()
-	t.fleetRemoteMine()
 
 	// wp1 tasks
+	t.fleetRemoteMine()
 	t.fleetUnload()
 	t.fleetColonize() // colonize wp1 after arriving at a planet
 	t.fleetScrap()
@@ -86,6 +87,8 @@ func (t *turn) generateTurn() error {
 	t.fleetTransferOwner()
 	t.fleetMerge1()
 	t.fleetRoute()
+
+	// do some final stuff like instaforming and repairing
 	t.instaform()
 	t.fleetSweepMines()
 	t.fleetRepair()
@@ -180,10 +183,9 @@ func (t *turn) scrapFleet(fleet *Fleet) {
 // fleetColonize will attempt to colonize planets for any fleets with the Colonize WaypointTask
 func (t *turn) fleetColonize() {
 	for _, fleet := range t.game.Fleets {
-		wp := fleet.Waypoints[0]
-		if !wp.processed && wp.Task == WaypointTaskColonize {
-			wp.processed = true
+		wp := &fleet.Waypoints[0]
 
+		if !wp.processed && wp.Task == WaypointTaskColonize {
 			player := t.game.Players[fleet.PlayerNum-1]
 
 			if wp.TargetType != MapObjectTypePlanet {
@@ -237,13 +239,13 @@ func (t *turn) fleetColonize() {
 // fleetUnload executes wp0/wp1 unload transport tasks for fleets
 func (t *turn) fleetUnload() {
 	for _, fleet := range t.game.Fleets {
-		wp := fleet.Waypoints[0]
+		wp := &fleet.Waypoints[0]
 
 		if !wp.processed && wp.Task == WaypointTaskTransport {
-			wp.processed = true
 			dest := t.game.getCargoHolder(wp.TargetType, wp.TargetNum, wp.TargetPlayerNum)
 			var salvage *Salvage
 			if dest == nil {
+
 				salvage = t.game.createSalvage(fleet.Position, fleet.PlayerNum, Cargo{})
 				dest = salvage
 			}
@@ -261,16 +263,16 @@ func (t *turn) fleetUnload() {
 			if salvage != nil && salvage.Cargo.Total() == 0 {
 				t.game.deleteSalvage(salvage)
 			}
+
 		}
 	}
 }
 
 func (t *turn) fleetLoad() {
 	for _, fleet := range t.game.Fleets {
-		wp := fleet.Waypoints[0]
+		wp := &fleet.Waypoints[0]
 
 		if !wp.processed && wp.Task == WaypointTaskTransport {
-			wp.processed = true
 			dest := t.game.getCargoHolder(wp.TargetType, wp.TargetNum, wp.TargetPlayerNum)
 			if dest == nil {
 				// can't load from space
@@ -311,6 +313,7 @@ func (t *turn) fleetLoad() {
 
 				t.fleetTransferCargo(fleet, -transferAmount, cargoType, dest)
 			}
+
 		}
 	}
 }
@@ -321,8 +324,8 @@ func (t *turn) fleetLoad() {
 func (t *turn) fleetTransferCargo(fleet *Fleet, transferAmount int, cargoType CargoType, dest cargoHolder) {
 	if transferAmount != 0 {
 		player := t.game.Players[fleet.PlayerNum-1]
-		planet := dest.(*Planet)
-		if transferAmount > 0 && cargoType == Colonists && planet != nil && planet.owned() && !planet.OwnedBy(fleet.PlayerNum) {
+		planet, ok := dest.(*Planet)
+		if transferAmount > 0 && cargoType == Colonists && ok && planet.owned() && !planet.OwnedBy(fleet.PlayerNum) {
 			// invasion!
 			invadePlanet(planet, fleet, t.game.Players[planet.PlayerNum-1], t.game.Players[fleet.PlayerNum-1], transferAmount*100, t.game.Rules.InvasionDefenseCoverageFactor)
 		} else if transferAmount < 0 && !dest.canLoad(fleet.PlayerNum) {
@@ -343,8 +346,9 @@ func (t *turn) fleetMerge0() {
 
 func (t *turn) fleetRoute() {
 	for _, fleet := range t.game.Fleets {
-		wp := fleet.Waypoints[0]
-		if wp.Task == WaypointTaskRoute {
+		wp := &fleet.Waypoints[0]
+
+		if !wp.processed && wp.Task == WaypointTaskRoute {
 			player := t.game.Players[fleet.PlayerNum-1]
 			if fleet.OrbitingPlanetNum == None {
 				messager.fleetInvalidRouteNotPlanet(player, fleet)
@@ -390,6 +394,14 @@ func (t *turn) fleetRoute() {
 	}
 }
 
+// mark all wp0 as processed so they won't be processed again during wp1 steps
+func (t *turn) fleetMarkWaypointsProcessed() {
+	for _, fleet := range t.game.Fleets {
+		wp := &fleet.Waypoints[0]
+		wp.processed = true
+	}
+}
+
 func (t *turn) packetMove0() {
 
 }
@@ -420,6 +432,9 @@ func (t *turn) fleetMove() {
 				// remove the previous waypoint, it's been processed already
 				if fleet.RepeatOrders && !wp0.PartiallyComplete {
 					// if we are supposed to repeat orders,
+					wp0.processed = false
+					wp0.WaitAtWaypoint = false
+					wp0.PartiallyComplete = false
 					fleet.Waypoints = append(fleet.Waypoints, wp0)
 				}
 
@@ -906,6 +921,49 @@ func (t *turn) decayMines() {
 }
 
 func (t *turn) fleetLayMines() {
+	for _, fleet := range t.game.Fleets {
+		wp0 := fleet.Waypoints[0]
+		if wp0.Task == WaypointTaskLayMineField {
+			player := t.game.getPlayer(fleet.PlayerNum)
+
+			if !fleet.Spec.CanLayMines {
+				messager.fleetMinesLaidFailed(player, fleet)
+				continue
+			}
+
+			for mineType, minesLaid := range fleet.Spec.MineLayingRateByMineType {
+				if len(fleet.Waypoints) > 1 {
+					minesLaid = int(float64(minesLaid) * player.Race.Spec.MineFieldRateMoveFactor)
+				}
+
+				// We aren't laying mines (probably because we're moving, skip it)
+				if minesLaid == 0 {
+					continue
+				}
+
+				// See if we are adding to an existing minefield
+				mineField := t.game.getMineFieldNearPosition(player.Num, fleet.Position, mineType)
+				if mineField == nil {
+					mineField = newMineField(player, mineType, minesLaid, t.game.getNextMineFieldNum(), fleet.Position)
+					t.game.addMineField(mineField)
+				} else {
+					// Add to it!
+					mineField.NumMines += minesLaid
+				}
+
+				messager.fleetMinesLaid(player, fleet, mineField, minesLaid)
+
+				if mineField.Position != fleet.Position {
+					// Move this minefield closer to us (in case it's not in our location)
+					// This was taken from the FreeStars codebase (like many other things)
+					mineField.Position = Vector{
+						X: float64(minesLaid)/float64(mineField.NumMines)*(float64(fleet.Position.X)-float64(mineField.Position.X)) + mineField.Position.X,
+						Y: float64(minesLaid)/float64(mineField.NumMines)*(float64(fleet.Position.Y)-float64(mineField.Position.Y)) + mineField.Position.Y,
+					}
+				}
+			}
+		}
+	}
 
 }
 

@@ -17,12 +17,13 @@ type Universe struct {
 	rules                *Rules                              `json:"-"`
 	battlePlansByNum     map[playerBattlePlanNum]*BattlePlan `json:"-"`
 	mapObjectsByPosition map[Vector][]interface{}            `json:"-"`
-	fleetsByPosition     map[Vector]*Fleet                   `json:"-"`
+	fleetsByPosition     map[Vector][]*Fleet                 `json:"-"`
 	fleetsByNum          map[playerObject]*Fleet             `json:"-"`
 	designsByNum         map[playerObject]*ShipDesign        `json:"-"`
 	mineFieldsByNum      map[playerObject]*MineField         `json:"-"`
 	mineralPacketsByNum  map[playerObject]*MineralPacket     `json:"-"`
 	salvagesByNum        map[int]*Salvage                    `json:"-"`
+	salvagesByPosition   map[Vector]*Salvage                 `json:"-"`
 	mysteryTradersByNum  map[int]*MysteryTrader              `json:"-"`
 	wormholesByNum       map[int]*Wormhole                   `json:"-"`
 }
@@ -32,12 +33,13 @@ func NewUniverse(rules *Rules) Universe {
 		rules:                rules,
 		battlePlansByNum:     make(map[playerBattlePlanNum]*BattlePlan),
 		mapObjectsByPosition: make(map[Vector][]interface{}),
-		fleetsByPosition:     make(map[Vector]*Fleet),
+		fleetsByPosition:     make(map[Vector][]*Fleet),
 		designsByNum:         make(map[playerObject]*ShipDesign),
 		fleetsByNum:          make(map[playerObject]*Fleet),
 		mineFieldsByNum:      make(map[playerObject]*MineField),
 		mineralPacketsByNum:  make(map[playerObject]*MineralPacket),
 		salvagesByNum:        make(map[int]*Salvage),
+		salvagesByPosition:   make(map[Vector]*Salvage),
 		wormholesByNum:       make(map[int]*Wormhole),
 		mysteryTradersByNum:  make(map[int]*MysteryTrader),
 	}
@@ -99,11 +101,17 @@ func (u *Universe) buildMaps(players []*Player) {
 		}
 	}
 
-	u.fleetsByPosition = make(map[Vector]*Fleet, len(u.Fleets))
+	u.fleetsByPosition = make(map[Vector][]*Fleet)
 	u.fleetsByNum = make(map[playerObject]*Fleet, len(u.Fleets))
 	for _, fleet := range u.Fleets {
 		u.addMapObjectByPosition(fleet, fleet.Position)
-		u.fleetsByPosition[fleet.Position] = fleet
+		fleets, found := u.fleetsByPosition[fleet.Position]
+		if !found {
+			fleets = []*Fleet{fleet}
+		}
+		fleets = append(fleets, fleet)
+		u.fleetsByPosition[fleet.Position] = fleets
+
 		u.fleetsByNum[playerObjectKey(fleet.PlayerNum, fleet.Num)] = fleet
 
 		fleet.battlePlan = u.battlePlansByNum[playerBattlePlanNum{fleet.PlayerNum, fleet.BattlePlanNum}]
@@ -137,10 +145,12 @@ func (u *Universe) buildMaps(players []*Player) {
 		u.addMapObjectByPosition(mineField, mineField.Position)
 	}
 
+	u.salvagesByPosition = make(map[Vector]*Salvage, len(u.Salvages))
 	u.salvagesByNum = make(map[int]*Salvage, len(u.Salvages))
 	for _, salvage := range u.Salvages {
 		u.salvagesByNum[salvage.Num] = salvage
 		u.addMapObjectByPosition(salvage, salvage.Position)
+		u.salvagesByPosition[salvage.Position] = salvage
 	}
 
 	u.wormholesByNum = make(map[int]*Wormhole, len(u.Wormholes))
@@ -260,6 +270,17 @@ func (u *Universe) getMineField(playerNum int, num int) *MineField {
 	return u.mineFieldsByNum[playerObjectKey(playerNum, num)]
 }
 
+// get a minefield that is close to a position
+func (u *Universe) getMineFieldNearPosition(playerNum int, position Vector, mineFieldType MineFieldType) *MineField {
+	for _, mineField := range u.MineFields {
+		if mineField.PlayerNum == playerNum && mineField.MineFieldType == mineFieldType && isPointInCircle(position, mineField.Position, mineField.Spec.Radius) {
+			return mineField
+		}
+	}
+
+	return nil
+}
+
 func (u *Universe) getMineralPacket(playerNum int, num int) *MineralPacket {
 	return u.mineralPacketsByNum[playerObjectKey(playerNum, num)]
 }
@@ -302,8 +323,22 @@ func (u *Universe) deleteFleet(fleet *Fleet) {
 // move a fleet from one position to another
 func (u *Universe) moveFleet(fleet *Fleet, originalPosition Vector) {
 	fleet.MarkDirty()
-	delete(u.fleetsByPosition, originalPosition)
-	u.fleetsByPosition[originalPosition] = fleet
+	originalPositionFleets := u.fleetsByPosition[originalPosition]
+	index := slices.Index(originalPositionFleets, fleet)
+	if index != -1 {
+		slices.Delete(originalPositionFleets, index, index)
+		if len(originalPositionFleets) == 0 {
+			delete(u.fleetsByPosition, originalPosition)
+		}
+	}
+
+	// move to new location
+	fleets, found := u.fleetsByPosition[fleet.Position]
+	if !found {
+		fleets = []*Fleet{}
+	}
+	fleets = append(fleets, fleet)
+	u.fleetsByPosition[fleet.Position] = fleets
 
 	// upadte mapobjects position
 	u.updateMapObjectAtPosition(fleet, originalPosition, fleet.Position)
@@ -450,4 +485,10 @@ func (u *Universe) getNextMineFieldNum() int {
 		num = maxInt(num, mineField.Num)
 	}
 	return num + 1
+}
+
+func (u *Universe) addMineField(mineField *MineField) {
+	u.MineFields = append(u.MineFields, mineField)
+	u.mineFieldsByNum[playerObjectKey(mineField.PlayerNum, mineField.Num)] = mineField
+	u.addMapObjectByPosition(mineField, mineField.Position)
 }

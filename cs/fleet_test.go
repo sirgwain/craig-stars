@@ -36,6 +36,11 @@ func testLongRangeScout(player *Player) *Fleet {
 // create a new small freighter (with cargo pod) fleet for testing
 func testSmallFreighter(player *Player) *Fleet {
 	fleet := &Fleet{
+		MapObject: MapObject{
+			Type:      MapObjectTypeFleet,
+			PlayerNum: player.Num,
+			Num:       1,
+		},
 		BaseName: "Small Freighter",
 		Tokens: []ShipToken{
 			{

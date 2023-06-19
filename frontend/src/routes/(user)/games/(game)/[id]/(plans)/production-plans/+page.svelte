@@ -32,16 +32,14 @@
 </Breadcrumb>
 
 {#if $game?.player.productionPlans.length}
-	<div class="flex flex-wrap justify-center">
+	<div class="flex flex-wrap justify-center gap-2">
 		{#each $game.player.productionPlans as plan (plan.num)}
-			<div class="mb-2">
-				<ProductionPlanCard
-					{plan}
-					{gameId}
-					showDelete={plan.num !== 0}
-					on:delete={() => deletePlan(plan)}
-				/>
-			</div>
+			<ProductionPlanCard
+				{plan}
+				{gameId}
+				showDelete={plan.num !== 0}
+				on:delete={() => deletePlan(plan)}
+			/>
 		{/each}
 	</div>
 {/if}

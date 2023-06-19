@@ -388,6 +388,21 @@ func (m *messageClient) fleetHitMineField(player *Player, fleet *Fleet) {
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetScrapped, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
 }
 
+func (m *messageClient) fleetMinesLaidFailed(player *Player, fleet *Fleet) {
+	text := fmt.Sprintf("%s has attempted to lay mines. The order has been cancelled because the fleet has no mine layers.", fleet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+}
+
+func (m *messageClient) fleetMinesLaid(player *Player, fleet *Fleet, mineField *MineField, numMinesLaid int) {
+	var text string
+	if mineField.NumMines == numMinesLaid {
+		text = fmt.Sprintf("%s has dispersed %d mines.", fleet.Name, numMinesLaid)
+	} else {
+		text = fmt.Sprintf("%s has increased a minefield by %d mines.", fleet.Name, numMinesLaid)
+	}
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageMinesLaid, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+}
+
 func (m *messageClient) colonizeNonPlanet(player *Player, fleet *Fleet) {
 	text := fmt.Sprintf("%s has attempted to colonize a waypoint with no Planet.", fleet.Name)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum})
@@ -512,7 +527,7 @@ func (m *messageClient) battle(player *Player, planet *Planet, battle *BattleRec
 
 func (m *messageClient) techLevel(player *Player, field TechField, level int, nextField TechField) {
 	text := fmt.Sprintf("Your scientists have completed research into Tech Level %d for %v.  They will continue their efforts in the %v field.", level, field, nextField)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text})
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageGainTechLevel, Text: text})
 }
 
 func (m *messageClient) playerDiscovered(player *Player, otherPlayer *Player) {

@@ -106,3 +106,8 @@ func segmentIntersectsCircle(segmentFrom, segmentTo, circlePosition Vector, circ
 	}
 	return -1
 }
+
+// Returns true if this point is in a circle
+func isPointInCircle(point, circlePosition Vector, circleRadius float64) bool {
+	return point.DistanceSquaredTo(circlePosition) <= circleRadius*circleRadius
+}
