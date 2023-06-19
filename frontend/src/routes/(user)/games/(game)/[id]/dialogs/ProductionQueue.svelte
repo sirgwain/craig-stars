@@ -163,7 +163,7 @@
 			case QueueItemType.ShipToken:
 			case QueueItemType.Starbase:
 				if (item.designName) {
-					const design = $universe.getMyDesignByName($player.num, item.designName);
+					const design = $universe.getMyDesignByName(item.designName);
 					cost = design?.spec.cost;
 				}
 				break;
@@ -200,7 +200,7 @@
 
 	const resetQueue = () => {
 		queueItems = planet.productionQueue?.map((item) => ({ ...item } as ProductionQueueItem));
-		availableItems = planet.getAvailableProductionQueueItems(planet, $universe.getMyDesigns($player.num));
+		availableItems = planet.getAvailableProductionQueueItems(planet, $universe.getMyDesigns());
 		selectedAvailableItem = availableItems.length > 0 ? availableItems[0] : selectedAvailableItem;
 		contributesOnlyLeftoverToResearch = planet.contributesOnlyLeftoverToResearch ?? false;
 	};

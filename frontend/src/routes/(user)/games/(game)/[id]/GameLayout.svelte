@@ -7,12 +7,13 @@
 	import { bindQuantityModifier, unbindQuantityModifier } from '$lib/quantityModifier';
 	import { getGameContext, initGameContext, updateGameContext } from '$lib/services/Contexts';
 	import { FullGame } from '$lib/services/FullGame';
-	import { commandedMapObject, techs } from '$lib/services/Stores';
+	import { commandedMapObject, nextMapObject, previousMapObject, techs } from '$lib/services/Stores';
 	import { GameState } from '$lib/types/Game';
 	import { onMount } from 'svelte';
 	import GameMenu from './GameMenu.svelte';
 	import { Player } from '$lib/types/Player';
 	import { Universe } from '$lib/services/Universe';
+	import hotkeys from 'hotkeys-js';
 
 	let id = parseInt($page.params.id);
 	let loadAttempted = false;
@@ -53,11 +54,24 @@
 		// if we are in an active game, bind the navigation hotkeys, i.e. F4 for research, Esc to go back
 		if ($game?.state == GameState.WaitingForPlayers) {
 			bindNavigationHotkeys(id, page);
+
+			hotkeys('F9', () => {
+				onSubmitTurn();
+			});
+			hotkeys('n', () => {
+				nextMapObject();
+			})
+			hotkeys('p', () => {
+				previousMapObject();
+			})
 		}
 
 		return () => {
 			unbindQuantityModifier();
 			unbindNavigationHotkeys();
+			hotkeys.unbind('F9');
+			hotkeys.unbind('n');
+			hotkeys.unbind('p');
 		};
 	});
 
@@ -69,13 +83,12 @@
 			$game.commandHomeWorld();
 		}
 	}
-
 </script>
 
 {#if fg}
 	<main class="flex flex-col mb-20 md:mb-0">
 		<div class="flex-initial">
-			<GameMenu game={$game} on:submit-turn={onSubmitTurn}/>
+			<GameMenu game={$game} on:submit-turn={onSubmitTurn} />
 		</div>
 		<ErrorToast />
 		<slot>Game</slot>

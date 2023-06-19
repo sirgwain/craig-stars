@@ -95,8 +95,6 @@
 	>
 		{#if $commandedPlanet}
 			<ProductionQueue
-				player={$player}
-				designs={$universe.getMyDesigns($player.num)}
 				planet={$commandedPlanet}
 				on:ok={updatePlanetOrders}
 				on:cancel={() => (productionQueueDialogOpen = false)}

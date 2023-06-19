@@ -100,6 +100,4 @@
 		</div>
 	</div>
 </div>
-<div class:hidden={!showMessages} class:block={showMessages}>
-	<MessagesPane />
-</div>
+<MessagesPane bind:showMessages />

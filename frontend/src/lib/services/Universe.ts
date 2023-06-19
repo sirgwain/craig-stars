@@ -14,7 +14,7 @@ import { groupBy, startCase } from 'lodash-es';
 
 export interface DesignFinder {
 	getDesign(playerNum: number, num: number): ShipDesign | undefined;
-	getMyDesignByName(playerNum: number, name: string): ShipDesign | undefined;
+	getMyDesignByName(name: string): ShipDesign | undefined;
 }
 
 export interface PlayerFinder {
@@ -132,20 +132,20 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 		return '#FF0000';
 	}
 
-	getMyDesigns(playerNum: number): ShipDesign[] {
-		return this.designs.filter((d) => d.playerNum === playerNum);
+	getMyDesigns(): ShipDesign[] {
+		return this.designs.filter((d) => d.playerNum === this.playerNum);
 	}
 
-	getMyPlanets(playerNum: number): Planet[] {
-		return this.planets.filter((d) => d.playerNum === playerNum);
+	getMyPlanets(): Planet[] {
+		return this.planets.filter((d) => d.playerNum === this.playerNum);
 	}
 
 	getDesign(playerNum: number, num: number): ShipDesign | undefined {
 		return this.designs.find((d) => d.playerNum === playerNum && d.num === num);
 	}
 
-	getMyDesignByName(playerNum: number, name: string): ShipDesign | undefined {
-		return this.designs.find((d) => d.playerNum === playerNum && d.name == name);
+	getMyDesignByName(name: string): ShipDesign | undefined {
+		return this.designs.find((d) => d.playerNum === this.playerNum && d.name == name);
 	}
 
 	getBattle(num: number): BattleRecord | undefined {

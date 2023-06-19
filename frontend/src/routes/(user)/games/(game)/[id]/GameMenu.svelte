@@ -7,6 +7,8 @@
 	import DarkModeToggler from '$lib/components/DarkModeToggler.svelte';
 	import type { Game } from '$lib/types/Game';
 	import { page } from '$app/stores';
+	import { onMount } from 'svelte/internal';
+	import hotkeys from 'hotkeys-js';
 
 	export let game: Game;
 
@@ -29,7 +31,11 @@
 	<div class="flex-initial">
 		{#if $page.url.pathname === `/games/${game.id}`}
 			<div class="tooltip tooltip-bottom" data-tip="submit turn">
-				<button on:click={() => dispatch('submit-turn')} class="btn btn-primary" title="submit turn"
+				<button
+					type="button"
+					on:click={() => dispatch('submit-turn')}
+					class="btn btn-primary"
+					title="submit turn"
 					><span class="hidden md:inline-block mr-1">Submit Turn</span><Icon
 						src={ArrowUpTray}
 						size="16"

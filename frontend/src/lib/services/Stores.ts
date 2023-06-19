@@ -91,8 +91,9 @@ export const previousMapObject = () => {
 
 	if (mo) {
 		if (mo.type == MapObjectType.Planet) {
-			const prevIndex = rollover(i - 1, 0, u.planets.length - 1);
-			const planet = u.planets[prevIndex];
+			const planets = u.getMyPlanets();
+			const prevIndex = rollover(i - 1, 0, planets.length - 1);
+			const planet = planets[prevIndex];
 			commandMapObject(planet);
 			zoomToMapObject(planet);
 			selectMapObject(planet);
@@ -125,8 +126,9 @@ export const nextMapObject = () => {
 
 	if (mo) {
 		if (mo.type == MapObjectType.Planet) {
-			const nextIndex = rollover(i + 1, 0, u.planets.length - 1);
-			const planet = u.planets[nextIndex];
+			const planets = u.getMyPlanets();
+			const nextIndex = rollover(i + 1, 0, u.getMyPlanets().length - 1);
+			const planet = planets[nextIndex];
 			commandMapObject(planet);
 			zoomToMapObject(planet);
 			selectMapObject(planet);

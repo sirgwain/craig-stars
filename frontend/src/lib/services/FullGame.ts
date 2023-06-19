@@ -129,7 +129,7 @@ export class FullGame implements Game {
 			zoomToMapObject(homeworld);
 		} else {
 			// command our first planet
-			const planets = this.universe.getMyPlanets(this.player.num);
+			const planets = this.universe.getMyPlanets();
 			if (planets.length > 0) {
 				commandMapObject(planets[0]);
 				selectMapObject(planets[0]);

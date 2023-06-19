@@ -13,9 +13,12 @@
 		MagnifyingGlassPlus
 	} from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
+	import hotkeys from 'hotkeys-js';
+	import { onMount } from 'svelte/internal';
 
 	const { game, player, universe, settings } = getGameContext();
 
+	export let showMessages = false;
 	let messageNum = 0;
 	let message: Message | undefined;
 	let showFilteredMessages = false;
@@ -121,93 +124,120 @@
 			}
 		}
 	};
+
+	onMount(() => {
+		hotkeys('up', () => {
+			showMessages = true;
+			previous();
+		});
+		hotkeys('down', () => {
+			showMessages = true;
+			next();
+		});
+		hotkeys('enter', () => {
+			showMessages = true;
+			gotoTarget();
+		});
+
+		return () => {
+			hotkeys.unbind('up');
+			hotkeys.unbind('down');
+			hotkeys.unbind('enter');
+		};
+	});
 </script>
 
-<div class="card bg-base-200 shadow rounded-sm border-2 border-base-300">
-	<div class="card-body p-1 gap-0">
-		<div class="flex flex-row items-center mb-1">
-			<div class="tooltip tooltip-right" data-tip="Filter these types of messages">
-				<input
-					type="checkbox"
-					class="flex-initial checkbox checkbox-xs"
-					checked={visible}
-					on:click={() => message && onFilterMessageType(message.type)}
-				/>
-			</div>
-
-			<div class="flex-1 text-center text-lg font-semibold text-secondary">
-				Year: {$game.year} Message {messageNum + 1} of {$player?.messages?.length}
-			</div>
-			<div
-				class="tooltip tooltip-left"
-				data-tip={showFilteredMessages ? 'Hide filtered messages' : 'Show all messages'}
-			>
-				<label class="swap">
-					<!-- this hidden checkbox controls the state -->
-					<input type="checkbox" bind:checked={showFilteredMessages} />
-
-					<!-- filter messages -->
-					<Icon src={MagnifyingGlassMinus} size="24" class="swap-off" />
-
-					<!-- show filtered messages -->
-					<Icon src={MagnifyingGlassPlus} size="24" class="swap-on" />
-				</label>
-			</div>
-		</div>
-		{#if message}
-			<div class="flex flex-row">
-				<div class="mt-1 h-12 grow overflow-y-auto">
-					<div class="relative">
-						{#if !visible}
-							<div class="absolute w-full text-center">
-								<span class="text-[1.5rem] text-warning -rotate-12">FILTERED</span>
-							</div>
-						{/if}
-						{message.text}
-					</div>
+<div class:hidden={!showMessages} class:block={showMessages}>
+	<div class="card bg-base-200 shadow rounded-sm border-2 border-base-300">
+		<div class="card-body p-1 gap-0">
+			<div class="flex flex-row items-center mb-1">
+				<div class="tooltip tooltip-right" data-tip="Filter these types of messages">
+					<input
+						type="checkbox"
+						class="flex-initial checkbox checkbox-xs"
+						checked={visible}
+						on:click={() => message && onFilterMessageType(message.type)}
+					/>
 				</div>
-				<div>
-					<div class="flex flex-col gap-y-1 ml-1">
-						<div class="flex flex-row btn-group">
-							<div class="tooltip" data-tip="previous">
-								<button
-									on:click={previous}
-									disabled={messageNum === previousVisibleMessageNum}
-									class="btn btn-outline btn-sm normal-case btn-secondary"
-									title="previous"
-									><Icon src={ArrowLongLeft} size="16" class="hover:stroke-accent inline" /></button
-								>
-							</div>
-							<div class="tooltip" data-tip="goto">
-								<button
-									on:click={gotoTarget}
-									disabled={!message.targetNum}
-									class="btn btn-outline btn-sm normal-case btn-secondary"
-									title="goto"
-									><Icon
-										src={ArrowTopRightOnSquare}
-										size="16"
-										class="hover:stroke-accent inline"
-									/></button
-								>
-							</div>
-							<div class="tooltip" data-tip="next">
-								<button
-									on:click={next}
-									disabled={messageNum == nextVisibleMessageNum}
-									class="btn btn-outline btn-sm normal-case btn-secondary"
-									title="next"
-									><Icon
-										src={ArrowLongRight}
-										size="16"
-										class="hover:stroke-accent inline"
-									/></button
-								>
+
+				<div class="flex-1 text-center text-lg font-semibold text-secondary">
+					Year: {$game.year} Message {messageNum + 1} of {$player?.messages?.length}
+				</div>
+				<div
+					class="tooltip tooltip-left"
+					data-tip={showFilteredMessages ? 'Hide filtered messages' : 'Show all messages'}
+				>
+					<label class="swap">
+						<!-- this hidden checkbox controls the state -->
+						<input type="checkbox" bind:checked={showFilteredMessages} />
+
+						<!-- filter messages -->
+						<Icon src={MagnifyingGlassMinus} size="24" class="swap-off" />
+
+						<!-- show filtered messages -->
+						<Icon src={MagnifyingGlassPlus} size="24" class="swap-on" />
+					</label>
+				</div>
+			</div>
+			{#if message}
+				<div class="flex flex-row">
+					<div class="mt-1 h-12 grow overflow-y-auto">
+						<div class="relative">
+							{#if !visible}
+								<div class="absolute w-full text-center">
+									<span class="text-[1.5rem] text-warning -rotate-12">FILTERED</span>
+								</div>
+							{/if}
+							{message.text}
+						</div>
+					</div>
+					<div>
+						<div class="flex flex-col gap-y-1 ml-1">
+							<div class="flex flex-row btn-group">
+								<div class="tooltip" data-tip="previous">
+									<button
+										on:click={previous}
+										disabled={messageNum === previousVisibleMessageNum}
+										class="btn btn-outline btn-sm normal-case btn-secondary"
+										title="previous"
+										><Icon
+											src={ArrowLongLeft}
+											size="16"
+											class="hover:stroke-accent inline"
+										/></button
+									>
+								</div>
+								<div class="tooltip" data-tip="goto">
+									<button
+										on:click={gotoTarget}
+										disabled={!message.targetNum}
+										class="btn btn-outline btn-sm normal-case btn-secondary"
+										title="goto"
+										><Icon
+											src={ArrowTopRightOnSquare}
+											size="16"
+											class="hover:stroke-accent inline"
+										/></button
+									>
+								</div>
+								<div class="tooltip" data-tip="next">
+									<button
+										on:click={next}
+										disabled={messageNum == nextVisibleMessageNum}
+										class="btn btn-outline btn-sm normal-case btn-secondary"
+										title="next"
+										><Icon
+											src={ArrowLongRight}
+											size="16"
+											class="hover:stroke-accent inline"
+										/></button
+									>
+								</div>
 							</div>
 						</div>
 					</div>
 				</div>
-			</div>
-		{/if}
+			{/if}
+		</div>
 	</div>
 </div>
