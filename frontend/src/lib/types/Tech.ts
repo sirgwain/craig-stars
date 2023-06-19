@@ -2,6 +2,7 @@ import { clamp } from '$lib/services/Math';
 import type { Cost } from './Cost';
 import type { TechLevel as TechLevel } from './Player';
 import type { PRT } from './Race';
+import type { Vector } from './Vector';
 
 export const ScanWithZeroRange = 1;
 export const UnlimitedSpaceDock = -1;
@@ -105,6 +106,9 @@ export interface TechHull extends Tech {
 	armor: number;
 	fuelCapacity?: number;
 	cargoCapacity?: number;
+	cargoSlotPosition?: Vector;
+	cargoSlotSize?: Vector;
+	cargoSlotCircle?: boolean;
 	slots: HullSlot[];
 	builtInScanner?: boolean;
 	initiative?: number;
@@ -115,6 +119,9 @@ export interface TechHull extends Tech {
 	starbase?: boolean;
 	orbitalConstructionHull?: boolean;
 	spaceDock?: number;
+	spaceDockSlotPosition?: Vector;
+	spaceDockSlotSize?: Vector;
+	spaceDockSlotCircle?: boolean;
 	innateScanRangePenFactor?: number;
 }
 
@@ -122,6 +129,7 @@ export interface HullSlot {
 	type: HullSlotType;
 	capacity: number;
 	required?: boolean;
+	position: Vector;
 }
 
 export enum HullSlotType {
