@@ -547,7 +547,7 @@ func (planet *Planet) buildItems(player *Player, item ProductionQueueItem, numBu
 		messager.defensesBuilt(player, planet, numBuilt)
 	case QueueItemTypeShipToken:
 		design := player.GetDesign(item.DesignName)
-		result.tokens = append(result.tokens, ShipToken{Quantity: numBuilt, design: design, DesignUUID: design.UUID})
+		result.tokens = append(result.tokens, ShipToken{Quantity: numBuilt, design: design, DesignUUID: design.UUID})		
 	}
 
 	log.Debug().

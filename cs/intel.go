@@ -61,6 +61,10 @@ func (intel *Intel) String() string {
 	return fmt.Sprintf("Num: %3d %s", intel.Num, intel.Name)
 }
 
+func (intel *Intel) Owned() bool {
+	return intel.PlayerNum != Unowned
+}
+
 type PlanetIntel struct {
 	MapObjectIntel
 	Hab                  Hab         `json:"hab,omitempty"`

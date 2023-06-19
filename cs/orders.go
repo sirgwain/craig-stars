@@ -89,6 +89,8 @@ func (o *orders) TransferFleetCargo(source *Fleet, dest *Fleet, transferAmount C
 	// transfer the cargo
 	source.Cargo = source.Cargo.Add(transferAmount)
 	dest.Cargo = dest.Cargo.Subtract(transferAmount)
+	source.Dirty = true
+	dest.Dirty = true
 
 	return nil
 }
@@ -107,5 +109,7 @@ func (o *orders) TransferPlanetCargo(source *Fleet, dest *Planet, transferAmount
 	source.Cargo = source.Cargo.Add(transferAmount)
 	dest.Cargo = dest.Cargo.Subtract(transferAmount)
 
+	source.Dirty = true
+	dest.Dirty = true
 	return nil
 }

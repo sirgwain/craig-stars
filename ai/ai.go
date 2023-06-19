@@ -3,6 +3,7 @@ package ai
 import (
 	"math"
 
+	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 	"golang.org/x/exp/slices"
 )
@@ -113,7 +114,7 @@ func (ai *aiPlayer) colonize() {
 
 	// find all the unexplored planets
 	for _, planet := range ai.Player.PlanetIntels {
-		if planet.Explored() && ai.Player.Race.GetPlanetHabitability(planet.Hab) > 0 {
+		if planet.Explored() && !planet.Owned() && ai.Player.Race.GetPlanetHabitability(planet.Hab) > 0 {
 			colonizablePlanets[planet.Num] = planet
 		}
 	}
@@ -143,16 +144,19 @@ func (ai *aiPlayer) colonize() {
 	for _, fleet := range colonizerFleets {
 		bestPlanet := ai.getHighestHabPlanet(colonizablePlanets)
 		if bestPlanet != nil {
-			fleet.Waypoints[0].Task = cs.WaypointTaskTransport
-			fleet.Waypoints[0].TransportTasks = cs.WaypointTransportTasks{
-				Colonists: cs.WaypointTransportTask{
-					Action: cs.TransportActionLoadAll,
-				},
+			// fleet.Waypoints[0].Task = cs.WaypointTaskTransport
+			// fleet.Waypoints[0].TransportTasks = cs.WaypointTransportTasks{
+			// 	Colonists: cs.WaypointTransportTask{
+			// 		Action: cs.TransportActionLoadAll,
+			// 	},
+			// }
+
+			// load colonists
+			if err := ai.client.TransferPlanetCargo(fleet, ai.getPlanet(fleet.OrbitingPlanetNum), cs.Cargo{Colonists: fleet.Spec.CargoCapacity}); err != nil {
+				// something went wrong, skipi this planet
+				log.Error().Err(err).Msg("transferring colonists from planet, skipping")
+				continue
 			}
-
-			// todo: remove after transports are complete
-			fleet.Cargo.Colonists = fleet.Spec.CargoCapacity
-
 			fleet.Waypoints = append(fleet.Waypoints, cs.NewPlanetWaypoint(bestPlanet.Position, bestPlanet.Num, bestPlanet.Name, fleet.Spec.IdealSpeed).WithTask(cs.WaypointTaskColonize))
 			ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders)
 			delete(colonizablePlanets, bestPlanet.Num)
@@ -172,11 +176,6 @@ func (ai *aiPlayer) colonize() {
 // get a player owned planet by num, or nil if it doesn't exist
 func (p *aiPlayer) getPlanet(num int) *cs.Planet {
 	return p.planetsByNum[num]
-}
-
-// get a player owned planet by num, or nil if it doesn't exist
-func (p *aiPlayer) getFleet(num int) *cs.Fleet {
-	return p.fleetsByNum[num]
 }
 
 // get all planets the player owns that can build ships of mass mass
