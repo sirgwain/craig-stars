@@ -129,7 +129,7 @@ func (p *Planet) CanBuild(mass int) bool {
 	return p.Spec.HasStarbase && (p.starbase.Spec.SpaceDock == UnlimitedSpaceDock || p.starbase.Spec.SpaceDock >= mass)
 }
 
-func (p *Planet) empty() {
+func (p *Planet) reset() {
 	p.Hab = Hab{}
 	p.BaseHab = Hab{}
 	p.TerraformedAmount = Hab{}
@@ -139,9 +139,21 @@ func (p *Planet) empty() {
 	p.MineYears = Mineral{}
 }
 
+// empty this planet of pop, owner
+func (p *Planet) emptyPlanet() {
+	p.PlayerNum = Unowned
+	p.starbase = nil
+	p.Scanner = false
+	p.Defenses = 0 // defenses are all gone, rest of the structures can stay
+	p.ProductionQueue = []ProductionQueueItem{}
+	p.Spec = PlanetSpec{}
+	// reset any instaforming
+	p.Hab = p.BaseHab.Add(p.TerraformedAmount)
+}
+
 // randomize a planet with new hab range, minerals, etc
 func (p *Planet) randomize(rules *Rules) {
-	p.empty()
+	p.reset()
 
 	// From @SuicideJunkie's tests and @edmundmk's previous research, grav and temp are weighted slightly towards
 	// the center, rad is completely random

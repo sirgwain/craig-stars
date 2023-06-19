@@ -46,6 +46,14 @@ func (h Hab) Add(other Hab) Hab {
 	}
 }
 
+func (h Hab) Subtract(other Hab) Hab {
+	return Hab{
+		Grav: h.Grav - other.Grav,
+		Temp: h.Temp - other.Temp,
+		Rad:  h.Rad - other.Rad,
+	}
+}
+
 func (h Hab) Get(habType HabType) int {
 	switch habType {
 	case Grav:

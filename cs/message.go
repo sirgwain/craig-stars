@@ -440,6 +440,61 @@ func (m *messageClient) planetInvaded(player *Player, planet *Planet, fleet *Fle
 	}
 }
 
+func (m *messageClient) planetBombed(player *Player, planet *Planet, fleet *Fleet, planetOwner string, fleetOwner string, colonistsKilled int, minesDestroyed int, factoriesDestroyed int, defensesDestroyed int) {
+    var text string
+
+    if player.Num == fleet.PlayerNum {
+        if planet.population() == 0 {
+            text = fmt.Sprintf("Your %s has bombed %s %s killing off all colonists", fleet.Name, planetOwner, planet.Name)
+        } else {
+            text = fmt.Sprintf("Your %s has bombed %s %s killing %d colonists, and destroying %d mines, %d factories, and %d defenses.", fleet.Name, planetOwner, planet.Name, colonistsKilled, minesDestroyed, factoriesDestroyed, defensesDestroyed)
+        }
+        player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageEnemyPlanetBombed, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
+    } else {
+        if planet.population() == 0 {
+            text = fmt.Sprintf("%s %s has bombed your %s killing off all colonists", fleetOwner, fleet.Name, planet.Name)
+        } else {
+            text = fmt.Sprintf("%s %s has bombed your %s killing %d colonists, and destroying %d mines, %d factories, and %d defenses.", fleetOwner, fleet.Name, planet.Name, colonistsKilled, minesDestroyed, factoriesDestroyed, defensesDestroyed)
+        }
+
+        player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageMyPlanetBombed, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
+    }
+}
+
+func (m *messageClient) planetSmartBombed(player *Player, planet *Planet, fleet *Fleet, planetOwner string, fleetOwner string, colonistsKilled int) {
+    var text string
+
+    if player.Num == fleet.PlayerNum {
+        if planet.population() == 0 {
+            text = fmt.Sprintf("Your fleet %s has bombed %s planet %s with smart bombs killing all colonists", fleet.Name, planetOwner, planet.Name)
+        } else {
+            text = fmt.Sprintf("Your %s has bombed %s planet %s with smart bombs killing %d colonists.", fleet.Name, planetOwner, planet.Name, colonistsKilled)
+        }
+        player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageEnemyPlanetBombed, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
+    } else {
+        if planet.population() == 0 {
+            text = fmt.Sprintf("%s %s has bombed your %s with smart bombs killing all colonists", fleetOwner, fleet.Name, planet.Name)
+        } else {
+            text = fmt.Sprintf("%s %s has bombed your %s with smart bombs killing %d colonists.", fleetOwner, fleet.Name, planet.Name, colonistsKilled)
+        }
+        player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageMyPlanetBombed, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
+    }
+}
+
+func (m *messageClient) planetRetroBombed(player *Player, planet *Planet, fleet *Fleet, planetOwner string, fleetOwner string, unterraformAmount Hab) {
+    var text string
+
+    if player.Num == fleet.PlayerNum {
+        text = fmt.Sprintf("Your fleet %s has retro-bombed %s planet %s, undoing %d%% of its terraforming.", fleet.Name, planetOwner, planet.Name, unterraformAmount.absSum())
+        player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageEnemyPlanetRetroBombed, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
+    } else {
+        text = fmt.Sprintf("%s %s has retro-bombed your %s, undoing %d%% of its terraforming.", fleetOwner, fleet.Name, planet.Name, unterraformAmount.absSum())
+        player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageEnemyPlanetRetroBombed, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
+	}
+}
+
+
+
 func (m *messageClient) techLevel(player *Player, field TechField, level int, nextField TechField) {
 	text := fmt.Sprintf("Your scientists have completed research into Tech Level %d for %v.  They will continue their efforts in the %v field.", level, field, nextField)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text})

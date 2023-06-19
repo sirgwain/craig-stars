@@ -710,7 +710,21 @@ func (t *turn) fleetBattle() {
 }
 
 func (t *turn) fleetBomb() {
+	bomber := NewBomber(&t.game.Rules)
+	for _, planet := range t.game.Planets {
+		if !planet.owned() || planet.population() == 0 || planet.Spec.HasStarbase {
+			// can't bomb uninhabited planets, planets with starbases
+			continue
+		}
+		player := t.game.getPlayer(planet.PlayerNum)
+		if player.Race.Spec.LivesOnStarbases {
+			// can't bomb planets that are owned by AR races
+			continue
+		}
 
+		// see if this planet has enemy bomber fleets, and if so, bomb it
+		bomber.tryBombPlanet(planet, player, t.game, t.game.Universe)
+	}
 }
 
 func (t *turn) mysteryTraderMeet() {
