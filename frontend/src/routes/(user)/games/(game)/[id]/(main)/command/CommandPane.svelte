@@ -20,7 +20,7 @@
 {#if $commandedPlanet}
 	<PlanetSummaryTile planet={$commandedPlanet} />
 	<PlanetProductionTile planet={$commandedPlanet} />
-	<PlanetMineralsOnHandTile planet={$commandedPlanet} />
+	<PlanetMineralsOnHandTile player={game.player} planet={$commandedPlanet} />
 	<PlanetStarbaseTile starbase={game.universe.getPlanetStarbase($commandedPlanet.num)} />
 	<PlanetStatusTile planet={$commandedPlanet} />
 	<PlanetFleetsInOrbitTile

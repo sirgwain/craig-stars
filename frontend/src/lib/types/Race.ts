@@ -138,56 +138,110 @@ export interface ResearchCost {
 	biotechnology: ResearchCostLevel;
 }
 
-export interface RaceSpec {
-	habCenter: Hab;
+declare interface RaceSpec {
+	habCenter?: Hab;
 	costs: EnumDictionary<QueueItemType, Cost>;
-	startingTechLevels: TechLevel;
-	startingFleets: StartingFleet[];
-	startingPlanets: StartingPlanet[];
-	techCostOffset: TechLevel;
-	mineralsPerSingleMineralPacket: number;
-	mineralsPerMixedMineralPacket: number;
-	packetResourceCost: number;
-	packetMineralCostFactor: number;
-	packetReceiverFactor: number;
-	packetDecayFactor: number;
-	packetPermaTerraformSizeUnit: number;
+	startingTechLevels?: TechLevel;
+	startingPlanets?: StartingPlanet[];
+	techCostOffset: TechCostOffset;
+	mineralsPerSingleMineralPacket?: number;
+	mineralsPerMixedMineralPacket?: number;
+	packetResourceCost?: number;
+	packetMineralCostFactor?: number;
+	packetReceiverFactor?: number;
+	packetDecayFactor?: number;
+	packetOverSafeWarpPenalty?: number;
+	packetBuiltInScanner?: boolean;
+	detectPacketDestinationStarbases?: boolean;
+	detectAllPackets?: boolean;
+	packetTerraformChance?: number;
+	packetPermaformChance?: number;
+	packetPermaTerraformSizeUnit?: number;
 	canGateCargo?: boolean;
 	canDetectStargatePlanets?: boolean;
 	shipsVanishInVoid?: boolean;
-	builtInScannerMultiplier: number;
-	techsCostExtraLevel: number;
-	growthFactor: number;
-	maxPopulationOffset: number;
-	stealsResearch: TechLevel;
-	mineFieldMinDecayFactor: number;
-	mineFieldBaseDecayRate: number;
-	mineFieldPlanetDecayRate: number;
-	mineFieldMaxDecayRate: number;
-	mineFieldDetonateDecayRate: number;
+	techsCostExtraLevel?: number;
+	freighterGrowthFactor?: number;
+	growthFactor?: number;
+	maxPopulationOffset?: number;
+	builtInCloakUnits?: number;
+	stealsResearch?: StealsResearch;
+	freeCargoCloaking?: boolean;
+	mineFieldsAreScanners?: boolean;
+	mineFieldRateMoveFactor?: number;
+	mineFieldSafeWarpBonus?: number;
+	mineFieldMinDecayFactor?: number;
+	mineFieldBaseDecayRate?: number;
+	mineFieldPlanetDecayRate?: number;
+	mineFieldMaxDecayRate?: number;
 	canDetonateMineFields?: boolean;
+	mineFieldDetonateDecayRate?: number;
+	discoverDesignOnScan?: boolean;
 	canRemoteMineOwnPlanets?: boolean;
-	invasionAttackBonus: number;
-	invasionDefendBonus: number;
-	repairFactor: number;
-	starbaseRepairFactor: number;
-	canBuildDefenses: boolean;
-	terraformCostOffset: TechLevel;
-	starbaseCostFactor: number;
+	invasionAttackBonus?: number;
+	invasionDefendBonus?: number;
+	movementBonus?: number;
+	instaforming?: boolean;
+	permaformChance?: number;
+	permaformPopulation?: number;
+	repairFactor?: number;
+	starbaseRepairFactor?: number;
+	innateMining?: boolean;
+	innateResources?: boolean;
+	innateScanner?: boolean;
+	innatePopulationFactor?: number;
+	canBuildDefenses?: boolean;
+	livesOnStarbases?: boolean;
+	fuelEfficiencyOffset?: number;
+	terraformCostOffset?: Cost;
+	mineralAlchemyCostOffset?: number;
+	scrapMineralOffset?: number;
+	scrapMineralOffsetStarbase?: number;
+	scrapResourcesOffset?: number;
+	scrapResourcesOffsetStarbase?: number;
+	startingPopulationFactor?: number;
+	starbaseBuiltInCloakUnits?: number;
+	starbaseCostFactor?: number;
+	researchFactor?: number;
+	researchSplashDamage?: number;
+	shieldStrengthFactor?: number;
+	shieldRegenerationRate?: number;
+	engineFailureRate?: number;
+	engineReliableSpeed?: number;
 }
 
-export interface StartingFleet {
-	name: string;
-	hullName: string;
-	purpose: string;
+declare interface StealsResearch {
+	energy?: number;
+	weapons?: number;
+	propulsion?: number;
+	construction?: number;
+	electronics?: number;
+	biotechnology?: number;
 }
 
-export interface StartingPlanet {
-	population: number;
-	habPenaltyFactor: number;
-	hasStargate: boolean;
-	hasMassDriver: boolean;
-	startingFleets: null;
+declare interface TechCostOffset {
+	engine?: number;
+	beamWeapon?: number;
+	torpedo?: number;
+	bomb?: number;
+	planetaryDefense?: number;
+}
+
+declare interface StartingPlanet {
+	population?: number;
+	habPenaltyFactor?: number;
+	hasStargate?: boolean;
+	hasMassDriver?: boolean;
+	starbaseDesignName?: string;
+	starbaseHull?: string;
+	startingFleets?: StartingFleet[];
+}
+
+declare interface StartingFleet {
+	name?: string;
+	hullName?: string;
+	hullSetNumber?: number;
+	purpose?: string;
 }
 
 export const humanoid: Race = {

@@ -25,7 +25,7 @@
 	bind:this={component}
 	class:block={!!$tooltipComponent}
 	class:hidden={!$tooltipComponent}
-	class="absolute bg-base-300 rounded-sm p-2 shadow-md z-50"
+	class="absolute bg-base-300 rounded-sm p-2 shadow-md z-50 text-base"
 	style={`left: ${x}px; top: ${y}px;`}
 >
 	{#if $tooltipComponent}

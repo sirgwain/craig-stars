@@ -1,5 +1,4 @@
 <script lang="ts" context="module">
-	// props for the MineralTooltip component
 	export type MineralTooltipProps = {
 		mineralType: string;
 		surfaceAmount: number;
