@@ -77,20 +77,6 @@ type FullGame struct {
 	Players []*Player `json:"players,omitempty"`
 }
 
-type VictoryConditions struct {
-	Conditions               []VictoryCondition `json:"conditions"`
-	NumCriteriaRequired      int                `json:"numCriteriaRequired"`
-	YearsPassed              int                `json:"yearsPassed"`
-	OwnPlanets               int                `json:"ownPlanets"`
-	AttainTechLevel          int                `json:"attainTechLevel"`
-	AttainTechLevelNumFields int                `json:"attainTechLevelNumFields"`
-	ExceedsScore             int                `json:"exceedsScore"`
-	ExceedsSecondPlaceScore  int                `json:"exceedsSecondPlaceScore"`
-	ProductionCapacity       int                `json:"productionCapacity"`
-	OwnCapitalShips          int                `json:"ownCapitalShips"`
-	HighestScoreAfterYears   int                `json:"highestScoreAfterYears"`
-}
-
 type Size string
 
 const (
@@ -139,18 +125,6 @@ const (
 	GameStateSetup             GameState = "Setup"
 	GameStateWaitingForPlayers GameState = "WaitingForPlayers"
 	GameStateGeneratingTurn    GameState = "GeneratingTurn"
-)
-
-type VictoryCondition string
-
-const (
-	VictoryConditionOwnPlanets              VictoryCondition = "OwnPlanets"
-	VictoryConditionAttainTechLevels        VictoryCondition = "AttainTechLevels"
-	VictoryConditionExceedsScore            VictoryCondition = "ExceedsScore"
-	VictoryConditionExceedsSecondPlaceScore VictoryCondition = "ExceedsSecondPlaceScore"
-	VictoryConditionProductionCapacity      VictoryCondition = "ProductionCapacity"
-	VictoryConditionOwnCapitalShips         VictoryCondition = "OwnCapitalShips"
-	VictoryConditionHighestScoreAfterYears  VictoryCondition = "HighestScoreAfterYears"
 )
 
 type playerGetter interface {
@@ -272,6 +246,10 @@ func (g *Game) WithSettings(settings GameSettings) *Game {
 	g.VictoryConditions = settings.VictoryConditions
 
 	return g
+}
+
+func (g *Game) YearsPassed() int {
+	return g.Year - g.Rules.StartingYear
 }
 
 func (fg *FullGame) getPlayer(playerNum int) *Player {

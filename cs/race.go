@@ -206,6 +206,17 @@ const (
 
 type Bitmask uint32
 
+func (mask Bitmask) countBits() int {
+	count := 0
+
+	for mask > 0 {
+		count += int(mask & 1)
+		mask >>= 1
+	}
+
+	return count
+}
+
 type LRT Bitmask
 
 const (

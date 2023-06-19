@@ -195,6 +195,7 @@ func (c *GameConverter) ConvertPlayer(source Player) cs.Player {
 	csPlayer.Messages = PlayerMessagesToGamePlayerMessages(source.Messages)
 	csPlayer.Battles = BattleRecordsToGameBattleRecords(source.Battles)
 	csPlayer.Spec = PlayerSpecToGamePlayerSpec(source.Spec)
+	csPlayer.ScoreHistory = PlayerScoresToGamePlayerScores(source.ScoreHistory)
 	csPlayer.Stats = PlayerStatsToGamePlayerStats(source.Stats)
 	return csPlayer
 }
@@ -515,6 +516,7 @@ func (c *GameConverter) csPlayerToDbPlayer(source cs.Player) Player {
 	dbPlayer.WormholeIntels = GameWormholeIntelsToWormholeIntels(source.PlayerIntels.WormholeIntels)
 	dbPlayer.Race = GameRaceToPlayerRace(source.Race)
 	dbPlayer.Stats = GamePlayerStatsToPlayerStats(source.Stats)
+	dbPlayer.ScoreHistory = GamePlayerScoresToPlayerScores(source.ScoreHistory)
 	dbPlayer.Spec = GamePlayerSpecToPlayerSpec(source.Spec)
 	return dbPlayer
 }

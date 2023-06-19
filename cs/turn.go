@@ -2,6 +2,7 @@ package cs
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/rs/zerolog/log"
 )
@@ -93,6 +94,7 @@ func (t *turn) generateTurn() error {
 	t.fleetSweepMines()
 	t.fleetRepair()
 	t.remoteTerraform()
+	t.calculateScores()
 
 	// reset all players
 	// and do player specific things like scanning
@@ -106,7 +108,6 @@ func (t *turn) generateTurn() error {
 		}
 		t.discoverPlayer(player)
 		t.fleetPatrol(player)
-		t.calculateScore(player)
 		t.checkVictory(player)
 
 		player.SubmittedTurn = false
@@ -1196,10 +1197,116 @@ func (t *turn) fleetPatrol(player *Player) {
 
 }
 
-func (t *turn) calculateScore(player *Player) {
+// Calculate the score for this year for each player
+//
+// Note: this depends on each player having updated player reports
+//
+// Here's how empires score:
+// Planets:  From 1 to 6 points, scoring 1 point for each 100,000 colonists
+// Starbases: 3 points each (doesn't include Orbital Forts)
+// Unarmed Ships: An unarmed ship has a power rating of 0. You receive 1/2 point for each unarmed ship (up to the number of planets you own).
+// Escort Ships: An escort ship has a power rating greater than 0 and less than 2000. You receive 2 points for each Escort ship (up to the number of planets you own).
+// Capital Ships A Capital ship has a power rating of greater than 1999.  For each capital ship, you receive points calculated by the following formula:
+// Points = (8 * #_capital_ships * #_planets) /( #_capital_ships + #_planets)
+//    For example, if you have 20 capital ships and 30 planets, you receive (8 x 20 x 30) / (20 + 30) or 4.8 points for each ship.
+//          Tech Levels:  1 point for levels 1-3,
+//                        2 points for levels 4-6,
+//                        3 points for levels 7-9,
+//                        4 points for level 10 and above
+// Resources: 1 point for every 30 resources
+func (t *turn) calculateScores() {
+	scores := make([]PlayerScore, len(t.game.Players))
+
+	// Sum up planets
+	for _, planet := range t.game.Planets {
+		if planet.owned() {
+			score := &scores[planet.PlayerNum-1]
+			score.Planets++
+			if planet.Spec.HasStarbase {
+				score.Starbases++
+			}
+			// Planets: From 1 to 6 points, scoring 1 point for each 100,000 colonists
+			score.Score += int(math.Min(float64(planet.population()/100000), 6))
+			score.Resources += planet.Spec.ResourcesPerYear
+		}
+	}
+
+	// Calculate ship counts
+	for _, fleet := range t.game.Fleets {
+		score := &scores[fleet.PlayerNum-1]
+		for _, token := range fleet.Tokens {
+			powerRating := token.design.Spec.PowerRating
+			if powerRating <= 0 {
+				score.UnarmedShips += token.Quantity
+			} else if powerRating < 1999 {
+				score.EscortShips += token.Quantity
+			} else {
+				score.CapitalShips += token.Quantity
+			}
+		}
+	}
+
+	for _, player := range t.game.Players {
+		score := &scores[player.Num-1]
+
+		// Calculate tech levels
+		for _, field := range TechFields {
+			level := player.TechLevels.Get(field)
+			switch {
+			case level >= 1 && level <= 3:
+				score.Score += 1
+			case level >= 4 && level <= 6:
+				score.Score += 2
+			case level >= 7 && level <= 9:
+				score.Score += 3
+			case level >= 10:
+				score.Score += 4
+			}
+		}
+
+		// Calculate additional score components
+		// Resources: 1 point for every 30 resources
+		score.Score += score.Resources / 30
+		// Starbases: 3 points each (doesn't include Orbital Forts)
+		score.Score += score.Starbases * 3
+		// Unarmed Ships: You receive 1/2 point for each unarmed ship (up to the number of planets you own).
+		score.Score += int(math.Min(float64(score.UnarmedShips)*0.5+5, float64(score.Planets)))
+		// Escort Ships: You receive 2 points for each Escort ship (up to the number of planets you own).
+		score.Score += int(math.Min(float64(score.EscortShips)*2, float64(score.Planets)))
+		// Capital Ships (8 * #_capital_ships * #_planets) /( #_capital_ships + #_planets)
+		if score.CapitalShips+score.Planets > 0 {
+			score.Score += int((8 * score.CapitalShips * score.Planets) / (score.CapitalShips + score.Planets))
+		}
+
+		// add this to the player's score history
+		player.ScoreHistory = append(player.ScoreHistory, *score)
+	}
 
 }
 
 func (t *turn) checkVictory(player *Player) {
+	victoryChecker := newVictoryChecker(t.game)
+	for _, player := range t.game.Players {
+		if err := victoryChecker.checkForVictor(player); err != nil {
+			log.Error().Err(err).Msg("error while checking for victory")
+			return
+		}
+	}
 
+	// we don't declare a victor until some time has passed
+	if t.game.YearsPassed() >= t.game.VictoryConditions.YearsPassed && t.game.VictorDeclared {
+		victors := make([]*Player, 0, 1)
+		for _, player := range t.game.Players {
+			if player.Victor {
+				victors = append(victors, player)
+			}
+		}
+
+		// tell everyone about it!
+		for _, player := range t.game.Players {
+			for _, victor := range victors {
+				messager.victory(player, victor)
+			}
+		}
+	}
 }

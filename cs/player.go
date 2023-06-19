@@ -19,25 +19,28 @@ type Player struct {
 	PlayerOrders
 	PlayerIntels
 	PlayerPlans
-	UserID                int64                `json:"userId,omitempty"`
-	Name                  string               `json:"name,omitempty"`
-	Num                   int                  `json:"num,omitempty"`
-	Ready                 bool                 `json:"ready,omitempty"`
-	AIControlled          bool                 `json:"aIControlled,omitempty"`
-	SubmittedTurn         bool                 `json:"submittedTurn,omitempty"`
-	Color                 string               `json:"color,omitempty"`
-	DefaultHullSet        int                  `json:"defaultHullSet,omitempty"`
-	Race                  Race                 `json:"race,omitempty"`
-	TechLevels            TechLevel            `json:"techLevels,omitempty"`
-	TechLevelsSpent       TechLevel            `json:"techLevelsSpent,omitempty"`
-	ResearchSpentLastYear int                  `json:"researchSpentLastYear,omitempty"`
-	Relations             []PlayerRelationship `json:"relations,omitempty"`
-	Messages              []PlayerMessage      `json:"messages,omitempty"`
-	Battles               []BattleRecord       `json:"battles,omitempty"`
-	Designs               []*ShipDesign        `json:"designs,omitempty"`
-	Spec                  PlayerSpec           `json:"spec,omitempty"`
-	Stats                 *PlayerStats         `json:"stats,omitempty"`
-	leftoverResources     int
+	UserID                    int64                `json:"userId,omitempty"`
+	Name                      string               `json:"name,omitempty"`
+	Num                       int                  `json:"num,omitempty"`
+	Ready                     bool                 `json:"ready,omitempty"`
+	AIControlled              bool                 `json:"aIControlled,omitempty"`
+	SubmittedTurn             bool                 `json:"submittedTurn,omitempty"`
+	Color                     string               `json:"color,omitempty"`
+	DefaultHullSet            int                  `json:"defaultHullSet,omitempty"`
+	Race                      Race                 `json:"race,omitempty"`
+	TechLevels                TechLevel            `json:"techLevels,omitempty"`
+	TechLevelsSpent           TechLevel            `json:"techLevelsSpent,omitempty"`
+	ResearchSpentLastYear     int                  `json:"researchSpentLastYear,omitempty"`
+	Relations                 []PlayerRelationship `json:"relations,omitempty"`
+	Messages                  []PlayerMessage      `json:"messages,omitempty"`
+	Battles                   []BattleRecord       `json:"battles,omitempty"`
+	Designs                   []*ShipDesign        `json:"designs,omitempty"`
+	Spec                      PlayerSpec           `json:"spec,omitempty"`
+	ScoreHistory              []PlayerScore        `json:"scoreHistory"`
+	AchievedVictoryConditions Bitmask              `json:"achievedVictoryConditions,omitempty"`
+	Victor                    bool                 `json:"victor,omitempty"`
+	Stats                     *PlayerStats         `json:"stats,omitempty"`
+	leftoverResources         int
 }
 
 type PlayerIntels struct {
@@ -88,6 +91,18 @@ type PlayerSpec struct {
 	ResourcesPerYear         int                                 `json:"resourcesPerYear,omitempty"`
 	ResourcesPerYearResearch int                                 `json:"resourcesPerYearResearch,omitempty"`
 	CurrentResearchCost      int                                 `json:"currentResearchCost,omitempty"`
+}
+
+type PlayerScore struct {
+	Planets      int `json:"planets"`
+	Starbases    int `json:"starbases"`
+	UnarmedShips int `json:"unarmedShips"`
+	EscortShips  int `json:"escortShips"`
+	CapitalShips int `json:"capitalShips"`
+	TechLevels   int `json:"techLevels"`
+	Resources    int `json:"resources"`
+	Score        int `json:"score"`
+	Rank         int `json:"rank"`
 }
 
 type BattlePlan struct {

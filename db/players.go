@@ -54,6 +54,9 @@ type Player struct {
 	WormholeIntels               *WormholeIntels      `json:"wormholeIntels,omitempty"`
 	Race                         *PlayerRace          `json:"race,omitempty"`
 	Stats                        *PlayerStats         `json:"stats,omitempty"`
+	ScoreHistory                 *PlayerScores        `json:"scoreHistory,omitempty"`
+	AchievedVictoryConditions    cs.Bitmask           `json:"achievedVictoryConditions,omitempty"`
+	Victor                       bool                 `json:"victor,omitempty"`
 	Spec                         *PlayerSpec          `json:"spec,omitempty"`
 }
 
@@ -63,6 +66,7 @@ type ProductionPlans []cs.ProductionPlan
 type TransportPlans []cs.TransportPlan
 type PlayerRelationships []cs.PlayerRelationship
 type PlayerMessages []cs.PlayerMessage
+type PlayerScores []cs.PlayerScore
 type BattleRecords []cs.BattleRecord
 type PlayerIntels []cs.PlayerIntel
 type PlanetIntels []cs.PlanetIntel
@@ -149,6 +153,14 @@ func (item *PlayerMessages) Value() (driver.Value, error) {
 }
 
 func (item *PlayerMessages) Scan(src interface{}) error {
+	return scanJSON(src, item)
+}
+
+func (item *PlayerScores) Value() (driver.Value, error) {
+	return valueJSON(item)
+}
+
+func (item *PlayerScores) Scan(src interface{}) error {
 	return scanJSON(src, item)
 }
 
@@ -359,8 +371,11 @@ func (c *client) GetLightPlayerForGame(gameID, userID int64) (*cs.Player, error)
 	battlePlans,
 	productionPlans,
 	transportPlans,
-	spec,
-	stats
+	stats,
+	scoreHistory,
+	achievedVictoryConditions,
+	victor,
+	spec
 	FROM players 
 	WHERE gameId = ? AND userId = ?`, gameID, userID); err != nil {
 		if err == sql.ErrNoRows {
@@ -554,6 +569,9 @@ func (c *client) createPlayer(player *cs.Player, tx SQLExecer) error {
 		wormholeIntels,
 		race,
 		stats,
+		scoreHistory,
+		achievedVictoryConditions,
+		victor,
 		spec
 	)
 	VALUES (
@@ -599,6 +617,9 @@ func (c *client) createPlayer(player *cs.Player, tx SQLExecer) error {
 		:wormholeIntels,
 		:race,
 		:stats,
+		:scoreHistory,
+		:achievedVictoryConditions,
+		:victor,
 		:spec
 	)
 	`, item)
@@ -740,6 +761,9 @@ func (c *client) updatePlayerWithNamedExecer(player *cs.Player, tx SQLExecer) er
 		wormholeIntels = :wormholeIntels,
 		race = :race,
 		stats = :stats,
+		scoreHistory = :scoreHistory,
+		achievedVictoryConditions = :achievedVictoryConditions,
+		victor = :victor,
 		spec = :spec
 	WHERE id = :id
 	`, item); err != nil {

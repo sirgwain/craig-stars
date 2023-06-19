@@ -140,6 +140,9 @@ CREATE TABLE players (
   wormholeIntels TEXT,
   race TEXT,
   stats TEXT,
+  scoreHistory TEXT,
+  achievedVictoryConditions INTEGER,
+  victor NUMERIC,
   spec TEXT,
   UNIQUE (gameId, num),
   CONSTRAINT fkGamesPlayers FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
@@ -235,7 +238,7 @@ CREATE TABLE planets (
   routeTargetType TEXT,
   routeTargetNum INTEGER,
   routeTargetPlayerNum INTEGER,
-  packetTargetNum   INTEGER,
+  packetTargetNum INTEGER,
   packetSpeed INTEGER,
   productionQueue TEXT,
   spec TEXT,
