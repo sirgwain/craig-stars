@@ -24,7 +24,7 @@ type Planet struct {
 	PacketSpeed                       int                   `json:"packetSpeed,omitempty"`
 	BonusResources                    int                   `json:"-"`
 	ProductionQueue                   []ProductionQueueItem `json:"productionQueue,omitempty"`
-	Spec                              *PlanetSpec           `json:"spec,omitempty"`
+	Spec                              PlanetSpec            `json:"spec,omitempty"`
 	starbase                          *Fleet
 }
 
@@ -207,7 +207,7 @@ func (p *Planet) randomize(rules *Rules) {
 // Initialize a planet to be a homeworld for a payer with ideal hab, starting mineral concentration, etc
 func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet StartingPlanet, concentration Mineral, surface Mineral) error {
 
-	if player.Race.Spec == nil || len(player.Race.Spec.StartingPlanets) == 0 {
+	if len(player.Race.Spec.StartingPlanets) == 0 {
 		return fmt.Errorf("no starting planets defined for player %v, race %v", player, player.Race)
 	}
 
@@ -324,7 +324,7 @@ func (p *Planet) getGrowthAmount(player *Player, maxPopulation int) int {
 	}
 }
 
-func ComputePlanetSpec(rules *Rules, planet *Planet, player *Player) *PlanetSpec {
+func ComputePlanetSpec(rules *Rules, planet *Planet, player *Player) PlanetSpec {
 	spec := PlanetSpec{}
 	race := &player.Race
 	spec.Habitability = race.GetPlanetHabitability(planet.Hab)
@@ -375,7 +375,7 @@ func ComputePlanetSpec(rules *Rules, planet *Planet, player *Player) *PlanetSpec
 
 	spec.HasStarbase = planet.starbase != nil
 
-	return &spec
+	return spec
 }
 
 func getMaxPopulation(rules *Rules, hab int, player *Player) int {

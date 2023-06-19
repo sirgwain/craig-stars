@@ -41,7 +41,7 @@ type Fleet struct {
 	PreviousPosition  *Vector     `json:"previousPosition,omitempty"`
 	OrbitingPlanetNum int         `json:"orbitingPlanetNum,omitempty"`
 	Starbase          bool        `json:"starbase,omitempty"`
-	Spec              *FleetSpec  `json:"spec"`
+	Spec              FleetSpec   `json:"spec"`
 	battlePlan        *BattlePlan
 }
 
@@ -325,7 +325,7 @@ func (f *Fleet) InjectDesigns(designsByUUID map[uuid.UUID]*ShipDesign) {
 
 }
 
-func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) *FleetSpec {
+func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 	spec := FleetSpec{
 		ShipDesignSpec: ShipDesignSpec{
 			ScanRange:    NoScanner,
@@ -443,7 +443,7 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) *FleetSpec {
 	// compute the cloaking based on the cloak units and cargo
 	spec.CloakPercent = fleet.computeFleetCloakPercent(&spec, player.Race.Spec.FreeCargoCloaking)
 
-	return &spec
+	return spec
 }
 
 func (f *Fleet) ComputeFuelUsage(player *Player) {

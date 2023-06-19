@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/sirgwain/craig-stars/game"
+	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -69,8 +70,11 @@ func TestUpdateRace(t *testing.T) {
 
 func TestGetRace(t *testing.T) {
 	c := connectTestDB()
-	race := game.Race{UserID: 1, Name: "Test", PluralName: "testers"}
-	if err := c.CreateRace(&race); err != nil {
+	rules := game.NewRules()
+	race := &game.Race{UserID: 1, Name: "Test", PluralName: "testers"}
+	race = race.WithSpec(&rules)
+
+	if err := c.CreateRace(race); err != nil {
 		t.Errorf("create race %s", err)
 		return
 	}
@@ -85,7 +89,7 @@ func TestGetRace(t *testing.T) {
 		wantErr bool
 	}{
 		{"No results", args{id: 0}, nil, false},
-		{"Got race", args{id: race.ID}, &race, false},
+		{"Got race", args{id: race.ID}, race, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -98,7 +102,7 @@ func TestGetRace(t *testing.T) {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt
 			}
-			if !reflect.DeepEqual(got, tt.want) {
+			if !test.CompareAsJSON(t, got, tt.want) {
 				t.Errorf("GetRace() = %v, want %v", got, tt.want)
 			}
 		})

@@ -31,7 +31,7 @@ type Race struct {
 	NumMines          int          `json:"numMines,omitempty"`
 	ResearchCost      ResearchCost `json:"researchCost,omitempty"`
 	TechsStartHigh    bool         `json:"techsStartHigh,omitempty"`
-	Spec              *RaceSpec    `json:"spec,omitempty"`
+	Spec              RaceSpec     `json:"spec,omitempty"`
 }
 
 type ResearchCostLevel string
@@ -410,7 +410,7 @@ func (r *Race) GetPlanetHabitability(hab Hab) int {
 }
 
 // compute the spec for this race
-func computeRaceSpec(race *Race, rules *Rules) *RaceSpec {
+func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 	prtSpec := rules.PRTSpecs[PRT(race.PRT)]
 	spec := RaceSpec{
 		StartingTechLevels:       prtSpec.StartingTechLevels,
@@ -596,5 +596,5 @@ func computeRaceSpec(race *Race, rules *Rules) *RaceSpec {
 		},
 	}
 
-	return &spec
+	return spec
 }
