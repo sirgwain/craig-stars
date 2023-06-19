@@ -12,7 +12,7 @@ import (
 const userkey = "user"
 
 type sessionUser struct {
-	ID       uint   `json:"id"`
+	ID       uint64 `json:"id"`
 	Username string `json:"username"`
 }
 

@@ -4,12 +4,12 @@ import "sort"
 
 type Universe struct {
 	Area             Vector                    `json:"area,omitempty" gorm:"embedded;embeddedPrefix:area_"`
-	Planets          []Planet                  `json:"planets,omitempty" gorm:"foreignKey:GameID;references:ID"`
-	Fleets           []Fleet                   `json:"fleets,omitempty" gorm:"foreignKey:GameID;references:ID"`
-	Wormholes        []Wormohole               `json:"wormholes,omitempty" gorm:"foreignKey:GameID;references:ID"`
-	MineralPackets   []MineralPacket           `json:"mineralPackets,omitempty" gorm:"foreignKey:GameID;references:ID"`
-	MineFields       []MineField               `json:"mineFields,omitempty" gorm:"foreignKey:GameID;references:ID"`
-	Salvage          []Salvage                 `json:"salvage,omitempty" gorm:"foreignKey:GameID;references:ID"`
+	Planets          []*Planet                 `json:"planets,omitempty" gorm:"foreignKey:GameID;references:ID"`
+	Fleets           []*Fleet                  `json:"fleets,omitempty" gorm:"foreignKey:GameID;references:ID"`
+	Wormholes        []*Wormohole              `json:"wormholes,omitempty" gorm:"foreignKey:GameID;references:ID"`
+	MineralPackets   []*MineralPacket          `json:"mineralPackets,omitempty" gorm:"foreignKey:GameID;references:ID"`
+	MineFields       []*MineField              `json:"mineFields,omitempty" gorm:"foreignKey:GameID;references:ID"`
+	Salvage          []*Salvage                `json:"salvage,omitempty" gorm:"foreignKey:GameID;references:ID"`
 	fleetsByPosition map[Vector]*Fleet         `json:"-"`
 	fleetsByNum      map[playerFleetNum]*Fleet `json:"-"`
 }
@@ -38,8 +38,7 @@ type playerFleetNum struct {
 func (u *Universe) buildMaps() {
 	u.fleetsByPosition = make(map[Vector]*Fleet, len(u.Fleets))
 	u.fleetsByNum = make(map[playerFleetNum]*Fleet, len(u.Fleets))
-	for i := range u.Fleets {
-		fleet := &u.Fleets[i]
+	for _, fleet := range u.Fleets {
 		u.fleetsByPosition[fleet.Position] = fleet
 		u.fleetsByNum[playerFleetNum{fleet.PlayerNum, fleet.Num}] = fleet
 	}
@@ -58,7 +57,7 @@ func (u *Universe) GetPlayerMapObjects(playerNum int) PlayerMapObjects {
 
 // Get a planet by num
 func (u *Universe) GetPlanet(num int) *Planet {
-	return &u.Planets[num-1]
+	return u.Planets[num-1]
 }
 
 // Get a fleet by player num and fleet num
@@ -68,17 +67,17 @@ func (u *Universe) GetFleet(playerNum int, num int) *Fleet {
 
 // Get a planet by num
 func (u *Universe) GetWormhole(num int) *Wormohole {
-	return &u.Wormholes[num]
+	return u.Wormholes[num]
 }
 
 // Get a salvage by num
 func (u *Universe) GetSalvage(num int) *Salvage {
-	return &u.Salvage[num]
+	return u.Salvage[num]
 }
 
 // Get a mineralpacket by num
 func (u *Universe) GetMineralPacket(num int) *MineralPacket {
-	return &u.MineralPackets[num]
+	return u.MineralPackets[num]
 }
 
 // get a cargo holder by natural key (num, playerNum, etc)
@@ -109,8 +108,7 @@ func (u *Universe) MoveFleet(fleet *Fleet, originalPosition Vector) {
 
 func (u *Universe) GetPlanets(playerNum int) []*Planet {
 	planets := []*Planet{}
-	for i := range u.Planets {
-		planet := &u.Planets[i]
+	for _, planet := range u.Planets {
 		if planet.PlayerNum == playerNum {
 			planets = append(planets, planet)
 		}
@@ -120,8 +118,7 @@ func (u *Universe) GetPlanets(playerNum int) []*Planet {
 
 func (u *Universe) GetFleets(playerNum int) []*Fleet {
 	fleets := []*Fleet{}
-	for i := range u.Fleets {
-		fleet := &u.Fleets[i]
+	for _, fleet := range u.Fleets {
 		if fleet.PlayerNum == playerNum {
 			fleets = append(fleets, fleet)
 		}
@@ -131,8 +128,7 @@ func (u *Universe) GetFleets(playerNum int) []*Fleet {
 
 func (u *Universe) GetMineFields(playerNum int) []*MineField {
 	mineFields := []*MineField{}
-	for i := range u.MineFields {
-		mineField := &u.MineFields[i]
+	for _, mineField := range u.MineFields {
 		if mineField.PlayerNum == playerNum {
 			mineFields = append(mineFields, mineField)
 		}
@@ -144,8 +140,7 @@ func (u *Universe) GetMineFields(playerNum int) []*MineField {
 func (u *Universe) getOwnedPlanets() []*Planet {
 	var ownedPlanets []*Planet
 
-	for i := range u.Planets {
-		planet := &u.Planets[i]
+	for _, planet := range u.Planets {
 		if planet.Owned() {
 			ownedPlanets = append(ownedPlanets, planet)
 		}

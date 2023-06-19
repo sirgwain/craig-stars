@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { game } from '$lib/services/Context';
 	import { PlanetService } from '$lib/services/PlanetService';
 	import {
 		negativeCargo,
@@ -36,10 +37,10 @@
 	};
 
 	const ok = async () => {
-		if (src) {
+		if ($game && src) {
 			const fleetService = new FleetService();
 			try {
-				const result = await fleetService.transferCargo(src, dest, transferAmount);
+				const result = await fleetService.transferCargo($game.id, src, dest, transferAmount);
 				// TODO: should the parent do this? or do we update the src/dest here?
 				src.cargo = result.cargo;
 				if (dest?.cargo) {
@@ -61,7 +62,7 @@
 	// get the available space to transfer into this fleet based on the current transferAmount set in the UI, the cargo capacity,
 	// and the total cargo already in the hold when we opened the dialog
 	const availableSpace = () =>
-		(src?.spec.cargoCapacity ?? 0) - totalCargo(transferAmount) - totalCargo(src?.cargo ?? {});
+		(src?.spec?.cargoCapacity ?? 0) - totalCargo(transferAmount) - totalCargo(src?.cargo ?? {});
 
 	const transferIronium = (amount: number) => {
 		transferAmount.ironium = clamp(
@@ -104,11 +105,11 @@
 
 	const planetService = new PlanetService();
 
-	$: src && (cargo = src.cargo);
-	$: src && (fuel = src.fuel);
+	$: src && src.cargo && (cargo = src.cargo);
+	$: src && src.fuel && (fuel = src.fuel);
 </script>
 
-{#if src}
+{#if src && src.spec}
 	<div
 		class="flex h-full bg-base-200 shadow-xl max-h-fit min-h-fit rounded-sm border-2 border-base-300"
 	>

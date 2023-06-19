@@ -12,10 +12,10 @@ const NoGate = -1
 const InfinteGate = math.MaxInt32
 
 type TechStore struct {
-	ID                       uint                                  `gorm:"primaryKey" json:"id"`
+	ID                       uint64                                `gorm:"primaryKey" json:"id" boltholdKey:"ID"`
 	CreatedAt                time.Time                             `json:"createdAt"`
 	UpdatedAt                time.Time                             `json:"updatedAt"`
-	RulesID                  uint                                  `json:"rulesId"`
+	RulesID                  uint64                                `json:"rulesId"`
 	Engines                  []TechEngine                          `json:"engines"`
 	PlanetaryScanners        []TechPlanetaryScanner                `json:"planetaryScanners"`
 	Terraforms               []TechTerraform                       `json:"terraforms"`

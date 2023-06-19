@@ -11,35 +11,32 @@ func (db *DB) MigrateAll() error {
 
 	types := []interface{}{
 		&game.User{},
+		&game.Game{},
+		&game.Rules{},
+		&game.Player{},
 		&game.Race{},
 		&game.PlayerMessage{},
 		&game.BattlePlan{},
-		&game.ProductionPlan{},
-		&game.ProductionPlanItem{},
+		&game.Fleet{},
+		&game.ShipToken{},
+		&game.ShipDesign{},
+		&game.Planet{},
+		&game.MineralPacket{},
+		&game.Salvage{},
+		&game.Wormohole{},
+		&game.MineField{},
+		&game.PlanetIntel{},
+		&game.FleetIntel{},
+		&game.ShipDesignIntel{},
+		&game.MineralPacketIntel{},
+		&game.MineFieldIntel{},
 		&game.TechStore{},
 		&game.TechEngine{},
 		&game.TechPlanetaryScanner{},
 		&game.TechDefense{},
 		&game.TechHullComponent{},
 		&game.TechHull{},
-		&game.Rules{},
-		&game.Planet{},
-		&game.PlanetIntel{},
-		&game.FleetIntel{},
-		&game.ShipDesignIntel{},
-		&game.MineralPacketIntel{},
-		&game.ProductionQueueItem{},
-		&game.Fleet{},
-		&game.ShipToken{},
-		&game.ShipDesign{},
-		&game.MineralPacket{},
-		&game.Salvage{},
-		&game.Wormohole{},
-		&game.MineField{},
 	}
-
-	db.sqlDB.Table("games").AutoMigrate(&game.FullGame{})
-	db.sqlDB.Table("players").AutoMigrate(&game.FullPlayer{})
 
 	for _, t := range types {
 		log.Info().Msgf("Migrating %v", reflect.TypeOf(t))
@@ -50,8 +47,4 @@ func (db *DB) MigrateAll() error {
 	}
 
 	return nil
-}
-
-func (db *DB) Migrate(item interface{}) {
-	db.sqlDB.AutoMigrate(&item)
 }

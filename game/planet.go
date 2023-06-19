@@ -3,7 +3,6 @@ package game
 import (
 	"fmt"
 	"math"
-	"time"
 
 	"github.com/rs/zerolog/log"
 )
@@ -15,9 +14,7 @@ type Planet struct {
 	TerraformedAmount                 Hab                   `json:"terraformedAmount,omitempty" gorm:"embedded;embeddedPrefix:terraform_hab_"`
 	MineralConcentration              Mineral               `json:"mineralConcentration,omitempty" gorm:"embedded;embeddedPrefix:mineral_conc_"`
 	MineYears                         Mineral               `json:"mineYears,omitempty" gorm:"embedded;embeddedPrefix:mine_years_"`
-	Starbase                          *Fleet                `json:"starbase,omitempty"`
 	Cargo                             Cargo                 `json:"cargo,omitempty" gorm:"embedded;embeddedPrefix:cargo_"`
-	ProductionQueue                   []ProductionQueueItem `json:"productionQueue,omitempty"`
 	Mines                             int                   `json:"mines,omitempty"`
 	Factories                         int                   `json:"factories,omitempty"`
 	Defenses                          int                   `json:"defenses,omitempty"`
@@ -26,19 +23,16 @@ type Planet struct {
 	Scanner                           bool                  `json:"scanner,omitempty"`
 	PacketSpeed                       int                   `json:"packetSpeed,omitempty"`
 	BonusResources                    int                   `json:"-" gorm:"-"`
+	ProductionQueue                   []ProductionQueueItem `json:"productionQueue,omitempty" gorm:"serializer:json"`
 	Spec                              *PlanetSpec           `json:"spec,omitempty" gorm:"serializer:json"`
+	Starbase                          *Fleet                `json:"starbase,omitempty"`
 }
 
 type ProductionQueueItem struct {
-	ID         uint          `gorm:"primaryKey" json:"id"`
-	CreatedAt  time.Time     `json:"createdAt"`
-	UpdatedAt  time.Time     `json:"updatedAt"`
-	PlanetID   uint          `json:"-"`
 	Type       QueueItemType `json:"type"`
 	DesignName string        `json:"designName"`
 	Quantity   int           `json:"quantity"`
-	Allocated  Cost          `json:"allocated" gorm:"embedded;embeddedPrefix:allocated_"`
-	SortOrder  int           `json:"-"`
+	Allocated  Cost          `json:"allocated"`
 }
 
 type QueueItemType string
@@ -275,9 +269,6 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 	// p.ProductionQueue = append(p.ProductionQueue, ProductionQueueItem{Type: QueueItemTypeAutoMinTerraform, Quantity: 1})
 	p.ProductionQueue = append(p.ProductionQueue, ProductionQueueItem{Type: QueueItemTypeAutoFactories, Quantity: 10})
 	p.ProductionQueue = append(p.ProductionQueue, ProductionQueueItem{Type: QueueItemTypeAutoMines, Quantity: 10})
-	for i := range p.ProductionQueue {
-		p.ProductionQueue[i].SortOrder = i
-	}
 
 	messager.homePlanet(player, p)
 
@@ -518,7 +509,7 @@ func (planet *Planet) produce(player *Player) ProductionResult {
 	}
 	// replace the queue with what's leftover
 	planet.ProductionQueue = newQueue
-	player.LeftoverResources += available.Resources
+	player.leftoverResources += available.Resources
 	planet.Cargo = Cargo{available.Ironium, available.Boranium, available.Germanium, planet.Cargo.Colonists}
 
 	return result
@@ -549,7 +540,7 @@ func (planet *Planet) buildItems(player *Player, item ProductionQueueItem, numBu
 	}
 
 	log.Debug().
-		Uint("PlayerID", player.ID).
+		Uint64("PlayerID", player.ID).
 		Int("Player", player.Num).
 		Str("Planet", planet.Name).
 		Str("Item", string(item.Type)).

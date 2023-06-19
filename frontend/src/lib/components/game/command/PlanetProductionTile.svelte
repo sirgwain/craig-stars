@@ -1,18 +1,17 @@
 <script lang="ts">
 	import { EventManager } from '$lib/EventManager';
-
 	import { commandedPlanet } from '$lib/services/Context';
 	import { PlanetService } from '$lib/services/PlanetService';
-	import { isAuto, QueueItemType } from '$lib/types/Planet';
+	import { isAuto, QueueItemType, type ProductionQueueItem } from '$lib/types/Planet';
 	import CommandTile from './CommandTile.svelte';
 
 	const planetService = new PlanetService();
 
-	const getShortName = (type: QueueItemType): string => {
-		switch (type) {
+	const getShortName = (item: ProductionQueueItem): string => {
+		switch (item.type) {
 			case QueueItemType.Starbase:
 			case QueueItemType.ShipToken:
-				return ''; //Design.Name;
+				return item.designName ?? '';
 			case QueueItemType.TerraformEnvironment:
 				return 'Terraform Environment';
 			case QueueItemType.AutoMines:
@@ -28,7 +27,7 @@
 			case QueueItemType.AutoMinTerraform:
 				return 'Min Terraform (Auto)';
 			default:
-				return `${type}`;
+				return `${item.type}`;
 		}
 	};
 
@@ -56,7 +55,7 @@
 						{#each $commandedPlanet.productionQueue as queueItem}
 							<tr>
 								<td class="pl-1 {isAuto(queueItem.type) ? 'italic' : ''}"
-									>{getShortName(queueItem.type)}</td
+									>{getShortName(queueItem)}</td
 								>
 								<td class="pr-1 text-right">{queueItem.quantity}</td>
 							</tr>

@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func (db *DB) FindPlayerByGameId(gameID uint, userID uint) (*game.FullPlayer, error) {
+func (db *DB) FindPlayerByGameId(gameID uint64, userID uint64) (*game.FullPlayer, error) {
 	player := game.FullPlayer{}
 
 	if err := db.sqlDB.
@@ -18,20 +18,9 @@ func (db *DB) FindPlayerByGameId(gameID uint, userID uint) (*game.FullPlayer, er
 		Preload("FleetIntels").
 		Preload("DesignIntels").
 		Preload("MineralPacketIntels").
-		Preload("ProductionPlans").
 		Preload("BattlePlans").
-		Preload("Fleets", func(db *gorm.DB) *gorm.DB {
-			return db.Where("fleets.starbase != ?", true).Order("fleets.num")
-		}).
-		Preload("Fleets.Tokens.Design").
-		Preload("Planets", func(db *gorm.DB) *gorm.DB {
-			return db.Order("planets.num")
-		}).
-		Preload("Planets.Starbase").
-		Preload("Planets.Starbase.Tokens").
-		Preload("Planets.ProductionQueue", func(db *gorm.DB) *gorm.DB {
-			return db.Order("production_queue_items.sort_order")
-		}).Where("game_id = ? AND user_id = ?", gameID, userID).First(&player).Error; err != nil {
+		Where("game_id = ? AND user_id = ?", gameID, userID).
+		First(&player.Player).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		} else {
@@ -39,17 +28,41 @@ func (db *DB) FindPlayerByGameId(gameID uint, userID uint) (*game.FullPlayer, er
 		}
 	}
 
-	// build the non-serialized player map objects
-	player.BuildMaps()
+	if err := db.sqlDB.
+		Preload("Tokens.Design").
+		Where("player_id = ? and starbase != ?", player.ID, true).
+		Order("num").
+		Find(&player.Fleets).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			player.Fleets = []*game.Fleet{}
+		} else {
+			return nil, err
+		}
+	}
+
+	if err := db.sqlDB.
+		Preload("Starbase").
+		Preload("Starbase.Tokens").
+		Where("player_id = ?", player.ID).
+		Order("num").
+		Find(&player.Planets).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			player.Planets = []*game.Planet{}
+		} else {
+			return nil, err
+		}
+	}
 
 	return &player, nil
 }
 
 // find a plyer for a game without loading all data
-func (db *DB) FindPlayerByGameIdLight(gameID uint, userID uint) (*game.Player, error) {
+func (db *DB) FindPlayerByGameIdLight(gameID uint64, userID uint64) (*game.Player, error) {
 	player := game.Player{}
 
-	if err := db.sqlDB.Where("game_id = ? AND user_id = ?", gameID, userID).Preload("Race").First(&player).Error; err != nil {
+	if err := db.sqlDB.
+		Where("game_id = ? AND user_id = ?", gameID, userID).
+		First(&player).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		} else {

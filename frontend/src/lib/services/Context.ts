@@ -1,4 +1,4 @@
-import type { Fleet } from '$lib/types/Fleet';
+import type { Fleet, Waypoint } from '$lib/types/Fleet';
 import type { Game } from '$lib/types/Game';
 import { MapObjectType, ownedBy, positionKey, type MapObject } from '$lib/types/MapObject';
 import type { Planet } from '$lib/types/Planet';
@@ -16,6 +16,7 @@ export const player = writable<Player | undefined>();
 
 export const commandedPlanet = writable<Planet | undefined>();
 export const commandedFleet = writable<Fleet | undefined>();
+export const selectedWaypoint = writable<Waypoint | undefined>();
 export const selectedMapObject = writable<MapObject>();
 export const commandedMapObject = writable<MapObject>();
 export const highlightedMapObject = writable<MapObject | undefined>();
@@ -75,6 +76,7 @@ export const commandMapObject = (mo: MapObject) => {
 	} else if (mo.type == MapObjectType.Fleet) {
 		commandedPlanet.update(() => undefined);
 		commandedFleet.update(() => mo as Fleet);
+		selectedWaypoint.update(() => (mo as Fleet).waypoints[0]);
 	}
 
 	commandedMapObjectName.update(() => mo.name);

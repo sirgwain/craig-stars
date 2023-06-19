@@ -1,6 +1,9 @@
 package cmd
 
 import (
+	"log"
+	"time"
+
 	"github.com/sirgwain/craig-stars/appcontext"
 	"github.com/sirgwain/craig-stars/db"
 	"github.com/sirgwain/craig-stars/game"
@@ -8,6 +11,11 @@ import (
 
 	"github.com/spf13/cobra"
 )
+
+func timeTrack(start time.Time, name string) {
+	elapsed := time.Since(start)
+	log.Printf("%s took %s", name, elapsed)
+}
 
 func newServeCmd() *cobra.Command {
 	var generateUniverse bool
@@ -34,6 +42,7 @@ func newServeCmd() *cobra.Command {
 }
 
 func generateTestGame(ctx *appcontext.AppContext) error {
+	defer timeTrack(time.Now(), "generateTestGame")
 	ctx.DB.MigrateAll()
 
 	admin, adminRace, err := createTestUser(ctx.DB, "admin", ctx.Config.GeneratedUserPassword, game.RoleAdmin)
@@ -113,7 +122,7 @@ func createTestUser(db db.Client, username string, password string, role game.Ro
 		race = game.Humanoids()
 		race.UserID = user.ID
 
-		if err := db.CreateRace(&race); err != nil {
+		if err := db.SaveRace(&race); err != nil {
 			return nil, nil, err
 		}
 
@@ -124,7 +133,7 @@ func createTestUser(db db.Client, username string, password string, role game.Ro
 		// 	return nil, nil, err
 		// }
 	} else {
-		race = races[0]
+		race = *races[0]
 	}
 
 	return user, &race, nil

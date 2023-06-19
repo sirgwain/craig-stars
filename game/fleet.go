@@ -26,21 +26,25 @@ const NoTarget = -1
 
 type Fleet struct {
 	MapObject
-	PlanetID          uint        `json:"-"` // for starbase fleets that are owned by a planet
+	FleetOrders
+	PlanetID          uint64      `json:"-"` // for starbase fleets that are owned by a planet
 	BaseName          string      `json:"baseName"`
 	Cargo             Cargo       `json:"cargo,omitempty" gorm:"embedded;embeddedPrefix:cargo_"`
 	Fuel              int         `json:"fuel"`
 	Damage            int         `json:"damage"`
-	BattlePlanID      uint        `json:"battlePlan"`
+	BattlePlanID      uint64      `json:"battlePlan"`
 	Tokens            []ShipToken `json:"tokens"`
-	Waypoints         []Waypoint  `json:"waypoints" gorm:"serializer:json"`
-	RepeatOrders      bool        `json:"repeatOrders,omitempty"`
 	Heading           Vector      `json:"heading,omitempty" gorm:"embedded;embeddedPrefix:heading_"`
 	WarpSpeed         int         `json:"warpSpeed,omitempty"`
 	PreviousPosition  *Vector     `json:"previousPosition,omitempty" gorm:"embedded;embeddedPrefix:previous_position_"`
 	OrbitingPlanetNum int         `json:"orbitingPlanetNum,omitempty"`
 	Starbase          bool        `json:"starbase,omitempty"`
 	Spec              *FleetSpec  `json:"spec" gorm:"serializer:json"`
+}
+
+type FleetOrders struct {
+	Waypoints    []Waypoint `json:"waypoints" gorm:"serializer:json"`
+	RepeatOrders bool       `json:"repeatOrders,omitempty"`
 }
 
 type FleetSpec struct {
@@ -57,21 +61,19 @@ type FleetSpec struct {
 }
 
 type ShipToken struct {
-	ID        uint        `gorm:"primaryKey" json:"id"`
+	ID        uint64      `gorm:"primaryKey" json:"id"`
 	CreatedAt time.Time   `json:"createdAt"`
 	UpdatedAt time.Time   `json:"updatedAt"`
-	FleetID   uint        `json:"gameId"`
-	DesignID  uint        `json:"designId"`
+	FleetID   uint64      `json:"gameId"`
+	DesignID  uint64      `json:"designId"`
 	Quantity  int         `json:"quantity"`
 	Design    *ShipDesign `json:"-" gorm:"foreignKey:DesignID"`
 }
 
 type Waypoint struct {
-	FleetID           uint                   `json:"-"`
-	TargetID          uint                   `json:"targetId,omitempty"`
 	Position          Vector                 `json:"position,omitempty" gorm:"embedded"`
 	WarpFactor        int                    `json:"warpFactor,omitempty"`
-	Task              WaypointTask           `json:"waypointTask,omitempty"`
+	Task              WaypointTask           `json:"task,omitempty"`
 	TransportTasks    WaypointTransportTasks `json:"transportTasks,omitempty"`
 	WaitAtWaypoint    bool                   `json:"waitAtWaypoint,omitempty"`
 	TargetType        MapObjectType          `json:"targetType,omitempty"`
@@ -175,7 +177,9 @@ func NewFleet(player *Player, design *ShipDesign, num int, name string, waypoint
 		Tokens: []ShipToken{
 			{Design: design, Quantity: 1},
 		},
-		Waypoints:         waypoints,
+		FleetOrders: FleetOrders{
+			Waypoints: waypoints,
+		},
 		OrbitingPlanetNum: NotOrbitingPlanet,
 	}
 }
@@ -192,9 +196,11 @@ func NewFleetForToken(player *Player, num int, token ShipToken, waypoints []Wayp
 			Name:      fmt.Sprintf("%s #%d", token.Design.Name, num),
 			Position:  waypoints[0].Position,
 		},
-		BaseName:          token.Design.Name,
-		Tokens:            []ShipToken{token},
-		Waypoints:         waypoints,
+		BaseName: token.Design.Name,
+		Tokens:   []ShipToken{token},
+		FleetOrders: FleetOrders{
+			Waypoints: waypoints,
+		},
 		OrbitingPlanetNum: NotOrbitingPlanet,
 	}
 }

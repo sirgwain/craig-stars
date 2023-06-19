@@ -8,14 +8,14 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func (db *DB) GetTechStores() (*game.TechStore, error) {
+func (db *DB) GetTechStores() ([]*game.TechStore, error) {
 
-	techs := game.TechStore{}
+	techs := []*game.TechStore{}
 	if err := db.sqlDB.Find(&techs).Error; err != nil {
 		return nil, err
 	}
 
-	return &techs, nil
+	return techs, nil
 }
 
 func (db *DB) CreateTechStore(tech *game.TechStore) error {
@@ -52,7 +52,7 @@ func (db *DB) CreateTechStore(tech *game.TechStore) error {
 	return nil
 }
 
-func (db *DB) FindTechStoreById(id uint) (*game.TechStore, error) {
+func (db *DB) FindTechStoreById(id uint64) (*game.TechStore, error) {
 	techs := game.TechStore{}
 	if err := db.sqlDB.Preload(clause.Associations).First(&techs, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

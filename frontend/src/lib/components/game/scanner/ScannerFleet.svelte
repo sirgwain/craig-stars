@@ -10,7 +10,7 @@
 		player
 	} from '$lib/services/Context';
 	import { positionKey } from '$lib/types/MapObject';
-	import type { Fleet } from '$lib/types/Fleet';
+	import { NotOrbitingPlanet, type Fleet } from '$lib/types/Fleet';
 	import { getContext } from 'svelte';
 	import { determinant, dot, normalized } from '$lib/types/Vector';
 	import { radiansToDegrees } from '$lib/services/Math';
@@ -23,8 +23,8 @@
 	let color = '#FF0000';
 	let angle = 0;
 
-	let size = 5;
-	$: size = $xScale(5);
+	let size = 8;
+	$: size = $xScale(8);
 
 	// the drawn svg triangle points up and to the left
 	const startHeading = normalized({ x: -1, y: 1 });
@@ -63,7 +63,7 @@
 	}
 </script>
 
-{#if !fleet.orbiting}
+{#if fleet.orbitingPlanetNum == NotOrbitingPlanet}
 	<polygon
 		id="fleet"
 		points={`0,0 0,${size} ${size},${size}`}

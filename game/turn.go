@@ -25,7 +25,7 @@ func NewTurnGenerator(game *FullGame) turnGenerator {
 // generate a new turn
 func (t *turn) GenerateTurn() error {
 	log.Debug().
-		Uint("GameID", t.game.ID).
+		Uint64("GameID", t.game.ID).
 		Str("Name", t.game.Name).
 		Int("Year", t.game.Year).
 		Msgf("begin generating turn")
@@ -34,9 +34,8 @@ func (t *turn) GenerateTurn() error {
 	// reset players for start of the turn
 	for _, player := range t.game.Players {
 		player.Messages = []PlayerMessage{}
-		player.LeftoverResources = 0
+		player.leftoverResources = 0
 		player.Spec = computePlayerSpec(player, &t.game.Rules)
-		player.BuildMaps()
 	}
 
 	t.computePlanetSpecs()
@@ -97,7 +96,6 @@ func (t *turn) GenerateTurn() error {
 	// and patrol orders
 	for _, player := range t.game.Players {
 		player.Spec = computePlayerSpec(player, &t.game.Rules)
-		player.BuildMaps()
 
 		scanner := newPlayerScanner(t.game.Universe, &t.game.Rules, player)
 		if err := scanner.scan(); err != nil {
@@ -115,7 +113,7 @@ func (t *turn) GenerateTurn() error {
 	}
 
 	log.Info().
-		Uint("GameID", t.game.ID).
+		Uint64("GameID", t.game.ID).
 		Str("Name", t.game.Name).
 		Int("Year", t.game.Year-1).
 		Msgf("generated turn")
@@ -125,8 +123,7 @@ func (t *turn) GenerateTurn() error {
 // update all planet specs with the latest info
 // useful before turn generation and after building
 func (t *turn) computePlanetSpecs() {
-	for i := range t.game.Planets {
-		planet := &t.game.Planets[i]
+	for _, planet := range t.game.Planets {
 		if planet.Owned() {
 			player := t.game.Players[planet.PlayerNum]
 			planet.Spec = ComputePlanetSpec(&t.game.Rules, planet, player)
@@ -147,8 +144,7 @@ func (t *turn) fleetUnload0() {
 }
 
 func (t *turn) fleetColonize() {
-	for i := range t.game.Fleets {
-		fleet := &t.game.Fleets[i]
+	for _, fleet := range t.game.Fleets {
 		wp0 := fleet.Waypoints[0]
 		if wp0.Task == WaypointTaskColonize {
 			player := t.game.Players[fleet.PlayerNum]
@@ -161,8 +157,8 @@ func (t *turn) fleetColonize() {
 			if wp0.TargetNum == NoTarget {
 				err := fmt.Errorf("%s attempted to colonize a planet but didn't target a planet", fleet.Name)
 				log.Err(err).
-					Uint("GameID", t.game.ID).
-					Uint("PlayerID", player.ID).
+					Uint64("GameID", t.game.ID).
+					Uint64("PlayerID", player.ID).
 					Str("Fleet", fleet.Name)
 				messager.error(player, err)
 				continue
@@ -185,7 +181,7 @@ func (t *turn) fleetColonize() {
 			}
 
 			log.Debug().
-				Uint("GameID", t.game.ID).
+				Uint64("GameID", t.game.ID).
 				Str("Name", t.game.Name).
 				Int("Year", t.game.Year).
 				Int("Player", player.Num).
@@ -202,8 +198,7 @@ func (t *turn) fleetColonize() {
 }
 
 func (t *turn) fleetLoad0() {
-	for i := range t.game.Fleets {
-		fleet := &t.game.Fleets[i]
+	for _, fleet := range t.game.Fleets {
 		wp0 := fleet.Waypoints[0]
 
 		if wp0.Task == WaypointTaskTransport {
@@ -261,8 +256,7 @@ func (t *turn) mysteryTraderMove() {
 
 func (t *turn) fleetMove() {
 
-	for i := range t.game.Fleets {
-		fleet := &t.game.Fleets[i]
+	for _, fleet := range t.game.Fleets {
 		if !fleet.Starbase {
 			// remove the fleet from the list of map objects at it's current location
 			originalPosition := fleet.Position
@@ -319,8 +313,7 @@ func (t *turn) detonateMines() {
 
 // mine all owned planets for minerals
 func (t *turn) planetMine() {
-	for i := range t.game.Planets {
-		planet := &t.game.Planets[i]
+	for _, planet := range t.game.Planets {
 		if planet.Owned() {
 			planet.Cargo = planet.Cargo.AddMineral(planet.Spec.MineralOutput)
 			planet.MineYears.AddInt(planet.Mines)
@@ -334,8 +327,7 @@ func (t *turn) fleetRemoteMineAR() {
 }
 
 func (t *turn) planetProduction() {
-	for i := range t.game.Planets {
-		planet := &t.game.Planets[i]
+	for _, planet := range t.game.Planets {
 		if planet.Owned() && len(planet.ProductionQueue) > 0 {
 			player := t.game.Players[planet.PlayerNum]
 			result := planet.produce(player)
@@ -360,7 +352,7 @@ func (t *turn) buildFleet(player *Player, planet *Planet, token ShipToken) Fleet
 	fleet.Fuel = fleet.Spec.FuelCapacity
 	fleet.OrbitingPlanetNum = planet.Num
 
-	t.game.Fleets = append(t.game.Fleets, fleet)
+	t.game.Fleets = append(t.game.Fleets, &fleet)
 	return fleet
 }
 
@@ -378,8 +370,7 @@ func (t *turn) permaform() {
 
 // grow all owned planets by some population
 func (t *turn) planetGrow() {
-	for i := range t.game.Planets {
-		planet := &t.game.Planets[i]
+	for _, planet := range t.game.Planets {
 		if planet.Owned() {
 			// player := t.game.Players[*planet.PlayerNum]
 			planet.SetPopulation(planet.Population() + planet.Spec.GrowthAmount)

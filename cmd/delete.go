@@ -21,27 +21,33 @@ func init() {
 }
 
 func addDeleteUserCmd() {
-	var id uint
+	var id uint64
 
 	// deleteUserCmd represents the deleteUsers command
 	var deleteUserCmd = &cobra.Command{
 		Use:   "user",
 		Short: "Delete user",
 		Long:  `Delete user from the database`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := appcontext.Initialize()
 			ctx.DB.DeleteUserById(id)
-			PrintTable("Remaining Users", *ctx.DB.GetUsers())
+			users, err := ctx.DB.GetUsers()
+			if err != nil {
+				return err
+			}
+
+			PrintTable("Remaining Users", users)
+			return nil
 		},
 	}
-	deleteUserCmd.Flags().UintVarP(&id, "user-id", "u", 0, "Delete games for user id")
+	deleteUserCmd.Flags().Uint64VarP(&id, "user-id", "u", 0, "Delete games for user id")
 	deleteUserCmd.MarkFlagRequired("user-id")
 
 	deleteCmd.AddCommand(deleteUserCmd)
 
 }
 func addDeleteGameCmd() {
-	var id uint
+	var id uint64
 
 	// deleteUsersCmd represents the deleteUsers command
 	var deleteGameCmd = &cobra.Command{
@@ -61,7 +67,7 @@ func addDeleteGameCmd() {
 		},
 	}
 
-	deleteGameCmd.Flags().UintVarP(&id, "game-id", "g", 0, "Delete game by id")
+	deleteGameCmd.Flags().Uint64VarP(&id, "game-id", "g", 0, "Delete game by id")
 	deleteGameCmd.MarkFlagRequired("game-id")
 	deleteCmd.AddCommand(deleteGameCmd)
 }

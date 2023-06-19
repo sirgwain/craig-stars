@@ -7,11 +7,10 @@ import (
 )
 
 type Rules struct {
-	ID        uint      `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
-
-	GameID                             uint                                `json:"gameId"`
+	ID                                 uint64                              `gorm:"primaryKey" json:"id"`
+	CreatedAt                          time.Time                           `json:"createdAt"`
+	UpdatedAt                          time.Time                           `json:"updatedAt"`
+	GameID                             uint64                              `json:"gameId"`
 	Seed                               int64                               `json:"seed"`
 	TachyonCloakReduction              int                                 `json:"tachyonCloakReduction"`
 	MaxPopulation                      int                                 `json:"maxPopulation"`
@@ -68,7 +67,7 @@ type Rules struct {
 	TechBaseCost                       []int                               `json:"techBaseCost" gorm:"serializer:json"`
 	PRTSpecs                           map[PRT]PRTSpec                     `json:"prtSpecs" gorm:"serializer:json"`
 	LRTSpecs                           map[LRT]LRTSpec                     `json:"lrtSpecs" gorm:"serializer:json"`
-	TechsID                            uint                                `json:"techsId"`
+	TechsID                            uint64                              `json:"techsId"`
 	random                             *rand.Rand
 	techs                              *TechStore
 }

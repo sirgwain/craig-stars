@@ -15,6 +15,7 @@ type playerScan struct {
 	universe *Universe
 	rules    *Rules
 	player   *Player
+	discoverer discoverer
 }
 
 type playerScanner interface {
@@ -22,14 +23,15 @@ type playerScanner interface {
 }
 
 func newPlayerScanner(universe *Universe, rules *Rules, player *Player) playerScanner {
-	return &playerScan{universe, rules, player}
+	discoverer := newDiscoverer(player)
+	return &playerScan{universe, rules, player, discoverer}
 }
 
 // scan planets, fleets, etc for a player
 func (scan *playerScan) scan() error {
 	// clear out any reports that we recreate each year
 	player := scan.player
-	player.clearTransientReports()
+	scan.discoverer.clearTransientReports()
 
 	for i := range player.PlanetIntels {
 		planet := &player.PlanetIntels[i]
@@ -55,10 +57,9 @@ func (scan *playerScan) scan() error {
 
 // scan all planets with this player's scanners
 func (scan *playerScan) scanPlanets(scanners []scanner, cargoScanners []scanner) error {
-	for i := range scan.universe.Planets {
-		planet := &scan.universe.Planets[i]
+	for _, planet := range scan.universe.Planets {
 		if planet.OwnedBy(scan.player.Num) {
-			if err := discoverPlanet(scan.rules, scan.player, planet, false); err != nil {
+			if err := scan.discoverer.discoverPlanet(scan.rules, scan.player, planet, false); err != nil {
 				return err
 			}
 			continue
@@ -95,11 +96,11 @@ func (scan *playerScan) scanPlanet(planet *Planet, scanner scanner) (bool, error
 	dist := scanner.Position.DistanceSquaredTo(planet.Position)
 	_ = dist
 	if float64(scanner.RangePenSquared) >= scanner.Position.DistanceSquaredTo(planet.Position) {
-		if err := discoverPlanet(scan.rules, scan.player, planet, true); err != nil {
+		if err := scan.discoverer.discoverPlanet(scan.rules, scan.player, planet, true); err != nil {
 			return false, err
 		}
 		if scanner.DiscoverPlanetCargo {
-			if err := discoverPlanetCargo(scan.player, planet); err != nil {
+			if err := scan.discoverer.discoverPlanetCargo(scan.player, planet); err != nil {
 				return false, err
 			}
 		}
@@ -113,8 +114,7 @@ func (scan *playerScan) scanFleets(scanners []scanner, cargoScanners []scanner) 
 	// scan fleets
 	fleetsToScan := []*Fleet{}
 	fleetsToCargoScan := []*Fleet{}
-	for i := range scan.universe.Fleets {
-		fleet := &scan.universe.Fleets[i]
+	for _, fleet := range scan.universe.Fleets {
 		if fleet.OwnedBy(scan.player.Num) {
 			// The player already gets a copy of all their own fleets
 			continue
@@ -138,16 +138,16 @@ func (scan *playerScan) scanFleets(scanners []scanner, cargoScanners []scanner) 
 	}
 
 	for _, fleet := range fleetsToScan {
-		discoverFleet(scan.player, fleet)
+		scan.discoverer.discoverFleet(scan.player, fleet)
 		if scan.player.Race.Spec.DiscoverDesignOnScan {
 			for _, token := range fleet.Tokens {
-				discoverDesign(scan.player, token.Design, true)
+				scan.discoverer.discoverDesign(scan.player, token.Design, true)
 			}
 		}
 	}
 
 	for _, fleet := range fleetsToCargoScan {
-		discoverFleetCargo(scan.player, fleet)
+		scan.discoverer.discoverFleetCargo(scan.player, fleet)
 	}
 }
 
@@ -175,8 +175,7 @@ func (scan *playerScan) fleetInScannerRange(fleet *Fleet, scanner scanner) bool 
 func (scan *playerScan) getScanners() []scanner {
 	planetaryScanner := scan.player.Spec.PlanetaryScanner
 	scanningFleetsByPosition := map[Vector]scanner{}
-	for i := range scan.universe.Fleets {
-		fleet := &scan.universe.Fleets[i]
+	for _, fleet := range scan.universe.Fleets {
 		if fleet.PlayerNum == scan.player.Num && fleet.Spec.Scanner {
 			scanner, found := scanningFleetsByPosition[fleet.Position]
 			if !found {
@@ -194,8 +193,7 @@ func (scan *playerScan) getScanners() []scanner {
 
 	// build a list of scanners for this player
 	scanners := []scanner{}
-	for i := range scan.universe.Planets {
-		planet := &scan.universe.Planets[i]
+	for _, planet := range scan.universe.Planets {
 		if planet.PlayerNum == scan.player.Num && planet.Scanner {
 			scanner := scanner{
 				Position:        planet.Position,

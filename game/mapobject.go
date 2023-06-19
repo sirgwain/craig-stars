@@ -6,12 +6,12 @@ import (
 )
 
 type MapObject struct {
-	ID        uint          `gorm:"primaryKey" json:"id"`
+	ID        uint64        `gorm:"primaryKey" json:"id" boltholdKey:"ID"`
+	GameID    uint64        `json:"gameId" boltholdIndex:"GameID"`
 	CreatedAt time.Time     `json:"createdAt"`
 	UpdatedAt time.Time     `json:"updatedAt"`
 	Type      MapObjectType `json:"type"`
-	GameID    uint          `json:"gameId"`
-	PlayerID  uint          `json:"-"`
+	PlayerID  uint64        `json:"-"`
 	Dirty     bool          `json:"-" gorm:"-"`
 	Delete    bool          `json:"-" gorm:"-"`
 	Position  Vector        `json:"position" gorm:"embedded"`

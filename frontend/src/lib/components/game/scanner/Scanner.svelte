@@ -56,7 +56,11 @@
 	function handleResize() {
 		clientWidth = root?.clientWidth ?? 100;
 		clientHeight = root?.clientHeight ?? 100;
-		aspectRatio = clientHeight / clientWidth;
+		if (clientWidth > clientHeight) {
+			aspectRatio = clientHeight / clientWidth;
+		} else {
+			aspectRatio = clientWidth / clientHeight;
+		}
 	}
 
 	function handleZoom(e: D3ZoomEvent<HTMLElement, any>) {
@@ -123,7 +127,11 @@
 			} else {
 				commandMapObject(nextMapObject);
 			}
-		} else if ($selectedMapObject == myMapObject && commandedIntelObject != $selectedMapObject) {
+		} else if (
+			mo.playerNum == $player.num &&
+			$selectedMapObject == myMapObject &&
+			commandedIntelObject != $selectedMapObject
+		) {
 			if (mo.type === MapObjectType.Planet) {
 				commandMapObject(findMyPlanet($player, mo as Planet) as MapObject);
 				commandedMapObjectIndex = 0;
@@ -139,7 +147,7 @@
 <div class="flex-1 h-full bg-black overflow-hidden p-5">
 	{#if $game && $player}
 		<LayerCake
-			data={[...$player.planetIntels, ...$player.fleets, ...$player.fleetIntels]}
+			data={[...$player.planetIntels, ...$player.fleets, ...($player.fleetIntels ?? [])]}
 			x={xGetter}
 			y={yGetter}
 			xDomain={[0, $game.area.x]}

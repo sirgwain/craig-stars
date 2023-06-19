@@ -13,7 +13,7 @@ type HostGameBind struct {
 }
 
 type JoinGameBind struct {
-	RaceID uint `json:"raceId"`
+	RaceID uint64 `json:"raceId"`
 }
 
 func (s *server) PlayerGames(c *gin.Context) {

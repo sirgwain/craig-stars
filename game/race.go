@@ -7,12 +7,11 @@ import (
 )
 
 type Race struct {
-	ID        uint      `gorm:"primaryKey" json:"id,omitempty"`
-	CreatedAt time.Time `json:"createdAt,omitempty"`
-	UpdatedAt time.Time `json:"updatedat,omitempty"`
-
-	UserID            uint         `json:"userId,omitempty"`
-	PlayerID          uint         `json:"playerId,omitempty"`
+	ID                uint64       `gorm:"primaryKey" json:"id,omitempty" boltholdKey:"ID"`
+	CreatedAt         time.Time    `json:"createdAt,omitempty"`
+	UpdatedAt         time.Time    `json:"updatedat,omitempty"`
+	UserID            uint64       `json:"userId,omitempty"`
+	PlayerID          uint64       `json:"playerId,omitempty"`
 	Name              string       `json:"name,omitempty"`
 	PluralName        string       `json:"pluralName,omitempty"`
 	PRT               PRT          `json:"prt,omitempty"`

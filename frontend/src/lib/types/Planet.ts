@@ -34,6 +34,7 @@ export interface ProductionQueueItem {
 
 	type: QueueItemType;
 	quantity: number;
+	designName?: string;
 }
 
 export const fromQueueItemType = (type: QueueItemType): ProductionQueueItem => ({
