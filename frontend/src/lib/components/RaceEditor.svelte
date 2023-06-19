@@ -16,7 +16,7 @@
 </script>
 
 {#if race}
-	<div class="prose"><h2>{race.name}</h2></div>
+	<h2 class="font-semibold text-xl">{race.name}</h2>
 	<form on:submit|preventDefault={onSubmit}>
 		<fieldset class="form-control">
 			<label class="label" for="name">Name</label>

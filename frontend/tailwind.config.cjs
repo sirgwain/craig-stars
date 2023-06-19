@@ -3,10 +3,11 @@ module.exports = {
 
 	theme: {
 		fontSize: {
-			sm: ['12px', '18px'],
-			base: ['14px', '20px'],
-			lg: ['16px', '22px'],
-			xl: ['18px', '24px']
+			sm: ['10px'],
+			base: ['12px'],
+			lg: ['14px'],
+			xl: ['18px'],
+			'2xl': ['20px']
 		},
 
 		extend: {}

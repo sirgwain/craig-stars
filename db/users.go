@@ -36,11 +36,17 @@ func (db *DB) FindUserById(id uint) (*game.User, error) {
 	return &user, nil
 }
 
-func (db *DB) FindUserByUsername(username string) *game.User {
+func (db *DB) FindUserByUsername(username string) (*game.User, error) {
 	user := game.User{}
-	db.sqlDB.Where("username = ?", username).First(&user)
+	if err := db.sqlDB.Where("username = ?", username).First(&user).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	}
 
-	return &user
+	return &user, nil
 }
 
 func (db *DB) DeleteUserById(id uint) {

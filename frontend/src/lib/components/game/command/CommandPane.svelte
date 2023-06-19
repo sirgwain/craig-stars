@@ -11,15 +11,17 @@
 {#if $game && $player.planets?.length}
 	<div class="flex flex-col h-full">
 		<div class="flex-1">
-			<div class="flex flex-row">
-				<div class="flex grow flex-wrap gap-3.5">
-					<PlanetSummaryTile />
-					<MineralsOnHandTile />
-					<PlanetStatusTile />
-					<PlanetProductionTile />
-					<div class="flex-none w-full"><MessagesPane /></div>
-					<div class="flex-none w-full"><MapObjectSummary /></div>
+			<div class="flex flex-col h-full">
+				<div class="flex-1">
+					<div class="flex grow flex-wrap gap-3.5">
+						<PlanetSummaryTile />
+						<MineralsOnHandTile />
+						<PlanetStatusTile />
+						<PlanetProductionTile />
+					</div>
 				</div>
+				<div class="flex-none"><MessagesPane /></div>
+				<div class="flex-none"><MapObjectSummary /></div>
 			</div>
 		</div>
 	</div>

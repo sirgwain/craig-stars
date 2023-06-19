@@ -14,7 +14,7 @@
 				{#each $player.planets as planet}
 					<tr class="hover">
 						<td>{planet.name}</td><td
-							>{planet.cargo.colonists ? planet.cargo.colonists * 100 : ''}</td
+							>{planet.cargo?.colonists ? planet.cargo.colonists * 100 : ''}</td
 						></tr
 					>
 				{/each}

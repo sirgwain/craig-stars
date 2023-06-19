@@ -9,7 +9,7 @@ import (
 )
 
 type Rules struct {
-	ID                                 uint                                `gorm:"primaryKey" json:"id" header:"Username"`
+	ID                                 uint                                `gorm:"primaryKey" json:"id"`
 	CreatedAt                          time.Time                           `json:"createdAt"`
 	UpdatedAt                          time.Time                           `json:"updatedAt"`
 	DeletedAt                          gorm.DeletedAt                      `gorm:"index" json:"deletedAt"`
@@ -242,7 +242,7 @@ func NewRules() Rules {
 		HighRadGermaniumBonusThreshold:     85,
 		MaxStartingMineralSurface:          1000,
 		MinStartingMineralSurface:          300,
-		MineralDecayFactor:                 1500000,
+		MineralDecayFactor:                 1_500_000,
 		StartingMines:                      10,
 		StartingFactories:                  10,
 		StartingDefenses:                   10,

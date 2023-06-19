@@ -9,7 +9,7 @@ import (
 )
 
 type Race struct {
-	ID                uint           `gorm:"primaryKey" json:"id,omitempty" header:"Username"`
+	ID                uint           `gorm:"primaryKey" json:"id,omitempty"`
 	CreatedAt         time.Time      `json:"createdAt,omitempty"`
 	UpdatedAt         time.Time      `json:"updatedat,omitempty"`
 	DeletedAt         gorm.DeletedAt `gorm:"index" json:"deletedAt,omitempty"`
@@ -188,7 +188,7 @@ const (
 	LRTNone = 0
 
 	// Improved Fuel Efficiency
-	IFE LRT = 1 << iota
+	IFE LRT = 1 << (iota - 1)
 
 	// Total Terraforming
 	TT
@@ -381,19 +381,19 @@ func (r *Race) GetPlanetHabitability(hab Hab) int {
 func computeRaceSpec(race *Race, rules *Rules) *RaceSpec {
 	prtSpec := rules.PRTSpecs[PRT(race.PRT)]
 	spec := RaceSpec{
-		StartingTechLevels:  prtSpec.StartingTechLevels,
-		StartingFleets:      prtSpec.StartingFleets,
-		StartingPlanets:     prtSpec.StartingPlanets,
-		TechCostOffset:      prtSpec.TechCostOffset,
-		MaxPopulationOffset: prtSpec.MaxPopulationOffset,
-		NewTechCostFactor: 1,
-		MiniaturizationMax: .75,
-		MiniaturizationPerLevel: .04,
-		ScanRangeFactor: 1,
+		StartingTechLevels:       prtSpec.StartingTechLevels,
+		StartingFleets:           prtSpec.StartingFleets,
+		StartingPlanets:          prtSpec.StartingPlanets,
+		TechCostOffset:           prtSpec.TechCostOffset,
+		MaxPopulationOffset:      prtSpec.MaxPopulationOffset,
+		NewTechCostFactor:        1,
+		MiniaturizationMax:       .75,
+		MiniaturizationPerLevel:  .04,
+		ScanRangeFactor:          1,
 		StartingPopulationFactor: 1,
-		ResearchFactor: 1,
-		ShieldStrengthFactor: 1,
-		EngineReliableSpeed: 10,
+		ResearchFactor:           1,
+		ShieldStrengthFactor:     1,
+		EngineReliableSpeed:      10,
 
 		// PP
 		MineralsPerSingleMineralPacket:   prtSpec.MineralsPerSingleMineralPacket,

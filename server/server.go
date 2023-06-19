@@ -1,7 +1,6 @@
 package server
 
 import (
-	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -49,18 +48,6 @@ func Start(ctx *appcontext.AppContext) {
 
 	// weird workaround for embedded static assets (from gin-contrib/static github issue)
 	r.NoRoute(func(c *gin.Context) {
-		session := sessions.Default(c)
-		var count int
-		v := session.Get("count")
-		if v == nil {
-			count = 0
-		} else {
-			count = v.(int)
-			count++
-		}
-		session.Set("count", count)
-		log.Println("count", count)
-		session.Save()
 		if c.Request.Method == http.MethodGet &&
 			!strings.ContainsRune(c.Request.URL.Path, '.') &&
 			!strings.HasPrefix(c.Request.URL.Path, "/api/") {
@@ -78,6 +65,7 @@ func Start(ctx *appcontext.AppContext) {
 	ar.GET("/me", server.Me)
 
 	ar.GET("/techs", server.Techs)
+	ar.GET("/rules", server.Rules)
 
 	ar.GET("/races", server.Races)
 	ar.GET("/races/:id", server.Race)
@@ -86,6 +74,7 @@ func Start(ctx *appcontext.AppContext) {
 
 	ar.GET("/games", server.PlayerGames)
 	ar.GET("/games/hosted", server.HostedGames)
+	ar.GET("/games/open", server.OpenGames)
 	ar.POST("/games", server.HostGame)
 	ar.GET("/games/:id", server.PlayerGame)
 	ar.POST("/games/:id/submit-turn", server.SubmitTurn)

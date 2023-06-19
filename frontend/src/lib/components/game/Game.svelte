@@ -3,9 +3,11 @@
 	import Viewport from '$lib/components/game/Scanner.svelte';
 </script>
 
-<div class="flex-none w-[31rem]">
-	<CommandPane />
-</div>
-<div class="ml-5 flex-1 h-full border-gray-700 border-2 shadow-sm">
-	<Viewport />
+<div class="flex flex-row h-full w-full">
+	<div class="flex-none w-[31rem] h-full">
+		<CommandPane />
+	</div>
+	<div class="grow ml-5 h-full border-gray-700 border-2 shadow-sm">
+		<Viewport />
+	</div>
 </div>

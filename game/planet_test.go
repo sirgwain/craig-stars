@@ -197,7 +197,7 @@ func TestPlanet_produce4(t *testing.T) {
 		{Type: QueueItemTypeAutoMines, Quantity: 5},
 	}
 	planet.Cargo = Cargo{0, 0, 8, 2500}
-	planet.Spec = &PlanetSpec{ResourcesPerYearAvailable: 10*2+8, MaxFactories: 100, MaxMines: 100}
+	planet.Spec = &PlanetSpec{ResourcesPerYearAvailable: 10*2 + 8, MaxFactories: 100, MaxMines: 100}
 	planet.Factories = 0
 	player.Messages = []PlayerMessage{}
 
@@ -240,3 +240,36 @@ func TestPlanet_allocatePartialBuild(t *testing.T) {
 	}
 }
 
+func TestPlanet_reduceMineralConcentration(t *testing.T) {
+	game := NewGame()
+	type args struct {
+		game *Game
+	}
+	tests := []struct {
+		name   string
+		planet *Planet
+		args   args
+		want   Mineral
+	}{
+		{"Redcue empty planet min conc", NewPlanet(1), args{game}, Mineral{1, 1, 1}},
+		{
+			"150 mines should reduce 100% conc by 1 if we have 151 mineyears",
+			NewPlanet(1).
+				WithMineralConcentration(Mineral{100, 100, 100}).
+				WithMines(150).
+				WithMineYears(Mineral{151, 151, 151}),
+			args{game},
+			Mineral{99, 99, 99},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.planet.reduceMineralConcentration(tt.args.game)
+
+			if got := tt.planet.MineralConcentration; !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Planet.reduceMineralConcentration() = %v, want %v", got, tt.want)
+			}
+
+		})
+	}
+}

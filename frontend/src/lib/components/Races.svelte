@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { RaceService } from '$lib/services/RaceService';
 	import type { Race } from '$lib/types/Race';
-
+	import { format,parseJSON } from 'date-fns';
 	import { onMount } from 'svelte';
 
 	let races: Race[];
@@ -27,7 +27,9 @@
 				{#each races as race}
 					<tr
 						><td>{race.id}</td>
-						<td><a href={`/races/${race.id}`}>{race.name}</a></td><td>{race.createdAt}</td></tr
+						<td><a href={`/races/${race.id}`}>{race.name}</a></td><td
+							>{format(parseJSON(race.createdAt), 'E, MMM do yyyy hh:mm aaa')}</td
+						></tr
 					>
 				{/each}
 			{/if}

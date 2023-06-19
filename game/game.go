@@ -19,9 +19,19 @@ const (
 	NewGamePlayerTypeAI     NewGamePlayerType = "AI"
 )
 
+type AIDifficulty string
+
+const (
+	AIDifficultyNone   AIDifficulty = ""
+	AIDifficultyEasy   AIDifficulty = "Easy"
+	AIDifficultyNormal AIDifficulty = "Normal"
+	AIDifficultyHard   AIDifficulty = "Hard"
+)
+
 type NewGamePlayer struct {
-	Type   NewGamePlayerType `json:"type,omitempty"`
-	RaceID uint              `json:"raceID,omitempty"`
+	Type         NewGamePlayerType `json:"type,omitempty"`
+	RaceID       uint              `json:"raceID,omitempty"`
+	AIDifficulty AIDifficulty      `json:"aiDifficulty,omitempty"`
 }
 
 type GameSettings struct {
@@ -39,7 +49,7 @@ type GameSettings struct {
 }
 
 type Game struct {
-	ID                           uint              `gorm:"primaryKey" json:"id" header:"Name"`
+	ID                           uint              `gorm:"primaryKey" json:"id" header:"ID"`
 	CreatedAt                    time.Time         `json:"createdAt"`
 	UpdatedAt                    time.Time         `json:"updatedAt"`
 	DeletedAt                    gorm.DeletedAt    `gorm:"index" json:"deletedAt"`
@@ -55,6 +65,7 @@ type Game struct {
 	StartMode                    GameStartMode     `json:"startMode"`
 	Year                         int               `json:"year"`
 	State                        GameState         `json:"state"`
+	OpenPlayerSlots              uint              `json:"openPlayerSlots"`
 	VictoryConditions            VictoryConditions `json:"victoryConditions" gorm:"embedded;embeddedPrefix:victory_condition_"`
 	VictorDeclared               bool              `json:"victorDeclared"`
 	Area                         Vector            `json:"area,omitempty" gorm:"embedded;embeddedPrefix:area_"`
@@ -170,6 +181,59 @@ func NewGame() *Game {
 		},
 		Rules: rules,
 	}
+}
+
+// create a new GameSettings object for the default game
+func NewGameSettings() *GameSettings {
+	return &GameSettings{
+		Name:            "A Barefoot Jaywalk",
+		Size:            SizeSmall,
+		Density:         DensityNormal,
+		PlayerPositions: PlayerPositionsModerate,
+		RandomEvents:    true,
+		StartMode:       GameStartModeNormal,
+		VictoryConditions: VictoryConditions{
+			Conditions: []VictoryCondition{
+				VictoryConditionOwnPlanets,
+				VictoryConditionAttainTechLevels,
+				VictoryConditionExceedsSecondPlaceScore,
+			},
+			NumCriteriaRequired:      1,
+			YearsPassed:              50,
+			OwnPlanets:               60,
+			AttainTechLevel:          22,
+			AttainTechLevelNumFields: 4,
+			ExceedsScore:             11000,
+			ExceedsSecondPlaceScore:  100,
+			ProductionCapacity:       100000,
+			OwnCapitalShips:          100,
+			HighestScoreAfterYears:   100,
+		},
+	}
+}
+
+// set the name to this game
+func (settings *GameSettings) WithName(name string) *GameSettings {
+	settings.Name = name
+	return settings
+}
+
+// add a host to this game
+func (settings *GameSettings) WithHost(raceID uint) *GameSettings {
+	settings.Players = append(settings.Players, NewGamePlayer{Type: NewGamePlayerTypeHost, RaceID: raceID})
+	return settings
+}
+
+// Add a player slot open to any players
+func (settings *GameSettings) WithOpenPlayerSlot() *GameSettings {
+	settings.Players = append(settings.Players, NewGamePlayer{Type: NewGamePlayerTypeOpen})
+	return settings
+}
+
+// Add an AI player
+func (settings *GameSettings) WithAIPlayer(aiDifficulty AIDifficulty) *GameSettings {
+	settings.Players = append(settings.Players, NewGamePlayer{Type: NewGamePlayerTypeAI, AIDifficulty: aiDifficulty})
+	return settings
 }
 
 func (g *Game) String() string {

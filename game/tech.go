@@ -41,7 +41,7 @@ const (
 )
 
 type Tech struct {
-	ID           uint             `gorm:"primaryKey" json:"id" header:"Username"`
+	ID           uint             `gorm:"primaryKey" json:"id"`
 	CreatedAt    time.Time        `json:"createdAt"`
 	UpdatedAt    time.Time        `json:"updatedAt"`
 	DeletedAt    gorm.DeletedAt   `gorm:"index" json:"deletedAt"`
@@ -56,8 +56,8 @@ type Tech struct {
 type TechRequirements struct {
 	TechLevel
 	PRTDenied    PRT `json:"prtDenied,omitempty"`
-	LRTsRequired LRT `json:"lrtsRequired"`
-	LRTsDenied   LRT `json:"lrtsDenied"`
+	LRTsRequired LRT `json:"lrtsRequired,omitempty"`
+	LRTsDenied   LRT `json:"lrtsDenied,omitempty"`
 	PRTRequired  PRT `json:"prtRequired,omitempty"`
 }
 
@@ -65,12 +65,12 @@ type TechHullComponent struct {
 	Tech
 	HullSlotType              HullSlotType  `json:"hullSlotType"`
 	Mass                      int           `json:"mass,omitempty"`
-	ScanRange                 int           `json:"scanRange"`
-	ScanRangePen              int           `json:"scanRangePen"`
-	SafeHullMass              int           `json:"safeHullMass"`
-	SafeRange                 int           `json:"safeRange"`
-	MaxHullMass               int           `json:"maxHullMass"`
-	MaxRange                  int           `json:"maxRange"`
+	ScanRange                 int           `json:"scanRange,omitempty"`
+	ScanRangePen              int           `json:"scanRangePen,omitempty"`
+	SafeHullMass              int           `json:"safeHullMass,omitempty"`
+	SafeRange                 int           `json:"safeRange,omitempty"`
+	MaxHullMass               int           `json:"maxHullMass,omitempty"`
+	MaxRange                  int           `json:"maxRange,omitempty"`
 	Radiating                 bool          `json:"radiating,omitempty"`
 	PacketSpeed               int           `json:"packetSpeed,omitempty"`
 	CloakUnits                int           `json:"cloakUnits,omitempty"`

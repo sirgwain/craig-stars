@@ -13,7 +13,7 @@ const config = {
 			fallback: 'index.html'
 		}),
 		prerender: {
-			enabled: false,
+			// enabled: false, // not sure why I had this here, but it makes the index.html not render...
 			onError: 'continue'
 		},
 		vite: {

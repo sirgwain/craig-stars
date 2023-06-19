@@ -1,24 +1,31 @@
 import type { Cost } from './Cost';
 import type { TechLevel as TechLevel } from './Player';
+import type { PRT } from './Race';
+
+export const NoScanner = -1;
+export const NoGate = -1;
+export const InfinteGate = 2147483647;
+export const ScanWithZeroRange = 1;
 
 export interface TechStore {
 	engines: TechEngine[];
 	planetaryScanners: TechPlanetaryScanner[];
+	terraforms: TechTerraform[];
 	defenses: TechDefense[];
 	hullComponents: TechHullComponent[];
 	hulls: TechHull[];
 }
 
 export interface Tech {
-	id: number;
-	createdAt: string;
-	updatedat: string;
-	deletedAt: null;
-	techStoreId: number;
+	id?: number;
+	createdAt?: string;
+	updatedat?: string;
+	deletedAt?: null;
+	techStoreId?: number;
 	name: string;
 	cost: Cost;
 	requirements: TechRequirements;
-	ranking?: number;
+	ranking: number;
 	category: TechCategory;
 }
 
@@ -27,21 +34,32 @@ export interface TechPlanetaryScanner extends Tech {
 	scanRangePen?: number;
 }
 
+export interface TechTerraform extends Tech {
+	ability: number;
+	habType: TerraformHabType;
+}
+
+export enum TerraformHabType {
+	Gravity = 'Gravity',
+	Temperature = 'Temperature',
+	Radiation = 'Radiation',
+	All = 'All'
+}
+
 export interface TechDefense extends Tech {
 	defenseCoverage: number;
 }
 
 export interface TechHullComponent extends Tech {
 	hullSlotType: HullSlotType;
-	scanRange: number;
-	scanRangePen: number;
-	safeHullMass: number;
-	safeRange: number;
-	maxHullMass: number;
-	maxRange: number;
-	ranking?: number;
+	mass: number;
+	scanRange?: number;
+	scanRangePen?: number;
+	safeHullMass?: number;
+	safeRange?: number;
+	maxHullMass?: number;
+	maxRange?: number;
 	packetSpeed?: number;
-	mass?: number;
 	miningRate?: number;
 	cloakUnits?: number;
 	terraformRate?: number;
@@ -177,8 +195,35 @@ export enum TechCategory {
 }
 
 export interface TechRequirements extends TechLevel {
-	lrtsRequired: number[] | null;
-	lrtsDenied: number[] | null;
-	prtRequired?: string;
-	prtDenied?: string;
+	lrtsRequired?: number;
+	lrtsDenied?: number;
+	prtRequired?: PRT;
+	prtDenied?: PRT;
+}
+
+export function getCloakPercentForCloakUnits(cloakUnits: number): number {
+	if (cloakUnits <= 100) {
+		return cloakUnits / 2 + 0.5;
+	} else {
+		cloakUnits = cloakUnits - 100;
+		if (cloakUnits <= 200) {
+			return 50 + cloakUnits / 8;
+		} else {
+			cloakUnits = cloakUnits - 200;
+			if (cloakUnits < 312) {
+				return 75 + cloakUnits / 24;
+			} else {
+				cloakUnits = cloakUnits - 312;
+				if (cloakUnits <= 512) {
+					return 88 + cloakUnits / 64;
+				} else if (cloakUnits < 768) {
+					return 96;
+				} else if (cloakUnits < 1000) {
+					return 97;
+				} else {
+					return 99;
+				}
+			}
+		}
+	}
 }
