@@ -1,5 +1,5 @@
 import { userNotFound, UserStatus, type User } from '$lib/types/User';
-import { me } from './services/Context';
+import { me } from './services/Stores';
 
 export async function authGuard(): Promise<User | undefined> {
 	const response = await fetch(`/api/me`, {

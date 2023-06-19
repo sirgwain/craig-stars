@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { highlightedMapObject, selectedMapObject } from '$lib/services/Context';
+	import { highlightedMapObject, selectedMapObject } from '$lib/services/Stores';
 	import { distance } from '$lib/types/Vector';
 
 	let dist = 0;

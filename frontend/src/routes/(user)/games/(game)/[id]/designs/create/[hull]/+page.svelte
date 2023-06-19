@@ -3,7 +3,7 @@
 	import { page } from '$app/stores';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import ShipDesigner from '$lib/components/game/design/ShipDesigner.svelte';
-	import { game, techs } from '$lib/services/Context';
+	import { game, techs } from '$lib/services/Stores';
 	import { DesignService } from '$lib/services/DesignService';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 

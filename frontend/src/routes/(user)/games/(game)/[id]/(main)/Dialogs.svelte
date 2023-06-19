@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { EventManager } from '$lib/EventManager';
 	import Tooltip from '$lib/components/game/tooltips/Tooltip.svelte';
-	import { commandedFleet, commandedPlanet } from '$lib/services/Context';
+	import { commandedFleet, commandedPlanet } from '$lib/services/Stores';
 	import type { FullGame } from '$lib/services/FullGame';
 	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
 	import { MapObjectType } from '$lib/types/MapObject';
@@ -90,7 +90,7 @@
 			<ProductionQueue
 				{game}
 				player={game.player}
-				designs={game.player.designs}
+				designs={game.universe.getMyDesigns(game.player.num)}
 				planet={$commandedPlanet}
 				on:ok={() => (productionQueueDialogOpen = false)}
 				on:cancel={() => (productionQueueDialogOpen = false)}

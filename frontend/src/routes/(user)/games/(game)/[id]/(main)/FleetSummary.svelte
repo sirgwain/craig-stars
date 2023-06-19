@@ -6,14 +6,14 @@
 	import type { Fleet } from '$lib/types/Fleet';
 	import { ownedBy } from '$lib/types/MapObject';
 	import type { Player } from '$lib/types/Player';
-	import type { ShipDesign, ShipDesignIntel } from '$lib/types/ShipDesign';
+	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import { kebabCase, startCase } from 'lodash-es';
 
 	export let game: FullGame;
 	export let player: Player;
 	export let fleet: Fleet;
 
-	let design: ShipDesign | ShipDesignIntel | undefined;
+	let design: ShipDesign | undefined;
 	let icon = '';
 
 	$: {
@@ -21,7 +21,7 @@
 		icon = '';
 		if (fleet.tokens && fleet.tokens.length > 0) {
 			const designNum = fleet.tokens[0].designNum;
-			design = player.getDesign(fleet.playerNum, designNum);
+			design = game.universe.getDesign(fleet.playerNum, designNum);
 			if (design) {
 				icon = `hull-${kebabCase(design.hull)}-${design.hullSetNumber ?? 0}`;
 			}

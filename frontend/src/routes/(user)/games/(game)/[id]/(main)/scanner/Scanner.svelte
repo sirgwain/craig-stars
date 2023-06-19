@@ -9,12 +9,12 @@
 		selectedMapObject,
 		selectedWaypoint,
 		zoomTarget
-	} from '$lib/services/Context';
+	} from '$lib/services/Stores';
 	import type { FullGame } from '$lib/services/FullGame';
 	import { PlanetService } from '$lib/services/PlanetService';
 	import { settings } from '$lib/services/Settings';
 	import { WaypointTask } from '$lib/types/Fleet';
-	import { MapObjectType, None, ownedBy, type MapObject } from '$lib/types/MapObject';
+	import { MapObjectType, None, ownedBy, type MapObject, equal as mapObjectEqual } from '$lib/types/MapObject';
 	import { emptyVector, equal, type Vector } from '$lib/types/Vector';
 	import type { ScaleLinear } from 'd3-scale';
 	import { scaleLinear } from 'd3-scale';
@@ -223,14 +223,6 @@
 			myMapObject = game.getPlanet(mo.num) ?? mo;
 		}
 
-		const commandedIntelObject = $commandedMapObject
-			? game.universe.getMapObject({
-					targetType: $commandedMapObject.type,
-					targetNum: $commandedMapObject.num,
-					targetPlayerNum: $commandedMapObject.playerNum
-			  })
-			: undefined;
-
 		if (setPacketDest) {
 			if (mo.type != MapObjectType.Planet) {
 				return;
@@ -277,7 +269,7 @@
 			const myMapObjectsAtPosition = game.universe.getMyMapObjectsByPosition(mo);
 			if (myMapObjectsAtPosition?.length > 0) {
 				// if our currently commanded map object is not at this location, reset the index
-				if (!myMapObjectsAtPosition.find((mo) => mo == commandedIntelObject)) {
+				if (!myMapObjectsAtPosition.find((mo) => mapObjectEqual(mo, $commandedMapObject))) {
 					commandedMapObjectIndex = 0;
 				} else {
 					// command the next one
@@ -357,12 +349,12 @@
 			...game.universe.fleets.filter(
 				(f) => f.orbitingPlanetNum === None || f.orbitingPlanetNum === undefined
 			),
-			...(game.player.fleetIntels?.filter((f) => !f.orbitingPlanetNum) ?? []),
+			...game.universe.mysteryTraders,
 			...game.universe.mineralPackets,
-			...game.player.mineralPacketIntels,
+			...game.universe.salvages,
+			...game.universe.wormholes,
 			...game.universe.mineFields,
-			...game.player.mineFieldIntels,
-			...game.player.planetIntels
+			...game.universe.planets
 		];
 	}
 

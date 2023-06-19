@@ -60,6 +60,19 @@ func (s *server) player(w http.ResponseWriter, r *http.Request) {
 	rest.RenderJSON(w, player)
 }
 
+func (s *server) playerIntels(w http.ResponseWriter, r *http.Request) {
+	user := s.contextUser(r)
+	game := s.contextGame(r)
+	intels, err := s.db.GetPlayerIntelsForGame(game.ID, user.ID)
+
+	if err != nil {
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	rest.RenderJSON(w, intels)
+}
+
 func (s *server) fullPlayer(w http.ResponseWriter, r *http.Request) {
 	user := s.contextUser(r)
 	game := s.contextGame(r)
@@ -103,6 +116,161 @@ func (s *server) mapObjects(w http.ResponseWriter, r *http.Request) {
 	rest.RenderJSON(w, mapObjects)
 }
 
+// data about a universe (planets, fleets, designs, other players, etc) for a single player in the game
+// this aggregates player objects (full planets/fleets/mineralPackets) and intel objects
+type playerUniverseResponse struct {
+	Planets        []interface{} `json:"planets,omitempty"`
+	Fleets         []interface{} `json:"fleets,omitempty"`
+	Starbases      []interface{} `json:"starbases,omitempty"`
+	Wormholes      []interface{} `json:"wormholes,omitempty"`
+	MineralPackets []interface{} `json:"mineralPackets,omitempty"`
+	MineFields     []interface{} `json:"mineFields,omitempty"`
+	MysteryTraders []interface{} `json:"mysteryTraders,omitempty"`
+	Salvages       []interface{} `json:"salvage,omitempty"`
+	Designs        []interface{} `json:"designs,omitempty"`
+	Players        []interface{} `json:"players,omitempty"`
+	Battles        []interface{} `json:"battles,omitempty"`
+}
+
+// get mapObjects for a player
+func (s *server) universe(w http.ResponseWriter, r *http.Request) {
+	user := s.contextUser(r)
+	game := s.contextGame(r)
+
+	player, err := s.db.GetPlayerForGame(game.ID, user.ID)
+	if err != nil {
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	pmos, err := s.db.GetPlayerMapObjects(game.ID, user.ID)
+	if err != nil {
+		log.Error().Err(err).Int64("GameID", game.ID).Int64("UserID", user.ID).Msg("load player map objects database")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	if pmos == nil {
+		render.Render(w, r, ErrNotFound)
+		return
+	}
+
+	intels, err := s.db.GetPlayerIntelsForGame(game.ID, user.ID)
+	if err != nil {
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	if intels == nil {
+		render.Render(w, r, ErrNotFound)
+		return
+	}
+
+	designs, err := s.db.GetShipDesignsForPlayer(game.ID, player.Num)
+	if err != nil {
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	universe := buildUniverse(designs, *pmos, *intels)
+
+	rest.RenderJSON(w, universe)
+}
+
+// build a universe response
+func buildUniverse(designs []*cs.ShipDesign, pmos cs.PlayerMapObjects, intels cs.PlayerIntels) playerUniverseResponse {
+	numPlayerFleets := len(pmos.Fleets)
+	numPlayerStarbases := len(pmos.Starbases)
+	numPlayerMineralPackets := len(pmos.MineralPackets)
+	numPlayerMineFields := len(pmos.MineFields)
+	numPlayerSalvages := len(pmos.Salvages)
+	numPlayerDesigns := len(designs)
+
+	universe := playerUniverseResponse{
+		Planets:        make([]interface{}, len(intels.Planets)),
+		Fleets:         make([]interface{}, len(intels.Fleets)+numPlayerFleets),
+		Starbases:      make([]interface{}, len(intels.Starbases)+numPlayerStarbases),
+		MineralPackets: make([]interface{}, len(intels.MineralPackets)+numPlayerMineralPackets),
+		MineFields:     make([]interface{}, len(intels.MineFields)+numPlayerMineFields),
+		Salvages:       make([]interface{}, len(intels.Salvages)+numPlayerSalvages),
+		Wormholes:      make([]interface{}, len(intels.Wormholes)),
+		MysteryTraders: make([]interface{}, len(intels.MysteryTraders)),
+		Designs:        make([]interface{}, len(intels.ForeignShipDesigns)+numPlayerDesigns),
+		Players:        make([]interface{}, len(intels.Players)),
+		Battles:        make([]interface{}, len(intels.Battles)),
+	}
+
+	// merge player and design intels into the Designs data
+	for i, item := range designs {
+		universe.Designs[i] = item
+	}
+	for i, item := range intels.ForeignShipDesigns {
+		universe.Designs[i+numPlayerDesigns] = item
+	}
+
+	for i, item := range intels.Players {
+		universe.Players[i] = item
+	}
+
+	for i, item := range intels.Battles {
+		universe.Battles[i] = item
+	}
+
+	// merge player planets and planet intels
+	for i, item := range intels.Planets {
+		universe.Planets[i] = item
+	}
+	// we overwrite planets by num
+	for _, item := range pmos.Planets {
+		universe.Planets[item.Num-1] = item
+	}
+
+	// start with player objects, then append intel objects
+	for i, item := range pmos.Fleets {
+		universe.Fleets[i] = item
+	}
+	for i, item := range intels.Fleets {
+		universe.Fleets[i+numPlayerFleets] = item
+	}
+
+	for i, item := range pmos.Starbases {
+		universe.Starbases[i] = item
+	}
+	for i, item := range intels.Starbases {
+		universe.Starbases[i+numPlayerStarbases] = item
+	}
+
+	for i, item := range pmos.MineralPackets {
+		universe.MineralPackets[i] = item
+	}
+	for i, item := range intels.MineralPackets {
+		universe.MineralPackets[i+numPlayerMineralPackets] = item
+	}
+
+	for i, item := range pmos.MineFields {
+		universe.MineFields[i] = item
+	}
+	for i, item := range intels.MineFields {
+		universe.MineFields[i+numPlayerMineFields] = item
+	}
+
+	for i, item := range pmos.Salvages {
+		universe.Salvages[i] = item
+	}
+	for i, item := range intels.Salvages {
+		universe.Salvages[i+numPlayerSalvages] = item
+	}
+
+	for i, item := range intels.Wormholes {
+		universe.Wormholes[i] = item
+	}
+
+	for i, item := range intels.MysteryTraders {
+		universe.MysteryTraders[i] = item
+	}
+	return universe
+}
+
 func (s *server) playerStatuses(w http.ResponseWriter, r *http.Request) {
 	gameID, err := s.int64URLParam(r, "id")
 	if gameID == nil || err != nil {
@@ -138,21 +306,42 @@ func (s *server) submitTurn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO: this should probably be a goroutine or something
-	_, err := s.gameRunner.CheckAndGenerateTurn(player.GameID)
+	result, err := s.gameRunner.CheckAndGenerateTurn(player.GameID)
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", player.GameID).Msg("check and generate new turn")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	game, fullPlayer, err := s.gameRunner.LoadPlayerGame(player.GameID, player.UserID)
+	if result == TurnGenerated {
+		// return a new turn
+		game, fullPlayer, err := s.gameRunner.LoadPlayerGame(player.GameID, player.UserID)
+		if err != nil {
+			log.Error().Err(err).Int64("GameID", player.GameID).Msg("load full game from database")
+			render.Render(w, r, ErrInternalServerError(err))
+			return
+		}
+
+		universe := buildUniverse(fullPlayer.Designs, fullPlayer.PlayerMapObjects, fullPlayer.PlayerIntels)
+
+		// don't clutter our response
+		// TODO: do this fetching more elegantly
+		fullPlayer.Player.Designs = nil
+		fullPlayer.Player.PlayerIntels = cs.PlayerIntels{}
+
+		rest.RenderJSON(w, rest.JSON{"game": game, "player": fullPlayer.Player, "universe": universe})
+		return
+	}
+
+	// return the game status
+	game, err := s.db.GetGame(player.GameID)
 	if err != nil {
-		log.Error().Err(err).Int64("GameID", player.GameID).Msg("load full game from database")
+		log.Error().Err(err).Int64("GameID", player.GameID).Msg("load game")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	rest.RenderJSON(w, rest.JSON{"game": game, "player": fullPlayer.Player, "mapObjects": fullPlayer.PlayerMapObjects})
+	rest.RenderJSON(w, rest.JSON{"game": game})
 }
 
 // Submit a turn for the player

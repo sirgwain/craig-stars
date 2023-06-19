@@ -665,36 +665,36 @@ func ExtendPlayerPlayerPlans(source Player) cs.PlayerPlans {
 func ExtendPlayerPlayerIntels(source Player) cs.PlayerIntels {
 	intels := cs.PlayerIntels{}
 
-	if source.PlayerIntels != nil {
-		intels.PlayerIntels = *source.PlayerIntels
+	if source.Players != nil {
+		intels.Players = *source.Players
 	}
 
 	if source.PlanetIntels != nil {
-		intels.PlanetIntels = *source.PlanetIntels
+		intels.Planets = *source.PlanetIntels
 	}
 
 	if source.FleetIntels != nil {
-		intels.FleetIntels = *source.FleetIntels
+		intels.Fleets = *source.FleetIntels
 	}
 
 	if source.ShipDesignIntels != nil {
-		intels.ShipDesignIntels = *source.ShipDesignIntels
+		intels.ForeignShipDesigns = *source.ShipDesignIntels
 	}
 
 	if source.MineralPacketIntels != nil {
-		intels.MineralPacketIntels = *source.MineralPacketIntels
+		intels.MineralPackets = *source.MineralPacketIntels
 	}
 
 	if source.MineFieldIntels != nil {
-		intels.MineFieldIntels = *source.MineFieldIntels
+		intels.MineFields = *source.MineFieldIntels
 	}
 
 	if source.WormholeIntels != nil {
-		intels.WormholeIntels = *source.WormholeIntels
+		intels.Wormholes = *source.WormholeIntels
 	}
 
 	if source.MysteryTraderIntels != nil {
-		intels.MysteryTraderIntels = *source.MysteryTraderIntels
+		intels.MysteryTraders = *source.MysteryTraderIntels
 	}
 
 	return intels

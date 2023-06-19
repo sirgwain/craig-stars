@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { commandedFleet } from '$lib/services/Context';
+	import { commandedFleet } from '$lib/services/Stores';
 	import type { FullGame } from '$lib/services/FullGame';
 	import { emptyVector } from '$lib/types/Vector';
 

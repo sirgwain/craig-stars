@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import TechAvatar from '$lib/components/tech/TechAvatar.svelte';
-	import { game, techs } from '$lib/services/Context';
+	import { game, techs } from '$lib/services/Stores';
 	import { canLearnTech, hasRequiredLevels } from '$lib/types/Player';
 	import { kebabCase } from 'lodash-es';
 

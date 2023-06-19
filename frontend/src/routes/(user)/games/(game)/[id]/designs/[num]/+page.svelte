@@ -2,13 +2,13 @@
 	import { page } from '$app/stores';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import Design from '$lib/components/game/design/Design.svelte';
-	import { game } from '$lib/services/Context';
+	import { game } from '$lib/services/Stores';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 
 	let gameId = $page.params.id;
 	let num = parseInt($page.params.num);
 
-	$: design = $game && ($game.player.getDesign($game.player.num, num) as ShipDesign);
+	$: design = $game && ($game.universe.getDesign($game.player.num, num) as ShipDesign);
 
 </script>
 

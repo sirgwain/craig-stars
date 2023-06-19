@@ -7,7 +7,7 @@
 	import { $enum as eu } from 'ts-enum-util';
 	import SectionHeader from './SectionHeader.svelte';
 	import TableSearchInput from './TableSearchInput.svelte';
-	import { game } from '$lib/services/Context';
+	import { game } from '$lib/services/Stores';
 	import { canLearnTech, hasRequiredLevels } from '$lib/types/Player';
 
 	// for ssr, we start with techs from a json file

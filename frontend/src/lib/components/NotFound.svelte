@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { me } from '$lib/services/Context';
+	import { me } from '$lib/services/Stores';
 	import Menu from './Menu.svelte';
 
 	export let title = 'Resource not found';

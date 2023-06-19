@@ -71,6 +71,7 @@ type Client interface {
 	GetLightPlayerForGame(gameID, userID int64) (*cs.Player, error)
 	GetPlayerStatusesForGame(gameID int64) ([]*cs.Player, error)
 	GetPlayerForGame(gameID, userID int64) (*cs.Player, error)
+	GetPlayerIntelsForGame(gameID, userID int64) (*cs.PlayerIntels, error)
 	GetPlayerByNum(gameID int64, num int) (*cs.Player, error)
 	GetFullPlayerForGame(gameID, userID int64) (*cs.FullPlayer, error)
 	GetPlayerMapObjects(gameID, userID int64) (*cs.PlayerMapObjects, error)
@@ -110,6 +111,8 @@ type Client interface {
 
 	GetMineralPacket(id int64) (*cs.MineralPacket, error)
 	GetMineralPacketsForPlayer(gameID int64, playerNum int) ([]*cs.MineralPacket, error)
+
+	GetSalvagesForPlayer(gameID int64, playerNum int) ([]*cs.Salvage, error)
 }
 
 func NewClient() Client {

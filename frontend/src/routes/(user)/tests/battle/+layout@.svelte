@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Menu from '$lib/components/Menu.svelte';
-	import { me } from '$lib/services/Context';
+	import { me } from '$lib/services/Stores';
 </script>
 
 <main class="p-3 flex flex-col">

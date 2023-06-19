@@ -188,7 +188,7 @@ func Test_computeFleetSpec(t *testing.T) {
 				SpaceDock:    UnlimitedSpaceDock,
 			},
 			EstimatedRange: Infinite,
-			Purposes: map[ShipDesignPurpose]bool{},
+			Purposes:       map[ShipDesignPurpose]bool{},
 		}},
 		{"Starter Humanoid Long Range Scout", args{&rules, starterHumanoidPlayer, &Fleet{
 			BaseName: "Long Range Scout",
@@ -247,7 +247,7 @@ func Test_computeFleetSpec(t *testing.T) {
 				Cost:         Cost{122, 263, 236, 752},
 				Mass:         48,
 				Armor:        500,
-				Shield:       400,
+				Shields:      400,
 				SpaceDock:    UnlimitedSpaceDock,
 				RepairBonus:  .15,
 				MineSweep:    640,

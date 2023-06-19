@@ -56,6 +56,24 @@ func (c *client) getSalvagesForGame(gameID int64) ([]*cs.Salvage, error) {
 	return results, nil
 }
 
+func (c *client) GetSalvagesForPlayer(gameID int64, playerNum int) ([]*cs.Salvage, error) {
+
+	items := []Salvage{}
+	if err := c.db.Select(&items, `SELECT * FROM salvages WHERE gameId = ? AND playerNum = ?`, gameID, playerNum); err != nil {
+		if err == sql.ErrNoRows {
+			return []*cs.Salvage{}, nil
+		}
+		return nil, err
+	}
+
+	results := make([]*cs.Salvage, len(items))
+	for i := range items {
+		results[i] = c.converter.ConvertSalvage(&items[i])
+	}
+
+	return results, nil
+}
+
 // create a new game
 func (c *client) createSalvage(salvage *cs.Salvage, tx SQLExecer) error {
 	item := c.converter.ConvertGameSalvage(salvage)

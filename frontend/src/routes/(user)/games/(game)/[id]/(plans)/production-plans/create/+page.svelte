@@ -3,7 +3,7 @@
 	import { page } from '$app/stores';
 	import FormError from '$lib/components/FormError.svelte';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
-	import { game } from '$lib/services/Context';
+	import { game } from '$lib/services/Stores';
 	import { CSError, addError } from '$lib/services/Errors';
 	import type { ProductionPlan } from '$lib/types/Player';
 	import ProductionPlanEditor from '../ProductionPlanEditor.svelte';

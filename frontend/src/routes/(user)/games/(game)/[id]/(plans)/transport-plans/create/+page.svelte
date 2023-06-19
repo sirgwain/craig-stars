@@ -3,7 +3,7 @@
 	import { page } from '$app/stores';
 	import FormError from '$lib/components/FormError.svelte';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
-	import { game } from '$lib/services/Context';
+	import { game } from '$lib/services/Stores';
 	import { CSError, addError } from '$lib/services/Errors';
 	import { WaypointTaskTransportAction } from '$lib/types/Fleet';
 	import type { TransportPlan } from '$lib/types/Player';

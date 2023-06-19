@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { game, techs } from '$lib/services/Context';
+	import { game, techs } from '$lib/services/Stores';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import { Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';

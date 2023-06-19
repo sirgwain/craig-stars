@@ -1608,7 +1608,7 @@ func (t *turn) fleetPatrol(player *Player) {
 		closestDistance := float64(math.MaxFloat32)
 		var closest *FleetIntel
 
-		for _, enemyFleet := range player.FleetIntels {
+		for _, enemyFleet := range player.Fleets {
 			if fleet.willAttack(player, enemyFleet.PlayerNum) {
 				distSquaredToFleet := fleet.Position.DistanceSquaredTo(enemyFleet.Position)
 				if distSquaredToFleet <= distSquared {

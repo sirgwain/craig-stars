@@ -1,11 +1,6 @@
 import type { Game } from '$lib/types/Game';
 import type { Planet } from '$lib/types/Planet';
-import type {
-	PlayerMapObjects,
-	PlayerOrders,
-	PlayerPlans,
-	PlayerResponse
-} from '$lib/types/Player';
+import type { PlayerIntels, PlayerUniverse, PlayerOrders, PlayerResponse } from '$lib/types/Player';
 import { CSError } from './Errors';
 import { Service } from './Service';
 
@@ -17,7 +12,7 @@ type UpdateOrdersResult = {
 type SubmitTurnResponse = {
 	game: Game;
 	player: PlayerResponse;
-	mapObjects: PlayerMapObjects;
+	universe: PlayerUniverse & PlayerIntels;
 };
 
 export class PlayerService extends Service {

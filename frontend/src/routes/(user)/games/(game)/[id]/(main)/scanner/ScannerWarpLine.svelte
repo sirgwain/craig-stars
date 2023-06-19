@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { selectedMapObject } from '$lib/services/Context';
+	import { selectedMapObject } from '$lib/services/Stores';
 	import type { FullGame } from '$lib/services/FullGame';
 	import { MapObjectType, type MovingMapObject } from '$lib/types/MapObject';
 

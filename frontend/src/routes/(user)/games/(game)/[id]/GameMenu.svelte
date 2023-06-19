@@ -1,6 +1,6 @@
 <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
 <script lang="ts">
-	import { me } from '$lib/services/Context';
+	import { me } from '$lib/services/Stores';
 	import { Bars3, ArrowUpTray } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { createEventDispatcher } from 'svelte';

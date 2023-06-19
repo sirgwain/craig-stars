@@ -6,7 +6,7 @@
 	import FactoriesTooltip, {
 		type FactoriesTooltipProps
 	} from '$lib/components/game/tooltips/FactoriesTooltip.svelte';
-	import { showTooltip } from '$lib/services/Context';
+	import { showTooltip } from '$lib/services/Stores';
 	import MinesTooltip, {
 		type MinesTooltipProps
 	} from '$lib/components/game/tooltips/MinesTooltip.svelte';

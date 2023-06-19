@@ -28,7 +28,7 @@ func createSingleUnitGame() *FullGame {
 	player := client.NewPlayer(1, *NewRace(), &game.Rules).withSpec(&game.Rules)
 	player.Num = 1
 	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}} // friends with themselves
-	player.PlayerIntels.PlayerIntels = player.defaultPlayerIntels([]*Player{player})
+	player.PlayerIntels.Players = player.defaultPlayerIntels([]*Player{player})
 
 	planet := &Planet{
 		MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 1", Num: 1, PlayerNum: player.Num},
@@ -85,7 +85,7 @@ func Test_generateTurn(t *testing.T) {
 	assert.Equal(t, 2401, game.Year)
 
 	// should have intel about planets
-	assert.Equal(t, len(universe.Planets), len(player.PlanetIntels))
+	assert.Equal(t, len(universe.Planets), len(player.Planets))
 
 	// should have built a new scout
 	assert.Greater(t, len(universe.Fleets), startingFleets)
@@ -751,7 +751,7 @@ func Test_turn_detonateMines(t *testing.T) {
 
 			for _, player := range tt.args.players {
 				player.Relations = player.defaultRelationships(tt.args.players)
-				player.PlayerIntels.PlayerIntels = player.defaultPlayerIntels(tt.args.players)
+				player.PlayerIntels.Players = player.defaultPlayerIntels(tt.args.players)
 			}
 
 			universe := NewUniverse(&game.Rules)
@@ -846,8 +846,8 @@ func Test_turn_fleetPatrol(t *testing.T) {
 
 	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
 	enemyPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
-	player.PlayerIntels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer})
-	enemyPlayer.PlayerIntels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer})
+	player.PlayerIntels.Players = player.defaultPlayerIntels([]*Player{player, enemyPlayer})
+	enemyPlayer.PlayerIntels.Players = player.defaultPlayerIntels([]*Player{player, enemyPlayer})
 
 	turn := turn{
 		game: game,
@@ -899,9 +899,9 @@ func Test_turn_fleetRemoteTerraform(t *testing.T) {
 	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
 	enemyPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
 	friendlyPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
-	player.PlayerIntels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer, friendlyPlayer})
-	enemyPlayer.PlayerIntels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer, friendlyPlayer})
-	friendlyPlayer.PlayerIntels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer, friendlyPlayer})
+	player.PlayerIntels.Players = player.defaultPlayerIntels([]*Player{player, enemyPlayer, friendlyPlayer})
+	enemyPlayer.PlayerIntels.Players = player.defaultPlayerIntels([]*Player{player, enemyPlayer, friendlyPlayer})
+	friendlyPlayer.PlayerIntels.Players = player.defaultPlayerIntels([]*Player{player, enemyPlayer, friendlyPlayer})
 
 	// give planet1 to the enemy and orbit it with fleet1
 	planet1 := &Planet{

@@ -3,7 +3,7 @@
 	import SortableTableHeader from '$lib/components/SortableTableHeader.svelte';
 	import TableSearchInput from '$lib/components/TableSearchInput.svelte';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
-	import { game } from '$lib/services/Context';
+	import { game } from '$lib/services/Stores';
 	import type { BattleRecord } from '$lib/types/Battle';
 	import { SvelteTable, type SvelteTableColumn } from '@hurtigruten/svelte-table';
 
@@ -13,10 +13,10 @@
 	let filteredBattles: BattleRecord[] = [];
 	let search = '';
 
-	$: filteredBattles = $game?.player.battles ?? [];
+	$: filteredBattles = $game?.universe.battles ?? [];
 	$: filteredBattles =
-		$game?.player.battles.filter(
-			(i) => $game?.player.getBattleLocation(i).toLowerCase().indexOf(search.toLowerCase()) != -1
+		$game?.universe.battles.filter(
+			(i) => $game?.universe.getBattleLocation(i, $game.universe).toLowerCase().indexOf(search.toLowerCase()) != -1
 		) ?? [];
 
 	const columns: SvelteTableColumn<BattleRecord>[] = [
@@ -56,7 +56,7 @@
 		<span slot="cell">
 			{#if column.key == 'location'}
 				<a class="cs-link text-2xl" href={`/games/${id}/battles/${row.num}`}
-					>{$game?.player.getBattleLocation(row)}</a
+					>{$game?.universe.getBattleLocation(row, $game.universe)}</a
 				>
 			{:else}
 				{cell}

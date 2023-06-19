@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { game } from '$lib/services/Context';
+	import { game } from '$lib/services/Stores';
 	import Research from './Research.svelte';
 
 	// make sure player updates are reactive

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
-	import { game } from '$lib/services/Context';
+	import { game } from '$lib/services/Stores';
 	import { addError, type CSError } from '$lib/services/Errors';
 	import type { TransportPlan } from '$lib/types/Player';
 	import TransportPlanCard from './TransportPlanCard.svelte';

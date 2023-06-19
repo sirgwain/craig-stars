@@ -6,7 +6,7 @@ import type { MysteryTrader } from './MysteryTrader';
 import type { Planet, ProductionQueueItem } from './Planet';
 import { humanoid, type Race } from './Race';
 import type { Salvage } from './Salvage';
-import type { ShipDesign, ShipDesignIntel } from './ShipDesign';
+import type { ShipDesign } from './ShipDesign';
 import type { Tech, TechDefense, TechPlanetaryScanner } from './Tech';
 import type { Wormhole } from './Wormhole';
 
@@ -30,7 +30,6 @@ export type PlayerResponse = {
 	researchSpentLastYear?: number;
 	spec: PlayerSpec;
 } & PlayerOrders &
-	PlayerIntels &
 	PlayerMessages &
 	PlayerPlans;
 
@@ -45,18 +44,19 @@ export type PlayerPlans = {
 };
 
 export type PlayerIntels = {
-	planetIntels: Planet[];
-	fleetIntels?: Fleet[];
-	mineFieldIntels?: MineField[];
-	mineralPacketIntels?: MineralPacket[];
-	salvageIntels?: Salvage[];
-	wormholeIntels?: Wormhole[];
-	mysteryTraderIntels?: MysteryTrader[];
-	shipDesignIntels?: ShipDesignIntel[];
-	playerIntels: PlayerIntel[];
+	players: PlayerIntel[];
+	planets: Planet[];
+	fleets?: Fleet[];
+	mineFields?: MineField[];
+	mineralPackets?: MineralPacket[];
+	salvages?: Salvage[];
+	wormholes?: Wormhole[];
+	mysteryTraders?: MysteryTrader[];
+	battles?: BattleRecord[];
 };
 
-export type PlayerMapObjects = {
+export type PlayerUniverse = {
+	designs: ShipDesign[];
 	planets: Planet[];
 	fleets: Fleet[];
 	starbases: Fleet[];
@@ -185,42 +185,15 @@ export class Player implements PlayerResponse {
 	researching: TechField = TechField.Energy;
 	nextResearchField: NextResearchField = NextResearchField.Energy;
 	researchAmount = 15;
-	planets: Planet[] = [];
-	fleets: Fleet[] = [];
-	mineFields: MineField[] = [];
-	mineralPackets: MineralPacket[] = [];
-	starbases: Fleet[] = [];
 	battlePlans: BattlePlan[] = [];
 	productionPlans: ProductionPlan[] = [];
 	transportPlans: TransportPlan[] = [];
-	designs: ShipDesign[] = [];
-	planetIntels: Planet[] = [];
-	fleetIntels: Fleet[] = [];
-	mineFieldIntels: MineField[] = [];
-	mineralPacketIntels: MineralPacket[] = [];
-	shipDesignIntels: ShipDesignIntel[] = [];
-	playerIntels: PlayerIntel[] = [];
 	messages: Message[] = [];
-	battles: BattleRecord[] = [];
 	spec: PlayerSpec = {};
 
 	constructor(data?: PlayerResponse) {
 		if (data) {
 			Object.assign(this, data);
-		}
-	}
-
-	getPlayerIntel(num: number): PlayerIntel | undefined {
-		if (num >= 1 && num <= this.playerIntels.length) {
-			return this.playerIntels[num - 1];
-		}
-	}
-
-	getDesign(playerNum: number, num: number): ShipDesign | ShipDesignIntel | undefined {
-		if (playerNum == this.num) {
-			return this.designs.find((d) => d.num === num);
-		} else {
-			return this.shipDesignIntels.find((d) => d.num === num);
 		}
 	}
 
@@ -234,27 +207,6 @@ export class Player implements PlayerResponse {
 
 	getTransportPlan(num: number): TransportPlan | undefined {
 		return this.transportPlans.find((p) => p.num === num);
-	}
-
-	updateDesign(design: ShipDesign) {
-		const filteredDesigns = this.designs.filter((d) => d.num != design.num) ?? [];
-		this.designs = [...filteredDesigns, design];
-	}
-
-	getPlanetIntel(num: number): Planet | undefined {
-		return this.planetIntels.find((p) => p.num === num);
-	}
-
-	getBattle(num: number): BattleRecord | undefined {
-		return this.battles.find((b) => b.num === num);
-	}
-
-	getBattleLocation(battle: BattleRecord): string {
-		if (battle.planetNum) {
-			const planet = this.getPlanetIntel(battle.planetNum);
-			return planet?.name ?? 'Unknown';
-		}
-		return `Space (${battle.position.x}, ${battle.position.y}`;
 	}
 }
 

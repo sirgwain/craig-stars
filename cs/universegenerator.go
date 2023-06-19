@@ -316,7 +316,7 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 			}
 
 			if playerPlanet == nil {
-					return fmt.Errorf("find homeworld for player %v among %d planets, minDistance: %0.1f", player, len(ug.universe.Planets), minPlayerDistance)
+				return fmt.Errorf("find homeworld for player %v among %d planets, minDistance: %0.1f", player, len(ug.universe.Planets), minPlayerDistance)
 			}
 
 			ownedPlanets = append(ownedPlanets, playerPlanet)
@@ -480,7 +480,7 @@ func (ug *universeGenerator) generatePlayerIntel() error {
 	for _, player := range ug.players {
 
 		// discover other players
-		player.PlayerIntels.PlayerIntels = player.defaultPlayerIntels(ug.players)
+		player.PlayerIntels.Players = player.defaultPlayerIntels(ug.players)
 
 		// do initial scans
 		scanner := newPlayerScanner(&ug.universe, ug.players, ug.rules, player)

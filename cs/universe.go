@@ -199,9 +199,12 @@ func (u *Universe) isPositionValid(pos Vector, occupiedLocations *[]Vector, minD
 func (u *Universe) GetPlayerMapObjects(playerNum int) PlayerMapObjects {
 	pmo := PlayerMapObjects{}
 
-	pmo.Fleets = u.getFleets(playerNum)
 	pmo.Planets = u.getPlanets(playerNum)
+	pmo.Fleets = u.getFleets(playerNum)
+	pmo.Starbases = u.getStarbases(playerNum)
 	pmo.MineFields = u.getMineFields(playerNum)
+	pmo.MineralPackets = u.getMineralPackets(playerNum)
+	pmo.Salvages = u.getSalvages(playerNum)
 
 	return pmo
 }
@@ -469,6 +472,16 @@ func (u *Universe) getFleets(playerNum int) []*Fleet {
 	return fleets
 }
 
+func (u *Universe) getStarbases(playerNum int) []*Fleet {
+	starbases := []*Fleet{}
+	for _, starbase := range u.Starbases {
+		if starbase.PlayerNum == playerNum {
+			starbases = append(starbases, starbase)
+		}
+	}
+	return starbases
+}
+
 func (u *Universe) getMineFields(playerNum int) []*MineField {
 	mineFields := []*MineField{}
 	for _, mineField := range u.MineFields {
@@ -487,6 +500,16 @@ func (u *Universe) getMineralPackets(playerNum int) []*MineralPacket {
 		}
 	}
 	return mineralPackets
+}
+
+func (u *Universe) getSalvages(playerNum int) []*Salvage {
+	salvages := []*Salvage{}
+	for _, salvage := range u.Salvages {
+		if salvage.PlayerNum == playerNum {
+			salvages = append(salvages, salvage)
+		}
+	}
+	return salvages
 }
 
 // get a slice of mapobjects at a position, or nil if none

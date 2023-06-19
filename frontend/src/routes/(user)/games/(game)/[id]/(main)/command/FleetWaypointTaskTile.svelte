@@ -1,7 +1,7 @@
 <script lang="ts">
 	import DropdownButton from '$lib/components/DropdownButton.svelte';
 	import MineralMini from '$lib/components/game/MineralMini.svelte';
-	import { selectedWaypoint } from '$lib/services/Context';
+	import { selectedWaypoint } from '$lib/services/Stores';
 	import { FleetService } from '$lib/services/FleetService';
 	import { CommandedFleet, WaypointTask } from '$lib/types/Fleet';
 	import { MapObjectType, owned, ownedBy, type MapObject } from '$lib/types/MapObject';
@@ -23,7 +23,7 @@
 		$selectedWaypoint &&
 		$selectedWaypoint.targetType == MapObjectType.Planet &&
 		$selectedWaypoint.targetNum
-			? player.getPlanetIntel($selectedWaypoint.targetNum)
+			? game.getPlanet($selectedWaypoint.targetNum)
 			: undefined;
 
 	const onSelectedWaypointTaskChange = (task: WaypointTask) => {

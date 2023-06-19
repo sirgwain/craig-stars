@@ -232,6 +232,7 @@ func Start(db DBClient, config config.Config) {
 				r.Group(func(r chi.Router) {
 					r.Use(server.playerCtx)
 					r.Get("/player", server.player)
+					r.Get("/player/intels", server.playerIntels)
 					r.Put("/player", server.updatePlayerOrders)
 					r.Put("/player/plans", server.updatePlayerPlans)
 					r.Post("/submit-turn", server.submitTurn)
@@ -312,6 +313,7 @@ func Start(db DBClient, config config.Config) {
 
 				r.Get("/full-player", server.fullPlayer)
 				r.Get("/mapobjects", server.mapObjects)
+				r.Get("/universe", server.universe)
 
 			})
 		})

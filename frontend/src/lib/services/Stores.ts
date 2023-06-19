@@ -9,6 +9,7 @@ import { derived, get, writable } from 'svelte/store';
 import type { FullGame } from './FullGame';
 import { rollover } from './Math';
 import { TechService } from './TechService';
+import type { Universe } from './Universe';
 
 export type MapObjectsByPosition = {
 	[k: string]: MapObject[];
@@ -16,19 +17,23 @@ export type MapObjectsByPosition = {
 
 export const me = writable<User>(emptyUser);
 export const game = writable<FullGame | undefined>();
+export const universe = writable<Universe | undefined>();
 export const techs = writable<TechService>(new TechService());
 
 export const commandedPlanet = writable<CommandedPlanet | undefined>();
 export const commandedFleet = writable<CommandedFleet | undefined>();
-export const selectedWaypoint = writable<Waypoint | undefined>();
-export const selectedMapObject = writable<MapObject | undefined>();
 export const commandedMapObject = writable<MapObject | undefined>();
+export const commandedMapObjectPeers = writable<MapObject[]>([]);
+export const selectedMapObject = writable<MapObject | undefined>();
+export const selectedMapObjectPeers = writable<MapObject[]>([]);
+export const selectedWaypoint = writable<Waypoint | undefined>();
 export const highlightedMapObject = writable<MapObject | undefined>();
+export const highlightedMapObjectPeers = writable<MapObject[]>([]);
 
 export const commandedMapObjectName = writable<string>();
 export const zoomTarget = writable<MapObject | undefined>();
 
-const currentMapObjectIndex = derived(
+const currentCommandedMapObjectIndex = derived(
 	[game, commandedFleet, commandedPlanet],
 	([$game, $commandedFleet, $commandedPlanet]) => {
 		if ($game) {
@@ -76,7 +81,7 @@ export const selectNextMapObject = () => {
 // command the previous mapObject for this type, i.e. the previous planet or fleet
 export const previousMapObject = () => {
 	const g = get(game);
-	const i = get(currentMapObjectIndex);
+	const i = get(currentCommandedMapObjectIndex);
 	const mo = get(commandedMapObject);
 
 	if (g && mo) {
@@ -110,7 +115,7 @@ export const previousMapObject = () => {
 // command the next mapObject for this type, i.e. the next planet or fleet
 export const nextMapObject = () => {
 	const g = get(game);
-	const i = get(currentMapObjectIndex);
+	const i = get(currentCommandedMapObjectIndex);
 	const mo = get(commandedMapObject);
 
 	if (g && mo) {

@@ -14,7 +14,8 @@ import type { Planet } from '$lib/types/Planet';
 import {
 	Player,
 	type BattlePlan,
-	type PlayerMapObjects,
+	type PlayerIntels,
+	type PlayerUniverse,
 	type ProductionPlan,
 	type TransportPlan
 } from '$lib/types/Player';
@@ -22,7 +23,7 @@ import type { Vector } from '$lib/types/Vector';
 import { isEqual } from 'lodash-es';
 import { get } from 'svelte/store';
 import { BattlePlanService } from './BattlePlanService';
-import { commandedFleet, selectedWaypoint, selectWaypoint } from './Context';
+import { commandedFleet, selectedWaypoint, selectWaypoint } from './Stores';
 import { DesignService } from './DesignService';
 import { FleetService } from './FleetService';
 import { GameService } from './GameService';
@@ -79,12 +80,18 @@ export class FullGame implements Game {
 	// load this game from the server
 	async load(id: number | string) {
 		this.id = parseInt(id.toString());
-		let pmos: PlayerMapObjects = {
+		let pmos: PlayerUniverse & PlayerIntels = {
+			designs: [],
+			players: [],
+			battles: [],
 			planets: [],
 			fleets: [],
 			starbases: [],
 			mineFields: [],
-			mineralPackets: []
+			mineralPackets: [],
+			salvages: [],
+			wormholes: [],
+			mysteryTraders: []
 		};
 		await Promise.all([
 			GameService.loadGame(id).then((game) => Object.assign(this, game)),
@@ -99,9 +106,7 @@ export class FullGame implements Game {
 		]);
 
 		// setup the universe
-		this.universe.playerNum = this.player.num;
-		this.universe.setMapObjects(pmos);
-		this.universe.setIntels(this.player);
+		this.universe.setData(this.player.num, pmos);
 		return this;
 	}
 
@@ -110,8 +115,7 @@ export class FullGame implements Game {
 		if (resp) {
 			Object.assign(this, resp.game);
 			Object.assign(this.player, resp.player);
-			this.universe.setMapObjects(resp.mapObjects);
-			this.universe.setIntels(this.player);
+			this.universe.setData(this.player.num, resp.universe);
 		}
 		return this;
 	}
@@ -178,7 +182,7 @@ export class FullGame implements Game {
 		this.universe.starbases = starbases;
 		this.universe.resetMyMapObjectsByPosition();
 
-		this.player.designs = this.player.designs.filter((d) => d.num != num);
+		this.universe.designs = this.universe.designs.filter((d) => d.num != num);
 	}
 
 	async updateFleetOrders(fleet: CommandedFleet) {
@@ -234,16 +238,16 @@ export class FullGame implements Game {
 	}
 
 	getPlayerName(playerNum: number | undefined) {
-		if (playerNum && playerNum > 0 && playerNum <= this.player.playerIntels.length) {
-			const intel = this.player.playerIntels[playerNum - 1];
+		if (playerNum && playerNum > 0 && playerNum <= this.universe.players.length) {
+			const intel = this.universe.players[playerNum - 1];
 			return intel.racePluralName ?? intel.name;
 		}
 		return 'unknown';
 	}
 
 	getPlayerColor(playerNum: number | undefined) {
-		if (playerNum && playerNum > 0 && playerNum <= this.player.playerIntels.length) {
-			const intel = this.player.playerIntels[playerNum - 1];
+		if (playerNum && playerNum > 0 && playerNum <= this.universe.players.length) {
+			const intel = this.universe.players[playerNum - 1];
 			return intel.color ?? '#FF0000';
 		}
 		return '#FF0000';

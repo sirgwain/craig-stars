@@ -4,7 +4,7 @@
 	import SortableTableHeader from '$lib/components/SortableTableHeader.svelte';
 	import TableSearchInput from '$lib/components/TableSearchInput.svelte';
 	import MineralMini from '$lib/components/game/MineralMini.svelte';
-	import { commandMapObject, game, zoomToMapObject } from '$lib/services/Context';
+	import { commandMapObject, game, zoomToMapObject } from '$lib/services/Stores';
 	import { totalMinerals } from '$lib/types/Mineral';
 	import { getQueueItemShortName, type Planet } from '$lib/types/Planet';
 	import { SvelteTable, type SvelteTableColumn } from '@hurtigruten/svelte-table';
@@ -21,10 +21,10 @@
 	let filteredPlanets: Planet[] = [];
 	let search = '';
 
-	$: filteredPlanets = $game?.universe.planets ?? [];
 	$: filteredPlanets =
 		$game?.universe.planets.filter(
-			(i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1
+			(i) =>
+				i.playerNum == $game?.player.num && i.name.toLowerCase().indexOf(search.toLowerCase()) != -1
 		) ?? [];
 
 	const columns: SvelteTableColumn<Planet>[] = [

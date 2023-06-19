@@ -12,7 +12,7 @@
 	import PopulationTooltip, {
 		type PopulationTooltipProps
 	} from '$lib/components/game/tooltips/PopulationTooltip.svelte';
-	import { showTooltip } from '$lib/services/Context';
+	import { showTooltip } from '$lib/services/Stores';
 
 	export let game: FullGame;
 	export let planet: Planet;

@@ -3,7 +3,7 @@
   Generates an SVG scatter plot. This component can also work if the x- or y-scale is ordinal, i.e. it has a `.bandwidth` method. See the [timeplot chart](https://layercake.graphics/example/Timeplot) for an example.
  -->
 <script lang="ts">
-	import { highlightedMapObject } from '$lib/services/Context';
+	import { highlightedMapObject } from '$lib/services/Stores';
 	import type { FullGame } from '$lib/services/FullGame';
 	import { MapObjectType, type MapObject } from '$lib/types/MapObject';
 	import type { Planet } from '$lib/types/Planet';

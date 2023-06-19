@@ -5,7 +5,7 @@
 	import {
 		commandedMapObjectName,
 		commandMapObject
-	} from '$lib/services/Context';
+	} from '$lib/services/Stores';
 	import type { Fleet } from '$lib/types/Fleet';
 	import type { CommandedPlanet } from '$lib/types/Planet';
 	import { ArrowTopRightOnSquare } from '@steeze-ui/heroicons';

@@ -4,7 +4,7 @@
 	import SortableTableHeader from '$lib/components/SortableTableHeader.svelte';
 	import TableSearchInput from '$lib/components/TableSearchInput.svelte';
 	import CargoMini from '$lib/components/game/CargoMini.svelte';
-	import { commandMapObject, game, zoomToMapObject } from '$lib/services/Context';
+	import { commandMapObject, game, zoomToMapObject } from '$lib/services/Stores';
 	import { totalCargo } from '$lib/types/Cargo';
 	import { getTargetName, type Fleet, type Waypoint } from '$lib/types/Fleet';
 	import { SvelteTable, type SvelteTableColumn } from '@hurtigruten/svelte-table';
@@ -19,7 +19,7 @@
 
 	const getLocation = (fleet: Fleet) =>
 		fleet.orbitingPlanetNum && $game
-			? $game.player.getPlanetIntel(fleet.orbitingPlanetNum)?.name ?? 'unknown'
+			? $game.getPlanet(fleet.orbitingPlanetNum)?.name ?? 'unknown'
 			: `Space: (${fleet.position.x}, ${fleet.position.y})`;
 
 	const getDestination = (fleet: Fleet) => {
@@ -33,11 +33,14 @@
 	let filteredFleets: Fleet[] = [];
 	let search = '';
 
-	$: filteredFleets = $game?.universe.fleets?.sort((a, b) => a.num - b.num) ?? [];
 	$: filteredFleets =
-		$game?.universe.fleets.filter(
-			(i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1
-		) ?? [];
+		$game?.universe.fleets
+			.sort((a, b) => a.num - b.num)
+			.filter(
+				(i) =>
+					i.playerNum === $game?.player.num &&
+					i.name.toLowerCase().indexOf(search.toLowerCase()) != -1
+			) ?? [];
 
 	const columns: SvelteTableColumn<Fleet>[] = [
 		{
@@ -126,7 +129,7 @@
 				<CargoMini cargo={row.cargo} />
 			{:else if column.key == 'composition'}
 				{@const design = $game
-					? $game.player.getDesign($game.player.num, row.tokens[0].designNum)
+					? $game.universe.getDesign($game.player.num, row.tokens[0].designNum)
 					: undefined}
 				<div class="flex flex-row justify-between">
 					<div>

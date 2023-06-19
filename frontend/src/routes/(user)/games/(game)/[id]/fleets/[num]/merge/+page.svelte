@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { commandedFleet, game } from '$lib/services/Context';
+	import { commandedFleet, game } from '$lib/services/Stores';
 	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
 	import { onMount } from 'svelte';
 	import MergeFleets from './MergeFleets.svelte';

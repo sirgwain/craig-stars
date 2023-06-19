@@ -45,14 +45,14 @@ type Player struct {
 	Relations                    *PlayerRelationships `json:"relations,omitempty"`
 	Messages                     *PlayerMessages      `json:"messages,omitempty"`
 	Battles                      *BattleRecords       `json:"battles,omitempty"`
-	PlayerIntels                 *PlayerIntels        `json:"playerIntels,omitempty"`
+	Players                      *PlayerIntels        `json:"players,omitempty"`
 	PlanetIntels                 *PlanetIntels        `json:"planetIntels,omitempty"`
 	FleetIntels                  *FleetIntels         `json:"fleetIntels,omitempty"`
-	ShipDesignIntels             *ShipDesignIntels    `json:"shipDesignIntels,omitempty"`
 	MineralPacketIntels          *MineralPacketIntels `json:"mineralPacketIntels,omitempty"`
 	MineFieldIntels              *MineFieldIntels     `json:"mineFieldIntels,omitempty"`
 	WormholeIntels               *WormholeIntels      `json:"wormholeIntels,omitempty"`
 	MysteryTraderIntels          *MysteryTraderIntels `json:"mysteryTraderIntels,omitempty"`
+	ShipDesignIntels             *ShipDesignIntels    `json:"shipDesignIntels,omitempty"`
 	Race                         *PlayerRace          `json:"race,omitempty"`
 	Stats                        *PlayerStats         `json:"stats,omitempty"`
 	ScoreHistory                 *PlayerScores        `json:"scoreHistory,omitempty"`
@@ -324,9 +324,52 @@ func (c *client) GetPlayer(id int64) (*cs.Player, error) {
 	return &player, nil
 }
 
+// Get all player data except universe intel
 func (c *client) GetPlayerForGame(gameID, userID int64) (*cs.Player, error) {
 	item := Player{}
-	if err := c.db.Get(&item, "SELECT * FROM players WHERE gameId = ? AND userId = ?", gameID, userID); err != nil {
+	if err := c.db.Get(&item, `
+	SELECT 
+	id,
+	createdAt,
+	updatedAt,
+	gameId,
+	userId,
+	name,
+	num,
+	ready,
+	aiControlled,
+	submittedTurn,
+	color,
+	defaultHullSet,
+	techLevelsEnergy,
+	techLevelsWeapons,
+	techLevelsPropulsion,
+	techLevelsConstruction,
+	techLevelsElectronics,
+	techLevelsBiotechnology,
+	techLevelsSpentEnergy,
+	techLevelsSpentWeapons,
+	techLevelsSpentPropulsion,
+	techLevelsSpentConstruction,
+	techLevelsSpentElectronics,
+	techLevelsSpentBiotechnology,
+	researchAmount,
+	researchSpentLastYear,
+	nextResearchField,
+	researching,
+	battlePlans,
+	productionPlans,
+	transportPlans,
+	relations,
+	messages,
+	race,
+	stats,
+	scoreHistory,
+	achievedVictoryConditions,
+	victor,
+	spec
+	FROM players 
+	WHERE gameId = ? AND userId = ?`, gameID, userID); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
@@ -335,14 +378,35 @@ func (c *client) GetPlayerForGame(gameID, userID int64) (*cs.Player, error) {
 
 	player := c.converter.ConvertPlayer(item)
 
-	// get designs
-	designs, err := c.GetShipDesignsForPlayer(gameID, player.Num)
-	if err != nil {
-		return nil, fmt.Errorf("get player designs %w", err)
-	}
-	player.Designs = designs
-
 	return &player, nil
+}
+
+// Get player intel
+func (c *client) GetPlayerIntelsForGame(gameID, userID int64) (*cs.PlayerIntels, error) {
+	item := Player{}
+	if err := c.db.Get(&item, `
+	SELECT
+	players,
+	battles,
+	shipDesignIntels,
+	planetIntels,
+	fleetIntels,
+	mineralPacketIntels,
+	mineFieldIntels,
+	wormholeIntels,
+	mysteryTraderIntels,
+	spec
+	FROM players 
+	WHERE gameId = ? AND userId = ?`, gameID, userID); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	player := c.converter.ConvertPlayer(item)
+
+	return &player.PlayerIntels, nil
 }
 
 func (c *client) GetPlayerByNum(gameID int64, num int) (*cs.Player, error) {
@@ -506,6 +570,12 @@ func (c *client) GetPlayerMapObjects(gameID, userID int64) (*cs.PlayerMapObjects
 	}
 	mapObjects.MineralPackets = mineralPackets
 
+	salvages, err := c.GetSalvagesForPlayer(gameID, num)
+	if err != nil {
+		return nil, fmt.Errorf("get player salvages %w", err)
+	}
+	mapObjects.Salvages = salvages
+
 	fleets, err := c.GetFleetsForPlayer(gameID, num)
 	if err != nil {
 		return nil, fmt.Errorf("get player fleets %w", err)
@@ -591,7 +661,7 @@ func (c *client) createPlayer(player *cs.Player, tx SQLExecer) error {
 		relations,
 		messages,
 		battles,
-		playerIntels,
+		players,
 		planetIntels,
 		fleetIntels,
 		shipDesignIntels,
@@ -640,7 +710,7 @@ func (c *client) createPlayer(player *cs.Player, tx SQLExecer) error {
 		:relations,
 		:messages,
 		:battles,
-		:playerIntels,
+		:players,
 		:planetIntels,
 		:fleetIntels,
 		:shipDesignIntels,
@@ -785,7 +855,7 @@ func (c *client) updatePlayerWithNamedExecer(player *cs.Player, tx SQLExecer) er
 		relations = :relations,
 		messages = :messages,
 		battles = :battles,
-		playerIntels = :playerIntels,
+		players = :players,
 		planetIntels = :planetIntels,
 		fleetIntels = :fleetIntels,
 		shipDesignIntels = :shipDesignIntels,

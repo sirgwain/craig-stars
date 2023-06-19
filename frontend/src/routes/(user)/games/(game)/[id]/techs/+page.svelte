@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Techs from '$lib/components/Techs.svelte';
-	import { game } from '$lib/services/Context';
+	import { game } from '$lib/services/Stores';
 </script>
 
 {#if game}

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { commandMapObject, selectMapObject } from '$lib/services/Context';
+	import { commandMapObject, selectMapObject } from '$lib/services/Stores';
 
 	import { CommandedFleet, type Fleet } from '$lib/types/Fleet';
 	import type { MapObject } from '$lib/types/MapObject';

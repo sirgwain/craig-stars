@@ -2,7 +2,7 @@
 	import WarpSpeedGauge from '$lib/components/game/WarpSpeedGauge.svelte';
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip.svelte';
-	import { techs, commandedPlanet } from '$lib/services/Context';
+	import { techs, commandedPlanet } from '$lib/services/Stores';
 	import type { FullGame } from '$lib/services/FullGame';
 	import { PlanetService } from '$lib/services/PlanetService';
 	import { settings } from '$lib/services/Settings';
@@ -28,7 +28,7 @@
 		if (starbase?.tokens && starbase.tokens.length > 0) {
 			onShipDesignTooltip(
 				e,
-				game.player.getDesign(game.player.num, starbase?.tokens[0].designNum) as
+				game.universe.getDesign(game.player.num, starbase?.tokens[0].designNum) as
 					| ShipDesign
 					| undefined
 			);

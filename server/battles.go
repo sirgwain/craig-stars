@@ -16,8 +16,8 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 	player2.Race.PluralName = cs.AINames[1] + "s"
 	player1.Relations = []cs.PlayerRelationship{{Relation: cs.PlayerRelationFriend}, {Relation: cs.PlayerRelationEnemy}}
 	player2.Relations = []cs.PlayerRelationship{{Relation: cs.PlayerRelationEnemy}, {Relation: cs.PlayerRelationFriend}}
-	player1.PlayerIntels.PlayerIntels = []cs.PlayerIntel{{Num: player1.Num}, {Num: player2.Num}}
-	player2.PlayerIntels.PlayerIntels = []cs.PlayerIntel{{Num: player1.Num}, {Num: player2.Num}}
+	player1.PlayerIntels.Players = []cs.PlayerIntel{{Num: player1.Num}, {Num: player2.Num}}
+	player2.PlayerIntels.Players = []cs.PlayerIntel{{Num: player1.Num}, {Num: player2.Num}}
 
 	player1.Designs = append(player1.Designs,
 		cs.NewShipDesign(player1, 1).

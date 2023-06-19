@@ -4,7 +4,7 @@
  -->
 <script lang="ts">
 	import SelectedMapObject from '$lib/components/icons/SelectedMapObject.svelte';
-	import { selectedMapObject } from '$lib/services/Context';
+	import { selectedMapObject } from '$lib/services/Stores';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 	import type { Writable } from 'svelte/store';

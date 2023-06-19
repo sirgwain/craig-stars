@@ -3,7 +3,7 @@
   Renders the currently selected waypoint line pieces as a slightly larger line
  -->
 <script lang="ts">
-	import { commandedFleet, selectedWaypoint } from '$lib/services/Context';
+	import { commandedFleet, selectedWaypoint } from '$lib/services/Stores';
 	import { equal } from '$lib/types/Vector';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';

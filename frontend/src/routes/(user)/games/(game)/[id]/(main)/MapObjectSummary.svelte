@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Cycle from '$lib/components/icons/Cycle.svelte';
-	import { selectNextMapObject, selectedMapObject } from '$lib/services/Context';
+	import { selectNextMapObject, selectedMapObject } from '$lib/services/Stores';
 	import type { FullGame } from '$lib/services/FullGame';
 	import type { Fleet } from '$lib/types/Fleet';
 	import { MapObjectType } from '$lib/types/MapObject';

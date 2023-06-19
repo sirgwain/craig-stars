@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { commandedPlanet } from '$lib/services/Context';
+	import { commandedPlanet } from '$lib/services/Stores';
 	import type { FullGame } from '$lib/services/FullGame';
 	import { None } from '$lib/types/MapObject';
 

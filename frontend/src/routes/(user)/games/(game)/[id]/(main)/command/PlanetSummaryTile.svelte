@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { nextMapObject, previousMapObject } from '$lib/services/Context';
+	import { nextMapObject, previousMapObject } from '$lib/services/Stores';
 	import type { CommandedPlanet, Planet } from '$lib/types/Planet';
 	import CommandTile from './CommandTile.svelte';
 

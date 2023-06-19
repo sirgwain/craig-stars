@@ -8,7 +8,7 @@
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 	import ScannerMineralPacket from './ScannerMineralPacket.svelte';
-	import { selectedMapObject } from '$lib/services/Context';
+	import { selectedMapObject } from '$lib/services/Stores';
 	import type { MineralPacket } from '$lib/types/MineralPacket';
 	import { min } from 'date-fns';
 

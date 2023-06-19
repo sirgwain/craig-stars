@@ -1,14 +1,16 @@
 <script lang="ts">
 	import { EventManager } from '$lib/EventManager';
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
-	import { selectedWaypoint } from '$lib/services/Context';
+	import { selectedWaypoint } from '$lib/services/Stores';
 	import type { CommandedFleet } from '$lib/types/Fleet';
 	import type { Player } from '$lib/types/Player';
 	import { createEventDispatcher } from 'svelte';
 	import CommandTile from './CommandTile.svelte';
+	import type { FullGame } from '$lib/services/FullGame';
 
 	const dispatch = createEventDispatcher();
 
+	export let game: FullGame;
 	export let fleet: CommandedFleet;
 	export let player: Player;
 
@@ -34,11 +36,11 @@
 							type="button"
 							class="w-full cursor-help"
 							on:pointerdown|preventDefault={(e) =>
-								onShipDesignTooltip(e, player.getDesign(player.num, token.designNum))}
+								onShipDesignTooltip(e, game.universe.getDesign(player.num, token.designNum))}
 						>
 							<div class="flex flex-row justify-between">
 								<div>
-									{player.getDesign(player.num, token.designNum)?.name}
+									{game.universe.getDesign(player.num, token.designNum)?.name}
 								</div>
 								<div>
 									{token.quantity}

@@ -1,7 +1,7 @@
 import type { Game } from '$lib/types/Game';
 import {
 	type PlayerResponse,
-	type PlayerMapObjects,
+	type PlayerUniverse,
 	Player,
 	type PlayerIntels
 } from '$lib/types/Player';
@@ -11,7 +11,7 @@ type playerStatusResult = {
 	players: PlayerResponse[];
 };
 
-type UniverseResponse = PlayerMapObjects & PlayerIntels;
+type UniverseResponse = PlayerUniverse & PlayerIntels;
 
 export class GameService {
 	static async loadPlayerGames(): Promise<Game[]> {
@@ -88,7 +88,7 @@ export class GameService {
 	}
 
 	static async loadUniverse(gameId: number | string): Promise<UniverseResponse> {
-		const response = await fetch(`/api/games/${gameId}/mapobjects`, {
+		const response = await fetch(`/api/games/${gameId}/universe`, {
 			method: 'GET',
 			headers: {
 				accept: 'application/json'

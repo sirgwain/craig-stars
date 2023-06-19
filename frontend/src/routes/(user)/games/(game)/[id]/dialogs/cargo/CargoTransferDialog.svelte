@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { getQuantityModifier } from '$lib/quantityModifier';
-	import { game } from '$lib/services/Context';
+	import { game } from '$lib/services/Stores';
 	import { clamp } from '$lib/services/Math';
 	import { PlanetService } from '$lib/services/PlanetService';
 	import { emptyCargo, negativeCargo, subtract, totalCargo, type Cargo } from '$lib/types/Cargo';

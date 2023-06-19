@@ -1,9 +1,10 @@
 <script lang="ts">
+	import type { Universe } from '$lib/services/Universe';
 	import { TokenActionType, type BattleRecord, type TokenAction, Battle } from '$lib/types/Battle';
 	import type { Player } from '$lib/types/Player';
 
+	export let universe: Universe;
 	export let battle: Battle;
-	export let player: Player;
 	export let action: TokenAction | undefined;
 	export let phase: number;
 
@@ -13,8 +14,8 @@
 		}
 		const token = battle.getTokenForPhase(tokenNum, phase);
 		if (token) {
-			const design = player.getDesign(token.playerNum, token.designNum);
-			const raceName = player.getPlayerIntel(token.playerNum);
+			const design = universe.getDesign(token.playerNum, token.designNum);
+			const raceName = universe.getPlayerIntel(token.playerNum);
 			if (design && raceName) {
 				return `${raceName.racePluralName} ${design.name}`;
 			}

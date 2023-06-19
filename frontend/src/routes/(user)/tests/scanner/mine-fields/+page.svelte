@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { selectMapObject } from '$lib/services/Context';
+	import { selectMapObject } from '$lib/services/Stores';
 
 	import { MapObjectType, type MapObject } from '$lib/types/MapObject';
 	import { MineFieldType, type MineField } from '$lib/types/MineField';

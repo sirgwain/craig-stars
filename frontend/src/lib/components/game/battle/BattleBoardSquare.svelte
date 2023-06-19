@@ -1,12 +1,12 @@
 <script lang="ts">
+	import type { Universe } from '$lib/services/Universe';
 	import type { PhaseToken } from '$lib/types/Battle';
-	import type { Player } from '$lib/types/Player';
 	import { kebabCase } from 'lodash-es';
-	import { afterUpdate, createEventDispatcher } from 'svelte';
+	import { createEventDispatcher } from 'svelte';
 
 	const dispatch = createEventDispatcher();
 
-	export let player: Player;
+	export let universe: Universe;
 	export let tokens: PhaseToken[] | undefined = undefined;
 	export let selected = false;
 
@@ -17,7 +17,7 @@
 			tokenIndex = tokenIndex % (tokens?.length ?? 0);
 			const token = tokens[tokenIndex];
 			if (token) {
-				const design = player.getDesign(token.playerNum, token.designNum);
+				const design = universe.getDesign(token.playerNum, token.designNum);
 				if (design) {
 					const name = kebabCase(design.hull.replace("'", '').replace(' ', '').replace('±', ''));
 					return `hull-${name}-${design.hullSetNumber ?? 0}`;

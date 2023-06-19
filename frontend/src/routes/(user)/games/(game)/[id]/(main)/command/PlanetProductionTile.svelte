@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { EventManager } from '$lib/EventManager';
-	import { commandMapObject } from '$lib/services/Context';
+	import { commandMapObject } from '$lib/services/Stores';
 	import { PlanetService } from '$lib/services/PlanetService';
 	import {
 		CommandedPlanet,

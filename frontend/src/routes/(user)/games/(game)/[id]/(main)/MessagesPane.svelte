@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { commandMapObject, selectMapObject, zoomToMapObject } from '$lib/services/Context';
+	import { commandMapObject, selectMapObject, zoomToMapObject } from '$lib/services/Stores';
 	import type { FullGame } from '$lib/services/FullGame';
 	import type { Fleet } from '$lib/types/Fleet';
 	import type { Game } from '$lib/types/Game';
@@ -60,7 +60,7 @@
 						if (target.type == MapObjectType.Fleet) {
 							const orbitingPlanetNum = (target as Fleet).orbitingPlanetNum;
 							if (orbitingPlanetNum && orbitingPlanetNum != None) {
-								const orbiting = player.planetIntels[orbitingPlanetNum - 1];
+								const orbiting = player.planets[orbitingPlanetNum - 1];
 								selectMapObject(orbiting);
 							}
 						} else {

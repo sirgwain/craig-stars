@@ -3,7 +3,7 @@
 	import NotFound from '$lib/components/NotFound.svelte';
 	import { bindNavigationHotkeys, unbindNavigationHotkeys } from '$lib/navigationHotkeys';
 	import { bindQuantityModifier, unbindQuantityModifier } from '$lib/quantityModifier';
-	import { commandedMapObject, game, techs } from '$lib/services/Context';
+	import { commandedMapObject, game, techs } from '$lib/services/Stores';
 	import { FullGame } from '$lib/services/FullGame';
 	import { GameState } from '$lib/types/Game';
 	import { onMount } from 'svelte';

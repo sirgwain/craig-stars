@@ -1,7 +1,7 @@
 <script lang="ts">
 	import CostComponent from '$lib/components/game/Cost.svelte';
 	import { getQuantityModifier } from '$lib/quantityModifier';
-	import { commandMapObject } from '$lib/services/Context';
+	import { commandMapObject } from '$lib/services/Stores';
 	import { PlanetService } from '$lib/services/PlanetService';
 	import type { Cost } from '$lib/types/Cost';
 	import type { Fleet } from '$lib/types/Fleet';

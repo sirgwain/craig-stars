@@ -1,17 +1,5 @@
 import type { Cost } from './Cost';
 
-export type ShipDesignIntel = {
-	name: string;
-	num: number;
-	playerNum: number;
-	hull: string;
-	hullSetNumber: number;
-	armor: number;
-	shields: number;
-	reportAge?: number;
-	slots?: ShipDesignSlot[];
-};
-
 export type ShipDesign = {
 	id?: number;
 	gameId: number;
@@ -26,6 +14,7 @@ export type ShipDesign = {
 	canDelete?: boolean;
 	slots: ShipDesignSlot[];
 	purpose?: string;
+	reportAge?: number;
 	spec: Spec;
 };
 
@@ -80,7 +69,7 @@ export type Spec = {
 	scanner?: boolean;
 	immuneToOwnDetonation?: boolean;
 	mineLayingRateByMineType?: { [mineFieldType: string]: number };
-	shield?: number;
+	shields?: number;
 	colonizer?: boolean;
 	starbase?: boolean;
 	canLayMines?: boolean;

@@ -330,9 +330,9 @@ func newBattler(rules *Rules, techFinder TechFinder, battleNum int, players map[
 				},
 				ShipToken:         token,
 				armor:             token.design.Spec.Armor,
-				shields:           token.design.Spec.Shield,
-				stackShields:      token.Quantity * token.design.Spec.Shield,
-				totalStackShields: token.Quantity * token.design.Spec.Shield,
+				shields:           token.design.Spec.Shields,
+				stackShields:      token.Quantity * token.design.Spec.Shields,
+				totalStackShields: token.Quantity * token.design.Spec.Shields,
 				attributes:        getBattleTokenAttributes(token.design.Spec.HullType, token.design.Spec.HasWeapons),
 			}
 			// get the weapon slots for a token

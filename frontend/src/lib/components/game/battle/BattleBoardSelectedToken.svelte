@@ -1,20 +1,19 @@
 <script lang="ts">
+	import type { Universe } from '$lib/services/Universe';
 	import type { Battle, PhaseToken } from '$lib/types/Battle';
 	import type { Player } from '$lib/types/Player';
 	import { startCase } from 'lodash-es';
 
 	export let battle: Battle;
-	export let player: Player;
+	export let universe: Universe;
 	export let phase: number;
 	export let token: PhaseToken | undefined;
 
-	$: design = token && player.getDesign(token.playerNum, token.designNum);
-	$: raceName = token && player.getPlayerIntel(token.playerNum)?.racePluralName;
+	$: design = token && universe.getDesign(token.playerNum, token.designNum);
+	$: raceName = token && universe.getPlayerIntel(token.playerNum)?.racePluralName;
 	$: tokenState = token && battle.getTokenForPhase(token.num, phase);
-	$: armor =
-		design && ('spec' in design ? design.spec.armor : 'armor' in design ? design.armor : 0);
-	$: shields =
-		design && ('spec' in design ? design.spec.shield : 'armor' in design ? design.shields : 0);
+	$: armor = design?.spec.armor ?? 0;
+	$: shields = design?.spec.shields ?? 0;
 </script>
 
 <div class="w-full">

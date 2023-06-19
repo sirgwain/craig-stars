@@ -1,14 +1,14 @@
 <script lang="ts">
-	import type { Battle, PhaseToken, TokenAction } from '$lib/types/Battle';
+	import type { Universe } from '$lib/services/Universe';
+	import type { Battle, PhaseToken } from '$lib/types/Battle';
 	import type { Player } from '$lib/types/Player';
-	import type { Vector } from '$lib/types/Vector';
-	import CommandTile from '../../../../routes/(user)/games/(game)/[id]/(main)/command/CommandTile.svelte';
 	import BattleBoardAction from './BattleBoardAction.svelte';
 	import BattleBoardAttack from './BattleBoardAttack.svelte';
 	import BattleBoardPhaseControls from './BattleBoardPhaseControls.svelte';
 	import BattleBoardSelectedToken from './BattleBoardSelectedToken.svelte';
 	import BattleBoardSquare from './BattleBoardSquare.svelte';
 
+	export let universe: Universe;
 	export let battle: Battle;
 	export let player: Player;
 	export let phase: number = 0;
@@ -31,7 +31,7 @@
 					{#each [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as y}
 						{#each [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as x}
 							<BattleBoardSquare
-								{player}
+								{universe}
 								tokens={battle.getTokensAtLocation(phase, x, y)}
 								selected={selectedToken?.x === x && selectedToken?.y === y}
 								on:selected={(e) => {
@@ -66,7 +66,7 @@
 							<h2 class="text-lg font-semibold text-center mb-1 text-secondary">
 								{`Phase ${phase} of ${battle.totalPhases}`}
 							</h2>
-							<BattleBoardAction {battle} {action} {player} {phase} />
+							<BattleBoardAction {universe} {battle} {action} {phase} />
 						</div>
 					</div>
 				{/if}
@@ -74,7 +74,7 @@
 					<div class="w-full card bg-base-200 shadow rounded-sm border-2 border-base-300">
 						<div class="card-body p-3 gap-0">
 							<h2 class="text-lg font-semibold text-center mb-1 text-secondary">Selection</h2>
-							<BattleBoardSelectedToken {battle} {player} token={selectedToken} {phase} />
+							<BattleBoardSelectedToken {battle} {universe} token={selectedToken} {phase} />
 						</div>
 					</div>
 				{/if}

@@ -3,7 +3,7 @@
 	import {
 		commandedMapObjectName,
 		commandMapObject
-	} from '$lib/services/Context';
+	} from '$lib/services/Stores';
 	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
 	import CommandTile from './CommandTile.svelte';
 

@@ -8,7 +8,7 @@
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 	import ScannerMineField from './ScannerMineField.svelte';
-	import { selectedMapObject } from '$lib/services/Context';
+	import { selectedMapObject } from '$lib/services/Stores';
 	import type { MineField } from '$lib/types/MineField';
 	import { min } from 'date-fns';
 

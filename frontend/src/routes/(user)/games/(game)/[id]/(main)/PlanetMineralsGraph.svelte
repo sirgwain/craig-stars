@@ -6,7 +6,7 @@
 	import MineralTooltip, {
 		type MineralTooltipProps
 	} from '$lib/components/game/tooltips/MineralTooltip.svelte';
-	import { showTooltip } from '$lib/services/Context';
+	import { showTooltip } from '$lib/services/Stores';
 
 	export let planet: Planet;
 	// export let scale = 1.0;

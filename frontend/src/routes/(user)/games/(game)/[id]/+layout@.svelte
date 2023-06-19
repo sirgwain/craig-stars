@@ -5,7 +5,7 @@
 	import Tooltip from '$lib/components/game/tooltips/Tooltip.svelte';
 	import { bindNavigationHotkeys, unbindNavigationHotkeys } from '$lib/navigationHotkeys';
 	import { bindQuantityModifier, unbindQuantityModifier } from '$lib/quantityModifier';
-	import { game } from '$lib/services/Context';
+	import { game } from '$lib/services/Stores';
 	import { FullGame } from '$lib/services/FullGame';
 	import { GameState } from '$lib/types/Game';
 	import { onMount } from 'svelte';

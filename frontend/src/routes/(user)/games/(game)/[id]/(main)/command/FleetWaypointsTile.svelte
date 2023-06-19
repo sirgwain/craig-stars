@@ -5,7 +5,7 @@
 		selectedWaypoint,
 		selectMapObject,
 		selectWaypoint
-	} from '$lib/services/Context';
+	} from '$lib/services/Stores';
 	import type { FullGame } from '$lib/services/FullGame';
 	import { getTargetName, type CommandedFleet, type Waypoint } from '$lib/types/Fleet';
 	import type { MapObject } from '$lib/types/MapObject';

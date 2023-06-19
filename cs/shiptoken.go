@@ -18,7 +18,7 @@ type tokenDamage struct {
 // Apply damage to a token, updating quantity damaged and damage amount
 func (st *ShipToken) applyMineDamage(damage int) tokenDamage {
 	// mines do half damage to shields
-	shields := st.design.Spec.Shield
+	shields := st.design.Spec.Shields
 	armor := st.design.Spec.Armor
 	possibleDamageToShields := float64(damage) * 0.5
 	actualDamageToShields := math.Min(float64(shields), possibleDamageToShields)

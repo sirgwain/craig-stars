@@ -3,7 +3,7 @@
 	import PlanetWithStarbase from '$lib/components/icons/PlanetWithStarbase.svelte';
 	import Population from '$lib/components/icons/Population.svelte';
 	import Scanner from '$lib/components/icons/Scanner.svelte';
-	import { nextMapObject, previousMapObject } from '$lib/services/Context';
+	import { nextMapObject, previousMapObject } from '$lib/services/Stores';
 	import { settings } from '$lib/services/Settings';
 	import { PlanetViewState } from '$lib/types/PlayerSettings';
 	import { ArrowLongLeft, ArrowLongRight, Envelope } from '@steeze-ui/heroicons';

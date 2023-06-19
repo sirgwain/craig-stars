@@ -26,7 +26,7 @@ type playerScanner interface {
 
 func newPlayerScanner(universe *Universe, players []*Player, rules *Rules, player *Player) playerScanner {
 	discoverer := newDiscoverer(player)
-	return &playerScan{universe, rules, player, players, make(map[int]bool, len(player.PlayerIntels.PlayerIntels)), discoverer}
+	return &playerScan{universe, rules, player, players, make(map[int]bool, len(player.PlayerIntels.Players)), discoverer}
 }
 
 // scan planets, fleets, etc for a player
@@ -35,22 +35,22 @@ func (scan *playerScan) scan() error {
 	player := scan.player
 	scan.discoverer.clearTransientReports()
 
-	for i := range player.PlanetIntels {
-		planet := &player.PlanetIntels[i]
+	for i := range player.Planets {
+		planet := &player.Planets[i]
 		if planet.ReportAge != ReportAgeUnexplored {
 			planet.ReportAge++
 		}
 	}
 
-	for i := range player.WormholeIntels {
-		wormhole := &player.WormholeIntels[i]
+	for i := range player.Wormholes {
+		wormhole := &player.Wormholes[i]
 		if wormhole.ReportAge != ReportAgeUnexplored {
 			wormhole.ReportAge++
 		}
 	}
 
-	for i := range player.MineFieldIntels {
-		mineField := &player.MineFieldIntels[i]
+	for i := range player.MineFields {
+		mineField := &player.MineFields[i]
 		if mineField.ReportAge != ReportAgeUnexplored {
 			mineField.ReportAge++
 		}

@@ -52,7 +52,7 @@ type ShipDesignSpec struct {
 	Scanner                   bool                  `json:"scanner,omitempty"`
 	ImmuneToOwnDetonation     bool                  `json:"immuneToOwnDetonation,omitempty"`
 	MineLayingRateByMineType  map[MineFieldType]int `json:"mineLayingRateByMineType,omitempty"`
-	Shield                    int                   `json:"shield,omitempty"`
+	Shields                   int                   `json:"shield,omitempty"`
 	Colonizer                 bool                  `json:"colonizer,omitempty"`
 	Starbase                  bool                  `json:"starbase,omitempty"`
 	CanLayMines               bool                  `json:"canLayMines,omitempty"`
@@ -249,7 +249,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 
 			spec.Mass += component.Mass * slot.Quantity
 			spec.Armor += component.Armor * slot.Quantity
-			spec.Shield += component.Shield * slot.Quantity
+			spec.Shields += component.Shield * slot.Quantity
 			spec.CargoCapacity += component.CargoBonus * slot.Quantity
 			spec.FuelCapacity += component.FuelBonus * slot.Quantity
 			spec.Colonizer = spec.Colonizer || component.ColonizationModule || component.OrbitalConstructionModule

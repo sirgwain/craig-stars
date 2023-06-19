@@ -2,11 +2,11 @@
 	import Cost from '$lib/components/game/Cost.svelte';
 	import Hull from '$lib/components/game/design/Hull.svelte';
 	import TechAvatar from '$lib/components/tech/TechAvatar.svelte';
-	import { techs } from '$lib/services/Context';
-	import type { ShipDesign, ShipDesignIntel } from '$lib/types/ShipDesign';
+	import { techs } from '$lib/services/Stores';
+	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import DesignStats from '../DesignStats.svelte';
 
-	export let design: ShipDesign | ShipDesignIntel;
+	export let design: ShipDesign;
 
 	$: hull = design && $techs.getHull(design.hull);
 </script>

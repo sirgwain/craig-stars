@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { authGuard } from '$lib/authGuard';
 	import Login from '$lib/components/auth/Login.svelte';
-	import { me } from '$lib/services/Context';
+	import { me } from '$lib/services/Stores';
 	import { UserStatus } from '$lib/types/User';
 	import { onMount } from 'svelte';
 	import '../css/app.css';

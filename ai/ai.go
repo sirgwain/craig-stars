@@ -67,7 +67,7 @@ func (ai *aiPlayer) scout() {
 	buildablePlanets := ai.getBuildablePlanets(design.Spec.Mass)
 
 	// find all the unexplored planets
-	for _, planet := range ai.Player.PlanetIntels {
+	for _, planet := range ai.Player.Planets {
 		if planet.Unexplored() {
 			unknownPlanetsByNum[planet.Num] = planet
 		}
@@ -120,7 +120,7 @@ func (ai *aiPlayer) scoutPackets() {
 	unknownPlanetsByNum := map[int]cs.PlanetIntel{}
 
 	// find all the unexplored planets
-	for _, planet := range ai.Player.PlanetIntels {
+	for _, planet := range ai.Player.Planets {
 		if planet.Unexplored() {
 			unknownPlanetsByNum[planet.Num] = planet
 		}
@@ -198,7 +198,7 @@ func (ai *aiPlayer) colonize() {
 	buildablePlanets := ai.getBuildablePlanets(design.Spec.Mass)
 
 	// find all the unexplored planets
-	for _, planet := range ai.Player.PlanetIntels {
+	for _, planet := range ai.Player.Planets {
 		if planet.Explored() && !planet.Owned() && ai.Player.Race.GetPlanetHabitability(planet.Hab) > 0 {
 			colonizablePlanets[planet.Num] = planet
 		}
@@ -331,7 +331,7 @@ func (p *aiPlayer) getPlanet(num int) *cs.Planet {
 
 // get a player owned planet by num, or nil if it doesn't exist
 func (p *aiPlayer) getPlanetIntel(num int) cs.PlanetIntel {
-	return p.Player.PlanetIntels[num-1]
+	return p.Player.Planets[num-1]
 }
 
 // get all planets the player owns that can build ships of mass mass

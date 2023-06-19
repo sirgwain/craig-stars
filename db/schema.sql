@@ -131,7 +131,7 @@ CREATE TABLE players (
   relations TEXT,
   messages TEXT,
   battles TEXT,
-  playerIntels TEXT,
+  players TEXT,
   planetIntels TEXT,
   fleetIntels TEXT,
   shipDesignIntels TEXT,

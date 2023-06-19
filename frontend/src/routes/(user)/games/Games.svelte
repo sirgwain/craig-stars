@@ -2,7 +2,7 @@
 	import { GameService } from '$lib/services/GameService';
 	import type { Game } from '$lib/types/Game';
 	import { onMount } from 'svelte';
-	import { me } from '$lib/services/Context';
+	import { me } from '$lib/services/Stores';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { XMark } from '@steeze-ui/heroicons';
 	import Galaxy from '$lib/components/icons/Galaxy.svelte';

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { bindQuantityModifier, unbindQuantityModifier } from '$lib/quantityModifier';
-	import { game } from '$lib/services/Context';
+	import { game } from '$lib/services/Stores';
 	import { FullGame } from '$lib/services/FullGame';
 	import { getContext, onMount } from 'svelte';
 	import TestBreadcrumb from './TestBreadcrumb.svelte';

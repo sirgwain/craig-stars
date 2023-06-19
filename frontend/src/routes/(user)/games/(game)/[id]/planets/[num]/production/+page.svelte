@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { commandMapObject, game } from '$lib/services/Context';
+	import { commandMapObject, game } from '$lib/services/Stores';
 	import { PlanetService } from '$lib/services/PlanetService';
 	import type { CommandedPlanet } from '$lib/types/Planet';
 	import { onMount } from 'svelte';

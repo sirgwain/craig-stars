@@ -371,7 +371,7 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 		spec.Armor += token.design.Spec.Armor * token.Quantity
 
 		// shield
-		spec.Shield += token.design.Spec.Shield * token.Quantity
+		spec.Shields += token.design.Spec.Shields * token.Quantity
 
 		// cargo
 		spec.CargoCapacity += token.design.Spec.CargoCapacity * token.Quantity

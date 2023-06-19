@@ -3,14 +3,14 @@
 	import { page } from '$app/stores';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import ShipDesigner from '$lib/components/game/design/ShipDesigner.svelte';
-	import { game, techs } from '$lib/services/Context';
+	import { game, techs } from '$lib/services/Stores';
 	import { DesignService } from '$lib/services/DesignService';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 
 	let gameId = $page.params.id;
 	let num = parseInt($page.params.num);
 
-	$: design = $game && ($game.player.getDesign($game.player.num, num) as ShipDesign);
+	$: design = $game && ($game.universe.getDesign($game.player.num, num) as ShipDesign);
 	$: hull = design && $techs.getHull(design.hull);
 
 	let error = '';
@@ -22,7 +22,7 @@
 			if (design) {
 				// update this design
 				design = await DesignService.update(gameId, design);
-				$game?.player.updateDesign(design);
+				$game?.universe.updateDesign(design);
 				goto(`/games/${gameId}/designs/${design.num}`);
 			}
 		} catch (e) {

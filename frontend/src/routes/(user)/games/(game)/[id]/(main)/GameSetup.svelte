@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import type { Game } from '$lib/types/Game';
 	import { goto } from '$app/navigation';
-	import { me } from '$lib/services/Context';
+	import { me } from '$lib/services/Stores';
 	import type { PlayerResponse } from '$lib/types/Player';
 	import { onMount } from 'svelte';
 	import { GameService } from '$lib/services/GameService';

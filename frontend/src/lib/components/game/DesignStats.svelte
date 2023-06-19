@@ -24,7 +24,7 @@
 	</div>
 	<div class="flex justify-between">
 		<div class="font-semibold mr-5">Shields</div>
-		<div>{spec.shield ?? 0}dp</div>
+		<div>{spec.shields ?? 0}dp</div>
 	</div>
 	<div class="flex justify-between">
 		<div class="font-semibold mr-5">Rating</div>

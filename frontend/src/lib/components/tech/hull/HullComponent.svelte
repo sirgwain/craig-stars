@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip.svelte';
-	import { techs } from '$lib/services/Context';
+	import { techs } from '$lib/services/Stores';
 	import type { ShipDesignSlot } from '$lib/types/ShipDesign';
 	import { HullSlotType } from '$lib/types/Tech';
 	import { Minus, Plus, Trash } from '@steeze-ui/heroicons';

@@ -16,7 +16,7 @@ func TestShipToken_applyMineDamage(t *testing.T) {
 	designShielded := NewShipDesign(player, 1)
 	designShielded.Spec.Mass = 100
 	designShielded.Spec.Armor = 150
-	designShielded.Spec.Shield = 50
+	designShielded.Spec.Shields = 50
 
 	type fields struct {
 		Quantity        int

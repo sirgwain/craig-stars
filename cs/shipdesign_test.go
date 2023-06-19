@@ -252,7 +252,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				Engine:                  Engine{},
 				Mass:                    48,
 				Armor:                   500,
-				Shield:                  400,
+				Shields:                 400,
 				MineSweep:               640,
 				PowerRating:             320,
 				HasWeapons:              true,
