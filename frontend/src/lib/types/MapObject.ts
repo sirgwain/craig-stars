@@ -3,7 +3,7 @@ import type { Vector } from './Vector';
 export interface MapObject {
 	id?: number;
 	createdAt?: string;
-	updatedat?: string;
+	updatedAt?: string;
 	type: MapObjectType;
 	gameId?: number;
 	position: Vector;

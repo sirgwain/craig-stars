@@ -1,0 +1,12 @@
+<script lang="ts">
+	import TestBreadcrumb from './_TestBreadcrumb.svelte';
+</script>
+
+<TestBreadcrumb />
+
+<ul>
+	<li><a class="link-primary" href="/tests/cargobar">cargobar</a></li>
+	<li><a class="link-primary" href="/tests/planetminerals">planetminerals</a></li>
+	<li><a class="link-primary" href="/tests/techs">techs</a></li>
+	<li><a class="link-primary" href="/tests/cargotransferdialog">cargotransferdialog</a></li>
+</ul>

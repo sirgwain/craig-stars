@@ -1,6 +1,20 @@
 <script lang="ts">
 	import { commandedPlanet } from '$lib/services/Context';
 	import CommandTile from './CommandTile.svelte';
+	import { onMount } from 'svelte';
+	import { EventManager } from '$lib/EventManager';
+	import type { Planet } from '$lib/types/Planet';
+
+	onMount(() => {
+		const unsubscribe = EventManager.subscribeCargoTransferredEvent((mo) => {
+			if ($commandedPlanet == mo) {
+				// trigger a reaction
+				$commandedPlanet.cargo = (mo as Planet).cargo;
+			}
+		});
+
+		return () => unsubscribe();
+	});
 </script>
 
 {#if $commandedPlanet}

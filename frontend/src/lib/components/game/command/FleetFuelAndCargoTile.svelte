@@ -4,6 +4,19 @@
 	import CargoBar from '../CargoBar.svelte';
 	import FuelBar from '../FuelBar.svelte';
 	import CommandTile from './CommandTile.svelte';
+	import type { Fleet } from '$lib/types/Fleet';
+	import { onMount } from 'svelte';
+
+	onMount(() => {
+		const unsubscribe = EventManager.subscribeCargoTransferredEvent((mo) => {
+			if ($commandedFleet == mo) {
+				// trigger a reaction
+				$commandedFleet.cargo = (mo as Fleet).cargo;
+			}
+		});
+
+		return () => unsubscribe();
+	});
 
 	const transfer = () => {
 		if ($commandedFleet) {
@@ -44,7 +57,7 @@
 			<div>{$commandedFleet.cargo?.germanium ?? 0}kT</div>
 		</div>
 		<div class="flex justify-between">
-			<div class="text-germanium">Colonists</div>
+			<div class="text-colonists">Colonists</div>
 			<div>{$commandedFleet.cargo?.colonists ?? 0}kT</div>
 		</div>
 	</CommandTile>

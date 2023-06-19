@@ -13,6 +13,7 @@
 		type TechEngine,
 		type TechHullComponent
 	} from '$lib/types/Tech';
+import TestBreadcrumb from '../_TestBreadcrumb.svelte';
 
 	const settlersDelight: TechEngine = {
 		techStoreId: 1,
@@ -141,6 +142,7 @@
 	};
 </script>
 
+<TestBreadcrumb title="Techs" />
 <div class="flex flex-wrap gap-2 justify-evenly">
 	<div>
 		<TechSummary tech={settlersDelight} />

@@ -4,7 +4,7 @@
 	import ProductionQueueDialog from '$lib/components/game/dialogs/ProductionQueueDialog.svelte';
 	import GameMenu from '$lib/components/game/GameMenu.svelte';
 	import { EventManager } from '$lib/EventManager';
-import { bindQuantityModifier, unbindQuantityModifier } from '$lib/quantityModifier';
+	import { bindQuantityModifier, unbindQuantityModifier } from '$lib/quantityModifier';
 	import {
 		commandMapObject,
 		game,
@@ -39,7 +39,25 @@ import { bindQuantityModifier, unbindQuantityModifier } from '$lib/quantityModif
 
 		// setup the quantityModifier
 		bindQuantityModifier();
-		return () => unbindQuantityModifier();
+
+		// subscribe to events
+
+		const unsubscribes: (() => void)[] = [];
+		unsubscribes.push(
+			EventManager.subscribeProductionQueueDialogRequestedEvent((planet) =>
+				showProductionQueueDialog(planet)
+			)
+		);
+		unsubscribes.push(
+			EventManager.subscribeCargoTransferDialogRequestedEvent((src, target) =>
+				showCargoTransferDialog(src, target)
+			)
+		);
+
+		return () => {
+			unbindQuantityModifier();
+			unsubscribes.forEach((unsubscribe) => unsubscribe.apply(unsubscribe));
+		};
 	});
 
 	// all other components will use this context
@@ -93,9 +111,14 @@ import { bindQuantityModifier, unbindQuantityModifier } from '$lib/quantityModif
 		cargoTransferDialogOpen = !cargoTransferDialogOpen;
 	};
 
-	EventManager.productionQueueDialogRequestedEvent = (planet) => showProductionQueueDialog(planet);
-	EventManager.cargoTransferDialogRequestedEvent = (src, target) =>
-		showCargoTransferDialog(src, target);
+	const onCargoTransferDialogOk = () => {
+		// let any subscribed components know we transferred cargo
+		source && EventManager.publishCargoTransferredEvent(source);
+		dest && EventManager.publishCargoTransferredEvent(dest);
+
+		// close the dialog
+		cargoTransferDialogOpen = false;
+	};
 </script>
 
 {#if $game && $player}
@@ -121,7 +144,7 @@ import { bindQuantityModifier, unbindQuantityModifier } from '$lib/quantityModif
 			<CargoTransferDialog
 				src={source}
 				{dest}
-				on:ok={() => (cargoTransferDialogOpen = false)}
+				on:ok={onCargoTransferDialogOk}
 				on:cancel={() => (cargoTransferDialogOpen = false)}
 			/>
 		</div>

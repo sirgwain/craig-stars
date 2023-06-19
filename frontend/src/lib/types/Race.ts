@@ -7,7 +7,7 @@ import type { EnumDictionary } from './EnumDictionary';
 export interface Race {
 	id?: number;
 	createdAt?: string;
-	updatedat?: string;
+	updatedAt?: string;
 
 	playerId?: number;
 	name: string;
