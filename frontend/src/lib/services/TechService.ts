@@ -67,6 +67,10 @@ export class TechService implements TechStore {
 		this.hullsByName = new Map(this.hulls.map((t) => [kebabCase(t.name), t]));
 	}
 
+	getTech(name: string): Tech | undefined {
+		return this.techsByName.get(kebabCase(name));
+	}
+
 	getHull(name: string): TechHull | undefined {
 		return this.hullsByName.get(kebabCase(name));
 	}

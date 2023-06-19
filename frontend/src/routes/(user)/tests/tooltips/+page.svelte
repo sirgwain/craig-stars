@@ -1,6 +1,7 @@
 <script lang="ts">
 	import FactoriesTooltip from '$lib/components/game/tooltips/FactoriesTooltip.svelte';
 	import MineralTooltip from '$lib/components/game/tooltips/MineralTooltip.svelte';
+	import ResourcesTooltip from '$lib/components/game/tooltips/ResourcesTooltip.svelte';
 	import Tooltip from '$lib/components/game/tooltips/Tooltip.svelte';
 </script>
 
@@ -13,4 +14,23 @@
 	factories={10}
 	maxFactories={1000}
 	maxPossibleFactories={1200}
+	canBuildFactories={true}
+/>
+
+<h1 class="text-xl">Factories Tooltip (innate)</h1>
+<FactoriesTooltip
+	planetName="Brin"
+	factories={10}
+	maxFactories={1000}
+	maxPossibleFactories={1200}
+	canBuildFactories={false}
+/>
+
+<h1 class="text-xl">Resources Tooltip</h1>
+<ResourcesTooltip
+	planetName="Brin"
+	resourcesPerYear={35}
+	resourcesPerYearAvailable={30}
+	resourcesPerYearResearch={5}
+	innateResources={true}
 />
