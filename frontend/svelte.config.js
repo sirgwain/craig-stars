@@ -12,23 +12,7 @@ const config = {
 		adapter: adapter({
 			fallback: 'index.html'
 		}),
-		prerender: {
-			// enabled: false, // not sure why I had this here, but it makes the index.html not render...
-			onError: 'continue'
-		},
-		vite: {
-			server: {
-				fs: {
-					allow: ['node_modules.nosync']
-				},
-				proxy: {
-					'/api': {
-						target: 'http://localhost:8080',
-						changeOrigin: true
-					}
-				}
-			}
-		}
+		prerender: { entries: [] }
 	}
 };
 
