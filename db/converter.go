@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/sirgwain/craig-stars/game"
+	"github.com/sirgwain/craig-stars/cs"
 )
 
 // goverter:converter
@@ -56,18 +56,18 @@ import (
 // goverter:extend ShipDesignSlotsToGameShipDesignSlots
 // goverter:extend GameShipDesignSlotsToShipDesignSlots
 type Converter interface {
-	ConvertUser(source User) game.User
-	ConvertGameUser(source *game.User) *User
-	ConvertUsers(source []User) []game.User
+	ConvertUser(source User) cs.User
+	ConvertGameUser(source *cs.User) *User
+	ConvertUsers(source []User) []cs.User
 
 	// goverter:mapExtend ResearchCost ExtendResearchCost
 	// goverter:mapExtend HabLow ExtendHabLow
 	// goverter:mapExtend HabHigh ExtendHabHigh
-	ConvertRace(source Race) game.Race
+	ConvertRace(source Race) cs.Race
 	// goverter:mapExtend ResearchCost ExtendResearchCost
 	// goverter:mapExtend HabLow ExtendHabLow
 	// goverter:mapExtend HabHigh ExtendHabHigh
-	ConvertRaces(source []Race) []game.Race
+	ConvertRaces(source []Race) []cs.Race
 
 	// goverter:map HabHigh.Grav HabHighGrav
 	// goverter:map HabHigh.Temp HabHighTemp
@@ -81,16 +81,16 @@ type Converter interface {
 	// goverter:map ResearchCost.Construction ResearchCostConstruction
 	// goverter:map ResearchCost.Electronics ResearchCostElectronics
 	// goverter:map ResearchCost.Biotechnology ResearchCostBiotechnology
-	ConvertGameRace(source *game.Race) *Race
+	ConvertGameRace(source *cs.Race) *Race
 
 	// goverter:mapExtend VictoryConditions ExtendVictoryConditions
 	// goverter:mapExtend Area ExtendArea
 	// goverter:mapExtend Rules ExtendDefaultRules
-	ConvertGame(source Game) game.Game
+	ConvertGame(source Game) cs.Game
 
 	// goverter:mapExtend VictoryConditions ExtendVictoryConditions
 	// goverter:mapExtend Area ExtendArea
-	ConvertGames(source []Game) []game.Game
+	ConvertGames(source []Game) []cs.Game
 
 	// goverter:map VictoryConditions.NumCriteriaRequired VictoryConditionsNumCriteriaRequired
 	// goverter:map VictoryConditions.YearsPassed VictoryConditionsYearsPassed
@@ -105,15 +105,15 @@ type Converter interface {
 	// goverter:map VictoryConditions.Conditions VictoryConditionsConditions
 	// goverter:map Area.X AreaX
 	// goverter:map Area.Y AreaY
-	ConvertGameGame(source *game.Game) *Game
+	ConvertGameGame(source *cs.Game) *Game
 
 	// goverter:mapExtend TechLevels ExtendTechLevels
 	// goverter:mapExtend TechLevelsSpent ExtendTechLevelsSpent
 	// goverter:ignore Designs
-	ConvertPlayer(source Player) game.Player
+	ConvertPlayer(source Player) cs.Player
 	// goverter:mapExtend TechLevels ExtendTechLevels
 	// goverter:mapExtend TechLevelsSpent ExtendTechLevelsSpent
-	ConvertPlayers(source []Player) []game.Player
+	ConvertPlayers(source []Player) []cs.Player
 
 	// goverter:map TechLevels.Energy TechLevelsEnergy
 	// goverter:map TechLevels.Weapons TechLevelsWeapons
@@ -127,7 +127,7 @@ type Converter interface {
 	// goverter:map TechLevelsSpent.Construction TechLevelsSpentConstruction
 	// goverter:map TechLevelsSpent.Electronics TechLevelsSpentElectronics
 	// goverter:map TechLevelsSpent.Biotechnology TechLevelsSpentBiotechnology
-	ConvertGamePlayer(source *game.Player) *Player
+	ConvertGamePlayer(source *cs.Player) *Player
 
 	// goverter:map MapObject.ID ID
 	// goverter:map MapObject.GameID GameID
@@ -162,7 +162,7 @@ type Converter interface {
 	// goverter:map Cargo.Boranium Boranium
 	// goverter:map Cargo.Germanium Germanium
 	// goverter:map Cargo.Colonists Colonists
-	ConvertGamePlanet(source *game.Planet) *Planet
+	ConvertGamePlanet(source *cs.Planet) *Planet
 
 	// goverter:mapExtend Hab ExtendHab
 	// goverter:mapExtend BaseHab ExtendBaseHab
@@ -171,7 +171,7 @@ type Converter interface {
 	// goverter:mapExtend MineYears ExtendMineYears
 	// goverter:mapExtend Cargo ExtendPlanetCargo
 	// goverter:mapExtend MapObject ExtendPlanetMapObject
-	ConvertPlanet(source *Planet) *game.Planet
+	ConvertPlanet(source *Planet) *cs.Planet
 
 	// goverter:map MapObject.ID ID
 	// goverter:map MapObject.GameID GameID
@@ -197,7 +197,7 @@ type Converter interface {
 	// goverter:map Cargo.Boranium Boranium
 	// goverter:map Cargo.Germanium Germanium
 	// goverter:map Cargo.Colonists Colonists
-	ConvertGameFleet(source *game.Fleet) *Fleet
+	ConvertGameFleet(source *cs.Fleet) *Fleet
 
 	// goverter:mapExtend Heading ExtendFleetHeading
 	// goverter:mapExtend PreviousPosition ExtendFleetPreviousPosition
@@ -205,15 +205,15 @@ type Converter interface {
 	// goverter:mapExtend MapObject ExtendFleetMapObject
 	// goverter:mapExtend FleetOrders ExtendFleetFleetOrders
 	// goverter:ignore Tokens
-	ConvertFleet(source *Fleet) *game.Fleet
+	ConvertFleet(source *Fleet) *cs.Fleet
 
-	ConvertGameShipDesign(source *game.ShipDesign) *ShipDesign
+	ConvertGameShipDesign(source *cs.ShipDesign) *ShipDesign
 	// goverter:ignore Dirty
-	ConvertShipDesign(source *ShipDesign) *game.ShipDesign
+	ConvertShipDesign(source *ShipDesign) *cs.ShipDesign
 
-	ConvertGameShipToken(source game.ShipToken) ShipToken
+	ConvertGameShipToken(source cs.ShipToken) ShipToken
 	// goverter:ignore Design
-	ConvertShipToken(source ShipToken) game.ShipToken
+	ConvertShipToken(source ShipToken) cs.ShipToken
 
 	// goverter:map MapObject.ID ID
 	// goverter:map MapObject.GameID GameID
@@ -228,10 +228,10 @@ type Converter interface {
 	// goverter:map MapObject.Num Num
 	// goverter:ignore PlayerID
 	// goverter:ignore PlayerNum
-	ConvertGameWormhole(source *game.Wormhole) *Wormhole
+	ConvertGameWormhole(source *cs.Wormhole) *Wormhole
 
 	// goverter:mapExtend MapObject ExtendWormholeMapObject
-	ConvertWormhole(source *Wormhole) *game.Wormhole
+	ConvertWormhole(source *Wormhole) *cs.Wormhole
 
 	// goverter:map MapObject.ID ID
 	// goverter:map MapObject.GameID GameID
@@ -250,11 +250,11 @@ type Converter interface {
 	// goverter:map Cargo.Ironium Ironium
 	// goverter:map Cargo.Boranium Boranium
 	// goverter:map Cargo.Germanium Germanium
-	ConvertGameSalvage(source *game.Salvage) *Salvage
+	ConvertGameSalvage(source *cs.Salvage) *Salvage
 
 	// goverter:mapExtend MapObject ExtendSalvageMapObject
 	// goverter:mapExtend Cargo ExtendSalvageCargo
-	ConvertSalvage(source *Salvage) *game.Salvage
+	ConvertSalvage(source *Salvage) *cs.Salvage
 
 	// goverter:map MapObject.ID ID
 	// goverter:map MapObject.GameID GameID
@@ -269,10 +269,10 @@ type Converter interface {
 	// goverter:map MapObject.Num Num
 	// goverter:map MapObject.PlayerNum	 PlayerNum
 	// goverter:ignore Tags
-	ConvertGameMineField(source *game.MineField) *MineField
+	ConvertGameMineField(source *cs.MineField) *MineField
 
 	// goverter:mapExtend MapObject ExtendMineFieldMapObject
-	ConvertMineField(source *MineField) *game.MineField
+	ConvertMineField(source *MineField) *cs.MineField
 
 	// goverter:map MapObject.ID ID
 	// goverter:map MapObject.GameID GameID
@@ -293,12 +293,12 @@ type Converter interface {
 	// goverter:map Cargo.Germanium Germanium
 	// goverter:map Heading.X HeadingX
 	// goverter:map Heading.Y HeadingY
-	ConvertGameMineralPacket(source *game.MineralPacket) *MineralPacket
+	ConvertGameMineralPacket(source *cs.MineralPacket) *MineralPacket
 
 	// goverter:mapExtend MapObject ExtendMineralPacketMapObject
 	// goverter:mapExtend Cargo ExtendMineralPacketCargo
 	// goverter:mapExtend Heading ExtendMineralPacketHeading
-	ConvertMineralPacket(source *MineralPacket) *game.MineralPacket	
+	ConvertMineralPacket(source *MineralPacket) *cs.MineralPacket
 }
 
 func TimeToTime(source time.Time) time.Time {
@@ -323,214 +323,214 @@ func UUIDToUUID(source uuid.UUID) uuid.UUID {
 	return source
 }
 
-func RulesToGameRules(source *Rules) game.Rules {
-	return game.Rules(*source)
+func RulesToGameRules(source *Rules) cs.Rules {
+	return cs.Rules(*source)
 }
 
-func GameRulesToRules(source game.Rules) *Rules {
+func GameRulesToRules(source cs.Rules) *Rules {
 	return (*Rules)(&source)
 }
 
-func RaceSpecToGameRaceSpec(source *RaceSpec) game.RaceSpec {
-	return (game.RaceSpec)(*source)
+func RaceSpecToGameRaceSpec(source *RaceSpec) cs.RaceSpec {
+	return (cs.RaceSpec)(*source)
 }
 
-func GameRaceSpecToRaceSpec(source game.RaceSpec) *RaceSpec {
+func GameRaceSpecToRaceSpec(source cs.RaceSpec) *RaceSpec {
 	return (*RaceSpec)(&source)
 }
 
-func BattlePlansToGameBattlePlans(source *BattlePlans) []game.BattlePlan {
+func BattlePlansToGameBattlePlans(source *BattlePlans) []cs.BattlePlan {
 	// return an empty slice for nil
 	if source == nil {
-		return []game.BattlePlan{}
+		return []cs.BattlePlan{}
 	}
 
-	return ([]game.BattlePlan)(*source)
+	return ([]cs.BattlePlan)(*source)
 }
 
-func GameBattlePlansToBattlePlans(source []game.BattlePlan) *BattlePlans {
+func GameBattlePlansToBattlePlans(source []cs.BattlePlan) *BattlePlans {
 	return (*BattlePlans)(&source)
 }
 
-func ProductionPlansToGameProductionPlans(source *ProductionPlans) []game.ProductionPlan {
+func ProductionPlansToGameProductionPlans(source *ProductionPlans) []cs.ProductionPlan {
 	// return an empty slice for nil
 	if source == nil {
-		return []game.ProductionPlan{}
+		return []cs.ProductionPlan{}
 	}
-	return ([]game.ProductionPlan)(*source)
+	return ([]cs.ProductionPlan)(*source)
 }
 
-func GameProductionPlansToProductionPlans(source []game.ProductionPlan) *ProductionPlans {
+func GameProductionPlansToProductionPlans(source []cs.ProductionPlan) *ProductionPlans {
 	return (*ProductionPlans)(&source)
 }
 
-func TransportPlansToGameTransportPlans(source *TransportPlans) []game.TransportPlan {
+func TransportPlansToGameTransportPlans(source *TransportPlans) []cs.TransportPlan {
 	// return an empty slice for nil
 	if source == nil {
-		return []game.TransportPlan{}
+		return []cs.TransportPlan{}
 	}
-	return ([]game.TransportPlan)(*source)
+	return ([]cs.TransportPlan)(*source)
 }
 
-func GameTransportPlansToTransportPlans(source []game.TransportPlan) *TransportPlans {
+func GameTransportPlansToTransportPlans(source []cs.TransportPlan) *TransportPlans {
 	return (*TransportPlans)(&source)
 }
 
-func PlayerMessagesToGamePlayerMessages(source *PlayerMessages) []game.PlayerMessage {
+func PlayerMessagesToGamePlayerMessages(source *PlayerMessages) []cs.PlayerMessage {
 	// return an empty slice for nil
 	if source == nil {
-		return []game.PlayerMessage{}
+		return []cs.PlayerMessage{}
 	}
-	return ([]game.PlayerMessage)(*source)
+	return ([]cs.PlayerMessage)(*source)
 }
 
-func GamePlayerMessagesToPlayerMessages(source []game.PlayerMessage) *PlayerMessages {
+func GamePlayerMessagesToPlayerMessages(source []cs.PlayerMessage) *PlayerMessages {
 	return (*PlayerMessages)(&source)
 }
 
-func PlanetIntelsToGamePlanetIntels(source *PlanetIntels) []game.PlanetIntel {
+func PlanetIntelsToGamePlanetIntels(source *PlanetIntels) []cs.PlanetIntel {
 	// return an empty slice for nil
 	if source == nil {
-		return []game.PlanetIntel{}
+		return []cs.PlanetIntel{}
 	}
-	return ([]game.PlanetIntel)(*source)
+	return ([]cs.PlanetIntel)(*source)
 }
 
-func GamePlanetIntelsToPlanetIntels(source []game.PlanetIntel) *PlanetIntels {
+func GamePlanetIntelsToPlanetIntels(source []cs.PlanetIntel) *PlanetIntels {
 	return (*PlanetIntels)(&source)
 }
 
-func FleetIntelsToGameFleetIntels(source *FleetIntels) []game.FleetIntel {
+func FleetIntelsToGameFleetIntels(source *FleetIntels) []cs.FleetIntel {
 	// return an empty slice for nil
 	if source == nil {
-		return []game.FleetIntel{}
+		return []cs.FleetIntel{}
 	}
-	return ([]game.FleetIntel)(*source)
+	return ([]cs.FleetIntel)(*source)
 }
 
-func GameFleetIntelsToFleetIntels(source []game.FleetIntel) *FleetIntels {
+func GameFleetIntelsToFleetIntels(source []cs.FleetIntel) *FleetIntels {
 	return (*FleetIntels)(&source)
 }
 
-func ShipDesignIntelsToGameShipDesignIntels(source *ShipDesignIntels) []game.ShipDesignIntel {
+func ShipDesignIntelsToGameShipDesignIntels(source *ShipDesignIntels) []cs.ShipDesignIntel {
 	// return an empty slice for nil
 	if source == nil {
-		return []game.ShipDesignIntel{}
+		return []cs.ShipDesignIntel{}
 	}
-	return ([]game.ShipDesignIntel)(*source)
+	return ([]cs.ShipDesignIntel)(*source)
 }
 
-func GameShipDesignIntelsToShipDesignIntels(source []game.ShipDesignIntel) *ShipDesignIntels {
+func GameShipDesignIntelsToShipDesignIntels(source []cs.ShipDesignIntel) *ShipDesignIntels {
 	return (*ShipDesignIntels)(&source)
 }
 
-func MineralPacketIntelsToGameMineralPacketIntels(source *MineralPacketIntels) []game.MineralPacketIntel {
+func MineralPacketIntelsToGameMineralPacketIntels(source *MineralPacketIntels) []cs.MineralPacketIntel {
 	// return an empty slice for nil
 	if source == nil {
-		return []game.MineralPacketIntel{}
+		return []cs.MineralPacketIntel{}
 	}
-	return ([]game.MineralPacketIntel)(*source)
+	return ([]cs.MineralPacketIntel)(*source)
 }
 
-func GameMineralPacketIntelsToMineralPacketIntels(source []game.MineralPacketIntel) *MineralPacketIntels {
+func GameMineralPacketIntelsToMineralPacketIntels(source []cs.MineralPacketIntel) *MineralPacketIntels {
 	return (*MineralPacketIntels)(&source)
 }
 
-func MineFieldIntelsToGameMineFieldIntels(source *MineFieldIntels) []game.MineFieldIntel {
+func MineFieldIntelsToGameMineFieldIntels(source *MineFieldIntels) []cs.MineFieldIntel {
 	// return an empty slice for nil
 	if source == nil {
-		return []game.MineFieldIntel{}
+		return []cs.MineFieldIntel{}
 	}
-	return ([]game.MineFieldIntel)(*source)
+	return ([]cs.MineFieldIntel)(*source)
 }
 
-func GameMineFieldIntelsToMineFieldIntels(source []game.MineFieldIntel) *MineFieldIntels {
+func GameMineFieldIntelsToMineFieldIntels(source []cs.MineFieldIntel) *MineFieldIntels {
 	return (*MineFieldIntels)(&source)
 }
 
-func PlayerRaceToGameRace(source *PlayerRace) game.Race {
+func PlayerRaceToGameRace(source *PlayerRace) cs.Race {
 	// return an empty object for nil to support partial loads
 	if source == nil {
-		return game.Race{}
+		return cs.Race{}
 	}
-	return game.Race(*source)
+	return cs.Race(*source)
 }
 
-func GameRaceToPlayerRace(source game.Race) *PlayerRace {
+func GameRaceToPlayerRace(source cs.Race) *PlayerRace {
 	return (*PlayerRace)(&source)
 }
 
-func PlayerSpecToGamePlayerSpec(source *PlayerSpec) game.PlayerSpec {
+func PlayerSpecToGamePlayerSpec(source *PlayerSpec) cs.PlayerSpec {
 	// return an empty object for nil to support partial loads
 	if source == nil {
-		return game.PlayerSpec{}
+		return cs.PlayerSpec{}
 	}
 
-	return (game.PlayerSpec)(*source)
+	return (cs.PlayerSpec)(*source)
 }
 
-func GamePlayerSpecToPlayerSpec(source game.PlayerSpec) *PlayerSpec {
+func GamePlayerSpecToPlayerSpec(source cs.PlayerSpec) *PlayerSpec {
 	return (*PlayerSpec)(&source)
 }
 
-func PlayerStatsToGamePlayerStats(source *PlayerStats) *game.PlayerStats {
-	return (*game.PlayerStats)(source)
+func PlayerStatsToGamePlayerStats(source *PlayerStats) *cs.PlayerStats {
+	return (*cs.PlayerStats)(source)
 }
 
-func GamePlayerStatsToPlayerStats(source *game.PlayerStats) *PlayerStats {
+func GamePlayerStatsToPlayerStats(source *cs.PlayerStats) *PlayerStats {
 	return (*PlayerStats)(source)
 }
 
-func PlanetSpecToGamePlanetSpec(source *PlanetSpec) game.PlanetSpec {
-	return (game.PlanetSpec)(*source)
+func PlanetSpecToGamePlanetSpec(source *PlanetSpec) cs.PlanetSpec {
+	return (cs.PlanetSpec)(*source)
 }
 
-func GamePlanetSpecToPlanetSpec(source game.PlanetSpec) *PlanetSpec {
+func GamePlanetSpecToPlanetSpec(source cs.PlanetSpec) *PlanetSpec {
 	return (*PlanetSpec)(&source)
 }
 
-func ProductionQueueItemsToGameProductionQueueItems(source *ProductionQueueItems) []game.ProductionQueueItem {
-	return ([]game.ProductionQueueItem)(*source)
+func ProductionQueueItemsToGameProductionQueueItems(source *ProductionQueueItems) []cs.ProductionQueueItem {
+	return ([]cs.ProductionQueueItem)(*source)
 }
 
-func GameProductionQueueItemsToProductionQueueItems(source []game.ProductionQueueItem) *ProductionQueueItems {
+func GameProductionQueueItemsToProductionQueueItems(source []cs.ProductionQueueItem) *ProductionQueueItems {
 	return (*ProductionQueueItems)(&source)
 }
 
-func FleetSpecToGameFleetSpec(source *FleetSpec) game.FleetSpec {
-	return (game.FleetSpec)(*source)
+func FleetSpecToGameFleetSpec(source *FleetSpec) cs.FleetSpec {
+	return (cs.FleetSpec)(*source)
 }
 
-func GameFleetSpecToFleetSpec(source game.FleetSpec) *FleetSpec {
+func GameFleetSpecToFleetSpec(source cs.FleetSpec) *FleetSpec {
 	return (*FleetSpec)(&source)
 }
 
-func WaypointsToGameWaypoints(source *Waypoints) []game.Waypoint {
-	return ([]game.Waypoint)(*source)
+func WaypointsToGameWaypoints(source *Waypoints) []cs.Waypoint {
+	return ([]cs.Waypoint)(*source)
 }
 
-func GameWaypointsToWaypoints(source []game.Waypoint) *Waypoints {
+func GameWaypointsToWaypoints(source []cs.Waypoint) *Waypoints {
 	return (*Waypoints)(&source)
 }
 
-func ShipDesignSpecToGameShipDesignSpec(source *ShipDesignSpec) game.ShipDesignSpec {
-	return (game.ShipDesignSpec)(*source)
+func ShipDesignSpecToGameShipDesignSpec(source *ShipDesignSpec) cs.ShipDesignSpec {
+	return (cs.ShipDesignSpec)(*source)
 }
 
-func GameShipDesignSpecToShipDesignSpec(source game.ShipDesignSpec) *ShipDesignSpec {
+func GameShipDesignSpecToShipDesignSpec(source cs.ShipDesignSpec) *ShipDesignSpec {
 	return (*ShipDesignSpec)(&source)
 }
 
-func ShipDesignSlotsToGameShipDesignSlots(source *ShipDesignSlots) []game.ShipDesignSlot {
-	return ([]game.ShipDesignSlot)(*source)
+func ShipDesignSlotsToGameShipDesignSlots(source *ShipDesignSlots) []cs.ShipDesignSlot {
+	return ([]cs.ShipDesignSlot)(*source)
 }
 
-func GameShipDesignSlotsToShipDesignSlots(source []game.ShipDesignSlot) *ShipDesignSlots {
+func GameShipDesignSlotsToShipDesignSlots(source []cs.ShipDesignSlot) *ShipDesignSlots {
 	return (*ShipDesignSlots)(&source)
 }
 
-func ExtendResearchCost(source Race) game.ResearchCost {
-	return game.ResearchCost{
+func ExtendResearchCost(source Race) cs.ResearchCost {
+	return cs.ResearchCost{
 		Energy:        source.ResearchCostEnergy,
 		Weapons:       source.ResearchCostWeapons,
 		Propulsion:    source.ResearchCostPropulsion,
@@ -540,24 +540,24 @@ func ExtendResearchCost(source Race) game.ResearchCost {
 	}
 }
 
-func ExtendHabLow(source Race) game.Hab {
-	return game.Hab{
+func ExtendHabLow(source Race) cs.Hab {
+	return cs.Hab{
 		Grav: source.HabLowGrav,
 		Temp: source.HabLowTemp,
 		Rad:  source.HabLowRad,
 	}
 }
 
-func ExtendHabHigh(source Race) game.Hab {
-	return game.Hab{
+func ExtendHabHigh(source Race) cs.Hab {
+	return cs.Hab{
 		Grav: source.HabHighGrav,
 		Temp: source.HabHighTemp,
 		Rad:  source.HabHighRad,
 	}
 }
 
-func ExtendVictoryConditions(source Game) game.VictoryConditions {
-	return game.VictoryConditions{
+func ExtendVictoryConditions(source Game) cs.VictoryConditions {
+	return cs.VictoryConditions{
 		Conditions:               *source.VictoryConditionsConditions,
 		NumCriteriaRequired:      source.VictoryConditionsNumCriteriaRequired,
 		YearsPassed:              source.VictoryConditionsYearsPassed,
@@ -572,19 +572,19 @@ func ExtendVictoryConditions(source Game) game.VictoryConditions {
 	}
 }
 
-func ExtendArea(source Game) game.Vector {
-	return game.Vector{
+func ExtendArea(source Game) cs.Vector {
+	return cs.Vector{
 		X: source.AreaX,
 		Y: source.AreaY,
 	}
 }
 
-func ExtendDefaultRules(source Game) game.Rules {
-	return game.NewRules()
+func ExtendDefaultRules(source Game) cs.Rules {
+	return cs.NewRules()
 }
 
-func ExtendTechLevels(source Player) game.TechLevel {
-	return game.TechLevel{
+func ExtendTechLevels(source Player) cs.TechLevel {
+	return cs.TechLevel{
 		Energy:        source.TechLevelsEnergy,
 		Weapons:       source.TechLevelsWeapons,
 		Propulsion:    source.TechLevelsPropulsion,
@@ -594,8 +594,8 @@ func ExtendTechLevels(source Player) game.TechLevel {
 	}
 }
 
-func ExtendTechLevelsSpent(source Player) game.TechLevel {
-	return game.TechLevel{
+func ExtendTechLevelsSpent(source Player) cs.TechLevel {
+	return cs.TechLevel{
 		Energy:        source.TechLevelsSpentEnergy,
 		Weapons:       source.TechLevelsSpentWeapons,
 		Propulsion:    source.TechLevelsSpentPropulsion,
@@ -605,15 +605,15 @@ func ExtendTechLevelsSpent(source Player) game.TechLevel {
 	}
 }
 
-func ExtendPlanetMapObject(source Planet) game.MapObject {
-	return game.MapObject{
-		Type:      game.MapObjectTypePlanet,
+func ExtendPlanetMapObject(source Planet) cs.MapObject {
+	return cs.MapObject{
+		Type:      cs.MapObjectTypePlanet,
 		ID:        source.ID,
 		GameID:    source.GameID,
 		CreatedAt: source.CreatedAt,
 		UpdatedAt: source.UpdatedAt,
 		PlayerID:  source.PlayerID,
-		Position: game.Vector{
+		Position: cs.Vector{
 			X: source.X,
 			Y: source.Y,
 		},
@@ -624,48 +624,48 @@ func ExtendPlanetMapObject(source Planet) game.MapObject {
 	}
 }
 
-func ExtendHab(source Planet) game.Hab {
-	return game.Hab{
+func ExtendHab(source Planet) cs.Hab {
+	return cs.Hab{
 		Grav: source.Grav,
 		Temp: source.Temp,
 		Rad:  source.Rad,
 	}
 }
 
-func ExtendBaseHab(source Planet) game.Hab {
-	return game.Hab{
+func ExtendBaseHab(source Planet) cs.Hab {
+	return cs.Hab{
 		Grav: source.BaseGrav,
 		Temp: source.BaseTemp,
 		Rad:  source.BaseRad,
 	}
 }
 
-func ExtendTerraformedAmount(source Planet) game.Hab {
-	return game.Hab{
+func ExtendTerraformedAmount(source Planet) cs.Hab {
+	return cs.Hab{
 		Grav: source.TerraformedAmountGrav,
 		Temp: source.TerraformedAmountTemp,
 		Rad:  source.TerraformedAmountRad,
 	}
 }
 
-func ExtendMineralConcentration(source Planet) game.Mineral {
-	return game.Mineral{
+func ExtendMineralConcentration(source Planet) cs.Mineral {
+	return cs.Mineral{
 		Ironium:   source.MineralConcIronium,
 		Boranium:  source.MineralConcBoranium,
 		Germanium: source.MineralConcGermanium,
 	}
 }
 
-func ExtendMineYears(source Planet) game.Mineral {
-	return game.Mineral{
+func ExtendMineYears(source Planet) cs.Mineral {
+	return cs.Mineral{
 		Ironium:   source.MineYearsIronium,
 		Boranium:  source.MineYearsBoranium,
 		Germanium: source.MineYearsGermanium,
 	}
 }
 
-func ExtendPlanetCargo(source Planet) game.Cargo {
-	return game.Cargo{
+func ExtendPlanetCargo(source Planet) cs.Cargo {
+	return cs.Cargo{
 		Ironium:   source.Ironium,
 		Boranium:  source.Boranium,
 		Germanium: source.Germanium,
@@ -673,15 +673,15 @@ func ExtendPlanetCargo(source Planet) game.Cargo {
 	}
 }
 
-func ExtendFleetMapObject(source Fleet) game.MapObject {
-	return game.MapObject{
-		Type:      game.MapObjectTypeFleet,
+func ExtendFleetMapObject(source Fleet) cs.MapObject {
+	return cs.MapObject{
+		Type:      cs.MapObjectTypeFleet,
 		ID:        source.ID,
 		GameID:    source.GameID,
 		CreatedAt: source.CreatedAt,
 		UpdatedAt: source.UpdatedAt,
 		PlayerID:  source.PlayerID,
-		Position: game.Vector{
+		Position: cs.Vector{
 			X: source.X,
 			Y: source.Y,
 		},
@@ -692,15 +692,15 @@ func ExtendFleetMapObject(source Fleet) game.MapObject {
 	}
 }
 
-func ExtendFleetFleetOrders(source Fleet) game.FleetOrders {
-	return game.FleetOrders{
+func ExtendFleetFleetOrders(source Fleet) cs.FleetOrders {
+	return cs.FleetOrders{
 		Waypoints:    *source.Waypoints,
 		RepeatOrders: source.RepeatOrders,
 	}
 }
 
-func ExtendFleetCargo(source Fleet) game.Cargo {
-	return game.Cargo{
+func ExtendFleetCargo(source Fleet) cs.Cargo {
+	return cs.Cargo{
 		Ironium:   source.Ironium,
 		Boranium:  source.Boranium,
 		Germanium: source.Germanium,
@@ -708,31 +708,31 @@ func ExtendFleetCargo(source Fleet) game.Cargo {
 	}
 }
 
-func ExtendFleetHeading(source Fleet) game.Vector {
-	return game.Vector{
+func ExtendFleetHeading(source Fleet) cs.Vector {
+	return cs.Vector{
 		X: source.HeadingX,
 		Y: source.HeadingY,
 	}
 }
 
-func ExtendFleetPreviousPosition(source Fleet) *game.Vector {
+func ExtendFleetPreviousPosition(source Fleet) *cs.Vector {
 	if source.PreviousPositionX == nil || source.PreviousPositionY == nil {
 		return nil
 	}
-	return &game.Vector{
+	return &cs.Vector{
 		X: *source.PreviousPositionX,
 		Y: *source.PreviousPositionY,
 	}
 }
 
-func ExtendWormholeMapObject(source Wormhole) game.MapObject {
-	return game.MapObject{
-		Type:      game.MapObjectTypeWormhole,
+func ExtendWormholeMapObject(source Wormhole) cs.MapObject {
+	return cs.MapObject{
+		Type:      cs.MapObjectTypeWormhole,
 		ID:        source.ID,
 		GameID:    source.GameID,
 		CreatedAt: source.CreatedAt,
 		UpdatedAt: source.UpdatedAt,
-		Position: game.Vector{
+		Position: cs.Vector{
 			X: source.X,
 			Y: source.Y,
 		},
@@ -741,15 +741,15 @@ func ExtendWormholeMapObject(source Wormhole) game.MapObject {
 	}
 }
 
-func ExtendSalvageMapObject(source Salvage) game.MapObject {
-	return game.MapObject{
-		Type:      game.MapObjectTypeSalvage,
+func ExtendSalvageMapObject(source Salvage) cs.MapObject {
+	return cs.MapObject{
+		Type:      cs.MapObjectTypeSalvage,
 		ID:        source.ID,
 		GameID:    source.GameID,
 		CreatedAt: source.CreatedAt,
 		UpdatedAt: source.UpdatedAt,
 		PlayerID:  source.PlayerID,
-		Position: game.Vector{
+		Position: cs.Vector{
 			X: source.X,
 			Y: source.Y,
 		},
@@ -760,23 +760,23 @@ func ExtendSalvageMapObject(source Salvage) game.MapObject {
 	}
 }
 
-func ExtendSalvageCargo(source Salvage) game.Cargo {
-	return game.Cargo{
+func ExtendSalvageCargo(source Salvage) cs.Cargo {
+	return cs.Cargo{
 		Ironium:   source.Ironium,
 		Boranium:  source.Boranium,
 		Germanium: source.Germanium,
 	}
 }
 
-func ExtendMineFieldMapObject(source MineField) game.MapObject {
-	return game.MapObject{
-		Type:      game.MapObjectTypeMineField,
+func ExtendMineFieldMapObject(source MineField) cs.MapObject {
+	return cs.MapObject{
+		Type:      cs.MapObjectTypeMineField,
 		ID:        source.ID,
 		GameID:    source.GameID,
 		CreatedAt: source.CreatedAt,
 		UpdatedAt: source.UpdatedAt,
 		PlayerID:  source.PlayerID,
-		Position: game.Vector{
+		Position: cs.Vector{
 			X: source.X,
 			Y: source.Y,
 		},
@@ -787,22 +787,22 @@ func ExtendMineFieldMapObject(source MineField) game.MapObject {
 	}
 }
 
-func ExtendMineralPacketHeading(source MineralPacket) game.Vector {
-	return game.Vector{
+func ExtendMineralPacketHeading(source MineralPacket) cs.Vector {
+	return cs.Vector{
 		X: source.HeadingX,
 		Y: source.HeadingY,
 	}
 }
 
-func ExtendMineralPacketMapObject(source MineralPacket) game.MapObject {
-	return game.MapObject{
-		Type:      game.MapObjectTypeMineralPacket,
+func ExtendMineralPacketMapObject(source MineralPacket) cs.MapObject {
+	return cs.MapObject{
+		Type:      cs.MapObjectTypeMineralPacket,
 		ID:        source.ID,
 		GameID:    source.GameID,
 		CreatedAt: source.CreatedAt,
 		UpdatedAt: source.UpdatedAt,
 		PlayerID:  source.PlayerID,
-		Position: game.Vector{
+		Position: cs.Vector{
 			X: source.X,
 			Y: source.Y,
 		},
@@ -813,8 +813,8 @@ func ExtendMineralPacketMapObject(source MineralPacket) game.MapObject {
 	}
 }
 
-func ExtendMineralPacketCargo(source MineralPacket) game.Cargo {
-	return game.Cargo{
+func ExtendMineralPacketCargo(source MineralPacket) cs.Cargo {
+	return cs.Cargo{
 		Ironium:   source.Ironium,
 		Boranium:  source.Boranium,
 		Germanium: source.Germanium,

@@ -7,48 +7,48 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
-	"github.com/sirgwain/craig-stars/game"
+	"github.com/sirgwain/craig-stars/cs"
 )
 
 type Game struct {
-	ID                                        int64                `json:"id,omitempty"`
-	CreatedAt                                 time.Time            `json:"createdAt,omitempty"`
-	UpdatedAt                                 time.Time            `json:"updatedAt,omitempty"`
-	Name                                      string               `json:"name,omitempty"`
-	HostID                                    int64                `json:"hostId,omitempty"`
-	QuickStartTurns                           int                  `json:"quickStartTurns,omitempty"`
-	Size                                      game.Size            `json:"size,omitempty"`
-	Density                                   game.Density         `json:"density,omitempty"`
-	PlayerPositions                           game.PlayerPositions `json:"playerPositions,omitempty"`
-	RandomEvents                              bool                 `json:"randomEvents,omitempty"`
-	ComputerPlayersFormAlliances              bool                 `json:"computerPlayersFormAlliances,omitempty"`
-	PublicPlayerScores                        bool                 `json:"publicPlayerScores,omitempty"`
-	StartMode                                 game.GameStartMode   `json:"startMode,omitempty"`
-	Year                                      int                  `json:"year,omitempty"`
-	State                                     game.GameState       `json:"state,omitempty"`
-	OpenPlayerSlots                           uint                 `json:"openPlayerSlots,omitempty"`
-	NumPlayers                                int                  `json:"numPlayers,omitempty"`
-	VictoryConditionsConditions               *VictoryConditions   `json:"victoryConditionsConditions,omitempty"`
-	VictoryConditionsNumCriteriaRequired      int                  `json:"victoryConditionsNumCriteriaRequired,omitempty"`
-	VictoryConditionsYearsPassed              int                  `json:"victoryConditionsYearsPassed,omitempty"`
-	VictoryConditionsOwnPlanets               int                  `json:"victoryConditionsOwnPlanets,omitempty"`
-	VictoryConditionsAttainTechLevel          int                  `json:"victoryConditionsAttainTechLevel,omitempty"`
-	VictoryConditionsAttainTechLevelNumFields int                  `json:"victoryConditionsAttainTechLevelNumFields,omitempty"`
-	VictoryConditionsExceedsScore             int                  `json:"victoryConditionsExceedsScore,omitempty"`
-	VictoryConditionsExceedsSecondPlaceScore  int                  `json:"victoryConditionsExceedsSecondPlaceScore,omitempty"`
-	VictoryConditionsProductionCapacity       int                  `json:"victoryConditionsProductionCapacity,omitempty"`
-	VictoryConditionsOwnCapitalShips          int                  `json:"victoryConditionsOwnCapitalShips,omitempty"`
-	VictoryConditionsHighestScoreAfterYears   int                  `json:"victoryConditionsHighestScoreAfterYears,omitempty"`
-	VictorDeclared                            bool                 `json:"victorDeclared,omitempty"`
-	Seed                                      int64                `json:"seed,omitempty"`
-	Rules                                     *Rules               `json:"rules,omitempty"`
-	AreaX                                     float64              `json:"areaX,omitempty"`
-	AreaY                                     float64              `json:"areaY,omitempty"`
+	ID                                        int64              `json:"id,omitempty"`
+	CreatedAt                                 time.Time          `json:"createdAt,omitempty"`
+	UpdatedAt                                 time.Time          `json:"updatedAt,omitempty"`
+	Name                                      string             `json:"name,omitempty"`
+	HostID                                    int64              `json:"hostId,omitempty"`
+	QuickStartTurns                           int                `json:"quickStartTurns,omitempty"`
+	Size                                      cs.Size            `json:"size,omitempty"`
+	Density                                   cs.Density         `json:"density,omitempty"`
+	PlayerPositions                           cs.PlayerPositions `json:"playerPositions,omitempty"`
+	RandomEvents                              bool               `json:"randomEvents,omitempty"`
+	ComputerPlayersFormAlliances              bool               `json:"computerPlayersFormAlliances,omitempty"`
+	PublicPlayerScores                        bool               `json:"publicPlayerScores,omitempty"`
+	StartMode                                 cs.GameStartMode   `json:"startMode,omitempty"`
+	Year                                      int                `json:"year,omitempty"`
+	State                                     cs.GameState       `json:"state,omitempty"`
+	OpenPlayerSlots                           uint               `json:"openPlayerSlots,omitempty"`
+	NumPlayers                                int                `json:"numPlayers,omitempty"`
+	VictoryConditionsConditions               *VictoryConditions `json:"victoryConditionsConditions,omitempty"`
+	VictoryConditionsNumCriteriaRequired      int                `json:"victoryConditionsNumCriteriaRequired,omitempty"`
+	VictoryConditionsYearsPassed              int                `json:"victoryConditionsYearsPassed,omitempty"`
+	VictoryConditionsOwnPlanets               int                `json:"victoryConditionsOwnPlanets,omitempty"`
+	VictoryConditionsAttainTechLevel          int                `json:"victoryConditionsAttainTechLevel,omitempty"`
+	VictoryConditionsAttainTechLevelNumFields int                `json:"victoryConditionsAttainTechLevelNumFields,omitempty"`
+	VictoryConditionsExceedsScore             int                `json:"victoryConditionsExceedsScore,omitempty"`
+	VictoryConditionsExceedsSecondPlaceScore  int                `json:"victoryConditionsExceedsSecondPlaceScore,omitempty"`
+	VictoryConditionsProductionCapacity       int                `json:"victoryConditionsProductionCapacity,omitempty"`
+	VictoryConditionsOwnCapitalShips          int                `json:"victoryConditionsOwnCapitalShips,omitempty"`
+	VictoryConditionsHighestScoreAfterYears   int                `json:"victoryConditionsHighestScoreAfterYears,omitempty"`
+	VictorDeclared                            bool               `json:"victorDeclared,omitempty"`
+	Seed                                      int64              `json:"seed,omitempty"`
+	Rules                                     *Rules             `json:"rules,omitempty"`
+	AreaX                                     float64            `json:"areaX,omitempty"`
+	AreaY                                     float64            `json:"areaY,omitempty"`
 }
 
 // we json serialize these types with custom Scan/Value methods
-type VictoryConditions []game.VictoryCondition
-type Rules game.Rules
+type VictoryConditions []cs.VictoryCondition
+type Rules cs.Rules
 
 // db serializer to serialize this to JSON
 func (item *VictoryConditions) Value() (driver.Value, error) {
@@ -70,12 +70,12 @@ func (item *Rules) Scan(src interface{}) error {
 	return scanJSON(src, item)
 }
 
-func (c *client) GetGames() ([]game.Game, error) {
+func (c *client) GetGames() ([]cs.Game, error) {
 
 	items := []Game{}
 	if err := c.db.Select(&items, `SELECT * FROM Games`); err != nil {
 		if err == sql.ErrNoRows {
-			return []game.Game{}, nil
+			return []cs.Game{}, nil
 		}
 		return nil, err
 	}
@@ -83,12 +83,12 @@ func (c *client) GetGames() ([]game.Game, error) {
 	return c.converter.ConvertGames(items), nil
 }
 
-func (c *client) GetGamesForHost(userID int64) ([]game.Game, error) {
+func (c *client) GetGamesForHost(userID int64) ([]cs.Game, error) {
 
 	items := []Game{}
 	if err := c.db.Select(&items, `SELECT * FROM Games WHERE hostId = ?`, userID); err != nil {
 		if err == sql.ErrNoRows {
-			return []game.Game{}, nil
+			return []cs.Game{}, nil
 		}
 		return nil, err
 	}
@@ -96,12 +96,12 @@ func (c *client) GetGamesForHost(userID int64) ([]game.Game, error) {
 	return c.converter.ConvertGames(items), nil
 }
 
-func (c *client) GetGamesForUser(userID int64) ([]game.Game, error) {
+func (c *client) GetGamesForUser(userID int64) ([]cs.Game, error) {
 
 	items := []Game{}
 	if err := c.db.Select(&items, `SELECT * from games g WHERE g.id in (SELECT gameId from players p WHERE p.userId = ?)`, userID); err != nil {
 		if err == sql.ErrNoRows {
-			return []game.Game{}, nil
+			return []cs.Game{}, nil
 		}
 		return nil, err
 	}
@@ -109,11 +109,11 @@ func (c *client) GetGamesForUser(userID int64) ([]game.Game, error) {
 	return c.converter.ConvertGames(items), nil
 }
 
-func (c *client) GetOpenGames() ([]game.Game, error) {
+func (c *client) GetOpenGames() ([]cs.Game, error) {
 	items := []Game{}
-	if err := c.db.Select(&items, `SELECT * from games g WHERE g.state = ? AND g.openPlayerSlots > 0`, game.GameStateSetup); err != nil {
+	if err := c.db.Select(&items, `SELECT * from games g WHERE g.state = ? AND g.openPlayerSlots > 0`, cs.GameStateSetup); err != nil {
 		if err == sql.ErrNoRows {
-			return []game.Game{}, nil
+			return []cs.Game{}, nil
 		}
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func (c *client) GetOpenGames() ([]game.Game, error) {
 }
 
 // get a game by id
-func (c *client) GetGame(id int64) (*game.Game, error) {
+func (c *client) GetGame(id int64) (*cs.Game, error) {
 	item := Game{}
 	if err := c.db.Get(&item, "SELECT * FROM games WHERE id = ?", id); err != nil {
 		if err == sql.ErrNoRows {
@@ -136,7 +136,7 @@ func (c *client) GetGame(id int64) (*game.Game, error) {
 }
 
 // get a game by id
-func (c *client) GetFullGame(id int64) (*game.FullGame, error) {
+func (c *client) GetFullGame(id int64) (*cs.FullGame, error) {
 	item := Game{}
 	if err := c.db.Get(&item, "SELECT * FROM games WHERE id = ?", id); err != nil {
 		if err == sql.ErrNoRows {
@@ -145,29 +145,29 @@ func (c *client) GetFullGame(id int64) (*game.FullGame, error) {
 		return nil, err
 	}
 
-	g := c.converter.ConvertGame(item)
+	game := c.converter.ConvertGame(item)
 
-	players, err := c.getPlayersForGame(g.ID)
+	players, err := c.getPlayersForGame(game.ID)
 	if err != nil {
 		return nil, fmt.Errorf("load players for game %w", err)
 	}
 
-	universe := game.Universe{}
+	universe := cs.Universe{}
 
-	planets, err := c.getPlanetsForGame(g.ID)
+	planets, err := c.getPlanetsForGame(game.ID)
 	if err != nil {
 		return nil, fmt.Errorf("load planets for game %w", err)
 	}
 	universe.Planets = planets
 
 	// load fleets and starbases
-	fleets, err := c.getFleetsForGame(g.ID)
+	fleets, err := c.getFleetsForGame(game.ID)
 	if err != nil {
 		return nil, fmt.Errorf("load fleets for game %w", err)
 	}
 	// pre-instantiate the fleets/starbases arrays (make it a little bigger than necessary)
-	universe.Fleets = make([]*game.Fleet, 0, len(fleets))
-	universe.Starbases = make([]*game.Fleet, 0, len(planets))
+	universe.Fleets = make([]*cs.Fleet, 0, len(fleets))
+	universe.Starbases = make([]*cs.Fleet, 0, len(planets))
 	for i := range fleets {
 		fleet := fleets[i]
 		if fleet.Starbase {
@@ -177,45 +177,45 @@ func (c *client) GetFullGame(id int64) (*game.FullGame, error) {
 		}
 	}
 
-	wormholes, err := c.getWormholesForGame(g.ID)
+	wormholes, err := c.getWormholesForGame(game.ID)
 	if err != nil {
 		return nil, fmt.Errorf("load wormholes for game %w", err)
 	}
 	universe.Wormholes = wormholes
 
-	salvages, err := c.getSalvagesForGame(g.ID)
+	salvages, err := c.getSalvagesForGame(game.ID)
 	if err != nil {
 		return nil, fmt.Errorf("load salvages for game %w", err)
 	}
 	universe.Salvages = salvages
 
-	mineFields, err := c.getMineFieldsForGame(g.ID)
+	mineFields, err := c.getMineFieldsForGame(game.ID)
 	if err != nil {
 		return nil, fmt.Errorf("load mineFields for game %w", err)
 	}
 	universe.MineFields = mineFields
 
-	mineralPackets, err := c.getMineralPacketsForGame(g.ID)
+	mineralPackets, err := c.getMineralPacketsForGame(game.ID)
 	if err != nil {
 		return nil, fmt.Errorf("load mineralPackets for game %w", err)
 	}
 	universe.MineralPackets = mineralPackets
 
-	if g.Rules.TechsID == 0 {
-		g.Rules.WithTechStore(&game.StaticTechStore)
+	if game.Rules.TechsID == 0 {
+		game.Rules.WithTechStore(&cs.StaticTechStore)
 	} else {
-		techs, err := c.GetTechStore(g.Rules.TechsID)
+		techs, err := c.GetTechStore(game.Rules.TechsID)
 		if err != nil {
 			return nil, err
 		}
-		g.Rules.WithTechStore(techs)
+		game.Rules.WithTechStore(techs)
 	}
 
 	// init the random generator after load
-	(&g.Rules).ResetSeed(g.Seed)
+	(&game.Rules).ResetSeed(game.Seed)
 
-	fg := game.FullGame{
-		Game:     &g,
+	fg := cs.FullGame{
+		Game:     &game,
 		Players:  players,
 		Universe: &universe,
 	}
@@ -224,7 +224,7 @@ func (c *client) GetFullGame(id int64) (*game.FullGame, error) {
 }
 
 // create a new game
-func (c *client) CreateGame(game *game.Game) error {
+func (c *client) CreateGame(game *cs.Game) error {
 
 	item := c.converter.ConvertGameGame(game)
 	result, err := c.db.NamedExec(`
@@ -314,12 +314,12 @@ func (c *client) CreateGame(game *game.Game) error {
 }
 
 // update an existing game
-func (c *client) UpdateGame(game *game.Game) error {
+func (c *client) UpdateGame(game *cs.Game) error {
 	return c.updateGameWithNamedExecer(game, c.db)
 }
 
 // update a game inside a transaction
-func (c *client) updateGameWithNamedExecer(game *game.Game, tx SQLExecer) error {
+func (c *client) updateGameWithNamedExecer(game *cs.Game, tx SQLExecer) error {
 
 	item := c.converter.ConvertGameGame(game)
 
@@ -365,7 +365,7 @@ func (c *client) updateGameWithNamedExecer(game *game.Game, tx SQLExecer) error 
 }
 
 // update a full game
-func (c *client) UpdateFullGame(g *game.FullGame) error {
+func (c *client) UpdateFullGame(g *cs.FullGame) error {
 	tx, err := c.db.Beginx()
 	if err != nil {
 		return err

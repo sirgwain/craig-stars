@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/sirgwain/craig-stars/game"
+	"github.com/sirgwain/craig-stars/cs"
 )
 
 type MineralPacket struct {
@@ -31,7 +31,7 @@ type MineralPacket struct {
 }
 
 // get a mineralPacket by id
-func (c *client) GetMineralPacket(id int64) (*game.MineralPacket, error) {
+func (c *client) GetMineralPacket(id int64) (*cs.MineralPacket, error) {
 	item := MineralPacket{}
 	if err := c.db.Get(&item, "SELECT * FROM mineralPackets WHERE id = ?", id); err != nil {
 		if err == sql.ErrNoRows {
@@ -44,17 +44,17 @@ func (c *client) GetMineralPacket(id int64) (*game.MineralPacket, error) {
 	return mineralPacket, nil
 }
 
-func (c *client) getMineralPacketsForGame(gameID int64) ([]*game.MineralPacket, error) {
+func (c *client) getMineralPacketsForGame(gameID int64) ([]*cs.MineralPacket, error) {
 
 	items := []MineralPacket{}
 	if err := c.db.Select(&items, `SELECT * FROM mineralPackets WHERE gameId = ?`, gameID); err != nil {
 		if err == sql.ErrNoRows {
-			return []*game.MineralPacket{}, nil
+			return []*cs.MineralPacket{}, nil
 		}
 		return nil, err
 	}
 
-	results := make([]*game.MineralPacket, len(items))
+	results := make([]*cs.MineralPacket, len(items))
 	for i := range items {
 		results[i] = c.converter.ConvertMineralPacket(&items[i])
 	}
@@ -63,7 +63,7 @@ func (c *client) getMineralPacketsForGame(gameID int64) ([]*game.MineralPacket, 
 }
 
 // create a new game
-func (c *client) createMineralPacket(mineralPacket *game.MineralPacket, tx SQLExecer) error {
+func (c *client) createMineralPacket(mineralPacket *cs.MineralPacket, tx SQLExecer) error {
 	item := c.converter.ConvertGameMineralPacket(mineralPacket)
 	result, err := tx.NamedExec(`
 	INSERT INTO mineralPackets (
@@ -121,12 +121,12 @@ func (c *client) createMineralPacket(mineralPacket *game.MineralPacket, tx SQLEx
 	return nil
 }
 
-func (c *client) UpdateMineralPacket(mineralPacket *game.MineralPacket) error {
+func (c *client) UpdateMineralPacket(mineralPacket *cs.MineralPacket) error {
 	return c.updateMineralPacket(mineralPacket, c.db)
 }
 
 // update an existing mineralPacket
-func (c *client) updateMineralPacket(mineralPacket *game.MineralPacket, tx SQLExecer) error {
+func (c *client) updateMineralPacket(mineralPacket *cs.MineralPacket, tx SQLExecer) error {
 
 	item := c.converter.ConvertGameMineralPacket(mineralPacket)
 

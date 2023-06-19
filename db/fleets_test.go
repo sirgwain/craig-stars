@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sirgwain/craig-stars/game"
+	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
 )
@@ -12,15 +12,15 @@ import (
 func TestCreateFleet(t *testing.T) {
 	type args struct {
 		c     *client
-		fleet *game.Fleet
+		fleet *cs.Fleet
 	}
 	tests := []struct {
 		name    string
 		args    args
 		wantErr bool
 	}{
-		{"Create", args{connectTestDB(), &game.Fleet{
-			MapObject: game.MapObject{GameID: 1, Name: "test"},
+		{"Create", args{connectTestDB(), &cs.Fleet{
+			MapObject: cs.MapObject{GameID: 1, Name: "test"},
 		},
 		}, false},
 	}
@@ -50,17 +50,17 @@ func TestCreateFleet(t *testing.T) {
 func TestGetFleet(t *testing.T) {
 	c := connectTestDB()
 	g, player := c.createTestGameWithPlayer()
-	design := game.NewShipDesign(player).WithHull(game.Scout.Name)
+	design := cs.NewShipDesign(player).WithHull(cs.Scout.Name)
 	c.createTestShipDesign(player, design)
 
-	fleet := game.Fleet{
-		MapObject: game.MapObject{GameID: g.ID, PlayerID: player.ID, Name: "name", Type: game.MapObjectTypeFleet},
-		Tokens: []game.ShipToken{
+	fleet := cs.Fleet{
+		MapObject: cs.MapObject{GameID: g.ID, PlayerID: player.ID, Name: "name", Type: cs.MapObjectTypeFleet},
+		Tokens: []cs.ShipToken{
 			{Quantity: 1, DesignUUID: design.UUID},
 		},
-		FleetOrders: game.FleetOrders{
-			Waypoints: []game.Waypoint{
-				game.NewPositionWaypoint(game.Vector{X: 2, Y: 3}, 4),
+		FleetOrders: cs.FleetOrders{
+			Waypoints: []cs.Waypoint{
+				cs.NewPositionWaypoint(cs.Vector{X: 2, Y: 3}, 4),
 			},
 		},
 	}
@@ -75,7 +75,7 @@ func TestGetFleet(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *game.Fleet
+		want    *cs.Fleet
 		wantErr bool
 	}{
 		{"No results", args{id: 0}, nil, false},
@@ -110,9 +110,9 @@ func TestGetFleets(t *testing.T) {
 	// start with 1 planet from connectTestDB
 	result, err := c.getFleetsForGame(g.ID)
 	assert.Nil(t, err)
-	assert.Equal(t, []*game.Fleet{}, result)
+	assert.Equal(t, []*cs.Fleet{}, result)
 
-	fleet := game.Fleet{MapObject: game.MapObject{GameID: g.ID, PlayerID: player.ID}}
+	fleet := cs.Fleet{MapObject: cs.MapObject{GameID: g.ID, PlayerID: player.ID}}
 	if err := c.createFleet(&fleet, c.db); err != nil {
 		t.Errorf("create planet %s", err)
 		return
@@ -127,7 +127,7 @@ func TestGetFleets(t *testing.T) {
 func TestUpdateFleet(t *testing.T) {
 	c := connectTestDB()
 	g, player := c.createTestGameWithPlayer()
-	planet := game.Fleet{MapObject: game.MapObject{GameID: g.ID, PlayerID: player.ID}}
+	planet := cs.Fleet{MapObject: cs.MapObject{GameID: g.ID, PlayerID: player.ID}}
 	if err := c.createFleet(&planet, c.db); err != nil {
 		t.Errorf("create planet %s", err)
 		return

@@ -9,7 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
-	"github.com/sirgwain/craig-stars/game"
+	"github.com/sirgwain/craig-stars/cs"
 )
 
 type Fleet struct {
@@ -57,8 +57,8 @@ type ShipToken struct {
 }
 
 // we json serialize these types with custom Scan/Value methods
-type Waypoints []game.Waypoint
-type FleetSpec game.FleetSpec
+type Waypoints []cs.Waypoint
+type FleetSpec cs.FleetSpec
 
 // db serializer to serialize this to JSON
 func (item *Waypoints) Value() (driver.Value, error) {
@@ -147,15 +147,15 @@ SELECT
 `
 
 // scan through rows from a fleet join and return a list of fleets and their tokens
-func (c *client) scanFleetJoin(rows []fleetJoin) []*game.Fleet {
-	fleets := []*game.Fleet{}
+func (c *client) scanFleetJoin(rows []fleetJoin) []*cs.Fleet {
+	fleets := []*cs.Fleet{}
 
-	fleet := &game.Fleet{}
+	fleet := &cs.Fleet{}
 	for _, row := range rows {
 		// found a new fleet
 		if row.Fleet.ID != 0 {
 			fleet = c.converter.ConvertFleet(&row.Fleet)
-			fleet.Tokens = []game.ShipToken{}
+			fleet.Tokens = []cs.ShipToken{}
 			fleets = append(fleets, fleet)
 		}
 
@@ -168,7 +168,7 @@ func (c *client) scanFleetJoin(rows []fleetJoin) []*game.Fleet {
 }
 
 // get a fleet by id
-func (c *client) GetFleet(id int64) (*game.Fleet, error) {
+func (c *client) GetFleet(id int64) (*cs.Fleet, error) {
 	rows := []fleetJoin{}
 	if err := c.db.Select(&rows, fmt.Sprintf("%s WHERE f.id = ?", fleetJoinSelect), id); err != nil {
 		if err == sql.ErrNoRows {
@@ -207,7 +207,7 @@ func (c *client) GetFleet(id int64) (*game.Fleet, error) {
 		return nil, fmt.Errorf("get designs by UUIDs -> %w", err)
 	}
 
-	designsByUUIDs := make(map[uuid.UUID]*game.ShipDesign, len(designs))
+	designsByUUIDs := make(map[uuid.UUID]*cs.ShipDesign, len(designs))
 	for i := range designs {
 		design := &designs[i]
 		designsByUUIDs[design.UUID] = design
@@ -218,18 +218,18 @@ func (c *client) GetFleet(id int64) (*game.Fleet, error) {
 	return fleet, nil
 }
 
-func (c *client) getFleetsForGame(gameId int64) ([]*game.Fleet, error) {
+func (c *client) getFleetsForGame(gameId int64) ([]*cs.Fleet, error) {
 	rows := []fleetJoin{}
 	if err := c.db.Select(&rows, fmt.Sprintf("%s WHERE f.gameId = ?", fleetJoinSelect), gameId); err != nil {
 		if err == sql.ErrNoRows {
-			return []*game.Fleet{}, nil
+			return []*cs.Fleet{}, nil
 		}
 		return nil, err
 	}
 
 	// check if we have any results
 	if len(rows) == 0 {
-		return []*game.Fleet{}, nil
+		return []*cs.Fleet{}, nil
 	}
 
 	fleets := c.scanFleetJoin(rows)
@@ -241,18 +241,18 @@ func (c *client) getFleetsForGame(gameId int64) ([]*game.Fleet, error) {
 	return fleets, nil
 }
 
-func (c *client) getFleetsForPlayer(playerId int64) ([]*game.Fleet, error) {
+func (c *client) getFleetsForPlayer(playerId int64) ([]*cs.Fleet, error) {
 	rows := []fleetJoin{}
 	if err := c.db.Select(&rows, fmt.Sprintf("%s WHERE f.playerId = ?", fleetJoinSelect), playerId); err != nil {
 		if err == sql.ErrNoRows {
-			return []*game.Fleet{}, nil
+			return []*cs.Fleet{}, nil
 		}
 		return nil, err
 	}
 
 	// check if we have any results
 	if len(rows) == 0 {
-		return []*game.Fleet{}, nil
+		return []*cs.Fleet{}, nil
 	}
 
 	fleets := c.scanFleetJoin(rows)
@@ -265,7 +265,7 @@ func (c *client) getFleetsForPlayer(playerId int64) ([]*game.Fleet, error) {
 }
 
 // create a new game
-func (c *client) createFleet(fleet *game.Fleet, tx SQLExecer) error {
+func (c *client) createFleet(fleet *cs.Fleet, tx SQLExecer) error {
 	item := c.converter.ConvertGameFleet(fleet)
 	result, err := tx.NamedExec(`
 	INSERT INTO fleets (
@@ -351,7 +351,7 @@ func (c *client) createFleet(fleet *game.Fleet, tx SQLExecer) error {
 	return nil
 }
 
-func (c *client) createShipToken(token *game.ShipToken, tx SQLExecer) error {
+func (c *client) createShipToken(token *cs.ShipToken, tx SQLExecer) error {
 	result, err := tx.NamedExec(`
 	INSERT INTO shipTokens (
 		createdAt,
@@ -386,12 +386,12 @@ func (c *client) createShipToken(token *game.ShipToken, tx SQLExecer) error {
 	return nil
 }
 
-func (c *client) UpdateFleet(fleet *game.Fleet) error {
+func (c *client) UpdateFleet(fleet *cs.Fleet) error {
 	return c.updateFleet(fleet, c.db)
 }
 
 // update an existing fleet
-func (c *client) updateFleet(fleet *game.Fleet, tx SQLExecer) error {
+func (c *client) updateFleet(fleet *cs.Fleet, tx SQLExecer) error {
 
 	item := c.converter.ConvertGameFleet(fleet)
 

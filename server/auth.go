@@ -8,15 +8,15 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
-	"github.com/sirgwain/craig-stars/game"
+	"github.com/sirgwain/craig-stars/cs"
 )
 
 const userkey = "user"
 
 type sessionUser struct {
-	ID       int64     `json:"id"`
-	Username string    `json:"username"`
-	Role     game.Role `json:"role"`
+	ID       int64   `json:"id"`
+	Username string  `json:"username"`
+	Role     cs.Role `json:"role"`
 }
 
 type creds struct {
@@ -124,7 +124,7 @@ func (s *server) users(c *gin.Context) {
 		return
 	}
 
-	if user.Role != game.RoleAdmin {
+	if user.Role != cs.RoleAdmin {
 		c.JSON(http.StatusForbidden, nil)
 		return
 	}

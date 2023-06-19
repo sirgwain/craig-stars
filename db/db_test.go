@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/sirgwain/craig-stars/config"
-	"github.com/sirgwain/craig-stars/game"
+	"github.com/sirgwain/craig-stars/cs"
 )
 
 func connectTestDB() *client {
@@ -23,7 +23,7 @@ func connectTestDB() *client {
 	}
 
 	// create a test user
-	if err := c.CreateUser(game.NewUser("admin", "admin", game.RoleAdmin)); err != nil {
+	if err := c.CreateUser(cs.NewUser("admin", "admin", cs.RoleAdmin)); err != nil {
 		panic(fmt.Errorf("create test database user, %w", err))
 	}
 
@@ -31,54 +31,54 @@ func connectTestDB() *client {
 }
 
 // create a new game
-func (c *client) createTestGame() *game.Game {
+func (c *client) createTestGame() *cs.Game {
 
-	g := game.NewGame()
-	g.HostID = 1
-	if err := c.CreateGame(g); err != nil {
+	game := cs.NewGame()
+	game.HostID = 1
+	if err := c.CreateGame(game); err != nil {
 		panic(fmt.Errorf("create test database game, %w", err))
 	}
 
-	return g
+	return game
 }
 
 // create a simple game with one player
-func (c *client) createTestGameWithPlayer() (*game.Game, *game.Player) {
+func (c *client) createTestGameWithPlayer() (*cs.Game, *cs.Player) {
 
-	gameClient := game.NewClient()
-	g := gameClient.CreateGame(1, *game.NewGameSettings())
-	if err := c.CreateGame(&g); err != nil {
+	gameClient := cs.NewClient()
+	game := gameClient.CreateGame(1, *cs.NewGameSettings())
+	if err := c.CreateGame(&game); err != nil {
 		panic(fmt.Errorf("create test database game, %w", err))
 	}
 
-	player := gameClient.NewPlayer(1, game.Humanoids(), &g.Rules)
-	player.GameID = g.ID
+	player := gameClient.NewPlayer(1, cs.Humanoids(), &game.Rules)
+	player.GameID = game.ID
 
 	if err := c.CreatePlayer(player); err != nil {
 		panic(fmt.Errorf("create test database game player %w", err))
 	}
 
-	return &g, player
+	return &game, player
 }
 
-func (c *client) createTestShipDesign(player *game.Player, design *game.ShipDesign) {
+func (c *client) createTestShipDesign(player *cs.Player, design *cs.ShipDesign) {
 	design.PlayerID = player.ID
 	if err := c.CreateShipDesign(design); err != nil {
 		panic(fmt.Errorf("create test design %w", err))
 	}
 }
 
-func (c *client) createTestFullGame() *game.FullGame {
-	gameClient := game.NewClient()
+func (c *client) createTestFullGame() *cs.FullGame {
+	gameClient := cs.NewClient()
 	g, player := c.createTestGameWithPlayer()
 
-	players := []*game.Player{player}
+	players := []*cs.Player{player}
 	universe, err := gameClient.GenerateUniverse(g, players)
 	if err != nil {
 		panic(err)
 	}
 
-	fg := game.FullGame{
+	fg := cs.FullGame{
 		Game:     g,
 		Players:  players,
 		Universe: universe,

@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"github.com/sirgwain/craig-stars/config"
+	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
-	"github.com/sirgwain/craig-stars/game"
 
 	"github.com/spf13/cobra"
 )
@@ -54,7 +54,7 @@ func addListGamesCmd() {
 			cfg := config.GetConfig()
 			db.Connect(cfg)
 
-			var games []game.Game
+			var games []cs.Game
 			var err error
 			if userID != 0 {
 				games, err = db.GetGamesForUser(userID)

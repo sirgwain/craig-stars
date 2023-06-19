@@ -6,7 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
-	"github.com/sirgwain/craig-stars/game"
+	"github.com/sirgwain/craig-stars/cs"
 )
 
 func (s *server) races(c *gin.Context) {
@@ -50,7 +50,7 @@ func (s *server) race(c *gin.Context) {
 func (s *server) createRace(c *gin.Context) {
 	user := s.GetSessionUser(c)
 
-	race := game.Race{}
+	race := cs.Race{}
 	if err := c.ShouldBindJSON(&race); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -75,7 +75,7 @@ func (s *server) updateRace(c *gin.Context) {
 		return
 	}
 
-	race := game.Race{}
+	race := cs.Race{}
 	if err := c.ShouldBindJSON(&race); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

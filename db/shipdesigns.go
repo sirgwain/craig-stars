@@ -7,28 +7,28 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
-	"github.com/sirgwain/craig-stars/game"
+	"github.com/sirgwain/craig-stars/cs"
 )
 
 type ShipDesign struct {
-	ID            int64                  `json:"id,omitempty"`
-	CreatedAt     time.Time              `json:"createdAt,omitempty"`
-	UpdatedAt     time.Time              `json:"updatedAt,omitempty"`
-	PlayerID      int64                  `json:"playerId,omitempty"`
-	PlayerNum     int                    `json:"playerNum,omitempty"`
-	UUID          uuid.UUID              `json:"uuid,omitempty"`
-	Name          string                 `json:"name,omitempty"`
-	Version       int                    `json:"version,omitempty"`
-	Hull          string                 `json:"hull,omitempty"`
-	HullSetNumber int                    `json:"hullSetNumber,omitempty"`
-	CanDelete     bool                   `json:"canDelete,omitempty"`
-	Slots         *ShipDesignSlots       `json:"slots,omitempty"`
-	Purpose       game.ShipDesignPurpose `json:"purpose,omitempty"`
-	Spec          *ShipDesignSpec        `json:"spec,omitempty"`
+	ID            int64                `json:"id,omitempty"`
+	CreatedAt     time.Time            `json:"createdAt,omitempty"`
+	UpdatedAt     time.Time            `json:"updatedAt,omitempty"`
+	PlayerID      int64                `json:"playerId,omitempty"`
+	PlayerNum     int                  `json:"playerNum,omitempty"`
+	UUID          uuid.UUID            `json:"uuid,omitempty"`
+	Name          string               `json:"name,omitempty"`
+	Version       int                  `json:"version,omitempty"`
+	Hull          string               `json:"hull,omitempty"`
+	HullSetNumber int                  `json:"hullSetNumber,omitempty"`
+	CanDelete     bool                 `json:"canDelete,omitempty"`
+	Slots         *ShipDesignSlots     `json:"slots,omitempty"`
+	Purpose       cs.ShipDesignPurpose `json:"purpose,omitempty"`
+	Spec          *ShipDesignSpec      `json:"spec,omitempty"`
 }
 
-type ShipDesignSlots []game.ShipDesignSlot
-type ShipDesignSpec game.ShipDesignSpec
+type ShipDesignSlots []cs.ShipDesignSlot
+type ShipDesignSpec cs.ShipDesignSpec
 
 // db serializer to serialize this to JSON
 func (item *ShipDesignSlots) Value() (driver.Value, error) {
@@ -50,17 +50,17 @@ func (item *ShipDesignSpec) Scan(src interface{}) error {
 	return scanJSON(src, item)
 }
 
-func (c *client) GetShipDesignsForPlayer(playerID int64) ([]game.ShipDesign, error) {
+func (c *client) GetShipDesignsForPlayer(playerID int64) ([]cs.ShipDesign, error) {
 
 	items := []ShipDesign{}
 	if err := c.db.Select(&items, `SELECT * FROM shipDesigns WHERE playerId = ?`, playerID); err != nil {
 		if err == sql.ErrNoRows {
-			return []game.ShipDesign{}, nil
+			return []cs.ShipDesign{}, nil
 		}
 		return nil, err
 	}
 
-	result := make([]game.ShipDesign, len(items))
+	result := make([]cs.ShipDesign, len(items))
 
 	for i := range items {
 		result[i] = *c.converter.ConvertShipDesign(&items[i])
@@ -69,7 +69,7 @@ func (c *client) GetShipDesignsForPlayer(playerID int64) ([]game.ShipDesign, err
 	return result, nil
 }
 
-func (c *client) getShipDesignsByUUIDs(uuids []uuid.UUID) ([]game.ShipDesign, error) {
+func (c *client) getShipDesignsByUUIDs(uuids []uuid.UUID) ([]cs.ShipDesign, error) {
 
 	uuidStrings := make([]string, len(uuids))
 	for i, uuid := range uuids {
@@ -84,12 +84,12 @@ func (c *client) getShipDesignsByUUIDs(uuids []uuid.UUID) ([]game.ShipDesign, er
 	items := []ShipDesign{}
 	if err := c.db.Select(&items, query, args...); err != nil {
 		if err == sql.ErrNoRows {
-			return []game.ShipDesign{}, nil
+			return []cs.ShipDesign{}, nil
 		}
 		return nil, err
 	}
 
-	result := make([]game.ShipDesign, len(items))
+	result := make([]cs.ShipDesign, len(items))
 
 	for i := range items {
 		result[i] = *c.converter.ConvertShipDesign(&items[i])
@@ -99,7 +99,7 @@ func (c *client) getShipDesignsByUUIDs(uuids []uuid.UUID) ([]game.ShipDesign, er
 }
 
 // get a shipDesign by id
-func (c *client) GetShipDesign(id int64) (*game.ShipDesign, error) {
+func (c *client) GetShipDesign(id int64) (*cs.ShipDesign, error) {
 	item := ShipDesign{}
 	if err := c.db.Get(&item, "SELECT * FROM shipDesigns WHERE id = ?", id); err != nil {
 		if err == sql.ErrNoRows {
@@ -111,12 +111,12 @@ func (c *client) GetShipDesign(id int64) (*game.ShipDesign, error) {
 	return c.converter.ConvertShipDesign(&item), nil
 }
 
-func (c *client) CreateShipDesign(shipDesign *game.ShipDesign) error {
+func (c *client) CreateShipDesign(shipDesign *cs.ShipDesign) error {
 	return c.createShipDesign(shipDesign, c.db)
 }
 
 // create a new shipDesign given something that can execute NamedExec (either a DB or )
-func (c *client) createShipDesign(shipDesign *game.ShipDesign, tx SQLExecer) error {
+func (c *client) createShipDesign(shipDesign *cs.ShipDesign, tx SQLExecer) error {
 	item := c.converter.ConvertGameShipDesign(shipDesign)
 
 	result, err := tx.NamedExec(`
@@ -165,12 +165,12 @@ func (c *client) createShipDesign(shipDesign *game.ShipDesign, tx SQLExecer) err
 	return nil
 }
 
-func (c *client) UpdateShipDesign(shipDesign *game.ShipDesign) error {
+func (c *client) UpdateShipDesign(shipDesign *cs.ShipDesign) error {
 	return c.updateShipDesign(shipDesign, c.db)
 }
 
 // update an existing shipDesign
-func (c *client) updateShipDesign(shipDesign *game.ShipDesign, tx SQLExecer) error {
+func (c *client) updateShipDesign(shipDesign *cs.ShipDesign, tx SQLExecer) error {
 
 	item := c.converter.ConvertGameShipDesign(shipDesign)
 

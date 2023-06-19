@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sirgwain/craig-stars/game"
+	"github.com/sirgwain/craig-stars/cs"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -12,14 +12,14 @@ func TestCreateUser(t *testing.T) {
 
 	type args struct {
 		c    *client
-		user *game.User
+		user *cs.User
 	}
 	tests := []struct {
 		name    string
 		args    args
 		wantErr bool
 	}{
-		{"Create", args{connectTestDB(), &game.User{Username: "test"}}, false},
+		{"Create", args{connectTestDB(), &cs.User{Username: "test"}}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -41,7 +41,7 @@ func TestCreateUser(t *testing.T) {
 
 func TestUpdateUser(t *testing.T) {
 	c := connectTestDB()
-	user := game.User{Username: "Test"}
+	user := cs.User{Username: "Test"}
 	if err := c.CreateUser(&user); err != nil {
 		t.Errorf("create user %s", err)
 		return
@@ -49,7 +49,7 @@ func TestUpdateUser(t *testing.T) {
 
 	user.Username = "Test2"
 	user.Password = "newpassword"
-	user.Role = game.RoleAdmin
+	user.Role = cs.RoleAdmin
 	if err := c.UpdateUser(&user); err != nil {
 		t.Errorf("update user %s", err)
 		return
@@ -71,7 +71,7 @@ func TestUpdateUser(t *testing.T) {
 
 func TestGetUser(t *testing.T) {
 	c := connectTestDB()
-	user := game.User{Username: "Test"}
+	user := cs.User{Username: "Test"}
 	if err := c.CreateUser(&user); err != nil {
 		t.Errorf("create user %s", err)
 		return
@@ -83,7 +83,7 @@ func TestGetUser(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *game.User
+		want    *cs.User
 		wantErr bool
 	}{
 		{"No results", args{id: 0}, nil, false},
@@ -115,7 +115,7 @@ func TestGetUsers(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result))
 
-	user := game.User{Username: "Test"}
+	user := cs.User{Username: "Test"}
 	if err := c.CreateUser(&user); err != nil {
 		t.Errorf("create user %s", err)
 		return
@@ -133,7 +133,7 @@ func TestDeleteUsers(t *testing.T) {
 	_, err := c.GetUsers()
 	assert.Nil(t, err)
 
-	user := game.User{Username: "Test"}
+	user := cs.User{Username: "Test"}
 	if err := c.CreateUser(&user); err != nil {
 		t.Errorf("create user %s", err)
 		return

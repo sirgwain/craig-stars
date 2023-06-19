@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
+	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
-	"github.com/sirgwain/craig-stars/game"
 )
 
 type TurnGenerationCheckResult uint
@@ -17,13 +17,12 @@ const (
 	TurnGenerated
 )
 
-
 type GameRunner interface {
-	HostGame(hostID int64, settings *game.GameSettings) (*game.FullGame, error)
-	AddPlayer(gameID int64, userID int64, race *game.Race) error
-	GenerateUniverse(gameID int64) (*game.Universe, error)
-	LoadGame(gameID int64) (*game.FullGame, error)
-	LoadPlayerGame(gameID int64, userID int64) (*game.Game, *game.FullPlayer, error)
+	HostGame(hostID int64, settings *cs.GameSettings) (*cs.FullGame, error)
+	AddPlayer(gameID int64, userID int64, race *cs.Race) error
+	GenerateUniverse(gameID int64) (*cs.Universe, error)
+	LoadGame(gameID int64) (*cs.FullGame, error)
+	LoadPlayerGame(gameID int64, userID int64) (*cs.Game, *cs.FullPlayer, error)
 	SubmitTurn(gameID int64, userID int64) error
 	CheckAndGenerateTurn(gameID int64) (TurnGenerationCheckResult, error)
 }
@@ -42,20 +41,20 @@ func timeTrack(start time.Time, name string) {
 }
 
 // host a new game
-func (gr *gameRunner) HostGame(hostID int64, settings *game.GameSettings) (*game.FullGame, error) {
-	client := game.NewClient()
-	g := client.CreateGame(hostID, *settings)
+func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.FullGame, error) {
+	client := cs.NewClient()
+	game := client.CreateGame(hostID, *settings)
 
 	// create the game in the database
-	err := gr.db.CreateGame(&g)
+	err := gr.db.CreateGame(&game)
 	if err != nil {
 		return nil, err
 	}
 
-	players := make([]*game.Player, 0, len(settings.Players))
+	players := make([]*cs.Player, 0, len(settings.Players))
 
 	for i, player := range settings.Players {
-		if player.Type == game.NewGamePlayerTypeHost {
+		if player.Type == cs.NewGamePlayerTypeHost {
 
 			// add the host player with the host race
 			race, err := gr.db.GetRace(player.RaceID)
@@ -66,29 +65,29 @@ func (gr *gameRunner) HostGame(hostID int64, settings *game.GameSettings) (*game
 				return nil, fmt.Errorf("user %d does not own Race %d", hostID, race.ID)
 			}
 			log.Debug().Int64("hostID", hostID).Msgf("Adding host to game")
-			player := client.NewPlayer(hostID, *race, &g.Rules)
-			player.GameID = g.ID
+			player := client.NewPlayer(hostID, *race, &game.Rules)
+			player.GameID = game.ID
 			player.Num = i + 1
 			players = append(players, player)
-		} else if player.Type == game.NewGamePlayerTypeAI {
+		} else if player.Type == cs.NewGamePlayerTypeAI {
 			// g.AddPlayer(game.NewAIPlayer())
-		} else if player.Type == game.NewGamePlayerTypeOpen {
-			g.OpenPlayerSlots++
-			log.Debug().Uint("openPlayerSlots", g.OpenPlayerSlots).Msgf("Added open player slot")
+		} else if player.Type == cs.NewGamePlayerTypeOpen {
+			game.OpenPlayerSlots++
+			log.Debug().Uint("openPlayerSlots", game.OpenPlayerSlots).Msgf("Added open player slot")
 		}
 	}
 
-	fg := &game.FullGame{
-		Game:     &g,
+	fg := &cs.FullGame{
+		Game:     &game,
 		Players:  players,
-		Universe: &game.Universe{}, // todo: populate
+		Universe: &cs.Universe{}, // todo: populate
 	}
 
 	gr.db.UpdateFullGame(fg)
 
 	// generate the universe if this game is done
-	if g.OpenPlayerSlots == 0 {
-		fg.Universe, err = gr.GenerateUniverse(g.ID)
+	if game.OpenPlayerSlots == 0 {
+		fg.Universe, err = gr.GenerateUniverse(game.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -98,14 +97,14 @@ func (gr *gameRunner) HostGame(hostID int64, settings *game.GameSettings) (*game
 }
 
 // add a player to an existing game
-func (gr *gameRunner) AddPlayer(gameID int64, userID int64, race *game.Race) error {
+func (gr *gameRunner) AddPlayer(gameID int64, userID int64, race *cs.Race) error {
 
 	g, err := gr.db.GetFullGame(gameID)
 	if err != nil {
 		return fmt.Errorf("unable to load game %d: %w", gameID, err)
 	}
 
-	client := game.NewClient()
+	client := cs.NewClient()
 	player := client.NewPlayer(userID, *race, &g.Rules)
 	player.GameID = g.ID
 	if err := gr.db.CreatePlayer(player); err != nil {
@@ -125,20 +124,20 @@ func (gr *gameRunner) AddPlayer(gameID int64, userID int64, race *game.Race) err
 	return nil
 }
 
-func (gr *gameRunner) GenerateUniverse(gameID int64) (*game.Universe, error) {
+func (gr *gameRunner) GenerateUniverse(gameID int64) (*cs.Universe, error) {
 	defer timeTrack(time.Now(), "GenerateUniverse")
 	g, err := gr.LoadGame(gameID)
 	if err != nil {
 		return nil, fmt.Errorf("load game %d: %w", gameID, err)
 	}
 
-	client := game.NewClient()
+	client := cs.NewClient()
 	universe, err := client.GenerateUniverse(g.Game, g.Players)
 	if err != nil {
 		return nil, fmt.Errorf("generate universe for game %d: %w", gameID, err)
 	}
 
-	g.State = game.GameStateWaitingForPlayers
+	g.State = cs.GameStateWaitingForPlayers
 	g.Universe = universe
 
 	err = gr.db.UpdateFullGame(g)
@@ -150,7 +149,7 @@ func (gr *gameRunner) GenerateUniverse(gameID int64) (*game.Universe, error) {
 }
 
 // load a full game
-func (gr *gameRunner) LoadGame(gameID int64) (*game.FullGame, error) {
+func (gr *gameRunner) LoadGame(gameID int64) (*cs.FullGame, error) {
 	defer timeTrack(time.Now(), "LoadGame")
 
 	g, err := gr.db.GetFullGame(gameID)
@@ -163,7 +162,7 @@ func (gr *gameRunner) LoadGame(gameID int64) (*game.FullGame, error) {
 }
 
 // load a player and the light version of the player game
-func (gr *gameRunner) LoadPlayerGame(gameID int64, userID int64) (*game.Game, *game.FullPlayer, error) {
+func (gr *gameRunner) LoadPlayerGame(gameID int64, userID int64) (*cs.Game, *cs.FullPlayer, error) {
 
 	g, err := gr.db.GetGame(gameID)
 
@@ -172,7 +171,7 @@ func (gr *gameRunner) LoadPlayerGame(gameID int64, userID int64) (*game.Game, *g
 	}
 
 	if g.Rules.TechsID == 0 {
-		g.Rules.WithTechStore(&game.StaticTechStore)
+		g.Rules.WithTechStore(&cs.StaticTechStore)
 	} else {
 		techs, err := gr.db.GetTechStore(g.Rules.TechsID)
 		if err != nil {
@@ -216,7 +215,7 @@ func (gr *gameRunner) CheckAndGenerateTurn(gameID int64) (TurnGenerationCheckRes
 	}
 
 	// if everyone submitted their turn, generate a new turn
-	client := game.NewClient()
+	client := cs.NewClient()
 	if client.CheckAllPlayersSubmitted(g.Players) {
 		if err := client.GenerateTurn(g.Game, g.Universe, g.Players); err != nil {
 			return TurnNotGenerated, fmt.Errorf("generate turn -> %w", err)

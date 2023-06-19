@@ -1,18 +1,18 @@
 package db
 
-import "github.com/sirgwain/craig-stars/game"
+import "github.com/sirgwain/craig-stars/cs"
 
-func (c *client) GetTechStores() ([]game.TechStore, error) {
+func (c *client) GetTechStores() ([]cs.TechStore, error) {
 	// TODO: implement
-	return []game.TechStore{game.StaticTechStore}, nil
+	return []cs.TechStore{cs.StaticTechStore}, nil
 }
 
-func (c *client) CreateTechStore(tech *game.TechStore) error {
+func (c *client) CreateTechStore(tech *cs.TechStore) error {
 	// TODO: implement
 	return nil
 }
 
-func (c *client) GetTechStore(id int64) (*game.TechStore, error) {
+func (c *client) GetTechStore(id int64) (*cs.TechStore, error) {
 	// TODO: implement
 	return nil, nil
 }

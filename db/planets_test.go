@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sirgwain/craig-stars/game"
+	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
 )
@@ -12,23 +12,23 @@ import (
 func TestCreatePlanet(t *testing.T) {
 	type args struct {
 		c      *client
-		planet *game.Planet
+		planet *cs.Planet
 	}
 	tests := []struct {
 		name    string
 		args    args
 		wantErr bool
 	}{
-		{"Create", args{connectTestDB(), &game.Planet{
-			MapObject: game.MapObject{GameID: 1, Name: "test"},
+		{"Create", args{connectTestDB(), &cs.Planet{
+			MapObject: cs.MapObject{GameID: 1, Name: "test"},
 		},
 		}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// create a test game
-			g := tt.args.c.createTestGame()
-			tt.args.planet.GameID = g.ID
+			game := tt.args.c.createTestGame()
+			tt.args.planet.GameID = game.ID
 
 			want := *tt.args.planet
 			err := tt.args.c.createPlanet(tt.args.planet, tt.args.c.db)
@@ -48,20 +48,20 @@ func TestCreatePlanet(t *testing.T) {
 
 func TestGetPlanets(t *testing.T) {
 	c := connectTestDB()
-	g := c.createTestGame()
+	game := c.createTestGame()
 
 	// start with 1 planet from connectTestDB
-	result, err := c.getPlanetsForGame(g.ID)
+	result, err := c.getPlanetsForGame(game.ID)
 	assert.Nil(t, err)
-	assert.Equal(t, []*game.Planet{}, result)
+	assert.Equal(t, []*cs.Planet{}, result)
 
-	planet := game.Planet{MapObject: game.MapObject{GameID: g.ID}}
+	planet := cs.Planet{MapObject: cs.MapObject{GameID: game.ID}}
 	if err := c.createPlanet(&planet, c.db); err != nil {
 		t.Errorf("create planet %s", err)
 		return
 	}
 
-	result, err = c.getPlanetsForGame(g.ID)
+	result, err = c.getPlanetsForGame(game.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result))
 
@@ -69,8 +69,8 @@ func TestGetPlanets(t *testing.T) {
 
 func TestGetPlanet(t *testing.T) {
 	c := connectTestDB()
-	g := c.createTestGame()
-	planet := game.Planet{MapObject: game.MapObject{GameID: g.ID, Name: "name", Type: game.MapObjectTypePlanet}}
+	game := c.createTestGame()
+	planet := cs.Planet{MapObject: cs.MapObject{GameID: game.ID, Name: "name", Type: cs.MapObjectTypePlanet}}
 	if err := c.createPlanet(&planet, c.db); err != nil {
 		t.Errorf("create planet %s", err)
 		return
@@ -82,7 +82,7 @@ func TestGetPlanet(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *game.Planet
+		want    *cs.Planet
 		wantErr bool
 	}{
 		{"No results", args{id: 0}, nil, false},
@@ -108,8 +108,8 @@ func TestGetPlanet(t *testing.T) {
 
 func TestUpdatePlanet(t *testing.T) {
 	c := connectTestDB()
-	g := c.createTestGame()
-	planet := game.Planet{MapObject: game.MapObject{GameID: g.ID}}
+	game := c.createTestGame()
+	planet := cs.Planet{MapObject: cs.MapObject{GameID: game.ID}}
 	if err := c.createPlanet(&planet, c.db); err != nil {
 		t.Errorf("create planet %s", err)
 		return

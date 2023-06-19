@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/sirgwain/craig-stars/game"
+	"github.com/sirgwain/craig-stars/cs"
 )
 
 type User struct {
@@ -16,7 +16,7 @@ type User struct {
 	Role      string    `json:"role,omitempty"`
 }
 
-func (c *client) GetUsers() ([]game.User, error) {
+func (c *client) GetUsers() ([]cs.User, error) {
 
 	// don't include password in bulk select
 	items := []User{}
@@ -29,7 +29,7 @@ func (c *client) GetUsers() ([]game.User, error) {
 	FROM Users
 	`); err != nil {
 		if err == sql.ErrNoRows {
-			return []game.User{}, nil
+			return []cs.User{}, nil
 		}
 		return nil, err
 	}
@@ -38,7 +38,7 @@ func (c *client) GetUsers() ([]game.User, error) {
 }
 
 // get a user by id
-func (c *client) GetUser(id int64) (*game.User, error) {
+func (c *client) GetUser(id int64) (*cs.User, error) {
 	item := User{}
 	if err := c.db.Get(&item, "SELECT * FROM users WHERE id = ?", id); err != nil {
 		if err == sql.ErrNoRows {
@@ -52,7 +52,7 @@ func (c *client) GetUser(id int64) (*game.User, error) {
 }
 
 // get a user by id
-func (c *client) GetUserByUsername(username string) (*game.User, error) {
+func (c *client) GetUserByUsername(username string) (*cs.User, error) {
 	item := User{}
 	if err := c.db.Get(&item, "SELECT * FROM users WHERE username = ?", username); err != nil {
 		if err == sql.ErrNoRows {
@@ -66,7 +66,7 @@ func (c *client) GetUserByUsername(username string) (*game.User, error) {
 }
 
 // create a new user
-func (c *client) CreateUser(user *game.User) error {
+func (c *client) CreateUser(user *cs.User) error {
 	item := c.converter.ConvertGameUser(user)
 	result, err := c.db.NamedExec(`
 	INSERT INTO users (
@@ -99,7 +99,7 @@ func (c *client) CreateUser(user *game.User) error {
 }
 
 // update an existing user
-func (c *client) UpdateUser(user *game.User) error {
+func (c *client) UpdateUser(user *cs.User) error {
 
 	item := c.converter.ConvertGameUser(user)
 
