@@ -78,6 +78,10 @@ func HabFromInts(hab [3]int) Hab {
 	}
 }
 
+func (h Hab) absSum() int {
+	return h.Grav + h.Temp + h.Rad
+}
+
 func gravString(grav int) string {
 	result := 0
 	tmp := int(math.Abs(float64(grav - 50)))
