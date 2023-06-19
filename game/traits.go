@@ -4,7 +4,6 @@ type PRTSpec struct {
 	PRT                              PRT              `json:"prt"`
 	PointCost                        int              `json:"pointCost"`
 	StartingTechLevels               TechLevel        `json:"startingTechLevels"`
-	StartingFleets                   []StartingFleet  `json:"startingFleets"`
 	StartingPlanets                  []StartingPlanet `json:"startingPlanets"`
 	TechCostOffset                   TechCostOffset   `json:"techCostOffset"`
 	MineralsPerSingleMineralPacket   int              `json:"mineralsPerSingleMineralPacket"`
@@ -97,17 +96,20 @@ type TechCostOffset struct {
 }
 
 type StartingPlanet struct {
-	Population       int             `json:"population"`
-	HabPenaltyFactor float64         `json:"habPenaltyFactor"`
-	HasStargate      bool            `json:"hasStargate"`
-	HasMassDriver    bool            `json:"hasMassDriver"`
-	StartingFleets   []StartingFleet `json:"startingFleets"`
+	Population         int             `json:"population"`
+	HabPenaltyFactor   float64         `json:"habPenaltyFactor"`
+	HasStargate        bool            `json:"hasStargate"`
+	HasMassDriver      bool            `json:"hasMassDriver"`
+	StarbaseDesignName string          `json:"starbaseDesignName"`
+	StarbaseHull       string          `json:"starbaseHull"`
+	StartingFleets     []StartingFleet `json:"startingFleets"`
 }
 
 type StartingFleet struct {
-	Name     string            `json:"name"`
-	HullName StartingFleetHull `json:"hullName"`
-	Purpose  ShipDesignPurpose `json:"purpose"`
+	Name          string            `json:"name"`
+	HullName      StartingFleetHull `json:"hullName"`
+	HullSetNumber uint              `json:"hullSetNumber"`
+	Purpose       ShipDesignPurpose `json:"purpose"`
 }
 
 type StartingFleetHull string
@@ -125,7 +127,7 @@ const (
 
 func defaultPRTSpec() PRTSpec {
 	return PRTSpec{
-		StartingPlanets: []StartingPlanet{{Population: 25000}},
+		StartingPlanets: []StartingPlanet{{Population: 25000, StarbaseHull: SpaceStation.Name, StarbaseDesignName: "Starbase"}},
 
 		PointCost:                        66,
 		MineralsPerSingleMineralPacket:   100,
@@ -220,20 +222,21 @@ func PPSpec() PRTSpec {
 	spec := defaultPRTSpec()
 
 	spec.StartingTechLevels = TechLevel{Energy: 4}
-	spec.StartingFleets = []StartingFleet{
-		{"Long Range Scout", StartingFleetHullScout, ShipDesignPurposeScout},
-		{"Long Range Scout", StartingFleetHullScout, ShipDesignPurposeScout},
-		{"Santa Maria", StartingFleetHullColonyShip, ShipDesignPurposeColonizer},
-	}
 
 	spec.StartingPlanets = []StartingPlanet{
 		// one homeworld, 20k people, no hab penalty
-		{Population: 25000, HabPenaltyFactor: 0, HasMassDriver: true},
+		{Population: 25000, HabPenaltyFactor: 0, HasMassDriver: true, StarbaseHull: SpaceStation.Name, StarbaseDesignName: "Starbase",
+			StartingFleets: []StartingFleet{
+				{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
+				{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
+				{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
+			},
+		},
 		// on extra world where hab varies by 1/2 of the range
 		{
-			Population: 10000, HabPenaltyFactor: 1, HasMassDriver: true,
+			Population: 10000, HabPenaltyFactor: 1, HasMassDriver: true, StarbaseHull: OrbitalFort.Name, StarbaseDesignName: "Accelerator Platform",
 			StartingFleets: []StartingFleet{
-				{"Long Range Scout", StartingFleetHullScout, ShipDesignPurposeScout},
+				{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
 			},
 		},
 	}
@@ -274,13 +277,13 @@ func JoaTSpec() PRTSpec {
 		Electronics:   3,
 		Biotechnology: 3,
 	}
-	spec.StartingFleets = []StartingFleet{
-		{"Long Range Scout", StartingFleetHullScout, ShipDesignPurposeScout},
-		{"Santa Maria", StartingFleetHullColonyShip, ShipDesignPurposeColonizer},
-		{"Teamster", StartingFleetHullMediumFreighter, ShipDesignPurposeFreighter},
-		{"Cotton Picker", StartingFleetHullMiniMiner, ShipDesignPurposeMiner},
-		{"Armored Probe", StartingFleetHullScout, ShipDesignPurposeFighterScout},
-		{"Stalwart Defender", StartingFleetHullDestroyer, ShipDesignPurposeFighterScout},
+	spec.StartingPlanets[0].StartingFleets = []StartingFleet{
+		{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
+		{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
+		{"Teamster", StartingFleetHullMediumFreighter, 0, ShipDesignPurposeFreighter},
+		{"Cotton Picker", StartingFleetHullMiniMiner, 0, ShipDesignPurposeMiner},
+		{"Armored Probe", StartingFleetHullScout, 1, ShipDesignPurposeFighterScout},
+		{"Stalwart Defender", StartingFleetHullDestroyer, 0, ShipDesignPurposeFighterScout},
 	}
 
 	spec.MaxPopulationOffset = .2

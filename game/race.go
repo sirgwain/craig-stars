@@ -56,7 +56,6 @@ type ResearchCost struct {
 type RaceSpec struct {
 	Costs                            map[QueueItemType]Cost `json:"costs,omitempty"`
 	StartingTechLevels               TechLevel              `json:"startingTechLevels,omitempty"`
-	StartingFleets                   []StartingFleet        `json:"startingFleets,omitempty"`
 	StartingPlanets                  []StartingPlanet       `json:"startingPlanets,omitempty"`
 	TechCostOffset                   TechCostOffset         `json:"techCostOffset,omitempty"`
 	MineralsPerSingleMineralPacket   int                    `json:"mineralsPerSingleMineralPacket,omitempty"`
@@ -249,7 +248,7 @@ func NewRace() *Race {
 	return &Race{
 		Name:       "Humanoid",
 		PluralName: "Humanoids",
-		PRT:        "JoaT",
+		PRT:        PP,
 		LRTs:       LRTNone,
 		HabLow: Hab{
 			Grav: 15,
@@ -293,6 +292,14 @@ func (r *Race) HabCenter() Hab {
 		(r.HabHigh.Grav-r.HabLow.Grav)/2 + r.HabLow.Grav,
 		(r.HabHigh.Temp-r.HabLow.Temp)/2 + r.HabLow.Temp,
 		(r.HabHigh.Rad-r.HabLow.Rad)/2 + r.HabLow.Rad,
+	}
+}
+
+func (r *Race) HabWidth() Hab {
+	return Hab{
+		(r.HabHigh.Grav - r.HabLow.Grav),
+		(r.HabHigh.Temp - r.HabLow.Temp),
+		(r.HabHigh.Rad - r.HabLow.Rad),
 	}
 }
 
@@ -380,7 +387,6 @@ func computeRaceSpec(race *Race, rules *Rules) *RaceSpec {
 	prtSpec := rules.PRTSpecs[PRT(race.PRT)]
 	spec := RaceSpec{
 		StartingTechLevels:       prtSpec.StartingTechLevels,
-		StartingFleets:           prtSpec.StartingFleets,
 		StartingPlanets:          prtSpec.StartingPlanets,
 		TechCostOffset:           prtSpec.TechCostOffset,
 		MaxPopulationOffset:      prtSpec.MaxPopulationOffset,

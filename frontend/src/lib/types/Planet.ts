@@ -3,6 +3,8 @@ import type { Hab } from './Hab';
 import type { MapObject } from './MapObject';
 import type { Mineral } from './Mineral';
 
+export const Unexplored = -1;
+
 export interface Planet extends MapObject {
 	hab?: Hab;
 	baseHab?: Hab;
@@ -10,6 +12,7 @@ export interface Planet extends MapObject {
 	mineralConcentration?: Mineral;
 	mineYears?: Mineral;
 	cargo?: Cargo;
+	population?: number;
 	playerID?: number;
 	mines?: number;
 	factories?: number;
@@ -17,7 +20,7 @@ export interface Planet extends MapObject {
 	contributesOnlyLeftoverToResearch?: boolean;
 	homeworld?: boolean;
 	scanner?: boolean;
-	reportAge?: number;
+	reportAge: number;
 	productionQueue?: ProductionQueueItem[];
 	spec?: PlanetSpec;
 }

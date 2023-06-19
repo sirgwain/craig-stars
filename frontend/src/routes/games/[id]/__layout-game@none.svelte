@@ -1,15 +1,13 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { onMount } from 'svelte';
-	import ProductionQueue from '$lib/components/game/ProductionQueue.svelte';
 	import GameMenu from '$lib/components/game/GameMenu.svelte';
+	import ProductionQueue from '$lib/components/game/ProductionQueue.svelte';
 	import { EventManager } from '$lib/EventManager';
-	import { commandPlanet, game, player, selectPlanet } from '$lib/services/Context';
+	import { commandMapObject, game, player, selectMapObject } from '$lib/services/Context';
 	import { GameService } from '$lib/services/GameService';
 	import { PlayerService } from '$lib/services/PlayerService';
-	import type { Game } from '$lib/types/Game';
 	import type { Planet } from '$lib/types/Planet';
-	import type { Player } from '$lib/types/Player';
+	import { onMount } from 'svelte';
 
 	let id = parseInt($page.params.id);
 	let playerService: PlayerService;
@@ -29,11 +27,11 @@
 		// setGameContext(game, player);
 		const homeworld = $player.planets.find((p) => p.homeworld);
 		if (homeworld) {
-			commandPlanet(homeworld);
-			selectPlanet(homeworld);
+			commandMapObject(homeworld);
+			selectMapObject(homeworld);
 		} else {
-			commandPlanet($player.planets[0]);
-			selectPlanet($player.planets[0]);
+			commandMapObject($player.planets[0]);
+			selectMapObject($player.planets[0]);
 		}
 	}
 
@@ -55,7 +53,7 @@
 
 {#if $game && $player}
 	<main class="flex flex-col h-screen">
-		<div class="flex-none">
+		<div class="flex-initial">
 			<GameMenu on:submit-turn={onSubmitTurn} />
 		</div>
 		<div class="p-2 flex-1">

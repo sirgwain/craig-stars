@@ -38,9 +38,131 @@
 	}
 }
 
+.planet-avatar {
+	-width:- 65px;
+	height: 65px;
+}
+
+.fleet-avatar {
+	width: 65px;
+	height: 65px;
+}
+
 .tech-avatar {
-	width: 64px;
-	height: 64px;
+	width: 65px;
+	height: 65px;
+}
+
+.planet-0 {
+	background: url(/images/planets.png) 0px 0px;
+}
+
+.planet-1 {
+	background: url(/images/planets.png) -64px 0px;
+}
+
+.planet-2 {
+	background: url(/images/planets.png) -128px 0px;
+}
+
+.planet-3 {
+	background: url(/images/planets.png) -192px 0px;
+}
+
+.planet-4 {
+	background: url(/images/planets.png) -256px 0px;
+}
+
+.planet-5 {
+	background: url(/images/planets.png) -320px 0px;
+}
+
+.planet-6 {
+	background: url(/images/planets.png) -384px 0px;
+}
+
+.planet-7 {
+	background: url(/images/planets.png) 0px -64px;
+}
+
+.planet-8 {
+	background: url(/images/planets.png) -64px -64px;
+}
+
+.planet-9 {
+	background: url(/images/planets.png) -128px -64px;
+}
+
+.planet-10 {
+	background: url(/images/planets.png) -192px -64px;
+}
+
+.planet-11 {
+	background: url(/images/planets.png) -256px -64px;
+}
+
+.planet-12 {
+	background: url(/images/planets.png) -320px -64px;
+}
+
+.planet-13 {
+	background: url(/images/planets.png) -384px -64px;
+}
+
+.planet-14 {
+	background: url(/images/planets.png) 0px -128px;
+}
+
+.planet-15 {
+	background: url(/images/planets.png) -64px -128px;
+}
+
+.planet-16 {
+	background: url(/images/planets.png) -128px -128px;
+}
+
+.planet-17 {
+	background: url(/images/planets.png) -192px -128px;
+}
+
+.planet-18 {
+	background: url(/images/planets.png) -256px -128px;
+}
+
+.planet-19 {
+	background: url(/images/planets.png) -320px -128px;
+}
+
+.planet-20 {
+	background: url(/images/planets.png) -384px -128px;
+}
+
+.planet-21 {
+	background: url(/images/planets.png) 0px -192px;
+}
+
+.planet-22 {
+	background: url(/images/planets.png) -64px -192px;
+}
+
+.planet-23 {
+	background: url(/images/planets.png) -128px -192px;
+}
+
+.planet-24 {
+	background: url(/images/planets.png) -192px -192px;
+}
+
+.planet-25 {
+	background: url(/images/planets.png) -256px -192px;
+}
+
+.planet-26 {
+	background: url(/images/planets.png) -320px -192px;
+}
+
+.planet-27 {
+	background: url(/images/planets.png) -384px -192px;
 }
 
 .settlers-delight {
@@ -104,271 +226,271 @@
 }
 
 .viewer-50 {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs01.png) 0px -128px;
 }
 
 .viewer-90 {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs01.png) -64px -128px;
 }
 
 .scoper-150 {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs01.png) -128px -128px;
 }
 
 .scoper-220 {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs01.png) -192px -128px;
 }
 
 .scoper-280 {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs01.png) -256px -128px;
 }
 
 .snooper-320-x {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs01.png) -320px -128px;
 }
 
 .snooper-400-x {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs01.png) -384px -128px;
 }
 
 .snooper-500-x {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs01.png) -448px -128px;
 }
 
 .snooper-620-x {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs01.png) 0px -192px;
 }
 
 .sdi {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs01.png) 0px -64px;
 }
 
 .missile-battery {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs01.png) -64px -64px;
 }
 
 .laser-battery {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs01.png) -128px -64px;
 }
 
 .planetary-shield {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs01.png) -192px -64px;
 }
 
 .neutron-shield {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs01.png) -256px -64px;
 }
 
 .stargate-100-250 {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.stargate-100-any {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.stargate-150-600 {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.stargate-300-500 {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs05.png) 0px -128px;
 }
 
 .stargateany-300 {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs05.png) -64px -128px;
+}
+
+.stargate-150-600 {
+	background: url(/images/techs05.png) -128px -128px;
+}
+
+.stargate-300-500 {
+	background: url(/images/techs05.png) -192px -128px;
+}
+
+.stargate-100-any {
+	background: url(/images/techs05.png) -256px -128px;
 }
 
 .stargateany-800 {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs05.png) -320px -128px;
 }
 
 .stargateany-any {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs05.png) -384px -128px;
 }
 
 .mass-driver-5 {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs05.png) -448px -128px;
 }
 
 .mass-driver-6 {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs05.png) 0px -192px;
 }
 
 .mass-driver-7 {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs05.png) -64px -192px;
 }
 
 .super-driver-8 {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs05.png) -128px -192px;
 }
 
 .super-driver-9 {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs05.png) -192px -192px;
 }
 
 .ultra-driver-10 {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs05.png) -256px -192px;
 }
 
 .ultra-driver-11 {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs05.png) -320px -192px;
 }
 
 .ultra-driver-12 {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs05.png) -384px -192px;
 }
 
 .ultra-driver-13 {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.robo-miner {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.robo-maxi-miner {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs05.png) -448px -192px;
 }
 
 .robo-midget-miner {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs05.png) -128px -64px;
 }
 
 .robo-mini-miner {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs05.png) -192px -64px;
+}
+
+.robo-miner {
+	background: url(/images/techs05.png) -256px -64px;
 }
 
 .robo-super-miner {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs05.png) -320px -64px;
+}
+
+.robo-maxi-miner {
+	background: url(/images/techs05.png) -384px -64px;
 }
 
 .robo-ultra-miner {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs05.png) -448px -64px;
 }
 
 .orbital-adjuster {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs06.png) -320px -64px;
 }
 
 .lady-finger-bomb {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs03.png) -192px 0px;
 }
 
 .black-cat-bomb {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs03.png) -256px 0px;
 }
 
 .m-70-bomb {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs03.png) -320px 0px;
 }
 
 .m-80-bomb {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs03.png) -384px 0px;
 }
 
 .cherry-bomb {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs03.png) -448px 0px;
 }
 
 .lbu-17-bomb {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs03.png) 0px 0px;
 }
 
 .lbu-32-bomb {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs03.png) -64px 0px;
 }
 
 .lbu-74-bomb {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs03.png) -128px 0px;
 }
 
 .retro-bomb {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs06.png) -384px -64px;
 }
 
 .smart-bomb {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs04.png) 0px -128px;
 }
 
 .neutron-bomb {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs04.png) -64px -128px;
 }
 
 .enriched-neutron-bomb {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs04.png) -128px -128px;
 }
 
 .peerless-bomb {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs04.png) -192px -128px;
 }
 
 .annihilator-bomb {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs04.png) -256px -128px;
 }
 
 .bat-scanner {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs03.png) 0px -128px;
 }
 
 .rhino-scanner {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs03.png) -64px -128px;
 }
 
 .mole-scanner {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs03.png) -128px -128px;
 }
 
 .pick-pocket-scanner {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs03.png) 0px -192px;
 }
 
 .possum-scanner {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs03.png) -128px -128px;
 }
 
 .dna-scanner {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs03.png) 0px -128px;
 }
 
 .chameleon-scanner {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs03.png) 0px -128px;
 }
 
 .ferret-scanner {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs03.png) 0px -128px;
 }
 
 .rna-scanner {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs03.png) 0px -128px;
 }
 
 .gazelle-scanner {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs03.png) 0px -128px;
 }
 
 .dolphin-scanner {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs03.png) 0px -128px;
 }
 
 .cheetah-scanner {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs03.png) 0px -128px;
 }
 
 .eagle-eye-scanner {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs03.png) 0px -128px;
 }
 
 .elephant-scanner {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs03.png) 0px -128px;
 }
 
 .peerless-scanner {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs03.png) -128px -192px;
 }
 
 .robber-baron-scanner {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs03.png) -64px -192px;
 }
 
 .tritanium {
@@ -376,31 +498,31 @@
 }
 
 .crobmnium {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs01.png) -64px 0px;
 }
 
 .carbonic-armor {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs01.png) -128px 0px;
 }
 
 .strobnium {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs01.png) -192px 0px;
 }
 
 .organic-armor {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs01.png) -256px 0px;
 }
 
 .kelarium {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs01.png) -320px 0px;
 }
 
 .fielded-kelarium {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs01.png) -384px 0px;
 }
 
 .depleted-neutronium {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs01.png) -448px 0px;
 }
 
 .neutronium {
@@ -432,15 +554,15 @@
 }
 
 .battle-computer {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs06.png) -320px 0px;
 }
 
 .battle-super-computer {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs06.png) -384px 0px;
 }
 
 .battle-nexus {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs06.png) -448px 0px;
 }
 
 .jammer-10 {
@@ -480,43 +602,43 @@
 }
 
 .mine-dispenser-40 {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs05.png) 0px 0px;
 }
 
 .mine-dispenser-50 {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs05.png) -64px 0px;
 }
 
 .mine-dispenser-80 {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs05.png) -128px 0px;
 }
 
 .mine-dispenser-130 {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs05.png) -192px 0px;
 }
 
 .heavy-dispenser-50 {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs05.png) -448px 0px;
 }
 
 .heavy-dispenser-110 {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs05.png) 0px -64px;
 }
 
 .heavy-dispenser-200 {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs05.png) -64px -64px;
 }
 
 .speed-trap-20 {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs05.png) -256px 0px;
 }
 
 .speed-trap-30 {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs05.png) -320px 0px;
 }
 
 .speed-trap-50 {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs05.png) -384px 0px;
 }
 
 .colonization-module {
@@ -648,323 +770,753 @@
 }
 
 .alpha-torpedo {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.armageddon-missile {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs01.png) -64px -192px;
 }
 
 .beta-torpedo {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs01.png) -128px -192px;
 }
 
 .delta-torpedo {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.doomsday-missile {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs01.png) -192px -192px;
 }
 
 .epsilon-torpedo {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.jihad-missile {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.juggernaut-missile {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs01.png) -256px -192px;
 }
 
 .omega-torpedo {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs01.png) -320px -192px;
 }
 
 .rho-torpedo {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs01.png) -384px -192px;
 }
 
 .upsilon-torpedo {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs01.png) -448px -192px;
+}
+
+.jihad-missile {
+	background: url(/images/techs07.png) 0px -64px;
+}
+
+.juggernaut-missile {
+	background: url(/images/techs07.png) -64px -64px;
+}
+
+.doomsday-missile {
+	background: url(/images/techs07.png) -128px -64px;
+}
+
+.armageddon-missile {
+	background: url(/images/techs07.png) -192px -64px;
 }
 
 .mole-skin-shield {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs03.png) -128px -64px;
 }
 
 .cow-hide-shield {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs03.png) -192px -64px;
 }
 
 .wolverine-diffuse-shield {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs03.png) -256px -64px;
 }
 
 .croby-sharmor {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs03.png) 0px -64px;
 }
 
 .shadow-shield {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs03.png) -64px -64px;
 }
 
 .bear-neutrino-barrier {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs03.png) -320px -64px;
 }
 
 .gorilla-delagator {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs03.png) -384px -64px;
 }
 
 .elephant-hide-fortress {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs03.png) -448px -64px;
 }
 
 .complete-phase-shield {
-	background: url(/images/techs01.png) 0px 0px;
+	background: url(/images/techs04.png) -448px -128px;
 }
-
-.small-freighter {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.medium-freighter {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.large-freighter {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.super-freighter {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.scout {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.frigate {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.destroyer {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.cruiser {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.battle-cruiser {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.battleship {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.dreadnought {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.privateer {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.rogue {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.galleon {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.mini-colony-ship {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.colony-ship {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.mini-bomber {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.b-17-bomber {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.stealth-bomber {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.b-52-bomber {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.midget-miner {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.mini-miner {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.miner {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.maxi-miner {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.ultra-miner {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.fuel-transport {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.super-fuel-xport {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.mini-mine-layer {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.super-mine-layer {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.nubian {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.meta-morph {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.orbital-fort {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.space-station {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.ultra-station {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-.death-star {
-	background: url(/images/techs01.png) 0px 0px;
-}
-
-
 
 .total-terraform-3 {
-	background: url(/images/techs06.png) 0px 0px;
+	background: url(/images/techs06.png) 0px -192px;
 }
-
 
 .total-terraform-5 {
-	background: url(/images/techs06.png) 0px 0px;
+	background: url(/images/techs06.png) -64px -192px;
 }
-
 
 .total-terraform-7 {
-	background: url(/images/techs06.png) 0px 0px;
+	background: url(/images/techs06.png) -128px -192px;
 }
-
 
 .total-terraform-10 {
-	background: url(/images/techs06.png) 0px 0px;
+	background: url(/images/techs06.png) -192px -192px;
 }
-
 
 .total-terraform-15 {
-	background: url(/images/techs06.png) 0px 0px;
+	background: url(/images/techs06.png) -256px -192px;
 }
-
 
 .total-terraform-20 {
-	background: url(/images/techs06.png) 0px 0px;
+	background: url(/images/techs06.png) -256px -128px;
 }
-
 
 .total-terraform-25 {
-	background: url(/images/techs06.png) 0px 0px;
+	background: url(/images/techs06.png) -256px -64px;
 }
-
 
 .total-terraform-30 {
-	background: url(/images/techs06.png) 0px 0px;
+	background: url(/images/techs06.png) -256px 0px;
 }
-
 
 .gravity-terraform-3 {
 	background: url(/images/techs06.png) 0px 0px;
 }
 
-
 .gravity-terraform-7 {
-	background: url(/images/techs06.png) 0px 0px;
+	background: url(/images/techs06.png) -64px 0px;
 }
-
 
 .gravity-terraform-11 {
-	background: url(/images/techs06.png) 0px 0px;
+	background: url(/images/techs06.png) -128px 0px;
 }
-
 
 .gravity-terraform-15 {
-	background: url(/images/techs06.png) 0px 0px;
+	background: url(/images/techs06.png) -192px 0px;
 }
-
 
 .temp-terraform-3 {
-	background: url(/images/techs06.png) 0px 0px;
+	background: url(/images/techs06.png) 0px -64px;
 }
-
 
 .temp-terraform-7 {
-	background: url(/images/techs06.png) 0px 0px;
+	background: url(/images/techs06.png) -64px -64px;
 }
-
 
 .temp-terraform-11 {
-	background: url(/images/techs06.png) 0px 0px;
+	background: url(/images/techs06.png) -128px -64px;
 }
-
 
 .temp-terraform-15 {
-	background: url(/images/techs06.png) 0px 0px;
+	background: url(/images/techs06.png) -192px -64px;
 }
-
 
 .radiation-terraform-3 {
-	background: url(/images/techs06.png) 0px 0px;
+	background: url(/images/techs06.png) 0px -128px;
 }
-
 
 .radiation-terraform-7 {
-	background: url(/images/techs06.png) 0px 0px;
+	background: url(/images/techs06.png) -64px -128px;
 }
-
 
 .radiation-terraform-11 {
-	background: url(/images/techs06.png) 0px 0px;
+	background: url(/images/techs06.png) -128px -128px;
 }
-
 
 .radiation-terraform-15 {
-	background: url(/images/techs06.png) 0px 0px;
+	background: url(/images/techs06.png) -192px -128px;
 }
 
+.hull-small-freighter-0 {
+	background: url(/images/techhulls01.png) 0px 0px;
+}
+
+.hull-small-freighter-1 {
+	background: url(/images/techhulls01.png) 0px -64px;
+}
+
+.hull-small-freighter-2 {
+	background: url(/images/techhulls01.png) 0px -128px;
+}
+
+.hull-small-freighter-3 {
+	background: url(/images/techhulls01.png) 0px -192px;
+}
+
+.hull-medium-freighter-0 {
+	background: url(/images/techhulls01.png) -64px 0px;
+}
+
+.hull-medium-freighter-1 {
+	background: url(/images/techhulls01.png) -64px -64px;
+}
+
+.hull-medium-freighter-2 {
+	background: url(/images/techhulls01.png) -64px -128px;
+}
+
+.hull-medium-freighter-3 {
+	background: url(/images/techhulls01.png) -64px -192px;
+}
+
+.hull-large-freighter-0 {
+	background: url(/images/techhulls01.png) -128px 0px;
+}
+
+.hull-large-freighter-1 {
+	background: url(/images/techhulls01.png) -128px -64px;
+}
+
+.hull-large-freighter-2 {
+	background: url(/images/techhulls01.png) -128px -128px;
+}
+
+.hull-large-freighter-3 {
+	background: url(/images/techhulls01.png) -128px -192px;
+}
+
+.hull-super-freighter-0 {
+	background: url(/images/techhulls01.png) -192px 0px;
+}
+
+.hull-super-freighter-1 {
+	background: url(/images/techhulls01.png) -192px -64px;
+}
+
+.hull-super-freighter-2 {
+	background: url(/images/techhulls01.png) -192px -128px;
+}
+
+.hull-super-freighter-3 {
+	background: url(/images/techhulls01.png) -192px -192px;
+}
+
+.hull-scout-0 {
+	background: url(/images/techhulls01.png) -256px 0px;
+}
+
+.hull-scout-1 {
+	background: url(/images/techhulls01.png) -256px -64px;
+}
+
+.hull-scout-2 {
+	background: url(/images/techhulls01.png) -256px -128px;
+}
+
+.hull-scout-3 {
+	background: url(/images/techhulls01.png) -256px -192px;
+}
+
+.hull-frigate-0 {
+	background: url(/images/techhulls01.png) -320px 0px;
+}
+
+.hull-frigate-1 {
+	background: url(/images/techhulls01.png) -320px -64px;
+}
+
+.hull-frigate-2 {
+	background: url(/images/techhulls01.png) -320px -128px;
+}
+
+.hull-frigate-3 {
+	background: url(/images/techhulls01.png) -320px -192px;
+}
+
+.hull-destroyer-0 {
+	background: url(/images/techhulls01.png) -384px 0px;
+}
+
+.hull-destroyer-1 {
+	background: url(/images/techhulls01.png) -384px -64px;
+}
+
+.hull-destroyer-2 {
+	background: url(/images/techhulls01.png) -384px -128px;
+}
+
+.hull-destroyer-3 {
+	background: url(/images/techhulls01.png) -384px -192px;
+}
+
+.hull-cruiser-0 {
+	background: url(/images/techhulls01.png) -448px 0px;
+}
+
+.hull-cruiser-1 {
+	background: url(/images/techhulls01.png) -448px -64px;
+}
+
+.hull-cruiser-2 {
+	background: url(/images/techhulls01.png) -448px -128px;
+}
+
+.hull-cruiser-3 {
+	background: url(/images/techhulls01.png) -448px -192px;
+}
+
+.hull-battle-cruiser-0 {
+	background: url(/images/techhulls02.png) 0px 0px;
+}
+
+.hull-battle-cruiser-1 {
+	background: url(/images/techhulls02.png) 0px -64px;
+}
+
+.hull-battle-cruiser-2 {
+	background: url(/images/techhulls02.png) 0px -128px;
+}
+
+.hull-battle-cruiser-3 {
+	background: url(/images/techhulls02.png) 0px -192px;
+}
+
+.hull-battleship-0 {
+	background: url(/images/techhulls02.png) -64px 0px;
+}
+
+.hull-battleship-1 {
+	background: url(/images/techhulls02.png) -64px -64px;
+}
+
+.hull-battleship-2 {
+	background: url(/images/techhulls02.png) -64px -128px;
+}
+
+.hull-battleship-3 {
+	background: url(/images/techhulls02.png) -64px -192px;
+}
+
+.hull-dreadnought-0 {
+	background: url(/images/techhulls02.png) -128px 0px;
+}
+
+.hull-dreadnought-1 {
+	background: url(/images/techhulls02.png) -128px -64px;
+}
+
+.hull-dreadnought-2 {
+	background: url(/images/techhulls02.png) -128px -128px;
+}
+
+.hull-dreadnought-3 {
+	background: url(/images/techhulls02.png) -128px -192px;
+}
+
+.hull-privateer-0 {
+	background: url(/images/techhulls02.png) -192px 0px;
+}
+
+.hull-privateer-1 {
+	background: url(/images/techhulls02.png) -192px -64px;
+}
+
+.hull-privateer-2 {
+	background: url(/images/techhulls02.png) -192px -128px;
+}
+
+.hull-privateer-3 {
+	background: url(/images/techhulls02.png) -192px -192px;
+}
+
+.hull-rogue-0 {
+	background: url(/images/techhulls02.png) -256px 0px;
+}
+
+.hull-rogue-1 {
+	background: url(/images/techhulls02.png) -256px -64px;
+}
+
+.hull-rogue-2 {
+	background: url(/images/techhulls02.png) -256px -128px;
+}
+
+.hull-rogue-3 {
+	background: url(/images/techhulls02.png) -256px -192px;
+}
+
+.hull-galleon-0 {
+	background: url(/images/techhulls02.png) -320px 0px;
+}
+
+.hull-galleon-1 {
+	background: url(/images/techhulls02.png) -320px -64px;
+}
+
+.hull-galleon-2 {
+	background: url(/images/techhulls02.png) -320px -128px;
+}
+
+.hull-galleon-3 {
+	background: url(/images/techhulls02.png) -320px -192px;
+}
+
+.hull-mini-colony-ship-0 {
+	background: url(/images/techhulls02.png) -384px 0px;
+}
+
+.hull-mini-colony-ship-1 {
+	background: url(/images/techhulls02.png) -384px -64px;
+}
+
+.hull-mini-colony-ship-2 {
+	background: url(/images/techhulls02.png) -384px -128px;
+}
+
+.hull-mini-colony-ship-3 {
+	background: url(/images/techhulls02.png) -384px -192px;
+}
+
+.hull-colony-ship-0 {
+	background: url(/images/techhulls02.png) -448px 0px;
+}
+
+.hull-colony-ship-1 {
+	background: url(/images/techhulls02.png) -448px -64px;
+}
+
+.hull-colony-ship-2 {
+	background: url(/images/techhulls02.png) -448px -128px;
+}
+
+.hull-colony-ship-3 {
+	background: url(/images/techhulls02.png) -448px -192px;
+}
+
+.hull-mini-bomber-0 {
+	background: url(/images/techhulls03.png) 0px 0px;
+}
+
+.hull-mini-bomber-1 {
+	background: url(/images/techhulls03.png) 0px -64px;
+}
+
+.hull-mini-bomber-2 {
+	background: url(/images/techhulls03.png) 0px -128px;
+}
+
+.hull-mini-bomber-3 {
+	background: url(/images/techhulls03.png) 0px -192px;
+}
+
+.hull-b-17-bomber-0 {
+	background: url(/images/techhulls03.png) -64px 0px;
+}
+
+.hull-b-17-bomber-1 {
+	background: url(/images/techhulls03.png) -64px -64px;
+}
+
+.hull-b-17-bomber-2 {
+	background: url(/images/techhulls03.png) -64px -128px;
+}
+
+.hull-b-17-bomber-3 {
+	background: url(/images/techhulls03.png) -64px -192px;
+}
+
+.hull-stealth-bomber-0 {
+	background: url(/images/techhulls03.png) -128px 0px;
+}
+
+.hull-stealth-bomber-1 {
+	background: url(/images/techhulls03.png) -128px -64px;
+}
+
+.hull-stealth-bomber-2 {
+	background: url(/images/techhulls03.png) -128px -128px;
+}
+
+.hull-stealth-bomber-3 {
+	background: url(/images/techhulls03.png) -128px -192px;
+}
+
+.hull-b-52-bomber-0 {
+	background: url(/images/techhulls03.png) -192px 0px;
+}
+
+.hull-b-52-bomber-1 {
+	background: url(/images/techhulls03.png) -192px -64px;
+}
+
+.hull-b-52-bomber-2 {
+	background: url(/images/techhulls03.png) -192px -128px;
+}
+
+.hull-b-52-bomber-3 {
+	background: url(/images/techhulls03.png) -192px -192px;
+}
+
+.hull-midget-miner-0 {
+	background: url(/images/techhulls03.png) -256px 0px;
+}
+
+.hull-midget-miner-1 {
+	background: url(/images/techhulls03.png) -256px -64px;
+}
+
+.hull-midget-miner-2 {
+	background: url(/images/techhulls03.png) -256px -128px;
+}
+
+.hull-midget-miner-3 {
+	background: url(/images/techhulls03.png) -256px -192px;
+}
+
+.hull-mini-miner-0 {
+	background: url(/images/techhulls03.png) -320px 0px;
+}
+
+.hull-mini-miner-1 {
+	background: url(/images/techhulls03.png) -320px -64px;
+}
+
+.hull-mini-miner-2 {
+	background: url(/images/techhulls03.png) -320px -128px;
+}
+
+.hull-mini-miner-3 {
+	background: url(/images/techhulls03.png) -320px -192px;
+}
+
+.hull-miner-0 {
+	background: url(/images/techhulls03.png) -384px 0px;
+}
+
+.hull-miner-1 {
+	background: url(/images/techhulls03.png) -384px -64px;
+}
+
+.hull-miner-2 {
+	background: url(/images/techhulls03.png) -384px -128px;
+}
+
+.hull-miner-3 {
+	background: url(/images/techhulls03.png) -384px -192px;
+}
+
+.hull-maxi-miner-0 {
+	background: url(/images/techhulls03.png) -448px 0px;
+}
+
+.hull-maxi-miner-1 {
+	background: url(/images/techhulls03.png) -448px -64px;
+}
+
+.hull-maxi-miner-2 {
+	background: url(/images/techhulls03.png) -448px -128px;
+}
+
+.hull-maxi-miner-3 {
+	background: url(/images/techhulls03.png) -448px -192px;
+}
+
+.hull-ultra-miner-0 {
+	background: url(/images/techhulls04.png) 0px 0px;
+}
+
+.hull-ultra-miner-1 {
+	background: url(/images/techhulls04.png) 0px -64px;
+}
+
+.hull-ultra-miner-2 {
+	background: url(/images/techhulls04.png) 0px -128px;
+}
+
+.hull-ultra-miner-3 {
+	background: url(/images/techhulls04.png) 0px -192px;
+}
+
+.hull-fuel-transport-0 {
+	background: url(/images/techhulls04.png) -64px 0px;
+}
+
+.hull-fuel-transport-1 {
+	background: url(/images/techhulls04.png) -64px -64px;
+}
+
+.hull-fuel-transport-2 {
+	background: url(/images/techhulls04.png) -64px -128px;
+}
+
+.hull-fuel-transport-3 {
+	background: url(/images/techhulls04.png) -64px -192px;
+}
+
+.hull-super-fuel-xport-0 {
+	background: url(/images/techhulls04.png) -128px 0px;
+}
+
+.hull-super-fuel-xport-1 {
+	background: url(/images/techhulls04.png) -128px -64px;
+}
+
+.hull-super-fuel-xport-2 {
+	background: url(/images/techhulls04.png) -128px -128px;
+}
+
+.hull-super-fuel-xport-3 {
+	background: url(/images/techhulls04.png) -128px -192px;
+}
+
+.hull-mini-mine-layer-0 {
+	background: url(/images/techhulls04.png) -192px 0px;
+}
+
+.hull-mini-mine-layer-1 {
+	background: url(/images/techhulls04.png) -192px -64px;
+}
+
+.hull-mini-mine-layer-2 {
+	background: url(/images/techhulls04.png) -192px -128px;
+}
+
+.hull-mini-mine-layer-3 {
+	background: url(/images/techhulls04.png) -192px -192px;
+}
+
+.hull-super-mine-layer-0 {
+	background: url(/images/techhulls04.png) -256px 0px;
+}
+
+.hull-super-mine-layer-1 {
+	background: url(/images/techhulls04.png) -256px -64px;
+}
+
+.hull-super-mine-layer-2 {
+	background: url(/images/techhulls04.png) -256px -128px;
+}
+
+.hull-super-mine-layer-3 {
+	background: url(/images/techhulls04.png) -256px -192px;
+}
+
+.hull-meta-morph-0 {
+	background: url(/images/techhulls04.png) -320px 0px;
+}
+
+.hull-meta-morph-1 {
+	background: url(/images/techhulls04.png) -320px -64px;
+}
+
+.hull-meta-morph-2 {
+	background: url(/images/techhulls04.png) -320px -128px;
+}
+
+.hull-meta-morph-3 {
+	background: url(/images/techhulls04.png) -320px -192px;
+}
+
+.hull-mini-morph-0 {
+	background: url(/images/techhulls04.png) -384px 0px;
+}
+
+.hull-mini-morph-1 {
+	background: url(/images/techhulls04.png) -384px -64px;
+}
+
+.hull-mini-morph-2 {
+	background: url(/images/techhulls04.png) -384px -128px;
+}
+
+.hull-mini-morph-3 {
+	background: url(/images/techhulls04.png) -384px -192px;
+}
+
+.hull-nubian-0 {
+	background: url(/images/techhulls04.png) -448px 0px;
+}
+
+.hull-nubian-1 {
+	background: url(/images/techhulls04.png) -448px -64px;
+}
+
+.hull-nubian-2 {
+	background: url(/images/techhulls04.png) -448px -128px;
+}
+
+.hull-nubian-3 {
+	background: url(/images/techhulls04.png) -448px -192px;
+}
+
+.hull-orbital-fort-0 {
+	background: url(/images/starbases.png) -0px -0px;
+}
+
+.hull-orbital-fort-1 {
+	background: url(/images/starbases.png) -0px -64px;
+}
+
+.hull-orbital-fort-2 {
+	background: url(/images/starbases.png) -0px -128px;
+}
+
+.hull-orbital-fort-3 {
+	background: url(/images/starbases.png) -0px -192px;
+}
+
+.hull-space-dock-0 {
+	background: url(/images/starbases.png) -64px -0px;
+}
+
+.hull-space-dock-1 {
+	background: url(/images/starbases.png) -64px -64px;
+}
+
+.hull-space-dock-2 {
+	background: url(/images/starbases.png) -64px -128px;
+}
+
+.hull-space-dock-3 {
+	background: url(/images/starbases.png) -64px -192px;
+}
+
+.hull-space-station-0 {
+	background: url(/images/starbases.png) -128px -0px;
+}
+
+.hull-space-station-1 {
+	background: url(/images/starbases.png) -128px -64px;
+}
+
+.hull-space-station-2 {
+	background: url(/images/starbases.png) -128px -128px;
+}
+
+.hull-space-station-3 {
+	background: url(/images/starbases.png) -128px -192px;
+}
+
+.hull-ultra-station-0 {
+	background: url(/images/starbases.png) -192px -0px;
+}
+
+.hull-ultra-station-1 {
+	background: url(/images/starbases.png) -192px -64px;
+}
+
+.hull-ultra-station-2 {
+	background: url(/images/starbases.png) -192px -128px;
+}
+
+.hull-ultra-station-3 {
+	background: url(/images/starbases.png) -192px -192px;
+}
+
+.hull-death-star-0 {
+	background: url(/images/starbases.png) -256px -0px;
+}
+
+.hull-death-star-1 {
+	background: url(/images/starbases.png) -256px -64px;
+}
+
+.hull-death-star-2 {
+	background: url(/images/starbases.png) -256px -128px;
+}
+
+.hull-death-star-3 {
+	background: url(/images/starbases.png) -256px -192px;
+}

@@ -1,3 +1,4 @@
+import { clamp } from '$lib/services/Math';
 import type { Cost } from './Cost';
 import type { TechLevel as TechLevel } from './Player';
 import type { PRT } from './Race';
@@ -199,6 +200,56 @@ export interface TechRequirements extends TechLevel {
 	lrtsDenied?: number;
 	prtRequired?: PRT;
 	prtDenied?: PRT;
+}
+
+/**
+ * Determine if a tech is a hull component
+ * @param category The category to check
+ * @returns
+ */
+export const isHullComponent = (category: TechCategory): boolean => {
+	switch (category) {
+		case TechCategory.Armor:
+		case TechCategory.BeamWeapon:
+		case TechCategory.Bomb:
+		case TechCategory.Electrical:
+		case TechCategory.Engine:
+		case TechCategory.Mechanical:
+		case TechCategory.MineLayer:
+		case TechCategory.MineRobot:
+		case TechCategory.Orbital:
+		case TechCategory.Scanner:
+		case TechCategory.Torpedo:
+		case TechCategory.Shield:
+			return true;
+		case TechCategory.PlanetaryScanner:
+		case TechCategory.PlanetaryDefense:
+		case TechCategory.ShipHull:
+		case TechCategory.StarbaseHull:
+		case TechCategory.Terraforming:
+			return false;
+		default:
+			return false;
+	}
+};
+
+export function getDefenseCoverage(defense: TechDefense, defenses: number): number {
+	return 1.0 - Math.pow(1 - defense.defenseCoverage / 100, clamp(defenses, 0, 100));
+}
+
+export function getSmartDefenseCoverage(
+	defense: TechDefense,
+	defenses: number,
+	smartDefenseCoverageFactor?: number
+): number {
+	smartDefenseCoverageFactor ??= 0.5;
+	return (
+		1.0 -
+		Math.pow(
+			1 - (defense.defenseCoverage / 100) * smartDefenseCoverageFactor,
+			clamp(defenses, 0, 100)
+		)
+	);
 }
 
 export function getCloakPercentForCloakUnits(cloakUnits: number): number {

@@ -58,13 +58,15 @@ func Start(ctx *appcontext.AppContext) {
 
 	r.POST("/api/login", server.Login)
 	r.GET("/api/logout", server.Logout)
+	
+	// techs are public
+	r.GET("/api/techs", server.Techs)
 
 	// authorized routes
 	ar := r.Group("/api")
 	ar.Use(server.AuthRequired)
 	ar.GET("/me", server.Me)
 
-	ar.GET("/techs", server.Techs)
 	ar.GET("/rules", server.Rules)
 
 	ar.GET("/races", server.Races)
