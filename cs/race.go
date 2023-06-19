@@ -86,6 +86,7 @@ func (rc ResearchCost) Get(field TechField) ResearchCostLevel {
 
 type RaceSpec struct {
 	MiniaturizationSpec
+	ScannerSpec
 	HabCenter                        Hab                    `json:"habCenter,omitempty"`
 	Costs                            map[QueueItemType]Cost `json:"costs,omitempty"`
 	StartingTechLevels               TechLevel              `json:"startingTechLevels,omitempty"`
@@ -107,7 +108,6 @@ type RaceSpec struct {
 	CanGateCargo                     bool                   `json:"canGateCargo,omitempty"`
 	CanDetectStargatePlanets         bool                   `json:"canDetectStargatePlanets,omitempty"`
 	ShipsVanishInVoid                bool                   `json:"shipsVanishInVoid,omitempty"`
-	BuiltInScannerMultiplier         int                    `json:"builtInScannerMultiplier,omitempty"`
 	TechsCostExtraLevel              int                    `json:"techsCostExtraLevel,omitempty"`
 	FreighterGrowthFactor            float64                `json:"freighterGrowthFactor,omitempty"`
 	GrowthFactor                     float64                `json:"growthFactor,omitempty"`
@@ -140,8 +140,6 @@ type RaceSpec struct {
 	InnatePopulationFactor           float64                `json:"innatePopulationFactor,omitempty"`
 	CanBuildDefenses                 bool                   `json:"canBuildDefenses,omitempty"`
 	LivesOnStarbases                 bool                   `json:"livesOnStarbases,omitempty"`
-	NoAdvancedScanners               bool                   `json:"noAdvancedScanners,omitempty"`
-	ScanRangeFactor                  float64                `json:"scanRangeFactor,omitempty"`
 	FuelEfficiencyOffset             float64                `json:"fuelEfficiencyOffset,omitempty"`
 	TerraformCostOffset              Cost                   `json:"terraformCostOffset,omitempty"`
 	MineralAlchemyCostOffset         int                    `json:"mineralAlchemyCostOffset,omitempty"`
@@ -164,6 +162,12 @@ type MiniaturizationSpec struct {
 	NewTechCostFactor       float64 `json:"newTechCostFactor,omitempty"`
 	MiniaturizationMax      float64 `json:"miniaturizationMax,omitempty"`
 	MiniaturizationPerLevel float64 `json:"miniaturizationPerLevel,omitempty"`
+}
+
+type ScannerSpec struct {
+	BuiltInScannerMultiplier int     `json:"builtInScannerMultiplier,omitempty"`
+	NoAdvancedScanners       bool    `json:"noAdvancedScanners,omitempty"`
+	ScanRangeFactor          float64 `json:"scanRangeFactor,omitempty"`
 }
 
 type PRT string
@@ -537,7 +541,11 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		StartingPlanets:     prtSpec.StartingPlanets,
 		TechCostOffset:      prtSpec.TechCostOffset,
 		MaxPopulationOffset: prtSpec.MaxPopulationOffset,
-		ScanRangeFactor:          1,
+		ScannerSpec: ScannerSpec{
+			ScanRangeFactor: 1,
+			// JoaT
+			BuiltInScannerMultiplier: prtSpec.BuiltInScannerMultiplier,
+		},
 		StartingPopulationFactor: 1,
 		ResearchFactor:           1,
 		ShieldStrengthFactor:     1,
@@ -569,8 +577,7 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		ShipsVanishInVoid:         prtSpec.ShipsVanishInVoid,
 
 		// JoaT
-		BuiltInScannerMultiplier: prtSpec.BuiltInScannerMultiplier,
-		TechsCostExtraLevel:      prtSpec.TechsCostExtraLevel,
+		TechsCostExtraLevel: prtSpec.TechsCostExtraLevel,
 
 		// IS
 		FreighterGrowthFactor: prtSpec.FreighterGrowthFactor,

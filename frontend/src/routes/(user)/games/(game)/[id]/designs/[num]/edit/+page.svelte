@@ -37,6 +37,6 @@
 
 <div class="w-full mx-auto md:max-w-2xl">
 	{#if design}
-		<ShipDesigner bind:design hullName={design.hull} on:save={(e) => onSave()} bind:error />
+		<ShipDesigner {gameId} bind:design hullName={design.hull} on:save={(e) => onSave()} bind:error />
 	{/if}
 </div>

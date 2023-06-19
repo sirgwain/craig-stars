@@ -39,7 +39,7 @@
 			<div class="mr-2">
 				<Cost cost={design.spec.cost} />
 			</div>
-			<DesignStats {design} />
+			<DesignStats spec={design.spec} />
 		</div>
 		<div class="card-actions justify-end">
 			<button class="btn" on:click={(e) => deleteDesign(design)}>

@@ -4,6 +4,7 @@
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import ShipDesigner from '$lib/components/game/design/ShipDesigner.svelte';
 	import { player, techs } from '$lib/services/Context';
+	import { DesignService } from '$lib/services/DesignService';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 
 	let gameId = $page.params.id;
@@ -48,5 +49,5 @@
 </script>
 
 <div class="w-full mx-auto md:max-w-2xl">
-	<ShipDesigner bind:design {hullName} on:save={(e) => onSave()} bind:error />
+	<ShipDesigner {gameId} bind:design {hullName} on:save={(e) => onSave()} bind:error />
 </div>

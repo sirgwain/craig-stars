@@ -131,7 +131,7 @@ func (sd *ShipDesign) WithHullSetNumber(num int) *ShipDesign {
 
 // Compute the spec for this ShipDesign. This function is mostly for universe generation and tests
 func (sd *ShipDesign) WithSpec(rules *Rules, player *Player) *ShipDesign {
-	sd.Spec = computeShipDesignSpec(rules, player, sd)
+	sd.Spec = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, sd)
 	return sd
 }
 
@@ -194,15 +194,15 @@ func (sd *ShipDesign) Validate(rules *Rules, player *Player) error {
 	return nil
 }
 
-func computeShipDesignSpec(rules *Rules, player *Player, design *ShipDesign) ShipDesignSpec {
+func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design *ShipDesign) ShipDesignSpec {
 	hull := rules.techs.GetHull(design.Hull)
 	spec := ShipDesignSpec{
 		Mass:                    hull.Mass,
 		Armor:                   hull.Armor,
 		FuelCapacity:            hull.FuelCapacity,
-		Cost:                    hull.GetPlayerCost(player.TechLevels, player.Race.Spec.MiniaturizationSpec),
+		Cost:                    hull.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec),
 		CargoCapacity:           hull.CargoCapacity,
-		CloakUnits:              player.Race.Spec.BuiltInCloakUnits,
+		CloakUnits:              raceSpec.BuiltInCloakUnits,
 		Initiative:              hull.Initiative,
 		TorpedoInaccuracyFactor: 1,
 		ImmuneToOwnDetonation:   hull.ImmuneToOwnDetonation,
@@ -238,7 +238,7 @@ func computeShipDesignSpec(rules *Rules, player *Player, design *ShipDesign) Shi
 				}
 				spec.MineSweep += slot.Quantity * component.Power * ((component.Range + hull.RangeBonus) * component.Range) * gattlingMultiplier
 			}
-			spec.Cost = spec.Cost.Add(component.Tech.GetPlayerCost(player.TechLevels, player.Race.Spec.MiniaturizationSpec).MultiplyInt(slot.Quantity))
+			spec.Cost = spec.Cost.Add(component.Tech.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec).MultiplyInt(slot.Quantity))
 
 			spec.Mass += component.Mass * slot.Quantity
 			spec.Armor += component.Armor * slot.Quantity
@@ -336,28 +336,28 @@ func computeShipDesignSpec(rules *Rules, player *Player, design *ShipDesign) Shi
 			// Movement = IdealEngineSpeed - 2 - Mass / 70 / NumEngines + NumManeuveringJets + 2*NumOverThrusters
 			// we added any MovementBonus components above
 			// we round up the slightest bit, and we can't go below 2, or above 10
-			spec.Movement = clamp((spec.IdealSpeed-2)-spec.Mass/70/spec.NumEngines+spec.Movement+player.Race.Spec.MovementBonus, 2, 10)
+			spec.Movement = clamp((spec.IdealSpeed-2)-spec.Mass/70/spec.NumEngines+spec.Movement+raceSpec.MovementBonus, 2, 10)
 		} else {
 			spec.Movement = 0
 		}
 	}
 
-	spec.computeScanRanges(rules, player, design, hull)
+	spec.computeScanRanges(rules, raceSpec.ScannerSpec, techLevels, design, hull)
 
 	return spec
 }
 
 // Compute the scan ranges for this ship design The formula is: (scanner1**4 + scanner2**4 + ...
 // + scannerN**4)**(.25)
-func (spec *ShipDesignSpec) computeScanRanges(rules *Rules, player *Player, design *ShipDesign, hull *TechHull) {
+func (spec *ShipDesignSpec) computeScanRanges(rules *Rules, scannerSpec ScannerSpec, techLevels TechLevel, design *ShipDesign, hull *TechHull) {
 	spec.ScanRange = NoScanner
 	spec.ScanRangePen = NoScanner
 
 	// compute scanner as a built in JoaT scanner if it's built in
-	builtInScannerMultiplier := player.Race.Spec.BuiltInScannerMultiplier
+	builtInScannerMultiplier := scannerSpec.BuiltInScannerMultiplier
 	if builtInScannerMultiplier > 0 && hull.BuiltInScanner {
-		spec.ScanRange = player.TechLevels.Electronics * builtInScannerMultiplier
-		if !player.Race.Spec.NoAdvancedScanners {
+		spec.ScanRange = techLevels.Electronics * builtInScannerMultiplier
+		if !scannerSpec.NoAdvancedScanners {
 			spec.ScanRangePen = int(math.Pow(float64(spec.ScanRange)/2, 4))
 		}
 		spec.ScanRange = int(math.Pow(float64(spec.ScanRange), 4))
@@ -381,7 +381,7 @@ func (spec *ShipDesignSpec) computeScanRanges(rules *Rules, player *Player, desi
 	// now quad root it
 	if spec.ScanRange != NoScanner {
 		spec.ScanRange = int(math.Pow(float64(spec.ScanRange), .25) + .5)
-		spec.ScanRange = int(float64(spec.ScanRange) * player.Race.Spec.ScanRangeFactor)
+		spec.ScanRange = int(float64(spec.ScanRange) * scannerSpec.ScanRangeFactor)
 	}
 
 	if spec.ScanRangePen != NoScanner {

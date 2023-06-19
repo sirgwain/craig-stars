@@ -13,7 +13,8 @@
 	export let capacity: number = 1;
 	export let required = false;
 	export let shipDesignSlot: ShipDesignSlot | undefined = undefined;
-	export let selected = false;
+	export let highlighted = false;
+	export let highlightedClass = 'border-accent';
 
 	function typeDescription() {
 		switch (type) {
@@ -50,17 +51,18 @@
 </script>
 
 <div
-	class="flex bg-base-300 tech-avatar text-sm avatar {icon(shipDesignSlot?.hullComponent)}"
+	class={`flex bg-base-300 tech-avatar text-sm avatar ${icon(shipDesignSlot?.hullComponent)} ${
+		highlighted ? highlightedClass : ''
+	}`}
 	class:border={!shipDesignSlot}
-	class:border-2={selected}
-	class:border-slate-900={!shipDesignSlot && !selected}
-	class:border-accent={selected}
-	class:z-50={selected}
+	class:border-2={highlighted}
+	class:border-slate-900={!shipDesignSlot && !highlighted}
+	class:z-50={highlighted}
 >
 	<button
 		type="button"
 		on:click={() => {
-			dispatch('selected');
+			dispatch('clicked');
 		}}
 		class="w-full h-full"
 	>
@@ -81,7 +83,7 @@
 		</div>
 	</button>
 </div>
-<div class="flex flex-row -ml-5 mt-1 gap-1" class:hidden={!selected || !shipDesignSlot}>
+<div class="flex flex-row -ml-5 mt-1 gap-1" class:hidden={!highlighted || !shipDesignSlot}>
 	<button
 		type="button"
 		class="btn btn-sm px-1 z-50"

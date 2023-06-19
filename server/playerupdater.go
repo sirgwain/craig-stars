@@ -22,6 +22,7 @@ type PlayerUpdater interface {
 	updateMineFieldOrders(userID int64, mineFieldID int64, orders cs.MineFieldOrders) (*cs.MineField, error)
 	transferCargo(userID int64, fleetID int64, destID int64, mapObjectType cs.MapObjectType, transferAmount cs.Cargo) (*cs.Fleet, error)
 	createShipDesign(gameID, userID int64, design *cs.ShipDesign) (*cs.ShipDesign, error)
+	updateShipDesign(gameID, userID int64, design *cs.ShipDesign) (*cs.ShipDesign, error)
 	deleteShipDesign(gameID, userID int64, num int) (fleets, starbases []*cs.Fleet, err error)
 }
 
@@ -298,6 +299,51 @@ func (pu *playerUpdater) createShipDesign(gameID, userID int64, design *cs.ShipD
 
 	if err := pu.db.CreateShipDesign(design); err != nil {
 		log.Error().Err(err).Int64("ID", player.ID).Str("DesignName", design.Name).Msg("save new player design")
+		return nil, fmt.Errorf("failed to save design")
+	}
+
+	return design, nil
+}
+
+func (pu *playerUpdater) updateShipDesign(gameID, userID int64, design *cs.ShipDesign) (*cs.ShipDesign, error) {
+	player, err := pu.db.GetLightPlayerForGame(gameID, userID)
+
+	if err != nil || player == nil {
+		log.Error().Err(err).Int64("GameID", gameID).Int64("UserID", userID).Msg("load player from database")
+		return nil, fmt.Errorf("failed to load player from database")
+	}
+
+	existingShipDesign, err := pu.db.GetShipDesign(design.ID)
+	if err != nil {
+		log.Error().Err(err).Int64("ID", design.ID).Msg("get shipdesign from database")
+		return nil, fmt.Errorf("failed to load design from database")
+	}
+
+	if existingShipDesign == nil {
+		return nil, fmt.Errorf("design doesn't exist")
+	}
+
+	if player.Num != existingShipDesign.PlayerNum {
+		return nil, fmt.Errorf("user %d does not own shipdesign %d", userID, existingShipDesign.ID)
+	}
+
+	rules, err := pu.db.GetRulesForGame(player.GameID)
+	if err != nil {
+		log.Error().Err(err).Int64("GameID", player.GameID).Msg("loading game rules from database")
+		return nil, fmt.Errorf("failed to load game rules from database")
+	}
+
+	if err := design.Validate(rules, player); err != nil {
+		log.Error().Err(err).Int64("ID", player.ID).Str("DesignName", design.Name).Msg("validate player design")
+		return nil, fmt.Errorf("invalid design, %w", err)
+	}
+
+	design.PlayerNum = player.Num
+	design.GameID = player.GameID
+	design.Spec = cs.ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
+
+	if err := pu.db.UpdateShipDesign(design); err != nil {
+		log.Error().Err(err).Int64("ID", player.ID).Str("DesignName", design.Name).Msg("save design")
 		return nil, fmt.Errorf("failed to save design")
 	}
 
