@@ -23,6 +23,6 @@
 	export let design: ShipDesign | ShipDesignIntel;
 </script>
 
-<div class="">
+<div>
 	<Design {design} />
 </div>

@@ -16,7 +16,7 @@
 	export let innateResources: boolean;
 </script>
 
-<div class="flex flex-col">
+<div class="flex flex-col sm:w-[26rem] m-auto">
 	<div class="text-xl font-semibold text-center">Resources</div>
 	<div>
 		<span class="font-semibold">{planetName}</span> generates
