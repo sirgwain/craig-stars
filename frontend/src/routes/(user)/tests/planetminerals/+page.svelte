@@ -1,7 +1,7 @@
 <script lang="ts">
-	import PlanetMineralsGraph from '../../games/(game)/[id]/PlanetMineralsGraph.svelte';
 	import { MapObjectType } from '$lib/types/MapObject';
 	import type { Planet } from '$lib/types/Planet';
+	import PlanetMineralsGraph from '../../games/(game)/[id]/(main)/PlanetMineralsGraph.svelte';
 
 	const planet1: Planet = {
 		type: MapObjectType.Planet,

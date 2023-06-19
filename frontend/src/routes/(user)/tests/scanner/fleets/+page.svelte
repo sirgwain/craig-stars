@@ -6,7 +6,7 @@
 	import { humanoid } from '$lib/types/Race';
 	import { normalized } from '$lib/types/Vector';
 	import { LayerCake, Svg } from 'layercake';
-	import ScannerFleets from '../../../games/(game)/[id]/scanner/ScannerFleets.svelte';
+	import ScannerFleets from '../../../games/(game)/[id]/(main)/scanner/ScannerFleets.svelte';
 
 	type fleetPlacement = {
 		x: number;
