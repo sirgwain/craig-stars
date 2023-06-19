@@ -111,7 +111,10 @@ func createTestUser(db server.DBClient, username string, password string, email 
 	}
 
 	if user == nil {
-		user = cs.NewUser(username, password, email, role)
+		user, err = cs.NewUser(username, password, email, role)
+		if err != nil {
+			return nil, nil, err
+		}
 		err := db.CreateUser(user)
 		if err != nil {
 			return nil, nil, err

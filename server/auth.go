@@ -67,7 +67,14 @@ func (s *server) login(c *gin.Context) {
 	}
 
 	// Check for username and password match, usually from a database
-	if user == nil || user.Password != creds.Password {
+	match, err := user.ComparePassword(creds.Password)
+	if err != nil {
+		log.Error().Err(err).Str("Username", creds.Username).Msg("hash password")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to check credentials"})
+		return
+	}
+
+	if user == nil || !match {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username or password"})
 		return
 	}
