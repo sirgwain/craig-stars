@@ -99,7 +99,7 @@ func (c *client) GetGamesForHost(userID int64) ([]cs.Game, error) {
 func (c *client) GetGamesForUser(userID int64) ([]cs.Game, error) {
 
 	items := []Game{}
-	if err := c.db.Select(&items, `SELECT * from games g WHERE g.id in (SELECT gameId from players p WHERE p.userId = ?)`, userID); err != nil {
+	if err := c.db.Select(&items, `SELECT * FROM games g WHERE g.hostId = ? OR g.id in (SELECT gameId from players p WHERE p.userId = ?)`, userID, userID); err != nil {
 		if err == sql.ErrNoRows {
 			return []cs.Game{}, nil
 		}

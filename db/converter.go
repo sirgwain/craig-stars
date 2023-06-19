@@ -107,14 +107,6 @@ type Converter interface {
 	// goverter:map Area.Y AreaY
 	ConvertGameGame(source *cs.Game) *Game
 
-	// goverter:mapExtend TechLevels ExtendTechLevels
-	// goverter:mapExtend TechLevelsSpent ExtendTechLevelsSpent
-	// goverter:ignore Designs
-	ConvertPlayer(source Player) cs.Player
-	// goverter:mapExtend TechLevels ExtendTechLevels
-	// goverter:mapExtend TechLevelsSpent ExtendTechLevelsSpent
-	ConvertPlayers(source []Player) []cs.Player
-
 	// goverter:map TechLevels.Energy TechLevelsEnergy
 	// goverter:map TechLevels.Weapons TechLevelsWeapons
 	// goverter:map TechLevels.Propulsion TechLevelsPropulsion
@@ -127,7 +119,32 @@ type Converter interface {
 	// goverter:map TechLevelsSpent.Construction TechLevelsSpentConstruction
 	// goverter:map TechLevelsSpent.Electronics TechLevelsSpentElectronics
 	// goverter:map TechLevelsSpent.Biotechnology TechLevelsSpentBiotechnology
+	// goverter:map PlayerOrders.Researching Researching
+	// goverter:map PlayerOrders.NextResearchField NextResearchField
+	// goverter:map PlayerOrders.ResearchAmount ResearchAmount
+	// goverter:map PlayerIntels.PlanetIntels PlanetIntels
+	// goverter:map PlayerIntels.FleetIntels FleetIntels
+	// goverter:map PlayerIntels.ShipDesignIntels ShipDesignIntels
+	// goverter:map PlayerIntels.MineralPacketIntels MineralPacketIntels
+	// goverter:map PlayerIntels.MineFieldIntels MineFieldIntels
+	// goverter:map PlayerPlans.BattlePlans BattlePlans
+	// goverter:map PlayerPlans.ProductionPlans ProductionPlans
+	// goverter:map PlayerPlans.TransportPlans TransportPlans
 	ConvertGamePlayer(source *cs.Player) *Player
+
+	// goverter:mapExtend TechLevels ExtendTechLevels
+	// goverter:mapExtend TechLevelsSpent ExtendTechLevelsSpent
+	// goverter:mapExtend PlayerOrders ExtendPlayerPlayerOrders
+	// goverter:mapExtend PlayerIntels ExtendPlayerPlayerIntels
+	// goverter:mapExtend PlayerPlans ExtendPlayerPlayerPlans
+	// goverter:ignore Designs
+	ConvertPlayer(source Player) cs.Player
+	// goverter:mapExtend TechLevels ExtendTechLevels
+	// goverter:mapExtend TechLevelsSpent ExtendTechLevelsSpent
+	// goverter:mapExtend PlayerOrders ExtendPlayerPlayerOrders
+	// goverter:mapExtend PlayerIntels ExtendPlayerPlayerIntels
+	// goverter:mapExtend PlayerPlans ExtendPlayerPlayerPlans
+	ConvertPlayers(source []Player) []cs.Player
 
 	// goverter:map MapObject.ID ID
 	// goverter:map MapObject.GameID GameID
@@ -142,6 +159,8 @@ type Converter interface {
 	// goverter:map MapObject.Name Name
 	// goverter:map MapObject.Num Num
 	// goverter:map MapObject.PlayerNum	 PlayerNum
+	// goverter:map PlanetOrders.ContributesOnlyLeftoverToResearch ContributesOnlyLeftoverToResearch
+	// goverter:map PlanetOrders.ProductionQueue ProductionQueue
 	// goverter:ignore Tags
 	// goverter:map Hab.Grav Grav
 	// goverter:map Hab.Temp Temp
@@ -171,6 +190,7 @@ type Converter interface {
 	// goverter:mapExtend MineYears ExtendMineYears
 	// goverter:mapExtend Cargo ExtendPlanetCargo
 	// goverter:mapExtend MapObject ExtendPlanetMapObject
+	// goverter:mapExtend PlanetOrders ExtendPlanetPlanetOrders
 	ConvertPlanet(source *Planet) *cs.Planet
 
 	// goverter:map MapObject.ID ID
@@ -186,6 +206,7 @@ type Converter interface {
 	// goverter:map MapObject.Name Name
 	// goverter:map MapObject.Num Num
 	// goverter:map MapObject.PlayerNum	 PlayerNum
+	// goverter:map FleetOrders.BattlePlanName BattlePlanName
 	// goverter:map FleetOrders.Waypoints Waypoints
 	// goverter:map FleetOrders.RepeatOrders RepeatOrders
 	// goverter:ignore Tags
@@ -267,11 +288,13 @@ type Converter interface {
 	// goverter:map MapObject.Position.Y Y
 	// goverter:map MapObject.Name Name
 	// goverter:map MapObject.Num Num
-	// goverter:map MapObject.PlayerNum	 PlayerNum
+	// goverter:map MapObject.PlayerNum PlayerNum
+	// goverter:map MineFieldOrders.Detonate Detonate
 	// goverter:ignore Tags
 	ConvertGameMineField(source *cs.MineField) *MineField
 
 	// goverter:mapExtend MapObject ExtendMineFieldMapObject
+	// goverter:mapExtend MineFieldOrders ExtendMineFieldMineFieldOrders
 	ConvertMineField(source *MineField) *cs.MineField
 
 	// goverter:map MapObject.ID ID
@@ -481,6 +504,58 @@ func GamePlayerStatsToPlayerStats(source *cs.PlayerStats) *PlayerStats {
 	return (*PlayerStats)(source)
 }
 
+func ExtendPlayerPlayerOrders(source Player) cs.PlayerOrders {
+	return cs.PlayerOrders{
+		Researching:       source.Researching,
+		NextResearchField: source.NextResearchField,
+		ResearchAmount:    source.ResearchAmount,
+	}
+}
+
+func ExtendPlayerPlayerPlans(source Player) cs.PlayerPlans {
+	plans := cs.PlayerPlans{}
+
+	if source.ProductionPlans != nil {
+		plans.ProductionPlans = *source.ProductionPlans
+	}
+
+	if source.BattlePlans != nil {
+		plans.BattlePlans = *source.BattlePlans
+	}
+
+	if source.TransportPlans != nil {
+		plans.TransportPlans = *source.TransportPlans
+	}
+
+	return plans
+}
+
+func ExtendPlayerPlayerIntels(source Player) cs.PlayerIntels {
+	intels := cs.PlayerIntels{}
+
+	if source.PlanetIntels != nil {
+		intels.PlanetIntels = *source.PlanetIntels
+	}
+
+	if source.FleetIntels != nil {
+		intels.FleetIntels = *source.FleetIntels
+	}
+
+	if source.ShipDesignIntels != nil {
+		intels.ShipDesignIntels = *source.ShipDesignIntels
+	}
+
+	if source.MineralPacketIntels != nil {
+		intels.MineralPacketIntels = *source.MineralPacketIntels
+	}
+
+	if source.MineFieldIntels != nil {
+		intels.MineFieldIntels = *source.MineFieldIntels
+	}
+
+	return intels
+}
+
 func PlanetSpecToGamePlanetSpec(source *PlanetSpec) cs.PlanetSpec {
 	return (cs.PlanetSpec)(*source)
 }
@@ -624,6 +699,13 @@ func ExtendPlanetMapObject(source Planet) cs.MapObject {
 	}
 }
 
+func ExtendPlanetPlanetOrders(source Planet) cs.PlanetOrders {
+	return cs.PlanetOrders{
+		ContributesOnlyLeftoverToResearch: source.ContributesOnlyLeftoverToResearch,
+		ProductionQueue:                   *source.ProductionQueue,
+	}
+}
+
 func ExtendHab(source Planet) cs.Hab {
 	return cs.Hab{
 		Grav: source.Grav,
@@ -694,8 +776,9 @@ func ExtendFleetMapObject(source Fleet) cs.MapObject {
 
 func ExtendFleetFleetOrders(source Fleet) cs.FleetOrders {
 	return cs.FleetOrders{
-		Waypoints:    *source.Waypoints,
-		RepeatOrders: source.RepeatOrders,
+		BattlePlanName: source.BattlePlanName,
+		Waypoints:      *source.Waypoints,
+		RepeatOrders:   source.RepeatOrders,
 	}
 }
 
@@ -784,6 +867,12 @@ func ExtendMineFieldMapObject(source MineField) cs.MapObject {
 		Num:       source.Num,
 		PlayerNum: source.PlayerNum,
 		// Tags:      source.Tags,
+	}
+}
+
+func ExtendMineFieldMineFieldOrders(source MineField) cs.MineFieldOrders {
+	return cs.MineFieldOrders{
+		Detonate: source.Detonate,
 	}
 }
 

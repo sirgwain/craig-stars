@@ -2,117 +2,117 @@
 
 package db
 
-import game "github.com/sirgwain/craig-stars/cs"
+import cs "github.com/sirgwain/craig-stars/cs"
 
 type GameConverter struct{}
 
-func (c *GameConverter) ConvertFleet(source *Fleet) *game.Fleet {
-	var pGameFleet *game.Fleet
+func (c *GameConverter) ConvertFleet(source *Fleet) *cs.Fleet {
+	var pCsFleet *cs.Fleet
 	if source != nil {
-		gameFleet := c.dbFleetToGameFleet(*source)
-		pGameFleet = &gameFleet
+		csFleet := c.dbFleetToCsFleet(*source)
+		pCsFleet = &csFleet
 	}
-	return pGameFleet
+	return pCsFleet
 }
-func (c *GameConverter) ConvertGame(source Game) game.Game {
-	var gameGame game.Game
-	gameGame.ID = source.ID
-	gameGame.CreatedAt = TimeToTime(source.CreatedAt)
-	gameGame.UpdatedAt = TimeToTime(source.UpdatedAt)
-	gameGame.Name = source.Name
-	gameGame.HostID = source.HostID
-	gameGame.QuickStartTurns = source.QuickStartTurns
-	gameGame.Size = game.Size(source.Size)
-	gameGame.Density = game.Density(source.Density)
-	gameGame.PlayerPositions = game.PlayerPositions(source.PlayerPositions)
-	gameGame.RandomEvents = source.RandomEvents
-	gameGame.ComputerPlayersFormAlliances = source.ComputerPlayersFormAlliances
-	gameGame.PublicPlayerScores = source.PublicPlayerScores
-	gameGame.StartMode = game.GameStartMode(source.StartMode)
-	gameGame.Year = source.Year
-	gameGame.State = game.GameState(source.State)
-	gameGame.OpenPlayerSlots = source.OpenPlayerSlots
-	gameGame.NumPlayers = source.NumPlayers
-	gameGame.VictoryConditions = ExtendVictoryConditions(source)
-	gameGame.VictorDeclared = source.VictorDeclared
-	gameGame.Seed = source.Seed
-	gameGame.Rules = ExtendDefaultRules(source)
-	gameGame.Area = ExtendArea(source)
-	return gameGame
+func (c *GameConverter) ConvertGame(source Game) cs.Game {
+	var csGame cs.Game
+	csGame.ID = source.ID
+	csGame.CreatedAt = TimeToTime(source.CreatedAt)
+	csGame.UpdatedAt = TimeToTime(source.UpdatedAt)
+	csGame.Name = source.Name
+	csGame.HostID = source.HostID
+	csGame.QuickStartTurns = source.QuickStartTurns
+	csGame.Size = cs.Size(source.Size)
+	csGame.Density = cs.Density(source.Density)
+	csGame.PlayerPositions = cs.PlayerPositions(source.PlayerPositions)
+	csGame.RandomEvents = source.RandomEvents
+	csGame.ComputerPlayersFormAlliances = source.ComputerPlayersFormAlliances
+	csGame.PublicPlayerScores = source.PublicPlayerScores
+	csGame.StartMode = cs.GameStartMode(source.StartMode)
+	csGame.Year = source.Year
+	csGame.State = cs.GameState(source.State)
+	csGame.OpenPlayerSlots = source.OpenPlayerSlots
+	csGame.NumPlayers = source.NumPlayers
+	csGame.VictoryConditions = ExtendVictoryConditions(source)
+	csGame.VictorDeclared = source.VictorDeclared
+	csGame.Seed = source.Seed
+	csGame.Rules = ExtendDefaultRules(source)
+	csGame.Area = ExtendArea(source)
+	return csGame
 }
-func (c *GameConverter) ConvertGameFleet(source *game.Fleet) *Fleet {
+func (c *GameConverter) ConvertGameFleet(source *cs.Fleet) *Fleet {
 	var pDbFleet *Fleet
 	if source != nil {
-		dbFleet := c.gameFleetToDbFleet(*source)
+		dbFleet := c.csFleetToDbFleet(*source)
 		pDbFleet = &dbFleet
 	}
 	return pDbFleet
 }
-func (c *GameConverter) ConvertGameGame(source *game.Game) *Game {
+func (c *GameConverter) ConvertGameGame(source *cs.Game) *Game {
 	var pDbGame *Game
 	if source != nil {
-		dbGame := c.gameGameToDbGame(*source)
+		dbGame := c.csGameToDbGame(*source)
 		pDbGame = &dbGame
 	}
 	return pDbGame
 }
-func (c *GameConverter) ConvertGameMineField(source *game.MineField) *MineField {
+func (c *GameConverter) ConvertGameMineField(source *cs.MineField) *MineField {
 	var pDbMineField *MineField
 	if source != nil {
-		dbMineField := c.gameMineFieldToDbMineField(*source)
+		dbMineField := c.csMineFieldToDbMineField(*source)
 		pDbMineField = &dbMineField
 	}
 	return pDbMineField
 }
-func (c *GameConverter) ConvertGameMineralPacket(source *game.MineralPacket) *MineralPacket {
+func (c *GameConverter) ConvertGameMineralPacket(source *cs.MineralPacket) *MineralPacket {
 	var pDbMineralPacket *MineralPacket
 	if source != nil {
-		dbMineralPacket := c.gameMineralPacketToDbMineralPacket(*source)
+		dbMineralPacket := c.csMineralPacketToDbMineralPacket(*source)
 		pDbMineralPacket = &dbMineralPacket
 	}
 	return pDbMineralPacket
 }
-func (c *GameConverter) ConvertGamePlanet(source *game.Planet) *Planet {
+func (c *GameConverter) ConvertGamePlanet(source *cs.Planet) *Planet {
 	var pDbPlanet *Planet
 	if source != nil {
-		dbPlanet := c.gamePlanetToDbPlanet(*source)
+		dbPlanet := c.csPlanetToDbPlanet(*source)
 		pDbPlanet = &dbPlanet
 	}
 	return pDbPlanet
 }
-func (c *GameConverter) ConvertGamePlayer(source *game.Player) *Player {
+func (c *GameConverter) ConvertGamePlayer(source *cs.Player) *Player {
 	var pDbPlayer *Player
 	if source != nil {
-		dbPlayer := c.gamePlayerToDbPlayer(*source)
+		dbPlayer := c.csPlayerToDbPlayer(*source)
 		pDbPlayer = &dbPlayer
 	}
 	return pDbPlayer
 }
-func (c *GameConverter) ConvertGameRace(source *game.Race) *Race {
+func (c *GameConverter) ConvertGameRace(source *cs.Race) *Race {
 	var pDbRace *Race
 	if source != nil {
-		dbRace := c.gameRaceToDbRace(*source)
+		dbRace := c.csRaceToDbRace(*source)
 		pDbRace = &dbRace
 	}
 	return pDbRace
 }
-func (c *GameConverter) ConvertGameSalvage(source *game.Salvage) *Salvage {
+func (c *GameConverter) ConvertGameSalvage(source *cs.Salvage) *Salvage {
 	var pDbSalvage *Salvage
 	if source != nil {
-		dbSalvage := c.gameSalvageToDbSalvage(*source)
+		dbSalvage := c.csSalvageToDbSalvage(*source)
 		pDbSalvage = &dbSalvage
 	}
 	return pDbSalvage
 }
-func (c *GameConverter) ConvertGameShipDesign(source *game.ShipDesign) *ShipDesign {
+func (c *GameConverter) ConvertGameShipDesign(source *cs.ShipDesign) *ShipDesign {
 	var pDbShipDesign *ShipDesign
 	if source != nil {
-		dbShipDesign := c.gameShipDesignToDbShipDesign(*source)
+		dbShipDesign := c.csShipDesignToDbShipDesign(*source)
 		pDbShipDesign = &dbShipDesign
 	}
 	return pDbShipDesign
 }
-func (c *GameConverter) ConvertGameShipToken(source game.ShipToken) ShipToken {
+func (c *GameConverter) ConvertGameShipToken(source cs.ShipToken) ShipToken {
 	var dbShipToken ShipToken
 	dbShipToken.ID = source.ID
 	dbShipToken.CreatedAt = TimeToNullTime(source.CreatedAt)
@@ -124,274 +124,179 @@ func (c *GameConverter) ConvertGameShipToken(source game.ShipToken) ShipToken {
 	dbShipToken.QuantityDamaged = source.QuantityDamaged
 	return dbShipToken
 }
-func (c *GameConverter) ConvertGameUser(source *game.User) *User {
+func (c *GameConverter) ConvertGameUser(source *cs.User) *User {
 	var pDbUser *User
 	if source != nil {
-		dbUser := c.gameUserToDbUser(*source)
+		dbUser := c.csUserToDbUser(*source)
 		pDbUser = &dbUser
 	}
 	return pDbUser
 }
-func (c *GameConverter) ConvertGameWormhole(source *game.Wormhole) *Wormhole {
+func (c *GameConverter) ConvertGameWormhole(source *cs.Wormhole) *Wormhole {
 	var pDbWormhole *Wormhole
 	if source != nil {
-		dbWormhole := c.gameWormholeToDbWormhole(*source)
+		dbWormhole := c.csWormholeToDbWormhole(*source)
 		pDbWormhole = &dbWormhole
 	}
 	return pDbWormhole
 }
-func (c *GameConverter) ConvertGames(source []Game) []game.Game {
-	gameGameList := make([]game.Game, len(source))
+func (c *GameConverter) ConvertGames(source []Game) []cs.Game {
+	csGameList := make([]cs.Game, len(source))
 	for i := 0; i < len(source); i++ {
-		gameGameList[i] = c.ConvertGame(source[i])
+		csGameList[i] = c.ConvertGame(source[i])
 	}
-	return gameGameList
+	return csGameList
 }
-func (c *GameConverter) ConvertMineField(source *MineField) *game.MineField {
-	var pGameMineField *game.MineField
+func (c *GameConverter) ConvertMineField(source *MineField) *cs.MineField {
+	var pCsMineField *cs.MineField
 	if source != nil {
-		gameMineField := c.dbMineFieldToGameMineField(*source)
-		pGameMineField = &gameMineField
+		csMineField := c.dbMineFieldToCsMineField(*source)
+		pCsMineField = &csMineField
 	}
-	return pGameMineField
+	return pCsMineField
 }
-func (c *GameConverter) ConvertMineralPacket(source *MineralPacket) *game.MineralPacket {
-	var pGameMineralPacket *game.MineralPacket
+func (c *GameConverter) ConvertMineralPacket(source *MineralPacket) *cs.MineralPacket {
+	var pCsMineralPacket *cs.MineralPacket
 	if source != nil {
-		gameMineralPacket := c.dbMineralPacketToGameMineralPacket(*source)
-		pGameMineralPacket = &gameMineralPacket
+		csMineralPacket := c.dbMineralPacketToCsMineralPacket(*source)
+		pCsMineralPacket = &csMineralPacket
 	}
-	return pGameMineralPacket
+	return pCsMineralPacket
 }
-func (c *GameConverter) ConvertPlanet(source *Planet) *game.Planet {
-	var pGamePlanet *game.Planet
+func (c *GameConverter) ConvertPlanet(source *Planet) *cs.Planet {
+	var pCsPlanet *cs.Planet
 	if source != nil {
-		gamePlanet := c.dbPlanetToGamePlanet(*source)
-		pGamePlanet = &gamePlanet
+		csPlanet := c.dbPlanetToCsPlanet(*source)
+		pCsPlanet = &csPlanet
 	}
-	return pGamePlanet
+	return pCsPlanet
 }
-func (c *GameConverter) ConvertPlayer(source Player) game.Player {
-	var gamePlayer game.Player
-	gamePlayer.ID = source.ID
-	gamePlayer.CreatedAt = TimeToTime(source.CreatedAt)
-	gamePlayer.UpdatedAt = TimeToTime(source.UpdatedAt)
-	gamePlayer.GameID = source.GameID
-	gamePlayer.UserID = source.UserID
-	gamePlayer.Name = source.Name
-	gamePlayer.Num = source.Num
-	gamePlayer.Ready = source.Ready
-	gamePlayer.AIControlled = source.AIControlled
-	gamePlayer.SubmittedTurn = source.SubmittedTurn
-	gamePlayer.Color = source.Color
-	gamePlayer.DefaultHullSet = source.DefaultHullSet
-	gamePlayer.Race = PlayerRaceToGameRace(source.Race)
-	gamePlayer.TechLevels = ExtendTechLevels(source)
-	gamePlayer.TechLevelsSpent = ExtendTechLevelsSpent(source)
-	gamePlayer.ResearchAmount = source.ResearchAmount
-	gamePlayer.ResearchSpentLastYear = source.ResearchSpentLastYear
-	gamePlayer.NextResearchField = game.NextResearchField(source.NextResearchField)
-	gamePlayer.Researching = game.TechField(source.Researching)
-	gamePlayer.BattlePlans = BattlePlansToGameBattlePlans(source.BattlePlans)
-	gamePlayer.ProductionPlans = ProductionPlansToGameProductionPlans(source.ProductionPlans)
-	gamePlayer.TransportPlans = TransportPlansToGameTransportPlans(source.TransportPlans)
-	gamePlayer.Messages = PlayerMessagesToGamePlayerMessages(source.Messages)
-	gamePlayer.PlanetIntels = PlanetIntelsToGamePlanetIntels(source.PlanetIntels)
-	gamePlayer.FleetIntels = FleetIntelsToGameFleetIntels(source.FleetIntels)
-	gamePlayer.ShipDesignIntels = ShipDesignIntelsToGameShipDesignIntels(source.ShipDesignIntels)
-	gamePlayer.MineralPacketIntels = MineralPacketIntelsToGameMineralPacketIntels(source.MineralPacketIntels)
-	gamePlayer.MineFieldIntels = MineFieldIntelsToGameMineFieldIntels(source.MineFieldIntels)
-	gamePlayer.Spec = PlayerSpecToGamePlayerSpec(source.Spec)
-	gamePlayer.Stats = PlayerStatsToGamePlayerStats(source.Stats)
-	return gamePlayer
+func (c *GameConverter) ConvertPlayer(source Player) cs.Player {
+	var csPlayer cs.Player
+	csPlayer.PlayerOrders = ExtendPlayerPlayerOrders(source)
+	csPlayer.PlayerIntels = ExtendPlayerPlayerIntels(source)
+	csPlayer.PlayerPlans = ExtendPlayerPlayerPlans(source)
+	csPlayer.ID = source.ID
+	csPlayer.CreatedAt = TimeToTime(source.CreatedAt)
+	csPlayer.UpdatedAt = TimeToTime(source.UpdatedAt)
+	csPlayer.GameID = source.GameID
+	csPlayer.UserID = source.UserID
+	csPlayer.Name = source.Name
+	csPlayer.Num = source.Num
+	csPlayer.Ready = source.Ready
+	csPlayer.AIControlled = source.AIControlled
+	csPlayer.SubmittedTurn = source.SubmittedTurn
+	csPlayer.Color = source.Color
+	csPlayer.DefaultHullSet = source.DefaultHullSet
+	csPlayer.Race = PlayerRaceToGameRace(source.Race)
+	csPlayer.TechLevels = ExtendTechLevels(source)
+	csPlayer.TechLevelsSpent = ExtendTechLevelsSpent(source)
+	csPlayer.ResearchSpentLastYear = source.ResearchSpentLastYear
+	csPlayer.Messages = PlayerMessagesToGamePlayerMessages(source.Messages)
+	csPlayer.Spec = PlayerSpecToGamePlayerSpec(source.Spec)
+	csPlayer.Stats = PlayerStatsToGamePlayerStats(source.Stats)
+	return csPlayer
 }
-func (c *GameConverter) ConvertPlayers(source []Player) []game.Player {
-	gamePlayerList := make([]game.Player, len(source))
+func (c *GameConverter) ConvertPlayers(source []Player) []cs.Player {
+	csPlayerList := make([]cs.Player, len(source))
 	for i := 0; i < len(source); i++ {
-		gamePlayerList[i] = c.ConvertPlayer(source[i])
+		csPlayerList[i] = c.ConvertPlayer(source[i])
 	}
-	return gamePlayerList
+	return csPlayerList
 }
-func (c *GameConverter) ConvertRace(source Race) game.Race {
-	var gameRace game.Race
-	gameRace.ID = source.ID
-	gameRace.CreatedAt = TimeToTime(source.CreatedAt)
-	gameRace.UpdatedAt = TimeToTime(source.UpdatedAt)
-	gameRace.UserID = source.UserID
-	gameRace.Name = source.Name
-	gameRace.PluralName = source.PluralName
-	gameRace.PRT = game.PRT(source.PRT)
-	gameRace.LRTs = game.Bitmask(source.LRTs)
-	gameRace.HabLow = ExtendHabLow(source)
-	gameRace.HabHigh = ExtendHabHigh(source)
-	gameRace.GrowthRate = source.GrowthRate
-	gameRace.PopEfficiency = source.PopEfficiency
-	gameRace.FactoryOutput = source.FactoryOutput
-	gameRace.FactoryCost = source.FactoryCost
-	gameRace.NumFactories = source.NumFactories
-	gameRace.FactoriesCostLess = source.FactoriesCostLess
-	gameRace.ImmuneGrav = source.ImmuneGrav
-	gameRace.ImmuneTemp = source.ImmuneTemp
-	gameRace.ImmuneRad = source.ImmuneRad
-	gameRace.MineOutput = source.MineOutput
-	gameRace.MineCost = source.MineCost
-	gameRace.NumMines = source.NumMines
-	gameRace.ResearchCost = ExtendResearchCost(source)
-	gameRace.TechsStartHigh = source.TechsStartHigh
-	gameRace.Spec = RaceSpecToGameRaceSpec(source.Spec)
-	return gameRace
+func (c *GameConverter) ConvertRace(source Race) cs.Race {
+	var csRace cs.Race
+	csRace.ID = source.ID
+	csRace.CreatedAt = TimeToTime(source.CreatedAt)
+	csRace.UpdatedAt = TimeToTime(source.UpdatedAt)
+	csRace.UserID = source.UserID
+	csRace.Name = source.Name
+	csRace.PluralName = source.PluralName
+	csRace.PRT = cs.PRT(source.PRT)
+	csRace.LRTs = cs.Bitmask(source.LRTs)
+	csRace.HabLow = ExtendHabLow(source)
+	csRace.HabHigh = ExtendHabHigh(source)
+	csRace.GrowthRate = source.GrowthRate
+	csRace.PopEfficiency = source.PopEfficiency
+	csRace.FactoryOutput = source.FactoryOutput
+	csRace.FactoryCost = source.FactoryCost
+	csRace.NumFactories = source.NumFactories
+	csRace.FactoriesCostLess = source.FactoriesCostLess
+	csRace.ImmuneGrav = source.ImmuneGrav
+	csRace.ImmuneTemp = source.ImmuneTemp
+	csRace.ImmuneRad = source.ImmuneRad
+	csRace.MineOutput = source.MineOutput
+	csRace.MineCost = source.MineCost
+	csRace.NumMines = source.NumMines
+	csRace.ResearchCost = ExtendResearchCost(source)
+	csRace.TechsStartHigh = source.TechsStartHigh
+	csRace.Spec = RaceSpecToGameRaceSpec(source.Spec)
+	return csRace
 }
-func (c *GameConverter) ConvertRaces(source []Race) []game.Race {
-	gameRaceList := make([]game.Race, len(source))
+func (c *GameConverter) ConvertRaces(source []Race) []cs.Race {
+	csRaceList := make([]cs.Race, len(source))
 	for i := 0; i < len(source); i++ {
-		gameRaceList[i] = c.ConvertRace(source[i])
+		csRaceList[i] = c.ConvertRace(source[i])
 	}
-	return gameRaceList
+	return csRaceList
 }
-func (c *GameConverter) ConvertSalvage(source *Salvage) *game.Salvage {
-	var pGameSalvage *game.Salvage
+func (c *GameConverter) ConvertSalvage(source *Salvage) *cs.Salvage {
+	var pCsSalvage *cs.Salvage
 	if source != nil {
-		gameSalvage := c.dbSalvageToGameSalvage(*source)
-		pGameSalvage = &gameSalvage
+		csSalvage := c.dbSalvageToCsSalvage(*source)
+		pCsSalvage = &csSalvage
 	}
-	return pGameSalvage
+	return pCsSalvage
 }
-func (c *GameConverter) ConvertShipDesign(source *ShipDesign) *game.ShipDesign {
-	var pGameShipDesign *game.ShipDesign
+func (c *GameConverter) ConvertShipDesign(source *ShipDesign) *cs.ShipDesign {
+	var pCsShipDesign *cs.ShipDesign
 	if source != nil {
-		gameShipDesign := c.dbShipDesignToGameShipDesign(*source)
-		pGameShipDesign = &gameShipDesign
+		csShipDesign := c.dbShipDesignToCsShipDesign(*source)
+		pCsShipDesign = &csShipDesign
 	}
-	return pGameShipDesign
+	return pCsShipDesign
 }
-func (c *GameConverter) ConvertShipToken(source ShipToken) game.ShipToken {
-	var gameShipToken game.ShipToken
-	gameShipToken.ID = source.ID
-	gameShipToken.CreatedAt = NullTimeToTime(source.CreatedAt)
-	gameShipToken.UpdatedAt = NullTimeToTime(source.UpdatedAt)
-	gameShipToken.FleetID = source.FleetID
-	gameShipToken.DesignUUID = UUIDToUUID(source.DesignUUID)
-	gameShipToken.Quantity = source.Quantity
-	gameShipToken.Damage = source.Damage
-	gameShipToken.QuantityDamaged = source.QuantityDamaged
-	return gameShipToken
+func (c *GameConverter) ConvertShipToken(source ShipToken) cs.ShipToken {
+	var csShipToken cs.ShipToken
+	csShipToken.ID = source.ID
+	csShipToken.CreatedAt = NullTimeToTime(source.CreatedAt)
+	csShipToken.UpdatedAt = NullTimeToTime(source.UpdatedAt)
+	csShipToken.FleetID = source.FleetID
+	csShipToken.DesignUUID = UUIDToUUID(source.DesignUUID)
+	csShipToken.Quantity = source.Quantity
+	csShipToken.Damage = source.Damage
+	csShipToken.QuantityDamaged = source.QuantityDamaged
+	return csShipToken
 }
-func (c *GameConverter) ConvertUser(source User) game.User {
-	var gameUser game.User
-	gameUser.ID = source.ID
-	gameUser.CreatedAt = TimeToTime(source.CreatedAt)
-	gameUser.UpdatedAt = TimeToTime(source.UpdatedAt)
-	gameUser.Username = source.Username
-	gameUser.Password = source.Password
-	gameUser.Role = game.Role(source.Role)
-	return gameUser
+func (c *GameConverter) ConvertUser(source User) cs.User {
+	var csUser cs.User
+	csUser.ID = source.ID
+	csUser.CreatedAt = TimeToTime(source.CreatedAt)
+	csUser.UpdatedAt = TimeToTime(source.UpdatedAt)
+	csUser.Username = source.Username
+	csUser.Password = source.Password
+	csUser.Email = source.Email
+	csUser.Role = cs.Role(source.Role)
+	csUser.Verified = source.Verified
+	csUser.VerifyToken = source.VerifyToken
+	return csUser
 }
-func (c *GameConverter) ConvertUsers(source []User) []game.User {
-	gameUserList := make([]game.User, len(source))
+func (c *GameConverter) ConvertUsers(source []User) []cs.User {
+	csUserList := make([]cs.User, len(source))
 	for i := 0; i < len(source); i++ {
-		gameUserList[i] = c.ConvertUser(source[i])
+		csUserList[i] = c.ConvertUser(source[i])
 	}
-	return gameUserList
+	return csUserList
 }
-func (c *GameConverter) ConvertWormhole(source *Wormhole) *game.Wormhole {
-	var pGameWormhole *game.Wormhole
+func (c *GameConverter) ConvertWormhole(source *Wormhole) *cs.Wormhole {
+	var pCsWormhole *cs.Wormhole
 	if source != nil {
-		gameWormhole := c.dbWormholeToGameWormhole(*source)
-		pGameWormhole = &gameWormhole
+		csWormhole := c.dbWormholeToCsWormhole(*source)
+		pCsWormhole = &csWormhole
 	}
-	return pGameWormhole
+	return pCsWormhole
 }
-func (c *GameConverter) dbFleetToGameFleet(source Fleet) game.Fleet {
-	var gameFleet game.Fleet
-	gameFleet.MapObject = ExtendFleetMapObject(source)
-	gameFleet.FleetOrders = ExtendFleetFleetOrders(source)
-	gameFleet.PlanetNum = source.PlanetNum
-	gameFleet.BaseName = source.BaseName
-	gameFleet.Cargo = ExtendFleetCargo(source)
-	gameFleet.Fuel = source.Fuel
-	gameFleet.Damage = source.Damage
-	gameFleet.BattlePlanName = source.BattlePlanName
-	gameFleet.Heading = ExtendFleetHeading(source)
-	gameFleet.WarpSpeed = source.WarpSpeed
-	gameFleet.PreviousPosition = ExtendFleetPreviousPosition(source)
-	gameFleet.OrbitingPlanetNum = source.OrbitingPlanetNum
-	gameFleet.Starbase = source.Starbase
-	gameFleet.Spec = FleetSpecToGameFleetSpec(source.Spec)
-	return gameFleet
-}
-func (c *GameConverter) dbMineFieldToGameMineField(source MineField) game.MineField {
-	var gameMineField game.MineField
-	gameMineField.MapObject = ExtendMineFieldMapObject(source)
-	gameMineField.Type = game.MineFieldType(source.Type)
-	gameMineField.NumMines = source.NumMines
-	gameMineField.Detonate = source.Detonate
-	return gameMineField
-}
-func (c *GameConverter) dbMineralPacketToGameMineralPacket(source MineralPacket) game.MineralPacket {
-	var gameMineralPacket game.MineralPacket
-	gameMineralPacket.MapObject = ExtendMineralPacketMapObject(source)
-	gameMineralPacket.TargetPlanetNum = source.TargetPlanetNum
-	gameMineralPacket.Cargo = ExtendMineralPacketCargo(source)
-	gameMineralPacket.SafeWarpSpeed = source.SafeWarpSpeed
-	gameMineralPacket.WarpFactor = source.WarpFactor
-	gameMineralPacket.DistanceTravelled = source.DistanceTravelled
-	gameMineralPacket.Heading = ExtendMineralPacketHeading(source)
-	return gameMineralPacket
-}
-func (c *GameConverter) dbPlanetToGamePlanet(source Planet) game.Planet {
-	var gamePlanet game.Planet
-	gamePlanet.MapObject = ExtendPlanetMapObject(source)
-	gamePlanet.Hab = ExtendHab(source)
-	gamePlanet.BaseHab = ExtendBaseHab(source)
-	gamePlanet.TerraformedAmount = ExtendTerraformedAmount(source)
-	gamePlanet.MineralConcentration = ExtendMineralConcentration(source)
-	gamePlanet.MineYears = ExtendMineYears(source)
-	gamePlanet.Cargo = ExtendPlanetCargo(source)
-	gamePlanet.Mines = source.Mines
-	gamePlanet.Factories = source.Factories
-	gamePlanet.Defenses = source.Defenses
-	gamePlanet.Homeworld = source.Homeworld
-	gamePlanet.ContributesOnlyLeftoverToResearch = source.ContributesOnlyLeftoverToResearch
-	gamePlanet.Scanner = source.Scanner
-	gamePlanet.PacketSpeed = source.PacketSpeed
-	gamePlanet.BonusResources = source.BonusResources
-	gamePlanet.ProductionQueue = ProductionQueueItemsToGameProductionQueueItems(source.ProductionQueue)
-	gamePlanet.Spec = PlanetSpecToGamePlanetSpec(source.Spec)
-	return gamePlanet
-}
-func (c *GameConverter) dbSalvageToGameSalvage(source Salvage) game.Salvage {
-	var gameSalvage game.Salvage
-	gameSalvage.MapObject = ExtendSalvageMapObject(source)
-	gameSalvage.Cargo = ExtendSalvageCargo(source)
-	return gameSalvage
-}
-func (c *GameConverter) dbShipDesignToGameShipDesign(source ShipDesign) game.ShipDesign {
-	var gameShipDesign game.ShipDesign
-	gameShipDesign.ID = source.ID
-	gameShipDesign.CreatedAt = TimeToTime(source.CreatedAt)
-	gameShipDesign.UpdatedAt = TimeToTime(source.UpdatedAt)
-	gameShipDesign.PlayerID = source.PlayerID
-	gameShipDesign.PlayerNum = source.PlayerNum
-	gameShipDesign.UUID = UUIDToUUID(source.UUID)
-	gameShipDesign.Name = source.Name
-	gameShipDesign.Version = source.Version
-	gameShipDesign.Hull = source.Hull
-	gameShipDesign.HullSetNumber = source.HullSetNumber
-	gameShipDesign.CanDelete = source.CanDelete
-	gameShipDesign.Slots = ShipDesignSlotsToGameShipDesignSlots(source.Slots)
-	gameShipDesign.Purpose = game.ShipDesignPurpose(source.Purpose)
-	gameShipDesign.Spec = ShipDesignSpecToGameShipDesignSpec(source.Spec)
-	return gameShipDesign
-}
-func (c *GameConverter) dbWormholeToGameWormhole(source Wormhole) game.Wormhole {
-	var gameWormhole game.Wormhole
-	gameWormhole.MapObject = ExtendWormholeMapObject(source)
-	gameWormhole.DestinationNum = source.DestinationNum
-	gameWormhole.Stability = game.WormholeStability(source.Stability)
-	gameWormhole.YearsAtStability = source.YearsAtStability
-	return gameWormhole
-}
-func (c *GameConverter) gameFleetToDbFleet(source game.Fleet) Fleet {
+func (c *GameConverter) csFleetToDbFleet(source cs.Fleet) Fleet {
 	var dbFleet Fleet
 	dbFleet.ID = source.MapObject.ID
 	dbFleet.GameID = source.MapObject.GameID
@@ -413,7 +318,7 @@ func (c *GameConverter) gameFleetToDbFleet(source game.Fleet) Fleet {
 	dbFleet.Colonists = source.Cargo.Colonists
 	dbFleet.Fuel = source.Fuel
 	dbFleet.Damage = source.Damage
-	dbFleet.BattlePlanName = source.BattlePlanName
+	dbFleet.BattlePlanName = source.FleetOrders.BattlePlanName
 	dbFleet.HeadingX = source.Heading.X
 	dbFleet.HeadingY = source.Heading.Y
 	dbFleet.WarpSpeed = source.WarpSpeed
@@ -442,7 +347,7 @@ func (c *GameConverter) gameFleetToDbFleet(source game.Fleet) Fleet {
 	dbFleet.Spec = GameFleetSpecToFleetSpec(source.Spec)
 	return dbFleet
 }
-func (c *GameConverter) gameGameToDbGame(source game.Game) Game {
+func (c *GameConverter) csGameToDbGame(source cs.Game) Game {
 	var dbGame Game
 	dbGame.ID = source.ID
 	dbGame.CreatedAt = TimeToTime(source.CreatedAt)
@@ -450,18 +355,18 @@ func (c *GameConverter) gameGameToDbGame(source game.Game) Game {
 	dbGame.Name = source.Name
 	dbGame.HostID = source.HostID
 	dbGame.QuickStartTurns = source.QuickStartTurns
-	dbGame.Size = game.Size(source.Size)
-	dbGame.Density = game.Density(source.Density)
-	dbGame.PlayerPositions = game.PlayerPositions(source.PlayerPositions)
+	dbGame.Size = cs.Size(source.Size)
+	dbGame.Density = cs.Density(source.Density)
+	dbGame.PlayerPositions = cs.PlayerPositions(source.PlayerPositions)
 	dbGame.RandomEvents = source.RandomEvents
 	dbGame.ComputerPlayersFormAlliances = source.ComputerPlayersFormAlliances
 	dbGame.PublicPlayerScores = source.PublicPlayerScores
-	dbGame.StartMode = game.GameStartMode(source.StartMode)
+	dbGame.StartMode = cs.GameStartMode(source.StartMode)
 	dbGame.Year = source.Year
-	dbGame.State = game.GameState(source.State)
+	dbGame.State = cs.GameState(source.State)
 	dbGame.OpenPlayerSlots = source.OpenPlayerSlots
 	dbGame.NumPlayers = source.NumPlayers
-	dbVictoryConditions := c.gameVictoryConditionListToDbVictoryConditions(source.VictoryConditions.Conditions)
+	dbVictoryConditions := c.csVictoryConditionListToDbVictoryConditions(source.VictoryConditions.Conditions)
 	dbGame.VictoryConditionsConditions = &dbVictoryConditions
 	dbGame.VictoryConditionsNumCriteriaRequired = source.VictoryConditions.NumCriteriaRequired
 	dbGame.VictoryConditionsYearsPassed = source.VictoryConditions.YearsPassed
@@ -480,7 +385,7 @@ func (c *GameConverter) gameGameToDbGame(source game.Game) Game {
 	dbGame.AreaY = source.Area.Y
 	return dbGame
 }
-func (c *GameConverter) gameMineFieldToDbMineField(source game.MineField) MineField {
+func (c *GameConverter) csMineFieldToDbMineField(source cs.MineField) MineField {
 	var dbMineField MineField
 	dbMineField.ID = source.MapObject.ID
 	dbMineField.GameID = source.MapObject.GameID
@@ -492,12 +397,12 @@ func (c *GameConverter) gameMineFieldToDbMineField(source game.MineField) MineFi
 	dbMineField.Name = source.MapObject.Name
 	dbMineField.Num = source.MapObject.Num
 	dbMineField.PlayerNum = source.MapObject.PlayerNum
-	dbMineField.Type = game.MineFieldType(source.Type)
+	dbMineField.Type = cs.MineFieldType(source.Type)
 	dbMineField.NumMines = source.NumMines
-	dbMineField.Detonate = source.Detonate
+	dbMineField.Detonate = source.MineFieldOrders.Detonate
 	return dbMineField
 }
-func (c *GameConverter) gameMineralPacketToDbMineralPacket(source game.MineralPacket) MineralPacket {
+func (c *GameConverter) csMineralPacketToDbMineralPacket(source cs.MineralPacket) MineralPacket {
 	var dbMineralPacket MineralPacket
 	dbMineralPacket.ID = source.MapObject.ID
 	dbMineralPacket.GameID = source.MapObject.GameID
@@ -520,7 +425,7 @@ func (c *GameConverter) gameMineralPacketToDbMineralPacket(source game.MineralPa
 	dbMineralPacket.HeadingY = source.Heading.Y
 	return dbMineralPacket
 }
-func (c *GameConverter) gamePlanetToDbPlanet(source game.Planet) Planet {
+func (c *GameConverter) csPlanetToDbPlanet(source cs.Planet) Planet {
 	var dbPlanet Planet
 	dbPlanet.ID = source.MapObject.ID
 	dbPlanet.GameID = source.MapObject.GameID
@@ -555,15 +460,15 @@ func (c *GameConverter) gamePlanetToDbPlanet(source game.Planet) Planet {
 	dbPlanet.Factories = source.Factories
 	dbPlanet.Defenses = source.Defenses
 	dbPlanet.Homeworld = source.Homeworld
-	dbPlanet.ContributesOnlyLeftoverToResearch = source.ContributesOnlyLeftoverToResearch
+	dbPlanet.ContributesOnlyLeftoverToResearch = source.PlanetOrders.ContributesOnlyLeftoverToResearch
 	dbPlanet.Scanner = source.Scanner
 	dbPlanet.PacketSpeed = source.PacketSpeed
 	dbPlanet.BonusResources = source.BonusResources
-	dbPlanet.ProductionQueue = GameProductionQueueItemsToProductionQueueItems(source.ProductionQueue)
+	dbPlanet.ProductionQueue = GameProductionQueueItemsToProductionQueueItems(source.PlanetOrders.ProductionQueue)
 	dbPlanet.Spec = GamePlanetSpecToPlanetSpec(source.Spec)
 	return dbPlanet
 }
-func (c *GameConverter) gamePlayerToDbPlayer(source game.Player) Player {
+func (c *GameConverter) csPlayerToDbPlayer(source cs.Player) Player {
 	var dbPlayer Player
 	dbPlayer.ID = source.ID
 	dbPlayer.CreatedAt = TimeToTime(source.CreatedAt)
@@ -589,25 +494,25 @@ func (c *GameConverter) gamePlayerToDbPlayer(source game.Player) Player {
 	dbPlayer.TechLevelsSpentConstruction = source.TechLevelsSpent.Construction
 	dbPlayer.TechLevelsSpentElectronics = source.TechLevelsSpent.Electronics
 	dbPlayer.TechLevelsSpentBiotechnology = source.TechLevelsSpent.Biotechnology
-	dbPlayer.ResearchAmount = source.ResearchAmount
+	dbPlayer.ResearchAmount = source.PlayerOrders.ResearchAmount
 	dbPlayer.ResearchSpentLastYear = source.ResearchSpentLastYear
-	dbPlayer.NextResearchField = game.NextResearchField(source.NextResearchField)
-	dbPlayer.Researching = game.TechField(source.Researching)
-	dbPlayer.BattlePlans = GameBattlePlansToBattlePlans(source.BattlePlans)
-	dbPlayer.ProductionPlans = GameProductionPlansToProductionPlans(source.ProductionPlans)
-	dbPlayer.TransportPlans = GameTransportPlansToTransportPlans(source.TransportPlans)
+	dbPlayer.NextResearchField = cs.NextResearchField(source.PlayerOrders.NextResearchField)
+	dbPlayer.Researching = cs.TechField(source.PlayerOrders.Researching)
+	dbPlayer.BattlePlans = GameBattlePlansToBattlePlans(source.PlayerPlans.BattlePlans)
+	dbPlayer.ProductionPlans = GameProductionPlansToProductionPlans(source.PlayerPlans.ProductionPlans)
+	dbPlayer.TransportPlans = GameTransportPlansToTransportPlans(source.PlayerPlans.TransportPlans)
 	dbPlayer.Messages = GamePlayerMessagesToPlayerMessages(source.Messages)
-	dbPlayer.PlanetIntels = GamePlanetIntelsToPlanetIntels(source.PlanetIntels)
-	dbPlayer.FleetIntels = GameFleetIntelsToFleetIntels(source.FleetIntels)
-	dbPlayer.ShipDesignIntels = GameShipDesignIntelsToShipDesignIntels(source.ShipDesignIntels)
-	dbPlayer.MineralPacketIntels = GameMineralPacketIntelsToMineralPacketIntels(source.MineralPacketIntels)
-	dbPlayer.MineFieldIntels = GameMineFieldIntelsToMineFieldIntels(source.MineFieldIntels)
+	dbPlayer.PlanetIntels = GamePlanetIntelsToPlanetIntels(source.PlayerIntels.PlanetIntels)
+	dbPlayer.FleetIntels = GameFleetIntelsToFleetIntels(source.PlayerIntels.FleetIntels)
+	dbPlayer.ShipDesignIntels = GameShipDesignIntelsToShipDesignIntels(source.PlayerIntels.ShipDesignIntels)
+	dbPlayer.MineralPacketIntels = GameMineralPacketIntelsToMineralPacketIntels(source.PlayerIntels.MineralPacketIntels)
+	dbPlayer.MineFieldIntels = GameMineFieldIntelsToMineFieldIntels(source.PlayerIntels.MineFieldIntels)
 	dbPlayer.Race = GameRaceToPlayerRace(source.Race)
 	dbPlayer.Stats = GamePlayerStatsToPlayerStats(source.Stats)
 	dbPlayer.Spec = GamePlayerSpecToPlayerSpec(source.Spec)
 	return dbPlayer
 }
-func (c *GameConverter) gameRaceToDbRace(source game.Race) Race {
+func (c *GameConverter) csRaceToDbRace(source cs.Race) Race {
 	var dbRace Race
 	dbRace.ID = source.ID
 	dbRace.CreatedAt = TimeToTime(source.CreatedAt)
@@ -615,8 +520,8 @@ func (c *GameConverter) gameRaceToDbRace(source game.Race) Race {
 	dbRace.UserID = source.UserID
 	dbRace.Name = source.Name
 	dbRace.PluralName = source.PluralName
-	dbRace.PRT = game.PRT(source.PRT)
-	dbRace.LRTs = game.Bitmask(source.LRTs)
+	dbRace.PRT = cs.PRT(source.PRT)
+	dbRace.LRTs = cs.Bitmask(source.LRTs)
 	dbRace.HabLowGrav = source.HabLow.Grav
 	dbRace.HabLowTemp = source.HabLow.Temp
 	dbRace.HabLowRad = source.HabLow.Rad
@@ -635,17 +540,17 @@ func (c *GameConverter) gameRaceToDbRace(source game.Race) Race {
 	dbRace.MineOutput = source.MineOutput
 	dbRace.MineCost = source.MineCost
 	dbRace.NumMines = source.NumMines
-	dbRace.ResearchCostEnergy = game.ResearchCostLevel(source.ResearchCost.Energy)
-	dbRace.ResearchCostWeapons = game.ResearchCostLevel(source.ResearchCost.Weapons)
-	dbRace.ResearchCostPropulsion = game.ResearchCostLevel(source.ResearchCost.Propulsion)
-	dbRace.ResearchCostConstruction = game.ResearchCostLevel(source.ResearchCost.Construction)
-	dbRace.ResearchCostElectronics = game.ResearchCostLevel(source.ResearchCost.Electronics)
-	dbRace.ResearchCostBiotechnology = game.ResearchCostLevel(source.ResearchCost.Biotechnology)
+	dbRace.ResearchCostEnergy = cs.ResearchCostLevel(source.ResearchCost.Energy)
+	dbRace.ResearchCostWeapons = cs.ResearchCostLevel(source.ResearchCost.Weapons)
+	dbRace.ResearchCostPropulsion = cs.ResearchCostLevel(source.ResearchCost.Propulsion)
+	dbRace.ResearchCostConstruction = cs.ResearchCostLevel(source.ResearchCost.Construction)
+	dbRace.ResearchCostElectronics = cs.ResearchCostLevel(source.ResearchCost.Electronics)
+	dbRace.ResearchCostBiotechnology = cs.ResearchCostLevel(source.ResearchCost.Biotechnology)
 	dbRace.TechsStartHigh = source.TechsStartHigh
 	dbRace.Spec = GameRaceSpecToRaceSpec(source.Spec)
 	return dbRace
 }
-func (c *GameConverter) gameSalvageToDbSalvage(source game.Salvage) Salvage {
+func (c *GameConverter) csSalvageToDbSalvage(source cs.Salvage) Salvage {
 	var dbSalvage Salvage
 	dbSalvage.ID = source.MapObject.ID
 	dbSalvage.GameID = source.MapObject.GameID
@@ -662,7 +567,7 @@ func (c *GameConverter) gameSalvageToDbSalvage(source game.Salvage) Salvage {
 	dbSalvage.Germanium = source.Cargo.Germanium
 	return dbSalvage
 }
-func (c *GameConverter) gameShipDesignToDbShipDesign(source game.ShipDesign) ShipDesign {
+func (c *GameConverter) csShipDesignToDbShipDesign(source cs.ShipDesign) ShipDesign {
 	var dbShipDesign ShipDesign
 	dbShipDesign.ID = source.ID
 	dbShipDesign.CreatedAt = TimeToTime(source.CreatedAt)
@@ -676,28 +581,31 @@ func (c *GameConverter) gameShipDesignToDbShipDesign(source game.ShipDesign) Shi
 	dbShipDesign.HullSetNumber = source.HullSetNumber
 	dbShipDesign.CanDelete = source.CanDelete
 	dbShipDesign.Slots = GameShipDesignSlotsToShipDesignSlots(source.Slots)
-	dbShipDesign.Purpose = game.ShipDesignPurpose(source.Purpose)
+	dbShipDesign.Purpose = cs.ShipDesignPurpose(source.Purpose)
 	dbShipDesign.Spec = GameShipDesignSpecToShipDesignSpec(source.Spec)
 	return dbShipDesign
 }
-func (c *GameConverter) gameUserToDbUser(source game.User) User {
+func (c *GameConverter) csUserToDbUser(source cs.User) User {
 	var dbUser User
 	dbUser.ID = source.ID
 	dbUser.CreatedAt = TimeToTime(source.CreatedAt)
 	dbUser.UpdatedAt = TimeToTime(source.UpdatedAt)
 	dbUser.Username = source.Username
 	dbUser.Password = source.Password
-	dbUser.Role = string(source.Role)
+	dbUser.Email = source.Email
+	dbUser.Role = cs.Role(source.Role)
+	dbUser.Verified = source.Verified
+	dbUser.VerifyToken = source.VerifyToken
 	return dbUser
 }
-func (c *GameConverter) gameVictoryConditionListToDbVictoryConditions(source []game.VictoryCondition) VictoryConditions {
+func (c *GameConverter) csVictoryConditionListToDbVictoryConditions(source []cs.VictoryCondition) VictoryConditions {
 	dbVictoryConditions := make(VictoryConditions, len(source))
 	for i := 0; i < len(source); i++ {
-		dbVictoryConditions[i] = game.VictoryCondition(source[i])
+		dbVictoryConditions[i] = cs.VictoryCondition(source[i])
 	}
 	return dbVictoryConditions
 }
-func (c *GameConverter) gameWormholeToDbWormhole(source game.Wormhole) Wormhole {
+func (c *GameConverter) csWormholeToDbWormhole(source cs.Wormhole) Wormhole {
 	var dbWormhole Wormhole
 	dbWormhole.ID = source.MapObject.ID
 	dbWormhole.GameID = source.MapObject.GameID
@@ -708,7 +616,95 @@ func (c *GameConverter) gameWormholeToDbWormhole(source game.Wormhole) Wormhole 
 	dbWormhole.Name = source.MapObject.Name
 	dbWormhole.Num = source.MapObject.Num
 	dbWormhole.DestinationNum = source.DestinationNum
-	dbWormhole.Stability = game.WormholeStability(source.Stability)
+	dbWormhole.Stability = cs.WormholeStability(source.Stability)
 	dbWormhole.YearsAtStability = source.YearsAtStability
 	return dbWormhole
+}
+func (c *GameConverter) dbFleetToCsFleet(source Fleet) cs.Fleet {
+	var csFleet cs.Fleet
+	csFleet.MapObject = ExtendFleetMapObject(source)
+	csFleet.FleetOrders = ExtendFleetFleetOrders(source)
+	csFleet.PlanetNum = source.PlanetNum
+	csFleet.BaseName = source.BaseName
+	csFleet.Cargo = ExtendFleetCargo(source)
+	csFleet.Fuel = source.Fuel
+	csFleet.Damage = source.Damage
+	csFleet.Heading = ExtendFleetHeading(source)
+	csFleet.WarpSpeed = source.WarpSpeed
+	csFleet.PreviousPosition = ExtendFleetPreviousPosition(source)
+	csFleet.OrbitingPlanetNum = source.OrbitingPlanetNum
+	csFleet.Starbase = source.Starbase
+	csFleet.Spec = FleetSpecToGameFleetSpec(source.Spec)
+	return csFleet
+}
+func (c *GameConverter) dbMineFieldToCsMineField(source MineField) cs.MineField {
+	var csMineField cs.MineField
+	csMineField.MapObject = ExtendMineFieldMapObject(source)
+	csMineField.MineFieldOrders = ExtendMineFieldMineFieldOrders(source)
+	csMineField.Type = cs.MineFieldType(source.Type)
+	csMineField.NumMines = source.NumMines
+	return csMineField
+}
+func (c *GameConverter) dbMineralPacketToCsMineralPacket(source MineralPacket) cs.MineralPacket {
+	var csMineralPacket cs.MineralPacket
+	csMineralPacket.MapObject = ExtendMineralPacketMapObject(source)
+	csMineralPacket.TargetPlanetNum = source.TargetPlanetNum
+	csMineralPacket.Cargo = ExtendMineralPacketCargo(source)
+	csMineralPacket.SafeWarpSpeed = source.SafeWarpSpeed
+	csMineralPacket.WarpFactor = source.WarpFactor
+	csMineralPacket.DistanceTravelled = source.DistanceTravelled
+	csMineralPacket.Heading = ExtendMineralPacketHeading(source)
+	return csMineralPacket
+}
+func (c *GameConverter) dbPlanetToCsPlanet(source Planet) cs.Planet {
+	var csPlanet cs.Planet
+	csPlanet.MapObject = ExtendPlanetMapObject(source)
+	csPlanet.PlanetOrders = ExtendPlanetPlanetOrders(source)
+	csPlanet.Hab = ExtendHab(source)
+	csPlanet.BaseHab = ExtendBaseHab(source)
+	csPlanet.TerraformedAmount = ExtendTerraformedAmount(source)
+	csPlanet.MineralConcentration = ExtendMineralConcentration(source)
+	csPlanet.MineYears = ExtendMineYears(source)
+	csPlanet.Cargo = ExtendPlanetCargo(source)
+	csPlanet.Mines = source.Mines
+	csPlanet.Factories = source.Factories
+	csPlanet.Defenses = source.Defenses
+	csPlanet.Homeworld = source.Homeworld
+	csPlanet.Scanner = source.Scanner
+	csPlanet.PacketSpeed = source.PacketSpeed
+	csPlanet.BonusResources = source.BonusResources
+	csPlanet.Spec = PlanetSpecToGamePlanetSpec(source.Spec)
+	return csPlanet
+}
+func (c *GameConverter) dbSalvageToCsSalvage(source Salvage) cs.Salvage {
+	var csSalvage cs.Salvage
+	csSalvage.MapObject = ExtendSalvageMapObject(source)
+	csSalvage.Cargo = ExtendSalvageCargo(source)
+	return csSalvage
+}
+func (c *GameConverter) dbShipDesignToCsShipDesign(source ShipDesign) cs.ShipDesign {
+	var csShipDesign cs.ShipDesign
+	csShipDesign.ID = source.ID
+	csShipDesign.CreatedAt = TimeToTime(source.CreatedAt)
+	csShipDesign.UpdatedAt = TimeToTime(source.UpdatedAt)
+	csShipDesign.PlayerID = source.PlayerID
+	csShipDesign.PlayerNum = source.PlayerNum
+	csShipDesign.UUID = UUIDToUUID(source.UUID)
+	csShipDesign.Name = source.Name
+	csShipDesign.Version = source.Version
+	csShipDesign.Hull = source.Hull
+	csShipDesign.HullSetNumber = source.HullSetNumber
+	csShipDesign.CanDelete = source.CanDelete
+	csShipDesign.Slots = ShipDesignSlotsToGameShipDesignSlots(source.Slots)
+	csShipDesign.Purpose = cs.ShipDesignPurpose(source.Purpose)
+	csShipDesign.Spec = ShipDesignSpecToGameShipDesignSpec(source.Spec)
+	return csShipDesign
+}
+func (c *GameConverter) dbWormholeToCsWormhole(source Wormhole) cs.Wormhole {
+	var csWormhole cs.Wormhole
+	csWormhole.MapObject = ExtendWormholeMapObject(source)
+	csWormhole.DestinationNum = source.DestinationNum
+	csWormhole.Stability = cs.WormholeStability(source.Stability)
+	csWormhole.YearsAtStability = source.YearsAtStability
+	return csWormhole
 }

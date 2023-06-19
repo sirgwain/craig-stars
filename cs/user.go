@@ -3,15 +3,20 @@ package cs
 import (
 	"errors"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type User struct {
-	ID        int64     `json:"id" header:"ID"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
-	Username  string    `json:"username" header:"Username"`
-	Password  string    `json:"password"`
-	Role      Role      `json:"role"`
+	ID          int64     `json:"id" header:"ID"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
+	Username    string    `json:"username" header:"Username"`
+	Password    string    `json:"password"`
+	Email       string    `json:"email"`
+	Role        Role      `json:"role"`
+	Verified    bool      `json:"verified"`
+	VerifyToken string    `json:"verifyToken"`
 }
 
 type Role string
@@ -42,6 +47,7 @@ func (e *Role) Type() string {
 	return "Role"
 }
 
-func NewUser(username string, password string, role Role) *User {
-	return &User{Username: username, Password: password, Role: role}
+func NewUser(username string, password string, email string, role Role) *User {
+	verifyToken := uuid.New().String()
+	return &User{Username: username, Password: password, Email: email, Role: role, VerifyToken: verifyToken}
 }

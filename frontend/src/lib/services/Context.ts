@@ -3,14 +3,14 @@ import type { Game } from '$lib/types/Game';
 import { MapObjectType, ownedBy, positionKey, type MapObject } from '$lib/types/MapObject';
 import type { Planet } from '$lib/types/Planet';
 import type { Player } from '$lib/types/Player';
-import type { User } from '$lib/types/User';
+import { emptyUser, type User } from '$lib/types/User';
 import { derived, writable } from 'svelte/store';
 
 export type MapObjectsByPosition = {
 	[k: string]: MapObject[];
 };
 
-export const me = writable<User | undefined>();
+export const me = writable<User>(emptyUser);
 export const game = writable<Game | undefined>();
 export const player = writable<Player | undefined>();
 

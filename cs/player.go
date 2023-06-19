@@ -48,8 +48,8 @@ type PlayerIntels struct {
 }
 
 type PlayerPlans struct {
-	BattlePlans     []BattlePlan     `json:"battlePlans,omitempty"`
 	ProductionPlans []ProductionPlan `json:"productionPlans,omitempty"`
+	BattlePlans     []BattlePlan     `json:"battlePlans,omitempty"`
 	TransportPlans  []TransportPlan  `json:"transportPlans,omitempty"`
 }
 

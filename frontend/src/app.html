@@ -3,14 +3,16 @@
 	<head>
 		<meta charset="utf-8" />
 		<link rel="icon" href="%sveltekit.assets%/favicon.png" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 		<script>
+			const darkTheme = 'business'
+			const lightTheme = 'emerald'
 			// On page load or when changing themes, best to add inline in `head` to avoid FOUC
-			if (localStorage.theme === 'business' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-				document.documentElement.dataset.theme = 'business'
+			if (localStorage.theme === darkTheme || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+				document.documentElement.dataset.theme = darkTheme
 				document.documentElement.className = "dark"
 			} else {
-				document.documentElement.dataset.theme = 'emerald'
+				document.documentElement.dataset.theme = lightTheme
 				document.documentElement.className = "light"
 			}
 

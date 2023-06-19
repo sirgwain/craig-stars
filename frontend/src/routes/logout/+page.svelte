@@ -7,7 +7,7 @@
 		});
 
 		if (response.ok) {
-			document.location = '/login';
+			document.location = '/';
 		} else {
 			const resolvedResponse = await response?.json();
 			error = resolvedResponse.error;

@@ -4,6 +4,9 @@ CREATE TABLE users (
   updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
   username TEXT UNIQUE NOT NULL,
   password TEXT NOT NULL,
+  email TEXT UNIQUE NOT NULL,
+  verified NUMERIC,
+  verifyToken TEXT NOT NULL,
   role TEXT NOT NULL
 );
 CREATE TABLE races (

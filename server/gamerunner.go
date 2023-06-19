@@ -57,27 +57,28 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 		return nil, err
 	}
 
+	game.NumPlayers = len(settings.Players)
 	players := make([]*cs.Player, 0, len(settings.Players))
 
-	for i, player := range settings.Players {
-		if player.Type == cs.NewGamePlayerTypeHost {
+	for i, playerSetting := range settings.Players {
+		if playerSetting.Type == cs.NewGamePlayerTypeHost {
 
 			// add the host player with the host race
-			race, err := gr.db.GetRace(player.RaceID)
+			race, err := gr.db.GetRace(playerSetting.RaceID)
 			if err != nil {
 				return nil, err
 			}
 			if race.UserID != hostID {
 				return nil, fmt.Errorf("user %d does not own Race %d", hostID, race.ID)
 			}
-			log.Debug().Int64("hostID", hostID).Msgf("Adding host to game")
+			log.Debug().Int64("hostID", hostID).Msg("Adding host to game")
 			player := gr.client.NewPlayer(hostID, *race, &game.Rules)
 			player.GameID = game.ID
 			player.Num = i + 1
 			player.Name = user.Username
 			players = append(players, player)
-		} else if player.Type == cs.NewGamePlayerTypeAI {
-			log.Debug().Int64("hostID", hostID).Msgf("Adding ai player to game")
+		} else if playerSetting.Type == cs.NewGamePlayerTypeAI {
+			log.Debug().Int64("hostID", hostID).Msg("Adding ai player to game")
 			race := cs.NewRace()
 			player := gr.client.NewPlayer(hostID, *race, &game.Rules)
 			player.GameID = game.ID
@@ -85,9 +86,15 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 			player.AIControlled = true
 			player.Name = "AI Player"
 			players = append(players, player)
-		} else if player.Type == cs.NewGamePlayerTypeOpen {
+		} else if playerSetting.Type == cs.NewGamePlayerTypeOpen {
+			log.Debug().Uint("openPlayerSlots", game.OpenPlayerSlots).Msg("Added open player slot to game")
+			race := cs.NewRace()
+			player := gr.client.NewPlayer(hostID, *race, &game.Rules)
+			player.GameID = game.ID
+			player.Num = i + 1
+			player.Name = "Open Slot"
+			players = append(players, player)
 			game.OpenPlayerSlots++
-			log.Debug().Uint("openPlayerSlots", game.OpenPlayerSlots).Msgf("Added open player slot")
 		}
 	}
 
@@ -151,13 +158,25 @@ func (gr *gameRunner) JoinGame(gameID int64, userID int64, raceID int64) error {
 
 	player := gr.client.NewPlayer(userID, *race, &fullGame.Rules)
 	player.GameID = fullGame.ID
-	player.Num = len(fullGame.Players) + 1
 	player.Name = user.Username
-	if err := gr.db.CreatePlayer(player); err != nil {
-		return fmt.Errorf("save player %s for game %d: %w", player, gameID, err)
+
+	// claim an open slot
+	for i, p := range fullGame.Players {
+		if p.Name == "Open Slot" {
+			// take over this empty player
+			player.Num = p.Num
+			player.ID = p.ID
+			if err := gr.db.UpdatePlayer(player); err != nil {
+				return fmt.Errorf("update open slot player %s for game %d: %w", p, gameID, err)
+			}
+
+			fullGame.Players[i] = player
+			break
+		}
 	}
+
 	fullGame.OpenPlayerSlots--
-	if err := gr.db.UpdateFullGame(fullGame); err != nil {
+	if err := gr.db.UpdateGame(fullGame.Game); err != nil {
 		return fmt.Errorf("save game %d: %w", gameID, err)
 	}
 

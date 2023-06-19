@@ -48,12 +48,12 @@ func newServeCmd() *cobra.Command {
 func generateTestGame(db server.DBClient, config config.Config) error {
 	defer timeTrack(time.Now(), "generateTestGame")
 
-	admin, adminRace, err := createTestUser(db, "admin", config.GeneratedUserPassword, cs.RoleAdmin)
+	admin, adminRace, err := createTestUser(db, "admin", config.GeneratedUserPassword, "admin@craig-stars.net", cs.RoleAdmin)
 	if err != nil {
 		return err
 	}
 
-	user2, user2Race, err := createTestUser(db, "craig", config.GeneratedUserPassword, cs.RoleUser)
+	user2, user2Race, err := createTestUser(db, "craig", config.GeneratedUserPassword, "craig@craig-stars.net", cs.RoleUser)
 	if err != nil {
 		return err
 	}
@@ -90,8 +90,8 @@ func generateTestGame(db server.DBClient, config config.Config) error {
 	_, err = gameRunner.HostGame(user2.ID, cs.NewGameSettings().
 		WithName("Joinable Game").
 		WithHost(user2Race.ID).
-		WithAIPlayer(cs.AIDifficultyNormal).
-		WithOpenPlayerSlot())
+		WithOpenPlayerSlot().
+		WithAIPlayer(cs.AIDifficultyNormal))
 	if err != nil {
 		return err
 	}
@@ -99,7 +99,7 @@ func generateTestGame(db server.DBClient, config config.Config) error {
 	return nil
 }
 
-func createTestUser(db server.DBClient, username string, password string, role cs.Role) (*cs.User, *cs.Race, error) {
+func createTestUser(db server.DBClient, username string, password string, email string, role cs.Role) (*cs.User, *cs.Race, error) {
 	user, err := db.GetUserByUsername(username)
 	if err != nil {
 		return nil, nil, err
@@ -111,7 +111,7 @@ func createTestUser(db server.DBClient, username string, password string, role c
 	}
 
 	if user == nil {
-		user = cs.NewUser(username, password, role)
+		user = cs.NewUser(username, password, email, role)
 		err := db.CreateUser(user)
 		if err != nil {
 			return nil, nil, err
