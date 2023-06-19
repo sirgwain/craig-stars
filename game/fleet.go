@@ -331,13 +331,11 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) *FleetSpec {
 		// use the lowest ideal speed for this fleet
 		// if we have multiple engines
 		if token.Design.Spec.Engine != "" {
-			engine := rules.techs.GetEngine(token.Design.Spec.Engine)
 			if spec.IdealSpeed == 0 {
-				spec.IdealSpeed = engine.IdealSpeed
+				spec.IdealSpeed = token.Design.Spec.IdealSpeed
 			} else {
-				spec.IdealSpeed = MinInt(spec.IdealSpeed, engine.IdealSpeed)
+				spec.IdealSpeed = MinInt(spec.IdealSpeed, token.Design.Spec.IdealSpeed)
 			}
-			spec.FuelUsage = engine.FuelUsage
 		}
 		// cost
 		spec.Cost = token.Design.Spec.Cost.MultiplyInt(token.Quantity)
