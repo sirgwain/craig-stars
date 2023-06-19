@@ -143,7 +143,9 @@
 			updateNextPrevWaypoints();
 
 			if (waypointRefs.length > selectedWaypointIndex) {
-				waypointRefs[selectedWaypointIndex]?.scrollIntoView();
+				// TODO: this is making small screens jump by scrolling
+				// to the waypoint
+				// waypointRefs[selectedWaypointIndex]?.scrollIntoView();
 			}
 		}
 	});
