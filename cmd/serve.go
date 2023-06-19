@@ -36,12 +36,12 @@ func newServeCmd() *cobra.Command {
 func generateTestGame(ctx *appcontext.AppContext) error {
 	ctx.DB.MigrateAll()
 
-	admin, adminRace, err := createTestUser(ctx.DB, "admin", "admin", game.RoleAdmin)
+	admin, adminRace, err := createTestUser(ctx.DB, "admin", ctx.Config.GeneratedUserPassword, game.RoleAdmin)
 	if err != nil {
 		return err
 	}
 
-	user2, user2Race, err := createTestUser(ctx.DB, "craig", "craig", game.RoleUser)
+	user2, user2Race, err := createTestUser(ctx.DB, "craig", ctx.Config.GeneratedUserPassword, game.RoleUser)
 	if err != nil {
 		return err
 	}
@@ -78,6 +78,11 @@ func createTestUser(db db.Service, username string, password string, role game.R
 	user, err := db.FindUserByUsername(username)
 	if err != nil {
 		return nil, nil, err
+	}
+
+	// default the password to the username if it's empty
+	if password == "" {
+		password = username
 	}
 
 	if user == nil {

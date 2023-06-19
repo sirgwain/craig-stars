@@ -72,6 +72,11 @@ func (db *DB) Connect(config *config.Config) {
 	}
 
 	db.sqlDB = localdb
+
+	if config.Database.Filename == ":memory:" {
+		log.Debug().Msgf("Creating in memory database")
+		db.MigrateAll()
+	}
 }
 
 func (db *DB) EnableDebugLogging() {

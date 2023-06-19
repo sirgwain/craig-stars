@@ -12,6 +12,7 @@ type Config struct {
 	Database struct {
 		Filename string `yaml:"filename,omitempty"`
 	}
+	GeneratedUserPassword string
 }
 
 var config *Config
@@ -41,7 +42,11 @@ func GetConfig() *Config {
 		viper.Unmarshal(&config)
 
 		// Config
+		log.Debug().Msgf("Database.Filename : %v", config.Database.Filename)
 		log.Debug().Msgf("DataDir : %v", config)
+		if config.GeneratedUserPassword != "" {
+			log.Debug().Msgf("GeneratedUserPassword is set")
+		}
 	}
 	return config
 }
