@@ -1,5 +1,4 @@
 <script lang="ts">
-	import ScannerFleets from 'src/routes/(user)/games/(game)/[id]/scanner/ScannerFleets.svelte';
 	import { commandMapObject, player, selectMapObject } from '$lib/services/Context';
 
 	import type { Fleet } from '$lib/types/Fleet';
@@ -7,6 +6,7 @@
 	import { humanoid } from '$lib/types/Race';
 	import { normalized } from '$lib/types/Vector';
 	import { LayerCake, Svg } from 'layercake';
+	import ScannerFleets from '../../../games/(game)/[id]/scanner/ScannerFleets.svelte';
 
 	type fleetPlacement = {
 		x: number;

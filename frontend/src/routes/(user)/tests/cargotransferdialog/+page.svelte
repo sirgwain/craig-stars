@@ -1,5 +1,5 @@
 <script lang="ts">
-	import CargoTransferDialog from '$lib/components/game/dialogs/cargo/CargoTransferDialog.svelte';
+	import CargoTransferDialog from '../../games/(game)/[id]/dialogs/cargo/CargoTransferDialog.svelte';
 
 	import type { Fleet } from '$lib/types/Fleet';
 	import { MapObjectType } from '$lib/types/MapObject';
@@ -11,7 +11,7 @@
 		name: 'Obrin',
 		position: { x: 0, y: 0 },
 		num: 0,
-		playerNum: null,
+		playerNum: undefined,
 		mineralConcentration: { ironium: 10, boranium: 20, germanium: 30 },
 		cargo: { ironium: 1000, boranium: 2000, germanium: 4000, colonists: 2500 }
 	};

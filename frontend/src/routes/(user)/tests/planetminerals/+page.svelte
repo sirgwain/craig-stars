@@ -1,7 +1,6 @@
 <script lang="ts">
-	import PlanetMineralsGraph from '$lib/components/game/PlanetMineralsGraph.svelte';
+	import PlanetMineralsGraph from '../../games/(game)/[id]/PlanetMineralsGraph.svelte';
 	import { MapObjectType } from '$lib/types/MapObject';
-
 	import type { Planet } from '$lib/types/Planet';
 
 	const planet1: Planet = {
@@ -10,7 +9,7 @@
 		name: 'New Planet',
 		position: { x: 0, y: 0 },
 		num: 0,
-		playerNum: null,
+		playerNum: undefined,
 		mineralConcentration: { ironium: 10, boranium: 20, germanium: 30 },
 		cargo: { ironium: 1000, boranium: 2000, germanium: 4000, colonists: 2500 }
 	};
@@ -21,7 +20,7 @@
 		name: 'New Planet2',
 		position: { x: 0, y: 0 },
 		num: 0,
-		playerNum: null,
+		playerNum: undefined,
 		mineralConcentration: { ironium: 130, boranium: 20, germanium: 30 },
 		cargo: { ironium: 10000, boranium: 2000, germanium: 4000, colonists: 2500 }
 	};

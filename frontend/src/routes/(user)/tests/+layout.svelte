@@ -3,7 +3,6 @@
 	import { page } from '$app/stores';
 	import { getContext, onMount } from 'svelte';
 	import TestBreadcrumb from './TestBreadcrumb.svelte';
-	import RaceEditor from 'src/routes/(user)/races/[id]/RaceEditor.svelte';
 	import { humanoid } from '$lib/types/Race';
 	import { player } from '$lib/services/Context';
 
