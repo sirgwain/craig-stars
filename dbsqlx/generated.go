@@ -39,6 +39,14 @@ func (c *GameConverter) ConvertGameGame(source *game.Game) *Game {
 	}
 	return pDbsqlxGame
 }
+func (c *GameConverter) ConvertGamePlanet(source *game.Planet) *Planet {
+	var pDbsqlxPlanet *Planet
+	if source != nil {
+		dbsqlxPlanet := c.gamePlanetToDbsqlxPlanet(*source)
+		pDbsqlxPlanet = &dbsqlxPlanet
+	}
+	return pDbsqlxPlanet
+}
 func (c *GameConverter) ConvertGamePlayer(source *game.Player) *Player {
 	var pDbsqlxPlayer *Player
 	if source != nil {
@@ -69,6 +77,14 @@ func (c *GameConverter) ConvertGames(source []Game) []game.Game {
 		gameGameList[i] = c.ConvertGame(source[i])
 	}
 	return gameGameList
+}
+func (c *GameConverter) ConvertPlanet(source *Planet) *game.Planet {
+	var pGamePlanet *game.Planet
+	if source != nil {
+		gamePlanet := c.dbsqlxPlanetToGamePlanet(*source)
+		pGamePlanet = &gamePlanet
+	}
+	return pGamePlanet
 }
 func (c *GameConverter) ConvertPlayer(source Player) game.Player {
 	var gamePlayer game.Player
@@ -162,6 +178,74 @@ func (c *GameConverter) ConvertUsers(source []User) []game.User {
 	}
 	return gameUserList
 }
+func (c *GameConverter) dbsqlxPlanetSpecToGamePlanetSpec(source PlanetSpec) game.PlanetSpec {
+	var gamePlanetSpec game.PlanetSpec
+	gamePlanetSpec.Habitability = source.Habitability
+	gamePlanetSpec.MaxMines = source.MaxMines
+	gamePlanetSpec.MaxPossibleMines = source.MaxPossibleMines
+	gamePlanetSpec.MaxFactories = source.MaxFactories
+	gamePlanetSpec.MaxPossibleFactories = source.MaxPossibleFactories
+	gamePlanetSpec.MaxDefenses = source.MaxDefenses
+	gamePlanetSpec.PopulationDensity = source.PopulationDensity
+	gamePlanetSpec.MaxPopulation = source.MaxPopulation
+	gamePlanetSpec.GrowthAmount = source.GrowthAmount
+	gamePlanetSpec.MineralOutput = c.gameMineralToGameMineral(source.MineralOutput)
+	gamePlanetSpec.ResourcesPerYear = source.ResourcesPerYear
+	gamePlanetSpec.ResourcesPerYearAvailable = source.ResourcesPerYearAvailable
+	gamePlanetSpec.ResourcesPerYearResearch = source.ResourcesPerYearResearch
+	gamePlanetSpec.Defense = source.Defense
+	gamePlanetSpec.DefenseCoverage = source.DefenseCoverage
+	gamePlanetSpec.DefenseCoverageSmart = source.DefenseCoverageSmart
+	gamePlanetSpec.Scanner = source.Scanner
+	gamePlanetSpec.ScanRange = source.ScanRange
+	gamePlanetSpec.ScanRangePen = source.ScanRangePen
+	gamePlanetSpec.CanTerraform = source.CanTerraform
+	gamePlanetSpec.TerraformAmount = c.gameHabToGameHab(source.TerraformAmount)
+	gamePlanetSpec.HasStarbase = source.HasStarbase
+	gamePlanetSpec.DockCapacity = source.DockCapacity
+	return gamePlanetSpec
+}
+func (c *GameConverter) dbsqlxPlanetToGamePlanet(source Planet) game.Planet {
+	var gamePlanet game.Planet
+	gamePlanet.MapObject = ExtendPlanetMapObject(source)
+	gamePlanet.Hab = ExtendHab(source)
+	gamePlanet.BaseHab = ExtendBaseHab(source)
+	gamePlanet.TerraformedAmount = ExtendTerraformedAmount(source)
+	gamePlanet.MineralConcentration = ExtendMineralConcentration(source)
+	gamePlanet.MineYears = ExtendMineYears(source)
+	gamePlanet.Cargo = ExtendPlanetCargo(source)
+	gamePlanet.Mines = source.Mines
+	gamePlanet.Factories = source.Factories
+	gamePlanet.Defenses = source.Defenses
+	gamePlanet.Homeworld = source.Homeworld
+	gamePlanet.ContributesOnlyLeftoverToResearch = source.ContributesOnlyLeftoverToResearch
+	gamePlanet.Scanner = source.Scanner
+	gamePlanet.PacketSpeed = source.PacketSpeed
+	gamePlanet.BonusResources = source.BonusResources
+	gamePlanet.ProductionQueue = c.dbsqlxProductionQueueItemsToGameProductionQueueItemList(source.ProductionQueue)
+	var pGamePlanetSpec *game.PlanetSpec
+	if source.Spec != nil {
+		gamePlanetSpec := c.dbsqlxPlanetSpecToGamePlanetSpec(*source.Spec)
+		pGamePlanetSpec = &gamePlanetSpec
+	}
+	gamePlanet.Spec = pGamePlanetSpec
+	return gamePlanet
+}
+func (c *GameConverter) dbsqlxProductionQueueItemsToGameProductionQueueItemList(source ProductionQueueItems) []game.ProductionQueueItem {
+	gameProductionQueueItemList := make([]game.ProductionQueueItem, len(source))
+	for i := 0; i < len(source); i++ {
+		gameProductionQueueItemList[i] = c.gameProductionQueueItemToGameProductionQueueItem(source[i])
+	}
+	return gameProductionQueueItemList
+}
+func (c *GameConverter) gameCostToGameCost(source game.Cost) game.Cost {
+	var gameCost game.Cost
+	gameCost.Ironium = source.Ironium
+	gameCost.Boranium = source.Boranium
+	gameCost.Germanium = source.Germanium
+	gameCost.Resources = source.Resources
+	return gameCost
+}
 func (c *GameConverter) gameGameToDbsqlxGame(source game.Game) Game {
 	var dbsqlxGame Game
 	dbsqlxGame.ID = source.ID
@@ -198,6 +282,95 @@ func (c *GameConverter) gameGameToDbsqlxGame(source game.Game) Game {
 	dbsqlxGame.AreaY = source.Area.Y
 	return dbsqlxGame
 }
+func (c *GameConverter) gameHabToGameHab(source game.Hab) game.Hab {
+	var gameHab game.Hab
+	gameHab.Grav = source.Grav
+	gameHab.Temp = source.Temp
+	gameHab.Rad = source.Rad
+	return gameHab
+}
+func (c *GameConverter) gameMineralToGameMineral(source game.Mineral) game.Mineral {
+	var gameMineral game.Mineral
+	gameMineral.Ironium = source.Ironium
+	gameMineral.Boranium = source.Boranium
+	gameMineral.Germanium = source.Germanium
+	return gameMineral
+}
+func (c *GameConverter) gamePlanetSpecToDbsqlxPlanetSpec(source game.PlanetSpec) PlanetSpec {
+	var dbsqlxPlanetSpec PlanetSpec
+	dbsqlxPlanetSpec.Habitability = source.Habitability
+	dbsqlxPlanetSpec.MaxMines = source.MaxMines
+	dbsqlxPlanetSpec.MaxPossibleMines = source.MaxPossibleMines
+	dbsqlxPlanetSpec.MaxFactories = source.MaxFactories
+	dbsqlxPlanetSpec.MaxPossibleFactories = source.MaxPossibleFactories
+	dbsqlxPlanetSpec.MaxDefenses = source.MaxDefenses
+	dbsqlxPlanetSpec.PopulationDensity = source.PopulationDensity
+	dbsqlxPlanetSpec.MaxPopulation = source.MaxPopulation
+	dbsqlxPlanetSpec.GrowthAmount = source.GrowthAmount
+	dbsqlxPlanetSpec.MineralOutput = c.gameMineralToGameMineral(source.MineralOutput)
+	dbsqlxPlanetSpec.ResourcesPerYear = source.ResourcesPerYear
+	dbsqlxPlanetSpec.ResourcesPerYearAvailable = source.ResourcesPerYearAvailable
+	dbsqlxPlanetSpec.ResourcesPerYearResearch = source.ResourcesPerYearResearch
+	dbsqlxPlanetSpec.Defense = source.Defense
+	dbsqlxPlanetSpec.DefenseCoverage = source.DefenseCoverage
+	dbsqlxPlanetSpec.DefenseCoverageSmart = source.DefenseCoverageSmart
+	dbsqlxPlanetSpec.Scanner = source.Scanner
+	dbsqlxPlanetSpec.ScanRange = source.ScanRange
+	dbsqlxPlanetSpec.ScanRangePen = source.ScanRangePen
+	dbsqlxPlanetSpec.CanTerraform = source.CanTerraform
+	dbsqlxPlanetSpec.TerraformAmount = c.gameHabToGameHab(source.TerraformAmount)
+	dbsqlxPlanetSpec.HasStarbase = source.HasStarbase
+	dbsqlxPlanetSpec.DockCapacity = source.DockCapacity
+	return dbsqlxPlanetSpec
+}
+func (c *GameConverter) gamePlanetToDbsqlxPlanet(source game.Planet) Planet {
+	var dbsqlxPlanet Planet
+	dbsqlxPlanet.ID = source.MapObject.ID
+	dbsqlxPlanet.GameID = source.MapObject.GameID
+	dbsqlxPlanet.CreatedAt = TimeToTime(source.MapObject.CreatedAt)
+	dbsqlxPlanet.UpdatedAt = TimeToTime(source.MapObject.UpdatedAt)
+	dbsqlxPlanet.PlayerID = source.MapObject.PlayerID
+	dbsqlxPlanet.X = source.MapObject.Position.X
+	dbsqlxPlanet.Y = source.MapObject.Position.Y
+	dbsqlxPlanet.Name = source.MapObject.Name
+	dbsqlxPlanet.Num = source.MapObject.Num
+	dbsqlxPlanet.PlayerNum = source.MapObject.PlayerNum
+	dbsqlxPlanet.Grav = source.Hab.Grav
+	dbsqlxPlanet.Temp = source.Hab.Temp
+	dbsqlxPlanet.Rad = source.Hab.Rad
+	dbsqlxPlanet.BaseGrav = source.BaseHab.Grav
+	dbsqlxPlanet.BaseTemp = source.BaseHab.Temp
+	dbsqlxPlanet.BaseRad = source.BaseHab.Rad
+	dbsqlxPlanet.TerraformedAmountGrav = source.TerraformedAmount.Grav
+	dbsqlxPlanet.TerraformedAmountTemp = source.TerraformedAmount.Temp
+	dbsqlxPlanet.TerraformedAmountRad = source.TerraformedAmount.Rad
+	dbsqlxPlanet.MineralConcIronium = source.MineralConcentration.Ironium
+	dbsqlxPlanet.MineralConcBoranium = source.MineralConcentration.Boranium
+	dbsqlxPlanet.MineralConcGermanium = source.MineralConcentration.Germanium
+	dbsqlxPlanet.MineYearsIronium = source.MineYears.Ironium
+	dbsqlxPlanet.MineYearsBoranium = source.MineYears.Boranium
+	dbsqlxPlanet.MineYearsGermanium = source.MineYears.Germanium
+	dbsqlxPlanet.Ironium = source.Cargo.Ironium
+	dbsqlxPlanet.Boranium = source.Cargo.Boranium
+	dbsqlxPlanet.Germanium = source.Cargo.Germanium
+	dbsqlxPlanet.Colonists = source.Cargo.Colonists
+	dbsqlxPlanet.Mines = source.Mines
+	dbsqlxPlanet.Factories = source.Factories
+	dbsqlxPlanet.Defenses = source.Defenses
+	dbsqlxPlanet.Homeworld = source.Homeworld
+	dbsqlxPlanet.ContributesOnlyLeftoverToResearch = source.ContributesOnlyLeftoverToResearch
+	dbsqlxPlanet.Scanner = source.Scanner
+	dbsqlxPlanet.PacketSpeed = source.PacketSpeed
+	dbsqlxPlanet.BonusResources = source.BonusResources
+	dbsqlxPlanet.ProductionQueue = c.gameProductionQueueItemListToDbsqlxProductionQueueItems(source.ProductionQueue)
+	var pDbsqlxPlanetSpec *PlanetSpec
+	if source.Spec != nil {
+		dbsqlxPlanetSpec := c.gamePlanetSpecToDbsqlxPlanetSpec(*source.Spec)
+		pDbsqlxPlanetSpec = &dbsqlxPlanetSpec
+	}
+	dbsqlxPlanet.Spec = pDbsqlxPlanetSpec
+	return dbsqlxPlanet
+}
 func (c *GameConverter) gamePlayerToDbsqlxPlayer(source game.Player) Player {
 	var dbsqlxPlayer Player
 	dbsqlxPlayer.ID = source.ID
@@ -233,6 +406,21 @@ func (c *GameConverter) gamePlayerToDbsqlxPlayer(source game.Player) Player {
 	dbsqlxPlayer.Stats = GamePlayerStatsToPlayerStats(source.Stats)
 	dbsqlxPlayer.Spec = GamePlayerSpecToPlayerSpec(source.Spec)
 	return dbsqlxPlayer
+}
+func (c *GameConverter) gameProductionQueueItemListToDbsqlxProductionQueueItems(source []game.ProductionQueueItem) ProductionQueueItems {
+	dbsqlxProductionQueueItems := make(ProductionQueueItems, len(source))
+	for i := 0; i < len(source); i++ {
+		dbsqlxProductionQueueItems[i] = c.gameProductionQueueItemToGameProductionQueueItem(source[i])
+	}
+	return dbsqlxProductionQueueItems
+}
+func (c *GameConverter) gameProductionQueueItemToGameProductionQueueItem(source game.ProductionQueueItem) game.ProductionQueueItem {
+	var gameProductionQueueItem game.ProductionQueueItem
+	gameProductionQueueItem.Type = game.QueueItemType(source.Type)
+	gameProductionQueueItem.DesignName = source.DesignName
+	gameProductionQueueItem.Quantity = source.Quantity
+	gameProductionQueueItem.Allocated = c.gameCostToGameCost(source.Allocated)
+	return gameProductionQueueItem
 }
 func (c *GameConverter) gameRaceToDbsqlxRace(source game.Race) Race {
 	var dbsqlxRace Race

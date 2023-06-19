@@ -151,3 +151,24 @@ func TestDeleteGames(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(result))
 }
+
+func TestUpdateFullGame(t *testing.T) {
+	c := connectTestDB()
+	fg := c.createTestFullGame()
+
+	if err := c.UpdateFullGame(fg); err != nil {
+		t.Errorf("failed to update full game %s", err)
+		return
+	}
+
+	updated, err := c.GetFullGame(fg.ID)
+
+	if err != nil {
+		t.Errorf("failed to get full game %s", err)
+		return
+	}
+
+	assert.Equal(t, fg.Name, updated.Name)
+	assert.Less(t, fg.UpdatedAt, updated.UpdatedAt)
+
+}

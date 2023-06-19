@@ -5,6 +5,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/sirgwain/craig-stars/game"
@@ -131,6 +132,34 @@ func (c *client) GetGame(id int64) (*game.Game, error) {
 	return &game, nil
 }
 
+// get a game by id
+func (c *client) GetFullGame(id int64) (*game.FullGame, error) {
+	item := Game{}
+	if err := c.db.Get(&item, "SELECT * FROM games WHERE id = ?", id); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	g := c.converter.ConvertGame(item)
+
+	players, err := c.GetPlayersForGame(g.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load players for game %w", err)
+	}
+
+	universe := game.Universe{}
+
+	fg := game.FullGame{
+		Game:     &g,
+		Players:  players,
+		Universe: &universe,
+	}
+
+	return &fg, nil
+}
+
 // create a new game
 func (c *client) CreateGame(game *game.Game) error {
 
@@ -221,10 +250,15 @@ func (c *client) CreateGame(game *game.Game) error {
 
 // update an existing game
 func (c *client) UpdateGame(game *game.Game) error {
+	return c.updateGameWithNamedExecer(game, c.db)
+}
+
+// update a game inside a transaction
+func (c *client) updateGameWithNamedExecer(game *game.Game, tx NamedExecer) error {
 
 	item := c.converter.ConvertGameGame(game)
 
-	if _, err := c.db.NamedExec(`
+	if _, err := tx.NamedExec(`
 	UPDATE games SET
 		updatedAt = CURRENT_TIMESTAMP,
 		name = :name,
@@ -262,6 +296,45 @@ func (c *client) UpdateGame(game *game.Game) error {
 	}
 
 	return nil
+}
+
+// update a full game
+func (c *client) UpdateFullGame(g *game.FullGame) error {
+	tx, err := c.db.Beginx()
+	if err != nil {
+		return err
+	}
+
+	if err := c.updateGameWithNamedExecer(g.Game, tx); err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to update game %w", err)
+	}
+
+	for _, planet := range g.Planets {
+		if planet.ID == 0 {
+			planet.GameID = g.ID
+			if err := c.createPlanet(planet, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("failed to create planet %w", err)
+			}
+		} else if planet.Dirty {
+			if err := c.updatePlanet(planet, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("failed to update planet %w", err)
+			}
+		}
+	}
+
+	for _, player := range g.Players {
+		if err := c.updateFullPlayerWithTransaction(player, tx); err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to update player %w", err)
+		}
+	}
+
+	tx.Commit()
+	return nil
+
 }
 
 // delete a game by id

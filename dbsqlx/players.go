@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/sirgwain/craig-stars/game"
 )
 
@@ -194,6 +195,26 @@ func (c *client) GetPlayersForUser(userID int64) ([]game.Player, error) {
 	return c.converter.ConvertPlayers(items), nil
 }
 
+func (c *client) GetPlayersForGame(gameID int64) ([]*game.Player, error) {
+
+	// don't include password in bulk select
+	items := []Player{}
+	if err := c.db.Select(&items, `SELECT * FROM players WHERE gameId = ?`, gameID); err != nil {
+		if err == sql.ErrNoRows {
+			return []*game.Player{}, nil
+		}
+		return nil, err
+	}
+
+	players := make([]*game.Player, len(items))
+	for i := range items {
+		player := c.converter.ConvertPlayer(items[i])
+		players[i] = &player
+	}
+
+	return players, nil
+}
+
 // get a player by id
 func (c *client) GetPlayer(id int64) (*game.Player, error) {
 	item := Player{}
@@ -232,7 +253,6 @@ func (c *client) GetFullPlayer(id int64) (*game.Player, error) {
 
 // create a new game
 func (c *client) CreatePlayer(player *game.Player) error {
-
 	item := c.converter.ConvertGamePlayer(player)
 	result, err := c.db.NamedExec(`
 	INSERT INTO players (
@@ -367,12 +387,23 @@ func (c *client) updatePlayerWithNamedExecer(player *game.Player, tx NamedExecer
 	return nil
 }
 
-// update an existing player
 func (c *client) UpdateFullPlayer(player *game.Player) error {
 	tx, err := c.db.Beginx()
 	if err != nil {
 		return err
 	}
+
+	if err := c.updateFullPlayerWithTransaction(player, tx); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+	return nil
+}
+
+// update an existing player
+func (c *client) updateFullPlayerWithTransaction(player *game.Player, tx *sqlx.Tx) error {
 
 	if err := c.updatePlayerWithNamedExecer(player, tx); err != nil {
 		tx.Rollback()
@@ -382,7 +413,9 @@ func (c *client) UpdateFullPlayer(player *game.Player) error {
 	// replace player messages
 	tx.Exec("DELETE FROM playerMessages WHERE playerId = ?", player.ID)
 	for i := range player.Messages {
-		if err := c.CreatePlayerMessage(&player.Messages[i], tx); err != nil {
+		message := &player.Messages[i]
+		message.PlayerID = player.ID
+		if err := c.CreatePlayerMessage(message, tx); err != nil {
 			tx.Rollback()
 			return fmt.Errorf("failed to create player message %w", err)
 		}
