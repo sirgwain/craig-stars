@@ -34,13 +34,19 @@ type Service interface {
 	CreateTechStore(tech *game.TechStore) error
 	FindTechStoreById(id uint) (*game.TechStore, error)
 
-	GetGames() []game.Game
-	CreateGame(game *game.Game) error
-	SaveGame(game *game.Game) error
+	GetGames() ([]game.Game, error)
+	GetGamesHostedByUser(userID uint) ([]game.Game, error)
+	GetGamesByUser(userID uint) ([]game.Game, error)
 	FindGameById(id uint) (*game.Game, error)
 	FindGameByIdLight(id uint) (*game.Game, error)
-	GetGamesByUser(userID uint) []game.Game
-	DeleteGameById(id uint)
+	CreateGame(game *game.Game) error
+	SaveGame(game *game.Game) error
+	DeleteGameById(id uint) error
+
+	GetRaces(userID uint) ([]game.Race, error)
+	FindRaceById(id uint) (*game.Race, error)
+	CreateRace(race *game.Race) error
+	SaveRace(race *game.Race) error
 
 	FindPlayerByGameId(gameID uint, userID uint) (*game.Player, error)
 	FindPlayerByGameIdLight(gameID uint, userID uint) (*game.Player, error)

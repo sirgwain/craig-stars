@@ -10,6 +10,34 @@ import (
 
 type Tags map[string]string
 
+type NewGamePlayerType string
+
+const (
+	NewGamePlayerTypeHost   NewGamePlayerType = "Host"
+	NewGamePlayerTypeInvite NewGamePlayerType = "Invite"
+	NewGamePlayerTypeOpen   NewGamePlayerType = "Open"
+	NewGamePlayerTypeAI     NewGamePlayerType = "AI"
+)
+
+type NewGamePlayer struct {
+	Type   NewGamePlayerType `json:"type,omitempty"`
+	RaceID uint              `json:"raceID,omitempty"`
+}
+
+type GameSettings struct {
+	Name                         string            `json:"name"`
+	QuickStartTurns              int               `json:"quickStartTurns"`
+	Size                         Size              `json:"size"`
+	Density                      Density           `json:"density"`
+	PlayerPositions              PlayerPositions   `json:"playerPositions"`
+	RandomEvents                 bool              `json:"randomEvents"`
+	ComputerPlayersFormAlliances bool              `json:"computerPlayersFormAlliances"`
+	PublicPlayerScores           bool              `json:"publicPlayerScores"`
+	StartMode                    GameStartMode     `json:"startMode"`
+	VictoryConditions            VictoryConditions `json:"victoryConditions"`
+	Players                      []NewGamePlayer   `json:"players,omitempty"`
+}
+
 type Game struct {
 	ID                           uint              `gorm:"primaryKey" json:"id" header:"Name"`
 	CreatedAt                    time.Time         `json:"createdAt"`
@@ -146,6 +174,22 @@ func NewGame() *Game {
 
 func (g *Game) String() string {
 	return fmt.Sprintf("%s (%d)", g.Name, g.ID)
+}
+
+// update the game with new settings
+func (g *Game) WithSettings(settings *GameSettings) *Game {
+	g.Name = settings.Name
+	g.QuickStartTurns = settings.QuickStartTurns
+	g.Size = settings.Size
+	g.Density = settings.Density
+	g.PlayerPositions = settings.PlayerPositions
+	g.RandomEvents = settings.RandomEvents
+	g.ComputerPlayersFormAlliances = settings.ComputerPlayersFormAlliances
+	g.PublicPlayerScores = settings.PublicPlayerScores
+	g.StartMode = settings.StartMode
+	g.VictoryConditions = settings.VictoryConditions
+
+	return g
 }
 
 // Add the player to the game, and compute the player's spec based on the game rules

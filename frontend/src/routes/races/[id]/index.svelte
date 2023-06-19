@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import Game from '$lib/components/game/Game.svelte';
+	import RaceEditor from '$lib/components/RaceEditor.svelte';
 
 	let id = parseInt($page.params.id);
 </script>
 
-<Game {id} />
+<RaceEditor {id} />

@@ -79,7 +79,14 @@ func Start(ctx *appcontext.AppContext) {
 
 	ar.GET("/techs", server.Techs)
 
-	ar.GET("/games", server.Games)
+	ar.GET("/races", server.Races)
+	ar.GET("/races/:id", server.Race)
+	ar.POST("/races", server.CreateRace)
+	ar.PUT("/races/:id", server.UpdateRace)
+
+	ar.GET("/games", server.PlayerGames)
+	ar.GET("/games/hosted", server.HostedGames)
+	ar.POST("/games", server.HostGame)
 	ar.GET("/games/:id", server.PlayerGame)
 	ar.POST("/games/:id/submit-turn", server.SubmitTurn)
 	ar.PUT("/planets/:id", server.UpdatePlanetOrders)

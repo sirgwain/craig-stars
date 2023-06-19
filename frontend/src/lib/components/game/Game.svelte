@@ -48,10 +48,10 @@
 
 		<div class="flex-1">
 			<div class="flex h-full">
-				<div class="flex-none px-5 border-gray-700 border-2 shadow-sm">
+				<div class="flex-none border-gray-700 shadow-sm">
 					<CommandPane />
 				</div>
-				<div class="mx-5 flex-1 h-full border-gray-700 border-2 shadow-sm">
+				<div class="ml-5 flex-1 h-full border-gray-700 border-2 shadow-sm">
 					<Viewport />
 				</div>
 			</div>

@@ -44,10 +44,20 @@ type BattlePlan struct {
 	AttackWho       string         `json:"attackWho"`
 }
 
+// create a new player with an existing race. The race
+// will be copied for the player
 func NewPlayer(userID uint, race *Race) *Player {
+
+	// copy this race for the player
+	playerRace := *race
+	playerRace.ID = 0
+	playerRace.CreatedAt = time.Time{}
+	playerRace.UpdatedAt = time.Time{}
+	playerRace.DeletedAt = gorm.DeletedAt{}
+
 	return &Player{
 		UserID: userID,
-		Race:   *race,
+		Race:   playerRace,
 	}
 }
 

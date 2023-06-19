@@ -1,2 +1,5 @@
-<h1 class="text-3xl mb-2">Homepage</h1>
+<script lang="ts">
+	import Games from '$lib/components/Games.svelte';
+</script>
 
+<Games />

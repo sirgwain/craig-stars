@@ -8,12 +8,32 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func (db *DB) GetGames() []game.Game {
+func (db *DB) GetGames() ([]game.Game, error) {
 
 	games := []game.Game{}
-	db.sqlDB.Find(&games)
+	if err := db.sqlDB.Find(&games).Error; err != nil {
+		return nil, err
+	}
 
-	return games
+	return games, nil
+}
+
+func (db *DB) GetGamesByUser(userID uint) ([]game.Game, error) {
+	games := []game.Game{}
+	if err := db.sqlDB.Raw("SELECT * from games g WHERE g.id in (SELECT game_id from players p WHERE p.user_id = ?)", userID).Scan(&games).Error; err != nil {
+		return nil, err
+	}
+
+	return games, nil
+}
+
+func (db *DB) GetGamesHostedByUser(userID uint) ([]game.Game, error) {
+	games := []game.Game{}
+	if err := db.sqlDB.Raw("SELECT * from games g WHERE g.host_id = ?", userID).Scan(&games).Error; err != nil {
+		return nil, err
+	}
+
+	return games, nil
 }
 
 func (db *DB) CreateGame(game *game.Game) error {
@@ -133,8 +153,6 @@ func (db *DB) FindGameById(id uint) (*game.Game, error) {
 		}
 	}
 
-	
-
 	return &game, nil
 }
 
@@ -151,13 +169,6 @@ func (db *DB) FindGameByIdLight(id uint) (*game.Game, error) {
 	return &game, nil
 }
 
-func (db *DB) GetGamesByUser(userID uint) []game.Game {
-	games := []game.Game{}
-	db.sqlDB.Raw("SELECT * from games g WHERE g.id in (SELECT game_id from players p WHERE p.user_id = ?)", userID).Scan(&games)
-
-	return games
-}
-
-func (db *DB) DeleteGameById(id uint) {
-	db.sqlDB.Delete(&game.Game{ID: id})
+func (db *DB) DeleteGameById(id uint) error {
+	return db.sqlDB.Delete(&game.Game{ID: id}).Error
 }

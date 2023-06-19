@@ -5,7 +5,7 @@
 	import { createEventDispatcher, getContext } from 'svelte';
 	import { PlanetService } from '$lib/services/PlanetService';
 	import MineralsOnHandTile from './MineralsOnHandTile.svelte';
-import PlanetStatusTile from './PlanetStatusTile.svelte';
+	import PlanetStatusTile from './PlanetStatusTile.svelte';
 
 	const { game, player } = getContext<GameContext>('game');
 
@@ -21,20 +21,20 @@ import PlanetStatusTile from './PlanetStatusTile.svelte';
 </script>
 
 {#if game && player.planets?.length}
-	<table class="border-collapse table-auto w-full text-sm">
+	<!-- <table class="table w-full">
 		<thead>
-			<th class="table-header">ID</th>
-			<th class="table-header">Name</th>
-			<th class="table-header">Population</th>
-			<th class="table-header">Contributes Leftover<br />Resources to Research</th>
+			<th>ID</th>
+			<th>Name</th>
+			<th>Population</th>
+			<th>Contributes Leftover<br />Resources to Research</th>
 		</thead>
-		<tbody class="bg-white dark:bg-slate-800">
+		<tbody>
 			{#each player.planets.filter((p) => ownedBy(p, player.num)) as planet}
 				<tr>
-					<td class="table-cell">{planet.num}</td>
-					<td class="table-cell">{planet.name}</td>
-					<td class="table-cell">{planet.cargo.colonists ? planet.cargo.colonists * 100 : 0}</td>
-					<td class="table-cell"
+					<td>{planet.num}</td>
+					<td>{planet.name}</td>
+					<td>{planet.cargo.colonists ? planet.cargo.colonists * 100 : 0}</td>
+					<td
 						><input
 							type="checkbox"
 							bind:checked={planet.contributesOnlyLeftoverToResearch}
@@ -44,8 +44,8 @@ import PlanetStatusTile from './PlanetStatusTile.svelte';
 				</tr>
 			{/each}
 		</tbody>
-	</table>
-	<div class="grid grid-cols-2 gap-2 mt-5">
+	</table> -->
+	<div class="grid grid-cols-1 lg:grid-cols-2 gap-2">
 		<MineralsOnHandTile />
 		<PlanetStatusTile />
 	</div>

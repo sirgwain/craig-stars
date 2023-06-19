@@ -44,14 +44,34 @@ func generateTestGame(ctx *appcontext.AppContext) {
 		panic(err)
 	}
 	if user == nil {
-		err := ctx.DB.SaveUser(game.NewUser("admin", "admin", game.RoleAdmin))
+		user = game.NewUser("admin", "admin", game.RoleAdmin)
+		err := ctx.DB.SaveUser(user)
 		if err != nil {
 			log.Error().Err(err).Msg("Failed to create new user for test game")
 		}
+
+	}
+
+	races, err := ctx.DB.GetRaces(user.ID)
+	if err != nil {
+		panic(err)
+	}
+
+	var race *game.Race
+	if len(races) == 0 {
+		race = game.NewRace()
+		race.UserID = user.ID
+
+		if err := ctx.DB.CreateRace(race); err != nil {
+			panic(err)
+		}
+	} else {
+		race = &races[0]
 	}
 
 	g := game.NewGame()
-	g.AddPlayer(game.NewPlayer(1, game.NewRace()))
+	g.HostID = user.ID
+	g.AddPlayer(game.NewPlayer(1, race))
 	// g.Size = game.SizeSmall
 	// g.Density = game.DensityNormal
 	if err := ctx.DB.CreateGame(g); err != nil {
