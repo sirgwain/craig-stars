@@ -3,7 +3,6 @@ package cs
 import (
 	"fmt"
 
-	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 )
 
@@ -14,7 +13,7 @@ type discover struct {
 	player              *Player
 	fleetIntelsByKey    map[string]*FleetIntel
 	wormholeIntelsByKey map[int]*WormholeIntel
-	designIntelsByKey   map[uuid.UUID]*ShipDesignIntel
+	designIntelsByKey   map[playerObject]*ShipDesignIntel
 }
 
 type discoverer interface {
@@ -46,10 +45,10 @@ func newDiscoverer(player *Player) discoverer {
 		d.wormholeIntelsByKey[intel.Num] = intel
 	}
 
-	d.designIntelsByKey = make(map[uuid.UUID]*ShipDesignIntel, len(player.ShipDesignIntels))
+	d.designIntelsByKey = make(map[playerObject]*ShipDesignIntel, len(player.ShipDesignIntels))
 	for i := range player.ShipDesignIntels {
 		intel := &player.ShipDesignIntels[i]
-		d.designIntelsByKey[intel.UUID] = intel
+		d.designIntelsByKey[playerObjectKey(intel.PlayerNum, intel.Num)] = intel
 	}
 
 	return d
@@ -91,7 +90,6 @@ type PlanetIntel struct {
 
 type ShipDesignIntel struct {
 	Intel
-	UUID          uuid.UUID        `json:"uuid,omitempty"`
 	Name          string           `json:"name,omitempty"`
 	Hull          string           `json:"hull,omitempty"`
 	HullSetNumber int              `json:"hullSetNumber,omitempty"`
@@ -302,15 +300,16 @@ func (d *discover) discoverWormhole(player *Player, wormhole *Wormhole) {
 // discover a player's design. This is a noop if we already know about
 // the design and aren't discovering slots
 func (d *discover) discoverDesign(player *Player, design *ShipDesign, discoverSlots bool) {
-	intel, found := d.designIntelsByKey[design.UUID]
+	key := playerObjectKey(design.PlayerNum, design.Num)
+	intel, found := d.designIntelsByKey[key]
 	if !found {
 		// create a new intel for this design
 		intel = &ShipDesignIntel{
 			Intel: Intel{
 				Name:      design.Name,
 				PlayerNum: design.PlayerNum,
+				Num:       design.Num,
 			},
-			UUID:          design.UUID,
 			Hull:          design.Hull,
 			HullSetNumber: design.HullSetNumber,
 		}
@@ -318,7 +317,7 @@ func (d *discover) discoverDesign(player *Player, design *ShipDesign, discoverSl
 		// save this new design to our intel
 		player.ShipDesignIntels = append(player.ShipDesignIntels, *intel)
 		intel = &player.ShipDesignIntels[len(player.ShipDesignIntels)-1]
-		d.designIntelsByKey[intel.UUID] = intel
+		d.designIntelsByKey[key] = intel
 	}
 
 	// discover slots if we haven't already and this scanner discovers them

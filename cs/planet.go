@@ -30,6 +30,9 @@ type Planet struct {
 type PlanetOrders struct {
 	ContributesOnlyLeftoverToResearch bool                  `json:"contributesOnlyLeftoverToResearch,omitempty"`
 	ProductionQueue                   []ProductionQueueItem `json:"productionQueue,omitempty"`
+	TargetType                        MapObjectType         `json:"targetType,omitempty"`
+	TargetNum                         int                   `json:"targetNum,omitempty"`
+	TargetPlayerNum                   int                   `json:"targetPlayerNum,omitempty"`
 }
 
 type ProductionQueueItem struct {
@@ -547,7 +550,7 @@ func (planet *Planet) buildItems(player *Player, item ProductionQueueItem, numBu
 		messager.defensesBuilt(player, planet, numBuilt)
 	case QueueItemTypeShipToken:
 		design := player.GetDesign(item.DesignName)
-		result.tokens = append(result.tokens, ShipToken{Quantity: numBuilt, design: design, DesignUUID: design.UUID})
+		result.tokens = append(result.tokens, ShipToken{Quantity: numBuilt, design: design, DesignNum: design.Num})
 	}
 
 	log.Debug().

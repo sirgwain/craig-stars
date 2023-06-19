@@ -5,7 +5,6 @@ import (
 	"database/sql/driver"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/sirgwain/craig-stars/cs"
 )
@@ -15,8 +14,8 @@ type ShipDesign struct {
 	GameID        int64                `json:"gameId,omitempty"`
 	CreatedAt     time.Time            `json:"createdAt,omitempty"`
 	UpdatedAt     time.Time            `json:"updatedAt,omitempty"`
+	Num           int                  `json:"num,omitempty"`
 	PlayerNum     int                  `json:"playerNum,omitempty"`
-	UUID          uuid.UUID            `json:"uuid,omitempty"`
 	Name          string               `json:"name,omitempty"`
 	Version       int                  `json:"version,omitempty"`
 	Hull          string               `json:"hull,omitempty"`
@@ -50,49 +49,45 @@ func (item *ShipDesignSpec) Scan(src interface{}) error {
 	return scanJSON(src, item)
 }
 
-func (c *client) GetShipDesignsForPlayer(gameID int64, playerNum int) ([]cs.ShipDesign, error) {
+func (c *client) GetShipDesignsForPlayer(gameID int64, playerNum int) ([]*cs.ShipDesign, error) {
 
-	items := []ShipDesign{}
+	items := []*ShipDesign{}
 	if err := c.db.Select(&items, `SELECT * FROM shipDesigns WHERE gameId = ? AND playerNum = ?`, gameID, playerNum); err != nil {
 		if err == sql.ErrNoRows {
-			return []cs.ShipDesign{}, nil
+			return []*cs.ShipDesign{}, nil
 		}
 		return nil, err
 	}
 
-	result := make([]cs.ShipDesign, len(items))
+	result := make([]*cs.ShipDesign, len(items))
 
 	for i := range items {
-		result[i] = *c.converter.ConvertShipDesign(&items[i])
+		result[i] = c.converter.ConvertShipDesign(items[i])
 	}
 
 	return result, nil
 }
 
-func (c *client) getShipDesignsByUUIDs(uuids []uuid.UUID) ([]cs.ShipDesign, error) {
+func (c *client) getShipDesignsByNums(nums []int) ([]*cs.ShipDesign, error) {
 
-	uuidStrings := make([]string, len(uuids))
-	for i, uuid := range uuids {
-		uuidStrings[i] = uuid.String()
-	}
-	query, args, err := sqlx.In(`SELECT * FROM shipDesigns WHERE uuid IN (?)`, uuidStrings)
+	query, args, err := sqlx.In(`SELECT * FROM shipDesigns WHERE num IN (?)`, nums)
 	if err != nil {
 		return nil, err
 	}
 
 	query = c.db.Rebind(query)
-	items := []ShipDesign{}
+	items := []*ShipDesign{}
 	if err := c.db.Select(&items, query, args...); err != nil {
 		if err == sql.ErrNoRows {
-			return []cs.ShipDesign{}, nil
+			return []*cs.ShipDesign{}, nil
 		}
 		return nil, err
 	}
 
-	result := make([]cs.ShipDesign, len(items))
+	result := make([]*cs.ShipDesign, len(items))
 
 	for i := range items {
-		result[i] = *c.converter.ConvertShipDesign(&items[i])
+		result[i] = c.converter.ConvertShipDesign(items[i])
 	}
 
 	return result, nil
@@ -124,8 +119,8 @@ func (c *client) createShipDesign(shipDesign *cs.ShipDesign, tx SQLExecer) error
 		createdAt,
 		updatedAt,
 		gameId,
+		num,
 		playerNum,
-		uuid,
 		name,
 		version,
 		hull,
@@ -139,8 +134,8 @@ func (c *client) createShipDesign(shipDesign *cs.ShipDesign, tx SQLExecer) error
 		CURRENT_TIMESTAMP,
 		CURRENT_TIMESTAMP,
 		:gameId,
+		:num,
 		:playerNum,
-		:uuid,
 		:name,
 		:version,
 		:hull,
@@ -178,8 +173,8 @@ func (c *client) updateShipDesign(shipDesign *cs.ShipDesign, tx SQLExecer) error
 	UPDATE shipDesigns SET
 		updatedAt = CURRENT_TIMESTAMP,
 		gameId = :gameId,
+		num = :num,
 		playerNum = :playerNum,
-		uuid = :uuid,
 		name = :name,
 		version = :version,
 		hull = :hull,

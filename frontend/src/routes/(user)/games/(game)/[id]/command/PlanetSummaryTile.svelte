@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { nextMapObject, previousMapObject } from '$lib/services/Context';
-	import type { Planet } from '$lib/types/Planet';
+	import type { CommandedPlanet, Planet } from '$lib/types/Planet';
 	import CommandTile from './CommandTile.svelte';
 
-	export let planet: Planet;
-	const icon = (planet: Planet) => (planet ? `planet-${(planet.num - 1) % 26}` : '');
+	export let planet: CommandedPlanet;
+	const icon = (planet: CommandedPlanet) => (planet ? `planet-${(planet.num - 1) % 26}` : '');
 </script>
 
 <CommandTile title={planet.name}>

@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 )
@@ -49,7 +48,7 @@ type ShipToken struct {
 	CreatedAt       sql.NullTime `json:"createdAt"`
 	UpdatedAt       sql.NullTime `json:"updatedAt"`
 	FleetID         int64        `json:"fleetId"`
-	DesignUUID      uuid.UUID    `json:"designUuid,omitempty"`
+	DesignNum       int          `json:"designNum"`
 	Quantity        int          `json:"quantity"`
 	Damage          float64      `json:"damage"`
 	QuantityDamaged int          `json:"quantityDamaged"`
@@ -135,7 +134,7 @@ SELECT
 	t.createdAt AS 'fleetShipToken.createdAt',
 	t.updatedAt AS 'fleetShipToken.updatedAt',
 	COALESCE(t.fleetId, 0) AS 'fleetShipToken.fleetId',
-	COALESCE(t.designUuid, '') AS 'fleetShipToken.designUuid',
+	COALESCE(t.designNum, 0) AS 'fleetShipToken.designNum',
 	COALESCE(t.quantity, 0) AS 'fleetShipToken.quantity',
 	COALESCE(t.damage, 0) AS 'fleetShipToken.damage',
 	COALESCE(t.quantityDamaged, 0) AS 'fleetShipToken.quantityDamaged'
@@ -189,29 +188,23 @@ func (c *client) GetFleet(id int64) (*cs.Fleet, error) {
 	fleet := fleets[0]
 
 	// load a fleet's designs
-	designUUIDs := make([]uuid.UUID, 0, len(fleet.Tokens))
+	designNums := make([]int, 0, len(fleet.Tokens))
 	for i := range fleet.Tokens {
-		designUUIDs = append(designUUIDs, fleet.Tokens[i].DesignUUID)
+		designNums = append(designNums, fleet.Tokens[i].DesignNum)
 	}
 
 	// this might be an error case, or we're in a unit test
-	if len(designUUIDs) == 0 {
+	if len(designNums) == 0 {
 		log.Warn().Int64("ID", fleet.ID).Msg("fleet has no designs associated with tokens")
 		return fleet, nil
 	}
 
-	designs, err := c.getShipDesignsByUUIDs(designUUIDs)
+	designs, err := c.getShipDesignsByNums(designNums)
 	if err != nil {
-		return nil, fmt.Errorf("get designs by UUIDs -> %w", err)
+		return nil, fmt.Errorf("get designs by nums -> %w", err)
 	}
 
-	designsByUUIDs := make(map[uuid.UUID]*cs.ShipDesign, len(designs))
-	for i := range designs {
-		design := &designs[i]
-		designsByUUIDs[design.UUID] = design
-	}
-
-	fleet.InjectDesigns(designsByUUIDs)
+	fleet.InjectDesigns(designs)
 
 	return fleet, nil
 }
@@ -353,7 +346,7 @@ func (c *client) createShipToken(token *cs.ShipToken, tx SQLExecer) error {
 		createdAt,
 		updatedAt,
 		fleetId,
-		designUuid,
+		designNum,
 		quantity,
 		damage,
 		quantityDamaged
@@ -362,7 +355,7 @@ func (c *client) createShipToken(token *cs.ShipToken, tx SQLExecer) error {
 		CURRENT_TIMESTAMP,
 		CURRENT_TIMESTAMP,
 		:fleetId,
-		:designUuid,
+		:designNum,
 		:quantity,
 		:damage,
 		:quantityDamaged

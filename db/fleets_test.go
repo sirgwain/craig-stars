@@ -50,13 +50,13 @@ func TestCreateFleet(t *testing.T) {
 func TestGetFleet(t *testing.T) {
 	c := connectTestDB()
 	g, player := c.createTestGameWithPlayer()
-	design := cs.NewShipDesign(player).WithHull(cs.Scout.Name)
+	design := cs.NewShipDesign(player, 1).WithHull(cs.Scout.Name)
 	c.createTestShipDesign(player, design)
 
 	fleet := cs.Fleet{
 		MapObject: cs.MapObject{GameID: g.ID, PlayerNum: player.Num, Name: "name", Type: cs.MapObjectTypeFleet},
 		Tokens: []cs.ShipToken{
-			{Quantity: 1, DesignUUID: design.UUID},
+			{Quantity: 1, DesignNum: design.Num},
 		},
 		FleetOrders: cs.FleetOrders{
 			Waypoints: []cs.Waypoint{

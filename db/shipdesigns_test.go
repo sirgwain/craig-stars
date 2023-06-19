@@ -20,7 +20,7 @@ func TestCreateShipDesign(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{"Create", args{connectTestDB(), &cs.ShipDesign{Name: "name"}}, false},
+		{"Create", args{connectTestDB(), &cs.ShipDesign{Name: "name", Num: 1}}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -49,7 +49,7 @@ func TestGetShipDesign(t *testing.T) {
 	rules := cs.NewRules()
 	c := connectTestDB()
 	_, player := c.createTestGameWithPlayer()
-	shipDesign := cs.NewShipDesign(player).WithHull(cs.Scout.Name).WithSpec(&rules, player)
+	shipDesign := cs.NewShipDesign(player, 1).WithHull(cs.Scout.Name).WithSpec(&rules, player)
 	if err := c.CreateShipDesign(shipDesign); err != nil {
 		t.Errorf("create shipDesign %s", err)
 		return
@@ -92,9 +92,9 @@ func TestGetShipDesigns(t *testing.T) {
 	// start with 1 shipDesign from connectTestDB
 	result, err := c.GetShipDesignsForPlayer(player.GameID, player.Num)
 	assert.Nil(t, err)
-	assert.Equal(t, []cs.ShipDesign{}, result)
+	assert.Equal(t, []*cs.ShipDesign{}, result)
 
-	shipDesign := cs.ShipDesign{GameID: player.GameID, PlayerNum: player.Num, Name: "name"}
+	shipDesign := cs.ShipDesign{GameID: player.GameID, Num: 1, PlayerNum: player.Num, Name: "name"}
 	if err := c.CreateShipDesign(&shipDesign); err != nil {
 		t.Errorf("create shipDesign %s", err)
 		return
@@ -112,9 +112,9 @@ func TestDeleteShipDesigns(t *testing.T) {
 
 	result, err := c.GetShipDesignsForPlayer(player.GameID, player.Num)
 	assert.Nil(t, err)
-	assert.Equal(t, []cs.ShipDesign{}, result)
+	assert.Equal(t, []*cs.ShipDesign{}, result)
 
-	shipDesign := cs.ShipDesign{GameID: player.GameID, PlayerNum: player.Num, Name: "name"}
+	shipDesign := cs.ShipDesign{GameID: player.GameID, Num: 1, PlayerNum: player.Num, Name: "name"}
 	if err := c.CreateShipDesign(&shipDesign); err != nil {
 		t.Errorf("create shipDesign %s", err)
 		return

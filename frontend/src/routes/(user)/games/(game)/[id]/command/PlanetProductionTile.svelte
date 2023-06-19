@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { EventManager } from '$lib/EventManager';
 	import { PlanetService } from '$lib/services/PlanetService';
-	import { isAuto, QueueItemType, type Planet, type ProductionQueueItem } from '$lib/types/Planet';
+	import { CommandedPlanet, isAuto, QueueItemType, type ProductionQueueItem } from '$lib/types/Planet';
 	import CommandTile from './CommandTile.svelte';
 
-	export let planet: Planet;
+	export let planet: CommandedPlanet;
 
 	const planetService = new PlanetService();
 

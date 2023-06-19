@@ -78,7 +78,7 @@
 			baseName: 'Long Range Scout',
 			tokens: [
 				{
-					designUuid: '',
+					designNum: 1,
 					quantity: 1
 				}
 			],

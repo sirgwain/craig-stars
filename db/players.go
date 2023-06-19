@@ -614,7 +614,7 @@ func (c *client) updateFullPlayerWithTransaction(player *cs.Player, tx *sqlx.Tx)
 	}
 
 	for i := range player.Designs {
-		design := &player.Designs[i]
+		design := player.Designs[i]
 		if design.ID == 0 {
 			if err := c.createShipDesign(design, tx); err != nil {
 				tx.Rollback()

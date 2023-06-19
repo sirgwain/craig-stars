@@ -1,4 +1,5 @@
 import {
+	CommandedPlanet,
 	fromQueueItemType,
 	QueueItemType,
 	type Planet,
@@ -8,8 +9,9 @@ import type { Player } from '$lib/types/Player';
 import { Service } from './Service';
 
 export class PlanetService extends Service {
-	async updatePlanet(planet: Planet): Promise<Planet> {
-		return Service.update<Planet>(planet, `/api/planets/${planet.id}`);
+	async updatePlanet(planet: CommandedPlanet): Promise<CommandedPlanet> {
+		const updated = await Service.update<Planet>(planet, `/api/planets/${planet.id}`);
+		return Object.assign(planet, updated)
 	}
 
 	/**

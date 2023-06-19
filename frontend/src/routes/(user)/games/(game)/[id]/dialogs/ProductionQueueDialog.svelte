@@ -1,10 +1,12 @@
 <script lang="ts">
+	import CostComponent from '$lib/components/game/Cost.svelte';
 	import { getQuantityModifier } from '$lib/quantityModifier';
-	import { commandedPlanet, commandMapObject, player } from '$lib/services/Context';
+	import { commandMapObject } from '$lib/services/Context';
 	import { PlanetService } from '$lib/services/PlanetService';
 	import type { Cost } from '$lib/types/Cost';
-	import type { ProductionQueueItem } from '$lib/types/Planet';
+	import type { CommandedPlanet, ProductionQueueItem } from '$lib/types/Planet';
 	import { isAuto, QueueItemType } from '$lib/types/Planet';
+	import type { Player } from '$lib/types/Player';
 	import {
 		ArrowLongDown,
 		ArrowLongLeft,
@@ -14,8 +16,10 @@
 	} from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import hotkeys from 'hotkeys-js';
-	import { createEventDispatcher, onDestroy } from 'svelte';
-	import CostComponent from '$lib/components/game/Cost.svelte';
+	import { createEventDispatcher } from 'svelte';
+
+	export let player: Player;
+	export let planet: CommandedPlanet;
 
 	const getFullName = (item: ProductionQueueItem) => {
 		switch (item.type) {
@@ -132,29 +136,24 @@
 	};
 
 	const ok = async () => {
-		if ($commandedPlanet) {
-			$commandedPlanet.productionQueue = queueItems;
-			$commandedPlanet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
-			const result = await planetService.updatePlanet($commandedPlanet);
-			commandMapObject(result);
-			dispatch('ok');
-		}
+		planet.productionQueue = queueItems ?? [];
+		planet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
+		const result = await planetService.updatePlanet(planet);
+		commandMapObject(result);
+		dispatch('ok');
 	};
 
 	const cancel = () => {
-		if ($commandedPlanet) {
-			queueItems = $commandedPlanet.productionQueue?.map(
-				(item) => ({ ...item } as ProductionQueueItem)
-			);
-			contributesOnlyLeftoverToResearch =
-				$commandedPlanet.contributesOnlyLeftoverToResearch ?? false;
+		if (planet) {
+			queueItems = planet.productionQueue?.map((item) => ({ ...item } as ProductionQueueItem));
+			contributesOnlyLeftoverToResearch = planet.contributesOnlyLeftoverToResearch ?? false;
 			dispatch('cancel');
 		}
 	};
 
 	const getSelectedItemCost = (): Cost | undefined => {
-		if ($player && selectedQueueItem) {
-			const typeCost = $player.race.spec?.costs[selectedQueueItem.type];
+		if (selectedQueueItem) {
+			const typeCost = player.race.spec?.costs[selectedQueueItem.type];
 			if (typeCost) {
 				return {
 					ironium: (typeCost.ironium ?? 0) * selectedQueueItem.quantity,
@@ -168,8 +167,8 @@
 	};
 
 	const getAvailableItemCost = (): Cost | undefined => {
-		if ($player && selectedAvailableItem) {
-			return $player.race.spec?.costs[selectedAvailableItem.type];
+		if (player && selectedAvailableItem) {
+			return player.race.spec?.costs[selectedAvailableItem.type];
 		}
 		return;
 	};
@@ -183,8 +182,8 @@
 
 	const planetService = new PlanetService();
 
-	let availableItems: ProductionQueueItem[] | undefined;
-	let queueItems: ProductionQueueItem[] | undefined;
+	let availableItems: ProductionQueueItem[] = [];
+	let queueItems: ProductionQueueItem[] = [];
 	let contributesOnlyLeftoverToResearch = false;
 
 	let selectedAvailableItem: ProductionQueueItem | undefined;
@@ -194,156 +193,145 @@
 	let selectedQueueItem: ProductionQueueItem | undefined;
 	let selectedQueueItemCost = getSelectedItemCost();
 
-	// clone the production queue for this planet when it's first loaded
-	const unsubscribe = commandedPlanet.subscribe((planet) => {
-		if (planet && $player) {
-			queueItems = planet.productionQueue?.map((item) => ({ ...item } as ProductionQueueItem));
-			availableItems = planetService.getAvailableProductionQueueItems(planet, $player);
+	const resetQueue = () => {
+		queueItems = planet.productionQueue?.map((item) => ({ ...item } as ProductionQueueItem));
+		availableItems = planetService.getAvailableProductionQueueItems(planet, player);
 
-			selectedAvailableItem = availableItems.length > 0 ? availableItems[0] : selectedAvailableItem;
-			contributesOnlyLeftoverToResearch = planet.contributesOnlyLeftoverToResearch ?? false;
-		} else {
-			queueItems = undefined;
-			availableItems = undefined;
-		}
-	});
+		selectedAvailableItem = availableItems.length > 0 ? availableItems[0] : selectedAvailableItem;
+		contributesOnlyLeftoverToResearch = planet.contributesOnlyLeftoverToResearch ?? false;
+	};
 
-	onDestroy(() => unsubscribe());
+	// clone the production queue whenever the planet is updated
+	$: planetNum = planet.num && resetQueue();
 </script>
 
-{#if queueItems && availableItems}
-	<div
-		class="flex h-full bg-base-200 shadow-xl max-h-fit min-h-fit rounded-sm border-2 border-base-300"
-	>
-		<div class="flex-col h-full w-full">
-			<div class="flex flex-col h-full w-full">
-				<div class="flex flex-row h-full w-full grid-cols-3">
-					<div class="flex-1 h-full bg-base-100 py-1 px-1">
-						<div class="flex flex-col h-full">
-							<ul class="grow h-20 overflow-y-auto">
-								{#each availableItems as item}
-									<li
-										on:click={() => availableItemSelected(item)}
-										on:dblclick={() => addAvailableItem(item)}
-										class="cursor-default select-none hover:text-secondary-focus {item ==
-										selectedAvailableItem
-											? ' bg-primary'
-											: ''}
-									{isAuto(item.type) ? ' italic' : ''}"
-									>
-										{getFullName(item)}
-									</li>
-								{/each}
-							</ul>
-							<div class="divider" />
-							<div class="h-32">
-								{#if selectedAvailableItem}
-									<h3>Cost of one {getFullName(selectedAvailableItem)}</h3>
-									<CostComponent cost={selectedAvailableItemCost} />
-								{/if}
-							</div>
-						</div>
-					</div>
-					<div class="flex-none h-full mx-0.5 w-32 px-1">
-						<div class="flex-row gap-y-2">
-							<button
-								on:click={() => addAvailableItem()}
-								class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
-								>Add <Icon
-									src={ArrowLongRight}
-									size="16"
-									class="hover:stroke-accent inline"
-								/></button
-							>
-							<button
-								on:click={removeItem}
-								class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
-								><Icon src={ArrowLongLeft} size="16" class="hover:stroke-accent inline" /> Remove
-							</button>
-							<button
-								on:click={itemUp}
-								class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
-								>Item Up <Icon src={ArrowLongUp} size="16" class="hover:stroke-accent inline" />
-							</button>
-							<button
-								on:click={itemDown}
-								class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
-								>Item Down <Icon
-									src={ArrowLongDown}
-									size="16"
-									class="hover:stroke-accent inline"
-								/>
-							</button>
-							<button
-								on:click={clear}
-								class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
-								>Clear <Icon src={XCircle} size="16" class="hover:stroke-accent inline" />
-							</button>
-						</div>
-					</div>
-					<div class="flex-1 h-full bg-base-100 py-1 px-1">
-						<div class="flex flex-col h-full">
-							<ul class="grow h-20 overflow-y-auto">
+<div
+	class="flex h-full bg-base-200 shadow-xl max-h-fit min-h-fit rounded-sm border-2 border-base-300"
+>
+	<div class="flex-col h-full w-full">
+		<div class="flex flex-col h-full w-full">
+			<div class="flex flex-row h-full w-full grid-cols-3">
+				<div class="flex-1 h-full bg-base-100 py-1 px-1">
+					<div class="flex flex-col h-full">
+						<ul class="grow h-20 overflow-y-auto">
+							{#each availableItems as item}
 								<li
-									on:click={() => queueItemClicked(-1)}
-									class="pl-1 select-none cursor-default hover:text-secondary-focus {selectedQueueItemIndex ==
-									-1
-										? 'bg-primary'
-										: ''}"
+									on:click={() => availableItemSelected(item)}
+									on:dblclick={() => addAvailableItem(item)}
+									class="cursor-default select-none hover:text-secondary-focus {item ==
+									selectedAvailableItem
+										? ' bg-primary'
+										: ''}
+									{isAuto(item.type) ? ' italic' : ''}"
 								>
-									-- Top of the Queue --
+									{getFullName(item)}
 								</li>
-								{#if queueItems}
-									{#each queueItems as queueItem, index}
-										<li
-											on:click={() => queueItemClicked(index, queueItem)}
-											class="pl-1 select-none cursor-default hover:text-secondary-focus {selectedQueueItemIndex ==
-											index
-												? 'bg-primary'
-												: ''} {isAuto(queueItem.type) ? 'italic' : ''}"
-										>
-											<div class="flex justify-between ">
-												<div>
-													{getFullName(queueItem)}
-												</div>
-												<div>
-													{queueItem.quantity}
-												</div>
-											</div>
-										</li>
-									{/each}
-								{/if}
-							</ul>
-							<div class="divider" />
-							<div class="h-32">
-								{#if selectedQueueItem}
-									<h3>
-										Cost of {getFullName(selectedQueueItem)} x {selectedQueueItem.quantity}
-									</h3>
-									<CostComponent cost={selectedQueueItemCost} />
-								{/if}
-							</div>
+							{/each}
+						</ul>
+						<div class="divider" />
+						<div class="h-32">
+							{#if selectedAvailableItem}
+								<h3>Cost of one {getFullName(selectedAvailableItem)}</h3>
+								<CostComponent cost={selectedAvailableItemCost} />
+							{/if}
 						</div>
 					</div>
 				</div>
-				<div class="flex justify-end pt-2">
-					<div class="grow">
-						<label>
-							<input
-								bind:checked={contributesOnlyLeftoverToResearch}
-								class="checkbox-xs"
-								type="checkbox"
-							/> Contributes Only Leftover to Research
-						</label>
+				<div class="flex-none h-full mx-0.5 w-32 px-1">
+					<div class="flex-row gap-y-2">
+						<button
+							on:click={() => addAvailableItem()}
+							class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
+							>Add <Icon
+								src={ArrowLongRight}
+								size="16"
+								class="hover:stroke-accent inline"
+							/></button
+						>
+						<button
+							on:click={removeItem}
+							class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
+							><Icon src={ArrowLongLeft} size="16" class="hover:stroke-accent inline" /> Remove
+						</button>
+						<button
+							on:click={itemUp}
+							class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
+							>Item Up <Icon src={ArrowLongUp} size="16" class="hover:stroke-accent inline" />
+						</button>
+						<button
+							on:click={itemDown}
+							class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
+							>Item Down <Icon src={ArrowLongDown} size="16" class="hover:stroke-accent inline" />
+						</button>
+						<button
+							on:click={clear}
+							class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
+							>Clear <Icon src={XCircle} size="16" class="hover:stroke-accent inline" />
+						</button>
 					</div>
-					<div>
-						<button class="btn">Prev</button>
-						<button class="btn">Next</button>
-						<button on:click={cancel} class="btn">Cancel</button>
-						<button on:click={ok} class="btn btn-primary">Ok</button>
+				</div>
+				<div class="flex-1 h-full bg-base-100 py-1 px-1">
+					<div class="flex flex-col h-full">
+						<ul class="grow h-20 overflow-y-auto">
+							<li
+								on:click={() => queueItemClicked(-1)}
+								class="pl-1 select-none cursor-default hover:text-secondary-focus {selectedQueueItemIndex ==
+								-1
+									? 'bg-primary'
+									: ''}"
+							>
+								-- Top of the Queue --
+							</li>
+							{#if queueItems}
+								{#each queueItems as queueItem, index}
+									<li
+										on:click={() => queueItemClicked(index, queueItem)}
+										class="pl-1 select-none cursor-default hover:text-secondary-focus {selectedQueueItemIndex ==
+										index
+											? 'bg-primary'
+											: ''} {isAuto(queueItem.type) ? 'italic' : ''}"
+									>
+										<div class="flex justify-between ">
+											<div>
+												{getFullName(queueItem)}
+											</div>
+											<div>
+												{queueItem.quantity}
+											</div>
+										</div>
+									</li>
+								{/each}
+							{/if}
+						</ul>
+						<div class="divider" />
+						<div class="h-32">
+							{#if selectedQueueItem}
+								<h3>
+									Cost of {getFullName(selectedQueueItem)} x {selectedQueueItem.quantity}
+								</h3>
+								<CostComponent cost={selectedQueueItemCost} />
+							{/if}
+						</div>
 					</div>
+				</div>
+			</div>
+			<div class="flex justify-end pt-2">
+				<div class="grow">
+					<label>
+						<input
+							bind:checked={contributesOnlyLeftoverToResearch}
+							class="checkbox-xs"
+							type="checkbox"
+						/> Contributes Only Leftover to Research
+					</label>
+				</div>
+				<div>
+					<button class="btn">Prev</button>
+					<button class="btn">Next</button>
+					<button on:click={cancel} class="btn">Cancel</button>
+					<button on:click={ok} class="btn btn-primary">Ok</button>
 				</div>
 			</div>
 		</div>
 	</div>
-{/if}
+</div>

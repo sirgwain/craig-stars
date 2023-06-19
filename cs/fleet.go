@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"math"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // warpfactor for using a stargate vs moving with warp drive
@@ -68,7 +66,7 @@ type ShipToken struct {
 	CreatedAt       time.Time `json:"createdAt"`
 	UpdatedAt       time.Time `json:"updatedAt"`
 	FleetID         int64     `json:"fleetId"`
-	DesignUUID      uuid.UUID `json:"designUuid,omitempty"`
+	DesignNum       int       `json:"designNum,omitempty"`
 	Quantity        int       `json:"quantity"`
 	Damage          float64   `json:"damage"`
 	QuantityDamaged int       `json:"quantityDamaged"`
@@ -181,7 +179,7 @@ func newFleet(player *Player, design *ShipDesign, num int, name string, waypoint
 		},
 		BaseName: name,
 		Tokens: []ShipToken{
-			{design: design, DesignUUID: design.UUID, Quantity: 1},
+			{design: design, DesignNum: design.Num, Quantity: 1},
 		},
 		FleetOrders: FleetOrders{
 			Waypoints:      waypoints,
@@ -315,11 +313,18 @@ func (wp Waypoint) getTransportTasks() transportTaskByType {
 }
 
 // inject designs into tokens so all the various Compute* functions work
-func (f *Fleet) InjectDesigns(designsByUUID map[uuid.UUID]*ShipDesign) {
+func (f *Fleet) InjectDesigns(designs []*ShipDesign) {
+
+	designsByNum := make(map[int]*ShipDesign, len(designs))
+	for i := range designs {
+		design := designs[i]
+		designsByNum[design.Num] = design
+	}
+
 	// inject the design into this
 	for i := range f.Tokens {
 		token := &f.Tokens[i]
-		token.design = designsByUUID[token.DesignUUID]
+		token.design = designsByNum[token.DesignNum]
 	}
 
 }

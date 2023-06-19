@@ -9,13 +9,13 @@
 	} from '$lib/services/Context';
 	import type { Fleet } from '$lib/types/Fleet';
 	import { MapObjectType } from '$lib/types/MapObject';
-	import type { Planet } from '$lib/types/Planet';
+	import type { CommandedPlanet } from '$lib/types/Planet';
 	import { ArrowTopRightOnSquare } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onMount } from 'svelte';
 	import CommandTile from './CommandTile.svelte';
-	export let planet: Planet;
-
+	
+	export let planet: CommandedPlanet;
 	let fleetsInOrbit: Fleet[];
 	let selectedFleet: Fleet | undefined;
 	let selectedFleetIndex = 0;

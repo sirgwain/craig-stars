@@ -6,9 +6,10 @@ export interface ShipDesign {
 	updatedAt: string;
 
 	gameId: number;
+	num: number;
 	playerNum: number;
-	uuid: string;
 	name: string;
+	uuid: string;
 	version: number;
 	hull: string;
 	hullSetNumber: number;

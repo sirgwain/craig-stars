@@ -16,8 +16,8 @@
 		// console.log('loading icon of fleet: ', fleet);
 		icon = '';
 		if (fleet.tokens && fleet.tokens?.length > 0) {
-			const designUuid = fleet.tokens[0].designUuid;
-			design = player.designs.find((d) => d.uuid == designUuid);
+			const designNum = fleet.tokens[0].designNum;
+			design = player.designs.find((d) => d.num == designNum);
 			if (design) {
 				icon = `hull-${kebabCase(design.hull)}-${design.hullSetNumber}`;
 			}

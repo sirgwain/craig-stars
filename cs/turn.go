@@ -47,7 +47,7 @@ func (t *turn) generateTurn() error {
 	t.fleetColonize()
 	t.fleetLoad()
 	t.fleetMerge0()
-	t.fleetRoute0()
+	t.fleetRoute()
 	t.packetMove0()
 
 	// move stuff through space
@@ -84,7 +84,7 @@ func (t *turn) generateTurn() error {
 	t.fleetLayMines()
 	t.fleetTransferOwner()
 	t.fleetMerge1()
-	t.fleetRoute1()
+	t.fleetRoute()
 	t.instaform()
 	t.fleetSweepMines()
 	t.fleetRepair()
@@ -338,8 +338,53 @@ func (t *turn) fleetMerge0() {
 
 }
 
-func (t *turn) fleetRoute0() {
+func (t *turn) fleetRoute() {
+	for _, fleet := range t.game.Fleets {
+		wp := fleet.Waypoints[0]
+		if wp.Task == WaypointTaskRoute {
+			player := t.game.Players[fleet.PlayerNum-1]
+			if fleet.OrbitingPlanetNum == None {
+				messager.fleetInvalidRouteNotPlanet(player, fleet)
+			} else {
+				planet := t.game.Planets[fleet.OrbitingPlanetNum-1]
+				if !player.IsFriend(planet.PlayerNum) {
+					messager.fleetInvalidRouteNotFriendlyPlanet(player, fleet, planet)
+				} else if planet.TargetType == MapObjectTypeNone || planet.TargetNum == 0 {
+					messager.fleetInvalidRouteNoRouteTarget(player, fleet, planet)
+				} else {
+					mo := t.game.getMapObject(planet.TargetType, planet.TargetNum, planet.TargetPlayerNum)
+					if mo == nil {
+						messager.fleetInvalidRouteNoRouteTarget(player, fleet, planet)
+						continue
+					}
 
+					// insert a new waypoint after this one and route to it
+					if len(fleet.Waypoints) > 1 {
+						fleet.Waypoints = append(fleet.Waypoints[:1], fleet.Waypoints[1:]...)
+					} else {
+						fleet.Waypoints = append(fleet.Waypoints, Waypoint{})
+					}
+					fleet.Waypoints[1] = Waypoint{
+						Position:        mo.Position,
+						TargetType:      planet.TargetType,
+						TargetNum:       planet.TargetNum,
+						TargetPlayerNum: planet.TargetPlayerNum,
+						WarpFactor:      wp.WarpFactor,
+					}
+
+					// if the new target is a planet and it has a target, keep routing
+					if mo.Type == MapObjectTypePlanet {
+						targetPlanet := t.game.getPlanet(mo.Num)
+						if targetPlanet.TargetNum != 0 && targetPlanet.TargetType != MapObjectTypeNone {
+							fleet.Waypoints[1].Task = WaypointTaskRoute
+						}
+					}
+
+					messager.fleetRouted(player, fleet, planet, mo.Name)
+				}
+			}
+		}
+	}
 }
 
 func (t *turn) packetMove0() {
@@ -568,7 +613,7 @@ func (t *turn) playerResearch() {
 
 		// update design spec
 		for i := range player.Designs {
-			design := &player.Designs[i]
+			design := player.Designs[i]
 			design.Spec = computeShipDesignSpec(t.game.rules, player, design)
 		}
 	}
@@ -659,10 +704,6 @@ func (t *turn) fleetTransferOwner() {
 }
 
 func (t *turn) fleetMerge1() {
-
-}
-
-func (t *turn) fleetRoute1() {
 
 }
 

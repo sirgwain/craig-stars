@@ -3,7 +3,6 @@ package cs
 import (
 	"sort"
 
-	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/exp/slices"
 )
@@ -15,34 +14,44 @@ type Universe struct {
 	Wormholes            []*Wormhole                          `json:"wormholes,omitempty"`
 	MineralPackets       []*MineralPacket                     `json:"mineralPackets,omitempty"`
 	MineFields           []*MineField                         `json:"mineFields,omitempty"`
+	MysteryTraders       []*MysteryTrader                     `json:"mysteryTraders,omitempty"`
 	Salvages             []*Salvage                           `json:"salvage,omitempty"`
 	rules                *Rules                               `json:"-"`
+	battlePlansByName    map[playerBattlePlanName]*BattlePlan `json:"-"`
 	mapObjectsByPosition map[Vector][]interface{}             `json:"-"`
 	fleetsByPosition     map[Vector]*Fleet                    `json:"-"`
-	fleetsByNum          map[playerFleetNum]*Fleet            `json:"-"`
-	designsByUUID        map[uuid.UUID]*ShipDesign            `json:"-"`
-	battlePlansByName    map[playerBattlePlanName]*BattlePlan `json:"-"`
+	fleetsByNum          map[playerObject]*Fleet              `json:"-"`
+	designsByNum         map[playerObject]*ShipDesign         `json:"-"`
+	mineFieldsByNum      map[playerObject]*MineField          `json:"-"`
+	mineralPacketsByNum  map[playerObject]*MineralPacket      `json:"-"`
 	salvagesByNum        map[int]*Salvage                     `json:"-"`
+	mysteryTradersByNum  map[int]*MysteryTrader               `json:"-"`
 	wormholesByNum       map[int]*Wormhole                    `json:"-"`
 }
 
 func NewUniverse(rules *Rules) Universe {
 	return Universe{
 		rules:                rules,
+		battlePlansByName:    make(map[playerBattlePlanName]*BattlePlan),
 		mapObjectsByPosition: make(map[Vector][]interface{}),
 		fleetsByPosition:     make(map[Vector]*Fleet),
-		fleetsByNum:          make(map[playerFleetNum]*Fleet),
-		designsByUUID:        make(map[uuid.UUID]*ShipDesign),
-		battlePlansByName:    make(map[playerBattlePlanName]*BattlePlan),
+		designsByNum:         make(map[playerObject]*ShipDesign),
+		fleetsByNum:          make(map[playerObject]*Fleet),
+		mineFieldsByNum:      make(map[playerObject]*MineField),
+		mineralPacketsByNum:  make(map[playerObject]*MineralPacket),
 		salvagesByNum:        make(map[int]*Salvage),
 		wormholesByNum:       make(map[int]*Wormhole),
+		mysteryTradersByNum:  make(map[int]*MysteryTrader),
 	}
 }
 
 type mapObjectGetter interface {
-	getShipDesign(uuid uuid.UUID) *ShipDesign
+	getShipDesign(playerNum int, num int) *ShipDesign
+	getMapObject(mapObjectType MapObjectType, num int, playerNum int) *MapObject
 	getPlanet(num int) *Planet
 	getFleet(playerNum int, num int) *Fleet
+	getMineField(playerNum int, num int) *MineField
+	getMysteryTrader(num int) *MysteryTrader
 	getWormhole(num int) *Wormhole
 	getSalvage(num int) *Salvage
 	getCargoHolder(mapObjectType MapObjectType, num int, playerNum int) cargoHolder
@@ -51,10 +60,12 @@ type mapObjectGetter interface {
 	updateMapObjectAtPosition(mo interface{}, originalPosition, newPosition Vector)
 }
 
-type playerFleetNum struct {
+type playerObject struct {
 	PlayerNum int
 	Num       int
 }
+
+func playerObjectKey(playerNum int, num int) playerObject { return playerObject{playerNum, num} }
 
 type playerBattlePlanName struct {
 	PlayerNum int
@@ -75,13 +86,13 @@ func (u *Universe) buildMaps(players []*Player) {
 		numDesigns += len(p.Designs)
 		numBattlePlans += len(p.BattlePlans)
 	}
-	u.designsByUUID = make(map[uuid.UUID]*ShipDesign, numDesigns)
+	u.designsByNum = make(map[playerObject]*ShipDesign, numDesigns)
 	u.battlePlansByName = make(map[playerBattlePlanName]*BattlePlan, numBattlePlans)
 
 	for _, p := range players {
 		for i := range p.Designs {
-			design := &p.Designs[i]
-			u.designsByUUID[design.UUID] = design
+			design := p.Designs[i]
+			u.designsByNum[playerObjectKey(design.PlayerNum, design.Num)] = design
 		}
 
 		for i := range p.BattlePlans {
@@ -91,15 +102,19 @@ func (u *Universe) buildMaps(players []*Player) {
 	}
 
 	u.fleetsByPosition = make(map[Vector]*Fleet, len(u.Fleets))
-	u.fleetsByNum = make(map[playerFleetNum]*Fleet, len(u.Fleets))
+	u.fleetsByNum = make(map[playerObject]*Fleet, len(u.Fleets))
 	for _, fleet := range u.Fleets {
 		u.addMapObjectByPosition(fleet, fleet.Position)
 		u.fleetsByPosition[fleet.Position] = fleet
-		u.fleetsByNum[playerFleetNum{fleet.PlayerNum, fleet.Num}] = fleet
+		u.fleetsByNum[playerObjectKey(fleet.PlayerNum, fleet.Num)] = fleet
 
 		fleet.battlePlan = u.battlePlansByName[playerBattlePlanName{fleet.PlayerNum, fleet.BattlePlanName}]
 
-		fleet.InjectDesigns(u.designsByUUID)
+		// inject the design into this
+		for i := range fleet.Tokens {
+			token := &fleet.Tokens[i]
+			token.design = u.designsByNum[playerObjectKey(fleet.PlayerNum, token.DesignNum)]
+		}
 	}
 
 	for _, starbase := range u.Starbases {
@@ -109,13 +124,13 @@ func (u *Universe) buildMaps(players []*Player) {
 	for _, planet := range u.Planets {
 		u.addMapObjectByPosition(planet, planet.Position)
 	}
-	for _, wormhole := range u.Wormholes {
-		u.addMapObjectByPosition(wormhole, wormhole.Position)
-	}
+
 	for _, mineralPacket := range u.MineralPackets {
+		u.mineralPacketsByNum[playerObjectKey(mineralPacket.PlayerNum, mineralPacket.Num)] = mineralPacket
 		u.addMapObjectByPosition(mineralPacket, mineralPacket.Position)
 	}
 	for _, mineField := range u.MineFields {
+		u.mineFieldsByNum[playerObjectKey(mineField.PlayerNum, mineField.Num)] = mineField
 		u.addMapObjectByPosition(mineField, mineField.Position)
 	}
 
@@ -129,6 +144,12 @@ func (u *Universe) buildMaps(players []*Player) {
 	for _, wormhole := range u.Wormholes {
 		u.wormholesByNum[wormhole.Num] = wormhole
 		u.addMapObjectByPosition(wormhole, wormhole.Position)
+	}
+
+	u.mysteryTradersByNum = make(map[int]*MysteryTrader, len(u.MysteryTraders))
+	for _, mysteryTrader := range u.MysteryTraders {
+		u.mysteryTradersByNum[mysteryTrader.Num] = mysteryTrader
+		u.addMapObjectByPosition(mysteryTrader, mysteryTrader.Position)
 	}
 
 }
@@ -166,9 +187,50 @@ func (u *Universe) GetPlayerMapObjects(playerNum int) PlayerMapObjects {
 	return pmo
 }
 
-// get a ship design by uuid
-func (u *Universe) getShipDesign(uuid uuid.UUID) *ShipDesign {
-	return u.designsByUUID[uuid]
+func (u *Universe) getMapObject(mapObjectType MapObjectType, num int, playerNum int) *MapObject {
+	switch mapObjectType {
+	case MapObjectTypePlanet:
+		planet := u.getPlanet(num)
+		if planet != nil {
+			return &planet.MapObject
+		}
+	case MapObjectTypeFleet:
+		fleet := u.getFleet(playerNum, num)
+		if fleet != nil {
+			return &fleet.MapObject
+		}
+	case MapObjectTypeWormhole:
+		wormhole := u.getWormhole(num)
+		if wormhole != nil {
+			return &wormhole.MapObject
+		}
+	case MapObjectTypeMineField:
+		mineField := u.getMineField(playerNum, num)
+		if mineField != nil {
+			return &mineField.MapObject
+		}
+	case MapObjectTypeMysteryTrader:
+		mysteryTrader := u.getMysteryTrader(num)
+		if mysteryTrader != nil {
+			return &mysteryTrader.MapObject
+		}
+	case MapObjectTypeSalvage:
+		salvage := u.getSalvage(num)
+		if salvage != nil {
+			return &salvage.MapObject
+		}
+	case MapObjectTypeMineralPacket:
+		mineralPacket := u.getMineralPacket(playerNum, num)
+		if mineralPacket != nil {
+			return &mineralPacket.MapObject
+		}
+	}
+	return nil
+}
+
+// get a ship design by num
+func (u *Universe) getShipDesign(playerNum int, num int) *ShipDesign {
+	return u.designsByNum[playerObjectKey(playerNum, num)]
 }
 
 // Get a planet by num
@@ -178,7 +240,7 @@ func (u *Universe) getPlanet(num int) *Planet {
 
 // Get a fleet by player num and fleet num
 func (u *Universe) getFleet(playerNum int, num int) *Fleet {
-	return u.fleetsByNum[playerFleetNum{playerNum, num}]
+	return u.fleetsByNum[playerObjectKey(playerNum, num)]
 }
 
 // Get a planet by num
@@ -188,12 +250,19 @@ func (u *Universe) getWormhole(num int) *Wormhole {
 
 // Get a salvage by num
 func (u *Universe) getSalvage(num int) *Salvage {
-	return u.Salvages[num]
+	return u.salvagesByNum[num]
 }
 
-// Get a mineralpacket by num
-func (u *Universe) getMineralPacket(num int) *MineralPacket {
-	return u.MineralPackets[num]
+func (u *Universe) getMineField(playerNum int, num int) *MineField {
+	return u.mineFieldsByNum[playerObjectKey(playerNum, num)]
+}
+
+func (u *Universe) getMineralPacket(playerNum int, num int) *MineralPacket {
+	return u.mineralPacketsByNum[playerObjectKey(playerNum, num)]
+}
+
+func (u *Universe) getMysteryTrader(num int) *MysteryTrader {
+	return u.mysteryTradersByNum[num]
 }
 
 // get a cargo holder by natural key (num, playerNum, etc)
@@ -203,6 +272,8 @@ func (u *Universe) getCargoHolder(mapObjectType MapObjectType, num int, playerNu
 		return u.getPlanet(num)
 	case MapObjectTypeFleet:
 		return u.getFleet(playerNum, num)
+	case MapObjectTypeSalvage:
+		return u.getSalvage(num)
 	}
 	return nil
 }
@@ -210,11 +281,11 @@ func (u *Universe) getCargoHolder(mapObjectType MapObjectType, num int, playerNu
 // mark a fleet as deleted and remove it from the universe
 func (u *Universe) deleteFleet(fleet *Fleet) {
 	fleet.Delete = true
-	
+
 	index := slices.Index(u.Fleets, fleet)
 	slices.Delete(u.Fleets, index, index)
 
-	delete(u.fleetsByNum, playerFleetNum{fleet.PlayerNum, fleet.Num})
+	delete(u.fleetsByNum, playerObjectKey(fleet.PlayerNum, fleet.Num))
 	delete(u.fleetsByPosition, fleet.Position)
 	u.removeMapObjectAtPosition(fleet, fleet.Position)
 }

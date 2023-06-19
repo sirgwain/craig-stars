@@ -40,7 +40,7 @@ func Test_getStartingStarbaseDesigns(t *testing.T) {
 	rules := NewRules()
 	player.Race.Spec = computeRaceSpec(&player.Race, &rules)
 
-	starbaseDesign := NewShipDesign(player)
+	starbaseDesign := NewShipDesign(player, 1)
 	starbaseDesign.Name = "Starbase"
 	starbaseDesign.Hull = "Space Station"
 	starbaseDesign.Purpose = ShipDesignPurposeStarbase
@@ -67,12 +67,8 @@ func Test_getStartingStarbaseDesigns(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			gu := universeGenerator{}
-			got := gu.getStartingStarbaseDesigns(tt.args.techStore, tt.args.player)
+			got := gu.getStartingStarbaseDesigns(tt.args.techStore, tt.args.player, 1)
 
-			// uuids are random, so just make our want/got's the same
-			for i := range got {
-				tt.want[i].UUID = got[i].UUID
-			}
 			if !test.CompareAsJSON(t, got, tt.want) {
 				t.Errorf("getStartingStarbaseDesigns() = %v, want %v", got, tt.want)
 			}

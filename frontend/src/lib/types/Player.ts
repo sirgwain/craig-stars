@@ -24,6 +24,7 @@ export type Player = {
 	designs: ShipDesign[];
 	planets: Planet[];
 	fleets: Fleet[];
+	starbases: Fleet[];
 	planetIntels: Planet[];
 	fleetIntels?: Fleet[];
 	playerIntels: PlayerIntel[];

@@ -6,6 +6,7 @@ import type { MapObject, MapObjectType } from './MapObject';
 import type { Vector } from './Vector';
 
 export interface Fleet extends MapObject {
+	planetNum: number;
 	baseName: string;
 	fuel?: number;
 	cargo?: Cargo;
@@ -28,7 +29,7 @@ export interface ShipToken {
 	updatedAt?: string;
 
 	gameId?: number;
-	designUuid: string;
+	designNum: number;
 	quantity: number;
 }
 

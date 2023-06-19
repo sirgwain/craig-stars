@@ -63,6 +63,8 @@ import (
 // goverter:extend GameShipDesignSlotsToShipDesignSlots
 // goverter:extend WormholeSpecToGameWormholeSpec
 // goverter:extend GameWormholeSpecToWormholeSpec
+// goverter:extend MysteryTraderSpecToGameMysteryTraderSpec
+// goverter:extend GameMysteryTraderSpecToMysteryTraderSpec
 type Converter interface {
 	ConvertUser(source User) cs.User
 	ConvertGameUser(source *cs.User) *User
@@ -260,6 +262,26 @@ type Converter interface {
 
 	// goverter:mapExtend MapObject ExtendWormholeMapObject
 	ConvertWormhole(source *Wormhole) *cs.Wormhole
+
+	// goverter:map MapObject.ID ID
+	// goverter:map MapObject.GameID GameID
+	// goverter:map MapObject.CreatedAt CreatedAt
+	// goverter:map MapObject.UpdatedAt UpdatedAt
+	// goverter:map MapObject.Type Type
+	// goverter:map MapObject.Dirty Dirty
+	// goverter:map MapObject.Delete Delete
+	// goverter:map MapObject.Position.X X
+	// goverter:map MapObject.Position.Y Y
+	// goverter:map MapObject.Name Name
+	// goverter:map MapObject.Num Num
+	// goverter:map Heading.X HeadingX
+	// goverter:map Heading.Y HeadingY
+	// goverter:ignore PlayerNum
+	ConvertGameMysteryTrader(source *cs.MysteryTrader) *MysteryTrader
+
+	// goverter:mapExtend MapObject ExtendMysteryTraderMapObject
+	// goverter:mapExtend Heading ExtendMysteryTraderHeading
+	ConvertMysteryTrader(source *MysteryTrader) *cs.MysteryTrader
 
 	// goverter:map MapObject.ID ID
 	// goverter:map MapObject.GameID GameID
@@ -660,6 +682,13 @@ func GameWormholeSpecToWormholeSpec(source cs.WormholeSpec) *WormholeSpec {
 	return (*WormholeSpec)(&source)
 }
 
+func MysteryTraderSpecToGameMysteryTraderSpec(source *MysteryTraderSpec) cs.MysteryTraderSpec {
+	return (cs.MysteryTraderSpec)(*source)
+}
+
+func GameMysteryTraderSpecToMysteryTraderSpec(source cs.MysteryTraderSpec) *MysteryTraderSpec {
+	return (*MysteryTraderSpec)(&source)
+}
 
 func ExtendResearchCost(source Race) cs.ResearchCost {
 	return cs.ResearchCost{
@@ -876,6 +905,29 @@ func ExtendWormholeMapObject(source Wormhole) cs.MapObject {
 		},
 		Name: source.Name,
 		Num:  source.Num,
+	}
+}
+
+func ExtendMysteryTraderMapObject(source MysteryTrader) cs.MapObject {
+	return cs.MapObject{
+		Type:      cs.MapObjectTypeMysteryTrader,
+		ID:        source.ID,
+		GameID:    source.GameID,
+		CreatedAt: source.CreatedAt,
+		UpdatedAt: source.UpdatedAt,
+		Position: cs.Vector{
+			X: source.X,
+			Y: source.Y,
+		},
+		Name: source.Name,
+		Num:  source.Num,
+	}
+}
+
+func ExtendMysteryTraderHeading(source MysteryTrader) cs.Vector {
+	return cs.Vector{
+		X: source.HeadingX,
+		Y: source.HeadingY,
 	}
 }
 

@@ -1,9 +1,8 @@
 import type { Fleet, Waypoint } from '$lib/types/Fleet';
 import type { Game } from '$lib/types/Game';
 import { MapObjectType, None, ownedBy, positionKey, type MapObject } from '$lib/types/MapObject';
-import type { Planet } from '$lib/types/Planet';
+import { CommandedPlanet, type Planet } from '$lib/types/Planet';
 import type { Player } from '$lib/types/Player';
-import { PlayerSettings } from '$lib/types/PlayerSettings';
 import { emptyUser, type User } from '$lib/types/User';
 import type { Vector } from '$lib/types/Vector';
 import { derived, get, writable } from 'svelte/store';
@@ -17,7 +16,7 @@ export const me = writable<User>(emptyUser);
 export const game = writable<Game | undefined>();
 export const player = writable<Player | undefined>();
 
-export const commandedPlanet = writable<Planet | undefined>();
+export const commandedPlanet = writable<CommandedPlanet | undefined>();
 export const commandedFleet = writable<Fleet | undefined>();
 export const selectedWaypoint = writable<Waypoint | undefined>();
 export const selectedMapObject = writable<MapObject>();
@@ -223,7 +222,7 @@ export const commandMapObject = (mo: MapObject) => {
 	// console.log(`Commanded ${mo.type}:${mo.name}`);
 	commandedMapObject.update(() => mo);
 	if (mo.type == MapObjectType.Planet) {
-		commandedPlanet.update(() => mo as Planet);
+		commandedPlanet.update(() => Object.assign(new CommandedPlanet(), mo));
 		commandedFleet.update(() => undefined);
 	} else if (mo.type == MapObjectType.Fleet) {
 		commandedPlanet.update(() => undefined);

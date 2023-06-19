@@ -76,7 +76,7 @@ type Client interface {
 	UpdateLightPlayer(player *cs.Player) error
 	DeletePlayer(id int64) error
 
-	GetShipDesignsForPlayer(gameID int64, playerNum int) ([]cs.ShipDesign, error)
+	GetShipDesignsForPlayer(gameID int64, playerNum int) ([]*cs.ShipDesign, error)
 	GetShipDesign(id int64) (*cs.ShipDesign, error)
 	CreateShipDesign(shipDesign *cs.ShipDesign) error
 	UpdateShipDesign(shipDesign *cs.ShipDesign) error

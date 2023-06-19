@@ -1,12 +1,12 @@
 import type { EnumDictionary } from './types/EnumDictionary';
 import type { Fleet } from './types/Fleet';
 import type { MapObject } from './types/MapObject';
-import type { Planet } from './types/Planet';
+import type { CommandedPlanet, Planet } from './types/Planet';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type EventFunction = (...args: any[]) => void;
 
-type ProductionQueueDialogRequestedEvent = (planet?: Planet) => void;
+type ProductionQueueDialogRequestedEvent = (planet: CommandedPlanet) => void;
 type CargoTransferDialogRequestedEvent = (src: Fleet, target?: Fleet | Planet) => void;
 type CargoTransferredEvent = (mo: MapObject) => void;
 
@@ -45,7 +45,7 @@ class Events {
 		return this.subscribe(EventType.ProductionQueueDialogRequested, event);
 	}
 
-	publishProductionQueueDialogRequestedEvent(planet?: Planet | undefined) {
+	publishProductionQueueDialogRequestedEvent(planet: CommandedPlanet) {
 		this.events[EventType.ProductionQueueDialogRequested].forEach((e) => e.apply(e, [planet]));
 	}
 

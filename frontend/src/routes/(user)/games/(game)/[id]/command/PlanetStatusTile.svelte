@@ -1,20 +1,20 @@
 <script lang="ts">
-	import type { Planet } from '$lib/types/Planet';
+	import type { CommandedPlanet } from '$lib/types/Planet';
 	import CommandTile from './CommandTile.svelte';
 
-	export let planet: Planet;
+	export let planet: CommandedPlanet;
 </script>
 
 {#if planet.spec && planet.cargo}
 	<CommandTile title="Planet Status">
 		<div class="flex justify-between">
 			<div>Population</div>
-			<div>{planet.cargo.colonists ? planet.cargo.colonists * 100 : 0}</div>
+			<div>{(planet.cargo.colonists ?? 0) * 100}</div>
 		</div>
 		<div class="flex justify-between">
 			<div>Resources/Year</div>
 			<div>
-				{planet.spec.resourcesPerYearAvailable} of {planet.spec?.resourcesPerYear}
+				{planet.spec.resourcesPerYearAvailable} of {planet.spec.resourcesPerYear}
 			</div>
 		</div>
 

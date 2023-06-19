@@ -49,8 +49,6 @@ func TestCreateMineField(t *testing.T) {
 func TestGetMineField(t *testing.T) {
 	c := connectTestDB()
 	g, player := c.createTestGameWithPlayer()
-	design := cs.NewShipDesign(player).WithHull(cs.Scout.Name)
-	c.createTestShipDesign(player, design)
 
 	mineField := cs.MineField{
 		MapObject: cs.MapObject{GameID: g.ID, PlayerNum: player.Num, Name: "name", Type: cs.MapObjectTypeMineField},
