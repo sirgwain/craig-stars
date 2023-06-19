@@ -137,8 +137,7 @@ input[type='number']::-webkit-inner-spin-button {
 	fill: #6b0065;
 }
 
-.warp-arrow {
-	stroke: #ffffff;
+.warpline-arrow {
 	fill: none;
 }
 

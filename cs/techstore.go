@@ -9,7 +9,8 @@ const ScanWithZeroRange = 1
 const UnlimitedSpaceDock = -1
 const NoScanner = -1
 const NoGate = -1
-const InfinteGate = math.MaxInt32
+const InfiniteGate = math.MaxInt32
+const Infinite = -1
 
 type TechStore struct {
 	RulesID                  int64                                 `json:"rulesId"`
@@ -783,8 +784,8 @@ var Stargate100_250 = TechHullComponent{Tech: NewTech("Stargate 100-250", NewCos
 var StargateAny_300 = TechHullComponent{Tech: NewTech("Stargate any-300", NewCost(50, 20, 20, 250), TechRequirements{TechLevel: TechLevel{Propulsion: 6, Construction: 10}, PRTRequired: IT, PRTDenied: HE}, 10, TechCategoryOrbital),
 
 	Mass:         0,
-	SafeHullMass: InfinteGate,
-	MaxHullMass:  InfinteGate,
+	SafeHullMass: InfiniteGate,
+	MaxHullMass:  InfiniteGate,
 	SafeRange:    300,
 	MaxRange:     1500,
 	HullSlotType: HullSlotTypeOrbital,
@@ -813,15 +814,15 @@ var Stargate100_Any = TechHullComponent{Tech: NewTech("Stargate 100-any", NewCos
 	Mass:         0,
 	SafeHullMass: 100,
 	MaxHullMass:  500,
-	SafeRange:    InfinteGate,
-	MaxRange:     InfinteGate,
+	SafeRange:    InfiniteGate,
+	MaxRange:     InfiniteGate,
 	HullSlotType: HullSlotTypeOrbital,
 }
 var StargateAny_800 = TechHullComponent{Tech: NewTech("Stargate any-800", NewCost(50, 20, 20, 700), TechRequirements{TechLevel: TechLevel{Propulsion: 12, Construction: 18}, PRTRequired: IT, PRTDenied: HE}, 50, TechCategoryOrbital),
 
 	Mass:         0,
-	SafeHullMass: InfinteGate,
-	MaxHullMass:  InfinteGate,
+	SafeHullMass: InfiniteGate,
+	MaxHullMass:  InfiniteGate,
 	SafeRange:    800,
 	MaxRange:     4000,
 	HullSlotType: HullSlotTypeOrbital,
@@ -829,10 +830,10 @@ var StargateAny_800 = TechHullComponent{Tech: NewTech("Stargate any-800", NewCos
 var StargateAny_Any = TechHullComponent{Tech: NewTech("Stargate any-any", NewCost(50, 20, 20, 800), TechRequirements{TechLevel: TechLevel{Propulsion: 19, Construction: 24}, PRTRequired: IT, PRTDenied: HE}, 60, TechCategoryOrbital),
 
 	Mass:         0,
-	SafeHullMass: InfinteGate,
-	MaxHullMass:  InfinteGate,
-	SafeRange:    InfinteGate,
-	MaxRange:     InfinteGate,
+	SafeHullMass: InfiniteGate,
+	MaxHullMass:  InfiniteGate,
+	SafeRange:    InfiniteGate,
+	MaxRange:     InfiniteGate,
 	HullSlotType: HullSlotTypeOrbital,
 }
 var MassDriver5 = TechHullComponent{Tech: NewTech("Mass Driver 5", NewCost(24, 20, 20, 70), TechRequirements{TechLevel: TechLevel{Energy: 4}, PRTRequired: PP}, 70, TechCategoryOrbital),

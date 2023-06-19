@@ -187,6 +187,7 @@ func Test_computeFleetSpec(t *testing.T) {
 				ScanRangePen: NoScanner,
 				SpaceDock:    UnlimitedSpaceDock,
 			},
+			EstimatedRange: Infinite,
 			Purposes: map[ShipDesignPurpose]bool{},
 		}},
 		{"Starter Humanoid Long Range Scout", args{&rules, starterHumanoidPlayer, &Fleet{

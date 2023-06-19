@@ -61,7 +61,7 @@
 		<defs>
 			<marker
 				id="warp-arrow"
-				class="warp-arrow"
+				class="warpline-arrow"
 				viewBox="0 0 10 10"
 				refX="13"
 				refY="5"
@@ -74,7 +74,7 @@
 					d="M 3 0 L 7 5 L 3 10"
 					stroke={color}
 					fill="context-fill"
-					stroke-width={strokeWidth}
+					stroke-width={2}
 				/>
 			</marker>
 		</defs>

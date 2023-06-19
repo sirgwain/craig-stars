@@ -325,6 +325,7 @@ func (f *Fleet) InjectDesigns(designs []*ShipDesign) {
 
 }
 
+// compute all the computable values of this fleet (cargo capacity, armor, mass)
 func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 	spec := FleetSpec{
 		ShipDesignSpec: ShipDesignSpec{
@@ -892,8 +893,10 @@ func (fleet *Fleet) getFuelCost(player *Player, warpSpeed int, distance float64,
 
 func (fleet *Fleet) getEstimatedRange(player *Player, warpSpeed int, cargoCapacity int) int {
 	fuelCost := fleet.getFuelCost(player, warpSpeed, 1000, cargoCapacity)
-	estimatedRange := int(float64(fleet.Fuel) / float64(fuelCost) * 1000)
-	return estimatedRange
+	if fuelCost == 0 {
+		return Infinite
+	}
+	return int(float64(fleet.Fuel) / float64(fuelCost) * 1000)
 }
 
 // Get the warp speed for when we run out of fuel.

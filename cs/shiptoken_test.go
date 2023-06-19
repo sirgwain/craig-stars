@@ -213,7 +213,7 @@ func TestShipToken_applyOvergateDamage(t *testing.T) {
 				dist:           100,
 				safeRange:      100,
 				safeSourceMass: 100,
-				safeDestMass:   InfinteGate,
+				safeDestMass:   InfiniteGate,
 				maxMassFactor:  5,
 			},
 			want: tokenDamage{damage: 25},
@@ -245,7 +245,7 @@ func TestShipToken_applyOvergateDamage(t *testing.T) {
 				dist:           200,
 				safeRange:      100,
 				safeSourceMass: 100,
-				safeDestMass:   InfinteGate,
+				safeDestMass:   InfiniteGate,
 				maxMassFactor:  5,
 			},
 			want: tokenDamage{damage: 44}, // armor * (1 - .75 * .75)

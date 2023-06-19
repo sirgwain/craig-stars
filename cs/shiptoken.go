@@ -74,7 +74,7 @@ func (st *ShipToken) applyOvergateDamage(dist float64, safeRange int, safeSource
 
 func (t *ShipToken) getStargateRangeDamageFactor(dist float64, safeRange int) float64 {
 	rangeDamageFactor := 0.0
-	if safeRange == InfinteGate || safeRange >= int(dist) {
+	if safeRange == InfiniteGate || safeRange >= int(dist) {
 		rangeDamageFactor = 0
 	} else {
 		rangeDamageFactor = (dist - float64(safeRange)) / (4.0 * float64(safeRange))
@@ -87,10 +87,10 @@ func (t *ShipToken) getStargateMassDamageFactor(dist float64, safeSourceMass int
 	mass := t.design.Spec.Mass
 	sourceMassDamageFactor := 1.0
 	destMassDamageFactor := 1.0
-	if safeSourceMass != InfinteGate && safeSourceMass < mass {
+	if safeSourceMass != InfiniteGate && safeSourceMass < mass {
 		sourceMassDamageFactor = (float64(maxMassFactor)*float64(safeSourceMass) - float64(mass)) / (4.0 * float64(safeSourceMass))
 	}
-	if safeDestMass != InfinteGate && safeDestMass < mass {
+	if safeDestMass != InfiniteGate && safeDestMass < mass {
 		destMassDamageFactor *= (float64(maxMassFactor)*float64(safeDestMass) - float64(mass)) / (4.0 * float64(safeDestMass))
 	}
 
