@@ -27,7 +27,7 @@
 	};
 </script>
 
-<div class="card bg-base-200 shadow-xl rounded-sm border-2 border-base-300 pt-2">
+<div class="card bg-base-200 shadow-xl rounded-sm border-2 border-base-300 pt-2 sm:w-[400px]">
 	<figure>
 		<TechAvatar tech={$techs.getHull(design.hull)} hullSetNumber={design.hullSetNumber} />
 	</figure>

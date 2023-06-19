@@ -79,7 +79,7 @@ func (s *server) openGame(c *gin.Context) {
 	c.JSON(http.StatusOK, game)
 }
 
-func (s *server) playerGame(c *gin.Context) {
+func (s *server) fullPlayer(c *gin.Context) {
 	user := s.GetSessionUser(c)
 
 	var id idBind
@@ -88,19 +88,93 @@ func (s *server) playerGame(c *gin.Context) {
 		return
 	}
 
-	game, player, err := s.gameRunner.LoadPlayerGame(id.ID, user.ID)
+	player, err := s.db.GetPlayerForGame(id.ID, user.ID)
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", id.ID).Int64("UserID", user.ID).Msg("load player and game from database")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to load game from database"})
 		return
 	}
 
-	if game == nil || player == nil {
+	if player == nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "game not found"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"game": game, "player": player})
+	c.JSON(http.StatusOK, player)
+
+}
+
+func (s *server) lightPlayer(c *gin.Context) {
+	user := s.GetSessionUser(c)
+
+	var id idBind
+	if err := c.ShouldBindUri(&id); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	player, err := s.db.GetLightPlayerForGame(id.ID, user.ID)
+	if err != nil {
+		log.Error().Err(err).Int64("GameID", id.ID).Int64("UserID", user.ID).Msg("load player and game from database")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to load game from database"})
+		return
+	}
+
+	if player == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "player not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, player)
+}
+
+func (s *server) mapObjects(c *gin.Context) {
+	user := s.GetSessionUser(c)
+
+	var id idBind
+	if err := c.ShouldBindUri(&id); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	mapObjects, err := s.db.GetPlayerMapObjects(id.ID, user.ID)
+	if err != nil {
+		log.Error().Err(err).Int64("GameID", id.ID).Int64("UserID", user.ID).Msg("load player map objects database")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to load map objects from database"})
+		return
+	}
+
+	if mapObjects == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "player not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, mapObjects)
+
+}
+
+func (s *server) game(c *gin.Context) {
+	user := s.GetSessionUser(c)
+
+	var id idBind
+	if err := c.ShouldBindUri(&id); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	game, err := s.db.GetGame(id.ID)
+	if err != nil {
+		log.Error().Err(err).Int64("GameID", id.ID).Int64("UserID", user.ID).Msg("load player and game from database")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to load game from database"})
+		return
+	}
+
+	if game == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "game not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, game)
 
 }
 

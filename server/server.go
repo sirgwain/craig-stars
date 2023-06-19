@@ -99,7 +99,10 @@ func Start(db DBClient, config config.Config) {
 	ar.DELETE("/games/:id", server.deleteGame)
 
 	// player load/submit turn
-	ar.GET("/games/:id", server.playerGame)
+	ar.GET("/games/:id", server.game)
+	ar.GET("/games/:id/player", server.lightPlayer)
+	ar.GET("/games/:id/full-player", server.fullPlayer)
+	ar.GET("/games/:id/mapobjects", server.mapObjects)
 	ar.GET("/games/:id/player-statuses", server.playerStatuses)
 	ar.POST("/games/:id/submit-turn", server.submitTurn)
 

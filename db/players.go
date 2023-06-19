@@ -329,9 +329,6 @@ func (c *client) GetLightPlayerForGame(gameID, userID int64) (*cs.Player, error)
 	submittedTurn,
 	color,
 	defaultHullSet,
-	researchAmount,
-	nextResearchField,
-	researching,
 	race,
 	techLevelsEnergy,
 	techLevelsWeapons,
@@ -339,6 +336,18 @@ func (c *client) GetLightPlayerForGame(gameID, userID int64) (*cs.Player, error)
 	techLevelsConstruction,
 	techLevelsElectronics,
 	techLevelsBiotechnology	
+	techLevelsSpentEnergy,
+	techLevelsSpentWeapons,
+	techLevelsSpentPropulsion,
+	techLevelsSpentConstruction,
+	techLevelsSpentElectronics,
+	techLevelsSpentBiotechnology	
+	researchSpentLastYear,
+	researchAmount,
+	nextResearchField,
+	researching,
+	spec,
+	stats
 	FROM players 
 	WHERE gameId = ? AND userId = ?`, gameID, userID); err != nil {
 		if err == sql.ErrNoRows {
@@ -395,6 +404,41 @@ func (c *client) GetFullPlayerForGame(gameID, userID int64) (*cs.FullPlayer, err
 	}
 
 	return &player, nil
+}
+
+func (c *client) GetPlayerMapObjects(gameID, userID int64) (*cs.PlayerMapObjects, error) {
+	mapObjects := cs.PlayerMapObjects{}
+	var num int
+	if err := c.db.Get(&num, "SELECT num FROM players WHERE gameId = ? AND userId = ?", gameID, userID); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	planets, err := c.GetPlanetsForPlayer(gameID, num)
+	if err != nil {
+		return nil, fmt.Errorf("get player planets %w", err)
+	}
+	mapObjects.Planets = planets
+
+	fleets, err := c.GetFleetsForPlayer(gameID, num)
+	if err != nil {
+		return nil, fmt.Errorf("get player fleets %w", err)
+	}
+	// pre-instantiate the fleets/starbases arrays (make it a little bigger than necessary)
+	mapObjects.Fleets = make([]*cs.Fleet, 0, len(fleets))
+	mapObjects.Starbases = make([]*cs.Fleet, 0, len(planets))
+	for i := range fleets {
+		fleet := fleets[i]
+		if fleet.Starbase {
+			mapObjects.Starbases = append(mapObjects.Starbases, fleet)
+		} else {
+			mapObjects.Fleets = append(mapObjects.Fleets, fleet)
+		}
+	}
+
+	return &mapObjects, nil
 }
 
 // get a player with designs loaded

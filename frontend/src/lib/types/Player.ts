@@ -2,11 +2,7 @@ import type { Fleet } from './Fleet';
 import type { Planet } from './Planet';
 import type { Race } from './Race';
 import type { ShipDesign } from './ShipDesign';
-import type {
-	Tech,
-	TechDefense,
-	TechPlanetaryScanner
-} from './Tech';
+import type { Tech, TechDefense, TechPlanetaryScanner } from './Tech';
 
 export type Player = {
 	id?: number;
@@ -24,17 +20,27 @@ export type Player = {
 	submittedTurn?: boolean;
 	techLevels: TechLevel;
 	techLevelsSpent: TechLevel;
-	messages: Message[];
 	designs: ShipDesign[];
-	planets: Planet[];
-	fleets: Fleet[];
-	starbases: Fleet[];
+	researchSpentLastYear?: number;
+	spec: PlayerSpec;
+} & PlayerOrders &
+	PlayerMapObjects &
+	PlayerIntels &
+	PlayerMessages;
+
+export type PlayerMessages = {
+	messages: Message[];
+};
+export type PlayerIntels = {
 	planetIntels: Planet[];
 	fleetIntels?: Fleet[];
 	playerIntels: PlayerIntel[];
-	researchSpentLastYear?: number;
-	spec: PlayerSpec;
-} & PlayerOrders;
+};
+export type PlayerMapObjects = {
+	planets: Planet[];
+	fleets: Fleet[];
+	starbases: Fleet[];
+};
 
 export type PlayerOrders = {
 	researching: TechField;

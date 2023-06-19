@@ -1,3 +1,4 @@
+<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
 <script lang="ts">
 	import { me } from '$lib/services/Context';
 	import { Bars3, ArrowUpTray } from '@steeze-ui/heroicons';
@@ -16,7 +17,7 @@
 	$: updateTitle(game);
 </script>
 
-<div class="navbar bg-base-100 flex flex-row">
+<div class="navbar bg-base-100 flex flex-row w-full">
 	<div class="flex-1">
 		<a class="btn btn-ghost text-xl text-primary" href={`/`}>cs</a>
 		<div class="md:block">
@@ -27,24 +28,38 @@
 	</div>
 	<div class="flex-initial">
 		<div class="hidden md:inline-block">
-			<div class="dropdown">
+			{#if $page.url.pathname === `/games/${game.id}`}
+				<div class="tooltip tooltip-bottom" data-tip="submit turn">
+					<button
+						on:click={() => dispatch('submit-turn')}
+						class="btn btn-primary"
+						title="submit turn"
+						><span class="hidden md:inline-block mr-1">Submit Turn</span><Icon
+							src={ArrowUpTray}
+							size="16"
+						/></button
+					>
+				</div>
+			{/if}
+
+			<div class="dropdown dropdown-end">
 				<label for="reports" tabindex="0" class="btn btn-ghost">Commands</label>
 				<ul
 					id="commands"
 					tabindex="0"
-					class=" menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52"
+					class=" menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-300"
 				>
 					<li><a href={`/games/${game.id}/research`}>Research</a></li>
 					<li><a href={`/games/${game.id}/designs`}>Designs</a></li>
 				</ul>
 			</div>
 
-			<div class="dropdown">
+			<div class="dropdown dropdown-end">
 				<label for="reports" tabindex="0" class="btn btn-ghost">Reports</label>
 				<ul
 					id="reports"
 					tabindex="0"
-					class=" menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52"
+					class=" menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-300"
 				>
 					<li><a href={`/games/${game.id}/planets`}>Planets</a></li>
 					<li><a href={`/games/${game.id}/fleets`}>Fleets</a></li>
@@ -53,26 +68,13 @@
 			</div>
 		</div>
 
-		{#if $page.url.pathname === `/games/${game.id}`}
-			<div class="tooltip tooltip-bottom" data-tip="submit turn">
-				<button on:click={() => dispatch('submit-turn')} class="btn btn-primary" title="submit turn"
-					><span class="hidden md:inline-block mr-1">Submit Turn</span><Icon
-						src={ArrowUpTray}
-						size="16"
-					/></button
-				>
-			</div>
-		{/if}
 		<div class="dropdown dropdown-end">
 			<label for="menu" tabindex="0" class="btn btn-ghost">
 				<div id="menu">
 					<Icon src={Bars3} size="24" />
 				</div>
 			</label>
-			<ul
-				tabindex="0"
-				class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52"
-			>
+			<ul tabindex="0" class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-300 w-52">
 				<li>
 					<DarkModeToggler />
 				</li>
