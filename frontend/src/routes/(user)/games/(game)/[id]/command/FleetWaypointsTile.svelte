@@ -174,6 +174,15 @@
 			</ul>
 		</div>
 		{#if previousWaypoint}
+			<div class="flex justify-between my-1">
+				<button
+					name="deleteWaypoint"
+					class="btn btn-outline btn-sm normal-case btn-secondary"
+					on:click={deleteWaypoint}
+					>Delete
+				</button>
+			</div>
+
 			<div class="flex justify-between mt-1">
 				<span>Coming From</span>
 				<span>{getTargetName(previousWaypoint)}</span>

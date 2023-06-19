@@ -45,6 +45,7 @@ export type PlayerSpec = {
 	currentResearchCost?: number;
 };
 
+
 export enum NextResearchField {
 	SameField = 'SameField',
 	Energy = 'Energy',
