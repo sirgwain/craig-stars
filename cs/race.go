@@ -8,8 +8,8 @@ import (
 
 type Race struct {
 	ID                int64        `json:"id,omitempty"`
-	CreatedAt         *time.Time    `json:"createdAt,omitempty"`
-	UpdatedAt         *time.Time    `json:"updatedAt,omitempty"`
+	CreatedAt         time.Time    `json:"createdAt,omitempty"`
+	UpdatedAt         time.Time    `json:"updatedAt,omitempty"`
 	UserID            int64        `json:"userId,omitempty"`
 	Name              string       `json:"name,omitempty"`
 	PluralName        string       `json:"pluralName,omitempty"`
