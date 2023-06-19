@@ -66,7 +66,7 @@ func (h Hab) Get(habType HabType) int {
 	return 0
 }
 
-func (h Hab) Set(habType HabType, value int) Hab {
+func (h* Hab) Set(habType HabType, value int) *Hab {
 	switch habType {
 	case Grav:
 		h.Grav = value
@@ -87,7 +87,7 @@ func HabFromInts(hab [3]int) Hab {
 }
 
 func (h Hab) absSum() int {
-	return h.Grav + h.Temp + h.Rad
+	return absInt(h.Grav) + absInt(h.Temp) + absInt(h.Rad)
 }
 
 func gravString(grav int) string {

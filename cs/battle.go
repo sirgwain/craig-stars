@@ -788,10 +788,6 @@ func (b *battle) moveToken(token *battleToken) {
 	switch token.Fleet.battlePlan.Tactic {
 	case BattleTacticDisengage:
 		b.runAway(token)
-		if token.MovesMade >= b.rules.MovesToRunAway {
-			token.RanAway = true
-			b.Record.RecordRunAway(b.Round, token)
-		}
 	case BattleTacticDisengageIfChallenged:
 		if token.Damaged {
 			b.runAway(token)
@@ -839,6 +835,12 @@ func (b *battle) maximizeDamage(token *battleToken) {
 }
 
 func (b *battle) runAway(token *battleToken) {
+
+	if token.MovesMade >= b.rules.MovesToRunAway {
+		token.RanAway = true
+		b.Record.RecordRunAway(b.Round, token)
+	}
+
 	// if we are in range of a weapon, move away, otherwise move randomly
 	weaponsInRange := make([]*battleWeaponSlot, 0)
 	for _, weapon := range b.SortedWeaponSlots {

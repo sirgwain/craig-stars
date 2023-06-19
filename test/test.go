@@ -3,6 +3,7 @@ package test
 import (
 	"encoding/json"
 	"io/ioutil"
+	"math"
 	"os"
 	"testing"
 
@@ -40,4 +41,17 @@ func CompareAsJSON(t *testing.T, got interface{}, want interface{}) bool {
 			return true
 		}
 	}
+}
+
+// compare two numbers within a tolerance
+// source: Ricardo Gerardi - https://medium.com/pragmatic-programmers/testing-floating-point-numbers-in-go-9872fe6de17f
+func WithinTolerance(a, b, e float64) bool {
+	if a == b {
+		return true
+	}
+	d := math.Abs(a - b)
+	if b == 0 {
+		return d < e
+	}
+	return (d / math.Abs(b)) < e
 }

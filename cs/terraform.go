@@ -45,7 +45,7 @@ func (t *terraform) getTerraformAbility(player *Player) Hab {
 		ability := totalTerraformAbility
 		if bestHabTerraform != nil {
 			ability = maxInt(ability, bestHabTerraform.Ability)
-			terraformAbility = terraformAbility.Set(habType, ability)
+			terraformAbility.Set(habType, ability)
 		}
 
 		if ability == 0 {
@@ -94,26 +94,26 @@ func (t *terraform) getTerraformAmount(planet *Planet, player, terraformer *Play
 			// i.e. our ideal is 50 and the planet hab is 47
 			if enemy {
 				alreadyTerraformed := absInt(fromIdealBase - fromIdeal)
-				terraformAmount = terraformAmount.Set(habType, -(ability - alreadyTerraformed))
+				terraformAmount.Set(habType, -(ability - alreadyTerraformed))
 			} else {
 				// we can either terrform up to our full ability, or however much
 				// we have left to terraform on this
 				alreadyTerraformed := fromIdealBase - fromIdeal
-				terraformAmount = terraformAmount.Set(habType, minInt(ability-alreadyTerraformed, fromIdeal))
+				terraformAmount.Set(habType, minInt(ability-alreadyTerraformed, fromIdeal))
 			}
 		} else if fromIdeal < 0 {
 			if enemy {
 				alreadyTerraformed := absInt(fromIdealBase - fromIdeal)
-				terraformAmount = terraformAmount.Set(habType, ability-alreadyTerraformed)
+				terraformAmount.Set(habType, ability-alreadyTerraformed)
 			} else {
 				// i.e. our ideal is 50 and the planet hab is 53
 				alreadyTerraformed := fromIdeal - fromIdealBase
-				terraformAmount = terraformAmount.Set(habType, maxInt(-(ability-alreadyTerraformed), fromIdeal))
+				terraformAmount.Set(habType, maxInt(-(ability-alreadyTerraformed), fromIdeal))
 			}
 		} else if enemy {
 			// the terrformer is enemies with the player, terraform away from ideal
 			alreadyTerraformed := absInt(fromIdealBase - fromIdeal)
-			terraformAmount = terraformAbility.Set(habType, ability-alreadyTerraformed)
+			terraformAbility.Set(habType, ability-alreadyTerraformed)
 		}
 	}
 
@@ -189,7 +189,7 @@ func (t *terraform) getMinTerraformAmount(planet *Planet, player *Player, terraf
 
 			// if we are in range for this hab type, we won't terraform at all, otherwise return the max possible terraforming
 			// left.
-			terraformAmount = terraformAmount.Set(habType, minInt(fromHabitableDistance, terraformAmountPossible))
+			terraformAmount.Set(habType, minInt(fromHabitableDistance, terraformAmountPossible))
 		}
 
 	}
@@ -317,8 +317,8 @@ func (t *terraform) TerraformOneStep(planet *Planet, player *Player, terraformer
 			if reverse {
 				direction = -1
 			}
-			planet.Hab = planet.Hab.Set(habType, planet.Hab.Get(habType)+direction)
-			planet.TerraformedAmount = planet.TerraformedAmount.Set(habType, planet.TerraformedAmount.Get(habType)+direction)
+			planet.Hab.Set(habType, planet.Hab.Get(habType)+direction)
+			planet.TerraformedAmount.Set(habType, planet.TerraformedAmount.Get(habType)+direction)
 			return TerraformResult{Type: habType, Direction: direction}
 		} else if fromIdeal < 0 {
 			// for example, the planet has Grav 51, but our player wants Grav 50
@@ -326,14 +326,14 @@ func (t *terraform) TerraformOneStep(planet *Planet, player *Player, terraformer
 			if reverse {
 				direction = 1
 			}
-			planet.Hab = planet.Hab.Set(habType, planet.Hab.Get(habType)+direction)
-			planet.TerraformedAmount = planet.TerraformedAmount.Set(habType, planet.TerraformedAmount.Get(habType)+direction)
+			planet.Hab.Set(habType, planet.Hab.Get(habType)+direction)
+			planet.TerraformedAmount.Set(habType, planet.TerraformedAmount.Get(habType)+direction)
 			return TerraformResult{Type: habType, Direction: direction}
 		} else if fromIdeal == 0 && reverse {
 			// this is a perfect planet, just make it hotter, higher rad, etc
 			direction := 1
-			planet.Hab = planet.Hab.Set(habType, planet.Hab.Get(habType)+direction)
-			planet.TerraformedAmount = planet.TerraformedAmount.Set(habType, planet.TerraformedAmount.Get(habType)+direction)
+			planet.Hab.Set(habType, planet.Hab.Get(habType)+direction)
+			planet.TerraformedAmount.Set(habType, planet.TerraformedAmount.Get(habType)+direction)
 			return TerraformResult{Type: habType, Direction: direction}
 		}
 	}
@@ -351,20 +351,20 @@ func (t *terraform) PermaformOneStep(planet *Planet, player *Player, habType Hab
 	fromIdealBaseHab := playerHabIdeal - baseHab
 	if fromIdealBaseHab > 0 {
 		// for example, the planet has Grav 49, but our player wants Grav 50
-		planet.BaseHab = planet.BaseHab.Set(habType, baseHab+1)
+		planet.BaseHab.Set(habType, baseHab+1)
 		direction = 1
 	} else if fromIdealBaseHab < 0 {
 		// for example, the planet has Grav 51, but our player wants Grav 50
-		planet.BaseHab = planet.BaseHab.Set(habType, baseHab-1)
+		planet.BaseHab.Set(habType, baseHab-1)
 		direction = -1
 	}
 
 	// if this means our terraformed hab is beter as well, improve it
 	fromIdealHab := playerHabIdeal - planet.Hab.Get(habType)
 	if fromIdealHab > 0 {
-		planet.Hab = planet.Hab.Set(habType, planet.Hab.Get(habType)+1)
+		planet.Hab.Set(habType, planet.Hab.Get(habType)+1)
 	} else if fromIdealHab < 0 {
-		planet.Hab = planet.Hab.Set(habType, planet.Hab.Get(habType)-1)
+		planet.Hab.Set(habType, planet.Hab.Get(habType)-1)
 	}
 
 	return TerraformResult{Type: habType, Direction: direction}

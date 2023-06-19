@@ -734,25 +734,35 @@ func (t *turn) fleetBattle() {
 
 		if battler.HasTargets() {
 			// someone wants to fight, run the battle!
-			record := battler.RunBattle()			
+			record := battler.RunBattle()
 
 			// every player should discover all designs in a battle as if they were penscanned.
 			discoverersByPlayer := make(map[int]discoverer, len(t.game.Players))
-			for _, player := range t.game.Players {
+			designsToDiscover := map[playerObject]*ShipDesign{}
+			for _, player := range playersAtPosition {
 				discoverersByPlayer[player.Num] = newDiscoverer(player)
 				player.Battles = append(player.Battles, *record)
 			}
 			for _, fleet := range fleets {
 				for _, token := range fleet.Tokens {
-					player := t.game.getPlayer(fleet.PlayerNum)
-					d := discoverersByPlayer[player.Num]
-					d.discoverDesign(player, token.design, true)
-
+					// add this design to our set of designs that should be discovered
+					designsToDiscover[playerObjectKey(fleet.PlayerNum, token.DesignNum)] = token.design
 					// TODO: remove tokens and fleets after battle
 					if token.Quantity == 0 {
-						
+
 					}
 				}
+			}
+
+			// discover all enemy designs
+			for _, design := range designsToDiscover {
+				for _, player := range playersAtPosition {
+					if player.Num != design.PlayerNum {
+						d := discoverersByPlayer[player.Num]
+						d.discoverDesign(player, design, true)
+					}
+				}
+
 			}
 		}
 
@@ -772,8 +782,18 @@ func (t *turn) fleetBomb() {
 			continue
 		}
 
-		// see if this planet has enemy bomber fleets, and if so, bomb it
-		bomber.tryBombPlanet(planet, player, t.game, t.game.Universe)
+		// find any enemy bombers orbiting this planet
+		enemyBombers := []*Fleet{}
+		for _, mo := range t.game.getMapObjectsAtPosition(planet.Position) {
+			if fleet, ok := mo.(*Fleet); ok && fleet.Spec.Bomber && t.game.getPlayer(fleet.PlayerNum).IsEnemy(planet.PlayerNum) {
+				enemyBombers = append(enemyBombers, fleet)
+			}
+		}
+
+		if len(enemyBombers) > 0 {
+			// see if this planet has enemy bomber fleets, and if so, bomb it
+			bomber.bombPlanet(planet, player, enemyBombers, t.game)
+		}
 	}
 }
 

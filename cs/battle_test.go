@@ -1,6 +1,8 @@
 package cs
 
 import (
+	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -29,7 +31,7 @@ func testStalwardDefender(player *Player) *Fleet {
 					}).
 					WithSpec(&rules, player)},
 		},
-		battlePlan: &player.BattlePlans[0],
+		battlePlan:        &player.BattlePlans[0],
 		OrbitingPlanetNum: NotOrbitingPlanet,
 	}
 	fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
@@ -57,7 +59,7 @@ func testTeamster(player *Player) *Fleet {
 					}).
 					WithSpec(&rules, player)},
 		},
-		battlePlan: &player.BattlePlans[0],
+		battlePlan:        &player.BattlePlans[0],
 		OrbitingPlanetNum: NotOrbitingPlanet,
 	}
 
@@ -137,7 +139,7 @@ func Test_battle_regenerateShields(t *testing.T) {
 	}
 }
 
-func Test_battle_RunBattle(t *testing.T) {
+func Test_battle_RunBattle1(t *testing.T) {
 	player1 := testPlayer().WithNum(1)
 	player2 := testPlayer().WithNum(2)
 	player1.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationEnemy}}
