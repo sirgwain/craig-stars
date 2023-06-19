@@ -16,13 +16,13 @@ type playerUpdater struct {
 }
 
 type PlayerUpdater interface {
-	updatePlayerOrders(userID int64, gameID int64, orders cs.PlayerOrders) (*cs.Player, []*cs.Planet, error)
+	updatePlayerOrders(gameID, userID int64, orders cs.PlayerOrders) (*cs.Player, []*cs.Planet, error)
 	updatePlanetOrders(userID int64, planetID int64, orders cs.PlanetOrders) (*cs.Planet, error)
 	updateFleetOrders(userID int64, fleetID int64, orders cs.FleetOrders) (*cs.Fleet, error)
 	updateMineFieldOrders(userID int64, mineFieldID int64, orders cs.MineFieldOrders) (*cs.MineField, error)
 	transferCargo(userID int64, fleetID int64, destID int64, mapObjectType cs.MapObjectType, transferAmount cs.Cargo) (*cs.Fleet, error)
-	createShipDesign(userID, gameID int64, design *cs.ShipDesign) (*cs.ShipDesign, error)
-	deleteShipDesign(userID, gameID int64, num int) (fleets, starbases []*cs.Fleet, err error)
+	createShipDesign(gameID, userID int64, design *cs.ShipDesign) (*cs.ShipDesign, error)
+	deleteShipDesign(gameID, userID int64, num int) (fleets, starbases []*cs.Fleet, err error)
 }
 
 func newPlayerUpdater(db DBClient) PlayerUpdater {
@@ -30,7 +30,7 @@ func newPlayerUpdater(db DBClient) PlayerUpdater {
 }
 
 // update a player's orders (i.e. research settings) and return the updated planets
-func (pu *playerUpdater) updatePlayerOrders(userID int64, gameID int64, orders cs.PlayerOrders) (*cs.Player, []*cs.Planet, error) {
+func (pu *playerUpdater) updatePlayerOrders(gameID, userID int64, orders cs.PlayerOrders) (*cs.Player, []*cs.Planet, error) {
 	player, err := pu.db.GetPlayerForGame(gameID, userID)
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", gameID).Int64("UserID", userID).Msg("load player from database")
@@ -273,7 +273,7 @@ func (pu *playerUpdater) transferCargoFleetFleet(fleet *cs.Fleet, destID int64, 
 	return nil
 }
 
-func (pu *playerUpdater) createShipDesign(userID, gameID int64, design *cs.ShipDesign) (*cs.ShipDesign, error) {
+func (pu *playerUpdater) createShipDesign(gameID, userID int64, design *cs.ShipDesign) (*cs.ShipDesign, error) {
 	player, err := pu.db.GetPlayerWithDesignsForGame(gameID, userID)
 
 	if err != nil || player == nil {
@@ -304,7 +304,7 @@ func (pu *playerUpdater) createShipDesign(userID, gameID int64, design *cs.ShipD
 	return design, nil
 }
 
-func (pu *playerUpdater) deleteShipDesign(userID, gameID int64, num int) (fleets, starbases []*cs.Fleet, err error) {
+func (pu *playerUpdater) deleteShipDesign(gameID, userID int64, num int) (fleets, starbases []*cs.Fleet, err error) {
 	player, err := pu.db.GetPlayerForGame(gameID, userID)
 
 	if err != nil || player == nil {

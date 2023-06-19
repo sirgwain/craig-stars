@@ -57,7 +57,7 @@ func (s *server) transferCargo(c *gin.Context) {
 		return
 	}
 
-	updated, err := s.playerUpdater.transferCargo(user.ID, id.ID, transfer.MO.ID, transfer.MO.Type, transfer.TransferAmount)
+	updated, err := s.playerUpdater.transferCargo(id.ID, user.ID, transfer.MO.ID, transfer.MO.Type, transfer.TransferAmount)
 	if err != nil {
 		if errors.Is(err, errNotFound) {
 			log.Error().Err(err).Msg("planet not found")
