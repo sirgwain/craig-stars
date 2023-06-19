@@ -530,7 +530,7 @@ func (t *turn) buildFleet(player *Player, planet *Planet, token ShipToken) Fleet
 	fleet := newFleetForToken(player, fleetNum, token, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, token.design.Spec.IdealSpeed)})
 	fleet.Position = planet.Position
 	fleet.BattlePlanName = player.BattlePlans[0].Name
-	fleet.Spec = computeFleetSpec(&t.game.Rules, player, &fleet)
+	fleet.Spec = ComputeFleetSpec(&t.game.Rules, player, &fleet)
 	fleet.Fuel = fleet.Spec.FuelCapacity
 	fleet.OrbitingPlanetNum = planet.Num
 
@@ -638,7 +638,7 @@ func (t *turn) playerResearch() {
 		if !playerGainedLevel[fleet.PlayerNum] {
 			continue
 		}
-		fleet.Spec = computeFleetSpec(&t.game.Rules, t.game.Players[fleet.PlayerNum-1], fleet)
+		fleet.Spec = ComputeFleetSpec(&t.game.Rules, t.game.Players[fleet.PlayerNum-1], fleet)
 	}
 
 }

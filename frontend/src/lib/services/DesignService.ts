@@ -12,7 +12,7 @@ export class DesignService {
 	}
 
 	static async update(gameId: number | string, design: ShipDesign): Promise<ShipDesign> {
-		return Service.update(design, `/api/games/${gameId}/designs`);
+		return Service.update(design, `/api/games/${gameId}/designs/${design.num}`);
 	}
 
 	/**

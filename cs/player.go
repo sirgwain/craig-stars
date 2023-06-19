@@ -288,9 +288,9 @@ func (p *Player) GetLatestDesign(purpose ShipDesignPurpose) *ShipDesign {
 }
 
 // get the next design number to use
-func (p *Player) GetNextDesignNum() int {
+func (p *Player) GetNextDesignNum(designs []*ShipDesign) int {
 	num := 0
-	for _, design := range p.Designs {
+	for _, design := range designs {
 		num = maxInt(num, design.Num)
 	}
 	return num + 1

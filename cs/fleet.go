@@ -325,7 +325,7 @@ func (f *Fleet) InjectDesigns(designs []*ShipDesign) {
 
 }
 
-func computeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
+func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 	spec := FleetSpec{
 		ShipDesignSpec: ShipDesignSpec{
 			ScanRange:    NoScanner,
@@ -908,7 +908,7 @@ func (fleet *Fleet) colonizePlanet(rules *Rules, player *Player, planet *Planet)
 		design := player.GetLatestDesign(ShipDesignPurposeStarterColony)
 		if design != nil {
 			starbase := newStarbase(player, planet, design, design.Name)
-			starbase.Spec = computeFleetSpec(rules, player, &starbase)
+			starbase.Spec = ComputeFleetSpec(rules, player, &starbase)
 			planet.starbase = &starbase
 		}
 	}

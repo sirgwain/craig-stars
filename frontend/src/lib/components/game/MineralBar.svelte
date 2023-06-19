@@ -8,7 +8,7 @@
 	$: percent = capacity > 0 ? (value / capacity) * 100 : 0;
 </script>
 
-<div class="border border-secondary w-full h-[1rem] text-[0rem] relative">
+<div class="border border-secondary w-full h-[1rem] text-[0rem] relative bg-base-200">
 	<div
 		class="font-semibold text-sm text-center align-middle text-secondary w-full bg-blend-difference absolute"
 	>

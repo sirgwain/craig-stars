@@ -1,44 +1,172 @@
 package server
 
 import (
+	"context"
+	"fmt"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/go-chi/render"
+	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
+	"github.com/sirgwain/craig-stars/cs"
 )
 
-type idBind struct {
-	ID int64 `uri:"id"`
+type hostGameRequest struct {
+	*cs.GameSettings
 }
 
-func (s *server) deleteGame(c *gin.Context) {
-	user := s.GetSessionUser(c)
+func (req *hostGameRequest) Bind(r *http.Request) error {
+	return nil
+}
 
-	var id idBind
-	if err := c.ShouldBindUri(&id); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+type joinGameRequest struct {
+	RaceID int64 `json:"raceId"`
+}
+
+func (req *joinGameRequest) Bind(r *http.Request) error {
+	return nil
+}
+
+// context for /api/games/{id} calls
+func (s *server) gameCtx(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// load the game by id from the database
+		id, err := s.int64URLParam(r, "id")
+		if id == nil || err != nil {
+			render.Render(w, r, ErrBadRequest(err))
+			return
+		}
+
+		game, err := s.db.GetGame(*id)
+		if err != nil {
+			render.Render(w, r, ErrInternalServerError(err))
+			return
+		}
+
+		if game == nil {
+			render.Render(w, r, ErrNotFound)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), keyGame, game)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func (s *server) contextGame(r *http.Request) *cs.Game {
+	return r.Context().Value(keyGame).(*cs.Game)
+}
+
+func (s *server) games(w http.ResponseWriter, r *http.Request) {
+	user := s.contextUser(r)
+
+	games, err := s.db.GetGamesForUser(user.ID)
+	if err != nil {
+		log.Error().Err(err).Int64("UserID", user.ID).Msg("get games from database")
+		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
+
+	rest.RenderJSON(w, games)
+}
+
+func (s *server) hostedGames(w http.ResponseWriter, r *http.Request) {
+	user := s.contextUser(r)
+
+	games, err := s.db.GetGamesForHost(user.ID)
+	if err != nil {
+		log.Error().Err(err).Int64("UserID", user.ID).Msg("get games from database")
+		render.Render(w, r, ErrBadRequest(err))
+		return
+	}
+
+	rest.RenderJSON(w, games)
+}
+
+func (s *server) openGames(w http.ResponseWriter, r *http.Request) {
+	user := s.contextUser(r)
+
+	games, err := s.db.GetOpenGames(user.ID)
+	if err != nil {
+		log.Error().Err(err).Int64("UserID", user.ID).Msg("get games from database")
+		render.Render(w, r, ErrBadRequest(err))
+		return
+	}
+
+	rest.RenderJSON(w, games)
+}
+
+func (s *server) game(w http.ResponseWriter, r *http.Request) {
+	// TODO: any need to prevent a non-player from loading this game?
+	game := s.contextGame(r)
+	rest.RenderJSON(w, game)
+}
+
+// Host a new game
+func (s *server) createGame(w http.ResponseWriter, r *http.Request) {
+	user := s.contextUser(r)
+
+	settings := hostGameRequest{}
+	if err := render.Bind(r, &settings); err != nil {
+		render.Render(w, r, ErrBadRequest(err))
+		return
+	}
+
+	game, err := s.gameRunner.HostGame(user.ID, settings.GameSettings)
+	if err != nil {
+		log.Error().Err(err).Int64("UserID", user.ID).Msgf("host game %v", settings.GameSettings)
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	rest.RenderJSON(w, game)
+}
+
+// Join an open game
+func (s *server) joinGame(w http.ResponseWriter, r *http.Request) {
+	user := s.contextUser(r)
+	game := s.contextGame(r)
+
+	join := joinGameRequest{}
+	if err := render.Bind(r, &join); err != nil {
+		render.Render(w, r, ErrBadRequest(err))
+		return
+	}
+
+	// try and join this game
+	if err := s.gameRunner.JoinGame(game.ID, user.ID, join.RaceID); err != nil {
+		log.Error().Err(err).Msg("join game")
+		render.Render(w, r, ErrBadRequest(err))
+	}
+}
+
+// Generate a universe for a host
+func (s *server) generateUniverse(w http.ResponseWriter, r *http.Request) {
+	user := s.contextUser(r)
+	game := s.contextGame(r)
 
 	// validate
-	game, err := s.db.GetGame(id.ID)
-	if err != nil {
-		log.Error().Err(err).Int64("ID", id.ID).Msg("get game from database")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to get game from database"})
+	if user.ID != game.HostID {
+		render.Render(w, r, ErrForbidden)
 		return
 	}
+
+	s.gameRunner.GenerateUniverse(game)
+}
+
+func (s *server) deleteGame(w http.ResponseWriter, r *http.Request) {
+	user := s.contextUser(r)
+	game := s.contextGame(r)
 
 	if game.HostID != user.ID {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Only the host can delete a game"})
+		log.Error().Int64("ID", game.ID).Int64("UserID", user.ID).Msg("only host can delete game")
+		render.Render(w, r, ErrBadRequest(fmt.Errorf("only host can delete game")))
 		return
 	}
 
-	// delete it
-	if err := s.db.DeleteGame(id.ID); err != nil {
-		log.Error().Err(err).Int64("ID", id.ID).Msg("delete game from database")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to delete game from database"})
+	if err := s.db.DeleteGame(game.ID); err != nil {
+		log.Error().Err(err).Int64("ID", game.ID).Msg("delete game from database")
+		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
-
-	c.JSON(http.StatusOK, gin.H{})
 }

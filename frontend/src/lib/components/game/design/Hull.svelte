@@ -1,12 +1,10 @@
 <script lang="ts">
-	import { techs } from '$lib/services/Context';
 	import type { ShipDesignSlot } from '$lib/types/ShipDesign';
 	import type { HullSlot, TechHull } from '$lib/types/Tech';
 	import { createEventDispatcher } from 'svelte';
 	import CargoComponent from '../../tech/hull/CargoComponent.svelte';
 	import HullComponent from '../../tech/hull/HullComponent.svelte';
 	import SpaceDockComponent from '../../tech/hull/SpaceDockComponent.svelte';
-	import { shipDesignerContext } from './ShipDesignerContext';
 
 	const dispatch = createEventDispatcher();
 
@@ -20,7 +18,7 @@
 	export let highlightedClass: string = '';
 </script>
 
-<div class="relative m-2" style={`width: ${containerWidth}px; height: ${containerHeight}px`}>
+<div class="relative m-2 bg-base-200 dark:bg-base-300" style={`width: ${containerWidth}px; height: ${containerHeight}px`}>
 	{#each hull.slots as slot, index}
 		{@const shipDesignSlot = shipDesignSlots.find((s) => s.hullSlotIndex === index + 1)}
 		{#if index == 1 && hull.cargoCapacity && hull.cargoCapacity > 0}

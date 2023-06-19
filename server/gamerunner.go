@@ -2,6 +2,7 @@ package server
 
 import (
 	"crypto/rand"
+	"errors"
 	"fmt"
 	"time"
 
@@ -10,6 +11,8 @@ import (
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
 )
+
+var errNotFound = errors.New("resource was not found")
 
 type TurnGenerationCheckResult uint
 type DBClient db.Client
@@ -30,7 +33,7 @@ var colors = []string{
 type GameRunner interface {
 	HostGame(hostID int64, settings *cs.GameSettings) (*cs.FullGame, error)
 	JoinGame(gameID int64, userID int64, raceID int64) error
-	GenerateUniverse(gameID int64, userID int64) error
+	GenerateUniverse(game *cs.Game) error
 	LoadPlayerGame(gameID int64, userID int64) (*cs.Game, *cs.FullPlayer, error)
 	SubmitTurn(gameID int64, userID int64) error
 	CheckAndGenerateTurn(gameID int64) (TurnGenerationCheckResult, error)
@@ -212,19 +215,14 @@ func (gr *gameRunner) JoinGame(gameID int64, userID int64, raceID int64) error {
 	return nil
 }
 
-func (gr *gameRunner) GenerateUniverse(gameID int64, userID int64) error {
+func (gr *gameRunner) GenerateUniverse(game *cs.Game) error {
 	defer timeTrack(time.Now(), "GenerateUniverse")
-	fullGame, err := gr.loadGame(gameID)
+	fullGame, err := gr.loadGame(game.ID)
 	if err != nil {
-		return fmt.Errorf("load game %d: %w", gameID, err)
+		return fmt.Errorf("load game %d: %w", game.ID, err)
 	}
 
-	if fullGame.HostID != userID {
-		return fmt.Errorf("user %d is not the host for %d", userID, gameID)
-	}
-
-	err = gr.generateUniverse(fullGame)
-	return err
+	return gr.generateUniverse(fullGame)
 }
 
 // load a player and the light version of the player game

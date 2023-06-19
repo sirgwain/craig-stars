@@ -20,6 +20,7 @@
 	import Cost from '../Cost.svelte';
 	import DesignStats from '../DesignStats.svelte';
 	import { shipDesignerContext } from './ShipDesignerContext';
+	import CostMini from '../CostMini.svelte';
 
 	const dispatch = createEventDispatcher();
 
@@ -202,11 +203,17 @@
 				<div class="flex flex-row justify-between pl-2">
 					<div class="flex flex-col">
 						<div>Cost of one {design.name}</div>
-						<div class="pl-2">
+						<div class="pl-2 hidden sm:block">
 							<Cost cost={designSpec?.cost} />
 						</div>
+						<div class="pl-2 sm:hidden flex justify-between">
+							<CostMini cost={designSpec?.cost} />
+							<!-- <div class="ml-2"><button type="button" class="btn btn-sm btn-outline btn-secondary">Stats</button></div> -->
+						</div>
 					</div>
-					<DesignStats spec={designSpec} />
+					<div class="hidden sm:block">
+						<DesignStats spec={designSpec} />
+					</div>
 				</div>
 			{/if}
 		</div>

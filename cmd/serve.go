@@ -22,7 +22,7 @@ func newServeCmd() *cobra.Command {
 	serveCmd := &cobra.Command{
 		Use:   "serve",
 		Short: "Start the webserver",
-		Long:  `Start a local gin-gonic webserver and serve requests.`,
+		Long:  `Start a local webserver and serve requests.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			db := db.NewClient()
@@ -53,11 +53,6 @@ func generateTestGame(db server.DBClient, config config.Config) error {
 		return err
 	}
 
-	user2, user2Race, err := createTestUser(db, "craig", config.GeneratedUserPassword, "craig@craig-stars.net", cs.RoleUser)
-	if err != nil {
-		return err
-	}
-
 	// create a game runner to host some games
 	gameRunner := server.NewGameRunner(db)
 
@@ -67,6 +62,11 @@ func generateTestGame(db server.DBClient, config config.Config) error {
 		// WithDensity(game.DensitySparse).
 		WithHost(adminRace.ID).
 		WithAIPlayer(cs.AIDifficultyNormal)); err != nil {
+		return err
+	}
+
+	user2, user2Race, err := createTestUser(db, "craig", config.GeneratedUserPassword, "craig@craig-stars.net", cs.RoleUser)
+	if err != nil {
 		return err
 	}
 
@@ -99,7 +99,7 @@ func generateTestGame(db server.DBClient, config config.Config) error {
 	return nil
 }
 
-func createTestUser(db server.DBClient, username string, password string, email string, role cs.Role) (*cs.User, *cs.Race, error) {
+func createTestUser(db server.DBClient, username string, password string, email string, role string) (*cs.User, *cs.Race, error) {
 	user, err := db.GetUserByUsername(username)
 	if err != nil {
 		return nil, nil, err

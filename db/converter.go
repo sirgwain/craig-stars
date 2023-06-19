@@ -1,11 +1,11 @@
 //go:generate go run github.com/jmattheis/goverter/cmd/goverter --packageName db --output ./db/generated.go --packagePath github.com/sirgwain/craig-stars/db --ignoreUnexportedFields ./db
+// to run locally: goverter --packageName db --output ./db/generated.go --packagePath github.com/sirgwain/craig-stars/db --ignoreUnexportedFields ./db
 package db
 
 import (
 	"database/sql"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/sirgwain/craig-stars/cs"
 )
 
@@ -13,7 +13,6 @@ import (
 // goverter:extend TimeToTime
 // goverter:extend NullTimeToTime
 // goverter:extend TimeToNullTime
-// goverter:extend UUIDToUUID
 // goverter:extend RulesToGameRules
 // goverter:extend GameRulesToRules
 // goverter:extend RaceSpecToGameRaceSpec
@@ -363,10 +362,6 @@ func TimeToNullTime(source time.Time) sql.NullTime {
 		Valid: true,
 		Time:  source,
 	}
-}
-
-func UUIDToUUID(source uuid.UUID) uuid.UUID {
-	return source
 }
 
 func RulesToGameRules(source *Rules) cs.Rules {

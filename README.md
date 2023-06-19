@@ -4,7 +4,7 @@ A web based Stars! clone.
 
 ## Tech Stack
 
-- [gin-gonic](https://github.com/gin-gonic/gin)
+- [go-chi](https://github.com/chi/go-chi)
 - [cobra](https://github.com/spf13/cobra) (for cli)
 - [viper](https://github.com/spf13/viper) (for config)
 - [sqlx](https://github.com/jmoiron/sqlx) + sqlite (for session/user management)
@@ -28,20 +28,39 @@ Start the go webserver:
 /_/--\ |_| |_| \_ , built with Go
 
 watching .
+watching ai
+watching ansible
+watching ansible/group_vars
+watching ansible/inventory
+watching ansible/roles
+watching ansible/roles/craig-stars
+watching ansible/roles/craig-stars/defaults
+watching ansible/roles/craig-stars/handlers
+watching ansible/roles/craig-stars/tasks
+watching ansible/roles/craig-stars/templates
+watching ansible/roles/root
+watching ansible/roles/root/defaults
+watching ansible/roles/root/handlers
+watching ansible/roles/root/tasks
+watching ansible/roles/root/templates
+watching ansible/roles/service
+watching ansible/roles/service/handlers
+watching ansible/roles/service/tasks
+watching ansible/roles/service/templates
 watching cmd
 watching config
+watching cs
+!exclude data
 watching db
 !exclude dist
 !exclude frontend
 watching server
+watching test
 !exclude tmp
+!exclude vendor
 building...
 running...
-[GIN-debug] POST   /api/login                --> craig-stars/server.Login (5 handlers)
-[GIN-debug] GET    /api/logout               --> craig-stars/server.Logout (5 handlers)
-[GIN-debug] GET    /api/me                   --> craig-stars/server.Me (6 handlers)
-[GIN-debug] GET    /api/ping                 --> craig-stars/server.Start.func2 (5 handlers)
-[GIN-debug] Listening and serving HTTP on :8080
+11:06AM DBG Debug logging enabled
 ```
 
 ## frontend

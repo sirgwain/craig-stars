@@ -246,7 +246,7 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 	starbaseDesign.Spec.NumInstances++
 	starbaseDesign.Spec.NumBuilt++
 	starbase := newStarbase(player, p, starbaseDesign, starbaseDesign.Name)
-	starbase.Spec = computeFleetSpec(rules, player, &starbase)
+	starbase.Spec = ComputeFleetSpec(rules, player, &starbase)
 	p.starbase = &starbase
 
 	// p.PacketSpeed = p.Starbase.Spec.SafePacketSpeed

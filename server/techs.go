@@ -3,32 +3,28 @@ package server
 import (
 	"net/http"
 
-	"github.com/gin-gonic/gin"
-	"github.com/rs/zerolog/log"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/render"
+	"github.com/go-pkgz/rest"
 	"github.com/sirgwain/craig-stars/cs"
 )
 
-type nameBind struct {
-	Name string `uri:"name"`
+func (s *server) techs(w http.ResponseWriter, r *http.Request) {
+	rest.RenderJSON(w, cs.StaticTechStore)
 }
 
-func (s *server) techs(c *gin.Context) {
-	c.JSON(http.StatusOK, cs.StaticTechStore)
-}
-
-func (s *server) tech(c *gin.Context) {
-	var name nameBind
-	if err := c.ShouldBindUri(&name); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+func (s *server) tech(w http.ResponseWriter, r *http.Request) {
+	name := chi.URLParam(r, "name")
+	if name == "" {
+		render.Render(w, r, ErrNotFound)
 		return
 	}
 
-	tech := cs.StaticTechStore.GetTech(name.Name)
+	tech := cs.StaticTechStore.GetTech(name)
 	if tech == nil {
-		log.Error().Str("name", name.Name).Msg("get tech from database")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to get tech from database"})
+		render.Render(w, r, ErrNotFound)
 		return
 	}
+	rest.RenderJSON(w, tech)
 
-	c.JSON(http.StatusOK, tech)
 }

@@ -1,131 +1,145 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/go-chi/render"
+	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 )
 
-func (s *server) races(c *gin.Context) {
-	user := s.GetSessionUser(c)
+type raceRequest struct {
+	*cs.Race
+}
+
+func (req *raceRequest) Bind(r *http.Request) error {
+	return nil
+}
+
+// context for /api/races/{id} calls
+func (s *server) raceCtx(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user := s.contextUser(r)
+
+		// load the race by id from the database
+		id, err := s.int64URLParam(r, "id")
+		if id == nil || err != nil {
+			render.Render(w, r, ErrBadRequest(err))
+			return
+		}
+
+		race, err := s.db.GetRace(*id)
+		if err != nil {
+			render.Render(w, r, ErrInternalServerError(err))
+			return
+		}
+
+		if race == nil {
+			render.Render(w, r, ErrNotFound)
+			return
+		}
+
+		if race.UserID != user.ID {
+			render.Render(w, r, ErrForbidden)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), keyRace, race)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func (s *server) contextRace(r *http.Request) *cs.Race {
+	return r.Context().Value(keyRace).(*cs.Race)
+}
+
+func (s *server) races(w http.ResponseWriter, r *http.Request) {
+	user := s.contextUser(r)
 
 	races, err := s.db.GetRacesForUser(user.ID)
 	if err != nil {
 		log.Error().Err(err).Int64("UserID", user.ID).Msg("get races from database")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to get races from database"})
+		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
 
-	c.JSON(http.StatusOK, races)
+	rest.RenderJSON(w, races)
 }
 
-func (s *server) race(c *gin.Context) {
-	user := s.GetSessionUser(c)
-
-	var id idBind
-	if err := c.ShouldBindUri(&id); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	race, err := s.db.GetRace(id.ID)
-	if err != nil {
-		log.Error().Err(err).Int64("ID", id.ID).Msg("get race from database")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to get race from database"})
-		return
-	}
-
-	if race.UserID != user.ID {
-		c.JSON(http.StatusForbidden, gin.H{"error": fmt.Sprintf("user %d does not own race %d", user.ID, id.ID)})
-		return
-	}
-
-	c.JSON(http.StatusOK, race)
+func (s *server) race(w http.ResponseWriter, r *http.Request) {
+	race := s.contextRace(r)
+	rest.RenderJSON(w, race)
 }
 
 // create a new race for a user
-func (s *server) createRace(c *gin.Context) {
-	user := s.GetSessionUser(c)
+func (s *server) createRace(w http.ResponseWriter, r *http.Request) {
+	user := s.contextUser(r)
 
-	race := cs.Race{}
-	if err := c.ShouldBindJSON(&race); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	race := raceRequest{}
+	if err := render.Bind(r, &race); err != nil {
+		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
 
 	race.UserID = user.ID
-	if err := s.db.CreateRace(&race); err != nil {
+	if err := s.db.CreateRace(race.Race); err != nil {
 		log.Error().Err(err).Int64("UserID", user.ID).Msg("create race")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to create race"})
+		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
 
-	c.JSON(http.StatusOK, race)
+	rest.RenderJSON(w, race)
 }
 
 // get points for a race
-func (s *server) getRacePoints(c *gin.Context) {
+func (s *server) getRacePoints(w http.ResponseWriter, r *http.Request) {
 
-	race := cs.Race{}
-	if err := c.ShouldBindJSON(&race); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	race := raceRequest{}
+	if err := render.Bind(r, &race); err != nil {
+		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
 
 	// compute points
 	points := race.ComputeRacePoints(cs.NewRules().RaceStartingPoints)
-	c.JSON(http.StatusOK, gin.H{"points": points})
+	rest.RenderJSON(w, rest.JSON{"points": points})
 }
 
-func (s *server) updateRace(c *gin.Context) {
-	user := s.GetSessionUser(c)
-
-	var id idBind
-	if err := c.ShouldBindUri(&id); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+func (s *server) updateRace(w http.ResponseWriter, r *http.Request) {
+	race := raceRequest{}
+	if err := render.Bind(r, &race); err != nil {
+		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
 
-	race := cs.Race{}
-	if err := c.ShouldBindJSON(&race); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	// load in the existing race from the database
-	existingRace, err := s.db.GetRace(id.ID)
-
-	if err != nil {
-		log.Error().Err(err).Int64("ID", id.ID).Msg("get race from database")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to get race from database"})
-		return
-	}
+	// load in the existing race from the context
+	existingRace := s.contextRace(r)
 
 	// validate
-
-	if existingRace == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("race with id %d not found", id.ID)})
+	if race.ID != existingRace.ID || race.UserID != existingRace.UserID {
+		log.Error().Int64("ID", race.ID).Msgf("race.ID %d != existingRace.ID %d or race.UserID  %d != existingRace.UserID %d", race.ID, existingRace.ID, race.UserID, existingRace.UserID)
+		render.Render(w, r, ErrBadRequest(fmt.Errorf("race id/user id does not match existing race")))
 		return
 	}
 
-	if id.ID != race.ID {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "id in body does not match id in url"})
+	if err := s.db.UpdateRace(race.Race); err != nil {
+		log.Error().Err(err).Int64("ID", race.ID).Msg("update race in database")
+		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	if user.ID != existingRace.UserID {
-		c.JSON(http.StatusForbidden, gin.H{"error": fmt.Sprintf("user %d does not own race %d", user.ID, existingRace.ID)})
+	rest.RenderJSON(w, race)
+}
+
+func (s *server) deleteRace(w http.ResponseWriter, r *http.Request) {
+	race := s.contextRace(r)
+
+	if err := s.db.DeleteRace(race.ID); err != nil {
+		log.Error().Err(err).Int64("ID", race.ID).Msg("delete race from database")
+		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
-
-	if err := s.db.UpdateRace(&race); err != nil {
-		log.Error().Err(err).Int64("ID", id.ID).Msg("update race in database")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to update race in database"})
-		return
-	}
-
-	c.JSON(http.StatusOK, race)
 }

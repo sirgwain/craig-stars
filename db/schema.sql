@@ -3,10 +3,10 @@ CREATE TABLE users (
   createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
   updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
   username TEXT UNIQUE NOT NULL,
-  password TEXT NOT NULL,
-  email TEXT UNIQUE NOT NULL,
+  password TEXT,
+  email TEXT,
   verified NUMERIC,
-  verifyToken TEXT NOT NULL,
+  banned NUMERIC,
   role TEXT NOT NULL
 );
 CREATE TABLE races (

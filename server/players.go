@@ -1,342 +1,195 @@
 package server
 
 import (
-	"errors"
+	"context"
 	"fmt"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/go-chi/render"
+	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 )
 
-type HostGameBind struct {
-	Settings cs.GameSettings `json:"settings"`
+type playerOrdersRequest struct {
+	*cs.PlayerOrders
 }
 
-type JoinGameBind struct {
-	RaceID int64 `json:"raceId"`
+func (req *playerOrdersRequest) Bind(r *http.Request) error {
+	return nil
 }
 
-func (s *server) playerGames(c *gin.Context) {
-	user := s.GetSessionUser(c)
+// context for /api/games/{id} calls that require a player
+func (s *server) playerCtx(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user := s.contextUser(r)
+		game := s.contextGame(r)
 
-	games, err := s.db.GetGamesForUser(user.ID)
+		player, err := s.db.GetLightPlayerForGame(game.ID, user.ID)
+		if err != nil {
+			render.Render(w, r, ErrInternalServerError(err))
+			return
+		}
+
+		if player == nil {
+			render.Render(w, r, ErrNotFound)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), keyPlayer, player)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func (s *server) contextPlayer(r *http.Request) *cs.Player {
+	return r.Context().Value(keyPlayer).(*cs.Player)
+}
+
+func (s *server) player(w http.ResponseWriter, r *http.Request) {
+	player := s.contextPlayer(r)
+	rest.RenderJSON(w, player)
+}
+
+func (s *server) fullPlayer(w http.ResponseWriter, r *http.Request) {
+	user := s.contextUser(r)
+	game := s.contextGame(r)
+
+	player, err := s.db.GetPlayerForGame(game.ID, user.ID)
 	if err != nil {
-		log.Error().Err(err).Int64("UserID", user.ID).Msg("get games from database")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to get games from database"})
-		return
-	}
-
-	c.JSON(http.StatusOK, games)
-}
-
-func (s *server) hostedGames(c *gin.Context) {
-	user := s.GetSessionUser(c)
-
-	games, err := s.db.GetGamesForHost(user.ID)
-	if err != nil {
-		log.Error().Err(err).Int64("UserID", user.ID).Msg("get games from database")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to get games from database"})
-		return
-	}
-
-	c.JSON(http.StatusOK, games)
-}
-
-func (s *server) openGames(c *gin.Context) {
-	user := s.GetSessionUser(c)
-
-	games, err := s.db.GetOpenGames(user.ID)
-	if err != nil {
-		log.Error().Err(err).Msg("get open games from database")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to get open games from database"})
-		return
-	}
-
-	c.JSON(http.StatusOK, games)
-}
-
-func (s *server) openGame(c *gin.Context) {
-
-	var id idBind
-	if err := c.ShouldBindUri(&id); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	game, err := s.db.GetGame(id.ID)
-	if err != nil {
-		log.Error().Err(err).Int64("ID", id.ID).Msg("get game from database")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to get game from database"})
-		return
-	}
-
-	if game == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("game with id %d not found", id.ID)})
-	}
-
-	c.JSON(http.StatusOK, game)
-}
-
-func (s *server) fullPlayer(c *gin.Context) {
-	user := s.GetSessionUser(c)
-
-	var id idBind
-	if err := c.ShouldBindUri(&id); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	player, err := s.db.GetPlayerForGame(id.ID, user.ID)
-	if err != nil {
-		log.Error().Err(err).Int64("GameID", id.ID).Int64("UserID", user.ID).Msg("load player and game from database")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to load game from database"})
+		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
 	if player == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "game not found"})
+		render.Render(w, r, ErrNotFound)
 		return
 	}
 
-	c.JSON(http.StatusOK, player)
-
+	rest.RenderJSON(w, player)
 }
 
-func (s *server) lightPlayer(c *gin.Context) {
-	user := s.GetSessionUser(c)
+// get mapObjects for a player
+func (s *server) mapObjects(w http.ResponseWriter, r *http.Request) {
+	user := s.contextUser(r)
 
-	var id idBind
-	if err := c.ShouldBindUri(&id); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	gameID, err := s.int64URLParam(r, "id")
+	if gameID == nil || err != nil {
+		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
 
-	player, err := s.db.GetLightPlayerForGame(id.ID, user.ID)
+	mapObjects, err := s.db.GetPlayerMapObjects(*gameID, user.ID)
 	if err != nil {
-		log.Error().Err(err).Int64("GameID", id.ID).Int64("UserID", user.ID).Msg("load player and game from database")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to load game from database"})
-		return
-	}
-
-	if player == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "player not found"})
-		return
-	}
-
-	c.JSON(http.StatusOK, player)
-}
-
-func (s *server) mapObjects(c *gin.Context) {
-	user := s.GetSessionUser(c)
-
-	var id idBind
-	if err := c.ShouldBindUri(&id); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	mapObjects, err := s.db.GetPlayerMapObjects(id.ID, user.ID)
-	if err != nil {
-		log.Error().Err(err).Int64("GameID", id.ID).Int64("UserID", user.ID).Msg("load player map objects database")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to load map objects from database"})
+		log.Error().Err(err).Int64("GameID", *gameID).Int64("UserID", user.ID).Msg("load player map objects database")
+		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
 	if mapObjects == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "player not found"})
+		render.Render(w, r, ErrNotFound)
 		return
 	}
 
-	c.JSON(http.StatusOK, mapObjects)
-
+	rest.RenderJSON(w, mapObjects)
 }
 
-func (s *server) game(c *gin.Context) {
-	user := s.GetSessionUser(c)
-
-	var id idBind
-	if err := c.ShouldBindUri(&id); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+func (s *server) playerStatuses(w http.ResponseWriter, r *http.Request) {
+	gameID, err := s.int64URLParam(r, "id")
+	if gameID == nil || err != nil {
+		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
 
-	game, err := s.db.GetGame(id.ID)
+	players, err := s.db.GetPlayerStatusesForGame(*gameID)
 	if err != nil {
-		log.Error().Err(err).Int64("GameID", id.ID).Int64("UserID", user.ID).Msg("load player and game from database")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to load game from database"})
-		return
-	}
-
-	if game == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "game not found"})
-		return
-	}
-
-	c.JSON(http.StatusOK, game)
-
-}
-
-func (s *server) playerStatuses(c *gin.Context) {
-
-	var id idBind
-	if err := c.ShouldBindUri(&id); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	players, err := s.db.GetPlayerStatusesForGame(id.ID)
-	if err != nil {
-		log.Error().Err(err).Int64("GameID", id.ID).Msg("load players and game from database")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to load players from database"})
+		log.Error().Err(err).Int64("GameID", *gameID).Msg("load players and game from database")
+		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
 	if len(players) == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"error": "game not found"})
+		render.Render(w, r, ErrNotFound)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"players": players})
-
+	rest.RenderJSON(w, rest.JSON{"players": players})
 }
 
-// Host a new game
-func (s *server) hostGame(c *gin.Context) {
-	user := s.GetSessionUser(c)
+// submit a player turn and return the newly generated turn if there is one
+func (s *server) submitTurn(w http.ResponseWriter, r *http.Request) {
+	player := s.contextPlayer(r)
 
-	body := HostGameBind{}
-	if err := c.ShouldBindJSON(&body); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	// submit the turn
+	player.SubmittedTurn = true
+	if err := s.db.UpdateLightPlayer(player); err != nil {
+		log.Error().Err(err).Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update player")
+		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	game, err := s.gameRunner.HostGame(user.ID, &body.Settings)
+	// TODO: this should probably be a goroutine or something
+	_, err := s.gameRunner.CheckAndGenerateTurn(player.GameID)
 	if err != nil {
-		log.Error().Err(err).Int64("UserID", user.ID).Msgf("host game %v", body.Settings)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to host game"})
+		log.Error().Err(err).Int64("GameID", player.GameID).Msg("check and generate new turn")
+		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	_ = game
-
-	c.JSON(http.StatusOK, gin.H{})
-
-}
-
-// Join an open game
-func (s *server) joinGame(c *gin.Context) {
-	user := s.GetSessionUser(c)
-
-	var game idBind
-	if err := c.ShouldBindUri(&game); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	game, fullPlayer, err := s.gameRunner.LoadPlayerGame(player.GameID, player.UserID)
+	if err != nil {
+		log.Error().Err(err).Int64("GameID", player.GameID).Msg("load full game from database")
+		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	body := JoinGameBind{}
-	if err := c.ShouldBindJSON(&body); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	// try and join this game
-	if err := s.gameRunner.JoinGame(game.ID, user.ID, body.RaceID); err != nil {
-		if errors.Is(err, errNotFound) {
-			log.Error().Err(err).Msg("not found")
-			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
-		} else {
-			log.Error().Err(err).Msg("join game")
-			c.JSON(http.StatusBadRequest, gin.H{"error": "failed to join game"})
-		}
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{})
-}
-
-// Generate a universe for a host
-func (s *server) generateUniverse(c *gin.Context) {
-	user := s.GetSessionUser(c)
-
-	var id idBind
-	if err := c.ShouldBindUri(&id); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	if err := s.gameRunner.GenerateUniverse(id.ID, user.ID); err != nil {
-		log.Error().Err(err).Int64("GameID", id.ID).Int64("UserID", user.ID).Msg("submit turn")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to submit turn"})
-		return
-	}
-
+	rest.RenderJSON(w, rest.JSON{"game": game, "player": fullPlayer})
 }
 
 // Submit a turn for the player
-func (s *server) updatePlayerOrders(c *gin.Context) {
-	user := s.GetSessionUser(c)
+func (s *server) updatePlayerOrders(w http.ResponseWriter, r *http.Request) {
+	game := s.contextGame(r)
+	player := s.contextPlayer(r)
 
-	var gameID idBind
-	if err := c.ShouldBindUri(&gameID); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	orders := cs.PlayerOrders{}
-	if err := c.ShouldBindJSON(&orders); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	orders := playerOrdersRequest{}
+	if err := render.Bind(r, &orders); err != nil {
+		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
 
 	if orders.ResearchAmount < 0 || orders.ResearchAmount > 100 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "research ammount must be between 0 and 100"})
+		render.Render(w, r, ErrBadRequest(fmt.Errorf("research ammount must be between 0 and 100")))
 		return
 	}
 
-	player, planets, err := s.playerUpdater.updatePlayerOrders(gameID.ID, user.ID, orders)
-
+	planets, err := s.db.GetPlanetsForPlayer(player.GameID, player.Num)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		log.Error().Err(err).Int64("ID", player.ID).Msg("loading player planets from database")
+		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	log.Info().Int64("GameID", gameID.ID).Int64("PlayerID", player.ID).Msg("update orders")
-	c.JSON(http.StatusOK, gin.H{
-		"player":  player,
-		"planets": planets,
-	})
-}
+	orderer := cs.NewOrderer()
+	orderer.UpdatePlayerOrders(player, planets, *orders.PlayerOrders, &game.Rules)
 
-// Submit a turn for the player
-func (s *server) submitTurn(c *gin.Context) {
-	user := s.GetSessionUser(c)
-
-	var id idBind
-	if err := c.ShouldBindUri(&id); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	// save the player to the database
+	if err := s.db.UpdateLightPlayer(player); err != nil {
+		log.Error().Err(err).Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update player")
+		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	if err := s.gameRunner.SubmitTurn(id.ID, user.ID); err != nil {
-		log.Error().Err(err).Int64("GameID", id.ID).Int64("UserID", user.ID).Msg("submit turn")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to submit turn"})
-		return
+	for _, planet := range planets {
+		if planet.Dirty {
+			// TODO: only update the planet spec? that's all that changes
+			// TODO: do this all in one transaction?
+			if err := s.db.UpdatePlanet(planet); err != nil {
+				log.Error().Err(err).Int64("ID", player.ID).Msg("updating player planet in database")
+				render.Render(w, r, ErrInternalServerError(err))
+				return
+			}
+		}
 	}
 
-	_, err := s.gameRunner.CheckAndGenerateTurn(id.ID)
-	if err != nil {
-		log.Error().Err(err).Int64("GameID", id.ID).Msg("check and generate new turn")
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	game, player, err := s.gameRunner.LoadPlayerGame(id.ID, user.ID)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"game": game, "player": player})
-
+	log.Info().Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update orders")
+	rest.RenderJSON(w, rest.JSON{"player": player, "planets": planets})
 }

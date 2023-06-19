@@ -78,7 +78,7 @@ func (u *Universe) buildMaps(players []*Player) {
 	// make a big map to hold all of our universe objects by position
 	u.mapObjectsByPosition = make(map[Vector][]interface{}, len(u.Planets))
 
-	// build a map of designs by uuid
+	// build a map of designs by num
 	// so we can inject the design into each token
 	numDesigns := 0
 	numBattlePlans := 0

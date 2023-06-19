@@ -9,57 +9,32 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
 	"golang.org/x/crypto/argon2"
 )
 
 type User struct {
-	ID          int64     `json:"id" header:"ID"`
-	CreatedAt   time.Time `json:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt"`
-	Username    string    `json:"username" header:"Username"`
-	Password    string    `json:"password"`
-	Email       string    `json:"email"`
-	Role        Role      `json:"role"`
-	Verified    bool      `json:"verified"`
-	VerifyToken string    `json:"verifyToken"`
+	ID        int64     `json:"id" header:"ID"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+	Username  string    `json:"username" header:"Username"`
+	Password  string    `json:"password"`
+	Email     string    `json:"email"`
+	Role      string    `json:"role"`
+	Banned    bool      `json:"banned"`
+	Verified  bool      `json:"verified"`
 }
-
-type Role string
 
 const (
-	RoleAdmin Role = "Admin"
-	RoleUser  Role = "User"
+	RoleUser  string = "user"
+	RoleAdmin string = "admin"
 )
 
-// String is used both by fmt.Print and by Cobra in help text
-func (e *Role) String() string {
-	return string(*e)
-}
-
-// Set must have pointer receiver so it doesn't change the value of a copy
-func (e *Role) Set(v string) error {
-	switch v {
-	case "Admin", "User":
-		*e = Role(v)
-		return nil
-	default:
-		return errors.New(`must be one of "Admin", or "User"`)
-	}
-}
-
-// Type is only used in help text
-func (e *Role) Type() string {
-	return "Role"
-}
-
-func NewUser(username string, password string, email string, role Role) (*User, error) {
-	verifyToken := uuid.New().String()
+func NewUser(username string, password string, email string, role string) (*User, error) {
 	hashedPassword, err := hashPassword(password)
 	if err != nil {
 		return nil, err
 	}
-	return &User{Username: username, Password: hashedPassword, Email: email, Role: role, VerifyToken: verifyToken}, nil
+	return &User{Username: username, Password: hashedPassword, Email: email, Role: role}, nil
 }
 
 func (u *User) ComparePassword(password string) (match bool, err error) {
@@ -136,7 +111,6 @@ func generateRandomBytes(n uint32) ([]byte, error) {
 
 	return b, nil
 }
-
 
 func decodeHash(encodedHash string) (p *params, salt, hash []byte, err error) {
 	vals := strings.Split(encodedHash, "$")

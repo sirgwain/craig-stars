@@ -9,9 +9,12 @@ import type { Player } from '$lib/types/Player';
 import { Service } from './Service';
 
 export class PlanetService extends Service {
-	async updatePlanet(planet: CommandedPlanet): Promise<CommandedPlanet> {
-		const updated = await Service.update<Planet>(planet, `/api/planets/${planet.id}`);
-		return Object.assign(planet, updated)
+	async updatePlanet(gameId: string | number, planet: CommandedPlanet): Promise<CommandedPlanet> {
+		const updated = await Service.update<Planet>(
+			planet,
+			`/api/games/${gameId}/planets/${planet.num}`
+		);
+		return Object.assign(planet, updated);
 	}
 
 	/**

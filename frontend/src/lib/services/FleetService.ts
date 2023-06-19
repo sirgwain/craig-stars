@@ -12,11 +12,12 @@ export class FleetOrders {
 
 export class FleetService extends Service {
 	static async transferCargo(
+		gameId: number | string,
 		fleet: Fleet,
 		dest: Planet | Fleet | undefined,
 		transferAmount: Cargo
 	): Promise<Fleet> {
-		const url = `/api/fleets/${fleet.id}/transfer-cargo`;
+		const url = `/api/games/${gameId}/fleets/${fleet.num}/transfer-cargo`;
 		const response = await fetch(url, {
 			method: 'POST',
 			headers: {

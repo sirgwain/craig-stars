@@ -42,7 +42,7 @@
 
 	const onSubmit = async () => {
 		const body = JSON.stringify(race);
-		const create = race?.id ? false : true;
+	const create = race?.id ? false : true;
 		const response = await fetch(`/api/races${race?.id ? '/' + race.id : ''}`, {
 			method: create ? 'POST' : 'PUT',
 			headers: {

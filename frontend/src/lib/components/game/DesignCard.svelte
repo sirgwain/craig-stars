@@ -17,7 +17,7 @@
 	const deleteDesign = async (design: ShipDesign) => {
 		if (design.num != undefined && confirm(`Are you sure you want to delete ${design.name}?`)) {
 			const { fleets, starbases } = await DesignService.delete(gameId, design.num);
-			if ($player) {
+			if ($player?.designs) {
 				const p = $player;
 				const designs = p.designs.filter((d) => d.num !== design.num);
 				player.update(() => ({ ...p, fleets, designs }));

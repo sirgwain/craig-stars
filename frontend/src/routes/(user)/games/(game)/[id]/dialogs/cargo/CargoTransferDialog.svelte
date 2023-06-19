@@ -12,6 +12,7 @@
 	import FleetTransfer from './FleetTransfer.svelte';
 	import PlanetTransfer from './PlanetTransfer.svelte';
 	import TransferButtons from './TransferButtons.svelte';
+	import { game } from '$lib/services/Context';
 
 	export let src: Fleet | undefined;
 	export let dest: Fleet | Planet | undefined;
@@ -29,10 +30,10 @@
 	};
 
 	const ok = async () => {
-		if (src) {
+		if (src && $game) {
 			const fleetService = new FleetService();
 			try {
-				const result = await FleetService.transferCargo(src, dest, transferAmount);
+				const result = await FleetService.transferCargo($game.id, src, dest, transferAmount);
 				// TODO: should the parent do this? or do we update the src/dest here?
 				src.cargo = result.cargo;
 				if (dest?.cargo) {

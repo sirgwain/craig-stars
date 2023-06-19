@@ -36,7 +36,7 @@
 	};
 
 	const onSubmit = async () => {
-		const data = JSON.stringify({ settings });
+		const data = JSON.stringify(settings);
 
 		const response = await fetch(`/api/games`, {
 			method: 'post',
