@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { EventManager } from '$lib/EventManager';
-	import { selectedWaypoint, showDesignPopup } from '$lib/services/Context';
+	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
+	import { selectedWaypoint } from '$lib/services/Context';
 	import type { CommandedFleet } from '$lib/types/Fleet';
 	import type { Player } from '$lib/types/Player';
 	import { createEventDispatcher } from 'svelte';
@@ -33,7 +34,7 @@
 							type="button"
 							class="w-full cursor-help"
 							on:pointerdown|preventDefault={(e) =>
-								showDesignPopup(player.getDesign(player.num, token.designNum), e.x, e.y)}
+								onShipDesignTooltip(e, player.getDesign(player.num, token.designNum))}
 						>
 							<div class="flex flex-row justify-between">
 								<div>

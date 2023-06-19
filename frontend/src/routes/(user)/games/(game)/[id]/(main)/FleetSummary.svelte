@@ -1,7 +1,7 @@
 <script lang="ts">
 	import CargoBar from '$lib/components/game/CargoBar.svelte';
 	import FuelBar from '$lib/components/game/FuelBar.svelte';
-	import { showDesignPopup } from '$lib/services/Context';
+	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import type { FullGame } from '$lib/services/FullGame';
 	import type { Fleet } from '$lib/types/Fleet';
 	import { ownedBy } from '$lib/types/MapObject';
@@ -37,7 +37,7 @@
 					<button
 						type="button"
 						class="w-full h-full cursor-help"
-						on:pointerdown={(e) => showDesignPopup(design, e.x, e.y)}
+						on:pointerdown|preventDefault={(e) => onShipDesignTooltip(e, design)}
 					/>
 				</div>
 			</div>

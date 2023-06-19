@@ -1,11 +1,8 @@
 <script lang="ts">
 	import { EventManager } from '$lib/EventManager';
-	import {
-		commandedFleet,
-		commandedPlanet,
-		popupDesign,
-		popupDesignLocation
-	} from '$lib/services/Context';
+	import Tooltip from '$lib/components/game/tooltips/Tooltip.svelte';
+	import { commandedFleet, commandedPlanet } from '$lib/services/Context';
+	import type { FullGame } from '$lib/services/FullGame';
 	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
 	import { MapObjectType } from '$lib/types/MapObject';
 	import type { CommandedPlanet, Planet } from '$lib/types/Planet';
@@ -13,11 +10,6 @@
 	import ProductionQueue from '../dialogs/ProductionQueue.svelte';
 	import CargoTransferDialog from '../dialogs/cargo/CargoTransferDialog.svelte';
 	import MergeFleets from '../fleets/[num]/merge/MergeFleets.svelte';
-	import type { FullGame } from '$lib/services/FullGame';
-	import Design from '$lib/components/game/design/Design.svelte';
-	import PopupDesign from '../popups/PopupDesign.svelte';
-	import PopupTech from '../popups/PopupTech.svelte';
-	import Tooltip from '$lib/components/game/tooltips/Tooltip.svelte';
 
 	export let game: FullGame;
 
@@ -133,6 +125,4 @@
 	</div>
 </div>
 
-<PopupDesign />
-<PopupTech />
 <Tooltip />

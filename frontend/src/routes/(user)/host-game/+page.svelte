@@ -19,7 +19,7 @@
 	import EnumSelect from '$lib/components/EnumSelect.svelte';
 	import CheckboxInput from '$lib/components/CheckboxInput.svelte';
 
-	let colors = ['#C33232', '#1F8BA7', '#43A43E', '#8D29CB', '#B88628'];
+	let colors = ['#0000FF', '#C33232', '#1F8BA7', '#43A43E', '#8D29CB', '#B88628'];
 	const getColor = (index: number) =>
 		index < colors.length ? colors[index] : '#' + Math.floor(Math.random() * 16777215).toString(16);
 

@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { showPopupTech } from '$lib/services/Context';
 	import { TechCategory, type Tech, type TechHull } from '$lib/types/Tech';
 	import { kebabCase } from 'lodash-es';
+	import { onTechTooltip } from '../game/tooltips/TechTooltip.svelte';
 
 	export let tech: Tech | undefined = undefined;
 	export let hullSetNumber = 0;
@@ -25,5 +25,5 @@
 </script>
 
 <div class="avatar tech-avatar {icon(hullSetNumber)}">
-	<button type="button" on:click|preventDefault={(e) => showPopupTech(tech, e.x, e.y)} />
+	<button type="button" />
 </div>

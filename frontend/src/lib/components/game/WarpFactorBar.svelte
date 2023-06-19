@@ -60,17 +60,17 @@
 
 <div
 	class="border border-secondary w-full h-[1rem] text-[0rem] relative cursor-pointer select-none"
-	on:pointerdown={(e) =>
+	on:pointerdown|preventDefault={(e) =>
 		onPointerDown(
 			(e.clientX - e.currentTarget.getBoundingClientRect().left) /
 				e.currentTarget.getBoundingClientRect().width
 		)}
-	on:pointerup={(e) =>
+	on:pointerup|preventDefault={(e) =>
 		onPointerUp(
 			(e.clientX - e.currentTarget.getBoundingClientRect().left) /
 				e.currentTarget.getBoundingClientRect().width
 		)}
-	on:pointermove={(e) =>
+	on:pointermove|preventDefault={(e) =>
 		onPointerMove(
 			(e.clientX - e.currentTarget.getBoundingClientRect().left) /
 				e.currentTarget.getBoundingClientRect().width

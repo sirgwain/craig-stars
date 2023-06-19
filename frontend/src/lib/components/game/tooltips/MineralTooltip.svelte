@@ -14,18 +14,18 @@
 	export let miningRate: number;
 </script>
 
-<div class="flex flex-col w-[26rem]">
+<div class="flex flex-col sm:w-[26rem] m-auto">
 	<div class="text-xl font-semibold text-center">{mineralType}</div>
 	<div class="flex flex-row">
-		<div class="font-semibold text-right w-52 mr-1">On Surface:</div>
+		<div class="font-semibold text-right w-40 mr-1">On Surface:</div>
 		<div>{surfaceAmount}kT</div>
 	</div>
 	<div class="flex flex-row">
-		<div class="font-semibold text-right w-52 mr-1">Mineral Concentration:</div>
+		<div class="font-semibold text-right w-40 mr-1">Mineral Concentration:</div>
 		<div>{concentration}</div>
 	</div>
 	<div class="flex flex-row">
-		<div class="font-semibold text-right w-52 mr-1">Mining Rate:</div>
+		<div class="font-semibold text-right w-40 mr-1">Mining Rate:</div>
 		<div>{miningRate}kT/year</div>
 	</div>
 </div>

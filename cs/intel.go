@@ -80,7 +80,6 @@ type PlanetIntel struct {
 	MapObjectIntel
 	Hab                           Hab         `json:"hab,omitempty"`
 	MineralConcentration          Mineral     `json:"mineralConcentration,omitempty"`
-	Population                    uint        `json:"population,omitempty"`
 	Starbase                      *FleetIntel `json:"starbase,omitempty"`
 	Cargo                         Cargo       `json:"cargo,omitempty"`
 	CargoDiscovered               bool        `json:"cargoDiscovered,omitempty"`
@@ -224,16 +223,17 @@ func (d *discover) discoverPlanet(rules *Rules, player *Player, planet *Planet, 
 		intel.MineralConcentration = planet.MineralConcentration
 		intel.Spec.Habitability = player.Race.GetPlanetHabitability(intel.Hab)
 		intel.Spec.TerraformedHabitability = player.Race.GetPlanetHabitability(intel.Hab) // TODO compute with terraform
+		intel.Spec.MaxPopulation = getMaxPopulation(rules, intel.Spec.Habitability, player)
 
 		// discover starbases on scan, but don't discover designs
 		intel.Spec.HasStarbase = planet.Spec.HasStarbase
 
 		// players know their planet pops, but other planets are slightly off
 		if ownedByPlayer {
-			intel.Population = uint(planet.population())
+			intel.Spec.Population = uint(planet.population())
 		} else {
 			var randomPopulationError = rules.random.Float64()*(rules.PopulationScannerError-(-rules.PopulationScannerError)) - rules.PopulationScannerError
-			intel.Population = uint(float64(planet.population()) * (1 - randomPopulationError))
+			intel.Spec.Population = uint(float64(planet.population()) * (1 - randomPopulationError))
 		}
 	}
 	return nil

@@ -9,6 +9,10 @@
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import PlanetMineralsGraph from './PlanetMineralsGraph.svelte';
+	import PopulationTooltip, {
+		type PopulationTooltipProps
+	} from '$lib/components/game/tooltips/PopulationTooltip.svelte';
+	import { showTooltip } from '$lib/services/Context';
 
 	export let game: FullGame;
 	export let planet: Planet;
@@ -38,6 +42,14 @@
 		temp: clamp(habWidth.temp ? (habWidth.temp / 100) * 100 : 0, 0, 100),
 		rad: clamp(habWidth.rad ? (habWidth.rad / 100) * 100 : 0, 0, 100)
 	};
+
+	function onPopulationTooltip(e: PointerEvent) {
+		showTooltip<PopulationTooltipProps>(e.x, e.y, PopulationTooltip, {
+			game,
+			planet,
+			player
+		});
+	}
 </script>
 
 <div class="flex flex-col min-h-[11rem]">
@@ -46,7 +58,10 @@
 			<Icon src={QuestionMarkCircle} size="64" class="hover:stroke-accent" />
 		</div>
 	{:else}
-		<div class="flex justify-between">
+		<div
+			class="flex justify-between cursor-help"
+			on:pointerdown|preventDefault={onPopulationTooltip}
+		>
 			<div class="ml-[5.5rem]">
 				Value: <span
 					class:text-habitable={(planet.spec.habitability ?? 0) > 0}
@@ -55,8 +70,8 @@
 						(planet.spec.habitabilityTerraformed ?? 0) > 0}>{planet.spec.habitability}%</span
 				>
 			</div>
-			{#if planet?.population}
-				<div>Population: {planet.population.toLocaleString()}</div>
+			{#if planet?.spec.population}
+				<div>Population: {planet.spec.population.toLocaleString()}</div>
 			{/if}
 		</div>
 		<div class="flex justify-between">

@@ -16,7 +16,7 @@
 	export let canBuildFactories: boolean;
 </script>
 
-<div class="flex flex-col w-[26rem]">
+<div class="flex flex-col sm:w-[26rem] m-auto">
 	<div class="text-xl font-semibold text-center">Factories</div>
 	<div>
 		{#if canBuildFactories}

@@ -26,11 +26,6 @@ export const selectedMapObject = writable<MapObject | undefined>();
 export const commandedMapObject = writable<MapObject | undefined>();
 export const highlightedMapObject = writable<MapObject | undefined>();
 
-export const popupDesign = writable<ShipDesign | ShipDesignIntel | undefined>();
-export const popupDesignLocation = writable<Vector>({ x: 0, y: 0 });
-export const popupTech = writable<Tech | undefined>();
-export const popupTechLocation = writable<Vector>({ x: 0, y: 0 });
-
 export const commandedMapObjectName = writable<string>();
 export const zoomTarget = writable<MapObject | undefined>();
 
@@ -144,22 +139,6 @@ export const highlightMapObject = (mo: MapObject | undefined) => {
 
 export const zoomToMapObject = (mo: MapObject) => {
 	zoomTarget.update(() => mo);
-};
-
-export const showDesignPopup = (
-	design: ShipDesign | ShipDesignIntel | undefined,
-	x: number,
-	y: number
-) => {
-	popupDesignLocation.update(() => ({ x, y }));
-	popupDesign.update(() => design);
-	window.addEventListener('pointerup', () => popupDesign.update(() => undefined));
-};
-
-export const showPopupTech = (tech: Tech | undefined, x: number, y: number) => {
-	popupTechLocation.update(() => ({ x, y }));
-	popupTech.update(() => tech);
-	window.addEventListener('pointerup', () => popupTech.update(() => undefined));
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

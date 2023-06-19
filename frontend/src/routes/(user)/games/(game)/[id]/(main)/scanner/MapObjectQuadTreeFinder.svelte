@@ -116,7 +116,7 @@
 <div
 	class="absolute h-full w-full z-10"
 	on:pointermove|preventDefault={onPointerMove}
-	on:pointerdown|preventDefault={onPointerDown}
+	on:pointerdown={onPointerDown}
 	on:pointerup|preventDefault={onPointerUp}
 />
 <slot x={xGetter(found) || 0} y={yGetter(found) || 0} {found} {e} />

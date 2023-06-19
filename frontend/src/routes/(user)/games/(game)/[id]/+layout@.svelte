@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import ErrorToast from '$lib/components/ErrorToast.svelte';
 	import NotFound from '$lib/components/NotFound.svelte';
+	import Tooltip from '$lib/components/game/tooltips/Tooltip.svelte';
 	import { bindNavigationHotkeys, unbindNavigationHotkeys } from '$lib/navigationHotkeys';
 	import { bindQuantityModifier, unbindQuantityModifier } from '$lib/quantityModifier';
 	import { game } from '$lib/services/Context';
@@ -8,8 +10,6 @@
 	import { GameState } from '$lib/types/Game';
 	import { onMount } from 'svelte';
 	import GameMenu from './GameMenu.svelte';
-	import PopupTech from './popups/PopupTech.svelte';
-	import ErrorToast from '$lib/components/ErrorToast.svelte';
 
 	let id = parseInt($page.params.id);
 
@@ -49,7 +49,7 @@
 			<slot>Game</slot>
 		</div>
 	</main>
-	<PopupTech />
+	<Tooltip />
 {:else if loadAttempted}
 	<NotFound title="Game not found" />
 {/if}

@@ -1,27 +1,27 @@
 <script lang="ts">
+	import FormError from '$lib/components/FormError.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
 	import Hull from '$lib/components/game/design/Hull.svelte';
 	import TechAvatar from '$lib/components/tech/TechAvatar.svelte';
-	import { showPopupTech, techs } from '$lib/services/Context';
+	import { techs } from '$lib/services/Context';
 	import { DesignService } from '$lib/services/DesignService';
 	import { Player, canLearnTech, hasRequiredLevels } from '$lib/types/Player';
 	import type { ShipDesign, ShipDesignSlot, Spec } from '$lib/types/ShipDesign';
 	import {
-		canFillSlot,
 		HullSlotType,
+		canFillSlot,
 		type HullSlot,
 		type TechHull,
 		type TechHullComponent
 	} from '$lib/types/Tech';
-	import { ChevronLeft, ChevronRight, ExclamationTriangle } from '@steeze-ui/heroicons';
+	import { ChevronLeft, ChevronRight, QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { createEventDispatcher, onMount } from 'svelte';
-	import { fade } from 'svelte/transition';
 	import Cost from '../Cost.svelte';
-	import DesignStats from '../DesignStats.svelte';
-	import { shipDesignerContext } from './ShipDesignerContext';
 	import CostMini from '../CostMini.svelte';
-	import FormError from '$lib/components/FormError.svelte';
+	import DesignStats from '../DesignStats.svelte';
+	import { onTechTooltip } from '../tooltips/TechTooltip.svelte';
+	import { shipDesignerContext } from './ShipDesignerContext';
 
 	const dispatch = createEventDispatcher();
 
@@ -222,8 +222,6 @@
 									type="button"
 									class="w-full h-full"
 									on:click={(e) => onTechHullComponentClicked(hc)}
-									on:pointerdown|preventDefault={(e) =>
-										showPopupTech($techs.getHullComponent(hc.name), e.x, e.y)}
 								>
 									<div class="flex flex-row place-items-center">
 										<div class="mr-2 pt-1 pl-1">
@@ -241,7 +239,14 @@
 			</ul>
 			<div class="flex flex-col mt-3">
 				{#if $shipDesignerContext.selectedHullComponent}
-					<div>Cost of one {$shipDesignerContext.selectedHullComponent.name}</div>
+					<div>
+						Cost of one {$shipDesignerContext.selectedHullComponent.name}
+						<span class="inline-block"
+							on:pointerdown|preventDefault={(e) =>
+								onTechTooltip(e, $shipDesignerContext.selectedHullComponent)}
+							><Icon src={QuestionMarkCircle} size="16" class=" cursor-help hover:stroke-accent" /></span
+						>
+					</div>
 					<div class="pl-2">
 						<Cost cost={$shipDesignerContext.selectedHullComponent.cost} />
 					</div>

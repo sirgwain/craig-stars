@@ -1,5 +1,7 @@
 <script lang="ts">
-	import { game, showDesignPopup, showPopupTech, techs } from '$lib/services/Context';
+	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
+	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip.svelte';
+	import { game, techs } from '$lib/services/Context';
 	import type { Fleet } from '$lib/types/Fleet';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import { UnlimitedSpaceDock } from '$lib/types/Tech';
@@ -15,14 +17,13 @@
 		? $techs.getHullComponent(starbase.spec.massDriver)
 		: undefined;
 
-	function showDesign(e: MouseEvent) {
+	function showDesign(e: PointerEvent) {
 		if ($game && starbase?.tokens && starbase.tokens.length > 0) {
-			showDesignPopup(
+			onShipDesignTooltip(
+				e,
 				$game?.player.getDesign($game.player.num, starbase?.tokens[0].designNum) as
 					| ShipDesign
-					| undefined,
-				e.x,
-				e.y
+					| undefined
 			);
 		}
 	}
@@ -61,16 +62,14 @@
 			<div class="divider p-0 m-0" />
 		</div>
 		<div>
-			<div class="flex justify-between">
+			<div
+				class="flex justify-between cursor-help"
+				on:pointerdown|preventDefault={(e) => stargate && onTechTooltip(e, stargate)}
+			>
 				<div>Stargate</div>
 				{#if stargate}
 					<div>
-						<button
-							type="button"
-							class="w-full h-full cursor-help"
-							on:pointerdown|preventDefault={(e) =>
-								stargate && showPopupTech($techs.getHullComponent(stargate.name), e.x, e.y)}
-						>
+						<button type="button" class="w-full h-full">
 							{stargate.name}
 						</button>
 					</div>
@@ -78,16 +77,14 @@
 					<div>none</div>
 				{/if}
 			</div>
-			<div class="flex justify-between">
+			<div
+				class="flex justify-between cursor-help"
+				on:pointerdown|preventDefault={(e) => massDriver && onTechTooltip(e, massDriver)}
+			>
 				<div>Mass Driver</div>
 				{#if starbase.spec.hasMassDriver}
 					<div>
-						<button
-							type="button"
-							class="w-full h-full cursor-help"
-							on:pointerdown|preventDefault={(e) =>
-								massDriver && showPopupTech($techs.getHullComponent(massDriver.name), e.x, e.y)}
-						>
+						<button type="button" class="w-full h-full">
 							Warp {starbase.spec.safePacketSpeed}
 						</button>
 					</div>

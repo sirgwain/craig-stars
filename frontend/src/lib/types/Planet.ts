@@ -16,7 +16,6 @@ export type Planet = {
 	mineralConcentration?: Mineral;
 	mineYears?: Mineral;
 	cargo?: Cargo;
-	population?: number;
 	mines?: number;
 	factories?: number;
 	defenses?: number;
@@ -72,6 +71,7 @@ export class CommandedPlanet implements Planet {
 		maxPossibleFactories: 0,
 		maxDefenses: 0,
 		populationDensity: 0,
+		population: 0,
 		maxPopulation: 0,
 		growthAmount: 0,
 		miningOutput: { ironium: 0, boranium: 0, germanium: 0 },
@@ -242,6 +242,7 @@ export interface PlanetSpec {
 	maxFactories: number;
 	maxPossibleFactories: number;
 	maxDefenses: number;
+	population?: number;
 	populationDensity: number;
 	maxPopulation: number;
 	growthAmount: number;
@@ -276,8 +277,11 @@ export interface PlanetSpec {
 
 export function getMineralOutput(planet: Planet, numMines: number, mineOutput: number): Mineral {
 	return {
-		ironium: (planet.mineralConcentration?.ironium ?? 0) / 100.0 * numMines / 10.0 * mineOutput,
-		boranium: (planet.mineralConcentration?.boranium ?? 0) / 100.0 * numMines / 10.0 * mineOutput,
-		germanium: (planet.mineralConcentration?.germanium ?? 0) / 100.0 * numMines / 10.0 * mineOutput
+		ironium:
+			((((planet.mineralConcentration?.ironium ?? 0) / 100.0) * numMines) / 10.0) * mineOutput,
+		boranium:
+			((((planet.mineralConcentration?.boranium ?? 0) / 100.0) * numMines) / 10.0) * mineOutput,
+		germanium:
+			((((planet.mineralConcentration?.germanium ?? 0) / 100.0) * numMines) / 10.0) * mineOutput
 	};
 }
