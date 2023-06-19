@@ -241,7 +241,7 @@ func Test_turn_fleetMoveRepeatOrders(t *testing.T) {
 
 }
 
-func Test_turn_fleetMoveDestroeydByMineField(t *testing.T) {
+func Test_turn_fleetMoveDestroyedByMineField(t *testing.T) {
 	game := createSingleUnitGame()
 	rules := game.rules
 
@@ -637,5 +637,105 @@ func Test_turn_fleetReproduce(t *testing.T) {
 	// should have grown on freighter and beamed down to planet
 	assert.Equal(t, fleet.Spec.CargoCapacity, fleet.Cargo.Colonists)
 	assert.Equal(t, 2509, planet.Cargo.Colonists) // 120kT * 7.5% = 900 colonists beamed to planet
+
+}
+
+func Test_turn_detonateMines(t *testing.T) {
+
+	mineFieldPlayer := NewPlayer(1, NewRace().WithPRT(SD).WithSpec(&rules)).WithNum(1).withSpec(&rules)
+	otherPlayer := NewPlayer(2, NewRace().WithSpec(&rules)).WithNum(2).withSpec(&rules)
+
+	type args struct {
+		mineField *MineField
+		fleet     *Fleet
+		players   []*Player
+	}
+
+	tests := []struct {
+		name string
+		args args
+		want []ShipToken
+	}{
+		{
+			name: "no op",
+			args: args{
+				mineField: newMineField(mineFieldPlayer, MineFieldTypeStandard, 10*10, 1, Vector{}),
+				fleet:     testLongRangeScout(otherPlayer),
+				players:   []*Player{mineFieldPlayer, otherPlayer},
+			},
+			want: []ShipToken{{Quantity: 1, QuantityDamaged: 0, Damage: 0}},
+		},
+		{
+			name: "detonate, destroy ship",
+			args: args{
+				mineField: newMineField(mineFieldPlayer, MineFieldTypeStandard, 10*10, 1, Vector{}).
+					withOrders(MineFieldOrders{Detonate: true}),
+				fleet:   testLongRangeScout(otherPlayer),
+				players: []*Player{mineFieldPlayer, otherPlayer},
+			},
+			want: []ShipToken{{Quantity: 0, QuantityDamaged: 0, Damage: 500}},
+		},
+		{
+			name: "detonate, don't destroy mini mine layers",
+			args: args{
+				mineField: newMineField(mineFieldPlayer, MineFieldTypeStandard, 10*10, 1, Vector{}).
+					withOrders(MineFieldOrders{Detonate: true}),
+				fleet:   testMiniMineLayer(mineFieldPlayer),
+				players: []*Player{mineFieldPlayer},
+			},
+			want: []ShipToken{{Quantity: 1, QuantityDamaged: 0, Damage: 0}},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			// create a new test game
+			client := NewGamer()
+			game := client.CreateGame(1, *NewGameSettings())
+
+			for _, player := range tt.args.players {
+				player.Relations = player.defaultRelationships(tt.args.players)
+				player.PlayerIntels.PlayerIntels = player.defaultPlayerIntels(tt.args.players)
+			}
+
+			universe := NewUniverse(&game.Rules)
+			universe.Fleets = []*Fleet{tt.args.fleet}
+			universe.MineFields = []*MineField{tt.args.mineField}
+
+			fg := FullGame{
+				Game:     game,
+				Players:  tt.args.players,
+				Universe: &universe,
+			}
+
+			// make sure the player knows about the designs of the fleet
+			fleetPlayer := fg.getPlayer(tt.args.fleet.PlayerNum)
+			for _, token := range tt.args.fleet.Tokens {
+				fleetPlayer.Designs = append(fleetPlayer.Designs, token.design)
+			}
+
+			turn := turn{
+				game: &fg,
+			}
+			turn.game.Universe.buildMaps(fg.Players)
+
+			// try and remote the planet
+			turn.generateTurn()
+
+			for i := range tt.args.fleet.Tokens {
+				token := tt.args.fleet.Tokens[i]
+				if token.Quantity != tt.want[i].Quantity {
+					t.Errorf("Fleet.detonateMines() token %d gotQuantity = %v, wantQuantity %v", i, token.Quantity, tt.want[i].Quantity)
+				}
+				if token.Damage != tt.want[i].Damage {
+					t.Errorf("Fleet.detonateMines() token %d gotDamage = %v, wantDamage %v", i, token.Damage, tt.want[i].Damage)
+				}
+				if token.QuantityDamaged != tt.want[i].QuantityDamaged {
+					t.Errorf("Fleet.detonateMines() token %d gotQuantityDamaged = %v, wantQuantityDamaged %v", i, token.QuantityDamaged, tt.want[i].QuantityDamaged)
+				}
+			}
+
+		})
+	}
 
 }

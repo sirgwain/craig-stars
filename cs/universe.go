@@ -534,3 +534,14 @@ func (u *Universe) numPlanetsWithin(position Vector, radius float64) (numPlanets
 	}
 	return numPlanets
 }
+
+// get fleets within a circle
+func (u *Universe) fleetsWithin(position Vector, radius float64) []*Fleet {
+	fleetsWithin := make([]*Fleet, 0, 10)
+	for _, fleet := range u.Fleets {
+		if isPointInCircle(fleet.Position, position, radius) {
+			fleetsWithin = append(fleetsWithin, fleet)
+		}
+	}
+	return fleetsWithin
+}

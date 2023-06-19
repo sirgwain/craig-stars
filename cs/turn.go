@@ -466,7 +466,7 @@ func (t *turn) fleetReproduce() {
 		planet := t.game.getOrbitingPlanet(fleet)
 
 		growthFactor := player.Race.Spec.FreighterGrowthFactor
-		growth := minInt(1, int(growthFactor*float64(player.Race.GrowthRate)/100.0*float64(fleet.Cargo.Colonists)))
+		growth := maxInt(1, int(growthFactor*float64(player.Race.GrowthRate)/100.0*float64(fleet.Cargo.Colonists)))
 		fleet.Cargo.Colonists = fleet.Cargo.Colonists + growth
 		fleet.MarkDirty()
 		over := maxInt(0, fleet.Cargo.Total()-fleet.Spec.CargoCapacity)
@@ -546,7 +546,25 @@ func (t *turn) wormholeJiggle() {
 	}
 }
 
+// SD races can detonate a minefield
 func (t *turn) detonateMines() {
+	for _, mineField := range t.game.MineFields {
+		if !mineField.Detonate {
+			continue
+		}
+
+		stats := t.game.rules.MineFieldStatsByType[mineField.MineFieldType]
+		if !stats.CanDetonate {
+			continue
+		}
+
+		player := t.game.getPlayer(mineField.PlayerNum)
+		fleetsWithin := t.game.fleetsWithin(mineField.Position, mineField.Spec.Radius)
+		for _, fleet := range fleetsWithin {
+			fleetPlayer := t.game.getPlayer(fleet.PlayerNum)
+			mineField.damageFleet(player, fleet, fleetPlayer, stats)
+		}
+	}
 }
 
 // mine all owned planets for minerals

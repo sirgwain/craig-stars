@@ -399,6 +399,51 @@ func (p *Player) CanLearnTech(tech *Tech) bool {
 	return true
 }
 
+// get the default relationships for a player with other players
+func (p *Player) defaultRelationships(players []*Player) []PlayerRelationship {
+	relations := make([]PlayerRelationship, len(players))
+
+	for i, otherPlayer := range players {
+		relationship := &relations[i]
+		if otherPlayer.Num == p.Num {
+			// we're friends with ourselves
+			relationship.Relation = PlayerRelationFriend
+		} else {
+			relationship.Relation = PlayerRelationEnemy
+		}
+
+	}
+	return relations
+}
+
+// get the default intels for a player for other players
+func (p *Player) defaultPlayerIntels(players []*Player) []PlayerIntel {
+	playerIntels := make([]PlayerIntel, len(players))
+	for i, otherPlayer := range players {
+		relationship := &p.Relations[i]
+		if otherPlayer.Num == p.Num {
+			// we're friends with ourselves
+			relationship.Relation = PlayerRelationFriend
+		} else {
+			relationship.Relation = PlayerRelationEnemy
+		}
+
+		playerIntel := &playerIntels[i]
+		playerIntel.Color = otherPlayer.Color
+		playerIntel.Name = otherPlayer.Name
+		playerIntel.Num = otherPlayer.Num
+
+		// we know about ourselves
+		if otherPlayer.Num == p.Num {
+			playerIntel.Seen = true
+			playerIntel.RaceName = p.Race.Name
+			playerIntel.RacePluralName = p.Race.PluralName
+		}
+	}
+
+	return playerIntels
+}
+
 func (p *Player) IsFriend(playerNum int) bool {
 	return playerNum > 0 && playerNum <= len(p.Relations) && p.Relations[playerNum-1].Relation == PlayerRelationFriend
 }

@@ -70,6 +70,11 @@ func newMineField(player *Player, mineFieldType MineFieldType, numMines int, num
 	}
 }
 
+func (mineField *MineField) withOrders(orders MineFieldOrders) *MineField {
+	mineField.MineFieldOrders = orders
+	return mineField
+}
+
 // get the number of mines that will decay this year
 // * The base rate for minefield decay is 2% per year.
 // * Minefields will decay an additional 4% per planet that is within the field, or 1% per planet for SD races.

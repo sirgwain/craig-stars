@@ -460,53 +460,17 @@ func fillStarbaseSlots(techStore *TechStore, starbase *ShipDesign, race *Race, s
 	}
 }
 
-func (ug *universeGenerator) generatePlayerRelations() error {
+func (ug *universeGenerator) generatePlayerRelations() {
 	for _, player := range ug.players {
-
-		player.Relations = make([]PlayerRelationship, len(ug.players))
-
-		for i, otherPlayer := range ug.players {
-			relationship := &player.Relations[i]
-			if otherPlayer.Num == player.Num {
-				// we're friends with ourselves
-				relationship.Relation = PlayerRelationFriend
-			} else {
-				relationship.Relation = PlayerRelationEnemy
-			}
-
-		}
-
+		player.Relations = player.defaultRelationships(ug.players)
 	}
-
-	return nil
 }
 
 func (ug *universeGenerator) generatePlayerIntel() error {
 	for _, player := range ug.players {
 
 		// discover other players
-		player.PlayerIntels.PlayerIntels = make([]PlayerIntel, len(ug.players))
-		for i, otherPlayer := range ug.players {
-			relationship := &player.Relations[i]
-			if otherPlayer.Num == player.Num {
-				// we're friends with ourselves
-				relationship.Relation = PlayerRelationFriend
-			} else {
-				relationship.Relation = PlayerRelationEnemy
-			}
-
-			playerIntel := &player.PlayerIntels.PlayerIntels[i]
-			playerIntel.Color = otherPlayer.Color
-			playerIntel.Name = otherPlayer.Name
-			playerIntel.Num = otherPlayer.Num
-
-			// we know about ourselves
-			if otherPlayer.Num == player.Num {
-				playerIntel.Seen = true
-				playerIntel.RaceName = player.Race.Name
-				playerIntel.RacePluralName = player.Race.PluralName
-			}
-		}
+		player.PlayerIntels.PlayerIntels = player.defaultPlayerIntels(ug.players)
 
 		// do initial scans
 		scanner := newPlayerScanner(&ug.universe, ug.players, ug.rules, player)
