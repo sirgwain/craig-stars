@@ -28,6 +28,7 @@ type productionResult struct {
 	tokens   []ShipToken
 	packets  []Cargo
 	starbase *Fleet
+	alchemy  Mineral
 }
 
 type ProductionQueueItem struct {
@@ -145,6 +146,7 @@ func (p *production) produce() productionResult {
 				// build the items on the planet and remove from our available
 				p.buildItems(item, numBuilt, &result)
 				available = available.Minus(cost.MultiplyInt(numBuilt))
+				available = available.Add(result.alchemy.ToCost())
 			}
 
 			if numBuilt < item.Quantity {
@@ -210,6 +212,15 @@ func (p *production) buildItems(item ProductionQueueItem, numBuilt int, result *
 	player, planet := p.player, p.planet
 
 	switch item.Type {
+	case QueueItemTypeAutoMineralAlchemy:
+		fallthrough
+	case QueueItemTypeMineralAlchemy:
+		result.alchemy = Mineral{
+			numBuilt,
+			numBuilt,
+			numBuilt,
+		}
+		messager.mineralAlchemyBuilt(player, planet, numBuilt)
 	case QueueItemTypeAutoMines:
 		fallthrough
 	case QueueItemTypeMine:

@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { tooltipComponent, tooltipLocation } from '$lib/services/Stores';
-	import { clamp } from 'lodash-es';
-
+	
 	// close this tooltip when the pointer is let up
 	function onPointerUp(e: PointerEvent) {
 		window.removeEventListener('pointerup', onPointerUp);

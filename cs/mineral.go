@@ -55,6 +55,15 @@ func (m Mineral) ToCargo() Cargo {
 	}
 }
 
+// convert a mineral to a cost
+func (m Mineral) ToCost() Cost {
+	return Cost{
+		Ironium:   m.Ironium,
+		Boranium:  m.Boranium,
+		Germanium: m.Germanium,
+	}
+}
+
 // add an int to all components of the mineral
 func (m Mineral) AddInt(num int) Mineral {
 	return Mineral{
