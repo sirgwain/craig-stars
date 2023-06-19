@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog/log"
 )
 
 type idBind struct {
@@ -13,7 +14,8 @@ type idBind struct {
 func (s *server) Games(c *gin.Context) {
 	games, err := s.db.GetGames()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		log.Error().Err(err).Msg("get games from database")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to get games from database"})
 		return
 	}
 
@@ -29,7 +31,8 @@ func (s *server) GameById(c *gin.Context) {
 
 	game, err := s.db.GetGame(id.ID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		log.Error().Err(err).Int64("ID", id.ID).Msg("get game from database")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to get game from database"})
 		return
 	}
 
@@ -52,7 +55,8 @@ func (s *server) DeleteGame(c *gin.Context) {
 	// validate
 	game, err := s.db.GetGame(id.ID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		log.Error().Err(err).Int64("ID", id.ID).Msg("get game from database")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to get game from database"})
 		return
 	}
 
@@ -63,7 +67,8 @@ func (s *server) DeleteGame(c *gin.Context) {
 
 	// delete it
 	if err := s.db.DeleteGame(id.ID); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		log.Error().Err(err).Int64("ID", id.ID).Msg("delete game from database")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to delete game from database"})
 		return
 	}
 

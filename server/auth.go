@@ -61,7 +61,8 @@ func (s *server) Login(c *gin.Context) {
 
 	user, err := s.db.GetUserByUsername(creds.Username)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": " find user"})
+		log.Error().Err(err).Str("Username", creds.Username).Msg("get user from database")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user from database"})
 		return
 	}
 
@@ -90,7 +91,8 @@ func (s *server) Logout(c *gin.Context) {
 	}
 	session.Delete(userkey)
 	if err := session.Save(); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": " save session"})
+		log.Error().Err(err).Msg("save session")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to save session"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Successfully logged out"})
@@ -105,6 +107,11 @@ func (s *server) GetSessionUser(c *gin.Context) *sessionUser {
 func (s *server) Me(c *gin.Context) {
 	// session := sessions.Default(c)
 	// user := session.Get(userkey)
+	user := s.GetSessionUser(c)
+	if user == nil {
+		c.JSON(http.StatusNotFound, gin.H{})
+		return
+	}
 	c.JSON(http.StatusOK, s.GetSessionUser(c))
 }
 
