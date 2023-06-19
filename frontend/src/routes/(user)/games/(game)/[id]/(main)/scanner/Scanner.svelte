@@ -6,6 +6,7 @@
 		commandedFleet,
 		commandedMapObject,
 		commandedPlanet,
+		currentSelectedWaypointIndex,
 		selectMapObject,
 		selectWaypoint,
 		selectedMapObject,
@@ -41,6 +42,8 @@
 	import ScannerWaypoints from './ScannerWaypoints.svelte';
 	import SelectedMapObject from './SelectedMapObject.svelte';
 	import SelectedWaypoint from './SelectedWaypoint.svelte';
+	import ScannerWormholes from './ScannerWormholes.svelte';
+	import ScannerWormholeLinks from './ScannerWormholeLinks.svelte';
 
 	const { game, player, universe } = getGameContext();
 
@@ -164,7 +167,7 @@
 			return;
 		}
 
-		let waypointIndex = $commandedFleet.waypoints.findIndex((wp) => $selectedWaypoint == wp);
+		let waypointIndex = $currentSelectedWaypointIndex;
 		if (waypointIndex == -1) {
 			waypointIndex = 0;
 		}
@@ -387,8 +390,10 @@
 				<SelectedWaypoint />
 				<ScannerPlanets />
 				<ScannerMineralPackets />
+				<ScannerWormholes />
 				<ScannerFleets />
 				<ScannerWarpLine />
+				<ScannerWormholeLinks />
 				<SelectedMapObject />
 			</g>
 		</Svg>

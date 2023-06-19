@@ -1,5 +1,5 @@
 import type { BattleRecord } from '$lib/types/Battle';
-import type { Fleet, Target } from '$lib/types/Fleet';
+import type { Fleet, Target, Waypoint } from '$lib/types/Fleet';
 import { MapObjectType, type MapObject } from '$lib/types/MapObject';
 import type { MineField } from '$lib/types/MineField';
 import type { MineralPacket } from '$lib/types/MineralPacket';
@@ -10,11 +10,11 @@ import type { Salvage } from '$lib/types/Salvage';
 import type { ShipDesign } from '$lib/types/ShipDesign';
 import type { Vector } from '$lib/types/Vector';
 import type { Wormhole } from '$lib/types/Wormhole';
-import { groupBy } from 'lodash-es';
+import { groupBy, startCase } from 'lodash-es';
 
 export interface DesignFinder {
 	getDesign(playerNum: number, num: number): ShipDesign | undefined;
-	getMyDesignByName(playerNum: number, name: string): ShipDesign | undefined
+	getMyDesignByName(playerNum: number, name: string): ShipDesign | undefined;
 }
 
 export interface PlayerFinder {
@@ -243,6 +243,21 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 	removeFleets(fleetNums: number[]) {
 		this.fleets = this.fleets.filter((f) => fleetNums.indexOf(f.num) == -1);
 		this.resetMyMapObjectsByPosition();
+	}
+
+	getTargetName(wp: Waypoint): string {
+		if (wp.targetName && wp.targetName !== '') {
+			return wp.targetName;
+		}
+		const mo = this.getMapObject(wp);
+		if (mo) {
+			if (mo.name && mo.name !== '') {
+				return mo.name;
+			}
+
+			return `${startCase(mo.type)} #${mo.num}`;
+		}
+		return `Space: (${wp.position.x}, ${wp.position.y})`;
 	}
 
 	// get a mapobject by type, number, and optionally player num

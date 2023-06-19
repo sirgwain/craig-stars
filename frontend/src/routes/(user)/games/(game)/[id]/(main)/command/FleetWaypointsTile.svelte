@@ -7,7 +7,7 @@
 		selectMapObject,
 		selectWaypoint
 	} from '$lib/services/Stores';
-	import { getTargetName, type CommandedFleet, type Waypoint } from '$lib/types/Fleet';
+	import type { CommandedFleet, Waypoint } from '$lib/types/Fleet';
 	import type { MapObject } from '$lib/types/MapObject';
 	import { distance } from '$lib/types/Vector';
 	import hotkeys from 'hotkeys-js';
@@ -159,7 +159,7 @@
 							class="text-left w-full h=full"
 							on:click={() => onSelectWaypoint(wp, index)}
 						>
-							{getTargetName(wp)}
+							{$universe.getTargetName(wp)}
 						</button>
 					</li>
 				{/each}
@@ -177,7 +177,7 @@
 
 			<div class="flex justify-between mt-1">
 				<span>Coming From</span>
-				<span>{getTargetName(previousWaypoint)}</span>
+				<span>{$universe.getTargetName(previousWaypoint)}</span>
 			</div>
 			<div class="flex justify-between mt-1">
 				<span>Distance</span>
@@ -213,7 +213,7 @@
 		{:else if nextWaypoint}
 			<div class="flex justify-between mt-1">
 				<span>Going to</span>
-				<span>{getTargetName(nextWaypoint)}</span>
+				<span>{$universe.getTargetName(nextWaypoint)}</span>
 			</div>
 			<div class="flex justify-between mt-1">
 				<span>Distance</span>

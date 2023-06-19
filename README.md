@@ -11,6 +11,7 @@ A web based Stars! clone.
 - [sveltekit](https://kit.svelte.dev) (with static adaptor)
 - [tailwindcss](https://tailwindcss.com)
 - [daisyui](https://daisyui.com)
+- [game-icons.net](https://game-icons.net)
 
 # dev
 

@@ -7,11 +7,13 @@
 	import type { MineField } from '$lib/types/MineField';
 	import type { MineralPacket } from '$lib/types/MineralPacket';
 	import type { Planet } from '$lib/types/Planet';
+	import type { Wormhole } from '$lib/types/Wormhole';
 	import FleetSummary from './FleetSummary.svelte';
 	import MineFieldSummary from './MineFieldSummary.svelte';
 	import MineralPacketSummary from './MineralPacketSummary.svelte';
 	import PlanetSummary from './PlanetSummary.svelte';
 	import UnknownSummary from './UnknownSummary.svelte';
+	import WormholeSummary from './WormholeSummary.svelte';
 
 	const { game, player, universe } = getGameContext();
 
@@ -19,6 +21,7 @@
 	let selectedFleet: Fleet | undefined;
 	let selectedMineField: MineField | undefined;
 	let selectedMineralPacket: MineralPacket | undefined;
+	let selectedWormhole: Wormhole | undefined;
 	$: {
 		selectedPlanet =
 			$selectedMapObject?.type == MapObjectType.Planet ? ($selectedMapObject as Planet) : undefined;
@@ -31,6 +34,10 @@
 		selectedMineralPacket =
 			$selectedMapObject?.type == MapObjectType.MineralPacket
 				? ($selectedMapObject as MineralPacket)
+				: undefined;
+		selectedWormhole =
+			$selectedMapObject?.type == MapObjectType.Wormhole
+				? ($selectedMapObject as Wormhole)
 				: undefined;
 	}
 </script>
@@ -53,6 +60,8 @@
 			<MineFieldSummary mineField={selectedMineField} />
 		{:else if selectedMineralPacket}
 			<MineralPacketSummary mineralPacket={selectedMineralPacket} />
+		{:else if selectedWormhole}
+			<WormholeSummary wormhole={selectedWormhole} />
 		{:else}
 			<UnknownSummary />
 		{/if}

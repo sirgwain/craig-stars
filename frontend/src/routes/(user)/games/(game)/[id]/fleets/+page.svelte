@@ -6,7 +6,7 @@
 	import { getGameContext } from '$lib/services/Contexts';
 	import { commandMapObject, zoomToMapObject } from '$lib/services/Stores';
 	import { totalCargo } from '$lib/types/Cargo';
-	import { getTargetName, type Fleet } from '$lib/types/Fleet';
+	import type { Fleet } from '$lib/types/Fleet';
 	import { SvelteTable, type SvelteTableColumn } from '@hurtigruten/svelte-table';
 
 	const { game, player, universe } = getGameContext();
@@ -24,7 +24,7 @@
 
 	const getDestination = (fleet: Fleet) => {
 		if (fleet.waypoints?.length && fleet.waypoints?.length > 1) {
-			return getTargetName(fleet.waypoints[1]);
+			return $universe.getTargetName(fleet.waypoints[1]);
 		}
 		return '--';
 	};
@@ -119,7 +119,7 @@
 			{:else if column.key == 'location'}
 				{getLocation(row)}
 			{:else if column.key == 'destination'}
-				{row.waypoints.length > 1 ? getTargetName(row.waypoints[1]) : '--'}
+				{row.waypoints.length > 1 ? $universe.getTargetName(row.waypoints[1]) : '--'}
 			{:else if column.key == 'eta'}
 				-- <!-- TODO: fleet class?  -->
 			{:else if column.key == 'fuel'}

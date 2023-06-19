@@ -180,8 +180,6 @@ export class CommandedFleet implements Fleet {
 	}
 }
 
-export const getTargetName = (wp: Waypoint) =>
-	wp.targetName ?? `Space: (${wp.position.x}, ${wp.position.y})`;
 
 export const isLoadAction = (action: WaypointTaskTransportAction) =>
 	[

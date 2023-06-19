@@ -31,8 +31,9 @@ type discoverer interface {
 	discoverMineField(player *Player, mineField *MineField)
 	discoverMineralPacket(player *Player, mineralPacket *MineralPacket)
 	discoverSalvage(player *Player, salvage *Salvage)
-	discoverWormhole(player *Player, wormhole *Wormhole)
-	discoverMysteryTrader(player *Player, mineField *MysteryTrader)
+	discoverWormhole(wormhole *Wormhole)
+	discoverWormholeLink(wormhole1, wormhole2 *Wormhole)
+	discoverMysteryTrader(mineField *MysteryTrader)
 	discoverDesign(player *Player, design *ShipDesign, discoverSlots bool)
 
 	getWormholeIntel(num int) *WormholeIntel
@@ -501,7 +502,8 @@ func (d *discover) discoverDesign(player *Player, design *ShipDesign, discoverSl
 }
 
 // discover a wormhole and add it to the player's wormhole intel
-func (d *discover) discoverWormhole(player *Player, wormhole *Wormhole) {
+func (d *discover) discoverWormhole(wormhole *Wormhole) {
+	player := d.player
 	intel, found := d.wormholeIntelsByKey[wormhole.Num]
 	if !found {
 		// discover this new wormhole
@@ -515,8 +517,39 @@ func (d *discover) discoverWormhole(player *Player, wormhole *Wormhole) {
 	intel.Stability = wormhole.Stability
 }
 
+func (d *discover) discoverWormholeLink(wormhole1, wormhole2 *Wormhole) {
+	player := d.player
+	intel1, found := d.wormholeIntelsByKey[wormhole1.Num]
+	if !found {
+		// discover this new wormhole
+		player.Wormholes = append(player.Wormholes, *newWormholeIntel(wormhole1.Num))
+		intel1 = &player.Wormholes[len(player.Wormholes)-1]
+		d.wormholeIntelsByKey[intel1.Num] = intel1
+	}
+
+	intel2, found := d.wormholeIntelsByKey[wormhole2.Num]
+	if !found {
+		// discover this new wormhole
+		player.Wormholes = append(player.Wormholes, *newWormholeIntel(wormhole2.Num))
+		intel2 = &player.Wormholes[len(player.Wormholes)-1]
+		d.wormholeIntelsByKey[intel2.Num] = intel2
+	}
+
+	intel1.Name = wormhole1.Name
+	intel1.Position = wormhole1.Position
+	intel1.Stability = wormhole1.Stability
+	intel1.DestinationNum = wormhole1.DestinationNum
+
+	intel2.Name = wormhole2.Name
+	intel2.Position = wormhole2.Position
+	intel2.Stability = wormhole2.Stability
+	intel2.DestinationNum = wormhole2.DestinationNum
+}
+
+
 // discover a mysteryTrader and add it to the player's mysteryTrader intel
-func (d *discover) discoverMysteryTrader(player *Player, mysteryTrader *MysteryTrader) {
+func (d *discover) discoverMysteryTrader(mysteryTrader *MysteryTrader) {
+	player := d.player
 	intel, found := d.mysteryTraderIntelsByKey[mysteryTrader.Num]
 	if !found {
 		// discover this new mysteryTrader

@@ -606,21 +606,74 @@ func (t *turn) fleetMove() {
 		if fleet.Delete {
 			continue
 		}
+		if fleet.Starbase {
+			continue
+		}
 
-		if !fleet.Starbase {
-			// remove the fleet from the list of map objects at it's current location
-			originalPosition := fleet.Position
+		// remove the fleet from the list of map objects at it's current location
+		originalPosition := fleet.Position
 
-			if len(fleet.Waypoints) > 1 {
-				wp0 := fleet.Waypoints[0]
-				wp1 := fleet.Waypoints[1]
-
-				if wp1.WarpSpeed == StargateWarpSpeed {
-					// yeah, gate!
-					fleet.gateFleet(&t.game.Rules, t.game.Universe, t.game)
-				} else {
-					fleet.moveFleet(&t.game.Rules, t.game.Universe, t.game)
+		if len(fleet.Waypoints) > 1 {
+			wp0 := fleet.Waypoints[0]
+			wp1 := &fleet.Waypoints[1]
+			if wp1.TargetNum != None {
+				target := t.game.getMapObject(wp1.TargetType, wp1.TargetNum, wp1.TargetPlayerNum)
+				if target == nil || target.Delete {
+					// target went away
+					wp1.TargetName = ""
+					wp1.TargetNum = None
+					wp1.TargetType = MapObjectTypeNone
+					wp1.TargetPlayerNum = None
+					log.Debug().
+						Int64("GameID", t.game.ID).
+						Str("Name", t.game.Name).
+						Int("Year", t.game.Year).
+						Int("Player", fleet.PlayerNum).
+						Str("Fleet", fleet.Name).
+						Msgf("fleet target gone, using position only")
+				} else if target.Position != wp1.Position {
+					// update the position
+					wp1.Position = target.Position
+					log.Debug().
+						Int64("GameID", t.game.ID).
+						Str("Name", t.game.Name).
+						Int("Year", t.game.Year).
+						Int("Player", fleet.PlayerNum).
+						Str("Fleet", fleet.Name).
+						Msgf("fleet target moved, updating position")
 				}
+			}
+
+			if wp1.WarpSpeed == StargateWarpSpeed {
+				// yeah, gate!
+				fleet.gateFleet(&t.game.Rules, t.game.Universe, t.game)
+			} else {
+				fleet.moveFleet(&t.game.Rules, t.game.Universe, t.game)
+			}
+
+			log.Debug().
+				Int64("GameID", t.game.ID).
+				Str("Name", t.game.Name).
+				Int("Year", t.game.Year).
+				Int("Player", fleet.PlayerNum).
+				Str("Fleet", fleet.Name).
+				Str("Start", wp0.Position.String()).
+				Str("End", fleet.Position.String()).
+				Msgf("moved fleet")
+
+			// make sure we have tokens left after move
+			if len(fleet.Tokens) == 0 {
+				t.game.deleteFleet(fleet)
+				continue
+			}
+
+			// remove the previous waypoint, it's been processed already
+			if fleet.RepeatOrders && !wp0.PartiallyComplete {
+				// if we are supposed to repeat orders,
+				wp0.processed = false
+				wp0.WaitAtWaypoint = false
+				wp0.PartiallyComplete = false
+				fleet.Waypoints = append(fleet.Waypoints, wp0)
 
 				log.Debug().
 					Int64("GameID", t.game.ID).
@@ -628,41 +681,16 @@ func (t *turn) fleetMove() {
 					Int("Year", t.game.Year).
 					Int("Player", fleet.PlayerNum).
 					Str("Fleet", fleet.Name).
-					Str("Start", wp0.Position.String()).
-					Str("End", fleet.Position.String()).
-					Msgf("moved fleet")
-
-				// make sure we have tokens left after move
-				if len(fleet.Tokens) == 0 {
-					t.game.deleteFleet(fleet)
-					continue
-				}
-
-				// remove the previous waypoint, it's been processed already
-				if fleet.RepeatOrders && !wp0.PartiallyComplete {
-					// if we are supposed to repeat orders,
-					wp0.processed = false
-					wp0.WaitAtWaypoint = false
-					wp0.PartiallyComplete = false
-					fleet.Waypoints = append(fleet.Waypoints, wp0)
-
-					log.Debug().
-						Int64("GameID", t.game.ID).
-						Str("Name", t.game.Name).
-						Int("Year", t.game.Year).
-						Int("Player", fleet.PlayerNum).
-						Str("Fleet", fleet.Name).
-						Str("Waypoint", fmt.Sprintf("%s: %s", wp0.TargetName, wp0.Task)).
-						Msgf("repeating waypoint")
-				}
-
-				// update the game dictionaries with this fleet's new position
-				t.game.moveFleet(fleet, originalPosition)
-			} else {
-				fleet.PreviousPosition = &originalPosition
-				fleet.WarpSpeed = 0
-				fleet.Heading = Vector{}
+					Str("Waypoint", fmt.Sprintf("%s: %s", wp0.TargetName, wp0.Task)).
+					Msgf("repeating waypoint")
 			}
+
+			// update the game dictionaries with this fleet's new position
+			t.game.moveFleet(fleet, originalPosition)
+		} else {
+			fleet.PreviousPosition = &originalPosition
+			fleet.WarpSpeed = 0
+			fleet.Heading = Vector{}
 		}
 
 	}

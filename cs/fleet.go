@@ -660,7 +660,7 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 	}
 
 	if totalDist == dist {
-		fleet.completeMove(mapObjectGetter, wp0, wp1)
+		fleet.completeMove(mapObjectGetter, player, wp0, wp1)
 	} else {
 		// update what other people see for this fleet's speed and direction
 		if fleet.struckMineField {
@@ -766,7 +766,7 @@ func (fleet *Fleet) gateFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 	}
 
 	// we survived, warp it!
-	fleet.completeMove(mapObjectGetter, wp0, wp1)
+	fleet.completeMove(mapObjectGetter, player, wp0, wp1)
 }
 
 // applyOvergatePenalty applies damage (if any) to each token that overgated
@@ -923,7 +923,7 @@ func (fleet *Fleet) getFuelGeneration(techStore *TechStore, player *Player, warp
 }
 
 // Complete a move from one waypoint to another
-func (fleet *Fleet) completeMove(mapObjectGetter mapObjectGetter, wp0 Waypoint, wp1 Waypoint) {
+func (fleet *Fleet) completeMove(mapObjectGetter mapObjectGetter, player *Player, wp0 Waypoint, wp1 Waypoint) {
 	fleet.Position = wp1.Position
 
 	// find out if we arrived at a planet, either by reaching our target fleet
@@ -936,6 +936,8 @@ func (fleet *Fleet) completeMove(mapObjectGetter mapObjectGetter, wp0 Waypoint, 
 	} else if wp1.TargetType == MapObjectTypeWormhole && wp1.TargetNum != None {
 		target := mapObjectGetter.getWormhole(wp1.TargetNum)
 		dest := mapObjectGetter.getWormhole(target.DestinationNum)
+		discoverer := newDiscoverer(player)
+		discoverer.discoverWormholeLink(target, dest)
 		fleet.Position = dest.Position
 	}
 

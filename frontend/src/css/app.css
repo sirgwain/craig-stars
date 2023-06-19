@@ -106,6 +106,16 @@
 	-moz-appearance: textfield;
 }
 
+.scanner-wormhole {
+	fill: #8a2be2;
+}
+
+.wormhole-link {
+	fill: none;
+	stroke: #8a2be2;
+	stroke-linecap: round;
+}
+
 .waypoint-line {
 	fill: none;
 	stroke-linejoin: round;

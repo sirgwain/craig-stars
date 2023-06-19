@@ -216,7 +216,7 @@ func (scan *playerScan) scanWormholes(scanners []scanner) {
 
 			// we only care about regular scanners for wormholes
 			if float64(scanner.RangeSquared)*cloakFactor >= scanner.Position.DistanceSquaredTo(wormhole.Position) {
-				scan.discoverer.discoverWormhole(scan.player, wormhole)
+				scan.discoverer.discoverWormhole(wormhole)
 				break
 			}
 		}
@@ -229,7 +229,7 @@ func (scan *playerScan) scanMysteryTraders(scanners []scanner) {
 		for _, scanner := range scanners {
 			// we only care about regular scanners for mysteryTraders
 			if float64(scanner.RangeSquared) >= scanner.Position.DistanceSquaredTo(mysteryTrader.Position) {
-				scan.discoverer.discoverMysteryTrader(scan.player, mysteryTrader)
+				scan.discoverer.discoverMysteryTrader(mysteryTrader)
 				break
 			}
 		}
