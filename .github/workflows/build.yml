@@ -1,0 +1,26 @@
+on: [push]
+name: Build
+jobs:
+  build:
+    strategy:
+      matrix:
+        go-version: [1.18.x]
+        node-version: [18]
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v3
+
+    # build the frontend
+    - uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+    - run: npm --prefix ./frontend install
+    - run: npm --prefix ./frontend run build
+
+    # build the binary
+    - uses: actions/setup-go@v3
+      with:
+        go-version: ${{ matrix.go-version }}
+    - run: mkdir -p dist/
+    - run: go mod tidy && CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -o dist/craig-stars main.go
