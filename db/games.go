@@ -152,7 +152,7 @@ func (c *client) GetFullGame(id int64) (*cs.FullGame, error) {
 		return nil, fmt.Errorf("load players for game %w", err)
 	}
 
-	universe := cs.Universe{}
+	universe := cs.NewUniverse(&game.Rules)
 
 	planets, err := c.getPlanetsForGame(game.ID)
 	if err != nil {
@@ -443,13 +443,13 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 				tx.Rollback()
 				return fmt.Errorf("create wormhole %w", err)
 			}
-			log.Debug().Int64("GameID", wormhole.GameID).Int64("ID", wormhole.ID).Msgf("Created wormhole %s", wormhole.Name)
+			log.Debug().Int64("GameID", wormhole.GameID).Int64("ID", wormhole.ID).Msgf("Created wormhole %v", wormhole)
 		} else if wormhole.Dirty {
 			if err := c.updateWormhole(wormhole, tx); err != nil {
 				tx.Rollback()
 				return fmt.Errorf("update wormhole %w", err)
 			}
-			log.Debug().Int64("GameID", wormhole.GameID).Int64("ID", wormhole.ID).Msgf("Updated wormhole %s", wormhole.Name)
+			log.Debug().Int64("GameID", wormhole.GameID).Int64("ID", wormhole.ID).Msgf("Updated wormhole %v", wormhole)
 		}
 	}
 

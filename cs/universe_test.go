@@ -3,6 +3,7 @@ package cs
 import "testing"
 
 func TestUniverse_getNextFleetNum(t *testing.T) {
+	rules := NewRules()
 
 	tests := []struct {
 		name   string
@@ -49,6 +50,7 @@ func TestUniverse_getNextFleetNum(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			u := Universe{
 				Fleets: tt.fleets,
+				rules: &rules,
 			}
 			if got := u.getNextFleetNum(1); got != tt.want {
 				t.Errorf("Player.getNextFleetNum() = %v, want %v", got, tt.want)

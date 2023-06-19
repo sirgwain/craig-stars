@@ -14,7 +14,6 @@ export interface Planet extends MapObject {
 	mineYears?: Mineral;
 	cargo?: Cargo;
 	population?: number;
-	playerId?: number;
 	mines?: number;
 	factories?: number;
 	defenses?: number;

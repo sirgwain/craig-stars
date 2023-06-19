@@ -17,7 +17,6 @@ type Fleet struct {
 	GameID            int64      `json:"gameId,omitempty"`
 	CreatedAt         time.Time  `json:"createdAt,omitempty"`
 	UpdatedAt         time.Time  `json:"updatedAt,omitempty"`
-	PlayerID          int64      `json:"playerId,omitempty"`
 	X                 float64    `json:"x,omitempty"`
 	Y                 float64    `json:"y,omitempty"`
 	Name              string     `json:"name,omitempty"`
@@ -107,7 +106,6 @@ SELECT
 	f.createdAt AS 'fleet.createdAt',
 	f.updatedAt AS 'fleet.updatedAt',
 	f.gameId AS 'fleet.gameId',
-	f.playerId AS 'fleet.playerId',
 	f.battlePlanName AS 'fleet.battlePlanName',
 	f.x AS 'fleet.x',
 	f.y AS 'fleet.y',
@@ -241,9 +239,9 @@ func (c *client) getFleetsForGame(gameId int64) ([]*cs.Fleet, error) {
 	return fleets, nil
 }
 
-func (c *client) getFleetsForPlayer(playerId int64) ([]*cs.Fleet, error) {
+func (c *client) getFleetsForPlayer(playerNum int) ([]*cs.Fleet, error) {
 	rows := []fleetJoin{}
-	if err := c.db.Select(&rows, fmt.Sprintf("%s WHERE f.playerId = ?", fleetJoinSelect), playerId); err != nil {
+	if err := c.db.Select(&rows, fmt.Sprintf("%s WHERE f.playerNum = ?", fleetJoinSelect), playerNum); err != nil {
 		if err == sql.ErrNoRows {
 			return []*cs.Fleet{}, nil
 		}
@@ -272,7 +270,6 @@ func (c *client) createFleet(fleet *cs.Fleet, tx SQLExecer) error {
 		createdAt,
 		updatedAt,
 		gameId,
-		playerId,
 		battlePlanName,
 		x,
 		y,
@@ -302,7 +299,6 @@ func (c *client) createFleet(fleet *cs.Fleet, tx SQLExecer) error {
 		CURRENT_TIMESTAMP,
 		CURRENT_TIMESTAMP,
 		:gameId,
-		:playerId,
 		:battlePlanName,
 		:x,
 		:y,
@@ -399,7 +395,6 @@ func (c *client) updateFleet(fleet *cs.Fleet, tx SQLExecer) error {
 	UPDATE fleets SET
 		updatedAt = CURRENT_TIMESTAMP,
 		gameId = :gameId,
-		playerId = :playerId,
 		battlePlanName = :battlePlanName,
 		x = :x,
 		y = :y,

@@ -2,13 +2,11 @@
 	import { page } from '$app/stores';
 
 	import { goto } from '$app/navigation';
-	import ItemTitle from '$lib/components/ItemTitle.svelte';
-	import SectionHeader from '$lib/components/SectionHeader.svelte';
-	import { onMount } from 'svelte';
-	import { setContext } from 'svelte';
-	import { humanoid, LRT, PRT, type Race } from '$lib/types/Race';
-	import TextInput from '$lib/components/TextInput.svelte';
 	import EnumSelect from '$lib/components/EnumSelect.svelte';
+	import ItemTitle from '$lib/components/ItemTitle.svelte';
+	import TextInput from '$lib/components/TextInput.svelte';
+	import { humanoid, PRT, type Race } from '$lib/types/Race';
+	import { onMount } from 'svelte';
 
 	let id = $page.params.id;
 	let race: Race;
@@ -51,8 +49,27 @@
 		}
 	};
 
-	// update race calculations
-	$: race && true; // (race.spec = computeRaceSpec(race));
+	$: points = 0;
+	$: {
+		if (race) {
+			computeRacePoints();
+		}
+	}
+
+	// update points from the server anytime things change
+	const computeRacePoints = async () => {
+		const body = JSON.stringify(race);
+		const response = await fetch(`/api/races/points`, {
+			method: 'POST',
+			headers: {
+				accept: 'application/json'
+			},
+			body
+		});
+
+		const result = (await response.json()) as { points: number };
+		points = result.points;
+	};
 </script>
 
 {#if race}
@@ -63,6 +80,7 @@
 
 		<ItemTitle>{race.name}</ItemTitle>
 
+		Points: {points}
 		<TextInput name="name" bind:value={race.name} />
 		<TextInput name="pluralName" bind:value={race.pluralName} />
 		<EnumSelect name="prt" enumType={PRT} typeTitle={(type) => type} bind:value={race.prt} />

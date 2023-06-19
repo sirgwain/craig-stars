@@ -60,6 +60,7 @@ export const myMapObjectsByPosition = derived(player, ($player) => {
 	$player.planetIntels?.forEach(addtoDict);
 	$player.fleetIntels?.forEach(addtoDict);
 	$player.fleets?.forEach(addtoDict);
+	$player.planets?.forEach(addtoDict);
 
 	return dict;
 });

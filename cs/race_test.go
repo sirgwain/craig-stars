@@ -26,3 +26,28 @@ func TestRace_GetPlanetHabitability(t *testing.T) {
 		})
 	}
 }
+
+func TestRace_ComputeRacePoints(t *testing.T) {
+	startingPoints := 1650 // defind in rules
+
+	immuneInsectoids := Insectoids()
+	tests := []struct {
+		name string
+		race Race
+		want int
+	}{
+		{"Humanoids", Humanoids(), 25},
+		{"all immune", *NewRace().withImmuneGrav(true).withImmuneTemp(true).withImmuneRad(true), -3900},
+		{"Rabbitoids", Rabbitoids(), 32},
+		{"Insectoids", Insectoids(), 43},
+		{"All Immune Insectoid", *immuneInsectoids.withImmuneRad(true).withImmuneTemp(true), -2112},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if got := tt.race.ComputeRacePoints(startingPoints); got != tt.want {
+				t.Errorf("Race.ComputeRacePoints() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

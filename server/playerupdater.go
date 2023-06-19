@@ -12,7 +12,7 @@ var errNotFound = errors.New("resource was not found")
 
 type playerUpdater struct {
 	orderer cs.Orderer
-	db     DBClient
+	db      DBClient
 }
 
 type PlayerUpdater interface {
@@ -39,7 +39,7 @@ func (pu *playerUpdater) UpdatePlayerOrders(userID int64, playerID int64, orders
 		return nil, nil, fmt.Errorf("user %d does not control player %d", userID, player.Num)
 	}
 
-	planets, err := pu.db.GetPlanetsForPlayer(playerID)
+	planets, err := pu.db.GetPlanetsForPlayer(player.GameID, player.Num)
 	if err != nil {
 		log.Error().Err(err).Int64("ID", playerID).Msg("loading player planets from database")
 		return nil, nil, fmt.Errorf("failed to load player planets from database")
@@ -71,14 +71,10 @@ func (pu *playerUpdater) UpdatePlanetOrders(userID int64, planetID int64, orders
 		return nil, fmt.Errorf("failed to load planet from database")
 	}
 
-	player, err := pu.db.GetPlayer(planet.PlayerID)
+	player, err := pu.db.GetLightPlayerForGame(planet.GameID, userID)
 	if err != nil {
-		log.Error().Err(err).Int64("ID", planet.PlayerID).Msg("load player from database")
+		log.Error().Err(err).Int64("GameID", planet.GameID).Int64("UserID", userID).Msg("load player from database")
 		return nil, fmt.Errorf("failed to load player from database")
-	}
-
-	if player.UserID != userID {
-		return nil, fmt.Errorf("user %d does not control player %d", userID, player.Num)
 	}
 
 	// verify the user actually owns this planet
@@ -105,14 +101,10 @@ func (pu *playerUpdater) UpdateFleetOrders(userID int64, fleetID int64, orders c
 		return nil, fmt.Errorf("failed to load fleet from database")
 	}
 
-	player, err := pu.db.GetPlayer(fleet.PlayerID)
+	player, err := pu.db.GetLightPlayerForGame(fleet.GameID, userID)
 	if err != nil {
-		log.Error().Err(err).Int64("ID", fleet.PlayerID).Msg("load player from database")
+		log.Error().Err(err).Int64("GameID", fleet.GameID).Int64("UserID", userID).Msg("load player from database")
 		return nil, fmt.Errorf("failed to load player from database")
-	}
-
-	if player.UserID != userID {
-		return nil, fmt.Errorf("user %d does not control player %d", userID, player.Num)
 	}
 
 	// verify the user actually owns this fleet
@@ -139,14 +131,10 @@ func (pu *playerUpdater) UpdateMineFieldOrders(userID int64, mineFieldID int64, 
 		return nil, fmt.Errorf("failed to load mineField from database")
 	}
 
-	player, err := pu.db.GetPlayer(mineField.PlayerID)
+	player, err := pu.db.GetLightPlayerForGame(mineField.GameID, userID)
 	if err != nil {
-		log.Error().Err(err).Int64("ID", mineField.PlayerID).Msg("load player from database")
+		log.Error().Err(err).Int64("GameID", mineField.GameID).Int64("UserID", userID).Msg("load player from database")
 		return nil, fmt.Errorf("failed to load player from database")
-	}
-
-	if player.UserID != userID {
-		return nil, fmt.Errorf("user %d does not control player %d", userID, player.Num)
 	}
 
 	// verify the user actually owns this mineField
@@ -172,14 +160,10 @@ func (pu *playerUpdater) TransferCargo(userID int64, fleetID int64, destID int64
 		return nil, fmt.Errorf("failed to load fleet from database")
 	}
 
-	player, err := pu.db.GetPlayer(fleet.PlayerID)
+	player, err := pu.db.GetLightPlayerForGame(fleet.GameID, userID)
 	if err != nil {
-		log.Error().Err(err).Int64("ID", fleet.PlayerID).Msg("load player from database")
+		log.Error().Err(err).Int64("GameID", fleet.GameID).Int64("UserID", userID).Msg("load player from database")
 		return nil, fmt.Errorf("failed to load player from database")
-	}
-
-	if player.UserID != userID {
-		return nil, fmt.Errorf("user %d does not control player %d", userID, player.Num)
 	}
 
 	// verify the user actually owns this fleet

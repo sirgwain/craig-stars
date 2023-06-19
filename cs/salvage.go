@@ -6,12 +6,14 @@ type Salvage struct {
 }
 
 // create a new salvage object
-func newSalvage(playerNum int, position Vector, cargo Cargo) Salvage {
-	return Salvage{
+func newSalvage(position Vector, num int, playerNum int, cargo Cargo) *Salvage {
+	return &Salvage{
 		MapObject: MapObject{
 			Type:      MapObjectTypeSalvage,
 			Position:  position,
+			Num:       num,
 			PlayerNum: playerNum,
+			Dirty:     true,
 		},
 		Cargo: cargo,
 	}

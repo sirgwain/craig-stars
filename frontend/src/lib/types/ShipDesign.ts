@@ -6,7 +6,6 @@ export interface ShipDesign {
 	updatedAt: string;
 
 	gameId: number;
-	playerId: number;
 	playerNum: number;
 	uuid: string;
 	name: string;

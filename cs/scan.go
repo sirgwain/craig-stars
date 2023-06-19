@@ -40,6 +40,13 @@ func (scan *playerScan) scan() error {
 		}
 	}
 
+	for i := range player.WormholeIntels {
+		wormhole := &player.WormholeIntels[i]
+		if wormhole.ReportAge != ReportAgeUnexplored {
+			wormhole.ReportAge++
+		}
+	}
+
 	// TODO: add in player mineral packets, minefields, etc
 	scanners := scan.getScanners()
 	cargoScanners := scan.getCargoScanners()
@@ -51,6 +58,7 @@ func (scan *playerScan) scan() error {
 
 	// scan fleets
 	scan.scanFleets(scanners, cargoScanners)
+	scan.scanWormholes(scanners)
 
 	return nil
 }
@@ -168,6 +176,30 @@ func (scan *playerScan) fleetInScannerRange(fleet *Fleet, scanner scanner) bool 
 		return true
 	}
 	return false
+}
+
+// scan all fleets and discover their designs if we should
+func (scan *playerScan) scanWormholes(scanners []scanner) {
+	for _, wormhole := range scan.universe.Wormholes {
+		intel := scan.discoverer.getWormholeIntel(wormhole.Num)
+		cloakFactor := 1.0 - (float64(scan.rules.WormholeCloak) / 100)
+		if intel != nil {
+			cloakFactor = 1
+		}
+
+		for _, scanner := range scanners {
+			if cloakFactor != 1 {
+				// calculate cloak reduction for tachyon detectors if this minefield is cloaked
+				cloakFactor = 1 - (1-cloakFactor)*scanner.CloakReduction
+			}
+
+			// we only care about regular scanners for wormholes
+			if float64(scanner.RangeSquared)*cloakFactor >= scanner.Position.DistanceSquaredTo(wormhole.Position) {
+				scan.discoverer.discoverWormhole(scan.player, wormhole)
+				break
+			}
+		}
+	}
 }
 
 // get a list of unique scanners per player.

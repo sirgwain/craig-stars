@@ -83,6 +83,7 @@ func Start(db DBClient, config config.Config) {
 	ar.GET("/races/:id", server.race)
 	ar.PUT("/races/:id", server.updateRace)
 	ar.POST("/races", server.createRace)
+	ar.POST("/races/points", server.getRacePoints)
 
 	// get various lists of games
 	ar.GET("/games", server.playerGames)

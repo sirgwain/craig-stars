@@ -38,11 +38,6 @@ export interface TechLevel {
 }
 
 export interface Message {
-	id: number;
-	createdAt: string;
-	updatedAt: string;
-
-	playerId: number;
 	type: string;
 	text: string;
 	targetType: MessageTargetType;

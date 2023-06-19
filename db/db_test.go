@@ -51,6 +51,7 @@ func (c *client) createTestGameWithPlayer() (*cs.Game, *cs.Player) {
 	}
 
 	player := gameClient.NewPlayer(1, cs.Humanoids(), &game.Rules)
+	player.Num = 1
 	player.GameID = game.ID
 
 	if err := c.CreatePlayer(player); err != nil {
@@ -61,7 +62,7 @@ func (c *client) createTestGameWithPlayer() (*cs.Game, *cs.Player) {
 }
 
 func (c *client) createTestShipDesign(player *cs.Player, design *cs.ShipDesign) {
-	design.PlayerID = player.ID
+	design.PlayerNum = player.Num
 	if err := c.CreateShipDesign(design); err != nil {
 		panic(fmt.Errorf("create test design %w", err))
 	}

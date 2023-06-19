@@ -28,7 +28,7 @@ type PRTSpec struct {
 	GrowthFactor                     float64          `json:"growthFactor"`
 	MaxPopulationOffset              float64          `json:"maxPopulationOffset"`
 	BuiltInCloakUnits                int              `json:"builtInCloakUnits"`
-	StealsResearch                   TechLevel        `json:"stealsResearch"`
+	StealsResearch                   StealsResearch   `json:"stealsResearch"`
 	FreeCargoCloaking                bool             `json:"freeCargoCloaking"`
 	MineFieldsAreScanners            bool             `json:"mineFieldsAreScanners"`
 	MineFieldRateMoveFactor          float64          `json:"mineFieldRateMoveFactor"`
@@ -112,6 +112,15 @@ type StartingFleet struct {
 	Purpose       ShipDesignPurpose `json:"purpose"`
 }
 
+type StealsResearch struct {
+	Energy        float64 `json:"energy,omitempty"`
+	Weapons       float64 `json:"weapons,omitempty"`
+	Propulsion    float64 `json:"propulsion,omitempty"`
+	Construction  float64 `json:"construction,omitempty"`
+	Electronics   float64 `json:"electronics,omitempty"`
+	Biotechnology float64 `json:"biotechnology,omitempty"`
+}
+
 type StartingFleetHull string
 
 const (
@@ -185,11 +194,41 @@ func defaultPRTSpec() PRTSpec {
 func heSpec() PRTSpec {
 	spec := defaultPRTSpec()
 
+	spec.StartingPlanets[0].StartingFleets = []StartingFleet{
+		{"Deep Space Probe", StartingFleetHullScout, 0, ShipDesignPurposeScout},
+		{"Spore Cloud", StartingFleetHullMiniColonyShip, 0, ShipDesignPurposeColonizer},
+		{"Spore Cloud", StartingFleetHullMiniColonyShip, 0, ShipDesignPurposeColonizer},
+		{"Spore Cloud", StartingFleetHullMiniColonyShip, 0, ShipDesignPurposeColonizer},
+	}
+
+	spec.GrowthFactor = 2
+	spec.MaxPopulationOffset = -.5
 	return spec
 }
 
 func ssSpec() PRTSpec {
 	spec := defaultPRTSpec()
+
+	spec.StartingTechLevels = TechLevel{
+		Electronics: 5,
+	}
+
+	spec.StartingPlanets[0].StartingFleets = []StartingFleet{
+		{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
+		{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
+	}
+
+	spec.BuiltInCloakUnits = 300
+	spec.FreeCargoCloaking = true
+	spec.MineFieldSafeWarpBonus = 1
+	spec.StealsResearch = StealsResearch{
+		Energy:        .5,
+		Weapons:       .5,
+		Propulsion:    .5,
+		Construction:  .5,
+		Electronics:   .5,
+		Biotechnology: .5,
+	}
 
 	return spec
 }
@@ -197,11 +236,50 @@ func ssSpec() PRTSpec {
 func wmSpec() PRTSpec {
 	spec := defaultPRTSpec()
 
+	spec.StartingTechLevels = TechLevel{
+		Energy:     1,
+		Weapons:    6,
+		Propulsion: 1,
+	}
+
+	spec.StartingPlanets[0].StartingFleets = []StartingFleet{
+		{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
+		{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
+		{"Armored Probe", StartingFleetHullScout, 1, ShipDesignPurposeFighterScout},
+	}
+
+	spec.TechCostOffset = TechCostOffset{
+		BeamWeapon: -.25,
+		Torpedo:    -.25,
+		Bomb:       -.25,
+	}
+	spec.DiscoverDesignOnScan = true
+	spec.InvasionAttackBonus = 1.65
+	spec.MovementBonus = 2
+
 	return spec
 }
 
 func caSpec() PRTSpec {
 	spec := defaultPRTSpec()
+
+	spec.StartingTechLevels = TechLevel{
+		Energy:        1,
+		Weapons:       1,
+		Propulsion:    1,
+		Construction:  2,
+		Biotechnology: 6,
+	}
+
+	spec.StartingPlanets[0].StartingFleets = []StartingFleet{
+		{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
+		{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
+		{"Change of Heart", StartingFleetHullMiniMiner, 1, ShipDesignPurposeTerraformer},
+	}
+
+	spec.Instaforming = true
+	spec.PermaformChance = .1 // chance is 10% if pop is over 100k
+	spec.PermaformPopulation = 100_000
 
 	return spec
 }
@@ -209,11 +287,46 @@ func caSpec() PRTSpec {
 func isSpec() PRTSpec {
 	spec := defaultPRTSpec()
 
+	spec.StartingPlanets[0].StartingFleets = []StartingFleet{
+		{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
+		{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
+	}
+
+	spec.TechCostOffset = TechCostOffset{
+		PlanetaryDefense: -.4, // defenses cost 40% less
+		BeamWeapon:       .25, // weapons cost 25% less
+		Torpedo:          .25, // weapons cost 25% less
+		Bomb:             .25, // weapons cost 25% less
+	}
+
+	spec.FreighterGrowthFactor = .5
+	spec.InvasionDefendBonus = 2
+	spec.RepairFactor = 2 // double repairs!
+	spec.StarbaseRepairFactor = 1.5
+
 	return spec
 }
 
 func sdSpec() PRTSpec {
 	spec := defaultPRTSpec()
+
+	spec.StartingTechLevels = TechLevel{
+		Propulsion:    2,
+		Biotechnology: 2,
+	}
+
+	spec.StartingPlanets[0].StartingFleets = []StartingFleet{
+		{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
+		{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
+		{"Little Hen", StartingFleetHullMiniMineLayer, 0, ShipDesignPurposeDamageMineLayer},
+		{"Speed Turtle", StartingFleetHullMiniMineLayer, 0, ShipDesignPurposeSpeedMineLayer},
+	}
+
+	spec.MineFieldsAreScanners = true
+	spec.CanDetonateMineFields = true
+	spec.MineFieldRateMoveFactor = .5
+	spec.MineFieldMinDecayFactor = .25
+	spec.MineFieldSafeWarpBonus = 2
 
 	return spec
 }
@@ -257,11 +370,60 @@ func ppSpec() PRTSpec {
 func itSpec() PRTSpec {
 	spec := defaultPRTSpec()
 
+	spec.StartingTechLevels = TechLevel{
+		Propulsion:   5,
+		Construction: 5,
+	}
+
+	spec.StartingPlanets = []StartingPlanet{
+		// one homeworld, 20k people, no hab penalty
+		{Population: 25000, HabPenaltyFactor: 0, HasStargate: true, StarbaseHull: SpaceStation.Name, StarbaseDesignName: "Starbase",
+			StartingFleets: []StartingFleet{
+				{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
+				{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
+				{"Swashbuckler", StartingFleetHullPrivateer, 0, ShipDesignPurposeArmedFreighter},
+				{"Stalwart Defender", StartingFleetHullDestroyer, 0, ShipDesignPurposeFighterScout},
+			},
+		},
+		// on extra world where hab varies by 1/2 of the range
+		{
+			Population: 10000, HabPenaltyFactor: 1, HasStargate: true, StarbaseHull: OrbitalFort.Name, StarbaseDesignName: "Accelerator Platform",
+			StartingFleets: []StartingFleet{
+				{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
+			},
+		},
+	}
+
+	spec.CanGateCargo = true
+	spec.CanDetectStargatePlanets = true
+	spec.ShipsVanishInVoid = false
+	spec.PacketMineralCostFactor = 1.2
+	spec.PacketReceiverFactor = .5
+	spec.PacketOverSafeWarpPenalty = 1
+
 	return spec
 }
 
 func arSpec() PRTSpec {
 	spec := defaultPRTSpec()
+
+	spec.StartingTechLevels = TechLevel{
+		Energy: 1,
+	}
+
+	spec.StartingPlanets[0].StartingFleets = []StartingFleet{
+		{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
+		{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
+	}
+
+	spec.CanRemoteMineOwnPlanets = true
+	spec.StarbaseCostFactor = .8
+	spec.InnateMining = true
+	spec.InnateResources = true
+	spec.InnateScanner = true
+	spec.InnatePopulationFactor = .1
+	spec.CanBuildDefenses = false
+	spec.LivesOnStarbases = true
 
 	return spec
 }
@@ -293,11 +455,16 @@ func joatSpec() PRTSpec {
 }
 
 func ifeSpec() LRTSpec {
-	return LRTSpec{}
+	return LRTSpec{
+		StartingTechLevels:   TechLevel{Propulsion: 1},
+		FuelEfficiencyOffset: -.15,
+	}
 }
 
 func ttSpec() LRTSpec {
-	return LRTSpec{}
+	return LRTSpec{
+		TerraformCostOffset: Cost{Resources: -30},
+	}
 }
 
 func armSpec() LRTSpec {
@@ -305,15 +472,27 @@ func armSpec() LRTSpec {
 }
 
 func isbSpec() LRTSpec {
-	return LRTSpec{}
+	return LRTSpec{
+		StarbaseBuiltInCloakUnits: 40, // 20% built in cloaking
+		StarbaseCostFactor:        .8,
+	}
 }
 
 func grSpec() LRTSpec {
-	return LRTSpec{}
+	return LRTSpec{
+		ResearchFactor:       .5,
+		ResearchSplashDamage: .15,
+	}
 }
 
 func urSpec() LRTSpec {
-	return LRTSpec{}
+	return LRTSpec{
+		// UR gives us 45% of scrapped minerals and resources, versus 1/3 for races without UR
+		ScrapMineralOffset:           .45 - (1.0 / 3),
+		ScrapMineralOffsetStarbase:   .9 - (1.0 / 3),
+		ScrapResourcesOffset:         .35,
+		ScrapResourcesOffsetStarbase: .7,
+	}
 }
 
 func nrseSpec() LRTSpec {
@@ -321,29 +500,54 @@ func nrseSpec() LRTSpec {
 }
 
 func obrmSpec() LRTSpec {
-	return LRTSpec{}
+	return LRTSpec{
+		MaxPopulationOffset: .1,
+	}
 }
 
 func nasSpec() LRTSpec {
-	return LRTSpec{}
+	return LRTSpec{
+		NoAdvancedScanners: true,
+		ScanRangeFactor:    2,
+	}
 }
 
 func lspSpec() LRTSpec {
-	return LRTSpec{}
+	return LRTSpec{
+		StartingPopulationFactor: .7,
+	}
 }
 
 func betSpec() LRTSpec {
-	return LRTSpec{}
+	return LRTSpec{
+		NewTechCostFactor:       2,
+		MiniaturizationMax:      .8,
+		MiniaturizationPerLevel: .05,
+	}
 }
 
 func rsSpec() LRTSpec {
-	return LRTSpec{}
+	return LRTSpec{
+		ShieldStrengthFactor:   1.4,
+		ShieldRegenerationRate: .1,
+	}
 }
 
 func maSpec() LRTSpec {
-	return LRTSpec{}
+	return LRTSpec{
+		MineralAlchemyCostOffset: -75,
+	}
 }
 
 func ceSpec() LRTSpec {
-	return LRTSpec{}
+	return LRTSpec{
+		StartingTechLevels: TechLevel{Propulsion: 1},
+
+		TechCostOffset: TechCostOffset{
+			Engine: -.5, // engines cost 50% less
+		},
+
+		EngineFailureRate:   .1,
+		EngineReliableSpeed: 6,
+	}
 }

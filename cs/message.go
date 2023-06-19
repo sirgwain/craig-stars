@@ -2,14 +2,9 @@ package cs
 
 import (
 	"fmt"
-	"time"
 )
 
 type PlayerMessage struct {
-	ID                 int64                   `json:"id"`
-	CreatedAt          time.Time               `json:"createdAt"`
-	UpdatedAt          time.Time               `json:"updatedAt"`
-	PlayerID           int64                   `json:"playerId"`
 	Type               PlayerMessageType       `json:"type,omitempty"`
 	Text               string                  `json:"text,omitempty"`
 	TargetMapObjectNum int                     `json:"targetMapObjectNum,omitempty"`
@@ -170,6 +165,24 @@ func (m *messageClient) fleetOutOfFuel(player *Player, fleet *Fleet, warpFactor 
 func (m *messageClient) fleetGeneratedFuel(player *Player, fleet *Fleet, fuelGenerated int) {
 	text := fmt.Sprintf("%s's ram scoops have produced %dmg of fuel from interstellar hydrogen.", fleet.Name, fuelGenerated)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetGeneratedFuel, Text: text, TargetType: TargetFleet, TargetMapObjectNum: fleet.Num})
+}
+
+func (m *messageClient) fleetScrapped(player *Player, fleet *Fleet, totalMinerals int, resources int, planet *Planet) {
+	var text string
+	if planet != nil {
+		if planet.Spec.HasStarbase {
+			text = fmt.Sprintf("%s has been dismantled for %dkT of minerals which have been deposited on %s.", fleet.Name, totalMinerals, planet.Name)
+		} else {
+			text = fmt.Sprintf("%s has been dismantled for %dkT of minerals at the starbase orbiting %s.", fleet.Name, totalMinerals, planet.Name)
+		}
+		if resources > 0 {
+			text += fmt.Sprintf(" Ultimate recycling has also made %d resources available for immediate use (less if other ships were scrapped here this year).", resources)
+		}
+		player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetScrapped, Text: text, TargetType: TargetPlanet, TargetMapObjectNum: planet.Num})
+	} else {
+		text = fmt.Sprintf("%s has been dismantled. The scrap was left in deep space.", fleet.Name)
+		player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetScrapped, Text: text})
+	}
 }
 
 func (m *messageClient) colonizeNonPlanet(player *Player, fleet *Fleet) {

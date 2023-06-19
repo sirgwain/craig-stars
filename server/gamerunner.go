@@ -25,7 +25,7 @@ type GameRunner interface {
 	LoadPlayerGame(gameID int64, userID int64) (*cs.Game, *cs.FullPlayer, error)
 	SubmitTurn(gameID int64, userID int64) error
 	CheckAndGenerateTurn(gameID int64) (TurnGenerationCheckResult, error)
-	GenerateTurn(gameID int64) (TurnGenerationCheckResult, error)
+	GenerateTurn(gameID int64) error
 }
 
 type gameRunner struct {
@@ -98,10 +98,11 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 		}
 	}
 
+	universe := cs.NewUniverse(&game.Rules)
 	fullGame := &cs.FullGame{
 		Game:     game,
 		Players:  players,
-		Universe: &cs.Universe{}, // todo: populate
+		Universe: &universe,
 	}
 
 	gr.db.UpdateFullGame(fullGame)
@@ -255,19 +256,23 @@ func (gr *gameRunner) CheckAndGenerateTurn(gameID int64) (TurnGenerationCheckRes
 
 	// if everyone submitted their turn, generate a new turn
 	if gr.client.CheckAllPlayersSubmitted(fullGame.Players) {
-		return gr.generateTurn(fullGame)
+		if err := gr.generateTurn(fullGame); err != nil {
+			return TurnNotGenerated, err
+		} else {
+			return TurnGenerated, nil
+		}
 	}
 
 	return TurnNotGenerated, nil
 }
 
 // GenerateTurn generate a new turn, regardless of whether player's have all submitted their turns
-func (gr *gameRunner) GenerateTurn(gameID int64) (TurnGenerationCheckResult, error) {
+func (gr *gameRunner) GenerateTurn(gameID int64) error {
 	defer timeTrack(time.Now(), "GenerateTurn")
 	fullGame, err := gr.loadGame(gameID)
 
 	if err != nil {
-		return TurnNotGenerated, err
+		return err
 	}
 
 	return gr.generateTurn(fullGame)
@@ -323,18 +328,18 @@ func (gr *gameRunner) processAITurns(fullGame *cs.FullGame) {
 }
 
 // generate a turn for a game
-func (gr *gameRunner) generateTurn(fullGame *cs.FullGame) (TurnGenerationCheckResult, error) {
+func (gr *gameRunner) generateTurn(fullGame *cs.FullGame) error {
 	// if everyone submitted their turn, generate a new turn
 	if err := gr.client.GenerateTurn(fullGame.Game, fullGame.Universe, fullGame.Players); err != nil {
-		return TurnNotGenerated, fmt.Errorf("generate turn -> %w", err)
+		return fmt.Errorf("generate turn -> %w", err)
 	}
 
 	// ai processing
 	gr.processAITurns(fullGame)
 
 	if err := gr.db.UpdateFullGame(fullGame); err != nil {
-		return TurnNotGenerated, fmt.Errorf("save game after turn generation -> %w", err)
+		return fmt.Errorf("save game after turn generation -> %w", err)
 	}
-	return TurnGenerated, nil
+	return nil
 
 }

@@ -66,6 +66,20 @@ func (s *server) createRace(c *gin.Context) {
 	c.JSON(http.StatusOK, race)
 }
 
+// Submit a turn for the player
+func (s *server) getRacePoints(c *gin.Context) {
+
+	race := cs.Race{}
+	if err := c.ShouldBindJSON(&race); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// compute points
+	points := race.ComputeRacePoints(cs.NewRules().RaceStartingPoints)
+	c.JSON(http.StatusOK, gin.H{"points": points})
+}
+
 func (s *server) updateRace(c *gin.Context) {
 	user := s.GetSessionUser(c)
 
