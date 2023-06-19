@@ -4,9 +4,10 @@
  -->
 <script lang="ts">
 	import { selectedMapObject } from '$lib/services/Context';
+	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 
-	const { xGet, yGet } = getContext('LayerCake');
+	const { xGet, yGet } = getContext<LayerCake>('LayerCake');
 </script>
 
 <svg

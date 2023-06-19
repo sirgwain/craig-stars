@@ -15,7 +15,6 @@
 	};
 
 	let scanners: Scanner[] = [];
-
 	$: {
 		if ($data && $player) {
 			const scannersByPosition = new Map<string, Scanner>();

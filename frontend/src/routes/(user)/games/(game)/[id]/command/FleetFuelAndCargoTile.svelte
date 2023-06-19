@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { EventManager } from '$lib/EventManager';
 	import { commandedFleet } from '$lib/services/Context';
-	import CargoBar from '../CargoBar.svelte';
-	import FuelBar from '../FuelBar.svelte';
+	import CargoBar from '$lib/components/game/CargoBar.svelte';
+	import FuelBar from '$lib/components/game/FuelBar.svelte';
 	import CommandTile from './CommandTile.svelte';
 	import type { Fleet } from '$lib/types/Fleet';
 	import { onMount } from 'svelte';
@@ -25,7 +25,7 @@
 	};
 </script>
 
-{#if $commandedFleet}
+{#if $commandedFleet?.spec}
 	<CommandTile title="Fuel & Cargo">
 		<div class="flex justify-between my-1">
 			<div class="w-12">Fuel</div>

@@ -6,7 +6,7 @@
 	import { player } from '$lib/services/Context';
 	import type { Planet } from '$lib/types/Planet';
 	import { findMyPlanet } from '$lib/types/Player';
-	import MineralConcentrationPoint from './MineralConcentrationPoint.svelte';
+	import MineralConcentrationPoint from '$lib/components/game/MineralConcentrationPoint.svelte';
 
 	export let planet: Planet;
 	export let scale = 1.0;

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import CommandPane from '$lib/components/game/command/CommandPane.svelte';
+	import CommandPane from './command/CommandPane.svelte';
 	import HighlightedMapObjectStats from './HighlightedMapObjectStats.svelte';
 	import MapObjectSummary from './MapObjectSummary.svelte';
 	import MessagesPane from './MessagesPane.svelte';

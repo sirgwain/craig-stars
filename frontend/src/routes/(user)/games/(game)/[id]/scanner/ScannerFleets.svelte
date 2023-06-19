@@ -7,8 +7,9 @@
 	import type { Fleet } from '$lib/types/Fleet';
 	import { getContext } from 'svelte';
 	import ScannerFleet from './ScannerFleet.svelte';
+	import type { LayerCake } from 'layercake';
 
-	const { data } = getContext('LayerCake');
+	const { data } = getContext<LayerCake>('LayerCake');
 
 	let fleets: Fleet[] = [];
 

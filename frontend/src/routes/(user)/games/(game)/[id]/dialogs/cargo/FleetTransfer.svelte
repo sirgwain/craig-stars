@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { add, emptyCargo, type Cargo } from '$lib/types/Cargo';
 	import { createEventDispatcher } from 'svelte';
-	import CargoBar from '../../CargoBar.svelte';
-	import FuelBar from '../../FuelBar.svelte';
-	import MineralBar from '../../MineralBar.svelte';
+	import CargoBar from '$lib/components/game/CargoBar.svelte';
+	import FuelBar from '$lib/components/game/FuelBar.svelte';
+	import MineralBar from '$lib/components/game/MineralBar.svelte';
 
 	export let cargo: Cargo = emptyCargo();
 	export let fuel: number = 0;

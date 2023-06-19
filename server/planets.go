@@ -50,6 +50,11 @@ func (s *server) UpdatePlanetOrders(c *gin.Context) {
 		return
 	}
 
+	if rules == nil {
+		r := game.NewRules()
+		rules = &r
+	}
+
 	// copy user modifiable things to the existing planet
 	existing.ContributesOnlyLeftoverToResearch = planet.ContributesOnlyLeftoverToResearch
 	existing.ProductionQueue = planet.ProductionQueue

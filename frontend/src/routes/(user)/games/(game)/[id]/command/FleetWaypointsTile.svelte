@@ -14,7 +14,7 @@
 	import { distance } from '$lib/types/Vector';
 	import hotkeys from 'hotkeys-js';
 	import { merge } from 'lodash-es';
-	import WarpFactorBar from '../WarpFactorBar.svelte';
+	import WarpFactorBar from '$lib/components/game/WarpFactorBar.svelte';
 	import CommandTile from './CommandTile.svelte';
 
 	const fleetService = new FleetService();

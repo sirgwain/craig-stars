@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Game } from '$lib/types/Game';
-	import { format,parseJSON } from 'date-fns';
-	
+	import { format, parseJSON } from 'date-fns';
+
 	export let games: Game[];
 
 	$: games &&

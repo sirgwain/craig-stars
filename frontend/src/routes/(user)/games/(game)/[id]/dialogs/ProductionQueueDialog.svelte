@@ -1,21 +1,21 @@
 <script lang="ts">
 	import { getQuantityModifier } from '$lib/quantityModifier';
-	import { commandedPlanet,commandMapObject,player } from '$lib/services/Context';
+	import { commandedPlanet, commandMapObject, player } from '$lib/services/Context';
 	import { PlanetService } from '$lib/services/PlanetService';
 	import type { Cost } from '$lib/types/Cost';
 	import type { ProductionQueueItem } from '$lib/types/Planet';
-	import { isAuto,QueueItemType } from '$lib/types/Planet';
+	import { isAuto, QueueItemType } from '$lib/types/Planet';
 	import {
-	ArrowNarrowDown,
-	ArrowNarrowLeft,
-	ArrowNarrowRight,
-	ArrowNarrowUp,
-	XCircle
+		ArrowNarrowDown,
+		ArrowNarrowLeft,
+		ArrowNarrowRight,
+		ArrowNarrowUp,
+		XCircle
 	} from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import hotkeys from 'hotkeys-js';
-	import { createEventDispatcher,onDestroy } from 'svelte';
-	import CostComponent from '../Cost.svelte';
+	import { createEventDispatcher, onDestroy } from 'svelte';
+	import CostComponent from '$lib/components/game/Cost.svelte';
 
 	const getFullName = (item: ProductionQueueItem) => {
 		switch (item.type) {
