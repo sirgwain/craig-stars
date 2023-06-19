@@ -14,7 +14,15 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # build the frontend
+      # run server tests (this is fast)
+      - uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go-version }}
+          check-latest: true
+          cache: true
+      - run: go test ./...          
+
+      # build the frontend (this is slow)
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
@@ -25,13 +33,12 @@ jobs:
       - run: mkdir -p dist/
       - run: tar -cvf ./dist/frontend.tgz -C frontend/build .
 
-      # build the binary
+      # build the binary (this embeds the frontend built above)
       - uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go-version }}
           check-latest: true
           cache: true
-      - run: go test ./...          
       - run: mkdir -p dist/
       - run: go mod tidy && CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -ldflags='-s -w -extldflags "-static"' -o dist/craig-stars main.go
       - run: tar -cvf ./dist/craig-stars.tgz -C ./dist ./craig-stars
