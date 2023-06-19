@@ -30,7 +30,7 @@ jobs:
           cache: true
       - run: mkdir -p dist/
       - run: go mod tidy && CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -o dist/craig-stars main.go
-      - run: tar -cvf ./dist/craig-stars ./dist/craig-stars.tgz
+      - run: tar -cvf ./dist/craig-stars.tgz ./dist/craig-stars
 
       - uses: actions/upload-artifact@v3
         with:
