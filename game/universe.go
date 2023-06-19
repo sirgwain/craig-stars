@@ -136,19 +136,6 @@ func (u *Universe) GetMineFields(playerNum int) []*MineField {
 	return mineFields
 }
 
-// get a subset of only owned planets in this universe
-func (u *Universe) getOwnedPlanets() []*Planet {
-	var ownedPlanets []*Planet
-
-	for _, planet := range u.Planets {
-		if planet.Owned() {
-			ownedPlanets = append(ownedPlanets, planet)
-		}
-	}
-
-	return ownedPlanets
-}
-
 func (u *Universe) getNextFleetNum(playerNum int) int {
 	num := 1
 

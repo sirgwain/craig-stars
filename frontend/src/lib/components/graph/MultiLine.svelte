@@ -3,9 +3,10 @@
   Generates an SVG multi-series line chart. It expects your data to be an array of objects, each with a `values` key that is an array of data objects.
  -->
 <script lang="ts">
+	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 
-	const { data, xGet, yGet, zGet } = getContext('LayerCake');
+	const { data, xGet, yGet, zGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
 	$: path = (values: any) => {
 		return (

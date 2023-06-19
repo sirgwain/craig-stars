@@ -118,7 +118,7 @@ func (ai *aiPlayer) colonize() {
 	// find all idle fleets that are colonizers
 	colonizerFleets := []*Fleet{}
 	for _, fleet := range ai.Fleets {
-		if _, contains := fleet.Spec.Purposes[ShipDesignPurposeColonizer]; contains && fleet.Spec.Colonizer && fleet.Orbiting() {
+		if _, contains := fleet.Spec.Purposes[ShipDesignPurposeColonizer]; contains && fleet.Spec.Colonizer {
 			if len(fleet.Waypoints) <= 1 {
 				planet := ai.GetPlanet(fleet.OrbitingPlanetNum)
 				if planet != nil && planet.OwnedBy(ai.Player.Num) && planet.Spec.PopulationDensity > ai.config.colonizerPopulationDensity {

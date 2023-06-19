@@ -6,6 +6,7 @@
 	import { player } from '$lib/services/Context';
 	import type { Planet } from '$lib/types/Planet';
 	import { findMyPlanet } from '$lib/types/Player';
+	import MineralConcentrationPoint from './MineralConcentrationPoint.svelte';
 
 	export let planet: Planet;
 	export let scale = 1.0;
@@ -18,6 +19,12 @@
 	}
 
 	let barPercent: Mineral = {
+		ironium: 0,
+		boranium: 0,
+		germanium: 0
+	};
+
+	let concentrationPercent: Mineral = {
 		ironium: 0,
 		boranium: 0,
 		germanium: 0
@@ -41,6 +48,34 @@
 			}
 		}
 	}
+
+	$: {
+		if (planet && planet.mineralConcentration) {
+			concentrationPercent = {
+				ironium: clamp(
+					planet.mineralConcentration.ironium
+						? (planet.mineralConcentration.ironium / 100) * 100
+						: 0,
+					0,
+					100
+				),
+				boranium: clamp(
+					planet.mineralConcentration.boranium
+						? (planet.mineralConcentration.boranium / 100) * 100
+						: 0,
+					0,
+					100
+				),
+				germanium: clamp(
+					planet.mineralConcentration.germanium
+						? (planet.mineralConcentration.germanium / 100) * 100
+						: 0,
+					0,
+					100
+				)
+			};
+		}
+	}
 </script>
 
 <div class="flex flex-row">
@@ -50,9 +85,27 @@
 		<div class="text-germanium">Germanium</div>
 	</div>
 	<div class="grow flex flex-col justify-evenly mx-1 px-0.5 py-1 bg-black line gap-2">
-		<div style={`width: ${barPercent.ironium?.toFixed()}%`} class="ironium-bar h-full" />
-		<div style={`width: ${barPercent.boranium?.toFixed()}%`} class="boranium-bar h-full" />
-		<div style={`width: ${barPercent.germanium?.toFixed()}%`} class="germanium-bar h-full" />
+		<div class="h-full relative">
+			<MineralConcentrationPoint
+				style={`left: ${concentrationPercent.ironium?.toFixed()};`}
+				class="absolute ironium-concentration w-auto h-full ironium"
+			/>
+			<div style={`width: ${barPercent.ironium?.toFixed()}%`} class="ironium-bar h-full" />
+		</div>
+		<div class="h-full relative">
+			<MineralConcentrationPoint
+				style={`left: ${concentrationPercent.boranium?.toFixed()};`}
+				class="absolute boranium-concentration w-auto h-full boranium"
+			/>
+			<div style={`width: ${barPercent.boranium?.toFixed()}%`} class="boranium-bar h-full" />
+		</div>
+		<div class="h-full relative">
+			<MineralConcentrationPoint
+				style={`left: ${concentrationPercent.germanium?.toFixed()};`}
+				class="absolute germanium-concentration  h-full germanium"
+			/>
+			<div style={`width: ${barPercent.germanium?.toFixed()}%`} class="germanium-bar h-full" />
+		</div>
 	</div>
 	<div class="w-[3rem]" />
 </div>

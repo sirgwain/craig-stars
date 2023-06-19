@@ -3,12 +3,13 @@
   Generates a tooltip that works on multiseries datasets, like multiline charts. It creates a tooltip showing the name of the series and the current value. It finds the nearest data point using the [QuadTree.html.svelte](https://layercake.graphics/components/QuadTree.html.svelte) component.
  -->
 <script lang="ts">
-	import { getContext } from 'svelte';
 	import { format } from 'd3-format';
-
+	import type { LayerCake } from 'layercake';
+	import { getContext } from 'svelte';
 	import QuadTree from './QuadTree.svelte';
 
-	const { data, width, yScale, config } = getContext('LayerCake');
+	const { data, xGet, yGet, zGet, xScale, yScale, width, height, config } =
+		getContext<LayerCake>('LayerCake');
 
 	const commas = format(',');
 	const titleCase = (d: any) => d.replace(/^\w/, (w: string) => w.toUpperCase());

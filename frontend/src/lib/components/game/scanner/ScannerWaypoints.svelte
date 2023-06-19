@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { commandedFleet, player } from '$lib/services/Context';
-	import type { Fleet, Waypoint } from '$lib/types/Fleet';
 
+	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 
-	const { data, xGet, yGet, xScale, yScale, width, height } = getContext('LayerCake');
+	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
 	type WaypointLine = {
 		path: string;

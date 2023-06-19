@@ -3,9 +3,10 @@
 
 	import { positionKey } from '$lib/types/MapObject';
 	import type { Vector } from '$lib/types/Vector';
+	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 
-	const { data, xGet, yGet, xScale, yScale, width, height } = getContext('LayerCake');
+	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
 	type Scanner = {
 		position: Vector;
@@ -28,7 +29,7 @@
 			);
 
 			$player.fleets
-				.filter((fleet) => fleet.spec.scanner)
+				.filter((fleet) => fleet.spec?.scanner)
 				.forEach((fleet) => {
 					const key = positionKey(fleet);
 					const scanner = {

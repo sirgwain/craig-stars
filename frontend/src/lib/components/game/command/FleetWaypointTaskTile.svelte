@@ -10,17 +10,10 @@
 	import { $enum as eu } from 'ts-enum-util';
 	import CommandTile from './CommandTile.svelte';
 
-	let selectedWaypointTask: WaypointTask = WaypointTask.None;
-
 	const fleetService = new FleetService();
-
-	commandedMapObjectName.subscribe(
-		() => $selectedWaypoint && (selectedWaypointTask = $selectedWaypoint?.task ?? WaypointTask.None)
-	);
 
 	const onSelectedWaypointTaskChange = (task: WaypointTask) => {
 		if ($game && $commandedFleet && $selectedWaypoint) {
-			selectedWaypointTask = task;
 			$selectedWaypoint.task = task;
 
 			fleetService.updateFleetOrders($commandedFleet);
@@ -32,7 +25,7 @@
 	<CommandTile title="Waypoint Task">
 		<select
 			class="select select-bordered"
-			bind:value={selectedWaypointTask}
+			bind:value={$selectedWaypoint.task}
 			on:change={(e) =>
 				onSelectedWaypointTaskChange(
 					eu(WaypointTask).getValueOrDefault(e.currentTarget.value, WaypointTask.None)
@@ -47,7 +40,7 @@
 			{/each}
 		</select>
 
-		{#if selectedWaypointTask != WaypointTask.None}
+		{#if $selectedWaypoint?.task != WaypointTask.None}
 			<div class="flex justify-between my-1 btn-group">
 				<!-- Task items -->
 			</div>
