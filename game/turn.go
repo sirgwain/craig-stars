@@ -9,7 +9,9 @@ func generateTurn(game *Game) error {
 	grow(game)
 
 	for i := range game.Players {
-		playerScan(game, &game.Players[i])
+		player := &game.Players[i]
+		player.Spec = computePlayerSpec(player, &game.Rules)
+		playerScan(game, player)
 	}
 
 	// reset all players

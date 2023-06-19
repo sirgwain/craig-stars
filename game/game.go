@@ -201,6 +201,11 @@ func (g *Game) AddPlayer(p *Player) *Player {
 
 // compute the specs for a universe, i.e. planets, designs, fleets
 func (g *Game) computeSpecs() {
+	for i := range g.Players {
+		player := &g.Players[i]
+		player.Spec = computePlayerSpec(player, &g.Rules)
+	}
+
 	for i := range g.Planets {
 		planet := &g.Planets[i]
 		if planet.Owned() {
@@ -226,9 +231,10 @@ func (g *Game) GenerateUniverse() error {
 	g.Area = area
 
 	generateWormholes(g)
-	generatePlayerTechLevelss(g)
-	generatePlayerPlanss(g)
-	generatePlayerShipDesignss(g)
+
+	generatePlayerTechLevels(g)
+	generatePlayerPlans(g)
+	generatePlayerShipDesigns(g)
 
 	if err := generatePlayerHomeworlds(g, area); err != nil {
 		return err
@@ -238,7 +244,7 @@ func (g *Game) GenerateUniverse() error {
 		return err
 	}
 
-	generatePlayerFleets(g)
+	// generatePlayerFleets(g)
 	applyGameStartModeModifier(g)
 
 	// setup all the specs for planets, fleets, etc

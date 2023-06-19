@@ -28,7 +28,7 @@ func (db *DB) SavePlanet(planet *game.Planet) error {
 		planet.ProductionQueue[i].SortOrder = i
 	}
 
-	// save the planet and all
+	// save the planet and all production queue items
 	if err := db.sqlDB.Session(&gorm.Session{FullSaveAssociations: true}).Save(planet).Error; err != nil {
 		return err
 	}

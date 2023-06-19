@@ -1,3 +1,4 @@
+import type { Fleet } from './Fleet';
 import type { Planet } from './Planet';
 import type { Race } from './Race';
 import type { ShipDesign } from './ShipDesign';
@@ -14,18 +15,41 @@ export interface Player {
 	ready?: boolean;
 	aIControlled?: boolean;
 	submittedTurn?: boolean;
-	techLevels: TechLevels;
-	techLevelsSpent: TechLevels;
+	techLevels: TechLevel;
+	techLevelsSpent: TechLevel;
+	messages: Message[];
 	designs: ShipDesign[];
 	planets: Planet[];
+	fleets: Fleet[];
 	planetIntels: Planet[];
 }
 
-export interface TechLevels {
+export interface TechLevel {
 	energy?: number;
 	weapons?: number;
 	propulsion?: number;
 	construction?: number;
 	electronics?: number;
 	biotechnology?: number;
+}
+
+export interface Message {
+	id: number;
+	createdAt: string;
+	updatedat: string;
+	deletedAt: null;
+	playerId: number;
+	type: string;
+	text: string;
+	targetType: MessageTargetType;
+}
+
+export enum MessageTargetType {
+	None = 'None',
+	Planet = 'Planet',
+	Fleet = 'Fleet',
+	Wormhole = 'Wormhole',
+	MineField = 'MineField',
+	MysteryTrader = 'MysteryTrader',
+	Battle = 'Battle'
 }

@@ -13,11 +13,14 @@ func (db *DB) MigrateAll() error {
 		&game.User{},
 		&game.Race{},
 		&game.Player{},
+		&game.PlayerMessage{},
+		&game.BattlePlan{},
 		&game.TechStore{},
 		&game.TechEngine{},
 		&game.TechPlanetaryScanner{},
 		&game.TechDefense{},
 		&game.TechHullComponent{},
+		&game.TechHull{},
 		&game.Rules{},
 		&game.Game{},
 		&game.Planet{},
@@ -25,6 +28,7 @@ func (db *DB) MigrateAll() error {
 		&game.FleetIntel{},
 		&game.ProductionQueueItem{},
 		&game.Fleet{},
+		&game.ShipToken{},
 		&game.ShipDesign{},
 	}
 

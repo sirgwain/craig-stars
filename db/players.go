@@ -11,7 +11,9 @@ import (
 func (db *DB) FindPlayerByGameId(gameID uint, userID uint) (*game.Player, error) {
 	player := game.Player{}
 
-	if err := db.sqlDB.Preload(clause.Associations).Preload("Planets", func(db *gorm.DB) *gorm.DB {
+	if err := db.sqlDB.Preload(clause.Associations).Preload("Designs").Preload("Fleets", func(db *gorm.DB) *gorm.DB {
+		return db.Order("fleets.num")
+	}).Preload("Fleets.Tokens").Preload("Planets", func(db *gorm.DB) *gorm.DB {
 		return db.Order("planets.num")
 	}).Preload("Planets.ProductionQueue", func(db *gorm.DB) *gorm.DB {
 		return db.Order("production_queue_items.sort_order")

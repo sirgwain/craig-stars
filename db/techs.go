@@ -19,7 +19,7 @@ func (db *DB) GetTechStores() (*game.TechStore, error) {
 }
 
 func (db *DB) CreateTechStore(tech *game.TechStore) error {
-	err := db.sqlDB.Omit("Engines", "PlanetaryScanners", "Defenses", "HullComponents").Create(tech).Error
+	err := db.sqlDB.Omit("Engines", "PlanetaryScanners", "Defenses", "HullComponents", "Hulls").Create(tech).Error
 	if err != nil {
 		return err
 	}
@@ -40,6 +40,10 @@ func (db *DB) CreateTechStore(tech *game.TechStore) error {
 	if err != nil {
 		return err
 	}
+	err = db.sqlDB.Session(&gorm.Session{CreateBatchSize: 10}).Model(tech).Association("Hulls").Replace(tech.Hulls)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -54,5 +58,6 @@ func (db *DB) FindTechStoreById(id uint) (*game.TechStore, error) {
 		}
 	}
 
+	techs.Init()
 	return &techs, nil
 }

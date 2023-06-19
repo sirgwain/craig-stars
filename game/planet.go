@@ -230,7 +230,7 @@ func (p *Planet) initHomeworld(player *Player, rules *Rules, concentration Miner
 		p.ProductionQueue[i].SortOrder = i
 	}
 
-	// Message.HomePlanet(player, planet);
+	messager.homePlanet(player, p)
 
 	return nil
 }
@@ -291,7 +291,7 @@ func computePlanetSpec(rules *Rules, planet *Planet, player *Player) *PlanetSpec
 	spec.MineralOutput = planet.getMineralOutput(planet.Mines, player.Race.MineOutput)
 
 	if planet.Scanner {
-		scanner := rules.Techs.GetBestPlanetaryScanner(player)
+		scanner := player.Spec.PlanetaryScanner
 		spec.Scanner = scanner.Name
 		spec.ScanRange = scanner.ScanRange
 		spec.ScanRangePen = scanner.ScanRangePen

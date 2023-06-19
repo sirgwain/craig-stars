@@ -1,4 +1,44 @@
+import type { Cost } from './Cost';
+
 export interface ShipDesign {
+	id: number;
+	createdAt: string;
+	updatedat: string;
+	deletedAt: null;
+	gameId: number;
+	playerId: number;
+	playerNum: number;
 	name: string;
-	// todo: add stuff
+	version: number;
+	hull: string;
+	armor: number;
+	slots: ShipDesignSlot[];
+	spec: Spec;
+}
+
+export interface ShipDesignSlot {
+	hullComponent: string;
+	hullSlotIndex: number;
+	quantity: number;
+}
+
+export interface Spec {
+	weaponSlots: null;
+	computed: boolean;
+	engine: string;
+	numEngines: number;
+	cost: Cost;
+	mass: number;
+	armor: number;
+	fuelCapacity: number;
+	scanRange: number;
+	scanRangePen: number;
+	torpedoInaccuracyFactor: number;
+	initiative: number;
+	movement: number;
+	bombs: null;
+	smartBombs: null;
+	retroBombs: null;
+	scanner: boolean;
+	mineLayingRateByMineType: null;
 }

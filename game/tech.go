@@ -119,21 +119,23 @@ type TechEngine struct {
 
 type TechHull struct {
 	Tech
-	Type                    string         `json:"type,omitempty"`
-	Mass                    int            `json:"mass,omitempty"`
-	Armor                   int            `json:"armor"`
-	FuelCapacity            int            `json:"fuelCapacity,omitempty"`
-	CargoCapacity           int            `json:"cargoCapacity,omitempty"`
-	SpaceDock               int            `json:"spaceDock"`
-	MineLayingFactor        int            `json:"mineLayingFactor"`
-	Slots                   []TechHullSlot `json:"slots"`
-	BuiltInScanner          bool           `json:"builtInScanner,omitempty"`
-	Initiative              int            `json:"initiative,omitempty"`
-	RepairBonus             float64        `json:"repairBonus,omitempty"`
-	ImmuneToOwnDetonation   bool           `json:"immuneToOwnDetonation,omitempty"`
-	RangeBonus              int            `json:"rangeBonus,omitempty"`
-	Starbase                bool           `json:"starbase,omitempty"`
-	OrbitalConstructionHull bool           `json:"orbitalConstructionHull,omitempty"`
+	Type                     TechHullType   `json:"type,omitempty"`
+	Mass                     int            `json:"mass,omitempty"`
+	Armor                    int            `json:"armor,omitempty"`
+	FuelCapacity             int            `json:"fuelCapacity,omitempty"`
+	CargoCapacity            int            `json:"cargoCapacity,omitempty"`
+	SpaceDock                int            `json:"spaceDock,omitempty"`
+	MineLayingFactor         int            `json:"mineLayingFactor,omitempty"`
+	BuiltInScanner           bool           `json:"builtInScanner,omitempty"`
+	Initiative               int            `json:"initiative,omitempty"`
+	RepairBonus              float64        `json:"repairBonus,omitempty"`
+	ImmuneToOwnDetonation    bool           `json:"immuneToOwnDetonation,omitempty"`
+	RangeBonus               int            `json:"rangeBonus,omitempty"`
+	Starbase                 bool           `json:"starbase,omitempty"`
+	OrbitalConstructionHull  bool           `json:"orbitalConstructionHull,omitempty"`
+	DoubleMineEfficiency     bool           `json:"doubleMineEfficiency,omitempty"`
+	InnateScanRangePenFactor float64        `json:"innateScanRangePenFactor,omitempty"`
+	Slots                    []TechHullSlot `json:"slots,omitempty" gorm:"serializer:json"`
 }
 
 type TechHullSlot struct {
@@ -141,20 +143,46 @@ type TechHullSlot struct {
 	Capacity int          `json:"capacity"`
 	Required bool         `json:"required,omitempty"`
 }
-type HullSlotType string
+
+type TechHullType string
 
 const (
-	HullSlotTypeArmor      HullSlotType = "Armor"
-	HullSlotTypeBomb       HullSlotType = "Bomb"
-	HullSlotTypeElectrical HullSlotType = "Electrical"
-	HullSlotTypeEngine     HullSlotType = "Engine"
-	HullSlotTypeMechanical HullSlotType = "Mechanical"
-	HullSlotTypeMineLayer  HullSlotType = "MineLayer"
-	HullSlotTypeOrbital    HullSlotType = "Orbital"
-	HullSlotTypeScanner    HullSlotType = "Scanner"
-	HullSlotTypeShield     HullSlotType = "Shield"
-	HullSlotTypeMining     HullSlotType = "Mining"
-	HullSlotTypeWeapon     HullSlotType = "Weapon"
+	TechHullTypeScout          TechHullType = "Scout"
+	TechHullTypeColonizer      TechHullType = "Colonizer"
+	TechHullTypeBomber         TechHullType = "Bomber"
+	TechHullTypeFighter        TechHullType = "Fighter"
+	TechHullTypeCapitalShip    TechHullType = "CapitalShip"
+	TechHullTypeFreighter      TechHullType = "Freighter"
+	TechHullTypeArmedFreighter TechHullType = "ArmedFreighter"
+	TechHullTypeFuelTransport  TechHullType = "FuelTransport"
+	TechHullTypeMiner          TechHullType = "Miner"
+	TechHullTypeMineLayer      TechHullType = "MineLayer"
+	TechHullTypeStarbase       TechHullType = "Starbase"
+)
+
+type HullSlotType Bitmask
+
+const (
+	HullSlotTypeArmor HullSlotType = 1 << iota
+	HullSlotTypeBomb
+	HullSlotTypeElectrical
+	HullSlotTypeEngine
+	HullSlotTypeMechanical
+	HullSlotTypeMineLayer
+	HullSlotTypeOrbital
+	HullSlotTypeScanner
+	HullSlotTypeShield
+	HullSlotTypeMining
+	HullSlotTypeWeapon
+
+	HullSlotTypeOrbitalElectrical                = HullSlotTypeOrbital | HullSlotTypeElectrical
+	HullSlotTypeShieldElectricalMechanical       = HullSlotTypeShield | HullSlotTypeElectrical | HullSlotTypeMechanical
+	HullSlotTypeScannerElectricalMechanical      = HullSlotTypeScanner | HullSlotTypeElectrical | HullSlotTypeMechanical
+	HullSlotTypeArmorScannerElectricalMechanical = HullSlotTypeArmor | HullSlotTypeScanner | HullSlotTypeElectrical | HullSlotTypeMechanical
+	HullSlotTypeMineElectricalMechanical         = HullSlotTypeMineLayer | HullSlotTypeElectrical | HullSlotTypeMechanical
+	HullSlotTypeShieldArmor                      = HullSlotTypeShield | HullSlotTypeArmor
+	HullSlotTypeWeaponShield                     = HullSlotTypeShield | HullSlotTypeWeapon
+	HullSlotTypeGeneral                          = HullSlotTypeScanner | HullSlotTypeMechanical | HullSlotTypeElectrical | HullSlotTypeShield | HullSlotTypeArmor | HullSlotTypeWeapon | HullSlotTypeMineLayer
 )
 
 type TechPlanetaryScanner struct {

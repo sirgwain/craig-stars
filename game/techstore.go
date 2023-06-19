@@ -8,20 +8,25 @@ import (
 )
 
 const ScanWithZeroRange = 1
+const UnlimitedSpaceDock = -1
 const NoScanner = -1
 const NoGate = -1
 const InfinteGate = math.MaxInt
 
 type TechStore struct {
-	ID                uint                   `gorm:"primaryKey" json:"id" header:"Username"`
-	CreatedAt         time.Time              `json:"createdAt"`
-	UpdatedAt         time.Time              `json:"updatedat"`
-	DeletedAt         gorm.DeletedAt         `gorm:"index" json:"deletedAt"`
-	RulesID           uint                   `json:"rulesId"`
-	Engines           []TechEngine           `json:"engines"`
-	PlanetaryScanners []TechPlanetaryScanner `json:"planetaryScanners"`
-	Defenses          []TechDefense          `json:"defenses"`
-	HullComponents    []TechHullComponent    `json:"hullComponents"`
+	ID                   uint                          `gorm:"primaryKey" json:"id" header:"Username"`
+	CreatedAt            time.Time                     `json:"createdAt"`
+	UpdatedAt            time.Time                     `json:"updatedat"`
+	DeletedAt            gorm.DeletedAt                `gorm:"index" json:"deletedAt"`
+	RulesID              uint                          `json:"rulesId"`
+	Engines              []TechEngine                  `json:"engines"`
+	PlanetaryScanners    []TechPlanetaryScanner        `json:"planetaryScanners"`
+	Defenses             []TechDefense                 `json:"defenses"`
+	HullComponents       []TechHullComponent           `json:"hullComponents"`
+	Hulls                []TechHull                    `json:"hulls,omitempty"`
+	HullComponentsByName map[string]*TechHullComponent `json:"-" gorm:"-"`
+	HullsByName          map[string]*TechHull          `json:"-" gorm:"-"`
+	EnginesByName        map[string]*TechEngine        `json:"-" gorm:"-"`
 }
 
 // simple static tech store
@@ -30,14 +35,62 @@ var StaticTechStore = TechStore{
 	PlanetaryScanners: TechPlanetaryScanners(),
 	Defenses:          TechDefenses(),
 	HullComponents:    TechHullComponents(),
+	Hulls:             TechHulls(),
+}
+
+func init() {
+	StaticTechStore.Init()
 }
 
 type TechFinder interface {
 	GetBestPlanetaryScanner(player *Player) *TechPlanetaryScanner
+	GetBestScanner(player *Player) *TechHullComponent
+	GetBestEngine(player *Player) *TechEngine
+	GetEngine(name string) *TechEngine
+	GetHull(name string) *TechHull
+	GetHullComponent(name string) *TechHullComponent
 }
 
 func NewTechStore() TechFinder {
-	return &StaticTechStore
+	store := &StaticTechStore
+
+	store.Init()
+	return store
+}
+
+func (store *TechStore) Init() {
+	store.HullsByName = make(map[string]*TechHull, len(store.Hulls))
+	store.EnginesByName = make(map[string]*TechEngine, len(store.Engines))
+	store.HullComponentsByName = make(map[string]*TechHullComponent, len(store.Engines)+len(store.HullComponents))
+
+	for i := range store.Hulls {
+		tech := &store.Hulls[i]
+		store.HullsByName[tech.Name] = tech
+	}
+
+	for i := range store.Engines {
+		tech := &store.Engines[i]
+		store.EnginesByName[tech.Name] = tech
+		store.HullComponentsByName[tech.Name] = &tech.TechHullComponent
+	}
+
+	for i := range store.HullComponents {
+		tech := &store.HullComponents[i]
+		store.HullComponentsByName[tech.Name] = tech
+	}
+
+}
+
+func (store *TechStore) GetEngine(name string) *TechEngine {
+	return store.EnginesByName[name]
+}
+
+func (store *TechStore) GetHull(name string) *TechHull {
+	return store.HullsByName[name]
+}
+
+func (store *TechStore) GetHullComponent(name string) *TechHullComponent {
+	return store.HullComponentsByName[name]
 }
 
 // get the best planetary scanner for a player
@@ -46,6 +99,30 @@ func (store *TechStore) GetBestPlanetaryScanner(player *Player) *TechPlanetarySc
 	for i := range store.PlanetaryScanners {
 		tech := &store.PlanetaryScanners[i]
 		if player.HasTech(&tech.Tech) {
+			bestTech = tech
+		}
+	}
+	return bestTech
+}
+
+// get the best engine for a player
+func (store *TechStore) GetBestEngine(player *Player) *TechEngine {
+	bestTech := &store.Engines[0]
+	for i := range store.Engines {
+		tech := &store.Engines[i]
+		if player.HasTech(&tech.Tech) {
+			bestTech = tech
+		}
+	}
+	return bestTech
+}
+
+// get the best engine for a player
+func (store *TechStore) GetBestScanner(player *Player) *TechHullComponent {
+	bestTech := &store.HullComponents[0]
+	for i := range store.HullComponents {
+		tech := &store.HullComponents[i]
+		if tech.ScanRange > 0 || tech.ScanRangePen > 0 && player.HasTech(&tech.Tech) {
 			bestTech = tech
 		}
 	}
@@ -1412,6 +1489,547 @@ var CompletePhaseShield = TechHullComponent{Tech: NewTech("Complete Phase Shield
 	Shield:       500,
 	HullSlotType: HullSlotTypeShield,
 }
+var SmallFreighter = TechHull{Tech: NewTech("Small Freighter", NewCost(12, 0, 17, 20), TechRequirements{TechLevel: TechLevel{}}, 10, TechCategoryShipHull),
+	Type:          TechHullTypeFreighter,
+	Mass:          25,
+	Armor:         25,
+	FuelCapacity:  130,
+	CargoCapacity: 70,
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeEngine, Capacity: 1, Required: true},
+		{Type: HullSlotTypeScannerElectricalMechanical, Capacity: 1},
+		{Type: HullSlotTypeShieldArmor, Capacity: 1},
+	},
+}
+var MediumFreighter = TechHull{Tech: NewTech("Medium Freighter", NewCost(20, 0, 19, 40), TechRequirements{TechLevel: TechLevel{Construction: 3}}, 20, TechCategoryShipHull),
+	Type:          TechHullTypeFreighter,
+	Mass:          60,
+	Armor:         50,
+	FuelCapacity:  450,
+	CargoCapacity: 210,
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeEngine, Capacity: 1, Required: true},
+		{Type: HullSlotTypeScannerElectricalMechanical, Capacity: 2},
+		{Type: HullSlotTypeShieldArmor, Capacity: 2},
+	},
+}
+var LargeFreighter = TechHull{Tech: NewTech("Large Freighter", NewCost(35, 0, 21, 100), TechRequirements{TechLevel: TechLevel{Construction: 8}}, 30, TechCategoryShipHull),
+	Type:          TechHullTypeFreighter,
+	Mass:          125,
+	Armor:         150,
+	FuelCapacity:  2600,
+	CargoCapacity: 1200,
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeEngine, Capacity: 2, Required: true},
+		{Type: HullSlotTypeScannerElectricalMechanical, Capacity: 2},
+		{Type: HullSlotTypeShieldArmor, Capacity: 2},
+	},
+}
+var SuperFreighter = TechHull{Tech: NewTech("Super Freighter", NewCost(35, 0, 21, 100), TechRequirements{TechLevel: TechLevel{Construction: 13}, PRTRequired: IS}, 40, TechCategoryShipHull),
+	Type:          TechHullTypeFreighter,
+	Mass:          175,
+	Armor:         400,
+	FuelCapacity:  8000,
+	CargoCapacity: 3000,
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeEngine, Capacity: 3, Required: true},
+		{Type: HullSlotTypeScannerElectricalMechanical, Capacity: 3},
+		{Type: HullSlotTypeShieldArmor, Capacity: 5},
+		{Type: HullSlotTypeElectrical, Capacity: 2},
+	},
+}
+var Scout = TechHull{Tech: NewTech("Scout", NewCost(4, 2, 4, 10), TechRequirements{TechLevel: TechLevel{}}, 50, TechCategoryShipHull),
+	Type:           TechHullTypeScout,
+	Mass:           8,
+	BuiltInScanner: true,
+	Armor:          20,
+	Initiative:     1,
+	FuelCapacity:   50,
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeEngine, Capacity: 1, Required: true},
+		{Type: HullSlotTypeScanner, Capacity: 1},
+		{Type: HullSlotTypeGeneral, Capacity: 1},
+	},
+}
+var Frigate = TechHull{Tech: NewTech("Frigate", NewCost(4, 2, 5, 12), TechRequirements{TechLevel: TechLevel{Construction: 6}}, 60, TechCategoryShipHull),
+	Type:           TechHullTypeFighter,
+	Mass:           8,
+	BuiltInScanner: true,
+	Armor:          45,
+	Initiative:     4,
+	FuelCapacity:   125,
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeEngine, Capacity: 1, Required: true},
+		{Type: HullSlotTypeScanner, Capacity: 1},
+		{Type: HullSlotTypeGeneral, Capacity: 3},
+		{Type: HullSlotTypeShieldArmor, Capacity: 2},
+	},
+}
+var Destroyer = TechHull{Tech: NewTech("Destroyer", NewCost(15, 3, 5, 35), TechRequirements{TechLevel: TechLevel{Construction: 3}}, 70, TechCategoryShipHull),
+	Type:           TechHullTypeFighter,
+	Mass:           30,
+	BuiltInScanner: true,
+	Armor:          200,
+	Initiative:     3,
+	FuelCapacity:   280,
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeEngine, Capacity: 1, Required: true},
+		{Type: HullSlotTypeWeapon, Capacity: 1},
+		{Type: HullSlotTypeWeapon, Capacity: 1},
+		{Type: HullSlotTypeGeneral, Capacity: 1},
+		{Type: HullSlotTypeArmor, Capacity: 2},
+		{Type: HullSlotTypeMechanical, Capacity: 1},
+		{Type: HullSlotTypeElectrical, Capacity: 1},
+	},
+}
+var Cruiser = TechHull{Tech: NewTech("Cruiser", NewCost(40, 5, 8, 85), TechRequirements{TechLevel: TechLevel{Construction: 9}}, 80, TechCategoryShipHull),
+	Type:         TechHullTypeFighter,
+	Mass:         90,
+	Armor:        700,
+	Initiative:   5,
+	FuelCapacity: 600,
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeEngine, Capacity: 2, Required: true},
+		{Type: HullSlotTypeScannerElectricalMechanical, Capacity: 1},
+		{Type: HullSlotTypeScannerElectricalMechanical, Capacity: 1},
+		{Type: HullSlotTypeWeapon, Capacity: 2},
+		{Type: HullSlotTypeWeapon, Capacity: 2},
+		{Type: HullSlotTypeGeneral, Capacity: 2},
+		{Type: HullSlotTypeShieldArmor, Capacity: 2},
+	},
+}
+var BattleCruiser = TechHull{Tech: NewTech("Battle Cruiser", NewCost(55, 8, 12, 120), TechRequirements{TechLevel: TechLevel{Construction: 9}, PRTRequired: WM}, 90, TechCategoryShipHull),
+	Type:         TechHullTypeFighter,
+	Mass:         120,
+	Armor:        1000,
+	Initiative:   5,
+	FuelCapacity: 1400,
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeEngine, Capacity: 2, Required: true},
+		{Type: HullSlotTypeScannerElectricalMechanical, Capacity: 2},
+		{Type: HullSlotTypeScannerElectricalMechanical, Capacity: 2},
+		{Type: HullSlotTypeWeapon, Capacity: 3},
+		{Type: HullSlotTypeWeapon, Capacity: 3},
+		{Type: HullSlotTypeGeneral, Capacity: 3},
+		{Type: HullSlotTypeShieldArmor, Capacity: 4},
+	},
+}
+var Battleship = TechHull{Tech: NewTech("Battleship", NewCost(120, 25, 20, 225), TechRequirements{TechLevel: TechLevel{Construction: 13}}, 100, TechCategoryShipHull),
+	Type:         TechHullTypeFighter,
+	Mass:         222,
+	Armor:        2000,
+	Initiative:   10,
+	FuelCapacity: 2800,
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeEngine, Capacity: 4, Required: true},
+		{Type: HullSlotTypeScannerElectricalMechanical, Capacity: 1},
+		{Type: HullSlotTypeShield, Capacity: 8},
+		{Type: HullSlotTypeWeapon, Capacity: 6},
+		{Type: HullSlotTypeWeapon, Capacity: 6},
+		{Type: HullSlotTypeWeapon, Capacity: 2},
+		{Type: HullSlotTypeWeapon, Capacity: 2},
+		{Type: HullSlotTypeWeapon, Capacity: 4},
+		{Type: HullSlotTypeArmor, Capacity: 6},
+		{Type: HullSlotTypeElectrical, Capacity: 3},
+		{Type: HullSlotTypeElectrical, Capacity: 3},
+	},
+}
+var Dreadnought = TechHull{Tech: NewTech("Dreadnought", NewCost(140, 30, 25, 275), TechRequirements{TechLevel: TechLevel{Construction: 16}, PRTRequired: WM}, 110, TechCategoryShipHull),
+	Type:         TechHullTypeFighter,
+	Mass:         250,
+	Armor:        4500,
+	Initiative:   10,
+	FuelCapacity: 4500,
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeEngine, Capacity: 5, Required: true},
+		{Type: HullSlotTypeShieldArmor, Capacity: 4},
+		{Type: HullSlotTypeShieldArmor, Capacity: 4},
+		{Type: HullSlotTypeWeapon, Capacity: 6},
+		{Type: HullSlotTypeWeapon, Capacity: 6},
+		{Type: HullSlotTypeElectrical, Capacity: 4},
+		{Type: HullSlotTypeElectrical, Capacity: 4},
+		{Type: HullSlotTypeWeapon, Capacity: 8},
+		{Type: HullSlotTypeWeapon, Capacity: 8},
+		{Type: HullSlotTypeArmor, Capacity: 8},
+		{Type: HullSlotTypeWeaponShield, Capacity: 5},
+		{Type: HullSlotTypeWeaponShield, Capacity: 5},
+		{Type: HullSlotTypeGeneral, Capacity: 2},
+	},
+}
+var Privateer = TechHull{Tech: NewTech("Privateer", NewCost(50, 3, 3, 50), TechRequirements{TechLevel: TechLevel{Construction: 4}}, 120, TechCategoryShipHull),
+	Type:          TechHullTypeArmedFreighter,
+	Mass:          65,
+	Armor:         150,
+	Initiative:    3,
+	FuelCapacity:  650,
+	CargoCapacity: 250,
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeEngine, Capacity: 1, Required: true},
+		{Type: HullSlotTypeShieldArmor, Capacity: 2},
+		{Type: HullSlotTypeScannerElectricalMechanical, Capacity: 1},
+		{Type: HullSlotTypeGeneral, Capacity: 1},
+		{Type: HullSlotTypeGeneral, Capacity: 1},
+	},
+}
+var Rogue = TechHull{Tech: NewTech("Rogue", NewCost(80, 5, 5, 60), TechRequirements{TechLevel: TechLevel{Construction: 8}, PRTRequired: SS}, 130, TechCategoryShipHull),
+	Type:          TechHullTypeArmedFreighter,
+	Mass:          75,
+	Armor:         450,
+	Initiative:    4,
+	FuelCapacity:  2250,
+	CargoCapacity: 500,
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeEngine, Capacity: 2, Required: true},
+		{Type: HullSlotTypeShieldArmor, Capacity: 3},
+		{Type: HullSlotTypeMineElectricalMechanical, Capacity: 2},
+		{Type: HullSlotTypeScanner, Capacity: 1},
+		{Type: HullSlotTypeGeneral, Capacity: 2},
+		{Type: HullSlotTypeGeneral, Capacity: 2},
+		{Type: HullSlotTypeMineElectricalMechanical, Capacity: 2},
+		{Type: HullSlotTypeElectrical, Capacity: 1},
+		{Type: HullSlotTypeElectrical, Capacity: 1},
+	},
+}
+var Galleon = TechHull{Tech: NewTech("Galleon", NewCost(70, 5, 5, 105), TechRequirements{TechLevel: TechLevel{Construction: 11}}, 140, TechCategoryShipHull),
+	Type:          TechHullTypeArmedFreighter,
+	Mass:          125,
+	Armor:         900,
+	Initiative:    4,
+	FuelCapacity:  2500,
+	CargoCapacity: 1000,
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeEngine, Capacity: 4, Required: true},
+		{Type: HullSlotTypeShieldArmor, Capacity: 2},
+		{Type: HullSlotTypeShieldArmor, Capacity: 2},
+		{Type: HullSlotTypeGeneral, Capacity: 3},
+		{Type: HullSlotTypeGeneral, Capacity: 3},
+		{Type: HullSlotTypeMineElectricalMechanical, Capacity: 2},
+		{Type: HullSlotTypeMineElectricalMechanical, Capacity: 2},
+		{Type: HullSlotTypeScanner, Capacity: 2},
+	},
+}
+var MiniColonyShip = TechHull{Tech: NewTech("Mini-Colony Ship", NewCost(2, 0, 2, 3), TechRequirements{TechLevel: TechLevel{}, PRTRequired: HE}, 150, TechCategoryShipHull),
+	Type:          TechHullTypeColonizer,
+	Mass:          8,
+	Armor:         10,
+	FuelCapacity:  150,
+	CargoCapacity: 10,
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeEngine, Capacity: 1, Required: true},
+		{Type: HullSlotTypeMechanical, Capacity: 1},
+	},
+}
+var ColonyShip = TechHull{Tech: NewTech("Colony Ship", NewCost(9, 0, 13, 18), TechRequirements{TechLevel: TechLevel{}}, 160, TechCategoryShipHull),
+	Type:          TechHullTypeColonizer,
+	Mass:          20,
+	Armor:         20,
+	FuelCapacity:  200,
+	CargoCapacity: 25,
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeEngine, Capacity: 1, Required: true},
+		{Type: HullSlotTypeMechanical, Capacity: 1},
+	},
+}
+var MiniBomber = TechHull{Tech: NewTech("Mini Bomber", NewCost(18, 5, 9, 32), TechRequirements{TechLevel: TechLevel{Construction: 1}}, 170, TechCategoryShipHull),
+	Type:         TechHullTypeBomber,
+	Mass:         28,
+	Armor:        50,
+	FuelCapacity: 120,
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeEngine, Capacity: 1, Required: true},
+		{Type: HullSlotTypeBomb, Capacity: 2},
+	},
+}
+var B17Bomber = TechHull{Tech: NewTech("B-17 Bomber", NewCost(55, 10, 10, 150), TechRequirements{TechLevel: TechLevel{Construction: 6}}, 180, TechCategoryShipHull),
+	Type:         TechHullTypeBomber,
+	Mass:         69,
+	Armor:        175,
+	FuelCapacity: 400,
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeEngine, Capacity: 2, Required: true},
+		{Type: HullSlotTypeBomb, Capacity: 4},
+		{Type: HullSlotTypeBomb, Capacity: 4},
+		{Type: HullSlotTypeScannerElectricalMechanical, Capacity: 1},
+	},
+}
+var StealthBomber = TechHull{Tech: NewTech("Stealth Bomber", NewCost(55, 10, 15, 175), TechRequirements{TechLevel: TechLevel{Construction: 8}, PRTRequired: SS}, 190, TechCategoryShipHull),
+	Type:         TechHullTypeBomber,
+	FuelCapacity: 750,
+	Armor:        225,
+	Mass:         70,
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeEngine, Capacity: 2, Required: true},
+		{Type: HullSlotTypeBomb, Capacity: 4},
+		{Type: HullSlotTypeBomb, Capacity: 4},
+		{Type: HullSlotTypeScannerElectricalMechanical, Capacity: 1},
+		{Type: HullSlotTypeElectrical, Capacity: 3},
+	},
+}
+var B52Bomber = TechHull{Tech: NewTech("B-52 Bomber", NewCost(90, 15, 10, 280), TechRequirements{TechLevel: TechLevel{Construction: 15}}, 200, TechCategoryShipHull),
+	Type:         TechHullTypeBomber,
+	FuelCapacity: 750,
+	Armor:        450,
+	Mass:         110,
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeEngine, Capacity: 2, Required: true},
+		{Type: HullSlotTypeBomb, Capacity: 4},
+		{Type: HullSlotTypeBomb, Capacity: 4},
+		{Type: HullSlotTypeBomb, Capacity: 4},
+		{Type: HullSlotTypeBomb, Capacity: 4},
+		{Type: HullSlotTypeScannerElectricalMechanical, Capacity: 2},
+		{Type: HullSlotTypeShield, Capacity: 2},
+	},
+}
+var MidgetMiner = TechHull{Tech: NewTech("Midget Miner", NewCost(10, 0, 3, 20), TechRequirements{TechLevel: TechLevel{}, LRTsRequired: ARM}, 210, TechCategoryShipHull),
+	Type:         TechHullTypeMiner,
+	FuelCapacity: 210,
+	Armor:        100,
+	Mass:         10,
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeEngine, Capacity: 1, Required: true},
+		{Type: HullSlotTypeMining, Capacity: 2},
+	},
+}
+var MiniMiner = TechHull{Tech: NewTech("Mini-Miner", NewCost(25, 0, 6, 50), TechRequirements{TechLevel: TechLevel{Construction: 2}}, 220, TechCategoryShipHull),
+	Type:         TechHullTypeMiner,
+	Mass:         80,
+	Armor:        130,
+	FuelCapacity: 210,
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeEngine, Capacity: 1, Required: true},
+		{Type: HullSlotTypeScannerElectricalMechanical},
+		{Type: HullSlotTypeMining},
+		{Type: HullSlotTypeMining},
+	},
+}
+var Miner = TechHull{Tech: NewTech("Miner", NewCost(32, 0, 6, 110), TechRequirements{TechLevel: TechLevel{Construction: 6}, LRTsRequired: ARM}, 230, TechCategoryShipHull),
+	Type:         TechHullTypeMiner,
+	FuelCapacity: 500,
+	Armor:        475,
+	Mass:         110,
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeEngine, Capacity: 2, Required: true},
+		{Type: HullSlotTypeArmorScannerElectricalMechanical, Capacity: 2},
+		{Type: HullSlotTypeMining, Capacity: 2},
+		{Type: HullSlotTypeMining, Capacity: 1},
+		{Type: HullSlotTypeMining, Capacity: 2},
+		{Type: HullSlotTypeMining, Capacity: 1},
+	},
+}
+var MaxiMiner = TechHull{Tech: NewTech("Maxi-Miner", NewCost(32, 0, 6, 140), TechRequirements{TechLevel: TechLevel{Construction: 11}, LRTsDenied: OBRM}, 240, TechCategoryShipHull),
+	Type:         TechHullTypeMiner,
+	FuelCapacity: 850,
+	Armor:        1400,
+	Mass:         110,
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeEngine, Capacity: 3, Required: true},
+		{Type: HullSlotTypeArmorScannerElectricalMechanical, Capacity: 2},
+		{Type: HullSlotTypeMining, Capacity: 4},
+		{Type: HullSlotTypeMining, Capacity: 1},
+		{Type: HullSlotTypeMining, Capacity: 4},
+		{Type: HullSlotTypeMining, Capacity: 1},
+	},
+}
+var UltraMiner = TechHull{Tech: NewTech("Ultra-Miner", NewCost(30, 0, 6, 130), TechRequirements{TechLevel: TechLevel{Construction: 14}, LRTsRequired: ARM}, 250, TechCategoryShipHull),
+	Type:         TechHullTypeMiner,
+	FuelCapacity: 1300,
+	Armor:        1500,
+	Mass:         100,
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeEngine, Capacity: 2, Required: true},
+		{Type: HullSlotTypeArmorScannerElectricalMechanical, Capacity: 3},
+		{Type: HullSlotTypeMining, Capacity: 4},
+		{Type: HullSlotTypeMining, Capacity: 2},
+		{Type: HullSlotTypeMining, Capacity: 4},
+		{Type: HullSlotTypeMining, Capacity: 2},
+	},
+}
+var FuelTransport = TechHull{Tech: NewTech("Fuel Transport", NewCost(10, 0, 5, 50), TechRequirements{TechLevel: TechLevel{Construction: 4}, PRTRequired: IS}, 260, TechCategoryShipHull),
+	Type:         TechHullTypeFuelTransport,
+	Mass:         12,
+	Armor:        5,
+	FuelCapacity: 750,
+	RepairBonus:  .05, // +5% repair
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeEngine, Capacity: 1, Required: true},
+		{Type: HullSlotTypeShield},
+	},
+}
+var SuperFuelXport = TechHull{Tech: NewTech("Super Fuel Xport", NewCost(20, 0, 8, 70), TechRequirements{TechLevel: TechLevel{Construction: 7}, PRTRequired: IS}, 270, TechCategoryShipHull),
+	Type:         TechHullTypeFuelTransport,
+	Mass:         111,
+	Armor:        12,
+	FuelCapacity: 2250,
+	RepairBonus:  .1, // +10% repair
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeEngine, Capacity: 2, Required: true},
+		{Type: HullSlotTypeShield, Capacity: 2},
+		{Type: HullSlotTypeScanner},
+	},
+}
+var MiniMineLayer = TechHull{Tech: NewTech("Mini Mine Layer", NewCost(8, 2, 5, 20), TechRequirements{TechLevel: TechLevel{}, PRTRequired: SD}, 280, TechCategoryShipHull),
+	Type:                  TechHullTypeMineLayer,
+	Mass:                  10,
+	Armor:                 60,
+	FuelCapacity:          400,
+	MineLayingFactor:      2,
+	ImmuneToOwnDetonation: true,
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeEngine, Capacity: 1, Required: true},
+		{Type: HullSlotTypeMineLayer, Capacity: 2},
+		{Type: HullSlotTypeMineLayer, Capacity: 2},
+		{Type: HullSlotTypeScannerElectricalMechanical, Capacity: 1},
+	},
+}
+var SuperMineLayer = TechHull{Tech: NewTech("Super Mine Layer", NewCost(20, 3, 9, 30), TechRequirements{TechLevel: TechLevel{Construction: 15}, PRTRequired: SD}, 290, TechCategoryShipHull),
+	Type:                  TechHullTypeMineLayer,
+	FuelCapacity:          2200,
+	Armor:                 1200,
+	Mass:                  30,
+	MineLayingFactor:      2,
+	ImmuneToOwnDetonation: true,
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeEngine, Capacity: 1, Required: true},
+		{Type: HullSlotTypeMineLayer, Capacity: 8},
+		{Type: HullSlotTypeMineLayer, Capacity: 8},
+		{Type: HullSlotTypeShieldArmor, Capacity: 4},
+		{Type: HullSlotTypeScannerElectricalMechanical, Capacity: 3},
+		{Type: HullSlotTypeMineElectricalMechanical, Capacity: 3},
+	},
+}
+var Nubian = TechHull{Tech: NewTech("Nubian", NewCost(75, 12, 12, 150), TechRequirements{TechLevel: TechLevel{Construction: 26}}, 300, TechCategoryShipHull),
+	Type:         TechHullTypeFighter,
+	FuelCapacity: 5000,
+	Armor:        5000,
+	Initiative:   2,
+	Mass:         100,
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeEngine, Capacity: 3, Required: true},
+		{Type: HullSlotTypeGeneral, Capacity: 3},
+		{Type: HullSlotTypeGeneral, Capacity: 3},
+		{Type: HullSlotTypeGeneral, Capacity: 3},
+		{Type: HullSlotTypeGeneral, Capacity: 3},
+		{Type: HullSlotTypeGeneral, Capacity: 3},
+		{Type: HullSlotTypeGeneral, Capacity: 3},
+		{Type: HullSlotTypeGeneral, Capacity: 3},
+		{Type: HullSlotTypeGeneral, Capacity: 3},
+		{Type: HullSlotTypeGeneral, Capacity: 3},
+		{Type: HullSlotTypeGeneral, Capacity: 3},
+		{Type: HullSlotTypeGeneral, Capacity: 3},
+		{Type: HullSlotTypeGeneral, Capacity: 3},
+	},
+}
+var MetaMorph = TechHull{Tech: NewTech("Meta Morph", NewCost(50, 12, 12, 120), TechRequirements{TechLevel: TechLevel{Construction: 10}, PRTRequired: HE}, 310, TechCategoryShipHull),
+	Type:          TechHullTypeArmedFreighter,
+	Mass:          85,
+	Armor:         500,
+	Initiative:    2,
+	FuelCapacity:  700,
+	CargoCapacity: 500,
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeEngine, Capacity: 3, Required: true},
+		{Type: HullSlotTypeGeneral, Capacity: 8},
+		{Type: HullSlotTypeGeneral, Capacity: 2},
+		{Type: HullSlotTypeGeneral, Capacity: 2},
+		{Type: HullSlotTypeGeneral, Capacity: 1},
+		{Type: HullSlotTypeGeneral, Capacity: 2},
+		{Type: HullSlotTypeGeneral, Capacity: 2},
+	},
+}
+var OrbitalFort = TechHull{Tech: NewTech("Orbital Fort", NewCost(24, 0, 34, 80), TechRequirements{TechLevel: TechLevel{}}, 10, TechCategoryStarbaseHull),
+	Type:                    TechHullTypeStarbase,
+	SpaceDock:               0,
+	Armor:                   100,
+	Initiative:              10,
+	RangeBonus:              1,
+	Starbase:                true,
+	OrbitalConstructionHull: true,
+	RepairBonus:             .03, // 8% total repair rate
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeOrbitalElectrical, Capacity: 1},
+		{Type: HullSlotTypeWeapon, Capacity: 2},
+		{Type: HullSlotTypeShieldArmor, Capacity: 2},
+		{Type: HullSlotTypeWeapon, Capacity: 2},
+		{Type: HullSlotTypeShieldArmor, Capacity: 2},
+	},
+}
+var SpaceStation = TechHull{Tech: NewTech("Space Station", NewCost(120, 80, 250, 600), TechRequirements{TechLevel: TechLevel{}}, 20, TechCategoryStarbaseHull),
+	Type:        TechHullTypeStarbase,
+	SpaceDock:   UnlimitedSpaceDock,
+	Armor:       500,
+	Initiative:  14,
+	RangeBonus:  1,
+	Starbase:    true,
+	RepairBonus: .15, // 20% total repair rate
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeOrbitalElectrical, Capacity: 1},
+		{Type: HullSlotTypeWeapon, Capacity: 6},
+		{Type: HullSlotTypeShield, Capacity: 6},
+		{Type: HullSlotTypeWeapon, Capacity: 6},
+		{Type: HullSlotTypeShieldArmor, Capacity: 6},
+		{Type: HullSlotTypeShield, Capacity: 6},
+		{Type: HullSlotTypeElectrical, Capacity: 3},
+		{Type: HullSlotTypeWeapon, Capacity: 6},
+		{Type: HullSlotTypeElectrical, Capacity: 3},
+		{Type: HullSlotTypeWeapon, Capacity: 6},
+		{Type: HullSlotTypeOrbitalElectrical, Capacity: 1},
+		{Type: HullSlotTypeShieldArmor, Capacity: 6},
+	},
+}
+var UltraStation = TechHull{Tech: NewTech("Ultra Station", NewCost(120, 80, 300, 600), TechRequirements{TechLevel: TechLevel{Construction: 12}, LRTsRequired: ISB}, 30, TechCategoryStarbaseHull),
+	Type:                     TechHullTypeStarbase,
+	SpaceDock:                UnlimitedSpaceDock,
+	Armor:                    1000,
+	Initiative:               16,
+	Starbase:                 true,
+	RepairBonus:              .15, // 20% total repair rate
+	InnateScanRangePenFactor: .5,  // AR races get half innate scanning range for pen scanning
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeOrbitalElectrical, Capacity: 1},
+		{Type: HullSlotTypeWeapon, Capacity: 6},
+		{Type: HullSlotTypeElectrical, Capacity: 3},
+		{Type: HullSlotTypeWeapon, Capacity: 6},
+		{Type: HullSlotTypeShield, Capacity: 0},
+		{Type: HullSlotTypeShield, Capacity: 0},
+		{Type: HullSlotTypeElectrical, Capacity: 3},
+		{Type: HullSlotTypeWeapon, Capacity: 6},
+		{Type: HullSlotTypeElectrical, Capacity: 3},
+		{Type: HullSlotTypeWeapon, Capacity: 6},
+		{Type: HullSlotTypeOrbitalElectrical, Capacity: 1},
+		{Type: HullSlotTypeShieldArmor, Capacity: 0},
+		{Type: HullSlotTypeWeapon, Capacity: 6},
+		{Type: HullSlotTypeShieldArmor, Capacity: 0},
+		{Type: HullSlotTypeElectrical, Capacity: 3},
+		{Type: HullSlotTypeWeapon, Capacity: 6},
+	},
+}
+var DeathStar = TechHull{Tech: NewTech("Death Star", NewCost(120, 80, 350, 750), TechRequirements{TechLevel: TechLevel{Construction: 17}, PRTRequired: AR}, 40, TechCategoryStarbaseHull),
+	Type:                     TechHullTypeStarbase,
+	SpaceDock:                UnlimitedSpaceDock,
+	Armor:                    1500,
+	Initiative:               18,
+	Starbase:                 true,
+	RepairBonus:              .15, // 20% total repair rate
+	InnateScanRangePenFactor: .5,  // AR races get half innate scanning range for pen scanning
+	Slots: []TechHullSlot{
+		{Type: HullSlotTypeOrbitalElectrical, Capacity: 1},
+		{Type: HullSlotTypeWeapon, Capacity: 2},
+		{Type: HullSlotTypeElectrical, Capacity: 4},
+		{Type: HullSlotTypeElectrical, Capacity: 4},
+		{Type: HullSlotTypeShield, Capacity: 0},
+		{Type: HullSlotTypeShield, Capacity: 0},
+		{Type: HullSlotTypeElectrical, Capacity: 4},
+		{Type: HullSlotTypeWeapon, Capacity: 2},
+		{Type: HullSlotTypeElectrical, Capacity: 4},
+		{Type: HullSlotTypeWeapon, Capacity: 2},
+		{Type: HullSlotTypeOrbitalElectrical, Capacity: 1},
+		{Type: HullSlotTypeShieldArmor, Capacity: 0},
+		{Type: HullSlotTypeElectrical, Capacity: 4},
+		{Type: HullSlotTypeShieldArmor, Capacity: 0},
+		{Type: HullSlotTypeElectrical, Capacity: 4},
+		{Type: HullSlotTypeWeapon, Capacity: 2},
+	},
+}
 
 func TechEngines() []TechEngine {
 	return []TechEngine{
@@ -1456,6 +2074,46 @@ func TechDefenses() []TechDefense {
 		LaserBattery,
 		PlanetaryShield,
 		NeutronShield,
+	}
+}
+
+func TechHulls() []TechHull {
+	return []TechHull{
+		SmallFreighter,
+		MediumFreighter,
+		LargeFreighter,
+		SuperFreighter,
+		Scout,
+		Frigate,
+		Destroyer,
+		Cruiser,
+		BattleCruiser,
+		Battleship,
+		Dreadnought,
+		Privateer,
+		Rogue,
+		Galleon,
+		MiniColonyShip,
+		ColonyShip,
+		MiniBomber,
+		B17Bomber,
+		StealthBomber,
+		B52Bomber,
+		MidgetMiner,
+		MiniMiner,
+		Miner,
+		MaxiMiner,
+		UltraMiner,
+		FuelTransport,
+		SuperFuelXport,
+		MiniMineLayer,
+		SuperMineLayer,
+		Nubian,
+		MetaMorph,
+		OrbitalFort,
+		SpaceStation,
+		UltraStation,
+		DeathStar,
 	}
 }
 

@@ -8,41 +8,85 @@ import (
 )
 
 type Player struct {
-	ID                    uint           `gorm:"primaryKey" json:"id,omitempty" header:"Username"`
-	CreatedAt             time.Time      `json:"createdAt,omitempty"`
-	UpdatedAt             time.Time      `json:"updatedat,omitempty"`
-	DeletedAt             gorm.DeletedAt `gorm:"index" json:"deletedAt,omitempty"`
-	GameID                uint           `json:"gameId"`
-	UserID                uint           `json:"userId"`
-	Name                  string         `json:"name"`
-	Num                   int            `json:"num"`
-	Ready                 bool           `json:"ready,omitempty"`
-	AIControlled          bool           `json:"aIControlled,omitempty"`
-	SubmittedTurn         bool           `json:"submittedTurn,omitempty"`
-	Color                 string         `json:"color,omitempty"`
-	Race                  Race           `json:"race,omitempty"`
-	TechLevels            TechLevel      `json:"techLevels,omitempty" gorm:"embedded;embeddedPrefix:tech_levels_"`
-	TechLevelsSpent       TechLevel      `json:"techLevelsSpent,omitempty" gorm:"embedded;embeddedPrefix:tech_levels_spent"`
-	ResearchAmount        int            `json:"researchAmount,omitempty"`
-	ResearchSpentLastYear int            `json:"researchSpentLastYear,omitempty"`
-	Researching           TechField      `json:"researching,omitempty"`
-	Fleets                []Fleet        `json:"fleets,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
-	Planets               []Planet       `json:"planets,omitempty" gorm:"foreignKey:PlayerID;references:ID"`
-	PlanetIntels          []PlanetIntel  `json:"planetIntels,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
+	ID                    uint            `gorm:"primaryKey" json:"id,omitempty" header:"Username"`
+	CreatedAt             time.Time       `json:"createdAt,omitempty"`
+	UpdatedAt             time.Time       `json:"updatedat,omitempty"`
+	DeletedAt             gorm.DeletedAt  `gorm:"index" json:"deletedAt,omitempty"`
+	GameID                uint            `json:"gameId,omitempty"`
+	UserID                uint            `json:"userId,omitempty"`
+	Name                  string          `json:"name,omitempty"`
+	Num                   int             `json:"num,omitempty"`
+	Ready                 bool            `json:"ready,omitempty"`
+	AIControlled          bool            `json:"aIControlled,omitempty"`
+	SubmittedTurn         bool            `json:"submittedTurn,omitempty"`
+	Color                 string          `json:"color,omitempty"`
+	DefaultHullSet        int             `json:"defaultHullSet,omitempty"`
+	Race                  Race            `json:"race,omitempty"`
+	TechLevels            TechLevel       `json:"techLevels,omitempty" gorm:"embedded;embeddedPrefix:tech_levels_"`
+	TechLevelsSpent       TechLevel       `json:"techLevelsSpent,omitempty" gorm:"embedded;embeddedPrefix:tech_levels_spent"`
+	ResearchAmount        int             `json:"researchAmount,omitempty"`
+	ResearchSpentLastYear int             `json:"researchSpentLastYear,omitempty"`
+	Researching           TechField       `json:"researching,omitempty"`
+	BattlePlans           []BattlePlan    `json:"battlePlans,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
+	Messages              []PlayerMessage `json:"messages,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
+	Designs               []*ShipDesign   `json:"designs,omitempty" gorm:"foreignKey:PlayerID;references:ID;->"`
+	Fleets                []Fleet         `json:"fleets,omitempty" gorm:"foreignKey:PlayerID;references:ID"`
+	Planets               []Planet        `json:"planets,omitempty" gorm:"foreignKey:PlayerID;references:ID"`
+	PlanetIntels          []PlanetIntel   `json:"planetIntels,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
+	Spec                  *PlayerSpec     `json:"spec,omitempty" gorm:"serializer:json"`
+}
+
+type PlayerSpec struct {
+	PlanetaryScanner TechPlanetaryScanner `json:"planetaryScanner"`
 }
 
 type BattlePlan struct {
-	ID              uint           `gorm:"primaryKey" json:"id" header:"Username"`
-	CreatedAt       time.Time      `json:"createdAt"`
-	UpdatedAt       time.Time      `json:"updatedat"`
-	DeletedAt       gorm.DeletedAt `gorm:"index" json:"deletedAt"`
-	PlayerID        uint           `json:"playerId"`
-	Name            string         `json:"name"`
-	PrimaryTarget   string         `json:"primaryTarget"`
-	SecondaryTarget string         `json:"secondaryTarget"`
-	Tactic          string         `json:"tactic"`
-	AttackWho       string         `json:"attackWho"`
+	ID              uint             `gorm:"primaryKey" json:"id" header:"Username"`
+	CreatedAt       time.Time        `json:"createdAt"`
+	UpdatedAt       time.Time        `json:"updatedat"`
+	DeletedAt       gorm.DeletedAt   `gorm:"index" json:"deletedAt"`
+	PlayerID        uint             `json:"playerId"`
+	Name            string           `json:"name"`
+	PrimaryTarget   BattleTargetType `json:"primaryTarget"`
+	SecondaryTarget BattleTargetType `json:"secondaryTarget"`
+	Tactic          BattleTactic     `json:"tactic"`
+	AttackWho       BattleAttackWho  `json:"attackWho"`
 }
+
+type BattleTargetType string
+
+const (
+	BattleTargetNone              BattleTargetType = "None"
+	BattleTargetAny               BattleTargetType = "Any"
+	BattleTargetStarbase          BattleTargetType = "Starbase"
+	BattleTargetArmedShips        BattleTargetType = "ArmedShips"
+	BattleTargetBombersFreighters BattleTargetType = "BombersFreighters"
+	BattleTargetUnarmedShips      BattleTargetType = "UnarmedShips"
+	BattleTargetFuelTransports    BattleTargetType = "FuelTransports"
+	BattleTargetFreighters        BattleTargetType = "Freighters"
+)
+
+type BattleTactic string
+
+const (
+	// RUN AWAY!
+	BattleTacticDisengage BattleTactic = "Disengage"
+	// MaximizeDamage until we are damaged, then disengage
+	BattleTacticDisengageIfChallenged BattleTactic = "DisengageIfChallenged"
+	// If in range of enemy weapons, move away. Only fire if cornered or if from a safe range
+	BattleTacticMinimizeDamageToSelf BattleTactic = "MinimizeDamageToSelf"
+	BattleTacticMaximizeNetDamage    BattleTactic = "MaximizeNetDamage"
+	BattleTacticMaximizeDamageRatio  BattleTactic = "MaximizeDamageRatio"
+	BattleTacticMaximizeDamage       BattleTactic = "MaximizeDamage"
+)
+
+type BattleAttackWho string
+
+const (
+	BattleAttackWhoEnemies            BattleAttackWho = "Enemies"
+	BattleAttackWhoEnemiesAndNeutrals BattleAttackWho = "EnemiesAndNeutrals"
+	BattleAttackWhoEveryone           BattleAttackWho = "Everyone"
+)
 
 // create a new player with an existing race. The race
 // will be copied for the player
@@ -58,6 +102,15 @@ func NewPlayer(userID uint, race *Race) *Player {
 	return &Player{
 		UserID: userID,
 		Race:   playerRace,
+		BattlePlans: []BattlePlan{
+			{
+				Name:            "Default",
+				PrimaryTarget:   BattleTargetArmedShips,
+				SecondaryTarget: BattleTargetAny,
+				Tactic:          BattleTacticMaximizeDamageRatio,
+				AttackWho:       BattleAttackWhoEnemiesAndNeutrals,
+			},
+		},
 	}
 }
 
@@ -68,6 +121,26 @@ func (p *Player) WithTechLevels(tl TechLevel) *Player {
 
 func (p *Player) String() string {
 	return fmt.Sprintf("Player %d (%d) %s", p.Num, p.ID, p.Race.PluralName)
+}
+
+// Get a player ShipDesign by name, or nil if no design found
+func (p *Player) GetDesign(name string) *ShipDesign {
+	for i := range p.Designs {
+		design := p.Designs[i]
+		if design.Name == name {
+			return design
+		}
+	}
+	return nil
+}
+
+func computePlayerSpec(player *Player, rules *Rules) *PlayerSpec {
+	techs := rules.Techs
+	spec := PlayerSpec{
+		PlanetaryScanner: *techs.GetBestPlanetaryScanner(player),
+	}
+
+	return &spec
 }
 
 // return true if the player currently has this tech
