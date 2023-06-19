@@ -14,9 +14,9 @@
 <div class="flex flex-col h-full md:flex-row">
 	<!-- for medium+ displays, command pane goes on the left -->
 	<div
-		class="hidden md:flex md:flex-col justify-between md:w-[14.5rem] lg:w-[29rem] max-h-full overflow-y-auto"
+		class="hidden md:flex md:flex-col justify-between md:w-[15rem] lg:w-[29rem] overflow-y-auto md:max-h-[calc(100vh-4rem)]"
 	>
-		<div class="flex flex-row flex-wrap gap-2 justify-center place-items-stretch">
+		<div class="flex flex-row flex-wrap gap-2 justify-center">
 			<CommandPane {game} />
 		</div>
 		<div class="hidden lg:block lg:p-1 mb-2">
@@ -24,7 +24,7 @@
 		</div>
 	</div>
 
-	<div class="flex flex-col grow min-h-[515px] md:h-full">
+	<div class="flex flex-col grow min-h-[515px]">
 		<div class="flex flex-col grow border-gray-700 border-2 shadow-sm">
 			<ScannerToolbar {game} player={game.player} />
 			<Scanner {game} />

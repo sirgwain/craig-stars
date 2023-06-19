@@ -25,6 +25,7 @@
 	import ScannerScanners from './ScannerScanners.svelte';
 	import ScannerWaypoints from './ScannerWaypoints.svelte';
 	import SelectedMapObject from './SelectedMapObject.svelte';
+	import { writable } from 'svelte/store';
 
 	export let game: FullGame;
 
@@ -40,10 +41,14 @@
 	let zoomBehavior: ZoomBehavior<HTMLElement, any>;
 	let root: HTMLElement;
 	let commandedMapObjectIndex = 0;
-	let scale = 3;
 	let padding = 20; // 20 px, used in zooming
 	let scaleX: ScaleLinear<number, number, never>;
 	let scaleY: ScaleLinear<number, number, never>;
+
+	const scale = writable(1);
+	const clampedScale = writable($scale);
+	$: $clampedScale = Math.min(3, $scale); // don't let the scale used for scanner objects go more than 1/2th size
+	// $: console.log('scale ', $scale, ' clampedScale', $clampedScale);
 
 	// handle zoom in/out
 	// this behavior controls how the zoom behaves
@@ -57,7 +62,7 @@
 					[0, 0],
 					[clientWidth, clientHeight]
 				])
-				.scaleExtent([0.75, 8])
+				.scaleExtent([0.75, 10])
 				.translateExtent([
 					[-20, -20],
 					[clientWidth + padding, clientHeight + padding]
@@ -107,7 +112,7 @@
 
 	function handleZoom(e: D3ZoomEvent<HTMLElement, any>) {
 		transform = e.transform;
-		scale = transform.k;
+		$scale = transform.k;
 		// console.log('handleZoom', e, transform);
 	}
 
@@ -119,12 +124,12 @@
 	// zoom the display to a point on the map
 	function translateViewport(position: Vector, scaleTo?: number) {
 		if (root) {
-			select(root).call(zoomBehavior.scaleTo, scale);
+			select(root).call(zoomBehavior.scaleTo, $scale);
 			const scaled: Vector = {
 				x: scaleX(position.x),
 				y: scaleY(position.y)
 			};
-			let localScale = scale;
+			let localScale = $scale;
 			if (scaleTo) {
 				localScale = scaleTo;
 			}
@@ -247,7 +252,7 @@
 	}
 
 	setContext('game', game);
-	setContext('scale', scale);
+	setContext('scale', clampedScale);
 
 	let data: MapObject[] = [];
 	$: {

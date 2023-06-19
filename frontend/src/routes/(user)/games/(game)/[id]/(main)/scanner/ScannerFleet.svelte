@@ -7,8 +7,10 @@
 	import type { Fleet } from '$lib/types/Fleet';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
+	import type { Writable } from 'svelte/store';
 
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
+	const scale = getContext<Writable<number>>('scale');
 
 	export let fleet: Fleet;
 	export let commanded = false;
@@ -17,8 +19,7 @@
 
 	let angle = 0;
 
-	let size = 8;
-	// $: size = $xScale(8);
+	$: size = 8 / $scale;
 
 	// identity or default is rotated 90º, or pointing up and to the right
 	const angleOffset = 225;

@@ -65,8 +65,8 @@
 		on:click={() => {
 			dispatch('clicked');
 		}}
-		on:mousedown|preventDefault={(e) =>
-			shipDesignSlot?.hullComponent &&
+		on:pointerdown|preventDefault={(e) =>
+			shipDesignSlot?.hullComponent && !highlighted &&
 			showPopupTech($techs.getHullComponent(shipDesignSlot?.hullComponent), e.x, e.y)}
 		class="w-full h-full"
 	>

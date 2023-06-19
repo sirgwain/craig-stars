@@ -1,12 +1,14 @@
 <script lang="ts">
 	import type { FullGame } from '$lib/services/FullGame';
+	import { clamp } from '$lib/services/Math';
 	import { Unexplored, type Planet } from '$lib/types/Planet';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
+	import type { Writable } from 'svelte/store';
 
 	const game = getContext<FullGame>('game');
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
-	$: scale = getContext<number>('scale');
+	const scale = getContext<Writable<number>>('scale');
 
 	export let planet: Planet;
 	export let commanded = false;
@@ -22,9 +24,9 @@
 	$: planetX = $xGet(planet);
 	$: planetY = $yGet(planet);
 
-	$: starbaseWidth = commanded ? 5 : 3;
-	$: starbaseXOffset = commanded ? 5 : 2;
-	$: starbaseYOffset = commanded ? 11 : 6;
+	$: starbaseWidth = (commanded ? 6 : 4) / $scale;
+	$: starbaseXOffset = (commanded ? 5 : 2) / $scale;
+	$: starbaseYOffset = (commanded ? 11 : 6) / $scale;
 
 	$: {
 		// green for us, gray for unexplored, white for explored
@@ -34,7 +36,7 @@
 
 		if (planet.playerNum === game?.player.num) {
 			color = '#00FF00';
-			strokeWidth = 1;
+			strokeWidth = 1 / $scale;
 		} else if (planet.playerNum) {
 			color = game?.getPlayerColor(planet.playerNum) ?? '#FF0000';
 		} else if (planet.reportAge !== Unexplored && !planet.playerNum) {
@@ -47,8 +49,8 @@
 				cx: $xGet(planet),
 				cy: $yGet(planet),
 				stroke: '#fff',
-				'stroke-width': 1,
-				r: 1 * (commanded ? 10 : 5),
+				'stroke-width': 1 / $scale,
+				r: 1 * (commanded ? 10 : 5) / $scale,
 				'fill-opacity': 0
 			};
 		} else {
@@ -57,12 +59,13 @@
 
 		// setup the properties of our planet circle
 		props = {
-			r: (1 * (commanded ? 7 : 3)),
+			r: 1 * (commanded ? 7 : 3) / $scale,
 			fill: color,
 			stroke: strokeColor,
 			'stroke-width': strokeWidth
 		};
 	}
+
 </script>
 
 {#if ringProps}

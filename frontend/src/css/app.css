@@ -107,7 +107,6 @@ input[type='number']::-webkit-inner-spin-button {
 	fill: none;
 	stroke-linejoin: round;
 	stroke-linecap: round;
-	stroke-width: 1px;
 	stroke: #0900ff;
 }
 
@@ -115,7 +114,6 @@ input[type='number']::-webkit-inner-spin-button {
 	fill: none;
 	stroke-linejoin: round;
 	stroke-linecap: round;
-	stroke-width: 3px;
 	stroke: #8480ff;
 }
 

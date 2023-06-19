@@ -15,13 +15,14 @@
 			FleetService.updateFleetOrders(fleet);
 		}
 	};
+	$: selectedWaypointTask = $selectedWaypoint?.task ?? WaypointTask.None;
 </script>
 
 {#if $selectedWaypoint}
 	<CommandTile title="Waypoint Task">
 		<select
 			class="select select-outline select-secondary select-sm py-0 text-sm"
-			bind:value={$selectedWaypoint.task}
+			value={selectedWaypointTask}
 			on:change={(e) =>
 				onSelectedWaypointTaskChange(
 					eu(WaypointTask).getValueOrDefault(e.currentTarget.value, WaypointTask.None)
