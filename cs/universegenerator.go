@@ -439,16 +439,16 @@ func fillStarbaseSlots(techStore *TechStore, starbase *ShipDesign, race *Race, s
 	for index, slot := range hull.Slots {
 		switch slot.Type {
 		case HullSlotTypeWeapon:
-			starbase.Slots = append(starbase.Slots, ShipDesignSlot{beamWeapon.Name, index + 1, int(math.Round(float64(slot.Capacity) / 2))})
+			starbase.Slots = append(starbase.Slots, ShipDesignSlot{beamWeapon.Name, index + 1, int(math.Round(float64(slot.Capacity) / 2)), &beamWeapon})
 		case HullSlotTypeShield:
-			starbase.Slots = append(starbase.Slots, ShipDesignSlot{shield.Name, index + 1, int(math.Round(float64(slot.Capacity) / 2))})
+			starbase.Slots = append(starbase.Slots, ShipDesignSlot{shield.Name, index + 1, int(math.Round(float64(slot.Capacity) / 2)), &shield})
 		case HullSlotTypeOrbital:
 		case HullSlotTypeOrbitalElectrical:
 			if startingPlanet.HasStargate && !placedStargate {
-				starbase.Slots = append(starbase.Slots, ShipDesignSlot{stargate.Name, index + 1, 1})
+				starbase.Slots = append(starbase.Slots, ShipDesignSlot{stargate.Name, index + 1, 1, &stargate})
 				placedStargate = true
 			} else if startingPlanet.HasMassDriver && !placedMassDriver {
-				starbase.Slots = append(starbase.Slots, ShipDesignSlot{massDriver.Name, index + 1, 1})
+				starbase.Slots = append(starbase.Slots, ShipDesignSlot{massDriver.Name, index + 1, 1, &massDriver})
 				placedMassDriver = true
 			}
 		}

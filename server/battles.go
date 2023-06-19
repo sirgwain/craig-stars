@@ -28,9 +28,9 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 				{HullComponent: cs.Overthruster.Name, HullSlotIndex: 2, Quantity: 2},
 				{HullComponent: cs.BattleSuperComputer.Name, HullSlotIndex: 3, Quantity: 2},
 				{HullComponent: cs.ColloidalPhaser.Name, HullSlotIndex: 4, Quantity: 3},
-				{HullComponent: cs.OmegaTorpedo.Name, HullSlotIndex: 5, Quantity: 3},
+				{HullComponent: cs.HeavyBlaster.Name, HullSlotIndex: 5, Quantity: 3},
 				{HullComponent: cs.Overthruster.Name, HullSlotIndex: 6, Quantity: 3},
-				{HullComponent: cs.GorillaDelagator.Name, HullSlotIndex: 6, Quantity: 4},
+				{HullComponent: cs.GorillaDelagator.Name, HullSlotIndex: 7, Quantity: 4},
 			}),
 	)
 
@@ -43,15 +43,26 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 				{HullComponent: cs.Crobmnium.Name, HullSlotIndex: 2, Quantity: 1},
 				{HullComponent: cs.RhinoScanner.Name, HullSlotIndex: 3, Quantity: 1},
 			}),
-			cs.NewShipDesign(player2, 2).
+		cs.NewShipDesign(player2, 2).
 			WithName("Long Range Scout").
 			WithHull(cs.Scout.Name).
 			WithSlots([]cs.ShipDesignSlot{
 				{HullComponent: cs.LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
 				{HullComponent: cs.RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
-				{HullComponent: cs.FuelTank.Name, HullSlotIndex: 3, Quantity: 1},
-			}))
-
+				{HullComponent: cs.CompletePhaseShield.Name, HullSlotIndex: 3, Quantity: 1},
+			}),
+		cs.NewShipDesign(player2, 2).
+			WithName("Stalwart Defender").
+			WithHull(cs.Destroyer.Name).
+			WithSlots([]cs.ShipDesignSlot{
+				{HullComponent: cs.LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
+				{HullComponent: cs.OmegaTorpedo.Name, HullSlotIndex: 2, Quantity: 1},
+				{HullComponent: cs.ColloidalPhaser.Name, HullSlotIndex: 3, Quantity: 1},
+				{HullComponent: cs.RhinoScanner.Name, HullSlotIndex: 4, Quantity: 1},
+				{HullComponent: cs.Superlatanium.Name, HullSlotIndex: 5, Quantity: 1},
+				{HullComponent: cs.Overthruster.Name, HullSlotIndex: 6, Quantity: 1},
+				{HullComponent: cs.BattleComputer.Name, HullSlotIndex: 7, Quantity: 1},
+	}))
 
 	fleets := []*cs.Fleet{
 		{
@@ -81,7 +92,7 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 					DesignNum: player2.Designs[0].Num,
 				},
 				{
-					Quantity:  1,
+					Quantity:  2,
 					DesignNum: player2.Designs[1].Num,
 				},
 			},
@@ -91,5 +102,5 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 		}}
 
 	record := cs.RunTestBattle([]*cs.Player{player1, player2}, fleets)
-	rest.RenderJSON(w, rest.JSON{"player": player1, "battle": record})
+	rest.RenderJSON(w, rest.JSON{"player": player1, "battle": record, "fleets": fleets})
 }

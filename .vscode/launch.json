@@ -56,8 +56,8 @@
             "type": "go",
             "request": "launch",
             "mode": "test",
-            "program": "${workspaceFolder}/cs/battle_test.go",
-            "args": ["-test.run", "Test_battle_runBattle"]
+            "program": "${workspaceFolder}/cs/shipdesign_test.go",
+            "args": ["-test.run", "TestComputeShipDesignSpec"]
         },
 
     ]

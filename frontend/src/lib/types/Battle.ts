@@ -1,5 +1,4 @@
-import { flatten, groupBy, sortBy, sumBy } from 'lodash-es';
-import type { ShipToken } from './Fleet';
+import { flatten, groupBy, sumBy } from 'lodash-es';
 import type { Vector } from './Vector';
 
 export type BattleRecord = {
@@ -33,6 +32,7 @@ export type TokenAction = {
 	to: Vector;
 	slot?: number;
 	targetNum?: number;
+	target?: Token;
 	tokensDestroyed?: number;
 	damageDoneShields?: number;
 	damageDoneArmor?: number;

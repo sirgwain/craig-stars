@@ -328,23 +328,23 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 				spec.MaxRange = component.MaxRange
 			}
 		}
+	}
 
-		// figure out the cloak as a percentage after we specd our cloak units
-		spec.CloakPercent = getCloakPercentForCloakUnits(spec.CloakUnits)
+	// figure out the cloak as a percentage after we specd our cloak units
+	spec.CloakPercent = getCloakPercentForCloakUnits(spec.CloakUnits)
 
-		if numTachyonDetectors > 0 {
-			// 95% ^ (SQRT(#_of_detectors) = Reduction factor for other player's cloaking (Capped at 81% or 17TDs)
-			spec.ReduceCloaking = math.Pow((100.0-float64(rules.TachyonCloakReduction))/100, math.Sqrt(float64(numTachyonDetectors)))
-		}
+	if numTachyonDetectors > 0 {
+		// 95% ^ (SQRT(#_of_detectors) = Reduction factor for other player's cloaking (Capped at 81% or 17TDs)
+		spec.ReduceCloaking = math.Pow((100.0-float64(rules.TachyonCloakReduction))/100, math.Sqrt(float64(numTachyonDetectors)))
+	}
 
-		if spec.NumEngines > 0 {
-			// Movement = IdealEngineSpeed - 2 - Mass / 70 / NumEngines + NumManeuveringJets + 2*NumOverThrusters
-			// we added any MovementBonus components above
-			// we round up the slightest bit, and we can't go below 2, or above 10
-			spec.Movement = clamp((spec.IdealSpeed-2)-spec.Mass/70/spec.NumEngines+spec.Movement+raceSpec.MovementBonus, 2, 10)
-		} else {
-			spec.Movement = 0
-		}
+	if spec.NumEngines > 0 {
+		// Movement = IdealEngineSpeed - 2 - Mass / 70 / NumEngines + NumManeuveringJets + 2*NumOverThrusters
+		// we added any MovementBonus components above
+		// we round up the slightest bit, and we can't go below 2, or above 10
+		spec.Movement = clamp((spec.IdealSpeed-2)-spec.Mass/70/spec.NumEngines+spec.Movement+raceSpec.MovementBonus, 2, 10)
+	} else {
+		spec.Movement = 0
 	}
 
 	spec.computeScanRanges(rules, raceSpec.ScannerSpec, techLevels, design, hull)

@@ -172,7 +172,6 @@ CREATE TABLE
     germanium INTEGER,
     colonists INTEGER,
     fuel INTEGER,
-    damage INTEGER,
     headingX REAL,
     headingY REAL,
     warpSpeed INTEGER,

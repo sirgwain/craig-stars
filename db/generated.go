@@ -312,7 +312,6 @@ func (c *GameConverter) csFleetToDbFleet(source cs.Fleet) Fleet {
 	dbFleet.Germanium = source.Cargo.Germanium
 	dbFleet.Colonists = source.Cargo.Colonists
 	dbFleet.Fuel = source.Fuel
-	dbFleet.Damage = source.Damage
 	dbFleet.BattlePlanName = source.FleetOrders.BattlePlanName
 	dbFleet.HeadingX = source.Heading.X
 	dbFleet.HeadingY = source.Heading.Y
@@ -641,7 +640,6 @@ func (c *GameConverter) dbFleetToCsFleet(source Fleet) cs.Fleet {
 	csFleet.BaseName = source.BaseName
 	csFleet.Cargo = ExtendFleetCargo(source)
 	csFleet.Fuel = source.Fuel
-	csFleet.Damage = source.Damage
 	csFleet.Tokens = ShipTokensToGameShipTokens(source.Tokens)
 	csFleet.Heading = ExtendFleetHeading(source)
 	csFleet.WarpSpeed = source.WarpSpeed

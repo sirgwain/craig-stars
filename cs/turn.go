@@ -707,6 +707,7 @@ func (t *turn) randomPlanetaryChange() {
 }
 
 func (t *turn) fleetBattle() {
+	battleNum := 1
 	for _, mos := range t.game.mapObjectsByPosition {
 		playersAtPosition := map[int]*Player{}
 		fleets := make([]*Fleet, 0, len(mos))
@@ -730,7 +731,7 @@ func (t *turn) fleetBattle() {
 			continue
 		}
 
-		battler := newBattler(t.game.rules, t.game.rules.techs, playersAtPosition, fleets, planet)
+		battler := newBattler(t.game.rules, t.game.rules.techs, battleNum, playersAtPosition, fleets, planet)
 
 		if battler.hasTargets() {
 			// someone wants to fight, run the battle!
@@ -780,6 +781,7 @@ func (t *turn) fleetBattle() {
 				}
 
 			}
+			battleNum++
 		}
 
 	}

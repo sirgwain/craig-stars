@@ -24,9 +24,6 @@ type BattleRecordToken struct {
 	PlayerNum       int             `json:"playerNum,omitempty"`
 	DesignNum       int             `json:"designNum,omitempty"`
 	Position        Vector          `json:"position,omitempty"`
-	Quantity        int             `json:"quantity,omitempty"`
-	Damage          float64         `json:"damage,omitempty"`
-	QuantityDamaged int             `json:"quantityDamaged,omitempty"`
 	Initiative      int             `json:"initiative,omitempty"`
 	Movement        int             `json:"movement,omitempty"`
 	Tactic          BattleTactic    `json:"tactic,omitempty"`
@@ -44,7 +41,7 @@ type BattleRecordTokenAction struct {
 	To                Vector                      `json:"to,omitempty"`
 	Slot              int                         `json:"slot,omitempty"`
 	TargetNum         int                         `json:"targetNum,omitempty"`
-	Target            *BattleRecordToken          `json:"targetToken,omitempty"`
+	Target            *ShipToken                  `json:"target,omitempty"`
 	TokensDestroyed   int                         `json:"tokensDestroyed,omitempty"`
 	DamageDoneShields int                         `json:"damageDoneShields,omitempty"`
 	DamageDoneArmor   int                         `json:"damageDoneArmor,omitempty"`
@@ -130,8 +127,10 @@ func (b *BattleRecord) RecordRunAway(round int, token *battleToken) {
 
 // Record a token firing a beam weapon
 func (b *BattleRecord) RecordBeamFire(round int, token *battleToken, from Vector, to Vector, slot int, target battleToken, damageDoneShields int, damageDoneArmor int, tokensDestroyed int) {
+	// copy the ship token into the record
+	shipToken := *target.ShipToken
 
-	action := BattleRecordTokenAction{Type: TokenActionBeamFire, Round: round, TokenNum: token.Num, TargetNum: target.Num, Target: &target.BattleRecordToken, From: from, To: to, Slot: slot, DamageDoneShields: damageDoneShields, DamageDoneArmor: damageDoneArmor, TokensDestroyed: tokensDestroyed}
+	action := BattleRecordTokenAction{Type: TokenActionBeamFire, Round: round, TokenNum: token.Num, TargetNum: target.Num, Target: &shipToken, From: from, To: to, Slot: slot, DamageDoneShields: damageDoneShields, DamageDoneArmor: damageDoneArmor, TokensDestroyed: tokensDestroyed}
 	actions := b.ActionsPerRound[len(b.ActionsPerRound)-1]
 	actions = append(actions, action)
 	b.ActionsPerRound[len(b.ActionsPerRound)-1] = actions
@@ -141,7 +140,9 @@ func (b *BattleRecord) RecordBeamFire(round int, token *battleToken, from Vector
 }
 
 // Record a token firing a salvo of torpedos
-func (b *BattleRecord) RecordTorpedoFire(round int, token *battleToken, from Vector, to Vector, slot int, target battleToken, damageDoneShields int, damageDoneArmor int, tokensDestroyed int, hits int, misses int) {
+func (b *BattleRecord) RecordTorpedoFire(round int, token *battleToken, from Vector, to Vector, slot int, target *battleToken, damageDoneShields int, damageDoneArmor int, tokensDestroyed int, hits int, misses int) {
+	// copy the ship token into the record
+	shipToken := *target.ShipToken
 	action := BattleRecordTokenAction{
 		Type:              TokenActionTorpedoFire,
 		Round:             round,
@@ -150,7 +151,7 @@ func (b *BattleRecord) RecordTorpedoFire(round int, token *battleToken, from Vec
 		To:                to,
 		Slot:              slot,
 		TargetNum:         target.Num,
-		Target:            &target.BattleRecordToken,
+		Target:            &shipToken,
 		DamageDoneShields: damageDoneShields,
 		DamageDoneArmor:   damageDoneArmor,
 		TokensDestroyed:   tokensDestroyed,

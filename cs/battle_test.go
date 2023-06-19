@@ -27,7 +27,7 @@ func testStalwartDefender(player *Player) *Fleet {
 						{HullComponent: RhinoScanner.Name, HullSlotIndex: 4, Quantity: 1},
 						{HullComponent: Crobmnium.Name, HullSlotIndex: 5, Quantity: 1},
 						{HullComponent: Overthruster.Name, HullSlotIndex: 6, Quantity: 1},
-						{HullComponent: BattleComputer.Name, HullSlotIndex: 6, Quantity: 1},
+						{HullComponent: BattleComputer.Name, HullSlotIndex: 7, Quantity: 1},
 					}).
 					WithSpec(&rules, player)},
 		},
@@ -238,7 +238,7 @@ func Test_battle_runBattle1(t *testing.T) {
 		}
 	}
 
-	battle := newBattler(&rules, &StaticTechStore, map[int]*Player{1: player1, 2: player2}, fleets, nil)
+	battle := newBattler(&rules, &StaticTechStore, 1, map[int]*Player{1: player1, 2: player2}, fleets, nil)
 
 	record := battle.runBattle()
 

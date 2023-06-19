@@ -30,7 +30,6 @@ type Fleet struct {
 	BaseName          string      `json:"baseName"`
 	Cargo             Cargo       `json:"cargo,omitempty"`
 	Fuel              int         `json:"fuel"`
-	Damage            int         `json:"damage"`
 	Tokens            []ShipToken `json:"tokens"`
 	Heading           Vector      `json:"heading,omitempty"`
 	WarpSpeed         int         `json:"warpSpeed,omitempty"`
