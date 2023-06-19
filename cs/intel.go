@@ -30,7 +30,7 @@ type discoverer interface {
 	discoverFleetCargo(player *Player, fleet *Fleet)
 	discoverMineField(player *Player, mineField *MineField)
 	discoverMineralPacket(player *Player, mineralPacket *MineralPacket)
-	discoverSalvage(player *Player, salvage *Salvage)
+	discoverSalvage(salvage *Salvage)
 	discoverWormhole(wormhole *Wormhole)
 	discoverWormholeLink(wormhole1, wormhole2 *Wormhole)
 	discoverMysteryTrader(mineField *MysteryTrader)
@@ -45,45 +45,45 @@ func newDiscoverer(player *Player) discoverer {
 	d := &discover{
 		player: player,
 	}
-	d.fleetIntelsByKey = make(map[playerObject]*FleetIntel, len(player.Fleets))
-	for i := range player.Fleets {
-		intel := &player.Fleets[i]
+	d.fleetIntelsByKey = make(map[playerObject]*FleetIntel, len(player.FleetIntels))
+	for i := range player.FleetIntels {
+		intel := &player.FleetIntels[i]
 		d.fleetIntelsByKey[intel.playerObjectKey()] = intel
 	}
 
-	d.mineFieldIntelsByKey = make(map[playerObject]*MineFieldIntel, len(player.MineFields))
-	for i := range player.MineFields {
-		intel := &player.MineFields[i]
+	d.mineFieldIntelsByKey = make(map[playerObject]*MineFieldIntel, len(player.MineFieldIntels))
+	for i := range player.MineFieldIntels {
+		intel := &player.MineFieldIntels[i]
 		d.mineFieldIntelsByKey[intel.playerObjectKey()] = intel
 	}
 
-	d.mineralPacketIntelsByKey = make(map[playerObject]*MineralPacketIntel, len(player.MineralPackets))
-	for i := range player.MineralPackets {
-		intel := &player.MineralPackets[i]
+	d.mineralPacketIntelsByKey = make(map[playerObject]*MineralPacketIntel, len(player.MineralPacketIntels))
+	for i := range player.MineralPacketIntels {
+		intel := &player.MineralPacketIntels[i]
 		d.mineralPacketIntelsByKey[intel.playerObjectKey()] = intel
 	}
 
-	d.salvageIntelsByKey = make(map[playerObject]*SalvageIntel, len(player.Salvages))
-	for i := range player.Salvages {
-		intel := &player.Salvages[i]
+	d.salvageIntelsByKey = make(map[playerObject]*SalvageIntel, len(player.SalvageIntels))
+	for i := range player.SalvageIntels {
+		intel := &player.SalvageIntels[i]
 		d.salvageIntelsByKey[intel.playerObjectKey()] = intel
 	}
 
-	d.wormholeIntelsByKey = make(map[int]*WormholeIntel, len(player.Wormholes))
-	for i := range player.Wormholes {
-		intel := &player.Wormholes[i]
+	d.wormholeIntelsByKey = make(map[int]*WormholeIntel, len(player.WormholeIntels))
+	for i := range player.WormholeIntels {
+		intel := &player.WormholeIntels[i]
 		d.wormholeIntelsByKey[intel.Num] = intel
 	}
 
-	d.mysteryTraderIntelsByKey = make(map[int]*MysteryTraderIntel, len(player.MysteryTraders))
-	for i := range player.MysteryTraders {
-		intel := &player.MysteryTraders[i]
+	d.mysteryTraderIntelsByKey = make(map[int]*MysteryTraderIntel, len(player.MysteryTraderIntels))
+	for i := range player.MysteryTraderIntels {
+		intel := &player.MysteryTraderIntels[i]
 		d.mysteryTraderIntelsByKey[intel.Num] = intel
 	}
 
-	d.designIntelsByKey = make(map[playerObject]*ShipDesignIntel, len(player.ForeignShipDesigns))
-	for i := range player.ForeignShipDesigns {
-		intel := &player.ForeignShipDesigns[i]
+	d.designIntelsByKey = make(map[playerObject]*ShipDesignIntel, len(player.ShipDesignIntels))
+	for i := range player.ShipDesignIntels {
+		intel := &player.ShipDesignIntels[i]
 		d.designIntelsByKey[intel.playerObjectKey()] = intel
 	}
 
@@ -300,9 +300,9 @@ func (intel *PlanetIntel) Explored() bool {
 
 // clear any transient player reports that are refreshed each turn
 func (d *discover) clearTransientReports() {
-	d.player.Fleets = []FleetIntel{}
-	d.player.Salvages = []SalvageIntel{}
-	d.player.MineralPackets = []MineralPacketIntel{}
+	d.player.FleetIntels = []FleetIntel{}
+	d.player.SalvageIntels = []SalvageIntel{}
+	d.player.MineralPacketIntels = []MineralPacketIntel{}
 }
 
 // discover a planet and add it to the player's intel
@@ -311,11 +311,11 @@ func (d *discover) discoverPlanet(rules *Rules, player *Player, planet *Planet, 
 	var intel *PlanetIntel
 	planetIndex := planet.Num - 1
 
-	if planetIndex < 0 || planetIndex >= len(player.Planets) {
+	if planetIndex < 0 || planetIndex >= len(player.PlanetIntels) {
 		return fmt.Errorf("player %s cannot discover planet %s, planetIndex %d out of range", player, planet, planetIndex)
 	}
 
-	intel = &player.Planets[planetIndex]
+	intel = &player.PlanetIntels[planetIndex]
 
 	// everyone knows these about planets
 	intel.Position = planet.Position
@@ -356,11 +356,11 @@ func (d *discover) discoverPlanetStarbase(player *Player, planet *Planet) error 
 	var intel *PlanetIntel
 	planetIndex := planet.Num - 1
 
-	if planetIndex < 0 || planetIndex >= len(player.Planets) {
+	if planetIndex < 0 || planetIndex >= len(player.PlanetIntels) {
 		return fmt.Errorf("player %s cannot discover planet %s, planetIndex %d out of range", player, planet, planetIndex)
 	}
 
-	intel = &player.Planets[planetIndex]
+	intel = &player.PlanetIntels[planetIndex]
 
 	// discover starbases on scan, but don't discover designs
 	intel.Spec.HasStarbase = planet.Spec.HasStarbase
@@ -376,11 +376,11 @@ func (d *discover) discoverPlanetCargo(player *Player, planet *Planet) error {
 	var intel *PlanetIntel
 	planetIndex := planet.Num - 1
 
-	if planetIndex < 0 || planetIndex >= len(player.Planets) {
+	if planetIndex < 0 || planetIndex >= len(player.PlanetIntels) {
 		return fmt.Errorf("player %s cannot discover planet %s, planetIndex %d out of range", player, planet, planetIndex)
 	}
 
-	intel = &player.Planets[planetIndex]
+	intel = &player.PlanetIntels[planetIndex]
 
 	intel.CargoDiscovered = true
 	intel.Cargo = Cargo{
@@ -404,7 +404,7 @@ func (d *discover) discoverFleet(player *Player, fleet *Fleet) {
 	intel.Mass = fleet.Spec.Mass
 	intel.Tokens = fleet.Tokens
 
-	player.Fleets = append(player.Fleets, intel)
+	player.FleetIntels = append(player.FleetIntels, intel)
 	d.fleetIntelsByKey[playerObjectKey(intel.PlayerNum, intel.Num)] = &intel
 }
 
@@ -419,7 +419,7 @@ func (d *discover) discoverFleetCargo(player *Player, fleet *Fleet) {
 }
 
 // discover a salvage and add it to the player's salvage intel
-func (d *discover) discoverSalvage(player *Player, salvage *Salvage) {
+func (d *discover) discoverSalvage(salvage *Salvage) {
 	intel := newSalvageIntel(salvage.PlayerNum, salvage.Num)
 
 	intel.Name = salvage.Name
@@ -427,7 +427,7 @@ func (d *discover) discoverSalvage(player *Player, salvage *Salvage) {
 	intel.Position = salvage.Position
 	intel.Cargo = salvage.Cargo
 
-	player.Salvages = append(player.Salvages, intel)
+	d.player.SalvageIntels = append(d.player.SalvageIntels, intel)
 	d.salvageIntelsByKey[intel.playerObjectKey()] = &intel
 }
 
@@ -438,8 +438,8 @@ func (d *discover) discoverMineField(player *Player, mineField *MineField) {
 	if !found {
 		// discover this new mineField
 		intel = newMineFieldIntel(mineField.PlayerNum, mineField.Num)
-		player.MineFields = append(player.MineFields, *intel)
-		intel = &player.MineFields[len(player.MineFields)-1]
+		player.MineFieldIntels = append(player.MineFieldIntels, *intel)
+		intel = &player.MineFieldIntels[len(player.MineFieldIntels)-1]
 		d.mineFieldIntelsByKey[intel.playerObjectKey()] = intel
 	}
 
@@ -457,8 +457,8 @@ func (d *discover) discoverMineralPacket(player *Player, mineralPacket *MineralP
 	if !found {
 		// discover this new mineralPacket
 		intel = newMineralPacketIntel(mineralPacket.PlayerNum, mineralPacket.Num)
-		player.MineralPackets = append(player.MineralPackets, *intel)
-		intel = &player.MineralPackets[len(player.MineralPackets)-1]
+		player.MineralPacketIntels = append(player.MineralPacketIntels, *intel)
+		intel = &player.MineralPacketIntels[len(player.MineralPacketIntels)-1]
 		d.mineralPacketIntelsByKey[intel.playerObjectKey()] = intel
 	}
 
@@ -487,8 +487,8 @@ func (d *discover) discoverDesign(player *Player, design *ShipDesign, discoverSl
 		}
 
 		// save this new design to our intel
-		player.ForeignShipDesigns = append(player.ForeignShipDesigns, *intel)
-		intel = &player.ForeignShipDesigns[len(player.ForeignShipDesigns)-1]
+		player.ShipDesignIntels = append(player.ShipDesignIntels, *intel)
+		intel = &player.ShipDesignIntels[len(player.ShipDesignIntels)-1]
 		d.designIntelsByKey[key] = intel
 	}
 
@@ -507,8 +507,8 @@ func (d *discover) discoverWormhole(wormhole *Wormhole) {
 	intel, found := d.wormholeIntelsByKey[wormhole.Num]
 	if !found {
 		// discover this new wormhole
-		player.Wormholes = append(player.Wormholes, *newWormholeIntel(wormhole.Num))
-		intel = &player.Wormholes[len(player.Wormholes)-1]
+		player.WormholeIntels = append(player.WormholeIntels, *newWormholeIntel(wormhole.Num))
+		intel = &player.WormholeIntels[len(player.WormholeIntels)-1]
 		d.wormholeIntelsByKey[intel.Num] = intel
 	}
 
@@ -522,16 +522,16 @@ func (d *discover) discoverWormholeLink(wormhole1, wormhole2 *Wormhole) {
 	intel1, found := d.wormholeIntelsByKey[wormhole1.Num]
 	if !found {
 		// discover this new wormhole
-		player.Wormholes = append(player.Wormholes, *newWormholeIntel(wormhole1.Num))
-		intel1 = &player.Wormholes[len(player.Wormholes)-1]
+		player.WormholeIntels = append(player.WormholeIntels, *newWormholeIntel(wormhole1.Num))
+		intel1 = &player.WormholeIntels[len(player.WormholeIntels)-1]
 		d.wormholeIntelsByKey[intel1.Num] = intel1
 	}
 
 	intel2, found := d.wormholeIntelsByKey[wormhole2.Num]
 	if !found {
 		// discover this new wormhole
-		player.Wormholes = append(player.Wormholes, *newWormholeIntel(wormhole2.Num))
-		intel2 = &player.Wormholes[len(player.Wormholes)-1]
+		player.WormholeIntels = append(player.WormholeIntels, *newWormholeIntel(wormhole2.Num))
+		intel2 = &player.WormholeIntels[len(player.WormholeIntels)-1]
 		d.wormholeIntelsByKey[intel2.Num] = intel2
 	}
 
@@ -546,15 +546,14 @@ func (d *discover) discoverWormholeLink(wormhole1, wormhole2 *Wormhole) {
 	intel2.DestinationNum = wormhole2.DestinationNum
 }
 
-
 // discover a mysteryTrader and add it to the player's mysteryTrader intel
 func (d *discover) discoverMysteryTrader(mysteryTrader *MysteryTrader) {
 	player := d.player
 	intel, found := d.mysteryTraderIntelsByKey[mysteryTrader.Num]
 	if !found {
 		// discover this new mysteryTrader
-		player.MysteryTraders = append(player.MysteryTraders, *newMysteryTraderIntel(mysteryTrader.Num))
-		intel = &player.MysteryTraders[len(player.MysteryTraders)-1]
+		player.MysteryTraderIntels = append(player.MysteryTraderIntels, *newMysteryTraderIntel(mysteryTrader.Num))
+		intel = &player.MysteryTraderIntels[len(player.MysteryTraderIntels)-1]
 		d.mysteryTraderIntelsByKey[intel.Num] = intel
 	}
 
@@ -566,7 +565,7 @@ func (d *discover) discoverMysteryTrader(mysteryTrader *MysteryTrader) {
 
 // discover a player's race
 func (d *discover) discoverPlayer(player *Player) {
-	intel := &d.player.PlayerIntels.Players[player.Num-1]
+	intel := &d.player.PlayerIntels.PlayerIntels[player.Num-1]
 
 	if !intel.Seen {
 		log.Debug().Msgf("player %s discovered %s", d.player.Name, player.Name)

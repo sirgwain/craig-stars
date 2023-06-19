@@ -44,15 +44,17 @@ type Player struct {
 	TransportPlans               *TransportPlans      `json:"transportPlans,omitempty"`
 	Relations                    *PlayerRelationships `json:"relations,omitempty"`
 	Messages                     *PlayerMessages      `json:"messages,omitempty"`
-	Battles                      *BattleRecords       `json:"battles,omitempty"`
-	Players                      *PlayerIntels        `json:"players,omitempty"`
+	BattleRecords                *BattleRecords       `json:"battleRecords,omitempty"`
+	PlayerIntels                 *PlayerIntels        `json:"playerIntels,omitempty"`
 	PlanetIntels                 *PlanetIntels        `json:"planetIntels,omitempty"`
 	FleetIntels                  *FleetIntels         `json:"fleetIntels,omitempty"`
+	StarbaseIntels               *FleetIntels         `json:"starbaseIntels,omitempty"`
+	ShipDesignIntels             *ShipDesignIntels    `json:"shipDesignIntels,omitempty"`
 	MineralPacketIntels          *MineralPacketIntels `json:"mineralPacketIntels,omitempty"`
 	MineFieldIntels              *MineFieldIntels     `json:"mineFieldIntels,omitempty"`
 	WormholeIntels               *WormholeIntels      `json:"wormholeIntels,omitempty"`
 	MysteryTraderIntels          *MysteryTraderIntels `json:"mysteryTraderIntels,omitempty"`
-	ShipDesignIntels             *ShipDesignIntels    `json:"shipDesignIntels,omitempty"`
+	SalvageIntels                *SalvageIntels       `json:"salvageIntels,omitempty"`
 	Race                         *PlayerRace          `json:"race,omitempty"`
 	Stats                        *PlayerStats         `json:"stats,omitempty"`
 	ScoreHistory                 *PlayerScores        `json:"scoreHistory,omitempty"`
@@ -74,6 +76,7 @@ type PlanetIntels []cs.PlanetIntel
 type FleetIntels []cs.FleetIntel
 type ShipDesignIntels []cs.ShipDesignIntel
 type MineralPacketIntels []cs.MineralPacketIntel
+type SalvageIntels []cs.SalvageIntel
 type MineFieldIntels []cs.MineFieldIntel
 type MysteryTraderIntels []cs.MysteryTraderIntel
 type WormholeIntels []cs.WormholeIntel
@@ -211,6 +214,14 @@ func (item *MineralPacketIntels) Value() (driver.Value, error) {
 }
 
 func (item *MineralPacketIntels) Scan(src interface{}) error {
+	return scanJSON(src, item)
+}
+
+func (item *SalvageIntels) Value() (driver.Value, error) {
+	return valueJSON(item)
+}
+
+func (item *SalvageIntels) Scan(src interface{}) error {
 	return scanJSON(src, item)
 }
 
@@ -386,16 +397,17 @@ func (c *client) GetPlayerIntelsForGame(gameID, userID int64) (*cs.PlayerIntels,
 	item := Player{}
 	if err := c.db.Get(&item, `
 	SELECT
-	players,
-	battles,
-	shipDesignIntels,
+	battleRecords,
+	playerIntels,
 	planetIntels,
 	fleetIntels,
+	starbaseIntels,
+	shipDesignIntels,
 	mineralPacketIntels,
 	mineFieldIntels,
 	wormholeIntels,
 	mysteryTraderIntels,
-	spec
+	salvageIntels
 	FROM players 
 	WHERE gameId = ? AND userId = ?`, gameID, userID); err != nil {
 		if err == sql.ErrNoRows {
@@ -571,12 +583,6 @@ func (c *client) GetPlayerMapObjects(gameID, userID int64) (*cs.PlayerMapObjects
 	}
 	mapObjects.MineralPackets = mineralPackets
 
-	salvages, err := c.GetSalvagesForPlayer(gameID, num)
-	if err != nil {
-		return nil, fmt.Errorf("get player salvages %w", err)
-	}
-	mapObjects.Salvages = salvages
-
 	fleets, err := c.GetFleetsForPlayer(gameID, num)
 	if err != nil {
 		return nil, fmt.Errorf("get player fleets %w", err)
@@ -661,15 +667,17 @@ func (c *client) createPlayer(player *cs.Player, tx SQLExecer) error {
 		transportPlans,
 		relations,
 		messages,
-		battles,
-		players,
+		battleRecords,
+		playerIntels,
 		planetIntels,
 		fleetIntels,
+		starbaseIntels,
 		shipDesignIntels,
 		mineralPacketIntels,
 		mineFieldIntels,
 		wormholeIntels,
 		mysteryTraderIntels,
+		salvageIntels,
 		race,
 		stats,
 		scoreHistory,
@@ -710,15 +718,17 @@ func (c *client) createPlayer(player *cs.Player, tx SQLExecer) error {
 		:transportPlans,
 		:relations,
 		:messages,
-		:battles,
-		:players,
+		:battleRecords,
+		:playerIntels,
 		:planetIntels,
 		:fleetIntels,
+		:starbaseIntels,
 		:shipDesignIntels,
 		:mineralPacketIntels,
 		:mineFieldIntels,
 		:wormholeIntels,
 		:mysteryTraderIntels,
+		:salvageIntels,
 		:race,
 		:stats,
 		:scoreHistory,
@@ -873,16 +883,18 @@ func (c *client) updatePlayerWithNamedExecer(player *cs.Player, tx SQLExecer) er
 		productionPlans = :productionPlans,
 		transportPlans = :transportPlans,
 		relations = :relations,
-		messages = :messages,
-		battles = :battles,
-		players = :players,
+		battleRecords = :battleRecords,
+		playerIntels = :playerIntels,
 		planetIntels = :planetIntels,
 		fleetIntels = :fleetIntels,
+		starbaseIntels = :starbaseIntels,
 		shipDesignIntels = :shipDesignIntels,
 		mineralPacketIntels = :mineralPacketIntels,
 		mineFieldIntels = :mineFieldIntels,
 		wormholeIntels = :wormholeIntels,
 		mysteryTraderIntels = :mysteryTraderIntels,
+		salvageIntels = :salvageIntels,
+		messages = :messages,
 		race = :race,
 		stats = :stats,
 		scoreHistory = :scoreHistory,

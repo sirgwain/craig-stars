@@ -126,7 +126,7 @@ type playerUniverseResponse struct {
 	MineralPackets []interface{} `json:"mineralPackets,omitempty"`
 	MineFields     []interface{} `json:"mineFields,omitempty"`
 	MysteryTraders []interface{} `json:"mysteryTraders,omitempty"`
-	Salvages       []interface{} `json:"salvage,omitempty"`
+	Salvages       []interface{} `json:"salvages,omitempty"`
 	Designs        []interface{} `json:"designs,omitempty"`
 	Players        []interface{} `json:"players,omitempty"`
 	Battles        []interface{} `json:"battles,omitempty"`
@@ -183,41 +183,40 @@ func buildUniverse(designs []*cs.ShipDesign, pmos cs.PlayerMapObjects, intels cs
 	numPlayerStarbases := len(pmos.Starbases)
 	numPlayerMineralPackets := len(pmos.MineralPackets)
 	numPlayerMineFields := len(pmos.MineFields)
-	numPlayerSalvages := len(pmos.Salvages)
 	numPlayerDesigns := len(designs)
 
 	universe := playerUniverseResponse{
-		Planets:        make([]interface{}, len(intels.Planets)),
-		Fleets:         make([]interface{}, len(intels.Fleets)+numPlayerFleets),
-		Starbases:      make([]interface{}, len(intels.Starbases)+numPlayerStarbases),
-		MineralPackets: make([]interface{}, len(intels.MineralPackets)+numPlayerMineralPackets),
-		MineFields:     make([]interface{}, len(intels.MineFields)+numPlayerMineFields),
-		Salvages:       make([]interface{}, len(intels.Salvages)+numPlayerSalvages),
-		Wormholes:      make([]interface{}, len(intels.Wormholes)),
-		MysteryTraders: make([]interface{}, len(intels.MysteryTraders)),
-		Designs:        make([]interface{}, len(intels.ForeignShipDesigns)+numPlayerDesigns),
-		Players:        make([]interface{}, len(intels.Players)),
-		Battles:        make([]interface{}, len(intels.Battles)),
+		Planets:        make([]interface{}, len(intels.PlanetIntels)),
+		Fleets:         make([]interface{}, len(intels.FleetIntels)+numPlayerFleets),
+		Starbases:      make([]interface{}, len(intels.StarbaseIntels)+numPlayerStarbases),
+		MineralPackets: make([]interface{}, len(intels.MineralPacketIntels)+numPlayerMineralPackets),
+		MineFields:     make([]interface{}, len(intels.MineFieldIntels)+numPlayerMineFields),
+		Salvages:       make([]interface{}, len(intels.SalvageIntels)),
+		Wormholes:      make([]interface{}, len(intels.WormholeIntels)),
+		MysteryTraders: make([]interface{}, len(intels.MysteryTraderIntels)),
+		Designs:        make([]interface{}, len(intels.ShipDesignIntels)+numPlayerDesigns),
+		Players:        make([]interface{}, len(intels.PlayerIntels)),
+		Battles:        make([]interface{}, len(intels.BattleRecords)),
 	}
 
 	// merge player and design intels into the Designs data
 	for i, item := range designs {
 		universe.Designs[i] = item
 	}
-	for i, item := range intels.ForeignShipDesigns {
+	for i, item := range intels.ShipDesignIntels {
 		universe.Designs[i+numPlayerDesigns] = item
 	}
 
-	for i, item := range intels.Players {
+	for i, item := range intels.PlayerIntels {
 		universe.Players[i] = item
 	}
 
-	for i, item := range intels.Battles {
+	for i, item := range intels.BattleRecords {
 		universe.Battles[i] = item
 	}
 
 	// merge player planets and planet intels
-	for i, item := range intels.Planets {
+	for i, item := range intels.PlanetIntels {
 		universe.Planets[i] = item
 	}
 	// we overwrite planets by num
@@ -229,43 +228,40 @@ func buildUniverse(designs []*cs.ShipDesign, pmos cs.PlayerMapObjects, intels cs
 	for i, item := range pmos.Fleets {
 		universe.Fleets[i] = item
 	}
-	for i, item := range intels.Fleets {
+	for i, item := range intels.FleetIntels {
 		universe.Fleets[i+numPlayerFleets] = item
 	}
 
 	for i, item := range pmos.Starbases {
 		universe.Starbases[i] = item
 	}
-	for i, item := range intels.Starbases {
+	for i, item := range intels.StarbaseIntels {
 		universe.Starbases[i+numPlayerStarbases] = item
 	}
 
 	for i, item := range pmos.MineralPackets {
 		universe.MineralPackets[i] = item
 	}
-	for i, item := range intels.MineralPackets {
+	for i, item := range intels.MineralPacketIntels {
 		universe.MineralPackets[i+numPlayerMineralPackets] = item
 	}
 
 	for i, item := range pmos.MineFields {
 		universe.MineFields[i] = item
 	}
-	for i, item := range intels.MineFields {
+	for i, item := range intels.MineFieldIntels {
 		universe.MineFields[i+numPlayerMineFields] = item
 	}
 
-	for i, item := range pmos.Salvages {
+	for i, item := range intels.SalvageIntels {
 		universe.Salvages[i] = item
 	}
-	for i, item := range intels.Salvages {
-		universe.Salvages[i+numPlayerSalvages] = item
-	}
 
-	for i, item := range intels.Wormholes {
+	for i, item := range intels.WormholeIntels {
 		universe.Wormholes[i] = item
 	}
 
-	for i, item := range intels.MysteryTraders {
+	for i, item := range intels.MysteryTraderIntels {
 		universe.MysteryTraders[i] = item
 	}
 	return universe

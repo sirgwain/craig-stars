@@ -35,7 +35,7 @@ func (t *turn) generateTurn() error {
 	// reset players for start of the turn
 	for _, player := range t.game.Players {
 		player.Messages = []PlayerMessage{}
-		player.Battles = []BattleRecord{}
+		player.BattleRecords = []BattleRecord{}
 		player.leftoverResources = 0
 		player.Spec = computePlayerSpec(player, &t.game.Rules, t.game.Planets)
 	}
@@ -1311,7 +1311,7 @@ func (t *turn) fleetBattle() {
 				discoverersByPlayer[player.Num] = discoverer
 
 				// player knows about the battle
-				player.Battles = append(player.Battles, *record)
+				player.BattleRecords = append(player.BattleRecords, *record)
 				messager.battle(player, planet, record)
 			}
 			for _, fleet := range fleets {
@@ -1636,7 +1636,7 @@ func (t *turn) fleetPatrol(player *Player) {
 		closestDistance := float64(math.MaxFloat32)
 		var closest *FleetIntel
 
-		for _, enemyFleet := range player.Fleets {
+		for _, enemyFleet := range player.FleetIntels {
 			if fleet.willAttack(player, enemyFleet.PlayerNum) {
 				distSquaredToFleet := fleet.Position.DistanceSquaredTo(enemyFleet.Position)
 				if distSquaredToFleet <= distSquared {

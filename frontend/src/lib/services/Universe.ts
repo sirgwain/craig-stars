@@ -108,10 +108,6 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 			.filter(ownedByMe)
 			.sort(sortByNum)
 			.forEach((mo) => addtoDict(mo, this.myMapObjectsByPosition));
-		this.salvages
-			.filter(ownedByMe)
-			.sort(sortByNum)
-			.forEach((mo) => addtoDict(mo, this.myMapObjectsByPosition));
 	}
 
 	getPlayerIntel(num: number): PlayerIntel | undefined {
@@ -275,11 +271,11 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 				);
 			case MapObjectType.MineralPacket:
 				return this.mineralPackets.find(
-					(mf) => mf.num === target.targetNum && mf.playerNum === target.targetPlayerNum
+					(p) => p.num === target.targetNum && p.playerNum === target.targetPlayerNum
 				);
 			case MapObjectType.Salvage:
 				return this.salvages.find(
-					(mf) => mf.num === target.targetNum && mf.playerNum === target.targetPlayerNum
+					(s) => s.num === target.targetNum && s.playerNum === target.targetPlayerNum
 				);
 			case MapObjectType.Wormhole:
 				return target.targetNum ? this.getWormhole(target.targetNum) : undefined;

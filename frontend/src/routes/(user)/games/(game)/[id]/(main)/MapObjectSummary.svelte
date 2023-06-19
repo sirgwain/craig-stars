@@ -7,11 +7,13 @@
 	import type { MineField } from '$lib/types/MineField';
 	import type { MineralPacket } from '$lib/types/MineralPacket';
 	import type { Planet } from '$lib/types/Planet';
+	import type { Salvage } from '$lib/types/Salvage';
 	import type { Wormhole } from '$lib/types/Wormhole';
 	import FleetSummary from './FleetSummary.svelte';
 	import MineFieldSummary from './MineFieldSummary.svelte';
 	import MineralPacketSummary from './MineralPacketSummary.svelte';
 	import PlanetSummary from './PlanetSummary.svelte';
+	import SalvageSummary from './SalvageSummary.svelte';
 	import UnknownSummary from './UnknownSummary.svelte';
 	import WormholeSummary from './WormholeSummary.svelte';
 
@@ -21,6 +23,7 @@
 	let selectedFleet: Fleet | undefined;
 	let selectedMineField: MineField | undefined;
 	let selectedMineralPacket: MineralPacket | undefined;
+	let selectedSalvage: Salvage | undefined;
 	let selectedWormhole: Wormhole | undefined;
 	$: {
 		selectedPlanet =
@@ -34,6 +37,10 @@
 		selectedMineralPacket =
 			$selectedMapObject?.type == MapObjectType.MineralPacket
 				? ($selectedMapObject as MineralPacket)
+				: undefined;
+		selectedSalvage =
+			$selectedMapObject?.type == MapObjectType.Salvage
+				? ($selectedMapObject as Salvage)
 				: undefined;
 		selectedWormhole =
 			$selectedMapObject?.type == MapObjectType.Wormhole
@@ -60,6 +67,8 @@
 			<MineFieldSummary mineField={selectedMineField} />
 		{:else if selectedMineralPacket}
 			<MineralPacketSummary mineralPacket={selectedMineralPacket} />
+		{:else if selectedSalvage}
+			<SalvageSummary salvage={selectedSalvage} />
 		{:else if selectedWormhole}
 			<WormholeSummary wormhole={selectedWormhole} />
 		{:else}

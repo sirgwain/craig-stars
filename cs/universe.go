@@ -204,7 +204,6 @@ func (u *Universe) GetPlayerMapObjects(playerNum int) PlayerMapObjects {
 	pmo.Starbases = u.getStarbases(playerNum)
 	pmo.MineFields = u.getMineFields(playerNum)
 	pmo.MineralPackets = u.getMineralPackets(playerNum)
-	pmo.Salvages = u.getSalvages(playerNum)
 
 	return pmo
 }

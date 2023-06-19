@@ -43,17 +43,17 @@ type Player struct {
 }
 
 type PlayerIntels struct {
-	Battles            []BattleRecord       `json:"battles,omitempty"`
-	Players            []PlayerIntel        `json:"players,omitempty"`
-	Planets            []PlanetIntel        `json:"planets,omitempty"`
-	Fleets             []FleetIntel         `json:"fleets,omitempty"`
-	Starbases          []FleetIntel         `json:"starbases,omitempty"`
-	ForeignShipDesigns []ShipDesignIntel    `json:"foreignShipDesigns,omitempty"`
-	MineralPackets     []MineralPacketIntel `json:"mineralPackets,omitempty"`
-	MineFields         []MineFieldIntel     `json:"mineFields,omitempty"`
-	Wormholes          []WormholeIntel      `json:"wormholes,omitempty"`
-	MysteryTraders     []MysteryTraderIntel `json:"mysteryTraders,omitempty"`
-	Salvages           []SalvageIntel       `json:"salvages,omitempty"`
+	BattleRecords       []BattleRecord       `json:"battleRecords,omitempty"`
+	PlayerIntels        []PlayerIntel        `json:"playerIntels,omitempty"`
+	PlanetIntels        []PlanetIntel        `json:"planetIntels,omitempty"`
+	FleetIntels         []FleetIntel         `json:"fleetIntels,omitempty"`
+	StarbaseIntels      []FleetIntel         `json:"starbaseIntels,omitempty"`
+	ShipDesignIntels    []ShipDesignIntel    `json:"shipDesignIntels,omitempty"`
+	MineralPacketIntels []MineralPacketIntel `json:"mineralPacketIntels,omitempty"`
+	MineFieldIntels     []MineFieldIntel     `json:"mineFieldIntels,omitempty"`
+	WormholeIntels      []WormholeIntel      `json:"wormholeIntels,omitempty"`
+	MysteryTraderIntels []MysteryTraderIntel `json:"mysteryTraderIntels,omitempty"`
+	SalvageIntels       []SalvageIntel       `json:"salvageIntels,omitempty"`
 }
 
 type PlayerPlans struct {
@@ -192,7 +192,6 @@ type PlayerMapObjects struct {
 	Starbases      []*Fleet         `json:"starbases"`
 	MineFields     []*MineField     `json:"mineFields"`
 	MineralPackets []*MineralPacket `json:"mineralPackets"`
-	Salvages       []*Salvage       `json:"salvages"`
 }
 
 // create a new player with an existing race. The race
@@ -471,10 +470,10 @@ func (p *Player) defaultPlayerIntels(players []*Player) []PlayerIntel {
 // get the default intels for a player for other players
 func (player *Player) initDefaultPlanetIntels(rules *Rules, planets []*Planet) error {
 	discoverer := newDiscoverer(player)
-	player.Planets = make([]PlanetIntel, len(planets))
+	player.PlanetIntels = make([]PlanetIntel, len(planets))
 	for j := range planets {
 		// start with some defaults
-		intel := &player.Planets[j]
+		intel := &player.PlanetIntels[j]
 		intel.ReportAge = ReportAgeUnexplored
 		intel.Type = MapObjectTypePlanet
 		intel.PlayerNum = Unowned

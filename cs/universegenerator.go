@@ -480,7 +480,7 @@ func (ug *universeGenerator) generatePlayerIntel() error {
 	for _, player := range ug.players {
 
 		// discover other players
-		player.PlayerIntels.Players = player.defaultPlayerIntels(ug.players)
+		player.PlayerIntels.PlayerIntels = player.defaultPlayerIntels(ug.players)
 
 		// do initial scans
 		scanner := newPlayerScanner(&ug.universe, ug.players, ug.rules, player)

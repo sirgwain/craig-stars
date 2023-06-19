@@ -42,6 +42,8 @@ import (
 // goverter:extend GameShipDesignIntelsToShipDesignIntels
 // goverter:extend MineralPacketIntelsToGameMineralPacketIntels
 // goverter:extend GameMineralPacketIntelsToMineralPacketIntels
+// goverter:extend SalvageIntelsToGameSalvageIntels
+// goverter:extend GameSalvageIntelsToSalvageIntels
 // goverter:extend MineFieldIntelsToGameMineFieldIntels
 // goverter:extend GameMineFieldIntelsToMineFieldIntels
 // goverter:extend WormholeIntelsToGameWormholeIntels
@@ -162,14 +164,17 @@ type Converter interface {
 	// goverter:map PlayerOrders.Researching Researching
 	// goverter:map PlayerOrders.NextResearchField NextResearchField
 	// goverter:map PlayerOrders.ResearchAmount ResearchAmount
+	// goverter:map PlayerIntels.BattleRecords BattleRecords
 	// goverter:map PlayerIntels.PlayerIntels PlayerIntels
 	// goverter:map PlayerIntels.PlanetIntels PlanetIntels
 	// goverter:map PlayerIntels.FleetIntels FleetIntels
+	// goverter:map PlayerIntels.StarbaseIntels StarbaseIntels
 	// goverter:map PlayerIntels.ShipDesignIntels ShipDesignIntels
 	// goverter:map PlayerIntels.MineralPacketIntels MineralPacketIntels
 	// goverter:map PlayerIntels.MineFieldIntels MineFieldIntels
 	// goverter:map PlayerIntels.WormholeIntels WormholeIntels
 	// goverter:map PlayerIntels.MysteryTraderIntels MysteryTraderIntels
+	// goverter:map PlayerIntels.SalvageIntels	 SalvageIntels
 	// goverter:map PlayerPlans.BattlePlans BattlePlans
 	// goverter:map PlayerPlans.ProductionPlans ProductionPlans
 	// goverter:map PlayerPlans.TransportPlans TransportPlans
@@ -567,6 +572,18 @@ func GameMineralPacketIntelsToMineralPacketIntels(source []cs.MineralPacketIntel
 	return (*MineralPacketIntels)(&source)
 }
 
+func SalvageIntelsToGameSalvageIntels(source *SalvageIntels) []cs.SalvageIntel {
+	// return an empty slice for nil
+	if source == nil {
+		return []cs.SalvageIntel{}
+	}
+	return ([]cs.SalvageIntel)(*source)
+}
+
+func GameSalvageIntelsToSalvageIntels(source []cs.SalvageIntel) *SalvageIntels {
+	return (*SalvageIntels)(&source)
+}
+
 func MineFieldIntelsToGameMineFieldIntels(source *MineFieldIntels) []cs.MineFieldIntel {
 	// return an empty slice for nil
 	if source == nil {
@@ -665,36 +682,44 @@ func ExtendPlayerPlayerPlans(source Player) cs.PlayerPlans {
 func ExtendPlayerPlayerIntels(source Player) cs.PlayerIntels {
 	intels := cs.PlayerIntels{}
 
-	if source.Players != nil {
-		intels.Players = *source.Players
+	if source.PlayerIntels != nil {
+		intels.PlayerIntels = *source.PlayerIntels
+	}
+
+	if source.BattleRecords != nil {
+		intels.BattleRecords = *source.BattleRecords
 	}
 
 	if source.PlanetIntels != nil {
-		intels.Planets = *source.PlanetIntels
+		intels.PlanetIntels = *source.PlanetIntels
 	}
 
 	if source.FleetIntels != nil {
-		intels.Fleets = *source.FleetIntels
+		intels.FleetIntels = *source.FleetIntels
 	}
 
 	if source.ShipDesignIntels != nil {
-		intels.ForeignShipDesigns = *source.ShipDesignIntels
+		intels.ShipDesignIntels = *source.ShipDesignIntels
 	}
 
 	if source.MineralPacketIntels != nil {
-		intels.MineralPackets = *source.MineralPacketIntels
+		intels.MineralPacketIntels = *source.MineralPacketIntels
+	}
+
+	if source.SalvageIntels != nil {
+		intels.SalvageIntels = *source.SalvageIntels
 	}
 
 	if source.MineFieldIntels != nil {
-		intels.MineFields = *source.MineFieldIntels
+		intels.MineFieldIntels = *source.MineFieldIntels
 	}
 
 	if source.WormholeIntels != nil {
-		intels.Wormholes = *source.WormholeIntels
+		intels.WormholeIntels = *source.WormholeIntels
 	}
 
 	if source.MysteryTraderIntels != nil {
-		intels.MysteryTraders = *source.MysteryTraderIntels
+		intels.MysteryTraderIntels = *source.MysteryTraderIntels
 	}
 
 	return intels

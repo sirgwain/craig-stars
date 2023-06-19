@@ -26,7 +26,7 @@ type playerScanner interface {
 
 func newPlayerScanner(universe *Universe, players []*Player, rules *Rules, player *Player) playerScanner {
 	discoverer := newDiscoverer(player)
-	return &playerScan{universe, rules, player, players, make(map[int]bool, len(player.PlayerIntels.Players)), discoverer}
+	return &playerScan{universe, rules, player, players, make(map[int]bool, len(player.PlayerIntels.PlayerIntels)), discoverer}
 }
 
 // scan planets, fleets, etc for a player
@@ -35,22 +35,22 @@ func (scan *playerScan) scan() error {
 	player := scan.player
 	scan.discoverer.clearTransientReports()
 
-	for i := range player.Planets {
-		planet := &player.Planets[i]
+	for i := range player.PlanetIntels {
+		planet := &player.PlanetIntels[i]
 		if planet.ReportAge != ReportAgeUnexplored {
 			planet.ReportAge++
 		}
 	}
 
-	for i := range player.Wormholes {
-		wormhole := &player.Wormholes[i]
+	for i := range player.WormholeIntels {
+		wormhole := &player.WormholeIntels[i]
 		if wormhole.ReportAge != ReportAgeUnexplored {
 			wormhole.ReportAge++
 		}
 	}
 
-	for i := range player.MineFields {
-		mineField := &player.MineFields[i]
+	for i := range player.MineFieldIntels {
+		mineField := &player.MineFieldIntels[i]
 		if mineField.ReportAge != ReportAgeUnexplored {
 			mineField.ReportAge++
 		}
@@ -69,6 +69,7 @@ func (scan *playerScan) scan() error {
 	scan.scanFleets(scanners, cargoScanners)
 	scan.scanMineFields(scanners)
 	scan.scanMineralPackets(scanners)
+	scan.scanSalvages(scanners)
 	scan.scanWormholes(scanners)
 	scan.scanMysteryTraders(scanners)
 
@@ -202,6 +203,10 @@ func (scan *playerScan) fleetInScannerRange(fleet *Fleet, scanner scanner) bool 
 // scan all fleets and discover their designs if we should
 func (scan *playerScan) scanWormholes(scanners []scanner) {
 	for _, wormhole := range scan.universe.Wormholes {
+		if wormhole.Delete {
+			continue
+		}
+
 		intel := scan.discoverer.getWormholeIntel(wormhole.Num)
 		cloakFactor := 1.0 - (float64(scan.rules.WormholeCloak) / 100)
 		if intel != nil {
@@ -226,6 +231,9 @@ func (scan *playerScan) scanWormholes(scanners []scanner) {
 // scan Mystery Traders
 func (scan *playerScan) scanMysteryTraders(scanners []scanner) {
 	for _, mysteryTrader := range scan.universe.MysteryTraders {
+		if mysteryTrader.Delete {
+			continue
+		}
 		for _, scanner := range scanners {
 			// we only care about regular scanners for mysteryTraders
 			if float64(scanner.RangeSquared) >= scanner.Position.DistanceSquaredTo(mysteryTrader.Position) {
@@ -239,6 +247,9 @@ func (scan *playerScan) scanMysteryTraders(scanners []scanner) {
 // scan all fleets and discover their designs if we should
 func (scan *playerScan) scanMineralPackets(scanners []scanner) {
 	for _, packet := range scan.universe.MineralPackets {
+		if packet.Delete {
+			continue
+		}
 		// skip our own
 		if scan.player.Num == packet.PlayerNum {
 			continue
@@ -263,6 +274,10 @@ func (scan *playerScan) scanMineralPackets(scanners []scanner) {
 // scan all fleets and discover their designs if we should
 func (scan *playerScan) scanMineFields(scanners []scanner) {
 	for _, mineField := range scan.universe.MineFields {
+		if mineField.Delete {
+			continue
+		}
+
 		if mineField.OwnedBy(scan.player.Num) {
 			// The player already gets a copy of all their own mineFields
 			continue
@@ -283,6 +298,22 @@ func (scan *playerScan) scanMineFields(scanners []scanner) {
 			// we only care about regular scanners for wormholes
 			if float64(scanner.RangeSquared)*cloakFactor >= scanner.Position.DistanceSquaredTo(mineField.Position) {
 				scan.discoverer.discoverMineField(scan.player, mineField)
+				break
+			}
+		}
+	}
+}
+
+// scan all fleets and discover their designs if we should
+func (scan *playerScan) scanSalvages(scanners []scanner) {
+	for _, salvage := range scan.universe.Salvages {
+		if salvage.Delete {
+			continue
+		}
+		for _, scanner := range scanners {
+			// we only care about regular scanners for mineral packets
+			if float64(scanner.RangeSquared) >= scanner.Position.DistanceSquaredTo(salvage.Position) {
+				scan.discoverer.discoverSalvage(salvage)
 				break
 			}
 		}

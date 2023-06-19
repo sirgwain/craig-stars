@@ -44,6 +44,7 @@
 	import SelectedWaypoint from './SelectedWaypoint.svelte';
 	import ScannerWormholes from './ScannerWormholes.svelte';
 	import ScannerWormholeLinks from './ScannerWormholeLinks.svelte';
+	import ScannerSalvages from './ScannerSalvages.svelte';
 
 	const { game, player, universe } = getGameContext();
 
@@ -394,6 +395,7 @@
 				<ScannerFleets />
 				<ScannerWarpLine />
 				<ScannerWormholeLinks />
+				<ScannerSalvages />
 				<SelectedMapObject />
 			</g>
 		</Svg>

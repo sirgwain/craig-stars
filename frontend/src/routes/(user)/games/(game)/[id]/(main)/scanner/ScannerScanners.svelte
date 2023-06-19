@@ -75,8 +75,8 @@
 {#if $settings.showScanners}
 	{#each scanners as scanner}
 		<circle
-			cx={$xGet({ position: scanner.position })}
-			cy={$yGet({ position: scanner.position })}
+			cx={$xGet(scanner)}
+			cy={$yGet(scanner)}
 			r={$xScale(scanner.scanRange)}
 			class="scanner"
 		/>
@@ -84,8 +84,8 @@
 	{#each scanners as scanner}
 		{#if scanner.scanRangePen > 0}
 			<circle
-				cx={$xGet({ position: scanner.position })}
-				cy={$yGet({ position: scanner.position })}
+				cx={$xGet(scanner)}
+				cy={$yGet(scanner)}
 				r={$xScale(scanner.scanRangePen)}
 				class="scanner-pen"
 			/>
