@@ -22,11 +22,11 @@
 	import DesignStats from '../DesignStats.svelte';
 	import { onTechTooltip } from '../tooltips/TechTooltip.svelte';
 	import { shipDesignerContext } from './ShipDesignerContext';
+	import { getGameContext } from '$lib/services/Contexts';
 
+	const { game, player, universe } = getGameContext();
 	const dispatch = createEventDispatcher();
 
-	export let gameId: number | string;
-	export let player: Player;
 	export let hull: TechHull;
 	export let design: ShipDesign;
 	export let error: string = '';
@@ -39,7 +39,7 @@
 	// only show hull components that actually fit on this hull
 	let validHullSlotTypes = hull.slots.reduce((type, slot) => type | +slot.type, HullSlotType.None);
 
-	$: design && DesignService.computeSpec(gameId, design).then((s) => (designSpec = s));
+	$: design && DesignService.computeSpec($game.id, design).then((s) => (designSpec = s));
 
 	onMount(() => {
 		design.hull = hull.name;
@@ -211,7 +211,7 @@
 			<div class="font-bold text-2xl">Hull Components</div>
 			<ul class="w-full h-[400px] border-b sm:w-[16rem] px-1 p-1 overflow-y-auto">
 				{#each $techs.hullComponents as hc}
-					{#if canLearnTech(player, hc) && hasRequiredLevels(player.techLevels, hc.requirements) && (!$shipDesignerContext.selectedSlot || canFillSlot(hc.hullSlotType, $shipDesignerContext.selectedSlot.type)) && canFillSlot(hc.hullSlotType, validHullSlotTypes)}
+					{#if canLearnTech($player, hc) && hasRequiredLevels($player.techLevels, hc.requirements) && (!$shipDesignerContext.selectedSlot || canFillSlot(hc.hullSlotType, $shipDesignerContext.selectedSlot.type)) && canFillSlot(hc.hullSlotType, validHullSlotTypes)}
 						<li>
 							<div
 								class={`flex ${

@@ -11,7 +11,17 @@ import type { ShipDesign } from '$lib/types/ShipDesign';
 import type { Vector } from '$lib/types/Vector';
 import type { Wormhole } from '$lib/types/Wormhole';
 import { groupBy } from 'lodash-es';
-import { commandMapObject, selectMapObject, zoomToMapObject } from './Stores';
+
+export interface DesignFinder {
+	getDesign(playerNum: number, num: number): ShipDesign | undefined;
+	getMyDesignByName(playerNum: number, name: string): ShipDesign | undefined
+}
+
+export interface PlayerFinder {
+	getPlayerIntel(num: number): PlayerIntel | undefined;
+	getPlayerName(playerNum: number | undefined): string;
+	getPlayerColor(playerNum: number | undefined): string;
+}
 
 const sortByNum = (a: MapObject, b: MapObject) => a.num - b.num;
 
@@ -34,7 +44,7 @@ function positionKey(pos: MapObject | Vector): string {
 	return '';
 }
 
-export class Universe implements PlayerUniverse, PlayerIntels {
+export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 	playerNum = 0;
 	planets: Planet[] = [];
 	fleets: Fleet[] = [];
@@ -110,12 +120,36 @@ export class Universe implements PlayerUniverse, PlayerIntels {
 		}
 	}
 
+	getPlayerName(playerNum: number | undefined): string {
+		if (playerNum && playerNum > 0 && playerNum <= this.players.length) {
+			const intel = this.players[playerNum - 1];
+			return intel.racePluralName ?? intel.name;
+		}
+		return 'unknown';
+	}
+
+	getPlayerColor(playerNum: number | undefined): string {
+		if (playerNum && playerNum > 0 && playerNum <= this.players.length) {
+			const intel = this.players[playerNum - 1];
+			return intel.color ?? '#FF0000';
+		}
+		return '#FF0000';
+	}
+
 	getMyDesigns(playerNum: number): ShipDesign[] {
 		return this.designs.filter((d) => d.playerNum === playerNum);
 	}
 
+	getMyPlanets(playerNum: number): Planet[] {
+		return this.planets.filter((d) => d.playerNum === playerNum);
+	}
+
 	getDesign(playerNum: number, num: number): ShipDesign | undefined {
 		return this.designs.find((d) => d.playerNum === playerNum && d.num === num);
+	}
+
+	getMyDesignByName(playerNum: number, name: string): ShipDesign | undefined {
+		return this.designs.find((d) => d.playerNum === playerNum && d.name == name);
 	}
 
 	getBattle(num: number): BattleRecord | undefined {
@@ -123,9 +157,14 @@ export class Universe implements PlayerUniverse, PlayerIntels {
 	}
 
 	updateDesign(design: ShipDesign) {
-		const filteredDesigns =
-			this.designs.filter((d) => d.playerNum != design.playerNum && d.num != design.num) ?? [];
-		this.designs = [...filteredDesigns, design];
+		const index = this.designs.findIndex((f) => f.num === design.num);
+		if (index != -1) {
+			this.designs = [...this.designs.slice(0, index), design, ...this.designs.slice(index + 1)];
+		}
+	}
+
+	addDesign(design: ShipDesign) {
+		this.designs = [...this.designs, design];
 	}
 
 	getBattleLocation(battle: BattleRecord, universe: Universe): string {
@@ -236,17 +275,7 @@ export class Universe implements PlayerUniverse, PlayerIntels {
 		}
 	}
 
-	// command the player's homeworld (or the first planet they own, if their homeworld has been taken)
-	commandHomeWorld() {
-		const homeworld = this.planets.find((p) => p.homeworld);
-		if (homeworld) {
-			commandMapObject(homeworld);
-			selectMapObject(homeworld);
-			zoomToMapObject(homeworld);
-		} else if (this.planets.length > 0) {
-			commandMapObject(this.planets[0]);
-			selectMapObject(this.planets[0]);
-			zoomToMapObject(this.planets[0]);
-		}
+	getHomeworld(playerNum: number) {
+		return this.planets.find((p) => p.playerNum === playerNum && p.homeworld);
 	}
 }

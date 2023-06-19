@@ -8,9 +8,7 @@
 	import BattleBoardSelectedToken from './BattleBoardSelectedToken.svelte';
 	import BattleBoardSquare from './BattleBoardSquare.svelte';
 
-	export let universe: Universe;
 	export let battle: Battle;
-	export let player: Player;
 	export let phase: number = 0;
 
 	let selectedToken: PhaseToken | undefined;
@@ -31,7 +29,6 @@
 					{#each [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as y}
 						{#each [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as x}
 							<BattleBoardSquare
-								{universe}
 								tokens={battle.getTokensAtLocation(phase, x, y)}
 								selected={selectedToken?.x === x && selectedToken?.y === y}
 								on:selected={(e) => {
@@ -66,7 +63,7 @@
 							<h2 class="text-lg font-semibold text-center mb-1 text-secondary">
 								{`Phase ${phase} of ${battle.totalPhases}`}
 							</h2>
-							<BattleBoardAction {universe} {battle} {action} {phase} />
+							<BattleBoardAction {battle} {action} {phase} />
 						</div>
 					</div>
 				{/if}
@@ -74,7 +71,7 @@
 					<div class="w-full card bg-base-200 shadow rounded-sm border-2 border-base-300">
 						<div class="card-body p-3 gap-0">
 							<h2 class="text-lg font-semibold text-center mb-1 text-secondary">Selection</h2>
-							<BattleBoardSelectedToken {battle} {universe} token={selectedToken} {phase} />
+							<BattleBoardSelectedToken {battle} token={selectedToken} {phase} />
 						</div>
 					</div>
 				{/if}

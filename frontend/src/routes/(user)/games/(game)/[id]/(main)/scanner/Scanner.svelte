@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { getGameContext } from '$lib/services/Contexts';
+	import { settings } from '$lib/services/Settings';
 	import {
 		commandMapObject,
 		commandedFleet,
@@ -10,11 +12,14 @@
 		selectedWaypoint,
 		zoomTarget
 	} from '$lib/services/Stores';
-	import type { FullGame } from '$lib/services/FullGame';
-	import { PlanetService } from '$lib/services/PlanetService';
-	import { settings } from '$lib/services/Settings';
 	import { WaypointTask } from '$lib/types/Fleet';
-	import { MapObjectType, None, ownedBy, type MapObject, equal as mapObjectEqual } from '$lib/types/MapObject';
+	import {
+		MapObjectType,
+		None,
+		equal as mapObjectEqual,
+		ownedBy,
+		type MapObject
+	} from '$lib/types/MapObject';
 	import { emptyVector, equal, type Vector } from '$lib/types/Vector';
 	import type { ScaleLinear } from 'd3-scale';
 	import { scaleLinear } from 'd3-scale';
@@ -37,7 +42,7 @@
 	import SelectedMapObject from './SelectedMapObject.svelte';
 	import SelectedWaypoint from './SelectedWaypoint.svelte';
 
-	export let game: FullGame;
+	const { game, player, universe } = getGameContext();
 
 	const xGetter = (mo: MapObject) => mo?.position?.x;
 	const yGetter = (mo: MapObject) => mo?.position?.y;
@@ -54,7 +59,7 @@
 	let scaleY: ScaleLinear<number, number, never>;
 	let movingWaypoint = false;
 
-	const scale = writable(game.area.y / 400); // tiny games are at 1x starting zoom, the rest zoom in based on universe size
+	const scale = writable($game.area.y / 400); // tiny games are at 1x starting zoom, the rest zoom in based on universe size
 	const clampedScale = writable($scale);
 	$: $clampedScale = Math.min(3, $scale); // don't let the scale used for scanner objects go more than 1/2th size
 	// $: console.log('scale ', $scale, ' clampedScale', $clampedScale);
@@ -117,11 +122,11 @@
 	function handleResize() {
 		clientWidth = root?.clientWidth ?? 100;
 		clientHeight = root?.clientHeight ?? 100;
-		aspectRatio = game.area.x / game.area.y;
+		aspectRatio = $game.area.x / $game.area.y;
 
 		// compute scales
-		scaleX = scaleLinear().range(xRange()).domain([0, game.area.x]);
-		scaleY = scaleLinear().range(yRange()).domain([0, game.area.y]);
+		scaleX = scaleLinear().range(xRange()).domain([0, $game.area.x]);
+		scaleY = scaleLinear().range(yRange()).domain([0, $game.area.y]);
 	}
 
 	function handleZoom(e: D3ZoomEvent<HTMLElement, any>) {
@@ -196,11 +201,11 @@
 			});
 		}
 
-		await game.updateFleetOrders($commandedFleet);
+		await $game.updateFleetOrders($commandedFleet);
 		// select the new waypoint
 		selectWaypoint($commandedFleet.waypoints[$commandedFleet.waypoints.length - 1]);
 		if ($selectedWaypoint && $selectedWaypoint.targetType && $selectedWaypoint.targetNum) {
-			const mo = game.universe.getMapObject($selectedWaypoint);
+			const mo = $universe.getMapObject($selectedWaypoint);
 
 			if (mo) {
 				selectMapObject(mo);
@@ -219,8 +224,8 @@
 		movingWaypoint = false;
 
 		let myMapObject = mo;
-		if (ownedBy(mo, game.player.num) && mo.type === MapObjectType.Planet) {
-			myMapObject = game.getPlanet(mo.num) ?? mo;
+		if (ownedBy(mo, $player.num) && mo.type === MapObjectType.Planet) {
+			myMapObject = $universe.getPlanet(mo.num) ?? mo;
 		}
 
 		if (setPacketDest) {
@@ -233,11 +238,7 @@
 					return;
 				}
 				$commandedPlanet.packetTargetNum = mo.num;
-				const result = await PlanetService.update(game.id, $commandedPlanet);
-				Object.assign($commandedPlanet, result);
-				$commandedPlanet = $commandedPlanet;
-				game.universe.updatePlanet($commandedPlanet);
-				game.universe.planets = game.universe.planets;
+				$game.updatePlanetOrders($commandedPlanet);
 			}
 		}
 
@@ -266,7 +267,7 @@
 			}
 
 			// we selected the same mapobject twice
-			const myMapObjectsAtPosition = game.universe.getMyMapObjectsByPosition(mo);
+			const myMapObjectsAtPosition = $universe.getMyMapObjectsByPosition(mo);
 			if (myMapObjectsAtPosition?.length > 0) {
 				// if our currently commanded map object is not at this location, reset the index
 				if (!myMapObjectsAtPosition.find((mo) => mapObjectEqual(mo, $commandedMapObject))) {
@@ -280,7 +281,7 @@
 				}
 				const nextMapObject = myMapObjectsAtPosition[commandedMapObjectIndex];
 				if (nextMapObject.type === MapObjectType.Planet) {
-					commandMapObject(game.getPlanet(nextMapObject.num) as MapObject);
+					commandMapObject($universe.getPlanet(nextMapObject.num) as MapObject);
 					commandedMapObjectIndex = 0;
 				} else {
 					commandMapObject(nextMapObject);
@@ -319,7 +320,7 @@
 			movingWaypoint &&
 			!equal($selectedWaypoint.position, $commandedFleet?.waypoints[0].position)
 		) {
-			game.updateFleetOrders($commandedFleet);
+			$game.updateFleetOrders($commandedFleet);
 		}
 	}
 
@@ -329,7 +330,7 @@
 		if ($commandedFleet?.waypoints) {
 			waypoints.push(
 				...$commandedFleet.waypoints.map((wp) => {
-					const mo = game.universe.getMapObject(wp);
+					const mo = $universe.getMapObject(wp);
 					if (mo) {
 						return mo;
 					} else {
@@ -346,19 +347,18 @@
 		}
 		data = [
 			...waypoints,
-			...game.universe.fleets.filter(
+			...$universe.fleets.filter(
 				(f) => f.orbitingPlanetNum === None || f.orbitingPlanetNum === undefined
 			),
-			...game.universe.mysteryTraders,
-			...game.universe.mineralPackets,
-			...game.universe.salvages,
-			...game.universe.wormholes,
-			...game.universe.mineFields,
-			...game.universe.planets
+			...$universe.mysteryTraders,
+			...$universe.mineralPackets,
+			...$universe.salvages,
+			...$universe.wormholes,
+			...$universe.mineFields,
+			...$universe.planets
 		];
 	}
 
-	setContext('game', game);
 	setContext('scale', clampedScale);
 </script>
 
@@ -369,8 +369,8 @@
 		{data}
 		x={xGetter}
 		y={yGetter}
-		xDomain={[0, game.area.x]}
-		yDomain={[0, game.area.y]}
+		xDomain={[0, $game.area.x]}
+		yDomain={[0, $game.area.y]}
 		{xRange}
 		{yRange}
 		yReverse={true}

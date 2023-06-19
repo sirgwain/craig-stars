@@ -1,12 +1,11 @@
 <script lang="ts">
-	import type { FullGame } from '$lib/services/FullGame';
+	import { getGameContext } from '$lib/services/Contexts';
 	import { ownedBy } from '$lib/types/MapObject';
 	import type { MineralPacket } from '$lib/types/MineralPacket';
-	import type { Player } from '$lib/types/Player';
 
-	export let game: FullGame;
+	const { game, player, universe } = getGameContext();
+
 	export let mineralPacket: MineralPacket;
-	export let player: Player;
 </script>
 
 <div class="flex flex-row min-h-[11rem]">
@@ -16,7 +15,7 @@
 				<div class="mapobject-avatar mineral-packet bg-black" />
 			</div>
 		</div>
-		<div class="text-center">{game.getPlayerName(mineralPacket.playerNum)}</div>
+		<div class="text-center">{$universe.getPlayerName(mineralPacket.playerNum)}</div>
 	</div>
 
 	<div class="flex flex-col grow">
@@ -32,11 +31,11 @@
 				{mineralPacket.warpSpeed}
 			</div>
 		</div>
-		{#if ownedBy(mineralPacket, player.num)}
+		{#if ownedBy(mineralPacket, $player.num)}
 			<div class="flex flex-row">
 				<div class="w-28 mr-2">Destination:</div>
 				<div>
-					{game.getPlanet(mineralPacket.targetPlanetNum ?? 0)?.name ?? 'Unknown'}
+					{$universe.getPlanet(mineralPacket.targetPlanetNum ?? 0)?.name ?? 'Unknown'}
 				</div>
 			</div>
 			<div class="flex flex-row mt-2">

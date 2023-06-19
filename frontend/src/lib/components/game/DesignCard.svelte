@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { game, techs } from '$lib/services/Stores';
+	import { techs } from '$lib/services/Stores';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import { Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
@@ -11,7 +11,7 @@
 	const dispatch = createEventDispatcher();
 
 	export let design: ShipDesign;
-	export let gameId: number;
+	export let href: string
 
 	const deleteDesign = async (design: ShipDesign) => {
 		if (design.num != undefined && confirm(`Are you sure you want to delete ${design.name}?`)) {
@@ -23,14 +23,14 @@
 <div class="card bg-base-200 shadow rounded-sm border-2 border-base-300 pt-2 w-full sm:w-[400px]">
 	<figure>
 		<div class="border border-secondary bg-black p-1">
-			<a class="cs-link" href={`/games/${gameId}/designs/${design.num}`}>
+			<a class="cs-link" {href}>
 				<TechAvatar tech={$techs.getHull(design.hull)} hullSetNumber={design.hullSetNumber} />
 			</a>
 		</div>
 	</figure>
 	<div class="card-body">
 		<h2 class="card-title">
-			<a class="cs-link" href={`/games/${gameId}/designs/${design.num}`}>{design.name}</a>
+			<a class="cs-link" {href}>{design.name}</a>
 		</h2>
 		<div class="flex flex-row justify-between">
 			<div class="mr-2">
@@ -56,7 +56,7 @@
 					<Icon src={Trash} size="24" class="hover:stroke-accent" />
 				</button>
 				{#if !design.spec?.numInstances}
-					<a class="btn" href={`/games/${gameId}/designs/${design.num}/edit`}>Edit</a>
+					<a class="btn" href={`${href}}/edit`}>Edit</a>
 				{/if}
 			</div>
 		</div>

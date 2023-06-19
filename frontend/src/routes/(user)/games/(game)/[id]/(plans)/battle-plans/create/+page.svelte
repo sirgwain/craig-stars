@@ -1,15 +1,14 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
 	import FormError from '$lib/components/FormError.svelte';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
-	import { game } from '$lib/services/Stores';
+	import { getGameContext } from '$lib/services/Contexts';
 	import { CSError, addError } from '$lib/services/Errors';
 	import { BattleAttackWho, BattleTactic, BattleTarget } from '$lib/types/Battle';
 	import type { BattlePlan } from '$lib/types/Player';
 	import BattlePlanEditor from '../BattlePlanEditor.svelte';
 
-	let gameId = parseInt($page.params.id);
+	const { game, player, universe } = getGameContext();
 
 	let plan: BattlePlan = {
 		num: 0,
@@ -31,9 +30,7 @@
 				// save to server
 				await $game.createBattlePlan(plan);
 				goto(
-					`/games/${gameId}/battle-plans/${
-						$game.player.battlePlans[$game.player.battlePlans.length - 1].num
-					}`
+					`/games/${$game.id}/battle-plans/${$player.battlePlans[$player.battlePlans.length - 1].num}`
 				);
 			}
 		} catch (e) {
@@ -45,7 +42,7 @@
 <form on:submit|preventDefault={onSubmit}>
 	<Breadcrumb>
 		<svelte:fragment slot="crumbs">
-			<li><a href={`/games/${gameId}/battle-plans`}>Battle Plans</a></li>
+			<li><a href={`/games/${$game.id}/battle-plans`}>Battle Plans</a></li>
 			<li>{plan?.name ?? '<unknown>'}</li>
 		</svelte:fragment>
 		<div slot="end" class="flex justify-end mb-1">

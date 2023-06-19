@@ -13,13 +13,14 @@
 		type PopulationTooltipProps
 	} from '$lib/components/game/tooltips/PopulationTooltip.svelte';
 	import { showTooltip } from '$lib/services/Stores';
+	import { getGameContext } from '$lib/services/Contexts';
 
-	export let game: FullGame;
+	const { game, player, universe } = getGameContext();
+
 	export let planet: Planet;
-	export let player: Player;
 
-	$: habLow = player.race.habLow;
-	$: habHigh = player.race.habHigh;
+	$: habLow = $player.race.habLow;
+	$: habHigh = $player.race.habHigh;
 	$: habPoint = planet.hab ?? {};
 	$: habWidth = {
 		grav: (habHigh.grav ?? 0) - (habLow.grav ?? 0),
@@ -45,9 +46,9 @@
 
 	function onPopulationTooltip(e: PointerEvent) {
 		showTooltip<PopulationTooltipProps>(e.x, e.y, PopulationTooltip, {
-			game,
-			planet,
-			player
+			playerFinder: $universe,
+			player: $player,
+			planet
 		});
 	}
 </script>
@@ -87,9 +88,9 @@
 				</div>
 			</div>
 			<div>
-				{#if planet.reportAge != Unexplored && planet.playerNum != player.num && planet.playerNum != None}
-					<span style={`color: ${game.getPlayerColor(planet.playerNum)}`}
-						>{game.getPlayerName(planet.playerNum)}</span
+				{#if planet.reportAge != Unexplored && planet.playerNum != $player.num && planet.playerNum != None}
+					<span style={`color: ${$universe.getPlayerColor(planet.playerNum)}`}
+						>{$universe.getPlayerName(planet.playerNum)}</span
 					>
 				{/if}
 			</div>
@@ -99,7 +100,7 @@
 			<div class="text-right w-[5.5rem]">Gravity</div>
 			<div class="grow border-b border-base-300 bg-black mx-1 overflow-hidden">
 				<div class="h-full relative">
-					{#if !player.race.immuneGrav}
+					{#if !$player.race.immuneGrav}
 						<div
 							style={`left: ${habLowPercent.grav.toFixed()}%; width: ${habWidthPercent.grav?.toFixed()}%`}
 							class="absolute grav-bar h-full"

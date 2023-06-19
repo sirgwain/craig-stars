@@ -2,15 +2,14 @@
 	import CargoBar from '$lib/components/game/CargoBar.svelte';
 	import FuelBar from '$lib/components/game/FuelBar.svelte';
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
-	import type { FullGame } from '$lib/services/FullGame';
+	import { getGameContext } from '$lib/services/Contexts';
 	import type { Fleet } from '$lib/types/Fleet';
 	import { ownedBy } from '$lib/types/MapObject';
-	import type { Player } from '$lib/types/Player';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import { kebabCase, startCase } from 'lodash-es';
 
-	export let game: FullGame;
-	export let player: Player;
+	const { player, universe } = getGameContext();
+
 	export let fleet: Fleet;
 
 	let design: ShipDesign | undefined;
@@ -21,7 +20,7 @@
 		icon = '';
 		if (fleet.tokens && fleet.tokens.length > 0) {
 			const designNum = fleet.tokens[0].designNum;
-			design = game.universe.getDesign(fleet.playerNum, designNum);
+			design = $universe.getDesign(fleet.playerNum, designNum);
 			if (design) {
 				icon = `hull-${kebabCase(design.hull)}-${design.hullSetNumber ?? 0}`;
 			}
@@ -42,7 +41,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="text-center">{game.getPlayerName(fleet.playerNum)}</div>
+		<div class="text-center">{$universe.getPlayerName(fleet.playerNum)}</div>
 	</div>
 	<div class="flex flex-col grow">
 		<div class="flex flex-row">
@@ -57,7 +56,7 @@
 				{fleet.spec?.mass ?? fleet.mass ?? 0}kT
 			</div>
 		</div>
-		{#if ownedBy(fleet, player.num)}
+		{#if ownedBy(fleet, $player.num)}
 			<div class="flex flex-row">
 				<div class="w-24">Fuel:</div>
 				<div class="grow">

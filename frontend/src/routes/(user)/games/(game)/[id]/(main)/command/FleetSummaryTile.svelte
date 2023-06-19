@@ -1,15 +1,13 @@
 <script lang="ts">
+	import { getGameContext } from '$lib/services/Contexts';
 	import { nextMapObject, previousMapObject } from '$lib/services/Stores';
-	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
-	import type { Player, PlayerResponse } from '$lib/types/Player';
-	import type { ShipDesign } from '$lib/types/ShipDesign';
+	import type { CommandedFleet } from '$lib/types/Fleet';
 	import { kebabCase } from 'lodash-es';
 	import CommandTile from './CommandTile.svelte';
-	import type { FullGame } from '$lib/services/FullGame';
 
-	export let game: FullGame;
+	const { player, universe } = getGameContext();
+
 	export let fleet: CommandedFleet;
-	export let player: Player;
 
 	let icon = '';
 
@@ -18,7 +16,7 @@
 		icon = '';
 		if (fleet.tokens.length > 0) {
 			const designNum = fleet.tokens[0].designNum;
-			const design = game.universe.getDesign(player.num, designNum);
+			const design = $universe.getDesign($player.num, designNum);
 			if (design) {
 				icon = `hull-${kebabCase(design.hull)}-${design.hullSetNumber ?? 0}`;
 			}

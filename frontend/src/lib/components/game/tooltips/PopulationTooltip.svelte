@@ -2,17 +2,17 @@
 	import { Unexplored, type Planet } from '$lib/types/Planet';
 	import type { Player } from '$lib/types/Player';
 	export type PopulationTooltipProps = {
-		game: FullGame;
+		playerFinder: PlayerFinder;
 		player: Player;
 		planet: Planet;
 	};
 </script>
 
 <script lang="ts">
+	import type { PlayerFinder } from '$lib/services/Universe';
 	import { owned, ownedBy } from '$lib/types/MapObject';
-	import type { FullGame } from '$lib/services/FullGame';
 
-	export let game: FullGame;
+	export let playerFinder: PlayerFinder;
 	export let player: Player;
 	export let planet: Planet;
 
@@ -56,7 +56,7 @@
 			{/if}
 		{:else if owned(planet) && planet.reportAge != Unexplored}
 			<span class="font-semibold">{planet.name}</span> is currently occupied by the
-			<span class="font-semibold">{game.getPlayerName(planet.playerNum)}</span>.
+			<span class="font-semibold">{playerFinder.getPlayerName(planet.playerNum)}</span>.
 			{#if planet.spec.habitability ?? 0 > 0}
 				If you were to colonize <span class="font-semibold">{planet.name}</span>, it would support
 				up to <span class="font-semibold">{planet.spec.maxPopulation?.toLocaleString()}</span>

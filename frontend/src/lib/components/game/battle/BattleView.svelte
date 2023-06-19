@@ -1,14 +1,18 @@
 <script lang="ts">
-	import type { Universe } from '$lib/services/Universe';
+	import type { DesignFinder, PlayerFinder, Universe } from '$lib/services/Universe';
 	import { Battle, type BattleRecord } from '$lib/types/Battle';
-	import type { Player } from '$lib/types/Player';
+	import { setContext } from 'svelte/internal';
 	import BattleBoard from './BattleBoard.svelte';
+	import { designFinderKey, playerFinderKey } from '$lib/services/Contexts';
 
-	export let universe: Universe;
-	export let player: Player;
+	export let designFinder: DesignFinder;
+	export let playerFinder: PlayerFinder;
 	export let battleRecord: BattleRecord;
+
+	setContext<DesignFinder>(designFinderKey, designFinder);
+	setContext<PlayerFinder>(playerFinderKey, playerFinder);
 
 	$: battle = new Battle(battleRecord.num, battleRecord.position, battleRecord);
 </script>
 
-<BattleBoard {universe} {player} {battle} />
+<BattleBoard {battle} />

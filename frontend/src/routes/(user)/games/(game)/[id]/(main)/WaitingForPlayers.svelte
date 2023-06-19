@@ -6,8 +6,9 @@
 	import { onMount } from 'svelte';
 	import { GameService } from '$lib/services/GameService';
 	import type { PlayerResponse } from '$lib/types/Player';
+	import { getGameContext } from '$lib/services/Contexts';
 
-	export let game: Game;
+	const { game } = getGameContext();
 	let id = parseInt($page.params.id);
 
 	let playerStatuses: PlayerResponse[] = [];
@@ -42,19 +43,19 @@
 	<div class="">
 		<div class="flex">
 			<div class="font-semibold w-[8rem]">Name:</div>
-			<div class="text-left ml-2">{game.name}</div>
+			<div class="text-left ml-2">{$game.name}</div>
 		</div>
 		<div class="flex">
 			<div class="font-semibold w-[8rem]">Size:</div>
-			<div class="text-left ml-2">{game.size}</div>
+			<div class="text-left ml-2">{$game.size}</div>
 		</div>
 		<div class="flex">
 			<div class="font-semibold w-[8rem]">Density:</div>
-			<div class="text-left ml-2">{game.density}</div>
+			<div class="text-left ml-2">{$game.density}</div>
 		</div>
 		<div class="flex">
 			<div class="font-semibold w-[8rem]">Player Distance:</div>
-			<div class="text-left ml-2">{game.playerPositions}</div>
+			<div class="text-left ml-2">{$game.playerPositions}</div>
 		</div>
 	</div>
 
@@ -63,7 +64,7 @@
 			<li>Player {status.num} ({status.name}) - Submitted Turn: {status.submittedTurn ?? false}</li>
 		{/each}
 	</ul>
-	{#if $me?.id == game.hostId}
+	{#if $me?.id == $game.hostId}
 		<form on:submit|preventDefault={onSubmit}>
 			<button class="btn btn-primary">Force Generate Turn</button>
 		</form>

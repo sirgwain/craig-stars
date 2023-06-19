@@ -2,19 +2,19 @@
 	import WarpSpeedGauge from '$lib/components/game/WarpSpeedGauge.svelte';
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip.svelte';
-	import { techs, commandedPlanet } from '$lib/services/Stores';
-	import type { FullGame } from '$lib/services/FullGame';
-	import { PlanetService } from '$lib/services/PlanetService';
+	import { getGameContext } from '$lib/services/Contexts';
 	import { settings } from '$lib/services/Settings';
+	import { techs } from '$lib/services/Stores';
 	import type { Fleet } from '$lib/types/Fleet';
 	import type { CommandedPlanet } from '$lib/types/Planet';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import { UnlimitedSpaceDock } from '$lib/types/Tech';
 	import CommandTile from './CommandTile.svelte';
 
+	const { game, player, universe } = getGameContext();
+
 	export let starbase: Fleet | undefined;
 	export let planet: CommandedPlanet;
-	export let game: FullGame;
 
 	$: stargate = starbase?.spec?.stargate
 		? $techs.getHullComponent(starbase.spec.stargate)
@@ -28,18 +28,13 @@
 		if (starbase?.tokens && starbase.tokens.length > 0) {
 			onShipDesignTooltip(
 				e,
-				game.universe.getDesign(game.player.num, starbase?.tokens[0].designNum) as
-					| ShipDesign
-					| undefined
+				$universe.getDesign($player.num, starbase?.tokens[0].designNum) as ShipDesign | undefined
 			);
 		}
 	}
 
-	async function updatePlanetOrdrers() {
-		const result = await PlanetService.update(game.id, planet);
-		Object.assign(planet, result);
-		$commandedPlanet = planet;
-		game.universe.updatePlanet($commandedPlanet);
+	function updatePlanetOrdrers() {
+		$game.updatePlanetOrders(planet);
 	}
 </script>
 
@@ -110,7 +105,7 @@
 				<div class="flex justify-between">
 					<div>Destination</div>
 					<div>
-						{game.getPlanet(planet.packetTargetNum)?.name ?? 'none'}
+						{$universe.getPlanet(planet.packetTargetNum)?.name ?? 'none'}
 					</div>
 				</div>
 				<div class="flex justify-between mt-1 gap-1">

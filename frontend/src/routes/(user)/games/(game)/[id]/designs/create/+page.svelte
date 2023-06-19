@@ -1,25 +1,25 @@
 <script lang="ts">
-	import { page } from '$app/stores';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import TechAvatar from '$lib/components/tech/TechAvatar.svelte';
-	import { game, techs } from '$lib/services/Stores';
+	import { getGameContext } from '$lib/services/Contexts';
+	import { techs } from '$lib/services/Stores';
 	import { canLearnTech, hasRequiredLevels } from '$lib/types/Player';
 	import { kebabCase } from 'lodash-es';
 
-	let gameId = $page.params.id;
+	const { game, player, universe } = getGameContext();
 </script>
 
 <Breadcrumb>
 	<svelte:fragment slot="crumbs">
-		<li><a class="cs-link" href={`/games/${gameId}/designs`}>Ship Designs</a></li>
+		<li><a class="cs-link" href={`/games/${$game.id}/designs`}>Ship Designs</a></li>
 		<li>Choose Hull</li>
 	</svelte:fragment>
 </Breadcrumb>
 <ul class="px-1">
 	{#each $techs.hulls as hull}
-		{#if $game?.player && canLearnTech($game.player, hull) && hasRequiredLevels($game.player.techLevels, hull.requirements)}
+		{#if $player && canLearnTech($game.player, hull) && hasRequiredLevels($player.techLevels, hull.requirements)}
 			<li>
-				<a class="cs-link" href={`/games/${gameId}/designs/create/${kebabCase(hull.name)}`}>
+				<a class="cs-link" href={`/games/${$game.id}/designs/create/${kebabCase(hull.name)}`}>
 					<div class="flex flex-row place-items-center">
 						<div class="mr-2 mb-2 border border-secondary bg-black p-1">
 							<TechAvatar tech={hull} />

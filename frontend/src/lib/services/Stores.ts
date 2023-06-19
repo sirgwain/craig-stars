@@ -6,18 +6,17 @@ import type { Vector } from '$lib/types/Vector';
 import { findIndex } from 'lodash-es';
 import type { ComponentType, SvelteComponent } from 'svelte';
 import { derived, get, writable } from 'svelte/store';
-import type { FullGame } from './FullGame';
+import { gameStore } from './Contexts';
 import { rollover } from './Math';
 import { TechService } from './TechService';
-import type { Universe } from './Universe';
 
 export type MapObjectsByPosition = {
 	[k: string]: MapObject[];
 };
 
+const { universe } = gameStore;
+
 export const me = writable<User>(emptyUser);
-export const game = writable<FullGame | undefined>();
-export const universe = writable<Universe | undefined>();
 export const techs = writable<TechService>(new TechService());
 
 export const commandedPlanet = writable<CommandedPlanet | undefined>();
@@ -34,40 +33,36 @@ export const commandedMapObjectName = writable<string>();
 export const zoomTarget = writable<MapObject | undefined>();
 
 const currentCommandedMapObjectIndex = derived(
-	[game, commandedFleet, commandedPlanet],
-	([$game, $commandedFleet, $commandedPlanet]) => {
-		if ($game) {
-			if ($commandedPlanet) {
-				return $game.universe.planets.findIndex((p) => p.num === $commandedPlanet.num);
-			}
-			if ($commandedFleet) {
-				return $game.universe.fleets.findIndex((f) => f.num === $commandedFleet.num);
-			}
+	[universe, commandedFleet, commandedPlanet],
+	([$universe, $commandedFleet, $commandedPlanet]) => {
+		if ($commandedPlanet) {
+			return $universe.planets.findIndex((p) => p.num === $commandedPlanet.num);
+		}
+		if ($commandedFleet) {
+			return $universe.fleets.findIndex((f) => f.num === $commandedFleet.num);
 		}
 		return 0;
 	}
 );
 
 const currentSelectedMapObjectIndex = derived(
-	[game, selectedMapObject],
-	([$game, $selectedMapObject]) => {
-		if ($game) {
-			if ($selectedMapObject) {
-				const mos = $game.universe.getMapObjectsByPosition($selectedMapObject.position);
-				return findIndex(mos, (mo) => equal($selectedMapObject, mo));
-			}
+	[universe, selectedMapObject],
+	([$universe, $selectedMapObject]) => {
+		if ($selectedMapObject) {
+			const mos = $universe.getMapObjectsByPosition($selectedMapObject.position);
+			return findIndex(mos, (mo) => equal($selectedMapObject, mo));
 		}
 		return -1;
 	}
 );
 
 export const selectNextMapObject = () => {
-	const g = get(game);
+	const u = get(universe);
 	const selected = get(selectedMapObject);
 	const index = get(currentSelectedMapObjectIndex);
 
 	if (index != -1 && selected) {
-		const mos = g?.universe.getMapObjectsByPosition(selected.position);
+		const mos = u.getMapObjectsByPosition(selected.position);
 		if (mos) {
 			if (index >= mos.length - 1) {
 				selectMapObject(mos[0]);
@@ -80,25 +75,25 @@ export const selectNextMapObject = () => {
 
 // command the previous mapObject for this type, i.e. the previous planet or fleet
 export const previousMapObject = () => {
-	const g = get(game);
+	const u = get(universe);
 	const i = get(currentCommandedMapObjectIndex);
 	const mo = get(commandedMapObject);
 
-	if (g && mo) {
+	if (mo) {
 		if (mo.type == MapObjectType.Planet) {
-			const prevIndex = rollover(i - 1, 0, g.universe.planets.length - 1);
-			const planet = g.universe.planets[prevIndex];
+			const prevIndex = rollover(i - 1, 0, u.planets.length - 1);
+			const planet = u.planets[prevIndex];
 			commandMapObject(planet);
 			zoomToMapObject(planet);
 			selectMapObject(planet);
 		} else if (mo.type == MapObjectType.Fleet) {
-			const prevIndex = rollover(i - 1, 0, g.universe.fleets.length - 1);
-			commandMapObject(g.universe.fleets[prevIndex]);
-			zoomToMapObject(g.universe.fleets[prevIndex]);
+			const prevIndex = rollover(i - 1, 0, u.fleets.length - 1);
+			commandMapObject(u.fleets[prevIndex]);
+			zoomToMapObject(u.fleets[prevIndex]);
 
-			const fleet = g.universe.fleets[prevIndex];
+			const fleet = u.fleets[prevIndex];
 			if (fleet.orbitingPlanetNum && fleet.orbitingPlanetNum != None) {
-				const planet = g.universe.getMapObject({
+				const planet = u.getMapObject({
 					targetType: MapObjectType.Planet,
 					targetNum: fleet.orbitingPlanetNum
 				});
@@ -114,24 +109,24 @@ export const previousMapObject = () => {
 
 // command the next mapObject for this type, i.e. the next planet or fleet
 export const nextMapObject = () => {
-	const g = get(game);
+	const u = get(universe);
 	const i = get(currentCommandedMapObjectIndex);
 	const mo = get(commandedMapObject);
 
-	if (g && mo) {
+	if (mo) {
 		if (mo.type == MapObjectType.Planet) {
-			const nextIndex = rollover(i + 1, 0, g.universe.planets.length - 1);
-			const planet = g.universe.planets[nextIndex];
+			const nextIndex = rollover(i + 1, 0, u.planets.length - 1);
+			const planet = u.planets[nextIndex];
 			commandMapObject(planet);
 			zoomToMapObject(planet);
 			selectMapObject(planet);
 		} else if (mo.type == MapObjectType.Fleet) {
-			const nextIndex = rollover(i + 1, 0, g.universe.fleets.length - 1);
-			const fleet = g.universe.fleets[nextIndex];
-			commandMapObject(g.universe.fleets[nextIndex]);
-			zoomToMapObject(g.universe.fleets[nextIndex]);
+			const nextIndex = rollover(i + 1, 0, u.fleets.length - 1);
+			const fleet = u.fleets[nextIndex];
+			commandMapObject(u.fleets[nextIndex]);
+			zoomToMapObject(u.fleets[nextIndex]);
 			if (fleet.orbitingPlanetNum && fleet.orbitingPlanetNum != None) {
-				const planet = g.universe.getMapObject({
+				const planet = u.getMapObject({
 					targetType: MapObjectType.Planet,
 					targetNum: fleet.orbitingPlanetNum
 				});

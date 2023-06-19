@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { getGameContext } from '$lib/services/Contexts';
 	import type { FullGame } from '$lib/services/FullGame';
 	import { clamp } from '$lib/services/Math';
 	import { Unexplored, type Planet } from '$lib/types/Planet';
@@ -6,7 +7,7 @@
 	import { getContext } from 'svelte';
 	import type { Writable } from 'svelte/store';
 
-	const game = getContext<FullGame>('game');
+	const { game, player, universe } = getGameContext();
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 	const scale = getContext<Writable<number>>('scale');
 
@@ -34,11 +35,11 @@
 		let strokeWidth = 0;
 		let strokeColor = '#555';
 
-		if (planet.playerNum === game?.player.num) {
+		if (planet.playerNum === $player.num) {
 			color = '#00FF00';
 			strokeWidth = 1 / $scale;
 		} else if (planet.playerNum) {
-			color = game?.getPlayerColor(planet.playerNum) ?? '#FF0000';
+			color = $universe.getPlayerColor(planet.playerNum) ?? '#FF0000';
 		} else if (planet.reportAge !== Unexplored && !planet.playerNum) {
 			color = '#FFF';
 		}

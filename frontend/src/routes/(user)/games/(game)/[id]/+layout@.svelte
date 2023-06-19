@@ -5,21 +5,23 @@
 	import Tooltip from '$lib/components/game/tooltips/Tooltip.svelte';
 	import { bindNavigationHotkeys, unbindNavigationHotkeys } from '$lib/navigationHotkeys';
 	import { bindQuantityModifier, unbindQuantityModifier } from '$lib/quantityModifier';
-	import { game } from '$lib/services/Stores';
+	import { initGameContext } from '$lib/services/Contexts';
 	import { FullGame } from '$lib/services/FullGame';
 	import { GameState } from '$lib/types/Game';
 	import { onMount } from 'svelte';
 	import GameMenu from './GameMenu.svelte';
 
 	let id = parseInt($page.params.id);
-
 	let loadAttempted = false;
+	let game: FullGame | undefined = undefined;
+
+	initGameContext();
 
 	onMount(async () => {
-		const g = new FullGame();
-		await g.load(id);
+		game = new FullGame();
+		await game.load(id);
 
-		game.update(() => g);
+		// game.update(() => g);
 
 		loadAttempted = true;
 
@@ -27,7 +29,7 @@
 		bindQuantityModifier();
 
 		// if we are in an active game, bind the navigation hotkeys, i.e. F4 for research, Esc to go back
-		if ($game?.state == GameState.WaitingForPlayers) {
+		if (game.state == GameState.WaitingForPlayers) {
 			bindNavigationHotkeys(id, page);
 		}
 
@@ -38,10 +40,10 @@
 	});
 </script>
 
-{#if $game}
+{#if game}
 	<main class="flex flex-col mb-20 md:mb-0">
 		<div class="flex-initial">
-			<GameMenu game={$game} />
+			<GameMenu {game} />
 		</div>
 		<ErrorToast />
 		<!-- We want our main game view to only fill the screen (minus the toolbar) -->

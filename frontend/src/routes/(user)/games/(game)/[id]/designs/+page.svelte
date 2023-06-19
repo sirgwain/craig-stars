@@ -1,10 +1,9 @@
 <script lang="ts">
-	import { page } from '$app/stores';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import DesignCard from '$lib/components/game/DesignCard.svelte';
-	import { game } from '$lib/services/Stores';
+	import { getGameContext } from '$lib/services/Contexts';
 
-	let gameId = parseInt($page.params.id);
+	const { game, player, universe } = getGameContext();
 </script>
 
 <Breadcrumb>
@@ -12,17 +11,17 @@
 		<li>Ship Designs</li>
 	</svelte:fragment>
 	<div slot="end">
-		<a class="cs-link btn btn-sm" href={`/games/${gameId}/designs/create`}>Create</a>
+		<a class="cs-link btn btn-sm" href={`/games/${$game.id}/designs/create`}>Create</a>
 	</div>
 </Breadcrumb>
 
-{#if $game?.universe.designs.length}
+{#if $universe.designs.length}
 	<div class="flex flex-wrap justify-center gap-2">
-		{#each $game?.universe.designs.filter((d) => d.playerNum === $game?.player.num) as design (design.num)}
+		{#each $universe.designs.filter((d) => d.playerNum === $player.num) as design (design.num)}
 			<DesignCard
 				{design}
-				{gameId}
-				on:delete={() => design.num && $game?.deleteDesign(design.num)}
+				href={`/games/${$game.id}/designs/${design.num}`}
+				on:delete={() => design.num && $game.deleteDesign(design.num)}
 			/>
 		{/each}
 	</div>

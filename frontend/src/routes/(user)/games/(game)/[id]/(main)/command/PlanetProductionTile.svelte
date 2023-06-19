@@ -1,24 +1,17 @@
 <script lang="ts">
 	import { EventManager } from '$lib/EventManager';
-	import { commandMapObject } from '$lib/services/Stores';
-	import { PlanetService } from '$lib/services/PlanetService';
-	import {
-		CommandedPlanet,
-		getQueueItemShortName,
-		isAuto
-	} from '$lib/types/Planet';
+	import { getGameContext } from '$lib/services/Contexts';
+	import { CommandedPlanet, getQueueItemShortName, isAuto } from '$lib/types/Planet';
 	import CommandTile from './CommandTile.svelte';
 
-	export let planet: CommandedPlanet;
+	const { game } = getGameContext();
 
-	const planetService = new PlanetService();
+	export let planet: CommandedPlanet;
 
 	const clear = async () => {
 		if (planet && confirm('Are you sure you want to clear the planet production queue?')) {
 			planet.productionQueue = [];
-			const updated = await PlanetService.update(planet.gameId, planet);
-			Object.assign(planet, updated);
-			commandMapObject(updated);
+			$game.updatePlanetOrders(planet);
 		}
 	};
 

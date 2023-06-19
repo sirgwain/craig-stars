@@ -1,25 +1,25 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
 	import SortableTableHeader from '$lib/components/SortableTableHeader.svelte';
 	import TableSearchInput from '$lib/components/TableSearchInput.svelte';
 	import CargoMini from '$lib/components/game/CargoMini.svelte';
-	import { commandMapObject, game, zoomToMapObject } from '$lib/services/Stores';
+	import { getGameContext } from '$lib/services/Contexts';
+	import { commandMapObject, zoomToMapObject } from '$lib/services/Stores';
 	import { totalCargo } from '$lib/types/Cargo';
-	import { getTargetName, type Fleet, type Waypoint } from '$lib/types/Fleet';
+	import { getTargetName, type Fleet } from '$lib/types/Fleet';
 	import { SvelteTable, type SvelteTableColumn } from '@hurtigruten/svelte-table';
 
-	let id = parseInt($page.params.id);
+	const { game, player, universe } = getGameContext();
 
 	const selectFleet = (fleet: Fleet) => {
 		commandMapObject(fleet);
 		zoomToMapObject(fleet);
-		goto(`/games/${id}`);
+		goto(`/games/${$game.id}`);
 	};
 
 	const getLocation = (fleet: Fleet) =>
-		fleet.orbitingPlanetNum && $game
-			? $game.getPlanet(fleet.orbitingPlanetNum)?.name ?? 'unknown'
+		fleet.orbitingPlanetNum
+			? $universe.getPlanet(fleet.orbitingPlanetNum)?.name ?? 'unknown'
 			: `Space: (${fleet.position.x}, ${fleet.position.y})`;
 
 	const getDestination = (fleet: Fleet) => {
@@ -34,12 +34,11 @@
 	let search = '';
 
 	$: filteredFleets =
-		$game?.universe.fleets
+		$universe.fleets
 			.sort((a, b) => a.num - b.num)
 			.filter(
 				(i) =>
-					i.playerNum === $game?.player.num &&
-					i.name.toLowerCase().indexOf(search.toLowerCase()) != -1
+					i.playerNum === $player.num && i.name.toLowerCase().indexOf(search.toLowerCase()) != -1
 			) ?? [];
 
 	const columns: SvelteTableColumn<Fleet>[] = [
@@ -129,7 +128,7 @@
 				<CargoMini cargo={row.cargo} />
 			{:else if column.key == 'composition'}
 				{@const design = $game
-					? $game.universe.getDesign($game.player.num, row.tokens[0].designNum)
+					? $universe.getDesign($player.num, row.tokens[0].designNum)
 					: undefined}
 				<div class="flex flex-row justify-between">
 					<div>
@@ -142,7 +141,7 @@
 			{:else if column.key == 'cloak'}
 				{row.spec.cloak ? row.spec.cloak + '%' : ''}
 			{:else if column.key == 'battlePlanNum'}
-				{@const battlePlan = $game ? $game.player.getBattlePlan(row.battlePlanNum) : undefined}
+				{@const battlePlan = $game ? $player.getBattlePlan(row.battlePlanNum) : undefined}
 				{battlePlan?.name ?? ''}
 			{:else if column.key == 'mass'}
 				{row.spec.mass}

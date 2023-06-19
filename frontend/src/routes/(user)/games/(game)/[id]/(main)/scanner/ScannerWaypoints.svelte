@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { commandedFleet } from '$lib/services/Stores';
-	import type { FullGame } from '$lib/services/FullGame';
 	import { emptyVector } from '$lib/types/Vector';
 
+	import { getGameContext } from '$lib/services/Contexts';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 	import type { Writable } from 'svelte/store';
 
-	const game = getContext<FullGame>('game');
+	const { game, player, universe } = getGameContext();
 	const scale = getContext<Writable<number>>('scale');
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
@@ -22,7 +22,7 @@
 
 	$: {
 		if ($data) {
-			const fleets = game.universe.fleets.filter((fleet) => fleet.waypoints?.length);
+			const fleets = $universe.fleets.filter((fleet) => fleet.waypoints?.length);
 			lines = fleets
 				.filter((fleet) => (fleet.waypoints?.length ?? 0) > 1)
 				.map((fleet) => {

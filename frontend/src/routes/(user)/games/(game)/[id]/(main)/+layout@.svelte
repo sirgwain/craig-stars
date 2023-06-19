@@ -3,26 +3,35 @@
 	import NotFound from '$lib/components/NotFound.svelte';
 	import { bindNavigationHotkeys, unbindNavigationHotkeys } from '$lib/navigationHotkeys';
 	import { bindQuantityModifier, unbindQuantityModifier } from '$lib/quantityModifier';
-	import { commandedMapObject, game, techs } from '$lib/services/Stores';
+	import { getGameContext, initGameContext, updateGameContext } from '$lib/services/Contexts';
 	import { FullGame } from '$lib/services/FullGame';
+	import { commandedMapObject, techs } from '$lib/services/Stores';
 	import { GameState } from '$lib/types/Game';
 	import { onMount } from 'svelte';
 	import GameMenu from '../GameMenu.svelte';
+	import { Universe } from '$lib/services/Universe';
+	import { Player } from '$lib/types/Player';
 
 	let id = parseInt($page.params.id);
-
 	let loadAttempted = false;
+	let fg: FullGame | undefined = undefined;
+
+	initGameContext();
+
+	const { game, player, universe } = getGameContext();
 
 	onMount(async () => {
 		if (!$game || $game.id !== id) {
-			game.update(() => undefined);
+			// empty the context
+			updateGameContext(new FullGame(), new Player(), new Universe());
 
 			try {
-				const fg = new FullGame();
-				await fg.load(id);
+				const loading = new FullGame();
+				await loading.load(id);
 
-				game.update(() => fg);
-				techs.update(() => fg.techs);
+				fg = loading;
+				const gameTechs = fg.techs;
+				techs.update(() => gameTechs);
 			} finally {
 				loadAttempted = true;
 			}
@@ -30,7 +39,7 @@
 
 		if ($game?.state == GameState.WaitingForPlayers) {
 			if (!$commandedMapObject || $commandedMapObject.gameId != $game.id) {
-				$game.universe.commandHomeWorld();
+				$game.commandHomeWorld();
 			}
 		}
 
@@ -53,12 +62,12 @@
 		if ($game?.state == GameState.WaitingForPlayers) {
 			// trigger reactivity
 			$game = $game;
-			$game.universe.commandHomeWorld();
+			$game.commandHomeWorld();
 		}
 	}
 </script>
 
-{#if $game}
+{#if fg}
 	<main class="flex flex-col mb-20 md:mb-0">
 		<div class="flex-initial">
 			<GameMenu game={$game} on:submit-turn={onSubmitTurn} />

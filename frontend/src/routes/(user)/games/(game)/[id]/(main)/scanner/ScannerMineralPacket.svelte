@@ -13,7 +13,6 @@
 
 	export let mineralPacket: MineralPacket;
 	export let color = '#0900FF';
-	export let selected = false;
 
 	$: size = 8 / $scale;
 </script>

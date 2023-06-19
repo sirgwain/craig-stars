@@ -1,15 +1,10 @@
 <script lang="ts">
 	import CostComponent from '$lib/components/game/Cost.svelte';
 	import { getQuantityModifier } from '$lib/quantityModifier';
-	import { commandMapObject } from '$lib/services/Stores';
-	import { PlanetService } from '$lib/services/PlanetService';
+	import { getGameContext } from '$lib/services/Contexts';
 	import type { Cost } from '$lib/types/Cost';
-	import type { Fleet } from '$lib/types/Fleet';
-	import type { Game } from '$lib/types/Game';
 	import type { CommandedPlanet, ProductionQueueItem } from '$lib/types/Planet';
 	import { QueueItemType, isAuto } from '$lib/types/Planet';
-	import type { Player, PlayerResponse } from '$lib/types/Player';
-	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import {
 		ArrowLongDown,
 		ArrowLongLeft,
@@ -21,9 +16,8 @@
 	import hotkeys from 'hotkeys-js';
 	import { createEventDispatcher } from 'svelte';
 
-	export let game: Game;
-	export let player: Player;
-	export let designs: ShipDesign[];
+	const { game, player, universe } = getGameContext();
+
 	export let planet: CommandedPlanet;
 
 	const getFullName = (item: ProductionQueueItem) => {
@@ -148,9 +142,6 @@
 	const ok = async () => {
 		planet.productionQueue = queueItems ?? [];
 		planet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
-		const result = await PlanetService.update(game.id, planet);
-		Object.assign(planet, result);
-		commandMapObject(planet);
 		dispatch('ok');
 	};
 	const cancel = () => {
@@ -171,11 +162,14 @@
 		switch (item?.type) {
 			case QueueItemType.ShipToken:
 			case QueueItemType.Starbase:
-				cost = designs.find((d) => d.name === item?.designName)?.spec.cost;
+				if (item.designName) {
+					const design = $universe.getMyDesignByName($player.num, item.designName);
+					cost = design?.spec.cost;
+				}
 				break;
 			default:
-				if (item && player.race) {
-					cost = player.race.spec?.costs[item.type];
+				if (item) {
+					cost = $player.race.spec?.costs[item.type];
 				}
 		}
 		return cost
@@ -206,18 +200,16 @@
 
 	const resetQueue = () => {
 		queueItems = planet.productionQueue?.map((item) => ({ ...item } as ProductionQueueItem));
-		availableItems = planet.getAvailableProductionQueueItems(planet, designs ?? []);
+		availableItems = planet.getAvailableProductionQueueItems(planet, $universe.getMyDesigns($player.num));
 		selectedAvailableItem = availableItems.length > 0 ? availableItems[0] : selectedAvailableItem;
 		contributesOnlyLeftoverToResearch = planet.contributesOnlyLeftoverToResearch ?? false;
 	};
 
 	// clone the production queue whenever the planet is updated
-	$: planet && designs && resetQueue();
+	$: planet && resetQueue();
 </script>
 
-<div
-	class="flex h-full bg-base-200 shadow max-h-fit min-h-fit rounded-sm border-2 border-base-300"
->
+<div class="flex h-full bg-base-200 shadow max-h-fit min-h-fit rounded-sm border-2 border-base-300">
 	<div class="flex-col h-full w-full">
 		<div class="flex flex-col h-full w-full">
 			<div class="flex flex-row h-full w-full grid-cols-3">

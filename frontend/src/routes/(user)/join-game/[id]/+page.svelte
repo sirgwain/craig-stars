@@ -1,12 +1,11 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { GameService } from '$lib/services/GameService';
-	import type { Game, NewGamePlayer } from '$lib/types/Game';
+	import type { Game } from '$lib/types/Game';
 
-	import type { PlayerService } from '$lib/services/PlayerService';
+	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import PlayerChooser from './PlayerChooser.svelte';
-	import { goto } from '$app/navigation';
 
 	let id = parseInt($page.params.id);
 

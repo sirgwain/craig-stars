@@ -1,12 +1,11 @@
 <script lang="ts">
-	import type { FullGame } from '$lib/services/FullGame';
+	import { getGameContext } from '$lib/services/Contexts';
 	import { ownedBy } from '$lib/types/MapObject';
 	import { MineFieldType, type MineField } from '$lib/types/MineField';
-	import type { Player } from '$lib/types/Player';
 
-	export let game: FullGame;
+	const { player, universe } = getGameContext();
+
 	export let mineField: MineField;
-	export let player: Player;
 </script>
 
 <div class="flex flex-row min-h-[11rem]">
@@ -21,7 +20,7 @@
 				/>
 			</div>
 		</div>
-		<div class="text-center">{game.getPlayerName(mineField.playerNum)}</div>
+		<div class="text-center">{$universe.getPlayerName(mineField.playerNum)}</div>
 	</div>
 
 	<div class="flex flex-col grow">
@@ -43,7 +42,7 @@
 				{mineField.spec.radius.toFixed()} l.y. ({mineField.numMines} mines)
 			</div>
 		</div>
-		{#if ownedBy(mineField, player.num)}
+		{#if ownedBy(mineField, $player.num)}
 			<div class="flex flex-row">
 				<div class="w-24">Decay Rate:</div>
 				<div>

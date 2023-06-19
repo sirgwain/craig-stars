@@ -1,21 +1,21 @@
 <script lang="ts">
 	import { EventManager } from '$lib/EventManager';
-	import type { CommandedPlanet, Planet } from '$lib/types/Planet';
-	import { onMount } from 'svelte';
-	import CommandTile from './CommandTile.svelte';
 	import FactoriesTooltip, {
 		type FactoriesTooltipProps
 	} from '$lib/components/game/tooltips/FactoriesTooltip.svelte';
-	import { showTooltip } from '$lib/services/Stores';
-	import MinesTooltip, {
-		type MinesTooltipProps
-	} from '$lib/components/game/tooltips/MinesTooltip.svelte';
-	import type { Player } from '$lib/types/Player';
 	import MineralTooltip, {
 		type MineralTooltipProps
 	} from '$lib/components/game/tooltips/MineralTooltip.svelte';
+	import MinesTooltip, {
+		type MinesTooltipProps
+	} from '$lib/components/game/tooltips/MinesTooltip.svelte';
+	import { getGameContext } from '$lib/services/Contexts';
+	import { showTooltip } from '$lib/services/Stores';
+	import type { CommandedPlanet } from '$lib/types/Planet';
+	import { onMount } from 'svelte';
+	import CommandTile from './CommandTile.svelte';
 
-	export let player: Player;
+	const { player } = getGameContext();
 	export let planet: CommandedPlanet;
 
 	onMount(() => {
@@ -60,7 +60,7 @@
 			mines: planet.mines,
 			maxMines: planet.spec.maxMines,
 			maxPossibleMines: planet.spec.maxPossibleMines,
-			canBuildMines: player.race.spec?.innateMining ?? false
+			canBuildMines: $player.race.spec?.innateMining ?? false
 		});
 	}
 
@@ -70,7 +70,7 @@
 			factories: planet.factories,
 			maxFactories: planet.spec.maxFactories,
 			maxPossibleFactories: planet.spec.maxPossibleFactories,
-			canBuildFactories: player.race.spec?.innateResources ?? false
+			canBuildFactories: $player.race.spec?.innateResources ?? false
 		});
 	}
 </script>

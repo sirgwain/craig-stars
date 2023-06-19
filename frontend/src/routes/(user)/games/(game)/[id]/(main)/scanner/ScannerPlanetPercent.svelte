@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { getGameContext } from '$lib/services/Contexts';
 	import type { FullGame } from '$lib/services/FullGame';
 	import { settings } from '$lib/services/Settings';
 	import { None } from '$lib/types/MapObject';
@@ -7,7 +8,7 @@
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 
-	const game = getContext<FullGame>('game');
+	const { game, player, universe } = getGameContext();
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
 	export let planet: Planet;
@@ -45,7 +46,7 @@
 			}
 
 			if (planet.playerNum) {
-				flagColor = game.getPlayerColor(planet.playerNum) ?? '#FF0000';
+				flagColor = $universe.getPlayerColor(planet.playerNum) ?? '#FF0000';
 			}
 		}
 

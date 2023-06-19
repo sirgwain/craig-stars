@@ -3,27 +3,23 @@
   Show all mineralpackets in the universe
  -->
 <script lang="ts">
-	import type { FullGame } from '$lib/services/FullGame';
-	import { MapObjectType, type MapObject, equal } from '$lib/types/MapObject';
-	import type { LayerCake } from 'layercake';
-	import { getContext } from 'svelte';
-	import ScannerMineralPacket from './ScannerMineralPacket.svelte';
+	import { getGameContext } from '$lib/services/Contexts';
 	import { selectedMapObject } from '$lib/services/Stores';
+	import { MapObjectType } from '$lib/types/MapObject';
 	import type { MineralPacket } from '$lib/types/MineralPacket';
-	import { min } from 'date-fns';
+	import ScannerMineralPacket from './ScannerMineralPacket.svelte';
 
-	const game = getContext<FullGame>('game');
-	const { data } = getContext<LayerCake>('LayerCake');
+	const { player, universe } = getGameContext();
 
 	function getColor(mineralPacket: MineralPacket) {
-		if (mineralPacket.playerNum === game.player.num) {
+		if (mineralPacket.playerNum === $player.num) {
 			return '#0900FF';
 		}
-		return game.getPlayerColor(mineralPacket.playerNum);
+		return $universe.getPlayerColor(mineralPacket.playerNum);
 	}
 
-	$: mineralpackets =
-		$data && $data.filter((mo: MapObject) => mo.type == MapObjectType.MineralPacket);
+	$: mineralpackets = $universe.mineralPackets;
+
 	$: selectedMineralPacket =
 		$selectedMapObject && $selectedMapObject.type === MapObjectType.MineralPacket
 			? ($selectedMapObject as MineralPacket)
@@ -32,18 +28,5 @@
 
 <!-- MineralPackets -->
 {#each mineralpackets as mineralPacket}
-	{#if mineralPacket !== selectedMineralPacket}
-		<ScannerMineralPacket
-			{mineralPacket}
-			color={getColor(mineralPacket)}
-			selected={equal($selectedMapObject, mineralPacket)}
-		/>
-	{/if}
+	<ScannerMineralPacket {mineralPacket} color={getColor(mineralPacket)} />
 {/each}
-{#if selectedMineralPacket}
-	<ScannerMineralPacket
-		mineralPacket={selectedMineralPacket}
-		color={getColor(selectedMineralPacket)}
-		selected={true}
-	/>
-{/if}

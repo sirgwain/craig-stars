@@ -5,14 +5,13 @@
 		type ResourcesTooltipProps
 	} from '$lib/components/game/tooltips/ResourcesTooltip.svelte';
 	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip.svelte';
+	import { getGameContext } from '$lib/services/Contexts';
 	import { showTooltip, techs } from '$lib/services/Stores';
-	import type { FullGame } from '$lib/services/FullGame';
 	import type { CommandedPlanet } from '$lib/types/Planet';
-	import type { Player } from '$lib/types/Player';
 	import CommandTile from './CommandTile.svelte';
 
-	export let game: FullGame;
-	export let player: Player;
+	const { player, universe } = getGameContext();
+
 	export let planet: CommandedPlanet;
 
 	function onResourcesTooltip(e: PointerEvent) {
@@ -21,15 +20,15 @@
 			resourcesPerYear: planet.spec.resourcesPerYear,
 			resourcesPerYearAvailable: planet.spec.resourcesPerYearAvailable,
 			resourcesPerYearResearch: planet.spec.resourcesPerYearAvailable,
-			innateResources: player.race.spec?.innateResources ?? false
+			innateResources: $player.race.spec?.innateResources ?? false
 		});
 	}
 
 	function onPopulationTooltip(e: PointerEvent) {
 		showTooltip<PopulationTooltipProps>(e.x, e.y, PopulationTooltip, {
-			game,
-			planet,
-			player
+			playerFinder: $universe,
+			player: $player,
+			planet
 		});
 	}
 

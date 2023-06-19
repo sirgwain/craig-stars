@@ -1,4 +1,4 @@
-import { CommandedPlanet, type Planet } from '$lib/types/Planet';
+import { CommandedPlanet, type Planet, type PlanetOrders } from '$lib/types/Planet';
 import { Service } from './Service';
 
 export class PlanetService {
@@ -12,8 +12,30 @@ export class PlanetService {
 		return Object.assign(commandedPlanet, planet);
 	}
 
-	static async update(gameId: number | string, planet: CommandedPlanet): Promise<CommandedPlanet> {
-		const updated = Service.update(planet, `/api/games/${gameId}/planets/${planet.num}`);
-		return Object.assign(planet, updated);
+	static async updatePlanetOrders(planet: CommandedPlanet): Promise<Planet> {
+		const planetOrders: PlanetOrders = {
+			contributesOnlyLeftoverToResearch: planet.contributesOnlyLeftoverToResearch,
+			routeTargetType: planet.routeTargetType,
+			routeTargetNum: planet.routeTargetNum,
+			routeTargetPlayerNum: planet.routeTargetPlayerNum,
+			packetSpeed: planet.packetSpeed,
+			packetTargetNum: planet.packetTargetNum,
+			productionQueue: planet.productionQueue
+		};
+
+		const response = await fetch(`/api/games/${planet.gameId}/planets/${planet.num}`, {
+			method: 'PUT',
+			headers: {
+				accept: 'application/json'
+			},
+			body: JSON.stringify(planetOrders)
+		});
+
+		if (response.ok) {
+			return await response.json();
+		} else {
+			console.error(response);
+		}
+		return Promise.resolve(planet);
 	}
 }

@@ -1,21 +1,22 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { getGameContext } from '$lib/services/Contexts';
 	import { commandMapObject, selectMapObject, zoomToMapObject } from '$lib/services/Stores';
-	import type { FullGame } from '$lib/services/FullGame';
 	import type { Fleet } from '$lib/types/Fleet';
-	import type { Game } from '$lib/types/Game';
-	import { MapObjectType, None, ownedBy, type MapObject } from '$lib/types/MapObject';
-	import { MessageTargetType, type Message, type PlayerResponse } from '$lib/types/Player';
-	import { ArrowTopRightOnSquare, ArrowLongLeft, ArrowLongRight } from '@steeze-ui/heroicons';
+	import { MapObjectType, None, ownedBy } from '$lib/types/MapObject';
+	import { MessageTargetType, type Message } from '$lib/types/Player';
+	import { ArrowLongLeft, ArrowLongRight, ArrowTopRightOnSquare } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
-	export let game: FullGame;
-	export let player: PlayerResponse;
+	const { game, player, universe } = getGameContext();
 
 	let messageNum = 0;
 	let message: Message | undefined;
 
-	$: player.messages?.length && (message = player.messages[messageNum]);
+	$: $player.messages.length && (message = $player.messages[messageNum]);
+
+	// reset the message num when our player updates
+	player.subscribe(() => (messageNum = 0));
 
 	const previous = () => {
 		messageNum--;
@@ -29,7 +30,7 @@
 			let moType = MapObjectType.None;
 
 			if (message.battleNum) {
-				goto(`/games/${game.id}/battles/${message.battleNum}`);
+				goto(`/games/${$game.id}/battles/${message.battleNum}`);
 				return;
 			}
 
@@ -55,18 +56,20 @@
 				}
 
 				if (moType != MapObjectType.None) {
-					const target = game.universe.getMapObject(message);
+					const target = $universe.getMapObject(message);
 					if (target) {
 						if (target.type == MapObjectType.Fleet) {
 							const orbitingPlanetNum = (target as Fleet).orbitingPlanetNum;
 							if (orbitingPlanetNum && orbitingPlanetNum != None) {
-								const orbiting = player.planets[orbitingPlanetNum - 1];
-								selectMapObject(orbiting);
+								const orbiting = $universe.getPlanet(orbitingPlanetNum);
+								if (orbiting) {
+									selectMapObject(orbiting);
+								}
 							}
 						} else {
 							selectMapObject(target);
 						}
-						if (ownedBy(target, player.num)) {
+						if (ownedBy(target, $player.num)) {
 							commandMapObject(target);
 						}
 
@@ -84,7 +87,7 @@
 		<div class="flex flex-row items-center">
 			<input type="checkbox" class="flex-initial checkbox checkbox-xs" />
 			<div class="flex-1 text-center text-lg font-semibold text-secondary">
-				Year: {game.year} Message {messageNum + 1} of {player?.messages?.length}
+				Year: {$game.year} Message {messageNum + 1} of {$player?.messages?.length}
 			</div>
 		</div>
 		{#if message}
@@ -118,7 +121,7 @@
 							<div class="tooltip" data-tip="next">
 								<button
 									on:click={next}
-									disabled={player.messages && messageNum === player.messages.length - 1}
+									disabled={$player.messages && messageNum === $player.messages.length - 1}
 									class="btn btn-outline btn-sm normal-case btn-secondary"
 									title="next"
 									><Icon

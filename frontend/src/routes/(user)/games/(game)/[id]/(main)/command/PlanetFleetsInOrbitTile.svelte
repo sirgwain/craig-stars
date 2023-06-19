@@ -61,7 +61,7 @@
 		class="select select-outline select-secondary select-sm py-0 text-sm"
 	>
 		{#each fleetsInOrbit as fleet, index}
-			<option value={index}>{fleet.name}</option>>
+			<option value={index}>{fleet.name}</option>
 		{/each}
 	</select>
 

@@ -1,18 +1,16 @@
 <script lang="ts">
 	import { EventManager } from '$lib/EventManager';
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
+	import { getGameContext } from '$lib/services/Contexts';
 	import { selectedWaypoint } from '$lib/services/Stores';
 	import type { CommandedFleet } from '$lib/types/Fleet';
-	import type { Player } from '$lib/types/Player';
 	import { createEventDispatcher } from 'svelte';
 	import CommandTile from './CommandTile.svelte';
-	import type { FullGame } from '$lib/services/FullGame';
 
 	const dispatch = createEventDispatcher();
+	const { player, universe } = getGameContext();
 
-	export let game: FullGame;
 	export let fleet: CommandedFleet;
-	export let player: Player;
 
 	const split = () => {
 		EventManager.publishSplitFleetDialogRequestedEvent(fleet);
@@ -36,11 +34,11 @@
 							type="button"
 							class="w-full cursor-help"
 							on:pointerdown|preventDefault={(e) =>
-								onShipDesignTooltip(e, game.universe.getDesign(player.num, token.designNum))}
+								onShipDesignTooltip(e, $universe.getDesign($player.num, token.designNum))}
 						>
 							<div class="flex flex-row justify-between">
 								<div>
-									{game.universe.getDesign(player.num, token.designNum)?.name}
+									{$universe.getDesign($player.num, token.designNum)?.name}
 								</div>
 								<div>
 									{token.quantity}
@@ -59,7 +57,7 @@
 					name="battlePlan"
 					bind:value={fleet.battlePlanNum}
 				>
-					{#each player.battlePlans as battlePlan}
+					{#each $player.battlePlans as battlePlan}
 						<option value={battlePlan.num}>{battlePlan.name}</option>
 					{/each}
 				</select>

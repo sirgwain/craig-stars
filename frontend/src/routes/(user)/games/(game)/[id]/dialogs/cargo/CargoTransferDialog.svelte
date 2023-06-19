@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { getQuantityModifier } from '$lib/quantityModifier';
-	import { game } from '$lib/services/Stores';
+	import { getGameContext } from '$lib/services/Contexts';
 	import { clamp } from '$lib/services/Math';
 	import { PlanetService } from '$lib/services/PlanetService';
 	import { emptyCargo, negativeCargo, subtract, totalCargo, type Cargo } from '$lib/types/Cargo';
@@ -12,6 +12,8 @@
 	import FleetTransfer from './FleetTransfer.svelte';
 	import PlanetTransfer from './PlanetTransfer.svelte';
 	import TransferButtons from './TransferButtons.svelte';
+
+	const { game, player, universe } = getGameContext();
 
 	export let src: CommandedFleet | undefined;
 	export let dest: Fleet | Planet | undefined;

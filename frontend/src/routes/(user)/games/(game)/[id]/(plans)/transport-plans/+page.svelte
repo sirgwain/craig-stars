@@ -1,19 +1,18 @@
 <script lang="ts">
-	import { page } from '$app/stores';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
-	import { game } from '$lib/services/Stores';
+	import { getGameContext } from '$lib/services/Contexts';
 	import { addError, type CSError } from '$lib/services/Errors';
 	import type { TransportPlan } from '$lib/types/Player';
 	import TransportPlanCard from './TransportPlanCard.svelte';
 
-	let gameId = parseInt($page.params.id);
+	const { game, player, universe } = getGameContext();
 
 	async function deletePlan(plan: TransportPlan) {
 		if ($game) {
 			try {
 				await $game.deleteTransportPlan(plan.num);
 				// trigger reactivity
-				$game.player.transportPlans = $game.player.transportPlans;
+				$player.transportPlans = $player.transportPlans;
 			} catch (e) {
 				addError(e as CSError);
 			}
@@ -27,16 +26,16 @@
 	</svelte:fragment>
 
 	<div slot="end">
-		<a class="cs-link btn btn-sm" href={`/games/${gameId}/transport-plans/create`}>Create</a>
+		<a class="cs-link btn btn-sm" href={`/games/${$game.id}/transport-plans/create`}>Create</a>
 	</div>
 </Breadcrumb>
 
-{#if $game?.player.transportPlans.length}
+{#if $player.transportPlans.length}
 	<div class="flex flex-wrap justify-center gap-2">
-		{#each $game.player.transportPlans as plan (plan.num)}
+		{#each $player.transportPlans as plan (plan.num)}
 			<TransportPlanCard
 				{plan}
-				{gameId}
+				href={`/games/${$game.id}/transport-plans/${plan.num}`}
 				showDelete={plan.num !== 0}
 				on:delete={() => deletePlan(plan)}
 			/>

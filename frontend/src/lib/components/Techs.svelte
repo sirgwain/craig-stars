@@ -1,16 +1,15 @@
 <script lang="ts">
 	import TechSummary from '$lib/components/tech/TechSummary.svelte';
 	import techjson from '$lib/ssr/techs.json';
+	import { Player, canLearnTech, hasRequiredLevels } from '$lib/types/Player';
 	import { TechCategory, type Tech, type TechStore } from '$lib/types/Tech';
 	import { kebabCase, startCase } from 'lodash-es';
 	import { onMount } from 'svelte';
 	import { $enum as eu } from 'ts-enum-util';
 	import SectionHeader from './SectionHeader.svelte';
 	import TableSearchInput from './TableSearchInput.svelte';
-	import { game } from '$lib/services/Stores';
-	import { canLearnTech, hasRequiredLevels } from '$lib/types/Player';
 
-	// for ssr, we start with techs from a json file
+	// for ssr, we start with techs from a json file	
 	export let techStore: TechStore = techjson as TechStore;
 	export let techs: Tech[] = [
 		...techStore.engines,
@@ -20,9 +19,10 @@
 		...techStore.hulls,
 		...techStore.terraforms
 	];
+	export let player: Player | undefined = undefined;
 
 	let filter = '';
-	let showAll = !$game?.player ?? false;
+	let showAll = !player ?? false;
 
 	let techsByCategory: Record<TechCategory, Tech[]> = {
 		Armor: [],
@@ -104,7 +104,7 @@
 
 <div class="flex justify-between">
 	<div><TableSearchInput bind:value={filter} /></div>
-	<div class="form-control" class:hidden={!$game?.player}>
+	<div class="form-control" class:hidden={!player}>
 		<label class="label cursor-pointer">
 			<span class="label-text mr-1">Show All</span>
 			<input type="checkbox" class="toggle" bind:checked={showAll} />
@@ -118,7 +118,7 @@
 		>
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
 			{#each techsByCategory[category] as tech (tech.name)}
-				{#if showAll || ($game?.player && canLearnTech($game?.player, tech) && hasRequiredLevels($game?.player.techLevels, tech.requirements))}
+				{#if showAll || (player && canLearnTech(player, tech) && hasRequiredLevels(player.techLevels, tech.requirements))}
 					<div>
 						<TechSummary {tech} />
 					</div>

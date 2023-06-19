@@ -10,7 +10,7 @@ import {
 	type Game,
 	type VictoryConditions
 } from '$lib/types/Game';
-import type { Planet } from '$lib/types/Planet';
+import type { CommandedPlanet, Planet } from '$lib/types/Planet';
 import {
 	Player,
 	type BattlePlan,
@@ -19,16 +19,27 @@ import {
 	type ProductionPlan,
 	type TransportPlan
 } from '$lib/types/Player';
+import type { ShipDesign } from '$lib/types/ShipDesign';
 import type { Vector } from '$lib/types/Vector';
 import { isEqual } from 'lodash-es';
 import { get } from 'svelte/store';
 import { BattlePlanService } from './BattlePlanService';
-import { commandedFleet, selectedWaypoint, selectWaypoint } from './Stores';
+import { updateGameContext, updatePlayer, updateUniverse } from './Contexts';
 import { DesignService } from './DesignService';
 import { FleetService } from './FleetService';
 import { GameService } from './GameService';
+import { PlanetService } from './PlanetService';
 import { PlayerService } from './PlayerService';
 import { ProductionPlanService } from './ProductionPlanService';
+import {
+	commandedFleet,
+	commandedPlanet,
+	commandMapObject,
+	selectedWaypoint,
+	selectMapObject,
+	selectWaypoint,
+	zoomToMapObject
+} from './Stores';
 import { TechService } from './TechService';
 import { TransportPlanService } from './TransportPlanService';
 import { Universe } from './Universe';
@@ -107,7 +118,26 @@ export class FullGame implements Game {
 
 		// setup the universe
 		this.universe.setData(this.player.num, pmos);
+		updateGameContext(this, this.player, this.universe);
 		return this;
+	}
+
+	// command the player's homeworld (or the first planet they own, if their homeworld has been taken)
+	commandHomeWorld() {
+		const homeworld = this.universe.getHomeworld(this.player.num);
+		if (homeworld) {
+			commandMapObject(homeworld);
+			selectMapObject(homeworld);
+			zoomToMapObject(homeworld);
+		} else {
+			// command our first planet
+			const planets = this.universe.getMyPlanets(this.player.num);
+			if (planets.length > 0) {
+				commandMapObject(planets[0]);
+				selectMapObject(planets[0]);
+				zoomToMapObject(planets[0]);
+			}
+		}
 	}
 
 	async submitTurn(): Promise<FullGame> {
@@ -116,6 +146,7 @@ export class FullGame implements Game {
 			Object.assign(this, resp.game);
 			Object.assign(this.player, resp.player);
 			this.universe.setData(this.player.num, resp.universe);
+			updateGameContext(this, this.player, this.universe);
 		}
 		return this;
 	}
@@ -126,17 +157,20 @@ export class FullGame implements Game {
 			Object.assign(this.player, result.player);
 			this.universe.planets = result.planets;
 		}
+		updatePlayer(this.player);
 		return this.player;
 	}
 
 	async createBattlePlan(plan: BattlePlan) {
 		const created = await BattlePlanService.create(this.id, plan);
 		this.player.battlePlans = [...this.player.battlePlans, created];
+		updatePlayer(this.player);
 		return created;
 	}
 
 	async updateBattlePlan(plan: BattlePlan) {
 		await BattlePlanService.update(this.id, plan);
+		updatePlayer(this.player);
 	}
 
 	async deleteBattlePlan(num: number) {
@@ -144,36 +178,58 @@ export class FullGame implements Game {
 		Object.assign(this.player, player);
 		this.universe.fleets = fleets;
 		this.universe.starbases = starbases;
+		updatePlayer(this.player);
 	}
 
 	async createProductionPlan(plan: ProductionPlan) {
 		const created = await ProductionPlanService.create(this.id, plan);
 		this.player.productionPlans = [...this.player.productionPlans, created];
+		updatePlayer(this.player);
 		return created;
 	}
 
 	async updateProductionPlan(plan: ProductionPlan) {
 		await ProductionPlanService.update(this.id, plan);
+		updatePlayer(this.player);
 	}
 
 	async deleteProductionPlan(num: number) {
 		const player = await ProductionPlanService.delete(this.id, num);
 		Object.assign(this.player, player);
+		updatePlayer(this.player);
 	}
 
 	async createTransportPlan(plan: TransportPlan) {
 		const created = await TransportPlanService.create(this.id, plan);
 		this.player.transportPlans = [...this.player.transportPlans, created];
+		updatePlayer(this.player);
 		return created;
 	}
 
 	async updateTransportPlan(plan: TransportPlan) {
 		await TransportPlanService.update(this.id, plan);
+		updatePlayer(this.player);
 	}
 
 	async deleteTransportPlan(num: number) {
 		const player = await TransportPlanService.delete(this.id, num);
 		Object.assign(this.player, player);
+		updatePlayer(this.player);
+	}
+
+	async createDesign(design: ShipDesign): Promise<ShipDesign> {
+		// update this design
+		design = await DesignService.create(this.id, design);
+		this.universe.updateDesign(design);
+		updateUniverse(this.universe);
+		return design;
+	}
+
+	async updateDesign(design: ShipDesign) {
+		// update this design
+		design = await DesignService.update(this.id, design);
+		this.universe.updateDesign(design);
+		updateUniverse(this.universe);
 	}
 
 	async deleteDesign(num: number) {
@@ -183,6 +239,7 @@ export class FullGame implements Game {
 		this.universe.resetMyMapObjectsByPosition();
 
 		this.universe.designs = this.universe.designs.filter((d) => d.num != num);
+		updateUniverse(this.universe);
 	}
 
 	async updateFleetOrders(fleet: CommandedFleet) {
@@ -199,6 +256,15 @@ export class FullGame implements Game {
 				}
 			});
 		}
+		updateUniverse(this.universe);
+	}
+
+	async updatePlanetOrders(planet: CommandedPlanet) {
+		const updatedPlanet = await PlanetService.updatePlanetOrders(planet);
+		planet = Object.assign(planet, updatedPlanet);
+		this.universe.updatePlanet(planet);
+		commandedPlanet.update(() => planet);
+		updateUniverse(this.universe);
 	}
 
 	async transferCargo(
@@ -210,6 +276,7 @@ export class FullGame implements Game {
 		fleet = Object.assign(fleet, updatedFleet);
 		this.universe.updateFleet(fleet);
 		commandedFleet.update(() => fleet);
+		updateUniverse(this.universe);
 	}
 
 	async splitAll(fleet: CommandedFleet) {
@@ -222,6 +289,7 @@ export class FullGame implements Game {
 		// update and add the new fleets to the universe
 		this.universe.updateFleet(fleet);
 		this.universe.addFleets(updatedFleets.filter((f) => f.num != fleet.num));
+		updateUniverse(this.universe);
 	}
 
 	async merge(fleet: CommandedFleet, fleetNums: number[]) {
@@ -231,25 +299,6 @@ export class FullGame implements Game {
 		fleet = Object.assign(fleet, updatedFleet);
 		this.universe.updateFleet(fleet);
 		commandedFleet.update(() => fleet);
-	}
-
-	getPlanet(num: number) {
-		return this.universe.getPlanet(num);
-	}
-
-	getPlayerName(playerNum: number | undefined) {
-		if (playerNum && playerNum > 0 && playerNum <= this.universe.players.length) {
-			const intel = this.universe.players[playerNum - 1];
-			return intel.racePluralName ?? intel.name;
-		}
-		return 'unknown';
-	}
-
-	getPlayerColor(playerNum: number | undefined) {
-		if (playerNum && playerNum > 0 && playerNum <= this.universe.players.length) {
-			const intel = this.universe.players[playerNum - 1];
-			return intel.color ?? '#FF0000';
-		}
-		return '#FF0000';
+		updateUniverse(this.universe);
 	}
 }

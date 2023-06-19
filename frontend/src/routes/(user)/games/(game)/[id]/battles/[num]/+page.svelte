@@ -2,23 +2,23 @@
 	import { page } from '$app/stores';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import BattleView from '$lib/components/game/battle/BattleView.svelte';
-	import { game } from '$lib/services/Stores';
+	import { getGameContext } from '$lib/services/Contexts';
 
-	let id = $page.params.id;
+	const { game, player, universe } = getGameContext();
 	let num = parseInt($page.params.num);
 
-	$: battle = $game?.universe.getBattle(num);
+	$: battle = $universe.getBattle(num);
 </script>
 
 {#if $game && battle}
 	<Breadcrumb>
 		<svelte:fragment slot="crumbs">
-			<li><a class="cs-link" href={`/games/${id}/battles`}>Battles</a></li>
-			<li>{$game.universe.getBattleLocation(battle, $game.universe)}</li>
+			<li><a class="cs-link" href={`/games/${$game.id}/battles`}>Battles</a></li>
+			<li>{$universe.getBattleLocation(battle, $universe)}</li>
 		</svelte:fragment>
 	</Breadcrumb>
 
 	<div class="grow px-1">
-		<BattleView universe={$game.universe} battleRecord={battle} player={$game.player} />
+		<BattleView playerFinder={$universe} designFinder={$universe} battleRecord={battle} />
 	</div>
 {/if}

@@ -13,38 +13,36 @@
 	import PlanetStarbaseTile from './PlanetStarbaseTile.svelte';
 	import PlanetStatusTile from './PlanetStatusTile.svelte';
 	import PlanetSummaryTile from './PlanetSummaryTile.svelte';
+	import { getGameContext } from '$lib/services/Contexts';
 
-	export let game: FullGame;
+	const { game, player, universe } = getGameContext();
 </script>
 
 {#if $commandedPlanet}
 	<PlanetSummaryTile planet={$commandedPlanet} />
 	<PlanetProductionTile planet={$commandedPlanet} />
-	<PlanetMineralsOnHandTile player={game.player} planet={$commandedPlanet} />
+	<PlanetMineralsOnHandTile planet={$commandedPlanet} />
 	<PlanetStarbaseTile
-		{game}
 		planet={$commandedPlanet}
-		starbase={game.universe.getPlanetStarbase($commandedPlanet.num)}
+		starbase={$universe.getPlanetStarbase($commandedPlanet.num)}
 	/>
-	<PlanetStatusTile {game} player={game.player} planet={$commandedPlanet} />
+	<PlanetStatusTile planet={$commandedPlanet} />
 	<PlanetFleetsInOrbitTile
 		planet={$commandedPlanet}
-		fleetsInOrbit={game.universe.getMyFleetsByPosition($commandedPlanet)}
+		fleetsInOrbit={$universe.getMyFleetsByPosition($commandedPlanet)}
 	/>
 {:else if $commandedFleet}
-	<FleetSummaryTile {game} fleet={$commandedFleet} player={game.player} />
-	<FleetFuelAndCargoTile {game} fleet={$commandedFleet} />
-	<FleetWaypointsTile {game} fleet={$commandedFleet} />
+	<FleetSummaryTile fleet={$commandedFleet} />
+	<FleetFuelAndCargoTile fleet={$commandedFleet} />
+	<FleetWaypointsTile fleet={$commandedFleet} />
 	<FleetCompositionTile
-		{game}
 		fleet={$commandedFleet}
-		player={game.player}
-		on:splitAll={() => $commandedFleet && game.splitAll($commandedFleet)}
+		on:splitAll={() => $commandedFleet && $game.splitAll($commandedFleet)}
 	/>
-	<FleetWaypointTaskTile {game} player={game.player} fleet={$commandedFleet} />
+	<FleetWaypointTaskTile fleet={$commandedFleet} />
 	<FleetOtherFleetsHereTile
 		fleet={$commandedFleet}
-		fleetsInOrbit={game.universe
+		fleetsInOrbit={$universe
 			.getMyFleetsByPosition($commandedFleet)
 			.filter((f) => f.num !== $commandedFleet?.num)}
 	/>

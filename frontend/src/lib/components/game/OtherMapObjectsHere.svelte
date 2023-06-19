@@ -1,16 +1,19 @@
 <script lang="ts">
-	import type { FullGame } from '$lib/services/FullGame';
+	import { getGameContext } from '$lib/services/Contexts';
 	import type { CommandedFleet, Target } from '$lib/types/Fleet';
-	import { MapObjectType, type MapObject, equal } from '$lib/types/MapObject';
+	import { MapObjectType, equal, type MapObject } from '$lib/types/MapObject';
 	import type { Vector } from '$lib/types/Vector';
 	import { flatten, keys } from 'lodash-es';
 	import { createEventDispatcher } from 'svelte';
 
 	const dispatch = createEventDispatcher();
 
-	export let game: FullGame;
+	interface Dictionary<T> {
+        [index: string]: T;
+    }
+
 	export let fleet: CommandedFleet;
-	export let position: Vector;
+	export let otherMapObjectsHere: Dictionary<MapObject[]>
 	export let target: Target;
 
 	// true if this mapObject is also our current target
@@ -27,7 +30,6 @@
 		dispatch('selected', selected);
 	}
 
-	$: otherMapObjectsHere = game.universe.getOtherMapObjectsHereByType(position);
 	$: everythingElse = flatten(
 		keys(otherMapObjectsHere).map((k) =>
 			k !== MapObjectType.Planet && k !== MapObjectType.Fleet && k !== MapObjectType.MineField

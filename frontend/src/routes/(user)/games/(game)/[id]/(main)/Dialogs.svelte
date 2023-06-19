@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { EventManager } from '$lib/EventManager';
 	import Tooltip from '$lib/components/game/tooltips/Tooltip.svelte';
+	import { getGameContext } from '$lib/services/Contexts';
 	import { commandedFleet, commandedPlanet } from '$lib/services/Stores';
-	import type { FullGame } from '$lib/services/FullGame';
 	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
 	import { MapObjectType } from '$lib/types/MapObject';
 	import type { CommandedPlanet, Planet } from '$lib/types/Planet';
@@ -11,7 +11,7 @@
 	import CargoTransferDialog from '../dialogs/cargo/CargoTransferDialog.svelte';
 	import MergeFleets from '../fleets/[num]/merge/MergeFleets.svelte';
 
-	export let game: FullGame;
+	const { game, player, universe } = getGameContext();
 
 	let source: CommandedFleet | undefined;
 	let dest: Fleet | Planet | undefined;
@@ -58,7 +58,7 @@
 
 		if (!target) {
 			// no explicit target checked, see if this fleet is orbiting a planet, otherwise it's a jettison
-			dest = game.universe.getMyPlanetsByPosition(src)[0];
+			dest = $universe.getMyPlanetsByPosition(src)[0];
 		} else {
 			dest = target;
 		}
@@ -77,9 +77,16 @@
 	};
 
 	const onMergeFleetsDialogOk = async (fleet: CommandedFleet, fleetNums: number[]) => {
-		game.merge(fleet, fleetNums);
+		$game.merge(fleet, fleetNums);
 		mergeFleetDialogOpen = false;
 	};
+
+	function updatePlanetOrders() {
+		if ($commandedPlanet) {
+			$game.updatePlanetOrders($commandedPlanet);
+		}
+		productionQueueDialogOpen = false;
+	}
 </script>
 
 <div class="modal" class:modal-open={productionQueueDialogOpen}>
@@ -88,11 +95,10 @@
 	>
 		{#if $commandedPlanet}
 			<ProductionQueue
-				{game}
-				player={game.player}
-				designs={game.universe.getMyDesigns(game.player.num)}
+				player={$player}
+				designs={$universe.getMyDesigns($player.num)}
 				planet={$commandedPlanet}
-				on:ok={() => (productionQueueDialogOpen = false)}
+				on:ok={updatePlanetOrders}
 				on:cancel={() => (productionQueueDialogOpen = false)}
 			/>
 		{/if}
@@ -115,7 +121,7 @@
 		{#if $commandedFleet}
 			<MergeFleets
 				fleet={$commandedFleet}
-				otherFleetsHere={game.universe
+				otherFleetsHere={$universe
 					.getMyFleetsByPosition($commandedFleet)
 					.filter((f) => f.num !== $commandedFleet?.num)}
 				on:ok={(e) => onMergeFleetsDialogOk(e.detail.fleet, e.detail.fleetNums)}

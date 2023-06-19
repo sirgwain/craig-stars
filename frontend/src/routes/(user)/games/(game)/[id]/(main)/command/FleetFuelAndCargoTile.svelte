@@ -6,8 +6,10 @@
 	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
 	import { onMount } from 'svelte';
 	import CommandTile from './CommandTile.svelte';
+	import { getGameContext } from '$lib/services/Contexts';
 
-	export let game: FullGame;
+	const { game, player, universe } = getGameContext();
+
 	export let fleet: CommandedFleet;
 
 	onMount(() => {
@@ -28,7 +30,7 @@
 
 	const transfer = () => {
 		if (fleet.orbitingPlanetNum) {
-			const planet = game.getPlanet(fleet.orbitingPlanetNum);
+			const planet = $universe.getPlanet(fleet.orbitingPlanetNum);
 			EventManager.publishCargoTransferDialogRequestedEvent(fleet, planet);
 		} else {
 			EventManager.publishCargoTransferDialogRequestedEvent(fleet);

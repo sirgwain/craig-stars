@@ -1,21 +1,19 @@
 <script lang="ts">
 	import Cycle from '$lib/components/icons/Cycle.svelte';
+	import { getGameContext } from '$lib/services/Contexts';
 	import { selectNextMapObject, selectedMapObject } from '$lib/services/Stores';
-	import type { FullGame } from '$lib/services/FullGame';
 	import type { Fleet } from '$lib/types/Fleet';
 	import { MapObjectType } from '$lib/types/MapObject';
 	import type { MineField } from '$lib/types/MineField';
 	import type { MineralPacket } from '$lib/types/MineralPacket';
 	import type { Planet } from '$lib/types/Planet';
-	import type { Player } from '$lib/types/Player';
 	import FleetSummary from './FleetSummary.svelte';
 	import MineFieldSummary from './MineFieldSummary.svelte';
 	import MineralPacketSummary from './MineralPacketSummary.svelte';
 	import PlanetSummary from './PlanetSummary.svelte';
 	import UnknownSummary from './UnknownSummary.svelte';
 
-	export let game: FullGame;
-	export let player: Player;
+	const { game, player, universe } = getGameContext();
 
 	let selectedPlanet: Planet | undefined;
 	let selectedFleet: Fleet | undefined;
@@ -48,13 +46,13 @@
 			>
 		</div>
 		{#if selectedPlanet}
-			<PlanetSummary {game} {player} planet={selectedPlanet} />
+			<PlanetSummary planet={selectedPlanet} />
 		{:else if selectedFleet}
-			<FleetSummary {game} {player} fleet={selectedFleet} />
+			<FleetSummary fleet={selectedFleet} />
 		{:else if selectedMineField}
-			<MineFieldSummary {game} {player} mineField={selectedMineField} />
+			<MineFieldSummary mineField={selectedMineField} />
 		{:else if selectedMineralPacket}
-			<MineralPacketSummary {game} {player} mineralPacket={selectedMineralPacket} />
+			<MineralPacketSummary mineralPacket={selectedMineralPacket} />
 		{:else}
 			<UnknownSummary />
 		{/if}

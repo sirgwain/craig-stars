@@ -2,23 +2,22 @@
 	import { page } from '$app/stores';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import Design from '$lib/components/game/design/Design.svelte';
-	import { game } from '$lib/services/Stores';
+	import { getGameContext } from '$lib/services/Contexts';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 
-	let gameId = $page.params.id;
+	const { game, player, universe } = getGameContext();
 	let num = parseInt($page.params.num);
 
-	$: design = $game && ($game.universe.getDesign($game.player.num, num) as ShipDesign);
-
+	$: design = $game && ($universe.getDesign($player.num, num) as ShipDesign);
 </script>
 
 {#if design}
 	<Breadcrumb>
 		<svelte:fragment slot="crumbs">
-			<li><a class="cs-link" href={`/games/${gameId}/designs`}>Ship Designs</a></li>
+			<li><a class="cs-link" href={`/games/${$game.id}/designs`}>Ship Designs</a></li>
 			<li>{design?.name}</li>
 			{#if !design.spec?.numInstances}
-				<li><a class="cs-link" href={`/games/${gameId}/designs/${design.num}/edit`}>Edit</a></li>
+				<li><a class="cs-link" href={`/games/${$game.id}/designs/${design.num}/edit`}>Edit</a></li>
 			{/if}
 		</svelte:fragment>
 	</Breadcrumb>

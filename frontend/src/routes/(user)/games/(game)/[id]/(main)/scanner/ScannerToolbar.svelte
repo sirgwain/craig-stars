@@ -3,18 +3,16 @@
 	import PlanetWithStarbase from '$lib/components/icons/PlanetWithStarbase.svelte';
 	import Population from '$lib/components/icons/Population.svelte';
 	import Scanner from '$lib/components/icons/Scanner.svelte';
-	import { nextMapObject, previousMapObject } from '$lib/services/Stores';
+	import { getGameContext } from '$lib/services/Contexts';
 	import { settings } from '$lib/services/Settings';
+	import { nextMapObject, previousMapObject } from '$lib/services/Stores';
 	import { PlanetViewState } from '$lib/types/PlayerSettings';
 	import { ArrowLongLeft, ArrowLongRight, Envelope } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import MessagesPane from '../MessagesPane.svelte';
 	import PlanetViewStates from './toolbar/PlanetViewStates.svelte';
-	import type { FullGame } from '$lib/services/FullGame';
-	import type { Player } from '$lib/types/Player';
 
-	export let game: FullGame;
-	export let player: Player;
+	const { game, player, universe } = getGameContext();
 
 	let showMessages = false;
 </script>
@@ -78,7 +76,7 @@
 						src={Envelope}
 						class={`w-6 h-6 ${showMessages ? 'stroke-accent' : 'stroke-current'}`}
 					/>
-					<span class="indicator-item badge badge-secondary">{player.messages.length}</span>
+					<span class="indicator-item badge badge-secondary">{$player.messages.length}</span>
 				</a>
 			</li>
 		</ul>
@@ -104,5 +102,5 @@
 	</div>
 </div>
 <div class:hidden={!showMessages} class:block={showMessages}>
-	<MessagesPane {game} {player} />
+	<MessagesPane />
 </div>

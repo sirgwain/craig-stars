@@ -1,35 +1,21 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { commandMapObject, game } from '$lib/services/Stores';
-	import { PlanetService } from '$lib/services/PlanetService';
-	import type { CommandedPlanet } from '$lib/types/Planet';
-	import { onMount } from 'svelte';
+	import { getGameContext } from '$lib/services/Contexts';
+	import { commandMapObject, commandedPlanet } from '$lib/services/Stores';
+	import { ownedBy } from '$lib/types/MapObject';
 	import ProductionQueue from '../../../dialogs/ProductionQueue.svelte';
-	import { DesignService } from '$lib/services/DesignService';
-	import type { ShipDesign } from '$lib/types/ShipDesign';
 
-	let gameId = parseInt($page.params.id);
+	const { game, player, universe } = getGameContext();
 	let num = parseInt($page.params.num);
 
-	let planet: CommandedPlanet | undefined;
-	let designs: ShipDesign[] | undefined;
-	let error = '';
-
-	onMount(async () => {
-		try {
-			await Promise.all([
-				PlanetService.get(gameId, num).then((p) => {
-					planet = p;
-					commandMapObject(planet);
-				}),
-				DesignService.load(gameId).then((items) => (designs = items))
-			]);
-		} catch (e) {
-			error = (e as Error).message;
+	$: {
+		const planet = $universe.getPlanet(num);
+		if (planet && ownedBy(planet, $player.num)) {
+			commandMapObject(planet);
 		}
-	});
+	}
 </script>
 
-{#if planet && designs && $game}
-	<ProductionQueue {planet} {designs} game={$game} player={$game.player} />
+{#if $commandedPlanet}
+	<ProductionQueue planet={$commandedPlanet} />
 {/if}

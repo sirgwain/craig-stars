@@ -1,9 +1,12 @@
 <script lang="ts">
-	import type { Universe } from '$lib/services/Universe';
-	import { TokenActionType, type BattleRecord, type TokenAction, Battle } from '$lib/types/Battle';
-	import type { Player } from '$lib/types/Player';
+	import { designFinderKey, playerFinderKey } from '$lib/services/Contexts';
+	import type { DesignFinder, PlayerFinder } from '$lib/services/Universe';
+	import { Battle, TokenActionType, type TokenAction } from '$lib/types/Battle';
+	import { getContext } from 'svelte';
 
-	export let universe: Universe;
+	const designFinder = getContext<DesignFinder>(designFinderKey);
+	const playerFinder = getContext<PlayerFinder>(playerFinderKey);
+
 	export let battle: Battle;
 	export let action: TokenAction | undefined;
 	export let phase: number;
@@ -14,8 +17,8 @@
 		}
 		const token = battle.getTokenForPhase(tokenNum, phase);
 		if (token) {
-			const design = universe.getDesign(token.playerNum, token.designNum);
-			const raceName = universe.getPlayerIntel(token.playerNum);
+			const design = designFinder.getDesign(token.playerNum, token.designNum);
+			const raceName = playerFinder.getPlayerIntel(token.playerNum);
 			if (design && raceName) {
 				return `${raceName.racePluralName} ${design.name}`;
 			}

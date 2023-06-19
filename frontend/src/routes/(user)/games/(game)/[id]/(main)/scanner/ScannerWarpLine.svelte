@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { selectedMapObject } from '$lib/services/Stores';
-	import type { FullGame } from '$lib/services/FullGame';
 	import { MapObjectType, type MovingMapObject } from '$lib/types/MapObject';
 
+	import { getGameContext } from '$lib/services/Contexts';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 	import type { Writable } from 'svelte/store';
 
-	const game = getContext<FullGame>('game');
+	const { game, player, universe } = getGameContext();
 	const scale = getContext<Writable<number>>('scale');
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
@@ -30,13 +30,13 @@
 			($selectedMapObject.type == MapObjectType.MineralPacket ||
 				$selectedMapObject.type == MapObjectType.MysteryTrader ||
 				($selectedMapObject.type == MapObjectType.Fleet &&
-					$selectedMapObject.playerNum != game.player.num))
+					$selectedMapObject.playerNum != $player.num))
 		) {
 			const mo = $selectedMapObject as MovingMapObject;
 			const heading = mo.heading ?? { x: 0, y: 0 };
 			const warpSpeed = mo.warpSpeed ?? 0;
 			const distPerLy = warpSpeed * warpSpeed;
-			color = game.getPlayerColor(mo.playerNum);
+			color = $universe.getPlayerColor(mo.playerNum);
 
 			const coords = [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5].map((dist: number) => ({
 				position: {
@@ -70,12 +70,7 @@
 				markerHeight="3"
 				orient="auto"
 			>
-				<path
-					d="M 3 0 L 7 5 L 3 10"
-					stroke={color}
-					fill="context-fill"
-					stroke-width={2}
-				/>
+				<path d="M 3 0 L 7 5 L 3 10" stroke={color} fill="context-fill" stroke-width={2} />
 			</marker>
 		</defs>
 	</svg>

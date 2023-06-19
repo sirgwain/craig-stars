@@ -1,13 +1,10 @@
 <script lang="ts">
-	import type { FullGame } from '$lib/services/FullGame';
 	import CommandPane from './command/CommandPane.svelte';
 	import Dialogs from './Dialogs.svelte';
 	import HighlightedMapObjectStats from './HighlightedMapObjectStats.svelte';
 	import MapObjectSummary from './MapObjectSummary.svelte';
 	import Scanner from './scanner/Scanner.svelte';
 	import ScannerToolbar from './scanner/ScannerToolbar.svelte';
-
-	export let game: FullGame;
 </script>
 
 <!-- for small mobile displays we put the scanner on top and the command pane below it-->
@@ -17,23 +14,23 @@
 		class="hidden md:flex md:flex-col md:flex-none justify-between md:w-[15.5rem] lg:w-[29.5rem] overflow-y-auto md:max-h-[calc(100vh-4rem)]"
 	>
 		<div class="flex flex-row flex-wrap gap-2 justify-center">
-			<CommandPane {game} />
+			<CommandPane />
 		</div>
 		<div class="hidden lg:block lg:p-1 mb-2">
-			<MapObjectSummary {game} player={game.player} />
+			<MapObjectSummary />
 		</div>
 	</div>
 
 	<div class="flex flex-col grow min-h-[515px]">
 		<div class="flex flex-col grow border-gray-700 border-2 shadow-sm">
-			<ScannerToolbar {game} player={game.player} />
-			<Scanner {game} />
+			<ScannerToolbar />
+			<Scanner />
 		</div>
 		<div>
 			<HighlightedMapObjectStats />
 		</div>
 		<div class="hidden md:block md:w-full lg:hidden mb-2">
-			<MapObjectSummary {game} player={game.player} />
+			<MapObjectSummary />
 		</div>
 	</div>
 
@@ -41,13 +38,13 @@
 	<div class="carousel md:hidden">
 		<div class="carousel-item">
 			<div class="w-screen">
-				<MapObjectSummary {game} player={game.player} />
+				<MapObjectSummary />
 			</div>
 		</div>
 		<div class="carousel-item">
-			<CommandPane {game} />
+			<CommandPane />
 		</div>
 	</div>
 </div>
 <!-- dialog modals -->
-<Dialogs {game} />
+<Dialogs />

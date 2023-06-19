@@ -1,48 +1,47 @@
 <script lang="ts">
 	import DropdownButton from '$lib/components/DropdownButton.svelte';
+	import OtherMapObjectsHere from '$lib/components/game/OtherMapObjectsHere.svelte';
 	import MineralMini from '$lib/components/game/MineralMini.svelte';
+	import { getGameContext } from '$lib/services/Contexts';
 	import { selectedWaypoint } from '$lib/services/Stores';
-	import { FleetService } from '$lib/services/FleetService';
 	import { CommandedFleet, WaypointTask } from '$lib/types/Fleet';
 	import { MapObjectType, owned, ownedBy, type MapObject } from '$lib/types/MapObject';
 	import { Unexplored, getMineralOutput } from '$lib/types/Planet';
-	import type { Player, TransportPlan } from '$lib/types/Player';
+	import type { TransportPlan } from '$lib/types/Player';
 	import { startCase } from 'lodash-es';
 	import { $enum as eu } from 'ts-enum-util';
 	import TransportTasksMini from '../../(plans)/transport-plans/TransportTasksMini.svelte';
 	import CommandTile from './CommandTile.svelte';
-	import type { FullGame } from '$lib/services/FullGame';
-	import OtherMapObjectsHere from '$lib/components/OtherMapObjectsHere.svelte';
+
+	const { game, player, universe } = getGameContext();
 
 	export let fleet: CommandedFleet;
-	export let player: Player;
-	export let game: FullGame;
 
 	$: selectedWaypointTask = $selectedWaypoint?.task ?? WaypointTask.None;
 	$: selectedWaypointPlanet =
 		$selectedWaypoint &&
 		$selectedWaypoint.targetType == MapObjectType.Planet &&
 		$selectedWaypoint.targetNum
-			? game.getPlanet($selectedWaypoint.targetNum)
+			? $universe.getPlanet($selectedWaypoint.targetNum)
 			: undefined;
 
 	const onSelectedWaypointTaskChange = (task: WaypointTask) => {
 		if ($selectedWaypoint) {
 			$selectedWaypoint.task = task;
 
-			game.updateFleetOrders(fleet);
+			$game.updateFleetOrders(fleet);
 		}
 	};
 
 	function onLayMineFieldDurationChanged() {
-		game.updateFleetOrders(fleet);
+		$game.updateFleetOrders(fleet);
 	}
 
 	function applyTransportPlan(plan: TransportPlan) {
 		if ($selectedWaypoint) {
 			$selectedWaypoint.transportTasks = plan.tasks;
 
-			game.updateFleetOrders(fleet);
+			$game.updateFleetOrders(fleet);
 		}
 	}
 
@@ -52,7 +51,7 @@
 			$selectedWaypoint.targetType = target.type;
 			$selectedWaypoint.targetNum = target.num;
 			$selectedWaypoint.targetPlayerNum = target.playerNum;
-			game.updateFleetOrders(fleet);
+			$game.updateFleetOrders(fleet);
 		}
 	}
 </script>
@@ -63,9 +62,8 @@
 			<div class="my-auto">Target</div>
 			<div>
 				<OtherMapObjectsHere
-					{game}
 					{fleet}
-					position={$selectedWaypoint.position}
+					otherMapObjectsHere={$universe.getOtherMapObjectsHereByType($selectedWaypoint.position)}
 					target={$selectedWaypoint}
 					class="w-36"
 					on:selected={(e) => onTargetChanged(e.detail)}
@@ -104,7 +102,7 @@
 				<div class="ml-auto mt-1">
 					<DropdownButton
 						title="Apply Plan"
-						items={player.transportPlans}
+						items={$player.transportPlans}
 						itemTitle={(item) => item.name}
 						on:selected={(e) => applyTransportPlan(e.detail)}
 					/>
@@ -117,7 +115,7 @@
 					<span class="text-warning"
 						>Warning: This planet is unexplored. We have no way of knowing if we can mine it.</span
 					>
-				{:else if owned(selectedWaypointPlanet) && !(player.race.spec?.canRemoteMineOwnPlanets && ownedBy(selectedWaypointPlanet, player.num))}
+				{:else if owned(selectedWaypointPlanet) && !($player.race.spec?.canRemoteMineOwnPlanets && ownedBy(selectedWaypointPlanet, $player.num))}
 					<span class="text-error">Note: You can only remote mine unoccupied planets.</span>
 				{:else if !fleet.spec.miningRate}
 					<span class="text-error"
@@ -129,7 +127,7 @@
 						mineral={getMineralOutput(
 							selectedWaypointPlanet,
 							fleet.spec.miningRate ?? 0,
-							game.rules.remoteMiningMineOutput
+							$game.rules.remoteMiningMineOutput
 						)}
 						showUnits={true}
 					/>

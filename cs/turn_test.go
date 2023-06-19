@@ -949,3 +949,38 @@ func Test_turn_fleetRemoteTerraform(t *testing.T) {
 	assert.Equal(t, Hab{50, 50, 50}, planet2.Hab)
 
 }
+
+func Test_turn_fleetRefuel(t *testing.T) {
+	game := createSingleUnitGame()
+	player := game.Players[0]
+	fleet := game.Fleets[0]
+	planet := game.Planets[0]
+
+	// create a new starbase
+	starbaseDesign := NewShipDesign(player, 2).WithHull(SpaceStation.Name).WithSpec(&rules, player)
+	starbase := newStarbase(player, planet,
+		starbaseDesign,
+		"Starbase",
+	)
+	player.Designs = append(player.Designs, starbaseDesign)
+	starbase.Spec = ComputeFleetSpec(&rules, player, &starbase)
+	starbase.Tokens[0].QuantityDamaged = 1
+	starbase.Tokens[0].Damage = 100
+	game.Starbases = append(game.Starbases, &starbase)
+	planet.starbase = &starbase
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// orbit and need fuel
+	fleet.Fuel = 0
+
+	// repair
+	turn.generateTurn()
+
+	// should refuel at starbase
+	assert.Equal(t, fleet.Spec.FuelCapacity, fleet.Fuel)
+
+}

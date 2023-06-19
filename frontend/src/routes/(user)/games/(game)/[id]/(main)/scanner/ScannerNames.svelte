@@ -11,14 +11,15 @@
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 	import type { Writable } from 'svelte/store';
+	import { getGameContext } from '$lib/services/Contexts';
 
-	const game = getContext<FullGame>('game');
+	const { game, player, universe } = getGameContext();
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 	const scale = getContext<Writable<number>>('scale');
 
 	export let transform: ZoomTransform;
 
-	$: planets = $data && $data.filter((mo: MapObject) => mo.type == MapObjectType.Planet);
+	$: planets = $universe.planets;
 
 	function fillStyle(left: number, top: number) {
 		return `top:${top}px; left: ${left}px;`;

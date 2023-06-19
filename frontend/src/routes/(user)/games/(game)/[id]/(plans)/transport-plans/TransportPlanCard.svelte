@@ -9,7 +9,7 @@
 	const dispatch = createEventDispatcher();
 
 	export let plan: TransportPlan;
-	export let gameId: number;
+	export let href: string;
 	export let showDelete = true;
 
 	const deletePlan = async (plan: TransportPlan) => {
@@ -31,10 +31,12 @@
 			WaypointTaskTransportAction.None;
 </script>
 
-<div class="card bg-base-200 shadow rounded-sm border-2 border-base-300 pt-2 m-1 w-full sm:w-[350px]">
+<div
+	class="card bg-base-200 shadow rounded-sm border-2 border-base-300 pt-2 m-1 w-full sm:w-[350px]"
+>
 	<div class="card-body">
 		<h2 class="card-title">
-			<a class="cs-link" href={`/games/${gameId}/transport-plans/${plan.num}`}>{plan.name}</a>
+			<a class="cs-link" {href}>{plan.name}</a>
 		</h2>
 		<div class="flex flex-col">
 			<div class="flex flex-row">

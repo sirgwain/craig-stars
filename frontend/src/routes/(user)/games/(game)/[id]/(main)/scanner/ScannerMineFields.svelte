@@ -3,26 +3,22 @@
   Show all minefields in the universe
  -->
 <script lang="ts">
-	import type { FullGame } from '$lib/services/FullGame';
-	import { MapObjectType, type MapObject, equal } from '$lib/types/MapObject';
-	import type { LayerCake } from 'layercake';
-	import { getContext } from 'svelte';
-	import ScannerMineField from './ScannerMineField.svelte';
+	import { getGameContext } from '$lib/services/Contexts';
 	import { selectedMapObject } from '$lib/services/Stores';
+	import { MapObjectType, equal } from '$lib/types/MapObject';
 	import type { MineField } from '$lib/types/MineField';
-	import { min } from 'date-fns';
+	import ScannerMineField from './ScannerMineField.svelte';
 
-	const game = getContext<FullGame>('game');
-	const { data } = getContext<LayerCake>('LayerCake');
+	const { player, universe } = getGameContext();
 
 	function getColor(mineField: MineField) {
-		if (mineField.playerNum === game.player.num) {
+		if (mineField.playerNum === $player.num) {
 			return '#0900FF';
 		}
-		return game.getPlayerColor(mineField.playerNum);
+		return $universe.getPlayerColor(mineField.playerNum);
 	}
 
-	$: minefields = $data && $data.filter((mo: MapObject) => mo.type == MapObjectType.MineField);
+	$: minefields = $universe.mineFields;
 	$: selectedMineField =
 		$selectedMapObject && $selectedMapObject.type === MapObjectType.MineField
 			? ($selectedMapObject as MineField)

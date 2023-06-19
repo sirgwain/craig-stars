@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { bindQuantityModifier, unbindQuantityModifier } from '$lib/quantityModifier';
-	import { game } from '$lib/services/Stores';
-	import { FullGame } from '$lib/services/FullGame';
 	import { getContext, onMount } from 'svelte';
 	import TestBreadcrumb from './TestBreadcrumb.svelte';
 
@@ -17,10 +15,7 @@
 
 	let title = getContext<string>('title');
 
-	$: title = getContext('title') ?? $page.routeId?.replace('tests/', '') ?? '';
-
-	// create a test player
-	game.update(() => new FullGame());
+	$: title = getContext('title') ?? $page.route.id?.replace('tests/', '') ?? '';
 </script>
 
 <TestBreadcrumb {title} />

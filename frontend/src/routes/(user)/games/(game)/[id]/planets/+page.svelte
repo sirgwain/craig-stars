@@ -1,20 +1,20 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
 	import SortableTableHeader from '$lib/components/SortableTableHeader.svelte';
 	import TableSearchInput from '$lib/components/TableSearchInput.svelte';
 	import MineralMini from '$lib/components/game/MineralMini.svelte';
-	import { commandMapObject, game, zoomToMapObject } from '$lib/services/Stores';
+	import { getGameContext } from '$lib/services/Contexts';
+	import { commandMapObject, zoomToMapObject } from '$lib/services/Stores';
 	import { totalMinerals } from '$lib/types/Mineral';
 	import { getQueueItemShortName, type Planet } from '$lib/types/Planet';
 	import { SvelteTable, type SvelteTableColumn } from '@hurtigruten/svelte-table';
 
-	let id = parseInt($page.params.id);
+	const { game, player, universe } = getGameContext();
 
 	const selectPlanet = (planet: Planet) => {
 		commandMapObject(planet);
 		zoomToMapObject(planet);
-		goto(`/games/${id}`);
+		goto(`/games/${$game.id}`);
 	};
 
 	// filterable planets
@@ -22,9 +22,8 @@
 	let search = '';
 
 	$: filteredPlanets =
-		$game?.universe.planets.filter(
-			(i) =>
-				i.playerNum == $game?.player.num && i.name.toLowerCase().indexOf(search.toLowerCase()) != -1
+		$universe.planets.filter(
+			(i) => i.playerNum == $player.num && i.name.toLowerCase().indexOf(search.toLowerCase()) != -1
 		) ?? [];
 
 	const columns: SvelteTableColumn<Planet>[] = [

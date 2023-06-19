@@ -1,15 +1,14 @@
 <script lang="ts">
-	import { isAuto, getQueueItemShortName } from '$lib/types/Planet';
+	import { getQueueItemShortName, isAuto } from '$lib/types/Planet';
 	import type { ProductionPlan } from '$lib/types/Player';
 	import { Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { startCase } from 'lodash-es';
 	import { createEventDispatcher } from 'svelte';
 
 	const dispatch = createEventDispatcher();
 
 	export let plan: ProductionPlan;
-	export let gameId: number;
+	export let href: string;
 	export let showDelete = true;
 
 	const deletePlan = async (plan: ProductionPlan) => {
@@ -24,7 +23,7 @@
 >
 	<div class="card-body">
 		<h2 class="card-title">
-			<a class="cs-link" href={`/games/${gameId}/production-plans/${plan.num}`}>{plan.name}</a>
+			<a class="cs-link" {href}>{plan.name}</a>
 		</h2>
 		<div class="flex flex-col gap-2">
 			<div class="flex flex-row">

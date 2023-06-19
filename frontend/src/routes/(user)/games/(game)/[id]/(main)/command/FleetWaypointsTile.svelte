@@ -1,20 +1,21 @@
 <script lang="ts">
 	import WarpSpeedGauge from '$lib/components/game/WarpSpeedGauge.svelte';
+	import { getGameContext } from '$lib/services/Contexts';
 	import {
 		commandedMapObjectName,
 		selectedWaypoint,
 		selectMapObject,
 		selectWaypoint
 	} from '$lib/services/Stores';
-	import type { FullGame } from '$lib/services/FullGame';
 	import { getTargetName, type CommandedFleet, type Waypoint } from '$lib/types/Fleet';
 	import type { MapObject } from '$lib/types/MapObject';
 	import { distance } from '$lib/types/Vector';
 	import hotkeys from 'hotkeys-js';
-	import CommandTile from './CommandTile.svelte';
 	import { onMount } from 'svelte';
+	import CommandTile from './CommandTile.svelte';
 
-	export let game: FullGame;
+	const { game, player, universe } = getGameContext();
+
 	export let fleet: CommandedFleet;
 
 	let selectedWaypointIndex = 0;
@@ -25,7 +26,7 @@
 
 	const getWaypointTarget = (wp: Waypoint): MapObject | undefined => {
 		if (wp && wp.targetType && wp.targetNum) {
-			return game.universe.getMapObject(wp);
+			return $universe.getMapObject(wp);
 		}
 	};
 
@@ -64,7 +65,7 @@
 	const onRepeatOrdersChanged = async (repeatOrders: boolean) => {
 		if ($selectedWaypoint) {
 			fleet.repeatOrders = repeatOrders;
-			await game.updateFleetOrders(fleet);
+			await $game.updateFleetOrders(fleet);
 
 			// update the commanded object
 			updateNextPrevWaypoints();
@@ -74,7 +75,7 @@
 	const onWarpSpeedChanged = async (warpSpeed: number) => {
 		if ($selectedWaypoint) {
 			$selectedWaypoint.warpSpeed = warpSpeed;
-			await game.updateFleetOrders(fleet);
+			await $game.updateFleetOrders(fleet);
 
 			// update the commanded object
 			updateNextPrevWaypoints();
@@ -86,7 +87,7 @@
 			fleet.waypoints = fleet.waypoints.filter((wp) => wp != $selectedWaypoint);
 			selectedWaypointIndex--;
 
-			await game.updateFleetOrders(fleet).then(() => updateNextPrevWaypoints());
+			await $game.updateFleetOrders(fleet).then(() => updateNextPrevWaypoints());
 			onSelectWaypoint(fleet.waypoints[selectedWaypointIndex], selectedWaypointIndex);
 		}
 	};

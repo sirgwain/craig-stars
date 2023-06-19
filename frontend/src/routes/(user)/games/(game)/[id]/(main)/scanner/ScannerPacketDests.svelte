@@ -1,53 +1,41 @@
 <script lang="ts">
 	import { commandedPlanet } from '$lib/services/Stores';
-	import type { FullGame } from '$lib/services/FullGame';
 	import { None } from '$lib/types/MapObject';
 
+	import { getGameContext } from '$lib/services/Contexts';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 	import type { Writable } from 'svelte/store';
 
-	const game = getContext<FullGame>('game');
+	const { universe } = getGameContext();
 	const scale = getContext<Writable<number>>('scale');
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
-	type Line = {
-		path: string;
-		props: any;
-	};
+	$: planets = $universe.planets.filter(
+		(planet) => planet.packetTargetNum && planet.packetTargetNum != None
+	);
 
-	let lines: Line[] = [];
+	$: lines = planets.map((planet) => {
+		// get the target, if it's empty, just point to our planet position (which will render an empty line)
+		// it should not be empty...
+		const target = $universe.getPlanet(planet.packetTargetNum ?? None);
+		const coords = [
+			{ position: planet.position },
+			{ position: target?.position ?? planet.position }
+		];
 
-	$: strokeWidth = 1;
+		const strokeWidth = (planet.num === $commandedPlanet?.num ? 5 : 3) / $scale;
+		const dist = (planet.packetSpeed ?? 0) * (planet.packetSpeed ?? 0);
 
-	$: {
-		if ($data) {
-			const planets = game.universe.planets.filter(
-				(planet) => planet.packetTargetNum && planet.packetTargetNum != None
-			);
-			lines = planets.map((planet) => {
-				// get the target, if it's empty, just point to our planet position (which will render an empty line)
-				// it should not be empty...
-				const target = game.getPlanet(planet.packetTargetNum ?? None);
-				const coords = [
-					{ position: planet.position },
-					{ position: target?.position ?? planet.position }
-				];
-
-				strokeWidth = (planet.num === $commandedPlanet?.num ? 5 : 3) / $scale;
-				const dist = (planet.packetSpeed ?? 0) * (planet.packetSpeed ?? 0);
-
-				return {
-					path: 'M' + coords.map((coord) => `${$xGet(coord)}, ${$yGet(coord)}`).join('L'),
-					props: {
-						'stroke-width': strokeWidth,
-						'stroke-dasharray': `${$xScale(dist)-$xScale(5)} ${$xScale(5)}`,
-						'stroke-dashoffset': `${$xScale(dist / 2)-$xScale(5)}`
-					}
-				};
-			});
-		}
-	}
+		return {
+			path: 'M' + coords.map((coord) => `${$xGet(coord)}, ${$yGet(coord)}`).join('L'),
+			props: {
+				'stroke-width': strokeWidth,
+				'stroke-dasharray': `${$xScale(dist) - $xScale(5)} ${$xScale(5)}`,
+				'stroke-dashoffset': `${$xScale(dist / 2) - $xScale(5)}`
+			}
+		};
+	});
 </script>
 
 <svg>
@@ -68,5 +56,5 @@
 	</defs>
 </svg>
 {#each lines as line}
-	<path d={line.path} {...line.props} class="packet-dest-line" marker-end="url(#packet-arrow)"/>
+	<path d={line.path} {...line.props} class="packet-dest-line" marker-end="url(#packet-arrow)" />
 {/each}
