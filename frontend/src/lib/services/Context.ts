@@ -3,14 +3,16 @@ import type { Game } from '$lib/types/Game';
 import { MapObjectType, ownedBy, type MapObject } from '$lib/types/MapObject';
 import type { Planet } from '$lib/types/Planet';
 import type { Player } from '$lib/types/Player';
+import type { User } from '$lib/types/User';
 import { derived, writable } from 'svelte/store';
 
 export type MapObjectsByPosition = {
 	[k: string]: MapObject[];
 };
 
-export const game = writable<Game>();
-export const player = writable<Player>();
+export const me = writable<User | undefined>();
+export const game = writable<Game | undefined>();
+export const player = writable<Player | undefined>();
 
 export const commandedPlanet = writable<Planet | undefined>();
 export const commandedFleet = writable<Fleet | undefined>();
@@ -19,6 +21,8 @@ export const commandedMapObject = writable<MapObject>();
 export const highlightedMapObject = writable<MapObject | undefined>();
 
 export const mapObjectsByPosition = derived(player, ($player) => {
+	if (!$player) return undefined;
+
 	const dict: MapObjectsByPosition = {};
 	const addtoDict = (mo: MapObject) => {
 		const key = `${mo.position.x},${mo.position.y}`;
@@ -36,6 +40,8 @@ export const mapObjectsByPosition = derived(player, ($player) => {
 });
 
 export const myMapObjectsByPosition = derived(player, ($player) => {
+	if (!$player) return undefined;
+
 	const dict: MapObjectsByPosition = {};
 	const addtoDict = (mo: MapObject) => {
 		if (!ownedBy(mo, $player.num)) {

@@ -1,4 +1,5 @@
 import type { User } from '$lib/types/User';
+import { me } from './services/Context';
 
 export async function authGuard(): Promise<User | undefined> {
 	const response = await fetch(`/api/me`, {
@@ -11,6 +12,10 @@ export async function authGuard(): Promise<User | undefined> {
 	if (!response.ok) {
 		document.location = '/login';
 	} else {
-		return (await response.json()) as User;
+		// update the logged in user in the context
+		const user = (await response.json()) as User;
+		me.update(() => user);
+
+		return user;
 	}
 }

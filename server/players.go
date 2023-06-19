@@ -9,7 +9,11 @@ import (
 )
 
 type HostGameBind struct {
-	Settings game.GameSettings `json:"settings,omitempty"`
+	Settings game.GameSettings `json:"settings"`
+}
+
+type JoinGameBind struct {
+	RaceID uint `json:"raceId"`
 }
 
 func (s *server) PlayerGames(c *gin.Context) {
@@ -46,6 +50,23 @@ func (s *server) OpenGames(c *gin.Context) {
 	c.JSON(http.StatusOK, games)
 }
 
+func (s *server) OpenGame(c *gin.Context) {
+
+	var id idBind
+	if err := c.ShouldBindUri(&id); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	game, err := s.ctx.DB.FindGameByIdLight(id.ID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, game)
+}
+
 func (s *server) PlayerGame(c *gin.Context) {
 	user := s.GetSessionUser(c)
 
@@ -70,7 +91,7 @@ func (s *server) PlayerGame(c *gin.Context) {
 
 }
 
-// Submit a turn for the player
+// Host a new game
 func (s *server) HostGame(c *gin.Context) {
 	user := s.GetSessionUser(c)
 
@@ -90,6 +111,64 @@ func (s *server) HostGame(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{})
 
+}
+
+// Join an open game
+func (s *server) JoinGame(c *gin.Context) {
+	user := s.GetSessionUser(c)
+
+	var id idBind
+	if err := c.ShouldBindUri(&id); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	body := JoinGameBind{}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	game, err := s.ctx.DB.FindGameById(id.ID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	race, err := s.ctx.DB.FindRaceById(body.RaceID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// validate
+	if race == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("a race with id %d not found", body.RaceID)})
+		return
+	}
+
+	if race.UserID != user.ID {
+		c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("you do not own the race with id %d not found", body.RaceID)})
+		return
+	}
+
+	if game == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("a game with id %d not found", id.ID)})
+		return
+	}
+
+	if game.OpenPlayerSlots == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No slots left in this game"})
+		return
+	}
+
+	// all good, add the player
+	if err := s.gameRunner.AddPlayer(game.ID, user.ID, race); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{})
 }
 
 // Submit a turn for the player

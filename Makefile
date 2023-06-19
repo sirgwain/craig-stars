@@ -11,12 +11,15 @@ build_server_all:
 	GOARCH=amd64 GOOS=darwin go build -o dist/${BINARY_NAME}-darwin-amd64 main.go
 	GOARCH=arm64 GOOS=darwin go build -o dist/${BINARY_NAME}-darwin-arm64 main.go
 	GOARCH=amd64 GOOS=linux go build -o dist/${BINARY_NAME}-linux main.go
-	GOARCH=amd64 GOOS=windows go build -o dist/${BINARY_NAME}-windows main.go
 	lipo -create -output dist/${BINARY_NAME}-darwin-universal dist/${BINARY_NAME}-darwin-amd64 dist/${BINARY_NAME}-darwin-arm64
 
 build:
 	mkdir -p dist
 	GOARCH=arm64 GOOS=darwin go build -o dist/${BINARY_NAME}-darwin-arm64 main.go
+
+build_docker:
+	docker build . -t craig-stars-builder
+	docker run -v ${CURDIR}/dist:/dist craig-stars-builder
 
 test:
 	go test ./...

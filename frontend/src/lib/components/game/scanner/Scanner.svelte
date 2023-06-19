@@ -2,44 +2,57 @@
 	import {
 		commandedMapObject,
 		commandedPlanet,
+		commandMapObject,
 		game,
+		myMapObjectsByPosition,
 		player,
 		selectedMapObject,
-		selectMapObject,
-		myMapObjectsByPosition,
-		commandMapObject
+		selectMapObject
 	} from '$lib/services/Context';
 	import { MapObjectType, ownedBy, positionKey, type MapObject } from '$lib/types/MapObject';
+	import type { Planet } from '$lib/types/Planet';
+	import { findIntelMapObject, findMyPlanet } from '$lib/types/Player';
 	import { select } from 'd3-selection';
-	import { zoom, zoomIdentity, ZoomTransform, type D3ZoomEvent } from 'd3-zoom';
+	import { zoom, zoomIdentity, ZoomTransform, type D3ZoomEvent, type ZoomBehavior } from 'd3-zoom';
 	import { Html, LayerCake, Svg } from 'layercake';
 	import MapObjectQuadTreeFinder from './MapObjectQuadTreeFinder.svelte';
 	import ScannerPlanets from './ScannerPlanets.svelte';
 	import SelectedMapObject from './SelectedMapObject.svelte';
-	import { clamp } from '$lib/services/Math';
-	import { findIntelMapObject, findMyPlanet } from '$lib/types/Player';
-	import type { Planet } from '$lib/types/Planet';
-	import { findIndex } from 'lodash-es';
 
 	const xGetter = (mo: MapObject) => mo?.position?.x;
 	const yGetter = (mo: MapObject) => mo?.position?.y;
 
+	let clientWidth = 100;
+	let clientHeight = 100;
+	let transform: ZoomTransform;
+	let zoomBehavior: ZoomBehavior<HTMLElement, any>;
+	let root: HTMLElement;
 	let commandedMapObjectIndex = 0;
 
 	// handle zoom in/out
 	// this behavior controls how the zoom behaves
 	// below we handle zooming events by updating a transform
-	$: zoomBehavior = zoom<HTMLElement, any>()
-		.extent([
-			[0, 0],
-			[root?.clientWidth ?? 100, root?.clientHeight ?? 100]
-		])
-		.scaleExtent([1, 5])
-		.translateExtent([
-			[0, 0],
-			[root?.clientWidth ?? 100, root?.clientHeight ?? 100]
-		])
-		.on('zoom', handleZoom);
+	$: {
+		if (root) {
+			handleResize();
+			zoomBehavior = zoom<HTMLElement, any>()
+				.extent([
+					[0, 0],
+					[clientWidth, clientHeight]
+				])
+				.scaleExtent([1, 5])
+				.translateExtent([
+					[0, 0],
+					[clientWidth, clientHeight]
+				])
+				.on('zoom', handleZoom);
+		}
+	}
+
+	function handleResize() {
+		clientWidth = root?.clientWidth ?? 100;
+		clientHeight = root?.clientHeight ?? 100;
+	}
 
 	function handleZoom(e: D3ZoomEvent<HTMLElement, any>) {
 		transform = e.transform;
@@ -47,9 +60,9 @@
 	}
 
 	// attach the zoom behavior to the root element
-	$: if (root && $game.area && $commandedMapObject.position) {
+	$: if (root && $game?.area) {
 		select(root).call(zoomBehavior).on('dblclick.zoom', null);
-		if ($commandedPlanet) {
+		// if ($commandedPlanet) {
 			// set initial zoom
 			select(root).call(zoomBehavior.transform, zoomIdentity);
 
@@ -62,7 +75,7 @@
 			// 			clamp(($game.area.y - $commandedPlanet.position.y) / 2, -$game.area.y, 0)
 			// 		)
 			// );
-		}
+		// }
 	}
 
 	/**
@@ -72,6 +85,9 @@
 	 * @param mo
 	 */
 	function mapobjectSelected(mo: MapObject) {
+		if (!$myMapObjectsByPosition || !$player) {
+			return;
+		}
 		const myMapObjectsAtPosition = $myMapObjectsByPosition[positionKey(mo)];
 		let myMapObject = mo;
 		if (ownedBy(mo, $player.num) && mo.type === MapObjectType.Planet) {
@@ -111,23 +127,20 @@
 			}
 		}
 	}
-
-	let transform: ZoomTransform;
-	let root: HTMLElement;
 </script>
 
-<!-- <svelte:window on:resize={handleResize} /> -->
+<svelte:window on:resize={handleResize} />
 
 <div class="flex-1 h-full bg-black overflow-hidden p-5">
 	{#if $game}
 		<LayerCake
-			data={$player.planetIntels}
+			data={$player?.planetIntels}
 			x={xGetter}
 			y={yGetter}
 			xDomain={[0, $game.area.x]}
 			yDomain={[0, $game.area.y]}
-			xRange={[0, root?.clientWidth ?? 100]}
-			yRange={[root?.clientHeight ?? 100, 0]}
+			xRange={[0, clientWidth]}
+			yRange={[clientHeight, 0]}
 			bind:element={root}
 		>
 			<Svg>
@@ -146,14 +159,14 @@
 						let:found
 						{transform}
 					>
-						<div
+						<!-- <div
 							class="border-b-2 border-info absolute rounded-b-box"
 							style="top:{transform.applyY(y - 10)}px;left:{transform.applyX(
 								x - 10
 							)}px;width:{transform.scale(20).k}px;height:{transform.scale(20).k}px;display: {found
 								? 'block'
 								: 'none'};"
-						/>
+						/> -->
 					</MapObjectQuadTreeFinder>
 				{/if}
 			</Html>
