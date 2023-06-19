@@ -58,7 +58,7 @@ type MapObjectIntel struct {
 }
 
 func (intel *Intel) String() string {
-	return fmt.Sprintf("PlayerID: %5d, ID: %5d, Num: %3d %s", intel.Num, intel.Name)
+	return fmt.Sprintf("Num: %3d %s", intel.Num, intel.Name)
 }
 
 type PlanetIntel struct {
