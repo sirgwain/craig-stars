@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
-	"gorm.io/gorm"
 )
 
 type Planet struct {
@@ -30,16 +29,16 @@ type Planet struct {
 }
 
 type ProductionQueueItem struct {
-	ID         uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt  time.Time      `json:"createdAt"`
-	UpdatedAt  time.Time      `json:"updatedAt"`
-	DeletedAt  gorm.DeletedAt `gorm:"index" json:"deletedAt"`
-	PlanetID   uint           `json:"-"`
-	Type       QueueItemType  `json:"type"`
-	DesignName string         `json:"designName"`
-	Quantity   int            `json:"quantity"`
-	Allocated  Cost           `json:"allocated" gorm:"embedded;embeddedPrefix:allocated_"`
-	SortOrder  int            `json:"-"`
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+
+	PlanetID   uint          `json:"-"`
+	Type       QueueItemType `json:"type"`
+	DesignName string        `json:"designName"`
+	Quantity   int           `json:"quantity"`
+	Allocated  Cost          `json:"allocated" gorm:"embedded;embeddedPrefix:allocated_"`
+	SortOrder  int           `json:"-"`
 }
 
 type QueueItemType string

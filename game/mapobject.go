@@ -3,22 +3,19 @@ package game
 import (
 	"fmt"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type MapObject struct {
-	ID        uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time      `json:"createdAt"`
-	UpdatedAt time.Time      `json:"updatedAt"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"deletedAt"`
-	Dirty     bool           `json:"-" gorm:"-"`
-	GameID    uint           `json:"gameId"`
-	PlayerID  uint           `json:"playerId"`
-	Position  Vector         `json:"position" gorm:"embedded"`
-	Name      string         `json:"name"`
-	Num       int            `json:"num"`
-	PlayerNum *int           `json:"playerNum"`
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+	Dirty     bool      `json:"-" gorm:"-"`
+	GameID    uint      `json:"gameId"`
+	PlayerID  uint      `json:"playerId"`
+	Position  Vector    `json:"position" gorm:"embedded"`
+	Name      string    `json:"name"`
+	Num       int       `json:"num"`
+	PlayerNum *int      `json:"playerNum"`
 	// Tags      Tags           `json:"tags" gorm:"serializer:json"`
 }
 

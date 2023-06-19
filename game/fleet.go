@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"math"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type Fleet struct {
@@ -35,14 +33,13 @@ type FleetSpec struct {
 }
 
 type ShipToken struct {
-	ID        uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time      `json:"createdAt"`
-	UpdatedAt time.Time      `json:"updatedAt"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"deletedAt"`
-	FleetID   uint           `json:"gameId"`
-	Design    *ShipDesign    `json:"-" gorm:"foreignKey:DesignID"`
-	DesignID  uint           `json:"designId"`
-	Quantity  int            `json:"quantity"`
+	ID        uint        `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time   `json:"createdAt"`
+	UpdatedAt time.Time   `json:"updatedAt"`
+	FleetID   uint        `json:"gameId"`
+	Design    *ShipDesign `json:"-" gorm:"foreignKey:DesignID"`
+	DesignID  uint        `json:"designId"`
+	Quantity  int         `json:"quantity"`
 }
 
 type Waypoint struct {

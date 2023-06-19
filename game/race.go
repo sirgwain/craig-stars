@@ -4,38 +4,36 @@ import (
 	"fmt"
 	"math"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type Race struct {
-	ID                uint           `gorm:"primaryKey" json:"id,omitempty"`
-	CreatedAt         time.Time      `json:"createdAt,omitempty"`
-	UpdatedAt         time.Time      `json:"updatedat,omitempty"`
-	DeletedAt         gorm.DeletedAt `gorm:"index" json:"deletedAt,omitempty"`
-	UserID            uint           `json:"userId,omitempty"`
-	PlayerID          uint           `json:"playerId,omitempty"`
-	Name              string         `json:"name,omitempty"`
-	PluralName        string         `json:"pluralName,omitempty"`
-	PRT               PRT            `json:"prt,omitempty"`
-	LRTs              Bitmask        `json:"lrts,omitempty"`
-	HabLow            Hab            `json:"habLow,omitempty" gorm:"embedded;embeddedPrefix:hab_low_"`
-	HabHigh           Hab            `json:"habHigh,omitempty" gorm:"embedded;embeddedPrefix:hab_high_"`
-	GrowthRate        int            `json:"growthRate,omitempty"`
-	PopEfficiency     int            `json:"popEfficiency,omitempty"`
-	FactoryOutput     int            `json:"factoryOutput,omitempty"`
-	FactoryCost       int            `json:"factoryCost,omitempty"`
-	NumFactories      int            `json:"numFactories,omitempty"`
-	FactoriesCostLess bool           `json:"factoriesCostLess,omitempty"`
-	ImmuneGrav        bool           `json:"immuneGrav,omitempty"`
-	ImmuneTemp        bool           `json:"immuneTemp,omitempty"`
-	ImmuneRad         bool           `json:"immuneRad,omitempty"`
-	MineOutput        int            `json:"mineOutput,omitempty"`
-	MineCost          int            `json:"mineCost,omitempty"`
-	NumMines          int            `json:"numMines,omitempty"`
-	ResearchCost      ResearchCost   `json:"researchCost,omitempty" gorm:"embedded;embeddedPrefix:research_cost_"`
-	TechsStartHigh    bool           `json:"techsStartHigh,omitempty"`
-	Spec              *RaceSpec      `json:"spec,omitempty" gorm:"serializer:json"`
+	ID        uint      `gorm:"primaryKey" json:"id,omitempty"`
+	CreatedAt time.Time `json:"createdAt,omitempty"`
+	UpdatedAt time.Time `json:"updatedat,omitempty"`
+
+	UserID            uint         `json:"userId,omitempty"`
+	PlayerID          uint         `json:"playerId,omitempty"`
+	Name              string       `json:"name,omitempty"`
+	PluralName        string       `json:"pluralName,omitempty"`
+	PRT               PRT          `json:"prt,omitempty"`
+	LRTs              Bitmask      `json:"lrts,omitempty"`
+	HabLow            Hab          `json:"habLow,omitempty" gorm:"embedded;embeddedPrefix:hab_low_"`
+	HabHigh           Hab          `json:"habHigh,omitempty" gorm:"embedded;embeddedPrefix:hab_high_"`
+	GrowthRate        int          `json:"growthRate,omitempty"`
+	PopEfficiency     int          `json:"popEfficiency,omitempty"`
+	FactoryOutput     int          `json:"factoryOutput,omitempty"`
+	FactoryCost       int          `json:"factoryCost,omitempty"`
+	NumFactories      int          `json:"numFactories,omitempty"`
+	FactoriesCostLess bool         `json:"factoriesCostLess,omitempty"`
+	ImmuneGrav        bool         `json:"immuneGrav,omitempty"`
+	ImmuneTemp        bool         `json:"immuneTemp,omitempty"`
+	ImmuneRad         bool         `json:"immuneRad,omitempty"`
+	MineOutput        int          `json:"mineOutput,omitempty"`
+	MineCost          int          `json:"mineCost,omitempty"`
+	NumMines          int          `json:"numMines,omitempty"`
+	ResearchCost      ResearchCost `json:"researchCost,omitempty" gorm:"embedded;embeddedPrefix:research_cost_"`
+	TechsStartHigh    bool         `json:"techsStartHigh,omitempty"`
+	Spec              *RaceSpec    `json:"spec,omitempty" gorm:"serializer:json"`
 }
 
 type ResearchCostLevel string

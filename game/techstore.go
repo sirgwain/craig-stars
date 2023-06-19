@@ -3,8 +3,6 @@ package game
 import (
 	"math"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 const ScanWithZeroRange = 1
@@ -14,10 +12,10 @@ const NoGate = -1
 const InfinteGate = math.MaxInt32
 
 type TechStore struct {
-	ID                       uint                                  `gorm:"primaryKey" json:"id"`
-	CreatedAt                time.Time                             `json:"createdAt"`
-	UpdatedAt                time.Time                             `json:"updatedAt"`
-	DeletedAt                gorm.DeletedAt                        `gorm:"index" json:"deletedAt"`
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+
 	RulesID                  uint                                  `json:"rulesId"`
 	Engines                  []TechEngine                          `json:"engines"`
 	PlanetaryScanners        []TechPlanetaryScanner                `json:"planetaryScanners"`

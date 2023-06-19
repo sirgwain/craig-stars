@@ -3,15 +3,13 @@ package game
 import (
 	"math"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type ShipDesign struct {
-	ID            uint              `gorm:"primaryKey" json:"id"`
-	CreatedAt     time.Time         `json:"createdAt"`
-	UpdatedAt     time.Time         `json:"updatedAt"`
-	DeletedAt     gorm.DeletedAt    `gorm:"index" json:"deletedAt"`
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+
 	GameID        uint              `json:"gameId"`
 	PlayerID      uint              `json:"playerId"`
 	PlayerNum     int               `json:"playerNum"`

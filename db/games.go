@@ -173,7 +173,6 @@ func (db *DB) FindGameById(id uint) (*game.Game, error) {
 		Preload("Players.PlanetIntels").
 		Preload("Players.BattlePlans").
 		Preload("Players.ProductionPlans").
-		Preload("Players.TransportPlans").
 		Preload("Players.Messages").
 		First(&g, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

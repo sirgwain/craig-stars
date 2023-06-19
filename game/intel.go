@@ -3,23 +3,20 @@ package game
 import (
 	"fmt"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type MapObjectIntel struct {
-	ID        uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time      `json:"createdAt"`
-	UpdatedAt time.Time      `json:"updatedAt"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"deletedAt"`
-	Dirty     bool           `json:"-" gorm:"-"`
-	GameID    uint           `json:"gameId"`
-	Position  Vector         `json:"position" gorm:"embedded"`
-	Name      string         `json:"name"`
-	Num       int            `json:"num"`
-	PlayerNum *int           `json:"playerNum"`
-	PlayerID  uint           `json:"playerId"`
-	ReportAge int            `json:"reportAge"`
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+	Dirty     bool      `json:"-" gorm:"-"`
+	GameID    uint      `json:"gameId"`
+	Position  Vector    `json:"position" gorm:"embedded"`
+	Name      string    `json:"name"`
+	Num       int       `json:"num"`
+	PlayerNum *int      `json:"playerNum"`
+	PlayerID  uint      `json:"playerId"`
+	ReportAge int       `json:"reportAge"`
 }
 
 func (mo *MapObjectIntel) String() string {

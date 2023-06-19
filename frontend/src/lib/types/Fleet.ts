@@ -17,7 +17,7 @@ export interface ShipToken {
 	id: number;
 	createdAt: string;
 	updatedat: string;
-	deletedAt: null;
+
 	gameId: number;
 	designId: number;
 	quantity: number;

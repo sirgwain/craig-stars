@@ -3,8 +3,6 @@ package game
 import (
 	"math"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type TechField string
@@ -41,10 +39,10 @@ const (
 )
 
 type Tech struct {
-	ID           uint             `gorm:"primaryKey" json:"id"`
-	CreatedAt    time.Time        `json:"createdAt"`
-	UpdatedAt    time.Time        `json:"updatedAt"`
-	DeletedAt    gorm.DeletedAt   `gorm:"index" json:"deletedAt"`
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+
 	TechStoreID  uint             `json:"techStoreId"`
 	Name         string           `json:"name"`
 	Cost         Cost             `json:"cost" gorm:"embedded;embeddedPrefix:cost_"`

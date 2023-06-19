@@ -8,7 +8,7 @@ export interface Race {
 	id?: number;
 	createdAt?: string;
 	updatedat?: string;
-	deletedAt?: null;
+
 	playerId?: number;
 	name: string;
 	pluralName: string;
@@ -118,7 +118,6 @@ export interface ResearchCost {
 	electronics: string;
 	biotechnology: string;
 }
-
 
 export interface RaceSpec {
 	costs: EnumDictionary<QueueItemType, Cost>;
