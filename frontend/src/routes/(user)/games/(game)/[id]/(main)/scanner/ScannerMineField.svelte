@@ -12,13 +12,12 @@
 	export let mineField: MineField;
 	export let color = '#0900FF';
 	export let selected = false;
-
 </script>
 
 <!-- ScannerMineField -->
 <circle
-	cx={$xGet({ position: mineField.position })}
-	cy={$yGet({ position: mineField.position })}
+	cx={$xGet(mineField)}
+	cy={$yGet(mineField)}
 	r={$xScale(mineField.spec.radius)}
 	mask="url(#mask-minefield)"
 	fill={color}

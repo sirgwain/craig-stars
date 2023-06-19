@@ -1,6 +1,10 @@
 package cs
 
-import "math"
+import (
+	"math"
+
+	"github.com/rs/zerolog/log"
+)
 
 type Bomb struct {
 	Quantity             int     `json:"quantity,omitempty"`
@@ -57,6 +61,7 @@ func (b *bomb) bombPlanet(planet *Planet, planetOwner *Player, enemyBombers []*F
 	// bomb the planet with regular bombs
 	for playerNum := range orbitingPlayerNums {
 		b.normalBombPlanet(planet, planetOwner, pg.getPlayer(playerNum), b.getBombersForPlayer(enemyBombers, playerNum))
+
 		// stop bombing if everyone is dead
 		if planet.population() == 0 {
 			break
@@ -141,6 +146,19 @@ func (b *bomb) normalBombPlanet(planet *Planet, defender *Player, attacker *Play
 			// let each player know a bombing happened
 			messager.planetBombed(attacker, planet, fleet, defender.Race.PluralName, attacker.Race.PluralName, actualKilled, minesDestroyed, factoriesDestroyed, defensesDestroyed)
 			messager.planetBombed(defender, planet, fleet, defender.Race.PluralName, attacker.Race.PluralName, actualKilled, minesDestroyed, factoriesDestroyed, defensesDestroyed)
+
+			log.Debug().
+				Int64("GameID", planet.GameID).
+				Int("Player", fleet.PlayerNum).
+				Str("Planet", planet.Name).
+				Int("PlanetPlayer", planet.PlayerNum).
+				Str("Fleet", fleet.Name).
+				Int("ActualKilled", actualKilled).
+				Int("MinesDestroyed", minesDestroyed).
+				Int("FactoriesDestroyed", factoriesDestroyed).
+				Int("DefensesDestroyed", defensesDestroyed).
+				Msgf("fleet bombed planet")
+
 		}
 	}
 }
@@ -165,6 +183,16 @@ func (b *bomb) smartBombPlanet(planet *Planet, defender *Player, attacker *Playe
 			// let each player know a bombing happened
 			messager.planetSmartBombed(attacker, planet, fleet, defender.Race.PluralName, attacker.Race.PluralName, actualKilled)
 			messager.planetSmartBombed(defender, planet, fleet, defender.Race.PluralName, attacker.Race.PluralName, actualKilled)
+
+			log.Debug().
+				Int64("GameID", planet.GameID).
+				Int("Player", fleet.PlayerNum).
+				Str("Planet", planet.Name).
+				Int("PlanetPlayer", planet.PlayerNum).
+				Str("Fleet", fleet.Name).
+				Int("ActualKilled", actualKilled).
+				Msgf("fleet smart bombed planet")
+
 		}
 	}
 }
@@ -193,6 +221,16 @@ func (b *bomb) retroBombPlanet(planet *Planet, defender *Player, attacker *Playe
 				// let each player know a bombing happened
 				messager.planetRetroBombed(attacker, planet, fleet, defender.Race.PluralName, attacker.Race.PluralName, unterraformAmount)
 				messager.planetRetroBombed(defender, planet, fleet, defender.Race.PluralName, attacker.Race.PluralName, unterraformAmount)
+
+				log.Debug().
+					Int64("GameID", planet.GameID).
+					Int("Player", fleet.PlayerNum).
+					Str("Planet", planet.Name).
+					Int("PlanetPlayer", planet.PlayerNum).
+					Str("Fleet", fleet.Name).
+					Str("UnterraformAmount", unterraformAmount.String()).
+					Msgf("fleet retro bombed planet")
+
 			}
 		}
 	}

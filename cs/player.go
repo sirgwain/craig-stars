@@ -51,6 +51,8 @@ type PlayerIntels struct {
 	MineralPacketIntels []MineralPacketIntel `json:"mineralPacketIntels,omitempty"`
 	MineFieldIntels     []MineFieldIntel     `json:"mineFieldIntels,omitempty"`
 	WormholeIntels      []WormholeIntel      `json:"wormholeIntels,omitempty"`
+	MysteryTraderIntels []MysteryTraderIntel `json:"mysteryTraderIntels,omitempty"`
+	SalvageIntels       []SalvageIntel       `json:"salvageIntels,omitempty"`
 }
 
 type PlayerPlans struct {
@@ -169,6 +171,19 @@ type ProductionPlanItem struct {
 	Quantity   int           `json:"quantity"`
 }
 
+// Apply a production plan to a planet
+func (plan *ProductionPlan) Apply(planet *Planet) {
+	planet.ProductionQueue = make([]ProductionQueueItem, len(plan.Items))
+	for i, item := range plan.Items {
+		planet.ProductionQueue[i] = ProductionQueueItem{
+			Type:       item.Type,
+			DesignName: item.DesignName,
+			Quantity:   item.Quantity,
+		}
+	}
+	planet.ContributesOnlyLeftoverToResearch = plan.ContributesOnlyLeftoverToResearch
+}
+
 // All mapobjects that a player can issue commands to
 type PlayerMapObjects struct {
 	Planets        []*Planet        `json:"planets"`
@@ -213,9 +228,9 @@ func NewPlayer(userID int64, race *Race) *Player {
 				{
 					Num:  0,
 					Name: "Default", Items: []ProductionPlanItem{
-						{Type: QueueItemTypeAutoMinTerraform, Quantity: 1},
-						{Type: QueueItemTypeAutoFactories, Quantity: 10},
-						{Type: QueueItemTypeAutoMines, Quantity: 10},
+						// {Type: QueueItemTypeAutoMinTerraform, Quantity: 1},
+						{Type: QueueItemTypeAutoFactories, Quantity: 100},
+						{Type: QueueItemTypeAutoMines, Quantity: 100},
 					},
 				},
 			},

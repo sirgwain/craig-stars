@@ -307,7 +307,6 @@ func (c *GameConverter) csFleetToDbFleet(source cs.Fleet) Fleet {
 	dbFleet.Colonists = source.Cargo.Colonists
 	dbFleet.Fuel = source.Fuel
 	dbFleet.Age = source.Age
-	dbFleet.IdleTurns = source.IdleTurns
 	dbFleet.BattlePlanNum = source.FleetOrders.BattlePlanNum
 	dbFleet.HeadingX = source.Heading.X
 	dbFleet.HeadingY = source.Heading.Y
@@ -519,6 +518,7 @@ func (c *GameConverter) csPlayerToDbPlayer(source cs.Player) Player {
 	dbPlayer.MineralPacketIntels = GameMineralPacketIntelsToMineralPacketIntels(source.PlayerIntels.MineralPacketIntels)
 	dbPlayer.MineFieldIntels = GameMineFieldIntelsToMineFieldIntels(source.PlayerIntels.MineFieldIntels)
 	dbPlayer.WormholeIntels = GameWormholeIntelsToWormholeIntels(source.PlayerIntels.WormholeIntels)
+	dbPlayer.MysteryTraderIntels = GameMysteryTraderIntelsToMysteryTraderIntels(source.PlayerIntels.MysteryTraderIntels)
 	dbPlayer.Race = GameRaceToPlayerRace(source.Race)
 	dbPlayer.Stats = GamePlayerStatsToPlayerStats(source.Stats)
 	dbPlayer.ScoreHistory = GamePlayerScoresToPlayerScores(source.ScoreHistory)
@@ -638,7 +638,6 @@ func (c *GameConverter) dbFleetToCsFleet(source Fleet) cs.Fleet {
 	csFleet.Cargo = ExtendFleetCargo(source)
 	csFleet.Fuel = source.Fuel
 	csFleet.Age = source.Age
-	csFleet.IdleTurns = source.IdleTurns
 	csFleet.Tokens = ShipTokensToGameShipTokens(source.Tokens)
 	csFleet.Heading = ExtendFleetHeading(source)
 	csFleet.WarpSpeed = source.WarpSpeed

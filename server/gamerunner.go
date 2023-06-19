@@ -2,6 +2,7 @@ package server
 
 import (
 	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"time"
@@ -93,9 +94,11 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 			players = append(players, player)
 		} else if playerSetting.Type == cs.NewGamePlayerTypeAI {
 			log.Debug().Int64("hostID", hostID).Msg("Adding ai player to game")
-			race := cs.NewRace()
-			race.PRT = cs.IT
-			player := gr.client.NewPlayer(hostID, *race, &game.Rules)
+			race := *cs.NewRace()
+			if playerSetting.Race.Name != "" {
+				race = playerSetting.Race
+			}
+			player := gr.client.NewPlayer(hostID, race, &game.Rules)
 			player.GameID = game.ID
 			player.Num = i + 1
 			player.AIControlled = true
@@ -124,7 +127,7 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 			} else {
 				color := make([]byte, 3)
 				rand.Read(color)
-				player.Color = fmt.Sprintf("#%0X%0X%0X", color[0], color[1], color[2])
+				player.Color = fmt.Sprintf("#%s", hex.EncodeToString(color))
 			}
 		}
 	}
@@ -271,7 +274,7 @@ func (gr *gameRunner) SubmitTurn(gameID int64, userID int64) error {
 	return nil
 }
 
-//CheckAndGenerateTurn check a game for every player submitted and generate a turn
+// CheckAndGenerateTurn check a game for every player submitted and generate a turn
 func (gr *gameRunner) CheckAndGenerateTurn(gameID int64) (TurnGenerationCheckResult, error) {
 	defer timeTrack(time.Now(), "CheckAndGenerateTurn")
 	fullGame, err := gr.loadGame(gameID)

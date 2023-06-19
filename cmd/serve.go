@@ -76,7 +76,17 @@ func generateTestGame(db server.DBClient, config config.Config) error {
 		WithName("Medium Game").
 		WithSize(cs.SizeMedium).
 		WithHost(adminRace.ID).
-		WithAIPlayer(cs.AIDifficultyNormal, 1))
+		WithAIPlayerRace(cs.HEs(), cs.AIDifficultyNormal, 0).
+		WithAIPlayerRace(cs.SSs(), cs.AIDifficultyNormal, 1).
+		WithAIPlayerRace(cs.WMs(), cs.AIDifficultyNormal, 2).
+		WithAIPlayerRace(cs.CAs(), cs.AIDifficultyNormal, 3).
+		WithAIPlayerRace(cs.ISs(), cs.AIDifficultyNormal, 0).
+		WithAIPlayerRace(cs.SDs(), cs.AIDifficultyNormal, 1).
+		WithAIPlayerRace(cs.PPs(), cs.AIDifficultyNormal, 2).
+		WithAIPlayerRace(cs.ITs(), cs.AIDifficultyNormal, 3).
+		WithAIPlayerRace(cs.ARs(), cs.AIDifficultyNormal, 0).
+		WithAIPlayerRace(cs.JoaTs(), cs.AIDifficultyNormal, 1))
+
 	if err != nil {
 		return err
 	}
@@ -98,11 +108,12 @@ func generateTestGame(db server.DBClient, config config.Config) error {
 		WithName("Tiny Game").
 		WithSize(cs.SizeTiny).
 		WithHost(adminRace.ID).
-		WithAIPlayer(cs.AIDifficultyNormal, 1).
-		WithAIPlayer(cs.AIDifficultyNormal, 2).
-		WithAIPlayer(cs.AIDifficultyNormal, 3).
-		WithAIPlayer(cs.AIDifficultyNormal, 1).
-		WithAIPlayer(cs.AIDifficultyNormal, 2))
+		WithAIPlayerRace(cs.HEs(), cs.AIDifficultyNormal, 0).
+		WithAIPlayerRace(cs.SDs(), cs.AIDifficultyNormal, 1).
+		WithAIPlayerRace(cs.PPs(), cs.AIDifficultyNormal, 2).
+		WithAIPlayerRace(cs.ITs(), cs.AIDifficultyNormal, 3).
+		WithAIPlayerRace(cs.JoaTs(), cs.AIDifficultyNormal, 1),
+	)
 	if err != nil {
 		return err
 	}

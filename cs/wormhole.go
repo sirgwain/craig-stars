@@ -9,7 +9,7 @@ import (
 )
 
 type Wormhole struct {
-	MapObject        `json:"mapObject,omitempty"`
+	MapObject
 	DestinationNum   int               `json:"destinationNum,omitempty"`
 	Stability        WormholeStability `json:"stability,omitempty"`
 	YearsAtStability int               `json:"yearsAtStability,omitempty"`

@@ -78,10 +78,11 @@ func (packet *MineralPacket) movePacket(rules *Rules, player *Player, target *Pl
 		dist /= 2
 	}
 
-	// go with the lower
-	if totalDist < dist {
-		dist = totalDist
-	}
+	vectorTravelled := target.Position.Subtract(packet.Position).Normalized().Scale(dist)
+	dist = vectorTravelled.Length()
+
+	// don't overshoot
+	dist = math.Min(totalDist, dist)
 
 	if totalDist == dist {
 		packet.completeMove(rules, player, target, planetPlayer)

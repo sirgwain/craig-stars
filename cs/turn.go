@@ -116,7 +116,7 @@ func (t *turn) generateTurn() error {
 	log.Info().
 		Int64("GameID", t.game.ID).
 		Str("Name", t.game.Name).
-		Int("Year", t.game.Year-1).
+		Int("Year", t.game.Year).
 		Msgf("generated turn")
 	return nil
 }
@@ -150,6 +150,10 @@ func (t *turn) fleetInit() {
 // scrap a fleet at wp0/wp1
 func (t *turn) fleetScrap() {
 	for _, fleet := range t.game.Fleets {
+		if fleet.Delete {
+			continue
+		}
+
 		wp0 := fleet.Waypoints[0]
 		if wp0.Task == WaypointTaskScrapFleet {
 			t.scrapFleet(fleet)
@@ -182,6 +186,10 @@ func (t *turn) scrapFleet(fleet *Fleet) {
 // fleetColonize will attempt to colonize planets for any fleets with the Colonize WaypointTask
 func (t *turn) fleetColonize() {
 	for _, fleet := range t.game.Fleets {
+		if fleet.Delete {
+			continue
+		}
+
 		wp := &fleet.Waypoints[0]
 
 		if !wp.processed && wp.Task == WaypointTaskColonize {
@@ -238,6 +246,10 @@ func (t *turn) fleetColonize() {
 // fleetUnload executes wp0/wp1 unload transport tasks for fleets
 func (t *turn) fleetUnload() {
 	for _, fleet := range t.game.Fleets {
+		if fleet.Delete {
+			continue
+		}
+
 		wp := &fleet.Waypoints[0]
 
 		if !wp.processed && wp.Task == WaypointTaskTransport {
@@ -275,7 +287,7 @@ func (t *turn) fleetUnload() {
 					Str("Dest", dest.getMapObject().Name).
 					Int("Transfered", transferAmount).
 					Str("cargoType", cargoType.String()).
-					Msgf("transferred cargo")
+					Msgf("unloaded cargo")
 			}
 
 			// we tried to load/unload from empty space but we didn't deposit any cargo
@@ -290,6 +302,10 @@ func (t *turn) fleetUnload() {
 
 func (t *turn) fleetLoad() {
 	for _, fleet := range t.game.Fleets {
+		if fleet.Delete {
+			continue
+		}
+
 		wp := &fleet.Waypoints[0]
 
 		if !wp.processed && wp.Task == WaypointTaskTransport {
@@ -319,6 +335,17 @@ func (t *turn) fleetLoad() {
 				// if we need to wait for any task, wait
 				wp.WaitAtWaypoint = wp.WaitAtWaypoint || waitAtWaypoint
 
+				log.Debug().
+					Int64("GameID", t.game.ID).
+					Str("Name", t.game.Name).
+					Int("Year", t.game.Year).
+					Int("Player", fleet.PlayerNum).
+					Str("Fleet", fleet.Name).
+					Str("Dest", dest.getMapObject().Name).
+					Int("Transfered", transferAmount).
+					Str("cargoType", cargoType.String()).
+					Msgf("loaded cargo")
+
 				t.fleetTransferCargo(fleet, -transferAmount, cargoType, dest)
 			}
 
@@ -330,6 +357,17 @@ func (t *turn) fleetLoad() {
 
 				// if we need to wait for any task, wait
 				wp.WaitAtWaypoint = wp.WaitAtWaypoint || waitAtWaypoint
+
+				log.Debug().
+					Int64("GameID", t.game.ID).
+					Str("Name", t.game.Name).
+					Int("Year", t.game.Year).
+					Int("Player", fleet.PlayerNum).
+					Str("Fleet", fleet.Name).
+					Str("Dest", dest.getMapObject().Name).
+					Int("Transfered", transferAmount).
+					Str("cargoType", cargoType.String()).
+					Msgf("dunnage loaded cargo")
 
 				t.fleetTransferCargo(fleet, -transferAmount, cargoType, dest)
 			}
@@ -362,6 +400,10 @@ func (t *turn) fleetTransferCargo(fleet *Fleet, transferAmount int, cargoType Ca
 
 func (t *turn) fleetMerge() {
 	for _, fleet := range t.game.Fleets {
+		if fleet.Delete {
+			continue
+		}
+
 		wp := &fleet.Waypoints[0]
 		if wp.processed || wp.Task != WaypointTaskMergeWithFleet {
 			continue
@@ -394,6 +436,15 @@ func (t *turn) fleetMerge() {
 
 		messager.fleetMerged(player, fleet, target)
 
+		log.Debug().
+			Int64("GameID", t.game.ID).
+			Str("Name", t.game.Name).
+			Int("Year", t.game.Year).
+			Int("Player", fleet.PlayerNum).
+			Str("Fleet", fleet.Name).
+			Str("Target", target.Name).
+			Msgf("fleet merged into target")
+
 		// remove this fleet from the universe
 		t.game.deleteFleet(fleet)
 	}
@@ -401,6 +452,10 @@ func (t *turn) fleetMerge() {
 
 func (t *turn) fleetRoute() {
 	for _, fleet := range t.game.Fleets {
+		if fleet.Delete {
+			continue
+		}
+
 		wp := &fleet.Waypoints[0]
 
 		if !wp.processed && wp.Task == WaypointTaskRoute {
@@ -443,6 +498,17 @@ func (t *turn) fleetRoute() {
 					}
 
 					messager.fleetRouted(player, fleet, planet, mo.Name)
+
+					log.Debug().
+						Int64("GameID", t.game.ID).
+						Str("Name", t.game.Name).
+						Int("Year", t.game.Year).
+						Int("Player", fleet.PlayerNum).
+						Str("Fleet", fleet.Name).
+						Str("Planet", planet.Name).
+						Str("Target", mo.Name).
+						Msgf("fleet routed to target")
+
 				}
 			}
 		}
@@ -450,6 +516,11 @@ func (t *turn) fleetRoute() {
 }
 
 func (t *turn) fleetNotifyIdle() {
+	// don't notify the first year
+	if t.game.Year == t.game.Rules.StartingYear {
+		return
+	}
+
 	for _, fleet := range t.game.Fleets {
 		if fleet.Delete {
 			continue
@@ -460,20 +531,23 @@ func (t *turn) fleetNotifyIdle() {
 			continue
 		}
 
-		// we are moving
-		if len(fleet.Waypoints) > 1 {
-			fleet.IdleTurns = 0
+		// we are moving/moved
+		if len(fleet.Waypoints) > 1 || *fleet.PreviousPosition != fleet.Position {
 			continue
 		}
 
 		if fleet.Waypoints[0].Task == WaypointTaskNone {
-			if fleet.IdleTurns == 0 {
-				player := t.game.getPlayer(fleet.PlayerNum)
-				messager.fleetCompletedAssignedOrders(player, fleet)
-			}
-			fleet.IdleTurns++
-		} else {
-			fleet.IdleTurns = 0
+			player := t.game.getPlayer(fleet.PlayerNum)
+			messager.fleetCompletedAssignedOrders(player, fleet)
+
+			log.Debug().
+				Int64("GameID", t.game.ID).
+				Str("Name", t.game.Name).
+				Int("Year", t.game.Year).
+				Int("Player", fleet.PlayerNum).
+				Str("Fleet", fleet.Name).
+				Msgf("fleet idle")
+
 		}
 	}
 }
@@ -509,6 +583,16 @@ func (t *turn) packetMove(builtThisTurn bool) {
 		}
 
 		packet.movePacket(t.game.rules, player, planet, planetPlayer)
+
+		log.Debug().
+			Int64("GameID", t.game.ID).
+			Str("Name", t.game.Name).
+			Int("Year", t.game.Year).
+			Int("Player", packet.PlayerNum).
+			Str("Packet", packet.Name).
+			Str("Position", packet.Position.String()).
+			Msgf("moved packet")
+
 	}
 }
 
@@ -519,6 +603,10 @@ func (t *turn) mysteryTraderMove() {
 func (t *turn) fleetMove() {
 
 	for _, fleet := range t.game.Fleets {
+		if fleet.Delete {
+			continue
+		}
+
 		if !fleet.Starbase {
 			// remove the fleet from the list of map objects at it's current location
 			originalPosition := fleet.Position
@@ -534,6 +622,16 @@ func (t *turn) fleetMove() {
 					fleet.moveFleet(&t.game.Rules, t.game.Universe, t.game)
 				}
 
+				log.Debug().
+					Int64("GameID", t.game.ID).
+					Str("Name", t.game.Name).
+					Int("Year", t.game.Year).
+					Int("Player", fleet.PlayerNum).
+					Str("Fleet", fleet.Name).
+					Str("Start", wp0.Position.String()).
+					Str("End", fleet.Position.String()).
+					Msgf("moved fleet")
+
 				// make sure we have tokens left after move
 				if len(fleet.Tokens) == 0 {
 					t.game.deleteFleet(fleet)
@@ -547,6 +645,15 @@ func (t *turn) fleetMove() {
 					wp0.WaitAtWaypoint = false
 					wp0.PartiallyComplete = false
 					fleet.Waypoints = append(fleet.Waypoints, wp0)
+
+					log.Debug().
+						Int64("GameID", t.game.ID).
+						Str("Name", t.game.Name).
+						Int("Year", t.game.Year).
+						Int("Player", fleet.PlayerNum).
+						Str("Fleet", fleet.Name).
+						Str("Waypoint", fmt.Sprintf("%s: %s", wp0.TargetName, wp0.Task)).
+						Msgf("repeating waypoint")
 				}
 
 				// update the game dictionaries with this fleet's new position
@@ -563,6 +670,10 @@ func (t *turn) fleetMove() {
 
 func (t *turn) fleetReproduce() {
 	for _, fleet := range t.game.Fleets {
+		if fleet.Delete {
+			continue
+		}
+
 		if fleet.Cargo.Colonists == 0 {
 			continue
 		}
@@ -594,6 +705,16 @@ func (t *turn) fleetReproduce() {
 		// Message the player
 		messager.fleetReproduce(player, fleet, growth*100, planet, over)
 
+		log.Debug().
+			Int64("GameID", t.game.ID).
+			Str("Name", t.game.Name).
+			Int("Year", t.game.Year).
+			Int("Player", fleet.PlayerNum).
+			Str("Fleet", fleet.Name).
+			Int("Growth", growth).
+			Int("Over", over).
+			Msgf("fleet reproduced")
+
 	}
 }
 
@@ -602,8 +723,22 @@ func (t *turn) decaySalvage() {
 	for _, salvage := range t.game.Salvages {
 		salvage.decay(t.game.rules)
 
+		log.Debug().
+			Int64("GameID", salvage.GameID).
+			Int("Player", salvage.PlayerNum).
+			Str("Salvage", salvage.Name).
+			Str("Cargo", salvage.Cargo.PrettyString()).
+			Msgf("decayed salvage")
+
 		if (salvage.Cargo == Cargo{}) {
 			t.game.deleteSalvage(salvage)
+
+			log.Debug().
+				Int64("GameID", salvage.GameID).
+				Int("Player", salvage.PlayerNum).
+				Str("Salvage", salvage.Name).
+				Msgf("deleted salvage")
+
 		}
 	}
 }
@@ -615,6 +750,14 @@ func (t *turn) decayPackets() {
 		// update the decay rate based on this distance traveled this turn
 		decayRate := 1 - packet.getPacketDecayRate(t.game.rules, &player.Race)*(packet.distanceTravelled/float64(packet.WarpSpeed*packet.WarpSpeed))
 		packet.Cargo = packet.Cargo.Multiply(decayRate)
+
+		log.Debug().
+			Int64("GameID", packet.GameID).
+			Int("Player", packet.PlayerNum).
+			Str("Packet", packet.Name).
+			Str("Cargo", packet.Cargo.PrettyString()).
+			Msgf("decayed packet")
+
 	}
 }
 
@@ -681,6 +824,14 @@ func (t *turn) detonateMines() {
 			fleetPlayer := t.game.getPlayer(fleet.PlayerNum)
 			mineField.damageFleet(player, fleet, fleetPlayer, stats)
 		}
+
+		log.Debug().
+			Int64("GameID", t.game.ID).
+			Int("Player", mineField.PlayerNum).
+			Str("MineField", mineField.Name).
+			Int("NumMines", mineField.NumMines).
+			Msgf("detonated mineField")
+
 	}
 }
 
@@ -691,6 +842,14 @@ func (t *turn) planetMine() {
 			planet.Cargo = planet.Cargo.AddMineral(planet.Spec.MiningOutput)
 			planet.MineYears.AddInt(planet.Mines)
 			planet.reduceMineralConcentration(&t.game.Rules)
+
+			log.Debug().
+				Int64("GameID", t.game.ID).
+				Int("Player", planet.PlayerNum).
+				Str("Planet", planet.Name).
+				Str("Minerals", planet.Spec.MiningOutput.PrettyString()).
+				Msgf("planet mined")
+
 		}
 	}
 }
@@ -698,6 +857,10 @@ func (t *turn) planetMine() {
 // for AR races, remote mine their own planets during this phase
 func (t *turn) fleetRemoteMineAR() {
 	for _, fleet := range t.game.Fleets {
+		if fleet.Delete {
+			continue
+		}
+
 		wp0 := fleet.Waypoints[0]
 		if wp0.Task == WaypointTaskRemoteMining {
 			player := t.game.getPlayer(fleet.PlayerNum)
@@ -722,6 +885,10 @@ func (t *turn) fleetRemoteMineAR() {
 func (t *turn) fleetRemoteMine() {
 
 	for _, fleet := range t.game.Fleets {
+		if fleet.Delete {
+			continue
+		}
+
 		wp0 := fleet.Waypoints[0]
 		if wp0.Task == WaypointTaskRemoteMining {
 			player := t.game.getPlayer(fleet.PlayerNum)
@@ -769,6 +936,15 @@ func (t *turn) remoteMine(fleet *Fleet, player *Player, planet *Planet) {
 		d := newDiscoverer(player)
 		d.discoverPlanetCargo(player, planet)
 		messager.remoteMined(player, fleet, planet, mineralOutput)
+
+		log.Debug().
+			Int64("GameID", t.game.ID).
+			Int("Player", fleet.PlayerNum).
+			Str("Fleet", fleet.Name).
+			Str("Planet", planet.Name).
+			Str("Minerals", mineralOutput.PrettyString()).
+			Msgf("planet remote mined")
+
 	}
 }
 
@@ -805,6 +981,13 @@ func (t *turn) buildFleet(player *Player, planet *Planet, token ShipToken) *Flee
 	fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed, fleet.Spec.CargoCapacity)
 	fleet.OrbitingPlanetNum = planet.Num
 
+	log.Debug().
+		Int64("GameID", t.game.ID).
+		Int("Player", fleet.PlayerNum).
+		Str("Planet", planet.Name).
+		Str("Fleet", fleet.Name).
+		Msgf("fleet built")
+
 	t.game.Fleets = append(t.game.Fleets, &fleet)
 	return &fleet
 }
@@ -816,6 +999,13 @@ func (t *turn) buildMineralPacket(player *Player, planet *Planet, cargo Cargo, t
 	num := player.getNextMineralPacketNum(playerMineralPackets)
 	packet := newMineralPacket(player, num, planet.PacketSpeed, planet.Spec.SafePacketSpeed, cargo, planet.Position, target.Num)
 	packet.builtThisTurn = true
+
+	log.Debug().
+		Int64("GameID", t.game.ID).
+		Int("Player", packet.PlayerNum).
+		Str("Planet", planet.Name).
+		Str("Fleet", packet.Name).
+		Msgf("mineral packet built")
 
 	t.game.MineralPackets = append(t.game.MineralPackets, packet)
 	return packet
@@ -838,6 +1028,14 @@ func (t *turn) playerResearch() {
 	onLevelGained := func(player *Player, field TechField) {
 		messager.techLevel(player, field, player.TechLevels.Get(field), player.Researching)
 		playerGainedLevel[player.Num] = true
+
+		log.Debug().
+			Int64("GameID", t.game.ID).
+			Int("Player", player.Num).
+			Str("Field", string(field)).
+			Int("Level", player.TechLevels.Get(field)).
+			Msgf("player researched new tech level")
+
 	}
 
 	// keep track of how many research resources are stealable by other players
@@ -918,6 +1116,10 @@ func (t *turn) playerResearch() {
 
 	// update fleet specs for players who gained a level
 	for _, fleet := range t.game.Fleets {
+		if fleet.Delete {
+			continue
+		}
+
 		if !playerGainedLevel[fleet.PlayerNum] {
 			continue
 		}
@@ -945,7 +1147,16 @@ func (t *turn) permaform() {
 
 				if result.Terraformed() {
 					planet.Spec = computePlanetSpec(&t.game.Rules, player, planet)
+					planet.MarkDirty()
 					messager.permaform(player, planet, result.Type, result.Direction)
+
+					log.Debug().
+						Int64("GameID", t.game.ID).
+						Int("Player", player.Num).
+						Int("Planet", planet.Num).
+						Str("HabType", result.Type.String()).
+						Msgf("player permaformed planet")
+
 				}
 			}
 		}
@@ -957,9 +1168,16 @@ func (t *turn) permaform() {
 func (t *turn) planetGrow() {
 	for _, planet := range t.game.Planets {
 		if planet.owned() {
-			// player := t.game.Players[*planet.PlayerNum - 1]
 			planet.setPopulation(planet.population() + planet.Spec.GrowthAmount)
-			planet.MarkDirty() // flag for update
+			planet.MarkDirty()
+
+			log.Debug().
+				Int64("GameID", t.game.ID).
+				Int("Player", planet.PlayerNum).
+				Str("Planet", planet.Name).
+				Int("Population", planet.population()).
+				Msgf("planet grew")
+
 		}
 	}
 }
@@ -967,6 +1185,14 @@ func (t *turn) planetGrow() {
 // refuel fleets if they are orbiting a planet with a friendly starbase
 func (t *turn) fleetRefuel() {
 	for _, fleet := range t.game.Fleets {
+		if fleet.Delete {
+			continue
+		}
+
+		if fleet.Fuel == fleet.Spec.FuelCapacity {
+			continue
+		}
+
 		planet := t.game.getOrbitingPlanet(fleet)
 		if planet == nil {
 			continue
@@ -981,6 +1207,15 @@ func (t *turn) fleetRefuel() {
 			fleet.Fuel = fleet.Spec.FuelCapacity
 			fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed, fleet.Spec.CargoCapacity)
 			fleet.MarkDirty()
+
+			log.Debug().
+				Int64("GameID", t.game.ID).
+				Int("Player", fleet.PlayerNum).
+				Str("Planet", planet.Name).
+				Int("PlanetPlayer", planet.PlayerNum).
+				Str("Fleet", fleet.Name).
+				Msgf("fleet refueled at starbase")
+
 		}
 
 	}
@@ -1100,7 +1335,7 @@ func (t *turn) fleetBomb() {
 		// find any enemy bombers orbiting this planet
 		enemyBombers := []*Fleet{}
 		for _, mo := range t.game.getMapObjectsAtPosition(planet.Position) {
-			if fleet, ok := mo.(*Fleet); ok && fleet.Spec.Bomber && t.game.getPlayer(fleet.PlayerNum).IsEnemy(planet.PlayerNum) {
+			if fleet, ok := mo.(*Fleet); ok && !fleet.Delete && fleet.Spec.Bomber && t.game.getPlayer(fleet.PlayerNum).IsEnemy(planet.PlayerNum) {
 				enemyBombers = append(enemyBombers, fleet)
 			}
 		}
@@ -1127,11 +1362,23 @@ func (t *turn) decayMines() {
 		}
 		mineField.Spec = computeMinefieldSpec(t.game.rules, player, mineField, t.game.Universe.numPlanetsWithin(mineField.Position, mineField.Radius()))
 		mineField.MarkDirty()
+
+		log.Debug().
+			Int64("GameID", t.game.ID).
+			Int("Player", mineField.PlayerNum).
+			Str("MineField", mineField.Name).
+			Int("NumMines", mineField.NumMines).
+			Msgf("decayed mineField")
+
 	}
 }
 
 func (t *turn) fleetLayMines() {
 	for _, fleet := range t.game.Fleets {
+		if fleet.Delete {
+			continue
+		}
+
 		wp0 := fleet.Waypoints[0]
 		if wp0.Task == WaypointTaskLayMineField {
 			player := t.game.getPlayer(fleet.PlayerNum)
@@ -1175,6 +1422,16 @@ func (t *turn) fleetLayMines() {
 				// TODO (performance): the radius will be computed in the spec as well. hmmmm
 				mineField.Spec = computeMinefieldSpec(t.game.rules, player, mineField, t.game.Universe.numPlanetsWithin(mineField.Position, mineField.Radius()))
 				mineField.MarkDirty()
+
+				log.Debug().
+					Int64("GameID", t.game.ID).
+					Int("Player", fleet.PlayerNum).
+					Str("Fleet", fleet.Name).
+					Int("MinesLaid", minesLaid).
+					Str("MineField", mineField.Name).
+					Int("NumMines", mineField.NumMines).
+					Msgf("laid mines")
+
 			}
 		}
 	}
@@ -1196,6 +1453,14 @@ func (t *turn) instaform() {
 					planet.Hab = planet.Hab.Add(terraformAmount)
 					planet.Spec = computePlanetSpec(&t.game.Rules, player, planet)
 					messager.instaform(player, planet, terraformAmount)
+
+					log.Debug().
+						Int64("GameID", t.game.ID).
+						Int("Player", player.Num).
+						Str("Planet", planet.Name).
+						Str("Hab", planet.Hab.String()).
+						Msgf("instaformed planet")
+
 				}
 			}
 		}
@@ -1218,6 +1483,15 @@ func (t *turn) fleetSweepMines() {
 				if fleet.willAttack(fleetPlayer, mineField.PlayerNum) && isPointInCircle(fleet.Position, mineField.Position, mineField.Radius()) {
 					mineFieldPlayer := t.game.getPlayer(mineField.PlayerNum)
 					mineField.sweep(t.game.rules, fleet, fleetPlayer, mineFieldPlayer)
+
+					log.Debug().
+						Int64("GameID", t.game.ID).
+						Int("Player", fleet.PlayerNum).
+						Str("Fleet", fleet.Name).
+						Str("MineField", mineField.Name).
+						Int("MineFieldPlayer", mineField.PlayerNum).
+						Int("NumMines", mineField.NumMines).
+						Msgf("fleet swept mines")
 
 					if mineField.NumMines <= 10 {
 						t.game.deleteMineField(mineField)
@@ -1244,18 +1518,26 @@ func (t *turn) fleetSweepMines() {
 // repair fleets and starbases
 func (t *turn) fleetRepair() {
 	for _, fleet := range t.game.Fleets {
-		if !fleet.Delete {
-			player := t.game.getPlayer(fleet.PlayerNum)
-			orbiting := t.game.getOrbitingPlanet(fleet)
-			fleet.repairFleet(t.game.rules, player, orbiting)
+		if fleet.Delete {
+			continue
 		}
+
+		player := t.game.getPlayer(fleet.PlayerNum)
+		orbiting := t.game.getOrbitingPlanet(fleet)
+		fleet.repairFleet(t.game.rules, player, orbiting)
 	}
 
 	for _, starbase := range t.game.Starbases {
-		if !starbase.Delete && starbase.Tokens[0].QuantityDamaged > 0 {
-			player := t.game.getPlayer(starbase.PlayerNum)
-			starbase.repairStarbase(t.game.rules, player)
+		if starbase.Delete {
+			continue
 		}
+
+		if starbase.Tokens[0].QuantityDamaged == 0 {
+			continue
+		}
+
+		player := t.game.getPlayer(starbase.PlayerNum)
+		starbase.repairStarbase(t.game.rules, player)
 	}
 }
 
@@ -1293,7 +1575,16 @@ func (t *turn) fleetRemoteTerraform() {
 
 		terraformer := NewTerraformer()
 		for i := 0; i < fleet.Spec.TerraformRate; i++ {
-			terraformer.TerraformOneStep(planet, planetPlayer, player, deterraform)
+			result := terraformer.TerraformOneStep(planet, planetPlayer, player, deterraform)
+			if result != (TerraformResult{}) {
+				log.Debug().
+					Int64("GameID", t.game.ID).
+					Int("Player", fleet.PlayerNum).
+					Str("Fleet", fleet.Name).
+					Str("Planet", planet.Name).
+					Str("HabType", result.Type.String()).
+					Msgf("fleet remote terraformed planet")
+			}
 		}
 	}
 }
@@ -1337,6 +1628,15 @@ func (t *turn) fleetPatrol(player *Player) {
 			fleet.Waypoints = append(fleet.Waypoints, NewFleetWaypoint(closest.Position, closest.Num, closest.PlayerNum, closest.Name, wp.PatrolWarpSpeed))
 
 			messager.fleetPatrolTargeted(player, fleet, closest)
+
+			log.Debug().
+				Int64("GameID", t.game.ID).
+				Int("Player", fleet.PlayerNum).
+				Str("Fleet", fleet.Name).
+				Str("Target", closest.Name).
+				Int("TargetPlayer", closest.PlayerNum).
+				Msgf("fleet patrol targeted enemy")
+
 		}
 	}
 }
@@ -1379,6 +1679,10 @@ func (t *turn) calculateScores() {
 
 	// Calculate ship counts
 	for _, fleet := range t.game.Fleets {
+		if fleet.Delete {
+			continue
+		}
+
 		score := &scores[fleet.PlayerNum-1]
 		for _, token := range fleet.Tokens {
 			powerRating := token.design.Spec.PowerRating
@@ -1445,6 +1749,14 @@ func (t *turn) checkVictory(player *Player) {
 		for _, player := range t.game.Players {
 			if player.Victor {
 				victors = append(victors, player)
+
+				log.Debug().
+					Int64("GameID", t.game.ID).
+					Int("Player", player.Num).
+					Str("PlayerName", player.Name).
+					Str("Race", player.Race.PluralName).
+					Msgf("you are victorious your majesty!")
+
 			}
 		}
 

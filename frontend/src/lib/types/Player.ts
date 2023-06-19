@@ -2,10 +2,13 @@ import type { BattleAttackWho, BattleRecord, BattleTactic, BattleTarget } from '
 import type { Fleet, Target, WaypointTransportTasks } from './Fleet';
 import type { MineField } from './MineField';
 import type { MineralPacket } from './MineralPacket';
+import type { MysteryTrader } from './MysteryTrader';
 import type { Planet, ProductionQueueItem } from './Planet';
 import { humanoid, type Race } from './Race';
+import type { Salvage } from './Salvage';
 import type { ShipDesign, ShipDesignIntel } from './ShipDesign';
 import type { Tech, TechDefense, TechPlanetaryScanner } from './Tech';
+import type { Wormhole } from './Wormhole';
 
 export type PlayerResponse = {
 	id?: number;
@@ -44,8 +47,11 @@ export type PlayerPlans = {
 export type PlayerIntels = {
 	planetIntels: Planet[];
 	fleetIntels?: Fleet[];
-	mineFields?: MineField[];
-	mineralPackets?: MineralPacket[];
+	mineFieldIntels?: MineField[];
+	mineralPacketIntels?: MineralPacket[];
+	salvageIntels?: Salvage[];
+	wormholeIntels?: Wormhole[];
+	mysteryTraderIntels?: MysteryTrader[];
 	shipDesignIntels?: ShipDesignIntel[];
 	playerIntels: PlayerIntel[];
 };
@@ -56,6 +62,7 @@ export type PlayerMapObjects = {
 	starbases: Fleet[];
 	mineFields: MineField[];
 	mineralPackets: MineralPacket[];
+	salvages: Salvage[];
 };
 
 export type PlayerOrders = {

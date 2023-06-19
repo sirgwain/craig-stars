@@ -46,6 +46,8 @@ import (
 // goverter:extend GameMineFieldIntelsToMineFieldIntels
 // goverter:extend WormholeIntelsToGameWormholeIntels
 // goverter:extend GameWormholeIntelsToWormholeIntels
+// goverter:extend MysteryTraderIntelsToGameMysteryTraderIntels
+// goverter:extend GameMysteryTraderIntelsToMysteryTraderIntels
 // goverter:extend GameRaceToPlayerRace
 // goverter:extend PlayerRaceToGameRace
 // goverter:extend PlayerSpecToGamePlayerSpec
@@ -167,6 +169,7 @@ type Converter interface {
 	// goverter:map PlayerIntels.MineralPacketIntels MineralPacketIntels
 	// goverter:map PlayerIntels.MineFieldIntels MineFieldIntels
 	// goverter:map PlayerIntels.WormholeIntels WormholeIntels
+	// goverter:map PlayerIntels.MysteryTraderIntels MysteryTraderIntels
 	// goverter:map PlayerPlans.BattlePlans BattlePlans
 	// goverter:map PlayerPlans.ProductionPlans ProductionPlans
 	// goverter:map PlayerPlans.TransportPlans TransportPlans
@@ -588,6 +591,18 @@ func GameWormholeIntelsToWormholeIntels(source []cs.WormholeIntel) *WormholeInte
 	return (*WormholeIntels)(&source)
 }
 
+func MysteryTraderIntelsToGameMysteryTraderIntels(source *MysteryTraderIntels) []cs.MysteryTraderIntel {
+	// return an empty slice for nil
+	if source == nil {
+		return []cs.MysteryTraderIntel{}
+	}
+	return ([]cs.MysteryTraderIntel)(*source)
+}
+
+func GameMysteryTraderIntelsToMysteryTraderIntels(source []cs.MysteryTraderIntel) *MysteryTraderIntels {
+	return (*MysteryTraderIntels)(&source)
+}
+
 func PlayerRaceToGameRace(source *PlayerRace) cs.Race {
 	// return an empty object for nil to support partial loads
 	if source == nil {
@@ -676,6 +691,10 @@ func ExtendPlayerPlayerIntels(source Player) cs.PlayerIntels {
 
 	if source.WormholeIntels != nil {
 		intels.WormholeIntels = *source.WormholeIntels
+	}
+
+	if source.MysteryTraderIntels != nil {
+		intels.MysteryTraderIntels = *source.MysteryTraderIntels
 	}
 
 	return intels

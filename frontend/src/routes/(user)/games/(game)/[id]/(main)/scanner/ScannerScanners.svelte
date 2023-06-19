@@ -48,7 +48,7 @@
 					}
 				});
 
-			game.universe.mineralPackets
+			game.universe.mineralPacketIntels
 				.filter((packet) => packet.scanRange != NoScanner || packet.scanRangePen != NoScanner)
 				.forEach((packet) => {
 					const key = positionKey(packet);

@@ -1,5 +1,10 @@
 package cs
 
+import (
+	"fmt"
+	"strings"
+)
+
 type Mineral struct {
 	Ironium   int `json:"ironium,omitempty"`
 	Boranium  int `json:"boranium,omitempty"`
@@ -13,6 +18,20 @@ func NewMineral(values [3]int) Mineral {
 		Germanium: values[2],
 	}
 
+}
+
+func (c Mineral) PrettyString() string {
+	texts := make([]string, 0, 4)
+	if c.Ironium > 0 {
+		texts = append(texts, fmt.Sprintf("%dkT ironium", c.Ironium))
+	}
+	if c.Boranium > 0 {
+		texts = append(texts, fmt.Sprintf("%dkT boranium", c.Boranium))
+	}
+	if c.Germanium > 0 {
+		texts = append(texts, fmt.Sprintf("%dkT germanium", c.Germanium))
+	}
+	return strings.Join(texts, ", ")
 }
 
 func (m Mineral) Total() int {
@@ -43,4 +62,20 @@ func (m Mineral) AddInt(num int) Mineral {
 		Boranium:  m.Boranium + num,
 		Germanium: m.Germanium + num,
 	}
+}
+
+func (c Mineral) GreatestType() CargoType {
+	if c.Ironium >= c.Boranium && c.Ironium >= c.Germanium {
+		return Ironium
+	}
+
+	if c.Boranium >= c.Ironium && c.Boranium >= c.Germanium {
+		return Boranium
+	}
+
+	if c.Germanium >= c.Ironium && c.Germanium >= c.Boranium {
+		return Germanium
+	}
+
+	return None
 }

@@ -62,7 +62,7 @@ const (
 )
 
 // true if this is an auto type
-func (t QueueItemType) isAuto() bool {
+func (t QueueItemType) IsAuto() bool {
 	return t == QueueItemTypeAutoMines ||
 		t == QueueItemTypeAutoFactories ||
 		t == QueueItemTypeAutoDefenses ||
@@ -73,7 +73,7 @@ func (t QueueItemType) isAuto() bool {
 }
 
 // true if this is an auto type
-func (t QueueItemType) isPacket() bool {
+func (t QueueItemType) IsPacket() bool {
 	return t == QueueItemTypeAutoMineralPacket ||
 		t == QueueItemTypeMixedMineralPacket ||
 		t == QueueItemTypeIroniumMineralPacket ||
@@ -110,11 +110,11 @@ func (p *production) produce() productionResult {
 	newQueue := []ProductionQueueItem{}
 	for itemIndex, item := range planet.ProductionQueue {
 
-		if item.Type.isPacket() && !planet.Spec.HasMassDriver {
+		if item.Type.IsPacket() && !planet.Spec.HasMassDriver {
 			messager.buildMineralPacketNoMassDriver(player, planet)
 			continue
 		}
-		if item.Type.isPacket() && planet.PacketTargetNum == None {
+		if item.Type.IsPacket() && planet.PacketTargetNum == None {
 			messager.buildMineralPacketNoTarget(player, planet)
 			continue
 		}
@@ -153,7 +153,7 @@ func (p *production) produce() productionResult {
 				available = available.Minus(item.Allocated)
 			}
 
-			if item.Type.isAuto() {
+			if item.Type.IsAuto() {
 				if available.Resources == 0 {
 					// we are out of resources, create a partial item end production
 					if (item.Allocated != Cost{}) && numBuilt < item.Quantity {

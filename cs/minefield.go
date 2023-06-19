@@ -3,6 +3,8 @@ package cs
 import (
 	"fmt"
 	"math"
+
+	"github.com/rs/zerolog/log"
 )
 
 type MineFieldType string
@@ -168,6 +170,17 @@ func (mineField *MineField) damageFleet(player *Player, fleet *Fleet, fleetPlaye
 	if mineField.PlayerNum != fleetPlayer.Num {
 		messager.fleetHitMineField(player, fleet, fleetPlayer, mineField, totalDamage, shipsDestroyed)
 	}
+
+	log.Debug().
+		Int64("GameID", mineField.GameID).
+		Int("Player", mineField.PlayerNum).
+		Str("MineField", mineField.Name).
+		Str("Fleet", fleet.Name).
+		Int("FleetPlayer", fleetPlayer.Num).
+		Int("TotalDamage", totalDamage).
+		Int("ShipsDestroyed", shipsDestroyed).
+		Msgf("minefield damaged fleet")
+
 }
 
 // When a minefield is collided with, reduce it's number of mines
@@ -197,7 +210,7 @@ func (mineField *MineField) sweep(rules *Rules, fleet *Fleet, fleetPlayer *Playe
 	messager.fleetMineFieldSwept(mineFieldPlayer, fleet, mineField, numSwept)
 }
 
-/// Check for mine field collisions. If we collide with one, do damage and stop the fleet
+// / Check for mine field collisions. If we collide with one, do damage and stop the fleet
 func checkForMineFieldCollision(rules *Rules, playerGetter playerGetter, mapObjectGetter mapObjectGetter, fleet *Fleet, dest Waypoint, distance float64) float64 {
 	fleetPlayer := playerGetter.getPlayer(fleet.PlayerNum)
 	safeWarpBonus := fleetPlayer.Race.Spec.MineFieldSafeWarpBonus

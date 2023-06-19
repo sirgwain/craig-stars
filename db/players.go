@@ -52,6 +52,7 @@ type Player struct {
 	MineralPacketIntels          *MineralPacketIntels `json:"mineralPacketIntels,omitempty"`
 	MineFieldIntels              *MineFieldIntels     `json:"mineFieldIntels,omitempty"`
 	WormholeIntels               *WormholeIntels      `json:"wormholeIntels,omitempty"`
+	MysteryTraderIntels          *MysteryTraderIntels `json:"mysteryTraderIntels,omitempty"`
 	Race                         *PlayerRace          `json:"race,omitempty"`
 	Stats                        *PlayerStats         `json:"stats,omitempty"`
 	ScoreHistory                 *PlayerScores        `json:"scoreHistory,omitempty"`
@@ -74,6 +75,7 @@ type FleetIntels []cs.FleetIntel
 type ShipDesignIntels []cs.ShipDesignIntel
 type MineralPacketIntels []cs.MineralPacketIntel
 type MineFieldIntels []cs.MineFieldIntel
+type MysteryTraderIntels []cs.MysteryTraderIntel
 type WormholeIntels []cs.WormholeIntel
 type PlayerRace cs.Race
 type PlayerSpec cs.PlayerSpec
@@ -217,6 +219,14 @@ func (item *MineFieldIntels) Value() (driver.Value, error) {
 }
 
 func (item *MineFieldIntels) Scan(src interface{}) error {
+	return scanJSON(src, item)
+}
+
+func (item *MysteryTraderIntels) Value() (driver.Value, error) {
+	return valueJSON(item)
+}
+
+func (item *MysteryTraderIntels) Scan(src interface{}) error {
 	return scanJSON(src, item)
 }
 
@@ -588,6 +598,7 @@ func (c *client) createPlayer(player *cs.Player, tx SQLExecer) error {
 		mineralPacketIntels,
 		mineFieldIntels,
 		wormholeIntels,
+		mysteryTraderIntels,
 		race,
 		stats,
 		scoreHistory,
@@ -636,6 +647,7 @@ func (c *client) createPlayer(player *cs.Player, tx SQLExecer) error {
 		:mineralPacketIntels,
 		:mineFieldIntels,
 		:wormholeIntels,
+		:mysteryTraderIntels,
 		:race,
 		:stats,
 		:scoreHistory,
@@ -780,6 +792,7 @@ func (c *client) updatePlayerWithNamedExecer(player *cs.Player, tx SQLExecer) er
 		mineralPacketIntels = :mineralPacketIntels,
 		mineFieldIntels = :mineFieldIntels,
 		wormholeIntels = :wormholeIntels,
+		mysteryTraderIntels = :mysteryTraderIntels,
 		race = :race,
 		stats = :stats,
 		scoreHistory = :scoreHistory,

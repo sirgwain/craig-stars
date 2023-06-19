@@ -2,10 +2,13 @@ import type { Fleet, Target } from '$lib/types/Fleet';
 import { equal, MapObjectType, type MapObject } from '$lib/types/MapObject';
 import type { MineField } from '$lib/types/MineField';
 import type { MineralPacket } from '$lib/types/MineralPacket';
+import type { MysteryTrader } from '$lib/types/MysteryTrader';
 import type { Planet } from '$lib/types/Planet';
 import type { PlayerIntel, PlayerIntels, PlayerMapObjects } from '$lib/types/Player';
+import type { Salvage } from '$lib/types/Salvage';
 import type { ShipDesignIntel } from '$lib/types/ShipDesign';
 import type { Vector } from '$lib/types/Vector';
+import type { Wormhole } from '$lib/types/Wormhole';
 import { groupBy } from 'lodash-es';
 import { commandMapObject, selectMapObject, zoomToMapObject } from './Context';
 
@@ -34,6 +37,7 @@ export class Universe implements PlayerMapObjects, PlayerIntels {
 	playerNum = 0;
 	planets: Planet[] = [];
 	fleets: Fleet[] = [];
+	salvages: Salvage[] = [];
 	mineFields: MineField[] = [];
 	mineralPackets: MineralPacket[] = [];
 	starbases: Fleet[] = [];
@@ -41,6 +45,9 @@ export class Universe implements PlayerMapObjects, PlayerIntels {
 	fleetIntels: Fleet[] = [];
 	mineFieldIntels: MineField[] = [];
 	mineralPacketIntels: MineralPacket[] = [];
+	salvageIntels: Salvage[] = [];
+	wormholeIntels: Wormhole[] = [];
+	mysteryTraderIntels: MysteryTrader[] = [];
 	shipDesignIntels: ShipDesignIntel[] = [];
 	playerIntels: PlayerIntel[] = [];
 
@@ -56,8 +63,18 @@ export class Universe implements PlayerMapObjects, PlayerIntels {
 
 		this.planetIntels = intels.planetIntels ?? [];
 		this.fleetIntels = intels.fleetIntels ?? [];
+		this.mineFieldIntels = intels.mineFieldIntels ?? [];
+		this.mineralPacketIntels = intels.mineralPacketIntels ?? [];
+		this.salvageIntels = intels.salvageIntels ?? [];
+		this.wormholeIntels = intels.wormholeIntels ?? [];
+		this.mysteryTraderIntels = intels.mysteryTraderIntels ?? [];
 		this.planetIntels.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
 		this.fleetIntels.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
+		this.mineFieldIntels.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
+		this.mineralPacketIntels.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
+		this.salvageIntels.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
+		this.wormholeIntels.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
+		this.mysteryTraderIntels.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
 		this.fleets.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
 		this.mineFields.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
 		this.mineralPackets.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
@@ -86,6 +103,10 @@ export class Universe implements PlayerMapObjects, PlayerIntels {
 			.sort(sortByNum)
 			.forEach((mo) => addtoDict(mo, this.myMapObjectsByPosition));
 		this.mineralPackets
+			.filter(ownedByMe)
+			.sort(sortByNum)
+			.forEach((mo) => addtoDict(mo, this.myMapObjectsByPosition));
+		this.salvages
 			.filter(ownedByMe)
 			.sort(sortByNum)
 			.forEach((mo) => addtoDict(mo, this.myMapObjectsByPosition));
@@ -127,6 +148,14 @@ export class Universe implements PlayerMapObjects, PlayerIntels {
 		return this.starbases.find((sb) => sb.planetNum == planetNum);
 	}
 
+	getWormhole(num: number) {
+		return this.wormholeIntels.find((w) => w.num === num);
+	}
+
+	getMysteryTrader(num: number) {
+		return this.mysteryTraderIntels.find((mt) => mt.num === num);
+	}
+
 	addFleets(fleets: Fleet[]) {
 		this.fleets = [...fleets, ...this.fleets];
 		this.resetMyMapObjectsByPosition();
@@ -166,35 +195,42 @@ export class Universe implements PlayerMapObjects, PlayerIntels {
 
 	// get a mapobject by type, number, and optionally player num
 	getMapObject(target: Target): MapObject | undefined {
-		let mo: MapObject;
 		switch (target.targetType) {
 			case MapObjectType.Planet:
-				mo = this.planetIntels[(target.targetNum ?? 1) - 1];
-				if (mo.playerNum === this.playerNum) {
-					return this.getPlanet(mo.num);
-				}
-				return mo;
+				return target.targetNum ? this.getPlanet(target.targetNum) : undefined;
 			case MapObjectType.Fleet:
 				if (target.targetPlayerNum === this.playerNum) {
 					return this.fleets.find((f) => f.num === target.targetNum);
 				}
-				return this.fleetIntels.find((f) => f.num === target.targetNum && f.playerNum === target.targetPlayerNum);
+				return this.fleetIntels.find(
+					(f) => f.num === target.targetNum && f.playerNum === target.targetPlayerNum
+				);
 			case MapObjectType.Wormhole:
-				break;
+				return target.targetNum ? this.getWormhole(target.targetNum) : undefined;
 			case MapObjectType.MineField:
 				if (target.targetPlayerNum === this.playerNum) {
 					return this.mineFields.find((mf) => mf.num === target.targetNum);
 				}
-				return this.mineFieldIntels.find((mf) => mf.num === target.targetNum && mf.playerNum === target.targetPlayerNum);
+				return this.mineFieldIntels.find(
+					(mf) => mf.num === target.targetNum && mf.playerNum === target.targetPlayerNum
+				);
 			case MapObjectType.MysteryTrader:
-				break;
+				return target.targetNum ? this.getMysteryTrader(target.targetNum) : undefined;
 			case MapObjectType.Salvage:
+				if (target.targetPlayerNum === this.playerNum) {
+					return this.salvages.find((mf) => mf.num === target.targetNum);
+				}
+				return this.salvageIntels.find(
+					(mf) => mf.num === target.targetNum && mf.playerNum === target.targetPlayerNum
+				);
 				break;
 			case MapObjectType.MineralPacket:
 				if (target.targetPlayerNum === this.playerNum) {
 					return this.mineralPackets.find((mf) => mf.num === target.targetNum);
 				}
-				return this.mineralPacketIntels.find((mf) => mf.num === target.targetNum && mf.playerNum === target.targetPlayerNum);
+				return this.mineralPacketIntels.find(
+					(mf) => mf.num === target.targetNum && mf.playerNum === target.targetPlayerNum
+				);
 			case MapObjectType.PositionWaypoint:
 				break;
 		}

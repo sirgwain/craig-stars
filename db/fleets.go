@@ -34,7 +34,6 @@ type Fleet struct {
 	Colonists         int         `json:"colonists,omitempty"`
 	Fuel              int         `json:"fuel,omitempty"`
 	Age               int         `json:"age,omitempty"`
-	IdleTurns         int         `json:"idleTurns,omitempty"`
 	BattlePlanNum     int         `json:"battlePlanNum,omitempty"`
 	HeadingX          float64     `json:"headingX,omitempty"`
 	HeadingY          float64     `json:"headingY,omitempty"`
@@ -239,7 +238,6 @@ func (c *client) createFleet(fleet *cs.Fleet, tx SQLExecer) error {
 		colonists,
 		fuel,
 		age,
-		idleTurns,
 		headingX,
 		headingY,
 		warpSpeed,
@@ -270,7 +268,6 @@ func (c *client) createFleet(fleet *cs.Fleet, tx SQLExecer) error {
 		:colonists,
 		:fuel,
 		:age,
-		:idleTurns,
 		:headingX,
 		:headingY,
 		:warpSpeed,
@@ -312,19 +309,19 @@ func (c *client) CreateUpdateOrDeleteFleets(gameID int64, fleets []*cs.Fleet) er
 			if err := c.createFleet(fleet, tx); err != nil {
 				return fmt.Errorf("create fleet %w", err)
 			}
-			log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Created fleet %s", fleet.Name)
+			// log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Created fleet %s", fleet.Name)
 
 		} else if fleet.Delete {
 			if err := c.deleteFleet(fleet.ID, tx); err != nil {
 				tx.Rollback()
 				return fmt.Errorf("delete fleet %w", err)
 			}
-			log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Deleted fleet %s", fleet.Name)
+			// log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Deleted fleet %s", fleet.Name)
 		} else {
 			if err := c.updateFleet(fleet, tx); err != nil {
 				return fmt.Errorf("update fleet %w", err)
 			}
-			log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Updated fleet %s", fleet.Name)
+			// log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Updated fleet %s", fleet.Name)
 		}
 	}
 
@@ -357,7 +354,6 @@ func (c *client) updateFleet(fleet *cs.Fleet, tx SQLExecer) error {
 		colonists = :colonists,
 		fuel = :fuel,
 		age = :age,
-		idleTurns = :idleTurns,
 		headingX = :headingX,
 		headingY = :headingY,
 		warpSpeed = :warpSpeed,

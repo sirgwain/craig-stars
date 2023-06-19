@@ -1,5 +1,7 @@
 package cs
 
+import "github.com/rs/zerolog/log"
+
 // invade a planet with a colonist drop
 func invadePlanet(planet *Planet, fleet *Fleet, defender *Player, attacker *Player, colonistsDropped int, invasionDefenseCoverageFactor float64) {
 	if !planet.owned() || planet.population() == 0 {
@@ -55,5 +57,16 @@ func invadePlanet(planet *Planet, fleet *Fleet, defender *Player, attacker *Play
 		// reduce the population to however many colonists remain
 		planet.setPopulation(remainingDefenders)
 	}
+
+	log.Debug().
+		Int64("GameID", planet.GameID).
+		Int("Defender", defender.Num).
+		Int("Attacker", attacker.Num).
+		Str("Fleet", fleet.Name).
+		Str("Planet", planet.Name).
+		Int("Attackers", attackers).
+		Int("Defenders", defenders).
+		Int("PlanetPlayerNum", planet.PlayerNum).
+		Msgf("planet invaded")
 
 }

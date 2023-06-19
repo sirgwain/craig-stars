@@ -3,6 +3,8 @@ package cs
 import (
 	"fmt"
 	"math"
+
+	"github.com/rs/zerolog/log"
 )
 
 // warpspeed for using a stargate vs moving with warp drive
@@ -28,7 +30,6 @@ type Fleet struct {
 	Cargo             Cargo       `json:"cargo,omitempty"`
 	Fuel              int         `json:"fuel"`
 	Age               int         `json:"age"`
-	IdleTurns         int         `json:"idleTurns"`
 	Tokens            []ShipToken `json:"tokens"`
 	Heading           Vector      `json:"heading,omitempty"`
 	WarpSpeed         int         `json:"warpSpeed,omitempty"`
@@ -963,9 +964,8 @@ func (fleet *Fleet) colonizePlanet(rules *Rules, player *Player, planet *Planet)
 	planet.Cargo = planet.Cargo.Add(fleet.Cargo)
 
 	if len(player.ProductionPlans) > 0 {
-		// TODO: apply production plan
 		plan := player.ProductionPlans[0]
-		planet.ContributesOnlyLeftoverToResearch = plan.ContributesOnlyLeftoverToResearch
+		plan.Apply(planet)
 	}
 
 	if player.Race.Spec.InnateMining {
@@ -1215,6 +1215,17 @@ func (fleet *Fleet) repairFleet(rules *Rules, player *Player, orbiting *Planet) 
 			if token.Damage == 0 {
 				token.QuantityDamaged = 0
 			}
+
+			log.Debug().
+				Int64("GameID", fleet.GameID).
+				Int("Player", fleet.PlayerNum).
+				Str("Fleet", fleet.Name).
+				Str("Token", token.design.Name).
+				Int("RepairAmount", repairAmount).
+				Int("QuantityDamaged", token.QuantityDamaged).
+				Int("Damage", int(token.Damage)).
+				Msgf("fleet token repaired")
+
 		}
 		fleet.MarkDirty()
 	}
@@ -1226,8 +1237,19 @@ func (fleet *Fleet) repairStarbase(rules *Rules, player *Player) {
 	token := &fleet.Tokens[0]
 
 	// IS races repair starbases 1.5x
-	repairAmount := float64(token.design.Spec.Armor) * repairRate * player.Race.Spec.StarbaseRepairFactor
+	repairAmount := maxInt(1, int(float64(token.design.Spec.Armor)*repairRate*player.Race.Spec.StarbaseRepairFactor))
 
 	// Remove damage from this fleet by its armor * repairRate
-	token.Damage = math.Max(0, fleet.Tokens[0].Damage-repairAmount)
+	token.Damage = math.Max(0, fleet.Tokens[0].Damage-float64(repairAmount))
+
+	log.Debug().
+		Int64("GameID", fleet.GameID).
+		Int("Player", fleet.PlayerNum).
+		Str("Fleet", fleet.Name).
+		Str("Token", token.design.Name).
+		Int("RepairAmount", repairAmount).
+		Int("QuantityDamaged", token.QuantityDamaged).
+		Int("Damage", int(token.Damage)).
+		Msgf("starbase repaired")
+
 }

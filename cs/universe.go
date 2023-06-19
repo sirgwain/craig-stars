@@ -343,6 +343,13 @@ func (u *Universe) deleteFleet(fleet *Fleet) {
 	}
 
 	u.removeMapObjectAtPosition(fleet, fleet.Position)
+
+	log.Debug().
+		Int64("GameID", fleet.GameID).
+		Int("Player", fleet.PlayerNum).
+		Str("Fleet", fleet.Name).
+		Msgf("deleted fleet")
+
 }
 
 // move a fleet from one position to another
@@ -384,6 +391,13 @@ func (u *Universe) deleteWormhole(wormhole *Wormhole) {
 
 	delete(u.wormholesByNum, wormhole.Num)
 	u.removeMapObjectAtPosition(wormhole, wormhole.Position)
+
+	log.Debug().
+		Int64("GameID", wormhole.GameID).
+		Int("Player", wormhole.PlayerNum).
+		Str("Wormhole", wormhole.Name).
+		Msgf("deleted wormhole")
+
 }
 
 // create a new wormhole in the universe
@@ -537,6 +551,13 @@ func (u *Universe) deleteMineField(mineField *MineField) {
 
 	delete(u.mineFieldsByNum, playerObjectKey(mineField.PlayerNum, mineField.Num))
 	u.removeMapObjectAtPosition(mineField, mineField.Position)
+
+	log.Debug().
+		Int64("GameID", mineField.GameID).
+		Int("Player", mineField.PlayerNum).
+		Str("MineField", mineField.Name).
+		Msgf("deleted mineField")
+
 }
 
 // get the number of planets within a circle

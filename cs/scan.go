@@ -49,6 +49,13 @@ func (scan *playerScan) scan() error {
 		}
 	}
 
+	for i := range player.MineFieldIntels {
+		mineField := &player.MineFieldIntels[i]
+		if mineField.ReportAge != ReportAgeUnexplored {
+			mineField.ReportAge++
+		}
+	}
+
 	// TODO: add in player mineral packets, minefields, etc
 	scanners := scan.getScanners()
 	cargoScanners := scan.getCargoScanners()
@@ -61,7 +68,9 @@ func (scan *playerScan) scan() error {
 	// scan universe
 	scan.scanFleets(scanners, cargoScanners)
 	scan.scanMineFields(scanners)
+	scan.scanMineralPackets(scanners)
 	scan.scanWormholes(scanners)
+	scan.scanMysteryTraders(scanners)
 
 	scan.discoverPlayers()
 
@@ -214,6 +223,43 @@ func (scan *playerScan) scanWormholes(scanners []scanner) {
 	}
 }
 
+// scan Mystery Traders
+func (scan *playerScan) scanMysteryTraders(scanners []scanner) {
+	for _, mysteryTrader := range scan.universe.MysteryTraders {
+		for _, scanner := range scanners {
+			// we only care about regular scanners for mysteryTraders
+			if float64(scanner.RangeSquared) >= scanner.Position.DistanceSquaredTo(mysteryTrader.Position) {
+				scan.discoverer.discoverMysteryTrader(scan.player, mysteryTrader)
+				break
+			}
+		}
+	}
+}
+
+// scan all fleets and discover their designs if we should
+func (scan *playerScan) scanMineralPackets(scanners []scanner) {
+	for _, packet := range scan.universe.MineralPackets {
+		// skip our own
+		if scan.player.Num == packet.PlayerNum {
+			continue
+		}
+
+		// PP races detect all packets in flight
+		if scan.player.Race.Spec.DetectAllPackets {
+			scan.discoverer.discoverMineralPacket(scan.player, packet)
+			continue
+		}
+
+		for _, scanner := range scanners {
+			// we only care about regular scanners for mineral packets
+			if float64(scanner.RangeSquared) >= scanner.Position.DistanceSquaredTo(packet.Position) {
+				scan.discoverer.discoverMineralPacket(scan.player, packet)
+				break
+			}
+		}
+	}
+}
+
 // scan all fleets and discover their designs if we should
 func (scan *playerScan) scanMineFields(scanners []scanner) {
 	for _, mineField := range scan.universe.MineFields {
@@ -221,7 +267,7 @@ func (scan *playerScan) scanMineFields(scanners []scanner) {
 			// The player already gets a copy of all their own mineFields
 			continue
 		}
-		intel := scan.discoverer.getMineFieldIntel(mineField.Num)
+		intel := scan.discoverer.getMineFieldIntel(mineField.PlayerNum, mineField.Num)
 
 		cloakFactor := 1.0 - (float64(scan.rules.MineFieldCloak) / 100)
 		if intel != nil {
@@ -312,9 +358,9 @@ func (scan *playerScan) getScanners() []scanner {
 	for _, packet := range scan.universe.MineralPackets {
 		if packet.PlayerNum == scan.player.Num && (packet.ScanRange != NoScanner || packet.ScanRangePen != NoScanner) {
 			scanner := scanner{
-				Position:     packet.Position,
-				RangeSquared: packet.ScanRange*packet.ScanRange,
-				RangePenSquared: packet.ScanRangePen*packet.ScanRangePen,
+				Position:        packet.Position,
+				RangeSquared:    packet.ScanRange * packet.ScanRange,
+				RangePenSquared: packet.ScanRangePen * packet.ScanRangePen,
 			}
 			scanners = append(scanners, scanner)
 		}

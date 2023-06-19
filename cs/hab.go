@@ -38,6 +38,10 @@ func (h HabType) String() string {
 	}
 }
 
+func (h Hab) String() string {
+	return fmt.Sprintf("Grav: %d, Temp: %d, Rad: %d", h.Grav, h.Temp, h.Rad)
+}
+
 func (h Hab) Add(other Hab) Hab {
 	return Hab{
 		Grav: h.Grav + other.Grav,
@@ -66,7 +70,7 @@ func (h Hab) Get(habType HabType) int {
 	return 0
 }
 
-func (h* Hab) Set(habType HabType, value int) *Hab {
+func (h *Hab) Set(habType HabType, value int) *Hab {
 	switch habType {
 	case Grav:
 		h.Grav = value

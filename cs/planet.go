@@ -274,17 +274,12 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 	starbase := newStarbase(player, p, starbaseDesign, starbaseDesign.Name)
 	starbase.Spec = ComputeFleetSpec(rules, player, &starbase)
 	p.starbase = &starbase
-	p.PacketSpeed = starbase.Spec.BasePacketSpeed
+	p.PacketSpeed = starbase.Spec.SafePacketSpeed
 
-	// p.PacketSpeed = p.Starbase.Spec.SafePacketSpeed
-
-	// // apply the default plan, but remove the terraforming item because our homeworld is perfect
-	// planetService.ApplyProductionPlan(planet.ProductionQueue.Items, player, player.ProductionPlans[0]);
-	// planet.ProductionQueue.Items = planet.ProductionQueue.Items.Where(item => !item.IsTerraform).ToList();
-
-	// p.ProductionQueue = append(p.ProductionQueue, ProductionQueueItem{Type: QueueItemTypeAutoMinTerraform, Quantity: 1})
-	p.ProductionQueue = append(p.ProductionQueue, ProductionQueueItem{Type: QueueItemTypeAutoFactories, Quantity: 10})
-	p.ProductionQueue = append(p.ProductionQueue, ProductionQueueItem{Type: QueueItemTypeAutoMines, Quantity: 10})
+	if len(player.ProductionPlans) > 0 {
+		plan := player.ProductionPlans[0]
+		plan.Apply(p)
+	}
 
 	messager.homePlanet(player, p)
 

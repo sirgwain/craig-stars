@@ -460,9 +460,45 @@ func Insectoids() Race {
 	}
 }
 
+func HEs() Race {
+	r := NewRace()
+	return *r.WithPRT(HE)
+}
+func SSs() Race {
+	r := NewRace()
+	return *r.WithPRT(SS)
+}
+func WMs() Race {
+	r := NewRace()
+	return *r.WithPRT(WM)
+}
+func CAs() Race {
+	r := NewRace()
+	return *r.WithPRT(CA)
+}
+func ISs() Race {
+	r := NewRace()
+	return *r.WithPRT(IS)
+}
+func SDs() Race {
+	r := NewRace()
+	return *r.WithPRT(SD)
+}
 func PPs() Race {
 	r := NewRace()
-	return *r.WithPRT(PP).WithName("Thrower").WithPluralName("Throwers")
+	return *r.WithPRT(PP)
+}
+func ITs() Race {
+	r := NewRace()
+	return *r.WithPRT(IT)
+}
+func ARs() Race {
+	r := NewRace()
+	return *r.WithPRT(AR)
+}
+func JoaTs() Race {
+	r := NewRace()
+	return *r.WithPRT(JoaT)
 }
 
 func (r *Race) String() string {

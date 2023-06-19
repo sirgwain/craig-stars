@@ -36,7 +36,7 @@ func Test_getClosestPlanet(t *testing.T) {
 	}
 
 	type args struct {
-		fleet               *cs.Fleet
+		position            cs.Vector
 		unknownPlanetsByNum map[int]cs.PlanetIntel
 	}
 	tests := []struct {
@@ -44,19 +44,19 @@ func Test_getClosestPlanet(t *testing.T) {
 		args args
 		want *cs.PlanetIntel
 	}{
-		{"no planets, should be nil", args{testLongRangeScout(player), map[int]cs.PlanetIntel{}}, nil},
-		{"1 planet, should be it", args{testLongRangeScout(player), map[int]cs.PlanetIntel{
+		{"no planets, should be nil", args{cs.Vector{}, map[int]cs.PlanetIntel{}}, nil},
+		{"1 planet, should be it", args{cs.Vector{}, map[int]cs.PlanetIntel{
 			1: planetAt0_0,
 		}}, &planetAt0_0},
-		{"2 planets, should be closer one", args{testLongRangeScout(player), map[int]cs.PlanetIntel{
+		{"2 planets, should be closer one", args{cs.Vector{}, map[int]cs.PlanetIntel{
 			1: planetAt100_100,
 			2: planetAt50_50,
 		}}, &planetAt50_50},
-		{"2 planets, should be closer one, regardless of order", args{testLongRangeScout(player), map[int]cs.PlanetIntel{
+		{"2 planets, should be closer one, regardless of order", args{cs.Vector{}, map[int]cs.PlanetIntel{
 			1: planetAt50_50,
 			2: planetAt100_100,
 		}}, &planetAt50_50},
-		{"3 planets, should be closer one", args{testLongRangeScout(player), map[int]cs.PlanetIntel{
+		{"3 planets, should be closer one", args{cs.Vector{}, map[int]cs.PlanetIntel{
 			1: planetAt50_50,
 			2: planetAt100_100,
 			3: planetAt0_0,
@@ -64,7 +64,7 @@ func Test_getClosestPlanet(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := aiPlayer.getClosestPlanet(tt.args.fleet, tt.args.unknownPlanetsByNum); !reflect.DeepEqual(got, tt.want) {
+			if got := aiPlayer.getClosestPlanetIntel(tt.args.position, tt.args.unknownPlanetsByNum); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("getClosestPlanet() = %v, want %v", got, tt.want)
 			}
 		})

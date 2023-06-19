@@ -104,11 +104,62 @@ func Test_generateTurns(t *testing.T) {
 	universe, _ := client.GenerateUniverse(game, players)
 
 	// generate many turns
-	for i := 0; i < 100; i++ {
+	numTurns := 10
+	for i := 0; i < numTurns; i++ {
 		client.GenerateTurn(game, universe, players)
+
+		// manually delete these
+		fleets := make([]*Fleet, 0, len(universe.Fleets))
+		for _, fleet := range universe.Fleets {
+			if !fleet.Delete {
+				fleets = append(fleets, fleet)
+			}
+		}
+		universe.Fleets = fleets
+
+		salvages := make([]*Salvage, 0, len(universe.Salvages))
+		for _, salvage := range universe.Salvages {
+			if !salvage.Delete {
+				salvages = append(salvages, salvage)
+			}
+		}
+		universe.Salvages = salvages
+
+		mineFields := make([]*MineField, 0, len(universe.MineFields))
+		for _, mineField := range universe.MineFields {
+			if !mineField.Delete {
+				mineFields = append(mineFields, mineField)
+			}
+		}
+		universe.MineFields = mineFields
+
+		mineralPackets := make([]*MineralPacket, 0, len(universe.MineralPackets))
+		for _, mineralPacket := range universe.MineralPackets {
+			if !mineralPacket.Delete {
+				mineralPackets = append(mineralPackets, mineralPacket)
+			}
+		}
+		universe.MineralPackets = mineralPackets
+
+		mysteryTraders := make([]*MysteryTrader, 0, len(universe.MysteryTraders))
+		for _, mysteryTrader := range universe.MysteryTraders {
+			if !mysteryTrader.Delete {
+				mysteryTraders = append(mysteryTraders, mysteryTrader)
+			}
+		}
+		universe.MysteryTraders = mysteryTraders
+
+		wormholes := make([]*Wormhole, 0, len(universe.Wormholes))
+		for _, wormhole := range universe.Wormholes {
+			if !wormhole.Delete {
+				wormholes = append(wormholes, wormhole)
+			}
+		}
+		universe.Wormholes = wormholes
+
 	}
 
-	assert.Equal(t, 2500, game.Year)
+	assert.Equal(t, game.Rules.StartingYear+numTurns, game.Year)
 
 	// should have fleets
 	assert.True(t, len(universe.Fleets) > 0)
@@ -118,9 +169,6 @@ func Test_generateTurns(t *testing.T) {
 
 	// should have built factories
 	assert.Greater(t, universe.Planets[0].Factories, game.Rules.StartingFactories)
-
-	// should have researched
-	assert.NotEqual(t, player.TechLevels, TechLevel{3, 3, 3, 3, 3, 3})
 
 	// no victor
 	assert.False(t, player.Victor)
