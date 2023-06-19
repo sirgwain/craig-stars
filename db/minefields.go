@@ -2,25 +2,48 @@ package db
 
 import (
 	"database/sql"
+	"database/sql/driver"
+	"encoding/json"
 	"time"
 
 	"github.com/sirgwain/craig-stars/cs"
 )
 
 type MineField struct {
-	ID        int64            `json:"id,omitempty"`
-	GameID    int64            `json:"gameId,omitempty"`
-	CreatedAt time.Time        `json:"createdAt,omitempty"`
-	UpdatedAt time.Time        `json:"updatedAt,omitempty"`
-	X         float64          `json:"x,omitempty"`
-	Y         float64          `json:"y,omitempty"`
-	Name      string           `json:"name,omitempty"`
-	Num       int              `json:"num,omitempty"`
-	PlayerNum int              `json:"playerNum,omitempty"`
-	Tags      Tags             `json:"tags,omitempty"`
-	Type      cs.MineFieldType `json:"type,omitempty"`
-	NumMines  int              `json:"numMines,omitempty"`
-	Detonate  bool             `json:"detonate,omitempty"`
+	ID            int64            `json:"id,omitempty"`
+	GameID        int64            `json:"gameId,omitempty"`
+	CreatedAt     time.Time        `json:"createdAt,omitempty"`
+	UpdatedAt     time.Time        `json:"updatedAt,omitempty"`
+	X             float64          `json:"x,omitempty"`
+	Y             float64          `json:"y,omitempty"`
+	Name          string           `json:"name,omitempty"`
+	Num           int              `json:"num,omitempty"`
+	PlayerNum     int              `json:"playerNum,omitempty"`
+	Tags          Tags             `json:"tags,omitempty"`
+	MineFieldType cs.MineFieldType `json:"mineFieldType,omitempty"`
+	NumMines      int              `json:"numMines,omitempty"`
+	Detonate      bool             `json:"detonate,omitempty"`
+	Spec          *MineFieldSpec   `json:"spec,omitempty"`
+}
+
+type MineFieldSpec cs.MineFieldSpec
+
+// db serializer to serialize this to JSON
+func (item *MineFieldSpec) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
+	data, err := json.Marshal(item)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+// db deserializer to read this from JSON
+func (item *MineFieldSpec) Scan(src interface{}) error {
+	return scanJSON(src, item)
 }
 
 // get a mineField by id
@@ -35,6 +58,24 @@ func (c *client) GetMineField(id int64) (*cs.MineField, error) {
 
 	mineField := c.converter.ConvertMineField(&item)
 	return mineField, nil
+}
+
+func (c *client) GetMineFieldsForPlayer(gameID int64, playerNum int) ([]*cs.MineField, error) {
+
+	items := []MineField{}
+	if err := c.db.Select(&items, `SELECT * FROM mineFields WHERE gameId = ? AND playerNum = ?`, gameID, playerNum); err != nil {
+		if err == sql.ErrNoRows {
+			return []*cs.MineField{}, nil
+		}
+		return nil, err
+	}
+
+	results := make([]*cs.MineField, len(items))
+	for i := range items {
+		results[i] = c.converter.ConvertMineField(&items[i])
+	}
+
+	return results, nil
 }
 
 func (c *client) getMineFieldsForGame(gameID int64) ([]*cs.MineField, error) {
@@ -68,9 +109,10 @@ func (c *client) createMineField(mineField *cs.MineField, tx SQLExecer) error {
 		name,
 		num,
 		playerNum,
-		type,
+		mineFieldType,
 		numMines,
-		detonate
+		detonate,
+		spec
 	)
 	VALUES (
 		CURRENT_TIMESTAMP,
@@ -81,9 +123,10 @@ func (c *client) createMineField(mineField *cs.MineField, tx SQLExecer) error {
 		:name,
 		:num,
 		:playerNum,
-		:type,
+		:mineFieldType,
 		:numMines,
-		:detonate
+		:detonate,
+		:spec
 	)
 	`, item)
 
@@ -118,9 +161,10 @@ func (c *client) updateMineField(mineField *cs.MineField, tx SQLExecer) error {
 		name = :name,
 		num = :num,
 		playerNum = :playerNum,
-		type = :type,
+		mineFieldType = :mineFieldType,
 		numMines = :numMines,
-		detonate = :detonate
+		detonate = :detonate,
+		spec = :spec
 	WHERE id = :id
 	`, item); err != nil {
 		return err

@@ -9,30 +9,31 @@
 	export let items: any[];
 	export let itemTitle: (item: any) => string = (i) => `${i}`;
 
-	let detailsRef: HTMLDetailsElement;
+	function onSelect(item: any) {
+		(document.activeElement as HTMLElement)?.blur();
+		dispatch('selected', item);
+	}
+
+	let divRef: HTMLDivElement;
 </script>
 
-<details class="dropdown dropdown-top dropdown-end" bind:this={detailsRef}>
-	<summary class="btn btn-outline btn-sm btn-secondary normal-case"
-		>{title} <Icon src={ChevronDown} size="16" class="hover:stroke-accent" /></summary
+<div class="dropdown dropdown-top dropdown-end">
+	<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+	<!-- svelte-ignore a11y-label-has-associated-control -->
+	<label tabindex="0" class="btn btn-outline btn-sm btn-secondary normal-case"
+		>{title} <Icon src={ChevronDown} size="16" class="hover:stroke-accent" /></label
 	>
-	<div>
-		<div
-			class="shadow menu dropdown-content bg-base-100 rounded-box w-[13rem] sm:max-h-60 overflow-y-auto absolute"
-		>
-			<ul>
-				{#each items as item}
-					<li>
-						<button
-							type="button"
-							on:click={() => {
-								detailsRef?.removeAttribute('open');
-								dispatch('selected', item);
-							}}>{itemTitle(item)}</button
-						>
-					</li>
-				{/each}
-			</ul>
-		</div>
+	<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+	<div
+		tabindex="0"
+		class="shadow menu dropdown-content bg-base-100 rounded-box w-[13rem] sm:max-h-60 overflow-y-auto absolute"
+	>
+		<ul>
+			{#each items as item}
+				<li>
+					<button type="button" on:click={() => onSelect(item)}>{itemTitle(item)}</button>
+				</li>
+			{/each}
+		</ul>
 	</div>
-</details>
+</div>

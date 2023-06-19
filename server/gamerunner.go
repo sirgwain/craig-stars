@@ -124,7 +124,7 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 			} else {
 				color := make([]byte, 3)
 				rand.Read(color)
-				player.Color = fmt.Sprintf("#%2X%2X%2X", color[0], color[1], color[2])
+				player.Color = fmt.Sprintf("#%0X%0X%0X", color[0], color[1], color[2])
 			}
 		}
 	}

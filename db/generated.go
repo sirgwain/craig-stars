@@ -16,9 +16,7 @@ func (c *GameConverter) ConvertFleet(source *Fleet) *cs.Fleet {
 }
 func (c *GameConverter) ConvertGame(source Game) cs.Game {
 	var csGame cs.Game
-	csGame.ID = source.ID
-	csGame.CreatedAt = TimeToTime(source.CreatedAt)
-	csGame.UpdatedAt = TimeToTime(source.UpdatedAt)
+	csGame.DBObject = ExtendGameDBObject(source)
 	csGame.Name = source.Name
 	csGame.HostID = source.HostID
 	csGame.QuickStartTurns = source.QuickStartTurns
@@ -177,13 +175,10 @@ func (c *GameConverter) ConvertPlanet(source *Planet) *cs.Planet {
 }
 func (c *GameConverter) ConvertPlayer(source Player) cs.Player {
 	var csPlayer cs.Player
+	csPlayer.GameDBObject = ExtendPlayerGameDBObject(source)
 	csPlayer.PlayerOrders = ExtendPlayerPlayerOrders(source)
 	csPlayer.PlayerIntels = ExtendPlayerPlayerIntels(source)
 	csPlayer.PlayerPlans = ExtendPlayerPlayerPlans(source)
-	csPlayer.ID = source.ID
-	csPlayer.CreatedAt = TimeToTime(source.CreatedAt)
-	csPlayer.UpdatedAt = TimeToTime(source.UpdatedAt)
-	csPlayer.GameID = source.GameID
 	csPlayer.UserID = source.UserID
 	csPlayer.Name = source.Name
 	csPlayer.Num = source.Num
@@ -212,9 +207,7 @@ func (c *GameConverter) ConvertPlayers(source []Player) []cs.Player {
 }
 func (c *GameConverter) ConvertRace(source Race) cs.Race {
 	var csRace cs.Race
-	csRace.ID = source.ID
-	csRace.CreatedAt = TimeToTime(source.CreatedAt)
-	csRace.UpdatedAt = TimeToTime(source.UpdatedAt)
+	csRace.DBObject = ExtendRaceDBObject(source)
 	csRace.UserID = source.UserID
 	csRace.Name = source.Name
 	csRace.PluralName = source.PluralName
@@ -265,9 +258,7 @@ func (c *GameConverter) ConvertShipDesign(source *ShipDesign) *cs.ShipDesign {
 }
 func (c *GameConverter) ConvertUser(source User) cs.User {
 	var csUser cs.User
-	csUser.ID = source.ID
-	csUser.CreatedAt = TimeToTime(source.CreatedAt)
-	csUser.UpdatedAt = TimeToTime(source.UpdatedAt)
+	csUser.DBObject = ExtendUserDBObject(source)
 	csUser.Username = source.Username
 	csUser.Password = source.Password
 	csUser.Email = source.Email
@@ -293,10 +284,10 @@ func (c *GameConverter) ConvertWormhole(source *Wormhole) *cs.Wormhole {
 }
 func (c *GameConverter) csFleetToDbFleet(source cs.Fleet) Fleet {
 	var dbFleet Fleet
-	dbFleet.ID = source.MapObject.ID
-	dbFleet.GameID = source.MapObject.GameID
-	dbFleet.CreatedAt = TimeToTime(source.MapObject.CreatedAt)
-	dbFleet.UpdatedAt = TimeToTime(source.MapObject.UpdatedAt)
+	dbFleet.ID = source.MapObject.GameDBObject.ID
+	dbFleet.GameID = source.MapObject.GameDBObject.GameID
+	dbFleet.CreatedAt = TimeToTime(source.MapObject.GameDBObject.CreatedAt)
+	dbFleet.UpdatedAt = TimeToTime(source.MapObject.GameDBObject.UpdatedAt)
 	dbFleet.X = source.MapObject.Position.X
 	dbFleet.Y = source.MapObject.Position.Y
 	dbFleet.Name = source.MapObject.Name
@@ -343,9 +334,9 @@ func (c *GameConverter) csFleetToDbFleet(source cs.Fleet) Fleet {
 }
 func (c *GameConverter) csGameToDbGame(source cs.Game) Game {
 	var dbGame Game
-	dbGame.ID = source.ID
-	dbGame.CreatedAt = TimeToTime(source.CreatedAt)
-	dbGame.UpdatedAt = TimeToTime(source.UpdatedAt)
+	dbGame.ID = source.DBObject.ID
+	dbGame.CreatedAt = TimeToTime(source.DBObject.CreatedAt)
+	dbGame.UpdatedAt = TimeToTime(source.DBObject.UpdatedAt)
 	dbGame.Name = source.Name
 	dbGame.HostID = source.HostID
 	dbGame.QuickStartTurns = source.QuickStartTurns
@@ -381,26 +372,27 @@ func (c *GameConverter) csGameToDbGame(source cs.Game) Game {
 }
 func (c *GameConverter) csMineFieldToDbMineField(source cs.MineField) MineField {
 	var dbMineField MineField
-	dbMineField.ID = source.MapObject.ID
-	dbMineField.GameID = source.MapObject.GameID
-	dbMineField.CreatedAt = TimeToTime(source.MapObject.CreatedAt)
-	dbMineField.UpdatedAt = TimeToTime(source.MapObject.UpdatedAt)
+	dbMineField.ID = source.MapObject.GameDBObject.ID
+	dbMineField.GameID = source.MapObject.GameDBObject.GameID
+	dbMineField.CreatedAt = TimeToTime(source.MapObject.GameDBObject.CreatedAt)
+	dbMineField.UpdatedAt = TimeToTime(source.MapObject.GameDBObject.UpdatedAt)
 	dbMineField.X = source.MapObject.Position.X
 	dbMineField.Y = source.MapObject.Position.Y
 	dbMineField.Name = source.MapObject.Name
 	dbMineField.Num = source.MapObject.Num
 	dbMineField.PlayerNum = source.MapObject.PlayerNum
-	dbMineField.Type = cs.MineFieldType(source.Type)
+	dbMineField.MineFieldType = cs.MineFieldType(source.MineFieldType)
 	dbMineField.NumMines = source.NumMines
 	dbMineField.Detonate = source.MineFieldOrders.Detonate
+	dbMineField.Spec = GameMineFieldSpecToMineFieldSpec(source.Spec)
 	return dbMineField
 }
 func (c *GameConverter) csMineralPacketToDbMineralPacket(source cs.MineralPacket) MineralPacket {
 	var dbMineralPacket MineralPacket
-	dbMineralPacket.ID = source.MapObject.ID
-	dbMineralPacket.GameID = source.MapObject.GameID
-	dbMineralPacket.CreatedAt = TimeToTime(source.MapObject.CreatedAt)
-	dbMineralPacket.UpdatedAt = TimeToTime(source.MapObject.UpdatedAt)
+	dbMineralPacket.ID = source.MapObject.GameDBObject.ID
+	dbMineralPacket.GameID = source.MapObject.GameDBObject.GameID
+	dbMineralPacket.CreatedAt = TimeToTime(source.MapObject.GameDBObject.CreatedAt)
+	dbMineralPacket.UpdatedAt = TimeToTime(source.MapObject.GameDBObject.UpdatedAt)
 	dbMineralPacket.X = source.MapObject.Position.X
 	dbMineralPacket.Y = source.MapObject.Position.Y
 	dbMineralPacket.Name = source.MapObject.Name
@@ -419,10 +411,10 @@ func (c *GameConverter) csMineralPacketToDbMineralPacket(source cs.MineralPacket
 }
 func (c *GameConverter) csMysteryTraderToDbMysteryTrader(source cs.MysteryTrader) MysteryTrader {
 	var dbMysteryTrader MysteryTrader
-	dbMysteryTrader.ID = source.MapObject.ID
-	dbMysteryTrader.GameID = source.MapObject.GameID
-	dbMysteryTrader.CreatedAt = TimeToTime(source.MapObject.CreatedAt)
-	dbMysteryTrader.UpdatedAt = TimeToTime(source.MapObject.UpdatedAt)
+	dbMysteryTrader.ID = source.MapObject.GameDBObject.ID
+	dbMysteryTrader.GameID = source.MapObject.GameDBObject.GameID
+	dbMysteryTrader.CreatedAt = TimeToTime(source.MapObject.GameDBObject.CreatedAt)
+	dbMysteryTrader.UpdatedAt = TimeToTime(source.MapObject.GameDBObject.UpdatedAt)
 	dbMysteryTrader.X = source.MapObject.Position.X
 	dbMysteryTrader.Y = source.MapObject.Position.Y
 	dbMysteryTrader.Name = source.MapObject.Name
@@ -435,10 +427,10 @@ func (c *GameConverter) csMysteryTraderToDbMysteryTrader(source cs.MysteryTrader
 }
 func (c *GameConverter) csPlanetToDbPlanet(source cs.Planet) Planet {
 	var dbPlanet Planet
-	dbPlanet.ID = source.MapObject.ID
-	dbPlanet.GameID = source.MapObject.GameID
-	dbPlanet.CreatedAt = TimeToTime(source.MapObject.CreatedAt)
-	dbPlanet.UpdatedAt = TimeToTime(source.MapObject.UpdatedAt)
+	dbPlanet.ID = source.MapObject.GameDBObject.ID
+	dbPlanet.GameID = source.MapObject.GameDBObject.GameID
+	dbPlanet.CreatedAt = TimeToTime(source.MapObject.GameDBObject.CreatedAt)
+	dbPlanet.UpdatedAt = TimeToTime(source.MapObject.GameDBObject.UpdatedAt)
 	dbPlanet.X = source.MapObject.Position.X
 	dbPlanet.Y = source.MapObject.Position.Y
 	dbPlanet.Name = source.MapObject.Name
@@ -477,10 +469,10 @@ func (c *GameConverter) csPlanetToDbPlanet(source cs.Planet) Planet {
 }
 func (c *GameConverter) csPlayerToDbPlayer(source cs.Player) Player {
 	var dbPlayer Player
-	dbPlayer.ID = source.ID
-	dbPlayer.CreatedAt = TimeToTime(source.CreatedAt)
-	dbPlayer.UpdatedAt = TimeToTime(source.UpdatedAt)
-	dbPlayer.GameID = source.GameID
+	dbPlayer.ID = source.GameDBObject.ID
+	dbPlayer.CreatedAt = TimeToTime(source.GameDBObject.CreatedAt)
+	dbPlayer.UpdatedAt = TimeToTime(source.GameDBObject.UpdatedAt)
+	dbPlayer.GameID = source.GameDBObject.GameID
 	dbPlayer.UserID = source.UserID
 	dbPlayer.Name = source.Name
 	dbPlayer.Num = source.Num
@@ -525,9 +517,9 @@ func (c *GameConverter) csPlayerToDbPlayer(source cs.Player) Player {
 }
 func (c *GameConverter) csRaceToDbRace(source cs.Race) Race {
 	var dbRace Race
-	dbRace.ID = source.ID
-	dbRace.CreatedAt = TimeToTime(source.CreatedAt)
-	dbRace.UpdatedAt = TimeToTime(source.UpdatedAt)
+	dbRace.ID = source.DBObject.ID
+	dbRace.CreatedAt = TimeToTime(source.DBObject.CreatedAt)
+	dbRace.UpdatedAt = TimeToTime(source.DBObject.UpdatedAt)
 	dbRace.UserID = source.UserID
 	dbRace.Name = source.Name
 	dbRace.PluralName = source.PluralName
@@ -564,10 +556,10 @@ func (c *GameConverter) csRaceToDbRace(source cs.Race) Race {
 }
 func (c *GameConverter) csSalvageToDbSalvage(source cs.Salvage) Salvage {
 	var dbSalvage Salvage
-	dbSalvage.ID = source.MapObject.ID
-	dbSalvage.GameID = source.MapObject.GameID
-	dbSalvage.CreatedAt = TimeToTime(source.MapObject.CreatedAt)
-	dbSalvage.UpdatedAt = TimeToTime(source.MapObject.UpdatedAt)
+	dbSalvage.ID = source.MapObject.GameDBObject.ID
+	dbSalvage.GameID = source.MapObject.GameDBObject.GameID
+	dbSalvage.CreatedAt = TimeToTime(source.MapObject.GameDBObject.CreatedAt)
+	dbSalvage.UpdatedAt = TimeToTime(source.MapObject.GameDBObject.UpdatedAt)
 	dbSalvage.X = source.MapObject.Position.X
 	dbSalvage.Y = source.MapObject.Position.Y
 	dbSalvage.Name = source.MapObject.Name
@@ -580,10 +572,10 @@ func (c *GameConverter) csSalvageToDbSalvage(source cs.Salvage) Salvage {
 }
 func (c *GameConverter) csShipDesignToDbShipDesign(source cs.ShipDesign) ShipDesign {
 	var dbShipDesign ShipDesign
-	dbShipDesign.ID = source.ID
-	dbShipDesign.GameID = source.GameID
-	dbShipDesign.CreatedAt = TimeToTime(source.CreatedAt)
-	dbShipDesign.UpdatedAt = TimeToTime(source.UpdatedAt)
+	dbShipDesign.ID = source.GameDBObject.ID
+	dbShipDesign.GameID = source.GameDBObject.GameID
+	dbShipDesign.CreatedAt = TimeToTime(source.GameDBObject.CreatedAt)
+	dbShipDesign.UpdatedAt = TimeToTime(source.GameDBObject.UpdatedAt)
 	dbShipDesign.Num = source.Num
 	dbShipDesign.PlayerNum = source.PlayerNum
 	dbShipDesign.Name = source.Name
@@ -598,9 +590,9 @@ func (c *GameConverter) csShipDesignToDbShipDesign(source cs.ShipDesign) ShipDes
 }
 func (c *GameConverter) csUserToDbUser(source cs.User) User {
 	var dbUser User
-	dbUser.ID = source.ID
-	dbUser.CreatedAt = TimeToTime(source.CreatedAt)
-	dbUser.UpdatedAt = TimeToTime(source.UpdatedAt)
+	dbUser.ID = source.DBObject.ID
+	dbUser.CreatedAt = TimeToTime(source.DBObject.CreatedAt)
+	dbUser.UpdatedAt = TimeToTime(source.DBObject.UpdatedAt)
 	dbUser.Username = source.Username
 	dbUser.Password = source.Password
 	dbUser.Email = source.Email
@@ -618,10 +610,10 @@ func (c *GameConverter) csVictoryConditionListToDbVictoryConditions(source []cs.
 }
 func (c *GameConverter) csWormholeToDbWormhole(source cs.Wormhole) Wormhole {
 	var dbWormhole Wormhole
-	dbWormhole.ID = source.MapObject.ID
-	dbWormhole.GameID = source.MapObject.GameID
-	dbWormhole.CreatedAt = TimeToTime(source.MapObject.CreatedAt)
-	dbWormhole.UpdatedAt = TimeToTime(source.MapObject.UpdatedAt)
+	dbWormhole.ID = source.MapObject.GameDBObject.ID
+	dbWormhole.GameID = source.MapObject.GameDBObject.GameID
+	dbWormhole.CreatedAt = TimeToTime(source.MapObject.GameDBObject.CreatedAt)
+	dbWormhole.UpdatedAt = TimeToTime(source.MapObject.GameDBObject.UpdatedAt)
 	dbWormhole.X = source.MapObject.Position.X
 	dbWormhole.Y = source.MapObject.Position.Y
 	dbWormhole.Name = source.MapObject.Name
@@ -653,8 +645,9 @@ func (c *GameConverter) dbMineFieldToCsMineField(source MineField) cs.MineField 
 	var csMineField cs.MineField
 	csMineField.MapObject = ExtendMineFieldMapObject(source)
 	csMineField.MineFieldOrders = ExtendMineFieldMineFieldOrders(source)
-	csMineField.Type = cs.MineFieldType(source.Type)
+	csMineField.MineFieldType = cs.MineFieldType(source.MineFieldType)
 	csMineField.NumMines = source.NumMines
+	csMineField.Spec = MineFieldSpecToGameMineFieldSpec(source.Spec)
 	return csMineField
 }
 func (c *GameConverter) dbMineralPacketToCsMineralPacket(source MineralPacket) cs.MineralPacket {
@@ -704,10 +697,7 @@ func (c *GameConverter) dbSalvageToCsSalvage(source Salvage) cs.Salvage {
 }
 func (c *GameConverter) dbShipDesignToCsShipDesign(source ShipDesign) cs.ShipDesign {
 	var csShipDesign cs.ShipDesign
-	csShipDesign.ID = source.ID
-	csShipDesign.GameID = source.GameID
-	csShipDesign.CreatedAt = TimeToTime(source.CreatedAt)
-	csShipDesign.UpdatedAt = TimeToTime(source.UpdatedAt)
+	csShipDesign.GameDBObject = ExtendShipDesignGameDBObject(source)
 	csShipDesign.Num = source.Num
 	csShipDesign.PlayerNum = source.PlayerNum
 	csShipDesign.Name = source.Name

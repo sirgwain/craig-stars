@@ -1,5 +1,6 @@
 import type { BattleAttackWho, BattleRecord, BattleTactic, BattleTarget } from './Battle';
 import type { Fleet, WaypointTransportTasks } from './Fleet';
+import type { MineField } from './MineField';
 import type { Planet, ProductionQueueItem } from './Planet';
 import { humanoid, type Race } from './Race';
 import type { ShipDesign, ShipDesignIntel } from './ShipDesign';
@@ -42,6 +43,7 @@ export type PlayerPlans = {
 export type PlayerIntels = {
 	planetIntels: Planet[];
 	fleetIntels?: Fleet[];
+	mineFields?: MineField[];
 	shipDesignIntels?: ShipDesignIntel[];
 	playerIntels: PlayerIntel[];
 };
@@ -50,6 +52,7 @@ export type PlayerMapObjects = {
 	planets: Planet[];
 	fleets: Fleet[];
 	starbases: Fleet[];
+	mineFields: MineField[];
 };
 
 export type PlayerOrders = {
@@ -177,6 +180,7 @@ export class Player implements PlayerResponse {
 	researchAmount = 15;
 	planets: Planet[] = [];
 	fleets: Fleet[] = [];
+	mineFields: MineField[] = [];
 	starbases: Fleet[] = [];
 	battlePlans: BattlePlan[] = [];
 	productionPlans: ProductionPlan[] = [];
@@ -184,6 +188,7 @@ export class Player implements PlayerResponse {
 	designs: ShipDesign[] = [];
 	planetIntels: Planet[] = [];
 	fleetIntels: Fleet[] = [];
+	mineFieldIntels: MineField[] = [];
 	shipDesignIntels: ShipDesignIntel[] = [];
 	playerIntels: PlayerIntel[] = [];
 	messages: Message[] = [];

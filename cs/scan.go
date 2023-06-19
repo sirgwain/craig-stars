@@ -60,6 +60,7 @@ func (scan *playerScan) scan() error {
 
 	// scan universe
 	scan.scanFleets(scanners, cargoScanners)
+	scan.scanMineFields(scanners)
 	scan.scanWormholes(scanners)
 
 	scan.discoverPlayers()
@@ -209,6 +210,35 @@ func (scan *playerScan) scanWormholes(scanners []scanner) {
 	}
 }
 
+// scan all fleets and discover their designs if we should
+func (scan *playerScan) scanMineFields(scanners []scanner) {
+	for _, mineField := range scan.universe.MineFields {
+		if mineField.OwnedBy(scan.player.Num) {
+			// The player already gets a copy of all their own mineFields
+			continue
+		}
+		intel := scan.discoverer.getMineFieldIntel(mineField.Num)
+
+		cloakFactor := 1.0 - (float64(scan.rules.MineFieldCloak) / 100)
+		if intel != nil {
+			cloakFactor = 1
+		}
+
+		for _, scanner := range scanners {
+			if cloakFactor != 1 {
+				// calculate cloak reduction for tachyon detectors if this minefield is cloaked
+				cloakFactor = 1 - (1-cloakFactor)*scanner.CloakReduction
+			}
+
+			// we only care about regular scanners for wormholes
+			if float64(scanner.RangeSquared)*cloakFactor >= scanner.Position.DistanceSquaredTo(mineField.Position) {
+				scan.discoverer.discoverMineField(scan.player, mineField)
+				break
+			}
+		}
+	}
+}
+
 func (scan *playerScan) discoverPlayers() {
 	for player, discovered := range scan.discoveredPlayers {
 		if discovered {
@@ -255,6 +285,19 @@ func (scan *playerScan) getScanners() []scanner {
 				scanner.CloakReduction = math.Max(scanner.CloakReduction, fleetScanner.CloakReduction)
 			}
 			scanners = append(scanners, scanner)
+		}
+	}
+
+	// Space demolition minefields act as scanners
+	if scan.player.Race.Spec.MineFieldsAreScanners {
+		for _, mineField := range scan.universe.MineFields {
+			if mineField.PlayerNum == scan.player.Num {
+				scanner := scanner{
+					Position:     mineField.Position,
+					RangeSquared: int(mineField.Spec.Radius),
+				}
+				scanners = append(scanners, scanner)
+			}
 		}
 	}
 

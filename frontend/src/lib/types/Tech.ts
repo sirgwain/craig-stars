@@ -1,5 +1,6 @@
 import { clamp } from '$lib/services/Math';
 import type { Cost } from './Cost';
+import type { MineFieldType } from './MineField';
 import type { TechLevel as TechLevel } from './Player';
 import type { PRT } from './Race';
 import type { Vector } from './Vector';
@@ -170,12 +171,6 @@ export enum HullSlotType {
 		HullSlotType.Armor |
 		HullSlotType.Weapon |
 		HullSlotType.MineLayer
-}
-
-export enum MineFieldType {
-	Heavy = 'Heavy',
-	SpeedBump = 'SpeedBump',
-	Standard = 'Standard'
 }
 
 export interface TechEngine extends TechHullComponent {

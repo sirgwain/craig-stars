@@ -51,6 +51,8 @@
 	async function onSubmitTurn() {
 		$game = await $game?.submitTurn();
 		if ($game?.state == GameState.WaitingForPlayers) {
+			// trigger reactivity
+			$game = $game;
 			$game.universe.commandHomeWorld();
 		}
 	}

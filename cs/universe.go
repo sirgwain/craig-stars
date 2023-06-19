@@ -442,3 +442,12 @@ func (u *Universe) removeMapObjectAtPosition(mo interface{}, position Vector) {
 		log.Warn().Msgf("tried to to remove mapobject %s at position %v, no mapobjects were found at %v", mo, position, position)
 	}
 }
+
+// get the next design number to use
+func (u *Universe) getNextMineFieldNum() int {
+	num := 0
+	for _, mineField := range u.MineFields {
+		num = maxInt(num, mineField.Num)
+	}
+	return num + 1
+}

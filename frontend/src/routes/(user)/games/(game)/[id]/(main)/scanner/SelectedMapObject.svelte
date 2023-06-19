@@ -7,15 +7,19 @@
 	import { selectedMapObject } from '$lib/services/Context';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
+	import type { Writable } from 'svelte/store';
 
 	const { xGet, yGet, xScale, yScale } = getContext<LayerCake>('LayerCake');
+	const scale = getContext<Writable<number>>('scale');
+
+	$: size = 15 / $scale;
 </script>
 
 {#if $selectedMapObject}
 	<SelectedMapObject
-		x={$xGet($selectedMapObject) - $xScale(7.5)}
-		y={$yGet($selectedMapObject) + $yScale(9)}
-		width={$xScale(15)}
-		height={$yScale(15)}
+		x={$xGet($selectedMapObject) - 7.5 / $scale}
+		y={$yGet($selectedMapObject) + 9 / $scale}
+		width={size}
+		height={size}
 	/>
 {/if}

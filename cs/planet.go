@@ -16,7 +16,6 @@ type Planet struct {
 	MineralConcentration Mineral    `json:"mineralConcentration,omitempty"`
 	MineYears            Mineral    `json:"mineYears,omitempty"`
 	Cargo                Cargo      `json:"cargo,omitempty"`
-	Population           uint       `json:"population,omitempty"` // helper field for the UI
 	Mines                int        `json:"mines,omitempty"`
 	Factories            int        `json:"factories,omitempty"`
 	Defenses             int        `json:"defenses,omitempty"`
@@ -57,7 +56,7 @@ type PlanetSpec struct {
 	MaxPossibleMines          int     `json:"maxPossibleMines,omitempty"`
 	MaxRange                  int     `json:"maxRange,omitempty"`
 	MiningOutput              Mineral `json:"miningOutput,omitempty"`
-	Population                uint    `json:"population,omitempty"`
+	Population                int     `json:"population,omitempty"`
 	PopulationDensity         float64 `json:"populationDensity,omitempty"`
 	ResourcesPerYear          int     `json:"resourcesPerYear,omitempty"`
 	ResourcesPerYearAvailable int     `json:"resourcesPerYearAvailable,omitempty"`
@@ -339,7 +338,7 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	race := &player.Race
 	spec.Habitability = race.GetPlanetHabitability(planet.Hab)
 	spec.MaxPopulation = getMaxPopulation(rules, spec.Habitability, player)
-	spec.Population = uint(planet.population())
+	spec.Population = planet.population()
 	spec.PopulationDensity = float64(planet.population()) / float64(spec.MaxPopulation)
 	spec.GrowthAmount = planet.getGrowthAmount(player, spec.MaxPopulation)
 	spec.MiningOutput = planet.getMineralOutput(planet.Mines, race.MineOutput)

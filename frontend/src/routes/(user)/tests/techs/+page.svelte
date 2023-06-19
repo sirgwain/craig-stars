@@ -1,11 +1,11 @@
 <script lang="ts">
 	import TechSummary from '$lib/components/tech/TechSummary.svelte';
+	import { MineFieldType } from '$lib/types/MineField';
 
-	import { Player, type PlayerResponse } from '$lib/types/Player';
-	import { humanoid, PRT } from '$lib/types/Race';
+	import { Player } from '$lib/types/Player';
+	import { PRT } from '$lib/types/Race';
 	import {
 		HullSlotType,
-		MineFieldType,
 		TechCategory,
 		type TechEngine,
 		type TechHullComponent

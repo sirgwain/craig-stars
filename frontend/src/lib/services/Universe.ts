@@ -1,5 +1,6 @@
 import type { Fleet } from '$lib/types/Fleet';
 import { MapObjectType, type MapObject } from '$lib/types/MapObject';
+import type { MineField } from '$lib/types/MineField';
 import type { Planet } from '$lib/types/Planet';
 import type { PlayerIntel, PlayerIntels, PlayerMapObjects } from '$lib/types/Player';
 import type { ShipDesignIntel } from '$lib/types/ShipDesign';
@@ -31,9 +32,11 @@ export class Universe implements PlayerMapObjects, PlayerIntels {
 	playerNum = 0;
 	planets: Planet[] = [];
 	fleets: Fleet[] = [];
+	mineFields: MineField[] = [];
 	starbases: Fleet[] = [];
 	planetIntels: Planet[] = [];
 	fleetIntels: Fleet[] = [];
+	mineFieldIntels: MineField[] = [];
 	shipDesignIntels: ShipDesignIntel[] = [];
 	playerIntels: PlayerIntel[] = [];
 
@@ -52,6 +55,7 @@ export class Universe implements PlayerMapObjects, PlayerIntels {
 		this.planetIntels.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
 		this.fleetIntels.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
 		this.fleets.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
+		this.mineFields.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
 	}
 
 	setMapObjects(mos: PlayerMapObjects) {
@@ -69,6 +73,10 @@ export class Universe implements PlayerMapObjects, PlayerIntels {
 			.sort(sortByNum)
 			.forEach((mo) => addtoDict(mo, this.myMapObjectsByPosition));
 		this.fleets
+			.filter(ownedByMe)
+			.sort(sortByNum)
+			.forEach((mo) => addtoDict(mo, this.myMapObjectsByPosition));
+		this.mineFields
 			.filter(ownedByMe)
 			.sort(sortByNum)
 			.forEach((mo) => addtoDict(mo, this.myMapObjectsByPosition));
@@ -153,7 +161,10 @@ export class Universe implements PlayerMapObjects, PlayerIntels {
 			case MapObjectType.Wormhole:
 				break;
 			case MapObjectType.MineField:
-				break;
+				if (playerNum === this.playerNum) {
+					return this.mineFields.find((mf) => mf.num == num);
+				}
+				return this.mineFieldIntels.find((mf) => mf.num == num && mf.playerNum == playerNum);
 			case MapObjectType.MysteryTrader:
 				break;
 			case MapObjectType.Salvage:

@@ -1,6 +1,7 @@
 import type { Cost } from './Cost';
 import type { EnumDictionary } from './EnumDictionary';
-import type { MineFieldType, TechStore } from './Tech';
+import type { MineFieldStats, MineFieldType } from './MineField';
+import type { TechStore } from './Tech';
 import type { Vector } from './Vector';
 
 export enum Size {
@@ -161,18 +162,6 @@ export interface Rules {
 	techs?: TechStore;
 	prtSpecs: any;
 	lrtSpecs: any;
-}
-
-export interface MineFieldStats {
-	minDamagePerFleetRS: number;
-	damagePerEngineRS: number;
-	maxSpeed: number;
-	chanceOfHit: number;
-	minDamagePerFleet: number;
-	damagePerEngine: number;
-	sweepFactor: number;
-	minDecay: number;
-	canDetonate: boolean;
 }
 
 export interface WormholeStats {

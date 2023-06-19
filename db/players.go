@@ -400,10 +400,17 @@ func (c *client) GetFullPlayerForGame(gameID, userID int64) (*cs.FullPlayer, err
 	}
 	player.Planets = planets
 
+	mineFields, err := c.GetMineFieldsForPlayer(player.GameID, player.Num)
+	if err != nil {
+		return nil, fmt.Errorf("get player mineFields %w", err)
+	}
+	player.MineFields = mineFields
+
 	fleets, err := c.GetFleetsForPlayer(player.GameID, player.Num)
 	if err != nil {
 		return nil, fmt.Errorf("get player fleets %w", err)
 	}
+
 	// pre-instantiate the fleets/starbases arrays (make it a little bigger than necessary)
 	player.Fleets = make([]*cs.Fleet, 0, len(fleets))
 	player.Starbases = make([]*cs.Fleet, 0, len(planets))
@@ -434,6 +441,12 @@ func (c *client) GetPlayerMapObjects(gameID, userID int64) (*cs.PlayerMapObjects
 		return nil, fmt.Errorf("get player planets %w", err)
 	}
 	mapObjects.Planets = planets
+
+	mineFields, err := c.GetMineFieldsForPlayer(gameID, num)
+	if err != nil {
+		return nil, fmt.Errorf("get player mineFields %w", err)
+	}
+	mapObjects.MineFields = mineFields
 
 	fleets, err := c.GetFleetsForPlayer(gameID, num)
 	if err != nil {

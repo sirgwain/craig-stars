@@ -10,10 +10,11 @@ const ReportAgeUnexplored = -1
 const Unowned = 0
 
 type discover struct {
-	player              *Player
-	fleetIntelsByKey    map[string]*FleetIntel
-	wormholeIntelsByKey map[int]*WormholeIntel
-	designIntelsByKey   map[playerObject]*ShipDesignIntel
+	player               *Player
+	fleetIntelsByKey     map[string]*FleetIntel
+	wormholeIntelsByKey  map[int]*WormholeIntel
+	mineFieldIntelsByKey map[int]*MineFieldIntel
+	designIntelsByKey    map[playerObject]*ShipDesignIntel
 }
 
 type discoverer interface {
@@ -24,10 +25,12 @@ type discoverer interface {
 	discoverPlanetCargo(player *Player, planet *Planet) error
 	discoverFleet(player *Player, fleet *Fleet)
 	discoverFleetCargo(player *Player, fleet *Fleet)
+	discoverMineField(player *Player, mineField *MineField)
 	discoverWormhole(player *Player, wormhole *Wormhole)
 	discoverDesign(player *Player, design *ShipDesign, discoverSlots bool)
 
 	getWormholeIntel(num int) *WormholeIntel
+	getMineFieldIntel(num int) *MineFieldIntel
 }
 
 func newDiscoverer(player *Player) discoverer {
@@ -38,6 +41,12 @@ func newDiscoverer(player *Player) discoverer {
 	for i := range player.FleetIntels {
 		intel := &player.FleetIntels[i]
 		d.fleetIntelsByKey[intel.String()] = intel
+	}
+
+	d.mineFieldIntelsByKey = make(map[int]*MineFieldIntel, len(player.MineFieldIntels))
+	for i := range player.MineFieldIntels {
+		intel := &player.MineFieldIntels[i]
+		d.mineFieldIntelsByKey[intel.Num] = intel
 	}
 
 	d.wormholeIntelsByKey = make(map[int]*WormholeIntel, len(player.WormholeIntels))
@@ -124,8 +133,9 @@ type SalvageIntel struct {
 
 type MineFieldIntel struct {
 	MapObjectIntel
-	NumMines uint          `json:"numMines,omitempty"`
-	Type     MineFieldType `json:"type,omitempty"`
+	NumMines      int           `json:"numMines"`
+	MineFieldType MineFieldType `json:"mineFieldType"`
+	Spec          MineFieldSpec `json:"spec"`
 }
 
 type WormholeIntel struct {
@@ -173,6 +183,18 @@ func newWormholeIntel(num int) *WormholeIntel {
 	return &WormholeIntel{
 		MapObjectIntel: MapObjectIntel{
 			Type: MapObjectTypeWormhole,
+			Intel: Intel{
+				Num: num,
+			},
+		},
+	}
+}
+
+// create a new MineFieldIntel object by key
+func newMineFieldIntel(num int) *MineFieldIntel {
+	return &MineFieldIntel{
+		MapObjectIntel: MapObjectIntel{
+			Type: MapObjectTypeMineField,
 			Intel: Intel{
 				Num: num,
 			},
@@ -230,10 +252,10 @@ func (d *discover) discoverPlanet(rules *Rules, player *Player, planet *Planet, 
 
 		// players know their planet pops, but other planets are slightly off
 		if ownedByPlayer {
-			intel.Spec.Population = uint(planet.population())
+			intel.Spec.Population = planet.population()
 		} else {
 			var randomPopulationError = rules.random.Float64()*(rules.PopulationScannerError-(-rules.PopulationScannerError)) - rules.PopulationScannerError
-			intel.Spec.Population = uint(float64(planet.population()) * (1 - randomPopulationError))
+			intel.Spec.Population = int(float64(planet.population()) * (1 - randomPopulationError))
 		}
 	}
 	return nil
@@ -324,6 +346,24 @@ func (d *discover) discoverWormhole(player *Player, wormhole *Wormhole) {
 	intel.Stability = wormhole.Stability
 }
 
+// discover a wormhole and add it to the player's wormhole intel
+func (d *discover) discoverMineField(player *Player, mineField *MineField) {
+	intel, found := d.mineFieldIntelsByKey[mineField.Num]
+	if !found {
+		// discover this new mineField
+		player.MineFieldIntels = append(player.MineFieldIntels, *newMineFieldIntel(mineField.Num))
+		intel = &player.MineFieldIntels[len(player.MineFieldIntels)-1]
+		d.mineFieldIntelsByKey[intel.Num] = intel
+	}
+
+	intel.Name = mineField.Name
+	intel.PlayerNum = mineField.PlayerNum
+	intel.Position = mineField.Position
+	intel.MineFieldType = mineField.MineFieldType
+	intel.NumMines = mineField.NumMines
+	intel.Spec.Radius = mineField.Spec.Radius
+}
+
 // discover a player's design. This is a noop if we already know about
 // the design and aren't discovering slots
 func (d *discover) discoverDesign(player *Player, design *ShipDesign, discoverSlots bool) {
@@ -373,4 +413,8 @@ func (d *discover) discoverPlayer(player *Player) {
 
 func (d *discover) getWormholeIntel(num int) *WormholeIntel {
 	return d.wormholeIntelsByKey[num]
+}
+
+func (d *discover) getMineFieldIntel(num int) *MineFieldIntel {
+	return d.mineFieldIntelsByKey[num]
 }

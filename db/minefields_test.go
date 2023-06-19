@@ -51,8 +51,8 @@ func TestGetMineField(t *testing.T) {
 	g, player := c.createTestGameWithPlayer()
 
 	mineField := cs.MineField{
-		MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, PlayerNum: player.Num, Name: "name", Type: cs.MapObjectTypeMineField},
-		Type:      cs.MineFieldTypeStandard,
+		MapObject:     cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, PlayerNum: player.Num, Name: "name", Type: cs.MapObjectTypeMineField},
+		MineFieldType: cs.MineFieldTypeStandard,
 	}
 	if err := c.createMineField(&mineField, c.db); err != nil {
 		t.Errorf("create mineField %s", err)

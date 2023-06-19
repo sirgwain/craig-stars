@@ -10,7 +10,7 @@
 		zoomTarget
 	} from '$lib/services/Context';
 	import type { FullGame } from '$lib/services/FullGame';
-	import { getTargetName } from '$lib/types/Fleet';
+	import { getTargetName, WaypointTask } from '$lib/types/Fleet';
 	import { MapObjectType, None, ownedBy, type MapObject } from '$lib/types/MapObject';
 	import { emptyVector, equal, type Vector } from '$lib/types/Vector';
 	import type { ScaleLinear } from 'd3-scale';
@@ -27,6 +27,8 @@
 	import ScannerWaypoints from './ScannerWaypoints.svelte';
 	import SelectedMapObject from './SelectedMapObject.svelte';
 	import SelectedWaypoint from './SelectedWaypoint.svelte';
+	import ScannerMineFields from './ScannerMineFields.svelte';
+	import ScannerMineFieldPattern from './ScannerMineFieldPattern.svelte';
 
 	export let game: FullGame;
 
@@ -171,12 +173,16 @@
 				targetName: mo.name,
 				targetPlayerNum: mo.playerNum,
 				targetNum: mo.num,
-				targetType: mo.type
+				targetType: mo.type,
+				task: WaypointTask.None,
+				transportTasks: { fuel: {}, ironium: {}, boranium: {}, germanium: {}, colonists: {} }
 			});
 		} else if (options.position) {
 			$commandedFleet.waypoints.splice(waypointIndex + 1, 0, {
 				position: options.position,
-				warpFactor: $commandedFleet.spec?.idealSpeed ?? 5
+				warpFactor: $commandedFleet.spec?.idealSpeed ?? 5,
+				task: WaypointTask.None,
+				transportTasks: { fuel: {}, ironium: {}, boranium: {}, germanium: {}, colonists: {} }
 			});
 		}
 
@@ -322,7 +328,9 @@
 			...waypoints,
 			...game.universe.fleets.filter((f) => !f.orbitingPlanetNum),
 			...(game.player.fleetIntels?.filter((f) => !f.orbitingPlanetNum) ?? []),
-			...game.player.planetIntels
+			...game.universe.mineFields,
+			...game.player.mineFieldIntels,
+			...game.player.planetIntels,
 		];
 	}
 
@@ -348,6 +356,8 @@
 		<Svg>
 			<g preserveAspectRatio="true" transform={transform?.toString()}>
 				<ScannerScanners />
+				<ScannerMineFieldPattern />
+				<ScannerMineFields />
 				<ScannerWaypoints />
 				<SelectedWaypoint />
 				<ScannerPlanets />

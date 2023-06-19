@@ -104,6 +104,7 @@ type Client interface {
 	GetFleetsForPlayer(gameID int64, playerNum int) ([]*cs.Fleet, error)
 
 	GetMineField(id int64) (*cs.MineField, error)
+	GetMineFieldsForPlayer(gameID int64, playerNum int) ([]*cs.MineField, error)
 	UpdateMineField(fleet *cs.MineField) error
 }
 
