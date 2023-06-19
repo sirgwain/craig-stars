@@ -1,23 +1,23 @@
 <script lang="ts">
-	import { commandedFleet, game, selectedWaypoint } from '$lib/services/Context';
+	import { selectedWaypoint } from '$lib/services/Context';
 	import { FleetService } from '$lib/services/FleetService';
-	import { WaypointTask } from '$lib/types/Fleet';
+	import { WaypointTask, type Fleet } from '$lib/types/Fleet';
+	import { startCase } from 'lodash-es';
 	import { $enum as eu } from 'ts-enum-util';
 	import CommandTile from './CommandTile.svelte';
-	import { startCase } from 'lodash-es';
 
-	const fleetService = new FleetService();
+	export let fleet: Fleet;
 
 	const onSelectedWaypointTaskChange = (task: WaypointTask) => {
-		if ($game && $commandedFleet && $selectedWaypoint) {
+		if ($selectedWaypoint) {
 			$selectedWaypoint.task = task;
 
-			fleetService.updateFleetOrders($commandedFleet);
+			FleetService.updateFleetOrders(fleet);
 		}
 	};
 </script>
 
-{#if $commandedFleet && $selectedWaypoint}
+{#if $selectedWaypoint}
 	<CommandTile title="Waypoint Task">
 		<select
 			class="select select-outline select-secondary select-sm py-0 text-sm"

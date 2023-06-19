@@ -3,7 +3,8 @@
 		commandedFleet,
 		commandedMapObject,
 		commandMapObject,
-		myMapObjectsByPosition,
+		findIntelMapObject, findMyPlanetByNum,
+		getMyMapObjectsByPosition,
 		selectedMapObject,
 		selectedWaypoint,
 		selectMapObject,
@@ -12,9 +13,8 @@
 	} from '$lib/services/Context';
 	import { FleetService } from '$lib/services/FleetService';
 	import type { Game } from '$lib/types/Game';
-	import { MapObjectType, ownedBy, positionKey, type MapObject } from '$lib/types/MapObject';
-	import type { Planet } from '$lib/types/Planet';
-	import { findIntelMapObject, findMyPlanet, type Player } from '$lib/types/Player';
+	import { MapObjectType, ownedBy, type MapObject } from '$lib/types/MapObject';
+	import type { Player } from '$lib/types/Player';
 	import { emptyVector, equal, type Vector } from '$lib/types/Vector';
 	import type { ScaleLinear } from 'd3-scale';
 	import { scaleLinear } from 'd3-scale';
@@ -82,7 +82,7 @@
 			return [0, clientWidth];
 		} else if (aspectRatio > 1 && clientWidth > clientHeight) {
 			// wide viewport, wide map, so fully expand on the y
-			// but shrink up height
+			// but shrink up width
 			return [0, clientHeight * aspectRatio];
 		}
 		return [0, Math.min(clientWidth, clientHeight)];
@@ -103,7 +103,6 @@
 		clientWidth = root?.clientWidth ?? 100;
 		clientHeight = root?.clientHeight ?? 100;
 		aspectRatio = game.area.x / game.area.y;
-
 
 		// compute scales
 		scaleX = scaleLinear().range(xRange()).domain([0, game.area.x]);
@@ -141,7 +140,7 @@
 
 	// if the shift key is held, add a waypoint instead of selecting a mapobject
 	async function addWaypoint(options: { mo?: MapObject; position?: Vector }) {
-		if (!$myMapObjectsByPosition || !$commandedFleet) {
+		if (!$commandedFleet?.waypoints) {
 			return;
 		}
 
@@ -182,7 +181,7 @@
 		selectWaypoint($commandedFleet.waypoints[$commandedFleet.waypoints.length - 1]);
 
 		// save the commanded fleet
-		const fleet = await fleetService.updateFleetOrders($commandedFleet);
+		const fleet = await FleetService.updateFleetOrders($commandedFleet);
 
 		// update the player fleet
 		merge($commandedFleet, fleet);
@@ -196,23 +195,19 @@
 	 * @param mo
 	 */
 	function mapobjectSelected(mo: MapObject) {
-		if (!$myMapObjectsByPosition) {
-			return;
-		}
-
 		let myMapObject = mo;
 		if (ownedBy(mo, player.num) && mo.type === MapObjectType.Planet) {
-			myMapObject = findMyPlanet(player, mo as Planet) as MapObject;
+			myMapObject = findMyPlanetByNum(mo.num) ?? mo;
 		}
 
-		const commandedIntelObject = findIntelMapObject(player, $commandedMapObject);
+		const commandedIntelObject = findIntelMapObject($commandedMapObject);
 
 		if ($selectedMapObject !== myMapObject) {
 			// we selected a different object, so just select it
 			selectMapObject(myMapObject);
 
 			// if we selected a mapobject that is a waypoint, select the waypoint as well
-			if ($commandedFleet) {
+			if ($commandedFleet?.waypoints) {
 				const selectedWaypoint = $commandedFleet.waypoints.find((wp) =>
 					equal(wp.position, myMapObject.position)
 				);
@@ -222,7 +217,7 @@
 			}
 		} else {
 			// we selected the same mapobject twice
-			const myMapObjectsAtPosition = $myMapObjectsByPosition[positionKey(mo)];
+			const myMapObjectsAtPosition = getMyMapObjectsByPosition(mo);
 			if (myMapObjectsAtPosition?.length > 0) {
 				// if our currently commanded map object is not at this location, reset the index
 				if (!myMapObjectsAtPosition.find((mo) => mo == commandedIntelObject)) {
@@ -236,7 +231,7 @@
 				}
 				const nextMapObject = myMapObjectsAtPosition[commandedMapObjectIndex];
 				if (nextMapObject.type === MapObjectType.Planet) {
-					commandMapObject(findMyPlanet(player, nextMapObject as Planet) as MapObject);
+					commandMapObject(findMyPlanetByNum(nextMapObject.num) as MapObject);
 					commandedMapObjectIndex = 0;
 				} else {
 					commandMapObject(nextMapObject);
@@ -248,7 +243,7 @@
 	let data: MapObject[] = [];
 	$: {
 		const waypoints: MapObject[] = [];
-		if ($commandedFleet) {
+		if ($commandedFleet?.waypoints) {
 			waypoints.push(
 				...$commandedFleet.waypoints.map(
 					(wp) =>
@@ -305,16 +300,7 @@
 					let:y
 					let:found
 					{transform}
-				>
-					<!-- <div
-							class="border-b-2 border-info absolute rounded-b-box"
-							style="top:{transform.applyY(y - 10)}px;left:{transform.applyX(
-								x - 10
-							)}px;width:{transform.scale(20).k}px;height:{transform.scale(20).k}px;display: {found
-								? 'block'
-								: 'none'};"
-						/> -->
-				</MapObjectQuadTreeFinder>
+				/>
 			{/if}
 		</Html>
 	</LayerCake>

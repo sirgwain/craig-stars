@@ -96,11 +96,11 @@ func (t *turn) generateTurn() error {
 	for _, player := range t.game.Players {
 		player.Spec = computePlayerSpec(player, &t.game.Rules, t.game.Planets)
 
-		scanner := newPlayerScanner(t.game.Universe, &t.game.Rules, player)
+		scanner := newPlayerScanner(t.game.Universe, t.game.Players, &t.game.Rules, player)
 		if err := scanner.scan(); err != nil {
 			return fmt.Errorf("scan universe and update player intel -> %w", err)
 		}
-		t.playerInfoDiscover(player)
+		t.discoverPlayer(player)
 		t.fleetPatrol(player)
 		t.calculateScore(player)
 		t.checkVictory(player)
@@ -685,7 +685,7 @@ func (t *turn) remoteTerraform() {
 // Update a player's information about other players
 // If a player scanned another player's fleet or planet, they discover the player's
 // race name
-func (t *turn) playerInfoDiscover(player *Player) {
+func (t *turn) discoverPlayer(player *Player) {
 
 }
 

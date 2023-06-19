@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 )
 
 const ReportAgeUnexplored = -1
@@ -17,8 +18,8 @@ type discover struct {
 }
 
 type discoverer interface {
-	playerInfoDiscover(player *Player)
 	clearTransientReports()
+	discoverPlayer(player *Player)
 	discoverPlanet(rules *Rules, player *Player, planet *Planet, penScanned bool) error
 	discoverPlanetCargo(player *Player, planet *Planet) error
 	discoverFleet(player *Player, fleet *Fleet)
@@ -325,9 +326,19 @@ func (d *discover) discoverDesign(player *Player, design *ShipDesign, discoverSl
 	}
 }
 
-func (d *discover) playerInfoDiscover(player *Player) {
-	// d.game <- players to discover
-	// discover info about other players
+// discover a player's race
+func (d *discover) discoverPlayer(player *Player) {
+	intel := &d.player.PlayerIntels.PlayerIntels[player.Num-1]
+
+	if !intel.Seen {
+		log.Debug().Int64("GameID", d.player.GameID).Msgf("player %s discovered %s", d.player.Name, player.Name)
+		messager.playerDiscovered(d.player, player)
+		intel.Seen = true
+		intel.Name = player.Name
+		intel.Color = player.Color
+		intel.RaceName = player.Race.Name
+		intel.RacePluralName = player.Race.PluralName
+	}
 }
 
 func (d *discover) getWormholeIntel(num int) *WormholeIntel {

@@ -1,21 +1,22 @@
 <script lang="ts">
 	import {
-		commandedFleet,
 		commandedMapObjectName,
-		player,
+		getMapObject,
 		selectedWaypoint,
 		selectMapObject,
 		selectWaypoint
 	} from '$lib/services/Context';
 	import { FleetService } from '$lib/services/FleetService';
-	import type { Waypoint } from '$lib/types/Fleet';
+	import type { Fleet, Waypoint } from '$lib/types/Fleet';
 	import type { MapObject } from '$lib/types/MapObject';
-	import { findMapObject } from '$lib/types/Player';
+	import type { Player } from '$lib/types/Player';
 	import { distance } from '$lib/types/Vector';
 	import hotkeys from 'hotkeys-js';
 	import { merge } from 'lodash-es';
 	import WarpFactorBar from '$lib/components/game/WarpFactorBar.svelte';
 	import CommandTile from './CommandTile.svelte';
+
+	export let fleet: Fleet;
 
 	const fleetService = new FleetService();
 	let selectedWaypointIndex = 0;
@@ -28,21 +29,21 @@
 		wp.targetName ?? `Space: (${wp.position.x}, ${wp.position.y})`;
 
 	const getWaypointTarget = (wp: Waypoint): MapObject | undefined => {
-		if ($player && wp && wp.targetType && wp.targetNum) {
-			return findMapObject($player, wp.targetType, wp.targetNum, wp.targetPlayerNum);
+		if (wp && wp.targetType && wp.targetNum) {
+			return getMapObject(wp.targetType, wp.targetNum, wp.targetPlayerNum);
 		}
 	};
 
 	const updateNextPrevWaypoints = () => {
 		// find the next/previous waypoint
 		previousWaypoint = previousWaypointMO = nextWaypoint = nextWaypointMO = undefined;
-		if ($commandedFleet) {
+		if (fleet.waypoints) {
 			if (selectedWaypointIndex > 0) {
-				previousWaypoint = $commandedFleet.waypoints[selectedWaypointIndex - 1];
+				previousWaypoint = fleet.waypoints[selectedWaypointIndex - 1];
 				previousWaypointMO = getWaypointTarget(previousWaypoint);
 			}
-			if (selectedWaypointIndex < $commandedFleet.waypoints.length) {
-				nextWaypoint = $commandedFleet.waypoints[selectedWaypointIndex + 1];
+			if (selectedWaypointIndex < fleet.waypoints.length) {
+				nextWaypoint = fleet.waypoints[selectedWaypointIndex + 1];
 				nextWaypointMO = getWaypointTarget(nextWaypoint);
 			}
 		}
@@ -68,12 +69,12 @@
 			: 0;
 
 	const onRepeatOrdersChanged = async (repeatOrders: boolean) => {
-		if ($commandedFleet && $selectedWaypoint && $player) {
-			$commandedFleet.repeatOrders = repeatOrders;
-			const fleet = await fleetService.updateFleetOrders($commandedFleet);
+		if ($selectedWaypoint) {
+			fleet.repeatOrders = repeatOrders;
+			const f = await FleetService.updateFleetOrders(fleet);
 
 			// update the player fleet
-			merge($commandedFleet, fleet);
+			merge(fleet, f);
 
 			// update the commanded object
 			updateNextPrevWaypoints();
@@ -81,12 +82,12 @@
 	};
 
 	const onWarpFactorChanged = async (warpFactor: number) => {
-		if ($commandedFleet && $selectedWaypoint && $player) {
+		if (fleet && $selectedWaypoint) {
 			$selectedWaypoint.warpFactor = warpFactor;
-			const fleet = await fleetService.updateFleetOrders($commandedFleet);
+			const f = await FleetService.updateFleetOrders(fleet);
 
 			// update the player fleet
-			merge($commandedFleet, fleet);
+			merge(fleet, f);
 
 			// update the commanded object
 			updateNextPrevWaypoints();
@@ -94,17 +95,15 @@
 	};
 
 	const deleteWaypoint = () => {
-		if ($player && $commandedFleet && selectedWaypointIndex != 0) {
-			$commandedFleet.waypoints = $commandedFleet?.waypoints.filter(
-				(wp) => wp != $selectedWaypoint
-			);
+		if (selectedWaypointIndex != 0 && fleet.waypoints) {
+			fleet.waypoints = fleet.waypoints?.filter((wp) => wp != $selectedWaypoint);
 			selectedWaypointIndex--;
 
-			onSelectWaypoint($commandedFleet.waypoints[selectedWaypointIndex], selectedWaypointIndex);
+			onSelectWaypoint(fleet.waypoints[selectedWaypointIndex], selectedWaypointIndex);
 
-			fleetService.updateFleetOrders($commandedFleet).then((fleet) => {
+			FleetService.updateFleetOrders(fleet).then((fleet) => {
 				// update the player fleet
-				merge($commandedFleet, fleet);
+				merge(fleet, fleet);
 
 				updateNextPrevWaypoints();
 			});
@@ -112,20 +111,14 @@
 	};
 
 	const onNextWaypoint = () => {
-		if ($commandedFleet && selectedWaypointIndex + 1 < $commandedFleet?.waypoints.length) {
-			onSelectWaypoint(
-				$commandedFleet.waypoints[selectedWaypointIndex + 1],
-				selectedWaypointIndex + 1
-			);
+		if (fleet.waypoints && selectedWaypointIndex + 1 < fleet.waypoints.length) {
+			onSelectWaypoint(fleet.waypoints[selectedWaypointIndex + 1], selectedWaypointIndex + 1);
 		}
 	};
 
 	const onPrevWaypoint = () => {
-		if ($commandedFleet && selectedWaypointIndex > 0) {
-			onSelectWaypoint(
-				$commandedFleet.waypoints[selectedWaypointIndex - 1],
-				selectedWaypointIndex - 1
-			);
+		if (fleet.waypoints && selectedWaypointIndex > 0) {
+			onSelectWaypoint(fleet.waypoints[selectedWaypointIndex - 1], selectedWaypointIndex - 1);
 		}
 	};
 
@@ -135,8 +128,8 @@
 	});
 
 	selectedWaypoint?.subscribe(() => {
-		if ($commandedFleet) {
-			selectedWaypointIndex = $commandedFleet?.waypoints.findIndex((wp) => wp == $selectedWaypoint);
+		if (fleet.waypoints) {
+			selectedWaypointIndex = fleet.waypoints.findIndex((wp) => wp == $selectedWaypoint);
 			if (selectedWaypointIndex == -1) {
 				selectedWaypointIndex = 0;
 			}
@@ -158,11 +151,11 @@
 	hotkeys('up', () => onPrevWaypoint());
 </script>
 
-{#if $commandedFleet && $selectedWaypoint}
+{#if fleet.waypoints && $selectedWaypoint}
 	<CommandTile title="Fleet Waypoints">
 		<div class="bg-base-100 h-20 overflow-y-auto">
 			<ul class="w-full h-full">
-				{#each $commandedFleet.waypoints as wp, index}
+				{#each fleet.waypoints as wp, index}
 					<li
 						on:click={() => onSelectWaypoint(wp, index)}
 						bind:this={waypointRefs[index]}
@@ -213,7 +206,7 @@
 			<label>
 				<input
 					on:change={(e) => onRepeatOrdersChanged(e.currentTarget.checked ? true : false)}
-					bind:checked={$commandedFleet.repeatOrders}
+					bind:checked={fleet.repeatOrders}
 					class="checkbox-xs"
 					type="checkbox"
 				/> Repeate Orders
@@ -242,7 +235,7 @@
 			<label>
 				<input
 					on:change={(e) => onRepeatOrdersChanged(e.currentTarget.checked ? true : false)}
-					checked={$commandedFleet.repeatOrders}
+					checked={fleet.repeatOrders}
 					class="checkbox-xs"
 					type="checkbox"
 				/> Repeate Orders

@@ -5,12 +5,11 @@
 	import {
 		commandedMapObjectName,
 		commandMapObject,
-		myMapObjectsByPosition
+		getMyMapObjectsByPosition
 	} from '$lib/services/Context';
 	import type { Fleet } from '$lib/types/Fleet';
-	import { MapObjectType, positionKey } from '$lib/types/MapObject';
+	import { MapObjectType } from '$lib/types/MapObject';
 	import type { Planet } from '$lib/types/Planet';
-	import type { Player } from '$lib/types/Player';
 	import { ArrowTopRightOnSquare } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onMount } from 'svelte';
@@ -35,14 +34,11 @@
 	commandedMapObjectName.subscribe(() => (selectedFleetIndex = 0));
 
 	$: {
-		if ($myMapObjectsByPosition) {
-			const mapObjectsByPosition = $myMapObjectsByPosition[positionKey(planet)];
-			fleetsInOrbit = mapObjectsByPosition.filter(
-				(mo) => mo.type == MapObjectType.Fleet
-			) as Fleet[];
-			if (fleetsInOrbit.length > 0) {
-				selectedFleet = fleetsInOrbit[selectedFleetIndex];
-			}
+		fleetsInOrbit = getMyMapObjectsByPosition(planet).filter(
+			(mo) => mo.type == MapObjectType.Fleet
+		) as Fleet[];
+		if (fleetsInOrbit.length > 0) {
+			selectedFleet = fleetsInOrbit[selectedFleetIndex];
 		}
 	}
 

@@ -47,7 +47,7 @@ func Test_getScanners(t *testing.T) {
 				MineralPackets: tt.args.mineralPackets,
 				MineFields:     tt.args.mineFields,
 				rules:          &rules,
-			}, &rules, player, newDiscoverer(player)}
+			}, &rules, player, []*Player{player}, make(map[int]bool), newDiscoverer(player)}
 			if got := scan.getScanners(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("getScanners() = \n%v, want \n%v", got, tt.want)
 			}

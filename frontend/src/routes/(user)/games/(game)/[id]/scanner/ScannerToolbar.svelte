@@ -3,7 +3,8 @@
 	import PlanetWithStarbase from '$lib/components/icons/PlanetWithStarbase.svelte';
 	import Population from '$lib/components/icons/Population.svelte';
 	import Scanner from '$lib/components/icons/Scanner.svelte';
-	import { nextMapObject, previousMapObject, settings } from '$lib/services/Context';
+	import { nextMapObject, previousMapObject } from '$lib/services/Context';
+	import { settings } from '$lib/services/Settings';
 	import type { Game } from '$lib/types/Game';
 	import type { Player } from '$lib/types/Player';
 	import { PlanetViewState } from '$lib/types/PlayerSettings';
@@ -26,7 +27,7 @@
 		<ul class="menu menu-horizontal">
 			<!-- submenu -->
 			<li>
-				<a href="#planet-view-states" class="btn btn-xs h-full">
+				<a href="#planet-view-states" class="btn btn-primary btn-xs w-12 h-12">
 					{#if $settings.planetViewState == PlanetViewState.Normal}
 						<PlanetWithStarbase class="w-6 h-6" />
 					{:else if $settings.planetViewState == PlanetViewState.SurfaceMinerals}
@@ -41,37 +42,47 @@
 						<PlanetWithStarbase class="w-6 h-6" />
 					{/if}
 				</a>
-				<PlanetViewStates class="menu menu-vertical bg-base-100 z-20" />
+				<PlanetViewStates class="menu menu-vertical bg-base-100 z-20 w-12" />
 			</li>
 		</ul>
 	</div>
 
-	<a
-		href="#scanner-toggle"
-		class:fill-accent={$settings.showScanners}
-		class:fill-base-content={!$settings.showScanners}
-		class="btn btn-ghost btn-xs h-full border"
-		on:click|preventDefault={() => ($settings.showScanners = !$settings.showScanners)}
-		><span><Scanner class="w-6 h-6" /></span></a
-	>
-	<a
-		href="#add-waypoint"
-		class:fill-accent={$settings.addWaypoint}
-		class:fill-base-content={!$settings.addWaypoint}
-		class="btn btn-ghost btn-xs h-full border"
-		on:click|preventDefault={() => ($settings.addWaypoint = !$settings.addWaypoint)}
-		><Path class="w-6 h-6" /></a
-	>
-	<a
-		href="#add-waypoint"
-		class="btn btn-ghost btn-xs h-full indicator"
-		on:click|preventDefault={() => (showMessages = !showMessages)}
-		><Icon
-			src={Envelope}
-			class={`w-6 h-6 ${showMessages ? 'stroke-accent' : 'stroke-base-content'}`}
-		/>
-		<span class="indicator-item badge badge-secondary">{player.messages.length}</span>
-	</a>
+	<div class="flex-none block sm:hidden">
+		<ul class="menu menu-horizontal">
+			<li>
+				<a
+					href="#scanner-toggle"
+					class:fill-accent={$settings.showScanners}
+					class:fill-current={!$settings.showScanners}
+					class="btn btn-ghost btn-xs h-full border"
+					on:click|preventDefault={() => ($settings.showScanners = !$settings.showScanners)}
+					><span><Scanner class="w-6 h-6" /></span></a
+				>
+			</li>
+			<li>
+				<a
+					href="#add-waypoint"
+					class:fill-accent={$settings.addWaypoint}
+					class:fill-current={!$settings.addWaypoint}
+					class="btn btn-ghost btn-xs h-full border"
+					on:click|preventDefault={() => ($settings.addWaypoint = !$settings.addWaypoint)}
+					><Path class="w-6 h-6" /></a
+				>
+			</li>
+			<li>
+				<a
+					href="#add-waypoint"
+					class="btn btn-ghost btn-xs h-full indicator"
+					on:click|preventDefault={() => (showMessages = !showMessages)}
+					><Icon
+						src={Envelope}
+						class={`w-6 h-6 ${showMessages ? 'stroke-accent' : 'stroke-current'}`}
+					/>
+					<span class="indicator-item badge badge-secondary">{player.messages.length}</span>
+				</a>
+			</li>
+		</ul>
+	</div>
 
 	<div class="ml-auto">
 		<div class="tooltip" data-tip="previous">

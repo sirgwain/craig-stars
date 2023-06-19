@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { player, settings } from '$lib/services/Context';
+	import { player } from '$lib/services/Context';
+	import { settings } from '$lib/services/Settings';
 
 	import { positionKey } from '$lib/types/MapObject';
 	import type { Vector } from '$lib/types/Vector';

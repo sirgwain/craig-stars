@@ -2,7 +2,6 @@
 	import {
 		commandMapObject,
 		getMapObject,
-		mapObjectsByPosition,
 		selectMapObject,
 		zoomToMapObject
 	} from '$lib/services/Context';
@@ -55,7 +54,7 @@
 				}
 
 				if (moType != MapObjectType.None) {
-					const target = getMapObject(player, moType, message.targetNum, message.targetPlayerNum);
+					const target = getMapObject(moType, message.targetNum, message.targetPlayerNum);
 					if (target) {
 						if (target.type == MapObjectType.Fleet) {
 							const orbitingPlanetNum = (target as Fleet).orbitingPlanetNum;

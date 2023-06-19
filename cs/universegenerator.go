@@ -484,7 +484,7 @@ func (ug *universeGenerator) generatePlayerIntel() error {
 		}
 
 		// do initial scans
-		scanner := newPlayerScanner(&ug.universe, ug.rules, player)
+		scanner := newPlayerScanner(&ug.universe, ug.players, ug.rules, player)
 		if err := scanner.scan(); err != nil {
 			return err
 		}

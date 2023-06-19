@@ -12,19 +12,21 @@ type scanner struct {
 }
 
 type playerScan struct {
-	universe   *Universe
-	rules      *Rules
-	player     *Player
-	discoverer discoverer
+	universe          *Universe
+	rules             *Rules
+	player            *Player
+	players           []*Player
+	discoveredPlayers map[int]bool
+	discoverer        discoverer
 }
 
 type playerScanner interface {
 	scan() error
 }
 
-func newPlayerScanner(universe *Universe, rules *Rules, player *Player) playerScanner {
+func newPlayerScanner(universe *Universe, players []*Player, rules *Rules, player *Player) playerScanner {
 	discoverer := newDiscoverer(player)
-	return &playerScan{universe, rules, player, discoverer}
+	return &playerScan{universe, rules, player, players, make(map[int]bool, len(player.PlayerIntels.PlayerIntels)), discoverer}
 }
 
 // scan planets, fleets, etc for a player
@@ -56,9 +58,11 @@ func (scan *playerScan) scan() error {
 		return err
 	}
 
-	// scan fleets
+	// scan universe
 	scan.scanFleets(scanners, cargoScanners)
 	scan.scanWormholes(scanners)
+
+	scan.discoverPlayers()
 
 	return nil
 }
@@ -104,6 +108,9 @@ func (scan *playerScan) scanPlanet(planet *Planet, scanner scanner) (bool, error
 	dist := scanner.Position.DistanceSquaredTo(planet.Position)
 	_ = dist
 	if float64(scanner.RangePenSquared) >= scanner.Position.DistanceSquaredTo(planet.Position) {
+		if planet.owned() {
+			scan.discoveredPlayers[planet.PlayerNum] = true
+		}
 		if err := scan.discoverer.discoverPlanet(scan.rules, scan.player, planet, true); err != nil {
 			return false, err
 		}
@@ -146,6 +153,8 @@ func (scan *playerScan) scanFleets(scanners []scanner, cargoScanners []scanner) 
 	}
 
 	for _, fleet := range fleetsToScan {
+		scan.discoveredPlayers[fleet.PlayerNum] = true
+
 		scan.discoverer.discoverFleet(scan.player, fleet)
 		if scan.player.Race.Spec.DiscoverDesignOnScan {
 			for _, token := range fleet.Tokens {
@@ -198,6 +207,14 @@ func (scan *playerScan) scanWormholes(scanners []scanner) {
 				scan.discoverer.discoverWormhole(scan.player, wormhole)
 				break
 			}
+		}
+	}
+}
+
+func (scan *playerScan) discoverPlayers() {
+	for player, discovered := range scan.discoveredPlayers {
+		if discovered {
+			scan.discoverer.discoverPlayer(scan.players[player-1])
 		}
 	}
 }

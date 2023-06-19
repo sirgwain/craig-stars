@@ -5,16 +5,14 @@
 <script lang="ts">
 	import {
 		commandedMapObject,
-		mapObjectsByPosition,
-		myMapObjectsByPosition,
+		getMyMapObjectsByPosition,
 		player
 	} from '$lib/services/Context';
 	import { radiansToDegrees } from '$lib/services/Math';
-	import { positionKey } from '$lib/types/MapObject';
-	import { normalized } from '$lib/types/Vector';
-	import { getContext } from 'svelte';
-	import type { LayerCake } from 'layercake';
 	import type { Fleet } from '$lib/types/Fleet';
+	import { normalized } from '$lib/types/Vector';
+	import type { LayerCake } from 'layercake';
+	import { getContext } from 'svelte';
 
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
@@ -44,11 +42,9 @@
 	}
 
 	$: {
-		if ($mapObjectsByPosition && $myMapObjectsByPosition && $player) {
-			const key = positionKey(fleet);
-			const myMapObjectsAtPosition = $myMapObjectsByPosition[key];
+		if ($player) {
 			if (
-				myMapObjectsAtPosition?.find(
+				getMyMapObjectsByPosition(fleet).find(
 					(m) => m.type == $commandedMapObject.type && m.id == $commandedMapObject.id
 				)
 			) {

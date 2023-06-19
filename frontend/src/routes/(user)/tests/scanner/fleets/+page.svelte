@@ -97,6 +97,7 @@
 	// create a test player
 	player.update(() => {
 		return {
+			
 			gameId: 0,
 			userId: 0,
 			num: 0,
@@ -133,7 +134,6 @@
 		xRange={[0, 300]}
 		yRange={[300, 0]}
 	>
-		<!-- <Svg viewBox={`0 0 ${$game.area.x} ${$game.area.y}`}> -->
 		<Svg>
 			<g>
 				<ScannerFleets />

@@ -15,7 +15,7 @@
 	$: {
 		// console.log('loading icon of fleet: ', fleet);
 		icon = '';
-		if (player && fleet && fleet?.tokens?.length > 0) {
+		if (fleet.tokens && fleet.tokens?.length > 0) {
 			const designUuid = fleet.tokens[0].designUuid;
 			design = player.designs.find((d) => d.uuid == designUuid);
 			if (design) {
