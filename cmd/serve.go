@@ -27,8 +27,9 @@ func newServeCmd() *cobra.Command {
 
 			db := db.NewClient()
 			cfg := config.GetConfig()
-			db.Connect(cfg)
-			db.ExecSchema("schema.sql")
+			if err := db.Connect(cfg); err != nil {
+				return err
+			}
 
 			if generateUniverse {
 				if err := generateTestGame(db, *cfg); err != nil {
