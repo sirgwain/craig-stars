@@ -27,7 +27,7 @@ const (
 
 type NewGamePlayer struct {
 	Type         NewGamePlayerType `json:"type,omitempty"`
-	RaceID       uint64            `json:"raceID,omitempty"`
+	RaceID       int64             `json:"raceId,omitempty"`
 	AIDifficulty AIDifficulty      `json:"aiDifficulty,omitempty"`
 }
 
@@ -46,11 +46,11 @@ type GameSettings struct {
 }
 
 type Game struct {
-	ID                           uint64            `gorm:"primaryKey" json:"id" header:"ID" boltholdKey:"ID"`
+	ID                           int64             `json:"id" header:"ID"`
 	CreatedAt                    time.Time         `json:"createdAt"`
 	UpdatedAt                    time.Time         `json:"updatedAt"`
 	Name                         string            `json:"name" header:"Name"`
-	HostID                       uint64            `json:"hostId"`
+	HostID                       int64             `json:"hostId"`
 	QuickStartTurns              int               `json:"quickStartTurns"`
 	Size                         Size              `json:"size"`
 	Density                      Density           `json:"density"`
@@ -63,21 +63,22 @@ type Game struct {
 	State                        GameState         `json:"state"`
 	OpenPlayerSlots              uint              `json:"openPlayerSlots"`
 	NumPlayers                   int               `json:"numPlayers"`
-	VictoryConditions            VictoryConditions `json:"victoryConditions" gorm:"embedded;embeddedPrefix:victory_condition_"`
+	VictoryConditions            VictoryConditions `json:"victoryConditions"`
 	VictorDeclared               bool              `json:"victorDeclared"`
-	Rules                        Rules             `json:"rules" gorm:"serializer:json"`
-	Area                         Vector            `json:"area,omitempty" gorm:"embedded;embeddedPrefix:area_"`
+	Seed                         int64             `json:"seed"`
+	Rules                        Rules             `json:"rules"`
+	Area                         Vector            `json:"area,omitempty"`
 }
 
 // A game with players and a universe, used in universe and turn generation
 type FullGame struct {
 	*Game
 	*Universe
-	Players []*Player `json:"players,omitempty" gorm:"foreignKey:GameID;references:ID"`
+	Players []*Player `json:"players,omitempty"`
 }
 
 type VictoryConditions struct {
-	Conditions               []VictoryCondition `json:"conditions" gorm:"serializer:json"`
+	Conditions               []VictoryCondition `json:"conditions"`
 	NumCriteriaRequired      int                `json:"numCriteriaRequired"`
 	YearsPassed              int                `json:"yearsPassed"`
 	OwnPlanets               int                `json:"ownPlanets"`
@@ -153,7 +154,8 @@ const (
 )
 
 func NewGame() *Game {
-	rules := NewRules()
+	seed := time.Now().UnixNano()
+	rules := NewRulesWithSeed(seed)
 	return &Game{
 		Name:            "A Barefoot Jaywalk",
 		Size:            SizeSmall,
@@ -180,6 +182,7 @@ func NewGame() *Game {
 			OwnCapitalShips:          100,
 			HighestScoreAfterYears:   100,
 		},
+		Seed:  seed,
 		Rules: rules,
 	}
 }
@@ -230,7 +233,7 @@ func (settings *GameSettings) WithDensity(density Density) *GameSettings {
 }
 
 // add a host to this game
-func (settings *GameSettings) WithHost(raceID uint64) *GameSettings {
+func (settings *GameSettings) WithHost(raceID int64) *GameSettings {
 	settings.Players = append(settings.Players, NewGamePlayer{Type: NewGamePlayerTypeHost, RaceID: raceID})
 	return settings
 }
@@ -268,8 +271,8 @@ func (g *Game) WithSettings(settings GameSettings) *Game {
 }
 
 // transfer cargo from one cargo holder to another
-func (g *Game) Transfer(source *Fleet, dest CargoHolder, cargoType CargoType, transferAmount int) {
-	source.TransferCargoItem(dest, cargoType, transferAmount)
+func (g *Game) transfer(source *Fleet, dest CargoHolder, cargoType CargoType, transferAmount int) {
+	source.transferCargoItem(dest, cargoType, transferAmount)
 
 	// if (cargoType == CargoType.Fuel)	{
 	// 	cargoTransferer.Transfer(source, dest, Cargo.Empty, transferAmount);

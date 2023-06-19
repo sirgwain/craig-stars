@@ -43,7 +43,7 @@
 				createdAt: '2022-08-13T18:08:12.897362-07:00',
 				updatedAt: '2022-08-14T12:33:39.894893-07:00',
 				gameId: 5,
-				designId: 4,
+				designUuid: '',
 				quantity: 1
 			}
 		],

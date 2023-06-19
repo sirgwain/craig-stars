@@ -100,7 +100,7 @@ func (available Cost) NumBuildable(cost Cost) int {
 		buildable.Resources = available.Resources / cost.Resources
 	}
 
-	return MinInt(
+	return minInt(
 		buildable.Ironium,
 		buildable.Boranium,
 		buildable.Germanium,

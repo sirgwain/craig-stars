@@ -19,7 +19,7 @@ func (m Mineral) Total() int {
 	return m.Ironium + m.Boranium + m.Germanium
 }
 
-func (m Mineral) ToSplice() [3]int {
+func (m Mineral) ToSlice() [3]int {
 	return [3]int{
 		m.Ironium,
 		m.Boranium,

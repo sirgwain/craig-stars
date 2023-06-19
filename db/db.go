@@ -1,8 +1,12 @@
 package db
 
 import (
+	"database/sql"
+	"errors"
+	"fmt"
+	"io/ioutil"
 	"os"
-	"time"
+	"strings"
 
 	"github.com/sirgwain/craig-stars/config"
 	"github.com/sirgwain/craig-stars/game"
@@ -10,93 +14,148 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
+	"github.com/jmoiron/sqlx"
+	"github.com/jmoiron/sqlx/reflectx"
+	"github.com/mattn/go-sqlite3"
+	sqldblogger "github.com/simukti/sqldb-logger"
 )
 
-type DB struct {
-	sqlDB *gorm.DB
+type client struct {
+	db        *sqlx.DB
+	converter Converter
 }
 
 type Client interface {
-	MigrateAll() error
+	Connect(config *config.Config) error
+	ExecSQL(schemaPath string)
 
-	Connect(config *config.Config)
-	EnableDebugLogging()
+	GetUsers() ([]game.User, error)
+	GetUser(id int64) (*game.User, error)
+	GetUserByUsername(username string) (*game.User, error)
+	CreateUser(user *game.User) error
+	UpdateUser(user *game.User) error
+	DeleteUser(id int64) error
 
-	GetUsers() ([]*game.User, error)
-	SaveUser(user *game.User) error
-	FindUserById(id uint64) (*game.User, error)
-	FindUserByUsername(username string) (*game.User, error)
-	DeleteUserById(id uint64) error
+	GetRaces() ([]game.Race, error)
+	GetRacesForUser(userID int64) ([]game.Race, error)
+	GetRace(id int64) (*game.Race, error)
+	CreateRace(race *game.Race) error
+	UpdateRace(race *game.Race) error
+	DeleteRace(id int64) error
 
-	GetTechStores() ([]*game.TechStore, error)
+	GetTechStores() ([]game.TechStore, error)
 	CreateTechStore(tech *game.TechStore) error
-	FindTechStoreById(id uint64) (*game.TechStore, error)
+	GetTechStore(id int64) (*game.TechStore, error)
 
-	GetGames() ([]*game.Game, error)
-	GetGamesHostedByUser(userID uint64) ([]*game.Game, error)
-	GetGamesByUser(userID uint64) ([]*game.Game, error)
-	GetOpenGames() ([]*game.Game, error)
-	FindGameById(id uint64) (*game.FullGame, error)
-	FindGameByIdLight(id uint64) (*game.Game, error)
-	FindGameRulesByGameID(gameID uint64) (*game.Rules, error)
+	GetRulesForGame(gameID int64) (*game.Rules, error)
+
+	GetGames() ([]game.Game, error)
+	GetGamesForHost(userID int64) ([]game.Game, error)
+	GetGamesForUser(userID int64) ([]game.Game, error)
+	GetOpenGames() ([]game.Game, error)
+	GetGame(id int64) (*game.Game, error)
+	GetFullGame(id int64) (*game.FullGame, error)
 	CreateGame(game *game.Game) error
-	SaveGame(game *game.FullGame) error
-	DeleteGameById(id uint64) error
+	UpdateGame(game *game.Game) error
+	UpdateFullGame(g *game.FullGame) error
+	DeleteGame(id int64) error
 
-	GetRaces(userID uint64) ([]*game.Race, error)
-	FindRaceById(id uint64) (*game.Race, error)
-	SaveRace(race *game.Race) error
+	GetPlayers() ([]game.Player, error)
+	GetPlayersForUser(userID int64) ([]game.Player, error)
+	GetPlayer(id int64) (*game.Player, error)
+	GetLightPlayerForGame(gameID, userID int64) (*game.Player, error)
+	GetPlayerForGame(gameID, userID int64) (*game.Player, error)
+	GetFullPlayerForGame(gameID, userID int64) (*game.FullPlayer, error)
+	CreatePlayer(player *game.Player) error
+	UpdatePlayer(player *game.Player) error
+	UpdateLightPlayer(player *game.Player) error
+	DeletePlayer(id int64) error
 
-	FindPlayerByGameId(gameID uint64, userID uint64) (*game.FullPlayer, error)
-	FindPlayerByGameIdLight(gameID uint64, userID uint64) (*game.Player, error)
-	SavePlayer(player *game.Player) error
+	GetPlanet(id int64) (*game.Planet, error)
+	UpdatePlanet(planet *game.Planet) error
 
-	FindPlanetByID(id uint64) (*game.Planet, error)
-	FindPlanetByNum(gameID uint64, num int) (*game.Planet, error)
-	SavePlanet(gameID uint64, planet *game.Planet) error
-
-	FindFleetByID(id uint64) (*game.Fleet, error)
-	FindFleetByNum(gameID uint64, playerNum int, num int) (*game.Fleet, error)
-	SaveFleet(gameID uint64, fleet *game.Fleet) error
+	GetFleet(id int64) (*game.Fleet, error)
+	UpdateFleet(fleet *game.Fleet) error
 }
 
-func timeTrack(start time.Time, name string) {
-	elapsed := time.Since(start)
-	log.Printf("%s took %s", name, elapsed)
+func NewClient() Client {
+	return &client{
+		converter: &GameConverter{},
+	}
 }
 
-func (db *DB) Connect(config *config.Config) {
-	if config.Database.Recreate && config.Database.Filename != ":memory:" {
-		info, _ := os.Stat(config.Database.Filename)
-		if info != nil {
+// interface to support NamedExec as either a transaction or db
+type SQLExecer interface {
+	NamedExec(query string, arg interface{}) (sql.Result, error)
+	Exec(query string, args ...any) (sql.Result, error)
+}
+
+func (c *client) Connect(config *config.Config) error {
+
+	// exec the create schema sql if we are recreating the DB or using an in memory db
+	execSchemaSql := config.Database.Recreate || config.Database.Filename == ":memory:"
+
+	// if we are using a file based db, we have to exec the schema sql when we first
+	// set it up
+	if config.Database.Filename != ":memory:" {
+		// check if the db exists
+		info, err := os.Stat(config.Database.Filename)
+		if err != nil && !errors.Is(err, os.ErrNotExist) {
+			return err
+		}
+
+		// delete the db and recreate it if we are configured for that
+		if info != nil && config.Database.Recreate {
 			log.Debug().Msgf("Deleting existing database %s", config.Database.Filename)
 			os.Remove(config.Database.Filename)
+		}
+
+		if info == nil {
+			// first time creating the db, so exec schema for it
+			log.Debug().Msgf("Executing create schema %s", config.Database.Schema)
+			execSchemaSql = true
 		}
 	}
 
 	log.Debug().Msgf("Connecting to database %s", config.Database.Filename)
-	zlogger := zerolog.New(os.Stderr).With().Timestamp().Logger().Level(zerolog.WarnLevel)
-	dblogger := NewWithLogger(&zlogger)
 
-	localdb, err := gorm.Open(sqlite.Open(config.Database.Filename), &gorm.Config{
-		Logger: dblogger,
-	})
-	if err != nil {
-		panic(err)
+	// create a new logger for logging database calls
+	var zlogger zerolog.Logger
+	if config.Database.DebugLogging {
+		zlogger = zerolog.New(os.Stderr).With().Timestamp().Logger().Output(zerolog.ConsoleWriter{Out: os.Stderr}).Level(zerolog.DebugLevel)
+	} else {
+		zlogger = zerolog.New(os.Stderr).With().Timestamp().Logger().Level(zerolog.WarnLevel)
+	}
+	loggerAdapter := NewLoggerWithLogger(&zlogger)
+	db := sqldblogger.OpenDriver(config.Database.Filename, &sqlite3.SQLiteDriver{}, loggerAdapter /*, ...options */)
+
+	c.db = sqlx.NewDb(db, "sqlite3")
+
+	if _, err := c.db.Exec("PRAGMA foreign_keys = ON;"); err != nil {
+		return err
 	}
 
-	db.sqlDB = localdb
+	// Create a new mapper which will use the struct field tag "json" instead of "db"
+	c.db.Mapper = reflectx.NewMapperFunc("json", strings.ToLower)
 
-	if config.Database.Filename == ":memory:" {
-		log.Debug().Msgf("Creating in memory database")
-		db.MigrateAll()
+	// recreate the schema if we are in memory or recreated the db
+	if execSchemaSql {
+		c.ExecSQL(config.Database.Schema)
 	}
+	return nil
 }
 
-func (db *DB) EnableDebugLogging() {
-	zlogger := zerolog.New(os.Stderr).With().Timestamp().Logger().Output(zerolog.ConsoleWriter{Out: os.Stderr}).Level(zerolog.DebugLevel)
-	dblogger := NewWithLogger(&zlogger)
-	db.sqlDB.Logger = dblogger
+// execute a schema file to create/update tables
+func (c *client) ExecSQL(schemaPath string) {
+	schemaBytes, err := ioutil.ReadFile(schemaPath)
+	if err != nil {
+		panic(fmt.Errorf("load schema file %s, %w", schemaPath, err))
+	}
+
+	schema := string(schemaBytes)
+	log.Info().Str("schemaPath", schemaPath).Msg("Executing sql")
+
+	// exec the schema or fail; multi-statement Exec behavior varies between
+	// database drivers;  pq will exec them all, sqlite3 won't, ymmv
+	c.db.MustExec(schema)
 }

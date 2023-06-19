@@ -2,7 +2,7 @@ package game
 
 type Salvage struct {
 	MapObject
-	Cargo Cargo `json:"cargo,omitempty" gorm:"embedded;embeddedPrefix:cargo_"`
+	Cargo Cargo `json:"cargo,omitempty"`
 }
 
 // create a new salvage object

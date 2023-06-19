@@ -10,7 +10,7 @@ import (
 func Test_getClosestPlanet(t *testing.T) {
 	rules := NewRules()
 	player := NewPlayer(1, NewRace().WithSpec(&rules))
-	aiPlayer := NewAIPlayer(player, PlayerMapObjects{})
+	aiPlayer := newAIPlayer(player, PlayerMapObjects{})
 
 	planetAt0_0 := PlanetIntel{
 		MapObjectIntel: MapObjectIntel{Position: Vector{0, 0}},
@@ -59,7 +59,7 @@ func Test_getClosestPlanet(t *testing.T) {
 }
 
 func TestAIPlayer_GetPlanet(t *testing.T) {
-	player := NewAIPlayer(NewPlayer(1, NewRace()), PlayerMapObjects{})
+	player := newAIPlayer(NewPlayer(1, NewRace()), PlayerMapObjects{})
 
 	// no planet by that id
 	assert.Nil(t, player.GetPlanet(1))

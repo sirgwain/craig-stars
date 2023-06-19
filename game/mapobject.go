@@ -6,19 +6,19 @@ import (
 )
 
 type MapObject struct {
-	ID        uint64        `gorm:"primaryKey" json:"id" boltholdKey:"ID"`
-	GameID    uint64        `json:"gameId" boltholdIndex:"GameID"`
+	ID        int64         `json:"id"`
+	GameID    int64         `json:"gameId" boltholdIndex:"GameID"`
 	CreatedAt time.Time     `json:"createdAt"`
 	UpdatedAt time.Time     `json:"updatedAt"`
 	Type      MapObjectType `json:"type"`
-	PlayerID  uint64        `json:"-"`
-	Dirty     bool          `json:"-" gorm:"-"`
-	Delete    bool          `json:"-" gorm:"-"`
-	Position  Vector        `json:"position" gorm:"embedded"`
+	PlayerID  int64         `json:"-"`
+	Dirty     bool          `json:"-"`
+	Delete    bool          `json:"-"`
+	Position  Vector        `json:"position"`
 	Name      string        `json:"name"`
 	Num       int           `json:"num"`
 	PlayerNum int           `json:"playerNum"`
-	// Tags      Tags           `json:"tags" gorm:"serializer:json"`
+	// Tags      Tags           `json:"tags"`
 }
 
 type MapObjectType string
@@ -38,10 +38,10 @@ func (mo *MapObject) String() string {
 	return fmt.Sprintf("GameID: %5d, ID: %5d, Num: %3d %s", mo.GameID, mo.ID, mo.Num, mo.Name)
 }
 
-func (mo *MapObject) Owned() bool {
+func (mo *MapObject) owned() bool {
 	return mo.PlayerNum != Unowned
 }
 
-func (mo *MapObject) OwnedBy(num int) bool {
+func (mo *MapObject) ownedBy(num int) bool {
 	return mo.PlayerNum != Unowned && mo.PlayerNum == num
 }

@@ -18,7 +18,7 @@ type aiPlayerConfig struct {
 	colonizerPopulationDensity float64
 }
 
-func NewAIPlayer(player *Player, playerMapObjects PlayerMapObjects) *aiPlayer {
+func newAIPlayer(player *Player, playerMapObjects PlayerMapObjects) *aiPlayer {
 	aiPlayer := aiPlayer{
 		Player: player,
 		config: aiPlayerConfig{
@@ -75,7 +75,7 @@ func (ai *aiPlayer) scout() {
 			} else {
 				// this fleet is already scanning a planet, remove the target from the unknown planets list
 				for _, wp := range fleet.Waypoints[1:] {
-					if wp.TargetNum != NoTarget {
+					if wp.TargetNum != None {
 						delete(unknownPlanetsByNum, wp.TargetNum)
 					}
 				}
@@ -121,14 +121,14 @@ func (ai *aiPlayer) colonize() {
 		if _, contains := fleet.Spec.Purposes[ShipDesignPurposeColonizer]; contains && fleet.Spec.Colonizer {
 			if len(fleet.Waypoints) <= 1 {
 				planet := ai.GetPlanet(fleet.OrbitingPlanetNum)
-				if planet != nil && planet.OwnedBy(ai.Player.Num) && planet.Spec.PopulationDensity > ai.config.colonizerPopulationDensity {
+				if planet != nil && planet.ownedBy(ai.Player.Num) && planet.Spec.PopulationDensity > ai.config.colonizerPopulationDensity {
 					// this fleet can be sent to colonize a planet
 					colonizerFleets = append(colonizerFleets, fleet)
 				}
 			} else {
 				// this fleet is already scanning a planet, remove the target from the colonizable planets list
 				for _, wp := range fleet.Waypoints[1:] {
-					if wp.TargetNum != NoTarget {
+					if wp.TargetNum != None {
 						delete(colonizablePlanets, wp.TargetNum)
 					}
 				}
@@ -180,7 +180,7 @@ func (p *aiPlayer) GetFleet(num int) *Fleet {
 func (p *aiPlayer) GetBuildablePlanets(mass int) []*Planet {
 	planets := []*Planet{}
 	for _, planet := range p.Planets {
-		if planet.CanBuild(mass) {
+		if planet.canBuild(mass) {
 			planets = append(planets, planet)
 		}
 	}

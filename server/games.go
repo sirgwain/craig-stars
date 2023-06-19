@@ -4,16 +4,18 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog/log"
 )
 
 type idBind struct {
-	ID uint64 `uri:"id"`
+	ID int64 `uri:"id"`
 }
 
 func (s *server) Games(c *gin.Context) {
-	games, err := s.ctx.DB.GetGames()
+	games, err := s.db.GetGames()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		log.Error().Err(err).Msg("get games from database")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to get games from database"})
 		return
 	}
 
@@ -27,9 +29,10 @@ func (s *server) GameById(c *gin.Context) {
 		return
 	}
 
-	game, err := s.ctx.DB.FindGameByIdLight(id.ID)
+	game, err := s.db.GetGame(id.ID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		log.Error().Err(err).Int64("ID", id.ID).Msg("get game from database")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to get game from database"})
 		return
 	}
 
@@ -40,7 +43,7 @@ func (s *server) GameById(c *gin.Context) {
 	c.JSON(http.StatusOK, game)
 }
 
-func (s *server) DeleteGameById(c *gin.Context) {
+func (s *server) DeleteGame(c *gin.Context) {
 	user := s.GetSessionUser(c)
 
 	var id idBind
@@ -50,9 +53,10 @@ func (s *server) DeleteGameById(c *gin.Context) {
 	}
 
 	// validate
-	game, err := s.ctx.DB.FindGameByIdLight(id.ID)
+	game, err := s.db.GetGame(id.ID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		log.Error().Err(err).Int64("ID", id.ID).Msg("get game from database")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to get game from database"})
 		return
 	}
 
@@ -62,8 +66,9 @@ func (s *server) DeleteGameById(c *gin.Context) {
 	}
 
 	// delete it
-	if err := s.ctx.DB.DeleteGameById(id.ID); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if err := s.db.DeleteGame(id.ID); err != nil {
+		log.Error().Err(err).Int64("ID", id.ID).Msg("delete game from database")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to delete game from database"})
 		return
 	}
 

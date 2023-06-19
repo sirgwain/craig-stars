@@ -12,20 +12,20 @@ const NoGate = -1
 const InfinteGate = math.MaxInt32
 
 type TechStore struct {
-	ID                       uint64                                `gorm:"primaryKey" json:"id" boltholdKey:"ID"`
+	ID                       int64                                 `json:"id"`
 	CreatedAt                time.Time                             `json:"createdAt"`
 	UpdatedAt                time.Time                             `json:"updatedAt"`
-	RulesID                  uint64                                `json:"rulesId"`
+	RulesID                  int64                                 `json:"rulesId"`
 	Engines                  []TechEngine                          `json:"engines"`
 	PlanetaryScanners        []TechPlanetaryScanner                `json:"planetaryScanners"`
 	Terraforms               []TechTerraform                       `json:"terraforms"`
 	Defenses                 []TechDefense                         `json:"defenses"`
 	HullComponents           []TechHullComponent                   `json:"hullComponents"`
 	Hulls                    []TechHull                            `json:"hulls,omitempty"`
-	HullComponentsByName     map[string]*TechHullComponent         `json:"-" gorm:"-"`
-	HullsByName              map[string]*TechHull                  `json:"-" gorm:"-"`
-	EnginesByName            map[string]*TechEngine                `json:"-" gorm:"-"`
-	HullComponetnsByCategory map[TechCategory][]*TechHullComponent `json:"-" gorm:"-"`
+	hullComponentsByName     map[string]*TechHullComponent         `json:"-"`
+	hullsByName              map[string]*TechHull                  `json:"-"`
+	enginesByName            map[string]*TechEngine                `json:"-"`
+	hullComponetnsByCategory map[TechCategory][]*TechHullComponent `json:"-"`
 }
 
 // simple static tech store
@@ -61,44 +61,44 @@ func NewTechStore() TechFinder {
 }
 
 func (store *TechStore) Init() {
-	store.HullsByName = make(map[string]*TechHull, len(store.Hulls))
-	store.EnginesByName = make(map[string]*TechEngine, len(store.Engines))
-	store.HullComponentsByName = make(map[string]*TechHullComponent, len(store.Engines)+len(store.HullComponents))
-	store.HullComponetnsByCategory = map[TechCategory][]*TechHullComponent{}
+	store.hullsByName = make(map[string]*TechHull, len(store.Hulls))
+	store.enginesByName = make(map[string]*TechEngine, len(store.Engines))
+	store.hullComponentsByName = make(map[string]*TechHullComponent, len(store.Engines)+len(store.HullComponents))
+	store.hullComponetnsByCategory = map[TechCategory][]*TechHullComponent{}
 
 	for i := range store.Hulls {
 		tech := &store.Hulls[i]
-		store.HullsByName[tech.Name] = tech
+		store.hullsByName[tech.Name] = tech
 	}
 
 	for i := range store.Engines {
 		tech := &store.Engines[i]
-		store.EnginesByName[tech.Name] = tech
-		store.HullComponentsByName[tech.Name] = &tech.TechHullComponent
+		store.enginesByName[tech.Name] = tech
+		store.hullComponentsByName[tech.Name] = &tech.TechHullComponent
 	}
 
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
-		store.HullComponentsByName[tech.Name] = tech
+		store.hullComponentsByName[tech.Name] = tech
 
-		if _, ok := store.HullComponetnsByCategory[tech.Category]; !ok {
-			store.HullComponetnsByCategory[tech.Category] = []*TechHullComponent{}
+		if _, ok := store.hullComponetnsByCategory[tech.Category]; !ok {
+			store.hullComponetnsByCategory[tech.Category] = []*TechHullComponent{}
 		}
-		store.HullComponetnsByCategory[tech.Category] = append(store.HullComponetnsByCategory[tech.Category], tech)
+		store.hullComponetnsByCategory[tech.Category] = append(store.hullComponetnsByCategory[tech.Category], tech)
 	}
 
 }
 
 func (store *TechStore) GetEngine(name string) *TechEngine {
-	return store.EnginesByName[name]
+	return store.enginesByName[name]
 }
 
 func (store *TechStore) GetHull(name string) *TechHull {
-	return store.HullsByName[name]
+	return store.hullsByName[name]
 }
 
 func (store *TechStore) GetHullComponent(name string) *TechHullComponent {
-	return store.HullComponentsByName[name]
+	return store.hullComponentsByName[name]
 }
 
 // get all techs by category

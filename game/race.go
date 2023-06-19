@@ -7,17 +7,16 @@ import (
 )
 
 type Race struct {
-	ID                uint64       `gorm:"primaryKey" json:"id,omitempty" boltholdKey:"ID"`
+	ID                int64        `json:"id,omitempty"`
 	CreatedAt         time.Time    `json:"createdAt,omitempty"`
 	UpdatedAt         time.Time    `json:"updatedat,omitempty"`
-	UserID            uint64       `json:"userId,omitempty"`
-	PlayerID          uint64       `json:"playerId,omitempty"`
+	UserID            int64        `json:"userId,omitempty"`
 	Name              string       `json:"name,omitempty"`
 	PluralName        string       `json:"pluralName,omitempty"`
 	PRT               PRT          `json:"prt,omitempty"`
 	LRTs              Bitmask      `json:"lrts,omitempty"`
-	HabLow            Hab          `json:"habLow,omitempty" gorm:"embedded;embeddedPrefix:hab_low_"`
-	HabHigh           Hab          `json:"habHigh,omitempty" gorm:"embedded;embeddedPrefix:hab_high_"`
+	HabLow            Hab          `json:"habLow,omitempty"`
+	HabHigh           Hab          `json:"habHigh,omitempty"`
 	GrowthRate        int          `json:"growthRate,omitempty"`
 	PopEfficiency     int          `json:"popEfficiency,omitempty"`
 	FactoryOutput     int          `json:"factoryOutput,omitempty"`
@@ -30,9 +29,9 @@ type Race struct {
 	MineOutput        int          `json:"mineOutput,omitempty"`
 	MineCost          int          `json:"mineCost,omitempty"`
 	NumMines          int          `json:"numMines,omitempty"`
-	ResearchCost      ResearchCost `json:"researchCost,omitempty" gorm:"embedded;embeddedPrefix:research_cost_"`
+	ResearchCost      ResearchCost `json:"researchCost,omitempty"`
 	TechsStartHigh    bool         `json:"techsStartHigh,omitempty"`
-	Spec              *RaceSpec    `json:"spec,omitempty" gorm:"serializer:json"`
+	Spec              RaceSpec     `json:"spec,omitempty"`
 }
 
 type ResearchCostLevel string
@@ -278,6 +277,11 @@ func NewRace() *Race {
 	}
 }
 
+func (r *Race) WithUserID(userID int64) *Race {
+	r.UserID = userID
+	return r
+}
+
 func (r *Race) WithLRT(lrt LRT) *Race {
 	r.LRTs |= Bitmask(lrt)
 	return r
@@ -406,7 +410,7 @@ func (r *Race) GetPlanetHabitability(hab Hab) int {
 }
 
 // compute the spec for this race
-func computeRaceSpec(race *Race, rules *Rules) *RaceSpec {
+func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 	prtSpec := rules.PRTSpecs[PRT(race.PRT)]
 	spec := RaceSpec{
 		StartingTechLevels:       prtSpec.StartingTechLevels,
@@ -592,5 +596,5 @@ func computeRaceSpec(race *Race, rules *Rules) *RaceSpec {
 		},
 	}
 
-	return &spec
+	return spec
 }
