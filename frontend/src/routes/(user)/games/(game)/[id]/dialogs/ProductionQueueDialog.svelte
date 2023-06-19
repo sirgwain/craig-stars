@@ -6,10 +6,10 @@
 	import type { ProductionQueueItem } from '$lib/types/Planet';
 	import { isAuto, QueueItemType } from '$lib/types/Planet';
 	import {
-		ArrowNarrowDown,
-		ArrowNarrowLeft,
-		ArrowNarrowRight,
-		ArrowNarrowUp,
+		ArrowLongDown,
+		ArrowLongLeft,
+		ArrowLongRight,
+		ArrowLongUp,
 		XCircle
 	} from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
@@ -250,7 +250,7 @@
 								on:click={() => addAvailableItem()}
 								class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
 								>Add <Icon
-									src={ArrowNarrowRight}
+									src={ArrowLongRight}
 									size="16"
 									class="hover:stroke-accent inline"
 								/></button
@@ -258,18 +258,18 @@
 							<button
 								on:click={removeItem}
 								class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
-								><Icon src={ArrowNarrowLeft} size="16" class="hover:stroke-accent inline" /> Remove
+								><Icon src={ArrowLongLeft} size="16" class="hover:stroke-accent inline" /> Remove
 							</button>
 							<button
 								on:click={itemUp}
 								class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
-								>Item Up <Icon src={ArrowNarrowUp} size="16" class="hover:stroke-accent inline" />
+								>Item Up <Icon src={ArrowLongUp} size="16" class="hover:stroke-accent inline" />
 							</button>
 							<button
 								on:click={itemDown}
 								class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
 								>Item Down <Icon
-									src={ArrowNarrowDown}
+									src={ArrowLongDown}
 									size="16"
 									class="hover:stroke-accent inline"
 								/>

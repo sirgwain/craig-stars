@@ -4,7 +4,7 @@
 	import { onMount } from 'svelte';
 	import { me } from '$lib/services/Context';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { X } from '@steeze-ui/heroicons';
+	import { XMark } from '@steeze-ui/heroicons';
 	import Galaxy from '$lib/components/icons/Galaxy.svelte';
 	import Processor from '$lib/components/icons/Processor.svelte';
 
@@ -77,7 +77,7 @@
 							on:click={() => deleteGame(game)}
 							class="float-right btn btn-error btn-danger btn-sm"
 						>
-							<Icon src={X} size="16" class="hover:stroke-accent md:hidden" />
+							<Icon src={XMark} size="16" class="hover:stroke-accent md:hidden" />
 							<span class="hidden md:inline-block">Delete</span></button
 						>
 					</div>

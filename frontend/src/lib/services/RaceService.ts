@@ -2,11 +2,11 @@ import type { Race } from '$lib/types/Race';
 import { Service } from './Service';
 
 export class RaceService extends Service {
-	async loadRaces(): Promise<Race[]> {
-		return this.get<Race[]>('/api/races');
+	static async load(): Promise<Race[]> {
+		return Service.get<Race[]>('/api/races');
 	}
 
-	async loadRace(raceId: number): Promise<Race> {
-		return this.get<Race>(`/api/races/${raceId}`);
+	static async delete(id: number): Promise<void> {
+		return Service.delete(id, '/api/races');
 	}
 }

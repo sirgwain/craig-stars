@@ -8,7 +8,6 @@
 	export let required = false;
 
 	$: !title && (title = startCase(name));
-    $: console.log(value)
 </script>
 
 <div class="w-full flex-grow">

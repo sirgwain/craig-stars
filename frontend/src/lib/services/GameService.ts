@@ -9,15 +9,15 @@ type playerStatusResult = {
 
 export class GameService extends Service {
 	async loadPlayerGames(): Promise<Game[]> {
-		return this.get<Game[]>('/api/games');
+		return Service.get<Game[]>('/api/games');
 	}
 
 	async loadHostedGames(): Promise<Game[]> {
-		return this.get<Game[]>('/api/games/hosted');
+		return Service.get<Game[]>('/api/games/hosted');
 	}
 
 	async loadOpenGames(): Promise<Game[]> {
-		return this.get<Game[]>('/api/games/open');
+		return Service.get<Game[]>('/api/games/open');
 	}
 
 	async deleteGame(gameId: number): Promise<any> {
@@ -45,7 +45,6 @@ export class GameService extends Service {
 		if (response.ok) {
 			return (await response.json()) as GameContext;
 		} else {
-			console.log(response);
 			throw new Error('Failed to load game');
 		}
 	}
@@ -61,7 +60,6 @@ export class GameService extends Service {
 		if (response.ok) {
 			return (await response.json()) as Game;
 		} else {
-			console.log(response);
 			throw new Error('Failed to load game');
 		}
 	}
@@ -77,7 +75,6 @@ export class GameService extends Service {
 		if (response.ok) {
 			return ((await response.json()) as playerStatusResult).players;
 		} else {
-			console.log(response);
 			throw new Error('Failed to load game');
 		}
 	}

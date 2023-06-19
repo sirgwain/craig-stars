@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { game, player } from '$lib/services/Context';
 	import type { Message } from '$lib/types/Player';
-	import { ExternalLink, ArrowNarrowLeft, ArrowNarrowRight } from '@steeze-ui/heroicons';
+	import { ArrowTopRightOnSquare, ArrowLongLeft, ArrowLongRight } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
 	let messageNum = 0;
@@ -40,7 +40,7 @@
 										class="btn btn-outline btn-sm normal-case btn-secondary"
 										title="previous"
 										><Icon
-											src={ArrowNarrowLeft}
+											src={ArrowLongLeft}
 											size="16"
 											class="hover:stroke-accent inline"
 										/></button
@@ -53,7 +53,7 @@
 										class="btn btn-outline btn-sm normal-case btn-secondary"
 										title="goto"
 										><Icon
-											src={ExternalLink}
+											src={ArrowTopRightOnSquare}
 											size="16"
 											class="hover:stroke-accent inline"
 										/></button
@@ -66,7 +66,7 @@
 										class="btn btn-outline btn-sm normal-case btn-secondary"
 										title="next"
 										><Icon
-											src={ArrowNarrowRight}
+											src={ArrowLongRight}
 											size="16"
 											class="hover:stroke-accent inline"
 										/></button
