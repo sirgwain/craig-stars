@@ -78,6 +78,7 @@ type Client interface {
 	GetPlayerWithDesignsForGame(gameID, userID int64) (*cs.Player, error)
 	CreatePlayer(player *cs.Player) error
 	UpdatePlayer(player *cs.Player) error
+	SubmitPlayerTurn(gameID int64, num int, submittedTurn bool) error
 	UpdatePlayerOrders(player *cs.Player) error
 	UpdatePlayerPlans(player *cs.Player) error
 	UpdateLightPlayer(player *cs.Player) error

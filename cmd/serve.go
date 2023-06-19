@@ -66,11 +66,6 @@ func generateTestGame(db server.DBClient, config config.Config) error {
 		return err
 	}
 
-	user2, user2Race, err := createTestUser(db, "craig", config.GeneratedUserPassword, "craig@craig-stars.net", cs.RoleUser)
-	if err != nil {
-		return err
-	}
-
 	// also create a medium size game with 25 turns generated
 	mediumGame, err := gameRunner.HostGame(admin.ID, cs.NewGameSettings().
 		WithName("Medium Game").
@@ -149,15 +144,21 @@ func generateTestGame(db server.DBClient, config config.Config) error {
 		}
 	}
 
-	// user2 will also host a game so with an open player slot
-	_, err = gameRunner.HostGame(user2.ID, cs.NewGameSettings().
-		WithName("Joinable Game").
-		WithHost(user2Race.ID).
-		WithOpenPlayerSlot().
-		WithAIPlayer(cs.AIDifficultyNormal, 1))
-	if err != nil {
-		return err
-	}
+	// user2, user2Race, err := createTestUser(db, "craig", config.GeneratedUserPassword, "craig@craig-stars.net", cs.RoleUser)
+	// if err != nil {
+	// 	return err
+	// }
+
+
+	// // user2 will also host a game so with an open player slot
+	// _, err = gameRunner.HostGame(user2.ID, cs.NewGameSettings().
+	// 	WithName("Joinable Game").
+	// 	WithHost(user2Race.ID).
+	// 	WithOpenPlayerSlot().
+	// 	WithAIPlayer(cs.AIDifficultyNormal, 1))
+	// if err != nil {
+	// 	return err
+	// }
 
 	return nil
 }

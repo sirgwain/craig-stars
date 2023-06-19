@@ -269,8 +269,9 @@ func (gr *gameRunner) SubmitTurn(gameID int64, userID int64) error {
 		return fmt.Errorf("player for user %d, game %d not found", userID, gameID)
 	}
 
-	player.SubmittedTurn = true
-	gr.db.UpdatePlayerOrders(player)
+	if err := gr.db.SubmitPlayerTurn(gameID, player.Num, true); err != nil {
+		return fmt.Errorf("submitting player turn %w", err)
+	}
 	return nil
 }
 

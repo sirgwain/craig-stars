@@ -299,7 +299,7 @@ func (s *server) submitTurn(w http.ResponseWriter, r *http.Request) {
 
 	// submit the turn
 	player.SubmittedTurn = true
-	if err := s.db.UpdatePlayerOrders(player); err != nil {
+	if err := s.db.SubmitPlayerTurn(player.GameID, player.Num, true); err != nil {
 		log.Error().Err(err).Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update player")
 		render.Render(w, r, ErrInternalServerError(err))
 		return

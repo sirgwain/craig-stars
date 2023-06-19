@@ -466,6 +466,7 @@ func (c *client) GetLightPlayerForGame(gameID, userID int64) (*cs.Player, error)
 	battlePlans,
 	productionPlans,
 	transportPlans,
+	relations,
 	stats,
 	scoreHistory,
 	achievedVictoryConditions,
@@ -785,7 +786,6 @@ func (c *client) UpdatePlayerOrders(player *cs.Player) error {
 		researchAmount = :researchAmount,
 		nextResearchField = :nextResearchField,
 		researching = :researching,
-		researching = :researching,
 		battlePlans = :battlePlans,
 		productionPlans = :productionPlans,
 		transportPlans = :transportPlans,
@@ -793,6 +793,26 @@ func (c *client) UpdatePlayerOrders(player *cs.Player) error {
 		spec = :spec
 	WHERE id = :id
 	`, item); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// update an existing player's lightweight fields
+func (c *client) SubmitPlayerTurn(gameID int64, num int, submittedTurn bool) error {
+	type submitData struct {
+		GameID        int64 `json:"gameID"`
+		Num           int   `json:"num"`
+		SubmittedTurn bool  `json:"submittedTurn"`
+	}
+
+	if _, err := c.db.NamedExec(`
+	UPDATE players SET
+		updatedAt = CURRENT_TIMESTAMP,
+		submittedTurn = :submittedTurn
+	WHERE gameId = :gameID AND num = :num
+	`, submitData{GameID: gameID, Num: num, SubmittedTurn: submittedTurn}); err != nil {
 		return err
 	}
 

@@ -21,7 +21,6 @@ import {
 } from '$lib/types/Player';
 import type { ShipDesign } from '$lib/types/ShipDesign';
 import type { Vector } from '$lib/types/Vector';
-import { isEqual } from 'lodash-es';
 import { get } from 'svelte/store';
 import { BattlePlanService } from './BattlePlanService';
 import { updateGameContext, updatePlayer, updateUniverse } from './Contexts';
@@ -35,8 +34,7 @@ import {
 	commandedFleet,
 	commandedPlanet,
 	commandMapObject,
-	selectedWaypoint,
-	selectMapObject,
+	currentSelectedWaypointIndex, selectMapObject,
 	selectWaypoint,
 	zoomToMapObject
 } from './Stores';
@@ -243,19 +241,20 @@ export class FullGame implements Game {
 	}
 
 	async updateFleetOrders(fleet: CommandedFleet) {
+		const selectedWaypointIndex = get(currentSelectedWaypointIndex);
 		const updatedFleet = await FleetService.updateFleetOrders(fleet);
 		fleet = Object.assign(fleet, updatedFleet);
 		this.universe.updateFleet(fleet);
 		commandedFleet.update(() => fleet);
 
-		const selected = get(selectedWaypoint);
-		if (selected) {
-			fleet.waypoints?.forEach((wp) => {
-				if (isEqual(selected, wp)) {
-					selectWaypoint(wp);
-				}
-			});
+		if (
+			selectedWaypointIndex > -1 &&
+			fleet.waypoints &&
+			fleet.waypoints.length > selectedWaypointIndex
+		) {
+			selectWaypoint(fleet.waypoints[selectedWaypointIndex]);
 		}
+
 		updateUniverse(this.universe);
 	}
 
@@ -272,14 +271,25 @@ export class FullGame implements Game {
 		dest: Fleet | Planet | undefined,
 		transferAmount: Cargo
 	) {
+		const selectedWaypointIndex = get(currentSelectedWaypointIndex);
 		const updatedFleet = await FleetService.transferCargo(fleet, dest, transferAmount);
 		fleet = Object.assign(fleet, updatedFleet);
 		this.universe.updateFleet(fleet);
 		commandedFleet.update(() => fleet);
+
+		if (
+			selectedWaypointIndex > -1 &&
+			fleet.waypoints &&
+			fleet.waypoints.length > selectedWaypointIndex
+		) {
+			selectWaypoint(fleet.waypoints[selectedWaypointIndex]);
+		}
+
 		updateUniverse(this.universe);
 	}
 
 	async splitAll(fleet: CommandedFleet) {
+		const selectedWaypointIndex = get(currentSelectedWaypointIndex);
 		const updatedFleets = await FleetService.splitAll(fleet.gameId, fleet);
 		const sourceFleet = updatedFleets.find((f) => f.num == fleet.num);
 		if (sourceFleet) {
@@ -289,16 +299,35 @@ export class FullGame implements Game {
 		// update and add the new fleets to the universe
 		this.universe.updateFleet(fleet);
 		this.universe.addFleets(updatedFleets.filter((f) => f.num != fleet.num));
+
+		if (
+			selectedWaypointIndex > -1 &&
+			fleet.waypoints &&
+			fleet.waypoints.length > selectedWaypointIndex
+		) {
+			selectWaypoint(fleet.waypoints[selectedWaypointIndex]);
+		}
+
 		updateUniverse(this.universe);
 	}
 
 	async merge(fleet: CommandedFleet, fleetNums: number[]) {
+		const selectedWaypointIndex = get(currentSelectedWaypointIndex);
 		const updatedFleet = await FleetService.merge(fleet, fleetNums);
 
 		this.universe.removeFleets(fleetNums);
 		fleet = Object.assign(fleet, updatedFleet);
 		this.universe.updateFleet(fleet);
 		commandedFleet.update(() => fleet);
+
+		if (
+			selectedWaypointIndex > -1 &&
+			fleet.waypoints &&
+			fleet.waypoints.length > selectedWaypointIndex
+		) {
+			selectWaypoint(fleet.waypoints[selectedWaypointIndex]);
+		}
+
 		updateUniverse(this.universe);
 	}
 }

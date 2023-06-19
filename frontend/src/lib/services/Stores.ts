@@ -56,6 +56,16 @@ const currentSelectedMapObjectIndex = derived(
 	}
 );
 
+export const currentSelectedWaypointIndex = derived(
+	[selectedWaypoint, commandedFleet],
+	([$selectedWaypoint, $commandedFleet]) => {
+		if ($selectedWaypoint && $commandedFleet) {
+			return findIndex($commandedFleet.waypoints, (wp) => wp === $selectedWaypoint);
+		}
+		return -1;
+	}
+);
+
 export const selectNextMapObject = () => {
 	const u = get(universe);
 	const selected = get(selectedMapObject);
