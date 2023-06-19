@@ -1,5 +1,6 @@
-//go:generate go run github.com/jmattheis/goverter/cmd/goverter --packageName db --output ./db/generated.go --packagePath github.com/sirgwain/craig-stars/db --ignoreUnexportedFields ./db
 // to run locally: goverter --packageName db --output ./db/generated.go --packagePath github.com/sirgwain/craig-stars/db --ignoreUnexportedFields ./db
+//
+//go:generate go run github.com/jmattheis/goverter/cmd/goverter --packageName db --output ./db/generated.go --packagePath github.com/sirgwain/craig-stars/db --ignoreUnexportedFields ./db
 package db
 
 import (
@@ -782,11 +783,13 @@ func ExtendTechLevelsSpent(source Player) cs.TechLevel {
 
 func ExtendPlanetMapObject(source Planet) cs.MapObject {
 	return cs.MapObject{
-		Type:      cs.MapObjectTypePlanet,
-		ID:        source.ID,
-		GameID:    source.GameID,
-		CreatedAt: source.CreatedAt,
-		UpdatedAt: source.UpdatedAt,
+		GameDBObject: cs.GameDBObject{
+			ID:        source.ID,
+			GameID:    source.GameID,
+			CreatedAt: source.CreatedAt,
+			UpdatedAt: source.UpdatedAt,
+		},
+		Type: cs.MapObjectTypePlanet,
 		Position: cs.Vector{
 			X: source.X,
 			Y: source.Y,
@@ -856,11 +859,13 @@ func ExtendPlanetCargo(source Planet) cs.Cargo {
 
 func ExtendFleetMapObject(source Fleet) cs.MapObject {
 	return cs.MapObject{
-		Type:      cs.MapObjectTypeFleet,
-		ID:        source.ID,
-		GameID:    source.GameID,
-		CreatedAt: source.CreatedAt,
-		UpdatedAt: source.UpdatedAt,
+		GameDBObject: cs.GameDBObject{
+			ID:        source.ID,
+			GameID:    source.GameID,
+			CreatedAt: source.CreatedAt,
+			UpdatedAt: source.UpdatedAt,
+		},
+		Type: cs.MapObjectTypeFleet,
 		Position: cs.Vector{
 			X: source.X,
 			Y: source.Y,
@@ -908,11 +913,13 @@ func ExtendFleetPreviousPosition(source Fleet) *cs.Vector {
 
 func ExtendWormholeMapObject(source Wormhole) cs.MapObject {
 	return cs.MapObject{
-		Type:      cs.MapObjectTypeWormhole,
-		ID:        source.ID,
-		GameID:    source.GameID,
-		CreatedAt: source.CreatedAt,
-		UpdatedAt: source.UpdatedAt,
+		GameDBObject: cs.GameDBObject{
+			ID:        source.ID,
+			GameID:    source.GameID,
+			CreatedAt: source.CreatedAt,
+			UpdatedAt: source.UpdatedAt,
+		},
+		Type: cs.MapObjectTypeWormhole,
 		Position: cs.Vector{
 			X: source.X,
 			Y: source.Y,
@@ -924,11 +931,13 @@ func ExtendWormholeMapObject(source Wormhole) cs.MapObject {
 
 func ExtendMysteryTraderMapObject(source MysteryTrader) cs.MapObject {
 	return cs.MapObject{
-		Type:      cs.MapObjectTypeMysteryTrader,
-		ID:        source.ID,
-		GameID:    source.GameID,
-		CreatedAt: source.CreatedAt,
-		UpdatedAt: source.UpdatedAt,
+		GameDBObject: cs.GameDBObject{
+			ID:        source.ID,
+			GameID:    source.GameID,
+			CreatedAt: source.CreatedAt,
+			UpdatedAt: source.UpdatedAt,
+		},
+		Type: cs.MapObjectTypeMysteryTrader,
 		Position: cs.Vector{
 			X: source.X,
 			Y: source.Y,
@@ -947,11 +956,13 @@ func ExtendMysteryTraderHeading(source MysteryTrader) cs.Vector {
 
 func ExtendSalvageMapObject(source Salvage) cs.MapObject {
 	return cs.MapObject{
-		Type:      cs.MapObjectTypeSalvage,
-		ID:        source.ID,
-		GameID:    source.GameID,
-		CreatedAt: source.CreatedAt,
-		UpdatedAt: source.UpdatedAt,
+		GameDBObject: cs.GameDBObject{
+			ID:        source.ID,
+			GameID:    source.GameID,
+			CreatedAt: source.CreatedAt,
+			UpdatedAt: source.UpdatedAt,
+		},
+		Type: cs.MapObjectTypeSalvage,
 		Position: cs.Vector{
 			X: source.X,
 			Y: source.Y,
@@ -973,11 +984,13 @@ func ExtendSalvageCargo(source Salvage) cs.Cargo {
 
 func ExtendMineFieldMapObject(source MineField) cs.MapObject {
 	return cs.MapObject{
-		Type:      cs.MapObjectTypeMineField,
-		ID:        source.ID,
-		GameID:    source.GameID,
-		CreatedAt: source.CreatedAt,
-		UpdatedAt: source.UpdatedAt,
+		GameDBObject: cs.GameDBObject{
+			ID:        source.ID,
+			GameID:    source.GameID,
+			CreatedAt: source.CreatedAt,
+			UpdatedAt: source.UpdatedAt,
+		},
+		Type: cs.MapObjectTypeMineField,
 		Position: cs.Vector{
 			X: source.X,
 			Y: source.Y,
@@ -1004,11 +1017,13 @@ func ExtendMineralPacketHeading(source MineralPacket) cs.Vector {
 
 func ExtendMineralPacketMapObject(source MineralPacket) cs.MapObject {
 	return cs.MapObject{
-		Type:      cs.MapObjectTypeMineralPacket,
-		ID:        source.ID,
-		GameID:    source.GameID,
-		CreatedAt: source.CreatedAt,
-		UpdatedAt: source.UpdatedAt,
+		GameDBObject: cs.GameDBObject{
+			ID:        source.ID,
+			GameID:    source.GameID,
+			CreatedAt: source.CreatedAt,
+			UpdatedAt: source.UpdatedAt,
+		},
+		Type: cs.MapObjectTypeMineralPacket,
 		Position: cs.Vector{
 			X: source.X,
 			Y: source.Y,

@@ -143,7 +143,7 @@ func (s *server) submitTurn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, rest.JSON{"game": game, "player": fullPlayer})
+	rest.RenderJSON(w, rest.JSON{"game": game, "player": fullPlayer.Player, "mapObjects": fullPlayer.PlayerMapObjects})
 }
 
 // Submit a turn for the player

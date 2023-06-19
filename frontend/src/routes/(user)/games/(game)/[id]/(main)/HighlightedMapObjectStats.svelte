@@ -20,7 +20,7 @@
 		<div>
 			{$highlightedMapObject.name}
 		</div>
-		{#if dist}
+		{#if dist && $selectedMapObject}
 			<div>
 				{dist.toFixed(1)} ly from {$selectedMapObject.name}
 			</div>

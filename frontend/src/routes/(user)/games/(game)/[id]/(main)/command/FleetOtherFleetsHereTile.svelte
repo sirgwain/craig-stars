@@ -2,23 +2,18 @@
 	import { EventManager } from '$lib/EventManager';
 	import {
 		commandedMapObjectName,
-		commandMapObject,
-		getMapObjectsByPosition
+		commandMapObject
 	} from '$lib/services/Context';
-	import type { Fleet } from '$lib/types/Fleet';
-	import { MapObjectType } from '$lib/types/MapObject';
+	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
 	import CommandTile from './CommandTile.svelte';
 
-	export let fleet: Fleet;
+	export let fleet: CommandedFleet;
+	export let fleetsInOrbit: Fleet[];
 
-	let fleetsInOrbit: Fleet[];
 	let selectedFleet: Fleet | undefined;
 	let selectedFleetIndex = 0;
 
 	$: {
-		fleetsInOrbit = getMapObjectsByPosition(fleet).filter(
-			(mo) => mo.type == MapObjectType.Fleet && mo != fleet
-		) as Fleet[];
 		if (fleetsInOrbit.length > 0) {
 			selectedFleet = fleetsInOrbit[selectedFleetIndex];
 		}
@@ -57,7 +52,7 @@
 			class="select select-outline select-secondary select-sm py-0 text-sm"
 		>
 			{#each fleetsInOrbit as fleet, index}
-				<option value={index}>{fleet.name}</option>>
+				<option value={index}>{fleet.name}</option>
 			{/each}
 		</select>
 

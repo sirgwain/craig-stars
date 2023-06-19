@@ -2,9 +2,9 @@
 	import TextInput from '$lib/components/TextInput.svelte';
 	import Hull from '$lib/components/game/design/Hull.svelte';
 	import TechAvatar from '$lib/components/tech/TechAvatar.svelte';
-	import { player, techs } from '$lib/services/Context';
+	import { techs } from '$lib/services/Context';
 	import { DesignService } from '$lib/services/DesignService';
-	import { canLearnTech, hasRequiredLevels } from '$lib/types/Player';
+	import { Player, canLearnTech, hasRequiredLevels } from '$lib/types/Player';
 	import type { ShipDesign, ShipDesignSlot, Spec } from '$lib/types/ShipDesign';
 	import {
 		canFillSlot,
@@ -25,6 +25,7 @@
 	const dispatch = createEventDispatcher();
 
 	export let gameId: number | string;
+	export let player: Player;
 	export let hull: TechHull;
 	export let design: ShipDesign;
 	export let error: string = '';
@@ -221,7 +222,7 @@
 			<div class="font-bold text-2xl">Hull Components</div>
 			<ul class="w-full h-[400px] border-b sm:w-[16rem] px-1 p-1 overflow-y-auto">
 				{#each $techs.hullComponents as hc}
-					{#if $player && canLearnTech($player, hc) && hasRequiredLevels($player.techLevels, hc.requirements) && (!$shipDesignerContext.selectedSlot || canFillSlot(hc.hullSlotType, $shipDesignerContext.selectedSlot.type)) && canFillSlot(hc.hullSlotType, validHullSlotTypes)}
+					{#if canLearnTech(player, hc) && hasRequiredLevels(player.techLevels, hc.requirements) && (!$shipDesignerContext.selectedSlot || canFillSlot(hc.hullSlotType, $shipDesignerContext.selectedSlot.type)) && canFillSlot(hc.hullSlotType, validHullSlotTypes)}
 						<li>
 							<div
 								class={`flex ${

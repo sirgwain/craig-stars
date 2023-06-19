@@ -356,6 +356,9 @@ func (c *client) GetLightPlayerForGame(gameID, userID int64) (*cs.Player, error)
 	researchAmount,
 	nextResearchField,
 	researching,
+	battlePlans,
+	productionPlans,
+	transportPlans,
 	spec,
 	stats
 	FROM players 
@@ -703,6 +706,7 @@ func (c *client) updateFullPlayerWithTransaction(player *cs.Player, tx *sqlx.Tx)
 	for i := range player.Designs {
 		design := player.Designs[i]
 		if design.ID == 0 {
+			design.GameID = player.GameID
 			if err := c.createShipDesign(design, tx); err != nil {
 				tx.Rollback()
 				return fmt.Errorf("create design %w", err)

@@ -23,9 +23,9 @@ func TestPlanet_String(t *testing.T) {
 		p    *Planet
 		want string
 	}{
-		{"MapObject String()", &Planet{MapObject: MapObject{GameID: 1, ID: 2, Num: 3, Name: "Bob's Revenge"}},
+		{"MapObject String()", &Planet{MapObject: MapObject{GameDBObject: GameDBObject{GameID: 1, ID: 2}, Num: 3, Name: "Bob's Revenge"}},
 			"Planet GameID:     1, ID:     2, Num:   3 Bob's Revenge"},
-		{"MapObject String()", &Planet{MapObject: MapObject{GameID: 12345, ID: 23456, Num: 120, Name: "Craig's Planet"}},
+		{"MapObject String()", &Planet{MapObject: MapObject{GameDBObject: GameDBObject{GameID: 12345, ID: 23456}, Num: 120, Name: "Craig's Planet"}},
 			"Planet GameID: 12345, ID: 23456, Num: 120 Craig's Planet"},
 	}
 	for _, tt := range tests {

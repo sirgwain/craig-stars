@@ -7,7 +7,7 @@
 	import { $enum as eu } from 'ts-enum-util';
 	import SectionHeader from './SectionHeader.svelte';
 	import TableSearchInput from './TableSearchInput.svelte';
-	import { player } from '$lib/services/Context';
+	import { game } from '$lib/services/Context';
 	import { canLearnTech, hasRequiredLevels } from '$lib/types/Player';
 
 	// for ssr, we start with techs from a json file
@@ -22,7 +22,7 @@
 	];
 
 	let filter = '';
-	let showAll = !$player ?? false;
+	let showAll = !$game?.player ?? false;
 
 	let techsByCategory: Record<TechCategory, Tech[]> = {
 		Armor: [],
@@ -104,7 +104,7 @@
 
 <div class="flex justify-between">
 	<div><TableSearchInput bind:value={filter} /></div>
-	<div class="form-control" class:hidden={!$player}>
+	<div class="form-control" class:hidden={!$game?.player}>
 		<label class="label cursor-pointer">
 			<span class="label-text mr-1">Show All</span>
 			<input type="checkbox" class="toggle" bind:checked={showAll} />
@@ -118,7 +118,7 @@
 		>
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
 			{#each techsByCategory[category] as tech (tech.name)}
-				{#if showAll || ($player && canLearnTech($player, tech) && hasRequiredLevels($player.techLevels, tech.requirements))}
+				{#if showAll || ($game?.player && canLearnTech($game?.player, tech) && hasRequiredLevels($game?.player.techLevels, tech.requirements))}
 					<div>
 						<TechSummary {tech} />
 					</div>

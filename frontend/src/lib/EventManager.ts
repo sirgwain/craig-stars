@@ -1,5 +1,5 @@
 import type { EnumDictionary } from './types/EnumDictionary';
-import type { Fleet } from './types/Fleet';
+import type { CommandedFleet, Fleet } from './types/Fleet';
 import type { MapObject } from './types/MapObject';
 import type { CommandedPlanet, Planet } from './types/Planet';
 
@@ -7,13 +7,17 @@ import type { CommandedPlanet, Planet } from './types/Planet';
 type EventFunction = (...args: any[]) => void;
 
 type ProductionQueueDialogRequestedEvent = (planet: CommandedPlanet) => void;
-type CargoTransferDialogRequestedEvent = (src: Fleet, target?: Fleet | Planet) => void;
+type CargoTransferDialogRequestedEvent = (src: CommandedFleet, target?: Fleet | Planet) => void;
 type CargoTransferredEvent = (mo: MapObject) => void;
+type SplitFleetDialogRequestedEvent = (src: CommandedFleet) => void;
+type MergeFleetDialogRequestedEvent = (src: CommandedFleet) => void;
 
 enum EventType {
 	ProductionQueueDialogRequested,
 	CargoTransferDialogRequested,
-	CargoTransferred
+	CargoTransferred,
+	SplitFleetDialogRequested,
+	MergeFleetDialogRequested
 }
 
 class Events {
@@ -68,6 +72,23 @@ class Events {
 	publishCargoTransferredEvent(mo: MapObject) {
 		this.events[EventType.CargoTransferred].forEach((e) => e.apply(e, [mo]));
 	}
+
+	publishSplitFleetDialogRequestedEvent(src: CommandedFleet) {
+		this.events[EventType.SplitFleetDialogRequested].forEach((e) => e.apply(e, [src]));
+	}
+
+	public subscribeSplitFleetDialogRequestedEvent(event: SplitFleetDialogRequestedEvent): () => void {
+		return this.subscribe(EventType.SplitFleetDialogRequested, event);
+	}
+
+	publishMergeFleetDialogRequestedEvent(src: CommandedFleet) {
+		this.events[EventType.MergeFleetDialogRequested].forEach((e) => e.apply(e, [src]));
+	}
+
+	public subscribeMergeFleetDialogRequestedEvent(event: MergeFleetDialogRequestedEvent): () => void {
+		return this.subscribe(EventType.MergeFleetDialogRequested, event);
+	}
+
 }
 
 export const EventManager = new Events();

@@ -1,13 +1,14 @@
 <script lang="ts">
 	import CargoBar from '$lib/components/game/CargoBar.svelte';
 	import FuelBar from '$lib/components/game/FuelBar.svelte';
-	import { playerName } from '$lib/services/Context';
+	import type { FullGame } from '$lib/services/FullGame';
 	import type { Fleet } from '$lib/types/Fleet';
-	import { owned, ownedBy } from '$lib/types/MapObject';
+	import { ownedBy } from '$lib/types/MapObject';
 	import type { Player } from '$lib/types/Player';
 	import type { ShipDesign, ShipDesignIntel } from '$lib/types/ShipDesign';
 	import { kebabCase, startCase } from 'lodash-es';
 
+	export let game: FullGame;
 	export let player: Player;
 	export let fleet: Fleet;
 
@@ -34,7 +35,7 @@
 				<div class="fleet-avatar {icon} bg-black" />
 			</div>
 		</div>
-		<div class="text-center">{playerName(fleet.playerNum ?? 0)}</div>
+		<div class="text-center">{game.getPlayerName(fleet.playerNum)}</div>
 	</div>
 	<div class="flex flex-col grow">
 		<div class="flex flex-row">

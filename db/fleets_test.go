@@ -20,7 +20,7 @@ func TestCreateFleet(t *testing.T) {
 		wantErr bool
 	}{
 		{"Create", args{connectTestDB(), &cs.Fleet{
-			MapObject: cs.MapObject{GameID: 1, Name: "test"},
+			MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: 1}, Name: "test"},
 		},
 		}, false},
 	}
@@ -54,7 +54,7 @@ func TestGetFleet(t *testing.T) {
 	c.createTestShipDesign(player, design)
 
 	fleet := cs.Fleet{
-		MapObject: cs.MapObject{GameID: g.ID, PlayerNum: player.Num, Name: "name", Type: cs.MapObjectTypeFleet},
+		MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, PlayerNum: player.Num, Name: "name", Type: cs.MapObjectTypeFleet},
 		Tokens: []cs.ShipToken{
 			{Quantity: 1, DesignNum: design.Num},
 		},
@@ -108,7 +108,7 @@ func TestGetFleets(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, []*cs.Fleet{}, result)
 
-	fleet := cs.Fleet{MapObject: cs.MapObject{GameID: g.ID, PlayerNum: player.Num}}
+	fleet := cs.Fleet{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, PlayerNum: player.Num}}
 	if err := c.createFleet(&fleet, c.db); err != nil {
 		t.Errorf("create planet %s", err)
 		return
@@ -123,7 +123,7 @@ func TestGetFleets(t *testing.T) {
 func TestUpdateFleet(t *testing.T) {
 	c := connectTestDB()
 	g, player := c.createTestGameWithPlayer()
-	planet := cs.Fleet{MapObject: cs.MapObject{GameID: g.ID, PlayerNum: player.Num}}
+	planet := cs.Fleet{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, PlayerNum: player.Num}}
 	if err := c.createFleet(&planet, c.db); err != nil {
 		t.Errorf("create planet %s", err)
 		return

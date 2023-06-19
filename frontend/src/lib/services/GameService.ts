@@ -1,10 +1,17 @@
 import type { Game } from '$lib/types/Game';
-import { type PlayerResponse, type PlayerMapObjects, Player } from '$lib/types/Player';
+import {
+	type PlayerResponse,
+	type PlayerMapObjects,
+	Player,
+	type PlayerIntels
+} from '$lib/types/Player';
 import { Service } from './Service';
 
 type playerStatusResult = {
 	players: PlayerResponse[];
 };
+
+type UniverseResponse = PlayerMapObjects & PlayerIntels;
 
 export class GameService {
 	static async loadPlayerGames(): Promise<Game[]> {
@@ -19,7 +26,7 @@ export class GameService {
 		return Service.get<Game[]>('/api/games/open');
 	}
 
-	static async deleteGame(gameId: number): Promise<any> {
+	static async deleteGame(gameId: number): Promise<void> {
 		const response = await fetch(`/api/games/${gameId}`, {
 			method: 'DELETE',
 			headers: {
@@ -33,7 +40,7 @@ export class GameService {
 		}
 	}
 
-	static async loadGame(gameId: number): Promise<Game> {
+	static async loadGame(gameId: number | string): Promise<Game> {
 		const response = await fetch(`/api/games/${gameId}`, {
 			method: 'GET',
 			headers: {
@@ -58,7 +65,7 @@ export class GameService {
 
 		if (response.ok) {
 			const json = (await response.json()) as PlayerResponse;
-			return new Player(json.gameId, json.num, json);
+			return new Player(json);
 		} else {
 			throw new Error('Failed to load game');
 		}
@@ -74,13 +81,13 @@ export class GameService {
 
 		if (response.ok) {
 			const json = (await response.json()) as PlayerResponse;
-			return new Player(json.gameId, json.num, json);
+			return new Player(json);
 		} else {
 			throw new Error('Failed to load game');
 		}
 	}
 
-	static async loadPlayerMapObjects(gameId: number): Promise<PlayerMapObjects> {
+	static async loadUniverse(gameId: number | string): Promise<UniverseResponse> {
 		const response = await fetch(`/api/games/${gameId}/mapobjects`, {
 			method: 'GET',
 			headers: {
@@ -89,7 +96,7 @@ export class GameService {
 		});
 
 		if (response.ok) {
-			return (await response.json()) as PlayerMapObjects;
+			return (await response.json()) as UniverseResponse;
 		} else {
 			throw new Error('Failed to load game');
 		}
@@ -105,7 +112,7 @@ export class GameService {
 
 		if (response.ok) {
 			const json = ((await response.json()) as playerStatusResult).players;
-			return json.map((data) => new Player(data.gameId, data.num, data));
+			return json.map((data) => new Player(data));
 		} else {
 			throw new Error('Failed to load game');
 		}

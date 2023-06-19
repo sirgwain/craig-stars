@@ -5,11 +5,22 @@ import (
 	"time"
 )
 
+type DBObject struct {
+	ID        int64     `json:"id"`
+	GameID    int64     `json:"gameId"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+type GameDBObject struct {
+	ID        int64     `json:"id"`
+	GameID    int64     `json:"gameId"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
 type MapObject struct {
-	ID        int64         `json:"id"`
-	GameID    int64         `json:"gameId"`
-	CreatedAt time.Time     `json:"createdAt"`
-	UpdatedAt time.Time     `json:"updatedAt"`
+	GameDBObject
 	Type      MapObjectType `json:"type"`
 	Dirty     bool          `json:"-"`
 	Delete    bool          `json:"-"`
@@ -44,4 +55,3 @@ func (mo *MapObject) owned() bool {
 func (mo *MapObject) OwnedBy(num int) bool {
 	return mo.PlayerNum != Unowned && mo.PlayerNum == num
 }
-

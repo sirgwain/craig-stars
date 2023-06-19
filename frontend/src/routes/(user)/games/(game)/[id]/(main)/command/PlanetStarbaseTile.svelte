@@ -29,7 +29,7 @@
 		</div>
 		<div class="flex justify-between">
 			<div>Damage</div>
-			{#if starbase.damage === 0}
+			{#if !starbase.damage}
 				<div>none</div>
 			{:else}
 				<div>{starbase.damage}%</div>

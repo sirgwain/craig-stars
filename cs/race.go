@@ -3,15 +3,12 @@ package cs
 import (
 	"fmt"
 	"math"
-	"time"
 
 	"github.com/rs/zerolog/log"
 )
 
 type Race struct {
-	ID                    int64                 `json:"id,omitempty"`
-	CreatedAt             time.Time             `json:"createdAt,omitempty"`
-	UpdatedAt             time.Time             `json:"updatedAt,omitempty"`
+	DBObject
 	UserID                int64                 `json:"userId,omitempty"`
 	Name                  string                `json:"name,omitempty"`
 	PluralName            string                `json:"pluralName,omitempty"`

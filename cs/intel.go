@@ -339,7 +339,7 @@ func (d *discover) discoverPlayer(player *Player) {
 	intel := &d.player.PlayerIntels.PlayerIntels[player.Num-1]
 
 	if !intel.Seen {
-		log.Debug().Int64("GameID", d.player.GameID).Msgf("player %s discovered %s", d.player.Name, player.Name)
+		log.Debug().Msgf("player %s discovered %s", d.player.Name, player.Name)
 		messager.playerDiscovered(d.player, player)
 		intel.Seen = true
 		intel.Name = player.Name

@@ -177,6 +177,8 @@ func (o *orders) SplitFleetTokens(rules *Rules, player *Player, playerFleets []*
 	}
 
 	// finally, time to split!
+	// make sure our fleets all have designs
+	player.InjectDesigns(append(playerFleets, source))
 
 	// now create the new fleet
 	fleetNum := player.getNextFleetNum(playerFleets)
@@ -201,6 +203,11 @@ func (o *orders) SplitFleetTokens(rules *Rules, player *Player, playerFleets []*
 
 	var baseDesign = tokens[0].design
 	fleet := newFleet(player, baseDesign, fleetNum, baseDesign.Name, source.Waypoints)
+	fleet.OrbitingPlanetNum = source.OrbitingPlanetNum
+	fleet.Heading = source.Heading
+	fleet.WarpSpeed = source.WarpSpeed
+	fleet.PreviousPosition = source.PreviousPosition
+	fleet.battlePlan = source.battlePlan
 	fleet.Tokens = tokens
 
 	// the fleet has some percentage of fuel fullness
@@ -279,7 +286,7 @@ func (o *orders) SplitFleetTokens(rules *Rules, player *Player, playerFleets []*
 func (o *orders) SplitAll(rules *Rules, player *Player, playerFleets []*Fleet, source *Fleet) ([]*Fleet, error) {
 	// call split on each of these tokens
 	newFleets := []*Fleet{}
-	for index := range source.Tokens {
+	for index := 0; index < len(source.Tokens); index++ {
 		token := &source.Tokens[index]
 		startingTokenIndex := 0
 
@@ -305,6 +312,7 @@ func (o *orders) SplitAll(rules *Rules, player *Player, playerFleets []*Fleet, s
 			// add this new fleet to our player fleets so the fleet num increment goes up
 			playerFleets = append(playerFleets, fleet)
 		}
+		index--
 	}
 
 	return newFleets, nil
@@ -315,6 +323,9 @@ func (o *orders) Merge(rules *Rules, player *Player, fleets []*Fleet) (*Fleet, e
 	if len(fleets) <= 1 {
 		return nil, fmt.Errorf("no fleets to merge")
 	}
+
+	// make sure all our fleets have designs for each token
+	player.InjectDesigns(fleets)
 
 	fleet := fleets[0]
 

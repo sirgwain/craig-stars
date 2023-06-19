@@ -1,7 +1,7 @@
 <script lang="ts">
 	import TechSummary from '$lib/components/tech/TechSummary.svelte';
 
-	import type { PlayerResponse } from '$lib/types/Player';
+	import { Player, type PlayerResponse } from '$lib/types/Player';
 	import { humanoid, PRT } from '$lib/types/Race';
 	import {
 		HullSlotType,
@@ -116,28 +116,7 @@
 		}
 	];
 
-	const testPlayer: PlayerResponse = {
-		gameId: 0,
-		userId: 0,
-		num: 0,
-		race: humanoid,
-		techLevels: {
-			energy: 3,
-			weapons: 3,
-			propulsion: 3,
-			construction: 3,
-			electronics: 3,
-			biotechnology: 3
-		},
-		techLevelsSpent: {},
-		messages: [],
-		designs: [],
-		planets: [],
-		fleets: [],
-		planetIntels: [],
-		fleetIntels: [],
-		color: '#0000FF'
-	};
+	const testPlayer = new Player()
 </script>
 
 <TestBreadcrumb title="Techs" />

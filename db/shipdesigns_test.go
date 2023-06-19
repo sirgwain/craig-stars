@@ -48,8 +48,9 @@ func TestCreateShipDesign(t *testing.T) {
 func TestGetShipDesign(t *testing.T) {
 	rules := cs.NewRules()
 	c := connectTestDB()
-	_, player := c.createTestGameWithPlayer()
+	game, player := c.createTestGameWithPlayer()
 	shipDesign := cs.NewShipDesign(player, 1).WithHull(cs.Scout.Name).WithSpec(&rules, player)
+	shipDesign.GameID = game.ID
 	if err := c.CreateShipDesign(shipDesign); err != nil {
 		t.Errorf("create shipDesign %s", err)
 		return
@@ -87,14 +88,15 @@ func TestGetShipDesign(t *testing.T) {
 
 func TestGetShipDesigns(t *testing.T) {
 	c := connectTestDB()
-	_, player := c.createTestGameWithPlayer()
+	game, player := c.createTestGameWithPlayer()
 
 	// start with 1 shipDesign from connectTestDB
 	result, err := c.GetShipDesignsForPlayer(player.GameID, player.Num)
 	assert.Nil(t, err)
 	assert.Equal(t, []*cs.ShipDesign{}, result)
 
-	shipDesign := cs.ShipDesign{GameID: player.GameID, Num: 1, PlayerNum: player.Num, Name: "name"}
+	shipDesign := cs.ShipDesign{Num: 1, PlayerNum: player.Num, Name: "name"}
+	shipDesign.GameID = game.ID
 	if err := c.CreateShipDesign(&shipDesign); err != nil {
 		t.Errorf("create shipDesign %s", err)
 		return
@@ -108,13 +110,14 @@ func TestGetShipDesigns(t *testing.T) {
 
 func TestDeleteShipDesigns(t *testing.T) {
 	c := connectTestDB()
-	_, player := c.createTestGameWithPlayer()
+	game, player := c.createTestGameWithPlayer()
 
 	result, err := c.GetShipDesignsForPlayer(player.GameID, player.Num)
 	assert.Nil(t, err)
 	assert.Equal(t, []*cs.ShipDesign{}, result)
 
-	shipDesign := cs.ShipDesign{GameID: player.GameID, Num: 1, PlayerNum: player.Num, Name: "name"}
+	shipDesign := cs.ShipDesign{Num: 1, PlayerNum: player.Num, Name: "name"}
+	shipDesign.GameID = game.ID
 	if err := c.CreateShipDesign(&shipDesign); err != nil {
 		t.Errorf("create shipDesign %s", err)
 		return

@@ -9,7 +9,9 @@
 	import FleetSummary from './FleetSummary.svelte';
 	import PlanetSummary from './PlanetSummary.svelte';
 	import UnknownSummary from './UnknownSummary.svelte';
+	import type { FullGame } from '$lib/services/FullGame';
 
+	export let game: FullGame;
 	export let player: Player;
 
 	let selectedPlanet: Planet | undefined;
@@ -31,9 +33,9 @@
 			<Icon src={PaperAirplane} size="16" class="hover:stroke-accent" />
 		</div>
 		{#if selectedPlanet}
-			<PlanetSummary planet={selectedPlanet} {player} />
+			<PlanetSummary {game} planet={selectedPlanet} {player} />
 		{:else if selectedFleet}
-			<FleetSummary fleet={selectedFleet} {player} />
+			<FleetSummary {game} fleet={selectedFleet} {player} />
 		{:else}
 			<UnknownSummary />
 		{/if}

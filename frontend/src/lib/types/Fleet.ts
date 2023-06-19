@@ -2,12 +2,12 @@
 
 import type { Cargo } from './Cargo';
 import type { Cost } from './Cost';
-import type { MapObject, MapObjectType } from './MapObject';
+import { MapObjectType, type MapObject } from './MapObject';
 import type { Vector } from './Vector';
 
 export interface Fleet extends MapObject {
 	playerNum: number; // override mapObject fleets always have a player.
-	planetNum: number;
+	planetNum?: number;
 	baseName: string;
 	fuel?: number;
 	cargo?: Cargo;
@@ -112,4 +112,33 @@ export interface Spec {
 	hasWeapons?: boolean;
 	hasStargate?: boolean;
 	hasMassDriver?: boolean;
+}
+
+export class CommandedFleet implements Fleet {
+	id = 0;
+	gameId = 0;
+	createdAt?: string | undefined;
+	updatedAt?: string | undefined;
+	readonly type = MapObjectType.Planet;
+
+	name = '';
+	playerNum = 0;
+	num = 0;
+
+	planetNum = undefined;
+	baseName = '';
+	fuel = 0;
+	cargo: Cargo = {};
+	damage = 0;
+	battlePlanName = 'Default';
+	tokens: ShipToken[] = [];
+	waypoints: Waypoint[] = [];
+	repeatOrders = false;
+	heading = { x: 0, y: 0 };
+	warpSpeed = 0;
+	mass = 0;
+	orbitingPlanetNum = undefined;
+	starbase = false;
+	position = { x: 0, y: 0 };
+	spec = {} as Spec;
 }

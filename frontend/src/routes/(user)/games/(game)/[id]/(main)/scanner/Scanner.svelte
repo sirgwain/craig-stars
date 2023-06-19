@@ -3,9 +3,6 @@
 		commandedFleet,
 		commandedMapObject,
 		commandMapObject,
-		findIntelMapObject,
-		findMyPlanetByNum,
-		getMyMapObjectsByPosition,
 		selectedMapObject,
 		selectedWaypoint,
 		selectMapObject,
@@ -13,16 +10,15 @@
 		zoomTarget
 	} from '$lib/services/Context';
 	import { FleetService } from '$lib/services/FleetService';
-	import type { Game } from '$lib/types/Game';
+	import type { FullGame } from '$lib/services/FullGame';
 	import { MapObjectType, ownedBy, type MapObject } from '$lib/types/MapObject';
-	import type { PlayerResponse, PlayerMapObjects } from '$lib/types/Player';
 	import { emptyVector, equal, type Vector } from '$lib/types/Vector';
 	import type { ScaleLinear } from 'd3-scale';
 	import { scaleLinear } from 'd3-scale';
 	import { select } from 'd3-selection';
 	import { zoom, ZoomTransform, type D3ZoomEvent, type ZoomBehavior } from 'd3-zoom';
 	import { Html, LayerCake, Svg } from 'layercake';
-	import { merge } from 'lodash-es';
+	import { setContext } from 'svelte';
 	import MapObjectQuadTreeFinder from './MapObjectQuadTreeFinder.svelte';
 	import ScannerFleets from './ScannerFleets.svelte';
 	import ScannerPlanets from './ScannerPlanets.svelte';
@@ -30,9 +26,9 @@
 	import ScannerWaypoints from './ScannerWaypoints.svelte';
 	import SelectedMapObject from './SelectedMapObject.svelte';
 
-	export let game: Game;
-	export let player: PlayerResponse;
-	export let mapObjects: PlayerMapObjects;
+	export let game: FullGame;
+
+	setContext('game', game);
 
 	const xGetter = (mo: MapObject) => mo?.position?.x;
 	const yGetter = (mo: MapObject) => mo?.position?.y;
@@ -179,16 +175,20 @@
 			});
 		}
 
+		await game.updateFleetOrders($commandedFleet);
 		// select the new waypoint
 		selectWaypoint($commandedFleet.waypoints[$commandedFleet.waypoints.length - 1]);
+		if ($selectedWaypoint && $selectedWaypoint.targetType && $selectedWaypoint.targetNum) {
+			const mo = game.universe.getMapObject(
+				$selectedWaypoint.targetType,
+				$selectedWaypoint.targetNum,
+				$selectedWaypoint.targetPlayerNum
+			);
 
-		// save the commanded fleet
-		const fleet = await FleetService.updateFleetOrders($commandedFleet);
-
-		// update the player fleet
-		merge($commandedFleet, fleet);
-
-		commandedFleet.update(() => $commandedFleet);
+			if (mo) {
+				selectMapObject(mo);
+			}
+		}
 	}
 	/**
 	 * When a mapobject is selected we go through a few steps.
@@ -198,12 +198,16 @@
 	 */
 	function mapobjectSelected(mo: MapObject) {
 		let myMapObject = mo;
-		if (ownedBy(mo, player.num) && mo.type === MapObjectType.Planet) {
-			myMapObject = findMyPlanetByNum(mo.num) ?? mo;
+		if (ownedBy(mo, game.player.num) && mo.type === MapObjectType.Planet) {
+			myMapObject = game.getPlanet(mo.num) ?? mo;
 		}
 
 		const commandedIntelObject = $commandedMapObject
-			? findIntelMapObject($commandedMapObject)
+			? game.universe.getMapObject(
+					$commandedMapObject.type,
+					$commandedMapObject.num,
+					$commandedMapObject.playerNum
+			  )
 			: undefined;
 
 		if ($selectedMapObject !== myMapObject) {
@@ -221,7 +225,7 @@
 			}
 		} else {
 			// we selected the same mapobject twice
-			const myMapObjectsAtPosition = getMyMapObjectsByPosition(mo);
+			const myMapObjectsAtPosition = game.universe.getMyMapObjectsByPosition(mo);
 			if (myMapObjectsAtPosition?.length > 0) {
 				// if our currently commanded map object is not at this location, reset the index
 				if (!myMapObjectsAtPosition.find((mo) => mo == commandedIntelObject)) {
@@ -235,7 +239,7 @@
 				}
 				const nextMapObject = myMapObjectsAtPosition[commandedMapObjectIndex];
 				if (nextMapObject.type === MapObjectType.Planet) {
-					commandMapObject(findMyPlanetByNum(nextMapObject.num) as MapObject);
+					commandMapObject(game.getPlanet(nextMapObject.num) as MapObject);
 					commandedMapObjectIndex = 0;
 				} else {
 					commandMapObject(nextMapObject);
@@ -263,9 +267,9 @@
 		}
 		data = [
 			...waypoints,
-			...mapObjects.fleets.filter((f) => !f.orbitingPlanetNum),
-			...(player.fleetIntels?.filter((f) => !f.orbitingPlanetNum) ?? []),
-			...player.planetIntels
+			...game.universe.fleets.filter((f) => !f.orbitingPlanetNum),
+			...(game.player.fleetIntels?.filter((f) => !f.orbitingPlanetNum) ?? []),
+			...game.player.planetIntels
 		];
 	}
 </script>

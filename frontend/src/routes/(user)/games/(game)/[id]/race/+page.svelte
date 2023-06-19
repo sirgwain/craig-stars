@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { player } from '$lib/services/Context';
+	import { game } from '$lib/services/Context';
 </script>
 
-{#if $player}
+{#if $game}
 	<div class="w-full">
-		You are playing as the {$player?.race?.pluralName}
+		You are playing as the {$game.player.race?.pluralName}
 	</div>
 {/if}

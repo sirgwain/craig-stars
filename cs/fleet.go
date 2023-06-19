@@ -160,7 +160,6 @@ func newFleet(player *Player, design *ShipDesign, num int, name string, waypoint
 	return Fleet{
 		MapObject: MapObject{
 			Type:      MapObjectTypeFleet,
-			GameID:    player.GameID,
 			PlayerNum: player.Num,
 			Dirty:     true,
 			Num:       num,
@@ -184,7 +183,6 @@ func newFleetForToken(player *Player, num int, token ShipToken, waypoints []Wayp
 	return Fleet{
 		MapObject: MapObject{
 			Type:      MapObjectTypeFleet,
-			GameID:    player.GameID,
 			PlayerNum: player.Num,
 			Dirty:     true,
 			Num:       num,

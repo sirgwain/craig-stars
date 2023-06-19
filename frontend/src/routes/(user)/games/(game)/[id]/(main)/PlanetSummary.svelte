@@ -1,15 +1,16 @@
 <script lang="ts">
 	import PlanetHabPoint from '$lib/components/game/PlanetHabPoint.svelte';
+	import type { FullGame } from '$lib/services/FullGame';
+	import { clamp } from '$lib/services/Math';
+	import { getGravString, getRadString, getTempString } from '$lib/types/Hab';
+	import { None } from '$lib/types/MapObject';
 	import { Unexplored, type Planet } from '$lib/types/Planet';
 	import type { PlayerResponse } from '$lib/types/Player';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { clamp } from '$lib/services/Math';
 	import PlanetMineralsGraph from './PlanetMineralsGraph.svelte';
-	import { getGravString, getRadString, getTempString } from '$lib/types/Hab';
-	import { None } from '$lib/types/MapObject';
-	import { playerColor, playerName } from '$lib/services/Context';
 
+	export let game: FullGame;
 	export let planet: Planet;
 	export let player: PlayerResponse;
 
@@ -72,8 +73,8 @@
 			</div>
 			<div>
 				{#if planet.reportAge != Unexplored && planet.playerNum != player.num && planet.playerNum != None}
-					<span style={`color: ${playerColor(planet.playerNum)}`}
-						>{playerName(planet.playerNum)}</span
+					<span style={`color: ${game.getPlayerColor(planet.playerNum)}`}
+						>{game.getPlayerName(planet.playerNum)}</span
 					>
 				{/if}
 			</div>

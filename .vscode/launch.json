@@ -57,7 +57,7 @@
             "request": "launch",
             "mode": "test",
             "program": "${workspaceFolder}/cs/orderer_test.go",
-            "args": ["-test.run", "Test_orders_Merge"]
+            "args": ["-test.run", "Test_orders_SplitAll"]
         },
 
     ]

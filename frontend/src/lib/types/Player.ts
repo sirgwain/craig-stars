@@ -1,4 +1,4 @@
-import type { BattleRecord } from './Battle';
+import type { BattleAttackWho, BattleRecord, BattleTactic, BattleTarget } from './Battle';
 import type { Fleet } from './Fleet';
 import type { Planet } from './Planet';
 import { humanoid, type Race } from './Race';
@@ -25,13 +25,17 @@ export type PlayerResponse = {
 	researchSpentLastYear?: number;
 	spec: PlayerSpec;
 } & PlayerOrders &
-	PlayerMapObjects &
 	PlayerIntels &
 	PlayerMessages;
 
 export type PlayerMessages = {
 	messages: Message[];
 };
+
+export type PlayerPlans = {
+	battlePlans?: BattlePlan[];
+};
+
 export type PlayerIntels = {
 	planetIntels: Planet[];
 	fleetIntels?: Fleet[];
@@ -48,6 +52,14 @@ export type PlayerOrders = {
 	researching: TechField;
 	nextResearchField: NextResearchField;
 	researchAmount: number;
+};
+
+export type BattlePlan = {
+	name: string;
+	primaryTarget: BattleTarget;
+	secondaryTarget: BattleTarget;
+	tactic: BattleTactic;
+	attackWho: BattleAttackWho;
 };
 
 export type PlayerSpec = {
@@ -125,9 +137,12 @@ export enum MessageTargetType {
 }
 
 export class Player implements PlayerResponse {
-	id?: number | undefined;
+	id = 0;
 	createdAt?: string | undefined;
 	updatedAt?: string | undefined;
+
+	gameId = 0;
+	num = 0;
 
 	userId?: number | undefined;
 	name = '';
@@ -145,6 +160,7 @@ export class Player implements PlayerResponse {
 	planets: Planet[] = [];
 	fleets: Fleet[] = [];
 	starbases: Fleet[] = [];
+	battlePlans: BattlePlan[] = [];
 	designs: ShipDesign[] = [];
 	planetIntels: Planet[] = [];
 	fleetIntels: Fleet[] = [];
@@ -154,7 +170,7 @@ export class Player implements PlayerResponse {
 	battles: BattleRecord[] = [];
 	spec: PlayerSpec = {};
 
-	constructor(public gameId: number, public num: number, data?: PlayerResponse) {
+	constructor(data?: PlayerResponse) {
 		if (data) {
 			Object.assign(this, data);
 		}
@@ -172,6 +188,11 @@ export class Player implements PlayerResponse {
 		} else {
 			return this.shipDesignIntels.find((d) => d.num === num);
 		}
+	}
+
+	updateDesign(design: ShipDesign) {
+		const filteredDesigns = this.designs.filter((d) => d.num != design.num) ?? [];
+		this.designs = [...filteredDesigns, design];
 	}
 
 	getPlanetIntel(num: number): Planet | undefined {

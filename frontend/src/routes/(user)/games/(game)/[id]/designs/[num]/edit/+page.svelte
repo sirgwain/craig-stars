@@ -3,16 +3,14 @@
 	import { page } from '$app/stores';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import ShipDesigner from '$lib/components/game/design/ShipDesigner.svelte';
-	import { techs, designs } from '$lib/services/Context';
+	import { game, techs } from '$lib/services/Context';
 	import { DesignService } from '$lib/services/DesignService';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
-	import type { TechHull } from '$lib/types/Tech';
-	import { onMount } from 'svelte';
 
 	let gameId = $page.params.id;
 	let num = parseInt($page.params.num);
 
-	$: design = $designs?.find((d) => d.num === num);
+	$: design = $game && ($game.player.getDesign($game.player.num, num) as ShipDesign);
 	$: hull = design && $techs.getHull(design.hull);
 
 	let error = '';
@@ -24,8 +22,7 @@
 			if (design) {
 				// update this design
 				design = await DesignService.update(gameId, design);
-				const filteredDesigns = $designs?.filter((d) => d != design) ?? []
-				$designs = [...filteredDesigns, design];
+				$game?.player.updateDesign(design);
 				goto(`/games/${gameId}/designs/${design.num}`);
 			}
 		} catch (e) {
@@ -34,7 +31,7 @@
 	};
 </script>
 
-{#if design && hull}
+{#if design && hull && $game}
 	<Breadcrumb>
 		<svelte:fragment slot="crumbs">
 			<li><a class="cs-link" href={`/games/${gameId}/designs`}>Designs</a></li>
@@ -45,5 +42,12 @@
 		</div>
 	</Breadcrumb>
 
-	<ShipDesigner {gameId} bind:design {hull} on:save={(e) => onSave()} bind:error />
+	<ShipDesigner
+		player={$game.player}
+		{gameId}
+		bind:design
+		{hull}
+		on:save={(e) => onSave()}
+		bind:error
+	/>
 {/if}

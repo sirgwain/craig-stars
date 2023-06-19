@@ -2,13 +2,14 @@
 	import { page } from '$app/stores';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import Design from '$lib/components/game/design/Design.svelte';
-	import { designs, techs } from '$lib/services/Context';
+	import { game, techs } from '$lib/services/Context';
 	import type { ErrorResponse } from '$lib/types/ErrorResponse';
+	import type { ShipDesign } from '$lib/types/ShipDesign';
 
 	let gameId = $page.params.id;
-	let num = $page.params.num;
+	let num = parseInt($page.params.num);
 
-	$: design = $designs?.find((d) => d.num === parseInt(num));
+	$: design = $game && ($game.player.getDesign($game.player.num, num) as ShipDesign);
 	$: hull = design && $techs.getHull(design.hull);
 
 	let error: ErrorResponse | undefined;

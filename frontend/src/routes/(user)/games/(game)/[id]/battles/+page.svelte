@@ -3,27 +3,20 @@
 	import SortableTableHeader from '$lib/components/SortableTableHeader.svelte';
 	import TableSearchInput from '$lib/components/TableSearchInput.svelte';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
-	import { player } from '$lib/services/Context';
-	import { GameService } from '$lib/services/GameService';
+	import { game } from '$lib/services/Context';
 	import type { BattleRecord } from '$lib/types/Battle';
 	import { SvelteTable, type SvelteTableColumn } from '@hurtigruten/svelte-table';
-	import { onMount } from 'svelte';
 
 	let id = parseInt($page.params.id);
-
-	onMount(async () => {
-		const p = await GameService.loadFullPlayer(id);
-		player.update(() => p);
-	});
 
 	// filterable battles
 	let filteredBattles: BattleRecord[] = [];
 	let search = '';
 
-	$: filteredBattles = $player?.battles ?? [];
+	$: filteredBattles = $game?.player.battles ?? [];
 	$: filteredBattles =
-		$player?.battles.filter(
-			(i) => $player?.getBattleLocation(i).toLowerCase().indexOf(search.toLowerCase()) != -1
+		$game?.player.battles.filter(
+			(i) => $game?.player.getBattleLocation(i).toLowerCase().indexOf(search.toLowerCase()) != -1
 		) ?? [];
 
 	const columns: SvelteTableColumn<BattleRecord>[] = [
@@ -63,7 +56,7 @@
 		<span slot="cell">
 			{#if column.key == 'location'}
 				<a class="cs-link text-2xl" href={`/games/${id}/battles/${row.num}`}
-					>{$player?.getBattleLocation(row)}</a
+					>{$game?.player.getBattleLocation(row)}</a
 				>
 			{:else}
 				{cell}

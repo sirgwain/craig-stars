@@ -14,13 +14,10 @@ type FullPlayer struct {
 }
 
 type Player struct {
+	GameDBObject
 	PlayerOrders
 	PlayerIntels
 	PlayerPlans
-	ID                    int64                `json:"id,omitempty"`
-	CreatedAt             time.Time            `json:"createdAt,omitempty"`
-	UpdatedAt             time.Time            `json:"updatedAt,omitempty"`
-	GameID                int64                `json:"gameId,omitempty"`
 	UserID                int64                `json:"userId,omitempty"`
 	Name                  string               `json:"name,omitempty"`
 	Num                   int                  `json:"num,omitempty"`
@@ -380,4 +377,23 @@ func (p *Player) getNextFleetNum(playerFleets []*Fleet) int {
 	}
 
 	return num
+}
+
+// inject player designs into tokens for a slice of fleets
+func (p *Player) InjectDesigns(fleets []*Fleet) {
+
+	designsByNum := make(map[int]*ShipDesign, len(p.Designs))
+	for i := range p.Designs {
+		design := p.Designs[i]
+		designsByNum[design.Num] = design
+	}
+
+	// inject the design into this
+	for _, f := range fleets {
+		for i := range f.Tokens {
+			token := &f.Tokens[i]
+			token.design = designsByNum[token.DesignNum]
+		}
+	}
+
 }

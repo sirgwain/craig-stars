@@ -4,22 +4,12 @@
 	import SortableTableHeader from '$lib/components/SortableTableHeader.svelte';
 	import TableSearchInput from '$lib/components/TableSearchInput.svelte';
 	import MineralMini from '$lib/components/game/MineralMini.svelte';
-	import { commandMapObject, mapObjects, zoomToMapObject } from '$lib/services/Context';
-	import { GameService } from '$lib/services/GameService';
+	import { commandMapObject, game, zoomToMapObject } from '$lib/services/Context';
 	import { totalMinerals } from '$lib/types/Mineral';
 	import { getQueueItemShortName, type Planet } from '$lib/types/Planet';
 	import { SvelteTable, type SvelteTableColumn } from '@hurtigruten/svelte-table';
-	import { onMount } from 'svelte';
 
 	let id = parseInt($page.params.id);
-
-	onMount(() => {
-		if (!$mapObjects) {
-			GameService.loadPlayerMapObjects(id).then((mos) => {
-				mapObjects.update(() => mos);
-			});
-		}
-	});
 
 	const selectPlanet = (planet: Planet) => {
 		commandMapObject(planet);
@@ -31,10 +21,11 @@
 	let filteredPlanets: Planet[] = [];
 	let search = '';
 
-	$: filteredPlanets = $mapObjects?.planets ?? [];
+	$: filteredPlanets = $game?.universe.planets ?? [];
 	$: filteredPlanets =
-		$mapObjects?.planets.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1) ??
-		[];
+		$game?.universe.planets.filter(
+			(i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1
+		) ?? [];
 
 	const columns: SvelteTableColumn<Planet>[] = [
 		{

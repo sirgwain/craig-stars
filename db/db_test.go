@@ -24,7 +24,7 @@ func connectTestDB() *client {
 
 	// create a test user
 	user, err := cs.NewUser("admin", "admin", "admin@craig-stars.net", cs.RoleAdmin)
-	if (err != nil) {
+	if err != nil {
 		panic(fmt.Errorf("generate test user, %w", err))
 	}
 	if err := c.CreateUser(user); err != nil {
@@ -68,6 +68,7 @@ func (c *client) createTestGameWithPlayer() (*cs.Game, *cs.Player) {
 
 func (c *client) createTestShipDesign(player *cs.Player, design *cs.ShipDesign) {
 	design.PlayerNum = player.Num
+	design.GameID = player.GameID
 	if err := c.CreateShipDesign(design); err != nil {
 		panic(fmt.Errorf("create test design %w", err))
 	}

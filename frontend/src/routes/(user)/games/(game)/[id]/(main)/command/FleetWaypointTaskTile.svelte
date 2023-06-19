@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { selectedWaypoint } from '$lib/services/Context';
 	import { FleetService } from '$lib/services/FleetService';
-	import { WaypointTask, type Fleet } from '$lib/types/Fleet';
+	import { WaypointTask, type Fleet, CommandedFleet } from '$lib/types/Fleet';
 	import { startCase } from 'lodash-es';
 	import { $enum as eu } from 'ts-enum-util';
 	import CommandTile from './CommandTile.svelte';
 
-	export let fleet: Fleet;
+	export let fleet: CommandedFleet;
 
 	const onSelectedWaypointTaskChange = (task: WaypointTask) => {
 		if ($selectedWaypoint) {

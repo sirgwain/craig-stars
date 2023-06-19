@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import TechAvatar from '$lib/components/tech/TechAvatar.svelte';
-	import { player, techs } from '$lib/services/Context';
+	import { game, techs } from '$lib/services/Context';
 	import { canLearnTech, hasRequiredLevels } from '$lib/types/Player';
 	import { kebabCase } from 'lodash-es';
 
@@ -17,7 +17,7 @@
 </Breadcrumb>
 <ul class="px-1">
 	{#each $techs.hulls as hull}
-		{#if $player && canLearnTech($player, hull) && hasRequiredLevels($player.techLevels, hull.requirements)}
+		{#if $game?.player && canLearnTech($game.player, hull) && hasRequiredLevels($game.player.techLevels, hull.requirements)}
 			<li>
 				<a class="cs-link" href={`/games/${gameId}/designs/create/${kebabCase(hull.name)}`}>
 					<div class="flex flex-row place-items-center">

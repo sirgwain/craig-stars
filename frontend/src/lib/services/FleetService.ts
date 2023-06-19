@@ -1,8 +1,7 @@
 import type { Cargo } from '$lib/types/Cargo';
 import type { ErrorResponse } from '$lib/types/ErrorResponse';
-import type { Fleet, Waypoint } from '$lib/types/Fleet';
+import { CommandedFleet, type Fleet, type Waypoint } from '$lib/types/Fleet';
 import type { MapObject } from '$lib/types/MapObject';
-import type { Planet } from '$lib/types/Planet';
 import { Service } from './Service';
 
 // orders sent to the server
@@ -10,13 +9,28 @@ export class FleetOrders {
 	constructor(private waypoints: Waypoint[], private repeatOrders: boolean = false) {}
 }
 
-export class FleetService extends Service {
+export class FleetService {
+	static async load(gameId: number): Promise<Fleet[]> {
+		return Service.get(`/api/games/${gameId}/fleets`);
+	}
+
+	static async get(gameId: number | string, num: number | string): Promise<CommandedFleet> {
+		const fleet = await Service.get<Fleet>(`/api/games/${gameId}/fleets/${num}`);
+		const commandedFleet = new CommandedFleet();
+		return Object.assign(commandedFleet, fleet);
+	}
+
+	static async update(gameId: number | string, fleet: CommandedFleet): Promise<CommandedFleet> {
+		const updated = Service.update(fleet, `/api/games/${gameId}/fleets/${fleet.num}`);
+		return Object.assign(fleet, updated);
+	}
+
 	static async transferCargo(
 		gameId: number | string,
-		fleet: Fleet,
-		dest: Planet | Fleet | undefined,
+		fleet: CommandedFleet,
+		dest: Fleet | Fleet | undefined,
 		transferAmount: Cargo
-	): Promise<Fleet> {
+	): Promise<CommandedFleet> {
 		const url = `/api/games/${gameId}/fleets/${fleet.num}/transfer-cargo`;
 		const response = await fetch(url, {
 			method: 'POST',
@@ -30,17 +44,55 @@ export class FleetService extends Service {
 		});
 
 		if (response.ok) {
-			return (await response.json()) as Fleet;
+			return Object.assign(fleet, await response.json());
 		} else {
 			const errorResponse = (await response.json()) as ErrorResponse;
 			throw new Error(errorResponse.error);
 		}
 	}
 
-	static async updateFleetOrders(fleet: Fleet): Promise<Fleet> {
+	static async splitAll(gameId: number | string, fleet: Fleet): Promise<Fleet[]> {
+		const url = `/api/games/${gameId}/fleets/${fleet.num}/split-all`;
+		const response = await fetch(url, {
+			method: 'POST',
+			headers: {
+				accept: 'application/json'
+			}
+		});
+
+		if (response.ok) {
+			return (await response.json()) as Fleet[];
+		} else {
+			const errorResponse = (await response.json()) as ErrorResponse;
+			throw new Error(errorResponse.error);
+		}
+	}
+
+	static async merge(
+		fleet: CommandedFleet,
+		fleetNums: number[]
+	): Promise<CommandedFleet> {
+		const url = `/api/games/${fleet.gameId}/fleets/${fleet.num}/merge`;
+		const response = await fetch(url, {
+			method: 'POST',
+			headers: {
+				accept: 'application/json'
+			},
+			body: JSON.stringify({ fleetNums })
+		});
+
+		if (response.ok) {
+			return Object.assign(fleet, await response.json());
+		} else {
+			const errorResponse = (await response.json()) as ErrorResponse;
+			throw new Error(errorResponse.error);
+		}
+	}
+
+	static async updateFleetOrders(fleet: CommandedFleet): Promise<CommandedFleet> {
 		const fleetOrders = new FleetOrders(fleet.waypoints ?? [], fleet.repeatOrders);
 
-		const response = await fetch(`/api/fleets/${fleet.id}`, {
+		const response = await fetch(`/api/games/${fleet.gameId}/fleets/${fleet.num}`, {
 			method: 'PUT',
 			headers: {
 				accept: 'application/json'
@@ -49,7 +101,7 @@ export class FleetService extends Service {
 		});
 
 		if (response.ok) {
-			return (await response.json()) as Fleet;
+			return await response.json();
 		} else {
 			console.error(response);
 		}

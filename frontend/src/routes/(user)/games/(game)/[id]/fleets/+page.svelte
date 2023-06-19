@@ -4,40 +4,12 @@
 	import SortableTableHeader from '$lib/components/SortableTableHeader.svelte';
 	import TableSearchInput from '$lib/components/TableSearchInput.svelte';
 	import CargoMini from '$lib/components/game/CargoMini.svelte';
-	import {
-		commandMapObject,
-		getMapObject,
-		mapObjects,
-		player,
-		zoomToMapObject
-	} from '$lib/services/Context';
-	import { GameService } from '$lib/services/GameService';
+	import { commandMapObject, game, zoomToMapObject } from '$lib/services/Context';
 	import { totalCargo } from '$lib/types/Cargo';
 	import type { Fleet, Waypoint } from '$lib/types/Fleet';
-	import { MapObjectType } from '$lib/types/MapObject';
 	import { SvelteTable, type SvelteTableColumn } from '@hurtigruten/svelte-table';
-	import { onMount } from 'svelte';
-	import { get } from 'svelte/store';
 
 	let id = parseInt($page.params.id);
-
-	onMount(() => {
-		if (!$mapObjects) {
-			GameService.loadFullPlayer(id).then((p) =>
-				player.update(() => {
-					const existing = get(player);
-					if (existing) {
-						return Object.assign(existing, p);
-					} else {
-						return p;
-					}
-				})
-			),
-				GameService.loadPlayerMapObjects(id).then((mos) => {
-					mapObjects.update(() => mos);
-				});
-		}
-	});
 
 	const selectFleet = (fleet: Fleet) => {
 		commandMapObject(fleet);
@@ -49,8 +21,8 @@
 		wp.targetName ?? `Space: (${wp.position.x}, ${wp.position.y})`;
 
 	const getLocation = (fleet: Fleet) =>
-		fleet.orbitingPlanetNum && $player
-			? $player.getPlanetIntel(fleet.orbitingPlanetNum)?.name ?? 'unknown'
+		fleet.orbitingPlanetNum && $game
+			? $game.player.getPlanetIntel(fleet.orbitingPlanetNum)?.name ?? 'unknown'
 			: `Space: (${fleet.position.x}, ${fleet.position.y})`;
 
 	const getDestination = (fleet: Fleet) => {
@@ -64,10 +36,11 @@
 	let filteredFleets: Fleet[] = [];
 	let search = '';
 
-	$: filteredFleets = $mapObjects?.fleets ?? [];
+	$: filteredFleets = $game?.universe.fleets?.sort((a, b) => a.num - b.num) ?? [];
 	$: filteredFleets =
-		$mapObjects?.fleets.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1) ??
-		[];
+		$game?.universe.fleets.filter(
+			(i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1
+		) ?? [];
 
 	const columns: SvelteTableColumn<Fleet>[] = [
 		{
@@ -155,8 +128,8 @@
 			{:else if column.key == 'cargo'}
 				<CargoMini cargo={row.cargo} />
 			{:else if column.key == 'composition'}
-				{@const design = $player
-					? $player.getDesign($player.num, row.tokens[0].designNum)
+				{@const design = $game
+					? $game.player.getDesign($game.player.num, row.tokens[0].designNum)
 					: undefined}
 				<div class="flex flex-row justify-between">
 					<div>

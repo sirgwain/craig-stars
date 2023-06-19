@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { commandMapObject, game, player } from '$lib/services/Context';
+	import { commandMapObject, game } from '$lib/services/Context';
 	import { PlanetService } from '$lib/services/PlanetService';
 	import type { CommandedPlanet } from '$lib/types/Planet';
 	import { onMount } from 'svelte';
@@ -30,6 +30,6 @@
 	});
 </script>
 
-{#if planet && designs && $player && $game}
-	<ProductionQueue {planet} {designs} game={$game} player={$player} />
+{#if planet && designs && $game}
+	<ProductionQueue {planet} {designs} game={$game} player={$game.player} />
 {/if}

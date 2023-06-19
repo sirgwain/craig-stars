@@ -1,8 +1,6 @@
 package cs
 
 import (
-	"encoding/json"
-	"io/ioutil"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -730,7 +728,4 @@ func Test_battle_runBattle1(t *testing.T) {
 
 	// ran some number of turns
 	assert.Greater(t, len(record.ActionsPerRound), 1)
-
-	gotJson, _ := json.MarshalIndent(record, "", "  ")
-	_ = ioutil.WriteFile("../tmp/battle.json", gotJson, 0644)
 }

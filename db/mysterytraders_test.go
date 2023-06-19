@@ -11,7 +11,7 @@ import (
 
 func TestCreateMysteryTrader(t *testing.T) {
 	type args struct {
-		c        *client
+		c             *client
 		mysteryTrader *cs.MysteryTrader
 	}
 	tests := []struct {
@@ -20,8 +20,7 @@ func TestCreateMysteryTrader(t *testing.T) {
 		wantErr bool
 	}{
 		{"Create", args{connectTestDB(), &cs.MysteryTrader{
-			MapObject: cs.MapObject{GameID: 1, Name: "test"},
-		},
+			MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: 1}, Name: "test"}},
 		}, false},
 	}
 	for _, tt := range tests {
@@ -55,7 +54,7 @@ func TestGetMysteryTraders(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, []*cs.MysteryTrader{}, result)
 
-	mysteryTrader := cs.MysteryTrader{MapObject: cs.MapObject{GameID: game.ID}}
+	mysteryTrader := cs.MysteryTrader{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: game.ID}}}
 	if err := c.createMysteryTrader(&mysteryTrader, c.db); err != nil {
 		t.Errorf("create mysteryTrader %s", err)
 		return
@@ -70,7 +69,7 @@ func TestGetMysteryTraders(t *testing.T) {
 func TestGetMysteryTrader(t *testing.T) {
 	c := connectTestDB()
 	game := c.createTestGame()
-	mysteryTrader := cs.MysteryTrader{MapObject: cs.MapObject{GameID: game.ID, Name: "name", Type: cs.MapObjectTypeMysteryTrader}}
+	mysteryTrader := cs.MysteryTrader{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: game.ID}, Name: "name", Type: cs.MapObjectTypeMysteryTrader}}
 	if err := c.createMysteryTrader(&mysteryTrader, c.db); err != nil {
 		t.Errorf("create mysteryTrader %s", err)
 		return
@@ -109,7 +108,7 @@ func TestGetMysteryTrader(t *testing.T) {
 func TestUpdateMysteryTrader(t *testing.T) {
 	c := connectTestDB()
 	game := c.createTestGame()
-	mysteryTrader := cs.MysteryTrader{MapObject: cs.MapObject{GameID: game.ID}}
+	mysteryTrader := cs.MysteryTrader{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: game.ID}}}
 	if err := c.createMysteryTrader(&mysteryTrader, c.db); err != nil {
 		t.Errorf("create mysteryTrader %s", err)
 		return

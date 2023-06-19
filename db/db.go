@@ -94,10 +94,10 @@ type Client interface {
 	UpdatePlanetSpec(planet *cs.Planet) error
 
 	GetFleet(id int64) (*cs.Fleet, error)
-	GetFleetByNum(gameID int64, num int) (*cs.Fleet, error)
+	GetFleetByNum(gameID int64, playerNum int, num int) (*cs.Fleet, error)
 	GetFleetsByNums(gameID int64, playerNum int, nums []int) ([]*cs.Fleet, error)
 	UpdateFleet(fleet *cs.Fleet) error
-	CreateUpdateOrDeleteFleets(fleets []*cs.Fleet) error
+	CreateUpdateOrDeleteFleets(gameID int64, fleets []*cs.Fleet) error
 	DeleteFleet(id int64) error
 	GetFleetsForPlayer(gameID int64, playerNum int) ([]*cs.Fleet, error)
 

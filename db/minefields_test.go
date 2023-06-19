@@ -19,7 +19,7 @@ func TestCreateMineField(t *testing.T) {
 		wantErr bool
 	}{
 		{"Create", args{connectTestDB(), &cs.MineField{
-			MapObject: cs.MapObject{GameID: 1, Name: "test"},
+			MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: 1}, Name: "test"},
 		},
 		}, false},
 	}
@@ -51,7 +51,7 @@ func TestGetMineField(t *testing.T) {
 	g, player := c.createTestGameWithPlayer()
 
 	mineField := cs.MineField{
-		MapObject: cs.MapObject{GameID: g.ID, PlayerNum: player.Num, Name: "name", Type: cs.MapObjectTypeMineField},
+		MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, PlayerNum: player.Num, Name: "name", Type: cs.MapObjectTypeMineField},
 		Type:      cs.MineFieldTypeStandard,
 	}
 	if err := c.createMineField(&mineField, c.db); err != nil {
@@ -98,7 +98,7 @@ func TestGetMineFields(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, []*cs.MineField{}, result)
 
-	mineField := cs.MineField{MapObject: cs.MapObject{GameID: g.ID, PlayerNum: player.Num}}
+	mineField := cs.MineField{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, PlayerNum: player.Num}}
 	if err := c.createMineField(&mineField, c.db); err != nil {
 		t.Errorf("create planet %s", err)
 		return
@@ -113,7 +113,7 @@ func TestGetMineFields(t *testing.T) {
 func TestUpdateMineField(t *testing.T) {
 	c := connectTestDB()
 	g, player := c.createTestGameWithPlayer()
-	planet := cs.MineField{MapObject: cs.MapObject{GameID: g.ID, PlayerNum: player.Num}}
+	planet := cs.MineField{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, PlayerNum: player.Num}}
 	if err := c.createMineField(&planet, c.db); err != nil {
 		t.Errorf("create planet %s", err)
 		return

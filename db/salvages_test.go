@@ -20,8 +20,7 @@ func TestCreateSalvage(t *testing.T) {
 		wantErr bool
 	}{
 		{"Create", args{connectTestDB(), &cs.Salvage{
-			MapObject: cs.MapObject{GameID: 1, Name: "test"},
-		},
+			MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: 1}, Name: "test"}},
 		}, false},
 	}
 	for _, tt := range tests {
@@ -52,7 +51,7 @@ func TestGetSalvage(t *testing.T) {
 	g, player := c.createTestGameWithPlayer()
 
 	salvage := cs.Salvage{
-		MapObject: cs.MapObject{GameID: g.ID, PlayerNum: player.Num, Name: "name", Type: cs.MapObjectTypeSalvage},
+		MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, PlayerNum: player.Num, Name: "name", Type: cs.MapObjectTypeSalvage},
 	}
 	if err := c.createSalvage(&salvage, c.db); err != nil {
 		t.Errorf("create salvage %s", err)
@@ -98,7 +97,7 @@ func TestGetSalvages(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, []*cs.Salvage{}, result)
 
-	salvage := cs.Salvage{MapObject: cs.MapObject{GameID: g.ID, PlayerNum: player.Num}}
+	salvage := cs.Salvage{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, PlayerNum: player.Num}}
 	if err := c.createSalvage(&salvage, c.db); err != nil {
 		t.Errorf("create planet %s", err)
 		return
@@ -113,7 +112,7 @@ func TestGetSalvages(t *testing.T) {
 func TestUpdateSalvage(t *testing.T) {
 	c := connectTestDB()
 	g, player := c.createTestGameWithPlayer()
-	planet := cs.Salvage{MapObject: cs.MapObject{GameID: g.ID, PlayerNum: player.Num}}
+	planet := cs.Salvage{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, PlayerNum: player.Num}}
 	if err := c.createSalvage(&planet, c.db); err != nil {
 		t.Errorf("create planet %s", err)
 		return

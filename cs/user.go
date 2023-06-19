@@ -7,21 +7,18 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	"golang.org/x/crypto/argon2"
 )
 
 type User struct {
-	ID        int64     `json:"id" header:"ID"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
-	Username  string    `json:"username" header:"Username"`
-	Password  string    `json:"password"`
-	Email     string    `json:"email"`
-	Role      string    `json:"role"`
-	Banned    bool      `json:"banned"`
-	Verified  bool      `json:"verified"`
+	DBObject
+	Username string `json:"username" header:"Username"`
+	Password string `json:"password"`
+	Email    string `json:"email"`
+	Role     string `json:"role"`
+	Banned   bool   `json:"banned"`
+	Verified bool   `json:"verified"`
 }
 
 const (

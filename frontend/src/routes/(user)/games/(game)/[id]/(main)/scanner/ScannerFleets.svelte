@@ -8,8 +8,10 @@
 	import { getContext } from 'svelte';
 	import ScannerFleet from './ScannerFleet.svelte';
 	import type { LayerCake } from 'layercake';
-	import { commandedFleet, playerColor } from '$lib/services/Context';
+	import { commandedFleet} from '$lib/services/Context';
+	import type { FullGame } from '$lib/services/FullGame';
 
+	const game = getContext<FullGame>('game');
 	const { data } = getContext<LayerCake>('LayerCake');
 
 	let fleets: Fleet[] = [];
@@ -19,5 +21,9 @@
 
 <!-- Fleets -->
 {#each fleets as fleet}
-	<ScannerFleet {fleet} color={playerColor(fleet.playerNum)} commanded={$commandedFleet?.num === fleet.num && $commandedFleet?.playerNum === fleet.playerNum} />
+	<ScannerFleet
+		{fleet}
+		color={game.getPlayerColor(fleet.playerNum)}
+		commanded={$commandedFleet?.num === fleet.num && $commandedFleet?.playerNum === fleet.playerNum}
+	/>
 {/each}

@@ -46,7 +46,7 @@ func TestCreatePlayer(t *testing.T) {
 func TestUpdatePlayer(t *testing.T) {
 	c := connectTestDB()
 	c.createTestGame()
-	player := cs.Player{UserID: 1, GameID: 1, Name: "Test"}
+	player := cs.Player{GameDBObject: cs.GameDBObject{GameID: 1}, UserID: 1, Name: "Test"}
 	if err := c.CreatePlayer(&player); err != nil {
 		t.Errorf("create player %s", err)
 		return
@@ -76,7 +76,7 @@ func TestGetPlayer(t *testing.T) {
 	rules := cs.NewRules()
 	c := connectTestDB()
 	c.createTestGame()
-	player := cs.Player{UserID: 1, GameID: 1, Name: "Test", Race: *cs.NewRace().WithSpec(&rules)}
+	player := cs.Player{GameDBObject: cs.GameDBObject{GameID: 1}, UserID: 1, Name: "Test", Race: *cs.NewRace().WithSpec(&rules)}
 	if err := c.CreatePlayer(&player); err != nil {
 		t.Errorf("create player %s", err)
 		return
@@ -121,7 +121,7 @@ func TestGetPlayers(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, []cs.Player{}, result)
 
-	player := cs.Player{UserID: 1, GameID: 1, Name: "Test"}
+	player := cs.Player{GameDBObject: cs.GameDBObject{GameID: 1}, UserID: 1, Name: "Test"}
 	if err := c.CreatePlayer(&player); err != nil {
 		t.Errorf("create player %s", err)
 		return
@@ -141,7 +141,7 @@ func TestDeletePlayers(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, []cs.Player{}, result)
 
-	player := cs.Player{UserID: 1, GameID: 1, Name: "Test"}
+	player := cs.Player{GameDBObject: cs.GameDBObject{GameID: 1}, UserID: 1, Name: "Test"}
 	if err := c.CreatePlayer(&player); err != nil {
 		t.Errorf("create player %s", err)
 		return
@@ -166,7 +166,7 @@ func TestDeletePlayers(t *testing.T) {
 func TestUpdateFullPlayer(t *testing.T) {
 	c := connectTestDB()
 	game := c.createTestGame()
-	player := cs.Player{UserID: 1, GameID: game.ID, Name: "Test"}
+	player := cs.Player{GameDBObject: cs.GameDBObject{GameID: game.ID}, UserID: 1, Name: "Test"}
 	if err := c.CreatePlayer(&player); err != nil {
 		t.Errorf("create player %s", err)
 		return

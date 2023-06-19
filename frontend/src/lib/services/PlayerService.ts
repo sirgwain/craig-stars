@@ -1,6 +1,6 @@
 import type { Game } from '$lib/types/Game';
 import type { Planet } from '$lib/types/Planet';
-import { type PlayerResponse, type PlayerOrders, Player } from '$lib/types/Player';
+import type { PlayerMapObjects, PlayerOrders, PlayerResponse } from '$lib/types/Player';
 import { Service } from './Service';
 
 type UpdateOrdersResult = {
@@ -11,6 +11,7 @@ type UpdateOrdersResult = {
 type SubmitTurnResponse = {
 	game: Game;
 	player: PlayerResponse;
+	mapObjects: PlayerMapObjects;
 };
 
 export class PlayerService extends Service {
@@ -35,10 +36,8 @@ export class PlayerService extends Service {
 		}
 	}
 
-	static async submitTurn(
-		player: PlayerResponse
-	): Promise<{ game: Game; player: Player } | undefined> {
-		const response = await fetch(`/api/games/${player.gameId}/submit-turn`, {
+	static async submitTurn(gameId: number | string): Promise<SubmitTurnResponse | undefined> {
+		const response = await fetch(`/api/games/${gameId}/submit-turn`, {
 			method: 'POST',
 			headers: {
 				accept: 'application/json'
@@ -46,9 +45,7 @@ export class PlayerService extends Service {
 		});
 
 		if (response.ok) {
-			const json = (await response.json()) as SubmitTurnResponse;
-			const player = new Player(json.player.gameId, json.player.num, json.player);
-			return { game: json.game, player };
+			return response.json();
 		} else {
 			console.error(response);
 		}

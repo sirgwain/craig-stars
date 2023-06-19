@@ -4,14 +4,10 @@ import (
 	"fmt"
 	"math"
 	"strings"
-	"time"
 )
 
 type ShipDesign struct {
-	ID            int64             `json:"id"`
-	GameID        int64             `json:"gameId"`
-	CreatedAt     time.Time         `json:"createdAt"`
-	UpdatedAt     time.Time         `json:"updatedAt"`
+	GameDBObject
 	Num           int               `json:"num,omitempty"`
 	PlayerNum     int               `json:"playerNum"`
 	Name          string            `json:"name"`
@@ -109,7 +105,7 @@ const (
 )
 
 func NewShipDesign(player *Player, num int) *ShipDesign {
-	return &ShipDesign{GameID: player.GameID, PlayerNum: player.Num, Num: num, Dirty: true, Slots: []ShipDesignSlot{}}
+	return &ShipDesign{PlayerNum: player.Num, Num: num, Dirty: true, Slots: []ShipDesignSlot{}}
 }
 
 func (sd *ShipDesign) WithName(name string) *ShipDesign {

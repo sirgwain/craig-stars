@@ -48,9 +48,7 @@ type GameSettings struct {
 }
 
 type Game struct {
-	ID                           int64             `json:"id" header:"ID"`
-	CreatedAt                    time.Time         `json:"createdAt"`
-	UpdatedAt                    time.Time         `json:"updatedAt"`
+	DBObject
 	Name                         string            `json:"name" header:"Name"`
 	HostID                       int64             `json:"hostId"`
 	QuickStartTurns              int               `json:"quickStartTurns"`

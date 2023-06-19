@@ -1,11 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import {
-		commandMapObject,
-		getMapObject,
-		selectMapObject,
-		zoomToMapObject
-	} from '$lib/services/Context';
+	import { commandMapObject, selectMapObject, zoomToMapObject } from '$lib/services/Context';
+	import type { FullGame } from '$lib/services/FullGame';
 	import type { Fleet } from '$lib/types/Fleet';
 	import type { Game } from '$lib/types/Game';
 	import { MapObjectType, None, ownedBy, type MapObject } from '$lib/types/MapObject';
@@ -13,7 +9,7 @@
 	import { ArrowTopRightOnSquare, ArrowLongLeft, ArrowLongRight } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
-	export let game: Game;
+	export let game: FullGame;
 	export let player: PlayerResponse;
 
 	let messageNum = 0;
@@ -59,7 +55,11 @@
 				}
 
 				if (moType != MapObjectType.None) {
-					const target = getMapObject(moType, message.targetNum, message.targetPlayerNum);
+					const target = game.universe.getMapObject(
+						moType,
+						message.targetNum,
+						message.targetPlayerNum
+					);
 					if (target) {
 						if (target.type == MapObjectType.Fleet) {
 							const orbitingPlanetNum = (target as Fleet).orbitingPlanetNum;

@@ -94,6 +94,7 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 		} else if playerSetting.Type == cs.NewGamePlayerTypeAI {
 			log.Debug().Int64("hostID", hostID).Msg("Adding ai player to game")
 			race := cs.NewRace()
+			race.PRT = cs.IT
 			player := gr.client.NewPlayer(hostID, *race, &game.Rules)
 			player.GameID = game.ID
 			player.Num = i + 1
@@ -340,6 +341,9 @@ func (gr *gameRunner) generateUniverse(fullGame *cs.FullGame) error {
 // process an the ai player's turns
 func (gr *gameRunner) processAITurns(fullGame *cs.FullGame) {
 	for _, player := range fullGame.Players {
+		if !player.AIControlled {
+			continue
+		}
 		// TODO: make this use copies to ensure the ai only updates orders?
 		// TODO: ai only ai processing
 		pmo := fullGame.Universe.GetPlayerMapObjects(player.Num)

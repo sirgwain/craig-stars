@@ -3,7 +3,6 @@ package cs
 import (
 	"math"
 	"strings"
-	"time"
 )
 
 const ScanWithZeroRange = 1
@@ -13,9 +12,6 @@ const NoGate = -1
 const InfinteGate = math.MaxInt32
 
 type TechStore struct {
-	ID                       int64                                 `json:"id"`
-	CreatedAt                time.Time                             `json:"createdAt"`
-	UpdatedAt                time.Time                             `json:"updatedAt"`
 	RulesID                  int64                                 `json:"rulesId"`
 	Engines                  []TechEngine                          `json:"engines"`
 	PlanetaryScanners        []TechPlanetaryScanner                `json:"planetaryScanners"`

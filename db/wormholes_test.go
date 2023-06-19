@@ -20,8 +20,7 @@ func TestCreateWormhole(t *testing.T) {
 		wantErr bool
 	}{
 		{"Create", args{connectTestDB(), &cs.Wormhole{
-			MapObject: cs.MapObject{GameID: 1, Name: "test"},
-		},
+			MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: 1}, Name: "test"}},
 		}, false},
 	}
 	for _, tt := range tests {
@@ -55,7 +54,7 @@ func TestGetWormholes(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, []*cs.Wormhole{}, result)
 
-	wormhole := cs.Wormhole{MapObject: cs.MapObject{GameID: game.ID}}
+	wormhole := cs.Wormhole{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: game.ID}}}
 	if err := c.createWormhole(&wormhole, c.db); err != nil {
 		t.Errorf("create wormhole %s", err)
 		return
@@ -70,7 +69,7 @@ func TestGetWormholes(t *testing.T) {
 func TestGetWormhole(t *testing.T) {
 	c := connectTestDB()
 	game := c.createTestGame()
-	wormhole := cs.Wormhole{MapObject: cs.MapObject{GameID: game.ID, Name: "name", Type: cs.MapObjectTypeWormhole}}
+	wormhole := cs.Wormhole{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: game.ID}, Name: "name", Type: cs.MapObjectTypeWormhole}}
 	if err := c.createWormhole(&wormhole, c.db); err != nil {
 		t.Errorf("create wormhole %s", err)
 		return
@@ -109,7 +108,7 @@ func TestGetWormhole(t *testing.T) {
 func TestUpdateWormhole(t *testing.T) {
 	c := connectTestDB()
 	game := c.createTestGame()
-	wormhole := cs.Wormhole{MapObject: cs.MapObject{GameID: game.ID}}
+	wormhole := cs.Wormhole{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: game.ID}}}
 	if err := c.createWormhole(&wormhole, c.db); err != nil {
 		t.Errorf("create wormhole %s", err)
 		return

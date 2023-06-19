@@ -5,16 +5,16 @@
 	import Scanner from '$lib/components/icons/Scanner.svelte';
 	import { nextMapObject, previousMapObject } from '$lib/services/Context';
 	import { settings } from '$lib/services/Settings';
-	import type { Game } from '$lib/types/Game';
-	import type { PlayerResponse } from '$lib/types/Player';
 	import { PlanetViewState } from '$lib/types/PlayerSettings';
-	import { Envelope, ArrowLongLeft, ArrowLongRight } from '@steeze-ui/heroicons';
+	import { ArrowLongLeft, ArrowLongRight, Envelope } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import MessagesPane from '../MessagesPane.svelte';
 	import PlanetViewStates from './toolbar/PlanetViewStates.svelte';
+	import type { FullGame } from '$lib/services/FullGame';
+	import type { Player } from '$lib/types/Player';
 
-	export let game: Game;
-	export let player: PlayerResponse;
+	export let game: FullGame;
+	export let player: Player;
 
 	let showMessages = false;
 </script>

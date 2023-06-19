@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { commandMapObject, player, selectMapObject } from '$lib/services/Context';
+	import { commandMapObject, selectMapObject } from '$lib/services/Context';
 
 	import type { Fleet } from '$lib/types/Fleet';
 	import { MapObjectType, type MapObject } from '$lib/types/MapObject';
@@ -94,33 +94,6 @@
 	const xGetter = (mo: MapObject) => mo?.position?.x;
 	const yGetter = (mo: MapObject) => mo?.position?.y;
 
-	// create a test player
-	player.update(
-		() =>
-			({
-				gameId: 0,
-				userId: 0,
-				num: 0,
-				race: humanoid,
-				techLevels: {
-					energy: 3,
-					weapons: 3,
-					propulsion: 3,
-					construction: 3,
-					electronics: 3,
-					biotechnology: 3
-				},
-				techLevelsSpent: {},
-				messages: [],
-				designs: [],
-				planets: [],
-				fleets: fleets,
-				planetIntels: [],
-				fleetIntels: [],
-				color: '#0000FF',
-				spec: {}
-			} as PlayerResponse)
-	);
 	selectMapObject(fleets[0]);
 	commandMapObject(fleets[0]);
 </script>

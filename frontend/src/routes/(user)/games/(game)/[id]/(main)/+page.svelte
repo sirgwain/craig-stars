@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { designs, game, mapObjects, player } from '$lib/services/Context';
+	import { game } from '$lib/services/Context';
 	import { GameState } from '$lib/types/Game';
 	import Game from './Game.svelte';
 	import GameSetup from './GameSetup.svelte';
@@ -10,8 +10,8 @@
 	<GameSetup game={$game} />
 {:else if $game?.state == GameState.GeneratingTurn}
 	Generating turn, refresh
-{:else if $player?.submittedTurn && $game?.state == GameState.WaitingForPlayers}
+{:else if $game.player.submittedTurn && $game?.state == GameState.WaitingForPlayers}
 	<WaitingForPlayers game={$game} />
-{:else if $game && $player && $mapObjects && $player.race && $designs}
-	<Game game={$game} player={$player} mapObjects={$mapObjects} />
+{:else}
+	<Game game={$game} />
 {/if}

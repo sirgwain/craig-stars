@@ -47,7 +47,7 @@ func (s *server) fleetCtx(next http.Handler) http.Handler {
 			return
 		}
 
-		fleet, err := s.db.GetFleetByNum(player.GameID, *num)
+		fleet, err := s.db.GetFleetByNum(player.GameID, player.Num, *num)
 		if err != nil {
 			render.Render(w, r, ErrInternalServerError(err))
 			return
@@ -81,13 +81,23 @@ func (s *server) fleet(w http.ResponseWriter, r *http.Request) {
 // Allow a user to update a fleet's orders
 func (s *server) updateFleetOrders(w http.ResponseWriter, r *http.Request) {
 	existingFleet := s.contextFleet(r)
+	game := s.contextGame(r)
 	player := s.contextPlayer(r)
+	var err error
 
 	fleet := fleetRequest{}
 	if err := render.Bind(r, &fleet); err != nil {
 		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
+
+	player.Designs, err = s.db.GetShipDesignsForPlayer(game.ID, player.Num)
+	if err != nil {
+		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("get fleets for player")
+		render.Render(w, r, ErrInternalServerError(err))
+	}
+
+	existingFleet.InjectDesigns(player.Designs)
 
 	orderer := cs.NewOrderer()
 	orderer.UpdateFleetOrders(player, existingFleet, fleet.FleetOrders)
@@ -128,7 +138,7 @@ func (s *server) splitAll(w http.ResponseWriter, r *http.Request) {
 
 	// save all the fleets
 	newFleets = append(newFleets, fleet)
-	if err := s.db.CreateUpdateOrDeleteFleets(newFleets); err != nil {
+	if err := s.db.CreateUpdateOrDeleteFleets(game.ID, newFleets); err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("get fleets for player")
 		render.Render(w, r, ErrInternalServerError(err))
 	}
@@ -146,6 +156,14 @@ func (s *server) merge(w http.ResponseWriter, r *http.Request) {
 	if err := render.Bind(r, &mergeFleets); err != nil {
 		render.Render(w, r, ErrBadRequest(err))
 		return
+	}
+
+	for num := range mergeFleets.FleetNums {
+		if fleet.Num == num {
+			log.Error().Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("include source fleet Num in merge fleets request")
+			render.Render(w, r, ErrBadRequest(fmt.Errorf("do not include %d's fleet number in merge fleet request", fleet.Num)))
+			return
+		}
 	}
 
 	fleets, err := s.db.GetFleetsByNums(game.ID, player.Num, mergeFleets.FleetNums)
@@ -170,13 +188,12 @@ func (s *server) merge(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// save all the fleets
-	fleetsToUpdate := append(fleets, updatedFleet)
-	if err := s.db.CreateUpdateOrDeleteFleets(fleetsToUpdate); err != nil {
+	if err := s.db.CreateUpdateOrDeleteFleets(game.ID, fleets); err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("get fleets for player")
 		render.Render(w, r, ErrInternalServerError(err))
 	}
 
-	rest.RenderJSON(w, fleet)
+	rest.RenderJSON(w, updatedFleet)
 }
 
 // Transfer cargo from a player's fleet to/from a fleet or planet the player controls

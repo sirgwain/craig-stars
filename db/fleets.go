@@ -173,10 +173,10 @@ func (c *client) GetFleetsForPlayer(gameID int64, playerNum int) ([]*cs.Fleet, e
 	return results, nil
 }
 
-func (c *client) GetFleetByNum(gameID int64, num int) (*cs.Fleet, error) {
+func (c *client) GetFleetByNum(gameID int64, playerNum int, num int) (*cs.Fleet, error) {
 
 	item := Fleet{}
-	if err := c.db.Get(&item, `SELECT * FROM fleets WHERE gameId = ? AND num = ?`, gameID, num); err != nil {
+	if err := c.db.Get(&item, `SELECT * FROM fleets WHERE gameId = ? AND playerNum = ? AND num = ?`, gameID, playerNum, num); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
@@ -293,7 +293,7 @@ func (c *client) UpdateFleet(fleet *cs.Fleet) error {
 	return c.updateFleet(fleet, c.db)
 }
 
-func (c *client) CreateUpdateOrDeleteFleets(fleets []*cs.Fleet) error {
+func (c *client) CreateUpdateOrDeleteFleets(gameID int64, fleets []*cs.Fleet) error {
 	tx, err := c.db.Beginx()
 	if err != nil {
 		return err
@@ -302,6 +302,7 @@ func (c *client) CreateUpdateOrDeleteFleets(fleets []*cs.Fleet) error {
 	// create/update fleets
 	for _, fleet := range fleets {
 		if fleet.ID == 0 {
+			fleet.GameID = gameID
 			if err := c.createFleet(fleet, tx); err != nil {
 				return fmt.Errorf("create fleet %w", err)
 			}
@@ -321,9 +322,7 @@ func (c *client) CreateUpdateOrDeleteFleets(fleets []*cs.Fleet) error {
 		}
 	}
 
-	tx.Commit()
-	return nil
-
+	return tx.Commit()
 }
 
 // update an existing fleet

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { mapObjects, player } from '$lib/services/Context';
+	import type { FullGame } from '$lib/services/FullGame';
 	import { settings } from '$lib/services/Settings';
 
 	import { positionKey } from '$lib/types/MapObject';
@@ -7,6 +7,7 @@
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 
+	const game = getContext<FullGame>('game');
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
 	type Scanner = {
@@ -17,10 +18,10 @@
 
 	let scanners: Scanner[] = [];
 	$: {
-		if ($data && $mapObjects) {
+		if ($data) {
 			const scannersByPosition = new Map<string, Scanner>();
 
-			$mapObjects.planets.forEach((planet) =>
+			game.universe.planets.forEach((planet) =>
 				scannersByPosition.set(positionKey(planet), {
 					position: planet.position,
 					scanRange: planet.spec?.scanRange ?? 0,
@@ -28,7 +29,7 @@
 				})
 			);
 
-			$mapObjects.fleets
+			game.universe.fleets
 				.filter((fleet) => fleet.spec?.scanner)
 				.forEach((fleet) => {
 					const key = positionKey(fleet);

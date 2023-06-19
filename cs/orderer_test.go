@@ -434,7 +434,17 @@ func Test_orders_SplitAll(t *testing.T) {
 		}).
 		WithSpec(&rules, player)
 
-	player.Designs = append(player.Designs, scoutDesign, freighterDesign)
+	freighter2Design := NewShipDesign(player, 3).
+		WithName("Teamster2").
+		WithHull(SmallFreighter.Name).
+		WithSlots([]ShipDesignSlot{
+			{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+			{HullComponent: CargoPod.Name, HullSlotIndex: 2, Quantity: 1},
+			{HullComponent: BatScanner.Name, HullSlotIndex: 3, Quantity: 1},
+		}).
+		WithSpec(&rules, player)
+
+	player.Designs = append(player.Designs, scoutDesign, freighterDesign, freighter2Design)
 
 	type args struct {
 		player *Player
@@ -521,7 +531,7 @@ func Test_orders_SplitAll(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "split one scout, one freighter into two fleets",
+			name: "split one scout, one freighter1, one freighter2 into three fleets",
 			args: args{
 				player: player,
 				source: &Fleet{
@@ -539,6 +549,7 @@ func Test_orders_SplitAll(t *testing.T) {
 					Tokens: []ShipToken{
 						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 1},
 						{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 1},
+						{design: freighter2Design, DesignNum: freighter2Design.Num, Quantity: 1},
 					},
 				},
 			},
@@ -573,6 +584,22 @@ func Test_orders_SplitAll(t *testing.T) {
 					},
 					Tokens: []ShipToken{
 						{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 1},
+					},
+				},
+				{
+					MapObject: MapObject{
+						Type:      MapObjectTypeFleet,
+						Num:       3,
+						PlayerNum: player.Num,
+						Name:      "Teamster2 #3",
+					},
+					BaseName: "Teamster2",
+					FleetOrders: FleetOrders{
+						Waypoints:      []Waypoint{NewPositionWaypoint(Vector{}, 5)},
+						BattlePlanName: player.BattlePlans[0].Name,
+					},
+					Tokens: []ShipToken{
+						{design: freighter2Design, DesignNum: freighter2Design.Num, Quantity: 1},
 					},
 				},
 			},
@@ -782,7 +809,7 @@ func Test_orders_Merge(t *testing.T) {
 						BattlePlanName: player.BattlePlans[0].Name,
 					},
 					Tokens: []ShipToken{
-						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 1},                                     // no damage
+						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 1},                                         // no damage
 						{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 3, QuantityDamaged: 2, Damage: 25}, // 2@50 damage = 10 total damage
 					},
 				},

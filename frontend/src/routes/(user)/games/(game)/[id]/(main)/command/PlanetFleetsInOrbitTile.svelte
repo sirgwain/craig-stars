@@ -4,19 +4,17 @@
 	import { EventManager } from '$lib/EventManager';
 	import {
 		commandedMapObjectName,
-		commandMapObject,
-		getMyMapObjectsByPosition
+		commandMapObject
 	} from '$lib/services/Context';
 	import type { Fleet } from '$lib/types/Fleet';
-	import { MapObjectType } from '$lib/types/MapObject';
 	import type { CommandedPlanet } from '$lib/types/Planet';
 	import { ArrowTopRightOnSquare } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onMount } from 'svelte';
 	import CommandTile from './CommandTile.svelte';
-	
+
 	export let planet: CommandedPlanet;
-	let fleetsInOrbit: Fleet[];
+	export let fleetsInOrbit: Fleet[];
 	let selectedFleet: Fleet | undefined;
 	let selectedFleetIndex = 0;
 
@@ -34,9 +32,6 @@
 	commandedMapObjectName.subscribe(() => (selectedFleetIndex = 0));
 
 	$: {
-		fleetsInOrbit = getMyMapObjectsByPosition(planet).filter(
-			(mo) => mo.type == MapObjectType.Fleet
-		) as Fleet[];
 		if (fleetsInOrbit.length > 0) {
 			selectedFleet = fleetsInOrbit[selectedFleetIndex];
 		}

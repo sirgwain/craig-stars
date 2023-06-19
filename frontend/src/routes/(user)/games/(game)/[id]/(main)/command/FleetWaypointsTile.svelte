@@ -1,24 +1,22 @@
 <script lang="ts">
+	import WarpFactorBar from '$lib/components/game/WarpFactorBar.svelte';
 	import {
 		commandedMapObjectName,
-		getMapObject,
 		selectedWaypoint,
 		selectMapObject,
 		selectWaypoint
 	} from '$lib/services/Context';
-	import { FleetService } from '$lib/services/FleetService';
-	import type { Fleet, Waypoint } from '$lib/types/Fleet';
+	import type { FullGame } from '$lib/services/FullGame';
+	import type { CommandedFleet, Waypoint } from '$lib/types/Fleet';
 	import type { MapObject } from '$lib/types/MapObject';
-	import type { PlayerResponse } from '$lib/types/Player';
 	import { distance } from '$lib/types/Vector';
 	import hotkeys from 'hotkeys-js';
-	import { merge } from 'lodash-es';
-	import WarpFactorBar from '$lib/components/game/WarpFactorBar.svelte';
 	import CommandTile from './CommandTile.svelte';
+	import { onMount } from 'svelte';
 
-	export let fleet: Fleet;
+	export let game: FullGame;
+	export let fleet: CommandedFleet;
 
-	const fleetService = new FleetService();
 	let selectedWaypointIndex = 0;
 	let previousWaypoint: Waypoint | undefined;
 	let previousWaypointMO: MapObject | undefined;
@@ -30,22 +28,20 @@
 
 	const getWaypointTarget = (wp: Waypoint): MapObject | undefined => {
 		if (wp && wp.targetType && wp.targetNum) {
-			return getMapObject(wp.targetType, wp.targetNum, wp.targetPlayerNum);
+			return game.universe.getMapObject(wp.targetType, wp.targetNum, wp.targetPlayerNum);
 		}
 	};
 
 	const updateNextPrevWaypoints = () => {
 		// find the next/previous waypoint
 		previousWaypoint = previousWaypointMO = nextWaypoint = nextWaypointMO = undefined;
-		if (fleet.waypoints) {
-			if (selectedWaypointIndex > 0) {
-				previousWaypoint = fleet.waypoints[selectedWaypointIndex - 1];
-				previousWaypointMO = getWaypointTarget(previousWaypoint);
-			}
-			if (selectedWaypointIndex < fleet.waypoints.length) {
-				nextWaypoint = fleet.waypoints[selectedWaypointIndex + 1];
-				nextWaypointMO = getWaypointTarget(nextWaypoint);
-			}
+		if (selectedWaypointIndex > 0) {
+			previousWaypoint = fleet.waypoints[selectedWaypointIndex - 1];
+			previousWaypointMO = getWaypointTarget(previousWaypoint);
+		}
+		if (selectedWaypointIndex < fleet.waypoints.length) {
+			nextWaypoint = fleet.waypoints[selectedWaypointIndex + 1];
+			nextWaypointMO = getWaypointTarget(nextWaypoint);
 		}
 	};
 
@@ -71,10 +67,7 @@
 	const onRepeatOrdersChanged = async (repeatOrders: boolean) => {
 		if ($selectedWaypoint) {
 			fleet.repeatOrders = repeatOrders;
-			const f = await FleetService.updateFleetOrders(fleet);
-
-			// update the player fleet
-			merge(fleet, f);
+			await game.updateFleetOrders(fleet);
 
 			// update the commanded object
 			updateNextPrevWaypoints();
@@ -82,42 +75,33 @@
 	};
 
 	const onWarpFactorChanged = async (warpFactor: number) => {
-		if (fleet && $selectedWaypoint) {
+		if ($selectedWaypoint) {
 			$selectedWaypoint.warpFactor = warpFactor;
-			const f = await FleetService.updateFleetOrders(fleet);
-
-			// update the player fleet
-			merge(fleet, f);
+			await game.updateFleetOrders(fleet);
 
 			// update the commanded object
 			updateNextPrevWaypoints();
 		}
 	};
 
-	const deleteWaypoint = () => {
+	const deleteWaypoint = async () => {
 		if (selectedWaypointIndex != 0 && fleet.waypoints) {
-			fleet.waypoints = fleet.waypoints?.filter((wp) => wp != $selectedWaypoint);
+			fleet.waypoints = fleet.waypoints.filter((wp) => wp != $selectedWaypoint);
 			selectedWaypointIndex--;
 
+			await game.updateFleetOrders(fleet).then(() => updateNextPrevWaypoints());
 			onSelectWaypoint(fleet.waypoints[selectedWaypointIndex], selectedWaypointIndex);
-
-			FleetService.updateFleetOrders(fleet).then((fleet) => {
-				// update the player fleet
-				merge(fleet, fleet);
-
-				updateNextPrevWaypoints();
-			});
 		}
 	};
 
 	const onNextWaypoint = () => {
-		if (fleet.waypoints && selectedWaypointIndex + 1 < fleet.waypoints.length) {
+		if (selectedWaypointIndex + 1 < fleet.waypoints.length) {
 			onSelectWaypoint(fleet.waypoints[selectedWaypointIndex + 1], selectedWaypointIndex + 1);
 		}
 	};
 
 	const onPrevWaypoint = () => {
-		if (fleet.waypoints && selectedWaypointIndex > 0) {
+		if (selectedWaypointIndex > 0) {
 			onSelectWaypoint(fleet.waypoints[selectedWaypointIndex - 1], selectedWaypointIndex - 1);
 		}
 	};
@@ -128,27 +112,39 @@
 	});
 
 	selectedWaypoint?.subscribe(() => {
-		if (fleet.waypoints) {
-			selectedWaypointIndex = fleet.waypoints.findIndex((wp) => wp == $selectedWaypoint);
-			if (selectedWaypointIndex == -1) {
-				selectedWaypointIndex = 0;
-			}
-			updateNextPrevWaypoints();
-
-			// if (waypointRefs.length > selectedWaypointIndex) {
-			// 	// TODO: this is making small screens jump by scrolling
-			// 	// to the waypoint
-			// 	// waypointRefs[selectedWaypointIndex]?.scrollIntoView();
-			// }
+		selectedWaypointIndex = fleet.waypoints.findIndex((wp) => wp == $selectedWaypoint);
+		if (selectedWaypointIndex == -1) {
+			selectedWaypointIndex = 0;
 		}
+		updateNextPrevWaypoints();
+
+		// if (waypointRefs.length > selectedWaypointIndex) {
+		// 	// TODO: this is making small screens jump by scrolling
+		// 	// to the waypoint
+		// 	// waypointRefs[selectedWaypointIndex]?.scrollIntoView();
+		// }
 	});
 
 	let waypointRefs: (HTMLLIElement | null)[] = [];
 
-	hotkeys('Delete', () => deleteWaypoint());
-	hotkeys('Backspace', () => deleteWaypoint());
-	hotkeys('down', () => onNextWaypoint());
-	hotkeys('up', () => onPrevWaypoint());
+	onMount(() => {
+		// TODO: these hotkeys can't be on the component... they are wired up twice because we render the command pane twice
+		hotkeys('Delete', () => {
+			deleteWaypoint();
+		});
+		hotkeys('Backspace', () => {
+			deleteWaypoint();
+		});
+		hotkeys('down', () => onNextWaypoint());
+		hotkeys('up', () => onPrevWaypoint());
+
+		return () => {
+			hotkeys.unbind('Delete');
+			hotkeys.unbind('Backspace');
+			hotkeys.unbind('down');
+			hotkeys.unbind('up');
+		};
+	});
 </script>
 
 {#if fleet.waypoints && $selectedWaypoint}
@@ -157,11 +153,12 @@
 			<ul class="w-full h-full">
 				{#each fleet.waypoints as wp, index}
 					<li
-						on:click={() => onSelectWaypoint(wp, index)}
 						bind:this={waypointRefs[index]}
 						class="pl-1 {selectedWaypointIndex == index ? 'bg-primary-focus' : ''}"
 					>
-						{getTargetName(wp)}
+						<button type="button" class="text-left w-full h=full" on:click={() => onSelectWaypoint(wp, index)}>
+							{getTargetName(wp)}
+						</button>
 					</li>
 				{/each}
 			</ul>

@@ -1,13 +1,12 @@
 <script lang="ts">
-	import { player, designs, techs } from '$lib/services/Context';
+	import { game, techs } from '$lib/services/Context';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
+	import { Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
+	import { createEventDispatcher } from 'svelte';
 	import TechAvatar from '../tech/TechAvatar.svelte';
 	import Cost from './Cost.svelte';
 	import DesignStats from './DesignStats.svelte';
-	import { Trash } from '@steeze-ui/heroicons';
-	import { DesignService } from '$lib/services/DesignService';
-	import { createEventDispatcher } from 'svelte';
 
 	const dispatch = createEventDispatcher();
 
@@ -16,13 +15,7 @@
 
 	const deleteDesign = async (design: ShipDesign) => {
 		if (design.num != undefined && confirm(`Are you sure you want to delete ${design.name}?`)) {
-			const { fleets, starbases } = await DesignService.delete(gameId, design.num);
-			if ($player) {
-				const p = $player;
-				player.update(() => Object.assign(p, { fleets, starbases }));
-			}
-			designs.update(() => $designs?.filter((d) => d.num !== design.num));
-			dispatch('deleted', { design });
+			dispatch('delete', { design });
 		}
 	};
 </script>

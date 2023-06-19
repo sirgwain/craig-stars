@@ -3,8 +3,8 @@
 	import NotFound from '$lib/components/NotFound.svelte';
 	import { bindNavigationHotkeys, unbindNavigationHotkeys } from '$lib/navigationHotkeys';
 	import { bindQuantityModifier, unbindQuantityModifier } from '$lib/quantityModifier';
-	import { game, player, techs } from '$lib/services/Context';
-	import { GameService } from '$lib/services/GameService';
+	import { game } from '$lib/services/Context';
+	import { FullGame } from '$lib/services/FullGame';
 	import { GameState } from '$lib/types/Game';
 	import { onMount } from 'svelte';
 	import GameMenu from './GameMenu.svelte';
@@ -14,22 +14,12 @@
 	let loadAttempted = false;
 
 	onMount(async () => {
-		if ($game?.id !== id || !$game || !$player) {
-			game.update(() => undefined);
-			player.update(() => undefined);
+		const g = new FullGame();
+		await g.load(id);
 
-			try {
-				// load the game on mount
-				await Promise.all([
-					GameService.loadGame(id).then((g) => game.update(() => g)),
-					GameService.loadLightPlayer(id).then((p) => player.update(() => p)),
-					// load techs the first time as well
-					$techs.fetch()
-				]);
-			} finally {
-				loadAttempted = true;
-			}
-		}
+		game.update(() => g);
+
+		loadAttempted = true;
 
 		// setup the quantityModifier
 		bindQuantityModifier();
@@ -46,7 +36,7 @@
 	});
 </script>
 
-{#if $game && $player}
+{#if $game}
 	<main class="flex flex-col mb-20 md:mb-0">
 		<div class="flex-initial">
 			<GameMenu game={$game} />

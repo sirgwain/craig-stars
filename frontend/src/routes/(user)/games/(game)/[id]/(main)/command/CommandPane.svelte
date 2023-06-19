@@ -1,8 +1,7 @@
 <script lang="ts">
-	import { commandedFleet, commandedPlanet, designs } from '$lib/services/Context';
-	import type { Fleet } from '$lib/types/Fleet';
-	import type { CommandedPlanet } from '$lib/types/Planet';
-	import type { PlayerResponse, PlayerMapObjects } from '$lib/types/Player';
+	import { commandedFleet, commandedPlanet } from '$lib/services/Context';
+	import type { FullGame } from '$lib/services/FullGame';
+	import FleetCompositionTile from './FleetCompositionTile.svelte';
 	import FleetFuelAndCargoTile from './FleetFuelAndCargoTile.svelte';
 	import FleetOtherFleetsHereTile from './FleetOtherFleetsHereTile.svelte';
 	import FleetSummaryTile from './FleetSummaryTile.svelte';
@@ -15,24 +14,36 @@
 	import PlanetStatusTile from './PlanetStatusTile.svelte';
 	import PlanetSummaryTile from './PlanetSummaryTile.svelte';
 
-	export let mapObjects: PlayerMapObjects;
+	export let game: FullGame;
 
-	const getPlanetStarbase = (planet: CommandedPlanet) =>
-		mapObjects.starbases.find((sb) => sb.planetNum == planet.num);
+	$: player = game.player;
 </script>
 
 {#if $commandedPlanet}
 	<PlanetSummaryTile planet={$commandedPlanet} />
 	<PlanetProductionTile planet={$commandedPlanet} />
 	<PlanetMineralsOnHandTile planet={$commandedPlanet} />
-	<PlanetStarbaseTile starbase={getPlanetStarbase($commandedPlanet)} />
+	<PlanetStarbaseTile starbase={game.universe.getPlanetStarbase($commandedPlanet.num)} />
 	<PlanetStatusTile planet={$commandedPlanet} />
-	<PlanetFleetsInOrbitTile planet={$commandedPlanet} />
+	<PlanetFleetsInOrbitTile
+		planet={$commandedPlanet}
+		fleetsInOrbit={game.universe.getMyFleetsByPosition($commandedPlanet)}
+	/>
 {:else if $commandedFleet}
-	<FleetSummaryTile fleet={$commandedFleet} designs={$designs ?? []} />
-	<FleetFuelAndCargoTile fleet={$commandedFleet} />
-	<FleetOtherFleetsHereTile fleet={$commandedFleet} />
-	<FleetWaypointsTile fleet={$commandedFleet} />
+	<FleetSummaryTile fleet={$commandedFleet} {player} />
+	<FleetFuelAndCargoTile {game} fleet={$commandedFleet} />
+	<FleetCompositionTile
+		fleet={$commandedFleet}
+		{player}
+		on:splitAll={() => $commandedFleet && game.splitAll($commandedFleet)}
+	/>
+	<FleetOtherFleetsHereTile
+		fleet={$commandedFleet}
+		fleetsInOrbit={game.universe
+			.getMyFleetsByPosition($commandedFleet)
+			.filter((f) => f.num !== $commandedFleet?.num)}
+	/>
+	<FleetWaypointsTile {game} fleet={$commandedFleet} />
 	<FleetWaypointTaskTile fleet={$commandedFleet} />
 	<!-- empty div for layout -->
 	<div class="hidden md:block md:w-[14rem]" />
