@@ -1,9 +1,7 @@
 import type { Cargo } from './Cargo';
-import type { Fleet } from './Fleet';
 import type { Hab } from './Hab';
 import { MapObjectType, type MapObject } from './MapObject';
 import type { Mineral } from './Mineral';
-import type { PlayerResponse } from './Player';
 import type { ShipDesign } from './ShipDesign';
 import { UnlimitedSpaceDock } from './Tech';
 import type { Vector } from './Vector';
@@ -92,7 +90,9 @@ export class CommandedPlanet implements Planet {
 		terraformAmount: { grav: 0, temp: 0, rad: 0 },
 		hasMassDriver: false,
 		hasStarbase: false,
-		dockCapacity: 0
+		dockCapacity: 0,
+		massDriver: '',
+		hasStargate: false
 	};
 
 	/**
@@ -259,9 +259,19 @@ export interface PlanetSpec {
 	scanRangePen: number;
 	canTerraform: boolean;
 	terraformAmount?: Hab;
-	hasMassDriver: boolean;
 	hasStarbase: boolean;
 	starbaseDesignNum?: number;
 	starbaseDesignName?: string;
 	dockCapacity: number;
+	
+	hasMassDriver: boolean;
+	massDriver: string;
+	safePacketSpeed?: number;
+
+	hasStargate: boolean;
+	stargate?: string;
+	safeHullMass?: number;
+	safeRange?: number;
+	maxHullMass?: number;
+	maxRange?: number;
 }

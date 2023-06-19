@@ -3,8 +3,6 @@
 	import Population from '$lib/components/icons/Population.svelte';
 	import { PlanetViewState } from '$lib/types/PlayerSettings';
 	import { settings } from '$lib/services/Settings';
-
-	export let style = '';
 </script>
 
 <ul {...$$restProps}>

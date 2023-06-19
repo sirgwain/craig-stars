@@ -131,6 +131,24 @@ input[type='number']::-webkit-inner-spin-button {
 	fill: '#FFFF00' !important;
 }
 
+.starbase {
+	fill: #fdfd00;
+	stroke: #7f7f00;
+	stroke-width: 0.5;
+}
+
+.stargate {
+	fill: #008100;
+	stroke: #005c00;
+	stroke-width: 0.5;
+}
+
+.massdriver {
+	fill: #8d0085;
+	stroke: #6b0065;
+	stroke-width: 0.5;
+}
+
 .dark {
 	color-scheme: dark;
 }

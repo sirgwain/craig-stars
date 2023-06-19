@@ -7,9 +7,7 @@
 		isAuto,
 		QueueItemType,
 		type ProductionQueueItem,
-
 		getQueueItemShortName
-
 	} from '$lib/types/Planet';
 	import CommandTile from './CommandTile.svelte';
 
@@ -34,18 +32,20 @@
 <CommandTile title="Production">
 	<div class="bg-base-100 h-20 overflow-y-auto">
 		{#if planet.productionQueue}
-			<table class="w-full h-full">
-				<tbody>
-					{#each planet.productionQueue as queueItem}
-						<tr>
-							<td class="pl-1 {isAuto(queueItem.type) ? 'italic' : ''}"
-								>{getQueueItemShortName(queueItem)}</td
-							>
-							<td class="pr-1 text-right">{queueItem.quantity}</td>
-						</tr>
-					{/each}
-				</tbody>
-			</table>
+			<ul class="w-full h-full">
+				{#each planet.productionQueue as queueItem}
+					<li class="pl-1">
+						<div class="flex flex-row justify-between" class:italic={isAuto(queueItem.type)}>
+							<div>
+								{getQueueItemShortName(queueItem)}
+							</div>
+							<div>
+								{queueItem.quantity}
+							</div>
+						</div>
+					</li>
+				{/each}
+			</ul>
 		{/if}
 	</div>
 	<div class="flex justify-between mt-1">

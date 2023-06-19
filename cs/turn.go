@@ -748,6 +748,11 @@ func (t *turn) fleetBattle() {
 					discoverer.discoverPlayer(otherplayer)
 				}
 
+				// discover parts of this planet's starbase
+				if planet != nil && planet.starbase != nil && planet.PlayerNum != player.Num {
+					discoverer.discoverPlanetStarbase(player, planet)
+				}
+
 				// store this discoverer for discovering designs
 				discoverersByPlayer[player.Num] = discoverer
 

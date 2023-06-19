@@ -1,13 +1,11 @@
 <script lang="ts">
 	import { commandMapObject, selectMapObject } from '$lib/services/Context';
 
-	import type { Fleet } from '$lib/types/Fleet';
-	import { MapObjectType, type MapObject } from '$lib/types/MapObject';
-	import { humanoid } from '$lib/types/Race';
+	import { CommandedFleet, type Fleet } from '$lib/types/Fleet';
+	import type { MapObject } from '$lib/types/MapObject';
 	import { normalized } from '$lib/types/Vector';
 	import { LayerCake, Svg } from 'layercake';
 	import ScannerFleets from '../../../games/(game)/[id]/(main)/scanner/ScannerFleets.svelte';
-	import type { PlayerResponse } from '$lib/types/Player';
 
 	type fleetPlacement = {
 		x: number;
@@ -66,30 +64,29 @@
 	];
 
 	let num = 1;
-	const fleets: Fleet[] = fleetPlacements.map((fp) => ({
-		type: MapObjectType.Fleet,
-		position: {
-			x: fp.x,
-			y: fp.y
-		},
-		name: 'Long Range Scout #1',
-		num: num++,
-		playerNum: fp.playerNum ?? 0,
-		baseName: 'Long Range Scout',
-		tokens: [
-			{
-				designNum: 1,
-				quantity: 1
-			}
-		],
-		heading: normalized({
-			x: fp.headingX,
-			y: fp.headingY
-		}),
-		waypoints: [],
-		warpSpeed: 5,
-		spec: {}
-	}));
+	const fleets: CommandedFleet[] = fleetPlacements.map(
+		(fp) =>
+			new CommandedFleet({
+				position: {
+					x: fp.x,
+					y: fp.y
+				},
+				name: `Long Range Scout #${num + 1}`,
+				num: num++,
+				playerNum: fp.playerNum ?? 0,
+				baseName: 'Long Range Scout',
+				tokens: [
+					{
+						designNum: 1,
+						quantity: 1
+					}
+				],
+				heading: normalized({
+					x: fp.headingX,
+					y: fp.headingY
+				})
+			} as Fleet)
+	);
 
 	const xGetter = (mo: MapObject) => mo?.position?.x;
 	const yGetter = (mo: MapObject) => mo?.position?.y;

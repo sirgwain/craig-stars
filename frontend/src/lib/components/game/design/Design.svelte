@@ -3,10 +3,10 @@
 	import Hull from '$lib/components/game/design/Hull.svelte';
 	import TechAvatar from '$lib/components/tech/TechAvatar.svelte';
 	import { techs } from '$lib/services/Context';
-	import type { ShipDesign } from '$lib/types/ShipDesign';
+	import type { ShipDesign, ShipDesignIntel } from '$lib/types/ShipDesign';
 	import DesignStats from '../DesignStats.svelte';
 
-	export let design: ShipDesign;
+	export let design: ShipDesign | ShipDesignIntel;
 
 	$: hull = design && $techs.getHull(design.hull);
 </script>
@@ -21,14 +21,16 @@
 		<Hull {hull} shipDesignSlots={design?.slots ?? []} />
 	</div>
 {/if}
-<div class="flex flex-col">
-	<div>Cost of one {design.name}</div>
-	<div class="flex justify-between">
-		<div class="ml-2">
-			<Cost cost={design.spec.cost} />
-		</div>
-		<div>
-			<DesignStats spec={design.spec} />
+{#if 'spec' in design}
+	<div class="flex flex-col text-sm">
+		<div>Cost of one {design.name}</div>
+		<div class="flex justify-between">
+			<div class="ml-2">
+				<Cost cost={design.spec.cost} />
+			</div>
+			<div>
+				<DesignStats spec={design.spec} />
+			</div>
 		</div>
 	</div>
-</div>
+{/if}

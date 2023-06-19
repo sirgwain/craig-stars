@@ -1,7 +1,10 @@
 import { CommandedFleet, type Fleet, type Waypoint } from '$lib/types/Fleet';
 import { MapObjectType, None, type MapObject } from '$lib/types/MapObject';
 import { CommandedPlanet } from '$lib/types/Planet';
+import type { ShipDesign, ShipDesignIntel } from '$lib/types/ShipDesign';
+import type { Tech } from '$lib/types/Tech';
 import { emptyUser, type User } from '$lib/types/User';
+import type { Vector } from '$lib/types/Vector';
 import { derived, get, writable } from 'svelte/store';
 import type { FullGame } from './FullGame';
 import { rollover } from './Math';
@@ -21,6 +24,12 @@ export const selectedWaypoint = writable<Waypoint | undefined>();
 export const selectedMapObject = writable<MapObject | undefined>();
 export const commandedMapObject = writable<MapObject | undefined>();
 export const highlightedMapObject = writable<MapObject | undefined>();
+
+export const popupDesign = writable<ShipDesign | ShipDesignIntel | undefined>();
+export const popupDesignLocation = writable<Vector>({ x: 0, y: 0 });
+export const popupTech = writable<Tech | undefined>();
+export const popupTechLocation = writable<Vector>({ x: 0, y: 0 });
+
 export const commandedMapObjectName = writable<string>();
 export const zoomTarget = writable<MapObject | undefined>();
 
@@ -134,4 +143,16 @@ export const highlightMapObject = (mo: MapObject | undefined) => {
 
 export const zoomToMapObject = (mo: MapObject) => {
 	zoomTarget.update(() => mo);
+};
+
+export const showDesignPopup = (design: ShipDesign | ShipDesignIntel | undefined, x: number, y: number) => {
+	popupDesignLocation.update(() => ({ x, y }));
+	popupDesign.update(() => design);
+	window.addEventListener('pointerup', () => popupDesign.update(() => undefined));
+};
+
+export const showPopupTech = (tech: Tech | undefined, x: number, y: number) => {
+	popupTechLocation.update(() => ({ x, y }));
+	popupTech.update(() => tech);
+	window.addEventListener('pointerup', () => popupTech.update(() => undefined));
 };

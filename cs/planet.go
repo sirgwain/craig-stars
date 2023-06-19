@@ -36,37 +36,42 @@ type PlanetOrders struct {
 }
 
 type PlanetSpec struct {
-	Habitability              int     `json:"habitability,omitempty"`
-	TerraformedHabitability   int     `json:"terraformedHabitability,omitempty"`
-	MaxMines                  int     `json:"maxMines,omitempty"`
-	MaxPossibleMines          int     `json:"maxPossibleMines,omitempty"`
-	MaxFactories              int     `json:"maxFactories,omitempty"`
-	MaxPossibleFactories      int     `json:"maxPossibleFactories,omitempty"`
-	MaxDefenses               int     `json:"maxDefenses,omitempty"`
-	PopulationDensity         float64 `json:"populationDensity,omitempty"`
-	MaxPopulation             int     `json:"maxPopulation,omitempty"`
-	GrowthAmount              int     `json:"growthAmount,omitempty"`
-	MineralOutput             Mineral `json:"mineralOutput,omitempty"`
-	ResourcesPerYear          int     `json:"resourcesPerYear,omitempty"`
-	ResourcesPerYearAvailable int     `json:"resourcesPerYearAvailable,omitempty"`
-	ResourcesPerYearResearch  int     `json:"resourcesPerYearResearch,omitempty"`
+	BasePacketSpeed           int     `json:"basePacketSpeed,omitempty"`
+	CanTerraform              bool    `json:"canTerraform,omitempty"`
 	Defense                   string  `json:"defense,omitempty"`
 	DefenseCoverage           float64 `json:"defenseCoverage,omitempty"`
 	DefenseCoverageSmart      float64 `json:"defenseCoverageSmart,omitempty"`
+	DockCapacity              int     `json:"dockCapacity,omitempty"`
+	GrowthAmount              int     `json:"growthAmount,omitempty"`
+	Habitability              int     `json:"habitability,omitempty"`
+	HasMassDriver             bool    `json:"hasMassDriver,omitempty"`
+	HasStarbase               bool    `json:"hasStarbase,omitempty"`
+	HasStargate               bool    `json:"hasStargate,omitempty"`
+	MaxDefenses               int     `json:"maxDefenses,omitempty"`
+	MaxFactories              int     `json:"maxFactories,omitempty"`
+	MaxHullMass               int     `json:"maxHullMass,omitempty"`
+	MaxMines                  int     `json:"maxMines,omitempty"`
+	MaxPopulation             int     `json:"maxPopulation,omitempty"`
+	MaxPossibleFactories      int     `json:"maxPossibleFactories,omitempty"`
+	MaxPossibleMines          int     `json:"maxPossibleMines,omitempty"`
+	MaxRange                  int     `json:"maxRange,omitempty"`
+	MineralOutput             Mineral `json:"mineralOutput,omitempty"`
+	PopulationDensity         float64 `json:"populationDensity,omitempty"`
+	ResourcesPerYear          int     `json:"resourcesPerYear,omitempty"`
+	ResourcesPerYearAvailable int     `json:"resourcesPerYearAvailable,omitempty"`
+	ResourcesPerYearResearch  int     `json:"resourcesPerYearResearch,omitempty"`
+	SafeHullMass              int     `json:"safeHullMass,omitempty"`
+	SafePacketSpeed           int     `json:"safePacketSpeed,omitempty"`
+	SafeRange                 int     `json:"safeRange,omitempty"`
 	Scanner                   string  `json:"scanner,omitempty"`
 	ScanRange                 int     `json:"scanRange,omitempty"`
 	ScanRangePen              int     `json:"scanRangePen,omitempty"`
-	CanTerraform              bool    `json:"canTerraform,omitempty"`
-	TerraformAmount           Hab     `json:"terraformAmount,omitempty"`
-	HasStarbase               bool    `json:"hasStarbase,omitempty"`
-	HasStargate               bool    `json:"hasStargate,omitempty"`
-	StarbaseDesignNum         int     `json:"starbaseDesignNum,omitempty"`
 	StarbaseDesignName        string  `json:"starbaseDesignName,omitempty"`
-	DockCapacity              int     `json:"dockCapacity,omitempty"`
-	SafeHullMass              int     `json:"safeHullMass,omitempty"`
-	SafeRange                 int     `json:"safeRange,omitempty"`
-	MaxHullMass               int     `json:"maxHullMass,omitempty"`
-	MaxRange                  int     `json:"maxRange,omitempty"`
+	StarbaseDesignNum         int     `json:"starbaseDesignNum,omitempty"`
+	Stargate                  string  `json:"stargate,omitempty"`
+	MassDriver                string  `json:"massDriver,omitempty"`
+	TerraformAmount           Hab     `json:"terraformAmount,omitempty"`
+	TerraformedHabitability   int     `json:"terraformedHabitability,omitempty"`
 }
 
 func (item *ProductionQueueItem) String() string {
@@ -377,11 +382,18 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 		spec.StarbaseDesignNum = planet.starbase.Tokens[0].DesignNum
 		spec.StarbaseDesignName = planet.starbase.Tokens[0].design.Name
 		if starbase.Spec.HasStargate {
-			spec.HasStargate = starbase != nil && starbase.Spec.HasStargate
+			spec.HasStargate = true
+			spec.Stargate = starbase.Spec.Stargate
 			spec.SafeHullMass = starbase.Spec.SafeHullMass
 			spec.SafeRange = starbase.Spec.SafeRange
 			spec.MaxHullMass = starbase.Spec.MaxHullMass
 			spec.MaxRange = starbase.Spec.MaxRange
+		}
+		if starbase.Spec.HasMassDriver {
+			spec.HasMassDriver = true
+			spec.MassDriver = starbase.Spec.MassDriver
+			spec.BasePacketSpeed = starbase.Spec.BasePacketSpeed
+			spec.SafePacketSpeed = starbase.Spec.SafePacketSpeed
 		}
 		spec.DockCapacity = starbase.Spec.SpaceDock
 	}

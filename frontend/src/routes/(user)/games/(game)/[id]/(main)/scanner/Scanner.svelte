@@ -28,8 +28,6 @@
 
 	export let game: FullGame;
 
-	setContext('game', game);
-
 	const xGetter = (mo: MapObject) => mo?.position?.x;
 	const yGetter = (mo: MapObject) => mo?.position?.y;
 
@@ -247,6 +245,9 @@
 			}
 		}
 	}
+
+	setContext('game', game);
+	setContext('scale', scale);
 
 	let data: MapObject[] = [];
 	$: {

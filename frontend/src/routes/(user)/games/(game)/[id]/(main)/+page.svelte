@@ -10,8 +10,8 @@
 	<GameSetup game={$game} />
 {:else if $game?.state == GameState.GeneratingTurn}
 	Generating turn, refresh
-{:else if $game.player.submittedTurn && $game?.state == GameState.WaitingForPlayers}
+{:else if $game?.player.submittedTurn && $game?.state == GameState.WaitingForPlayers}
 	<WaitingForPlayers game={$game} />
-{:else}
+{:else if $game}
 	<Game game={$game} />
 {/if}

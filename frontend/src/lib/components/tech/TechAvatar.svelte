@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { showPopupTech } from '$lib/services/Context';
 	import { TechCategory, type Tech, type TechHull } from '$lib/types/Tech';
 	import { kebabCase } from 'lodash-es';
 
@@ -23,12 +24,6 @@
 		(hull = tech as TechHull);
 </script>
 
-<div
-	on:click={() => {
-		if (hullSetChangeable) {
-			hullSetNumber += 1;
-			hullSetNumber %= numHullSets;
-		}
-	}}
-	class="avatar tech-avatar {icon(hullSetNumber)}"
-/>
+<div class="avatar tech-avatar {icon(hullSetNumber)}">
+	<button type="button" on:click|preventDefault={(e) => showPopupTech(tech, e.x, e.y)} />
+</div>

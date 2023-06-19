@@ -48,19 +48,19 @@ type FleetOrders struct {
 
 type FleetSpec struct {
 	ShipDesignSpec
-	Purposes         map[ShipDesignPurpose]bool `json:"purposes"`
-	TotalShips       int                        `json:"totalShips"`
-	MassEmpty        int                        `json:"massEmpty"`
-	BasePacketSpeed  int                        `json:"basePacketSpeed"`
-	SafePacketSpeed  int                        `json:"safePacketSpeed"`
 	BaseCloakedCargo int                        `json:"baseCloakedCargo"`
+	BasePacketSpeed  int                        `json:"basePacketSpeed"`
 	HasMassDriver    bool                       `json:"hasMassDriver,omitempty"`
 	HasStargate      bool                       `json:"hasStargate,omitempty"`
-	Stargate         string                     `json:"stargate,omitempty"`
-	SafeHullMass     int                        `json:"safeHullMass,omitempty"`
-	SafeRange        int                        `json:"safeRange,omitempty"`
+	MassDriver       string                     `json:"massDriver,omitempty"`
+	MassEmpty        int                        `json:"massEmpty"`
 	MaxHullMass      int                        `json:"maxHullMass,omitempty"`
 	MaxRange         int                        `json:"maxRange,omitempty"`
+	Purposes         map[ShipDesignPurpose]bool `json:"purposes"`
+	SafeHullMass     int                        `json:"safeHullMass,omitempty"`
+	SafeRange        int                        `json:"safeRange,omitempty"`
+	Stargate         string                     `json:"stargate,omitempty"`
+	TotalShips       int                        `json:"totalShips"`
 }
 
 type Waypoint struct {
@@ -438,6 +438,8 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 
 		// stargate fields
 		if token.design.Spec.SafeHullMass != 0 {
+			spec.Stargate = token.design.Spec.Stargate
+			spec.HasStargate = true
 			spec.SafeHullMass = token.design.Spec.SafeHullMass
 		}
 		if token.design.Spec.MaxHullMass != 0 {
@@ -448,6 +450,14 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 		}
 		if token.design.Spec.MaxRange != 0 {
 			spec.MaxRange = token.design.Spec.MaxRange
+		}
+
+		if token.design.Spec.SafePacketSpeed != 0 {
+			spec.HasMassDriver = true
+			spec.MassDriver = token.design.Spec.MassDriver
+			spec.SafePacketSpeed = token.design.Spec.SafePacketSpeed
+			spec.BasePacketSpeed = token.design.Spec.BasePacketSpeed
+			spec.AdditionalMassDrivers = token.design.Spec.AdditionalMassDrivers
 		}
 
 	}

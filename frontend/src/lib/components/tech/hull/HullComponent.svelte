@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { techs, showPopupTech } from '$lib/services/Context';
 	import type { ShipDesignSlot } from '$lib/types/ShipDesign';
 	import { HullSlotType } from '$lib/types/Tech';
 	import { Minus, Plus, Trash } from '@steeze-ui/heroicons';
@@ -64,6 +65,9 @@
 		on:click={() => {
 			dispatch('clicked');
 		}}
+		on:mousedown|preventDefault={(e) =>
+			shipDesignSlot?.hullComponent &&
+			showPopupTech($techs.getHullComponent(shipDesignSlot?.hullComponent), e.x, e.y)}
 		class="w-full h-full"
 	>
 		<div class="flex flex-col justify-between w-full h-full">

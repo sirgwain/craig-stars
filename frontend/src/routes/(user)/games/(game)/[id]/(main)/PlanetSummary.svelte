@@ -5,14 +5,14 @@
 	import { getGravString, getRadString, getTempString } from '$lib/types/Hab';
 	import { None } from '$lib/types/MapObject';
 	import { Unexplored, type Planet } from '$lib/types/Planet';
-	import type { PlayerResponse } from '$lib/types/Player';
+	import type { Player } from '$lib/types/Player';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import PlanetMineralsGraph from './PlanetMineralsGraph.svelte';
 
 	export let game: FullGame;
 	export let planet: Planet;
-	export let player: PlayerResponse;
+	export let player: Player;
 
 	$: habLow = player.race.habLow;
 	$: habHigh = player.race.habHigh;

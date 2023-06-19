@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { FullGame } from '$lib/services/FullGame';
 	import CommandPane from './command/CommandPane.svelte';
+	import Dialogs from './Dialogs.svelte';
 	import HighlightedMapObjectStats from './HighlightedMapObjectStats.svelte';
 	import MapObjectSummary from './MapObjectSummary.svelte';
 	import Scanner from './scanner/Scanner.svelte';
@@ -47,3 +48,5 @@
 		</div>
 	</div>
 </div>
+<!-- dialog modals -->
+<Dialogs {game} />

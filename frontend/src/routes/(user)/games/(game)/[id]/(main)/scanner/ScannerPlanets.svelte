@@ -9,8 +9,11 @@
 	import type { Planet } from '$lib/types/Planet';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
-	import ScannerPlanet from './ScannerPlanet.svelte';
+	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';
 	import type { FullGame } from '$lib/services/FullGame';
+	import { settings } from '$lib/services/Settings';
+	import { PlanetViewState } from '$lib/types/PlayerSettings';
+	import ScannerPlanetPercent from './ScannerPlanetPercent.svelte';
 
 	const game = getContext<FullGame>('game');
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
@@ -38,9 +41,13 @@
 
 <!-- Planets -->
 {#each planets as planet}
-	<ScannerPlanet
-		{planet}
-		commanded={commanded(planet, $commandedMapObject, $commandedPlanet)}
-		orbitingFleets={(game.universe.getMapObjectsByPosition(planet) ?? []).length > 1}
-	/>
+	{#if $settings.planetViewState == PlanetViewState.Percent}
+		<ScannerPlanetPercent {planet} />
+	{:else}
+		<ScannerPlanetNormal
+			{planet}
+			commanded={commanded(planet, $commandedMapObject, $commandedPlanet)}
+			orbitingFleets={(game.universe.getMapObjectsByPosition(planet) ?? []).length > 1}
+		/>
+	{/if}
 {/each}

@@ -70,10 +70,15 @@ type ShipDesignSpec struct {
 	OrbitalConstructionModule bool                  `json:"orbitalConstructionModule,omitempty"`
 	HasWeapons                bool                  `json:"hasWeapons,omitempty"`
 	WeaponSlots               []ShipDesignSlot      `json:"weaponSlots,omitempty"`
+	Stargate                  string                `json:"stargate,omitempty"`
 	SafeHullMass              int                   `json:"safeHullMass,omitempty"`
 	SafeRange                 int                   `json:"safeRange,omitempty"`
 	MaxHullMass               int                   `json:"maxHullMass,omitempty"`
 	MaxRange                  int                   `json:"maxRange,omitempty"`
+	MassDriver                string                `json:"massDriver,omitempty"`
+	SafePacketSpeed           int                   `json:"safePacketSpeed,omitempty"`
+	BasePacketSpeed           int                   `json:"basePacketSpeed,omitempty"`
+	AdditionalMassDrivers     int                   `json:"additionalMassDrivers,omitempty"`
 	NumInstances              int                   `json:"numInstances,omitempty"`
 	NumBuilt                  int                   `json:"numBuilt,omitempty"`
 }
@@ -312,8 +317,20 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 				spec.SpaceDock = hullSlot.Capacity
 			}
 
+			// mass drivers
+			if component.PacketSpeed > 0 {
+				// if we already have a massdriver at this speed, add an additional mass driver to up
+				// our speed
+				if spec.BasePacketSpeed == component.PacketSpeed {
+					spec.AdditionalMassDrivers++
+				}
+				spec.BasePacketSpeed = maxInt(spec.BasePacketSpeed, component.PacketSpeed)
+				spec.MassDriver = component.Name
+			}
+
 			// stargate fields
 			if component.SafeHullMass != 0 {
+				spec.Stargate = component.Name
 				spec.SafeHullMass = component.SafeHullMass
 			}
 			if component.MaxHullMass != 0 {
@@ -327,6 +344,9 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 			}
 		}
 	}
+
+	// determine the safe speed for this design
+	spec.SafePacketSpeed = spec.BasePacketSpeed + spec.AdditionalMassDrivers
 
 	// figure out the cloak as a percentage after we specd our cloak units
 	spec.CloakPercent = getCloakPercentForCloakUnits(spec.CloakUnits)

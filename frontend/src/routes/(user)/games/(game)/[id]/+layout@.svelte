@@ -8,6 +8,7 @@
 	import { GameState } from '$lib/types/Game';
 	import { onMount } from 'svelte';
 	import GameMenu from './GameMenu.svelte';
+	import PopupTech from './popups/PopupTech.svelte';
 
 	let id = parseInt($page.params.id);
 
@@ -46,6 +47,7 @@
 			<slot>Game</slot>
 		</div>
 	</main>
+	<PopupTech />
 {:else if loadAttempted}
 	<NotFound title="Game not found" />
 {/if}

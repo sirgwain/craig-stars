@@ -1,6 +1,7 @@
 <script lang="ts">
 	import CargoBar from '$lib/components/game/CargoBar.svelte';
 	import FuelBar from '$lib/components/game/FuelBar.svelte';
+	import { showDesignPopup } from '$lib/services/Context';
 	import type { FullGame } from '$lib/services/FullGame';
 	import type { Fleet } from '$lib/types/Fleet';
 	import { ownedBy } from '$lib/types/MapObject';
@@ -32,7 +33,13 @@
 	<div class="flex flex-col">
 		<div class="avatar ">
 			<div class="border-2 border-neutral mr-2 p-2 bg-black">
-				<div class="fleet-avatar {icon} bg-black" />
+				<div class="fleet-avatar {icon} bg-black">
+					<button
+						type="button"
+						class="w-full h-full cursor-help"
+						on:pointerdown={(e) => showDesignPopup(design, e.x, e.y)}
+					/>
+				</div>
 			</div>
 		</div>
 		<div class="text-center">{game.getPlayerName(fleet.playerNum)}</div>

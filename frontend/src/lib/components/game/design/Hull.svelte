@@ -5,6 +5,8 @@
 	import CargoComponent from '../../tech/hull/CargoComponent.svelte';
 	import HullComponent from '../../tech/hull/HullComponent.svelte';
 	import SpaceDockComponent from '../../tech/hull/SpaceDockComponent.svelte';
+	import { showPopupTech, techs } from '$lib/services/Context';
+	import hu from 'date-fns/locale/hu';
 
 	const dispatch = createEventDispatcher();
 

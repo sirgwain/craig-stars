@@ -79,12 +79,18 @@ func generateTestGame(db server.DBClient, config config.Config) error {
 	if err != nil {
 		return err
 	}
+	mediumGame.Players[0].AIControlled = true
+	db.UpdateLightPlayer(mediumGame.Players[0])
+
 	for i := 0; i < 40; i++ {
 		gameRunner.SubmitTurn(mediumGame.ID, mediumGame.HostID)
 		if _, err := gameRunner.CheckAndGenerateTurn(mediumGame.ID); err != nil {
 			log.Error().Err(err).Msg("check and generate new turn")
 		}
 	}
+
+	mediumGame.Players[0].AIControlled = false
+	db.UpdateLightPlayer(mediumGame.Players[0])
 
 	// also create a medium size game with 25 turns generated
 	tinyGame, err := gameRunner.HostGame(admin.ID, cs.NewGameSettings().
@@ -101,6 +107,10 @@ func generateTestGame(db server.DBClient, config config.Config) error {
 		return err
 	}
 
+
+	tinyGame.Players[0].AIControlled = true
+	db.UpdateLightPlayer(tinyGame.Players[0])
+
 	for i := 0; i < 9; i++ {
 		gameRunner.SubmitTurn(tinyGame.ID, tinyGame.HostID)
 		if _, err := gameRunner.CheckAndGenerateTurn(tinyGame.ID); err != nil {
@@ -108,12 +118,8 @@ func generateTestGame(db server.DBClient, config config.Config) error {
 		}
 	}
 
-	for i := 0; i < 40; i++ {
-		gameRunner.SubmitTurn(mediumGame.ID, mediumGame.HostID)
-		if _, err := gameRunner.CheckAndGenerateTurn(mediumGame.ID); err != nil {
-			log.Error().Err(err).Msg("check and generate new turn")
-		}
-	}
+	tinyGame.Players[0].AIControlled = false
+	db.UpdateLightPlayer(tinyGame.Players[0])
 
 	// user2 will also host a game so with an open player slot
 	_, err = gameRunner.HostGame(user2.ID, cs.NewGameSettings().

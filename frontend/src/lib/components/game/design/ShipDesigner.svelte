@@ -2,7 +2,7 @@
 	import TextInput from '$lib/components/TextInput.svelte';
 	import Hull from '$lib/components/game/design/Hull.svelte';
 	import TechAvatar from '$lib/components/tech/TechAvatar.svelte';
-	import { techs } from '$lib/services/Context';
+	import { showPopupTech, techs } from '$lib/services/Context';
 	import { DesignService } from '$lib/services/DesignService';
 	import { Player, canLearnTech, hasRequiredLevels } from '$lib/types/Player';
 	import type { ShipDesign, ShipDesignSlot, Spec } from '$lib/types/ShipDesign';
@@ -233,6 +233,8 @@
 									type="button"
 									class="w-full h-full"
 									on:click={(e) => onTechHullComponentClicked(hc)}
+									on:pointerdown|preventDefault={(e) =>
+										showPopupTech($techs.getHullComponent(hc.name), e.x, e.y)}
 								>
 									<div class="flex flex-row place-items-center">
 										<div class="mr-2 pt-1 pl-1">

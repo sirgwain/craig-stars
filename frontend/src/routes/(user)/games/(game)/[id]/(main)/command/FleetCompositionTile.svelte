@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { EventManager } from '$lib/EventManager';
-	import { selectedWaypoint } from '$lib/services/Context';
+	import { selectedWaypoint, showDesignPopup } from '$lib/services/Context';
 	import type { CommandedFleet } from '$lib/types/Fleet';
 	import type { Player } from '$lib/types/Player';
 	import { createEventDispatcher } from 'svelte';
@@ -29,14 +29,21 @@
 			<ul class="w-full h-full">
 				{#each fleet.tokens as token, index}
 					<li class="pl-1">
-						<div class="flex flex-row justify-between">
-							<div>
-								{player.getDesign(player.num, token.designNum)?.name}
+						<button
+							type="button"
+							class="w-full cursor-help"
+							on:pointerdown|preventDefault={(e) =>
+								showDesignPopup(player.getDesign(player.num, token.designNum), e.x, e.y)}
+						>
+							<div class="flex flex-row justify-between">
+								<div>
+									{player.getDesign(player.num, token.designNum)?.name}
+								</div>
+								<div>
+									{token.quantity}
+								</div>
 							</div>
-							<div>
-								{token.quantity}
-							</div>
-						</div>
+						</button>
 					</li>
 				{/each}
 			</ul>

@@ -80,6 +80,7 @@ export interface Spec {
 	safePacketSpeed: number;
 	baseCloakedCargo: number;
 	stargate?: string;
+	massDriver?: string;
 
 	idealSpeed?: number;
 	numEngines?: number;
@@ -141,4 +142,8 @@ export class CommandedFleet implements Fleet {
 	starbase = false;
 	position = { x: 0, y: 0 };
 	spec = {} as Spec;
+
+	constructor(data?: Fleet) {
+		Object.assign(this, data);
+	}
 }

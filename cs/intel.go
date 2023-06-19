@@ -20,6 +20,7 @@ type discoverer interface {
 	clearTransientReports()
 	discoverPlayer(player *Player)
 	discoverPlanet(rules *Rules, player *Player, planet *Planet, penScanned bool) error
+	discoverPlanetStarbase(player *Player, planet *Planet) error
 	discoverPlanetCargo(player *Player, planet *Planet) error
 	discoverFleet(player *Player, fleet *Fleet)
 	discoverFleetCargo(player *Player, fleet *Fleet)
@@ -224,6 +225,9 @@ func (d *discover) discoverPlanet(rules *Rules, player *Player, planet *Planet, 
 		intel.Spec.Habitability = player.Race.GetPlanetHabitability(intel.Hab)
 		intel.Spec.TerraformedHabitability = player.Race.GetPlanetHabitability(intel.Hab) // TODO compute with terraform
 
+		// discover starbases on scan, but don't discover designs
+		intel.Spec.HasStarbase = planet.Spec.HasStarbase
+
 		// players know their planet pops, but other planets are slightly off
 		if ownedByPlayer {
 			intel.Population = uint(planet.population())
@@ -232,6 +236,25 @@ func (d *discover) discoverPlanet(rules *Rules, player *Player, planet *Planet, 
 			intel.Population = uint(float64(planet.population()) * (1 - randomPopulationError))
 		}
 	}
+	return nil
+}
+
+// discover a planet's starbase specs after a battle
+func (d *discover) discoverPlanetStarbase(player *Player, planet *Planet) error {
+	var intel *PlanetIntel
+	planetIndex := planet.Num - 1
+
+	if planetIndex < 0 || planetIndex >= len(player.PlanetIntels) {
+		return fmt.Errorf("player %s cannot discover planet %s, planetIndex %d out of range", player, planet, planetIndex)
+	}
+
+	intel = &player.PlanetIntels[planetIndex]
+
+	// discover starbases on scan, but don't discover designs
+	intel.Spec.HasStarbase = planet.Spec.HasStarbase
+	intel.Spec.HasStargate = planet.Spec.HasStargate
+	intel.Spec.HasMassDriver = planet.Spec.HasMassDriver
+
 	return nil
 }
 
