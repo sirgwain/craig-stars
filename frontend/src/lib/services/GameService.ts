@@ -1,6 +1,11 @@
 import type { Game } from '$lib/types/Game';
 import type { GameContext } from '$lib/types/GameContext';
+import type { Player } from '$lib/types/Player';
 import { Service } from './Service';
+
+type playerStatusResult = {
+	players: Player[];
+};
 
 export class GameService extends Service {
 	async loadPlayerGames(): Promise<Game[]> {
@@ -55,6 +60,22 @@ export class GameService extends Service {
 
 		if (response.ok) {
 			return (await response.json()) as Game;
+		} else {
+			console.log(response);
+			throw new Error('Failed to load game');
+		}
+	}
+
+	async loadPlayerStatuses(gameId: number): Promise<Player[]> {
+		const response = await fetch(`/api/games/${gameId}/player-statuses`, {
+			method: 'GET',
+			headers: {
+				accept: 'application/json'
+			}
+		});
+
+		if (response.ok) {
+			return ((await response.json()) as playerStatusResult).players;
 		} else {
 			console.log(response);
 			throw new Error('Failed to load game');

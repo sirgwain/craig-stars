@@ -109,9 +109,9 @@ func (c *client) GetGamesForUser(userID int64) ([]cs.Game, error) {
 	return c.converter.ConvertGames(items), nil
 }
 
-func (c *client) GetOpenGames() ([]cs.Game, error) {
+func (c *client) GetOpenGames(userID int64) ([]cs.Game, error) {
 	items := []Game{}
-	if err := c.db.Select(&items, `SELECT * from games g WHERE g.state = ? AND g.openPlayerSlots > 0`, cs.GameStateSetup); err != nil {
+	if err := c.db.Select(&items, `SELECT * from games g WHERE g.state = ? AND g.openPlayerSlots > 0 AND g.hostId <> ?`, cs.GameStateSetup, userID); err != nil {
 		if err == sql.ErrNoRows {
 			return []cs.Game{}, nil
 		}

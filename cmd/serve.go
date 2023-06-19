@@ -90,6 +90,7 @@ func generateTestGame(db server.DBClient, config config.Config) error {
 	_, err = gameRunner.HostGame(user2.ID, cs.NewGameSettings().
 		WithName("Joinable Game").
 		WithHost(user2Race.ID).
+		WithAIPlayer(cs.AIDifficultyNormal).
 		WithOpenPlayerSlot())
 	if err != nil {
 		return err

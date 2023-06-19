@@ -62,7 +62,7 @@ export interface GameSettings {
 	publicPlayerScores: boolean;
 	startMode: GameStartMode;
 	year?: number;
-	state?: string;
+	state: GameState;
 	victoryConditions?: VictoryConditions;
 	players: NewGamePlayer[];
 }
@@ -157,7 +157,7 @@ export interface Rules {
 	packetDecayRate: { [key: number]: number };
 	maxTechLevel: number;
 	techBaseCost: number[];
-	techs: TechStore;
+	techs?: TechStore;
 	prtSpecs: any;
 	lrtSpecs: any;
 }

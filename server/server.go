@@ -66,18 +66,23 @@ func Start(db DBClient, config config.Config) {
 	// techs are public
 	r.GET("/api/techs", server.techs)
 
+	//
 	// authorized routes
+	//
 	ar := r.Group("/api")
 	ar.Use(server.authRequired)
+
+	// user stuff
 	ar.GET("/me", server.me)
 	ar.GET("/users", server.users)
 
 	ar.GET("/rules", server.rules)
 
+	// race CRUD
 	ar.GET("/races", server.races)
 	ar.GET("/races/:id", server.race)
-	ar.POST("/races", server.createRace)
 	ar.PUT("/races/:id", server.updateRace)
+	ar.POST("/races", server.createRace)
 
 	// get various lists of games
 	ar.GET("/games", server.playerGames)
@@ -85,13 +90,15 @@ func Start(db DBClient, config config.Config) {
 	ar.GET("/games/open", server.openGames)
 	ar.GET("/games/open/:id", server.openGame)
 
-	// host, join, delete games
+	// host, join, generate, delete games
 	ar.POST("/games", server.hostGame)
 	ar.POST("/games/open/:id", server.joinGame)
+	ar.POST("/games/:id/generate", server.generateUniverse)
 	ar.DELETE("/games/:id", server.deleteGame)
 
 	// player load/submit turn
 	ar.GET("/games/:id", server.playerGame)
+	ar.GET("/games/:id/player-statuses", server.playerStatuses)
 	ar.POST("/games/:id/submit-turn", server.submitTurn)
 	// update player reserarch, settings
 	ar.PUT("/games/:id", server.updatePlayerOrders)

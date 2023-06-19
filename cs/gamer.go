@@ -8,11 +8,11 @@ import (
 type client struct {
 }
 
-// external interface for creating/interacting with game objects
-type Client interface {
+// external interface for creating/interacting with games
+type Gamer interface {
 
 	// game creation
-	CreateGame(hostID int64, settings GameSettings) Game
+	CreateGame(hostID int64, settings GameSettings) *Game
 	NewPlayer(userID int64, race Race, rules *Rules) *Player
 
 	// universe/turn generation
@@ -22,7 +22,7 @@ type Client interface {
 	CheckAllPlayersSubmitted(players []*Player) bool
 }
 
-func NewClient() Client {
+func NewGamer() Gamer {
 	return &client{}
 }
 
@@ -31,11 +31,11 @@ func timeTrack(start time.Time, name string) {
 	log.Printf("%s took %s", name, elapsed)
 }
 
-func (c *client) CreateGame(hostID int64, settings GameSettings) Game {
+func (c *client) CreateGame(hostID int64, settings GameSettings) *Game {
 	game := NewGame().WithSettings(settings)
 	game.HostID = hostID
 
-	return *game
+	return game
 }
 
 // create a new player
@@ -84,4 +84,3 @@ func (c *client) GenerateTurn(game *Game, universe *Universe, players []*Player)
 	turnGenerator := newTurnGenerator(&FullGame{game, universe, players})
 	return turnGenerator.generateTurn()
 }
-

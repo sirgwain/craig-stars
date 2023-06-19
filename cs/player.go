@@ -18,22 +18,22 @@ type Player struct {
 	PlayerPlans
 	ID                    int64           `json:"id,omitempty"`
 	CreatedAt             time.Time       `json:"createdAt,omitempty"`
-	UpdatedAt             time.Time       `json:"updatedat,omitempty"`
+	UpdatedAt             time.Time       `json:"updatedAt,omitempty"`
 	GameID                int64           `json:"gameId,omitempty"`
 	UserID                int64           `json:"userId,omitempty"`
 	Name                  string          `json:"name,omitempty"`
-	Num                   int             `json:"num"`
+	Num                   int             `json:"num,omitempty"`
 	Ready                 bool            `json:"ready,omitempty"`
 	AIControlled          bool            `json:"aIControlled,omitempty"`
 	SubmittedTurn         bool            `json:"submittedTurn,omitempty"`
 	Color                 string          `json:"color,omitempty"`
 	DefaultHullSet        int             `json:"defaultHullSet,omitempty"`
-	Race                  Race            `json:"race,omitempty" `
+	Race                  Race            `json:"race,omitempty"`
 	TechLevels            TechLevel       `json:"techLevels,omitempty"`
 	TechLevelsSpent       TechLevel       `json:"techLevelsSpent,omitempty"`
 	ResearchSpentLastYear int             `json:"researchSpentLastYear,omitempty"`
 	Messages              []PlayerMessage `json:"messages,omitempty"`
-	Designs               []ShipDesign    `json:"designs"`
+	Designs               []ShipDesign    `json:"designs,omitempty"`
 	Spec                  PlayerSpec      `json:"spec,omitempty"`
 	Stats                 *PlayerStats    `json:"stats,omitempty"`
 	leftoverResources     int
@@ -79,8 +79,8 @@ const (
 )
 
 type PlayerSpec struct {
-	PlanetaryScanner  *TechPlanetaryScanner `json:"planetaryScanner"`
-	Defense           *TechDefense          `json:"defense"`
+	PlanetaryScanner  *TechPlanetaryScanner `json:"planetaryScanner,omitempty"`
+	Defense           *TechDefense          `json:"defense,omitempty"`
 	ResourcesLeftover int                   `json:"resourcesAvailable,omitempty"`
 }
 
@@ -161,8 +161,6 @@ func NewPlayer(userID int64, race *Race) *Player {
 	// copy this race for the player
 	playerRace := *race
 	playerRace.ID = 0
-	playerRace.CreatedAt = time.Time{}
-	playerRace.UpdatedAt = time.Time{}
 
 	return &Player{
 		UserID: userID,

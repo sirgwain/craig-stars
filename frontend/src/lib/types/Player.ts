@@ -13,6 +13,7 @@ export interface Player {
 	userId?: number;
 	num: number;
 	color: string;
+	name?: string;
 	race: Race;
 	ready?: boolean;
 	aIControlled?: boolean;

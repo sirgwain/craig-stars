@@ -19,6 +19,7 @@
 	import { MapObjectType, positionKey } from '$lib/types/MapObject';
 	import type { Planet } from '$lib/types/Planet';
 	import { onMount } from 'svelte';
+	import { GameState } from '$lib/types/Game';
 
 	let id = parseInt($page.params.id);
 	let playerService: PlayerService;
@@ -63,16 +64,18 @@
 
 	// all other components will use this context
 	$: if ($game && $player) {
-		// setGameContext(game, player);
-		const homeworld = $player.planets.find((p) => p.homeworld);
-		if (homeworld) {
-			commandMapObject(homeworld);
-			selectMapObject(homeworld);
-			zoomToMapObject(homeworld);
-		} else {
-			commandMapObject($player.planets[0]);
-			selectMapObject($player.planets[0]);
-			zoomToMapObject($player.planets[0]);
+		if ($game.state == GameState.WaitingForPlayers) {
+			// setGameContext(game, player);
+			const homeworld = $player.planets.find((p) => p.homeworld);
+			if (homeworld) {
+				commandMapObject(homeworld);
+				selectMapObject(homeworld);
+				zoomToMapObject(homeworld);
+			} else {
+				commandMapObject($player.planets[0]);
+				selectMapObject($player.planets[0]);
+				zoomToMapObject($player.planets[0]);
+			}
 		}
 	}
 
