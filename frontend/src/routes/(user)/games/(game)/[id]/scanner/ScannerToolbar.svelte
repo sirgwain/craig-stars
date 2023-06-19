@@ -47,7 +47,7 @@
 		</ul>
 	</div>
 
-	<div class="flex-none block sm:hidden">
+	<div class="flex-none">
 		<ul class="menu menu-horizontal">
 			<li>
 				<a
@@ -71,7 +71,7 @@
 			</li>
 			<li>
 				<a
-					href="#add-waypoint"
+					href="#messages"
 					class="btn btn-ghost btn-xs h-full indicator"
 					on:click|preventDefault={() => (showMessages = !showMessages)}
 					><Icon
