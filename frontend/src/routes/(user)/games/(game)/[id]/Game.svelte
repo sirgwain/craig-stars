@@ -28,7 +28,7 @@
 	<div class="flex-1 flex flex-col grow ml-3">
 		<div class="flex flex-col border-gray-700 border-2 shadow-sm grow min-h-[68%]">
 			<ScannerToolbar {game} {player} />
-			<Scanner />
+			<Scanner {game} {player} />
 		</div>
 		<HighlightedMapObjectStats />
 		<div class="lg:hidden mt-3 block flex-initial"><MapObjectSummary /></div>
