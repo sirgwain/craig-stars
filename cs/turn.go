@@ -527,7 +527,8 @@ func (t *turn) buildFleet(player *Player, planet *Planet, token ShipToken) Fleet
 	player.Stats.FleetsBuilt++
 	player.Stats.TokensBuilt += token.Quantity
 
-	fleetNum := t.game.getNextFleetNum(player.Num)
+	playerFleets := t.game.getFleets(player.Num)
+	fleetNum := player.getNextFleetNum(playerFleets)
 	fleet := newFleetForToken(player, fleetNum, token, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, token.design.Spec.IdealSpeed)})
 	fleet.Position = planet.Position
 	fleet.BattlePlanName = player.BattlePlans[0].Name

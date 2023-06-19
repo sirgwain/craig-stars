@@ -1,6 +1,9 @@
 package cs
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 // handle player orders
 type Orderer interface {
@@ -10,6 +13,9 @@ type Orderer interface {
 	UpdateMineFieldOrders(player *Player, minefield *MineField, orders MineFieldOrders)
 	TransferFleetCargo(source *Fleet, dest *Fleet, transferAmount Cargo) error
 	TransferPlanetCargo(source *Fleet, dest *Planet, transferAmount Cargo) error
+	SplitFleetTokens(rules *Rules, player *Player, playerFleets []*Fleet, source *Fleet, tokens []ShipToken) (*Fleet, error)
+	SplitAll(rules *Rules, player *Player, playerFleets []*Fleet, source *Fleet) ([]*Fleet, error)
+	Merge(rules *Rules, player *Player, fleets []*Fleet) (*Fleet, error)
 }
 
 type orders struct {
@@ -119,4 +125,240 @@ func (o *orders) TransferPlanetCargo(source *Fleet, dest *Planet, transferAmount
 	source.Dirty = true
 	dest.Dirty = true
 	return nil
+}
+
+// split a fleet's tokens into a new fleet
+func (o *orders) SplitFleetTokens(rules *Rules, player *Player, playerFleets []*Fleet, source *Fleet, tokens []ShipToken) (*Fleet, error) {
+	if source == nil {
+		return nil, fmt.Errorf("no source fleet to split")
+	}
+	if len(tokens) == 0 {
+		return nil, fmt.Errorf("no tokens to split")
+	}
+
+	// build a map of tokens by their design
+	splitTokensByDesign := map[int]*ShipToken{}
+	for i := range tokens {
+		token := &tokens[i]
+		splitTokensByDesign[token.DesignNum] = token
+	}
+
+	remainingTokens := 0
+	for _, token := range source.Tokens {
+		if split, found := splitTokensByDesign[token.DesignNum]; found {
+			if split.Quantity > token.Quantity {
+				return nil, fmt.Errorf("tried to split token (design %d) from %d to %d tokens", token.DesignNum, token.Quantity, split.Quantity)
+			}
+			if split.Quantity < token.Quantity {
+				// we have some leftover
+				remainingTokens++
+			}
+		} else {
+			remainingTokens++
+		}
+	}
+
+	// build a map of source tokens by their design
+	sourceTokensByDesign := map[int]*ShipToken{}
+	for i := range source.Tokens {
+		token := &source.Tokens[i]
+		sourceTokensByDesign[token.DesignNum] = token
+	}
+
+	// make sure we don't have split tokens that aren't in our source
+	for _, token := range tokens {
+		if _, found := sourceTokensByDesign[token.DesignNum]; !found {
+			return nil, fmt.Errorf("tried to create an entirely new token for design %d", token.DesignNum)
+		}
+	}
+
+	if remainingTokens == 0 {
+		return nil, fmt.Errorf("no ships left in source fleet")
+	}
+
+	// finally, time to split!
+
+	// now create the new fleet
+	fleetNum := player.getNextFleetNum(playerFleets)
+
+	// build a map of designs so we can fill in the tokens
+	designsByNum := make(map[int]*ShipDesign, len(player.Designs))
+	for i := range player.Designs {
+		design := player.Designs[i]
+		designsByNum[design.Num] = design
+	}
+
+	// fill in designs
+	for i := range tokens {
+		token := &tokens[i]
+		token.design = designsByNum[token.DesignNum]
+	}
+
+	for i := range source.Tokens {
+		token := &source.Tokens[i]
+		token.design = designsByNum[token.DesignNum]
+	}
+
+	var baseDesign = tokens[0].design
+	fleet := newFleet(player, baseDesign, fleetNum, baseDesign.Name, source.Waypoints)
+	fleet.Tokens = tokens
+
+	// the fleet has some percentage of fuel fullness
+	fleetFuelFullness := float64(source.Fuel) / float64(source.Spec.FuelCapacity)
+
+	totalCargo := source.Cargo.Total()
+	totalCargoCapacity := source.Spec.CargoCapacity
+
+	// now remove all the tokens from the old fleet
+	for i := range tokens {
+		splitToken := &tokens[i]
+		sourceToken := sourceTokensByDesign[splitToken.DesignNum]
+		// quantity := sourceToken.Quantity
+		// quantityDamaged := sourceToken.QuantityDamaged
+
+		// each ship in a token has some amount of fuel, based on the total fuel on the fleet
+		shipFuel := fleetFuelFullness * float64(sourceToken.design.Spec.FuelCapacity)
+
+		var shipCargoPercent float64 = 0
+		if totalCargo > 0 && splitToken.design.Spec.CargoCapacity > 0 {
+			// see how much this ship's cargo capacity is compared to the fleet total
+			shipCargoPercent = float64(splitToken.design.Spec.CargoCapacity) / float64(totalCargoCapacity)
+		}
+
+		// leave any remainder fuel on the source
+		fuelToMove := int(math.Floor(shipFuel * float64(splitToken.Quantity)))
+		fleet.Fuel += fuelToMove
+		source.Fuel -= fuelToMove
+
+		if totalCargo > 0 && shipCargoPercent > 0 {
+			fleet.Cargo = Cargo{
+				Ironium:   int(math.Floor(shipCargoPercent * float64(splitToken.Quantity) * float64(source.Cargo.Ironium))),
+				Boranium:  int(math.Floor(shipCargoPercent * float64(splitToken.Quantity) * float64(source.Cargo.Boranium))),
+				Germanium: int(math.Floor(shipCargoPercent * float64(splitToken.Quantity) * float64(source.Cargo.Germanium))),
+				Colonists: int(math.Floor(shipCargoPercent * float64(splitToken.Quantity) * float64(source.Cargo.Colonists))),
+			}
+			source.Cargo = source.Cargo.Subtract(fleet.Cargo)
+		}
+
+		// split damage
+		if sourceToken.QuantityDamaged > 0 {
+			// split tokens always take the damaged tokens
+			splitToken.Damage = sourceToken.Damage
+
+			// move all damaged tokens to the split
+			// if all damaged tokens are moved, leave none on th emain stack
+			if splitToken.Quantity >= sourceToken.QuantityDamaged {
+				splitToken.QuantityDamaged = sourceToken.QuantityDamaged
+				sourceToken.QuantityDamaged = 0
+				sourceToken.Damage = 0
+			} else {
+				splitToken.QuantityDamaged = minInt(sourceToken.QuantityDamaged, splitToken.Quantity)
+				sourceToken.QuantityDamaged -= splitToken.QuantityDamaged
+			}
+		}
+
+		sourceToken.Quantity -= splitToken.Quantity
+	}
+
+	// remove any empty tokens
+	updatedTokens := make([]ShipToken, 0, 1)
+	for _, token := range source.Tokens {
+		if token.Quantity > 0 {
+			updatedTokens = append(updatedTokens, token)
+		}
+	}
+	source.Tokens = updatedTokens
+
+	// update fleet specs
+	fleet.Spec = ComputeFleetSpec(rules, player, &fleet)
+	source.Spec = ComputeFleetSpec(rules, player, source)
+	return &fleet, nil
+}
+
+// split all fleets
+func (o *orders) SplitAll(rules *Rules, player *Player, playerFleets []*Fleet, source *Fleet) ([]*Fleet, error) {
+	// call split on each of these tokens
+	newFleets := []*Fleet{}
+	for index := range source.Tokens {
+		token := &source.Tokens[index]
+		startingTokenIndex := 0
+
+		// don't split the first token
+		if index == 0 {
+			if token.Quantity == 1 {
+				continue
+			}
+			// we have more than one ship in the first token, skip the first one
+			// when splitting, it will become our new source fleet
+			startingTokenIndex = 1
+		}
+
+		tokenQuantity := token.Quantity
+		for tokenIndex := startingTokenIndex; tokenIndex < tokenQuantity; tokenIndex++ {
+			splitToken := *token
+			splitToken.Quantity = 1
+			fleet, err := o.SplitFleetTokens(rules, player, playerFleets, source, []ShipToken{splitToken})
+			if err != nil {
+				return nil, err
+			}
+			newFleets = append(newFleets, fleet)
+			// add this new fleet to our player fleets so the fleet num increment goes up
+			playerFleets = append(playerFleets, fleet)
+		}
+	}
+
+	return newFleets, nil
+}
+
+// merge fleets into a single fleet
+func (o *orders) Merge(rules *Rules, player *Player, fleets []*Fleet) (*Fleet, error) {
+	if len(fleets) <= 1 {
+		return nil, fmt.Errorf("no fleets to merge")
+	}
+
+	fleet := fleets[0]
+
+	tokensByDesign := map[int]*ShipToken{}
+	for i := range fleet.Tokens {
+		token := &fleet.Tokens[i]
+		tokensByDesign[token.DesignNum] = token
+	}
+
+	for i := 1; i < len(fleets); i++ {
+		mergingFleet := fleets[i]
+
+		for _, token := range mergingFleet.Tokens {
+			if t, found := tokensByDesign[token.DesignNum]; found {
+				t.Quantity += token.Quantity
+			} else {
+				fleet.Tokens = append(fleet.Tokens, token)
+				tokensByDesign[token.DesignNum] = &fleet.Tokens[len(fleet.Tokens)-1]
+			}
+
+			if token.QuantityDamaged > 0 {
+				mergingTokenTotalDamage := float64(token.QuantityDamaged) * token.Damage
+				// the token we're merging in has damage
+				// figure out the total and add it to the fleet we're merging into
+				t := tokensByDesign[token.DesignNum]
+				destTokenTotalDamage := float64(t.QuantityDamaged) * t.Damage
+
+				// if we merge 2 damaged tokens in 1 damaged token, split the damage
+				// between the 3 damaged tokens
+				t.QuantityDamaged += token.QuantityDamaged
+				t.Damage = (mergingTokenTotalDamage + destTokenTotalDamage) / float64(t.QuantityDamaged)
+			}
+
+		}
+
+		// add cargo and fuel to the dest fleet
+		fleet.Cargo = fleet.Cargo.Add(mergingFleet.Cargo)
+		fleet.Fuel += mergingFleet.Fuel
+
+		// mark the merging fleet for deletion
+		mergingFleet.Delete = true
+	}
+
+	fleet.Spec = ComputeFleetSpec(rules, player, fleet)
+
+	return fleet, nil
 }

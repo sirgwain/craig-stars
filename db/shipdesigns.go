@@ -68,9 +68,9 @@ func (c *client) GetShipDesignsForPlayer(gameID int64, playerNum int) ([]*cs.Shi
 	return result, nil
 }
 
-func (c *client) getShipDesignsByNums(nums []int) ([]*cs.ShipDesign, error) {
+func (c *client) getShipDesignsByNums(gameID int64, playerNum int, nums []int) ([]*cs.ShipDesign, error) {
 
-	query, args, err := sqlx.In(`SELECT * FROM shipDesigns WHERE num IN (?)`, nums)
+	query, args, err := sqlx.In(`SELECT * FROM shipDesigns WHERE gameId = ? AND playerNum = ? AND num IN (?)`, gameID, playerNum, nums)
 	if err != nil {
 		return nil, err
 	}

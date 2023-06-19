@@ -1,8 +1,6 @@
 package cs
 
 import (
-	"sort"
-
 	"github.com/rs/zerolog/log"
 	"golang.org/x/exp/slices"
 )
@@ -405,29 +403,6 @@ func (u *Universe) getMineFields(playerNum int) []*MineField {
 		}
 	}
 	return mineFields
-}
-
-func (u *Universe) getNextFleetNum(playerNum int) int {
-	num := 1
-
-	playerFleets := u.getFleets(playerNum)
-	orderedFleets := make([]*Fleet, len(playerFleets))
-	copy(orderedFleets, playerFleets)
-	sort.Slice(orderedFleets, func(i, j int) bool { return orderedFleets[i].Num < orderedFleets[j].Num })
-
-	for i := 0; i < len(orderedFleets); i++ {
-		fleet := orderedFleets[i]
-		if i > 0 {
-			// if we are past fleet #1 and we skipped a number, used the skipped number
-			if fleet.Num > 1 && fleet.Num != orderedFleets[i-1].Num+1 {
-				return orderedFleets[i-1].Num + 1
-			}
-		}
-		// we are the next num...
-		num = fleet.Num + 1
-	}
-
-	return num
 }
 
 // get a slice of mapobjects at a position, or nil if none

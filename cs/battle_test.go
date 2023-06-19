@@ -610,6 +610,33 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			},
 			want: []want{{damage: 10, quantityDamaged: 1, quantityRemaining: 1}},
 		},
+		{name: "from testbed, two omega torps w 300 power, 2 1700dp1300 damage",
+			args: args{
+				weapon: weapon{
+					weaponSlot: &battleWeaponSlot{
+						slot: ShipDesignSlot{
+							Quantity: 2, // 2 torpedos
+						},
+						power:    300, // 600 damage total
+						accuracy: 1,
+					},
+					shipQuantity: 1,
+				},
+				targets: []*battleToken{
+					{
+						ShipToken: &ShipToken{
+							Quantity:        3, // three defenders, 3@5 damaged
+							QuantityDamaged: 3,
+							Damage:          1300, // 400dp left
+							design:          &ShipDesign{Name: "defender"},
+						},
+						armor: 1700,
+					},
+				},
+			},
+			// 600 damage total, first ship takes 400, 200 split between remaining ships
+			want: []want{{damage: 1400, quantityDamaged: 2, quantityRemaining: 2}},
+		},
 		{name: "one torpedo, do 5 damage to shields, 5 damage to hull",
 			args: args{
 				weapon: weapon{

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 )
@@ -126,7 +127,7 @@ func (c *client) GetFleet(id int64) (*cs.Fleet, error) {
 		return fleet, nil
 	}
 
-	designs, err := c.getShipDesignsByNums(designNums)
+	designs, err := c.getShipDesignsByNums(fleet.GameID, fleet.PlayerNum, designNums)
 	if err != nil {
 		return nil, fmt.Errorf("get designs by nums -> %w", err)
 	}
@@ -185,6 +186,30 @@ func (c *client) GetFleetByNum(gameID int64, num int) (*cs.Fleet, error) {
 	fleet := c.converter.ConvertFleet(&item)
 	return fleet, nil
 
+}
+
+func (c *client) GetFleetsByNums(gameID int64, playerNum int, nums []int) ([]*cs.Fleet, error) {
+
+	query, args, err := sqlx.In(`SELECT * FROM fleets WHERE gameId = ? AND playerNum = ? AND num IN (?)`, gameID, playerNum, nums)
+	if err != nil {
+		return nil, err
+	}
+
+	query = c.db.Rebind(query)
+	items := []Fleet{}
+	if err := c.db.Select(&items, query, args...); err != nil {
+		if err == sql.ErrNoRows {
+			return []*cs.Fleet{}, nil
+		}
+		return nil, err
+	}
+
+	results := make([]*cs.Fleet, len(items))
+	for i := range items {
+		results[i] = c.converter.ConvertFleet(&items[i])
+	}
+
+	return results, nil
 }
 
 // create a new game
@@ -266,6 +291,39 @@ func (c *client) createFleet(fleet *cs.Fleet, tx SQLExecer) error {
 
 func (c *client) UpdateFleet(fleet *cs.Fleet) error {
 	return c.updateFleet(fleet, c.db)
+}
+
+func (c *client) CreateUpdateOrDeleteFleets(fleets []*cs.Fleet) error {
+	tx, err := c.db.Beginx()
+	if err != nil {
+		return err
+	}
+
+	// create/update fleets
+	for _, fleet := range fleets {
+		if fleet.ID == 0 {
+			if err := c.createFleet(fleet, tx); err != nil {
+				return fmt.Errorf("create fleet %w", err)
+			}
+			log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Created fleet %s", fleet.Name)
+
+		} else if fleet.Delete {
+			if err := c.deleteFleet(fleet.ID, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("delete fleet %w", err)
+			}
+			log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Deleted fleet %s", fleet.Name)
+		} else {
+			if err := c.updateFleet(fleet, tx); err != nil {
+				return fmt.Errorf("update fleet %w", err)
+			}
+			log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Updated fleet %s", fleet.Name)
+		}
+	}
+
+	tx.Commit()
+	return nil
+
 }
 
 // update an existing fleet

@@ -261,6 +261,8 @@ func Start(db DBClient, config config.Config) {
 							r.Use(server.fleetCtx)
 							r.Get("/", server.fleet)
 							r.Put("/", server.updateFleetOrders)
+							r.Post("/split-all", server.splitAll)
+							r.Post("/merge", server.merge)
 							r.Post("/transfer-cargo", server.transferCargo)
 						})
 					})

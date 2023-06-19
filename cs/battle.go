@@ -734,8 +734,13 @@ func (b *battle) fireTorpedo(weapon *battleWeaponSlot, targets []*battleToken) {
 
 					if target.QuantityDamaged > 0 {
 						// we destroyed a token, but we still have damaged tokens in the stack
-						// so reset our shipDamage counter to the damage
-						shipDamage = target.Damage
+						// so reset our shipDamage counter to the damage + any leftover. We apply that
+						// to the rest of the tokens
+						// i.e. if we fire 2 omega torpedos for 300 damage each at 3 damaged 1700dp@1300 ships
+						// the first shot damages the top ship, the second one kills it but we have 200 leftover
+						// this will carry over to damage the remaining ships
+						leftoverDamage := shipDamage - float64(armor)
+						shipDamage = target.Damage + leftoverDamage
 					} else {
 						// we have no more damaged tokens, so remove the stack's damage
 						// and reset our ship damage to 0

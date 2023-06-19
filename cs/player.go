@@ -2,6 +2,7 @@ package cs
 
 import (
 	"fmt"
+	"sort"
 	"time"
 )
 
@@ -357,4 +358,26 @@ func (p *Player) IsEnemy(playerNum int) bool {
 
 func (p *Player) IsNeutral(playerNum int) bool {
 	return playerNum > 0 && playerNum <= len(p.Relations) && p.Relations[playerNum-1].Relation == PlayerRelationNeutral
+}
+
+func (p *Player) getNextFleetNum(playerFleets []*Fleet) int {
+	num := 1
+
+	orderedFleets := make([]*Fleet, len(playerFleets))
+	copy(orderedFleets, playerFleets)
+	sort.Slice(orderedFleets, func(i, j int) bool { return orderedFleets[i].Num < orderedFleets[j].Num })
+
+	for i := 0; i < len(orderedFleets); i++ {
+		fleet := orderedFleets[i]
+		if i > 0 {
+			// if we are past fleet #1 and we skipped a number, used the skipped number
+			if fleet.Num > 1 && fleet.Num != orderedFleets[i-1].Num+1 {
+				return orderedFleets[i-1].Num + 1
+			}
+		}
+		// we are the next num...
+		num = fleet.Num + 1
+	}
+
+	return num
 }
