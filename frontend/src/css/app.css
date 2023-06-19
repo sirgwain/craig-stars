@@ -39,6 +39,18 @@
 	.fuel-bar {
 		@apply bg-[#FF0000];
 	}
+	.warp-bar {
+		@apply bg-[#FF0000];
+	}
+	.warp-danger-bar {
+		@apply bg-[#FF0000];
+	}
+	.warp-warn-bar {
+		@apply bg-[#FFFF00];
+	}
+	.warp-stargate-bar {
+		@apply bg-[#008100];
+	}
 	.scanner {
 		@apply fill-[#8B0000];
 	}

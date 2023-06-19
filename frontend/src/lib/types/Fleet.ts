@@ -37,6 +37,7 @@ export interface ShipToken {
 export interface Waypoint {
 	position: Vector;
 	warpFactor: number;
+	estFuelUsage?: number;
 	task?: WaypointTask;
 	waitAtWaypoint?: boolean;
 	targetType?: MapObjectType;

@@ -9,6 +9,7 @@
 		selectedMapObject,
 		selectMapObject
 	} from '$lib/services/Context';
+	import { NotOrbitingPlanet } from '$lib/types/Fleet';
 	import { MapObjectType, ownedBy, positionKey, type MapObject } from '$lib/types/MapObject';
 	import type { Planet } from '$lib/types/Planet';
 	import { findIntelMapObject, findMyPlanet } from '$lib/types/Player';
@@ -97,11 +98,13 @@
 		if (!$myMapObjectsByPosition || !$player) {
 			return;
 		}
+
 		const myMapObjectsAtPosition = $myMapObjectsByPosition[positionKey(mo)];
 		let myMapObject = mo;
 		if (ownedBy(mo, $player.num) && mo.type === MapObjectType.Planet) {
 			myMapObject = findMyPlanet($player, mo as Planet) as MapObject;
 		}
+
 
 		const commandedIntelObject = findIntelMapObject($player, $commandedMapObject);
 
@@ -140,6 +143,17 @@
 			}
 		}
 	}
+
+	let data: MapObject[] = [];
+	$: {
+		if ($player) {
+			data = [
+				...$player.fleets.filter((f) => f.orbitingPlanetNum == NotOrbitingPlanet),
+				...($player.fleetIntels?.filter((f) => f.orbitingPlanetNum == NotOrbitingPlanet) ?? []),
+				...$player.planetIntels
+			];
+		}
+	}
 </script>
 
 <svelte:window on:resize={handleResize} />
@@ -147,7 +161,7 @@
 <div class="flex-1 h-full bg-black overflow-hidden p-5">
 	{#if $game && $player}
 		<LayerCake
-			data={[...$player.planetIntels, ...$player.fleets, ...($player.fleetIntels ?? [])]}
+			{data}
 			x={xGetter}
 			y={yGetter}
 			xDomain={[0, $game.area.x]}

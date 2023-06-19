@@ -1,0 +1,176 @@
+<script lang="ts">
+	import { EventManager } from '$lib/EventManager';
+	import {
+		player,
+		commandedFleet,
+		commandedMapObjectName,
+		selectedWaypoint,
+		selectMapObject,
+		selectWaypoint
+	} from '$lib/services/Context';
+	import { FleetService } from '$lib/services/FleetService';
+	import type { Waypoint } from '$lib/types/Fleet';
+	import type { MapObjectType, MapObject } from '$lib/types/MapObject';
+	import { findMapObject } from '$lib/types/Player';
+	import { distance } from '$lib/types/Vector';
+	import WarpFactorBar from '../WarpFactorBar.svelte';
+	import CommandTile from './CommandTile.svelte';
+
+	const fleetService = new FleetService();
+	let selectedWaypointIndex = 0;
+	let previousWaypoint: Waypoint | undefined;
+	let previousWaypointMO: MapObject | undefined;
+	let nextWaypoint: Waypoint | undefined;
+	let nextWaypointMO: MapObject | undefined;
+
+	const getTargetName = (wp: Waypoint) =>
+		wp.targetName ?? `Space: (${wp.position.x}, ${wp.position.y})`;
+
+	const getWaypointTarget = (wp: Waypoint): MapObject | undefined => {
+		if ($player && wp && wp.targetType && wp.targetNum) {
+			return findMapObject($player, wp.targetType, wp.targetNum, wp.targetPlayerNum);
+		}
+	};
+
+	const updateNextPrevWaypoints = () => {
+		// find the next/previous waypoint
+		previousWaypoint = previousWaypointMO = nextWaypoint = nextWaypointMO = undefined;
+		if ($commandedFleet) {
+			if (selectedWaypointIndex > 0) {
+				previousWaypoint = $commandedFleet.waypoints[selectedWaypointIndex - 1];
+				previousWaypointMO = getWaypointTarget(previousWaypoint);
+			}
+			if (selectedWaypointIndex < $commandedFleet.waypoints.length) {
+				nextWaypoint = $commandedFleet.waypoints[selectedWaypointIndex + 1];
+				nextWaypointMO = getWaypointTarget(nextWaypoint);
+			}
+		}
+	};
+
+	const onSelectWaypoint = (wp: Waypoint, index: number) => {
+		selectedWaypointIndex = index;
+		selectWaypoint(wp);
+		const mo = getWaypointTarget(wp);
+		if (mo) {
+			selectMapObject(mo);
+		}
+
+		updateNextPrevWaypoints();
+	};
+
+	commandedMapObjectName.subscribe(() => {
+		selectedWaypointIndex = 0;
+		updateNextPrevWaypoints();
+	});
+
+	$: dist =
+		$selectedWaypoint && (nextWaypoint || previousWaypoint)
+			? distance(
+					$selectedWaypoint.position,
+					previousWaypoint ? previousWaypoint.position : nextWaypoint?.position
+			  )
+			: 0;
+
+	const onRepeatOrdersChanged = async (repeatOrders: boolean) => {
+		if ($commandedFleet && $selectedWaypoint) {
+			$commandedFleet.repeatOrders = repeatOrders;
+			const fleet = await fleetService.updateFleetOrders($commandedFleet);
+			commandedFleet.update(() => fleet);
+			selectedWaypoint.update(() => fleet.waypoints[selectedWaypointIndex]);
+			updateNextPrevWaypoints();
+		}
+	};
+
+	const onWarpFactorChanged = async (warpFactor: number) => {
+		if ($commandedFleet && $selectedWaypoint) {
+			$selectedWaypoint.warpFactor = warpFactor;
+			const fleet = await fleetService.updateFleetOrders($commandedFleet);
+			commandedFleet.update(() => fleet);
+			selectedWaypoint.update(() => fleet.waypoints[selectedWaypointIndex]);
+			updateNextPrevWaypoints();
+		}
+	};
+</script>
+
+{#if $commandedFleet && $selectedWaypoint}
+	<CommandTile title="Fleet Waypoints">
+		<div class="bg-base-100 h-20 overflow-y-auto">
+			<ul class="w-full h-full">
+				{#each $commandedFleet.waypoints as wp, index}
+					<li
+						on:click={() => onSelectWaypoint(wp, index)}
+						class="pl-1 {selectedWaypointIndex == index ? 'bg-primary-focus' : ''}"
+					>
+						{getTargetName(wp)}
+					</li>
+				{/each}
+			</ul>
+		</div>
+		{#if previousWaypoint}
+			<div class="flex justify-between mt-1">
+				<span>Coming From</span>
+				<span>{getTargetName(previousWaypoint)}</span>
+			</div>
+			<div class="flex justify-between mt-1">
+				<span>Distance</span>
+				<span>{`${dist.toFixed(1)}`} l.y.</span>
+			</div>
+			<div class="flex mt-1">
+				<span>Warp Factor</span>
+				<span class="flex-1 ml-1"
+					><WarpFactorBar
+						on:valuechanged={(e) => onWarpFactorChanged(e.detail)}
+						value={$selectedWaypoint.warpFactor}
+					/></span
+				>
+			</div>
+			<div class="flex justify-between mt-1">
+				<span>Travel Time</span>
+				<span
+					>{Math.ceil(dist / ($selectedWaypoint.warpFactor * $selectedWaypoint.warpFactor))} years</span
+				>
+			</div>
+			<div class="flex justify-between mt-1">
+				<span>Est Fuel Usage</span>
+				<span>{$selectedWaypoint.estFuelUsage ?? 0}mg</span>
+			</div>
+			<label>
+				<input
+					on:change={(e) => onRepeatOrdersChanged(e.currentTarget.checked ? true : false)}
+					bind:checked={$commandedFleet.repeatOrders}
+					class="checkbox-xs"
+					type="checkbox"
+				/> Repeate Orders
+			</label>
+		{:else if nextWaypoint}
+			<div class="flex justify-between mt-1">
+				<span>Going to</span>
+				<span>{getTargetName(nextWaypoint)}</span>
+			</div>
+			<div class="flex justify-between mt-1">
+				<span>Distance</span>
+				<span>{`${dist.toFixed(1)}`} l.y.</span>
+			</div>
+			<div class="flex justify-between mt-1">
+				<span>Warp Factor</span>
+				<span>{nextWaypoint.warpFactor}</span>
+			</div>
+			<div class="flex justify-between mt-1">
+				<span>Travel Time</span>
+				<span>{Math.ceil(dist / (nextWaypoint.warpFactor * nextWaypoint.warpFactor))} years</span>
+			</div>
+			<div class="flex justify-between mt-1">
+				<span>Est Fuel Usage</span>
+				<span>{nextWaypoint.estFuelUsage ?? 0}mg</span>
+			</div>
+			<label>
+				<input
+					on:change={(e) => onRepeatOrdersChanged(e.currentTarget.checked ? true : false)}
+					checked={$commandedFleet.repeatOrders}
+					class="checkbox-xs"
+					type="checkbox"
+				/> Repeate Orders
+			</label>
+		{/if}
+	</CommandTile>
+{/if}

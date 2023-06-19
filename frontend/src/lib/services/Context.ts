@@ -67,6 +67,10 @@ export const selectMapObject = (mo: MapObject) => {
 	selectedMapObject.update(() => mo);
 };
 
+export const selectWaypoint = (wp: Waypoint) => {
+	selectedWaypoint.update(() => wp);
+};
+
 export const commandMapObject = (mo: MapObject) => {
 	// console.log(`Commanded ${mo.type}:${mo.name}`);
 	commandedMapObject.update(() => mo);

@@ -69,3 +69,26 @@ export const findIntelMapObject = (player: Player, mo: MapObject): MapObject | u
 	}
 	return mo;
 };
+
+export const findMapObject = (
+	player: Player,
+	type: MapObjectType,
+	num: number,
+	playerNum: number | undefined
+): MapObject | undefined => {
+	switch (type) {
+		case MapObjectType.Planet:
+			return player.planetIntels[num - 1];
+		case MapObjectType.Fleet:
+			if (playerNum) {
+				if (playerNum == player.num) {
+					return player.fleets.find((f) => f.num == num);
+				} else {
+					return player.fleetIntels?.find((f) => f.playerNum === playerNum && f.num == num);
+				}
+			}
+	}
+
+	// didn't find it
+	return;
+};

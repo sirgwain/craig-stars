@@ -1,8 +1,9 @@
 <script lang="ts">
-	import { game,player } from '$lib/services/Context';
+	import { game, player } from '$lib/services/Context';
 	import FleetFuelAndCargoTile from './FleetFuelAndCargoTile.svelte';
 	import FleetOtherFleetsHereTile from './FleetOtherFleetsHereTile.svelte';
 	import FleetSummaryTile from './FleetSummaryTile.svelte';
+	import FleetWaypointsTile from './FleetWaypointsTile.svelte';
 	import FleetWaypointTaskTile from './FleetWaypointTaskTile.svelte';
 	import PlanetFleetsInOrbitTile from './PlanetFleetsInOrbitTile.svelte';
 	import PlanetMineralsOnHandTile from './PlanetMineralsOnHandTile.svelte';
@@ -22,5 +23,6 @@
 	<FleetSummaryTile />
 	<FleetFuelAndCargoTile />
 	<FleetOtherFleetsHereTile />
+	<FleetWaypointsTile />
 	<FleetWaypointTaskTile />
 {/if}
