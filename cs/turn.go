@@ -107,13 +107,6 @@ func (t *turn) generateTurn() error {
 		t.checkVictory(player)
 
 		player.SubmittedTurn = false
-		pmo := t.game.getPlayerMapObjects(player.Num)
-		ai := newAIPlayer(player, pmo)
-		ai.processTurn()
-
-		for _, f := range pmo.Fleets {
-			f.computeFuelUsage(ai.Player)
-		}
 	}
 
 	log.Info().

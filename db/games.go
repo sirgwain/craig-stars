@@ -365,20 +365,20 @@ func (c *client) updateGameWithNamedExecer(game *cs.Game, tx SQLExecer) error {
 }
 
 // update a full game
-func (c *client) UpdateFullGame(g *cs.FullGame) error {
+func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 	tx, err := c.db.Beginx()
 	if err != nil {
 		return err
 	}
 
-	if err := c.updateGameWithNamedExecer(g.Game, tx); err != nil {
+	if err := c.updateGameWithNamedExecer(fullGame.Game, tx); err != nil {
 		tx.Rollback()
 		return fmt.Errorf("update game %w", err)
 	}
 
-	for _, player := range g.Players {
+	for _, player := range fullGame.Players {
 		if player.ID == 0 {
-			player.GameID = g.ID
+			player.GameID = fullGame.ID
 			if err := c.createPlayer(player, tx); err != nil {
 				tx.Rollback()
 				return fmt.Errorf("create player %w", err)
@@ -390,9 +390,9 @@ func (c *client) UpdateFullGame(g *cs.FullGame) error {
 		}
 	}
 
-	for _, planet := range g.Planets {
+	for _, planet := range fullGame.Planets {
 		if planet.ID == 0 {
-			planet.GameID = g.ID
+			planet.GameID = fullGame.ID
 			if err := c.createPlanet(planet, tx); err != nil {
 				tx.Rollback()
 				return fmt.Errorf("create planet %w", err)
@@ -408,13 +408,15 @@ func (c *client) UpdateFullGame(g *cs.FullGame) error {
 	}
 
 	// save fleets and starbases
-	for _, fleet := range append(g.Fleets, g.Starbases...) {
+	remainingFleets := make([]*cs.Fleet, 0, len(fullGame.Fleets))
+	for _, fleet := range append(fullGame.Fleets, fullGame.Starbases...) {
 		if fleet.ID == 0 {
-			fleet.GameID = g.ID
+			fleet.GameID = fullGame.ID
 			if err := c.createFleet(fleet, tx); err != nil {
 				tx.Rollback()
 				return fmt.Errorf("create fleet %w", err)
 			}
+			remainingFleets = append(remainingFleets, fleet)
 			log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Created fleet %s", fleet.Name)
 		} else if fleet.Delete {
 			if err := c.deleteFleet(fleet.ID, tx); err != nil {
@@ -427,14 +429,16 @@ func (c *client) UpdateFullGame(g *cs.FullGame) error {
 				tx.Rollback()
 				return fmt.Errorf("update fleet %w", err)
 			}
+			remainingFleets = append(remainingFleets, fleet)
 			log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Updated fleet %s", fleet.Name)
 		}
 	}
+	fullGame.Fleets = remainingFleets
 
 	// save wormholes
-	for _, wormhole := range g.Wormholes {
+	for _, wormhole := range fullGame.Wormholes {
 		if wormhole.ID == 0 {
-			wormhole.GameID = g.ID
+			wormhole.GameID = fullGame.ID
 			if err := c.createWormhole(wormhole, tx); err != nil {
 				tx.Rollback()
 				return fmt.Errorf("create wormhole %w", err)
@@ -450,9 +454,9 @@ func (c *client) UpdateFullGame(g *cs.FullGame) error {
 	}
 
 	// save salvages
-	for _, salvage := range g.Salvages {
+	for _, salvage := range fullGame.Salvages {
 		if salvage.ID == 0 {
-			salvage.GameID = g.ID
+			salvage.GameID = fullGame.ID
 			if err := c.createSalvage(salvage, tx); err != nil {
 				tx.Rollback()
 				return fmt.Errorf("create salvage %w", err)
@@ -468,9 +472,9 @@ func (c *client) UpdateFullGame(g *cs.FullGame) error {
 	}
 
 	// save mineFields
-	for _, mineField := range g.MineFields {
+	for _, mineField := range fullGame.MineFields {
 		if mineField.ID == 0 {
-			mineField.GameID = g.ID
+			mineField.GameID = fullGame.ID
 			if err := c.createMineField(mineField, tx); err != nil {
 				tx.Rollback()
 				return fmt.Errorf("create mineField %w", err)
@@ -486,9 +490,9 @@ func (c *client) UpdateFullGame(g *cs.FullGame) error {
 	}
 
 	// save mineralPackets
-	for _, mineralPacket := range g.MineralPackets {
+	for _, mineralPacket := range fullGame.MineralPackets {
 		if mineralPacket.ID == 0 {
-			mineralPacket.GameID = g.ID
+			mineralPacket.GameID = fullGame.ID
 			if err := c.createMineralPacket(mineralPacket, tx); err != nil {
 				tx.Rollback()
 				return fmt.Errorf("create mineralPacket %w", err)

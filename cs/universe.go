@@ -83,7 +83,7 @@ func (u *Universe) buildMaps(players []*Player) {
 }
 
 // get all commandable map objects for a player
-func (u *Universe) getPlayerMapObjects(playerNum int) PlayerMapObjects {
+func (u *Universe) GetPlayerMapObjects(playerNum int) PlayerMapObjects {
 	pmo := PlayerMapObjects{}
 
 	pmo.Fleets = u.getFleets(playerNum)

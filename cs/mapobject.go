@@ -42,6 +42,6 @@ func (mo *MapObject) owned() bool {
 	return mo.PlayerNum != Unowned
 }
 
-func (mo *MapObject) ownedBy(num int) bool {
+func (mo *MapObject) OwnedBy(num int) bool {
 	return mo.PlayerNum != Unowned && mo.PlayerNum == num
 }

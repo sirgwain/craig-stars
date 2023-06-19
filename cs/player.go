@@ -156,7 +156,7 @@ type PlayerMapObjects struct {
 
 // create a new player with an existing race. The race
 // will be copied for the player
-func newPlayer(userID int64, race *Race) *Player {
+func NewPlayer(userID int64, race *Race) *Player {
 
 	// copy this race for the player
 	playerRace := *race

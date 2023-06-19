@@ -58,7 +58,7 @@ func (scan *playerScan) scan() error {
 // scan all planets with this player's scanners
 func (scan *playerScan) scanPlanets(scanners []scanner, cargoScanners []scanner) error {
 	for _, planet := range scan.universe.Planets {
-		if planet.ownedBy(scan.player.Num) {
+		if planet.OwnedBy(scan.player.Num) {
 			if err := scan.discoverer.discoverPlanet(scan.rules, scan.player, planet, false); err != nil {
 				return err
 			}
@@ -115,7 +115,7 @@ func (scan *playerScan) scanFleets(scanners []scanner, cargoScanners []scanner) 
 	fleetsToScan := []*Fleet{}
 	fleetsToCargoScan := []*Fleet{}
 	for _, fleet := range scan.universe.Fleets {
-		if fleet.ownedBy(scan.player.Num) {
+		if fleet.OwnedBy(scan.player.Num) {
 			// The player already gets a copy of all their own fleets
 			continue
 		}

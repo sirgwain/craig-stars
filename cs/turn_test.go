@@ -15,6 +15,11 @@ func Test_generateTurn(t *testing.T) {
 	player.Num = 1
 	universe, _ := client.GenerateUniverse(&game, players)
 
+	// build a ship on the planet
+	pmo := universe.GetPlayerMapObjects(player.Num)
+	planet := pmo.Planets[0]
+	planet.ProductionQueue = append([]ProductionQueueItem{{Type: QueueItemTypeShipToken, Quantity: 1, DesignName: player.GetDesign("Long Range Scout").Name}}, planet.ProductionQueue...)
+
 	startingFleets := len(universe.Fleets)
 
 	client.GenerateTurn(&game, universe, players)

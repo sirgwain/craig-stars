@@ -97,10 +97,10 @@ func Start(db DBClient, config config.Config) {
 	ar.PUT("/games/:id", server.updatePlayerOrders)
 
 	// update planet production
-	ar.PUT("/planets/:id", server.updatePlanetOrders)
+	ar.PUT("/planets/:id", server.UpdatePlanetOrders)
 
 	// transfer cargo, update fleet orders
-	ar.PUT("/fleets/:id", server.updateFleetOrders)
+	ar.PUT("/fleets/:id", server.UpdateFleetOrders)
 	ar.POST("/fleets/:id/transfer-cargo", server.transferCargo)
 	ar.POST("/fleets/:id/split", noop)
 	ar.POST("/fleets/:id/merge", noop)

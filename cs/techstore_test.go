@@ -14,8 +14,8 @@ func TestTechStore_GetBestScanner(t *testing.T) {
 		args args
 		want *TechHullComponent
 	}{
-		{"Get Lowest Scanner", args{newPlayer(1, NewRace())}, &BatScanner},
-		{"Get Nicer Scanner", args{newPlayer(1, NewRace()).WithTechLevels(TechLevel{Electronics: 5})}, &PossumScanner},
+		{"Get Lowest Scanner", args{NewPlayer(1, NewRace())}, &BatScanner},
+		{"Get Nicer Scanner", args{NewPlayer(1, NewRace()).WithTechLevels(TechLevel{Electronics: 5})}, &PossumScanner},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

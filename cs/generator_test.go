@@ -7,7 +7,7 @@ import (
 )
 
 func Test_getStartingStarbaseDesigns(t *testing.T) {
-	player := newPlayer(1, NewRace())
+	player := NewPlayer(1, NewRace())
 	player.Race.PRT = JoaT
 	rules := NewRules()
 	player.Race.Spec = computeRaceSpec(&player.Race, &rules)
