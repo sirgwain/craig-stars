@@ -60,12 +60,22 @@
 			unbindNavigationHotkeys();
 		};
 	});
+
+	async function onSubmitTurn() {
+		$game = await $game?.submitTurn();
+		if ($game?.state == GameState.WaitingForPlayers) {
+			// trigger reactivity
+			$game = $game;
+			$game.commandHomeWorld();
+		}
+	}
+
 </script>
 
 {#if fg}
 	<main class="flex flex-col mb-20 md:mb-0">
 		<div class="flex-initial">
-			<GameMenu game={$game} />
+			<GameMenu game={$game} on:submit-turn={onSubmitTurn}/>
 		</div>
 		<ErrorToast />
 		<slot>Game</slot>
