@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+	.card-body {
+		@apply text-base;
+	}
+	.text-ironium {
+		@apply text-[#0960ff];
+	}
+	.text-boranium {
+		@apply text-[#08810a];
+	}
+	.text-germanium {
+		@apply text-[#feff00];
+	}
+	.ironium-bar {
+		@apply bg-[#0900ff];
+	}
+	.boranium-bar {
+		@apply bg-[#00ff00];
+	}
+	.germanium-bar {
+		@apply bg-[#ffff00];
+	}
+	.colonists-bar {
+		@apply bg-[#ffffff];
+	}
+	.ironium-concentration {
+		@apply stroke-[#020085];
+	}
+	.boranium-concentration {
+		@apply stroke-[#008100];
+	}
+	.germanium-concentration {
+		@apply stroke-[#7f7f00];
+	}
+	.fuel-bar {
+		@apply bg-[#FF0000];
+	}
+
+}
+
+.dark {
+	color-scheme: dark;
+}
+
+.light {
+	color-scheme: light;
+}

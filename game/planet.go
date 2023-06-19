@@ -29,10 +29,9 @@ type Planet struct {
 }
 
 type ProductionQueueItem struct {
-	ID        uint      `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
-
+	ID         uint          `gorm:"primaryKey" json:"id"`
+	CreatedAt  time.Time     `json:"createdAt"`
+	UpdatedAt  time.Time     `json:"updatedAt"`
 	PlanetID   uint          `json:"-"`
 	Type       QueueItemType `json:"type"`
 	DesignName string        `json:"designName"`
@@ -244,7 +243,8 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 	starbaseDesign := player.GetDesign(startingPlanet.StarbaseDesignName)
 	starbase := NewFleet(player, starbaseDesign, 0, starbaseDesign.Name, []Waypoint{NewPlanetWaypoint(p, 0)})
 	starbase.Spec = ComputeFleetSpec(rules, player, &starbase)
-	// p.Starbase = &starbase
+	starbase.PlanetID = p.ID
+	p.Starbase = &starbase
 
 	// p.PacketSpeed = p.Starbase.Spec.SafePacketSpeed
 

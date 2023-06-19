@@ -8,8 +8,10 @@
 			// On page load or when changing themes, best to add inline in `head` to avoid FOUC
 			if (localStorage.theme === 'business' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
 				document.documentElement.dataset.theme = 'business'
+				document.documentElement.className = "dark"
 			} else {
 				document.documentElement.dataset.theme = 'emerald'
+				document.documentElement.className = "light"
 			}
 
 		</script>

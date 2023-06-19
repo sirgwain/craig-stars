@@ -77,6 +77,7 @@ type MineLayingRateByMineType struct {
 type ShipDesignPurpose string
 
 const (
+	ShipDesignPurposeNone              ShipDesignPurpose = ""
 	ShipDesignPurposeScout             ShipDesignPurpose = "Scout"
 	ShipDesignPurposeArmedScout        ShipDesignPurpose = "ArmedScout"
 	ShipDesignPurposeColonizer         ShipDesignPurpose = "Colonizer"
@@ -109,12 +110,23 @@ func (sd *ShipDesign) WithHull(hull string) *ShipDesign {
 	sd.Hull = hull
 	return sd
 }
+func (sd *ShipDesign) WithSlots(slots []ShipDesignSlot) *ShipDesign {
+	sd.Slots = slots
+	return sd
+}
+
 func (sd *ShipDesign) WithPurpose(purpose ShipDesignPurpose) *ShipDesign {
 	sd.Purpose = purpose
 	return sd
 }
 func (sd *ShipDesign) WithHullSetNumber(num int) *ShipDesign {
 	sd.HullSetNumber = num
+	return sd
+}
+
+// Compute the spec for this ShipDesign. This function is mostly for universe generation and tests
+func (sd *ShipDesign) WithSpec(rules *Rules, player *Player) *ShipDesign {
+	sd.Spec = ComputeShipDesignSpec(rules, player, sd)
 	return sd
 }
 
@@ -133,6 +145,7 @@ func ComputeShipDesignSpec(rules *Rules, player *Player, design *ShipDesign) *Sh
 		RepairBonus:             hull.RepairBonus,
 		ScanRange:               NoScanner,
 		ScanRangePen:            NoScanner,
+		SpaceDock:               hull.SpaceDock,
 	}
 
 	numTachyonDetectors := 0
@@ -140,7 +153,7 @@ func ComputeShipDesignSpec(rules *Rules, player *Player, design *ShipDesign) *Sh
 	for _, slot := range design.Slots {
 		if slot.Quantity > 0 {
 			component := rules.Techs.GetHullComponent(slot.HullComponent)
-			hullSlot := hull.Slots[slot.HullSlotIndex]
+			hullSlot := hull.Slots[slot.HullSlotIndex-1]
 
 			// record engine details
 			if hullSlot.Type == HullSlotTypeEngine {
@@ -261,7 +274,7 @@ func (spec *ShipDesignSpec) ComputeScanRanges(rules *Rules, player *Player, desi
 	spec.ScanRange = NoScanner
 	spec.ScanRangePen = NoScanner
 
-	// compu thecanner as a built in JoaT scanner if it's build in
+	// compute scanner as a built in JoaT scanner if it's built in
 	builtInScannerMultiplier := player.Race.Spec.BuiltInScannerMultiplier
 	if builtInScannerMultiplier > 0 && hull.BuiltInScanner {
 		spec.ScanRange = player.TechLevels.Electronics * builtInScannerMultiplier
@@ -288,12 +301,12 @@ func (spec *ShipDesignSpec) ComputeScanRanges(rules *Rules, player *Player, desi
 
 	// now quad root it
 	if spec.ScanRange != NoScanner {
-		spec.ScanRange = int(math.Pow(float64(spec.ScanRange), .25))
+		spec.ScanRange = int(math.Pow(float64(spec.ScanRange), .25) + .5)
 		spec.ScanRange = int(float64(spec.ScanRange) * player.Race.Spec.ScanRangeFactor)
 	}
 
 	if spec.ScanRangePen != NoScanner {
-		spec.ScanRangePen = int(math.Pow(float64(spec.ScanRangePen), .25))
+		spec.ScanRangePen = int(math.Pow(float64(spec.ScanRangePen), .25) + .5)
 	}
 
 	// if we have no pen scan but we have a regular scan, set the pen scan range to 0

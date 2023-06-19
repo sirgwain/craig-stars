@@ -12,8 +12,8 @@ type Fleet struct {
 	BaseName     string      `json:"baseName"`
 	Cargo        Cargo       `json:"cargo,omitempty" gorm:"embedded;embeddedPrefix:cargo_"`
 	Fuel         int         `json:"fuel"`
+	Damage       int         `json:"damage"`
 	BattlePlanID uint        `json:"battlePlan"`
-	DockCapacity int         `json:"dockCapacity"`
 	Tokens       []ShipToken `json:"tokens" gorm:"constraint:OnDelete:CASCADE;"`
 	Waypoints    []Waypoint  `json:"waypoints" gorm:"serializer:json"`
 	Spec         *FleetSpec  `json:"spec" gorm:"serializer:json"`
@@ -81,21 +81,25 @@ func NewPlanetWaypoint(planet *Planet, warpFactor int) Waypoint {
 	}
 }
 
+
 func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) *FleetSpec {
 	spec := FleetSpec{
 		ShipDesignSpec: ShipDesignSpec{
-			Mass:         fleet.Cargo.Total(),
 			ScanRange:    NoScanner,
 			ScanRangePen: NoScanner,
+			SpaceDock:    UnlimitedSpaceDock,
 		},
 	}
+	spec.Mass = fleet.Cargo.Total()
 
 	for _, token := range fleet.Tokens {
 
 		// update our total ship count
 		spec.TotalShips += token.Quantity
 
-		spec.Purposes = append(spec.Purposes, token.Design.Purpose)
+		if token.Design.Purpose != ShipDesignPurposeNone {
+			spec.Purposes = append(spec.Purposes, token.Design.Purpose)
+		}
 
 		// TODO: which default engine do we use for multiple fleets?
 		spec.Engine = token.Design.Spec.Engine

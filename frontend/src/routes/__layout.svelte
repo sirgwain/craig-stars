@@ -1,21 +1,19 @@
 <script lang="ts">
 	import { authGuard } from '$lib/authGuard';
 	import Menu from '$lib/components/Menu.svelte';
-	import { bindQuantityModifier, unbindQuantityModifier } from '$lib/quantityModifier';
 	import type { User } from '$lib/types/User';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
-	import '../app.css';
+	import '../css/app.css';
+	import '../css/planets.css';
+	import '../css/techs.css';
+	import '../css/hulls.css';
 
 	// verify the user, redirect otherwise
 	onMount(async () => {
-		bindQuantityModifier();
-
 		if (!$page.routeId?.startsWith('techs')) {
 			user = await authGuard();
 		}
-
-		return () => unbindQuantityModifier();
 	});
 
 	$: {

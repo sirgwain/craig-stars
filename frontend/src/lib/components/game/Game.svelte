@@ -7,7 +7,7 @@
 </script>
 
 <div class="flex flex-row h-full w-full">
-	<div class="flex-initial w-[15rem] lg:w-[29rem] overflow-y-auto">
+	<div class="flex-initial w-[16rem] lg:w-[30rem] overflow-y-auto">
 		<div class="flex flex-col">
 			<div class="flex-1">
 				<div class="flex flex-row flex-wrap gap-3.5 justify-between">

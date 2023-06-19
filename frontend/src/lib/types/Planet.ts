@@ -1,4 +1,5 @@
 import type { Cargo } from './Cargo';
+import type { Fleet } from './Fleet';
 import type { Hab } from './Hab';
 import type { MapObject } from './MapObject';
 import type { Mineral } from './Mineral';
@@ -22,6 +23,7 @@ export interface Planet extends MapObject {
 	scanner?: boolean;
 	reportAge: number;
 	productionQueue?: ProductionQueueItem[];
+	starbase?: Fleet;
 	spec?: PlanetSpec;
 }
 
@@ -106,5 +108,6 @@ export interface PlanetSpec {
 	canTerraform: boolean;
 	terraformAmount: boolean;
 	hasMassDriver: boolean;
+	hasStarbase: boolean;
 	dockCapacity: number;
 }

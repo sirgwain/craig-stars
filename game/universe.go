@@ -229,6 +229,7 @@ func generatePlayerFleets(game *Game, player *Player, planet *Planet, fleetNum *
 
 		fleet := NewFleet(player, design, *fleetNum, startingFleet.Name, []Waypoint{NewPlanetWaypoint(planet, design.Spec.IdealSpeed)})
 		fleet.Spec = ComputeFleetSpec(&game.Rules, player, &fleet)
+		fleet.Fuel = fleet.Spec.FuelCapacity
 		game.Fleets = append(game.Fleets, fleet)
 		(*fleetNum)++ // increment the fleet num
 	}

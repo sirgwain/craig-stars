@@ -279,6 +279,36 @@ func NewRace() *Race {
 	}
 }
 
+func (r *Race) WithLRT(lrt LRT) *Race {
+	r.LRTs |= Bitmask(lrt)
+	return r
+}
+
+func (r *Race) WithPRT(prt PRT) *Race {
+	r.PRT = prt
+	return r
+}
+
+func (r *Race) WithName(name string) *Race {
+	r.Name = name
+	return r
+}
+
+func (r *Race) WithPluralName(pluralname string) *Race {
+	r.PluralName = pluralname
+	return r
+}
+
+func (r *Race) WithGrowthRate(growthRate int) *Race {
+	r.GrowthRate = growthRate
+	return r
+}
+
+func (r *Race) WithSpec(rules *Rules) *Race {
+	r.Spec = computeRaceSpec(r, rules)
+	return r
+}
+
 func Humanoids() *Race {
 	return NewRace()
 }
@@ -309,31 +339,6 @@ func (r *Race) HabWidth() Hab {
 		(r.HabHigh.Temp - r.HabLow.Temp),
 		(r.HabHigh.Rad - r.HabLow.Rad),
 	}
-}
-
-func (r *Race) WithLRT(lrt LRT) *Race {
-	r.LRTs |= Bitmask(lrt)
-	return r
-}
-
-func (r *Race) WithPRT(prt PRT) *Race {
-	r.PRT = prt
-	return r
-}
-
-func (r *Race) WithName(name string) *Race {
-	r.Name = name
-	return r
-}
-
-func (r *Race) WithPluralName(pluralname string) *Race {
-	r.PluralName = pluralname
-	return r
-}
-
-func (r *Race) WithGrowthRate(growthRate int) *Race {
-	r.GrowthRate = growthRate
-	return r
 }
 
 // get this planet's habitabiliity from -45 to 100

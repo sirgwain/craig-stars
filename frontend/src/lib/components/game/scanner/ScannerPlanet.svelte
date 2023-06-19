@@ -23,52 +23,54 @@
 	let ringProps: any | undefined = undefined;
 
 	$: {
-		// green for us, gray for unexplored, white for explored
-		let color = '#555';
-		let strokeWidth = 0;
-		let strokeColor = '#555';
+		if ($mapObjectsByPosition && $myMapObjectsByPosition && $player) {
+			// green for us, gray for unexplored, white for explored
+			let color = '#555';
+			let strokeWidth = 0;
+			let strokeColor = '#555';
 
-		const key = positionKey(planet);
-		const mapObjectsAtPosition = $mapObjectsByPosition[key];
-		const myMapObjectsAtPosition = $myMapObjectsByPosition[key];
-		if (
-			myMapObjectsAtPosition?.find(
-				(m) => m.type == $commandedMapObject.type && m.id == $commandedMapObject.id
-			)
-		) {
-			commanded = true;
-		} else {
-			commanded = false;
-		}
+			const key = positionKey(planet);
+			const mapObjectsAtPosition = $mapObjectsByPosition[key];
+			const myMapObjectsAtPosition = $myMapObjectsByPosition[key];
+			if (
+				myMapObjectsAtPosition?.find(
+					(m) => m.type == $commandedMapObject.type && m.id == $commandedMapObject.id
+				)
+			) {
+				commanded = true;
+			} else {
+				commanded = false;
+			}
 
-		if (planet.playerNum === $player.num) {
-			color = '#00FF00';
-			strokeWidth = $xScale(2);
-		} else if ((planet as Planet)?.reportAge !== Unexplored) {
-			color = '#FFF';
-		}
+			if (planet.playerNum === $player.num) {
+				color = '#00FF00';
+				strokeWidth = $xScale(2);
+			} else if ((planet as Planet)?.reportAge !== Unexplored) {
+				color = '#FFF';
+			}
 
-		// if anything is orbiting our planet, put a ring on it
-		if (mapObjectsAtPosition.length > 1) {
-			ringProps = {
-				cx: $xGet(planet),
-				cy: $yGet(planet),
-				stroke: '#fff',
-				'stroke-width': $xScale(1),
-				r: $xScale(1) * (commanded ? 10 : 5),
-				'fill-opacity': 0
+			// if anything is orbiting our planet, put a ring on it
+			if (mapObjectsAtPosition.length > 1) {
+				ringProps = {
+					cx: $xGet(planet),
+					cy: $yGet(planet),
+					stroke: '#fff',
+					'stroke-width': $xScale(1),
+					r: $xScale(1) * (commanded ? 10 : 5),
+					'fill-opacity': 0
+				};
+			} else {
+				ringProps = undefined;
+			}
+
+			// setup the properties of our planet circle
+			props = {
+				r: $xScale(1) * (commanded ? 7 : 3),
+				fill: color,
+				stroke: strokeColor,
+				'stroke-width': strokeWidth
 			};
-		} else {
-			ringProps = undefined;
 		}
-
-		// setup the properties of our planet circle
-		props = {
-			r: $xScale(1) * (commanded ? 7 : 3),
-			fill: color,
-			stroke: strokeColor,
-			'stroke-width': strokeWidth
-		};
 	}
 </script>
 
