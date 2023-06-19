@@ -4,17 +4,17 @@ import type { MapObject } from './MapObject';
 import type { Mineral } from './Mineral';
 
 export interface Planet extends MapObject {
-	hab: Hab;
-	baseHab: Hab;
-	terraformedAmount: Hab;
-	mineralConcentration: Mineral;
-	mineYears: Mineral;
-	cargo: Cargo;
-	playerID: number;
+	hab?: Hab;
+	baseHab?: Hab;
+	terraformedAmount?: Hab;
+	mineralConcentration?: Mineral;
+	mineYears?: Mineral;
+	cargo?: Cargo;
+	playerID?: number;
 	mines?: number;
 	factories?: number;
 	defenses?: number;
-	contributesOnlyLeftoverToResearch: boolean;
+	contributesOnlyLeftoverToResearch?: boolean;
 	homeworld?: boolean;
 	scanner?: boolean;
 	reportAge?: number;

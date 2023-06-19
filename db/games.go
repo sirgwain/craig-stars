@@ -118,6 +118,16 @@ func (db *DB) SaveGame(game *game.Game) error {
 			return err
 		}
 
+		for j := range player.Designs {
+			design := player.Designs[j]
+			if design.Dirty {
+				err = db.sqlDB.Save(&player.Designs[j]).Error
+				if err != nil {
+					return err
+				}
+			}
+		}
+
 		for j := range player.PlanetIntels {
 			planet := &player.PlanetIntels[j]
 			if planet.Dirty {
@@ -141,7 +151,14 @@ func (db *DB) FindGameById(id uint) (*game.Game, error) {
 		Preload("Planets.ProductionQueue", func(db *gorm.DB) *gorm.DB {
 			return db.Order("production_queue_items.sort_order")
 		}).
+		Preload(clause.Associations).Preload("Fleets", func(db *gorm.DB) *gorm.DB {
+		return db.Order("fleets.num")
+	}).
 		Preload("Fleets.Tokens").
+		Preload("Planets.Starbase").
+		Preload("Players.Fleets.Tokens").
+		Preload("Players.Planets.Starbase").
+		Preload("Players.Planets.ProductionQueue").
 		Preload("Players.Race").
 		Preload("Players.Designs").
 		Preload("Players.PlanetIntels").

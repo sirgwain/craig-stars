@@ -244,6 +244,16 @@ func (g *Game) GenerateUniverse() error {
 		return err
 	}
 
+	// assign created fleets to player's list
+	// future queries from the DB will handle this, but for initial universe generation
+	// we want to make sure our player has pointers to any fleets the game has assigned to them
+	for i := range g.Fleets {
+		fleet := &g.Fleets[i]
+		player := &g.Players[*fleet.PlayerNum]
+
+		player.Fleets = append(player.Fleets, fleet)
+	}
+
 	// generatePlayerFleets(g)
 	applyGameStartModeModifier(g)
 

@@ -15,4 +15,23 @@
 	.text-germanium {
 		@apply text-[#feff00];
 	}
+	.ironium-bar {
+		@apply bg-[#0900ff];
+	}
+	.boranium-bar {
+		@apply bg-[#00ff00];
+	}
+	.germanium-bar {
+		@apply bg-[#ffff00];
+	}
+	.ironium-concentration {
+		@apply stroke-[#020085];
+	}
+	.boranium-concentration {
+		@apply stroke-[#008100];
+	}
+	.germanium-concentration {
+		@apply stroke-[#7f7f00];
+	}
 }
+

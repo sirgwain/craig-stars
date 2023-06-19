@@ -4,7 +4,7 @@
 	import ProductionQueue from '$lib/components/game/ProductionQueue.svelte';
 	import Toolbar from '$lib/components/game/Toolbar.svelte';
 	import { EventManager } from '$lib/EventManager';
-	import { commandedPlanet, game, player } from '$lib/services/Context';
+	import { commandPlanet, game, player, selectPlanet } from '$lib/services/Context';
 	import { GameService } from '$lib/services/GameService';
 	import { PlayerService } from '$lib/services/PlayerService';
 	import type { Game } from '$lib/types/Game';
@@ -29,9 +29,11 @@
 		// setGameContext(game, player);
 		const homeworld = $player.planets.find((p) => p.homeworld);
 		if (homeworld) {
-			commandedPlanet.update((p) => (p = homeworld));
+			commandPlanet(homeworld);
+			selectPlanet(homeworld);
 		} else {
-			commandedPlanet.update((p) => (p = $player.planets[0]));
+			commandPlanet($player.planets[0]);
+			selectPlanet($player.planets[0]);
 		}
 	}
 
