@@ -154,6 +154,10 @@ const (
 	VictoryConditionHighestScoreAfterYears  VictoryCondition = "HighestScoreAfterYears"
 )
 
+type playerGetter interface {
+	getPlayer(playerNum int) *Player
+}
+
 func NewGame() *Game {
 	seed := time.Now().UnixNano()
 	rules := NewRulesWithSeed(seed)
@@ -269,4 +273,12 @@ func (g *Game) WithSettings(settings GameSettings) *Game {
 	g.VictoryConditions = settings.VictoryConditions
 
 	return g
+}
+
+func (fg *FullGame) getPlayer(playerNum int) *Player {
+
+	if playerNum < 1 || playerNum > len(fg.Players)+1 {
+		return nil
+	}
+	return fg.Players[playerNum-1]
 }

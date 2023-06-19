@@ -297,6 +297,76 @@ func TestFleet_moveFleet(t *testing.T) {
 	}
 }
 
+func TestFleet_gateFleet(t *testing.T) {
+	rules := NewRules()
+	player := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1)
+	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}}
+	sourcePlanet := NewPlanet().WithNum(1).WithPlayerNum(1)
+	sourcePlanet.Spec = PlanetSpec{
+		HasStargate:  true,
+		SafeRange:    100,
+		SafeHullMass: 100,
+		MaxRange:     500,
+		MaxHullMass:  500,
+	}
+	destPlanet := NewPlanet().WithNum(2).WithPlayerNum(1)
+	destPlanet.Spec = PlanetSpec{
+		HasStargate:  true,
+		SafeRange:    100,
+		SafeHullMass: 100,
+		MaxRange:     500,
+		MaxHullMass:  500,
+	}
+
+	type args struct {
+		player  *Player
+		players []*Player
+		planets []*Planet
+	}
+	type want struct {
+		position          Vector
+		orbitingPlanetNum int
+	}
+	tests := []struct {
+		name  string
+		fleet *Fleet
+		args  args
+		want  want
+	}{
+		{
+			name: "gate between planets",
+			fleet: testLongRangeScout(player, &rules).
+				withOrbitingPlanetNum(sourcePlanet.Num).
+				withWaypoints([]Waypoint{NewPlanetWaypoint(Vector{0, 0}, 1, "planet 1", 5), NewPlanetWaypoint(Vector{50, 0}, 2, "planet 2", StargateWarpFactor)}),
+			args: args{player: player, players: []*Player{player}, planets: []*Planet{sourcePlanet, destPlanet}},
+			want: want{position: Vector{50, 0}, orbitingPlanetNum: destPlanet.Num},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			for _, token := range tt.fleet.Tokens {
+				player.Designs = append(player.Designs, token.design)
+			}
+			universe := Universe{Fleets: []*Fleet{tt.fleet}, Planets: tt.args.planets, rules: &rules, designsByNum: map[playerObject]*ShipDesign{}}
+			universe.buildMaps(tt.args.players)
+
+			fg := FullGame{
+				Players: tt.args.players,
+			}
+
+			tt.fleet.gateFleet(&universe, &fg, &rules, tt.args.player)
+
+			if tt.fleet.Position != tt.want.position {
+				t.Errorf("Fleet.gateFleet() position = %v, want %v", tt.fleet.Position, tt.want.position)
+			}
+			if tt.fleet.OrbitingPlanetNum != tt.want.orbitingPlanetNum {
+				t.Errorf("Fleet.gateFleet() OrbitingPlanetNum = %v, want %v", tt.fleet.OrbitingPlanetNum, tt.want.orbitingPlanetNum)
+			}
+
+		})
+	}
+}
+
 func TestFleet_getCargoLoadAmount(t *testing.T) {
 	rules := NewRules()
 	player := NewPlayer(1, NewRace().WithSpec(&rules))

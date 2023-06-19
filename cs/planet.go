@@ -89,7 +89,12 @@ type PlanetSpec struct {
 	CanTerraform              bool    `json:"canTerraform,omitempty"`
 	TerraformAmount           Hab     `json:"terraformAmount,omitempty"`
 	HasStarbase               bool    `json:"hasStarbase,omitempty"`
+	HasStargate               bool    `json:"hasStargate,omitempty"`
 	DockCapacity              int     `json:"dockCapacity,omitempty"`
+	SafeHullMass              int     `json:"safeHullMass,omitempty"`
+	SafeRange                 int     `json:"safeRange,omitempty"`
+	MaxHullMass               int     `json:"maxHullMass,omitempty"`
+	MaxRange                  int     `json:"maxRange,omitempty"`
 }
 
 func (item *ProductionQueueItem) String() string {
@@ -98,6 +103,11 @@ func (item *ProductionQueueItem) String() string {
 
 func NewPlanet() *Planet {
 	return &Planet{MapObject: MapObject{Type: MapObjectTypePlanet, Dirty: true, PlayerNum: Unowned}}
+}
+
+func (p *Planet) WithNum(num int) *Planet {
+	p.Num = num
+	return p
 }
 
 func (p *Planet) WithCargo(cargo Cargo) *Planet {
@@ -375,7 +385,16 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 		spec.ScanRangePen = scanner.ScanRangePen
 	}
 
-	spec.HasStarbase = planet.starbase != nil
+	starbase := planet.starbase
+	spec.HasStarbase = starbase != nil
+	if starbase != nil && starbase.Spec.HasStargate {
+		spec.HasStargate = starbase != nil && starbase.Spec.HasStargate
+		spec.SafeHullMass = starbase.Spec.SafeHullMass
+		spec.SafeRange = starbase.Spec.SafeRange
+		spec.MaxHullMass = starbase.Spec.MaxHullMass
+		spec.MaxRange = starbase.Spec.MaxRange
+
+	}
 
 	return spec
 }
@@ -559,7 +578,7 @@ func (planet *Planet) buildItems(player *Player, item ProductionQueueItem, numBu
 			result := terraformer.TerraformOneStep(planet, player, nil, false)
 			messager.terraform(player, planet, result.Type, result.Direction)
 		}
-		
+
 	case QueueItemTypeShipToken:
 		design := player.GetDesign(item.DesignName)
 		result.tokens = append(result.tokens, ShipToken{Quantity: numBuilt, design: design, DesignNum: design.Num})

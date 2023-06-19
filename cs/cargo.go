@@ -53,6 +53,14 @@ func (c Cargo) PrettyString() string {
 	return strings.Join(texts, ", ")
 }
 
+func (c Cargo) HasColonists() bool {
+	return c.Colonists > 0
+}
+
+func (c Cargo) HasMinerals() bool {
+	return (c.Ironium + c.Boranium + c.Germanium) > 0
+}
+
 func (c Cargo) Negative() Cargo {
 	return Cargo{
 		Ironium:   -c.Ironium,
