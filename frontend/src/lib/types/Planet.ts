@@ -3,7 +3,7 @@ import type { Fleet } from './Fleet';
 import type { Hab } from './Hab';
 import { MapObjectType, type MapObject } from './MapObject';
 import type { Mineral } from './Mineral';
-import type { Player } from './Player';
+import type { PlayerResponse } from './Player';
 import type { ShipDesign } from './ShipDesign';
 import { UnlimitedSpaceDock } from './Tech';
 import type { Vector } from './Vector';

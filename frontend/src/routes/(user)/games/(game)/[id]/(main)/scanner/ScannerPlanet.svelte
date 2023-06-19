@@ -26,7 +26,7 @@
 
 			if (planet.playerNum === $player.num) {
 				color = '#00FF00';
-				strokeWidth = $xScale(2);
+				strokeWidth = 2;
 			} else if (planet.reportAge !== Unexplored && !planet.playerNum) {
 				color = '#FFF';
 			} else if (planet.playerNum) {
@@ -39,8 +39,8 @@
 					cx: $xGet(planet),
 					cy: $yGet(planet),
 					stroke: '#fff',
-					'stroke-width': $xScale(1),
-					r: $xScale(1) * (commanded ? 10 : 5),
+					'stroke-width': 1,
+					r: 1 * (commanded ? 10 : 5),
 					'fill-opacity': 0
 				};
 			} else {
@@ -49,7 +49,7 @@
 
 			// setup the properties of our planet circle
 			props = {
-				r: $xScale(1) * (commanded ? 7 : 3),
+				r: 1 * (commanded ? 7 : 3),
 				fill: color,
 				stroke: strokeColor,
 				'stroke-width': strokeWidth

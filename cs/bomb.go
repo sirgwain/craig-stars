@@ -300,16 +300,6 @@ func (b *bomb) getStructuresDestroyed(defenseCoverage float64, bombs []Bomb) int
 	return int(structuresDestroyed * (1 - defenseCoverage*0.5))
 }
 
-// getMinColonistsKilled returns the minimum number of colonists killed by a bomb attack.
-func (b *bomb) getMinColonistsKilled(population int, defenseCoverage float64, bombs []*Bomb) int {
-	var minKilled float64 = 0
-	for _, bomb := range bombs {
-		minKilled += float64(bomb.MinKillRate) * float64(bomb.Quantity)
-	}
-
-	return int(minKilled * (1 - defenseCoverage))
-}
-
 // Get the number of colonists killed by smart bombs
 // ============================================================================
 // Each smart bomb type has a specific pop-kill percentage.  The values

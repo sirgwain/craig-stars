@@ -93,11 +93,24 @@ type PlayerSpec struct {
 
 type BattlePlan struct {
 	Name            string          `json:"name"`
-	PrimaryTarget   battleTarget    `json:"primaryTarget"`
-	SecondaryTarget battleTarget    `json:"secondaryTarget"`
+	PrimaryTarget   BattleTarget    `json:"primaryTarget"`
+	SecondaryTarget BattleTarget    `json:"secondaryTarget"`
 	Tactic          BattleTactic    `json:"tactic"`
 	AttackWho       BattleAttackWho `json:"attackWho"`
 }
+
+type BattleTarget string
+
+const (
+	BattleTargetNone              BattleTarget = ""
+	BattleTargetAny               BattleTarget = "Any"
+	BattleTargetStarbase          BattleTarget = "Starbase"
+	BattleTargetArmedShips        BattleTarget = "ArmedShips"
+	BattleTargetBombersFreighters BattleTarget = "BombersFreighters"
+	BattleTargetUnarmedShips      BattleTarget = "UnarmedShips"
+	BattleTargetFuelTransports    BattleTarget = "FuelTransports"
+	BattleTargetFreighters        BattleTarget = "Freighters"
+)
 
 type BattleTactic string
 

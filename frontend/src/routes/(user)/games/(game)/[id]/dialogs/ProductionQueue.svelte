@@ -8,7 +8,7 @@
 	import type { Game } from '$lib/types/Game';
 	import type { CommandedPlanet, ProductionQueueItem } from '$lib/types/Planet';
 	import { QueueItemType, isAuto } from '$lib/types/Planet';
-	import type { Player } from '$lib/types/Player';
+	import type { PlayerResponse } from '$lib/types/Player';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import {
 		ArrowLongDown,
@@ -22,7 +22,7 @@
 	import { createEventDispatcher } from 'svelte';
 
 	export let game: Game;
-	export let player: Player;
+	export let player: PlayerResponse;
 	export let designs: ShipDesign[];
 	export let planet: CommandedPlanet;
 
@@ -361,12 +361,20 @@
 					</label>
 				</div>
 				<div class="w-1/2 flex flex-row flex-wrap justify-between sm:justify-end">
-					<div class="grow"><button class="btn btn-sm btn-outline btn-secondary w-full">Prev</button></div>
-					<div class="grow"><button class="btn btn-sm btn-outline btn-secondary w-full">Next</button></div>
 					<div class="grow">
-						<button on:click={cancel} class="btn btn-sm btn-outline btn-secondary w-full">Cancel</button>
+						<button class="btn btn-sm btn-outline btn-secondary w-full">Prev</button>
 					</div>
-					<div class="grow"><button on:click={ok} class="btn btn-sm btn-primary w-full">Ok</button></div>
+					<div class="grow">
+						<button class="btn btn-sm btn-outline btn-secondary w-full">Next</button>
+					</div>
+					<div class="grow">
+						<button on:click={cancel} class="btn btn-sm btn-outline btn-secondary w-full"
+							>Cancel</button
+						>
+					</div>
+					<div class="grow">
+						<button on:click={ok} class="btn btn-sm btn-primary w-full">Ok</button>
+					</div>
 				</div>
 			</div>
 		</div>

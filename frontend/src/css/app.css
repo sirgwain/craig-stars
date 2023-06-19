@@ -7,7 +7,7 @@
 		@apply touch-manipulation rounded-none;
 	}
 	.cs-link {
-		@apply text-primary hover:text-accent
+		@apply text-primary hover:text-accent;
 	}
 	.card-body {
 		@apply text-base;
@@ -92,6 +92,17 @@
 	}
 }
 
+/* hide number spinner */
+.hide-spinner input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+.hide-spinner input[type='number'] {
+	-moz-appearance: textfield;
+}
+
 .waypoint-line {
 	fill: none;
 	stroke-linejoin: round;
@@ -106,6 +117,14 @@
 	stroke-linecap: round;
 	stroke-width: 3px;
 	stroke: #8480ff;
+}
+
+.beam-line {
+	fill: none;
+	stroke-linejoin: round;
+	stroke-linecap: round;
+	stroke-width: 3px;
+	stroke: #ff0000;
 }
 
 .fleet-commanded {

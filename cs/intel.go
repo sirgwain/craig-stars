@@ -90,7 +90,6 @@ type PlanetIntel struct {
 
 type ShipDesignIntel struct {
 	Intel
-	Name          string           `json:"name,omitempty"`
 	Hull          string           `json:"hull,omitempty"`
 	HullSetNumber int              `json:"hullSetNumber,omitempty"`
 	Version       int              `json:"version,omitempty"`
@@ -101,11 +100,14 @@ type ShipDesignIntel struct {
 
 type FleetIntel struct {
 	MapObjectIntel
-	PlanetIntelID   int64  `json:"-"` // for starbase fleets that are owned by a planet
-	Heading         Vector `json:"heading,omitempty"`
-	WarpSpeed       int    `json:"warpSpeed,omitempty"`
-	Cargo           Cargo  `json:"cargo,omitempty"`
-	CargoDiscovered bool   `json:"cargoDiscovered,omitempty"`
+	PlanetIntelID     int64       `json:"-,omitempty"` // for starbase fleets that are owned by a planet
+	Heading           Vector      `json:"heading,omitempty"`
+	OrbitingPlanetNum int         `json:"orbitingPlanetNum,omitempty"`
+	WarpSpeed         int         `json:"warpSpeed,omitempty"`
+	Mass              int         `json:"mass,omitempty"`
+	Cargo             Cargo       `json:"cargo,omitempty"`
+	CargoDiscovered   bool        `json:"cargoDiscovered,omitempty"`
+	Tokens            []ShipToken `json:"tokens,omitempty"`
 }
 
 type MineralPacketIntel struct {
@@ -263,8 +265,11 @@ func (d *discover) discoverFleet(player *Player, fleet *Fleet) {
 	intel.Name = fleet.Name
 	intel.PlayerNum = fleet.PlayerNum
 	intel.Position = fleet.Position
+	intel.OrbitingPlanetNum = fleet.OrbitingPlanetNum
 	intel.Heading = fleet.Heading
 	intel.WarpSpeed = fleet.WarpSpeed
+	intel.Mass = fleet.Spec.Mass
+	intel.Tokens = fleet.Tokens
 
 	player.FleetIntels = append(player.FleetIntels, intel)
 	d.fleetIntelsByKey[intel.String()] = &intel

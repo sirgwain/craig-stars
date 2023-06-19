@@ -11,7 +11,7 @@ export interface Race {
 
 	name: string;
 	pluralName: string;
-	spendLeftoverPointsOn: string;
+	spendLeftoverPointsOn?: string;
 	prt: PRT;
 	lrts: number;
 	habLow: Hab;

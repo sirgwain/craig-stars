@@ -147,113 +147,96 @@ import (
 // * Beam Bonus
 // * Capital Ship missiles doing double damage to capital ships
 // * Unit test FireTorpedo and FireBeamWeapon
+// * Add other battle plan tactics besides MaximizeDamage
 type battler interface {
-	HasTargets() bool
-	RunBattle() *BattleRecord
+	hasTargets() bool
+	runBattle() *BattleRecord
 }
 
 // battle defines the state of a battle as it progresses
 type battle struct {
-	Num               int
-	Planet            *Planet
-	Position          Vector
-	Fleets            []*Fleet
-	Tokens            []*battleToken
-	Round             int
-	hasTargets        bool
-	SortedWeaponSlots []*battleWeaponSlot
-	MoveOrder         [4][]*battleToken
-	Record            *BattleRecord
-	players           map[int]*Player
-	rules             *Rules
-	techFinder        TechFinder
+	num      int
+	planet   *Planet
+	position Vector
+	tokens   []*battleToken
+	round    int
+	players  map[int]*Player
+	record   *BattleRecord
+	rules    *Rules
 }
-
-type battleTarget string
-
-const (
-	BattleTargetNone              battleTarget = ""
-	BattleTargetAny               battleTarget = "Any"
-	BattleTargetStarbase          battleTarget = "Starbase"
-	BattleTargetArmedShips        battleTarget = "ArmedShips"
-	BattleTargetBombersFreighters battleTarget = "BombersFreighters"
-	BattleTargetUnarmedShips      battleTarget = "UnarmedShips"
-	BattleTargetFuelTransports    battleTarget = "FuelTransports"
-	BattleTargetFreighters        battleTarget = "Freighters"
-)
 
 type battleTokenAttribute int
 
 const (
-	BattleTokenAttributeUnarmed       battleTokenAttribute = 0
-	BattleTokenAttributeArmed         battleTokenAttribute = 1 << 0
-	BattleTokenAttributeBomber        battleTokenAttribute = 1 << 1
-	BattleTokenAttributeFreighter     battleTokenAttribute = 1 << 2
-	BattleTokenAttributeStarbase      battleTokenAttribute = 1 << 3
-	BattleTokenAttributeFuelTransport battleTokenAttribute = 1 << 4
+	battleTokenAttributeUnarmed       battleTokenAttribute = 0
+	battleTokenAttributeArmed         battleTokenAttribute = 1 << 0
+	battleTokenAttributeBomber        battleTokenAttribute = 1 << 1
+	battleTokenAttributeFreighter     battleTokenAttribute = 1 << 2
+	battleTokenAttributeStarbase      battleTokenAttribute = 1 << 3
+	battleTokenAttributeFuelTransport battleTokenAttribute = 1 << 4
 )
 
 // a token for a battle
 type battleToken struct {
 	BattleRecordToken
-	Fleet        *Fleet
-	Attributes   battleTokenAttribute
-	MoveTarget   *battleToken
-	TargetedBy   []*battleToken
-	Position     Vector
-	Destroyed    bool
-	Damaged      bool
-	RanAway      bool
-	MovesMade    int
-	Shields      int
-	TotalShields int
+	attributes   battleTokenAttribute
+	moveTarget   *battleToken
+	targetedBy   []*battleToken
+	weaponSlots  []*battleWeaponSlot
+	position     Vector
+	damaged      bool
+	destroyed    bool
+	ranAway      bool
+	movesMade    int
+	shields      int
+	totalShields int
 }
 
-func (bt *battleToken) GetDistanceAway(position Vector) int {
-	return int(math.Max(math.Abs(bt.Position.X-position.X), math.Abs(bt.Position.Y-position.Y)))
+func (bt *battleToken) hasWeapons() bool {
+	return (bt.attributes & battleTokenAttributeArmed) > 0
 }
 
-func (bt *battleToken) GetDistanceAwayWeaponSlot(weaponSlot *battleWeaponSlot) int {
-	return bt.GetDistanceAway(weaponSlot.Token.Position)
+func (bt *battleToken) getDistanceAway(position Vector) int {
+	return int(math.Max(math.Abs(bt.position.X-position.X), math.Abs(bt.position.Y-position.Y)))
 }
 
 func (bt *battleToken) String() string {
-	return fmt.Sprintf("%d %s (%d)", bt.Fleet.PlayerNum, bt.Token.design.Name, bt.Token.Quantity)
+	return fmt.Sprintf("%d %s (%d)", bt.PlayerNum, bt.Token.design.Name, bt.Token.Quantity)
 }
 
 type battleWeaponType int
 
 const (
-	BattleWeaponTypeBeam battleWeaponType = iota
-	BattleWeaponTypeTorpedo
+	battleWeaponTypeBeam battleWeaponType = iota
+	battleWeaponTypeTorpedo
 )
 
 // A token firing weapons
 type battleWeaponSlot struct {
 	// The token with the weapon
-	Token *battleToken
+	token *battleToken
 
 	// The weapon slot
-	Slot ShipDesignSlot
+	slot ShipDesignSlot
 
 	// The type of weapon this weapon slot is
-	WeaponType battleWeaponType
+	weaponType battleWeaponType
 
 	// Each weapon has a potential list of targets that is updated each turn
 	// This list is sorted by attractiveness
-	Targets []*battleToken
+	targets []*battleToken
 
 	// The range of this weapon
-	Range int
+	weaponRange int
 
 	// the power of the weapon
-	Power int
+	power int
 
 	// the accuracy of the weapon, if it's a torpedo
-	Accuracy int
+	accuracy int
 
 	// the initiative of the weapon
-	Initiative int
+	initiative int
 }
 
 // Return true if this weapon slot is in range of the token target
@@ -261,17 +244,17 @@ func (slot *battleWeaponSlot) isInRange(target *battleToken) bool {
 	if target == nil {
 		return false
 	}
-	return slot.isInRangePosition(target.Position)
+	return slot.isInRangePosition(target.position)
 }
 
 func (slot *battleWeaponSlot) isInRangePosition(position Vector) bool {
 	// diagonal shots count as one move, so we take the max distance on the x or y as our actual distance away
 	// i.e. 4 over, 1 up is 4 range away, 3 over 2 up is 3 range away, etc.
-	return slot.Token.GetDistanceAway(position) <= slot.Range
+	return slot.token.getDistanceAway(position) <= slot.weaponRange
 }
 
 func (slot *battleWeaponSlot) isInRangeValue(rangeValue int) bool {
-	return rangeValue <= slot.Range
+	return rangeValue <= slot.weaponRange
 }
 
 var positionsByPlayer = []Vector{
@@ -313,55 +296,74 @@ func newBattler(rules *Rules, techFinder TechFinder, players map[int]*Player, fl
 	for _, fleet := range fleets {
 		for _, token := range fleet.Tokens {
 			num++
+
 			battleToken := &battleToken{
 				BattleRecordToken: BattleRecordToken{
-					Num:       num,
-					PlayerNum: fleet.PlayerNum,
-					Token:     token,
+					Num:             num,
+					PlayerNum:       fleet.PlayerNum,
+					Token:           token,
+					Initiative:      token.design.Spec.Initiative,
+					Movement:        token.design.Spec.Movement,
+					Tactic:          fleet.battlePlan.Tactic,
+					PrimaryTarget:   fleet.battlePlan.PrimaryTarget,
+					SecondaryTarget: fleet.battlePlan.SecondaryTarget,
+					AttackWho:       fleet.battlePlan.AttackWho,
 				},
-				Fleet:        fleet,
-				Shields:      token.Quantity * token.design.Spec.Shield,
-				TotalShields: token.Quantity * token.design.Spec.Shield,
-				Attributes:   getBattleTokenAttributes(token),
+				shields:      token.Quantity * token.design.Spec.Shield,
+				totalShields: token.Quantity * token.design.Spec.Shield,
+				attributes:   getBattleTokenAttributes(token),
 			}
+			// get the weapon slots for a token
+			weaponSlots := make([]*battleWeaponSlot, 0)
+			hull := techFinder.GetHull(token.design.Hull)
+			for _, slot := range token.design.Spec.WeaponSlots {
+				bws := newBattleWeaponSlot(battleToken, slot, techFinder.GetHullComponent(slot.HullComponent), hull.RangeBonus)
+				weaponSlots = append(weaponSlots, bws)
+			}
+			battleToken.weaponSlots = weaponSlots
+
 			tokens = append(tokens, battleToken)
 			tokenRecords = append(tokenRecords, battleToken.BattleRecordToken)
 		}
 	}
 
+	planetNum := 0
+	if planet != nil {
+		planetNum = planet.Num
+	}
+
 	return &battle{
-		Planet:     planet,
-		Position:   fleets[0].Position,
-		Tokens:     tokens,
-		Record:     newBattleRecord(tokenRecords),
-		players:    players,
-		rules:      rules,
-		techFinder: techFinder,
+		planet:   planet,
+		position: fleets[0].Position,
+		tokens:   tokens,
+		record:   newBattleRecord(num, planetNum, fleets[0].Position, tokenRecords),
+		players:  players,
+		rules:    rules,
 	}
 }
 
 // newBattleWeaponSlot creates a new BattleWeaponSlot object
-func newBattleWeaponSlot(token *battleToken, slot ShipDesignSlot, hc TechHullComponent, rangeBonus int) *battleWeaponSlot {
+func newBattleWeaponSlot(token *battleToken, slot ShipDesignSlot, hc *TechHullComponent, rangeBonus int) *battleWeaponSlot {
 	weaponSlot := &battleWeaponSlot{
-		Token:      token,
-		Slot:       slot,
-		Targets:    []*battleToken{},
-		Range:      hc.Range + rangeBonus,
-		Power:      hc.Power,
-		Accuracy:   hc.Accuracy,
-		Initiative: hc.Initiative,
+		token:       token,
+		slot:        slot,
+		targets:     []*battleToken{},
+		weaponRange: hc.Range + rangeBonus,
+		power:       hc.Power,
+		accuracy:    hc.Accuracy,
+		initiative:  hc.Initiative,
 	}
 
 	if hc.Category == TechCategoryBeamWeapon {
-		weaponSlot.WeaponType = BattleWeaponTypeBeam
+		weaponSlot.weaponType = battleWeaponTypeBeam
 	} else if hc.Category == TechCategoryTorpedo {
-		weaponSlot.WeaponType = BattleWeaponTypeTorpedo
+		weaponSlot.weaponType = battleWeaponTypeTorpedo
 	}
 
 	return weaponSlot
 }
 
-func (b *battle) HasTargets() bool {
+func (b *battle) hasTargets() bool {
 	for _, token := range b.getRemainingTokens() {
 		if !token.Token.design.Spec.HasWeapons {
 			continue
@@ -373,48 +375,48 @@ func (b *battle) HasTargets() bool {
 	return false
 }
 
-// RunBattle runs a battle!
-func (b *battle) RunBattle() *BattleRecord {
-	planet := b.Planet
+// runBattle runs a battle!
+func (b *battle) runBattle() *BattleRecord {
+	planet := b.planet
 	if planet != nil {
-		log.Info().Msgf("Running a battle at %s involving %d players and %d tokens.", b.Planet.Name, len(b.players), len(b.Tokens))
+		log.Info().Msgf("Running a battle at %s involving %d players and %d tokens.", b.planet.Name, len(b.players), len(b.tokens))
 	} else {
-		log.Info().Msgf("Running a battle at (%.2f, %.2f) involving %d players and %d tokens.", b.Position.X, b.Position.Y, len(b.players), len(b.Tokens))
+		log.Info().Msgf("Running a battle at (%.2f, %.2f) involving %d players and %d tokens.", b.position.X, b.position.Y, len(b.players), len(b.tokens))
 	}
 
 	b.placeTokensOnBoard()
-	b.buildMovementOrder()
-	for b.Round = 1; b.Round <= b.rules.NumBattleRounds; b.Round++ {
-		b.Record.RecordNewRound()
+	moveOrder := b.buildMovementOrder(b.tokens)
+	for b.round = 1; b.round <= b.rules.NumBattleRounds; b.round++ {
+		b.record.RecordNewRound()
 
+		remainingTokens := b.getRemainingTokens()
 		// each round we build the SortedWeaponSlots list
 		// anew to account for ships that were destroyed
-		b.buildSortedWeaponSlots()
+		weaponSlots := b.getSortedWeaponSlots(remainingTokens)
 
 		// find new targets
-		b.findMoveTargets()
-		if b.hasTargets {
+		if b.findMoveTargets(remainingTokens) {
 			// if we still have targets, process the round
 
 			// movement is a repeating pattern of 4 movement blocks
 			// which we figured out in BuildMovement
-			roundBlock := b.Round % 4
-			for _, token := range b.MoveOrder[roundBlock] {
-				if !token.Destroyed && !token.RanAway {
-					b.moveToken(token)
+			roundBlock := b.round % 4
+			for _, token := range moveOrder[roundBlock] {
+				if !token.destroyed && !token.ranAway {
+					b.moveToken(token, weaponSlots)
 				}
 			}
 
 			// iterate over each weapon and fire if they have a target
-			for _, weaponSlot := range b.SortedWeaponSlots {
+			for _, weaponSlot := range weaponSlots {
 				// find all available targets for this weapon
-				b.findTargets(weaponSlot)
+				b.findTargets(weaponSlot, remainingTokens)
 				b.fireWeaponSlot(weaponSlot)
 			}
 
 			// at the end of this round, regenerate shields
-			for _, token := range b.Tokens {
-				if !token.Destroyed && !token.RanAway && token.Shields > 0 {
+			for _, token := range b.tokens {
+				if !token.destroyed && !token.ranAway && token.shields > 0 {
 					b.regenerateShields(token)
 				}
 			}
@@ -424,30 +426,23 @@ func (b *battle) RunBattle() *BattleRecord {
 		}
 	}
 
-	// tell players about the battle
-	for _, player := range b.players {
-		_ = player
-		// Message.battle(game.Players[playerID], b.Planet, b.Position, playerRecord)
-		// messager.battle(player, b.Planet, b.Position, b.Record)
-	}
-
-	return b.Record
+	return b.record
 }
 
 func (battle *battle) placeTokensOnBoard() {
 	tokensByPlayer := make(map[int][]*battleToken)
-	for _, token := range battle.Tokens {
+	for _, token := range battle.tokens {
 		tokensByPlayer[token.PlayerNum] = append(tokensByPlayer[token.PlayerNum], token)
 	}
 	playerIndex := 0
 	for _, tokens := range tokensByPlayer {
 		for _, token := range tokens {
-			token.Position = positionsByPlayer[playerIndex]
-			battle.Record.RecordStartingPosition(token.Num, token.Position)
+			token.position = positionsByPlayer[playerIndex]
+			battle.record.RecordStartingPosition(token.Num, token.position)
 		}
 		playerIndex++
 		if playerIndex >= len(positionsByPlayer) {
-			log.Warn().Int("BattleNum", battle.Num).Msg("Oh noes! We have a battle with more players than we have positions for...")
+			log.Warn().Int("BattleNum", battle.num).Msg("Oh noes! We have a battle with more players than we have positions for...")
 			playerIndex = 0
 		}
 	}
@@ -456,8 +451,8 @@ func (battle *battle) placeTokensOnBoard() {
 // getRemainingTokens returns an enumerable of remaining tokens
 func (b *battle) getRemainingTokens() []*battleToken {
 	remaining := []*battleToken{}
-	for _, token := range b.Tokens {
-		if !(token.Destroyed || token.RanAway) {
+	for _, token := range b.tokens {
+		if !(token.destroyed || token.ranAway) {
 			remaining = append(remaining, token)
 		}
 	}
@@ -466,45 +461,45 @@ func (b *battle) getRemainingTokens() []*battleToken {
 
 // convert hulltype to BattleTokenAttributes
 func getBattleTokenAttributes(token ShipToken) battleTokenAttribute {
-	attributes := BattleTokenAttributeUnarmed
+	attributes := battleTokenAttributeUnarmed
 	hullType := token.design.Spec.HullType
 
 	if hullType == TechHullTypeStarbase {
-		attributes |= BattleTokenAttributeStarbase
+		attributes |= battleTokenAttributeStarbase
 	}
 
 	if token.design.Spec.HasWeapons {
-		attributes |= BattleTokenAttributeArmed
+		attributes |= battleTokenAttributeArmed
 	}
 
 	if hullType == TechHullTypeFreighter {
-		attributes |= BattleTokenAttributeFreighter
+		attributes |= battleTokenAttributeFreighter
 	}
 
 	if hullType == TechHullTypeFuelTransport {
-		attributes |= BattleTokenAttributeFuelTransport
+		attributes |= battleTokenAttributeFuelTransport
 	}
 
 	if hullType == TechHullTypeBomber {
-		attributes |= BattleTokenAttributeBomber
+		attributes |= battleTokenAttributeBomber
 	}
 
 	return attributes
 }
 
 // Find all the targets for a weapon
-func (b *battle) findTargets(weapon *battleWeaponSlot) {
-	weapon.Targets = weapon.Targets[:0]
-	attacker := weapon.Token
-	primaryTarget := attacker.Fleet.battlePlan.PrimaryTarget
-	secondaryTarget := attacker.Fleet.battlePlan.SecondaryTarget
+func (b *battle) findTargets(weapon *battleWeaponSlot, tokens []*battleToken) {
+	weapon.targets = weapon.targets[:0]
+	attacker := weapon.token
+	primaryTarget := attacker.PrimaryTarget
+	secondaryTarget := attacker.SecondaryTarget
 
 	var primaryTargets []*battleToken
 	var secondaryTargets []*battleToken
 
 	// Find all enemy tokens
-	for _, token := range b.getRemainingTokens() {
-		if !b.willAttack(attacker.Fleet, b.players[attacker.PlayerNum], token.PlayerNum) {
+	for _, token := range tokens {
+		if !b.willAttack(attacker, b.players[attacker.PlayerNum], token.PlayerNum) {
 			continue
 		}
 
@@ -524,32 +519,34 @@ func (b *battle) findTargets(weapon *battleWeaponSlot) {
 		return weapon.getAttractiveness(secondaryTargets[i]) < weapon.getAttractiveness(secondaryTargets[j])
 	})
 
-	weapon.Targets = append(weapon.Targets, primaryTargets...)
-	weapon.Targets = append(weapon.Targets, secondaryTargets...)
+	weapon.targets = append(weapon.targets, primaryTargets...)
+	weapon.targets = append(weapon.targets, secondaryTargets...)
 }
 
 // findMoveTargets allocates targets for each token in a battle.
-func (b *battle) findMoveTargets() {
-	b.hasTargets = false
-	for _, token := range b.getRemainingTokens() {
+func (b *battle) findMoveTargets(tokens []*battleToken) bool {
+	hasTargets := false
+	for _, token := range tokens {
 		if !token.Token.design.Spec.HasWeapons {
 			continue
 		}
-		token.MoveTarget = b.getTarget(token, b.getRemainingTokens())
-		if token.MoveTarget != nil {
-			token.MoveTarget.TargetedBy = append(token.MoveTarget.TargetedBy, token)
+		token.moveTarget = b.getTarget(token, tokens)
+		if token.moveTarget != nil {
+			token.moveTarget.targetedBy = append(token.moveTarget.targetedBy, token)
 		}
-		b.hasTargets = token.MoveTarget != nil || b.hasTargets
+		hasTargets = token.moveTarget != nil || hasTargets
 	}
+
+	return hasTargets
 }
 
 // buildMovementOrder builds a list of Movers in this battle.
 // Each ship moves in order of mass with heavier ships moving first.
 // Ships that can move 3 times in a round move first, then ships that move 2 times, then 1.
-func (b *battle) buildMovementOrder() {
+func (b *battle) buildMovementOrder(tokens []*battleToken) (moveOrder [4][]*battleToken) {
 	// our tokens are moved by mass
 	tokensByMass := make([]*battleToken, 0)
-	for _, token := range b.Tokens {
+	for _, token := range tokens {
 		if token.Token.design.Spec.Movement > 0 { // starbases don't move
 			tokensByMass = append(tokensByMass, token)
 		}
@@ -571,37 +568,38 @@ func (b *battle) buildMovementOrder() {
 
 				// see if this token can move on this moveNum (i.e. move 1, 2, or 3)
 				if movementByRound[movement-2][roundBlock] > moveNum {
-					b.MoveOrder[roundBlock] = append(b.MoveOrder[roundBlock], token)
+					moveOrder[roundBlock] = append(moveOrder[roundBlock], token)
 				}
 			}
 		}
 	}
+	return moveOrder
 }
 
 // Fire the weapon slot towards its target
 func (b *battle) fireWeaponSlot(weapon *battleWeaponSlot) {
-	if len(weapon.Targets) == 0 || weapon.Token.Destroyed || weapon.Token.RanAway {
+	if len(weapon.targets) == 0 || weapon.token.destroyed || weapon.token.ranAway {
 		// no targets, nothing to do
 		return
 	}
 
-	switch weapon.WeaponType {
-	case BattleWeaponTypeBeam:
+	switch weapon.weaponType {
+	case battleWeaponTypeBeam:
 		b.fireBeamWeapon(weapon)
-	case BattleWeaponTypeTorpedo:
+	case battleWeaponTypeTorpedo:
 		b.fireTorpedo(weapon)
 	}
 }
 
 func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot) {
-	attackerShipToken := weapon.Token.Token
-	damage := weapon.Power * weapon.Slot.Quantity * attackerShipToken.Quantity
+	attackerShipToken := weapon.token.Token
+	damage := weapon.power * weapon.slot.Quantity * attackerShipToken.Quantity
 	remainingDamage := float64(damage)
 
-	log.Debug().Msgf("%v is firing at %v targets for a total of %v damage", weapon.Token, len(weapon.Targets), damage)
+	log.Debug().Msgf("%v is attempting to fire at %v targets for a total of %v damage", weapon.token, len(weapon.targets), damage)
 
-	for _, target := range weapon.Targets {
-		if target.Destroyed || target.RanAway {
+	for _, target := range weapon.targets {
+		if target.destroyed || target.ranAway {
 			continue
 		}
 		if remainingDamage == 0 {
@@ -609,17 +607,17 @@ func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot) {
 		}
 
 		targetShipToken := target.Token
-		shields := target.Shields
+		shields := target.shields
 		armor := targetShipToken.design.Spec.Armor
 
-		distance := weapon.Token.GetDistanceAway(target.Position)
-		rangedDamage := int(float64(remainingDamage) * (1 - b.rules.BeamRangeDropoff*float64(distance)/float64(weapon.Range)))
+		distance := weapon.token.getDistanceAway(target.position)
+		rangedDamage := int(float64(remainingDamage) * (1 - b.rules.BeamRangeDropoff*float64(distance)/float64(weapon.weaponRange)))
 
-		log.Debug().Msgf("%v fired %v %v(s) at %v (shields: %v, armor: %v, distance: %v, %v@%v damage) for %v (range adjusted to %v)", weapon.Token, weapon.Slot.Quantity, weapon.Slot.HullComponent, target, shields, armor, distance, targetShipToken.Quantity, targetShipToken.Damage, remainingDamage, rangedDamage)
+		log.Debug().Msgf("%v fired %v %v(s) at %v (shields: %v, armor: %v, distance: %v, %v@%v damage) for %v (range adjusted to %v)", weapon.token, weapon.slot.Quantity, weapon.slot.HullComponent, target, shields, armor, distance, targetShipToken.Quantity, targetShipToken.Damage, remainingDamage, rangedDamage)
 
 		if rangedDamage > shields {
 			remainingDamage = float64(rangedDamage - shields)
-			target.Shields = 0
+			target.shields = 0
 
 			existingDamage := targetShipToken.Damage * float64(targetShipToken.QuantityDamaged)
 			remainingDamage += existingDamage
@@ -630,10 +628,10 @@ func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot) {
 				targetShipToken.Quantity = 0
 				remainingDamage -= float64(armor * numDestroyed)
 
-				target.Destroyed = true
-				log.Debug().Msgf("%v %v %v(s) hit %v, did %v shield damage and %v armor damage and completely destroyed %v", weapon.Token, weapon.Slot.Quantity, weapon.Slot.HullComponent, target, shields, rangedDamage-shields, target)
+				target.destroyed = true
+				log.Debug().Msgf("%v %v %v(s) hit %v, did %v shield damage and %v armor damage and completely destroyed %v", weapon.token, weapon.slot.Quantity, weapon.slot.HullComponent, target, shields, rangedDamage-shields, target)
 
-				b.Record.RecordBeamFire(b.Round, weapon.Token, weapon.Token.Position, target.Position, weapon.Slot.HullSlotIndex, target, shields, rangedDamage-shields, numDestroyed)
+				b.record.RecordBeamFire(b.round, weapon.token, weapon.token.position, target.position, weapon.slot.HullSlotIndex, target, shields, rangedDamage-shields, numDestroyed)
 			} else {
 				if numDestroyed > 0 {
 					targetShipToken.Quantity -= numDestroyed
@@ -645,20 +643,20 @@ func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot) {
 					targetShipToken.Damage = remainingDamage / float64(targetShipToken.Quantity)
 					targetShipToken.QuantityDamaged = targetShipToken.Quantity
 					remainingDamage = 0
-					log.Debug().Msgf("%v destroyed %v ships, leaving %v damaged %v@%v damage", weapon.Token, numDestroyed, target, targetShipToken.Quantity, targetShipToken.Damage)
+					log.Debug().Msgf("%v destroyed %v ships, leaving %v damaged %v@%v damage", weapon.token, numDestroyed, target, targetShipToken.Quantity, targetShipToken.Damage)
 				}
 
-				b.Record.RecordBeamFire(b.Round, weapon.Token, weapon.Token.Position, target.Position, weapon.Slot.HullSlotIndex, target, shields, rangedDamage-shields, numDestroyed)
+				b.record.RecordBeamFire(b.round, weapon.token, weapon.token.position, target.position, weapon.slot.HullSlotIndex, target, shields, rangedDamage-shields, numDestroyed)
 			}
 
 		} else {
-			target.Shields -= rangedDamage
-			log.Debug().Msgf("%v firing %v %v(s) did %v damage to %v shields, leaving %v shields still operational.", weapon.Token, weapon.Slot.Quantity, weapon.Slot.HullComponent, rangedDamage, target, target.Shields)
-			b.Record.RecordBeamFire(b.Round, weapon.Token, weapon.Token.Position, target.Position, weapon.Slot.HullSlotIndex, target, rangedDamage, 0, 0)
+			target.shields -= rangedDamage
+			log.Debug().Msgf("%v firing %v %v(s) did %v damage to %v shields, leaving %v shields still operational.", weapon.token, weapon.slot.Quantity, weapon.slot.HullComponent, rangedDamage, target, target.shields)
+			b.record.RecordBeamFire(b.round, weapon.token, weapon.token.position, target.position, weapon.slot.HullSlotIndex, target, rangedDamage, 0, 0)
 		}
-		log.Debug().Msgf("%v %v %v(s) has %v remaining dp to burn through %v additional targets.", weapon.Token, weapon.Slot.Quantity, weapon.Slot.HullComponent, remainingDamage, len(weapon.Targets)-1)
+		log.Debug().Msgf("%v %v %v(s) has %v remaining dp to burn through %v additional targets.", weapon.token, weapon.slot.Quantity, weapon.slot.HullComponent, remainingDamage, len(weapon.targets)-1)
 
-		target.Damaged = true
+		target.damaged = true
 	}
 }
 
@@ -668,20 +666,20 @@ func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot) {
 // Each torpedo has an accuracy rating. That determines if it hits. A torpedo that
 // misses still explodes and does 1/8th damage to shields
 func (b *battle) fireTorpedo(weapon *battleWeaponSlot) {
-	attackerShipToken := weapon.Token.Token
+	attackerShipToken := weapon.token.Token
 	// damage is power * number of weapons * number of attackers.
-	damage := weapon.Power
-	torpedoInaccuracyFactor := weapon.Token.Token.design.Spec.TorpedoInaccuracyFactor
-	accuracy := (100.0 - (100.0-float64(weapon.Accuracy))*torpedoInaccuracyFactor) / 100.0
-	numTorpedos := weapon.Slot.Quantity * attackerShipToken.Quantity
+	damage := weapon.power
+	torpedoInaccuracyFactor := weapon.token.Token.design.Spec.TorpedoInaccuracyFactor
+	accuracy := (100.0 - (100.0-float64(weapon.accuracy))*torpedoInaccuracyFactor) / 100.0
+	numTorpedos := weapon.slot.Quantity * attackerShipToken.Quantity
 	remainingTorpedos := float64(numTorpedos)
 
-	log.Debug().Msgf("%s is firing at %d targets with %d torpedos at %.2f%% accuracy for %d damage each",
-		weapon.Token, len(weapon.Targets), numTorpedos, accuracy*100.0, damage)
+	log.Debug().Msgf("%s is attempting to fire at %d targets with %d torpedos at %.2f%% accuracy for %d damage each",
+		weapon.token, len(weapon.targets), numTorpedos, accuracy*100.0, damage)
 
 	torpedoNum := 0
-	for _, target := range weapon.Targets {
-		if target.Destroyed || target.RanAway {
+	for _, target := range weapon.targets {
+		if target.destroyed || target.ranAway {
 			// this token isn't valid anymore, skip it
 			continue
 		}
@@ -693,7 +691,7 @@ func (b *battle) fireTorpedo(weapon *battleWeaponSlot) {
 
 		targetShipToken := target.Token
 		// shields are shared among all tokens
-		shields := target.Shields
+		shields := target.shields
 		armor := targetShipToken.design.Spec.Armor
 
 		totalShieldDamage := 0
@@ -702,7 +700,7 @@ func (b *battle) fireTorpedo(weapon *battleWeaponSlot) {
 		misses := 0
 		shipsDestroyed := 0
 
-		for remainingTorpedos > 0 && !target.Destroyed {
+		for remainingTorpedos > 0 && !target.destroyed {
 			// fire a torpedo
 			torpedoNum++
 			remainingTorpedos--
@@ -725,15 +723,15 @@ func (b *battle) fireTorpedo(weapon *battleWeaponSlot) {
 				} else {
 					actualShieldDamage = shieldDamage
 				}
-				target.Shields -= int(actualShieldDamage)
+				target.shields -= int(actualShieldDamage)
 
 				// this torpedo blew up a ship, hooray!
 				if armorDamage+targetShipToken.Damage/float64(targetShipToken.QuantityDamaged) >= float64(armor) {
 					targetShipToken.Quantity--
 					if targetShipToken.Quantity <= 0 {
 						// record that we destroyed this token
-						target.Destroyed = true
-						log.Debug().Msgf("%v torpedo number %v hit %v, did %v shield damage and %v armor damage and completely destroyed %v", weapon.Token, torpedoNum, target, actualShieldDamage, armorDamage, target)
+						target.destroyed = true
+						log.Debug().Msgf("%v torpedo number %v hit %v, did %v shield damage and %v armor damage and completely destroyed %v", weapon.token, torpedoNum, target, actualShieldDamage, armorDamage, target)
 
 						totalShieldDamage += int(actualShieldDamage)
 						totalArmorDamage += int(armorDamage)
@@ -749,7 +747,7 @@ func (b *battle) fireTorpedo(weapon *battleWeaponSlot) {
 					targetShipToken.QuantityDamaged = targetShipToken.Quantity
 					actualArmorDamage := int(targetShipToken.Damage - previousDamage)
 
-					log.Debug().Msgf("%v torpedo number %v hit %v, did %v shield damage and %v armor damage leaving %v@%v damage", weapon.Token, torpedoNum, target, actualShieldDamage, actualArmorDamage, targetShipToken.Quantity, targetShipToken.Damage)
+					log.Debug().Msgf("%v torpedo number %v hit %v, did %v shield damage and %v armor damage leaving %v@%v damage", weapon.token, torpedoNum, target, actualShieldDamage, actualArmorDamage, targetShipToken.Quantity, targetShipToken.Damage)
 
 					totalShieldDamage += int(actualShieldDamage)
 					totalArmorDamage += int(targetShipToken.Damage - previousDamage)
@@ -760,37 +758,37 @@ func (b *battle) fireTorpedo(weapon *battleWeaponSlot) {
 				// round up, do a minimum of 1 damage
 				shieldDamage := int(math.Min(1, math.Round(b.rules.TorpedoSplashDamage*float64(damage))))
 				actualShieldDamage := shieldDamage
-				if shieldDamage > target.Shields {
-					actualShieldDamage = target.Shields
+				if shieldDamage > target.shields {
+					actualShieldDamage = target.shields
 				}
-				target.Shields = int(math.Max(0, float64(target.Shields-shieldDamage)))
-				log.Debug().Msgf("%s torpedo number %d missed %s, did %d damage to shields leaving %d shields", weapon.Token, torpedoNum, target, shieldDamage, target.Shields)
+				target.shields = int(math.Max(0, float64(target.shields-shieldDamage)))
+				log.Debug().Msgf("%s torpedo number %d missed %s, did %d damage to shields leaving %d shields", weapon.token, torpedoNum, target, shieldDamage, target.shields)
 
 				totalShieldDamage += actualShieldDamage
 			}
 		}
-		b.Record.RecordTorpedoFire(b.Round, weapon.Token, weapon.Token.Position, target.Position, weapon.Slot.HullSlotIndex, target, totalShieldDamage, totalArmorDamage, shipsDestroyed, hits, misses)
+		b.record.RecordTorpedoFire(b.round, weapon.token, weapon.token.position, target.position, weapon.slot.HullSlotIndex, target, totalShieldDamage, totalArmorDamage, shipsDestroyed, hits, misses)
 	}
 }
 
 // moveToken moves a token towards or away from its target
 // TODO: figure out moving away/random
-func (b *battle) moveToken(token *battleToken) {
+func (b *battle) moveToken(token *battleToken, weaponSlots []*battleWeaponSlot) {
 	// count this token's moves
-	token.MovesMade++
-	if token.MoveTarget == nil || !token.Token.design.Spec.HasWeapons {
-		// tokens with no weapons always run away
-		b.runAway(token)
-		return
+	token.movesMade++
+
+	// always disengage if we have no weapons or targets
+	tactic := token.Tactic
+	if token.moveTarget == nil || !token.Token.design.Spec.HasWeapons {
+		tactic = BattleTacticDisengage
 	}
 
-	// we have weapons, figure out our tactic and targets
-	switch token.Fleet.battlePlan.Tactic {
+	switch tactic {
 	case BattleTacticDisengage:
-		b.runAway(token)
+		b.runAway(token, weaponSlots)
 	case BattleTacticDisengageIfChallenged:
-		if token.Damaged {
-			b.runAway(token)
+		if token.damaged {
+			b.runAway(token, weaponSlots)
 		} else {
 			b.maximizeDamage(token)
 		}
@@ -804,21 +802,21 @@ func (b *battle) moveToken(token *battleToken) {
 func (b *battle) regenerateShields(token *battleToken) {
 	player := b.players[token.PlayerNum]
 
-	if player.Race.Spec.ShieldRegenerationRate > 0 && token.Shields > 0 {
-		regenerationAmount := int(float64(token.TotalShields)*player.Race.Spec.ShieldRegenerationRate + 0.5)
-		token.Shields = int(clamp(token.Shields+regenerationAmount, 0, token.TotalShields))
+	if player.Race.Spec.ShieldRegenerationRate > 0 && token.shields > 0 {
+		regenerationAmount := int(float64(token.totalShields)*player.Race.Spec.ShieldRegenerationRate + 0.5)
+		token.shields = int(clamp(token.shields+regenerationAmount, 0, token.totalShields))
 	}
 }
 
 func (b *battle) maximizeDamage(token *battleToken) {
-	if token.MoveTarget != nil {
-		newPosition := token.Position
-		if token.Position.Y > token.MoveTarget.Position.Y {
+	if token.moveTarget != nil {
+		newPosition := token.position
+		if token.position.Y > token.moveTarget.position.Y {
 			newPosition.Y--
 		} else {
 			newPosition.Y++
 		}
-		if token.Position.X > token.MoveTarget.Position.X {
+		if token.position.X > token.moveTarget.position.X {
 			newPosition.X--
 		} else {
 			newPosition.X++
@@ -829,35 +827,36 @@ func (b *battle) maximizeDamage(token *battleToken) {
 		newPosition.Y = float64(clamp(int(newPosition.Y), 0, 9))
 
 		// create a move record for the viewer and then move the token
-		b.Record.RecordMove(b.Round, token, token.Position, newPosition)
-		token.Position = newPosition
+		b.record.RecordMove(b.round, token, token.position, newPosition)
+		token.position = newPosition
 	}
 }
 
-func (b *battle) runAway(token *battleToken) {
+func (b *battle) runAway(token *battleToken, weapons []*battleWeaponSlot) {
 
-	if token.MovesMade >= b.rules.MovesToRunAway {
-		token.RanAway = true
-		b.Record.RecordRunAway(b.Round, token)
+	if token.movesMade >= b.rules.MovesToRunAway {
+		token.ranAway = true
+		b.record.RecordRunAway(b.round, token)
+		return
 	}
 
 	// if we are in range of a weapon, move away, otherwise move randomly
 	weaponsInRange := make([]*battleWeaponSlot, 0)
-	for _, weapon := range b.SortedWeaponSlots {
+	for _, weapon := range weapons {
 		if weapon.isInRange(token) {
 			weaponsInRange = append(weaponsInRange, weapon)
 		}
 	}
 
 	possiblePositions := []Vector{
-		token.Position.Add(VectorRight),
-		token.Position.Add(VectorLeft),
-		token.Position.Add(VectorDown),
-		token.Position.Add(VectorUp),
-		token.Position.Add(VectorUp).Add(VectorRight),
-		token.Position.Add(VectorUp).Add(VectorLeft),
-		token.Position.Add(VectorDown).Add(VectorRight),
-		token.Position.Add(VectorDown).Add(VectorLeft),
+		token.position.Add(VectorRight),
+		token.position.Add(VectorLeft),
+		token.position.Add(VectorDown),
+		token.position.Add(VectorUp),
+		token.position.Add(VectorUp).Add(VectorRight),
+		token.position.Add(VectorUp).Add(VectorLeft),
+		token.position.Add(VectorDown).Add(VectorRight),
+		token.position.Add(VectorDown).Add(VectorLeft),
 	}
 
 	var newPosition Vector
@@ -874,7 +873,7 @@ func (b *battle) runAway(token *battleToken) {
 			}
 			numWeaponsInRange := 0
 			for _, weapon := range weaponsInRange {
-				distanceAway := weapon.Token.GetDistanceAway(possiblePosition)
+				distanceAway := weapon.token.getDistanceAway(possiblePosition)
 				if weapon.isInRangeValue(distanceAway) {
 					numWeaponsInRange++
 					if distanceAway > maxNumWeaponsInRange {
@@ -896,13 +895,18 @@ func (b *battle) runAway(token *battleToken) {
 		newPosition.Y = float64(clamp(int(newPosition.Y), 0, 9))
 
 		// move to our new position
-		b.Record.RecordMove(b.Round, token, token.Position, newPosition)
-		token.Position = newPosition
+		b.record.RecordMove(b.round, token, token.position, newPosition)
+		token.position = newPosition
 	} else {
 		// move at random
 		newPosition = possiblePositions[b.rules.random.Intn(len(possiblePositions))]
-		b.Record.RecordMove(b.Round, token, token.Position, newPosition)
-		token.Position = newPosition
+
+		// we can't move off board (this should never be a problem)
+		newPosition.X = float64(clamp(int(newPosition.X), 0, 9))
+		newPosition.Y = float64(clamp(int(newPosition.Y), 0, 9))
+
+		b.record.RecordMove(b.round, token, token.position, newPosition)
+		token.position = newPosition
 	}
 }
 
@@ -912,12 +916,12 @@ func (b *battle) getTarget(attacker *battleToken, defenders []*battleToken) *bat
 	var secondaryTarget *battleToken
 	var primaryTargetAttractiveness float64
 	var secondaryTargetAttractiveness float64
-	primaryTargetOrder := attacker.Fleet.battlePlan.PrimaryTarget
-	secondaryTargetOrder := attacker.Fleet.battlePlan.SecondaryTarget
+	primaryTargetOrder := attacker.PrimaryTarget
+	secondaryTargetOrder := attacker.SecondaryTarget
 
 	// TODO: We need to account for the fact that if a fleet targets us, we will target them back
 	for _, defender := range defenders {
-		if !(defender.Destroyed || defender.RanAway) && b.willAttack(attacker.Fleet, b.players[attacker.PlayerNum], defender.PlayerNum) {
+		if !(defender.destroyed || defender.ranAway) && b.willAttack(attacker, b.players[attacker.PlayerNum], defender.PlayerNum) {
 			// if we would target this defender with our primary target and it's more attractive than our current primaryTarget, pick it
 			if b.willTarget(primaryTargetOrder, defender) {
 				attractiveness := defender.getAttractiveness(attacker)
@@ -965,57 +969,54 @@ func (weapon *battleWeaponSlot) getAttractiveness(target *battleToken) float64 {
 
 // return true if this fleet will attack a fleet by another player based on player
 // relations and the fleet battle plan
-func (b *battle) willAttack(fleet *Fleet, player *Player, otherPlayerNum int) bool {
-	willAttack := false
+func (b *battle) willAttack(token *battleToken, player *Player, otherPlayerNum int) bool {
 	// if we have weapons and we don't own this other fleet, see if we
 	// would target it
-	if fleet.Spec.HasWeapons && fleet.battlePlan.Tactic != BattleTacticDisengage && otherPlayerNum != player.Num {
-		switch fleet.battlePlan.AttackWho {
+	if token.hasWeapons() && token.Tactic != BattleTacticDisengage && otherPlayerNum != player.Num {
+		switch token.AttackWho {
 		case BattleAttackWhoEnemies:
-			willAttack = player.IsEnemy(otherPlayerNum)
+			return player.IsEnemy(otherPlayerNum)
 		case BattleAttackWhoEnemiesAndNeutrals:
-			willAttack = player.IsEnemy(otherPlayerNum) || player.IsNeutral(otherPlayerNum)
+			return player.IsEnemy(otherPlayerNum) || player.IsNeutral(otherPlayerNum)
 		case BattleAttackWhoEveryone:
-			willAttack = true
+			return true
 		}
 	}
-	return willAttack
+	return false
 }
 
 // willTarget returns true if the BattleOrder Target type would target this token
-func (b *battle) willTarget(target battleTarget, token *battleToken) bool {
+func (b *battle) willTarget(target BattleTarget, token *battleToken) bool {
 	switch target {
 	case BattleTargetAny:
 		return true
 	case BattleTargetNone:
 		return false
 	case BattleTargetStarbase:
-		return (token.Attributes & BattleTokenAttributeStarbase) > 0
+		return (token.attributes & battleTokenAttributeStarbase) > 0
 	case BattleTargetArmedShips:
-		return (token.Attributes & BattleTokenAttributeArmed) > 0
+		return (token.attributes & battleTokenAttributeArmed) > 0
 	case BattleTargetBombersFreighters:
-		return (token.Attributes&BattleTokenAttributeBomber) > 0 || (token.Attributes&BattleTokenAttributeFreighter) > 0
+		return (token.attributes&battleTokenAttributeBomber) > 0 || (token.attributes&battleTokenAttributeFreighter) > 0
 	case BattleTargetUnarmedShips:
-		return (token.Attributes & BattleTokenAttributeArmed) == 0
+		return (token.attributes & battleTokenAttributeArmed) == 0
 	case BattleTargetFuelTransports:
-		return (token.Attributes & BattleTokenAttributeFuelTransport) > 0
+		return (token.attributes & battleTokenAttributeFuelTransport) > 0
 	case BattleTargetFreighters:
-		return (token.Attributes & BattleTokenAttributeFreighter) > 0
+		return (token.attributes & battleTokenAttributeFreighter) > 0
 	}
 
 	return false
 }
 
-func (b *battle) buildSortedWeaponSlots() {
-	b.SortedWeaponSlots = make([]*battleWeaponSlot, 0)
-	for _, token := range b.Tokens {
-		hull := b.techFinder.GetHull(token.Token.design.Hull)
-		for _, slot := range token.Token.design.Spec.WeaponSlots {
-			bws := newBattleWeaponSlot(token, slot, *b.techFinder.GetHullComponent(slot.HullComponent), hull.RangeBonus)
-			b.SortedWeaponSlots = append(b.SortedWeaponSlots, bws)
-		}
+// get all weapon slots on the board, sorted by initiative
+func (b *battle) getSortedWeaponSlots(tokens []*battleToken) []*battleWeaponSlot {
+	slots := []*battleWeaponSlot{}
+	for _, token := range tokens {
+		slots = append(slots, token.weaponSlots...)
 	}
-	sort.Slice(b.SortedWeaponSlots, func(i, j int) bool {
-		return b.SortedWeaponSlots[i].Initiative < b.SortedWeaponSlots[j].Initiative
+	sort.Slice(slots, func(i, j int) bool {
+		return slots[i].initiative < slots[j].initiative
 	})
+	return slots
 }

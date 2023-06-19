@@ -19,7 +19,7 @@
 			const { fleets, starbases } = await DesignService.delete(gameId, design.num);
 			if ($player) {
 				const p = $player;
-				player.update(() => ({ ...p, fleets, starbases }));
+				player.update(() => Object.assign(p, { fleets, starbases }));
 			}
 			designs.update(() => $designs?.filter((d) => d.num !== design.num));
 			dispatch('deleted', { design });

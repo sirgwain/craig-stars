@@ -1,5 +1,17 @@
 import type { Cost } from './Cost';
 
+export type ShipDesignIntel = {
+	name: string;
+	num: number;
+	playerNum: number;
+	hull: string;
+	hullSetNumber: number;
+	armor: number;
+	shields: number;
+	reportAge?: number;
+	slots?: ShipDesignSlot[];
+};
+
 export type ShipDesign = {
 	id?: number;
 	gameId: number;

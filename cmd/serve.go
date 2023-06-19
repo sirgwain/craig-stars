@@ -61,7 +61,7 @@ func generateTestGame(db server.DBClient, config config.Config) error {
 		// WithSize(game.SizeTiny).
 		// WithDensity(game.DensitySparse).
 		WithHost(adminRace.ID).
-		WithAIPlayer(cs.AIDifficultyNormal)); err != nil {
+		WithAIPlayer(cs.AIDifficultyNormal, 1)); err != nil {
 		return err
 	}
 
@@ -75,10 +75,39 @@ func generateTestGame(db server.DBClient, config config.Config) error {
 		WithName("Medium Game").
 		WithSize(cs.SizeMedium).
 		WithHost(adminRace.ID).
-		WithAIPlayer(cs.AIDifficultyNormal))
+		WithAIPlayer(cs.AIDifficultyNormal, 1))
 	if err != nil {
 		return err
 	}
+	for i := 0; i < 40; i++ {
+		gameRunner.SubmitTurn(mediumGame.ID, mediumGame.HostID)
+		if _, err := gameRunner.CheckAndGenerateTurn(mediumGame.ID); err != nil {
+			log.Error().Err(err).Msg("check and generate new turn")
+		}
+	}
+
+	// also create a medium size game with 25 turns generated
+	tinyGame, err := gameRunner.HostGame(admin.ID, cs.NewGameSettings().
+		WithName("Tiny Game").
+		WithSize(cs.SizeTiny).
+		WithHost(adminRace.ID).
+		WithAIPlayer(cs.AIDifficultyNormal, 1).
+		WithAIPlayer(cs.AIDifficultyNormal, 2).
+		WithAIPlayer(cs.AIDifficultyNormal, 3).
+		WithAIPlayer(cs.AIDifficultyNormal, 1).
+		WithAIPlayer(cs.AIDifficultyNormal, 2).
+		WithAIPlayer(cs.AIDifficultyNormal, 3))
+	if err != nil {
+		return err
+	}
+
+	for i := 0; i < 9; i++ {
+		gameRunner.SubmitTurn(tinyGame.ID, tinyGame.HostID)
+		if _, err := gameRunner.CheckAndGenerateTurn(tinyGame.ID); err != nil {
+			log.Error().Err(err).Msg("check and generate new turn")
+		}
+	}
+
 	for i := 0; i < 40; i++ {
 		gameRunner.SubmitTurn(mediumGame.ID, mediumGame.HostID)
 		if _, err := gameRunner.CheckAndGenerateTurn(mediumGame.ID); err != nil {
@@ -91,7 +120,7 @@ func generateTestGame(db server.DBClient, config config.Config) error {
 		WithName("Joinable Game").
 		WithHost(user2Race.ID).
 		WithOpenPlayerSlot().
-		WithAIPlayer(cs.AIDifficultyNormal))
+		WithAIPlayer(cs.AIDifficultyNormal, 1))
 	if err != nil {
 		return err
 	}

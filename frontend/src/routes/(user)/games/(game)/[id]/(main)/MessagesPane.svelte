@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import {
 		commandMapObject,
 		getMapObject,
@@ -8,12 +9,12 @@
 	import type { Fleet } from '$lib/types/Fleet';
 	import type { Game } from '$lib/types/Game';
 	import { MapObjectType, None, ownedBy, type MapObject } from '$lib/types/MapObject';
-	import { MessageTargetType, type Message, type Player } from '$lib/types/Player';
+	import { MessageTargetType, type Message, type PlayerResponse } from '$lib/types/Player';
 	import { ArrowTopRightOnSquare, ArrowLongLeft, ArrowLongRight } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
 	export let game: Game;
-	export let player: Player;
+	export let player: PlayerResponse;
 
 	let messageNum = 0;
 	let message: Message | undefined;
@@ -30,6 +31,11 @@
 		if (message) {
 			const targetType = message.targetType ?? MessageTargetType.None;
 			let moType = MapObjectType.None;
+
+			if (message.battleNum) {
+				goto(`/games/${game.id}/battles/${message.battleNum}`);
+				return;
+			}
 
 			if (message.targetNum) {
 				switch (targetType) {
@@ -49,7 +55,6 @@
 						moType = MapObjectType.MysteryTrader;
 						break;
 					case MessageTargetType.Battle:
-						// TODO: handle battles
 						break;
 				}
 
@@ -66,7 +71,7 @@
 							selectMapObject(target);
 						}
 						if (ownedBy(target, player.num)) {
-							commandMapObject(target);							
+							commandMapObject(target);
 						}
 
 						// zoom on goto
@@ -88,7 +93,7 @@
 		</div>
 		{#if message}
 			<div class="flex flex-row">
-				<div class="h-12 overflow-y-auto">{message.text}</div>
+				<div class="h-12 grow overflow-y-auto">{message.text}</div>
 				<div>
 					<div class="flex flex-col gap-y-1 ml-1">
 						<div class="flex flex-row btn-group">

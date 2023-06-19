@@ -57,7 +57,7 @@
 	class:border={!shipDesignSlot}
 	class:border-2={highlighted}
 	class:border-slate-900={!shipDesignSlot && !highlighted}
-	class:z-50={highlighted}
+	class:z-20={highlighted}
 >
 	<button
 		type="button"
@@ -86,7 +86,7 @@
 <div class="flex flex-row -ml-5 mt-1 gap-1" class:hidden={!highlighted || !shipDesignSlot}>
 	<button
 		type="button"
-		class="btn btn-sm px-1 z-50"
+		class="btn btn-sm px-1 z-30"
 		disabled={capacity === shipDesignSlot?.quantity}
 		on:click={() => shipDesignSlot?.quantity && shipDesignSlot.quantity++}
 	>
@@ -94,7 +94,7 @@
 	</button>
 	<button
 		type="button"
-		class="btn btn-sm px-1 z-50"
+		class="btn btn-sm px-1 z-30"
 		on:click={() => {
 			if (shipDesignSlot?.quantity != undefined) {
 				shipDesignSlot.quantity--;
@@ -110,7 +110,7 @@
 	</button>
 	<button
 		type="button"
-		class="btn btn-sm px-1 z-50"
+		class="btn btn-sm px-1 z-30"
 		on:click={() => {
 			dispatch('deleted');
 		}}

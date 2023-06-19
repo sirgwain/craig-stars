@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Player } from '$lib/types/Player';
+	import type { PlayerResponse } from '$lib/types/Player';
 
 	import {
 		TechCategory,
@@ -20,7 +20,7 @@
 	import TechDefenseGraph from './TechDefenseGraph.svelte';
 
 	export let tech: Tech;
-	export let player: Player | undefined = undefined;
+	export let player: PlayerResponse | undefined = undefined;
 
 	let defense: TechDefense;
 	let hullComponent: TechHullComponent;

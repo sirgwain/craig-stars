@@ -5,12 +5,12 @@
 	import { me } from '$lib/services/Context';
 	import { onMount } from 'svelte';
 	import { GameService } from '$lib/services/GameService';
-	import type { Player } from '$lib/types/Player';
+	import type { PlayerResponse } from '$lib/types/Player';
 
 	export let game: Game;
 	let id = parseInt($page.params.id);
 
-	let playerStatuses: Player[] = [];
+	let playerStatuses: PlayerResponse[] = [];
 
 	onMount(async () => {
 		playerStatuses = await GameService.loadPlayerStatuses(id);

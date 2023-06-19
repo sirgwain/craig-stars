@@ -44,7 +44,7 @@ func Test_gameRunner_HostGame(t *testing.T) {
 
 	gr := createTestGameRunner()
 
-	fullGame, err := gr.HostGame(1, cs.NewGameSettings().WithHost(1).WithAIPlayer(cs.AIDifficultyNormal))
+	fullGame, err := gr.HostGame(1, cs.NewGameSettings().WithHost(1).WithAIPlayer(cs.AIDifficultyNormal, 0))
 
 	if err != nil {
 		t.Errorf("host game %v", err)
@@ -60,7 +60,7 @@ func Test_gameRunner_GenerateTurns(t *testing.T) {
 	gr := createTestGameRunner()
 
 	// create a game with a couple AI players
-	fullGame, err := gr.HostGame(1, cs.NewGameSettings().WithAIPlayer(cs.AIDifficultyNormal).WithAIPlayer(cs.AIDifficultyNormal))
+	fullGame, err := gr.HostGame(1, cs.NewGameSettings().WithAIPlayer(cs.AIDifficultyNormal, 0).WithAIPlayer(cs.AIDifficultyNormal, 1))
 
 	if err != nil {
 		t.Errorf("host game %v", err)

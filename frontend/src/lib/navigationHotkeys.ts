@@ -23,6 +23,12 @@ export const bindNavigationHotkeys = (gameId: number, page: Readable<Page>) => {
 			case `/games/${gameId}/planets`:
 				goto(`/games/${gameId}/fleets`);
 				break;
+			case `/games/${gameId}/fleets`:
+				goto(`/games/${gameId}/messages`);
+				break;
+			case `/games/${gameId}/messages`:
+				goto(`/games/${gameId}/battles`);
+				break;
 			default:
 				goto(`/games/${gameId}`);
 				break;

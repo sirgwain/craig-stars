@@ -6,6 +6,7 @@ import type { MapObject, MapObjectType } from './MapObject';
 import type { Vector } from './Vector';
 
 export interface Fleet extends MapObject {
+	playerNum: number; // override mapObject fleets always have a player.
 	planetNum: number;
 	baseName: string;
 	fuel?: number;
@@ -18,6 +19,7 @@ export interface Fleet extends MapObject {
 	repeatOrders?: boolean;
 	heading?: Vector;
 	warpSpeed?: number;
+	mass?: number;
 	orbitingPlanetNum?: number;
 	starbase?: boolean;
 	spec?: Spec;
@@ -31,6 +33,8 @@ export interface ShipToken {
 	gameId?: number;
 	designNum: number;
 	quantity: number;
+	damage?: number;
+	quantityDamaged?: number;
 }
 
 export interface Waypoint {

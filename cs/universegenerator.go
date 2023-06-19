@@ -55,6 +55,7 @@ func (ug *universeGenerator) Generate() (*Universe, error) {
 		return nil, err
 	}
 
+	ug.generateAIPlayers()
 	ug.generatePlayerTechLevels()
 	ug.generatePlayerShipDesigns()
 	ug.generatePlayerRelations()
@@ -174,6 +175,18 @@ func (ug *universeGenerator) generateWormholes() error {
 	ug.universe.Wormholes = wormholes
 
 	return nil
+}
+
+func (ug *universeGenerator) generateAIPlayers() {
+	names := aiNames
+	ug.rules.random.Shuffle(len(names), func(i, j int) { names[i], names[j] = names[j], names[i] })
+	for index, player := range ug.players {
+		if player.AIControlled {
+			name := names[index%len(names)]
+			player.Race.Name = name
+			player.Race.PluralName = name + "s"
+		}
+	}
 }
 
 func (ug *universeGenerator) generatePlayerTechLevels() {

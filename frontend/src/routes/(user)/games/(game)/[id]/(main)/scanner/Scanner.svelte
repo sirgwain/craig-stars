@@ -15,7 +15,7 @@
 	import { FleetService } from '$lib/services/FleetService';
 	import type { Game } from '$lib/types/Game';
 	import { MapObjectType, ownedBy, type MapObject } from '$lib/types/MapObject';
-	import type { Player, PlayerMapObjects } from '$lib/types/Player';
+	import type { PlayerResponse, PlayerMapObjects } from '$lib/types/Player';
 	import { emptyVector, equal, type Vector } from '$lib/types/Vector';
 	import type { ScaleLinear } from 'd3-scale';
 	import { scaleLinear } from 'd3-scale';
@@ -31,7 +31,7 @@
 	import SelectedMapObject from './SelectedMapObject.svelte';
 
 	export let game: Game;
-	export let player: Player;
+	export let player: PlayerResponse;
 	export let mapObjects: PlayerMapObjects;
 
 	const xGetter = (mo: MapObject) => mo?.position?.x;

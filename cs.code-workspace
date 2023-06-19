@@ -12,6 +12,7 @@
     },
   ],
   "settings": {
-    "testing.automaticallyOpenPeekView": "never"
+    "testing.automaticallyOpenPeekView": "never",
+    "typescript.tsdk": "frontend/node_modules/typescript/lib"
   }
 }

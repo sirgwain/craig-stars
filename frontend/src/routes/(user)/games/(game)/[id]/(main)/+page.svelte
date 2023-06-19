@@ -13,5 +13,5 @@
 {:else if $player?.submittedTurn && $game?.state == GameState.WaitingForPlayers}
 	<WaitingForPlayers game={$game} />
 {:else if $game && $player && $mapObjects && $player.race && $designs}
-	<Game game={$game} player={$player} designs={$designs} mapObjects={$mapObjects} />
+	<Game game={$game} player={$player} mapObjects={$mapObjects} />
 {/if}

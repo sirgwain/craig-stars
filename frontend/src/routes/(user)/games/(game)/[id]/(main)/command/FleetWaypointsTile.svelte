@@ -9,7 +9,7 @@
 	import { FleetService } from '$lib/services/FleetService';
 	import type { Fleet, Waypoint } from '$lib/types/Fleet';
 	import type { MapObject } from '$lib/types/MapObject';
-	import type { Player } from '$lib/types/Player';
+	import type { PlayerResponse } from '$lib/types/Player';
 	import { distance } from '$lib/types/Vector';
 	import hotkeys from 'hotkeys-js';
 	import { merge } from 'lodash-es';

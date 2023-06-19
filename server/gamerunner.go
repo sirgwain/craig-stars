@@ -89,18 +89,18 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 			player.Num = i + 1
 			player.Name = user.Username
 			player.Color = playerSetting.Color
+			player.DefaultHullSet = playerSetting.DefaultHullSet
 			players = append(players, player)
 		} else if playerSetting.Type == cs.NewGamePlayerTypeAI {
 			log.Debug().Int64("hostID", hostID).Msg("Adding ai player to game")
 			race := cs.NewRace()
-			race.Name = "Cool AI"
-			race.PluralName = "Cool AIs"
 			player := gr.client.NewPlayer(hostID, *race, &game.Rules)
 			player.GameID = game.ID
 			player.Num = i + 1
 			player.AIControlled = true
-			player.Name = "AI Player"
+			player.Name = fmt.Sprintf("AI Player %d", player.Num)
 			player.Color = playerSetting.Color
+			player.DefaultHullSet = playerSetting.DefaultHullSet
 			players = append(players, player)
 		} else if playerSetting.Type == cs.NewGamePlayerTypeOpen {
 			log.Debug().Uint("openPlayerSlots", game.OpenPlayerSlots).Msg("Added open player slot to game")
@@ -110,6 +110,7 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 			player.Num = i + 1
 			player.Name = "Open Slot"
 			player.Color = playerSetting.Color
+			player.DefaultHullSet = playerSetting.DefaultHullSet
 			players = append(players, player)
 			game.OpenPlayerSlots++
 		}

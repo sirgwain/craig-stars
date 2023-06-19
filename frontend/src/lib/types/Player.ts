@@ -1,10 +1,11 @@
+import type { BattleRecord } from './Battle';
 import type { Fleet } from './Fleet';
 import type { Planet } from './Planet';
-import type { Race } from './Race';
-import type { ShipDesign } from './ShipDesign';
+import { humanoid, type Race } from './Race';
+import type { ShipDesign, ShipDesignIntel } from './ShipDesign';
 import type { Tech, TechDefense, TechPlanetaryScanner } from './Tech';
 
-export type Player = {
+export type PlayerResponse = {
 	id?: number;
 	createdAt?: string;
 	updatedAt?: string;
@@ -34,6 +35,7 @@ export type PlayerMessages = {
 export type PlayerIntels = {
 	planetIntels: Planet[];
 	fleetIntels?: Fleet[];
+	shipDesignIntels?: ShipDesignIntel[];
 	playerIntels: PlayerIntel[];
 };
 export type PlayerMapObjects = {
@@ -94,11 +96,21 @@ export type TechLevel = {
 	biotechnology?: number;
 };
 
+const emptyTechLevel: TechLevel = {
+	energy: 0,
+	weapons: 0,
+	propulsion: 0,
+	construction: 0,
+	electronics: 0,
+	biotechnology: 0
+};
+
 export interface Message {
 	type: string;
 	text: string;
 	targetType?: MessageTargetType;
 	targetNum?: number;
+	battleNum?: number;
 	targetPlayerNum?: number;
 }
 
@@ -112,6 +124,73 @@ export enum MessageTargetType {
 	Battle = 'Battle'
 }
 
+export class Player implements PlayerResponse {
+	id?: number | undefined;
+	createdAt?: string | undefined;
+	updatedAt?: string | undefined;
+
+	userId?: number | undefined;
+	name = '';
+	color = '#00FF00';
+	race = { ...humanoid };
+	ready = false;
+	aIControlled = false;
+	submittedTurn = false;
+	techLevels: TechLevel = { ...emptyTechLevel };
+	techLevelsSpent: TechLevel = { ...emptyTechLevel };
+	researchSpentLastYear = 0;
+	researching: TechField = TechField.Energy;
+	nextResearchField: NextResearchField = NextResearchField.Energy;
+	researchAmount = 15;
+	planets: Planet[] = [];
+	fleets: Fleet[] = [];
+	starbases: Fleet[] = [];
+	designs: ShipDesign[] = [];
+	planetIntels: Planet[] = [];
+	fleetIntels: Fleet[] = [];
+	shipDesignIntels: ShipDesignIntel[] = [];
+	playerIntels: PlayerIntel[] = [];
+	messages: Message[] = [];
+	battles: BattleRecord[] = [];
+	spec: PlayerSpec = {};
+
+	constructor(public gameId: number, public num: number, data?: PlayerResponse) {
+		if (data) {
+			Object.assign(this, data);
+		}
+	}
+
+	getPlayerIntel(num: number): PlayerIntel | undefined {
+		if (num >= 1 && num <= this.playerIntels.length) {
+			return this.playerIntels[num - 1];
+		}
+	}
+
+	getDesign(playerNum: number, num: number): ShipDesign | ShipDesignIntel | undefined {
+		if (playerNum == this.num) {
+			return this.designs.find((d) => d.num === num);
+		} else {
+			return this.shipDesignIntels.find((d) => d.num === num);
+		}
+	}
+
+	getPlanetIntel(num: number): Planet | undefined {
+		return this.planetIntels.find((p) => p.num === num);
+	}
+
+	getBattle(num: number): BattleRecord | undefined {
+		return this.battles.find((b) => b.num === num);
+	}
+
+	getBattleLocation(battle: BattleRecord): string {
+		if (battle.planetNum) {
+			const planet = this.getPlanetIntel(battle.planetNum);
+			return planet?.name ?? 'Unknown';
+		}
+		return `Space (${battle.position.x}, ${battle.position.y}`;
+	}
+}
+
 export function hasRequiredLevels(tl: TechLevel, required: TechLevel): boolean {
 	return (
 		(tl.energy ?? 0) >= (required.energy ?? 0) &&
@@ -123,7 +202,7 @@ export function hasRequiredLevels(tl: TechLevel, required: TechLevel): boolean {
 	);
 }
 
-export function canLearnTech(player: Player, tech: Tech): boolean {
+export function canLearnTech(player: PlayerResponse, tech: Tech): boolean {
 	const requirements = tech.requirements;
 	if (requirements.prtRequired && requirements.prtRequired !== player.race.prt) {
 		return false;

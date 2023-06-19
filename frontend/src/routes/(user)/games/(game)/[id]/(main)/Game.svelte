@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Game } from '$lib/types/Game';
-	import type { Player, PlayerMapObjects } from '$lib/types/Player';
+	import type { PlayerResponse, PlayerMapObjects, Player } from '$lib/types/Player';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import CommandPane from './command/CommandPane.svelte';
 	import HighlightedMapObjectStats from './HighlightedMapObjectStats.svelte';
@@ -10,7 +10,6 @@
 
 	export let game: Game;
 	export let player: Player;
-	export let designs: ShipDesign[];
 	export let mapObjects: PlayerMapObjects;
 </script>
 
@@ -24,7 +23,7 @@
 			<CommandPane {mapObjects} />
 		</div>
 		<div class="hidden lg:block lg:p-1 mb-2">
-			<MapObjectSummary {player} {designs} />
+			<MapObjectSummary {player} />
 		</div>
 	</div>
 
@@ -37,14 +36,14 @@
 			<HighlightedMapObjectStats />
 		</div>
 		<div class="hidden md:block md:w-full lg:hidden mb-2">
-			<MapObjectSummary {player} {designs} />
+			<MapObjectSummary {player} />
 		</div>
 	</div>
 
 	<div class="carousel md:hidden">
 		<div class="carousel-item">
 			<div class="w-screen">
-				<MapObjectSummary {player} {designs} />
+				<MapObjectSummary {player} />
 			</div>
 		</div>
 		<div class="carousel-item">

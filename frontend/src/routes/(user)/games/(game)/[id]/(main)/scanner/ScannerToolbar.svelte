@@ -6,7 +6,7 @@
 	import { nextMapObject, previousMapObject } from '$lib/services/Context';
 	import { settings } from '$lib/services/Settings';
 	import type { Game } from '$lib/types/Game';
-	import type { Player } from '$lib/types/Player';
+	import type { PlayerResponse } from '$lib/types/Player';
 	import { PlanetViewState } from '$lib/types/PlayerSettings';
 	import { Envelope, ArrowLongLeft, ArrowLongRight } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
@@ -14,7 +14,7 @@
 	import PlanetViewStates from './toolbar/PlanetViewStates.svelte';
 
 	export let game: Game;
-	export let player: Player;
+	export let player: PlayerResponse;
 
 	let showMessages = false;
 </script>

@@ -4,7 +4,7 @@ testdata_dir = "testdata"
 [build]
   args_bin = ["-d", "serve", "--generate-test-game"]
   bin = "./dist/craig-stars"
-  cmd = "go build -o ./dist/craig-stars ."
+  cmd = "go build -buildvcs=false -o ./dist/craig-stars ."
   delay = 1000
   exclude_dir = ["dist", "frontend", "vendor", "testdata", "data"]
   exclude_file = []

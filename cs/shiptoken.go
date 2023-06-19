@@ -4,9 +4,9 @@ import "math"
 
 type ShipToken struct {
 	DesignNum       int     `json:"designNum,omitempty"`
-	Quantity        int     `json:"quantity"`
-	Damage          float64 `json:"damage"`
-	QuantityDamaged int     `json:"quantityDamaged"`
+	Quantity        int     `json:"quantity,omitempty"`
+	Damage          float64 `json:"damage,omitempty"`
+	QuantityDamaged int     `json:"quantityDamaged,omitempty"`
 	design          *ShipDesign
 }
 

@@ -18,7 +18,7 @@
 	let angle = 0;
 
 	let size = 8;
-	$: size = $xScale(8);
+	// $: size = $xScale(8);
 
 	// identity or default is rotated 90º, or pointing up and to the right
 	const angleOffset = 225;

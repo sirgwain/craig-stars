@@ -12,7 +12,7 @@
 	const icon = (hullSetNumber: number) => {
 		const name = kebabCase(tech?.name.replace("'", '').replace(' ', '').replace('±', ''));
 		if (hull) {
-			return `hull-${name}-${hullSetNumber}`;
+			return `hull-${name}-${hullSetNumber ?? 0}`;
 		} else {
 			return name;
 		}

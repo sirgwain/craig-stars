@@ -2,7 +2,7 @@
 	import { commandedFleet, commandedPlanet, designs } from '$lib/services/Context';
 	import type { Fleet } from '$lib/types/Fleet';
 	import type { CommandedPlanet } from '$lib/types/Planet';
-	import type { Player, PlayerMapObjects } from '$lib/types/Player';
+	import type { PlayerResponse, PlayerMapObjects } from '$lib/types/Player';
 	import FleetFuelAndCargoTile from './FleetFuelAndCargoTile.svelte';
 	import FleetOtherFleetsHereTile from './FleetOtherFleetsHereTile.svelte';
 	import FleetSummaryTile from './FleetSummaryTile.svelte';

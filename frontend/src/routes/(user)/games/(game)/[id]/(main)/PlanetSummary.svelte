@@ -1,7 +1,7 @@
 <script lang="ts">
 	import PlanetHabPoint from '$lib/components/game/PlanetHabPoint.svelte';
 	import { Unexplored, type Planet } from '$lib/types/Planet';
-	import type { Player } from '$lib/types/Player';
+	import type { PlayerResponse } from '$lib/types/Player';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { clamp } from '$lib/services/Math';
@@ -11,7 +11,7 @@
 	import { playerColor, playerName } from '$lib/services/Context';
 
 	export let planet: Planet;
-	export let player: Player;
+	export let player: PlayerResponse;
 
 	$: habLow = player.race.habLow;
 	$: habHigh = player.race.habHigh;

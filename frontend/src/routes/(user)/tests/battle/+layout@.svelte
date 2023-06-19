@@ -1,0 +1,15 @@
+<script lang="ts">
+	import Menu from '$lib/components/Menu.svelte';
+	import { me } from '$lib/services/Context';
+</script>
+
+<main class="p-3 flex flex-col">
+	<div class="sticky top-0 z-10">
+		<Menu user={$me} />
+	</div>
+	<div class="relative">
+		<div class="w-full mx-auto">
+			<slot>This is the main content</slot>
+		</div>
+	</div>
+</main>

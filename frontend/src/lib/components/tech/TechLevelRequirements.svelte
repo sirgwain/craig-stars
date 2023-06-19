@@ -1,10 +1,10 @@
 <script lang="ts">
-	import type { Player } from '$lib/types/Player';
+	import type { PlayerResponse } from '$lib/types/Player';
 
-	import type { Tech,TechRequirements } from '$lib/types/Tech';
+	import type { Tech, TechRequirements } from '$lib/types/Tech';
 
 	export let tech: Tech;
-	export let player: Player | undefined = undefined;
+	export let player: PlayerResponse | undefined = undefined;
 
 	const noRequirements: TechRequirements = {};
 </script>

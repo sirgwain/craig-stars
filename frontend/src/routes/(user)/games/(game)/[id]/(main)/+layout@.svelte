@@ -25,6 +25,7 @@
 	import GameMenu from '../GameMenu.svelte';
 	import ProductionQueue from '../dialogs/ProductionQueue.svelte';
 	import CargoTransferDialog from '../dialogs/cargo/CargoTransferDialog.svelte';
+	import { get } from 'svelte/store';
 
 	let id = parseInt($page.params.id);
 
@@ -44,7 +45,16 @@
 				// load the game on mount
 				await Promise.all([
 					GameService.loadGame(id).then((g) => game.update(() => g)),
-					GameService.loadFullPlayer(id).then((p) => player.update(() => ({ ...$player, ...p }))),
+					GameService.loadFullPlayer(id).then((p) =>
+						player.update(() => {
+							const existing = get(player);
+							if (existing) {
+								return Object.assign(existing, p);
+							} else {
+								return p;
+							}
+						})
+					),
 					GameService.loadPlayerMapObjects(id).then((mos) => {
 						mapObjects.update(() => mos);
 					}),
@@ -106,8 +116,8 @@
 		if ($player) {
 			const result = await PlayerService.submitTurn($player);
 			if (result !== undefined) {
-				game.update((store) => (store = result.game));
-				player.update((store) => (store = result.player));
+				game.update(() => result.game);
+				player.update(() => result.player);
 				mapObjects.update(() => result.player);
 
 				if ($game?.state == GameState.WaitingForPlayers) {

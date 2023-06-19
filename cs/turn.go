@@ -732,16 +732,26 @@ func (t *turn) fleetBattle() {
 
 		battler := newBattler(t.game.rules, t.game.rules.techs, playersAtPosition, fleets, planet)
 
-		if battler.HasTargets() {
+		if battler.hasTargets() {
 			// someone wants to fight, run the battle!
-			record := battler.RunBattle()
+			record := battler.runBattle()
 
 			// every player should discover all designs in a battle as if they were penscanned.
 			discoverersByPlayer := make(map[int]discoverer, len(t.game.Players))
 			designsToDiscover := map[playerObject]*ShipDesign{}
 			for _, player := range playersAtPosition {
-				discoverersByPlayer[player.Num] = newDiscoverer(player)
+				discoverer := newDiscoverer(player)
+				// discover other players at the battle
+				for _, otherplayer := range playersAtPosition {
+					discoverer.discoverPlayer(otherplayer)
+				}
+
+				// store this discoverer for discovering designs
+				discoverersByPlayer[player.Num] = discoverer
+
+				// player knows about the battle
 				player.Battles = append(player.Battles, *record)
+				messager.battle(player, planet, record)
 			}
 			for _, fleet := range fleets {
 				for _, token := range fleet.Tokens {

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { nextMapObject, previousMapObject } from '$lib/services/Context';
 	import type { Fleet } from '$lib/types/Fleet';
-	import type { Player } from '$lib/types/Player';
+	import type { PlayerResponse } from '$lib/types/Player';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import { kebabCase } from 'lodash-es';
 	import CommandTile from './CommandTile.svelte';
@@ -19,7 +19,7 @@
 			const designNum = fleet.tokens[0].designNum;
 			design = designs.find((d) => d.num == designNum);
 			if (design) {
-				icon = `hull-${kebabCase(design.hull)}-${design.hullSetNumber}`;
+				icon = `hull-${kebabCase(design.hull)}-${design.hullSetNumber ?? 0}`;
 			}
 		}
 	}

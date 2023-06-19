@@ -1,5 +1,26 @@
 package cs
 
+var aiNames = []string{
+	"American",
+	"Berserker",
+	"Bulushi",
+	"Crusher",
+	"Ferret",
+	"Golem",
+	"Hawk",
+	"Hicardi",
+	"Hooveron",
+	"House Cats",
+	"Kurkonian",
+	"Loraxoid",
+	"Mensoid",
+	"Nairnian",
+	"Nee",
+	"Rush",
+	"Tritizoid",
+	"Ubert",
+}
+
 var planetNames = []string{
 	"Abacus",
 	"Abbott",

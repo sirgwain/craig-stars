@@ -7,7 +7,7 @@
 	import { normalized } from '$lib/types/Vector';
 	import { LayerCake, Svg } from 'layercake';
 	import ScannerFleets from '../../../games/(game)/[id]/(main)/scanner/ScannerFleets.svelte';
-	import type { Player } from '$lib/types/Player';
+	import type { PlayerResponse } from '$lib/types/Player';
 
 	type fleetPlacement = {
 		x: number;
@@ -119,7 +119,7 @@
 				fleetIntels: [],
 				color: '#0000FF',
 				spec: {}
-			} as Player)
+			} as PlayerResponse)
 	);
 	selectMapObject(fleets[0]);
 	commandMapObject(fleets[0]);

@@ -1,12 +1,12 @@
 <script lang="ts">
-	import type { Player } from '$lib/types/Player';
+	import type { PlayerResponse } from '$lib/types/Player';
 	import { getLabelForLRT, getLabelForPRT, LRT, PRT } from '$lib/types/Race';
 	import { $enum as eu } from 'ts-enum-util';
 
 	import type { Tech } from '$lib/types/Tech';
 
 	export let tech: Tech;
-	export let player: Player | undefined = undefined;
+	export let player: PlayerResponse | undefined = undefined;
 
 	const lrts = eu(LRT).getValues();
 </script>

@@ -26,10 +26,11 @@ const (
 )
 
 type NewGamePlayer struct {
-	Type         NewGamePlayerType `json:"type,omitempty"`
-	RaceID       int64             `json:"raceId,omitempty"`
-	AIDifficulty AIDifficulty      `json:"aiDifficulty,omitempty"`
-	Color        string            `json:"color,omitempty"`
+	Type           NewGamePlayerType `json:"type,omitempty"`
+	RaceID         int64             `json:"raceId,omitempty"`
+	AIDifficulty   AIDifficulty      `json:"aiDifficulty,omitempty"`
+	Color          string            `json:"color,omitempty"`
+	DefaultHullSet int               `json:"hullSetNum,omitempty"`
 }
 
 type GameSettings struct {
@@ -250,8 +251,8 @@ func (settings *GameSettings) WithOpenPlayerSlot() *GameSettings {
 }
 
 // Add an AI player
-func (settings *GameSettings) WithAIPlayer(aiDifficulty AIDifficulty) *GameSettings {
-	settings.Players = append(settings.Players, NewGamePlayer{Type: NewGamePlayerTypeAI, AIDifficulty: aiDifficulty})
+func (settings *GameSettings) WithAIPlayer(aiDifficulty AIDifficulty, defaultHullSet int) *GameSettings {
+	settings.Players = append(settings.Players, NewGamePlayer{Type: NewGamePlayerTypeAI, AIDifficulty: aiDifficulty, DefaultHullSet: defaultHullSet})
 	return settings
 }
 

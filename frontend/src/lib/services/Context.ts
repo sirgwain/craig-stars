@@ -2,7 +2,7 @@ import type { Fleet, Waypoint } from '$lib/types/Fleet';
 import type { Game } from '$lib/types/Game';
 import { MapObjectType, None, ownedBy, positionKey, type MapObject } from '$lib/types/MapObject';
 import { CommandedPlanet, type Planet } from '$lib/types/Planet';
-import type { Player, PlayerMapObjects } from '$lib/types/Player';
+import type { PlayerResponse, PlayerMapObjects, Player } from '$lib/types/Player';
 import { emptyUser, type User } from '$lib/types/User';
 import type { Vector } from '$lib/types/Vector';
 import { derived, get, writable } from 'svelte/store';

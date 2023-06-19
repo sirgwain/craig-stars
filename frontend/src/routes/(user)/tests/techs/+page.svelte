@@ -1,7 +1,7 @@
 <script lang="ts">
 	import TechSummary from '$lib/components/tech/TechSummary.svelte';
 
-	import type { Player } from '$lib/types/Player';
+	import type { PlayerResponse } from '$lib/types/Player';
 	import { humanoid, PRT } from '$lib/types/Race';
 	import {
 		HullSlotType,
@@ -116,7 +116,7 @@
 		}
 	];
 
-	const testPlayer: Player = {
+	const testPlayer: PlayerResponse = {
 		gameId: 0,
 		userId: 0,
 		num: 0,
