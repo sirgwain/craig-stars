@@ -563,7 +563,7 @@ func (t *turn) playerResearch() {
 		player.Spec = computePlayerSpec(player, &t.game.Rules, t.game.Planets)
 
 		// update design spec
-		for i, _ := range player.Designs {
+		for i := range player.Designs {
 			design := &player.Designs[i]
 			design.Spec = computeShipDesignSpec(t.game.rules, player, design)
 		}

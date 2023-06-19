@@ -23,7 +23,7 @@ export interface Planet extends MapObject {
 	reportAge: number;
 	productionQueue?: ProductionQueueItem[];
 	starbase?: Fleet;
-	spec?: PlanetSpec;
+	spec: PlanetSpec;
 }
 
 export interface ProductionQueueItem {
@@ -87,6 +87,8 @@ export const isAuto = (type: QueueItemType): boolean => {
 };
 
 export interface PlanetSpec {
+	habitability?: number;
+	habitabilityTerraformed?: number;
 	maxMines: number;
 	maxPossibleMines: number;
 	maxFactories: number;

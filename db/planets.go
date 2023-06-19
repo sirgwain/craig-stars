@@ -235,6 +235,21 @@ func (c *client) UpdatePlanet(planet *cs.Planet) error {
 	return c.updatePlanet(planet, c.db)
 }
 
+// UpdatePlanetSpec updates only a planets spec field
+func (c *client) UpdatePlanetSpec(planet *cs.Planet) error {
+	item := c.converter.ConvertGamePlanet(planet)
+
+	if _, err := c.db.NamedExec(`
+	UPDATE planets SET
+		spec = :spec
+	WHERE id = :id
+	`, item); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // update an existing planet
 func (c *client) updatePlanet(planet *cs.Planet, tx SQLExecer) error {
 

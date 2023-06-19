@@ -9,6 +9,15 @@
 	.card-body {
 		@apply text-base;
 	}
+	.text-habitable {
+		@apply text-[#00FF00];
+	}
+	.text-uninhabitable {
+		@apply text-[#FF0000];
+	}
+	.text-terraformable {
+		@apply text-[#FEFF00];
+	}
 	.text-ironium {
 		@apply text-[#0960ff];
 	}
@@ -54,12 +63,31 @@
 	.warp-stargate-bar {
 		@apply bg-[#008100];
 	}
+	.grav-bar {
+		@apply bg-[#020085];
+	}
+	.temp-bar {
+		@apply bg-[#8B0000];
+	}
+	.rad-bar {
+		@apply bg-[#008100];
+	}
+	.grav-point {
+		@apply stroke-[#0900FF] fill-[#0900FF];
+	}
+	.temp-point {
+		@apply stroke-[#FF0000] fill-[#FF0000];
+	}
+	.rad-point {
+		@apply stroke-[#00FF00] fill-[#00FF00];
+	}
 	.scanner {
 		@apply fill-[#8B0000];
 	}
 	.scanner-pen {
 		@apply fill-[#7F7F00];
 	}
+
 }
 
 .waypoint-line {

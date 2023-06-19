@@ -119,6 +119,7 @@ export interface ResearchCost {
 }
 
 export interface RaceSpec {
+	habCenter: Hab;
 	costs: EnumDictionary<QueueItemType, Cost>;
 	startingTechLevels: TechLevel;
 	startingFleets: StartingFleet[];
