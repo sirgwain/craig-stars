@@ -4,10 +4,10 @@
 
 @layer components {
 	.btn {
-		@apply touch-manipulation;
+		@apply touch-manipulation rounded-none;
 	}
-	.link {
-		@apply text-success;
+	.cs-link {
+		@apply text-primary hover:text-accent
 	}
 	.card-body {
 		@apply text-base;

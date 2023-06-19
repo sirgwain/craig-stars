@@ -1,4 +1,8 @@
 {
+	"id": 0,
+	"createdAt": "0001-01-01T00:00:00Z",
+	"updatedAt": "0001-01-01T00:00:00Z",
+	"rulesId": 0,
 	"engines": [
 		{
 			"id": 0,
@@ -2890,8 +2894,8 @@
 			"spaceDockSlotSize": { "x": 0, "y": 0 },
 			"slots": [
 				{ "type": 2, "capacity": 1, "required": true, "position": { "x": -2, "y": 0 } },
-				{ "type": 76, "capacity": 2, "position": { "x": 2, "y": 0 } },
-				{ "type": 384, "capacity": 2, "position": { "x": 1, "y": 0 } }
+				{ "type": 76, "capacity": 1, "position": { "x": 2, "y": 0 } },
+				{ "type": 384, "capacity": 1, "position": { "x": 1, "y": 0 } }
 			]
 		},
 		{
@@ -2967,8 +2971,8 @@
 			"initiative": 1,
 			"slots": [
 				{ "type": 2, "capacity": 1, "required": true, "position": { "x": -1, "y": 0 } },
-				{ "type": 4, "capacity": 1, "position": { "x": 0, "y": 0 } },
-				{ "type": 10700, "capacity": 1, "position": { "x": 1, "y": 0 } }
+				{ "type": 4, "capacity": 1, "position": { "x": 1, "y": 0 } },
+				{ "type": 10700, "capacity": 1, "position": { "x": 0, "y": 0 } }
 			]
 		},
 		{

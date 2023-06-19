@@ -65,7 +65,7 @@ export enum PRT {
 	JoaT = 'JoaT',
 
 	/// This is only for tech requirements
-	None = 'None'
+	None = ''
 }
 
 export enum LRT {

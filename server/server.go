@@ -116,6 +116,7 @@ func Start(db DBClient, config config.Config) {
 	// CRUD for ship designs
 	ar.GET("/games/:id/designs", server.getShipDesigns)
 	ar.GET("/games/:id/designs/:designnum", server.getShipDesign)
+	ar.DELETE("/games/:id/designs/:designnum", server.deleteShipDesign)
 	ar.POST("/games/:id/designs", server.createShipDesign)
 	ar.PUT("/games/:id/designs", server.updateShipDesign)
 

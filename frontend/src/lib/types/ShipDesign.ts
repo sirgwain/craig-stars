@@ -1,29 +1,27 @@
 import type { Cost } from './Cost';
 
-export interface ShipDesign {
-	id: number;
-	createdAt: string;
-	updatedAt: string;
-
+export type ShipDesign = {
+	id?: number;
 	gameId: number;
-	num: number;
+	createdAt?: Date;
+	updatedAt?: Date;
+	num?: number;
 	playerNum: number;
 	name: string;
-	uuid: string;
 	version: number;
 	hull: string;
 	hullSetNumber: number;
-	armor: number;
+	canDelete?: boolean;
 	slots: ShipDesignSlot[];
-	purpose: string;
+	purpose?: string;
 	spec: Spec;
-}
+};
 
 export type ShipDesignSlot = {
 	hullComponent: string;
 	hullSlotIndex: number;
 	quantity: number;
-}
+};
 
 export type Bomb = {
 	quantity?: number;
@@ -88,4 +86,5 @@ export type Spec = {
 	safeRange?: number;
 	maxHullMass?: number;
 	maxRange?: number;
+	numInstances?: number;
 };

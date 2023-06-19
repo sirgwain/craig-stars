@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import TechHullSummary from '$lib/components/tech/hull/TechHull.svelte';
+	import TechHullSummary from '$lib/components/game/design/Hull.svelte';
 	import TechSummary from '$lib/components/tech/TechSummary.svelte';
 
 	import { TechCategory, type Tech, type TechHull } from '$lib/types/Tech';

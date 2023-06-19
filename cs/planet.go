@@ -35,8 +35,6 @@ type PlanetOrders struct {
 	TargetPlayerNum                   int                   `json:"targetPlayerNum,omitempty"`
 }
 
-
-
 type PlanetSpec struct {
 	Habitability              int     `json:"habitability,omitempty"`
 	TerraformedHabitability   int     `json:"terraformedHabitability,omitempty"`
@@ -245,6 +243,7 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 
 	// // the homeworld gets a starbase
 	starbaseDesign := player.GetDesign(startingPlanet.StarbaseDesignName)
+	starbaseDesign.Spec.NumInstances++
 	starbase := newStarbase(player, p, starbaseDesign, starbaseDesign.Name)
 	starbase.Spec = computeFleetSpec(rules, player, &starbase)
 	p.starbase = &starbase
@@ -389,9 +388,6 @@ func getMaxPopulation(rules *Rules, hab int, player *Player) int {
 
 	return roundToNearest100f(float64(rules.MaxPopulation) * maxPopulationFactor * float64(hab) / 100.0)
 }
-
-
-
 
 // reduce the mineral concentrations of a planet after mining.
 func (planet *Planet) reduceMineralConcentration(rules *Rules) {

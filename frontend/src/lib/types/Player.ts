@@ -2,7 +2,11 @@ import type { Fleet } from './Fleet';
 import type { Planet } from './Planet';
 import type { Race } from './Race';
 import type { ShipDesign } from './ShipDesign';
-import type { TechDefense, TechPlanetaryScanner } from './Tech';
+import type {
+	Tech,
+	TechDefense,
+	TechPlanetaryScanner
+} from './Tech';
 
 export type Player = {
 	id?: number;
@@ -100,4 +104,35 @@ export enum MessageTargetType {
 	MineField = 'MineField',
 	MysteryTrader = 'MysteryTrader',
 	Battle = 'Battle'
+}
+
+export function hasRequiredLevels(tl: TechLevel, required: TechLevel): boolean {
+	return (
+		(tl.energy ?? 0) >= (required.energy ?? 0) &&
+		(tl.weapons ?? 0) >= (required.weapons ?? 0) &&
+		(tl.propulsion ?? 0) >= (required.propulsion ?? 0) &&
+		(tl.construction ?? 0) >= (required.construction ?? 0) &&
+		(tl.electronics ?? 0) >= (required.electronics ?? 0) &&
+		(tl.biotechnology ?? 0) >= (required.biotechnology ?? 0)
+	);
+}
+
+export function canLearnTech(player: Player, tech: Tech): boolean {
+	const requirements = tech.requirements;
+	if (requirements.prtRequired && requirements.prtRequired !== player.race.prt) {
+		return false;
+	}
+	if (requirements.prtDenied && player.race.prt === requirements.prtDenied) {
+		return false;
+	}
+	if (
+		requirements.lrtsRequired &&
+		(player.race.lrts & (1 << requirements.lrtsRequired)) !== 1 << requirements.lrtsRequired
+	) {
+		return false;
+	}
+	if (requirements.lrtsDenied && (player.race.lrts & (1 << requirements.lrtsDenied)) !== 0) {
+		return false;
+	}
+	return true;
 }

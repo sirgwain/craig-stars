@@ -242,6 +242,10 @@ export const isHullComponent = (category: TechCategory): boolean => {
 	}
 };
 
+export function canFillSlot(hcType: HullSlotType, type: HullSlotType): boolean {
+	return (hcType & type) > 0;
+}
+
 export function getDefenseCoverage(defense: TechDefense, defenses: number): number {
 	return 1.0 - Math.pow(1 - defense.defenseCoverage / 100, clamp(defenses, 0, 100));
 }

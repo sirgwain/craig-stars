@@ -8,6 +8,7 @@ func TestShipDesign_Validate(t *testing.T) {
 	rules := NewRules()
 
 	type fields struct {
+		Name  string
 		Hull  string
 		Slots []ShipDesignSlot
 	}
@@ -23,6 +24,7 @@ func TestShipDesign_Validate(t *testing.T) {
 		{
 			name: "valid design",
 			fields: fields{
+				Name: "Scout",
 				Hull: "Scout",
 				Slots: []ShipDesignSlot{
 					{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
@@ -36,8 +38,23 @@ func TestShipDesign_Validate(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "no name",
+			fields: fields{
+				Name: "",
+				Hull: "Scout",
+				Slots: []ShipDesignSlot{
+					{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+				},
+			},
+			args: args{
+				player: NewPlayer(1, NewRace().WithSpec(&rules)),
+			},
+			wantErr: true,
+		},
+		{
 			name: "invalid hull",
 			fields: fields{
+				Name: "Scout",
 				Hull: "some unknown hull",
 			},
 			args: args{
@@ -48,6 +65,7 @@ func TestShipDesign_Validate(t *testing.T) {
 		{
 			name: "invalid HullSlotIndex",
 			fields: fields{
+				Name: "Scout",
 				Hull: "Scout",
 				Slots: []ShipDesignSlot{
 					{HullComponent: QuickJump5.Name, HullSlotIndex: -1, Quantity: 1},
@@ -61,6 +79,7 @@ func TestShipDesign_Validate(t *testing.T) {
 		{
 			name: "invalid HullSlotIndex2",
 			fields: fields{
+				Name: "Scout",
 				Hull: "Scout",
 				Slots: []ShipDesignSlot{
 					{HullComponent: QuickJump5.Name, HullSlotIndex: 10, Quantity: 1},
@@ -74,6 +93,7 @@ func TestShipDesign_Validate(t *testing.T) {
 		{
 			name: "invalid Quantity",
 			fields: fields{
+				Name: "Scout",
 				Hull: "Scout",
 				Slots: []ShipDesignSlot{
 					{HullComponent: BatScanner.Name, HullSlotIndex: 1, Quantity: 2},
@@ -87,9 +107,21 @@ func TestShipDesign_Validate(t *testing.T) {
 		{
 			name: "invalid Required",
 			fields: fields{
+				Name:  "Scout",
+				Hull:  "Scout",
+				Slots: []ShipDesignSlot{},
+			},
+			args: args{
+				player: NewPlayer(1, NewRace().WithSpec(&rules)),
+			},
+			wantErr: true,
+		}, {
+			name: "invalid Required Quantity",
+			fields: fields{
+				Name: "Scout",
 				Hull: "Scout",
 				Slots: []ShipDesignSlot{
-					{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 0},
+					{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 0},
 				},
 			},
 			args: args{
@@ -100,6 +132,7 @@ func TestShipDesign_Validate(t *testing.T) {
 		{
 			name: "invalid component",
 			fields: fields{
+				Name: "Scout",
 				Hull: "Scout",
 				Slots: []ShipDesignSlot{
 					{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
@@ -114,6 +147,7 @@ func TestShipDesign_Validate(t *testing.T) {
 		{
 			name: "invalid component type - cargo pod in scanner",
 			fields: fields{
+				Name: "Scout",
 				Hull: "Scout",
 				Slots: []ShipDesignSlot{
 					{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
@@ -128,6 +162,7 @@ func TestShipDesign_Validate(t *testing.T) {
 		{
 			name: "invalid component - player can't build",
 			fields: fields{
+				Name: "Scout",
 				Hull: "Scout",
 				Slots: []ShipDesignSlot{
 					{HullComponent: GalaxyScoop.Name, HullSlotIndex: 1, Quantity: 1},
@@ -142,6 +177,7 @@ func TestShipDesign_Validate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			sd := &ShipDesign{
+				Name:  tt.fields.Name,
 				Hull:  tt.fields.Hull,
 				Slots: tt.fields.Slots,
 			}

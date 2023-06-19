@@ -22,23 +22,17 @@
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { User } from '@steeze-ui/heroicons';
 	import Research from './Research.svelte';
+	import { RaceService } from '$lib/services/RaceService';
 
 	let id = $page.params.id;
 	let race: Race;
 
 	onMount(async () => {
 		if (id !== 'new') {
-			const response = await fetch(`/api/races/${id}`, {
-				method: 'GET',
-				headers: {
-					accept: 'application/json'
-				}
-			});
-
-			if (response.ok) {
-				race = (await response.json()) as Race;
-			} else {
-				console.error(response);
+			try {
+				race = await RaceService.get(id);
+			} catch (err) {
+				// TODO: show error
 			}
 		} else {
 			// create a new humanoid
@@ -141,9 +135,8 @@
 
 		<SectionHeader>Planetary Production</SectionHeader>
 		<PlanetaryProduction bind:race />
-		
+
 		<SectionHeader>Research</SectionHeader>
 		<Research bind:race />
-
 	</form>
 {/if}

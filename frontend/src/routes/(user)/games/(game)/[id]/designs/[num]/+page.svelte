@@ -1,11 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import ItemTitle from '$lib/components/ItemTitle.svelte';
-	import Cost from '$lib/components/game/Cost.svelte';
-	import Design from '$lib/components/game/Design.svelte';
-	import TechAvatar from '$lib/components/tech/TechAvatar.svelte';
-	import TechHull from '$lib/components/tech/hull/TechHull.svelte';
-	import { game, techs } from '$lib/services/Context';
+	import Design from '$lib/components/game/design/Design.svelte';
+	import { techs } from '$lib/services/Context';
 	import type { ErrorResponse } from '$lib/types/ErrorResponse';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import { onMount } from 'svelte';
@@ -38,7 +34,16 @@
 	{error.error}
 {:else if design}
 	<div class="w-full mx-auto md:max-w-2xl">
-		<ItemTitle>{design.name}</ItemTitle>
+		<div class="breadcrumbs border-primary border-b-2 mb-2">
+			<ul>
+				<li><a class="cs-link" href={`/games/${gameId}/designs`}>Designs</a></li>
+				<li>{design?.name}</li>
+				{#if !design.spec?.numInstances}
+					<li><a class="cs-link" href={`/games/${gameId}/designs/${design.num}/edit`}>Edit</a></li>
+				{/if}
+			</ul>
+		</div>
+
 		<div class="px-1 md:p-0">
 			<Design {design} />
 		</div>

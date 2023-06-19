@@ -2,5 +2,5 @@
 </script>
 
 <ul>
-	<li><a class="link-primary" href="/tests/scanner/fleets">fleets</a></li>
+	<li><a class="cs-link" href="/tests/scanner/fleets">fleets</a></li>
 </ul>

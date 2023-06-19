@@ -293,7 +293,7 @@ func (t *TechPlanetaryScanner) String() string { return t.Name }
 func (t *TechDefense) String() string          { return t.Name }
 func (t *TechTerraform) String() string        { return t.Name }
 
-func (t *Tech) GetPlayerCost(player *Player) Cost {
+func (t *Tech) GetPlayerCost(techLevels TechLevel, spec MiniaturizationSpec) Cost {
 	// figure out miniaturization
 	// this is 4% per level above the required tech we have.
 	// We count the smallest diff, i.e. if you have
@@ -306,41 +306,41 @@ func (t *Tech) GetPlayerCost(player *Player) Cost {
 	// i.e. 1 energey level in the example above
 	numTechLevelsAboveRequired := math.MaxInt
 	if t.Requirements.Energy > 0 {
-		levelDiff.Energy = player.TechLevels.Energy - t.Requirements.Energy
+		levelDiff.Energy = techLevels.Energy - t.Requirements.Energy
 		numTechLevelsAboveRequired = minInt(levelDiff.Energy, numTechLevelsAboveRequired)
 	}
 	if t.Requirements.Weapons > 0 {
-		levelDiff.Weapons = player.TechLevels.Weapons - t.Requirements.Weapons
+		levelDiff.Weapons = techLevels.Weapons - t.Requirements.Weapons
 		numTechLevelsAboveRequired = minInt(levelDiff.Weapons, numTechLevelsAboveRequired)
 	}
 	if t.Requirements.Propulsion > 0 {
-		levelDiff.Propulsion = player.TechLevels.Propulsion - t.Requirements.Propulsion
+		levelDiff.Propulsion = techLevels.Propulsion - t.Requirements.Propulsion
 		numTechLevelsAboveRequired = minInt(levelDiff.Propulsion, numTechLevelsAboveRequired)
 	}
 	if t.Requirements.Construction > 0 {
-		levelDiff.Construction = player.TechLevels.Construction - t.Requirements.Construction
+		levelDiff.Construction = techLevels.Construction - t.Requirements.Construction
 		numTechLevelsAboveRequired = minInt(levelDiff.Construction, numTechLevelsAboveRequired)
 	}
 	if t.Requirements.Electronics > 0 {
-		levelDiff.Electronics = player.TechLevels.Electronics - t.Requirements.Electronics
+		levelDiff.Electronics = techLevels.Electronics - t.Requirements.Electronics
 		numTechLevelsAboveRequired = minInt(levelDiff.Electronics, numTechLevelsAboveRequired)
 	}
 	if t.Requirements.Biotechnology > 0 {
-		levelDiff.Biotechnology = player.TechLevels.Biotechnology - t.Requirements.Biotechnology
+		levelDiff.Biotechnology = techLevels.Biotechnology - t.Requirements.Biotechnology
 		numTechLevelsAboveRequired = minInt(levelDiff.Biotechnology, numTechLevelsAboveRequired)
 	}
 
 	// for starter techs, they are all 0 requirements, so just use our lowest field
 	if numTechLevelsAboveRequired == math.MaxInt {
-		numTechLevelsAboveRequired = player.TechLevels.Min()
+		numTechLevelsAboveRequired = techLevels.Min()
 	}
 
 	// As we learn techs, they get cheaper. We start off with full priced techs, but every additional level of research we learn makes
 	// techs cost a little less, maxing out at some discount (i.e. 75% or 80% for races with BET)
-	miniaturization := math.Min(player.Race.Spec.MiniaturizationMax, player.Race.Spec.MiniaturizationPerLevel*float64(numTechLevelsAboveRequired))
+	miniaturization := math.Min(spec.MiniaturizationMax, spec.MiniaturizationPerLevel*float64(numTechLevelsAboveRequired))
 	// New techs cost BET races 2x
 	// new techs will have 0 for miniaturization.
-	miniaturizationFactor := player.Race.Spec.NewTechCostFactor
+	miniaturizationFactor := spec.NewTechCostFactor
 	if numTechLevelsAboveRequired > 0 {
 		miniaturizationFactor = 1 - miniaturization
 	}

@@ -1,40 +1,24 @@
 <script lang="ts">
 	import { techs } from '$lib/services/Context';
-	import type { ShipDesign } from '$lib/types/ShipDesign';
-	import type { HullSlot, TechHull, TechHullComponent } from '$lib/types/Tech';
-	import CargoComponent from './CargoComponent.svelte';
-	import HullComponent from './HullComponent.svelte';
-	import SpaceDockComponent from './SpaceDockComponent.svelte';
+	import type { ShipDesignSlot } from '$lib/types/ShipDesign';
+	import type { HullSlot, TechHull } from '$lib/types/Tech';
+	import CargoComponent from '../../tech/hull/CargoComponent.svelte';
+	import HullComponent from '../../tech/hull/HullComponent.svelte';
+	import SpaceDockComponent from '../../tech/hull/SpaceDockComponent.svelte';
+	import { shipDesignerContext } from './ShipDesignerContext';
 
-	export let hull: TechHull;
-	export let design: ShipDesign | undefined = undefined;
 	const componentSize = 64; // each component block is 64px
 	const containerWidth = componentSize * 5;
 	const containerHeight = componentSize * 5;
 
-	// get a hull component for a slot
-	function getHullComponent(slot: HullSlot, slotIndex: number): TechHullComponent | undefined {
-		if (design) {
-			const slot = design.slots.find((s) => s.hullSlotIndex === slotIndex + 1);
-			if (slot) {
-				return $techs.getHullComponent(slot.hullComponent);
-			}
-		}
-	}
-
-	function getSlotQuantity(slot: HullSlot, slotIndex: number): number | undefined {
-		if (design) {
-			const slot = design.slots.find((s) => s.hullSlotIndex === slotIndex + 1);
-			if (slot) {
-				return slot.quantity;
-			}
-		}
-	}
-
+	export let hull: TechHull;
+	export let shipDesignSlots: ShipDesignSlot[] = [];
+	export let selectedSlot: HullSlot | undefined = undefined;
 </script>
 
 <div class="relative m-2" style={`width: ${containerWidth}px; height: ${containerHeight}px`}>
 	{#each hull.slots as slot, index}
+		{@const shipDesignSlot = shipDesignSlots.find((s) => s.hullSlotIndex === index + 1)}
 		{#if index == 1 && hull.cargoCapacity && hull.cargoCapacity > 0}
 			<div
 				class="absolute"
@@ -44,8 +28,8 @@
 				}px; top: ${
 					(hull.cargoSlotPosition?.y ?? 0) * componentSize +
 					(containerHeight / 2 - componentSize / 2)
-				}px; width: ${(hull.cargoSlotSize?.x ?? 0) * componentSize + 1}px; height: ${
-					(hull.cargoSlotSize?.y ?? 0) * componentSize + 1
+				}px; width: ${(hull.cargoSlotSize?.x ?? 0) * componentSize}px; height: ${
+					(hull.cargoSlotSize?.y ?? 0) * componentSize
 				}px;`}
 			>
 				<CargoComponent capacity={hull.cargoCapacity} />
@@ -74,11 +58,25 @@
 			}px; top: ${slot.position.y * componentSize + (containerHeight / 2 - componentSize / 2)}px;`}
 		>
 			<HullComponent
-				component={getHullComponent(slot, index)}
-				quantity={getSlotQuantity(slot, index)}
+				{shipDesignSlot}
 				type={slot.type}
 				capacity={slot.capacity}
 				required={slot.required}
+				selected={selectedSlot && selectedSlot === slot}
+				on:selected={() => {
+					selectedSlot = slot;
+					if ($shipDesignerContext) {
+						$shipDesignerContext.selectedSlotIndex = index;
+						$shipDesignerContext.selectedSlot = slot;
+						$shipDesignerContext.selectedShipDesignSlot = shipDesignSlot;
+					}
+				}}
+				on:deleted={() => {
+					shipDesignSlots = shipDesignSlots.filter((s) => s !== shipDesignSlot);
+				}}
+				on:updated={() => {
+					shipDesignSlots = shipDesignSlots;
+				}}
 			/>
 		</div>
 	{/each}

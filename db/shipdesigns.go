@@ -212,3 +212,30 @@ func (c *client) DeleteShipDesign(id int64) error {
 
 	return nil
 }
+
+// delete a ship design and update/delete fleets associated with the design
+// this is a separate function so we can do all the db interactions in a single transaction
+func (c *client) DeleteShipDesignWithFleets(id int64, fleetsToUpdate, fleetsToDelete []*cs.Fleet) error {
+	tx, err := c.db.Beginx()
+	if err != nil {
+		return err
+	}
+
+	if _, err := tx.Exec("DELETE FROM shipDesigns WHERE id = ?", id); err != nil {
+		return err
+	}
+
+	for _, fleet := range fleetsToUpdate {
+		if err := c.updateFleet(fleet, tx); err != nil {
+			return err
+		}
+	}
+
+	for _, fleet := range fleetsToDelete {
+		if err := c.deleteFleet(fleet.ID, tx); err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit()
+}

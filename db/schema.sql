@@ -244,6 +244,7 @@ CREATE TABLE shipDesigns (
   purpose TEXT,
   spec TEXT,
   UNIQUE (gameId, playerNum, num),
+  UNIQUE (gameId, playerNum, name),
   CONSTRAINT fkPlayersDesigns FOREIGN KEY (gameId, playerNum) REFERENCES players(gameId, num) ON DELETE CASCADE
 );
 CREATE TABLE planets (

@@ -22,6 +22,7 @@ type PlayerUpdater interface {
 	updateMineFieldOrders(userID int64, mineFieldID int64, orders cs.MineFieldOrders) (*cs.MineField, error)
 	transferCargo(userID int64, fleetID int64, destID int64, mapObjectType cs.MapObjectType, transferAmount cs.Cargo) (*cs.Fleet, error)
 	createShipDesign(userID, gameID int64, design *cs.ShipDesign) (*cs.ShipDesign, error)
+	deleteShipDesign(userID, gameID int64, num int) (fleets, starbases []*cs.Fleet, err error)
 }
 
 func newPlayerUpdater(db DBClient) PlayerUpdater {
@@ -275,7 +276,7 @@ func (pu *playerUpdater) transferCargoFleetFleet(fleet *cs.Fleet, destID int64, 
 func (pu *playerUpdater) createShipDesign(userID, gameID int64, design *cs.ShipDesign) (*cs.ShipDesign, error) {
 	player, err := pu.db.GetPlayerWithDesignsForGame(gameID, userID)
 
-	if err != nil {
+	if err != nil || player == nil {
 		log.Error().Err(err).Int64("GameID", gameID).Int64("UserID", userID).Msg("load player from database")
 		return nil, fmt.Errorf("failed to load player from database")
 	}
@@ -288,7 +289,7 @@ func (pu *playerUpdater) createShipDesign(userID, gameID int64, design *cs.ShipD
 
 	if err := design.Validate(rules, player); err != nil {
 		log.Error().Err(err).Int64("ID", player.ID).Str("DesignName", design.Name).Msg("validate new player design")
-		return nil, fmt.Errorf("failed to validate design %w", err)
+		return nil, fmt.Errorf("invalid design, %w", err)
 	}
 
 	design.PlayerNum = player.Num
@@ -301,4 +302,83 @@ func (pu *playerUpdater) createShipDesign(userID, gameID int64, design *cs.ShipD
 	}
 
 	return design, nil
+}
+
+func (pu *playerUpdater) deleteShipDesign(userID, gameID int64, num int) (fleets, starbases []*cs.Fleet, err error) {
+	player, err := pu.db.GetPlayerForGame(gameID, userID)
+
+	if err != nil || player == nil {
+		log.Error().Err(err).Int64("GameID", gameID).Int64("UserID", userID).Msg("load player from database")
+		return nil, nil, fmt.Errorf("failed to load player from database")
+	}
+
+	design, err := pu.db.GetShipDesignByNum(gameID, player.Num, num)
+	if err != nil || design == nil {
+		log.Error().Err(err).Int64("GameID", gameID).Int64("UserID", userID).Int("Num", num).Msg("load design from database")
+		return nil, nil, fmt.Errorf("failed to load design from database")
+	}
+
+	fleets, err = pu.db.GetFleetsForPlayer(gameID, player.Num)
+	if err != nil {
+		log.Error().Err(err).Int64("GameID", gameID).Int64("UserID", userID).Int("Num", num).Msg("load fleets from database")
+		return nil, nil, fmt.Errorf("failed to load fleets from database")
+	}
+
+	fleetsToDelete := []*cs.Fleet{}
+	fleetsToUpdate := []*cs.Fleet{}
+	for _, fleet := range fleets {
+		// find any tokens using this design
+		updatedTokens := make([]cs.ShipToken, 0, len(fleet.Tokens))
+		for _, token := range fleet.Tokens {
+			if token.DesignNum != num {
+				updatedTokens = append(updatedTokens, token)
+			}
+		}
+		// if we have no tokens left, delete the fleet
+		if len(updatedTokens) == 0 {
+			fleetsToDelete = append(fleetsToDelete, fleet)
+		} else {
+			// if we have a different number of tokens than we
+			// had before, update this fleet
+			if len(updatedTokens) != len(fleet.Tokens) {
+				fleet.Tokens = updatedTokens
+				fleetsToUpdate = append(fleetsToUpdate, fleet)
+			}
+		}
+	}
+
+	if err := pu.db.DeleteShipDesignWithFleets(design.ID, fleetsToUpdate, fleetsToDelete); err != nil {
+		log.Error().Err(err).Int64("GameID", gameID).Int64("UserID", userID).Int("Num", num).Msg("delete design from database")
+		return nil, nil, fmt.Errorf("failed to delete design from database")
+	}
+
+	// log what we did
+	log.Info().Int64("GameID", gameID).Int64("UserID", userID).Int("Num", num).Msgf("deleted design %s", design.Name)
+
+	for _, fleet := range fleetsToUpdate {
+		log.Info().Int64("GameID", gameID).Int64("UserID", userID).Int("Num", num).Msgf("updated fleet %s after deleting design", fleet.Name)
+	}
+
+	for _, fleet := range fleetsToDelete {
+		log.Info().Int64("GameID", gameID).Int64("UserID", userID).Int("Num", num).Msgf("deleted fleet %s after deleting design", fleet.Name)
+	}
+
+	allFleets, err := pu.db.GetFleetsForPlayer(gameID, player.Num)
+
+	if err != nil {
+		log.Error().Err(err).Int64("GameID", gameID).Int64("UserID", userID).Int("Num", num).Msg("load fleets from database")
+	}
+
+	// split the player fleets into fleets and starbases
+	fleets = make([]*cs.Fleet, 0, len(allFleets))
+	starbases = make([]*cs.Fleet, 0)
+	for i := range allFleets {
+		fleet := allFleets[i]
+		if fleet.Starbase {
+			starbases = append(starbases, fleet)
+		} else {
+			fleets = append(fleets, fleet)
+		}
+	}
+	return fleets, starbases, nil
 }

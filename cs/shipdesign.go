@@ -3,6 +3,7 @@ package cs
 import (
 	"fmt"
 	"math"
+	"strings"
 	"time"
 )
 
@@ -73,6 +74,7 @@ type ShipDesignSpec struct {
 	SafeRange                 int                   `json:"safeRange,omitempty"`
 	MaxHullMass               int                   `json:"maxHullMass,omitempty"`
 	MaxRange                  int                   `json:"maxRange,omitempty"`
+	NumInstances              int                   `json:"numInstances,omitempty"`
 }
 
 type MineLayingRateByMineType struct {
@@ -135,6 +137,9 @@ func (sd *ShipDesign) WithSpec(rules *Rules, player *Player) *ShipDesign {
 
 // validate that this ship design is available to the player
 func (sd *ShipDesign) Validate(rules *Rules, player *Player) error {
+	if strings.TrimSpace(sd.Name) == "" {
+		return fmt.Errorf("design has no name")
+	}
 	hull := rules.techs.GetHull(sd.Hull)
 	if hull == nil {
 		return fmt.Errorf("hull %s not found", sd.Hull)
@@ -170,6 +175,22 @@ func (sd *ShipDesign) Validate(rules *Rules, player *Player) error {
 
 	}
 
+	for i, hullSlot := range hull.Slots {
+		if hullSlot.Required {
+			found := false
+			for _, slot := range sd.Slots {
+				if slot.HullSlotIndex-1 == i && slot.Quantity == hullSlot.Capacity {
+					found = true
+					break
+				}
+			}
+
+			if !found {
+				return fmt.Errorf("%d %s required", hullSlot.Capacity, hullSlot.Type.String())
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -179,7 +200,7 @@ func computeShipDesignSpec(rules *Rules, player *Player, design *ShipDesign) Shi
 		Mass:                    hull.Mass,
 		Armor:                   hull.Armor,
 		FuelCapacity:            hull.FuelCapacity,
-		Cost:                    hull.GetPlayerCost(player),
+		Cost:                    hull.GetPlayerCost(player.TechLevels, player.Race.Spec.MiniaturizationSpec),
 		CargoCapacity:           hull.CargoCapacity,
 		CloakUnits:              player.Race.Spec.BuiltInCloakUnits,
 		Initiative:              hull.Initiative,
@@ -217,7 +238,7 @@ func computeShipDesignSpec(rules *Rules, player *Player, design *ShipDesign) Shi
 				}
 				spec.MineSweep += slot.Quantity * component.Power * ((component.Range + hull.RangeBonus) * component.Range) * gattlingMultiplier
 			}
-			spec.Cost = spec.Cost.Add(component.Tech.GetPlayerCost(player).MultiplyInt(slot.Quantity))
+			spec.Cost = spec.Cost.Add(component.Tech.GetPlayerCost(player.TechLevels, player.Race.Spec.MiniaturizationSpec).MultiplyInt(slot.Quantity))
 
 			spec.Mass += component.Mass * slot.Quantity
 			spec.Armor += component.Armor * slot.Quantity

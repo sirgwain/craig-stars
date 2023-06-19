@@ -12,7 +12,7 @@
 			<tbody>
 				{#if $player.fleets?.length}
 					{#each $player.fleets as design}
-						<tr class="hover"> <td>{design.name}</td><td>{design.tokens.length}</td></tr>
+						<tr class="hover"> <td>{design.name}</td><td>{design.tokens?.length ?? 0}</td></tr>
 					{/each}
 				{/if}
 			</tbody>
