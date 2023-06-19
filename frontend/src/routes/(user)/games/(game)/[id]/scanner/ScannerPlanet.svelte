@@ -3,12 +3,7 @@
   Generates an SVG scatter plot. This component can also work if the x- or y-scale is ordinal, i.e. it has a `.bandwidth` method. See the [timeplot chart](https://layercake.graphics/example/Timeplot) for an example.
  -->
 <script lang="ts">
-	import {
-		commandedMapObject,
-		getMapObjectsByPosition,
-		getMyMapObjectsByPosition,
-		player
-	} from '$lib/services/Context';
+	import { player, playerColor } from '$lib/services/Context';
 	import { Unexplored, type Planet } from '$lib/types/Planet';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
@@ -16,8 +11,9 @@
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
 	export let planet: Planet;
+	export let commanded = false;
+	export let orbitingFleets = false;
 
-	let commanded = false;
 	let props = {};
 	let ringProps: any | undefined = undefined;
 
@@ -28,25 +24,17 @@
 			let strokeWidth = 0;
 			let strokeColor = '#555';
 
-			if (
-				getMyMapObjectsByPosition(planet).find(
-					(m) => m.type == $commandedMapObject.type && m.id == $commandedMapObject.id
-				)
-			) {
-				commanded = true;
-			} else {
-				commanded = false;
-			}
-
 			if (planet.playerNum === $player.num) {
 				color = '#00FF00';
 				strokeWidth = $xScale(2);
-			} else if ((planet as Planet)?.reportAge !== Unexplored) {
+			} else if (planet.reportAge !== Unexplored && !planet.playerNum) {
 				color = '#FFF';
+			} else if (planet.playerNum) {
+				color = playerColor(planet.playerNum);
 			}
 
 			// if anything is orbiting our planet, put a ring on it
-			if (getMapObjectsByPosition(planet).length > 1) {
+			if (orbitingFleets) {
 				ringProps = {
 					cx: $xGet(planet),
 					cy: $yGet(planet),

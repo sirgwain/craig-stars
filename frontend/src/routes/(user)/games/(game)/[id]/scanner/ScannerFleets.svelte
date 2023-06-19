@@ -8,6 +8,7 @@
 	import { getContext } from 'svelte';
 	import ScannerFleet from './ScannerFleet.svelte';
 	import type { LayerCake } from 'layercake';
+	import { commandedFleet, playerColor } from '$lib/services/Context';
 
 	const { data } = getContext<LayerCake>('LayerCake');
 
@@ -15,7 +16,8 @@
 
 	$: fleets = $data && $data.filter((mo: MapObject) => mo.type == MapObjectType.Fleet);
 </script>
+
 <!-- Fleets -->
 {#each fleets as fleet}
-	<ScannerFleet {fleet} />
+	<ScannerFleet {fleet} color={playerColor(fleet.playerNum)} commanded={$commandedFleet?.num === fleet.num && $commandedFleet?.playerNum === fleet.playerNum} />
 {/each}

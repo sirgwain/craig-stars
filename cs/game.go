@@ -29,6 +29,7 @@ type NewGamePlayer struct {
 	Type         NewGamePlayerType `json:"type,omitempty"`
 	RaceID       int64             `json:"raceId,omitempty"`
 	AIDifficulty AIDifficulty      `json:"aiDifficulty,omitempty"`
+	Color        string            `json:"color,omitempty"`
 }
 
 type GameSettings struct {
@@ -234,7 +235,7 @@ func (settings *GameSettings) WithDensity(density Density) *GameSettings {
 
 // add a host to this game
 func (settings *GameSettings) WithHost(raceID int64) *GameSettings {
-	settings.Players = append(settings.Players, NewGamePlayer{Type: NewGamePlayerTypeHost, RaceID: raceID})
+	settings.Players = append(settings.Players, NewGamePlayer{Type: NewGamePlayerTypeHost, RaceID: raceID, Color: "#0000FF"})
 	return settings
 }
 
@@ -269,4 +270,3 @@ func (g *Game) WithSettings(settings GameSettings) *Game {
 
 	return g
 }
-

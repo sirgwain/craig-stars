@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { game, player } from '$lib/services/Context';
+	import { game, player, playerName } from '$lib/services/Context';
+	import { Unexplored } from '$lib/types/Planet';
 </script>
 
 {#if $player}
@@ -28,6 +29,7 @@
 			<thead>
 				<th>Name</th>
 				<th>Hab</th>
+				<th>Owner</th>
 			</thead>
 			<tbody>
 				{#if $player.planetIntels?.length}
@@ -37,8 +39,17 @@
 								>{planet.hab?.grav
 									? `${planet.hab.grav}, ${planet.hab.temp}, ${planet.hab.rad}`
 									: ''}</td
-							></tr
-						>
+							>
+							<td>
+								{#if planet.playerNum}
+									{playerName(planet.playerNum)}
+								{:else if planet.reportAge != Unexplored}
+									--
+								{:else}
+									Unknown
+								{/if}
+							</td>
+						</tr>
 					{/each}
 				{/if}
 			</tbody>

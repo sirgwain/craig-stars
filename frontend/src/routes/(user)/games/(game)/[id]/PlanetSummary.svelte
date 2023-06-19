@@ -7,6 +7,8 @@
 	import { clamp } from '$lib/services/Math';
 	import PlanetMineralsGraph from './PlanetMineralsGraph.svelte';
 	import { getGravString, getRadString, getTempString } from '$lib/types/Hab';
+	import { None } from '$lib/types/MapObject';
+	import { playerColor, playerName } from '$lib/services/Context';
 
 	export let planet: Planet;
 	export let player: Player;
@@ -56,14 +58,25 @@
 				<div>Population: {planet.population.toLocaleString()}</div>
 			{/if}
 		</div>
-		<div class="ml-[5.5rem]">
-			{#if (planet.reportAge ?? 0) == 0}
-				Report is current
-			{:else if planet.reportAge == 1}
-				Report is 1 year old
-			{:else}
-				Report is {planet.reportAge} years old
-			{/if}
+		<div class="flex justify-between">
+			<div class="ml-[5.5rem]">
+				<div>
+					{#if (planet.reportAge ?? 0) == 0}
+						Report is current
+					{:else if planet.reportAge == 1}
+						Report is 1 year old
+					{:else}
+						Report is {planet.reportAge} years old
+					{/if}
+				</div>
+			</div>
+			<div>
+				{#if planet.reportAge != Unexplored && planet.playerNum != player.num && planet.playerNum != None}
+					<span style={`color: ${playerColor(planet.playerNum)}`}
+						>{playerName(planet.playerNum)}</span
+					>
+				{/if}
+			</div>
 		</div>
 
 		<div class="flex flex-row">

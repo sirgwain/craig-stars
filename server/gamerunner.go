@@ -1,6 +1,7 @@
 package server
 
 import (
+	"crypto/rand"
 	"fmt"
 	"time"
 
@@ -17,6 +18,14 @@ const (
 	TurnNotGenerated TurnGenerationCheckResult = iota
 	TurnGenerated
 )
+
+var colors = []string{
+	"#C33232",
+	"#1F8BA7",
+	"#43A43E",
+	"#8D29CB",
+	"#B88628",
+}
 
 type GameRunner interface {
 	HostGame(hostID int64, settings *cs.GameSettings) (*cs.FullGame, error)
@@ -76,15 +85,19 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 			player.GameID = game.ID
 			player.Num = i + 1
 			player.Name = user.Username
+			player.Color = playerSetting.Color
 			players = append(players, player)
 		} else if playerSetting.Type == cs.NewGamePlayerTypeAI {
 			log.Debug().Int64("hostID", hostID).Msg("Adding ai player to game")
 			race := cs.NewRace()
+			race.Name = "Cool AI"
+			race.PluralName = "Cool AIs"
 			player := gr.client.NewPlayer(hostID, *race, &game.Rules)
 			player.GameID = game.ID
 			player.Num = i + 1
 			player.AIControlled = true
 			player.Name = "AI Player"
+			player.Color = playerSetting.Color
 			players = append(players, player)
 		} else if playerSetting.Type == cs.NewGamePlayerTypeOpen {
 			log.Debug().Uint("openPlayerSlots", game.OpenPlayerSlots).Msg("Added open player slot to game")
@@ -93,8 +106,21 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 			player.GameID = game.ID
 			player.Num = i + 1
 			player.Name = "Open Slot"
+			player.Color = playerSetting.Color
 			players = append(players, player)
 			game.OpenPlayerSlots++
+		}
+	}
+
+	for _, player := range players {
+		if player.Color == "" || (player.Num != 1 && player.Color == "#0000FF") {
+			if player.Num-1 < len(colors) {
+				player.Color = colors[player.Num-1]
+			} else {
+				color := make([]byte, 3)
+				rand.Read(color)
+				player.Color = fmt.Sprintf("#%X%X%X", color[0], color[1], color[2])
+			}
 		}
 	}
 

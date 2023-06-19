@@ -1,6 +1,4 @@
-import { player } from '$lib/services/Context';
 import type { Fleet } from './Fleet';
-import { MapObjectType, type MapObject } from './MapObject';
 import type { Planet } from './Planet';
 import type { Race } from './Race';
 import type { ShipDesign } from './ShipDesign';
