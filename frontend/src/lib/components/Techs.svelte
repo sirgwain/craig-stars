@@ -6,6 +6,7 @@
 	import { onMount } from 'svelte';
 	import { $enum as eu } from 'ts-enum-util';
 	import SectionHeader from './SectionHeader.svelte';
+	import TableSearchInput from './TableSearchInput.svelte';
 
 	// for ssr, we start with techs from a json file
 	export let techStore: TechStore = techjson as TechStore;
@@ -17,6 +18,8 @@
 		...techStore.hulls,
 		...techStore.terraforms
 	];
+
+	let filter = '';
 
 	let techsByCategory: Record<TechCategory, Tech[]> = {
 		Armor: [],
@@ -38,9 +41,36 @@
 		Torpedo: []
 	};
 
-	$: techs.forEach((tech) => {
-		techsByCategory[tech.category].push(tech);
-	});
+	function clearTechsByCategory() {
+		techsByCategory = {
+			Armor: [],
+			BeamWeapon: [],
+			Bomb: [],
+			Electrical: [],
+			Engine: [],
+			Mechanical: [],
+			MineLayer: [],
+			MineRobot: [],
+			Orbital: [],
+			PlanetaryScanner: [],
+			PlanetaryDefense: [],
+			Scanner: [],
+			Shield: [],
+			ShipHull: [],
+			StarbaseHull: [],
+			Terraforming: [],
+			Torpedo: []
+		};
+	}
+
+	$: filteredTechs = techs.filter((t) => t.name.toLocaleLowerCase().indexOf(filter.toLocaleLowerCase()) != -1);
+
+	$: {
+		clearTechsByCategory();
+		filteredTechs.forEach((tech) => {
+			techsByCategory[tech.category].push(tech);
+		});
+	}
 
 	onMount(async () => {
 		const response = await fetch(`/api/techs`, {
@@ -65,15 +95,19 @@
 	});
 </script>
 
+<TableSearchInput bind:value={filter} />
+
 {#each eu(TechCategory).getKeys() as category}
-	<a id={kebabCase(category)} href={`#${kebabCase(category)}`}
-		><SectionHeader title={startCase(category)} /></a
-	>
-	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-		{#each techsByCategory[category] as tech}
-			<div>
-				<TechSummary {tech} />
-			</div>
-		{/each}
-	</div>
+	{#if techsByCategory[category].length > 0}
+		<a id={kebabCase(category)} href={`#${kebabCase(category)}`}
+			><SectionHeader title={startCase(category)} /></a
+		>
+		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+			{#each techsByCategory[category] as tech}
+				<div>
+					<TechSummary {tech} />
+				</div>
+			{/each}
+		</div>
+	{/if}
 {/each}

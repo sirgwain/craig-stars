@@ -8,4 +8,3 @@
 		<Techs techStore={$game?.rules.techs} />
 	</div>
 {/if}
-∏
