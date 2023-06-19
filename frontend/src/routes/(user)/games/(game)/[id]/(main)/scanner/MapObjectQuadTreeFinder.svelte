@@ -78,6 +78,9 @@
 
 	function onPointerDown(e: PointerEvent) {
 		pointerDown = true;
+		const evt = e as PointerEvent & { layerX: number; layerY: number };
+		const { position, found } = findItem(evt.layerX, evt.layerY);
+
 		if (found) {
 			if (e.shiftKey || addWaypoint) {
 				dispatch('add-waypoint', { mo: found });
