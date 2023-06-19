@@ -181,10 +181,10 @@ func Test_battleToken_getDistanceAway(t *testing.T) {
 		args args
 		want int
 	}{
-		{"no distance", battleToken{position: Vector{0, 0}}, args{Vector{0, 0}}, 0},
-		{"x distance greatest", battleToken{position: Vector{2, 1}}, args{Vector{4, 2}}, 2},
-		{"y distance greatest", battleToken{position: Vector{1, 2}}, args{Vector{2, 5}}, 3},
-		{"negative distance (token behind)", battleToken{position: Vector{1, 1}}, args{Vector{0, 0}}, 1},
+		{"no distance", battleToken{BattleRecordToken: BattleRecordToken{Position: Vector{0, 0}}}, args{Vector{0, 0}}, 0},
+		{"x distance greatest", battleToken{BattleRecordToken: BattleRecordToken{Position: Vector{2, 1}}}, args{Vector{4, 2}}, 2},
+		{"y distance greatest", battleToken{BattleRecordToken: BattleRecordToken{Position: Vector{1, 2}}}, args{Vector{2, 5}}, 3},
+		{"negative distance (token behind)", battleToken{BattleRecordToken: BattleRecordToken{Position: Vector{1, 1}}}, args{Vector{0, 0}}, 1},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -205,9 +205,9 @@ func Test_battleWeaponSlot_isInRangePosition(t *testing.T) {
 		args   args
 		want   bool
 	}{
-		{"no distance, in range", battleWeaponSlot{token: &battleToken{position: Vector{0, 0}}}, args{Vector{0, 0}}, true},
-		{"distance 1, in range", battleWeaponSlot{token: &battleToken{position: Vector{0, 0}}, weaponRange: 1}, args{Vector{1, 1}}, true},
-		{"distance 2, out of range", battleWeaponSlot{token: &battleToken{position: Vector{0, 0}}, weaponRange: 1}, args{Vector{1, 2}}, false},
+		{"no distance, in range", battleWeaponSlot{token: &battleToken{BattleRecordToken: BattleRecordToken{Position: Vector{0, 0}}}}, args{Vector{0, 0}}, true},
+		{"distance 1, in range", battleWeaponSlot{token: &battleToken{BattleRecordToken: BattleRecordToken{Position: Vector{0, 0}}}, weaponRange: 1}, args{Vector{1, 1}}, true},
+		{"distance 2, out of range", battleWeaponSlot{token: &battleToken{BattleRecordToken: BattleRecordToken{Position: Vector{0, 0}}}, weaponRange: 1}, args{Vector{1, 2}}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

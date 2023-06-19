@@ -31,7 +31,7 @@
 	}
 </script>
 
-<div class="absolute w-[660px] h-[660px] z-30 pointer-events-none">
+<div class="absolute w-full h-full z-30 pointer-events-none">
 	{#if actionToken?.action?.type == TokenActionType.BeamFire}
 		<div class="relative left-0 top-0 w-full h-full">
 			<svg class="w-full h-full">

@@ -12,7 +12,7 @@
 		}
 		const token = battle.getToken(tokenNum);
 		if (token) {
-			const design = player.getDesign(token.playerNum, token.token.designNum);
+			const design = player.getDesign(token.playerNum, token.designNum);
 			const raceName = player.getPlayerIntel(token.playerNum);
 			if (design && raceName) {
 				return `${raceName.racePluralName} ${design.name}`;

@@ -183,6 +183,9 @@ func Start(db DBClient, config config.Config) {
 		r.Get("/", server.techs)
 		r.Get("/{name:[a-zA-Z0-9-\\s]+}", server.tech)
 	})
+	r.Route("/api/battles", func(r chi.Router) {
+		r.Get("/test", server.testBattle)
+	})
 
 	r.Group(func(r chi.Router) {
 		r.Use(m.Auth)

@@ -178,7 +178,7 @@ func (ug *universeGenerator) generateWormholes() error {
 }
 
 func (ug *universeGenerator) generateAIPlayers() {
-	names := aiNames
+	names := AINames
 	ug.rules.random.Shuffle(len(names), func(i, j int) { names[i], names[j] = names[j], names[i] })
 	for index, player := range ug.players {
 		if player.AIControlled {

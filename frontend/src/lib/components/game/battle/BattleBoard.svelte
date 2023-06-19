@@ -18,12 +18,12 @@
 	$: action = battle.getActionForPhase(phase ?? 0);
 </script>
 
-<div class="flex justify-center">
-	<div class="flex flex-row">
+<div class="flex justify-center w-full">
+	<div class="flex flex-row flex-wrap">
 		<!-- the grid of the board -->
-		<div class="flex flex-col">
+		<div class="flex flex-col w-[690px] mx-auto">
 			<div
-				class="grid grid-cols-10 border-2 border-secondary rounded-md gap-0 min-w-[690px] w-[690px] overflow-auto"
+				class="grid grid-cols-10 border-2 border-secondary rounded-md gap-0 h-[690px] overflow-auto"
 			>
 				<BattleBoardAttack {battle} {phase} />
 

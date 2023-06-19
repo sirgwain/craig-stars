@@ -13,8 +13,10 @@ export type BattleRecord = {
 export type Token = {
 	num: number;
 	playerNum: number;
-	token: ShipToken;
-	startingPosition: Vector;
+	designNum: number;
+	position: Vector;
+	startingDamage?: number;
+	startingQuantityDamaged?: number;
 	initiative?: number;
 	movement?: number;
 	tactic: BattleTactic | string;
@@ -129,8 +131,8 @@ export class Battle implements BattleRecord {
 		// starting token configuration
 		let tokens: PhaseToken[] = this.tokens.map((t) => ({
 			...t,
-			x: t.startingPosition.x,
-			y: t.startingPosition.y
+			x: t.position.x,
+			y: t.position.y
 		}));
 
 		// set the first phase to our base tokens

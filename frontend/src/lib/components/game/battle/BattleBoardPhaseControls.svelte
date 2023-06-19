@@ -8,6 +8,7 @@
 		ChevronDoubleRight
 	} from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
+	import { reverse } from 'lodash-es';
 
 	export let phase: number;
 	export let battle: Battle;
@@ -20,13 +21,15 @@
 	};
 	const nextAttack = () => {
 		const nextPhase = battle.actions.findIndex(
-			(a) => a.type == TokenActionType.BeamFire || a.type == TokenActionType.TorpedoFire,
-			phase
+			(a, index) =>
+				index > phase - 1 &&
+				(a.type == TokenActionType.BeamFire || a.type == TokenActionType.TorpedoFire)
 		);
 		if (nextPhase != -1) {
 			phase = nextPhase + 1;
 		}
 	};
+
 	const begin = () => {
 		phase = 0;
 	};
@@ -45,6 +48,7 @@
 			><Icon src={ChevronDoubleLeft} size="16" class="hover:stroke-accent inline" /></button
 		>
 	</div>
+
 	<div>
 		<button
 			on:click={previous}

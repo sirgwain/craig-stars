@@ -1,6 +1,6 @@
 package cs
 
-var aiNames = []string{
+var AINames = []string{
 	"American",
 	"Berserker",
 	"Bulushi",

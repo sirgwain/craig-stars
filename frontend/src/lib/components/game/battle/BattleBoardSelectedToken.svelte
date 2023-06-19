@@ -7,7 +7,7 @@
 	export let player: Player;
 	export let token: PhaseToken | undefined;
 
-	$: design = token && player.getDesign(token.playerNum, token.token.designNum);
+	$: design = token && player.getDesign(token.playerNum, token.designNum);
 	$: raceName = token && player.getPlayerIntel(token.playerNum)?.racePluralName;
 </script>
 

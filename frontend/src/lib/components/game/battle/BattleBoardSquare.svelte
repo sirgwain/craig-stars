@@ -20,7 +20,7 @@
 		if (tokens && tokens.filter((t) => !(t.ranAway || t.destroyed)).length > 0) {
 			const token = tokens[tokenIndex];
 			if (token) {
-				const design = player.getDesign(token.playerNum, token.token.designNum);
+				const design = player.getDesign(token.playerNum, token.designNum);
 				if (design) {
 					const name = kebabCase(design.hull.replace("'", '').replace(' ', '').replace('±', ''));
 					return `hull-${name}-${design.hullSetNumber ?? 0}`;

@@ -754,13 +754,19 @@ func (t *turn) fleetBattle() {
 				messager.battle(player, planet, record)
 			}
 			for _, fleet := range fleets {
+				updatedTokens := make([]ShipToken, 0, len(fleet.Tokens))
 				for _, token := range fleet.Tokens {
 					// add this design to our set of designs that should be discovered
 					designsToDiscover[playerObjectKey(fleet.PlayerNum, token.DesignNum)] = token.design
-					// TODO: remove tokens and fleets after battle
-					if token.Quantity == 0 {
-
+					// keep this token
+					if token.Quantity > 0 {
+						updatedTokens = append(updatedTokens, token)
 					}
+				}
+				fleet.Tokens = updatedTokens
+
+				if len(fleet.Tokens) == 0 {
+					t.game.deleteFleet(fleet)
 				}
 			}
 
