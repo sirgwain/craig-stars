@@ -1,6 +1,12 @@
 import type { Game } from '$lib/types/Game';
 import type { Planet } from '$lib/types/Planet';
-import type { PlayerMapObjects, PlayerOrders, PlayerPlans, PlayerResponse } from '$lib/types/Player';
+import type {
+	PlayerMapObjects,
+	PlayerOrders,
+	PlayerPlans,
+	PlayerResponse
+} from '$lib/types/Player';
+import { CSError } from './Errors';
 import { Service } from './Service';
 
 type UpdateOrdersResult = {
@@ -48,7 +54,7 @@ export class PlayerService extends Service {
 		if (response.ok) {
 			return (await response.json()) as PlayerResponse;
 		} else {
-			console.error(response);
+			throw new CSError(await response.json());
 		}
 	}
 

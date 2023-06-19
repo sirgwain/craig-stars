@@ -2,6 +2,7 @@
 	import { page } from '$app/stores';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import { game } from '$lib/services/Context';
+	import { CSError, addError } from '$lib/services/Errors';
 	import BattlePlanEditor from '../BattlePlanEditor.svelte';
 
 	let gameId = parseInt($page.params.id);
@@ -16,11 +17,11 @@
 
 		try {
 			if (plan && $game) {
-				// update this design
-				await $game.updatePlayerPlans();
+				// save to server
+				await $game.updateBattlePlan(plan);
 			}
 		} catch (e) {
-			error = (e as Error).message;
+			addError(e as CSError);
 		}
 	};
 </script>
@@ -36,5 +37,5 @@
 </Breadcrumb>
 
 {#if plan}
-	<BattlePlanEditor bind:plan readonlyName={plan.num === 0} on:save={(e) => onSave()} bind:error />
+	<BattlePlanEditor bind:plan on:save={(e) => onSave()} bind:error />
 {/if}

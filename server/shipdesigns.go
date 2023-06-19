@@ -36,7 +36,7 @@ func (s *server) shipdDesignCtx(next http.Handler) http.Handler {
 			return
 		}
 
-		if player == nil {
+		if design == nil {
 			render.Render(w, r, ErrNotFound)
 			return
 		}

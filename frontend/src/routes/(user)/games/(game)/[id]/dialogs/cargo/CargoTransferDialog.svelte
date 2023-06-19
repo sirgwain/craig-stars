@@ -4,7 +4,7 @@
 	import { clamp } from '$lib/services/Math';
 	import { PlanetService } from '$lib/services/PlanetService';
 	import { emptyCargo, negativeCargo, subtract, totalCargo, type Cargo } from '$lib/types/Cargo';
-	import type { Fleet } from '$lib/types/Fleet';
+	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
 	import { MapObjectType } from '$lib/types/MapObject';
 	import type { Planet } from '$lib/types/Planet';
 	import hotkeys from 'hotkeys-js';
@@ -14,7 +14,7 @@
 	import TransferButtons from './TransferButtons.svelte';
 	import { game } from '$lib/services/Context';
 
-	export let src: Fleet | undefined;
+	export let src: CommandedFleet | undefined;
 	export let dest: Fleet | Planet | undefined;
 
 	let transferAmount: Cargo = emptyCargo();

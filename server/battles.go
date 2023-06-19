@@ -62,7 +62,7 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 				{HullComponent: cs.Superlatanium.Name, HullSlotIndex: 5, Quantity: 1},
 				{HullComponent: cs.Overthruster.Name, HullSlotIndex: 6, Quantity: 1},
 				{HullComponent: cs.BattleComputer.Name, HullSlotIndex: 7, Quantity: 1},
-	}))
+			}))
 
 	fleets := []*cs.Fleet{
 		{
@@ -75,9 +75,6 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 					DesignNum: player1.Designs[0].Num,
 					Quantity:  2,
 				},
-			},
-			FleetOrders: cs.FleetOrders{
-				BattlePlanName: player1.BattlePlans[0].Name,
 			},
 		},
 		// player2's teamster
@@ -95,9 +92,6 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 					Quantity:  2,
 					DesignNum: player2.Designs[1].Num,
 				},
-			},
-			FleetOrders: cs.FleetOrders{
-				BattlePlanName: player2.BattlePlans[0].Name,
 			},
 		}}
 

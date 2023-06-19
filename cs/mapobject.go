@@ -7,7 +7,6 @@ import (
 
 type DBObject struct {
 	ID        int64     `json:"id"`
-	GameID    int64     `json:"gameId"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }

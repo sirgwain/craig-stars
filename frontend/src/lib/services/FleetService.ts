@@ -1,7 +1,7 @@
 import type { Cargo } from '$lib/types/Cargo';
-import type { ErrorResponse } from '$lib/types/ErrorResponse';
 import { CommandedFleet, type Fleet, type Waypoint } from '$lib/types/Fleet';
 import type { MapObject } from '$lib/types/MapObject';
+import type { ErrorResponse } from './Errors';
 import { Service } from './Service';
 
 // orders sent to the server

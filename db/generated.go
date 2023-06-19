@@ -312,7 +312,7 @@ func (c *GameConverter) csFleetToDbFleet(source cs.Fleet) Fleet {
 	dbFleet.Germanium = source.Cargo.Germanium
 	dbFleet.Colonists = source.Cargo.Colonists
 	dbFleet.Fuel = source.Fuel
-	dbFleet.BattlePlanName = source.FleetOrders.BattlePlanName
+	dbFleet.BattlePlanNum = source.FleetOrders.BattlePlanNum
 	dbFleet.HeadingX = source.Heading.X
 	dbFleet.HeadingY = source.Heading.Y
 	dbFleet.WarpSpeed = source.WarpSpeed

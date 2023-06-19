@@ -1,7 +1,7 @@
 <script lang="ts">
 	import CargoTransferDialog from '../../games/(game)/[id]/dialogs/cargo/CargoTransferDialog.svelte';
 
-	import type { Fleet } from '$lib/types/Fleet';
+	import { CommandedFleet, type Fleet } from '$lib/types/Fleet';
 	import { MapObjectType } from '$lib/types/MapObject';
 	import { CommandedPlanet, type Planet } from '$lib/types/Planet';
 
@@ -14,49 +14,14 @@
 		cargo: { ironium: 1000, boranium: 2000, germanium: 4000, colonists: 2500 }
 	});
 
-	const fleet: Fleet = {
-		id: 5,
-		createdAt: '2022-08-13T18:08:12.897309-07:00',
-		updatedAt: '2022-08-14T12:33:39.894998-07:00',
-		type: MapObjectType.Fleet,
-		gameId: 1,
-		position: {
-			x: 266,
-			y: 752
-		},
+	const fleet = new CommandedFleet({
 		name: 'Santa Maria #3',
-		num: 3,
-		playerNum: 0,
 		baseName: 'Santa Maria',
 		cargo: {
 			ironium: 11,
 			colonists: 3
 		},
 		fuel: 200,
-		damage: 0,
-		battlePlanName: 'default',
-		tokens: [
-			{
-				id: 5,
-				createdAt: '2022-08-13T18:08:12.897362-07:00',
-				updatedAt: '2022-08-14T12:33:39.894893-07:00',
-				gameId: 5,
-				designNum: 1,
-				quantity: 1
-			}
-		],
-		waypoints: [
-			{
-				position: {
-					x: 266,
-					y: 752
-				},
-				warpFactor: 5,
-				targetType: MapObjectType.Planet,
-				targetNum: 1,
-				targetName: 'Megrez'
-			}
-		],
 		spec: {
 			engine: 'Quick Jump 5',
 			cost: {
@@ -77,7 +42,7 @@
 			safePacketSpeed: 0,
 			baseCloakedCargo: 24
 		}
-	};
+	});
 </script>
 
 <h1 class="text-xl">Cargo Transfer</h1>

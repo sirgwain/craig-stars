@@ -6,31 +6,31 @@ import (
 )
 
 type Universe struct {
-	Planets              []*Planet                            `json:"planets,omitempty"`
-	Fleets               []*Fleet                             `json:"fleets,omitempty"`
-	Starbases            []*Fleet                             `json:"starbases,omitempty"`
-	Wormholes            []*Wormhole                          `json:"wormholes,omitempty"`
-	MineralPackets       []*MineralPacket                     `json:"mineralPackets,omitempty"`
-	MineFields           []*MineField                         `json:"mineFields,omitempty"`
-	MysteryTraders       []*MysteryTrader                     `json:"mysteryTraders,omitempty"`
-	Salvages             []*Salvage                           `json:"salvage,omitempty"`
-	rules                *Rules                               `json:"-"`
-	battlePlansByName    map[playerBattlePlanName]*BattlePlan `json:"-"`
-	mapObjectsByPosition map[Vector][]interface{}             `json:"-"`
-	fleetsByPosition     map[Vector]*Fleet                    `json:"-"`
-	fleetsByNum          map[playerObject]*Fleet              `json:"-"`
-	designsByNum         map[playerObject]*ShipDesign         `json:"-"`
-	mineFieldsByNum      map[playerObject]*MineField          `json:"-"`
-	mineralPacketsByNum  map[playerObject]*MineralPacket      `json:"-"`
-	salvagesByNum        map[int]*Salvage                     `json:"-"`
-	mysteryTradersByNum  map[int]*MysteryTrader               `json:"-"`
-	wormholesByNum       map[int]*Wormhole                    `json:"-"`
+	Planets              []*Planet                           `json:"planets,omitempty"`
+	Fleets               []*Fleet                            `json:"fleets,omitempty"`
+	Starbases            []*Fleet                            `json:"starbases,omitempty"`
+	Wormholes            []*Wormhole                         `json:"wormholes,omitempty"`
+	MineralPackets       []*MineralPacket                    `json:"mineralPackets,omitempty"`
+	MineFields           []*MineField                        `json:"mineFields,omitempty"`
+	MysteryTraders       []*MysteryTrader                    `json:"mysteryTraders,omitempty"`
+	Salvages             []*Salvage                          `json:"salvage,omitempty"`
+	rules                *Rules                              `json:"-"`
+	battlePlansByNum    map[playerBattlePlanNum]*BattlePlan `json:"-"`
+	mapObjectsByPosition map[Vector][]interface{}            `json:"-"`
+	fleetsByPosition     map[Vector]*Fleet                   `json:"-"`
+	fleetsByNum          map[playerObject]*Fleet             `json:"-"`
+	designsByNum         map[playerObject]*ShipDesign        `json:"-"`
+	mineFieldsByNum      map[playerObject]*MineField         `json:"-"`
+	mineralPacketsByNum  map[playerObject]*MineralPacket     `json:"-"`
+	salvagesByNum        map[int]*Salvage                    `json:"-"`
+	mysteryTradersByNum  map[int]*MysteryTrader              `json:"-"`
+	wormholesByNum       map[int]*Wormhole                   `json:"-"`
 }
 
 func NewUniverse(rules *Rules) Universe {
 	return Universe{
 		rules:                rules,
-		battlePlansByName:    make(map[playerBattlePlanName]*BattlePlan),
+		battlePlansByNum:    make(map[playerBattlePlanNum]*BattlePlan),
 		mapObjectsByPosition: make(map[Vector][]interface{}),
 		fleetsByPosition:     make(map[Vector]*Fleet),
 		designsByNum:         make(map[playerObject]*ShipDesign),
@@ -65,9 +65,9 @@ type playerObject struct {
 
 func playerObjectKey(playerNum int, num int) playerObject { return playerObject{playerNum, num} }
 
-type playerBattlePlanName struct {
+type playerBattlePlanNum struct {
 	PlayerNum int
-	Name      string
+	Num       int
 }
 
 // build the maps used for the Get functions
@@ -85,7 +85,7 @@ func (u *Universe) buildMaps(players []*Player) {
 		numBattlePlans += len(p.BattlePlans)
 	}
 	u.designsByNum = make(map[playerObject]*ShipDesign, numDesigns)
-	u.battlePlansByName = make(map[playerBattlePlanName]*BattlePlan, numBattlePlans)
+	u.battlePlansByNum = make(map[playerBattlePlanNum]*BattlePlan, numBattlePlans)
 
 	for _, p := range players {
 		for i := range p.Designs {
@@ -95,7 +95,7 @@ func (u *Universe) buildMaps(players []*Player) {
 
 		for i := range p.BattlePlans {
 			plan := &p.BattlePlans[i]
-			u.battlePlansByName[playerBattlePlanName{PlayerNum: p.Num, Name: plan.Name}] = plan
+			u.battlePlansByNum[playerBattlePlanNum{PlayerNum: p.Num, Num: plan.Num}] = plan
 		}
 	}
 
@@ -106,7 +106,7 @@ func (u *Universe) buildMaps(players []*Player) {
 		u.fleetsByPosition[fleet.Position] = fleet
 		u.fleetsByNum[playerObjectKey(fleet.PlayerNum, fleet.Num)] = fleet
 
-		fleet.battlePlan = u.battlePlansByName[playerBattlePlanName{fleet.PlayerNum, fleet.BattlePlanName}]
+		fleet.battlePlan = u.battlePlansByNum[playerBattlePlanNum{fleet.PlayerNum, fleet.BattlePlanNum}]
 
 		// inject the design into this
 		for i := range fleet.Tokens {
@@ -121,7 +121,7 @@ func (u *Universe) buildMaps(players []*Player) {
 			token := &starbase.Tokens[i]
 			token.design = u.designsByNum[playerObjectKey(starbase.PlayerNum, token.DesignNum)]
 		}
-		starbase.battlePlan = u.battlePlansByName[playerBattlePlanName{starbase.PlayerNum, starbase.BattlePlanName}]
+		starbase.battlePlan = u.battlePlansByNum[playerBattlePlanNum{starbase.PlayerNum, starbase.BattlePlanNum}]
 	}
 
 	for _, planet := range u.Planets {

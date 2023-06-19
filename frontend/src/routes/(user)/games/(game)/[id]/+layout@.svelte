@@ -9,6 +9,7 @@
 	import { onMount } from 'svelte';
 	import GameMenu from './GameMenu.svelte';
 	import PopupTech from './popups/PopupTech.svelte';
+	import ErrorToast from '$lib/components/ErrorToast.svelte';
 
 	let id = parseInt($page.params.id);
 
@@ -42,6 +43,7 @@
 		<div class="flex-initial">
 			<GameMenu game={$game} />
 		</div>
+		<ErrorToast />
 		<!-- We want our main game view to only fill the screen (minus the toolbar) -->
 		<div class="grow viewport">
 			<slot>Game</slot>

@@ -33,7 +33,7 @@ type Fleet struct {
 	Germanium         int         `json:"germanium,omitempty"`
 	Colonists         int         `json:"colonists,omitempty"`
 	Fuel              int         `json:"fuel,omitempty"`
-	BattlePlanName    string      `json:"battlePlanName,omitempty"`
+	BattlePlanNum     int         `json:"battlePlanNum,omitempty"`
 	HeadingX          float64     `json:"headingX,omitempty"`
 	HeadingY          float64     `json:"headingY,omitempty"`
 	WarpSpeed         int         `json:"warpSpeed,omitempty"`
@@ -220,7 +220,7 @@ func (c *client) createFleet(fleet *cs.Fleet, tx SQLExecer) error {
 		createdAt,
 		updatedAt,
 		gameId,
-		battlePlanName,
+		battlePlanNum,
 		x,
 		y,
 		name,
@@ -249,7 +249,7 @@ func (c *client) createFleet(fleet *cs.Fleet, tx SQLExecer) error {
 		CURRENT_TIMESTAMP,
 		CURRENT_TIMESTAMP,
 		:gameId,
-		:battlePlanName,
+		:battlePlanNum,
 		:x,
 		:y,
 		:name,
@@ -334,7 +334,7 @@ func (c *client) updateFleet(fleet *cs.Fleet, tx SQLExecer) error {
 	UPDATE fleets SET
 		updatedAt = CURRENT_TIMESTAMP,
 		gameId = :gameId,
-		battlePlanName = :battlePlanName,
+		battlePlanNum = :battlePlanNum,
 		x = :x,
 		y = :y,
 		name = :name,

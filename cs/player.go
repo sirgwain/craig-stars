@@ -3,6 +3,7 @@ package cs
 import (
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -321,6 +322,33 @@ func (p *Player) GetNextDesignNum(designs []*ShipDesign) int {
 	return num + 1
 }
 
+// get the next BattlePlan number to use
+func (p *Player) GetNextBattlePlanNum() int {
+	num := 0
+	for _, plan := range p.BattlePlans {
+		num = maxInt(num, plan.Num)
+	}
+	return num + 1
+}
+
+// get the next ProductionPlan number to use
+func (p *Player) GetNextProductionPlanNum() int {
+	num := 0
+	for _, plan := range p.ProductionPlans {
+		num = maxInt(num, plan.Num)
+	}
+	return num + 1
+}
+
+// get the next TransportPlan number to use
+func (p *Player) GetNextTransportPlanNum() int {
+	num := 0
+	for _, plan := range p.TransportPlans {
+		num = maxInt(num, plan.Num)
+	}
+	return num + 1
+}
+
 func computePlayerSpec(player *Player, rules *Rules, planets []*Planet) PlayerSpec {
 	researcher := NewResearcher(rules)
 	techs := rules.techs
@@ -422,4 +450,12 @@ func (p *Player) InjectDesigns(fleets []*Fleet) {
 		}
 	}
 
+}
+
+// validate this battle plan
+func (plan *BattlePlan) Validate(player *Player) error {
+	if strings.TrimSpace(plan.Name) == "" {
+		return fmt.Errorf("plan has no name")
+	}
+	return nil
 }

@@ -54,10 +54,10 @@
 				<select
 					class="select select-outline select-secondary select-sm"
 					name="battlePlan"
-					bind:value={fleet.battlePlanName}
+					bind:value={fleet.battlePlanNum}
 				>
 					{#each player.battlePlans as battlePlan}
-						<option value={battlePlan.name}>{battlePlan.name}</option>
+						<option value={battlePlan.num}>{battlePlan.name}</option>
 					{/each}
 				</select>
 			</div>

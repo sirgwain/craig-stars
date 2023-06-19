@@ -650,6 +650,24 @@ func (c *client) UpdatePlayerOrders(player *cs.Player) error {
 	return nil
 }
 
+// update an existing player's lightweight fields
+func (c *client) UpdatePlayerPlans(player *cs.Player) error {
+	item := c.converter.ConvertGamePlayer(player)
+
+	if _, err := c.db.NamedExec(`
+	UPDATE players SET
+		updatedAt = CURRENT_TIMESTAMP,
+		battlePlans = :battlePlans,
+		productionPlans = :productionPlans,
+		transportPlans = :transportPlans
+	WHERE id = :id
+	`, item); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // helper to update a player using a transaction or DB
 func (c *client) updatePlayerWithNamedExecer(player *cs.Player, tx SQLExecer) error {
 	item := c.converter.ConvertGamePlayer(player)

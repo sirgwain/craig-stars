@@ -1055,7 +1055,7 @@ func RunTestBattle(players []*Player, fleets []*Fleet) *BattleRecord {
 
 	playersByNum := map[int]*Player{}
 	designsByNum := make(map[playerObject]*ShipDesign)
-	battlePlansByName := make(map[playerBattlePlanName]*BattlePlan)
+	battlePlansByName := make(map[playerBattlePlanNum]*BattlePlan)
 
 	for _, player := range players {
 		playersByNum[player.Num] = player
@@ -1069,7 +1069,7 @@ func RunTestBattle(players []*Player, fleets []*Fleet) *BattleRecord {
 
 		for i := range player.BattlePlans {
 			plan := &player.BattlePlans[i]
-			battlePlansByName[playerBattlePlanName{PlayerNum: player.Num, Name: plan.Name}] = plan
+			battlePlansByName[playerBattlePlanNum{PlayerNum: player.Num, Num: plan.Num}] = plan
 		}
 
 	}
@@ -1080,7 +1080,7 @@ func RunTestBattle(players []*Player, fleets []*Fleet) *BattleRecord {
 			token.design = designsByNum[playerObjectKey(fleet.PlayerNum, token.DesignNum)]
 		}
 		fleet.Spec = ComputeFleetSpec(&rules, playersByNum[fleet.PlayerNum], fleet)
-		fleet.battlePlan = battlePlansByName[playerBattlePlanName{fleet.PlayerNum, fleet.BattlePlanName}]
+		fleet.battlePlan = battlePlansByName[playerBattlePlanNum{fleet.PlayerNum, fleet.BattlePlanNum}]
 	}
 
 	battler := newBattler(&rules, &StaticTechStore, 1, playersByNum, fleets, nil)

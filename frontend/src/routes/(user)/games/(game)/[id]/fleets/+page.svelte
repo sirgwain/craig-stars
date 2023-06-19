@@ -80,7 +80,7 @@
 			title: 'Cloak'
 		},
 		{
-			key: 'battlePlanName',
+			key: 'battlePlanNum',
 			title: 'Battle Plan'
 		},
 		{
@@ -138,8 +138,9 @@
 				</div>
 			{:else if column.key == 'cloak'}
 				{row.spec.cloak ? row.spec.cloak + '%' : ''}
-			{:else if column.key == 'battlePlanName'}
-				{row.battlePlanName}
+			{:else if column.key == 'battlePlanNum'}
+				{@const battlePlan = $game ? $game.player.getBattlePlan(row.battlePlanNum) : undefined}
+				{battlePlan?.name ?? ''}
 			{:else if column.key == 'mass'}
 				{row.spec.mass}
 			{:else}

@@ -9,8 +9,9 @@ import {
 	type Game,
 	type VictoryConditions
 } from '$lib/types/Game';
-import { Player, type PlayerMapObjects } from '$lib/types/Player';
+import { Player, type BattlePlan, type PlayerMapObjects } from '$lib/types/Player';
 import type { Vector } from '$lib/types/Vector';
+import { BattlePlanService } from './BattlePlanService';
 import { commandedFleet } from './Context';
 import { DesignService } from './DesignService';
 import { FleetService } from './FleetService';
@@ -116,6 +117,23 @@ export class FullGame implements Game {
 			Object.assign(this.player, result);
 		}
 		return this.player;
+	}
+
+	async createBattlePlan(plan: BattlePlan) {
+		const created = await BattlePlanService.create(this.id, plan);
+		this.player.battlePlans = [...this.player.battlePlans, created];
+		return created;
+	}
+
+	async updateBattlePlan(plan: BattlePlan) {
+		await BattlePlanService.update(this.id, plan);
+	}
+
+	async deleteBattlePlan(num: number) {
+		const { player, fleets, starbases } = await BattlePlanService.delete(this.id, num);
+		Object.assign(this.player, player);
+		this.universe.fleets = fleets;
+		this.universe.starbases = starbases;
 	}
 
 	async deleteDesign(num: number) {

@@ -34,6 +34,9 @@ const (
 	keyGame
 	keyPlayer
 	keyShipDesign
+	keyBattlePlan
+	keyProductionPlan
+	keyTransportPlan
 	keyPlanet
 	keyFleet
 	keyMineField
@@ -244,6 +247,18 @@ func Start(db DBClient, config config.Config) {
 							r.Get("/", server.shipDesign)
 							r.Put("/", server.updateShipDesign)
 							r.Delete("/", server.deleteShipDesign)
+						})
+					})
+
+					// battle plans
+					r.Route("/battle-plans", func(r chi.Router) {
+						r.Post("/", server.createBattlePlan)
+
+						// shipdesign by num operations
+						r.Route("/{num:[0-9]+}", func(r chi.Router) {
+							r.Use(server.battlePlanCtx)
+							r.Put("/", server.updateBattlePlan)
+							r.Delete("/", server.deleteBattlePlan)
 						})
 					})
 

@@ -12,7 +12,7 @@ export interface Fleet extends MapObject {
 	fuel?: number;
 	cargo?: Cargo;
 	damage?: number;
-	battlePlanName?: string;
+	battlePlanNum?: number;
 	tokens?: ShipToken[];
 	waypoints?: Waypoint[];
 
@@ -158,7 +158,7 @@ export class CommandedFleet implements Fleet {
 	fuel = 0;
 	cargo: Cargo = {};
 	damage = 0;
-	battlePlanName = 'Default';
+	battlePlanNum = 0;
 	tokens: ShipToken[] = [];
 	waypoints: Waypoint[] = [];
 	repeatOrders = false;

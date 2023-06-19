@@ -214,6 +214,16 @@ func (s *server) updatePlayerPlans(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(plans.BattlePlans) == 0 {
+		render.Render(w, r, ErrBadRequest(fmt.Errorf("must have at least one battle plan")))
+		return
+	}
+
+	if plans.BattlePlans[0].Num != 0 {
+		render.Render(w, r, ErrBadRequest(fmt.Errorf("must have a default battle plan")))
+		return
+	}
+
 	// TODO: validate?
 	// TODO: convert creates into a separate POST?
 	// TODO: update fleets with deleted battle plans to use default battleplan

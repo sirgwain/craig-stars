@@ -72,8 +72,7 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 					},
 					BaseName: "Scout",
 					FleetOrders: FleetOrders{
-						Waypoints:      []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-						BattlePlanName: player.BattlePlans[0].Name,
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
 					},
 					Tokens: []ShipToken{
 						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 2},
@@ -93,8 +92,7 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 				},
 				BaseName: "Scout",
 				FleetOrders: FleetOrders{
-					Waypoints:      []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-					BattlePlanName: player.BattlePlans[0].Name,
+					Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
 				},
 				Tokens: []ShipToken{
 					{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 1},
@@ -110,8 +108,7 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 				},
 				BaseName: "Long Range Scout",
 				FleetOrders: FleetOrders{
-					Waypoints:      []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-					BattlePlanName: player.BattlePlans[0].Name,
+					Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
 				},
 				Tokens: []ShipToken{
 					{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 1},
@@ -133,8 +130,7 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 					},
 					BaseName: "Scout",
 					FleetOrders: FleetOrders{
-						Waypoints:      []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-						BattlePlanName: player.BattlePlans[0].Name,
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
 					},
 					Tokens: []ShipToken{
 						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 2},
@@ -154,8 +150,7 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 				},
 				BaseName: "Scout",
 				FleetOrders: FleetOrders{
-					Waypoints:      []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-					BattlePlanName: player.BattlePlans[0].Name,
+					Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
 				},
 				Tokens: []ShipToken{
 					{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 1},
@@ -171,8 +166,7 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 				},
 				BaseName: "Long Range Scout",
 				FleetOrders: FleetOrders{
-					Waypoints:      []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-					BattlePlanName: player.BattlePlans[0].Name,
+					Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
 				},
 				Tokens: []ShipToken{
 					{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 1},
@@ -194,8 +188,7 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 					},
 					BaseName: "Scout",
 					FleetOrders: FleetOrders{
-						Waypoints:      []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-						BattlePlanName: player.BattlePlans[0].Name,
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
 					},
 					Tokens: []ShipToken{
 						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 2},
@@ -218,8 +211,7 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 				},
 				BaseName: "Scout",
 				FleetOrders: FleetOrders{
-					Waypoints:      []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-					BattlePlanName: player.BattlePlans[0].Name,
+					Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
 				},
 				Tokens: []ShipToken{
 					{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 1},
@@ -237,8 +229,7 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 				},
 				BaseName: "Long Range Scout",
 				FleetOrders: FleetOrders{
-					Waypoints:      []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-					BattlePlanName: player.BattlePlans[0].Name,
+					Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
 				},
 				Tokens: []ShipToken{
 					{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 1},
@@ -262,8 +253,7 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 					},
 					BaseName: "Teamster",
 					FleetOrders: FleetOrders{
-						Waypoints:      []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-						BattlePlanName: player.BattlePlans[0].Name,
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
 					},
 					Tokens: []ShipToken{
 						{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 3},
@@ -284,8 +274,7 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 				},
 				BaseName: "Teamster",
 				FleetOrders: FleetOrders{
-					Waypoints:      []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-					BattlePlanName: player.BattlePlans[0].Name,
+					Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
 				},
 				Tokens: []ShipToken{
 					{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 2},
@@ -302,8 +291,7 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 				},
 				BaseName: "Teamster",
 				FleetOrders: FleetOrders{
-					Waypoints:      []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-					BattlePlanName: player.BattlePlans[0].Name,
+					Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
 				},
 				Tokens: []ShipToken{
 					{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 1},
@@ -327,8 +315,7 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 					},
 					BaseName: "Scout",
 					FleetOrders: FleetOrders{
-						Waypoints:      []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-						BattlePlanName: player.BattlePlans[0].Name,
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
 					},
 					Tokens: []ShipToken{
 						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 2, Damage: 5, QuantityDamaged: 1},
@@ -350,8 +337,7 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 				},
 				BaseName: "Scout",
 				FleetOrders: FleetOrders{
-					Waypoints:      []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-					BattlePlanName: player.BattlePlans[0].Name,
+					Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
 				},
 				Tokens: []ShipToken{
 					{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 1},                                        // should leave no damaged scouts
@@ -367,8 +353,7 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 				},
 				BaseName: "Long Range Scout",
 				FleetOrders: FleetOrders{
-					Waypoints:      []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-					BattlePlanName: player.BattlePlans[0].Name,
+					Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
 				},
 				Tokens: []ShipToken{
 					{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 1, Damage: 5, QuantityDamaged: 1},         // gets the damaged scout
@@ -470,8 +455,7 @@ func Test_orders_SplitAll(t *testing.T) {
 					},
 					BaseName: "Scout",
 					FleetOrders: FleetOrders{
-						Waypoints:      []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-						BattlePlanName: player.BattlePlans[0].Name,
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
 					},
 					Tokens: []ShipToken{
 						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 3},
@@ -487,8 +471,7 @@ func Test_orders_SplitAll(t *testing.T) {
 				},
 				BaseName: "Scout",
 				FleetOrders: FleetOrders{
-					Waypoints:      []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-					BattlePlanName: player.BattlePlans[0].Name,
+					Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
 				},
 				Tokens: []ShipToken{
 					{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 1},
@@ -504,8 +487,7 @@ func Test_orders_SplitAll(t *testing.T) {
 					},
 					BaseName: "Long Range Scout",
 					FleetOrders: FleetOrders{
-						Waypoints:      []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-						BattlePlanName: player.BattlePlans[0].Name,
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
 					},
 					Tokens: []ShipToken{
 						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 1},
@@ -520,8 +502,7 @@ func Test_orders_SplitAll(t *testing.T) {
 					},
 					BaseName: "Long Range Scout",
 					FleetOrders: FleetOrders{
-						Waypoints:      []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-						BattlePlanName: player.BattlePlans[0].Name,
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
 					},
 					Tokens: []ShipToken{
 						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 1},
@@ -543,8 +524,7 @@ func Test_orders_SplitAll(t *testing.T) {
 					},
 					BaseName: "Scout",
 					FleetOrders: FleetOrders{
-						Waypoints:      []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-						BattlePlanName: player.BattlePlans[0].Name,
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
 					},
 					Tokens: []ShipToken{
 						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 1},
@@ -562,8 +542,7 @@ func Test_orders_SplitAll(t *testing.T) {
 				},
 				BaseName: "Scout",
 				FleetOrders: FleetOrders{
-					Waypoints:      []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-					BattlePlanName: player.BattlePlans[0].Name,
+					Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
 				},
 				Tokens: []ShipToken{
 					{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 1},
@@ -579,8 +558,7 @@ func Test_orders_SplitAll(t *testing.T) {
 					},
 					BaseName: "Teamster",
 					FleetOrders: FleetOrders{
-						Waypoints:      []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-						BattlePlanName: player.BattlePlans[0].Name,
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
 					},
 					Tokens: []ShipToken{
 						{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 1},
@@ -595,8 +573,7 @@ func Test_orders_SplitAll(t *testing.T) {
 					},
 					BaseName: "Teamster2",
 					FleetOrders: FleetOrders{
-						Waypoints:      []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-						BattlePlanName: player.BattlePlans[0].Name,
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
 					},
 					Tokens: []ShipToken{
 						{design: freighter2Design, DesignNum: freighter2Design.Num, Quantity: 1},
@@ -691,8 +668,7 @@ func Test_orders_Merge(t *testing.T) {
 					},
 					BaseName: "Scout",
 					FleetOrders: FleetOrders{
-						Waypoints:      []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-						BattlePlanName: player.BattlePlans[0].Name,
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
 					},
 					Tokens: []ShipToken{
 						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 1},
@@ -708,8 +684,7 @@ func Test_orders_Merge(t *testing.T) {
 					},
 					BaseName: "Scout",
 					FleetOrders: FleetOrders{
-						Waypoints:      []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-						BattlePlanName: player.BattlePlans[0].Name,
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
 					},
 					Tokens: []ShipToken{
 						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 1},
@@ -726,8 +701,7 @@ func Test_orders_Merge(t *testing.T) {
 				},
 				BaseName: "Scout",
 				FleetOrders: FleetOrders{
-					Waypoints:      []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-					BattlePlanName: player.BattlePlans[0].Name,
+					Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
 				},
 				Tokens: []ShipToken{
 					{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 2},
@@ -748,8 +722,7 @@ func Test_orders_Merge(t *testing.T) {
 					},
 					BaseName: "Scout",
 					FleetOrders: FleetOrders{
-						Waypoints:      []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-						BattlePlanName: player.BattlePlans[0].Name,
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
 					},
 					Tokens: []ShipToken{
 						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 1},
@@ -764,8 +737,7 @@ func Test_orders_Merge(t *testing.T) {
 					},
 					BaseName: "Teamster",
 					FleetOrders: FleetOrders{
-						Waypoints:      []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-						BattlePlanName: player.BattlePlans[0].Name,
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
 					},
 					Tokens: []ShipToken{
 						{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 1},
@@ -782,8 +754,7 @@ func Test_orders_Merge(t *testing.T) {
 				},
 				BaseName: "Scout",
 				FleetOrders: FleetOrders{
-					Waypoints:      []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-					BattlePlanName: player.BattlePlans[0].Name,
+					Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
 				},
 				Tokens: []ShipToken{
 					{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 1},
@@ -805,8 +776,7 @@ func Test_orders_Merge(t *testing.T) {
 					},
 					BaseName: "Damaged",
 					FleetOrders: FleetOrders{
-						Waypoints:      []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-						BattlePlanName: player.BattlePlans[0].Name,
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
 					},
 					Tokens: []ShipToken{
 						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 1},                                         // no damage
@@ -822,8 +792,7 @@ func Test_orders_Merge(t *testing.T) {
 					},
 					BaseName: "Damaged",
 					FleetOrders: FleetOrders{
-						Waypoints:      []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-						BattlePlanName: player.BattlePlans[0].Name,
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
 					},
 					Tokens: []ShipToken{
 						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 2, QuantityDamaged: 2, Damage: 10},         // 2@10 damage
@@ -840,8 +809,7 @@ func Test_orders_Merge(t *testing.T) {
 				},
 				BaseName: "Damaged",
 				FleetOrders: FleetOrders{
-					Waypoints:      []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-					BattlePlanName: player.BattlePlans[0].Name,
+					Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
 				},
 				Tokens: []ShipToken{
 					{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 3, QuantityDamaged: 2, Damage: 10},

@@ -220,7 +220,7 @@ type Converter interface {
 	// goverter:map MapObject.Name Name
 	// goverter:map MapObject.Num Num
 	// goverter:map MapObject.PlayerNum	 PlayerNum
-	// goverter:map FleetOrders.BattlePlanName BattlePlanName
+	// goverter:map FleetOrders.BattlePlanNum BattlePlanNum
 	// goverter:map FleetOrders.Waypoints Waypoints
 	// goverter:map FleetOrders.RepeatOrders RepeatOrders
 	// goverter:ignore Tags
@@ -879,9 +879,9 @@ func ExtendFleetMapObject(source Fleet) cs.MapObject {
 
 func ExtendFleetFleetOrders(source Fleet) cs.FleetOrders {
 	return cs.FleetOrders{
-		BattlePlanName: source.BattlePlanName,
-		Waypoints:      *source.Waypoints,
-		RepeatOrders:   source.RepeatOrders,
+		BattlePlanNum: source.BattlePlanNum,
+		Waypoints:     *source.Waypoints,
+		RepeatOrders:  source.RepeatOrders,
 	}
 }
 

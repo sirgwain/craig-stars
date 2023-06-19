@@ -208,6 +208,10 @@ export class Player implements PlayerResponse {
 		}
 	}
 
+	getBattlePlan(num: number): BattlePlan | undefined {
+		return this.battlePlans.find((p) => p.num === num);
+	}
+
 	updateDesign(design: ShipDesign) {
 		const filteredDesigns = this.designs.filter((d) => d.num != design.num) ?? [];
 		this.designs = [...filteredDesigns, design];

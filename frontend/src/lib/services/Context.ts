@@ -145,7 +145,11 @@ export const zoomToMapObject = (mo: MapObject) => {
 	zoomTarget.update(() => mo);
 };
 
-export const showDesignPopup = (design: ShipDesign | ShipDesignIntel | undefined, x: number, y: number) => {
+export const showDesignPopup = (
+	design: ShipDesign | ShipDesignIntel | undefined,
+	x: number,
+	y: number
+) => {
 	popupDesignLocation.update(() => ({ x, y }));
 	popupDesign.update(() => design);
 	window.addEventListener('pointerup', () => popupDesign.update(() => undefined));

@@ -1,4 +1,4 @@
-import type { ErrorResponse } from '$lib/types/ErrorResponse';
+import { CSError, type ErrorResponse } from './Errors';
 
 export abstract class Service {
 	static async get<T>(url: string, body?: BodyInit): Promise<T> {
@@ -10,13 +10,12 @@ export abstract class Service {
 			body: body
 		});
 
-		if (response.ok) {
-			return (await response.json()) as T;
-		} else {
-			const errorResponse = (await response.json()) as ErrorResponse;
-			console.error(errorResponse);
-			throw new Error(errorResponse.error);
+		if (!response.ok) {
+			const err = new CSError((await response.json()) as ErrorResponse, response.status);
+			console.error(err);
+			throw err;
 		}
+		return (await response.json()) as T;
 	}
 	static async create<T>(item: T, url: string): Promise<T> {
 		const response = await fetch(url, {
@@ -27,13 +26,12 @@ export abstract class Service {
 			body: JSON.stringify(item)
 		});
 
-		if (response.ok) {
-			return (await response.json()) as T;
-		} else {
-			const errorResponse = (await response.json()) as ErrorResponse;
-			console.error(errorResponse);
-			throw new Error(errorResponse.error);
+		if (!response.ok) {
+			const err = new CSError((await response.json()) as ErrorResponse, response.status);
+			console.error(err);
+			throw err;
 		}
+		return (await response.json()) as T;
 	}
 	static async update<T>(item: T, url: string): Promise<T> {
 		const response = await fetch(url, {
@@ -44,13 +42,12 @@ export abstract class Service {
 			body: JSON.stringify(item)
 		});
 
-		if (response.ok) {
-			return (await response.json()) as T;
-		} else {
-			const errorResponse = (await response.json()) as ErrorResponse;
-			console.error(errorResponse);
-			throw new Error(errorResponse.error);
+		if (!response.ok) {
+			const err = new CSError((await response.json()) as ErrorResponse, response.status);
+			console.error(err);
+			throw err;
 		}
+		return (await response.json()) as T;
 	}
 
 	static async delete(url: string): Promise<void> {
@@ -62,9 +59,9 @@ export abstract class Service {
 		});
 
 		if (!response.ok) {
-			const errorResponse = (await response.json()) as ErrorResponse;
-			console.error(errorResponse);
-			throw new Error(errorResponse.error);
+			const err = new CSError((await response.json()) as ErrorResponse, response.status);
+			console.error(err);
+			throw err;
 		}
 		return Promise.resolve();
 	}

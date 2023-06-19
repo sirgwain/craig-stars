@@ -3,7 +3,6 @@
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import Design from '$lib/components/game/design/Design.svelte';
 	import { game } from '$lib/services/Context';
-	import type { ErrorResponse } from '$lib/types/ErrorResponse';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 
 	let gameId = $page.params.id;
@@ -11,12 +10,9 @@
 
 	$: design = $game && ($game.player.getDesign($game.player.num, num) as ShipDesign);
 
-	let error: ErrorResponse | undefined;
 </script>
 
-{#if error?.error}
-	{error.error}
-{:else if design}
+{#if design}
 	<Breadcrumb>
 		<svelte:fragment slot="crumbs">
 			<li><a class="cs-link" href={`/games/${gameId}/designs`}>Designs</a></li>

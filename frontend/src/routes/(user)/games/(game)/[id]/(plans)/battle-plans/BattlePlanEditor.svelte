@@ -11,7 +11,6 @@
 	const dispatch = createEventDispatcher();
 
 	export let plan: BattlePlan;
-	export let readonlyName = false;
 	export let error: string = '';
 
 	const onSubmit = async () => {
@@ -34,7 +33,7 @@
 		</div>
 	{/if}
 
-	<TextInput name="name" bind:value={plan.name} required disabled={readonlyName} />
+	<TextInput name="name" bind:value={plan.name} required />
 	<EnumSelect name="primaryTarget" enumType={BattleTarget} bind:value={plan.primaryTarget} />
 	<EnumSelect name="secondaryTarget" enumType={BattleTarget} bind:value={plan.secondaryTarget} />
 	<EnumSelect name="tactic" enumType={BattleTactic} bind:value={plan.tactic} />

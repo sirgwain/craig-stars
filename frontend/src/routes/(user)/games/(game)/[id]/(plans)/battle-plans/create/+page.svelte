@@ -3,6 +3,7 @@
 	import { page } from '$app/stores';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import { game } from '$lib/services/Context';
+	import { CSError, addError } from '$lib/services/Errors';
 	import { BattleAttackWho, BattleTactic, BattleTarget } from '$lib/types/Battle';
 	import type { BattlePlan } from '$lib/types/Player';
 	import BattlePlanEditor from '../BattlePlanEditor.svelte';
@@ -10,7 +11,7 @@
 	let gameId = parseInt($page.params.id);
 
 	let plan: BattlePlan = {
-		num: -1,
+		num: 0,
 		name: '',
 		primaryTarget: BattleTarget.ArmedShips,
 		secondaryTarget: BattleTarget.Any,
@@ -26,9 +27,8 @@
 
 		try {
 			if (plan && $game) {
-				$game.player.battlePlans.push(plan);
-				// update this design
-				await $game.updatePlayerPlans();
+				// save to server
+				await $game.createBattlePlan(plan);
 				goto(
 					`/games/${gameId}/battle-plans/${
 						$game.player.battlePlans[$game.player.battlePlans.length - 1].num
@@ -36,7 +36,7 @@
 				);
 			}
 		} catch (e) {
-			error = (e as Error).message;
+			addError(e as CSError);
 		}
 	};
 </script>
@@ -52,5 +52,5 @@
 </Breadcrumb>
 
 {#if plan}
-	<BattlePlanEditor bind:plan readonlyName={plan.num === 0} on:save={(e) => onSave()} bind:error />
+	<BattlePlanEditor bind:plan on:save={(e) => onSave()} bind:error />
 {/if}

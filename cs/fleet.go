@@ -41,9 +41,9 @@ type Fleet struct {
 }
 
 type FleetOrders struct {
-	Waypoints      []Waypoint `json:"waypoints"`
-	RepeatOrders   bool       `json:"repeatOrders,omitempty"`
-	BattlePlanName string     `json:"battlePlanName"`
+	Waypoints     []Waypoint `json:"waypoints"`
+	RepeatOrders  bool       `json:"repeatOrders,omitempty"`
+	BattlePlanNum int        `json:"battlePlanNum"`
 }
 
 type FleetSpec struct {
@@ -171,8 +171,7 @@ func newFleet(player *Player, design *ShipDesign, num int, name string, waypoint
 			{design: design, DesignNum: design.Num, Quantity: 1},
 		},
 		FleetOrders: FleetOrders{
-			Waypoints:      waypoints,
-			BattlePlanName: player.BattlePlans[0].Name,
+			Waypoints: waypoints,
 		},
 		OrbitingPlanetNum: NotOrbitingPlanet,
 		battlePlan:        &player.BattlePlans[0],
