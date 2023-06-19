@@ -19,13 +19,12 @@ type MineralPacket struct {
 	Num               int       `json:"num,omitempty"`
 	PlayerNum         int       `json:"playerNum,omitempty"`
 	Tags              Tags      `json:"tags,omitempty"`
-	TargetPlanetNum   uint      `json:"targetPlanetNum,omitempty"`
+	TargetPlanetNum   int       `json:"targetPlanetNum,omitempty"`
 	Ironium           int       `json:"ironium,omitempty"`
 	Boranium          int       `json:"boranium,omitempty"`
 	Germanium         int       `json:"germanium,omitempty"`
 	SafeWarpSpeed     int       `json:"safeWarpSpeed,omitempty"`
 	WarpFactor        int       `json:"warpFactor,omitempty"`
-	DistanceTravelled float64   `json:"distanceTravelled,omitempty"`
 	HeadingX          float64   `json:"headingX,omitempty"`
 	HeadingY          float64   `json:"headingY,omitempty"`
 }
@@ -81,7 +80,6 @@ func (c *client) createMineralPacket(mineralPacket *cs.MineralPacket, tx SQLExec
 		germanium,
 		safeWarpSpeed,
 		warpFactor,
-		distanceTravelled,
 		headingX,
 		headingY
 	)
@@ -100,7 +98,6 @@ func (c *client) createMineralPacket(mineralPacket *cs.MineralPacket, tx SQLExec
 		:germanium,
 		:safeWarpSpeed,
 		:warpFactor,
-		:distanceTravelled,
 		:headingX,
 		:headingY
 	)
@@ -143,7 +140,6 @@ func (c *client) updateMineralPacket(mineralPacket *cs.MineralPacket, tx SQLExec
 		germanium = :germanium,
 		safeWarpSpeed = :safeWarpSpeed,
 		warpFactor = :warpFactor,
-		distanceTravelled = :distanceTravelled,
 		headingX = :headingX,
 		headingY = :headingY
 	WHERE id = :id

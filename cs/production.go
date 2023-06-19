@@ -26,7 +26,7 @@ type production struct {
 
 type productionResult struct {
 	tokens   []ShipToken
-	packets  []MineralPacket
+	packets  []Cargo
 	starbase *Fleet
 }
 
@@ -72,6 +72,15 @@ func (t QueueItemType) isAuto() bool {
 		t == QueueItemTypeAutoMineralPacket
 }
 
+// true if this is an auto type
+func (t QueueItemType) isPacket() bool {
+	return t == QueueItemTypeAutoMineralPacket ||
+		t == QueueItemTypeMixedMineralPacket ||
+		t == QueueItemTypeIroniumMineralPacket ||
+		t == QueueItemTypeBoraniumMineralPacket ||
+		t == QueueItemTypeGermaniumMineralPacket
+}
+
 // return the concrete version of this auto type
 func (t QueueItemType) concreteType() QueueItemType {
 	switch t {
@@ -100,6 +109,15 @@ func (p *production) produce() productionResult {
 	available := Cost{Resources: planet.Spec.ResourcesPerYearAvailable}.AddCargoMinerals(planet.Cargo)
 	newQueue := []ProductionQueueItem{}
 	for itemIndex, item := range planet.ProductionQueue {
+
+		if item.Type.isPacket() && !planet.Spec.HasMassDriver {
+			messager.buildMineralPacketNoMassDriver(player, planet)
+			continue
+		}
+		if item.Type.isPacket() && planet.PacketTargetNum == None {
+			messager.buildMineralPacketNoTarget(player, planet)
+			continue
+		}
 
 		// add in anything allocated in previous turns
 		available = available.Add(item.Allocated)
@@ -207,6 +225,19 @@ func (p *production) buildItems(item ProductionQueueItem, numBuilt int, result *
 	case QueueItemTypeDefenses:
 		planet.Defenses += numBuilt
 		messager.defensesBuilt(player, planet, numBuilt)
+	case QueueItemTypeAutoMineralPacket:
+		fallthrough
+	case QueueItemTypeMixedMineralPacket:
+		fallthrough
+	case QueueItemTypeIroniumMineralPacket:
+		fallthrough
+	case QueueItemTypeBoraniumMineralPacket:
+		fallthrough
+	case QueueItemTypeGermaniumMineralPacket:
+		// add this packet cargo to the production result
+		// so it can be added as packets to the universe later
+		cargo := player.Race.Spec.Costs[item.Type].MultiplyInt(numBuilt).ToCargo()
+		result.packets = append(result.packets, cargo)
 	case QueueItemTypeAutoMaxTerraform:
 		fallthrough
 	case QueueItemTypeAutoMinTerraform:
@@ -218,7 +249,6 @@ func (p *production) buildItems(item ProductionQueueItem, numBuilt int, result *
 			result := terraformer.TerraformOneStep(planet, player, nil, false)
 			messager.terraform(player, planet, result.Type, result.Direction)
 		}
-
 	case QueueItemTypeShipToken:
 		design := player.GetDesign(item.DesignName)
 		design.Spec.NumBuilt += numBuilt

@@ -133,8 +133,8 @@ func Test_turn_fleetRoute(t *testing.T) {
 	target := game.Planets[1]
 	fleet := game.Fleets[0]
 
-	planet.TargetType = MapObjectTypePlanet
-	planet.TargetNum = 2
+	planet.RouteTargetType = MapObjectTypePlanet
+	planet.RouteTargetNum = 2
 
 	fleet.Waypoints[0].Task = WaypointTaskRoute
 
@@ -738,4 +738,32 @@ func Test_turn_detonateMines(t *testing.T) {
 		})
 	}
 
+}
+
+func Test_turn_decayPackets(t *testing.T) {
+	game := createSingleUnitGame()
+	player := game.Players[0]
+
+	// create some Packets with 100kT of each mineral
+	packetSafe := newMineralPacket(player, 1, 5, 5, Cargo{100, 100, 100, 0}, Vector{200, 0}, 1)
+	packetTooFast := newMineralPacket(player, 1, 8, 5, Cargo{100, 100, 100, 0}, Vector{200, 0}, 1)
+	packetNewlyBuilt := newMineralPacket(player, 1, 8, 5, Cargo{100, 100, 100, 0}, Vector{200, 0}, 1)
+	packetNewlyBuilt.builtThisTurn = true
+
+	game.MineralPackets = append(game.MineralPackets, packetSafe, packetTooFast, packetNewlyBuilt)
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// move and decay
+	turn.packetMove(false)
+	turn.packetMove(true)
+	turn.decayPackets()
+
+	// no decay, 50% decay, and half of 50% decay for a newly built overfast packet
+	assert.Equal(t, packetSafe.Cargo, Cargo{100, 100, 100, 0})
+	assert.Equal(t, packetTooFast.Cargo, Cargo{50, 50, 50, 0})
+	assert.Equal(t, packetNewlyBuilt.Cargo, Cargo{75, 75, 75, 0})
 }

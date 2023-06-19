@@ -478,6 +478,15 @@ func (p *Player) getNextFleetNum(playerFleets []*Fleet) int {
 	return num
 }
 
+// get the next mineral packet number to use
+func (p *Player) getNextMineralPacketNum(packets []*MineralPacket) int {
+	num := 0
+	for _, packet := range packets {
+		num = maxInt(num, packet.Num)
+	}
+	return num + 1
+}
+
 // inject player designs into tokens for a slice of fleets
 func (p *Player) InjectDesigns(fleets []*Fleet) {
 

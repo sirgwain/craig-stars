@@ -88,6 +88,15 @@ func (c Cargo) Subtract(other Cargo) Cargo {
 	}
 }
 
+func (c Cargo) Multiply(product float64) Cargo {
+	return Cargo{
+		int(float64(c.Ironium) * product),
+		int(float64(c.Boranium) * product),
+		int(float64(c.Germanium) * product),
+		int(float64(c.Colonists) * product),
+	}
+}
+
 func (c Cargo) AddMineral(other Mineral) Cargo {
 	return Cargo{
 		Ironium:   c.Ironium + other.Ironium,

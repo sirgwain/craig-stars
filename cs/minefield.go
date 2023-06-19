@@ -58,11 +58,11 @@ func computeMinefieldSpec(rules *Rules, player *Player, mineField *MineField, nu
 func newMineField(player *Player, mineFieldType MineFieldType, numMines int, num int, position Vector) *MineField {
 	return &MineField{
 		MapObject: MapObject{
-			Type:      MapObjectTypeFleet,
+			Type:      MapObjectTypeMineField,
 			PlayerNum: player.Num,
 			Dirty:     true,
 			Num:       num,
-			Name:      fmt.Sprintf("%s MineField #%d", player.Race.PluralName, num),
+			Name:      fmt.Sprintf("%s Mine Field #%d", player.Race.PluralName, num),
 			Position:  position,
 		},
 		MineFieldType: mineFieldType,

@@ -254,7 +254,6 @@ CREATE TABLE mineralPackets (
   germanium INTEGER,
   safeWarpSpeed INTEGER,
   warpFactor INTEGER,
-  distanceTravelled REAL,
   headingX REAL,
   headingY REAL,
   UNIQUE (gameId, playerNum, num),

@@ -139,6 +139,24 @@ func Test_production_produceTerraform(t *testing.T) {
 
 }
 
+func Test_production_produceMineralPackets(t *testing.T) {
+	player, planet := newTestPlayerPlanet()
+
+	// build 5 auto factories, leaving them in the queue
+	planet.ProductionQueue = []ProductionQueueItem{{Type: QueueItemTypeMixedMineralPacket, Quantity: 1}}
+	planet.Cargo = Cargo{100, 100, 100, 2500}
+	planet.PacketSpeed = 6
+	planet.PacketTargetNum = 1
+	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 100, HasMassDriver: true, SafePacketSpeed: 6, BasePacketSpeed: 6}
+
+	// should build 5 mine, leaving the auto build in the queu
+	producer := newProducer(planet, player)
+	result := producer.produce()
+	assert.Equal(t, 1, len(result.packets))
+	assert.Equal(t, Cargo{40, 40, 40, 0}, result.packets[0])
+	assert.Equal(t, 0, len(planet.ProductionQueue))
+}
+
 func Test_production_allocatePartialBuild(t *testing.T) {
 	_, planet := newTestPlayerPlanet()
 

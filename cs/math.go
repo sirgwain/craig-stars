@@ -21,6 +21,17 @@ func clamp(value, min, max int) int {
 	return value
 }
 
+func clampFloat64(value, min, max float64) float64 {
+	if value < min {
+		return min
+	} else {
+		if value > max {
+			return max
+		}
+	}
+	return value
+}
+
 func maxInt(nums ...int) int {
 	result := math.MinInt
 	for _, value := range nums {
@@ -55,9 +66,8 @@ func minFloat64(nums ...float64) float64 {
 }
 
 func absInt(num int) int {
-    if num < 0 {
-        return -num
-    }
-    return num
+	if num < 0 {
+		return -num
+	}
+	return num
 }
-

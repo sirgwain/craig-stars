@@ -23,9 +23,14 @@ export type Planet = {
 	homeworld?: boolean;
 	scanner?: boolean;
 	reportAge: number;
-	productionQueue?: ProductionQueueItem[];
+
 	spec: PlanetSpec;
-} & MapObject;
+} & MapObject &
+	PlanetOrders;
+
+export type PlanetOrders = {
+	productionQueue?: ProductionQueueItem[];
+};
 
 export interface ProductionQueueItem {
 	type: QueueItemType;

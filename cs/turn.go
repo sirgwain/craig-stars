@@ -52,7 +52,8 @@ func (t *turn) generateTurn() error {
 	t.fleetMarkWaypointsProcessed()
 
 	// move stuff through space
-	t.packetMove0()
+	t.packetInit()
+	t.packetMove(false)
 	t.mysteryTraderMove()
 	t.fleetMove()
 	t.fleetReproduce()
@@ -66,8 +67,8 @@ func (t *turn) generateTurn() error {
 	t.playerResearch()
 	t.permaform()
 	t.planetGrow()
-	t.packetMove1()
-	t.fleetRefuel() // refuel after production so fleets will refuel at planets that just built a starbase this turn
+	t.packetMove(true) // move packets built this turn
+	t.fleetRefuel()    // refuel after production so fleets will refuel at planets that just built a starbase this turn
 	t.randomCometStrike()
 	t.randomMineralDeposit()
 	t.randomPlanetaryChange()
@@ -351,10 +352,10 @@ func (t *turn) fleetRoute() {
 			} else {
 				if !player.IsFriend(planet.PlayerNum) {
 					messager.fleetInvalidRouteNotFriendlyPlanet(player, fleet, planet)
-				} else if planet.TargetType == MapObjectTypeNone || planet.TargetNum == 0 {
+				} else if planet.RouteTargetType == MapObjectTypeNone || planet.RouteTargetNum == 0 {
 					messager.fleetInvalidRouteNoRouteTarget(player, fleet, planet)
 				} else {
-					mo := t.game.getMapObject(planet.TargetType, planet.TargetNum, planet.TargetPlayerNum)
+					mo := t.game.getMapObject(planet.RouteTargetType, planet.RouteTargetNum, planet.RouteTargetPlayerNum)
 					if mo == nil {
 						messager.fleetInvalidRouteNoRouteTarget(player, fleet, planet)
 						continue
@@ -368,16 +369,16 @@ func (t *turn) fleetRoute() {
 					}
 					fleet.Waypoints[1] = Waypoint{
 						Position:        mo.Position,
-						TargetType:      planet.TargetType,
-						TargetNum:       planet.TargetNum,
-						TargetPlayerNum: planet.TargetPlayerNum,
+						TargetType:      planet.RouteTargetType,
+						TargetNum:       planet.RouteTargetNum,
+						TargetPlayerNum: planet.RouteTargetPlayerNum,
 						WarpFactor:      wp.WarpFactor,
 					}
 
 					// if the new target is a planet and it has a target, keep routing
 					if mo.Type == MapObjectTypePlanet {
 						targetPlanet := t.game.getPlanet(mo.Num)
-						if targetPlanet.TargetNum != 0 && targetPlanet.TargetType != MapObjectTypeNone {
+						if targetPlanet.RouteTargetNum != 0 && targetPlanet.RouteTargetType != MapObjectTypeNone {
 							fleet.Waypoints[1].Task = WaypointTaskRoute
 						}
 					}
@@ -397,8 +398,30 @@ func (t *turn) fleetMarkWaypointsProcessed() {
 	}
 }
 
-func (t *turn) packetMove0() {
+// packetInit will reset any packet data before processing
+func (t *turn) packetInit() {
+	for _, packet := range t.game.MineralPackets {
+		packet.builtThisTurn = false
+	}
+}
 
+// move packets through space
+// if builtThisTurn is true, this will only move packets that were built this turn (i.e. just launched)
+func (t *turn) packetMove(builtThisTurn bool) {
+
+	for _, packet := range t.game.MineralPackets {
+		if packet.builtThisTurn != builtThisTurn {
+			continue
+		}
+		player := t.game.getPlayer(packet.PlayerNum)
+		planet := t.game.getPlanet(int(packet.TargetPlanetNum))
+		var planetPlayer *Player
+		if planet.owned() {
+			planetPlayer = t.game.getPlayer(planet.PlayerNum)
+		}
+
+		packet.movePacket(t.game.rules, player, planet, planetPlayer)
+	}
 }
 
 func (t *turn) mysteryTraderMove() {
@@ -497,8 +520,15 @@ func (t *turn) decaySalvage() {
 	}
 }
 
+// Decay mineral packets in flight
+// https://wiki.starsautohost.org/wiki/%22Mass_Packet_FAQ%22_by_Barry_Kearns_1997-02-07_v2.6b
+// Depending on how fast a packet is thrown compared to it's safe speed, it decays
 func (t *turn) decayPackets() {
-
+	for _, packet := range t.game.MineralPackets {
+		player := t.game.getPlayer(packet.PlayerNum)
+		decayRate := 1 - packet.getPacketDecayRate(t.game.rules, &player.Race)*(packet.distanceTravelled/float64(packet.WarpFactor*packet.WarpFactor))
+		packet.Cargo = packet.Cargo.Multiply(decayRate)
+	}
 }
 
 // jiggle, degrade, and jump wormholes
@@ -663,14 +693,19 @@ func (t *turn) planetProduction() {
 			result := producer.produce()
 			for _, token := range result.tokens {
 				fleet := t.buildFleet(player, planet, token)
-				messager.fleetBuilt(player, planet, &fleet, token.Quantity)
+				messager.fleetBuilt(player, planet, fleet, token.Quantity)
+			}
+			for _, cargo := range result.packets {
+				target := t.game.getPlanet(planet.PacketTargetNum)
+				packet := t.buildMineralPacket(player, planet, cargo, target)
+				messager.mineralPacket(player, planet, packet, target.Name)
 			}
 		}
 	}
 }
 
 // build a fleet with some number of tokens
-func (t *turn) buildFleet(player *Player, planet *Planet, token ShipToken) Fleet {
+func (t *turn) buildFleet(player *Player, planet *Planet, token ShipToken) *Fleet {
 	player.Stats.FleetsBuilt++
 	player.Stats.TokensBuilt += token.Quantity
 
@@ -683,7 +718,19 @@ func (t *turn) buildFleet(player *Player, planet *Planet, token ShipToken) Fleet
 	fleet.OrbitingPlanetNum = planet.Num
 
 	t.game.Fleets = append(t.game.Fleets, &fleet)
-	return fleet
+	return &fleet
+}
+
+// build a mineral packet with cargo
+func (t *turn) buildMineralPacket(player *Player, planet *Planet, cargo Cargo, target *Planet) *MineralPacket {
+
+	playerMineralPackets := t.game.getMineralPackets(player.Num)
+	num := player.getNextMineralPacketNum(playerMineralPackets)
+	packet := newMineralPacket(player, num, planet.PacketSpeed, planet.Spec.SafePacketSpeed, cargo, planet.Position, target.Num)
+	packet.builtThisTurn = true
+
+	t.game.MineralPackets = append(t.game.MineralPackets, packet)
+	return packet
 }
 
 func (t *turn) playerResearch() {
@@ -827,10 +874,6 @@ func (t *turn) planetGrow() {
 			planet.MarkDirty() // flag for update
 		}
 	}
-}
-
-func (t *turn) packetMove1() {
-
 }
 
 // refuel fleets if they are orbiting a planet with a friendly starbase

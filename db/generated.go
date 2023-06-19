@@ -404,7 +404,6 @@ func (c *GameConverter) csMineralPacketToDbMineralPacket(source cs.MineralPacket
 	dbMineralPacket.Germanium = source.Cargo.Germanium
 	dbMineralPacket.SafeWarpSpeed = source.SafeWarpSpeed
 	dbMineralPacket.WarpFactor = source.WarpFactor
-	dbMineralPacket.DistanceTravelled = source.DistanceTravelled
 	dbMineralPacket.HeadingX = source.Heading.X
 	dbMineralPacket.HeadingY = source.Heading.Y
 	return dbMineralPacket
@@ -657,7 +656,6 @@ func (c *GameConverter) dbMineralPacketToCsMineralPacket(source MineralPacket) c
 	csMineralPacket.Cargo = ExtendMineralPacketCargo(source)
 	csMineralPacket.SafeWarpSpeed = source.SafeWarpSpeed
 	csMineralPacket.WarpFactor = source.WarpFactor
-	csMineralPacket.DistanceTravelled = source.DistanceTravelled
 	csMineralPacket.Heading = ExtendMineralPacketHeading(source)
 	return csMineralPacket
 }

@@ -30,9 +30,10 @@ type Planet struct {
 type PlanetOrders struct {
 	ContributesOnlyLeftoverToResearch bool                  `json:"contributesOnlyLeftoverToResearch,omitempty"`
 	ProductionQueue                   []ProductionQueueItem `json:"productionQueue,omitempty"`
-	TargetType                        MapObjectType         `json:"targetType,omitempty"`
-	TargetNum                         int                   `json:"targetNum,omitempty"`
-	TargetPlayerNum                   int                   `json:"targetPlayerNum,omitempty"`
+	RouteTargetType                   MapObjectType         `json:"routeTargetType,omitempty"`
+	RouteTargetNum                    int                   `json:"routeTargetNum,omitempty"`
+	RouteTargetPlayerNum              int                   `json:"routeTargetPlayerNum,omitempty"`
+	PacketTargetNum                   int                   `json:"packetTargetNum,omitempty"`
 }
 
 type PlanetSpec struct {
@@ -81,6 +82,11 @@ func (item *ProductionQueueItem) String() string {
 
 func NewPlanet() *Planet {
 	return &Planet{MapObject: MapObject{Type: MapObjectTypePlanet, Dirty: true, PlayerNum: Unowned}}
+}
+
+func (p *Planet) withPosition(position Vector) *Planet {
+	p.Position = position
+	return p
 }
 
 func (p *Planet) WithNum(num int) *Planet {
@@ -346,7 +352,7 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	// terraforming
 	terraformer := NewTerraformer()
 	spec.TerraformAmount = terraformer.getTerraformAmount(planet, player, player)
-	spec.CanTerraform = spec.TerraformAmount.absSum() > 0;
+	spec.CanTerraform = spec.TerraformAmount.absSum() > 0
 
 	if !race.Spec.InnateMining {
 		spec.MaxMines = planet.population() * race.NumMines / 10000

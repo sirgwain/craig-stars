@@ -629,6 +629,40 @@ func (m *messageClient) permaform(player *Player, planet *Planet, habType HabTyp
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePermaform, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
 }
 
+func (m *messageClient) packetTerraform(player *Player, planet *Planet, habType HabType, change int) {
+	changeText := ""
+	if change > 0 {
+		changeText = "increased"
+	} else {
+		changeText = "decreased"
+	}
+
+	newValueText := ""
+	newValue := planet.Hab.Get(habType)
+	switch habType {
+	case Grav:
+		newValueText = gravString(newValue)
+	case Temp:
+		newValueText = tempString(newValue)
+	case Rad:
+		newValueText = radString(newValue)
+	}
+
+	text := fmt.Sprintf("Your mineral packet hitting %s has %s the %s to %s", planet.Name, changeText, habType, newValueText)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePacketTerraform, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
+}
+
+func (m *messageClient) packetPermaform(player *Player, planet *Planet, habType HabType, change int) {
+	changeText := ""
+	if change > 0 {
+		changeText = "increased"
+	} else {
+		changeText = "decreased"
+	}
+	text := fmt.Sprintf("Your mineral packet has permanently %s the %s on %s.", changeText, habType, planet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePacketPermaform, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
+}
+
 func (m *messageClient) instaform(player *Player, planet *Planet, terraformAmount Hab) {
 	text := fmt.Sprintf("Your race has instantly terraformed %s up to optimal conditions.", planet.Name)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInstaform, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
@@ -693,4 +727,49 @@ func (m *messageClient) remoteMined(player *Player, fleet *Fleet, planet *Planet
 		TargetNum:       fleet.Num,
 		TargetPlayerNum: fleet.PlayerNum,
 	})
+}
+
+func (m *messageClient) mineralPacket(player *Player, planet *Planet, packet *MineralPacket, target string) {
+	text := fmt.Sprintf("%s has produced a mineral packet which has a destination of %s", planet.Name, target)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageBuiltMineralPacket, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
+}
+
+func (m *messageClient) mineralPacketArrived(player *Player, planet *Planet, packet *MineralPacket) {
+	text := fmt.Sprintf("Your mineral packet containing %dkT of minerals has landed at %s.", packet.Cargo.Total(), planet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageMineralPacketLanded, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
+}
+
+func (m *messageClient) mineralPacketCaught(player *Player, planet *Planet, packet *MineralPacket) {
+	text := fmt.Sprintf("Your mass accelerator at %s has successfully captured a packet containing %dkT of minerals.", planet.Name, packet.Cargo.Total())
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageMineralPacketCaught, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
+}
+
+func (m *messageClient) buildMineralPacketNoMassDriver(player *Player, planet *Planet) {
+	text := fmt.Sprintf("You have attempted to build a mineral packet on %s, but you have no Starbase equipped with a mass driver on this planet. Production for this planet has been cancelled.", planet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
+}
+
+func (m *messageClient) buildMineralPacketNoTarget(player *Player, planet *Planet) {
+	text := fmt.Sprintf("You have attempted to build a mineral packet on %s, but you have not specified a target. The minerals have been returned to the planet and production has been cancelled.", planet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
+}
+
+func (m *messageClient) mineralPacketDamage(player *Player, planet *Planet, packet *MineralPacket, colonistsKilled, defensesDestroyed int) {
+	var text string
+	if planet.Spec.HasStarbase && planet.starbase.Spec.HasMassDriver {
+		if defensesDestroyed == 0 {
+			text = fmt.Sprintf("Your mass accelerator at %s was partially successful in capturing a %dkT mineral packet. Unable to completely slow the packet, %d of your colonists were killed in the collision.", planet.Name, packet.Cargo.Total(), colonistsKilled)
+		} else {
+			text = fmt.Sprintf("Your mass accelerator at %s was partially successful in capturing a %dkT mineral packet. Unfortunately, %d of your colonists and %d of your defenses were destroyed in the collision.", planet.Name, packet.Cargo.Total(), colonistsKilled, defensesDestroyed)
+		}
+	} else {
+		if planet.population() == 0 {
+			text = fmt.Sprintf("%s was annihilated by a mineral packet. All of your colonists were killed.", planet.Name)
+		} else if defensesDestroyed == 0 {
+			text = fmt.Sprintf("%s was bombarded with a %dkT mineral packet. %d of your colonists were killed by the collision.", planet.Name, packet.Cargo.Total(), colonistsKilled)
+		} else {
+			text = fmt.Sprintf("%s was bombarded with a %dkT mineral packet. %d of your colonists and %d of your defenses were destroyed by the collision.", planet.Name, packet.Cargo.Total(), colonistsKilled, defensesDestroyed)
+		}
+	}
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageMineralPacketDamage, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
 }
