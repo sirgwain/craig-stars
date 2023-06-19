@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
+	import FormError from '$lib/components/FormError.svelte';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import { game } from '$lib/services/Context';
 	import { CSError, addError } from '$lib/services/Errors';
@@ -64,7 +65,9 @@
 		</div>
 	</Breadcrumb>
 
+	<FormError {error} />
+
 	{#if plan}
-		<TransportPlanEditor bind:plan bind:error />
+		<TransportPlanEditor bind:plan />
 	{/if}
 </form>

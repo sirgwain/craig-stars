@@ -74,7 +74,7 @@ func (t *turn) generateTurn() error {
 	t.fleetBattle()
 	t.fleetBomb()
 	t.mysteryTraderMeet()
-	t.fleetRemoteMine0()
+	t.fleetRemoteMine()
 
 	// wp1 tasks
 	t.fleetUnload()
@@ -325,11 +325,13 @@ func (t *turn) fleetTransferCargo(fleet *Fleet, transferAmount int, cargoType Ca
 		if transferAmount > 0 && cargoType == Colonists && planet != nil && planet.owned() && !planet.OwnedBy(fleet.PlayerNum) {
 			// invasion!
 			invadePlanet(planet, fleet, t.game.Players[planet.PlayerNum-1], t.game.Players[fleet.PlayerNum-1], transferAmount*100, t.game.Rules.InvasionDefenseCoverageFactor)
-		} else if transferAmount < 0 && dest.canLoad(fleet.PlayerNum) {
+		} else if transferAmount < 0 && !dest.canLoad(fleet.PlayerNum) {
 			// can't load from things we don't own
 			messager.fleetInvalidLoadCargo(player, fleet, dest, cargoType, transferAmount)
 		} else {
 			fleet.transferToDest(dest, cargoType, transferAmount)
+			fleet.MarkDirty()
+			dest.MarkDirty()
 			messager.fleetTransportedCargo(player, fleet, dest, cargoType, transferAmount)
 		}
 	}
@@ -497,15 +499,90 @@ func (t *turn) detonateMines() {
 func (t *turn) planetMine() {
 	for _, planet := range t.game.Planets {
 		if planet.owned() {
-			planet.Cargo = planet.Cargo.AddMineral(planet.Spec.MineralOutput)
+			planet.Cargo = planet.Cargo.AddMineral(planet.Spec.MiningOutput)
 			planet.MineYears.AddInt(planet.Mines)
 			planet.reduceMineralConcentration(&t.game.Rules)
 		}
 	}
 }
 
+// for AR races, remote mine their own planets during this phase
 func (t *turn) fleetRemoteMineAR() {
+	for _, fleet := range t.game.Fleets {
+		wp0 := fleet.Waypoints[0]
+		if wp0.Task == WaypointTaskRemoteMining {
+			player := t.game.getPlayer(fleet.PlayerNum)
 
+			// can't remote mine deep space
+			if fleet.OrbitingPlanetNum == None {
+				messager.remoteMineDeepSpace(player, fleet)
+				continue
+			}
+
+			planet := t.game.getPlanet(fleet.OrbitingPlanetNum)
+
+			// we can remote mine our own planets, so remote mine this planet now (it happens earlier than normal remote mining)
+			if planet.OwnedBy(fleet.PlayerNum) && player.Race.Spec.CanRemoteMineOwnPlanets {
+				t.remoteMine(fleet, player, planet)
+			}
+		}
+	}
+
+}
+
+// remote mine planets
+func (t *turn) fleetRemoteMine() {
+
+	for _, fleet := range t.game.Fleets {
+		wp0 := fleet.Waypoints[0]
+		if wp0.Task == WaypointTaskRemoteMining {
+			player := t.game.getPlayer(fleet.PlayerNum)
+
+			// can't remote mine deep space
+			if fleet.OrbitingPlanetNum == None {
+				messager.remoteMineDeepSpace(player, fleet)
+				continue
+			}
+
+			planet := t.game.getPlanet(fleet.OrbitingPlanetNum)
+
+			if planet.owned() {
+				messager.remoteMineInhabited(player, fleet, planet)
+				continue
+			}
+
+			// we can remote mine our own planets, but that happens at an earlier step, so skip  during normal remote mining
+			if planet.OwnedBy(fleet.PlayerNum) && player.Race.Spec.CanRemoteMineOwnPlanets {
+				continue
+			}
+
+			t.remoteMine(fleet, player, planet)
+		}
+	}
+}
+
+// remote mine a planet
+func (t *turn) remoteMine(fleet *Fleet, player *Player, planet *Planet) {
+
+	if fleet.Spec.MiningRate == 0 {
+		messager.remoteMineNoMiners(player, fleet, planet)
+		return
+	}
+
+	// don't mine if we moved here this round, otherwise mine
+	if fleet.PreviousPosition == nil || *fleet.PreviousPosition == fleet.Position {
+		numMines := fleet.Spec.MiningRate
+		mineralOutput := planet.getMineralOutput(numMines, t.game.rules.RemoteMiningMineOutput)
+		planet.Cargo = planet.Cargo.AddMineral(mineralOutput)
+		planet.MineYears.AddInt(numMines)
+		planet.reduceMineralConcentration(&t.game.Rules)
+		planet.MarkDirty()
+
+		// make sure we know about this planet's cargo after remote mining
+		d := newDiscoverer(player)
+		d.discoverPlanetCargo(player, planet)
+		messager.remoteMined(player, fleet, planet, mineralOutput)
+	}
 }
 
 func (t *turn) planetProduction() {
@@ -681,7 +758,7 @@ func (t *turn) planetGrow() {
 		if planet.owned() {
 			// player := t.game.Players[*planet.PlayerNum - 1]
 			planet.setPopulation(planet.population() + planet.Spec.GrowthAmount)
-			planet.Dirty = true // flag for update
+			planet.MarkDirty() // flag for update
 		}
 	}
 }
@@ -821,10 +898,6 @@ func (t *turn) fleetBomb() {
 }
 
 func (t *turn) mysteryTraderMeet() {
-
-}
-
-func (t *turn) fleetRemoteMine0() {
 
 }
 

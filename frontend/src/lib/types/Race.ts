@@ -152,7 +152,9 @@ export interface RaceSpec {
 	packetReceiverFactor: number;
 	packetDecayFactor: number;
 	packetPermaTerraformSizeUnit: number;
-	shipsVanishInVoid: boolean;
+	canGateCargo?: boolean;
+	canDetectStargatePlanets?: boolean;
+	shipsVanishInVoid?: boolean;
 	builtInScannerMultiplier: number;
 	techsCostExtraLevel: number;
 	growthFactor: number;
@@ -163,6 +165,8 @@ export interface RaceSpec {
 	mineFieldPlanetDecayRate: number;
 	mineFieldMaxDecayRate: number;
 	mineFieldDetonateDecayRate: number;
+	canDetonateMineFields?: boolean;
+	canRemoteMineOwnPlanets?: boolean;
 	invasionAttackBonus: number;
 	invasionDefendBonus: number;
 	repairFactor: number;

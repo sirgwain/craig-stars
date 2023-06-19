@@ -43,7 +43,7 @@
 			</div>
 			{#if isEmpty(plan)}
 				<div class="flex flex-row">
-					<div class="text-right text-fuel font-semibold mr-2 w-28">Actions</div>
+					<div class="text-right font-semibold mr-2 w-28">Actions</div>
 					<div>None</div>
 				</div>
 			{:else}

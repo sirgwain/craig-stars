@@ -12,7 +12,7 @@
 <div class={textClass}>
 	<div class="label"><span class="w-32 text-right">{title}</span></div>
 </div>
-<div>
+<div class="col-span-2">
 	<EnumSelect
 		name={`action${title}`}
 		enumType={WaypointTaskTransportAction}
@@ -21,5 +21,5 @@
 	/>
 </div>
 <div>
-	<NumberInput title="Amount" name={`amount${title}`} bind:value={amount} />
+	<NumberInput titleClass="hidden" name={`amount${title}`} bind:value={amount} />
 </div>

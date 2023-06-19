@@ -9,7 +9,7 @@
 		name: 'New Planet',
 		position: { x: 0, y: 0 },
 		num: 0,
-		playerNum: undefined,
+		playerNum: 0,
 		mineralConcentration: { ironium: 10, boranium: 20, germanium: 30 },
 		cargo: { ironium: 1000, boranium: 2000, germanium: 4000, colonists: 2500 }
 	};
@@ -20,7 +20,7 @@
 		name: 'New Planet2',
 		position: { x: 0, y: 0 },
 		num: 0,
-		playerNum: undefined,
+		playerNum: 0,
 		mineralConcentration: { ironium: 130, boranium: 20, germanium: 30 },
 		cargo: { ironium: 10000, boranium: 2000, germanium: 4000, colonists: 2500 }
 	};

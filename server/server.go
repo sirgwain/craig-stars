@@ -225,6 +225,7 @@ func Start(db DBClient, config config.Config) {
 				r.Get("/player-statuses", server.playerStatuses)
 				r.Post("/join", server.joinGame)
 				r.Post("/generate-universe", server.generateUniverse)
+				r.Post("/generate", server.generateTurn)
 				r.Delete("/", server.deleteGame)
 
 				// routes requiring a player and game

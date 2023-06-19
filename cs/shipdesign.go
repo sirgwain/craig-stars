@@ -141,6 +141,10 @@ func (sd *ShipDesign) WithSpec(rules *Rules, player *Player) *ShipDesign {
 	return sd
 }
 
+func (sd *ShipDesign) MarkDirty() {
+	sd.Dirty = true
+}
+
 // validate that this ship design is available to the player
 func (sd *ShipDesign) Validate(rules *Rules, player *Player) error {
 	if strings.TrimSpace(sd.Name) == "" {

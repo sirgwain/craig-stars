@@ -31,7 +31,7 @@ type productionResult struct {
 }
 
 type ProductionQueueItem struct {
-//	ProductionPlanItem
+	//	ProductionPlanItem
 	Type       QueueItemType `json:"type"`
 	DesignName string        `json:"designName"`
 	Quantity   int           `json:"quantity"`
@@ -223,7 +223,7 @@ func (p *production) buildItems(item ProductionQueueItem, numBuilt int, result *
 		design := player.GetDesign(item.DesignName)
 		design.Spec.NumBuilt += numBuilt
 		design.Spec.NumInstances += numBuilt
-		design.Dirty = true
+		design.MarkDirty()
 		result.tokens = append(result.tokens, ShipToken{Quantity: numBuilt, design: design, DesignNum: design.Num})
 	}
 

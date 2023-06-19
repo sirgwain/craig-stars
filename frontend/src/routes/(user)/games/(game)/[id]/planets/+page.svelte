@@ -81,7 +81,7 @@
 		{
 			key: 'miningRate',
 			title: 'Mining Rate',
-			sortBy: (a, b) => totalMinerals(a.spec.mineralOutput) - totalMinerals(b.spec.mineralOutput)
+			sortBy: (a, b) => totalMinerals(a.spec.miningOutput) - totalMinerals(b.spec.miningOutput)
 		},
 		{
 			key: 'mineralConcentration',
@@ -157,7 +157,7 @@
 			{:else if column.key == 'minerals'}
 				<MineralMini mineral={row.cargo} />
 			{:else if column.key == 'miningRate'}
-				<MineralMini mineral={row.spec.mineralOutput} />
+				<MineralMini mineral={row.spec.miningOutput} />
 			{:else if column.key == 'mineralConcentration'}
 				<MineralMini mineral={row.mineralConcentration} />
 			{:else if column.key == 'resources'}

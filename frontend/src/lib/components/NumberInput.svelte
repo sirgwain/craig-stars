@@ -9,6 +9,7 @@
 	export let unit: string | undefined = undefined;
 	export let title: string | undefined = undefined;
 	export let titleClass = 'label-text w-32 text-right';
+	export let inputClass = 'input input-bordered w-full';
 	export let step = 0.01;
 	export let min = 0;
 	export let max: number | undefined = undefined;
@@ -24,7 +25,7 @@
 		<div class="flex-grow pl-2">
 			<div class="input-group">
 				<input
-					class="input input-bordered w-full"
+					class={inputClass}
 					type="number"
 					{name}
 					{min}

@@ -895,7 +895,7 @@ func (fleet *Fleet) completeMove(mapObjectGetter mapObjectGetter, wp0 Waypoint, 
 
 // colonize a planet
 func (fleet *Fleet) colonizePlanet(rules *Rules, player *Player, planet *Planet) {
-	planet.Dirty = true
+	planet.MarkDirty()
 	planet.PlayerNum = player.Num
 	planet.ProductionQueue = []ProductionQueueItem{}
 	planet.Cargo = planet.Cargo.Add(fleet.Cargo)

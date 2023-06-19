@@ -143,6 +143,7 @@ export interface Rules {
 	maxStartingMineralSurface: number;
 	minStartingMineralSurface: number;
 	mineralDecayFactor: number;
+	remoteMiningMineOutput: number;
 	startingMines: number;
 	startingFactories: number;
 	startingDefenses: number;
@@ -362,6 +363,7 @@ export const defaultRules: Rules = {
 	maxStartingMineralSurface: 1000,
 	minStartingMineralSurface: 300,
 	mineralDecayFactor: 1500000,
+	remoteMiningMineOutput: 10,
 	startingMines: 10,
 	startingFactories: 10,
 	startingDefenses: 10,

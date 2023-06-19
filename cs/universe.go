@@ -15,7 +15,7 @@ type Universe struct {
 	MysteryTraders       []*MysteryTrader                    `json:"mysteryTraders,omitempty"`
 	Salvages             []*Salvage                          `json:"salvage,omitempty"`
 	rules                *Rules                              `json:"-"`
-	battlePlansByNum    map[playerBattlePlanNum]*BattlePlan `json:"-"`
+	battlePlansByNum     map[playerBattlePlanNum]*BattlePlan `json:"-"`
 	mapObjectsByPosition map[Vector][]interface{}            `json:"-"`
 	fleetsByPosition     map[Vector]*Fleet                   `json:"-"`
 	fleetsByNum          map[playerObject]*Fleet             `json:"-"`
@@ -30,7 +30,7 @@ type Universe struct {
 func NewUniverse(rules *Rules) Universe {
 	return Universe{
 		rules:                rules,
-		battlePlansByNum:    make(map[playerBattlePlanNum]*BattlePlan),
+		battlePlansByNum:     make(map[playerBattlePlanNum]*BattlePlan),
 		mapObjectsByPosition: make(map[Vector][]interface{}),
 		fleetsByPosition:     make(map[Vector]*Fleet),
 		designsByNum:         make(map[playerObject]*ShipDesign),
@@ -288,7 +288,7 @@ func (u *Universe) deleteFleet(fleet *Fleet) {
 	// decrease token count
 	for _, token := range fleet.Tokens {
 		token.design.Spec.NumInstances -= token.Quantity
-		token.design.Dirty = true
+		token.design.MarkDirty()
 	}
 
 	index := slices.Index(u.Fleets, fleet)
@@ -301,7 +301,7 @@ func (u *Universe) deleteFleet(fleet *Fleet) {
 
 // move a fleet from one position to another
 func (u *Universe) moveFleet(fleet *Fleet, originalPosition Vector) {
-	fleet.Dirty = true
+	fleet.MarkDirty()
 	delete(u.fleetsByPosition, originalPosition)
 	u.fleetsByPosition[originalPosition] = fleet
 
@@ -311,7 +311,7 @@ func (u *Universe) moveFleet(fleet *Fleet, originalPosition Vector) {
 
 // move a wormhole from one position to another
 func (u *Universe) moveWormhole(wormhole *Wormhole, originalPosition Vector) {
-	wormhole.Dirty = true
+	wormhole.MarkDirty()
 	u.updateMapObjectAtPosition(wormhole, originalPosition, wormhole.Position)
 }
 

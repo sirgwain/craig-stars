@@ -49,6 +49,7 @@ export type Waypoint = {
 	targetPlayerNum?: number;
 	transferToPlayer?: number;
 	partiallyComplete?: boolean;
+	transportTasks: WaypointTransportTasks;
 };
 
 export enum WaypointTask {

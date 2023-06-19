@@ -11,7 +11,7 @@ export interface MapObject {
 	position: Vector;
 	name: string;
 	num: number;
-	playerNum: number | undefined;
+	playerNum: number;
 }
 
 export enum MapObjectType {
@@ -42,7 +42,7 @@ export function ownedBy(mo: MapObject, playerNum: number): boolean {
  * @returns true if this mapobject is owned
  */
 export function owned(mo: MapObject): boolean {
-	return mo.playerNum != null;
+	return mo.playerNum != None;
 }
 
 export const positionKey = (pos: MapObject | Vector): string => {

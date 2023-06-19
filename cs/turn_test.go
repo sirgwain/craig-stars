@@ -21,26 +21,6 @@ func (m MockRand) Int63() int64 {
 	return m.int63Result
 }
 
-func createTestFullGame() *FullGame {
-	client := NewGamer()
-	game := client.CreateGame(1, *NewGameSettings())
-	player := client.NewPlayer(1, *NewRace(), &game.Rules)
-	players := []*Player{player}
-	player.AIControlled = true
-	player.Num = 1
-	universe, err := client.GenerateUniverse(game, players)
-
-	if err != nil {
-		panic(err)
-	}
-
-	return &FullGame{
-		Game:     game,
-		Players:  players,
-		Universe: universe,
-	}
-}
-
 func createSingleUnitGame() *FullGame {
 	client := NewGamer()
 	game := client.CreateGame(1, *NewGameSettings())
@@ -218,4 +198,137 @@ func Test_turn_permaform(t *testing.T) {
 
 	// should have permaformed the planet temp in one direction
 	assert.Equal(t, Hab{49, 50, 49}, planet.Hab)
+}
+
+func Test_turn_fleetRemoteMine(t *testing.T) {
+
+	type fields struct {
+		task                    WaypointTask
+		planetPlayerNum         int
+		orbitingPlanetNum       int
+		miningRate              int
+		canRemoteMineOwnPlanets bool
+	}
+
+	tests := []struct {
+		name            string
+		fields          fields
+		wantCargo       Cargo
+		wantMessageType PlayerMessageType
+	}{
+		{name: "no task, do nothing", fields: fields{}, wantCargo: Cargo{}, wantMessageType: PlayerMessageNone},
+		{name: "no planet, invalid message", fields: fields{task: WaypointTaskRemoteMining}, wantCargo: Cargo{}, wantMessageType: PlayerMessageInvalid},
+		{name: "owned planet, invalid message", fields: fields{task: WaypointTaskRemoteMining, planetPlayerNum: 2, orbitingPlanetNum: 2}, wantCargo: Cargo{}, wantMessageType: PlayerMessageInvalid},
+		{name: "owned by us, invalid", fields: fields{task: WaypointTaskRemoteMining, planetPlayerNum: 1, orbitingPlanetNum: 2}, wantCargo: Cargo{}, wantMessageType: PlayerMessageInvalid},
+		{name: "owned by us, but we can remote mine our own, should skip", fields: fields{task: WaypointTaskRemoteMining, planetPlayerNum: 1, orbitingPlanetNum: 2, canRemoteMineOwnPlanets: true}, wantCargo: Cargo{}, wantMessageType: PlayerMessageNone},
+		{name: "no miners, invalid message", fields: fields{task: WaypointTaskRemoteMining, orbitingPlanetNum: 2}, wantCargo: Cargo{}, wantMessageType: PlayerMessageInvalid},
+		{name: "should mine", fields: fields{task: WaypointTaskRemoteMining, orbitingPlanetNum: 2, miningRate: 10}, wantCargo: Cargo{10, 10, 10, 0}, wantMessageType: PlayerMessageRemoteMined},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			// create a new test game
+			game := createSingleUnitGame()
+			player := game.Players[0]
+			fleet := game.Fleets[0]
+
+			// setup params
+			player.Race.Spec.CanRemoteMineOwnPlanets = tt.fields.canRemoteMineOwnPlanets
+			fleet.Waypoints[0].Task = tt.fields.task
+			fleet.Spec.MiningRate = tt.fields.miningRate
+			fleet.OrbitingPlanetNum = tt.fields.orbitingPlanetNum
+
+			// add a new planet
+			planet := &Planet{
+				MapObject:            MapObject{Type: MapObjectTypePlanet, Name: "Planet 2", Num: 2, PlayerNum: tt.fields.planetPlayerNum},
+				MineralConcentration: Mineral{100, 100, 100},
+			}
+			planet.Spec = computePlanetSpec(&game.Rules, player, planet)
+			game.Planets = append(game.Planets, planet)
+
+			turn := turn{
+				game: game,
+			}
+			turn.game.Universe.buildMaps(game.Players)
+
+			// try and remote the planet
+			turn.fleetRemoteMine()
+
+			if tt.wantMessageType != PlayerMessageNone {
+				assert.Equal(t, 1, len(player.Messages))
+				assert.Equal(t, tt.wantMessageType, player.Messages[0].Type)
+			} else {
+				assert.Equal(t, 0, len(player.Messages))
+			}
+
+			// make sure the cargo matches what we want
+			assert.Equal(t, tt.wantCargo, planet.Cargo)
+		})
+	}
+
+}
+
+func Test_turn_fleetRemoteMineAR(t *testing.T) {
+
+	type fields struct {
+		task                    WaypointTask
+		planetPlayerNum         int
+		orbitingPlanetNum       int
+		miningRate              int
+		canRemoteMineOwnPlanets bool
+	}
+
+	tests := []struct {
+		name            string
+		fields          fields
+		wantCargo       Cargo
+		wantMessageType PlayerMessageType
+	}{
+		{name: "no task, do nothing", fields: fields{}, wantCargo: Cargo{}, wantMessageType: PlayerMessageNone},
+		{name: "no planet, invalid message", fields: fields{task: WaypointTaskRemoteMining}, wantCargo: Cargo{}, wantMessageType: PlayerMessageInvalid},
+		{name: "no miners, invalid message", fields: fields{task: WaypointTaskRemoteMining, orbitingPlanetNum: 2, planetPlayerNum: 1, canRemoteMineOwnPlanets: true}, wantCargo: Cargo{}, wantMessageType: PlayerMessageInvalid},
+		{name: "owned by us, but we can remote mine our own, should mine", fields: fields{task: WaypointTaskRemoteMining, orbitingPlanetNum: 2, planetPlayerNum: 1, canRemoteMineOwnPlanets: true, miningRate: 10}, wantCargo: Cargo{10, 10, 10, 0}, wantMessageType: PlayerMessageRemoteMined},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			// create a new test game
+			game := createSingleUnitGame()
+			player := game.Players[0]
+			fleet := game.Fleets[0]
+
+			// setup params
+			player.Race.Spec.CanRemoteMineOwnPlanets = tt.fields.canRemoteMineOwnPlanets
+			fleet.Waypoints[0].Task = tt.fields.task
+			fleet.Spec.MiningRate = tt.fields.miningRate
+			fleet.OrbitingPlanetNum = tt.fields.orbitingPlanetNum
+
+			// add a new planet
+			planet := &Planet{
+				MapObject:            MapObject{Type: MapObjectTypePlanet, Name: "Planet 2", Num: 2, PlayerNum: tt.fields.planetPlayerNum},
+				MineralConcentration: Mineral{100, 100, 100},
+			}
+			planet.Spec = computePlanetSpec(&game.Rules, player, planet)
+			game.Planets = append(game.Planets, planet)
+
+			turn := turn{
+				game: game,
+			}
+			turn.game.Universe.buildMaps(game.Players)
+
+			// try and remote the planet
+			turn.fleetRemoteMineAR()
+
+			if tt.wantMessageType != PlayerMessageNone {
+				assert.Equal(t, 1, len(player.Messages))
+				assert.Equal(t, tt.wantMessageType, player.Messages[0].Type)
+			} else {
+				assert.Equal(t, 0, len(player.Messages))
+			}
+
+			// make sure the cargo matches what we want
+			assert.Equal(t, tt.wantCargo, planet.Cargo)
+		})
+	}
+
 }

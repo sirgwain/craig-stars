@@ -6,7 +6,7 @@
 	export let action: WaypointTaskTransportAction | undefined;
 </script>
 
-<span class="inline-block">
+<span class="inline-block my-auto">
 	{#if action && isLoadAction(action)}
 		<Icon src={ArrowUp} size="16" class="hover:stroke-accent stroke-2" />
 	{:else if action && isUnloadAction(action)}

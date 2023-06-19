@@ -17,10 +17,11 @@
 	import Design from '$lib/components/game/design/Design.svelte';
 	import PopupDesign from '../popups/PopupDesign.svelte';
 	import PopupTech from '../popups/PopupTech.svelte';
+	import Tooltip from '$lib/components/game/tooltips/Tooltip.svelte';
 
 	export let game: FullGame;
 
-	let source: Fleet | undefined;
+	let source: CommandedFleet | undefined;
 	let dest: Fleet | Planet | undefined;
 
 	onMount(async () => {
@@ -56,7 +57,7 @@
 	};
 
 	let cargoTransferDialogOpen: boolean;
-	const showCargoTransferDialog = (src: Fleet, target?: Fleet | Planet): void => {
+	const showCargoTransferDialog = (src: CommandedFleet, target?: Fleet | Planet): void => {
 		if (src.spec?.cargoCapacity === 0 && target?.type != MapObjectType.Fleet) {
 			// can't transfer cargo with no cargo capcity
 			// we can only transfer fuel to another fleet, so don't show the dialog at all in this case
@@ -134,3 +135,4 @@
 
 <PopupDesign />
 <PopupTech />
+<Tooltip />

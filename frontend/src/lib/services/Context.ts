@@ -5,6 +5,7 @@ import type { ShipDesign, ShipDesignIntel } from '$lib/types/ShipDesign';
 import type { Tech } from '$lib/types/Tech';
 import { emptyUser, type User } from '$lib/types/User';
 import type { Vector } from '$lib/types/Vector';
+import type { ComponentType, SvelteComponent } from 'svelte';
 import { derived, get, writable } from 'svelte/store';
 import type { FullGame } from './FullGame';
 import { rollover } from './Math';
@@ -159,4 +160,22 @@ export const showPopupTech = (tech: Tech | undefined, x: number, y: number) => {
 	popupTechLocation.update(() => ({ x, y }));
 	popupTech.update(() => tech);
 	window.addEventListener('pointerup', () => popupTech.update(() => undefined));
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const tooltipComponent = writable<
+	{ component: typeof SvelteComponent; props: any } | undefined
+>();
+export const tooltipLocation = writable<Vector>({ x: 0, y: 0 });
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const showTooltip = <T>(x: number, y: number, component: ComponentType, props: T) => {
+	tooltipLocation.update(() => ({
+		x,
+		y
+	}));
+	tooltipComponent.update(() => ({
+		component,
+		props
+	}));
 };

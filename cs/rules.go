@@ -51,6 +51,7 @@ type Rules struct {
 	MaxStartingMineralSurface          int                                 `json:"maxStartingMineralSurface"`
 	MinStartingMineralSurface          int                                 `json:"minStartingMineralSurface"`
 	MineralDecayFactor                 int                                 `json:"mineralDecayFactor"`
+	RemoteMiningMineOutput             int                                 `json:"remoteMiningMineOutput"`
 	StartingMines                      int                                 `json:"startingMines"`
 	StartingFactories                  int                                 `json:"startingFactories"`
 	StartingDefenses                   int                                 `json:"startingDefenses"`
@@ -248,6 +249,7 @@ func NewRulesWithSeed(seed int64) Rules {
 		MaxStartingMineralSurface:          1000,
 		MinStartingMineralSurface:          300,
 		MineralDecayFactor:                 1_500_000,
+		RemoteMiningMineOutput:             10,
 		StartingMines:                      10,
 		StartingFactories:                  10,
 		StartingDefenses:                   10,

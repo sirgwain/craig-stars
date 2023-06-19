@@ -219,9 +219,9 @@ func (d *discover) discoverPlanet(rules *Rules, player *Player, planet *Planet, 
 		intel.PlayerNum = planet.PlayerNum
 
 		// if we pen scanned the planet, we learn some things
+		intel.ReportAge = 0
 		intel.Hab = planet.Hab
 		intel.MineralConcentration = planet.MineralConcentration
-		intel.ReportAge = 0
 		intel.Spec.Habitability = player.Race.GetPlanetHabitability(intel.Hab)
 		intel.Spec.TerraformedHabitability = player.Race.GetPlanetHabitability(intel.Hab) // TODO compute with terraform
 
@@ -278,7 +278,6 @@ func (d *discover) discoverPlanetCargo(player *Player, planet *Planet) error {
 	}
 
 	return nil
-
 }
 
 // discover a fleet and add it to the player's fleet intel

@@ -21,6 +21,9 @@
 	.text-terraformable {
 		@apply text-[#FEFF00];
 	}
+	.text-fuel {
+		@apply text-[#FF0000];
+	}
 	.text-ironium {
 		@apply text-[#0960ff];
 	}

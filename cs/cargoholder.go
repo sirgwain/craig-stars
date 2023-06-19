@@ -9,6 +9,7 @@ type cargoHolder interface {
 	getFuel() int
 	getFuelCapacity() int
 	canLoad(playerNum int) bool
+	MarkDirty()
 }
 
 func (ch *Planet) getMapObject() MapObject {

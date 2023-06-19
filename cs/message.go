@@ -31,6 +31,7 @@ const (
 type PlayerMessageType string
 
 const (
+	PlayerMessageNone                               PlayerMessageType = ""
 	PlayerMessageInfo                               PlayerMessageType = "Info"
 	PlayerMessageError                              PlayerMessageType = "Error"
 	PlayerMessageHomePlanet                         PlayerMessageType = "HomePlanet"
@@ -148,10 +149,14 @@ func (m *messageClient) fleetTransportedCargo(player *Player, fleet *Fleet, dest
 			text = fmt.Sprintf("%s has beamed %d %s to %s", fleet.Name, transferAmount*100, cargoType, dest.getMapObject().Name)
 		}
 	} else {
+		units := "kT"
+		if cargoType == Fuel {
+			units = "mg"
+		}
 		if transferAmount < 0 {
-			text = fmt.Sprintf("%s has loaded %d of %s from %s", fleet.Name, -transferAmount, cargoType, dest.getMapObject().Name)
+			text = fmt.Sprintf("%s has loaded %d%s of %s from %s", fleet.Name, -transferAmount, units, cargoType, dest.getMapObject().Name)
 		} else {
-			text = fmt.Sprintf("%s has unloaded %d of %s to %s", fleet.Name, transferAmount, cargoType, dest.getMapObject().Name)
+			text = fmt.Sprintf("%s has unloaded %d%s of %s to %s", fleet.Name, transferAmount, units, cargoType, dest.getMapObject().Name)
 		}
 	}
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageCargoTransferred, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum})
@@ -543,4 +548,44 @@ func (m *messageClient) terraform(player *Player, planet *Planet, habType HabTyp
 
 	text := fmt.Sprintf("Your terraforming efforts on %s have %s the %s to %s", planet.Name, changeText, habType, newValueText)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageBuiltTerraform, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
+}
+
+func (m *messageClient) remoteMineNoMiners(player *Player, fleet *Fleet, planet *Planet) {
+	player.Messages = append(player.Messages, PlayerMessage{
+		Type:            PlayerMessageInvalid,
+		Text:            fmt.Sprintf("%s had orders to mine %s, but the fleet doesn't have any remote mining modules. The order has been canceled.", fleet.Name, planet.Name),
+		TargetType:      TargetFleet,
+		TargetNum:       fleet.Num,
+		TargetPlayerNum: fleet.PlayerNum,
+	})
+}
+
+func (m *messageClient) remoteMineInhabited(player *Player, fleet *Fleet, planet *Planet) {
+	player.Messages = append(player.Messages, PlayerMessage{
+		Type:            PlayerMessageInvalid,
+		Text:            fmt.Sprintf("Remote mining robots from %s had orders to mine %s, but the planet is inhabited. The order has been canceled.", fleet.Name, planet.Name),
+		TargetType:      TargetFleet,
+		TargetNum:       fleet.Num,
+		TargetPlayerNum: fleet.PlayerNum,
+	})
+}
+
+func (m *messageClient) remoteMineDeepSpace(player *Player, fleet *Fleet) {
+	player.Messages = append(player.Messages, PlayerMessage{
+		Type:            PlayerMessageInvalid,
+		Text:            fmt.Sprintf("Remote mining robots from %s had orders to mine in deep space. The order has been canceled.", fleet.Name),
+		TargetType:      TargetFleet,
+		TargetNum:       fleet.Num,
+		TargetPlayerNum: fleet.PlayerNum,
+	})
+}
+
+func (m *messageClient) remoteMined(player *Player, fleet *Fleet, planet *Planet, mineral Mineral) {
+	player.Messages = append(player.Messages, PlayerMessage{
+		Type:            PlayerMessageRemoteMined,
+		Text:            fmt.Sprintf("%s has remote mined %s, extracting %dkT of ironium, %dkT of boranium, and %dkT of germanium.", fleet.Name, planet.Name, mineral.Ironium, mineral.Boranium, mineral.Germanium),
+		TargetType:      TargetFleet,
+		TargetNum:       fleet.Num,
+		TargetPlayerNum: fleet.PlayerNum,
+	})
 }

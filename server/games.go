@@ -155,6 +155,22 @@ func (s *server) generateUniverse(w http.ResponseWriter, r *http.Request) {
 	s.gameRunner.GenerateUniverse(game)
 }
 
+func (s *server) generateTurn(w http.ResponseWriter, r *http.Request) {
+	user := s.contextUser(r)
+	game := s.contextGame(r)
+
+	// validate
+	if user.ID != game.HostID {
+		render.Render(w, r, ErrForbidden)
+		return
+	}
+
+	if err := s.gameRunner.GenerateTurn(game.ID); err != nil {
+		log.Error().Err(err).Msg("generate turn")
+		render.Render(w, r, ErrBadRequest(err))
+	}
+}
+
 func (s *server) deleteGame(w http.ResponseWriter, r *http.Request) {
 	user := s.contextUser(r)
 	game := s.contextGame(r)

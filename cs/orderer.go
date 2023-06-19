@@ -38,7 +38,7 @@ func (o *orders) UpdatePlayerOrders(player *Player, playerPlanets []*Planet, ord
 			if planet.PlayerNum == player.Num {
 				spec := &planet.Spec
 				spec.computeResourcesPerYearAvailable(player, planet)
-				planet.Dirty = true
+				planet.MarkDirty()
 			}
 		}
 	}
@@ -53,7 +53,7 @@ func (o *orders) UpdatePlanetOrders(player *Player, planet *Planet, orders Plane
 
 	spec := &planet.Spec
 	spec.computeResourcesPerYearAvailable(player, planet)
-	planet.Dirty = true
+	planet.MarkDirty()
 }
 
 // update the orders to a fleet
@@ -76,7 +76,7 @@ func (o *orders) UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrd
 
 	fleet.Waypoints = append(fleet.Waypoints[:1], orders.Waypoints[1:]...)
 	fleet.computeFuelUsage(player)
-	fleet.Dirty = true
+	fleet.MarkDirty()
 }
 
 func (o *orders) UpdateMineFieldOrders(player *Player, minefield *MineField, orders MineFieldOrders) {
@@ -97,8 +97,8 @@ func (o *orders) TransferFleetCargo(source *Fleet, dest *Fleet, transferAmount C
 	// transfer the cargo
 	source.Cargo = source.Cargo.Add(transferAmount)
 	dest.Cargo = dest.Cargo.Subtract(transferAmount)
-	source.Dirty = true
-	dest.Dirty = true
+	source.MarkDirty()
+	dest.MarkDirty()
 
 	return nil
 }
@@ -122,8 +122,8 @@ func (o *orders) TransferPlanetCargo(source *Fleet, dest *Planet, transferAmount
 	source.Cargo = source.Cargo.Add(transferAmount)
 	dest.Cargo = dest.Cargo.Subtract(transferAmount)
 
-	source.Dirty = true
-	dest.Dirty = true
+	source.MarkDirty()
+	dest.MarkDirty()
 	return nil
 }
 

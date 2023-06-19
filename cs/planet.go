@@ -55,7 +55,7 @@ type PlanetSpec struct {
 	MaxPossibleFactories      int     `json:"maxPossibleFactories,omitempty"`
 	MaxPossibleMines          int     `json:"maxPossibleMines,omitempty"`
 	MaxRange                  int     `json:"maxRange,omitempty"`
-	MineralOutput             Mineral `json:"mineralOutput,omitempty"`
+	MiningOutput              Mineral `json:"miningOutput,omitempty"`
 	PopulationDensity         float64 `json:"populationDensity,omitempty"`
 	ResourcesPerYear          int     `json:"resourcesPerYear,omitempty"`
 	ResourcesPerYearAvailable int     `json:"resourcesPerYearAvailable,omitempty"`
@@ -339,7 +339,7 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	spec.MaxPopulation = getMaxPopulation(rules, spec.Habitability, player)
 	spec.PopulationDensity = float64(planet.population()) / float64(spec.MaxPopulation)
 	spec.GrowthAmount = planet.getGrowthAmount(player, spec.MaxPopulation)
-	spec.MineralOutput = planet.getMineralOutput(planet.Mines, race.MineOutput)
+	spec.MiningOutput = planet.getMineralOutput(planet.Mines, race.MineOutput)
 
 	if !race.Spec.InnateMining {
 		spec.MaxMines = planet.population() * race.NumMines / 10000

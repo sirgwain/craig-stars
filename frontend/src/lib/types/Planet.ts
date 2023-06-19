@@ -74,7 +74,7 @@ export class CommandedPlanet implements Planet {
 		populationDensity: 0,
 		maxPopulation: 0,
 		growthAmount: 0,
-		mineralOutput: { ironium: 0, boranium: 0, germanium: 0 },
+		miningOutput: { ironium: 0, boranium: 0, germanium: 0 },
 		resourcesPerYear: 0,
 		resourcesPerYearAvailable: 0,
 		resourcesPerYearResearch: 0,
@@ -245,7 +245,7 @@ export interface PlanetSpec {
 	populationDensity: number;
 	maxPopulation: number;
 	growthAmount: number;
-	mineralOutput: Mineral;
+	miningOutput: Mineral;
 	resourcesPerYear: number;
 	resourcesPerYearAvailable: number;
 	resourcesPerYearResearch: number;
@@ -272,4 +272,12 @@ export interface PlanetSpec {
 	safeRange?: number;
 	maxHullMass?: number;
 	maxRange?: number;
+}
+
+export function getMineralOutput(planet: Planet, numMines: number, mineOutput: number): Mineral {
+	return {
+		ironium: (planet.mineralConcentration?.ironium ?? 0) / 100.0 * numMines / 10.0 * mineOutput,
+		boranium: (planet.mineralConcentration?.boranium ?? 0) / 100.0 * numMines / 10.0 * mineOutput,
+		germanium: (planet.mineralConcentration?.germanium ?? 0) / 100.0 * numMines / 10.0 * mineOutput
+	};
 }

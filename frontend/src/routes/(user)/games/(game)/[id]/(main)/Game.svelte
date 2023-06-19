@@ -14,7 +14,7 @@
 <div class="flex flex-col h-full md:flex-row">
 	<!-- for medium+ displays, command pane goes on the left -->
 	<div
-		class="hidden md:flex md:flex-col md:flex-none justify-between md:w-[15rem] lg:w-[29.5rem] overflow-y-auto md:max-h-[calc(100vh-4rem)]"
+		class="hidden md:flex md:flex-col md:flex-none justify-between md:w-[15.5rem] lg:w-[29.5rem] overflow-y-auto md:max-h-[calc(100vh-4rem)]"
 	>
 		<div class="flex flex-row flex-wrap gap-2 justify-center">
 			<CommandPane {game} />
@@ -37,6 +37,7 @@
 		</div>
 	</div>
 
+	<!-- for phone displays, use a carousel -->
 	<div class="carousel md:hidden">
 		<div class="carousel-item">
 			<div class="w-screen">

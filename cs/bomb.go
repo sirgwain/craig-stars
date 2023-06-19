@@ -20,7 +20,7 @@ type bomb struct {
 // Normalpopkills = sum[bomb_kill_perc(n)*#(n)] * (1-Def(pop))
 // Minkills = sum[bomb_kill_min(n)*#(n)] * (1-Def(pop))
 //
-// 10 Cherry and 5 M-70 bombing vs 100 Neutron Defs (97.92%) 
+// 10 Cherry and 5 M-70 bombing vs 100 Neutron Defs (97.92%)
 //
 // The calculations are, population kill:
 //
@@ -33,10 +33,10 @@ type bomb struct {
 //
 // Minimum kill:
 //
-// a 10*300 + 5*300  4500   
+// a 10*300 + 5*300  4500
 // b 1 - 0.97        0.0208   1 - defense factor for 100 neutron defences
 // c a *b            156      Total minimum kill
-// ============================================================================    
+// ============================================================================
 type bomber interface {
 	// Attempt to bomb this planet
 	bombPlanet(planet *Planet, planetOwner *Player, enemyBombers []*Fleet, pg playerGetter)
@@ -136,7 +136,7 @@ func (b *bomb) normalBombPlanet(planet *Planet, defender *Player, attacker *Play
 
 			// update planet spec
 			planet.Spec = computePlanetSpec(b.rules, defender, planet)
-			planet.Dirty = true
+			planet.MarkDirty()
 
 			// let each player know a bombing happened
 			messager.planetBombed(attacker, planet, fleet, defender.Race.PluralName, attacker.Race.PluralName, actualKilled, minesDestroyed, factoriesDestroyed, defensesDestroyed)
@@ -160,7 +160,7 @@ func (b *bomb) smartBombPlanet(planet *Planet, defender *Player, attacker *Playe
 
 			// update planet spec
 			planet.Spec = computePlanetSpec(b.rules, defender, planet)
-			planet.Dirty = true
+			planet.MarkDirty()
 
 			// let each player know a bombing happened
 			messager.planetSmartBombed(attacker, planet, fleet, defender.Race.PluralName, attacker.Race.PluralName, actualKilled)
@@ -188,7 +188,7 @@ func (b *bomb) retroBombPlanet(planet *Planet, defender *Player, attacker *Playe
 
 				// update planet spec
 				planet.Spec = computePlanetSpec(b.rules, defender, planet)
-				planet.Dirty = true
+				planet.MarkDirty()
 
 				// let each player know a bombing happened
 				messager.planetRetroBombed(attacker, planet, fleet, defender.Race.PluralName, attacker.Race.PluralName, unterraformAmount)

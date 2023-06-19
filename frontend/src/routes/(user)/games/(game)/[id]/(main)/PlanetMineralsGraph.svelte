@@ -3,6 +3,10 @@
 	import type { Mineral } from '$lib/types/Mineral';
 	import type { Planet } from '$lib/types/Planet';
 	import MineralConcentrationPoint from '$lib/components/game/MineralConcentrationPoint.svelte';
+	import MineralTooltip, {
+		type MineralTooltipProps
+	} from '$lib/components/game/tooltips/MineralTooltip.svelte';
+	import { showTooltip } from '$lib/services/Context';
 
 	export let planet: Planet;
 	// export let scale = 1.0;
@@ -65,6 +69,31 @@
 			};
 		}
 	}
+
+	function onIroniumTooltip(e: PointerEvent) {
+		showTooltip<MineralTooltipProps>(e.x, e.y, MineralTooltip, {
+			mineralType: 'Ironium',
+			surfaceAmount: planet.cargo?.ironium ?? 0,
+			concentration: planet.mineralConcentration?.ironium ?? 0,
+			miningRate: planet.spec.miningOutput.ironium ?? 0
+		});
+	}
+	function onBoraniumTooltip(e: PointerEvent) {
+		showTooltip<MineralTooltipProps>(e.x, e.y, MineralTooltip, {
+			mineralType: 'Boranium',
+			surfaceAmount: planet.cargo?.boranium ?? 0,
+			concentration: planet.mineralConcentration?.boranium ?? 0,
+			miningRate: planet.spec.miningOutput.boranium ?? 0
+		});
+	}
+	function onGermaniumTooltip(e: PointerEvent) {
+		showTooltip<MineralTooltipProps>(e.x, e.y, MineralTooltip, {
+			mineralType: 'Germanium',
+			surfaceAmount: planet.cargo?.germanium ?? 0,
+			concentration: planet.mineralConcentration?.germanium ?? 0,
+			miningRate: planet.spec.miningOutput.germanium ?? 0
+		});
+	}
 </script>
 
 <div class="flex flex-row">
@@ -74,21 +103,21 @@
 		<div class="text-germanium">Germanium</div>
 	</div>
 	<div class="grow flex flex-col justify-evenly mx-1 px-0.5 py-1 bg-black line gap-2">
-		<div class="h-full relative">
+		<div class="h-full relative cursor-help" on:pointerdown|preventDefault={onIroniumTooltip}>
 			<MineralConcentrationPoint
 				style={`left: ${concentrationPercent.ironium?.toFixed()};`}
 				class="absolute ironium-concentration w-auto h-full ironium"
 			/>
 			<div style={`width: ${barPercent.ironium?.toFixed()}%`} class="ironium-bar h-full" />
 		</div>
-		<div class="h-full relative">
+		<div class="h-full relative cursor-help" on:pointerdown|preventDefault={onBoraniumTooltip}>
 			<MineralConcentrationPoint
 				style={`left: ${concentrationPercent.boranium?.toFixed()};`}
 				class="absolute boranium-concentration w-auto h-full boranium"
 			/>
 			<div style={`width: ${barPercent.boranium?.toFixed()}%`} class="boranium-bar h-full" />
 		</div>
-		<div class="h-full relative">
+		<div class="h-full relative cursor-help" on:pointerdown|preventDefault={onGermaniumTooltip}>
 			<MineralConcentrationPoint
 				style={`left: ${concentrationPercent.germanium?.toFixed()};`}
 				class="absolute germanium-concentration  h-full germanium"

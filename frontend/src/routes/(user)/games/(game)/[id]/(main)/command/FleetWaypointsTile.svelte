@@ -203,7 +203,7 @@
 					bind:checked={fleet.repeatOrders}
 					class="checkbox-xs"
 					type="checkbox"
-				/> Repeate Orders
+				/> Repeat Orders
 			</label>
 		{:else if nextWaypoint}
 			<div class="flex justify-between mt-1">
@@ -232,7 +232,7 @@
 					checked={fleet.repeatOrders}
 					class="checkbox-xs"
 					type="checkbox"
-				/> Repeate Orders
+				/> Repeat Orders
 			</label>
 		{/if}
 	</CommandTile>

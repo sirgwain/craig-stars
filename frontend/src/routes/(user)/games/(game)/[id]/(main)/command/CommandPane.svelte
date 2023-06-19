@@ -15,8 +15,6 @@
 	import PlanetSummaryTile from './PlanetSummaryTile.svelte';
 
 	export let game: FullGame;
-
-	$: player = game.player;
 </script>
 
 {#if $commandedPlanet}
@@ -30,11 +28,11 @@
 		fleetsInOrbit={game.universe.getMyFleetsByPosition($commandedPlanet)}
 	/>
 {:else if $commandedFleet}
-	<FleetSummaryTile fleet={$commandedFleet} {player} />
+	<FleetSummaryTile fleet={$commandedFleet} player={game.player} />
 	<FleetFuelAndCargoTile {game} fleet={$commandedFleet} />
 	<FleetCompositionTile
 		fleet={$commandedFleet}
-		{player}
+		player={game.player}
 		on:splitAll={() => $commandedFleet && game.splitAll($commandedFleet)}
 	/>
 	<FleetOtherFleetsHereTile
@@ -44,7 +42,7 @@
 			.filter((f) => f.num !== $commandedFleet?.num)}
 	/>
 	<FleetWaypointsTile {game} fleet={$commandedFleet} />
-	<FleetWaypointTaskTile fleet={$commandedFleet} />
+	<FleetWaypointTaskTile {game} player={game.player} fleet={$commandedFleet} />
 	<!-- empty div for layout -->
 	<div class="hidden md:block md:w-[14rem]" />
 {:else}{/if}
