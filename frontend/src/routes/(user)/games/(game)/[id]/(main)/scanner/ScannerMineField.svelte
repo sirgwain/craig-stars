@@ -13,7 +13,6 @@
 	export let color = '#0900FF';
 	export let selected = false;
 
-	$: console.log(selected);
 </script>
 
 <!-- ScannerMineField -->
