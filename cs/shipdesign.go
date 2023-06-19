@@ -23,12 +23,14 @@ type ShipDesign struct {
 	Slots         []ShipDesignSlot  `json:"slots"`
 	Purpose       ShipDesignPurpose `json:"purpose,omitempty"`
 	Spec          ShipDesignSpec    `json:"spec"`
+	hull          *TechHull
 }
 
 type ShipDesignSlot struct {
 	HullComponent string `json:"hullComponent"`
 	HullSlotIndex int    `json:"hullSlotIndex"`
 	Quantity      int    `json:"quantity"`
+	hc            *TechHullComponent
 }
 
 type ShipDesignSpec struct {

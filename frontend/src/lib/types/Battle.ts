@@ -14,8 +14,9 @@ export type Token = {
 	playerNum: number;
 	designNum: number;
 	position: Vector;
-	startingDamage?: number;
-	startingQuantityDamaged?: number;
+	damage?: number;
+	quantityDamaged?: number;
+	quantity?: number;
 	initiative?: number;
 	movement?: number;
 	tactic: BattleTactic | string;
@@ -88,7 +89,7 @@ export class Battle implements BattleRecord {
 		Object.assign(this, record);
 		this.totalPhases = sumBy(this.actionsPerRound, (a) => a.length);
 		this.totalRounds = this.actionsPerRound.length;
-		this.tokensByPhase = this.getPhaseTokensForBattle();
+		this.buildPhaseTokensForBattle();
 		this.tokens.sort((a, b) => a.num - b.num);
 		this.actions = flatten(this.actionsPerRound);
 	}
@@ -100,7 +101,8 @@ export class Battle implements BattleRecord {
 	totalPhases: number;
 	totalRounds: number;
 
-	private tokensByPhase: TokensByLocation[];
+	private tokensByPhase: PhaseToken[][] = [];
+	private tokensByPhaseByLocation: TokensByLocation[] = [];
 
 	getToken(num: number): Token | undefined {
 		if (num > 0 && num <= this.tokens.length) {
@@ -110,23 +112,29 @@ export class Battle implements BattleRecord {
 
 	// get all remaining tokens at a location for a phase
 	getTokensAtLocation(phase: number, x: number, y: number): PhaseToken[] | undefined {
-		const phaseTokens = this.tokensByPhase[phase];
+		const phaseTokens = this.tokensByPhaseByLocation[phase];
 		return (
 			phaseTokens &&
 			phaseTokens[getTokenLocationKey(x, y)]?.filter((t) => !(t.ranAway || t.destroyed))
 		);
 	}
 
+	// get the token performing an action for a phase
 	getActionToken(phase: number): PhaseToken | undefined {
-		return flatten(Object.values(this.tokensByPhase[phase])).find((t) => t.action);
+		return flatten(Object.values(this.tokensByPhaseByLocation[phase])).find((t) => t.action);
 	}
 
+	// get the action being performed for a phase
 	getActionForPhase(phase: number) {
 		return this.getActionToken(phase)?.action;
 	}
 
-	private getPhaseTokensForBattle(): TokensByLocation[] {
-		const tokensByPhase: TokensByLocation[] = [];
+	getTokenForPhase(num: number, phase: number) {
+		return this.tokensByPhase[phase].find((t) => t.num == num);
+	}
+
+	private buildPhaseTokensForBattle() {
+		this.tokensByPhaseByLocation = [];
 
 		// starting token configuration
 		let tokens: PhaseToken[] = this.tokens.map((t) => ({
@@ -136,7 +144,8 @@ export class Battle implements BattleRecord {
 		}));
 
 		// set the first phase to our base tokens
-		tokensByPhase.push(groupBy(tokens, (t) => getTokenLocationKey(t.x, t.y)));
+		this.tokensByPhaseByLocation.push(groupBy(tokens, (t) => getTokenLocationKey(t.x, t.y)));
+		this.tokensByPhase.push(tokens);
 
 		for (let round = 1; round < this.actionsPerRound.length; round++) {
 			const roundActions = this.actionsPerRound[round];
@@ -160,15 +169,19 @@ export class Battle implements BattleRecord {
 						// this token is idle, remove the action
 						clonedToken.action = undefined;
 					}
+					if (action.target && action.targetNum === clonedToken.num) {
+						Object.assign(clonedToken, action.target);
+					}
 					return clonedToken;
 				});
 				// keep track of our progress
 				tokens = phaseTokens;
-				tokensByPhase.push(groupBy(phaseTokens, (t) => getTokenLocationKey(t.x, t.y)));
+				this.tokensByPhase.push(tokens);
+				this.tokensByPhaseByLocation.push(
+					groupBy(phaseTokens, (t) => getTokenLocationKey(t.x, t.y))
+				);
 			}
 		}
-
-		return tokensByPhase;
 	}
 }
 

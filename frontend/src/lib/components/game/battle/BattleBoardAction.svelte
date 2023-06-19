@@ -5,12 +5,13 @@
 	export let battle: Battle;
 	export let player: Player;
 	export let action: TokenAction | undefined;
+	export let phase: number;
 
 	function getTokenDescription(tokenNum?: number): string {
 		if (!tokenNum) {
 			return '';
 		}
-		const token = battle.getToken(tokenNum);
+		const token = battle.getTokenForPhase(tokenNum, phase);
 		if (token) {
 			const design = player.getDesign(token.playerNum, token.designNum);
 			const raceName = player.getPlayerIntel(token.playerNum);
@@ -30,9 +31,9 @@
 	{:else if action.type === TokenActionType.RanAway}
 		{`${getTokenDescription(action.tokenNum)} ran away`}
 	{:else if action.type === TokenActionType.BeamFire}
-		{`The ${getTokenDescription(action.tokenNum)} at (${action.from.x}, ${action.from.y}) attacks the ${getTokenDescription(
-			action.targetNum
-		)} at (${action.to.x}, ${action.to.y})`}
+		{`The ${getTokenDescription(action.tokenNum)} at (${action.from.x}, ${
+			action.from.y
+		}) attacks the ${getTokenDescription(action.targetNum)} at (${action.to.x}, ${action.to.y})`}
 		{#if action.damageDoneArmor && action.damageDoneShields}
 			{`doing ${action.damageDoneArmor} damage to armor and ${action.damageDoneShields} damage to shields`}
 		{:else if action.damageDoneArmor}
@@ -55,8 +56,6 @@
 				(action.torpedoMisses ?? 0) > 1 ? 's' : ''
 			} missed`}
 		{/if}
-	{:else}
-		<pre>${JSON.stringify(action, undefined, ' ')}</pre>
 	{/if}
 {/if}
 <div />

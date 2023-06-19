@@ -5,14 +5,20 @@
 
 	export let battle: Battle;
 	export let player: Player;
+	export let phase: number;
 	export let token: PhaseToken | undefined;
 
 	$: design = token && player.getDesign(token.playerNum, token.designNum);
 	$: raceName = token && player.getPlayerIntel(token.playerNum)?.racePluralName;
+	$: tokenState = token && battle.getTokenForPhase(token.num, phase);
+	$: armor =
+		design && ('spec' in design ? design.spec.armor : 'armor' in design ? design.armor : 0);
+	$: shields =
+		design && ('spec' in design ? design.spec.shield : 'armor' in design ? design.shields : 0);
 </script>
 
 <div class="w-full">
-	{#if token && design}
+	{#if token && design && tokenState}
 		<div>
 			Selection: ({token.x}, {token.y})
 		</div>
@@ -32,14 +38,16 @@
 		</div>
 		<div class="flex justify-between">
 			<div>
-				Armor: {design.spec?.armor ?? design.armor ?? 0}dp
+				Armor: {armor}dp
 			</div>
-			<!-- <div>
-				Damage: tbd - we have to figure this out per phase
-			</div> -->
+			{#if tokenState.damage && armor}
+				<div class="text-error">
+					Damage: {tokenState.quantityDamaged}@{((tokenState.damage / armor) * 100).toFixed(1)}%
+				</div>
+			{/if}
 		</div>
 		<div>
-			Shields: {design.spec?.shields ?? design.shields ?? 'none'}
+			Shields: {shields ?? 'none'}
 		</div>
 		<div>
 			Tactic: {startCase(token.tactic)}

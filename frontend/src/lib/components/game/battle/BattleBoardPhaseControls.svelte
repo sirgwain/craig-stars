@@ -1,23 +1,27 @@
 <script lang="ts">
 	import { clamp } from '$lib/services/Math';
-	import { type Battle, TokenActionType } from '$lib/types/Battle';
+	import { TokenActionType, type Battle } from '$lib/types/Battle';
 	import {
-		ChevronDoubleLeft,
 		ArrowLongLeft,
 		ArrowLongRight,
+		ChevronDoubleLeft,
 		ChevronDoubleRight
 	} from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { reverse } from 'lodash-es';
+	import { createEventDispatcher } from 'svelte';
+
+	const dispatch = createEventDispatcher();
 
 	export let phase: number;
 	export let battle: Battle;
 
 	const previous = () => {
 		phase--;
+		dispatch('phaseupdated', phase);
 	};
 	const next = () => {
 		phase++;
+		dispatch('phaseupdated', phase);
 	};
 	const nextAttack = () => {
 		const nextPhase = battle.actions.findIndex(
@@ -28,13 +32,16 @@
 		if (nextPhase != -1) {
 			phase = nextPhase + 1;
 		}
+		dispatch('phaseupdated', phase);
 	};
 
 	const begin = () => {
 		phase = 0;
+		dispatch('phaseupdated', phase);
 	};
 	const end = () => {
 		phase = battle.totalPhases;
+		dispatch('phaseupdated', phase);
 	};
 </script>
 

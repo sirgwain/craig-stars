@@ -135,7 +135,7 @@
 					stats.push({ label: 'Power', text: `${hullComponent.power}` });
 				}
 				if (hullComponent.range || hullComponent.category == TechCategory.BeamWeapon) {
-					stats.push({ label: 'Range', text: `${hullComponent.range}` });
+					stats.push({ label: 'Range', text: `${hullComponent.range ?? 0}` });
 				}
 				if (hullComponent.initiative) {
 					stats.push({ label: 'Initiative', text: `${hullComponent.initiative}` });
