@@ -29,24 +29,6 @@ Start the go webserver:
 
 watching .
 watching ai
-watching ansible
-watching ansible/group_vars
-watching ansible/inventory
-watching ansible/roles
-watching ansible/roles/craig-stars
-watching ansible/roles/craig-stars/defaults
-watching ansible/roles/craig-stars/handlers
-watching ansible/roles/craig-stars/tasks
-watching ansible/roles/craig-stars/templates
-watching ansible/roles/root
-watching ansible/roles/root/defaults
-watching ansible/roles/root/handlers
-watching ansible/roles/root/tasks
-watching ansible/roles/root/templates
-watching ansible/roles/service
-watching ansible/roles/service/handlers
-watching ansible/roles/service/tasks
-watching ansible/roles/service/templates
 watching cmd
 watching config
 watching cs
@@ -60,7 +42,7 @@ watching test
 !exclude vendor
 building...
 running...
-11:06AM DBG Debug logging enabled
+7:47AM DBG Debug logging enabled
 ```
 
 ## frontend
