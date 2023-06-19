@@ -100,7 +100,6 @@
 		if (!$myMapObjectsByPosition || !$player || !$commandedFleet) {
 			return;
 		}
-		debugger;
 
 		let waypointIndex = $commandedFleet.waypoints.findIndex((wp) => $selectedWaypoint == wp);
 		if (waypointIndex == -1) {
@@ -214,7 +213,8 @@
 			xDomain={[0, $game.area.x]}
 			yDomain={[0, $game.area.y]}
 			xRange={[0, clientWidth * aspectRatio]}
-			yRange={[clientHeight * aspectRatio, 0]}
+			yRange={[0, clientHeight * aspectRatio]}
+			yReverse={true}
 			bind:element={root}
 		>
 			<!-- <Svg viewBox={`0 0 ${$game.area.x} ${$game.area.y}`}> -->

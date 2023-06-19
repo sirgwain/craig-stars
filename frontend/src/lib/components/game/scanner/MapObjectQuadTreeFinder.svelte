@@ -14,7 +14,8 @@
 	import type { ZoomTransform } from 'node_modules.nosync/@types/d3-zoom';
 	import { createEventDispatcher, getContext } from 'svelte';
 
-	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
+	const { data, xGet, yGet, xScale, yScale, xReverse, yReverse, width, height } =
+		getContext<LayerCake>('LayerCake');
 	const dispatch = createEventDispatcher();
 
 	let found: MapObject | undefined;
@@ -55,7 +56,7 @@
 			y1,
 			transform && searchRadius ? transform.scale(searchRadius).k : searchRadius
 		);
-		position = { x: x1, y: $height - y1 };
+		position = { x: Math.round(x1 / $xScale(1)), y: Math.round(y1 / $yScale(1)) };
 
 		console.log(
 			'x, y',
@@ -63,7 +64,15 @@
 			'x1, y1',
 			[x1, y1],
 			'found',
-			found?.name
+			found?.name,
+			'found?.position',
+			`${found?.position.x}, ${found?.position.y}`,
+			'position',
+			`${position.x}, ${position.y}`,
+			'scale',
+			`${$xScale(1)}, ${$yScale(1)}`,
+			'dimensions',
+			`${$width}, ${$height}`
 		);
 
 		highlightMapObject(found as Planet);
@@ -77,9 +86,9 @@
 				dispatch('mapobject-selected', found);
 			}
 		} else {
-			// if (evt.shiftKey) {
-			// 	dispatch('add-waypoint', { position });
-			// }
+			if (evt.shiftKey) {
+				dispatch('add-waypoint', { position });
+			}
 		}
 	}
 
