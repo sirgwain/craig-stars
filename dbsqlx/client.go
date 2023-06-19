@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"reflect"
 	"strings"
 
 	"github.com/sirgwain/craig-stars/config"
@@ -143,7 +144,7 @@ func (c *client) ExecSchema(schemaPath string) {
 
 // helper to convert an item into JSON
 func valueJSON(item interface{}) (driver.Value, error) {
-	if item == nil {
+	if isNil(item) {
 		return nil, nil
 	}
 
@@ -168,4 +169,16 @@ func scanJSON(src interface{}, dest interface{}) error {
 		return json.Unmarshal([]byte(v), dest)
 	}
 	return errors.New("type assertion failed")
+}
+
+func isNil(i interface{}) bool {
+	if i == nil {
+		return true
+	}
+	switch reflect.TypeOf(i).Kind() {
+	case reflect.Ptr, reflect.Map, reflect.Array, reflect.Chan, reflect.Slice:
+		//use of IsNil method
+		return reflect.ValueOf(i).IsNil()
+	}
+	return false
 }

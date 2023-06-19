@@ -70,9 +70,9 @@ func TestGetPlanets(t *testing.T) {
 func TestGetPlanet(t *testing.T) {
 	c := connectTestDB()
 	g := c.createTestGame()
-	fleet := game.Planet{MapObject: game.MapObject{GameID: g.ID, Name: "name", Type: game.MapObjectTypePlanet}}
-	if err := c.createPlanet(&fleet, c.db); err != nil {
-		t.Errorf("failed to create fleet %s", err)
+	planet := game.Planet{MapObject: game.MapObject{GameID: g.ID, Name: "name", Type: game.MapObjectTypePlanet}}
+	if err := c.createPlanet(&planet, c.db); err != nil {
+		t.Errorf("failed to create planet %s", err)
 		return
 	}
 
@@ -86,7 +86,7 @@ func TestGetPlanet(t *testing.T) {
 		wantErr bool
 	}{
 		{"No results", args{id: 0}, nil, false},
-		{"Got fleet", args{id: fleet.ID}, &fleet, false},
+		{"Got planet", args{id: planet.ID}, &planet, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

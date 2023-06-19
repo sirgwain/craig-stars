@@ -3,8 +3,6 @@ package dbsqlx
 import (
 	"database/sql"
 	"database/sql/driver"
-	"encoding/json"
-	"errors"
 	"time"
 
 	"github.com/sirgwain/craig-stars/game"
@@ -53,26 +51,12 @@ type RaceSpec game.RaceSpec
 
 // db serializer to serialize this to JSON
 func (item *RaceSpec) Value() (driver.Value, error) {
-	if item == nil {
-		return nil, nil
-	}
-
-	data, err := json.Marshal(item)
-	if err != nil {
-		return nil, err
-	}
-	return data, nil
+	return valueJSON(item)
 }
 
 // db deserializer to read this from JSON
 func (item *RaceSpec) Scan(src interface{}) error {
-	switch v := src.(type) {
-	case []byte:
-		return json.Unmarshal(v, item)
-	case string:
-		return json.Unmarshal([]byte(v), item)
-	}
-	return errors.New("type assertion failed")
+	return scanJSON(src, item)
 }
 
 func (c *client) GetRaces() ([]game.Race, error) {

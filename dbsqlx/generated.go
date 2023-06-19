@@ -296,16 +296,9 @@ func (c *GameConverter) dbsqlxPlanetToGamePlanet(source Planet) game.Planet {
 	gamePlanet.Scanner = source.Scanner
 	gamePlanet.PacketSpeed = source.PacketSpeed
 	gamePlanet.BonusResources = source.BonusResources
-	gamePlanet.ProductionQueue = c.dbsqlxProductionQueueItemsToGameProductionQueueItemList(source.ProductionQueue)
+	gamePlanet.ProductionQueue = ProductionQueueItemsToGameProductionQueueItems(source.ProductionQueue)
 	gamePlanet.Spec = PlanetSpecToGamePlanetSpec(source.Spec)
 	return gamePlanet
-}
-func (c *GameConverter) dbsqlxProductionQueueItemsToGameProductionQueueItemList(source ProductionQueueItems) []game.ProductionQueueItem {
-	gameProductionQueueItemList := make([]game.ProductionQueueItem, len(source))
-	for i := 0; i < len(source); i++ {
-		gameProductionQueueItemList[i] = c.gameProductionQueueItemToGameProductionQueueItem(source[i])
-	}
-	return gameProductionQueueItemList
 }
 func (c *GameConverter) dbsqlxShipDesignToGameShipDesign(source ShipDesign) game.ShipDesign {
 	var gameShipDesign game.ShipDesign
@@ -325,14 +318,6 @@ func (c *GameConverter) dbsqlxShipDesignToGameShipDesign(source ShipDesign) game
 	gameShipDesign.Spec = ShipDesignSpecToGameShipDesignSpec(source.Spec)
 	return gameShipDesign
 }
-func (c *GameConverter) gameCostToGameCost(source game.Cost) game.Cost {
-	var gameCost game.Cost
-	gameCost.Ironium = source.Ironium
-	gameCost.Boranium = source.Boranium
-	gameCost.Germanium = source.Germanium
-	gameCost.Resources = source.Resources
-	return gameCost
-}
 func (c *GameConverter) gameFleetToDbsqlxFleet(source game.Fleet) Fleet {
 	var dbsqlxFleet Fleet
 	dbsqlxFleet.ID = source.MapObject.ID
@@ -345,8 +330,7 @@ func (c *GameConverter) gameFleetToDbsqlxFleet(source game.Fleet) Fleet {
 	dbsqlxFleet.Name = source.MapObject.Name
 	dbsqlxFleet.Num = source.MapObject.Num
 	dbsqlxFleet.PlayerNum = source.MapObject.PlayerNum
-	dbsqlxWaypoints := GameWaypointsToWaypoints(source.FleetOrders.Waypoints)
-	dbsqlxFleet.Waypoints = &dbsqlxWaypoints
+	dbsqlxFleet.Waypoints = GameWaypointsToWaypoints(source.FleetOrders.Waypoints)
 	dbsqlxFleet.RepeatOrders = source.FleetOrders.RepeatOrders
 	dbsqlxFleet.PlanetID = source.PlanetID
 	dbsqlxFleet.BaseName = source.BaseName
@@ -490,7 +474,7 @@ func (c *GameConverter) gamePlanetToDbsqlxPlanet(source game.Planet) Planet {
 	dbsqlxPlanet.Scanner = source.Scanner
 	dbsqlxPlanet.PacketSpeed = source.PacketSpeed
 	dbsqlxPlanet.BonusResources = source.BonusResources
-	dbsqlxPlanet.ProductionQueue = c.gameProductionQueueItemListToDbsqlxProductionQueueItems(source.ProductionQueue)
+	dbsqlxPlanet.ProductionQueue = GameProductionQueueItemsToProductionQueueItems(source.ProductionQueue)
 	dbsqlxPlanet.Spec = GamePlanetSpecToPlanetSpec(source.Spec)
 	return dbsqlxPlanet
 }
@@ -530,21 +514,6 @@ func (c *GameConverter) gamePlayerToDbsqlxPlayer(source game.Player) Player {
 	dbsqlxPlayer.Stats = GamePlayerStatsToPlayerStats(source.Stats)
 	dbsqlxPlayer.Spec = GamePlayerSpecToPlayerSpec(source.Spec)
 	return dbsqlxPlayer
-}
-func (c *GameConverter) gameProductionQueueItemListToDbsqlxProductionQueueItems(source []game.ProductionQueueItem) ProductionQueueItems {
-	dbsqlxProductionQueueItems := make(ProductionQueueItems, len(source))
-	for i := 0; i < len(source); i++ {
-		dbsqlxProductionQueueItems[i] = c.gameProductionQueueItemToGameProductionQueueItem(source[i])
-	}
-	return dbsqlxProductionQueueItems
-}
-func (c *GameConverter) gameProductionQueueItemToGameProductionQueueItem(source game.ProductionQueueItem) game.ProductionQueueItem {
-	var gameProductionQueueItem game.ProductionQueueItem
-	gameProductionQueueItem.Type = game.QueueItemType(source.Type)
-	gameProductionQueueItem.DesignName = source.DesignName
-	gameProductionQueueItem.Quantity = source.Quantity
-	gameProductionQueueItem.Allocated = c.gameCostToGameCost(source.Allocated)
-	return gameProductionQueueItem
 }
 func (c *GameConverter) gameRaceToDbsqlxRace(source game.Race) Race {
 	var dbsqlxRace Race
