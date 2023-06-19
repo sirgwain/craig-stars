@@ -3,7 +3,6 @@ package game
 import "sort"
 
 type Universe struct {
-	Area             Vector                    `json:"area,omitempty" gorm:"embedded;embeddedPrefix:area_"`
 	Planets          []*Planet                 `json:"planets,omitempty" gorm:"foreignKey:GameID;references:ID"`
 	Fleets           []*Fleet                  `json:"fleets,omitempty" gorm:"foreignKey:GameID;references:ID"`
 	Wormholes        []*Wormohole              `json:"wormholes,omitempty" gorm:"foreignKey:GameID;references:ID"`

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/sirgwain/craig-stars/game"
+	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -45,7 +46,7 @@ func TestCreatePlanetIntel(t *testing.T) {
 func TestGetPlanetIntel(t *testing.T) {
 	c := connectTestDB()
 	_, player := c.createTestGameWithPlayer()
-	planetIntel := game.PlanetIntel{MapObjectIntel: game.MapObjectIntel{Intel: game.Intel{Name: "name"}}}
+	planetIntel := game.PlanetIntel{MapObjectIntel: game.MapObjectIntel{Type: game.MapObjectTypePlanet, Intel: game.Intel{Name: "name"}}}
 	planetIntel.PlayerID = player.ID
 	if err := c.CreatePlanetIntel(&planetIntel); err != nil {
 		t.Errorf("failed to create planetIntel %s", err)
@@ -75,7 +76,7 @@ func TestGetPlanetIntel(t *testing.T) {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt
 			}
-			if !reflect.DeepEqual(got, tt.want) {
+			if !test.CompareAsJSON(t, got, tt.want) {
 				t.Errorf("GetPlanetIntel() = %v, want %v", got, tt.want)
 			}
 		})
