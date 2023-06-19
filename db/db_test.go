@@ -17,7 +17,6 @@ func connectTestDB() *client {
 	cfg.Database.Filename = ":memory:"
 	cfg.Database.Recreate = true
 	cfg.Database.DebugLogging = true
-	cfg.Database.Schema = "../schema.sql"
 	if err := c.Connect(cfg); err != nil {
 		panic(fmt.Errorf("connect to test database, %w", err))
 	}

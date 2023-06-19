@@ -30,7 +30,6 @@ func GetConfig() *Config {
 
 		// Set default value
 		viper.SetDefault("Database.Filename", "data/data.db")
-		viper.SetDefault("Database.Schema", "schema.sql")
 
 		// write config if not present
 		if err := os.MkdirAll(path, os.ModePerm); err != nil {
