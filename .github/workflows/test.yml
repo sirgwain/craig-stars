@@ -1,7 +1,7 @@
 on: [push, pull_request]
-branches:
-  - '*'
-  - '!develop'
+  branches:
+    - '*'
+    - '!develop'
 name: Test
 jobs:
   test:
