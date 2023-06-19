@@ -6,8 +6,6 @@ import (
 )
 
 func Test_getTerraformAbility(t *testing.T) {
-	rules := NewRules()
-
 	type args struct {
 		player *Player
 	}
@@ -49,8 +47,6 @@ func Test_getTerraformAbility(t *testing.T) {
 }
 
 func Test_getTerraformAmount(t *testing.T) {
-	rules := NewRules()
-
 	planet := &Planet{
 		BaseHab:           Hab{Grav: 50, Temp: 50, Rad: 50},
 		Hab:               Hab{Grav: 47, Temp: 53, Rad: 50},
@@ -113,8 +109,6 @@ func Test_getTerraformAmount(t *testing.T) {
 }
 
 func Test_getMinTerraformAmount(t *testing.T) {
-	rules := NewRules()
-
 	player := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1).WithTechLevels(TechLevel{3, 3, 3, 3, 3, 3}).withSpec(&rules)
 
 	type args struct {
@@ -179,8 +173,6 @@ func Test_getMinTerraformAmount(t *testing.T) {
 }
 
 func TestGetBestTerraform(t *testing.T) {
-	rules := NewRules()
-
 	player := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1).WithTechLevels(TechLevel{3, 3, 3, 3, 3, 3}).withSpec(&rules)
 
 	grav := int(Grav)
@@ -240,8 +232,6 @@ func TestGetBestTerraform(t *testing.T) {
 }
 
 func Test_getBestUnterraform(t *testing.T) {
-	rules := NewRules()
-
 	player := NewPlayer(1, NewRace().WithLRT(TT).WithSpec(&rules)).WithNum(1).withSpec(&rules)
 
 	temp := int(Temp)

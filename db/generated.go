@@ -198,6 +198,7 @@ func (c *GameConverter) ConvertPlayer(source Player) cs.Player {
 	csPlayer.ResearchSpentLastYear = source.ResearchSpentLastYear
 	csPlayer.Relations = PlayerRelationshipsToGamePlayerRelationships(source.Relations)
 	csPlayer.Messages = PlayerMessagesToGamePlayerMessages(source.Messages)
+	csPlayer.Battles = BattleRecordsToGameBattleRecords(source.Battles)
 	csPlayer.Spec = PlayerSpecToGamePlayerSpec(source.Spec)
 	csPlayer.Stats = PlayerStatsToGamePlayerStats(source.Stats)
 	return csPlayer
@@ -510,6 +511,7 @@ func (c *GameConverter) csPlayerToDbPlayer(source cs.Player) Player {
 	dbPlayer.TransportPlans = GameTransportPlansToTransportPlans(source.PlayerPlans.TransportPlans)
 	dbPlayer.Relations = GamePlayerRelationshipsToPlayerRelationships(source.Relations)
 	dbPlayer.Messages = GamePlayerMessagesToPlayerMessages(source.Messages)
+	dbPlayer.Battles = GameBattleRecordsToBattleRecords(source.Battles)
 	dbPlayer.PlayerIntels = GamePlayerIntelsToPlayerIntels(source.PlayerIntels.PlayerIntels)
 	dbPlayer.PlanetIntels = GamePlanetIntelsToPlanetIntels(source.PlayerIntels.PlanetIntels)
 	dbPlayer.FleetIntels = GameFleetIntelsToFleetIntels(source.PlayerIntels.FleetIntels)

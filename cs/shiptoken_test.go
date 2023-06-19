@@ -6,7 +6,6 @@ import (
 )
 
 func TestShipToken_applyMineDamage(t *testing.T) {
-	rules := NewRules()
 	player := NewPlayer(1, NewRace().WithSpec(&rules))
 	design := NewShipDesign(player, 1)
 
@@ -109,7 +108,6 @@ func TestShipToken_applyMineDamage(t *testing.T) {
 }
 
 func TestShipToken_applyOvergateDamage(t *testing.T) {
-	rules := NewRules()
 	player := NewPlayer(1, NewRace().WithSpec(&rules))
 	design := NewShipDesign(player, 1)
 	heavyDesign := NewShipDesign(player, 1)
@@ -269,7 +267,6 @@ func TestShipToken_applyOvergateDamage(t *testing.T) {
 }
 
 func TestShipToken_getStargateMassVanishingChance(t *testing.T) {
-	rules := NewRules()
 	player := NewPlayer(1, NewRace().WithSpec(&rules))
 
 	type fields struct {
@@ -349,7 +346,6 @@ func TestShipToken_getStargateRangeVanishingChance(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rules := NewRules()
 			player := NewPlayer(1, NewRace().WithSpec(&rules))
 			design := NewShipDesign(player, 1)
 			tr := &ShipToken{

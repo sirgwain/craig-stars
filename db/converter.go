@@ -27,6 +27,8 @@ import (
 // goverter:extend GamePlayerRelationshipsToPlayerRelationships
 // goverter:extend PlayerMessagesToGamePlayerMessages
 // goverter:extend GamePlayerMessagesToPlayerMessages
+// goverter:extend BattleRecordsToGameBattleRecords
+// goverter:extend GameBattleRecordsToBattleRecords
 // goverter:extend PlayerIntelsToGamePlayerIntels
 // goverter:extend GamePlayerIntelsToPlayerIntels
 // goverter:extend PlanetIntelsToGamePlanetIntels
@@ -439,6 +441,18 @@ func PlayerMessagesToGamePlayerMessages(source *PlayerMessages) []cs.PlayerMessa
 
 func GamePlayerMessagesToPlayerMessages(source []cs.PlayerMessage) *PlayerMessages {
 	return (*PlayerMessages)(&source)
+}
+
+func BattleRecordsToGameBattleRecords(source *BattleRecords) []cs.BattleRecord {
+	// return an empty slice for nil
+	if source == nil {
+		return []cs.BattleRecord{}
+	}
+	return ([]cs.BattleRecord)(*source)
+}
+
+func GameBattleRecordsToBattleRecords(source []cs.BattleRecord) *BattleRecords {
+	return (*BattleRecords)(&source)
 }
 
 func PlayerIntelsToGamePlayerIntels(source *PlayerIntels) []cs.PlayerIntel {

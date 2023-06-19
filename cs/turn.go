@@ -34,6 +34,7 @@ func (t *turn) generateTurn() error {
 	// reset players for start of the turn
 	for _, player := range t.game.Players {
 		player.Messages = []PlayerMessage{}
+		player.Battles = []BattleRecord{}
 		player.leftoverResources = 0
 		player.Spec = computePlayerSpec(player, &t.game.Rules, t.game.Planets)
 	}
@@ -706,7 +707,56 @@ func (t *turn) randomPlanetaryChange() {
 }
 
 func (t *turn) fleetBattle() {
+	for _, mos := range t.game.mapObjectsByPosition {
+		playersAtPosition := map[int]*Player{}
+		fleets := make([]*Fleet, 0, len(mos))
+		var planet *Planet
 
+		// add all starbases and fleets at this location
+		for _, mo := range mos {
+			if fleet, ok := mo.(*Fleet); ok {
+				fleets = append(fleets, fleet)
+				playersAtPosition[fleet.PlayerNum] = t.game.getPlayer(fleet.PlayerNum)
+			}
+			if p, ok := mo.(*Planet); ok && p.starbase != nil {
+				fleets = append(fleets, p.starbase)
+				planet = p
+				playersAtPosition[p.PlayerNum] = t.game.getPlayer(planet.PlayerNum)
+			}
+		}
+
+		if len(playersAtPosition) <= 1 {
+			// not more than one player, no battle
+			continue
+		}
+
+		battler := newBattler(t.game.rules, t.game.rules.techs, playersAtPosition, fleets, planet)
+
+		if battler.HasTargets() {
+			// someone wants to fight, run the battle!
+			record := battler.RunBattle()			
+
+			// every player should discover all designs in a battle as if they were penscanned.
+			discoverersByPlayer := make(map[int]discoverer, len(t.game.Players))
+			for _, player := range t.game.Players {
+				discoverersByPlayer[player.Num] = newDiscoverer(player)
+				player.Battles = append(player.Battles, *record)
+			}
+			for _, fleet := range fleets {
+				for _, token := range fleet.Tokens {
+					player := t.game.getPlayer(fleet.PlayerNum)
+					d := discoverersByPlayer[player.Num]
+					d.discoverDesign(player, token.design, true)
+
+					// TODO: remove tokens and fleets after battle
+					if token.Quantity == 0 {
+						
+					}
+				}
+			}
+		}
+
+	}
 }
 
 func (t *turn) fleetBomb() {

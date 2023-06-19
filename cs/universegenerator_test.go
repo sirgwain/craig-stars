@@ -37,7 +37,6 @@ func Test_GenerateUniverse(t *testing.T) {
 func Test_getStartingStarbaseDesigns(t *testing.T) {
 	player := NewPlayer(1, NewRace())
 	player.Race.PRT = JoaT
-	rules := NewRules()
 	player.Race.Spec = computeRaceSpec(&player.Race, &rules)
 
 	starbaseDesign := NewShipDesign(player, 1)

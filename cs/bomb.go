@@ -263,7 +263,7 @@ func (b *bomb) getColonistsKilledForBombs(population int, defenseCoverage float6
 // getStructuresDestroyed calculates the structures destroyed using the StructureDestroyRate of bombs
 func (b *bomb) getStructuresDestroyed(defenseCoverage float64, bombs []Bomb) int {
 	// calculate the StructureDestroyRate for all these bombs
-	structuresDestroyed := float64(0)
+	var structuresDestroyed float64 = 0
 	for _, bomb := range bombs {
 		structuresDestroyed += bomb.StructureDestroyRate * 10.0 * float64(bomb.Quantity)
 	}

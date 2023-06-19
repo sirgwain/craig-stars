@@ -9,7 +9,7 @@ import (
 )
 
 // create a new long rang scout fleet for testing
-func testLongRangeScout(player *cs.Player, rules *cs.Rules) *cs.Fleet {
+func testLongRangeScout(player *cs.Player) *cs.Fleet {
 	fleet := &cs.Fleet{
 		BaseName:          "Long Range Scout",
 		Tokens:            []cs.ShipToken{},
@@ -44,19 +44,19 @@ func Test_getClosestPlanet(t *testing.T) {
 		args args
 		want *cs.PlanetIntel
 	}{
-		{"no planets, should be nil", args{testLongRangeScout(player, &rules), map[int]cs.PlanetIntel{}}, nil},
-		{"1 planet, should be it", args{testLongRangeScout(player, &rules), map[int]cs.PlanetIntel{
+		{"no planets, should be nil", args{testLongRangeScout(player), map[int]cs.PlanetIntel{}}, nil},
+		{"1 planet, should be it", args{testLongRangeScout(player), map[int]cs.PlanetIntel{
 			1: planetAt0_0,
 		}}, &planetAt0_0},
-		{"2 planets, should be closer one", args{testLongRangeScout(player, &rules), map[int]cs.PlanetIntel{
+		{"2 planets, should be closer one", args{testLongRangeScout(player), map[int]cs.PlanetIntel{
 			1: planetAt100_100,
 			2: planetAt50_50,
 		}}, &planetAt50_50},
-		{"2 planets, should be closer one, regardless of order", args{testLongRangeScout(player, &rules), map[int]cs.PlanetIntel{
+		{"2 planets, should be closer one, regardless of order", args{testLongRangeScout(player), map[int]cs.PlanetIntel{
 			1: planetAt50_50,
 			2: planetAt100_100,
 		}}, &planetAt50_50},
-		{"3 planets, should be closer one", args{testLongRangeScout(player, &rules), map[int]cs.PlanetIntel{
+		{"3 planets, should be closer one", args{testLongRangeScout(player), map[int]cs.PlanetIntel{
 			1: planetAt50_50,
 			2: planetAt100_100,
 			3: planetAt0_0,

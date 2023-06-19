@@ -32,6 +32,7 @@ type ShipDesignSlot struct {
 }
 
 type ShipDesignSpec struct {
+	HullType                  TechHullType          `json:"hullType,omitempty"`
 	IdealSpeed                int                   `json:"idealSpeed,omitempty"`
 	Engine                    string                `json:"engine,omitempty"`
 	FuelUsage                 [11]int               `json:"fuelUsage,omitempty"`
@@ -54,8 +55,8 @@ type ShipDesignSpec struct {
 	SmartBombs                []Bomb                `json:"smartBombs,omitempty"`
 	RetroBombs                []Bomb                `json:"retroBombs,omitempty"`
 	Scanner                   bool                  `json:"scanner,omitempty"`
-	ImmuneToOwnDetonation     bool                  `json:"immuneToOwnDetonation"`
-	MineLayingRateByMineType  map[MineFieldType]int `json:"mineLayingRateByMineType"`
+	ImmuneToOwnDetonation     bool                  `json:"immuneToOwnDetonation,omitempty"`
+	MineLayingRateByMineType  map[MineFieldType]int `json:"mineLayingRateByMineType,omitempty"`
 	Shield                    int                   `json:"shield,omitempty"`
 	Colonizer                 bool                  `json:"colonizer,omitempty"`
 	Starbase                  bool                  `json:"starbase,omitempty"`
@@ -70,7 +71,7 @@ type ShipDesignSpec struct {
 	CanStealPlanetCargo       bool                  `json:"canStealPlanetCargo,omitempty"`
 	OrbitalConstructionModule bool                  `json:"orbitalConstructionModule,omitempty"`
 	HasWeapons                bool                  `json:"hasWeapons,omitempty"`
-	WeaponSlots               []ShipDesignSlot      `json:"weaponSlots"`
+	WeaponSlots               []ShipDesignSlot      `json:"weaponSlots,omitempty"`
 	SafeHullMass              int                   `json:"safeHullMass,omitempty"`
 	SafeRange                 int                   `json:"safeRange,omitempty"`
 	MaxHullMass               int                   `json:"maxHullMass,omitempty"`
@@ -213,6 +214,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		ScanRangePen:            NoScanner,
 		SpaceDock:               hull.SpaceDock,
 		Starbase:                hull.Starbase,
+		HullType:                hull.Type,
 	}
 
 	numTachyonDetectors := 0

@@ -44,6 +44,7 @@ type Player struct {
 	TransportPlans               *TransportPlans      `json:"transportPlans,omitempty"`
 	Relations                    *PlayerRelationships `json:"relations,omitempty"`
 	Messages                     *PlayerMessages      `json:"messages,omitempty"`
+	Battles                      *BattleRecords       `json:"battles,omitempty"`
 	PlayerIntels                 *PlayerIntels        `json:"playerIntels,omitempty"`
 	PlanetIntels                 *PlanetIntels        `json:"planetIntels,omitempty"`
 	FleetIntels                  *FleetIntels         `json:"fleetIntels,omitempty"`
@@ -62,6 +63,7 @@ type ProductionPlans []cs.ProductionPlan
 type TransportPlans []cs.TransportPlan
 type PlayerRelationships []cs.PlayerRelationship
 type PlayerMessages []cs.PlayerMessage
+type BattleRecords []cs.BattleRecord
 type PlayerIntels []cs.PlayerIntel
 type PlanetIntels []cs.PlanetIntel
 type FleetIntels []cs.FleetIntel
@@ -147,6 +149,14 @@ func (item *PlayerMessages) Value() (driver.Value, error) {
 }
 
 func (item *PlayerMessages) Scan(src interface{}) error {
+	return scanJSON(src, item)
+}
+
+func (item *BattleRecords) Value() (driver.Value, error) {
+	return valueJSON(item)
+}
+
+func (item *BattleRecords) Scan(src interface{}) error {
 	return scanJSON(src, item)
 }
 
@@ -506,6 +516,7 @@ func (c *client) createPlayer(player *cs.Player, tx SQLExecer) error {
 		transportPlans,
 		relations,
 		messages,
+		battles,
 		playerIntels,
 		planetIntels,
 		fleetIntels,
@@ -550,6 +561,7 @@ func (c *client) createPlayer(player *cs.Player, tx SQLExecer) error {
 		:transportPlans,
 		:relations,
 		:messages,
+		:battles,
 		:playerIntels,
 		:planetIntels,
 		:fleetIntels,
@@ -646,6 +658,7 @@ func (c *client) updatePlayerWithNamedExecer(player *cs.Player, tx SQLExecer) er
 		transportPlans = :transportPlans,
 		relations = :relations,
 		messages = :messages,
+		battles = :battles,
 		playerIntels = :playerIntels,
 		planetIntels = :planetIntels,
 		fleetIntels = :fleetIntels,

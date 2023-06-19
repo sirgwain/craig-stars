@@ -5,8 +5,6 @@ import (
 )
 
 func TestShipDesign_Validate(t *testing.T) {
-	rules := NewRules()
-
 	type fields struct {
 		Name  string
 		Hull  string

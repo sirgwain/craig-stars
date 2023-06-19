@@ -135,6 +135,7 @@ CREATE TABLE
     transportPlans TEXT,
     relations TEXT,
     messages TEXT,
+    battles TEXT,
     playerIntels TEXT,
     planetIntels TEXT,
     fleetIntels TEXT,

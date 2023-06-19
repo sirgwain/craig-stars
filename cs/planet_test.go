@@ -6,7 +6,6 @@ import (
 )
 
 func newTestPlayerPlanet() (player *Player, planet *Planet) {
-	rules := NewRules()
 	player = NewPlayer(1, NewRace())
 	player.Race.Spec = computeRaceSpec(&player.Race, &rules)
 	planet = &Planet{}
@@ -56,7 +55,6 @@ func TestPlanet_GetInnateMines(t *testing.T) {
 }
 
 func TestPlanet_getGrowthAmount(t *testing.T) {
-	rules := NewRules()
 	type fields struct {
 		Hab        Hab
 		Population int
@@ -114,7 +112,6 @@ func TestQueueItemType_IsAuto(t *testing.T) {
 }
 
 func TestPlanet_reduceMineralConcentration(t *testing.T) {
-	rules := NewRules()
 	type args struct {
 		rules Rules
 	}

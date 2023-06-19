@@ -7,10 +7,9 @@ import (
 )
 
 func Test_transferPlanetCargo(t *testing.T) {
-	rules := NewRules()
 	player := NewPlayer(1, NewRace().WithSpec(&rules))
-	// scout := testLongRangeScout(player, &rules)
-	freighter := testSmallFreighter(player, &rules)
+	// scout := testLongRangeScout(player)
+	freighter := testSmallFreighter(player)
 	type args struct {
 		planet         *Planet
 		transferAmount Cargo
@@ -43,10 +42,9 @@ func Test_transferPlanetCargo(t *testing.T) {
 }
 
 func Test_transferFleetCargo(t *testing.T) {
-	rules := NewRules()
 	player := NewPlayer(1, NewRace().WithSpec(&rules))
-	// scout := testLongRangeScout(player, &rules)
-	freighter := testSmallFreighter(player, &rules)
+	// scout := testLongRangeScout(player)
+	freighter := testSmallFreighter(player)
 	type args struct {
 		fleet          *Fleet
 		transferAmount Cargo
@@ -57,8 +55,8 @@ func Test_transferFleetCargo(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{"Should transfer from fleet", freighter, args{testSmallFreighter(player, &rules).withCargo(Cargo{1, 2, 3, 4}), Cargo{1, 0, 0, 0}}, false},
-		{"Should fail to transfer from fleet", freighter, args{testSmallFreighter(player, &rules).withCargo(Cargo{1, 2, 3, 4}), Cargo{2, 0, 0, 0}}, true},
+		{"Should transfer from fleet", freighter, args{testSmallFreighter(player).withCargo(Cargo{1, 2, 3, 4}), Cargo{1, 0, 0, 0}}, false},
+		{"Should fail to transfer from fleet", freighter, args{testSmallFreighter(player).withCargo(Cargo{1, 2, 3, 4}), Cargo{2, 0, 0, 0}}, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

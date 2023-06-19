@@ -10,6 +10,11 @@ type Vector struct {
 	Y float64 `json:"y"`
 }
 
+var VectorRight Vector = Vector{1, 0}
+var VectorLeft Vector = Vector{-1, 0}
+var VectorUp Vector = Vector{0, 1}
+var VectorDown Vector = Vector{0, -1}
+
 func (v Vector) String() string {
 	return fmt.Sprintf("(%0.0f, %0.0f)", v.X, v.Y)
 }
@@ -68,36 +73,36 @@ func (v Vector) Round() Vector {
 // This returns what percent of the segment is NOT in the circle, or -1 if it doesn't
 // intersect
 func segmentIntersectsCircle(segmentFrom, segmentTo, circlePosition Vector, circleRadius float64) float64 {
-    lineVec := segmentTo.Subtract(segmentFrom)
-    vecToLine := segmentFrom.Subtract(circlePosition)
+	lineVec := segmentTo.Subtract(segmentFrom)
+	vecToLine := segmentFrom.Subtract(circlePosition)
 
-    // Create a quadratic formula of the form ax^2 + bx + c = 0
-    var a, b, c float64
+	// Create a quadratic formula of the form ax^2 + bx + c = 0
+	var a, b, c float64
 
-    a = lineVec.Dot(lineVec)
-    b = 2 * vecToLine.Dot(lineVec)
-    c = vecToLine.Dot(vecToLine) - circleRadius*circleRadius
+	a = lineVec.Dot(lineVec)
+	b = 2 * vecToLine.Dot(lineVec)
+	c = vecToLine.Dot(vecToLine) - circleRadius*circleRadius
 
-    // Solve for t.
-    sqrtterm := b*b - 4*a*c
+	// Solve for t.
+	sqrtterm := b*b - 4*a*c
 
-    // If the term we intend to square root is less than 0 then the answer won't be real,
-    // so it definitely won't be t in the range 0 to 1.
-    if sqrtterm < 0 {
-        return -1
-    }
+	// If the term we intend to square root is less than 0 then the answer won't be real,
+	// so it definitely won't be t in the range 0 to 1.
+	if sqrtterm < 0 {
+		return -1
+	}
 
-    // If we can assume that the line segment starts outside the circle (e.g. for continuous time collision detection)
-    // then the following can be skipped and we can just return the equivalent of res1.
-    sqrtterm = math.Sqrt(sqrtterm)
-    res1 := (-b - sqrtterm) / (2 * a)
-    res2 := (-b + sqrtterm) / (2 * a)
+	// If we can assume that the line segment starts outside the circle (e.g. for continuous time collision detection)
+	// then the following can be skipped and we can just return the equivalent of res1.
+	sqrtterm = math.Sqrt(sqrtterm)
+	res1 := (-b - sqrtterm) / (2 * a)
+	res2 := (-b + sqrtterm) / (2 * a)
 
-    if res1 >= 0 && res1 <= 1 {
-        return res1
-    }
-    if res2 >= 0 && res2 <= 1 {
-        return res2
-    }
-    return -1
+	if res1 >= 0 && res1 <= 1 {
+		return res1
+	}
+	if res2 >= 0 && res2 <= 1 {
+		return res2
+	}
+	return -1
 }

@@ -52,12 +52,12 @@
             "program": "${relativeFileDirname}",
         },
         {
-            "name": "test Test_gameRunner_GenerateTurns",
+            "name": "test -test.run <case>",
             "type": "go",
             "request": "launch",
             "mode": "test",
-            "program": "${workspaceFolder}/server/gamerunner_test.go",
-            "args": ["-test.run", "Test_gameRunner_GenerateTurns"]
+            "program": "${workspaceFolder}/cs/battle_test.go",
+            "args": ["-test.run", "Test_battle_RunBattle"]
         },
 
     ]

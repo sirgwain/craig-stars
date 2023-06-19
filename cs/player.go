@@ -34,6 +34,7 @@ type Player struct {
 	ResearchSpentLastYear int                  `json:"researchSpentLastYear,omitempty"`
 	Relations             []PlayerRelationship `json:"relations,omitempty"`
 	Messages              []PlayerMessage      `json:"messages,omitempty"`
+	Battles               []BattleRecord       `json:"battles,omitempty"`
 	Designs               []*ShipDesign        `json:"designs,omitempty"`
 	Spec                  PlayerSpec           `json:"spec,omitempty"`
 	Stats                 *PlayerStats         `json:"stats,omitempty"`
@@ -91,25 +92,12 @@ type PlayerSpec struct {
 }
 
 type BattlePlan struct {
-	Name            string           `json:"name"`
-	PrimaryTarget   BattleTargetType `json:"primaryTarget"`
-	SecondaryTarget BattleTargetType `json:"secondaryTarget"`
-	Tactic          BattleTactic     `json:"tactic"`
-	AttackWho       BattleAttackWho  `json:"attackWho"`
+	Name            string          `json:"name"`
+	PrimaryTarget   battleTarget    `json:"primaryTarget"`
+	SecondaryTarget battleTarget    `json:"secondaryTarget"`
+	Tactic          BattleTactic    `json:"tactic"`
+	AttackWho       BattleAttackWho `json:"attackWho"`
 }
-
-type BattleTargetType string
-
-const (
-	BattleTargetNone              BattleTargetType = "None"
-	BattleTargetAny               BattleTargetType = "Any"
-	BattleTargetStarbase          BattleTargetType = "Starbase"
-	BattleTargetArmedShips        BattleTargetType = "ArmedShips"
-	BattleTargetBombersFreighters BattleTargetType = "BombersFreighters"
-	BattleTargetUnarmedShips      BattleTargetType = "UnarmedShips"
-	BattleTargetFuelTransports    BattleTargetType = "FuelTransports"
-	BattleTargetFreighters        BattleTargetType = "Freighters"
-)
 
 type BattleTactic string
 
@@ -290,7 +278,7 @@ func (p *Player) GetLatestDesign(purpose ShipDesignPurpose) *ShipDesign {
 // get the next design number to use
 func (p *Player) GetNextDesignNum(designs []*ShipDesign) int {
 	num := 0
-	for _, design := range designs {		
+	for _, design := range designs {
 		num = maxInt(num, design.Num)
 	}
 	return num + 1
@@ -352,4 +340,8 @@ func (p *Player) IsFriend(playerNum int) bool {
 
 func (p *Player) IsEnemy(playerNum int) bool {
 	return playerNum > 0 && playerNum <= len(p.Relations) && p.Relations[playerNum-1].Relation == PlayerRelationEnemy
+}
+
+func (p *Player) IsNeutral(playerNum int) bool {
+	return playerNum > 0 && playerNum <= len(p.Relations) && p.Relations[playerNum-1].Relation == PlayerRelationNeutral
 }

@@ -5,8 +5,6 @@ import (
 )
 
 func Test_bomb_getColonistsKilledForBombs(t *testing.T) {
-	rules := NewRules()
-
 	type args struct {
 		population      int
 		defenseCoverage float64
@@ -97,7 +95,6 @@ func Test_bomb_getColonistsKilledForBombs(t *testing.T) {
 }
 
 func Test_bomb_getStructuresDestroyed(t *testing.T) {
-	rules := NewRules()
 	type args struct {
 		defenseCoverage float64
 		bombs           []Bomb
@@ -120,10 +117,21 @@ func Test_bomb_getStructuresDestroyed(t *testing.T) {
 			args: args{
 				defenseCoverage: 0.0,
 				bombs: []Bomb{
-					{Quantity: 10, KillRate: 2.5},
+					{Quantity: 10, StructureDestroyRate: 1},
 				},
 			},
-			want: 2500,
+			want: 100,
+		},
+		{
+			name: "Many bombs, good defense",
+			args: args{
+				defenseCoverage: .9792,
+				bombs: []Bomb{
+					{Quantity: 10, StructureDestroyRate: 1},
+					{Quantity: 5, StructureDestroyRate: .6},
+				},
+			},
+			want: 66,
 		},
 	}
 	for _, tt := range tests {

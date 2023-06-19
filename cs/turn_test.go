@@ -7,6 +7,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// many functions require a copy of the current game's rules.
+// for testing, create a standard rules var every test can use
+var rules = NewRules()
+
 type MockRand struct {
 	int63Result int64
 }
@@ -52,7 +56,7 @@ func createSingleUnitGame() *FullGame {
 	}
 	planet.Spec = computePlanetSpec(&game.Rules, player, planet)
 
-	fleet := testLongRangeScout(player, &game.Rules)
+	fleet := testLongRangeScout(player)
 	fleet.OrbitingPlanetNum = planet.Num
 	fleet.Waypoints = []Waypoint{
 		NewPlanetWaypoint(Vector{}, 1, "Planet 1", 5),

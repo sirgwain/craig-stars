@@ -5,7 +5,6 @@ import (
 )
 
 func Test_research_getNextResearchField(t *testing.T) {
-	rules := NewRules()
 	type args struct {
 		player *Player
 	}
@@ -32,7 +31,6 @@ func Test_research_getNextResearchField(t *testing.T) {
 }
 
 func Test_research_isAtMaxLevel(t *testing.T) {
-	rules := NewRules()
 	type args struct {
 		player *Player
 		field  TechField
@@ -59,7 +57,6 @@ func Test_research_isAtMaxLevel(t *testing.T) {
 }
 
 func Test_research_getTotalCost(t *testing.T) {
-	rules := NewRules()
 	type args struct {
 		player *Player
 		field  TechField
@@ -97,7 +94,6 @@ func Test_research_getTotalCost(t *testing.T) {
 }
 
 func Test_research_researchFieldOnce(t *testing.T) {
-	rules := NewRules()
 	playerWithResearchSpent := testPlayer()
 	playerWithResearchSpent.TechLevelsSpent = TechLevel{Energy: 25}
 	type args struct {
@@ -170,7 +166,6 @@ func Test_research_researchFieldOnce(t *testing.T) {
 }
 
 func Test_research_researchField(t *testing.T) {
-	rules := NewRules()
 	type args struct {
 		player           *Player
 		field            TechField
@@ -204,7 +199,6 @@ func Test_research_researchField(t *testing.T) {
 }
 
 func Test_research_research(t *testing.T) {
-	rules := NewRules()
 	type args struct {
 		player           *Player
 		resourcesToSpend int

@@ -7,7 +7,6 @@ import (
 )
 
 func Test_invadePlanet(t *testing.T) {
-	rules := NewRules()
 	type args struct {
 		planet           *Planet
 		fleet            *Fleet
