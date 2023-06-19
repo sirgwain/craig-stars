@@ -1,8 +1,8 @@
+name: Test
 on: [push, pull_request]
   branches:
     - '*'
     - '!develop'
-name: Test
 jobs:
   test:
     strategy:
