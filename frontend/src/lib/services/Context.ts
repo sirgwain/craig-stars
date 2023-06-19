@@ -21,6 +21,7 @@ export const selectedMapObject = writable<MapObject>();
 export const commandedMapObject = writable<MapObject>();
 export const highlightedMapObject = writable<MapObject | undefined>();
 export const commandedMapObjectName = writable<string>();
+export const zoomTarget = writable<MapObject | undefined>();
 
 export const mapObjectsByPosition = derived(player, ($player) => {
 	if (!$player) return undefined;
@@ -88,4 +89,8 @@ export const commandMapObject = (mo: MapObject) => {
 
 export const highlightMapObject = (mo: MapObject | undefined) => {
 	highlightedMapObject.update(() => mo);
+};
+
+export const zoomToMapObject = (mo: MapObject) => {
+	zoomTarget.update(() => mo);
 };

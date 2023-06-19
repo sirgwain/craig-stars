@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { commandedFleet, player } from '$lib/services/Context';
+	import { commandedFleet, commandMapObject, player, zoomToMapObject } from '$lib/services/Context';
+	import { rollover } from '$lib/services/Math';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import { kebabCase } from 'lodash-es';
 	import CommandTile from './CommandTile.svelte';
@@ -19,8 +20,24 @@
 		}
 	}
 
-	const previous = () => {};
-	const next = () => {};
+	$: index =
+		$player && $commandedFleet ? $player.fleets.findIndex((f) => f === $commandedFleet) : 0;
+
+	const previous = () => {
+		if ($player) {
+			index = rollover(index - 1, 0, $player.fleets.length - 1);
+			commandMapObject($player.fleets[index]);
+			zoomToMapObject($player.fleets[index]);
+		}
+	};
+	const next = () => {
+		if ($player) {
+			index = rollover(index + 1, 0, $player.fleets.length - 1);
+			commandMapObject($player.fleets[index]);
+			zoomToMapObject($player.fleets[index]);
+		}
+	};
+
 </script>
 
 {#if $commandedFleet}

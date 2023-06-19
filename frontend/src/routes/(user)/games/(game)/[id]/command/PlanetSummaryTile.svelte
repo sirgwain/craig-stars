@@ -1,10 +1,31 @@
 <script lang="ts">
-	import { commandedPlanet } from '$lib/services/Context';
-import type { Planet } from '$lib/types/Planet';
+	import {
+		player,
+		commandedPlanet,
+		commandMapObject,
+		zoomToMapObject
+	} from '$lib/services/Context';
+	import { rollover } from '$lib/services/Math';
+	import type { Planet } from '$lib/types/Planet';
 	import CommandTile from './CommandTile.svelte';
 
-	const previous = () => {};
-	const next = () => {};
+	$: index =
+		$player && $commandedPlanet ? $player.planets.findIndex((p) => p === $commandedPlanet) : 0;
+
+	const previous = () => {
+		if ($player) {
+			index = rollover(index - 1, 0, $player.planets.length - 1);
+			commandMapObject($player.planets[index]);
+			zoomToMapObject($player.planets[index]);
+		}
+	};
+	const next = () => {
+		if ($player) {
+			index = rollover(index + 1, 0, $player.planets.length - 1);
+			commandMapObject($player.planets[index]);
+			zoomToMapObject($player.planets[index]);
+		}
+	};
 	const icon = (planet: Planet) => (planet ? `planet-${(planet.num - 1) % 26}` : '');
 </script>
 
