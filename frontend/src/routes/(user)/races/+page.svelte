@@ -21,6 +21,10 @@
 		{
 			key: 'createdAt',
 			title: 'Created'
+		},
+		{
+			key: 'action',
+			title: ''
 		}
 	];
 
