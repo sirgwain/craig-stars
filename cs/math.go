@@ -53,3 +53,11 @@ func minFloat64(nums ...float64) float64 {
 
 	return result
 }
+
+func absInt(num int) int {
+    if num < 0 {
+        return -num
+    }
+    return num
+}
+

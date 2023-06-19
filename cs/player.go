@@ -34,7 +34,7 @@ type Player struct {
 	ResearchSpentLastYear int                  `json:"researchSpentLastYear,omitempty"`
 	Relations             []PlayerRelationship `json:"relations,omitempty"`
 	Messages              []PlayerMessage      `json:"messages,omitempty"`
-	Designs               []*ShipDesign         `json:"designs,omitempty"`
+	Designs               []*ShipDesign        `json:"designs,omitempty"`
 	Spec                  PlayerSpec           `json:"spec,omitempty"`
 	Stats                 *PlayerStats         `json:"stats,omitempty"`
 	leftoverResources     int
@@ -82,11 +82,12 @@ const (
 )
 
 type PlayerSpec struct {
-	PlanetaryScanner         *TechPlanetaryScanner `json:"planetaryScanner,omitempty"`
-	Defense                  *TechDefense          `json:"defense,omitempty"`
-	ResourcesPerYear         int                   `json:"resourcesPerYear,omitempty"`
-	ResourcesPerYearResearch int                   `json:"resourcesPerYearResearch,omitempty"`
-	CurrentResearchCost      int                   `json:"currentResearchCost,omitempty"`
+	PlanetaryScanner         *TechPlanetaryScanner               `json:"planetaryScanner,omitempty"`
+	Defense                  *TechDefense                        `json:"defense,omitempty"`
+	Terraform                map[TerraformHabType]*TechTerraform `json:"terraform,omitempty"`
+	ResourcesPerYear         int                                 `json:"resourcesPerYear,omitempty"`
+	ResourcesPerYearResearch int                                 `json:"resourcesPerYearResearch,omitempty"`
+	CurrentResearchCost      int                                 `json:"currentResearchCost,omitempty"`
 }
 
 type BattlePlan struct {
@@ -292,6 +293,12 @@ func computePlayerSpec(player *Player, rules *Rules, planets []*Planet) PlayerSp
 	spec := PlayerSpec{
 		PlanetaryScanner: techs.GetBestPlanetaryScanner(player),
 		Defense:          techs.GetBestDefense(player),
+		Terraform: map[TerraformHabType]*TechTerraform{
+			TerraformHabTypeAll:  techs.GetBestTerraform(player, TerraformHabTypeAll),
+			TerraformHabTypeGrav: techs.GetBestTerraform(player, TerraformHabTypeGrav),
+			TerraformHabTypeTemp: techs.GetBestTerraform(player, TerraformHabTypeTemp),
+			TerraformHabTypeRad:  techs.GetBestTerraform(player, TerraformHabTypeRad),
+		},
 	}
 
 	for _, planet := range planets {

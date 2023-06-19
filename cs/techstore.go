@@ -46,6 +46,7 @@ func init() {
 type TechFinder interface {
 	GetBestPlanetaryScanner(player *Player) *TechPlanetaryScanner
 	GetBestDefense(player *Player) *TechDefense
+	GetBestTerraform(player *Player, terraformHabType TerraformHabType) *TechTerraform
 	GetBestScanner(player *Player) *TechHullComponent
 	GetBestEngine(player *Player) *TechEngine
 	GetEngine(name string) *TechEngine
@@ -131,7 +132,6 @@ func (store *TechStore) GetHullComponent(name string) *TechHullComponent {
 	return store.hullComponentsByName[name]
 }
 
-
 // get all techs by category
 func (store *TechStore) GetHullComponentsByCategory(category TechCategory) []TechHullComponent {
 	techs := []TechHullComponent{}
@@ -162,6 +162,17 @@ func (store *TechStore) GetBestDefense(player *Player) *TechDefense {
 	for i := range store.Defenses {
 		tech := &store.Defenses[i]
 		if player.HasTech(&tech.Tech) {
+			bestTech = tech
+		}
+	}
+	return bestTech
+}
+
+// get the best terraform for a player
+func (store *TechStore) GetBestTerraform(player *Player, terraformHabType TerraformHabType) (bestTech *TechTerraform) {
+	for i := range store.Terraforms {
+		tech := &store.Terraforms[i]
+		if tech.HabType == terraformHabType && player.HasTech(&tech.Tech) {
 			bestTech = tech
 		}
 	}
@@ -522,51 +533,51 @@ var TotalTerraform30 = TechTerraform{Tech: NewTech("Total Terraform ±30", NewCo
 }
 var GravityTerraform3 = TechTerraform{Tech: NewTech("Gravity Terraform ±3", NewCost(0, 0, 0, 100), TechRequirements{TechLevel: TechLevel{Propulsion: 1, Biotechnology: 1}}, 80, TechCategoryTerraforming),
 	Ability: 3,
-	HabType: TerraformHabTypeGravity,
+	HabType: TerraformHabTypeGrav,
 }
 var GravityTerraform7 = TechTerraform{Tech: NewTech("Gravity Terraform ±7", NewCost(0, 0, 0, 100), TechRequirements{TechLevel: TechLevel{Propulsion: 5, Biotechnology: 2}}, 90, TechCategoryTerraforming),
 	Ability: 7,
-	HabType: TerraformHabTypeGravity,
+	HabType: TerraformHabTypeGrav,
 }
 var GravityTerraform11 = TechTerraform{Tech: NewTech("Gravity Terraform ±11", NewCost(0, 0, 0, 100), TechRequirements{TechLevel: TechLevel{Propulsion: 10, Biotechnology: 3}}, 100, TechCategoryTerraforming),
 	Ability: 11,
-	HabType: TerraformHabTypeGravity,
+	HabType: TerraformHabTypeGrav,
 }
 var GravityTerraform15 = TechTerraform{Tech: NewTech("Gravity Terraform ±15", NewCost(0, 0, 0, 100), TechRequirements{TechLevel: TechLevel{Propulsion: 16, Biotechnology: 4}}, 110, TechCategoryTerraforming),
 	Ability: 15,
-	HabType: TerraformHabTypeGravity,
+	HabType: TerraformHabTypeGrav,
 }
 var TempTerraform3 = TechTerraform{Tech: NewTech("Temp Terraform ±3", NewCost(0, 0, 0, 100), TechRequirements{TechLevel: TechLevel{Energy: 1, Biotechnology: 1}}, 120, TechCategoryTerraforming),
 	Ability: 3,
-	HabType: TerraformHabTypeTemperature,
+	HabType: TerraformHabTypeTemp,
 }
 var TempTerraform7 = TechTerraform{Tech: NewTech("Temp Terraform ±7", NewCost(0, 0, 0, 100), TechRequirements{TechLevel: TechLevel{Energy: 5, Biotechnology: 2}}, 130, TechCategoryTerraforming),
 	Ability: 7,
-	HabType: TerraformHabTypeTemperature,
+	HabType: TerraformHabTypeTemp,
 }
 var TempTerraform11 = TechTerraform{Tech: NewTech("Temp Terraform ±11", NewCost(0, 0, 0, 100), TechRequirements{TechLevel: TechLevel{Energy: 10, Biotechnology: 3}}, 140, TechCategoryTerraforming),
 	Ability: 11,
-	HabType: TerraformHabTypeTemperature,
+	HabType: TerraformHabTypeTemp,
 }
 var TempTerraform15 = TechTerraform{Tech: NewTech("Temp Terraform ±15", NewCost(0, 0, 0, 100), TechRequirements{TechLevel: TechLevel{Energy: 16, Biotechnology: 4}}, 150, TechCategoryTerraforming),
 	Ability: 15,
-	HabType: TerraformHabTypeTemperature,
+	HabType: TerraformHabTypeTemp,
 }
 var RadiationTerraform3 = TechTerraform{Tech: NewTech("Radiation Terraform ±3", NewCost(0, 0, 0, 100), TechRequirements{TechLevel: TechLevel{Weapons: 1, Biotechnology: 1}}, 160, TechCategoryTerraforming),
 	Ability: 3,
-	HabType: TerraformHabTypeRadiation,
+	HabType: TerraformHabTypeRad,
 }
 var RadiationTerraform7 = TechTerraform{Tech: NewTech("Radiation Terraform ±7", NewCost(0, 0, 0, 100), TechRequirements{TechLevel: TechLevel{Weapons: 5, Biotechnology: 2}}, 170, TechCategoryTerraforming),
 	Ability: 7,
-	HabType: TerraformHabTypeRadiation,
+	HabType: TerraformHabTypeRad,
 }
 var RadiationTerraform11 = TechTerraform{Tech: NewTech("Radiation Terraform ±11", NewCost(0, 0, 0, 100), TechRequirements{TechLevel: TechLevel{Weapons: 10, Biotechnology: 3}}, 180, TechCategoryTerraforming),
 	Ability: 11,
-	HabType: TerraformHabTypeRadiation,
+	HabType: TerraformHabTypeRad,
 }
 var RadiationTerraform15 = TechTerraform{Tech: NewTech("Radiation Terraform ±15", NewCost(0, 0, 0, 100), TechRequirements{TechLevel: TechLevel{Weapons: 16, Biotechnology: 4}}, 190, TechCategoryTerraforming),
 	Ability: 15,
-	HabType: TerraformHabTypeRadiation,
+	HabType: TerraformHabTypeRad,
 }
 
 // TechPlanetaryScanners

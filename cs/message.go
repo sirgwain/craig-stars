@@ -372,3 +372,33 @@ func (m *messageClient) playerDiscovered(player *Player, otherPlayer *Player) {
 	text := fmt.Sprintf("You have discovered a new species, the %s. You are not alone in the universe!", otherPlayer.Race.PluralName)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlayerDiscovery, Text: text})
 }
+
+func (m *messageClient) permaform(player *Player, planet *Planet, habType HabType, change int) {
+	changeText := "decreased"
+	if change > 0 {
+		changeText = "increased"
+	}
+	text := fmt.Sprintf("Your race has permanently %s the %s on %s.", changeText, habType, planet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePermaform, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
+}
+
+func (m *messageClient) terraform(player *Player, planet *Planet, habType HabType, change int) {
+	changeText := "decreased"
+	if change > 0 {
+		changeText = "increased"
+	}
+
+	var newValueText string
+	newValue := planet.Hab.Get(habType)
+	switch habType {
+	case Grav:
+		newValueText = gravString(newValue)
+	case Temp:
+		newValueText = tempString(newValue)
+	case Rad:
+		newValueText = radString(newValue)
+	}
+
+	text := fmt.Sprintf("Your terraforming efforts on %s have %s the %s to %s", planet.Name, changeText, habType, newValueText)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageBuiltTerraform, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
+}

@@ -323,7 +323,7 @@ func (t *turn) fleetTransferCargo(fleet *Fleet, transferAmount int, cargoType Ca
 		planet := dest.(*Planet)
 		if transferAmount > 0 && cargoType == Colonists && planet != nil && planet.owned() && !planet.OwnedBy(fleet.PlayerNum) {
 			// invasion!
-			invadePlanet(planet, fleet, t.game.Players[planet.PlayerNum-1], t.game.Players[fleet.PlayerNum-1], transferAmount*100, t.game.rules.InvasionDefenseCoverageFactor)
+			invadePlanet(planet, fleet, t.game.Players[planet.PlayerNum-1], t.game.Players[fleet.PlayerNum-1], transferAmount*100, t.game.Rules.InvasionDefenseCoverageFactor)
 		} else if transferAmount < 0 && dest.canLoad(fleet.PlayerNum) {
 			// can't load from things we don't own
 			messager.fleetInvalidLoadCargo(player, fleet, dest, cargoType, transferAmount)
@@ -538,7 +538,7 @@ func (t *turn) buildFleet(player *Player, planet *Planet, token ShipToken) Fleet
 }
 
 func (t *turn) playerResearch() {
-	r := NewResearcher(t.game.rules)
+	r := NewResearcher(&t.game.Rules)
 
 	// figure out how much each player can spend on research this turn
 	resourcesToSpendByPlayer := make(map[int]int, len(t.game.Players))
@@ -614,7 +614,7 @@ func (t *turn) playerResearch() {
 		// update design spec
 		for i := range player.Designs {
 			design := player.Designs[i]
-			design.Spec = computeShipDesignSpec(t.game.rules, player, design)
+			design.Spec = computeShipDesignSpec(&t.game.Rules, player, design)
 		}
 	}
 
@@ -623,7 +623,7 @@ func (t *turn) playerResearch() {
 		if !playerGainedLevel[planet.PlayerNum] {
 			continue
 		}
-		planet.Spec = computePlanetSpec(t.game.rules, t.game.Players[planet.PlayerNum-1], planet)
+		planet.Spec = computePlanetSpec(&t.game.Rules, t.game.Players[planet.PlayerNum-1], planet)
 	}
 
 	// update fleet specs for players who gained a level
@@ -631,7 +631,7 @@ func (t *turn) playerResearch() {
 		if !playerGainedLevel[fleet.PlayerNum] {
 			continue
 		}
-		fleet.Spec = computeFleetSpec(t.game.rules, t.game.Players[fleet.PlayerNum-1], fleet)
+		fleet.Spec = computeFleetSpec(&t.game.Rules, t.game.Players[fleet.PlayerNum-1], fleet)
 	}
 
 }
@@ -640,7 +640,30 @@ func (t *turn) researchStealer() {
 
 }
 
+// for each planet, randomly check if the owner permaforms it
 func (t *turn) permaform() {
+
+	terraformer := NewTerraformer()
+
+	for _, planet := range t.game.Planets {
+		if planet.owned() {
+			player := t.game.Players[planet.PlayerNum-1]
+			adjustedPermaformChance := player.Race.Spec.PermaformChance
+			if planet.population() <= player.Race.Spec.PermaformPopulation {
+				adjustedPermaformChance *= 1.0 - float64(player.Race.Spec.PermaformPopulation-planet.population())/float64(player.Race.Spec.PermaformPopulation)
+			}
+
+			if adjustedPermaformChance >= t.game.Rules.random.Float64() {
+				habType := HabTypes[t.game.Rules.random.Intn(len(HabTypes))]
+				result := terraformer.PermaformOneStep(planet, player, habType)
+
+				if result.Terraformed() {
+					planet.Spec = computePlanetSpec(&t.game.Rules, player, planet)
+					messager.permaform(player, planet, result.Type, result.Direction)
+				}
+			}
+		}
+	}
 
 }
 

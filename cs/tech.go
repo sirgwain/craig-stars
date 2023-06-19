@@ -5,7 +5,6 @@ import (
 	"time"
 )
 
-
 type TechCategory string
 
 const (
@@ -197,11 +196,25 @@ type TechTerraform struct {
 type TerraformHabType string
 
 const (
-	TerraformHabTypeGravity     TerraformHabType = "Gravity"
-	TerraformHabTypeTemperature TerraformHabType = "Temperature"
-	TerraformHabTypeRadiation   TerraformHabType = "Radiation"
-	TerraformHabTypeAll         TerraformHabType = "All"
+	TerraformHabTypeNone TerraformHabType = ""
+	TerraformHabTypeGrav TerraformHabType = "Grav"
+	TerraformHabTypeTemp TerraformHabType = "Temp"
+	TerraformHabTypeRad  TerraformHabType = "Rad"
+	TerraformHabTypeAll  TerraformHabType = "All"
 )
+
+func FromHabType(habType HabType) TerraformHabType {
+	switch habType {
+	case Grav:
+		return TerraformHabTypeGrav
+	case Temp:
+		return TerraformHabTypeTemp
+	case Rad:
+		return TerraformHabTypeRad
+	default:
+		return TerraformHabTypeNone
+	}
+}
 
 func NewTech(name string, cost Cost, requirements TechRequirements, ranking int, category TechCategory) Tech {
 	return Tech{
