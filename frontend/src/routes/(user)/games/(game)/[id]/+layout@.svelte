@@ -141,12 +141,12 @@
 </script>
 
 {#if $game && $player}
-	<main class="flex flex-col h-screen">
+	<main class="flex flex-col">
 		<div class="flex-initial">
 			<GameMenu game={$game} on:submit-turn={onSubmitTurn} />
 		</div>
 		<!-- We want our main game view to only fill the screen (minus the toolbar) -->
-		<div class="grow max-h-[calc(100vh-4rem)]">
+		<div class="grow viewport">
 			<slot>Game</slot>
 		</div>
 	</main>
@@ -178,3 +178,15 @@
 {:else if loadAttempted}
 	<NotFound title="Game not found" />
 {/if}
+
+<style>
+	main {
+		height: 100vh; /* Fallback for browsers that do not support Custom Properties */
+		height: calc(var(--vh, 1vh) * 100);
+	}
+
+	.viewport {
+		max-height: calc(100vh-4rem);
+		max-height: calc((var(--vh, 1vh) * 100)-4rem);
+	}
+</style>
