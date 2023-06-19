@@ -22,9 +22,9 @@
 
 	let planets: Planet[] = [];
 
-	const commanded = (planet: Planet, commandedMapObject: MapObject, commandedPlanet: Planet | undefined): boolean => {
+	const commanded = (planet: Planet, commandedMapObject: MapObject | undefined, commandedPlanet: Planet | undefined): boolean => {
 		if (
-			commandedMapObject.type == MapObjectType.Fleet &&
+			commandedMapObject?.type == MapObjectType.Fleet &&
 			(commandedMapObject as Fleet).orbitingPlanetNum == planet.num
 		) {
 			return true;

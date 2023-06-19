@@ -7,6 +7,7 @@
 	import { normalized } from '$lib/types/Vector';
 	import { LayerCake, Svg } from 'layercake';
 	import ScannerFleets from '../../../games/(game)/[id]/(main)/scanner/ScannerFleets.svelte';
+	import type { Player } from '$lib/types/Player';
 
 	type fleetPlacement = {
 		x: number;
@@ -65,61 +66,61 @@
 	];
 
 	let num = 1;
-	const fleets: Fleet[] = fleetPlacements.map((fp) => {
-		return {
-			type: MapObjectType.Fleet,
-			position: {
-				x: fp.x,
-				y: fp.y
-			},
-			name: 'Long Range Scout #1',
-			num: num++,
-			playerNum: fp.playerNum ?? 0,
-			baseName: 'Long Range Scout',
-			tokens: [
-				{
-					designNum: 1,
-					quantity: 1
-				}
-			],
-			heading: normalized({
-				x: fp.headingX,
-				y: fp.headingY
-			}),
-			waypoints: [],
-			warpSpeed: 5
-		};
-	});
+	const fleets: Fleet[] = fleetPlacements.map((fp) => ({
+		type: MapObjectType.Fleet,
+		position: {
+			x: fp.x,
+			y: fp.y
+		},
+		name: 'Long Range Scout #1',
+		num: num++,
+		playerNum: fp.playerNum ?? 0,
+		baseName: 'Long Range Scout',
+		tokens: [
+			{
+				designNum: 1,
+				quantity: 1
+			}
+		],
+		heading: normalized({
+			x: fp.headingX,
+			y: fp.headingY
+		}),
+		waypoints: [],
+		warpSpeed: 5,
+		spec: {}
+	}));
 
 	const xGetter = (mo: MapObject) => mo?.position?.x;
 	const yGetter = (mo: MapObject) => mo?.position?.y;
 
 	// create a test player
-	player.update(() => {
-		return {
-			
-			gameId: 0,
-			userId: 0,
-			num: 0,
-			race: humanoid,
-			techLevels: {
-				energy: 3,
-				weapons: 3,
-				propulsion: 3,
-				construction: 3,
-				electronics: 3,
-				biotechnology: 3
-			},
-			techLevelsSpent: {},
-			messages: [],
-			designs: [],
-			planets: [],
-			fleets: fleets,
-			planetIntels: [],
-			fleetIntels: [],
-			color: '#0000FF'
-		};
-	});
+	player.update(
+		() =>
+			({
+				gameId: 0,
+				userId: 0,
+				num: 0,
+				race: humanoid,
+				techLevels: {
+					energy: 3,
+					weapons: 3,
+					propulsion: 3,
+					construction: 3,
+					electronics: 3,
+					biotechnology: 3
+				},
+				techLevelsSpent: {},
+				messages: [],
+				designs: [],
+				planets: [],
+				fleets: fleets,
+				planetIntels: [],
+				fleetIntels: [],
+				color: '#0000FF',
+				spec: {}
+			} as Player)
+	);
 	selectMapObject(fleets[0]);
 	commandMapObject(fleets[0]);
 </script>

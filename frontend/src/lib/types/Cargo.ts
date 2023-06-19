@@ -8,6 +8,7 @@ export interface Cargo {
 export const totalCargo = (c: Cargo) =>
 	(c.ironium ?? 0) + (c.boranium ?? 0) + (c.germanium ?? 0) + (c.colonists ?? 0);
 
+
 export const emptyCargo = (): Cargo => {
 	return {
 		ironium: 0,

@@ -1,13 +1,10 @@
 <script lang="ts">
-	import type { CommandedPlanet, Planet } from '$lib/types/Planet';
-	import type { Player } from '$lib/types/Player';
+	import type { Fleet } from '$lib/types/Fleet';
 	import { UnlimitedSpaceDock } from '$lib/types/Tech';
 	import CommandTile from './CommandTile.svelte';
 
-	export let player: Player;
-	export let planet: CommandedPlanet;
+	export let starbase: Fleet | undefined;
 
-	$: starbase = player.starbases.find((sb) => sb.planetNum == planet.num);
 </script>
 
 {#if starbase?.spec}

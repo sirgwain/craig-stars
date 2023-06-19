@@ -6,37 +6,16 @@
 		CommandedPlanet,
 		isAuto,
 		QueueItemType,
-		type ProductionQueueItem
+		type ProductionQueueItem,
+
+		getQueueItemShortName
+
 	} from '$lib/types/Planet';
 	import CommandTile from './CommandTile.svelte';
 
 	export let planet: CommandedPlanet;
 
 	const planetService = new PlanetService();
-
-	const getShortName = (item: ProductionQueueItem): string => {
-		switch (item.type) {
-			case QueueItemType.Starbase:
-			case QueueItemType.ShipToken:
-				return item.designName ?? '';
-			case QueueItemType.TerraformEnvironment:
-				return 'Terraform Environment';
-			case QueueItemType.AutoMines:
-				return 'Mine (Auto)';
-			case QueueItemType.AutoFactories:
-				return 'Factory (Auto)';
-			case QueueItemType.AutoDefenses:
-				return 'Defenses (Auto)';
-			case QueueItemType.AutoMineralAlchemy:
-				return 'Alchemy (Auto)';
-			case QueueItemType.AutoMaxTerraform:
-				return 'Max Terraform (Auto)';
-			case QueueItemType.AutoMinTerraform:
-				return 'Min Terraform (Auto)';
-			default:
-				return `${item.type}`;
-		}
-	};
 
 	const clear = async () => {
 		if (planet && confirm('Are you sure you want to clear the planet production queue?')) {
@@ -60,7 +39,7 @@
 					{#each planet.productionQueue as queueItem}
 						<tr>
 							<td class="pl-1 {isAuto(queueItem.type) ? 'italic' : ''}"
-								>{getShortName(queueItem)}</td
+								>{getQueueItemShortName(queueItem)}</td
 							>
 							<td class="pr-1 text-right">{queueItem.quantity}</td>
 						</tr>

@@ -66,7 +66,7 @@
 							selectMapObject(target);
 						}
 						if (ownedBy(target, player.num)) {
-							commandMapObject(target);
+							commandMapObject(target);							
 						}
 
 						// zoom on goto
@@ -88,7 +88,7 @@
 		</div>
 		{#if message}
 			<div class="flex flex-row">
-				<div class="flex-1 h-12 overflow-y-auto">{message.text}</div>
+				<div class="h-12 overflow-y-auto">{message.text}</div>
 				<div>
 					<div class="flex flex-col gap-y-1 ml-1">
 						<div class="flex flex-row btn-group">

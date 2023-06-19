@@ -114,6 +114,7 @@ export class CommandedPlanet implements Planet {
 						planet.spec.dockCapacity == UnlimitedSpaceDock ||
 						(d.spec.mass ?? 0) <= planet.spec.dockCapacity
 				)
+				.filter((d) => !d.spec.starbase || planet.spec.starbaseDesignNum !== d.num)
 				.forEach((d) => {
 					items.push({
 						quantity: 0,
@@ -187,6 +188,30 @@ export enum QueueItemType {
 	Starbase = 'Starbase'
 }
 
+export const getQueueItemShortName = (item: ProductionQueueItem): string => {
+	switch (item.type) {
+		case QueueItemType.Starbase:
+		case QueueItemType.ShipToken:
+			return item.designName ?? '';
+		case QueueItemType.TerraformEnvironment:
+			return 'Terraform Environment';
+		case QueueItemType.AutoMines:
+			return 'Mine (Auto)';
+		case QueueItemType.AutoFactories:
+			return 'Factory (Auto)';
+		case QueueItemType.AutoDefenses:
+			return 'Defenses (Auto)';
+		case QueueItemType.AutoMineralAlchemy:
+			return 'Alchemy (Auto)';
+		case QueueItemType.AutoMaxTerraform:
+			return 'Max Terraform (Auto)';
+		case QueueItemType.AutoMinTerraform:
+			return 'Min Terraform (Auto)';
+		default:
+			return `${item.type}`;
+	}
+};
+
 export const stringToQueueItemType = (value: string): QueueItemType => {
 	return QueueItemType[value as keyof typeof QueueItemType];
 };
@@ -236,5 +261,7 @@ export interface PlanetSpec {
 	terraformAmount?: Hab;
 	hasMassDriver: boolean;
 	hasStarbase: boolean;
+	starbaseDesignNum?: number;
+	starbaseDesignName?: string;
 	dockCapacity: number;
 }

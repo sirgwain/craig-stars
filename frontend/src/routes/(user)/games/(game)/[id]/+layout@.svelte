@@ -10,7 +10,6 @@
 	import GameMenu from './GameMenu.svelte';
 
 	let id = parseInt($page.params.id);
-	let gameService: GameService = new GameService();
 
 	let loadAttempted = false;
 
@@ -22,8 +21,8 @@
 			try {
 				// load the game on mount
 				await Promise.all([
-					gameService.loadGame(id).then((g) => game.update(() => g)),
-					gameService.loadLightPlayer(id).then((p) => player.update(() => p)),
+					GameService.loadGame(id).then((g) => game.update(() => g)),
+					GameService.loadLightPlayer(id).then((p) => player.update(() => p)),
 					// load techs the first time as well
 					$techs.fetch()
 				]);
@@ -37,7 +36,7 @@
 
 		// if we are in an active game, bind the navigation hotkeys, i.e. F4 for research, Esc to go back
 		if ($game?.state == GameState.WaitingForPlayers) {
-			bindNavigationHotkeys(id);
+			bindNavigationHotkeys(id, page);
 		}
 
 		return () => {

@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { commandedFleet, commandedPlanet, designs } from '$lib/services/Context';
-	import type { Player } from '$lib/types/Player';
+	import type { Fleet } from '$lib/types/Fleet';
+	import type { CommandedPlanet } from '$lib/types/Planet';
+	import type { Player, PlayerMapObjects } from '$lib/types/Player';
 	import FleetFuelAndCargoTile from './FleetFuelAndCargoTile.svelte';
 	import FleetOtherFleetsHereTile from './FleetOtherFleetsHereTile.svelte';
 	import FleetSummaryTile from './FleetSummaryTile.svelte';
@@ -13,14 +15,17 @@
 	import PlanetStatusTile from './PlanetStatusTile.svelte';
 	import PlanetSummaryTile from './PlanetSummaryTile.svelte';
 
-	export let player: Player;
+	export let mapObjects: PlayerMapObjects;
+
+	const getPlanetStarbase = (planet: CommandedPlanet) =>
+		mapObjects.starbases.find((sb) => sb.planetNum == planet.num);
 </script>
 
 {#if $commandedPlanet}
 	<PlanetSummaryTile planet={$commandedPlanet} />
 	<PlanetProductionTile planet={$commandedPlanet} />
 	<PlanetMineralsOnHandTile planet={$commandedPlanet} />
-	<PlanetStarbaseTile {player} planet={$commandedPlanet} />
+	<PlanetStarbaseTile starbase={getPlanetStarbase($commandedPlanet)} />
 	<PlanetStatusTile planet={$commandedPlanet} />
 	<PlanetFleetsInOrbitTile planet={$commandedPlanet} />
 {:else if $commandedFleet}

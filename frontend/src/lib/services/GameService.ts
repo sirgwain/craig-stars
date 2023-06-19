@@ -1,5 +1,4 @@
 import type { Game } from '$lib/types/Game';
-import type { GameContext } from '$lib/types/GameContext';
 import type { Player, PlayerMapObjects } from '$lib/types/Player';
 import { Service } from './Service';
 
@@ -7,20 +6,20 @@ type playerStatusResult = {
 	players: Player[];
 };
 
-export class GameService extends Service {
-	async loadPlayerGames(): Promise<Game[]> {
+export class GameService {
+	static async loadPlayerGames(): Promise<Game[]> {
 		return Service.get<Game[]>('/api/games');
 	}
 
-	async loadHostedGames(): Promise<Game[]> {
+	static async loadHostedGames(): Promise<Game[]> {
 		return Service.get<Game[]>('/api/games/hosted');
 	}
 
-	async loadOpenGames(): Promise<Game[]> {
+	static async loadOpenGames(): Promise<Game[]> {
 		return Service.get<Game[]>('/api/games/open');
 	}
 
-	async deleteGame(gameId: number): Promise<any> {
+	static async deleteGame(gameId: number): Promise<any> {
 		const response = await fetch(`/api/games/${gameId}`, {
 			method: 'DELETE',
 			headers: {
@@ -34,7 +33,7 @@ export class GameService extends Service {
 		}
 	}
 
-	async loadGame(gameId: number): Promise<Game> {
+	static async loadGame(gameId: number): Promise<Game> {
 		const response = await fetch(`/api/games/${gameId}`, {
 			method: 'GET',
 			headers: {
@@ -49,7 +48,7 @@ export class GameService extends Service {
 		}
 	}
 
-	async loadLightPlayer(gameId: number): Promise<Player> {
+	static async loadLightPlayer(gameId: number): Promise<Player> {
 		const response = await fetch(`/api/games/${gameId}/player`, {
 			method: 'GET',
 			headers: {
@@ -64,7 +63,7 @@ export class GameService extends Service {
 		}
 	}
 
-	async loadFullPlayer(gameId: number): Promise<Player> {
+	static async loadFullPlayer(gameId: number): Promise<Player> {
 		const response = await fetch(`/api/games/${gameId}/full-player`, {
 			method: 'GET',
 			headers: {
@@ -79,7 +78,7 @@ export class GameService extends Service {
 		}
 	}
 
-	async loadPlayerMapObjects(gameId: number): Promise<PlayerMapObjects> {
+	static async loadPlayerMapObjects(gameId: number): Promise<PlayerMapObjects> {
 		const response = await fetch(`/api/games/${gameId}/mapobjects`, {
 			method: 'GET',
 			headers: {
@@ -94,7 +93,7 @@ export class GameService extends Service {
 		}
 	}
 
-	async loadPlayerStatuses(gameId: number): Promise<Player[]> {
+	static async loadPlayerStatuses(gameId: number): Promise<Player[]> {
 		const response = await fetch(`/api/games/${gameId}/player-statuses`, {
 			method: 'GET',
 			headers: {

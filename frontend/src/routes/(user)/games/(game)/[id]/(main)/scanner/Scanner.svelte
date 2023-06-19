@@ -3,7 +3,8 @@
 		commandedFleet,
 		commandedMapObject,
 		commandMapObject,
-		findIntelMapObject, findMyPlanetByNum,
+		findIntelMapObject,
+		findMyPlanetByNum,
 		getMyMapObjectsByPosition,
 		selectedMapObject,
 		selectedWaypoint,
@@ -14,7 +15,7 @@
 	import { FleetService } from '$lib/services/FleetService';
 	import type { Game } from '$lib/types/Game';
 	import { MapObjectType, ownedBy, type MapObject } from '$lib/types/MapObject';
-	import type { Player } from '$lib/types/Player';
+	import type { Player, PlayerMapObjects } from '$lib/types/Player';
 	import { emptyVector, equal, type Vector } from '$lib/types/Vector';
 	import type { ScaleLinear } from 'd3-scale';
 	import { scaleLinear } from 'd3-scale';
@@ -31,6 +32,7 @@
 
 	export let game: Game;
 	export let player: Player;
+	export let mapObjects: PlayerMapObjects;
 
 	const xGetter = (mo: MapObject) => mo?.position?.x;
 	const yGetter = (mo: MapObject) => mo?.position?.y;
@@ -200,7 +202,9 @@
 			myMapObject = findMyPlanetByNum(mo.num) ?? mo;
 		}
 
-		const commandedIntelObject = findIntelMapObject($commandedMapObject);
+		const commandedIntelObject = $commandedMapObject
+			? findIntelMapObject($commandedMapObject)
+			: undefined;
 
 		if ($selectedMapObject !== myMapObject) {
 			// we selected a different object, so just select it
@@ -259,7 +263,7 @@
 		}
 		data = [
 			...waypoints,
-			...player.fleets.filter((f) => !f.orbitingPlanetNum),
+			...mapObjects.fleets.filter((f) => !f.orbitingPlanetNum),
 			...(player.fleetIntels?.filter((f) => !f.orbitingPlanetNum) ?? []),
 			...player.planetIntels
 		];

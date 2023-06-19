@@ -10,12 +10,11 @@
 
 	let id = parseInt($page.params.id);
 
-	let gameService: GameService = new GameService();
 	let game: Game;
 	let raceId: number;
 
 	onMount(async () => {
-		game = await gameService.loadGame(id);
+		game = await GameService.loadGame(id);
 	});
 
 	const onSubmit = async () => {

@@ -5,17 +5,16 @@
 	import { bindNavigationHotkeys, unbindNavigationHotkeys } from '$lib/navigationHotkeys';
 	import { bindQuantityModifier, unbindQuantityModifier } from '$lib/quantityModifier';
 	import {
-		commandMapObject,
+		commandHomeWorld,
 		commandedPlanet,
 		designs,
 		game,
 		getMyMapObjectsByPosition,
 		mapObjects,
 		player,
-		selectMapObject,
-		techs,
-		zoomToMapObject
+		techs
 	} from '$lib/services/Context';
+	import { DesignService } from '$lib/services/DesignService';
 	import { GameService } from '$lib/services/GameService';
 	import { PlayerService } from '$lib/services/PlayerService';
 	import type { Fleet } from '$lib/types/Fleet';
@@ -26,10 +25,8 @@
 	import GameMenu from '../GameMenu.svelte';
 	import ProductionQueue from '../dialogs/ProductionQueue.svelte';
 	import CargoTransferDialog from '../dialogs/cargo/CargoTransferDialog.svelte';
-	import { DesignService } from '$lib/services/DesignService';
 
 	let id = parseInt($page.params.id);
-	let gameService: GameService = new GameService();
 
 	let source: Fleet | undefined;
 	let dest: Fleet | Planet | undefined;
@@ -37,7 +34,7 @@
 	let loadAttempted = false;
 
 	onMount(async () => {
-		if ($game?.id !== id || !$game || !$mapObjects) {
+		if ($game?.id !== id) {
 			game.update(() => undefined);
 			player.update(() => undefined);
 			mapObjects.update(() => undefined);
@@ -46,16 +43,19 @@
 			try {
 				// load the game on mount
 				await Promise.all([
-					gameService.loadGame(id).then((g) => game.update(() => g)),
-					gameService.loadFullPlayer(id).then((p) => player.update(() => ({ ...$player, ...p }))),
-					gameService.loadPlayerMapObjects(id).then((mos) => {
+					GameService.loadGame(id).then((g) => game.update(() => g)),
+					GameService.loadFullPlayer(id).then((p) => player.update(() => ({ ...$player, ...p }))),
+					GameService.loadPlayerMapObjects(id).then((mos) => {
 						mapObjects.update(() => mos);
-						player.update(() => Object.assign(mos, $player));
 					}),
 					DesignService.load(id).then((items) => designs.update(() => items)),
 					// load techs the first time as well
 					$techs.fetch()
 				]);
+
+				if ($game?.state == GameState.WaitingForPlayers) {
+					commandHomeWorld();
+				}
 			} finally {
 				loadAttempted = true;
 			}
@@ -80,7 +80,7 @@
 
 		// if we are in an active game, bind the navigation hotkeys, i.e. F4 for research, Esc to go back
 		if ($game?.state == GameState.WaitingForPlayers) {
-			bindNavigationHotkeys(id);
+			bindNavigationHotkeys(id, page);
 		}
 
 		return () => {
@@ -90,22 +90,17 @@
 		};
 	});
 
-	// all other components will use this context
-	$: if ($game && $mapObjects) {
-		if ($game.state == GameState.WaitingForPlayers) {
-			// setGameContext(game, player);
-			const homeworld = $mapObjects.planets.find((p) => p.homeworld);
-			if (homeworld) {
-				commandMapObject(homeworld);
-				selectMapObject(homeworld);
-				zoomToMapObject(homeworld);
-			} else {
-				commandMapObject($mapObjects.planets[0]);
-				selectMapObject($mapObjects.planets[0]);
-				zoomToMapObject($mapObjects.planets[0]);
+	// if we navigate to this page from another page with less data
+	onMount(() => {
+		if (!$mapObjects) {
+			GameService.loadPlayerMapObjects(id).then((mos) => {
+				mapObjects.update(() => mos);
+			});
+			if ($game?.state == GameState.WaitingForPlayers) {
+				commandHomeWorld();
 			}
 		}
-	}
+	});
 
 	async function onSubmitTurn() {
 		if ($player) {
@@ -114,6 +109,10 @@
 				game.update((store) => (store = result.game));
 				player.update((store) => (store = result.player));
 				mapObjects.update(() => result.player);
+
+				if ($game?.state == GameState.WaitingForPlayers) {
+					commandHomeWorld();
+				}
 			}
 		}
 	}

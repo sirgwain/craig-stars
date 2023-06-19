@@ -70,6 +70,7 @@ export type Spec = {
 	mineLayingRateByMineType?: { [mineFieldType: string]: number };
 	shield?: number;
 	colonizer?: boolean;
+	starbase?: boolean;
 	canLayMines?: boolean;
 	spaceDock?: number;
 	miningRate?: number;

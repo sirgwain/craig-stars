@@ -13,8 +13,7 @@
 	let playerStatuses: Player[] = [];
 
 	onMount(async () => {
-		const gameService = new GameService();
-		playerStatuses = await gameService.loadPlayerStatuses(id);
+		playerStatuses = await GameService.loadPlayerStatuses(id);
 	});
 
 	const onSubmit = async () => {

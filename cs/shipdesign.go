@@ -58,6 +58,7 @@ type ShipDesignSpec struct {
 	MineLayingRateByMineType  map[MineFieldType]int `json:"mineLayingRateByMineType"`
 	Shield                    int                   `json:"shield,omitempty"`
 	Colonizer                 bool                  `json:"colonizer,omitempty"`
+	Starbase                  bool                  `json:"starbase,omitempty"`
 	CanLayMines               bool                  `json:"canLayMines,omitempty"`
 	SpaceDock                 int                   `json:"spaceDock,omitempty"`
 	MiningRate                int                   `json:"miningRate,omitempty"`
@@ -211,6 +212,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		ScanRange:               NoScanner,
 		ScanRangePen:            NoScanner,
 		SpaceDock:               hull.SpaceDock,
+		Starbase:                hull.Starbase,
 	}
 
 	numTachyonDetectors := 0

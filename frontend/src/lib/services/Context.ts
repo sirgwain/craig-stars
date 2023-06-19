@@ -24,8 +24,8 @@ export const techs = writable<TechService>(new TechService());
 export const commandedPlanet = writable<CommandedPlanet | undefined>();
 export const commandedFleet = writable<Fleet | undefined>();
 export const selectedWaypoint = writable<Waypoint | undefined>();
-export const selectedMapObject = writable<MapObject>();
-export const commandedMapObject = writable<MapObject>();
+export const selectedMapObject = writable<MapObject | undefined>();
+export const commandedMapObject = writable<MapObject | undefined>();
 export const highlightedMapObject = writable<MapObject | undefined>();
 export const commandedMapObjectName = writable<string>();
 export const zoomTarget = writable<MapObject | undefined>();
@@ -76,10 +76,10 @@ const currentMapObjectIndex = derived(
 	[mapObjects, commandedFleet, commandedPlanet],
 	([$mapObjects, $commandedFleet, $commandedPlanet]) => {
 		if ($mapObjects && $commandedPlanet) {
-			return $mapObjects.planets.findIndex((p) => p === $commandedPlanet);
+			return $mapObjects.planets.findIndex((p) => p.num === $commandedPlanet.num);
 		}
 		if ($mapObjects && $commandedFleet) {
-			return $mapObjects.fleets.findIndex((f) => f === $commandedFleet);
+			return $mapObjects.fleets.findIndex((f) => f.num === $commandedFleet.num);
 		}
 		return 0;
 	}
@@ -94,25 +94,27 @@ export const previousMapObject = () => {
 	const i = get(currentMapObjectIndex);
 	const mo = get(commandedMapObject);
 
-	if (mo.type == MapObjectType.Planet) {
-		const prevIndex = rollover(i - 1, 0, mos.planets.length - 1);
-		const planet = mos.planets[prevIndex];
-		commandMapObject(planet);
-		zoomToMapObject(planet);
-		selectMapObject(planet);
-	} else if (mo.type == MapObjectType.Fleet) {
-		const prevIndex = rollover(i - 1, 0, mos.fleets.length - 1);
-		commandMapObject(mos.fleets[prevIndex]);
-		zoomToMapObject(mos.fleets[prevIndex]);
+	if (mo) {
+		if (mo.type == MapObjectType.Planet) {
+			const prevIndex = rollover(i - 1, 0, mos.planets.length - 1);
+			const planet = mos.planets[prevIndex];
+			commandMapObject(planet);
+			zoomToMapObject(planet);
+			selectMapObject(planet);
+		} else if (mo.type == MapObjectType.Fleet) {
+			const prevIndex = rollover(i - 1, 0, mos.fleets.length - 1);
+			commandMapObject(mos.fleets[prevIndex]);
+			zoomToMapObject(mos.fleets[prevIndex]);
 
-		const fleet = mos.fleets[prevIndex];
-		if (fleet.orbitingPlanetNum && fleet.orbitingPlanetNum != None) {
-			const planet = getMapObject(MapObjectType.Planet, fleet.orbitingPlanetNum);
-			if (planet) {
-				selectMapObject(planet);
+			const fleet = mos.fleets[prevIndex];
+			if (fleet.orbitingPlanetNum && fleet.orbitingPlanetNum != None) {
+				const planet = getMapObject(MapObjectType.Planet, fleet.orbitingPlanetNum);
+				if (planet) {
+					selectMapObject(planet);
+				}
+			} else {
+				selectMapObject(fleet);
 			}
-		} else {
-			selectMapObject(fleet);
 		}
 	}
 };
@@ -125,24 +127,27 @@ export const nextMapObject = () => {
 	}
 	const i = get(currentMapObjectIndex);
 	const mo = get(commandedMapObject);
-	if (mo.type == MapObjectType.Planet) {
-		const nextIndex = rollover(i + 1, 0, mos.planets.length - 1);
-		const planet = mos.planets[nextIndex];
-		commandMapObject(planet);
-		zoomToMapObject(planet);
-		selectMapObject(planet);
-	} else if (mo.type == MapObjectType.Fleet) {
-		const nextIndex = rollover(i + 1, 0, mos.fleets.length - 1);
-		const fleet = mos.fleets[nextIndex];
-		commandMapObject(mos.fleets[nextIndex]);
-		zoomToMapObject(mos.fleets[nextIndex]);
-		if (fleet.orbitingPlanetNum && fleet.orbitingPlanetNum != None) {
-			const planet = getMapObject(MapObjectType.Planet, fleet.orbitingPlanetNum);
-			if (planet) {
-				selectMapObject(planet);
+
+	if (mo) {
+		if (mo.type == MapObjectType.Planet) {
+			const nextIndex = rollover(i + 1, 0, mos.planets.length - 1);
+			const planet = mos.planets[nextIndex];
+			commandMapObject(planet);
+			zoomToMapObject(planet);
+			selectMapObject(planet);
+		} else if (mo.type == MapObjectType.Fleet) {
+			const nextIndex = rollover(i + 1, 0, mos.fleets.length - 1);
+			const fleet = mos.fleets[nextIndex];
+			commandMapObject(mos.fleets[nextIndex]);
+			zoomToMapObject(mos.fleets[nextIndex]);
+			if (fleet.orbitingPlanetNum && fleet.orbitingPlanetNum != None) {
+				const planet = getMapObject(MapObjectType.Planet, fleet.orbitingPlanetNum);
+				if (planet) {
+					selectMapObject(planet);
+				}
+			} else {
+				selectMapObject(fleet);
 			}
-		} else {
-			selectMapObject(fleet);
 		}
 	}
 };
@@ -251,6 +256,22 @@ export const highlightMapObject = (mo: MapObject | undefined) => {
 
 export const zoomToMapObject = (mo: MapObject) => {
 	zoomTarget.update(() => mo);
+};
+
+export const commandHomeWorld = () => {
+	const mos = get(mapObjects);
+	if (mos) {
+		const homeworld = mos.planets.find((p) => p.homeworld);
+		if (homeworld) {
+			commandMapObject(homeworld);
+			selectMapObject(homeworld);
+			zoomToMapObject(homeworld);
+		} else {
+			commandMapObject(mos.planets[0]);
+			selectMapObject(mos.planets[0]);
+			zoomToMapObject(mos.planets[0]);
+		}
+	}
 };
 
 export const playerName = (playerNum: number | undefined) => {

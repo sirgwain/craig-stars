@@ -60,6 +60,8 @@ type PlanetSpec struct {
 	TerraformAmount           Hab     `json:"terraformAmount,omitempty"`
 	HasStarbase               bool    `json:"hasStarbase,omitempty"`
 	HasStargate               bool    `json:"hasStargate,omitempty"`
+	StarbaseDesignNum         int     `json:"starbaseDesignNum,omitempty"`
+	StarbaseDesignName        string  `json:"starbaseDesignName,omitempty"`
 	DockCapacity              int     `json:"dockCapacity,omitempty"`
 	SafeHullMass              int     `json:"safeHullMass,omitempty"`
 	SafeRange                 int     `json:"safeRange,omitempty"`
@@ -360,6 +362,8 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	starbase := planet.starbase
 	spec.HasStarbase = starbase != nil
 	if starbase != nil {
+		spec.StarbaseDesignNum = planet.starbase.Tokens[0].DesignNum
+		spec.StarbaseDesignName = planet.starbase.Tokens[0].design.Name
 		if starbase.Spec.HasStargate {
 			spec.HasStargate = starbase != nil && starbase.Spec.HasStargate
 			spec.SafeHullMass = starbase.Spec.SafeHullMass

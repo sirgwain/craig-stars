@@ -4,6 +4,7 @@
 	import { commandMapObject } from '$lib/services/Context';
 	import { PlanetService } from '$lib/services/PlanetService';
 	import type { Cost } from '$lib/types/Cost';
+	import type { Fleet } from '$lib/types/Fleet';
 	import type { Game } from '$lib/types/Game';
 	import type { CommandedPlanet, ProductionQueueItem } from '$lib/types/Planet';
 	import { QueueItemType, isAuto } from '$lib/types/Planet';
@@ -212,8 +213,6 @@
 
 	// clone the production queue whenever the planet is updated
 	$: planet && designs && resetQueue();
-
-	$: starbase = player.starbases.find((sb) => sb.planetNum == planet.num);
 </script>
 
 <div

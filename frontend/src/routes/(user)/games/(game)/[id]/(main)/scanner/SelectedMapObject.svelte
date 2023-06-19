@@ -11,9 +11,11 @@
 	const { xGet, yGet, xScale, yScale } = getContext<LayerCake>('LayerCake');
 </script>
 
-<SelectedMapObject
-	x={$xGet($selectedMapObject) - $xScale(7.5)}
-	y={$yGet($selectedMapObject) + $yScale(9)}
-	width={$xScale(15)}
-	height={$yScale(15)}
-/>
+{#if $selectedMapObject}
+	<SelectedMapObject
+		x={$xGet($selectedMapObject) - $xScale(7.5)}
+		y={$yGet($selectedMapObject) + $yScale(9)}
+		width={$xScale(15)}
+		height={$yScale(15)}
+	/>
+{/if}

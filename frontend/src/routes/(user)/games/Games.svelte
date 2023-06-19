@@ -8,8 +8,6 @@
 	import Galaxy from '$lib/components/icons/Galaxy.svelte';
 	import Processor from '$lib/components/icons/Processor.svelte';
 
-	const gameService = new GameService();
-
 	let myGames: Game[];
 	let openGames: Game[];
 
@@ -21,12 +19,12 @@
 		const sorter = (a: Game, b: Game) =>
 			b.createdAt && a.createdAt ? b.createdAt.localeCompare(a.createdAt) : 0;
 
-		gameService.loadPlayerGames().then((games) => {
+		GameService.loadPlayerGames().then((games) => {
 			myGames = games;
 			myGames.sort(sorter);
 		});
 
-		gameService.loadOpenGames().then((games) => {
+		GameService.loadOpenGames().then((games) => {
 			openGames = games;
 			openGames.sort(sorter);
 		});
@@ -34,7 +32,7 @@
 
 	const deleteGame = async (game: Game) => {
 		if (confirm(`Are you sure you want to delete ${game.name}?`)) {
-			await gameService.deleteGame(game.id);
+			await GameService.deleteGame(game.id);
 			await loadGames();
 		}
 	};
