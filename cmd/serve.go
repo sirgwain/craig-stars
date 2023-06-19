@@ -5,7 +5,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/config"
-	"github.com/sirgwain/craig-stars/dbsqlx"
+	"github.com/sirgwain/craig-stars/db"
 	"github.com/sirgwain/craig-stars/game"
 	"github.com/sirgwain/craig-stars/server"
 
@@ -25,7 +25,7 @@ func newServeCmd() *cobra.Command {
 		Long:  `Start a local gin-gonic webserver and serve requests.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			db := dbsqlx.NewClient()
+			db := db.NewClient()
 			cfg := config.GetConfig()
 			db.Connect(cfg)
 			db.ExecSchema("schema.sql")

@@ -1,5 +1,5 @@
-//go:generate go run github.com/jmattheis/goverter/cmd/goverter --packageName dbsqlx --output ./dbsqlx/generated.go --packagePath github.com/sirgwain/craig-stars/dbsqlx --ignoreUnexportedFields github.com/sirgwain/craigstars/dbsqlx
-package dbsqlx
+//go:generate go run github.com/jmattheis/goverter/cmd/goverter --packageName db --output ./db/generated.go --packagePath github.com/sirgwain/craig-stars/db --ignoreUnexportedFields github.com/sirgwain/craigstars/db
+package db
 
 import (
 	"database/sql"
