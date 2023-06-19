@@ -14,6 +14,11 @@ export interface MapObject {
 	playerNum: number;
 }
 
+export type MovingMapObject = {
+	heading: Vector;
+	warpSpeed?: number;
+} & MapObject;
+
 export enum MapObjectType {
 	None = '',
 	Planet = 'Planet',

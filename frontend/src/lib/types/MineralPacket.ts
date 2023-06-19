@@ -1,13 +1,10 @@
 import type { Cargo } from './Cargo';
-import type { MapObject } from './MapObject';
-import type { Vector } from './Vector';
+import type { MovingMapObject } from './MapObject';
 
 export type MineralPacket = {
 	targetPlanetNum?: number;
 	cargo: Cargo;
-	warpSpeed: number;
 	safeWarpSpeed?: number;
-	heading: Vector;
 	scanRange: number;
 	scanRangePen: number;
-} & MapObject;
+} & MovingMapObject;

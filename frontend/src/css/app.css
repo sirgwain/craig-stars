@@ -130,13 +130,17 @@ input[type='number']::-webkit-inner-spin-button {
 .packet-dest-line {
 	fill: none;
 	stroke-linecap: square;
-	stroke: #6B0065;
+	stroke: #6b0065;
 }
 
 .packet-arrow {
-	fill: #6B0065;
+	fill: #6b0065;
 }
 
+.warp-arrow {
+	stroke: #ffffff;
+	fill: none;
+}
 
 .beam-line {
 	fill: none;

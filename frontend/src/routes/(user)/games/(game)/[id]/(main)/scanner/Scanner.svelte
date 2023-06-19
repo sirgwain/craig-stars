@@ -1,40 +1,41 @@
 <script lang="ts">
 	import {
-		commandedFleet,
-		commandedPlanet,
-		commandedMapObject,
 		commandMapObject,
-		selectedMapObject,
-		selectedWaypoint,
+		commandedFleet,
+		commandedMapObject,
+		commandedPlanet,
 		selectMapObject,
 		selectWaypoint,
+		selectedMapObject,
+		selectedWaypoint,
 		zoomTarget
 	} from '$lib/services/Context';
 	import type { FullGame } from '$lib/services/FullGame';
-	import { getTargetName, WaypointTask } from '$lib/types/Fleet';
+	import { PlanetService } from '$lib/services/PlanetService';
+	import { settings } from '$lib/services/Settings';
+	import { WaypointTask } from '$lib/types/Fleet';
 	import { MapObjectType, None, ownedBy, type MapObject } from '$lib/types/MapObject';
 	import { emptyVector, equal, type Vector } from '$lib/types/Vector';
 	import type { ScaleLinear } from 'd3-scale';
 	import { scaleLinear } from 'd3-scale';
 	import { select } from 'd3-selection';
-	import { zoom, ZoomTransform, type D3ZoomEvent, type ZoomBehavior } from 'd3-zoom';
+	import { ZoomTransform, zoom, type D3ZoomEvent, type ZoomBehavior } from 'd3-zoom';
 	import { Html, LayerCake, Svg } from 'layercake';
 	import { setContext } from 'svelte';
 	import { writable } from 'svelte/store';
 	import MapObjectQuadTreeFinder from './MapObjectQuadTreeFinder.svelte';
 	import ScannerFleets from './ScannerFleets.svelte';
+	import ScannerMineFieldPattern from './ScannerMineFieldPattern.svelte';
+	import ScannerMineFields from './ScannerMineFields.svelte';
+	import ScannerMineralPackets from './ScannerMineralPackets.svelte';
+	import ScannerNames from './ScannerNames.svelte';
+	import ScannerPacketDests from './ScannerPacketDests.svelte';
 	import ScannerPlanets from './ScannerPlanets.svelte';
 	import ScannerScanners from './ScannerScanners.svelte';
+	import ScannerWarpLine from './ScannerWarpLine.svelte';
 	import ScannerWaypoints from './ScannerWaypoints.svelte';
 	import SelectedMapObject from './SelectedMapObject.svelte';
 	import SelectedWaypoint from './SelectedWaypoint.svelte';
-	import ScannerMineFields from './ScannerMineFields.svelte';
-	import ScannerMineFieldPattern from './ScannerMineFieldPattern.svelte';
-	import ScannerMineralPackets from './ScannerMineralPackets.svelte';
-	import { settings } from '$lib/services/Settings';
-	import { PlanetService } from '$lib/services/PlanetService';
-	import ScannerPacketDests from './ScannerPacketDests.svelte';
-	import ScannerNames from './ScannerNames.svelte';
 
 	export let game: FullGame;
 
@@ -395,6 +396,7 @@
 				<ScannerPlanets />
 				<ScannerMineralPackets />
 				<ScannerFleets />
+				<ScannerWarpLine />
 				<SelectedMapObject />
 			</g>
 		</Svg>

@@ -2,7 +2,7 @@
 
 import type { Cargo } from './Cargo';
 import type { Cost } from './Cost';
-import { MapObjectType, None, type MapObject } from './MapObject';
+import { MapObjectType, None, type MapObject, type MovingMapObject } from './MapObject';
 import type { MessageTargetType } from './Player';
 import type { Engine } from './Tech';
 import type { Vector } from './Vector';
@@ -19,13 +19,11 @@ export type Fleet = {
 	waypoints?: Waypoint[];
 
 	repeatOrders?: boolean;
-	heading?: Vector;
-	warpSpeed?: number;
 	mass?: number;
 	orbitingPlanetNum?: number;
 	starbase?: boolean;
 	spec?: Spec;
-} & MapObject;
+} & MovingMapObject;
 
 export type ShipToken = {
 	id?: number;
