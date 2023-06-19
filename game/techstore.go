@@ -14,12 +14,14 @@ type TechStore struct {
 	RulesID           uint                   `json:"rulesId"`
 	Engines           []TechEngine           `json:"engines"`
 	PlanetaryScanners []TechPlanetaryScanner `json:"planetaryScanners"`
+	Defenses          []TechDefense          `json:"defenses"`
 }
 
 // simple static tech store
 var StaticTechStore = TechStore{
 	Engines:           TechEngines(),
 	PlanetaryScanners: TechPlanetaryScanners(),
+	Defenses:          TechDefenses(),
 }
 
 type TechFinder interface {
@@ -356,6 +358,24 @@ var Snooper620X = TechPlanetaryScanner{Tech: NewTech("Snooper 620X", NewCost(10,
 	ScanRangePen: 310,
 }
 
+// TechDefenses
+
+var SDI = TechDefense{Tech: NewTech("SDI", NewCost(5, 5, 5, 15), TechRequirements{PRTDenied: AR}, 0, TechCategoryPlanetaryDefense),
+	DefenseCoverage: .99,
+}
+var MissileBattery = TechDefense{Tech: NewTech("Missile Battery", NewCost(5, 5, 5, 15), TechRequirements{TechLevel: TechLevel{Energy: 5}, PRTDenied: AR}, 10, TechCategoryPlanetaryDefense),
+	DefenseCoverage: 1.99,
+}
+var LaserBattery = TechDefense{Tech: NewTech("Laser Battery", NewCost(5, 5, 5, 15), TechRequirements{TechLevel: TechLevel{Energy: 10}, PRTDenied: AR}, 20, TechCategoryPlanetaryDefense),
+	DefenseCoverage: 2.39,
+}
+var PlanetaryShield = TechDefense{Tech: NewTech("Planetary Shield", NewCost(5, 5, 5, 15), TechRequirements{TechLevel: TechLevel{Energy: 16}, PRTDenied: AR}, 30, TechCategoryPlanetaryDefense),
+	DefenseCoverage: 2.99,
+}
+var NeutronShield = TechDefense{Tech: NewTech("Neutron Shield", NewCost(5, 5, 5, 15), TechRequirements{TechLevel: TechLevel{Energy: 23}, PRTDenied: AR}, 40, TechCategoryPlanetaryDefense),
+	DefenseCoverage: 3.79,
+}
+
 func TechEngines() []TechEngine {
 	return []TechEngine{
 		SettlersDelight,
@@ -388,5 +408,16 @@ func TechPlanetaryScanners() []TechPlanetaryScanner {
 		Snooper400X,
 		Snooper500X,
 		Snooper620X,
+	}
+}
+
+func TechDefenses() []TechDefense {
+
+	return []TechDefense{
+		SDI,
+		MissileBattery,
+		LaserBattery,
+		PlanetaryShield,
+		NeutronShield,
 	}
 }
