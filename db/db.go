@@ -178,18 +178,21 @@ func (c *client) Connect(config *config.Config) error {
 		zlogger = zerolog.New(os.Stderr).With().Timestamp().Logger().Level(zerolog.WarnLevel)
 	}
 	loggerAdapter := NewLoggerWithLogger(&zlogger)
-	db := sqldblogger.OpenDriver(config.Database.Filename, &sqlite3.SQLiteDriver{}, loggerAdapter /*, ...options */)
+
+	db := sqldblogger.OpenDriver(config.Database.Filename, &sqlite3.SQLiteDriver{
+		ConnectHook: func(conn *sqlite3.SQLiteConn) error {
+
+			if _, err := conn.Exec(fmt.Sprintf("ATTACH DATABASE '%s' as users;", config.Database.UsersFilename), nil); err != nil {
+				return err
+			}
+			if _, err := conn.Exec("PRAGMA foreign_keys = ON;", nil); err != nil {
+				return err
+			}
+			return nil
+		},
+	}, loggerAdapter /*, ...options */)
 
 	c.db = sqlx.NewDb(db, "sqlite3")
-
-	// attach the users database
-	if _, err := c.db.Exec(fmt.Sprintf("ATTACH DATABASE '%s' as users;", config.Database.UsersFilename)); err != nil {
-		return err
-	}
-
-	if _, err := c.db.Exec("PRAGMA foreign_keys = ON;"); err != nil {
-		return err
-	}
 
 	// Create a new mapper which will use the struct field tag "json" instead of "db"
 	c.db.Mapper = reflectx.NewMapperFunc("json", strings.ToLower)
