@@ -125,7 +125,7 @@
 		{columns}
 		rows={filteredPlanets}
 		classes={{
-			table: 'table table-compact table-auto w-full',
+			table: 'table table-zebra table-compact table-auto w-full',
 			td: 'first:table-cell nth-child(2):table-cell hidden sm:table-cell',
 			th: 'first:table-cell nth-child(2):table-cell hidden sm:table-cell'
 		}}
