@@ -145,7 +145,9 @@ func (db *DB) SaveGame(game *game.Game) error {
 
 func (db *DB) FindGameById(id uint) (*game.Game, error) {
 	game := game.Game{}
-	if err := db.sqlDB.Preload(clause.Associations).Preload("Planets.ProductionQueue").Preload("Players.Race").Preload("Players.PlanetIntels").Preload("Players.Fleets").First(&game, id).Error; err != nil {
+	if err := db.sqlDB.Preload(clause.Associations).Preload("Planets.ProductionQueue", func(db *gorm.DB) *gorm.DB {
+		return db.Order("production_queue_items.sort_order")
+	}).Preload("Players.Race").Preload("Players.PlanetIntels").Preload("Players.Fleets").First(&game, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		} else {

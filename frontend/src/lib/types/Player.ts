@@ -1,5 +1,6 @@
 import type { Planet } from './Planet';
 import type { Race } from './Race';
+import type { ShipDesign } from './ShipDesign';
 
 export interface Player {
 	id: number;
@@ -15,6 +16,7 @@ export interface Player {
 	submittedTurn?: boolean;
 	techLevels: TechLevels;
 	techLevelsSpent: TechLevels;
+	designs: ShipDesign[];
 	planets: Planet[];
 	planetIntels: Planet[];
 }

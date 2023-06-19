@@ -40,7 +40,7 @@
 </script>
 
 <CommandTile title="Production">
-	<div class="bg-base-100 h-16 overflow-y-scroll">
+	<div class="bg-base-100 h-20 overflow-y-auto">
 		{#if planet.productionQueue}
 			<table class="w-full h-full">
 				<tbody>
@@ -61,8 +61,8 @@
 		<span>{''}</span>
 	</div>
 	<div class="justify-center">
-		<button class="btn btn-sm normal-case">Change</button>
-		<button on:click={clear} class="btn btn-sm normal-case">Clear</button>
-		<button class="btn btn-sm normal-case">Route</button>
+		<button class="btn btn-sm">Change</button>
+		<button on:click={clear} class="btn btn-sm">Clear</button>
+		<button class="btn btn-sm">Route</button>
 	</div>
 </CommandTile>

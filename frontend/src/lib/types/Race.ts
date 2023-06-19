@@ -1,4 +1,6 @@
 import type { Hab } from './Hab';
+import type { Cost } from './Cost';
+import type { QueueItemType } from './Planet';
 import type { TechLevels } from './Player';
 
 export interface Race {
@@ -33,7 +35,12 @@ export interface ResearchCost {
 	biotechnology: string;
 }
 
+type EnumDictionary<T extends string | symbol | number, U> = {
+	[K in T]: U;
+};
+
 export interface RaceSpec {
+	costs: EnumDictionary<QueueItemType, Cost>;
 	startingTechLevels: TechLevels;
 	startingFleets: StartingFleet[];
 	startingPlanets: StartingPlanet[];

@@ -36,50 +36,55 @@ type ProductionQueueItem struct {
 	PlanetID  uint           `json:"-"`
 	Type      QueueItemType  `json:"type"`
 	Quantity  int            `json:"quantity"`
+	SortOrder int            `json:"-"`
 }
 
 type QueueItemType string
 
 const (
-	QueuItemTypeIroniumMineralPacket   QueueItemType = "IroniumMineralPacket"
-	QueuItemTypeBoraniumMineralPacket  QueueItemType = "BoraniumMineralPacket"
-	QueuItemTypeGermaniumMineralPacket QueueItemType = "GermaniumMineralPacket"
-	QueuItemTypeMixedMineralPacket     QueueItemType = "MixedMineralPacket"
-	QueuItemTypeFactory                QueueItemType = "Factory"
-	QueuItemTypeMine                   QueueItemType = "Mine"
-	QueuItemTypeDefenses               QueueItemType = "Defenses"
-	QueuItemTypeMineralAlchemy         QueueItemType = "MineralAlchemy"
-	QueuItemTypeTerraformEnvironment   QueueItemType = "TerraformEnvironment"
-	QueuItemTypeAutoMines              QueueItemType = "AutoMines"
-	QueuItemTypeAutoFactories          QueueItemType = "AutoFactories"
-	QueuItemTypeAutoDefenses           QueueItemType = "AutoDefenses"
-	QueuItemTypeAutoMineralAlchemy     QueueItemType = "AutoMineralAlchemy"
-	QueuItemTypeAutoMinTerraform       QueueItemType = "AutoMinTerraform"
-	QueuItemTypeAutoMaxTerraform       QueueItemType = "AutoMaxTerraform"
-	QueuItemTypeAutoMineralPacket      QueueItemType = "AutoMineralPacket"
-	QueuItemTypeShipToken              QueueItemType = "ShipToken"
-	QueuItemTypeStarbase               QueueItemType = "Starbase"
+	QueueItemTypeIroniumMineralPacket   QueueItemType = "IroniumMineralPacket"
+	QueueItemTypeBoraniumMineralPacket  QueueItemType = "BoraniumMineralPacket"
+	QueueItemTypeGermaniumMineralPacket QueueItemType = "GermaniumMineralPacket"
+	QueueItemTypeMixedMineralPacket     QueueItemType = "MixedMineralPacket"
+	QueueItemTypeFactory                QueueItemType = "Factory"
+	QueueItemTypeMine                   QueueItemType = "Mine"
+	QueueItemTypeDefenses               QueueItemType = "Defenses"
+	QueueItemTypeMineralAlchemy         QueueItemType = "MineralAlchemy"
+	QueueItemTypeTerraformEnvironment   QueueItemType = "TerraformEnvironment"
+	QueueItemTypeAutoMines              QueueItemType = "AutoMines"
+	QueueItemTypeAutoFactories          QueueItemType = "AutoFactories"
+	QueueItemTypeAutoDefenses           QueueItemType = "AutoDefenses"
+	QueueItemTypeAutoMineralAlchemy     QueueItemType = "AutoMineralAlchemy"
+	QueueItemTypeAutoMinTerraform       QueueItemType = "AutoMinTerraform"
+	QueueItemTypeAutoMaxTerraform       QueueItemType = "AutoMaxTerraform"
+	QueueItemTypeAutoMineralPacket      QueueItemType = "AutoMineralPacket"
+	QueueItemTypeShipToken              QueueItemType = "ShipToken"
+	QueueItemTypeStarbase               QueueItemType = "Starbase"
 )
 
 type PlanetSpec struct {
-	MaxMines                  int     `json:"maxMines"`
-	MaxPossibleMines          int     `json:"maxPossibleMines"`
-	MaxFactories              int     `json:"maxFactories"`
-	MaxPossibleFactories      int     `json:"maxPossibleFactories"`
-	MaxDefenses               int     `json:"maxDefenses"`
-	PopulationDensity         float64 `json:"populationDensity"`
-	MaxPopulation             int     `json:"maxPopulation"`
-	GrowthAmount              int     `json:"growthAmount"`
-	MineralOutput             Mineral `json:"mineralOutput"`
-	ResourcesPerYear          int     `json:"resourcesPerYear"`
-	ResourcesPerYearAvailable int     `json:"resourcesPerYearAvailable"`
-	ResourcesPerYearResearch  int     `json:"resourcesPerYearResearch"`
-	Defense                   string  `json:"defense"`
-	DefenseCoverage           float64 `json:"defenseCoverage"`
-	DefenseCoverageSmart      float64 `json:"defenseCoverageSmart"`
-	Scanner                   string  `json:"scanner"`
-	ScanRange                 int     `json:"scanRange"`
-	ScanRangePen              int     `json:"scanRangePen"`
+	MaxMines                  int     `json:"maxMines,omitempty"`
+	MaxPossibleMines          int     `json:"maxPossibleMines,omitempty"`
+	MaxFactories              int     `json:"maxFactories,omitempty"`
+	MaxPossibleFactories      int     `json:"maxPossibleFactories,omitempty"`
+	MaxDefenses               int     `json:"maxDefenses,omitempty"`
+	PopulationDensity         float64 `json:"populationDensity,omitempty"`
+	MaxPopulation             int     `json:"maxPopulation,omitempty"`
+	GrowthAmount              int     `json:"growthAmount,omitempty"`
+	MineralOutput             Mineral `json:"mineralOutput,omitempty"`
+	ResourcesPerYear          int     `json:"resourcesPerYear,omitempty"`
+	ResourcesPerYearAvailable int     `json:"resourcesPerYearAvailable,omitempty"`
+	ResourcesPerYearResearch  int     `json:"resourcesPerYearResearch,omitempty"`
+	Defense                   string  `json:"defense,omitempty"`
+	DefenseCoverage           float64 `json:"defenseCoverage,omitempty"`
+	DefenseCoverageSmart      float64 `json:"defenseCoverageSmart,omitempty"`
+	Scanner                   string  `json:"scanner,omitempty"`
+	ScanRange                 int     `json:"scanRange,omitempty"`
+	ScanRangePen              int     `json:"scanRangePen,omitempty"`
+	CanTerraform              bool    `json:"canTerraform,omitempty"`
+	TerraformAmount           Hab     `json:"terraformAmount,omitempty"`
+	HasStarbase               bool    `json:"hasStarbase,omitempty"`
+	dockCapacity              int     `json:"dockCapacity,omitempty"`
 }
 
 func NewPlanet(gameID uint) Planet {
@@ -218,9 +223,12 @@ func (p *Planet) initHomeworld(player *Player, rules *Rules, concentration Miner
 	// planetService.ApplyProductionPlan(planet.ProductionQueue.Items, player, player.ProductionPlans[0]);
 	// planet.ProductionQueue.Items = planet.ProductionQueue.Items.Where(item => !item.IsTerraform).ToList();
 
-	p.ProductionQueue = append(p.ProductionQueue, ProductionQueueItem{Type: QueuItemTypeAutoMinTerraform, Quantity: 1})
-	p.ProductionQueue = append(p.ProductionQueue, ProductionQueueItem{Type: QueuItemTypeAutoFactories, Quantity: 10})
-	p.ProductionQueue = append(p.ProductionQueue, ProductionQueueItem{Type: QueuItemTypeAutoMines, Quantity: 10})
+	p.ProductionQueue = append(p.ProductionQueue, ProductionQueueItem{Type: QueueItemTypeAutoMinTerraform, Quantity: 1})
+	p.ProductionQueue = append(p.ProductionQueue, ProductionQueueItem{Type: QueueItemTypeAutoFactories, Quantity: 10})
+	p.ProductionQueue = append(p.ProductionQueue, ProductionQueueItem{Type: QueueItemTypeAutoMines, Quantity: 10})
+	for i := range p.ProductionQueue {
+		p.ProductionQueue[i].SortOrder = i
+	}
 
 	// Message.HomePlanet(player, planet);
 

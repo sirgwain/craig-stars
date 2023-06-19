@@ -1,6 +1,6 @@
 export interface Cost {
-	Ironium?: number;
-	Boranium?: number;
-	Germanium?: number;
-	Resources?: number;
+	ironium?: number;
+	boranium?: number;
+	germanium?: number;
+	resources?: number;
 }

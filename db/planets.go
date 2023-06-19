@@ -22,7 +22,14 @@ func (db *DB) FindPlanetById(id uint) (*game.Planet, error) {
 }
 
 func (db *DB) SavePlanet(planet *game.Planet) error {
-	if err := db.sqlDB.Save(planet).Error; err != nil {
+
+	// sort queue items by index
+	for i := range planet.ProductionQueue {
+		planet.ProductionQueue[i].SortOrder = i
+	}
+
+	// save the planet and all
+	if err := db.sqlDB.Session(&gorm.Session{FullSaveAssociations: true}).Save(planet).Error; err != nil {
 		return err
 	}
 

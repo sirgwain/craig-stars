@@ -1,12 +1,18 @@
 <script lang="ts">
 	import { authGuard } from '$lib/authGuard';
 	import Menu from '$lib/components/Menu.svelte';
+	import { bindQuantityModifier, unbindQuantityModifier } from '$lib/quantityModifier';
 	import type { User } from '$lib/types/User';
 	import { onMount } from 'svelte';
 	import '../app.css';
 
 	// verify the user, redirect otherwise
-	onMount(async () => (user = await authGuard()));
+	onMount(async () => {
+		bindQuantityModifier();
+		user = await authGuard();
+
+		return () => unbindQuantityModifier();
+	});
 
 	let user: User | undefined;
 </script>

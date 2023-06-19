@@ -11,7 +11,11 @@ import (
 func (db *DB) FindPlayerByGameId(gameID uint, userID uint) (*game.Player, error) {
 	player := game.Player{}
 
-	if err := db.sqlDB.Preload(clause.Associations).Preload("Planets.ProductionQueue").Where("game_id = ? AND user_id = ?", gameID, userID).First(&player).Error; err != nil {
+	if err := db.sqlDB.Preload(clause.Associations).Preload("Planets", func(db *gorm.DB) *gorm.DB {
+		return db.Order("planets.num")
+	}).Preload("Planets.ProductionQueue", func(db *gorm.DB) *gorm.DB {
+		return db.Order("production_queue_items.sort_order")
+	}).Where("game_id = ? AND user_id = ?", gameID, userID).First(&player).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		} else {
