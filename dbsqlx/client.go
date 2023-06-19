@@ -67,6 +67,7 @@ type Client interface {
 	GetPlayersForUser(userID int64) ([]game.Player, error)
 	GetPlayer(id int64) (*game.Player, error)
 	GetLightPlayerForGame(gameID, userID int64) (*game.Player, error)
+	GetPlayerForGame(gameID, userID int64) (*game.Player, error)
 	GetFullPlayerForGame(gameID, userID int64) (*game.FullPlayer, error)
 	CreatePlayer(player *game.Player) error
 	UpdatePlayer(player *game.Player) error

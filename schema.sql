@@ -11,7 +11,6 @@ CREATE TABLE races (
   createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
   updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
   userId INTEGER NOT NULL,
-  playerId INTEGER,
   name TEXT NOT NULL,
   pluralName TEXT NOT NULL,
   prt TEXT,
@@ -42,10 +41,7 @@ CREATE TABLE races (
   researchCostBiotechnology TEXT,
   techsStartHigh NUMERIC,
   spec TEXT,
-  CONSTRAINT fkUsersRaces FOREIGN KEY (userId) REFERENCES users (id) ON DELETE
-  SET NULL,
-    CONSTRAINT fkPlayersRaces FOREIGN KEY (playerId) REFERENCES players (id) ON DELETE
-  SET NULL
+  CONSTRAINT fkUsersRaces FOREIGN KEY (userId) REFERENCES users (id) ON DELETE CASCADE
 );
 CREATE TABLE games (
   id INTEGER PRIMARY KEY,
@@ -186,8 +182,9 @@ CREATE TABLE players (
   race TEXT,
   stats TEXT,
   spec TEXT,
-  CONSTRAINT fkGamesPlayers FOREIGN KEY (gameId) REFERENCES games (id),
-  CONSTRAINT fkUsersPlayers FOREIGN KEY (userId) REFERENCES users (id)
+  CONSTRAINT fkUsersPlayers FOREIGN KEY (userId) REFERENCES users (id) ON DELETE
+  SET NULL,
+    CONSTRAINT fkGamesPlayers FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
 );
 CREATE TABLE fleets (
   id INTEGER PRIMARY KEY,
@@ -218,7 +215,8 @@ CREATE TABLE fleets (
   previousPositionY REAL,
   orbitingPlanetNum INTEGER,
   starbase NUMERIC,
-  spec TEXT
+  spec TEXT,
+  CONSTRAINT fkGamesFleets FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
 );
 CREATE TABLE shipDesigns (
   id INTEGER PRIMARY KEY,
@@ -235,7 +233,7 @@ CREATE TABLE shipDesigns (
   slots TEXT,
   purpose TEXT,
   spec TEXT,
-  CONSTRAINT fkPlayersDesigns FOREIGN KEY (playerId) REFERENCES players(id)
+  CONSTRAINT fkPlayersDesigns FOREIGN KEY (playerId) REFERENCES players(id) ON DELETE CASCADE
 );
 CREATE TABLE shipTokens (
   id INTEGER PRIMARY KEY,
@@ -246,7 +244,7 @@ CREATE TABLE shipTokens (
   quantity INTEGER,
   damage REAL,
   quantityDamaged INTEGER,
-  CONSTRAINT fkFleetsTokens FOREIGN KEY (fleetId) REFERENCES fleets(id)
+  CONSTRAINT fkFleetsTokens FOREIGN KEY (fleetId) REFERENCES fleets(id) ON DELETE CASCADE
 );
 CREATE TABLE planets (
   id INTEGER PRIMARY KEY,
@@ -287,7 +285,7 @@ CREATE TABLE planets (
   packetSpeed INTEGER,
   productionQueue TEXT,
   spec TEXT,
-  CONSTRAINT fkGamesPlanets FOREIGN KEY (gameId) REFERENCES games (id)
+  CONSTRAINT fkGamesPlanets FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
 );
 CREATE TABLE mineralPackets (
   id INTEGER PRIMARY KEY,
@@ -310,8 +308,9 @@ CREATE TABLE mineralPackets (
   distanceTravelled REAL,
   headingX REAL,
   headingY REAL,
-  CONSTRAINT fkGamesMineralPackets FOREIGN KEY (gameId) REFERENCES games (id),
-  CONSTRAINT fkPlayersMineralPackets FOREIGN KEY (playerId) REFERENCES players (id)
+  CONSTRAINT fkPlayersMineralPackets FOREIGN KEY (playerId) REFERENCES players (id) ON DELETE
+  SET NULL,
+    CONSTRAINT fkGamesMineralPackets FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
 );
 CREATE TABLE salvages (
   id INTEGER PRIMARY KEY,
@@ -327,7 +326,10 @@ CREATE TABLE salvages (
   cargoIronium INTEGER,
   cargoBoranium INTEGER,
   cargoGermanium INTEGER,
-  cargoColonists INTEGER
+  cargoColonists INTEGER,
+  CONSTRAINT fkPlayersSalvages FOREIGN KEY (playerId) REFERENCES players (id) ON DELETE
+  SET NULL,
+    CONSTRAINT fkGamesSalvages FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
 );
 CREATE TABLE wormoholes (
   id INTEGER PRIMARY KEY,
@@ -340,7 +342,8 @@ CREATE TABLE wormoholes (
   num INTEGER,
   destinationNum INTEGER,
   stability TEXT,
-  yearsAtStability INTEGER
+  yearsAtStability INTEGER,
+  CONSTRAINT fkGamesWormholes FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
 );
 CREATE TABLE mineFields (
   id INTEGER PRIMARY KEY,
@@ -354,7 +357,10 @@ CREATE TABLE mineFields (
   num INTEGER,
   playerNum INTEGER,
   numMines INTEGER,
-  detonate NUMERIC
+  detonate NUMERIC,
+  CONSTRAINT fkPlayersMineFields FOREIGN KEY (playerId) REFERENCES players (id) ON DELETE
+  SET NULL,
+    CONSTRAINT fkGamesMineFields FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
 );
 CREATE TABLE techStores (
   id INTEGER PRIMARY KEY,
@@ -433,7 +439,7 @@ CREATE TABLE techEngines (
   idealSpeed INTEGER,
   freeSpeed INTEGER,
   fuelUsage TEXT,
-  CONSTRAINT fkTechStoresEngines FOREIGN KEY (techStoreId) REFERENCES techStores(id)
+  CONSTRAINT fkTechStoresEngines FOREIGN KEY (techStoreId) REFERENCES techStores(id) ON DELETE CASCADE
 );
 CREATE TABLE techPlanetaryScanners (
   id INTEGER PRIMARY KEY,
@@ -459,7 +465,7 @@ CREATE TABLE techPlanetaryScanners (
   category TEXT,
   scanRange INTEGER,
   scanRangePen INTEGER,
-  CONSTRAINT fkTechStoresPlanetaryScanners FOREIGN KEY (techStoreId) REFERENCES techStores(id)
+  CONSTRAINT fkTechStoresPlanetaryScanners FOREIGN KEY (techStoreId) REFERENCES techStores(id) ON DELETE CASCADE
 );
 CREATE TABLE techDefenses (
   id INTEGER PRIMARY KEY,
@@ -484,7 +490,7 @@ CREATE TABLE techDefenses (
   ranking INTEGER,
   category TEXT,
   defenseCoverage REAL,
-  CONSTRAINT fkTechStoresDefenses FOREIGN KEY (techStoreId) REFERENCES techStores(id)
+  CONSTRAINT fkTechStoresDefenses FOREIGN KEY (techStoreId) REFERENCES techStores(id) ON DELETE CASCADE
 );
 CREATE TABLE techHullComponents (
   id INTEGER PRIMARY KEY,
@@ -554,7 +560,7 @@ CREATE TABLE techHullComponents (
   fuelRegenerationRate INTEGER,
   accuracy INTEGER,
   capitalShipMissile NUMERIC,
-  CONSTRAINT fkTechStoresHullComponents FOREIGN KEY (techStoreId) REFERENCES techStores(id)
+  CONSTRAINT fkTechStoresHullComponents FOREIGN KEY (techStoreId) REFERENCES techStores(id) ON DELETE CASCADE
 );
 CREATE TABLE techHulls (
   id INTEGER PRIMARY KEY,
@@ -595,5 +601,5 @@ CREATE TABLE techHulls (
   doubleMineEfficiency NUMERIC,
   innateScanRangePenFactor REAL,
   slots TEXT,
-  CONSTRAINT fkTechStoresHulls FOREIGN KEY (techStoreId) REFERENCES techStores(id)
+  CONSTRAINT fkTechStoresHulls FOREIGN KEY (techStoreId) REFERENCES techStores(id) ON DELETE CASCADE
 );

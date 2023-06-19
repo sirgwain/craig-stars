@@ -242,6 +242,27 @@ func (c *client) GetPlayer(id int64) (*game.Player, error) {
 	return &player, nil
 }
 
+func (c *client) GetPlayerForGame(gameID, userID int64) (*game.Player, error) {
+	item := Player{}
+	if err := c.db.Get(&item, "SELECT * FROM players WHERE gameId = ? AND userId = ?", gameID, userID); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	player := c.converter.ConvertPlayer(item)
+
+	// get designs
+	designs, err := c.GetShipDesignsForPlayer(player.ID)
+	if err != nil {
+		return nil, fmt.Errorf("get player designs %w", err)
+	}
+	player.Designs = designs
+
+	return &player, nil
+}
+
 func (c *client) GetLightPlayerForGame(gameID, userID int64) (*game.Player, error) {
 	item := Player{}
 	if err := c.db.Get(&item, `

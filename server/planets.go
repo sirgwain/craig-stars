@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/game"
 )
 
@@ -19,9 +20,10 @@ func (s *server) UpdatePlanetOrders(c *gin.Context) {
 	}
 
 	// find the player for this user
-	player, err := s.db.GetLightPlayerForGame(id.ID, user.ID)
+	player, err := s.db.GetPlayerForGame(id.ID, user.ID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		log.Error().Err(err).Int64("GameID", id.ID).Int64("UserID", user.ID).Msg("load planet from database")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to load player from database"})
 		return
 	}
 
@@ -34,7 +36,8 @@ func (s *server) UpdatePlanetOrders(c *gin.Context) {
 	// find the existing planet by id
 	existing, err := s.db.GetPlanet(planet.ID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		log.Error().Err(err).Int64("ID", planet.ID).Msg("load planet from database")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to load planet from database"})
 		return
 	}
 
@@ -46,7 +49,8 @@ func (s *server) UpdatePlanetOrders(c *gin.Context) {
 
 	rules, err := s.db.GetRulesForGame(planet.GameID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		log.Error().Err(err).Int64("GameID", planet.GameID).Msg("load rules from database")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to load game rules from database"})
 		return
 	}
 
@@ -59,7 +63,10 @@ func (s *server) UpdatePlanetOrders(c *gin.Context) {
 	existing.ContributesOnlyLeftoverToResearch = planet.ContributesOnlyLeftoverToResearch
 	existing.ProductionQueue = planet.ProductionQueue
 	existing.Spec = game.ComputePlanetSpec(rules, existing, player)
-	s.db.UpdatePlanet(existing)
+	if err := s.db.UpdatePlanet(existing); err != nil {
+		log.Error().Err(err).Int64("ID", existing.ID).Msg("update planet in database")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to save planet to database"})
+	}
 
 	c.JSON(http.StatusOK, existing)
 }
