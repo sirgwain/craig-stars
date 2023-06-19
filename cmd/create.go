@@ -3,7 +3,8 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/sirgwain/craig-stars/appcontext"
+	"github.com/sirgwain/craig-stars/config"
+	"github.com/sirgwain/craig-stars/db"
 	"github.com/sirgwain/craig-stars/game"
 
 	"github.com/spf13/cobra"
@@ -33,9 +34,12 @@ func addCreateUserCommand() {
 		Short: "A brief description of your command",
 		Long:  ``,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx := appcontext.Initialize()
 			user := game.NewUser(username, password, role)
-			err := ctx.DB.SaveUser(user)
+			db := db.NewClient()
+			cfg := config.GetConfig()
+			db.Connect(cfg)
+
+			err := db.CreateUser(user)
 			if err != nil {
 				return err
 			}

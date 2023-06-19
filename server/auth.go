@@ -7,13 +7,16 @@ import (
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog/log"
+	"github.com/sirgwain/craig-stars/game"
 )
 
 const userkey = "user"
 
 type sessionUser struct {
-	ID       uint64 `json:"id"`
-	Username string `json:"username"`
+	ID       int64     `json:"id"`
+	Username string    `json:"username"`
+	Role     game.Role `json:"role"`
 }
 
 type creds struct {
@@ -56,7 +59,7 @@ func (s *server) Login(c *gin.Context) {
 		return
 	}
 
-	user, err := s.ctx.DB.FindUserByUsername(creds.Username)
+	user, err := s.db.GetUserByUsername(creds.Username)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find user"})
 		return
@@ -69,7 +72,7 @@ func (s *server) Login(c *gin.Context) {
 	}
 
 	// Save the username in the session
-	sesionUser := &sessionUser{ID: user.ID, Username: user.Username}
+	sesionUser := &sessionUser{ID: user.ID, Username: user.Username, Role: user.Role}
 	session.Set(userkey, sesionUser)
 	if err := session.Save(); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save session"})
@@ -103,4 +106,28 @@ func (s *server) Me(c *gin.Context) {
 	// session := sessions.Default(c)
 	// user := session.Get(userkey)
 	c.JSON(http.StatusOK, s.GetSessionUser(c))
+}
+
+// get users
+func (s *server) Users(c *gin.Context) {
+	user := s.GetSessionUser(c)
+
+	if user == nil {
+		c.JSON(http.StatusForbidden, nil)
+		return
+	}
+
+	if user.Role != game.RoleAdmin {
+		c.JSON(http.StatusForbidden, nil)
+		return
+	}
+
+	users, err := s.db.GetUsers()
+	if err != nil {
+		log.Error().Err(err).Msg("failed to load users")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to load users"})
+		return
+	}
+
+	c.JSON(http.StatusOK, users)
 }

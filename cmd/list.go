@@ -1,7 +1,8 @@
 package cmd
 
 import (
-	"github.com/sirgwain/craig-stars/appcontext"
+	"github.com/sirgwain/craig-stars/config"
+	"github.com/sirgwain/craig-stars/db"
 	"github.com/sirgwain/craig-stars/game"
 
 	"github.com/spf13/cobra"
@@ -20,8 +21,11 @@ var listUsersCmd = &cobra.Command{
 	Short: "List users",
 	Long:  `List users in the database`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := appcontext.Initialize()
-		users, err := ctx.DB.GetUsers()
+		db := db.NewClient()
+		cfg := config.GetConfig()
+		db.Connect(cfg)
+
+		users, err := db.GetUsers()
 		if err != nil {
 			return err
 		}
@@ -38,7 +42,7 @@ func init() {
 }
 
 func addListGamesCmd() {
-	var userID uint64
+	var userID int64
 
 	// listUsersCmd represents the listUsers command
 	var listGamesCmd = &cobra.Command{
@@ -46,13 +50,16 @@ func addListGamesCmd() {
 		Short: "List games",
 		Long:  `List games in the database`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx := appcontext.Initialize()
+			db := db.NewClient()
+			cfg := config.GetConfig()
+			db.Connect(cfg)
+
 			var games []*game.Game
 			var err error
 			if userID != 0 {
-				games, err = ctx.DB.GetGamesByUser(userID)
+				games, err = db.GetGamesByUser(userID)
 			} else {
-				games, err = ctx.DB.GetGames()
+				games, err = db.GetGames()
 			}
 
 			if err != nil {
@@ -64,7 +71,7 @@ func addListGamesCmd() {
 		},
 	}
 
-	listGamesCmd.Flags().Uint64VarP(&userID, "user-id", "u", 0, "List games for user id")
+	listGamesCmd.Flags().Int64VarP(&userID, "user-id", "u", 0, "List games for user id")
 	listCmd.AddCommand(listGamesCmd)
 
 }

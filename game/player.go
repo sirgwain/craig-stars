@@ -15,7 +15,7 @@ type Player struct {
 	CreatedAt             time.Time            `json:"createdAt,omitempty"`
 	UpdatedAt             time.Time            `json:"updatedat,omitempty"`
 	GameID                uint64               `json:"gameId,omitempty"`
-	UserID                uint64               `json:"userId,omitempty"`
+	UserID                int64                `json:"userId,omitempty"`
 	Name                  string               `json:"name,omitempty"`
 	Num                   int                  `json:"num"`
 	Ready                 bool                 `json:"ready,omitempty"`
@@ -119,8 +119,8 @@ const (
 )
 
 type TransportPlan struct {
-	Name      string                 `json:"name"`
-	Tasks     WaypointTransportTasks `json:"tasks,omitempty" gorm:"serializer:json"`
+	Name  string                 `json:"name"`
+	Tasks WaypointTransportTasks `json:"tasks,omitempty" gorm:"serializer:json"`
 }
 
 type ProductionPlan struct {
@@ -146,7 +146,7 @@ type PlayerMapObjects struct {
 
 // create a new player with an existing race. The race
 // will be copied for the player
-func NewPlayer(userID uint64, race *Race) *Player {
+func NewPlayer(userID int64, race *Race) *Player {
 
 	// copy this race for the player
 	playerRace := *race

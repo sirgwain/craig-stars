@@ -11,7 +11,7 @@ import (
 func (s *server) Races(c *gin.Context) {
 	user := s.GetSessionUser(c)
 
-	races, err := s.ctx.DB.GetRaces(user.ID)
+	races, err := s.db.GetRaces(user.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -29,7 +29,7 @@ func (s *server) Race(c *gin.Context) {
 		return
 	}
 
-	race, err := s.ctx.DB.FindRaceById(user.ID)
+	race, err := s.db.FindRaceById(id.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -54,7 +54,7 @@ func (s *server) CreateRace(c *gin.Context) {
 	}
 
 	race.UserID = user.ID
-	err := s.ctx.DB.SaveRace(&race)
+	err := s.db.SaveRace(&race)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -79,7 +79,7 @@ func (s *server) UpdateRace(c *gin.Context) {
 	}
 
 	// load in the existing race from the database
-	existingRace, err := s.ctx.DB.FindRaceById(id.ID)
+	existingRace, err := s.db.FindRaceById(id.ID)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -103,7 +103,7 @@ func (s *server) UpdateRace(c *gin.Context) {
 		return
 	}
 
-	if err := s.ctx.DB.SaveRace(&race); err != nil {
+	if err := s.db.SaveRace(&race); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

@@ -34,8 +34,8 @@ type Client interface {
 	FindTechStoreById(id uint64) (*game.TechStore, error)
 
 	GetGames() ([]*game.Game, error)
-	GetGamesHostedByUser(userID uint64) ([]*game.Game, error)
-	GetGamesByUser(userID uint64) ([]*game.Game, error)
+	GetGamesHostedByUser(userID int64) ([]*game.Game, error)
+	GetGamesByUser(userID int64) ([]*game.Game, error)
 	GetOpenGames() ([]*game.Game, error)
 	FindGameById(id uint64) (*game.FullGame, error)
 	FindGameByIdLight(id uint64) (*game.Game, error)
@@ -44,12 +44,12 @@ type Client interface {
 	SaveGame(game *game.FullGame) error
 	DeleteGameById(id uint64) error
 
-	GetRaces(userID uint64) ([]*game.Race, error)
+	GetRaces(userID int64) ([]*game.Race, error)
 	FindRaceById(id uint64) (*game.Race, error)
 	SaveRace(race *game.Race) error
 
-	FindPlayerByGameId(gameID uint64, userID uint64) (*game.FullPlayer, error)
-	FindPlayerByGameIdLight(gameID uint64, userID uint64) (*game.Player, error)
+	FindPlayerByGameId(gameID uint64, userID int64) (*game.FullPlayer, error)
+	FindPlayerByGameIdLight(gameID uint64, userID int64) (*game.Player, error)
 	SavePlayer(player *game.Player) error
 
 	FindPlanetByNum(gameID uint64, num int) (*game.Planet, error)
@@ -182,7 +182,7 @@ func (db *DB) GetGames() ([]*game.Game, error) {
 	return games, nil
 }
 
-func (db *DB) GetGamesHostedByUser(userID uint64) ([]*game.Game, error) {
+func (db *DB) GetGamesHostedByUser(userID int64) ([]*game.Game, error) {
 	games := []*game.Game{}
 	if err := db.store.Find(&games, bolthold.Where("HostID").Eq(userID)); err != nil {
 		if err == bolthold.ErrNotFound {
@@ -194,7 +194,7 @@ func (db *DB) GetGamesHostedByUser(userID uint64) ([]*game.Game, error) {
 	return games, nil
 }
 
-func (db *DB) GetGamesByUser(userID uint64) ([]*game.Game, error) {
+func (db *DB) GetGamesByUser(userID int64) ([]*game.Game, error) {
 	games := []*game.Game{}
 	userGames := []*game.Game{}
 	if err := db.store.Find(&games, bolthold.Where("HostID").Eq(userID)); err != nil {
@@ -491,7 +491,7 @@ func (db *DB) DeleteGameById(id uint64) error {
 	return nil
 }
 
-func (db *DB) GetRaces(userID uint64) ([]*game.Race, error) {
+func (db *DB) GetRaces(userID int64) ([]*game.Race, error) {
 	races := []*game.Race{}
 	if err := db.store.Find(&races, bolthold.Where("UserID").Eq(userID)); err != nil {
 		if err == bolthold.ErrNotFound {
@@ -520,7 +520,7 @@ func (db *DB) SaveRace(race *game.Race) error {
 	}
 }
 
-func (db *DB) FindPlayerByGameId(gameID uint64, userID uint64) (*game.FullPlayer, error) {
+func (db *DB) FindPlayerByGameId(gameID uint64, userID int64) (*game.FullPlayer, error) {
 	player := game.FullPlayer{}
 	if err := db.store.Bolt().View(func(tx *bbolt.Tx) error {
 		gameBucketName := db.getGameBucketName(gameID)
@@ -555,7 +555,7 @@ func (db *DB) FindPlayerByGameId(gameID uint64, userID uint64) (*game.FullPlayer
 	return &player, nil
 }
 
-func (db *DB) FindPlayerByGameIdLight(gameID uint64, userID uint64) (*game.Player, error) {
+func (db *DB) FindPlayerByGameIdLight(gameID uint64, userID int64) (*game.Player, error) {
 	player := game.Player{}
 	if err := db.store.Bolt().View(func(tx *bbolt.Tx) error {
 		gameBucketName := db.getGameBucketName(gameID)

@@ -19,7 +19,7 @@ type JoinGameBind struct {
 func (s *server) PlayerGames(c *gin.Context) {
 	user := s.GetSessionUser(c)
 
-	games, err := s.ctx.DB.GetGamesByUser(user.ID)
+	games, err := s.db.GetGamesByUser(user.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -31,7 +31,7 @@ func (s *server) PlayerGames(c *gin.Context) {
 func (s *server) HostedGames(c *gin.Context) {
 	user := s.GetSessionUser(c)
 
-	games, err := s.ctx.DB.GetGamesHostedByUser(user.ID)
+	games, err := s.db.GetGamesHostedByUser(user.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -41,7 +41,7 @@ func (s *server) HostedGames(c *gin.Context) {
 }
 
 func (s *server) OpenGames(c *gin.Context) {
-	games, err := s.ctx.DB.GetOpenGames()
+	games, err := s.db.GetOpenGames()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -58,7 +58,7 @@ func (s *server) OpenGame(c *gin.Context) {
 		return
 	}
 
-	game, err := s.ctx.DB.FindGameByIdLight(id.ID)
+	game, err := s.db.FindGameByIdLight(id.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -129,13 +129,13 @@ func (s *server) JoinGame(c *gin.Context) {
 		return
 	}
 
-	game, err := s.ctx.DB.FindGameById(id.ID)
+	game, err := s.db.FindGameById(id.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	race, err := s.ctx.DB.FindRaceById(body.RaceID)
+	race, err := s.db.FindRaceById(body.RaceID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

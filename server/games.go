@@ -11,7 +11,7 @@ type idBind struct {
 }
 
 func (s *server) Games(c *gin.Context) {
-	games, err := s.ctx.DB.GetGames()
+	games, err := s.db.GetGames()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -27,7 +27,7 @@ func (s *server) GameById(c *gin.Context) {
 		return
 	}
 
-	game, err := s.ctx.DB.FindGameByIdLight(id.ID)
+	game, err := s.db.FindGameByIdLight(id.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -50,7 +50,7 @@ func (s *server) DeleteGameById(c *gin.Context) {
 	}
 
 	// validate
-	game, err := s.ctx.DB.FindGameByIdLight(id.ID)
+	game, err := s.db.FindGameByIdLight(id.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -62,7 +62,7 @@ func (s *server) DeleteGameById(c *gin.Context) {
 	}
 
 	// delete it
-	if err := s.ctx.DB.DeleteGameById(id.ID); err != nil {
+	if err := s.db.DeleteGameById(id.ID); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

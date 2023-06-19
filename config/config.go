@@ -12,6 +12,7 @@ type Config struct {
 	Database struct {
 		Recreate bool   `yaml:"Recreate,omitempty"`
 		Filename string `yaml:"Filename,omitempty"`
+		Schema   string `yaml:"Schema,omitempty"`
 	}
 	GeneratedUserPassword string
 }

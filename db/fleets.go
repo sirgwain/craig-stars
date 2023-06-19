@@ -8,9 +8,9 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func (db *DB) FindFleetByID(id uint64) (*game.Fleet, error) {
+func (c *client) FindFleetByID(id uint64) (*game.Fleet, error) {
 	fleet := game.Fleet{}
-	if err := db.sqlDB.Preload(clause.Associations).Preload("Tokens.Design").First(&fleet, id).Error; err != nil {
+	if err := c.sqlDB.Preload(clause.Associations).Preload("Tokens.Design").First(&fleet, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		} else {
@@ -21,9 +21,9 @@ func (db *DB) FindFleetByID(id uint64) (*game.Fleet, error) {
 	return &fleet, nil
 }
 
-func (db *DB) FindFleetByNum(gameID uint64, playerNum int, num int) (*game.Fleet, error) {
+func (c *client) FindFleetByNum(gameID uint64, playerNum int, num int) (*game.Fleet, error) {
 	fleet := game.Fleet{}
-	if err := db.sqlDB.Preload(clause.Associations).Where("game_id = ? AND player_num = ? AND num = ?", gameID, playerNum, num).First(&fleet).Error; err != nil {
+	if err := c.sqlDB.Preload(clause.Associations).Where("game_id = ? AND player_num = ? AND num = ?", gameID, playerNum, num).First(&fleet).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		} else {
@@ -34,14 +34,14 @@ func (db *DB) FindFleetByNum(gameID uint64, playerNum int, num int) (*game.Fleet
 	return &fleet, nil
 }
 
-func (db *DB) SaveFleet(gameID uint64, fleet *game.Fleet) error {
+func (c *client) SaveFleet(gameID uint64, fleet *game.Fleet) error {
 
 	// save the fleet and all production queue items
-	if err := db.sqlDB.Session(&gorm.Session{FullSaveAssociations: true}).Save(fleet).Error; err != nil {
+	if err := c.sqlDB.Session(&gorm.Session{FullSaveAssociations: true}).Save(fleet).Error; err != nil {
 		return err
 	}
 
-	err := db.sqlDB.Model(fleet).Association("Tokens").Replace(fleet.Tokens)
+	err := c.sqlDB.Model(fleet).Association("Tokens").Replace(fleet.Tokens)
 
 	return err
 }

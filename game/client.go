@@ -9,8 +9,8 @@ type client struct {
 }
 
 type Client interface {
-	CreateGame(hostID uint64, settings GameSettings) Game
-	NewPlayer(userID uint64, race Race) *Player
+	CreateGame(hostID int64, settings GameSettings) Game
+	NewPlayer(userID int64, race Race) *Player
 	GenerateUniverse(game *Game, players []*Player) (*Universe, error)
 	SubmitTurn(player *Player)
 	GenerateTurn(game *FullGame) error
@@ -25,7 +25,7 @@ func timeTrack(start time.Time, name string) {
 	log.Printf("%s took %s", name, elapsed)
 }
 
-func (c *client) CreateGame(hostID uint64, settings GameSettings) Game {
+func (c *client) CreateGame(hostID int64, settings GameSettings) Game {
 	g := NewGame().WithSettings(settings)
 	g.HostID = hostID
 
@@ -33,7 +33,7 @@ func (c *client) CreateGame(hostID uint64, settings GameSettings) Game {
 }
 
 // create a new player
-func (c *client) NewPlayer(userID uint64, race Race, rules *Rules) *Player {
+func (c *client) NewPlayer(userID int64, race Race, rules *Rules) *Player {
 	player := NewPlayer(userID, &race)
 	player.Race.Spec = computeRaceSpec(&player.Race, rules)
 

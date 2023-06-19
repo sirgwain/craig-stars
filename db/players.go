@@ -8,10 +8,10 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func (db *DB) FindPlayerByGameId(gameID uint64, userID uint64) (*game.FullPlayer, error) {
+func (c *client) FindPlayerByGameId(gameID uint64, userID int64) (*game.FullPlayer, error) {
 	player := game.FullPlayer{}
 
-	if err := db.sqlDB.
+	if err := c.sqlDB.
 		Preload(clause.Associations).
 		Preload("Designs").
 		Preload("PlanetIntels").
@@ -28,7 +28,7 @@ func (db *DB) FindPlayerByGameId(gameID uint64, userID uint64) (*game.FullPlayer
 		}
 	}
 
-	if err := db.sqlDB.
+	if err := c.sqlDB.
 		Preload("Tokens.Design").
 		Where("player_id = ? and starbase != ?", player.ID, true).
 		Order("num").
@@ -40,7 +40,7 @@ func (db *DB) FindPlayerByGameId(gameID uint64, userID uint64) (*game.FullPlayer
 		}
 	}
 
-	if err := db.sqlDB.
+	if err := c.sqlDB.
 		Preload("Starbase").
 		Preload("Starbase.Tokens").
 		Where("player_id = ?", player.ID).
@@ -57,10 +57,10 @@ func (db *DB) FindPlayerByGameId(gameID uint64, userID uint64) (*game.FullPlayer
 }
 
 // find a plyer for a game without loading all data
-func (db *DB) FindPlayerByGameIdLight(gameID uint64, userID uint64) (*game.Player, error) {
+func (c *client) FindPlayerByGameIdLight(gameID uint64, userID int64) (*game.Player, error) {
 	player := game.Player{}
 
-	if err := db.sqlDB.
+	if err := c.sqlDB.
 		Where("game_id = ? AND user_id = ?", gameID, userID).
 		First(&player).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -74,6 +74,6 @@ func (db *DB) FindPlayerByGameIdLight(gameID uint64, userID uint64) (*game.Playe
 }
 
 // Save a player to the db
-func (db *DB) SavePlayer(player *game.Player) error {
-	return db.sqlDB.Save(player).Error
+func (c *client) SavePlayer(player *game.Player) error {
+	return c.sqlDB.Save(player).Error
 }

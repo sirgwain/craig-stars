@@ -8,26 +8,32 @@ import (
 	"gorm.io/gorm"
 )
 
-func (db *DB) GetUsers() ([]*game.User, error) {
+func (c *client) GetUsers() ([]game.User, error) {
 
-	users := []*game.User{}
-	if err := db.sqlDB.Find(&users).Error; err != nil {
+	users := []game.User{}
+	if err := c.sqlDB.Find(&users).Error; err != nil {
 		return nil, err
 	}
 
 	return users, nil
 }
 
-func (db *DB) SaveUser(user *game.User) error {
+func (c *client) CreateUser(user *game.User) error {
 	log.Debug().Msgf("Creating user %s", user.Username)
-	err := db.sqlDB.Save(&user).Error
+	err := c.sqlDB.Save(&user).Error
 	return err
 }
 
-func (db *DB) FindUserById(id uint64) (*game.User, error) {
+func (c *client) UpdateUser(user *game.User) error {
+	log.Debug().Msgf("Updating user %s", user.Username)
+	err := c.sqlDB.Save(&user).Error
+	return err
+}
+
+func (c *client) GetUser(id int64) (*game.User, error) {
 	user := game.User{}
 
-	if err := db.sqlDB.First(&user, id).Error; err != nil {
+	if err := c.sqlDB.First(&user, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		} else {
@@ -38,9 +44,9 @@ func (db *DB) FindUserById(id uint64) (*game.User, error) {
 	return &user, nil
 }
 
-func (db *DB) FindUserByUsername(username string) (*game.User, error) {
+func (c *client) GetUserByUsername(username string) (*game.User, error) {
 	user := game.User{}
-	if err := db.sqlDB.
+	if err := c.sqlDB.
 		Where("username = ?", username).
 		First(&user).
 		Error; err != nil {
@@ -54,6 +60,6 @@ func (db *DB) FindUserByUsername(username string) (*game.User, error) {
 	return &user, nil
 }
 
-func (db *DB) DeleteUserById(id uint64) error {
-	return db.sqlDB.Delete(&game.User{ID: id}).Error
+func (c *client) DeleteUser(id int64) error {
+	return c.sqlDB.Delete(&game.User{ID: id}).Error
 }
