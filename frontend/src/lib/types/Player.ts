@@ -27,6 +27,7 @@ export type Player = {
 	fleets: Fleet[];
 	planetIntels: Planet[];
 	fleetIntels?: Fleet[];
+	playerIntels: PlayerIntel[];
 	researchSpentLastYear?: number;
 	spec: PlayerSpec;
 } & PlayerOrders;
@@ -45,6 +46,14 @@ export type PlayerSpec = {
 	currentResearchCost?: number;
 };
 
+export type PlayerIntel = {
+	name: string;
+	num: number;
+	color: string;
+	seen: boolean;
+	raceName?: string;
+	racePluralName?: string;
+};
 
 export enum NextResearchField {
 	SameField = 'SameField',

@@ -1,25 +1,24 @@
 <script lang="ts">
-	import { selectedMapObject, commandedPlanet, game, player } from '$lib/services/Context';
-	import { Icon } from '@steeze-ui/svelte-icon';
-	import { PaperAirplane } from '@steeze-ui/heroicons';
-	import PlanetSummary from './PlanetSummary.svelte';
-	import type { Planet } from '$lib/types/Planet';
+	import { selectedMapObject } from '$lib/services/Context';
+	import type { Fleet } from '$lib/types/Fleet';
 	import { MapObjectType } from '$lib/types/MapObject';
+	import type { Planet } from '$lib/types/Planet';
+	import type { Player } from '$lib/types/Player';
+	import { PaperAirplane } from '@steeze-ui/heroicons';
+	import { Icon } from '@steeze-ui/svelte-icon';
+	import FleetSummary from './FleetSummary.svelte';
+	import PlanetSummary from './PlanetSummary.svelte';
 	import UnknownSummary from './UnknownSummary.svelte';
-	import { findMyPlanet } from '$lib/types/Player';
 
-	let title = '';
-
-	$: {
-		if ($selectedMapObject) {
-			title = $selectedMapObject.name;
-		}
-	}
+	export let player: Player;
 
 	let selectedPlanet: Planet | undefined;
+	let selectedFleet: Fleet | undefined;
 	$: {
 		selectedPlanet =
 			$selectedMapObject?.type == MapObjectType.Planet ? ($selectedMapObject as Planet) : undefined;
+		selectedFleet =
+			$selectedMapObject?.type == MapObjectType.Fleet ? ($selectedMapObject as Fleet) : undefined;
 	}
 </script>
 
@@ -27,12 +26,14 @@
 	<div class="card-body p-2 gap-0">
 		<div class="flex flex-row items-center">
 			<div class="flex-1 text-center text-lg font-semibold text-secondary">
-				{title}
+				{$selectedMapObject?.name ?? ''}
 			</div>
 			<Icon src={PaperAirplane} size="16" class="hover:stroke-accent" />
 		</div>
-		{#if selectedPlanet && $player}
-			<PlanetSummary planet={selectedPlanet} player={$player} />
+		{#if selectedPlanet}
+			<PlanetSummary planet={selectedPlanet} {player} />
+		{:else if selectedFleet}
+			<FleetSummary fleet={selectedFleet} {player} />
 		{:else}
 			<UnknownSummary />
 		{/if}

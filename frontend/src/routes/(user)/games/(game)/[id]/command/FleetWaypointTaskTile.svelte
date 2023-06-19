@@ -1,14 +1,10 @@
 <script lang="ts">
-	import {
-		game,
-		commandedFleet,
-		commandedMapObjectName,
-		selectedWaypoint
-	} from '$lib/services/Context';
+	import { commandedFleet, game, selectedWaypoint } from '$lib/services/Context';
 	import { FleetService } from '$lib/services/FleetService';
 	import { WaypointTask } from '$lib/types/Fleet';
 	import { $enum as eu } from 'ts-enum-util';
 	import CommandTile from './CommandTile.svelte';
+	import { startCase } from 'lodash-es';
 
 	const fleetService = new FleetService();
 
@@ -35,7 +31,8 @@
 				{#if task === WaypointTask.None}
 					<option value={task}>None</option>
 				{:else}
-					<option value={task}>{eu(WaypointTask).getValueOrDefault(task, 'None')}</option>
+					<option value={task}>{startCase(eu(WaypointTask).getValueOrDefault(task, 'None'))}</option
+					>
 				{/if}
 			{/each}
 		</select>

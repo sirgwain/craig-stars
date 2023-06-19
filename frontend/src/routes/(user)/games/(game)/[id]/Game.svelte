@@ -1,11 +1,9 @@
 <script lang="ts">
-	import { settings } from '$lib/services/Context';
 	import type { Game } from '$lib/types/Game';
 	import type { Player } from '$lib/types/Player';
 	import CommandPane from './command/CommandPane.svelte';
 	import HighlightedMapObjectStats from './HighlightedMapObjectStats.svelte';
 	import MapObjectSummary from './MapObjectSummary.svelte';
-	import MessagesPane from './MessagesPane.svelte';
 	import Scanner from './scanner/Scanner.svelte';
 	import ScannerToolbar from './scanner/ScannerToolbar.svelte';
 
@@ -18,10 +16,10 @@
 		<div class="flex flex-col">
 			<div class="flex-1">
 				<div class="flex flex-row flex-wrap gap-3.5 justify-between">
-					<CommandPane />
+					<CommandPane {game} {player} />
 				</div>
 			</div>
-			<div class="hidden mt-3 lg:block flex-initial"><MapObjectSummary /></div>
+			<div class="hidden mt-3 lg:block flex-initial"><MapObjectSummary {player} /></div>
 		</div>
 	</div>
 
@@ -31,7 +29,7 @@
 			<Scanner {game} {player} />
 		</div>
 		<HighlightedMapObjectStats />
-		<div class="lg:hidden mt-3 block flex-initial"><MapObjectSummary /></div>
-		<div class="md:hidden mt-3 block flex-initial"><CommandPane /></div>
+		<div class="lg:hidden mt-3 block flex-initial"><MapObjectSummary {player} /></div>
+		<div class="md:hidden mt-3 block flex-initial"><CommandPane {game} {player} /></div>
 	</div>
 </div>

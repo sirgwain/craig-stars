@@ -1,5 +1,6 @@
 <script lang="ts">
 	export let title = '';
+	
 </script>
 
 <div class="card bg-base-200 shadow-xl w-full lg:w-[14rem] rounded-sm border-2 border-base-300 inline-block">
