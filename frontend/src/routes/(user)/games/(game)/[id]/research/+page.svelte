@@ -6,7 +6,7 @@
 	$: player = $game?.player;
 
 	async function update() {
-		player = await $game?.updatePlayer();
+		player = await $game?.updatePlayerOrders();
 	}
 </script>
 

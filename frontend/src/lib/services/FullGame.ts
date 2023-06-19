@@ -101,11 +101,19 @@ export class FullGame implements Game {
 		return this;
 	}
 
-	async updatePlayer() {
+	async updatePlayerOrders() {
 		const result = await PlayerService.updateOrders(this.player);
 		if (result) {
 			Object.assign(this.player, result.player);
 			this.universe.planets = result.planets;
+		}
+		return this.player;
+	}
+
+	async updatePlayerPlans() {
+		const result = await PlayerService.updatePlans(this.player);
+		if (result) {
+			Object.assign(this.player, result);
 		}
 		return this.player;
 	}

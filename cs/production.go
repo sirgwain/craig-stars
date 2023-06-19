@@ -31,6 +31,7 @@ type productionResult struct {
 }
 
 type ProductionQueueItem struct {
+//	ProductionPlanItem
 	Type       QueueItemType `json:"type"`
 	DesignName string        `json:"designName"`
 	Quantity   int           `json:"quantity"`

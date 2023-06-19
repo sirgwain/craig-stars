@@ -40,7 +40,7 @@
 
 		<div class="hidden md:inline-block">
 			<div class="dropdown dropdown-end">
-				<label for="reports" tabindex="0" class="btn btn-ghost">Commands</label>
+				<label for="reports" tabindex="0" class="btn btn-ghost w-40">Commands</label>
 				<ul
 					id="commands"
 					tabindex="0"
@@ -48,6 +48,9 @@
 				>
 					<li><a href={`/games/${game.id}/research`}>Research</a></li>
 					<li><a href={`/games/${game.id}/designs`}>Designs</a></li>
+					<li><a href={`/games/${game.id}/battle-plans`}>Battle Plans</a></li>
+					<li><a href={`/games/${game.id}/production-plans`}>Production Plans</a></li>
+					<li><a href={`/games/${game.id}/transport-plans`}>Transport Plans</a></li>
 				</ul>
 			</div>
 
@@ -81,6 +84,11 @@
 				</li>
 				<li class="md:hidden"><a href={`/games/${game.id}/research`}>Research</a></li>
 				<li class="md:hidden"><a href={`/games/${game.id}/designs`}>Ship Designer</a></li>
+				<li class="md:hidden"><a href={`/games/${game.id}/battle-plans`}>Battle Plans</a></li>
+				<li class="md:hidden">
+					<a href={`/games/${game.id}/production-plans`}>Production Plans</a>
+				</li>
+				<li class="md:hidden"><a href={`/games/${game.id}/transport-plans`}>Transport Plans</a></li>
 
 				<li class="md:hidden menu-title">
 					<span>Reports</span>

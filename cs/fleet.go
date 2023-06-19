@@ -64,10 +64,10 @@ type FleetSpec struct {
 }
 
 type Waypoint struct {
-	Position          Vector                 `json:"position,omitempty"`
-	WarpFactor        int                    `json:"warpFactor,omitempty"`
+	Position          Vector                 `json:"position"`
+	WarpFactor        int                    `json:"warpFactor"`
 	EstFuelUsage      int                    `json:"estFuelUsage,omitempty"`
-	Task              WaypointTask           `json:"task,omitempty"`
+	Task              WaypointTask           `json:"task"`
 	TransportTasks    WaypointTransportTasks `json:"transportTasks,omitempty"`
 	WaitAtWaypoint    bool                   `json:"waitAtWaypoint,omitempty"`
 	TargetType        MapObjectType          `json:"targetType,omitempty"`
@@ -95,11 +95,11 @@ const (
 )
 
 type WaypointTransportTasks struct {
-	Fuel      WaypointTransportTask `json:"fuel,omitempty"`
-	Ironium   WaypointTransportTask `json:"ironium,omitempty"`
-	Boranium  WaypointTransportTask `json:"boranium,omitempty"`
-	Germanium WaypointTransportTask `json:"germanium,omitempty"`
-	Colonists WaypointTransportTask `json:"colonists,omitempty"`
+	Fuel      WaypointTransportTask `json:"fuel"`
+	Ironium   WaypointTransportTask `json:"ironium"`
+	Boranium  WaypointTransportTask `json:"boranium"`
+	Germanium WaypointTransportTask `json:"germanium"`
+	Colonists WaypointTransportTask `json:"colonists"`
 }
 
 type WaypointTransportTask struct {

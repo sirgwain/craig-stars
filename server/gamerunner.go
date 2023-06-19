@@ -267,7 +267,7 @@ func (gr *gameRunner) SubmitTurn(gameID int64, userID int64) error {
 	}
 
 	player.SubmittedTurn = true
-	gr.db.UpdateLightPlayer(player)
+	gr.db.UpdatePlayerOrders(player)
 	return nil
 }
 

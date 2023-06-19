@@ -41,7 +41,7 @@ export interface Waypoint {
 	position: Vector;
 	warpFactor: number;
 	estFuelUsage?: number;
-	task?: WaypointTask;
+	task: WaypointTask;
 	waitAtWaypoint?: boolean;
 	targetType?: MapObjectType;
 	targetNum?: number;
@@ -62,6 +62,33 @@ export enum WaypointTask {
 	Patrol = 'Patrol',
 	Route = 'Route',
 	TransferFleet = 'TransferFleet'
+}
+
+export type WaypointTransportTasks = {
+	fuel: WaypointTransportTask;
+	ironium: WaypointTransportTask;
+	boranium: WaypointTransportTask;
+	germanium: WaypointTransportTask;
+	colonists: WaypointTransportTask;
+};
+
+export type WaypointTransportTask = {
+	action?: WaypointTaskTransportAction;
+	amount?: number;
+};
+
+export enum WaypointTaskTransportAction {
+	None = '',
+	LoadOptimal = 'LoadOptimal',
+	LoadAll = 'LoadAll',
+	UnloadAll = 'UnloadAll',
+	LoadAmount = 'LoadAmount',
+	UnloadAmount = 'UnloadAmount',
+	FillPercent = 'FillPercent',
+	WaitForPercent = 'WaitForPercent',
+	LoadDunnage = 'LoadDunnage',
+	SetAmountTo = 'SetAmountTo',
+	SetWaypointTo = 'SetWaypointTo'
 }
 
 export interface Spec {

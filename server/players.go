@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"math"
 	"net/http"
 
 	"github.com/go-chi/render"
@@ -16,6 +17,14 @@ type playerOrdersRequest struct {
 }
 
 func (req *playerOrdersRequest) Bind(r *http.Request) error {
+	return nil
+}
+
+type playerPlansRequest struct {
+	*cs.PlayerPlans
+}
+
+func (req *playerPlansRequest) Bind(r *http.Request) error {
 	return nil
 }
 
@@ -122,7 +131,7 @@ func (s *server) submitTurn(w http.ResponseWriter, r *http.Request) {
 
 	// submit the turn
 	player.SubmittedTurn = true
-	if err := s.db.UpdateLightPlayer(player); err != nil {
+	if err := s.db.UpdatePlayerOrders(player); err != nil {
 		log.Error().Err(err).Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update player")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
@@ -173,7 +182,7 @@ func (s *server) updatePlayerOrders(w http.ResponseWriter, r *http.Request) {
 	orderer.UpdatePlayerOrders(player, planets, *orders.PlayerOrders, &game.Rules)
 
 	// save the player to the database
-	if err := s.db.UpdateLightPlayer(player); err != nil {
+	if err := s.db.UpdatePlayerOrders(player); err != nil {
 		log.Error().Err(err).Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update player")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
@@ -193,4 +202,42 @@ func (s *server) updatePlayerOrders(w http.ResponseWriter, r *http.Request) {
 
 	log.Info().Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update orders")
 	rest.RenderJSON(w, rest.JSON{"player": player, "planets": planets})
+}
+
+// Submit a turn for the player
+func (s *server) updatePlayerPlans(w http.ResponseWriter, r *http.Request) {
+	player := s.contextPlayer(r)
+
+	plans := playerPlansRequest{}
+	if err := render.Bind(r, &plans); err != nil {
+		render.Render(w, r, ErrBadRequest(err))
+		return
+	}
+
+	// TODO: validate?
+	// TODO: convert creates into a separate POST?
+	// TODO: update fleets with deleted battle plans to use default battleplan
+	nextNum := 0
+	for i := range plans.BattlePlans {
+		nextNum = int(math.Max(float64(plans.BattlePlans[i].Num+1), float64(nextNum)))
+	}
+
+	for i := range plans.BattlePlans {
+		if plans.BattlePlans[i].Num == -1 {
+			plans.BattlePlans[i].Num = nextNum
+			nextNum++
+		}
+	}
+
+	player.PlayerPlans = *plans.PlayerPlans
+
+	// save the player to the database
+	if err := s.db.UpdatePlayerOrders(player); err != nil {
+		log.Error().Err(err).Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update player")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	log.Info().Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update plans")
+	rest.RenderJSON(w, player)
 }

@@ -90,11 +90,13 @@ type PlayerSpec struct {
 }
 
 type BattlePlan struct {
+	Num             int             `json:"num"`
 	Name            string          `json:"name"`
 	PrimaryTarget   BattleTarget    `json:"primaryTarget"`
 	SecondaryTarget BattleTarget    `json:"secondaryTarget"`
 	Tactic          BattleTactic    `json:"tactic"`
 	AttackWho       BattleAttackWho `json:"attackWho"`
+	DumpCargo       bool            `json:"dumpCargo"`
 }
 
 type BattleTarget string
@@ -133,11 +135,13 @@ const (
 )
 
 type TransportPlan struct {
+	Num   int                    `json:"num"`
 	Name  string                 `json:"name"`
 	Tasks WaypointTransportTasks `json:"tasks,omitempty"`
 }
 
 type ProductionPlan struct {
+	Num                               int                  `json:"num"`
 	Name                              string               `json:"name"`
 	Items                             []ProductionPlanItem `json:"items"`
 	ContributesOnlyLeftoverToResearch bool                 `json:"contributesOnlyLeftoverToResearch,omitempty"`
@@ -147,7 +151,6 @@ type ProductionPlanItem struct {
 	Type       QueueItemType `json:"type"`
 	DesignName string        `json:"designName"`
 	Quantity   int           `json:"quantity"`
-	Allocated  Cost          `json:"allocated"`
 }
 
 // All mapobjects that a player can issue commands to
@@ -182,6 +185,7 @@ func NewPlayer(userID int64, race *Race) *Player {
 		PlayerPlans: PlayerPlans{
 			BattlePlans: []BattlePlan{
 				{
+					Num:             0,
 					Name:            "Default",
 					PrimaryTarget:   BattleTargetArmedShips,
 					SecondaryTarget: BattleTargetAny,
@@ -190,32 +194,54 @@ func NewPlayer(userID int64, race *Race) *Player {
 				},
 			},
 			ProductionPlans: []ProductionPlan{
-				{Name: "Default", Items: []ProductionPlanItem{
-					{Type: QueueItemTypeAutoMinTerraform, Quantity: 1},
-					{Type: QueueItemTypeAutoFactories, Quantity: 10},
-					{Type: QueueItemTypeAutoMines, Quantity: 10},
-				}},
+				{
+					Num:  0,
+					Name: "Default", Items: []ProductionPlanItem{
+						{Type: QueueItemTypeAutoMinTerraform, Quantity: 1},
+						{Type: QueueItemTypeAutoFactories, Quantity: 10},
+						{Type: QueueItemTypeAutoMines, Quantity: 10},
+					},
+				},
 			},
 			TransportPlans: []TransportPlan{
-				{Name: "Default"},
-				{Name: "Quick Load", Tasks: WaypointTransportTasks{
-					Fuel:      WaypointTransportTask{Action: TransportActionLoadOptimal},
-					Ironium:   WaypointTransportTask{Action: TransportActionLoadAll},
-					Boranium:  WaypointTransportTask{Action: TransportActionLoadAll},
-					Germanium: WaypointTransportTask{Action: TransportActionLoadAll},
-				}},
-				{Name: "Quick Drop", Tasks: WaypointTransportTasks{
-					Fuel:      WaypointTransportTask{Action: TransportActionLoadOptimal},
-					Ironium:   WaypointTransportTask{Action: TransportActionUnloadAll},
-					Boranium:  WaypointTransportTask{Action: TransportActionUnloadAll},
-					Germanium: WaypointTransportTask{Action: TransportActionUnloadAll},
-				}},
-				{Name: "Load Colonists", Tasks: WaypointTransportTasks{
-					Colonists: WaypointTransportTask{Action: TransportActionLoadAll},
-				}},
-				{Name: "Unload Colonists", Tasks: WaypointTransportTasks{
-					Colonists: WaypointTransportTask{Action: TransportActionUnloadAll},
-				}},
+				{
+					Num:  0,
+					Name: "Default",
+				},
+				{
+					Num:  1,
+					Name: "Quick Load",
+					Tasks: WaypointTransportTasks{
+						Fuel:      WaypointTransportTask{Action: TransportActionLoadOptimal},
+						Ironium:   WaypointTransportTask{Action: TransportActionLoadAll},
+						Boranium:  WaypointTransportTask{Action: TransportActionLoadAll},
+						Germanium: WaypointTransportTask{Action: TransportActionLoadAll},
+					},
+				},
+				{
+					Num:  2,
+					Name: "Quick Drop",
+					Tasks: WaypointTransportTasks{
+						Fuel:      WaypointTransportTask{Action: TransportActionLoadOptimal},
+						Ironium:   WaypointTransportTask{Action: TransportActionUnloadAll},
+						Boranium:  WaypointTransportTask{Action: TransportActionUnloadAll},
+						Germanium: WaypointTransportTask{Action: TransportActionUnloadAll},
+					},
+				},
+				{
+					Num:  3,
+					Name: "Load Colonists",
+					Tasks: WaypointTransportTasks{
+						Colonists: WaypointTransportTask{Action: TransportActionLoadAll},
+					},
+				},
+				{
+					Num:  4,
+					Name: "Unload Colonists",
+					Tasks: WaypointTransportTasks{
+						Colonists: WaypointTransportTask{Action: TransportActionUnloadAll},
+					},
+				},
 			},
 		},
 	}

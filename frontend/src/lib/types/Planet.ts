@@ -1,4 +1,5 @@
 import type { Cargo } from './Cargo';
+import type { Cost } from './Cost';
 import type { Hab } from './Hab';
 import { MapObjectType, type MapObject } from './MapObject';
 import type { Mineral } from './Mineral';
@@ -28,13 +29,10 @@ export type Planet = {
 } & MapObject;
 
 export interface ProductionQueueItem {
-	id?: number;
-	createdAt?: string;
-	updatedAt?: string;
-
 	type: QueueItemType;
 	quantity: number;
 	designName?: string;
+	allocated?: Cost;
 }
 
 /**
@@ -263,7 +261,7 @@ export interface PlanetSpec {
 	starbaseDesignNum?: number;
 	starbaseDesignName?: string;
 	dockCapacity: number;
-	
+
 	hasMassDriver: boolean;
 	massDriver: string;
 	safePacketSpeed?: number;

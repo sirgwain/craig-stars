@@ -229,6 +229,7 @@ func Start(db DBClient, config config.Config) {
 					r.Use(server.playerCtx)
 					r.Get("/player", server.player)
 					r.Put("/player", server.updatePlayerOrders)
+					r.Put("/player/plans", server.updatePlayerPlans)
 					r.Post("/submit-turn", server.submitTurn)
 
 					// ship designs

@@ -1,6 +1,6 @@
 import type { BattleAttackWho, BattleRecord, BattleTactic, BattleTarget } from './Battle';
-import type { Fleet } from './Fleet';
-import type { Planet } from './Planet';
+import type { Fleet, WaypointTransportTasks } from './Fleet';
+import type { Planet, ProductionQueueItem } from './Planet';
 import { humanoid, type Race } from './Race';
 import type { ShipDesign, ShipDesignIntel } from './ShipDesign';
 import type { Tech, TechDefense, TechPlanetaryScanner } from './Tech';
@@ -26,7 +26,8 @@ export type PlayerResponse = {
 	spec: PlayerSpec;
 } & PlayerOrders &
 	PlayerIntels &
-	PlayerMessages;
+	PlayerMessages &
+	PlayerPlans;
 
 export type PlayerMessages = {
 	messages: Message[];
@@ -34,6 +35,8 @@ export type PlayerMessages = {
 
 export type PlayerPlans = {
 	battlePlans?: BattlePlan[];
+	productionPlans?: ProductionPlan[];
+	transportPlans?: TransportPlan[];
 };
 
 export type PlayerIntels = {
@@ -42,6 +45,7 @@ export type PlayerIntels = {
 	shipDesignIntels?: ShipDesignIntel[];
 	playerIntels: PlayerIntel[];
 };
+
 export type PlayerMapObjects = {
 	planets: Planet[];
 	fleets: Fleet[];
@@ -55,11 +59,25 @@ export type PlayerOrders = {
 };
 
 export type BattlePlan = {
+	num: number;
 	name: string;
 	primaryTarget: BattleTarget;
 	secondaryTarget: BattleTarget;
 	tactic: BattleTactic;
 	attackWho: BattleAttackWho;
+	dumpCargo: boolean;
+};
+
+export type TransportPlan = {
+	num: number;
+	name: string;
+	tasks: WaypointTransportTasks;
+};
+
+export type ProductionPlan = {
+	num: number;
+	name: string;
+	items: ProductionQueueItem[];
 };
 
 export type PlayerSpec = {
