@@ -79,7 +79,7 @@
 
 		<span slot="cell">
 			{#if column.key == 'pluralName'}
-				<a href="/races/{row.id}" class="link text-lg">{cell}</a>
+				<a href="/races/{row.id}" class="link text-2xl">{cell}</a>
 			{:else if column.key == 'createdAt'}
 				{format(parseJSON(cell), 'E, MMM do yyyy hh:mm aaa')}
 			{:else if column.key == 'action'}

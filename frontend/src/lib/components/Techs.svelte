@@ -1,9 +1,8 @@
 <script lang="ts">
-	import type { Tech, TechStore } from '$lib/types/Tech';
 	import TechSummary from '$lib/components/tech/TechSummary.svelte';
 	import techjson from '$lib/ssr/techs.json';
+	import type { Tech, TechStore } from '$lib/types/Tech';
 	import { onMount } from 'svelte';
-	import { kebabCase } from 'lodash-es';
 
 	// for ssr, we start with techs from a json file
 	export let techStore: TechStore = techjson as TechStore;
@@ -39,7 +38,7 @@
 	});
 </script>
 
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols4-4 gap-2">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
 	{#each techs as tech}
 		<div>
 			<TechSummary {tech} />

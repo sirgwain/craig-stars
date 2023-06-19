@@ -40,68 +40,66 @@
 	};
 </script>
 
-<div class="md:max-w-md mx-auto">
-	<h2 class="font-semibold text-xl my-2">Games</h2>
-	<div class="flex justify-evenly">
-		<a class="btn gap-2" href="/host-game">
-			<Galaxy class="fill-base-content w-12 h-12" />
-			Host
-		</a>
-		<button class="btn gap-2" href="/single-player-game">
-			<Processor class="fill-base-content w-12 h-12" />
-			Single Player
-		</button>
-	</div>
-	<div class="container mt-2 grid grid-cols-12 gap-1">
-		{#if myGames?.length > 0}
-			<div class="col-span-6 text-secondary">Name</div>
-			<div class="col-span-2 text-secondary">Year</div>
-			<div class="col-span-2 text-secondary">Players</div>
-			<div class="col-span-2" />
+<h2 class="font-semibold text-xl my-2">Games</h2>
+<div class="flex justify-evenly">
+	<a class="btn gap-2" href="/host-game">
+		<Galaxy class="fill-base-content w-12 h-12" />
+		Host
+	</a>
+	<button class="btn gap-2" href="/single-player-game">
+		<Processor class="fill-base-content w-12 h-12" />
+		Single Player
+	</button>
+</div>
+<div class="mt-2 grid grid-cols-12 gap-1">
+	{#if myGames?.length > 0}
+		<div class="col-span-6 text-secondary">Name</div>
+		<div class="col-span-2 text-secondary">Year</div>
+		<div class="col-span-2 text-secondary">Players</div>
+		<div class="col-span-2" />
 
-			{#each myGames as game}
-				<div class="col-span-6">
-					<a class="text-primary text-2xl hover:text-accent w-full" href="/games/{game.id}"
-						>{game.name}</a
+		{#each myGames as game}
+			<div class="col-span-6">
+				<a class="text-primary text-2xl hover:text-accent w-full" href="/games/{game.id}"
+					>{game.name}</a
+				>
+			</div>
+			<div class="col-span-2 text-2xl">
+				{game.year}
+			</div>
+			<div class="col-span-2 text-2xl">
+				{game.numPlayers}
+			</div>
+			{#if game.hostId == $me?.id}
+				<div class="col-span-2">
+					<button
+						on:click={() => deleteGame(game)}
+						class="float-right btn btn-error btn-danger btn-sm"
+					>
+						<Icon src={XMark} size="16" class="hover:stroke-accent md:hidden" />
+						<span class="hidden md:inline-block">Delete</span></button
 					>
 				</div>
-				<div class="col-span-2 text-2xl">
-					{game.year}
-				</div>
-				<div class="col-span-2 text-2xl">
-					{game.numPlayers}
-				</div>
-				{#if game.hostId == $me?.id}
-					<div class="col-span-2">
-						<button
-							on:click={() => deleteGame(game)}
-							class="float-right btn btn-error btn-danger btn-sm"
-						>
-							<Icon src={XMark} size="16" class="hover:stroke-accent md:hidden" />
-							<span class="hidden md:inline-block">Delete</span></button
-						>
-					</div>
-				{:else}
-					<div class="col-span-2" />
-				{/if}
-			{/each}
-		{/if}
+			{:else}
+				<div class="col-span-2" />
+			{/if}
+		{/each}
+	{/if}
 
-		{#if openGames?.length > 0}
-			<h2 class="font-semibold text-xl col-span-full">Open Games</h2>
-			<div class="col-span-6 text-secondary">Name</div>
-			<div class="col-span-6 text-secondary">Players</div>
+	{#if openGames?.length > 0}
+		<h2 class="font-semibold text-xl col-span-full">Open Games</h2>
+		<div class="col-span-6 text-secondary">Name</div>
+		<div class="col-span-6 text-secondary">Players</div>
 
-			{#each openGames as game}
-				<div class="col-span-6">
-					<a class="text-primary text-2xl hover:text-accent w-full" href="/join-game/{game.id}"
-						>{game.name}</a
-					>
-				</div>
-				<div class="col-span-3 text-2xl">
-					{game.numPlayers - game.openPlayerSlots} / {game.numPlayers}
-				</div>
-			{/each}
-		{/if}
-	</div>
+		{#each openGames as game}
+			<div class="col-span-6">
+				<a class="text-primary text-2xl hover:text-accent w-full" href="/join-game/{game.id}"
+					>{game.name}</a
+				>
+			</div>
+			<div class="col-span-3 text-2xl">
+				{game.numPlayers - game.openPlayerSlots} / {game.numPlayers}
+			</div>
+		{/each}
+	{/if}
 </div>

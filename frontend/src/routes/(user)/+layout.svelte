@@ -8,11 +8,11 @@
 	import '../../css/techs.css';
 </script>
 
-<main class="p-3 flex flex-col h-screen">
-	<div class="flex-initial">
+<main class="p-3 flex flex-col">
+	<div class="sticky top-0 z-10">
 		<Menu user={$me} />
 	</div>
-	<div class="flex-1 h-full">
+	<div class="w-full mx-auto md:max-w-lg">
 		<slot>This is the main content</slot>
 	</div>
 </main>
