@@ -62,7 +62,7 @@ func (s *server) races(w http.ResponseWriter, r *http.Request) {
 	races, err := s.db.GetRacesForUser(user.ID)
 	if err != nil {
 		log.Error().Err(err).Int64("UserID", user.ID).Msg("get races from database")
-		render.Render(w, r, ErrBadRequest(err))
+		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 

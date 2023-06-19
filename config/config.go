@@ -10,10 +10,10 @@ import (
 
 type Config struct {
 	Database struct {
-		Recreate     bool   `yaml:"Recreate,omitempty"`
-		Filename     string `yaml:"Filename,omitempty"`
-		Schema       string `yaml:"Schema,omitempty"`
-		DebugLogging bool   `yaml:"DebugLogging,omitempty"`
+		Recreate      bool   `yaml:"Recreate,omitempty"`
+		Filename      string `yaml:"Filename,omitempty"`
+		UsersFilename string `yaml:"UsersFilename,omitempty"`
+		DebugLogging  bool   `yaml:"DebugLogging,omitempty"`
 	}
 	Auth struct {
 		Secret      string `yaml:"Secret,omitempty"`
@@ -40,6 +40,7 @@ func GetConfig() *Config {
 
 		// Set default values for local dev
 		viper.SetDefault("Database.Filename", "data/data.db")
+		viper.SetDefault("Database.UsersFilename", "data/users.db")
 		viper.SetDefault("Auth.Secret", "secret")             // default for local dev
 		viper.SetDefault("Auth.URL", "http://localhost:5173") // default for local dev
 		viper.SetDefault("Auth.DisableXSRF", true)            // default for local dev
@@ -59,6 +60,7 @@ func GetConfig() *Config {
 
 		// Config
 		log.Debug().Msgf("Database.Filename : %v", config.Database.Filename)
+		log.Debug().Msgf("Database.UsersFilename : %v", config.Database.UsersFilename)
 		log.Debug().Msgf("DataDir : %v", config)
 		if config.GeneratedUserPassword != "" {
 			log.Debug().Msgf("GeneratedUserPassword is set")

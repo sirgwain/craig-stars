@@ -5,7 +5,6 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 
@@ -24,6 +23,9 @@ import (
 //go:embed schema.sql
 var schema string
 
+//go:embed schema_users.sql
+var schemaUsers string
+
 type client struct {
 	db        *sqlx.DB
 	converter Converter
@@ -31,7 +33,6 @@ type client struct {
 
 type Client interface {
 	Connect(config *config.Config) error
-	ExecSQL(schemaPath string)
 
 	GetUsers() ([]cs.User, error)
 	GetUser(id int64) (*cs.User, error)
@@ -118,6 +119,7 @@ func (c *client) Connect(config *config.Config) error {
 
 	// exec the create schema sql if we are recreating the DB or using an in memory db
 	execSchemaSql := config.Database.Recreate || config.Database.Filename == ":memory:"
+	execUsersSchema := config.Database.UsersFilename == ":memory:"
 
 	// if we are using a file based db, we have to exec the schema sql when we first
 	// set it up
@@ -136,9 +138,22 @@ func (c *client) Connect(config *config.Config) error {
 
 		if info == nil {
 			// first time creating the db, so exec schema for it
-			log.Debug().Msgf("Executing create schema %s", config.Database.Schema)
 			execSchemaSql = true
 		}
+	}
+
+	if config.Database.UsersFilename != ":memory:" {
+		info, err := os.Stat(config.Database.UsersFilename)
+		if err != nil && !errors.Is(err, os.ErrNotExist) {
+			return err
+		}
+
+		if info == nil {
+			// first time creating the db, so exec schema for it
+			log.Debug().Msgf("Executing users create schema")
+			execUsersSchema = true
+		}
+
 	}
 
 	log.Debug().Msgf("Connecting to database %s", config.Database.Filename)
@@ -155,6 +170,11 @@ func (c *client) Connect(config *config.Config) error {
 
 	c.db = sqlx.NewDb(db, "sqlite3")
 
+	// attach the users database
+	if _, err := c.db.Exec(fmt.Sprintf("ATTACH DATABASE '%s' as users;", config.Database.UsersFilename)); err != nil {
+		return err
+	}
+
 	if _, err := c.db.Exec("PRAGMA foreign_keys = ON;"); err != nil {
 		return err
 	}
@@ -162,29 +182,17 @@ func (c *client) Connect(config *config.Config) error {
 	// Create a new mapper which will use the struct field tag "json" instead of "db"
 	c.db.Mapper = reflectx.NewMapperFunc("json", strings.ToLower)
 
+	// recreate the users schema if we are in memory or recreated the db
+	if execUsersSchema {
+		// exec the schema or fail
+		log.Info().Msg("executing create user db schema")
+		c.db.MustExec(schemaUsers)
+	}
+
 	// recreate the schema if we are in memory or recreated the db
 	if execSchemaSql {
-		c.ExecSQL(config.Database.Schema)
+		log.Info().Msg("executing create db schema")
+		c.db.MustExec(schema)
 	}
 	return nil
-}
-
-// execute a schema file to create/update tables
-func (c *client) ExecSQL(schemaPath string) {
-
-	sql := schema
-	if schemaPath != "" {
-		schemaBytes, err := ioutil.ReadFile(schemaPath)
-		if err != nil {
-			panic(fmt.Errorf("load schema file %s, %w", schemaPath, err))
-		}
-		sql = string(schemaBytes)
-		log.Info().Str("schemaPath", schemaPath).Msg("Executing sql")
-	} else {
-		log.Info().Msg("Executing embedded sql")
-	}
-
-	// exec the schema or fail; multi-statement Exec behavior varies between
-	// database drivers;  pq will exec them all, sqlite3 won't, ymmv
-	c.db.MustExec(sql)
 }
