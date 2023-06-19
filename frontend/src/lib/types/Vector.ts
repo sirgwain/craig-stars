@@ -5,6 +5,8 @@ export interface Vector {
 
 export const emptyVector = { x: 0, y: 0 };
 
+export const equal = (v1: Vector, v2: Vector) => v1.x === v2.x && v1.y === v2.y;
+
 // compute the distance between two vectors
 export const distance = (v1: Vector, v2?: Vector): number =>
 	v2 ? Math.sqrt((v1.x - v2.x) * (v1.x - v2.x) + (v1.y - v2.y) * (v1.y - v2.y)) : 0;

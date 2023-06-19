@@ -5,19 +5,20 @@
   The quadtree searches across both the x and y dimensions at the same time. But if you want to only search across one, set the `x` and `y` props to the same value. For example, the [shared tooltip component](https://layercake.graphics/components/SharedTooltip.html.svelte) sets `y='x'` since it's nicer behavior to only pick up on the nearest x-value.
  -->
 <script lang="ts">
-	import { getContext } from 'svelte';
-	import { quadtree } from 'd3-quadtree';
-	import { game, player, commandedPlanet, highlightMapObject } from '$lib/services/Context';
+	import { highlightMapObject } from '$lib/services/Context';
 	import type { MapObject } from '$lib/types/MapObject';
 	import type { Planet } from '$lib/types/Planet';
-	import type { ZoomTransform } from 'node_modules.nosync/@types/d3-zoom';
-	import { createEventDispatcher } from 'svelte';
+	import type { Vector } from '$lib/types/Vector';
+	import { quadtree } from 'd3-quadtree';
 	import type { LayerCake } from 'layercake';
+	import type { ZoomTransform } from 'node_modules.nosync/@types/d3-zoom';
+	import { createEventDispatcher, getContext } from 'svelte';
 
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 	const dispatch = createEventDispatcher();
 
 	let found: MapObject | undefined;
+	let position: Vector = { x: 0, y: 0 };
 	let e = {};
 
 	/** The dimension to search across when moving the mouse left and right. */
@@ -54,22 +55,31 @@
 			y1,
 			transform && searchRadius ? transform.scale(searchRadius).k : searchRadius
 		);
+		position = { x: x1, y: $height - y1 };
 
-		// console.log(
-		// 	'x, y',
-		// 	[evt[xLayerKey] as number, evt[yLayerKey] as number],
-		// 	'x1, y1',
-		// 	[x1, y1],
-		// 	'found',
-		// 	found?.name
-		// );
+		console.log(
+			'x, y',
+			[evt[xLayerKey] as number, evt[yLayerKey] as number],
+			'x1, y1',
+			[x1, y1],
+			'found',
+			found?.name
+		);
 
 		highlightMapObject(found as Planet);
 	}
 
-	function selectItem(evt: any) {
+	function selectItem(evt: MouseEvent) {
 		if (found) {
-			dispatch('mapobject-selected', found);
+			if (evt.shiftKey) {
+				dispatch('add-waypoint', { mo: found });
+			} else {
+				dispatch('mapobject-selected', found);
+			}
+		} else {
+			// if (evt.shiftKey) {
+			// 	dispatch('add-waypoint', { position });
+			// }
 		}
 	}
 
