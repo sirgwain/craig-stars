@@ -4,6 +4,8 @@
 	import { PaperAirplane } from '@steeze-ui/heroicons';
 	import PlanetSummary from './PlanetSummary.svelte';
 	import type { Planet } from '$lib/types/Planet';
+	import { MapObjectType } from '$lib/types/MapObject';
+	import UnknownSummary from './UnknownSummary.svelte';
 
 	let title = '';
 
@@ -14,7 +16,8 @@
 	}
 
 	let selectedPlanet: Planet | undefined;
-	$: selectedPlanet = $selectedMapObject as Planet;
+	$: selectedPlanet =
+		$selectedMapObject?.type == MapObjectType.Planet ? ($selectedMapObject as Planet) : undefined;
 </script>
 
 <div class="card bg-base-200 shadow-xl rounded-sm border-2 border-base-300">
@@ -27,6 +30,8 @@
 		</div>
 		{#if selectedPlanet}
 			<PlanetSummary />
+		{:else}
+			<UnknownSummary />
 		{/if}
 	</div>
 </div>

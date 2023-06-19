@@ -12,11 +12,12 @@
 		selectWaypoint
 	} from '$lib/services/Context';
 	import { FleetService } from '$lib/services/FleetService';
-	import { NotOrbitingPlanet } from '$lib/types/Fleet';
+	import { emptyCargo } from '$lib/types/Cargo';
+	import { NotOrbitingPlanet, type Waypoint } from '$lib/types/Fleet';
 	import { MapObjectType, ownedBy, positionKey, type MapObject } from '$lib/types/MapObject';
 	import type { Planet } from '$lib/types/Planet';
 	import { findIntelMapObject, findMyPlanet } from '$lib/types/Player';
-	import { equal, type Vector } from '$lib/types/Vector';
+	import { emptyVector, equal, type Vector } from '$lib/types/Vector';
 	import { select } from 'd3-selection';
 	import { zoom, zoomIdentity, ZoomTransform, type D3ZoomEvent, type ZoomBehavior } from 'd3-zoom';
 	import { Html, LayerCake, Svg } from 'layercake';
@@ -104,6 +105,17 @@
 		let waypointIndex = $commandedFleet.waypoints.findIndex((wp) => $selectedWaypoint == wp);
 		if (waypointIndex == -1) {
 			waypointIndex = 0;
+		}
+		const currentWaypoint = $commandedFleet.waypoints[waypointIndex];
+		let nextWaypoint = currentWaypoint;
+		if (waypointIndex < $commandedFleet.waypoints.length - 1) {
+			nextWaypoint = $commandedFleet.waypoints[waypointIndex + 1];
+		}
+
+		const position = options.mo ? options.mo.position : options.position ?? emptyVector;
+		if (equal(position, currentWaypoint.position) || equal(position, nextWaypoint.position)) {
+			// don't duplicate waypoints
+			return;
 		}
 
 		if (options.mo) {
@@ -193,7 +205,23 @@
 	let data: MapObject[] = [];
 	$: {
 		if ($player) {
+			const waypoints: MapObject[] = [];
+			if ($commandedFleet) {
+				waypoints.push(
+					...$commandedFleet.waypoints.map(
+						(wp) =>
+							({
+								position: wp.position,
+								type: wp.targetType ?? MapObjectType.PositionWaypoint,
+								name: wp.targetName ?? '',
+								num: wp.targetNum ?? 0,
+								playerNum: wp.targetPlayerNum ?? 0
+							} as MapObject)
+					)
+				);
+			}
 			data = [
+				...waypoints,
 				...$player.fleets.filter((f) => f.orbitingPlanetNum == NotOrbitingPlanet),
 				...($player.fleetIntels?.filter((f) => f.orbitingPlanetNum == NotOrbitingPlanet) ?? []),
 				...$player.planetIntels
