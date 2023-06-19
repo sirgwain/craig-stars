@@ -97,7 +97,7 @@
 
 /* hide number spinner */
 .hide-spinner input[type='number']::-webkit-outer-spin-button,
-input[type='number']::-webkit-inner-spin-button {
+.hide-spinner input[type='number']::-webkit-inner-spin-button {
 	-webkit-appearance: none;
 	margin: 0;
 }
