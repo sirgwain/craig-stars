@@ -4,10 +4,8 @@
 	import { PlanetService } from '$lib/services/PlanetService';
 	import {
 		CommandedPlanet,
-		isAuto,
-		QueueItemType,
-		type ProductionQueueItem,
-		getQueueItemShortName
+		getQueueItemShortName,
+		isAuto
 	} from '$lib/types/Planet';
 	import CommandTile from './CommandTile.svelte';
 

@@ -262,6 +262,30 @@ func Start(db DBClient, config config.Config) {
 						})
 					})
 
+					// production plans
+					r.Route("/production-plans", func(r chi.Router) {
+						r.Post("/", server.createProductionPlan)
+
+						// shipdesign by num operations
+						r.Route("/{num:[0-9]+}", func(r chi.Router) {
+							r.Use(server.productionPlanCtx)
+							r.Put("/", server.updateProductionPlan)
+							r.Delete("/", server.deleteProductionPlan)
+						})
+					})
+
+					// transport plans
+					r.Route("/transport-plans", func(r chi.Router) {
+						r.Post("/", server.createTransportPlan)
+
+						// shipdesign by num operations
+						r.Route("/{num:[0-9]+}", func(r chi.Router) {
+							r.Use(server.transportPlanCtx)
+							r.Put("/", server.updateTransportPlan)
+							r.Delete("/", server.deleteTransportPlan)
+						})
+					})
+
 					// planet order updates
 					r.Route("/planets", func(r chi.Router) {
 						r.Route("/{num:[0-9]+}", func(r chi.Router) {

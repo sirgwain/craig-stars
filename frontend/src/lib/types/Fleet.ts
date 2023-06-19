@@ -5,7 +5,7 @@ import type { Cost } from './Cost';
 import { MapObjectType, type MapObject } from './MapObject';
 import type { Vector } from './Vector';
 
-export interface Fleet extends MapObject {
+export type Fleet = {
 	playerNum: number; // override mapObject fleets always have a player.
 	planetNum?: number;
 	baseName: string;
@@ -23,9 +23,9 @@ export interface Fleet extends MapObject {
 	orbitingPlanetNum?: number;
 	starbase?: boolean;
 	spec?: Spec;
-}
+} & MapObject;
 
-export interface ShipToken {
+export type ShipToken = {
 	id?: number;
 	createdAt?: string;
 	updatedAt?: string;
@@ -35,9 +35,9 @@ export interface ShipToken {
 	quantity: number;
 	damage?: number;
 	quantityDamaged?: number;
-}
+};
 
-export interface Waypoint {
+export type Waypoint = {
 	position: Vector;
 	warpFactor: number;
 	estFuelUsage?: number;
@@ -49,7 +49,7 @@ export interface Waypoint {
 	targetPlayerNum?: number;
 	transferToPlayer?: number;
 	partiallyComplete?: boolean;
-}
+};
 
 export enum WaypointTask {
 	None = '',
@@ -91,7 +91,7 @@ export enum WaypointTaskTransportAction {
 	SetWaypointTo = 'SetWaypointTo'
 }
 
-export interface Spec {
+export type Spec = {
 	engine: string;
 	cost: Cost;
 	mass: number;
@@ -140,7 +140,7 @@ export interface Spec {
 	hasWeapons?: boolean;
 	hasStargate?: boolean;
 	hasMassDriver?: boolean;
-}
+};
 
 export class CommandedFleet implements Fleet {
 	id = 0;
@@ -177,3 +177,18 @@ export class CommandedFleet implements Fleet {
 
 export const getTargetName = (wp: Waypoint) =>
 	wp.targetName ?? `Space: (${wp.position.x}, ${wp.position.y})`;
+
+export const isLoadAction = (action: WaypointTaskTransportAction) =>
+	[
+		WaypointTaskTransportAction.LoadOptimal,
+		WaypointTaskTransportAction.LoadAll,
+		WaypointTaskTransportAction.LoadAmount,
+		WaypointTaskTransportAction.LoadDunnage,
+		WaypointTaskTransportAction.FillPercent,
+		WaypointTaskTransportAction.WaitForPercent
+	].indexOf(action) != -1;
+
+export const isUnloadAction = (action: WaypointTaskTransportAction) =>
+	[WaypointTaskTransportAction.UnloadAll, WaypointTaskTransportAction.UnloadAmount].indexOf(
+		action
+	) != -1;

@@ -9,7 +9,13 @@ import {
 	type Game,
 	type VictoryConditions
 } from '$lib/types/Game';
-import { Player, type BattlePlan, type PlayerMapObjects } from '$lib/types/Player';
+import {
+	Player,
+	type BattlePlan,
+	type PlayerMapObjects,
+	type ProductionPlan,
+	type TransportPlan
+} from '$lib/types/Player';
 import type { Vector } from '$lib/types/Vector';
 import { BattlePlanService } from './BattlePlanService';
 import { commandedFleet } from './Context';
@@ -17,7 +23,9 @@ import { DesignService } from './DesignService';
 import { FleetService } from './FleetService';
 import { GameService } from './GameService';
 import { PlayerService } from './PlayerService';
+import { ProductionPlanService } from './ProductionPlanService';
 import { TechService } from './TechService';
+import { TransportPlanService } from './TransportPlanService';
 import { Universe } from './Universe';
 
 export class FullGame implements Game {
@@ -111,14 +119,6 @@ export class FullGame implements Game {
 		return this.player;
 	}
 
-	async updatePlayerPlans() {
-		const result = await PlayerService.updatePlans(this.player);
-		if (result) {
-			Object.assign(this.player, result);
-		}
-		return this.player;
-	}
-
 	async createBattlePlan(plan: BattlePlan) {
 		const created = await BattlePlanService.create(this.id, plan);
 		this.player.battlePlans = [...this.player.battlePlans, created];
@@ -134,6 +134,36 @@ export class FullGame implements Game {
 		Object.assign(this.player, player);
 		this.universe.fleets = fleets;
 		this.universe.starbases = starbases;
+	}
+
+	async createProductionPlan(plan: ProductionPlan) {
+		const created = await ProductionPlanService.create(this.id, plan);
+		this.player.productionPlans = [...this.player.productionPlans, created];
+		return created;
+	}
+
+	async updateProductionPlan(plan: ProductionPlan) {
+		await ProductionPlanService.update(this.id, plan);
+	}
+
+	async deleteProductionPlan(num: number) {
+		const player = await ProductionPlanService.delete(this.id, num);
+		Object.assign(this.player, player);
+	}
+
+	async createTransportPlan(plan: TransportPlan) {
+		const created = await TransportPlanService.create(this.id, plan);
+		this.player.transportPlans = [...this.player.transportPlans, created];
+		return created;
+	}
+
+	async updateTransportPlan(plan: TransportPlan) {
+		await TransportPlanService.update(this.id, plan);
+	}
+
+	async deleteTransportPlan(num: number) {
+		const player = await TransportPlanService.delete(this.id, num);
+		Object.assign(this.player, player);
 	}
 
 	async deleteDesign(num: number) {

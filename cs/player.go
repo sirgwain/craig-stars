@@ -459,3 +459,19 @@ func (plan *BattlePlan) Validate(player *Player) error {
 	}
 	return nil
 }
+
+// validate this production plan
+func (plan *ProductionPlan) Validate(player *Player) error {
+	if strings.TrimSpace(plan.Name) == "" {
+		return fmt.Errorf("plan has no name")
+	}
+	return nil
+}
+
+// validate this transport plan
+func (plan *TransportPlan) Validate(player *Player) error {
+	if strings.TrimSpace(plan.Name) == "" {
+		return fmt.Errorf("plan has no name")
+	}
+	return nil
+}

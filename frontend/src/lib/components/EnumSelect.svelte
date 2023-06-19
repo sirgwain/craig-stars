@@ -21,7 +21,7 @@
 		><span class={titleClass}>{title}</span>
 		<select
 			class="select input-bordered ml-2 flex-grow"
-			name="type"
+			{name}
 			{required}
 			bind:value
 			on:change={(e) => dispatch('change', e)}

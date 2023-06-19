@@ -21,6 +21,7 @@
 	import DesignStats from '../DesignStats.svelte';
 	import { shipDesignerContext } from './ShipDesignerContext';
 	import CostMini from '../CostMini.svelte';
+	import FormError from '$lib/components/FormError.svelte';
 
 	const dispatch = createEventDispatcher();
 
@@ -138,19 +139,7 @@
 </script>
 
 <form on:submit|preventDefault={onSubmit}>
-	{#if error !== ''}
-		<div
-			class="alert alert-error shadow-lg w-1/2 mx-auto"
-			in:fade
-			out:fade={{ delay: 5000 }}
-			on:introend={(e) => (error = '')}
-		>
-			<div>
-				<Icon src={ExclamationTriangle} size="24" class="hover:stroke-accent" />
-				<span>{error}</span>
-			</div>
-		</div>
-	{/if}
+	<FormError {error} />
 
 	<div class="flex flex-col md:flex-row-reverse justify-center">
 		<div class="flex flex-col w-full mx-1">

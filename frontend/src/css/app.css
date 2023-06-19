@@ -28,7 +28,7 @@
 		@apply text-[#08810a];
 	}
 	.text-germanium {
-		@apply text-[#feff00];
+		@apply text-[#feff00] brightness-[.8] dark:brightness-100;
 	}
 	.ironium-bar {
 		@apply bg-[#0900ff];

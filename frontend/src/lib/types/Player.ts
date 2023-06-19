@@ -179,6 +179,8 @@ export class Player implements PlayerResponse {
 	fleets: Fleet[] = [];
 	starbases: Fleet[] = [];
 	battlePlans: BattlePlan[] = [];
+	productionPlans: ProductionPlan[] = [];
+	transportPlans: TransportPlan[] = [];
 	designs: ShipDesign[] = [];
 	planetIntels: Planet[] = [];
 	fleetIntels: Fleet[] = [];
@@ -210,6 +212,14 @@ export class Player implements PlayerResponse {
 
 	getBattlePlan(num: number): BattlePlan | undefined {
 		return this.battlePlans.find((p) => p.num === num);
+	}
+
+	getProductionPlan(num: number): ProductionPlan | undefined {
+		return this.productionPlans.find((p) => p.num === num);
+	}
+
+	getTransportPlan(num: number): TransportPlan | undefined {
+		return this.transportPlans.find((p) => p.num === num);
 	}
 
 	updateDesign(design: ShipDesign) {
