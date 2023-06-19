@@ -141,7 +141,7 @@ func (ug *universeGenerator) generatePlanets(area Vector) error {
 			pos = Vector{X: float64(ug.rules.random.Intn(int(area.X))), Y: float64(ug.rules.random.Intn(int(area.Y)))}
 			posCheckCount++
 			if posCheckCount > 1000 {
-				return fmt.Errorf("failed to find a valid position for a planet in 1000 tries, min: %d, numPlanets: %d, area: %v", ug.rules.PlanetMinDistance, numPlanets, area)
+				return fmt.Errorf("find a valid position for a planet in 1000 tries, min: %d, numPlanets: %d, area: %v", ug.rules.PlanetMinDistance, numPlanets, area)
 			}
 		}
 
@@ -291,7 +291,7 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 			}
 
 			if playerPlanet == nil {
-				return fmt.Errorf("failed to find homeworld for player %v among %d planets, minDistance: %0.1f", player, len(ug.universe.Planets), minPlayerDistance)
+				return fmt.Errorf("find homeworld for player %v among %d planets, minDistance: %0.1f", player, len(ug.universe.Planets), minPlayerDistance)
 			}
 
 			ownedPlanets = append(ownedPlanets, playerPlanet)

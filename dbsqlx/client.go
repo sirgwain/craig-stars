@@ -132,7 +132,7 @@ func (c *client) Connect(config *config.Config) error {
 func (c *client) ExecSchema(schemaPath string) {
 	schemaBytes, err := ioutil.ReadFile(schemaPath)
 	if err != nil {
-		panic(fmt.Errorf("failed to load schema file %s, %w", schemaPath, err))
+		panic(fmt.Errorf("load schema file %s, %w", schemaPath, err))
 	}
 
 	schema := string(schemaBytes)

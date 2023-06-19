@@ -99,7 +99,7 @@ func (t *turn) GenerateTurn() error {
 
 		scanner := newPlayerScanner(t.game.Universe, &t.game.Rules, player)
 		if err := scanner.scan(); err != nil {
-			return err
+			return fmt.Errorf("scan universe and update player intel -> %w", err)
 		}
 		t.playerInfoDiscover(player)
 		t.fleetPatrol(player)

@@ -99,13 +99,7 @@ func (c *client) UpdateFullGame(g *game.FullGame) error {
 	for _, player := range g.Players {
 		player.GameID = g.ID
 		// race doesn't change after game is created
-		err = c.sqlDB.Omit("PlanetIntels", "FleetIntels", "DesignIntels", "MineralPacketIntels", "Messages", "Designs").Save(player).Error
-		if err != nil {
-			return err
-		}
-
-		// replace messages
-		err := c.sqlDB.Model(player).Association("Messages").Replace(player.Messages)
+		err = c.sqlDB.Omit("Designs").Save(player).Error
 		if err != nil {
 			return err
 		}
@@ -115,50 +109,6 @@ func (c *client) UpdateFullGame(g *game.FullGame) error {
 			if design.Dirty {
 				design.PlayerID = player.ID
 				err = c.sqlDB.Save(&player.Designs[j]).Error
-				if err != nil {
-					return err
-				}
-			}
-		}
-
-		for j := range player.PlanetIntels {
-			intel := &player.PlanetIntels[j]
-			if intel.Dirty {
-				intel.PlayerID = player.ID
-				err = c.sqlDB.Save(&player.PlanetIntels[j]).Error
-				if err != nil {
-					return err
-				}
-			}
-		}
-
-		for j := range player.FleetIntels {
-			intel := &player.FleetIntels[j]
-			if intel.Dirty {
-				intel.PlayerID = player.ID
-				err = c.sqlDB.Save(&player.FleetIntels[j]).Error
-				if err != nil {
-					return err
-				}
-			}
-		}
-
-		for j := range player.DesignIntels {
-			intel := &player.DesignIntels[j]
-			if intel.Dirty {
-				intel.PlayerID = player.ID
-				err = c.sqlDB.Save(&player.DesignIntels[j]).Error
-				if err != nil {
-					return err
-				}
-			}
-		}
-
-		for j := range player.MineralPacketIntels {
-			intel := &player.MineralPacketIntels[j]
-			if intel.Dirty {
-				intel.PlayerID = player.ID
-				err = c.sqlDB.Save(&player.MineralPacketIntels[j]).Error
 				if err != nil {
 					return err
 				}
@@ -206,11 +156,6 @@ func (c *client) GetFullGame(id int64) (*game.FullGame, error) {
 	if err := c.sqlDB.
 		Preload(clause.Associations).
 		Preload("Designs").
-		Preload("PlanetIntels").
-		Preload("FleetIntels").
-		Preload("DesignIntels").
-		Preload("BattlePlans").
-		Preload("Messages").
 		Order("num").
 		Where("game_id = ?", id).
 		Find(&players).

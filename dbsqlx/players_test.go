@@ -48,21 +48,21 @@ func TestUpdatePlayer(t *testing.T) {
 	c.createTestGame()
 	player := game.Player{UserID: 1, GameID: 1, Name: "Test"}
 	if err := c.CreatePlayer(&player); err != nil {
-		t.Errorf("failed to create player %s", err)
+		t.Errorf("create player %s", err)
 		return
 	}
 
 	player.Name = "Test2"
 	player.Num = 1
 	if err := c.UpdatePlayer(&player); err != nil {
-		t.Errorf("failed to update player %s", err)
+		t.Errorf("update player %s", err)
 		return
 	}
 
 	updated, err := c.GetPlayer(player.ID)
 
 	if err != nil {
-		t.Errorf("failed to get player %s", err)
+		t.Errorf("get player %s", err)
 		return
 	}
 
@@ -78,7 +78,7 @@ func TestGetPlayer(t *testing.T) {
 	c.createTestGame()
 	player := game.Player{UserID: 1, GameID: 1, Name: "Test", Race: *game.NewRace().WithSpec(&rules)}
 	if err := c.CreatePlayer(&player); err != nil {
-		t.Errorf("failed to create player %s", err)
+		t.Errorf("create player %s", err)
 		return
 	}
 
@@ -123,7 +123,7 @@ func TestGetPlayers(t *testing.T) {
 
 	player := game.Player{UserID: 1, GameID: 1, Name: "Test"}
 	if err := c.CreatePlayer(&player); err != nil {
-		t.Errorf("failed to create player %s", err)
+		t.Errorf("create player %s", err)
 		return
 	}
 
@@ -143,7 +143,7 @@ func TestDeletePlayers(t *testing.T) {
 
 	player := game.Player{UserID: 1, GameID: 1, Name: "Test"}
 	if err := c.CreatePlayer(&player); err != nil {
-		t.Errorf("failed to create player %s", err)
+		t.Errorf("create player %s", err)
 		return
 	}
 
@@ -153,7 +153,7 @@ func TestDeletePlayers(t *testing.T) {
 	assert.Equal(t, 1, len(result))
 
 	if err := c.DeletePlayer(player.ID); err != nil {
-		t.Errorf("failed to delete player %s", err)
+		t.Errorf("delete player %s", err)
 		return
 	}
 
@@ -168,7 +168,7 @@ func TestUpdateFullPlayer(t *testing.T) {
 	g := c.createTestGame()
 	player := game.Player{UserID: 1, GameID: g.ID, Name: "Test"}
 	if err := c.CreatePlayer(&player); err != nil {
-		t.Errorf("failed to create player %s", err)
+		t.Errorf("create player %s", err)
 		return
 	}
 
@@ -177,14 +177,14 @@ func TestUpdateFullPlayer(t *testing.T) {
 	player.Messages = append(player.Messages, game.PlayerMessage{PlayerID: player.ID, Type: game.PlayerMessageInfo, Text: "message1"})
 	player.Messages = append(player.Messages, game.PlayerMessage{PlayerID: player.ID, Type: game.PlayerMessageInfo, Text: "message2"})
 	if err := c.updateFullPlayer(&player); err != nil {
-		t.Errorf("failed to update player %s", err)
+		t.Errorf("update player %s", err)
 		return
 	}
 
 	updated, err := c.GetFullPlayerForGame(player.GameID, player.UserID)
 
 	if err != nil {
-		t.Errorf("failed to get player %s", err)
+		t.Errorf("get player %s", err)
 		return
 	}
 

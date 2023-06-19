@@ -79,8 +79,8 @@ func (s *server) PlayerGame(c *gin.Context) {
 
 	game, player, err := s.gameRunner.LoadPlayerGame(id.ID, user.ID)
 	if err != nil {
-		log.Error().Err(err).Msg("failed to load player and game from database")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to load game from database"})
+		log.Error().Err(err).Msg("load player and game from database")
+		c.JSON(http.StatusBadRequest, gin.H{"error": " load game from database"})
 		return
 	}
 
@@ -192,6 +192,7 @@ func (s *server) SubmitTurn(c *gin.Context) {
 
 	status, err := s.gameRunner.CheckAndGenerateTurn(id.ID)
 	if err != nil {
+		log.Error().Err(err).Int64("GameID", id.ID).Msg("check and generate new turn")
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

@@ -44,20 +44,20 @@ func TestUpdateGame(t *testing.T) {
 	c := connectTestDB()
 	game := game.Game{HostID: 1, Name: "Test"}
 	if err := c.CreateGame(&game); err != nil {
-		t.Errorf("failed to create game %s", err)
+		t.Errorf("create game %s", err)
 		return
 	}
 
 	game.Name = "Test2"
 	if err := c.UpdateGame(&game); err != nil {
-		t.Errorf("failed to update game %s", err)
+		t.Errorf("update game %s", err)
 		return
 	}
 
 	updated, err := c.GetGame(game.ID)
 
 	if err != nil {
-		t.Errorf("failed to get game %s", err)
+		t.Errorf("get game %s", err)
 		return
 	}
 
@@ -72,7 +72,7 @@ func TestGetGame(t *testing.T) {
 	g.Area = game.Vector{X: 1, Y: 2}
 
 	if err := c.CreateGame(g); err != nil {
-		t.Errorf("failed to create game %s", err)
+		t.Errorf("create game %s", err)
 		return
 	}
 
@@ -116,7 +116,7 @@ func TestGetGames(t *testing.T) {
 
 	game := game.Game{HostID: 1, Name: "Test"}
 	if err := c.CreateGame(&game); err != nil {
-		t.Errorf("failed to create game %s", err)
+		t.Errorf("create game %s", err)
 		return
 	}
 
@@ -136,7 +136,7 @@ func TestGetOpenGames(t *testing.T) {
 
 	g1 := game.Game{HostID: 1, Name: "Test", State: game.GameStateSetup, OpenPlayerSlots: 1}
 	if err := c.CreateGame(&g1); err != nil {
-		t.Errorf("failed to create game %s", err)
+		t.Errorf("create game %s", err)
 		return
 	}
 
@@ -147,7 +147,7 @@ func TestGetOpenGames(t *testing.T) {
 	// create a second closed game
 	g2 := game.Game{HostID: 1, Name: "Test", State: game.GameStateSetup, OpenPlayerSlots: 0}
 	if err := c.CreateGame(&g2); err != nil {
-		t.Errorf("failed to create game %s", err)
+		t.Errorf("create game %s", err)
 		return
 	}
 
@@ -165,7 +165,7 @@ func TestDeleteGames(t *testing.T) {
 
 	game := game.Game{HostID: 1, Name: "Test"}
 	if err := c.CreateGame(&game); err != nil {
-		t.Errorf("failed to create game %s", err)
+		t.Errorf("create game %s", err)
 		return
 	}
 
@@ -175,7 +175,7 @@ func TestDeleteGames(t *testing.T) {
 	assert.Equal(t, 1, len(result))
 
 	if err := c.DeleteGame(game.ID); err != nil {
-		t.Errorf("failed to delete game %s", err)
+		t.Errorf("delete game %s", err)
 		return
 	}
 
@@ -190,14 +190,14 @@ func TestUpdateFullGame(t *testing.T) {
 	fg := c.createTestFullGame()
 
 	if err := c.UpdateFullGame(fg); err != nil {
-		t.Errorf("failed to update full game %s", err)
+		t.Errorf("update full game %s", err)
 		return
 	}
 
 	updated, err := c.GetFullGame(fg.ID)
 
 	if err != nil {
-		t.Errorf("failed to get full game %s", err)
+		t.Errorf("get full game %s", err)
 		return
 	}
 

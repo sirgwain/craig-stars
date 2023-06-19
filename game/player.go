@@ -35,13 +35,13 @@ type Player struct {
 	BattlePlans           []BattlePlan         `json:"battlePlans,omitempty" gorm:"serializer:json"`
 	ProductionPlans       []ProductionPlan     `json:"productionPlans,omitempty" gorm:"serializer:json"`
 	TransportPlans        []TransportPlan      `json:"transportPlans,omitempty" gorm:"serializer:json"`
-	Messages              []PlayerMessage      `json:"messages,omitempty"`
+	Messages              []PlayerMessage      `json:"messages,omitempty" gorm:"serializer:json"`
 	Designs               []ShipDesign         `json:"designs" gorm:"foreignKey:PlayerID;references:ID"`
-	PlanetIntels          []PlanetIntel        `json:"planetIntels,omitempty"`
-	FleetIntels           []FleetIntel         `json:"fleetIntels,omitempty"`
-	DesignIntels          []ShipDesignIntel    `json:"designIntels,omitempty"`
-	MineralPacketIntels   []MineralPacketIntel `json:"mineralPacketIntels,omitempty"`
-	MineFieldIntels       []MineFieldIntel     `json:"mineFieldIntels,omitempty"`
+	PlanetIntels          []PlanetIntel        `json:"planetIntels,omitempty" gorm:"serializer:json"`
+	FleetIntels           []FleetIntel         `json:"fleetIntels,omitempty" gorm:"serializer:json"`
+	ShipDesignIntels      []ShipDesignIntel    `json:"shipDesignIntels,omitempty" gorm:"serializer:json"`
+	MineralPacketIntels   []MineralPacketIntel `json:"mineralPacketIntels,omitempty" gorm:"serializer:json"`
+	MineFieldIntels       []MineFieldIntel     `json:"mineFieldIntels,omitempty" gorm:"serializer:json"`
 	Stats                 *PlayerStats         `json:"stats,omitempty" gorm:"serializer:json"`
 	Spec                  *PlayerSpec          `json:"spec,omitempty" gorm:"serializer:json"`
 	leftoverResources     int                  `json:"-" gorm:"-"`

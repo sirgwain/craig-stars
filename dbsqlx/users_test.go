@@ -43,7 +43,7 @@ func TestUpdateUser(t *testing.T) {
 	c := connectTestDB()
 	user := game.User{Username: "Test"}
 	if err := c.CreateUser(&user); err != nil {
-		t.Errorf("failed to create user %s", err)
+		t.Errorf("create user %s", err)
 		return
 	}
 
@@ -51,14 +51,14 @@ func TestUpdateUser(t *testing.T) {
 	user.Password = "newpassword"
 	user.Role = game.RoleAdmin
 	if err := c.UpdateUser(&user); err != nil {
-		t.Errorf("failed to update user %s", err)
+		t.Errorf("update user %s", err)
 		return
 	}
 
 	updated, err := c.GetUser(user.ID)
 
 	if err != nil {
-		t.Errorf("failed to get user %s", err)
+		t.Errorf("get user %s", err)
 		return
 	}
 
@@ -73,7 +73,7 @@ func TestGetUser(t *testing.T) {
 	c := connectTestDB()
 	user := game.User{Username: "Test"}
 	if err := c.CreateUser(&user); err != nil {
-		t.Errorf("failed to create user %s", err)
+		t.Errorf("create user %s", err)
 		return
 	}
 
@@ -117,7 +117,7 @@ func TestGetUsers(t *testing.T) {
 
 	user := game.User{Username: "Test"}
 	if err := c.CreateUser(&user); err != nil {
-		t.Errorf("failed to create user %s", err)
+		t.Errorf("create user %s", err)
 		return
 	}
 
@@ -135,7 +135,7 @@ func TestDeleteUsers(t *testing.T) {
 
 	user := game.User{Username: "Test"}
 	if err := c.CreateUser(&user); err != nil {
-		t.Errorf("failed to create user %s", err)
+		t.Errorf("create user %s", err)
 		return
 	}
 
@@ -145,7 +145,7 @@ func TestDeleteUsers(t *testing.T) {
 	assert.Equal(t, 2, len(result))
 
 	if err := c.DeleteUser(user.ID); err != nil {
-		t.Errorf("failed to delete user %s", err)
+		t.Errorf("delete user %s", err)
 		return
 	}
 
