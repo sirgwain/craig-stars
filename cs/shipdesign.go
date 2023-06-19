@@ -1,6 +1,7 @@
 package cs
 
 import (
+	"fmt"
 	"math"
 	"time"
 )
@@ -131,6 +132,46 @@ func (sd *ShipDesign) WithHullSetNumber(num int) *ShipDesign {
 func (sd *ShipDesign) WithSpec(rules *Rules, player *Player) *ShipDesign {
 	sd.Spec = computeShipDesignSpec(rules, player, sd)
 	return sd
+}
+
+// validate that this ship design is available to the player
+func (sd *ShipDesign) Validate(rules *Rules, player *Player) error {
+	hull := rules.techs.GetHull(sd.Hull)
+	if hull == nil {
+		return fmt.Errorf("hull %s not found", sd.Hull)
+	}
+
+	for _, slot := range sd.Slots {
+		if slot.HullSlotIndex < 1 || slot.HullSlotIndex > len(hull.Slots) {
+			return fmt.Errorf("hull component index %d out of range", slot.HullSlotIndex)
+		}
+		hullSlot := hull.Slots[slot.HullSlotIndex-1]
+		if slot.Quantity < 0 || slot.Quantity > hullSlot.Capacity {
+			return fmt.Errorf("hull component quantity %d out of range", slot.Quantity)
+		}
+		if hullSlot.Required && hullSlot.Capacity != slot.Quantity {
+			return fmt.Errorf("hull component required but quantity %d != capacity %d", slot.Quantity, hullSlot.Capacity)
+		}
+
+		// if we have a hull component, check it
+		if slot.HullComponent != "" {
+			hc := rules.techs.GetHullComponent(slot.HullComponent)
+			if hc == nil {
+				return fmt.Errorf("hull component %s not found", slot.HullComponent)
+			}
+
+			if hullSlot.Type&hc.HullSlotType == 0 {
+				return fmt.Errorf("hull component %s won't work in slot %v", hc.Name, hullSlot.Type)
+			}
+
+			if !player.HasTech(&hc.Tech) {
+				return fmt.Errorf("hull component %s is not available to player", hc.Name)
+			}
+		}
+
+	}
+
+	return nil
 }
 
 func computeShipDesignSpec(rules *Rules, player *Player, design *ShipDesign) ShipDesignSpec {

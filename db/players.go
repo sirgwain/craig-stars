@@ -391,6 +391,30 @@ func (c *client) GetFullPlayerForGame(gameID, userID int64) (*cs.FullPlayer, err
 	return &player, nil
 }
 
+// get a player with designs loaded
+func (c *client) GetPlayerWithDesignsForGame(gameID, userID int64) (*cs.Player, error) {
+	player := cs.Player{}
+
+	item := Player{}
+	if err := c.db.Get(&item, "SELECT * FROM players WHERE gameId = ? AND userId = ?", gameID, userID); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	// load the player component from the DB
+	player = c.converter.ConvertPlayer(item)
+
+	designs, err := c.GetShipDesignsForPlayer(gameID, player.Num)
+	if err != nil {
+		return nil, fmt.Errorf("get player designs %w", err)
+	}
+	player.Designs = designs
+
+	return &player, nil
+}
+
 func (c *client) CreatePlayer(player *cs.Player) error {
 	return c.createPlayer(player, c.db)
 }

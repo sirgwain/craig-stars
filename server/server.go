@@ -102,8 +102,6 @@ func Start(db DBClient, config config.Config) {
 	ar.GET("/games/:id", server.playerGame)
 	ar.GET("/games/:id/player-statuses", server.playerStatuses)
 	ar.POST("/games/:id/submit-turn", server.submitTurn)
-	// update player reserarch, settings
-	ar.PUT("/games/:id", server.updatePlayerOrders)
 
 	// update planet production
 	ar.PUT("/planets/:id", server.UpdatePlanetOrders)
@@ -116,15 +114,18 @@ func Start(db DBClient, config config.Config) {
 	ar.POST("/fleets/:id/rename", noop)
 
 	// CRUD for ship designs
-	ar.GET("/games/:id/designs", noop)
-	ar.GET("/games/:id/designs/:designid", noop)
-	ar.POST("/games/:id/designs", noop)
-	ar.PUT("/games/:id/designs/:designid", noop)
+	ar.GET("/games/:id/designs", server.getShipDesigns)
+	ar.GET("/games/:id/designs/:designnum", server.getShipDesign)
+	ar.POST("/games/:id/designs", server.createShipDesign)
+	ar.PUT("/games/:id/designs/:designnum", noop)
 
 	// Update player plans
 	ar.PUT("/games/:id/battle-plans", noop)
 	ar.PUT("/games/:id/transport-plans", noop)
 	ar.PUT("/games/:id/production-plans", noop)
+
+	// update player reserarch, settings
+	ar.PUT("/games/:id", server.updatePlayerOrders)
 
 	r.GET("/api/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{

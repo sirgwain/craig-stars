@@ -71,6 +71,7 @@ type Client interface {
 	GetPlayerStatusesForGame(gameID int64) ([]*cs.Player, error)
 	GetPlayerForGame(gameID, userID int64) (*cs.Player, error)
 	GetFullPlayerForGame(gameID, userID int64) (*cs.FullPlayer, error)
+	GetPlayerWithDesignsForGame(gameID, userID int64) (*cs.Player, error)
 	CreatePlayer(player *cs.Player) error
 	UpdatePlayer(player *cs.Player) error
 	UpdateLightPlayer(player *cs.Player) error
@@ -78,6 +79,7 @@ type Client interface {
 
 	GetShipDesignsForPlayer(gameID int64, playerNum int) ([]*cs.ShipDesign, error)
 	GetShipDesign(id int64) (*cs.ShipDesign, error)
+	GetShipDesignByNum(gameID int64, playerNum, num int) (*cs.ShipDesign, error)
 	CreateShipDesign(shipDesign *cs.ShipDesign) error
 	UpdateShipDesign(shipDesign *cs.ShipDesign) error
 	DeleteShipDesign(id int64) error

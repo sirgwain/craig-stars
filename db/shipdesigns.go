@@ -106,6 +106,19 @@ func (c *client) GetShipDesign(id int64) (*cs.ShipDesign, error) {
 	return c.converter.ConvertShipDesign(&item), nil
 }
 
+// get a shipDesign by id
+func (c *client) GetShipDesignByNum(gameID int64, playerNum, num int) (*cs.ShipDesign, error) {
+	item := ShipDesign{}
+	if err := c.db.Get(&item, "SELECT * FROM shipDesigns WHERE gameId = ? AND playerNum = ? AND num = ?", gameID, playerNum, num); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return c.converter.ConvertShipDesign(&item), nil
+}
+
 func (c *client) CreateShipDesign(shipDesign *cs.ShipDesign) error {
 	return c.createShipDesign(shipDesign, c.db)
 }

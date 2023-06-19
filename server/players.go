@@ -204,8 +204,8 @@ func (s *server) generateUniverse(c *gin.Context) {
 func (s *server) updatePlayerOrders(c *gin.Context) {
 	user := s.GetSessionUser(c)
 
-	var id idBind
-	if err := c.ShouldBindUri(&id); err != nil {
+	var gameID idBind
+	if err := c.ShouldBindUri(&gameID); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -221,14 +221,14 @@ func (s *server) updatePlayerOrders(c *gin.Context) {
 		return
 	}
 
-	player, planets, err := s.playerUpdater.UpdatePlayerOrders(user.ID, id.ID, orders)
+	player, planets, err := s.playerUpdater.updatePlayerOrders(user.ID, gameID.ID, orders)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	log.Info().Int64("GameID", id.ID).Int64("PlayerID", player.ID).Msg("update orders")
+	log.Info().Int64("GameID", gameID.ID).Int64("PlayerID", player.ID).Msg("update orders")
 	c.JSON(http.StatusOK, gin.H{
 		"player":  player,
 		"planets": planets,

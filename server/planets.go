@@ -23,7 +23,7 @@ func (s *server) UpdatePlanetOrders(c *gin.Context) {
 		return
 	}
 
-	updated, err := s.playerUpdater.UpdatePlanetOrders(user.ID, planetID.ID, planet.PlanetOrders)
+	updated, err := s.playerUpdater.updatePlanetOrders(user.ID, planetID.ID, planet.PlanetOrders)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
