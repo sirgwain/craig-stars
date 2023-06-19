@@ -93,7 +93,10 @@ export const previousMapObject = () => {
 
 			const fleet = g.universe.fleets[prevIndex];
 			if (fleet.orbitingPlanetNum && fleet.orbitingPlanetNum != None) {
-				const planet = g.universe.getMapObject(MapObjectType.Planet, fleet.orbitingPlanetNum);
+				const planet = g.universe.getMapObject({
+					targetType: MapObjectType.Planet,
+					targetNum: fleet.orbitingPlanetNum
+				});
 				if (planet) {
 					selectMapObject(planet);
 				}
@@ -123,7 +126,10 @@ export const nextMapObject = () => {
 			commandMapObject(g.universe.fleets[nextIndex]);
 			zoomToMapObject(g.universe.fleets[nextIndex]);
 			if (fleet.orbitingPlanetNum && fleet.orbitingPlanetNum != None) {
-				const planet = g.universe.getMapObject(MapObjectType.Planet, fleet.orbitingPlanetNum);
+				const planet = g.universe.getMapObject({
+					targetType: MapObjectType.Planet,
+					targetNum: fleet.orbitingPlanetNum
+				});
 				if (planet) {
 					selectMapObject(planet);
 				}

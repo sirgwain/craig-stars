@@ -1,6 +1,7 @@
 import type { Cargo } from '$lib/types/Cargo';
 import { CommandedFleet, type Fleet, type Waypoint } from '$lib/types/Fleet';
 import type { MapObject } from '$lib/types/MapObject';
+import type { Planet } from '$lib/types/Planet';
 import type { ErrorResponse } from './Errors';
 import { Service } from './Service';
 
@@ -26,12 +27,11 @@ export class FleetService {
 	}
 
 	static async transferCargo(
-		gameId: number | string,
 		fleet: CommandedFleet,
-		dest: Fleet | Fleet | undefined,
+		dest: Fleet | Planet | undefined,
 		transferAmount: Cargo
-	): Promise<CommandedFleet> {
-		const url = `/api/games/${gameId}/fleets/${fleet.num}/transfer-cargo`;
+	): Promise<Fleet> {
+		const url = `/api/games/${fleet.gameId}/fleets/${fleet.num}/transfer-cargo`;
 		const response = await fetch(url, {
 			method: 'POST',
 			headers: {
@@ -44,7 +44,7 @@ export class FleetService {
 		});
 
 		if (response.ok) {
-			return Object.assign(fleet, await response.json());
+			return await response.json();
 		} else {
 			const errorResponse = (await response.json()) as ErrorResponse;
 			throw new Error(errorResponse.error);
@@ -68,10 +68,7 @@ export class FleetService {
 		}
 	}
 
-	static async merge(
-		fleet: CommandedFleet,
-		fleetNums: number[]
-	): Promise<CommandedFleet> {
+	static async merge(fleet: CommandedFleet, fleetNums: number[]): Promise<CommandedFleet> {
 		const url = `/api/games/${fleet.gameId}/fleets/${fleet.num}/merge`;
 		const response = await fetch(url, {
 			method: 'POST',
@@ -89,7 +86,7 @@ export class FleetService {
 		}
 	}
 
-	static async updateFleetOrders(fleet: CommandedFleet): Promise<CommandedFleet> {
+	static async updateFleetOrders(fleet: CommandedFleet): Promise<Fleet> {
 		const fleetOrders = new FleetOrders(fleet.waypoints ?? [], fleet.repeatOrders);
 
 		const response = await fetch(`/api/games/${fleet.gameId}/fleets/${fleet.num}`, {

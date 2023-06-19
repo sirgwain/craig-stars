@@ -1,11 +1,12 @@
-import type { Fleet } from '$lib/types/Fleet';
-import { MapObjectType, type MapObject } from '$lib/types/MapObject';
+import type { Fleet, Target } from '$lib/types/Fleet';
+import { equal, MapObjectType, type MapObject } from '$lib/types/MapObject';
 import type { MineField } from '$lib/types/MineField';
 import type { MineralPacket } from '$lib/types/MineralPacket';
 import type { Planet } from '$lib/types/Planet';
 import type { PlayerIntel, PlayerIntels, PlayerMapObjects } from '$lib/types/Player';
 import type { ShipDesignIntel } from '$lib/types/ShipDesign';
 import type { Vector } from '$lib/types/Vector';
+import { groupBy } from 'lodash-es';
 import { commandMapObject, selectMapObject, zoomToMapObject } from './Context';
 
 const sortByNum = (a: MapObject, b: MapObject) => a.num - b.num;
@@ -90,6 +91,10 @@ export class Universe implements PlayerMapObjects, PlayerIntels {
 			.forEach((mo) => addtoDict(mo, this.myMapObjectsByPosition));
 	}
 
+	getOtherMapObjectsHereByType(position: Vector) {
+		return groupBy(this.mapObjectsByPosition[positionKey(position)], (mo) => mo.type);
+	}
+
 	getMapObjectsByPosition(position: MapObject | Vector) {
 		return this.mapObjectsByPosition[positionKey(position)];
 	}
@@ -160,36 +165,36 @@ export class Universe implements PlayerMapObjects, PlayerIntels {
 	}
 
 	// get a mapobject by type, number, and optionally player num
-	getMapObject(type: MapObjectType, num: number, playerNum?: number): MapObject | undefined {
+	getMapObject(target: Target): MapObject | undefined {
 		let mo: MapObject;
-		switch (type) {
+		switch (target.targetType) {
 			case MapObjectType.Planet:
-				mo = this.planetIntels[num - 1];
+				mo = this.planetIntels[(target.targetNum ?? 1) - 1];
 				if (mo.playerNum === this.playerNum) {
 					return this.getPlanet(mo.num);
 				}
 				return mo;
 			case MapObjectType.Fleet:
-				if (playerNum === this.playerNum) {
-					return this.fleets.find((f) => f.num == num);
+				if (target.targetPlayerNum === this.playerNum) {
+					return this.fleets.find((f) => f.num === target.targetNum);
 				}
-				return this.fleetIntels.find((f) => f.num == num && f.playerNum == playerNum);
+				return this.fleetIntels.find((f) => f.num === target.targetNum && f.playerNum === target.targetPlayerNum);
 			case MapObjectType.Wormhole:
 				break;
 			case MapObjectType.MineField:
-				if (playerNum === this.playerNum) {
-					return this.mineFields.find((mf) => mf.num == num);
+				if (target.targetPlayerNum === this.playerNum) {
+					return this.mineFields.find((mf) => mf.num === target.targetNum);
 				}
-				return this.mineFieldIntels.find((mf) => mf.num == num && mf.playerNum == playerNum);
+				return this.mineFieldIntels.find((mf) => mf.num === target.targetNum && mf.playerNum === target.targetPlayerNum);
 			case MapObjectType.MysteryTrader:
 				break;
 			case MapObjectType.Salvage:
 				break;
 			case MapObjectType.MineralPacket:
-				if (playerNum === this.playerNum) {
-					return this.mineralPackets.find((mf) => mf.num == num);
+				if (target.targetPlayerNum === this.playerNum) {
+					return this.mineralPackets.find((mf) => mf.num === target.targetNum);
 				}
-				return this.mineralPacketIntels.find((mf) => mf.num == num && mf.playerNum == playerNum);
+				return this.mineralPacketIntels.find((mf) => mf.num === target.targetNum && mf.playerNum === target.targetPlayerNum);
 			case MapObjectType.PositionWaypoint:
 				break;
 		}

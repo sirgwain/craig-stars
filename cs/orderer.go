@@ -11,8 +11,8 @@ type Orderer interface {
 	UpdatePlanetOrders(player *Player, planet *Planet, orders PlanetOrders)
 	UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrders)
 	UpdateMineFieldOrders(player *Player, minefield *MineField, orders MineFieldOrders)
-	TransferFleetCargo(source *Fleet, dest *Fleet, transferAmount Cargo) error
-	TransferPlanetCargo(source *Fleet, dest *Planet, transferAmount Cargo) error
+	TransferFleetCargo(rules *Rules, player, destPlayer *Player, source, dest *Fleet, transferAmount Cargo) error
+	TransferPlanetCargo(rules *Rules, player *Player, source *Fleet, dest *Planet, transferAmount Cargo) error
 	SplitFleetTokens(rules *Rules, player *Player, playerFleets []*Fleet, source *Fleet, tokens []ShipToken) (*Fleet, error)
 	SplitAll(rules *Rules, player *Player, playerFleets []*Fleet, source *Fleet) ([]*Fleet, error)
 	Merge(rules *Rules, player *Player, fleets []*Fleet) (*Fleet, error)
@@ -85,7 +85,7 @@ func (o *orders) UpdateMineFieldOrders(player *Player, minefield *MineField, ord
 }
 
 // transfer cargo from a fleet to/from a fleet
-func (o *orders) TransferFleetCargo(source *Fleet, dest *Fleet, transferAmount Cargo) error {
+func (o *orders) TransferFleetCargo(rules *Rules, player, destPlayer *Player, source, dest *Fleet, transferAmount Cargo) error {
 
 	if source.availableCargoSpace() < transferAmount.Total() {
 		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", source.Name, source.availableCargoSpace(), transferAmount.Total(), dest.Name)
@@ -98,6 +98,9 @@ func (o *orders) TransferFleetCargo(source *Fleet, dest *Fleet, transferAmount C
 	// transfer the cargo
 	source.Cargo = source.Cargo.Add(transferAmount)
 	dest.Cargo = dest.Cargo.Subtract(transferAmount)
+
+	source.Spec = ComputeFleetSpec(rules, player, source)
+	dest.Spec = ComputeFleetSpec(rules, destPlayer, dest)
 	source.MarkDirty()
 	dest.MarkDirty()
 
@@ -105,7 +108,7 @@ func (o *orders) TransferFleetCargo(source *Fleet, dest *Fleet, transferAmount C
 }
 
 // transfer cargo from a planet to/from a fleet
-func (o *orders) TransferPlanetCargo(source *Fleet, dest *Planet, transferAmount Cargo) error {
+func (o *orders) TransferPlanetCargo(rules *Rules, player *Player, source *Fleet, dest *Planet, transferAmount Cargo) error {
 
 	if source.availableCargoSpace() < transferAmount.Total() {
 		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", source.Name, source.availableCargoSpace(), transferAmount.Total(), dest.Name)
@@ -122,6 +125,7 @@ func (o *orders) TransferPlanetCargo(source *Fleet, dest *Planet, transferAmount
 	// transfer the cargo
 	source.Cargo = source.Cargo.Add(transferAmount)
 	dest.Cargo = dest.Cargo.Subtract(transferAmount)
+	source.Spec = ComputeFleetSpec(rules, player, source)
 
 	source.MarkDirty()
 	dest.MarkDirty()

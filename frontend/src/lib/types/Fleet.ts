@@ -2,7 +2,9 @@
 
 import type { Cargo } from './Cargo';
 import type { Cost } from './Cost';
-import { MapObjectType, type MapObject } from './MapObject';
+import { MapObjectType, None, type MapObject } from './MapObject';
+import type { MessageTargetType } from './Player';
+import type { Engine } from './Tech';
 import type { Vector } from './Vector';
 
 export type Fleet = {
@@ -37,6 +39,13 @@ export type ShipToken = {
 	quantityDamaged?: number;
 };
 
+export type Target = {
+	targetType?: MapObjectType | MessageTargetType;
+	targetPlayerNum?: number;
+	targetNum?: number;
+	targetName?: string;
+};
+
 export type Waypoint = {
 	position: Vector;
 	warpSpeed: number;
@@ -44,14 +53,10 @@ export type Waypoint = {
 	task: WaypointTask;
 	waitAtWaypoint?: boolean;
 	layMineFieldDuration?: number;
-	targetType?: MapObjectType;
-	targetNum?: number;
-	targetName?: string;
-	targetPlayerNum?: number;
 	transferToPlayer?: number;
 	partiallyComplete?: boolean;
 	transportTasks: WaypointTransportTasks;
-};
+} & Target;
 
 export enum WaypointTask {
 	None = '',
@@ -94,7 +99,7 @@ export enum WaypointTaskTransportAction {
 }
 
 export type Spec = {
-	engine: string;
+	engine: Engine;
 	cost: Cost;
 	mass: number;
 	armor: number;
@@ -111,8 +116,8 @@ export type Spec = {
 	stargate?: string;
 	massDriver?: string;
 
-	idealSpeed?: number;
 	numEngines?: number;
+	estimatedRange?: number;
 	cargoCapacity?: number;
 	cloakUnits?: number;
 	scanRange?: number;
@@ -167,7 +172,7 @@ export class CommandedFleet implements Fleet {
 	heading = { x: 0, y: 0 };
 	warpSpeed = 0;
 	mass = 0;
-	orbitingPlanetNum = undefined;
+	orbitingPlanetNum = None;
 	starbase = false;
 	position = { x: 0, y: 0 };
 	spec = {} as Spec;

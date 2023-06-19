@@ -1,4 +1,5 @@
-import type { CommandedFleet } from '$lib/types/Fleet';
+import type { Cargo } from '$lib/types/Cargo';
+import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
 import {
 	defaultRules,
 	Density,
@@ -9,6 +10,7 @@ import {
 	type Game,
 	type VictoryConditions
 } from '$lib/types/Game';
+import type { Planet } from '$lib/types/Planet';
 import {
 	Player,
 	type BattlePlan,
@@ -17,8 +19,10 @@ import {
 	type TransportPlan
 } from '$lib/types/Player';
 import type { Vector } from '$lib/types/Vector';
+import { isEqual } from 'lodash-es';
+import { get } from 'svelte/store';
 import { BattlePlanService } from './BattlePlanService';
-import { commandedFleet } from './Context';
+import { commandedFleet, selectedWaypoint, selectWaypoint } from './Context';
 import { DesignService } from './DesignService';
 import { FleetService } from './FleetService';
 import { GameService } from './GameService';
@@ -48,7 +52,7 @@ export class FullGame implements Game {
 	startMode = GameStartMode.Normal;
 	year = 2400;
 	victoryConditions: VictoryConditions = {
-		conditions: [],
+		conditions: 0,
 		numCriteriaRequired: 0,
 		yearsPassed: 0,
 		ownPlanets: 0,
@@ -179,6 +183,26 @@ export class FullGame implements Game {
 
 	async updateFleetOrders(fleet: CommandedFleet) {
 		const updatedFleet = await FleetService.updateFleetOrders(fleet);
+		fleet = Object.assign(fleet, updatedFleet);
+		this.universe.updateFleet(fleet);
+		commandedFleet.update(() => fleet);
+
+		const selected = get(selectedWaypoint);
+		if (selected) {
+			fleet.waypoints?.forEach((wp) => {
+				if (isEqual(selected, wp)) {
+					selectWaypoint(wp);
+				}
+			});
+		}
+	}
+
+	async transferCargo(
+		fleet: CommandedFleet,
+		dest: Fleet | Planet | undefined,
+		transferAmount: Cargo
+	) {
+		const updatedFleet = await FleetService.transferCargo(fleet, dest, transferAmount);
 		fleet = Object.assign(fleet, updatedFleet);
 		this.universe.updateFleet(fleet);
 		commandedFleet.update(() => fleet);

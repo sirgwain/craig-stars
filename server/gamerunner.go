@@ -347,7 +347,7 @@ func (gr *gameRunner) processAITurns(fullGame *cs.FullGame) {
 		// TODO: make this use copies to ensure the ai only updates orders?
 		// TODO: ai only ai processing
 		pmo := fullGame.Universe.GetPlayerMapObjects(player.Num)
-		ai := ai.NewAIPlayer(player, pmo)
+		ai := ai.NewAIPlayer(fullGame.Game, player, pmo)
 		ai.ProcessTurn()
 
 		if player.AIControlled {

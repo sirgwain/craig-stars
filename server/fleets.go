@@ -198,7 +198,10 @@ func (s *server) merge(w http.ResponseWriter, r *http.Request) {
 
 // Transfer cargo from a player's fleet to/from a fleet or planet the player controls
 func (s *server) transferCargo(w http.ResponseWriter, r *http.Request) {
+	game := s.contextGame(r)
+	player := s.contextPlayer(r)
 	fleet := s.contextFleet(r)
+	var err error
 
 	// figure out what type of object we have
 	transfer := cargoTransferRequest{}
@@ -207,11 +210,21 @@ func (s *server) transferCargo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// the fleet needs designs to compute its spec after
+	// transfering cargo
+	player.Designs, err = s.db.GetShipDesignsForPlayer(game.ID, player.Num)
+	if err != nil {
+		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("get fleets for player")
+		render.Render(w, r, ErrInternalServerError(err))
+	}
+
+	fleet.InjectDesigns(player.Designs)
+
 	switch transfer.MO.Type {
 	case cs.MapObjectTypePlanet:
-		s.transferCargoFleetPlanet(w, r, fleet, transfer.MO.ID, transfer.TransferAmount)
+		s.transferCargoFleetPlanet(w, r, game, player, fleet, transfer.MO.ID, transfer.TransferAmount)
 	case cs.MapObjectTypeFleet:
-		s.transferCargoFleetFleet(w, r, fleet, transfer.MO.ID, transfer.TransferAmount)
+		s.transferCargoFleetFleet(w, r, game, player, fleet, transfer.MO.ID, transfer.TransferAmount)
 	default:
 		render.Render(w, r, ErrBadRequest(fmt.Errorf("unable to transfer cargo from fleet to %s", transfer.MO.Type)))
 		return
@@ -220,7 +233,7 @@ func (s *server) transferCargo(w http.ResponseWriter, r *http.Request) {
 }
 
 // transfer cargo from a fleet to/from a planet
-func (s *server) transferCargoFleetPlanet(w http.ResponseWriter, r *http.Request, fleet *cs.Fleet, destID int64, transferAmount cs.Cargo) {
+func (s *server) transferCargoFleetPlanet(w http.ResponseWriter, r *http.Request, game *cs.Game, player *cs.Player, fleet *cs.Fleet, destID int64, transferAmount cs.Cargo) {
 	// find the planet planet by id so we can perform the transfer
 	planet, err := s.db.GetPlanet(destID)
 	if err != nil {
@@ -236,7 +249,7 @@ func (s *server) transferCargoFleetPlanet(w http.ResponseWriter, r *http.Request
 	}
 
 	orderer := cs.NewOrderer()
-	if err := orderer.TransferPlanetCargo(fleet, planet, transferAmount); err != nil {
+	if err := orderer.TransferPlanetCargo(&game.Rules, player, fleet, planet, transferAmount); err != nil {
 		log.Error().Err(err).Msg("transfer cargo")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
@@ -267,7 +280,7 @@ func (s *server) transferCargoFleetPlanet(w http.ResponseWriter, r *http.Request
 }
 
 // transfer cargo from a fleet to/from a fleet
-func (s *server) transferCargoFleetFleet(w http.ResponseWriter, r *http.Request, fleet *cs.Fleet, destID int64, transferAmount cs.Cargo) {
+func (s *server) transferCargoFleetFleet(w http.ResponseWriter, r *http.Request, game *cs.Game, player *cs.Player, fleet *cs.Fleet, destID int64, transferAmount cs.Cargo) {
 	// find the dest dest by id so we can perform the transfer
 	dest, err := s.db.GetFleet(destID)
 	if err != nil {
@@ -281,8 +294,29 @@ func (s *server) transferCargoFleetFleet(w http.ResponseWriter, r *http.Request,
 		render.Render(w, r, ErrNotFound)
 	}
 
+	// if we are transferring cargo to another player, load them from the DB
+	destPlayer := player
+	if dest.PlayerNum != player.Num {
+		destPlayer, err = s.db.GetPlayerByNum(game.ID, dest.PlayerNum)
+		if err != nil {
+			log.Error().Err(err).Msg("get dest player from database")
+			render.Render(w, r, ErrInternalServerError(err))
+			return
+		}
+
+		destPlayer.Designs, err = s.db.GetShipDesignsForPlayer(game.ID, destPlayer.Num)
+		if err != nil {
+			log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", destPlayer.Num).Msg("get fleets for player")
+			render.Render(w, r, ErrInternalServerError(err))
+		}
+
+		dest.InjectDesigns(destPlayer.Designs)
+	} else {
+		dest.InjectDesigns(player.Designs)
+	}
+
 	orderer := cs.NewOrderer()
-	if err := orderer.TransferFleetCargo(fleet, dest, transferAmount); err != nil {
+	if err := orderer.TransferFleetCargo(&game.Rules, player, destPlayer, fleet, dest, transferAmount); err != nil {
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}

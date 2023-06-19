@@ -335,6 +335,27 @@ func (c *client) GetPlayerForGame(gameID, userID int64) (*cs.Player, error) {
 	return &player, nil
 }
 
+func (c *client) GetPlayerByNum(gameID int64, num int) (*cs.Player, error) {
+	item := Player{}
+	if err := c.db.Get(&item, "SELECT * FROM players WHERE gameId = ? AND num = ?", gameID, num); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	player := c.converter.ConvertPlayer(item)
+
+	// get designs
+	designs, err := c.GetShipDesignsForPlayer(gameID, player.Num)
+	if err != nil {
+		return nil, fmt.Errorf("get player designs %w", err)
+	}
+	player.Designs = designs
+
+	return &player, nil
+}
+
 func (c *client) GetLightPlayerForGame(gameID, userID int64) (*cs.Player, error) {
 	item := Player{}
 	if err := c.db.Get(&item, `

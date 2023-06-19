@@ -21,9 +21,9 @@ func testLongRangeScout(player *cs.Player) *cs.Fleet {
 }
 
 func Test_getClosestPlanet(t *testing.T) {
-	rules := cs.NewRules()
-	player := cs.NewPlayer(1, cs.NewRace().WithSpec(&rules))
-	aiPlayer := NewAIPlayer(player, cs.PlayerMapObjects{})
+	game := cs.NewGame()
+	player := cs.NewPlayer(1, cs.NewRace().WithSpec(&game.Rules))
+	aiPlayer := NewAIPlayer(game, player, cs.PlayerMapObjects{})
 
 	planetAt0_0 := cs.PlanetIntel{
 		MapObjectIntel: cs.MapObjectIntel{Position: cs.Vector{X: 0, Y: 0}},
@@ -72,7 +72,8 @@ func Test_getClosestPlanet(t *testing.T) {
 }
 
 func TestAIPlayer_GetPlanet(t *testing.T) {
-	player := NewAIPlayer(cs.NewPlayer(1, cs.NewRace()), cs.PlayerMapObjects{})
+	game := cs.NewGame()
+	player := NewAIPlayer(game, cs.NewPlayer(1, cs.NewRace()), cs.PlayerMapObjects{})
 
 	// no planet by that id
 	assert.Nil(t, player.getPlanet(1))

@@ -25,7 +25,7 @@
 
 	const getWaypointTarget = (wp: Waypoint): MapObject | undefined => {
 		if (wp && wp.targetType && wp.targetNum) {
-			return game.universe.getMapObject(wp.targetType, wp.targetNum, wp.targetPlayerNum);
+			return game.universe.getMapObject(wp);
 		}
 	};
 
@@ -153,7 +153,11 @@
 						bind:this={waypointRefs[index]}
 						class="pl-1 {selectedWaypointIndex == index ? 'bg-primary-focus' : ''}"
 					>
-						<button type="button" class="text-left w-full h=full" on:click={() => onSelectWaypoint(wp, index)}>
+						<button
+							type="button"
+							class="text-left w-full h=full"
+							on:click={() => onSelectWaypoint(wp, index)}
+						>
 							{getTargetName(wp)}
 						</button>
 					</li>

@@ -99,10 +99,12 @@
 			<div class="text-right w-[5.5rem]">Gravity</div>
 			<div class="grow border-b border-base-300 bg-black mx-1 overflow-hidden">
 				<div class="h-full relative">
-					<div
-						style={`left: ${habLowPercent.grav.toFixed()}%; width: ${habWidthPercent.grav?.toFixed()}%`}
-						class="absolute grav-bar h-full"
-					/>
+					{#if !player.race.immuneGrav}
+						<div
+							style={`left: ${habLowPercent.grav.toFixed()}%; width: ${habWidthPercent.grav?.toFixed()}%`}
+							class="absolute grav-bar h-full"
+						/>
+					{/if}
 					<PlanetHabPoint
 						style={`left: ${habPointPercent.grav.toFixed()}%;`}
 						class="absolute grav-point h-full"

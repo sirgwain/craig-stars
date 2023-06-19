@@ -28,7 +28,7 @@ type Game struct {
 	State                                     cs.GameState       `json:"state,omitempty"`
 	OpenPlayerSlots                           uint               `json:"openPlayerSlots,omitempty"`
 	NumPlayers                                int                `json:"numPlayers,omitempty"`
-	VictoryConditionsConditions               *VictoryConditions `json:"victoryConditionsConditions,omitempty"`
+	VictoryConditionsConditions               cs.Bitmask         `json:"victoryConditionsConditions,omitempty"`
 	VictoryConditionsNumCriteriaRequired      int                `json:"victoryConditionsNumCriteriaRequired,omitempty"`
 	VictoryConditionsYearsPassed              int                `json:"victoryConditionsYearsPassed,omitempty"`
 	VictoryConditionsOwnPlanets               int                `json:"victoryConditionsOwnPlanets,omitempty"`
@@ -47,18 +47,7 @@ type Game struct {
 }
 
 // we json serialize these types with custom Scan/Value methods
-type VictoryConditions []cs.VictoryCondition
 type Rules cs.Rules
-
-// db serializer to serialize this to JSON
-func (item *VictoryConditions) Value() (driver.Value, error) {
-	return valueJSON(item)
-}
-
-// db deserializer to read this from JSON
-func (item *VictoryConditions) Scan(src interface{}) error {
-	return scanJSON(src, item)
-}
 
 // db serializer to serialize this to JSON
 func (item *Rules) Value() (driver.Value, error) {

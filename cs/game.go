@@ -144,11 +144,7 @@ func NewGame() *Game {
 		Year:            2400,
 		State:           GameStateSetup,
 		VictoryConditions: VictoryConditions{
-			Conditions: []VictoryCondition{
-				VictoryConditionOwnPlanets,
-				VictoryConditionAttainTechLevels,
-				VictoryConditionExceedsSecondPlaceScore,
-			},
+			Conditions:               Bitmask(VictoryConditionOwnPlanets) | Bitmask(VictoryConditionAttainTechLevels) | Bitmask(VictoryConditionExceedsSecondPlaceScore),
 			NumCriteriaRequired:      1,
 			YearsPassed:              50,
 			OwnPlanets:               60,
@@ -175,11 +171,7 @@ func NewGameSettings() *GameSettings {
 		RandomEvents:    true,
 		StartMode:       GameStartModeNormal,
 		VictoryConditions: VictoryConditions{
-			Conditions: []VictoryCondition{
-				VictoryConditionOwnPlanets,
-				VictoryConditionAttainTechLevels,
-				VictoryConditionExceedsSecondPlaceScore,
-			},
+			Conditions:               Bitmask(VictoryConditionOwnPlanets) | Bitmask(VictoryConditionAttainTechLevels) | Bitmask(VictoryConditionExceedsSecondPlaceScore),
 			NumCriteriaRequired:      1,
 			YearsPassed:              50,
 			OwnPlanets:               60,

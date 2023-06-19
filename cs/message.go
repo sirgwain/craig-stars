@@ -203,7 +203,7 @@ func (m *messageClient) fleetScrapped(player *Player, fleet *Fleet, totalMineral
 
 func (m *messageClient) fleetMerged(player *Player, fleet *Fleet, mergedInto *Fleet) {
 	text := fmt.Sprintf("%s has been merged into %s.", fleet.Name, mergedInto.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetMerged, Text: text, TargetType: TargetFleet, TargetNum: mergedInto.Num, TargetPlayerNum: mergedInto.Num})
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetMerged, Text: text, TargetType: TargetFleet, TargetNum: mergedInto.Num, TargetPlayerNum: mergedInto.PlayerNum})
 }
 
 func (m *messageClient) fleetInvalidMergeNotFleet(player *Player, fleet *Fleet) {
@@ -782,5 +782,5 @@ func (mc *messageClient) victory(player *Player, victor *Player) {
 		text = fmt.Sprintf("The forces of %s have been declared the winner of this game. You are advised to accept their supremacy, though you may continue the fight.", player.Race.PluralName)
 	}
 	// Victory messages are always the first message of the year
-	player.Messages = append([]PlayerMessage{PlayerMessage{Type: PlayerMessageVictor, Text: text}}, player.Messages...)
+	player.Messages = append([]PlayerMessage{{Type: PlayerMessageVictor, Text: text}}, player.Messages...)
 }

@@ -306,6 +306,8 @@ func (c *GameConverter) csFleetToDbFleet(source cs.Fleet) Fleet {
 	dbFleet.Germanium = source.Cargo.Germanium
 	dbFleet.Colonists = source.Cargo.Colonists
 	dbFleet.Fuel = source.Fuel
+	dbFleet.Age = source.Age
+	dbFleet.IdleTurns = source.IdleTurns
 	dbFleet.BattlePlanNum = source.FleetOrders.BattlePlanNum
 	dbFleet.HeadingX = source.Heading.X
 	dbFleet.HeadingY = source.Heading.Y
@@ -354,8 +356,7 @@ func (c *GameConverter) csGameToDbGame(source cs.Game) Game {
 	dbGame.State = cs.GameState(source.State)
 	dbGame.OpenPlayerSlots = source.OpenPlayerSlots
 	dbGame.NumPlayers = source.NumPlayers
-	dbVictoryConditions := c.csVictoryConditionListToDbVictoryConditions(source.VictoryConditions.Conditions)
-	dbGame.VictoryConditionsConditions = &dbVictoryConditions
+	dbGame.VictoryConditionsConditions = cs.Bitmask(source.VictoryConditions.Conditions)
 	dbGame.VictoryConditionsNumCriteriaRequired = source.VictoryConditions.NumCriteriaRequired
 	dbGame.VictoryConditionsYearsPassed = source.VictoryConditions.YearsPassed
 	dbGame.VictoryConditionsOwnPlanets = source.VictoryConditions.OwnPlanets
@@ -612,13 +613,6 @@ func (c *GameConverter) csUserToDbUser(source cs.User) User {
 	dbUser.Verified = source.Verified
 	return dbUser
 }
-func (c *GameConverter) csVictoryConditionListToDbVictoryConditions(source []cs.VictoryCondition) VictoryConditions {
-	dbVictoryConditions := make(VictoryConditions, len(source))
-	for i := 0; i < len(source); i++ {
-		dbVictoryConditions[i] = cs.VictoryCondition(source[i])
-	}
-	return dbVictoryConditions
-}
 func (c *GameConverter) csWormholeToDbWormhole(source cs.Wormhole) Wormhole {
 	var dbWormhole Wormhole
 	dbWormhole.ID = source.MapObject.GameDBObject.ID
@@ -643,6 +637,8 @@ func (c *GameConverter) dbFleetToCsFleet(source Fleet) cs.Fleet {
 	csFleet.BaseName = source.BaseName
 	csFleet.Cargo = ExtendFleetCargo(source)
 	csFleet.Fuel = source.Fuel
+	csFleet.Age = source.Age
+	csFleet.IdleTurns = source.IdleTurns
 	csFleet.Tokens = ShipTokensToGameShipTokens(source.Tokens)
 	csFleet.Heading = ExtendFleetHeading(source)
 	csFleet.WarpSpeed = source.WarpSpeed

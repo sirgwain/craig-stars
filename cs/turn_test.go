@@ -827,3 +827,77 @@ func Test_turn_fleetPatrol(t *testing.T) {
 	assert.Equal(t, fleet.Waypoints[1].WarpSpeed, 6)
 
 }
+
+func Test_turn_fleetRemoteTerraform(t *testing.T) {
+	game := createSingleUnitGame()
+	rules := game.rules
+
+	// give player TT so it can terraform these other worlds
+	player := game.Players[0]
+	player.Race.LRTs |= Bitmask(TT)
+	player.Race.Spec = computeRaceSpec(&player.Race, rules)
+
+	// make two new remote terraformers, one over each planet to test deterraforming and terraforming
+	fleet1 := testRemoteTerraformer(player)
+	fleet2 := testRemoteTerraformer(player)
+	player.Designs[0] = fleet1.Tokens[0].design
+	game.Fleets = []*Fleet{fleet1, fleet2}
+
+	// create a new enemy player and friendly player to own planets
+	enemyPlayer := NewPlayer(2, NewRace().WithSpec(rules)).WithNum(2).withSpec(rules)
+	friendlyPlayer := NewPlayer(3, NewRace().WithSpec(rules)).WithNum(3).withSpec(rules)
+	game.Players = append(game.Players, enemyPlayer, friendlyPlayer)
+
+	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
+	enemyPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
+	friendlyPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
+	player.PlayerIntels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer, friendlyPlayer})
+	enemyPlayer.PlayerIntels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer, friendlyPlayer})
+	friendlyPlayer.PlayerIntels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer, friendlyPlayer})
+
+	// give planet1 to the enemy and orbit it with fleet1
+	planet1 := &Planet{
+		MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 1", Num: 1, PlayerNum: enemyPlayer.Num},
+		Cargo: Cargo{
+			Colonists: 2500,
+		},
+		Hab:     Hab{50, 50, 50},
+		BaseHab: Hab{50, 50, 50},
+	}
+	planet1.Spec = computePlanetSpec(&game.Rules, player, planet1)
+	fleet1.OrbitingPlanetNum = planet1.Num
+
+	// give planet2 to the friend and orbit it with fleet2
+	planet2 := &Planet{
+		MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 2", Num: 2, PlayerNum: friendlyPlayer.Num},
+		Cargo: Cargo{
+			Colonists: 2500,
+		},
+		Hab:     Hab{48, 50, 50},
+		BaseHab: Hab{48, 50, 50},
+	}
+	planet2.Spec = computePlanetSpec(&game.Rules, player, planet2)
+	fleet2.OrbitingPlanetNum = planet2.Num
+
+	game.Planets = []*Planet{planet1, planet2}
+	player.initDefaultPlanetIntels(&game.Rules, []*Planet{planet1, planet2})
+	enemyPlayer.initDefaultPlanetIntels(&game.Rules, []*Planet{planet1, planet2})
+	friendlyPlayer.initDefaultPlanetIntels(&game.Rules, []*Planet{planet1, planet2})
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	err := turn.generateTurn()
+	if err != nil {
+		t.Error("failed to generate turn", err)
+	}
+
+	// should deterraform planet1 2 points
+	assert.Equal(t, Hab{52, 50, 50}, planet1.Hab)
+
+	// should terraform planet2 2 points
+	assert.Equal(t, Hab{50, 50, 50}, planet2.Hab)
+
+}

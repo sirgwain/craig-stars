@@ -34,6 +34,7 @@
 	import { settings } from '$lib/services/Settings';
 	import { PlanetService } from '$lib/services/PlanetService';
 	import ScannerPacketDests from './ScannerPacketDests.svelte';
+	import ScannerNames from './ScannerNames.svelte';
 
 	export let game: FullGame;
 
@@ -177,7 +178,7 @@
 			const mo = options.mo;
 			$commandedFleet.waypoints.splice(waypointIndex + 1, 0, {
 				position: mo.position,
-				warpSpeed: $commandedFleet.spec?.idealSpeed ?? 5,
+				warpSpeed: $commandedFleet.spec?.engine?.idealSpeed ?? 5,
 				targetName: mo.name,
 				targetPlayerNum: mo.playerNum,
 				targetNum: mo.num,
@@ -188,7 +189,7 @@
 		} else if (options.position) {
 			$commandedFleet.waypoints.splice(waypointIndex + 1, 0, {
 				position: options.position,
-				warpSpeed: $commandedFleet.spec?.idealSpeed ?? 5,
+				warpSpeed: $commandedFleet.spec?.engine?.idealSpeed ?? 5,
 				task: WaypointTask.None,
 				transportTasks: { fuel: {}, ironium: {}, boranium: {}, germanium: {}, colonists: {} }
 			});
@@ -198,11 +199,7 @@
 		// select the new waypoint
 		selectWaypoint($commandedFleet.waypoints[$commandedFleet.waypoints.length - 1]);
 		if ($selectedWaypoint && $selectedWaypoint.targetType && $selectedWaypoint.targetNum) {
-			const mo = game.universe.getMapObject(
-				$selectedWaypoint.targetType,
-				$selectedWaypoint.targetNum,
-				$selectedWaypoint.targetPlayerNum
-			);
+			const mo = game.universe.getMapObject($selectedWaypoint);
 
 			if (mo) {
 				selectMapObject(mo);
@@ -226,11 +223,11 @@
 		}
 
 		const commandedIntelObject = $commandedMapObject
-			? game.universe.getMapObject(
-					$commandedMapObject.type,
-					$commandedMapObject.num,
-					$commandedMapObject.playerNum
-			  )
+			? game.universe.getMapObject({
+					targetType: $commandedMapObject.type,
+					targetNum: $commandedMapObject.num,
+					targetPlayerNum: $commandedMapObject.playerNum
+			  })
 			: undefined;
 
 		if (setPacketDest) {
@@ -338,21 +335,27 @@
 		const waypoints: MapObject[] = [];
 		if ($commandedFleet?.waypoints) {
 			waypoints.push(
-				...$commandedFleet.waypoints.map(
-					(wp) =>
-						({
+				...$commandedFleet.waypoints.map((wp) => {
+					const mo = game.universe.getMapObject(wp);
+					if (mo) {
+						return mo;
+					} else {
+						return {
 							position: wp.position,
 							type: wp.targetType ?? MapObjectType.PositionWaypoint,
 							name: wp.targetName ?? '',
 							num: wp.targetNum ?? 0,
 							playerNum: wp.targetPlayerNum ?? 0
-						} as MapObject)
-				)
+						} as MapObject;
+					}
+				})
 			);
 		}
 		data = [
 			...waypoints,
-			...game.universe.fleets.filter((f) => !f.orbitingPlanetNum),
+			...game.universe.fleets.filter(
+				(f) => f.orbitingPlanetNum === None || f.orbitingPlanetNum === undefined
+			),
 			...(game.player.fleetIntels?.filter((f) => !f.orbitingPlanetNum) ?? []),
 			...game.universe.mineralPackets,
 			...game.player.mineralPacketIntels,
@@ -397,6 +400,8 @@
 		</Svg>
 		<Html>
 			{#if transform}
+				<ScannerNames {transform} />
+
 				<MapObjectQuadTreeFinder
 					on:mapobject-selected={(mo) => mapobjectSelected(mo.detail)}
 					on:add-waypoint={(mo) => onAddWaypoint(mo.detail)}

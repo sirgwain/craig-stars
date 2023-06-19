@@ -25,7 +25,7 @@ export interface Tech {
 	createdAt?: string;
 	updatedAt?: string;
 	techStoreId?: number;
-	
+
 	name: string;
 	cost: Cost;
 	requirements: TechRequirements;
@@ -173,11 +173,12 @@ export enum HullSlotType {
 		HullSlotType.MineLayer
 }
 
-export interface TechEngine extends TechHullComponent {
+export type Engine = {
 	idealSpeed?: number;
 	freeSpeed?: number;
 	fuelUsage?: number[];
-}
+};
+export type TechEngine = Engine & TechHullComponent;
 
 export enum TechCategory {
 	Armor = 'Armor',

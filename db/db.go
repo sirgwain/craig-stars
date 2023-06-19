@@ -71,6 +71,7 @@ type Client interface {
 	GetLightPlayerForGame(gameID, userID int64) (*cs.Player, error)
 	GetPlayerStatusesForGame(gameID int64) ([]*cs.Player, error)
 	GetPlayerForGame(gameID, userID int64) (*cs.Player, error)
+	GetPlayerByNum(gameID int64, num int) (*cs.Player, error)
 	GetFullPlayerForGame(gameID, userID int64) (*cs.FullPlayer, error)
 	GetPlayerMapObjects(gameID, userID int64) (*cs.PlayerMapObjects, error)
 	GetPlayerWithDesignsForGame(gameID, userID int64) (*cs.Player, error)

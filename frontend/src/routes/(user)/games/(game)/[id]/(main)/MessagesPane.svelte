@@ -55,11 +55,7 @@
 				}
 
 				if (moType != MapObjectType.None) {
-					const target = game.universe.getMapObject(
-						moType,
-						message.targetNum,
-						message.targetPlayerNum
-					);
+					const target = game.universe.getMapObject(message);
 					if (target) {
 						if (target.type == MapObjectType.Fleet) {
 							const orbitingPlanetNum = (target as Fleet).orbitingPlanetNum;

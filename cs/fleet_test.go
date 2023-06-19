@@ -136,6 +136,37 @@ func testCloakedScout(player *Player) *Fleet {
 	return fleet
 }
 
+func testRemoteTerraformer(player *Player) *Fleet {
+	fleet := &Fleet{
+		MapObject: MapObject{Type: MapObjectTypeFleet, Num: 1, PlayerNum: player.Num},
+		BaseName:  "Remote Terraformer",
+		Tokens: []ShipToken{
+			{
+				Quantity:  1,
+				DesignNum: 1,
+				design: NewShipDesign(player, 1).
+					WithHull(MiniMiner.Name).
+					WithSlots([]ShipDesignSlot{
+						{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+						{HullComponent: BatScanner.Name, HullSlotIndex: 2, Quantity: 1},
+						{HullComponent: OrbitalAdjuster.Name, HullSlotIndex: 3, Quantity: 1},
+						{HullComponent: OrbitalAdjuster.Name, HullSlotIndex: 4, Quantity: 1},
+					}).
+					WithSpec(&rules, player)},
+		},
+		battlePlan:        &player.BattlePlans[0],
+		OrbitingPlanetNum: None,
+		FleetOrders: FleetOrders{
+			Waypoints: []Waypoint{
+				NewPositionWaypoint(Vector{}, 5),
+			},
+		},
+	}
+	fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
+	fleet.Fuel = fleet.Spec.FuelCapacity
+	return fleet
+}
+
 func Test_computeFleetSpec(t *testing.T) {
 	starterHumanoidPlayer := NewPlayer(1, NewRace().WithSpec(&rules)).WithTechLevels(TechLevel{3, 3, 3, 3, 3, 3})
 	starterHumanoidPlayer.Race.Spec = computeRaceSpec(&starterHumanoidPlayer.Race, &rules)
@@ -211,6 +242,7 @@ func Test_computeFleetSpec(t *testing.T) {
 			},
 		}}, FleetSpec{
 			ShipDesignSpec: ShipDesignSpec{
+				Starbase:     true,
 				Cost:         Cost{122, 263, 236, 752},
 				Mass:         48,
 				Armor:        500,
@@ -767,6 +799,31 @@ func TestFleet_repairStarbase(t *testing.T) {
 
 			if starbase.Tokens[0].Damage != tt.want {
 				t.Errorf("Fleet.repairStarbase() got = %v, want %v", starbase.Tokens[0].Damage, tt.want)
+			}
+		})
+	}
+}
+
+func TestFleet_getEstimatedRange(t *testing.T) {
+	player := NewPlayer(1, NewRace().WithSpec(&rules)).withSpec(&rules)
+
+	type args struct {
+		fleet     *Fleet
+		player    *Player
+		warpSpeed int
+	}
+	tests := []struct {
+		name string
+		args args
+		want int
+	}{
+		{"long range scout range", args{testLongRangeScout(player), player, 5}, 2400},
+		{"mini miner", args{testMiniMineLayer(player), player, 5}, 689},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.args.fleet.getEstimatedRange(tt.args.player, tt.args.warpSpeed, tt.args.fleet.Spec.CargoCapacity); got != tt.want {
+				t.Errorf("Fleet.getEstimatedRange() = %v, want %v", got, tt.want)
 			}
 		})
 	}

@@ -11,6 +11,7 @@ import (
 type aiPlayer struct {
 	*cs.Player
 	cs.PlayerMapObjects
+	game         *cs.Game
 	config       aiPlayerConfig
 	client       cs.Orderer
 	planetsByNum map[int]*cs.Planet
@@ -21,9 +22,10 @@ type aiPlayerConfig struct {
 	colonizerPopulationDensity float64
 }
 
-func NewAIPlayer(player *cs.Player, playerMapObjects cs.PlayerMapObjects) *aiPlayer {
+func NewAIPlayer(game *cs.Game, player *cs.Player, playerMapObjects cs.PlayerMapObjects) *aiPlayer {
 	aiPlayer := aiPlayer{
 		Player: player,
+		game:   game,
 		config: aiPlayerConfig{
 			colonizerPopulationDensity: .25, // default to requiring 25% pop density before sending off colonizers
 		},
@@ -146,7 +148,7 @@ func (ai *aiPlayer) colonize() {
 		bestPlanet := ai.getHighestHabPlanet(colonizablePlanets)
 		if bestPlanet != nil {
 			// load colonists
-			if err := ai.client.TransferPlanetCargo(fleet, ai.getPlanet(fleet.OrbitingPlanetNum), cs.Cargo{Colonists: fleet.Spec.CargoCapacity}); err != nil {
+			if err := ai.client.TransferPlanetCargo(&ai.game.Rules, ai.Player, fleet, ai.getPlanet(fleet.OrbitingPlanetNum), cs.Cargo{Colonists: fleet.Spec.CargoCapacity}); err != nil {
 				// something went wrong, skipi this planet
 				log.Error().Err(err).Msg("transferring colonists from planet, skipping")
 				continue

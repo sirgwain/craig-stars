@@ -1,5 +1,5 @@
 import type { BattleAttackWho, BattleRecord, BattleTactic, BattleTarget } from './Battle';
-import type { Fleet, WaypointTransportTasks } from './Fleet';
+import type { Fleet, Target, WaypointTransportTasks } from './Fleet';
 import type { MineField } from './MineField';
 import type { MineralPacket } from './MineralPacket';
 import type { Planet, ProductionQueueItem } from './Planet';
@@ -141,14 +141,11 @@ const emptyTechLevel: TechLevel = {
 	biotechnology: 0
 };
 
-export interface Message {
+export type Message = {
 	type: string;
 	text: string;
-	targetType?: MessageTargetType;
-	targetNum?: number;
 	battleNum?: number;
-	targetPlayerNum?: number;
-}
+} & Target;
 
 export enum MessageTargetType {
 	None = '',

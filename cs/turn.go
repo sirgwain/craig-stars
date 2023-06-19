@@ -94,7 +94,7 @@ func (t *turn) generateTurn() error {
 	t.instaform()
 	t.fleetSweepMines()
 	t.fleetRepair()
-	t.remoteTerraform()
+	t.fleetRemoteTerraform()
 	t.calculateScores()
 
 	// reset all players
@@ -247,6 +247,16 @@ func (t *turn) fleetUnload() {
 
 				salvage = t.game.createSalvage(fleet.Position, fleet.PlayerNum, Cargo{})
 				dest = salvage
+
+				log.Debug().
+					Int64("GameID", t.game.ID).
+					Str("Name", t.game.Name).
+					Int("Year", t.game.Year).
+					Int("Player", fleet.PlayerNum).
+					Str("Fleet", fleet.Name).
+					Str("Position", fleet.Position.String()).
+					Msgf("created salvage")
+
 			}
 
 			for cargoType, task := range wp.getTransportTasks() {
@@ -255,6 +265,17 @@ func (t *turn) fleetUnload() {
 				wp.WaitAtWaypoint = wp.WaitAtWaypoint || waitAtWaypoint
 
 				t.fleetTransferCargo(fleet, transferAmount, cargoType, dest)
+
+				log.Debug().
+					Int64("GameID", t.game.ID).
+					Str("Name", t.game.Name).
+					Int("Year", t.game.Year).
+					Int("Player", fleet.PlayerNum).
+					Str("Fleet", fleet.Name).
+					Str("Dest", dest.getMapObject().Name).
+					Int("Transfered", transferAmount).
+					Str("cargoType", cargoType.String()).
+					Msgf("transferred cargo")
 			}
 
 			// we tried to load/unload from empty space but we didn't deposit any cargo
@@ -347,6 +368,12 @@ func (t *turn) fleetMerge() {
 		}
 
 		player := t.game.getPlayer(fleet.PlayerNum)
+
+		if wp.TargetType != MapObjectTypeFleet {
+			messager.fleetInvalidMergeNotFleet(player, fleet)
+			continue
+		}
+
 		target := t.game.getFleet(wp.TargetPlayerNum, wp.TargetNum)
 		if target == nil {
 			messager.fleetInvalidMergeNotFleet(player, fleet)
@@ -358,15 +385,17 @@ func (t *turn) fleetMerge() {
 		}
 
 		orderer := NewOrderer()
-		_, err := orderer.Merge(t.game.rules, player, []*Fleet{fleet, target})
+		_, err := orderer.Merge(t.game.rules, player, []*Fleet{target, fleet})
 		if err != nil {
 			log.Err(err).Int64("GameID", t.game.ID).Int("PlayerNum", player.Num).Int("Num", fleet.Num).Msgf("Failed to merge %v with %v", fleet, target)
 			messager.error(player, err)
 			continue
 		}
 
+		messager.fleetMerged(player, fleet, target)
+
 		// remove this fleet from the universe
-		t.game.deleteFleet(target)
+		t.game.deleteFleet(fleet)
 	}
 }
 
@@ -773,6 +802,7 @@ func (t *turn) buildFleet(player *Player, planet *Planet, token ShipToken) *Flee
 	fleet.Position = planet.Position
 	fleet.Spec = ComputeFleetSpec(&t.game.Rules, player, &fleet)
 	fleet.Fuel = fleet.Spec.FuelCapacity
+	fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed, fleet.Spec.CargoCapacity)
 	fleet.OrbitingPlanetNum = planet.Num
 
 	t.game.Fleets = append(t.game.Fleets, &fleet)
@@ -947,7 +977,9 @@ func (t *turn) fleetRefuel() {
 
 		planetPlayer := t.game.getPlayer(planet.PlayerNum)
 		if planetPlayer.IsFriend(fleet.PlayerNum) {
+			player := t.game.getPlayer(fleet.PlayerNum)
 			fleet.Fuel = fleet.Spec.FuelCapacity
+			fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed, fleet.Spec.CargoCapacity)
 			fleet.MarkDirty()
 		}
 
@@ -1181,18 +1213,9 @@ func (t *turn) fleetSweepMines() {
 				if mineField.Delete {
 					continue
 				}
-				willSweep := false
-				switch fleet.battlePlan.AttackWho {
-				case BattleAttackWhoEnemies:
-					willSweep = fleetPlayer.IsEnemy(mineField.PlayerNum)
-				case BattleAttackWhoEnemiesAndNeutrals:
-					willSweep = fleetPlayer.IsEnemy(mineField.PlayerNum) || fleetPlayer.IsNeutral(mineField.PlayerNum)
-				case BattleAttackWhoEveryone:
-					willSweep = true
-				}
 
 				// sweep mines
-				if willSweep && isPointInCircle(fleet.Position, mineField.Position, mineField.Radius()) {
+				if fleet.willAttack(fleetPlayer, mineField.PlayerNum) && isPointInCircle(fleet.Position, mineField.Position, mineField.Radius()) {
 					mineFieldPlayer := t.game.getPlayer(mineField.PlayerNum)
 					mineField.sweep(t.game.rules, fleet, fleetPlayer, mineFieldPlayer)
 
@@ -1236,7 +1259,7 @@ func (t *turn) fleetRepair() {
 	}
 }
 
-func (t *turn) remoteTerraform() {
+func (t *turn) fleetRemoteTerraform() {
 	for _, fleet := range t.game.Fleets {
 		if fleet.Delete {
 			continue
@@ -1260,15 +1283,19 @@ func (t *turn) remoteTerraform() {
 
 		player := t.game.getPlayer(fleet.PlayerNum)
 		planetPlayer := t.game.getPlayer(planet.PlayerNum)
-		enemy := player.IsEnemy(planet.PlayerNum)
+		deterraform := fleet.willAttack(player, planet.PlayerNum)
+		friend := player.IsFriend(planet.PlayerNum)
+
+		// do nothing to netural planets
+		if !friend && !deterraform {
+			continue
+		}
 
 		terraformer := NewTerraformer()
 		for i := 0; i < fleet.Spec.TerraformRate; i++ {
-			terraformer.TerraformOneStep(planet, planetPlayer, player, enemy)
+			terraformer.TerraformOneStep(planet, planetPlayer, player, deterraform)
 		}
-
 	}
-
 }
 
 func (t *turn) fleetPatrol(player *Player) {
@@ -1282,13 +1309,16 @@ func (t *turn) fleetPatrol(player *Player) {
 		}
 
 		wp := &fleet.Waypoints[0]
+		if wp.Task != WaypointTaskPatrol {
+			continue
+		}
 
 		distSquared := float64(wp.PatrolRange * wp.PatrolRange)
 		closestDistance := float64(math.MaxFloat32)
 		var closest *FleetIntel
 
 		for _, enemyFleet := range player.FleetIntels {
-			if player.IsEnemy(enemyFleet.PlayerNum) {
+			if fleet.willAttack(player, enemyFleet.PlayerNum) {
 				distSquaredToFleet := fleet.Position.DistanceSquaredTo(enemyFleet.Position)
 				if distSquaredToFleet <= distSquared {
 					if distSquaredToFleet <= closestDistance {
@@ -1322,11 +1352,13 @@ func (t *turn) fleetPatrol(player *Player) {
 // Escort Ships: An escort ship has a power rating greater than 0 and less than 2000. You receive 2 points for each Escort ship (up to the number of planets you own).
 // Capital Ships A Capital ship has a power rating of greater than 1999.  For each capital ship, you receive points calculated by the following formula:
 // Points = (8 * #_capital_ships * #_planets) /( #_capital_ships + #_planets)
-//    For example, if you have 20 capital ships and 30 planets, you receive (8 x 20 x 30) / (20 + 30) or 4.8 points for each ship.
-//          Tech Levels:  1 point for levels 1-3,
-//                        2 points for levels 4-6,
-//                        3 points for levels 7-9,
-//                        4 points for level 10 and above
+//
+//	For example, if you have 20 capital ships and 30 planets, you receive (8 x 20 x 30) / (20 + 30) or 4.8 points for each ship.
+//	      Tech Levels:  1 point for levels 1-3,
+//	                    2 points for levels 4-6,
+//	                    3 points for levels 7-9,
+//	                    4 points for level 10 and above
+//
 // Resources: 1 point for every 30 resources
 func (t *turn) calculateScores() {
 	scores := make([]PlayerScore, len(t.game.Players))

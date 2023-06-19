@@ -1,22 +1,21 @@
 package cs
 
 import (
-	"fmt"
 	"sort"
 )
 
 type VictoryConditions struct {
-	Conditions               []VictoryCondition `json:"conditions"`
-	NumCriteriaRequired      int                `json:"numCriteriaRequired"`
-	YearsPassed              int                `json:"yearsPassed"`
-	OwnPlanets               int                `json:"ownPlanets"`
-	AttainTechLevel          int                `json:"attainTechLevel"`
-	AttainTechLevelNumFields int                `json:"attainTechLevelNumFields"`
-	ExceedsScore             int                `json:"exceedsScore"`
-	ExceedsSecondPlaceScore  int                `json:"exceedsSecondPlaceScore"`
-	ProductionCapacity       int                `json:"productionCapacity"`
-	OwnCapitalShips          int                `json:"ownCapitalShips"`
-	HighestScoreAfterYears   int                `json:"highestScoreAfterYears"`
+	Conditions               Bitmask `json:"conditions"`
+	NumCriteriaRequired      int     `json:"numCriteriaRequired"`
+	YearsPassed              int     `json:"yearsPassed"`
+	OwnPlanets               int     `json:"ownPlanets"`
+	AttainTechLevel          int     `json:"attainTechLevel"`
+	AttainTechLevelNumFields int     `json:"attainTechLevelNumFields"`
+	ExceedsScore             int     `json:"exceedsScore"`
+	ExceedsSecondPlaceScore  int     `json:"exceedsSecondPlaceScore"`
+	ProductionCapacity       int     `json:"productionCapacity"`
+	OwnCapitalShips          int     `json:"ownCapitalShips"`
+	HighestScoreAfterYears   int     `json:"highestScoreAfterYears"`
 }
 
 type VictoryCondition Bitmask
@@ -50,25 +49,26 @@ func (v *victory) checkForVictor(player *Player) error {
 	}
 	score := player.ScoreHistory[len(player.ScoreHistory)-1]
 
-	for _, victoryConditionType := range v.game.VictoryConditions.Conditions {
-		switch victoryConditionType {
-		case VictoryConditionOwnPlanets:
-			v.checkOwnPlanets(player, score)
-		case VictoryConditionAttainTechLevels:
-			v.checkAttainTechLevels(player, score)
-		case VictoryConditionExceedsScore:
-			v.checkExceedScore(player, score)
-		case VictoryConditionExceedsSecondPlaceScore:
-			v.checkExceedSecondPlaceScore(player, score)
-		case VictoryConditionProductionCapacity:
-			v.checkProductionCapacity(player, score)
-		case VictoryConditionOwnCapitalShips:
-			v.checkOwnCapitalShips(player, score)
-		case VictoryConditionHighestScoreAfterYears:
-			v.checkHighestScore(player, score)
-		default:
-			return fmt.Errorf("unknown VictoryConditionType: %v", victoryConditionType)
-		}
+	if v.game.VictoryConditions.Conditions&Bitmask(VictoryConditionOwnPlanets) > 0 {
+		v.checkOwnPlanets(player, score)
+	}
+	if v.game.VictoryConditions.Conditions&Bitmask(VictoryConditionAttainTechLevels) > 0 {
+		v.checkAttainTechLevels(player, score)
+	}
+	if v.game.VictoryConditions.Conditions&Bitmask(VictoryConditionExceedsScore) > 0 {
+		v.checkExceedScore(player, score)
+	}
+	if v.game.VictoryConditions.Conditions&Bitmask(VictoryConditionExceedsSecondPlaceScore) > 0 {
+		v.checkExceedSecondPlaceScore(player, score)
+	}
+	if v.game.VictoryConditions.Conditions&Bitmask(VictoryConditionProductionCapacity) > 0 {
+		v.checkProductionCapacity(player, score)
+	}
+	if v.game.VictoryConditions.Conditions&Bitmask(VictoryConditionOwnCapitalShips) > 0 {
+		v.checkOwnCapitalShips(player, score)
+	}
+	if v.game.VictoryConditions.Conditions&Bitmask(VictoryConditionHighestScoreAfterYears) > 0 {
+		v.checkHighestScore(player, score)
 	}
 
 	if player.AchievedVictoryConditions.countBits() >= v.game.VictoryConditions.NumCriteriaRequired && v.game.YearsPassed() >= v.game.VictoryConditions.YearsPassed {

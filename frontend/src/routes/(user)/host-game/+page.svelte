@@ -10,7 +10,8 @@
 		NewGamePlayerType,
 		PlayerPositions,
 		Size,
-		type GameSettings
+		type GameSettings,
+		VictoryCondition
 	} from '$lib/types/Game';
 	import NewGamePlayer from './NewGamePlayer.svelte';
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
@@ -32,7 +33,23 @@
 		computerPlayersFormAlliances: false,
 		publicPlayerScores: false,
 		startMode: GameStartMode.Normal,
-		players: [{ type: NewGamePlayerType.Host, color: getColor(0) }]
+		players: [{ type: NewGamePlayerType.Host, color: getColor(0) }],
+		victoryConditions: {
+			conditions:
+				VictoryCondition.OwnPlanets |
+				VictoryCondition.AttainTechLevels |
+				VictoryCondition.ExceedsScore,
+			numCriteriaRequired: 1,
+			yearsPassed: 50,
+			ownPlanets: 60,
+			attainTechLevel: 22,
+			attainTechLevelNumFields: 4,
+			exceedsScore: 11000,
+			exceedsSecondPlaceScore: 100,
+			productionCapacity: 100000,
+			ownCapitalShips: 100,
+			highestScoreAfterYears: 100
+		}
 	};
 
 	const onSubmit = async () => {

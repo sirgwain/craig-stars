@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -119,6 +120,24 @@ func generateTestGame(db server.DBClient, config config.Config) error {
 	tinyGame.Players[0].AIControlled = false
 	db.UpdateLightPlayer(tinyGame.Players[0])
 
+	// create a new tiny game for each race
+	races, err := db.GetRacesForUser(admin.ID)
+	if err != nil {
+		return err
+	}
+
+	for _, race := range races {
+		_, err := gameRunner.HostGame(admin.ID, cs.NewGameSettings().
+			WithName(fmt.Sprintf("%s Test Game", race.PluralName)).
+			WithSize(cs.SizeTiny).
+			WithHost(race.ID).
+			WithAIPlayer(cs.AIDifficultyNormal, 1).
+			WithAIPlayer(cs.AIDifficultyNormal, 2))
+		if err != nil {
+			return err
+		}
+	}
+
 	// user2 will also host a game so with an open player slot
 	_, err = gameRunner.HostGame(user2.ID, cs.NewGameSettings().
 		WithName("Joinable Game").
@@ -168,18 +187,45 @@ func createTestUser(db server.DBClient, username string, password string, email 
 		if err := db.CreateRace(&race); err != nil {
 			return nil, nil, err
 		}
-
-		// race = game.PPs()
-		// race.UserID = user.ID
-
-		// if err := db.CreateRace(race); err != nil {
-		// 	return nil, nil, err
-		// }
 	} else {
 		race = races[0]
 	}
 
+	// ensure we have other races
+	if err := ensureTestRaces(db, user.ID); err != nil {
+		return nil, nil, err
+	}
+
 	return user, &race, nil
+}
+
+// ensure this user has test races for all PRTs
+func ensureTestRaces(db server.DBClient, userID int64) error {
+
+	races, err := db.GetRacesForUser(userID)
+	if err != nil {
+		return nil
+	}
+
+	prts := make(map[cs.PRT]bool, len(cs.PRTs))
+	for _, race := range races {
+		prts[race.PRT] = true
+	}
+
+	for _, prt := range cs.PRTs {
+		if found := prts[prt]; !found {
+			race := cs.NewRace()
+			race.UserID = userID
+			race.PRT = prt
+			race.Name = fmt.Sprintf("%v", prt)
+			race.PluralName = fmt.Sprintf("%vs", prt)
+			if err := db.CreateRace(race); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 func init() {

@@ -1,10 +1,12 @@
 <!--
   @component
-  Generates an SVG scatter plot. This component can also work if the x- or y-scale is ordinal, i.e. it has a `.bandwidth` method. See the [timeplot chart](https://layercake.graphics/example/Timeplot) for an example.
+  A fleet that is flying outside of a planet
  -->
 <script lang="ts">
+	import { game } from '$lib/services/Context';
 	import { radiansToDegrees } from '$lib/services/Math';
 	import type { Fleet } from '$lib/types/Fleet';
+	import { None } from '$lib/types/MapObject';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 	import type { Writable } from 'svelte/store';
@@ -35,15 +37,11 @@
 	}
 </script>
 
-{#if !fleet.orbitingPlanetNum}
-	<!-- ScannerFleet -->
-	<polygon
-		id="fleet"
-		points={`0,0 0,${size} ${size},${size}`}
-		xlink:href="#fleet"
-		fill={commanded ? commandedColor : color}
-		transform={`translate(${$xGet(fleet)} ${$yGet(fleet)}) rotate(${angle}) translate(${
-			-size / 2
-		} ${-size / 2})`}
-	/>
-{/if}
+<!-- ScannerFleet -->
+<polygon
+	points={`0,0 0,${size} ${size},${size}`}
+	fill={commanded ? commandedColor : color}
+	transform={`translate(${$xGet(fleet)} ${$yGet(fleet)}) rotate(${angle}) translate(${-size / 2} ${
+		-size / 2
+	})`}
+/>

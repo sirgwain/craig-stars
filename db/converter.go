@@ -832,7 +832,7 @@ func ExtendHabHigh(source Race) cs.Hab {
 
 func ExtendVictoryConditions(source Game) cs.VictoryConditions {
 	return cs.VictoryConditions{
-		Conditions:               *source.VictoryConditionsConditions,
+		Conditions:               source.VictoryConditionsConditions,
 		NumCriteriaRequired:      source.VictoryConditionsNumCriteriaRequired,
 		YearsPassed:              source.VictoryConditionsYearsPassed,
 		OwnPlanets:               source.VictoryConditionsOwnPlanets,

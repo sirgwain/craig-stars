@@ -204,6 +204,19 @@ const (
 	JoaT PRT = "JoaT"
 )
 
+var PRTs = [10]PRT{
+	HE,
+	SS,
+	WM,
+	CA,
+	IS,
+	SD,
+	PP,
+	IT,
+	AR,
+	JoaT,
+}
+
 type Bitmask uint32
 
 func (mask Bitmask) countBits() int {

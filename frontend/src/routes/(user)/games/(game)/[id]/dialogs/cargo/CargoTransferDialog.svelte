@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { getQuantityModifier } from '$lib/quantityModifier';
-	import { FleetService } from '$lib/services/FleetService';
+	import { game } from '$lib/services/Context';
 	import { clamp } from '$lib/services/Math';
 	import { PlanetService } from '$lib/services/PlanetService';
 	import { emptyCargo, negativeCargo, subtract, totalCargo, type Cargo } from '$lib/types/Cargo';
@@ -12,7 +12,6 @@
 	import FleetTransfer from './FleetTransfer.svelte';
 	import PlanetTransfer from './PlanetTransfer.svelte';
 	import TransferButtons from './TransferButtons.svelte';
-	import { game } from '$lib/services/Context';
 
 	export let src: CommandedFleet | undefined;
 	export let dest: Fleet | Planet | undefined;
@@ -31,16 +30,13 @@
 
 	const ok = async () => {
 		if (src && $game) {
-			const fleetService = new FleetService();
 			try {
-				const result = await FleetService.transferCargo($game.id, src, dest, transferAmount);
-				// TODO: should the parent do this? or do we update the src/dest here?
-				src.cargo = result.cargo;
+				await $game.transferCargo(src, dest, transferAmount)
 				if (dest?.cargo) {
 					dest.cargo = subtract(dest.cargo, transferAmount);
 				}
 				reset();
-				dispatch('ok', result);
+				dispatch('ok', src);
 			} catch (e) {
 				console.error(e);
 			}

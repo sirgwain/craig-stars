@@ -53,7 +53,7 @@
 			<div class="my-auto">Battle Plan:</div>
 			<div>
 				<select
-					class="select select-outline select-secondary select-sm"
+					class="select select-outline select-secondary select-sm text-sm"
 					name="battlePlan"
 					bind:value={fleet.battlePlanNum}
 				>
@@ -65,7 +65,7 @@
 		</div>
 		<div class="flex justify-between my-1">
 			<div>Est Range:</div>
-			<div>--</div>
+			<div>{fleet.spec.estimatedRange ? `${fleet.spec.estimatedRange} l.y.` : '--'}</div>
 		</div>
 		<div class="flex justify-between my-1">
 			<div>Percent Cloacked</div>

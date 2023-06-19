@@ -28,7 +28,7 @@ func Test_transferPlanetCargo(t *testing.T) {
 			sourceCargo := tt.fleet.Cargo
 			destCargo := tt.args.planet.Cargo
 			o := orders{}
-			if err := o.TransferPlanetCargo(tt.fleet, tt.args.planet, tt.args.transferAmount); (err != nil) != tt.wantErr {
+			if err := o.TransferPlanetCargo(&rules, player, tt.fleet, tt.args.planet, tt.args.transferAmount); (err != nil) != tt.wantErr {
 				t.Errorf("Fleet.TransferPlanetCargo() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if !tt.wantErr {
@@ -64,7 +64,7 @@ func Test_transferFleetCargo(t *testing.T) {
 			destCargo := tt.args.fleet.Cargo
 			o := orders{}
 
-			if err := o.TransferFleetCargo(tt.fleet, tt.args.fleet, tt.args.transferAmount); (err != nil) != tt.wantErr {
+			if err := o.TransferFleetCargo(&rules, player, player, tt.fleet, tt.args.fleet, tt.args.transferAmount); (err != nil) != tt.wantErr {
 				t.Errorf("Fleet.TransferFleetCargo() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if !tt.wantErr {

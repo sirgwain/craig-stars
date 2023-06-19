@@ -16,7 +16,7 @@ CREATE TABLE games (
   state TEXT,
   openPlayerSlots INTEGER,
   numPlayers INTEGER,
-  victoryConditionsConditions TEXT,
+  victoryConditionsConditions INTEGER,
   victoryConditionsNumCriteriaRequired INTEGER,
   victoryConditionsYearsPassed INTEGER,
   victoryConditionsOwnPlanets INTEGER,

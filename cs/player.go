@@ -435,14 +435,6 @@ func (p *Player) defaultRelationships(players []*Player) []PlayerRelationship {
 func (p *Player) defaultPlayerIntels(players []*Player) []PlayerIntel {
 	playerIntels := make([]PlayerIntel, len(players))
 	for i, otherPlayer := range players {
-		relationship := &p.Relations[i]
-		if otherPlayer.Num == p.Num {
-			// we're friends with ourselves
-			relationship.Relation = PlayerRelationFriend
-		} else {
-			relationship.Relation = PlayerRelationEnemy
-		}
-
 		playerIntel := &playerIntels[i]
 		playerIntel.Color = otherPlayer.Color
 		playerIntel.Name = otherPlayer.Name

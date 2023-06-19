@@ -170,8 +170,8 @@ export interface WormholeStats {
 	jiggleDistance: number;
 }
 
-export interface VictoryConditions {
-	conditions: string[];
+export type VictoryConditions = {
+	conditions: number;
 	numCriteriaRequired: number;
 	yearsPassed: number;
 	ownPlanets: number;
@@ -182,6 +182,17 @@ export interface VictoryConditions {
 	productionCapacity: number;
 	ownCapitalShips: number;
 	highestScoreAfterYears: number;
+};
+
+export enum VictoryCondition {
+	None = 0,
+	OwnPlanets = 1 << 0,
+	AttainTechLevels = 1 << 1,
+	ExceedsScore = 1 << 2,
+	ExceedsSecondPlaceScore = 1 << 3,
+	ProductionCapacity = 1 << 4,
+	OwnCapitalShips = 1 << 5,
+	HighestScoreAfterYears = 1 << 6
 }
 
 export enum WormholeStability {
