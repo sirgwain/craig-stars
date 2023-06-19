@@ -243,7 +243,7 @@ func (c *client) CreateGame(game *game.Game) error {
 		return err
 	}
 
-	game.ID = int64(id)
+	game.ID = id
 
 	return nil
 }

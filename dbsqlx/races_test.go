@@ -54,7 +54,7 @@ func TestUpdateRace(t *testing.T) {
 		return
 	}
 
-	updated, err := c.GetRace(int64(race.ID))
+	updated, err := c.GetRace(race.ID)
 
 	if err != nil {
 		t.Errorf("failed to get race %s", err)
@@ -85,7 +85,7 @@ func TestGetRace(t *testing.T) {
 		wantErr bool
 	}{
 		{"No results", args{id: 0}, nil, false},
-		{"Got race", args{id: int64(race.ID)}, &race, false},
+		{"Got race", args{id: race.ID}, &race, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -143,7 +143,7 @@ func TestDeleteRaces(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result))
 
-	if err := c.DeleteRace(int64(race.ID)); err != nil {
+	if err := c.DeleteRace(race.ID); err != nil {
 		t.Errorf("failed to delete race %s", err)
 		return
 	}

@@ -58,7 +58,7 @@ func TestUpdatePlayer(t *testing.T) {
 		return
 	}
 
-	updated, err := c.GetPlayer(int64(player.ID))
+	updated, err := c.GetPlayer(player.ID)
 
 	if err != nil {
 		t.Errorf("failed to get player %s", err)
@@ -90,7 +90,7 @@ func TestGetPlayer(t *testing.T) {
 		wantErr bool
 	}{
 		{"No results", args{id: 0}, nil, false},
-		{"Got player", args{id: int64(player.ID)}, &player, false},
+		{"Got player", args{id: player.ID}, &player, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -150,7 +150,7 @@ func TestDeletePlayers(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result))
 
-	if err := c.DeletePlayer(int64(player.ID)); err != nil {
+	if err := c.DeletePlayer(player.ID); err != nil {
 		t.Errorf("failed to delete player %s", err)
 		return
 	}
@@ -179,7 +179,7 @@ func TestUpdateFullPlayer(t *testing.T) {
 		return
 	}
 
-	updated, err := c.GetFullPlayer(int64(player.ID))
+	updated, err := c.GetFullPlayer(player.ID)
 
 	if err != nil {
 		t.Errorf("failed to get player %s", err)
