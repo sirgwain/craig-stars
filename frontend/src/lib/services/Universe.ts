@@ -115,7 +115,7 @@ export class Universe implements PlayerMapObjects, PlayerIntels {
 	}
 
 	getPlanet(num: number) {
-		return this.planets.find((p) => p.num === num);
+		return this.planets.find((p) => p.num === num) ?? this.planetIntels.find((p) => p.num === num);
 	}
 
 	getPlanetStarbase(planetNum: number) {
@@ -131,6 +131,14 @@ export class Universe implements PlayerMapObjects, PlayerIntels {
 		const index = this.fleets.findIndex((f) => f.num === fleet.num);
 		if (index != -1) {
 			this.fleets = [...this.fleets.slice(0, index), fleet, ...this.fleets.slice(index + 1)];
+		}
+		this.resetMyMapObjectsByPosition();
+	}
+
+	updatePlanet(planet: Planet) {
+		const index = this.planets.findIndex((f) => f.num === planet.num);
+		if (index != -1) {
+			this.planets = [...this.planets.slice(0, index), planet, ...this.planets.slice(index + 1)];
 		}
 		this.resetMyMapObjectsByPosition();
 	}

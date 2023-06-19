@@ -127,6 +127,17 @@ input[type='number']::-webkit-inner-spin-button {
 	stroke: #9d9afc;
 }
 
+.packet-dest-line {
+	fill: none;
+	stroke-linecap: square;
+	stroke: #6B0065;
+}
+
+.packet-arrow {
+	fill: #6B0065;
+}
+
+
 .beam-line {
 	fill: none;
 	stroke-linejoin: round;

@@ -9,7 +9,15 @@
 <!-- This is a pattern for the background of minefields -->
 <svg>
 	<defs>
-		<pattern id="pattern-minefield" x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform={`scale(${1/$scale}, ${1/$scale})`}>
+		<pattern
+			id="pattern-minefield"
+			x="0"
+			y="0"
+			width="8"
+			height="8"
+			patternUnits="userSpaceOnUse"
+			patternTransform={`scale(${1 / $scale}, ${1 / $scale})`}
+		>
 			<rect x="4" y="0" width="1" height="1" fill="#FFFFFF" />
 			<rect x="2" y="2" width="1" height="1" fill="#FFFFFF" />
 			<rect x="6" y="2" width="1" height="1" fill="#FFFFFF" />

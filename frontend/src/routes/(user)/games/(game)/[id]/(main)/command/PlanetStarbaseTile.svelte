@@ -39,6 +39,7 @@
 		const result = await PlanetService.update(game.id, planet);
 		Object.assign(planet, result);
 		$commandedPlanet = planet;
+		game.universe.updatePlanet($commandedPlanet);
 	}
 </script>
 

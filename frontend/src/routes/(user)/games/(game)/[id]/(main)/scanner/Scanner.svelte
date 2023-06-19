@@ -33,6 +33,7 @@
 	import ScannerMineralPackets from './ScannerMineralPackets.svelte';
 	import { settings } from '$lib/services/Settings';
 	import { PlanetService } from '$lib/services/PlanetService';
+	import ScannerPacketDests from './ScannerPacketDests.svelte';
 
 	export let game: FullGame;
 
@@ -245,6 +246,8 @@
 				const result = await PlanetService.update(game.id, $commandedPlanet);
 				Object.assign($commandedPlanet, result);
 				$commandedPlanet = $commandedPlanet;
+				game.universe.updatePlanet($commandedPlanet);
+				game.universe.planets = game.universe.planets;
 			}
 		}
 
@@ -383,6 +386,7 @@
 				<ScannerScanners />
 				<ScannerMineFieldPattern />
 				<ScannerMineFields />
+				<ScannerPacketDests />
 				<ScannerWaypoints />
 				<SelectedWaypoint />
 				<ScannerPlanets />
