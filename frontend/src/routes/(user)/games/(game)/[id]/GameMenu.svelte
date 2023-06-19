@@ -23,6 +23,17 @@
 		<div class="flex-initial">
 			<div class="hidden md:inline-block">
 				<div class="dropdown">
+					<label for="reports" tabindex="0" class="btn btn-ghost">Commands</label>
+					<ul
+						id="commands"
+						tabindex="0"
+						class=" menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52"
+					>
+						<li><a href={`/games/${$game.id}/research`}>Research</a></li>
+					</ul>
+				</div>
+
+				<div class="dropdown">
 					<label for="reports" tabindex="0" class="btn btn-ghost">Reports</label>
 					<ul
 						id="reports"
@@ -58,6 +69,11 @@
 					<li>
 						<DarkModeToggler />
 					</li>
+					<li class="md:hidden menu-title">
+						<span>Commands</span>
+					</li>
+					<li class="md:hidden"><a href={`/games/${$game.id}/research`}>Research</a></li>
+
 					<li class="md:hidden menu-title">
 						<span>Reports</span>
 					</li>

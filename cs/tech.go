@@ -5,16 +5,6 @@ import (
 	"time"
 )
 
-type TechField string
-
-const (
-	TechFieldEnergy        TechField = "Energy"
-	TechFieldWeapons       TechField = "Weapons"
-	TechFieldPropulsion    TechField = "Propulsion"
-	TechFieldConstruction  TechField = "Construction"
-	TechFieldElectronics   TechField = "Electronics"
-	TechFieldBiotechnology TechField = "Biotechnology"
-)
 
 type TechCategory string
 

@@ -210,6 +210,10 @@ func (u *Universe) getCargoHolder(mapObjectType MapObjectType, num int, playerNu
 // mark a fleet as deleted and remove it from the universe
 func (u *Universe) deleteFleet(fleet *Fleet) {
 	fleet.Delete = true
+	
+	index := slices.Index(u.Fleets, fleet)
+	slices.Delete(u.Fleets, index, index)
+
 	delete(u.fleetsByNum, playerFleetNum{fleet.PlayerNum, fleet.Num})
 	delete(u.fleetsByPosition, fleet.Position)
 	u.removeMapObjectAtPosition(fleet, fleet.Position)
@@ -234,6 +238,10 @@ func (u *Universe) moveWormhole(wormhole *Wormhole, originalPosition Vector) {
 // delete a wormhole from the universe
 func (u *Universe) deleteWormhole(wormhole *Wormhole) {
 	wormhole.Delete = true
+
+	index := slices.Index(u.Wormholes, wormhole)
+	slices.Delete(u.Wormholes, index, index)
+
 	delete(u.wormholesByNum, wormhole.Num)
 	u.removeMapObjectAtPosition(wormhole, wormhole.Position)
 }
@@ -279,6 +287,10 @@ func (u *Universe) createSalvage(position Vector, playerNum int, cargo Cargo) *S
 // delete a salvage from the universe
 func (u *Universe) deleteSalvage(salvage *Salvage) {
 	salvage.Delete = true
+
+	index := slices.Index(u.Salvages, salvage)
+	slices.Delete(u.Salvages, index, index)
+
 	delete(u.salvagesByNum, salvage.Num)
 	u.removeMapObjectAtPosition(salvage, salvage.Position)
 }

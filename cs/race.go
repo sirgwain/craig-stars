@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math"
 	"time"
+
+	"github.com/rs/zerolog/log"
 )
 
 type Race struct {
@@ -49,6 +51,26 @@ type ResearchCost struct {
 	Construction  ResearchCostLevel `json:"construction,omitempty"`
 	Electronics   ResearchCostLevel `json:"electronics,omitempty"`
 	Biotechnology ResearchCostLevel `json:"biotechnology,omitempty"`
+}
+
+func (rc ResearchCost) Get(field TechField) ResearchCostLevel {
+	switch field {
+	case Energy:
+		return rc.Energy
+	case Weapons:
+		return rc.Weapons
+	case Propulsion:
+		return rc.Propulsion
+	case Construction:
+		return rc.Construction
+	case Electronics:
+		return rc.Electronics
+	case Biotechnology:
+		return rc.Biotechnology
+	}
+
+	log.Error().Msgf("invalid field %s to get ResearchCost", field)
+	return ResearchCostStandard
 }
 
 type RaceSpec struct {
@@ -323,6 +345,11 @@ func (r *Race) withImmuneTemp(immune bool) *Race {
 
 func (r *Race) withImmuneRad(immune bool) *Race {
 	r.ImmuneRad = immune
+	return r
+}
+
+func (r *Race) withResearchCost(researchCost ResearchCost) *Race {
+	r.ResearchCost = researchCost
 	return r
 }
 

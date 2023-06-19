@@ -61,4 +61,7 @@ func Test_generateTurns(t *testing.T) {
 	// should have built factories
 	assert.Greater(t, universe.Planets[0].Factories, game.Rules.StartingFactories)
 
+	// should have researched
+	assert.NotEqual(t, player.TechLevels, TechLevel{3, 3, 3, 3, 3, 3})
+
 }

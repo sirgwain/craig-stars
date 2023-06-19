@@ -79,7 +79,7 @@ func generateTestGame(db server.DBClient, config config.Config) error {
 	if err != nil {
 		return err
 	}
-	for i := 0; i < 25; i++ {
+	for i := 0; i < 40; i++ {
 		gameRunner.SubmitTurn(mediumGame.ID, mediumGame.HostID)
 		if _, err := gameRunner.CheckAndGenerateTurn(mediumGame.ID); err != nil {
 			log.Error().Err(err).Msg("check and generate new turn")

@@ -372,7 +372,7 @@ func (c *client) GetFullPlayerForGame(gameID, userID int64) (*cs.FullPlayer, err
 	}
 	player.Planets = planets
 
-	fleets, err := c.getFleetsForPlayer(player.Num)
+	fleets, err := c.getFleetsForPlayer(player.GameID, player.Num)
 	if err != nil {
 		return nil, fmt.Errorf("get player fleets %w", err)
 	}
@@ -525,7 +525,8 @@ func (c *client) UpdateLightPlayer(player *cs.Player) error {
 		defaultHullSet = :defaultHullSet,
 		researchAmount = :researchAmount,
 		nextResearchField = :nextResearchField,
-		researching = :researching	
+		researching = :researching,
+		spec = :spec
 	WHERE id = :id
 	`, item); err != nil {
 		return err

@@ -19,15 +19,11 @@ require github.com/google/uuid v1.3.0
 
 require (
 	github.com/jmoiron/sqlx v1.3.5
-	github.com/timshannon/bolthold v0.0.0-20210913165410-232392fc8a6a
-	go.etcd.io/bbolt v1.3.6
+	github.com/simukti/sqldb-logger v0.0.0-20220521163925-faf2f2be0eb6
 	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e
 )
 
-require (
-	github.com/simukti/sqldb-logger v0.0.0-20220521163925-faf2f2be0eb6 // indirect
-	github.com/wader/gormstore/v2 v2.0.0 // indirect
-)
+require github.com/wader/gormstore/v2 v2.0.0 // indirect
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -70,9 +66,9 @@ require (
 	github.com/subosito/gotenv v1.3.0 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4 // indirect
-	golang.org/x/net v0.0.0-20220520000938-2e3eb7b945c2 // indirect
-	golang.org/x/sys v0.0.0-20220829200755-d48e67d00261 // indirect
-	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/net v0.3.0 // indirect
+	golang.org/x/sys v0.3.0 // indirect
+	golang.org/x/text v0.5.0
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/ini.v1 v1.66.4 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

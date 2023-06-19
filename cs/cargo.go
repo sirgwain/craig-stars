@@ -53,6 +53,15 @@ func (c Cargo) PrettyString() string {
 	return strings.Join(texts, ", ")
 }
 
+func (c Cargo) Negative() Cargo {
+	return Cargo{
+		Ironium:   -c.Ironium,
+		Boranium:  -c.Boranium,
+		Germanium: -c.Germanium,
+		Colonists: -c.Colonists,
+	}
+}
+
 func (c Cargo) Add(other Cargo) Cargo {
 	return Cargo{
 		Ironium:   c.Ironium + other.Ironium,
@@ -125,7 +134,21 @@ func (c Cargo) CanTransferAmount(cargoType CargoType, transferAmount int) bool {
 
 }
 
-func (c Cargo) AddAmount(cargoType CargoType, transferAmount int) Cargo {
+func (c *Cargo) SubtractAmount(cargoType CargoType, transferAmount int) *Cargo {
+	switch cargoType {
+	case Ironium:
+		c.Ironium -= transferAmount
+	case Boranium:
+		c.Boranium -= transferAmount
+	case Germanium:
+		c.Germanium -= transferAmount
+	case Colonists:
+		c.Colonists -= transferAmount
+	}
+	return c
+}
+
+func (c *Cargo) AddAmount(cargoType CargoType, transferAmount int) *Cargo {
 	switch cargoType {
 	case Ironium:
 		c.Ironium += transferAmount
@@ -166,5 +189,10 @@ func (c Cargo) WithCargo(t CargoType, amount int) Cargo {
 	case Colonists:
 		c.Colonists = amount
 	}
+	return c
+}
+
+func (c Cargo) WithPopulation(amount int) Cargo {
+	c.Colonists = amount / 100
 	return c
 }

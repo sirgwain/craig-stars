@@ -1,9 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import CargoTransferDialog from './dialogs/cargo/CargoTransferDialog.svelte';
-	import ProductionQueueDialog from './dialogs/ProductionQueueDialog.svelte';
-	import GameMenu from './GameMenu.svelte';
 	import { EventManager } from '$lib/EventManager';
+	import { bindNavigationHotkeys, unbindNavigationHotkeys } from '$lib/navigationHotkeys';
 	import { bindQuantityModifier, unbindQuantityModifier } from '$lib/quantityModifier';
 	import {
 		commandMapObject,
@@ -16,28 +14,30 @@
 	import { GameService } from '$lib/services/GameService';
 	import { PlayerService } from '$lib/services/PlayerService';
 	import type { Fleet } from '$lib/types/Fleet';
+	import { GameState } from '$lib/types/Game';
 	import { MapObjectType, positionKey } from '$lib/types/MapObject';
 	import type { Planet } from '$lib/types/Planet';
 	import { onMount } from 'svelte';
-	import { GameState } from '$lib/types/Game';
+	import CargoTransferDialog from './dialogs/cargo/CargoTransferDialog.svelte';
+	import ProductionQueueDialog from './dialogs/ProductionQueueDialog.svelte';
+	import GameMenu from './GameMenu.svelte';
 
 	let id = parseInt($page.params.id);
-	let playerService: PlayerService;
 	let gameService: GameService = new GameService();
 
 	let source: Fleet | undefined;
 	let dest: Fleet | Planet | undefined;
 
 	onMount(async () => {
-		game.update(() => undefined);
-		player.update(() => undefined);
+		if ($game?.id !== id || !$game || !$player) {
+			game.update(() => undefined);
+			player.update(() => undefined);
 
-		// load the game on mount
-		const result = await gameService.loadGame(id);
-		game.update(() => result.game);
-		player.update(() => result.player);
-
-		playerService = new PlayerService(result.player);
+			// load the game on mount
+			const result = await gameService.loadGame(id);
+			game.update(() => result.game);
+			player.update(() => result.player);
+		}
 
 		// setup the quantityModifier
 		bindQuantityModifier();
@@ -56,8 +56,14 @@
 			)
 		);
 
+		// if we are in an active game, bind the navigation hotkeys, i.e. F4 for research, Esc to go back
+		if ($game?.state == GameState.WaitingForPlayers) {
+			bindNavigationHotkeys(id);
+		}
+
 		return () => {
 			unbindQuantityModifier();
+			unbindNavigationHotkeys();
 			unsubscribes.forEach((unsubscribe) => unsubscribe.apply(unsubscribe));
 		};
 	});
@@ -80,10 +86,12 @@
 	}
 
 	async function onSubmitTurn() {
-		const result = await playerService.submitTurn();
-		if (result !== undefined) {
-			game.update((store) => (store = result.game));
-			player.update((store) => (store = result.player));
+		if ($player) {
+			const result = await PlayerService.submitTurn($player);
+			if (result !== undefined) {
+				game.update((store) => (store = result.game));
+				player.update((store) => (store = result.player));
+			}
 		}
 	}
 

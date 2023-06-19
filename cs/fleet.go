@@ -88,6 +88,7 @@ type Waypoint struct {
 	TransferToPlayer  int                    `json:"transferToPlayer,omitempty"`
 	TargetName        string                 `json:"targetName,omitempty"`
 	PartiallyComplete bool                   `json:"partiallyComplete,omitempty"`
+	processed         bool                   `json:"-"`
 }
 
 type WaypointTask string
@@ -480,54 +481,28 @@ func (f *Fleet) availableCargoSpace() int {
 }
 
 // transfer cargo from a fleet to a cargo holder
-func (f *Fleet) transferCargoItem(dest cargoHolder, cargoType CargoType, transferAmount int) error {
+func (f *Fleet) transferToDest(dest cargoHolder, cargoType CargoType, transferAmount int) error {
 	destCargo := dest.getCargo()
-	if f.availableCargoSpace() < transferAmount {
+
+	if transferAmount > 0 && !f.Cargo.CanTransferAmount(cargoType, transferAmount) {
+		return fmt.Errorf("fleet %s cannot transfer %d to %s, there is not enough in the fleet to transfer", f.Name, transferAmount, dest.getMapObject().Name)
+	}
+
+	if transferAmount < 0 && f.availableCargoSpace() < -transferAmount {
 		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", f.Name, f.availableCargoSpace(), transferAmount, dest.getMapObject().Name)
 	}
 
-	if !destCargo.CanTransferAmount(cargoType, transferAmount) {
-		return fmt.Errorf("fleet %s cannot transfer %v from %s, there is not enough to transfer", f.Name, transferAmount, dest.getMapObject().Name)
+	if transferAmount < 0 && !destCargo.CanTransferAmount(cargoType, -transferAmount) {
+		return fmt.Errorf("fleet %s cannot transfer %d from %s, there is not enough to transfer", f.Name, transferAmount, dest.getMapObject().Name)
+	}
+
+	if transferAmount > 0 && dest.getCargoCapacity() != Unlimited && (dest.getCargoCapacity()-destCargo.Total()) < transferAmount {
+		return fmt.Errorf("fleet %s cannot transfer %d to %s, there is not enough to space to hold the cargo", f.Name, transferAmount, dest.getMapObject().Name)
 	}
 
 	// transfer the cargo
-	f.Cargo = f.Cargo.AddAmount(cargoType, transferAmount)
-
-	switch cargoType {
-	case Ironium:
-		destCargo.Ironium -= transferAmount
-	case Boranium:
-		destCargo.Boranium -= transferAmount
-	case Germanium:
-		destCargo.Germanium -= transferAmount
-	case Colonists:
-		destCargo.Colonists -= transferAmount
-	}
-
-	return nil
-}
-
-// transfer cargo from a fleet to a cargo holder
-func (f *Fleet) transferCargo(dest cargoHolder, transferAmount Cargo) error {
-	destCargo := dest.getCargo()
-	if f.availableCargoSpace() < transferAmount.Total() {
-		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", f.Name, f.availableCargoSpace(), transferAmount.Total(), dest.getMapObject().Name)
-	}
-
-	if !destCargo.CanTransfer(transferAmount) {
-		return fmt.Errorf("fleet %s cannot transfer %v from %s, there is not enough to transfer", f.Name, transferAmount, dest.getMapObject().Name)
-	}
-
-	// transfer the cargo
-	f.Cargo = f.Cargo.Add(transferAmount)
-
-	// update the dest cargo. It's a pointer to a cargo, so
-	// we need to update each value
-	updatedDestCargo := destCargo.Subtract(transferAmount)
-	destCargo.Ironium = updatedDestCargo.Ironium
-	destCargo.Boranium = updatedDestCargo.Boranium
-	destCargo.Germanium = updatedDestCargo.Germanium
-	destCargo.Colonists = updatedDestCargo.Colonists
+	f.Cargo.SubtractAmount(cargoType, transferAmount)
+	destCargo.AddAmount(cargoType, transferAmount)
 
 	return nil
 }
@@ -787,7 +762,7 @@ func (fleet *Fleet) colonizePlanet(rules *Rules, player *Player, planet *Planet)
 		}
 	}
 
-	planet.Spec = computePlanetSpec(rules, planet, player)
+	planet.Spec = computePlanetSpec(rules, player, planet)
 }
 
 // get the minerals and resources recovered from a scrapped fleet
@@ -826,4 +801,113 @@ func (fleet *Fleet) getScrapAmount(rules *Rules, player *Player, planet *Planet)
 	}
 
 	return scrappedCost
+}
+
+// getTransferAmount gets the amount of cargo to transfer for loading a cargo type from a cargoholder
+func (fleet *Fleet) getCargoLoadAmount(dest cargoHolder, cargoType CargoType, task WaypointTransportTask) (transferAmount int, waitAtWaypoint bool) {
+	capacity := fleet.Spec.CargoCapacity - fleet.Cargo.Total()
+	availableToLoad := dest.getCargo().GetAmount(cargoType)
+	currentAmount := fleet.Cargo.GetAmount(cargoType)
+	switch task.Action {
+	case TransportActionLoadOptimal:
+		// fuel only
+		// we set our fuel to whatever it takes to finish our waypoints and transfer the rest to the ICargoHolder target.
+		// If the target is a planet or starbase (and has infinite fuel capacity), we skip this and don't give them our fuel
+		if cargoType == Fuel && dest.getFuelCapacity() != Unlimited {
+			fuelRequiredForWaypoints := 0
+			for i := 1; i < len(fleet.Waypoints); i++ {
+				fuelRequiredForWaypoints += fleet.Waypoints[i].EstFuelUsage
+			}
+			leftoverFuel := fleet.Fuel - fuelRequiredForWaypoints
+			fuelCapacityAvailable := dest.getFuelCapacity() - dest.getFuel()
+			if leftoverFuel > 0 && fuelCapacityAvailable > 0 {
+				// transfer the lowest of how much fuel capacity they have available or how much we can give
+				// this is a bit weird because we are doing a "Load", but it's actually an unload of fuel
+				// from us to a dest fleet, so make the transferAmount negative.
+				transferAmount = maxInt(-leftoverFuel, -(dest.getFuelCapacity() - dest.getFuel()))
+			}
+		}
+	case TransportActionLoadAll:
+		// load all available, based on our constraints
+		transferAmount = minInt(availableToLoad, capacity)
+	case TransportActionLoadAmount:
+		transferAmount = minInt(minInt(availableToLoad, task.Amount), capacity)
+	case TransportActionWaitForPercent:
+		fallthrough
+	case TransportActionFillPercent:
+		// we want a percent of our hold to be filled with some amount, figure out how
+		// much that is in kT, i.e. 50% of 100kT would be 50kT of this mineral
+		var taskAmountkT = int(float64(task.Amount) / 100 * float64(capacity))
+
+		if currentAmount >= taskAmountkT {
+			// no need to transfer any, move on
+			return 0, false
+		} else {
+
+			transferAmount = minInt(minInt(availableToLoad, taskAmountkT-currentAmount), capacity)
+			if transferAmount < taskAmountkT && task.Action == TransportActionWaitForPercent {
+				waitAtWaypoint = true
+			}
+		}
+	case TransportActionSetAmountTo:
+		// only transfer the min of what we have, vs what we need, vs the capacity
+		transferAmount = minInt(minInt(availableToLoad, task.Amount-currentAmount), capacity)
+		if transferAmount < (task.Amount - currentAmount) {
+			waitAtWaypoint = true
+		}
+	case TransportActionLoadDunnage:
+		transferAmount = fleet.getCargoLoadDunnageAmount(dest, cargoType)
+	}
+
+	// let the caller know how much of this cargo we load
+	return transferAmount, waitAtWaypoint
+}
+
+func (fleet *Fleet) getCargoLoadDunnageAmount(dest cargoHolder, cargoType CargoType) (transferAmount int) {
+	capacity := fleet.Spec.CargoCapacity - fleet.Cargo.Total()
+	availableToLoad := dest.getCargo().GetAmount(cargoType)
+
+	// (minerals and colonists only) This command waits until all other loads and unloads are
+	// complete, then loads as many colonists or amount of a mineral as will fit in the remaining
+	// space. For example, setting Load All Germanium, Load Dunnage Ironium, will load all the
+	// Germanium that is available, then as much Ironium as possible. If more than one dunnage cargo
+	// is specified, they are loaded in the order of Ironium, Boranium, Germanium, and Colonists.
+	return minInt(availableToLoad, capacity)
+}
+
+// getCargoUnloadAmount gets the amount of cargo to transfer for unloading a cargo type from a cargoholder
+func (fleet *Fleet) getCargoUnloadAmount(dest cargoHolder, cargoType CargoType, task WaypointTransportTask) (transferAmount int, waitAtWaypoint bool) {
+
+	var availableToUnload int
+	if cargoType == Fuel {
+
+		availableToUnload = fleet.Fuel
+	} else {
+		availableToUnload = fleet.Cargo.GetAmount(cargoType)
+	}
+	currentAmount := fleet.Cargo.GetAmount(cargoType)
+	_ = currentAmount
+	switch task.Action {
+	case TransportActionUnloadAll:
+		// unload all available, based on our constraints
+		transferAmount = minInt(availableToUnload, dest.getCargoCapacity())
+	case TransportActionUnloadAmount:
+		// don't unload more than the task says
+		transferAmount = minInt(minInt(availableToUnload, task.Amount), dest.getCargoCapacity())
+	case TransportActionSetWaypointTo:
+		// Make sure the waypoint has at least whatever we specified
+		var currentAmount = dest.getCargo().GetAmount(cargoType)
+
+		if currentAmount >= task.Amount {
+			// no need to transfer any, move on
+			break
+		} else {
+			// only transfer the min of what we have, vs what we need, vs the capacity
+			transferAmount = minInt(minInt(availableToUnload, task.Amount-currentAmount), dest.getCargoCapacity())
+			if transferAmount < task.Amount {
+				waitAtWaypoint = true
+			}
+		}
+	}
+	return transferAmount, waitAtWaypoint
 }

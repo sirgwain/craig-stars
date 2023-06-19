@@ -4,6 +4,14 @@ import (
 	"testing"
 )
 
+// create a new test player with humanoid race and computed specs
+func testPlayer() *Player {
+	rules := NewRules()
+	race := Humanoids()
+	race.Spec = computeRaceSpec(&race, &rules)
+	return NewPlayer(1, &race).withSpec(&rules)
+}
+
 func TestPlayer_HasTech(t *testing.T) {
 
 	type args struct {

@@ -37,6 +37,10 @@ func (o *orders) UpdatePlayerOrders(player *Player, playerPlanets []*Planet, ord
 		}
 	}
 
+	// TODO: pass this in
+	rules := NewRules()
+	player.Spec = computePlayerSpec(player, &rules, playerPlanets)
+
 }
 
 // update a planet orders
@@ -97,12 +101,17 @@ func (o *orders) TransferFleetCargo(source *Fleet, dest *Fleet, transferAmount C
 
 // transfer cargo from a planet to/from a fleet
 func (o *orders) TransferPlanetCargo(source *Fleet, dest *Planet, transferAmount Cargo) error {
+
 	if source.availableCargoSpace() < transferAmount.Total() {
 		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", source.Name, source.availableCargoSpace(), transferAmount.Total(), dest.Name)
 	}
 
 	if !dest.Cargo.CanTransfer(transferAmount) {
-		return fmt.Errorf("fleet %s cannot transfer %v from %s, there is not enough to transfer", source.Name, transferAmount, dest.Name)
+		return fmt.Errorf("fleet %s cannot transfer %v from %s, the planet does not have the required cargo", source.Name, transferAmount, dest.Name)
+	}
+
+	if !source.Cargo.CanTransfer(transferAmount.Negative()) {
+		return fmt.Errorf("fleet %s cannot transfer %v to %s, the fleet does not have enough the required cargo", source.Name, transferAmount.Negative(), dest.Name)
 	}
 
 	// transfer the cargo

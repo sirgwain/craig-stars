@@ -81,23 +81,12 @@ const (
 	PlayerRelationEnemy   PlayerRelation = "Enemy"
 )
 
-type NextResearchField string
-
-const (
-	NextResearchFieldSameField     NextResearchField = "SameField"
-	NextResearchFieldEnergy        NextResearchField = "Energy"
-	NextResearchFieldWeapons       NextResearchField = "Weapons"
-	NextResearchFieldPropulsion    NextResearchField = "Propulsion"
-	NextResearchFieldConstruction  NextResearchField = "Construction"
-	NextResearchFieldElectronics   NextResearchField = "Electronics"
-	NextResearchFieldBiotechnology NextResearchField = "Biotechnology"
-	NextResearchFieldLowestField   NextResearchField = "LowestField"
-)
-
 type PlayerSpec struct {
-	PlanetaryScanner  *TechPlanetaryScanner `json:"planetaryScanner,omitempty"`
-	Defense           *TechDefense          `json:"defense,omitempty"`
-	ResourcesLeftover int                   `json:"resourcesAvailable,omitempty"`
+	PlanetaryScanner         *TechPlanetaryScanner `json:"planetaryScanner,omitempty"`
+	Defense                  *TechDefense          `json:"defense,omitempty"`
+	ResourcesPerYear         int                   `json:"resourcesPerYear,omitempty"`
+	ResourcesPerYearResearch int                   `json:"resourcesPerYearResearch,omitempty"`
+	CurrentResearchCost      int                   `json:"currentResearchCost,omitempty"`
 }
 
 type BattlePlan struct {
@@ -186,6 +175,7 @@ func NewPlayer(userID int64, race *Race) *Player {
 		Color:  "#0000FF", // default to blue
 		Stats:  &PlayerStats{},
 		PlayerOrders: PlayerOrders{
+			Researching:       Energy,
 			ResearchAmount:    15,
 			NextResearchField: NextResearchFieldLowestField,
 		},
@@ -231,13 +221,33 @@ func NewPlayer(userID int64, race *Race) *Player {
 	}
 }
 
+func (p *Player) WithNum(num int) *Player {
+	p.Num = num
+	return p
+}
+
 func (p *Player) WithTechLevels(tl TechLevel) *Player {
 	p.TechLevels = tl
 	return p
 }
 
-func (p *Player) WithSpec(rules *Rules) *Player {
-	p.Spec = computePlayerSpec(p, rules)
+func (p *Player) WithTechLevelsSpent(tl TechLevel) *Player {
+	p.TechLevelsSpent = tl
+	return p
+}
+
+func (p *Player) WithResearching(field TechField) *Player {
+	p.Researching = field
+	return p
+}
+
+func (p *Player) WithNextResearchField(field NextResearchField) *Player {
+	p.NextResearchField = field
+	return p
+}
+
+func (p *Player) withSpec(rules *Rules) *Player {
+	p.Spec = computePlayerSpec(p, rules, []*Planet{})
 	return p
 }
 
@@ -276,14 +286,22 @@ func (p *Player) GetLatestDesign(purpose ShipDesignPurpose) *ShipDesign {
 	return latest
 }
 
-func computePlayerSpec(player *Player, rules *Rules) PlayerSpec {
+func computePlayerSpec(player *Player, rules *Rules, planets []*Planet) PlayerSpec {
+	researcher := NewResearcher(rules)
 	techs := rules.techs
 	spec := PlayerSpec{
-		PlanetaryScanner:  techs.GetBestPlanetaryScanner(player),
-		Defense:           techs.GetBestDefense(player),
-		ResourcesLeftover: 0,
+		PlanetaryScanner: techs.GetBestPlanetaryScanner(player),
+		Defense:          techs.GetBestDefense(player),
 	}
 
+	for _, planet := range planets {
+		if planet.OwnedBy(player.Num) {
+			spec.ResourcesPerYear += planet.Spec.ResourcesPerYear
+			spec.ResourcesPerYearResearch += planet.Spec.ResourcesPerYearResearch
+		}
+	}
+
+	spec.CurrentResearchCost = researcher.getTotalCost(player, player.Researching, player.TechLevels.Get(player.Researching))
 	return spec
 }
 

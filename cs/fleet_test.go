@@ -69,7 +69,7 @@ func testCloakedScout(player *Player, rules *Rules) *Fleet {
 	return fleet
 }
 
-func TestComputeFleetSpec(t *testing.T) {
+func Test_computeFleetSpec(t *testing.T) {
 	rules := NewRules()
 	starterHumanoidPlayer := NewPlayer(1, NewRace().WithSpec(&rules)).WithTechLevels(TechLevel{3, 3, 3, 3, 3, 3})
 	starterHumanoidPlayer.Race.Spec = computeRaceSpec(&starterHumanoidPlayer.Race, &rules)
@@ -269,6 +269,170 @@ func TestFleet_moveFleet(t *testing.T) {
 			assert.Equal(t, tt.want.position, tt.fleet.Position)
 			assert.Equal(t, tt.want.position, tt.fleet.Waypoints[0].Position)
 			assert.Equal(t, tt.want.fuelUsed, tt.fleet.Spec.FuelCapacity-tt.fleet.Fuel)
+		})
+	}
+}
+
+func TestFleet_getCargoLoadAmount(t *testing.T) {
+	rules := NewRules()
+	player := NewPlayer(1, NewRace().WithSpec(&rules))
+	planet := NewPlanet().WithCargo(Cargo{Ironium: 1000, Boranium: 1000, Germanium: 1000, Colonists: 1000})
+
+	type args struct {
+		dest             cargoHolder
+		cargoType        CargoType
+		task             WaypointTransportTask
+	}
+	tests := []struct {
+		name               string
+		fleet              *Fleet
+		args               args
+		wantTransferAmount int
+		wantWaitAtWaypoint bool
+	}{
+		{
+			name:               "load 1kt ironium",
+			fleet:              testSmallFreighter(player, &rules),
+			args:               args{dest: planet, cargoType: Ironium, task: WaypointTransportTask{Action: TransportActionLoadAmount, Amount: 1}},
+			wantTransferAmount: 1,
+		},
+		{
+			name:               "load all ironium we can fit",
+			fleet:              testSmallFreighter(player, &rules),
+			args:               args{dest: planet, cargoType: Ironium, task: WaypointTransportTask{Action: TransportActionLoadAll}},
+			wantTransferAmount: 120, // small freighter has 120kT cargo capacity
+		},
+		{
+			name:               "load all ironium we can fit (we already loaded 20)",
+			fleet:              testSmallFreighter(player, &rules).withCargo(Cargo{Boranium: 20}),
+			args:               args{dest: planet, cargoType: Ironium, task: WaypointTransportTask{Action: TransportActionLoadAll}},
+			wantTransferAmount: 100,
+		},
+		{
+			name:               "load fill percent",
+			fleet:              testSmallFreighter(player, &rules),
+			args:               args{dest: planet, cargoType: Ironium, task: WaypointTransportTask{Action: TransportActionFillPercent, Amount: 50}},
+			wantTransferAmount: 60, // 50% of 120kT capacity
+		},
+		{
+			name:               "load fill percent but wait",
+			fleet:              testSmallFreighter(player, &rules),
+			args:               args{dest: NewPlanet().WithCargo(Cargo{Ironium: 50}), cargoType: Ironium, task: WaypointTransportTask{Action: TransportActionWaitForPercent, Amount: 50}},
+			wantTransferAmount: 50, // load all 50, wait for the additional 10
+			wantWaitAtWaypoint: true,
+		},
+		{
+			name:               "set amount to 20kT when we have 10kT already",
+			fleet:              testSmallFreighter(player, &rules).withCargo(Cargo{Ironium: 10}),
+			args:               args{dest: planet, cargoType: Ironium, task: WaypointTransportTask{Action: TransportActionSetAmountTo, Amount: 20}},
+			wantTransferAmount: 10, // load 10kT more
+		},
+		{
+			name:               "set amount to 20kT when we have 10kT already, but planet only has 5k",
+			fleet:              testSmallFreighter(player, &rules).withCargo(Cargo{Ironium: 10}),
+			args:               args{dest: NewPlanet().WithCargo(Cargo{Ironium: 5}), cargoType: Ironium, task: WaypointTransportTask{Action: TransportActionSetAmountTo, Amount: 20}},
+			wantTransferAmount: 5,    // load 5kT more
+			wantWaitAtWaypoint: true, // wait for remaining 5kT we want
+		},
+		{
+			name:               "set amount to 20kT when we have 30kT already. We should unload 10kT to the planet",
+			fleet:              testSmallFreighter(player, &rules).withCargo(Cargo{Ironium: 30}),
+			args:               args{dest: planet, cargoType: Ironium, task: WaypointTransportTask{Action: TransportActionSetAmountTo, Amount: 20}},
+			wantTransferAmount: -10, // unload 10kT
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			gotTransferAmount, gotWaitAtWaypoint := tt.fleet.getCargoLoadAmount(tt.args.dest, tt.args.cargoType, tt.args.task)
+			if gotTransferAmount != tt.wantTransferAmount {
+				t.Errorf("Fleet.getCargoLoadAmount() gotTransferAmount = %v, want %v", gotTransferAmount, tt.wantTransferAmount)
+			}
+			if gotWaitAtWaypoint != tt.wantWaitAtWaypoint {
+				t.Errorf("Fleet.getCargoLoadAmount() gotWaitAtWaypoint = %v, want %v", gotWaitAtWaypoint, tt.wantWaitAtWaypoint)
+			}
+		})
+	}
+}
+
+func TestFleet_transferToDest(t *testing.T) {
+
+	rules := NewRules()
+	player := NewPlayer(1, NewRace().WithSpec(&rules))
+
+	type args struct {
+		dest           cargoHolder
+		cargoType      CargoType
+		transferAmount int
+	}
+	tests := []struct {
+		name           string
+		fleet          *Fleet
+		args           args
+		wantFleetCargo Cargo
+		wantDestCargo  Cargo
+		wantErr        bool
+	}{
+		{
+			name:           "transfer 10kT to planet",
+			fleet:          testSmallFreighter(player, &rules).withCargo(Cargo{Ironium: 10}),
+			args:           args{dest: NewPlanet().WithCargo(Cargo{Ironium: 1000}), cargoType: Ironium, transferAmount: 10},
+			wantFleetCargo: Cargo{},
+			wantDestCargo:  Cargo{Ironium: 1010},
+		},
+		{
+			name:           "transfer 10kT to another fleet",
+			fleet:          testSmallFreighter(player, &rules).withCargo(Cargo{Ironium: 120}),
+			args:           args{dest: testSmallFreighter(player, &rules).withCargo(Cargo{Ironium: 100}), cargoType: Ironium, transferAmount: 10},
+			wantFleetCargo: Cargo{Ironium: 110},
+			wantDestCargo:  Cargo{Ironium: 110},
+		},
+
+		{
+			name:           "transfer 10kT from planet",
+			fleet:          testSmallFreighter(player, &rules),
+			args:           args{dest: NewPlanet().WithCargo(Cargo{Ironium: 1000}), cargoType: Ironium, transferAmount: -10},
+			wantFleetCargo: Cargo{Ironium: 10},
+			wantDestCargo:  Cargo{Ironium: 990},
+		},
+		{
+			name:          "transfer 1000kT from planet, error",
+			fleet:         testSmallFreighter(player, &rules),
+			args:          args{dest: NewPlanet().WithCargo(Cargo{Ironium: 1000}), cargoType: Ironium, transferAmount: -1000},
+			wantDestCargo: Cargo{Ironium: 1000},
+			wantErr:       true,
+		},
+		{
+			name:           "transfer 1000kT to planet, error",
+			fleet:          testSmallFreighter(player, &rules).withCargo(Cargo{Ironium: 10}),
+			args:           args{dest: NewPlanet().WithCargo(Cargo{Ironium: 1000}), cargoType: Ironium, transferAmount: 1000},
+			wantFleetCargo: Cargo{Ironium: 10},
+			wantDestCargo:  Cargo{Ironium: 1000},
+			wantErr:        true,
+		},
+		{
+			name:           "transfer 120kT to another fleet with cargo, error",
+			fleet:          testSmallFreighter(player, &rules).withCargo(Cargo{Ironium: 120}),
+			args:           args{dest: testSmallFreighter(player, &rules).withCargo(Cargo{Ironium: 100}), cargoType: Ironium, transferAmount: 120},
+			wantFleetCargo: Cargo{Ironium: 120},
+			wantDestCargo:  Cargo{Ironium: 100},
+			wantErr:        true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if err := tt.fleet.transferToDest(tt.args.dest, tt.args.cargoType, tt.args.transferAmount); (err != nil) != tt.wantErr {
+				t.Errorf("Fleet.transferToDest() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			if *tt.args.dest.getCargo() != tt.wantDestCargo {
+				t.Errorf("Fleet.transferToDest() destCargo = %v, wantDestCargo %v", *tt.args.dest.getCargo(), tt.wantDestCargo)
+			}
+
+			if tt.fleet.Cargo != tt.wantFleetCargo {
+				t.Errorf("Fleet.transferToDest() fleet.Cargo = %v, wantFleetCargo %v", tt.fleet.Cargo, tt.wantFleetCargo)
+			}
 		})
 	}
 }

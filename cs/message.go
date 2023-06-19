@@ -2,6 +2,9 @@ package cs
 
 import (
 	"fmt"
+
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 )
 
 type PlayerMessage struct {
@@ -53,6 +56,7 @@ const (
 	PlayerMessageFleetInvalidRouteNotFriendlyPlanet PlayerMessageType = "FleetInvalidRouteNotFriendlyPlanet"
 	PlayerMessageFleetInvalidRouteNotPlanet         PlayerMessageType = "FleetInvalidRouteNotPlanet"
 	PlayerMessageFleetInvalidRouteNoRouteTarget     PlayerMessageType = "FleetInvalidRouteNoRouteTarget"
+	PlayerMessageFleetInvalidTransport              PlayerMessageType = "FleetInvalidTransport"
 	PlayerMessageFleetRoute                         PlayerMessageType = "FleetRoute"
 	PlayerMessageInvalid                            PlayerMessageType = "Invalid"
 	PlayerMessagePlanetColonized                    PlayerMessageType = "PlanetColonized"
@@ -144,12 +148,18 @@ func (m *messageClient) fleetTransportedCargo(player *Player, fleet *Fleet, dest
 		}
 	} else {
 		if transferAmount < 0 {
-			text = fmt.Sprintf("%s has loaded %d %s from %s", fleet.Name, -transferAmount, cargoType, dest.getMapObject().Name)
+			text = fmt.Sprintf("%s has loaded %d of %s from %s", fleet.Name, -transferAmount, cargoType, dest.getMapObject().Name)
 		} else {
-			text = fmt.Sprintf("%s has unloaded %d %s to %s", fleet.Name, transferAmount, cargoType, dest.getMapObject().Name)
+			text = fmt.Sprintf("%s has unloaded %d of %s to %s", fleet.Name, transferAmount, cargoType, dest.getMapObject().Name)
 		}
 	}
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageCargoTransferred, Text: text, TargetType: TargetFleet, TargetMapObjectNum: fleet.Num})
+}
+
+func (m *messageClient) fleetInvalidLoadCargo(player *Player, fleet *Fleet, dest cargoHolder, cargoType CargoType, transferAmount int) {
+	text := fmt.Sprintf("%s attempted to load %dkT of %v from %s, but you do not own %s", fleet.Name, transferAmount, cargoType, dest.getMapObject().Name, dest.getMapObject().Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetInvalidTransport, Text: text, TargetType: TargetFleet, TargetMapObjectNum: fleet.Num})
+
 }
 
 func (m *messageClient) fleetEngineFailure(player *Player, fleet *Fleet) {
@@ -210,4 +220,40 @@ func (m *messageClient) colonizeWithNoColonists(player *Player, fleet *Fleet) {
 func (m *messageClient) planetColonized(player *Player, planet *Planet) {
 	text := fmt.Sprintf("Your colonists are now in control of %s", planet.Name)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetColonized, Text: text, TargetType: TargetPlanet, TargetMapObjectNum: planet.Num})
+}
+
+func (m *messageClient) planetInvadeEmpty(player *Player, planet *Planet, fleet *Fleet) {
+	text := fmt.Sprintf("%s has attempted to invade %s, but the planet is uninhabited.", fleet.Name, planet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, TargetType: TargetPlanet, TargetMapObjectNum: planet.Num})
+}
+
+func (m *messageClient) planetInvaded(player *Player, planet *Planet, fleet *Fleet, planetOwner string, fleetOwner string, attackersKilled int, defendersKilled int) {
+	var text string
+
+	// use this formatter to get commas on the text
+	p := message.NewPrinter(language.English)
+	if player.Num == fleet.PlayerNum {
+		if planet.PlayerNum == fleet.PlayerNum {
+			// we invaded and won
+			text = p.Sprintf("Your %s has successfully invaded %s planet %s killing off all colonists", fleet.Name, planetOwner, planet.Name)
+		} else {
+			// we invaded and lost
+			text = p.Sprintf("Your %s tried to invade %s, but all of your colonists were killed by %s. You valiant fighters managed to kill %d of their colonists.", fleet.Name, planet.Name, planetOwner, defendersKilled)
+		}
+		player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageEnemyPlanetInvaded, Text: text, TargetType: TargetPlanet, TargetMapObjectNum: planet.Num})
+	} else {
+		if planet.PlayerNum == fleet.PlayerNum {
+			// we were invaded, and lost
+			text = p.Sprintf("%s %s has successfully invaded your planet %s, killing off all of your colonists", fleetOwner, fleet.Name, planet.Name)
+		} else {
+			// we were invaded, and lost
+			text = p.Sprintf("%s %s tried to invade %s, but you were able to fend them off. You lost %d colonists in the invasion.", fleetOwner, fleet.Name, planet.Name, defendersKilled)
+		}
+		player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageMyPlanetInvaded, Text: text, TargetType: TargetPlanet, TargetMapObjectNum: planet.Num})
+	}
+}
+
+func (m *messageClient) techLevel(player *Player, field TechField, level int, nextField TechField) {
+	text := fmt.Sprintf("Your scientists have completed research into Tech Level %d for %v.  They will continue their efforts in the %v field.", level, field, nextField)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text})
 }
