@@ -3,7 +3,7 @@ import type { ShipDesign, Spec } from '$lib/types/ShipDesign';
 import { Service } from './Service';
 
 export class DesignService {
-	static async load(gameId: number): Promise<ShipDesign[]> {
+	static async load(gameId: number | string): Promise<ShipDesign[]> {
 		return Service.get(`/api/games/${gameId}/designs`);
 	}
 
@@ -13,6 +13,10 @@ export class DesignService {
 
 	static async update(gameId: number | string, design: ShipDesign): Promise<ShipDesign> {
 		return Service.update(design, `/api/games/${gameId}/designs/${design.num}`);
+	}
+
+	static async create(gameId: number | string, design: ShipDesign): Promise<ShipDesign> {
+		return Service.create(design, `/api/games/${gameId}/designs`);
 	}
 
 	/**

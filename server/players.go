@@ -32,6 +32,7 @@ func (s *server) playerCtx(next http.Handler) http.Handler {
 		}
 
 		if player == nil {
+			log.Error().Int64("GameID", game.ID).Int64("UserID", user.ID).Msg("player not found")
 			render.Render(w, r, ErrNotFound)
 			return
 		}

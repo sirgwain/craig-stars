@@ -18,6 +18,23 @@ export abstract class Service {
 			throw new Error(errorResponse.error);
 		}
 	}
+	static async create<T>(item: T, url: string): Promise<T> {
+		const response = await fetch(url, {
+			method: 'POST',
+			headers: {
+				accept: 'application/json'
+			},
+			body: JSON.stringify(item)
+		});
+
+		if (response.ok) {
+			return (await response.json()) as T;
+		} else {
+			const errorResponse = (await response.json()) as ErrorResponse;
+			console.error(errorResponse);
+			throw new Error(errorResponse.error);
+		}
+	}
 	static async update<T>(item: T, url: string): Promise<T> {
 		const response = await fetch(url, {
 			method: 'PUT',

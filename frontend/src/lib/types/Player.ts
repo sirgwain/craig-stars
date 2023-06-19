@@ -20,7 +20,7 @@ export type Player = {
 	submittedTurn?: boolean;
 	techLevels: TechLevel;
 	techLevelsSpent: TechLevel;
-	designs: ShipDesign[];
+	designs?: ShipDesign[];
 	researchSpentLastYear?: number;
 	spec: PlayerSpec;
 } & PlayerOrders &

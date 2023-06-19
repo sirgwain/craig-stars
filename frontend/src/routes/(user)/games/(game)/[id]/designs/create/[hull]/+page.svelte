@@ -3,7 +3,8 @@
 	import { page } from '$app/stores';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import ShipDesigner from '$lib/components/game/design/ShipDesigner.svelte';
-	import { player, techs } from '$lib/services/Context';
+	import { player, techs, designs } from '$lib/services/Context';
+	import { DesignService } from '$lib/services/DesignService';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 
 	let gameId = $page.params.id;
@@ -27,23 +28,13 @@
 
 	const onSave = async () => {
 		error = '';
-		const data = JSON.stringify(design);
-
-		const response = await fetch(`/api/games/${gameId}/designs`, {
-			method: 'post',
-			headers: {
-				accept: 'application/json'
-			},
-			body: data
-		});
-
-		if (response.ok) {
-			const created = (await response.json()) as ShipDesign;
+		try {
+			const created = await DesignService.create(gameId, design);
+			const existing = $designs ?? [];
+			$designs = [...existing, created];
 			goto(`/games/${gameId}/designs/${created.num}`);
-		} else {
-			const resolvedResponse = await response?.json();
-			error = resolvedResponse.error;
-			console.error(error);
+		} catch (e) {
+			error = `${e}`;
 		}
 	};
 </script>

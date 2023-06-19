@@ -6,8 +6,8 @@
 	import { kebabCase } from 'lodash-es';
 	import CommandTile from './CommandTile.svelte';
 
-	export let player: Player;
 	export let fleet: Fleet;
+	export let designs: ShipDesign[];
 
 	let design: ShipDesign | undefined;
 	let icon = '';
@@ -17,7 +17,7 @@
 		icon = '';
 		if (fleet.tokens && fleet.tokens?.length > 0) {
 			const designNum = fleet.tokens[0].designNum;
-			design = player.designs.find((d) => d.num == designNum);
+			design = designs.find((d) => d.num == designNum);
 			if (design) {
 				icon = `hull-${kebabCase(design.hull)}-${design.hullSetNumber}`;
 			}

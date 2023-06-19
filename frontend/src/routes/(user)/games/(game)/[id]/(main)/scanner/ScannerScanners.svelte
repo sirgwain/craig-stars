@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { player } from '$lib/services/Context';
+	import { mapObjects, player } from '$lib/services/Context';
 	import { settings } from '$lib/services/Settings';
 
 	import { positionKey } from '$lib/types/MapObject';
@@ -17,10 +17,10 @@
 
 	let scanners: Scanner[] = [];
 	$: {
-		if ($data && $player) {
+		if ($data && $mapObjects) {
 			const scannersByPosition = new Map<string, Scanner>();
 
-			$player.planets.forEach((planet) =>
+			$mapObjects.planets.forEach((planet) =>
 				scannersByPosition.set(positionKey(planet), {
 					position: planet.position,
 					scanRange: planet.spec?.scanRange ?? 0,
@@ -28,7 +28,7 @@
 				})
 			);
 
-			$player.fleets
+			$mapObjects.fleets
 				.filter((fleet) => fleet.spec?.scanner)
 				.forEach((fleet) => {
 					const key = positionKey(fleet);

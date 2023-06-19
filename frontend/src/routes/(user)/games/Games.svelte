@@ -46,7 +46,7 @@
 		<Galaxy class="fill-current w-12 h-12" />
 		Host
 	</a>
-	<a class="btn gap-2" href="/single-player-game">
+	<a class="btn gap-2" href="/host-game">
 		<Processor class="fill-current w-12 h-12" />
 		Single Player
 	</a>

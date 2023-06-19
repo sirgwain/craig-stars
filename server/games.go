@@ -44,6 +44,7 @@ func (s *server) gameCtx(next http.Handler) http.Handler {
 		}
 
 		if game == nil {
+			log.Error().Int64("GameID", *id).Msg("game not found")
 			render.Render(w, r, ErrNotFound)
 			return
 		}

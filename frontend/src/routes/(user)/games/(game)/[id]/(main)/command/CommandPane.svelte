@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { commandedPlanet, commandedFleet } from '$lib/services/Context';
-	import type { Game } from '$lib/types/Game';
+	import { commandedFleet, commandedPlanet, designs } from '$lib/services/Context';
 	import type { Player } from '$lib/types/Player';
 	import FleetFuelAndCargoTile from './FleetFuelAndCargoTile.svelte';
 	import FleetOtherFleetsHereTile from './FleetOtherFleetsHereTile.svelte';
@@ -25,7 +24,7 @@
 	<PlanetStatusTile planet={$commandedPlanet} />
 	<PlanetFleetsInOrbitTile planet={$commandedPlanet} />
 {:else if $commandedFleet}
-	<FleetSummaryTile {player} fleet={$commandedFleet} />
+	<FleetSummaryTile fleet={$commandedFleet} designs={$designs ?? []} />
 	<FleetFuelAndCargoTile fleet={$commandedFleet} />
 	<FleetOtherFleetsHereTile fleet={$commandedFleet} />
 	<FleetWaypointsTile fleet={$commandedFleet} />

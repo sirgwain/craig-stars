@@ -7,8 +7,10 @@
 	import {
 		commandMapObject,
 		commandedPlanet,
+		designs,
 		game,
 		getMyMapObjectsByPosition,
+		mapObjects,
 		player,
 		selectMapObject,
 		techs,
@@ -22,9 +24,9 @@
 	import type { CommandedPlanet, Planet } from '$lib/types/Planet';
 	import { onMount } from 'svelte';
 	import GameMenu from '../GameMenu.svelte';
-	import ProductionQueueDialog from '../dialogs/ProductionQueueDialog.svelte';
+	import ProductionQueue from '../dialogs/ProductionQueue.svelte';
 	import CargoTransferDialog from '../dialogs/cargo/CargoTransferDialog.svelte';
-	import AiPlayer from '../../../../host-game/AIPlayer.svelte';
+	import { DesignService } from '$lib/services/DesignService';
 
 	let id = parseInt($page.params.id);
 	let gameService: GameService = new GameService();
@@ -35,18 +37,22 @@
 	let loadAttempted = false;
 
 	onMount(async () => {
-		if ($game?.id !== id || !$game || !$player?.planets) {
+		if ($game?.id !== id || !$game || !$mapObjects) {
 			game.update(() => undefined);
 			player.update(() => undefined);
+			mapObjects.update(() => undefined);
+			designs.update(() => undefined);
 
 			try {
 				// load the game on mount
 				await Promise.all([
 					gameService.loadGame(id).then((g) => game.update(() => g)),
 					gameService.loadFullPlayer(id).then((p) => player.update(() => ({ ...$player, ...p }))),
-					gameService
-						.loadPlayerMapObjects(id)
-						.then((mos) => player.update(() => Object.assign(mos, $player))),
+					gameService.loadPlayerMapObjects(id).then((mos) => {
+						mapObjects.update(() => mos);
+						player.update(() => Object.assign(mos, $player));
+					}),
+					DesignService.load(id).then((items) => designs.update(() => items)),
 					// load techs the first time as well
 					$techs.fetch()
 				]);
@@ -85,18 +91,18 @@
 	});
 
 	// all other components will use this context
-	$: if ($game && $player?.planets) {
+	$: if ($game && $mapObjects) {
 		if ($game.state == GameState.WaitingForPlayers) {
 			// setGameContext(game, player);
-			const homeworld = $player.planets.find((p) => p.homeworld);
+			const homeworld = $mapObjects.planets.find((p) => p.homeworld);
 			if (homeworld) {
 				commandMapObject(homeworld);
 				selectMapObject(homeworld);
 				zoomToMapObject(homeworld);
 			} else {
-				commandMapObject($player.planets[0]);
-				selectMapObject($player.planets[0]);
-				zoomToMapObject($player.planets[0]);
+				commandMapObject($mapObjects.planets[0]);
+				selectMapObject($mapObjects.planets[0]);
+				zoomToMapObject($mapObjects.planets[0]);
 			}
 		}
 	}
@@ -107,6 +113,7 @@
 			if (result !== undefined) {
 				game.update((store) => (store = result.game));
 				player.update((store) => (store = result.player));
+				mapObjects.update(() => result.player);
 			}
 		}
 	}
@@ -161,8 +168,10 @@
 			class="modal-box max-w-full max-h-max h-full w-full lg:max-w-[40rem] lg:max-h-[48rem] p-0 md:p-[1.25rem]"
 		>
 			{#if $commandedPlanet}
-				<ProductionQueueDialog
+				<ProductionQueue
+					game={$game}
 					player={$player}
+					designs={$designs ?? []}
 					planet={$commandedPlanet}
 					on:ok={() => (productionQueueDialogOpen = false)}
 					on:cancel={() => (productionQueueDialogOpen = false)}

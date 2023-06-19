@@ -2,12 +2,13 @@ import type { Fleet, Waypoint } from '$lib/types/Fleet';
 import type { Game } from '$lib/types/Game';
 import { MapObjectType, None, ownedBy, positionKey, type MapObject } from '$lib/types/MapObject';
 import { CommandedPlanet, type Planet } from '$lib/types/Planet';
-import type { Player } from '$lib/types/Player';
+import type { Player, PlayerMapObjects } from '$lib/types/Player';
 import { emptyUser, type User } from '$lib/types/User';
 import type { Vector } from '$lib/types/Vector';
 import { derived, get, writable } from 'svelte/store';
 import { rollover } from './Math';
 import { TechService } from './TechService';
+import type { ShipDesign } from '$lib/types/ShipDesign';
 
 export type MapObjectsByPosition = {
 	[k: string]: MapObject[];
@@ -16,6 +17,8 @@ export type MapObjectsByPosition = {
 export const me = writable<User>(emptyUser);
 export const game = writable<Game | undefined>();
 export const player = writable<Player | undefined>();
+export const mapObjects = writable<PlayerMapObjects | undefined>();
+export const designs = writable<ShipDesign[] | undefined>();
 export const techs = writable<TechService>(new TechService());
 
 export const commandedPlanet = writable<CommandedPlanet | undefined>();
@@ -27,8 +30,8 @@ export const highlightedMapObject = writable<MapObject | undefined>();
 export const commandedMapObjectName = writable<string>();
 export const zoomTarget = writable<MapObject | undefined>();
 
-const mapObjectsByPosition = derived(player, ($player) => {
-	if (!$player) return undefined;
+const mapObjectsByPosition = derived([player, mapObjects], ([$player, $mapObjects]) => {
+	if (!$player || !$mapObjects) return undefined;
 
 	const dict: MapObjectsByPosition = {};
 	const addtoDict = (mo: MapObject) => {
@@ -41,13 +44,13 @@ const mapObjectsByPosition = derived(player, ($player) => {
 
 	$player.planetIntels?.forEach(addtoDict);
 	$player.fleetIntels?.forEach(addtoDict);
-	$player.fleets?.forEach(addtoDict);
+	$mapObjects.fleets?.forEach(addtoDict);
 
 	return dict;
 });
 
-const myMapObjectsByPosition = derived(player, ($player) => {
-	if (!$player) return undefined;
+const myMapObjectsByPosition = derived([player, mapObjects], ([$player, $mapObjects]) => {
+	if (!$player || !$mapObjects) return undefined;
 
 	const dict: MapObjectsByPosition = {};
 	const addtoDict = (mo: MapObject) => {
@@ -63,20 +66,20 @@ const myMapObjectsByPosition = derived(player, ($player) => {
 
 	$player.planetIntels?.forEach(addtoDict);
 	$player.fleetIntels?.forEach(addtoDict);
-	$player.fleets?.forEach(addtoDict);
-	$player.planets?.forEach(addtoDict);
+	$mapObjects.fleets?.forEach(addtoDict);
+	$mapObjects.planets?.forEach(addtoDict);
 
 	return dict;
 });
 
 const currentMapObjectIndex = derived(
-	[player, commandedFleet, commandedPlanet],
-	([$player, $commandedFleet, $commandedPlanet]) => {
-		if ($player && $commandedPlanet) {
-			return $player.planets.findIndex((p) => p === $commandedPlanet);
+	[mapObjects, commandedFleet, commandedPlanet],
+	([$mapObjects, $commandedFleet, $commandedPlanet]) => {
+		if ($mapObjects && $commandedPlanet) {
+			return $mapObjects.planets.findIndex((p) => p === $commandedPlanet);
 		}
-		if ($player && $commandedFleet) {
-			return $player.fleets.findIndex((f) => f === $commandedFleet);
+		if ($mapObjects && $commandedFleet) {
+			return $mapObjects.fleets.findIndex((f) => f === $commandedFleet);
 		}
 		return 0;
 	}
@@ -84,25 +87,25 @@ const currentMapObjectIndex = derived(
 
 // command the previous mapObject for this type, i.e. the previous planet or fleet
 export const previousMapObject = () => {
-	const p = get(player);
-	if (!p) {
+	const mos = get(mapObjects);
+	if (!mos) {
 		return;
 	}
 	const i = get(currentMapObjectIndex);
 	const mo = get(commandedMapObject);
 
 	if (mo.type == MapObjectType.Planet) {
-		const prevIndex = rollover(i - 1, 0, p.planets.length - 1);
-		const planet = p.planets[prevIndex];
+		const prevIndex = rollover(i - 1, 0, mos.planets.length - 1);
+		const planet = mos.planets[prevIndex];
 		commandMapObject(planet);
 		zoomToMapObject(planet);
 		selectMapObject(planet);
 	} else if (mo.type == MapObjectType.Fleet) {
-		const prevIndex = rollover(i - 1, 0, p.fleets.length - 1);
-		commandMapObject(p.fleets[prevIndex]);
-		zoomToMapObject(p.fleets[prevIndex]);
+		const prevIndex = rollover(i - 1, 0, mos.fleets.length - 1);
+		commandMapObject(mos.fleets[prevIndex]);
+		zoomToMapObject(mos.fleets[prevIndex]);
 
-		const fleet = p.fleets[prevIndex];
+		const fleet = mos.fleets[prevIndex];
 		if (fleet.orbitingPlanetNum && fleet.orbitingPlanetNum != None) {
 			const planet = getMapObject(MapObjectType.Planet, fleet.orbitingPlanetNum);
 			if (planet) {
@@ -116,23 +119,23 @@ export const previousMapObject = () => {
 
 // command the next mapObject for this type, i.e. the next planet or fleet
 export const nextMapObject = () => {
-	const p = get(player);
-	if (!p) {
+	const mos = get(mapObjects);
+	if (!mos) {
 		return;
 	}
 	const i = get(currentMapObjectIndex);
 	const mo = get(commandedMapObject);
 	if (mo.type == MapObjectType.Planet) {
-		const nextIndex = rollover(i + 1, 0, p.planets.length - 1);
-		const planet = p.planets[nextIndex];
+		const nextIndex = rollover(i + 1, 0, mos.planets.length - 1);
+		const planet = mos.planets[nextIndex];
 		commandMapObject(planet);
 		zoomToMapObject(planet);
 		selectMapObject(planet);
 	} else if (mo.type == MapObjectType.Fleet) {
-		const nextIndex = rollover(i + 1, 0, p.fleets.length - 1);
-		const fleet = p.fleets[nextIndex];
-		commandMapObject(p.fleets[nextIndex]);
-		zoomToMapObject(p.fleets[nextIndex]);
+		const nextIndex = rollover(i + 1, 0, mos.fleets.length - 1);
+		const fleet = mos.fleets[nextIndex];
+		commandMapObject(mos.fleets[nextIndex]);
+		zoomToMapObject(mos.fleets[nextIndex]);
 		if (fleet.orbitingPlanetNum && fleet.orbitingPlanetNum != None) {
 			const planet = getMapObject(MapObjectType.Planet, fleet.orbitingPlanetNum);
 			if (planet) {
@@ -150,8 +153,9 @@ export const getMapObject = (
 	num: number,
 	playerNum?: number
 ): MapObject | undefined => {
+	const mos = get(mapObjects);
 	const p = get(player);
-	if (p) {
+	if (mos && p) {
 		let mo: MapObject;
 		switch (type) {
 			case MapObjectType.Planet:
@@ -162,7 +166,7 @@ export const getMapObject = (
 				return mo;
 			case MapObjectType.Fleet:
 				if (playerNum == p.num) {
-					return p?.fleets.find((f) => f.num == num);
+					return mos.fleets.find((f) => f.num == num);
 				}
 				return p?.fleetIntels?.find((f) => f.num == num && f.playerNum == playerNum);
 			case MapObjectType.Wormhole:
@@ -198,8 +202,8 @@ export const getMyMapObjectsByPosition = (position: MapObject | Vector): MapObje
 };
 
 export const findMyPlanetByNum = (num: number): Planet | undefined => {
-	const p = get(player);
-	return p?.planets?.find((p) => p.num == num);
+	const mos = get(mapObjects);
+	return mos?.planets?.find((p) => p.num == num);
 };
 
 export const findIntelMapObject = (mo: MapObject): MapObject | undefined => {

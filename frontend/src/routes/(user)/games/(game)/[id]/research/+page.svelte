@@ -4,7 +4,7 @@
 	import EnumSelect from '$lib/components/EnumSelect.svelte';
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import SectionHeader from '$lib/components/SectionHeader.svelte';
-	import { player } from '$lib/services/Context';
+	import { mapObjects, player } from '$lib/services/Context';
 	import { PlayerService } from '$lib/services/PlayerService';
 	import { NextResearchField, TechField, type TechLevel } from '$lib/types/Player';
 
@@ -20,12 +20,12 @@
 	};
 
 	const updatePlayerOrders = async () => {
-		if ($player) {
+		if ($player && $mapObjects) {
 			const result = await PlayerService.updateOrders($player);
 			Object.assign($player, result?.player);
 
 			if (result?.planets) {
-				$player.planets = result?.planets;
+				$mapObjects.planets = result?.planets;
 			}
 		}
 	};

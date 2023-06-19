@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { game, player, playerName } from '$lib/services/Context';
+	import { mapObjects, player, playerName } from '$lib/services/Context';
 	import { Unexplored } from '$lib/types/Planet';
 </script>
 
-{#if $player}
+{#if $player && $mapObjects}
 	<div class="w-full">
 		<table class="table table-compact w-full">
 			<caption>My Planets</caption>
@@ -12,8 +12,8 @@
 				<th>Population</th>
 			</thead>
 			<tbody>
-				{#if $player.planets?.length}
-					{#each $player.planets as planet}
+				{#if $mapObjects.planets?.length}
+					{#each $mapObjects.planets as planet}
 						<tr class="hover">
 							<td>{planet.name}</td><td
 								>{planet.cargo?.colonists ? planet.cargo.colonists * 100 : ''}</td

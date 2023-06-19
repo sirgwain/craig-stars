@@ -1,7 +1,13 @@
 <script lang="ts">
 	import { EventManager } from '$lib/EventManager';
+	import { commandMapObject } from '$lib/services/Context';
 	import { PlanetService } from '$lib/services/PlanetService';
-	import { CommandedPlanet, isAuto, QueueItemType, type ProductionQueueItem } from '$lib/types/Planet';
+	import {
+		CommandedPlanet,
+		isAuto,
+		QueueItemType,
+		type ProductionQueueItem
+	} from '$lib/types/Planet';
 	import CommandTile from './CommandTile.svelte';
 
 	export let planet: CommandedPlanet;
@@ -33,12 +39,11 @@
 	};
 
 	const clear = async () => {
-		if (
-			planet &&
-			confirm('Are you sure you want to clear the planet production queue?')
-		) {
+		if (planet && confirm('Are you sure you want to clear the planet production queue?')) {
 			planet.productionQueue = [];
-			planet = await planetService.updatePlanet(planet);
+			const updated = await PlanetService.update(planet.gameId, planet);
+			Object.assign(planet, updated);
+			commandMapObject(updated);
 		}
 	};
 

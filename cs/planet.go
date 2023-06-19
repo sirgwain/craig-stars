@@ -359,13 +359,15 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 
 	starbase := planet.starbase
 	spec.HasStarbase = starbase != nil
-	if starbase != nil && starbase.Spec.HasStargate {
-		spec.HasStargate = starbase != nil && starbase.Spec.HasStargate
-		spec.SafeHullMass = starbase.Spec.SafeHullMass
-		spec.SafeRange = starbase.Spec.SafeRange
-		spec.MaxHullMass = starbase.Spec.MaxHullMass
-		spec.MaxRange = starbase.Spec.MaxRange
-
+	if starbase != nil {
+		if starbase.Spec.HasStargate {
+			spec.HasStargate = starbase != nil && starbase.Spec.HasStargate
+			spec.SafeHullMass = starbase.Spec.SafeHullMass
+			spec.SafeRange = starbase.Spec.SafeRange
+			spec.MaxHullMass = starbase.Spec.MaxHullMass
+			spec.MaxRange = starbase.Spec.MaxRange
+		}
+		spec.DockCapacity = starbase.Spec.SpaceDock
 	}
 
 	return spec

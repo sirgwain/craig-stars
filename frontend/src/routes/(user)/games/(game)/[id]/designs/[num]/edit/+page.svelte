@@ -3,36 +3,29 @@
 	import { page } from '$app/stores';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import ShipDesigner from '$lib/components/game/design/ShipDesigner.svelte';
-	import { techs } from '$lib/services/Context';
+	import { techs, designs } from '$lib/services/Context';
 	import { DesignService } from '$lib/services/DesignService';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import type { TechHull } from '$lib/types/Tech';
-	import hu from 'date-fns/locale/hu';
 	import { onMount } from 'svelte';
 
 	let gameId = $page.params.id;
 	let num = parseInt($page.params.num);
 
-	let design: ShipDesign | undefined;
-	let hull: TechHull | undefined;
+	$: design = $designs?.find((d) => d.num === num);
+	$: hull = design && $techs.getHull(design.hull);
 
 	let error = '';
-
-	onMount(async () => {
-		try {
-			design = await DesignService.get(gameId, num);
-			hull = await $techs.getHull(design.hull);
-		} catch (e) {
-			error = (e as Error).message;
-		}
-	});
 
 	const onSave = async () => {
 		error = '';
 
 		try {
 			if (design) {
+				// update this design
 				design = await DesignService.update(gameId, design);
+				const filteredDesigns = $designs?.filter((d) => d != design) ?? []
+				$designs = [...filteredDesigns, design];
 				goto(`/games/${gameId}/designs/${design.num}`);
 			}
 		} catch (e) {

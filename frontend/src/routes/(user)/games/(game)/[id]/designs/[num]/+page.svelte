@@ -2,33 +2,16 @@
 	import { page } from '$app/stores';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import Design from '$lib/components/game/design/Design.svelte';
-	import { techs } from '$lib/services/Context';
+	import { designs, techs } from '$lib/services/Context';
 	import type { ErrorResponse } from '$lib/types/ErrorResponse';
-	import type { ShipDesign } from '$lib/types/ShipDesign';
-	import { onMount } from 'svelte';
 
 	let gameId = $page.params.id;
 	let num = $page.params.num;
 
-	let design: ShipDesign;
-	let error: ErrorResponse | undefined;
-
-	onMount(async () => {
-		const designResponse = await fetch(`/api/games/${gameId}/designs/${num}`, {
-			method: 'GET',
-			headers: {
-				accept: 'application/json'
-			}
-		});
-
-		if (designResponse.ok) {
-			design = (await designResponse.json()) as ShipDesign;
-		} else {
-			error = (await designResponse.json()) as ErrorResponse;
-		}
-	});
-
+	$: design = $designs?.find((d) => d.num === parseInt(num));
 	$: hull = design && $techs.getHull(design.hull);
+
+	let error: ErrorResponse | undefined;
 </script>
 
 {#if error?.error}

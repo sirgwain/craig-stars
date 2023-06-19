@@ -1,71 +1,19 @@
-import {
-	CommandedPlanet,
-	fromQueueItemType,
-	QueueItemType,
-	type Planet,
-	type ProductionQueueItem
-} from '$lib/types/Planet';
-import type { Player } from '$lib/types/Player';
+import { CommandedPlanet, type Planet } from '$lib/types/Planet';
 import { Service } from './Service';
 
-export class PlanetService extends Service {
-	async updatePlanet(gameId: string | number, planet: CommandedPlanet): Promise<CommandedPlanet> {
-		const updated = await Service.update<Planet>(
-			planet,
-			`/api/games/${gameId}/planets/${planet.num}`
-		);
-		return Object.assign(planet, updated);
+export class PlanetService {
+	static async load(gameId: number): Promise<Planet[]> {
+		return Service.get(`/api/games/${gameId}/planets`);
 	}
 
-	/**
-	 * get a list of available ProductionQueueItems a planet can build
-	 * @param planet the planet to get items for
-	 * @param player the player to add items for
-	 * @returns a list of items for a planet
-	 */
-	getAvailableProductionQueueItems(planet: Planet, player: Player): ProductionQueueItem[] {
-		const items: ProductionQueueItem[] = [];
+	static async get(gameId: number | string, num: number | string): Promise<CommandedPlanet> {
+		const planet = await Service.get<Planet>(`/api/games/${gameId}/planets/${num}`);
+		const commandedPlanet = new CommandedPlanet();
+		return Object.assign(commandedPlanet, planet);
+	}
 
-		if (planet.spec) {
-			if (planet.spec.dockCapacity > 0) {
-				// todo: add designs
-			}
-
-			if (planet.spec.hasMassDriver) {
-				items.push(
-					fromQueueItemType(QueueItemType.IroniumMineralPacket),
-					fromQueueItemType(QueueItemType.BoraniumMineralPacket),
-					fromQueueItemType(QueueItemType.GermaniumMineralPacket),
-					fromQueueItemType(QueueItemType.MixedMineralPacket)
-				);
-			}
-
-			items.push(
-				fromQueueItemType(QueueItemType.Factory),
-				fromQueueItemType(QueueItemType.Mine),
-				fromQueueItemType(QueueItemType.Defenses),
-				fromQueueItemType(QueueItemType.MineralAlchemy)
-			);
-
-			if (planet.spec.canTerraform) {
-				items.push(fromQueueItemType(QueueItemType.TerraformEnvironment));
-			}
-
-			// add auto items
-			items.push(
-				fromQueueItemType(QueueItemType.AutoFactories),
-				fromQueueItemType(QueueItemType.AutoMines),
-				fromQueueItemType(QueueItemType.AutoDefenses),
-				fromQueueItemType(QueueItemType.AutoMineralAlchemy),
-				fromQueueItemType(QueueItemType.AutoMaxTerraform),
-				fromQueueItemType(QueueItemType.AutoMinTerraform)
-			);
-
-			if (planet.spec.hasMassDriver) {
-				items.push(fromQueueItemType(QueueItemType.AutoMineralPacket));
-			}
-		}
-
-		return items;
+	static async update(gameId: number | string, planet: CommandedPlanet): Promise<CommandedPlanet> {
+		const updated = Service.update(planet, `/api/games/${gameId}/planets/${planet.num}`);
+		return Object.assign(planet, updated);
 	}
 }

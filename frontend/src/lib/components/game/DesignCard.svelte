@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { player, techs } from '$lib/services/Context';
+	import { player, designs, techs } from '$lib/services/Context';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import TechAvatar from '../tech/TechAvatar.svelte';
@@ -17,11 +17,11 @@
 	const deleteDesign = async (design: ShipDesign) => {
 		if (design.num != undefined && confirm(`Are you sure you want to delete ${design.name}?`)) {
 			const { fleets, starbases } = await DesignService.delete(gameId, design.num);
-			if ($player?.designs) {
+			if ($player) {
 				const p = $player;
-				const designs = p.designs.filter((d) => d.num !== design.num);
-				player.update(() => ({ ...p, fleets, designs }));
+				player.update(() => ({ ...p, fleets, starbases }));
 			}
+			designs.update(() => $designs?.filter((d) => d.num !== design.num));
 			dispatch('deleted', { design });
 		}
 	};

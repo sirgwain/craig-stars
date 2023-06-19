@@ -36,6 +36,7 @@ func (s *server) planetCtx(next http.Handler) http.Handler {
 		}
 
 		if planet == nil {
+			log.Error().Int64("GameID", player.GameID).Msgf("unable to find planet %d", num)
 			render.Render(w, r, ErrNotFound)
 			return
 		}

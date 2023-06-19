@@ -9,8 +9,10 @@
 	import FleetSummary from './FleetSummary.svelte';
 	import PlanetSummary from './PlanetSummary.svelte';
 	import UnknownSummary from './UnknownSummary.svelte';
+	import type { ShipDesign } from '$lib/types/ShipDesign';
 
 	export let player: Player;
+	export let designs: ShipDesign[];
 
 	let selectedPlanet: Planet | undefined;
 	let selectedFleet: Fleet | undefined;
@@ -33,7 +35,7 @@
 		{#if selectedPlanet}
 			<PlanetSummary planet={selectedPlanet} {player} />
 		{:else if selectedFleet}
-			<FleetSummary fleet={selectedFleet} {player} />
+			<FleetSummary fleet={selectedFleet} {designs} />
 		{:else}
 			<UnknownSummary />
 		{/if}
