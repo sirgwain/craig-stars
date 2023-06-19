@@ -21,7 +21,7 @@ func (tl *TechLevel) HasRequiredLevels(required TechLevel) bool {
 
 // return the minimum tech level
 func (tl *TechLevel) Min() int {
-	return MinInt(
+	return minInt(
 		tl.Energy,
 		tl.Weapons,
 		tl.Propulsion,

@@ -351,7 +351,7 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 			if spec.IdealSpeed == 0 {
 				spec.IdealSpeed = token.design.Spec.IdealSpeed
 			} else {
-				spec.IdealSpeed = MinInt(spec.IdealSpeed, token.design.Spec.IdealSpeed)
+				spec.IdealSpeed = minInt(spec.IdealSpeed, token.design.Spec.IdealSpeed)
 			}
 		}
 		// cost
@@ -397,13 +397,13 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 		}
 
 		// We should only have one ship stack with spacdock capabilities, but for this logic just go with the max
-		spec.SpaceDock = MaxInt(spec.SpaceDock, token.design.Spec.SpaceDock)
+		spec.SpaceDock = maxInt(spec.SpaceDock, token.design.Spec.SpaceDock)
 
 		// sadly, the fleet only gets the best repair bonus from one design
 		spec.RepairBonus = math.Max(spec.RepairBonus, token.design.Spec.RepairBonus)
 
-		spec.ScanRange = MaxInt(spec.ScanRange, token.design.Spec.ScanRange)
-		spec.ScanRangePen = MaxInt(spec.ScanRangePen, token.design.Spec.ScanRangePen)
+		spec.ScanRange = maxInt(spec.ScanRange, token.design.Spec.ScanRange)
+		spec.ScanRangePen = maxInt(spec.ScanRangePen, token.design.Spec.ScanRangePen)
 		if token.design.Spec.Scanner {
 			spec.Scanner = true
 		}
@@ -476,15 +476,15 @@ func (f *Fleet) computeFleetCloakPercent(spec *FleetSpec, freeCargoCloaking bool
 	return getCloakPercentForCloakUnits(cloakUnits)
 }
 
-func (f *Fleet) AvailableCargoSpace() int {
+func (f *Fleet) availableCargoSpace() int {
 	return clamp(f.Spec.CargoCapacity-f.Cargo.Total(), 0, f.Spec.CargoCapacity)
 }
 
 // transfer cargo from a fleet to a cargo holder
-func (f *Fleet) TransferCargoItem(dest CargoHolder, cargoType CargoType, transferAmount int) error {
+func (f *Fleet) transferCargoItem(dest CargoHolder, cargoType CargoType, transferAmount int) error {
 	destCargo := dest.GetCargo()
-	if f.AvailableCargoSpace() < transferAmount {
-		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", f.Name, f.AvailableCargoSpace(), transferAmount, dest.GetMapObject().Name)
+	if f.availableCargoSpace() < transferAmount {
+		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", f.Name, f.availableCargoSpace(), transferAmount, dest.GetMapObject().Name)
 	}
 
 	if !destCargo.CanTransferAmount(cargoType, transferAmount) {
@@ -511,8 +511,8 @@ func (f *Fleet) TransferCargoItem(dest CargoHolder, cargoType CargoType, transfe
 // transfer cargo from a fleet to a cargo holder
 func (f *Fleet) TransferCargo(dest CargoHolder, transferAmount Cargo) error {
 	destCargo := dest.GetCargo()
-	if f.AvailableCargoSpace() < transferAmount.Total() {
-		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", f.Name, f.AvailableCargoSpace(), transferAmount.Total(), dest.GetMapObject().Name)
+	if f.availableCargoSpace() < transferAmount.Total() {
+		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", f.Name, f.availableCargoSpace(), transferAmount.Total(), dest.GetMapObject().Name)
 	}
 
 	if !destCargo.CanTransfer(transferAmount) {
@@ -536,8 +536,8 @@ func (f *Fleet) TransferCargo(dest CargoHolder, transferAmount Cargo) error {
 // transfer cargo from a planet to/from a fleet
 func (f *Fleet) TransferPlanetCargo(planet *Planet, transferAmount Cargo) error {
 
-	if f.AvailableCargoSpace() < transferAmount.Total() {
-		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", f.Name, f.AvailableCargoSpace(), transferAmount.Total(), planet.Name)
+	if f.availableCargoSpace() < transferAmount.Total() {
+		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", f.Name, f.availableCargoSpace(), transferAmount.Total(), planet.Name)
 	}
 
 	if !planet.Cargo.CanTransfer(transferAmount) {
@@ -554,8 +554,8 @@ func (f *Fleet) TransferPlanetCargo(planet *Planet, transferAmount Cargo) error 
 // transfer cargo from a fleet to/from a fleet
 func (f *Fleet) TransferFleetCargo(fleet *Fleet, transferAmount Cargo) error {
 
-	if f.AvailableCargoSpace() < transferAmount.Total() {
-		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", f.Name, f.AvailableCargoSpace(), transferAmount.Total(), fleet.Name)
+	if f.availableCargoSpace() < transferAmount.Total() {
+		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", f.Name, f.availableCargoSpace(), transferAmount.Total(), fleet.Name)
 	}
 
 	if !fleet.Cargo.CanTransfer(transferAmount) {
@@ -631,7 +631,7 @@ func (fleet *Fleet) moveFleet(mapObjectGetter MapObjectGetter, rules *Rules, pla
 	}
 
 	// message the player about fuel generation
-	fuelGenerated = MinInt(fuelGenerated, fleet.Spec.FuelCapacity-fleet.Fuel)
+	fuelGenerated = minInt(fuelGenerated, fleet.Spec.FuelCapacity-fleet.Fuel)
 	if fuelGenerated > 0 {
 		fleet.Fuel += fuelGenerated
 		messager.fleetGeneratedFuel(player, fleet, fuelGenerated)
@@ -736,7 +736,7 @@ func (fleet *Fleet) getNoFuelWarpFactor(techStore *TechStore, player *Player) in
 	var freeSpeed = math.MaxInt
 	for _, token := range fleet.Tokens {
 		engine := techStore.GetEngine(token.design.Spec.Engine)
-		freeSpeed = MinInt(freeSpeed, engine.FreeSpeed)
+		freeSpeed = minInt(freeSpeed, engine.FreeSpeed)
 	}
 	return freeSpeed
 }
@@ -747,7 +747,7 @@ func (fleet *Fleet) getFuelGeneration(techStore *TechStore, player *Player, warp
 	var freeSpeed = math.MaxInt
 	for _, token := range fleet.Tokens {
 		engine := techStore.GetEngine(token.design.Spec.Engine)
-		freeSpeed = MinInt(freeSpeed, engine.FreeSpeed)
+		freeSpeed = minInt(freeSpeed, engine.FreeSpeed)
 	}
 	return freeSpeed
 }
@@ -813,7 +813,7 @@ func (fleet *Fleet) colonizePlanet(rules *Rules, player *Player, planet *Planet)
 	}
 
 	if player.Race.Spec.InnateMining {
-		planet.Mines = planet.GetInnateMines(player)
+		planet.Mines = planet.innateMines(player)
 	}
 
 	if fleet.Spec.OrbitalConstructionModule {
@@ -835,7 +835,7 @@ func (fleet *Fleet) scrap(rules *Rules, player *Player, planet *Planet) *Salvage
 	if planet != nil {
 		// scrap over a planet
 		planet.Cargo = planet.Cargo.AddCostMinerals(cost)
-		if planet.OwnedBy(player.Num) {
+		if planet.ownedBy(player.Num) {
 			planet.BonusResources += cost.Resources
 		}
 	} else {
@@ -859,7 +859,7 @@ func (fleet *Fleet) getScrapAmount(rules *Rules, player *Player, planet *Planet)
 	extraResources := 0
 	planetResources := 0
 
-	if planet != nil && planet.OwnedBy(player.Num) {
+	if planet != nil && planet.ownedBy(player.Num) {
 		planetResources = planet.Spec.ResourcesPerYear + planet.BonusResources
 		// UR races get resources when scrapping
 		if planet.Spec.HasStarbase {

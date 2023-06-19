@@ -38,10 +38,10 @@ func (mo *MapObject) String() string {
 	return fmt.Sprintf("GameID: %5d, ID: %5d, Num: %3d %s", mo.GameID, mo.ID, mo.Num, mo.Name)
 }
 
-func (mo *MapObject) Owned() bool {
+func (mo *MapObject) owned() bool {
 	return mo.PlayerNum != Unowned
 }
 
-func (mo *MapObject) OwnedBy(num int) bool {
+func (mo *MapObject) ownedBy(num int) bool {
 	return mo.PlayerNum != Unowned && mo.PlayerNum == num
 }

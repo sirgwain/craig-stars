@@ -245,27 +245,27 @@ func (t *Tech) GetPlayerCost(player *Player) Cost {
 	numTechLevelsAboveRequired := math.MaxInt
 	if t.Requirements.Energy > 0 {
 		levelDiff.Energy = player.TechLevels.Energy - t.Requirements.Energy
-		numTechLevelsAboveRequired = MinInt(levelDiff.Energy, numTechLevelsAboveRequired)
+		numTechLevelsAboveRequired = minInt(levelDiff.Energy, numTechLevelsAboveRequired)
 	}
 	if t.Requirements.Weapons > 0 {
 		levelDiff.Weapons = player.TechLevels.Weapons - t.Requirements.Weapons
-		numTechLevelsAboveRequired = MinInt(levelDiff.Weapons, numTechLevelsAboveRequired)
+		numTechLevelsAboveRequired = minInt(levelDiff.Weapons, numTechLevelsAboveRequired)
 	}
 	if t.Requirements.Propulsion > 0 {
 		levelDiff.Propulsion = player.TechLevels.Propulsion - t.Requirements.Propulsion
-		numTechLevelsAboveRequired = MinInt(levelDiff.Propulsion, numTechLevelsAboveRequired)
+		numTechLevelsAboveRequired = minInt(levelDiff.Propulsion, numTechLevelsAboveRequired)
 	}
 	if t.Requirements.Construction > 0 {
 		levelDiff.Construction = player.TechLevels.Construction - t.Requirements.Construction
-		numTechLevelsAboveRequired = MinInt(levelDiff.Construction, numTechLevelsAboveRequired)
+		numTechLevelsAboveRequired = minInt(levelDiff.Construction, numTechLevelsAboveRequired)
 	}
 	if t.Requirements.Electronics > 0 {
 		levelDiff.Electronics = player.TechLevels.Electronics - t.Requirements.Electronics
-		numTechLevelsAboveRequired = MinInt(levelDiff.Electronics, numTechLevelsAboveRequired)
+		numTechLevelsAboveRequired = minInt(levelDiff.Electronics, numTechLevelsAboveRequired)
 	}
 	if t.Requirements.Biotechnology > 0 {
 		levelDiff.Biotechnology = player.TechLevels.Biotechnology - t.Requirements.Biotechnology
-		numTechLevelsAboveRequired = MinInt(levelDiff.Biotechnology, numTechLevelsAboveRequired)
+		numTechLevelsAboveRequired = minInt(levelDiff.Biotechnology, numTechLevelsAboveRequired)
 	}
 
 	// for starter techs, they are all 0 requirements, so just use our lowest field

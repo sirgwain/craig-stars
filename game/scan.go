@@ -58,7 +58,7 @@ func (scan *playerScan) scan() error {
 // scan all planets with this player's scanners
 func (scan *playerScan) scanPlanets(scanners []scanner, cargoScanners []scanner) error {
 	for _, planet := range scan.universe.Planets {
-		if planet.OwnedBy(scan.player.Num) {
+		if planet.ownedBy(scan.player.Num) {
 			if err := scan.discoverer.discoverPlanet(scan.rules, scan.player, planet, false); err != nil {
 				return err
 			}
@@ -115,7 +115,7 @@ func (scan *playerScan) scanFleets(scanners []scanner, cargoScanners []scanner) 
 	fleetsToScan := []*Fleet{}
 	fleetsToCargoScan := []*Fleet{}
 	for _, fleet := range scan.universe.Fleets {
-		if fleet.OwnedBy(scan.player.Num) {
+		if fleet.ownedBy(scan.player.Num) {
 			// The player already gets a copy of all their own fleets
 			continue
 		}
@@ -184,8 +184,8 @@ func (scan *playerScan) getScanners() []scanner {
 				scanner.RangeSquared = NoScanner
 				scanner.RangePenSquared = NoScanner
 			}
-			scanner.RangeSquared = MaxInt(scanner.RangeSquared, fleet.Spec.ScanRange*fleet.Spec.ScanRange)
-			scanner.RangePenSquared = MaxInt(scanner.RangePenSquared, fleet.Spec.ScanRangePen*fleet.Spec.ScanRangePen)
+			scanner.RangeSquared = maxInt(scanner.RangeSquared, fleet.Spec.ScanRange*fleet.Spec.ScanRange)
+			scanner.RangePenSquared = maxInt(scanner.RangePenSquared, fleet.Spec.ScanRangePen*fleet.Spec.ScanRangePen)
 			scanner.CloakReduction = math.Max(scanner.CloakReduction, fleet.Spec.ReduceCloaking)
 			scanningFleetsByPosition[fleet.Position] = scanner
 		}
@@ -203,8 +203,8 @@ func (scan *playerScan) getScanners() []scanner {
 
 			// use the fleet scanner if it's better
 			if fleetScanner, ok := scanningFleetsByPosition[planet.Position]; ok {
-				scanner.RangeSquared = MaxInt(scanner.RangeSquared, fleetScanner.RangeSquared)
-				scanner.RangePenSquared = MaxInt(scanner.RangePenSquared, fleetScanner.RangePenSquared)
+				scanner.RangeSquared = maxInt(scanner.RangeSquared, fleetScanner.RangeSquared)
+				scanner.RangePenSquared = maxInt(scanner.RangePenSquared, fleetScanner.RangePenSquared)
 				scanner.CloakReduction = math.Max(scanner.CloakReduction, fleetScanner.CloakReduction)
 			}
 			scanners = append(scanners, scanner)
@@ -250,8 +250,8 @@ func (scan *playerScan) getCargoScanners() []scanner {
 				scanner.RangeSquared = NoScanner
 				scanner.RangePenSquared = NoScanner
 			}
-			scanner.RangeSquared = MaxInt(scanner.RangeSquared, fleet.Spec.ScanRange*fleet.Spec.ScanRange)
-			scanner.RangePenSquared = MaxInt(scanner.RangePenSquared, fleet.Spec.ScanRangePen*fleet.Spec.ScanRangePen)
+			scanner.RangeSquared = maxInt(scanner.RangeSquared, fleet.Spec.ScanRange*fleet.Spec.ScanRange)
+			scanner.RangePenSquared = maxInt(scanner.RangePenSquared, fleet.Spec.ScanRangePen*fleet.Spec.ScanRangePen)
 			scanner.CloakReduction = math.Max(scanner.CloakReduction, fleet.Spec.ReduceCloaking)
 			scanner.DiscoverFleetCargo = fleet.Spec.CanStealFleetCargo
 			scanner.DiscoverPlanetCargo = fleet.Spec.CanStealPlanetCargo

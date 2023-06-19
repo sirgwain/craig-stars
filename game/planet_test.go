@@ -42,15 +42,15 @@ func TestPlanet_String(t *testing.T) {
 func TestPlanet_GetInnateMines(t *testing.T) {
 	player := NewPlayer(1, &Race{Spec: RaceSpec{InnateMining: false}})
 	planet := Planet{}
-	planet.SetPopulation(16000)
+	planet.setPopulation(16000)
 
-	if got := planet.GetInnateMines(player); got != 0 {
+	if got := planet.innateMines(player); got != 0 {
 		t.Errorf("Planet.GetInnateMines() = %v, want %v", got, 0)
 	}
 
 	// should get 40 mines for 16k pop when the player has innate mining
 	player.Race.Spec.InnateMining = true
-	if got := planet.GetInnateMines(player); got != 40 {
+	if got := planet.innateMines(player); got != 40 {
 		t.Errorf("Planet.GetInnateMines() = %v, want %v", got, 40)
 	}
 
