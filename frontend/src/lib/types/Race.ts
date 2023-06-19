@@ -27,6 +27,9 @@ export interface Race {
 	numMines: number;
 	researchCost: ResearchCost;
 	techsStartHigh?: boolean;
+	immuneGrav?: boolean;
+	immuneTemp?: boolean;
+	immuneRad?: boolean;
 	spec?: RaceSpec;
 }
 
