@@ -5,8 +5,8 @@
   The quadtree searches across both the x and y dimensions at the same time. But if you want to only search across one, set the `x` and `y` props to the same value. For example, the [shared tooltip component](https://layercake.graphics/components/SharedTooltip.html.svelte) sets `y='x'` since it's nicer behavior to only pick up on the nearest x-value.
  -->
 <script lang="ts">
+	import { getGameContext } from '$lib/services/Contexts';
 	import { highlightMapObject } from '$lib/services/Stores';
-	import { settings } from '$lib/services/Settings';
 	import type { MapObject } from '$lib/types/MapObject';
 	import type { Vector } from '$lib/types/Vector';
 	import { quadtree } from 'd3-quadtree';
@@ -16,6 +16,7 @@
 
 	const { data, xGet, yGet, xScale, yScale, xReverse, yReverse, width, height } =
 		getContext<LayerCake>('LayerCake');
+	const { game, player, universe, settings } = getGameContext();
 	const dispatch = createEventDispatcher();
 
 	let found: MapObject | undefined;

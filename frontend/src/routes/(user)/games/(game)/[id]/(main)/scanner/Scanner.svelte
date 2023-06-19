@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/Contexts';
-	import { settings } from '$lib/services/Settings';
 	import {
 		commandMapObject,
 		commandedFleet,
@@ -46,7 +45,7 @@
 	import ScannerWormholeLinks from './ScannerWormholeLinks.svelte';
 	import ScannerSalvages from './ScannerSalvages.svelte';
 
-	const { game, player, universe } = getGameContext();
+	const { game, player, universe, settings } = getGameContext();
 
 	const xGetter = (mo: MapObject) => mo?.position?.x;
 	const yGetter = (mo: MapObject) => mo?.position?.y;

@@ -33,7 +33,7 @@ func (ch *Planet) getFuel() int {
 }
 
 func (ch *Planet) getFuelCapacity() int {
-	return 0
+	return Unlimited
 }
 
 // players can load from unowned planets or planets they own

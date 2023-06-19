@@ -356,8 +356,10 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 		if (token.design.Spec.Engine != Engine{}) {
 			if spec.Engine.IdealSpeed == 0 {
 				spec.Engine.IdealSpeed = token.design.Spec.Engine.IdealSpeed
+				spec.Engine.FreeSpeed = token.design.Spec.Engine.FreeSpeed
 			} else {
 				spec.Engine.IdealSpeed = minInt(spec.Engine.IdealSpeed, token.design.Spec.Engine.IdealSpeed)
+				spec.Engine.FreeSpeed = minInt(spec.Engine.FreeSpeed, token.design.Spec.Engine.FreeSpeed)
 			}
 		}
 		// cost
@@ -619,14 +621,15 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 		}
 
 		fleet.Fuel = 0
-		wp1.WarpSpeed = fleet.getNoFuelWarpSpeed(rules.techs, player)
+		wp1.WarpSpeed = fleet.Spec.Engine.FreeSpeed
+		fleet.Waypoints[1] = wp1
 		messager.fleetOutOfFuel(player, fleet, wp1.WarpSpeed)
 
 		// if we ran out of fuel 60% of the way to our normal distance, the remaining 40% of our time
 		// was spent travelling at fuel generation speeds:
 		remainingDistanceTravelled := (1 - distanceFactor) * float64(wp1.WarpSpeed*wp1.WarpSpeed)
 		dist += remainingDistanceTravelled
-		fuelGenerated = fleet.getFuelGeneration(rules.techs, player, wp1.WarpSpeed, remainingDistanceTravelled)
+		fuelGenerated = fleet.getFuelGeneration(wp1.WarpSpeed, remainingDistanceTravelled)
 	} else {
 		// collide with minefields on route, but don't hit a minefield if we run out of fuel beforehand
 		actualDist := checkForMineFieldCollision(rules, playerGetter, mapObjectGetter, fleet, wp1, dist)
@@ -644,7 +647,7 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 		}
 
 		fleet.Fuel -= fuelCost
-		fuelGenerated = fleet.getFuelGeneration(rules.techs, player, wp1.WarpSpeed, dist)
+		fuelGenerated = fleet.getFuelGeneration(wp1.WarpSpeed, dist)
 	}
 
 	// message the player about fuel generation
@@ -900,26 +903,32 @@ func (fleet *Fleet) getEstimatedRange(player *Player, warpSpeed int, cargoCapaci
 	return int(float64(fleet.Fuel) / float64(fuelCost) * 1000)
 }
 
-// Get the warp speed for when we run out of fuel.
-func (fleet *Fleet) getNoFuelWarpSpeed(techStore *TechStore, player *Player) int {
-	// find the lowest freeSpeed from all the fleet's engines
-	var freeSpeed = math.MaxInt
+/// Get the amount of fuel this ship will generate at a given warp
+/// F = 0 if the engine is running above the highest warp at which it travels for free (i.e. it is using fuel)
+/// F = D if the engine is running at the highest warp at which it travels for free
+/// F = 3D if the engine is running 1 warp factor below the highest warp at which it travels for free
+/// F = 6D if the engine is running 2 warp factors below the highest warp at which it travels for free
+/// F = 10D if the engine is running 3 or more warp factors below the highest warp at which it travels for free
+/// Note that the fuel generated is per engine, not per ship; i.e.; a ship with 2, 3, or 4 engines
+/// produces (or uses) 2, 3, or 4 times as much fuel as a single engine ship.
+func (fleet *Fleet) getFuelGeneration(warpSpeed int, distance float64) int {
+	fuelGenerated := 0.0
 	for _, token := range fleet.Tokens {
-		engine := token.design.Spec.Engine
-		freeSpeed = minInt(freeSpeed, engine.FreeSpeed)
+		freeSpeed := token.design.Spec.Engine.FreeSpeed
+		numEngines := token.design.Spec.NumEngines * token.Quantity
+		speedDifference := freeSpeed - warpSpeed
+		if speedDifference == 0 {
+			fuelGenerated += distance * float64(numEngines)
+		} else if speedDifference == 1 {
+			fuelGenerated += (3 * distance) * float64(numEngines)
+		} else if speedDifference == 2 {
+			fuelGenerated += (6 * distance) * float64(numEngines)
+		} else if speedDifference >= 3 {
+			fuelGenerated += (10 * distance) * float64(numEngines)
+		}
 	}
-	return freeSpeed
-}
 
-// Get the warp speed for when we run out of fuel.
-func (fleet *Fleet) getFuelGeneration(techStore *TechStore, player *Player, warpSpeed int, distance float64) int {
-	// find the lowest freeSpeed from all the fleet's engines
-	var freeSpeed = math.MaxInt
-	for _, token := range fleet.Tokens {
-		engine := token.design.Spec.Engine
-		freeSpeed = minInt(freeSpeed, engine.FreeSpeed)
-	}
-	return freeSpeed
+	return int(fuelGenerated)
 }
 
 // Complete a move from one waypoint to another
@@ -939,6 +948,7 @@ func (fleet *Fleet) completeMove(mapObjectGetter mapObjectGetter, player *Player
 		discoverer := newDiscoverer(player)
 		discoverer.discoverWormholeLink(target, dest)
 		fleet.Position = dest.Position
+
 	}
 
 	// if we wait at a waypoint while unloading, we "complete" our move but don't actually move

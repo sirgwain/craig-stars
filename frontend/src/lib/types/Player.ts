@@ -149,7 +149,7 @@ const emptyTechLevel: TechLevel = {
 };
 
 export type Message = {
-	type: string;
+	type: number;
 	text: string;
 	battleNum?: number;
 } & Target;

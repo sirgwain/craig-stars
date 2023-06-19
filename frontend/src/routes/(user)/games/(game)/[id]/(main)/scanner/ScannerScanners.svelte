@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/Contexts';
-	import { settings } from '$lib/services/Settings';
 
 	import { positionKey } from '$lib/types/MapObject';
 	import { NoScanner } from '$lib/types/Tech';
@@ -8,7 +7,7 @@
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 
-	const { game, player, universe } = getGameContext();
+	const { game, player, universe, settings } = getGameContext();
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
 	type Scanner = {

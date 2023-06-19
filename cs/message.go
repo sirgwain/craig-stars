@@ -28,65 +28,65 @@ const (
 	TargetBattle        PlayerMessageTargetType = "Battle"
 )
 
-type PlayerMessageType string
+type PlayerMessageType int
 
 const (
-	PlayerMessageNone                               PlayerMessageType = ""
-	PlayerMessageInfo                               PlayerMessageType = "Info"
-	PlayerMessageError                              PlayerMessageType = "Error"
-	PlayerMessageHomePlanet                         PlayerMessageType = "HomePlanet"
-	PlayerMessagePlayerDiscovery                    PlayerMessageType = "PlayerDiscovery"
-	PlayerMessagePlanetDiscovery                    PlayerMessageType = "PlanetDiscovery"
-	PlayerMessagePlanetProductionQueueEmpty         PlayerMessageType = "PlanetProductionQueueEmpty"
-	PlayerMessagePlanetProductionQueueComplete      PlayerMessageType = "PlanetProductionQueueComplete"
-	PlayerMessageBuiltMine                          PlayerMessageType = "BuiltMine"
-	PlayerMessageBuiltFactory                       PlayerMessageType = "BuiltFactory"
-	PlayerMessageBuiltDefense                       PlayerMessageType = "BuiltDefense"
-	PlayerMessageBuiltShip                          PlayerMessageType = "BuiltShip"
-	PlayerMessageBuiltStarbase                      PlayerMessageType = "BuiltStarbase"
-	PlayerMessageBuiltMineralPacket                 PlayerMessageType = "BuiltMineralPacket"
-	PlayerMessageBuiltTerraform                     PlayerMessageType = "BuiltTerraform"
-	PlayerMessageFleetOrdersComplete                PlayerMessageType = "FleetOrdersComplete"
-	PlayerMessageFleetEngineFailure                 PlayerMessageType = "FleetEngineFailure"
-	PlayerMessageFleetOutOfFuel                     PlayerMessageType = "FleetOutOfFuel"
-	PlayerMessageFleetGeneratedFuel                 PlayerMessageType = "FleetGeneratedFuel"
-	PlayerMessageFleetScrapped                      PlayerMessageType = "FleetScrapped"
-	PlayerMessageFleetMerged                        PlayerMessageType = "FleetMerged"
-	PlayerMessageFleetInvalidMergeNotFleet          PlayerMessageType = "FleetInvalidMergeNotFleet"
-	PlayerMessageFleetInvalidMergeUnowned           PlayerMessageType = "FleetInvalidMergeUnowned"
-	PlayerMessageFleetPatrolTargeted                PlayerMessageType = "FleetPatrolTargeted"
-	PlayerMessageFleetInvalidRouteNotFriendlyPlanet PlayerMessageType = "FleetInvalidRouteNotFriendlyPlanet"
-	PlayerMessageFleetInvalidRouteNotPlanet         PlayerMessageType = "FleetInvalidRouteNotPlanet"
-	PlayerMessageFleetInvalidRouteNoRouteTarget     PlayerMessageType = "FleetInvalidRouteNoRouteTarget"
-	PlayerMessageFleetInvalidTransport              PlayerMessageType = "FleetInvalidTransport"
-	PlayerMessageFleetRoute                         PlayerMessageType = "FleetRoute"
-	PlayerMessageInvalid                            PlayerMessageType = "Invalid"
-	PlayerMessagePlanetColonized                    PlayerMessageType = "PlanetColonized"
-	PlayerMessageGainTechLevel                      PlayerMessageType = "GainTechLevel"
-	PlayerMessageMyPlanetBombed                     PlayerMessageType = "MyPlanetBombed"
-	PlayerMessageMyPlanetRetroBombed                PlayerMessageType = "MyPlanetRetroBombed"
-	PlayerMessageEnemyPlanetBombed                  PlayerMessageType = "EnemyPlanetBombed"
-	PlayerMessageEnemyPlanetRetroBombed             PlayerMessageType = "EnemyPlanetRetroBombed"
-	PlayerMessageMyPlanetInvaded                    PlayerMessageType = "MyPlanetInvaded"
-	PlayerMessageEnemyPlanetInvaded                 PlayerMessageType = "EnemyPlanetInvaded"
-	PlayerMessageBattle                             PlayerMessageType = "Battle"
-	PlayerMessageCargoTransferred                   PlayerMessageType = "CargoTransferred"
-	PlayerMessageMinesSwept                         PlayerMessageType = "MinesSwept"
-	PlayerMessageMinesLaid                          PlayerMessageType = "MinesLaid"
-	PlayerMessageMineFieldHit                       PlayerMessageType = "MineFieldHit"
-	PlayerMessageFleetDumpedCargo                   PlayerMessageType = "FleetDumpedCargo"
-	PlayerMessageFleetStargateDamaged               PlayerMessageType = "FleetStargateDamaged"
-	PlayerMessageMineralPacketCaught                PlayerMessageType = "MineralPacketCaught"
-	PlayerMessageMineralPacketDamage                PlayerMessageType = "MineralPacketDamage"
-	PlayerMessageMineralPacketLanded                PlayerMessageType = "MineralPacketLanded"
-	PlayerMessageVictor                             PlayerMessageType = "Victor"
-	PlayerMessageFleetReproduce                     PlayerMessageType = "FleetReproduce"
-	PlayerMessageRandomMineralDeposit               PlayerMessageType = "RandomMineralDeposit"
-	PlayerMessagePermaform                          PlayerMessageType = "Permaform"
-	PlayerMessageInstaform                          PlayerMessageType = "Instaform"
-	PlayerMessagePacketTerraform                    PlayerMessageType = "PacketTerraform"
-	PlayerMessagePacketPermaform                    PlayerMessageType = "PacketPermaform"
-	PlayerMessageRemoteMined                        PlayerMessageType = "RemoteMined"
+	PlayerMessageNone PlayerMessageType = iota
+	PlayerMessageInfo
+	PlayerMessageError
+	PlayerMessageHomePlanet
+	PlayerMessagePlayerDiscovery
+	PlayerMessagePlanetDiscovery
+	PlayerMessagePlanetProductionQueueEmpty
+	PlayerMessagePlanetProductionQueueComplete
+	PlayerMessageBuiltMine
+	PlayerMessageBuiltFactory
+	PlayerMessageBuiltDefense
+	PlayerMessageBuiltShip
+	PlayerMessageBuiltStarbase
+	PlayerMessageBuiltMineralPacket
+	PlayerMessageBuiltTerraform
+	PlayerMessageFleetOrdersComplete
+	PlayerMessageFleetEngineFailure
+	PlayerMessageFleetOutOfFuel
+	PlayerMessageFleetGeneratedFuel
+	PlayerMessageFleetScrapped
+	PlayerMessageFleetMerged
+	PlayerMessageFleetInvalidMergeNotFleet
+	PlayerMessageFleetInvalidMergeUnowned
+	PlayerMessageFleetPatrolTargeted
+	PlayerMessageFleetInvalidRouteNotFriendlyPlanet
+	PlayerMessageFleetInvalidRouteNotPlanet
+	PlayerMessageFleetInvalidRouteNoRouteTarget
+	PlayerMessageFleetInvalidTransport
+	PlayerMessageFleetRoute
+	PlayerMessageInvalid
+	PlayerMessagePlanetColonized
+	PlayerMessageGainTechLevel
+	PlayerMessageMyPlanetBombed
+	PlayerMessageMyPlanetRetroBombed
+	PlayerMessageEnemyPlanetBombed
+	PlayerMessageEnemyPlanetRetroBombed
+	PlayerMessageMyPlanetInvaded
+	PlayerMessageEnemyPlanetInvaded
+	PlayerMessageBattle
+	PlayerMessageCargoTransferred
+	PlayerMessageMinesSwept
+	PlayerMessageMinesLaid
+	PlayerMessageMineFieldHit
+	PlayerMessageFleetDumpedCargo
+	PlayerMessageFleetStargateDamaged
+	PlayerMessageMineralPacketCaught
+	PlayerMessageMineralPacketDamage
+	PlayerMessageMineralPacketLanded
+	PlayerMessageVictor
+	PlayerMessageFleetReproduce
+	PlayerMessageRandomMineralDeposit
+	PlayerMessagePermaform
+	PlayerMessageInstaform
+	PlayerMessagePacketTerraform
+	PlayerMessagePacketPermaform
+	PlayerMessageRemoteMined
 )
 
 type Messager interface {

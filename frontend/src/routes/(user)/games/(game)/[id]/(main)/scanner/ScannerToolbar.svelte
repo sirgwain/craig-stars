@@ -4,7 +4,6 @@
 	import Population from '$lib/components/icons/Population.svelte';
 	import Scanner from '$lib/components/icons/Scanner.svelte';
 	import { getGameContext } from '$lib/services/Contexts';
-	import { settings } from '$lib/services/Settings';
 	import { nextMapObject, previousMapObject } from '$lib/services/Stores';
 	import { PlanetViewState } from '$lib/types/PlayerSettings';
 	import { ArrowLongLeft, ArrowLongRight, Envelope } from '@steeze-ui/heroicons';
@@ -12,7 +11,7 @@
 	import MessagesPane from '../MessagesPane.svelte';
 	import PlanetViewStates from './toolbar/PlanetViewStates.svelte';
 
-	const { game, player, universe } = getGameContext();
+	const { game, player, universe, settings } = getGameContext();
 
 	let showMessages = false;
 </script>

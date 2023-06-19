@@ -5,25 +5,66 @@
 	import type { Fleet } from '$lib/types/Fleet';
 	import { MapObjectType, None, ownedBy } from '$lib/types/MapObject';
 	import { MessageTargetType, type Message } from '$lib/types/Player';
-	import { ArrowLongLeft, ArrowLongRight, ArrowTopRightOnSquare } from '@steeze-ui/heroicons';
+	import {
+		ArrowLongLeft,
+		ArrowLongRight,
+		ArrowTopRightOnSquare,
+		MagnifyingGlassMinus,
+		MagnifyingGlassPlus
+	} from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
-	const { game, player, universe } = getGameContext();
+	const { game, player, universe, settings } = getGameContext();
 
 	let messageNum = 0;
 	let message: Message | undefined;
+	let showFilteredMessages = false;
 
 	$: $player.messages.length && (message = $player.messages[messageNum]);
+	$: nextVisibleMessageNum = getNextVisibleMessageNum(messageNum, showFilteredMessages);
+	$: previousVisibleMessageNum = getPreviousVisibleMessageNum(messageNum, showFilteredMessages);
+	$: visible = (message && $settings.isMessageVisible(message.type)) ?? false;
 
 	// reset the message num when our player updates
-	player.subscribe(() => (messageNum = 0));
+	player.subscribe(() => {
+		messageNum = getNextVisibleMessageNum(-1, showFilteredMessages);
+	});
+
+	function onFilterMessageType(type: number) {
+		if ($settings.isMessageVisible(type)) {
+			$settings.filterMessageType(type);
+		} else {
+			$settings.showMessageType(type);
+		}
+		$settings = $settings;
+		visible = (message && $settings.isMessageVisible(message.type)) ?? false;
+	}
+
+	function getNextVisibleMessageNum(num: number, showFilteredMessages: boolean): number {
+		for (let i = num + 1; i < $player.messages.length; i++) {
+			if (showFilteredMessages || $settings.isMessageVisible($player.messages[i].type)) {
+				return i;
+			}
+		}
+		return num;
+	}
+
+	function getPreviousVisibleMessageNum(num: number, showFilteredMessages: boolean): number {
+		for (let i = num - 1; i >= 0; i--) {
+			if (showFilteredMessages || $settings.isMessageVisible($player.messages[i].type)) {
+				return i;
+			}
+		}
+		return num;
+	}
 
 	const previous = () => {
-		messageNum--;
+		messageNum = getPreviousVisibleMessageNum(messageNum, showFilteredMessages);
 	};
 	const next = () => {
-		messageNum++;
+		messageNum = getNextVisibleMessageNum(messageNum, showFilteredMessages);
 	};
+
 	const gotoTarget = () => {
 		if (message) {
 			const targetType = message.targetType ?? MessageTargetType.None;
@@ -84,22 +125,54 @@
 
 <div class="card bg-base-200 shadow rounded-sm border-2 border-base-300">
 	<div class="card-body p-1 gap-0">
-		<div class="flex flex-row items-center">
-			<input type="checkbox" class="flex-initial checkbox checkbox-xs" />
+		<div class="flex flex-row items-center mb-1">
+			<div class="tooltip tooltip-right" data-tip="Filter these types of messages">
+				<input
+					type="checkbox"
+					class="flex-initial checkbox checkbox-xs"
+					checked={visible}
+					on:click={() => message && onFilterMessageType(message.type)}
+				/>
+			</div>
+
 			<div class="flex-1 text-center text-lg font-semibold text-secondary">
 				Year: {$game.year} Message {messageNum + 1} of {$player?.messages?.length}
+			</div>
+			<div
+				class="tooltip tooltip-left"
+				data-tip={showFilteredMessages ? 'Hide filtered messages' : 'Show all messages'}
+			>
+				<label class="swap">
+					<!-- this hidden checkbox controls the state -->
+					<input type="checkbox" bind:checked={showFilteredMessages} />
+
+					<!-- filter messages -->
+					<Icon src={MagnifyingGlassMinus} size="24" class="swap-off" />
+
+					<!-- show filtered messages -->
+					<Icon src={MagnifyingGlassPlus} size="24" class="swap-on" />
+				</label>
 			</div>
 		</div>
 		{#if message}
 			<div class="flex flex-row">
-				<div class="mt-1 h-12 grow overflow-y-auto">{message.text}</div>
+				<div class="mt-1 h-12 grow overflow-y-auto">
+					<div class="relative">
+						{#if !visible}
+							<div class="absolute w-full text-center">
+								<span class="text-[1.5rem] text-warning -rotate-12">FILTERED</span>
+							</div>
+						{/if}
+						{message.text}
+					</div>
+				</div>
 				<div>
 					<div class="flex flex-col gap-y-1 ml-1">
 						<div class="flex flex-row btn-group">
 							<div class="tooltip" data-tip="previous">
 								<button
 									on:click={previous}
-									disabled={messageNum === 0}
+									disabled={messageNum === previousVisibleMessageNum}
 									class="btn btn-outline btn-sm normal-case btn-secondary"
 									title="previous"
 									><Icon src={ArrowLongLeft} size="16" class="hover:stroke-accent inline" /></button
@@ -121,7 +194,7 @@
 							<div class="tooltip" data-tip="next">
 								<button
 									on:click={next}
-									disabled={$player.messages && messageNum === $player.messages.length - 1}
+									disabled={messageNum == nextVisibleMessageNum}
 									class="btn btn-outline btn-sm normal-case btn-secondary"
 									title="next"
 									><Icon

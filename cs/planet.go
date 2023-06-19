@@ -341,7 +341,9 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	spec.Habitability = race.GetPlanetHabitability(planet.Hab)
 	spec.MaxPopulation = getMaxPopulation(rules, spec.Habitability, player)
 	spec.Population = planet.population()
-	spec.PopulationDensity = float64(planet.population()) / float64(spec.MaxPopulation)
+	if spec.MaxPopulation > 0 {
+		spec.PopulationDensity = float64(planet.population()) / float64(spec.MaxPopulation)
+	}
 	spec.GrowthAmount = planet.getGrowthAmount(player, spec.MaxPopulation)
 	spec.MiningOutput = planet.getMineralOutput(planet.Mines, race.MineOutput)
 

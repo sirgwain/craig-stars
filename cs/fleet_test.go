@@ -216,6 +216,7 @@ func Test_computeFleetSpec(t *testing.T) {
 				Armor:        20,
 				Engine: Engine{
 					IdealSpeed: QuickJump5.IdealSpeed,
+					FreeSpeed:  QuickJump5.FreeSpeed,
 				},
 			},
 			Purposes:         map[ShipDesignPurpose]bool{},
@@ -289,6 +290,7 @@ func Test_computeFleetSpec(t *testing.T) {
 				CloakPercent: 35,
 				Engine: Engine{
 					IdealSpeed: QuickJump5.IdealSpeed,
+					FreeSpeed:  QuickJump5.FreeSpeed,
 				},
 			},
 			Purposes:         map[ShipDesignPurpose]bool{},
@@ -324,6 +326,7 @@ func Test_computeFleetSpec(t *testing.T) {
 				CloakPercent: 35, // still 35%
 				Engine: Engine{
 					IdealSpeed: QuickJump5.IdealSpeed,
+					FreeSpeed:  QuickJump5.FreeSpeed,
 				},
 			},
 			Purposes:         map[ShipDesignPurpose]bool{},
@@ -825,6 +828,43 @@ func TestFleet_getEstimatedRange(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.args.fleet.getEstimatedRange(tt.args.player, tt.args.warpSpeed, tt.args.fleet.Spec.CargoCapacity); got != tt.want {
 				t.Errorf("Fleet.getEstimatedRange() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestFleet_getFuelGeneration(t *testing.T) {
+	player := NewPlayer(1, NewRace().WithSpec(&rules)).withSpec(&rules)
+	fuelMizerScout := testLongRangeScout(player)
+	fuelMizerScout.Tokens[0].design.Slots[0].HullComponent = FuelMizer.Name
+	fuelMizerScout.Tokens[0].design.Spec = ComputeShipDesignSpec(&rules, player.TechLevels, player.Race.Spec, fuelMizerScout.Tokens[0].design)
+	fuelMizerScout.Spec = ComputeFleetSpec(&rules, player, fuelMizerScout)
+	fuelMizerScoutX2 := testLongRangeScout(player)
+	fuelMizerScoutX2.Tokens[0].design.Slots[0].HullComponent = FuelMizer.Name
+	fuelMizerScoutX2.Tokens[0].design.Spec = ComputeShipDesignSpec(&rules, player.TechLevels, player.Race.Spec, fuelMizerScoutX2.Tokens[0].design)
+	fuelMizerScoutX2.Tokens[0].Quantity = 2
+	fuelMizerScoutX2.Spec = ComputeFleetSpec(&rules, player, fuelMizerScoutX2)
+
+	type args struct {
+		warpSpeed int
+		distance  float64
+	}
+	tests := []struct {
+		name  string
+		fleet *Fleet
+		args  args
+		want  int
+	}{
+		{"normal warp, no fuel generation", testLongRangeScout(player), args{6, 36}, 0},
+		{"warp1, 1mg fuel", testLongRangeScout(player), args{1, 1}, 1},
+		{"fuel mizer, 16mg fuel", fuelMizerScout, args{4, 16}, 16},
+		{"fuel mizer, warp3 27mg fuel", fuelMizerScout, args{3, 9}, 27},
+		{"fuel mizerx2, double fuel", fuelMizerScoutX2, args{4, 16}, 32},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.fleet.getFuelGeneration(tt.args.warpSpeed, tt.args.distance); got != tt.want {
+				t.Errorf("Fleet.getFuelGeneration() = %v, want %v", got, tt.want)
 			}
 		})
 	}

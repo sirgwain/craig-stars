@@ -100,6 +100,7 @@ func (t *turn) generateTurn() error {
 	// reset all players
 	// and do player specific things like scanning
 	// and patrol orders
+	t.computePlanetSpecs() // make sure our specs are up to date
 	for _, player := range t.game.Players {
 		player.Spec = computePlayerSpec(player, &t.game.Rules, t.game.Planets)
 
@@ -130,7 +131,6 @@ func (t *turn) computePlanetSpecs() {
 			planet.Spec = computePlanetSpec(&t.game.Rules, player, planet)
 		}
 	}
-
 }
 
 // fleetInit will reset any fleet data before processing

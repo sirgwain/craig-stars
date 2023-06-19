@@ -1,14 +1,11 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/Contexts';
-	import type { FullGame } from '$lib/services/FullGame';
-	import { settings } from '$lib/services/Settings';
 	import { None } from '$lib/types/MapObject';
 	import { Unexplored, type Planet } from '$lib/types/Planet';
-	import { PlanetViewState } from '$lib/types/PlayerSettings';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 
-	const { game, player, universe } = getGameContext();
+	const { game, player, universe, settings } = getGameContext();
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
 	export let planet: Planet;

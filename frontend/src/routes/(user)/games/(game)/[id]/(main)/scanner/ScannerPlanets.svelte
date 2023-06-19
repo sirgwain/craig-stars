@@ -4,7 +4,6 @@
  -->
 <script lang="ts">
 	import { getGameContext } from '$lib/services/Contexts';
-	import { settings } from '$lib/services/Settings';
 	import { commandedMapObject, commandedPlanet } from '$lib/services/Stores';
 	import type { Fleet } from '$lib/types/Fleet';
 	import { MapObjectType, type MapObject } from '$lib/types/MapObject';
@@ -15,7 +14,7 @@
 	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';
 	import ScannerPlanetPercent from './ScannerPlanetPercent.svelte';
 
-	const { game, player, universe } = getGameContext();
+	const { game, player, universe, settings } = getGameContext();
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
 	const commanded = (

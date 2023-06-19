@@ -8,11 +8,11 @@
 	import { getGameContext, initGameContext, updateGameContext } from '$lib/services/Contexts';
 	import { FullGame } from '$lib/services/FullGame';
 	import { commandedMapObject, techs } from '$lib/services/Stores';
-	import { Universe } from '$lib/services/Universe';
 	import { GameState } from '$lib/types/Game';
-	import { Player } from '$lib/types/Player';
 	import { onMount } from 'svelte';
 	import GameMenu from './GameMenu.svelte';
+	import { Player } from '$lib/types/Player';
+	import { Universe } from '$lib/services/Universe';
 
 	let id = parseInt($page.params.id);
 	let loadAttempted = false;

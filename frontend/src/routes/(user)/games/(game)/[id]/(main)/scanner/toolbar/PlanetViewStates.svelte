@@ -1,8 +1,10 @@
 <script lang="ts">
 	import PlanetWithStarbase from '$lib/components/icons/PlanetWithStarbase.svelte';
 	import Population from '$lib/components/icons/Population.svelte';
+	import { getGameContext } from '$lib/services/Contexts';
 	import { PlanetViewState } from '$lib/types/PlayerSettings';
-	import { settings } from '$lib/services/Settings';
+
+	const { game, player, universe, settings } = getGameContext();
 </script>
 
 <ul {...$$restProps}>

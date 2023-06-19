@@ -358,6 +358,7 @@ var QuickJump5 = TechEngine{
 	TechHullComponent: TechHullComponent{Tech: NewTech("Quick Jump 5", NewCost(3, 0, 1, 3), TechRequirements{}, 20, TechCategoryEngine), Mass: 4, HullSlotType: HullSlotTypeEngine},
 	Engine: Engine{
 		IdealSpeed: 5,
+		FreeSpeed:  1,
 		FuelUsage: [11]int{
 			0,    // 0
 			0,    // 1
@@ -377,6 +378,7 @@ var LongHump6 = TechEngine{
 	TechHullComponent: TechHullComponent{Tech: NewTech("Long Hump 6", NewCost(5, 0, 1, 6), TechRequirements{TechLevel: TechLevel{Propulsion: 3}}, 40, TechCategoryEngine), Mass: 9, HullSlotType: HullSlotTypeEngine},
 	Engine: Engine{
 		IdealSpeed: 6,
+		FreeSpeed:  1,
 		FuelUsage: [11]int{
 			0,    // 0
 			0,    // 1
@@ -417,6 +419,7 @@ var DaddyLongLegs7 = TechEngine{
 	TechHullComponent: TechHullComponent{Tech: NewTech("Daddy Long Legs 7", NewCost(11, 0, 3, 12), TechRequirements{TechLevel: TechLevel{Propulsion: 5}}, 50, TechCategoryEngine), Mass: 13, HullSlotType: HullSlotTypeEngine},
 	Engine: Engine{
 		IdealSpeed: 7,
+		FreeSpeed:  1,
 		FuelUsage: [11]int{
 			0,   // 0
 			0,   // 1
@@ -436,6 +439,7 @@ var AlphaDrive8 = TechEngine{
 	TechHullComponent: TechHullComponent{Tech: NewTech("Alpha Drive 8", NewCost(16, 0, 3, 28), TechRequirements{TechLevel: TechLevel{Propulsion: 7}}, 60, TechCategoryEngine), Mass: 17, HullSlotType: HullSlotTypeEngine},
 	Engine: Engine{
 		IdealSpeed: 8,
+		FreeSpeed:  1,
 		FuelUsage: [11]int{
 			0,
 			0,
@@ -455,6 +459,7 @@ var TransGalacticDrive = TechEngine{
 	TechHullComponent: TechHullComponent{Tech: NewTech("Trans-Galactic Drive", NewCost(20, 20, 9, 50), TechRequirements{TechLevel: TechLevel{Propulsion: 9}}, 70, TechCategoryEngine), Mass: 25, HullSlotType: HullSlotTypeEngine},
 	Engine: Engine{
 		IdealSpeed: 9,
+		FreeSpeed:  1,
 		FuelUsage: [11]int{
 			0,
 			0,
@@ -474,6 +479,7 @@ var Interspace10 = TechEngine{
 	TechHullComponent: TechHullComponent{Tech: NewTech("Interspace-10", NewCost(18, 25, 10, 60), TechRequirements{TechLevel: TechLevel{Propulsion: 11}, LRTsRequired: NRSE}, 80, TechCategoryEngine), Mass: 25, HullSlotType: HullSlotTypeEngine},
 	Engine: Engine{
 		IdealSpeed: 10,
+		FreeSpeed:  1,
 		FuelUsage: [11]int{
 			0,
 			0,
@@ -493,6 +499,7 @@ var TransStar10 = TechEngine{
 	TechHullComponent: TechHullComponent{Tech: NewTech("Trans-Star 10", NewCost(3, 0, 3, 10), TechRequirements{TechLevel: TechLevel{Propulsion: 23}}, 90, TechCategoryEngine), Mass: 5, HullSlotType: HullSlotTypeEngine},
 	Engine: Engine{
 		IdealSpeed: 10,
+		FreeSpeed:  1,
 		FuelUsage: [11]int{
 			0,
 			0,
