@@ -25,7 +25,7 @@ type Fleet struct {
 	Tags              Tags       `json:"tags,omitempty"`
 	Waypoints         *Waypoints `json:"waypoints,omitempty"`
 	RepeatOrders      bool       `json:"repeatOrders,omitempty"`
-	PlanetID          int64      `json:"planetId,omitempty"`
+	PlanetNum         int        `json:"planetNum,omitempty"`
 	BaseName          string     `json:"baseName,omitempty"`
 	Ironium           int        `json:"ironium,omitempty"`
 	Boranium          int        `json:"boranium,omitempty"`
@@ -115,7 +115,7 @@ SELECT
 	f.playerNum AS 'fleet.playerNum',
 	f.waypoints AS 'fleet.waypoints',
 	f.repeatOrders AS 'fleet.repeatOrders',
-	f.planetId AS 'fleet.planetId',
+	f.planetNum AS 'fleet.planetNum',
 	f.baseName AS 'fleet.baseName',
 	f.ironium AS 'fleet.ironium',
 	f.boranium AS 'fleet.boranium',
@@ -253,7 +253,7 @@ func (c *client) createFleet(fleet *game.Fleet, tx SQLExecer) error {
 		playerNum,
 		waypoints,
 		repeatOrders,
-		planetId,
+		planetNum,
 		baseName,
 		ironium,
 		boranium,
@@ -283,7 +283,7 @@ func (c *client) createFleet(fleet *game.Fleet, tx SQLExecer) error {
 		:playerNum,
 		:waypoints,
 		:repeatOrders,
-		:planetId,
+		:planetNum,
 		:baseName,
 		:ironium,
 		:boranium,
@@ -380,7 +380,7 @@ func (c *client) updateFleet(fleet *game.Fleet, tx SQLExecer) error {
 		playerNum = :playerNum,
 		waypoints = :waypoints,
 		repeatOrders = :repeatOrders,
-		planetId = :planetId,
+		planetNum = :planetNum,
 		baseName = :baseName,
 		ironium = :ironium,
 		boranium = :boranium,

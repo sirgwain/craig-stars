@@ -75,7 +75,7 @@ func (ai *aiPlayer) scout() {
 			} else {
 				// this fleet is already scanning a planet, remove the target from the unknown planets list
 				for _, wp := range fleet.Waypoints[1:] {
-					if wp.TargetNum != NoTarget {
+					if wp.TargetNum != None {
 						delete(unknownPlanetsByNum, wp.TargetNum)
 					}
 				}
@@ -128,7 +128,7 @@ func (ai *aiPlayer) colonize() {
 			} else {
 				// this fleet is already scanning a planet, remove the target from the colonizable planets list
 				for _, wp := range fleet.Waypoints[1:] {
-					if wp.TargetNum != NoTarget {
+					if wp.TargetNum != None {
 						delete(colonizablePlanets, wp.TargetNum)
 					}
 				}
