@@ -241,11 +241,6 @@ func (m *messageClient) fleetRouted(player *Player, fleet *Fleet, planet *Planet
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetRoute, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
 }
 
-func (m *messageClient) fleetBuiltForComposition(player *Player, fleet *Fleet) {
-	text := fmt.Sprintf("%s", fleet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetScrapped, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
-}
-
 func (m *messageClient) fleetStargateInvalidSource(player *Player, fleet *Fleet, wp0 Waypoint) {
 	player.Messages = append(player.Messages, PlayerMessage{
 		Type:            PlayerMessageInvalid,
@@ -373,9 +368,15 @@ func (m *messageClient) fleetStargateDamaged(player *Player, fleet *Fleet, wp0 W
 	})
 }
 
-func (m *messageClient) fleetReproduce(player *Player, fleet *Fleet) {
-	text := fmt.Sprintf("%s", fleet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetScrapped, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+func (m *messageClient) fleetReproduce(player *Player, fleet *Fleet, colonistsGrown int, planet *Planet, over int) {
+	var text string
+	if planet == nil || over == 0 {
+		text = fmt.Sprintf("Your colonists in %s have made good use of their time increasing their on-board number by %d colonists.", fleet.Name, colonistsGrown)
+	} else {
+		text = fmt.Sprintf("Breeding activities on %s have overflowed living space. %d colonists have been beamed down to %s.", fleet.Name, over, planet.Name)
+	}
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetReproduce, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+
 }
 
 func (m *messageClient) fleetCompletedAssignedOrders(player *Player, fleet *Fleet) {
@@ -450,6 +451,41 @@ func (m *messageClient) fleetMinesLaid(player *Player, fleet *Fleet, mineField *
 		text = fmt.Sprintf("%s has increased a minefield by %d mines.", fleet.Name, numMinesLaid)
 	}
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageMinesLaid, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
+}
+
+func (m *messageClient) fleetMineFieldSwept(player *Player, fleet *Fleet, mineField *MineField, numMinesSwept int) {
+	var text string
+
+	if fleet.PlayerNum == player.Num {
+		text = fmt.Sprintf("%s has swept %d from a mineField at %v", fleet.Name, numMinesSwept, mineField.Position)
+	} else {
+		text = fmt.Sprintf("Someone has swept %d from your mineField at %v", numMinesSwept, mineField.Position)
+	}
+
+	targetType := TargetNone
+	targetNum := None
+	targetPlayerNum := None
+
+	// this will be removed if the mines are gone, so target the fleet
+	if mineField.NumMines <= 10 {
+		if fleet.PlayerNum == player.Num {
+			targetType = TargetFleet
+			targetNum = fleet.Num
+			targetPlayerNum = fleet.PlayerNum
+		}
+	} else {
+		targetType = TargetMineField
+		targetNum = mineField.Num
+		targetPlayerNum = mineField.PlayerNum
+	}
+
+	player.Messages = append(player.Messages, PlayerMessage{
+		Type:            PlayerMessageMinesSwept,
+		Text:            text,
+		TargetType:      targetType,
+		TargetNum:       targetNum,
+		TargetPlayerNum: targetPlayerNum,
+	})
 }
 
 func (m *messageClient) colonizeNonPlanet(player *Player, fleet *Fleet) {
@@ -591,6 +627,11 @@ func (m *messageClient) permaform(player *Player, planet *Planet, habType HabTyp
 	}
 	text := fmt.Sprintf("Your race has permanently %s the %s on %s.", changeText, habType, planet.Name)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePermaform, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
+}
+
+func (m *messageClient) instaform(player *Player, planet *Planet, terraformAmount Hab) {
+	text := fmt.Sprintf("Your race has instantly terraformed %s up to optimal conditions.", planet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInstaform, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
 }
 
 func (m *messageClient) terraform(player *Player, planet *Planet, habType HabType, change int) {

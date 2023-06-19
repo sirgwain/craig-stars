@@ -25,7 +25,7 @@ func testMiniBomber(player *Player, bomb TechHullComponent) *Fleet {
 					WithSpec(&rules, player)},
 		},
 		battlePlan:        &player.BattlePlans[0],
-		OrbitingPlanetNum: NotOrbitingPlanet,
+		OrbitingPlanetNum: None,
 	}
 	fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
 	fleet.Fuel = fleet.Spec.FuelCapacity

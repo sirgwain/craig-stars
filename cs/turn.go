@@ -64,11 +64,10 @@ func (t *turn) generateTurn() error {
 	t.fleetRemoteMineAR() // sort of a wp1 task, for AR races it happens before production
 	t.planetProduction()
 	t.playerResearch()
-	t.researchStealer()
 	t.permaform()
 	t.planetGrow()
 	t.packetMove1()
-	t.fleetRefuel()
+	t.fleetRefuel() // refuel after production so fleets will refuel at planets that just built a starbase this turn
 	t.randomCometStrike()
 	t.randomMineralDeposit()
 	t.randomPlanetaryChange()
@@ -156,12 +155,8 @@ func (t *turn) fleetScrap() {
 
 // scrap a fleet giving a planet resources or creating salvage
 func (t *turn) scrapFleet(fleet *Fleet) {
-	player := t.game.Players[fleet.PlayerNum-1]
-
-	var planet *Planet
-	if fleet.OrbitingPlanetNum != None {
-		planet = t.game.getPlanet(fleet.OrbitingPlanetNum)
-	}
+	player := t.game.getPlayer(fleet.PlayerNum)
+	planet := t.game.getOrbitingPlanet(fleet)
 
 	cost := fleet.getScrapAmount(&t.game.Rules, player, planet)
 
@@ -350,10 +345,10 @@ func (t *turn) fleetRoute() {
 
 		if !wp.processed && wp.Task == WaypointTaskRoute {
 			player := t.game.Players[fleet.PlayerNum-1]
-			if fleet.OrbitingPlanetNum == None {
+			planet := t.game.getOrbitingPlanet(fleet)
+			if planet == nil {
 				messager.fleetInvalidRouteNotPlanet(player, fleet)
 			} else {
-				planet := t.game.Planets[fleet.OrbitingPlanetNum-1]
 				if !player.IsFriend(planet.PlayerNum) {
 					messager.fleetInvalidRouteNotFriendlyPlanet(player, fleet, planet)
 				} else if planet.TargetType == MapObjectTypeNone || planet.TargetNum == 0 {
@@ -428,6 +423,12 @@ func (t *turn) fleetMove() {
 					fleet.moveFleet(&t.game.Rules, t.game.Universe, t.game)
 				}
 
+				// make sure we have tokens left after move
+				if len(fleet.Tokens) == 0 {
+					t.game.deleteFleet(fleet)
+					continue
+				}
+
 				// remove the previous waypoint, it's been processed already
 				if fleet.RepeatOrders && !wp0.PartiallyComplete {
 					// if we are supposed to repeat orders,
@@ -450,7 +451,39 @@ func (t *turn) fleetMove() {
 }
 
 func (t *turn) fleetReproduce() {
+	for _, fleet := range t.game.Fleets {
+		if fleet.Cargo.Colonists == 0 {
+			continue
+		}
 
+		// check if this player's freighters reproduce
+		player := t.game.getPlayer(fleet.PlayerNum)
+		if player.Race.Spec.FreighterGrowthFactor == 0 {
+			continue
+		}
+
+		// load the orbiting planet
+		planet := t.game.getOrbitingPlanet(fleet)
+
+		growthFactor := player.Race.Spec.FreighterGrowthFactor
+		growth := minInt(1, int(growthFactor*float64(player.Race.GrowthRate)/100.0*float64(fleet.Cargo.Colonists)))
+		fleet.Cargo.Colonists = fleet.Cargo.Colonists + growth
+		fleet.MarkDirty()
+		over := maxInt(0, fleet.Cargo.Total()-fleet.Spec.CargoCapacity)
+		if over > 0 {
+			// remove excess colonists
+			fleet.Cargo.Colonists = fleet.Cargo.Colonists - over
+			if planet != nil && planet.OwnedBy(fleet.PlayerNum) {
+				// add colonists to the planet this fleet is orbiting
+				planet.Cargo.Colonists = planet.Cargo.Colonists + over
+				planet.MarkDirty()
+			}
+		}
+
+		// Message the player
+		messager.fleetReproduce(player, fleet, growth*100, planet, over)
+
+	}
 }
 
 // decay each salvage and remove it from the universe if it's empty
@@ -533,14 +566,13 @@ func (t *turn) fleetRemoteMineAR() {
 		wp0 := fleet.Waypoints[0]
 		if wp0.Task == WaypointTaskRemoteMining {
 			player := t.game.getPlayer(fleet.PlayerNum)
+			planet := t.game.getOrbitingPlanet(fleet)
 
 			// can't remote mine deep space
-			if fleet.OrbitingPlanetNum == None {
+			if planet == nil {
 				messager.remoteMineDeepSpace(player, fleet)
 				continue
 			}
-
-			planet := t.game.getPlanet(fleet.OrbitingPlanetNum)
 
 			// we can remote mine our own planets, so remote mine this planet now (it happens earlier than normal remote mining)
 			if planet.OwnedBy(fleet.PlayerNum) && player.Race.Spec.CanRemoteMineOwnPlanets {
@@ -558,14 +590,13 @@ func (t *turn) fleetRemoteMine() {
 		wp0 := fleet.Waypoints[0]
 		if wp0.Task == WaypointTaskRemoteMining {
 			player := t.game.getPlayer(fleet.PlayerNum)
+			planet := t.game.getOrbitingPlanet(fleet)
 
 			// can't remote mine deep space
-			if fleet.OrbitingPlanetNum == None {
+			if planet == nil {
 				messager.remoteMineDeepSpace(player, fleet)
 				continue
 			}
-
-			planet := t.game.getPlanet(fleet.OrbitingPlanetNum)
 
 			// we can remote mine our own planets, but that happens at an earlier step, so skip  during normal remote mining
 			if planet.OwnedBy(fleet.PlayerNum) && player.Race.Spec.CanRemoteMineOwnPlanets {
@@ -742,10 +773,6 @@ func (t *turn) playerResearch() {
 
 }
 
-func (t *turn) researchStealer() {
-
-}
-
 // for each planet, randomly check if the owner permaforms it
 func (t *turn) permaform() {
 
@@ -788,8 +815,24 @@ func (t *turn) packetMove1() {
 
 }
 
+// refuel fleets if they are orbiting a planet with a friendly starbase
 func (t *turn) fleetRefuel() {
+	for _, fleet := range t.game.Fleets {
+		planet := t.game.getOrbitingPlanet(fleet)
+		if planet == nil {
+			continue
+		}
+		if !planet.Spec.HasStarbase {
+			continue
+		}
 
+		planetPlayer := t.game.getPlayer(planet.PlayerNum)
+		if planetPlayer.IsFriend(fleet.PlayerNum) {
+			fleet.Fuel = fleet.Spec.FuelCapacity
+			fleet.MarkDirty()
+		}
+
+	}
 }
 
 func (t *turn) randomCometStrike() {
@@ -932,7 +975,7 @@ func (t *turn) decayMines() {
 			continue
 		}
 		mineField.Spec = computeMinefieldSpec(t.game.rules, player, mineField, t.game.Universe.numPlanetsWithin(mineField.Position, mineField.Radius()))
-		mineField.Dirty = true
+		mineField.MarkDirty()
 	}
 }
 
@@ -980,7 +1023,7 @@ func (t *turn) fleetLayMines() {
 
 				// TODO (performance): the radius will be computed in the spec as well. hmmmm
 				mineField.Spec = computeMinefieldSpec(t.game.rules, player, mineField, t.game.Universe.numPlanetsWithin(mineField.Position, mineField.Radius()))
-				mineField.Dirty = true
+				mineField.MarkDirty()
 			}
 		}
 	}
@@ -996,15 +1039,86 @@ func (t *turn) fleetMerge1() {
 }
 
 func (t *turn) instaform() {
-
+	for _, planet := range t.game.Planets {
+		if planet.owned() {
+			player := t.game.getPlayer(planet.PlayerNum)
+			if player.Race.Spec.Instaforming {
+				terraformAmount := planet.Spec.TerraformAmount
+				if terraformAmount.absSum() > 0 {
+					// Instantly terraform this planet (but don't update planet.TerraformAmount, this change doesn't stick if we leave)
+					planet.Hab = planet.Hab.Add(terraformAmount)
+					planet.Spec = computePlanetSpec(&t.game.Rules, player, planet)
+					messager.instaform(player, planet, terraformAmount)
+				}
+			}
+		}
+	}
 }
 
 func (t *turn) fleetSweepMines() {
 
+	// fleets and starbases sweep
+	for _, fleet := range append(t.game.Fleets, t.game.Starbases...) {
+		if !fleet.Delete && fleet.Spec.MineSweep > 0 {
+			fleetPlayer := t.game.getPlayer(fleet.PlayerNum)
+			for _, mineField := range t.game.MineFields {
+				// don't sweep dead fields
+				if mineField.Delete {
+					continue
+				}
+				willSweep := false
+				switch fleet.battlePlan.AttackWho {
+				case BattleAttackWhoEnemies:
+					willSweep = fleetPlayer.IsEnemy(mineField.PlayerNum)
+				case BattleAttackWhoEnemiesAndNeutrals:
+					willSweep = fleetPlayer.IsEnemy(mineField.PlayerNum) || fleetPlayer.IsNeutral(mineField.PlayerNum)
+				case BattleAttackWhoEveryone:
+					willSweep = true
+				}
+
+				// sweep mines
+				if willSweep && isPointInCircle(fleet.Position, mineField.Position, mineField.Radius()) {
+					mineFieldPlayer := t.game.getPlayer(mineField.PlayerNum)
+					mineField.sweep(t.game.rules, fleet, fleetPlayer, mineFieldPlayer)
+
+					if mineField.NumMines <= 10 {
+						t.game.deleteMineField(mineField)
+						continue
+					}
+
+					mineField.Spec.Radius = mineField.Radius()
+					mineField.MarkDirty()
+				}
+			}
+		}
+	}
+
+	// compute specs for any dirty minefields
+	// computing minefield specs is intensive because we have to count planets
+	for _, mineField := range t.game.MineFields {
+		if mineField.Dirty && !mineField.Delete {
+			mineFieldPlayer := t.game.getPlayer(mineField.PlayerNum)
+			mineField.Spec = computeMinefieldSpec(t.game.rules, mineFieldPlayer, mineField, t.game.Universe.numPlanetsWithin(mineField.Position, mineField.Radius()))
+		}
+	}
 }
 
+// repair fleets and starbases
 func (t *turn) fleetRepair() {
+	for _, fleet := range t.game.Fleets {
+		if !fleet.Delete {
+			player := t.game.getPlayer(fleet.PlayerNum)
+			orbiting := t.game.getOrbitingPlanet(fleet)
+			fleet.repairFleet(t.game.rules, player, orbiting)
+		}
+	}
 
+	for _, starbase := range t.game.Starbases {
+		if !starbase.Delete && starbase.Tokens[0].QuantityDamaged > 0 {
+			player := t.game.getPlayer(starbase.PlayerNum)
+			starbase.repairStarbase(t.game.rules, player)
+		}
+	}
 }
 
 func (t *turn) remoteTerraform() {

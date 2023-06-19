@@ -13,7 +13,7 @@ func testLongRangeScout(player *cs.Player) *cs.Fleet {
 	fleet := &cs.Fleet{
 		BaseName:          "Long Range Scout",
 		Tokens:            []cs.ShipToken{},
-		OrbitingPlanetNum: cs.NotOrbitingPlanet,
+		OrbitingPlanetNum: cs.None,
 	}
 	// fleet.Spec = computeFleetSpec(rules, player, fleet)
 	fleet.Fuel = fleet.Spec.FuelCapacity

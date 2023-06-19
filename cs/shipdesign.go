@@ -19,7 +19,6 @@ type ShipDesign struct {
 	Slots         []ShipDesignSlot  `json:"slots"`
 	Purpose       ShipDesignPurpose `json:"purpose,omitempty"`
 	Spec          ShipDesignSpec    `json:"spec"`
-	hull          *TechHull
 }
 
 type ShipDesignSlot struct {

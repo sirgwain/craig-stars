@@ -30,7 +30,12 @@ func testStalwartDefender(player *Player) *Fleet {
 					WithSpec(&rules, player)},
 		},
 		battlePlan:        &player.BattlePlans[0],
-		OrbitingPlanetNum: NotOrbitingPlanet,
+		OrbitingPlanetNum: None,
+		FleetOrders: FleetOrders{
+			Waypoints: []Waypoint{
+				NewPositionWaypoint(Vector{}, 5),
+			},
+		},
 	}
 	fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
 	fleet.Fuel = fleet.Spec.FuelCapacity
@@ -58,7 +63,7 @@ func testTeamster(player *Player) *Fleet {
 					WithSpec(&rules, player)},
 		},
 		battlePlan:        &player.BattlePlans[0],
-		OrbitingPlanetNum: NotOrbitingPlanet,
+		OrbitingPlanetNum: None,
 	}
 
 	fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
@@ -426,7 +431,7 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			b := &battle{rules: &rules,
-				record: newBattleRecord(1, NotOrbitingPlanet, Vector{}, []BattleRecordToken{})}
+				record: newBattleRecord(1, None, Vector{}, []BattleRecordToken{})}
 			b.record.RecordNewRound()
 
 			// setup this weapon's token based on shipQuantity and position
@@ -666,7 +671,7 @@ func Test_battle_fireTorpedo(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			b := &battle{rules: &rules,
-				record: newBattleRecord(1, NotOrbitingPlanet, Vector{}, []BattleRecordToken{})}
+				record: newBattleRecord(1, None, Vector{}, []BattleRecordToken{})}
 			b.record.RecordNewRound()
 
 			// setup this weapon's token based on shipQuantity and position

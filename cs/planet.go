@@ -343,6 +343,11 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	spec.GrowthAmount = planet.getGrowthAmount(player, spec.MaxPopulation)
 	spec.MiningOutput = planet.getMineralOutput(planet.Mines, race.MineOutput)
 
+	// terraforming
+	terraformer := NewTerraformer()
+	spec.TerraformAmount = terraformer.getTerraformAmount(planet, player, player)
+	spec.CanTerraform = spec.TerraformAmount.absSum() > 0;
+
 	if !race.Spec.InnateMining {
 		spec.MaxMines = planet.population() * race.NumMines / 10000
 		spec.MaxPossibleMines = spec.MaxPopulation * race.NumMines / 10000

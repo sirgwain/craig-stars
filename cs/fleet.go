@@ -17,9 +17,6 @@ const PatrolWarpFactorAutomatic = 0
 // target fleets in any range when patrolling
 const PatrolRangeInfinite = 0
 
-// fleet not orbiting a planet
-const NotOrbitingPlanet = 0
-
 // no target planet, player, etc
 const None = 0
 
@@ -38,6 +35,7 @@ type Fleet struct {
 	Starbase          bool        `json:"starbase,omitempty"`
 	Spec              FleetSpec   `json:"spec,omitempty"`
 	battlePlan        *BattlePlan
+	struckMineField   bool
 }
 
 type FleetOrders struct {
@@ -174,7 +172,7 @@ func newFleet(player *Player, design *ShipDesign, num int, name string, waypoint
 		FleetOrders: FleetOrders{
 			Waypoints: waypoints,
 		},
-		OrbitingPlanetNum: NotOrbitingPlanet,
+		OrbitingPlanetNum: None,
 		battlePlan:        &player.BattlePlans[0],
 	}
 }
@@ -194,7 +192,7 @@ func newFleetForToken(player *Player, num int, token ShipToken, waypoints []Wayp
 		FleetOrders: FleetOrders{
 			Waypoints: waypoints,
 		},
-		OrbitingPlanetNum: NotOrbitingPlanet,
+		OrbitingPlanetNum: None,
 	}
 }
 
@@ -239,7 +237,7 @@ func (f *Fleet) withOrbitingPlanetNum(num int) *Fleet {
 }
 
 func (f *Fleet) Orbiting() bool {
-	return f.OrbitingPlanetNum != NotOrbitingPlanet
+	return f.OrbitingPlanetNum != None
 }
 
 func NewPlanetWaypoint(position Vector, num int, name string, warpFactor int) Waypoint {
@@ -534,6 +532,19 @@ func (f *Fleet) transferToDest(dest cargoHolder, cargoType CargoType, transferAm
 	return nil
 }
 
+// remove any empty tokens that were destroyed (by minefields, overgating, battle... it's a dangerous universe)
+func (fleet *Fleet) removeEmptyTokens() {
+	updatedTokens := make([]ShipToken, 0, len(fleet.Tokens))
+	for _, token := range fleet.Tokens {
+		// keep this token
+		if token.Quantity > 0 {
+			updatedTokens = append(updatedTokens, token)
+		}
+	}
+	fleet.Tokens = updatedTokens
+}
+
+// move a fleet through space, check for minefields, use fuel, etc
 func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, playerGetter playerGetter) {
 	player := playerGetter.getPlayer(fleet.PlayerNum)
 	wp0 := fleet.Waypoints[0]
@@ -571,6 +582,12 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 		// collide with minefields on route, but don't hit a minefield if we run out of fuel beforehand
 		dist = checkForMineFieldCollision(rules, playerGetter, mapObjectGetter, fleet, wp1, dist)
 
+		// remove any tokens destroyed by minefields and return if the fleet is gone
+		fleet.removeEmptyTokens()
+		if len(fleet.Tokens) == 0 {
+			return
+		}
+
 		fleet.Fuel = 0
 		wp1.WarpFactor = fleet.getNoFuelWarpFactor(rules.techs, player)
 		messager.fleetOutOfFuel(player, fleet, wp1.WarpFactor)
@@ -583,6 +600,13 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 	} else {
 		// collide with minefields on route, but don't hit a minefield if we run out of fuel beforehand
 		actualDist := checkForMineFieldCollision(rules, playerGetter, mapObjectGetter, fleet, wp1, dist)
+
+		// remove any tokens destroyed by minefields and return if the fleet is gone
+		fleet.removeEmptyTokens()
+		if len(fleet.Tokens) == 0 {
+			return
+		}
+
 		if actualDist != dist {
 			dist = actualDist
 			fuelCost = fleet.GetFuelCost(player, wp1.WarpFactor, dist)
@@ -602,21 +626,22 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 
 	// assuming we move at all, make sure we are no longer orbiting any planets
 	if dist > 0 && fleet.Orbiting() {
-		fleet.OrbitingPlanetNum = NotOrbitingPlanet
+		fleet.OrbitingPlanetNum = None
 	}
-
-	// TODO: repeat orders, can we just append wp0 to waypoints when we repeat?
-	// if wp0.OriginalTarget == nil || !wp0.OriginalPosition.HasValue {
-	// 	wp0.OriginalTarget = wp0.Target
-	// 	wp0.OriginalPosition = fleet.Position
-	// }
 
 	if totalDist == dist {
 		fleet.completeMove(mapObjectGetter, wp0, wp1)
 	} else {
+		// update what other people see for this fleet's speed and direction
+		if fleet.struckMineField {
+			fleet.WarpSpeed = 0
+			fleet.Heading = Vector{}
+		} else {
+			fleet.WarpSpeed = wp1.WarpFactor
+			fleet.Heading = (wp1.Position.Subtract(fleet.Position)).Normalized()
+		}
+
 		// move this fleet closer to the next waypoint
-		fleet.WarpSpeed = wp1.WarpFactor
-		fleet.Heading = (wp1.Position.Subtract(fleet.Position)).Normalized()
 		wp0.TargetType = MapObjectTypeNone
 		wp0.TargetNum = None
 		wp0.TargetPlayerNum = None
@@ -703,18 +728,22 @@ func (fleet *Fleet) gateFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 
 	// apply overgate damage and delete tokens (and possibly the fleet)
 	// also vanish tokens for non IT races
-	fleet.ApplyOvergatePenalty(player, rules, totalDist, wp0, wp1, sourceStargate, destStargate)
+	fleet.applyOvergatePenalty(player, rules, totalDist, wp0, wp1, sourceStargate, destStargate)
 
-	if len(fleet.Tokens) > 0 {
-		// if we survived, warp it!
-		fleet.completeMove(mapObjectGetter, wp0, wp1)
+	// if the fleet is gone, we're done
+	if len(fleet.Tokens) == 0 {
+		return
 	}
+
+	// we survived, warp it!
+	fleet.completeMove(mapObjectGetter, wp0, wp1)
 }
 
-// ApplyOvergatePenalty applies damage (if any) to each token that overgated
-func (fleet *Fleet) ApplyOvergatePenalty(player *Player, rules *Rules, distance float64, wp0, wp1 Waypoint, sourceStargate, destStargate PlanetSpec) {
+// applyOvergatePenalty applies damage (if any) to each token that overgated
+func (fleet *Fleet) applyOvergatePenalty(player *Player, rules *Rules, distance float64, wp0, wp1 Waypoint, sourceStargate, destStargate PlanetSpec) {
 	var totalDamage, shipsLostToDamage, shipsLostToTheVoid, startingShips int
-	for _, token := range fleet.Tokens {
+	for i := range fleet.Tokens {
+		token := &fleet.Tokens[i]
 		startingShips += token.Quantity
 		// Inner stellar travellers never lose ships to the void, but everyone else does
 		if player.Race.Spec.ShipsVanishInVoid {
@@ -759,16 +788,9 @@ func (fleet *Fleet) ApplyOvergatePenalty(player *Player, rules *Rules, distance 
 	}
 
 	// remove any tokens that were lost completely
-	var newTokens []ShipToken
-	for _, token := range fleet.Tokens {
-		if token.Quantity > 0 {
-			newTokens = append(newTokens, token)
-		}
-	}
-	fleet.Tokens = newTokens
+	fleet.removeEmptyTokens()
 
 	if len(fleet.Tokens) == 0 {
-		// gm.eventManager.PublishMapObjectDeletedEvent(fleet)
 		messager.fleetStargateDestroyed(player, fleet, wp0, wp1)
 	} else {
 		if totalDamage > 0 || shipsLostToTheVoid > 0 {
@@ -868,20 +890,8 @@ func (fleet *Fleet) completeMove(mapObjectGetter mapObjectGetter, wp0 Waypoint, 
 	if wp1.TargetType == MapObjectTypeFleet && wp1.TargetPlayerNum != None && wp1.TargetNum != None {
 		target := mapObjectGetter.getFleet(wp1.TargetPlayerNum, wp1.TargetNum)
 		fleet.OrbitingPlanetNum = target.OrbitingPlanetNum
-
-		// we are orbiting a friendly planet
-		targetPlanet := mapObjectGetter.getPlanet(fleet.OrbitingPlanetNum)
-		if fleet.PlayerNum == targetPlanet.PlayerNum && targetPlanet.Spec.HasStarbase {
-			// refuel at starbases
-			fleet.Fuel = fleet.Spec.FuelCapacity
-		}
 	} else if wp1.TargetType == MapObjectTypePlanet && wp1.TargetNum != None {
-		target := mapObjectGetter.getPlanet(wp1.TargetNum)
-		fleet.OrbitingPlanetNum = target.Num
-		if fleet.PlayerNum == target.PlayerNum && target.Spec.HasStarbase {
-			// refuel at starbases
-			fleet.Fuel = fleet.Spec.FuelCapacity
-		}
+		fleet.OrbitingPlanetNum = wp1.TargetNum
 	} else if wp1.TargetType == MapObjectTypeWormhole && wp1.TargetNum != None {
 		target := mapObjectGetter.getWormhole(wp1.TargetNum)
 		dest := mapObjectGetter.getWormhole(target.DestinationNum)
@@ -935,6 +945,19 @@ func (fleet *Fleet) colonizePlanet(rules *Rules, player *Player, planet *Planet)
 }
 
 // get the minerals and resources recovered from a scrapped fleet
+// from the stars wiki:
+// After battle, 1/3 of the mineral cost of the destroyed ships is left as salvage. If the battle took place in orbit, these minerals are deposited on the planet below.
+// In deep space, each type of mineral decays 10%, or 10kT per year, whichever is higher. Salvage deposited on planets does not decay.
+// Scrapping: (from help file)
+//
+// A ship scrapped at a starbase deposits 80% of the original minerals on the planet, or 90% of the minerals and 70% of the resources if the LRT 'Ultimate Recycling' is selected.
+// A ship scrapped at a planet with no starbase leaves 33% of the original minerals on the planet, or 45% of the minerals if the LRT Ultimate Recycling is selected.
+// Wih UR the resources recovered is:
+// (resources the ship costs * resources on the planet)/(resources the ship cost + resources on the planet)
+// The maximum recoverable resources occurs when the cost of the scrapped ship equals the resources produced at the planet where it is scrapped.
+//
+// A ship scrapped in space leaves no minerals behind.
+// When a ship design is deleted, all such ships vanish leaving nothing behind. (moral: scrap before you delete!)
 func (fleet *Fleet) getScrapAmount(rules *Rules, player *Player, planet *Planet) Cost {
 
 	// create a new cargo instance out of our fleet cost
@@ -967,7 +990,10 @@ func (fleet *Fleet) getScrapAmount(rules *Rules, player *Player, planet *Planet)
 		extraResources = int(float64(fleet.Spec.Cost.Resources)*scrapResourceFactor + .5)
 		extraResources = int(float64(planetResources*extraResources) / float64(planetResources+extraResources))
 		scrappedCost.Resources += extraResources
+	} else {
+		scrappedCost.Resources = 0
 	}
+
 
 	return scrappedCost
 }
@@ -1092,4 +1118,77 @@ func (fleet *Fleet) getCargoUnloadAmount(dest cargoHolder, cargoType CargoType, 
 		}
 	}
 	return transferAmount, waitAtWaypoint
+}
+
+// Repair a fleet. This changes based on where the fleet is
+func (fleet *Fleet) repairFleet(rules *Rules, player *Player, orbiting *Planet) {
+	needsRepair := false
+	for _, token := range fleet.Tokens {
+		if token.QuantityDamaged > 0 {
+			needsRepair = true
+		}
+	}
+	if !needsRepair {
+		return
+	}
+
+	rate := RepairRateMoving
+
+	if len(fleet.Waypoints) == 1 {
+		if orbiting != nil {
+			if fleet.Spec.Bomber && player.IsEnemy(orbiting.PlayerNum) {
+				// no repairs while bombing
+				rate = RepairRateNone
+			} else {
+				if orbiting.OwnedBy(player.Num) {
+					rate = RepairRateOrbitingOwnPlanet
+				} else {
+					rate = RepairRateOrbiting
+				}
+			}
+		} else {
+			rate = RepairRateStopped
+		}
+	}
+
+	repairRate := rules.RepairRates[rate]
+	if repairRate > 0 {
+		// apply any bonuses for the fleet
+		repairRate += fleet.Spec.RepairBonus
+
+		if rate == RepairRateOrbitingOwnPlanet && orbiting.Spec.HasStarbase {
+			// apply any bonuses for the starbase if we own this planet and it has a starbase
+			repairRate += orbiting.starbase.Spec.RepairBonus
+		}
+
+		for i := range fleet.Tokens {
+			token := &fleet.Tokens[i]
+
+			// IS races double repair
+			// repair some percentage of armor
+			// 100dp armor@3% repair over a planet means
+			// it repairs 3dp per turn. All damaged tokens repair
+			// at the same rate
+			repairAmount := maxInt(1, int(float64(token.design.Spec.Armor)*repairRate*player.Race.Spec.RepairFactor))
+
+			// Remove damage from this fleet by its armor * repairRate
+			token.Damage = math.Max(0, token.Damage-float64(repairAmount))
+			if token.Damage == 0 {
+				token.QuantityDamaged = 0
+			}
+		}
+		fleet.MarkDirty()
+	}
+}
+
+// Repair a starbase
+func (fleet *Fleet) repairStarbase(rules *Rules, player *Player) {
+	repairRate := rules.RepairRates[RepairRateStarbase]
+	token := &fleet.Tokens[0]
+
+	// IS races repair starbases 1.5x
+	repairAmount := float64(token.design.Spec.Armor) * repairRate * player.Race.Spec.StarbaseRepairFactor
+
+	// Remove damage from this fleet by its armor * repairRate
+	token.Damage = math.Max(0, fleet.Tokens[0].Damage-repairAmount)
 }

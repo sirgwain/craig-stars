@@ -131,6 +131,10 @@ func (scan *playerScan) scanFleets(scanners []scanner, cargoScanners []scanner) 
 	fleetsToScan := []*Fleet{}
 	fleetsToCargoScan := []*Fleet{}
 	for _, fleet := range scan.universe.Fleets {
+		// skip deleted fleets
+		if fleet.Delete {
+			continue
+		}
 		if fleet.OwnedBy(scan.player.Num) {
 			// The player already gets a copy of all their own fleets
 			continue
@@ -253,6 +257,9 @@ func (scan *playerScan) getScanners() []scanner {
 	planetaryScanner := scan.player.Spec.PlanetaryScanner
 	scanningFleetsByPosition := map[Vector]scanner{}
 	for _, fleet := range scan.universe.Fleets {
+		if fleet.Delete {
+			continue
+		}
 		if fleet.PlayerNum == scan.player.Num && fleet.Spec.Scanner {
 			scanner, found := scanningFleetsByPosition[fleet.Position]
 			if !found {
@@ -330,8 +337,11 @@ func (scan *playerScan) getCargoScanners() []scanner {
 	scanners := []scanner{}
 	scanningFleetsByPosition := map[Vector]scanner{}
 
-	for i := range scan.universe.Fleets {
-		fleet := scan.universe.Fleets[i]
+	for _, fleet := range scan.universe.Fleets {
+		if fleet.Delete {
+			continue
+		}
+
 		if fleet.PlayerNum == scan.player.Num && fleet.Spec.Scanner && (fleet.Spec.CanStealFleetCargo || fleet.Spec.CanStealPlanetCargo) {
 			scanner, found := scanningFleetsByPosition[fleet.Position]
 			if !found {

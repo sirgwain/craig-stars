@@ -49,6 +49,7 @@ type mapObjectGetter interface {
 	getShipDesign(playerNum int, num int) *ShipDesign
 	getMapObject(mapObjectType MapObjectType, num int, playerNum int) *MapObject
 	getPlanet(num int) *Planet
+	getOrbitingPlanet(fleet *Fleet) *Planet
 	getFleet(playerNum int, num int) *Fleet
 	getMineField(playerNum int, num int) *MineField
 	getAllMineFields() []*MineField
@@ -250,6 +251,14 @@ func (u *Universe) getShipDesign(playerNum int, num int) *ShipDesign {
 // Get a planet by num
 func (u *Universe) getPlanet(num int) *Planet {
 	return u.Planets[num-1]
+}
+
+// get the planet this fleet is orbiting, or nil if none
+func (u *Universe) getOrbitingPlanet(fleet *Fleet) *Planet {
+	if fleet.OrbitingPlanetNum == None {
+		return nil
+	}
+	return u.getPlanet(fleet.OrbitingPlanetNum)
 }
 
 // Get a fleet by player num and fleet num

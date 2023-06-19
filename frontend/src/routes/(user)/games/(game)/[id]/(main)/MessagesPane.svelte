@@ -84,7 +84,7 @@
 </script>
 
 <div class="card bg-base-200 shadow rounded-sm border-2 border-base-300">
-	<div class="card-body p-4 gap-0">
+	<div class="card-body p-1 gap-0">
 		<div class="flex flex-row items-center">
 			<input type="checkbox" class="flex-initial checkbox checkbox-xs" />
 			<div class="flex-1 text-center text-lg font-semibold text-secondary">
@@ -93,7 +93,7 @@
 		</div>
 		{#if message}
 			<div class="flex flex-row">
-				<div class="h-12 grow overflow-y-auto">{message.text}</div>
+				<div class="mt-1 h-12 grow overflow-y-auto">{message.text}</div>
 				<div>
 					<div class="flex flex-col gap-y-1 ml-1">
 						<div class="flex flex-row btn-group">

@@ -241,6 +241,50 @@ func Test_turn_fleetMoveRepeatOrders(t *testing.T) {
 
 }
 
+func Test_turn_fleetMoveDestroeydByMineField(t *testing.T) {
+	game := createSingleUnitGame()
+	rules := game.rules
+
+	// change the rules so going 4 warp over the limit guarantee's a hit
+	stats := game.rules.MineFieldStatsByType[MineFieldTypeStandard]
+	stats.MaxSpeed = 5
+	stats.ChanceOfHit = .25
+	stats.MinDecay = 0 // turn off decay
+	rules.MineFieldStatsByType[MineFieldTypeStandard] = stats
+
+	// create a new MineField 20ly away with 10ly radius
+	radius := 10
+	mineFieldPlayer := NewPlayer(2, NewRace().WithSpec(rules)).WithNum(2).withSpec(rules)
+	mineFieldPlayer.Race.Spec.MineFieldBaseDecayRate = 0
+	mineFieldPlayer.Race.Spec.MineFieldMinDecayFactor = 0
+	mineFieldPlayer.Race.Spec.MineFieldMaxDecayRate = 0
+	mineField := newMineField(mineFieldPlayer, MineFieldTypeStandard, radius*radius, 1, Vector{20, 0})
+	mineField.Spec = computeMinefieldSpec(rules, mineFieldPlayer, mineField, 0)
+
+	game.Players = append(game.Players, mineFieldPlayer)
+	game.MineFields = append(game.MineFields, mineField)
+
+	// move us straight through a minefield
+	fleet := game.Fleets[0]
+	fleet.Waypoints = append(fleet.Waypoints, NewPositionWaypoint(Vector{81, 0}, 9))
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// let's go!!
+	turn.generateTurn()
+
+	// we should have struck the minefield and lost the ship
+	assert.True(t, fleet.Delete)
+	assert.Equal(t, 1, len(game.Players[0].Messages))
+	assert.Equal(t, 1, len(game.Players[1].Messages))
+
+	// the MineField should have lost some mines in the collision
+	assert.Equal(t, 90, mineField.NumMines)
+}
+
 func Test_turn_permaform(t *testing.T) {
 	game := createSingleUnitGame()
 
@@ -427,5 +471,171 @@ func Test_turn_fleetLayMines(t *testing.T) {
 	assert.Equal(t, 320, mineField.NumMines)
 	assert.Equal(t, math.Sqrt(320), mineField.Spec.Radius)
 	assert.Equal(t, Vector{0, 0}, mineField.Position)
+
+}
+
+func Test_turn_fleetSweepMines(t *testing.T) {
+	game := createSingleUnitGame()
+	rules := game.rules
+
+	// change the rules so we don't decay
+	stats := game.rules.MineFieldStatsByType[MineFieldTypeStandard]
+	stats.MinDecay = 0 // turn off decay
+	rules.MineFieldStatsByType[MineFieldTypeStandard] = stats
+
+	player := game.Players[0]
+
+	// make a new destroyer to sweep mines
+	fleet := testStalwartDefender(player)
+	player.Designs[0] = fleet.Tokens[0].design
+	game.Fleets[0] = fleet
+
+	// create a new MineField with 100 mines
+	// and make it not decay
+	radius := 10
+	mineFieldPlayer := NewPlayer(2, NewRace().WithSpec(rules)).WithNum(2).withSpec(rules)
+	mineFieldPlayer.Race.Spec.MineFieldBaseDecayRate = 0
+	mineFieldPlayer.Race.Spec.MineFieldMinDecayFactor = 0
+	mineFieldPlayer.Race.Spec.MineFieldMaxDecayRate = 0
+	mineField := newMineField(mineFieldPlayer, MineFieldTypeStandard, radius*radius, 1, Vector{0, 0})
+	mineField.Spec = computeMinefieldSpec(rules, mineFieldPlayer, mineField, 0)
+
+	game.Players = append(game.Players, mineFieldPlayer)
+	game.MineFields = append(game.MineFields, mineField)
+
+	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
+	mineFieldPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// sweep mines
+	turn.generateTurn()
+
+	// we should clear out some mines
+	assert.Equal(t, 84, mineField.NumMines)
+	assert.False(t, mineField.Delete)
+
+	// upgrade a mine sweeper weapon
+	fleet.Tokens[0].design.Slots[1].HullComponent = GatlingNeutrinoCannon.Name
+	fleet.Tokens[0].design.Spec = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, fleet.Tokens[0].design)
+	fleet.Spec = ComputeFleetSpec(rules, player, fleet)
+
+	// sweep mines
+	turn.generateTurn()
+
+	// we should clear out some mines
+	assert.Equal(t, 0, mineField.NumMines)
+	assert.True(t, mineField.Delete)
+}
+
+func Test_turn_instaform(t *testing.T) {
+	game := createSingleUnitGame()
+	player := game.Players[0]
+	planet := game.Planets[0]
+
+	// allow Grav3 terraform
+	player.Race.PRT = CA
+	player.TechLevels = TechLevel{Propulsion: 1, Biotechnology: 1}
+	player.Race.Spec = computeRaceSpec(&player.Race, &rules)
+
+	planet.Hab = Hab{45, 50, 50}
+	planet.BaseHab = Hab{45, 50, 50}
+	planet.TerraformedAmount = Hab{}
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// instaform
+	turn.generateTurn()
+
+	// should terraform 3 grav points
+	assert.Equal(t, Hab{48, 50, 50}, planet.Hab)
+}
+
+func Test_turn_fleetRepair(t *testing.T) {
+	game := createSingleUnitGame()
+	player := game.Players[0]
+	fleet := game.Fleets[0]
+	planet := game.Planets[0]
+
+	// create a new starbase
+	starbaseDesign := NewShipDesign(player, 2).WithHull(SpaceStation.Name).WithSpec(&rules, player)
+	starbase := newStarbase(player, planet,
+		starbaseDesign,
+		"Starbase",
+	)
+	player.Designs = append(player.Designs, starbaseDesign)
+	starbase.Spec = ComputeFleetSpec(&rules, player, &starbase)
+	starbase.Tokens[0].QuantityDamaged = 1
+	starbase.Tokens[0].Damage = 100
+	game.Starbases = append(game.Starbases, &starbase)
+	planet.starbase = &starbase
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// in space with 10 damage
+	fleet.OrbitingPlanetNum = None
+	fleet.Tokens[0].QuantityDamaged = 1
+	fleet.Tokens[0].Damage = 10
+
+	// repair
+	turn.generateTurn()
+
+	// should repair fleet and starbase
+	assert.Equal(t, 9.0, fleet.Tokens[0].Damage)
+	assert.Equal(t, 50.0, starbase.Tokens[0].Damage)
+
+}
+
+func Test_turn_fleetReproduce(t *testing.T) {
+	game := createSingleUnitGame()
+
+	// make an IS race for reproducing
+	player := game.Players[0]
+	player.Race.PRT = IS
+	player.Race.Spec = computeRaceSpec(&player.Race, &rules)
+
+	// make a new freighter with some colonists
+	fleet := testSmallFreighter(player)
+	fleet.Cargo.Colonists = 50 // 5000 colonists
+	player.Designs[0] = fleet.Tokens[0].design
+	game.Fleets[0] = fleet
+
+	// orbit a planet of ours
+	planet := game.Planets[0]
+	planet.PlayerNum = player.Num
+	planet.Cargo.Colonists = 2500
+	fleet.Waypoints[0] = NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 5)
+	fleet.OrbitingPlanetNum = planet.Num
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// don't generate a full turn, the planet will grow
+	turn.fleetReproduce()
+
+	// should have grown on freighter
+	assert.Equal(t, 53, fleet.Cargo.Colonists)
+	assert.Equal(t, 2500, planet.Cargo.Colonists)
+
+	// fill it up, should overflow onto planet
+	fleet.Cargo.Colonists = fleet.Spec.CargoCapacity
+
+	// reproduce again
+	turn.fleetReproduce()
+
+	// should have grown on freighter and beamed down to planet
+	assert.Equal(t, fleet.Spec.CargoCapacity, fleet.Cargo.Colonists)
+	assert.Equal(t, 2509, planet.Cargo.Colonists) // 120kT * 7.5% = 900 colonists beamed to planet
 
 }

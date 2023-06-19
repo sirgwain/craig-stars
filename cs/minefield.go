@@ -182,6 +182,16 @@ func (mineField *MineField) reduceMineFieldOnImpact() {
 	mineField.NumMines = numMines
 }
 
+func (mineField *MineField) sweep(rules *Rules, fleet *Fleet, fleetPlayer *Player, mineFieldPlayer *Player) {
+	old := mineField.NumMines
+	mineField.NumMines -= int(float64(fleet.Spec.MineSweep) * rules.MineFieldStatsByType[mineField.MineFieldType].SweepFactor)
+	mineField.NumMines = maxInt(mineField.NumMines, 0)
+
+	numSwept := old - mineField.NumMines
+	messager.fleetMineFieldSwept(fleetPlayer, fleet, mineField, numSwept)
+	messager.fleetMineFieldSwept(mineFieldPlayer, fleet, mineField, numSwept)
+}
+
 /// Check for mine field collisions. If we collide with one, do damage and stop the fleet
 func checkForMineFieldCollision(rules *Rules, playerGetter playerGetter, mapObjectGetter mapObjectGetter, fleet *Fleet, dest Waypoint, distance float64) float64 {
 	fleetPlayer := playerGetter.getPlayer(fleet.PlayerNum)
@@ -220,6 +230,7 @@ func checkForMineFieldCollision(rules *Rules, playerGetter playerGetter, mapObje
 							// ouch, we hit a minefield!
 							// we stop moving at the hit, so if we made it 8 checks out of 24 for our above example
 							// we only travel 8 lightyears through the field (plus whatever distance we travelled to get to the field)
+							fleet.struckMineField = true
 							actualDistanceTravelled := lightYearsBeforeField + float64(checkNum)
 							mineFieldPlayer := playerGetter.getPlayer(mineField.PlayerNum)
 
