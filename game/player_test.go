@@ -55,3 +55,58 @@ func TestPlayer_CanLearnTech(t *testing.T) {
 		})
 	}
 }
+
+func TestPlayer_getNextFleetNum(t *testing.T) {
+
+	tests := []struct {
+		name   string
+		fleets []*Fleet
+		want   int
+	}{
+		{"No Fleets", []*Fleet{}, 1},
+		{"Simple fleet", []*Fleet{{MapObject: MapObject{Num: 1}}}, 2},
+		{"Skipped num in fleets", []*Fleet{
+			{MapObject: MapObject{Num: 1}},
+			{MapObject: MapObject{Num: 3}},
+		}, 2},
+		{"Skipped num in fleets 2", []*Fleet{
+			{MapObject: MapObject{Num: 1}},
+			{MapObject: MapObject{Num: 2}},
+			{MapObject: MapObject{Num: 3}},
+			{MapObject: MapObject{Num: 5}},
+		}, 4},
+		{"Many fleets", []*Fleet{
+			{MapObject: MapObject{Num: 1}},
+			{MapObject: MapObject{Num: 2}},
+			{MapObject: MapObject{Num: 3}},
+			{MapObject: MapObject{Num: 4}},
+		}, 5},
+		{"Out of order", []*Fleet{
+			{MapObject: MapObject{Num: 4}},
+			{MapObject: MapObject{Num: 2}},
+			{MapObject: MapObject{Num: 3}},
+			{MapObject: MapObject{Num: 1}},
+		}, 5},
+		{"Out of order, missing number", []*Fleet{
+			{MapObject: MapObject{Num: 4}},
+			{MapObject: MapObject{Num: 2}},
+			{MapObject: MapObject{Num: 1}},
+		}, 3},
+		{"Multiple fleet num 1 for starbases", []*Fleet{
+			{MapObject: MapObject{Num: 1}},
+			{MapObject: MapObject{Num: 1}},
+			{MapObject: MapObject{Num: 1}},
+			{MapObject: MapObject{Num: 2}},
+		}, 3},
+
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := NewPlayer(1, NewRace())
+			p.Fleets = tt.fleets
+			if got := p.getNextFleetNum(); got != tt.want {
+				t.Errorf("Player.getNextFleetNum() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

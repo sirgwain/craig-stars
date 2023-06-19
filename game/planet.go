@@ -94,7 +94,7 @@ func (item *ProductionQueueItem) String() string {
 }
 
 func NewPlanet(gameID uint) *Planet {
-	return &Planet{MapObject: MapObject{Type: MapObjectTypePlanet, GameID: gameID, Dirty: true}}
+	return &Planet{MapObject: MapObject{Type: MapObjectTypePlanet, GameID: gameID, Dirty: true, PlayerNum: Unowned}}
 }
 
 func (p *Planet) WithCargo(cargo Cargo) *Planet {
@@ -117,6 +117,11 @@ func (p *Planet) WithMineYears(mineYears Mineral) *Planet {
 	return p
 }
 
+func (p *Planet) WithScanner(scanner bool) *Planet {
+	p.Scanner = scanner
+	return p
+}
+
 func (p *Planet) String() string {
 	return fmt.Sprintf("Planet %s", &p.MapObject)
 }
@@ -127,6 +132,11 @@ func (p *Planet) Population() int {
 
 func (p *Planet) SetPopulation(pop int) {
 	p.Cargo.Colonists = pop / 100
+}
+
+// true if this planet can build a ship with a given mass
+func (p *Planet) CanBuild(mass int) bool {
+	return p.Spec.HasStarbase && (p.Starbase.Spec.SpaceDock == UnlimitedSpaceDock || p.Starbase.Spec.SpaceDock >= mass)
 }
 
 func (p *Planet) Empty() {
@@ -204,7 +214,7 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 	log.Debug().Msgf("Assigning %s to %s as homeworld", p, player)
 
 	p.Homeworld = true
-	p.PlayerNum = &player.Num
+	p.PlayerNum = player.Num
 	p.PlayerID = player.ID
 
 	habWidth := player.Race.HabWidth()
@@ -246,7 +256,7 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 
 	// // the homeworld gets a starbase
 	starbaseDesign := player.GetDesign(startingPlanet.StarbaseDesignName)
-	starbase := NewFleet(player, starbaseDesign, 0, starbaseDesign.Name, []Waypoint{NewPlanetWaypoint(p, 0)})
+	starbase := NewStarbase(player, p, starbaseDesign, starbaseDesign.Name)
 	starbase.Spec = ComputeFleetSpec(rules, player, &starbase)
 	starbase.PlanetID = p.ID
 	p.Starbase = &starbase
@@ -280,7 +290,7 @@ func (p *Planet) GetInnateMines(player *Player) int {
 func (p *Planet) shortestDistanceToPlanets(otherPlanets *[]*Planet) float64 {
 	minDistanceSquared := math.MaxFloat64
 	for _, planet := range *otherPlanets {
-		distSquared := p.Position.DistanceSquaredTo(&planet.Position)
+		distSquared := p.Position.DistanceSquaredTo(planet.Position)
 		minDistanceSquared = math.Min(minDistanceSquared, distSquared)
 	}
 	return math.Sqrt(minDistanceSquared)
@@ -367,6 +377,8 @@ func ComputePlanetSpec(rules *Rules, planet *Planet, player *Player) *PlanetSpec
 		spec.ScanRangePen = scanner.ScanRangePen
 	}
 
+	spec.HasStarbase = planet.Starbase != nil
+
 	return &spec
 }
 
@@ -411,7 +423,7 @@ func (t QueueItemType) ConcreteType() QueueItemType {
 
 // produce one turns worth of items from the production queue
 func (planet *Planet) produce(game *Game) {
-	player := &game.Players[*planet.PlayerNum]
+	player := &game.Players[planet.PlayerNum]
 	available := Cost{Resources: planet.Spec.ResourcesPerYearAvailable}.AddCargoMinerals(planet.Cargo)
 	newQueue := []ProductionQueueItem{}
 	for itemIndex, item := range planet.ProductionQueue {
@@ -440,7 +452,7 @@ func (planet *Planet) produce(game *Game) {
 
 			if numBuilt > 0 {
 				// build the items on the planet and remove from our available
-				planet.buildItems(player, item, numBuilt)
+				planet.buildItems(game, player, item, numBuilt)
 				available = available.Minus(cost.MultiplyInt(numBuilt))
 			}
 
@@ -501,7 +513,7 @@ func (planet *Planet) produce(game *Game) {
 }
 
 // add built items to planet, build fleets, update player messages, etc
-func (planet *Planet) buildItems(player *Player, item ProductionQueueItem, numBuilt int) {
+func (planet *Planet) buildItems(game *Game, player *Player, item ProductionQueueItem, numBuilt int) {
 
 	switch item.Type {
 	case QueueItemTypeAutoMines:
@@ -519,7 +531,60 @@ func (planet *Planet) buildItems(player *Player, item ProductionQueueItem, numBu
 	case QueueItemTypeDefenses:
 		planet.Defenses += numBuilt
 		messager.defensesBuilt(player, planet, numBuilt)
+	case QueueItemTypeShipToken:
+		fleet, err := planet.buildFleet(game, player, item.DesignName, numBuilt)
+		if err != nil {
+			// TODO: should a fleet build break the whole turn generation or just notify the player?
+			log.Err(err).
+				Uint("GameID", game.ID).
+				Uint("PlayerID", player.ID).
+				Str("Planet", planet.Name).
+				Str("DesignName", item.DesignName)
+			messager.error(player, err)
+		} else {
+			messager.fleetBuilt(player, planet, fleet, numBuilt)
+		}
 	}
+
+	log.Debug().
+		Uint("GameID", game.ID).
+		Str("Name", game.Name).
+		Int("Year", game.Year).
+		Int("Player", player.Num).
+		Str("Planet", planet.Name).
+		Str("Item", string(item.Type)).
+		Str("DesignName", item.DesignName).
+		Int("NumBuilt", numBuilt).
+		Msgf("built item")
+
+}
+
+// build a fleet with some number of tokens
+func (planet *Planet) buildFleet(game *Game, player *Player, designName string, numBuilt int) (*Fleet, error) {
+	player.Stats.FleetsBuilt++
+	player.Stats.TokensBuilt += numBuilt
+
+	design := player.GetDesign(designName)
+
+	if design != nil {
+		fleetNum := player.getNextFleetNum()
+		fleet := NewFleet(player, design, fleetNum, designName, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, design.Spec.IdealSpeed)})
+		fleet.Tokens[0].Quantity = numBuilt
+		fleet.Position = planet.Position
+		fleet.BattlePlanID = player.BattlePlans[0].ID
+		fleet.Spec = ComputeFleetSpec(&game.Rules, player, &fleet)
+		fleet.Fuel = fleet.Spec.FuelCapacity
+
+		// TODO: probably won't matter, but this logic isn't very thread safe
+		game.Fleets = append(game.Fleets, fleet)
+		gameFleet := &game.Fleets[len(game.Fleets)-1]
+		player.Fleets = append(player.Fleets, gameFleet)
+
+		return gameFleet, nil
+	}
+
+	return nil, fmt.Errorf("%s does not have a design named %s", player, designName)
+
 }
 
 // Allocate resources to the top item on this production queue

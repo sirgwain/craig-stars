@@ -1,5 +1,12 @@
 package game
 
+type Wormohole struct {
+	MapObject
+	DestinationNum   int               `json:"destinationNum,omitempty"`
+	Stability        WormholeStability `json:"stability,omitempty"`
+	YearsAtStability int               `json:"yearsAtStability,omitempty"`
+}
+
 type WormholeStats struct {
 	YearsToDegrade int     `json:"yearsToDegrade"`
 	ChanceToJump   float64 `json:"chanceToJump"`

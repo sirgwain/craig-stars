@@ -59,7 +59,13 @@ func Test_getStartingStarbaseDesigns(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := getStartingStarbaseDesigns(tt.args.techStore, tt.args.player); !test.CompareAsJSON(t, got, tt.want) {
+			got := getStartingStarbaseDesigns(tt.args.techStore, tt.args.player)
+
+			// uuids are random, so just make our want/got's the same
+			for i := range got {
+				tt.want[i].UUID = got[i].UUID
+			}
+			if !test.CompareAsJSON(t, got, tt.want) {
 				t.Errorf("getStartingStarbaseDesigns() = %v, want %v", got, tt.want)
 			}
 		})

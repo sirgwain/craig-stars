@@ -1,5 +1,7 @@
 package game
 
+import "math"
+
 type MineFieldType string
 
 const (
@@ -18,4 +20,16 @@ type MineFieldStats struct {
 	SweepFactor         float64 `json:"sweepFactor"`
 	MinDecay            int     `json:"minDecay"`
 	CanDetonate         bool    `json:"canDetonate"`
+}
+
+type MineField struct {
+	MapObject
+	Type     MineFieldType `json:"type,omitempty"`
+	NumMines int           `json:"numMines,omitempty"`
+	Detonate bool          `json:"detonate,omitempty"`
+}
+
+// The radius of a minefield is the sqrt of its mines
+func (mf *MineField) Radius() float64 {
+	return math.Sqrt(float64(mf.NumMines))
 }

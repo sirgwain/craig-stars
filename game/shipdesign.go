@@ -3,21 +3,22 @@ package game
 import (
 	"math"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type ShipDesign struct {
-	ID        uint      `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
-
+	ID            uint              `gorm:"primaryKey" json:"id"`
+	CreatedAt     time.Time         `json:"createdAt"`
+	UpdatedAt     time.Time         `json:"updatedAt"`
 	GameID        uint              `json:"gameId"`
 	PlayerID      uint              `json:"playerId"`
 	PlayerNum     int               `json:"playerNum"`
 	Dirty         bool              `json:"-"`
+	UUID          uuid.UUID         `json:"uuid,omitempty"`
 	Name          string            `json:"name"`
 	Version       int               `json:"version"`
 	Hull          string            `json:"hull"`
-	Armor         int               `json:"armor"`
 	HullSetNumber int               `json:"hullSetNumber"`
 	CanDelete     bool              `json:"canDelete,omitempty"`
 	Slots         []ShipDesignSlot  `json:"slots" gorm:"serializer:json"`
@@ -99,7 +100,7 @@ const (
 )
 
 func NewShipDesign(player *Player) *ShipDesign {
-	return &ShipDesign{GameID: player.GameID, PlayerID: player.ID, PlayerNum: player.Num, Dirty: true, Slots: []ShipDesignSlot{}}
+	return &ShipDesign{GameID: player.GameID, PlayerID: player.ID, PlayerNum: player.Num, UUID: uuid.New(), Dirty: true, Slots: []ShipDesignSlot{}}
 }
 
 func (sd *ShipDesign) WithName(name string) *ShipDesign {
@@ -246,7 +247,7 @@ func ComputeShipDesignSpec(rules *Rules, player *Player, design *ShipDesign) *Sh
 		}
 
 		// figure out the cloak as a percentage after we specd our cloak units
-		// spec.CloakPercent = CloakUtils.GetCloakPercentForCloakUnits(spec.CloakUnits);
+		spec.CloakPercent = getCloakPercentForCloakUnits(spec.CloakUnits)
 
 		if numTachyonDetectors > 0 {
 			// 95% ^ (SQRT(#_of_detectors) = Reduction factor for other player's cloaking (Capped at 81% or 17TDs)
@@ -317,6 +318,9 @@ func (spec *ShipDesignSpec) ComputeScanRanges(rules *Rules, player *Player, desi
 			spec.ScanRangePen = NoScanner
 		}
 	}
+
+	// true if we have any scanning capability
+	spec.Scanner = spec.ScanRange != NoScanner || spec.ScanRangePen != NoScanner
 }
 
 func designShip(techStore *TechStore, hull *TechHull, name string, player *Player, hullSetNumber int, purpose ShipDesignPurpose) *ShipDesign {

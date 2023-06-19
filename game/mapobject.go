@@ -16,13 +16,14 @@ type MapObject struct {
 	Position  Vector        `json:"position" gorm:"embedded"`
 	Name      string        `json:"name"`
 	Num       int           `json:"num"`
-	PlayerNum *int          `json:"playerNum"`
+	PlayerNum int           `json:"playerNum"`
 	// Tags      Tags           `json:"tags" gorm:"serializer:json"`
 }
 
 type MapObjectType string
 
 const (
+	MapObjectTypeNone          MapObjectType = ""
 	MapObjectTypePlanet        MapObjectType = "Planet"
 	MapObjectTypeFleet         MapObjectType = "Fleet"
 	MapObjectTypeWormhole      MapObjectType = "Wormhole"
@@ -37,9 +38,9 @@ func (mo *MapObject) String() string {
 }
 
 func (mo *MapObject) Owned() bool {
-	return mo.PlayerNum != nil
+	return mo.PlayerNum != Unowned
 }
 
 func (mo *MapObject) OwnedBy(num int) bool {
-	return mo.PlayerNum != nil && *mo.PlayerNum == num
+	return mo.PlayerNum != Unowned && mo.PlayerNum == num
 }

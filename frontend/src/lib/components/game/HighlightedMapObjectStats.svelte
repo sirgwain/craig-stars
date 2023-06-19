@@ -1,5 +1,12 @@
 <script lang="ts">
-	import { highlightedMapObject } from '$lib/services/Context';
+	import { highlightedMapObject, selectedMapObject } from '$lib/services/Context';
+	import { distance } from '$lib/types/Vector';
+
+	let dist = 0;
+
+	$: $selectedMapObject &&
+		$highlightedMapObject &&
+		(dist = distance($selectedMapObject.position, $highlightedMapObject.position));
 </script>
 
 <div class="flex flex-row justify-start gap-3 h-4 text-sm">
@@ -13,5 +20,10 @@
 		<div>
 			{$highlightedMapObject.name}
 		</div>
+		{#if dist}
+			<div>
+				{dist.toFixed(1)} ly from {$selectedMapObject.name}
+			</div>
+		{/if}
 	{/if}
 </div>

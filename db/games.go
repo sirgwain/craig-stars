@@ -47,7 +47,7 @@ func (db *DB) GetOpenGames() ([]game.Game, error) {
 }
 
 func (db *DB) CreateGame(game *game.Game) error {
-	err := db.sqlDB.Omit("Planets", "Fleets", "Players").Create(game).Error
+	err := db.sqlDB.Omit("Planets", "Fleets", "MineralPackets", "Players").Create(game).Error
 	if err != nil {
 		return err
 	}
@@ -64,11 +64,15 @@ func (db *DB) CreateGame(game *game.Game) error {
 	if err != nil {
 		return err
 	}
+	err = db.sqlDB.Session(&gorm.Session{CreateBatchSize: 20, FullSaveAssociations: true}).Model(game).Association("MineralPackets").Replace(game.MineralPackets)
+	if err != nil {
+		return err
+	}
 
 	// save each player's data
 	for i := range game.Players {
 		player := &game.Players[i]
-		err = db.sqlDB.Omit("Messages", "Designs", "Planets", "Fleets", "PlanetIntels").Save(player).Error
+		err = db.sqlDB.Omit("Messages", "Designs", "Planets", "Fleets", "MineralPackets", "PlanetIntels", "FleetIntels", "DesignIntels", "MineralPacketIntels").Save(player).Error
 		if err != nil {
 			return err
 		}
@@ -81,6 +85,18 @@ func (db *DB) CreateGame(game *game.Game) error {
 		if err != nil {
 			return err
 		}
+		err = db.sqlDB.Session(&gorm.Session{CreateBatchSize: 20, FullSaveAssociations: true}).Model(player).Association("FleetIntels").Replace(player.FleetIntels)
+		if err != nil {
+			return err
+		}
+		err = db.sqlDB.Session(&gorm.Session{CreateBatchSize: 20, FullSaveAssociations: true}).Model(player).Association("DesignIntels").Replace(player.DesignIntels)
+		if err != nil {
+			return err
+		}
+		err = db.sqlDB.Session(&gorm.Session{CreateBatchSize: 20, FullSaveAssociations: true}).Model(player).Association("MineralPacketIntels").Replace(player.MineralPacketIntels)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -88,7 +104,7 @@ func (db *DB) CreateGame(game *game.Game) error {
 func (db *DB) SaveGame(game *game.Game) error {
 
 	// rules don't change after game is created
-	err := db.sqlDB.Omit("Planets", "Fleets", "Players").Save(game).Error
+	err := db.sqlDB.Omit("Planets", "Fleets", "MineralPackets", "Players").Save(game).Error
 	if err != nil {
 		return err
 	}
@@ -112,11 +128,21 @@ func (db *DB) SaveGame(game *game.Game) error {
 		}
 	}
 
+	for i := range game.MineralPackets {
+		packet := &game.MineralPackets[i]
+		if packet.Dirty {
+			err = db.sqlDB.Save(packet).Error
+			if err != nil {
+				return err
+			}
+		}
+	}
+
 	// save each player's data
 	for i := range game.Players {
 		player := &game.Players[i]
 		// race doesn't change after game is created
-		err = db.sqlDB.Omit("Race", "PlanetIntels", "Messages", "Planets", "Fleets", "Designs").Save(player).Error
+		err = db.sqlDB.Omit("Race", "PlanetIntels", "FleetIntels", "DesignIntels", "MineralPacketIntels", "Messages", "Planets", "Fleets", "Designs").Save(player).Error
 		if err != nil {
 			return err
 		}
@@ -125,6 +151,27 @@ func (db *DB) SaveGame(game *game.Game) error {
 		err := db.sqlDB.Model(player).Association("Messages").Replace(player.Messages)
 		if err != nil {
 			return err
+		}
+
+		// if the AI player updated their planet/fleet orders, save them
+		for j := range player.Planets {
+			planet := player.Planets[j]
+			if planet.Dirty {
+				err = db.SavePlanet(planet)
+				if err != nil {
+					return err
+				}
+			}
+		}
+
+		for j := range player.Fleets {
+			fleet := player.Fleets[j]
+			if fleet.Dirty {
+				err = db.SaveFleet(fleet)
+				if err != nil {
+					return err
+				}
+			}
 		}
 
 		for j := range player.Designs {
@@ -138,14 +185,45 @@ func (db *DB) SaveGame(game *game.Game) error {
 		}
 
 		for j := range player.PlanetIntels {
-			planet := &player.PlanetIntels[j]
-			if planet.Dirty {
+			intel := &player.PlanetIntels[j]
+			if intel.Dirty {
 				err = db.sqlDB.Save(&player.PlanetIntels[j]).Error
 				if err != nil {
 					return err
 				}
 			}
 		}
+
+		for j := range player.FleetIntels {
+			intel := &player.FleetIntels[j]
+			if intel.Dirty {
+				err = db.sqlDB.Save(&player.FleetIntels[j]).Error
+				if err != nil {
+					return err
+				}
+			}
+		}
+
+		for j := range player.DesignIntels {
+			intel := &player.DesignIntels[j]
+			if intel.Dirty {
+				err = db.sqlDB.Save(&player.DesignIntels[j]).Error
+				if err != nil {
+					return err
+				}
+			}
+		}
+
+		for j := range player.MineralPacketIntels {
+			intel := &player.MineralPacketIntels[j]
+			if intel.Dirty {
+				err = db.sqlDB.Save(&player.MineralPacketIntels[j]).Error
+				if err != nil {
+					return err
+				}
+			}
+		}
+
 	}
 
 	return nil
@@ -163,14 +241,17 @@ func (db *DB) FindGameById(id uint) (*game.Game, error) {
 		Preload(clause.Associations).Preload("Fleets", func(db *gorm.DB) *gorm.DB {
 		return db.Order("fleets.num")
 	}).
-		Preload("Fleets.Tokens").
+		Preload("Fleets.Tokens.Design").
 		Preload("Planets.Starbase").
 		Preload("Players.Fleets.Tokens").
 		Preload("Players.Planets.Starbase").
 		Preload("Players.Planets.ProductionQueue").
 		Preload("Players.Race").
 		Preload("Players.Designs").
+		Preload("Players.MineralPackets").
 		Preload("Players.PlanetIntels").
+		Preload("Players.FleetIntels").
+		Preload("Players.DesignIntels").
 		Preload("Players.BattlePlans").
 		Preload("Players.ProductionPlans").
 		Preload("Players.Messages").

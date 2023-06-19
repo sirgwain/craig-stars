@@ -8,6 +8,7 @@ export interface ShipDesign {
 	gameId: number;
 	playerId: number;
 	playerNum: number;
+	uuid: string;
 	name: string;
 	version: number;
 	hull: string;

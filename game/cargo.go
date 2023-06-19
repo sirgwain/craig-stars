@@ -7,7 +7,7 @@ type Cargo struct {
 	Colonists int `json:"colonists,omitempty"`
 }
 
-func (c *Cargo) Add(other Cargo) Cargo {
+func (c Cargo) Add(other Cargo) Cargo {
 	return Cargo{
 		Ironium:   c.Ironium + other.Ironium,
 		Boranium:  c.Boranium + other.Boranium,
@@ -16,7 +16,7 @@ func (c *Cargo) Add(other Cargo) Cargo {
 	}
 }
 
-func (c *Cargo) Subtract(other Cargo) Cargo {
+func (c Cargo) Subtract(other Cargo) Cargo {
 	return Cargo{
 		Ironium:   c.Ironium - other.Ironium,
 		Boranium:  c.Boranium - other.Boranium,
@@ -25,7 +25,7 @@ func (c *Cargo) Subtract(other Cargo) Cargo {
 	}
 }
 
-func (c *Cargo) AddMineral(other Mineral) Cargo {
+func (c Cargo) AddMineral(other Mineral) Cargo {
 	return Cargo{
 		Ironium:   c.Ironium + other.Ironium,
 		Boranium:  c.Boranium + other.Boranium,
@@ -34,12 +34,20 @@ func (c *Cargo) AddMineral(other Mineral) Cargo {
 	}
 }
 
-func (c *Cargo) Total() int {
+func (c Cargo) ToMineral() Mineral {
+	return Mineral{
+		Ironium:   c.Ironium,
+		Boranium:  c.Boranium,
+		Germanium: c.Germanium,
+	}
+}
+
+func (c Cargo) Total() int {
 	return c.Ironium + c.Boranium + c.Germanium + c.Colonists
 }
 
 // return true if this cargo can have transferAmount taken from it
-func (c *Cargo) CanTransfer(transferAmount Cargo) bool {
+func (c Cargo) CanTransfer(transferAmount Cargo) bool {
 	return (c.Ironium >= transferAmount.Ironium &&
 		c.Boranium >= transferAmount.Boranium &&
 		c.Germanium >= transferAmount.Germanium &&

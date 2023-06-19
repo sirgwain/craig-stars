@@ -15,11 +15,11 @@ func NewMineral(values [3]int) Mineral {
 
 }
 
-func (m *Mineral) Total() int {
+func (m Mineral) Total() int {
 	return m.Ironium + m.Boranium + m.Germanium
 }
 
-func (m *Mineral) ToSplice() [3]int {
+func (m Mineral) ToSplice() [3]int {
 	return [3]int{
 		m.Ironium,
 		m.Boranium,
@@ -28,7 +28,7 @@ func (m *Mineral) ToSplice() [3]int {
 }
 
 // convert a mineral to a cargo
-func (m *Mineral) ToCargo() Cargo {
+func (m Mineral) ToCargo() Cargo {
 	return Cargo{
 		Ironium:   m.Ironium,
 		Boranium:  m.Boranium,
@@ -37,7 +37,7 @@ func (m *Mineral) ToCargo() Cargo {
 }
 
 // add an int to all components of the mineral
-func (m *Mineral) AddInt(num int) Mineral {
+func (m Mineral) AddInt(num int) Mineral {
 	return Mineral{
 		Ironium:   m.Ironium + num,
 		Boranium:  m.Boranium + num,

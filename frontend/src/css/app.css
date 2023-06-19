@@ -39,7 +39,28 @@
 	.fuel-bar {
 		@apply bg-[#FF0000];
 	}
+	.scanner {
+		@apply fill-[#8B0000];
+	}
+	.scanner-pen {
+		@apply fill-[#7F7F00];
+	}
+}
 
+.waypoint-line {
+	fill: none;
+	stroke-linejoin: round;
+	stroke-linecap: round;
+	stroke-width: 3px;
+	stroke: #0900ff;
+}
+
+.waypoint-line-commanded {
+	fill: none;
+	stroke-linejoin: round;
+	stroke-linecap: round;
+	stroke-width: 3px;
+	stroke: #8480ff;
 }
 
 .dark {
