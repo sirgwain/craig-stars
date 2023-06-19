@@ -174,8 +174,18 @@ func (ug *universeGenerator) generatePlayerTechLevels() {
 	}
 }
 
+// generate default plans for the player
 func (ug *universeGenerator) generatePlayerPlans() {
 
+	for _, player := range ug.players {
+		player.BattlePlans = append(player.BattlePlans, BattlePlan{
+			Name:            "Default",
+			PrimaryTarget:   BattleTargetArmedShips,
+			SecondaryTarget: BattleTargetAny,
+			Tactic:          BattleTacticMaximizeDamageRatio,
+			AttackWho:       BattleAttackWhoEnemiesAndNeutrals,
+		})
+	}
 }
 
 // generate designs for each player

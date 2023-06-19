@@ -10,7 +10,7 @@ import (
 
 func (c *client) GetFleet(id int64) (*game.Fleet, error) {
 	fleet := game.Fleet{}
-	if err := c.sqlDB.Preload(clause.Associations).Preload("Tokens.Design").First(&fleet, id).Error; err != nil {
+	if err := c.sqlDB.Preload(clause.Associations).Preload("Tokens").First(&fleet, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		} else {

@@ -194,7 +194,7 @@ func (c *client) GetFullGame(id int64) (*game.FullGame, error) {
 	}
 
 	if err := c.sqlDB.
-		Preload("Tokens.Design").
+		Preload("Tokens").
 		Where("game_id = ?", id).
 		Order("fleets.num").
 		Find(&g.Universe.Fleets).

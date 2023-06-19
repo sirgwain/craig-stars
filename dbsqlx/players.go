@@ -39,6 +39,7 @@ type Player struct {
 	ResearchSpentLastYear        int                    `json:"researchSpentLastYear,omitempty"`
 	NextResearchField            game.NextResearchField `json:"nextResearchField,omitempty"`
 	Researching                  game.TechField         `json:"researching,omitempty"`
+	BattlePlans                  *BattlePlans           `json:"battlePlans,omitempty"`
 	ProductionPlans              *ProductionPlans       `json:"productionPlans,omitempty"`
 	TransportPlans               *TransportPlans        `json:"transportPlans,omitempty"`
 	Race                         *PlayerRace            `json:"race,omitempty"`
@@ -47,11 +48,22 @@ type Player struct {
 }
 
 // we json serialize these types with custom Scan/Value methods
+type BattlePlans []game.BattlePlan
 type ProductionPlans []game.ProductionPlan
 type TransportPlans []game.TransportPlan
 type PlayerRace game.Race
 type PlayerSpec game.PlayerSpec
 type PlayerStats game.PlayerStats
+
+// db serializer to serialize this to JSON
+func (item *BattlePlans) Value() (driver.Value, error) {
+	return valueJSON(item)
+}
+
+// db deserializer to read this from JSON
+func (item *BattlePlans) Scan(src interface{}) error {
+	return scanJSON(src, &item)
+}
 
 // db serializer to serialize this to JSON
 func (item *ProductionPlans) Value() (driver.Value, error) {
@@ -268,6 +280,7 @@ func (c *client) createPlayer(player *game.Player, tx SQLExecer) error {
 		researchSpentLastYear,
 		nextResearchField,
 		researching,
+		battlePlans,
 		productionPlans,
 		transportPlans,
 		race,
@@ -302,6 +315,7 @@ func (c *client) createPlayer(player *game.Player, tx SQLExecer) error {
 		:researchSpentLastYear,
 		:nextResearchField,
 		:researching,
+		:battlePlans,
 		:productionPlans,
 		:transportPlans,
 		:race,
@@ -362,6 +376,7 @@ func (c *client) updatePlayerWithNamedExecer(player *game.Player, tx SQLExecer) 
 		researchSpentLastYear = :researchSpentLastYear,
 		nextResearchField = :nextResearchField,
 		researching = :researching,
+		battlePlans = :battlePlans,
 		productionPlans = :productionPlans,
 		transportPlans = :transportPlans,
 		race = :race,

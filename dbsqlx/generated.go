@@ -102,7 +102,7 @@ func (c *GameConverter) ConvertGameShipToken(source game.ShipToken) ShipToken {
 	dbsqlxShipToken.CreatedAt = TimeToNullTime(source.CreatedAt)
 	dbsqlxShipToken.UpdatedAt = TimeToNullTime(source.UpdatedAt)
 	dbsqlxShipToken.FleetID = source.FleetID
-	dbsqlxShipToken.DesignID = source.DesignID
+	dbsqlxShipToken.DesignUUID = UUIDToUUID(source.DesignUUID)
 	dbsqlxShipToken.Quantity = source.Quantity
 	dbsqlxShipToken.Damage = source.Damage
 	dbsqlxShipToken.QuantityDamaged = source.QuantityDamaged
@@ -160,6 +160,7 @@ func (c *GameConverter) ConvertPlayer(source Player) game.Player {
 	gamePlayer.ResearchSpentLastYear = source.ResearchSpentLastYear
 	gamePlayer.NextResearchField = game.NextResearchField(source.NextResearchField)
 	gamePlayer.Researching = game.TechField(source.Researching)
+	gamePlayer.BattlePlans = BattlePlansToGameBattlePlans(source.BattlePlans)
 	gamePlayer.ProductionPlans = ProductionPlansToGameProductionPlans(source.ProductionPlans)
 	gamePlayer.TransportPlans = TransportPlansToGameTransportPlans(source.TransportPlans)
 	gamePlayer.Stats = PlayerStatsToGamePlayerStats(source.Stats)
@@ -229,7 +230,7 @@ func (c *GameConverter) ConvertShipToken(source ShipToken) game.ShipToken {
 	gameShipToken.CreatedAt = NullTimeToTime(source.CreatedAt)
 	gameShipToken.UpdatedAt = NullTimeToTime(source.UpdatedAt)
 	gameShipToken.FleetID = source.FleetID
-	gameShipToken.DesignID = source.DesignID
+	gameShipToken.DesignUUID = UUIDToUUID(source.DesignUUID)
 	gameShipToken.Quantity = source.Quantity
 	gameShipToken.Damage = source.Damage
 	gameShipToken.QuantityDamaged = source.QuantityDamaged
@@ -261,7 +262,7 @@ func (c *GameConverter) dbsqlxFleetToGameFleet(source Fleet) game.Fleet {
 	gameFleet.Cargo = ExtendFleetCargo(source)
 	gameFleet.Fuel = source.Fuel
 	gameFleet.Damage = source.Damage
-	gameFleet.BattlePlanID = source.BattlePlanID
+	gameFleet.BattlePlanName = source.BattlePlanName
 	gameFleet.Heading = ExtendFleetHeading(source)
 	gameFleet.WarpSpeed = source.WarpSpeed
 	gameFleet.PreviousPosition = ExtendFleetPreviousPosition(source)
@@ -340,7 +341,7 @@ func (c *GameConverter) gameFleetToDbsqlxFleet(source game.Fleet) Fleet {
 	dbsqlxFleet.Colonists = source.Cargo.Colonists
 	dbsqlxFleet.Fuel = source.Fuel
 	dbsqlxFleet.Damage = source.Damage
-	dbsqlxFleet.BattlePlanID = source.BattlePlanID
+	dbsqlxFleet.BattlePlanName = source.BattlePlanName
 	dbsqlxFleet.HeadingX = source.Heading.X
 	dbsqlxFleet.HeadingY = source.Heading.Y
 	dbsqlxFleet.WarpSpeed = source.WarpSpeed
@@ -508,6 +509,7 @@ func (c *GameConverter) gamePlayerToDbsqlxPlayer(source game.Player) Player {
 	dbsqlxPlayer.ResearchSpentLastYear = source.ResearchSpentLastYear
 	dbsqlxPlayer.NextResearchField = game.NextResearchField(source.NextResearchField)
 	dbsqlxPlayer.Researching = game.TechField(source.Researching)
+	dbsqlxPlayer.BattlePlans = GameBattlePlansToBattlePlans(source.BattlePlans)
 	dbsqlxPlayer.ProductionPlans = GameProductionPlansToProductionPlans(source.ProductionPlans)
 	dbsqlxPlayer.TransportPlans = GameTransportPlansToTransportPlans(source.TransportPlans)
 	dbsqlxPlayer.Race = GameRaceToPlayerRace(source.Race)

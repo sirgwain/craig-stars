@@ -17,7 +17,7 @@ type turnGenerator interface {
 func NewTurnGenerator(game *FullGame) turnGenerator {
 	t := turn{game}
 
-	t.game.Universe.buildMaps()
+	t.game.Universe.buildMaps(game.Players)
 
 	return &t
 }
@@ -355,9 +355,9 @@ func (t *turn) buildFleet(player *Player, planet *Planet, token ShipToken) Fleet
 	player.Stats.TokensBuilt += token.Quantity
 
 	fleetNum := t.game.getNextFleetNum(player.Num)
-	fleet := NewFleetForToken(player, fleetNum, token, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, token.Design.Spec.IdealSpeed)})
+	fleet := NewFleetForToken(player, fleetNum, token, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, token.design.Spec.IdealSpeed)})
 	fleet.Position = planet.Position
-	fleet.BattlePlanID = player.BattlePlans[0].ID
+	fleet.BattlePlanName = player.BattlePlans[0].Name
 	fleet.Spec = ComputeFleetSpec(&t.game.Rules, player, &fleet)
 	fleet.Fuel = fleet.Spec.FuelCapacity
 	fleet.OrbitingPlanetNum = planet.Num

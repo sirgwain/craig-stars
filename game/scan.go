@@ -141,7 +141,7 @@ func (scan *playerScan) scanFleets(scanners []scanner, cargoScanners []scanner) 
 		scan.discoverer.discoverFleet(scan.player, fleet)
 		if scan.player.Race.Spec.DiscoverDesignOnScan {
 			for _, token := range fleet.Tokens {
-				scan.discoverer.discoverDesign(scan.player, token.Design, true)
+				scan.discoverer.discoverDesign(scan.player, token.design, true)
 			}
 		}
 	}

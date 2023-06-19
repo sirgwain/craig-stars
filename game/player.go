@@ -32,10 +32,10 @@ type Player struct {
 	ResearchSpentLastYear int                  `json:"researchSpentLastYear,omitempty"`
 	NextResearchField     NextResearchField    `json:"nextResearchField,omitempty"`
 	Researching           TechField            `json:"researching,omitempty"`
-	Messages              []PlayerMessage      `json:"messages,omitempty"`
-	BattlePlans           []BattlePlan         `json:"battlePlans,omitempty"`
+	BattlePlans           []BattlePlan         `json:"battlePlans,omitempty" gorm:"serializer:json"`
 	ProductionPlans       []ProductionPlan     `json:"productionPlans,omitempty" gorm:"serializer:json"`
 	TransportPlans        []TransportPlan      `json:"transportPlans,omitempty" gorm:"serializer:json"`
+	Messages              []PlayerMessage      `json:"messages,omitempty"`
 	Designs               []ShipDesign         `json:"designs" gorm:"foreignKey:PlayerID;references:ID"`
 	PlanetIntels          []PlanetIntel        `json:"planetIntels,omitempty"`
 	FleetIntels           []FleetIntel         `json:"fleetIntels,omitempty"`
@@ -73,11 +73,6 @@ type PlayerSpec struct {
 }
 
 type BattlePlan struct {
-	ID        int64     `gorm:"primaryKey" json:"id"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
-
-	PlayerID        int64            `json:"playerId"`
 	Name            string           `json:"name"`
 	PrimaryTarget   BattleTargetType `json:"primaryTarget"`
 	SecondaryTarget BattleTargetType `json:"secondaryTarget"`

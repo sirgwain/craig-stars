@@ -55,7 +55,7 @@ func TestGetFleet(t *testing.T) {
 	fleet := game.Fleet{
 		MapObject: game.MapObject{GameID: g.ID, PlayerID: player.ID, Name: "name", Type: game.MapObjectTypeFleet},
 		Tokens: []game.ShipToken{
-			{Quantity: 1, Design: design},
+			{Quantity: 1, DesignUUID: design.UUID},
 		},
 		FleetOrders: game.FleetOrders{
 			Waypoints: []game.Waypoint{

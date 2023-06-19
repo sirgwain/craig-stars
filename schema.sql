@@ -42,9 +42,9 @@ CREATE TABLE races (
   researchCostBiotechnology TEXT,
   techsStartHigh NUMERIC,
   spec TEXT,
-  FOREIGN KEY (userId) REFERENCES users (id) ON DELETE
+  CONSTRAINT fkUsersRaces FOREIGN KEY (userId) REFERENCES users (id) ON DELETE
   SET NULL,
-    FOREIGN KEY (playerId) REFERENCES players (id) ON DELETE
+    CONSTRAINT fkPlayersRaces FOREIGN KEY (playerId) REFERENCES players (id) ON DELETE
   SET NULL
 );
 CREATE TABLE games (
@@ -174,13 +174,14 @@ CREATE TABLE players (
   researchSpentLastYear INTEGER,
   nextResearchField TEXT,
   researching TEXT,
+  battlePlans TEXT,
   productionPlans TEXT,
   transportPlans TEXT,
   race TEXT,
   stats TEXT,
   spec TEXT,
-  FOREIGN KEY (gameId) REFERENCES games (id),
-  FOREIGN KEY (userId) REFERENCES users (id)
+  CONSTRAINT fkGamesPlayers FOREIGN KEY (gameId) REFERENCES games (id),
+  CONSTRAINT fkUsersPlayers FOREIGN KEY (userId) REFERENCES users (id)
 );
 CREATE TABLE playerMessages (
   id INTEGER PRIMARY KEY,
@@ -192,19 +193,7 @@ CREATE TABLE playerMessages (
   targetMapObjectNum INTEGER,
   targetPlayerNum INTEGER,
   targetType TEXT,
-  FOREIGN KEY (playerId) REFERENCES players (id)
-);
-CREATE TABLE battlePlans (
-  id INTEGER PRIMARY KEY,
-  createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
-  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
-  playerId INTEGER NOT NULL,
-  name TEXT NOT NULL,
-  primaryTarget TEXT,
-  secondaryTarget TEXT,
-  tactic TEXT,
-  attackWho TEXT,
-  CONSTRAINT fkPlayersBattlePlans FOREIGN KEY (playerId) REFERENCES players(id)
+  CONSTRAINT fkPlayersPlayerMessages FOREIGN KEY (playerId) REFERENCES players (id)
 );
 CREATE TABLE fleets (
   id INTEGER PRIMARY KEY,
@@ -212,7 +201,7 @@ CREATE TABLE fleets (
   updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
   gameId INTEGER NOT NULL,
   playerId INTEGER NOT NULL,
-  battlePlanId INTEGER NOT NULL,
+  battlePlanName TEXT NOT NULL,
   x REAL,
   y REAL,
   name TEXT NOT NULL,
@@ -259,11 +248,10 @@ CREATE TABLE shipTokens (
   createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
   updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
   fleetId INTEGER NOT NULL,
-  designId INTEGER NOT NULL,
+  designUuid TEXT NOT NULL,
   quantity INTEGER,
   damage REAL,
   quantityDamaged INTEGER,
-  CONSTRAINT fkShipTokensDesign FOREIGN KEY (designId) REFERENCES shipDesigns(id),
   CONSTRAINT fkFleetsTokens FOREIGN KEY (fleetId) REFERENCES fleets(id)
 );
 CREATE TABLE planets (
@@ -305,7 +293,7 @@ CREATE TABLE planets (
   packetSpeed INTEGER,
   productionQueue TEXT,
   spec TEXT,
-  FOREIGN KEY (gameId) REFERENCES games (id)
+  CONSTRAINT fkGamesPlanets FOREIGN KEY (gameId) REFERENCES games (id)
 );
 CREATE TABLE mineralPackets (
   id INTEGER PRIMARY KEY,
@@ -327,7 +315,9 @@ CREATE TABLE mineralPackets (
   warpFactor INTEGER,
   distanceTravelled REAL,
   headingX REAL,
-  headingY REAL
+  headingY REAL,
+  CONSTRAINT fkGamesMineralPackets FOREIGN KEY (gameId) REFERENCES games (id),
+  CONSTRAINT fkPlayersMineralPackets FOREIGN KEY (playerId) REFERENCES players (id)
 );
 CREATE TABLE salvages (
   id INTEGER PRIMARY KEY,

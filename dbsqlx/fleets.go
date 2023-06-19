@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/sirgwain/craig-stars/game"
 )
 
@@ -32,7 +33,7 @@ type Fleet struct {
 	Colonists         int        `json:"colonists,omitempty"`
 	Fuel              int        `json:"fuel,omitempty"`
 	Damage            int        `json:"damage,omitempty"`
-	BattlePlanID      int64      `json:"battlePlanId,omitempty"`
+	BattlePlanName    string     `json:"battlePlanName,omitempty"`
 	HeadingX          float64    `json:"headingX,omitempty"`
 	HeadingY          float64    `json:"headingY,omitempty"`
 	WarpSpeed         int        `json:"warpSpeed,omitempty"`
@@ -48,7 +49,7 @@ type ShipToken struct {
 	CreatedAt       sql.NullTime `json:"createdAt"`
 	UpdatedAt       sql.NullTime `json:"updatedAt"`
 	FleetID         int64        `json:"fleetId"`
-	DesignID        int64        `json:"designId"`
+	DesignUUID      uuid.UUID    `json:"designUuid,omitempty"`
 	Quantity        int          `json:"quantity"`
 	Damage          float64      `json:"damage"`
 	QuantityDamaged int          `json:"quantityDamaged"`
@@ -106,7 +107,7 @@ SELECT
 	f.updatedAt AS 'fleet.updatedAt',
 	f.gameId AS 'fleet.gameId',
 	f.playerId AS 'fleet.playerId',
-	f.battlePlanId AS 'fleet.battlePlanId',
+	f.battlePlanName AS 'fleet.battlePlanName',
 	f.x AS 'fleet.x',
 	f.y AS 'fleet.y',
 	f.name AS 'fleet.name',
@@ -135,7 +136,7 @@ SELECT
 	t.createdAt AS 'fleetShipToken.createdAt',
 	t.updatedAt AS 'fleetShipToken.updatedAt',
 	COALESCE(t.fleetId, 0) AS 'fleetShipToken.fleetId',
-	COALESCE(t.designId, 0) AS 'fleetShipToken.designId',
+	COALESCE(t.designUuid, '') AS 'fleetShipToken.designUuid',
 	COALESCE(t.quantity, 0) AS 'fleetShipToken.quantity',
 	COALESCE(t.damage, 0) AS 'fleetShipToken.damage',
 	COALESCE(t.quantityDamaged, 0) AS 'fleetShipToken.quantityDamaged'
@@ -244,7 +245,7 @@ func (c *client) createFleet(fleet *game.Fleet, tx SQLExecer) error {
 		updatedAt,
 		gameId,
 		playerId,
-		battlePlanId,
+		battlePlanName,
 		x,
 		y,
 		name,
@@ -274,7 +275,7 @@ func (c *client) createFleet(fleet *game.Fleet, tx SQLExecer) error {
 		CURRENT_TIMESTAMP,
 		:gameId,
 		:playerId,
-		:battlePlanId,
+		:battlePlanName,
 		:x,
 		:y,
 		:name,
@@ -314,7 +315,6 @@ func (c *client) createFleet(fleet *game.Fleet, tx SQLExecer) error {
 	for i := range fleet.Tokens {
 		token := &fleet.Tokens[i]
 		token.FleetID = fleet.ID
-		token.DesignID = token.Design.ID
 		if err := c.createShipToken(token, tx); err != nil {
 			return fmt.Errorf("failed to create ShipToken %w", err)
 		}
@@ -329,7 +329,7 @@ func (c *client) createShipToken(token *game.ShipToken, tx SQLExecer) error {
 		createdAt,
 		updatedAt,
 		fleetId,
-		designId,
+		designUuid,
 		quantity,
 		damage,
 		quantityDamaged
@@ -338,7 +338,7 @@ func (c *client) createShipToken(token *game.ShipToken, tx SQLExecer) error {
 		CURRENT_TIMESTAMP,
 		CURRENT_TIMESTAMP,
 		:fleetId,
-		:designId,
+		:designUuid,
 		:quantity,
 		:damage,
 		:quantityDamaged
@@ -372,7 +372,7 @@ func (c *client) updateFleet(fleet *game.Fleet, tx SQLExecer) error {
 		updatedAt = CURRENT_TIMESTAMP,
 		gameId = :gameId,
 		playerId = :playerId,
-		battlePlanId = :battlePlanId,
+		battlePlanName = :battlePlanName,
 		x = :x,
 		y = :y,
 		name = :name,
