@@ -289,7 +289,7 @@ func (t *turn) fleetMove() {
 				}
 
 				// update the game dictionaries with this fleet's new position
-				t.universe.DeleteFleet(fleet)
+				t.universe.MoveFleet(fleet, originalPosition)
 			} else {
 				fleet.PreviousPosition = &originalPosition
 				fleet.WarpSpeed = 0
