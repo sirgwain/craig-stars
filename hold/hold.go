@@ -25,38 +25,38 @@ type Client interface {
 
 	GetUsers() ([]*game.User, error)
 	SaveUser(user *game.User) error
-	FindUserById(id uint64) (*game.User, error)
+	FindUserById(id int64) (*game.User, error)
 	FindUserByUsername(username string) (*game.User, error)
-	DeleteUserById(id uint64) error
+	DeleteUserById(id int64) error
 
 	GetTechStores() ([]*game.TechStore, error)
 	CreateTechStore(tech *game.TechStore) error
-	FindTechStoreById(id uint64) (*game.TechStore, error)
+	FindTechStoreById(id int64) (*game.TechStore, error)
 
 	GetGames() ([]*game.Game, error)
 	GetGamesHostedByUser(userID int64) ([]*game.Game, error)
 	GetGamesByUser(userID int64) ([]*game.Game, error)
 	GetOpenGames() ([]*game.Game, error)
-	FindGameById(id uint64) (*game.FullGame, error)
-	FindGameByIdLight(id uint64) (*game.Game, error)
-	FindGameRulesByGameID(gameID uint64) (*game.Rules, error)
+	FindGameById(id int64) (*game.FullGame, error)
+	FindGameByIdLight(id int64) (*game.Game, error)
+	FindGameRulesByGameID(gameID int64) (*game.Rules, error)
 	CreateGame(game *game.Game) error
 	SaveGame(game *game.FullGame) error
-	DeleteGameById(id uint64) error
+	DeleteGameById(id int64) error
 
 	GetRaces(userID int64) ([]*game.Race, error)
-	FindRaceById(id uint64) (*game.Race, error)
+	FindRaceById(id int64) (*game.Race, error)
 	SaveRace(race *game.Race) error
 
-	FindPlayerByGameId(gameID uint64, userID int64) (*game.FullPlayer, error)
-	FindPlayerByGameIdLight(gameID uint64, userID int64) (*game.Player, error)
+	FindPlayerByGameId(gameID int64, userID int64) (*game.FullPlayer, error)
+	FindPlayerByGameIdLight(gameID int64, userID int64) (*game.Player, error)
 	SavePlayer(player *game.Player) error
 
-	FindPlanetByNum(gameID uint64, num int) (*game.Planet, error)
-	SavePlanet(gameID uint64, planet *game.Planet) error
+	FindPlanetByNum(gameID int64, num int) (*game.Planet, error)
+	SavePlanet(gameID int64, planet *game.Planet) error
 
-	FindFleetByNum(gameID uint64, playerNum int, num int) (*game.Fleet, error)
-	SaveFleet(gameID uint64, fleet *game.Fleet) error
+	FindFleetByNum(gameID int64, playerNum int, num int) (*game.Fleet, error)
+	SaveFleet(gameID int64, fleet *game.Fleet) error
 }
 
 func timeTrack(start time.Time, name string) {
@@ -65,7 +65,7 @@ func timeTrack(start time.Time, name string) {
 }
 
 // each game has a bucket with game objects in it
-func (db *DB) getGameBucketName(gameID uint64) string {
+func (db *DB) getGameBucketName(gameID int64) string {
 	return fmt.Sprintf("Game-%d", gameID)
 }
 
@@ -121,7 +121,7 @@ func (db *DB) SaveUser(user *game.User) error {
 	}
 }
 
-func (db *DB) FindUserById(id uint64) (*game.User, error) {
+func (db *DB) FindUserById(id int64) (*game.User, error) {
 	user := game.User{}
 	if err := db.store.Get(id, &user); err != nil {
 		return nil, err
@@ -141,7 +141,7 @@ func (db *DB) FindUserByUsername(username string) (*game.User, error) {
 	return &user, nil
 }
 
-func (db *DB) DeleteUserById(id uint64) error {
+func (db *DB) DeleteUserById(id int64) error {
 	return db.store.Delete(id, &game.User{})
 }
 
@@ -165,7 +165,7 @@ func (db *DB) CreateTechStore(tech *game.TechStore) error {
 	return db.store.Upsert(key, tech)
 }
 
-func (db *DB) FindTechStoreById(id uint64) (*game.TechStore, error) {
+func (db *DB) FindTechStoreById(id int64) (*game.TechStore, error) {
 	techstore := game.TechStore{}
 	if err := db.store.Get(id, &techstore); err != nil {
 		return nil, err
@@ -245,7 +245,7 @@ func (db *DB) GetOpenGames() ([]*game.Game, error) {
 	return games, nil
 }
 
-func (db *DB) FindGameById(id uint64) (*game.FullGame, error) {
+func (db *DB) FindGameById(id int64) (*game.FullGame, error) {
 	g := game.Game{}
 
 	if err := db.store.Get(id, &g); err != nil {
@@ -311,7 +311,7 @@ func (db *DB) FindGameById(id uint64) (*game.FullGame, error) {
 	}, nil
 }
 
-func (db *DB) FindGameByIdLight(id uint64) (*game.Game, error) {
+func (db *DB) FindGameByIdLight(id int64) (*game.Game, error) {
 	g := game.Game{}
 	if err := db.store.Get(id, &g); err != nil {
 		if err == bolthold.ErrNotFound {
@@ -324,7 +324,7 @@ func (db *DB) FindGameByIdLight(id uint64) (*game.Game, error) {
 	return &g, nil
 }
 
-func (db *DB) FindGameRulesByGameID(gameID uint64) (*game.Rules, error) {
+func (db *DB) FindGameRulesByGameID(gameID int64) (*game.Rules, error) {
 	g, err := db.FindGameByIdLight(gameID)
 	if err != nil {
 		return nil, err
@@ -464,7 +464,7 @@ func (db *DB) SaveGameBits(g *game.FullGame) error {
 	return nil
 }
 
-func (db *DB) SavePlayers(gameID uint64, gameBucket *bbolt.Bucket, players []*game.Player) error {
+func (db *DB) SavePlayers(gameID int64, gameBucket *bbolt.Bucket, players []*game.Player) error {
 	defer timeTrack(time.Now(), "SavePlayers")
 	for _, player := range players {
 		// player's need to know the game id in order to fetch/save
@@ -476,7 +476,7 @@ func (db *DB) SavePlayers(gameID uint64, gameBucket *bbolt.Bucket, players []*ga
 	return nil
 }
 
-func (db *DB) DeleteGameById(id uint64) error {
+func (db *DB) DeleteGameById(id int64) error {
 	// delete the game
 	if err := db.store.Delete(id, &game.Game{}); err != nil {
 		return err
@@ -504,7 +504,7 @@ func (db *DB) GetRaces(userID int64) ([]*game.Race, error) {
 
 }
 
-func (db *DB) FindRaceById(id uint64) (*game.Race, error) {
+func (db *DB) FindRaceById(id int64) (*game.Race, error) {
 	race := game.Race{}
 	if err := db.store.Get(id, &race); err != nil {
 		return nil, err
@@ -520,7 +520,7 @@ func (db *DB) SaveRace(race *game.Race) error {
 	}
 }
 
-func (db *DB) FindPlayerByGameId(gameID uint64, userID int64) (*game.FullPlayer, error) {
+func (db *DB) FindPlayerByGameId(gameID int64, userID int64) (*game.FullPlayer, error) {
 	player := game.FullPlayer{}
 	if err := db.store.Bolt().View(func(tx *bbolt.Tx) error {
 		gameBucketName := db.getGameBucketName(gameID)
@@ -555,7 +555,7 @@ func (db *DB) FindPlayerByGameId(gameID uint64, userID int64) (*game.FullPlayer,
 	return &player, nil
 }
 
-func (db *DB) FindPlayerByGameIdLight(gameID uint64, userID int64) (*game.Player, error) {
+func (db *DB) FindPlayerByGameIdLight(gameID int64, userID int64) (*game.Player, error) {
 	player := game.Player{}
 	if err := db.store.Bolt().View(func(tx *bbolt.Tx) error {
 		gameBucketName := db.getGameBucketName(gameID)
@@ -592,7 +592,7 @@ func (db *DB) SavePlayer(player *game.Player) error {
 	})
 }
 
-func (db *DB) FindPlanetByNum(gameID uint64, num int) (*game.Planet, error) {
+func (db *DB) FindPlanetByNum(gameID int64, num int) (*game.Planet, error) {
 	planet := game.Planet{}
 	if err := db.store.Bolt().View(func(tx *bbolt.Tx) error {
 		gameBucketName := db.getGameBucketName(gameID)
@@ -613,7 +613,7 @@ func (db *DB) FindPlanetByNum(gameID uint64, num int) (*game.Planet, error) {
 	return &planet, nil
 }
 
-func (db *DB) SavePlanet(gameID uint64, planet *game.Planet) error {
+func (db *DB) SavePlanet(gameID int64, planet *game.Planet) error {
 	return db.store.Bolt().Update(func(tx *bbolt.Tx) error {
 		gameBucketName := db.getGameBucketName(gameID)
 		gameBucket := tx.Bucket([]byte(gameBucketName))
@@ -626,7 +626,7 @@ func (db *DB) SavePlanet(gameID uint64, planet *game.Planet) error {
 	})
 }
 
-func (db *DB) FindFleetByNum(gameID uint64, playerNum int, num int) (*game.Fleet, error) {
+func (db *DB) FindFleetByNum(gameID int64, playerNum int, num int) (*game.Fleet, error) {
 	fleet := game.Fleet{}
 	if err := db.store.Bolt().View(func(tx *bbolt.Tx) error {
 		gameBucketName := db.getGameBucketName(gameID)
@@ -647,7 +647,7 @@ func (db *DB) FindFleetByNum(gameID uint64, playerNum int, num int) (*game.Fleet
 	return &fleet, nil
 }
 
-func (db *DB) SaveFleet(gameID uint64, fleet *game.Fleet) error {
+func (db *DB) SaveFleet(gameID int64, fleet *game.Fleet) error {
 	return db.store.Bolt().Update(func(tx *bbolt.Tx) error {
 		gameBucketName := db.getGameBucketName(gameID)
 		gameBucket := tx.Bucket([]byte(gameBucketName))

@@ -10,11 +10,11 @@ import (
 )
 
 type Race struct {
-	ID                uint64       `gorm:"primaryKey" json:"id,omitempty" boltholdKey:"ID"`
+	ID                int64        `gorm:"primaryKey" json:"id,omitempty" boltholdKey:"ID"`
 	CreatedAt         time.Time    `json:"createdAt,omitempty"`
 	UpdatedAt         time.Time    `json:"updatedat,omitempty"`
 	UserID            int64        `json:"userId,omitempty"`
-	PlayerID          *uint64      `json:"playerId,omitempty"`
+	PlayerID          *int64       `json:"playerId,omitempty"`
 	Name              string       `json:"name,omitempty"`
 	PluralName        string       `json:"pluralName,omitempty"`
 	PRT               PRT          `json:"prt,omitempty"`
@@ -608,7 +608,7 @@ func (spec *RaceSpec) Value() (driver.Value, error) {
 	if spec == nil {
 		return nil, nil
 	}
-	
+
 	data, err := json.Marshal(spec)
 	if err != nil {
 		return nil, err

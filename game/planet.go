@@ -540,7 +540,7 @@ func (planet *Planet) buildItems(player *Player, item ProductionQueueItem, numBu
 	}
 
 	log.Debug().
-		Uint64("PlayerID", player.ID).
+		Int64("PlayerID", player.ID).
 		Int("Player", player.Num).
 		Str("Planet", planet.Name).
 		Str("Item", string(item.Type)).

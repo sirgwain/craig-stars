@@ -11,8 +11,6 @@ import (
 
 // goverter:converter
 // goverter:extend TimeToTime
-// goverter:extend Uint64ToInt64
-// goverter:extend Int64ToUInt64
 // goverter:name GameConverter
 type Converter interface {
 	ConvertUser(source User) game.User
@@ -45,14 +43,6 @@ type Converter interface {
 
 func TimeToTime(t time.Time) time.Time {
 	return t
-}
-
-func Uint64ToInt64(v uint64) int64 {
-	return int64(v)
-}
-
-func Int64ToUInt64(v int64) uint64 {
-	return uint64(v)
 }
 
 func ExtendResearchCost(source Race) game.ResearchCost {

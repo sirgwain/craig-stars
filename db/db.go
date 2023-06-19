@@ -35,34 +35,34 @@ type Client interface {
 
 	GetTechStores() ([]*game.TechStore, error)
 	CreateTechStore(tech *game.TechStore) error
-	FindTechStoreById(id uint64) (*game.TechStore, error)
+	FindTechStoreById(id int64) (*game.TechStore, error)
 
 	GetGames() ([]*game.Game, error)
 	GetGamesHostedByUser(userID int64) ([]*game.Game, error)
 	GetGamesByUser(userID int64) ([]*game.Game, error)
 	GetOpenGames() ([]*game.Game, error)
-	FindGameById(id uint64) (*game.FullGame, error)
-	FindGameByIdLight(id uint64) (*game.Game, error)
-	FindGameRulesByGameID(gameID uint64) (*game.Rules, error)
+	FindGameById(id int64) (*game.FullGame, error)
+	FindGameByIdLight(id int64) (*game.Game, error)
+	FindGameRulesByGameID(gameID int64) (*game.Rules, error)
 	CreateGame(game *game.Game) error
 	SaveGame(game *game.FullGame) error
-	DeleteGameById(id uint64) error
+	DeleteGameById(id int64) error
 
 	GetRaces(userID int64) ([]*game.Race, error)
-	FindRaceById(id uint64) (*game.Race, error)
+	FindRaceById(id int64) (*game.Race, error)
 	SaveRace(race *game.Race) error
 
-	FindPlayerByGameId(gameID uint64, userID int64) (*game.FullPlayer, error)
-	FindPlayerByGameIdLight(gameID uint64, userID int64) (*game.Player, error)
+	FindPlayerByGameId(gameID int64, userID int64) (*game.FullPlayer, error)
+	FindPlayerByGameIdLight(gameID int64, userID int64) (*game.Player, error)
 	SavePlayer(player *game.Player) error
 
-	FindPlanetByID(id uint64) (*game.Planet, error)
-	FindPlanetByNum(gameID uint64, num int) (*game.Planet, error)
-	SavePlanet(gameID uint64, planet *game.Planet) error
+	FindPlanetByID(id int64) (*game.Planet, error)
+	FindPlanetByNum(gameID int64, num int) (*game.Planet, error)
+	SavePlanet(gameID int64, planet *game.Planet) error
 
-	FindFleetByID(id uint64) (*game.Fleet, error)
-	FindFleetByNum(gameID uint64, playerNum int, num int) (*game.Fleet, error)
-	SaveFleet(gameID uint64, fleet *game.Fleet) error
+	FindFleetByID(id int64) (*game.Fleet, error)
+	FindFleetByNum(gameID int64, playerNum int, num int) (*game.Fleet, error)
+	SaveFleet(gameID int64, fleet *game.Fleet) error
 }
 
 func timeTrack(start time.Time, name string) {

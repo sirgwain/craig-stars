@@ -7,7 +7,7 @@ import (
 )
 
 type idBind struct {
-	ID uint64 `uri:"id"`
+	ID int64 `uri:"id"`
 }
 
 func (s *server) Games(c *gin.Context) {

@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func (c *client) FindPlayerByGameId(gameID uint64, userID int64) (*game.FullPlayer, error) {
+func (c *client) FindPlayerByGameId(gameID int64, userID int64) (*game.FullPlayer, error) {
 	player := game.FullPlayer{}
 
 	if err := c.sqlDB.
@@ -57,7 +57,7 @@ func (c *client) FindPlayerByGameId(gameID uint64, userID int64) (*game.FullPlay
 }
 
 // find a plyer for a game without loading all data
-func (c *client) FindPlayerByGameIdLight(gameID uint64, userID int64) (*game.Player, error) {
+func (c *client) FindPlayerByGameIdLight(gameID int64, userID int64) (*game.Player, error) {
 	player := game.Player{}
 
 	if err := c.sqlDB.

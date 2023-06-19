@@ -145,7 +145,7 @@ func TestDB_GetGamesByUser(t *testing.T) {
 
 func TestDB_DeleteGameById(t *testing.T) {
 	type args struct {
-		gameID uint64
+		gameID int64
 	}
 	tests := []struct {
 		name string
@@ -173,7 +173,7 @@ func TestDB_FindGameById(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		id      uint64
+		id      int64
 		want    *game.FullGame
 		wantErr bool
 	}{

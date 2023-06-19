@@ -52,7 +52,7 @@ func (c *client) CreateTechStore(tech *game.TechStore) error {
 	return nil
 }
 
-func (c *client) FindTechStoreById(id uint64) (*game.TechStore, error) {
+func (c *client) FindTechStoreById(id int64) (*game.TechStore, error) {
 	techs := game.TechStore{}
 	if err := c.sqlDB.Preload(clause.Associations).First(&techs, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

@@ -23,7 +23,7 @@ type discoverer interface {
 	discoverPlanetCargo(player *Player, planet *Planet) error
 	discoverFleet(player *Player, fleet *Fleet)
 	discoverFleetCargo(player *Player, fleet *Fleet)
-	discoverDesign(player *Player, design *ShipDesign, discoverSlots bool)	
+	discoverDesign(player *Player, design *ShipDesign, discoverSlots bool)
 }
 
 func newDiscoverer(player *Player) discoverer {
@@ -46,15 +46,15 @@ func newDiscoverer(player *Player) discoverer {
 }
 
 type Intel struct {
-	ID        uint64    `gorm:"primaryKey" json:"id"`
+	ID        int64     `gorm:"primaryKey" json:"id"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 	Dirty     bool      `json:"-" gorm:"-"`
-	GameID    uint64    `json:"gameId"`
+	GameID    int64     `json:"gameId"`
 	Name      string    `json:"name"`
 	Num       int       `json:"num"`
 	PlayerNum int       `json:"playerNum"`
-	PlayerID  uint64    `json:"-"`
+	PlayerID  int64     `json:"-"`
 	ReportAge int       `json:"reportAge"`
 }
 
@@ -92,9 +92,9 @@ type ShipDesignIntel struct {
 
 type FleetIntel struct {
 	MapObjectIntel
-	PlanetIntelID   uint64 `json:"-"` // for starbase fleets that are owned by a planet
-	Cargo           Cargo  `json:"cargo,omitempty" gorm:"embedded;embeddedPrefix:cargo_"`
-	CargoDiscovered bool   `json:"cargoDiscovered,omitempty"`
+	PlanetIntelID   int64 `json:"-"` // for starbase fleets that are owned by a planet
+	Cargo           Cargo `json:"cargo,omitempty" gorm:"embedded;embeddedPrefix:cargo_"`
+	CargoDiscovered bool  `json:"cargoDiscovered,omitempty"`
 }
 
 type MineralPacketIntel struct {
@@ -286,7 +286,7 @@ func (d *discover) discoverDesign(player *Player, design *ShipDesign, discoverSl
 	}
 }
 
-func (d* discover) playerInfoDiscover(player *Player) {
+func (d *discover) playerInfoDiscover(player *Player) {
 	// d.game <- players to discover
 	// discover info about other players
 }

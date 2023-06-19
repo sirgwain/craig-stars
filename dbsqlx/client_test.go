@@ -19,7 +19,7 @@ func connectTestDB() *client {
 	if err := c.Connect(cfg); err != nil {
 		panic(fmt.Errorf("Failed to connect to test database, %w", err))
 	}
-	c.ExecSchema("../data/sqlxSchema.sql")
+	c.ExecSchema("../schema.sql")
 
 	// create a test user
 	if err := c.CreateUser(game.NewUser("admin", "admin", game.RoleAdmin)); err != nil {

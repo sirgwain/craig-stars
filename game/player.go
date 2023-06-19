@@ -11,10 +11,10 @@ type FullPlayer struct {
 }
 
 type Player struct {
-	ID                    uint64               `gorm:"primaryKey" json:"id,omitempty"`
+	ID                    int64                `gorm:"primaryKey" json:"id,omitempty"`
 	CreatedAt             time.Time            `json:"createdAt,omitempty"`
 	UpdatedAt             time.Time            `json:"updatedat,omitempty"`
-	GameID                uint64               `json:"gameId,omitempty"`
+	GameID                int64                `json:"gameId,omitempty"`
 	UserID                int64                `json:"userId,omitempty"`
 	Name                  string               `json:"name,omitempty"`
 	Num                   int                  `json:"num"`
@@ -71,11 +71,11 @@ type PlayerSpec struct {
 }
 
 type BattlePlan struct {
-	ID        uint64    `gorm:"primaryKey" json:"id"`
+	ID        int64     `gorm:"primaryKey" json:"id"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 
-	PlayerID        uint64           `json:"playerId"`
+	PlayerID        int64            `json:"playerId"`
 	Name            string           `json:"name"`
 	PrimaryTarget   BattleTargetType `json:"primaryTarget"`
 	SecondaryTarget BattleTargetType `json:"secondaryTarget"`
