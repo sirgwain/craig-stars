@@ -166,7 +166,7 @@ func discoverPlanet(rules *Rules, player *Player, planet *Planet, penScanned boo
 		if ownedByPlayer {
 			intel.Population = uint(planet.Population())
 		} else {
-			var randomPopulationError = rules.Random.Float64()*(rules.PopulationScannerError-(-rules.PopulationScannerError)) - rules.PopulationScannerError
+			var randomPopulationError = rules.random.Float64()*(rules.PopulationScannerError-(-rules.PopulationScannerError)) - rules.PopulationScannerError
 			intel.Population = uint(float64(planet.Population()) * (1 - randomPopulationError))
 		}
 	}
@@ -206,14 +206,14 @@ func discoverFleet(player *Player, fleet *Fleet) {
 	intel.Position = fleet.Position
 
 	player.FleetIntels = append(player.FleetIntels, intel)
-	player.FleetIntelsByKey[intel.String()] = &intel
+	player.fleetIntelsByKey[intel.String()] = &intel
 }
 
 // discover cargo for an existing fleet
 func discoverFleetCargo(player *Player, fleet *Fleet) {
 	key := NewFleetIntel(fleet.PlayerNum, fleet.Name)
 
-	existingIntel, found := player.FleetIntelsByKey[key.String()]
+	existingIntel, found := player.fleetIntelsByKey[key.String()]
 	if found {
 		existingIntel.Cargo = fleet.Cargo
 		existingIntel.CargoDiscovered = true
@@ -224,7 +224,7 @@ func discoverFleetCargo(player *Player, fleet *Fleet) {
 // discover a player's design. This is a noop if we already know about
 // the design and aren't discovering slots
 func discoverDesign(player *Player, design *ShipDesign, discoverSlots bool) {
-	intel, found := player.DesignIntelsByKey[design.UUID]
+	intel, found := player.designIntelsByKey[design.UUID]
 	if !found {
 		// create a new intel for this design
 		intel = &ShipDesignIntel{
@@ -242,7 +242,7 @@ func discoverDesign(player *Player, design *ShipDesign, discoverSlots bool) {
 		// save this new design to our intel
 		player.DesignIntels = append(player.DesignIntels, *intel)
 		intel = &player.DesignIntels[len(player.DesignIntels)-1]
-		player.DesignIntelsByKey[intel.UUID] = intel
+		player.designIntelsByKey[intel.UUID] = intel
 	}
 
 	// discover slots if we haven't already and this scanner discovers them

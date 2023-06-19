@@ -17,7 +17,7 @@ type Planet struct {
 	MineYears                         Mineral               `json:"mineYears,omitempty" gorm:"embedded;embeddedPrefix:mine_years_"`
 	Starbase                          *Fleet                `json:"starbase,omitempty"`
 	Cargo                             Cargo                 `json:"cargo,omitempty" gorm:"embedded;embeddedPrefix:cargo_"`
-	ProductionQueue                   []ProductionQueueItem `json:"productionQueue,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
+	ProductionQueue                   []ProductionQueueItem `json:"productionQueue,omitempty"`
 	Mines                             int                   `json:"mines,omitempty"`
 	Factories                         int                   `json:"factories,omitempty"`
 	Defenses                          int                   `json:"defenses,omitempty"`
@@ -103,6 +103,11 @@ func (p *Planet) WithCargo(cargo Cargo) *Planet {
 	return p
 }
 
+func (p *Planet) WithPlayerNum(playerNum int) *Planet {
+	p.PlayerNum = playerNum
+	return p
+}
+
 func (p *Planet) WithMines(mines int) *Planet {
 	p.Mines = mines
 	return p
@@ -161,9 +166,9 @@ func (p *Planet) randomize(rules *Rules) {
 	// It never generates 0 or 100 so I have to change my random formula to (1 to 90)+(0 to 9)
 	// damn you all for sucking me into stars! again lol"
 	p.Hab = Hab{
-		Grav: rules.Random.Intn(91) + rules.Random.Intn(10),
-		Temp: rules.Random.Intn(91) + rules.Random.Intn(10),
-		Rad:  1 + rules.Random.Intn(100),
+		Grav: rules.random.Intn(91) + rules.random.Intn(10),
+		Temp: rules.random.Intn(91) + rules.random.Intn(10),
+		Rad:  1 + rules.random.Intn(100),
 	}
 	p.BaseHab = p.Hab
 	p.TerraformedAmount = Hab{}
@@ -187,21 +192,21 @@ func (p *Planet) randomize(rules *Rules) {
 	}
 
 	p.MineralConcentration = Mineral{
-		Ironium:   rules.MinStartingMineralConcentration + rules.Random.Intn(rules.MaxStartingMineralConcentration+1),
-		Boranium:  rules.MinStartingMineralConcentration + rules.Random.Intn(rules.MaxStartingMineralConcentration+1),
-		Germanium: rules.MinStartingMineralConcentration + rules.Random.Intn(rules.MaxStartingMineralConcentration+1),
+		Ironium:   rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration+1),
+		Boranium:  rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration+1),
+		Germanium: rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration+1),
 	}
 
 	if p.MineralConcentration.Ironium > 30 {
-		p.MineralConcentration.Ironium = 30 + rules.Random.Intn(45) + rules.Random.Intn(45)
+		p.MineralConcentration.Ironium = 30 + rules.random.Intn(45) + rules.random.Intn(45)
 	}
 
 	if p.MineralConcentration.Boranium > 30 {
-		p.MineralConcentration.Boranium = 30 + rules.Random.Intn(45) + rules.Random.Intn(45)
+		p.MineralConcentration.Boranium = 30 + rules.random.Intn(45) + rules.random.Intn(45)
 	}
 
 	if p.MineralConcentration.Germanium > 30 {
-		p.MineralConcentration.Germanium = 30 + rules.Random.Intn(45) + germRadBonus + rules.Random.Intn(45)
+		p.MineralConcentration.Germanium = 30 + rules.random.Intn(45) + germRadBonus + rules.random.Intn(45)
 	}
 }
 
@@ -221,9 +226,9 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 	habWidth := player.Race.HabWidth()
 	habCenter := player.Race.HabCenter()
 	p.Hab = Hab{
-		Grav: habCenter.Grav + int(float64((habWidth.Grav-rules.Random.Intn(habWidth.Grav-1)))/2*startingPlanet.HabPenaltyFactor),
-		Temp: habCenter.Temp + int(float64((habWidth.Temp-rules.Random.Intn(habWidth.Temp-1)))/2*startingPlanet.HabPenaltyFactor),
-		Rad:  habCenter.Rad + int(float64((habWidth.Rad-rules.Random.Intn(habWidth.Rad-1)))/2*startingPlanet.HabPenaltyFactor),
+		Grav: habCenter.Grav + int(float64((habWidth.Grav-rules.random.Intn(habWidth.Grav-1)))/2*startingPlanet.HabPenaltyFactor),
+		Temp: habCenter.Temp + int(float64((habWidth.Temp-rules.random.Intn(habWidth.Temp-1)))/2*startingPlanet.HabPenaltyFactor),
+		Rad:  habCenter.Rad + int(float64((habWidth.Rad-rules.random.Intn(habWidth.Rad-1)))/2*startingPlanet.HabPenaltyFactor),
 	}
 	p.MineralConcentration = concentration
 	p.Cargo = surface.ToCargo()
@@ -421,9 +426,15 @@ func (t QueueItemType) ConcreteType() QueueItemType {
 	return t
 }
 
+type ProductionResult struct {
+	tokens   []ShipToken
+	packets  []MineralPacket
+	starbase *Fleet
+}
+
 // produce one turns worth of items from the production queue
-func (planet *Planet) produce(game *Game) {
-	player := &game.Players[planet.PlayerNum]
+func (planet *Planet) produce(player *Player) ProductionResult {
+	result := ProductionResult{}
 	available := Cost{Resources: planet.Spec.ResourcesPerYearAvailable}.AddCargoMinerals(planet.Cargo)
 	newQueue := []ProductionQueueItem{}
 	for itemIndex, item := range planet.ProductionQueue {
@@ -452,7 +463,7 @@ func (planet *Planet) produce(game *Game) {
 
 			if numBuilt > 0 {
 				// build the items on the planet and remove from our available
-				planet.buildItems(game, player, item, numBuilt)
+				planet.buildItems(player, item, numBuilt, &result)
 				available = available.Minus(cost.MultiplyInt(numBuilt))
 			}
 
@@ -510,10 +521,11 @@ func (planet *Planet) produce(game *Game) {
 	player.LeftoverResources += available.Resources
 	planet.Cargo = Cargo{available.Ironium, available.Boranium, available.Germanium, planet.Cargo.Colonists}
 
+	return result
 }
 
 // add built items to planet, build fleets, update player messages, etc
-func (planet *Planet) buildItems(game *Game, player *Player, item ProductionQueueItem, numBuilt int) {
+func (planet *Planet) buildItems(player *Player, item ProductionQueueItem, numBuilt int, result *ProductionResult) {
 
 	switch item.Type {
 	case QueueItemTypeAutoMines:
@@ -532,59 +544,18 @@ func (planet *Planet) buildItems(game *Game, player *Player, item ProductionQueu
 		planet.Defenses += numBuilt
 		messager.defensesBuilt(player, planet, numBuilt)
 	case QueueItemTypeShipToken:
-		fleet, err := planet.buildFleet(game, player, item.DesignName, numBuilt)
-		if err != nil {
-			// TODO: should a fleet build break the whole turn generation or just notify the player?
-			log.Err(err).
-				Uint("GameID", game.ID).
-				Uint("PlayerID", player.ID).
-				Str("Planet", planet.Name).
-				Str("DesignName", item.DesignName)
-			messager.error(player, err)
-		} else {
-			messager.fleetBuilt(player, planet, fleet, numBuilt)
-		}
+		design := player.GetDesign(item.DesignName)
+		result.tokens = append(result.tokens, ShipToken{Quantity: numBuilt, Design: design})
 	}
 
 	log.Debug().
-		Uint("GameID", game.ID).
-		Str("Name", game.Name).
-		Int("Year", game.Year).
+		Uint("PlayerID", player.ID).
 		Int("Player", player.Num).
 		Str("Planet", planet.Name).
 		Str("Item", string(item.Type)).
 		Str("DesignName", item.DesignName).
 		Int("NumBuilt", numBuilt).
 		Msgf("built item")
-
-}
-
-// build a fleet with some number of tokens
-func (planet *Planet) buildFleet(game *Game, player *Player, designName string, numBuilt int) (*Fleet, error) {
-	player.Stats.FleetsBuilt++
-	player.Stats.TokensBuilt += numBuilt
-
-	design := player.GetDesign(designName)
-
-	if design != nil {
-		fleetNum := player.getNextFleetNum()
-		fleet := NewFleet(player, design, fleetNum, designName, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, design.Spec.IdealSpeed)})
-		fleet.Tokens[0].Quantity = numBuilt
-		fleet.Position = planet.Position
-		fleet.BattlePlanID = player.BattlePlans[0].ID
-		fleet.Spec = ComputeFleetSpec(&game.Rules, player, &fleet)
-		fleet.Fuel = fleet.Spec.FuelCapacity
-		fleet.OrbitingPlanetNum = planet.Num
-
-		// TODO: probably won't matter, but this logic isn't very thread safe
-		game.Fleets = append(game.Fleets, fleet)
-		gameFleet := &game.Fleets[len(game.Fleets)-1]
-		player.Fleets = append(player.Fleets, gameFleet)
-
-		return gameFleet, nil
-	}
-
-	return nil, fmt.Errorf("%s does not have a design named %s", player, designName)
 
 }
 
@@ -661,11 +632,11 @@ func (planet *Planet) maxBuildable(t QueueItemType) int {
 }
 
 // reduce the mineral concentrations of a planet after mining.
-func (planet *Planet) reduceMineralConcentration(game *Game) {
-	mineralDecayFactor := game.Rules.MineralDecayFactor
-	minMineralConcentration := game.Rules.MinMineralConcentration
+func (planet *Planet) reduceMineralConcentration(rules *Rules) {
+	mineralDecayFactor := rules.MineralDecayFactor
+	minMineralConcentration := rules.MinMineralConcentration
 	if planet.Homeworld {
-		minMineralConcentration = game.Rules.MinHomeworldMineralConcentration
+		minMineralConcentration = rules.MinHomeworldMineralConcentration
 	}
 
 	planetMineYears := planet.MineYears.ToSplice()

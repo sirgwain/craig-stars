@@ -108,12 +108,12 @@ func createTestUser(db db.Client, username string, password string, role game.Ro
 		return nil, nil, err
 	}
 
-	var race *game.Race
+	var race game.Race
 	if len(races) == 0 {
 		race = game.Humanoids()
 		race.UserID = user.ID
 
-		if err := db.CreateRace(race); err != nil {
+		if err := db.CreateRace(&race); err != nil {
 			return nil, nil, err
 		}
 
@@ -124,10 +124,10 @@ func createTestUser(db db.Client, username string, password string, role game.Ro
 		// 	return nil, nil, err
 		// }
 	} else {
-		race = &races[0]
+		race = races[0]
 	}
 
-	return user, race, nil
+	return user, &race, nil
 }
 
 func init() {

@@ -14,21 +14,12 @@ func TestDB_FindPlayerByGameId(t *testing.T) {
 
 	db := connectDB()
 
-	g := game.NewGame()
-	g.AddPlayer(game.NewPlayer(1, game.NewRace()))
-	if err := db.CreateGame(g); err != nil {
-		t.Error(err)
-	}
-
-	if err := g.GenerateUniverse(); err != nil {
-		t.Error(err)
-	}
-
+	g := newRandomGame()
 	if err := db.SaveGame(g); err != nil {
 		t.Error(err)
 	}
 
-	player := &g.Players[0]
+	player := g.Players[0]
 
 	tests := []struct {
 		name    string

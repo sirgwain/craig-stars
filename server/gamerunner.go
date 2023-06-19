@@ -24,9 +24,17 @@ func NewGameRunner(db db.Client) *GameRunner {
 }
 
 // host a new game
-func (gr *GameRunner) HostGame(hostID uint, settings *game.GameSettings) (*game.Game, error) {
-	g := game.NewGame().WithSettings(settings)
-	g.HostID = hostID
+func (gr *GameRunner) HostGame(hostID uint, settings *game.GameSettings) (*game.FullGame, error) {
+	client := game.NewClient()
+	g := client.CreateGame(hostID, *settings)
+
+	// create the game in the database
+	err := gr.db.CreateGame(&g)
+	if err != nil {
+		return nil, err
+	}
+
+	players := make([]*game.Player, 0, len(settings.Players))
 
 	for _, player := range settings.Players {
 		if player.Type == game.NewGamePlayerTypeHost {
@@ -40,7 +48,7 @@ func (gr *GameRunner) HostGame(hostID uint, settings *game.GameSettings) (*game.
 				return nil, fmt.Errorf("user %d does not own Race %d", hostID, race.ID)
 			}
 			log.Debug().Uint("hostID", hostID).Msgf("Adding host to game")
-			g.AddPlayer(game.NewPlayer(hostID, race))
+			players = append(players, client.NewPlayer(hostID, *race, &g.Rules))
 		} else if player.Type == game.NewGamePlayerTypeAI {
 			// g.AddPlayer(game.NewAIPlayer())
 		} else if player.Type == game.NewGamePlayerTypeOpen {
@@ -49,17 +57,16 @@ func (gr *GameRunner) HostGame(hostID uint, settings *game.GameSettings) (*game.
 		}
 	}
 
-	err := gr.db.CreateGame(g)
-	if err != nil {
-		return nil, err
-	}
-
 	// generate the universe if this game is done
 	if g.OpenPlayerSlots == 0 {
 		gr.GenerateUniverse(g.ID)
 	}
 
-	return g, nil
+	return &game.FullGame{
+		Game:     &g,
+		Players:  players,
+		Universe: &game.Universe{}, // todo: populate
+	}, nil
 }
 
 // add a player to an existing game
@@ -70,7 +77,9 @@ func (gr *GameRunner) AddPlayer(gameID uint, userID uint, race *game.Race) error
 		return err
 	}
 
-	player := g.AddPlayer(game.NewPlayer(userID, race))
+	client := game.NewClient()
+	player := client.NewPlayer(userID, *race, &g.Rules)
+	player.GameID = g.ID
 	if err := gr.db.SavePlayer(player); err != nil {
 		return err
 	}
@@ -94,15 +103,17 @@ func (gr *GameRunner) GenerateUniverse(gameID uint) error {
 		return err
 	}
 
-	err = g.GenerateUniverse()
+	client := game.NewClient()
+	universe, err := client.GenerateUniverse(g.Game, g.Players)
 	if err != nil {
 		return err
 	}
 
 	g.State = game.GameStateWaitingForPlayers
+	g.Universe = universe
 
 	err = gr.db.SaveGame(g)
-if err != nil {
+	if err != nil {
 		return err
 	}
 
@@ -110,7 +121,7 @@ if err != nil {
 }
 
 // load a full game
-func (gr *GameRunner) LoadGame(gameID uint) (*game.Game, error) {
+func (gr *GameRunner) LoadGame(gameID uint) (*game.FullGame, error) {
 	g, err := gr.db.FindGameById(gameID)
 
 	if err != nil {
@@ -121,7 +132,7 @@ func (gr *GameRunner) LoadGame(gameID uint) (*game.Game, error) {
 }
 
 // load a player and the light version of the player game
-func (gr *GameRunner) LoadPlayerGame(gameID uint, userID uint) (*game.Game, *game.Player, error) {
+func (gr *GameRunner) LoadPlayerGame(gameID uint, userID uint) (*game.Game, *game.FullPlayer, error) {
 
 	g, err := gr.db.FindGameByIdLight(gameID)
 
@@ -130,13 +141,13 @@ func (gr *GameRunner) LoadPlayerGame(gameID uint, userID uint) (*game.Game, *gam
 	}
 
 	if g.Rules.TechsID == 0 {
-		g.Rules.Techs = &game.StaticTechStore
+		g.Rules.WithTechStore(&game.StaticTechStore)
 	} else {
 		techs, err := gr.db.FindTechStoreById(g.Rules.TechsID)
 		if err != nil {
 			return nil, nil, err
 		}
-		g.Rules.Techs = techs
+		g.Rules.WithTechStore(techs)
 	}
 
 	player, err := gr.db.FindPlayerByGameId(gameID, userID)
@@ -162,16 +173,17 @@ func (gr *GameRunner) SubmitTurn(gameID uint, userID uint) error {
 
 // check a game for every player submitted and generate a turn
 func (gr *GameRunner) CheckAndGenerateTurn(id uint) (TurnGenerationCheckResult, error) {
-	game, err := gr.LoadGame(id)
+	g, err := gr.LoadGame(id)
 
 	if err != nil {
 		return TurnNotGenerated, err
 	}
 
 	// if everyone submitted their turn, generate a new turn
-	if game.CheckAllPlayersSubmitted() {
-		game.GenerateTurn()
-		gr.db.SaveGame(game)
+	client := game.NewClient()
+	if client.CheckAllPlayersSubmitted(g.Players) {
+		client.GenerateTurn(g.Game, g.Universe, g.Players)
+		gr.db.SaveGame(g)
 		return TurnGenerated, nil
 	}
 

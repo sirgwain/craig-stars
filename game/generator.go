@@ -10,7 +10,7 @@ import (
 
 type generatedUniverse struct {
 	universe Universe
-	players  []Player
+	players  []*Player
 	size     Size
 	density  Density
 	rules    *Rules
@@ -20,7 +20,7 @@ type UniverseGenerator interface {
 	Generate() (*Universe, error)
 }
 
-func NewUniverseGenerator(size Size, density Density, players []Player, rules *Rules) UniverseGenerator {
+func NewUniverseGenerator(size Size, density Density, players []*Player, rules *Rules) UniverseGenerator {
 	return &generatedUniverse{
 		size:    size,
 		density: density,
@@ -60,37 +60,23 @@ func (gu *generatedUniverse) Generate() (*Universe, error) {
 		return nil, err
 	}
 
-	// assign created fleets to player's list
-	// future queries from the DB will handle this, but for initial universe generation
-	// we want to make sure our player has pointers to any fleets the game has assigned to them
-	for i := range gu.universe.Fleets {
-		fleet := &gu.universe.Fleets[i]
-
-		if !fleet.Starbase {
-			player := &gu.players[fleet.PlayerNum]
-			player.Fleets = append(player.Fleets, fleet)
-		}
-	}
-
 	// generatePlayerFleets(g)
 	gu.applyGameStartModeModifier()
 
 	// setup all the specs for planets, fleets, etc
-	for i := range gu.players {
-		player := &gu.players[i]
+	for _, player := range gu.players {
 		player.Spec = computePlayerSpec(player, gu.rules)
 	}
 
 	for i := range gu.universe.Planets {
 		planet := &gu.universe.Planets[i]
 		if planet.Owned() {
-			player := &gu.players[planet.PlayerNum]
+			player := gu.players[planet.PlayerNum]
 			planet.Spec = ComputePlanetSpec(gu.rules, planet, player)
 		}
 	}
 	// disoverer := discover{g}
-	for i := range gu.players {
-		player := &gu.players[i]
+	for _, player := range gu.players {
 
 		scanner := newPlayerScanner(&gu.universe, gu.rules, player)
 		if err := scanner.scan(); err != nil {
@@ -101,7 +87,7 @@ func (gu *generatedUniverse) Generate() (*Universe, error) {
 		// disoverer.playerInfoDiscover(player)
 
 		// TODO: check for AI player
-		ai := NewAIPlayer(player)
+		ai := NewAIPlayer(player, gu.universe.GetPlayerMapObjects(player.Num))
 		ai.processTurn()
 	}
 
@@ -130,7 +116,7 @@ func (gu *generatedUniverse) generatePlanets(area Vector) error {
 	log.Debug().Msgf("Generating %d planets in universe size %v for ", numPlanets, area)
 
 	names := planetNames
-	gu.rules.Random.Shuffle(len(names), func(i, j int) { names[i], names[j] = names[j], names[i] })
+	gu.rules.random.Shuffle(len(names), func(i, j int) { names[i], names[j] = names[j], names[i] })
 
 	gu.universe.Planets = make([]Planet, numPlanets)
 
@@ -141,9 +127,9 @@ func (gu *generatedUniverse) generatePlanets(area Vector) error {
 
 		// find a valid position for the planet
 		posCheckCount := 0
-		pos := Vector{X: float64(gu.rules.Random.Intn(int(area.X))), Y: float64(gu.rules.Random.Intn(int(area.Y)))}
+		pos := Vector{X: float64(gu.rules.random.Intn(int(area.X))), Y: float64(gu.rules.random.Intn(int(area.Y)))}
 		for !gu.isPositionValid(pos, &occupiedLocations, float64(gu.rules.PlanetMinDistance)) {
-			pos = Vector{X: float64(gu.rules.Random.Intn(int(area.X))), Y: float64(gu.rules.Random.Intn(int(area.Y)))}
+			pos = Vector{X: float64(gu.rules.random.Intn(int(area.X))), Y: float64(gu.rules.random.Intn(int(area.Y)))}
 			posCheckCount++
 			if posCheckCount > 1000 {
 				return fmt.Errorf("failed to find a valid position for a planet in 1000 tries, min: %d, numPlanets: %d, area: %v", gu.rules.PlanetMinDistance, numPlanets, area)
@@ -174,9 +160,7 @@ func (gu *generatedUniverse) generateWormholes() {
 }
 
 func (gu *generatedUniverse) generatePlayerTechLevels() {
-	for i := range gu.players {
-		// the first time we allocate an array of planets
-		player := &gu.players[i]
+	for _, player := range gu.players {
 		player.TechLevels = TechLevel(player.Race.Spec.StartingTechLevels)
 	}
 }
@@ -187,9 +171,7 @@ func (gu *generatedUniverse) generatePlayerPlans() {
 
 // generate designs for each player
 func (gu *generatedUniverse) generatePlayerShipDesigns() {
-	for i := range gu.players {
-		// the first time we allocate an array of planets
-		player := &gu.players[i]
+	for _, player := range gu.players {
 		designNames := mapset.NewSet[string]()
 		for _, startingPlanet := range player.Race.Spec.StartingPlanets {
 			for _, startingFleet := range startingPlanet.StartingFleets {
@@ -197,23 +179,23 @@ func (gu *generatedUniverse) generatePlayerShipDesigns() {
 					// only one design per name, i.e. Scout, Armored Probe
 					continue
 				}
-				techStore := gu.rules.Techs
+				techStore := gu.rules.techs
 				hull := techStore.GetHull(string(startingFleet.HullName))
 				design := designShip(techStore, hull, startingFleet.Name, player, player.DefaultHullSet, startingFleet.Purpose)
 				design.HullSetNumber = int(startingFleet.HullSetNumber)
 				design.Purpose = startingFleet.Purpose
 				design.Spec = ComputeShipDesignSpec(gu.rules, player, design)
-				player.Designs = append(player.Designs, design)
+				player.Designs = append(player.Designs, *design)
 			}
 		}
 
-		starbaseDesigns := gu.getStartingStarbaseDesigns(gu.rules.Techs, player)
+		starbaseDesigns := gu.getStartingStarbaseDesigns(gu.rules.techs, player)
 
 		for i := range starbaseDesigns {
 			design := &starbaseDesigns[i]
 			design.Purpose = ShipDesignPurposeStarbase
 			design.Spec = ComputeShipDesignSpec(gu.rules, player, design)
-			player.Designs = append(player.Designs, design)
+			player.Designs = append(player.Designs, *design)
 		}
 	}
 
@@ -221,9 +203,7 @@ func (gu *generatedUniverse) generatePlayerShipDesigns() {
 
 // have each player discover all the planets in the universe
 func (gu *generatedUniverse) generatePlayerPlanetReports() error {
-	for i := range gu.players {
-		// the first time we allocate an array of planets
-		player := &gu.players[i]
+	for _, player := range gu.players {
 		player.PlanetIntels = make([]PlanetIntel, len(gu.universe.Planets))
 		for j := range gu.universe.Planets {
 			if err := discoverPlanet(gu.rules, player, &gu.universe.Planets[j], false); err != nil {
@@ -238,7 +218,7 @@ func (gu *generatedUniverse) generatePlayerHomeworlds(area Vector) error {
 
 	ownedPlanets := []*Planet{}
 	rules := gu.rules
-	random := gu.rules.Random
+	random := gu.rules.random
 
 	// each player homeworld has the same random mineral concentration, for fairness
 	homeworldMinConc := Mineral{
@@ -259,8 +239,7 @@ func (gu *generatedUniverse) generatePlayerHomeworlds(area Vector) error {
 		Germanium: rules.MinStartingMineralSurface + random.Intn(rules.MaxStartingMineralSurface),
 	}
 
-	for playerIndex := range gu.players {
-		player := &gu.players[playerIndex]
+	for _, player := range gu.players {
 		minPlayerDistance := float64(area.X+area.Y) / 2.0 / float64(len(gu.players)+1)
 		fleetNum := 1
 		var homeworld *Planet
@@ -298,7 +277,6 @@ func (gu *generatedUniverse) generatePlayerHomeworlds(area Vector) error {
 			}
 
 			ownedPlanets = append(ownedPlanets, playerPlanet)
-			player.Planets = append(player.Planets, playerPlanet)
 
 			// our starting planet starts with default fleets
 			surfaceMinerals := homeworldSurfaceMinerals

@@ -12,7 +12,6 @@ func (db *DB) MigrateAll() error {
 	types := []interface{}{
 		&game.User{},
 		&game.Race{},
-		&game.Player{},
 		&game.PlayerMessage{},
 		&game.BattlePlan{},
 		&game.ProductionPlan{},
@@ -24,7 +23,6 @@ func (db *DB) MigrateAll() error {
 		&game.TechHullComponent{},
 		&game.TechHull{},
 		&game.Rules{},
-		&game.Game{},
 		&game.Planet{},
 		&game.PlanetIntel{},
 		&game.FleetIntel{},
@@ -39,6 +37,9 @@ func (db *DB) MigrateAll() error {
 		&game.Wormohole{},
 		&game.MineField{},
 	}
+
+	db.sqlDB.Table("games").AutoMigrate(&game.FullGame{})
+	db.sqlDB.Table("players").AutoMigrate(&game.FullPlayer{})
 
 	for _, t := range types {
 		log.Info().Msgf("Migrating %v", reflect.TypeOf(t))

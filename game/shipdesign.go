@@ -132,7 +132,7 @@ func (sd *ShipDesign) WithSpec(rules *Rules, player *Player) *ShipDesign {
 }
 
 func ComputeShipDesignSpec(rules *Rules, player *Player, design *ShipDesign) *ShipDesignSpec {
-	hull := rules.Techs.GetHull(design.Hull)
+	hull := rules.techs.GetHull(design.Hull)
 	spec := ShipDesignSpec{
 		Mass:                    hull.Mass,
 		Armor:                   hull.Armor,
@@ -153,12 +153,12 @@ func ComputeShipDesignSpec(rules *Rules, player *Player, design *ShipDesign) *Sh
 
 	for _, slot := range design.Slots {
 		if slot.Quantity > 0 {
-			component := rules.Techs.GetHullComponent(slot.HullComponent)
+			component := rules.techs.GetHullComponent(slot.HullComponent)
 			hullSlot := hull.Slots[slot.HullSlotIndex-1]
 
 			// record engine details
 			if hullSlot.Type == HullSlotTypeEngine {
-				engine := rules.Techs.GetEngine(slot.HullComponent)
+				engine := rules.techs.GetEngine(slot.HullComponent)
 				spec.Engine = engine.Name
 				spec.IdealSpeed = engine.IdealSpeed
 				spec.NumEngines = slot.Quantity
@@ -287,7 +287,7 @@ func (spec *ShipDesignSpec) ComputeScanRanges(rules *Rules, player *Player, desi
 
 	for _, slot := range design.Slots {
 		if slot.Quantity > 0 {
-			component := rules.Techs.GetHullComponent(slot.HullComponent)
+			component := rules.techs.GetHullComponent(slot.HullComponent)
 
 			// bat scanners have 0 range
 			if component.ScanRange != NoScanner {

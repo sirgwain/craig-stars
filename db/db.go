@@ -38,11 +38,11 @@ type Client interface {
 	GetGamesHostedByUser(userID uint) ([]game.Game, error)
 	GetGamesByUser(userID uint) ([]game.Game, error)
 	GetOpenGames() ([]game.Game, error)
-	FindGameById(id uint) (*game.Game, error)
+	FindGameById(id uint) (*game.FullGame, error)
 	FindGameByIdLight(id uint) (*game.Game, error)
 	FindGameRulesByGameId(gameId uint) (*game.Rules, error)
 	CreateGame(game *game.Game) error
-	SaveGame(game *game.Game) error
+	SaveGame(game *game.FullGame) error
 	DeleteGameById(id uint) error
 
 	GetRaces(userID uint) ([]game.Race, error)
@@ -50,7 +50,7 @@ type Client interface {
 	CreateRace(race *game.Race) error
 	SaveRace(race *game.Race) error
 
-	FindPlayerByGameId(gameID uint, userID uint) (*game.Player, error)
+	FindPlayerByGameId(gameID uint, userID uint) (*game.FullPlayer, error)
 	FindPlayerByGameIdLight(gameID uint, userID uint) (*game.Player, error)
 	SavePlayer(player *game.Player) error
 

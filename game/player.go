@@ -2,11 +2,15 @@ package game
 
 import (
 	"fmt"
-	"sort"
 	"time"
 
 	"github.com/google/uuid"
 )
+
+type FullPlayer struct {
+	Player
+	PlayerMapObjects
+}
 
 type Player struct {
 	ID                    uint                           `gorm:"primaryKey" json:"id,omitempty"`
@@ -28,24 +32,19 @@ type Player struct {
 	ResearchSpentLastYear int                            `json:"researchSpentLastYear,omitempty"`
 	NextResearchField     NextResearchField              `json:"nextResearchField,omitempty"`
 	Researching           TechField                      `json:"researching,omitempty"`
-	BattlePlans           []BattlePlan                   `json:"battlePlans,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
-	ProductionPlans       []ProductionPlan               `json:"productionPlans,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
+	BattlePlans           []BattlePlan                   `json:"battlePlans,omitempty"`
+	ProductionPlans       []ProductionPlan               `json:"productionPlans,omitempty"`
 	TransportPlans        []TransportPlan                `json:"transportPlans,omitempty" gorm:"serializer:json"`
-	Messages              []PlayerMessage                `json:"messages,omitempty" gorm:"constraint:OnDelete:CASCADE;"`
-	Designs               []*ShipDesign                  `json:"designs" gorm:"foreignKey:PlayerID;references:ID"`
-	Fleets                []*Fleet                       `json:"fleets" gorm:"foreignKey:PlayerID;references:ID"`
-	Planets               []*Planet                      `json:"planets" gorm:"foreignKey:PlayerID;references:ID"`
-	MineralPackets        []*MineralPacket               `json:"mineralPackets" gorm:"foreignKey:PlayerID;references:ID"`
-	PlanetIntels          []PlanetIntel                  `json:"planetIntels" gorm:"constraint:OnDelete:CASCADE;"`
-	FleetIntels           []FleetIntel                   `json:"fleetIntels" gorm:"constraint:OnDelete:CASCADE;"`
-	DesignIntels          []ShipDesignIntel              `json:"designIntels" gorm:"constraint:OnDelete:CASCADE;"`
-	MineralPacketIntels   []MineralPacketIntel           `json:"mineralPacketIntels" gorm:"constraint:OnDelete:CASCADE;"`
+	Messages              []PlayerMessage                `json:"messages,omitempty"`
+	Designs               []ShipDesign                   `json:"designs" gorm:"foreignKey:PlayerID;references:ID"`
+	PlanetIntels          []PlanetIntel                  `json:"planetIntels"`
+	FleetIntels           []FleetIntel                   `json:"fleetIntels"`
+	DesignIntels          []ShipDesignIntel              `json:"designIntels"`
+	MineralPacketIntels   []MineralPacketIntel           `json:"mineralPacketIntels"`
+	Stats                 PlayerStats                    `json:"stats,omitempty" gorm:"serializer:json"`
 	Spec                  *PlayerSpec                    `json:"spec,omitempty" gorm:"serializer:json"`
-	Stats                 *PlayerStats                   `json:"stats,omitempty" gorm:"serializer:json"`
-	PlanetsByNum          map[int]*Planet                `json:"-" gorm:"-"`
-	FleetsByNum           map[int]*Fleet                 `json:"-" gorm:"-"`
-	FleetIntelsByKey      map[string]*FleetIntel         `json:"-" gorm:"-"`
-	DesignIntelsByKey     map[uuid.UUID]*ShipDesignIntel `json:"-" gorm:"-"`
+	fleetIntelsByKey      map[string]*FleetIntel         `json:"-" gorm:"-"`
+	designIntelsByKey     map[uuid.UUID]*ShipDesignIntel `json:"-" gorm:"-"`
 	LeftoverResources     int                            `json:"-" gorm:"-"`
 }
 
@@ -156,6 +155,13 @@ type ProductionPlanItem struct {
 	SortOrder        int           `json:"-"`
 }
 
+// All mapobjects that a player can issue commands to
+type PlayerMapObjects struct {
+	Fleets         []*Fleet         `json:"fleets" gorm:"foreignKey:PlayerID;references:ID"`
+	Planets        []*Planet        `json:"planets" gorm:"foreignKey:PlayerID;references:ID"`
+	MineFields     []*MineField     `json:"mineFields" gorm:"foreignKey:PlayerID;references:ID"`
+}
+
 // create a new player with an existing race. The race
 // will be copied for the player
 func NewPlayer(userID uint, race *Race) *Player {
@@ -168,7 +174,6 @@ func NewPlayer(userID uint, race *Race) *Player {
 
 	return &Player{
 		UserID:            userID,
-		Stats:             &PlayerStats{},
 		Race:              playerRace,
 		Color:             "#0000FF", // default to blue
 		ResearchAmount:    15,
@@ -227,65 +232,10 @@ func (p *Player) String() string {
 	return fmt.Sprintf("Player %d (%d) %s", p.Num, p.ID, p.Race.PluralName)
 }
 
-func (p *Player) getNextFleetNum() int {
-	num := 1
-
-	orderedFleets := make([]*Fleet, len(p.Fleets))
-	copy(orderedFleets, p.Fleets)
-	sort.Slice(orderedFleets, func(i, j int) bool { return orderedFleets[i].Num < orderedFleets[j].Num })
-
-	for i := 0; i < len(orderedFleets); i++ {
-		// todo figure out starbasees
-		fleet := orderedFleets[i]
-		if i > 0 {
-			// if we are past fleet #1 and we skipped a number, used the skipped number
-			if fleet.Num > 1 && fleet.Num != orderedFleets[i-1].Num+1 {
-				return orderedFleets[i-1].Num + 1
-			}
-		}
-		// we are the next num...
-		num = fleet.Num + 1
-	}
-
-	return num
-}
-
-// get a player owned planet by num, or nil if it doesn't exist
-func (p *Player) GetPlanet(num int) *Planet {
-	return p.PlanetsByNum[num]
-}
-
-func (p *Player) AddPlanet(planet *Planet) {
-	p.Planets = append(p.Planets, planet)
-	p.PlanetsByNum[planet.Num] = planet
-}
-
-// get a player owned planet by num, or nil if it doesn't exist
-func (p *Player) GetFleet(num int) *Fleet {
-	return p.FleetsByNum[num]
-}
-
-func (p *Player) AddFleet(fleet *Fleet) {
-	p.Fleets = append(p.Fleets, fleet)
-	p.FleetsByNum[fleet.Num] = fleet
-}
-
-func (p *Player) RemoveFleet(fleet *Fleet) {
-	delete(p.FleetsByNum, fleet.Num)
-
-	fleets := make([]*Fleet, 0, len(p.Fleets)-1)
-	for _, f := range p.Fleets {
-		if f.Num != fleet.Num {
-			fleets = append(fleets, f)
-		}
-	}
-	p.Fleets = fleets
-}
-
 // Get a player ShipDesign by name, or nil if no design found
 func (p *Player) GetDesign(name string) *ShipDesign {
 	for i := range p.Designs {
-		design := p.Designs[i]
+		design := &p.Designs[i]
 		if design.Name == name {
 			return design
 		}
@@ -300,10 +250,10 @@ func (p *Player) GetLatestDesign(purpose ShipDesignPurpose) *ShipDesign {
 		design := p.Designs[i]
 		if design.Purpose == purpose {
 			if latest == nil {
-				latest = design
+				latest = &design
 			} else {
 				if latest.Version < design.Version {
-					latest = design
+					latest = &design
 				}
 			}
 
@@ -313,19 +263,8 @@ func (p *Player) GetLatestDesign(purpose ShipDesignPurpose) *ShipDesign {
 	return latest
 }
 
-// get all planets the player owns that can build ships of mass mass
-func (p *Player) GetBuildablePlanets(mass int) []*Planet {
-	planets := []*Planet{}
-	for _, planet := range p.Planets {
-		if planet.CanBuild(mass) {
-			planets = append(planets, planet)
-		}
-	}
-	return planets
-}
-
 func computePlayerSpec(player *Player, rules *Rules) *PlayerSpec {
-	techs := rules.Techs
+	techs := rules.techs
 	spec := PlayerSpec{
 		PlanetaryScanner:  techs.GetBestPlanetaryScanner(player),
 		Defense:           techs.GetBestDefense(player),
@@ -362,31 +301,20 @@ func (p *Player) CanLearnTech(tech *Tech) bool {
 
 func (p *Player) clearTransientReports() {
 	p.FleetIntels = []FleetIntel{}
-	p.FleetIntelsByKey = map[string]*FleetIntel{}
+	p.fleetIntelsByKey = map[string]*FleetIntel{}
 }
 
 // build maps used for quick lookups for various player objects
 func (p *Player) BuildMaps() {
-	p.FleetIntelsByKey = map[string]*FleetIntel{}
+	p.fleetIntelsByKey = map[string]*FleetIntel{}
 	for i := range p.FleetIntels {
 		intel := &p.FleetIntels[i]
-		p.FleetIntelsByKey[intel.String()] = intel
+		p.fleetIntelsByKey[intel.String()] = intel
 	}
 
-	p.DesignIntelsByKey = map[uuid.UUID]*ShipDesignIntel{}
+	p.designIntelsByKey = map[uuid.UUID]*ShipDesignIntel{}
 	for i := range p.DesignIntels {
 		intel := &p.DesignIntels[i]
-		p.DesignIntelsByKey[intel.UUID] = intel
+		p.designIntelsByKey[intel.UUID] = intel
 	}
-
-	p.PlanetsByNum = make(map[int]*Planet, len(p.Planets))
-	for _, planet := range p.Planets {
-		p.PlanetsByNum[planet.Num] = planet
-	}
-
-	p.FleetsByNum = make(map[int]*Fleet, len(p.Fleets))
-	for _, fleet := range p.Fleets {
-		p.FleetsByNum[fleet.Num] = fleet
-	}
-
 }
