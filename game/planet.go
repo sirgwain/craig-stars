@@ -84,7 +84,7 @@ type PlanetSpec struct {
 	CanTerraform              bool    `json:"canTerraform,omitempty"`
 	TerraformAmount           Hab     `json:"terraformAmount,omitempty"`
 	HasStarbase               bool    `json:"hasStarbase,omitempty"`
-	dockCapacity              int     `json:"dockCapacity,omitempty"`
+	DockCapacity              int     `json:"dockCapacity,omitempty"`
 }
 
 func NewPlanet(gameID uint) Planet {

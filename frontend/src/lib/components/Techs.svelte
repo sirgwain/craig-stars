@@ -19,6 +19,8 @@
 			techs = [];
 			techs = techs.concat(techStore.engines);
 			techs = techs.concat(techStore.planetaryScanners);
+			techs = techs.concat(techStore.defenses);
+			techs = techs.concat(techStore.hullComponents);
 		} else {
 			console.error(response);
 		}

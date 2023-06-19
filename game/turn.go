@@ -21,10 +21,10 @@ func generateTurn(game *Game) error {
 	return nil
 }
 
+// grow all owned planets by some population
 func grow(game *Game) {
 	for i := range game.Planets {
 		planet := &game.Planets[i]
-
 		if planet.Owned() {
 			// player := &game.Players[*planet.PlayerNum]
 			planet.SetPopulation(planet.Population() + planet.Spec.GrowthAmount)
@@ -33,7 +33,15 @@ func grow(game *Game) {
 	}
 }
 
+// mine all owned planets for minerals
 func mine(game *Game) {
+	for i := range game.Planets {
+		planet := &game.Planets[i]
+		if planet.Owned() {
+			planet.Cargo = planet.Cargo.AddMineral(planet.Spec.MineralOutput)
+		}
+	}
+
 }
 
 func produce(game *Game) {

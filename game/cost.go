@@ -33,6 +33,6 @@ func (c *Cost) Add(other Cost) Cost {
 		Ironium:   c.Ironium + other.Ironium,
 		Boranium:  c.Boranium + other.Boranium,
 		Germanium: c.Germanium + other.Germanium,
-		Resources: c.Germanium + other.Resources,
+		Resources: c.Resources + other.Resources,
 	}
 }
