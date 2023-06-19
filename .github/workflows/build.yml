@@ -29,8 +29,8 @@ jobs:
           check-latest: true
           cache: true
       - run: mkdir -p dist/
-      - run: go mod tidy && CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -o dist/craig-stars main.go
-      - run: tar -cvf ./dist/craig-stars.tgz ./dist/craig-stars
+      - run: go mod tidy && CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -ldflags='-s -w -extldflags "-static"' -o dist/craig-stars main.go
+      - run: tar -cvf ./dist/craig-stars.tgz -C ./dist ./craig-stars
 
       - uses: actions/upload-artifact@v3
         with:
