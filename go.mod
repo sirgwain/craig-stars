@@ -24,7 +24,10 @@ require (
 	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e
 )
 
-require github.com/wader/gormstore/v2 v2.0.0 // indirect
+require (
+	github.com/simukti/sqldb-logger v0.0.0-20220521163925-faf2f2be0eb6 // indirect
+	github.com/wader/gormstore/v2 v2.0.0 // indirect
+)
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect

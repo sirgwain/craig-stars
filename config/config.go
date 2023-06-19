@@ -10,9 +10,10 @@ import (
 
 type Config struct {
 	Database struct {
-		Recreate bool   `yaml:"Recreate,omitempty"`
-		Filename string `yaml:"Filename,omitempty"`
-		Schema   string `yaml:"Schema,omitempty"`
+		Recreate     bool   `yaml:"Recreate,omitempty"`
+		Filename     string `yaml:"Filename,omitempty"`
+		Schema       string `yaml:"Schema,omitempty"`
+		DebugLogging bool   `yaml:"DebugLogging,omitempty"`
 	}
 	GeneratedUserPassword string
 }

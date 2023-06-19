@@ -79,7 +79,7 @@ func (c *client) GetRaces() ([]game.Race, error) {
 
 	// don't include password in bulk select
 	items := []Race{}
-	if err := c.db.Select(&items, `SELECT * FROM Races`); err != nil {
+	if err := c.db.Select(&items, `SELECT * FROM races`); err != nil {
 		if err == sql.ErrNoRows {
 			return []game.Race{}, nil
 		}
@@ -93,7 +93,7 @@ func (c *client) GetRacesForUser(userID int64) ([]game.Race, error) {
 
 	// don't include password in bulk select
 	items := []Race{}
-	if err := c.db.Select(&items, `SELECT * FROM Races WHERE userId = ?`, userID); err != nil {
+	if err := c.db.Select(&items, `SELECT * FROM races WHERE userId = ?`, userID); err != nil {
 		if err == sql.ErrNoRows {
 			return []game.Race{}, nil
 		}
