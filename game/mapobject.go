@@ -10,7 +10,7 @@ import (
 type MapObject struct {
 	ID        uint           `gorm:"primaryKey" json:"id" header:"Username"`
 	CreatedAt time.Time      `json:"createdAt"`
-	UpdatedAt time.Time      `json:"updatedat"`
+	UpdatedAt time.Time      `json:"updatedAt"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deletedAt"`
 	Dirty     bool           `json:"-" gorm:"-"`
 	GameID    uint           `json:"gameId"`

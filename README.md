@@ -10,6 +10,7 @@ A web based Stars! clone.
 - [gorm](https://gorm.io) + sqlite (for session/user management)
 - [sveltekit](https://kit.svelte.dev) (with static adaptor)
 - [tailwindcss](https://tailwindcss.com)
+- [daisyui](https://daisyui.com)
 - [svelteui](https://www.svelteui.org)
 
 # build

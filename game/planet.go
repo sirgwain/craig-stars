@@ -31,7 +31,7 @@ type Planet struct {
 type ProductionQueueItem struct {
 	ID         uint           `gorm:"primaryKey" json:"id" header:"Username"`
 	CreatedAt  time.Time      `json:"createdAt"`
-	UpdatedAt  time.Time      `json:"updatedat"`
+	UpdatedAt  time.Time      `json:"updatedAt"`
 	DeletedAt  gorm.DeletedAt `gorm:"index" json:"deletedAt"`
 	PlanetID   uint           `json:"-"`
 	Type       QueueItemType  `json:"type"`

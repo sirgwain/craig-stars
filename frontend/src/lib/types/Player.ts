@@ -42,6 +42,7 @@ export interface Message {
 	type: string;
 	text: string;
 	targetType: MessageTargetType;
+	targetId?: number;
 }
 
 export enum MessageTargetType {

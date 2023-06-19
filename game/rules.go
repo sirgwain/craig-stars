@@ -11,7 +11,7 @@ import (
 type Rules struct {
 	ID                                 uint                                `gorm:"primaryKey" json:"id" header:"Username"`
 	CreatedAt                          time.Time                           `json:"createdAt"`
-	UpdatedAt                          time.Time                           `json:"updatedat"`
+	UpdatedAt                          time.Time                           `json:"updatedAt"`
 	DeletedAt                          gorm.DeletedAt                      `gorm:"index" json:"deletedAt"`
 	GameID                             uint                                `json:"gameId"`
 	Seed                               int64                               `json:"seed"`
