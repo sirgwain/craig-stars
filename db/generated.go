@@ -56,6 +56,14 @@ func (c *GameConverter) ConvertGameGame(source *game.Game) *Game {
 	}
 	return pDbGame
 }
+func (c *GameConverter) ConvertGameMineField(source *game.MineField) *MineField {
+	var pDbMineField *MineField
+	if source != nil {
+		dbMineField := c.gameMineFieldToDbMineField(*source)
+		pDbMineField = &dbMineField
+	}
+	return pDbMineField
+}
 func (c *GameConverter) ConvertGamePlanet(source *game.Planet) *Planet {
 	var pDbPlanet *Planet
 	if source != nil {
@@ -130,6 +138,14 @@ func (c *GameConverter) ConvertGames(source []Game) []game.Game {
 		gameGameList[i] = c.ConvertGame(source[i])
 	}
 	return gameGameList
+}
+func (c *GameConverter) ConvertMineField(source *MineField) *game.MineField {
+	var pGameMineField *game.MineField
+	if source != nil {
+		gameMineField := c.dbMineFieldToGameMineField(*source)
+		pGameMineField = &gameMineField
+	}
+	return pGameMineField
 }
 func (c *GameConverter) ConvertPlanet(source *Planet) *game.Planet {
 	var pGamePlanet *game.Planet
@@ -287,6 +303,14 @@ func (c *GameConverter) dbFleetToGameFleet(source Fleet) game.Fleet {
 	gameFleet.Spec = FleetSpecToGameFleetSpec(source.Spec)
 	return gameFleet
 }
+func (c *GameConverter) dbMineFieldToGameMineField(source MineField) game.MineField {
+	var gameMineField game.MineField
+	gameMineField.MapObject = ExtendMineFieldMapObject(source)
+	gameMineField.Type = game.MineFieldType(source.Type)
+	gameMineField.NumMines = source.NumMines
+	gameMineField.Detonate = source.Detonate
+	return gameMineField
+}
 func (c *GameConverter) dbPlanetToGamePlanet(source Planet) game.Planet {
 	var gamePlanet game.Planet
 	gamePlanet.MapObject = ExtendPlanetMapObject(source)
@@ -428,6 +452,23 @@ func (c *GameConverter) gameGameToDbGame(source game.Game) Game {
 	dbGame.AreaX = source.Area.X
 	dbGame.AreaY = source.Area.Y
 	return dbGame
+}
+func (c *GameConverter) gameMineFieldToDbMineField(source game.MineField) MineField {
+	var dbMineField MineField
+	dbMineField.ID = source.MapObject.ID
+	dbMineField.GameID = source.MapObject.GameID
+	dbMineField.CreatedAt = TimeToTime(source.MapObject.CreatedAt)
+	dbMineField.UpdatedAt = TimeToTime(source.MapObject.UpdatedAt)
+	dbMineField.PlayerID = source.MapObject.PlayerID
+	dbMineField.X = source.MapObject.Position.X
+	dbMineField.Y = source.MapObject.Position.Y
+	dbMineField.Name = source.MapObject.Name
+	dbMineField.Num = source.MapObject.Num
+	dbMineField.PlayerNum = source.MapObject.PlayerNum
+	dbMineField.Type = game.MineFieldType(source.Type)
+	dbMineField.NumMines = source.NumMines
+	dbMineField.Detonate = source.Detonate
+	return dbMineField
 }
 func (c *GameConverter) gamePlanetToDbPlanet(source game.Planet) Planet {
 	var dbPlanet Planet

@@ -255,6 +255,24 @@ type Converter interface {
 	// goverter:mapExtend MapObject ExtendSalvageMapObject
 	// goverter:mapExtend Cargo ExtendSalvageCargo
 	ConvertSalvage(source *Salvage) *game.Salvage
+
+	// goverter:map MapObject.ID ID
+	// goverter:map MapObject.GameID GameID
+	// goverter:map MapObject.CreatedAt CreatedAt
+	// goverter:map MapObject.UpdatedAt UpdatedAt
+	// goverter:map MapObject.PlayerID PlayerID
+	// goverter:map MapObject.Dirty Dirty
+	// goverter:map MapObject.Delete Delete
+	// goverter:map MapObject.Position.X X
+	// goverter:map MapObject.Position.Y Y
+	// goverter:map MapObject.Name Name
+	// goverter:map MapObject.Num Num
+	// goverter:map MapObject.PlayerNum	 PlayerNum
+	// goverter:ignore Tags
+	ConvertGameMineField(source *game.MineField) *MineField
+
+	// goverter:mapExtend MapObject ExtendMineFieldMapObject
+	ConvertMineField(source *MineField) *game.MineField
 }
 
 func TimeToTime(source time.Time) time.Time {
@@ -710,10 +728,30 @@ func ExtendSalvageMapObject(source Salvage) game.MapObject {
 		// Tags:      source.Tags,
 	}
 }
+
 func ExtendSalvageCargo(source Salvage) game.Cargo {
 	return game.Cargo{
 		Ironium:   source.Ironium,
 		Boranium:  source.Boranium,
 		Germanium: source.Germanium,
+	}
+}
+
+func ExtendMineFieldMapObject(source MineField) game.MapObject {
+	return game.MapObject{
+		Type:      game.MapObjectTypeMineField,
+		ID:        source.ID,
+		GameID:    source.GameID,
+		CreatedAt: source.CreatedAt,
+		UpdatedAt: source.UpdatedAt,
+		PlayerID:  source.PlayerID,
+		Position: game.Vector{
+			X: source.X,
+			Y: source.Y,
+		},
+		Name:      source.Name,
+		Num:       source.Num,
+		PlayerNum: source.PlayerNum,
+		// Tags:      source.Tags,
 	}
 }

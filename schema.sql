@@ -355,6 +355,7 @@ CREATE TABLE mineFields (
   playerNum INTEGER,
   numMines INTEGER,
   detonate NUMERIC,
+  type TEXT,
   CONSTRAINT fkPlayersMineFields FOREIGN KEY (playerId) REFERENCES players (id),
   CONSTRAINT fkGamesMineFields FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
 );
