@@ -1,5 +1,7 @@
 package game
 
+import "math"
+
 type Cost struct {
 	Ironium   int `json:"ironium,omitempty"`
 	Boranium  int `json:"boranium,omitempty"`
@@ -28,11 +30,63 @@ func (c *Cost) Total() int {
 	return c.Ironium + c.Boranium + c.Germanium + c.Resources
 }
 
-func (c *Cost) Add(other Cost) Cost {
+func (c Cost) Add(other Cost) Cost {
 	return Cost{
 		Ironium:   c.Ironium + other.Ironium,
 		Boranium:  c.Boranium + other.Boranium,
 		Germanium: c.Germanium + other.Germanium,
 		Resources: c.Resources + other.Resources,
 	}
+}
+
+func (c Cost) AddCargoMinerals(other Cargo) Cost {
+	return Cost{
+		Ironium:   c.Ironium + other.Ironium,
+		Boranium:  c.Boranium + other.Boranium,
+		Germanium: c.Germanium + other.Germanium,
+		Resources: c.Resources,
+	}
+}
+
+func (c Cost) Minus(other Cost) Cost {
+	return Cost{
+		Ironium:   c.Ironium - other.Ironium,
+		Boranium:  c.Boranium - other.Boranium,
+		Germanium: c.Germanium - other.Germanium,
+		Resources: c.Resources - other.Resources,
+	}
+}
+
+func (c Cost) MultiplyInt(factor int) Cost {
+	return Cost{
+		Ironium:   c.Ironium * factor,
+		Boranium:  c.Boranium * factor,
+		Germanium: c.Germanium * factor,
+		Resources: c.Resources * factor,
+	}
+}
+
+// determine how many times and item costing cost can be built by available resources
+func (available Cost) NumBuildable(cost Cost) int {
+	buildable := Cost{math.MaxInt, math.MaxInt, math.MaxInt, math.MaxInt}
+
+	if cost.Ironium > 0 {
+		buildable.Ironium = available.Ironium / cost.Ironium
+	}
+	if cost.Boranium > 0 {
+		buildable.Boranium = available.Boranium / cost.Boranium
+	}
+	if cost.Germanium > 0 {
+		buildable.Germanium = available.Germanium / cost.Germanium
+	}
+	if cost.Resources > 0 {
+		buildable.Resources = available.Resources / cost.Resources
+	}
+
+	return MinInt(
+		buildable.Ironium,
+		buildable.Boranium,
+		buildable.Germanium,
+		buildable.Resources,
+	)
 }

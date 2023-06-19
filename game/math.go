@@ -31,3 +31,36 @@ func clampf(value, min, max float64) float64 {
 	}
 	return value
 }
+
+func MaxInt(nums ...int) int {
+	result := math.MinInt
+	for _, value := range nums {
+		if value > result {
+			result = value
+		}
+	}
+
+	return result
+}
+
+func MinInt(nums ...int) int {
+	result := math.MaxInt
+	for _, value := range nums {
+		if value < result {
+			result = value
+		}
+	}
+
+	return result
+}
+
+func MinFloat64(nums ...float64) float64 {
+	result := math.MaxFloat64
+	for _, value := range nums {
+		if value < result {
+			result = value
+		}
+	}
+
+	return result
+}

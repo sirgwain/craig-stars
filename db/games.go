@@ -79,7 +79,7 @@ func (db *DB) CreateGame(game *game.Game) error {
 func (db *DB) SaveGame(game *game.Game) error {
 
 	// rules don't change after game is created
-	err := db.sqlDB.Omit("Planets", "Fleets", "Players", "Players").Save(game).Error
+	err := db.sqlDB.Omit("Planets", "Fleets", "Players").Save(game).Error
 	if err != nil {
 		return err
 	}
@@ -134,11 +134,20 @@ func (db *DB) SaveGame(game *game.Game) error {
 
 func (db *DB) FindGameById(id uint) (*game.Game, error) {
 	g := game.Game{}
-	if err := db.sqlDB.Preload(clause.Associations).Preload("Planets", func(db *gorm.DB) *gorm.DB {
+	if err := db.sqlDB.
+		Preload(clause.Associations).Preload("Planets", func(db *gorm.DB) *gorm.DB {
 		return db.Order("planets.num")
-	}).Preload("Planets.ProductionQueue", func(db *gorm.DB) *gorm.DB {
-		return db.Order("production_queue_items.sort_order")
-	}).Preload("Players.Race").Preload("Players.PlanetIntels").Preload("Players.Fleets").Preload("Players.Messages").First(&g, id).Error; err != nil {
+	}).
+		Preload("Planets.ProductionQueue", func(db *gorm.DB) *gorm.DB {
+			return db.Order("production_queue_items.sort_order")
+		}).
+		Preload("Fleets.Tokens").
+		Preload("Players.Race").
+		Preload("Players.Designs").
+		Preload("Players.PlanetIntels").
+		Preload("Players.BattlePlans").
+		Preload("Players.Messages").
+		First(&g, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		} else {

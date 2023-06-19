@@ -102,3 +102,18 @@ func (m *messageClient) homePlanet(player *Player, planet *Planet) {
 	text := fmt.Sprintf("Your home planet is %s. Your people are ready to leave the nest and explore the universe.  Good luck.", planet.Name)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageHomePlanet, Text: text, TargetType: TargetPlanet, TargetID: planet.ID})
 }
+
+func (m *messageClient) minesBuilt(player *Player, planet *Planet, num int) {
+	text := fmt.Sprintf("You have built %d mine(s) on %s.", num, planet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageBuiltMine, Text: text, TargetType: TargetPlanet, TargetID: planet.ID})
+}
+
+func (m *messageClient) factoriesBuilt(player *Player, planet *Planet, num int) {
+	text := fmt.Sprintf("You have built %d factory(s) on %s.", num, planet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageBuiltFactory, Text: text, TargetType: TargetPlanet, TargetID: planet.ID})
+}
+
+func (m *messageClient) defensesBuilt(player *Player, planet *Planet, num int) {
+	text := fmt.Sprintf("You have built %d defense(s) on %s.", num, planet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageBuiltFactory, Text: text, TargetType: TargetPlanet, TargetID: planet.ID})
+}
