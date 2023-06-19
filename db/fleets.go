@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 )
 
@@ -113,6 +114,26 @@ func (c *client) GetFleet(id int64) (*cs.Fleet, error) {
 	}
 
 	fleet := c.converter.ConvertFleet(&item)
+
+	// load a fleet's designs
+	designNums := make([]int, 0, len(fleet.Tokens))
+	for i := range fleet.Tokens {
+		designNums = append(designNums, fleet.Tokens[i].DesignNum)
+	}
+
+	// this might be an error case, or we're in a unit test
+	if len(designNums) == 0 {
+		log.Warn().Int64("ID", fleet.ID).Msg("fleet has no designs associated with tokens")
+		return fleet, nil
+	}
+
+	designs, err := c.getShipDesignsByNums(designNums)
+	if err != nil {
+		return nil, fmt.Errorf("get designs by nums -> %w", err)
+	}
+
+	fleet.InjectDesigns(designs)
+
 	return fleet, nil
 }
 
