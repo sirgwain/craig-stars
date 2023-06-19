@@ -92,7 +92,6 @@ func (item Rules) Scan(src interface{}) error {
 
 func (c *client) GetGames() ([]game.Game, error) {
 
-	// don't include password in bulk select
 	items := []Game{}
 	if err := c.db.Select(&items, `SELECT * FROM Games`); err != nil {
 		if err == sql.ErrNoRows {
@@ -106,9 +105,21 @@ func (c *client) GetGames() ([]game.Game, error) {
 
 func (c *client) GetGamesForHost(userID int64) ([]game.Game, error) {
 
-	// don't include password in bulk select
 	items := []Game{}
 	if err := c.db.Select(&items, `SELECT * FROM Games WHERE hostId = ?`, userID); err != nil {
+		if err == sql.ErrNoRows {
+			return []game.Game{}, nil
+		}
+		return nil, err
+	}
+
+	return c.converter.ConvertGames(items), nil
+}
+
+func (c *client) GetGamesForUser(userID int64) ([]game.Game, error) {
+
+	items := []Game{}
+	if err := c.db.Select(&items, `SELECT * from games g WHERE g.id in (SELECT game_id from players p WHERE p.user_id = ?)`, userID); err != nil {
 		if err == sql.ErrNoRows {
 			return []game.Game{}, nil
 		}

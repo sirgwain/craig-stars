@@ -120,7 +120,6 @@ func (c *client) GetFleet(id int64) (*game.Fleet, error) {
 
 func (c *client) getFleetsForGame(gameId int64) ([]*game.Fleet, error) {
 
-	// don't include password in bulk select
 	items := []Fleet{}
 	if err := c.db.Select(&items, `SELECT * FROM fleets WHERE gameId = ?`, gameId); err != nil {
 		if err == sql.ErrNoRows {

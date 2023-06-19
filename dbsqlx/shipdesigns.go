@@ -90,7 +90,6 @@ func (item *ShipDesignSpec) Scan(src interface{}) error {
 
 func (c *client) GetShipDesignsForPlayer(playerID int64) ([]game.ShipDesign, error) {
 
-	// don't include password in bulk select
 	items := []ShipDesign{}
 	if err := c.db.Select(&items, `SELECT * FROM shipDesigns WHERE playerId = ?`, playerID); err != nil {
 		if err == sql.ErrNoRows {

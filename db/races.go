@@ -19,7 +19,7 @@ func (c *client) GetRaces(userID int64) ([]*game.Race, error) {
 	return races, nil
 }
 
-func (c *client) FindRaceById(id int64) (*game.Race, error) {
+func (c *client) GetRace(id int64) (*game.Race, error) {
 	race := game.Race{}
 	if err := c.sqlDB.First(&race, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -32,7 +32,16 @@ func (c *client) FindRaceById(id int64) (*game.Race, error) {
 	return &race, nil
 }
 
-func (c *client) SaveRace(race *game.Race) error {
+func (c *client) CreateRace(race *game.Race) error {
+	err := c.sqlDB.Save(race).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *client) UpdateRace(race *game.Race) error {
 	err := c.sqlDB.Save(race).Error
 	if err != nil {
 		return err

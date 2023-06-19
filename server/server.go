@@ -85,7 +85,7 @@ func Start(db db.Client, config config.Config) {
 	ar.POST("/games", server.HostGame)
 	ar.POST("/games/open/:id", server.JoinGame)
 	ar.GET("/games/:id", server.PlayerGame)
-	ar.DELETE("/games/:id", server.DeleteGameById)
+	ar.DELETE("/games/:id", server.DeleteGame)
 	ar.POST("/games/:id/submit-turn", server.SubmitTurn)
 	ar.PUT("/planets/:id", server.UpdatePlanetOrders)
 	ar.POST("/fleets/:id/transfer-cargo", server.TransferCargo)

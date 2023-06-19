@@ -31,7 +31,7 @@ func (s *server) PlayerGames(c *gin.Context) {
 func (s *server) HostedGames(c *gin.Context) {
 	user := s.GetSessionUser(c)
 
-	games, err := s.db.GetGamesHostedByUser(user.ID)
+	games, err := s.db.GetGamesForHost(user.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -58,7 +58,7 @@ func (s *server) OpenGame(c *gin.Context) {
 		return
 	}
 
-	game, err := s.db.FindGameByIdLight(id.ID)
+	game, err := s.db.GetGame(id.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -129,13 +129,13 @@ func (s *server) JoinGame(c *gin.Context) {
 		return
 	}
 
-	game, err := s.db.FindGameById(id.ID)
+	game, err := s.db.GetFullGame(id.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	race, err := s.db.FindRaceById(body.RaceID)
+	race, err := s.db.GetRace(body.RaceID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

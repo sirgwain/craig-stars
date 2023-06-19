@@ -46,7 +46,7 @@ func (gr *GameRunner) HostGame(hostID int64, settings *game.GameSettings) (*game
 		if player.Type == game.NewGamePlayerTypeHost {
 
 			// add the host player with the host race
-			race, err := gr.db.FindRaceById(player.RaceID)
+			race, err := gr.db.GetRace(player.RaceID)
 			if err != nil {
 				return nil, err
 			}
@@ -71,7 +71,7 @@ func (gr *GameRunner) HostGame(hostID int64, settings *game.GameSettings) (*game
 		Universe: &game.Universe{}, // todo: populate
 	}
 
-	gr.db.SaveGame(fg)
+	gr.db.UpdateFullGame(fg)
 
 	// generate the universe if this game is done
 	if g.OpenPlayerSlots == 0 {
@@ -87,7 +87,7 @@ func (gr *GameRunner) HostGame(hostID int64, settings *game.GameSettings) (*game
 // add a player to an existing game
 func (gr *GameRunner) AddPlayer(gameID int64, userID int64, race *game.Race) error {
 
-	g, err := gr.db.FindGameById(gameID)
+	g, err := gr.db.GetFullGame(gameID)
 	if err != nil {
 		return fmt.Errorf("unable to load game %d: %w", gameID, err)
 	}
@@ -98,7 +98,7 @@ func (gr *GameRunner) AddPlayer(gameID int64, userID int64, race *game.Race) err
 	if err := gr.db.SavePlayer(player); err != nil {
 		return fmt.Errorf("failed to save player %s for game %d: %w", player, gameID, err)
 	}
-	if err := gr.db.SaveGame(g); err != nil {
+	if err := gr.db.UpdateFullGame(g); err != nil {
 		return fmt.Errorf("failed to save game %d: %w", gameID, err)
 	}
 
@@ -128,7 +128,7 @@ func (gr *GameRunner) GenerateUniverse(gameID int64) (*game.Universe, error) {
 	g.State = game.GameStateWaitingForPlayers
 	g.Universe = universe
 
-	err = gr.db.SaveGame(g)
+	err = gr.db.UpdateFullGame(g)
 	if err != nil {
 		return nil, fmt.Errorf("failed to save game %d: %w", gameID, err)
 	}
@@ -140,7 +140,7 @@ func (gr *GameRunner) GenerateUniverse(gameID int64) (*game.Universe, error) {
 func (gr *GameRunner) LoadGame(gameID int64) (*game.FullGame, error) {
 	defer timeTrack(time.Now(), "LoadGame")
 
-	g, err := gr.db.FindGameById(gameID)
+	g, err := gr.db.GetFullGame(gameID)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to load game %d: %w", gameID, err)
@@ -152,7 +152,7 @@ func (gr *GameRunner) LoadGame(gameID int64) (*game.FullGame, error) {
 // load a player and the light version of the player game
 func (gr *GameRunner) LoadPlayerGame(gameID int64, userID int64) (*game.Game, *game.FullPlayer, error) {
 
-	g, err := gr.db.FindGameByIdLight(gameID)
+	g, err := gr.db.GetGame(gameID)
 
 	if err != nil {
 		return nil, nil, err
@@ -202,7 +202,7 @@ func (gr *GameRunner) CheckAndGenerateTurn(gameID int64) (TurnGenerationCheckRes
 	client := game.NewClient()
 	if client.CheckAllPlayersSubmitted(g.Players) {
 		client.GenerateTurn(g.Game, g.Universe, g.Players)
-		gr.db.SaveGame(g)
+		gr.db.UpdateFullGame(g)
 		return TurnGenerated, nil
 	}
 

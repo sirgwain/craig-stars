@@ -25,7 +25,7 @@ func (s *server) UpdateFleetOrders(c *gin.Context) {
 	}
 
 	// find the existing fleet by id
-	existing, err := s.db.FindFleetByID(fleetID.ID)
+	existing, err := s.db.GetFleet(fleetID.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -68,7 +68,7 @@ func (s *server) UpdateFleetOrders(c *gin.Context) {
 
 	existing.Waypoints = append(existing.Waypoints[:1], orders.Waypoints[1:]...)
 	existing.ComputeFuelUsage(player)
-	s.db.SaveFleet(fleetID.ID, existing)
+	s.db.UpdateFleet(existing)
 
 	c.JSON(http.StatusOK, existing)
 }
@@ -83,7 +83,7 @@ func (s *server) TransferCargo(c *gin.Context) {
 		return
 	}
 
-	fleet, err := s.db.FindFleetByID(id.ID)
+	fleet, err := s.db.GetFleet(id.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -121,7 +121,7 @@ func (s *server) TransferCargo(c *gin.Context) {
 // transfer cargo from a fleet to/from a planet
 func (s *server) transferCargoFleetPlanet(c *gin.Context, fleet *game.Fleet, transfer cargoTransferBind) {
 	// find the planet planet by id so we can perform the transfer
-	planet, err := s.db.FindPlanetByID(transfer.MO.ID)
+	planet, err := s.db.GetPlanet(transfer.MO.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -137,8 +137,8 @@ func (s *server) transferCargoFleetPlanet(c *gin.Context, fleet *game.Fleet, tra
 		return
 	}
 
-	s.db.SavePlanet(planet.GameID, planet)
-	s.db.SaveFleet(fleet.GameID, fleet)
+	s.db.UpdatePlanet(planet)
+	s.db.UpdateFleet(fleet)
 
 	log.Info().
 		Int64("GameID", fleet.GameID).
@@ -155,7 +155,7 @@ func (s *server) transferCargoFleetPlanet(c *gin.Context, fleet *game.Fleet, tra
 // transfer cargo from a fleet to/from a fleet
 func (s *server) transferCargoFleetFleet(c *gin.Context, fleet *game.Fleet, transfer cargoTransferBind) {
 	// find the dest dest by id so we can perform the transfer
-	dest, err := s.db.FindFleetByID(transfer.MO.ID)
+	dest, err := s.db.GetFleet(transfer.MO.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -171,8 +171,8 @@ func (s *server) transferCargoFleetFleet(c *gin.Context, fleet *game.Fleet, tran
 		return
 	}
 
-	s.db.SaveFleet(dest.GameID, dest)
-	s.db.SaveFleet(fleet.GameID, fleet)
+	s.db.UpdateFleet(dest)
+	s.db.UpdateFleet(fleet)
 
 	log.Info().
 		Int64("GameID", fleet.GameID).

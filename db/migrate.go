@@ -7,7 +7,7 @@ import (
 	"github.com/sirgwain/craig-stars/game"
 )
 
-func (c *client) MigrateAll() error {
+func (c *client) migrateAll() error {
 
 	types := []interface{}{
 		&game.User{},

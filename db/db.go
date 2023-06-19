@@ -21,8 +21,6 @@ type client struct {
 }
 
 type Client interface {
-	MigrateAll() error
-
 	Connect(config *config.Config)
 	EnableDebugLogging()
 
@@ -38,31 +36,30 @@ type Client interface {
 	FindTechStoreById(id int64) (*game.TechStore, error)
 
 	GetGames() ([]*game.Game, error)
-	GetGamesHostedByUser(userID int64) ([]*game.Game, error)
+	GetGamesForHost(userID int64) ([]*game.Game, error)
 	GetGamesByUser(userID int64) ([]*game.Game, error)
 	GetOpenGames() ([]*game.Game, error)
-	FindGameById(id int64) (*game.FullGame, error)
-	FindGameByIdLight(id int64) (*game.Game, error)
+	GetGame(id int64) (*game.Game, error)
+	GetFullGame(id int64) (*game.FullGame, error)
 	FindGameRulesByGameID(gameID int64) (*game.Rules, error)
 	CreateGame(game *game.Game) error
-	SaveGame(game *game.FullGame) error
-	DeleteGameById(id int64) error
+	UpdateFullGame(game *game.FullGame) error
+	DeleteGame(id int64) error
 
 	GetRaces(userID int64) ([]*game.Race, error)
-	FindRaceById(id int64) (*game.Race, error)
-	SaveRace(race *game.Race) error
+	GetRace(id int64) (*game.Race, error)
+	CreateRace(race *game.Race) error
+	UpdateRace(race *game.Race) error
 
 	FindPlayerByGameId(gameID int64, userID int64) (*game.FullPlayer, error)
 	FindPlayerByGameIdLight(gameID int64, userID int64) (*game.Player, error)
 	SavePlayer(player *game.Player) error
 
-	FindPlanetByID(id int64) (*game.Planet, error)
-	FindPlanetByNum(gameID int64, num int) (*game.Planet, error)
-	SavePlanet(gameID int64, planet *game.Planet) error
+	GetPlanet(id int64) (*game.Planet, error)
+	UpdatePlanet(planet *game.Planet) error
 
-	FindFleetByID(id int64) (*game.Fleet, error)
-	FindFleetByNum(gameID int64, playerNum int, num int) (*game.Fleet, error)
-	SaveFleet(gameID int64, fleet *game.Fleet) error
+	GetFleet(id int64) (*game.Fleet, error)
+	UpdateFleet(fleet *game.Fleet) error
 }
 
 func timeTrack(start time.Time, name string) {
@@ -96,9 +93,9 @@ func (c *client) Connect(config *config.Config) {
 
 	c.sqlDB = localdb
 
-	if config.Database.Filename == ":memory:" {
+	if config.Database.Filename == ":memory:" || config.Database.Recreate {
 		log.Debug().Msgf("Creating in memory database")
-		c.MigrateAll()
+		c.migrateAll()
 	}
 
 }

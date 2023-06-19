@@ -40,6 +40,31 @@ type Client interface {
 	CreateRace(race *game.Race) error
 	UpdateRace(race *game.Race) error
 	DeleteRace(id int64) error
+
+	GetGames() ([]game.Game, error)
+	GetGamesForHost(userID int64) ([]game.Game, error)
+	GetGame(id int64) (*game.Game, error)
+	GetFullGame(id int64) (*game.FullGame, error)
+	CreateGame(game *game.Game) error
+	UpdateGame(game *game.Game) error
+	UpdateFullGame(g *game.FullGame) error
+	DeleteGame(id int64) error
+
+	GetPlayers() ([]game.Player, error)
+	GetPlayersForUser(userID int64) ([]game.Player, error)
+	GetPlayersForGame(gameID int64) ([]*game.Player, error)
+	GetPlayer(id int64) (*game.Player, error)
+	GetFullPlayer(id int64) (*game.Player, error)
+	CreatePlayer(player *game.Player) error
+	UpdatePlayer(player *game.Player) error
+	UpdateFullPlayer(player *game.Player) error
+	DeletePlayer(id int64) error	
+
+	GetPlanet(id int64) (*game.Planet, error)
+	UpdatePlanet(planet *game.Planet) error
+
+	GetFleet(id int64) (*game.Fleet, error)
+	UpdateFleet(fleet *game.Fleet) error
 }
 
 func NewClient() Client {

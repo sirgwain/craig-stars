@@ -29,7 +29,7 @@ func (s *server) Race(c *gin.Context) {
 		return
 	}
 
-	race, err := s.db.FindRaceById(id.ID)
+	race, err := s.db.GetRace(id.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -54,7 +54,7 @@ func (s *server) CreateRace(c *gin.Context) {
 	}
 
 	race.UserID = user.ID
-	err := s.db.SaveRace(&race)
+	err := s.db.CreateRace(&race)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -79,7 +79,7 @@ func (s *server) UpdateRace(c *gin.Context) {
 	}
 
 	// load in the existing race from the database
-	existingRace, err := s.db.FindRaceById(id.ID)
+	existingRace, err := s.db.GetRace(id.ID)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -103,7 +103,7 @@ func (s *server) UpdateRace(c *gin.Context) {
 		return
 	}
 
-	if err := s.db.SaveRace(&race); err != nil {
+	if err := s.db.UpdateRace(&race); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
