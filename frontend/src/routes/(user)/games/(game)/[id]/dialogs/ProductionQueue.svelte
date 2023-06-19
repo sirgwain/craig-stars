@@ -8,7 +8,7 @@
 	import type { Game } from '$lib/types/Game';
 	import type { CommandedPlanet, ProductionQueueItem } from '$lib/types/Planet';
 	import { QueueItemType, isAuto } from '$lib/types/Planet';
-	import type { PlayerResponse } from '$lib/types/Player';
+	import type { Player, PlayerResponse } from '$lib/types/Player';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import {
 		ArrowLongDown,
@@ -22,7 +22,7 @@
 	import { createEventDispatcher } from 'svelte';
 
 	export let game: Game;
-	export let player: PlayerResponse;
+	export let player: Player;
 	export let designs: ShipDesign[];
 	export let planet: CommandedPlanet;
 

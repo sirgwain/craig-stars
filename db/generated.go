@@ -460,7 +460,11 @@ func (c *GameConverter) csPlanetToDbPlanet(source cs.Planet) Planet {
 	dbPlanet.Homeworld = source.Homeworld
 	dbPlanet.ContributesOnlyLeftoverToResearch = source.PlanetOrders.ContributesOnlyLeftoverToResearch
 	dbPlanet.Scanner = source.Scanner
-	dbPlanet.PacketSpeed = source.PacketSpeed
+	dbPlanet.RouteTargetType = cs.MapObjectType(source.PlanetOrders.RouteTargetType)
+	dbPlanet.RouteTargetNum = source.PlanetOrders.RouteTargetNum
+	dbPlanet.RouteTargetPlayerNum = source.PlanetOrders.RouteTargetPlayerNum
+	dbPlanet.PacketTargetNum = source.PlanetOrders.PacketTargetNum
+	dbPlanet.PacketSpeed = source.PlanetOrders.PacketSpeed
 	dbPlanet.BonusResources = source.BonusResources
 	dbPlanet.ProductionQueue = GameProductionQueueItemsToProductionQueueItems(source.PlanetOrders.ProductionQueue)
 	dbPlanet.Spec = GamePlanetSpecToPlanetSpec(source.Spec)
@@ -654,8 +658,8 @@ func (c *GameConverter) dbMineralPacketToCsMineralPacket(source MineralPacket) c
 	csMineralPacket.MapObject = ExtendMineralPacketMapObject(source)
 	csMineralPacket.TargetPlanetNum = source.TargetPlanetNum
 	csMineralPacket.Cargo = ExtendMineralPacketCargo(source)
-	csMineralPacket.SafeWarpSpeed = source.SafeWarpSpeed
 	csMineralPacket.WarpFactor = source.WarpFactor
+	csMineralPacket.SafeWarpSpeed = source.SafeWarpSpeed
 	csMineralPacket.Heading = ExtendMineralPacketHeading(source)
 	return csMineralPacket
 }
@@ -682,7 +686,6 @@ func (c *GameConverter) dbPlanetToCsPlanet(source Planet) cs.Planet {
 	csPlanet.Defenses = source.Defenses
 	csPlanet.Homeworld = source.Homeworld
 	csPlanet.Scanner = source.Scanner
-	csPlanet.PacketSpeed = source.PacketSpeed
 	csPlanet.BonusResources = source.BonusResources
 	csPlanet.Spec = PlanetSpecToGamePlanetSpec(source.Spec)
 	return csPlanet

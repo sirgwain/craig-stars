@@ -521,11 +521,10 @@ func (t *turn) decaySalvage() {
 }
 
 // Decay mineral packets in flight
-// https://wiki.starsautohost.org/wiki/%22Mass_Packet_FAQ%22_by_Barry_Kearns_1997-02-07_v2.6b
-// Depending on how fast a packet is thrown compared to it's safe speed, it decays
 func (t *turn) decayPackets() {
 	for _, packet := range t.game.MineralPackets {
 		player := t.game.getPlayer(packet.PlayerNum)
+		// update the decay rate based on this distance traveled this turn
 		decayRate := 1 - packet.getPacketDecayRate(t.game.rules, &player.Race)*(packet.distanceTravelled/float64(packet.WarpFactor*packet.WarpFactor))
 		packet.Cargo = packet.Cargo.Multiply(decayRate)
 	}

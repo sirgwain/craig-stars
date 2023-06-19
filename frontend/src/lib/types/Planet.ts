@@ -1,7 +1,7 @@
 import type { Cargo } from './Cargo';
 import type { Cost } from './Cost';
 import type { Hab } from './Hab';
-import { MapObjectType, type MapObject } from './MapObject';
+import { MapObjectType, None, type MapObject } from './MapObject';
 import type { Mineral } from './Mineral';
 import type { ShipDesign } from './ShipDesign';
 import { UnlimitedSpaceDock } from './Tech';
@@ -19,7 +19,6 @@ export type Planet = {
 	mines?: number;
 	factories?: number;
 	defenses?: number;
-	contributesOnlyLeftoverToResearch?: boolean;
 	homeworld?: boolean;
 	scanner?: boolean;
 	reportAge: number;
@@ -29,6 +28,12 @@ export type Planet = {
 	PlanetOrders;
 
 export type PlanetOrders = {
+	contributesOnlyLeftoverToResearch?: boolean;
+	routeTargetType?: MapObjectType;
+	routeTargetNum?: number;
+	routeTargetPlayerNum?: number;
+	packetSpeed?: number;
+	packetTargetNum?: number;
 	productionQueue?: ProductionQueueItem[];
 };
 
@@ -58,15 +63,23 @@ export class CommandedPlanet implements Planet {
 	mines = 0;
 	factories = 0;
 	defenses = 0;
-	contributesOnlyLeftoverToResearch = false;
 	homeworld = false;
 	scanner = false;
 	reportAge = 0;
-	productionQueue: ProductionQueueItem[] = [];
 	position: Vector = { x: 0, y: 0 };
 	name = '';
 	num = 0;
 	playerNum = 0;
+
+	// orders
+	contributesOnlyLeftoverToResearch = false;
+	productionQueue: ProductionQueueItem[] = [];
+	routeTargetType = MapObjectType.None;
+	routeTargetNum = None;
+	routeTargetPlayerNum = None;
+	packetSpeed = 0;
+	packetTargetNum = None;
+
 	spec: PlanetSpec = {
 		habitability: 0,
 		habitabilityTerraformed: 0,
@@ -95,6 +108,8 @@ export class CommandedPlanet implements Planet {
 		hasStarbase: false,
 		dockCapacity: 0,
 		massDriver: '',
+		basePacketSpeed: 0,
+		safePacketSpeed: 0,
 		hasStargate: false
 	};
 
@@ -270,6 +285,7 @@ export interface PlanetSpec {
 
 	hasMassDriver: boolean;
 	massDriver: string;
+	basePacketSpeed?: number;
 	safePacketSpeed?: number;
 
 	hasStargate: boolean;

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import {
 		commandedFleet,
+		commandedPlanet,
 		commandedMapObject,
 		commandMapObject,
 		selectedMapObject,
@@ -29,6 +30,9 @@
 	import SelectedWaypoint from './SelectedWaypoint.svelte';
 	import ScannerMineFields from './ScannerMineFields.svelte';
 	import ScannerMineFieldPattern from './ScannerMineFieldPattern.svelte';
+	import ScannerMineralPackets from './ScannerMineralPackets.svelte';
+	import { settings } from '$lib/services/Settings';
+	import { PlanetService } from '$lib/services/PlanetService';
 
 	export let game: FullGame;
 
@@ -74,6 +78,9 @@
 			enableDragAndZoom();
 		}
 	}
+
+	$: setPacketDest = $settings.setPacketDest;
+	$: addWaypoint = $settings.addWaypoint;
 
 	// enable drag and zoom, but disable dblclick zoom events
 	const enableDragAndZoom = () => select(root).call(zoomBehavior).on('dblclick.zoom', null);
@@ -144,7 +151,7 @@
 	}
 
 	// if the shift key is held, add a waypoint instead of selecting a mapobject
-	async function addWaypoint(options: { mo?: MapObject; position?: Vector }) {
+	async function onAddWaypoint(options: { mo?: MapObject; position?: Vector }) {
 		if (!$commandedFleet?.waypoints) {
 			return;
 		}
@@ -207,7 +214,7 @@
 	 * - We cycle through our commandable objects at the same location if we own an object there
 	 * @param mo
 	 */
-	function mapobjectSelected(mo: MapObject) {
+	async function mapobjectSelected(mo: MapObject) {
 		// reset waypoint dragging
 		enableDragAndZoom();
 		movingWaypoint = false;
@@ -224,6 +231,22 @@
 					$commandedMapObject.playerNum
 			  )
 			: undefined;
+
+		if (setPacketDest) {
+			if (mo.type != MapObjectType.Planet) {
+				return;
+			} else {
+				$settings.setPacketDest = false;
+				// something went wrong, can't set dest on a planet without a massdriver
+				if (!$commandedPlanet?.spec.hasMassDriver) {
+					return;
+				}
+				$commandedPlanet.packetTargetNum = mo.num;
+				const result = await PlanetService.update(game.id, $commandedPlanet);
+				Object.assign($commandedPlanet, result);
+				$commandedPlanet = $commandedPlanet;
+			}
+		}
 
 		if ($selectedMapObject !== myMapObject) {
 			// we selected a different object, so just select it
@@ -328,9 +351,11 @@
 			...waypoints,
 			...game.universe.fleets.filter((f) => !f.orbitingPlanetNum),
 			...(game.player.fleetIntels?.filter((f) => !f.orbitingPlanetNum) ?? []),
+			...game.universe.mineralPackets,
+			...game.player.mineralPacketIntels,
 			...game.universe.mineFields,
 			...game.player.mineFieldIntels,
-			...game.player.planetIntels,
+			...game.player.planetIntels
 		];
 	}
 
@@ -361,6 +386,7 @@
 				<ScannerWaypoints />
 				<SelectedWaypoint />
 				<ScannerPlanets />
+				<ScannerMineralPackets />
 				<ScannerFleets />
 				<SelectedMapObject />
 			</g>
@@ -369,7 +395,7 @@
 			{#if transform}
 				<MapObjectQuadTreeFinder
 					on:mapobject-selected={(mo) => mapobjectSelected(mo.detail)}
-					on:add-waypoint={(mo) => addWaypoint(mo.detail)}
+					on:add-waypoint={(mo) => onAddWaypoint(mo.detail)}
 					on:drag-waypoint-move={(e) => dragWaypointMove(e.detail.position, e.detail.mo)}
 					on:drag-waypoint-done={(e) => dragWaypointDone(e.detail.position, e.detail.mo)}
 					searchRadius={20}

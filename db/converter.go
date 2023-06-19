@@ -200,6 +200,11 @@ type Converter interface {
 	// goverter:map MapObject.PlayerNum	 PlayerNum
 	// goverter:map PlanetOrders.ContributesOnlyLeftoverToResearch ContributesOnlyLeftoverToResearch
 	// goverter:map PlanetOrders.ProductionQueue ProductionQueue
+	// goverter:map PlanetOrders.RouteTargetType RouteTargetType
+	// goverter:map PlanetOrders.RouteTargetNum RouteTargetNum
+	// goverter:map PlanetOrders.RouteTargetPlayerNum RouteTargetPlayerNum
+	// goverter:map PlanetOrders.PacketTargetNum PacketTargetNum
+	// goverter:map PlanetOrders.PacketSpeed PacketSpeed
 	// goverter:ignore Tags
 	// goverter:map Hab.Grav Grav
 	// goverter:map Hab.Temp Temp
@@ -884,6 +889,11 @@ func ExtendPlanetPlanetOrders(source Planet) cs.PlanetOrders {
 	return cs.PlanetOrders{
 		ContributesOnlyLeftoverToResearch: source.ContributesOnlyLeftoverToResearch,
 		ProductionQueue:                   *source.ProductionQueue,
+		RouteTargetType:                   source.RouteTargetType,
+		RouteTargetNum:                    source.RouteTargetNum,
+		RouteTargetPlayerNum:              source.RouteTargetPlayerNum,
+		PacketTargetNum:                   source.PacketTargetNum,
+		PacketSpeed:                       source.PacketSpeed,
 	}
 }
 

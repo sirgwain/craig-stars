@@ -21,7 +21,6 @@ type Planet struct {
 	Defenses             int        `json:"defenses,omitempty"`
 	Homeworld            bool       `json:"homeworld,omitempty"`
 	Scanner              bool       `json:"scanner,omitempty"`
-	PacketSpeed          int        `json:"packetSpeed,omitempty"`
 	BonusResources       int        `json:"-"`
 	Spec                 PlanetSpec `json:"spec,omitempty"`
 	starbase             *Fleet
@@ -34,6 +33,7 @@ type PlanetOrders struct {
 	RouteTargetNum                    int                   `json:"routeTargetNum,omitempty"`
 	RouteTargetPlayerNum              int                   `json:"routeTargetPlayerNum,omitempty"`
 	PacketTargetNum                   int                   `json:"packetTargetNum,omitempty"`
+	PacketSpeed                       int                   `json:"packetSpeed,omitempty"`
 }
 
 type PlanetSpec struct {
@@ -274,6 +274,7 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 	starbase := newStarbase(player, p, starbaseDesign, starbaseDesign.Name)
 	starbase.Spec = ComputeFleetSpec(rules, player, &starbase)
 	p.starbase = &starbase
+	p.PacketSpeed = starbase.Spec.BasePacketSpeed
 
 	// p.PacketSpeed = p.Starbase.Spec.SafePacketSpeed
 

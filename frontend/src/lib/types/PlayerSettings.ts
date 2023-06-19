@@ -13,6 +13,7 @@ export enum PlanetViewState {
 export class PlayerSettings {
 	planetViewState = PlanetViewState.Normal;
 	addWaypoint = false;
+	setPacketDest = false;
 	showPlanetNames = false;
 	showFleetTokenCounts = false;
 	showScanners = true;

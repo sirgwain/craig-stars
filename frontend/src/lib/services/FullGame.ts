@@ -79,7 +79,8 @@ export class FullGame implements Game {
 			planets: [],
 			fleets: [],
 			starbases: [],
-			mineFields: []
+			mineFields: [],
+			mineralPackets: []
 		};
 		await Promise.all([
 			GameService.loadGame(id).then((game) => Object.assign(this, game)),

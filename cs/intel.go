@@ -249,6 +249,8 @@ func (d *discover) discoverPlanet(rules *Rules, player *Player, planet *Planet, 
 
 		// discover starbases on scan, but don't discover designs
 		intel.Spec.HasStarbase = planet.Spec.HasStarbase
+		intel.Spec.HasMassDriver = planet.Spec.HasMassDriver
+		intel.Spec.HasStargate = planet.Spec.HasStargate
 
 		// players know their planet pops, but other planets are slightly off
 		if ownedByPlayer {

@@ -5,10 +5,12 @@
 	import type { Fleet } from '$lib/types/Fleet';
 	import { MapObjectType } from '$lib/types/MapObject';
 	import type { MineField } from '$lib/types/MineField';
+	import type { MineralPacket } from '$lib/types/MineralPacket';
 	import type { Planet } from '$lib/types/Planet';
 	import type { Player } from '$lib/types/Player';
 	import FleetSummary from './FleetSummary.svelte';
 	import MineFieldSummary from './MineFieldSummary.svelte';
+	import MineralPacketSummary from './MineralPacketSummary.svelte';
 	import PlanetSummary from './PlanetSummary.svelte';
 	import UnknownSummary from './UnknownSummary.svelte';
 
@@ -18,6 +20,7 @@
 	let selectedPlanet: Planet | undefined;
 	let selectedFleet: Fleet | undefined;
 	let selectedMineField: MineField | undefined;
+	let selectedMineralPacket: MineralPacket | undefined;
 	$: {
 		selectedPlanet =
 			$selectedMapObject?.type == MapObjectType.Planet ? ($selectedMapObject as Planet) : undefined;
@@ -26,6 +29,10 @@
 		selectedMineField =
 			$selectedMapObject?.type == MapObjectType.MineField
 				? ($selectedMapObject as MineField)
+				: undefined;
+		selectedMineralPacket =
+			$selectedMapObject?.type == MapObjectType.MineralPacket
+				? ($selectedMapObject as MineralPacket)
 				: undefined;
 	}
 </script>
@@ -46,6 +53,8 @@
 			<FleetSummary {game} {player} fleet={selectedFleet} />
 		{:else if selectedMineField}
 			<MineFieldSummary {game} {player} mineField={selectedMineField} />
+		{:else if selectedMineralPacket}
+			<MineralPacketSummary {game} {player} mineralPacket={selectedMineralPacket} />
 		{:else}
 			<UnknownSummary />
 		{/if}

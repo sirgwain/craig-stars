@@ -44,6 +44,10 @@ type Planet struct {
 	Homeworld                         bool                  `json:"homeworld,omitempty"`
 	ContributesOnlyLeftoverToResearch bool                  `json:"contributesOnlyLeftoverToResearch,omitempty"`
 	Scanner                           bool                  `json:"scanner,omitempty"`
+	RouteTargetType                   cs.MapObjectType      `json:"routeTargetType,omitempty"`
+	RouteTargetNum                    int                   `json:"routeTargetNum,omitempty"`
+	RouteTargetPlayerNum              int                   `json:"routeTargetPlayerNum,omitempty"`
+	PacketTargetNum                   int                   `json:"packetTargetNum,omitempty"`
 	PacketSpeed                       int                   `json:"packetSpeed,omitempty"`
 	BonusResources                    int                   `json:"bonusResources,omitempty"`
 	ProductionQueue                   *ProductionQueueItems `json:"productionQueue,omitempty"`
@@ -189,6 +193,10 @@ func (c *client) createPlanet(planet *cs.Planet, tx SQLExecer) error {
 		homeworld,
 		contributesOnlyLeftoverToResearch,
 		scanner,
+		routeTargetType,
+		routeTargetNum,
+		routeTargetPlayerNum,
+		packetTargetNum,
 		packetSpeed,
 		productionQueue,
 		spec
@@ -227,6 +235,10 @@ func (c *client) createPlanet(planet *cs.Planet, tx SQLExecer) error {
 		:homeworld,
 		:contributesOnlyLeftoverToResearch,
 		:scanner,
+		:routeTargetType,
+		:routeTargetNum,
+		:routeTargetPlayerNum,
+		:packetTargetNum,
 		:packetSpeed,
 		:productionQueue,
 		:spec
@@ -304,6 +316,10 @@ func (c *client) updatePlanet(planet *cs.Planet, tx SQLExecer) error {
 		homeworld = :homeworld,
 		contributesOnlyLeftoverToResearch = :contributesOnlyLeftoverToResearch,
 		scanner = :scanner,
+		routeTargetType = :routeTargetType,
+		routeTargetNum = :routeTargetNum,
+		routeTargetPlayerNum = :routeTargetPlayerNum,
+		packetTargetNum = :packetTargetNum,
 		packetSpeed = :packetSpeed,
 		productionQueue = :productionQueue,
 		spec = :spec

@@ -1,13 +1,20 @@
 <script lang="ts">
+	import WarpFactorBar from '$lib/components/game/WarpFactorBar.svelte';
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip.svelte';
-	import { game, techs } from '$lib/services/Context';
+	import { techs, commandedPlanet } from '$lib/services/Context';
+	import type { FullGame } from '$lib/services/FullGame';
+	import { PlanetService } from '$lib/services/PlanetService';
+	import { settings } from '$lib/services/Settings';
 	import type { Fleet } from '$lib/types/Fleet';
+	import type { CommandedPlanet } from '$lib/types/Planet';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import { UnlimitedSpaceDock } from '$lib/types/Tech';
 	import CommandTile from './CommandTile.svelte';
 
 	export let starbase: Fleet | undefined;
+	export let planet: CommandedPlanet;
+	export let game: FullGame;
 
 	$: stargate = starbase?.spec?.stargate
 		? $techs.getHullComponent(starbase.spec.stargate)
@@ -18,14 +25,20 @@
 		: undefined;
 
 	function showDesign(e: PointerEvent) {
-		if ($game && starbase?.tokens && starbase.tokens.length > 0) {
+		if (starbase?.tokens && starbase.tokens.length > 0) {
 			onShipDesignTooltip(
 				e,
-				$game?.player.getDesign($game.player.num, starbase?.tokens[0].designNum) as
+				game.player.getDesign(game.player.num, starbase?.tokens[0].designNum) as
 					| ShipDesign
 					| undefined
 			);
 		}
+	}
+
+	async function updatePlanetOrdrers() {
+		const result = await PlanetService.update(game.id, planet);
+		Object.assign(planet, result);
+		$commandedPlanet = planet;
 	}
 </script>
 
@@ -92,10 +105,35 @@
 					<div>none</div>
 				{/if}
 			</div>
-			<div class="flex justify-between">
-				<div>Destination</div>
-				<div>none</div>
-			</div>
+			{#if starbase.spec.hasMassDriver}
+				<div class="flex justify-between">
+					<div>Destination</div>
+					<div>
+						{game.getPlanet(planet.packetTargetNum)?.name ?? 'none'}
+					</div>
+				</div>
+				<div class="flex justify-between mt-1 gap-1">
+					<div class="w-32">
+						<button
+							on:click={() => ($settings.setPacketDest = !$settings.setPacketDest)}
+							class:btn-accent={$settings.setPacketDest}
+							type="button"
+							class="btn btn-outline btn-sm normal-case btn-secondary p-2">Set Dest</button
+						>
+					</div>
+					<div class="w-full my-auto">
+						<WarpFactorBar
+							bind:value={planet.packetSpeed}
+							capacity={(planet.spec.safePacketSpeed ?? 0) + 3}
+							min={planet.spec.safePacketSpeed}
+							max={(planet.spec.safePacketSpeed ?? 0) + 3}
+							warnSpeed={(planet.spec.safePacketSpeed ?? 0) + 1}
+							dangerSpeed={(planet.spec.safePacketSpeed ?? 0) + 3}
+							on:valuechanged={() => updatePlanetOrdrers()}
+						/>
+					</div>
+				</div>
+			{/if}
 		</div>
 	</CommandTile>
 {/if}

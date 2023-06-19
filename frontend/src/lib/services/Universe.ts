@@ -1,6 +1,7 @@
 import type { Fleet } from '$lib/types/Fleet';
 import { MapObjectType, type MapObject } from '$lib/types/MapObject';
 import type { MineField } from '$lib/types/MineField';
+import type { MineralPacket } from '$lib/types/MineralPacket';
 import type { Planet } from '$lib/types/Planet';
 import type { PlayerIntel, PlayerIntels, PlayerMapObjects } from '$lib/types/Player';
 import type { ShipDesignIntel } from '$lib/types/ShipDesign';
@@ -33,10 +34,12 @@ export class Universe implements PlayerMapObjects, PlayerIntels {
 	planets: Planet[] = [];
 	fleets: Fleet[] = [];
 	mineFields: MineField[] = [];
+	mineralPackets: MineralPacket[] = [];
 	starbases: Fleet[] = [];
 	planetIntels: Planet[] = [];
 	fleetIntels: Fleet[] = [];
 	mineFieldIntels: MineField[] = [];
+	mineralPacketIntels: MineralPacket[] = [];
 	shipDesignIntels: ShipDesignIntel[] = [];
 	playerIntels: PlayerIntel[] = [];
 
@@ -56,6 +59,7 @@ export class Universe implements PlayerMapObjects, PlayerIntels {
 		this.fleetIntels.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
 		this.fleets.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
 		this.mineFields.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
+		this.mineralPackets.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
 	}
 
 	setMapObjects(mos: PlayerMapObjects) {
@@ -77,6 +81,10 @@ export class Universe implements PlayerMapObjects, PlayerIntels {
 			.sort(sortByNum)
 			.forEach((mo) => addtoDict(mo, this.myMapObjectsByPosition));
 		this.mineFields
+			.filter(ownedByMe)
+			.sort(sortByNum)
+			.forEach((mo) => addtoDict(mo, this.myMapObjectsByPosition));
+		this.mineralPackets
 			.filter(ownedByMe)
 			.sort(sortByNum)
 			.forEach((mo) => addtoDict(mo, this.myMapObjectsByPosition));
@@ -170,7 +178,10 @@ export class Universe implements PlayerMapObjects, PlayerIntels {
 			case MapObjectType.Salvage:
 				break;
 			case MapObjectType.MineralPacket:
-				break;
+				if (playerNum === this.playerNum) {
+					return this.mineralPackets.find((mf) => mf.num == num);
+				}
+				return this.mineralPacketIntels.find((mf) => mf.num == num && mf.playerNum == playerNum);
 			case MapObjectType.PositionWaypoint:
 				break;
 		}

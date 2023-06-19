@@ -9,24 +9,24 @@ import (
 )
 
 type MineralPacket struct {
-	ID                int64     `json:"id,omitempty"`
-	GameID            int64     `json:"gameId,omitempty"`
-	CreatedAt         time.Time `json:"createdAt,omitempty"`
-	UpdatedAt         time.Time `json:"updatedAt,omitempty"`
-	X                 float64   `json:"x,omitempty"`
-	Y                 float64   `json:"y,omitempty"`
-	Name              string    `json:"name,omitempty"`
-	Num               int       `json:"num,omitempty"`
-	PlayerNum         int       `json:"playerNum,omitempty"`
-	Tags              Tags      `json:"tags,omitempty"`
-	TargetPlanetNum   int       `json:"targetPlanetNum,omitempty"`
-	Ironium           int       `json:"ironium,omitempty"`
-	Boranium          int       `json:"boranium,omitempty"`
-	Germanium         int       `json:"germanium,omitempty"`
-	SafeWarpSpeed     int       `json:"safeWarpSpeed,omitempty"`
-	WarpFactor        int       `json:"warpFactor,omitempty"`
-	HeadingX          float64   `json:"headingX,omitempty"`
-	HeadingY          float64   `json:"headingY,omitempty"`
+	ID              int64     `json:"id,omitempty"`
+	GameID          int64     `json:"gameId,omitempty"`
+	CreatedAt       time.Time `json:"createdAt,omitempty"`
+	UpdatedAt       time.Time `json:"updatedAt,omitempty"`
+	X               float64   `json:"x,omitempty"`
+	Y               float64   `json:"y,omitempty"`
+	Name            string    `json:"name,omitempty"`
+	Num             int       `json:"num,omitempty"`
+	PlayerNum       int       `json:"playerNum,omitempty"`
+	Tags            Tags      `json:"tags,omitempty"`
+	TargetPlanetNum int       `json:"targetPlanetNum,omitempty"`
+	Ironium         int       `json:"ironium,omitempty"`
+	Boranium        int       `json:"boranium,omitempty"`
+	Germanium       int       `json:"germanium,omitempty"`
+	SafeWarpSpeed   int       `json:"safeWarpSpeed,omitempty"`
+	WarpFactor      int       `json:"warpFactor,omitempty"`
+	HeadingX        float64   `json:"headingX,omitempty"`
+	HeadingY        float64   `json:"headingY,omitempty"`
 }
 
 // get a mineralPacket by id
@@ -41,6 +41,24 @@ func (c *client) GetMineralPacket(id int64) (*cs.MineralPacket, error) {
 
 	mineralPacket := c.converter.ConvertMineralPacket(&item)
 	return mineralPacket, nil
+}
+
+func (c *client) GetMineralPacketsForPlayer(gameID int64, playerNum int) ([]*cs.MineralPacket, error) {
+
+	items := []MineralPacket{}
+	if err := c.db.Select(&items, `SELECT * FROM mineralPackets WHERE gameId = ? AND playerNum = ?`, gameID, playerNum); err != nil {
+		if err == sql.ErrNoRows {
+			return []*cs.MineralPacket{}, nil
+		}
+		return nil, err
+	}
+
+	results := make([]*cs.MineralPacket, len(items))
+	for i := range items {
+		results[i] = c.converter.ConvertMineralPacket(&items[i])
+	}
+
+	return results, nil
 }
 
 func (c *client) getMineralPacketsForGame(gameID int64) ([]*cs.MineralPacket, error) {

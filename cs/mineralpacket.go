@@ -9,9 +9,9 @@ type MineralPacket struct {
 	MapObject
 	TargetPlanetNum   int    `json:"targetPlanetNum,omitempty"`
 	Cargo             Cargo  `json:"cargo,omitempty"`
+	WarpFactor        int    `json:"warpFactor"`
 	SafeWarpSpeed     int    `json:"safeWarpSpeed,omitempty"`
-	WarpFactor        int    `json:"warpFactor,omitempty"`
-	Heading           Vector `json:"position"`
+	Heading           Vector `json:"heading"`
 	distanceTravelled float64
 	builtThisTurn     bool
 }
@@ -33,6 +33,9 @@ func newMineralPacket(player *Player, num int, warpFactor int, safeWarpSpeed int
 	}
 }
 
+// get the rate of decay for a packet between 0 and 1
+// https://wiki.starsautohost.org/wiki/%22Mass_Packet_FAQ%22_by_Barry_Kearns_1997-02-07_v2.6b
+// Depending on how fast a packet is thrown compared to it's safe speed, it decays
 func (packet *MineralPacket) getPacketDecayRate(rules *Rules, race *Race) float64 {
 	overSafeWarp := packet.WarpFactor - packet.SafeWarpSpeed
 
@@ -75,8 +78,8 @@ func (packet *MineralPacket) movePacket(rules *Rules, player *Player, target *Pl
 		// move this packet closer to the next planet
 		packet.distanceTravelled = dist
 		packet.Heading = target.Position.Subtract(packet.Position).Normalized()
-
 		packet.Position = packet.Position.Add(packet.Heading.Scale(dist))
+		packet.MarkDirty()
 	}
 }
 

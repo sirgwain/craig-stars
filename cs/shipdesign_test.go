@@ -190,6 +190,7 @@ func TestShipDesign_Validate(t *testing.T) {
 
 func TestComputeShipDesignSpec(t *testing.T) {
 	humanoids := NewRace().WithSpec(&rules)
+	pps := NewRace().WithPRT(PP).WithSpec(&rules)
 	player := NewPlayer(1, humanoids)
 	type args struct {
 		techLevels TechLevel
@@ -227,6 +228,50 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				TorpedoInaccuracyFactor: 1,
 				Initiative:              1,
 				Movement:                4,
+			},
+		},
+		{name: "PP Starbase",
+			args: args{
+				techLevels: TechLevel{4, 0, 0, 0, 0, 0},
+				raceSpec:   pps.Spec,
+				design: NewShipDesign(player, 1).
+					WithHull(SpaceStation.Name).
+					WithSlots([]ShipDesignSlot{
+						{HullComponent: MassDriver5.Name, HullSlotIndex: 1, Quantity: 1},
+						{HullComponent: Laser.Name, HullSlotIndex: 2, Quantity: 8},
+						{HullComponent: MoleSkinShield.Name, HullSlotIndex: 3, Quantity: 8},
+						{HullComponent: Laser.Name, HullSlotIndex: 4, Quantity: 8},
+						{HullComponent: MoleSkinShield.Name, HullSlotIndex: 6, Quantity: 8},
+						{HullComponent: Laser.Name, HullSlotIndex: 8, Quantity: 8},
+						{HullComponent: Laser.Name, HullSlotIndex: 10, Quantity: 8},
+					}),
+			},
+			want: ShipDesignSpec{
+				HullType:                TechHullTypeStarbase,
+				Cost:                    Cost{160, 292, 286, 894},
+				Engine:                  Engine{},
+				Mass:                    48,
+				Armor:                   500,
+				Shield:                  400,
+				MineSweep:               640,
+				PowerRating:             320,
+				HasWeapons:              true,
+				Initiative:              14,
+				BasePacketSpeed:         5,
+				SafePacketSpeed:         5,
+				RepairBonus:             .15,
+				ScanRange:               NoScanner,
+				ScanRangePen:            NoScanner,
+				SpaceDock:               UnlimitedSpaceDock,
+				Starbase:                true,
+				TorpedoInaccuracyFactor: 1,
+				MassDriver:              MassDriver5.Name,
+				WeaponSlots: []ShipDesignSlot{
+					{HullComponent: Laser.Name, HullSlotIndex: 2, Quantity: 8},
+					{HullComponent: Laser.Name, HullSlotIndex: 4, Quantity: 8},
+					{HullComponent: Laser.Name, HullSlotIndex: 8, Quantity: 8},
+					{HullComponent: Laser.Name, HullSlotIndex: 10, Quantity: 8},
+				},
 			},
 		},
 	}

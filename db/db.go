@@ -106,6 +106,9 @@ type Client interface {
 	GetMineField(id int64) (*cs.MineField, error)
 	GetMineFieldsForPlayer(gameID int64, playerNum int) ([]*cs.MineField, error)
 	UpdateMineField(fleet *cs.MineField) error
+
+	GetMineralPacket(id int64) (*cs.MineralPacket, error)
+	GetMineralPacketsForPlayer(gameID int64, playerNum int) ([]*cs.MineralPacket, error)
 }
 
 func NewClient() Client {

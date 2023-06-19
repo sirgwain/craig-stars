@@ -21,7 +21,7 @@
 	<PlanetSummaryTile planet={$commandedPlanet} />
 	<PlanetProductionTile planet={$commandedPlanet} />
 	<PlanetMineralsOnHandTile player={game.player} planet={$commandedPlanet} />
-	<PlanetStarbaseTile starbase={game.universe.getPlanetStarbase($commandedPlanet.num)} />
+	<PlanetStarbaseTile {game} planet={$commandedPlanet} starbase={game.universe.getPlanetStarbase($commandedPlanet.num)} />
 	<PlanetStatusTile {game} player={game.player} planet={$commandedPlanet} />
 	<PlanetFleetsInOrbitTile
 		planet={$commandedPlanet}

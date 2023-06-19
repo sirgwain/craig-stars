@@ -406,6 +406,12 @@ func (c *client) GetFullPlayerForGame(gameID, userID int64) (*cs.FullPlayer, err
 	}
 	player.MineFields = mineFields
 
+	mineralPackets, err := c.GetMineralPacketsForPlayer(player.GameID, player.Num)
+	if err != nil {
+		return nil, fmt.Errorf("get player mineralPackets %w", err)
+	}
+	player.MineralPackets = mineralPackets
+
 	fleets, err := c.GetFleetsForPlayer(player.GameID, player.Num)
 	if err != nil {
 		return nil, fmt.Errorf("get player fleets %w", err)
@@ -447,6 +453,12 @@ func (c *client) GetPlayerMapObjects(gameID, userID int64) (*cs.PlayerMapObjects
 		return nil, fmt.Errorf("get player mineFields %w", err)
 	}
 	mapObjects.MineFields = mineFields
+
+	mineralPackets, err := c.GetMineralPacketsForPlayer(gameID, num)
+	if err != nil {
+		return nil, fmt.Errorf("get player mineralPackets %w", err)
+	}
+	mapObjects.MineralPackets = mineralPackets
 
 	fleets, err := c.GetFleetsForPlayer(gameID, num)
 	if err != nil {

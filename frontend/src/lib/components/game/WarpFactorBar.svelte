@@ -1,7 +1,10 @@
 <script lang="ts">
+	import { clamp } from '$lib/services/Math';
 	import { createEventDispatcher } from 'svelte';
 
 	export let value = 0;
+	export let min = 0;
+	export let max = 11;
 	export let dangerSpeed = 11; // no danger speed unless doing packet warp bars
 	export let warnSpeed = 10;
 	export let stargateSpeed = 11;
@@ -41,6 +44,7 @@
 
 	const onPointerUp = (x: number) => {
 		pointerdown = false;
+		dispatch('valuechanged', value);
 	};
 
 	const onPointerMove = (x: number) => {
@@ -50,10 +54,9 @@
 	};
 
 	const updateValue = (x: number) => {
-		const newValue = Math.round(x * capacity);
+		const newValue = clamp(Math.round(x * capacity), min, max);
 		if (newValue != value) {
 			value = newValue;
-			dispatch('valuechanged', value);
 		}
 	};
 </script>
