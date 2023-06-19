@@ -57,5 +57,9 @@
 			} missed`}
 		{/if}
 	{/if}
+
+	{#if action.tokensDestroyed && action.tokensDestroyed > 0}
+		destroying {action.tokensDestroyed} ship{action.tokensDestroyed > 1 ? 's' : ''}
+	{/if}
 {/if}
 <div />

@@ -27,10 +27,10 @@
 			if (planet.playerNum === $player.num) {
 				color = '#00FF00';
 				strokeWidth = 2;
-			} else if (planet.reportAge !== Unexplored && !planet.playerNum) {
-				color = '#FFF';
 			} else if (planet.playerNum) {
 				color = playerColor(planet.playerNum);
+			} else if (planet.reportAge !== Unexplored && !planet.playerNum) {
+				color = '#FFF';
 			}
 
 			// if anything is orbiting our planet, put a ring on it
