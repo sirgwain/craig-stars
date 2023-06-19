@@ -546,13 +546,13 @@ func (t *turn) fleetRemoteMine() {
 
 			planet := t.game.getPlanet(fleet.OrbitingPlanetNum)
 
-			if planet.owned() {
-				messager.remoteMineInhabited(player, fleet, planet)
+			// we can remote mine our own planets, but that happens at an earlier step, so skip  during normal remote mining
+			if planet.OwnedBy(fleet.PlayerNum) && player.Race.Spec.CanRemoteMineOwnPlanets {
 				continue
 			}
 
-			// we can remote mine our own planets, but that happens at an earlier step, so skip  during normal remote mining
-			if planet.OwnedBy(fleet.PlayerNum) && player.Race.Spec.CanRemoteMineOwnPlanets {
+			if planet.owned() {
+				messager.remoteMineInhabited(player, fleet, planet)
 				continue
 			}
 
