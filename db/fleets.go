@@ -443,3 +443,11 @@ func (c *client) updateFleet(fleet *game.Fleet, tx SQLExecer) error {
 	}
 	return nil
 }
+
+func (c *client) deleteFleet(fleetID int64, tx SQLExecer) error {
+
+	if _, err := tx.Exec("DELETE FROM fleets where id = ?", fleetID); err != nil {
+		return fmt.Errorf("delete fleet %d %w", fleetID, err)
+	}
+	return nil
+}

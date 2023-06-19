@@ -7,6 +7,6 @@ import (
 	"github.com/sirgwain/craig-stars/game"
 )
 
-func (s *server) Techs(c *gin.Context) {
+func (s *server) techs(c *gin.Context) {
 	c.JSON(http.StatusOK, game.StaticTechStore)
 }

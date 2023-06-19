@@ -13,38 +13,50 @@ type FullPlayer struct {
 }
 
 type Player struct {
-	ID                    int64                `json:"id,omitempty"`
-	CreatedAt             time.Time            `json:"createdAt,omitempty"`
-	UpdatedAt             time.Time            `json:"updatedat,omitempty"`
-	GameID                int64                `json:"gameId,omitempty"`
-	UserID                int64                `json:"userId,omitempty"`
-	Name                  string               `json:"name,omitempty"`
-	Num                   int                  `json:"num"`
-	Ready                 bool                 `json:"ready,omitempty"`
-	AIControlled          bool                 `json:"aIControlled,omitempty"`
-	SubmittedTurn         bool                 `json:"submittedTurn,omitempty"`
-	Color                 string               `json:"color,omitempty"`
-	DefaultHullSet        int                  `json:"defaultHullSet,omitempty"`
-	Race                  Race                 `json:"race,omitempty" `
-	TechLevels            TechLevel            `json:"techLevels,omitempty"`
-	TechLevelsSpent       TechLevel            `json:"techLevelsSpent,omitempty"`
-	ResearchAmount        int                  `json:"researchAmount,omitempty"`
-	ResearchSpentLastYear int                  `json:"researchSpentLastYear,omitempty"`
-	NextResearchField     NextResearchField    `json:"nextResearchField,omitempty"`
-	Researching           TechField            `json:"researching,omitempty"`
-	BattlePlans           []BattlePlan         `json:"battlePlans,omitempty"`
-	ProductionPlans       []ProductionPlan     `json:"productionPlans,omitempty"`
-	TransportPlans        []TransportPlan      `json:"transportPlans,omitempty"`
-	Messages              []PlayerMessage      `json:"messages,omitempty"`
-	Designs               []ShipDesign         `json:"designs"`
-	PlanetIntels          []PlanetIntel        `json:"planetIntels,omitempty"`
-	FleetIntels           []FleetIntel         `json:"fleetIntels,omitempty"`
-	ShipDesignIntels      []ShipDesignIntel    `json:"shipDesignIntels,omitempty"`
-	MineralPacketIntels   []MineralPacketIntel `json:"mineralPacketIntels,omitempty"`
-	MineFieldIntels       []MineFieldIntel     `json:"mineFieldIntels,omitempty"`
-	Spec                  PlayerSpec           `json:"spec,omitempty"`
-	Stats                 *PlayerStats         `json:"stats,omitempty"`
+	PlayerOrders
+	PlayerIntels
+	PlayerPlans
+	ID                    int64           `json:"id,omitempty"`
+	CreatedAt             time.Time       `json:"createdAt,omitempty"`
+	UpdatedAt             time.Time       `json:"updatedat,omitempty"`
+	GameID                int64           `json:"gameId,omitempty"`
+	UserID                int64           `json:"userId,omitempty"`
+	Name                  string          `json:"name,omitempty"`
+	Num                   int             `json:"num"`
+	Ready                 bool            `json:"ready,omitempty"`
+	AIControlled          bool            `json:"aIControlled,omitempty"`
+	SubmittedTurn         bool            `json:"submittedTurn,omitempty"`
+	Color                 string          `json:"color,omitempty"`
+	DefaultHullSet        int             `json:"defaultHullSet,omitempty"`
+	Race                  Race            `json:"race,omitempty" `
+	TechLevels            TechLevel       `json:"techLevels,omitempty"`
+	TechLevelsSpent       TechLevel       `json:"techLevelsSpent,omitempty"`
+	ResearchSpentLastYear int             `json:"researchSpentLastYear,omitempty"`
+	Messages              []PlayerMessage `json:"messages,omitempty"`
+	Designs               []ShipDesign    `json:"designs"`
+	Spec                  PlayerSpec      `json:"spec,omitempty"`
+	Stats                 *PlayerStats    `json:"stats,omitempty"`
 	leftoverResources     int
+}
+
+type PlayerIntels struct {
+	PlanetIntels        []PlanetIntel        `json:"planetIntels,omitempty"`
+	FleetIntels         []FleetIntel         `json:"fleetIntels,omitempty"`
+	ShipDesignIntels    []ShipDesignIntel    `json:"shipDesignIntels,omitempty"`
+	MineralPacketIntels []MineralPacketIntel `json:"mineralPacketIntels,omitempty"`
+	MineFieldIntels     []MineFieldIntel     `json:"mineFieldIntels,omitempty"`
+}
+
+type PlayerPlans struct {
+	BattlePlans     []BattlePlan     `json:"battlePlans,omitempty"`
+	ProductionPlans []ProductionPlan `json:"productionPlans,omitempty"`
+	TransportPlans  []TransportPlan  `json:"transportPlans,omitempty"`
+}
+
+type PlayerOrders struct {
+	Researching       TechField         `json:"researching,omitempty"`
+	NextResearchField NextResearchField `json:"nextResearchField,omitempty"`
+	ResearchAmount    int               `json:"researchAmount,omitempty"`
 }
 
 type PlayerStats struct {
@@ -144,7 +156,7 @@ type PlayerMapObjects struct {
 
 // create a new player with an existing race. The race
 // will be copied for the player
-func NewPlayer(userID int64, race *Race) *Player {
+func newPlayer(userID int64, race *Race) *Player {
 
 	// copy this race for the player
 	playerRace := *race
@@ -153,48 +165,52 @@ func NewPlayer(userID int64, race *Race) *Player {
 	playerRace.UpdatedAt = time.Time{}
 
 	return &Player{
-		UserID:            userID,
-		Race:              playerRace,
-		Color:             "#0000FF", // default to blue
-		Stats:             &PlayerStats{},
-		ResearchAmount:    15,
-		NextResearchField: NextResearchFieldLowestField,
-		BattlePlans: []BattlePlan{
-			{
-				Name:            "Default",
-				PrimaryTarget:   BattleTargetArmedShips,
-				SecondaryTarget: BattleTargetAny,
-				Tactic:          BattleTacticMaximizeDamageRatio,
-				AttackWho:       BattleAttackWhoEnemiesAndNeutrals,
+		UserID: userID,
+		Race:   playerRace,
+		Color:  "#0000FF", // default to blue
+		Stats:  &PlayerStats{},
+		PlayerOrders: PlayerOrders{
+			ResearchAmount:    15,
+			NextResearchField: NextResearchFieldLowestField,
+		},
+		PlayerPlans: PlayerPlans{
+			BattlePlans: []BattlePlan{
+				{
+					Name:            "Default",
+					PrimaryTarget:   BattleTargetArmedShips,
+					SecondaryTarget: BattleTargetAny,
+					Tactic:          BattleTacticMaximizeDamageRatio,
+					AttackWho:       BattleAttackWhoEnemiesAndNeutrals,
+				},
 			},
-		},
-		ProductionPlans: []ProductionPlan{
-			{Name: "Default", Items: []ProductionPlanItem{
-				{Type: QueueItemTypeAutoMinTerraform, Quantity: 1},
-				{Type: QueueItemTypeAutoFactories, Quantity: 10},
-				{Type: QueueItemTypeAutoMines, Quantity: 10},
-			}},
-		},
-		TransportPlans: []TransportPlan{
-			{Name: "Default"},
-			{Name: "Quick Load", Tasks: WaypointTransportTasks{
-				Fuel:      WaypointTransportTask{Action: TransportActionLoadOptimal},
-				Ironium:   WaypointTransportTask{Action: TransportActionLoadAll},
-				Boranium:  WaypointTransportTask{Action: TransportActionLoadAll},
-				Germanium: WaypointTransportTask{Action: TransportActionLoadAll},
-			}},
-			{Name: "Quick Drop", Tasks: WaypointTransportTasks{
-				Fuel:      WaypointTransportTask{Action: TransportActionLoadOptimal},
-				Ironium:   WaypointTransportTask{Action: TransportActionUnloadAll},
-				Boranium:  WaypointTransportTask{Action: TransportActionUnloadAll},
-				Germanium: WaypointTransportTask{Action: TransportActionUnloadAll},
-			}},
-			{Name: "Load Colonists", Tasks: WaypointTransportTasks{
-				Colonists: WaypointTransportTask{Action: TransportActionLoadAll},
-			}},
-			{Name: "Unload Colonists", Tasks: WaypointTransportTasks{
-				Colonists: WaypointTransportTask{Action: TransportActionUnloadAll},
-			}},
+			ProductionPlans: []ProductionPlan{
+				{Name: "Default", Items: []ProductionPlanItem{
+					{Type: QueueItemTypeAutoMinTerraform, Quantity: 1},
+					{Type: QueueItemTypeAutoFactories, Quantity: 10},
+					{Type: QueueItemTypeAutoMines, Quantity: 10},
+				}},
+			},
+			TransportPlans: []TransportPlan{
+				{Name: "Default"},
+				{Name: "Quick Load", Tasks: WaypointTransportTasks{
+					Fuel:      WaypointTransportTask{Action: TransportActionLoadOptimal},
+					Ironium:   WaypointTransportTask{Action: TransportActionLoadAll},
+					Boranium:  WaypointTransportTask{Action: TransportActionLoadAll},
+					Germanium: WaypointTransportTask{Action: TransportActionLoadAll},
+				}},
+				{Name: "Quick Drop", Tasks: WaypointTransportTasks{
+					Fuel:      WaypointTransportTask{Action: TransportActionLoadOptimal},
+					Ironium:   WaypointTransportTask{Action: TransportActionUnloadAll},
+					Boranium:  WaypointTransportTask{Action: TransportActionUnloadAll},
+					Germanium: WaypointTransportTask{Action: TransportActionUnloadAll},
+				}},
+				{Name: "Load Colonists", Tasks: WaypointTransportTasks{
+					Colonists: WaypointTransportTask{Action: TransportActionLoadAll},
+				}},
+				{Name: "Unload Colonists", Tasks: WaypointTransportTasks{
+					Colonists: WaypointTransportTask{Action: TransportActionUnloadAll},
+				}},
+			},
 		},
 	}
 }

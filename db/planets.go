@@ -119,7 +119,7 @@ func (c *client) getPlanetsForGame(gameID int64) ([]*game.Planet, error) {
 	return results, nil
 }
 
-func (c *client) getPlanetsForPlayer(playerID int64) ([]*game.Planet, error) {
+func (c *client) GetPlanetsForPlayer(playerID int64) ([]*game.Planet, error) {
 
 	items := []Planet{}
 	if err := c.db.Select(&items, `SELECT * FROM planets WHERE playerId = ?`, playerID); err != nil {

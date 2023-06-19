@@ -316,7 +316,7 @@ func (c *client) GetFullPlayerForGame(gameID, userID int64) (*game.FullPlayer, e
 	}
 	player.Designs = designs
 
-	planets, err := c.getPlanetsForPlayer(player.ID)
+	planets, err := c.GetPlanetsForPlayer(player.ID)
 	if err != nil {
 		return nil, fmt.Errorf("get player planets %w", err)
 	}

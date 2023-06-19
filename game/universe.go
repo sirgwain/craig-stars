@@ -136,7 +136,6 @@ func (u *Universe) getCargoHolder(mapObjectType MapObjectType, num int, playerNu
 
 // mark a fleet as deleted and remove it from the universe
 func (u *Universe) deleteFleet(fleet *Fleet) {
-	fleet.Dirty = true
 	fleet.Delete = true
 	delete(u.fleetsByNum, playerFleetNum{fleet.PlayerNum, fleet.Num})
 	delete(u.fleetsByPosition, fleet.Position)

@@ -195,6 +195,6 @@ func (m *messageClient) colonizeWithNoColonists(player *Player, fleet *Fleet) {
 }
 
 func (m *messageClient) planetColonized(player *Player, planet *Planet) {
-	text := "Your colonists are now in control of {planet.Name}"
+	text := fmt.Sprintf("Your colonists are now in control of %s", planet.Name)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetColonized, Text: text, TargetType: TargetPlanet, TargetMapObjectNum: planet.Num})
 }

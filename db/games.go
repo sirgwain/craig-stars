@@ -416,6 +416,12 @@ func (c *client) UpdateFullGame(g *game.FullGame) error {
 				return fmt.Errorf("create fleet %w", err)
 			}
 			log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Created fleet %s", fleet.Name)
+		} else if fleet.Delete {
+			if err := c.deleteFleet(fleet.ID, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("delete fleet %w", err)
+			}
+			log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Deleted fleet %s", fleet.Name)
 		} else if fleet.Dirty {
 			if err := c.updateFleet(fleet, tx); err != nil {
 				tx.Rollback()

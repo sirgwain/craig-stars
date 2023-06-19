@@ -71,7 +71,7 @@ func testCloakedScout(player *Player, rules *Rules) *Fleet {
 
 func TestComputeFleetSpec(t *testing.T) {
 	rules := NewRules()
-	starterHumanoidPlayer := NewPlayer(1, NewRace().WithSpec(&rules)).WithTechLevels(TechLevel{3, 3, 3, 3, 3, 3})
+	starterHumanoidPlayer := newPlayer(1, NewRace().WithSpec(&rules)).WithTechLevels(TechLevel{3, 3, 3, 3, 3, 3})
 	starterHumanoidPlayer.Race.Spec = computeRaceSpec(&starterHumanoidPlayer.Race, &rules)
 
 	type args struct {
@@ -84,7 +84,7 @@ func TestComputeFleetSpec(t *testing.T) {
 		args args
 		want FleetSpec
 	}{
-		{"empty", args{&rules, NewPlayer(1, NewRace().WithSpec(&rules)), &Fleet{}}, FleetSpec{
+		{"empty", args{&rules, newPlayer(1, NewRace().WithSpec(&rules)), &Fleet{}}, FleetSpec{
 			ShipDesignSpec: ShipDesignSpec{
 				ScanRange:    NoScanner,
 				ScanRangePen: NoScanner,
@@ -224,79 +224,9 @@ func TestComputeFleetSpec(t *testing.T) {
 	}
 }
 
-func TestFleet_TransferPlanetCargo(t *testing.T) {
-	rules := NewRules()
-	player := NewPlayer(1, NewRace().WithSpec(&rules))
-	// scout := testLongRangeScout(player, &rules)
-	freighter := testSmallFreighter(player, &rules)
-	type args struct {
-		planet         *Planet
-		transferAmount Cargo
-	}
-	tests := []struct {
-		name    string
-		fleet   *Fleet
-		args    args
-		wantErr bool
-	}{
-		{"Should transfer from planet", freighter, args{NewPlanet().WithCargo(Cargo{1, 2, 3, 4}), Cargo{1, 0, 0, 0}}, false},
-		{"Should fail to transfer from planet", freighter, args{NewPlanet().WithCargo(Cargo{1, 2, 3, 4}), Cargo{2, 0, 0, 0}}, true},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			sourceCargo := tt.fleet.Cargo
-			destCargo := tt.args.planet.Cargo
-			if err := tt.fleet.TransferPlanetCargo(tt.args.planet, tt.args.transferAmount); (err != nil) != tt.wantErr {
-				t.Errorf("Fleet.TransferPlanetCargo() error = %v, wantErr %v", err, tt.wantErr)
-			}
-			if !tt.wantErr {
-				// if we didn't want an error, ensure we transferred from the planet to the fleet
-				assert.Equal(t, tt.fleet.Cargo, sourceCargo.Add(tt.args.transferAmount))
-				assert.Equal(t, tt.args.planet.Cargo, destCargo.Subtract(tt.args.transferAmount))
-			}
-
-		})
-	}
-}
-
-func TestFleet_TransferFleetCargo(t *testing.T) {
-	rules := NewRules()
-	player := NewPlayer(1, NewRace().WithSpec(&rules))
-	// scout := testLongRangeScout(player, &rules)
-	freighter := testSmallFreighter(player, &rules)
-	type args struct {
-		fleet          *Fleet
-		transferAmount Cargo
-	}
-	tests := []struct {
-		name    string
-		fleet   *Fleet
-		args    args
-		wantErr bool
-	}{
-		{"Should transfer from fleet", freighter, args{testSmallFreighter(player, &rules).withCargo(Cargo{1, 2, 3, 4}), Cargo{1, 0, 0, 0}}, false},
-		{"Should fail to transfer from fleet", freighter, args{testSmallFreighter(player, &rules).withCargo(Cargo{1, 2, 3, 4}), Cargo{2, 0, 0, 0}}, true},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			sourceCargo := tt.fleet.Cargo
-			destCargo := tt.args.fleet.Cargo
-			if err := tt.fleet.TransferFleetCargo(tt.args.fleet, tt.args.transferAmount); (err != nil) != tt.wantErr {
-				t.Errorf("Fleet.TransferFleetCargo() error = %v, wantErr %v", err, tt.wantErr)
-			}
-			if !tt.wantErr {
-				// if we didn't want an error, ensure we transferred from the fleet to the fleet
-				assert.Equal(t, tt.fleet.Cargo, sourceCargo.Add(tt.args.transferAmount))
-				assert.Equal(t, tt.args.fleet.Cargo, destCargo.Subtract(tt.args.transferAmount))
-			}
-
-		})
-	}
-}
-
 func TestFleet_moveFleet(t *testing.T) {
 	rules := NewRules()
-	player := NewPlayer(1, NewRace().WithSpec(&rules))
+	player := newPlayer(1, NewRace().WithSpec(&rules))
 
 	type args struct {
 		player *Player

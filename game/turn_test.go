@@ -12,6 +12,7 @@ func Test_generateTurn(t *testing.T) {
 	player := client.NewPlayer(1, *NewRace(), &game.Rules)
 	players := []*Player{player}
 	player.AIControlled = true
+	player.Num = 1
 	universe, _ := client.GenerateUniverse(&game, players)
 
 	startingFleets := len(universe.Fleets)
@@ -35,6 +36,7 @@ func Test_generateTurns(t *testing.T) {
 	game := client.CreateGame(1, *NewGameSettings())
 	player := client.NewPlayer(1, *NewRace(), &game.Rules)
 	player.AIControlled = true
+	player.Num = 1
 	players := []*Player{player}
 	universe, _ := client.GenerateUniverse(&game, players)
 

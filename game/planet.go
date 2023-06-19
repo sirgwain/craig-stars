@@ -9,23 +9,27 @@ import (
 
 type Planet struct {
 	MapObject
-	Hab                               Hab                   `json:"hab,omitempty"`
-	BaseHab                           Hab                   `json:"baseHab,omitempty"`
-	TerraformedAmount                 Hab                   `json:"terraformedAmount,omitempty"`
-	MineralConcentration              Mineral               `json:"mineralConcentration,omitempty"`
-	MineYears                         Mineral               `json:"mineYears,omitempty"`
-	Cargo                             Cargo                 `json:"cargo,omitempty"`
-	Mines                             int                   `json:"mines,omitempty"`
-	Factories                         int                   `json:"factories,omitempty"`
-	Defenses                          int                   `json:"defenses,omitempty"`
-	Homeworld                         bool                  `json:"homeworld,omitempty"`
+	PlanetOrders
+	Hab                  Hab        `json:"hab,omitempty"`
+	BaseHab              Hab        `json:"baseHab,omitempty"`
+	TerraformedAmount    Hab        `json:"terraformedAmount,omitempty"`
+	MineralConcentration Mineral    `json:"mineralConcentration,omitempty"`
+	MineYears            Mineral    `json:"mineYears,omitempty"`
+	Cargo                Cargo      `json:"cargo,omitempty"`
+	Mines                int        `json:"mines,omitempty"`
+	Factories            int        `json:"factories,omitempty"`
+	Defenses             int        `json:"defenses,omitempty"`
+	Homeworld            bool       `json:"homeworld,omitempty"`
+	Scanner              bool       `json:"scanner,omitempty"`
+	PacketSpeed          int        `json:"packetSpeed,omitempty"`
+	BonusResources       int        `json:"-"`
+	Spec                 PlanetSpec `json:"spec,omitempty"`
+	starbase             *Fleet
+}
+
+type PlanetOrders struct {
 	ContributesOnlyLeftoverToResearch bool                  `json:"contributesOnlyLeftoverToResearch,omitempty"`
-	Scanner                           bool                  `json:"scanner,omitempty"`
-	PacketSpeed                       int                   `json:"packetSpeed,omitempty"`
-	BonusResources                    int                   `json:"-"`
 	ProductionQueue                   []ProductionQueueItem `json:"productionQueue,omitempty"`
-	Spec                              PlanetSpec            `json:"spec,omitempty"`
-	starbase                          *Fleet
 }
 
 type ProductionQueueItem struct {
@@ -88,7 +92,7 @@ func (item *ProductionQueueItem) String() string {
 	return fmt.Sprintf("ProductionQueueItem %d %s (%s)", item.Quantity, item.Type, item.DesignName)
 }
 
-func NewPlanet() *Planet {
+func newPlanet() *Planet {
 	return &Planet{MapObject: MapObject{Type: MapObjectTypePlanet, Dirty: true, PlayerNum: Unowned}}
 }
 

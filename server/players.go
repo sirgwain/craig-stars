@@ -17,7 +17,7 @@ type JoinGameBind struct {
 	RaceID int64 `json:"raceId"`
 }
 
-func (s *server) PlayerGames(c *gin.Context) {
+func (s *server) playerGames(c *gin.Context) {
 	user := s.GetSessionUser(c)
 
 	games, err := s.db.GetGamesForUser(user.ID)
@@ -30,7 +30,7 @@ func (s *server) PlayerGames(c *gin.Context) {
 	c.JSON(http.StatusOK, games)
 }
 
-func (s *server) HostedGames(c *gin.Context) {
+func (s *server) hostedGames(c *gin.Context) {
 	user := s.GetSessionUser(c)
 
 	games, err := s.db.GetGamesForHost(user.ID)
@@ -43,7 +43,7 @@ func (s *server) HostedGames(c *gin.Context) {
 	c.JSON(http.StatusOK, games)
 }
 
-func (s *server) OpenGames(c *gin.Context) {
+func (s *server) openGames(c *gin.Context) {
 	games, err := s.db.GetOpenGames()
 	if err != nil {
 		log.Error().Err(err).Msg("get open games from database")
@@ -54,7 +54,7 @@ func (s *server) OpenGames(c *gin.Context) {
 	c.JSON(http.StatusOK, games)
 }
 
-func (s *server) OpenGame(c *gin.Context) {
+func (s *server) openGame(c *gin.Context) {
 
 	var id idBind
 	if err := c.ShouldBindUri(&id); err != nil {
@@ -76,7 +76,7 @@ func (s *server) OpenGame(c *gin.Context) {
 	c.JSON(http.StatusOK, game)
 }
 
-func (s *server) PlayerGame(c *gin.Context) {
+func (s *server) playerGame(c *gin.Context) {
 	user := s.GetSessionUser(c)
 
 	var id idBind
@@ -102,7 +102,7 @@ func (s *server) PlayerGame(c *gin.Context) {
 }
 
 // Host a new game
-func (s *server) HostGame(c *gin.Context) {
+func (s *server) hostGame(c *gin.Context) {
 	user := s.GetSessionUser(c)
 
 	body := HostGameBind{}
@@ -125,7 +125,7 @@ func (s *server) HostGame(c *gin.Context) {
 }
 
 // Join an open game
-func (s *server) JoinGame(c *gin.Context) {
+func (s *server) joinGame(c *gin.Context) {
 	user := s.GetSessionUser(c)
 
 	var id idBind
@@ -186,7 +186,36 @@ func (s *server) JoinGame(c *gin.Context) {
 }
 
 // Submit a turn for the player
-func (s *server) SubmitTurn(c *gin.Context) {
+func (s *server) updatePlayerOrders(c *gin.Context) {
+	user := s.GetSessionUser(c)
+
+	var id idBind
+	if err := c.ShouldBindUri(&id); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	orders := game.PlayerOrders{}
+	if err := c.ShouldBindJSON(&orders); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	player, planets, err := s.playerUpdater.UpdatePlayerOrders(user.ID, id.ID, orders)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"player":  player,
+		"planets": planets,
+	})
+}
+
+// Submit a turn for the player
+func (s *server) submitTurn(c *gin.Context) {
 	user := s.GetSessionUser(c)
 
 	var id idBind

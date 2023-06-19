@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { EventManager } from '$lib/EventManager';
-	import { commandedFleet } from '$lib/services/Context';
+	import { commandedFleet, player } from '$lib/services/Context';
 	import CargoBar from '$lib/components/game/CargoBar.svelte';
 	import FuelBar from '$lib/components/game/FuelBar.svelte';
 	import CommandTile from './CommandTile.svelte';
 	import type { Fleet } from '$lib/types/Fleet';
 	import { onMount } from 'svelte';
+	import { findMyPlanetByNum } from '$lib/types/Player';
 
 	onMount(() => {
 		const unsubscribe = EventManager.subscribeCargoTransferredEvent((mo) => {
@@ -19,8 +20,13 @@
 	});
 
 	const transfer = () => {
-		if ($commandedFleet) {
-			EventManager.publishCargoTransferDialogRequestedEvent($commandedFleet);
+		if ($commandedFleet && $player) {
+			if ($commandedFleet.orbitingPlanetNum) {
+				const planet = findMyPlanetByNum($player, $commandedFleet.orbitingPlanetNum);
+				EventManager.publishCargoTransferDialogRequestedEvent($commandedFleet, planet);
+			} else {
+				EventManager.publishCargoTransferDialogRequestedEvent($commandedFleet);
+			}
 		}
 	};
 </script>
