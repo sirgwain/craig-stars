@@ -16,6 +16,7 @@
 	$: planets = $data && $data.filter((mo: MapObject) => mo.type == MapObjectType.Planet);
 </script>
 
+<!-- Planets -->
 {#each planets as planet}
 	<ScannerPlanet {planet} />
 {/each}

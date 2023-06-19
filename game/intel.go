@@ -6,8 +6,8 @@ import (
 	"github.com/google/uuid"
 )
 
-const Unexplored = -1
-const Unowned = -1
+const ReportAgeUnexplored = -1
+const Unowned = 0
 
 type discover struct {
 	player            *Player
@@ -121,7 +121,7 @@ func (d *ShipDesignIntel) String() string {
 }
 
 // create a new FleetIntel object by key
-func NewFleetIntel(playerNum int, name string) FleetIntel {
+func newFleetIntel(playerNum int, name string) FleetIntel {
 	return FleetIntel{
 		MapObjectIntel: MapObjectIntel{
 			Type: MapObjectTypeFleet,
@@ -135,12 +135,12 @@ func NewFleetIntel(playerNum int, name string) FleetIntel {
 
 // true if we haven't explored this planet
 func (intel *PlanetIntel) Unexplored() bool {
-	return intel.ReportAge == Unexplored
+	return intel.ReportAge == ReportAgeUnexplored
 }
 
 // true if we have explored this planet
 func (intel *PlanetIntel) Explored() bool {
-	return intel.ReportAge != Unexplored
+	return intel.ReportAge != ReportAgeUnexplored
 }
 
 // clear any transient player reports that are refreshed each turn
@@ -211,7 +211,7 @@ func (d *discover) discoverPlanetCargo(player *Player, planet *Planet) error {
 
 // discover a fleet and add it to the player's fleet intel
 func (d *discover) discoverFleet(player *Player, fleet *Fleet) {
-	intel := NewFleetIntel(fleet.PlayerNum, fleet.Name)
+	intel := newFleetIntel(fleet.PlayerNum, fleet.Name)
 
 	intel.Name = fleet.Name
 	intel.PlayerNum = fleet.PlayerNum
@@ -223,7 +223,7 @@ func (d *discover) discoverFleet(player *Player, fleet *Fleet) {
 
 // discover cargo for an existing fleet
 func (d *discover) discoverFleetCargo(player *Player, fleet *Fleet) {
-	key := NewFleetIntel(fleet.PlayerNum, fleet.Name)
+	key := newFleetIntel(fleet.PlayerNum, fleet.Name)
 
 	existingIntel, found := d.fleetIntelsByKey[key.String()]
 	if found {

@@ -75,8 +75,8 @@ func (ug *universeGenerator) Generate() (*Universe, error) {
 
 	for _, planet := range ug.universe.Planets {
 		if planet.owned() {
-			player := ug.players[planet.PlayerNum]
-			planet.Spec = ComputePlanetSpec(ug.rules, planet, player)
+			player := ug.players[planet.PlayerNum-1]
+			planet.Spec = computePlanetSpec(ug.rules, planet, player)
 		}
 	}
 	// disoverer := discover{g}
@@ -91,12 +91,12 @@ func (ug *universeGenerator) Generate() (*Universe, error) {
 		// disoverer.playerInfoDiscover(player)
 
 		// TODO: check for AI player
-		pmo := ug.universe.GetPlayerMapObjects(player.Num)
+		pmo := ug.universe.getPlayerMapObjects(player.Num)
 		ai := newAIPlayer(player, pmo)
 		ai.processTurn()
 
 		for _, f := range pmo.Fleets {
-			f.ComputeFuelUsage(ai.Player)
+			f.computeFuelUsage(ai.Player)
 		}
 	}
 
@@ -148,7 +148,7 @@ func (ug *universeGenerator) generatePlanets(area Vector) error {
 		// setup a new planet
 		planet := NewPlanet()
 		planet.Name = names[i]
-		planet.Num = int(i + 1)
+		planet.Num = i + 1
 		planet.Position = pos
 		planet.randomize(ug.rules)
 
@@ -195,7 +195,7 @@ func (ug *universeGenerator) generatePlayerShipDesigns() {
 				design := designShip(techStore, hull, startingFleet.Name, player, player.DefaultHullSet, startingFleet.Purpose)
 				design.HullSetNumber = int(startingFleet.HullSetNumber)
 				design.Purpose = startingFleet.Purpose
-				design.Spec = ComputeShipDesignSpec(ug.rules, player, design)
+				design.Spec = computeShipDesignSpec(ug.rules, player, design)
 				player.Designs = append(player.Designs, *design)
 			}
 		}
@@ -205,7 +205,7 @@ func (ug *universeGenerator) generatePlayerShipDesigns() {
 		for i := range starbaseDesigns {
 			design := &starbaseDesigns[i]
 			design.Purpose = ShipDesignPurposeStarbase
-			design.Spec = ComputeShipDesignSpec(ug.rules, player, design)
+			design.Spec = computeShipDesignSpec(ug.rules, player, design)
 			player.Designs = append(player.Designs, *design)
 		}
 	}
@@ -220,7 +220,7 @@ func (ug *universeGenerator) generatePlayerPlanetReports() error {
 		for j := range ug.universe.Planets {
 			// start with some defaults
 			intel := &player.PlanetIntels[j]
-			intel.ReportAge = Unexplored
+			intel.ReportAge = ReportAgeUnexplored
 			intel.Type = MapObjectTypePlanet
 			intel.PlayerNum = Unowned
 
@@ -327,9 +327,9 @@ func (ug *universeGenerator) generatePlayerFleets(player *Player, planet *Planet
 			return fmt.Errorf("no design named %s found for player %s", startingFleet.Name, player)
 		}
 
-		fleet := NewFleet(player, design, *fleetNum, startingFleet.Name, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, design.Spec.IdealSpeed)})
+		fleet := newFleet(player, design, *fleetNum, startingFleet.Name, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, design.Spec.IdealSpeed)})
 		fleet.OrbitingPlanetNum = planet.Num
-		fleet.Spec = ComputeFleetSpec(ug.rules, player, &fleet)
+		fleet.Spec = computeFleetSpec(ug.rules, player, &fleet)
 		fleet.Fuel = fleet.Spec.FuelCapacity
 		ug.universe.Fleets = append(ug.universe.Fleets, &fleet)
 		(*fleetNum)++ // increment the fleet num

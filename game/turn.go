@@ -107,12 +107,12 @@ func (t *turn) generateTurn() error {
 		t.checkVictory(player)
 
 		player.SubmittedTurn = false
-		pmo := t.game.GetPlayerMapObjects(player.Num)
+		pmo := t.game.getPlayerMapObjects(player.Num)
 		ai := newAIPlayer(player, pmo)
 		ai.processTurn()
 
 		for _, f := range pmo.Fleets {
-			f.ComputeFuelUsage(ai.Player)
+			f.computeFuelUsage(ai.Player)
 		}
 	}
 
@@ -129,8 +129,8 @@ func (t *turn) generateTurn() error {
 func (t *turn) computePlanetSpecs() {
 	for _, planet := range t.game.Planets {
 		if planet.owned() {
-			player := t.game.Players[planet.PlayerNum]
-			planet.Spec = ComputePlanetSpec(&t.game.Rules, planet, player)
+			player := t.game.Players[planet.PlayerNum-1]
+			planet.Spec = computePlanetSpec(&t.game.Rules, planet, player)
 		}
 	}
 
@@ -157,7 +157,7 @@ func (t *turn) fleetColonize() {
 	for _, fleet := range t.game.Fleets {
 		wp0 := fleet.Waypoints[0]
 		if wp0.Task == WaypointTaskColonize {
-			player := t.game.Players[fleet.PlayerNum]
+			player := t.game.Players[fleet.PlayerNum-1]
 
 			if wp0.TargetType != MapObjectTypePlanet {
 				messager.colonizeNonPlanet(player, fleet)
@@ -174,7 +174,7 @@ func (t *turn) fleetColonize() {
 				continue
 			}
 
-			planet := t.game.GetPlanet(wp0.TargetNum)
+			planet := t.game.getPlanet(wp0.TargetNum)
 			if planet.owned() {
 				messager.colonizeOwnedPlanet(player, fleet)
 				continue
@@ -202,6 +202,7 @@ func (t *turn) fleetColonize() {
 			// colonize the planet and scrap the fleet
 			fleet.colonizePlanet(&t.game.Rules, player, planet)
 			fleet.scrap(&t.game.Rules, player, planet)
+			t.game.Universe.deleteFleet(fleet)
 			messager.planetColonized(player, planet)
 		}
 	}
@@ -212,8 +213,8 @@ func (t *turn) fleetLoad0() {
 		wp0 := fleet.Waypoints[0]
 
 		if wp0.Task == WaypointTaskTransport {
-			player := t.game.Players[fleet.PlayerNum]
-			dest := t.game.GetCargoHolder(wp0.TargetType, wp0.TargetNum, wp0.TargetPlayerNum)
+			player := t.game.Players[fleet.PlayerNum-1]
+			dest := t.game.getCargoHolder(wp0.TargetType, wp0.TargetNum, wp0.TargetPlayerNum)
 			if dest == nil {
 				salvage := NewSalvage(fleet.PlayerNum, fleet.Position, Cargo{})
 				dest = &salvage
@@ -224,7 +225,7 @@ func (t *turn) fleetLoad0() {
 			for cargoType, task := range wp0.getTransportTasks() {
 				capacity := fleet.Spec.CargoCapacity - fleet.Cargo.Total() - transferCargo.Total()
 				transferAmount := 0
-				availableToLoad := dest.GetCargo().GetAmount(cargoType)
+				availableToLoad := dest.getCargo().GetAmount(cargoType)
 				currentAmount := fleet.Cargo.GetAmount(cargoType)
 				_ = currentAmount
 				switch task.Action {
@@ -272,7 +273,7 @@ func (t *turn) fleetMove() {
 			originalPosition := fleet.Position
 
 			if len(fleet.Waypoints) > 1 {
-				player := t.game.Players[fleet.PlayerNum]
+				player := t.game.Players[fleet.PlayerNum-1]
 				wp0 := fleet.Waypoints[0]
 				wp1 := fleet.Waypoints[1]
 
@@ -290,7 +291,7 @@ func (t *turn) fleetMove() {
 				}
 
 				// update the game dictionaries with this fleet's new position
-				t.game.MoveFleet(fleet, originalPosition)
+				t.game.moveFleet(fleet, originalPosition)
 			} else {
 				fleet.PreviousPosition = &originalPosition
 				fleet.WarpSpeed = 0
@@ -339,7 +340,7 @@ func (t *turn) fleetRemoteMineAR() {
 func (t *turn) planetProduction() {
 	for _, planet := range t.game.Planets {
 		if planet.owned() && len(planet.ProductionQueue) > 0 {
-			player := t.game.Players[planet.PlayerNum]
+			player := t.game.Players[planet.PlayerNum-1]
 			result := planet.produce(player)
 			for _, token := range result.tokens {
 				fleet := t.buildFleet(player, planet, token)
@@ -355,10 +356,10 @@ func (t *turn) buildFleet(player *Player, planet *Planet, token ShipToken) Fleet
 	player.Stats.TokensBuilt += token.Quantity
 
 	fleetNum := t.game.getNextFleetNum(player.Num)
-	fleet := NewFleetForToken(player, fleetNum, token, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, token.design.Spec.IdealSpeed)})
+	fleet := newFleetForToken(player, fleetNum, token, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, token.design.Spec.IdealSpeed)})
 	fleet.Position = planet.Position
 	fleet.BattlePlanName = player.BattlePlans[0].Name
-	fleet.Spec = ComputeFleetSpec(&t.game.Rules, player, &fleet)
+	fleet.Spec = computeFleetSpec(&t.game.Rules, player, &fleet)
 	fleet.Fuel = fleet.Spec.FuelCapacity
 	fleet.OrbitingPlanetNum = planet.Num
 
@@ -382,7 +383,7 @@ func (t *turn) permaform() {
 func (t *turn) planetGrow() {
 	for _, planet := range t.game.Planets {
 		if planet.owned() {
-			// player := t.game.Players[*planet.PlayerNum]
+			// player := t.game.Players[*planet.PlayerNum - 1]
 			planet.setPopulation(planet.population() + planet.Spec.GrowthAmount)
 			planet.Dirty = true // flag for update
 		}

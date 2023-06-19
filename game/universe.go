@@ -20,20 +20,13 @@ type Universe struct {
 	battlePlansByName map[playerBattlePlanName]*BattlePlan `json:"-"`
 }
 
-type MapObjectGetter interface {
-	GetShipDesign(uuid uuid.UUID) *ShipDesign
-	GetPlanet(num int) *Planet
-	GetFleet(playerNum int, num int) *Fleet
-	GetWormhole(num int) *Wormhole
-	GetSalvage(num int) *Salvage
-	GetCargoHolder(mapObjectType MapObjectType, num int, playerNum int) CargoHolder
-}
-
-// gets lists of player commandable mapobjects
-type PlayerMapObjectGetter interface {
-	GetPlanets(playerNum int) []*Planet
-	GetFleets(playerNum int) []*Fleet
-	GetMineFields(playerNum int) []*MineField
+type mapObjectGetter interface {
+	getShipDesign(uuid uuid.UUID) *ShipDesign
+	getPlanet(num int) *Planet
+	getFleet(playerNum int, num int) *Fleet
+	getWormhole(num int) *Wormhole
+	getSalvage(num int) *Salvage
+	getCargoHolder(mapObjectType MapObjectType, num int, playerNum int) cargoHolder
 }
 
 type playerFleetNum struct {
@@ -90,59 +83,59 @@ func (u *Universe) buildMaps(players []*Player) {
 }
 
 // get all commandable map objects for a player
-func (u *Universe) GetPlayerMapObjects(playerNum int) PlayerMapObjects {
+func (u *Universe) getPlayerMapObjects(playerNum int) PlayerMapObjects {
 	pmo := PlayerMapObjects{}
 
-	pmo.Fleets = u.GetFleets(playerNum)
-	pmo.Planets = u.GetPlanets(playerNum)
-	pmo.MineFields = u.GetMineFields(playerNum)
+	pmo.Fleets = u.getFleets(playerNum)
+	pmo.Planets = u.getPlanets(playerNum)
+	pmo.MineFields = u.getMineFields(playerNum)
 
 	return pmo
 }
 
 // get a ship design by uuid
-func (u *Universe) GetShipDesign(uuid uuid.UUID) *ShipDesign {
+func (u *Universe) getShipDesign(uuid uuid.UUID) *ShipDesign {
 	return u.designsByUUID[uuid]
 }
 
 // Get a planet by num
-func (u *Universe) GetPlanet(num int) *Planet {
+func (u *Universe) getPlanet(num int) *Planet {
 	return u.Planets[num-1]
 }
 
 // Get a fleet by player num and fleet num
-func (u *Universe) GetFleet(playerNum int, num int) *Fleet {
+func (u *Universe) getFleet(playerNum int, num int) *Fleet {
 	return u.fleetsByNum[playerFleetNum{playerNum, num}]
 }
 
 // Get a planet by num
-func (u *Universe) GetWormhole(num int) *Wormhole {
+func (u *Universe) getWormhole(num int) *Wormhole {
 	return u.Wormholes[num]
 }
 
 // Get a salvage by num
-func (u *Universe) GetSalvage(num int) *Salvage {
+func (u *Universe) getSalvage(num int) *Salvage {
 	return u.Salvages[num]
 }
 
 // Get a mineralpacket by num
-func (u *Universe) GetMineralPacket(num int) *MineralPacket {
+func (u *Universe) getMineralPacket(num int) *MineralPacket {
 	return u.MineralPackets[num]
 }
 
 // get a cargo holder by natural key (num, playerNum, etc)
-func (u *Universe) GetCargoHolder(mapObjectType MapObjectType, num int, playerNum int) CargoHolder {
+func (u *Universe) getCargoHolder(mapObjectType MapObjectType, num int, playerNum int) cargoHolder {
 	switch mapObjectType {
 	case MapObjectTypePlanet:
-		return u.GetPlanet(num)
+		return u.getPlanet(num)
 	case MapObjectTypeFleet:
-		return u.GetFleet(playerNum, num)
+		return u.getFleet(playerNum, num)
 	}
 	return nil
 }
 
 // mark a fleet as deleted and remove it from the universe
-func (u *Universe) DeleteFleet(fleet *Fleet) {
+func (u *Universe) deleteFleet(fleet *Fleet) {
 	fleet.Dirty = true
 	fleet.Delete = true
 	delete(u.fleetsByNum, playerFleetNum{fleet.PlayerNum, fleet.Num})
@@ -150,13 +143,13 @@ func (u *Universe) DeleteFleet(fleet *Fleet) {
 }
 
 // move a fleet from one position to another
-func (u *Universe) MoveFleet(fleet *Fleet, originalPosition Vector) {
+func (u *Universe) moveFleet(fleet *Fleet, originalPosition Vector) {
 	fleet.Dirty = true
 	delete(u.fleetsByPosition, originalPosition)
 	u.fleetsByPosition[originalPosition] = fleet
 }
 
-func (u *Universe) GetPlanets(playerNum int) []*Planet {
+func (u *Universe) getPlanets(playerNum int) []*Planet {
 	planets := []*Planet{}
 	for _, planet := range u.Planets {
 		if planet.PlayerNum == playerNum {
@@ -166,7 +159,7 @@ func (u *Universe) GetPlanets(playerNum int) []*Planet {
 	return planets
 }
 
-func (u *Universe) GetFleets(playerNum int) []*Fleet {
+func (u *Universe) getFleets(playerNum int) []*Fleet {
 	fleets := []*Fleet{}
 	for _, fleet := range u.Fleets {
 		if fleet.PlayerNum == playerNum {
@@ -176,7 +169,7 @@ func (u *Universe) GetFleets(playerNum int) []*Fleet {
 	return fleets
 }
 
-func (u *Universe) GetMineFields(playerNum int) []*MineField {
+func (u *Universe) getMineFields(playerNum int) []*MineField {
 	mineFields := []*MineField{}
 	for _, mineField := range u.MineFields {
 		if mineField.PlayerNum == playerNum {
@@ -189,7 +182,7 @@ func (u *Universe) GetMineFields(playerNum int) []*MineField {
 func (u *Universe) getNextFleetNum(playerNum int) int {
 	num := 1
 
-	playerFleets := u.GetFleets(playerNum)
+	playerFleets := u.getFleets(playerNum)
 	orderedFleets := make([]*Fleet, len(playerFleets))
 	copy(orderedFleets, playerFleets)
 	sort.Slice(orderedFleets, func(i, j int) bool { return orderedFleets[i].Num < orderedFleets[j].Num })

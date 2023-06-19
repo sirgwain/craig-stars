@@ -10,11 +10,11 @@
 		player
 	} from '$lib/services/Context';
 	import { radiansToDegrees } from '$lib/services/Math';
-	import { NotOrbitingPlanet, type Fleet } from '$lib/types/Fleet';
 	import { positionKey } from '$lib/types/MapObject';
 	import { normalized } from '$lib/types/Vector';
 	import { getContext } from 'svelte';
 	import type { LayerCake } from 'layercake';
+	import type { Fleet } from '$lib/types/Fleet';
 
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
@@ -31,14 +31,14 @@
 	const startHeading = normalized({ x: -1, y: 1 });
 
 	// identity or default is rotated 90º, or pointing up and to the right
-	const angleOffset = 45;
+	const angleOffset = 225;
 
 	$: {
 		if (fleet && fleet.heading) {
 			angle =
 				radiansToDegrees(
 					// Math.atan2(determinant(startHeading, fleet.heading), dot(startHeading, fleet.heading))
-					Math.atan2(fleet.position.y + fleet.heading.y, fleet.position.x + fleet.heading.x)
+					Math.atan2(fleet.heading.y, fleet.heading.x)
 				) + angleOffset;
 		}
 	}
@@ -64,7 +64,7 @@
 	}
 </script>
 
-{#if fleet.orbitingPlanetNum == NotOrbitingPlanet}
+{#if !fleet.orbitingPlanetNum}
 	<polygon
 		id="fleet"
 		points={`0,0 0,${size} ${size},${size}`}

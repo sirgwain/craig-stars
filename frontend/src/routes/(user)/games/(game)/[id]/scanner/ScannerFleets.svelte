@@ -15,7 +15,7 @@
 
 	$: fleets = $data && $data.filter((mo: MapObject) => mo.type == MapObjectType.Fleet);
 </script>
-
+<!-- Fleets -->
 {#each fleets as fleet}
 	<ScannerFleet {fleet} />
 {/each}
