@@ -68,10 +68,20 @@ func (e *completionEstimate) getCompletionEstimate(item ProductionQueueItem, yea
 	yearsToBuildAll := 1
 	yearsToBuildOne := 1
 	if !(totalCostToBuildAll == Cost{}) {
-		yearsToBuildAll = clamp(int(math.Ceil(1/yearlyAvailableToSpend.Divide(totalCostToBuildAll))), 0, math.MaxInt)
+		numBuiltPerYear := yearlyAvailableToSpend.Divide(totalCostToBuildAll)
+		if numBuiltPerYear == math.MaxFloat64 {
+			yearsToBuildAll = math.MaxInt
+		} else {
+			yearsToBuildAll = int(math.Ceil(1.0 / numBuiltPerYear))
+		}
 	}
 	if !(totalCostToBuildOne == Cost{}) {
-		yearsToBuildOne = clamp(int(math.Ceil(1/yearlyAvailableToSpend.Divide(totalCostToBuildOne))), 0, math.MaxInt)
+		numBuiltPerYear := yearlyAvailableToSpend.Divide(totalCostToBuildOne)
+		if numBuiltPerYear == math.MaxFloat64 {
+			yearsToBuildOne = math.MaxInt
+		} else {
+			yearsToBuildOne = int(math.Ceil(1 / numBuiltPerYear))
+		}
 	}
 
 	return QueueItemCompletionEstimate{

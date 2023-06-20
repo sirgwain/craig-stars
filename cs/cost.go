@@ -84,35 +84,35 @@ func (c Cost) MultiplyFloat64(factor float64) Cost {
 }
 
 func (a Cost) Divide(b Cost) float64 {
-	newIronium := float64(0)
+	var newIronium float64
 	if b.Ironium == 0 {
-		newIronium = float64(math.MaxFloat64)
+		newIronium = math.MaxFloat64
 	} else {
 		newIronium = float64(a.Ironium) / float64(b.Ironium)
 	}
 
-	newBoranium := float64(0)
+	var newBoranium float64
 	if b.Boranium == 0 {
-		newBoranium = float64(math.MaxFloat64)
+		newBoranium = math.MaxFloat64
 	} else {
 		newBoranium = float64(a.Boranium) / float64(b.Boranium)
 	}
 
-	newGermanium := float64(0)
+	var newGermanium float64
 	if b.Germanium == 0 {
-		newGermanium = float64(math.MaxFloat64)
+		newGermanium = math.MaxFloat64
 	} else {
 		newGermanium = float64(a.Germanium) / float64(b.Germanium)
 	}
 
-	newResources := float64(0)
+	var newResources float64
 	if b.Resources == 0 {
-		newResources = float64(math.MaxFloat64)
+		newResources = math.MaxFloat64
 	} else {
 		newResources = float64(a.Resources) / float64(b.Resources)
 	}
 
-	return float64(math.Min(float64(newResources), math.Min(float64(newIronium), math.Min(float64(newBoranium), float64(newGermanium)))))
+	return math.Min(newResources, math.Min(newIronium, math.Min(newBoranium, newGermanium)))
 
 }
 

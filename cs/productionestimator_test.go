@@ -20,6 +20,22 @@ func Test_completionEstimate_getCompletionEstimate(t *testing.T) {
 		want QueueItemCompletionEstimate
 	}{
 		{
+			name: "one item, no resources, indefinite build time",
+			args: args{
+				item: ProductionQueueItem{
+					Type:      QueueItemTypeFactory,
+					Quantity:  1,
+					CostOfOne: Cost{Ironium: 1},
+				},
+				yearlyAvailableToSpend: Cost{},
+			},
+			want: QueueItemCompletionEstimate{
+				YearsToBuildOne: math.MaxInt,
+				YearsToBuildAll: math.MaxInt,
+				PercentComplete: 0,
+			},
+		},
+		{
 			name: "two items, can build one a year",
 			args: args{
 				item: ProductionQueueItem{
