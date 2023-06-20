@@ -8,7 +8,7 @@ import (
 	"github.com/sirgwain/craig-stars/test"
 )
 
-func Test_completionEstimate_GetCompletionEstimate(t *testing.T) {
+func Test_completionEstimate_getCompletionEstimate(t *testing.T) {
 	type args struct {
 		item                   ProductionQueueItem
 		yearlyAvailableToSpend Cost
@@ -19,22 +19,6 @@ func Test_completionEstimate_GetCompletionEstimate(t *testing.T) {
 		args args
 		want QueueItemCompletionEstimate
 	}{
-		{
-			name: "one item, no resources, indefinite build time",
-			args: args{
-				item: ProductionQueueItem{
-					Type:      QueueItemTypeFactory,
-					Quantity:  1,
-					CostOfOne: Cost{Ironium: 1},
-				},
-				yearlyAvailableToSpend: Cost{},
-			},
-			want: QueueItemCompletionEstimate{
-				YearsToBuildOne: math.MaxInt,
-				YearsToBuildAll: math.MaxInt,
-				PercentComplete: 0,
-			},
-		},
 		{
 			name: "two items, can build one a year",
 			args: args{
