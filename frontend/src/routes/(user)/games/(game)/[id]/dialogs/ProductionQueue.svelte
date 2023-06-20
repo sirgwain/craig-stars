@@ -2,6 +2,7 @@
 	import CostComponent from '$lib/components/game/Cost.svelte';
 	import { getQuantityModifier } from '$lib/quantityModifier';
 	import { getGameContext } from '$lib/services/Contexts';
+	import { PlanetService } from '$lib/services/PlanetService';
 	import type { Cost } from '$lib/types/Cost';
 	import type { CommandedPlanet, ProductionQueueItem } from '$lib/types/Planet';
 	import { QueueItemType, isAuto } from '$lib/types/Planet';
@@ -19,6 +20,8 @@
 	const { game, player, universe } = getGameContext();
 
 	export let planet: CommandedPlanet;
+
+	$: updatedPlanet = planet;
 
 	const getFullName = (item: ProductionQueueItem) => {
 		switch (item.type) {
@@ -65,13 +68,22 @@
 		selectedQueueItem = item;
 	};
 
-	const addAvailableItem = (item?: ProductionQueueItem) => {
+	const updateQueueEstimates = async () => {
+		// update with estimates from the server
+		updatedPlanet.productionQueue = queueItems;
+		updatedPlanet = await PlanetService.getPlanetProductionEstimates(updatedPlanet);
+		queueItems = updatedPlanet.productionQueue;
+		selectedQueueItem = queueItems[selectedQueueItemIndex];
+	};
+
+	const addAvailableItem = async (item?: ProductionQueueItem) => {
 		item = item ?? selectedAvailableItem;
 		if (!queueItems || !item) {
 			return;
 		}
 
 		const quantity = getQuantityModifier();
+		const cost = getItemCost(item) ?? {};
 		if (selectedQueueItem) {
 			if (
 				selectedQueueItem.type == item?.type &&
@@ -80,23 +92,34 @@
 				selectedQueueItem.quantity += quantity;
 			} else {
 				// insert a new item
+
 				queueItems.splice(selectedQueueItemIndex + 1, 0, {
 					type: item.type,
 					quantity,
-					designName: item.designName
+					designName: item.designName,
+					costOfOne: cost,
+					allocated: {}
 				});
 				selectedQueueItemIndex++;
 				selectedQueueItem = queueItems[selectedQueueItemIndex];
 			}
 		} else {
 			// prepend a new queue item
-			queueItems = [{ type: item.type, designName: item.designName, quantity }, ...queueItems];
+			queueItems = [
+				{
+					type: item.type,
+					designName: item.designName,
+					costOfOne: cost,
+					allocated: {},
+					quantity
+				},
+				...queueItems
+			];
 			selectedQueueItemIndex++;
 			selectedQueueItem = queueItems[selectedQueueItemIndex];
 		}
 
-		// trigger reaction
-		queueItems = queueItems;
+		updateQueueEstimates();
 	};
 
 	const removeItem = () => {
@@ -110,6 +133,7 @@
 					queueItems[selectedQueueItemIndex > -1 ? selectedQueueItemIndex - 1 : 0];
 				selectedQueueItemIndex--;
 			}
+			updateQueueEstimates();
 		}
 	};
 
@@ -182,6 +206,24 @@
 			: undefined;
 	};
 
+	const getCompletionDescription = (item: ProductionQueueItem) => {
+		if (item.skipped) {
+			return 'Skipped';
+		}
+
+		const yearsToBuildOne = item.yearsToBuildOne ?? 1;
+		const yearsToBuildAll = item.yearsToBuildAll ?? 1;
+		if (yearsToBuildOne === yearsToBuildAll) {
+			if (yearsToBuildAll == 1) {
+				return '1 year';
+			}
+			return `${yearsToBuildAll} years`;
+		}
+		if (yearsToBuildOne != yearsToBuildAll) {
+			return `${yearsToBuildOne} to ${yearsToBuildAll} years`;
+		}
+	};
+
 	const dispatch = createEventDispatcher();
 
 	hotkeys('Esc', () => cancel());
@@ -209,7 +251,7 @@
 	$: planet && resetQueue();
 </script>
 
-<div class="flex h-full bg-base-200 shadow max-h-fit min-h-fit rounded-sm border-2 border-base-300">
+<div class="flex h-full bg-base-200 shadow max-h-fit min-h-fit rounded-sm border-2 border-base-300 text-base">
 	<div class="flex-col h-full w-full">
 		<div class="flex flex-col h-full w-full">
 			<div class="flex flex-row h-full w-full grid-cols-3">
@@ -222,10 +264,9 @@
 										type="button"
 										on:click={() => availableItemSelected(item)}
 										on:dblclick={() => addAvailableItem(item)}
-										class="w-full text-left cursor-default select-none hover:text-secondary-focus {item ==
-										selectedAvailableItem
-											? ' bg-primary'
-											: ''}
+										class:italic={isAuto(item.type)}
+										class:bg-primary={item === selectedAvailableItem}
+										class="w-full text-left cursor-default select-none hover:text-secondary-focus }
 									{isAuto(item.type) ? ' italic' : ''}"
 									>
 										{getFullName(item)}
@@ -298,10 +339,8 @@
 								<button
 									type="button"
 									on:click={() => queueItemClicked(-1)}
-									class="w-full pl-1 select-none cursor-default hover:text-secondary-focus {selectedQueueItemIndex ==
-									-1
-										? 'bg-primary'
-										: ''}"
+									class:bg-primary={selectedQueueItemIndex === -1}
+									class="w-full pl-1 select-none cursor-default hover:text-secondary-focus"
 								>
 									-- Top of the Queue --
 								</button>
@@ -312,10 +351,15 @@
 										<button
 											type="button"
 											on:click={() => queueItemClicked(index, queueItem)}
-											class="w-full text-left pl-1 select-none cursor-default hover:text-secondary-focus {selectedQueueItemIndex ==
-											index
-												? 'bg-primary'
-												: ''} {isAuto(queueItem.type) ? 'italic' : ''}"
+											class:italic={isAuto(queueItem.type)}
+											class:text-queue-item-skipped={queueItem.skipped}
+											class:text-queue-item-this-year={!queueItem.skipped &&
+												(queueItem.yearsToBuildAll ?? 0) <= 1}
+											class:text-queue-item-next-year={!queueItem.skipped &&
+												(queueItem.yearsToBuildAll ?? 0) > 1 &&
+												(queueItem.yearsToBuildOne ?? 0) <= 1}
+											class:bg-primary={queueItem === selectedQueueItem}
+											class="w-full text-left pl-1 select-none cursor-default hover:text-secondary-focus"
 										>
 											<div class="flex justify-between ">
 												<div>
@@ -337,6 +381,11 @@
 									Cost of {getFullName(selectedQueueItem)} x {selectedQueueItem.quantity}
 								</h3>
 								<CostComponent cost={getItemCost(selectedQueueItem, selectedQueueItem?.quantity)} />
+								<div class="mt-1 text-base">
+									{((selectedQueueItem.percentComplete ?? 0) * 100)?.toFixed()}% Done, Completion {getCompletionDescription(
+										selectedQueueItem
+									)}
+								</div>
 							{/if}
 						</div>
 					</div>

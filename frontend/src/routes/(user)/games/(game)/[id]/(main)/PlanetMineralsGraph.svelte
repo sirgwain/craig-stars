@@ -105,21 +105,21 @@
 	<div class="grow flex flex-col justify-evenly mx-1 px-0.5 py-1 bg-black line gap-2">
 		<div class="h-full relative cursor-help" on:pointerdown|preventDefault={onIroniumTooltip}>
 			<MineralConcentrationPoint
-				style={`left: ${concentrationPercent.ironium?.toFixed()};`}
+				style={`left: ${concentrationPercent.ironium?.toFixed()}%;`}
 				class="absolute ironium-concentration w-auto h-full ironium"
 			/>
 			<div style={`width: ${barPercent.ironium?.toFixed()}%`} class="ironium-bar h-full" />
 		</div>
 		<div class="h-full relative cursor-help" on:pointerdown|preventDefault={onBoraniumTooltip}>
 			<MineralConcentrationPoint
-				style={`left: ${concentrationPercent.boranium?.toFixed()};`}
+				style={`left: ${concentrationPercent.boranium?.toFixed()}%;`}
 				class="absolute boranium-concentration w-auto h-full boranium"
 			/>
 			<div style={`width: ${barPercent.boranium?.toFixed()}%`} class="boranium-bar h-full" />
 		</div>
 		<div class="h-full relative cursor-help" on:pointerdown|preventDefault={onGermaniumTooltip}>
 			<MineralConcentrationPoint
-				style={`left: ${concentrationPercent.germanium?.toFixed()};`}
+				style={`left: ${concentrationPercent.germanium?.toFixed()}%;`}
 				class="absolute germanium-concentration  h-full germanium"
 			/>
 			<div style={`width: ${barPercent.germanium?.toFixed()}%`} class="germanium-bar h-full" />

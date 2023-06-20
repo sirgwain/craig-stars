@@ -229,7 +229,7 @@ func NewPlayer(userID int64, race *Race) *Player {
 				{
 					Num:  0,
 					Name: "Default", Items: []ProductionPlanItem{
-						// {Type: QueueItemTypeAutoMinTerraform, Quantity: 1},
+						{Type: QueueItemTypeAutoMinTerraform, Quantity: 1},
 						{Type: QueueItemTypeAutoFactories, Quantity: 100},
 						{Type: QueueItemTypeAutoMines, Quantity: 100},
 					},

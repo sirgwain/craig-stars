@@ -603,11 +603,11 @@ func (c *client) GetPlayerMapObjects(gameID, userID int64) (*cs.PlayerMapObjects
 }
 
 // get a player with designs loaded
-func (c *client) GetPlayerWithDesignsForGame(gameID, userID int64) (*cs.Player, error) {
+func (c *client) GetPlayerWithDesignsForGame(gameID int64, num int) (*cs.Player, error) {
 	player := cs.Player{}
 
 	item := Player{}
-	if err := c.db.Get(&item, "SELECT * FROM players WHERE gameId = ? AND userId = ?", gameID, userID); err != nil {
+	if err := c.db.Get(&item, "SELECT * FROM players WHERE gameId = ? AND num = ?", gameID, num); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}

@@ -93,6 +93,18 @@
 	.scanner-pen {
 		@apply fill-[#7F7F00];
 	}
+
+	.text-queue-item-skipped {
+		@apply text-secondary
+	}
+
+	.text-queue-item-this-year {
+		@apply text-[#08810a];
+	}
+
+	.text-queue-item-next-year {
+		@apply text-[#0960ff];
+	}	
 }
 
 /* hide number spinner */

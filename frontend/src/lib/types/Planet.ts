@@ -41,7 +41,12 @@ export interface ProductionQueueItem {
 	type: QueueItemType;
 	quantity: number;
 	designName?: string;
-	allocated?: Cost;
+	allocated: Cost;
+	costOfOne: Cost;
+	skipped?: boolean;
+	yearsToBuildOne?: number;
+	yearsToBuildAll?: number;
+	percentComplete?: number;
 }
 
 /**
@@ -104,6 +109,7 @@ export class CommandedPlanet implements Planet {
 		scanRangePen: 0,
 		canTerraform: false,
 		terraformAmount: { grav: 0, temp: 0, rad: 0 },
+		minTerraformAmount: { grav: 0, temp: 0, rad: 0 },
 		hasMassDriver: false,
 		hasStarbase: false,
 		dockCapacity: 0,
@@ -137,7 +143,9 @@ export class CommandedPlanet implements Planet {
 					items.push({
 						quantity: 0,
 						type: QueueItemType.ShipToken,
-						designName: d.name
+						designName: d.name,
+						costOfOne: d.spec.cost ?? {},
+						allocated: {}
 					});
 				});
 		}
@@ -182,7 +190,9 @@ export class CommandedPlanet implements Planet {
 
 export const fromQueueItemType = (type: QueueItemType): ProductionQueueItem => ({
 	type,
-	quantity: 0
+	quantity: 0,
+	costOfOne: {},
+	allocated: {}
 });
 
 export enum QueueItemType {
@@ -278,6 +288,7 @@ export interface PlanetSpec {
 	scanRangePen: number;
 	canTerraform: boolean;
 	terraformAmount?: Hab;
+	minTerraformAmount?: Hab;
 	hasStarbase: boolean;
 	starbaseDesignNum?: number;
 	starbaseDesignName?: string;

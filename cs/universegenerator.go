@@ -79,6 +79,7 @@ func (ug *universeGenerator) Generate() (*Universe, error) {
 		if planet.owned() {
 			player := ug.players[planet.PlayerNum-1]
 			planet.Spec = computePlanetSpec(ug.rules, player, planet)
+			planet.PopulateProductionQueueCosts(player)
 		}
 	}
 

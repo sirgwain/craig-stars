@@ -63,12 +63,20 @@ func (s *server) planet(w http.ResponseWriter, r *http.Request) {
 
 // Allow a user to update a planet's orders
 func (s *server) updatePlanetOrders(w http.ResponseWriter, r *http.Request) {
+	game := s.contextGame(r)
 	existingPlanet := s.contextPlanet(r)
 	player := s.contextPlayer(r)
 
 	planet := planetRequest{}
 	if err := render.Bind(r, &planet); err != nil {
 		render.Render(w, r, ErrBadRequest(err))
+		return
+	}
+
+	// load the full player to update planet production estimates
+	player, err := s.db.GetPlayerWithDesignsForGame(game.ID, player.Num)
+	if err != nil {
+		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
@@ -82,4 +90,17 @@ func (s *server) updatePlanetOrders(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rest.RenderJSON(w, existingPlanet)
+}
+
+// get an estimate for production completion based on a planet's production queue items
+func (s *server) getPlanetProductionEstimate(w http.ResponseWriter, r *http.Request) {
+
+	planet := planetRequest{}
+	if err := render.Bind(r, &planet); err != nil {
+		render.Render(w, r, ErrBadRequest(err))
+		return
+	}
+
+	planet.PopulateProductionQueueEstimates()
+	rest.RenderJSON(w, planet)
 }

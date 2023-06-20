@@ -211,6 +211,10 @@ func Start(db DBClient, config config.Config) {
 			})
 		})
 
+		r.Route("/api/calculators", func(r chi.Router) {
+			r.Post("/planet-production-estimate", server.getPlanetProductionEstimate)
+		})
+
 		// route for all operations that act on a game
 		r.Route("/api/games", func(r chi.Router) {
 			r.Post("/", server.createGame)

@@ -118,10 +118,12 @@
 			<div class="text-right w-[5.5rem]">Temperature</div>
 			<div class="grow border-b border-base-300 bg-black mx-1 overflow-hidden">
 				<div class="h-full relative">
-					<div
-						style={`left: ${habLowPercent.temp.toFixed()}%; width: ${habWidthPercent.temp?.toFixed()}%`}
-						class="absolute temp-bar h-full"
-					/>
+					{#if !$player.race.immuneTemp}
+						<div
+							style={`left: ${habLowPercent.temp.toFixed()}%; width: ${habWidthPercent.temp?.toFixed()}%`}
+							class="absolute temp-bar h-full"
+						/>
+					{/if}
 					<PlanetHabPoint
 						style={`left: ${habPointPercent.temp.toFixed()}%;`}
 						class="absolute temp-point h-full"
@@ -134,10 +136,12 @@
 			<div class="text-right w-[5.5rem]">Radiation</div>
 			<div class="grow bg-black mx-1 overflow-hidden">
 				<div class="h-full relative">
-					<div
-						style={`left: ${habLowPercent.rad.toFixed()}%; width: ${habWidthPercent.rad?.toFixed()}%`}
-						class="absolute rad-bar h-full"
-					/>
+					{#if !$player.race.immuneRad}
+						<div
+							style={`left: ${habLowPercent.rad.toFixed()}%; width: ${habWidthPercent.rad?.toFixed()}%`}
+							class="absolute rad-bar h-full"
+						/>
+					{/if}
 					<PlanetHabPoint
 						style={`left: ${habPointPercent.rad.toFixed()}%;`}
 						class="absolute rad-point h-full"

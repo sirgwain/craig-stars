@@ -1,4 +1,5 @@
 import { CommandedPlanet, type Planet, type PlanetOrders } from '$lib/types/Planet';
+import { CSError, type ErrorResponse } from './Errors';
 import { Service } from './Service';
 
 export class PlanetService {
@@ -10,6 +11,24 @@ export class PlanetService {
 		const planet = await Service.get<Planet>(`/api/games/${gameId}/planets/${num}`);
 		const commandedPlanet = new CommandedPlanet();
 		return Object.assign(commandedPlanet, planet);
+	}
+
+	static async getPlanetProductionEstimates(planet: CommandedPlanet): Promise<CommandedPlanet> {
+		const response = await fetch(`/api/calculators/planet-production-estimate`, {
+			method: 'POST',
+			headers: {
+				accept: 'application/json'
+			},
+			body: JSON.stringify(planet)
+		});
+
+		if (response.ok) {
+			const updated = await response.json();
+			return Object.assign(new CommandedPlanet(), updated);
+		} else {
+			const result = (await response.json()) as ErrorResponse;
+			throw new CSError(result);
+		}
 	}
 
 	static async updatePlanetOrders(planet: CommandedPlanet): Promise<Planet> {

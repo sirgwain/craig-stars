@@ -118,12 +118,12 @@ func Test_production_produce4(t *testing.T) {
 func Test_production_produceTerraform(t *testing.T) {
 	player, planet := newTestPlayerPlanet()
 
-	// build 2/5 auto factories and one partial mine
+	// build 5 terraform steps
 	planet.ProductionQueue = []ProductionQueueItem{
 		{Type: QueueItemTypeTerraformEnvironment, Quantity: 5},
 	}
 	planet.Cargo = Cargo{0, 0, 8, 2500}
-	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 1000}
+	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 1000, TerraformAmount:  Hab{2, 2, 1}}
 	planet.BaseHab = Hab{40, 40, 40}
 	planet.Hab = Hab{40, 40, 40}
 

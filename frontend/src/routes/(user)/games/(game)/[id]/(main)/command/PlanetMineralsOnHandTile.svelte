@@ -79,15 +79,15 @@
 	<CommandTile title="Minerals on Hand">
 		<div class="flex justify-between cursor-help" on:pointerdown|preventDefault={onIroniumTooltip}>
 			<div class="text-ironium">Ironium</div>
-			<div>{planet.cargo.ironium}kT</div>
+			<div>{planet.cargo.ironium ?? 0}kT</div>
 		</div>
 		<div class="flex justify-between cursor-help" on:pointerdown|preventDefault={onBoraniumTooltip}>
 			<div class="text-boranium">Boranium</div>
-			<div>{planet.cargo.boranium}kT</div>
+			<div>{planet.cargo.boranium ?? 0}kT</div>
 		</div>
 		<div class="flex justify-between cursor-help" on:pointerdown|preventDefault={onGermaniumTooltip}>
 			<div class="text-germanium">Germanium</div>
-			<div>{planet.cargo.germanium}kT</div>
+			<div>{planet.cargo.germanium ?? 0}kT</div>
 		</div>
 
 		<div class="divider p-0 m-0" />

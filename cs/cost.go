@@ -83,6 +83,58 @@ func (c Cost) MultiplyFloat64(factor float64) Cost {
 	}
 }
 
+func (a Cost) Divide(b Cost) float64 {
+	newIronium := float64(0)
+	if b.Ironium == 0 {
+		newIronium = float64(math.MaxFloat64)
+	} else {
+		newIronium = float64(a.Ironium) / float64(b.Ironium)
+	}
+
+	newBoranium := float64(0)
+	if b.Boranium == 0 {
+		newBoranium = float64(math.MaxFloat64)
+	} else {
+		newBoranium = float64(a.Boranium) / float64(b.Boranium)
+	}
+
+	newGermanium := float64(0)
+	if b.Germanium == 0 {
+		newGermanium = float64(math.MaxFloat64)
+	} else {
+		newGermanium = float64(a.Germanium) / float64(b.Germanium)
+	}
+
+	newResources := float64(0)
+	if b.Resources == 0 {
+		newResources = float64(math.MaxFloat64)
+	} else {
+		newResources = float64(a.Resources) / float64(b.Resources)
+	}
+
+	return float64(math.Min(float64(newResources), math.Min(float64(newIronium), math.Min(float64(newBoranium), float64(newGermanium)))))
+
+}
+
+func (c Cost) Negate() Cost {
+	return Cost{
+		Ironium:   -c.Ironium,
+		Boranium:  -c.Boranium,
+		Germanium: -c.Germanium,
+		Resources: -c.Resources,
+	}
+}
+
+// return this cost with a minimum of zero for each value
+func (c Cost) MinZero() Cost {
+	return Cost{
+		Ironium:   maxInt(c.Ironium, 0),
+		Boranium:  maxInt(c.Boranium, 0),
+		Germanium: maxInt(c.Germanium, 0),
+		Resources: maxInt(c.Resources, 0),
+	}
+}
+
 // determine how many times and item costing cost can be built by available resources
 func (available Cost) NumBuildable(cost Cost) int {
 	buildable := Cost{math.MaxInt, math.MaxInt, math.MaxInt, math.MaxInt}

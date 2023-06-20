@@ -31,12 +31,21 @@ type productionResult struct {
 	alchemy  Mineral
 }
 
+type QueueItemCompletionEstimate struct {
+	Skipped         bool    `json:"skipped,omitempty"`
+	YearsToBuildOne int     `json:"yearsToBuildOne,omitempty"`
+	YearsToBuildAll int     `json:"yearsToBuildAll,omitempty"`
+	PercentComplete float64 `json:"percentComplete,omitempty"`
+}
+
 type ProductionQueueItem struct {
-	//	ProductionPlanItem
-	Type       QueueItemType `json:"type"`
-	DesignName string        `json:"designName"`
-	Quantity   int           `json:"quantity"`
-	Allocated  Cost          `json:"allocated"`
+	QueueItemCompletionEstimate
+	Type         QueueItemType `json:"type"`
+	DesignName   string        `json:"designName,omitempty"`
+	Quantity     int           `json:"quantity"`
+	CostOfOne    Cost          `json:"costOfOne"`
+	MaxBuildable int           `json:"maxBuildable"`
+	Allocated    Cost          `json:"allocated"`
 }
 
 type QueueItemType string
@@ -106,10 +115,23 @@ func (t QueueItemType) concreteType() QueueItemType {
 // produce one turns worth of items from the production queue
 func (p *production) produce() productionResult {
 	player, planet := p.player, p.planet
+	planet.PopulateProductionQueueCosts(player)
 	result := productionResult{}
 	available := Cost{Resources: planet.Spec.ResourcesPerYearAvailable}.AddCargoMinerals(planet.Cargo)
 	newQueue := []ProductionQueueItem{}
 	for itemIndex, item := range planet.ProductionQueue {
+		maxBuildable := planet.maxBuildable(item.Type)
+		if maxBuildable == Infinite {
+			maxBuildable = math.MaxInt
+		}
+
+		// skip auto items that will never complete, or that we don't need
+		// this way we can put auto terraforming items up top
+		// and skip them to build factories, then mines
+		if item.Skipped || (item.Type.IsAuto() && item.YearsToBuildOne > 100) {
+			newQueue = append(newQueue, item)
+			continue
+		}
 
 		if item.Type.IsPacket() && !planet.Spec.HasMassDriver {
 			messager.buildMineralPacketNoMassDriver(player, planet)
@@ -125,22 +147,14 @@ func (p *production) produce() productionResult {
 		item.Allocated = Cost{}
 
 		// get the cost of the current item
-		cost := player.Race.Spec.Costs[item.Type]
-		if item.Type == QueueItemTypeStarbase || item.Type == QueueItemTypeShipToken {
-			design := player.GetDesign(item.DesignName)
-			if design != nil {
-				cost = design.Spec.Cost
-			} else {
-				log.Error().Msgf("player %s has no design named: %s", player, item.DesignName)
-			}
-		}
+		cost := item.CostOfOne
 
 		if (cost != Cost{}) {
 			// figure out how many we can build
 			// and make sure we only build up to the quantity, and we don't build more than the planet supports
 			numBuilt := maxInt(0, available.NumBuildable(cost))
 			numBuilt = minInt(numBuilt, item.Quantity)
-			numBuilt = minInt(numBuilt, p.maxBuildable(item.Type))
+			numBuilt = minInt(numBuilt, maxBuildable)
 
 			if numBuilt > 0 {
 				// build the items on the planet and remove from our available
@@ -181,6 +195,7 @@ func (p *production) produce() productionResult {
 				} else {
 					// auto items stay in the list
 					// and we have resources leftover so move on
+					item.Allocated = Cost{}
 					newQueue = append(newQueue, item)
 				}
 			} else {
@@ -318,34 +333,4 @@ func (p *production) allocatePartialBuild(costPerItem Cost, allocated Cost) Cost
 
 	// return the amount we allocate to the top queued item
 	return newAllocated
-}
-
-// get the maximum buildable amount of a queue item
-func (p *production) maxBuildable(t QueueItemType) int {
-	planet, player := p.planet, p.player
-	switch t {
-	case QueueItemTypeAutoMines:
-		return planet.Spec.MaxMines - planet.Mines
-	case QueueItemTypeMine:
-		return planet.Spec.MaxPossibleMines - planet.Mines
-	case QueueItemTypeAutoFactories:
-		return planet.Spec.MaxFactories - planet.Factories
-	case QueueItemTypeFactory:
-		return planet.Spec.MaxPossibleFactories - planet.Factories
-	case QueueItemTypeAutoDefenses:
-		fallthrough
-	case QueueItemTypeDefenses:
-		return planet.Spec.MaxDefenses - planet.Defenses
-	case QueueItemTypeTerraformEnvironment:
-	case QueueItemTypeAutoMaxTerraform:
-		terraformer := NewTerraformer()
-		return terraformer.getTerraformAmount(planet, player, player).absSum()
-	case QueueItemTypeAutoMinTerraform:
-		terraformer := NewTerraformer()
-		return terraformer.getMinTerraformAmount(planet, player, player).absSum()
-	case QueueItemTypeStarbase:
-		return 1
-	}
-	// default to infinite
-	return math.MaxInt
 }

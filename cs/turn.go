@@ -129,6 +129,7 @@ func (t *turn) computePlanetSpecs() {
 		if planet.owned() {
 			player := t.game.Players[planet.PlayerNum-1]
 			planet.Spec = computePlanetSpec(&t.game.Rules, player, planet)
+			planet.PopulateProductionQueueCosts(player)
 		}
 	}
 }

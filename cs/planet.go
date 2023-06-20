@@ -73,6 +73,7 @@ type PlanetSpec struct {
 	Stargate                  string  `json:"stargate,omitempty"`
 	MassDriver                string  `json:"massDriver,omitempty"`
 	TerraformAmount           Hab     `json:"terraformAmount,omitempty"`
+	MinTerraformAmount        Hab     `json:"minTerraformAmount,omitempty"`
 	TerraformedHabitability   int     `json:"terraformedHabitability,omitempty"`
 }
 
@@ -139,6 +140,54 @@ func (p *Planet) setPopulation(pop int) {
 // true if this planet can build a ship with a given mass
 func (p *Planet) CanBuild(mass int) bool {
 	return p.Spec.HasStarbase && (p.starbase.Spec.SpaceDock == UnlimitedSpaceDock || p.starbase.Spec.SpaceDock >= mass)
+}
+
+// populate the costs of each item in the planet production queue
+func (p *Planet) PopulateProductionQueueCosts(player *Player) error {
+	costCalculator := NewCostCalculator()
+	for i := range p.ProductionQueue {
+		item := &p.ProductionQueue[i]
+		if item.Type == QueueItemTypeStarbase && p.Spec.HasStarbase {
+			newDesign := player.GetDesign(item.DesignName)
+			if newDesign == nil {
+				return fmt.Errorf("player %v does not have design %s", player, item.DesignName)
+			}
+			item.CostOfOne = costCalculator.StarbaseUpgradeCost(p.starbase.Tokens[0].design, newDesign)
+
+		} else {
+			costOfOne, err := costCalculator.CostOfOne(player, *item)
+			if err != nil {
+				return err
+			}
+			item.CostOfOne = costOfOne
+		}
+		item.MaxBuildable = p.maxBuildable(item.Type)
+	}
+
+	p.PopulateProductionQueueEstimates()
+
+	return nil
+}
+
+// populate the costs of each item in the planet production queue
+func (p *Planet) PopulateProductionQueueEstimates() error {
+	// figure out how many resources we have per year
+	yearlyResources := 0
+	if p.ContributesOnlyLeftoverToResearch {
+		yearlyResources = p.Spec.ResourcesPerYear
+	} else {
+		yearlyResources = p.Spec.ResourcesPerYearAvailable
+	}
+
+	// this is how man resources and minerals our planet produces each year
+	yearlyAvailableToSpend := p.Cargo.AddMineral(p.Spec.MiningOutput).ToCost()
+	yearlyAvailableToSpend.Resources = yearlyResources
+
+	// populate completion estimates
+	completionEstimator := newCompletionEstimator()
+	completionEstimator.PopulateCompletionEstimates(p.ProductionQueue, yearlyAvailableToSpend)
+
+	return nil
 }
 
 func (p *Planet) reset() {
@@ -350,6 +399,7 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	// terraforming
 	terraformer := NewTerraformer()
 	spec.TerraformAmount = terraformer.getTerraformAmount(planet, player, player)
+	spec.MinTerraformAmount = terraformer.getMinTerraformAmount(planet, player, player)
 	spec.CanTerraform = spec.TerraformAmount.absSum() > 0
 
 	if !race.Spec.InnateMining {
@@ -429,6 +479,32 @@ func getMaxPopulation(rules *Rules, hab int, player *Player) int {
 	maxPopulationFactor := 1 + race.Spec.MaxPopulationOffset
 
 	return roundToNearest100f(float64(rules.MaxPopulation) * maxPopulationFactor * float64(hab) / 100.0)
+}
+
+func (planet *Planet) maxBuildable(t QueueItemType) int {
+	switch t {
+	case QueueItemTypeAutoMines:
+		return planet.Spec.MaxMines - planet.Mines
+	case QueueItemTypeMine:
+		return planet.Spec.MaxPossibleMines - planet.Mines
+	case QueueItemTypeAutoFactories:
+		return planet.Spec.MaxFactories - planet.Factories
+	case QueueItemTypeFactory:
+		return planet.Spec.MaxPossibleFactories - planet.Factories
+	case QueueItemTypeAutoDefenses:
+		fallthrough
+	case QueueItemTypeDefenses:
+		return planet.Spec.MaxDefenses - planet.Defenses
+	case QueueItemTypeTerraformEnvironment:
+	case QueueItemTypeAutoMaxTerraform:
+		return planet.Spec.TerraformAmount.absSum()
+	case QueueItemTypeAutoMinTerraform:
+		return planet.Spec.MinTerraformAmount.absSum()
+	case QueueItemTypeStarbase:
+		return 1
+	}
+	// default to infinite
+	return Infinite
 }
 
 // reduce the mineral concentrations of a planet after mining.

@@ -53,6 +53,7 @@ func (o *orders) UpdatePlanetOrders(player *Player, planet *Planet, orders Plane
 
 	spec := &planet.Spec
 	spec.computeResourcesPerYearAvailable(player, planet)
+	planet.PopulateProductionQueueCosts(player)
 	planet.MarkDirty()
 }
 
