@@ -58,7 +58,7 @@ func TestCost_Divide(t *testing.T) {
 		args   args
 		want   float64
 	}{
-		{"0", fields{0, 0, 0, 0}, args{Cost{0, 0, 0, 0}}, math.MaxFloat64},
+		{"0", fields{0, 0, 0, 0}, args{Cost{0, 0, 0, 0}}, math.Inf(1)},
 		{"1 I", fields{1, 0, 0, 0}, args{Cost{1, 0, 0, 0}}, 1},
 		{"1 B", fields{0, 1, 0, 0}, args{Cost{0, 1, 0, 0}}, 1},
 		{"1 G", fields{0, 0, 1, 0}, args{Cost{0, 0, 1, 0}}, 1},
