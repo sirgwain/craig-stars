@@ -948,7 +948,7 @@ func (fleet *Fleet) completeMove(mapObjectGetter mapObjectGetter, player *Player
 		discoverer := newDiscoverer(player)
 		discoverer.discoverWormholeLink(target, dest)
 		fleet.Position = dest.Position
-
+		fleet.Waypoints[1] = NewPositionWaypoint(fleet.Position, fleet.Spec.Engine.IdealSpeed)
 	}
 
 	// if we wait at a waypoint while unloading, we "complete" our move but don't actually move
