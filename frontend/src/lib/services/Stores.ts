@@ -98,11 +98,12 @@ export const previousMapObject = () => {
 			zoomToMapObject(planet);
 			selectMapObject(planet);
 		} else if (mo.type == MapObjectType.Fleet) {
-			const prevIndex = rollover(i - 1, 0, u.fleets.length - 1);
-			commandMapObject(u.fleets[prevIndex]);
-			zoomToMapObject(u.fleets[prevIndex]);
+			const fleets = u.getMyFleets()
+			const prevIndex = rollover(i - 1, 0, fleets.length - 1);
+			commandMapObject(fleets[prevIndex]);
+			zoomToMapObject(fleets[prevIndex]);
 
-			const fleet = u.fleets[prevIndex];
+			const fleet = fleets[prevIndex];
 			if (fleet.orbitingPlanetNum && fleet.orbitingPlanetNum != None) {
 				const planet = u.getMapObject({
 					targetType: MapObjectType.Planet,
@@ -133,10 +134,12 @@ export const nextMapObject = () => {
 			zoomToMapObject(planet);
 			selectMapObject(planet);
 		} else if (mo.type == MapObjectType.Fleet) {
-			const nextIndex = rollover(i + 1, 0, u.fleets.length - 1);
-			const fleet = u.fleets[nextIndex];
-			commandMapObject(u.fleets[nextIndex]);
-			zoomToMapObject(u.fleets[nextIndex]);
+			const fleets = u.getMyFleets();
+
+			const nextIndex = rollover(i + 1, 0, fleets.length - 1);
+			const fleet = fleets[nextIndex];
+			commandMapObject(fleets[nextIndex]);
+			zoomToMapObject(fleets[nextIndex]);
 			if (fleet.orbitingPlanetNum && fleet.orbitingPlanetNum != None) {
 				const planet = u.getMapObject({
 					targetType: MapObjectType.Planet,
