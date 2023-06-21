@@ -30,19 +30,58 @@
 
 	<div class="text-right mr-1 h-8">Ironium</div>
 	<div class="my-auto">
-		<MineralBar value={(cargo.ironium ?? 0) + (transferAmount.ironium ?? 0)} capacity={cargoCapacity} color="ironium-bar" />
+		<MineralBar
+			value={(cargo.ironium ?? 0) + (transferAmount.ironium ?? 0)}
+			capacity={cargoCapacity}
+			color="ironium-bar"
+			on:valuechanged={(e) =>
+				dispatch(
+					'transferironium',
+					e.detail - ((cargo.ironium ?? 0) + (transferAmount.ironium ?? 0))
+				)}
+
+		/>
 	</div>
 	<div class="text-right mr-1 h-8">Boranium</div>
 	<div class="my-auto">
-		<MineralBar value={(cargo.boranium ?? 0) + (transferAmount.boranium ?? 0)} capacity={cargoCapacity} color="boranium-bar" />
+		<MineralBar
+			value={(cargo.boranium ?? 0) + (transferAmount.boranium ?? 0)}
+			capacity={cargoCapacity}
+			color="boranium-bar"
+			on:valuechanged={(e) =>
+				dispatch(
+					'transferboranium',
+					e.detail - ((cargo.boranium ?? 0) + (transferAmount.boranium ?? 0))
+				)}
+
+		/>
 	</div>
 	<div class="text-right mr-1 h-8">Germanium</div>
 	<div class="my-auto">
-		<MineralBar value={(cargo.germanium ?? 0) + (transferAmount.germanium ?? 0)} capacity={cargoCapacity} color="germanium-bar" />
+		<MineralBar
+			value={(cargo.germanium ?? 0) + (transferAmount.germanium ?? 0)}
+			capacity={cargoCapacity}
+			color="germanium-bar"
+			on:valuechanged={(e) =>
+				dispatch(
+					'transfergermanium',
+					e.detail - ((cargo.germanium ?? 0) + (transferAmount.germanium ?? 0))
+				)}
+
+		/>
 	</div>
 
 	<div class="text-right mr-1 h-8">Colonists</div>
 	<div class="my-auto">
-		<MineralBar value={(cargo.colonists ?? 0) + (transferAmount.colonists ?? 0)} capacity={cargoCapacity} color="colonists-bar" />
+		<MineralBar
+			value={(cargo.colonists ?? 0) + (transferAmount.colonists ?? 0)}
+			capacity={cargoCapacity}
+			color="colonists-bar"
+			on:valuechanged={(e) =>
+				dispatch(
+					'transfercolonists',
+					e.detail - ((cargo.colonists ?? 0) + (transferAmount.colonists ?? 0))
+				)}
+		/>
 	</div>
 </div>

@@ -33,7 +33,7 @@
 	const ok = async () => {
 		if (src && $game) {
 			try {
-				await $game.transferCargo(src, dest, transferAmount)
+				await $game.transferCargo(src, dest, transferAmount);
 				if (dest?.cargo) {
 					dest.cargo = subtract(dest.cargo, transferAmount);
 				}
@@ -116,6 +116,10 @@
 							{fuel}
 							cargoCapacity={src.spec.cargoCapacity ?? 0}
 							fuelCapacity={src.spec.fuelCapacity ?? 0}
+							on:transferironium={(e) => transferIronium(e.detail)}
+							on:transferboranium={(e) => transferBoranium(e.detail)}
+							on:transfergermanium={(e) => transferGermanium(e.detail)}
+							on:transfercolonists={(e) => transferColonists(e.detail)}
 						/>
 					</div>
 					<div class="flex-none h-full mx-0.5 w-20 px-1 mt-8">
