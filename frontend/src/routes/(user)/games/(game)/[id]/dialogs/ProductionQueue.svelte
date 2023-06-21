@@ -17,17 +17,26 @@
 	import hotkeys from 'hotkeys-js';
 	import { createEventDispatcher } from 'svelte';
 
-	const { game, player, universe } = getGameContext();
+	const { game, player, universe, designs } = getGameContext();
 
 	export let planet: CommandedPlanet;
 
+	let availableItems: ProductionQueueItem[] = [];
+	let queueItems: ProductionQueueItem[] = [];
+	let contributesOnlyLeftoverToResearch = false;
+
+	let selectedAvailableItem: ProductionQueueItem | undefined;
+
+	let selectedQueueItemIndex = -1;
+	let selectedQueueItem: ProductionQueueItem | undefined;
+
 	$: updatedPlanet = planet;
 
-	const getFullName = (item: ProductionQueueItem) => {
+	const getFullName = (item: ProductionQueueItem): string => {
 		switch (item.type) {
 			case QueueItemType.Starbase:
 			case QueueItemType.ShipToken:
-				return item.designName ?? '';
+				return $universe.getMyDesign(item.designNum)?.name ?? '';
 			case QueueItemType.AutoMineralAlchemy:
 				return 'Alchemy (Auto Build)';
 			case QueueItemType.MineralAlchemy:
@@ -85,10 +94,7 @@
 		const quantity = getQuantityModifier();
 		const cost = getItemCost(item) ?? {};
 		if (selectedQueueItem) {
-			if (
-				selectedQueueItem.type == item?.type &&
-				selectedQueueItem.designName == item?.designName
-			) {
+			if (selectedQueueItem.type == item?.type && selectedQueueItem.designNum == item?.designNum) {
 				selectedQueueItem.quantity += quantity;
 			} else {
 				// insert a new item
@@ -96,7 +102,7 @@
 				queueItems.splice(selectedQueueItemIndex + 1, 0, {
 					type: item.type,
 					quantity,
-					designName: item.designName,
+					designNum: item.designNum,
 					costOfOne: cost,
 					allocated: {}
 				});
@@ -104,19 +110,26 @@
 				selectedQueueItem = queueItems[selectedQueueItemIndex];
 			}
 		} else {
-			// prepend a new queue item
-			queueItems = [
-				{
-					type: item.type,
-					designName: item.designName,
-					costOfOne: cost,
-					allocated: {},
-					quantity
-				},
-				...queueItems
-			];
-			selectedQueueItemIndex++;
-			selectedQueueItem = queueItems[selectedQueueItemIndex];
+			let nextItem = queueItems.length ? queueItems[0] : undefined;
+			if (nextItem && nextItem.type === item?.type && nextItem.designNum == item.designNum) {
+				nextItem.quantity++;
+				selectedQueueItemIndex = 0;
+				selectedQueueItem = nextItem;
+			} else {
+				// prepend a new queue item
+				queueItems = [
+					{
+						type: item.type,
+						designNum: item.designNum,
+						costOfOne: cost,
+						allocated: {},
+						quantity
+					},
+					...queueItems
+				];
+				selectedQueueItemIndex++;
+				selectedQueueItem = queueItems[selectedQueueItemIndex];
+			}
 		}
 
 		updateQueueEstimates();
@@ -186,8 +199,8 @@
 		switch (item?.type) {
 			case QueueItemType.ShipToken:
 			case QueueItemType.Starbase:
-				if (item.designName) {
-					const design = $universe.getMyDesignByName(item.designName);
+				if (item.designNum) {
+					const design = $universe.getMyDesign(item.designNum);
 					cost = design?.spec.cost;
 				}
 				break;
@@ -231,18 +244,9 @@
 		ok();
 	});
 
-	let availableItems: ProductionQueueItem[] = [];
-	let queueItems: ProductionQueueItem[] = [];
-	let contributesOnlyLeftoverToResearch = false;
-
-	let selectedAvailableItem: ProductionQueueItem | undefined;
-
-	let selectedQueueItemIndex = -1;
-	let selectedQueueItem: ProductionQueueItem | undefined;
-
 	const resetQueue = () => {
 		queueItems = planet.productionQueue?.map((item) => ({ ...item } as ProductionQueueItem));
-		availableItems = planet.getAvailableProductionQueueItems(planet, $universe.getMyDesigns());
+		availableItems = planet.getAvailableProductionQueueItems(planet, $designs);
 		selectedAvailableItem = availableItems.length > 0 ? availableItems[0] : selectedAvailableItem;
 		contributesOnlyLeftoverToResearch = planet.contributesOnlyLeftoverToResearch ?? false;
 	};
@@ -251,7 +255,9 @@
 	$: planet && resetQueue();
 </script>
 
-<div class="flex h-full bg-base-200 shadow max-h-fit min-h-fit rounded-sm border-2 border-base-300 text-base">
+<div
+	class="flex h-full bg-base-200 shadow max-h-fit min-h-fit rounded-sm border-2 border-base-300 text-base"
+>
 	<div class="flex-col h-full w-full">
 		<div class="flex flex-col h-full w-full">
 			<div class="flex flex-row h-full w-full grid-cols-3">

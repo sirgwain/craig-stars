@@ -34,6 +34,7 @@
 	<div class="flex flex-wrap justify-center gap-2">
 		{#each $player.productionPlans as plan (plan.num)}
 			<ProductionPlanCard
+				designFinder={$universe}
 				{plan}
 				href={`/games/${$game.id}/production-plans/${plan.num}`}
 				showDelete={plan.num !== 0}

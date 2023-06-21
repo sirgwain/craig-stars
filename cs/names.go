@@ -10,7 +10,7 @@ var AINames = []string{
 	"Hawk",
 	"Hicardi",
 	"Hooveron",
-	"House Cats",
+	"House Cat",
 	"Kurkonian",
 	"Loraxoid",
 	"Mensoid",

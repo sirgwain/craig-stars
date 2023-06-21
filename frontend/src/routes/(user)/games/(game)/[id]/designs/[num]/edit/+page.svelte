@@ -6,10 +6,10 @@
 	import { getGameContext } from '$lib/services/Contexts';
 	import { techs } from '$lib/services/Stores';
 
-	const { game, player, universe } = getGameContext();
+	const { game, player, universe, designs } = getGameContext();
 	let num = parseInt($page.params.num);
 
-	$: design = $universe.getDesign($player.num, num);
+	$: design = $designs.find((d) => d.num === num);
 	$: hull = design && $techs.getHull(design.hull);
 
 	let error = '';
@@ -20,7 +20,7 @@
 		try {
 			if (design) {
 				// update this design
-				await $game.updateDesign(design)
+				await $game.updateDesign(design);
 				goto(`/games/${$game.id}/designs/${design.num}`);
 			}
 		} catch (e) {
@@ -40,10 +40,5 @@
 		</div>
 	</Breadcrumb>
 
-	<ShipDesigner
-		bind:design
-		{hull}
-		on:save={(e) => onSave()}
-		bind:error
-	/>
+	<ShipDesigner bind:design {hull} on:save={(e) => onSave()} bind:error />
 {/if}

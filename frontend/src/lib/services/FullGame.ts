@@ -10,6 +10,7 @@ import {
 	type Game,
 	type VictoryConditions
 } from '$lib/types/Game';
+import { MapObjectType } from '$lib/types/MapObject';
 import type { CommandedPlanet, Planet } from '$lib/types/Planet';
 import {
 	Player,
@@ -34,7 +35,8 @@ import {
 	commandedFleet,
 	commandedPlanet,
 	commandMapObject,
-	currentSelectedWaypointIndex, selectMapObject,
+	currentSelectedWaypointIndex,
+	selectMapObject,
 	selectWaypoint,
 	zoomToMapObject
 } from './Stores';
@@ -218,7 +220,7 @@ export class FullGame implements Game {
 	async createDesign(design: ShipDesign): Promise<ShipDesign> {
 		// update this design
 		design = await DesignService.create(this.id, design);
-		this.universe.updateDesign(design);
+		this.universe.addDesign(design);
 		updateUniverse(this.universe);
 		return design;
 	}
@@ -238,6 +240,9 @@ export class FullGame implements Game {
 
 		this.universe.designs = this.universe.designs.filter((d) => d.num != num);
 		updateUniverse(this.universe);
+
+		// reset our view to the homeworld, in case the commanded fleet had our deleted design
+		this.commandHomeWorld();
 	}
 
 	async updateFleetOrders(fleet: CommandedFleet) {
@@ -272,8 +277,14 @@ export class FullGame implements Game {
 		transferAmount: Cargo
 	) {
 		const selectedWaypointIndex = get(currentSelectedWaypointIndex);
-		const updatedFleet = await FleetService.transferCargo(fleet, dest, transferAmount);
-		fleet = Object.assign(fleet, updatedFleet);
+		const result = await FleetService.transferCargo(fleet, dest, transferAmount);
+
+		if (result.dest?.type == MapObjectType.Planet) {
+			const planet = result.dest as Planet;
+			this.universe.updatePlanet(planet);
+		}
+
+		fleet = Object.assign(fleet, result.fleet);
 		this.universe.updateFleet(fleet);
 		commandedFleet.update(() => fleet);
 

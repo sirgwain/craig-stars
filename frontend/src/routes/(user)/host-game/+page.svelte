@@ -33,7 +33,11 @@
 		computerPlayersFormAlliances: false,
 		publicPlayerScores: false,
 		startMode: GameStartMode.Normal,
-		players: [{ type: NewGamePlayerType.Host, color: getColor(0) }],
+		players: [
+			{ type: NewGamePlayerType.Host, color: getColor(0) },
+			{ type: NewGamePlayerType.AI, color: getColor(1) },
+			{ type: NewGamePlayerType.AI, color: getColor(2) }
+		],
 		victoryConditions: {
 			conditions:
 				VictoryCondition.OwnPlanets |

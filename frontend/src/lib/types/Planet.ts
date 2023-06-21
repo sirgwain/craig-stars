@@ -1,3 +1,4 @@
+import type { DesignFinder } from '$lib/services/Universe';
 import type { Cargo } from './Cargo';
 import type { Cost } from './Cost';
 import type { Hab } from './Hab';
@@ -40,7 +41,7 @@ export type PlanetOrders = {
 export interface ProductionQueueItem {
 	type: QueueItemType;
 	quantity: number;
-	designName?: string;
+	designNum?: number;
 	allocated: Cost;
 	costOfOne: Cost;
 	skipped?: boolean;
@@ -143,7 +144,7 @@ export class CommandedPlanet implements Planet {
 					items.push({
 						quantity: 0,
 						type: QueueItemType.ShipToken,
-						designName: d.name,
+						designNum: d.num,
 						costOfOne: d.spec.cost ?? {},
 						allocated: {}
 					});
@@ -216,11 +217,11 @@ export enum QueueItemType {
 	Starbase = 'Starbase'
 }
 
-export const getQueueItemShortName = (item: ProductionQueueItem): string => {
+export const getQueueItemShortName = (item: ProductionQueueItem, designFinder: DesignFinder): string => {
 	switch (item.type) {
 		case QueueItemType.Starbase:
 		case QueueItemType.ShipToken:
-			return item.designName ?? '';
+			return designFinder.getMyDesign(item.designNum)?.name ?? ''
 		case QueueItemType.TerraformEnvironment:
 			return 'Terraform Environment';
 		case QueueItemType.AutoMines:

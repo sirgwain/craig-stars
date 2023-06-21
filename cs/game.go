@@ -46,6 +46,8 @@ type GameSettings struct {
 	StartMode                    GameStartMode     `json:"startMode"`
 	VictoryConditions            VictoryConditions `json:"victoryConditions"`
 	Players                      []NewGamePlayer   `json:"players,omitempty"`
+	Rules                        *Rules            `json:"rules,omitempty"`
+	TechStore                    *TechStore        `json:"techStore,omitempty"`
 }
 
 type Game struct {
@@ -75,6 +77,7 @@ type Game struct {
 type FullGame struct {
 	*Game
 	*Universe
+	*TechStore
 	Players []*Player `json:"players,omitempty"`
 }
 
@@ -242,6 +245,16 @@ func (g *Game) WithSettings(settings GameSettings) *Game {
 	g.PublicPlayerScores = settings.PublicPlayerScores
 	g.StartMode = settings.StartMode
 	g.VictoryConditions = settings.VictoryConditions
+
+	// use custom rules for this game
+	if settings.Rules != nil {
+		g.Rules = *settings.Rules
+	}
+
+	// use custome tech store for this game
+	if settings.TechStore != nil {
+		g.Rules.WithTechStore(settings.TechStore)
+	}
 
 	return g
 }

@@ -9,9 +9,11 @@
 	} from '$lib/types/Planet';
 	import { createEventDispatcher } from 'svelte';
 	import ProductionPlanItemsButtons from './ProductionItemsButtons.svelte';
+	import type { DesignFinder } from '$lib/services/Universe';
 
 	const dispatch = createEventDispatcher();
 
+	export let designFinder: DesignFinder;
 	// default to auto tasks
 	export let availableItems: ProductionQueueItem[] = [
 		fromQueueItemType(QueueItemType.AutoFactories),
@@ -49,24 +51,26 @@
 
 		const quantity = getQuantityModifier();
 		if (selectedQueueItem) {
-			if (
-				selectedQueueItem.type == item?.type &&
-				selectedQueueItem.designName == item?.designName
-			) {
+			if (selectedQueueItem.type == item?.type && selectedQueueItem.designNum == item?.designNum) {
 				selectedQueueItem.quantity += quantity;
 			} else {
 				// insert a new item
 				queueItems.splice(selectedQueueItemIndex + 1, 0, {
 					type: item.type,
 					quantity,
-					designName: item.designName
+					designNum: item.designNum,
+					allocated: {},
+					costOfOne: {}
 				});
 				selectedQueueItemIndex++;
 				selectedQueueItem = queueItems[selectedQueueItemIndex];
 			}
 		} else {
 			// prepend a new queue item
-			queueItems = [{ type: item.type, designName: item.designName, quantity }, ...queueItems];
+			queueItems = [
+				{ type: item.type, designNum: item.designNum, quantity, allocated: {}, costOfOne: {} },
+				...queueItems
+			];
 			selectedQueueItemIndex++;
 			selectedQueueItem = queueItems[selectedQueueItemIndex];
 		}
@@ -131,7 +135,7 @@
 							: ''}
 				{isAuto(item.type) ? ' italic' : ''}"
 					>
-						{queueItemDescription(item)}
+						{queueItemDescription(item, designFinder)}
 					</button>
 				</li>
 			{/each}
@@ -175,7 +179,7 @@
 						>
 							<div class="flex justify-between ">
 								<div>
-									{queueItemDescription(queueItem)}
+									{queueItemDescription(queueItem, designFinder)}
 								</div>
 								<div>
 									{queueItem.quantity}

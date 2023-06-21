@@ -80,6 +80,6 @@ func (c *client) CheckAllPlayersSubmitted(players []*Player) bool {
 // generate a new turn for this game
 func (c *client) GenerateTurn(game *Game, universe *Universe, players []*Player) error {
 	defer timeTrack(time.Now(), "GenerateTurn")
-	turnGenerator := newTurnGenerator(&FullGame{game, universe, players})
+	turnGenerator := newTurnGenerator(&FullGame{game, universe, game.Rules.techs, players})
 	return turnGenerator.generateTurn()
 }

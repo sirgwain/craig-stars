@@ -2,6 +2,7 @@ import type { Cargo } from '$lib/types/Cargo';
 import { CommandedFleet, type Fleet, type Waypoint } from '$lib/types/Fleet';
 import type { MapObject } from '$lib/types/MapObject';
 import type { Planet } from '$lib/types/Planet';
+import type { Salvage } from '$lib/types/Salvage';
 import type { ErrorResponse } from './Errors';
 import { Service } from './Service';
 
@@ -9,6 +10,11 @@ import { Service } from './Service';
 export class FleetOrders {
 	constructor(private waypoints: Waypoint[], private repeatOrders: boolean = false) {}
 }
+
+type TransferCargoResponse = {
+	fleet: Fleet;
+	dest: MapObject | undefined;
+};
 
 export class FleetService {
 	static async load(gameId: number): Promise<Fleet[]> {
@@ -30,7 +36,7 @@ export class FleetService {
 		fleet: CommandedFleet,
 		dest: Fleet | Planet | undefined,
 		transferAmount: Cargo
-	): Promise<Fleet> {
+	): Promise<TransferCargoResponse> {
 		const url = `/api/games/${fleet.gameId}/fleets/${fleet.num}/transfer-cargo`;
 		const response = await fetch(url, {
 			method: 'POST',
@@ -44,7 +50,7 @@ export class FleetService {
 		});
 
 		if (response.ok) {
-			return await response.json();
+			return (await response.json()) as TransferCargoResponse;
 		} else {
 			const errorResponse = (await response.json()) as ErrorResponse;
 			throw new Error(errorResponse.error);

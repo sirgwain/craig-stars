@@ -45,10 +45,6 @@ func NewUniverse(rules *Rules) Universe {
 	}
 }
 
-type planetGetter interface {
-	getPlanet(num int) *Planet
-}
-
 type mapObjectGetter interface {
 	getShipDesign(playerNum int, num int) *ShipDesign
 	getMapObject(mapObjectType MapObjectType, num int, playerNum int) *MapObject
@@ -499,16 +495,6 @@ func (u *Universe) getMineralPackets(playerNum int) []*MineralPacket {
 		}
 	}
 	return mineralPackets
-}
-
-func (u *Universe) getSalvages(playerNum int) []*Salvage {
-	salvages := []*Salvage{}
-	for _, salvage := range u.Salvages {
-		if salvage.PlayerNum == playerNum {
-			salvages = append(salvages, salvage)
-		}
-	}
-	return salvages
 }
 
 // get a slice of mapobjects at a position, or nil if none

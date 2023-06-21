@@ -189,23 +189,25 @@ func (c *client) GetFullGame(id int64) (*cs.FullGame, error) {
 	}
 	universe.MineralPackets = mineralPackets
 
-	if game.Rules.TechsID == 0 {
-		game.Rules.WithTechStore(&cs.StaticTechStore)
-	} else {
-		techs, err := c.GetTechStore(game.Rules.TechsID)
+	// load a tech store if this game has a separate one
+	techStore := &cs.StaticTechStore
+	if game.Rules.TechsID != 0 {
+		techStore, err = c.GetTechStore(game.Rules.TechsID)
 		if err != nil {
 			return nil, err
 		}
-		game.Rules.WithTechStore(techs)
 	}
+
+	game.Rules.WithTechStore(techStore)
 
 	// init the random generator after load
 	(&game.Rules).ResetSeed(game.Seed)
 
 	fg := cs.FullGame{
-		Game:     &game,
-		Players:  players,
-		Universe: &universe,
+		Game:      &game,
+		Universe:  &universe,
+		TechStore: techStore,
+		Players:   players,
 	}
 
 	return &fg, nil

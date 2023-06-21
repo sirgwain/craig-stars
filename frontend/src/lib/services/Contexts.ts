@@ -1,5 +1,6 @@
 import { Player } from '$lib/types/Player';
 import { PlayerSettings } from '$lib/types/PlayerSettings';
+import type { ShipDesign } from '$lib/types/ShipDesign';
 import { getContext, setContext } from 'svelte';
 import { writable, type Readable, type Writable } from 'svelte/store';
 import { FullGame } from './FullGame';
@@ -14,13 +15,15 @@ type GameContext = {
 	player: Readable<Player>;
 	universe: Readable<Universe>;
 	settings: Writable<PlayerSettings>;
+	designs: Writable<ShipDesign[]>;
 };
 
 export const gameStore: GameContext = {
 	game: writable<FullGame>(new FullGame()),
 	player: writable<Player>(new Player()),
 	universe: writable<Universe>(new Universe()),
-	settings: writable<PlayerSettings>(new PlayerSettings())
+	settings: writable<PlayerSettings>(new PlayerSettings()),
+	designs: writable<ShipDesign[]>([])
 };
 
 // init the game context with empty data
@@ -37,6 +40,9 @@ export const updateGameContext = (game: FullGame, player: Player, universe: Univ
 
 	const writableUniverseStore = gameStore.universe as Writable<Universe>;
 	writableUniverseStore.update(() => universe);
+
+	// update the designs store when the universe updates
+	gameStore.designs.update(() => universe.getMyDesigns());
 
 	// update the settings, or use existing settings from localStorage
 	const settingsStore = gameStore.settings;
@@ -61,6 +67,14 @@ export const updatePlayer = (player: Player) => {
 export const updateUniverse = (universe: Universe) => {
 	const writableUniverseStore = gameStore.universe as Writable<Universe>;
 	writableUniverseStore.update(() => universe);
+
+	// update the designs store when the universe updates
+	gameStore.designs.update(() => universe.getMyDesigns());
+};
+
+export const updateDesigns = (designs: ShipDesign[]) => {
+	// update the designs store when the universe updates
+	gameStore.designs.update(() => designs);
 };
 
 function loadSettingsOrDefault(gameId: number, playerNum: number): PlayerSettings {

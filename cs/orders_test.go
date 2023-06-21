@@ -8,7 +8,6 @@ import (
 
 func Test_transferPlanetCargo(t *testing.T) {
 	player := NewPlayer(1, NewRace().WithSpec(&rules))
-	// scout := testLongRangeScout(player)
 	freighter := testSmallFreighter(player)
 	type args struct {
 		planet         *Planet

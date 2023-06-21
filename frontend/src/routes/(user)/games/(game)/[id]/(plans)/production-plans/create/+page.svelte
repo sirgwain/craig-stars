@@ -49,6 +49,6 @@
 
 	<FormError {error} />
 	{#if plan}
-		<ProductionPlanEditor bind:plan />
+		<ProductionPlanEditor designFinder={$universe} bind:plan />
 	{/if}
 </form>

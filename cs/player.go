@@ -70,6 +70,7 @@ type PlayerOrders struct {
 
 type PlayerStats struct {
 	FleetsBuilt      int `json:"fleetsBuilt,omitempty"`
+	StarbasesBuilt   int `json:"starbasesBuilt,omitempty"`
 	TokensBuilt      int `json:"tokensBuilt,omitempty"`
 	PlanetsColonized int `json:"planetsColonized,omitempty"`
 }
@@ -88,8 +89,8 @@ const (
 )
 
 type PlayerSpec struct {
-	PlanetaryScanner         *TechPlanetaryScanner               `json:"planetaryScanner,omitempty"`
-	Defense                  *TechDefense                        `json:"defense,omitempty"`
+	PlanetaryScanner         TechPlanetaryScanner                `json:"planetaryScanner,omitempty"`
+	Defense                  TechDefense                         `json:"defense,omitempty"`
 	Terraform                map[TerraformHabType]*TechTerraform `json:"terraform,omitempty"`
 	ResourcesPerYear         int                                 `json:"resourcesPerYear,omitempty"`
 	ResourcesPerYearResearch int                                 `json:"resourcesPerYearResearch,omitempty"`
@@ -167,9 +168,9 @@ type ProductionPlan struct {
 }
 
 type ProductionPlanItem struct {
-	Type       QueueItemType `json:"type"`
-	DesignName string        `json:"designName"`
-	Quantity   int           `json:"quantity"`
+	Type      QueueItemType `json:"type"`
+	DesignNum int           `json:"designNum"`
+	Quantity  int           `json:"quantity"`
 }
 
 // Apply a production plan to a planet
@@ -177,9 +178,9 @@ func (plan *ProductionPlan) Apply(planet *Planet) {
 	planet.ProductionQueue = make([]ProductionQueueItem, len(plan.Items))
 	for i, item := range plan.Items {
 		planet.ProductionQueue[i] = ProductionQueueItem{
-			Type:       item.Type,
-			DesignName: item.DesignName,
-			Quantity:   item.Quantity,
+			Type:      item.Type,
+			DesignNum: item.DesignNum,
+			Quantity:  item.Quantity,
 		}
 	}
 	planet.ContributesOnlyLeftoverToResearch = plan.ContributesOnlyLeftoverToResearch
@@ -313,8 +314,19 @@ func (p *Player) String() string {
 	return fmt.Sprintf("Player %d (%d) %s", p.Num, p.ID, p.Race.PluralName)
 }
 
-// Get a player ShipDesign by name, or nil if no design found
-func (p *Player) GetDesign(name string) *ShipDesign {
+// Get a player ShipDesign, or nil if no design found
+func (p *Player) GetDesign(num int) *ShipDesign {
+	for i := range p.Designs {
+		design := p.Designs[i]
+		if design.Num == num {
+			return design
+		}
+	}
+	return nil
+}
+
+// Get a player ShipDesign, or nil if no design found
+func (p *Player) GetDesignByName(name string) *ShipDesign {
 	for i := range p.Designs {
 		design := p.Designs[i]
 		if design.Name == name {
@@ -384,8 +396,8 @@ func computePlayerSpec(player *Player, rules *Rules, planets []*Planet) PlayerSp
 	researcher := NewResearcher(rules)
 	techs := rules.techs
 	spec := PlayerSpec{
-		PlanetaryScanner: techs.GetBestPlanetaryScanner(player),
-		Defense:          techs.GetBestDefense(player),
+		PlanetaryScanner: *techs.GetBestPlanetaryScanner(player),
+		Defense:          *techs.GetBestDefense(player),
 		Terraform: map[TerraformHabType]*TechTerraform{
 			TerraformHabTypeAll:  techs.GetBestTerraform(player, TerraformHabTypeAll),
 			TerraformHabTypeGrav: techs.GetBestTerraform(player, TerraformHabTypeGrav),

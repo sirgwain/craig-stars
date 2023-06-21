@@ -46,7 +46,7 @@
 			<li>{plan?.name ?? '<unknown>'}</li>
 		</svelte:fragment>
 		<div slot="end" class="flex justify-end mb-1">
-			<button class="btn btn-success" type="submit" on:click={(e) => onSubmit()}>Save</button>
+			<button class="btn btn-success" type="submit">Save</button>
 		</div>
 	</Breadcrumb>
 

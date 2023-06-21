@@ -78,7 +78,7 @@ type PlanetSpec struct {
 }
 
 func (item *ProductionQueueItem) String() string {
-	return fmt.Sprintf("ProductionQueueItem %d %s (%s)", item.Quantity, item.Type, item.DesignName)
+	return fmt.Sprintf("ProductionQueueItem %d %s (%d)", item.Quantity, item.Type, item.DesignNum)
 }
 
 func NewPlanet() *Planet {
@@ -148,9 +148,9 @@ func (p *Planet) PopulateProductionQueueCosts(player *Player) error {
 	for i := range p.ProductionQueue {
 		item := &p.ProductionQueue[i]
 		if item.Type == QueueItemTypeStarbase && p.Spec.HasStarbase {
-			newDesign := player.GetDesign(item.DesignName)
+			newDesign := player.GetDesign(item.DesignNum)
 			if newDesign == nil {
-				return fmt.Errorf("player %v does not have design %s", player, item.DesignName)
+				return fmt.Errorf("player %v does not have design %d", player, item.DesignNum)
 			}
 			item.CostOfOne = costCalculator.StarbaseUpgradeCost(p.starbase.Tokens[0].design, newDesign)
 
@@ -317,13 +317,11 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 	p.Scanner = true
 
 	// // the homeworld gets a starbase
-	starbaseDesign := player.GetDesign(startingPlanet.StarbaseDesignName)
-	starbaseDesign.Spec.NumInstances++
-	starbaseDesign.Spec.NumBuilt++
-	starbase := newStarbase(player, p, starbaseDesign, starbaseDesign.Name)
-	starbase.Spec = ComputeFleetSpec(rules, player, &starbase)
-	p.starbase = &starbase
-	p.PacketSpeed = starbase.Spec.SafePacketSpeed
+	starbaseDesign := player.GetDesignByName(startingPlanet.StarbaseDesignName)
+	if starbaseDesign == nil {
+		return fmt.Errorf("no design named %s found", startingPlanet.StarbaseDesignName)
+	}
+	p.buildStarbase(rules, player, starbaseDesign)
 
 	if len(player.ProductionPlans) > 0 {
 		plan := player.ProductionPlans[0]
@@ -333,6 +331,26 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 	messager.homePlanet(player, p)
 
 	return nil
+}
+
+// build a starbase on this planet
+func (p *Planet) buildStarbase(rules *Rules, player *Player, design *ShipDesign) *Fleet {
+	if p.starbase != nil {
+		oldDesign := p.starbase.Tokens[0].design
+		oldDesign.Spec.NumInstances--
+		oldDesign.MarkDirty()
+	}
+	design.Spec.NumInstances++
+	design.Spec.NumBuilt++
+	design.MarkDirty()
+
+	// build the new starbase and compute the fleet spec for it
+	starbase := newStarbase(player, p, design, design.Name)
+	starbase.Spec = ComputeFleetSpec(rules, player, &starbase)
+	p.starbase = &starbase
+	p.PacketSpeed = starbase.Spec.SafePacketSpeed
+
+	return p.starbase
 }
 
 // Get the number of innate mines this player would have on this planet

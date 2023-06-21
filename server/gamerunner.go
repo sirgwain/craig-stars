@@ -132,11 +132,18 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 		}
 	}
 
+	// load the tech store for this game
+	techStore, err := gr.loadTechStore(game)
+	if err != nil {
+		return nil, err
+	}
+
 	universe := cs.NewUniverse(&game.Rules)
 	fullGame := &cs.FullGame{
-		Game:     game,
-		Players:  players,
-		Universe: &universe,
+		Game:      game,
+		Universe:  &universe,
+		TechStore: techStore,
+		Players:   players,
 	}
 
 	gr.db.UpdateFullGame(fullGame)
@@ -351,7 +358,7 @@ func (gr *gameRunner) processAITurns(fullGame *cs.FullGame) {
 		// TODO: make this use copies to ensure the ai only updates orders?
 		// TODO: ai only ai processing
 		pmo := fullGame.Universe.GetPlayerMapObjects(player.Num)
-		ai := ai.NewAIPlayer(fullGame.Game, player, pmo)
+		ai := ai.NewAIPlayer(fullGame.Game, fullGame.TechStore, player, pmo)
 		ai.ProcessTurn()
 
 		if player.AIControlled {
@@ -375,4 +382,16 @@ func (gr *gameRunner) generateTurn(fullGame *cs.FullGame) error {
 	}
 	return nil
 
+}
+
+// load the tech store into a game
+func (gr *gameRunner) loadTechStore(game *cs.Game) (*cs.TechStore, error) {
+	if game.Rules.TechsID == 0 {
+		return &cs.StaticTechStore, nil
+	}
+	techs, err := gr.db.GetTechStore(game.Rules.TechsID)
+	if err != nil {
+		return nil, err
+	}
+	return techs, nil
 }

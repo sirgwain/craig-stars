@@ -355,7 +355,7 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 
 func (ug *universeGenerator) generatePlayerFleets(player *Player, planet *Planet, fleetNum *int, startingFleets []StartingFleet) error {
 	for _, startingFleet := range startingFleets {
-		design := player.GetDesign(string(startingFleet.Name))
+		design := player.GetDesignByName(startingFleet.Name)
 		if design == nil {
 			return fmt.Errorf("no design named %s found for player %s", startingFleet.Name, player)
 		}

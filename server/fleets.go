@@ -276,7 +276,12 @@ func (s *server) transferCargoFleetPlanet(w http.ResponseWriter, r *http.Request
 		Msgf("%s transfered %v to/from Planet %s", fleet.Name, transferAmount, planet.Name)
 
 	// success
-	rest.RenderJSON(w, fleet)
+	// only return an updated mapobject if we own it
+	if planet.PlayerNum == player.Num {
+		rest.RenderJSON(w, rest.JSON{"fleet": fleet, "dest": planet})
+	} else {
+		rest.RenderJSON(w, rest.JSON{"fleet": fleet})
+	}
 }
 
 // transfer cargo from a fleet to/from a fleet
@@ -342,5 +347,10 @@ func (s *server) transferCargoFleetFleet(w http.ResponseWriter, r *http.Request,
 		Msgf("%s transfered %v to/from Planet %s", fleet.Name, transferAmount, dest.Name)
 
 	// success
-	rest.RenderJSON(w, fleet)
+	// only return an updated mapobject if we own it
+	if dest.PlayerNum == player.Num {
+		rest.RenderJSON(w, rest.JSON{"fleet": fleet, "dest": dest})
+	} else {
+		rest.RenderJSON(w, rest.JSON{"fleet": fleet})
+	}
 }

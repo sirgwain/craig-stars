@@ -3,7 +3,7 @@
 	import DesignCard from '$lib/components/game/DesignCard.svelte';
 	import { getGameContext } from '$lib/services/Contexts';
 
-	const { game, player, universe } = getGameContext();
+	const { game, player, universe, designs } = getGameContext();
 </script>
 
 <Breadcrumb>
@@ -15,14 +15,12 @@
 	</div>
 </Breadcrumb>
 
-{#if $universe.designs.length}
-	<div class="flex flex-wrap justify-center gap-2">
-		{#each $universe.designs.filter((d) => d.playerNum === $player.num) as design (design.num)}
-			<DesignCard
-				{design}
-				href={`/games/${$game.id}/designs/${design.num}`}
-				on:delete={() => design.num && $game.deleteDesign(design.num)}
-			/>
-		{/each}
-	</div>
-{/if}
+<div class="flex flex-wrap justify-center gap-2">
+	{#each $designs.filter((d) => d.playerNum === $player.num) as design (design.num)}
+		<DesignCard
+			{design}
+			href={`/games/${$game.id}/designs/${design.num}`}
+			on:delete={() => design.num && $game.deleteDesign(design.num)}
+		/>
+	{/each}
+</div>

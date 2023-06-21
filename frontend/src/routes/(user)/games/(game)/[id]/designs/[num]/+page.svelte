@@ -5,10 +5,10 @@
 	import { getGameContext } from '$lib/services/Contexts';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 
-	const { game, player, universe } = getGameContext();
+	const { game, player, universe, designs } = getGameContext();
 	let num = parseInt($page.params.num);
 
-	$: design = $game && ($universe.getDesign($player.num, num) as ShipDesign);
+	$: design = $designs.find((d) => d.num === num);
 </script>
 
 {#if design}

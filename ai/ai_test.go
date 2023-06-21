@@ -8,22 +8,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// create a new long rang scout fleet for testing
-func testLongRangeScout(player *cs.Player) *cs.Fleet {
-	fleet := &cs.Fleet{
-		BaseName:          "Long Range Scout",
-		Tokens:            []cs.ShipToken{},
-		OrbitingPlanetNum: cs.None,
-	}
-	// fleet.Spec = computeFleetSpec(rules, player, fleet)
-	fleet.Fuel = fleet.Spec.FuelCapacity
-	return fleet
-}
-
 func Test_getClosestPlanet(t *testing.T) {
 	game := cs.NewGame()
 	player := cs.NewPlayer(1, cs.NewRace().WithSpec(&game.Rules))
-	aiPlayer := NewAIPlayer(game, player, cs.PlayerMapObjects{})
+	aiPlayer := NewAIPlayer(game, &cs.StaticTechStore, player, cs.PlayerMapObjects{})
 
 	planetAt0_0 := cs.PlanetIntel{
 		MapObjectIntel: cs.MapObjectIntel{Position: cs.Vector{X: 0, Y: 0}},
@@ -73,7 +61,7 @@ func Test_getClosestPlanet(t *testing.T) {
 
 func TestAIPlayer_GetPlanet(t *testing.T) {
 	game := cs.NewGame()
-	player := NewAIPlayer(game, cs.NewPlayer(1, cs.NewRace()), cs.PlayerMapObjects{})
+	player := NewAIPlayer(game, &cs.StaticTechStore, cs.NewPlayer(1, cs.NewRace()), cs.PlayerMapObjects{})
 
 	// no planet by that id
 	assert.Nil(t, player.getPlanet(1))

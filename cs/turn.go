@@ -992,6 +992,11 @@ func (t *turn) planetProduction() {
 				packet := t.buildMineralPacket(player, planet, cargo, target)
 				messager.mineralPacket(player, planet, packet, target.Name)
 			}
+			if result.starbase != nil {
+				starbase := t.buildStarbase(player, planet, result.starbase)
+				messager.starbaseBuilt(player, planet, starbase)
+
+			}
 		}
 	}
 }
@@ -1019,6 +1024,23 @@ func (t *turn) buildFleet(player *Player, planet *Planet, token ShipToken) *Flee
 
 	t.game.Fleets = append(t.game.Fleets, &fleet)
 	return &fleet
+}
+
+// build a starbase on a planet
+func (t *turn) buildStarbase(player *Player, planet *Planet, design *ShipDesign) *Fleet {
+	player.Stats.StarbasesBuilt++
+	player.Stats.TokensBuilt++
+
+	starbase := planet.buildStarbase(t.game.rules, player, design)
+	log.Debug().
+		Int64("GameID", t.game.ID).
+		Int("Player", starbase.PlayerNum).
+		Str("Planet", planet.Name).
+		Str("Starbase", starbase.Name).
+		Msgf("starbase built")
+
+	t.game.Starbases = append(t.game.Starbases, starbase)
+	return starbase
 }
 
 // build a mineral packet with cargo

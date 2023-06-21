@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { DesignFinder } from '$lib/services/Universe';
 	import { getQueueItemShortName, isAuto } from '$lib/types/Planet';
 	import type { ProductionPlan } from '$lib/types/Player';
 	import { Trash } from '@steeze-ui/heroicons';
@@ -7,6 +8,7 @@
 
 	const dispatch = createEventDispatcher();
 
+	export let designFinder: DesignFinder;
 	export let plan: ProductionPlan;
 	export let href: string;
 	export let showDelete = true;
@@ -35,7 +37,7 @@
 					<li class="pl-1">
 						<div class="flex flex-row justify-between" class:italic={isAuto(queueItem.type)}>
 							<div>
-								{getQueueItemShortName(queueItem)}
+								{getQueueItemShortName(queueItem, designFinder)}
 							</div>
 							<div>
 								{queueItem.quantity}

@@ -23,7 +23,7 @@
 		{#if ownedBy(planet, player.num) && planet.spec.population}
 			{#if planet.spec.habitability ?? 0 > 0}
 				Your population on <span class="font-semibold">{planet.name}</span> is
-				<span class="font-semibold">{planet.spec.population.toLocaleString()}</span>.
+				<span class="font-semibold">{planet.spec.population.toLocaleString()}</span> ({(planet.spec.populationDensity*100).toFixed()}% of capacity).
 				<span class="font-semibold">{planet.name}</span> will support a population of up to
 				<span class="font-semibold">{planet.spec.maxPopulation.toLocaleString()}</span>
 				of your colonists.

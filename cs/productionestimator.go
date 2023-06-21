@@ -4,6 +4,7 @@ import "math"
 
 // interface for populating completion estimates in a planet's production queue
 type CompletionEstimator interface {
+	GetCompletionEstimate(item ProductionQueueItem, yearlyAvailableToSpend Cost) QueueItemCompletionEstimate
 	PopulateCompletionEstimates(items []ProductionQueueItem, yearlyAvailableToSpend Cost)
 }
 
@@ -14,7 +15,12 @@ func newCompletionEstimator() CompletionEstimator {
 	return &completionEstimate{}
 }
 
-/// For a set of ProductionQueueItems, calculate the YearsToBuild and YearsToBuildOne properties
+// Get a completion estimate for a single item
+func (e *completionEstimate) GetCompletionEstimate(item ProductionQueueItem, yearlyAvailableToSpend Cost) QueueItemCompletionEstimate {
+	return e.getCompletionEstimate(item, yearlyAvailableToSpend, Cost{})
+}
+
+// For a set of ProductionQueueItems, calculate the YearsToBuild and YearsToBuildOne properties
 func (e *completionEstimate) PopulateCompletionEstimates(items []ProductionQueueItem, yearlyAvailableToSpend Cost) {
 
 	// as we go, subtract the previous items

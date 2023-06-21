@@ -57,9 +57,10 @@ func createSingleUnitGame() *FullGame {
 	universe.Fleets = append(universe.Fleets, fleet)
 
 	return &FullGame{
-		Game:     game,
-		Players:  players,
-		Universe: &universe,
+		Game:      game,
+		Universe:  &universe,
+		TechStore: &StaticTechStore,
+		Players:   players,
 	}
 
 }
@@ -76,7 +77,7 @@ func Test_generateTurn(t *testing.T) {
 	// build a ship on the planet
 	pmo := universe.GetPlayerMapObjects(player.Num)
 	planet := pmo.Planets[0]
-	planet.ProductionQueue = append([]ProductionQueueItem{{Type: QueueItemTypeShipToken, Quantity: 1, DesignName: player.GetDesign("Long Range Scout").Name}}, planet.ProductionQueue...)
+	planet.ProductionQueue = append([]ProductionQueueItem{{Type: QueueItemTypeShipToken, Quantity: 1, DesignNum: player.Designs[0].Num}}, planet.ProductionQueue...)
 
 	startingFleets := len(universe.Fleets)
 
@@ -760,8 +761,9 @@ func Test_turn_detonateMines(t *testing.T) {
 
 			fg := FullGame{
 				Game:     game,
-				Players:  tt.args.players,
 				Universe: &universe,
+				TechStore: &StaticTechStore,
+				Players:  tt.args.players,
 			}
 
 			// make sure the player knows about the designs of the fleet

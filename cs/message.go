@@ -147,6 +147,19 @@ func (m *messageClient) fleetBuilt(player *Player, planet *Planet, fleet *Fleet,
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageBuiltShip, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum})
 }
 
+func (m *messageClient) starbaseBuilt(player *Player, planet *Planet, fleet *Fleet) {
+	text := fmt.Sprintf("%s has built a new %s.", planet.Name, fleet.BaseName)
+
+	// this starbase can build smaller ships
+	if fleet.Spec.SpaceDock == UnlimitedSpaceDock {
+		text = text + " Ships of any size can now be built here."
+	} else if fleet.Spec.SpaceDock > 0 {
+		text = text + fmt.Sprintf(" Ships up to %dkT in total hull weight can now be built at this facility.", fleet.Spec.SpaceDock)
+	}
+
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageBuiltStarbase, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
+}
+
 func (m *messageClient) fleetTransportedCargo(player *Player, fleet *Fleet, dest cargoHolder, cargoType CargoType, transferAmount int) {
 	text := ""
 	if cargoType == Colonists {

@@ -12,6 +12,7 @@ type aiPlayer struct {
 	*cs.Player
 	cs.PlayerMapObjects
 	game         *cs.Game
+	techStore    *cs.TechStore
 	config       aiPlayerConfig
 	client       cs.Orderer
 	planetsByNum map[int]*cs.Planet
@@ -22,7 +23,7 @@ type aiPlayerConfig struct {
 	colonizerPopulationDensity float64
 }
 
-func NewAIPlayer(game *cs.Game, player *cs.Player, playerMapObjects cs.PlayerMapObjects) *aiPlayer {
+func NewAIPlayer(game *cs.Game, techStore *cs.TechStore, player *cs.Player, playerMapObjects cs.PlayerMapObjects) *aiPlayer {
 	aiPlayer := aiPlayer{
 		Player: player,
 		game:   game,
@@ -102,10 +103,10 @@ func (ai *aiPlayer) scout() {
 	}
 
 	for _, planet := range buildablePlanets {
-		existingQueueItemIndex := slices.IndexFunc(planet.ProductionQueue, func(item cs.ProductionQueueItem) bool { return item.DesignName == design.Name })
+		existingQueueItemIndex := slices.IndexFunc(planet.ProductionQueue, func(item cs.ProductionQueueItem) bool { return item.DesignNum == design.Num })
 		if existingQueueItemIndex == -1 {
 			// put a new scout at the front of the queue
-			planet.ProductionQueue = append([]cs.ProductionQueueItem{{Type: cs.QueueItemTypeShipToken, Quantity: 1, DesignName: design.Name}}, planet.ProductionQueue...)
+			planet.ProductionQueue = append([]cs.ProductionQueueItem{{Type: cs.QueueItemTypeShipToken, Quantity: 1, DesignNum: design.Num}}, planet.ProductionQueue...)
 			ai.client.UpdatePlanetOrders(ai.Player, planet, planet.PlanetOrders)
 
 		}
@@ -246,10 +247,10 @@ func (ai *aiPlayer) colonize() {
 	for _, planet := range buildablePlanets {
 
 		if planet.Spec.PopulationDensity >= ai.config.colonizerPopulationDensity {
-			existingQueueItemIndex := slices.IndexFunc(planet.ProductionQueue, func(item cs.ProductionQueueItem) bool { return item.DesignName == design.Name })
+			existingQueueItemIndex := slices.IndexFunc(planet.ProductionQueue, func(item cs.ProductionQueueItem) bool { return item.DesignNum == design.Num })
 			if existingQueueItemIndex == -1 {
 				// put a new scout at the front of the queue
-				planet.ProductionQueue = append([]cs.ProductionQueueItem{{Type: cs.QueueItemTypeShipToken, Quantity: 1, DesignName: design.Name}}, planet.ProductionQueue...)
+				planet.ProductionQueue = append([]cs.ProductionQueueItem{{Type: cs.QueueItemTypeShipToken, Quantity: 1, DesignNum: design.Num}}, planet.ProductionQueue...)
 				ai.client.UpdatePlanetOrders(ai.Player, planet, planet.PlanetOrders)
 			}
 		}

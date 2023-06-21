@@ -1,6 +1,7 @@
 package cs
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/rs/zerolog/log"
@@ -27,7 +28,7 @@ type production struct {
 type productionResult struct {
 	tokens   []ShipToken
 	packets  []Cargo
-	starbase *Fleet
+	starbase *ShipDesign
 	alchemy  Mineral
 }
 
@@ -41,7 +42,7 @@ type QueueItemCompletionEstimate struct {
 type ProductionQueueItem struct {
 	QueueItemCompletionEstimate
 	Type         QueueItemType `json:"type"`
-	DesignName   string        `json:"designName,omitempty"`
+	DesignNum    int           `json:"designNum,omitempty"`
 	Quantity     int           `json:"quantity"`
 	CostOfOne    Cost          `json:"costOfOne"`
 	MaxBuildable int           `json:"maxBuildable"`
@@ -276,18 +277,47 @@ func (p *production) buildItems(item ProductionQueueItem, numBuilt int, result *
 			messager.terraform(player, planet, result.Type, result.Direction)
 		}
 	case QueueItemTypeShipToken:
-		design := player.GetDesign(item.DesignName)
+		design := player.GetDesign(item.DesignNum)
+		if design == nil {
+			err := fmt.Errorf("tried to build a ship from design %d, but the design was not found", item.DesignNum)
+			messager.error(player, err)
+			log.Error().
+				Int("Player", player.Num).
+				Str("Planet", planet.Name).
+				Str("Item", string(item.Type)).
+				Int("DesignNum", item.DesignNum).
+				Int("NumBuilt", numBuilt).
+				Err(err).
+				Msg("failed to build ShipToken")
+			break
+		}
 		design.Spec.NumBuilt += numBuilt
 		design.Spec.NumInstances += numBuilt
 		design.MarkDirty()
 		result.tokens = append(result.tokens, ShipToken{Quantity: numBuilt, design: design, DesignNum: design.Num})
+	case QueueItemTypeStarbase:
+		design := player.GetDesign(item.DesignNum)
+		if design == nil {
+			err := fmt.Errorf("tried to build a starbase from design %d, but the design was not found", item.DesignNum)
+			messager.error(player, err)
+			log.Error().
+				Int("Player", player.Num).
+				Str("Planet", planet.Name).
+				Str("Item", string(item.Type)).
+				Int("DesignNum", item.DesignNum).
+				Int("NumBuilt", numBuilt).
+				Err(err).
+				Msg("failed to build Starbase")
+			break
+		}
+		result.starbase = design
 	}
 
 	log.Debug().
 		Int("Player", player.Num).
 		Str("Planet", planet.Name).
 		Str("Item", string(item.Type)).
-		Str("DesignName", item.DesignName).
+		Int("DesignNum", item.DesignNum).
 		Int("NumBuilt", numBuilt).
 		Msgf("built item")
 

@@ -3,7 +3,6 @@ package cs
 import (
 	"fmt"
 	"math"
-	"time"
 )
 
 type TechCategory string
@@ -29,11 +28,6 @@ const (
 )
 
 type Tech struct {
-	ID        int64     `json:"id"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
-
-	TechStoreID  int64            `json:"techStoreId"`
 	Name         string           `json:"name"`
 	Cost         Cost             `json:"cost"`
 	Requirements TechRequirements `json:"requirements" `
@@ -245,9 +239,13 @@ type TechPlanetaryScanner struct {
 	ScanRangePen int `json:"scanRangePen,omitempty"`
 }
 
+type Defense struct {
+	DefenseCoverage float64 `json:"defenseCoverage,omitempty"`
+}
+
 type TechDefense struct {
 	Tech
-	DefenseCoverage float64 `json:"defenseCoverage,omitempty"`
+	Defense
 }
 
 type TechTerraform struct {

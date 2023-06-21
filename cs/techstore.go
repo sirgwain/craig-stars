@@ -13,7 +13,6 @@ const InfiniteGate = math.MaxInt32
 const Infinite = -1
 
 type TechStore struct {
-	RulesID                  int64                                 `json:"rulesId"`
 	Engines                  []TechEngine                          `json:"engines"`
 	PlanetaryScanners        []TechPlanetaryScanner                `json:"planetaryScanners"`
 	Terraforms               []TechTerraform                       `json:"terraforms"`
@@ -268,12 +267,63 @@ func (store *TechStore) GetBestTorpedo(player *Player) *TechHullComponent {
 	return bestTech
 }
 
+// get the best regular bomb for a player
+func (store *TechStore) GetBestBomb(player *Player) *TechHullComponent {
+	var bestTech *TechHullComponent
+	for i := range store.HullComponents {
+		tech := &store.HullComponents[i]
+		if tech.Category == TechCategoryBomb && tech.MinKillRate > 0 && tech.StructureDestroyRate > 0 && player.HasTech(&tech.Tech) {
+			// techs are sorted by rank, so the latest is the best
+			bestTech = tech
+		}
+	}
+	return bestTech
+}
+
+// get the best regular structure only bomb for a player
+func (store *TechStore) GetBestStructureBomb(player *Player) *TechHullComponent {
+	var bestTech *TechHullComponent
+	for i := range store.HullComponents {
+		tech := &store.HullComponents[i]
+		if tech.Category == TechCategoryBomb && tech.MinKillRate == 0 && tech.StructureDestroyRate > 0 && player.HasTech(&tech.Tech) {
+			// techs are sorted by rank, so the latest is the best
+			bestTech = tech
+		}
+	}
+	return bestTech
+}
+
+// get the best smart bomb for a player
+func (store *TechStore) GetBestSmartBomb(player *Player) *TechHullComponent {
+	var bestTech *TechHullComponent
+	for i := range store.HullComponents {
+		tech := &store.HullComponents[i]
+		if tech.Category == TechCategoryBomb && tech.MinKillRate == 0 && tech.StructureDestroyRate == 0 && tech.KillRate > 0 && player.HasTech(&tech.Tech) {
+			// techs are sorted by rank, so the latest is the best
+			bestTech = tech
+		}
+	}
+	return bestTech
+}
+
 // get the best fuel tank for a player
 func (store *TechStore) GetBestFuelTank(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if (tech.FuelBonus > 0) && player.HasTech(&tech.Tech) {
+			// techs are sorted by rank, so the latest is the best
+			bestTech = tech
+		}
+	}
+	return bestTech
+}
+
+func (store *TechStore) GetBestCargoPod(player *Player) *TechHullComponent {
+	var bestTech *TechHullComponent
+	for i := range store.HullComponents {
+		tech := &store.HullComponents[i]
+		if (tech.CargoBonus > 0) && player.HasTech(&tech.Tech) {
 			// techs are sorted by rank, so the latest is the best
 			bestTech = tech
 		}
@@ -326,6 +376,32 @@ func (store *TechStore) GetBestMineLayer(player *Player, mineFieldType MineField
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if tech.Category == TechCategoryMineLayer && tech.MineFieldType == mineFieldType && player.HasTech(&tech.Tech) {
+			// techs are sorted by rank, so the latest is the best
+			bestTech = tech
+		}
+	}
+	return bestTech
+}
+
+// get the player's best packet thrower
+func (store *TechStore) GetBestPacketThrower(player *Player) *TechHullComponent {
+	var bestTech *TechHullComponent
+	for i := range store.HullComponents {
+		tech := &store.HullComponents[i]
+		if tech.Category == TechCategoryOrbital && tech.PacketSpeed > 0 && player.HasTech(&tech.Tech) {
+			// techs are sorted by rank, so the latest is the best
+			bestTech = tech
+		}
+	}
+	return bestTech
+}
+
+// get the player's best packet thrower
+func (store *TechStore) GetBestStargate(player *Player) *TechHullComponent {
+	var bestTech *TechHullComponent
+	for i := range store.HullComponents {
+		tech := &store.HullComponents[i]
+		if tech.Category == TechCategoryOrbital && tech.SafeRange != 0 && player.HasTech(&tech.Tech) {
 			// techs are sorted by rank, so the latest is the best
 			bestTech = tech
 		}
@@ -761,19 +837,19 @@ var Snooper620X = TechPlanetaryScanner{Tech: NewTech("Snooper 620X", NewCost(10,
 // TechDefenses
 
 var SDI = TechDefense{Tech: NewTech("SDI", NewCost(5, 5, 5, 15), TechRequirements{PRTDenied: AR}, 0, TechCategoryPlanetaryDefense),
-	DefenseCoverage: .99,
+	Defense: Defense{DefenseCoverage: .99},
 }
 var MissileBattery = TechDefense{Tech: NewTech("Missile Battery", NewCost(5, 5, 5, 15), TechRequirements{TechLevel: TechLevel{Energy: 5}, PRTDenied: AR}, 10, TechCategoryPlanetaryDefense),
-	DefenseCoverage: 1.99,
+	Defense: Defense{DefenseCoverage: 1.99},
 }
 var LaserBattery = TechDefense{Tech: NewTech("Laser Battery", NewCost(5, 5, 5, 15), TechRequirements{TechLevel: TechLevel{Energy: 10}, PRTDenied: AR}, 20, TechCategoryPlanetaryDefense),
-	DefenseCoverage: 2.39,
+	Defense: Defense{DefenseCoverage: 2.39},
 }
 var PlanetaryShield = TechDefense{Tech: NewTech("Planetary Shield", NewCost(5, 5, 5, 15), TechRequirements{TechLevel: TechLevel{Energy: 16}, PRTDenied: AR}, 30, TechCategoryPlanetaryDefense),
-	DefenseCoverage: 2.99,
+	Defense: Defense{DefenseCoverage: 2.99},
 }
 var NeutronShield = TechDefense{Tech: NewTech("Neutron Shield", NewCost(5, 5, 5, 15), TechRequirements{TechLevel: TechLevel{Energy: 23}, PRTDenied: AR}, 40, TechCategoryPlanetaryDefense),
-	DefenseCoverage: 3.79,
+	Defense: Defense{DefenseCoverage: 3.79},
 }
 
 // TechHullComponents

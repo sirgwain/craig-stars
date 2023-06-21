@@ -1,6 +1,6 @@
 import type { BattleRecord } from '$lib/types/Battle';
 import type { Fleet, Target, Waypoint } from '$lib/types/Fleet';
-import { MapObjectType, type MapObject } from '$lib/types/MapObject';
+import { equal, MapObjectType, type MapObject } from '$lib/types/MapObject';
 import type { MineField } from '$lib/types/MineField';
 import type { MineralPacket } from '$lib/types/MineralPacket';
 import type { MysteryTrader } from '$lib/types/MysteryTrader';
@@ -11,10 +11,12 @@ import type { ShipDesign } from '$lib/types/ShipDesign';
 import type { Vector } from '$lib/types/Vector';
 import type { Wormhole } from '$lib/types/Wormhole';
 import { groupBy, startCase } from 'lodash-es';
+import { get } from 'svelte/store';
+import { selectedMapObject, selectMapObject } from './Stores';
 
 export interface DesignFinder {
 	getDesign(playerNum: number, num: number): ShipDesign | undefined;
-	getMyDesignByName(name: string): ShipDesign | undefined;
+	getMyDesign(num: number | undefined): ShipDesign | undefined;
 }
 
 export interface PlayerFinder {
@@ -140,12 +142,16 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 		return this.planets.filter((d) => d.playerNum === this.playerNum);
 	}
 
+	getMyFleets(): Fleet[] {
+		return this.fleets.filter((d) => d.playerNum === this.playerNum);
+	}
+
 	getDesign(playerNum: number, num: number): ShipDesign | undefined {
 		return this.designs.find((d) => d.playerNum === playerNum && d.num === num);
 	}
 
-	getMyDesignByName(name: string): ShipDesign | undefined {
-		return this.designs.find((d) => d.playerNum === this.playerNum && d.name == name);
+	getMyDesign(num: number | undefined): ShipDesign | undefined {
+		return this.designs.find((d) => d.playerNum === this.playerNum && d.num === num);
 	}
 
 	getBattle(num: number): BattleRecord | undefined {
@@ -226,6 +232,11 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 			this.fleets = [...this.fleets.slice(0, index), fleet, ...this.fleets.slice(index + 1)];
 		}
 		this.resetMyMapObjectsByPosition();
+
+		const smo = get(selectedMapObject);
+		if (equal(smo, fleet)) {
+			selectMapObject(fleet);
+		}
 	}
 
 	updatePlanet(planet: Planet) {
@@ -234,6 +245,11 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 			this.planets = [...this.planets.slice(0, index), planet, ...this.planets.slice(index + 1)];
 		}
 		this.resetMyMapObjectsByPosition();
+
+		const smo = get(selectedMapObject);
+		if (equal(smo, planet)) {
+			selectMapObject(planet);
+		}
 	}
 
 	removeFleets(fleetNums: number[]) {

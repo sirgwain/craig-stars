@@ -36,10 +36,10 @@ const currentCommandedMapObjectIndex = derived(
 	[universe, commandedFleet, commandedPlanet],
 	([$universe, $commandedFleet, $commandedPlanet]) => {
 		if ($commandedPlanet) {
-			return $universe.planets.findIndex((p) => p.num === $commandedPlanet.num);
+			return $universe.getMyPlanets().findIndex((p) => p.num === $commandedPlanet.num);
 		}
 		if ($commandedFleet) {
-			return $universe.fleets.findIndex((f) => f.num === $commandedFleet.num);
+			return $universe.getMyFleets().findIndex((f) => f.num === $commandedFleet.num);
 		}
 		return 0;
 	}
@@ -98,7 +98,7 @@ export const previousMapObject = () => {
 			zoomToMapObject(planet);
 			selectMapObject(planet);
 		} else if (mo.type == MapObjectType.Fleet) {
-			const fleets = u.getMyFleets()
+			const fleets = u.getMyFleets();
 			const prevIndex = rollover(i - 1, 0, fleets.length - 1);
 			commandMapObject(fleets[prevIndex]);
 			zoomToMapObject(fleets[prevIndex]);

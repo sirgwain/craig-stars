@@ -4,7 +4,7 @@
 	import { CommandedPlanet, getQueueItemShortName, isAuto } from '$lib/types/Planet';
 	import CommandTile from './CommandTile.svelte';
 
-	const { game } = getGameContext();
+	const { game, universe } = getGameContext();
 
 	export let planet: CommandedPlanet;
 
@@ -35,7 +35,7 @@
 								(queueItem.yearsToBuildOne ?? 0) <= 1}
 						>
 							<div>
-								{getQueueItemShortName(queueItem)}
+								{getQueueItemShortName(queueItem, $universe)}
 							</div>
 							<div>
 								{queueItem.quantity}
