@@ -100,4 +100,4 @@
 		</div>
 	</div>
 </div>
-<MessagesPane bind:showMessages />
+<MessagesPane bind:showMessages messages={$player.messages} />

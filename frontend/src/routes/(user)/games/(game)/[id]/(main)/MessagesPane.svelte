@@ -15,25 +15,33 @@
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import hotkeys from 'hotkeys-js';
 	import { onMount } from 'svelte/internal';
+	import { writable } from 'svelte/store';
 
 	const { game, player, universe, settings } = getGameContext();
 
 	export let showMessages = false;
+	export let messages: Message[];
 	let messageNum = 0;
-	let message: Message | undefined;
 	let showFilteredMessages = false;
 
-	$: $player.messages.length && (message = $player.messages[messageNum]);
-	$: nextVisibleMessageNum = getNextVisibleMessageNum(messageNum, showFilteredMessages);
-	$: previousVisibleMessageNum = getPreviousVisibleMessageNum(messageNum, showFilteredMessages);
+	$: message = messages.length ? messages[messageNum] : undefined;
+	$: nextVisibleMessageNum = getNextVisibleMessageNum(messageNum, showFilteredMessages, messages);
+	$: previousVisibleMessageNum = getPreviousVisibleMessageNum(
+		messageNum,
+		showFilteredMessages,
+		messages
+	);
 	$: visible = (message && $settings.isMessageVisible(message.type)) ?? false;
 
-	console.log(message, messageNum);
+	onMount(() => {
+		// reset the message num when our player updates
+		const unsubscribe = player.subscribe(() => {
+			messageNum = getNextVisibleMessageNum(-1, showFilteredMessages, $player.messages);
+		});
 
-	// reset the message num when our player updates
-	player.subscribe(() => {
-		messageNum = getNextVisibleMessageNum(-1, showFilteredMessages);
-		message = $player.messages[messageNum];
+		return () => {
+			unsubscribe();
+		};
 	});
 
 	function onFilterMessageType(type: number) {
@@ -46,18 +54,26 @@
 		visible = (message && $settings.isMessageVisible(message.type)) ?? false;
 	}
 
-	function getNextVisibleMessageNum(num: number, showFilteredMessages: boolean): number {
-		for (let i = num + 1; i < $player.messages.length; i++) {
-			if (showFilteredMessages || $settings.isMessageVisible($player.messages[i].type)) {
+	function getNextVisibleMessageNum(
+		num: number,
+		showFilteredMessages: boolean,
+		messages: Message[]
+	): number {
+		for (let i = num + 1; i < messages.length; i++) {
+			if (showFilteredMessages || $settings.isMessageVisible(messages[i].type)) {
 				return i;
 			}
 		}
 		return num;
 	}
 
-	function getPreviousVisibleMessageNum(num: number, showFilteredMessages: boolean): number {
+	function getPreviousVisibleMessageNum(
+		num: number,
+		showFilteredMessages: boolean,
+		messages: Message[]
+	): number {
 		for (let i = num - 1; i >= 0; i--) {
-			if (showFilteredMessages || $settings.isMessageVisible($player.messages[i].type)) {
+			if (showFilteredMessages || $settings.isMessageVisible(messages[i].type)) {
 				return i;
 			}
 		}
@@ -65,10 +81,10 @@
 	}
 
 	const previous = () => {
-		messageNum = getPreviousVisibleMessageNum(messageNum, showFilteredMessages);
+		messageNum = getPreviousVisibleMessageNum(messageNum, showFilteredMessages, messages);
 	};
 	const next = () => {
-		messageNum = getNextVisibleMessageNum(messageNum, showFilteredMessages);
+		messageNum = getNextVisibleMessageNum(messageNum, showFilteredMessages, messages);
 	};
 
 	const gotoTarget = () => {
@@ -164,7 +180,7 @@
 				</div>
 
 				<div class="flex-1 text-center text-lg font-semibold text-secondary">
-					Year: {$game.year} Message {messageNum + 1} of {$player?.messages?.length}
+					Year: {$game.year} Message {messageNum + 1} of {messages.length}
 				</div>
 				<div
 					class="tooltip tooltip-left"
@@ -223,7 +239,7 @@
 							<div class="tooltip" data-tip="next">
 								<button
 									on:click={next}
-									disabled={messageNum == nextVisibleMessageNum}
+									disabled={messageNum === nextVisibleMessageNum}
 									class="btn btn-outline btn-sm normal-case btn-secondary"
 									title="next"
 									><Icon
