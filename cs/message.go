@@ -207,9 +207,9 @@ func (m *messageClient) fleetScrapped(player *Player, fleet *Fleet, totalMineral
 	var text string
 	if planet != nil {
 		if planet.Spec.HasStarbase {
-			text = fmt.Sprintf("%s has been dismantled for %dkT of minerals which have been deposited on %s.", fleet.Name, totalMinerals, planet.Name)
-		} else {
 			text = fmt.Sprintf("%s has been dismantled for %dkT of minerals at the starbase orbiting %s.", fleet.Name, totalMinerals, planet.Name)
+		} else {
+			text = fmt.Sprintf("%s has been dismantled for %dkT of minerals which have been deposited on %s.", fleet.Name, totalMinerals, planet.Name)
 		}
 		if resources > 0 {
 			text += fmt.Sprintf(" Ultimate recycling has also made %d resources available for immediate use (less if other ships were scrapped here this year).", resources)

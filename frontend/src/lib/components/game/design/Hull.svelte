@@ -16,12 +16,13 @@
 	export let shipDesignSlots: ShipDesignSlot[] = [];
 	export let highlightedSlots: HullSlot[] = [];
 	export let highlightedClass: string = '';
+	export let cargoCapacity = hull.cargoCapacity ?? 0;
 </script>
 
 <div class="relative m-2 bg-base-200 dark:bg-base-300" style={`width: ${containerWidth}px; height: ${containerHeight}px`}>
 	{#each hull.slots as slot, index}
 		{@const shipDesignSlot = shipDesignSlots.find((s) => s.hullSlotIndex === index + 1)}
-		{#if index == 1 && hull.cargoCapacity && hull.cargoCapacity > 0}
+		{#if index == 1 && cargoCapacity > 0}
 			<div
 				class="absolute"
 				style={`left: ${
@@ -34,7 +35,7 @@
 					(hull.cargoSlotSize?.y ?? 0) * componentSize
 				}px;`}
 			>
-				<CargoComponent capacity={hull.cargoCapacity} />
+				<CargoComponent capacity={cargoCapacity} />
 			</div>
 		{/if}
 		{#if index == 1 && hull.spaceDock && hull.spaceDock != 0}

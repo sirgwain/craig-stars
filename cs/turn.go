@@ -1023,6 +1023,7 @@ func (t *turn) buildFleet(player *Player, planet *Planet, token ShipToken) *Flee
 		Msgf("fleet built")
 
 	t.game.Fleets = append(t.game.Fleets, &fleet)
+	t.game.Universe.addFleet(&fleet)
 	return &fleet
 }
 
@@ -1293,7 +1294,7 @@ func (t *turn) fleetBattle() {
 
 		// add all starbases and fleets at this location
 		for _, mo := range mos {
-			if fleet, ok := mo.(*Fleet); ok {
+			if fleet, ok := mo.(*Fleet); ok && !fleet.Delete {
 				fleets = append(fleets, fleet)
 				playersAtPosition[fleet.PlayerNum] = t.game.getPlayer(fleet.PlayerNum)
 			}

@@ -106,23 +106,7 @@ func (u *Universe) buildMaps(players []*Player) {
 	u.fleetsByPosition = make(map[Vector][]*Fleet)
 	u.fleetsByNum = make(map[playerObject]*Fleet, len(u.Fleets))
 	for _, fleet := range u.Fleets {
-		u.addMapObjectByPosition(fleet, fleet.Position)
-		fleets, found := u.fleetsByPosition[fleet.Position]
-		if !found {
-			fleets = []*Fleet{fleet}
-		}
-		fleets = append(fleets, fleet)
-		u.fleetsByPosition[fleet.Position] = fleets
-
-		u.fleetsByNum[playerObjectKey(fleet.PlayerNum, fleet.Num)] = fleet
-
-		fleet.battlePlan = u.battlePlansByNum[playerBattlePlanNum{fleet.PlayerNum, fleet.BattlePlanNum}]
-
-		// inject the design into this
-		for i := range fleet.Tokens {
-			token := &fleet.Tokens[i]
-			token.design = u.designsByNum[playerObjectKey(fleet.PlayerNum, token.DesignNum)]
-		}
+		u.addFleet(fleet)
 	}
 
 	for _, starbase := range u.Starbases {
@@ -372,6 +356,26 @@ func (u *Universe) moveFleet(fleet *Fleet, originalPosition Vector) {
 
 	// upadte mapobjects position
 	u.updateMapObjectAtPosition(fleet, originalPosition, fleet.Position)
+}
+
+func (u *Universe) addFleet(fleet *Fleet) {
+	u.addMapObjectByPosition(fleet, fleet.Position)
+	fleets, found := u.fleetsByPosition[fleet.Position]
+	if !found {
+		fleets = []*Fleet{fleet}
+	}
+	fleets = append(fleets, fleet)
+	u.fleetsByPosition[fleet.Position] = fleets
+
+	u.fleetsByNum[playerObjectKey(fleet.PlayerNum, fleet.Num)] = fleet
+
+	fleet.battlePlan = u.battlePlansByNum[playerBattlePlanNum{fleet.PlayerNum, fleet.BattlePlanNum}]
+
+	// inject the design into this
+	for i := range fleet.Tokens {
+		token := &fleet.Tokens[i]
+		token.design = u.designsByNum[playerObjectKey(fleet.PlayerNum, token.DesignNum)]
+	}
 }
 
 // move a wormhole from one position to another

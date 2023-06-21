@@ -184,6 +184,7 @@
 					<Hull
 						bind:shipDesignSlots={design.slots}
 						{hull}
+						cargoCapacity={designSpec.cargoCapacity}
 						{highlightedSlots}
 						highlightedClass={'border-accent'}
 						on:slot-clicked={(e) =>
@@ -241,10 +242,15 @@
 				{#if $shipDesignerContext.selectedHullComponent}
 					<div>
 						Cost of one {$shipDesignerContext.selectedHullComponent.name}
-						<span class="inline-block"
+						<span
+							class="inline-block"
 							on:pointerdown|preventDefault={(e) =>
 								onTechTooltip(e, $shipDesignerContext.selectedHullComponent)}
-							><Icon src={QuestionMarkCircle} size="16" class=" cursor-help hover:stroke-accent" /></span
+							><Icon
+								src={QuestionMarkCircle}
+								size="16"
+								class=" cursor-help hover:stroke-accent"
+							/></span
 						>
 					</div>
 					<div class="pl-2">

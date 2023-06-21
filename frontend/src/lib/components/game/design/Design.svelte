@@ -18,7 +18,11 @@
 </div>
 {#if hull}
 	<div class="flex flex-row justify-center">
-		<Hull {hull} shipDesignSlots={design?.slots ?? []} />
+		<Hull
+			{hull}
+			cargoCapacity={design.spec.cargoCapacity ?? hull.cargoCapacity}
+			shipDesignSlots={design?.slots ?? []}
+		/>
 	</div>
 {/if}
 {#if 'spec' in design}
