@@ -20,7 +20,7 @@
 		</div>
 		<div class="flex justify-between">
 			<div>Resources</div>
-			<div>{cost.resources ?? 0}kT</div>
+			<div>{cost.resources ?? 0}</div>
 		</div>
 	</div>
 {/if}
