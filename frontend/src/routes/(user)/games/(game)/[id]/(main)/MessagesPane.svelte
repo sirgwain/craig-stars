@@ -28,9 +28,12 @@
 	$: previousVisibleMessageNum = getPreviousVisibleMessageNum(messageNum, showFilteredMessages);
 	$: visible = (message && $settings.isMessageVisible(message.type)) ?? false;
 
+	console.log(message, messageNum);
+
 	// reset the message num when our player updates
 	player.subscribe(() => {
 		messageNum = getNextVisibleMessageNum(-1, showFilteredMessages);
+		message = $player.messages[messageNum];
 	});
 
 	function onFilterMessageType(type: number) {
@@ -179,65 +182,61 @@
 					</label>
 				</div>
 			</div>
-			{#if message}
-				<div class="flex flex-row">
-					<div class="mt-1 h-12 grow overflow-y-auto">
-						<div class="relative">
-							{#if !visible}
-								<div class="absolute w-full text-center">
-									<span class="text-[1.5rem] text-warning -rotate-12">FILTERED</span>
-								</div>
-							{/if}
+			<div class="flex flex-row">
+				<div class="mt-1 h-12 grow overflow-y-auto">
+					<div class="relative">
+						{#if !visible || message == undefined}
+							<div class="absolute w-full text-center">
+								<span class="text-[1.5rem] text-warning -rotate-12">FILTERED</span>
+							</div>
+						{/if}
+						{#if message}
 							{message.text}
-						</div>
+						{/if}
 					</div>
-					<div>
-						<div class="flex flex-col gap-y-1 ml-1">
-							<div class="flex flex-row btn-group">
-								<div class="tooltip" data-tip="previous">
-									<button
-										on:click={previous}
-										disabled={messageNum === previousVisibleMessageNum}
-										class="btn btn-outline btn-sm normal-case btn-secondary"
-										title="previous"
-										><Icon
-											src={ArrowLongLeft}
-											size="16"
-											class="hover:stroke-accent inline"
-										/></button
-									>
-								</div>
-								<div class="tooltip" data-tip="goto">
-									<button
-										on:click={gotoTarget}
-										disabled={!message.targetNum}
-										class="btn btn-outline btn-sm normal-case btn-secondary"
-										title="goto"
-										><Icon
-											src={ArrowTopRightOnSquare}
-											size="16"
-											class="hover:stroke-accent inline"
-										/></button
-									>
-								</div>
-								<div class="tooltip" data-tip="next">
-									<button
-										on:click={next}
-										disabled={messageNum == nextVisibleMessageNum}
-										class="btn btn-outline btn-sm normal-case btn-secondary"
-										title="next"
-										><Icon
-											src={ArrowLongRight}
-											size="16"
-											class="hover:stroke-accent inline"
-										/></button
-									>
-								</div>
+				</div>
+				<div>
+					<div class="flex flex-col gap-y-1 ml-1">
+						<div class="flex flex-row btn-group">
+							<div class="tooltip" data-tip="previous">
+								<button
+									on:click={previous}
+									disabled={messageNum === previousVisibleMessageNum}
+									class="btn btn-outline btn-sm normal-case btn-secondary"
+									title="previous"
+									><Icon src={ArrowLongLeft} size="16" class="hover:stroke-accent inline" /></button
+								>
+							</div>
+							<div class="tooltip" data-tip="goto">
+								<button
+									on:click={gotoTarget}
+									disabled={!message?.targetNum}
+									class="btn btn-outline btn-sm normal-case btn-secondary"
+									title="goto"
+									><Icon
+										src={ArrowTopRightOnSquare}
+										size="16"
+										class="hover:stroke-accent inline"
+									/></button
+								>
+							</div>
+							<div class="tooltip" data-tip="next">
+								<button
+									on:click={next}
+									disabled={messageNum == nextVisibleMessageNum}
+									class="btn btn-outline btn-sm normal-case btn-secondary"
+									title="next"
+									><Icon
+										src={ArrowLongRight}
+										size="16"
+										class="hover:stroke-accent inline"
+									/></button
+								>
 							</div>
 						</div>
 					</div>
 				</div>
-			{/if}
+			</div>
 		</div>
 	</div>
 </div>
