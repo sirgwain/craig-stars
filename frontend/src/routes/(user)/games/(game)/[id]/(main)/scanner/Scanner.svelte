@@ -6,6 +6,7 @@
 		commandedMapObject,
 		commandedPlanet,
 		currentSelectedWaypointIndex,
+		highlightMapObject,
 		selectMapObject,
 		selectWaypoint,
 		selectedMapObject,
@@ -28,7 +29,10 @@
 	import { Html, LayerCake, Svg } from 'layercake';
 	import { setContext } from 'svelte';
 	import { writable } from 'svelte/store';
-	import MapObjectQuadTreeFinder from './MapObjectQuadTreeFinder.svelte';
+	import MapObjectQuadTreeFinder, {
+		type FinderEvent,
+		type FinderEventDetails
+	} from './MapObjectQuadTreeFinder.svelte';
 	import ScannerFleets from './ScannerFleets.svelte';
 	import ScannerMineFieldPattern from './ScannerMineFieldPattern.svelte';
 	import ScannerMineFields from './ScannerMineFields.svelte';
@@ -91,7 +95,6 @@
 	}
 
 	$: setPacketDest = $settings.setPacketDest;
-	$: addWaypoint = $settings.addWaypoint;
 
 	// enable drag and zoom, but disable dblclick zoom events
 	const enableDragAndZoom = () => select(root).call(zoomBehavior).on('dblclick.zoom', null);
@@ -161,8 +164,56 @@
 		}
 	}
 
+	let pointerDown = false;
+	let dragging = false;
+	let positionWaypoint = false;
+
+	// as the pointer moves, find the items it is under
+	function onPointerMove(e: CustomEvent<FinderEventDetails>) {
+		const { event, found, position } = e.detail;
+		positionWaypoint = event.shiftKey;
+
+		highlightMapObject(found);
+
+		if (pointerDown && found) {
+			dragging = true;
+		}
+
+		if (dragging) {
+			dragWaypointMove(position, found);
+		}
+	}
+
+	function onPointerDown(e: CustomEvent<FinderEventDetails>) {
+		const { event, found, position } = e.detail;
+		pointerDown = true;
+
+		if (found) {
+			if (event.shiftKey || $settings.addWaypoint) {
+				addWaypoint(found, position);
+			} else {
+				mapobjectSelected(found);
+			}
+		} else {
+			if (event.shiftKey || $settings.addWaypoint) {
+				addWaypoint(found, position);
+			}
+		}
+	}
+
+	// turn off dragging
+	function onPointerUp(e: CustomEvent<FinderEventDetails>) {
+		const { event, found, position } = e.detail;
+
+		if (dragging) {
+			dragWaypointDone(position, found);
+		}
+		dragging = false;
+		pointerDown = false;
+	}
+
 	// if the shift key is held, add a waypoint instead of selecting a mapobject
-	async function onAddWaypoint(options: { mo?: MapObject; position?: Vector }) {
+	async function addWaypoint(mo: MapObject | undefined, position: Vector) {
 		if (!$commandedFleet?.waypoints) {
 			return;
 		}
@@ -177,14 +228,20 @@
 			nextWaypoint = $commandedFleet.waypoints[waypointIndex + 1];
 		}
 
-		const position = options.mo ? options.mo.position : options.position ?? emptyVector;
+		position = mo ? mo.position : position ?? emptyVector;
 		if (equal(position, currentWaypoint.position) || equal(position, nextWaypoint.position)) {
 			// don't duplicate waypoints
 			return;
 		}
 
-		if (options.mo) {
-			const mo = options.mo;
+		if (positionWaypoint || !mo) {
+			$commandedFleet.waypoints.splice(waypointIndex + 1, 0, {
+				position: position,
+				warpSpeed: $commandedFleet.spec?.engine?.idealSpeed ?? 5,
+				task: WaypointTask.None,
+				transportTasks: { fuel: {}, ironium: {}, boranium: {}, germanium: {}, colonists: {} }
+			});
+		} else if (mo) {
 			$commandedFleet.waypoints.splice(waypointIndex + 1, 0, {
 				position: mo.position,
 				warpSpeed: $commandedFleet.spec?.engine?.idealSpeed ?? 5,
@@ -192,13 +249,6 @@
 				targetPlayerNum: mo.playerNum,
 				targetNum: mo.num,
 				targetType: mo.type,
-				task: WaypointTask.None,
-				transportTasks: { fuel: {}, ironium: {}, boranium: {}, germanium: {}, colonists: {} }
-			});
-		} else if (options.position) {
-			$commandedFleet.waypoints.splice(waypointIndex + 1, 0, {
-				position: options.position,
-				warpSpeed: $commandedFleet.spec?.engine?.idealSpeed ?? 5,
 				task: WaypointTask.None,
 				transportTasks: { fuel: {}, ironium: {}, boranium: {}, germanium: {}, colonists: {} }
 			});
@@ -221,7 +271,7 @@
 	 * - We cycle through our commandable objects at the same location if we own an object there
 	 * @param mo
 	 */
-	async function mapobjectSelected(mo: MapObject) {
+	function mapobjectSelected(mo: MapObject) {
 		// reset waypoint dragging
 		enableDragAndZoom();
 		movingWaypoint = false;
@@ -300,18 +350,18 @@
 			movingWaypoint &&
 			!equal($selectedWaypoint.position, $commandedFleet?.waypoints[0].position)
 		) {
-			if (mo) {
-				$selectedWaypoint.position = mo.position;
-				$selectedWaypoint.targetType = mo.type;
-				$selectedWaypoint.targetNum = mo.num;
-				$selectedWaypoint.targetPlayerNum = mo.playerNum;
-				$selectedWaypoint.targetName = mo.name;
-			} else {
+			if (positionWaypoint || !mo) {
 				$selectedWaypoint.position = position;
 				$selectedWaypoint.targetType = MapObjectType.None;
 				$selectedWaypoint.targetNum = None;
 				$selectedWaypoint.targetPlayerNum = None;
 				$selectedWaypoint.targetName = '';
+			} else if (mo) {
+				$selectedWaypoint.position = mo.position;
+				$selectedWaypoint.targetType = mo.type;
+				$selectedWaypoint.targetNum = mo.num;
+				$selectedWaypoint.targetPlayerNum = mo.playerNum;
+				$selectedWaypoint.targetName = mo.name;
 			}
 		}
 	}
@@ -403,14 +453,10 @@
 				<ScannerNames {transform} />
 
 				<MapObjectQuadTreeFinder
-					on:mapobject-selected={(mo) => mapobjectSelected(mo.detail)}
-					on:add-waypoint={(mo) => onAddWaypoint(mo.detail)}
-					on:drag-waypoint-move={(e) => dragWaypointMove(e.detail.position, e.detail.mo)}
-					on:drag-waypoint-done={(e) => dragWaypointDone(e.detail.position, e.detail.mo)}
+					on:pointermove={onPointerMove}
+					on:pointerdown={onPointerDown}
+					on:pointerup={onPointerUp}
 					searchRadius={20}
-					let:x
-					let:y
-					let:found
 					{transform}
 				/>
 			{/if}

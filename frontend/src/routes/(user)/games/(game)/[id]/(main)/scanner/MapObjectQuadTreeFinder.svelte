@@ -1,12 +1,22 @@
+<script lang="ts" context="module">
+	export type FinderEventDetails = {
+		event: PointerEvent;
+		position: Vector;
+		found: MapObject | undefined;
+	};
+	export type FinderEvent = {
+		pointermove: FinderEventDetails;
+		pointerdown: FinderEventDetails;
+		pointerup: FinderEventDetails;
+	};
+</script>
+
 <!--
   @component
-  Creates an interaction layer (in HTML) using [d3-quadtree](https://github.com/d3/d3-quadtree) to find the nearest datapoint to the mouse. This component creates a slot that exposes variables `x`, `y`, `found` (the found datapoint), `visible` (a Boolean whether any data was found) and `e` (the event object).
-
-  The quadtree searches across both the x and y dimensions at the same time. But if you want to only search across one, set the `x` and `y` props to the same value. For example, the [shared tooltip component](https://layercake.graphics/components/SharedTooltip.html.svelte) sets `y='x'` since it's nicer behavior to only pick up on the nearest x-value.
+  Creates an interaction layer (in HTML) using [d3-quadtree](https://github.com/d3/d3-quadtree) to find the nearest datapoint to the mouse.
+  This component fires events for mouse movement/down/etc
  -->
 <script lang="ts">
-	import { getGameContext } from '$lib/services/Contexts';
-	import { highlightMapObject } from '$lib/services/Stores';
 	import type { MapObject } from '$lib/types/MapObject';
 	import type { Vector } from '$lib/types/Vector';
 	import { quadtree } from 'd3-quadtree';
@@ -14,36 +24,16 @@
 	import type { LayerCake } from 'layercake';
 	import { createEventDispatcher, getContext } from 'svelte';
 
-	const { data, xGet, yGet, xScale, yScale, xReverse, yReverse, width, height } =
-		getContext<LayerCake>('LayerCake');
-	const { game, player, universe, settings } = getGameContext();
-	const dispatch = createEventDispatcher();
+	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
+	const dispatch = createEventDispatcher<FinderEvent>();
 
-	let found: MapObject | undefined;
-	let position: Vector = { x: 0, y: 0 };
-	let pointerDown = false;
-	let dragging = false;
-	let e = {};
-
-	/** The dimension to search across when moving the mouse left and right. */
-	export let x: string = 'x';
-
-	/** The dimension to search across when moving the mouse up and down. */
-	export let y: string = 'y';
-
+	// transform to transform our mouse to world coords
 	export let transform: ZoomTransform;
 
 	/** The number of pixels to search around the mouse's location. This is the third argument passed to [`quadtree.find`](https://github.com/d3/d3-quadtree#quadtree_find) and by default a value of `undefined` means an unlimited range. */
 	export let searchRadius: number | undefined = undefined;
 
-	/** @type {Array} [dataset] – The dataset to work off of—defaults to $data if left unset. You can pass override the default here in here in case you don't want to use the main data or it's in a strange format. */
-	export let dataset: [] | undefined = undefined;
-
-	$: xGetter = x === 'x' ? $xGet : $yGet;
-	$: yGetter = y === 'y' ? $yGet : $xGet;
-
-	$: addWaypoint = $settings.addWaypoint;
-
+	// find the item under
 	function findItem(x: number, y: number) {
 		let [x1, y1] = [x, y];
 
@@ -51,57 +41,38 @@
 			[x1, y1] = transform.invert([x1, y1]);
 		}
 
-		found = finder.find(
+		const found = finder.find(
 			x1,
 			y1,
 			transform && searchRadius ? transform.scale(searchRadius).k : searchRadius
 		);
-		position = { x: Math.round(x1 / $xScale(1)), y: Math.round(y1 / $yScale(1)) };
+		const position = { x: Math.round(x1 / $xScale(1)), y: Math.round(y1 / $yScale(1)) };
 
 		return { position, found };
 	}
 
 	// as the pointer moves, find the items it is under
-	function onPointerMove(e: PointerEvent) {
+	function onPointerMove(event: PointerEvent) {
 		// this is not supported, but works for me...
-		const evt = e as PointerEvent & { layerX: number; layerY: number };
+		const evt = event as PointerEvent & { layerX: number; layerY: number };
 		const { position, found } = findItem(evt.layerX, evt.layerY);
-		highlightMapObject(found);
 
-		if (pointerDown && found) {
-			dragging = true;
-		}
-
-		if (dragging) {
-			dispatch('drag-waypoint-move', { position, mo: found });
-		}
+		dispatch('pointermove', { event, position, found });
 	}
 
-	function onPointerDown(e: PointerEvent) {
-		pointerDown = true;
-		const evt = e as PointerEvent & { layerX: number; layerY: number };
+	function onPointerDown(event: PointerEvent) {
+		const evt = event as PointerEvent & { layerX: number; layerY: number };
 		const { position, found } = findItem(evt.layerX, evt.layerY);
 
-		if (found) {
-			if (e.shiftKey || addWaypoint) {
-				dispatch('add-waypoint', { mo: found });
-			} else {
-				dispatch('mapobject-selected', found);
-			}
-		} else {
-			if (e.shiftKey || addWaypoint) {
-				dispatch('add-waypoint', { position });
-			}
-		}
+		dispatch('pointerdown', { event, position, found });
 	}
 
 	// turn off dragging
-	function onPointerUp() {
-		if (dragging) {
-			dispatch('drag-waypoint-done', { position, mo: found });
-		}
-		dragging = false;
-		pointerDown = false;
+	function onPointerUp(event: PointerEvent) {
+		const evt = event as PointerEvent & { layerX: number; layerY: number };
+		const { position, found } = findItem(evt.layerX, evt.layerY);
+
+		dispatch('pointerup', { event, position, found });
 	}
 
 	$: finder = quadtree<MapObject>()
@@ -109,15 +80,14 @@
 			[-1, -1],
 			[$width + 1, $height + 1]
 		])
-		.x(xGetter)
-		.y(yGetter)
-		.addAll(dataset || $data);
+		.x($xGet)
+		.y($yGet)
+		.addAll($data);
 </script>
 
 <div
 	class="absolute h-full w-full z-10"
-	on:pointermove|preventDefault={onPointerMove}
+	on:pointermove={onPointerMove}
 	on:pointerdown={onPointerDown}
-	on:pointerup|preventDefault={onPointerUp}
+	on:pointerup={onPointerUp}
 />
-<slot x={xGetter(found) || 0} y={yGetter(found) || 0} {found} {e} />
