@@ -363,8 +363,15 @@ func (s *server) updatePlayerOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	playerWithDesigns, err := s.db.GetPlayerWithDesignsForGame(game.ID, player.Num)
+	if err != nil {
+		log.Error().Err(err).Int64("ID", player.ID).Msg("loading player from database")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
 	orderer := cs.NewOrderer()
-	orderer.UpdatePlayerOrders(player, planets, *orders.PlayerOrders, &game.Rules)
+	orderer.UpdatePlayerOrders(playerWithDesigns, planets, *orders.PlayerOrders, &game.Rules)
 
 	// save the player to the database
 	if err := s.db.UpdatePlayerOrders(player); err != nil {
@@ -427,7 +434,7 @@ func (s *server) updatePlayerPlans(w http.ResponseWriter, r *http.Request) {
 	player.PlayerPlans = *plans.PlayerPlans
 
 	// save the player to the database
-	if err := s.db.UpdatePlayerOrders(player); err != nil {
+	if err := s.db.UpdatePlayerPlans(player); err != nil {
 		log.Error().Err(err).Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update player")
 		render.Render(w, r, ErrInternalServerError(err))
 		return

@@ -179,13 +179,15 @@ func (p *Planet) PopulateProductionQueueEstimates() error {
 		yearlyResources = p.Spec.ResourcesPerYearAvailable
 	}
 
+	mineralsOnHand := p.Cargo.ToCost()
+
 	// this is how man resources and minerals our planet produces each year
-	yearlyAvailableToSpend := p.Cargo.AddMineral(p.Spec.MiningOutput).ToCost()
+	yearlyAvailableToSpend := p.Spec.MiningOutput.ToCost()
 	yearlyAvailableToSpend.Resources = yearlyResources
 
 	// populate completion estimates
 	completionEstimator := newCompletionEstimator()
-	completionEstimator.PopulateCompletionEstimates(p.ProductionQueue, yearlyAvailableToSpend)
+	p.ProductionQueue = completionEstimator.GetProductionWithEstimates(p.ProductionQueue, mineralsOnHand, yearlyAvailableToSpend)
 
 	return nil
 }

@@ -1070,7 +1070,7 @@ func (t *turn) playerResearch() {
 	resourcesToSpendByPlayer := make(map[int]int, len(t.game.Players))
 	for _, planet := range t.game.Planets {
 		if planet.owned() {
-			resourcesToSpendByPlayer[planet.PlayerNum-1] += planet.Spec.ResourcesPerYearResearch
+			resourcesToSpendByPlayer[planet.PlayerNum] += planet.Spec.ResourcesPerYearResearch
 		}
 	}
 
@@ -1094,7 +1094,7 @@ func (t *turn) playerResearch() {
 	stealableResearchResources := TechLevel{}
 	for _, player := range t.game.Players {
 		primaryField := player.Researching
-		resourcesToSpend := int(float64(resourcesToSpendByPlayer[player.Num-1])*player.Race.Spec.ResearchFactor + .5)
+		resourcesToSpend := int(float64(resourcesToSpendByPlayer[player.Num])*player.Race.Spec.ResearchFactor + .5)
 		player.ResearchSpentLastYear += resourcesToSpend
 
 		// research tech levels until the resources run out

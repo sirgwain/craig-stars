@@ -14,7 +14,6 @@ type Rules struct {
 	GameID                             int64                               `json:"gameId"`
 	TachyonCloakReduction              int                                 `json:"tachyonCloakReduction"`
 	MaxPopulation                      int                                 `json:"maxPopulation"`
-	FleetsScanWhileMoving              bool                                `json:"fleetsScanWhileMoving"`
 	PopulationScannerError             float64                             `json:"populationScannerError"`
 	SmartDefenseCoverageFactor         float64                             `json:"smartDefenseCoverageFactor"`
 	InvasionDefenseCoverageFactor      float64                             `json:"invasionDefenseCoverageFactor"`
@@ -118,7 +117,6 @@ func NewRulesWithSeed(seed int64) Rules {
 		random:                        random,
 		TachyonCloakReduction:         5,
 		MaxPopulation:                 1000000,
-		FleetsScanWhileMoving:         false,
 		PopulationScannerError:        0.2,
 		SmartDefenseCoverageFactor:    0.5,
 		InvasionDefenseCoverageFactor: 0.75,

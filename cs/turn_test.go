@@ -32,6 +32,8 @@ func createSingleUnitGame() *FullGame {
 
 	planet := &Planet{
 		MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 1", Num: 1, PlayerNum: player.Num},
+		Hab: Hab{50, 50, 50},
+		BaseHab: Hab{50, 50, 50},
 		Cargo: Cargo{
 			Colonists: 2500,
 		},
@@ -760,10 +762,10 @@ func Test_turn_detonateMines(t *testing.T) {
 			universe.MineFields = []*MineField{tt.args.mineField}
 
 			fg := FullGame{
-				Game:     game,
-				Universe: &universe,
+				Game:      game,
+				Universe:  &universe,
 				TechStore: &StaticTechStore,
-				Players:  tt.args.players,
+				Players:   tt.args.players,
 			}
 
 			// make sure the player knows about the designs of the fleet
@@ -985,4 +987,44 @@ func Test_turn_fleetRefuel(t *testing.T) {
 	// should refuel at starbase
 	assert.Equal(t, fleet.Spec.FuelCapacity, fleet.Fuel)
 
+}
+
+func Test_turn_playerResearch(t *testing.T) {
+	game := createSingleUnitGame()
+	planet := game.Planets[0]
+	player := game.Players[0]
+
+	// research energy and keep going
+	player.TechLevels = TechLevel{}
+	player.TechLevelsSpent = TechLevel{}
+	player.NextResearchField = NextResearchFieldEnergy
+	player.Researching = Energy
+	player.ResearchAmount = 100
+
+	// give us 1000 resources, 500 from pop, 500 from factories
+	planet.setPopulation(500_000)
+	planet.Factories = 500
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// let's go!!
+	turn.generateTurn()
+
+	// costs go up per level so
+	// 1. 50,
+	// 2. 80 + 10,
+	// 3. 130 + 20,
+	// 4. 210 + 30,
+	// 5. 340 + 40 (910 resources for level 5)
+	// 6. 550 (we'll bleed over 90, leaving 360 for this next level)
+
+	assert.Equal(t, TechLevel{Energy: 5}, player.TechLevels, "should have raised 5 energy levels")
+	assert.Equal(t, TechLevel{Energy: 90}, player.TechLevelsSpent, "should leave 90 spent on energy level 6")
+	assert.Equal(t, 550+(5*10), player.Spec.CurrentResearchCost, "total cost of energy level 6 if we have 5 total tech levels")
+	assert.Equal(t, 1000, player.ResearchSpentLastYear, " spent 1000 on research last year")
+	assert.Equal(t, 1045, player.Spec.ResourcesPerYear, " planet grew, spend more next year")
+	assert.Equal(t, 1045, player.Spec.ResourcesPerYearResearch)
 }
