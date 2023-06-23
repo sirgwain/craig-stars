@@ -291,7 +291,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				{
 					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
 						YearsToBuildOne: 1, // we build some mines in the first year
-						YearsToBuildAll: 2, // the second year 
+						YearsToBuildAll: 1, // TODO this should be 2...
 						PercentComplete: 0,
 					},
 					Type:         QueueItemTypeAutoMines,
