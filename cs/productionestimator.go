@@ -36,8 +36,6 @@ func (e *completionEstimate) GetCompletionEstimate(item ProductionQueueItem, min
 
 	var yearsToBuildAll, yearsToBuildOne int
 
-	costOfOneMinusAllocated := costOfOne.Minus(item.Allocated).Minus(mineralsOnHand).MinZero()
-	_ = costOfOneMinusAllocated
 	numYearsToBuildOne := yearlyAvailableToSpend.Divide(costOfOne.Minus(item.Allocated).Minus(mineralsOnHand).MinZero())
 	if numYearsToBuildOne == 0 || math.IsInf(numYearsToBuildOne, 1) {
 		yearsToBuildOne = math.MaxInt
@@ -72,6 +70,7 @@ func (e *completionEstimate) GetProductionWithEstimates(items []ProductionQueueI
 			item.QueueItemCompletionEstimate = QueueItemCompletionEstimate{
 				Skipped: true,
 			}
+			updatedItems[i] = item
 			continue
 		}
 
@@ -82,11 +81,12 @@ func (e *completionEstimate) GetProductionWithEstimates(items []ProductionQueueI
 		// reduce the minerals on hand for the next item the total cost of building this item
 		// this may mean we have negative resources, which means it'll take more years
 		// to build the next items
-		costOfAll := item.CostOfOne.MultiplyInt(item.Quantity).Minus(item.Allocated)		
+		costOfAll := item.CostOfOne.MultiplyInt(item.Quantity).Minus(item.Allocated)
 		if item.Type.IsAuto() {
-			// for auto tasks, we skip if missing minerals, so we only account for 
+			// for auto tasks, we skip if missing minerals, so we only account for
 			// resources not spent
-			mineralsOnHand.Resources -= costOfAll.Resources
+			numBuilt := item.CostOfOne.Minus(item.Allocated).Minus(mineralsOnHand).MinZero().Divide(yearlyAvailableToSpend)
+			mineralsOnHand = mineralsOnHand.Minus(item.CostOfOne.MultiplyInt(int(numBuilt)))
 		} else {
 			mineralsOnHand = mineralsOnHand.Minus(costOfAll)
 		}

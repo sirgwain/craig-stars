@@ -511,6 +511,7 @@ func (c *GameConverter) csPlayerToDbPlayer(source cs.Player) Player {
 	dbPlayer.Messages = GamePlayerMessagesToPlayerMessages(source.Messages)
 	dbPlayer.BattleRecords = GameBattleRecordsToBattleRecords(source.PlayerIntels.BattleRecords)
 	dbPlayer.PlayerIntels = GamePlayerIntelsToPlayerIntels(source.PlayerIntels.PlayerIntels)
+	dbPlayer.ScoreIntels = GameScoreIntelsToScoreIntels(source.PlayerIntels.ScoreIntels)
 	dbPlayer.PlanetIntels = GamePlanetIntelsToPlanetIntels(source.PlayerIntels.PlanetIntels)
 	dbPlayer.FleetIntels = GameFleetIntelsToFleetIntels(source.PlayerIntels.FleetIntels)
 	dbPlayer.StarbaseIntels = GameFleetIntelsToFleetIntels(source.PlayerIntels.StarbaseIntels)

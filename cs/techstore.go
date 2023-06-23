@@ -22,6 +22,7 @@ type TechStore struct {
 	techsByName              map[string]interface{}                `json:"-"`
 	hullComponentsByName     map[string]*TechHullComponent         `json:"-"`
 	hullsByName              map[string]*TechHull                  `json:"-"`
+	hullsByType              map[TechHullType][]*TechHull          `json:"-"`
 	enginesByName            map[string]*TechEngine                `json:"-"`
 	hullComponetnsByCategory map[TechCategory][]*TechHullComponent `json:"-"`
 }
@@ -50,6 +51,7 @@ type TechFinder interface {
 	GetEngine(name string) *TechEngine
 	GetTech(name string) interface{}
 	GetHull(name string) *TechHull
+	GetHullsByType(techHullType TechHullType) []*TechHull
 	GetHullComponent(name string) *TechHullComponent
 	GetHullComponentsByCategory(category TechCategory) []TechHullComponent
 }
@@ -80,11 +82,22 @@ func (store *TechStore) Init() {
 	store.hullComponentsByName = make(map[string]*TechHullComponent, len(store.Engines)+len(store.HullComponents))
 	store.hullComponetnsByCategory = map[TechCategory][]*TechHullComponent{}
 
+	// we have 11 hull types. if this changes, we should update this make, but it's just for performance
+	store.hullsByType = make(map[TechHullType][]*TechHull, 11)
+
 	for i := range store.Hulls {
 		tech := &store.Hulls[i]
 		name := store.transformName(tech.Name)
 		store.techsByName[name] = tech
 		store.hullsByName[name] = tech
+
+		hullsByType, found := store.hullsByType[tech.Type]
+		if !found {
+			hullsByType = make([]*TechHull, 0, 1)
+		}
+		hullsByType = append(hullsByType, tech)
+
+		store.hullsByType[tech.Type] = hullsByType
 	}
 
 	for i := range store.Engines {
@@ -136,6 +149,10 @@ func (store *TechStore) GetEngine(name string) *TechEngine {
 
 func (store *TechStore) GetHull(name string) *TechHull {
 	return store.hullsByName[store.transformName(name)]
+}
+
+func (store *TechStore) GetHullsByType(techHullType TechHullType) []*TechHull {
+	return store.hullsByType[techHullType]
 }
 
 func (store *TechStore) GetHullComponent(name string) *TechHullComponent {
@@ -2064,7 +2081,7 @@ var Dreadnought = TechHull{Tech: NewTech("Dreadnought", NewCost(140, 30, 25, 275
 	},
 }
 var Privateer = TechHull{Tech: NewTech("Privateer", NewCost(50, 3, 3, 50), TechRequirements{TechLevel: TechLevel{Construction: 4}}, 120, TechCategoryShipHull),
-	Type:              TechHullTypeArmedFreighter,
+	Type:              TechHullTypeMultiPurposeFreighter,
 	Mass:              65,
 	Armor:             150,
 	Initiative:        3,
@@ -2081,7 +2098,7 @@ var Privateer = TechHull{Tech: NewTech("Privateer", NewCost(50, 3, 3, 50), TechR
 	},
 }
 var Rogue = TechHull{Tech: NewTech("Rogue", NewCost(80, 5, 5, 60), TechRequirements{TechLevel: TechLevel{Construction: 8}, PRTRequired: SS}, 130, TechCategoryShipHull),
-	Type:              TechHullTypeArmedFreighter,
+	Type:              TechHullTypeMultiPurposeFreighter,
 	Mass:              75,
 	Armor:             450,
 	Initiative:        4,
@@ -2102,7 +2119,7 @@ var Rogue = TechHull{Tech: NewTech("Rogue", NewCost(80, 5, 5, 60), TechRequireme
 	},
 }
 var Galleon = TechHull{Tech: NewTech("Galleon", NewCost(70, 5, 5, 105), TechRequirements{TechLevel: TechLevel{Construction: 11}}, 140, TechCategoryShipHull),
-	Type:              TechHullTypeArmedFreighter,
+	Type:              TechHullTypeMultiPurposeFreighter,
 	Mass:              125,
 	Armor:             900,
 	Initiative:        4,
@@ -2337,7 +2354,7 @@ var Nubian = TechHull{Tech: NewTech("Nubian", NewCost(75, 12, 12, 150), TechRequ
 	},
 }
 var MetaMorph = TechHull{Tech: NewTech("Meta Morph", NewCost(50, 12, 12, 120), TechRequirements{TechLevel: TechLevel{Construction: 10}, PRTRequired: HE}, 310, TechCategoryShipHull),
-	Type:              TechHullTypeArmedFreighter,
+	Type:              TechHullTypeMultiPurposeFreighter,
 	Mass:              85,
 	Armor:             500,
 	Initiative:        2,

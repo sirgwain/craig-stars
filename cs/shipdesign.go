@@ -25,7 +25,6 @@ type ShipDesignSlot struct {
 	HullComponent string `json:"hullComponent"`
 	HullSlotIndex int    `json:"hullSlotIndex"`
 	Quantity      int    `json:"quantity"`
-	hc            *TechHullComponent
 }
 
 type ShipDesignSpec struct {
@@ -86,28 +85,29 @@ type MineLayingRateByMineType struct {
 type ShipDesignPurpose string
 
 const (
-	ShipDesignPurposeNone              ShipDesignPurpose = ""
-	ShipDesignPurposeScout             ShipDesignPurpose = "Scout"
-	ShipDesignPurposeColonizer         ShipDesignPurpose = "Colonizer"
-	ShipDesignPurposeBomber            ShipDesignPurpose = "Bomber"
-	ShipDesignPurposeStructureBomber   ShipDesignPurpose = "StructureBomber"
-	ShipDesignPurposeSmartBomber       ShipDesignPurpose = "SmartBomber"
-	ShipDesignPurposeFighter           ShipDesignPurpose = "Fighter"
-	ShipDesignPurposeFighterScout      ShipDesignPurpose = "FighterScout"
-	ShipDesignPurposeCapitalShip       ShipDesignPurpose = "CapitalShip"
-	ShipDesignPurposeFreighter         ShipDesignPurpose = "Freighter"
-	ShipDesignPurposeColonistFreighter ShipDesignPurpose = "ColonistFreighter"
-	ShipDesignPurposeFuelFreighter     ShipDesignPurpose = "FuelFreighter"
-	ShipDesignPurposeArmedFreighter    ShipDesignPurpose = "ArmedFreighter"
-	ShipDesignPurposeMiner             ShipDesignPurpose = "Miner"
-	ShipDesignPurposeTerraformer       ShipDesignPurpose = "Terraformer"
-	ShipDesignPurposeDamageMineLayer   ShipDesignPurpose = "DamageMineLayer"
-	ShipDesignPurposeSpeedMineLayer    ShipDesignPurpose = "SpeedMineLayer"
-	ShipDesignPurposeStarbase          ShipDesignPurpose = "Starbase"
-	ShipDesignPurposePacketThrower     ShipDesignPurpose = "PacketThrower"
-	ShipDesignPurposeStargater         ShipDesignPurpose = "Stargater"
-	ShipDesignPurposeFort              ShipDesignPurpose = "Fort"
-	ShipDesignPurposeStarterColony     ShipDesignPurpose = "StarterColony"
+	ShipDesignPurposeNone                  ShipDesignPurpose = ""
+	ShipDesignPurposeScout                 ShipDesignPurpose = "Scout"
+	ShipDesignPurposeColonizer             ShipDesignPurpose = "Colonizer"
+	ShipDesignPurposeBomber                ShipDesignPurpose = "Bomber"
+	ShipDesignPurposeStructureBomber       ShipDesignPurpose = "StructureBomber"
+	ShipDesignPurposeSmartBomber           ShipDesignPurpose = "SmartBomber"
+	ShipDesignPurposeFighter               ShipDesignPurpose = "Fighter"
+	ShipDesignPurposeFighterScout          ShipDesignPurpose = "FighterScout"
+	ShipDesignPurposeCapitalShip           ShipDesignPurpose = "CapitalShip"
+	ShipDesignPurposeFreighter             ShipDesignPurpose = "Freighter"
+	ShipDesignPurposeColonistFreighter     ShipDesignPurpose = "ColonistFreighter"
+	ShipDesignPurposeFuelFreighter         ShipDesignPurpose = "FuelFreighter"
+	ShipDesignPurposeMultiPurposeFreighter ShipDesignPurpose = "MultiPurposeFreighter"
+	ShipDesignPurposeArmedFreighter        ShipDesignPurpose = "ArmedFreighter"
+	ShipDesignPurposeMiner                 ShipDesignPurpose = "Miner"
+	ShipDesignPurposeTerraformer           ShipDesignPurpose = "Terraformer"
+	ShipDesignPurposeDamageMineLayer       ShipDesignPurpose = "DamageMineLayer"
+	ShipDesignPurposeSpeedMineLayer        ShipDesignPurpose = "SpeedMineLayer"
+	ShipDesignPurposeStarbase              ShipDesignPurpose = "Starbase"
+	ShipDesignPurposePacketThrower         ShipDesignPurpose = "PacketThrower"
+	ShipDesignPurposeStargater             ShipDesignPurpose = "Stargater"
+	ShipDesignPurposeFort                  ShipDesignPurpose = "Fort"
+	ShipDesignPurposeStarterColony         ShipDesignPurpose = "StarterColony"
 )
 
 func NewShipDesign(player *Player, num int) *ShipDesign {
@@ -203,6 +203,19 @@ func (sd *ShipDesign) Validate(rules *Rules, player *Player) error {
 	}
 
 	return nil
+}
+
+func (d *ShipDesign) SlotsEqual(other *ShipDesign) bool {
+	if len(d.Slots) != len(other.Slots) {
+		return false
+	}
+	for i, v := range d.Slots {
+		if v != other.Slots[i] {
+			return false
+		}
+	}
+	return true
+
 }
 
 func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design *ShipDesign) ShipDesignSpec {

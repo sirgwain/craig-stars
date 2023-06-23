@@ -102,7 +102,7 @@ export class GameService {
 		}
 	}
 
-	static async loadPlayerStatuses(gameId: number): Promise<Player[]> {
+	static async loadPlayerStatuses(gameId: number): Promise<PlayerResponse[]> {
 		const response = await fetch(`/api/games/${gameId}/player-statuses`, {
 			method: 'GET',
 			headers: {
@@ -111,8 +111,7 @@ export class GameService {
 		});
 
 		if (response.ok) {
-			const json = ((await response.json()) as playerStatusResult).players;
-			return json.map((data) => new Player(data));
+			return ((await response.json()) as playerStatusResult).players;
 		} else {
 			throw new Error('Failed to load game');
 		}

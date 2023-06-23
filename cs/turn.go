@@ -1782,6 +1782,22 @@ func (t *turn) calculateScores() {
 
 		// add this to the player's score history
 		player.ScoreHistory = append(player.ScoreHistory, *score)
+
+	}
+
+	// share score intel if show public scores is enabled
+	if t.game.PublicPlayerScores && t.game.rules.ShowPublicScoresAfterYears > 0 && t.game.YearsPassed() >= t.game.rules.ShowPublicScoresAfterYears {
+		for _, player := range t.game.Players {
+			discoverer := newDiscoverer(player)
+			for _, otherPlayer := range t.game.Players {
+
+				if player.Num == otherPlayer.Num {
+					// our score is stored separately
+					continue
+				}
+				discoverer.discoverPlayerScores(otherPlayer)
+			}
+		}
 	}
 
 }

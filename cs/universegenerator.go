@@ -455,16 +455,16 @@ func fillStarbaseSlots(techStore *TechStore, starbase *ShipDesign, race *Race, s
 	for index, slot := range hull.Slots {
 		switch slot.Type {
 		case HullSlotTypeWeapon:
-			starbase.Slots = append(starbase.Slots, ShipDesignSlot{beamWeapon.Name, index + 1, int(math.Round(float64(slot.Capacity) / 2)), &beamWeapon})
+			starbase.Slots = append(starbase.Slots, ShipDesignSlot{beamWeapon.Name, index + 1, int(math.Round(float64(slot.Capacity) / 2))})
 		case HullSlotTypeShield:
-			starbase.Slots = append(starbase.Slots, ShipDesignSlot{shield.Name, index + 1, int(math.Round(float64(slot.Capacity) / 2)), &shield})
+			starbase.Slots = append(starbase.Slots, ShipDesignSlot{shield.Name, index + 1, int(math.Round(float64(slot.Capacity) / 2))})
 		case HullSlotTypeOrbital:
 		case HullSlotTypeOrbitalElectrical:
 			if startingPlanet.HasStargate && !placedStargate {
-				starbase.Slots = append(starbase.Slots, ShipDesignSlot{stargate.Name, index + 1, 1, &stargate})
+				starbase.Slots = append(starbase.Slots, ShipDesignSlot{stargate.Name, index + 1, 1})
 				placedStargate = true
 			} else if startingPlanet.HasMassDriver && !placedMassDriver {
-				starbase.Slots = append(starbase.Slots, ShipDesignSlot{massDriver.Name, index + 1, 1, &massDriver})
+				starbase.Slots = append(starbase.Slots, ShipDesignSlot{massDriver.Name, index + 1, 1})
 				placedMassDriver = true
 			}
 		}
@@ -482,6 +482,7 @@ func (ug *universeGenerator) generatePlayerIntel() error {
 
 		// discover other players
 		player.PlayerIntels.PlayerIntels = player.defaultPlayerIntels(ug.players)
+		player.PlayerIntels.ScoreIntels = make([]ScoreIntel, len(ug.players))
 
 		// do initial scans
 		scanner := newPlayerScanner(&ug.universe, ug.players, ug.rules, player)

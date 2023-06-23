@@ -5,7 +5,7 @@ import type { MineField } from '$lib/types/MineField';
 import type { MineralPacket } from '$lib/types/MineralPacket';
 import type { MysteryTrader } from '$lib/types/MysteryTrader';
 import type { Planet } from '$lib/types/Planet';
-import type { PlayerIntel, PlayerIntels, PlayerUniverse } from '$lib/types/Player';
+import type { PlayerIntel, PlayerIntels, PlayerScore, PlayerUniverse } from '$lib/types/Player';
 import type { Salvage } from '$lib/types/Salvage';
 import type { ShipDesign } from '$lib/types/ShipDesign';
 import type { Vector } from '$lib/types/Vector';
@@ -58,6 +58,7 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 	mysteryTraders: MysteryTrader[] = [];
 	designs: ShipDesign[] = [];
 	players: PlayerIntel[] = [];
+	scores: PlayerScore[][] = [];
 	battles: BattleRecord[] = [];
 
 	mapObjectsByPosition: Record<string, MapObject[]> = {};
@@ -70,6 +71,7 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 		this.designs = data.designs ?? [];
 		this.battles = data.battles ?? [];
 		this.players = data.players ?? [];
+		this.scores = data.scores ?? [];
 
 		this.planets = data.planets ?? [];
 		this.fleets = data.fleets ?? [];
@@ -115,6 +117,21 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 	getPlayerIntel(num: number): PlayerIntel | undefined {
 		if (num >= 1 && num <= this.players.length) {
 			return this.players[num - 1];
+		}
+	}
+
+	getPlayerScoreHistory(num: number): PlayerScore[] | undefined {
+		if (num >= 1 && num <= this.scores.length && this.scores[num - 1]) {
+			return this.scores[num - 1];
+		}
+	}
+
+	getPlayerScore(num: number): PlayerScore | undefined {
+		if (num >= 1 && num <= this.scores.length) {
+			const history = this.scores[num - 1];
+			if (history && history.length > 0) {
+				return history[history.length-1]
+			}
 		}
 	}
 

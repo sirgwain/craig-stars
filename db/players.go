@@ -46,6 +46,7 @@ type Player struct {
 	Messages                     *PlayerMessages      `json:"messages,omitempty"`
 	BattleRecords                *BattleRecords       `json:"battleRecords,omitempty"`
 	PlayerIntels                 *PlayerIntels        `json:"playerIntels,omitempty"`
+	ScoreIntels                  *ScoreIntels         `json:"scoreIntels,omitempty"`
 	PlanetIntels                 *PlanetIntels        `json:"planetIntels,omitempty"`
 	FleetIntels                  *FleetIntels         `json:"fleetIntels,omitempty"`
 	StarbaseIntels               *FleetIntels         `json:"starbaseIntels,omitempty"`
@@ -72,6 +73,7 @@ type PlayerMessages []cs.PlayerMessage
 type PlayerScores []cs.PlayerScore
 type BattleRecords []cs.BattleRecord
 type PlayerIntels []cs.PlayerIntel
+type ScoreIntels []cs.ScoreIntel
 type PlanetIntels []cs.PlanetIntel
 type FleetIntels []cs.FleetIntel
 type ShipDesignIntels []cs.ShipDesignIntel
@@ -182,6 +184,14 @@ func (item *PlayerIntels) Value() (driver.Value, error) {
 }
 
 func (item *PlayerIntels) Scan(src interface{}) error {
+	return scanJSON(src, item)
+}
+
+func (item *ScoreIntels) Value() (driver.Value, error) {
+	return valueJSON(item)
+}
+
+func (item *ScoreIntels) Scan(src interface{}) error {
 	return scanJSON(src, item)
 }
 
@@ -399,6 +409,7 @@ func (c *client) GetPlayerIntelsForGame(gameID, userID int64) (*cs.PlayerIntels,
 	SELECT
 	battleRecords,
 	playerIntels,
+	scoreIntels,
 	planetIntels,
 	fleetIntels,
 	starbaseIntels,
@@ -669,6 +680,7 @@ func (c *client) createPlayer(player *cs.Player, tx SQLExecer) error {
 		messages,
 		battleRecords,
 		playerIntels,
+		scoreIntels,
 		planetIntels,
 		fleetIntels,
 		starbaseIntels,
@@ -720,6 +732,7 @@ func (c *client) createPlayer(player *cs.Player, tx SQLExecer) error {
 		:messages,
 		:battleRecords,
 		:playerIntels,
+		:scoreIntels,
 		:planetIntels,
 		:fleetIntels,
 		:starbaseIntels,
@@ -885,6 +898,7 @@ func (c *client) updatePlayerWithNamedExecer(player *cs.Player, tx SQLExecer) er
 		relations = :relations,
 		battleRecords = :battleRecords,
 		playerIntels = :playerIntels,
+		scoreIntels = :scoreIntels,
 		planetIntels = :planetIntels,
 		fleetIntels = :fleetIntels,
 		starbaseIntels = :starbaseIntels,

@@ -34,6 +34,8 @@ import (
 // goverter:extend GameBattleRecordsToBattleRecords
 // goverter:extend PlayerIntelsToGamePlayerIntels
 // goverter:extend GamePlayerIntelsToPlayerIntels
+// goverter:extend ScoreIntelsToGameScoreIntels
+// goverter:extend GameScoreIntelsToScoreIntels
 // goverter:extend PlanetIntelsToGamePlanetIntels
 // goverter:extend GamePlanetIntelsToPlanetIntels
 // goverter:extend FleetIntelsToGameFleetIntels
@@ -166,6 +168,7 @@ type Converter interface {
 	// goverter:map PlayerOrders.ResearchAmount ResearchAmount
 	// goverter:map PlayerIntels.BattleRecords BattleRecords
 	// goverter:map PlayerIntels.PlayerIntels PlayerIntels
+	// goverter:map PlayerIntels.ScoreIntels ScoreIntels
 	// goverter:map PlayerIntels.PlanetIntels PlanetIntels
 	// goverter:map PlayerIntels.FleetIntels FleetIntels
 	// goverter:map PlayerIntels.StarbaseIntels StarbaseIntels
@@ -524,6 +527,18 @@ func GamePlayerIntelsToPlayerIntels(source []cs.PlayerIntel) *PlayerIntels {
 	return (*PlayerIntels)(&source)
 }
 
+func ScoreIntelsToGameScoreIntels(source *ScoreIntels) []cs.ScoreIntel {
+	// return an empty slice for nil
+	if source == nil {
+		return []cs.ScoreIntel{}
+	}
+	return ([]cs.ScoreIntel)(*source)
+}
+
+func GameScoreIntelsToScoreIntels(source []cs.ScoreIntel) *ScoreIntels {
+	return (*ScoreIntels)(&source)
+}
+
 func PlanetIntelsToGamePlanetIntels(source *PlanetIntels) []cs.PlanetIntel {
 	// return an empty slice for nil
 	if source == nil {
@@ -684,6 +699,10 @@ func ExtendPlayerPlayerIntels(source Player) cs.PlayerIntels {
 
 	if source.PlayerIntels != nil {
 		intels.PlayerIntels = *source.PlayerIntels
+	}
+
+	if source.ScoreIntels != nil {
+		intels.ScoreIntels = *source.ScoreIntels
 	}
 
 	if source.BattleRecords != nil {

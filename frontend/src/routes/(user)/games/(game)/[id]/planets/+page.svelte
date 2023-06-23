@@ -141,7 +141,7 @@
 			{:else if column.key == 'production'}
 				{#if row.productionQueue?.length}
 					<div class="flex justify-between">
-						<div>{getQueueItemShortName(row.productionQueue[0])}</div>
+						<div>{getQueueItemShortName(row.productionQueue[0], $universe)}</div>
 						<div>{row.productionQueue[0].quantity}</div>
 					</div>
 				{:else}

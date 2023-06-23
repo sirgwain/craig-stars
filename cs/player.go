@@ -45,6 +45,7 @@ type Player struct {
 type PlayerIntels struct {
 	BattleRecords       []BattleRecord       `json:"battleRecords,omitempty"`
 	PlayerIntels        []PlayerIntel        `json:"playerIntels,omitempty"`
+	ScoreIntels         []ScoreIntel         `json:"scoreIntels,omitempty"`
 	PlanetIntels        []PlanetIntel        `json:"planetIntels,omitempty"`
 	FleetIntels         []FleetIntel         `json:"fleetIntels,omitempty"`
 	StarbaseIntels      []FleetIntel         `json:"starbaseIntels,omitempty"`
@@ -76,7 +77,7 @@ type PlayerStats struct {
 }
 
 type PlayerRelationship struct {
-	Relation PlayerRelation `json:"relation,omitempty"`
+	Relation PlayerRelation `json:"relation"`
 	ShareMap bool           `json:"shareMap,omitempty"`
 }
 
@@ -179,8 +180,8 @@ func (plan *ProductionPlan) Apply(planet *Planet) {
 	for i, item := range plan.Items {
 		planet.ProductionQueue[i] = ProductionQueueItem{
 			Type:      item.Type,
-			DesignNum: item.DesignNum,
 			Quantity:  item.Quantity,
+			DesignNum: item.DesignNum,
 		}
 	}
 	planet.ContributesOnlyLeftoverToResearch = plan.ContributesOnlyLeftoverToResearch

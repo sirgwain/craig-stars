@@ -62,6 +62,7 @@ func generateTestGame(db server.DBClient, config config.Config) error {
 		// WithSize(game.SizeTiny).
 		// WithDensity(game.DensitySparse).
 		WithHost(adminRace.ID).
+		WithPublicPlayerScores(true).
 		WithAIPlayer(cs.AIDifficultyNormal, 1)); err != nil {
 		return err
 	}
@@ -70,6 +71,7 @@ func generateTestGame(db server.DBClient, config config.Config) error {
 	mediumGame, err := gameRunner.HostGame(admin.ID, cs.NewGameSettings().
 		WithName("Medium Game").
 		WithSize(cs.SizeMedium).
+		WithPublicPlayerScores(true).
 		WithHost(adminRace.ID).
 		WithAIPlayerRace(cs.HEs(), cs.AIDifficultyNormal, 0).
 		WithAIPlayerRace(cs.SSs(), cs.AIDifficultyNormal, 1).
@@ -102,6 +104,7 @@ func generateTestGame(db server.DBClient, config config.Config) error {
 	tinyGame, err := gameRunner.HostGame(admin.ID, cs.NewGameSettings().
 		WithName("Tiny Game").
 		WithSize(cs.SizeTiny).
+		WithPublicPlayerScores(true).
 		WithHost(adminRace.ID).
 		WithAIPlayerRace(cs.HEs(), cs.AIDifficultyNormal, 0).
 		WithAIPlayerRace(cs.SDs(), cs.AIDifficultyNormal, 1).
@@ -148,7 +151,6 @@ func generateTestGame(db server.DBClient, config config.Config) error {
 	// if err != nil {
 	// 	return err
 	// }
-
 
 	// // user2 will also host a game so with an open player slot
 	// _, err = gameRunner.HostGame(user2.ID, cs.NewGameSettings().

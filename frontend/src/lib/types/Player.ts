@@ -45,6 +45,7 @@ export type PlayerPlans = {
 
 export type PlayerIntels = {
 	players: PlayerIntel[];
+	scores: PlayerScore[][];
 	planets: Planet[];
 	fleets?: Fleet[];
 	mineFields?: MineField[];
@@ -110,6 +111,18 @@ export type PlayerIntel = {
 	racePluralName?: string;
 };
 
+export type PlayerScore = {
+	planets: number;
+	starbases: number;
+	unarmedShips: number;
+	escortShips: number;
+	capitalShips: number;
+	techLevels: number;
+	resources: number;
+	score: number;
+	rank: number;
+};
+
 export enum NextResearchField {
 	SameField = 'SameField',
 	Energy = 'Energy',
@@ -164,6 +177,17 @@ export enum MessageTargetType {
 	Battle = 'Battle'
 }
 
+export type PlayerRelationship = {
+	relation?: PlayerRelation;
+	shareMap?: boolean;
+};
+
+export enum PlayerRelation {
+	Neutral = 'Neutral',
+	Friend = 'Friend',
+	Enemy = 'Enemy'
+}
+
 export class Player implements PlayerResponse {
 	id = 0;
 	createdAt?: string | undefined;
@@ -189,12 +213,46 @@ export class Player implements PlayerResponse {
 	productionPlans: ProductionPlan[] = [];
 	transportPlans: TransportPlan[] = [];
 	messages: Message[] = [];
+	relations: PlayerRelationship[] = [];
 	spec: PlayerSpec = {};
 
 	constructor(data?: PlayerResponse) {
 		if (data) {
 			Object.assign(this, data);
 		}
+	}
+
+	isFriend(playerNum: number): boolean {
+		return (
+			playerNum > 0 &&
+			playerNum <= this.relations.length &&
+			this.relations[playerNum - 1].relation === PlayerRelation.Friend
+		);
+	}
+
+	isNeutral(playerNum: number): boolean {
+		return (
+			playerNum > 0 &&
+			playerNum <= this.relations.length &&
+			this.relations[playerNum - 1].relation === PlayerRelation.Neutral
+		);
+	}
+
+	isEnemy(playerNum: number): boolean {
+		return (
+			playerNum > 0 &&
+			playerNum <= this.relations.length &&
+			this.relations[playerNum - 1].relation === PlayerRelation.Enemy
+		);
+	}
+
+	isFriendOrNeutral(playerNum: number): boolean {
+		return (
+			playerNum > 0 &&
+			playerNum <= this.relations.length &&
+			(this.relations[playerNum - 1].relation === PlayerRelation.Friend ||
+				this.relations[playerNum - 1].relation === PlayerRelation.Neutral)
+		);
 	}
 
 	getBattlePlan(num: number): BattlePlan | undefined {

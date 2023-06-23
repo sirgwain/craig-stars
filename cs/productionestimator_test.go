@@ -290,8 +290,8 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				},
 				{
 					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-						YearsToBuildOne: 2, // this is wrong, but that's because it is assuming the resources to build ALL the factories has to be spent before building mines.
-						YearsToBuildAll: 3,
+						YearsToBuildOne: 1, // we build some mines in the first year
+						YearsToBuildAll: 2, // the second year 
 						PercentComplete: 0,
 					},
 					Type:         QueueItemTypeAutoMines,

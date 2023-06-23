@@ -132,6 +132,7 @@ CREATE TABLE players (
   messages TEXT,
   battleRecords TEXT,
   playerIntels TEXT,
+  scoreIntels TEXT,
   planetIntels TEXT,
   fleetIntels TEXT,
   starbaseIntels TEXT,

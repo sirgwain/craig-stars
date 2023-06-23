@@ -141,17 +141,17 @@ type TechHullSlot struct {
 type TechHullType string
 
 const (
-	TechHullTypeScout          TechHullType = "Scout"
-	TechHullTypeColonizer      TechHullType = "Colonizer"
-	TechHullTypeBomber         TechHullType = "Bomber"
-	TechHullTypeFighter        TechHullType = "Fighter"
-	TechHullTypeCapitalShip    TechHullType = "CapitalShip"
-	TechHullTypeFreighter      TechHullType = "Freighter"
-	TechHullTypeArmedFreighter TechHullType = "ArmedFreighter"
-	TechHullTypeFuelTransport  TechHullType = "FuelTransport"
-	TechHullTypeMiner          TechHullType = "Miner"
-	TechHullTypeMineLayer      TechHullType = "MineLayer"
-	TechHullTypeStarbase       TechHullType = "Starbase"
+	TechHullTypeScout                 TechHullType = "Scout"
+	TechHullTypeColonizer             TechHullType = "Colonizer"
+	TechHullTypeBomber                TechHullType = "Bomber"
+	TechHullTypeFighter               TechHullType = "Fighter"
+	TechHullTypeCapitalShip           TechHullType = "CapitalShip"
+	TechHullTypeFreighter             TechHullType = "Freighter"
+	TechHullTypeMultiPurposeFreighter TechHullType = "MultiPurposeFreighter"
+	TechHullTypeFuelTransport         TechHullType = "FuelTransport"
+	TechHullTypeMiner                 TechHullType = "Miner"
+	TechHullTypeMineLayer             TechHullType = "MineLayer"
+	TechHullTypeStarbase              TechHullType = "Starbase"
 )
 
 type HullSlotType Bitmask

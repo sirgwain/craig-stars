@@ -2,6 +2,7 @@
 	import { getGameContext } from '$lib/services/Contexts';
 	import type { FullGame } from '$lib/services/FullGame';
 	import { clamp } from '$lib/services/Math';
+	import { MapObjectType } from '$lib/types/MapObject';
 	import { Unexplored, type Planet } from '$lib/types/Planet';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
@@ -13,7 +14,10 @@
 
 	export let planet: Planet;
 	export let commanded = false;
-	export let orbitingFleets = false;
+
+	const orbitingFleets = $universe
+		.getMapObjectsByPosition(planet)
+		.filter((mo) => mo.type === MapObjectType.Fleet);
 
 	let props = {};
 	let ringProps: any | undefined = undefined;
@@ -45,13 +49,30 @@
 		}
 
 		// if anything is orbiting our planet, put a ring on it
-		if (orbitingFleets) {
+		if (orbitingFleets?.length > 0) {
+			let ringColor = '#fff';
+			let strokeDashArray = '';
+			const playerNums = new Set<number>(orbitingFleets.map((f) => f.playerNum));
+			if (playerNums.size == 1) {
+				if (orbitingFleets[0].playerNum !== $player.num) {
+					ringColor = '#fff';
+				} else if ($player.isEnemy(orbitingFleets[0].playerNum)) {
+					ringColor = '#FF0000';
+				} else {
+					ringColor = '#FFFF00';
+				}
+			} else {
+				ringColor = '#6A0DAD'; // both
+				strokeDashArray = "1 1"
+			}
+
 			ringProps = {
 				cx: $xGet(planet),
 				cy: $yGet(planet),
-				stroke: '#fff',
+				stroke: ringColor,
+				'stroke-dasharray': strokeDashArray,
 				'stroke-width': 1 / $scale,
-				r: 1 * (commanded ? 10 : 5) / $scale,
+				r: (1 * (commanded ? 10 : 5)) / $scale,
 				'fill-opacity': 0
 			};
 		} else {
@@ -60,13 +81,12 @@
 
 		// setup the properties of our planet circle
 		props = {
-			r: 1 * (commanded ? 7 : 3) / $scale,
+			r: (1 * (commanded ? 7 : 3)) / $scale,
 			fill: color,
 			stroke: strokeColor,
 			'stroke-width': strokeWidth
 		};
 	}
-
 </script>
 
 {#if ringProps}

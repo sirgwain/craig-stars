@@ -23,6 +23,7 @@ type discover struct {
 type discoverer interface {
 	clearTransientReports()
 	discoverPlayer(player *Player)
+	discoverPlayerScores(player *Player)
 	discoverPlanet(rules *Rules, player *Player, planet *Planet, penScanned bool) error
 	discoverPlanetStarbase(player *Player, planet *Planet) error
 	discoverPlanetCargo(player *Player, planet *Planet) error
@@ -186,6 +187,10 @@ type PlayerIntel struct {
 	Seen           bool   `json:"seen,omitempty"`
 	RaceName       string `json:"raceName,omitempty"`
 	RacePluralName string `json:"racePluralName,omitempty"`
+}
+
+type ScoreIntel struct {
+	ScoreHistory []PlayerScore `json:"scoreHistory"`
 }
 
 func (p *PlanetIntel) String() string {
@@ -576,6 +581,14 @@ func (d *discover) discoverPlayer(player *Player) {
 		intel.RaceName = player.Race.Name
 		intel.RacePluralName = player.Race.PluralName
 	}
+}
+
+// discover a player's score
+func (d *discover) discoverPlayerScores(player *Player) {
+	intel := &d.player.PlayerIntels.ScoreIntels[player.Num-1]
+
+	intel.ScoreHistory = make([]PlayerScore, len(player.ScoreHistory))
+	copy(intel.ScoreHistory, player.ScoreHistory)
 }
 
 func (d *discover) getWormholeIntel(num int) *WormholeIntel {

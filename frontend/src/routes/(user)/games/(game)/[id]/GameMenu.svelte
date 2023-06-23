@@ -67,6 +67,7 @@
 					tabindex="0"
 					class=" menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-300"
 				>
+					<li><a href={`/games/${game.id}/players`}>Players</a></li>
 					<li><a href={`/games/${game.id}/planets`}>Planets</a></li>
 					<li><a href={`/games/${game.id}/fleets`}>Fleets</a></li>
 					<li><a href={`/games/${game.id}/messages`}>Messages</a></li>
@@ -99,6 +100,7 @@
 				<li class="md:hidden menu-title">
 					<span>Reports</span>
 				</li>
+				<li class="md:hidden"><a href={`/games/${game.id}/players`}>Players</a></li>
 				<li class="md:hidden"><a href={`/games/${game.id}/planets`}>Planets</a></li>
 				<li class="md:hidden"><a href={`/games/${game.id}/fleets`}>Fleets</a></li>
 				<li class="md:hidden"><a href={`/games/${game.id}/messages`}>Messages</a></li>

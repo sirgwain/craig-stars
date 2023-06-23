@@ -129,6 +129,7 @@ type playerUniverseResponse struct {
 	Salvages       []interface{} `json:"salvages,omitempty"`
 	Designs        []interface{} `json:"designs,omitempty"`
 	Players        []interface{} `json:"players,omitempty"`
+	Scores         []interface{} `json:"scores,omitempty"`
 	Battles        []interface{} `json:"battles,omitempty"`
 }
 
@@ -172,13 +173,13 @@ func (s *server) universe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	universe := buildUniverse(designs, *pmos, *intels)
+	universe := buildUniverse(player, designs, *pmos, *intels)
 
 	rest.RenderJSON(w, universe)
 }
 
 // build a universe response
-func buildUniverse(designs []*cs.ShipDesign, pmos cs.PlayerMapObjects, intels cs.PlayerIntels) playerUniverseResponse {
+func buildUniverse(player *cs.Player, designs []*cs.ShipDesign, pmos cs.PlayerMapObjects, intels cs.PlayerIntels) playerUniverseResponse {
 	numPlayerFleets := len(pmos.Fleets)
 	numPlayerStarbases := len(pmos.Starbases)
 	numPlayerMineralPackets := len(pmos.MineralPackets)
@@ -196,6 +197,7 @@ func buildUniverse(designs []*cs.ShipDesign, pmos cs.PlayerMapObjects, intels cs
 		MysteryTraders: make([]interface{}, len(intels.MysteryTraderIntels)),
 		Designs:        make([]interface{}, len(intels.ShipDesignIntels)+numPlayerDesigns),
 		Players:        make([]interface{}, len(intels.PlayerIntels)),
+		Scores:         make([]interface{}, len(intels.ScoreIntels)),
 		Battles:        make([]interface{}, len(intels.BattleRecords)),
 	}
 
@@ -210,6 +212,11 @@ func buildUniverse(designs []*cs.ShipDesign, pmos cs.PlayerMapObjects, intels cs
 	for i, item := range intels.PlayerIntels {
 		universe.Players[i] = item
 	}
+
+	for i, item := range intels.ScoreIntels {
+		universe.Scores[i] = item.ScoreHistory
+	}
+	universe.Scores[player.Num-1] = player.ScoreHistory
 
 	for i, item := range intels.BattleRecords {
 		universe.Battles[i] = item
@@ -318,7 +325,7 @@ func (s *server) submitTurn(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		universe := buildUniverse(fullPlayer.Designs, fullPlayer.PlayerMapObjects, fullPlayer.PlayerIntels)
+		universe := buildUniverse(&fullPlayer.Player, fullPlayer.Designs, fullPlayer.PlayerMapObjects, fullPlayer.PlayerIntels)
 
 		// don't clutter our response
 		// TODO: do this fetching more elegantly

@@ -206,6 +206,11 @@ func (settings *GameSettings) WithDensity(density Density) *GameSettings {
 	return settings
 }
 
+func (settings *GameSettings) WithPublicPlayerScores(publicPlayerScores bool) *GameSettings {
+	settings.PublicPlayerScores = publicPlayerScores
+	return settings
+}
+
 // add a host to this game
 func (settings *GameSettings) WithHost(raceID int64) *GameSettings {
 	settings.Players = append(settings.Players, NewGamePlayer{Type: NewGamePlayerTypeHost, RaceID: raceID, Color: "#0000FF"})

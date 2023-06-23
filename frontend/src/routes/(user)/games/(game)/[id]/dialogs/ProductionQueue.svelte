@@ -360,7 +360,7 @@
 											class:italic={isAuto(queueItem.type)}
 											class:text-queue-item-skipped={queueItem.skipped}
 											class:text-queue-item-this-year={!queueItem.skipped &&
-												(queueItem.yearsToBuildAll ?? 0) <= 1}
+												(queueItem.yearsToBuildOne ?? 0) <= 1}
 											class:text-queue-item-next-year={!queueItem.skipped &&
 												(queueItem.yearsToBuildAll ?? 0) > 1 &&
 												(queueItem.yearsToBuildOne ?? 0) <= 1}
