@@ -216,7 +216,9 @@ func buildUniverse(player *cs.Player, designs []*cs.ShipDesign, pmos cs.PlayerMa
 	for i, item := range intels.ScoreIntels {
 		universe.Scores[i] = item.ScoreHistory
 	}
-	universe.Scores[player.Num-1] = player.ScoreHistory
+	if player.Num < len(universe.Scores) {
+		universe.Scores[player.Num-1] = player.ScoreHistory
+	}
 
 	for i, item := range intels.BattleRecords {
 		universe.Battles[i] = item
@@ -370,7 +372,8 @@ func (s *server) updatePlayerOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	playerWithDesigns, err := s.db.GetPlayerWithDesignsForGame(game.ID, player.Num)
+	// load this player but with designs so the update works correctly
+	player, err = s.db.GetPlayerWithDesignsForGame(game.ID, player.Num)
 	if err != nil {
 		log.Error().Err(err).Int64("ID", player.ID).Msg("loading player from database")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -378,7 +381,7 @@ func (s *server) updatePlayerOrders(w http.ResponseWriter, r *http.Request) {
 	}
 
 	orderer := cs.NewOrderer()
-	orderer.UpdatePlayerOrders(playerWithDesigns, planets, *orders.PlayerOrders, &game.Rules)
+	orderer.UpdatePlayerOrders(player, planets, *orders.PlayerOrders, &game.Rules)
 
 	// save the player to the database
 	if err := s.db.UpdatePlayerOrders(player); err != nil {

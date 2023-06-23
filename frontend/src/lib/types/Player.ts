@@ -106,7 +106,7 @@ export type PlayerIntel = {
 	name: string;
 	num: number;
 	color: string;
-	seen: boolean;
+	seen?: boolean;
 	raceName?: string;
 	racePluralName?: string;
 };

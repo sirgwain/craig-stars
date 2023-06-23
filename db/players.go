@@ -315,7 +315,20 @@ func (c *client) getPlayersForGame(gameID int64) ([]*cs.Player, error) {
 func (c *client) GetPlayerStatusesForGame(gameID int64) ([]*cs.Player, error) {
 
 	items := []Player{}
-	if err := c.db.Select(&items, `SELECT id, createdAt, updatedAt, gameId, userId, name, num, ready, aiControlled, submittedTurn, color FROM players WHERE gameId = ? ORDER BY num`, gameID); err != nil {
+	if err := c.db.Select(&items, `
+	SELECT 
+	id,
+	createdAt,
+	updatedAt,
+	gameId,
+	userId,
+	name,
+	num,
+	ready,
+	aiControlled,
+	submittedTurn,
+	color 
+	FROM players WHERE gameId = ? ORDER BY num`, gameID); err != nil {
 		if err == sql.ErrNoRows {
 			return []*cs.Player{}, nil
 		}

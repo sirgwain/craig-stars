@@ -94,6 +94,7 @@ export class FullGame implements Game {
 		let pmos: PlayerUniverse & PlayerIntels = {
 			designs: [],
 			players: [],
+			scores: [],
 			battles: [],
 			planets: [],
 			fleets: [],
