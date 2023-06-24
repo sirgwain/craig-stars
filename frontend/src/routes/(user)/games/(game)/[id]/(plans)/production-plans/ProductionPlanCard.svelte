@@ -46,6 +46,11 @@
 					</li>
 				{/each}
 			</ul>
+			<div>
+				{#if plan.contributesOnlyLeftoverToResearch}
+					 Planet contributes only leftover resources to research
+				{/if}
+			</div>
 		</div>
 		{#if showDelete}
 			<div class="card-actions justify-start">

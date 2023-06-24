@@ -171,6 +171,9 @@
 	// this is enabled when the shift key is held
 	let positionWaypoint = false;
 
+	// if we just added a waypoint, don't drag it around
+	let waypointJustAdded = false;
+
 	// as the pointer moves, find the items it is under
 	function onPointerMove(e: CustomEvent<FinderEventDetails>) {
 		const { event, found, position } = e.detail;
@@ -201,7 +204,7 @@
 		// * if the pointer is down
 		// * if we are over a mapobject
 		// * if we have a commanded fleet
-		if (!dragging && pointerDown && fleetWaypoint) {
+		if (!waypointJustAdded && !dragging && pointerDown && fleetWaypoint) {
 			dragging = true;
 			selectWaypoint(fleetWaypoint);
 		}
@@ -243,6 +246,7 @@
 		}
 		dragging = false;
 		pointerDown = false;
+		waypointJustAdded = false;
 	}
 
 	// move the selected waypoint around snapping to targets
@@ -324,6 +328,7 @@
 				transportTasks: { fuel: {}, ironium: {}, boranium: {}, germanium: {}, colonists: {} }
 			});
 		}
+		waypointJustAdded = true;
 
 		await $game.updateFleetOrders($commandedFleet);
 		// select the new waypoint

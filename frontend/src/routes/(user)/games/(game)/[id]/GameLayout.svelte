@@ -9,14 +9,14 @@
 	import { getGameContext, initGameContext, updateGameContext } from '$lib/services/Contexts';
 	import type { CSError } from '$lib/services/Errors';
 	import { FullGame } from '$lib/services/FullGame';
-	import { commandedMapObject, me, nextMapObject, previousMapObject } from '$lib/services/Stores';
+	import { me, nextMapObject, previousMapObject } from '$lib/services/Stores';
 	import { Universe } from '$lib/services/Universe';
 	import { GameState } from '$lib/types/Game';
 	import { Player } from '$lib/types/Player';
 	import hotkeys from 'hotkeys-js';
 	import { onDestroy, onMount } from 'svelte';
-	import GameMenu from './GameMenu.svelte';
 	import type { Unsubscriber } from 'svelte/store';
+	import GameMenu from './GameMenu.svelte';
 
 	initGameContext();
 	const { game, player, universe } = getGameContext();
@@ -31,6 +31,9 @@
 
 	onMount(async () => {
 		try {
+			// empty the context
+			updateGameContext(new FullGame(), new Player(), new Universe());
+
 			// on first mount, load the game
 			await loadGame();
 			fg = $game;
@@ -66,6 +69,7 @@
 	// outside
 	onDestroy(() => {
 		updateGameContext(new FullGame(), new Player(), new Universe());
+		unsubscribe && unsubscribe();
 
 		unbindQuantityModifier();
 		unbindNavigationHotkeys();
@@ -108,7 +112,18 @@
 	}
 
 	async function onSubmitTurn() {
+		// turn off game change listening
+		unsubscribe && unsubscribe();
+
 		$game = await $game.submitTurn();
+
+		// update our local state
+		state = $game.state;
+		year = $game.year;
+
+		// resubscribe to game update events
+		unsubscribe = game.subscribe(onGameChange);
+
 		// if a new turn generates, submittedTurn will be reset to false
 		if (!$player.submittedTurn) {
 			// command our homeworld after a new turn is generated

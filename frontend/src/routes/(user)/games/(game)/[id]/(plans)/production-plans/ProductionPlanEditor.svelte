@@ -22,3 +22,12 @@
 
 <!-- edit production -->
 <Production {designFinder} {availableItems} bind:queueItems={plan.items} />
+<div class="w-1/2 mr-14">
+	<label>
+		<input
+			bind:checked={plan.contributesOnlyLeftoverToResearch}
+			class="checkbox checkbox-xs"
+			type="checkbox"
+		/> Contributes Only Leftover to Research
+	</label>
+</div>

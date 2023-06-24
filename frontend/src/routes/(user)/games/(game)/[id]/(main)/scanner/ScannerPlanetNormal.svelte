@@ -1,7 +1,5 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/Contexts';
-	import type { FullGame } from '$lib/services/FullGame';
-	import { clamp } from '$lib/services/Math';
 	import { MapObjectType } from '$lib/types/MapObject';
 	import { Unexplored, type Planet } from '$lib/types/Planet';
 	import type { LayerCake } from 'layercake';
@@ -14,10 +12,6 @@
 
 	export let planet: Planet;
 	export let commanded = false;
-
-	const orbitingFleets = $universe
-		.getMapObjectsByPosition(planet)
-		.filter((mo) => mo.type === MapObjectType.Fleet);
 
 	let props = {};
 	let ringProps: any | undefined = undefined;
@@ -34,6 +28,10 @@
 	$: starbaseYOffset = (commanded ? 11 : 6) / $scale;
 
 	$: {
+		const orbitingFleets = $universe
+			.getMapObjectsByPosition(planet)
+			.filter((mo) => mo.type === MapObjectType.Fleet);
+
 		// green for us, gray for unexplored, white for explored
 		let color = '#555';
 		let strokeWidth = 0;
@@ -63,7 +61,7 @@
 				}
 			} else {
 				ringColor = '#6A0DAD'; // both
-				strokeDashArray = "1 1"
+				strokeDashArray = '1 1';
 			}
 
 			ringProps = {

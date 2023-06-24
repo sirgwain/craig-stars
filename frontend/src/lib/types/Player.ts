@@ -92,6 +92,7 @@ export type ProductionPlan = {
 	num: number;
 	name: string;
 	items: ProductionQueueItem[];
+	contributesOnlyLeftoverToResearch?: boolean;
 };
 
 export type PlayerSpec = {
