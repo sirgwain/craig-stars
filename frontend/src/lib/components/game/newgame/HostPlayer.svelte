@@ -21,7 +21,7 @@
 		values={hostRaces.map((r) => {
 			return { value: r.id, title: r.pluralName };
 		})}
-		name="race"
+		name="Host"
 		bind:value={player.raceId}
 	/>
 

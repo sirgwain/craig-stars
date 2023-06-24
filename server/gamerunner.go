@@ -230,6 +230,19 @@ func (gr *gameRunner) JoinGame(gameID int64, userID int64, raceID int64, color s
 			player.Num = p.Num
 			player.ID = p.ID
 
+			if err := gr.db.UpdatePlayer(player); err != nil {
+				return fmt.Errorf("update open slot player %s for game %d: %w", p, gameID, err)
+			}
+
+			fullGame.Players[i] = player
+			break
+		}
+	}
+
+	// fix duplicate colors
+	// TODO: this is fragile
+	for i, p := range fullGame.Players {
+		if p.Color == color {
 			if player.Num-1 < len(colors) {
 				player.Color = colors[player.Num-1]
 			} else {
@@ -243,7 +256,7 @@ func (gr *gameRunner) JoinGame(gameID int64, userID int64, raceID int64, color s
 			}
 
 			fullGame.Players[i] = player
-			break
+
 		}
 	}
 

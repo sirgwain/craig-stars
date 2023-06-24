@@ -1,8 +1,13 @@
 <script lang="ts">
 	import EnumSelect from '$lib/components/EnumSelect.svelte';
-	import { NewGamePlayerType, type NewGamePlayer } from '$lib/types/Game';
+	import type { NewGamePlayer } from '$lib/types/Game';
 	import AiPlayer from './AIPlayer.svelte';
 	import HostPlayer from './HostPlayer.svelte';
+
+	enum NewGamePlayerChooseType {
+		Open = 'Open',
+		AI = 'AI'
+	}
 
 	export let player: NewGamePlayer;
 	export let index: number;
@@ -10,17 +15,16 @@
 
 {#if player}
 	<div class="block">
-		<EnumSelect
-			enumType={NewGamePlayerType}
-			name="type"
-			bind:value={player.type}
-			title={`Player ${index}`}
-		/>
-
-		{#if player.type === NewGamePlayerType.Host}
-			<HostPlayer {player} />
-		{:else if player.type == NewGamePlayerType.AI}
+		{#if index != 1}
+			<EnumSelect
+				enumType={NewGamePlayerChooseType}
+				name="type"
+				bind:value={player.type}
+				title={`Player ${index}`}
+			/>
 			<AiPlayer {player} />
+		{:else}
+			<HostPlayer {player} />
 		{/if}
 	</div>
 {/if}

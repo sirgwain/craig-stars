@@ -15,6 +15,8 @@
 		});
 
 		if (response.ok) {
+			// force an update so the game reloads
+			await $game.loadPlayersStatus();
 			goto(`/games/${$game.id}`);
 		} else {
 			const resolvedResponse = await response?.json();
