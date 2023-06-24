@@ -5,66 +5,70 @@
 
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
-	import PlayerChooser from './PlayerChooser.svelte';
+	import PlayerChooser from '../../../../lib/components/game/newgame/PlayerChooser.svelte';
+	import GameCard from '$lib/components/game/GameCard.svelte';
+	import ColorInput from '$lib/components/ColorInput.svelte';
+	import ItemTitle from '$lib/components/ItemTitle.svelte';
 
-	let id = parseInt($page.params.id);
-
-	let game: Game;
+	let game: Game | undefined;
 	let raceId: number;
+	let color: string = '#0000FF';
 
 	onMount(async () => {
-		game = await GameService.loadGame(id);
+		try {
+			let id = parseInt($page.params.id);
+			game = await GameService.loadGame(id);
+		} catch {
+			const games = await GameService.loadGameByHash($page.params.id);
+			if (games.length == 1) {
+				game = games[0];
+			} else {
+				error = 'No open game found for the invite';
+			}
+		}
 	});
 
 	const onSubmit = async () => {
-		const data = JSON.stringify({ raceId });
+		if (game) {
+			const data = JSON.stringify({ raceId, color });
 
-		const response = await fetch(`/api/games/${id}/join`, {
-			method: 'post',
-			headers: {
-				accept: 'application/json'
-			},
-			body: data
-		});
+			const response = await fetch(`/api/games/${game.id}/join`, {
+				method: 'post',
+				headers: {
+					accept: 'application/json'
+				},
+				body: data
+			});
 
-		if (response.ok) {
-			goto(`/games/${id}`);
-		} else {
-			const resolvedResponse = await response?.json();
-			error = resolvedResponse.error;
-			console.error(error);
+			if (response.ok) {
+				goto(`/games/${game.id}`);
+			} else {
+				const resolvedResponse = await response?.json();
+				error = resolvedResponse.error;
+				console.error(error);
+			}
 		}
 	};
 
 	let error = '';
 </script>
 
-<h2 class="font-semibold text-xl">Join Game</h2>
+<ItemTitle>Join Game</ItemTitle>
 <div class="text text-error">{error}</div>
 
 {#if game}
-	<div class="">
-		<div class="flex">
-			<div class="font-semibold w-[8rem]">Name:</div>
-			<div class="text-left ml-2">{game.name}</div>
-		</div>
-		<div class="flex">
-			<div class="font-semibold w-[8rem]">Size:</div>
-			<div class="text-left ml-2">{game.size}</div>
-		</div>
-		<div class="flex">
-			<div class="font-semibold w-[8rem]">Density:</div>
-			<div class="text-left ml-2">{game.density}</div>
-		</div>
-		<div class="flex">
-			<div class="font-semibold w-[8rem]">Player Distance:</div>
-			<div class="text-left ml-2">{game.playerPositions}</div>
-		</div>
+	<div class="flex flex-col place-items-center">
+		<GameCard {game} />
 	</div>
 
 	<form on:submit|preventDefault={onSubmit}>
 		<fieldset name="players" class="form-control mt-3">
 			<PlayerChooser bind:raceId />
+
+			<ColorInput bind:value={color} name="color" />
+			<div class="text-right text-md italic">
+				Note: color may be changed during universe generation
+			</div>
 		</fieldset>
 		<button class="btn btn-primary">Join</button>
 	</form>

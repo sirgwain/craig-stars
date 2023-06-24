@@ -9,6 +9,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/ai"
+	"github.com/sirgwain/craig-stars/config"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
 )
@@ -29,11 +30,20 @@ var colors = []string{
 	"#43A43E",
 	"#8D29CB",
 	"#B88628",
+	"#FF4500",
+	"#FF8C00",
+	"#008000",
+	"#00FA9A",
+	"#7FFFD4",
+	"#8A2BE2",
+	"#FF1493",
+	"#D2691E",
+	"#F0FFF0",
 }
 
 type GameRunner interface {
 	HostGame(hostID int64, settings *cs.GameSettings) (*cs.FullGame, error)
-	JoinGame(gameID int64, userID int64, raceID int64) error
+	JoinGame(gameID int64, userID int64, raceID int64, color string) error
 	GenerateUniverse(game *cs.Game) error
 	LoadPlayerGame(gameID int64, userID int64) (*cs.Game, *cs.FullPlayer, error)
 	SubmitTurn(gameID int64, userID int64) error
@@ -44,10 +54,11 @@ type GameRunner interface {
 type gameRunner struct {
 	db     DBClient
 	client cs.Gamer
+	config config.Config
 }
 
-func NewGameRunner(db DBClient) GameRunner {
-	return &gameRunner{db, cs.NewGamer()}
+func NewGameRunner(db DBClient, config config.Config) GameRunner {
+	return &gameRunner{db, cs.NewGamer(), config}
 }
 
 func timeTrack(start time.Time, name string) {
@@ -67,6 +78,12 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 	// create the game in the database
 	err = gr.db.CreateGame(game)
 	if err != nil {
+		return nil, err
+	}
+
+	// generate an invite hash for the game
+	game.Hash = game.GenerateHash(gr.config.Game.InviteLinkSalt)
+	if err := gr.db.UpdateGame(game); err != nil {
 		return nil, err
 	}
 
@@ -91,6 +108,7 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 			player.Name = user.Username
 			player.Color = playerSetting.Color
 			player.DefaultHullSet = playerSetting.DefaultHullSet
+			player.Ready = true
 			players = append(players, player)
 		} else if playerSetting.Type == cs.NewGamePlayerTypeAI {
 			log.Debug().Int64("hostID", hostID).Msg("Adding ai player to game")
@@ -105,6 +123,7 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 			player.Name = fmt.Sprintf("AI Player %d", player.Num)
 			player.Color = playerSetting.Color
 			player.DefaultHullSet = playerSetting.DefaultHullSet
+			player.Ready = true
 			players = append(players, player)
 		} else if playerSetting.Type == cs.NewGamePlayerTypeOpen {
 			log.Debug().Uint("openPlayerSlots", game.OpenPlayerSlots).Msg("Added open player slot to game")
@@ -160,7 +179,7 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 }
 
 // add a player to an existing game
-func (gr *gameRunner) JoinGame(gameID int64, userID int64, raceID int64) error {
+func (gr *gameRunner) JoinGame(gameID int64, userID int64, raceID int64, color string) error {
 
 	user, err := gr.db.GetUser(userID)
 	if err != nil {
@@ -201,6 +220,8 @@ func (gr *gameRunner) JoinGame(gameID int64, userID int64, raceID int64) error {
 	player := gr.client.NewPlayer(userID, *race, &fullGame.Rules)
 	player.GameID = fullGame.ID
 	player.Name = user.Username
+	player.Ready = true
+	player.Color = color
 
 	// claim an open slot
 	for i, p := range fullGame.Players {
@@ -208,6 +229,15 @@ func (gr *gameRunner) JoinGame(gameID int64, userID int64, raceID int64) error {
 			// take over this empty player
 			player.Num = p.Num
 			player.ID = p.ID
+
+			if player.Num-1 < len(colors) {
+				player.Color = colors[player.Num-1]
+			} else {
+				color := make([]byte, 3)
+				rand.Read(color)
+				player.Color = fmt.Sprintf("#%s", hex.EncodeToString(color))
+			}
+
 			if err := gr.db.UpdatePlayer(player); err != nil {
 				return fmt.Errorf("update open slot player %s for game %d: %w", p, gameID, err)
 			}

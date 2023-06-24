@@ -60,7 +60,7 @@ func Start(db DBClient, config config.Config) {
 	server := &server{
 		db:         db,
 		config:     config,
-		gameRunner: NewGameRunner(db),
+		gameRunner: NewGameRunner(db, config),
 	}
 	_ = server
 
@@ -221,15 +221,16 @@ func Start(db DBClient, config config.Config) {
 			r.Get("/", server.games)
 			r.Get("/hosted", server.hostedGames)
 			r.Get("/open", server.openGames)
+			r.Get("/invite/{hash:[a-zA-Z0-9]+}", server.openGamesByHash)
 
 			// game by id operations
 			r.Route("/{id:[0-9]+}", func(r chi.Router) {
 				r.Use(server.gameCtx)
 				r.Get("/", server.game)
-				r.Get("/player-statuses", server.playerStatuses)
+				r.Get("/players-status", server.playersStatus)
 				r.Post("/join", server.joinGame)
 				r.Post("/generate-universe", server.generateUniverse)
-				r.Post("/generate", server.generateTurn)
+				r.Post("/generate-turn", server.generateTurn)
 				r.Delete("/", server.deleteGame)
 
 				// routes requiring a player and game

@@ -1,6 +1,7 @@
 import type { Vector } from './Vector';
 
 export const None = 0;
+export const Infinite = -1;
 
 export interface MapObject {
 	id?: number;

@@ -54,7 +54,7 @@
 			let strokeDashArray = '';
 			const playerNums = new Set<number>(orbitingFleets.map((f) => f.playerNum));
 			if (playerNums.size == 1) {
-				if (orbitingFleets[0].playerNum !== $player.num) {
+				if (orbitingFleets[0].playerNum === $player.num) {
 					ringColor = '#fff';
 				} else if ($player.isEnemy(orbitingFleets[0].playerNum)) {
 					ringColor = '#FF0000';

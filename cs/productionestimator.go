@@ -38,14 +38,14 @@ func (e *completionEstimate) GetCompletionEstimate(item ProductionQueueItem, min
 
 	numYearsToBuildOne := yearlyAvailableToSpend.Divide(costOfOne.Minus(item.Allocated).Minus(mineralsOnHand).MinZero())
 	if numYearsToBuildOne == 0 || math.IsInf(numYearsToBuildOne, 1) {
-		yearsToBuildOne = math.MaxInt
+		yearsToBuildOne = Infinite
 	} else {
 		yearsToBuildOne = int(math.Ceil(1 / numYearsToBuildOne))
 	}
 
 	numBuiltPerYear := yearlyAvailableToSpend.Divide(costOfAll.Minus(item.Allocated).Minus(mineralsOnHand).MinZero()) * float64(item.Quantity)
 	if numBuiltPerYear == 0 || math.IsInf(numBuiltPerYear, 1) {
-		yearsToBuildAll = math.MaxInt
+		yearsToBuildAll = Infinite
 	} else {
 		yearsToBuildAll = int(math.Ceil(float64(item.Quantity) / numBuiltPerYear))
 	}

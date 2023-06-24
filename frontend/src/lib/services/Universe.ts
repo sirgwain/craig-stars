@@ -130,7 +130,7 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 		if (num >= 1 && num <= this.scores.length) {
 			const history = this.scores[num - 1];
 			if (history && history.length > 0) {
-				return history[history.length-1]
+				return history[history.length - 1];
 			}
 		}
 	}
@@ -267,6 +267,18 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 		if (equal(smo, planet)) {
 			selectMapObject(planet);
 		}
+	}
+
+	updatePlanets(planets: Planet[]) {
+		const smo = get(selectedMapObject);
+
+		planets.forEach((planet) => {
+			this.planets[planet.num - 1] = planet;
+			if (equal(smo, planet)) {
+				selectMapObject(planet);
+			}
+		});
+		this.resetMyMapObjectsByPosition();
 	}
 
 	removeFleets(fleetNums: number[]) {

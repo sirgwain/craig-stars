@@ -22,9 +22,9 @@ type Player struct {
 	UserID                    int64                `json:"userId,omitempty"`
 	Name                      string               `json:"name,omitempty"`
 	Num                       int                  `json:"num,omitempty"`
-	Ready                     bool                 `json:"ready,omitempty"`
+	Ready                     bool                 `json:"ready"`
 	AIControlled              bool                 `json:"aIControlled,omitempty"`
-	SubmittedTurn             bool                 `json:"submittedTurn,omitempty"`
+	SubmittedTurn             bool                 `json:"submittedTurn"`
 	Color                     string               `json:"color,omitempty"`
 	DefaultHullSet            int                  `json:"defaultHullSet,omitempty"`
 	Race                      Race                 `json:"race,omitempty"`
@@ -34,11 +34,11 @@ type Player struct {
 	Relations                 []PlayerRelationship `json:"relations,omitempty"`
 	Messages                  []PlayerMessage      `json:"messages,omitempty"`
 	Designs                   []*ShipDesign        `json:"designs,omitempty"`
-	Spec                      PlayerSpec           `json:"spec,omitempty"`
 	ScoreHistory              []PlayerScore        `json:"scoreHistory"`
 	AchievedVictoryConditions Bitmask              `json:"achievedVictoryConditions,omitempty"`
-	Victor                    bool                 `json:"victor,omitempty"`
+	Victor                    bool                 `json:"victor"`
 	Stats                     *PlayerStats         `json:"stats,omitempty"`
+	Spec                      PlayerSpec           `json:"spec,omitempty"`
 	leftoverResources         int
 }
 
@@ -286,6 +286,11 @@ func (p *Player) WithNum(num int) *Player {
 	return p
 }
 
+func (p *Player) WithAIControlled(aiControlled bool) *Player {
+	p.AIControlled = aiControlled
+	return p
+}
+
 func (p *Player) WithTechLevels(tl TechLevel) *Player {
 	p.TechLevels = tl
 	return p
@@ -444,7 +449,7 @@ func (p *Player) CanLearnTech(tech *Tech) bool {
 }
 
 // get the default relationships for a player with other players
-func (p *Player) defaultRelationships(players []*Player) []PlayerRelationship {
+func (p *Player) defaultRelationships(players []*Player, aiFormsAlliances bool) []PlayerRelationship {
 	relations := make([]PlayerRelationship, len(players))
 
 	for i, otherPlayer := range players {
@@ -452,8 +457,13 @@ func (p *Player) defaultRelationships(players []*Player) []PlayerRelationship {
 		if otherPlayer.Num == p.Num {
 			// we're friends with ourselves
 			relationship.Relation = PlayerRelationFriend
-		} else {
+		} else if aiFormsAlliances && p.AIControlled && otherPlayer.AIControlled {
+			// team up! destroy all humans!
+			relationship.Relation = PlayerRelationFriend
+		} else if otherPlayer.AIControlled || p.AIControlled {
 			relationship.Relation = PlayerRelationEnemy
+		} else {
+			relationship.Relation = PlayerRelationNeutral
 		}
 
 	}

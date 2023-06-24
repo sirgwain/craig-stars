@@ -312,7 +312,7 @@ func (c *client) getPlayersForGame(gameID int64) ([]*cs.Player, error) {
 }
 
 // get all the players for a game, with data loaded
-func (c *client) GetPlayerStatusesForGame(gameID int64) ([]*cs.Player, error) {
+func (c *client) GetPlayersStatusForGame(gameID int64) ([]*cs.Player, error) {
 
 	items := []Player{}
 	if err := c.db.Select(&items, `

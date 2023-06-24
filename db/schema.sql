@@ -2,9 +2,11 @@ CREATE TABLE games (
   id INTEGER PRIMARY KEY,
   createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
   updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
-  name TEXT NOT NULL,
   hostId INTEGER,
-  quickStartTurns INTEGER,
+  name TEXT NOT NULL,
+  state TEXT,
+  public NUMERIC,
+  hash TEXT,
   size TEXT,
   density TEXT,
   playerPositions TEXT,
@@ -12,8 +14,7 @@ CREATE TABLE games (
   computerPlayersFormAlliances NUMERIC,
   publicPlayerScores NUMERIC,
   startMode TEXT,
-  year INTEGER,
-  state TEXT,
+  quickStartTurns INTEGER,
   openPlayerSlots INTEGER,
   numPlayers INTEGER,
   victoryConditionsConditions INTEGER,
@@ -27,11 +28,12 @@ CREATE TABLE games (
   victoryConditionsProductionCapacity INTEGER,
   victoryConditionsOwnCapitalShips INTEGER,
   victoryConditionsHighestScoreAfterYears INTEGER,
-  victorDeclared NUMERIC,
   seed INTEGER,
   rules TEXT,
   areaX REAL,
-  areaY REAL
+  areaY REAL,
+  year INTEGER,
+  victorDeclared NUMERIC
 );
 CREATE TABLE rules (
   id INTEGER PRIMARY KEY,

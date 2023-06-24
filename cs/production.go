@@ -129,7 +129,7 @@ func (p *production) produce() productionResult {
 		// skip auto items that will never complete, or that we don't need
 		// this way we can put auto terraforming items up top
 		// and skip them to build factories, then mines
-		if item.Skipped || (item.Type.IsAuto() && item.YearsToBuildOne > 100) {
+		if item.Skipped || (item.Type.IsAuto() && (item.YearsToBuildOne > 100 || item.YearsToBuildOne == Infinite)) {
 			newQueue = append(newQueue, item)
 			continue
 		}

@@ -175,6 +175,18 @@ func TestGetOpenGames2(t *testing.T) {
 
 }
 
+func TestGetGameWithPlayersStatus(t *testing.T) {
+	c := connectTestDB()
+	fg := c.createTestFullGame()
+
+	// make sure we don't see our own games
+	game, players, err := c.GetGameWithPlayersStatus(fg.ID)
+	assert.Nil(t, err)
+	assert.Equal(t, fg.ID, game.ID)
+	assert.Equal(t, 1, len(players))
+
+}
+
 func TestDeleteGames(t *testing.T) {
 	c := connectTestDB()
 

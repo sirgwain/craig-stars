@@ -16,7 +16,7 @@
 	let source: CommandedFleet | undefined;
 	let dest: Fleet | Planet | undefined;
 
-	onMount(async () => {
+	onMount(() => {
 		// subscribe to events
 		const unsubscribes: (() => void)[] = [];
 		unsubscribes.push(

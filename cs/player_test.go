@@ -1,6 +1,7 @@
 package cs
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -110,6 +111,57 @@ func TestUniverse_getNextFleetNum(t *testing.T) {
 			player := testPlayer()
 			if got := player.getNextFleetNum(tt.fleets); got != tt.want {
 				t.Errorf("Player.getNextFleetNum() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestPlayer_defaultRelationships(t *testing.T) {
+	type fields struct {
+		aiControlled bool
+		aiFormsAlliances bool
+	}
+	type args struct {
+		players []*Player
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   []PlayerRelationship
+	}{
+		{
+			name: "single player", args: args{players: []*Player{}},
+			want: []PlayerRelationship{{Relation: PlayerRelationFriend}},
+		},
+		{
+			name: "against ai", args: args{players: []*Player{NewPlayer(0, NewRace()).WithNum(2).WithAIControlled(true)}},
+			want: []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationEnemy}},
+		},
+		{
+			name: "against player and ai",
+			args: args{players: []*Player{
+				NewPlayer(0, NewRace()).WithNum(2).WithAIControlled(false),
+				NewPlayer(0, NewRace()).WithNum(3).WithAIControlled(true),
+			}},
+			want: []PlayerRelationship{
+				{Relation: PlayerRelationFriend},
+				{Relation: PlayerRelationNeutral},
+				{Relation: PlayerRelationEnemy},
+			},
+		},
+		{
+			name: "ai against ai", fields: fields{aiControlled: true}, args: args{players: []*Player{NewPlayer(0, NewRace()).WithNum(2).WithAIControlled(true)}},
+			want: []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationEnemy}},
+		},
+
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := NewPlayer(0, NewRace()).WithNum(1).WithAIControlled(tt.fields.aiControlled)
+
+			if got := p.defaultRelationships(append([]*Player{p}, tt.args.players...), tt.fields.aiFormsAlliances); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Player.defaultRelationships() = %v, want %v", got, tt.want)
 			}
 		})
 	}

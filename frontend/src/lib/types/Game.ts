@@ -32,7 +32,7 @@ export enum PlayerPositions {
 }
 
 export enum GameStartMode {
-	Normal = 'Normal', // regular start
+	Normal = '', // regular start
 	MidGame = 'MidGame', // further tech levels, pop growth
 	LateGame = 'LateGame',
 	EndGame = 'EndGame'
@@ -40,7 +40,6 @@ export enum GameStartMode {
 
 export enum NewGamePlayerType {
 	Host = 'Host',
-	// Invite = 'Invite', // not supported yet
 	Open = 'Open',
 	AI = 'AI'
 }
@@ -54,15 +53,16 @@ export interface NewGamePlayer {
 
 export interface GameSettings {
 	name: string;
+	public: boolean;
 	quickStartTurns?: number;
 	size: Size;
 	area?: Vector;
 	density: Density;
 	playerPositions: PlayerPositions;
-	randomEvents: boolean;
-	computerPlayersFormAlliances: boolean;
-	publicPlayerScores: boolean;
-	startMode: GameStartMode;
+	randomEvents?: boolean;
+	computerPlayersFormAlliances?: boolean;
+	publicPlayerScores?: boolean;
+	startMode?: GameStartMode;
 	year?: number;
 	victoryConditions?: VictoryConditions;
 	players: NewGamePlayer[];
@@ -81,6 +81,7 @@ export interface Game {
 	hostId: number;
 
 	name: string;
+	hash?: string;
 	state: GameState;
 	numPlayers: number;
 	openPlayerSlots: number;

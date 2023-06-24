@@ -1,7 +1,6 @@
 package cs
 
 import (
-	"math"
 	"reflect"
 	"testing"
 
@@ -30,8 +29,8 @@ func Test_completionEstimate_GetCompletionEstimate(t *testing.T) {
 				yearlyAvailableToSpend: Cost{},
 			},
 			want: QueueItemCompletionEstimate{
-				YearsToBuildOne: math.MaxInt,
-				YearsToBuildAll: math.MaxInt,
+				YearsToBuildOne: Infinite,
+				YearsToBuildAll: Infinite,
 				PercentComplete: 0,
 			},
 		},
@@ -149,8 +148,8 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 			want: []ProductionQueueItem{
 				{
 					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-						YearsToBuildOne: math.MaxInt,
-						YearsToBuildAll: math.MaxInt,
+						YearsToBuildOne: Infinite,
+						YearsToBuildAll: Infinite,
 						PercentComplete: 0,
 					},
 					Quantity:  1,
@@ -280,7 +279,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				{
 					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
 						YearsToBuildOne: 1,
-						YearsToBuildAll: math.MaxInt,
+						YearsToBuildAll: Infinite,
 						PercentComplete: 0,
 					},
 					Type:         QueueItemTypeAutoFactories,

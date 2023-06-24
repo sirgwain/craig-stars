@@ -25,6 +25,9 @@ type Config struct {
 		ClientID     string `yaml:"ClientID,omitempty"`
 		ClientSecret string `yaml:"ClientSecret,omitempty"`
 	}
+	Game struct {
+		InviteLinkSalt string `yaml:"InviteLinkSalt,omitempty"`
+	}
 	GeneratedUserPassword string
 }
 
@@ -44,6 +47,8 @@ func GetConfig() *Config {
 		viper.SetDefault("Auth.Secret", "secret")             // default for local dev
 		viper.SetDefault("Auth.URL", "http://localhost:5173") // default for local dev
 		viper.SetDefault("Auth.DisableXSRF", true)            // default for local dev
+
+		viper.SetDefault("Game.InviteLinkSalt", "salt") // default for local dev
 
 		// write config if not present
 		if err := os.MkdirAll(path, os.ModePerm); err != nil {

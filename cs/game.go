@@ -1,6 +1,8 @@
 package cs
 
 import (
+	"crypto/sha1"
+	"encoding/hex"
 	"fmt"
 	"time"
 )
@@ -36,6 +38,7 @@ type NewGamePlayer struct {
 
 type GameSettings struct {
 	Name                         string            `json:"name"`
+	Public                       bool              `json:"public"`
 	QuickStartTurns              int               `json:"quickStartTurns"`
 	Size                         Size              `json:"size"`
 	Density                      Density           `json:"density"`
@@ -52,25 +55,27 @@ type GameSettings struct {
 
 type Game struct {
 	DBObject
-	Name                         string            `json:"name" header:"Name"`
 	HostID                       int64             `json:"hostId"`
-	QuickStartTurns              int               `json:"quickStartTurns"`
+	Name                         string            `json:"name" header:"Name"`
+	State                        GameState         `json:"state"`
+	Public                       bool              `json:"public,omitempty"`
+	Hash                         string            `json:"hash"`
 	Size                         Size              `json:"size"`
 	Density                      Density           `json:"density"`
 	PlayerPositions              PlayerPositions   `json:"playerPositions"`
-	RandomEvents                 bool              `json:"randomEvents"`
-	ComputerPlayersFormAlliances bool              `json:"computerPlayersFormAlliances"`
-	PublicPlayerScores           bool              `json:"publicPlayerScores"`
-	StartMode                    GameStartMode     `json:"startMode"`
-	Year                         int               `json:"year"`
-	State                        GameState         `json:"state"`
-	OpenPlayerSlots              uint              `json:"openPlayerSlots"`
-	NumPlayers                   int               `json:"numPlayers"`
+	RandomEvents                 bool              `json:"randomEvents,omitempty"`
+	ComputerPlayersFormAlliances bool              `json:"computerPlayersFormAlliances,omitempty"`
+	PublicPlayerScores           bool              `json:"publicPlayerScores,omitempty"`
+	StartMode                    GameStartMode     `json:"startMode,omitempty"`
+	QuickStartTurns              int               `json:"quickStartTurns,omitempty"`
+	OpenPlayerSlots              uint              `json:"openPlayerSlots,omitempty"`
+	NumPlayers                   int               `json:"numPlayers,omitempty"`
 	VictoryConditions            VictoryConditions `json:"victoryConditions"`
-	VictorDeclared               bool              `json:"victorDeclared"`
 	Seed                         int64             `json:"seed"`
 	Rules                        Rules             `json:"rules"`
 	Area                         Vector            `json:"area,omitempty"`
+	Year                         int               `json:"year,omitempty"`
+	VictorDeclared               bool              `json:"victorDeclared"`
 }
 
 // A game with players and a universe, used in universe and turn generation
@@ -117,7 +122,7 @@ const (
 type GameStartMode string
 
 const (
-	GameStartModeNormal   GameStartMode = "Normal"
+	GameStartModeNormal   GameStartMode = ""
 	GameStartModeMidGame  GameStartMode = "MidGame"
 	GameStartModeLateGame GameStartMode = "LateGame"
 	GameStartModeEndGame  GameStartMode = "EndGame"
@@ -262,6 +267,14 @@ func (g *Game) WithSettings(settings GameSettings) *Game {
 	}
 
 	return g
+}
+
+// generate an invite hash for
+func (g *Game) GenerateHash(salt string) string {
+	hasher := sha1.New()
+	hasher.Write([]byte(fmt.Sprintf("%d-%s", g.ID, salt)))
+	sha := hex.EncodeToString(hasher.Sum(nil))
+	return sha[10:]
 }
 
 func (g *Game) YearsPassed() int {

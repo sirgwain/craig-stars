@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
@@ -20,7 +21,8 @@ func (req *hostGameRequest) Bind(r *http.Request) error {
 }
 
 type joinGameRequest struct {
-	RaceID int64 `json:"raceId"`
+	RaceID int64  `json:"raceId"`
+	Color  string `json:"color"`
 }
 
 func (req *joinGameRequest) Bind(r *http.Request) error {
@@ -97,6 +99,24 @@ func (s *server) openGames(w http.ResponseWriter, r *http.Request) {
 	rest.RenderJSON(w, games)
 }
 
+func (s *server) openGamesByHash(w http.ResponseWriter, r *http.Request) {
+	// load open games by hash from the database
+	hash := chi.URLParam(r, "hash")
+	if hash == "" {
+		render.Render(w, r, ErrBadRequest(fmt.Errorf("invalid invite hash in url")))
+		return
+	}
+
+	games, err := s.db.GetOpenGamesByHash(hash)
+	if err != nil {
+		log.Error().Err(err).Str("Hash", hash).Msg("get open games by hash from database")
+		render.Render(w, r, ErrBadRequest(err))
+		return
+	}
+
+	rest.RenderJSON(w, games)
+}
+
 func (s *server) game(w http.ResponseWriter, r *http.Request) {
 	// TODO: any need to prevent a non-player from loading this game?
 	game := s.contextGame(r)
@@ -135,7 +155,7 @@ func (s *server) joinGame(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// try and join this game
-	if err := s.gameRunner.JoinGame(game.ID, user.ID, join.RaceID); err != nil {
+	if err := s.gameRunner.JoinGame(game.ID, user.ID, join.RaceID, join.Color); err != nil {
 		log.Error().Err(err).Msg("join game")
 		render.Render(w, r, ErrBadRequest(err))
 	}
@@ -152,7 +172,13 @@ func (s *server) generateUniverse(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.gameRunner.GenerateUniverse(game)
+	if err := s.gameRunner.GenerateUniverse(game); err != nil {
+		log.Error().Err(err).Int64("GameID", game.ID).Msg("generating universe")
+		render.Render(w, r, ErrInternalServerError(err))
+	}
+
+	// send the full game to the host
+	s.renderFullPlayerGame(w, r, game.ID, user.ID)
 }
 
 func (s *server) generateTurn(w http.ResponseWriter, r *http.Request) {

@@ -1,6 +1,6 @@
 <script lang="ts">
+	import ColorInput from '$lib/components/ColorInput.svelte';
 	import { RaceService } from '$lib/services/RaceService';
-	import type { NewGamePlayer } from '$lib/types/Game';
 	import type { Race } from '$lib/types/Race';
 	import { onMount } from 'svelte';
 

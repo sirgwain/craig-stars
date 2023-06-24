@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { EventManager } from '$lib/EventManager';
 	import { getGameContext } from '$lib/services/Contexts';
+	import { Infinite } from '$lib/types/MapObject';
 	import { CommandedPlanet, getQueueItemShortName, isAuto } from '$lib/types/Planet';
 	import CommandTile from './CommandTile.svelte';
 
@@ -29,10 +30,12 @@
 						<div
 							class="flex flex-row justify-between"
 							class:italic={isAuto(queueItem.type)}
-							class:text-queue-item-skipped={queueItem.skipped}
-							class:text-queue-item-this-year={!queueItem.skipped && (queueItem.yearsToBuildAll ?? 0) <= 1}
-							class:text-queue-item-next-year={!queueItem.skipped && (queueItem.yearsToBuildAll ?? 0) > 1 &&
+							class:text-queue-item-this-year={!queueItem.skipped &&
 								(queueItem.yearsToBuildOne ?? 0) <= 1}
+							class:text-queue-item-next-year={!queueItem.skipped &&
+								((queueItem.yearsToBuildAll ?? 0) > 1 || queueItem.yearsToBuildAll === Infinite) &&
+								(queueItem.yearsToBuildOne ?? 0) <= 1}
+							class:text-queue-item-skipped={queueItem.skipped}
 						>
 							<div>
 								{getQueueItemShortName(queueItem, $universe)}

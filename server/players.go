@@ -276,14 +276,14 @@ func buildUniverse(player *cs.Player, designs []*cs.ShipDesign, pmos cs.PlayerMa
 	return universe
 }
 
-func (s *server) playerStatuses(w http.ResponseWriter, r *http.Request) {
+func (s *server) playersStatus(w http.ResponseWriter, r *http.Request) {
 	gameID, err := s.int64URLParam(r, "id")
 	if gameID == nil || err != nil {
 		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
 
-	players, err := s.db.GetPlayerStatusesForGame(*gameID)
+	game, players, err := s.db.GetGameWithPlayersStatus(*gameID)
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", *gameID).Msg("load players and game from database")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -295,7 +295,7 @@ func (s *server) playerStatuses(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, rest.JSON{"players": players})
+	rest.RenderJSON(w, rest.JSON{"game": game, "players": players})
 }
 
 // submit a player turn and return the newly generated turn if there is one
@@ -319,22 +319,7 @@ func (s *server) submitTurn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if result == TurnGenerated {
-		// return a new turn
-		game, fullPlayer, err := s.gameRunner.LoadPlayerGame(player.GameID, player.UserID)
-		if err != nil {
-			log.Error().Err(err).Int64("GameID", player.GameID).Msg("load full game from database")
-			render.Render(w, r, ErrInternalServerError(err))
-			return
-		}
-
-		universe := buildUniverse(&fullPlayer.Player, fullPlayer.Designs, fullPlayer.PlayerMapObjects, fullPlayer.PlayerIntels)
-
-		// don't clutter our response
-		// TODO: do this fetching more elegantly
-		fullPlayer.Player.Designs = nil
-		fullPlayer.Player.PlayerIntels = cs.PlayerIntels{}
-
-		rest.RenderJSON(w, rest.JSON{"game": game, "player": fullPlayer.Player, "universe": universe})
+		s.renderFullPlayerGame(w, r, player.GameID, player.UserID)
 		return
 	}
 
@@ -346,7 +331,26 @@ func (s *server) submitTurn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, rest.JSON{"game": game})
+	rest.RenderJSON(w, rest.JSON{"game": game, "player": player})
+}
+
+func (s *server) renderFullPlayerGame(w http.ResponseWriter, r *http.Request, gameID, userID int64) {
+	// return a new turn
+	game, fullPlayer, err := s.gameRunner.LoadPlayerGame(gameID, userID)
+	if err != nil {
+		log.Error().Err(err).Int64("GameID", game.ID).Msg("load full game from database")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	universe := buildUniverse(&fullPlayer.Player, fullPlayer.Designs, fullPlayer.PlayerMapObjects, fullPlayer.PlayerIntels)
+
+	// don't clutter our response
+	// TODO: do this fetching more elegantly
+	fullPlayer.Player.Designs = nil
+	fullPlayer.Player.PlayerIntels = cs.PlayerIntels{}
+
+	rest.RenderJSON(w, rest.JSON{"game": game, "player": fullPlayer.Player, "universe": universe})
 }
 
 // Submit a turn for the player

@@ -8,9 +8,9 @@
 </script>
 
 {#if $game.state == GameState.Setup}
-	<GameSetup game={$game} />
+	<GameSetup />
 {:else if $game.state == GameState.GeneratingTurn}
-	Generating turn, refresh
+	<WaitingForPlayers />
 {:else if $player.submittedTurn && $game.state == GameState.WaitingForPlayers}
 	<WaitingForPlayers />
 {:else}

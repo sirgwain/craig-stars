@@ -16,8 +16,12 @@ export class CSError implements ErrorResponse {
 	status = '';
 	error = '';
 
-	constructor(data?: ErrorResponse, statusCode?: number) {
-		Object.assign(this, data);
+	constructor(data?: ErrorResponse | string, statusCode?: number) {
+		if (data as string) {
+			this.status = data as string;
+		} else {
+			Object.assign(this, data);
+		}
 		this.statusCode = statusCode;
 	}
 

@@ -58,7 +58,9 @@ type Client interface {
 	GetGamesForHost(userID int64) ([]cs.Game, error)
 	GetGamesForUser(userID int64) ([]cs.Game, error)
 	GetOpenGames(userID int64) ([]cs.Game, error)
+	GetOpenGamesByHash(hash string) ([]cs.Game, error)
 	GetGame(id int64) (*cs.Game, error)
+	GetGameWithPlayersStatus(gameID int64) (*cs.Game, []cs.Player, error)
 	GetFullGame(id int64) (*cs.FullGame, error)
 	CreateGame(game *cs.Game) error
 	UpdateGame(game *cs.Game) error
@@ -69,7 +71,7 @@ type Client interface {
 	GetPlayersForUser(userID int64) ([]cs.Player, error)
 	GetPlayer(id int64) (*cs.Player, error)
 	GetLightPlayerForGame(gameID, userID int64) (*cs.Player, error)
-	GetPlayerStatusesForGame(gameID int64) ([]*cs.Player, error)
+	GetPlayersStatusForGame(gameID int64) ([]*cs.Player, error)
 	GetPlayerForGame(gameID, userID int64) (*cs.Player, error)
 	GetPlayerIntelsForGame(gameID, userID int64) (*cs.PlayerIntels, error)
 	GetPlayerByNum(gameID int64, num int) (*cs.Player, error)

@@ -50,7 +50,7 @@ func (c *client) NewPlayer(userID int64, race Race, rules *Rules) *Player {
 func (c *client) GenerateUniverse(game *Game, players []*Player) (*Universe, error) {
 	defer timeTrack(time.Now(), "GenerateUniverse")
 
-	ug := NewUniverseGenerator(game.Size, game.Density, players, &game.Rules)
+	ug := NewUniverseGenerator(game, players)
 	universe, err := ug.Generate()
 
 	if err != nil {

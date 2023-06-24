@@ -17,9 +17,11 @@ func (c *GameConverter) ConvertFleet(source *Fleet) *cs.Fleet {
 func (c *GameConverter) ConvertGame(source Game) cs.Game {
 	var csGame cs.Game
 	csGame.DBObject = ExtendGameDBObject(source)
-	csGame.Name = source.Name
 	csGame.HostID = source.HostID
-	csGame.QuickStartTurns = source.QuickStartTurns
+	csGame.Name = source.Name
+	csGame.State = cs.GameState(source.State)
+	csGame.Public = source.Public
+	csGame.Hash = source.Hash
 	csGame.Size = cs.Size(source.Size)
 	csGame.Density = cs.Density(source.Density)
 	csGame.PlayerPositions = cs.PlayerPositions(source.PlayerPositions)
@@ -27,15 +29,15 @@ func (c *GameConverter) ConvertGame(source Game) cs.Game {
 	csGame.ComputerPlayersFormAlliances = source.ComputerPlayersFormAlliances
 	csGame.PublicPlayerScores = source.PublicPlayerScores
 	csGame.StartMode = cs.GameStartMode(source.StartMode)
-	csGame.Year = source.Year
-	csGame.State = cs.GameState(source.State)
+	csGame.QuickStartTurns = source.QuickStartTurns
 	csGame.OpenPlayerSlots = source.OpenPlayerSlots
 	csGame.NumPlayers = source.NumPlayers
 	csGame.VictoryConditions = ExtendVictoryConditions(source)
-	csGame.VictorDeclared = source.VictorDeclared
 	csGame.Seed = source.Seed
 	csGame.Rules = ExtendDefaultRules(source)
 	csGame.Area = ExtendArea(source)
+	csGame.Year = source.Year
+	csGame.VictorDeclared = source.VictorDeclared
 	return csGame
 }
 func (c *GameConverter) ConvertGameFleet(source *cs.Fleet) *Fleet {
@@ -193,11 +195,11 @@ func (c *GameConverter) ConvertPlayer(source Player) cs.Player {
 	csPlayer.ResearchSpentLastYear = source.ResearchSpentLastYear
 	csPlayer.Relations = PlayerRelationshipsToGamePlayerRelationships(source.Relations)
 	csPlayer.Messages = PlayerMessagesToGamePlayerMessages(source.Messages)
-	csPlayer.Spec = PlayerSpecToGamePlayerSpec(source.Spec)
 	csPlayer.ScoreHistory = PlayerScoresToGamePlayerScores(source.ScoreHistory)
 	csPlayer.AchievedVictoryConditions = cs.Bitmask(source.AchievedVictoryConditions)
 	csPlayer.Victor = source.Victor
 	csPlayer.Stats = PlayerStatsToGamePlayerStats(source.Stats)
+	csPlayer.Spec = PlayerSpecToGamePlayerSpec(source.Spec)
 	return csPlayer
 }
 func (c *GameConverter) ConvertPlayers(source []Player) []cs.Player {
@@ -340,9 +342,11 @@ func (c *GameConverter) csGameToDbGame(source cs.Game) Game {
 	dbGame.ID = source.DBObject.ID
 	dbGame.CreatedAt = TimeToTime(source.DBObject.CreatedAt)
 	dbGame.UpdatedAt = TimeToTime(source.DBObject.UpdatedAt)
-	dbGame.Name = source.Name
 	dbGame.HostID = source.HostID
-	dbGame.QuickStartTurns = source.QuickStartTurns
+	dbGame.Name = source.Name
+	dbGame.State = cs.GameState(source.State)
+	dbGame.Public = source.Public
+	dbGame.Hash = source.Hash
 	dbGame.Size = cs.Size(source.Size)
 	dbGame.Density = cs.Density(source.Density)
 	dbGame.PlayerPositions = cs.PlayerPositions(source.PlayerPositions)
@@ -350,8 +354,7 @@ func (c *GameConverter) csGameToDbGame(source cs.Game) Game {
 	dbGame.ComputerPlayersFormAlliances = source.ComputerPlayersFormAlliances
 	dbGame.PublicPlayerScores = source.PublicPlayerScores
 	dbGame.StartMode = cs.GameStartMode(source.StartMode)
-	dbGame.Year = source.Year
-	dbGame.State = cs.GameState(source.State)
+	dbGame.QuickStartTurns = source.QuickStartTurns
 	dbGame.OpenPlayerSlots = source.OpenPlayerSlots
 	dbGame.NumPlayers = source.NumPlayers
 	dbGame.VictoryConditionsConditions = cs.Bitmask(source.VictoryConditions.Conditions)
@@ -365,11 +368,12 @@ func (c *GameConverter) csGameToDbGame(source cs.Game) Game {
 	dbGame.VictoryConditionsProductionCapacity = source.VictoryConditions.ProductionCapacity
 	dbGame.VictoryConditionsOwnCapitalShips = source.VictoryConditions.OwnCapitalShips
 	dbGame.VictoryConditionsHighestScoreAfterYears = source.VictoryConditions.HighestScoreAfterYears
-	dbGame.VictorDeclared = source.VictorDeclared
 	dbGame.Seed = source.Seed
 	dbGame.Rules = GameRulesToRules(source.Rules)
 	dbGame.AreaX = source.Area.X
 	dbGame.AreaY = source.Area.Y
+	dbGame.Year = source.Year
+	dbGame.VictorDeclared = source.VictorDeclared
 	return dbGame
 }
 func (c *GameConverter) csMineFieldToDbMineField(source cs.MineField) MineField {

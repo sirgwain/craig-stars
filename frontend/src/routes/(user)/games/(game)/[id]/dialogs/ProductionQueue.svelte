@@ -4,6 +4,7 @@
 	import { getGameContext } from '$lib/services/Contexts';
 	import { PlanetService } from '$lib/services/PlanetService';
 	import type { Cost } from '$lib/types/Cost';
+	import { Infinite } from '$lib/types/MapObject';
 	import type { CommandedPlanet, ProductionQueueItem } from '$lib/types/Planet';
 	import { QueueItemType, isAuto } from '$lib/types/Planet';
 	import {
@@ -205,8 +206,8 @@
 				}
 				break;
 			default:
-				if (item) {
-					cost = $player.race.spec?.costs[item.type];
+				if (item && $player.race.spec?.costs) {
+					cost = $player.race.spec.costs[item.type];
 				}
 		}
 		return cost
@@ -230,9 +231,15 @@
 			if (yearsToBuildAll == 1) {
 				return '1 year';
 			}
+			if (yearsToBuildAll === Infinite) {
+				return 'never';
+			}
 			return `${yearsToBuildAll} years`;
 		}
 		if (yearsToBuildOne != yearsToBuildAll) {
+			if (yearsToBuildAll === Infinite) {
+				return `${yearsToBuildOne} to ???`;
+			}
 			return `${yearsToBuildOne} to ${yearsToBuildAll} years`;
 		}
 	};
@@ -358,12 +365,13 @@
 											type="button"
 											on:click={() => queueItemClicked(index, queueItem)}
 											class:italic={isAuto(queueItem.type)}
-											class:text-queue-item-skipped={queueItem.skipped}
 											class:text-queue-item-this-year={!queueItem.skipped &&
 												(queueItem.yearsToBuildOne ?? 0) <= 1}
 											class:text-queue-item-next-year={!queueItem.skipped &&
-												(queueItem.yearsToBuildAll ?? 0) > 1 &&
+												((queueItem.yearsToBuildAll ?? 0) > 1 ||
+													queueItem.yearsToBuildAll === Infinite) &&
 												(queueItem.yearsToBuildOne ?? 0) <= 1}
+											class:text-queue-item-skipped={queueItem.skipped}
 											class:bg-primary={queueItem === selectedQueueItem}
 											class="w-full text-left pl-1 select-none cursor-default hover:text-secondary-focus"
 										>

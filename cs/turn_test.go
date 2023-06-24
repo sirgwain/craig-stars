@@ -753,7 +753,7 @@ func Test_turn_detonateMines(t *testing.T) {
 			game := client.CreateGame(1, *NewGameSettings())
 
 			for _, player := range tt.args.players {
-				player.Relations = player.defaultRelationships(tt.args.players)
+				player.Relations = player.defaultRelationships(tt.args.players, false)
 				player.PlayerIntels.PlayerIntels = player.defaultPlayerIntels(tt.args.players)
 			}
 

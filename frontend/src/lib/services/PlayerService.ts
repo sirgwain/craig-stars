@@ -11,8 +11,8 @@ type UpdateOrdersResult = {
 
 type SubmitTurnResponse = {
 	game: Game;
-	player: PlayerResponse;
-	universe: PlayerUniverse & PlayerIntels;
+	player?: PlayerResponse;
+	universe?: PlayerUniverse & PlayerIntels;
 };
 
 export class PlayerService extends Service {

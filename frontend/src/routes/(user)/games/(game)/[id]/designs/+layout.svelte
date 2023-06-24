@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { page } from '$app/stores';
-</script>
+	</script>
 
 <div class="w-full mx-auto md:max-w-2xl">
 	<slot />

@@ -6,15 +6,14 @@ import type { Vector } from '$lib/types/Vector';
 import { findIndex } from 'lodash-es';
 import type { ComponentType, SvelteComponent } from 'svelte';
 import { derived, get, writable } from 'svelte/store';
-import { gameStore } from './Contexts';
 import { rollover } from './Math';
 import { TechService } from './TechService';
+import { Universe } from './Universe';
 
 export type MapObjectsByPosition = {
 	[k: string]: MapObject[];
 };
 
-const { universe } = gameStore;
 
 export const me = writable<User>(emptyUser);
 export const techs = writable<TechService>(new TechService());
@@ -31,6 +30,8 @@ export const highlightedMapObjectPeers = writable<MapObject[]>([]);
 
 export const commandedMapObjectName = writable<string>();
 export const zoomTarget = writable<MapObject | undefined>();
+
+export const universe = writable<Universe>(new Universe());
 
 const currentCommandedMapObjectIndex = derived(
 	[universe, commandedFleet, commandedPlanet],

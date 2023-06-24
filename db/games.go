@@ -13,9 +13,11 @@ type Game struct {
 	ID                                        int64              `json:"id,omitempty"`
 	CreatedAt                                 time.Time          `json:"createdAt,omitempty"`
 	UpdatedAt                                 time.Time          `json:"updatedAt,omitempty"`
-	Name                                      string             `json:"name,omitempty"`
 	HostID                                    int64              `json:"hostId,omitempty"`
-	QuickStartTurns                           int                `json:"quickStartTurns,omitempty"`
+	Name                                      string             `json:"name,omitempty"`
+	State                                     cs.GameState       `json:"state,omitempty"`
+	Public                                    bool               `json:"public,omitempty"`
+	Hash                                      string             `json:"hash"`
 	Size                                      cs.Size            `json:"size,omitempty"`
 	Density                                   cs.Density         `json:"density,omitempty"`
 	PlayerPositions                           cs.PlayerPositions `json:"playerPositions,omitempty"`
@@ -23,8 +25,7 @@ type Game struct {
 	ComputerPlayersFormAlliances              bool               `json:"computerPlayersFormAlliances,omitempty"`
 	PublicPlayerScores                        bool               `json:"publicPlayerScores,omitempty"`
 	StartMode                                 cs.GameStartMode   `json:"startMode,omitempty"`
-	Year                                      int                `json:"year,omitempty"`
-	State                                     cs.GameState       `json:"state,omitempty"`
+	QuickStartTurns                           int                `json:"quickStartTurns,omitempty"`
 	OpenPlayerSlots                           uint               `json:"openPlayerSlots,omitempty"`
 	NumPlayers                                int                `json:"numPlayers,omitempty"`
 	VictoryConditionsConditions               cs.Bitmask         `json:"victoryConditionsConditions,omitempty"`
@@ -38,11 +39,12 @@ type Game struct {
 	VictoryConditionsProductionCapacity       int                `json:"victoryConditionsProductionCapacity,omitempty"`
 	VictoryConditionsOwnCapitalShips          int                `json:"victoryConditionsOwnCapitalShips,omitempty"`
 	VictoryConditionsHighestScoreAfterYears   int                `json:"victoryConditionsHighestScoreAfterYears,omitempty"`
-	VictorDeclared                            bool               `json:"victorDeclared,omitempty"`
 	Seed                                      int64              `json:"seed,omitempty"`
 	Rules                                     *Rules             `json:"rules,omitempty"`
 	AreaX                                     float64            `json:"areaX,omitempty"`
 	AreaY                                     float64            `json:"areaY,omitempty"`
+	Year                                      int                `json:"year,omitempty"`
+	VictorDeclared                            bool               `json:"victorDeclared,omitempty"`
 }
 
 // we json serialize these types with custom Scan/Value methods
@@ -109,6 +111,18 @@ func (c *client) GetOpenGames(userID int64) ([]cs.Game, error) {
 	return c.converter.ConvertGames(items), nil
 }
 
+func (c *client) GetOpenGamesByHash(hash string) ([]cs.Game, error) {
+	items := []Game{}
+	if err := c.db.Select(&items, `SELECT * from games g WHERE g.state = ? AND g.openPlayerSlots > 0 AND g.hash = ?`, cs.GameStateSetup, hash); err != nil {
+		if err == sql.ErrNoRows {
+			return []cs.Game{}, nil
+		}
+		return nil, err
+	}
+
+	return c.converter.ConvertGames(items), nil
+}
+
 // get a game by id
 func (c *client) GetGame(id int64) (*cs.Game, error) {
 	item := Game{}
@@ -121,6 +135,104 @@ func (c *client) GetGame(id int64) (*cs.Game, error) {
 
 	game := c.converter.ConvertGame(item)
 	return &game, nil
+}
+
+func (c *client) GetGameWithPlayersStatus(gameID int64) (*cs.Game, []cs.Player, error) {
+	type gamePlayersJoin struct {
+		Game   `json:"game,omitempty"`
+		Player `json:"player,omitempty"`
+	}
+
+	rows := []gamePlayersJoin{}
+
+	err := c.db.Select(&rows, `
+	SELECT 
+		g.id AS 'game.id',
+		g.createdAt AS 'game.createdAt',
+		g.updatedAt AS 'game.updatedAt',
+		g.hostId AS 'game.hostId',
+		g.name AS 'game.name',
+		g.state AS 'game.state',
+		g.public AS 'game.public',
+		g.hash AS 'game.hash',
+		g.size AS 'game.size',
+		g.density AS 'game.density',
+		g.playerPositions AS 'game.playerPositions',
+		g.randomEvents AS 'game.randomEvents',
+		g.computerPlayersFormAlliances AS 'game.computerPlayersFormAlliances',
+		g.publicPlayerScores AS 'game.publicPlayerScores',
+		g.startMode AS 'game.startMode',
+		g.quickStartTurns AS 'game.quickStartTurns',
+		g.openPlayerSlots AS 'game.openPlayerSlots',
+		g.numPlayers AS 'game.numPlayers',
+		g.victoryConditionsConditions AS 'game.victoryConditionsConditions',
+		g.victoryConditionsNumCriteriaRequired AS 'game.victoryConditionsNumCriteriaRequired',
+		g.victoryConditionsYearsPassed AS 'game.victoryConditionsYearsPassed',
+		g.victoryConditionsOwnPlanets AS 'game.victoryConditionsOwnPlanets',
+		g.victoryConditionsAttainTechLevel AS 'game.victoryConditionsAttainTechLevel',
+		g.victoryConditionsAttainTechLevelNumFields AS 'game.victoryConditionsAttainTechLevelNumFields',
+		g.victoryConditionsExceedsScore AS 'game.victoryConditionsExceedsScore',
+		g.victoryConditionsExceedsSecondPlaceScore AS 'game.victoryConditionsExceedsSecondPlaceScore',
+		g.victoryConditionsProductionCapacity AS 'game.victoryConditionsProductionCapacity',
+		g.victoryConditionsOwnCapitalShips AS 'game.victoryConditionsOwnCapitalShips',
+		g.victoryConditionsHighestScoreAfterYears AS 'game.victoryConditionsHighestScoreAfterYears',
+		g.seed AS 'game.seed',
+		g.rules AS 'game.rules',
+		g.areaX AS 'game.areaX',
+		g.areaY AS 'game.areaY',
+		g.year AS 'game.year',
+		g.victorDeclared AS 'game.victorDeclared',
+		
+		COALESCE(p.id, 0) AS 'player.id',
+		p.createdAt AS 'player.createdAt',
+		p.updatedAt AS 'player.updatedAt',
+		COALESCE(p.gameId, 0) AS 'player.gameId',
+		COALESCE(p.userId, 0) AS 'player.userId',
+		COALESCE(p.name, '') AS 'player.name',
+		COALESCE(p.num, 0) AS 'player.num',
+		COALESCE(p.ready, 0) AS 'player.ready',
+		COALESCE(p.aiControlled, 0) AS 'player.aiControlled',
+		COALESCE(p.submittedTurn, 0) AS 'player.submittedTurn',
+		COALESCE(p.color, '') AS 'player.color'
+
+	FROM games g
+	LEFT JOIN players p
+		ON g.id = p.gameId
+	WHERE g.Id = ?
+`, gameID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil, nil
+		}
+		return nil, nil, err
+	}
+
+	// check if we have a game
+	if len(rows) == 0 {
+		return nil, nil, nil
+	}
+
+	// join results give a row per item, so if we have
+	// 2 players, we'll end up with 2 rows
+	// row 0 - game, player 1
+	// row 1 - game, player 2
+	item := rows[0].Game
+	playerStatuses := []Player{}
+
+	playersAdded := make(map[int64]bool)
+	for _, row := range rows {
+		if row.Player.ID != 0 {
+			if _, found := playersAdded[row.Player.ID]; !found {
+				playersAdded[row.Player.ID] = true
+				playerStatuses = append(playerStatuses, row.Player)
+			}
+		}
+	}
+
+	game := c.converter.ConvertGame(item)
+	players := c.converter.ConvertPlayers(playerStatuses)
+
+	return &game, players, nil
 }
 
 // get a game by id
@@ -221,9 +333,11 @@ func (c *client) CreateGame(game *cs.Game) error {
 	INSERT INTO games (
 		createdAt,
 		updatedAt,
-		name,
 		hostId,
-		quickStartTurns,
+		name,
+		state,
+		public,
+		hash,
 		size,
 		density,
 		playerPositions,
@@ -231,8 +345,7 @@ func (c *client) CreateGame(game *cs.Game) error {
 		computerPlayersFormAlliances,
 		publicPlayerScores,
 		startMode,
-		year,
-		state,
+		quickStartTurns,
 		openPlayerSlots,
 		numPlayers,
 		victoryConditionsConditions,
@@ -246,18 +359,21 @@ func (c *client) CreateGame(game *cs.Game) error {
 		victoryConditionsProductionCapacity,
 		victoryConditionsOwnCapitalShips,
 		victoryConditionsHighestScoreAfterYears,
-		victorDeclared,
 		seed,
 		rules,
 		areaX,
-		areaY
+		areaY,
+		year,
+		victorDeclared
 	)
 	VALUES (
 		CURRENT_TIMESTAMP,
 		CURRENT_TIMESTAMP,
-		:name,
 		:hostId,
-		:quickStartTurns,
+		:name,
+		:state,
+		:public,
+		:hash,
 		:size,
 		:density,
 		:playerPositions,
@@ -265,8 +381,7 @@ func (c *client) CreateGame(game *cs.Game) error {
 		:computerPlayersFormAlliances,
 		:publicPlayerScores,
 		:startMode,
-		:year,
-		:state,
+		:quickStartTurns,
 		:openPlayerSlots,
 		:numPlayers,
 		:victoryConditionsConditions,
@@ -280,11 +395,12 @@ func (c *client) CreateGame(game *cs.Game) error {
 		:victoryConditionsProductionCapacity,
 		:victoryConditionsOwnCapitalShips,
 		:victoryConditionsHighestScoreAfterYears,
-		:victorDeclared,
 		:seed,
 		:rules,
 		:areaX,
-		:areaY
+		:areaY,
+		:year,
+		:victorDeclared
 	)
 	`, item)
 
@@ -316,9 +432,11 @@ func (c *client) updateGameWithNamedExecer(game *cs.Game, tx SQLExecer) error {
 	if _, err := tx.NamedExec(`
 	UPDATE games SET
 		updatedAt = CURRENT_TIMESTAMP,
-		name = :name,
 		hostId = :hostId,
-		quickStartTurns = :quickStartTurns,
+		name = :name,
+		state = :state,
+		public = :public,
+		hash = :hash,
 		size = :size,
 		density = :density,
 		playerPositions = :playerPositions,
@@ -326,8 +444,7 @@ func (c *client) updateGameWithNamedExecer(game *cs.Game, tx SQLExecer) error {
 		computerPlayersFormAlliances = :computerPlayersFormAlliances,
 		publicPlayerScores = :publicPlayerScores,
 		startMode = :startMode,
-		year = :year,
-		state = :state,
+		quickStartTurns = :quickStartTurns,
 		openPlayerSlots = :openPlayerSlots,
 		numPlayers = :numPlayers,
 		victoryConditionsConditions = :victoryConditionsConditions,
@@ -341,11 +458,13 @@ func (c *client) updateGameWithNamedExecer(game *cs.Game, tx SQLExecer) error {
 		victoryConditionsProductionCapacity = :victoryConditionsProductionCapacity,
 		victoryConditionsOwnCapitalShips = :victoryConditionsOwnCapitalShips,
 		victoryConditionsHighestScoreAfterYears = :victoryConditionsHighestScoreAfterYears,
-		victorDeclared = :victorDeclared,
-		rules = :rules,
 		seed = :seed,
+		rules = :rules,
 		areaX = :areaX,
-		areaY = :areaY
+		areaY = :areaY,
+		year = :year,
+		victorDeclared = :victorDeclared
+
 	WHERE id = :id
 	`, item); err != nil {
 		return err
@@ -544,7 +663,10 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 			// log.Debug().Int64("GameID", mysteryTrader.GameID).Int64("ID", mysteryTrader.ID).Msgf("Updated mysteryTrader %s", mysteryTrader.Name)
 		}
 	}
-	tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
 	return nil
 
 }

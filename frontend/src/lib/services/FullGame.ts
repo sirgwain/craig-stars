@@ -16,6 +16,7 @@ import {
 	Player,
 	type BattlePlan,
 	type PlayerIntels,
+	type PlayerResponse,
 	type PlayerUniverse,
 	type ProductionPlan,
 	type TransportPlan
@@ -24,7 +25,7 @@ import type { ShipDesign } from '$lib/types/ShipDesign';
 import type { Vector } from '$lib/types/Vector';
 import { get } from 'svelte/store';
 import { BattlePlanService } from './BattlePlanService';
-import { updateGameContext, updatePlayer, updateUniverse } from './Contexts';
+import { updateGame, updateGameContext, updatePlayer, updateUniverse } from './Contexts';
 import { DesignService } from './DesignService';
 import { FleetService } from './FleetService';
 import { GameService } from './GameService';
@@ -83,6 +84,8 @@ export class FullGame implements Game {
 	player: Player = new Player();
 	universe: Universe = new Universe();
 	techs = new TechService();
+	playersStatus: PlayerResponse[] = [];
+	playerStatusPollingInterval: number | undefined;
 
 	constructor(json?: Game) {
 		Object.assign(this, json);
@@ -146,20 +149,51 @@ export class FullGame implements Game {
 		if (resp) {
 			Object.assign(this, resp.game);
 			Object.assign(this.player, resp.player);
-			this.universe.setData(this.player.num, resp.universe);
+			if (resp.universe) {
+				this.universe.setData(this.player.num, resp.universe);
+			}
 			updateGameContext(this, this.player, this.universe);
 		}
 		return this;
+	}
+
+	async loadPlayersStatus(): Promise<PlayerResponse[]> {
+		const result = await GameService.loadPlayersStatus(this.id);
+		this.playersStatus = result.players;
+		Object.assign(this, result.game);
+		Object.assign(this.player, this.playersStatus[this.player.num - 1]);
+
+		// trigger reactivity
+		updatePlayer(this.player);
+		updateGame(this);
+		return this.playersStatus;
+	}
+
+	// start polling the server for player status
+	async startPollingPlayersStatus(interval = 10000) {
+		if (!this.playerStatusPollingInterval) {
+			this.playerStatusPollingInterval = window.setInterval(async () => {
+				this.loadPlayersStatus();
+			}, interval);
+		}
+	}
+
+	// stop polling the server for player status
+	stopPollingPlayersStatus() {
+		if (this.playerStatusPollingInterval) {
+			window.clearInterval(this.playerStatusPollingInterval);
+			this.playerStatusPollingInterval = undefined;
+		}
 	}
 
 	async updatePlayerOrders() {
 		const result = await PlayerService.updateOrders(this.player);
 		if (result) {
 			Object.assign(this.player, result.player);
-			this.universe.planets = result.planets;
+			this.universe.updatePlanets(result.planets);
+			updateUniverse(this.universe);
+			updatePlayer(this.player);
 		}
-		updatePlayer(this.player);
-		return this.player;
 	}
 
 	async createBattlePlan(plan: BattlePlan) {

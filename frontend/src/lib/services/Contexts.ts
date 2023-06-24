@@ -4,7 +4,8 @@ import type { ShipDesign } from '$lib/types/ShipDesign';
 import { getContext, setContext } from 'svelte';
 import { writable, type Readable, type Writable } from 'svelte/store';
 import { FullGame } from './FullGame';
-import { Universe } from './Universe';
+import { universe } from './Stores';
+import type { Universe } from './Universe';
 
 export const playerFinderKey = Symbol();
 export const designFinderKey = Symbol();
@@ -21,7 +22,7 @@ type GameContext = {
 export const gameStore: GameContext = {
 	game: writable<FullGame>(new FullGame()),
 	player: writable<Player>(new Player()),
-	universe: writable<Universe>(new Universe()),
+	universe: universe,
 	settings: writable<PlayerSettings>(new PlayerSettings()),
 	designs: writable<ShipDesign[]>([])
 };

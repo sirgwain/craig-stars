@@ -5,9 +5,11 @@ import {
 	Player,
 	type PlayerIntels
 } from '$lib/types/Player';
+import { CSError, type ErrorResponse } from './Errors';
 import { Service } from './Service';
 
 type playerStatusResult = {
+	game: Game;
 	players: PlayerResponse[];
 };
 
@@ -51,7 +53,22 @@ export class GameService {
 		if (response.ok) {
 			return (await response.json()) as Game;
 		} else {
-			throw new Error('Failed to load game');
+			throw new CSError(response.statusText, response.status);
+		}
+	}
+
+	static async loadGameByHash(hash: string): Promise<Game[]> {
+		const response = await fetch(`/api/games/invite/${hash}`, {
+			method: 'GET',
+			headers: {
+				accept: 'application/json'
+			}
+		});
+
+		if (response.ok) {
+			return (await response.json()) as Game[];
+		} else {
+			throw new CSError(response.statusText, response.status);
 		}
 	}
 
@@ -67,7 +84,7 @@ export class GameService {
 			const json = (await response.json()) as PlayerResponse;
 			return new Player(json);
 		} else {
-			throw new Error('Failed to load game');
+			throw new CSError(response.statusText, response.status);
 		}
 	}
 
@@ -83,7 +100,7 @@ export class GameService {
 			const json = (await response.json()) as PlayerResponse;
 			return new Player(json);
 		} else {
-			throw new Error('Failed to load game');
+			throw new CSError(response.statusText, response.status);
 		}
 	}
 
@@ -98,12 +115,12 @@ export class GameService {
 		if (response.ok) {
 			return (await response.json()) as UniverseResponse;
 		} else {
-			throw new Error('Failed to load game');
+			throw new CSError(response.statusText, response.status);
 		}
 	}
 
-	static async loadPlayerStatuses(gameId: number): Promise<PlayerResponse[]> {
-		const response = await fetch(`/api/games/${gameId}/player-statuses`, {
+	static async loadPlayersStatus(gameId: number): Promise<playerStatusResult> {
+		const response = await fetch(`/api/games/${gameId}/players-status`, {
 			method: 'GET',
 			headers: {
 				accept: 'application/json'
@@ -111,9 +128,9 @@ export class GameService {
 		});
 
 		if (response.ok) {
-			return ((await response.json()) as playerStatusResult).players;
+			return (await response.json()) as playerStatusResult;
 		} else {
-			throw new Error('Failed to load game');
+			throw new CSError(response.statusText, response.status);
 		}
 	}
 }

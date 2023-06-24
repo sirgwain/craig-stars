@@ -34,6 +34,10 @@ export const bindNavigationHotkeys = (gameId: number, page: Readable<Page>) => {
 				break;
 		}
 	});
+	hotkeys('F10', () => {
+		goto(`/games/${gameId}/players`);
+	});
+
 };
 
 export const unbindNavigationHotkeys = () => {
@@ -41,4 +45,5 @@ export const unbindNavigationHotkeys = () => {
 	hotkeys.unbind('F5');
 	hotkeys.unbind('F4');
 	hotkeys.unbind('F3');
+	hotkeys.unbind('F10');
 };
