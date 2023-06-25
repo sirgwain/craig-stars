@@ -44,6 +44,7 @@ var colors = []string{
 type GameRunner interface {
 	HostGame(hostID int64, settings *cs.GameSettings) (*cs.FullGame, error)
 	JoinGame(gameID int64, userID int64, raceID int64, color string) error
+	LeaveGame(gameID, userID int64) error
 	GenerateUniverse(game *cs.Game) error
 	LoadPlayerGame(gameID int64, userID int64) (*cs.GameWithPlayers, *cs.FullPlayer, error)
 	SubmitTurn(gameID int64, userID int64) error
@@ -266,6 +267,56 @@ func (gr *gameRunner) JoinGame(gameID int64, userID int64, raceID int64, color s
 	}
 
 	log.Info().Int64("GameID", gameID).Int64("UserID", userID).Str("Race", player.Race.Name).Msgf("Joined game %s", fullGame.Name)
+
+	return nil
+}
+
+// add a player to an existing game
+func (gr *gameRunner) LeaveGame(gameID, userID int64) error {
+
+	game, err := gr.loadGame(gameID)
+	if err != nil {
+		return fmt.Errorf("unable to load game %d: %w", gameID, err)
+	}
+
+	if game == nil {
+		return fmt.Errorf("no game for id %d found. %w", gameID, errNotFound)
+	}
+
+	for i, player := range game.Players {
+		if player.UserID == userID {
+			if err := gr.db.DeletePlayer(player.ID); err != nil {
+				return fmt.Errorf("delete open slot player %s from game %d: %w", player, gameID, err)
+			}
+
+			race := cs.NewRace()
+			player := gr.client.NewPlayer(0, *race, &game.Rules)
+			player.GameID = game.ID
+			player.Num = i + 1
+			player.Name = "Open Slot"
+			game.Players[i] = player
+			game.OpenPlayerSlots++
+
+			if player.Num-1 < len(colors) {
+				player.Color = colors[player.Num-1]
+			} else {
+				color := make([]byte, 3)
+				rand.Read(color)
+				player.Color = fmt.Sprintf("#%s", hex.EncodeToString(color))
+			}
+
+			if err := gr.db.CreatePlayer(player); err != nil {
+				return fmt.Errorf("update open slot player %s for game %d: %w", player, gameID, err)
+			}
+
+		}
+	}
+
+	if err := gr.db.UpdateGame(game.Game); err != nil {
+		return fmt.Errorf("save game %d: %w", gameID, err)
+	}
+
+	log.Info().Int64("GameID", gameID).Int64("UserID", userID).Msgf("Left game %s", game.Name)
 
 	return nil
 }

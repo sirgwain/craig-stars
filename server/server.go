@@ -229,6 +229,7 @@ func Start(db DBClient, config config.Config) {
 				r.Get("/", server.game)
 				r.Get("/players-status", server.playersStatus)
 				r.Post("/join", server.joinGame)
+				r.Post("/leave", server.leaveGame)
 				r.Post("/generate-universe", server.generateUniverse)
 				r.Post("/generate-turn", server.generateTurn)
 				r.Delete("/", server.deleteGame)

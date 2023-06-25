@@ -160,6 +160,24 @@ func (s *server) joinGame(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Join an open game
+func (s *server) leaveGame(w http.ResponseWriter, r *http.Request) {
+	user := s.contextUser(r)
+	game := s.contextGame(r)
+
+	if game.State != cs.GameStateSetup {
+		err := fmt.Errorf("cannot leave game after setup")
+		log.Error().Err(err).Msg("leave game")
+		render.Render(w, r, ErrBadRequest(err))
+	}
+
+	// try and join this game
+	if err := s.gameRunner.LeaveGame(game.ID, user.ID); err != nil {
+		log.Error().Err(err).Msg("leave game")
+		render.Render(w, r, ErrBadRequest(err))
+	}
+}
+
 // Generate a universe for a host
 func (s *server) generateUniverse(w http.ResponseWriter, r *http.Request) {
 	user := s.contextUser(r)
