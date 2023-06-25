@@ -68,7 +68,7 @@
 			<div>{fleet.spec.estimatedRange ? `${fleet.spec.estimatedRange} l.y.` : '--'}</div>
 		</div>
 		<div class="flex justify-between my-1">
-			<div>Percent Cloacked</div>
+			<div>Percent Cloaked</div>
 			<div>{fleet.spec.cloakPercent ? fleet.spec.cloakPercent * 100 + '%' : 'none'}</div>
 		</div>
 		<div class="flex justify-between">
