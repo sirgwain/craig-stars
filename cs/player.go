@@ -15,15 +15,15 @@ type FullPlayer struct {
 }
 
 type PlayerStatus struct {
-	UpdatedAt     time.Time `json:"updatedAt,omitempty"`
-	UserID        int64     `json:"userId,omitempty"`
-	Name          string    `json:"name,omitempty"`
-	Num           int       `json:"num,omitempty"`
-	Ready         bool      `json:"ready,omitempty"`
-	AIControlled  bool      `json:"aiControlled,omitempty"`
-	SubmittedTurn bool      `json:"submittedTurn,omitempty"`
-	Color         string    `json:"color,omitempty"`
-	Victor        bool      `json:"victor,omitempty"`
+	UpdatedAt     *time.Time `json:"updatedAt,omitempty"`
+	UserID        int64      `json:"userId,omitempty"`
+	Name          string     `json:"name,omitempty"`
+	Num           int        `json:"num,omitempty"`
+	Ready         bool       `json:"ready,omitempty"`
+	AIControlled  bool       `json:"aiControlled,omitempty"`
+	SubmittedTurn bool       `json:"submittedTurn,omitempty"`
+	Color         string     `json:"color,omitempty"`
+	Victor        bool       `json:"victor,omitempty"`
 }
 
 type Player struct {

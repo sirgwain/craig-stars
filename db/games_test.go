@@ -132,7 +132,7 @@ func TestGetOpenGames(t *testing.T) {
 	// start with 1 game from connectTestDB
 	result, err := c.GetOpenGames()
 	assert.Nil(t, err)
-	assert.Equal(t, []cs.Game{}, result)
+	assert.Equal(t, []cs.GameWithPlayers{}, result)
 
 	g1 := cs.Game{HostID: 2, Name: "Test", State: cs.GameStateSetup, OpenPlayerSlots: 1}
 	if err := c.CreateGame(&g1); err != nil {
