@@ -1,7 +1,6 @@
 <script lang="ts">
-	import CheckboxInput from '$lib/components/CheckboxInput.svelte';
-	import { TechField } from '$lib/types/Player';
 	import type { Race } from '$lib/types/Race';
+	import { TechField } from '$lib/types/TechLevel';
 	import ResearchCostField from './ResearchCostField.svelte';
 
 	export let race: Race;

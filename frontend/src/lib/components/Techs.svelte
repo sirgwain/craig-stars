@@ -1,13 +1,14 @@
 <script lang="ts">
 	import TechSummary from '$lib/components/tech/TechSummary.svelte';
 	import techjson from '$lib/ssr/techs.json';
-	import { Player, canLearnTech, hasRequiredLevels } from '$lib/types/Player';
+	import { Player, canLearnTech } from '$lib/types/Player';
 	import { TechCategory, type Tech, type TechStore } from '$lib/types/Tech';
 	import { kebabCase, startCase } from 'lodash-es';
 	import { onMount } from 'svelte';
 	import { $enum as eu } from 'ts-enum-util';
 	import SectionHeader from './SectionHeader.svelte';
 	import TableSearchInput from './TableSearchInput.svelte';
+	import { hasRequiredLevels } from '$lib/types/TechLevel';
 
 	// for ssr, we start with techs from a json file	
 	export let techStore: TechStore = techjson as TechStore;

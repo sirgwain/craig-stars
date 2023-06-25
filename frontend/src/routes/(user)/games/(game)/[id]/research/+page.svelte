@@ -11,6 +11,6 @@
 
 <div class="w-full mx-auto md:max-w-2xl">
 	{#if player}
-		<Research player={$player} on:update-player={update} />
+		<Research on:update-player={update} />
 	{/if}
 </div>

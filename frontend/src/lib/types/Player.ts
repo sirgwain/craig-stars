@@ -8,6 +8,7 @@ import { humanoid, type Race } from './Race';
 import type { Salvage } from './Salvage';
 import type { ShipDesign } from './ShipDesign';
 import type { Tech, TechDefense, TechPlanetaryScanner } from './Tech';
+import { type TechLevel, TechField, emptyTechLevel } from './TechLevel';
 import type { Wormhole } from './Wormhole';
 
 export type PlayerResponse = {
@@ -135,32 +136,7 @@ export enum NextResearchField {
 	LowestField = 'LowestField'
 }
 
-export enum TechField {
-	Energy = 'Energy',
-	Weapons = 'Weapons',
-	Propulsion = 'Propulsion',
-	Construction = 'Construction',
-	Electronics = 'Electronics',
-	Biotechnology = 'Biotechnology'
-}
 
-export type TechLevel = {
-	energy?: number;
-	weapons?: number;
-	propulsion?: number;
-	construction?: number;
-	electronics?: number;
-	biotechnology?: number;
-};
-
-const emptyTechLevel: TechLevel = {
-	energy: 0,
-	weapons: 0,
-	propulsion: 0,
-	construction: 0,
-	electronics: 0,
-	biotechnology: 0
-};
 
 export type Message = {
 	type: number;
@@ -204,8 +180,8 @@ export class Player implements PlayerResponse {
 	ready = false;
 	aIControlled = false;
 	submittedTurn = false;
-	techLevels: TechLevel = { ...emptyTechLevel };
-	techLevelsSpent: TechLevel = { ...emptyTechLevel };
+	techLevels: TechLevel = { ...emptyTechLevel() };
+	techLevelsSpent: TechLevel = { ...emptyTechLevel() };
 	researchSpentLastYear = 0;
 	researching: TechField = TechField.Energy;
 	nextResearchField: NextResearchField = NextResearchField.Energy;
@@ -269,16 +245,6 @@ export class Player implements PlayerResponse {
 	}
 }
 
-export function hasRequiredLevels(tl: TechLevel, required: TechLevel): boolean {
-	return (
-		(tl.energy ?? 0) >= (required.energy ?? 0) &&
-		(tl.weapons ?? 0) >= (required.weapons ?? 0) &&
-		(tl.propulsion ?? 0) >= (required.propulsion ?? 0) &&
-		(tl.construction ?? 0) >= (required.construction ?? 0) &&
-		(tl.electronics ?? 0) >= (required.electronics ?? 0) &&
-		(tl.biotechnology ?? 0) >= (required.biotechnology ?? 0)
-	);
-}
 
 export function canLearnTech(player: PlayerResponse, tech: Tech): boolean {
 	const requirements = tech.requirements;

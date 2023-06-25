@@ -3,7 +3,8 @@
 	import TechAvatar from '$lib/components/tech/TechAvatar.svelte';
 	import { getGameContext } from '$lib/services/Contexts';
 	import { techs } from '$lib/services/Stores';
-	import { canLearnTech, hasRequiredLevels } from '$lib/types/Player';
+	import { canLearnTech } from '$lib/types/Player';
+	import { hasRequiredLevels } from '$lib/types/TechLevel';
 	import { kebabCase } from 'lodash-es';
 
 	const { game, player, universe } = getGameContext();

@@ -1,8 +1,8 @@
 import { clamp } from '$lib/services/Math';
 import type { Cost } from './Cost';
 import type { MineFieldType } from './MineField';
-import type { TechLevel as TechLevel } from './Player';
 import type { PRT } from './Race';
+import type { TechLevel } from './TechLevel';
 import type { Vector } from './Vector';
 
 export const ScanWithZeroRange = 1;
