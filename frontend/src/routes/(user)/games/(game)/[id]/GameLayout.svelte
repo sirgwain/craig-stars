@@ -68,8 +68,9 @@
 	// async onMount means onDestroy needs to live
 	// outside
 	onDestroy(() => {
-		updateGameContext(new FullGame(), new Player(), new Universe());
+		$game.stopPollingPlayersStatus();
 		unsubscribe && unsubscribe();
+		updateGameContext(new FullGame(), new Player(), new Universe());
 
 		unbindQuantityModifier();
 		unbindNavigationHotkeys();
