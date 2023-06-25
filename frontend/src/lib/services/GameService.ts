@@ -1,11 +1,10 @@
 import type { Game } from '$lib/types/Game';
 import {
-	type PlayerResponse,
-	type PlayerUniverse,
 	Player,
-	type PlayerIntels
+	type PlayerIntels, type PlayerResponse,
+	type PlayerUniverse
 } from '$lib/types/Player';
-import { CSError, type ErrorResponse } from './Errors';
+import { CSError } from './Errors';
 import { Service } from './Service';
 
 type playerStatusResult = {

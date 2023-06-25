@@ -75,7 +75,13 @@ type Game struct {
 	Rules                        Rules             `json:"rules"`
 	Area                         Vector            `json:"area,omitempty"`
 	Year                         int               `json:"year,omitempty"`
-	VictorDeclared               bool              `json:"victorDeclared"`
+	VictorDeclared               bool              `json:"victorDeclared"`	
+}
+
+// struct for holding a game with a list of player status
+type GameWithPlayers struct {
+	Game
+	Players []PlayerStatus `json:"players,omitempty"`
 }
 
 // A game with players and a universe, used in universe and turn generation

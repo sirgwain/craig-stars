@@ -1,3 +1,4 @@
+import type PlayerStatus from '../../routes/(user)/games/(game)/[id]/players/PlayerStatus.svelte';
 import type { Cost } from './Cost';
 import type { EnumDictionary } from './EnumDictionary';
 import type { MineFieldStats, MineFieldType } from './MineField';
@@ -98,6 +99,7 @@ export interface Game {
 	victoryConditions: VictoryConditions;
 	victorDeclared: boolean;
 	rules: Rules;
+	players: PlayerStatus[];
 }
 
 export interface Rules {

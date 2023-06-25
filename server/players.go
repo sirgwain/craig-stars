@@ -283,19 +283,19 @@ func (s *server) playersStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	game, players, err := s.db.GetGameWithPlayersStatus(*gameID)
+	game, err := s.db.GetGameWithPlayersStatus(*gameID)
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", *gameID).Msg("load players and game from database")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	if len(players) == 0 {
+	if len(game.Players) == 0 {
 		render.Render(w, r, ErrNotFound)
 		return
 	}
 
-	rest.RenderJSON(w, rest.JSON{"game": game, "players": players})
+	rest.RenderJSON(w, rest.JSON{"game": game, "players": game.Players})
 }
 
 // submit a player turn and return the newly generated turn if there is one

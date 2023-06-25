@@ -73,79 +73,57 @@ func (c *client) GetGames() ([]cs.Game, error) {
 	return c.converter.ConvertGames(items), nil
 }
 
-func (c *client) GetGamesForHost(userID int64) ([]cs.Game, error) {
-
-	items := []Game{}
-	if err := c.db.Select(&items, `SELECT * FROM Games WHERE hostId = ?`, userID); err != nil {
-		if err == sql.ErrNoRows {
-			return []cs.Game{}, nil
-		}
-		return nil, err
-	}
-
-	return c.converter.ConvertGames(items), nil
+func (c *client) GetGamesForHost(userID int64) ([]cs.GameWithPlayers, error) {
+	return c.getGameWithPlayersStatus(`g.hostId = ?`, userID)
 }
 
-func (c *client) GetGamesForUser(userID int64) ([]cs.Game, error) {
-
-	items := []Game{}
-	if err := c.db.Select(&items, `SELECT * FROM games g WHERE g.hostId = ? OR g.id in (SELECT gameId from players p WHERE p.userId = ?)`, userID, userID); err != nil {
-		if err == sql.ErrNoRows {
-			return []cs.Game{}, nil
-		}
-		return nil, err
-	}
-
-	return c.converter.ConvertGames(items), nil
+func (c *client) GetGamesForUser(userID int64) ([]cs.GameWithPlayers, error) {
+	return c.getGameWithPlayersStatus(`g.hostId = ? OR g.id in (SELECT gameId from players p WHERE p.userId = ?)`, userID, userID)
 }
 
-func (c *client) GetOpenGames(userID int64) ([]cs.Game, error) {
-	items := []Game{}
-	if err := c.db.Select(&items, `SELECT * from games g WHERE g.state = ? AND g.openPlayerSlots > 0 AND g.hostId <> ?`, cs.GameStateSetup, userID); err != nil {
-		if err == sql.ErrNoRows {
-			return []cs.Game{}, nil
-		}
-		return nil, err
-	}
+func (c *client) GetOpenGames() ([]cs.GameWithPlayers, error) {
+	return c.getGameWithPlayersStatus(`g.state = ? AND g.openPlayerSlots > 0`, cs.GameStateSetup)
 
-	return c.converter.ConvertGames(items), nil
 }
 
-func (c *client) GetOpenGamesByHash(hash string) ([]cs.Game, error) {
-	items := []Game{}
-	if err := c.db.Select(&items, `SELECT * from games g WHERE g.state = ? AND g.openPlayerSlots > 0 AND g.hash = ?`, cs.GameStateSetup, hash); err != nil {
-		if err == sql.ErrNoRows {
-			return []cs.Game{}, nil
-		}
-		return nil, err
-	}
-
-	return c.converter.ConvertGames(items), nil
+func (c *client) GetOpenGamesByHash(hash string) ([]cs.GameWithPlayers, error) {
+	return c.getGameWithPlayersStatus(`g.state = ? AND g.openPlayerSlots > 0 AND g.hash = ?`, cs.GameStateSetup, hash)
 }
 
 // get a game by id
-func (c *client) GetGame(id int64) (*cs.Game, error) {
-	item := Game{}
-	if err := c.db.Get(&item, "SELECT * FROM games WHERE id = ?", id); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
+func (c *client) GetGame(id int64) (*cs.GameWithPlayers, error) {
+	games, err := c.getGameWithPlayersStatus("g.id = ?", id)
+	if err != nil {
 		return nil, err
 	}
+	if len(games) == 0 {
+		return nil, nil
+	}
 
-	game := c.converter.ConvertGame(item)
-	return &game, nil
+	return &games[0], nil
 }
 
-func (c *client) GetGameWithPlayersStatus(gameID int64) (*cs.Game, []cs.Player, error) {
+func (c *client) GetGameWithPlayersStatus(gameID int64) (*cs.GameWithPlayers, error) {
+	games, err := c.getGameWithPlayersStatus("g.id = ?", gameID)
+	if err != nil {
+		return nil, err
+	}
+	if len(games) == 0 {
+		return nil, nil
+	}
+
+	return &games[0], nil
+}
+
+func (c *client) getGameWithPlayersStatus(where string, args ...interface{}) ([]cs.GameWithPlayers, error) {
 	type gamePlayersJoin struct {
-		Game   `json:"game,omitempty"`
-		Player `json:"player,omitempty"`
+		Game            `json:"game,omitempty"`
+		cs.PlayerStatus `json:"player,omitempty"`
 	}
 
 	rows := []gamePlayersJoin{}
 
-	err := c.db.Select(&rows, `
+	err := c.db.Select(&rows, fmt.Sprintf(`
 	SELECT 
 		g.id AS 'game.id',
 		g.createdAt AS 'game.createdAt',
@@ -183,56 +161,59 @@ func (c *client) GetGameWithPlayersStatus(gameID int64) (*cs.Game, []cs.Player, 
 		g.year AS 'game.year',
 		g.victorDeclared AS 'game.victorDeclared',
 		
-		COALESCE(p.id, 0) AS 'player.id',
-		p.createdAt AS 'player.createdAt',
 		p.updatedAt AS 'player.updatedAt',
-		COALESCE(p.gameId, 0) AS 'player.gameId',
 		COALESCE(p.userId, 0) AS 'player.userId',
 		COALESCE(p.name, '') AS 'player.name',
 		COALESCE(p.num, 0) AS 'player.num',
 		COALESCE(p.ready, 0) AS 'player.ready',
 		COALESCE(p.aiControlled, 0) AS 'player.aiControlled',
 		COALESCE(p.submittedTurn, 0) AS 'player.submittedTurn',
-		COALESCE(p.color, '') AS 'player.color'
+		COALESCE(p.color, '') AS 'player.color',
+		COALESCE(p.victor, 0) AS 'player.victor'
 
 	FROM games g
 	LEFT JOIN players p
 		ON g.id = p.gameId
-	WHERE g.Id = ?
-`, gameID)
+	WHERE %s
+`, where), args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, nil, nil
+			return []cs.GameWithPlayers{}, nil
 		}
-		return nil, nil, err
+		return nil, err
 	}
 
 	// check if we have a game
 	if len(rows) == 0 {
-		return nil, nil, nil
+		return []cs.GameWithPlayers{}, nil
 	}
 
-	// join results give a row per item, so if we have
-	// 2 players, we'll end up with 2 rows
-	// row 0 - game, player 1
-	// row 1 - game, player 2
-	item := rows[0].Game
-	playerStatuses := []Player{}
-
-	playersAdded := make(map[int64]bool)
+	// join results give a row per item, so if we have 2 games
+	// one with 2 players, one with 3, we'll end up with 5 rows
+	// row 0 - game1, player 1
+	// row 1 - game1, player 2
+	// row 2 - game2, player 1
+	// row 3 - game2, player 2
+	// row 4 - game2, player 3
+	games := []cs.GameWithPlayers{}
+	var item Game
+	var game *cs.GameWithPlayers
 	for _, row := range rows {
-		if row.Player.ID != 0 {
-			if _, found := playersAdded[row.Player.ID]; !found {
-				playersAdded[row.Player.ID] = true
-				playerStatuses = append(playerStatuses, row.Player)
-			}
+
+		if row.ID != item.ID {
+			// convert this row into a game
+			item = row.Game
+			g := c.converter.ConvertGame(item)
+			games = append(games, cs.GameWithPlayers{Game: g, Players: []cs.PlayerStatus{}})
+			game = &games[len(games)-1]
+		}
+
+		if row.PlayerStatus.Num != 0 {
+			game.Players = append(game.Players, row.PlayerStatus)
 		}
 	}
 
-	game := c.converter.ConvertGame(item)
-	players := c.converter.ConvertPlayers(playerStatuses)
-
-	return &game, players, nil
+	return games, nil
 }
 
 // get a game by id

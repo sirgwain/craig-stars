@@ -222,9 +222,9 @@ func (s *server) transferCargo(w http.ResponseWriter, r *http.Request) {
 
 	switch transfer.MO.Type {
 	case cs.MapObjectTypePlanet:
-		s.transferCargoFleetPlanet(w, r, game, player, fleet, transfer.MO.ID, transfer.TransferAmount)
+		s.transferCargoFleetPlanet(w, r, &game.Game, player, fleet, transfer.MO.ID, transfer.TransferAmount)
 	case cs.MapObjectTypeFleet:
-		s.transferCargoFleetFleet(w, r, game, player, fleet, transfer.MO.ID, transfer.TransferAmount)
+		s.transferCargoFleetFleet(w, r, &game.Game, player, fleet, transfer.MO.ID, transfer.TransferAmount)
 	default:
 		render.Render(w, r, ErrBadRequest(fmt.Errorf("unable to transfer cargo from fleet to %s", transfer.MO.Type)))
 		return
@@ -297,6 +297,7 @@ func (s *server) transferCargoFleetFleet(w http.ResponseWriter, r *http.Request,
 	if dest == nil {
 		log.Error().Int64("GameID", fleet.GameID).Int64("DestID", destID).Msg("dest fleet not found")
 		render.Render(w, r, ErrNotFound)
+		return
 	}
 
 	// if we are transferring cargo to another player, load them from the DB

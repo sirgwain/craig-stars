@@ -79,6 +79,7 @@ export class FullGame implements Game {
 	};
 	victorDeclared = false;
 	rules = defaultRules;
+	players = [];
 
 	// some data that is loaded
 	player: Player = new Player();

@@ -1,15 +1,20 @@
 <script lang="ts">
 	import { GameService } from '$lib/services/GameService';
-	import type { Game } from '$lib/types/Game';
+	import { GameState, type Game } from '$lib/types/Game';
 	import { onMount } from 'svelte';
 	import { me } from '$lib/services/Stores';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { XMark } from '@steeze-ui/heroicons';
 	import Galaxy from '$lib/components/icons/Galaxy.svelte';
 	import Processor from '$lib/components/icons/Processor.svelte';
+	import ItemTitle from '$lib/components/ItemTitle.svelte';
+	import ActiveGameRow from './ActiveGameRow.svelte';
 
 	let myGames: Game[];
 	let openGames: Game[];
+	let pendingGames: Game[];
+	let singlePlayerGames: Game[];
+	let submittedGames: Game[];
 
 	onMount(() => {
 		loadGames();
@@ -22,6 +27,21 @@
 		GameService.loadPlayerGames().then((games) => {
 			myGames = games;
 			myGames.sort(sorter);
+			// find all multiplayer games where we haven't submitted a turn yet
+			pendingGames = games
+				.filter((g) => g.state != GameState.Setup)
+				.filter((g) => !g.players.find((p) => p.userId == $me.id)?.submittedTurn)
+				.filter((g) => g.players.find((p) => p.userId != $me.id && !p.aiControlled));
+
+			// find all games where we've submitted our turn
+			submittedGames = games.filter(
+				(g) => g.players.find((p) => p.userId == $me.id)?.submittedTurn
+			);
+
+			// find all single player games
+			singlePlayerGames = games.filter(
+				(g) => !g.players.find((p) => p.userId != $me.id && !p.aiControlled)
+			);
 		});
 
 		GameService.loadOpenGames().then((games) => {
@@ -38,7 +58,6 @@
 	};
 </script>
 
-<h2 class="font-semibold text-xl my-2">Games</h2>
 <div class="flex justify-evenly">
 	<a class="btn gap-2" href="/host-game">
 		<Galaxy class="fill-current w-12 h-12" />
@@ -49,55 +68,71 @@
 		Single Player
 	</a>
 </div>
-<div class="mt-2 grid grid-cols-12 gap-1">
-	{#if myGames?.length > 0}
+
+{#if pendingGames?.length > 0}
+	<ItemTitle>Games Waiting on You</ItemTitle>
+
+	<div class="mt-2 grid grid-cols-12 gap-1">
+		{#if pendingGames?.length > 0}
+			<div class="col-span-6 text-secondary">Name</div>
+			<div class="col-span-2 text-secondary">Year</div>
+			<div class="col-span-2 text-secondary">Players</div>
+			<div class="col-span-2" />
+
+			{#each pendingGames as game}
+				<ActiveGameRow {game} on:delete={() => deleteGame(game)} />
+			{/each}
+		{/if}
+	</div>
+{/if}
+
+{#if submittedGames?.length > 0}
+	<ItemTitle>Games Waiting on Others</ItemTitle>
+
+	<div class="mt-2 grid grid-cols-12 gap-1">
 		<div class="col-span-6 text-secondary">Name</div>
 		<div class="col-span-2 text-secondary">Year</div>
 		<div class="col-span-2 text-secondary">Players</div>
 		<div class="col-span-2" />
 
-		{#each myGames as game}
-			<div class="col-span-6">
-				<a class="text-primary text-2xl hover:text-accent w-full" href="/games/{game.id}"
-					>{game.name}</a
-				>
-			</div>
-			<div class="col-span-2 text-2xl">
-				{game.year}
-			</div>
-			<div class="col-span-2 text-2xl">
-				{game.numPlayers}
-			</div>
-			{#if game.hostId == $me?.id}
-				<div class="col-span-2">
-					<button
-						on:click={() => deleteGame(game)}
-						class="float-right btn btn-error btn-danger btn-sm"
-					>
-						<Icon src={XMark} size="16" class="hover:stroke-accent md:hidden" />
-						<span class="hidden md:inline-block">Delete</span></button
-					>
-				</div>
-			{:else}
-				<div class="col-span-2" />
-			{/if}
+		{#each submittedGames as game}
+			<ActiveGameRow {game} on:delete={() => deleteGame(game)} />
 		{/each}
-	{/if}
+	</div>
+{/if}
 
-	{#if openGames?.length > 0}
+{#if singlePlayerGames?.length > 0}
+	<ItemTitle>Single Player Games</ItemTitle>
+
+	<div class="mt-2 grid grid-cols-12 gap-1">
+		<div class="col-span-6 text-secondary">Name</div>
+		<div class="col-span-2 text-secondary">Year</div>
+		<div class="col-span-2 text-secondary">Players</div>
+		<div class="col-span-2" />
+		{#each singlePlayerGames as game}
+			<ActiveGameRow {game} showNumSubmitted={false} on:delete={() => deleteGame(game)} />
+		{/each}
+	</div>
+{/if}
+
+{#if openGames?.length > 0}
+	<ItemTitle>New Open Games</ItemTitle>
+	<div class="mt-2 grid grid-cols-12 gap-1">
 		<h2 class="font-semibold text-xl col-span-full">Open Games</h2>
 		<div class="col-span-6 text-secondary">Name</div>
 		<div class="col-span-6 text-secondary">Players</div>
 
 		{#each openGames as game}
 			<div class="col-span-6">
-				<a class="text-primary text-2xl hover:text-accent w-full" href="/join-game/{game.id}"
+				<a
+					class="text-primary text-2xl hover:text-accent w-full"
+					href={game.hostId == $me.id ? `/games/${game.id}` : `/join-game/${game.id}`}
 					>{game.name}</a
 				>
 			</div>
-			<div class="col-span-3 text-2xl">
+			<div class="col-span-3 text-md">
 				{game.numPlayers - game.openPlayerSlots} / {game.numPlayers}
 			</div>
 		{/each}
-	{/if}
-</div>
+	</div>
+{/if}

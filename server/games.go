@@ -56,8 +56,8 @@ func (s *server) gameCtx(next http.Handler) http.Handler {
 	})
 }
 
-func (s *server) contextGame(r *http.Request) *cs.Game {
-	return r.Context().Value(keyGame).(*cs.Game)
+func (s *server) contextGame(r *http.Request) *cs.GameWithPlayers {
+	return r.Context().Value(keyGame).(*cs.GameWithPlayers)
 }
 
 func (s *server) games(w http.ResponseWriter, r *http.Request) {
@@ -87,11 +87,10 @@ func (s *server) hostedGames(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) openGames(w http.ResponseWriter, r *http.Request) {
-	user := s.contextUser(r)
 
-	games, err := s.db.GetOpenGames(user.ID)
+	games, err := s.db.GetOpenGames()
 	if err != nil {
-		log.Error().Err(err).Int64("UserID", user.ID).Msg("get games from database")
+		log.Error().Err(err).Msg("get games from database")
 		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
@@ -172,7 +171,7 @@ func (s *server) generateUniverse(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := s.gameRunner.GenerateUniverse(game); err != nil {
+	if err := s.gameRunner.GenerateUniverse(&game.Game); err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Msg("generating universe")
 		render.Render(w, r, ErrInternalServerError(err))
 	}

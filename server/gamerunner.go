@@ -45,7 +45,7 @@ type GameRunner interface {
 	HostGame(hostID int64, settings *cs.GameSettings) (*cs.FullGame, error)
 	JoinGame(gameID int64, userID int64, raceID int64, color string) error
 	GenerateUniverse(game *cs.Game) error
-	LoadPlayerGame(gameID int64, userID int64) (*cs.Game, *cs.FullPlayer, error)
+	LoadPlayerGame(gameID int64, userID int64) (*cs.GameWithPlayers, *cs.FullPlayer, error)
 	SubmitTurn(gameID int64, userID int64) error
 	CheckAndGenerateTurn(gameID int64) (TurnGenerationCheckResult, error)
 	GenerateTurn(gameID int64) error
@@ -116,7 +116,7 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 			if playerSetting.Race.Name != "" {
 				race = playerSetting.Race
 			}
-			player := gr.client.NewPlayer(hostID, race, &game.Rules)
+			player := gr.client.NewPlayer(0, race, &game.Rules)
 			player.GameID = game.ID
 			player.Num = i + 1
 			player.AIControlled = true
@@ -128,7 +128,7 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 		} else if playerSetting.Type == cs.NewGamePlayerTypeOpen {
 			log.Debug().Uint("openPlayerSlots", game.OpenPlayerSlots).Msg("Added open player slot to game")
 			race := cs.NewRace()
-			player := gr.client.NewPlayer(hostID, *race, &game.Rules)
+			player := gr.client.NewPlayer(0, *race, &game.Rules)
 			player.GameID = game.ID
 			player.Num = i + 1
 			player.Name = "Open Slot"
@@ -242,7 +242,7 @@ func (gr *gameRunner) JoinGame(gameID int64, userID int64, raceID int64, color s
 	// fix duplicate colors
 	// TODO: this is fragile
 	for i, p := range fullGame.Players {
-		if p.Color == color {
+		if p.Color == color && p.Num != player.Num {
 			if player.Num-1 < len(colors) {
 				player.Color = colors[player.Num-1]
 			} else {
@@ -281,7 +281,7 @@ func (gr *gameRunner) GenerateUniverse(game *cs.Game) error {
 }
 
 // load a player and the light version of the player game
-func (gr *gameRunner) LoadPlayerGame(gameID int64, userID int64) (*cs.Game, *cs.FullPlayer, error) {
+func (gr *gameRunner) LoadPlayerGame(gameID int64, userID int64) (*cs.GameWithPlayers, *cs.FullPlayer, error) {
 
 	game, err := gr.db.GetGame(gameID)
 

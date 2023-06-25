@@ -55,12 +55,12 @@ type Client interface {
 	GetRulesForGame(gameID int64) (*cs.Rules, error)
 
 	GetGames() ([]cs.Game, error)
-	GetGamesForHost(userID int64) ([]cs.Game, error)
-	GetGamesForUser(userID int64) ([]cs.Game, error)
-	GetOpenGames(userID int64) ([]cs.Game, error)
-	GetOpenGamesByHash(hash string) ([]cs.Game, error)
-	GetGame(id int64) (*cs.Game, error)
-	GetGameWithPlayersStatus(gameID int64) (*cs.Game, []cs.Player, error)
+	GetGamesForHost(userID int64) ([]cs.GameWithPlayers, error)
+	GetGamesForUser(userID int64) ([]cs.GameWithPlayers, error)
+	GetOpenGames() ([]cs.GameWithPlayers, error)
+	GetOpenGamesByHash(hash string) ([]cs.GameWithPlayers, error)
+	GetGame(id int64) (*cs.GameWithPlayers, error)
+	GetGameWithPlayersStatus(gameID int64) (*cs.GameWithPlayers, error)
 	GetFullGame(id int64) (*cs.FullGame, error)
 	CreateGame(game *cs.Game) error
 	UpdateGame(game *cs.Game) error
