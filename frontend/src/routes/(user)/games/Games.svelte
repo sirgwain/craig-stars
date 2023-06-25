@@ -1,16 +1,16 @@
 <script lang="ts">
-	import { GameService } from '$lib/services/GameService';
-	import { GameState, type Game } from '$lib/types/Game';
-	import { onMount } from 'svelte';
-	import { me } from '$lib/services/Stores';
-	import { Icon } from '@steeze-ui/svelte-icon';
-	import { XMark } from '@steeze-ui/heroicons';
+	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import Galaxy from '$lib/components/icons/Galaxy.svelte';
 	import Processor from '$lib/components/icons/Processor.svelte';
-	import ItemTitle from '$lib/components/ItemTitle.svelte';
+	import { GameService } from '$lib/services/GameService';
+	import { me } from '$lib/services/Stores';
+	import { GameState, type Game } from '$lib/types/Game';
+	import { onMount } from 'svelte';
 	import ActiveGameRow from './ActiveGameRow.svelte';
+	import GameStatus from './(game)/[id]/GameStatus.svelte';
 
 	let myGames: Game[];
+	let myGamesWaitingToGenerate: Game[];
 	let openGames: Game[];
 	let pendingGames: Game[];
 	let singlePlayerGames: Game[];
@@ -42,6 +42,11 @@
 			singlePlayerGames = games.filter(
 				(g) => !g.players.find((p) => p.userId != $me.id && !p.aiControlled)
 			);
+
+			myGamesWaitingToGenerate = games.filter(
+				(g) => g.hostId == $me.id && g.state == GameState.Setup && !g.players.find((p) => !p.ready)
+			);
+			pendingGames.push(...myGamesWaitingToGenerate);
 		});
 
 		GameService.loadOpenGames().then((games) => {
