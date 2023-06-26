@@ -30,8 +30,7 @@ export class ProductionPlanService {
 		});
 
 		if (!response.ok) {
-			const result = (await response.json()) as ErrorResponse;
-			throw new CSError(result);
+			await Service.raiseError(response);
 		}
 		return (await response.json()) as PlayerResponse;
 	}

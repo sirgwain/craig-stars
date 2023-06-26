@@ -11,6 +11,20 @@ import type { Tech, TechDefense, TechPlanetaryScanner } from './Tech';
 import { type TechLevel, TechField, emptyTechLevel } from './TechLevel';
 import type { Wormhole } from './Wormhole';
 
+export type PlayerStatus = {
+	updatedAt: string;
+
+	userId?: number;
+	num: number;
+	color: string;
+	name: string;
+	race: Race;
+	ready?: boolean;
+	aIControlled?: boolean;
+	submittedTurn?: boolean;
+
+}
+
 export type PlayerResponse = {
 	id?: number;
 	createdAt?: string;

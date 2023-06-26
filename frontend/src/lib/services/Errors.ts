@@ -16,13 +16,15 @@ export class CSError implements ErrorResponse {
 	status = '';
 	error = '';
 
-	constructor(data?: ErrorResponse | string, statusCode?: number) {
-		if (data as string) {
-			this.status = data as string;
+	constructor(data: ErrorResponse | undefined, status: string, statusCode: number) {
+		this.status = status;
+		this.error = status;
+		this.statusCode = statusCode;
+		if (typeof data === 'string') {
+			this.status = this.error = data as string;
 		} else {
 			Object.assign(this, data);
 		}
-		this.statusCode = statusCode;
 	}
 
 	toString(): string {

@@ -405,6 +405,20 @@ func (c *client) UpdateGame(game *cs.Game) error {
 	return c.updateGameWithNamedExecer(game, c.db)
 }
 
+func (c *client) UpdateGameState(gameID int64, state cs.GameState) error {
+
+	if _, err := c.db.Exec(`
+	UPDATE games SET
+		updatedAt = CURRENT_TIMESTAMP,
+		state = ?
+	WHERE id = ?
+	`, state, gameID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // update a game inside a transaction
 func (c *client) updateGameWithNamedExecer(game *cs.Game, tx SQLExecer) error {
 

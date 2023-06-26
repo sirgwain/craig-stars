@@ -32,6 +32,7 @@ func (req *joinGameRequest) Bind(r *http.Request) error {
 // context for /api/games/{id} calls
 func (s *server) gameCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user := s.contextUser(r)
 		// load the game by id from the database
 		id, err := s.int64URLParam(r, "id")
 		if id == nil || err != nil {
@@ -48,6 +49,28 @@ func (s *server) gameCtx(next http.Handler) http.Handler {
 		if game == nil {
 			log.Error().Int64("GameID", *id).Msg("game not found")
 			render.Render(w, r, ErrNotFound)
+			return
+		}
+
+		if game.State != cs.GameStateSetup && game.HostID != user.ID {
+			userIsPlayer := false
+			for _, player := range game.Players {
+				if player.UserID == user.ID {
+					userIsPlayer = true
+				}
+			}
+
+			if !userIsPlayer {
+				log.Error().Int64("GameID", *id).Str("User", user.Username).Msg("access denied for game")
+				render.Render(w, r, ErrForbidden)
+				return
+			}
+		}
+
+		if (r.Method == "POST" || r.Method == "PUT" || r.Method == "DELETE") && (game.State == cs.GameStateGeneratingTurn || game.State == cs.GameStateGeneratingUniverse) {
+			err := fmt.Errorf("game is generating universe or new turn, cannot update")
+			log.Error().Err(err).Int64("GameID", *id).Msg("update game during turn generation")
+			render.Render(w, r, ErrConflict(err))
 			return
 		}
 

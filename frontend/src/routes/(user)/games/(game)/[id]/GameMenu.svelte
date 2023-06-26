@@ -41,37 +41,39 @@
 			>
 		{/if}
 
-		<div class="hidden md:inline-block">
-			<div class="dropdown dropdown-end">
-				<label for="reports" tabindex="0" class="btn btn-ghost w-40">Commands</label>
-				<ul
-					id="commands"
-					tabindex="0"
-					class=" menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-300"
-				>
-					<li><a href={`/games/${$game.id}/research`}>Research</a></li>
-					<li><a href={`/games/${$game.id}/designs`}>Ship Designs</a></li>
-					<li><a href={`/games/${$game.id}/battle-plans`}>Battle Plans</a></li>
-					<li><a href={`/games/${$game.id}/production-plans`}>Production Plans</a></li>
-					<li><a href={`/games/${$game.id}/transport-plans`}>Transport Plans</a></li>
-				</ul>
-			</div>
+		{#if !$player.submittedTurn}
+			<div class="hidden md:inline-block">
+				<div class="dropdown dropdown-end">
+					<label for="reports" tabindex="0" class="btn btn-ghost w-40">Commands</label>
+					<ul
+						id="commands"
+						tabindex="0"
+						class=" menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-300"
+					>
+						<li><a href={`/games/${$game.id}/research`}>Research</a></li>
+						<li><a href={`/games/${$game.id}/designs`}>Ship Designs</a></li>
+						<li><a href={`/games/${$game.id}/battle-plans`}>Battle Plans</a></li>
+						<li><a href={`/games/${$game.id}/production-plans`}>Production Plans</a></li>
+						<li><a href={`/games/${$game.id}/transport-plans`}>Transport Plans</a></li>
+					</ul>
+				</div>
 
-			<div class="dropdown dropdown-end">
-				<label for="reports" tabindex="0" class="btn btn-ghost">Reports</label>
-				<ul
-					id="reports"
-					tabindex="0"
-					class=" menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-300"
-				>
-					<li><a href={`/games/${$game.id}/players`}>Players</a></li>
-					<li><a href={`/games/${$game.id}/planets`}>Planets</a></li>
-					<li><a href={`/games/${$game.id}/fleets`}>Fleets</a></li>
-					<li><a href={`/games/${$game.id}/messages`}>Messages</a></li>
-					<li><a href={`/games/${$game.id}/battles`}>Battles</a></li>
-				</ul>
+				<div class="dropdown dropdown-end">
+					<label for="reports" tabindex="0" class="btn btn-ghost">Reports</label>
+					<ul
+						id="reports"
+						tabindex="0"
+						class=" menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-300"
+					>
+						<li><a href={`/games/${$game.id}/players`}>Players</a></li>
+						<li><a href={`/games/${$game.id}/planets`}>Planets</a></li>
+						<li><a href={`/games/${$game.id}/fleets`}>Fleets</a></li>
+						<li><a href={`/games/${$game.id}/messages`}>Messages</a></li>
+						<li><a href={`/games/${$game.id}/battles`}>Battles</a></li>
+					</ul>
+				</div>
 			</div>
-		</div>
+		{/if}
 
 		<div class="dropdown dropdown-end">
 			<label for="menu" tabindex="0" class="btn btn-ghost">
@@ -83,27 +85,29 @@
 				<li>
 					<DarkModeToggler />
 				</li>
-				<li class="md:hidden menu-title">
-					<span>Commands</span>
-				</li>
-				<li class="md:hidden"><a href={`/games/${$game.id}/research`}>Research</a></li>
-				<li class="md:hidden"><a href={`/games/${$game.id}/designs`}>Ship Designs</a></li>
-				<li class="md:hidden"><a href={`/games/${$game.id}/battle-plans`}>Battle Plans</a></li>
-				<li class="md:hidden">
-					<a href={`/games/${$game.id}/production-plans`}>Production Plans</a>
-				</li>
-				<li class="md:hidden">
-					<a href={`/games/${$game.id}/transport-plans`}>Transport Plans</a>
-				</li>
+				{#if !$player.submittedTurn}
+					<li class="md:hidden menu-title">
+						<span>Commands</span>
+					</li>
+					<li class="md:hidden"><a href={`/games/${$game.id}/research`}>Research</a></li>
+					<li class="md:hidden"><a href={`/games/${$game.id}/designs`}>Ship Designs</a></li>
+					<li class="md:hidden"><a href={`/games/${$game.id}/battle-plans`}>Battle Plans</a></li>
+					<li class="md:hidden">
+						<a href={`/games/${$game.id}/production-plans`}>Production Plans</a>
+					</li>
+					<li class="md:hidden">
+						<a href={`/games/${$game.id}/transport-plans`}>Transport Plans</a>
+					</li>
 
-				<li class="md:hidden menu-title">
-					<span>Reports</span>
-				</li>
-				<li class="md:hidden"><a href={`/games/${$game.id}/players`}>Players</a></li>
-				<li class="md:hidden"><a href={`/games/${$game.id}/planets`}>Planets</a></li>
-				<li class="md:hidden"><a href={`/games/${$game.id}/fleets`}>Fleets</a></li>
-				<li class="md:hidden"><a href={`/games/${$game.id}/messages`}>Messages</a></li>
-				<li class="md:hidden"><a href={`/games/${$game.id}/battles`}>Battles</a></li>
+					<li class="md:hidden menu-title">
+						<span>Reports</span>
+					</li>
+					<li class="md:hidden"><a href={`/games/${$game.id}/players`}>Players</a></li>
+					<li class="md:hidden"><a href={`/games/${$game.id}/planets`}>Planets</a></li>
+					<li class="md:hidden"><a href={`/games/${$game.id}/fleets`}>Fleets</a></li>
+					<li class="md:hidden"><a href={`/games/${$game.id}/messages`}>Messages</a></li>
+					<li class="md:hidden"><a href={`/games/${$game.id}/battles`}>Battles</a></li>
+				{/if}
 
 				<li class="md:hidden menu-title">
 					<span>Game</span>

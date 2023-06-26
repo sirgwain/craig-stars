@@ -20,5 +20,4 @@
 			/>
 		</svg>
 	</div>
-	<div class="text-center">Loading...</div>
 </div>

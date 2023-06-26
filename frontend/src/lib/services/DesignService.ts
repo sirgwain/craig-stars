@@ -36,11 +36,7 @@ export class DesignService {
 		});
 
 		if (!response.ok) {
-			const result = await response.json();
-			if ('error' in result) {
-				console.error(`Failed to compute spec ${url}`, result);
-			}
-			throw new Error(`Failed to compute spec ${url} ${JSON.stringify(result)}`);
+			await Service.raiseError(response);
 		}
 
 		// update the spec
@@ -60,11 +56,7 @@ export class DesignService {
 		});
 
 		if (!response.ok) {
-			const result = await response.json();
-			if ('error' in result) {
-				console.error(`Failed to delete ${url}`, result);
-			}
-			throw new Error(`Failed to delete ${url} ${JSON.stringify(result)}`);
+			await Service.raiseError(response);
 		}
 		return (await response.json()) as { fleets: Fleet[]; starbases: Fleet[] };
 	}

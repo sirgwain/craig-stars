@@ -1,10 +1,10 @@
 import type { Game } from '$lib/types/Game';
 import {
 	Player,
-	type PlayerIntels, type PlayerResponse,
+	type PlayerIntels,
+	type PlayerResponse,
 	type PlayerUniverse
 } from '$lib/types/Player';
-import { CSError } from './Errors';
 import { Service } from './Service';
 
 type playerStatusResult = {
@@ -36,8 +36,7 @@ export class GameService {
 		});
 
 		if (!response.ok) {
-			const error = await response.json();
-			throw new Error('Failed to delete game', error);
+			await Service.raiseError(response);
 		}
 	}
 
@@ -49,11 +48,10 @@ export class GameService {
 			}
 		});
 
-		if (response.ok) {
-			return (await response.json()) as Game;
-		} else {
-			throw new CSError(response.statusText, response.status);
+		if (!response.ok) {
+			await Service.raiseError(response);
 		}
+		return (await response.json()) as Game;
 	}
 
 	static async loadGameByHash(hash: string): Promise<Game[]> {
@@ -64,11 +62,10 @@ export class GameService {
 			}
 		});
 
-		if (response.ok) {
-			return (await response.json()) as Game[];
-		} else {
-			throw new CSError(response.statusText, response.status);
+		if (!response.ok) {
+			await Service.raiseError(response);
 		}
+		return (await response.json()) as Game[];
 	}
 
 	static async loadLightPlayer(gameId: number): Promise<Player> {
@@ -79,12 +76,11 @@ export class GameService {
 			}
 		});
 
-		if (response.ok) {
-			const json = (await response.json()) as PlayerResponse;
-			return new Player(json);
-		} else {
-			throw new CSError(response.statusText, response.status);
+		if (!response.ok) {
+			await Service.raiseError(response);
 		}
+		const json = (await response.json()) as PlayerResponse;
+		return new Player(json);
 	}
 
 	static async loadFullPlayer(gameId: number | string): Promise<Player> {
@@ -95,12 +91,11 @@ export class GameService {
 			}
 		});
 
-		if (response.ok) {
-			const json = (await response.json()) as PlayerResponse;
-			return new Player(json);
-		} else {
-			throw new CSError(response.statusText, response.status);
+		if (!response.ok) {
+			await Service.raiseError(response);
 		}
+		const json = (await response.json()) as PlayerResponse;
+		return new Player(json);
 	}
 
 	static async loadUniverse(gameId: number | string): Promise<UniverseResponse> {
@@ -111,25 +106,9 @@ export class GameService {
 			}
 		});
 
-		if (response.ok) {
-			return (await response.json()) as UniverseResponse;
-		} else {
-			throw new CSError(response.statusText, response.status);
+		if (!response.ok) {
+			await Service.raiseError(response);
 		}
-	}
-
-	static async loadPlayersStatus(gameId: number): Promise<playerStatusResult> {
-		const response = await fetch(`/api/games/${gameId}/players-status`, {
-			method: 'GET',
-			headers: {
-				accept: 'application/json'
-			}
-		});
-
-		if (response.ok) {
-			return (await response.json()) as playerStatusResult;
-		} else {
-			throw new CSError(response.statusText, response.status);
-		}
+		return (await response.json()) as UniverseResponse;
 	}
 }

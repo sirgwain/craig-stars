@@ -2,7 +2,7 @@
 	import { EventManager } from '$lib/EventManager';
 	import Tooltip from '$lib/components/game/tooltips/Tooltip.svelte';
 	import { getGameContext } from '$lib/services/Contexts';
-	import { commandedFleet, commandedPlanet } from '$lib/services/Stores';
+	import { commandedFleet, commandedPlanet, loadingModalText } from '$lib/services/Stores';
 	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
 	import { MapObjectType } from '$lib/types/MapObject';
 	import type { CommandedPlanet, Planet } from '$lib/types/Planet';
@@ -10,6 +10,7 @@
 	import ProductionQueue from '../dialogs/ProductionQueue.svelte';
 	import CargoTransferDialog from '../dialogs/cargo/CargoTransferDialog.svelte';
 	import MergeFleets from '../fleets/[num]/merge/MergeFleets.svelte';
+	import LoadingModal from '$lib/components/LoadingModal.svelte';
 
 	const { game, player, universe } = getGameContext();
 

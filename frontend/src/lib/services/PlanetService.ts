@@ -22,13 +22,11 @@ export class PlanetService {
 			body: JSON.stringify(planet)
 		});
 
-		if (response.ok) {
-			const updated = await response.json();
-			return Object.assign(new CommandedPlanet(), updated);
-		} else {
-			const result = (await response.json()) as ErrorResponse;
-			throw new CSError(result);
+		if (!response.ok) {
+			await Service.raiseError(response);
 		}
+		const updated = await response.json();
+		return Object.assign(new CommandedPlanet(), updated);
 	}
 
 	static async updatePlanetOrders(planet: CommandedPlanet): Promise<Planet> {
@@ -50,11 +48,9 @@ export class PlanetService {
 			body: JSON.stringify(planetOrders)
 		});
 
-		if (response.ok) {
-			return await response.json();
-		} else {
-			console.error(response);
+		if (!response.ok) {
+			await Service.raiseError(response);
 		}
-		return Promise.resolve(planet);
+		return await response.json();
 	}
 }

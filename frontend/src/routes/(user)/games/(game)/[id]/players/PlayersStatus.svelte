@@ -9,15 +9,6 @@
 
 	$: settingUp = $game.state === GameState.Setup;
 
-	function getPlayerIntel(num: number): PlayerIntel | undefined {
-		if (num == $player.num) {
-			return $player;
-		}
-		if (num > 0 && num <= $universe.players.length) {
-			return $universe.players[num];
-		}
-	}
-
 	onMount(async () => {
 		await $game.loadPlayersStatus();
 		$game.startPollingPlayersStatus();
@@ -32,7 +23,7 @@
 		<div class="font-semibold text-xl">Race</div>
 	{/if}
 	<div class="font-semibold text-xl">Status</div>
-	{#each $game.playersStatus as playerStatus}
+	{#each $game.players as playerStatus}
 		<div class="flex flex-row">
 			<div class="w-4">
 				{playerStatus.num}
@@ -44,7 +35,7 @@
 			{playerStatus.name}
 		</div>
 		{#if !settingUp}
-			<div>{getPlayerIntel(playerStatus.num)?.racePluralName ?? 'unknown'}</div>
+			<div>{$universe.getPlayerIntel(playerStatus.num)?.racePluralName ?? 'unknown'}</div>
 		{/if}
 		<div>
 			<PlayerStatus {playerStatus} />

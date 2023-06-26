@@ -1,7 +1,7 @@
-import type PlayerStatus from '../../routes/(user)/games/(game)/[id]/players/PlayerStatus.svelte';
 import type { Cost } from './Cost';
 import type { EnumDictionary } from './EnumDictionary';
 import type { MineFieldStats, MineFieldType } from './MineField';
+import type { PlayerStatus } from './Player';
 import type { TechStore } from './Tech';
 import type { Vector } from './Vector';
 

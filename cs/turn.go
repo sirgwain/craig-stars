@@ -1095,7 +1095,7 @@ func (t *turn) playerResearch() {
 	for _, player := range t.game.Players {
 		primaryField := player.Researching
 		resourcesToSpend := int(float64(resourcesToSpendByPlayer[player.Num])*player.Race.Spec.ResearchFactor + .5)
-		player.ResearchSpentLastYear += resourcesToSpend
+		player.ResearchSpentLastYear = resourcesToSpend
 
 		// research tech levels until the resources run out
 		spent := r.research(player, resourcesToSpend, onLevelGained)

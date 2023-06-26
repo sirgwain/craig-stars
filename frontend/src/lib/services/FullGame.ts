@@ -16,7 +16,7 @@ import {
 	Player,
 	type BattlePlan,
 	type PlayerIntels,
-	type PlayerResponse,
+	type PlayerStatus,
 	type PlayerUniverse,
 	type ProductionPlan,
 	type TransportPlan
@@ -79,13 +79,12 @@ export class FullGame implements Game {
 	};
 	victorDeclared = false;
 	rules = defaultRules;
-	players = [];
+	players: PlayerStatus[] = [];
 
 	// some data that is loaded
 	player: Player = new Player();
 	universe: Universe = new Universe();
 	techs = new TechService();
-	playersStatus: PlayerResponse[] = [];
 	playerStatusPollingInterval: number | undefined;
 
 	constructor(json?: Game) {
@@ -109,17 +108,20 @@ export class FullGame implements Game {
 			wormholes: [],
 			mysteryTraders: []
 		};
-		await Promise.all([
-			GameService.loadGame(id).then((game) => Object.assign(this, game)),
-			GameService.loadFullPlayer(id).then((data) => {
-				this.player = data;
-			}),
-			GameService.loadUniverse(id).then((u) => {
-				pmos = u;
-			}),
-			// load techs the first time as well
-			this.techs.fetch()
-		]);
+		const game = await GameService.loadGame(id);
+		Object.assign(this, game);
+		if (this.state != GameState.Setup) {
+			await Promise.all([
+				GameService.loadFullPlayer(id).then((data) => {
+					this.player = data;
+				}),
+				GameService.loadUniverse(id).then((u) => {
+					pmos = u;
+				}),
+				// load techs the first time as well
+				this.techs.fetch()
+			]);
+		}
 
 		// setup the universe
 		this.universe.setData(this.player.num, pmos);
@@ -158,16 +160,11 @@ export class FullGame implements Game {
 		return this;
 	}
 
-	async loadPlayersStatus(): Promise<PlayerResponse[]> {
-		const result = await GameService.loadPlayersStatus(this.id);
-		this.playersStatus = result.players;
-		Object.assign(this, result.game);
-		Object.assign(this.player, this.playersStatus[this.player.num - 1]);
-
-		// trigger reactivity
-		updatePlayer(this.player);
+	async loadPlayersStatus(): Promise<Game> {
+		const result = await GameService.loadGame(this.id);
+		Object.assign(this, result);
 		updateGame(this);
-		return this.playersStatus;
+		return this;
 	}
 
 	// start polling the server for player status

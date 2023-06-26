@@ -276,28 +276,6 @@ func buildUniverse(player *cs.Player, designs []*cs.ShipDesign, pmos cs.PlayerMa
 	return universe
 }
 
-func (s *server) playersStatus(w http.ResponseWriter, r *http.Request) {
-	gameID, err := s.int64URLParam(r, "id")
-	if gameID == nil || err != nil {
-		render.Render(w, r, ErrBadRequest(err))
-		return
-	}
-
-	game, err := s.db.GetGameWithPlayersStatus(*gameID)
-	if err != nil {
-		log.Error().Err(err).Int64("GameID", *gameID).Msg("load players and game from database")
-		render.Render(w, r, ErrInternalServerError(err))
-		return
-	}
-
-	if len(game.Players) == 0 {
-		render.Render(w, r, ErrNotFound)
-		return
-	}
-
-	rest.RenderJSON(w, rest.JSON{"game": game, "players": game.Players})
-}
-
 // submit a player turn and return the newly generated turn if there is one
 func (s *server) submitTurn(w http.ResponseWriter, r *http.Request) {
 	player := s.contextPlayer(r)

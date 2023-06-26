@@ -5,7 +5,7 @@ import { getContext, setContext } from 'svelte';
 import { writable, type Readable, type Writable } from 'svelte/store';
 import { FullGame } from './FullGame';
 import { universe } from './Stores';
-import type { Universe } from './Universe';
+import { Universe } from './Universe';
 
 export const playerFinderKey = Symbol();
 export const designFinderKey = Symbol();
@@ -30,7 +30,9 @@ export const gameStore: GameContext = {
 // init the game context with empty data
 export const initGameContext = () => setContext<GameContext>(gameKey, gameStore);
 export const getGameContext = () => getContext<GameContext>(gameKey);
-
+export const clearGameContext = () =>
+	updateGameContext(new FullGame(), new Player(), new Universe());
+	
 // update the game context after a load
 export const updateGameContext = (game: FullGame, player: Player, universe: Universe) => {
 	const writableGameStore = gameStore.game as Writable<FullGame>;

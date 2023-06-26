@@ -3,6 +3,7 @@
 	import GameStatus from '../GameStatus.svelte';
 	import { getGameContext } from '$lib/services/Contexts';
 	import { me } from '$lib/services/Stores';
+	import { Service } from '$lib/services/Service';
 
 	const { game } = getGameContext();
 
@@ -31,15 +32,12 @@
 			}
 		});
 
-		if (response.ok) {
-			// force an update so the game reloads
-			await $game.loadPlayersStatus();
-			goto(`/games/${$game.id}`);
-		} else {
-			const resolvedResponse = await response?.json();
-			error = resolvedResponse.error;
-			console.error(error);
+		if (!response.ok) {
+			await Service.raiseError(response);
 		}
+		// force an update so the game reloads
+		await $game.loadPlayersStatus();
+		goto(`/games/${$game.id}`);
 	};
 	let error = '';
 </script>

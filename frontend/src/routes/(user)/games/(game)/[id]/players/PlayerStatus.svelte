@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/Contexts';
 	import { GameState } from '$lib/types/Game';
-	import type { PlayerResponse } from '$lib/types/Player';
+	import type { PlayerStatus } from '$lib/types/Player';
 	import { CheckBadge, XMark } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
 	const { game, player, universe } = getGameContext();
 
-	export let playerStatus: PlayerResponse;
+	export let playerStatus: PlayerStatus;
 </script>
 
 {#if $game.state === GameState.Setup}

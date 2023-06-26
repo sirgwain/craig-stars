@@ -2,17 +2,23 @@
 	import { page } from '$app/stores';
 	import ErrorPage from '$lib/components/ErrorPage.svelte';
 	import ErrorToast from '$lib/components/ErrorToast.svelte';
+	import LoadingModal from '$lib/components/LoadingModal.svelte';
 	import Menu from '$lib/components/Menu.svelte';
 	import Tooltip from '$lib/components/game/tooltips/Tooltip.svelte';
 	import { bindNavigationHotkeys, unbindNavigationHotkeys } from '$lib/navigationHotkeys';
 	import { bindQuantityModifier, unbindQuantityModifier } from '$lib/quantityModifier';
-	import { getGameContext, initGameContext, updateGameContext } from '$lib/services/Contexts';
+	import { clearGameContext, getGameContext, initGameContext } from '$lib/services/Contexts';
 	import type { CSError } from '$lib/services/Errors';
-	import { FullGame } from '$lib/services/FullGame';
-	import { me, nextMapObject, previousMapObject } from '$lib/services/Stores';
-	import { Universe } from '$lib/services/Universe';
+	import type { FullGame } from '$lib/services/FullGame';
+	import {
+		clearLoadingModalText,
+		loadingModalText,
+		me,
+		nextMapObject,
+		previousMapObject,
+		setLoadingModalText
+	} from '$lib/services/Stores';
 	import { GameState } from '$lib/types/Game';
-	import { Player } from '$lib/types/Player';
 	import hotkeys from 'hotkeys-js';
 	import { onDestroy, onMount } from 'svelte';
 	import type { Unsubscriber } from 'svelte/store';
@@ -32,7 +38,7 @@
 	onMount(async () => {
 		try {
 			// empty the context
-			updateGameContext(new FullGame(), new Player(), new Universe());
+			clearGameContext();
 
 			// on first mount, load the game
 			await loadGame();
@@ -48,21 +54,6 @@
 
 		// setup the quantityModifier
 		bindQuantityModifier();
-
-		// if we are in an active game, bind the navigation hotkeys, i.e. F4 for research, Esc to go back
-		if ($game?.state == GameState.WaitingForPlayers) {
-			bindNavigationHotkeys(id, page);
-
-			hotkeys('F9', () => {
-				onSubmitTurn();
-			});
-			hotkeys('n', () => {
-				nextMapObject();
-			});
-			hotkeys('p', () => {
-				previousMapObject();
-			});
-		}
 	});
 
 	// async onMount means onDestroy needs to live
@@ -70,7 +61,7 @@
 	onDestroy(() => {
 		$game.stopPollingPlayersStatus();
 		unsubscribe && unsubscribe();
-		updateGameContext(new FullGame(), new Player(), new Universe());
+		clearGameContext();
 
 		unbindQuantityModifier();
 		unbindNavigationHotkeys();
@@ -80,23 +71,45 @@
 	});
 
 	async function loadGame() {
-		// empty the context
-		unsubscribe && unsubscribe();
+		setLoadingModalText('Loading game...');
+		try {
+			// empty the context
+			unsubscribe && unsubscribe();
 
-		// load a new game, when this is successful, the $game contenxt will be updated
-		const loaded = await $game.load(id);
+			unbindNavigationHotkeys();
+			hotkeys.unbind('F9');
+			hotkeys.unbind('n');
+			hotkeys.unbind('p');
 
-		// update some local state we use for detecting changes
-		state = loaded.state;
-		year = loaded.year;
+			// load a new game, when this is successful, the $game contenxt will be updated
+			const loaded = await $game.load(id);
 
-		// subscribe to game update events
-		unsubscribe = game.subscribe(onGameChange);
+			// update some local state we use for detecting changes
+			state = loaded.state;
+			year = loaded.year;
 
-		// if we are in setup mode or we have submitted our turn, start the
-		// load player status job
-		if (loaded.state == GameState.WaitingForPlayers && !$player.submittedTurn) {
-			loaded.commandHomeWorld();
+			// subscribe to game update events
+			unsubscribe = game.subscribe(onGameChange);
+
+			// if we are in setup mode or we have submitted our turn, start the
+			// load player status job
+			if (loaded.state == GameState.WaitingForPlayers && !$player.submittedTurn) {
+				loaded.commandHomeWorld();
+
+				bindNavigationHotkeys(id, page);
+
+				hotkeys('F9', () => {
+					onSubmitTurn();
+				});
+				hotkeys('n', () => {
+					nextMapObject();
+				});
+				hotkeys('p', () => {
+					previousMapObject();
+				});
+			}
+		} finally {
+			clearLoadingModalText();
 		}
 	}
 
@@ -113,22 +126,29 @@
 	}
 
 	async function onSubmitTurn() {
-		// turn off game change listening
-		unsubscribe && unsubscribe();
+		setLoadingModalText('Submitting turn...');
+		try {
+			// turn off game change listening
+			unsubscribe && unsubscribe();
 
-		$game = await $game.submitTurn();
+			// update the UI
+			$player.submittedTurn = true;
+			$game = await $game.submitTurn();
 
-		// update our local state
-		state = $game.state;
-		year = $game.year;
+			// update our local state
+			state = $game.state;
+			year = $game.year;
 
-		// resubscribe to game update events
-		unsubscribe = game.subscribe(onGameChange);
+			// resubscribe to game update events
+			unsubscribe = game.subscribe(onGameChange);
 
-		// if a new turn generates, submittedTurn will be reset to false
-		if (!$player.submittedTurn) {
-			// command our homeworld after a new turn is generated
-			$game.commandHomeWorld();
+			// if a new turn generates, submittedTurn will be reset to false
+			if (!$player.submittedTurn) {
+				// command our homeworld after a new turn is generated
+				$game.commandHomeWorld();
+			}
+		} finally {
+			clearLoadingModalText();
 		}
 	}
 </script>
@@ -140,6 +160,7 @@
 		</div>
 		<ErrorToast />
 		<slot>Game</slot>
+		<LoadingModal text={$loadingModalText} />
 	</main>
 	<Tooltip />
 {:else if error}

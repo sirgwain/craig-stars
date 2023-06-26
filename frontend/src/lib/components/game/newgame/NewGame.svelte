@@ -16,11 +16,10 @@
 		Size,
 		VictoryCondition,
 		type GameSettings,
-
 		type Game
-
 	} from '$lib/types/Game';
 	import NewGamePlayer from './NewGamePlayer.svelte';
+	import { Service } from '$lib/services/Service';
 
 	let colors = ['#0000FF', '#C33232', '#1F8BA7', '#43A43E', '#8D29CB', '#B88628'];
 	const getColor = (index: number) =>
@@ -70,14 +69,11 @@
 			body: data
 		});
 
-		if (response.ok) {
-			const game = (await response.json()) as Game;
-			goto(`/games/${game.id}`);
-		} else {
-			const resolvedResponse = await response?.json();
-			error = resolvedResponse.error;
-			console.error(error);
+		if (!response.ok) {
+			await Service.raiseError(response);
 		}
+		const game = (await response.json()) as Game;
+		goto(`/games/${game.id}`);
 	};
 
 	const addPlayer = () => {

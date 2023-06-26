@@ -1,6 +1,18 @@
-import { CSError, type ErrorResponse } from './Errors';
+import { addError, CSError, type ErrorResponse } from './Errors';
 
 export abstract class Service {
+	// convert an error response to a CSError and add it to the errors store
+	// then throw
+	static async raiseError(response: Response) {
+		const err = new CSError(
+			(await response.json()) as ErrorResponse,
+			response.statusText,
+			response.status
+		);
+		addError(err);
+		throw err;
+	}
+
 	static async get<T>(url: string, body?: BodyInit): Promise<T> {
 		const response = await fetch(url, {
 			method: 'GET',
@@ -11,9 +23,7 @@ export abstract class Service {
 		});
 
 		if (!response.ok) {
-			const err = new CSError((await response.json()) as ErrorResponse, response.status);
-			console.error(err);
-			throw err;
+			await Service.raiseError(response);
 		}
 		return (await response.json()) as T;
 	}
@@ -27,9 +37,7 @@ export abstract class Service {
 		});
 
 		if (!response.ok) {
-			const err = new CSError((await response.json()) as ErrorResponse, response.status);
-			console.error(err);
-			throw err;
+			await Service.raiseError(response);
 		}
 		return (await response.json()) as T;
 	}
@@ -43,9 +51,7 @@ export abstract class Service {
 		});
 
 		if (!response.ok) {
-			const err = new CSError((await response.json()) as ErrorResponse, response.status);
-			console.error(err);
-			throw err;
+			await Service.raiseError(response);
 		}
 		return (await response.json()) as T;
 	}
@@ -59,9 +65,7 @@ export abstract class Service {
 		});
 
 		if (!response.ok) {
-			const err = new CSError((await response.json()) as ErrorResponse, response.status);
-			console.error(err);
-			throw err;
+			await Service.raiseError(response);
 		}
 		return Promise.resolve();
 	}

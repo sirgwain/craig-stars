@@ -14,9 +14,9 @@ export type MapObjectsByPosition = {
 	[k: string]: MapObject[];
 };
 
-
 export const me = writable<User>(emptyUser);
 export const techs = writable<TechService>(new TechService());
+export const loadingModalText = writable<string | undefined>(undefined);
 
 export const commandedPlanet = writable<CommandedPlanet | undefined>();
 export const commandedFleet = writable<CommandedFleet | undefined>();
@@ -190,6 +190,14 @@ export const highlightMapObject = (mo: MapObject | undefined) => {
 
 export const zoomToMapObject = (mo: MapObject) => {
 	zoomTarget.update(() => mo);
+};
+
+export const setLoadingModalText = (text: string) => {
+	loadingModalText.update(() => text);
+};
+
+export const clearLoadingModalText = () => {
+	loadingModalText.update(() => undefined);
 };
 
 export const tooltipComponent = writable<

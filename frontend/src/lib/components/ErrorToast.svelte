@@ -1,9 +1,25 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { gameKey, getGameContext } from '$lib/services/Contexts';
 	import { CSError, errors } from '$lib/services/Errors';
+	import type { FullGame } from '$lib/services/FullGame';
+	import { hasContext } from 'svelte';
+	import type { Readable } from 'svelte/store';
 	import { fade } from 'svelte/transition';
+
+	let game: Readable<FullGame> | undefined;
+	$: hasContext(gameKey) && ({ game } = getGameContext());
 
 	function onFadeOut(err: CSError) {
 		$errors = $errors.filter((e) => e !== err);
+	}
+
+	function getFadeOptions(err: CSError) {
+		if (err.statusCode === 409) {
+			return { delay: 0 };
+		} else {
+			return { delay: 3000 };
+		}
 	}
 </script>
 
@@ -13,11 +29,27 @@
 			<div
 				class="alert alert-error"
 				in:fade
-				out:fade={{ delay: 3000 }}
-				on:introend={() => onFadeOut(err)}
+				out:fade={getFadeOptions(err)}
+				on:introend={() => err.statusCode != 409 && onFadeOut(err)}
 			>
 				<div>
 					<span>{err.error}</span>
+					{#if err.statusCode == 409}
+						<!-- our game is out of date, offer refresh -->
+						<button
+							type="button"
+							class="btn btn-outline"
+							on:click|preventDefault={() => {
+								$errors = [];
+								if (game && $game) {
+									$game.load($game.id);
+									goto(`/games/${$game.id}`);
+								} else {
+									goto('/');
+								}
+							}}>Refresh</button
+						>
+					{/if}
 				</div>
 			</div>
 		</div>

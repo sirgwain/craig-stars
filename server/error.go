@@ -53,5 +53,15 @@ func ErrInternalServerError(err error) render.Renderer {
 	}
 }
 
+func ErrConflict(err error) render.Renderer {
+	return &ErrResponse{
+		Err:            err,
+		HTTPStatusCode: http.StatusConflict,
+		StatusText:     "Resource cannot be updated.",
+		ErrorText:      err.Error(),
+	}
+}
+
+
 var ErrNotFound = &ErrResponse{HTTPStatusCode: http.StatusNotFound, StatusText: "Resource not found."}
 var ErrForbidden = &ErrResponse{HTTPStatusCode: http.StatusForbidden, StatusText: "Forbidden."}

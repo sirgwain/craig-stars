@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { getGameContext } from '$lib/services/Contexts';
+	import { Service } from '$lib/services/Service';
 	import { me } from '$lib/services/Stores';
 	import GameStatus from '../GameStatus.svelte';
 
@@ -14,13 +15,10 @@
 			}
 		});
 
-		if (response.ok) {
-			goto('/');
-		} else {
-			const resolvedResponse = await response?.json();
-			error = resolvedResponse.error;
-			console.error(error);
+		if (!response.ok) {
+			await Service.raiseError(response);
 		}
+		goto('/');
 	};
 	let error = '';
 </script>

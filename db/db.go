@@ -64,6 +64,7 @@ type Client interface {
 	GetFullGame(id int64) (*cs.FullGame, error)
 	CreateGame(game *cs.Game) error
 	UpdateGame(game *cs.Game) error
+	UpdateGameState(gameID int64, state cs.GameState) error
 	UpdateFullGame(fullGame *cs.FullGame) error
 	DeleteGame(id int64) error
 

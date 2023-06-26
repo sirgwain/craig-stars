@@ -75,7 +75,7 @@ type Game struct {
 	Rules                        Rules             `json:"rules"`
 	Area                         Vector            `json:"area,omitempty"`
 	Year                         int               `json:"year,omitempty"`
-	VictorDeclared               bool              `json:"victorDeclared"`	
+	VictorDeclared               bool              `json:"victorDeclared"`
 }
 
 // struct for holding a game with a list of player status
@@ -137,9 +137,10 @@ const (
 type GameState string
 
 const (
-	GameStateSetup             GameState = "Setup"
-	GameStateWaitingForPlayers GameState = "WaitingForPlayers"
-	GameStateGeneratingTurn    GameState = "GeneratingTurn"
+	GameStateSetup              GameState = "Setup"
+	GameStateGeneratingUniverse GameState = "GeneratingUniverse"
+	GameStateWaitingForPlayers  GameState = "WaitingForPlayers"
+	GameStateGeneratingTurn     GameState = "GeneratingTurn"
 )
 
 type playerGetter interface {

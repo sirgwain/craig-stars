@@ -2,6 +2,7 @@
 	import { page } from '$app/stores';
 	import TechHullSummary from '$lib/components/game/design/Hull.svelte';
 	import TechSummary from '$lib/components/tech/TechSummary.svelte';
+	import { Service } from '$lib/services/Service';
 
 	import { TechCategory, type Tech, type TechHull } from '$lib/types/Tech';
 	import { startCase } from 'lodash-es';
@@ -21,11 +22,10 @@
 			}
 		});
 
-		if (response.ok) {
-			tech = (await response.json()) as Tech;
-		} else {
-			console.error(response);
+		if (!response.ok) {
+			await Service.raiseError(response);
 		}
+		tech = (await response.json()) as Tech;
 	});
 </script>
 

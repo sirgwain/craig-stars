@@ -2,8 +2,6 @@ import type { Cargo } from '$lib/types/Cargo';
 import { CommandedFleet, type Fleet, type Waypoint } from '$lib/types/Fleet';
 import type { MapObject } from '$lib/types/MapObject';
 import type { Planet } from '$lib/types/Planet';
-import type { Salvage } from '$lib/types/Salvage';
-import type { ErrorResponse } from './Errors';
 import { Service } from './Service';
 
 // orders sent to the server
@@ -49,12 +47,10 @@ export class FleetService {
 			})
 		});
 
-		if (response.ok) {
-			return (await response.json()) as TransferCargoResponse;
-		} else {
-			const errorResponse = (await response.json()) as ErrorResponse;
-			throw new Error(errorResponse.error);
+		if (!response.ok) {
+			await Service.raiseError(response);
 		}
+		return (await response.json()) as TransferCargoResponse;
 	}
 
 	static async splitAll(gameId: number | string, fleet: Fleet): Promise<Fleet[]> {
@@ -66,12 +62,10 @@ export class FleetService {
 			}
 		});
 
-		if (response.ok) {
-			return (await response.json()) as Fleet[];
-		} else {
-			const errorResponse = (await response.json()) as ErrorResponse;
-			throw new Error(errorResponse.error);
+		if (!response.ok) {
+			await Service.raiseError(response);
 		}
+		return (await response.json()) as Fleet[];
 	}
 
 	static async merge(fleet: CommandedFleet, fleetNums: number[]): Promise<CommandedFleet> {
@@ -84,12 +78,11 @@ export class FleetService {
 			body: JSON.stringify({ fleetNums })
 		});
 
-		if (response.ok) {
-			return Object.assign(fleet, await response.json());
-		} else {
-			const errorResponse = (await response.json()) as ErrorResponse;
-			throw new Error(errorResponse.error);
+		if (!response.ok) {
+			await Service.raiseError(response);
 		}
+
+		return Object.assign(fleet, await response.json());
 	}
 
 	static async updateFleetOrders(fleet: CommandedFleet): Promise<Fleet> {
@@ -103,11 +96,10 @@ export class FleetService {
 			body: JSON.stringify(fleetOrders)
 		});
 
-		if (response.ok) {
-			return await response.json();
-		} else {
-			console.error(response);
+		if (!response.ok) {
+			await Service.raiseError(response);
 		}
-		return Promise.resolve(fleet);
+
+		return await response.json();
 	}
 }

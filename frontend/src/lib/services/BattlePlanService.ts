@@ -1,7 +1,6 @@
 import type { Fleet } from '$lib/types/Fleet';
-import { Service } from './Service';
 import type { BattlePlan, PlayerResponse } from '$lib/types/Player';
-import { CSError, type ErrorResponse } from './Errors';
+import { Service } from './Service';
 
 export class BattlePlanService {
 	static async update(gameId: number | string, battlePlan: BattlePlan): Promise<BattlePlan> {
@@ -25,8 +24,7 @@ export class BattlePlanService {
 		});
 
 		if (!response.ok) {
-			const result = (await response.json()) as ErrorResponse;
-			throw new CSError(result);
+			await Service.raiseError(response);
 		}
 		return (await response.json()) as {
 			player: PlayerResponse;

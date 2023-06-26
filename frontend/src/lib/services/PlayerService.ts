@@ -30,11 +30,10 @@ export class PlayerService extends Service {
 			}
 		});
 
-		if (response.ok) {
-			return (await response.json()) as UpdateOrdersResult;
-		} else {
-			console.error(response);
+		if (!response.ok) {
+			await Service.raiseError(response);
 		}
+		return (await response.json()) as UpdateOrdersResult;
 	}
 
 	static async updatePlans(player: PlayerResponse): Promise<PlayerResponse | undefined> {
@@ -46,11 +45,10 @@ export class PlayerService extends Service {
 			}
 		});
 
-		if (response.ok) {
-			return (await response.json()) as PlayerResponse;
-		} else {
-			throw new CSError(await response.json());
+		if (!response.ok) {
+			await Service.raiseError(response);
 		}
+		return (await response.json()) as PlayerResponse;
 	}
 
 	static async submitTurn(gameId: number | string): Promise<SubmitTurnResponse | undefined> {
@@ -61,10 +59,9 @@ export class PlayerService extends Service {
 			}
 		});
 
-		if (response.ok) {
-			return response.json();
-		} else {
-			console.error(response);
+		if (!response.ok) {
+			await Service.raiseError(response);
 		}
+		return response.json();
 	}
 }

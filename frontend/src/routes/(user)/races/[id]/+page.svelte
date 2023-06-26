@@ -23,6 +23,7 @@
 	import { User } from '@steeze-ui/heroicons';
 	import Research from './Research.svelte';
 	import { RaceService } from '$lib/services/RaceService';
+	import { Service } from '$lib/services/Service';
 
 	let id = $page.params.id;
 	let race: Race;
@@ -42,7 +43,7 @@
 
 	const onSubmit = async () => {
 		const body = JSON.stringify(race);
-	const create = race?.id ? false : true;
+		const create = race?.id ? false : true;
 		const response = await fetch(`/api/races${race?.id ? '/' + race.id : ''}`, {
 			method: create ? 'POST' : 'PUT',
 			headers: {
@@ -50,6 +51,10 @@
 			},
 			body
 		});
+
+		if (!response.ok) {
+			await Service.raiseError(response);
+		}
 
 		race = (await response.json()) as Race;
 		// redirect to page with id
@@ -75,6 +80,10 @@
 			},
 			body
 		});
+
+		if (!response.ok) {
+			await Service.raiseError(response);
+		}
 
 		const result = (await response.json()) as { points: number };
 		points = result.points;

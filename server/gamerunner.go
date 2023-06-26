@@ -387,6 +387,10 @@ func (gr *gameRunner) CheckAndGenerateTurn(gameID int64) (TurnGenerationCheckRes
 
 	// if everyone submitted their turn, generate a new turn
 	if gr.client.CheckAllPlayersSubmitted(fullGame.Players) {
+		if err := gr.db.UpdateGameState(fullGame.ID, cs.GameStateGeneratingTurn); err != nil {
+			return TurnNotGenerated, err
+		}
+
 		if err := gr.generateTurn(fullGame); err != nil {
 			return TurnNotGenerated, err
 		} else {
@@ -400,6 +404,12 @@ func (gr *gameRunner) CheckAndGenerateTurn(gameID int64) (TurnGenerationCheckRes
 // GenerateTurn generate a new turn, regardless of whether player's have all submitted their turns
 func (gr *gameRunner) GenerateTurn(gameID int64) error {
 	defer timeTrack(time.Now(), "GenerateTurn")
+
+	// update the state so no one can make calls against it
+	if err := gr.db.UpdateGameState(gameID, cs.GameStateGeneratingTurn); err != nil {
+		return err
+	}
+
 	fullGame, err := gr.loadGame(gameID)
 
 	if err != nil {
@@ -470,6 +480,9 @@ func (gr *gameRunner) generateTurn(fullGame *cs.FullGame) error {
 
 	// ai processing
 	gr.processAITurns(fullGame)
+
+	// for UI debugging
+	// time.Sleep(8 * time.Second)
 
 	if err := gr.db.UpdateFullGame(fullGame); err != nil {
 		return fmt.Errorf("save game after turn generation -> %w", err)

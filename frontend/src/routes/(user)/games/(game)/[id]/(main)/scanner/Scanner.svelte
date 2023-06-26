@@ -331,6 +331,7 @@
 		waypointJustAdded = true;
 
 		await $game.updateFleetOrders($commandedFleet);
+		
 		// select the new waypoint
 		selectWaypoint($commandedFleet.waypoints[$commandedFleet.waypoints.length - 1]);
 		if ($selectedWaypoint && $selectedWaypoint.targetType && $selectedWaypoint.targetNum) {

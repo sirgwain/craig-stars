@@ -9,6 +9,7 @@
 	import GameCard from '$lib/components/game/GameCard.svelte';
 	import ColorInput from '$lib/components/ColorInput.svelte';
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
+	import { Service } from '$lib/services/Service';
 
 	let game: Game | undefined;
 	let raceId: number;
@@ -40,13 +41,10 @@
 				body: data
 			});
 
-			if (response.ok) {
-				goto(`/games/${game.id}`);
-			} else {
-				const resolvedResponse = await response?.json();
-				error = resolvedResponse.error;
-				console.error(error);
+			if (!response.ok) {
+				await Service.raiseError(response);
 			}
+			goto(`/games/${game.id}`);
 		}
 	};
 
