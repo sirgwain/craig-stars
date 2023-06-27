@@ -522,6 +522,11 @@ func (planet *Planet) maxBuildable(t QueueItemType) int {
 		return planet.Spec.MinTerraformAmount.absSum()
 	case QueueItemTypeStarbase:
 		return 1
+	case QueueItemTypePlanetaryScanner:
+		if planet.Scanner {
+			return 0
+		}
+		return 1
 	}
 	// default to infinite
 	return Infinite

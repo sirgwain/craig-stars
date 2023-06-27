@@ -117,7 +117,7 @@ func (w *Wormhole) degrade() {
 	stats := w.Spec.Stats
 	w.YearsAtStability++
 	w.MarkDirty()
-	if w.YearsAtStability > stats.YearsToDegrade {
+	if w.YearsAtStability > stats.YearsToDegrade && stats.YearsToDegrade != Infinite {
 		if w.Stability != WormholeStabilityExtremelyVolatile {
 			// go to the next stability
 			w.Stability = WormholeStabilities[slices.Index(WormholeStabilities, w.Stability)+1]

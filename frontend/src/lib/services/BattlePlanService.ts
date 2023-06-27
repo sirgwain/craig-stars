@@ -24,7 +24,7 @@ export class BattlePlanService {
 		});
 
 		if (!response.ok) {
-			await Service.raiseError(response);
+			await Service.throwError(response);
 		}
 		return (await response.json()) as {
 			player: PlayerResponse;

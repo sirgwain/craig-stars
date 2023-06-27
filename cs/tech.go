@@ -41,6 +41,8 @@ type TechRequirements struct {
 	LRTsRequired LRT `json:"lrtsRequired,omitempty"`
 	LRTsDenied   LRT `json:"lrtsDenied,omitempty"`
 	PRTRequired  PRT `json:"prtRequired,omitempty"`
+	HullsAllowed []string `json:"hullsAllowed,omitempty"`
+	HullsDenied  []string `json:"hullsDenied,omitempty"`
 }
 
 type TechHullComponent struct {

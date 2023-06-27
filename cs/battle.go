@@ -400,8 +400,7 @@ func (b *battle) hasTargets() bool {
 
 // runBattle runs a battle!
 func (b *battle) runBattle() *BattleRecord {
-	planet := b.planet
-	if planet != nil {
+	if b.planet != nil {
 		log.Info().Msgf("Running a battle at %s involving %d players and %d tokens.", b.planet.Name, len(b.players), len(b.tokens))
 	} else {
 		log.Info().Msgf("Running a battle at (%.2f, %.2f) involving %d players and %d tokens.", b.position.X, b.position.Y, len(b.players), len(b.tokens))

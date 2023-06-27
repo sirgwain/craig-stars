@@ -20,9 +20,16 @@ func (req *hostGameRequest) Bind(r *http.Request) error {
 	return nil
 }
 
+type updateGameRequest struct {
+	*cs.GameSettings
+}
+
+func (req *updateGameRequest) Bind(r *http.Request) error {
+	return nil
+}
+
 type joinGameRequest struct {
 	RaceID int64  `json:"raceId"`
-	Color  string `json:"color"`
 }
 
 func (req *joinGameRequest) Bind(r *http.Request) error {
@@ -165,6 +172,49 @@ func (s *server) createGame(w http.ResponseWriter, r *http.Request) {
 	rest.RenderJSON(w, game)
 }
 
+func (s *server) updateGame(w http.ResponseWriter, r *http.Request) {
+	user := s.contextUser(r)
+	game := s.contextGame(r)
+
+	update := updateGameRequest{}
+	if err := render.Bind(r, &update); err != nil {
+		render.Render(w, r, ErrBadRequest(err))
+		return
+	}
+
+	if game.State != cs.GameStateSetup {
+		log.Error().Int64("ID", game.ID).Msg("update game after setup")
+		render.Render(w, r, ErrBadRequest(fmt.Errorf("game cannot be updated after setup")))
+		return
+	}
+
+	if game.HostID != user.ID {
+		log.Error().Int64("ID", game.ID).Int64("UserID", user.ID).Msgf("user %s is not the host", user.Username)
+		render.Render(w, r, ErrForbidden)
+		return
+	}
+
+	game.Name = update.Name
+	game.Public = update.Public
+	game.Size = update.Size
+	game.Density = update.Density
+	game.PlayerPositions = update.PlayerPositions
+	game.RandomEvents = update.RandomEvents
+	game.ComputerPlayersFormAlliances = update.ComputerPlayersFormAlliances
+	game.PublicPlayerScores = update.PublicPlayerScores
+	game.StartMode = update.StartMode
+	game.QuickStartTurns = update.QuickStartTurns
+	game.VictoryConditions = update.VictoryConditions
+
+	if err := s.db.UpdateGame(&game.Game); err != nil {
+		log.Error().Err(err).Int64("ID", game.ID).Msg("update game in database")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	rest.RenderJSON(w, game)
+}
+
 // Join an open game
 func (s *server) joinGame(w http.ResponseWriter, r *http.Request) {
 	user := s.contextUser(r)
@@ -177,7 +227,7 @@ func (s *server) joinGame(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// try and join this game
-	if err := s.gameRunner.JoinGame(game.ID, user.ID, join.RaceID, join.Color); err != nil {
+	if err := s.gameRunner.JoinGame(game.ID, user.ID, join.RaceID); err != nil {
 		log.Error().Err(err).Msg("join game")
 		render.Render(w, r, ErrBadRequest(err))
 	}
@@ -231,10 +281,41 @@ func (s *server) generateTurn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := s.gameRunner.GenerateTurn(game.ID); err != nil {
+	result, err := s.gameRunner.GenerateTurn(game.ID)
+	if err != nil {
 		log.Error().Err(err).Msg("generate turn")
-		render.Render(w, r, ErrBadRequest(err))
+		render.Render(w, r, ErrInternalServerError(err))
+		return
 	}
+
+	player, err := s.db.GetPlayerForGame(game.ID, user.ID)
+	if err != nil {
+		log.Error().Err(err).Msg("loading player after turn generation")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	// return the game status
+	game, err = s.db.GetGame(player.GameID)
+	if err != nil {
+		log.Error().Err(err).Int64("GameID", player.GameID).Msg("load game")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	// if the host isn't a player, just return the game
+	if player == nil {
+		rest.RenderJSON(w, rest.JSON{"game": game})
+		return
+	}
+
+	// return the new game
+	if result == TurnGenerated {
+		s.renderFullPlayerGame(w, r, player.GameID, player.UserID)
+		return
+	}
+
+	rest.RenderJSON(w, rest.JSON{"game": game})
 }
 
 func (s *server) deleteGame(w http.ResponseWriter, r *http.Request) {

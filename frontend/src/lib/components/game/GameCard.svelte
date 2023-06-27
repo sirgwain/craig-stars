@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Game } from '$lib/types/Game';
+	import { GameState, type Game } from '$lib/types/Game';
 	import { Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { startCase } from 'lodash-es';
@@ -32,7 +32,9 @@
 		<div class="flex flex-col">
 			<div class="flex flex-row">
 				<div class="text-right font-semibold mr-2 w-28">State</div>
-				<div>{startCase(game.state)}</div>
+				<div class:text-error={game.state === GameState.GeneratingTurnError}>
+					{startCase(game.state)}
+				</div>
 			</div>
 			<div class="flex flex-row">
 				<div class="text-right font-semibold mr-2 w-28">Size</div>

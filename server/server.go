@@ -227,6 +227,7 @@ func Start(db DBClient, config config.Config) {
 			r.Route("/{id:[0-9]+}", func(r chi.Router) {
 				r.Use(server.gameCtx)
 				r.Get("/", server.game)
+				r.Put("/", server.updateGame)
 				r.Post("/join", server.joinGame)
 				r.Post("/leave", server.leaveGame)
 				r.Post("/generate-universe", server.generateUniverse)
@@ -241,6 +242,7 @@ func Start(db DBClient, config config.Config) {
 					r.Put("/player", server.updatePlayerOrders)
 					r.Put("/player/plans", server.updatePlayerPlans)
 					r.Post("/submit-turn", server.submitTurn)
+					r.Post("/unsubmit-turn", server.unSubmitTurn)
 
 					// ship designs
 					r.Route("/designs", func(r chi.Router) {

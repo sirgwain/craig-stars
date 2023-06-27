@@ -4,6 +4,7 @@ import (
 	"embed"
 
 	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/pkgerrors"
 	"github.com/sirgwain/craig-stars/cmd"
 	"github.com/sirgwain/craig-stars/server"
 )
@@ -14,6 +15,7 @@ var assets embed.FS
 
 func main() {
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 
 	server.SetAssets(assets)
 	cmd.Execute()

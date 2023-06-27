@@ -2,7 +2,6 @@ package cs
 
 import (
 	"fmt"
-	"math"
 	"math/rand"
 	"time"
 )
@@ -171,7 +170,7 @@ func NewRulesWithSeed(seed int64) Rules {
 				JiggleDistance: 10,
 			},
 			WormholeStabilityExtremelyVolatile: {
-				YearsToDegrade: math.MaxInt,
+				YearsToDegrade: Infinite,
 				ChanceToJump:   0.04,
 				JiggleDistance: 10,
 			},

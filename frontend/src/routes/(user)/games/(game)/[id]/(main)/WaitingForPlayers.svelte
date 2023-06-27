@@ -1,32 +1,41 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { getGameContext } from '$lib/services/Contexts';
-	import { Service } from '$lib/services/Service';
+	import { getGameContext, playerFinderKey } from '$lib/services/Contexts';
+	import { GameService } from '$lib/services/GameService';
+	import { PlayerService } from '$lib/services/PlayerService';
 	import { me } from '$lib/services/Stores';
 	import GameStatus from '../GameStatus.svelte';
 
-	const { game } = getGameContext();
+	const { game, player } = getGameContext();
 
-	const onSubmit = async () => {
-		const response = await fetch(`/api/games/${$game.id}/generate-turn`, {
-			method: 'post',
-			headers: {
-				accept: 'application/json'
-			}
-		});
-
-		if (!response.ok) {
-			await Service.raiseError(response);
+	async function onForceGenerate() {
+		if (
+			confirm(
+				'Some players have not submitted their turns, are you sure you want to generate a new turn?'
+			)
+		) {
+			await $game.forceGenerateTurn();
 		}
-		goto('/');
-	};
+	}
+
+	async function onUnsubmitTurn() {
+		await PlayerService.unsubmitTurn($game.id);
+		$player.submittedTurn = false;
+	}
 	let error = '';
 </script>
 
 <GameStatus title="Waiting for players to play" game={$game}>
-	{#if $me?.id == $game.hostId}
-		<form on:submit|preventDefault={onSubmit}>
-			<button class="btn btn-primary">Force Generate Turn</button>
-		</form>
-	{/if}
+	<form>
+		<div class="gap-2 mt-2">
+			{#if $me?.id == $game.hostId}
+				<button on:click={onForceGenerate} type="button" class="btn btn-primary"
+					>Force Generate Turn</button
+				>
+			{/if}
+			<button on:click={onUnsubmitTurn} type="button" class="btn btn-secondary"
+				>Unsubmit Turn</button
+			>
+		</div>
+	</form>
 </GameStatus>

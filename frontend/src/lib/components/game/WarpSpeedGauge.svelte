@@ -4,7 +4,7 @@
 
 	export let value = 0;
 	export let min = 0;
-	export let max = 11;
+	export let max = 10;
 	export let dangerSpeed = 11; // no danger speed unless doing packet warp bars
 	export let warnSpeed = 10;
 	export let stargateSpeed = 11;
@@ -12,26 +12,24 @@
 	export let warnColor = 'warp-warn-bar';
 	export let dangerColor = 'warp-danger-bar';
 	export let stargateColor = 'warp-stargate-bar';
-
-	// set to 11 if the planet has a stargate
-	export let capacity = 10;
+	export let useStargate = false;
 
 	let percent = 0;
 	let color = defaultColor;
 
 	let pointerdown = false;
 
-	$: percent = capacity > 0 ? (value / capacity) * 100 : 0;
+	$: percent = max > 0 ? (value / max) * 100 : 0;
 
 	$: {
 		color = defaultColor;
 
-		if (value >= dangerSpeed) {
+		if (useStargate && value >= stargateSpeed) {
+			color = stargateColor;
+		} else if (value >= dangerSpeed) {
 			color = dangerColor;
 		} else if (value >= warnSpeed) {
 			color = warnColor;
-		} else if (value >= stargateSpeed) {
-			color = stargateColor;
 		}
 	}
 
@@ -40,12 +38,15 @@
 	const onPointerDown = (x: number) => {
 		pointerdown = true;
 		updateValue(x);
+		window.addEventListener('pointerup', onPointerUp);
 	};
 
-	const onPointerUp = (x: number) => {
+	function onPointerUp(e: PointerEvent) {
+		e.preventDefault();
+		window.removeEventListener('pointerup', onPointerUp);
 		pointerdown = false;
 		dispatch('valuechanged', value);
-	};
+	}
 
 	const onPointerMove = (x: number) => {
 		if (pointerdown) {
@@ -54,7 +55,7 @@
 	};
 
 	const updateValue = (x: number) => {
-		const newValue = clamp(Math.round(x * capacity), min, max);
+		const newValue = clamp(Math.round(x * max), min, max);
 		if (newValue != value) {
 			value = newValue;
 		}
@@ -68,11 +69,6 @@
 			(e.clientX - e.currentTarget.getBoundingClientRect().left) /
 				e.currentTarget.getBoundingClientRect().width
 		)}
-	on:pointerup|preventDefault={(e) =>
-		onPointerUp(
-			(e.clientX - e.currentTarget.getBoundingClientRect().left) /
-				e.currentTarget.getBoundingClientRect().width
-		)}
 	on:pointermove|preventDefault={(e) =>
 		onPointerMove(
 			(e.clientX - e.currentTarget.getBoundingClientRect().left) /
@@ -82,7 +78,11 @@
 	<div
 		class="font-semibold text-sm text-center align-middle text-secondary w-full bg-blend-difference absolute"
 	>
-		Warp {value}
+		{#if useStargate && value === stargateSpeed}
+			Use Stargate
+		{:else}
+			Warp {value}
+		{/if}
 	</div>
 	<div style={`width: ${percent.toFixed()}%`} class="{color} h-full" />
 </div>

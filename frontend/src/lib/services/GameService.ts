@@ -1,4 +1,4 @@
-import type { Game } from '$lib/types/Game';
+import type { Game, GameSettings, NewGamePlayers } from '$lib/types/Game';
 import {
 	Player,
 	type PlayerIntels,
@@ -7,14 +7,23 @@ import {
 } from '$lib/types/Player';
 import { Service } from './Service';
 
-type playerStatusResult = {
+export type TurnGenerationResponse = {
 	game: Game;
-	players: PlayerResponse[];
+	player?: PlayerResponse;
+	universe?: PlayerUniverse & PlayerIntels;
 };
 
 type UniverseResponse = PlayerUniverse & PlayerIntels;
 
 export class GameService {
+	static async updateSettings(
+		id: number,
+		settings: GameSettings,
+		players?: NewGamePlayers
+	): Promise<GameSettings> {
+		return Service.update(settings, `/api/games/${id}`);
+	}
+
 	static async loadPlayerGames(): Promise<Game[]> {
 		return Service.get<Game[]>('/api/games');
 	}
@@ -36,7 +45,7 @@ export class GameService {
 		});
 
 		if (!response.ok) {
-			await Service.raiseError(response);
+			await Service.throwError(response);
 		}
 	}
 
@@ -49,7 +58,7 @@ export class GameService {
 		});
 
 		if (!response.ok) {
-			await Service.raiseError(response);
+			await Service.throwError(response);
 		}
 		return (await response.json()) as Game;
 	}
@@ -63,7 +72,7 @@ export class GameService {
 		});
 
 		if (!response.ok) {
-			await Service.raiseError(response);
+			await Service.throwError(response);
 		}
 		return (await response.json()) as Game[];
 	}
@@ -77,7 +86,7 @@ export class GameService {
 		});
 
 		if (!response.ok) {
-			await Service.raiseError(response);
+			await Service.throwError(response);
 		}
 		const json = (await response.json()) as PlayerResponse;
 		return new Player(json);
@@ -92,7 +101,7 @@ export class GameService {
 		});
 
 		if (!response.ok) {
-			await Service.raiseError(response);
+			await Service.throwError(response);
 		}
 		const json = (await response.json()) as PlayerResponse;
 		return new Player(json);
@@ -107,8 +116,23 @@ export class GameService {
 		});
 
 		if (!response.ok) {
-			await Service.raiseError(response);
+			await Service.throwError(response);
 		}
 		return (await response.json()) as UniverseResponse;
+	}
+
+	static async forceGenerateTurn(gameId: number): Promise<TurnGenerationResponse> {
+		const response = await fetch(`/api/games/${gameId}/generate-turn`, {
+			method: 'POST',
+			headers: {
+				accept: 'application/json'
+			}
+		});
+
+		if (!response.ok) {
+			await Service.throwError(response);
+		}
+
+		return await response.json();
 	}
 }

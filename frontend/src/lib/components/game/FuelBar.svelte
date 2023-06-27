@@ -63,7 +63,7 @@
 	<div
 		class="font-semibold text-sm text-center align-middle text-secondary w-full bg-blend-difference absolute"
 	>
-		{value} of {capacity}kT
+		{value} of {capacity}mg
 	</div>
 	<div style={`width: ${percent.toFixed()}%`} class="fuel-bar h-full" />
 </div>

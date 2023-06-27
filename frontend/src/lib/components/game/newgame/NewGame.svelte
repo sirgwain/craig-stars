@@ -1,13 +1,9 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { PlusCircle } from '@steeze-ui/heroicons';
-	import { Icon } from '@steeze-ui/svelte-icon';
 
-	import CheckboxInput from '$lib/components/CheckboxInput.svelte';
-	import EnumSelect from '$lib/components/EnumSelect.svelte';
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import SectionHeader from '$lib/components/SectionHeader.svelte';
-	import TextInput from '$lib/components/TextInput.svelte';
+	import { Service } from '$lib/services/Service';
 	import {
 		Density,
 		GameStartMode,
@@ -15,18 +11,26 @@
 		PlayerPositions,
 		Size,
 		VictoryCondition,
+		type Game,
 		type GameSettings,
-		type Game
+		type NewGamePlayers
 	} from '$lib/types/Game';
+	import { PlusCircle } from '@steeze-ui/heroicons';
+	import { Icon } from '@steeze-ui/svelte-icon';
+	import GameSettingsEditor from './GameSettingsEditor.svelte';
 	import NewGamePlayer from './NewGamePlayer.svelte';
-	import { Service } from '$lib/services/Service';
+	import { getColor } from './playerColors';
 
-	let colors = ['#0000FF', '#C33232', '#1F8BA7', '#43A43E', '#8D29CB', '#B88628'];
-	const getColor = (index: number) =>
-		index < colors.length ? colors[index] : '#' + Math.floor(Math.random() * 16777215).toString(16);
+	export let players = [
+		{ type: NewGamePlayerType.Host, color: getColor(0) },
+		{ type: NewGamePlayerType.AI, color: getColor(1) },
+		{ type: NewGamePlayerType.AI, color: getColor(2) }
+	];
 
-	let settings: GameSettings = {
-		name: 'A Barefoot Jaywalk',
+	export let name = 'A Barefoot Jaywalk';
+
+	let settings: GameSettings & NewGamePlayers = {
+		name,
 		public: false,
 		size: Size.Small,
 		density: Density.Normal,
@@ -35,11 +39,7 @@
 		computerPlayersFormAlliances: false,
 		publicPlayerScores: false,
 		startMode: GameStartMode.Normal,
-		players: [
-			{ type: NewGamePlayerType.Host, color: getColor(0) },
-			{ type: NewGamePlayerType.AI, color: getColor(1) },
-			{ type: NewGamePlayerType.AI, color: getColor(2) }
-		],
+		players,
 		victoryConditions: {
 			conditions:
 				VictoryCondition.OwnPlanets |
@@ -70,7 +70,7 @@
 		});
 
 		if (!response.ok) {
-			await Service.raiseError(response);
+			await Service.throwError(response);
 		}
 		const game = (await response.json()) as Game;
 		goto(`/games/${game.id}`);
@@ -93,22 +93,7 @@
 
 	<ItemTitle>Host New Game</ItemTitle>
 
-	<div class="flex flex-row flex-wrap">
-		<TextInput name="name" bind:value={settings.name} />
-		<EnumSelect name="size" enumType={Size} bind:value={settings.size} />
-		<EnumSelect name="density" enumType={Density} bind:value={settings.density} />
-		<EnumSelect
-			name="playerPositions"
-			enumType={PlayerPositions}
-			bind:value={settings.playerPositions}
-		/>
-		<CheckboxInput name="randomEvents" bind:checked={settings.randomEvents} />
-		<CheckboxInput name="publicPlayerScores" bind:checked={settings.publicPlayerScores} />
-		<CheckboxInput
-			name="computerPlayersFormAlliances"
-			bind:checked={settings.computerPlayersFormAlliances}
-		/>
-	</div>
+	<GameSettingsEditor bind:settings />
 
 	<SectionHeader>
 		<button class="btn-ghost w-full flex flex-row" on:click|preventDefault={addPlayer}>

@@ -9,7 +9,7 @@
 
 {#if $game.state == GameState.Setup}
 	<GameSetup />
-{:else if $game.state == GameState.GeneratingTurn}
+{:else if $game.state == GameState.GeneratingTurn || $game.state == GameState.GeneratingTurnError || $game.state == GameState.GeneratingUniverse}
 	<WaitingForPlayers />
 {:else if $player.submittedTurn && $game.state == GameState.WaitingForPlayers}
 	<WaitingForPlayers />

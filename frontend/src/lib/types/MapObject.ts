@@ -2,6 +2,7 @@ import type { Vector } from './Vector';
 
 export const None = 0;
 export const Infinite = -1;
+export const StargateWarpSpeed = 11;
 
 export interface MapObject {
 	id?: number;

@@ -28,6 +28,7 @@ type production struct {
 type productionResult struct {
 	tokens   []ShipToken
 	packets  []Cargo
+	scanner  bool
 	starbase *ShipDesign
 	alchemy  Mineral
 }
@@ -70,6 +71,7 @@ const (
 	QueueItemTypeAutoMineralPacket      QueueItemType = "AutoMineralPacket"
 	QueueItemTypeShipToken              QueueItemType = "ShipToken"
 	QueueItemTypeStarbase               QueueItemType = "Starbase"
+	QueueItemTypePlanetaryScanner       QueueItemType = "PlanetaryScanner"
 )
 
 // true if this is an auto type
@@ -311,6 +313,8 @@ func (p *production) buildItems(item ProductionQueueItem, numBuilt int, result *
 			break
 		}
 		result.starbase = design
+	case QueueItemTypePlanetaryScanner:
+		result.scanner = true
 	}
 
 	log.Debug().

@@ -57,6 +57,42 @@ const currentSelectedMapObjectIndex = derived(
 	}
 );
 
+// derived store of all commandableMapObjects at the position of the current commandedMapObjects
+const commandableMapObjectsAtCommandedMapObjectPosition = derived(
+	[universe, commandedMapObject],
+	([$universe, $commandedMapObject]) => {
+		if ($commandedMapObject) {
+			return $universe.getMyMapObjectsByPosition($commandedMapObject);
+		}
+	}
+);
+
+// derived store of the current index
+const currentCommandedMapObjectPositionIndex = derived(
+	[commandedMapObject, commandableMapObjectsAtCommandedMapObjectPosition],
+	([$commandedMapObject, $commandableMapObjectsAtCommandedMapObjectPosition]) => {
+		if ($commandedMapObject && $commandableMapObjectsAtCommandedMapObjectPosition) {
+			return findIndex($commandableMapObjectsAtCommandedMapObjectPosition, (mo) =>
+				equal($commandedMapObject, mo)
+			);
+		}
+		return -1;
+	}
+);
+
+export const nextCommandableMapObjectAtPosition = () => {
+	const index = get(currentCommandedMapObjectPositionIndex);
+	const commandable = get(commandableMapObjectsAtCommandedMapObjectPosition);
+
+	if (commandable && commandable?.length > 0) {
+		if (index + 1 > commandable.length) {
+			commandMapObject(commandable[0]);
+		} else {
+			commandMapObject(commandable[index + 1]);
+		}
+	}
+};
+
 export const currentSelectedWaypointIndex = derived(
 	[selectedWaypoint, commandedFleet],
 	([$selectedWaypoint, $commandedFleet]) => {

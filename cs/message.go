@@ -45,6 +45,7 @@ const (
 	PlayerMessageBuiltDefense
 	PlayerMessageBuiltShip
 	PlayerMessageBuiltStarbase
+	PlayerMessageBuiltScanner
 	PlayerMessageBuiltMineralPacket
 	PlayerMessageBuiltTerraform
 	PlayerMessageFleetOrdersComplete
@@ -132,7 +133,12 @@ func (m *messageClient) factoriesBuilt(player *Player, planet *Planet, num int) 
 
 func (m *messageClient) defensesBuilt(player *Player, planet *Planet, num int) {
 	text := fmt.Sprintf("You have built %d defense(s) on %s.", num, planet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageBuiltFactory, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageBuiltDefense, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
+}
+
+func (m *messageClient) scannerBuilt(player *Player, planet *Planet, scanner string) {
+	text := fmt.Sprintf("%s has built a new %s planetary scanner.", planet.Name, scanner)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageBuiltScanner, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
 }
 
 func (m *messageClient) fleetBuilt(player *Player, planet *Planet, fleet *Fleet, num int) {

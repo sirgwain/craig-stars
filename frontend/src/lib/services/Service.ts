@@ -3,13 +3,16 @@ import { addError, CSError, type ErrorResponse } from './Errors';
 export abstract class Service {
 	// convert an error response to a CSError and add it to the errors store
 	// then throw
-	static async raiseError(response: Response) {
-		const err = new CSError(
-			(await response.json()) as ErrorResponse,
-			response.statusText,
-			response.status
-		);
+	static async throwError(response: Response) {
+		let result: ErrorResponse | undefined;
+		try {
+			result = await response.json();
+		} catch {
+			// ignore, there might not be a body
+		}
+		const err = new CSError(result, response.statusText, response.status);
 		addError(err);
+		console.error(err.status, err);
 		throw err;
 	}
 
@@ -23,7 +26,7 @@ export abstract class Service {
 		});
 
 		if (!response.ok) {
-			await Service.raiseError(response);
+			await Service.throwError(response);
 		}
 		return (await response.json()) as T;
 	}
@@ -37,7 +40,7 @@ export abstract class Service {
 		});
 
 		if (!response.ok) {
-			await Service.raiseError(response);
+			await Service.throwError(response);
 		}
 		return (await response.json()) as T;
 	}
@@ -51,7 +54,7 @@ export abstract class Service {
 		});
 
 		if (!response.ok) {
-			await Service.raiseError(response);
+			await Service.throwError(response);
 		}
 		return (await response.json()) as T;
 	}
@@ -65,7 +68,7 @@ export abstract class Service {
 		});
 
 		if (!response.ok) {
-			await Service.raiseError(response);
+			await Service.throwError(response);
 		}
 		return Promise.resolve();
 	}

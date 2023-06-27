@@ -36,7 +36,7 @@ export class DesignService {
 		});
 
 		if (!response.ok) {
-			await Service.raiseError(response);
+			await Service.throwError(response);
 		}
 
 		// update the spec
@@ -56,7 +56,7 @@ export class DesignService {
 		});
 
 		if (!response.ok) {
-			await Service.raiseError(response);
+			await Service.throwError(response);
 		}
 		return (await response.json()) as { fleets: Fleet[]; starbases: Fleet[] };
 	}

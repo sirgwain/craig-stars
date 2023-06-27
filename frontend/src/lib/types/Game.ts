@@ -45,14 +45,18 @@ export enum NewGamePlayerType {
 	AI = 'AI'
 }
 
-export interface NewGamePlayer {
+export type NewGamePlayer = {
 	type: NewGamePlayerType;
 	userId?: number;
 	raceId?: number;
 	color?: string;
-}
+};
 
-export interface GameSettings {
+export type NewGamePlayers = {
+	players: NewGamePlayer[];
+};
+
+export type GameSettings = {
 	name: string;
 	public: boolean;
 	quickStartTurns?: number;
@@ -66,13 +70,14 @@ export interface GameSettings {
 	startMode?: GameStartMode;
 	year?: number;
 	victoryConditions?: VictoryConditions;
-	players: NewGamePlayer[];
-}
+};
 
 export enum GameState {
 	Setup = 'Setup',
 	WaitingForPlayers = 'WaitingForPlayers',
-	GeneratingTurn = 'GeneratingTurn'
+	GeneratingUniverse = 'GeneratingUniverse',
+	GeneratingTurn = 'GeneratingTurn',
+	GeneratingTurnError = 'GeneratingTurnError'
 }
 
 export interface Game {
@@ -94,6 +99,7 @@ export interface Game {
 	randomEvents: boolean;
 	computerPlayersFormAlliances: boolean;
 	publicPlayerScores: boolean;
+	public?: boolean;
 	startMode: GameStartMode;
 	year: number;
 	victoryConditions: VictoryConditions;

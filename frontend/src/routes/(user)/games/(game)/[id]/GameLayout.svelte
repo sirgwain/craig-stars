@@ -23,6 +23,7 @@
 	import { onDestroy, onMount } from 'svelte';
 	import type { Unsubscriber } from 'svelte/store';
 	import GameMenu from './GameMenu.svelte';
+	import { wait } from '$lib/wait';
 
 	initGameContext();
 	const { game, player, universe } = getGameContext();
@@ -59,7 +60,7 @@
 	// async onMount means onDestroy needs to live
 	// outside
 	onDestroy(() => {
-		$game.stopPollingPlayersStatus();
+		$game.stopPollingStatus();
 		unsubscribe && unsubscribe();
 		clearGameContext();
 
@@ -126,13 +127,15 @@
 	}
 
 	async function onSubmitTurn() {
-		setLoadingModalText('Submitting turn...');
+		// console.time('onSubmitTurn');
+
+		setLoadingModalText(`Submitting turn for ${$game.year}...`);
+		const hideLoadingDelay = wait(500);
 		try {
 			// turn off game change listening
 			unsubscribe && unsubscribe();
 
 			// update the UI
-			$player.submittedTurn = true;
 			$game = await $game.submitTurn();
 
 			// update our local state
@@ -147,8 +150,14 @@
 				// command our homeworld after a new turn is generated
 				$game.commandHomeWorld();
 			}
+		} catch {
+			// reload the game status in the event of an error
+			await $game.loadStatus();
 		} finally {
+			// make sure this finishes
+			await hideLoadingDelay;
 			clearLoadingModalText();
+			// console.timeEnd('onSubmitTurn');
 		}
 	}
 </script>

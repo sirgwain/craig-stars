@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/Contexts';
 	import { GameState } from '$lib/types/Game';
-	import type { PlayerIntel } from '$lib/types/Player';
 	import { onDestroy, onMount } from 'svelte';
 	import PlayerStatus from './PlayerStatus.svelte';
 
@@ -10,11 +9,11 @@
 	$: settingUp = $game.state === GameState.Setup;
 
 	onMount(async () => {
-		await $game.loadPlayersStatus();
-		$game.startPollingPlayersStatus();
+		await $game.loadStatus();
+		$game.startPollingStatus();
 	});
 
-	onDestroy(() => $game.stopPollingPlayersStatus());
+	onDestroy(() => $game.stopPollingStatus());
 </script>
 
 <div class:grid-cols-2={settingUp} class:grid-cols-3={!settingUp} class="grid px-2">

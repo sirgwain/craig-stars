@@ -25,6 +25,7 @@ const (
 )
 
 var colors = []string{
+	"#0000FF",
 	"#C33232",
 	"#1F8BA7",
 	"#43A43E",
@@ -43,13 +44,13 @@ var colors = []string{
 
 type GameRunner interface {
 	HostGame(hostID int64, settings *cs.GameSettings) (*cs.FullGame, error)
-	JoinGame(gameID int64, userID int64, raceID int64, color string) error
+	JoinGame(gameID int64, userID int64, raceID int64) error
 	LeaveGame(gameID, userID int64) error
 	GenerateUniverse(game *cs.Game) error
 	LoadPlayerGame(gameID int64, userID int64) (*cs.GameWithPlayers, *cs.FullPlayer, error)
 	SubmitTurn(gameID int64, userID int64) error
 	CheckAndGenerateTurn(gameID int64) (TurnGenerationCheckResult, error)
-	GenerateTurn(gameID int64) error
+	GenerateTurn(gameID int64) (TurnGenerationCheckResult, error)
 }
 
 type gameRunner struct {
@@ -180,7 +181,7 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 }
 
 // add a player to an existing game
-func (gr *gameRunner) JoinGame(gameID int64, userID int64, raceID int64, color string) error {
+func (gr *gameRunner) JoinGame(gameID int64, userID int64, raceID int64) error {
 
 	user, err := gr.db.GetUser(userID)
 	if err != nil {
@@ -222,7 +223,6 @@ func (gr *gameRunner) JoinGame(gameID int64, userID int64, raceID int64, color s
 	player.GameID = fullGame.ID
 	player.Name = user.Username
 	player.Ready = true
-	player.Color = color
 
 	// claim an open slot
 	for i, p := range fullGame.Players {
@@ -230,20 +230,6 @@ func (gr *gameRunner) JoinGame(gameID int64, userID int64, raceID int64, color s
 			// take over this empty player
 			player.Num = p.Num
 			player.ID = p.ID
-
-			if err := gr.db.UpdatePlayer(player); err != nil {
-				return fmt.Errorf("update open slot player %s for game %d: %w", p, gameID, err)
-			}
-
-			fullGame.Players[i] = player
-			break
-		}
-	}
-
-	// fix duplicate colors
-	// TODO: this is fragile
-	for i, p := range fullGame.Players {
-		if p.Color == color && p.Num != player.Num {
 			if player.Num-1 < len(colors) {
 				player.Color = colors[player.Num-1]
 			} else {
@@ -257,7 +243,7 @@ func (gr *gameRunner) JoinGame(gameID int64, userID int64, raceID int64, color s
 			}
 
 			fullGame.Players[i] = player
-
+			break
 		}
 	}
 
@@ -402,21 +388,25 @@ func (gr *gameRunner) CheckAndGenerateTurn(gameID int64) (TurnGenerationCheckRes
 }
 
 // GenerateTurn generate a new turn, regardless of whether player's have all submitted their turns
-func (gr *gameRunner) GenerateTurn(gameID int64) error {
+func (gr *gameRunner) GenerateTurn(gameID int64) (TurnGenerationCheckResult, error) {
 	defer timeTrack(time.Now(), "GenerateTurn")
 
 	// update the state so no one can make calls against it
 	if err := gr.db.UpdateGameState(gameID, cs.GameStateGeneratingTurn); err != nil {
-		return err
+		return TurnNotGenerated, err
 	}
 
 	fullGame, err := gr.loadGame(gameID)
 
 	if err != nil {
-		return err
+		return TurnNotGenerated, err
 	}
 
-	return gr.generateTurn(fullGame)
+	if err := gr.generateTurn(fullGame); err != nil {
+		return TurnNotGenerated, err
+	}
+
+	return TurnGenerated, nil
 }
 
 // load a full game
@@ -473,8 +463,21 @@ func (gr *gameRunner) processAITurns(fullGame *cs.FullGame) {
 
 // generate a turn for a game
 func (gr *gameRunner) generateTurn(fullGame *cs.FullGame) error {
+	defer func() {
+		// if we panic, update the game state to fail
+		if r := recover(); r != nil {
+			// update the state so no one can make calls against it
+			gr.db.UpdateGameState(fullGame.ID, cs.GameStateGeneratingTurnError)
+
+			// middleware.PrintPrettyStack(r)
+			log.Panic().Msgf("failed to generate turn %v", r)
+		}
+	}()
+
 	// if everyone submitted their turn, generate a new turn
 	if err := gr.client.GenerateTurn(fullGame.Game, fullGame.Universe, fullGame.Players); err != nil {
+		// update the state so no one can make calls against it
+		gr.db.UpdateGameState(fullGame.ID, cs.GameStateGeneratingTurnError)
 		return fmt.Errorf("generate turn -> %w", err)
 	}
 

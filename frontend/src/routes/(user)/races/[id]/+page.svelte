@@ -53,7 +53,7 @@
 		});
 
 		if (!response.ok) {
-			await Service.raiseError(response);
+			await Service.throwError(response);
 		}
 
 		race = (await response.json()) as Race;
@@ -82,7 +82,7 @@
 		});
 
 		if (!response.ok) {
-			await Service.raiseError(response);
+			await Service.throwError(response);
 		}
 
 		const result = (await response.json()) as { points: number };

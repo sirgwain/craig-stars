@@ -7,6 +7,7 @@
 		commandedPlanet,
 		currentSelectedWaypointIndex,
 		highlightMapObject,
+		nextCommandableMapObjectAtPosition,
 		selectMapObject,
 		selectWaypoint,
 		selectedMapObject,
@@ -59,7 +60,6 @@
 	let transform: ZoomTransform;
 	let zoomBehavior: ZoomBehavior<HTMLElement, any>;
 	let root: HTMLElement;
-	let commandedMapObjectIndex = 0;
 	let padding = 20; // 20 px, used in zooming
 	let scaleX: ScaleLinear<number, number, never>;
 	let scaleY: ScaleLinear<number, number, never>;
@@ -331,7 +331,7 @@
 		waypointJustAdded = true;
 
 		await $game.updateFleetOrders($commandedFleet);
-		
+
 		// select the new waypoint
 		selectWaypoint($commandedFleet.waypoints[$commandedFleet.waypoints.length - 1]);
 		if ($selectedWaypoint && $selectedWaypoint.targetType && $selectedWaypoint.targetNum) {
@@ -349,11 +349,6 @@
 	 * @param mo
 	 */
 	function mapObjectSelected(mo: MapObject) {
-		let myMapObject = mo;
-		if (ownedBy(mo, $player.num) && mo.type === MapObjectType.Planet) {
-			myMapObject = $universe.getPlanet(mo.num) ?? mo;
-		}
-
 		if (setPacketDest) {
 			if (mo.type != MapObjectType.Planet) {
 				return;
@@ -365,17 +360,18 @@
 				}
 				$commandedPlanet.packetTargetNum = mo.num;
 				$game.updatePlanetOrders($commandedPlanet);
+				return;
 			}
 		}
 
-		if ($selectedMapObject !== myMapObject) {
+		if ($selectedMapObject !== mo) {
 			// we selected a different object, so just select it
-			selectMapObject(myMapObject);
+			selectMapObject(mo);
 
 			// if we selected a mapobject that is a waypoint, select the waypoint as well
 			if ($commandedFleet?.waypoints) {
 				const fleetWaypoint = $commandedFleet.waypoints.find((wp) =>
-					equal(wp.position, myMapObject.position)
+					equal(wp.position, mo.position)
 				);
 				if (fleetWaypoint) {
 					selectWaypoint(fleetWaypoint);
@@ -385,23 +381,19 @@
 			// we selected the same mapobject twice
 			const myMapObjectsAtPosition = $universe.getMyMapObjectsByPosition(mo);
 			if (myMapObjectsAtPosition?.length > 0) {
+				let index = myMapObjectsAtPosition.findIndex((mo) =>
+					mapObjectEqual(mo, $commandedMapObject)
+				);
 				// if our currently commanded map object is not at this location, reset the index
-				if (!myMapObjectsAtPosition.find((mo) => mapObjectEqual(mo, $commandedMapObject))) {
-					commandedMapObjectIndex = 0;
+				if (index == -1) {
+					index = 0;
 				} else {
 					// command the next one
-					commandedMapObjectIndex =
-						commandedMapObjectIndex >= myMapObjectsAtPosition.length - 1
-							? 0
-							: commandedMapObjectIndex + 1;
+					index = index >= myMapObjectsAtPosition.length - 1 ? 0 : index + 1;
 				}
-				const nextMapObject = myMapObjectsAtPosition[commandedMapObjectIndex];
-				if (nextMapObject.type === MapObjectType.Planet) {
-					commandMapObject($universe.getPlanet(nextMapObject.num) as MapObject);
-					commandedMapObjectIndex = 0;
-				} else {
-					commandMapObject(nextMapObject);
-				}
+				const nextMapObject = myMapObjectsAtPosition[index];
+
+				commandMapObject(nextMapObject);
 			}
 		}
 	}

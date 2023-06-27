@@ -158,10 +158,10 @@ func (s *server) merge(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for num := range mergeFleets.FleetNums {
+	for _, num := range mergeFleets.FleetNums {
 		if fleet.Num == num {
-			log.Error().Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("include source fleet Num in merge fleets request")
-			render.Render(w, r, ErrBadRequest(fmt.Errorf("do not include %d's fleet number in merge fleet request", fleet.Num)))
+			log.Error().Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("FleetNum", fleet.Num).Msg("include source fleet Num in merge fleets request")
+			render.Render(w, r, ErrBadRequest(fmt.Errorf("invalid merge fleet request")))
 			return
 		}
 	}

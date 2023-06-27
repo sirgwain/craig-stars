@@ -312,6 +312,21 @@ func (s *server) submitTurn(w http.ResponseWriter, r *http.Request) {
 	rest.RenderJSON(w, rest.JSON{"game": game, "player": player})
 }
 
+// submit a player turn and return the newly generated turn if there is one
+func (s *server) unSubmitTurn(w http.ResponseWriter, r *http.Request) {
+	player := s.contextPlayer(r)
+
+	// submit the turn
+	player.SubmittedTurn = false
+	if err := s.db.SubmitPlayerTurn(player.GameID, player.Num, false); err != nil {
+		log.Error().Err(err).Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update player")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	rest.RenderJSON(w, rest.JSON{"player": player})
+}
+
 func (s *server) renderFullPlayerGame(w http.ResponseWriter, r *http.Request, gameID, userID int64) {
 	// return a new turn
 	game, fullPlayer, err := s.gameRunner.LoadPlayerGame(gameID, userID)

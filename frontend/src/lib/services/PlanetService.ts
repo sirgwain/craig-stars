@@ -23,7 +23,7 @@ export class PlanetService {
 		});
 
 		if (!response.ok) {
-			await Service.raiseError(response);
+			await Service.throwError(response);
 		}
 		const updated = await response.json();
 		return Object.assign(new CommandedPlanet(), updated);
@@ -49,7 +49,7 @@ export class PlanetService {
 		});
 
 		if (!response.ok) {
-			await Service.raiseError(response);
+			await Service.throwError(response);
 		}
 		return await response.json();
 	}

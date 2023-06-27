@@ -23,7 +23,7 @@
 		});
 
 		if (!response.ok) {
-			await Service.raiseError(response);
+			await Service.throwError(response);
 		}
 		tech = (await response.json()) as Tech;
 	});

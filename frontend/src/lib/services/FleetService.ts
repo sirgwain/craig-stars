@@ -48,7 +48,7 @@ export class FleetService {
 		});
 
 		if (!response.ok) {
-			await Service.raiseError(response);
+			await Service.throwError(response);
 		}
 		return (await response.json()) as TransferCargoResponse;
 	}
@@ -63,7 +63,7 @@ export class FleetService {
 		});
 
 		if (!response.ok) {
-			await Service.raiseError(response);
+			await Service.throwError(response);
 		}
 		return (await response.json()) as Fleet[];
 	}
@@ -79,7 +79,7 @@ export class FleetService {
 		});
 
 		if (!response.ok) {
-			await Service.raiseError(response);
+			await Service.throwError(response);
 		}
 
 		return Object.assign(fleet, await response.json());
@@ -97,7 +97,7 @@ export class FleetService {
 		});
 
 		if (!response.ok) {
-			await Service.raiseError(response);
+			await Service.throwError(response);
 		}
 
 		return await response.json();

@@ -491,7 +491,7 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 func (f *Fleet) computeFuelUsage(player *Player) {
 	for i := range f.Waypoints {
 		wp := &f.Waypoints[i]
-		if i > 0 {
+		if i > 0  && wp.WarpSpeed < StargateWarpSpeed {
 			wpPrevious := f.Waypoints[i-1]
 			fuelUsage := f.GetFuelCost(player, wp.WarpSpeed, wp.Position.DistanceTo(wpPrevious.Position))
 			wp.EstFuelUsage = fuelUsage
@@ -582,8 +582,8 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 	wp0 := fleet.Waypoints[0]
 	wp1 := fleet.Waypoints[1]
 	totalDist := fleet.Position.DistanceTo(wp1.Position)
-
 	fleet.PreviousPosition = &Vector{fleet.Position.X, fleet.Position.Y}
+
 	dist := float64(wp1.WarpSpeed * wp1.WarpSpeed)
 	// round up, if we are <1 away, i.e. the target is 81.9 ly away, warp 9 (81 ly travel) should be able to make it there
 	if dist < totalDist && totalDist-dist < 1 {
@@ -701,6 +701,7 @@ func (fleet *Fleet) gateFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 	wp0 := fleet.Waypoints[0]
 	wp1 := fleet.Waypoints[1]
 	totalDist := fleet.Position.DistanceTo(wp1.Position)
+	fleet.PreviousPosition = &Vector{fleet.Position.X, fleet.Position.Y}
 
 	// if we got here, both source and dest have stargates
 	sourcePlanet := mapObjectGetter.getPlanet(fleet.OrbitingPlanetNum)

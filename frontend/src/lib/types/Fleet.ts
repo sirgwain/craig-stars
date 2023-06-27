@@ -2,7 +2,7 @@
 
 import type { Cargo } from './Cargo';
 import type { Cost } from './Cost';
-import { MapObjectType, None, type MapObject, type MovingMapObject } from './MapObject';
+import { MapObjectType, None, type MovingMapObject } from './MapObject';
 import type { MessageTargetType } from './Player';
 import type { Engine } from './Tech';
 import type { Vector } from './Vector';

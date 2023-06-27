@@ -134,6 +134,7 @@ func (s *server) updateShipDesign(w http.ResponseWriter, r *http.Request) {
 	if err := design.Validate(&game.Rules, player); err != nil {
 		log.Error().Err(err).Int64("ID", player.ID).Str("DesignName", design.Name).Msg("validate player design")
 		render.Render(w, r, ErrBadRequest(fmt.Errorf("shipDesign id/user id does not match existing shipDesign")))
+		return
 	}
 
 	if err := s.db.UpdateShipDesign(design.ShipDesign); err != nil {

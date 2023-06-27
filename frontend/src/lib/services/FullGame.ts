@@ -77,6 +77,7 @@ export class FullGame implements Game {
 		ownCapitalShips: 0,
 		highestScoreAfterYears: 0
 	};
+	public = false;
 	victorDeclared = false;
 	rules = defaultRules;
 	players: PlayerStatus[] = [];
@@ -86,10 +87,6 @@ export class FullGame implements Game {
 	universe: Universe = new Universe();
 	techs = new TechService();
 	playerStatusPollingInterval: number | undefined;
-
-	constructor(json?: Game) {
-		Object.assign(this, json);
-	}
 
 	// load this game from the server
 	async load(id: number | string) {
@@ -129,6 +126,15 @@ export class FullGame implements Game {
 		return this;
 	}
 
+	isMultiplayer(): boolean {
+		// we are multi player if any of the players are not ai controlled and not us
+		return this.players.findIndex((p) => p.num != this.player.num && !p.aIControlled) == -1;
+	}
+
+	isSinglePlayer(): boolean {
+		return !this.isMultiplayer();
+	}
+
 	// command the player's homeworld (or the first planet they own, if their homeworld has been taken)
 	commandHomeWorld() {
 		const homeworld = this.universe.getHomeworld(this.player.num);
@@ -160,7 +166,18 @@ export class FullGame implements Game {
 		return this;
 	}
 
-	async loadPlayersStatus(): Promise<Game> {
+	async forceGenerateTurn(): Promise<FullGame> {
+		const resp = await GameService.forceGenerateTurn(this.id);
+		Object.assign(this, resp.game);
+		Object.assign(this.player, resp.player);
+		if (resp.universe) {
+			this.universe.setData(this.player.num, resp.universe);
+		}
+		updateGameContext(this, this.player, this.universe);
+		return this;
+	}
+
+	async loadStatus(): Promise<Game> {
 		const result = await GameService.loadGame(this.id);
 		Object.assign(this, result);
 		updateGame(this);
@@ -168,16 +185,16 @@ export class FullGame implements Game {
 	}
 
 	// start polling the server for player status
-	async startPollingPlayersStatus(interval = 10000) {
+	async startPollingStatus(interval = 10000) {
 		if (!this.playerStatusPollingInterval) {
 			this.playerStatusPollingInterval = window.setInterval(async () => {
-				this.loadPlayersStatus();
+				this.loadStatus();
 			}, interval);
 		}
 	}
 
 	// stop polling the server for player status
-	stopPollingPlayersStatus() {
+	stopPollingStatus() {
 		if (this.playerStatusPollingInterval) {
 			window.clearInterval(this.playerStatusPollingInterval);
 			this.playerStatusPollingInterval = undefined;

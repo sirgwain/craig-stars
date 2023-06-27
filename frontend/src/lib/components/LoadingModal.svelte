@@ -14,7 +14,7 @@
 				<LoadingSpinner />
 			</div>
 			<div class="mx-auto mt-2">
-				{text}
+				{text ?? ''}
 			</div>
 		</div>
 	</div>

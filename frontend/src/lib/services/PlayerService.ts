@@ -1,18 +1,11 @@
-import type { Game } from '$lib/types/Game';
 import type { Planet } from '$lib/types/Planet';
-import type { PlayerIntels, PlayerUniverse, PlayerOrders, PlayerResponse } from '$lib/types/Player';
-import { CSError } from './Errors';
+import type { PlayerOrders, PlayerResponse } from '$lib/types/Player';
+import type { TurnGenerationResponse } from './GameService';
 import { Service } from './Service';
 
 type UpdateOrdersResult = {
 	player: PlayerResponse;
 	planets: Planet[];
-};
-
-type SubmitTurnResponse = {
-	game: Game;
-	player?: PlayerResponse;
-	universe?: PlayerUniverse & PlayerIntels;
 };
 
 export class PlayerService extends Service {
@@ -31,7 +24,7 @@ export class PlayerService extends Service {
 		});
 
 		if (!response.ok) {
-			await Service.raiseError(response);
+			await Service.throwError(response);
 		}
 		return (await response.json()) as UpdateOrdersResult;
 	}
@@ -46,12 +39,12 @@ export class PlayerService extends Service {
 		});
 
 		if (!response.ok) {
-			await Service.raiseError(response);
+			await Service.throwError(response);
 		}
 		return (await response.json()) as PlayerResponse;
 	}
 
-	static async submitTurn(gameId: number | string): Promise<SubmitTurnResponse | undefined> {
+	static async submitTurn(gameId: number | string): Promise<TurnGenerationResponse | undefined> {
 		const response = await fetch(`/api/games/${gameId}/submit-turn`, {
 			method: 'POST',
 			headers: {
@@ -60,7 +53,21 @@ export class PlayerService extends Service {
 		});
 
 		if (!response.ok) {
-			await Service.raiseError(response);
+			await Service.throwError(response);
+		}
+		return response.json();
+	}
+
+	static async unsubmitTurn(gameId: number | string): Promise<undefined> {
+		const response = await fetch(`/api/games/${gameId}/unsubmit-turn`, {
+			method: 'POST',
+			headers: {
+				accept: 'application/json'
+			}
+		});
+
+		if (!response.ok) {
+			await Service.throwError(response);
 		}
 		return response.json();
 	}

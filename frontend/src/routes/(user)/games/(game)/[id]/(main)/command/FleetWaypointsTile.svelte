@@ -8,7 +8,7 @@
 		selectWaypoint
 	} from '$lib/services/Stores';
 	import type { CommandedFleet, Waypoint } from '$lib/types/Fleet';
-	import type { MapObject } from '$lib/types/MapObject';
+	import { MapObjectType, type MapObject, StargateWarpSpeed } from '$lib/types/MapObject';
 	import { distance } from '$lib/types/Vector';
 	import hotkeys from 'hotkeys-js';
 	import { onMount } from 'svelte';
@@ -23,6 +23,13 @@
 	let previousWaypointMO: MapObject | undefined;
 	let nextWaypoint: Waypoint | undefined;
 	let nextWaypointMO: MapObject | undefined;
+
+	$: selectedWaypointPlanet =
+		$selectedWaypoint?.targetType == MapObjectType.Planet && $selectedWaypoint?.targetNum
+			? $universe.getPlanet($selectedWaypoint?.targetNum)
+			: undefined;
+	$: selectedWaypointPlanetFriendly =
+		selectedWaypointPlanet && $player.isFriend(selectedWaypointPlanet.playerNum);
 
 	const getWaypointTarget = (wp: Waypoint): MapObject | undefined => {
 		if (wp && wp.targetType && wp.targetNum) {
@@ -185,12 +192,21 @@
 			</div>
 			<div class="flex mt-1">
 				<span>Warp Factor</span>
-				<span class="flex-1 ml-1"
-					><WarpSpeedGauge
-						on:valuechanged={(e) => onWarpSpeedChanged(e.detail)}
-						bind:value={$selectedWaypoint.warpSpeed}
-					/></span
-				>
+				<span class="flex-1 ml-1">
+					{#if selectedWaypointPlanet && selectedWaypointPlanetFriendly && selectedWaypointPlanet.spec.hasStargate}
+						<WarpSpeedGauge
+							on:valuechanged={(e) => onWarpSpeedChanged(e.detail)}
+							bind:value={$selectedWaypoint.warpSpeed}
+							max={StargateWarpSpeed}
+							useStargate={true}
+						/>
+					{:else}
+						<WarpSpeedGauge
+							on:valuechanged={(e) => onWarpSpeedChanged(e.detail)}
+							bind:value={$selectedWaypoint.warpSpeed}
+						/>
+					{/if}
+				</span>
 			</div>
 			<div class="flex justify-between mt-1">
 				<span>Travel Time</span>

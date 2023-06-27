@@ -114,6 +114,8 @@ func (t *turn) generateTurn() error {
 		player.SubmittedTurn = false
 	}
 
+	t.game.State = GameStateWaitingForPlayers
+
 	log.Info().
 		Int64("GameID", t.game.ID).
 		Str("Name", t.game.Name).
@@ -995,7 +997,12 @@ func (t *turn) planetProduction() {
 			if result.starbase != nil {
 				starbase := t.buildStarbase(player, planet, result.starbase)
 				messager.starbaseBuilt(player, planet, starbase)
-
+			}
+			if result.scanner {
+				planet.Scanner = true
+				planet.Spec = computePlanetSpec(t.game.rules, player, planet)
+				planet.MarkDirty()
+				messager.scannerBuilt(player, planet, planet.Spec.Scanner)
 			}
 		}
 	}
@@ -1298,10 +1305,12 @@ func (t *turn) fleetBattle() {
 				fleets = append(fleets, fleet)
 				playersAtPosition[fleet.PlayerNum] = t.game.getPlayer(fleet.PlayerNum)
 			}
-			if p, ok := mo.(*Planet); ok && p.starbase != nil {
-				fleets = append(fleets, p.starbase)
+			if p, ok := mo.(*Planet); ok {
 				planet = p
-				playersAtPosition[p.PlayerNum] = t.game.getPlayer(planet.PlayerNum)
+				if p.starbase != nil {
+					fleets = append(fleets, p.starbase)
+					playersAtPosition[p.PlayerNum] = t.game.getPlayer(planet.PlayerNum)
+				}
 			}
 		}
 

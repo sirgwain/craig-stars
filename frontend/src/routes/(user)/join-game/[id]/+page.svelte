@@ -4,16 +4,14 @@
 	import type { Game } from '$lib/types/Game';
 
 	import { goto } from '$app/navigation';
+	import ItemTitle from '$lib/components/ItemTitle.svelte';
+	import GameCard from '$lib/components/game/GameCard.svelte';
+	import { Service } from '$lib/services/Service';
 	import { onMount } from 'svelte';
 	import PlayerChooser from '../../../../lib/components/game/newgame/PlayerChooser.svelte';
-	import GameCard from '$lib/components/game/GameCard.svelte';
-	import ColorInput from '$lib/components/ColorInput.svelte';
-	import ItemTitle from '$lib/components/ItemTitle.svelte';
-	import { Service } from '$lib/services/Service';
 
 	let game: Game | undefined;
 	let raceId: number;
-	let color: string = '#0000FF';
 
 	onMount(async () => {
 		try {
@@ -31,10 +29,10 @@
 
 	const onSubmit = async () => {
 		if (game) {
-			const data = JSON.stringify({ raceId, color });
+			const data = JSON.stringify({ raceId });
 
 			const response = await fetch(`/api/games/${game.id}/join`, {
-				method: 'post',
+				method: 'POST',
 				headers: {
 					accept: 'application/json'
 				},
@@ -42,7 +40,7 @@
 			});
 
 			if (!response.ok) {
-				await Service.raiseError(response);
+				await Service.throwError(response);
 			}
 			goto(`/games/${game.id}`);
 		}
@@ -62,11 +60,6 @@
 	<form on:submit|preventDefault={onSubmit}>
 		<fieldset name="players" class="form-control mt-3">
 			<PlayerChooser bind:raceId />
-
-			<ColorInput bind:value={color} name="color" />
-			<div class="text-right text-md italic">
-				Note: color may be changed during universe generation
-			</div>
 		</fieldset>
 		<button class="btn btn-primary">Join</button>
 	</form>

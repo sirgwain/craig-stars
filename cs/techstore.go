@@ -428,7 +428,7 @@ func (store *TechStore) GetBestStargate(player *Player) *TechHullComponent {
 
 // TechEngines
 var SettlersDelight = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Settler's Delight", NewCost(1, 0, 1, 2), TechRequirements{PRTRequired: HE}, 10, TechCategoryEngine), Mass: 2, HullSlotType: HullSlotTypeEngine},
+	TechHullComponent: TechHullComponent{Tech: NewTech("Settler's Delight", NewCost(1, 0, 1, 2), TechRequirements{PRTRequired: HE, HullsAllowed: []string{MiniColonyShip.Name}}, 10, TechCategoryEngine), Mass: 2, HullSlotType: HullSlotTypeEngine},
 	Engine: Engine{
 		IdealSpeed: 6,
 		FreeSpeed:  6,

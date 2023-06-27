@@ -137,10 +137,11 @@ const (
 type GameState string
 
 const (
-	GameStateSetup              GameState = "Setup"
-	GameStateGeneratingUniverse GameState = "GeneratingUniverse"
-	GameStateWaitingForPlayers  GameState = "WaitingForPlayers"
-	GameStateGeneratingTurn     GameState = "GeneratingTurn"
+	GameStateSetup               GameState = "Setup"
+	GameStateGeneratingUniverse  GameState = "GeneratingUniverse"
+	GameStateWaitingForPlayers   GameState = "WaitingForPlayers"
+	GameStateGeneratingTurn      GameState = "GeneratingTurn"
+	GameStateGeneratingTurnError GameState = "GeneratingTurnError"
 )
 
 type playerGetter interface {
