@@ -123,7 +123,7 @@ func Test_production_produceTerraform(t *testing.T) {
 		{Type: QueueItemTypeTerraformEnvironment, Quantity: 5},
 	}
 	planet.Cargo = Cargo{0, 0, 8, 2500}
-	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 1000, TerraformAmount:  Hab{2, 2, 1}}
+	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 1000, TerraformAmount: Hab{2, 2, 1}}
 	planet.BaseHab = Hab{40, 40, 40}
 	planet.Hab = Hab{40, 40, 40}
 
@@ -147,7 +147,7 @@ func Test_production_produceMineralPackets(t *testing.T) {
 	planet.Cargo = Cargo{100, 100, 100, 2500}
 	planet.PacketSpeed = 6
 	planet.PacketTargetNum = 1
-	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 100, HasMassDriver: true, SafePacketSpeed: 6, BasePacketSpeed: 6}
+	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 100, PlanetStarbaseSpec: PlanetStarbaseSpec{HasMassDriver: true, SafePacketSpeed: 6, BasePacketSpeed: 6}}
 
 	// should build 5 mine, leaving the auto build in the queu
 	producer := newProducer(planet, player)

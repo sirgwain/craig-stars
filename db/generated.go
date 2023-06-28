@@ -592,8 +592,8 @@ func (c *GameConverter) csShipDesignToDbShipDesign(source cs.ShipDesign) ShipDes
 	var dbShipDesign ShipDesign
 	dbShipDesign.ID = source.GameDBObject.ID
 	dbShipDesign.GameID = source.GameDBObject.GameID
-	dbShipDesign.CreatedAt = TimeToTime(source.GameDBObject.CreatedAt)
-	dbShipDesign.UpdatedAt = TimeToTime(source.GameDBObject.UpdatedAt)
+	dbShipDesign.CreatedAt = TimeToNullTime(source.GameDBObject.CreatedAt)
+	dbShipDesign.UpdatedAt = TimeToNullTime(source.GameDBObject.UpdatedAt)
 	dbShipDesign.Num = source.Num
 	dbShipDesign.PlayerNum = source.PlayerNum
 	dbShipDesign.Name = source.Name

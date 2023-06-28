@@ -220,6 +220,11 @@ func (f *Fleet) withPlayerNum(playerNum int) *Fleet {
 	return f
 }
 
+func (f *Fleet) withNum(num int) *Fleet {
+	f.Num = num
+	return f
+}
+
 func (f *Fleet) withCargo(cargo Cargo) *Fleet {
 	f.Cargo = cargo
 	return f
@@ -232,7 +237,7 @@ func (f *Fleet) withPosition(position Vector) *Fleet {
 	return f
 }
 
-func (f *Fleet) withWaypoints(waypoints []Waypoint) *Fleet {
+func (f *Fleet) withWaypoints(waypoints ...Waypoint) *Fleet {
 	f.Waypoints = waypoints
 	return f
 }

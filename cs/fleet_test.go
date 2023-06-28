@@ -362,19 +362,19 @@ func TestFleet_moveFleet(t *testing.T) {
 	}{
 		{
 			"move 25ly at warp5",
-			testLongRangeScout(player).withWaypoints([]Waypoint{NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{50, 0}, 5)}),
+			testLongRangeScout(player).withWaypoints(NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{50, 0}, 5)),
 			args{player},
 			want{Vector{25, 0}, 4},
 		},
 		{
 			"move 1ly at warp 1",
-			testLongRangeScout(player).withWaypoints([]Waypoint{NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{1, 1}, 1)}),
+			testLongRangeScout(player).withWaypoints(NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{1, 1}, 1)),
 			args{player},
 			want{Vector{1, 1}, 0},
 		},
 		{
 			"overshoot waypoint at warp 5",
-			testLongRangeScout(player).withWaypoints([]Waypoint{NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{5, 5}, 5)}),
+			testLongRangeScout(player).withWaypoints(NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{5, 5}, 5)),
 			args{player},
 			want{Vector{5, 5}, 1},
 		},
@@ -397,19 +397,23 @@ func TestFleet_gateFleet(t *testing.T) {
 	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}}
 	sourcePlanet := NewPlanet().WithNum(1).WithPlayerNum(1)
 	sourcePlanet.Spec = PlanetSpec{
-		HasStargate:  true,
-		SafeRange:    100,
-		SafeHullMass: 100,
-		MaxRange:     500,
-		MaxHullMass:  500,
+		PlanetStarbaseSpec: PlanetStarbaseSpec{
+			HasStargate:  true,
+			SafeRange:    100,
+			SafeHullMass: 100,
+			MaxRange:     500,
+			MaxHullMass:  500,
+		},
 	}
 	destPlanet := NewPlanet().WithNum(2).WithPlayerNum(1)
 	destPlanet.Spec = PlanetSpec{
-		HasStargate:  true,
-		SafeRange:    100,
-		SafeHullMass: 100,
-		MaxRange:     500,
-		MaxHullMass:  500,
+		PlanetStarbaseSpec: PlanetStarbaseSpec{
+			HasStargate:  true,
+			SafeRange:    100,
+			SafeHullMass: 100,
+			MaxRange:     500,
+			MaxHullMass:  500,
+		},
 	}
 
 	type args struct {
@@ -431,7 +435,7 @@ func TestFleet_gateFleet(t *testing.T) {
 			name: "gate between planets",
 			fleet: testLongRangeScout(player).
 				withOrbitingPlanetNum(sourcePlanet.Num).
-				withWaypoints([]Waypoint{NewPlanetWaypoint(Vector{0, 0}, 1, "planet 1", 5), NewPlanetWaypoint(Vector{50, 0}, 2, "planet 2", StargateWarpSpeed)}),
+				withWaypoints(NewPlanetWaypoint(Vector{0, 0}, 1, "planet 1", 5), NewPlanetWaypoint(Vector{50, 0}, 2, "planet 2", StargateWarpSpeed)),
 			args: args{player: player, players: []*Player{player}, planets: []*Planet{sourcePlanet, destPlanet}},
 			want: want{position: Vector{50, 0}, orbitingPlanetNum: destPlanet.Num},
 		},

@@ -3,7 +3,6 @@ package db
 import (
 	"database/sql"
 	"database/sql/driver"
-	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/sirgwain/craig-stars/cs"
@@ -12,8 +11,8 @@ import (
 type ShipDesign struct {
 	ID            int64                `json:"id,omitempty"`
 	GameID        int64                `json:"gameId,omitempty"`
-	CreatedAt     time.Time            `json:"createdAt,omitempty"`
-	UpdatedAt     time.Time            `json:"updatedAt,omitempty"`
+	UpdatedAt     sql.NullTime         `json:"updatedAt,omitempty"`
+	CreatedAt     sql.NullTime         `json:"createdAt,omitempty"`
 	Num           int                  `json:"num,omitempty"`
 	PlayerNum     int                  `json:"playerNum,omitempty"`
 	Name          string               `json:"name,omitempty"`

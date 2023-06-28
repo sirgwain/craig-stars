@@ -861,8 +861,8 @@ func ExtendShipDesignGameDBObject(source ShipDesign) cs.GameDBObject {
 	return cs.GameDBObject{
 		ID:        source.ID,
 		GameID:    source.GameID,
-		CreatedAt: source.CreatedAt,
-		UpdatedAt: source.UpdatedAt,
+		CreatedAt: source.CreatedAt.Time,
+		UpdatedAt: source.UpdatedAt.Time,
 	}
 }
 

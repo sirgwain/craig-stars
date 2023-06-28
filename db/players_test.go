@@ -3,6 +3,7 @@ package db
 import (
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/test"
@@ -109,6 +110,63 @@ func TestGetPlayer(t *testing.T) {
 				t.Errorf("GetPlayer() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func Test_getPlayerWithDesigns(t *testing.T) {
+	rules := cs.NewRules()
+	c := connectTestDB()
+	game := c.createTestGame()
+	player := cs.Player{GameDBObject: cs.GameDBObject{GameID: 1}, UserID: 1, Num: 1, Name: "Test", Race: *cs.NewRace().WithSpec(&rules)}
+	if err := c.CreatePlayer(&player); err != nil {
+		t.Errorf("create player %s", err)
+		return
+	}
+
+	// verify it works with no designs
+	_, err := c.getPlayerWithDesigns("p.gameId = ?", game.ID)
+	if err != nil {
+		t.Errorf("getPlayerWithDesigns %s", err)
+		return
+	}
+
+	// create a couple designs and join again
+	shipDesign1 := cs.ShipDesign{Num: 1, PlayerNum: player.Num, Name: "name"}
+	shipDesign1.GameID = game.ID
+	if err := c.CreateShipDesign(&shipDesign1); err != nil {
+		t.Errorf("create shipDesign %s", err)
+		return
+	}
+
+	shipDesign2 := cs.ShipDesign{Num: 2, PlayerNum: player.Num, Name: "name2"}
+	shipDesign2.GameID = game.ID
+	if err := c.CreateShipDesign(&shipDesign2); err != nil {
+		t.Errorf("create shipDesign %s", err)
+		return
+	}
+
+	got, err := c.getPlayerWithDesigns("p.gameId = ?", game.ID)
+	if err != nil {
+		t.Errorf("getPlayerWithDesigns %s", err)
+		return
+	}
+
+	// we expect to have a player with designs
+	player.Designs = append(player.Designs, &shipDesign1, &shipDesign2)
+
+	// clear out the incoming updated/created timestamps, we won't have those
+	for i := range got {
+		p := &got[i]
+		p.CreatedAt = time.Time{}
+		p.UpdatedAt = time.Time{}
+		for _, design := range p.Designs {
+			design.CreatedAt = time.Time{}
+			design.UpdatedAt = time.Time{}
+		}
+
+	}
+	if !test.CompareAsJSON(t, got, []*cs.Player{&player}) {
+		t.Errorf("getPlayerWithDesigns() = %v, want %v", got, player)
 	}
 }
 

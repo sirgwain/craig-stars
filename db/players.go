@@ -356,6 +356,131 @@ func (c *client) GetPlayersStatusForGame(gameID int64) ([]*cs.Player, error) {
 	return players, nil
 }
 
+func (c *client) getPlayerWithDesigns(where string, args ...interface{}) ([]cs.Player, error) {
+	type playerDesignsJoin struct {
+		Player     `json:"player,omitempty"`
+		ShipDesign `json:"shipDesign,omitempty"`
+	}
+
+	rows := []playerDesignsJoin{}
+
+	err := c.db.Select(&rows, fmt.Sprintf(`
+	SELECT 
+		p.id AS 'player.id',
+		p.createdAt AS 'player.createdAt',
+		p.updatedAt AS 'player.updatedAt',
+		p.gameId AS 'player.gameId',
+		p.userId AS 'player.userId',
+		p.name AS 'player.name',
+		p.num AS 'player.num',
+		p.ready AS 'player.ready',
+		p.aiControlled AS 'player.aiControlled',
+		p.submittedTurn AS 'player.submittedTurn',
+		p.color AS 'player.color',
+		p.defaultHullSet AS 'player.defaultHullSet',
+		p.techLevelsEnergy AS 'player.techLevelsEnergy',
+		p.techLevelsWeapons AS 'player.techLevelsWeapons',
+		p.techLevelsPropulsion AS 'player.techLevelsPropulsion',
+		p.techLevelsConstruction AS 'player.techLevelsConstruction',
+		p.techLevelsElectronics AS 'player.techLevelsElectronics',
+		p.techLevelsBiotechnology AS 'player.techLevelsBiotechnology',
+		p.techLevelsSpentEnergy AS 'player.techLevelsSpentEnergy',
+		p.techLevelsSpentWeapons AS 'player.techLevelsSpentWeapons',
+		p.techLevelsSpentPropulsion AS 'player.techLevelsSpentPropulsion',
+		p.techLevelsSpentConstruction AS 'player.techLevelsSpentConstruction',
+		p.techLevelsSpentElectronics AS 'player.techLevelsSpentElectronics',
+		p.techLevelsSpentBiotechnology AS 'player.techLevelsSpentBiotechnology',
+		p.researchAmount AS 'player.researchAmount',
+		p.researchSpentLastYear AS 'player.researchSpentLastYear',
+		p.nextResearchField AS 'player.nextResearchField',
+		p.researching AS 'player.researching',
+		p.battlePlans AS 'player.battlePlans',
+		p.productionPlans AS 'player.productionPlans',
+		p.transportPlans AS 'player.transportPlans',
+		p.relations AS 'player.relations',
+		p.messages AS 'player.messages',
+		p.battleRecords AS 'player.battleRecords',
+		p.playerIntels AS 'player.playerIntels',
+		p.scoreIntels AS 'player.scoreIntels',
+		p.planetIntels AS 'player.planetIntels',
+		p.fleetIntels AS 'player.fleetIntels',
+		p.starbaseIntels AS 'player.starbaseIntels',
+		p.shipDesignIntels AS 'player.shipDesignIntels',
+		p.mineralPacketIntels AS 'player.mineralPacketIntels',
+		p.mineFieldIntels AS 'player.mineFieldIntels',
+		p.wormholeIntels AS 'player.wormholeIntels',
+		p.mysteryTraderIntels AS 'player.mysteryTraderIntels',
+		p.salvageIntels AS 'player.salvageIntels',
+		p.race AS 'player.race',
+		p.stats AS 'player.stats',
+		p.scoreHistory AS 'player.scoreHistory',
+		p.achievedVictoryConditions AS 'player.achievedVictoryConditions',
+		p.victor AS 'player.victor',
+		p.spec AS 'player.spec',
+
+		
+		COALESCE(d.id, 0) AS 'shipDesign.id',
+		d.createdAt AS 'shipDesign.createdAt',
+		d.updatedAt AS 'shipDesign.updatedAt',
+		COALESCE(d.gameId, 0) AS 'shipDesign.gameId',
+		COALESCE(d.num, 0) AS 'shipDesign.num',
+		COALESCE(d.playerNum, 0) AS 'shipDesign.playerNum',
+		COALESCE(d.name, '') AS 'shipDesign.name',
+		COALESCE(d.version, 0) AS 'shipDesign.version',
+		COALESCE(d.hull, '') AS 'shipDesign.hull',
+		COALESCE(d.hullSetNumber, 0) AS 'shipDesign.hullSetNumber',
+		COALESCE(d.canDelete, 0) AS 'shipDesign.canDelete',
+		COALESCE(d.slots, '[]') AS 'shipDesign.slots',
+		COALESCE(d.purpose, '') AS 'shipDesign.purpose',
+		COALESCE(d.spec, '{}') AS 'shipDesign.spec'
+
+	FROM players p
+	LEFT JOIN shipDesigns d
+		ON p.gameId = d.gameId AND p.num = d.playerNum
+	WHERE %s
+`, where), args...)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return []cs.Player{}, nil
+		}
+		return nil, err
+	}
+
+	// check if we have a game
+	if len(rows) == 0 {
+		return []cs.Player{}, nil
+	}
+
+	// join results give a row per item, so if we have 2 players
+	// one with 2 designs, one with 3, we'll end up with 5 rows
+	// row 0 - player1, design 1
+	// row 1 - player1, design 2
+	// row 2 - player2, design 1
+	// row 3 - player2, design 2
+	// row 4 - player2, design 3
+	players := []cs.Player{}
+	var item Player
+	var player *cs.Player
+	for _, row := range rows {
+
+		if row.Player.ID != item.ID {
+			// convert this row into a game
+			item = row.Player
+			p := c.converter.ConvertPlayer(item)
+			p.Designs = []*cs.ShipDesign{}
+			players = append(players, p)
+			player = &players[len(players)-1]
+		}
+
+		if row.ShipDesign.ID != 0 {
+			design := c.converter.ConvertShipDesign(&row.ShipDesign)
+			player.Designs = append(player.Designs, design)
+		}
+	}
+
+	return players, nil
+}
+
 // get a player by id
 func (c *client) GetPlayer(id int64) (*cs.Player, error) {
 	item := Player{}

@@ -37,44 +37,48 @@ type PlanetOrders struct {
 }
 
 type PlanetSpec struct {
-	BasePacketSpeed           int     `json:"basePacketSpeed,omitempty"`
+	PlanetStarbaseSpec
 	CanTerraform              bool    `json:"canTerraform,omitempty"`
 	Defense                   string  `json:"defense,omitempty"`
 	DefenseCoverage           float64 `json:"defenseCoverage,omitempty"`
 	DefenseCoverageSmart      float64 `json:"defenseCoverageSmart,omitempty"`
-	DockCapacity              int     `json:"dockCapacity,omitempty"`
 	GrowthAmount              int     `json:"growthAmount,omitempty"`
 	Habitability              int     `json:"habitability,omitempty"`
-	HasMassDriver             bool    `json:"hasMassDriver,omitempty"`
-	HasStarbase               bool    `json:"hasStarbase,omitempty"`
-	HasStargate               bool    `json:"hasStargate,omitempty"`
 	MaxDefenses               int     `json:"maxDefenses,omitempty"`
 	MaxFactories              int     `json:"maxFactories,omitempty"`
-	MaxHullMass               int     `json:"maxHullMass,omitempty"`
 	MaxMines                  int     `json:"maxMines,omitempty"`
 	MaxPopulation             int     `json:"maxPopulation,omitempty"`
 	MaxPossibleFactories      int     `json:"maxPossibleFactories,omitempty"`
 	MaxPossibleMines          int     `json:"maxPossibleMines,omitempty"`
-	MaxRange                  int     `json:"maxRange,omitempty"`
 	MiningOutput              Mineral `json:"miningOutput,omitempty"`
 	Population                int     `json:"population,omitempty"`
 	PopulationDensity         float64 `json:"populationDensity,omitempty"`
 	ResourcesPerYear          int     `json:"resourcesPerYear,omitempty"`
 	ResourcesPerYearAvailable int     `json:"resourcesPerYearAvailable,omitempty"`
 	ResourcesPerYearResearch  int     `json:"resourcesPerYearResearch,omitempty"`
-	SafeHullMass              int     `json:"safeHullMass,omitempty"`
-	SafePacketSpeed           int     `json:"safePacketSpeed,omitempty"`
-	SafeRange                 int     `json:"safeRange,omitempty"`
 	Scanner                   string  `json:"scanner,omitempty"`
 	ScanRange                 int     `json:"scanRange,omitempty"`
 	ScanRangePen              int     `json:"scanRangePen,omitempty"`
-	StarbaseDesignName        string  `json:"starbaseDesignName,omitempty"`
-	StarbaseDesignNum         int     `json:"starbaseDesignNum,omitempty"`
-	Stargate                  string  `json:"stargate,omitempty"`
-	MassDriver                string  `json:"massDriver,omitempty"`
 	TerraformAmount           Hab     `json:"terraformAmount,omitempty"`
 	MinTerraformAmount        Hab     `json:"minTerraformAmount,omitempty"`
 	TerraformedHabitability   int     `json:"terraformedHabitability,omitempty"`
+}
+
+type PlanetStarbaseSpec struct {
+	HasMassDriver      bool   `json:"hasMassDriver,omitempty"`
+	HasStarbase        bool   `json:"hasStarbase,omitempty"`
+	HasStargate        bool   `json:"hasStargate,omitempty"`
+	StarbaseDesignName string `json:"starbaseDesignName,omitempty"`
+	StarbaseDesignNum  int    `json:"starbaseDesignNum,omitempty"`
+	DockCapacity       int    `json:"dockCapacity,omitempty"`
+	BasePacketSpeed    int    `json:"basePacketSpeed,omitempty"`
+	SafePacketSpeed    int    `json:"safePacketSpeed,omitempty"`
+	SafeHullMass       int    `json:"safeHullMass,omitempty"`
+	SafeRange          int    `json:"safeRange,omitempty"`
+	MaxRange           int    `json:"maxRange,omitempty"`
+	MaxHullMass        int    `json:"maxHullMass,omitempty"`
+	Stargate           string `json:"stargate,omitempty"`
+	MassDriver         string `json:"massDriver,omitempty"`
 }
 
 func (item *ProductionQueueItem) String() string {
@@ -456,6 +460,14 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 		spec.ScanRange = scanner.ScanRange
 		spec.ScanRangePen = scanner.ScanRangePen
 	}
+
+	spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(rules, player, planet)
+
+	return spec
+}
+
+func computePlanetStarbaseSpec(rules *Rules, player *Player, planet *Planet) PlanetStarbaseSpec {
+	spec := PlanetStarbaseSpec{}
 
 	starbase := planet.starbase
 	spec.HasStarbase = starbase != nil

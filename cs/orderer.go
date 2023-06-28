@@ -127,7 +127,9 @@ func (o *orders) TransferPlanetCargo(rules *Rules, player *Player, source *Fleet
 	source.Cargo = source.Cargo.Add(transferAmount)
 	dest.Cargo = dest.Cargo.Subtract(transferAmount)
 	source.Spec = ComputeFleetSpec(rules, player, source)
+	starbaseSpec := dest.Spec.PlanetStarbaseSpec
 	dest.Spec = computePlanetSpec(rules, player, dest)
+	dest.Spec.PlanetStarbaseSpec = starbaseSpec
 
 	source.MarkDirty()
 	dest.MarkDirty()
