@@ -216,7 +216,9 @@
 			</div>
 			<div class="flex justify-between mt-1">
 				<span>Est Fuel Usage</span>
-				<span>{$selectedWaypoint.estFuelUsage ?? 0}mg</span>
+				<span class:text-error={($selectedWaypoint.estFuelUsage ?? 0) > fleet.spec.fuelCapacity}
+					>{$selectedWaypoint.estFuelUsage ?? 0}mg</span
+				>
 			</div>
 			<label>
 				<input
