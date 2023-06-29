@@ -4,11 +4,6 @@ import "github.com/rs/zerolog/log"
 
 // invade a planet with a colonist drop
 func invadePlanet(planet *Planet, fleet *Fleet, defender *Player, attacker *Player, colonistsDropped int, invasionDefenseCoverageFactor float64) {
-	if !planet.owned() || planet.population() == 0 {
-		// can't invade uninhabited planets
-		messager.planetInvadeEmpty(attacker, planet, fleet)
-		return
-	}
 
 	// figure out how many attackers are stopped by defenses
 	attackers := int(float64(colonistsDropped) * (1 - planet.Spec.DefenseCoverage*invasionDefenseCoverageFactor))
@@ -29,11 +24,11 @@ func invadePlanet(planet *Planet, fleet *Fleet, defender *Player, attacker *Play
 		var attackersKilled = colonistsDropped - remainingAttackers
 
 		// notify each player of the invasion
-		messager.planetInvaded(defender, planet, fleet, defender.Race.PluralName, attacker.Race.PluralName, attackersKilled, planet.population())
-		messager.planetInvaded(attacker, planet, fleet, defender.Race.PluralName, attacker.Race.PluralName, attackersKilled, planet.population())
+		messager.planetInvaded(defender, planet, fleet, defender.Race.PluralName, attacker.Race.PluralName, attackersKilled, planet.population(), true)
+		messager.planetInvaded(attacker, planet, fleet, defender.Race.PluralName, attacker.Race.PluralName, attackersKilled, planet.population(), true)
 
 		// take over the planet.
-		// empty this planet
+	// empty this planet
 		planet.PlayerNum = attacker.Num
 		planet.starbase = nil
 		planet.Scanner = false
@@ -51,8 +46,8 @@ func invadePlanet(planet *Planet, fleet *Fleet, defender *Player, attacker *Play
 		defendersKilled := planet.population() - remainingDefenders
 
 		// notify each player of the invasion
-		messager.planetInvaded(defender, planet, fleet, defender.Race.PluralName, attacker.Race.PluralName, colonistsDropped, defendersKilled)
-		messager.planetInvaded(attacker, planet, fleet, defender.Race.PluralName, attacker.Race.PluralName, colonistsDropped, defendersKilled)
+		messager.planetInvaded(defender, planet, fleet, defender.Race.PluralName, attacker.Race.PluralName, colonistsDropped, defendersKilled, false)
+		messager.planetInvaded(attacker, planet, fleet, defender.Race.PluralName, attacker.Race.PluralName, colonistsDropped, defendersKilled, false)
 
 		// reduce the population to however many colonists remain
 		planet.setPopulation(remainingDefenders)

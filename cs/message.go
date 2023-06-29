@@ -546,13 +546,13 @@ func (m *messageClient) planetInvadeEmpty(player *Player, planet *Planet, fleet 
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
 }
 
-func (m *messageClient) planetInvaded(player *Player, planet *Planet, fleet *Fleet, planetOwner string, fleetOwner string, attackersKilled int, defendersKilled int) {
+func (m *messageClient) planetInvaded(player *Player, planet *Planet, fleet *Fleet, planetOwner string, fleetOwner string, attackersKilled int, defendersKilled int, successful bool) {
 	var text string
 
 	// use this formatter to get commas on the text
 	p := message.NewPrinter(language.English)
 	if player.Num == fleet.PlayerNum {
-		if planet.PlayerNum == fleet.PlayerNum {
+		if successful {
 			// we invaded and won
 			text = p.Sprintf("Your %s has successfully invaded %s planet %s killing off all colonists", fleet.Name, planetOwner, planet.Name)
 		} else {
@@ -561,7 +561,7 @@ func (m *messageClient) planetInvaded(player *Player, planet *Planet, fleet *Fle
 		}
 		player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageEnemyPlanetInvaded, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
 	} else {
-		if planet.PlayerNum == fleet.PlayerNum {
+		if successful {
 			// we were invaded, and lost
 			text = p.Sprintf("%s %s has successfully invaded your planet %s, killing off all of your colonists", fleetOwner, fleet.Name, planet.Name)
 		} else {

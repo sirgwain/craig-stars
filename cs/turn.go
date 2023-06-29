@@ -388,7 +388,18 @@ func (t *turn) fleetTransferCargo(fleet *Fleet, transferAmount int, cargoType Ca
 		planet, ok := dest.(*Planet)
 		if transferAmount > 0 && cargoType == Colonists && ok && planet.owned() && !planet.OwnedBy(fleet.PlayerNum) {
 			// invasion!
-			invadePlanet(planet, fleet, t.game.Players[planet.PlayerNum-1], t.game.Players[fleet.PlayerNum-1], transferAmount*100, t.game.Rules.InvasionDefenseCoverageFactor)
+			attacker := player
+			if !planet.owned() || planet.population() == 0 {
+				// can't invade uninhabited planets
+				messager.planetInvadeEmpty(attacker, planet, fleet)
+				return
+			}
+			defender := t.game.getPlayer(planet.PlayerNum)
+
+			invadePlanet(planet, fleet, defender, player, transferAmount*100, t.game.Rules.InvasionDefenseCoverageFactor)
+			fleet.Cargo.Colonists -= transferAmount
+			fleet.MarkDirty()
+			planet.MarkDirty()
 		} else if transferAmount < 0 && !dest.canLoad(fleet.PlayerNum) {
 			// can't load from things we don't own
 			messager.fleetInvalidLoadCargo(player, fleet, dest, cargoType, transferAmount)
