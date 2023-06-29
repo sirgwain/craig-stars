@@ -61,7 +61,7 @@
 		)}
 >
 	<div
-		class="font-semibold text-sm text-center align-middle text-secondary w-full bg-blend-difference absolute"
+		class="font-extrabold text-sm text-center align-middle w-full absolute text-secondary"
 	>
 		{value} of {capacity}mg
 	</div>

@@ -35,22 +35,29 @@
 
 	const dispatch = createEventDispatcher();
 
+	let ref: HTMLDivElement;
+
+	const getXFromPointerEvent = (e: PointerEvent) =>
+		(e.clientX - ref.getBoundingClientRect().left) / ref.getBoundingClientRect().width;
+
 	const onPointerDown = (x: number) => {
 		pointerdown = true;
 		updateValue(x);
 		window.addEventListener('pointerup', onPointerUp);
+		window.addEventListener('pointermove', onPointerMove);
 	};
 
 	function onPointerUp(e: PointerEvent) {
 		e.preventDefault();
 		window.removeEventListener('pointerup', onPointerUp);
+		window.removeEventListener('pointermove', onPointerMove);
 		pointerdown = false;
 		dispatch('valuechanged', value);
 	}
 
-	const onPointerMove = (x: number) => {
+	const onPointerMove = (e: PointerEvent) => {
 		if (pointerdown) {
-			updateValue(x);
+			updateValue(getXFromPointerEvent(e));
 		}
 	};
 
@@ -63,14 +70,10 @@
 </script>
 
 <div
+	bind:this={ref}
 	class="border border-secondary w-full h-[1rem] text-[0rem] relative cursor-pointer select-none"
 	on:pointerdown|preventDefault={(e) =>
 		onPointerDown(
-			(e.clientX - e.currentTarget.getBoundingClientRect().left) /
-				e.currentTarget.getBoundingClientRect().width
-		)}
-	on:pointermove|preventDefault={(e) =>
-		onPointerMove(
 			(e.clientX - e.currentTarget.getBoundingClientRect().left) /
 				e.currentTarget.getBoundingClientRect().width
 		)}

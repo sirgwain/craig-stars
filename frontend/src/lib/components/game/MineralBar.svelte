@@ -13,19 +13,30 @@
 	$: percent = capacity > 0 ? (value / capacity) * 100 : 0;
 
 	let pointerdown = false;
+	let ref: HTMLDivElement;
+
+	const getXFromPointerEvent = (e: PointerEvent) =>
+		(e.clientX - ref.getBoundingClientRect().left) / ref.getBoundingClientRect()?.width;
 
 	const onPointerDown = (x: number) => {
 		pointerdown = true;
 		updateValue(x);
+		window.addEventListener('pointerup', onPointerUp);
+		window.addEventListener('pointermove', onPointerMove);
+		document.body.classList.remove('select-none', 'touch-none');
 	};
 
-	const onPointerUp = (x: number) => {
+	function onPointerUp(e: PointerEvent) {
+		e.preventDefault();
+		window.removeEventListener('pointerup', onPointerUp);
+		window.removeEventListener('pointermove', onPointerMove);
+		document.body.classList.add('select-none', 'touch-none');
 		pointerdown = false;
-	};
+	}
 
-	const onPointerMove = (x: number) => {
+	const onPointerMove = (e: PointerEvent) => {
 		if (pointerdown) {
-			updateValue(x);
+			updateValue(getXFromPointerEvent(e));
 		}
 	};
 
@@ -39,22 +50,9 @@
 </script>
 
 <div
+	bind:this={ref}
 	class="border border-secondary w-full h-[1rem] text-[0rem] relative bg-base-200 cursor-pointer select-none"
-	on:pointerdown|preventDefault={(e) =>
-		onPointerDown(
-			(e.clientX - e.currentTarget.getBoundingClientRect().left) /
-				e.currentTarget.getBoundingClientRect().width
-		)}
-	on:pointerup|preventDefault={(e) =>
-		onPointerUp(
-			(e.clientX - e.currentTarget.getBoundingClientRect().left) /
-				e.currentTarget.getBoundingClientRect().width
-		)}
-	on:pointermove|preventDefault={(e) =>
-		onPointerMove(
-			(e.clientX - e.currentTarget.getBoundingClientRect().left) /
-				e.currentTarget.getBoundingClientRect().width
-		)}
+	on:pointerdown|preventDefault={(e) => onPointerDown(getXFromPointerEvent(e))}
 >
 	<div
 		class="font-semibold text-sm text-center align-middle text-secondary w-full bg-blend-difference absolute"

@@ -4,6 +4,7 @@
 	import { CommandedFleet, type Fleet } from '$lib/types/Fleet';
 	import { MapObjectType } from '$lib/types/MapObject';
 	import { CommandedPlanet, type Planet } from '$lib/types/Planet';
+	import techjson from '$lib/ssr/techs.json';
 
 	const planet: Planet = new CommandedPlanet();
 	Object.assign(planet, {
@@ -14,33 +15,16 @@
 		cargo: { ironium: 1000, boranium: 2000, germanium: 4000, colonists: 2500 }
 	});
 
-	const fleet = new CommandedFleet({
-		name: 'Santa Maria #3',
-		baseName: 'Santa Maria',
+	const fleet = new CommandedFleet();
+	Object.assign(fleet, {
 		cargo: {
 			ironium: 11,
 			colonists: 3
 		},
 		fuel: 200,
 		spec: {
-			engine: 'Quick Jump 5',
-			cost: {
-				ironium: 12,
-				germanium: 14,
-				resources: 21
-			},
-			mass: 24,
-			armor: 20,
 			fuelCapacity: 200,
-			cargoCapacity: 25,
-			scanRange: -1,
-			scanRangePen: -1,
-			immuneToOwnDetonation: false,
-			totalShips: 1,
-			massEmpty: 24,
-			basePacketSpeed: 0,
-			safePacketSpeed: 0,
-			baseCloakedCargo: 24
+			cargoCapacity: 25
 		}
 	});
 </script>
