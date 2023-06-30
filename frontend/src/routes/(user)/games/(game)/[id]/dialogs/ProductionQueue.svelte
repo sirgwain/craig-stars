@@ -64,6 +64,8 @@
 				return 'Mixed Mineral Packet';
 			case QueueItemType.AutoMineralPacket:
 				return 'Mixed Mineral Packet (Auto)';
+			case QueueItemType.PlanetaryScanner:
+				return 'Planetary Scanner';
 			default:
 				return item.type.toString();
 		}

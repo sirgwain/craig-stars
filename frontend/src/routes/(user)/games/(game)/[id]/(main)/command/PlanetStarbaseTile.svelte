@@ -119,7 +119,6 @@
 					<div class="w-full my-auto">
 						<WarpSpeedGauge
 							bind:value={planet.packetSpeed}
-							capacity={(planet.spec.safePacketSpeed ?? 0) + 3}
 							min={planet.spec.safePacketSpeed}
 							max={(planet.spec.safePacketSpeed ?? 0) + 3}
 							warnSpeed={(planet.spec.safePacketSpeed ?? 0) + 1}

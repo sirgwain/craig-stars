@@ -75,6 +75,7 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 
 		this.planets = data.planets ?? [];
 		this.fleets = data.fleets ?? [];
+		this.starbases = data.starbases ?? [];
 		this.mineFields = data.mineFields ?? [];
 		this.mineralPackets = data.mineralPackets ?? [];
 		this.salvages = data.salvages ?? [];
@@ -227,7 +228,7 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 	}
 
 	getPlanetStarbase(planetNum: number) {
-		return this.starbases.find((sb) => sb.planetNum == planetNum);
+		return this.starbases.find((sb) => sb.planetNum === planetNum);
 	}
 
 	getWormhole(num: number) {

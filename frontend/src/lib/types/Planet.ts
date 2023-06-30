@@ -1,4 +1,5 @@
 import type { DesignFinder } from '$lib/services/Universe';
+import { startCase } from 'lodash-es';
 import type { Cargo } from './Cargo';
 import type { Cost } from './Cost';
 import type { Hab } from './Hab';
@@ -139,7 +140,7 @@ export class CommandedPlanet implements Planet {
 						planet.spec.dockCapacity == UnlimitedSpaceDock ||
 						(d.spec.mass ?? 0) <= planet.spec.dockCapacity
 				)
-				.filter((d) => !d.spec.starbase || planet.spec.starbaseDesignNum !== d.num)
+				.filter((d) => !d.spec.starbase)
 				.forEach((d) => {
 					items.push({
 						quantity: 0,
@@ -150,6 +151,18 @@ export class CommandedPlanet implements Planet {
 					});
 				});
 		}
+		// add starbase designs
+		designs
+			.filter((d) => d.spec.starbase && planet.spec.starbaseDesignNum !== d.num)
+			.forEach((d) => {
+				items.push({
+					quantity: 0,
+					type: QueueItemType.Starbase,
+					designNum: d.num,
+					costOfOne: d.spec.cost ?? {},
+					allocated: {}
+				});
+			});
 
 		if (planet.spec.hasMassDriver) {
 			items.push(
@@ -166,6 +179,11 @@ export class CommandedPlanet implements Planet {
 			fromQueueItemType(QueueItemType.Defenses),
 			fromQueueItemType(QueueItemType.MineralAlchemy)
 		);
+
+		if (!planet.scanner) {
+			items.push(fromQueueItemType(QueueItemType.PlanetaryScanner));
+		}
+
 
 		if (planet.spec.canTerraform) {
 			items.push(fromQueueItemType(QueueItemType.TerraformEnvironment));
@@ -214,14 +232,18 @@ export enum QueueItemType {
 	GermaniumMineralPacket = 'GermaniumMineralPacket',
 	MixedMineralPacket = 'MixedMineralPacket',
 	ShipToken = 'ShipToken',
-	Starbase = 'Starbase'
+	Starbase = 'Starbase',
+	PlanetaryScanner = 'PlanetaryScanner'
 }
 
-export const getQueueItemShortName = (item: ProductionQueueItem, designFinder: DesignFinder): string => {
+export const getQueueItemShortName = (
+	item: ProductionQueueItem,
+	designFinder: DesignFinder
+): string => {
 	switch (item.type) {
 		case QueueItemType.Starbase:
 		case QueueItemType.ShipToken:
-			return designFinder.getMyDesign(item.designNum)?.name ?? ''
+			return designFinder.getMyDesign(item.designNum)?.name ?? '';
 		case QueueItemType.TerraformEnvironment:
 			return 'Terraform Environment';
 		case QueueItemType.AutoMines:
@@ -237,7 +259,7 @@ export const getQueueItemShortName = (item: ProductionQueueItem, designFinder: D
 		case QueueItemType.AutoMinTerraform:
 			return 'Min Terraform (Auto)';
 		default:
-			return `${item.type}`;
+			return `${startCase(item.type)}`;
 	}
 };
 

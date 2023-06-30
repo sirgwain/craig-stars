@@ -59,6 +59,7 @@ type Rules struct {
 	FactoryCostGermanium               int                                 `json:"factoryCostGermanium"`
 	DefenseCost                        Cost                                `json:"defenseCost"`
 	MineralAlchemyCost                 int                                 `json:"mineralAlchemyCost"`
+	PlanetaryScannerCost               Cost                                `json:"planetaryScannerCost"`
 	TerraformCost                      Cost                                `json:"terraformCost"`
 	StarbaseComponentCostFactor        float64                             `json:"starbaseComponentCostFactor"`
 	PacketDecayRate                    map[int]float64                     `json:"packetDecayRate"`
@@ -261,6 +262,12 @@ func NewRulesWithSeed(seed int64) Rules {
 			Resources: 15,
 		},
 		MineralAlchemyCost: 100,
+		PlanetaryScannerCost: Cost{
+			Ironium:   10,
+			Boranium:  10,
+			Germanium: 70,
+			Resources: 100,
+		},
 		TerraformCost: Cost{
 			Ironium:   0,
 			Boranium:  0,
