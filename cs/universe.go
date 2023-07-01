@@ -6,26 +6,26 @@ import (
 )
 
 type Universe struct {
-	Planets              []*Planet                           `json:"planets,omitempty"`
-	Fleets               []*Fleet                            `json:"fleets,omitempty"`
-	Starbases            []*Fleet                            `json:"starbases,omitempty"`
-	Wormholes            []*Wormhole                         `json:"wormholes,omitempty"`
-	MineralPackets       []*MineralPacket                    `json:"mineralPackets,omitempty"`
-	MineFields           []*MineField                        `json:"mineFields,omitempty"`
-	MysteryTraders       []*MysteryTrader                    `json:"mysteryTraders,omitempty"`
-	Salvages             []*Salvage                          `json:"salvage,omitempty"`
-	rules                *Rules                              `json:"-"`
-	battlePlansByNum     map[playerBattlePlanNum]*BattlePlan `json:"-"`
-	mapObjectsByPosition map[Vector][]interface{}            `json:"-"`
-	fleetsByPosition     map[Vector][]*Fleet                 `json:"-"`
-	fleetsByNum          map[playerObject]*Fleet             `json:"-"`
-	designsByNum         map[playerObject]*ShipDesign        `json:"-"`
-	mineFieldsByNum      map[playerObject]*MineField         `json:"-"`
-	mineralPacketsByNum  map[playerObject]*MineralPacket     `json:"-"`
-	salvagesByNum        map[int]*Salvage                    `json:"-"`
-	salvagesByPosition   map[Vector]*Salvage                 `json:"-"`
-	mysteryTradersByNum  map[int]*MysteryTrader              `json:"-"`
-	wormholesByNum       map[int]*Wormhole                   `json:"-"`
+	Planets              []*Planet        `json:"planets,omitempty"`
+	Fleets               []*Fleet         `json:"fleets,omitempty"`
+	Starbases            []*Fleet         `json:"starbases,omitempty"`
+	Wormholes            []*Wormhole      `json:"wormholes,omitempty"`
+	MineralPackets       []*MineralPacket `json:"mineralPackets,omitempty"`
+	MineFields           []*MineField     `json:"mineFields,omitempty"`
+	MysteryTraders       []*MysteryTrader `json:"mysteryTraders,omitempty"`
+	Salvages             []*Salvage       `json:"salvage,omitempty"`
+	rules                *Rules
+	battlePlansByNum     map[playerBattlePlanNum]*BattlePlan
+	mapObjectsByPosition map[Vector][]interface{}
+	fleetsByPosition     map[Vector][]*Fleet
+	fleetsByNum          map[playerObject]*Fleet
+	designsByNum         map[playerObject]*ShipDesign
+	mineFieldsByNum      map[playerObject]*MineField
+	mineralPacketsByNum  map[playerObject]*MineralPacket
+	salvagesByNum        map[int]*Salvage
+	salvagesByPosition   map[Vector]*Salvage
+	mysteryTradersByNum  map[int]*MysteryTrader
+	wormholesByNum       map[int]*Wormhole
 }
 
 func NewUniverse(rules *Rules) Universe {
@@ -43,6 +43,10 @@ func NewUniverse(rules *Rules) Universe {
 		wormholesByNum:       make(map[int]*Wormhole),
 		mysteryTradersByNum:  make(map[int]*MysteryTrader),
 	}
+}
+
+type fleetGetter interface {
+	getFleet(playerNum int, num int) *Fleet
 }
 
 type mapObjectGetter interface {
@@ -302,15 +306,26 @@ func (u *Universe) getCargoHolder(mapObjectType MapObjectType, num int, playerNu
 	return nil
 }
 
+// update the num instances for all tokens
+func (u *Universe) updateTokenCounts() {
+	for _, design := range u.designsByNum {
+		design.Spec.NumInstances = 0
+		design.MarkDirty()
+	}
+	for _, fleet := range append(u.Fleets, u.Starbases...) {
+		if fleet.Delete {
+			continue
+		}
+		for _, token := range fleet.Tokens {
+			design := u.designsByNum[playerObjectKey(fleet.PlayerNum, token.DesignNum)]
+			design.Spec.NumInstances += token.Quantity
+		}
+	}
+}
+
 // mark a fleet as deleted and remove it from the universe
 func (u *Universe) deleteFleet(fleet *Fleet) {
 	fleet.Delete = true
-
-	// decrease token count
-	for _, token := range fleet.Tokens {
-		token.design.Spec.NumInstances -= token.Quantity
-		token.design.MarkDirty()
-	}
 
 	index := slices.Index(u.Fleets, fleet)
 	slices.Delete(u.Fleets, index, index)

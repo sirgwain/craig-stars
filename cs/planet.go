@@ -343,10 +343,8 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 func (p *Planet) buildStarbase(rules *Rules, player *Player, design *ShipDesign) *Fleet {
 	if p.starbase != nil {
 		oldDesign := p.starbase.Tokens[0].design
-		oldDesign.Spec.NumInstances--
 		oldDesign.MarkDirty()
 	}
-	design.Spec.NumInstances++
 	design.Spec.NumBuilt++
 	design.MarkDirty()
 

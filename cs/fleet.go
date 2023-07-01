@@ -496,7 +496,7 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 func (f *Fleet) computeFuelUsage(player *Player) {
 	for i := range f.Waypoints {
 		wp := &f.Waypoints[i]
-		if i > 0  && wp.WarpSpeed < StargateWarpSpeed {
+		if i > 0 && wp.WarpSpeed < StargateWarpSpeed {
 			wpPrevious := f.Waypoints[i-1]
 			fuelUsage := f.GetFuelCost(player, wp.WarpSpeed, wp.Position.DistanceTo(wpPrevious.Position))
 			wp.EstFuelUsage = fuelUsage
@@ -980,6 +980,7 @@ func (fleet *Fleet) colonizePlanet(rules *Rules, player *Player, planet *Planet)
 	planet.PlayerNum = player.Num
 	planet.ProductionQueue = []ProductionQueueItem{}
 	planet.Cargo = planet.Cargo.Add(fleet.Cargo)
+	fleet.Cargo = Cargo{}
 
 	if len(player.ProductionPlans) > 0 {
 		plan := player.ProductionPlans[0]

@@ -8,7 +8,7 @@ import { humanoid, type Race } from './Race';
 import type { Salvage } from './Salvage';
 import type { ShipDesign } from './ShipDesign';
 import type { Tech, TechDefense, TechPlanetaryScanner } from './Tech';
-import { type TechLevel, TechField, emptyTechLevel } from './TechLevel';
+import { emptyTechLevel, TechField, type TechLevel } from './TechLevel';
 import type { Wormhole } from './Wormhole';
 
 export type PlayerStatus = {

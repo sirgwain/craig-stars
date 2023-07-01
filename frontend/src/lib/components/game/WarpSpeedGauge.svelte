@@ -65,6 +65,7 @@
 		const newValue = clamp(Math.round(x * max), min, max);
 		if (newValue != value) {
 			value = newValue;
+			dispatch("valuedragged", value)
 		}
 	};
 </script>

@@ -101,6 +101,7 @@ func (t *turn) generateTurn() error {
 	// and do player specific things like scanning
 	// and patrol orders
 	t.computePlanetSpecs() // make sure our specs are up to date
+	t.game.updateTokenCounts(); // update token counts
 	for _, player := range t.game.Players {
 		player.Spec = computePlayerSpec(player, &t.game.Rules, t.game.Planets)
 
@@ -174,6 +175,7 @@ func (t *turn) scrapFleet(fleet *Fleet) {
 	if planet != nil {
 		// scrap over a planet
 		planet.Cargo = planet.Cargo.AddCostMinerals(cost)
+		planet.Cargo = planet.Cargo.AddMineral(fleet.Cargo.ToMineral())
 		if planet.OwnedBy(player.Num) {
 			planet.BonusResources += cost.Resources
 		}

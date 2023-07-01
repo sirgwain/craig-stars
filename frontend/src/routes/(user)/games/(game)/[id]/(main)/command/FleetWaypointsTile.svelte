@@ -68,6 +68,13 @@
 					previousWaypoint ? previousWaypoint.position : nextWaypoint?.position
 			  )
 			: 0;
+	$: estimatedFuelUsage = fleet.getFuelCost(
+		$universe,
+		$player.race.spec?.fuelEfficiencyOffset ?? 0,
+		$selectedWaypoint?.warpSpeed ?? 0,
+		dist,
+		fleet.spec.cargoCapacity ?? 0
+	);
 
 	const onRepeatOrdersChanged = async (repeatOrders: boolean) => {
 		if ($selectedWaypoint) {
@@ -86,6 +93,12 @@
 
 			// update the commanded object
 			updateNextPrevWaypoints();
+		}
+	};
+
+	const onWarpSpeedDragged = async (warpSpeed: number) => {
+		if ($selectedWaypoint) {
+			$selectedWaypoint.warpSpeed = warpSpeed;
 		}
 	};
 
@@ -180,6 +193,7 @@
 					on:click={deleteWaypoint}
 					>Delete
 				</button>
+				
 			</div>
 
 			<div class="flex justify-between mt-1">
@@ -196,6 +210,7 @@
 					{#if selectedWaypointPlanet && selectedWaypointPlanetFriendly && selectedWaypointPlanet.spec.hasStargate}
 						<WarpSpeedGauge
 							on:valuechanged={(e) => onWarpSpeedChanged(e.detail)}
+							on:valuedragged={(e) => onWarpSpeedDragged(e.detail)}
 							bind:value={$selectedWaypoint.warpSpeed}
 							max={StargateWarpSpeed}
 							useStargate={true}
@@ -203,6 +218,7 @@
 					{:else}
 						<WarpSpeedGauge
 							on:valuechanged={(e) => onWarpSpeedChanged(e.detail)}
+							on:valuedragged={(e) => onWarpSpeedDragged(e.detail)}
 							bind:value={$selectedWaypoint.warpSpeed}
 						/>
 					{/if}
@@ -216,8 +232,8 @@
 			</div>
 			<div class="flex justify-between mt-1">
 				<span>Est Fuel Usage</span>
-				<span class:text-error={($selectedWaypoint.estFuelUsage ?? 0) > fleet.spec.fuelCapacity}
-					>{$selectedWaypoint.estFuelUsage ?? 0}mg</span
+				<span class:text-error={(estimatedFuelUsage) > fleet.spec.fuelCapacity}
+					>{estimatedFuelUsage}mg</span
 				>
 			</div>
 			<label>

@@ -1,7 +1,7 @@
 import type { Hab } from './Hab';
 import type { Cost } from './Cost';
 import type { QueueItemType } from './Planet';
-import type { TechLevel } from './Player';
+import type { TechLevel } from './TechLevel';
 import type { EnumDictionary } from './EnumDictionary';
 
 export interface Race {

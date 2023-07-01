@@ -1,4 +1,5 @@
 import type { Cost } from './Cost';
+import type { Engine } from './Tech';
 
 export type ShipDesign = {
 	id?: number;
@@ -33,21 +34,7 @@ export type Bomb = {
 };
 
 export type Spec = {
-	idealSpeed?: number;
-	engine?: string;
-	fuelUsage?: [
-		number,
-		number,
-		number,
-		number,
-		number,
-		number,
-		number,
-		number,
-		number,
-		number,
-		number
-	];
+	engine: Engine;
 	numEngines?: number;
 	cost?: Cost;
 	mass?: number;
