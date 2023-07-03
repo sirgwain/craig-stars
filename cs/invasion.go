@@ -28,13 +28,19 @@ func invadePlanet(planet *Planet, fleet *Fleet, defender *Player, attacker *Play
 		messager.planetInvaded(attacker, planet, fleet, defender.Race.PluralName, attacker.Race.PluralName, attackersKilled, planet.population(), true)
 
 		// take over the planet.
-	// empty this planet
+		// empty this planet
 		planet.PlayerNum = attacker.Num
 		planet.starbase = nil
 		planet.Scanner = false
 		planet.Defenses = 0 // defenses are destroyed during invasion
 		planet.ProductionQueue = []ProductionQueueItem{}
 		planet.setPopulation(remainingAttackers)
+
+		// apply a production plan
+		if len(attacker.ProductionPlans) > 0 {
+			plan := attacker.ProductionPlans[0]
+			plan.Apply(planet)
+		}
 
 	} else {
 		var remainingDefenders = roundToNearest100f(float64(defenders) - (float64(attackers)*attackBonus)/defenseBonus)

@@ -34,13 +34,13 @@
 		@apply text-[#feff00] brightness-[.8] dark:brightness-100;
 	}
 	.ironium-bar {
-		@apply bg-[#0900ff];
+		@apply bg-[#0900ff] fill-[#0900ff];
 	}
 	.boranium-bar {
-		@apply bg-[#00ff00];
+		@apply bg-[#00ff00] fill-[#00ff00];
 	}
 	.germanium-bar {
-		@apply bg-[#ffff00];
+		@apply bg-[#ffff00] fill-[#ffff00];
 	}
 	.colonists-bar {
 		@apply bg-[#ffffff];
@@ -105,17 +105,6 @@
 	.text-queue-item-next-year {
 		@apply text-[#0960ff];
 	}	
-}
-
-/* hide number spinner */
-.hide-spinner input[type='number']::-webkit-outer-spin-button,
-.hide-spinner input[type='number']::-webkit-inner-spin-button {
-	-webkit-appearance: none;
-	margin: 0;
-}
-
-.hide-spinner input[type='number'] {
-	-moz-appearance: textfield;
 }
 
 .scanner-wormhole {

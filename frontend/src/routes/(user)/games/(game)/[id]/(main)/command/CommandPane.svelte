@@ -14,6 +14,7 @@
 	import PlanetStatusTile from './PlanetStatusTile.svelte';
 	import PlanetSummaryTile from './PlanetSummaryTile.svelte';
 	import { getGameContext } from '$lib/services/Contexts';
+	import FleetOrbitingTile from './FleetOrbitingTile.svelte';
 
 	const { game, player, universe } = getGameContext();
 </script>
@@ -33,6 +34,7 @@
 	/>
 {:else if $commandedFleet}
 	<FleetSummaryTile fleet={$commandedFleet} />
+	<FleetOrbitingTile fleet={$commandedFleet} />
 	<FleetFuelAndCargoTile fleet={$commandedFleet} />
 	<FleetWaypointsTile fleet={$commandedFleet} />
 	<FleetCompositionTile

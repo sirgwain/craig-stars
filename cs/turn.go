@@ -100,8 +100,8 @@ func (t *turn) generateTurn() error {
 	// reset all players
 	// and do player specific things like scanning
 	// and patrol orders
-	t.computePlanetSpecs() // make sure our specs are up to date
-	t.game.updateTokenCounts(); // update token counts
+	t.computePlanetSpecs()     // make sure our specs are up to date
+	t.game.updateTokenCounts() // update token counts
 	for _, player := range t.game.Players {
 		player.Spec = computePlayerSpec(player, &t.game.Rules, t.game.Planets)
 
@@ -202,6 +202,7 @@ func (t *turn) fleetColonize() {
 
 			if wp.TargetType != MapObjectTypePlanet {
 				messager.colonizeNonPlanet(player, fleet)
+				wp.Task = WaypointTaskNone
 				continue
 			}
 
@@ -211,22 +212,26 @@ func (t *turn) fleetColonize() {
 					Int64("GameID", t.game.ID).
 					Str("Fleet", fleet.Name)
 				messager.error(player, err)
+				wp.Task = WaypointTaskNone
 				continue
 			}
 
 			planet := t.game.getPlanet(wp.TargetNum)
 			if planet.owned() {
 				messager.colonizeOwnedPlanet(player, fleet)
+				wp.Task = WaypointTaskNone
 				continue
 			}
 
 			if !fleet.Spec.Colonizer {
 				messager.colonizeWithNoModule(player, fleet)
+				wp.Task = WaypointTaskNone
 				continue
 			}
 
 			if fleet.Cargo.Colonists == 0 {
 				messager.colonizeWithNoColonists(player, fleet)
+				wp.Task = WaypointTaskNone
 				continue
 			}
 

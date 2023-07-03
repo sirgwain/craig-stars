@@ -7,10 +7,13 @@
 		type MineralTooltipProps
 	} from '$lib/components/game/tooltips/MineralTooltip.svelte';
 	import { showTooltip } from '$lib/services/Stores';
+	import { getGameContext } from '$lib/services/Contexts';
+
+	const { game, player, universe, settings } = getGameContext();
 
 	export let planet: Planet;
-	// export let scale = 1.0;
-	export let max = 5000.0;
+
+	let max = $settings.mineralScale; // i.e. 0 to 5000 minerals
 	let numDivisions = 6; // gridlines show 20% on line class
 	let divisions: string[] = ['0'];
 

@@ -1,3 +1,5 @@
+import type { MessageTargetType, MessageType } from './Message';
+
 export enum PlanetViewState {
 	// I do enjoy the classics
 	Normal,
@@ -19,6 +21,7 @@ export class PlayerSettings {
 	showScanners = true;
 	showMineFields = true;
 	showIdleFleetsOnly = false;
+	showMessagePane = false;
 	scannerPercent = 100;
 	mineralScale = 5000;
 	messageTypeFilter = new Set<number>();
@@ -45,16 +48,16 @@ export class PlayerSettings {
 		this.messageTypeFilterArray.forEach((t) => this.messageTypeFilter.add(t));
 	}
 
-	filterMessageType(type: number) {
-		this.messageTypeFilter.add(type);
+	filterMessageType(type: MessageType) {
+		this.messageTypeFilter.add(Number(type));
 	}
-	showMessageType(type: number) {
-		this.messageTypeFilter.delete(type);
+	showMessageType(type: MessageType) {
+		this.messageTypeFilter.delete(Number(type));
 	}
-	isMessageFiltered(type: number) {
-		return this.messageTypeFilter.has(type);
+	isMessageFiltered(type: MessageType) {
+		return this.messageTypeFilter.has(Number(type));
 	}
-	isMessageVisible(type: number) {
-		return !this.messageTypeFilter.has(type);
+	isMessageVisible(type: MessageType) {
+		return !this.messageTypeFilter.has(Number(type));
 	}
 }

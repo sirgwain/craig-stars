@@ -879,7 +879,7 @@ func (fleet *Fleet) GetFuelCost(player *Player, warpSpeed int, distance float64)
 func (fleet *Fleet) getFuelCost(player *Player, warpSpeed int, distance float64, cargoCapacity int) int {
 
 	// figure out how much fuel we're going to use
-	efficiencyFactor := 1 - player.Race.Spec.FuelEfficiencyOffset
+	efficiencyFactor := 1 + player.Race.Spec.FuelEfficiencyOffset
 
 	var fuelCost int = 0
 

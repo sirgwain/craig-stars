@@ -1,5 +1,6 @@
 import type { BattleAttackWho, BattleRecord, BattleTactic, BattleTarget } from './Battle';
-import type { Fleet, Target, WaypointTransportTasks } from './Fleet';
+import type { Fleet, WaypointTransportTasks } from './Fleet';
+import type { Message } from './Message';
 import type { MineField } from './MineField';
 import type { MineralPacket } from './MineralPacket';
 import type { MysteryTrader } from './MysteryTrader';
@@ -151,22 +152,6 @@ export enum NextResearchField {
 }
 
 
-
-export type Message = {
-	type: number;
-	text: string;
-	battleNum?: number;
-} & Target;
-
-export enum MessageTargetType {
-	None = '',
-	Planet = 'Planet',
-	Fleet = 'Fleet',
-	Wormhole = 'Wormhole',
-	MineField = 'MineField',
-	MysteryTrader = 'MysteryTrader',
-	Battle = 'Battle'
-}
 
 export type PlayerRelationship = {
 	relation?: PlayerRelation;

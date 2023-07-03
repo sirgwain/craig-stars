@@ -14,6 +14,8 @@
 	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';
 	import ScannerPlanetPercent from './ScannerPlanetPercent.svelte';
 	import ScannerPlanetPop from './ScannerPlanetPop.svelte';
+	import ScannerPlanetMineralConcentration from './ScannerPlanetMineralConcentration.svelte';
+	import ScannerPlanetSurfaceMinerals from './ScannerPlanetSurfaceMinerals.svelte';
 
 	const { game, player, universe, settings } = getGameContext();
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
@@ -43,6 +45,10 @@
 		<ScannerPlanetPercent {planet} />
 	{:else if $settings.planetViewState == PlanetViewState.Population}
 		<ScannerPlanetPop {planet} />
+	{:else if $settings.planetViewState == PlanetViewState.MineralConcentration}
+		<ScannerPlanetMineralConcentration {planet} />
+	{:else if $settings.planetViewState == PlanetViewState.SurfaceMinerals}
+		<ScannerPlanetSurfaceMinerals {planet} />
 	{:else}
 		<ScannerPlanetNormal
 			{planet}

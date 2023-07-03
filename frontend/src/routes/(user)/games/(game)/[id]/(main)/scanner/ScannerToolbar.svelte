@@ -10,10 +10,10 @@
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import MessagesPane from '../MessagesPane.svelte';
 	import PlanetViewStates from './toolbar/PlanetViewStates.svelte';
+	import MineralConcentration from '$lib/components/icons/MineralConcentration.svelte';
+	import SurfaceMinerals from '$lib/components/icons/SurfaceMinerals.svelte';
 
 	const { game, player, universe, settings } = getGameContext();
-
-	let showMessages = false;
 </script>
 
 <div class="flex-initial navbar bg-base-100">
@@ -28,9 +28,9 @@
 					{#if $settings.planetViewState == PlanetViewState.Normal}
 						<PlanetWithStarbase class="w-6 h-6" />
 					{:else if $settings.planetViewState == PlanetViewState.SurfaceMinerals}
-						<span>S</span>
+						<SurfaceMinerals class="w-6 h-6" />
 					{:else if $settings.planetViewState == PlanetViewState.MineralConcentration}
-						<span>C</span>
+						<MineralConcentration class="w-6 h-6" />
 					{:else if $settings.planetViewState == PlanetViewState.Percent}
 						<span>%</span>
 					{:else if $settings.planetViewState == PlanetViewState.Population}
@@ -70,10 +70,10 @@
 				<a
 					href="#messages"
 					class="btn btn-ghost btn-xs h-full indicator"
-					on:click|preventDefault={() => (showMessages = !showMessages)}
+					on:click|preventDefault={() => ($settings.showMessagePane = !$settings.showMessagePane)}
 					><Icon
 						src={Envelope}
-						class={`w-6 h-6 ${showMessages ? 'stroke-accent' : 'stroke-current'}`}
+						class={`w-6 h-6 ${$settings.showMessagePane ? 'stroke-accent' : 'stroke-current'}`}
 					/>
 					<span class="indicator-item badge badge-secondary">{$player.messages.length}</span>
 				</a>
@@ -100,4 +100,4 @@
 		</div>
 	</div>
 </div>
-<MessagesPane bind:showMessages messages={$player.messages} />
+<MessagesPane bind:showMessages={$settings.showMessagePane} messages={$player.messages} />

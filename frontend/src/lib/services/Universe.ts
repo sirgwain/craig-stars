@@ -192,7 +192,7 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 			const planet = universe.getPlanet(battle.planetNum);
 			return planet?.name ?? 'Unknown';
 		}
-		return `Space (${battle.position.x}, ${battle.position.y}`;
+		return `Space (${battle.position.x}, ${battle.position.y})`;
 	}
 
 	getOtherMapObjectsHereByType(position: Vector) {

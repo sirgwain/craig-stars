@@ -36,7 +36,8 @@
 	}
 
 	$: leftToSpend = ($player.spec.currentResearchCost ?? 0) - spent;
-	$: yearsLeft = leftToSpend / ($player.spec.resourcesPerYearResearch ?? 0);
+	$: yearsLeft = (leftToSpend / ($player.spec.resourcesPerYearResearch ?? 0)) + 1;
+	$: console.log("leftToSpend", leftToSpend, "spent", spent, "yearsLeft", yearsLeft, "spend per year", $player.spec.resourcesPerYearResearch)
 </script>
 
 <ItemTitle>Research</ItemTitle>
@@ -49,7 +50,8 @@
 			{getLevel($player, $player.researching) + 1}
 		</div>
 		<div class="stat-desc pt-1">
-			{spent ?? 0}/{$player.spec.currentResearchCost} resources, {yearsLeft.toFixed()} years
+			{spent ?? 0}/{$player.spec.currentResearchCost} resources, {yearsLeft.toFixed()}
+			{Math.floor(yearsLeft) > 1 ? 'years' : 'year'}
 		</div>
 	</div>
 	<div class="stat place-items-center sm:grow">
@@ -127,7 +129,6 @@
 
 	<div class="w-full">
 		<SectionHeader>Expected Research Benefits</SectionHeader>
-		<FutureTechs field={$player.researching}/>
-		
+		<FutureTechs field={$player.researching} />
 	</div>
 </div>

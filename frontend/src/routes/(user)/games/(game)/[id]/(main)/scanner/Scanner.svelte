@@ -7,7 +7,6 @@
 		commandedPlanet,
 		currentSelectedWaypointIndex,
 		highlightMapObject,
-		nextCommandableMapObjectAtPosition,
 		selectMapObject,
 		selectWaypoint,
 		selectedMapObject,
@@ -19,7 +18,6 @@
 		MapObjectType,
 		None,
 		equal as mapObjectEqual,
-		ownedBy,
 		type MapObject
 	} from '$lib/types/MapObject';
 	import { emptyVector, equal, type Vector } from '$lib/types/Vector';

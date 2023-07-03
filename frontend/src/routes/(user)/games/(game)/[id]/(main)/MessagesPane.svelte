@@ -4,7 +4,7 @@
 	import { commandMapObject, selectMapObject, zoomToMapObject } from '$lib/services/Stores';
 	import type { Fleet } from '$lib/types/Fleet';
 	import { MapObjectType, None, ownedBy } from '$lib/types/MapObject';
-	import { MessageTargetType, type Message } from '$lib/types/Player';
+	import { MessageTargetType, type Message, MessageType } from '$lib/types/Message';
 	import {
 		ArrowLongLeft,
 		ArrowLongRight,
@@ -15,7 +15,6 @@
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import hotkeys from 'hotkeys-js';
 	import { onMount } from 'svelte/internal';
-	import { writable } from 'svelte/store';
 
 	const { game, player, universe, settings } = getGameContext();
 
@@ -87,6 +86,22 @@
 		messageNum = getNextVisibleMessageNum(messageNum, showFilteredMessages, messages);
 	};
 
+	function isMessageGotoable(message: Message | undefined): boolean {
+		if (!message) {
+			return false;
+		}
+		
+		if (message.targetType !== MessageTargetType.None) {
+			return true;
+		}
+
+		if (message.type === MessageType.GainTechLevel) {
+			return true;
+		}
+
+		return false;
+	}
+
 	const gotoTarget = () => {
 		if (message) {
 			const targetType = message.targetType ?? MessageTargetType.None;
@@ -95,6 +110,10 @@
 			if (message.battleNum) {
 				goto(`/games/${$game.id}/battles/${message.battleNum}`);
 				return;
+			}
+
+			if (message.type === MessageType.GainTechLevel) {
+				goto(`/games/${$game.id}/research`);
 			}
 
 			if (message.targetNum) {
@@ -226,7 +245,7 @@
 							<div class="tooltip" data-tip="goto">
 								<button
 									on:click={gotoTarget}
-									disabled={!message?.targetNum}
+									disabled={!isMessageGotoable(message)}
 									class="btn btn-outline btn-sm normal-case btn-secondary"
 									title="goto"
 									><Icon

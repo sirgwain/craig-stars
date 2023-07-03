@@ -42,7 +42,17 @@ func Test_invadePlanet(t *testing.T) {
 				attacker:         NewPlayer(2, NewRace().WithSpec(&rules)).WithNum(2).withSpec(&rules),
 				colonistsDropped: 10_000,
 			},
-			want: Planet{MapObject: MapObject{Name: "Brin", PlayerNum: 2}, Cargo: Cargo{}.WithPopulation(900), Mines: 100, Factories: 100},
+			want: Planet{
+				MapObject: MapObject{Name: "Brin", PlayerNum: 2},
+				Cargo:     Cargo{}.WithPopulation(900), Mines: 100, Factories: 100,
+				PlanetOrders: PlanetOrders{
+					ProductionQueue: []ProductionQueueItem{
+						{Type: QueueItemTypeAutoMinTerraform, Quantity: 1},
+						{Type: QueueItemTypeAutoFactories, Quantity: 100},
+						{Type: QueueItemTypeAutoMines, Quantity: 100},
+					},
+				},
+			},
 		},
 		{
 			name: "5000 attackers for 10000 undefended defenders, defenders win",

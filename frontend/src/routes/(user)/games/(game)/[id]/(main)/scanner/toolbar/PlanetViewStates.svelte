@@ -1,6 +1,8 @@
 <script lang="ts">
+	import MineralConcentration from '$lib/components/icons/MineralConcentration.svelte';
 	import PlanetWithStarbase from '$lib/components/icons/PlanetWithStarbase.svelte';
 	import Population from '$lib/components/icons/Population.svelte';
+	import SurfaceMinerals from '$lib/components/icons/SurfaceMinerals.svelte';
 	import { getGameContext } from '$lib/services/Contexts';
 	import { PlanetViewState } from '$lib/types/PlayerSettings';
 
@@ -23,7 +25,7 @@
 			class:btn-primary={$settings.planetViewState == PlanetViewState.SurfaceMinerals}
 			class:btn-ghost={$settings.planetViewState != PlanetViewState.SurfaceMinerals}
 			on:click|preventDefault={() => ($settings.planetViewState = PlanetViewState.SurfaceMinerals)}
-			class="btn btn-xs h-full"><span>S</span></a
+			class="btn btn-xs h-full"><SurfaceMinerals class="w-6 h-6"/></a
 		>
 	</li>
 	<li>
@@ -33,8 +35,10 @@
 			class:btn-ghost={$settings.planetViewState != PlanetViewState.MineralConcentration}
 			on:click|preventDefault={() =>
 				($settings.planetViewState = PlanetViewState.MineralConcentration)}
-			class="btn btn-xs h-full"><span>C</span></a
+			class="btn btn-xs h-full"
 		>
+			<MineralConcentration class="w-6 h-6" />
+		</a>
 	</li>
 	<li>
 		<a
@@ -42,7 +46,7 @@
 			class:btn-primary={$settings.planetViewState == PlanetViewState.Percent}
 			class:btn-ghost={$settings.planetViewState != PlanetViewState.Percent}
 			on:click|preventDefault={() => ($settings.planetViewState = PlanetViewState.Percent)}
-			class="btn btn-xs h-full"><span>%</span></a
+			class="btn btn-xs h-full text-xl font-semibold"><span>%</span></a
 		>
 	</li>
 	<li>

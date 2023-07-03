@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { Race } from '$lib/types/Race';
-	import NumberInput from '$lib/components/NumberInput.svelte';
-
+	
 	export let race: Race;
 
 	const updatePopEfficiency = (value: number) => {
