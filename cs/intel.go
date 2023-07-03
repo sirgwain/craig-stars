@@ -337,7 +337,13 @@ func (d *discover) discoverPlanet(rules *Rules, player *Player, planet *Planet, 
 		intel.Hab = planet.Hab
 		intel.MineralConcentration = planet.MineralConcentration
 		intel.Spec.Habitability = player.Race.GetPlanetHabitability(intel.Hab)
-		intel.Spec.TerraformedHabitability = player.Race.GetPlanetHabitability(intel.Hab) // TODO compute with terraform
+
+		// terraforming
+		terraformer := NewTerraformer()
+		intel.Spec.TerraformAmount = terraformer.getTerraformAmount(planet, player, player)
+		intel.Spec.MinTerraformAmount = terraformer.getMinTerraformAmount(planet, player, player)
+		intel.Spec.CanTerraform = intel.Spec.TerraformAmount.absSum() > 0
+		intel.Spec.TerraformedHabitability = player.Race.GetPlanetHabitability(planet.Hab.Add(intel.Spec.TerraformAmount))
 		intel.Spec.MaxPopulation = getMaxPopulation(rules, intel.Spec.Habitability, player)
 
 		// discover starbases on scan, but don't discover designs

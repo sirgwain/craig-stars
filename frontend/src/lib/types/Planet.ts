@@ -89,7 +89,7 @@ export class CommandedPlanet implements Planet {
 
 	spec: PlanetSpec = {
 		habitability: 0,
-		habitabilityTerraformed: 0,
+		terraformedHabitability: 0,
 		maxMines: 0,
 		maxPossibleMines: 0,
 		maxFactories: 0,
@@ -289,7 +289,7 @@ export const isAuto = (type: QueueItemType): boolean => {
 
 export interface PlanetSpec {
 	habitability?: number;
-	habitabilityTerraformed?: number;
+	terraformedHabitability?: number;
 	maxMines: number;
 	maxPossibleMines: number;
 	maxFactories: number;

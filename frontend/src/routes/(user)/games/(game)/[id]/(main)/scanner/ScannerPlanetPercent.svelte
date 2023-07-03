@@ -24,21 +24,25 @@
 		let strokeWidth = 0;
 		let strokeColor = '#888';
 		let radius = 3;
+		let minRadius = 2;
 
 		if (planet.reportAge !== Unexplored) {
 			strokeWidth = 1;
 			let habitability = planet.spec?.habitability ?? 0;
-			let habitabilityTerraformed = planet.spec?.habitabilityTerraformed ?? 0;
+			let habitabilityTerraformed = planet.spec?.terraformedHabitability ?? 0;
 			if (habitability > 0) {
 				color = '#00FF00';
-				radius = (habitability / 100.0) * fullyHabitableRadius;
+				radius = Math.max((habitability / 100.0) * fullyHabitableRadius, minRadius);
+				strokeWidth = (habitability / 100.0) * strokeWidth;
 			} else {
 				if (habitabilityTerraformed > 0) {
-					color = '#00FFFF';
-					radius = (habitabilityTerraformed / 100.0) * fullyHabitableRadius;
+					color = '#FFFF00';
+					radius = Math.max((habitabilityTerraformed / 100.0) * fullyHabitableRadius, minRadius);
+					strokeWidth = (habitabilityTerraformed / 100.0) * strokeWidth;
 				} else {
 					color = '#FF0000';
-					radius = (-habitability / 45.0) * fullyHabitableRadius;
+					radius = Math.max((-habitability / 45.0) * fullyHabitableRadius, minRadius);
+					strokeWidth = (-habitability / 45.0) * strokeWidth;
 				}
 			}
 

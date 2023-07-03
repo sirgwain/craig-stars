@@ -8,6 +8,8 @@
 	xmlns:xlink="http://www.w3.org/1999/xlink"
 	{style}
 	{...$$restProps}
+	
 >
-	<polygon points={`256,0 512,256 256,512 0,256`} />
+	<polygon points={`256,0 512,256 256,512 0,256`} stroke-width=32/>
+	<path d="M128,256L384,256 M256,128L256,384" stroke-width=32/>
 </svg>

@@ -79,13 +79,13 @@
 		@apply bg-[#008100];
 	}
 	.grav-point {
-		@apply stroke-[#0900FF] fill-[#0900FF];
+		@apply stroke-[#0900FF] fill-none;
 	}
 	.temp-point {
-		@apply stroke-[#FF0000] fill-[#FF0000];
+		@apply stroke-[#FF0000] fill-none;
 	}
 	.rad-point {
-		@apply stroke-[#00FF00] fill-[#00FF00];
+		@apply stroke-[#00FF00] fill-none;
 	}
 	.scanner {
 		@apply fill-[#8B0000];

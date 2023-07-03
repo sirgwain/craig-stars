@@ -10,6 +10,14 @@ export interface Hab {
 	rad?: number;
 }
 
+export function add(h1: Hab, h2: Hab) {
+	return {
+		grav: (h1.grav ?? 0) + (h2.grav ?? 0),
+		temp: (h1.temp ?? 0) + (h2.temp ?? 0),
+		rad: (h1.rad ?? 0) + (h2.rad ?? 0)
+	};
+}
+
 export function getGravString(grav: number): string {
 	let result = 0;
 	const tmp = Math.abs(grav - 50);
