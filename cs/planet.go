@@ -420,8 +420,8 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 
 	// terraforming
 	terraformer := NewTerraformer()
-	spec.TerraformAmount = terraformer.getTerraformAmount(planet, player, player)
-	spec.MinTerraformAmount = terraformer.getMinTerraformAmount(planet, player, player)
+	spec.TerraformAmount = terraformer.getTerraformAmount(planet.Hab, planet.BaseHab, player, player)
+	spec.MinTerraformAmount = terraformer.getMinTerraformAmount(planet.Hab, planet.BaseHab, player, player)
 	spec.CanTerraform = spec.TerraformAmount.absSum() > 0
 	spec.TerraformedHabitability = race.GetPlanetHabitability(planet.Hab.Add(spec.TerraformAmount))
 

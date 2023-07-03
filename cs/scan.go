@@ -109,6 +109,11 @@ func (scan *playerScan) scanPlanets(scanners []scanner, cargoScanners []scanner)
 				break
 			}
 		}
+
+		intel := scan.discoverer.getPlanetIntel(planet.Num)
+		if intel.ReportAge != ReportAgeUnexplored {
+			scan.discoverer.discoverPlanetTerraformability(scan.player, planet.Num)
+		}
 	}
 
 	return nil

@@ -7,8 +7,8 @@ type Terraformer interface {
 	PermaformOneStep(planet *Planet, player *Player, habType HabType) TerraformResult
 	TerraformOneStep(planet *Planet, player *Player, terraformer *Player, reverse bool) TerraformResult
 	GetBestTerraform(planet *Planet, player *Player, terraformer *Player) *HabType
-	getTerraformAmount(planet *Planet, player, terraformer *Player) Hab
-	getMinTerraformAmount(planet *Planet, player *Player, terraformer *Player) Hab
+	getTerraformAmount(hab Hab, baseHab Hab, player, terraformer *Player) Hab
+	getMinTerraformAmount(hab Hab, baseHab Hab, player *Player, terraformer *Player) Hab
 }
 
 type TerraformResult struct {
@@ -57,9 +57,9 @@ func (t *terraform) getTerraformAbility(player *Player) Hab {
 }
 
 // getTerraformAmount returns the total amount we can terraform this planet
-func (t *terraform) getTerraformAmount(planet *Planet, player, terraformer *Player) Hab {
+func (t *terraform) getTerraformAmount(hab Hab, baseHab Hab, player, terraformer *Player) Hab {
 	terraformAmount := Hab{}
-	if player == nil || planet == nil {
+	if player == nil {
 		// can't terraform, return an empty Hab
 		return terraformAmount
 	}
@@ -84,10 +84,10 @@ func (t *terraform) getTerraformAmount(planet *Planet, player, terraformer *Play
 		}
 
 		// The distance from the starting hab of this planet
-		fromIdealBase := habCenter.Get(habType) - planet.BaseHab.Get(habType)
+		fromIdealBase := habCenter.Get(habType) - baseHab.Get(habType)
 
 		// the distance from the current hab of this planet
-		fromIdeal := habCenter.Get(habType) - planet.Hab.Get(habType)
+		fromIdeal := habCenter.Get(habType) - hab.Get(habType)
 
 		// if we have any left to terraform
 		if fromIdeal > 0 {
@@ -121,9 +121,9 @@ func (t *terraform) getTerraformAmount(planet *Planet, player, terraformer *Play
 }
 
 // getMinTerraformAmount gets the minimum amount we need to terraform this planet to make it habitable (if we can terraform it at all)
-func (t *terraform) getMinTerraformAmount(planet *Planet, player *Player, terraformer *Player) Hab {
+func (t *terraform) getMinTerraformAmount(hab Hab, baseHab Hab, player *Player, terraformer *Player) Hab {
 	terraformAmount := Hab{}
-	if player == nil || planet == nil {
+	if player == nil {
 		// can't terraform, return an empty Hab
 		return terraformAmount
 	}
@@ -152,7 +152,7 @@ func (t *terraform) getMinTerraformAmount(planet *Planet, player *Player, terraf
 		// the distance from the current hab of this planet to our minimum hab threshold
 		// If this is positive, it means we need to terraform a certain percent to get it in range
 		fromHabitableDistance := 0
-		planetHabValue := planet.Hab.Get(habType)
+		planetHabValue := hab.Get(habType)
 		playerHabIdeal := habCenter.Get(habType)
 		if planetHabValue > playerHabIdeal {
 			// this planet is higher that we want, check the upper bound distance
@@ -178,7 +178,7 @@ func (t *terraform) getMinTerraformAmount(planet *Planet, player *Player, terraf
 			fromIdealDistance := absInt(fromIdeal)
 
 			// The distance from the starting hab of this planet
-			fromIdealBaseDistance := absInt(playerHabIdeal - planet.BaseHab.Get(habType))
+			fromIdealBaseDistance := absInt(playerHabIdeal - baseHab.Get(habType))
 
 			// we can either terrform up to our full ability, or however much
 			// we have left to terraform on this

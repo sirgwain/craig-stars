@@ -319,6 +319,8 @@ func Test_turn_fleetMoveDestroyedByMineField(t *testing.T) {
 	mineFieldPlayer.Race.Spec.MineFieldMaxDecayRate = 0
 	mineField := newMineField(mineFieldPlayer, MineFieldTypeStandard, radius*radius, 1, Vector{20, 0})
 	mineField.Spec = computeMinefieldSpec(rules, mineFieldPlayer, mineField, 0)
+	// setup initial planet intels so turn generation works
+	mineFieldPlayer.initDefaultPlanetIntels(&game.Rules, game.Planets)
 
 	game.Players = append(game.Players, mineFieldPlayer)
 	game.MineFields = append(game.MineFields, mineField)
@@ -558,6 +560,8 @@ func Test_turn_fleetSweepMines(t *testing.T) {
 	mineFieldPlayer.Race.Spec.MineFieldMaxDecayRate = 0
 	mineField := newMineField(mineFieldPlayer, MineFieldTypeStandard, radius*radius, 1, Vector{0, 0})
 	mineField.Spec = computeMinefieldSpec(rules, mineFieldPlayer, mineField, 0)
+	// setup initial planet intels so turn generation works
+	mineFieldPlayer.initDefaultPlanetIntels(&game.Rules, game.Planets)
 
 	game.Players = append(game.Players, mineFieldPlayer)
 	game.MineFields = append(game.MineFields, mineField)
@@ -852,6 +856,8 @@ func Test_turn_fleetPatrol(t *testing.T) {
 	enemyPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
 	player.PlayerIntels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer})
 	enemyPlayer.PlayerIntels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer})
+	// setup initial planet intels so turn generation works
+	enemyPlayer.initDefaultPlanetIntels(&game.Rules, game.Planets)
 
 	turn := turn{
 		game: game,

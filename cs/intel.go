@@ -27,6 +27,7 @@ type discoverer interface {
 	discoverPlanet(rules *Rules, player *Player, planet *Planet, penScanned bool) error
 	discoverPlanetStarbase(player *Player, planet *Planet) error
 	discoverPlanetCargo(player *Player, planet *Planet) error
+	discoverPlanetTerraformability(player *Player, planetNum int) error
 	discoverFleet(player *Player, fleet *Fleet)
 	discoverFleetCargo(player *Player, fleet *Fleet)
 	discoverMineField(player *Player, mineField *MineField)
@@ -37,6 +38,7 @@ type discoverer interface {
 	discoverMysteryTrader(mineField *MysteryTrader)
 	discoverDesign(player *Player, design *ShipDesign, discoverSlots bool)
 
+	getPlanetIntel(num int) *PlanetIntel
 	getWormholeIntel(num int) *WormholeIntel
 	getMysteryTraderIntel(num int) *MysteryTraderIntel
 	getMineFieldIntel(playerNum, num int) *MineFieldIntel
@@ -119,6 +121,7 @@ func (intel *Intel) Owned() bool {
 type PlanetIntel struct {
 	MapObjectIntel
 	Hab                           Hab         `json:"hab,omitempty"`
+	BaseHab                       Hab         `json:"baseHab,omitempty"`
 	MineralConcentration          Mineral     `json:"mineralConcentration,omitempty"`
 	Starbase                      *FleetIntel `json:"starbase,omitempty"`
 	Cargo                         Cargo       `json:"cargo,omitempty"`
@@ -335,13 +338,14 @@ func (d *discover) discoverPlanet(rules *Rules, player *Player, planet *Planet, 
 		// if we pen scanned the planet, we learn some things
 		intel.ReportAge = 0
 		intel.Hab = planet.Hab
+		intel.BaseHab = planet.BaseHab
 		intel.MineralConcentration = planet.MineralConcentration
 		intel.Spec.Habitability = player.Race.GetPlanetHabitability(intel.Hab)
 
 		// terraforming
 		terraformer := NewTerraformer()
-		intel.Spec.TerraformAmount = terraformer.getTerraformAmount(planet, player, player)
-		intel.Spec.MinTerraformAmount = terraformer.getMinTerraformAmount(planet, player, player)
+		intel.Spec.TerraformAmount = terraformer.getTerraformAmount(intel.Hab, intel.BaseHab, player, player)
+		intel.Spec.MinTerraformAmount = terraformer.getMinTerraformAmount(intel.Hab, intel.BaseHab, player, player)
 		intel.Spec.CanTerraform = intel.Spec.TerraformAmount.absSum() > 0
 		intel.Spec.TerraformedHabitability = player.Race.GetPlanetHabitability(planet.Hab.Add(intel.Spec.TerraformAmount))
 		intel.Spec.MaxPopulation = getMaxPopulation(rules, intel.Spec.Habitability, player)
@@ -400,6 +404,28 @@ func (d *discover) discoverPlanetCargo(player *Player, planet *Planet) error {
 		Germanium: planet.Cargo.Germanium,
 	}
 
+	return nil
+}
+
+func (d *discover) discoverPlanetTerraformability(player *Player, planetNum int) error {
+	var intel *PlanetIntel
+	planetIndex := planetNum - 1
+
+	if planetIndex < 0 || planetIndex >= len(player.PlanetIntels) {
+		return fmt.Errorf("planetIndex %d out of range", planetIndex)
+	}
+
+	intel = &player.PlanetIntels[planetIndex]
+
+	// if we've discovered this planet before, update the terraform stats
+	if intel.ReportAge != ReportAgeUnexplored {
+		// terraforming
+		terraformer := NewTerraformer()
+		intel.Spec.TerraformAmount = terraformer.getTerraformAmount(intel.Hab, intel.BaseHab, player, player)
+		intel.Spec.MinTerraformAmount = terraformer.getMinTerraformAmount(intel.Hab, intel.BaseHab, player, player)
+		intel.Spec.CanTerraform = intel.Spec.TerraformAmount.absSum() > 0
+		intel.Spec.TerraformedHabitability = player.Race.GetPlanetHabitability(intel.Hab.Add(intel.Spec.TerraformAmount))
+	}
 	return nil
 }
 
@@ -595,6 +621,10 @@ func (d *discover) discoverPlayerScores(player *Player) {
 
 	intel.ScoreHistory = make([]PlayerScore, len(player.ScoreHistory))
 	copy(intel.ScoreHistory, player.ScoreHistory)
+}
+
+func (d *discover) getPlanetIntel(num int) *PlanetIntel {
+	return &d.player.PlanetIntels[num-1]
 }
 
 func (d *discover) getWormholeIntel(num int) *WormholeIntel {

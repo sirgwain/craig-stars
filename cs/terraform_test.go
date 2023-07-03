@@ -100,7 +100,7 @@ func Test_getTerraformAmount(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			terraformer := terraform{}
-			terraformAmount := terraformer.getTerraformAmount(tt.planet, tt.player, tt.terraformer)
+			terraformAmount := terraformer.getTerraformAmount(tt.planet.Hab, tt.planet.BaseHab, tt.player, tt.terraformer)
 			if !reflect.DeepEqual(terraformAmount, tt.expected) {
 				t.Errorf("Got terraform amount %v, expected %v", terraformAmount, tt.expected)
 			}
@@ -165,7 +165,7 @@ func Test_getMinTerraformAmount(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			terraformer := terraform{}
-			if got := terraformer.getMinTerraformAmount(tt.args.planet, tt.args.player, tt.args.terraformer); !reflect.DeepEqual(got, tt.want) {
+			if got := terraformer.getMinTerraformAmount(tt.args.planet.Hab, tt.args.planet.BaseHab, tt.args.player, tt.args.terraformer); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetMinTerraformAmount() = %v, want %v", got, tt.want)
 			}
 		})
