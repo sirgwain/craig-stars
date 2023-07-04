@@ -2,18 +2,18 @@
 	import { getGameContext } from '$lib/services/Contexts';
 	import type { CommandedFleet, Target } from '$lib/types/Fleet';
 	import { MapObjectType, equal, type MapObject } from '$lib/types/MapObject';
-	import type { Vector } from '$lib/types/Vector';
 	import { flatten, keys } from 'lodash-es';
 	import { createEventDispatcher } from 'svelte';
 
+	const { game, player, universe, settings } = getGameContext();
 	const dispatch = createEventDispatcher();
 
 	interface Dictionary<T> {
-        [index: string]: T;
-    }
+		[index: string]: T;
+	}
 
 	export let fleet: CommandedFleet;
-	export let otherMapObjectsHere: Dictionary<MapObject[]>
+	export let otherMapObjectsHere: Dictionary<MapObject[]>;
 	export let target: Target;
 
 	// true if this mapObject is also our current target
@@ -46,6 +46,9 @@
 </script>
 
 <select
+	style={target.targetPlayerNum && target.targetPlayerNum != $player.num
+		? `color: ${$universe.getPlayerColor(target.targetPlayerNum)};`
+		: ''}
 	on:change={(e) => onSelectChange(parseInt(e.currentTarget.value))}
 	class={`select select-outline select-secondary select-sm text-sm ${$$props.class}`}
 >
@@ -62,6 +65,9 @@
 			{#each otherMapObjectsHere[MapObjectType.Fleet] as mo, index}
 				{#if !equal(fleet, mo)}
 					<option
+						style={mo.playerNum != $player.num
+							? `color: ${$universe.getPlayerColor(mo.playerNum)};`
+							: ''}
 						selected={isTarget(mo)}
 						value={index + (otherMapObjectsHere[MapObjectType.Planet]?.length ?? 0)}
 						>{mo.name}</option

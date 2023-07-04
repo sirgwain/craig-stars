@@ -1,4 +1,5 @@
-import type { Target } from "./Fleet";
+import type { Target } from './Fleet';
+import { MapObjectType } from './MapObject';
 
 export type Message = {
 	type: MessageType;
@@ -14,6 +15,23 @@ export enum MessageTargetType {
 	MineField = 'MineField',
 	MysteryTrader = 'MysteryTrader',
 	Battle = 'Battle'
+}
+
+export function getMapObjectTypeForMessageType(targetType: MessageTargetType): MapObjectType {
+	switch (targetType) {
+		case MessageTargetType.Planet:
+			return MapObjectType.Planet;
+		case MessageTargetType.Fleet:
+			return MapObjectType.Fleet;
+		case MessageTargetType.Wormhole:
+			return MapObjectType.Wormhole;
+		case MessageTargetType.MineField:
+			return MapObjectType.MineField;
+		case MessageTargetType.MysteryTrader:
+			return MapObjectType.MysteryTrader;
+	}
+
+	return MapObjectType.None;
 }
 
 export enum MessageType {

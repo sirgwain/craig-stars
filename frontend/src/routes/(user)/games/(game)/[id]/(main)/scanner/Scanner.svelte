@@ -63,6 +63,7 @@
 	let padding = 20; // 20 px, used in zooming
 	let scaleX: ScaleLinear<number, number, never>;
 	let scaleY: ScaleLinear<number, number, never>;
+	let zooming = false;
 
 	const scale = writable($game.area.y / 400); // tiny games are at 1x starting zoom, the rest zoom in based on universe size
 	const clampedScale = writable($scale);
@@ -86,7 +87,9 @@
 					[-20, -20],
 					[clientWidth + padding, clientHeight + padding]
 				])
-				.on('zoom', handleZoom);
+				.on('zoom', handleZoom)
+				.on('start', handleZoomStart)
+				.on('end', handleZoomEnd);
 
 			enableDragAndZoom();
 		}
@@ -137,6 +140,14 @@
 		transform = e.transform;
 		$scale = transform.k;
 		// console.log('handleZoom', e, transform);
+	}
+
+	function handleZoomStart(e: D3ZoomEvent<HTMLElement, any>) {
+		zooming = true;
+	}
+
+	function handleZoomEnd(e: D3ZoomEvent<HTMLElement, any>) {
+		zooming = false;
 	}
 
 	// zoom to the commanded map object every time it changes
@@ -209,7 +220,7 @@
 			selectWaypoint(fleetWaypoint);
 		}
 
-		if (dragging) {
+		if (dragging && !zooming) {
 			positionWaypoint = event.shiftKey;
 			dragWaypointMove(position, found);
 		}
@@ -289,6 +300,9 @@
 	}
 	// if the shift key is held, add a waypoint instead of selecting a mapobject
 	async function addWaypoint(mo: MapObject | undefined, position: Vector) {
+		if (zooming) {
+			return;
+		}
 		if (!$commandedFleet?.waypoints) {
 			return;
 		}

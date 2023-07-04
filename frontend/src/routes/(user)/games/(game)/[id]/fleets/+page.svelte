@@ -102,8 +102,6 @@
 		rows={filteredFleets}
 		classes={{
 			table: 'table table-zebra table-compact table-auto w-full',
-			td: 'first:table-cell nth-child(2):table-cell hidden sm:table-cell',
-			th: 'first:table-cell nth-child(2):table-cell hidden sm:table-cell'
 		}}
 		let:column
 		let:cell

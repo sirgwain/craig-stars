@@ -1,11 +1,18 @@
+import { goto } from '$app/navigation';
 import { CommandedFleet, type Fleet, type Waypoint } from '$lib/types/Fleet';
-import { equal, MapObjectType, None, type MapObject } from '$lib/types/MapObject';
+import { equal, MapObjectType, None, ownedBy, type MapObject } from '$lib/types/MapObject';
+import {
+	getMapObjectTypeForMessageType, MessageType,
+	type Message
+} from '$lib/types/Message';
 import { CommandedPlanet } from '$lib/types/Planet';
+import type { Player } from '$lib/types/Player';
 import { emptyUser, type User } from '$lib/types/User';
 import type { Vector } from '$lib/types/Vector';
 import { findIndex } from 'lodash-es';
 import type { ComponentType, SvelteComponent } from 'svelte';
 import { derived, get, writable } from 'svelte/store';
+import type { FullGame } from './FullGame';
 import { rollover } from './Math';
 import { TechService } from './TechService';
 import { Universe } from './Universe';
@@ -234,6 +241,46 @@ export const setLoadingModalText = (text: string) => {
 
 export const clearLoadingModalText = () => {
 	loadingModalText.update(() => undefined);
+};
+
+export const gotoMessageTarget = (game: FullGame, player: Player, message: Message | undefined) => {
+	if (message) {
+		const u = get(universe);
+
+		if (message.battleNum) {
+			goto(`/games/${game.id}/battles/${message.battleNum}`);
+			return;
+		}
+
+		if (message.type === MessageType.GainTechLevel) {
+			goto(`/games/${game.id}/research`);
+		}
+
+		const moType = getMapObjectTypeForMessageType(message.targetType);
+
+		if (moType != MapObjectType.None) {
+			const target = u.getMapObject(message);
+			if (target) {
+				if (target.type == MapObjectType.Fleet) {
+					const orbitingPlanetNum = (target as Fleet).orbitingPlanetNum;
+					if (orbitingPlanetNum && orbitingPlanetNum != None) {
+						const orbiting = u.getPlanet(orbitingPlanetNum);
+						if (orbiting) {
+							selectMapObject(orbiting);
+						}
+					}
+				} else {
+					selectMapObject(target);
+				}
+				if (ownedBy(target, player.num)) {
+					commandMapObject(target);
+				}
+
+				// zoom on goto
+				zoomToMapObject(target);
+			}
+		}
+	}
 };
 
 export const tooltipComponent = writable<
