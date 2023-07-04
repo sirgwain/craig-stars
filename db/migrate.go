@@ -28,8 +28,12 @@ var gamesSchemaFiles embed.FS
 var memorySchemaFiles embed.FS
 
 func (c *client) mustMigrate(cfg *config.Config) {
-	c.mustMigrateDatabase(cfg.Database.UsersFilename, usersSchemaFiles, "schema/users")
-	c.mustMigrateDatabase(cfg.Database.Filename, gamesSchemaFiles, "schema/games")
+	if !c.usersInMemory {
+		c.mustMigrateDatabase(cfg.Database.UsersFilename, usersSchemaFiles, "schema/users")
+	}
+	if !c.databaseInMemory {
+		c.mustMigrateDatabase(cfg.Database.Filename, gamesSchemaFiles, "schema/games")
+	}
 }
 
 // in memory databases are different because the user and games database has to live in the same

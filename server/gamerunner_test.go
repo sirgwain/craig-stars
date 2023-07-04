@@ -15,6 +15,7 @@ func createTestGameRunner() GameRunner {
 	cfg := &config.Config{}
 	// cfg.Database.Filename = "../data/sqlx.db"
 	cfg.Database.Filename = ":memory:"
+	cfg.Database.UsersFilename = ":memory:"
 	if err := db.Connect(cfg); err != nil {
 		panic(fmt.Errorf("connect to test database, %w", err))
 	}
@@ -60,6 +61,7 @@ func Test_gameRunner_GenerateTurns(t *testing.T) {
 	db := db.NewClient()
 	cfg := &config.Config{}
 	cfg.Database.Filename = ":memory:"
+	cfg.Database.UsersFilename = ":memory:"
 	if err := db.Connect(cfg); err != nil {
 		panic(fmt.Errorf("connect to test database, %w", err))
 	}
