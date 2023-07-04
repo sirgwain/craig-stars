@@ -99,7 +99,7 @@
 	}
 </script>
 
-<div class="flex flex-row">
+<div class="flex flex-row select-none">
 	<div class="text-right flex flex-col justify-evenly w-[5.5rem]">
 		<div class="text-ironium">Ironium</div>
 		<div class="text-boranium">Boranium</div>

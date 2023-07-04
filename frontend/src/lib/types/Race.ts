@@ -331,3 +331,88 @@ export const getLabelForLRT = (lrt: LRT): string => {
 			return lrt.toString();
 	}
 };
+
+// Get the habitability of this race for a given planet's hab value
+export function getPlanetHabitability(race: Race, hab: Hab): number {
+	let planetValuePoints = 0;
+	let redValue = 0;
+	let ideality = 10000;
+
+	const habValues: [number, number, number] = [hab.grav ?? 0, hab.temp ?? 0, hab.rad ?? 0];
+	const habCenters: [number, number, number] = [
+		race.spec?.habCenter?.grav ?? 0,
+		race.spec?.habCenter?.temp ?? 0,
+		race.spec?.habCenter?.rad ?? 0
+	];
+	const habLows: [number, number, number] = [
+		race.habLow.grav ?? 0,
+		race.habLow.temp ?? 0,
+		race.habLow.rad ?? 0
+	];
+	const habHighs: [number, number, number] = [
+		race.habHigh.grav ?? 0,
+		race.habHigh.temp ?? 0,
+		race.habHigh.rad ?? 0
+	];
+	const immune: [boolean, boolean, boolean] = [
+		race.immuneGrav ?? false,
+		race.immuneTemp ?? false,
+		race.immuneRad ?? false
+	];
+
+	let fromIdeal: number, tmp: number, habRadius: number, poorPlanetMod: number, habRed: number;
+
+	for (let i = 0; i < habValues.length; i++) {
+		const habValue: number = habValues[i];
+		const habLower: number = habLows[i];
+		const habUpper: number = habHighs[i];
+		const habCenter: number = habCenters[i];
+
+		if (immune[i]) {
+			planetValuePoints += 10000;
+		} else {
+			if (habLower <= habValue && habUpper >= habValue) {
+				// green planet
+				fromIdeal = Math.abs(habValue - habCenter) * 100;
+				if (habCenter > habValue) {
+					habRadius = habCenter - habLower;
+					fromIdeal /= habRadius;
+					tmp = habCenter - habValue;
+				} else {
+					habRadius = habUpper - habCenter;
+					fromIdeal /= habRadius;
+					tmp = habValue - habCenter;
+				}
+				poorPlanetMod = tmp * 2 - habRadius;
+				fromIdeal = 100 - fromIdeal;
+				planetValuePoints += fromIdeal * fromIdeal;
+				if (poorPlanetMod > 0) {
+					ideality *= habRadius * 2 - poorPlanetMod;
+					ideality /= habRadius * 2;
+				}
+			} else {
+				// red planet
+				if (habLower <= habValue) {
+					habRed = habValue - habUpper;
+				} else {
+					habRed = habLower - habValue;
+				}
+
+				if (habRed > 15) {
+					habRed = 15;
+				}
+
+				redValue += habRed;
+			}
+		}
+	}
+
+	if (redValue !== 0) {
+		return -redValue;
+	}
+
+	planetValuePoints = Math.sqrt(planetValuePoints / 3.0) + 0.9;
+	planetValuePoints = (planetValuePoints * ideality) / 10000;
+
+	return planetValuePoints;
+}

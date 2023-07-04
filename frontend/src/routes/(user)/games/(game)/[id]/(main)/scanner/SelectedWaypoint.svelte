@@ -30,7 +30,7 @@
 	$: strokeWidth = 6 / $scale;
 </script>
 
-{#if $commandedFleet && $selectedWaypoint && wpIndex && wpIndex != 0}
+{#if $commandedFleet && $selectedWaypoint && wpIndex && wpIndex > 0}
 	<path
 		d={`M${$xGet($commandedFleet.waypoints[wpIndex - 1])}, ${$yGet(
 			$commandedFleet.waypoints[wpIndex - 1]

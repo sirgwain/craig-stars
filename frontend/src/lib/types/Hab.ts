@@ -10,6 +10,28 @@ export interface Hab {
 	rad?: number;
 }
 
+export function getHabValue(hab: Hab | undefined, type: HabType): number {
+	switch (type) {
+		case HabType.Gravity:
+			return hab?.grav ?? 0;
+		case HabType.Temperature:
+			return hab?.temp ?? 0;
+		case HabType.Radiation:
+			return hab?.rad ?? 0;
+	}
+}
+
+export function withHabValue(type: HabType, value: number): Hab {
+	switch (type) {
+		case HabType.Gravity:
+			return { grav: value };
+		case HabType.Temperature:
+			return { temp: value };
+		case HabType.Radiation:
+			return { rad: value };
+	}
+}
+
 export function add(h1: Hab, h2: Hab) {
 	return {
 		grav: (h1.grav ?? 0) + (h2.grav ?? 0),

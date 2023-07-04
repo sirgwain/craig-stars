@@ -13,12 +13,13 @@
 		selectedWaypoint,
 		zoomTarget
 	} from '$lib/services/Stores';
-	import { WaypointTask } from '$lib/types/Fleet';
+	import { WaypointTask, type Waypoint } from '$lib/types/Fleet';
 	import {
 		MapObjectType,
 		None,
 		equal as mapObjectEqual,
-		type MapObject
+		type MapObject,
+		owned
 	} from '$lib/types/MapObject';
 	import { emptyVector, equal, type Vector } from '$lib/types/Vector';
 	import type { ScaleLinear } from 'd3-scale';
@@ -46,6 +47,7 @@
 	import ScannerWormholes from './ScannerWormholes.svelte';
 	import SelectedMapObject from './SelectedMapObject.svelte';
 	import SelectedWaypoint from './SelectedWaypoint.svelte';
+	import type { Planet } from '$lib/types/Planet';
 
 	const { game, player, universe, settings } = getGameContext();
 
@@ -307,24 +309,53 @@
 			return;
 		}
 
+		const warpSpeed = $selectedWaypoint?.warpSpeed ?? $commandedFleet.spec?.engine?.idealSpeed ?? 5;
+		const task = $selectedWaypoint?.task ?? WaypointTask.None;
+		const transportTasks = $selectedWaypoint?.transportTasks ?? {
+			fuel: {},
+			ironium: {},
+			boranium: {},
+			germanium: {},
+			colonists: {}
+		};
+
 		if (!mo) {
 			$commandedFleet.waypoints.splice(waypointIndex + 1, 0, {
 				position: position,
-				warpSpeed: $commandedFleet.spec?.engine?.idealSpeed ?? 5,
-				task: WaypointTask.None,
-				transportTasks: { fuel: {}, ironium: {}, boranium: {}, germanium: {}, colonists: {} }
+				warpSpeed: warpSpeed,
+				task: task,
+				transportTasks: transportTasks
 			});
 		} else {
-			$commandedFleet.waypoints.splice(waypointIndex + 1, 0, {
+			const wp: Waypoint = {
 				position: mo.position,
-				warpSpeed: $commandedFleet.spec?.engine?.idealSpeed ?? 5,
 				targetName: mo.name,
 				targetPlayerNum: mo.playerNum,
 				targetNum: mo.num,
 				targetType: mo.type,
-				task: WaypointTask.None,
-				transportTasks: { fuel: {}, ironium: {}, boranium: {}, germanium: {}, colonists: {} }
-			});
+				warpSpeed: warpSpeed,
+				task: task,
+				transportTasks: transportTasks
+			};
+			$commandedFleet.waypoints.splice(waypointIndex + 1, 0, wp);
+
+			// if this is a colonizer and the target is a habitable planet
+			if (
+				$commandedFleet.spec.colonizer &&
+				$commandedFleet.cargo.colonists &&
+				mo.type === MapObjectType.Planet &&
+				!owned(mo) &&
+				((mo as Planet).spec.terraformedHabitability ?? 0) > 0
+			) {
+				wp.task = WaypointTask.Colonize;
+				wp.transportTasks = {
+					fuel: {},
+					ironium: {},
+					boranium: {},
+					germanium: {},
+					colonists: {}
+				};
+			}
 		}
 		waypointJustAdded = true;
 

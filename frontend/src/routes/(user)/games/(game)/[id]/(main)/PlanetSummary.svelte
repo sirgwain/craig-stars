@@ -7,12 +7,14 @@
 	import { getGameContext } from '$lib/services/Contexts';
 	import { clamp } from '$lib/services/Math';
 	import { showTooltip } from '$lib/services/Stores';
-	import { add, getGravString, getRadString, getTempString } from '$lib/types/Hab';
+	import { HabType, add, getGravString, getRadString, getTempString } from '$lib/types/Hab';
 	import { None } from '$lib/types/MapObject';
 	import { Unexplored, type Planet } from '$lib/types/Planet';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import PlanetMineralsGraph from './PlanetMineralsGraph.svelte';
+	import type { HabTooltipProps } from '$lib/components/game/tooltips/HabTooltip.svelte';
+	import HabTooltip from '$lib/components/game/tooltips/HabTooltip.svelte';
 
 	const { game, player, universe } = getGameContext();
 
@@ -56,9 +58,33 @@
 			planet
 		});
 	}
+
+	function onGravityTooltip(e: PointerEvent) {
+		showTooltip<HabTooltipProps>(e.x, e.y, HabTooltip, {
+			player: $player,
+			planet,
+			habType: HabType.Gravity
+		});
+	}
+
+	function onTemperatureTooltip(e: PointerEvent) {
+		showTooltip<HabTooltipProps>(e.x, e.y, HabTooltip, {
+			player: $player,
+			planet,
+			habType: HabType.Temperature
+		});
+	}
+
+	function onRadiationTooltip(e: PointerEvent) {
+		showTooltip<HabTooltipProps>(e.x, e.y, HabTooltip, {
+			player: $player,
+			planet,
+			habType: HabType.Radiation
+		});
+	}
 </script>
 
-<div class="flex flex-col min-h-[11rem]">
+<div class="flex flex-col min-h-[11rem] select-none">
 	{#if planet.reportAge == Unexplored}
 		<div class="m-auto">
 			<Icon src={QuestionMarkCircle} size="64" class="hover:stroke-accent" />
@@ -105,7 +131,7 @@
 			</div>
 		</div>
 
-		<div class="flex flex-row">
+		<div class="flex flex-row cursor-help" on:pointerdown|preventDefault={onGravityTooltip}>
 			<div class="text-right w-[5.5rem]">Gravity</div>
 			<div class="grow border-b border-base-300 bg-black mx-1 overflow-hidden">
 				<div class="h-full relative">
@@ -137,7 +163,7 @@
 			</div>
 			<div class="w-[3rem]">{getGravString(planet.hab?.grav ?? 0)}</div>
 		</div>
-		<div class="flex flex-row">
+		<div class="flex flex-row cursor-help" on:pointerdown|preventDefault={onTemperatureTooltip}>
 			<div class="text-right w-[5.5rem]">Temperature</div>
 			<div class="grow border-b border-base-300 bg-black mx-1 overflow-hidden">
 				<div class="h-full relative">
@@ -161,7 +187,7 @@
 			</div>
 			<div class="w-[3rem]">{getTempString(planet.hab?.temp ?? 0)}</div>
 		</div>
-		<div class="flex flex-row">
+		<div class="flex flex-row cursor-help" on:pointerdown|preventDefault={onRadiationTooltip}>
 			<div class="text-right w-[5.5rem]">Radiation</div>
 			<div class="grow bg-black mx-1 overflow-hidden">
 				<div class="h-full relative">
