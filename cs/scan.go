@@ -112,6 +112,11 @@ func (scan *playerScan) scanPlanets(scanners []scanner, cargoScanners []scanner)
 
 		intel := scan.discoverer.getPlanetIntel(planet.Num)
 		if intel.ReportAge != ReportAgeUnexplored {
+			// TODO: remove this after initial test games are done
+			// it's just here because some old games don't have basehab on intels
+			if intel.BaseHab != planet.BaseHab {
+				intel.BaseHab = planet.BaseHab
+			}
 			scan.discoverer.discoverPlanetTerraformability(scan.player, planet.Num)
 		}
 	}
