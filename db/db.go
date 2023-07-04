@@ -2,7 +2,6 @@ package db
 
 import (
 	"database/sql"
-	_ "embed"
 	"errors"
 	"fmt"
 	"os"
@@ -20,15 +19,11 @@ import (
 	sqldblogger "github.com/simukti/sqldb-logger"
 )
 
-//go:embed schema.sql
-var schema string
-
-//go:embed schema_users.sql
-var schemaUsers string
-
 type client struct {
-	db        *sqlx.DB
-	converter Converter
+	db               *sqlx.DB
+	converter        Converter
+	databaseInMemory bool
+	usersInMemory    bool
 }
 
 type Client interface {
@@ -40,6 +35,7 @@ type Client interface {
 	CreateUser(user *cs.User) error
 	UpdateUser(user *cs.User) error
 	DeleteUser(id int64) error
+	GetUsersForGame(gameID int64) ([]cs.User, error)
 
 	GetRaces() ([]cs.Race, error)
 	GetRacesForUser(userID int64) ([]cs.Race, error)
@@ -131,62 +127,44 @@ type SQLExecer interface {
 	Exec(query string, args ...any) (sql.Result, error)
 }
 
-func (c *client) Connect(config *config.Config) error {
+func (c *client) Connect(cfg *config.Config) error {
 
-	// exec the create schema sql if we are recreating the DB or using an in memory db
-	execSchemaSql := config.Database.Recreate || strings.Contains(config.Database.Filename, ":memory:")
-	execUsersSchema := strings.Contains(config.Database.UsersFilename, ":memory:")
-
+	c.databaseInMemory = strings.Contains(cfg.Database.Filename, ":memory:")
+	c.usersInMemory = strings.Contains(cfg.Database.UsersFilename, ":memory:")
 	// if we are using a file based db, we have to exec the schema sql when we first
 	// set it up
-	if !strings.Contains(config.Database.Filename, ":memory:") {
+	if !c.databaseInMemory && cfg.Database.Recreate {
 		// check if the db exists
-		info, err := os.Stat(config.Database.Filename)
+		info, err := os.Stat(cfg.Database.Filename)
 		if err != nil && !errors.Is(err, os.ErrNotExist) {
 			return err
 		}
 
 		// delete the db and recreate it if we are configured for that
-		if info != nil && config.Database.Recreate {
-			log.Debug().Msgf("Deleting existing database %s", config.Database.Filename)
-			os.Remove(config.Database.Filename)
-		}
-
-		if info == nil {
-			// first time creating the db, so exec schema for it
-			execSchemaSql = true
+		if info != nil {
+			log.Debug().Msgf("Deleting existing database %s", cfg.Database.Filename)
+			os.Remove(cfg.Database.Filename)
 		}
 	}
 
-	if !strings.Contains(config.Database.UsersFilename, ":memory:") {
-		info, err := os.Stat(config.Database.UsersFilename)
-		if err != nil && !errors.Is(err, os.ErrNotExist) {
-			return err
-		}
+	// make sure the database is up to date
+	c.mustMigrate(cfg)
 
-		if info == nil {
-			// first time creating the db, so exec schema for it
-			log.Debug().Msgf("Executing users create schema")
-			execUsersSchema = true
-		}
-
-	}
-
-	log.Debug().Msgf("Connecting to database %s", config.Database.Filename)
+	log.Debug().Msgf("Connecting to database %s", cfg.Database.Filename)
 
 	// create a new logger for logging database calls
 	var zlogger zerolog.Logger
-	if config.Database.DebugLogging {
+	if cfg.Database.DebugLogging {
 		zlogger = zerolog.New(os.Stderr).With().Timestamp().Logger().Output(zerolog.ConsoleWriter{Out: os.Stderr}).Level(zerolog.DebugLevel)
 	} else {
 		zlogger = zerolog.New(os.Stderr).With().Timestamp().Logger().Level(zerolog.WarnLevel)
 	}
 	loggerAdapter := NewLoggerWithLogger(&zlogger)
 
-	db := sqldblogger.OpenDriver(config.Database.Filename, &sqlite3.SQLiteDriver{
+	db := sqldblogger.OpenDriver(cfg.Database.Filename, &sqlite3.SQLiteDriver{
 		ConnectHook: func(conn *sqlite3.SQLiteConn) error {
 
-			if _, err := conn.Exec(fmt.Sprintf("ATTACH DATABASE '%s' as users;", config.Database.UsersFilename), nil); err != nil {
+			if _, err := conn.Exec(fmt.Sprintf("ATTACH DATABASE '%s' as users;", cfg.Database.UsersFilename), nil); err != nil {
 				return err
 			}
 			if _, err := conn.Exec("PRAGMA foreign_keys = ON;", nil); err != nil {
@@ -201,17 +179,10 @@ func (c *client) Connect(config *config.Config) error {
 	// Create a new mapper which will use the struct field tag "json" instead of "db"
 	c.db.Mapper = reflectx.NewMapperFunc("json", strings.ToLower)
 
-	// recreate the users schema if we are in memory or recreated the db
-	if execUsersSchema {
-		// exec the schema or fail
-		log.Info().Msg("executing create user db schema")
-		c.db.MustExec(schemaUsers)
+	// do some special processing for in memory databases
+	if c.databaseInMemory {
+		c.setupInMemoryDatabase()
 	}
 
-	// recreate the schema if we are in memory or recreated the db
-	if execSchemaSql {
-		log.Info().Msg("executing create db schema")
-		c.db.MustExec(schema)
-	}
 	return nil
 }

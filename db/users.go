@@ -8,15 +8,18 @@ import (
 )
 
 type User struct {
-	ID        int64     `json:"id" header:"ID"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
-	Username  string    `json:"username" header:"Username"`
-	Password  string    `json:"password"`
-	Email     string    `json:"email"`
-	Role      string    `json:"role"`
-	Banned    bool      `json:"banned"`
-	Verified  bool      `json:"verified"`
+	ID            int64      `json:"id" header:"ID"`
+	CreatedAt     time.Time  `json:"createdAt"`
+	UpdatedAt     time.Time  `json:"updatedAt"`
+	Username      string     `json:"username" header:"Username"`
+	Password      string     `json:"password"`
+	Email         string     `json:"email"`
+	Role          string     `json:"role"`
+	Banned        bool       `json:"banned"`
+	Verified      bool       `json:"verified"`
+	LastLogin     *time.Time `json:"lastLogin,omitempty"`
+	DiscordID     *string    `json:"discordId,omitempty"`
+	DiscordAvatar *string    `json:"discordAvatar,omitempty"`
 }
 
 func (c *client) GetUsers() ([]cs.User, error) {
@@ -31,7 +34,10 @@ func (c *client) GetUsers() ([]cs.User, error) {
 		email,
 		role,
 		banned,
-		verified
+		verified,
+		lastLogin,
+		discordId,
+		discordAvatar
 	FROM Users
 	`); err != nil {
 		if err == sql.ErrNoRows {
@@ -71,6 +77,33 @@ func (c *client) GetUserByUsername(username string) (*cs.User, error) {
 	return &user, nil
 }
 
+func (c *client) GetUsersForGame(gameID int64) ([]cs.User, error) {
+
+	// don't include password in bulk select
+	items := []User{}
+	if err := c.db.Select(&items, `
+	SELECT 
+		createdAt,
+		updatedAt,
+		username,
+		email,
+		role,
+		banned,
+		verified,
+		lastLogin,
+		discordId,
+		discordAvatar
+	FROM users WHERE id IN (SELECT userId FROM players p WHERE p.gameId = ?)
+	`, gameID); err != nil {
+		if err == sql.ErrNoRows {
+			return []cs.User{}, nil
+		}
+		return nil, err
+	}
+
+	return c.converter.ConvertUsers(items), nil
+}
+
 // create a new user
 func (c *client) CreateUser(user *cs.User) error {
 	item := c.converter.ConvertGameUser(user)
@@ -84,7 +117,10 @@ func (c *client) CreateUser(user *cs.User) error {
 		email,
 		role,
 		banned,
-		verified
+		verified,
+		lastLogin,
+		discordId,
+		discordAvatar
 	) 
 	VALUES (
 		CURRENT_TIMESTAMP,
@@ -94,7 +130,10 @@ func (c *client) CreateUser(user *cs.User) error {
 		:email,
 		:role,
 		:banned,
-		:verified
+		:verified,
+		:lastLogin,
+		:discordId,
+		:discordAvatar
 	)
 	`, item)
 
@@ -126,7 +165,10 @@ func (c *client) UpdateUser(user *cs.User) error {
 		email = :email,
 		role = :role,
 		banned = :banned,
-		verified = :verified
+		verified = :verified,
+		lastLogin = :lastLogin,
+		discordId = :discordId,
+		discordAvatar = :discordAvatar
 	WHERE id = :id
 	`, item); err != nil {
 		return err

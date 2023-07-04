@@ -66,12 +66,19 @@ func Start(db DBClient, config config.Config) {
 
 	var authLogger = logger.Func(func(format string, args ...interface{}) { log.Info().Msgf(format, args...) })
 
+	cookieDuration := time.Hour * 24
+	duration, err := time.ParseDuration(config.Discord.CookieDuration)
+	if err != nil {
+		log.Error().Err(err).Msgf("failed to load cookie duration from config %s", config.Discord.CookieDuration)
+	} else {
+		cookieDuration = duration
+	}
 	options := auth.Opts{
 		SecretReader: token.SecretFunc(func(_ string) (string, error) { // secret key for JWT, ignores aud
 			return server.config.Auth.Secret, nil
 		}),
 		TokenDuration:     time.Minute,                           // short token, refreshed automatically
-		CookieDuration:    time.Hour * 24,                        // cookie fine to keep for long time
+		CookieDuration:    cookieDuration,                        // cookie fine to keep for long time
 		DisableXSRF:       config.Auth.DisableXSRF,               // don't disable XSRF in real-life applications!
 		Issuer:            "craig-stars",                         // part of token, just informational
 		URL:               server.config.Auth.URL,                // base url of the protected service
@@ -91,10 +98,13 @@ func Start(db DBClient, config config.Config) {
 					if err != nil {
 						return claims
 					}
-				}
-
-				if claims.User != nil && claims.User.Name == "admin" { // set attributes for admin
-					claims.User.SetAdmin(true)
+				} else {
+					// if we're admin, set the admin claim
+					if claims.User != nil && claims.User.Name == "admin" { // set attributes for admin
+						claims.User.SetAdmin(true)
+					} else if err := server.updateUser(claims.User, user); err != nil {
+						return claims
+					}
 				}
 
 				claims.User.SetStrAttr(databaseIDAttr, strconv.FormatInt(user.ID, 10))
@@ -148,8 +158,7 @@ func Start(db DBClient, config config.Config) {
 			InfoURL: "https://discord.com/api/users/@me",
 			MapUserFn: func(data provider.UserData, _ []byte) token.User {
 				username := data.Value("username")
-				discriminator := data.Value("discriminator")
-				fullUsername := fmt.Sprintf("%s#%s", username, discriminator)
+				fullUsername := fmt.Sprintf("%s", username)
 				id := data.Value("id")
 				avatar := data.Value("avatar")
 				userInfo := token.User{
@@ -226,6 +235,7 @@ func Start(db DBClient, config config.Config) {
 			// game by id operations
 			r.Route("/{id:[0-9]+}", func(r chi.Router) {
 				r.Use(server.gameCtx)
+				r.Get("/ping-discord", server.pingDiscordForGameUpdate)
 				r.Get("/", server.game)
 				r.Put("/", server.updateGame)
 				r.Post("/join", server.joinGame)

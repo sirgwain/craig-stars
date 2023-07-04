@@ -3,10 +3,13 @@
 	import { Bars3 } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import DarkModeToggler from './DarkModeToggler.svelte';
+	import UserAvatar from './UserAvatar.svelte';
 
 	export let user: User | undefined;
 </script>
 
+<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+<!-- svelte-ignore a11y-label-has-associated-control -->
 <div class="navbar bg-base-100 flex flex-row">
 	<div class="flex-1">
 		<a class="btn btn-ghost text-xl text-accent" href="/"
@@ -25,11 +28,17 @@
 		</div>
 
 		<div class="dropdown dropdown-end">
-			<label for="menu" tabindex="0" class="btn btn-ghost">
-				<div id="menu">
-					<Icon src={Bars3} size="24" />
-				</div>
-			</label>
+			{#if user}
+				<label tabindex="0" class="btn btn-ghost btn-circle avatar w-8 h-8">
+					<UserAvatar {user} />
+				</label>
+			{:else}
+				<label for="menu" tabindex="0" class="btn btn-ghost">
+					<div id="menu">
+						<Icon src={Bars3} size="24" />
+					</div>
+				</label>
+			{/if}
 			<ul
 				tabindex="0"
 				class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-30"

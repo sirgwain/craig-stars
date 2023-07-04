@@ -26,17 +26,12 @@
 				class="btn btn-outline btn-sm normal-case btn-secondary p-2"
 				title="goto">Goto</button
 			>
-			<div
-				class="tooltip"
-				data-tip={planet ? `transfer cargo with ${planet.name}` : 'Jettison cargo into deep space'}
-			>
-				<button
-					on:click={transfer}
-					class="btn btn-outline btn-sm normal-case btn-secondary p-2"
-					title="goto"
-					>{planet ? 'Transfer' : 'Jettison'}
-				</button>
-			</div>
+			<button
+				on:click={transfer}
+				class="btn btn-outline btn-sm normal-case btn-secondary p-2"
+				title="goto"
+				>{planet ? 'Transfer' : 'Jettison'}
+			</button>
 		</div>
 	</CommandTile>
 {/if}

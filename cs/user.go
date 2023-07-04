@@ -7,18 +7,22 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"golang.org/x/crypto/argon2"
 )
 
 type User struct {
 	DBObject
-	Username string `json:"username" header:"Username"`
-	Password string `json:"password"`
-	Email    string `json:"email"`
-	Role     string `json:"role"`
-	Banned   bool   `json:"banned"`
-	Verified bool   `json:"verified"`
+	Username      string     `json:"username" header:"Username"`
+	Password      string     `json:"password"`
+	Email         string     `json:"email"`
+	Role          string     `json:"role"`
+	Banned        bool       `json:"banned"`
+	Verified      bool       `json:"verified"`
+	LastLogin     *time.Time `json:"lastLogin,omitempty"`
+	DiscordID     *string    `json:"discordId,omitempty"`
+	DiscordAvatar *string    `json:"discordAvatar,omitempty"`
 }
 
 const (
@@ -32,6 +36,15 @@ func NewUser(username string, password string, email string, role string) (*User
 		return nil, err
 	}
 	return &User{Username: username, Password: hashedPassword, Email: email, Role: role}, nil
+}
+
+func NewDiscordUser(username string, discordID string, discordAvatar string) (*User, error) {
+	return &User{
+		Username:      username,
+		Role:          RoleUser,
+		DiscordID:     &discordID,
+		DiscordAvatar: &discordAvatar,
+	}, nil
 }
 
 func (u *User) ComparePassword(password string) (match bool, err error) {

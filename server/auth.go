@@ -2,8 +2,10 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-pkgz/auth/token"
 	"github.com/go-pkgz/rest"
@@ -12,9 +14,11 @@ import (
 )
 
 type sessionUser struct {
-	ID       int64  `json:"id"`
-	Username string `json:"username"`
-	Role     string `json:"role"`
+	ID            int64  `json:"id"`
+	Username      string `json:"username"`
+	Role          string `json:"role"`
+	DiscordID     string `json:"discordId"`
+	DiscordAvatar string `json:"discordAvatar"`
 }
 
 // get the user from the context
@@ -33,10 +37,22 @@ func (s *server) mustGetUser(w http.ResponseWriter, r *http.Request) sessionUser
 		panic("failed to load user")
 	}
 
+	var discordID string
+	var discordAvatar string
+
+	if val, ok := userInfo.Attributes["discord_id"]; ok {
+		discordID = val.(string)
+	}
+	if val, ok := userInfo.Attributes["discord_avatar"]; ok {
+		discordAvatar = val.(string)
+	}
+
 	return sessionUser{
-		ID:       userID,
-		Username: userInfo.Name,
-		Role:     userInfo.Role,
+		ID:            userID,
+		Username:      userInfo.Name,
+		Role:          userInfo.Role,
+		DiscordID:     discordID,
+		DiscordAvatar: discordAvatar,
 	}
 }
 
@@ -56,10 +72,22 @@ func me(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var discordID string
+	var discordAvatar string
+
+	if val, ok := userInfo.Attributes["discord_id"]; ok {
+		discordID = val.(string)
+	}
+	if val, ok := userInfo.Attributes["discord_avatar"]; ok {
+		discordAvatar = val.(string)
+	}
+
 	res := sessionUser{
 		ID:       userID,
 		Username: userInfo.Name,
 		Role:     userInfo.Role,
+		DiscordID:     discordID,
+		DiscordAvatar: discordAvatar,
 	}
 
 	rest.RenderJSON(w, res)
@@ -76,7 +104,14 @@ func (s *server) userCtx(next http.Handler) http.Handler {
 
 // create a new user from a token
 func (s *server) createNewUser(tokenUser *token.User) (*cs.User, error) {
-	user, err := cs.NewUser(tokenUser.Name, "", "", cs.RoleUser)
+
+	discordID, foundDiscordID := tokenUser.Attributes["discord_id"]
+	discordAvatar, foundDiscordAvatar := tokenUser.Attributes["discord_avatar"]
+	if !foundDiscordID || !foundDiscordAvatar {
+		return nil, fmt.Errorf("trying to create new user that isn't a discord user")
+	}
+
+	user, err := cs.NewDiscordUser(tokenUser.Name, discordID.(string), discordAvatar.(string))
 	if err != nil {
 		log.Error().Err(err).Str("Username", user.Username).Msg("failed to create new user")
 		return nil, err
@@ -97,4 +132,29 @@ func (s *server) createNewUser(tokenUser *token.User) (*cs.User, error) {
 		return nil, err
 	}
 	return user, nil
+}
+
+func (s *server) updateUser(tokenUser *token.User, user *cs.User) error {
+
+	discordID, foundDiscordID := tokenUser.Attributes["discord_id"]
+	discordAvatar, foundDiscordAvatar := tokenUser.Attributes["discord_avatar"]
+	if !foundDiscordID || !foundDiscordAvatar {
+		return fmt.Errorf("trying to create new user that isn't a discord user")
+	}
+
+	idStr := discordID.(string)
+	avatarStr := discordAvatar.(string)
+	user.DiscordID = &idStr
+	user.DiscordAvatar = &avatarStr
+	now := time.Now()
+	user.LastLogin = &now
+
+	err := s.db.UpdateUser(user)
+	if err != nil {
+		log.Error().Err(err).Str("Username", user.Username).Msg("failed to update user")
+		return err
+	}
+	log.Info().Str("Username", user.Username).Int64("ID", user.ID).Str("DiscordID", *user.DiscordID).Str("DiscordAvatar", *user.DiscordAvatar).Msg("updated")
+
+	return nil
 }

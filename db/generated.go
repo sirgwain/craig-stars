@@ -2,14 +2,17 @@
 
 package db
 
-import cs "github.com/sirgwain/craig-stars/cs"
+import (
+	cs "github.com/sirgwain/craig-stars/cs"
+	"time"
+)
 
 type GameConverter struct{}
 
 func (c *GameConverter) ConvertFleet(source *Fleet) *cs.Fleet {
 	var pCsFleet *cs.Fleet
 	if source != nil {
-		csFleet := c.dbFleetToCsFleet(*source)
+		csFleet := c.dbFleetToCsFleet((*source))
 		pCsFleet = &csFleet
 	}
 	return pCsFleet
@@ -43,7 +46,7 @@ func (c *GameConverter) ConvertGame(source Game) cs.Game {
 func (c *GameConverter) ConvertGameFleet(source *cs.Fleet) *Fleet {
 	var pDbFleet *Fleet
 	if source != nil {
-		dbFleet := c.csFleetToDbFleet(*source)
+		dbFleet := c.csFleetToDbFleet((*source))
 		pDbFleet = &dbFleet
 	}
 	return pDbFleet
@@ -51,7 +54,7 @@ func (c *GameConverter) ConvertGameFleet(source *cs.Fleet) *Fleet {
 func (c *GameConverter) ConvertGameGame(source *cs.Game) *Game {
 	var pDbGame *Game
 	if source != nil {
-		dbGame := c.csGameToDbGame(*source)
+		dbGame := c.csGameToDbGame((*source))
 		pDbGame = &dbGame
 	}
 	return pDbGame
@@ -59,7 +62,7 @@ func (c *GameConverter) ConvertGameGame(source *cs.Game) *Game {
 func (c *GameConverter) ConvertGameMineField(source *cs.MineField) *MineField {
 	var pDbMineField *MineField
 	if source != nil {
-		dbMineField := c.csMineFieldToDbMineField(*source)
+		dbMineField := c.csMineFieldToDbMineField((*source))
 		pDbMineField = &dbMineField
 	}
 	return pDbMineField
@@ -67,7 +70,7 @@ func (c *GameConverter) ConvertGameMineField(source *cs.MineField) *MineField {
 func (c *GameConverter) ConvertGameMineralPacket(source *cs.MineralPacket) *MineralPacket {
 	var pDbMineralPacket *MineralPacket
 	if source != nil {
-		dbMineralPacket := c.csMineralPacketToDbMineralPacket(*source)
+		dbMineralPacket := c.csMineralPacketToDbMineralPacket((*source))
 		pDbMineralPacket = &dbMineralPacket
 	}
 	return pDbMineralPacket
@@ -75,7 +78,7 @@ func (c *GameConverter) ConvertGameMineralPacket(source *cs.MineralPacket) *Mine
 func (c *GameConverter) ConvertGameMysteryTrader(source *cs.MysteryTrader) *MysteryTrader {
 	var pDbMysteryTrader *MysteryTrader
 	if source != nil {
-		dbMysteryTrader := c.csMysteryTraderToDbMysteryTrader(*source)
+		dbMysteryTrader := c.csMysteryTraderToDbMysteryTrader((*source))
 		pDbMysteryTrader = &dbMysteryTrader
 	}
 	return pDbMysteryTrader
@@ -83,7 +86,7 @@ func (c *GameConverter) ConvertGameMysteryTrader(source *cs.MysteryTrader) *Myst
 func (c *GameConverter) ConvertGamePlanet(source *cs.Planet) *Planet {
 	var pDbPlanet *Planet
 	if source != nil {
-		dbPlanet := c.csPlanetToDbPlanet(*source)
+		dbPlanet := c.csPlanetToDbPlanet((*source))
 		pDbPlanet = &dbPlanet
 	}
 	return pDbPlanet
@@ -91,7 +94,7 @@ func (c *GameConverter) ConvertGamePlanet(source *cs.Planet) *Planet {
 func (c *GameConverter) ConvertGamePlayer(source *cs.Player) *Player {
 	var pDbPlayer *Player
 	if source != nil {
-		dbPlayer := c.csPlayerToDbPlayer(*source)
+		dbPlayer := c.csPlayerToDbPlayer((*source))
 		pDbPlayer = &dbPlayer
 	}
 	return pDbPlayer
@@ -99,7 +102,7 @@ func (c *GameConverter) ConvertGamePlayer(source *cs.Player) *Player {
 func (c *GameConverter) ConvertGameRace(source *cs.Race) *Race {
 	var pDbRace *Race
 	if source != nil {
-		dbRace := c.csRaceToDbRace(*source)
+		dbRace := c.csRaceToDbRace((*source))
 		pDbRace = &dbRace
 	}
 	return pDbRace
@@ -107,7 +110,7 @@ func (c *GameConverter) ConvertGameRace(source *cs.Race) *Race {
 func (c *GameConverter) ConvertGameSalvage(source *cs.Salvage) *Salvage {
 	var pDbSalvage *Salvage
 	if source != nil {
-		dbSalvage := c.csSalvageToDbSalvage(*source)
+		dbSalvage := c.csSalvageToDbSalvage((*source))
 		pDbSalvage = &dbSalvage
 	}
 	return pDbSalvage
@@ -115,7 +118,7 @@ func (c *GameConverter) ConvertGameSalvage(source *cs.Salvage) *Salvage {
 func (c *GameConverter) ConvertGameShipDesign(source *cs.ShipDesign) *ShipDesign {
 	var pDbShipDesign *ShipDesign
 	if source != nil {
-		dbShipDesign := c.csShipDesignToDbShipDesign(*source)
+		dbShipDesign := c.csShipDesignToDbShipDesign((*source))
 		pDbShipDesign = &dbShipDesign
 	}
 	return pDbShipDesign
@@ -123,7 +126,7 @@ func (c *GameConverter) ConvertGameShipDesign(source *cs.ShipDesign) *ShipDesign
 func (c *GameConverter) ConvertGameUser(source *cs.User) *User {
 	var pDbUser *User
 	if source != nil {
-		dbUser := c.csUserToDbUser(*source)
+		dbUser := c.csUserToDbUser((*source))
 		pDbUser = &dbUser
 	}
 	return pDbUser
@@ -131,22 +134,25 @@ func (c *GameConverter) ConvertGameUser(source *cs.User) *User {
 func (c *GameConverter) ConvertGameWormhole(source *cs.Wormhole) *Wormhole {
 	var pDbWormhole *Wormhole
 	if source != nil {
-		dbWormhole := c.csWormholeToDbWormhole(*source)
+		dbWormhole := c.csWormholeToDbWormhole((*source))
 		pDbWormhole = &dbWormhole
 	}
 	return pDbWormhole
 }
 func (c *GameConverter) ConvertGames(source []Game) []cs.Game {
-	csGameList := make([]cs.Game, len(source))
-	for i := 0; i < len(source); i++ {
-		csGameList[i] = c.ConvertGame(source[i])
+	var csGameList []cs.Game
+	if source != nil {
+		csGameList = make([]cs.Game, len(source))
+		for i := 0; i < len(source); i++ {
+			csGameList[i] = c.ConvertGame(source[i])
+		}
 	}
 	return csGameList
 }
 func (c *GameConverter) ConvertMineField(source *MineField) *cs.MineField {
 	var pCsMineField *cs.MineField
 	if source != nil {
-		csMineField := c.dbMineFieldToCsMineField(*source)
+		csMineField := c.dbMineFieldToCsMineField((*source))
 		pCsMineField = &csMineField
 	}
 	return pCsMineField
@@ -154,7 +160,7 @@ func (c *GameConverter) ConvertMineField(source *MineField) *cs.MineField {
 func (c *GameConverter) ConvertMineralPacket(source *MineralPacket) *cs.MineralPacket {
 	var pCsMineralPacket *cs.MineralPacket
 	if source != nil {
-		csMineralPacket := c.dbMineralPacketToCsMineralPacket(*source)
+		csMineralPacket := c.dbMineralPacketToCsMineralPacket((*source))
 		pCsMineralPacket = &csMineralPacket
 	}
 	return pCsMineralPacket
@@ -162,7 +168,7 @@ func (c *GameConverter) ConvertMineralPacket(source *MineralPacket) *cs.MineralP
 func (c *GameConverter) ConvertMysteryTrader(source *MysteryTrader) *cs.MysteryTrader {
 	var pCsMysteryTrader *cs.MysteryTrader
 	if source != nil {
-		csMysteryTrader := c.dbMysteryTraderToCsMysteryTrader(*source)
+		csMysteryTrader := c.dbMysteryTraderToCsMysteryTrader((*source))
 		pCsMysteryTrader = &csMysteryTrader
 	}
 	return pCsMysteryTrader
@@ -170,7 +176,7 @@ func (c *GameConverter) ConvertMysteryTrader(source *MysteryTrader) *cs.MysteryT
 func (c *GameConverter) ConvertPlanet(source *Planet) *cs.Planet {
 	var pCsPlanet *cs.Planet
 	if source != nil {
-		csPlanet := c.dbPlanetToCsPlanet(*source)
+		csPlanet := c.dbPlanetToCsPlanet((*source))
 		pCsPlanet = &csPlanet
 	}
 	return pCsPlanet
@@ -203,9 +209,12 @@ func (c *GameConverter) ConvertPlayer(source Player) cs.Player {
 	return csPlayer
 }
 func (c *GameConverter) ConvertPlayers(source []Player) []cs.Player {
-	csPlayerList := make([]cs.Player, len(source))
-	for i := 0; i < len(source); i++ {
-		csPlayerList[i] = c.ConvertPlayer(source[i])
+	var csPlayerList []cs.Player
+	if source != nil {
+		csPlayerList = make([]cs.Player, len(source))
+		for i := 0; i < len(source); i++ {
+			csPlayerList[i] = c.ConvertPlayer(source[i])
+		}
 	}
 	return csPlayerList
 }
@@ -238,16 +247,19 @@ func (c *GameConverter) ConvertRace(source Race) cs.Race {
 	return csRace
 }
 func (c *GameConverter) ConvertRaces(source []Race) []cs.Race {
-	csRaceList := make([]cs.Race, len(source))
-	for i := 0; i < len(source); i++ {
-		csRaceList[i] = c.ConvertRace(source[i])
+	var csRaceList []cs.Race
+	if source != nil {
+		csRaceList = make([]cs.Race, len(source))
+		for i := 0; i < len(source); i++ {
+			csRaceList[i] = c.ConvertRace(source[i])
+		}
 	}
 	return csRaceList
 }
 func (c *GameConverter) ConvertSalvage(source *Salvage) *cs.Salvage {
 	var pCsSalvage *cs.Salvage
 	if source != nil {
-		csSalvage := c.dbSalvageToCsSalvage(*source)
+		csSalvage := c.dbSalvageToCsSalvage((*source))
 		pCsSalvage = &csSalvage
 	}
 	return pCsSalvage
@@ -255,7 +267,7 @@ func (c *GameConverter) ConvertSalvage(source *Salvage) *cs.Salvage {
 func (c *GameConverter) ConvertShipDesign(source *ShipDesign) *cs.ShipDesign {
 	var pCsShipDesign *cs.ShipDesign
 	if source != nil {
-		csShipDesign := c.dbShipDesignToCsShipDesign(*source)
+		csShipDesign := c.dbShipDesignToCsShipDesign((*source))
 		pCsShipDesign = &csShipDesign
 	}
 	return pCsShipDesign
@@ -269,19 +281,40 @@ func (c *GameConverter) ConvertUser(source User) cs.User {
 	csUser.Role = source.Role
 	csUser.Banned = source.Banned
 	csUser.Verified = source.Verified
+	var pTimeTime *time.Time
+	if source.LastLogin != nil {
+		timeTime := TimeToTime((*source.LastLogin))
+		pTimeTime = &timeTime
+	}
+	csUser.LastLogin = pTimeTime
+	var pString *string
+	if source.DiscordID != nil {
+		xstring := *source.DiscordID
+		pString = &xstring
+	}
+	csUser.DiscordID = pString
+	var pString2 *string
+	if source.DiscordAvatar != nil {
+		xstring2 := *source.DiscordAvatar
+		pString2 = &xstring2
+	}
+	csUser.DiscordAvatar = pString2
 	return csUser
 }
 func (c *GameConverter) ConvertUsers(source []User) []cs.User {
-	csUserList := make([]cs.User, len(source))
-	for i := 0; i < len(source); i++ {
-		csUserList[i] = c.ConvertUser(source[i])
+	var csUserList []cs.User
+	if source != nil {
+		csUserList = make([]cs.User, len(source))
+		for i := 0; i < len(source); i++ {
+			csUserList[i] = c.ConvertUser(source[i])
+		}
 	}
 	return csUserList
 }
 func (c *GameConverter) ConvertWormhole(source *Wormhole) *cs.Wormhole {
 	var pCsWormhole *cs.Wormhole
 	if source != nil {
-		csWormhole := c.dbWormholeToCsWormhole(*source)
+		csWormhole := c.dbWormholeToCsWormhole((*source))
 		pCsWormhole = &csWormhole
 	}
 	return pCsWormhole
@@ -592,8 +625,8 @@ func (c *GameConverter) csShipDesignToDbShipDesign(source cs.ShipDesign) ShipDes
 	var dbShipDesign ShipDesign
 	dbShipDesign.ID = source.GameDBObject.ID
 	dbShipDesign.GameID = source.GameDBObject.GameID
-	dbShipDesign.CreatedAt = TimeToNullTime(source.GameDBObject.CreatedAt)
 	dbShipDesign.UpdatedAt = TimeToNullTime(source.GameDBObject.UpdatedAt)
+	dbShipDesign.CreatedAt = TimeToNullTime(source.GameDBObject.CreatedAt)
 	dbShipDesign.Num = source.Num
 	dbShipDesign.PlayerNum = source.PlayerNum
 	dbShipDesign.Name = source.Name
@@ -617,6 +650,24 @@ func (c *GameConverter) csUserToDbUser(source cs.User) User {
 	dbUser.Role = source.Role
 	dbUser.Banned = source.Banned
 	dbUser.Verified = source.Verified
+	var pTimeTime *time.Time
+	if source.LastLogin != nil {
+		timeTime := TimeToTime((*source.LastLogin))
+		pTimeTime = &timeTime
+	}
+	dbUser.LastLogin = pTimeTime
+	var pString *string
+	if source.DiscordID != nil {
+		xstring := *source.DiscordID
+		pString = &xstring
+	}
+	dbUser.DiscordID = pString
+	var pString2 *string
+	if source.DiscordAvatar != nil {
+		xstring2 := *source.DiscordAvatar
+		pString2 = &xstring2
+	}
+	dbUser.DiscordAvatar = pString2
 	return dbUser
 }
 func (c *GameConverter) csWormholeToDbWormhole(source cs.Wormhole) Wormhole {

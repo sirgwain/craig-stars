@@ -2,6 +2,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import DarkModeToggler from '$lib/components/DarkModeToggler.svelte';
+	import UserAvatar from '$lib/components/UserAvatar.svelte';
 	import { getGameContext } from '$lib/services/Contexts';
 	import { me } from '$lib/services/Stores';
 	import { GameState, type Game } from '$lib/types/Game';
@@ -17,6 +18,8 @@
 	// every turn/game update update the game
 	$: updateTitle($game);
 </script>
+
+<!-- svelte-ignore a11y-label-has-associated-control -->
 
 <div class="navbar bg-base-100 flex flex-row w-full">
 	<div class="flex-1">
@@ -76,10 +79,8 @@
 		{/if}
 
 		<div class="dropdown dropdown-end">
-			<label for="menu" tabindex="0" class="btn btn-ghost">
-				<div id="menu">
-					<Icon src={Bars3} size="24" />
-				</div>
+			<label tabindex="0" class="btn btn-ghost btn-circle avatar w-8 h-8">
+				<UserAvatar user={$me} />
 			</label>
 			<ul tabindex="0" class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-300 w-52">
 				<li>

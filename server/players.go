@@ -278,6 +278,7 @@ func buildUniverse(player *cs.Player, designs []*cs.ShipDesign, pmos cs.PlayerMa
 
 // submit a player turn and return the newly generated turn if there is one
 func (s *server) submitTurn(w http.ResponseWriter, r *http.Request) {
+	game := s.contextGame(r)
 	player := s.contextPlayer(r)
 
 	// submit the turn
@@ -297,12 +298,13 @@ func (s *server) submitTurn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if result == TurnGenerated {
+		s.sendNewTurnNotification(game.ID)
 		s.renderFullPlayerGame(w, r, player.GameID, player.UserID)
 		return
 	}
 
 	// return the game status
-	game, err := s.db.GetGame(player.GameID)
+	game, err = s.db.GetGame(player.GameID)
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", player.GameID).Msg("load game")
 		render.Render(w, r, ErrInternalServerError(err))

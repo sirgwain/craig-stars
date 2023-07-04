@@ -21,10 +21,9 @@ export type PlayerStatus = {
 	name: string;
 	race: Race;
 	ready?: boolean;
-	aIControlled?: boolean;
+	aiControlled?: boolean;
 	submittedTurn?: boolean;
-
-}
+};
 
 export type PlayerResponse = {
 	id?: number;
@@ -38,7 +37,7 @@ export type PlayerResponse = {
 	name?: string;
 	race: Race;
 	ready?: boolean;
-	aIControlled?: boolean;
+	aiControlled?: boolean;
 	submittedTurn?: boolean;
 	techLevels: TechLevel;
 	techLevelsSpent: TechLevel;
@@ -151,8 +150,6 @@ export enum NextResearchField {
 	LowestField = 'LowestField'
 }
 
-
-
 export type PlayerRelationship = {
 	relation?: PlayerRelation;
 	shareMap?: boolean;
@@ -177,7 +174,7 @@ export class Player implements PlayerResponse {
 	color = '#00FF00';
 	race = { ...humanoid };
 	ready = false;
-	aIControlled = false;
+	aiControlled = false;
 	submittedTurn = false;
 	techLevels: TechLevel = { ...emptyTechLevel() };
 	techLevelsSpent: TechLevel = { ...emptyTechLevel() };
@@ -243,7 +240,6 @@ export class Player implements PlayerResponse {
 		return this.transportPlans.find((p) => p.num === num);
 	}
 }
-
 
 export function canLearnTech(player: PlayerResponse, tech: Tech): boolean {
 	const requirements = tech.requirements;

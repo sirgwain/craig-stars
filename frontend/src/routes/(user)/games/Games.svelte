@@ -7,7 +7,6 @@
 	import { GameState, type Game } from '$lib/types/Game';
 	import { onMount } from 'svelte';
 	import ActiveGameRow from './ActiveGameRow.svelte';
-	import GameStatus from './(game)/[id]/GameStatus.svelte';
 
 	let myGames: Game[];
 	let myGamesWaitingToGenerate: Game[];
@@ -68,7 +67,7 @@
 		<Galaxy class="fill-current w-12 h-12" />
 		Host
 	</a>
-	<a class="btn gap-2" href="/host-game">
+	<a class="btn gap-2" href="/single-player-game">
 		<Processor class="fill-current w-12 h-12" />
 		Single Player
 	</a>

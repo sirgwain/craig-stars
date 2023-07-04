@@ -1,4 +1,8 @@
-// to run locally: goverter --packageName db --output ./db/generated.go --packagePath github.com/sirgwain/craig-stars/db --ignoreUnexportedFields ./db
+// to run locally: 
+// install this version (new versions don't support mapExtend)
+// TODO: update goverter. :)
+// go install github.com/jmattheis/goverter/cmd/goverter@v0.12.0
+// goverter --packageName db --output ./db/generated.go --packagePath github.com/sirgwain/craig-stars/db --ignoreUnexportedFields ./db
 //
 //go:generate go run github.com/jmattheis/goverter/cmd/goverter --packageName db --output ./db/generated.go --packagePath github.com/sirgwain/craig-stars/db --ignoreUnexportedFields ./db
 package db

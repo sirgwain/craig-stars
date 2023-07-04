@@ -21,9 +21,14 @@ type Config struct {
 		DisableXSRF bool   `yaml:"DisableXSRF,omitempty"`
 	}
 	Discord struct {
-		Enabled      bool   `yaml:"Enabled,omitempty"`
-		ClientID     string `yaml:"ClientID,omitempty"`
-		ClientSecret string `yaml:"ClientSecret,omitempty"`
+		Enabled               bool   `yaml:"Enabled,omitempty"`
+		ClientID              string `yaml:"ClientID,omitempty"`
+		ClientSecret          string `yaml:"ClientSecret,omitempty"`
+		CookieDuration        string `yaml:"CookieDuration,omitempty"`
+		WebhookNotify         bool   `yaml:"WebhookNotify,omitempty"`
+		WebhookID             string `yaml:"WebhookID,omitempty"`
+		WebhookToken          string `yaml:"WebhookToken,omitempty"`
+		WebhookNotifyForAdmin bool   `yaml:"WebhookNotifyForAdmin,omitempty"`
 	}
 	Game struct {
 		InviteLinkSalt string `yaml:"InviteLinkSalt,omitempty"`
@@ -47,6 +52,7 @@ func GetConfig() *Config {
 		viper.SetDefault("Auth.Secret", "secret")             // default for local dev
 		viper.SetDefault("Auth.URL", "http://localhost:5173") // default for local dev
 		viper.SetDefault("Auth.DisableXSRF", true)            // default for local dev
+		viper.SetDefault("Discord.CookieDuration", "24h")     // default for local dev
 
 		viper.SetDefault("Game.InviteLinkSalt", "salt") // default for local dev
 

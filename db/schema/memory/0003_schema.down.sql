@@ -1,0 +1,18 @@
+DROP UNIQUE INDEX fleetNum;
+DROP TABLE games;
+DROP TABLE rules;
+DROP TABLE players;
+DROP TABLE fleets;
+DROP TABLE shipDesigns;
+DROP TABLE planets;
+DROP TABLE mineralPackets;
+DROP TABLE salvages;
+DROP TABLE wormholes;
+DROP TABLE mysteryTraders;
+DROP TABLE mineFields;
+DROP TABLE techStores;
+DROP TABLE techEngines;
+DROP TABLE techPlanetaryScanners;
+DROP TABLE techDefenses;
+DROP TABLE techHullComponents;
+DROP TABLE techHulls;

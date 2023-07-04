@@ -29,7 +29,7 @@ func (req *updateGameRequest) Bind(r *http.Request) error {
 }
 
 type joinGameRequest struct {
-	RaceID int64  `json:"raceId"`
+	RaceID int64 `json:"raceId"`
 }
 
 func (req *joinGameRequest) Bind(r *http.Request) error {
@@ -268,6 +268,7 @@ func (s *server) generateUniverse(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// send the full game to the host
+	s.sendNewTurnNotification(game.ID)
 	s.renderFullPlayerGame(w, r, game.ID, user.ID)
 }
 
@@ -311,6 +312,7 @@ func (s *server) generateTurn(w http.ResponseWriter, r *http.Request) {
 
 	// return the new game
 	if result == TurnGenerated {
+		s.sendNewTurnNotification(game.ID)
 		s.renderFullPlayerGame(w, r, player.GameID, player.UserID)
 		return
 	}

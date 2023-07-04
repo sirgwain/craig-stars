@@ -128,7 +128,7 @@ export class FullGame implements Game {
 
 	isMultiplayer(): boolean {
 		// we are multi player if any of the players are not ai controlled and not us
-		return this.players.findIndex((p) => p.num != this.player.num && !p.aIControlled) == -1;
+		return this.players.findIndex((p) => p.num != this.player.num && !p.aiControlled) == -1;
 	}
 
 	isSinglePlayer(): boolean {

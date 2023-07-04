@@ -84,6 +84,18 @@ type GameWithPlayers struct {
 	Players []PlayerStatus `json:"players,omitempty"`
 }
 
+// return true if this is a single player game
+func (g *GameWithPlayers) IsSinglePlayer() bool {
+	nonAiPlayers := 0
+	for _, p := range g.Players {
+		if p.AIControlled {
+			nonAiPlayers++
+		}
+	}
+	return nonAiPlayers > 1
+
+}
+
 // A game with players and a universe, used in universe and turn generation
 type FullGame struct {
 	*Game

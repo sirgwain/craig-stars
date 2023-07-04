@@ -16,6 +16,8 @@ export interface User {
 	username: string;
 	role: UserRole;
 	status: UserStatus;
+	discordId: string;
+	discordAvatar: string;
 }
 
 export const emptyUser: User = {

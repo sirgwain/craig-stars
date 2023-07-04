@@ -35,7 +35,7 @@ type Player struct {
 	Name                      string               `json:"name,omitempty"`
 	Num                       int                  `json:"num,omitempty"`
 	Ready                     bool                 `json:"ready"`
-	AIControlled              bool                 `json:"aIControlled,omitempty"`
+	AIControlled              bool                 `json:"aiControlled,omitempty"`
 	SubmittedTurn             bool                 `json:"submittedTurn"`
 	Color                     string               `json:"color,omitempty"`
 	DefaultHullSet            int                  `json:"defaultHullSet,omitempty"`
