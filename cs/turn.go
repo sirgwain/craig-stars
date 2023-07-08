@@ -1123,7 +1123,12 @@ func (t *turn) playerResearch() {
 	playerGainedLevel := make(map[int]bool, len(t.game.Players))
 
 	onLevelGained := func(player *Player, field TechField) {
+
 		messager.techLevel(player, field, player.TechLevels.Get(field), player.Researching)
+		techsGained := t.game.TechStore.GetTechsJustGained(player, field)
+		for _, tech := range techsGained {
+			messager.techGained(player, field, tech)
+		}
 		playerGainedLevel[player.Num] = true
 
 		log.Debug().

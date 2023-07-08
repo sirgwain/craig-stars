@@ -1,44 +1,30 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import TechHullSummary from '$lib/components/game/design/Hull.svelte';
 	import TechSummary from '$lib/components/tech/TechSummary.svelte';
-	import { Service } from '$lib/services/Service';
+	import { getGameContext } from '$lib/services/Contexts';
 
 	import { TechCategory, type Tech, type TechHull } from '$lib/types/Tech';
-	import { startCase } from 'lodash-es';
-	import { onMount } from 'svelte';
+
+	const { game, player, universe } = getGameContext();
 
 	let nameSlug = $page.params.name;
-	let tech: Tech;
+	$: tech = $game.techs.getTech(nameSlug);
 
 	$: hull = tech as TechHull;
-
-	onMount(async () => {
-		const name = startCase(nameSlug);
-		const response = await fetch(`/api/techs/${name}`, {
-			method: 'GET',
-			headers: {
-				accept: 'application/json'
-			}
-		});
-
-		if (!response.ok) {
-			await Service.throwError(response);
-		}
-		tech = (await response.json()) as Tech;
-	});
 </script>
 
 <Breadcrumb>
 	<svelte:fragment slot="crumbs">
-		<li><a href={`/techs`}>Techs</a></li>
+		<li><a href={`/games/${$game.id}/techs`}>Techs</a></li>
 		<li>{tech?.name ?? '<unknown>'}</li>
 		</svelte:fragment>
 </Breadcrumb>
 
 {#if tech}
-	<TechSummary {tech} />
+	<TechSummary {tech} player={$player} />
 	{#if (hull && tech.category == TechCategory.ShipHull) || tech.category == TechCategory.StarbaseHull}
 		<h1 class="my-3 text-lg text-center font-semibold">Hull</h1>
 		<div

@@ -9,7 +9,7 @@ import { CommandedPlanet } from '$lib/types/Planet';
 import type { Player } from '$lib/types/Player';
 import { emptyUser, type User } from '$lib/types/User';
 import type { Vector } from '$lib/types/Vector';
-import { findIndex } from 'lodash-es';
+import { findIndex, kebabCase } from 'lodash-es';
 import type { ComponentType, SvelteComponent } from 'svelte';
 import { derived, get, writable } from 'svelte/store';
 import type { FullGame } from './FullGame';
@@ -254,6 +254,12 @@ export const gotoMessageTarget = (game: FullGame, player: Player, message: Messa
 
 		if (message.type === MessageType.GainTechLevel) {
 			goto(`/games/${game.id}/research`);
+			return;
+		}
+
+		if (message.type === MessageType.TechGained) {
+			goto(`/games/${game.id}/techs/${kebabCase(message.spec.techGained)}`);
+			return;
 		}
 
 		const moType = getMapObjectTypeForMessageType(message.targetType);

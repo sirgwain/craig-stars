@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { PlayerResponse } from '$lib/types/Player';
+	import type { Player } from '$lib/types/Player';
 
 	import {
-		TechCategory,
 		isHullComponent,
+		TechCategory,
 		type Tech,
 		type TechDefense,
 		type TechEngine,
@@ -15,12 +15,13 @@
 	import TechLevelRequirements from './TechLevelRequirements.svelte';
 	import TechTraitRequirements from './TechTraitRequirements.svelte';
 
+	import { levelsAbove } from '$lib/types/TechLevel';
 	import { kebabCase } from 'lodash-es';
 	import TechAvatar from './TechAvatar.svelte';
 	import TechDefenseGraph from './TechDefenseGraph.svelte';
 
 	export let tech: Tech;
-	export let player: PlayerResponse | undefined = undefined;
+	export let player: Player | undefined = undefined;
 
 	let defense: TechDefense;
 	let hullComponent: TechHullComponent;
@@ -29,15 +30,25 @@
 	$: tech && isHullComponent(tech.category) && (hullComponent = tech as TechHullComponent);
 	$: tech && tech.category == TechCategory.Engine && (engine = tech as TechEngine);
 	$: tech && tech.category == TechCategory.PlanetaryDefense && (defense = tech as TechDefense);
+	$: above = player?.hasTech(tech) ? levelsAbove(tech.requirements, player.techLevels) : 0;
 </script>
 
 {#if tech}
 	<div
-		class="card bg-base-200 shadow w-full max-h-fit min-h-fit rounded-sm border-2 border-base-300"
+		class="card bg-base-200 shadow rounded-sm border-2 border-base-300 max-h-fit min-h-fit w-full"
 	>
 		<div class="card-body p-3 gap-0">
 			<h2 class="text-lg font-semibold text-center mb-1 text-secondary">
-				<a href="/techs/{kebabCase(tech.name)}">{tech.name}</a>
+				<div class="indicator w-full">
+					<span class:hidden={!player || above != 0} class="indicator-item badge badge-accent">new</span>
+					<div class="w-full">
+						{#if player}
+							<a href={`/games/${player.gameId}/techs/${kebabCase(tech.name)}`}>{tech.name}</a>
+						{:else}
+							<a href="/techs/{kebabCase(tech.name)}">{tech.name}</a>
+						{/if}
+					</div>
+				</div>
 			</h2>
 
 			<div class="flex flex-row gap-2">

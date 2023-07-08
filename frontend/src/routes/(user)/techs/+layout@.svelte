@@ -8,8 +8,8 @@
 		<Menu user={$me} />
 	</div>
 	<div class="relative">
-		<div class="w-full mx-auto">
-			<slot>This is the main content</slot>
+		<div class="w-full mx-auto md:max-w-3xl">
+			<slot />
 		</div>
 	</div>
 </main>

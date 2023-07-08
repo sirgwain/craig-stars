@@ -27,18 +27,20 @@
 			</ul>
 		</div>
 
-		<div class="dropdown dropdown-end">
-			{#if user}
-				<label tabindex="0" class="btn btn-ghost btn-circle avatar w-8 h-8">
+		{#if user}
+			<div class="dropdown dropdown-end">
+				<label class="avatar w-8 h-8 place-content-center">
 					<UserAvatar {user} />
 				</label>
-			{:else}
-				<label for="menu" tabindex="0" class="btn btn-ghost">
-					<div id="menu">
-						<Icon src={Bars3} size="24" />
-					</div>
-				</label>
-			{/if}
+			</div>
+		{/if}
+
+		<div class="dropdown dropdown-end">
+			<label for="menu" tabindex="0" class="btn btn-ghost">
+				<div id="menu">
+					<Icon src={Bars3} size="24" />
+				</div>
+			</label>
 			<ul
 				tabindex="0"
 				class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-30"

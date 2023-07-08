@@ -12,7 +12,7 @@
 		/>
 	</div>
 {:else}
-	<div class="avatar placeholder w-full h-full mt-2">
+	<div class="avatar placeholder select-none">
 		<div class="bg-neutral-focus text-neutral-content rounded-full border">
 			<span class="text-2xl">A</span>
 		</div>

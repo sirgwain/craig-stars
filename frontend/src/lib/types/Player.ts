@@ -9,7 +9,7 @@ import { humanoid, type Race } from './Race';
 import type { Salvage } from './Salvage';
 import type { ShipDesign } from './ShipDesign';
 import type { Tech, TechDefense, TechPlanetaryScanner } from './Tech';
-import { emptyTechLevel, TechField, type TechLevel } from './TechLevel';
+import { emptyTechLevel, hasRequiredLevels, TechField, type TechLevel } from './TechLevel';
 import type { Wormhole } from './Wormhole';
 
 export type PlayerStatus = {
@@ -238,6 +238,10 @@ export class Player implements PlayerResponse {
 
 	getTransportPlan(num: number): TransportPlan | undefined {
 		return this.transportPlans.find((p) => p.num === num);
+	}
+
+	hasTech(tech: Tech): boolean {
+		return canLearnTech(this, tech) && hasRequiredLevels(this.techLevels, tech.requirements)
 	}
 }
 

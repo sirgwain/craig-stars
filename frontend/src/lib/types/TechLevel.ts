@@ -58,6 +58,29 @@ export function sum(tl: TechLevel): number {
 	);
 }
 
+export function levelsAbove(req: TechLevel, level: TechLevel): number | undefined {
+	const diffs: number[] = [];
+	if (req.energy) {
+		diffs.push((level.energy ?? 0) - req.energy);
+	}
+	if (req.weapons) {
+		diffs.push((level.weapons ?? 0) - req.weapons);
+	}
+	if (req.propulsion) {
+		diffs.push((level.propulsion ?? 0) - req.propulsion);
+	}
+	if (req.construction) {
+		diffs.push((level.construction ?? 0) - req.construction);
+	}
+	if (req.electronics) {
+		diffs.push((level.electronics ?? 0) - req.electronics);
+	}
+	if (req.biotechnology) {
+		diffs.push((level.biotechnology ?? 0) - req.biotechnology);
+	}
+	return Math.min(...diffs);
+}
+
 export function get(tl: TechLevel, field: TechField): number {
 	switch (field) {
 		case TechField.Energy:

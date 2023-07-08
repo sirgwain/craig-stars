@@ -3,6 +3,7 @@
 	import { getQuantityModifier } from '$lib/quantityModifier';
 	import { getGameContext } from '$lib/services/Contexts';
 	import { PlanetService } from '$lib/services/PlanetService';
+	import { nextMapObject, previousMapObject } from '$lib/services/Stores';
 	import type { Cost } from '$lib/types/Cost';
 	import { Infinite } from '$lib/types/MapObject';
 	import type { CommandedPlanet, ProductionQueueItem } from '$lib/types/Planet';
@@ -419,10 +420,10 @@
 				</div>
 				<div class="w-1/2 flex flex-row flex-wrap justify-between sm:justify-end">
 					<div class="grow">
-						<button class="btn btn-sm btn-outline btn-secondary w-full">Prev</button>
+						<button class="btn btn-sm btn-outline btn-secondary w-full" on:click={() => nextMapObject()}>Prev</button>
 					</div>
 					<div class="grow">
-						<button class="btn btn-sm btn-outline btn-secondary w-full">Next</button>
+						<button class="btn btn-sm btn-outline btn-secondary w-full" on:click={() => previousMapObject()}>Next</button>
 					</div>
 					<div class="grow">
 						<button on:click={cancel} class="btn btn-sm btn-outline btn-secondary w-full"

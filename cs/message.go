@@ -14,6 +14,14 @@ type PlayerMessage struct {
 	TargetPlayerNum int                     `json:"targetPlayerNum,omitempty"`
 	BattleNum       int                     `json:"battleNum,omitempty"`
 	TargetType      PlayerMessageTargetType `json:"targetType,omitempty"`
+	Spec            PlayerMessageSpec       `json:"spec,omitempty"`
+}
+
+type PlayerMessageSpec struct {
+	Amount     int       `json:"amount,omitempty"`
+	Field      TechField `json:"field,omitempty"`
+	NextField  TechField `json:"nextField,omitempty"`
+	TechGained string    `json:"techGained,omitempty"`
 }
 
 type PlayerMessageTargetType string
@@ -89,6 +97,7 @@ const (
 	PlayerMessagePacketTerraform
 	PlayerMessagePacketPermaform
 	PlayerMessageRemoteMined
+	PlayerMessageTechGained
 )
 
 type Messager interface {
@@ -642,7 +651,24 @@ func (m *messageClient) battle(player *Player, planet *Planet, battle *BattleRec
 
 func (m *messageClient) techLevel(player *Player, field TechField, level int, nextField TechField) {
 	text := fmt.Sprintf("Your scientists have completed research into Tech Level %d for %v.  They will continue their efforts in the %v field.", level, field, nextField)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageGainTechLevel, Text: text})
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageGainTechLevel, Text: text, Spec: PlayerMessageSpec{Field: field, NextField: nextField, Amount: level}})
+}
+
+func (m *messageClient) techGained(player *Player, field TechField, tech *Tech) {
+	var text string
+	switch tech.Category {
+	case TechCategoryShipHull:
+		fallthrough
+	case TechCategoryStarbaseHull:
+		text = fmt.Sprintf("Your recent breakthrough in %v has also given you the %s hull type. To build ships with this design, go to the Commands -> Ship Designer and select Create New Design.", field, tech.Name)
+	case TechCategoryPlanetaryDefense:
+		text = fmt.Sprintf("Your recent breakthrough in %v has also taught you how to build %s defenses. All existing planetary defenses have been upgraded to the new technology.", field, tech.Name)
+	case TechCategoryPlanetaryScanner:
+		text = fmt.Sprintf("Your recent breakthrough in %v has also taught you how to build the %s scanner. All existing planetary scanners have been upgraded to the new technology.", field, tech.Name)
+	default:
+		text = fmt.Sprintf("Your recent breakthrough in %v has also given you the %s benefit", field, tech.Name)
+	}
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageTechGained, Text: text, Spec: PlayerMessageSpec{Field: field, TechGained: tech.Name}})
 }
 
 func (m *messageClient) playerDiscovered(player *Player, otherPlayer *Player) {

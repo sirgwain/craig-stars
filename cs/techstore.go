@@ -19,6 +19,7 @@ type TechStore struct {
 	Defenses                 []TechDefense                         `json:"defenses"`
 	HullComponents           []TechHullComponent                   `json:"hullComponents"`
 	Hulls                    []TechHull                            `json:"hulls,omitempty"`
+	techs                    []*Tech                               `json:"-"`
 	techsByName              map[string]interface{}                `json:"-"`
 	hullComponentsByName     map[string]*TechHullComponent         `json:"-"`
 	hullsByName              map[string]*TechHull                  `json:"-"`
@@ -70,13 +71,13 @@ func (store *TechStore) transformName(name string) string {
 }
 
 func (store *TechStore) Init() {
-	store.techsByName = make(map[string]interface{},
-		len(store.Engines)+
-			len(store.PlanetaryScanners)+
-			len(store.Terraforms)+
-			len(store.Defenses)+
-			len(store.HullComponents)+
-			len(store.Hulls))
+	store.techs = make([]*Tech, 0, len(store.Engines)+
+		len(store.PlanetaryScanners)+
+		len(store.Terraforms)+
+		len(store.Defenses)+
+		len(store.HullComponents)+
+		len(store.Hulls))
+	store.techsByName = make(map[string]interface{}, len(store.techs))
 	store.hullsByName = make(map[string]*TechHull, len(store.Hulls))
 	store.enginesByName = make(map[string]*TechEngine, len(store.Engines))
 	store.hullComponentsByName = make(map[string]*TechHullComponent, len(store.Engines)+len(store.HullComponents))
@@ -88,6 +89,7 @@ func (store *TechStore) Init() {
 	for i := range store.Hulls {
 		tech := &store.Hulls[i]
 		name := store.transformName(tech.Name)
+		store.techs = append(store.techs, &tech.Tech)
 		store.techsByName[name] = tech
 		store.hullsByName[name] = tech
 
@@ -103,6 +105,7 @@ func (store *TechStore) Init() {
 	for i := range store.Engines {
 		tech := &store.Engines[i]
 		name := store.transformName(tech.Name)
+		store.techs = append(store.techs, &tech.Tech)
 		store.techsByName[name] = tech
 		store.enginesByName[name] = tech
 		store.hullComponentsByName[name] = &tech.TechHullComponent
@@ -111,6 +114,7 @@ func (store *TechStore) Init() {
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		name := store.transformName(tech.Name)
+		store.techs = append(store.techs, &tech.Tech)
 		store.techsByName[name] = tech
 		store.hullComponentsByName[name] = tech
 
@@ -123,18 +127,21 @@ func (store *TechStore) Init() {
 	for i := range store.PlanetaryScanners {
 		tech := &store.PlanetaryScanners[i]
 		name := store.transformName(tech.Name)
+		store.techs = append(store.techs, &tech.Tech)
 		store.techsByName[name] = tech
 	}
 
 	for i := range store.Terraforms {
 		tech := &store.Terraforms[i]
 		name := store.transformName(tech.Name)
+		store.techs = append(store.techs, &tech.Tech)
 		store.techsByName[name] = tech
 	}
 
 	for i := range store.Defenses {
 		tech := &store.Defenses[i]
 		name := store.transformName(tech.Name)
+		store.techs = append(store.techs, &tech.Tech)
 		store.techsByName[name] = tech
 	}
 }
@@ -157,6 +164,16 @@ func (store *TechStore) GetHullsByType(techHullType TechHullType) []*TechHull {
 
 func (store *TechStore) GetHullComponent(name string) *TechHullComponent {
 	return store.hullComponentsByName[store.transformName(name)]
+}
+
+func (store *TechStore) GetTechsJustGained(player *Player, field TechField) []*Tech {
+	techs := []*Tech{}
+	for _, tech := range store.techs {
+		if player.HasTech(tech) && tech.Requirements.TechLevel.LevelsAboveField(player.TechLevels, field) == 0 {
+			techs = append(techs, tech)
+		}
+	}
+	return techs
 }
 
 // get all techs by category

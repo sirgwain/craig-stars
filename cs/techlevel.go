@@ -99,3 +99,52 @@ func (tl *TechLevel) Add(other TechLevel) {
 	tl.Electronics += other.Electronics
 	tl.Biotechnology += other.Biotechnology
 }
+
+// Get the mininum levels above this tech
+// i.e. if we just are a starter humanoid and just gained prop 5
+// level ({ 3, 3, 6, 3, 3}) we are 0 levels above the Radiating Hyrdo-Ram Scoop
+// returns maxInt if the tech is all 0
+func (tl TechLevel) LevelsAbove(other TechLevel) int {
+	levelsAbove := math.MaxInt
+	if tl.Energy != 0 {
+		levelsAbove = minInt(levelsAbove, other.Energy-tl.Energy)
+	}
+	if tl.Weapons != 0 {
+		levelsAbove = minInt(levelsAbove, other.Weapons-tl.Weapons)
+	}
+	if tl.Propulsion != 0 {
+		levelsAbove = minInt(levelsAbove, other.Propulsion-tl.Propulsion)
+	}
+	if tl.Construction != 0 {
+		levelsAbove = minInt(levelsAbove, other.Construction-tl.Construction)
+	}
+	if tl.Electronics != 0 {
+		levelsAbove = minInt(levelsAbove, other.Electronics-tl.Electronics)
+	}
+	if tl.Biotechnology != 0 {
+		levelsAbove = minInt(levelsAbove, other.Biotechnology-tl.Biotechnology)
+	}
+	return levelsAbove
+}
+
+// LevelsAboveField returns the levels we are above a tech in a given field, or MaxInt if the field requirement is 0
+func (tl TechLevel) LevelsAboveField(other TechLevel, field TechField) int {
+
+	switch field {
+	case Energy:
+		return other.Energy - tl.Energy
+	case Weapons:
+		return other.Weapons - tl.Weapons
+	case Propulsion:
+		return other.Propulsion - tl.Propulsion
+	case Construction:
+		return other.Construction - tl.Construction
+	case Electronics:
+		return other.Electronics - tl.Electronics
+	case Biotechnology:
+		return other.Biotechnology - tl.Biotechnology
+	default:
+		return 0
+	}
+
+}

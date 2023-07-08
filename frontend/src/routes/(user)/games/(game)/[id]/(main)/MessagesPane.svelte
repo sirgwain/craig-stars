@@ -14,6 +14,7 @@
 	} from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import hotkeys from 'hotkeys-js';
+	import { kebabCase } from 'lodash-es';
 	import { onMount } from 'svelte/internal';
 
 	const { game, player, universe, settings } = getGameContext();
@@ -114,6 +115,10 @@
 
 			if (message.type === MessageType.GainTechLevel) {
 				goto(`/games/${$game.id}/research`);
+			}
+
+			if (message.type === MessageType.TechGained && message.spec.techGained) {
+				goto(`/games/${$game.id}/techs/${kebabCase(message.spec.techGained)}`);
 			}
 
 			if (message.targetNum) {

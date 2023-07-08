@@ -11,12 +11,6 @@
 
 	const selectMessage = (message: Message) => {
 		gotoMessageTarget($game, $player, message);
-
-		// TODO: this is a bit fragile
-		// There is probably a better design for changing the url from this view
-		if (!message.battleNum && message.type !== MessageType.GainTechLevel) {
-			goto(`/games/${$game.id}`);
-		}
 	};
 
 	const getTarget = (message: Message) => {
@@ -26,11 +20,15 @@
 		if (message.type === MessageType.GainTechLevel) {
 			return 'Research';
 		}
+		if (message.type === MessageType.TechGained) {
+			return message.spec.techGained;
+		}
 
 		const target = $universe.getMapObject(message);
 		if (target) {
 			return target.name;
 		}
+		return ''
 	};
 
 	// filterable messages

@@ -64,12 +64,16 @@ func Test_production_produce2(t *testing.T) {
 func Test_production_produce3(t *testing.T) {
 	player, planet := newTestPlayerPlanet()
 
-	// build 2/5 auto factories, leaving them in the queue
+	// build 2/5 auto factories and 5 mines
+	// we only have enough minerals on hand to build 2 factories so 
+	// we will skip after 2 and build mines
 	planet.ProductionQueue = []ProductionQueueItem{
 		{Type: QueueItemTypeAutoFactories, Quantity: 5},
 		{Type: QueueItemTypeAutoMines, Quantity: 5},
 	}
-	planet.Cargo = Cargo{0, 0, 8, 2500}
+	// give a planet with enough germanium to build 2.5 factories
+	// and enough resources to build all factories and all mines
+	planet.Cargo = Cargo{0, 0, 10, 2500}
 	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 100, MaxFactories: 100, MaxMines: 100}
 	planet.Factories = 0
 	player.Messages = []PlayerMessage{}

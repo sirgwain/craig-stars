@@ -1,11 +1,20 @@
 import type { Target } from './Fleet';
 import { MapObjectType } from './MapObject';
+import type { TechField } from './TechLevel';
 
 export type Message = {
 	type: MessageType;
 	text: string;
 	battleNum?: number;
+	spec: PlayerMessageSpec;
 } & Target;
+
+export type PlayerMessageSpec = {
+	amount: number;
+	field: TechField;
+	nextField: TechField;
+	techGained: string;
+};
 
 export enum MessageTargetType {
 	None = '',
@@ -92,5 +101,6 @@ export enum MessageType {
 	Instaform,
 	PacketTerraform,
 	PacketPermaform,
-	RemoteMined
+	RemoteMined,
+	TechGained
 }

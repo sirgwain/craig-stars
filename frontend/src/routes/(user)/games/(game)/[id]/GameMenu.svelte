@@ -79,8 +79,16 @@
 		{/if}
 
 		<div class="dropdown dropdown-end">
-			<label tabindex="0" class="btn btn-ghost btn-circle avatar w-8 h-8">
+			<label class="avatar w-8 h-8 place-content-center">
 				<UserAvatar user={$me} />
+			</label>
+		</div>
+
+		<div class="dropdown dropdown-end">
+			<label for="menu" tabindex="0" class="btn btn-ghost">
+				<div id="menu">
+					<Icon src={Bars3} size="24" />
+				</div>
 			</label>
 			<ul tabindex="0" class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-300 w-52">
 				<li>

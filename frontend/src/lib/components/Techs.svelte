@@ -8,9 +8,10 @@
 	import { $enum as eu } from 'ts-enum-util';
 	import SectionHeader from './SectionHeader.svelte';
 	import TableSearchInput from './TableSearchInput.svelte';
-	import { hasRequiredLevels } from '$lib/types/TechLevel';
+	import { hasRequiredLevels, levelsAbove } from '$lib/types/TechLevel';
+	import ItemTitle from './ItemTitle.svelte';
 
-	// for ssr, we start with techs from a json file	
+	// for ssr, we start with techs from a json file
 	export let techStore: TechStore = techjson as TechStore;
 	export let techs: Tech[] = [
 		...techStore.engines,
@@ -101,6 +102,10 @@
 			console.error(response);
 		}
 	});
+
+	$: newTechs =
+		player &&
+		techs.filter((t) => player?.hasTech(t) && levelsAbove(t.requirements, player.techLevels) == 0);
 </script>
 
 <div class="flex justify-between">
@@ -112,16 +117,28 @@
 		</label>
 	</div>
 </div>
+
+{#if player && newTechs && filter === ''}
+	<ItemTitle>Recently Learned Techs</ItemTitle>
+	<div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+		{#each newTechs as tech}
+			<div>
+				<TechSummary {tech} {player} />
+			</div>
+		{/each}
+	</div>
+{/if}
+
 {#each eu(TechCategory).getKeys() as category}
 	{#if techsByCategory[category].length > 0}
 		<a id={kebabCase(category)} href={`#${kebabCase(category)}`}
 			><SectionHeader title={startCase(category)} /></a
 		>
-		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-2">
 			{#each techsByCategory[category] as tech (tech.name)}
 				{#if showAll || (player && canLearnTech(player, tech) && hasRequiredLevels(player.techLevels, tech.requirements))}
 					<div>
-						<TechSummary {tech} />
+						<TechSummary {tech} {player} />
 					</div>
 				{/if}
 			{/each}
