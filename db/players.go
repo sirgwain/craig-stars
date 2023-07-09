@@ -625,13 +625,13 @@ func (c *client) GetLightPlayerForGame(gameID, userID int64) (*cs.Player, error)
 	techLevelsPropulsion,
 	techLevelsConstruction,
 	techLevelsElectronics,
-	techLevelsBiotechnology	
+	techLevelsBiotechnology,
 	techLevelsSpentEnergy,
 	techLevelsSpentWeapons,
 	techLevelsSpentPropulsion,
 	techLevelsSpentConstruction,
 	techLevelsSpentElectronics,
-	techLevelsSpentBiotechnology	
+	techLevelsSpentBiotechnology,
 	researchSpentLastYear,
 	researchAmount,
 	nextResearchField,
