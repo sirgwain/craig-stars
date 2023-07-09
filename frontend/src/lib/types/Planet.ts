@@ -4,7 +4,7 @@ import type { Cargo } from './Cargo';
 import type { Cost } from './Cost';
 import type { Hab } from './Hab';
 import { MapObjectType, None, type MapObject } from './MapObject';
-import type { Mineral } from './Mineral';
+import { totalMinerals, type Mineral } from './Mineral';
 import type { ShipDesign } from './ShipDesign';
 import { UnlimitedSpaceDock } from './Tech';
 import type { Vector } from './Vector';
@@ -184,7 +184,6 @@ export class CommandedPlanet implements Planet {
 			items.push(fromQueueItemType(QueueItemType.PlanetaryScanner));
 		}
 
-
 		if (planet.spec.canTerraform) {
 			items.push(fromQueueItemType(QueueItemType.TerraformEnvironment));
 		}
@@ -339,4 +338,52 @@ export function getMineralOutput(planet: Planet, numMines: number, mineOutput: n
 		germanium:
 			((((planet.mineralConcentration?.germanium ?? 0) / 100.0) * numMines) / 10.0) * mineOutput
 	};
+}
+
+// planetsSortBy returns a sortBy function for planets by key. This is used by the planets report page
+// and sorting when cycling through Planets
+export function planetsSortBy(key: string): ((a: Planet, b: Planet) => number) | undefined {
+	switch (key) {
+		case 'name':
+			return (a, b) => a.name.localeCompare(b.name);
+		case 'production':
+			return (a, b) => {
+				const aItem =
+					a.productionQueue && (a.productionQueue?.length ?? 0) > 0
+						? `${JSON.stringify({type: a.productionQueue[0].type, design: a.productionQueue[0].designNum, quantity: a.productionQueue[0].quantity})}`
+						: '';
+				const bItem =
+					b.productionQueue && (b.productionQueue?.length ?? 0) > 0
+						? `${JSON.stringify({type: b.productionQueue[0].type, design: b.productionQueue[0].designNum, quantity: b.productionQueue[0].quantity})}`
+						: '';
+				return aItem.localeCompare(bItem);
+			};
+		case 'starbase':
+			return (a, b) =>
+				(a.spec.starbaseDesignName ?? '').localeCompare(b.spec.starbaseDesignName ?? '');
+		case 'population':
+			return (a, b) => (a.cargo?.colonists ?? 0) - (b.cargo?.colonists ?? 0);
+		case 'populationDensity':
+			return (a, b) => (a.spec.populationDensity ?? 0) - (b.spec.populationDensity ?? 0);
+		case 'habitability':
+			return (a, b) => (a.spec.habitability ?? 0) - (b.spec.habitability ?? 0);
+		case 'mines':
+			return (a, b) => (a.mines ?? 0) - (b.mines ?? 0);
+		case 'factories':
+			return (a, b) => (a.factories ?? 0) - (b.factories ?? 0);
+		case 'defense':
+			return (a, b) => (a.spec.defenseCoverage ?? 0) - (b.spec.defenseCoverage ?? 0);
+		case 'minerals':
+			return (a, b) => totalMinerals(a.cargo) - totalMinerals(b.cargo);
+		case 'miningRate':
+			return (a, b) => totalMinerals(a.spec.miningOutput) - totalMinerals(b.spec.miningOutput);
+		case 'mineralConcentration':
+			return (a, b) =>
+				totalMinerals(a.mineralConcentration) - totalMinerals(b.mineralConcentration);
+		case 'resources':
+			return (a, b) =>
+				(a.spec.resourcesPerYearAvailable ?? 0) - (b.spec.resourcesPerYearAvailable ?? 0);
+		default:
+			return (a, b) => a.num - b.num;
+	}
 }

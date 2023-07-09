@@ -5,11 +5,10 @@
 	import MineralMini from '$lib/components/game/MineralMini.svelte';
 	import { getGameContext } from '$lib/services/Contexts';
 	import { commandMapObject, zoomToMapObject } from '$lib/services/Stores';
-	import { totalMinerals } from '$lib/types/Mineral';
-	import { getQueueItemShortName, type Planet } from '$lib/types/Planet';
+	import { getQueueItemShortName, planetsSortBy, type Planet } from '$lib/types/Planet';
 	import { SvelteTable, type SvelteTableColumn } from '@hurtigruten/svelte-table';
 
-	const { game, player, universe } = getGameContext();
+	const { game, player, universe, settings } = getGameContext();
 
 	const selectPlanet = (planet: Planet) => {
 		commandMapObject(planet);
@@ -22,77 +21,78 @@
 	let search = '';
 
 	$: filteredPlanets =
-		$universe.planets.filter(
-			(i) => i.playerNum == $player.num && i.name.toLowerCase().indexOf(search.toLowerCase()) != -1
-		) ?? [];
+		$universe
+			.getMyPlanets()
+			.filter(
+				(i) =>
+					i.playerNum == $player.num && i.name.toLowerCase().indexOf(search.toLowerCase()) != -1
+			) ?? [];
 
 	const columns: SvelteTableColumn<Planet>[] = [
 		{
 			key: 'name',
-			title: 'Name'
+			title: 'Name',
+			sortBy: planetsSortBy('name')
 		},
 		{
 			key: 'starbase',
 			title: 'Starbase',
-			sortBy: (a, b) =>
-				(a.spec.starbaseDesignName ?? '').localeCompare(b.spec.starbaseDesignName ?? '')
+			sortBy: planetsSortBy('starbase')
 		},
 		{
 			key: 'population',
 			title: 'Population',
-			sortBy: (a, b) => (a.cargo?.colonists ?? 0) - (b.cargo?.colonists ?? 0)
+			sortBy: planetsSortBy('population')
 		},
 		{
 			key: 'populationDensity',
 			title: 'Cap',
-			sortBy: (a, b) => (a.spec.populationDensity ?? 0) - (b.spec.populationDensity ?? 0)
+			sortBy: planetsSortBy('populationDensity')
 		},
 		{
 			key: 'habitability',
 			title: 'Value',
-			sortBy: (a, b) => (a.spec.habitability ?? 0) - (b.spec.habitability ?? 0)
+			sortBy: planetsSortBy('habitability')
 		},
 		{
 			key: 'production',
 			title: 'Production',
-			sortable: false
+			sortBy: planetsSortBy('production')
 		},
 		{
 			key: 'mines',
 			title: 'Mine',
-			sortBy: (a, b) => (a.mines ?? 0) - (b.mines ?? 0)
+			sortBy: planetsSortBy('mines')
 		},
 		{
 			key: 'factories',
 			title: 'Factories',
-			sortBy: (a, b) => (a.factories ?? 0) - (b.factories ?? 0)
+			sortBy: planetsSortBy('factories')
 		},
 		{
 			key: 'defense',
 			title: 'Defense',
-			sortBy: (a, b) => (a.spec.defenseCoverage ?? 0) - (b.spec.defenseCoverage ?? 0)
+			sortBy: planetsSortBy('defense')
 		},
 		{
 			key: 'minerals',
 			title: 'Minerals',
-			sortBy: (a, b) => totalMinerals(a.cargo) - totalMinerals(b.cargo)
+			sortBy: planetsSortBy('minerals')
 		},
 		{
 			key: 'miningRate',
 			title: 'Mining Rate',
-			sortBy: (a, b) => totalMinerals(a.spec.miningOutput) - totalMinerals(b.spec.miningOutput)
+			sortBy: planetsSortBy('miningRate')
 		},
 		{
 			key: 'mineralConcentration',
 			title: 'Mineral Concentration',
-			sortBy: (a, b) =>
-				totalMinerals(a.mineralConcentration) - totalMinerals(b.mineralConcentration)
+			sortBy: planetsSortBy('mineralConcentration')
 		},
 		{
 			key: 'resources',
 			title: 'Resources',
-			sortBy: (a, b) =>
-				(a.spec.resourcesPerYearAvailable ?? 0) - (b.spec.resourcesPerYearAvailable ?? 0)
+			sortBy: planetsSortBy('resources')
 		},
 		{
 			key: 'driverDest',
@@ -105,6 +105,11 @@
 			sortable: false
 		}
 	];
+
+	function onSorted(column: SvelteTableColumn, sortDescending: boolean) {
+		$settings.sortPlanetsDescending = sortDescending;
+		$settings.sortPlanetsKey = column.key;
+	}
 </script>
 
 <div class="w-full">
@@ -122,7 +127,15 @@
 		let:row
 	>
 		<span slot="head" let:isSorted let:sortDescending>
-			<SortableTableHeader {column} {isSorted} {sortDescending} />
+			<SortableTableHeader
+				{column}
+				isSorted={isSorted || $settings.sortPlanetsKey === column.key}
+				sortDescending={sortDescending ||
+					($settings.sortPlanetsKey === column.key && $settings.sortPlanetsDescending)}
+				on:sorted={(e) => {
+					onSorted(column, e.detail.sortDescending);
+				}}
+			/>
 		</span>
 
 		<span slot="cell">

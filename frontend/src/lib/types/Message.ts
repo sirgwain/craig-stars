@@ -26,7 +26,9 @@ export enum MessageTargetType {
 	Battle = 'Battle'
 }
 
-export function getMapObjectTypeForMessageType(targetType: MessageTargetType): MapObjectType {
+export function getMapObjectTypeForMessageType(
+	targetType: MessageTargetType | MapObjectType | undefined
+): MapObjectType {
 	switch (targetType) {
 		case MessageTargetType.Planet:
 			return MapObjectType.Planet;

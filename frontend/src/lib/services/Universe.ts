@@ -1,11 +1,12 @@
 import type { BattleRecord } from '$lib/types/Battle';
-import type { Fleet, Target, Waypoint } from '$lib/types/Fleet';
+import { fleetsSortBy, type Fleet, type Target, type Waypoint } from '$lib/types/Fleet';
 import { equal, MapObjectType, type MapObject } from '$lib/types/MapObject';
 import type { MineField } from '$lib/types/MineField';
 import type { MineralPacket } from '$lib/types/MineralPacket';
 import type { MysteryTrader } from '$lib/types/MysteryTrader';
-import type { Planet } from '$lib/types/Planet';
+import { planetsSortBy, type Planet } from '$lib/types/Planet';
 import type { PlayerIntel, PlayerIntels, PlayerScore, PlayerUniverse } from '$lib/types/Player';
+import { PlayerSettings } from '$lib/types/PlayerSettings';
 import type { Salvage } from '$lib/types/Salvage';
 import type { ShipDesign } from '$lib/types/ShipDesign';
 import type { Vector } from '$lib/types/Vector';
@@ -60,6 +61,7 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 	players: PlayerIntel[] = [];
 	scores: PlayerScore[][] = [];
 	battles: BattleRecord[] = [];
+	settings: PlayerSettings = new PlayerSettings();
 
 	mapObjectsByPosition: Record<string, MapObject[]> = {};
 	myMapObjectsByPosition: Record<string, MapObject[]> = {};
@@ -157,11 +159,21 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 	}
 
 	getMyPlanets(): Planet[] {
-		return this.planets.filter((d) => d.playerNum === this.playerNum);
+		const planets = this.planets.filter((d) => d.playerNum === this.playerNum);
+		planets.sort(planetsSortBy(this.settings.sortPlanetsKey));
+		if (!this.settings.sortPlanetsDescending) {
+			planets.reverse();
+		}
+		return planets;
 	}
 
 	getMyFleets(): Fleet[] {
-		return this.fleets.filter((d) => d.playerNum === this.playerNum);
+		const fleets = this.fleets.filter((d) => d.playerNum === this.playerNum);
+		fleets.sort(fleetsSortBy(this.settings.sortFleetsKey, this));
+		if (!this.settings.sortFleetsDescending) {
+			fleets.reverse();
+		}
+		return fleets;
 	}
 
 	getDesign(playerNum: number, num: number): ShipDesign | undefined {

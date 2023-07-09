@@ -5,28 +5,15 @@
 	import CargoMini from '$lib/components/game/CargoMini.svelte';
 	import { getGameContext } from '$lib/services/Contexts';
 	import { commandMapObject, zoomToMapObject } from '$lib/services/Stores';
-	import { totalCargo } from '$lib/types/Cargo';
-	import type { Fleet } from '$lib/types/Fleet';
+	import { fleetsSortBy, getLocation, type Fleet } from '$lib/types/Fleet';
 	import { SvelteTable, type SvelteTableColumn } from '@hurtigruten/svelte-table';
 
-	const { game, player, universe } = getGameContext();
+	const { game, player, universe, settings } = getGameContext();
 
 	const selectFleet = (fleet: Fleet) => {
 		commandMapObject(fleet);
 		zoomToMapObject(fleet);
 		goto(`/games/${$game.id}`);
-	};
-
-	const getLocation = (fleet: Fleet) =>
-		fleet.orbitingPlanetNum
-			? $universe.getPlanet(fleet.orbitingPlanetNum)?.name ?? 'unknown'
-			: `Space: (${fleet.position.x}, ${fleet.position.y})`;
-
-	const getDestination = (fleet: Fleet) => {
-		if (fleet.waypoints?.length && fleet.waypoints?.length > 1) {
-			return $universe.getTargetName(fleet.waypoints[1]);
-		}
-		return '--';
 	};
 
 	// filterable fleets
@@ -53,12 +40,12 @@
 		{
 			key: 'location',
 			title: 'Location',
-			sortBy: (a, b) => getLocation(a).localeCompare(getLocation(b))
+			sortBy: fleetsSortBy('location', $universe)
 		},
 		{
 			key: 'destination',
 			title: 'Destination',
-			sortBy: (a, b) => getDestination(a).localeCompare(getDestination(b))
+			sortBy: fleetsSortBy('destination', $universe)
 		},
 		{
 			key: 'eta',
@@ -71,11 +58,12 @@
 		{
 			key: 'cargo',
 			title: 'Cargo',
-			sortBy: (a, b) => totalCargo(a.cargo) - totalCargo(b.cargo)
+			sortBy: fleetsSortBy('cargo', $universe)
 		},
 		{
 			key: 'composition',
-			title: 'Composition'
+			title: 'Composition',
+			sortable: false
 		},
 		{
 			key: 'cloak',
@@ -88,9 +76,14 @@
 		{
 			key: 'mass',
 			title: 'Mass',
-			sortBy: (a, b) => (a.spec?.mass ?? 0) - (b.spec?.mass ?? 0)
+			sortBy: fleetsSortBy('mass', $universe)
 		}
 	];
+
+	function onSorted(column: SvelteTableColumn, sortDescending: boolean) {
+		$settings.sortFleetsDescending = sortDescending;
+		$settings.sortFleetsKey = column.key;
+	}
 </script>
 
 <div class="w-full">
@@ -101,21 +94,29 @@
 		{columns}
 		rows={filteredFleets}
 		classes={{
-			table: 'table table-zebra table-compact table-auto w-full',
+			table: 'table table-zebra table-compact table-auto w-full'
 		}}
 		let:column
 		let:cell
 		let:row
 	>
 		<span slot="head" let:isSorted let:sortDescending>
-			<SortableTableHeader {column} {isSorted} {sortDescending} />
+			<SortableTableHeader
+				{column}
+				isSorted={isSorted || $settings.sortFleetsKey === column.key}
+				sortDescending={sortDescending ||
+					($settings.sortFleetsKey === column.key && $settings.sortFleetsDescending)}
+				on:sorted={(e) => {
+					onSorted(column, e.detail.sortDescending);
+				}}
+			/>
 		</span>
 
 		<span slot="cell">
 			{#if column.key == 'name'}
 				<button class="cs-link text-2xl" on:click={() => selectFleet(row)}>{cell}</button>
 			{:else if column.key == 'location'}
-				{getLocation(row)}
+				{getLocation(row, $universe)}
 			{:else if column.key == 'destination'}
 				{row.waypoints.length > 1 ? $universe.getTargetName(row.waypoints[1]) : '--'}
 			{:else if column.key == 'eta'}

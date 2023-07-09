@@ -1,4 +1,4 @@
-import type { MessageTargetType, MessageType } from './Message';
+import type { MessageType } from './Message';
 
 export enum PlanetViewState {
 	// I do enjoy the classics
@@ -26,6 +26,10 @@ export class PlayerSettings {
 	mineralScale = 5000;
 	messageTypeFilter = new Set<number>();
 	messageTypeFilterArray: number[] = [];
+	sortPlanetsKey = 'name';
+	sortPlanetsDescending = false;
+	sortFleetsKey = 'name';
+	sortFleetsDescending = false;
 
 	constructor(public gameId = 0, public playerNum = 0) {}
 

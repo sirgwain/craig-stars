@@ -35,6 +35,16 @@ export const clearGameContext = () =>
 	
 // update the game context after a load
 export const updateGameContext = (game: FullGame, player: Player, universe: Universe) => {
+	// update the settings, or use existing settings from localStorage
+	const settingsStore = gameStore.settings;
+	const settings = loadSettingsOrDefault(game.id, player.num);
+	settingsStore.subscribe((value) => {
+		value.beforeSave();
+		localStorage.setItem(value.key, JSON.stringify(value));
+	});
+	settingsStore.update(() => settings);
+	universe.settings = settings;
+
 	const writableGameStore = gameStore.game as Writable<FullGame>;
 	writableGameStore.update(() => game);
 
@@ -46,15 +56,6 @@ export const updateGameContext = (game: FullGame, player: Player, universe: Univ
 
 	// update the designs store when the universe updates
 	gameStore.designs.update(() => universe.getMyDesigns());
-
-	// update the settings, or use existing settings from localStorage
-	const settingsStore = gameStore.settings;
-	const settings = loadSettingsOrDefault(game.id, player.num);
-	settingsStore.subscribe((value) => {
-		value.beforeSave();
-		localStorage.setItem(value.key, JSON.stringify(value));
-	});
-	settingsStore.update(() => settings);
 };
 
 export const updateGame = (game: FullGame) => {
