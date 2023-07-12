@@ -49,7 +49,7 @@
 	}
 </script>
 
-<div class="card bg-base-200 shadow rounded-sm border-2 border-base-300">
+<div class="card bg-base-200 shadow rounded-sm border-2 border-base-300 w-full">
 	<div class="card-body p-2 gap-0">
 		<div class="flex flex-row items-center">
 			<div class="flex-1 text-center text-lg font-semibold text-secondary">

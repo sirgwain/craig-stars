@@ -1,5 +1,6 @@
 <script lang="ts">
 	import CommandPane from './command/CommandPane.svelte';
+	import CommandPaneCarousel from './command/CommandPaneCarousel.svelte';
 	import Dialogs from './Dialogs.svelte';
 	import HighlightedMapObjectStats from './HighlightedMapObjectStats.svelte';
 	import MapObjectSummary from './MapObjectSummary.svelte';
@@ -16,12 +17,12 @@
 		<div class="flex flex-row flex-wrap gap-2 justify-center">
 			<CommandPane />
 		</div>
-		<div class="hidden lg:block lg:p-1 mb-2">
+		<div class="hidden lg:block lg:p-1">
 			<MapObjectSummary />
 		</div>
 	</div>
 
-	<div class="flex flex-col grow min-h-[515px]">
+	<div class="flex flex-col grow">
 		<div class="flex flex-col grow border-gray-700 border-2 shadow-sm">
 			<ScannerToolbar />
 			<Scanner />
@@ -35,15 +36,8 @@
 	</div>
 
 	<!-- for phone displays, use a carousel -->
-	<div class="carousel md:hidden">
-		<div class="carousel-item">
-			<div class="w-screen">
-				<MapObjectSummary />
-			</div>
-		</div>
-		<div class="carousel-item">
-			<CommandPane />
-		</div>
+	<div class="flex flex-col flex-0">
+		<CommandPaneCarousel />
 	</div>
 </div>
 <!-- dialog modals -->

@@ -17,6 +17,7 @@
 	} from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import hotkeys from 'hotkeys-js';
+	import { clamp } from 'lodash-es';
 	import { createEventDispatcher } from 'svelte';
 
 	const { game, player, universe, designs } = getGameContext();
@@ -95,7 +96,12 @@
 			return;
 		}
 
-		const quantity = getQuantityModifier();
+		const max = getMaxBuildable(item.type);
+		const quantity = clamp(getQuantityModifier(), 0, max);
+		if (quantity == 0) {
+			// don't add something we can't build any more of
+			return;
+		}
 		const cost = getItemCost(item) ?? {};
 		if (selectedQueueItem) {
 			if (selectedQueueItem.type == item?.type && selectedQueueItem.designNum == item?.designNum) {
@@ -193,6 +199,58 @@
 		}
 	};
 
+	const getAmountInQueue = (type: QueueItemType): number => {
+		return queueItems.reduce((count, i) => count + (i.type === type ? i.quantity : 0), 0);
+	};
+
+	const getMaxBuildable = (type: QueueItemType): number => {
+		const amountInQueue = getAmountInQueue(type);
+		switch (type) {
+			case QueueItemType.AutoMines:
+				return 1000;
+			case QueueItemType.Mine:
+				return Math.max(0, (planet.spec.maxPossibleMines ?? 0) - (planet.mines + amountInQueue));
+			case QueueItemType.AutoFactories:
+				return 1000;
+			case QueueItemType.Factory:
+				return Math.max(
+					0,
+					(planet.spec.maxPossibleFactories ?? 0) - (planet.factories + amountInQueue)
+				);
+			case QueueItemType.AutoDefenses:
+				return 100;
+			case QueueItemType.Defenses:
+				return 100 - planet.defenses + amountInQueue;
+			case QueueItemType.AutoMineralAlchemy:
+			case QueueItemType.MineralAlchemy:
+				return 1000;
+			case QueueItemType.AutoMinTerraform:
+			case QueueItemType.AutoMaxTerraform:
+				return 100;
+			case QueueItemType.AutoMineralPacket:
+				return 1000;
+			case QueueItemType.TerraformEnvironment:
+				return (
+					Math.abs(planet.spec.terraformAmount?.grav ?? 0) +
+					Math.abs(planet.spec.terraformAmount?.temp ?? 0) +
+					Math.abs(planet.spec.terraformAmount?.rad ?? 0) -
+					amountInQueue
+				);
+			case QueueItemType.IroniumMineralPacket:
+			case QueueItemType.BoraniumMineralPacket:
+			case QueueItemType.GermaniumMineralPacket:
+			case QueueItemType.MixedMineralPacket:
+				return 1000;
+			case QueueItemType.ShipToken:
+				return 1000;
+			case QueueItemType.Starbase:
+				return clamp(1 - amountInQueue, 0, 1);
+
+			case QueueItemType.PlanetaryScanner:
+				return planet.scanner || amountInQueue > 0 ? 0 : 1;
+		}
+		return 0;
+	};
 	/**
 	 * Get the cost of a ProductionQueueItem
 	 * @param item the item to get cost for
@@ -420,10 +478,16 @@
 				</div>
 				<div class="w-1/2 flex flex-row flex-wrap justify-between sm:justify-end">
 					<div class="grow">
-						<button class="btn btn-sm btn-outline btn-secondary w-full" on:click={() => nextMapObject()}>Prev</button>
+						<button
+							class="btn btn-sm btn-outline btn-secondary w-full"
+							on:click={() => nextMapObject()}>Prev</button
+						>
 					</div>
 					<div class="grow">
-						<button class="btn btn-sm btn-outline btn-secondary w-full" on:click={() => previousMapObject()}>Next</button>
+						<button
+							class="btn btn-sm btn-outline btn-secondary w-full"
+							on:click={() => previousMapObject()}>Next</button
+						>
 					</div>
 					<div class="grow">
 						<button on:click={cancel} class="btn btn-sm btn-outline btn-secondary w-full"

@@ -30,6 +30,18 @@ export class FleetService {
 		return Object.assign(fleet, updated);
 	}
 
+	static async rename(
+		fleet: CommandedFleet,
+		name: string
+	): Promise<CommandedFleet> {
+		// rename the fleet and update it
+		const updated = await Service.post<{ name: string }, Fleet>(
+			{ name },
+			`/api/games/${fleet.gameId}/fleets/${fleet.num}/rename`
+		);
+		return Object.assign(fleet, updated);
+	}
+
 	static async transferCargo(
 		fleet: CommandedFleet,
 		dest: Fleet | Planet | undefined,

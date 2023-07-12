@@ -36,6 +36,22 @@ func (req *joinGameRequest) Bind(r *http.Request) error {
 	return nil
 }
 
+type kickPlayerRequest struct {
+	PlayerNum int `json:"playerNum"`
+}
+
+func (req *kickPlayerRequest) Bind(r *http.Request) error {
+	return nil
+}
+
+type playerRequest struct {
+	*cs.Player
+}
+
+func (req *playerRequest) Bind(r *http.Request) error {
+	return nil
+}
+
 // context for /api/games/{id} calls
 func (s *server) gameCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -251,8 +267,220 @@ func (s *server) leaveGame(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Join an open game
+func (s *server) kickPlayer(w http.ResponseWriter, r *http.Request) {
+	user := s.contextUser(r)
+	game := s.contextGame(r)
+
+	if game.State != cs.GameStateSetup {
+		err := fmt.Errorf("cannot leave game after setup")
+		log.Error().Err(err).Msg("leave game")
+		render.Render(w, r, ErrBadRequest(err))
+	}
+
+	if user.ID != game.HostID {
+		log.Error().Int64("GameID", game.ID).Str("User", user.Username).Msg("user is not host")
+		render.Render(w, r, ErrForbidden)
+		return
+	}
+
+	kickPlayer := kickPlayerRequest{}
+	if err := render.Bind(r, &kickPlayer); err != nil {
+		render.Render(w, r, ErrBadRequest(err))
+		return
+	}
+
+	// try and join this game
+	if err := s.gameRunner.KickPlayer(game.ID, kickPlayer.PlayerNum); err != nil {
+		log.Error().Err(err).Msg("leave game")
+		render.Render(w, r, ErrBadRequest(err))
+	}
+
+	// reload the game for the response
+	game, err := s.db.GetGame(game.ID)
+	if err != nil {
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	rest.RenderJSON(w, game)
+}
+
+func (s *server) addOpenPlayerSlot(w http.ResponseWriter, r *http.Request) {
+	user := s.contextUser(r)
+	game := s.contextGame(r)
+
+	if game.State != cs.GameStateSetup {
+		err := fmt.Errorf("cannot leave game after setup")
+		log.Error().Err(err).Msg("leave game")
+		render.Render(w, r, ErrBadRequest(err))
+	}
+
+	if user.ID != game.HostID {
+		log.Error().Int64("GameID", game.ID).Str("User", user.Username).Msg("user is not host")
+		render.Render(w, r, ErrForbidden)
+		return
+	}
+
+	// add a new player slot to this game
+	if _, err := s.gameRunner.AddOpenPlayerSlot(game); err != nil {
+		log.Error().Err(err).Msg("add player slot")
+		render.Render(w, r, ErrBadRequest(err))
+		return
+	}
+
+	// reload the game for the response
+	game, err := s.db.GetGame(game.ID)
+	if err != nil {
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	rest.RenderJSON(w, game)
+}
+
+func (s *server) addAIPlayer(w http.ResponseWriter, r *http.Request) {
+	user := s.contextUser(r)
+	game := s.contextGame(r)
+
+	if game.State != cs.GameStateSetup {
+		err := fmt.Errorf("cannot leave game after setup")
+		log.Error().Err(err).Msg("leave game")
+		render.Render(w, r, ErrBadRequest(err))
+	}
+
+	if user.ID != game.HostID {
+		log.Error().Int64("GameID", game.ID).Str("User", user.Username).Msg("user is not host")
+		render.Render(w, r, ErrForbidden)
+		return
+	}
+
+	// add a new player slot to this game
+	if _, err := s.gameRunner.AddAIPlayer(game); err != nil {
+		log.Error().Err(err).Msg("add player slot")
+		render.Render(w, r, ErrBadRequest(err))
+		return
+	}
+
+	// reload the game for the response
+	game, err := s.db.GetGame(game.ID)
+	if err != nil {
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	rest.RenderJSON(w, game)
+}
+
+func (s *server) deletePlayerSlot(w http.ResponseWriter, r *http.Request) {
+	user := s.contextUser(r)
+	game := s.contextGame(r)
+
+	if game.State != cs.GameStateSetup {
+		err := fmt.Errorf("cannot leave game after setup")
+		log.Error().Err(err).Msg("leave game")
+		render.Render(w, r, ErrBadRequest(err))
+	}
+
+	if user.ID != game.HostID {
+		log.Error().Int64("GameID", game.ID).Str("User", user.Username).Msg("user is not host")
+		render.Render(w, r, ErrForbidden)
+		return
+	}
+
+	kickPlayer := kickPlayerRequest{}
+	if err := render.Bind(r, &kickPlayer); err != nil {
+		render.Render(w, r, ErrBadRequest(err))
+		return
+	}
+
+	// add a new player slot to this game
+	if err := s.gameRunner.DeletePlayerSlot(game.ID, kickPlayer.PlayerNum); err != nil {
+		log.Error().Err(err).Msg("delete player slot")
+		render.Render(w, r, ErrBadRequest(err))
+		return
+	}
+
+	// reload the game for the response
+	game, err := s.db.GetGame(game.ID)
+	if err != nil {
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	rest.RenderJSON(w, game)
+}
+
+func (s *server) updatePlayerSlot(w http.ResponseWriter, r *http.Request) {
+	user := s.contextUser(r)
+	game := s.contextGame(r)
+
+	if game.State != cs.GameStateSetup {
+		err := fmt.Errorf("cannot leave game after setup")
+		log.Error().Err(err).Msg("leave game")
+		render.Render(w, r, ErrBadRequest(err))
+	}
+
+	player := playerRequest{}
+	if err := render.Bind(r, &player); err != nil {
+		render.Render(w, r, ErrBadRequest(err))
+		return
+	}
+
+	// check the race
+	if player.Race.ComputeRacePoints(game.Rules.RaceStartingPoints) < 0 {
+		err := fmt.Errorf("race not valid, race points too high")
+		log.Error().Err(err).Msg("update player")
+		render.Render(w, r, ErrBadRequest(err))
+		return
+	}
+
+	existing, err := s.db.GetPlayer(player.ID)
+	if err != nil {
+		log.Error().Int64("GameID", game.ID).Int64("PlayerID", player.ID).Msg("load player to update")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	if existing == nil {
+		log.Error().Int64("GameID", game.ID).Int64("PlayerID", player.ID).Msg("player not found")
+		render.Render(w, r, ErrNotFound)
+		return
+	}
+
+	if user.ID != game.HostID && existing.UserID != user.ID {
+		log.Error().Int64("GameID", game.ID).Str("User", user.Username).Msg("user is not host or player owner")
+		render.Render(w, r, ErrForbidden)
+		return
+	}
+
+	// update all the fields allowed to be updating during game setup
+	existing.UserID = player.UserID
+	existing.Name = player.Name
+	existing.Ready = player.Ready
+	existing.AIControlled = player.AIControlled
+	existing.Color = player.Color
+	existing.DefaultHullSet = player.DefaultHullSet
+	existing.Race = player.Race
+
+	if err := s.db.UpdatePlayer(existing); err != nil {
+		log.Error().Int64("GameID", game.ID).Int64("PlayerID", player.ID).Msg("updating player in database")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	// reload the game for the response
+	game, err = s.db.GetGame(game.ID)
+	if err != nil {
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	rest.RenderJSON(w, game)
+}
+
 // Generate a universe for a host
-func (s *server) generateUniverse(w http.ResponseWriter, r *http.Request) {
+func (s *server) startGame(w http.ResponseWriter, r *http.Request) {
 	user := s.contextUser(r)
 	game := s.contextGame(r)
 
@@ -262,7 +490,7 @@ func (s *server) generateUniverse(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := s.gameRunner.GenerateUniverse(&game.Game); err != nil {
+	if err := s.gameRunner.StartGame(&game.Game); err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Msg("generating universe")
 		render.Render(w, r, ErrInternalServerError(err))
 	}

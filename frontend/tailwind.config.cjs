@@ -21,8 +21,10 @@ module.exports = {
 		themes: [
 			{
 				business: {
-					...require("daisyui/src/colors/themes")["[data-theme=business]"],
-					// 'base-100': '#333333'
+					...require("daisyui/src/theming/themes")["[data-theme=business]"],
+					'base-100': '#252525',
+					'base-200': '#212121',
+					'base-300': '#151515'
 				}
 			},
 			'emerald',

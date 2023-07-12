@@ -3,15 +3,6 @@
 </script>
 
 <GameLayout>
-	<!-- We want our main game view to only fill the screen (minus the toolbar) -->
-	<div class="grow viewport">
-		<slot>Game</slot>
-	</div>
+	<slot>Game</slot>
 </GameLayout>
 
-<style>
-	.viewport {
-		max-height: calc(100vh-4rem);
-		max-height: calc((var(--vh, 1vh) * 100)-4rem);
-	}
-</style>

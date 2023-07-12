@@ -28,6 +28,14 @@ func (req *fleetRequest) Bind(r *http.Request) error {
 	return nil
 }
 
+type fleetRenameRequest struct {
+	Name string `json:"name,omitempty"`
+}
+
+func (req *fleetRenameRequest) Bind(r *http.Request) error {
+	return nil
+}
+
 type mergeFleetRequest struct {
 	FleetNums []int `json:"fleetNums,omitempty"`
 }
@@ -75,6 +83,35 @@ func (s *server) contextFleet(r *http.Request) *cs.Fleet {
 
 func (s *server) fleet(w http.ResponseWriter, r *http.Request) {
 	fleet := s.contextFleet(r)
+	rest.RenderJSON(w, fleet)
+}
+
+// Allow a user to update a fleet's orders
+func (s *server) renameFleet(w http.ResponseWriter, r *http.Request) {
+	fleet := s.contextFleet(r)
+	player := s.contextPlayer(r)
+
+	rename := fleetRenameRequest{}
+	if err := render.Bind(r, &rename); err != nil {
+		render.Render(w, r, ErrBadRequest(err))
+		return
+	}
+
+	if fleet.PlayerNum != player.Num {
+		log.Error().Int64("ID", fleet.ID).Int("Num", fleet.Num).Int("PlayerNum", fleet.PlayerNum).Msg("rename fleet forbidden")
+		render.Render(w, r, ErrForbidden)
+		return
+	}
+
+	// update fleet name in db
+	fleet.BaseName = rename.Name
+	fleet.Name = fmt.Sprintf("%s #%d", rename.Name, fleet.Num)
+	if err := s.db.UpdateFleet(fleet); err != nil {
+		log.Error().Err(err).Int64("ID", fleet.ID).Msg("update fleet in database")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
 	rest.RenderJSON(w, fleet)
 }
 

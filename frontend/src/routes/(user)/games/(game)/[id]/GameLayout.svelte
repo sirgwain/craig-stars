@@ -12,6 +12,7 @@
 	import type { FullGame } from '$lib/services/FullGame';
 	import {
 		clearLoadingModalText,
+		commandedPlanet,
 		loadingModalText,
 		me,
 		nextMapObject,
@@ -24,6 +25,7 @@
 	import type { Unsubscriber } from 'svelte/store';
 	import GameMenu from './GameMenu.svelte';
 	import { wait } from '$lib/wait';
+	import { EventManager } from '$lib/EventManager';
 
 	initGameContext();
 	const { game, player, universe } = getGameContext();
@@ -81,6 +83,7 @@
 			hotkeys.unbind('F9');
 			hotkeys.unbind('n');
 			hotkeys.unbind('p');
+			hotkeys.unbind('q');
 
 			// load a new game, when this is successful, the $game contenxt will be updated
 			const loaded = await $game.load(id);
@@ -107,6 +110,11 @@
 				});
 				hotkeys('p', () => {
 					previousMapObject();
+				});
+				hotkeys('q', () => {
+					if ($commandedPlanet) {
+						EventManager.publishProductionQueueDialogRequestedEvent($commandedPlanet);
+					}
 				});
 			}
 		} finally {
@@ -163,17 +171,17 @@
 </script>
 
 {#if fg}
-	<main class="flex flex-col mb-20 md:mb-0">
-		<div class="flex-initial">
+	<main class="flex flex-col">
+		<header class="flex-none z-50">
 			<GameMenu on:submit-turn={onSubmitTurn} />
-		</div>
+		</header>
 		<ErrorToast />
-		<slot>Game</slot>
 		<LoadingModal text={$loadingModalText} />
+		<slot>Game</slot>
 	</main>
 	<Tooltip />
 {:else if error}
-	<main class="flex flex-col mb-20 md:mb-0">
+	<main class="flex flex-col">
 		<div class="flex-initial">
 			<Menu user={$me} />
 		</div>

@@ -31,18 +31,23 @@ export abstract class Service {
 		return (await response.json()) as T;
 	}
 	static async create<T>(item: T, url: string): Promise<T> {
+		return Service.post<T, T>(item, url);
+	}
+
+	// generic post method
+	static async post<TBody, TResponse>(body: TBody | undefined, url: string): Promise<TResponse> {
 		const response = await fetch(url, {
 			method: 'POST',
 			headers: {
 				accept: 'application/json'
 			},
-			body: JSON.stringify(item)
+			body: body && JSON.stringify(body)
 		});
 
 		if (!response.ok) {
 			await Service.throwError(response);
 		}
-		return (await response.json()) as T;
+		return (await response.json()) as TResponse;
 	}
 	static async update<T>(item: T, url: string): Promise<T> {
 		const response = await fetch(url, {

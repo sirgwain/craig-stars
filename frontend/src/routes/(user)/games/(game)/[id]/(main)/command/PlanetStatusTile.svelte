@@ -19,7 +19,7 @@
 			planetName: planet.name,
 			resourcesPerYear: planet.spec.resourcesPerYear,
 			resourcesPerYearAvailable: planet.spec.resourcesPerYearAvailable,
-			resourcesPerYearResearch: planet.spec.resourcesPerYearAvailable,
+			resourcesPerYearResearch: planet.spec.resourcesPerYearResearch,
 			innateResources: $player.race.spec?.innateResources ?? false
 		});
 	}
@@ -41,7 +41,7 @@
 </script>
 
 {#if planet.spec && planet.cargo}
-	<CommandTile title="Planet Status">
+	<CommandTile title="Status">
 		<div
 			class="flex justify-between cursor-help"
 			on:pointerdown|preventDefault={onPopulationTooltip}

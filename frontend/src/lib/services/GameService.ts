@@ -1,8 +1,9 @@
-import type { Game, GameSettings, NewGamePlayers } from '$lib/types/Game';
+import type { Game, GameSettings } from '$lib/types/Game';
 import {
 	Player,
 	type PlayerIntels,
 	type PlayerResponse,
+	type PlayerStatus,
 	type PlayerUniverse
 } from '$lib/types/Player';
 import { Service } from './Service';
@@ -16,12 +17,28 @@ export type TurnGenerationResponse = {
 type UniverseResponse = PlayerUniverse & PlayerIntels;
 
 export class GameService {
-	static async updateSettings(
-		id: number,
-		settings: GameSettings,
-		players?: NewGamePlayers
-	): Promise<GameSettings> {
+	static async updateSettings(id: number, settings: GameSettings): Promise<GameSettings> {
 		return Service.update(settings, `/api/games/${id}`);
+	}
+
+	static async addPlayer(id: number): Promise<Game> {
+		return Service.post(undefined, `/api/games/${id}/add-player`);
+	}
+
+	static async addAIPlayer(id: number): Promise<Game> {
+		return Service.post(undefined, `/api/games/${id}/add-ai-player`);
+	}
+
+	static async kickPlayer(id: number, playerNum: number): Promise<Game> {
+		return Service.post({ playerNum }, `/api/games/${id}/kick-player`);
+	}
+
+	static async deletePlayer(id: number, playerNum: number): Promise<Game> {
+		return Service.post({ playerNum }, `/api/games/${id}/delete-player`);
+	}
+
+	static async updatePlayer(id: number, player: PlayerStatus): Promise<Game> {
+		return Service.post(player, `/api/games/${id}/update-player`);
 	}
 
 	static async loadPlayerGames(): Promise<Game[]> {

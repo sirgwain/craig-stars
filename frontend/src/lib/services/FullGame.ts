@@ -313,6 +313,24 @@ export class FullGame implements Game {
 		updateUniverse(this.universe);
 	}
 
+	async renameFleet(fleet: CommandedFleet, name: string) {
+		const selectedWaypointIndex = get(currentSelectedWaypointIndex);
+		const updatedFleet = await FleetService.rename(fleet, name);
+		fleet = Object.assign(fleet, updatedFleet);
+		this.universe.updateFleet(fleet);
+		commandedFleet.update(() => fleet);
+
+		if (
+			selectedWaypointIndex > -1 &&
+			fleet.waypoints &&
+			fleet.waypoints.length > selectedWaypointIndex
+		) {
+			selectWaypoint(fleet.waypoints[selectedWaypointIndex]);
+		}
+
+		updateUniverse(this.universe);
+	}
+
 	async updatePlanetOrders(planet: CommandedPlanet) {
 		const updatedPlanet = await PlanetService.updatePlanetOrders(planet);
 		planet = Object.assign(planet, updatedPlanet);

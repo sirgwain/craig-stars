@@ -46,7 +46,11 @@ type GameRunner interface {
 	HostGame(hostID int64, settings *cs.GameSettings) (*cs.FullGame, error)
 	JoinGame(gameID int64, userID int64, raceID int64) error
 	LeaveGame(gameID, userID int64) error
-	GenerateUniverse(game *cs.Game) error
+	KickPlayer(gameID int64, playerNum int) error
+	AddOpenPlayerSlot(game *cs.GameWithPlayers) (*cs.Player, error)
+	AddAIPlayer(game *cs.GameWithPlayers) (*cs.Player, error)
+	DeletePlayerSlot(gameID int64, playerNum int) error
+	StartGame(game *cs.Game) error
 	LoadPlayerGame(gameID int64, userID int64) (*cs.GameWithPlayers, *cs.FullPlayer, error)
 	SubmitTurn(gameID int64, userID int64) error
 	CheckAndGenerateTurn(gameID int64) (TurnGenerationCheckResult, error)
@@ -223,10 +227,11 @@ func (gr *gameRunner) JoinGame(gameID int64, userID int64, raceID int64) error {
 	player.GameID = fullGame.ID
 	player.Name = user.Username
 	player.Ready = true
+	player.AIControlled = false
 
 	// claim an open slot
 	for i, p := range fullGame.Players {
-		if p.Name == "Open Slot" {
+		if !p.AIControlled && p.UserID == 0 {
 			// take over this empty player
 			player.Num = p.Num
 			player.ID = p.ID
@@ -243,13 +248,14 @@ func (gr *gameRunner) JoinGame(gameID int64, userID int64, raceID int64) error {
 			}
 
 			fullGame.Players[i] = player
+
+			fullGame.OpenPlayerSlots--
+			if err := gr.db.UpdateGame(fullGame.Game); err != nil {
+				return fmt.Errorf("save game %d: %w", gameID, err)
+			}
+
 			break
 		}
-	}
-
-	fullGame.OpenPlayerSlots--
-	if err := gr.db.UpdateGame(fullGame.Game); err != nil {
-		return fmt.Errorf("save game %d: %w", gameID, err)
 	}
 
 	log.Info().Int64("GameID", gameID).Int64("UserID", userID).Str("Race", player.Race.Name).Msgf("Joined game %s", fullGame.Name)
@@ -307,7 +313,164 @@ func (gr *gameRunner) LeaveGame(gameID, userID int64) error {
 	return nil
 }
 
-func (gr *gameRunner) GenerateUniverse(game *cs.Game) error {
+// add a player to an existing game
+func (gr *gameRunner) KickPlayer(gameID int64, playerNum int) error {
+
+	game, err := gr.loadGame(gameID)
+	if err != nil {
+		return fmt.Errorf("unable to load game %d: %w", gameID, err)
+	}
+
+	if game == nil {
+		return fmt.Errorf("no game for id %d found. %w", gameID, errNotFound)
+	}
+
+	for i, player := range game.Players {
+		if player.Num == playerNum {
+			if err := gr.db.DeletePlayer(player.ID); err != nil {
+				return fmt.Errorf("delete open slot player %s from game %d: %w", player, gameID, err)
+			}
+
+			race := cs.NewRace()
+			player := gr.client.NewPlayer(0, *race, &game.Rules)
+			player.GameID = game.ID
+			player.Num = i + 1
+			player.Name = "Open Slot"
+			game.Players[i] = player
+			game.OpenPlayerSlots++
+
+			if player.Num-1 < len(colors) {
+				player.Color = colors[player.Num-1]
+			} else {
+				color := make([]byte, 3)
+				rand.Read(color)
+				player.Color = fmt.Sprintf("#%s", hex.EncodeToString(color))
+			}
+
+			if err := gr.db.CreatePlayer(player); err != nil {
+				return fmt.Errorf("update open slot player %s for game %d: %w", player, gameID, err)
+			}
+
+		}
+	}
+
+	if err := gr.db.UpdateGame(game.Game); err != nil {
+		return fmt.Errorf("save game %d: %w", gameID, err)
+	}
+
+	log.Info().Int64("GameID", gameID).Int("PlayerNum", playerNum).Msgf("kicked player %d %s", playerNum, game.Name)
+
+	return nil
+}
+
+// delete an entire player slot
+func (gr *gameRunner) DeletePlayerSlot(gameID int64, playerNum int) error {
+
+	game, err := gr.loadGame(gameID)
+	if err != nil {
+		return fmt.Errorf("unable to load game %d: %w", gameID, err)
+	}
+
+	if game == nil {
+		return fmt.Errorf("no game for id %d found. %w", gameID, errNotFound)
+	}
+
+	deleted := false
+	aiPlayerNum := 0
+	for i, player := range game.Players {
+		if player.Num == playerNum {
+			if !player.AIControlled {
+				game.OpenPlayerSlots--
+			}
+
+			if err := gr.db.DeletePlayer(player.ID); err != nil {
+				return fmt.Errorf("delete open slot player %s from game %d: %w", player, gameID, err)
+			}
+			deleted = true
+
+			continue
+		}
+		if player.AIControlled {
+			aiPlayerNum++
+		}
+		// move the other player's up
+		// if we delete player 2 (i = 1), make player 3 player 2
+		if deleted {
+			player.Num = i
+			// if the player was using a default color, use the previous one
+			if len(colors) > i+1 && player.Color == colors[i+1] {
+				player.Color = colors[i]
+			}
+			if player.AIControlled {
+				player.Name = fmt.Sprintf("AI Player %d", aiPlayerNum+1)
+			}
+
+			if err := gr.db.UpdatePlayer(player); err != nil {
+				return fmt.Errorf("update player %s for game %d: %w", player.Name, gameID, err)
+			}
+		}
+	}
+
+	if err := gr.db.UpdateGame(game.Game); err != nil {
+		return fmt.Errorf("save game %d: %w", gameID, err)
+	}
+
+	log.Info().Int64("GameID", gameID).Int("PlayerNum", playerNum).Msgf("deleted player slot %d %s", playerNum, game.Name)
+
+	return nil
+}
+
+// delete an entire player slot
+func (gr *gameRunner) AddOpenPlayerSlot(game *cs.GameWithPlayers) (*cs.Player, error) {
+
+	race := *cs.NewRace()
+	player := gr.client.NewPlayer(0, race, &game.Rules)
+	player.GameID = game.ID
+	player.Num = len(game.Players) + 1
+	player.Name = fmt.Sprintf("Open Player")
+	if len(colors) > player.Num {
+		player.Color = colors[player.Num-1]
+	}
+
+	if err := gr.db.CreatePlayer(player); err != nil {
+		return nil, fmt.Errorf("added slot player %s for game %d: %w", player, game.ID, err)
+	}
+
+	game.OpenPlayerSlots++
+	if err := gr.db.UpdateGame(&game.Game); err != nil {
+		return nil, fmt.Errorf("updating open player slots for game %d: %w", game.ID, err)
+	}
+
+	log.Info().Int64("GameID", game.ID).Int("Num", player.Num).Msgf("added player slot %d %s", player.Num, game.Name)
+
+	return player, nil
+}
+
+// delete an entire player slot
+func (gr *gameRunner) AddAIPlayer(game *cs.GameWithPlayers) (*cs.Player, error) {
+
+	race := *cs.NewRace()
+	player := gr.client.NewPlayer(0, race, &game.Rules)
+	player.GameID = game.ID
+	player.Num = len(game.Players) + 1
+	player.AIControlled = true
+	player.Name = fmt.Sprintf("AI Player %d", player.Num)
+	if len(colors) > player.Num {
+		player.Color = colors[player.Num-1]
+	}
+	player.DefaultHullSet = player.Num % 4
+	player.Ready = true
+
+	if err := gr.db.CreatePlayer(player); err != nil {
+		return nil, fmt.Errorf("added slot player %s for game %d: %w", player, game.ID, err)
+	}
+
+	log.Info().Int64("GameID", game.ID).Int("Num", player.Num).Msgf("added player slot %d %s", player.Num, game.Name)
+
+	return player, nil
+}
+
+func (gr *gameRunner) StartGame(game *cs.Game) error {
 	defer timeTrack(time.Now(), "GenerateUniverse")
 	fullGame, err := gr.loadGame(game.ID)
 	if err != nil {

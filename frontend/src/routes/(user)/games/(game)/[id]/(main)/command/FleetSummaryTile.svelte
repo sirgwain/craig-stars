@@ -5,11 +5,18 @@
 	import { kebabCase } from 'lodash-es';
 	import CommandTile from './CommandTile.svelte';
 
-	const { player, universe } = getGameContext();
+	const { game, player, universe } = getGameContext();
 
 	export let fleet: CommandedFleet;
 
 	let icon = '';
+
+	async function onRename() {
+		const name = prompt('Enter fleet name', fleet.baseName);
+		if (name && name != '') {
+			await $game.renameFleet(fleet, name);
+		}
+	}
 
 	$: {
 		// console.log('loading icon of fleet: ', fleet);
@@ -35,11 +42,18 @@
 		<div class="flex flex-col gap-y-1">
 			<button
 				on:click={() => previousMapObject()}
+				type="button"
 				class="btn btn-outline btn-sm normal-case btn-secondary">Prev</button
 			>
 			<button
 				on:click={() => nextMapObject()}
+				type="button"
 				class="btn btn-outline btn-sm normal-case btn-secondary">Next</button
+			>
+			<button
+				on:click={() => onRename()}
+				type="button"
+				class="btn btn-outline btn-sm normal-case btn-secondary">Rename</button
 			>
 		</div>
 	</div>

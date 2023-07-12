@@ -16,7 +16,7 @@
 	const { game, player, universe, settings } = getGameContext();
 </script>
 
-<div class="flex-initial navbar bg-base-100">
+<div class="flex-initial navbar bg-base-100 py-0 my-0 min-h-0">
 	<div class="flex-none hidden sm:block">
 		<PlanetViewStates class="menu menu-horizontal" />
 	</div>
@@ -24,22 +24,26 @@
 		<ul class="menu menu-horizontal">
 			<!-- submenu -->
 			<li>
-				<a href="#planet-view-states" class="btn btn-primary btn-xs w-12 h-12">
-					{#if $settings.planetViewState == PlanetViewState.Normal}
-						<PlanetWithStarbase class="w-6 h-6" />
-					{:else if $settings.planetViewState == PlanetViewState.SurfaceMinerals}
-						<SurfaceMinerals class="w-6 h-6" />
-					{:else if $settings.planetViewState == PlanetViewState.MineralConcentration}
-						<MineralConcentration class="w-6 h-6" />
-					{:else if $settings.planetViewState == PlanetViewState.Percent}
-						<span>%</span>
-					{:else if $settings.planetViewState == PlanetViewState.Population}
-						<Population class="w-6 h-6" />
-					{:else}
-						<PlanetWithStarbase class="w-6 h-6" />
-					{/if}
-				</a>
-				<PlanetViewStates class="menu menu-vertical bg-base-100 z-20 w-12" />
+				<details>
+					<summary>
+						<a href="#planet-view-states" class="btn btn-primary btn-xs w-12 h-12">
+							{#if $settings.planetViewState == PlanetViewState.Normal}
+								<PlanetWithStarbase class="w-6 h-6" />
+							{:else if $settings.planetViewState == PlanetViewState.SurfaceMinerals}
+								<SurfaceMinerals class="w-6 h-6" />
+							{:else if $settings.planetViewState == PlanetViewState.MineralConcentration}
+								<MineralConcentration class="w-6 h-6" />
+							{:else if $settings.planetViewState == PlanetViewState.Percent}
+								<span>%</span>
+							{:else if $settings.planetViewState == PlanetViewState.Population}
+								<Population class="w-6 h-6" />
+							{:else}
+								<PlanetWithStarbase class="w-6 h-6" />
+							{/if}
+						</a>
+					</summary>
+					<PlanetViewStates class="menu menu-vertical bg-base-100 z-20 w-12" />
+				</details>
 			</li>
 		</ul>
 	</div>

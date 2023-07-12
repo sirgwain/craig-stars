@@ -286,6 +286,31 @@ export const isAuto = (type: QueueItemType): boolean => {
 	}
 };
 
+/**
+ * Get the concrete type for a queue item type,
+ * @param type The QueueItemType
+ * @returns Factory for AuotFactories, Mine for AutoMines, etc
+ */
+export const concreteType = (type: QueueItemType): QueueItemType => {
+	switch (type) {
+		case QueueItemType.AutoMines:
+			return QueueItemType.Mine;
+		case QueueItemType.AutoFactories:
+			return QueueItemType.Factory;
+		case QueueItemType.AutoDefenses:
+			return QueueItemType.Defenses;
+		case QueueItemType.AutoMineralAlchemy:
+			return QueueItemType.MineralAlchemy;
+		case QueueItemType.AutoMinTerraform:
+		case QueueItemType.AutoMaxTerraform:
+			return QueueItemType.TerraformEnvironment;
+		case QueueItemType.AutoMineralPacket:
+			return QueueItemType.MixedMineralPacket;
+		default:
+			return type;
+	}
+};
+
 export interface PlanetSpec {
 	habitability?: number;
 	terraformedHabitability?: number;
@@ -350,11 +375,19 @@ export function planetsSortBy(key: string): ((a: Planet, b: Planet) => number) |
 			return (a, b) => {
 				const aItem =
 					a.productionQueue && (a.productionQueue?.length ?? 0) > 0
-						? `${JSON.stringify({type: a.productionQueue[0].type, design: a.productionQueue[0].designNum, quantity: a.productionQueue[0].quantity})}`
+						? `${JSON.stringify({
+								type: a.productionQueue[0].type,
+								design: a.productionQueue[0].designNum,
+								quantity: a.productionQueue[0].quantity
+						  })}`
 						: '';
 				const bItem =
 					b.productionQueue && (b.productionQueue?.length ?? 0) > 0
-						? `${JSON.stringify({type: b.productionQueue[0].type, design: b.productionQueue[0].designNum, quantity: b.productionQueue[0].quantity})}`
+						? `${JSON.stringify({
+								type: b.productionQueue[0].type,
+								design: b.productionQueue[0].designNum,
+								quantity: b.productionQueue[0].quantity
+						  })}`
 						: '';
 				return aItem.localeCompare(bItem);
 			};

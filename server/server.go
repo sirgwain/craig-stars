@@ -2,7 +2,6 @@ package server
 
 import (
 	"crypto/sha1"
-	"fmt"
 	"io/fs"
 	"net/http"
 	"runtime/debug"
@@ -158,12 +157,10 @@ func Start(db DBClient, config config.Config) {
 			InfoURL: "https://discord.com/api/users/@me",
 			MapUserFn: func(data provider.UserData, _ []byte) token.User {
 				username := data.Value("username")
-				fullUsername := fmt.Sprintf("%s", username)
 				id := data.Value("id")
 				avatar := data.Value("avatar")
 				userInfo := token.User{
-					ID: "discord_" + token.HashID(sha1.New(),
-						fullUsername),
+					ID:   "discord_" + token.HashID(sha1.New(), username),
 					Name: username,
 				}
 				userInfo.SetStrAttr("discord_id", id)
@@ -240,7 +237,13 @@ func Start(db DBClient, config config.Config) {
 				r.Put("/", server.updateGame)
 				r.Post("/join", server.joinGame)
 				r.Post("/leave", server.leaveGame)
-				r.Post("/generate-universe", server.generateUniverse)
+				r.Post("/add-ai", server.addOpenPlayerSlot)
+				r.Post("/add-player", server.addOpenPlayerSlot)
+				r.Post("/add-ai-player", server.addAIPlayer)
+				r.Post("/kick-player", server.kickPlayer)
+				r.Post("/delete-player", server.deletePlayerSlot)
+				r.Post("/update-player", server.updatePlayerSlot)
+				r.Post("/start-game", server.startGame)
 				r.Post("/generate-turn", server.generateTurn)
 				r.Delete("/", server.deleteGame)
 
@@ -323,6 +326,7 @@ func Start(db DBClient, config config.Config) {
 							r.Post("/split-all", server.splitAll)
 							r.Post("/merge", server.merge)
 							r.Post("/transfer-cargo", server.transferCargo)
+							r.Post("/rename", server.renameFleet)
 						})
 					})
 

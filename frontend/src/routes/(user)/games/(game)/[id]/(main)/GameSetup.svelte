@@ -8,6 +8,7 @@
 	import { Service } from '$lib/services/Service';
 	import { me } from '$lib/services/Stores';
 	import type { GameSettings } from '$lib/types/Game';
+	import type { PlayerStatus } from '$lib/types/Player';
 	import { CheckBadge, XMark } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onDestroy, onMount } from 'svelte';
@@ -52,8 +53,32 @@
 		$game = Object.assign($game, result);
 	};
 
-	const onGenerateUniverse = async () => {
-		const response = await fetch(`/api/games/${$game.id}/generate-universe`, {
+	const onAddPlayer = async () => {
+		const result = await GameService.addPlayer($game.id);
+		$game = Object.assign($game, result);
+	};
+	const onAddAIPlayer = async () => {
+		const result = await GameService.addAIPlayer($game.id);
+		$game = Object.assign($game, result);
+	};
+
+	const onUpdatePlayer = async (player: PlayerStatus) => {
+		const result = await GameService.updatePlayer($game.id, player);
+		$game = Object.assign($game, result);
+	};
+
+	const onDeletePlayer = async (playerNum: number) => {
+		const result = await GameService.deletePlayer($game.id, playerNum);
+		$game = Object.assign($game, result);
+	};
+
+	const onKickPlayer = async (playerNum: number) => {
+		const result = await GameService.kickPlayer($game.id, playerNum);
+		$game = Object.assign($game, result);
+	};
+
+	const onStartGame = async () => {
+		const response = await fetch(`/api/games/${$game.id}/start-game`, {
 			method: 'POST',
 			headers: {
 				accept: 'application/json'
@@ -91,16 +116,18 @@
 					<GameCard game={$game} />
 				{/if}
 			</div>
-			<div class="w-full bg-base-200 shadow rounded-sm border-2 border-base-300 pt-2 m-1 ">
+			<div class="w-full bg-base-200 shadow rounded-sm border-2 border-base-300 py-2 m-2 ">
 				<div class="grid grid-cols-2 gap-x-5 px-2" class:grid-cols-3={isHost}>
 					<div class="text-center border-b border-b-secondary mb-1">Player</div>
-					<div class="text-center border-b border-b-secondary mb-1 font-semibold text-xl">Status</div>
+					<div class="text-center border-b border-b-secondary mb-1 font-semibold text-xl">
+						Status
+					</div>
 					{#if isHost}
-						<div class="border-b border-b-secondary mb-1" ></div>
+						<div class="border-b border-b-secondary mb-1" />
 					{/if}
 
-					{#each $game.players as playerStatus}
-						<div class="flex flex-row h-6">
+					{#each $game.players as playerStatus, index}
+						<div class="flex flex-row h-8">
 							<div class="w-4">
 								{playerStatus.num}
 							</div>
@@ -125,20 +152,45 @@
 						</div>
 						{#if isHost}
 							<div class="flex justify-center">
-								<button type="button" class="btn btn-outline btn-sm my-1 normal-case">Kick</button>
+								{#if !playerStatus.aiControlled && playerStatus.userId && index != 0}
+									<button
+										on:click={() => onKickPlayer(playerStatus.num)}
+										type="button"
+										class="btn btn-outline btn-sm my-1 normal-case">Kick</button
+									>
+								{:else if playerStatus.aiControlled || !playerStatus.userId}
+									<button
+										on:click={() => onDeletePlayer(playerStatus.num)}
+										type="button"
+										class="btn btn-outline btn-sm my-1 normal-case">Delete</button
+									>
+								{/if}
 							</div>
 						{/if}
 					{/each}
 				</div>
 			</div>
 		</div>
-		{#if isHost}
-			<button class="btn btn-primary" on:click|preventDefault={onUpdateGame}>Update Game</button>
-			<button class="btn btn-secondary" on:click|preventDefault={onGenerateUniverse}
-				>Generate Universe</button
-			>
-		{:else}
-			<button class="btn btn-secondary" on:click|preventDefault={onLeave}>Leave Game</button>
-		{/if}
+		<div class="flex flex-row gap-1 mt-1">
+			{#if isHost}
+				<button type="submit" class="btn btn-primary" on:click|preventDefault={onUpdateGame}
+					>Update Game</button
+				>
+				<button type="button" class="btn btn-secondary" on:click={() => onAddAIPlayer()}
+					>Add AI</button
+				>
+				<button type="button" class="btn btn-secondary" on:click={() => onAddPlayer()}
+					>Add Player</button
+				>
+				<button
+					disabled={$game.players.findIndex((p) => !p.ready) != -1}
+					type="button"
+					class="btn btn-secondary ml-auto"
+					on:click={onStartGame}>Start Game</button
+				>
+			{:else if $game.players.findIndex((p) => p.userId === $me.id) != -1}
+				<button type="button" class="btn btn-secondary" on:click={onLeave}>Leave Game</button>
+			{/if}
+		</div>
 	</form>
 </div>
