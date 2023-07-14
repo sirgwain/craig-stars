@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/sirgwain/craig-stars/test"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_orders_SplitFleetTokens(t *testing.T) {
@@ -841,6 +842,189 @@ func Test_orders_Merge(t *testing.T) {
 			if !test.CompareAsJSON(t, got, tt.want) {
 				t.Errorf("orders.Merge() = %v, want %v", got, tt.want)
 			}
+		})
+	}
+}
+
+func Test_orders_TransferPlanetCargo(t *testing.T) {
+	player := NewPlayer(0, NewRace().WithSpec(&rules)).withSpec(&rules)
+	type args struct {
+		source         *Fleet
+		dest           *Planet
+		transferAmount Cargo
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			"transfer 10kT Ironium from planet",
+			args{
+				source:         testTeamster(player),
+				dest:           NewPlanet().WithCargo(Cargo{Ironium: 10}),
+				transferAmount: Cargo{Ironium: 10},
+			},
+			false,
+		},
+		{
+			"fail to transfer 10kT Ironium from planet",
+			args{
+				source:         testTeamster(player),
+				dest:           NewPlanet().WithCargo(Cargo{Ironium: 5}),
+				transferAmount: Cargo{Ironium: 10},
+			},
+			true,
+		},
+		{
+			"transfer 10kT Ironium to planet",
+			args{
+				source:         testTeamster(player).withCargo(Cargo{Ironium: 10}),
+				dest:           NewPlanet(),
+				transferAmount: Cargo{Ironium: -10},
+			},
+			false,
+		},
+		{
+			"fail to transfer 10kT Ironium to planet",
+			args{
+				source:         testTeamster(player),
+				dest:           NewPlanet(),
+				transferAmount: Cargo{Ironium: -10},
+			},
+			true,
+		},
+		{
+			"transfer 210kT Mixed Minerals from planet",
+			args{
+				source:         testTeamster(player),
+				dest:           NewPlanet().WithCargo(Cargo{1000, 1000, 1000, 1000}),
+				transferAmount: Cargo{Ironium: 70, Boranium: 70, Germanium: 70},
+			},
+			false,
+		},
+		{
+			"fail to transfer 211kT Mixed Minerals from planet",
+			args{
+				source:         testTeamster(player),
+				dest:           NewPlanet().WithCargo(Cargo{1000, 1000, 1000, 1000}),
+				transferAmount: Cargo{Ironium: 70, Boranium: 70, Germanium: 70, Colonists: 1},
+			},
+			true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			o := &orders{}
+			sourceCargo := tt.args.source.Cargo
+			destCargo := tt.args.dest.Cargo
+			err := o.TransferPlanetCargo(&rules, player, tt.args.source, tt.args.dest, tt.args.transferAmount)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("orders.TransferPlanetCargo() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			if err == nil {
+				// we should transfer from the dest to the soruce
+				assert.Equal(t, sourceCargo.Add(tt.args.transferAmount), tt.args.source.Cargo)
+				assert.Equal(t, destCargo.Subtract(tt.args.transferAmount), tt.args.dest.Cargo)
+			}
+		})
+	}
+}
+
+func Test_orders_TransferFleetCargo(t *testing.T) {
+	player := NewPlayer(0, NewRace().WithSpec(&rules)).withSpec(&rules)
+	type args struct {
+		source         *Fleet
+		dest           *Fleet
+		transferAmount Cargo
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			"transfer 10kT Ironium from fleet",
+			args{
+				source:         testTeamster(player),
+				dest:           testTeamster(player).withCargo(Cargo{Ironium: 10}),
+				transferAmount: Cargo{Ironium: 10},
+			},
+			false,
+		},
+		{
+			"fail to transfer 10kT Ironium from fleet",
+			args{
+				source:         testTeamster(player),
+				dest:           testTeamster(player).withCargo(Cargo{Ironium: 5}),
+				transferAmount: Cargo{Ironium: 10},
+			},
+			true,
+		},
+		{
+			"transfer 10kT Ironium to fleet",
+			args{
+				source:         testTeamster(player).withCargo(Cargo{Ironium: 10}),
+				dest:           testTeamster(player),
+				transferAmount: Cargo{Ironium: -10},
+			},
+			false,
+		},
+		{
+			"fail to transfer 10kT Ironium to fleet",
+			args{
+				source:         testTeamster(player),
+				dest:           testTeamster(player),
+				transferAmount: Cargo{Ironium: -10},
+			},
+			true,
+		},
+		{
+			"transfer 210kT Mixed Minerals from fleet",
+			args{
+				source:         testTeamster(player),
+				dest:           testTeamster(player).withCargo(Cargo{Ironium: 70, Boranium: 70, Germanium: 70}),
+				transferAmount: Cargo{Ironium: 70, Boranium: 70, Germanium: 70},
+			},
+			false,
+		},
+		{
+			"fail to transfer 211kT Mixed Minerals from fleet",
+			args{
+				source:         testTeamster(player).withCargo(Cargo{Colonists: 1}),
+				dest:           testTeamster(player).withCargo(Cargo{Ironium: 70, Boranium: 70, Germanium: 70}),
+				transferAmount: Cargo{Ironium: 70, Boranium: 70, Germanium: 70},
+			},
+			true,
+		},
+		{
+			"fail to transfer 211kT Mixed Minerals to fleet",
+			args{
+				source:         testTeamster(player).withCargo(Cargo{Ironium: 70, Boranium: 70, Germanium: 70}),
+				dest:           testTeamster(player).withCargo(Cargo{Colonists: 1}),
+				transferAmount: Cargo{Ironium: -70, Boranium: -70, Germanium: -70},
+			},
+			true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			o := &orders{}
+
+			sourceCargo := tt.args.source.Cargo
+			destCargo := tt.args.dest.Cargo
+
+			err := o.TransferFleetCargo(&rules, player, player, tt.args.source, tt.args.dest, tt.args.transferAmount)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("orders.TransferFleetCargo() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if err == nil {
+				// we should transfer from the dest to the soruce
+				assert.Equal(t, sourceCargo.Add(tt.args.transferAmount), tt.args.source.Cargo)
+				assert.Equal(t, destCargo.Subtract(tt.args.transferAmount), tt.args.dest.Cargo)
+			}
+
 		})
 	}
 }

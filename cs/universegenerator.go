@@ -22,8 +22,8 @@ type UniverseGenerator interface {
 
 func NewUniverseGenerator(game *Game, players []*Player) UniverseGenerator {
 	return &universeGenerator{
-		Game: game,
-		players: players,		
+		Game:    game,
+		players: players,
 	}
 }
 
@@ -72,7 +72,7 @@ func (ug *universeGenerator) Generate() (*Universe, error) {
 	}
 
 	for _, planet := range ug.universe.Planets {
-		if planet.owned() {
+		if planet.Owned() {
 			player := ug.players[planet.PlayerNum-1]
 			planet.Spec = computePlanetSpec(&ug.Rules, player, planet)
 			planet.PopulateProductionQueueCosts(player)
@@ -275,7 +275,7 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 
 				// extra planets are close to the homeworld
 				for _, planet := range ug.universe.Planets {
-					if planet.owned() {
+					if planet.Owned() {
 						continue
 					}
 
@@ -294,7 +294,7 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 			} else {
 				// homeworld should be distant from other players
 				for _, planet := range ug.universe.Planets {
-					if planet.owned() {
+					if planet.Owned() {
 						continue
 					}
 

@@ -2,14 +2,26 @@
 	import { getGameContext } from '$lib/services/Contexts';
 	import { commandMapObject } from '$lib/services/Stores';
 	import type { CommandedFleet } from '$lib/types/Fleet';
-	import { None, owned, ownedBy } from '$lib/types/MapObject';
+	import { None, ownedBy } from '$lib/types/MapObject';
+	import { createEventDispatcher } from 'svelte';
+	import type { CargoTransferEvent } from '../../dialogs/cargo/CargoTranfserDialog.svelte';
 	import CommandTile from './CommandTile.svelte';
+
+	const dispatch = createEventDispatcher<CargoTransferEvent>();
 	const { game, player, universe, settings } = getGameContext();
 
 	export let fleet: CommandedFleet;
 
 	$: planet = fleet.orbitingPlanetNum != None && $universe.getPlanet(fleet.orbitingPlanetNum);
-	const transfer = () => {};
+	const transfer = () => {
+		if (planet) {
+			dispatch('cargo-transfer-dialog', { src: fleet, dest: planet });
+		} else {
+			// if there is salvage here, transfer to it
+			const salvage = $universe.getSalvageAtPosition(fleet);
+			dispatch('cargo-transfer-dialog', { src: fleet, dest: salvage });
+		}
+	};
 	const gotoTarget = () => {
 		if (planet && ownedBy(planet, $player.num)) {
 			commandMapObject(planet);

@@ -259,9 +259,11 @@ func (s *server) transferCargo(w http.ResponseWriter, r *http.Request) {
 
 	switch transfer.MO.Type {
 	case cs.MapObjectTypePlanet:
-		s.transferCargoFleetPlanet(w, r, &game.Game, player, fleet, transfer.MO.ID, transfer.TransferAmount)
+		s.transferCargoFleetPlanet(w, r, &game.Game, player, fleet, transfer.MO.Num, transfer.TransferAmount)
 	case cs.MapObjectTypeFleet:
-		s.transferCargoFleetFleet(w, r, &game.Game, player, fleet, transfer.MO.ID, transfer.TransferAmount)
+		s.transferCargoFleetFleet(w, r, &game.Game, player, fleet, transfer.MO.PlayerNum, transfer.MO.Num, transfer.TransferAmount)
+	case cs.MapObjectTypeSalvage:
+		s.transferCargoFleetSalvage(w, r, &game.Game, player, fleet, transfer.MO.Num, transfer.TransferAmount)
 	default:
 		render.Render(w, r, ErrBadRequest(fmt.Errorf("unable to transfer cargo from fleet to %s", transfer.MO.Type)))
 		return
@@ -270,9 +272,9 @@ func (s *server) transferCargo(w http.ResponseWriter, r *http.Request) {
 }
 
 // transfer cargo from a fleet to/from a planet
-func (s *server) transferCargoFleetPlanet(w http.ResponseWriter, r *http.Request, game *cs.Game, player *cs.Player, fleet *cs.Fleet, destID int64, transferAmount cs.Cargo) {
+func (s *server) transferCargoFleetPlanet(w http.ResponseWriter, r *http.Request, game *cs.Game, player *cs.Player, fleet *cs.Fleet, num int, transferAmount cs.Cargo) {
 	// find the planet planet by id so we can perform the transfer
-	planet, err := s.db.GetPlanet(destID)
+	planet, err := s.db.GetPlanetByNum(game.ID, num)
 	if err != nil {
 		log.Error().Err(err).Msg("get planet from database")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -280,8 +282,14 @@ func (s *server) transferCargoFleetPlanet(w http.ResponseWriter, r *http.Request
 	}
 
 	if planet == nil {
-		log.Error().Int64("GameID", fleet.GameID).Int64("DestID", destID).Msg("dest planet not found")
+		log.Error().Int64("GameID", fleet.GameID).Int("Num", num).Msg("dest planet not found")
 		render.Render(w, r, ErrNotFound)
+		return
+	}
+
+	if planet.Owned() && !planet.OwnedBy(player.Num) {
+		log.Error().Int64("GameID", fleet.GameID).Int("Num", num).Int("PlayerNum", planet.PlayerNum).Msg("dest planet not owned by player")
+		render.Render(w, r, ErrForbidden)
 		return
 	}
 
@@ -321,10 +329,85 @@ func (s *server) transferCargoFleetPlanet(w http.ResponseWriter, r *http.Request
 	}
 }
 
+// transfer cargo from a fleet to/from a planet
+func (s *server) transferCargoFleetSalvage(w http.ResponseWriter, r *http.Request, game *cs.Game, player *cs.Player, fleet *cs.Fleet, num int, transferAmount cs.Cargo) {
+	// find the salvage salvage by id so we can perform the transfer
+	salvage, err := s.db.GetSalvageByNum(game.ID, num)
+	if err != nil {
+		log.Error().Err(err).Msg("get salvage from database")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	salvages, err := s.db.GetSalvagesForGame(game.ID)
+	if err != nil {
+		log.Error().Err(err).Msg("get salvages from database")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+	nextSalvageNum := 1
+	if len(salvages) > 0 {
+		nextSalvageNum = salvages[len(salvages)-1].Num + 1
+	}
+
+	fullPlayer, err := s.db.GetPlayer(player.ID)
+	if err != nil {
+		log.Error().Err(err).Msg("get player from database")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	orderer := cs.NewOrderer()
+	salvage, err = orderer.TransferSalvageCargo(&game.Rules, fullPlayer, fleet, salvage, nextSalvageNum, transferAmount)
+	if err != nil {
+		log.Error().Err(err).Msg("transfer cargo")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	if salvage.ID == 0 {
+		salvage.GameID = game.ID
+		if err := s.db.CreateSalvage(salvage); err != nil {
+			log.Error().Err(err).Int64("ID", salvage.ID).Msg("create salvage in database")
+			render.Render(w, r, ErrInternalServerError(err))
+			return
+		}
+	} else {
+		if err := s.db.UpdateSalvage(salvage); err != nil {
+			log.Error().Err(err).Int64("ID", salvage.ID).Msg("update salvage in database")
+			render.Render(w, r, ErrInternalServerError(err))
+			return
+		}
+	}
+
+	if err := s.db.UpdateFleet(fleet); err != nil {
+		log.Error().Err(err).Msg("update fleet in database")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	if err := s.db.UpdatePlayerSalvageIntels(fullPlayer); err != nil {
+		log.Error().Err(err).Msg("update player in database")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	log.Info().
+		Int64("GameID", fleet.GameID).
+		Int("Player", fleet.PlayerNum).
+		Str("Fleet", fleet.Name).
+		Str("Salvage", salvage.Name).
+		Str("TransferAmount", fmt.Sprintf("%v", transferAmount)).
+		Msgf("%s transfered %v to/from Salvage %s", fleet.Name, transferAmount, salvage.Name)
+
+	// success
+	rest.RenderJSON(w, rest.JSON{"fleet": fleet, "dest": salvage, "salvages": fullPlayer.SalvageIntels})
+}
+
 // transfer cargo from a fleet to/from a fleet
-func (s *server) transferCargoFleetFleet(w http.ResponseWriter, r *http.Request, game *cs.Game, player *cs.Player, fleet *cs.Fleet, destID int64, transferAmount cs.Cargo) {
+func (s *server) transferCargoFleetFleet(w http.ResponseWriter, r *http.Request, game *cs.Game, player *cs.Player, fleet *cs.Fleet, destPlayerNum int, destNum int, transferAmount cs.Cargo) {
 	// find the dest dest by id so we can perform the transfer
-	dest, err := s.db.GetFleet(destID)
+	dest, err := s.db.GetFleetByNum(game.ID, destPlayerNum, destNum)
 	if err != nil {
 		log.Error().Err(err).Msg("get dest fleet from database")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -332,8 +415,14 @@ func (s *server) transferCargoFleetFleet(w http.ResponseWriter, r *http.Request,
 	}
 
 	if dest == nil {
-		log.Error().Int64("GameID", fleet.GameID).Int64("DestID", destID).Msg("dest fleet not found")
+		log.Error().Int64("GameID", fleet.GameID).Int("PlayerNum", destPlayerNum).Int("Num", destNum).Msg("dest fleet not found")
 		render.Render(w, r, ErrNotFound)
+		return
+	}
+
+	if dest.Owned() && !dest.OwnedBy(player.Num) {
+		log.Error().Int64("GameID", fleet.GameID).Int("Num", fleet.Num).Int("PlayerNum", fleet.PlayerNum).Msg("dest fleet not owned by player")
+		render.Render(w, r, ErrForbidden)
 		return
 	}
 

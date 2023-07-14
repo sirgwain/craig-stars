@@ -1,11 +1,13 @@
 <script lang="ts">
-	import { EventManager } from '$lib/EventManager';
-	import {
-		commandedMapObjectName,
-		commandMapObject
-	} from '$lib/services/Stores';
+	import { commandedFleet, commandedMapObjectName, commandMapObject } from '$lib/services/Stores';
 	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
+	import { createEventDispatcher } from 'svelte';
 	import CommandTile from './CommandTile.svelte';
+	import type { CargoTransferEvent } from '../../dialogs/cargo/CargoTranfserDialog.svelte';
+	import type { SplitFleetEvent } from '../../dialogs/split/SplitFleetDialog.svelte';
+
+	const dispatchCargoTransfer = createEventDispatcher<CargoTransferEvent>();
+	const dispatchSplit = createEventDispatcher<SplitFleetEvent>();
 
 	export let fleet: CommandedFleet;
 	export let fleetsInOrbit: Fleet[];
@@ -28,7 +30,7 @@
 
 	const transfer = () => {
 		if (selectedFleet) {
-			EventManager.publishCargoTransferDialogRequestedEvent(fleet, selectedFleet);
+			dispatchCargoTransfer('cargo-transfer-dialog', { src: fleet, dest: selectedFleet });
 		}
 	};
 
@@ -39,8 +41,8 @@
 	};
 
 	const mergeTarget = () => {
-		if (selectedFleet) {
-			// EventManager.publishFleetMergeDialogRequestedEvent(fleet, selectedFleet);
+		if ($commandedFleet && selectedFleet) {
+			dispatchSplit('split-fleet-dialog', {fleet: $commandedFleet, target: selectedFleet});
 		}
 	};
 </script>

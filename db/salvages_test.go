@@ -93,7 +93,7 @@ func TestGetSalvages(t *testing.T) {
 	g, player := c.createTestGameWithPlayer()
 
 	// start with 1 planet from connectTestDB
-	result, err := c.getSalvagesForGame(g.ID)
+	result, err := c.GetSalvagesForGame(g.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, []*cs.Salvage{}, result)
 
@@ -103,7 +103,7 @@ func TestGetSalvages(t *testing.T) {
 		return
 	}
 
-	result, err = c.getSalvagesForGame(g.ID)
+	result, err = c.GetSalvagesForGame(g.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result))
 

@@ -1,33 +1,21 @@
 <script lang="ts">
 	import CargoBar from '$lib/components/game/CargoBar.svelte';
 	import FuelBar from '$lib/components/game/FuelBar.svelte';
-	import { EventManager } from '$lib/EventManager';
-	import {
-		commandedMapObjectName,
-		commandMapObject
-	} from '$lib/services/Stores';
-	import type { Fleet } from '$lib/types/Fleet';
+	import { commandedMapObjectName, commandMapObject } from '$lib/services/Stores';
+	import { CommandedFleet, type Fleet } from '$lib/types/Fleet';
 	import type { CommandedPlanet } from '$lib/types/Planet';
 	import { ArrowTopRightOnSquare } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { onMount } from 'svelte';
+	import { createEventDispatcher } from 'svelte';
+	import type { CargoTransferEvent } from '../../dialogs/cargo/CargoTranfserDialog.svelte';
 	import CommandTile from './CommandTile.svelte';
+
+	const dispatch = createEventDispatcher<CargoTransferEvent>();
 
 	export let planet: CommandedPlanet;
 	export let fleetsInOrbit: Fleet[];
 	let selectedFleet: Fleet | undefined;
 	let selectedFleetIndex = 0;
-
-	onMount(() => {
-		const unsubscribe = EventManager.subscribeCargoTransferredEvent((mo) => {
-			if (selectedFleet == mo) {
-				// trigger a reaction
-				selectedFleet.cargo = (mo as Fleet).cargo;
-			}
-		});
-
-		return () => unsubscribe();
-	});
 
 	commandedMapObjectName.subscribe(() => (selectedFleetIndex = 0));
 
@@ -44,7 +32,8 @@
 
 	const transfer = () => {
 		if (selectedFleet) {
-			EventManager.publishCargoTransferDialogRequestedEvent(selectedFleet, planet);
+			const commandedFleet = new CommandedFleet(selectedFleet);
+			dispatch('cargo-transfer-dialog', { src: commandedFleet, dest: planet });
 		}
 	};
 
@@ -77,7 +66,7 @@
 			<div class="w-12">Cargo</div>
 			<div class="ml-1 h-full w-full">
 				<CargoBar
-					on:cargo-transfer={transfer}
+					on:cargo-transfer-dialog={transfer}
 					value={selectedFleet.cargo}
 					capacity={selectedFleet.spec.cargoCapacity}
 				/>

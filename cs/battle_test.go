@@ -54,7 +54,7 @@ func testTeamster(player *Player) *Fleet {
 				Quantity:  1,
 				DesignNum: 1,
 				design: NewShipDesign(player, 1).
-					WithHull(SmallFreighter.Name).
+					WithHull(MediumFreighter.Name).
 					WithSlots([]ShipDesignSlot{
 						{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
 						{HullComponent: Crobmnium.Name, HullSlotIndex: 2, Quantity: 1},

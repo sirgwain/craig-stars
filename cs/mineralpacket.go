@@ -127,10 +127,10 @@ func (packet *MineralPacket) completeMove(rules *Rules, player *Player, planet *
 	if planet.Spec.HasMassDriver && planet.Spec.SafePacketSpeed >= packet.WarpSpeed {
 		// caught packet successfully, transfer cargo
 		messager.mineralPacketCaught(planetPlayer, planet, packet)
-	} else if !planet.owned() {
+	} else if !planet.Owned() {
 		// all uncaught
 		uncaught = weight
-	} else if planet.owned() {
+	} else if planet.Owned() {
 		// uh oh, this packet is going too fast and we'll take damage
 		receiverDriverSpeed := 0
 		if planet.Spec.HasStarbase {

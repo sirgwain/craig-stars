@@ -80,6 +80,7 @@ type Client interface {
 	SubmitPlayerTurn(gameID int64, num int, submittedTurn bool) error
 	UpdatePlayerOrders(player *cs.Player) error
 	UpdatePlayerPlans(player *cs.Player) error
+	UpdatePlayerSalvageIntels(player *cs.Player) error
 	UpdateLightPlayer(player *cs.Player) error
 	DeletePlayer(id int64) error
 
@@ -112,7 +113,11 @@ type Client interface {
 	GetMineralPacket(id int64) (*cs.MineralPacket, error)
 	GetMineralPacketsForPlayer(gameID int64, playerNum int) ([]*cs.MineralPacket, error)
 
+	GetSalvagesForGame(gameID int64) ([]*cs.Salvage, error)
 	GetSalvagesForPlayer(gameID int64, playerNum int) ([]*cs.Salvage, error)
+	GetSalvageByNum(gameID int64, num int) (*cs.Salvage, error)
+	CreateSalvage(salvage *cs.Salvage) error
+	UpdateSalvage(salvage *cs.Salvage) error
 }
 
 func NewClient() Client {

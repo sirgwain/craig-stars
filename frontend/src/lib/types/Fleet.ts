@@ -175,6 +175,10 @@ export class CommandedFleet implements Fleet {
 	position = { x: 0, y: 0 };
 	spec = {} as Spec;
 
+	constructor(data?: Fleet) {
+		Object.assign(this, data);
+	}
+
 	getFuelCost(
 		designFinder: DesignFinder,
 		fuelEfficiencyOffset: number,

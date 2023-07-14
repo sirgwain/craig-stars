@@ -245,6 +245,7 @@ func Start(db DBClient, config config.Config) {
 				r.Post("/update-player", server.updatePlayerSlot)
 				r.Post("/start-game", server.startGame)
 				r.Post("/generate-turn", server.generateTurn)
+				r.Get("/compute-specs", server.computeSpecs)
 				r.Delete("/", server.deleteGame)
 
 				// routes requiring a player and game

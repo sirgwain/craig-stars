@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { EventManager } from '$lib/EventManager';
 	import FactoriesTooltip, {
 		type FactoriesTooltipProps
 	} from '$lib/components/game/tooltips/FactoriesTooltip.svelte';
@@ -12,22 +11,10 @@
 	import { getGameContext } from '$lib/services/Contexts';
 	import { showTooltip } from '$lib/services/Stores';
 	import type { CommandedPlanet } from '$lib/types/Planet';
-	import { onMount } from 'svelte';
 	import CommandTile from './CommandTile.svelte';
 
 	const { player } = getGameContext();
 	export let planet: CommandedPlanet;
-
-	onMount(() => {
-		const unsubscribe = EventManager.subscribeCargoTransferredEvent((mo) => {
-			if (planet == mo) {
-				// trigger a reaction
-				planet.cargo = (mo as CommandedPlanet).cargo;
-			}
-		});
-
-		return () => unsubscribe();
-	});
 
 	function onIroniumTooltip(e: PointerEvent) {
 		showTooltip<MineralTooltipProps>(e.x, e.y, MineralTooltip, {

@@ -85,7 +85,7 @@ func (mineField *MineField) withOrders(orders MineFieldOrders) *MineField {
 // * Speed Bump Minefields have a minimum total decay rate of 2 mines per year
 // * There is a maximum total decay rate of 50% per year.
 func (mineField *MineField) getDecayRate(rules *Rules, player *Player, numPlanets int) int {
-	if !mineField.owned() {
+	if !mineField.Owned() {
 		// we can't determine decay rate for minefields we don't own
 		return -1
 	}

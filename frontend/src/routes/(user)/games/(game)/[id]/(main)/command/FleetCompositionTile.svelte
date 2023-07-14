@@ -1,26 +1,31 @@
 <script lang="ts">
-	import { EventManager } from '$lib/EventManager';
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import { getGameContext } from '$lib/services/Contexts';
 	import { selectedWaypoint } from '$lib/services/Stores';
 	import type { CommandedFleet } from '$lib/types/Fleet';
 	import { createEventDispatcher } from 'svelte';
 	import CommandTile from './CommandTile.svelte';
+	import type { SplitFleetEvent } from '../../dialogs/split/SplitFleetDialog.svelte';
+	import type { MergeFleetsEvent } from '../../dialogs/merge/MergeFleetsDialog.svelte';
 
-	const dispatch = createEventDispatcher();
+	const dispatchSplit = createEventDispatcher<SplitFleetEvent>();
+	const dispatchMerge = createEventDispatcher<MergeFleetsEvent>();
 	const { player, universe } = getGameContext();
 
 	export let fleet: CommandedFleet;
 
 	const split = () => {
-		EventManager.publishSplitFleetDialogRequestedEvent(fleet);
+		dispatchSplit('split-fleet-dialog', { fleet });
 	};
 
 	const splitAll = async () => {
-		dispatch('splitAll');
+		dispatchSplit('split-all');
 	};
 	const merge = () => {
-		EventManager.publishMergeFleetDialogRequestedEvent(fleet);
+		dispatchMerge('merge-fleets-dialog', {
+			fleet,
+			otherFleetsHere: $universe.getMyFleetsByPosition(fleet).filter((f) => f.num !== fleet.num)
+		});
 	};
 </script>
 

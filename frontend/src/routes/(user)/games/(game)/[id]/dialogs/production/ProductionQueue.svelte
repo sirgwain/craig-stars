@@ -323,9 +323,11 @@
 	$: planet && resetQueue();
 </script>
 
+
 <div
-	class="flex h-full bg-base-200 shadow max-h-fit min-h-fit rounded-sm border-2 border-base-300 text-base"
+class="flex flex-col h-full bg-base-200 shadow max-h-fit min-h-fit rounded-sm border-2 border-base-300 text-base"
 >
+<div class="text-center"><h2 class="text-lg">{planet.name}</h2></div>
 	<div class="flex-col h-full w-full">
 		<div class="flex flex-col h-full w-full">
 			<div class="flex flex-row h-full w-full grid-cols-3">

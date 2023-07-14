@@ -67,8 +67,6 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 	myMapObjectsByPosition: Record<string, MapObject[]> = {};
 
 	public setData(playerNum: number, data: PlayerUniverse & PlayerIntels) {
-		this.mapObjectsByPosition = {};
-		this.myMapObjectsByPosition = {};
 		this.playerNum = playerNum;
 		this.designs = data.designs ?? [];
 		this.battles = data.battles ?? [];
@@ -84,6 +82,12 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 		this.wormholes = data.wormholes ?? [];
 		this.mysteryTraders = data.mysteryTraders ?? [];
 
+		this.resetMapObjectsByPosition();
+		this.resetMyMapObjectsByPosition();
+	}
+
+	resetMapObjectsByPosition() {
+		this.mapObjectsByPosition = {};
 		this.planets.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
 		this.fleets.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
 		this.mineFields.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
@@ -91,8 +95,6 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 		this.salvages.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
 		this.wormholes.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
 		this.mysteryTraders.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
-
-		this.resetMyMapObjectsByPosition();
 	}
 
 	resetMyMapObjectsByPosition() {
@@ -215,6 +217,15 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 		return this.mapObjectsByPosition[positionKey(position)];
 	}
 
+	getSalvageAtPosition(position: MapObject | Vector): Salvage | undefined {
+		const mo = this.getMapObjectsByPosition(position)?.find(
+			(mo) => mo.type === MapObjectType.Salvage
+		);
+		if (mo) {
+			return mo as Salvage;
+		}
+	}
+
 	getMyMapObjectsByPosition(position: MapObject | Vector) {
 		return this.myMapObjectsByPosition[positionKey(position)];
 	}
@@ -253,6 +264,7 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 
 	addFleets(fleets: Fleet[]) {
 		this.fleets = [...fleets, ...this.fleets];
+		this.resetMapObjectsByPosition();
 		this.resetMyMapObjectsByPosition();
 	}
 
@@ -261,6 +273,7 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 		if (index != -1) {
 			this.fleets = [...this.fleets.slice(0, index), fleet, ...this.fleets.slice(index + 1)];
 		}
+		this.resetMapObjectsByPosition();
 		this.resetMyMapObjectsByPosition();
 
 		const smo = get(selectedMapObject);
@@ -274,6 +287,7 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 		if (index != -1) {
 			this.planets = [...this.planets.slice(0, index), planet, ...this.planets.slice(index + 1)];
 		}
+		this.resetMapObjectsByPosition();
 		this.resetMyMapObjectsByPosition();
 
 		const smo = get(selectedMapObject);
@@ -291,11 +305,19 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 				selectMapObject(planet);
 			}
 		});
+		this.resetMapObjectsByPosition();
+		this.resetMyMapObjectsByPosition();
+	}
+
+	updateSalvages(salvages: Salvage[]) {
+		this.salvages = salvages;
+		this.resetMapObjectsByPosition();
 		this.resetMyMapObjectsByPosition();
 	}
 
 	removeFleets(fleetNums: number[]) {
 		this.fleets = this.fleets.filter((f) => fleetNums.indexOf(f.num) == -1);
+		this.resetMapObjectsByPosition();
 		this.resetMyMapObjectsByPosition();
 	}
 

@@ -2,6 +2,8 @@ import type { Cargo } from '$lib/types/Cargo';
 import { CommandedFleet, type Fleet, type Waypoint } from '$lib/types/Fleet';
 import type { MapObject } from '$lib/types/MapObject';
 import type { Planet } from '$lib/types/Planet';
+import type { PlayerRelation, PlayerResponse } from '$lib/types/Player';
+import type { Salvage } from '$lib/types/Salvage';
 import { Service } from './Service';
 
 // orders sent to the server
@@ -12,6 +14,7 @@ export class FleetOrders {
 type TransferCargoResponse = {
 	fleet: Fleet;
 	dest: MapObject | undefined;
+	salvages?: Salvage[];
 };
 
 export class FleetService {
@@ -30,10 +33,7 @@ export class FleetService {
 		return Object.assign(fleet, updated);
 	}
 
-	static async rename(
-		fleet: CommandedFleet,
-		name: string
-	): Promise<CommandedFleet> {
+	static async rename(fleet: CommandedFleet, name: string): Promise<CommandedFleet> {
 		// rename the fleet and update it
 		const updated = await Service.post<{ name: string }, Fleet>(
 			{ name },
@@ -44,7 +44,7 @@ export class FleetService {
 
 	static async transferCargo(
 		fleet: CommandedFleet,
-		dest: Fleet | Planet | undefined,
+		dest: Fleet | Planet | Salvage,
 		transferAmount: Cargo
 	): Promise<TransferCargoResponse> {
 		const url = `/api/games/${fleet.gameId}/fleets/${fleet.num}/transfer-cargo`;

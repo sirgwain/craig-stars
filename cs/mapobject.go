@@ -47,7 +47,7 @@ func (mo *MapObject) String() string {
 	return fmt.Sprintf("GameID: %5d, ID: %5d, Num: %3d %s", mo.GameID, mo.ID, mo.Num, mo.Name)
 }
 
-func (mo *MapObject) owned() bool {
+func (mo *MapObject) Owned() bool {
 	return mo.PlayerNum != Unowned
 }
 

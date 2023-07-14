@@ -1010,6 +1010,22 @@ func (c *client) UpdatePlayerPlans(player *cs.Player) error {
 	return nil
 }
 
+// update a players salvage intels (used after creating a new salvage)
+func (c *client) UpdatePlayerSalvageIntels(player *cs.Player) error {
+	item := c.converter.ConvertGamePlayer(player)
+
+	if _, err := c.db.NamedExec(`
+	UPDATE players SET
+		updatedAt = CURRENT_TIMESTAMP,
+		salvageIntels = :salvageIntels
+	WHERE id = :id
+	`, item); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // helper to update a player using a transaction or DB
 func (c *client) updatePlayerWithNamedExecer(player *cs.Player, tx SQLExecer) error {
 	item := c.converter.ConvertGamePlayer(player)

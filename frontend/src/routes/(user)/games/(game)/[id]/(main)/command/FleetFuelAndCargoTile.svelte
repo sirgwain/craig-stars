@@ -1,39 +1,25 @@
 <script lang="ts">
-	import { EventManager } from '$lib/EventManager';
 	import CargoBar from '$lib/components/game/CargoBar.svelte';
 	import FuelBar from '$lib/components/game/FuelBar.svelte';
-	import type { FullGame } from '$lib/services/FullGame';
-	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
-	import { onMount } from 'svelte';
-	import CommandTile from './CommandTile.svelte';
 	import { getGameContext } from '$lib/services/Contexts';
+	import type { CommandedFleet } from '$lib/types/Fleet';
+	import { createEventDispatcher } from 'svelte';
+	import CommandTile from './CommandTile.svelte';
+	import type { CargoTransferEvent } from '../../dialogs/cargo/CargoTranfserDialog.svelte';
 
+	const dispatch = createEventDispatcher<CargoTransferEvent>();
 	const { game, player, universe } = getGameContext();
 
 	export let fleet: CommandedFleet;
 
-	onMount(() => {
-		const unsubscribe = EventManager.subscribeCargoTransferredEvent((mo) => {
-			if (fleet == mo) {
-				// trigger a reaction
-				fleet.cargo = (mo as Fleet).cargo ?? {
-					ironium: 0,
-					boranium: 0,
-					germanium: 0,
-					colonists: 0
-				};
-			}
-		});
-
-		return () => unsubscribe();
-	});
-
 	const transfer = () => {
 		if (fleet.orbitingPlanetNum) {
 			const planet = $universe.getPlanet(fleet.orbitingPlanetNum);
-			EventManager.publishCargoTransferDialogRequestedEvent(fleet, planet);
+			dispatch('cargo-transfer-dialog', { src: fleet, dest: planet });
 		} else {
-			EventManager.publishCargoTransferDialogRequestedEvent(fleet);
+			// if there is salvage here, transfer to it
+			const salvage = $universe.getSalvageAtPosition(fleet);
+			dispatch('cargo-transfer-dialog', { src: fleet, dest: salvage });
 		}
 	};
 </script>
@@ -51,7 +37,7 @@
 			<div class="w-12">Cargo</div>
 			<div class="ml-1 h-full w-full">
 				<CargoBar
-					on:cargo-transfer={() => transfer()}
+					on:cargo-transfer-dialog={() => transfer()}
 					value={fleet.cargo}
 					capacity={fleet.spec.cargoCapacity}
 				/>

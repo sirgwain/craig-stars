@@ -264,7 +264,7 @@ func (c *client) GetFullGame(id int64) (*cs.FullGame, error) {
 	}
 	universe.Wormholes = wormholes
 
-	salvages, err := c.getSalvagesForGame(game.ID)
+	salvages, err := c.GetSalvagesForGame(game.ID)
 	if err != nil {
 		return nil, fmt.Errorf("load salvages for game %w", err)
 	}

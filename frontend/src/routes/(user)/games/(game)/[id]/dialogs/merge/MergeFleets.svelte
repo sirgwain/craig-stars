@@ -2,8 +2,9 @@
 	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
 	import hotkeys from 'hotkeys-js';
 	import { createEventDispatcher } from 'svelte';
+	import type { MergeFleetsEvent } from './MergeFleetsDialog.svelte';
 
-	const dispatch = createEventDispatcher();
+	const dispatch = createEventDispatcher<MergeFleetsEvent>();
 
 	export let fleet: CommandedFleet;
 	export let otherFleetsHere: Fleet[];
@@ -29,7 +30,7 @@
 	function ok() {
 		const fleetNums = selectedFleetIndexes.map((i) => otherFleetsHere[i].num);
 		if (fleetNums.length > 0) {
-			dispatch('ok', { fleet, fleetNums });
+			dispatch('merge-fleets', { fleet, fleetNums });
 		}
 	}
 

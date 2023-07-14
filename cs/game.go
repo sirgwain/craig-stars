@@ -5,6 +5,8 @@ import (
 	"encoding/hex"
 	"fmt"
 	"time"
+
+	"github.com/rs/zerolog/log"
 )
 
 type Tags map[string]string
@@ -307,4 +309,64 @@ func (fg *FullGame) getPlayer(playerNum int) *Player {
 		return nil
 	}
 	return fg.Players[playerNum-1]
+}
+
+func (g *FullGame) computeSpecs() error {
+
+	g.buildMaps(g.Players)
+
+	rules := &g.Rules
+	for _, player := range g.Players {
+		player.Race.Spec = computeRaceSpec(&player.Race, rules)
+		player.Spec = computePlayerSpec(player, rules, g.Planets)
+		log.Debug().Msgf("computed race and player spec for %v %s", player, player.Race.PluralName)
+
+		for _, design := range player.Designs {
+			numBuilt := design.Spec.NumBuilt
+			design.Spec = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
+			design.Spec.NumBuilt = numBuilt
+			design.MarkDirty()
+			log.Debug().Msgf("computed design spec for player %d, design %s", player.Num, design.Name)
+		}
+	}
+
+	for _, planet := range g.Planets {
+		if planet.Owned() {
+			player := g.getPlayer(planet.PlayerNum)
+			planet.Spec = computePlanetSpec(rules, player, planet)
+			if err := planet.PopulateProductionQueueCosts(player); err != nil {
+				return err
+			}
+			planet.MarkDirty()
+			log.Debug().Msgf("computed planet spec for player %d, planet %s", player.Num, planet.Name)
+		}
+	}
+
+	for _, fleet := range g.Fleets {
+		player := g.getPlayer(fleet.PlayerNum)
+		fleet.Spec = ComputeFleetSpec(rules, player, fleet)
+
+		for _, token := range fleet.Tokens {
+			design := g.designsByNum[playerObjectKey(fleet.PlayerNum, token.DesignNum)]
+			design.Spec.NumInstances += token.Quantity
+		}
+		fleet.MarkDirty()
+		log.Debug().Msgf("computed fleet spec for player %d, fleet %s", player.Num, fleet.Name)
+	}
+
+	for _, mineField := range g.MineFields {
+		player := g.getPlayer(mineField.PlayerNum)
+		mineField.Spec = computeMinefieldSpec(rules, player, mineField, g.numPlanetsWithin(mineField.Position, mineField.Radius()))
+		mineField.MarkDirty()
+		log.Debug().Msgf("computed mineField spec for player %d, mineField %s", player.Num, mineField.Name)
+	}
+
+	for _, wormhole := range g.Wormholes {
+		wormhole.Spec = computeWormholeSpec(wormhole, rules)
+		wormhole.MarkDirty()
+		log.Debug().Msgf("computed wormhole spec %s", wormhole.Name)
+	}
+
+	return nil
+
 }

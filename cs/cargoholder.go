@@ -38,7 +38,7 @@ func (ch *Planet) getFuelCapacity() int {
 
 // players can load from unowned planets or planets they own
 func (ch *Planet) canLoad(playerNum int) bool {
-	return !ch.owned() || ch.OwnedBy(playerNum)
+	return !ch.Owned() || ch.OwnedBy(playerNum)
 }
 
 func (ch *Fleet) getMapObject() MapObject {

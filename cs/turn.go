@@ -130,8 +130,8 @@ func (t *turn) generateTurn() error {
 // useful before turn generation and after building
 func (t *turn) computePlanetSpecs() {
 	for _, planet := range t.game.Planets {
-		if planet.owned() {
-			player := t.game.Players[planet.PlayerNum-1]
+		if planet.Owned() {
+			player := t.game.getPlayer(planet.PlayerNum)
 			planet.Spec = computePlanetSpec(&t.game.Rules, player, planet)
 			planet.PopulateProductionQueueCosts(player)
 		}
@@ -218,7 +218,7 @@ func (t *turn) fleetColonize() {
 			}
 
 			planet := t.game.getPlanet(wp.TargetNum)
-			if planet.owned() {
+			if planet.Owned() {
 				messager.colonizeOwnedPlanet(player, fleet)
 				wp.Task = WaypointTaskNone
 				continue
@@ -394,10 +394,10 @@ func (t *turn) fleetTransferCargo(fleet *Fleet, transferAmount int, cargoType Ca
 	if transferAmount != 0 {
 		player := t.game.Players[fleet.PlayerNum-1]
 		planet, ok := dest.(*Planet)
-		if transferAmount > 0 && cargoType == Colonists && ok && planet.owned() && !planet.OwnedBy(fleet.PlayerNum) {
+		if transferAmount > 0 && cargoType == Colonists && ok && planet.Owned() && !planet.OwnedBy(fleet.PlayerNum) {
 			// invasion!
 			attacker := player
-			if !planet.owned() || planet.population() == 0 {
+			if !planet.Owned() || planet.population() == 0 {
 				// can't invade uninhabited planets
 				messager.planetInvadeEmpty(attacker, planet, fleet)
 				return
@@ -600,7 +600,7 @@ func (t *turn) packetMove(builtThisTurn bool) {
 		player := t.game.getPlayer(packet.PlayerNum)
 		planet := t.game.getPlanet(int(packet.TargetPlanetNum))
 		var planetPlayer *Player
-		if planet.owned() {
+		if planet.Owned() {
 			planetPlayer = t.game.getPlayer(planet.PlayerNum)
 		}
 
@@ -907,7 +907,7 @@ func (t *turn) detonateMines() {
 // mine all owned planets for minerals
 func (t *turn) planetMine() {
 	for _, planet := range t.game.Planets {
-		if planet.owned() {
+		if planet.Owned() {
 			planet.Cargo = planet.Cargo.AddMineral(planet.Spec.MiningOutput)
 			planet.MineYears.AddInt(planet.Mines)
 			planet.reduceMineralConcentration(&t.game.Rules)
@@ -974,7 +974,7 @@ func (t *turn) fleetRemoteMine() {
 				continue
 			}
 
-			if planet.owned() {
+			if planet.Owned() {
 				messager.remoteMineInhabited(player, fleet, planet)
 				continue
 			}
@@ -1019,7 +1019,7 @@ func (t *turn) remoteMine(fleet *Fleet, player *Player, planet *Planet) {
 
 func (t *turn) planetProduction() {
 	for _, planet := range t.game.Planets {
-		if planet.owned() && len(planet.ProductionQueue) > 0 {
+		if planet.Owned() && len(planet.ProductionQueue) > 0 {
 			player := t.game.Players[planet.PlayerNum-1]
 			producer := newProducer(planet, player)
 			result := producer.produce()
@@ -1114,7 +1114,7 @@ func (t *turn) playerResearch() {
 	// figure out how much each player can spend on research this turn
 	resourcesToSpendByPlayer := make(map[int]int, len(t.game.Players))
 	for _, planet := range t.game.Planets {
-		if planet.owned() {
+		if planet.Owned() {
 			resourcesToSpendByPlayer[planet.PlayerNum] += planet.Spec.ResourcesPerYearResearch
 		}
 	}
@@ -1236,7 +1236,7 @@ func (t *turn) permaform() {
 	terraformer := NewTerraformer()
 
 	for _, planet := range t.game.Planets {
-		if planet.owned() {
+		if planet.Owned() {
 			player := t.game.Players[planet.PlayerNum-1]
 			adjustedPermaformChance := player.Race.Spec.PermaformChance
 			if planet.population() <= player.Race.Spec.PermaformPopulation {
@@ -1269,7 +1269,7 @@ func (t *turn) permaform() {
 // grow all owned planets by some population
 func (t *turn) planetGrow() {
 	for _, planet := range t.game.Planets {
-		if planet.owned() {
+		if planet.Owned() {
 			planet.setPopulation(planet.population() + planet.Spec.GrowthAmount)
 			planet.MarkDirty()
 
@@ -1426,7 +1426,7 @@ func (t *turn) fleetBattle() {
 func (t *turn) fleetBomb() {
 	bomber := NewBomber(&t.game.Rules)
 	for _, planet := range t.game.Planets {
-		if !planet.owned() || planet.population() == 0 || planet.Spec.HasStarbase {
+		if !planet.Owned() || planet.population() == 0 || planet.Spec.HasStarbase {
 			// can't bomb uninhabited planets, planets with starbases
 			continue
 		}
@@ -1548,7 +1548,7 @@ func (t *turn) fleetTransferOwner() {
 
 func (t *turn) instaform() {
 	for _, planet := range t.game.Planets {
-		if planet.owned() {
+		if planet.Owned() {
 			player := t.game.getPlayer(planet.PlayerNum)
 			if player.Race.Spec.Instaforming {
 				terraformAmount := planet.Spec.TerraformAmount
@@ -1663,7 +1663,7 @@ func (t *turn) fleetRemoteTerraform() {
 
 		// don't remote terraform an unowned planet or a planet owned by us
 		planet := t.game.getPlanet(fleet.OrbitingPlanetNum)
-		if !planet.owned() || planet.OwnedBy(fleet.PlayerNum) {
+		if !planet.Owned() || planet.OwnedBy(fleet.PlayerNum) {
 			continue
 		}
 
@@ -1769,7 +1769,7 @@ func (t *turn) calculateScores() {
 
 	// Sum up planets
 	for _, planet := range t.game.Planets {
-		if planet.owned() {
+		if planet.Owned() {
 			score := &scores[planet.PlayerNum-1]
 			score.Planets++
 			if planet.Spec.HasStarbase {

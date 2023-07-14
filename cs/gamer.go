@@ -20,6 +20,9 @@ type Gamer interface {
 	SubmitTurn(player *Player)
 	GenerateTurn(game *Game, universe *Universe, players []*Player) error
 	CheckAllPlayersSubmitted(players []*Player) bool
+
+	// helper functions
+	ComputeSpecs(game *FullGame) error
 }
 
 func NewGamer() Gamer {
@@ -82,4 +85,8 @@ func (c *client) GenerateTurn(game *Game, universe *Universe, players []*Player)
 	defer timeTrack(time.Now(), "GenerateTurn")
 	turnGenerator := newTurnGenerator(&FullGame{game, universe, game.Rules.techs, players})
 	return turnGenerator.generateTurn()
+}
+
+func (c *client) ComputeSpecs(game *FullGame) error {
+	return game.computeSpecs()
 }

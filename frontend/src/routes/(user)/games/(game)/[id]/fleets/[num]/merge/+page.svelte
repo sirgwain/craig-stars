@@ -3,7 +3,7 @@
 	import { getGameContext } from '$lib/services/Contexts';
 	import { commandedFleet } from '$lib/services/Stores';
 	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
-	import MergeFleets from './MergeFleets.svelte';
+	import MergeFleets from '../../../dialogs/merge/MergeFleets.svelte';
 
 	const { game, player, universe } = getGameContext();
 	let num = parseInt($page.params.num);

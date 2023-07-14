@@ -1,5 +1,5 @@
 <script lang="ts">
-	import CargoTransferDialog from '../../games/(game)/[id]/dialogs/cargo/CargoTransferDialog.svelte';
+	import CargoTransferDialog from '../../games/(game)/[id]/dialogs/cargo/CargoTransfer.svelte';
 
 	import { CommandedFleet, type Fleet } from '$lib/types/Fleet';
 	import { MapObjectType } from '$lib/types/MapObject';

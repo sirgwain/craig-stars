@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { clamp } from '$lib/services/Math';
 	import { createEventDispatcher } from 'svelte';
+	import type { ValueChangedEvent } from '$lib/ValueChangedEvent';
 
 	export let value = 0;
 	export let capacity = 0;
@@ -8,7 +9,7 @@
 	export let max = capacity;
 	export let color = 'ironium-bar';
 
-	const dispatch = createEventDispatcher();
+	const dispatch = createEventDispatcher<ValueChangedEvent>();
 
 	$: percent = capacity > 0 ? (value / capacity) * 100 : 0;
 
@@ -41,7 +42,7 @@
 	};
 
 	const updateValue = (x: number) => {
-		const newValue = clamp(Math.round(x * capacity), min, max);
+		let newValue = clamp(Math.round(x * capacity), min, max);
 		if (newValue != value) {
 			value = newValue;
 			dispatch('valuechanged', value);

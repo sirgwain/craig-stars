@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/Contexts';
 	import { commandedFleet, commandedPlanet } from '$lib/services/Stores';
+	import { createEventDispatcher } from 'svelte';
 	import FleetSummary from '../FleetSummary.svelte';
 	import MapObjectSummary from '../MapObjectSummary.svelte';
 	import PlanetSummary from '../PlanetSummary.svelte';
@@ -16,6 +17,7 @@
 	import PlanetStarbaseTile from './PlanetStarbaseTile.svelte';
 	import PlanetStatusTile from './PlanetStatusTile.svelte';
 
+	const dispatch = createEventDispatcher();
 	const { game, player, universe } = getGameContext();
 </script>
 
@@ -37,7 +39,10 @@
 			<MapObjectSummary />
 		</div>
 		<div id="planet-production-tile" class="carousel-item w-full">
-			<PlanetProductionTile planet={$commandedPlanet} />
+			<PlanetProductionTile
+				planet={$commandedPlanet}
+				on:change-production={(e) => dispatch('change-production', e)}
+			/>
 		</div>
 		<div id="planet-minerals-on-hand-tile" class="carousel-item w-full">
 			<PlanetMineralsOnHandTile planet={$commandedPlanet} />
@@ -55,6 +60,7 @@
 			<PlanetFleetsInOrbitTile
 				planet={$commandedPlanet}
 				fleetsInOrbit={$universe.getMyFleetsByPosition($commandedPlanet)}
+				on:cargo-transfer-dialog={(e) => dispatch('cargo-transfer-dialog', e.detail)}
 			/>
 		</div>
 	</div>
@@ -85,10 +91,16 @@
 			<MapObjectSummary />
 		</div>
 		<div id="fleet-orbiting-tile" class="carousel-item w-full">
-			<FleetOrbitingTile fleet={$commandedFleet} />
+			<FleetOrbitingTile
+				fleet={$commandedFleet}
+				on:cargo-transfer-dialog={(e) => dispatch('cargo-transfer-dialog', e.detail)}
+			/>
 		</div>
 		<div id="fleet-fuel-and-cargo-tile" class="carousel-item w-full">
-			<FleetFuelAndCargoTile fleet={$commandedFleet} />
+			<FleetFuelAndCargoTile
+				fleet={$commandedFleet}
+				on:cargo-transfer-dialog={(e) => dispatch('cargo-transfer-dialog', e.detail)}
+			/>
 		</div>
 		<div id="fleet-waypoints-tile" class="carousel-item w-full">
 			<FleetWaypointsTile fleet={$commandedFleet} />
@@ -96,7 +108,8 @@
 		<div id="fleet-composition-tile" class="carousel-item w-full">
 			<FleetCompositionTile
 				fleet={$commandedFleet}
-				on:splitAll={() => $commandedFleet && $game.splitAll($commandedFleet)}
+				on:split-all={() => $commandedFleet && $game.splitAll($commandedFleet)}
+				on:merge-fleets-dialog={(e) => dispatch('merge-fleets-dialog', e.detail)}
 			/>
 		</div>
 		<div id="fleet-waypoint-task-tile" class="carousel-item w-full">
@@ -108,6 +121,7 @@
 				fleetsInOrbit={$universe
 					.getMyFleetsByPosition($commandedFleet)
 					.filter((f) => f.num !== $commandedFleet?.num)}
+				on:cargo-transfer-dialog={(e) => dispatch('cargo-transfer-dialog', e.detail)}
 			/>
 		</div>
 	</div>

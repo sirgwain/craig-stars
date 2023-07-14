@@ -21,6 +21,7 @@ import {
 	type ProductionPlan,
 	type TransportPlan
 } from '$lib/types/Player';
+import type { Salvage } from '$lib/types/Salvage';
 import type { ShipDesign } from '$lib/types/ShipDesign';
 import type { Vector } from '$lib/types/Vector';
 import { get } from 'svelte/store';
@@ -286,6 +287,7 @@ export class FullGame implements Game {
 		const { fleets, starbases } = await DesignService.delete(this.id, num);
 		this.universe.fleets = fleets;
 		this.universe.starbases = starbases;
+		this.universe.resetMapObjectsByPosition();
 		this.universe.resetMyMapObjectsByPosition();
 
 		this.universe.designs = this.universe.designs.filter((d) => d.num != num);
@@ -341,7 +343,7 @@ export class FullGame implements Game {
 
 	async transferCargo(
 		fleet: CommandedFleet,
-		dest: Fleet | Planet | undefined,
+		dest: Fleet | Planet | Salvage,
 		transferAmount: Cargo
 	) {
 		const selectedWaypointIndex = get(currentSelectedWaypointIndex);
@@ -350,6 +352,10 @@ export class FullGame implements Game {
 		if (result.dest?.type == MapObjectType.Planet) {
 			const planet = result.dest as Planet;
 			this.universe.updatePlanet(planet);
+		}
+
+		if (result.salvages) {
+			this.universe.updateSalvages(result.salvages);
 		}
 
 		fleet = Object.assign(fleet, result.fleet);

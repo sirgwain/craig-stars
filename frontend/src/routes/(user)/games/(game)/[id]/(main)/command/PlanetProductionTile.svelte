@@ -1,10 +1,11 @@
 <script lang="ts">
-	import { EventManager } from '$lib/EventManager';
 	import { getGameContext } from '$lib/services/Contexts';
 	import { Infinite } from '$lib/types/MapObject';
 	import { CommandedPlanet, getQueueItemShortName, isAuto } from '$lib/types/Planet';
+	import { createEventDispatcher } from 'svelte';
 	import CommandTile from './CommandTile.svelte';
 
+	const dispatch = createEventDispatcher();
 	const { game, universe } = getGameContext();
 
 	export let planet: CommandedPlanet;
@@ -16,9 +17,6 @@
 		}
 	};
 
-	const change = () => {
-		EventManager.publishProductionQueueDialogRequestedEvent(planet);
-	};
 </script>
 
 <CommandTile title="Production">
@@ -54,7 +52,7 @@
 		<span>{''}</span>
 	</div>
 	<div class="flex justify-between">
-		<button on:click={change} class="btn btn-outline btn-sm normal-case btn-secondary"
+		<button on:click={() => dispatch("change-production", planet)} class="btn btn-outline btn-sm normal-case btn-secondary"
 			>Change</button
 		>
 		<button on:click={clear} class="btn btn-outline btn-sm normal-case btn-secondary">Clear</button>

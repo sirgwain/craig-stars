@@ -19,7 +19,6 @@
 	}
 
 	$: {
-		// console.log('loading icon of fleet: ', fleet);
 		icon = '';
 		if (fleet.tokens.length > 0) {
 			const designNum = fleet.tokens[0].designNum;

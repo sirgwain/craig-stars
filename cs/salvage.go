@@ -1,5 +1,7 @@
 package cs
 
+import "fmt"
+
 type Salvage struct {
 	MapObject
 	Cargo Cargo `json:"cargo,omitempty"`
@@ -13,6 +15,7 @@ func newSalvage(position Vector, num int, playerNum int, cargo Cargo) *Salvage {
 			Position:  position,
 			Num:       num,
 			PlayerNum: playerNum,
+			Name:      fmt.Sprintf("Salvage #%d", num),
 			Dirty:     true,
 		},
 		Cargo: cargo,

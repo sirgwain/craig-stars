@@ -12,7 +12,7 @@ const Unowned = 0
 type discover struct {
 	player                   *Player
 	fleetIntelsByKey         map[playerObject]*FleetIntel
-	salvageIntelsByKey       map[playerObject]*SalvageIntel
+	salvageIntelsByKey       map[int]*SalvageIntel
 	mineFieldIntelsByKey     map[playerObject]*MineFieldIntel
 	mineralPacketIntelsByKey map[playerObject]*MineralPacketIntel
 	designIntelsByKey        map[playerObject]*ShipDesignIntel
@@ -66,10 +66,10 @@ func newDiscoverer(player *Player) discoverer {
 		d.mineralPacketIntelsByKey[intel.playerObjectKey()] = intel
 	}
 
-	d.salvageIntelsByKey = make(map[playerObject]*SalvageIntel, len(player.SalvageIntels))
+	d.salvageIntelsByKey = make(map[int]*SalvageIntel, len(player.SalvageIntels))
 	for i := range player.SalvageIntels {
 		intel := &player.SalvageIntels[i]
-		d.salvageIntelsByKey[intel.playerObjectKey()] = intel
+		d.salvageIntelsByKey[intel.Num] = intel
 	}
 
 	d.wormholeIntelsByKey = make(map[int]*WormholeIntel, len(player.WormholeIntels))
@@ -246,8 +246,8 @@ func newWormholeIntel(num int) *WormholeIntel {
 }
 
 // create a new SalvageIntel object by key
-func newSalvageIntel(playerNum int, num int) SalvageIntel {
-	return SalvageIntel{
+func newSalvageIntel(playerNum int, num int) *SalvageIntel {
+	return &SalvageIntel{
 		MapObjectIntel: MapObjectIntel{
 			Type: MapObjectTypeSalvage,
 			Intel: Intel{
@@ -309,8 +309,11 @@ func (intel *PlanetIntel) Explored() bool {
 // clear any transient player reports that are refreshed each turn
 func (d *discover) clearTransientReports() {
 	d.player.FleetIntels = []FleetIntel{}
+	d.fleetIntelsByKey = make(map[playerObject]*FleetIntel)
 	d.player.SalvageIntels = []SalvageIntel{}
+	d.salvageIntelsByKey = make(map[int]*SalvageIntel)
 	d.player.MineralPacketIntels = []MineralPacketIntel{}
+	d.mineralPacketIntelsByKey = make(map[playerObject]*MineralPacketIntel)
 }
 
 // discover a planet and add it to the player's intel
@@ -348,7 +351,7 @@ func (d *discover) discoverPlanet(rules *Rules, player *Player, planet *Planet, 
 		intel.Spec.MinTerraformAmount = terraformer.getMinTerraformAmount(intel.Hab, intel.BaseHab, player, player)
 		intel.Spec.CanTerraform = intel.Spec.TerraformAmount.absSum() > 0
 		intel.Spec.TerraformedHabitability = player.Race.GetPlanetHabitability(planet.Hab.Add(intel.Spec.TerraformAmount))
-		intel.Spec.MaxPopulation = getMaxPopulation(rules, intel.Spec.Habitability, player)
+		intel.Spec.MaxPopulation = getMaxPopulation(rules, intel.Spec.Habitability, player.Race.Spec.MaxPopulationOffset)
 
 		// discover starbases on scan, but don't discover designs
 		intel.Spec.HasStarbase = planet.Spec.HasStarbase
@@ -457,15 +460,20 @@ func (d *discover) discoverFleetCargo(player *Player, fleet *Fleet) {
 
 // discover a salvage and add it to the player's salvage intel
 func (d *discover) discoverSalvage(salvage *Salvage) {
-	intel := newSalvageIntel(salvage.PlayerNum, salvage.Num)
+	player := d.player
+	intel, found := d.salvageIntelsByKey[salvage.Num]
+	if !found {
+		// discover this new wormhole
+		player.SalvageIntels = append(player.SalvageIntels, *newSalvageIntel(salvage.PlayerNum, salvage.Num))
+		intel = &player.SalvageIntels[len(player.SalvageIntels)-1]
+		d.salvageIntelsByKey[intel.Num] = intel
+	}
 
 	intel.Name = salvage.Name
 	intel.PlayerNum = salvage.PlayerNum
 	intel.Position = salvage.Position
 	intel.Cargo = salvage.Cargo
 
-	d.player.SalvageIntels = append(d.player.SalvageIntels, intel)
-	d.salvageIntelsByKey[intel.playerObjectKey()] = &intel
 }
 
 // discover a mineField and add it to the player's mineField intel

@@ -12,7 +12,6 @@
 	import type { FullGame } from '$lib/services/FullGame';
 	import {
 		clearLoadingModalText,
-		commandedPlanet,
 		loadingModalText,
 		me,
 		nextMapObject,
@@ -20,12 +19,11 @@
 		setLoadingModalText
 	} from '$lib/services/Stores';
 	import { GameState } from '$lib/types/Game';
+	import { wait } from '$lib/wait';
 	import hotkeys from 'hotkeys-js';
 	import { onDestroy, onMount } from 'svelte';
 	import type { Unsubscriber } from 'svelte/store';
 	import GameMenu from './GameMenu.svelte';
-	import { wait } from '$lib/wait';
-	import { EventManager } from '$lib/EventManager';
 
 	initGameContext();
 	const { game, player, universe } = getGameContext();
@@ -83,7 +81,6 @@
 			hotkeys.unbind('F9');
 			hotkeys.unbind('n');
 			hotkeys.unbind('p');
-			hotkeys.unbind('q');
 
 			// load a new game, when this is successful, the $game contenxt will be updated
 			const loaded = await $game.load(id);
@@ -110,11 +107,6 @@
 				});
 				hotkeys('p', () => {
 					previousMapObject();
-				});
-				hotkeys('q', () => {
-					if ($commandedPlanet) {
-						EventManager.publishProductionQueueDialogRequestedEvent($commandedPlanet);
-					}
 				});
 			}
 		} finally {
@@ -171,7 +163,7 @@
 </script>
 
 {#if fg}
-	<main class="flex flex-col">
+	<main class="flex flex-col h-screen">
 		<header class="flex-none z-50">
 			<GameMenu on:submit-turn={onSubmitTurn} />
 		</header>
@@ -189,9 +181,3 @@
 	</main>
 {/if}
 
-<style>
-	main {
-		height: 100vh; /* Fallback for browsers that do not support Custom Properties */
-		height: calc(var(--vh, 1vh) * 100);
-	}
-</style>

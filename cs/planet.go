@@ -410,7 +410,7 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	spec := PlanetSpec{}
 	race := &player.Race
 	spec.Habitability = race.GetPlanetHabitability(planet.Hab)
-	spec.MaxPopulation = getMaxPopulation(rules, spec.Habitability, player)
+	spec.MaxPopulation = getMaxPopulation(rules, spec.Habitability, player.Race.Spec.MaxPopulationOffset)
 	spec.Population = planet.population()
 	if spec.MaxPopulation > 0 {
 		spec.PopulationDensity = float64(planet.population()) / float64(spec.MaxPopulation)
@@ -505,11 +505,14 @@ func (spec *PlanetSpec) computeResourcesPerYearAvailable(player *Player, planet 
 	}
 }
 
-func getMaxPopulation(rules *Rules, hab int, player *Player) int {
-	race := &player.Race
-	maxPopulationFactor := 1 + race.Spec.MaxPopulationOffset
+// getMaxPopulation returns the max population a race can grow to on a a planet
+func getMaxPopulation(rules *Rules, hab int, maxPopulationOffset float64) int {
+	maxPopulationFactor := 1 + maxPopulationOffset
 
-	return roundToNearest100f(float64(rules.MaxPopulation) * maxPopulationFactor * float64(hab) / 100.0)
+	// a planet's max pop can't go lower than 5% of a race's max, i.e.
+	// for a regular race with 1 million max pop, the minimum max population is 50,000
+	minMaxPop := float64(rules.MaxPopulation) * maxPopulationFactor * rules.MinMaxPopulationPercent
+	return roundToNearest100f(math.Max(minMaxPop, float64(rules.MaxPopulation)*maxPopulationFactor*float64(hab)/100.0))
 }
 
 func (planet *Planet) maxBuildable(t QueueItemType) int {

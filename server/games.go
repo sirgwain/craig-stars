@@ -548,6 +548,38 @@ func (s *server) generateTurn(w http.ResponseWriter, r *http.Request) {
 	rest.RenderJSON(w, rest.JSON{"game": game})
 }
 
+func (s *server) computeSpecs(w http.ResponseWriter, r *http.Request) {
+	user := s.contextUser(r)
+	game := s.contextGame(r)
+
+	// validate
+	if user.ID != game.HostID {
+		render.Render(w, r, ErrForbidden)
+		return
+	}
+
+	fg, err := s.db.GetFullGame(game.ID)
+	if err != nil {
+		log.Error().Err(err).Msg("load full game")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	gamer := cs.NewGamer()
+	if err := gamer.ComputeSpecs(fg); err != nil {
+		log.Error().Err(err).Msg("compute specs")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	if err := s.db.UpdateFullGame(fg); err != nil {
+		log.Error().Err(err).Msg("update game in database")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+	rest.RenderJSON(w, rest.JSON{"game": fg.Game})
+}
+
 func (s *server) deleteGame(w http.ResponseWriter, r *http.Request) {
 	user := s.contextUser(r)
 	game := s.contextGame(r)
@@ -564,3 +596,4 @@ func (s *server) deleteGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+

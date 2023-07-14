@@ -129,7 +129,7 @@ func (scan *playerScan) scanPlanet(planet *Planet, scanner scanner) (bool, error
 	dist := scanner.Position.DistanceSquaredTo(planet.Position)
 	_ = dist
 	if float64(scanner.RangePenSquared) >= scanner.Position.DistanceSquaredTo(planet.Position) {
-		if planet.owned() {
+		if planet.Owned() {
 			scan.discoveredPlayers[planet.PlayerNum] = true
 		}
 		if err := scan.discoverer.discoverPlanet(scan.rules, scan.player, planet, true); err != nil {

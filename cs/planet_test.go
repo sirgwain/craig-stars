@@ -143,3 +143,27 @@ func TestPlanet_reduceMineralConcentration(t *testing.T) {
 		})
 	}
 }
+
+func Test_getMaxPopulation(t *testing.T) {
+	type args struct {
+		hab                 int
+		maxPopulationOffset float64
+	}
+	tests := []struct {
+		name string
+		args args
+		want int
+	}{
+		{"plain homeworld", args{100, 0}, 1_000_000},
+		{"joat homeworld", args{100, .2}, 1_200_000},
+		{"low hab world", args{1, 0}, 50_000},
+		{"bad hab world", args{-45, 0}, 50_000},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := getMaxPopulation(&rules, tt.args.hab, tt.args.maxPopulationOffset); got != tt.want {
+				t.Errorf("getMaxPopulation() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

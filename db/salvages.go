@@ -38,10 +38,25 @@ func (c *client) GetSalvage(id int64) (*cs.Salvage, error) {
 	return salvage, nil
 }
 
-func (c *client) getSalvagesForGame(gameID int64) ([]*cs.Salvage, error) {
+func (c *client) GetSalvageByNum(gameID int64, num int) (*cs.Salvage, error) {
+
+	item := Salvage{}
+	if err := c.db.Get(&item, `SELECT * FROM salvages WHERE gameId = ? AND num = ?`, gameID, num); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	salvage := c.converter.ConvertSalvage(&item)
+	return salvage, nil
+
+}
+
+func (c *client) GetSalvagesForGame(gameID int64) ([]*cs.Salvage, error) {
 
 	items := []Salvage{}
-	if err := c.db.Select(&items, `SELECT * FROM salvages WHERE gameId = ?`, gameID); err != nil {
+	if err := c.db.Select(&items, `SELECT * FROM salvages WHERE gameId = ? ORDER BY num`, gameID); err != nil {
 		if err == sql.ErrNoRows {
 			return []*cs.Salvage{}, nil
 		}
@@ -74,7 +89,11 @@ func (c *client) GetSalvagesForPlayer(gameID int64, playerNum int) ([]*cs.Salvag
 	return results, nil
 }
 
-// create a new game
+func (c *client) CreateSalvage(salvage *cs.Salvage) error {
+	return c.createSalvage(salvage, c.db)
+}
+
+// create a new salvage
 func (c *client) createSalvage(salvage *cs.Salvage, tx SQLExecer) error {
 	item := c.converter.ConvertGameSalvage(salvage)
 	result, err := tx.NamedExec(`

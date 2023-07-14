@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
 	import { emptyCargo, totalCargo, type Cargo } from '$lib/types/Cargo';
+	import type { CargoTransferEvent } from '../../../routes/(user)/games/(game)/[id]/dialogs/cargo/CargoTranfserDialog.svelte';
 
-	const dispatch = createEventDispatcher();
+	const dispatch = createEventDispatcher<CargoTransferEvent>();
 
 	export let value: Cargo = {
 		ironium: 0,
@@ -29,7 +30,7 @@
 </script>
 
 <div
-	on:click={() => dispatch('cargo-transfer')}
+	on:pointerdown={() => dispatch('cargo-transfer-dialog')}
 	class="border border-secondary h-[1rem] text-[0rem] relative bg-base-200 cursor-pointer select-none"
 >
 	<div

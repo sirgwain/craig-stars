@@ -39,7 +39,6 @@
 					'transferironium',
 					e.detail - ((cargo.ironium ?? 0) + (transferAmount.ironium ?? 0))
 				)}
-
 		/>
 	</div>
 	<div class="text-right mr-1 h-8">Boranium</div>
@@ -53,7 +52,6 @@
 					'transferboranium',
 					e.detail - ((cargo.boranium ?? 0) + (transferAmount.boranium ?? 0))
 				)}
-
 		/>
 	</div>
 	<div class="text-right mr-1 h-8">Germanium</div>
@@ -67,7 +65,6 @@
 					'transfergermanium',
 					e.detail - ((cargo.germanium ?? 0) + (transferAmount.germanium ?? 0))
 				)}
-
 		/>
 	</div>
 
