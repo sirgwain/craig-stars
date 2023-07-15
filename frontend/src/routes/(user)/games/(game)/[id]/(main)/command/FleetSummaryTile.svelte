@@ -32,7 +32,9 @@
 
 <CommandTile title={fleet.name}>
 	<div class="grid grid-cols-2">
-		<div class="border border-secondary mx-auto fleet-avatar {icon} bg-black" />
+		<div class="avatar border border-secondary p-2 bg-black m-auto">
+			<div class="fleet-avatar {icon} bg-black" />
+		</div>
 		<div class="flex flex-col gap-y-1">
 			<button
 				on:click={() => previousMapObject()}

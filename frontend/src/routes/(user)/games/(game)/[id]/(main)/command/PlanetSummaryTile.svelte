@@ -9,7 +9,7 @@
 
 <CommandTile title={planet.name}>
 	<div class="grid grid-cols-2">
-		<div class="avatar ">
+		<div class="avatar">
 			<div class="border-2 border-neutral mr-2 p-2 bg-black">
 				<div class="planet-avatar {icon(planet)} bg-black" />
 			</div>
