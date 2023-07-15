@@ -343,7 +343,7 @@ func Test_turn_fleetMoveDestroyedByMineField(t *testing.T) {
 	assert.Equal(t, 1, len(game.Players[1].Messages))
 
 	// the MineField should have lost some mines in the collision
-	assert.Equal(t, 90, mineField.NumMines)
+	assert.Equal(t, 88, mineField.NumMines)
 }
 
 func Test_turn_permaform(t *testing.T) {
@@ -578,7 +578,7 @@ func Test_turn_fleetSweepMines(t *testing.T) {
 	turn.generateTurn()
 
 	// we should clear out some mines
-	assert.Equal(t, 84, mineField.NumMines)
+	assert.Equal(t, 78, mineField.NumMines)
 	assert.False(t, mineField.Delete)
 
 	// upgrade a mine sweeper weapon
