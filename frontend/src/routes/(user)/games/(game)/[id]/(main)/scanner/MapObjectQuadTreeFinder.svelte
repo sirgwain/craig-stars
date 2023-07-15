@@ -23,15 +23,17 @@
 	import type { ZoomTransform } from 'd3-zoom';
 	import type { LayerCake } from 'layercake';
 	import { createEventDispatcher, getContext } from 'svelte';
+	import type { Writable } from 'svelte/store';
 
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
+	const scale = getContext<Writable<number>>('scale');
 	const dispatch = createEventDispatcher<FinderEvent>();
 
 	// transform to transform our mouse to world coords
 	export let transform: ZoomTransform;
 
 	/** The number of pixels to search around the mouse's location. This is the third argument passed to [`quadtree.find`](https://github.com/d3/d3-quadtree#quadtree_find) and by default a value of `undefined` means an unlimited range. */
-	export let searchRadius: number | undefined = undefined;
+	export let searchRadius: number;
 
 	// find the item under
 	function findItem(x: number, y: number) {
@@ -41,11 +43,7 @@
 			[x1, y1] = transform.invert([x1, y1]);
 		}
 
-		const found = finder.find(
-			x1,
-			y1,
-			transform && searchRadius ? transform.scale(searchRadius).k : searchRadius
-		);
+		const found = finder.find(x1, y1, searchRadius / $scale);
 		const position = { x: Math.round(x1 / $xScale(1)), y: Math.round(y1 / $yScale(1)) };
 
 		return { position, found };

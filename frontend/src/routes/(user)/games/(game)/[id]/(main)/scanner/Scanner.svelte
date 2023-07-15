@@ -191,6 +191,11 @@
 
 		highlightMapObject(found);
 
+		if (dragging && !zooming) {
+			positionWaypoint = event.shiftKey;
+			dragWaypointMove(position, found);
+		}
+
 		// check if we are over the commanded fleet's waypoint
 		const fleetWaypoint =
 			found &&
@@ -220,10 +225,6 @@
 			selectWaypoint(fleetWaypoint);
 		}
 
-		if (dragging && !zooming) {
-			positionWaypoint = event.shiftKey;
-			dragWaypointMove(position, found);
-		}
 	}
 
 	function onPointerDown(e: CustomEvent<FinderEventDetails>) {
@@ -264,7 +265,7 @@
 	function dragWaypointMove(position: Vector, target: MapObject | undefined) {
 		if ($selectedWaypoint && $currentSelectedWaypointIndex && $commandedFleet) {
 			// don't move the waypoint to any adjacent waypoints
-			if (target) {
+			if (target && !positionWaypoint) {
 				const index = $commandedFleet.waypoints.findIndex((wp) =>
 					equal(wp.position, target.position)
 				);
