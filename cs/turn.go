@@ -41,7 +41,7 @@ func (t *turn) generateTurn() error {
 		player.Spec = computePlayerSpec(player, &t.game.Rules, t.game.Planets)
 	}
 
-	t.computePlanetSpecs()
+	t.computeSpecs()
 
 	// wp0 tasks
 	t.fleetInit()
@@ -101,7 +101,7 @@ func (t *turn) generateTurn() error {
 	// reset all players
 	// and do player specific things like scanning
 	// and patrol orders
-	t.computePlanetSpecs()     // make sure our specs are up to date
+	t.computeSpecs()     // make sure our specs are up to date
 	t.game.updateTokenCounts() // update token counts
 	for _, player := range t.game.Players {
 		player.Spec = computePlayerSpec(player, &t.game.Rules, t.game.Planets)
@@ -128,14 +128,8 @@ func (t *turn) generateTurn() error {
 
 // update all planet specs with the latest info
 // useful before turn generation and after building
-func (t *turn) computePlanetSpecs() {
-	for _, planet := range t.game.Planets {
-		if planet.Owned() {
-			player := t.game.getPlayer(planet.PlayerNum)
-			planet.Spec = computePlanetSpec(&t.game.Rules, player, planet)
-			planet.PopulateProductionQueueCosts(player)
-		}
-	}
+func (t *turn) computeSpecs() {
+	t.game.computeSpecs()
 }
 
 // fleetInit will reset any fleet data before processing

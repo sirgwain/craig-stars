@@ -54,7 +54,7 @@
 			<div class="flex flex-row gap-2">
 				<div class="flex flex-col flex-initial min-w-[6rem]">
 					<!-- icon and tech requirements row-->
-					<TechAvatar {tech} />
+					<TechAvatar {tech} hullTooltip={true} />
 					<TechLevelRequirements {tech} {player} />
 				</div>
 

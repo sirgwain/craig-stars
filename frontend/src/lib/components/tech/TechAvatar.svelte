@@ -1,12 +1,11 @@
 <script lang="ts">
 	import { TechCategory, type Tech, type TechHull } from '$lib/types/Tech';
 	import { kebabCase } from 'lodash-es';
-	import { onTechTooltip } from '../game/tooltips/TechTooltip.svelte';
+	import { onTechHullTooltip } from '../game/tooltips/TechHullTooltip.svelte';
 
 	export let tech: Tech | undefined = undefined;
 	export let hullSetNumber = 0;
-	export let numHullSets = 4;
-	export let hullSetChangeable = false;
+	export let hullTooltip = false;
 
 	let hull: TechHull;
 
@@ -25,5 +24,11 @@
 </script>
 
 <div class="avatar tech-avatar {icon(hullSetNumber)}">
-	<button type="button" />
+	{#if hullTooltip && hull}
+		<button
+			type="button"
+			class="w-full h-full"
+			on:pointerdown|preventDefault={(e) => onTechHullTooltip(e, hull)}
+		/>
+	{/if}
 </div>

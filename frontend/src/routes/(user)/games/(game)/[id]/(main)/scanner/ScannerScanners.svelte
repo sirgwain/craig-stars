@@ -21,13 +21,15 @@
 		if ($data) {
 			const scannersByPosition = new Map<string, Scanner>();
 
-			$universe.planets.forEach((planet) =>
-				scannersByPosition.set(positionKey(planet), {
-					position: planet.position,
-					scanRange: planet.spec?.scanRange ?? 0,
-					scanRangePen: planet.spec?.scanRangePen ?? 0
-				})
-			);
+			$universe.planets
+				.filter((p) => p.scanner)
+				.forEach((planet) =>
+					scannersByPosition.set(positionKey(planet), {
+						position: planet.position,
+						scanRange: planet.spec?.scanRange ?? 0,
+						scanRangePen: planet.spec?.scanRangePen ?? 0
+					})
+				);
 
 			$universe.fleets
 				.filter((fleet) => fleet.spec?.scanner)

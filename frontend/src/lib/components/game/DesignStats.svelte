@@ -5,7 +5,7 @@
 	export let spec: Spec;
 
 	function scanRange(range: number | undefined) {
-		return !spec.scanRange || spec.scanRange === NoScanner ? '-' : spec.scanRange;
+		return !range || range === NoScanner ? '-' : range;
 	}
 </script>
 
@@ -43,10 +43,4 @@
 		<div class="font-semibold mr-5">Scanner Range</div>
 		<div>{scanRange(spec.scanRange)}/{scanRange(spec.scanRangePen)}</div>
 	</div>
-	<!-- {#if design.purpose}
-		<div class="flex justify-between">
-			<div class="font-semibold mr-5">Purpose</div>
-			<div>{design.purpose}</div>
-		</div>
-	{/if} -->
 </div>
