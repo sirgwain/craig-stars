@@ -78,7 +78,7 @@
 				);
 			} else {
 				descriptions.push(
-					`Allows you to modify a planet's {terraform.HabType} by up to ${terraform.ability}% from its original value`
+					`Allows you to modify a planet's ${terraform.habType} by up to ${terraform.ability}% from its original value`
 				);
 			}
 		}
@@ -110,7 +110,7 @@
 				if (hullComponent.category == TechCategory.Shield && (hullComponent.armor ?? 0) > 0) {
 					// if this is a shield with armor, it sounds cooler to make the armor a description
 					descriptions.push(
-						`This shield also contains an armor component which will absorb {hullComponent.armor} damage points.`
+						`This shield also contains an armor component which will absorb ${hullComponent.armor} damage points.`
 					);
 				} else if (hullComponent.armor ?? 0 > 0) {
 					stats.push({
@@ -122,7 +122,7 @@
 				if ((hullComponent.category == TechCategory.Armor && hullComponent.shield) ?? 0 > 0) {
 					// if this is an armor with a shield, it sounds cooler to make the shield a description
 					descriptions.push(
-						`This armor also acts as part shield which will absorb {hullComponent.shield} damage points.`
+						`This armor also acts as part shield which will absorb ${hullComponent.shield} damage points.`
 					);
 				} else if (hullComponent.shield ?? 0 > 0) {
 					stats.push({
@@ -265,7 +265,7 @@
 				if (hullComponent.torpedoBonus ?? (0 > 0 || hullComponent.initiativeBonus) ?? 0 > 0) {
 					if (hullComponent.torpedoBonus ?? (0 > 0 && hullComponent.initiativeBonus) ?? 0 > 0) {
 						descriptions.push(
-							`This module increases the accuracy of your torpedos by {hullComponent.torpedoBonus}% and increases your initiative by ${hullComponent.initiativeBonus}. If an enemy ship has jammers the computer acts to offset their effects.`
+							`This module increases the accuracy of your torpedos by ${hullComponent.torpedoBonus}% and increases your initiative by ${hullComponent.initiativeBonus}. If an enemy ship has jammers the computer acts to offset their effects.`
 						);
 					} else if (hullComponent.initiativeBonus ?? 0 > 0) {
 						descriptions.push(

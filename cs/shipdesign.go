@@ -51,7 +51,7 @@ type ShipDesignSpec struct {
 	Scanner                   bool                  `json:"scanner,omitempty"`
 	ImmuneToOwnDetonation     bool                  `json:"immuneToOwnDetonation,omitempty"`
 	MineLayingRateByMineType  map[MineFieldType]int `json:"mineLayingRateByMineType,omitempty"`
-	Shields                   int                   `json:"shield,omitempty"`
+	Shields                   int                   `json:"shields,omitempty"`
 	Colonizer                 bool                  `json:"colonizer,omitempty"`
 	Starbase                  bool                  `json:"starbase,omitempty"`
 	CanLayMines               bool                  `json:"canLayMines,omitempty"`

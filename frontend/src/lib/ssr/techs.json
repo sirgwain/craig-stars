@@ -1,17 +1,9 @@
 {
-	"id": 0,
-	"createdAt": "0001-01-01T00:00:00Z",
-	"updatedAt": "0001-01-01T00:00:00Z",
-	"rulesId": 0,
 	"engines": [
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Settler's Delight",
 			"cost": { "ironium": 1, "germanium": 1, "resources": 2 },
-			"requirements": { "prtRequired": "HE" },
+			"requirements": { "prtRequired": "HE", "hullsAllowed": ["Mini-Colony Ship"] },
 			"ranking": 10,
 			"category": "Engine",
 			"hullSlotType": 2,
@@ -21,10 +13,6 @@
 			"fuelUsage": [0, 0, 0, 0, 0, 0, 0, 150, 275, 480, 576]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Quick Jump 5",
 			"cost": { "ironium": 3, "germanium": 1, "resources": 3 },
 			"requirements": {},
@@ -33,13 +21,10 @@
 			"hullSlotType": 2,
 			"mass": 4,
 			"idealSpeed": 5,
+			"freeSpeed": 1,
 			"fuelUsage": [0, 0, 25, 100, 100, 100, 180, 500, 800, 900, 1080]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Fuel Mizer",
 			"cost": { "ironium": 8, "resources": 11 },
 			"requirements": { "propulsion": 2, "lrtsRequired": 1 },
@@ -52,10 +37,6 @@
 			"fuelUsage": [0, 0, 0, 0, 0, 35, 120, 175, 235, 360, 420]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Long Hump 6",
 			"cost": { "ironium": 5, "germanium": 1, "resources": 6 },
 			"requirements": { "propulsion": 3 },
@@ -64,13 +45,10 @@
 			"hullSlotType": 2,
 			"mass": 9,
 			"idealSpeed": 6,
+			"freeSpeed": 1,
 			"fuelUsage": [0, 0, 20, 60, 100, 100, 105, 450, 750, 900, 1080]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Daddy Long Legs 7",
 			"cost": { "ironium": 11, "germanium": 3, "resources": 12 },
 			"requirements": { "propulsion": 5 },
@@ -79,13 +57,10 @@
 			"hullSlotType": 2,
 			"mass": 13,
 			"idealSpeed": 7,
+			"freeSpeed": 1,
 			"fuelUsage": [0, 0, 20, 60, 70, 100, 100, 110, 600, 750, 900]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Alpha Drive 8",
 			"cost": { "ironium": 16, "germanium": 3, "resources": 28 },
 			"requirements": { "propulsion": 7 },
@@ -94,13 +69,10 @@
 			"hullSlotType": 2,
 			"mass": 17,
 			"idealSpeed": 8,
+			"freeSpeed": 1,
 			"fuelUsage": [0, 0, 15, 50, 60, 70, 100, 100, 115, 700, 840]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Trans-Galactic Drive",
 			"cost": { "ironium": 20, "boranium": 20, "germanium": 9, "resources": 50 },
 			"requirements": { "propulsion": 9 },
@@ -109,13 +81,10 @@
 			"hullSlotType": 2,
 			"mass": 25,
 			"idealSpeed": 9,
+			"freeSpeed": 1,
 			"fuelUsage": [0, 0, 15, 35, 45, 55, 70, 80, 90, 100, 120]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Interspace-10",
 			"cost": { "ironium": 18, "boranium": 25, "germanium": 10, "resources": 60 },
 			"requirements": { "propulsion": 11, "lrtsRequired": 64 },
@@ -124,13 +93,10 @@
 			"hullSlotType": 2,
 			"mass": 25,
 			"idealSpeed": 10,
+			"freeSpeed": 1,
 			"fuelUsage": [0, 0, 10, 30, 40, 50, 60, 70, 80, 90, 100]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Trans-Star 10",
 			"cost": { "ironium": 3, "germanium": 3, "resources": 10 },
 			"requirements": { "propulsion": 23 },
@@ -139,13 +105,10 @@
 			"hullSlotType": 2,
 			"mass": 5,
 			"idealSpeed": 10,
+			"freeSpeed": 1,
 			"fuelUsage": [0, 0, 5, 15, 20, 25, 30, 35, 40, 45, 50]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Radiating Hydro-Ram Scoop",
 			"cost": { "ironium": 3, "boranium": 2, "germanium": 9, "resources": 8 },
 			"requirements": { "energy": 2, "propulsion": 6, "lrtsDenied": 64 },
@@ -159,10 +122,6 @@
 			"fuelUsage": [0, 0, 0, 0, 0, 0, 0, 165, 375, 600, 720]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Sub-Galactic Fuel Scoop",
 			"cost": { "ironium": 4, "boranium": 4, "germanium": 7, "resources": 12 },
 			"requirements": { "energy": 2, "propulsion": 8, "lrtsDenied": 64 },
@@ -175,10 +134,6 @@
 			"fuelUsage": [0, 0, 0, 0, 0, 0, 85, 105, 210, 380, 456]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Trans-Galactic Fuel Scoop",
 			"cost": { "ironium": 5, "boranium": 4, "germanium": 12, "resources": 18 },
 			"requirements": { "energy": 3, "propulsion": 9, "lrtsDenied": 64 },
@@ -191,10 +146,6 @@
 			"fuelUsage": [0, 0, 0, 0, 0, 0, 0, 88, 100, 145, 174]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Trans-Galactic Super Scoop",
 			"cost": { "ironium": 6, "boranium": 4, "germanium": 16, "resources": 24 },
 			"requirements": { "energy": 4, "propulsion": 12, "lrtsDenied": 64 },
@@ -207,10 +158,6 @@
 			"fuelUsage": [0, 0, 0, 0, 0, 0, 0, 0, 65, 90, 108]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Trans-Galactic Mizer Scoop",
 			"cost": { "ironium": 5, "boranium": 2, "germanium": 13, "resources": 11 },
 			"requirements": { "energy": 4, "propulsion": 16, "lrtsDenied": 64 },
@@ -223,10 +170,6 @@
 			"fuelUsage": [0, 0, 0, 0, 0, 0, 0, 0, 0, 70, 84]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Galaxy Scoop",
 			"cost": { "ironium": 4, "boranium": 2, "germanium": 9, "resources": 12 },
 			"requirements": { "energy": 5, "propulsion": 20, "lrtsRequired": 1, "lrtsDenied": 64 },
@@ -241,10 +184,6 @@
 	],
 	"planetaryScanners": [
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Viewer 50",
 			"cost": { "ironium": 10, "boranium": 10, "germanium": 70, "resources": 100 },
 			"requirements": { "prtDenied": "AR" },
@@ -252,10 +191,6 @@
 			"scanRange": 50
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Viewer 90",
 			"cost": { "ironium": 10, "boranium": 10, "germanium": 70, "resources": 100 },
 			"requirements": { "electronics": 1, "prtDenied": "AR" },
@@ -264,10 +199,6 @@
 			"scanRange": 90
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Scoper 150",
 			"cost": { "ironium": 10, "boranium": 10, "germanium": 70, "resources": 100 },
 			"requirements": { "electronics": 3, "prtDenied": "AR" },
@@ -276,10 +207,6 @@
 			"scanRange": 150
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Scoper 220",
 			"cost": { "ironium": 10, "boranium": 10, "germanium": 70, "resources": 100 },
 			"requirements": { "electronics": 6, "prtDenied": "AR" },
@@ -288,10 +215,6 @@
 			"scanRange": 220
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Scoper 280",
 			"cost": { "ironium": 10, "boranium": 10, "germanium": 70, "resources": 100 },
 			"requirements": { "electronics": 8, "prtDenied": "AR" },
@@ -300,10 +223,6 @@
 			"scanRange": 280
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Snooper 320X",
 			"cost": { "ironium": 10, "boranium": 10, "germanium": 70, "resources": 100 },
 			"requirements": {
@@ -319,10 +238,6 @@
 			"scanRangePen": 160
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Snooper 400X",
 			"cost": { "ironium": 10, "boranium": 10, "germanium": 70, "resources": 100 },
 			"requirements": {
@@ -338,10 +253,6 @@
 			"scanRangePen": 200
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Snooper 500X",
 			"cost": { "ironium": 10, "boranium": 10, "germanium": 70, "resources": 100 },
 			"requirements": {
@@ -357,10 +268,6 @@
 			"scanRangePen": 250
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Snooper 620X",
 			"cost": { "ironium": 10, "boranium": 10, "germanium": 70, "resources": 100 },
 			"requirements": {
@@ -378,10 +285,6 @@
 	],
 	"terraforms": [
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Total Terraform ±3",
 			"cost": { "resources": 70 },
 			"requirements": { "lrtsRequired": 2 },
@@ -390,10 +293,6 @@
 			"habType": "All"
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Total Terraform ±5",
 			"cost": { "resources": 70 },
 			"requirements": { "biotechnology": 3, "lrtsRequired": 2 },
@@ -403,10 +302,6 @@
 			"habType": "All"
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Total Terraform ±7",
 			"cost": { "resources": 70 },
 			"requirements": { "biotechnology": 6, "lrtsRequired": 2 },
@@ -416,10 +311,6 @@
 			"habType": "All"
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Total Terraform ±10",
 			"cost": { "resources": 70 },
 			"requirements": { "biotechnology": 9, "lrtsRequired": 2 },
@@ -429,10 +320,6 @@
 			"habType": "All"
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Total Terraform ±15",
 			"cost": { "resources": 70 },
 			"requirements": { "biotechnology": 13, "lrtsRequired": 2 },
@@ -442,10 +329,6 @@
 			"habType": "All"
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Total Terraform ±20",
 			"cost": { "resources": 70 },
 			"requirements": { "biotechnology": 17, "lrtsRequired": 2 },
@@ -455,10 +338,6 @@
 			"habType": "All"
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Total Terraform ±25",
 			"cost": { "resources": 70 },
 			"requirements": { "biotechnology": 22, "lrtsRequired": 2 },
@@ -468,10 +347,6 @@
 			"habType": "All"
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Total Terraform ±30",
 			"cost": { "resources": 70 },
 			"requirements": { "biotechnology": 25, "lrtsRequired": 2 },
@@ -481,10 +356,6 @@
 			"habType": "All"
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Gravity Terraform ±3",
 			"cost": { "resources": 100 },
 			"requirements": { "propulsion": 1, "biotechnology": 1 },
@@ -494,10 +365,6 @@
 			"habType": "Grav"
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Gravity Terraform ±7",
 			"cost": { "resources": 100 },
 			"requirements": { "propulsion": 5, "biotechnology": 2 },
@@ -507,10 +374,6 @@
 			"habType": "Grav"
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Gravity Terraform ±11",
 			"cost": { "resources": 100 },
 			"requirements": { "propulsion": 10, "biotechnology": 3 },
@@ -520,10 +383,6 @@
 			"habType": "Grav"
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Gravity Terraform ±15",
 			"cost": { "resources": 100 },
 			"requirements": { "propulsion": 16, "biotechnology": 4 },
@@ -533,10 +392,6 @@
 			"habType": "Grav"
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Temp Terraform ±3",
 			"cost": { "resources": 100 },
 			"requirements": { "energy": 1, "biotechnology": 1 },
@@ -546,10 +401,6 @@
 			"habType": "Temp"
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Temp Terraform ±7",
 			"cost": { "resources": 100 },
 			"requirements": { "energy": 5, "biotechnology": 2 },
@@ -559,10 +410,6 @@
 			"habType": "Temp"
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Temp Terraform ±11",
 			"cost": { "resources": 100 },
 			"requirements": { "energy": 10, "biotechnology": 3 },
@@ -572,10 +419,6 @@
 			"habType": "Temp"
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Temp Terraform ±15",
 			"cost": { "resources": 100 },
 			"requirements": { "energy": 16, "biotechnology": 4 },
@@ -585,10 +428,6 @@
 			"habType": "Temp"
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Radiation Terraform ±3",
 			"cost": { "resources": 100 },
 			"requirements": { "weapons": 1, "biotechnology": 1 },
@@ -598,10 +437,6 @@
 			"habType": "Rad"
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Radiation Terraform ±7",
 			"cost": { "resources": 100 },
 			"requirements": { "weapons": 5, "biotechnology": 2 },
@@ -611,10 +446,6 @@
 			"habType": "Rad"
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Radiation Terraform ±11",
 			"cost": { "resources": 100 },
 			"requirements": { "weapons": 10, "biotechnology": 3 },
@@ -624,10 +455,6 @@
 			"habType": "Rad"
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Radiation Terraform ±15",
 			"cost": { "resources": 100 },
 			"requirements": { "weapons": 16, "biotechnology": 4 },
@@ -639,10 +466,6 @@
 	],
 	"defenses": [
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "SDI",
 			"cost": { "ironium": 5, "boranium": 5, "germanium": 5, "resources": 15 },
 			"requirements": { "prtDenied": "AR" },
@@ -650,10 +473,6 @@
 			"defenseCoverage": 0.99
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Missile Battery",
 			"cost": { "ironium": 5, "boranium": 5, "germanium": 5, "resources": 15 },
 			"requirements": { "energy": 5, "prtDenied": "AR" },
@@ -662,10 +481,6 @@
 			"defenseCoverage": 1.99
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Laser Battery",
 			"cost": { "ironium": 5, "boranium": 5, "germanium": 5, "resources": 15 },
 			"requirements": { "energy": 10, "prtDenied": "AR" },
@@ -674,10 +489,6 @@
 			"defenseCoverage": 2.39
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Planetary Shield",
 			"cost": { "ironium": 5, "boranium": 5, "germanium": 5, "resources": 15 },
 			"requirements": { "energy": 16, "prtDenied": "AR" },
@@ -686,10 +497,6 @@
 			"defenseCoverage": 2.99
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Neutron Shield",
 			"cost": { "ironium": 5, "boranium": 5, "germanium": 5, "resources": 15 },
 			"requirements": { "energy": 23, "prtDenied": "AR" },
@@ -700,10 +507,6 @@
 	],
 	"hullComponents": [
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Stargate 100-250",
 			"cost": { "ironium": 50, "boranium": 20, "germanium": 20, "resources": 200 },
 			"requirements": { "propulsion": 5, "construction": 5, "prtDenied": "HE" },
@@ -715,10 +518,6 @@
 			"maxRange": 1250
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Stargate any-300",
 			"cost": { "ironium": 50, "boranium": 20, "germanium": 20, "resources": 250 },
 			"requirements": {
@@ -736,10 +535,6 @@
 			"maxRange": 1500
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Stargate 150-600",
 			"cost": { "ironium": 50, "boranium": 20, "germanium": 20, "resources": 500 },
 			"requirements": { "propulsion": 11, "construction": 7, "prtDenied": "HE" },
@@ -752,10 +547,6 @@
 			"maxRange": 3000
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Stargate 300-500",
 			"cost": { "ironium": 50, "boranium": 20, "germanium": 20, "resources": 600 },
 			"requirements": { "propulsion": 9, "construction": 13, "prtDenied": "HE" },
@@ -768,10 +559,6 @@
 			"maxRange": 2500
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Stargate 100-any",
 			"cost": { "ironium": 50, "boranium": 20, "germanium": 20, "resources": 700 },
 			"requirements": {
@@ -789,10 +576,6 @@
 			"maxRange": 2147483647
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Stargate any-800",
 			"cost": { "ironium": 50, "boranium": 20, "germanium": 20, "resources": 700 },
 			"requirements": {
@@ -810,10 +593,6 @@
 			"maxRange": 4000
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Stargate any-any",
 			"cost": { "ironium": 50, "boranium": 20, "germanium": 20, "resources": 800 },
 			"requirements": {
@@ -831,10 +610,6 @@
 			"maxRange": 2147483647
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Mass Driver 5",
 			"cost": { "ironium": 24, "boranium": 20, "germanium": 20, "resources": 70 },
 			"requirements": { "energy": 4, "prtRequired": "PP" },
@@ -844,10 +619,6 @@
 			"packetSpeed": 5
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Mass Driver 6",
 			"cost": { "ironium": 24, "boranium": 20, "germanium": 20, "resources": 144 },
 			"requirements": { "energy": 7, "prtRequired": "PP" },
@@ -857,10 +628,6 @@
 			"packetSpeed": 6
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Mass Driver 7",
 			"cost": { "ironium": 100, "boranium": 100, "germanium": 100, "resources": 512 },
 			"requirements": { "energy": 9 },
@@ -870,10 +637,6 @@
 			"packetSpeed": 7
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Super Driver 8",
 			"cost": { "ironium": 24, "boranium": 20, "germanium": 20, "resources": 256 },
 			"requirements": { "energy": 11, "prtRequired": "PP" },
@@ -883,10 +646,6 @@
 			"packetSpeed": 8
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Super Driver 9",
 			"cost": { "ironium": 24, "boranium": 20, "germanium": 20, "resources": 324 },
 			"requirements": { "energy": 13, "prtRequired": "PP" },
@@ -896,10 +655,6 @@
 			"packetSpeed": 9
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Ultra Driver 10",
 			"cost": { "ironium": 100, "boranium": 100, "germanium": 100, "resources": 968 },
 			"requirements": { "energy": 15 },
@@ -909,10 +664,6 @@
 			"packetSpeed": 10
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Ultra Driver 11",
 			"cost": { "ironium": 24, "boranium": 20, "germanium": 20, "resources": 484 },
 			"requirements": { "energy": 17, "prtRequired": "PP" },
@@ -922,10 +673,6 @@
 			"packetSpeed": 11
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Ultra Driver 12",
 			"cost": { "ironium": 24, "boranium": 20, "germanium": 20, "resources": 576 },
 			"requirements": { "energy": 20, "prtRequired": "PP" },
@@ -935,10 +682,6 @@
 			"packetSpeed": 12
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Ultra Driver 13",
 			"cost": { "ironium": 24, "boranium": 20, "germanium": 20, "resources": 676 },
 			"requirements": { "energy": 24, "prtRequired": "PP" },
@@ -948,10 +691,6 @@
 			"packetSpeed": 13
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Robo-Miner",
 			"cost": { "ironium": 30, "germanium": 7, "resources": 100 },
 			"requirements": { "construction": 4, "electronics": 2, "lrtsDenied": 128 },
@@ -961,10 +700,6 @@
 			"miningRate": 12
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Robo-Maxi-Miner",
 			"cost": { "ironium": 30, "germanium": 7, "resources": 100 },
 			"requirements": { "construction": 7, "electronics": 4, "lrtsDenied": 128 },
@@ -975,10 +710,6 @@
 			"miningRate": 18
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Robo-Midget-Miner",
 			"cost": { "ironium": 12, "germanium": 4, "resources": 44 },
 			"requirements": { "lrtsRequired": 4 },
@@ -989,10 +720,6 @@
 			"miningRate": 5
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Robo-Mini-Miner",
 			"cost": { "ironium": 29, "germanium": 7, "resources": 96 },
 			"requirements": { "construction": 2, "electronics": 1 },
@@ -1003,10 +730,6 @@
 			"miningRate": 4
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Robo-Super-Miner",
 			"cost": { "ironium": 30, "germanium": 7, "resources": 100 },
 			"requirements": { "construction": 12, "electronics": 6, "lrtsDenied": 128 },
@@ -1017,10 +740,6 @@
 			"miningRate": 27
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Robo-Ultra-Miner",
 			"cost": { "ironium": 14, "germanium": 4, "resources": 100 },
 			"requirements": {
@@ -1036,10 +755,6 @@
 			"miningRate": 25
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Orbital Adjuster",
 			"cost": { "ironium": 25, "boranium": 25, "germanium": 25, "resources": 50 },
 			"requirements": { "biotechnology": 6, "prtRequired": "CA" },
@@ -1051,10 +766,6 @@
 			"terraformRate": 1
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Lady Finger Bomb",
 			"cost": { "ironium": 1, "boranium": 19, "resources": 5 },
 			"requirements": { "weapons": 2 },
@@ -1066,10 +777,6 @@
 			"structureDestroyRate": 0.2
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Black Cat Bomb",
 			"cost": { "ironium": 1, "boranium": 22, "resources": 7 },
 			"requirements": { "weapons": 5 },
@@ -1082,10 +789,6 @@
 			"structureDestroyRate": 0.4
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "M-70 Bomb",
 			"cost": { "ironium": 1, "boranium": 24, "resources": 9 },
 			"requirements": { "weapons": 8 },
@@ -1098,10 +801,6 @@
 			"structureDestroyRate": 0.6
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "M-80 Bomb",
 			"cost": { "ironium": 1, "boranium": 25, "resources": 12 },
 			"requirements": { "weapons": 11 },
@@ -1114,10 +813,6 @@
 			"structureDestroyRate": 0.7
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Cherry Bomb",
 			"cost": { "ironium": 1, "boranium": 25, "resources": 11 },
 			"requirements": { "weapons": 14 },
@@ -1130,10 +825,6 @@
 			"structureDestroyRate": 1
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "LBU-17 Bomb",
 			"cost": { "ironium": 1, "boranium": 15, "germanium": 15, "resources": 7 },
 			"requirements": { "weapons": 5, "electronics": 8 },
@@ -1145,10 +836,6 @@
 			"structureDestroyRate": 1.6
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "LBU-32 Bomb",
 			"cost": { "ironium": 1, "boranium": 24, "germanium": 15, "resources": 10 },
 			"requirements": { "weapons": 10, "electronics": 10 },
@@ -1160,10 +847,6 @@
 			"structureDestroyRate": 2.8
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "LBU-74 Bomb",
 			"cost": { "ironium": 1, "boranium": 33, "germanium": 12, "resources": 14 },
 			"requirements": { "weapons": 15, "electronics": 12 },
@@ -1175,10 +858,6 @@
 			"structureDestroyRate": 4.5
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Retro Bomb",
 			"cost": { "ironium": 15, "boranium": 15, "germanium": 10, "resources": 50 },
 			"requirements": { "weapons": 10, "biotechnology": 12, "prtRequired": "CA" },
@@ -1189,10 +868,6 @@
 			"unterraformRate": 1
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Smart Bomb",
 			"cost": { "ironium": 1, "boranium": 22, "resources": 27 },
 			"requirements": { "weapons": 5, "biotechnology": 7 },
@@ -1204,10 +879,6 @@
 			"smart": true
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Neutron Bomb",
 			"cost": { "ironium": 1, "boranium": 30, "resources": 30 },
 			"requirements": { "weapons": 10, "biotechnology": 10 },
@@ -1219,10 +890,6 @@
 			"smart": true
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Enriched Neutron Bomb",
 			"cost": { "ironium": 1, "boranium": 36, "resources": 25 },
 			"requirements": { "weapons": 15, "biotechnology": 12 },
@@ -1234,10 +901,6 @@
 			"smart": true
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Peerless Bomb",
 			"cost": { "ironium": 1, "boranium": 33, "resources": 32 },
 			"requirements": { "weapons": 22, "biotechnology": 15 },
@@ -1249,10 +912,6 @@
 			"smart": true
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Annihilator Bomb",
 			"cost": { "ironium": 1, "boranium": 30, "resources": 28 },
 			"requirements": { "weapons": 26, "biotechnology": 17 },
@@ -1264,10 +923,6 @@
 			"smart": true
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Bat Scanner",
 			"cost": { "ironium": 1, "germanium": 1, "resources": 1 },
 			"requirements": {},
@@ -1278,10 +933,6 @@
 			"scanRange": 1
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Rhino Scanner",
 			"cost": { "ironium": 3, "germanium": 2, "resources": 3 },
 			"requirements": { "electronics": 1 },
@@ -1292,10 +943,6 @@
 			"scanRange": 50
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Mole Scanner",
 			"cost": { "ironium": 2, "germanium": 2, "resources": 9 },
 			"requirements": { "electronics": 4 },
@@ -1306,10 +953,6 @@
 			"scanRange": 100
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "DNA Scanner",
 			"cost": { "ironium": 1, "boranium": 1, "germanium": 1, "resources": 5 },
 			"requirements": { "propulsion": 3, "biotechnology": 6 },
@@ -1320,10 +963,6 @@
 			"scanRange": 125
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Possum Scanner",
 			"cost": { "ironium": 3, "germanium": 3, "resources": 18 },
 			"requirements": { "electronics": 5 },
@@ -1334,10 +973,6 @@
 			"scanRange": 150
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Pick Pocket Scanner",
 			"cost": { "ironium": 8, "boranium": 10, "germanium": 6, "resources": 35 },
 			"requirements": { "energy": 4, "electronics": 4, "biotechnology": 4, "prtRequired": "SS" },
@@ -1349,10 +984,6 @@
 			"canStealFleetCargo": true
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Chameleon Scanner",
 			"cost": { "ironium": 4, "boranium": 6, "germanium": 4, "resources": 25 },
 			"requirements": { "energy": 3, "electronics": 6, "prtRequired": "SS" },
@@ -1365,10 +996,6 @@
 			"cloakUnits": 40
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Ferret Scanner",
 			"cost": { "ironium": 2, "germanium": 8, "resources": 36 },
 			"requirements": { "energy": 3, "electronics": 7, "biotechnology": 2, "lrtsDenied": 256 },
@@ -1380,10 +1007,6 @@
 			"scanRangePen": 50
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Dolphin Scanner",
 			"cost": { "ironium": 5, "boranium": 5, "germanium": 10, "resources": 40 },
 			"requirements": { "energy": 5, "electronics": 10, "biotechnology": 4, "lrtsDenied": 256 },
@@ -1395,10 +1018,6 @@
 			"scanRangePen": 100
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Gazelle Scanner",
 			"cost": { "ironium": 4, "germanium": 5, "resources": 24 },
 			"requirements": { "energy": 4, "electronics": 8 },
@@ -1409,10 +1028,6 @@
 			"scanRange": 225
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "RNA Scanner",
 			"cost": { "ironium": 1, "boranium": 1, "germanium": 2, "resources": 20 },
 			"requirements": { "propulsion": 5, "biotechnology": 10 },
@@ -1423,10 +1038,6 @@
 			"scanRange": 230
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Cheetah Scanner",
 			"cost": { "ironium": 3, "boranium": 1, "germanium": 13, "resources": 50 },
 			"requirements": { "energy": 5, "electronics": 11 },
@@ -1437,10 +1048,6 @@
 			"scanRange": 275
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Elephant Scanner",
 			"cost": { "ironium": 8, "boranium": 5, "germanium": 14, "resources": 70 },
 			"requirements": { "energy": 6, "electronics": 16, "biotechnology": 7, "lrtsDenied": 256 },
@@ -1452,10 +1059,6 @@
 			"scanRangePen": 200
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Eagle Eye Scanner",
 			"cost": { "ironium": 3, "boranium": 2, "germanium": 21, "resources": 64 },
 			"requirements": { "energy": 6, "electronics": 14 },
@@ -1466,10 +1069,6 @@
 			"scanRange": 335
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Robber Baron Scanner",
 			"cost": { "ironium": 10, "boranium": 10, "germanium": 10, "resources": 90 },
 			"requirements": { "energy": 10, "electronics": 15, "biotechnology": 10, "prtRequired": "SS" },
@@ -1483,10 +1082,6 @@
 			"canStealPlanetCargo": true
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Peerless Scanner",
 			"cost": { "ironium": 3, "boranium": 2, "germanium": 30, "resources": 90 },
 			"requirements": { "energy": 7, "electronics": 24 },
@@ -1497,10 +1092,6 @@
 			"scanRange": 500
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Tritanium",
 			"cost": { "ironium": 5, "resources": 9 },
 			"requirements": {},
@@ -1511,10 +1102,6 @@
 			"armor": 50
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Crobmnium",
 			"cost": { "ironium": 6, "resources": 13 },
 			"requirements": { "construction": 3 },
@@ -1525,10 +1112,6 @@
 			"armor": 75
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Carbonic Armor",
 			"cost": { "ironium": 5, "resources": 15 },
 			"requirements": { "biotechnology": 4 },
@@ -1539,10 +1122,6 @@
 			"armor": 100
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Strobnium",
 			"cost": { "ironium": 8, "resources": 18 },
 			"requirements": { "construction": 6 },
@@ -1553,10 +1132,6 @@
 			"armor": 120
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Organic Armor",
 			"cost": { "germanium": 6, "resources": 20 },
 			"requirements": { "biotechnology": 7 },
@@ -1567,10 +1142,6 @@
 			"armor": 175
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Kelarium",
 			"cost": { "ironium": 9, "boranium": 1, "resources": 25 },
 			"requirements": { "construction": 9 },
@@ -1581,10 +1152,6 @@
 			"armor": 180
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Fielded Kelarium",
 			"cost": { "ironium": 10, "germanium": 2, "resources": 28 },
 			"requirements": { "energy": 4, "construction": 10, "prtRequired": "IS" },
@@ -1596,10 +1163,6 @@
 			"shield": 50
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Depleted Neutronium",
 			"cost": { "ironium": 10, "germanium": 2, "resources": 28 },
 			"requirements": { "construction": 10, "electronics": 3, "prtRequired": "SS" },
@@ -1611,10 +1174,6 @@
 			"armor": 200
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Neutronium",
 			"cost": { "ironium": 11, "boranium": 2, "germanium": 1, "resources": 30 },
 			"requirements": { "construction": 12 },
@@ -1625,10 +1184,6 @@
 			"armor": 275
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Valanium",
 			"cost": { "ironium": 15, "resources": 50 },
 			"requirements": { "construction": 16 },
@@ -1639,10 +1194,6 @@
 			"armor": 500
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Superlatanium",
 			"cost": { "ironium": 25, "resources": 100 },
 			"requirements": { "construction": 24 },
@@ -1653,10 +1204,6 @@
 			"armor": 1500
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Transport Cloaking",
 			"cost": { "ironium": 2, "germanium": 2, "resources": 3 },
 			"requirements": { "prtRequired": "SS" },
@@ -1667,10 +1214,6 @@
 			"cloakUnarmedOnly": true
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Stealth Cloak",
 			"cost": { "ironium": 2, "germanium": 2, "resources": 5 },
 			"requirements": { "energy": 2, "electronics": 5 },
@@ -1681,10 +1224,6 @@
 			"cloakUnits": 70
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Super-Stealth Cloak",
 			"cost": { "ironium": 8, "germanium": 8, "resources": 15 },
 			"requirements": { "energy": 4, "electronics": 10 },
@@ -1695,10 +1234,6 @@
 			"cloakUnits": 140
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Ultra-Stealth Cloak",
 			"cost": { "ironium": 10, "germanium": 10, "resources": 25 },
 			"requirements": { "energy": 10, "electronics": 12, "prtRequired": "SS" },
@@ -1709,10 +1244,6 @@
 			"cloakUnits": 540
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Battle Computer",
 			"cost": { "germanium": 13, "resources": 5 },
 			"requirements": {},
@@ -1724,10 +1255,6 @@
 			"initiativeBonus": 1
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Battle Super Computer",
 			"cost": { "germanium": 25, "resources": 14 },
 			"requirements": { "energy": 5, "electronics": 11 },
@@ -1739,10 +1266,6 @@
 			"initiativeBonus": 2
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Battle Nexus",
 			"cost": { "germanium": 30, "resources": 15 },
 			"requirements": { "energy": 10, "electronics": 19 },
@@ -1754,10 +1277,6 @@
 			"initiativeBonus": 3
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Jammer 10",
 			"cost": { "germanium": 2, "resources": 6 },
 			"requirements": { "energy": 2, "electronics": 6, "prtRequired": "IS" },
@@ -1768,10 +1287,6 @@
 			"torpedoJamming": 0.1
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Jammer 20",
 			"cost": { "ironium": 1, "germanium": 5, "resources": 20 },
 			"requirements": { "energy": 4, "electronics": 10 },
@@ -1782,10 +1297,6 @@
 			"torpedoJamming": 0.2
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Jammer 30",
 			"cost": { "ironium": 1, "germanium": 6, "resources": 20 },
 			"requirements": { "energy": 8, "electronics": 16 },
@@ -1796,10 +1307,6 @@
 			"torpedoJamming": 0.3
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Jammer 50",
 			"cost": { "ironium": 2, "germanium": 7, "resources": 20 },
 			"requirements": { "energy": 16, "electronics": 22 },
@@ -1810,10 +1317,6 @@
 			"torpedoJamming": 0.5
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Energy Capacitor",
 			"cost": { "germanium": 8, "resources": 5 },
 			"requirements": { "energy": 7, "electronics": 4 },
@@ -1824,10 +1327,6 @@
 			"beamBonus": 0.1
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Flux Capacitor",
 			"cost": { "germanium": 8, "resources": 5 },
 			"requirements": { "energy": 14, "electronics": 8, "prtRequired": "HE" },
@@ -1838,10 +1337,6 @@
 			"beamBonus": 0.1
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Energy Dampener",
 			"cost": { "ironium": 5, "boranium": 10, "resources": 50 },
 			"requirements": { "energy": 14, "propulsion": 8, "prtRequired": "SD" },
@@ -1852,10 +1347,6 @@
 			"reduceMovement": 1
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Tachyon Detector",
 			"cost": { "ironium": 1, "boranium": 5, "resources": 70 },
 			"requirements": { "energy": 8, "electronics": 14, "prtRequired": "IS" },
@@ -1866,10 +1357,6 @@
 			"reduceCloaking": true
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Anti-Matter Generator",
 			"cost": { "ironium": 8, "boranium": 3, "germanium": 3, "resources": 10 },
 			"requirements": { "weapons": 12, "biotechnology": 7, "prtRequired": "IT" },
@@ -1881,10 +1368,6 @@
 			"fuelRegenerationRate": 50
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Mine Dispenser 40",
 			"cost": { "ironium": 2, "boranium": 9, "germanium": 7, "resources": 40 },
 			"requirements": { "prtRequired": "SD" },
@@ -1895,10 +1378,6 @@
 			"mineLayingRate": 40
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Mine Dispenser 50",
 			"cost": { "ironium": 2, "boranium": 12, "germanium": 10, "resources": 55 },
 			"requirements": { "energy": 2, "biotechnology": 4 },
@@ -1910,10 +1389,6 @@
 			"mineLayingRate": 50
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Mine Dispenser 80",
 			"cost": { "ironium": 2, "boranium": 12, "germanium": 10, "resources": 65 },
 			"requirements": { "energy": 3, "biotechnology": 7, "prtRequired": "SD" },
@@ -1925,10 +1400,6 @@
 			"mineLayingRate": 80
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Mine Dispenser 130",
 			"cost": { "ironium": 2, "boranium": 18, "germanium": 10, "resources": 80 },
 			"requirements": { "energy": 6, "biotechnology": 12, "prtRequired": "SD" },
@@ -1940,10 +1411,6 @@
 			"mineLayingRate": 130
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Heavy Dispenser 50",
 			"cost": { "ironium": 2, "boranium": 20, "germanium": 5, "resources": 50 },
 			"requirements": { "energy": 5, "biotechnology": 3, "prtRequired": "SD" },
@@ -1955,10 +1422,6 @@
 			"mineLayingRate": 50
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Heavy Dispenser 110",
 			"cost": { "ironium": 2, "boranium": 20, "germanium": 5, "resources": 50 },
 			"requirements": { "energy": 9, "biotechnology": 5, "prtRequired": "SD" },
@@ -1970,10 +1433,6 @@
 			"mineLayingRate": 110
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Heavy Dispenser 200",
 			"cost": { "ironium": 2, "boranium": 45, "germanium": 5, "resources": 90 },
 			"requirements": { "energy": 14, "biotechnology": 7, "prtRequired": "SD" },
@@ -1985,10 +1444,6 @@
 			"mineLayingRate": 200
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Speed Trap 20",
 			"cost": { "ironium": 29, "germanium": 12, "resources": 58 },
 			"requirements": { "propulsion": 2, "biotechnology": 2, "prtRequired": "SD" },
@@ -2000,10 +1455,6 @@
 			"mineLayingRate": 20
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Speed Trap 30",
 			"cost": { "ironium": 32, "germanium": 14, "resources": 72 },
 			"requirements": { "propulsion": 3, "biotechnology": 6, "prtRequired": "SD" },
@@ -2015,10 +1466,6 @@
 			"mineLayingRate": 30
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Speed Trap 50",
 			"cost": { "ironium": 40, "germanium": 15, "resources": 80 },
 			"requirements": { "propulsion": 5, "biotechnology": 11, "prtRequired": "SD" },
@@ -2030,10 +1477,6 @@
 			"mineLayingRate": 50
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Colonization Module",
 			"cost": { "ironium": 11, "boranium": 9, "germanium": 9, "resources": 9 },
 			"requirements": {},
@@ -2043,10 +1486,6 @@
 			"colonizationModule": true
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Orbital Construction Module",
 			"cost": { "ironium": 18, "boranium": 13, "germanium": 13, "resources": 18 },
 			"requirements": { "prtRequired": "AR" },
@@ -2058,10 +1497,6 @@
 			"orbitalConstructionModule": true
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Cargo Pod",
 			"cost": { "ironium": 5, "germanium": 2, "resources": 10 },
 			"requirements": { "construction": 3 },
@@ -2072,10 +1507,6 @@
 			"cargoBonus": 50
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Super Cargo Pod",
 			"cost": { "ironium": 8, "germanium": 2, "resources": 15 },
 			"requirements": { "energy": 3, "construction": 8 },
@@ -2086,10 +1517,6 @@
 			"cargoBonus": 100
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Fuel Tank",
 			"cost": { "ironium": 5, "resources": 4 },
 			"requirements": {},
@@ -2100,10 +1527,6 @@
 			"fuelBonus": 250
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Super Fuel Tank",
 			"cost": { "ironium": 8, "resources": 8 },
 			"requirements": { "energy": 6, "propulsion": 4, "construction": 14 },
@@ -2114,10 +1537,6 @@
 			"fuelBonus": 500
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Maneuvering Jet",
 			"cost": { "ironium": 5, "germanium": 5, "resources": 10 },
 			"requirements": { "energy": 2, "propulsion": 3 },
@@ -2128,10 +1547,6 @@
 			"movementBonus": 1
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Overthruster",
 			"cost": { "ironium": 10, "germanium": 8, "resources": 20 },
 			"requirements": { "energy": 5, "propulsion": 12 },
@@ -2142,10 +1557,6 @@
 			"movementBonus": 2
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Beam Deflector",
 			"cost": { "germanium": 10, "resources": 8 },
 			"requirements": { "energy": 6, "weapons": 6, "construction": 6, "electronics": 6 },
@@ -2156,10 +1567,6 @@
 			"beamDefense": 1
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Laser",
 			"cost": { "boranium": 6, "resources": 5 },
 			"requirements": {},
@@ -2171,10 +1578,6 @@
 			"initiative": 9
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "X-Ray Laser",
 			"cost": { "boranium": 6, "resources": 6 },
 			"requirements": { "weapons": 3 },
@@ -2187,10 +1590,6 @@
 			"initiative": 9
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Mini Gun",
 			"cost": { "boranium": 6, "resources": 6 },
 			"requirements": { "weapons": 5, "prtRequired": "IS" },
@@ -2205,10 +1604,6 @@
 			"hitsAllTargets": true
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Yakimora Light Phaser",
 			"cost": { "boranium": 8, "resources": 7 },
 			"requirements": { "weapons": 6 },
@@ -2221,10 +1616,6 @@
 			"initiative": 9
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Blackjack",
 			"cost": { "boranium": 16, "resources": 7 },
 			"requirements": { "weapons": 7 },
@@ -2236,10 +1627,6 @@
 			"initiative": 10
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Phaser Bazooka",
 			"cost": { "boranium": 8, "resources": 11 },
 			"requirements": { "weapons": 8 },
@@ -2252,10 +1639,6 @@
 			"initiative": 7
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Pulsed Sapper",
 			"cost": { "germanium": 4, "resources": 12 },
 			"requirements": { "energy": 5, "weapons": 9 },
@@ -2269,10 +1652,6 @@
 			"damageShieldsOnly": true
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Colloidal Phaser",
 			"cost": { "boranium": 14, "resources": 18 },
 			"requirements": { "weapons": 10 },
@@ -2285,10 +1664,6 @@
 			"initiative": 5
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Gatling Gun",
 			"cost": { "boranium": 20, "resources": 13 },
 			"requirements": { "weapons": 11 },
@@ -2303,10 +1678,6 @@
 			"hitsAllTargets": true
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Mini Blaster",
 			"cost": { "boranium": 10, "resources": 9 },
 			"requirements": { "weapons": 12 },
@@ -2319,10 +1690,6 @@
 			"initiative": 9
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Bludgeon",
 			"cost": { "boranium": 22, "resources": 9 },
 			"requirements": { "weapons": 13 },
@@ -2334,10 +1701,6 @@
 			"initiative": 10
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Mark IV Blaster",
 			"cost": { "boranium": 12, "resources": 15 },
 			"requirements": { "weapons": 14 },
@@ -2350,10 +1713,6 @@
 			"initiative": 7
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Phased Sapper",
 			"cost": { "germanium": 6, "resources": 16 },
 			"requirements": { "energy": 8, "weapons": 15 },
@@ -2367,10 +1726,6 @@
 			"damageShieldsOnly": true
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Heavy Blaster",
 			"cost": { "boranium": 20, "resources": 25 },
 			"requirements": { "weapons": 16 },
@@ -2383,10 +1738,6 @@
 			"initiative": 5
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Gatling Neutrino Cannon",
 			"cost": { "boranium": 28, "resources": 17 },
 			"requirements": { "weapons": 17, "prtRequired": "WM" },
@@ -2401,10 +1752,6 @@
 			"hitsAllTargets": true
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Myopic Disruptor",
 			"cost": { "boranium": 14, "resources": 12 },
 			"requirements": { "weapons": 18 },
@@ -2417,10 +1764,6 @@
 			"initiative": 9
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Blunderbuss",
 			"cost": { "boranium": 30, "resources": 13 },
 			"requirements": { "weapons": 19, "prtRequired": "WM" },
@@ -2432,10 +1775,6 @@
 			"initiative": 11
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Disruptor",
 			"cost": { "boranium": 16, "resources": 20 },
 			"requirements": { "weapons": 20 },
@@ -2448,10 +1787,6 @@
 			"initiative": 8
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Syncro Sapper",
 			"cost": { "germanium": 8, "resources": 21 },
 			"requirements": { "energy": 11, "weapons": 21 },
@@ -2465,10 +1800,6 @@
 			"damageShieldsOnly": true
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Mega Disruptor",
 			"cost": { "boranium": 30, "resources": 33 },
 			"requirements": { "weapons": 22 },
@@ -2481,10 +1812,6 @@
 			"initiative": 6
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Big Mutha Cannon",
 			"cost": { "boranium": 36, "resources": 23 },
 			"requirements": { "weapons": 23 },
@@ -2499,10 +1826,6 @@
 			"hitsAllTargets": true
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Streaming Pulverizer",
 			"cost": { "boranium": 20, "resources": 16 },
 			"requirements": { "weapons": 24 },
@@ -2515,10 +1838,6 @@
 			"initiative": 9
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Anti-Matter Pulverizer",
 			"cost": { "boranium": 22, "resources": 27 },
 			"requirements": { "weapons": 26 },
@@ -2531,10 +1850,6 @@
 			"initiative": 8
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Alpha Torpedo",
 			"cost": { "ironium": 8, "boranium": 3, "germanium": 3, "resources": 4 },
 			"requirements": {},
@@ -2546,10 +1861,6 @@
 			"accuracy": 35
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Beta Torpedo",
 			"cost": { "ironium": 18, "boranium": 6, "germanium": 4, "resources": 6 },
 			"requirements": { "weapons": 5, "propulsion": 1 },
@@ -2563,10 +1874,6 @@
 			"accuracy": 45
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Delta Torpedo",
 			"cost": { "ironium": 22, "boranium": 8, "germanium": 5, "resources": 8 },
 			"requirements": { "weapons": 10, "propulsion": 2 },
@@ -2580,10 +1887,6 @@
 			"accuracy": 60
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Epsilon Torpedo",
 			"cost": { "ironium": 30, "boranium": 10, "germanium": 6, "resources": 10 },
 			"requirements": { "weapons": 14, "propulsion": 3 },
@@ -2597,10 +1900,6 @@
 			"accuracy": 65
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Rho Torpedo",
 			"cost": { "ironium": 34, "boranium": 12, "germanium": 8, "resources": 12 },
 			"requirements": { "weapons": 18, "propulsion": 4 },
@@ -2614,10 +1913,6 @@
 			"accuracy": 75
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Upsilon Torpedo",
 			"cost": { "ironium": 40, "boranium": 14, "germanium": 9, "resources": 15 },
 			"requirements": { "weapons": 22, "propulsion": 5 },
@@ -2631,10 +1926,6 @@
 			"accuracy": 75
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Omega Torpedo",
 			"cost": { "ironium": 52, "boranium": 18, "germanium": 12, "resources": 18 },
 			"requirements": { "weapons": 26, "propulsion": 6 },
@@ -2648,10 +1939,6 @@
 			"accuracy": 80
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Jihad Missile",
 			"cost": { "ironium": 37, "boranium": 13, "germanium": 9, "resources": 13 },
 			"requirements": { "weapons": 12, "propulsion": 6 },
@@ -2665,10 +1952,6 @@
 			"capitalShipMissile": true
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Juggernaut Missile",
 			"cost": { "ironium": 48, "boranium": 16, "germanium": 11, "resources": 16 },
 			"requirements": { "weapons": 16, "propulsion": 8 },
@@ -2683,10 +1966,6 @@
 			"capitalShipMissile": true
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Doomsday Missile",
 			"cost": { "ironium": 60, "boranium": 20, "germanium": 13, "resources": 20 },
 			"requirements": { "weapons": 20, "propulsion": 10 },
@@ -2701,10 +1980,6 @@
 			"capitalShipMissile": true
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Armageddon Missile",
 			"cost": { "ironium": 67, "boranium": 23, "germanium": 16, "resources": 24 },
 			"requirements": { "weapons": 24, "propulsion": 10 },
@@ -2719,10 +1994,6 @@
 			"capitalShipMissile": true
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Mole-skin Shield",
 			"cost": { "ironium": 1, "germanium": 1, "resources": 4 },
 			"requirements": {},
@@ -2733,10 +2004,6 @@
 			"shield": 25
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Cow-hide Shield",
 			"cost": { "ironium": 2, "germanium": 2, "resources": 5 },
 			"requirements": { "energy": 3 },
@@ -2747,10 +2014,6 @@
 			"shield": 40
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Wolverine Diffuse Shield",
 			"cost": { "ironium": 3, "germanium": 3, "resources": 6 },
 			"requirements": { "energy": 6 },
@@ -2761,10 +2024,6 @@
 			"shield": 60
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Croby Sharmor",
 			"cost": { "ironium": 7, "germanium": 4, "resources": 15 },
 			"requirements": { "energy": 7, "construction": 4, "prtRequired": "IS" },
@@ -2776,10 +2035,6 @@
 			"shield": 60
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Shadow Shield",
 			"cost": { "ironium": 3, "germanium": 3, "resources": 7 },
 			"requirements": { "energy": 7, "electronics": 3, "prtRequired": "SS" },
@@ -2791,10 +2046,6 @@
 			"shield": 75
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Bear Neutrino Barrier",
 			"cost": { "ironium": 4, "germanium": 4, "resources": 8 },
 			"requirements": { "energy": 10 },
@@ -2805,10 +2056,6 @@
 			"shield": 100
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Gorilla Delagator",
 			"cost": { "ironium": 5, "germanium": 6, "resources": 11 },
 			"requirements": { "energy": 14 },
@@ -2819,10 +2066,6 @@
 			"shield": 175
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Elephant Hide Fortress",
 			"cost": { "ironium": 8, "germanium": 10, "resources": 15 },
 			"requirements": { "energy": 18 },
@@ -2833,10 +2076,6 @@
 			"shield": 300
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Complete Phase Shield",
 			"cost": { "ironium": 12, "germanium": 15, "resources": 20 },
 			"requirements": { "energy": 22 },
@@ -2849,10 +2088,6 @@
 	],
 	"hulls": [
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Small Freighter",
 			"cost": { "ironium": 12, "germanium": 17, "resources": 20 },
 			"requirements": {},
@@ -2874,10 +2109,6 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Medium Freighter",
 			"cost": { "ironium": 20, "germanium": 19, "resources": 40 },
 			"requirements": { "construction": 3 },
@@ -2899,10 +2130,6 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Large Freighter",
 			"cost": { "ironium": 35, "germanium": 21, "resources": 100 },
 			"requirements": { "construction": 8 },
@@ -2924,10 +2151,6 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Super Freighter",
 			"cost": { "ironium": 35, "germanium": 21, "resources": 100 },
 			"requirements": { "construction": 13, "prtRequired": "IS" },
@@ -2950,10 +2173,6 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Scout",
 			"cost": { "ironium": 4, "boranium": 2, "germanium": 4, "resources": 10 },
 			"requirements": {},
@@ -2976,10 +2195,6 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Frigate",
 			"cost": { "ironium": 4, "boranium": 2, "germanium": 5, "resources": 12 },
 			"requirements": { "construction": 6 },
@@ -3003,10 +2218,6 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Destroyer",
 			"cost": { "ironium": 15, "boranium": 3, "germanium": 5, "resources": 35 },
 			"requirements": { "construction": 3 },
@@ -3033,10 +2244,6 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Cruiser",
 			"cost": { "ironium": 40, "boranium": 5, "germanium": 8, "resources": 85 },
 			"requirements": { "construction": 9 },
@@ -3062,10 +2269,6 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Battle Cruiser",
 			"cost": { "ironium": 55, "boranium": 8, "germanium": 12, "resources": 120 },
 			"requirements": { "construction": 9, "prtRequired": "WM" },
@@ -3091,10 +2294,6 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Battleship",
 			"cost": { "ironium": 120, "boranium": 25, "germanium": 20, "resources": 225 },
 			"requirements": { "construction": 13 },
@@ -3124,10 +2323,6 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Dreadnought",
 			"cost": { "ironium": 140, "boranium": 30, "germanium": 25, "resources": 275 },
 			"requirements": { "construction": 16, "prtRequired": "WM" },
@@ -3159,16 +2354,12 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Privateer",
 			"cost": { "ironium": 50, "boranium": 3, "germanium": 3, "resources": 50 },
 			"requirements": { "construction": 4 },
 			"ranking": 120,
 			"category": "ShipHull",
-			"type": "ArmedFreighter",
+			"type": "MultiPurposeFreighter",
 			"mass": 65,
 			"armor": 150,
 			"fuelCapacity": 650,
@@ -3187,16 +2378,12 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Rogue",
 			"cost": { "ironium": 80, "boranium": 5, "germanium": 5, "resources": 60 },
 			"requirements": { "construction": 8, "prtRequired": "SS" },
 			"ranking": 130,
 			"category": "ShipHull",
-			"type": "ArmedFreighter",
+			"type": "MultiPurposeFreighter",
 			"mass": 75,
 			"armor": 450,
 			"fuelCapacity": 2250,
@@ -3219,16 +2406,12 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Galleon",
 			"cost": { "ironium": 70, "boranium": 5, "germanium": 5, "resources": 105 },
 			"requirements": { "construction": 11 },
 			"ranking": 140,
 			"category": "ShipHull",
-			"type": "ArmedFreighter",
+			"type": "MultiPurposeFreighter",
 			"mass": 125,
 			"armor": 900,
 			"fuelCapacity": 2500,
@@ -3250,10 +2433,6 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Mini-Colony Ship",
 			"cost": { "ironium": 2, "germanium": 2, "resources": 3 },
 			"requirements": { "prtRequired": "HE" },
@@ -3274,10 +2453,6 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Colony Ship",
 			"cost": { "ironium": 9, "germanium": 13, "resources": 18 },
 			"requirements": {},
@@ -3298,10 +2473,6 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Mini Bomber",
 			"cost": { "ironium": 18, "boranium": 5, "germanium": 9, "resources": 32 },
 			"requirements": { "construction": 1 },
@@ -3321,10 +2492,6 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "B-17 Bomber",
 			"cost": { "ironium": 55, "boranium": 10, "germanium": 10, "resources": 150 },
 			"requirements": { "construction": 6 },
@@ -3346,10 +2513,6 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Stealth Bomber",
 			"cost": { "ironium": 55, "boranium": 10, "germanium": 15, "resources": 175 },
 			"requirements": { "construction": 8, "prtRequired": "SS" },
@@ -3372,10 +2535,6 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "B-52 Bomber",
 			"cost": { "ironium": 90, "boranium": 15, "germanium": 10, "resources": 280 },
 			"requirements": { "construction": 15 },
@@ -3400,10 +2559,6 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Midget Miner",
 			"cost": { "ironium": 10, "germanium": 3, "resources": 20 },
 			"requirements": { "lrtsRequired": 4 },
@@ -3423,10 +2578,6 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Mini-Miner",
 			"cost": { "ironium": 25, "germanium": 6, "resources": 50 },
 			"requirements": { "construction": 2 },
@@ -3448,10 +2599,6 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Miner",
 			"cost": { "ironium": 32, "germanium": 6, "resources": 110 },
 			"requirements": { "construction": 6, "lrtsRequired": 4 },
@@ -3475,10 +2622,6 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Maxi-Miner",
 			"cost": { "ironium": 32, "germanium": 6, "resources": 140 },
 			"requirements": { "construction": 11, "lrtsDenied": 128 },
@@ -3502,10 +2645,6 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Ultra-Miner",
 			"cost": { "ironium": 30, "germanium": 6, "resources": 130 },
 			"requirements": { "construction": 14, "lrtsRequired": 4 },
@@ -3529,10 +2668,6 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Fuel Transport",
 			"cost": { "ironium": 10, "germanium": 5, "resources": 50 },
 			"requirements": { "construction": 4, "prtRequired": "IS" },
@@ -3553,10 +2688,6 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Super Fuel Xport",
 			"cost": { "ironium": 20, "germanium": 8, "resources": 70 },
 			"requirements": { "construction": 7, "prtRequired": "IS" },
@@ -3578,10 +2709,6 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Mini Mine Layer",
 			"cost": { "ironium": 8, "boranium": 2, "germanium": 5, "resources": 20 },
 			"requirements": { "prtRequired": "SD" },
@@ -3605,10 +2732,6 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Super Mine Layer",
 			"cost": { "ironium": 20, "boranium": 3, "germanium": 9, "resources": 30 },
 			"requirements": { "construction": 15, "prtRequired": "SD" },
@@ -3634,10 +2757,6 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Nubian",
 			"cost": { "ironium": 75, "boranium": 12, "germanium": 12, "resources": 150 },
 			"requirements": { "construction": 26 },
@@ -3669,16 +2788,12 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Meta Morph",
 			"cost": { "ironium": 50, "boranium": 12, "germanium": 12, "resources": 120 },
 			"requirements": { "construction": 10, "prtRequired": "HE" },
 			"ranking": 310,
 			"category": "ShipHull",
-			"type": "ArmedFreighter",
+			"type": "MultiPurposeFreighter",
 			"mass": 85,
 			"armor": 500,
 			"fuelCapacity": 700,
@@ -3699,10 +2814,6 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Orbital Fort",
 			"cost": { "ironium": 24, "germanium": 34, "resources": 80 },
 			"requirements": {},
@@ -3728,10 +2839,6 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Space Dock",
 			"cost": { "ironium": 40, "boranium": 10, "germanium": 50, "resources": 200 },
 			"requirements": { "construction": 4, "lrtsRequired": 8 },
@@ -3761,10 +2868,6 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Space Station",
 			"cost": { "ironium": 120, "boranium": 80, "germanium": 250, "resources": 600 },
 			"requirements": {},
@@ -3797,10 +2900,6 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Ultra Station",
 			"cost": { "ironium": 120, "boranium": 80, "germanium": 300, "resources": 600 },
 			"requirements": { "construction": 12, "lrtsRequired": 8 },
@@ -3837,10 +2936,6 @@
 			]
 		},
 		{
-			"id": 0,
-			"createdAt": "0001-01-01T00:00:00Z",
-			"updatedAt": "0001-01-01T00:00:00Z",
-			"techStoreId": 0,
 			"name": "Death Star",
 			"cost": { "ironium": 120, "boranium": 80, "germanium": 350, "resources": 750 },
 			"requirements": { "construction": 17, "prtRequired": "AR" },
