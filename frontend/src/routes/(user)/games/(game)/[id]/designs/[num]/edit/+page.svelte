@@ -19,9 +19,12 @@
 
 		try {
 			if (design) {
-				// update this design
-				await $game.updateDesign(design);
-				goto(`/games/${$game.id}/designs/${design.num}`);
+				const { valid, reason } = $game.validateDesign(design);
+				if (valid) {
+					// update this design
+					await $game.updateDesign(design);
+					goto(`/games/${$game.id}/designs/${design.num}`);
+				}
 			}
 		} catch (e) {
 			error = (e as Error).message;

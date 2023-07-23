@@ -16,10 +16,20 @@
 </Breadcrumb>
 
 <div class="flex flex-wrap justify-center gap-2">
-	{#each $designs.filter((d) => d.playerNum === $player.num) as design (design.num)}
+	{#each $designs.filter((d) => d.playerNum === $player.num && !d.spec.starbase) as design (design.num)}
 		<DesignCard
 			{design}
 			href={`/games/${$game.id}/designs/${design.num}`}
+			copyhref={`/games/${$game.id}/designs/create/${design.hull}?copy=${design.num}`}
+			on:delete={() => design.num && $game.deleteDesign(design.num)}
+		/>
+	{/each}
+
+	{#each $designs.filter((d) => d.playerNum === $player.num && d.spec.starbase) as design (design.num)}
+		<DesignCard
+			{design}
+			href={`/games/${$game.id}/designs/${design.num}`}
+			copyhref={`/games/${$game.id}/designs/create/${design.hull}?copy=${design.num}`}
 			on:delete={() => design.num && $game.deleteDesign(design.num)}
 		/>
 	{/each}

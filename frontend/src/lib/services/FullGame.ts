@@ -268,6 +268,17 @@ export class FullGame implements Game {
 		updatePlayer(this.player);
 	}
 
+	validateDesign(design: ShipDesign): { valid: boolean; reason?: string } {
+		// TODO: add more validations
+
+		// if we have a design with this name already, it is invalid
+		const designsWithName = this.universe.getMyDesigns().filter((d) => d.name === design.name);
+		if (designsWithName.length > 1 || (designsWithName.length === 1 && !design.id)) {
+			return { valid: false, reason: `Another design named ${design.name} exists` };
+		}
+		return { valid: true };
+	}
+
 	async createDesign(design: ShipDesign): Promise<ShipDesign> {
 		// update this design
 		design = await DesignService.create(this.id, design);

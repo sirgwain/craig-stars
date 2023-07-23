@@ -6,8 +6,9 @@
 	import { getGameContext } from '$lib/services/Contexts';
 	import { techs } from '$lib/services/Stores';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
+	import { onMount } from 'svelte';
 
-	const { game, player } = getGameContext();
+	const { game, player, universe } = getGameContext();
 	let hullName = $page.params.hull;
 
 	let design: ShipDesign = {
@@ -18,7 +19,9 @@
 		hull: '',
 		hullSetNumber: 0,
 		slots: [],
-		spec: {}
+		spec: {
+			engine: {}
+		}
 	};
 
 	$: hull = $techs.getHull(hullName);
@@ -26,11 +29,29 @@
 
 	let error = '';
 
+	onMount(() => {
+		const copyParam = $page.url.searchParams.get('copy');
+		if (copyParam) {
+			const copyDesign = $game.universe.getMyDesign(parseInt(copyParam));
+			if (copyDesign) {
+				design.slots = copyDesign?.slots;
+				design.spec = copyDesign.spec;
+				design.hullSetNumber = copyDesign.hullSetNumber;
+				design.version = copyDesign.version + 1;
+			}
+		}
+	});
+
 	const onSave = async () => {
 		error = '';
 		try {
-			const created = await $game.createDesign(design);
-			goto(`/games/${$game.id}/designs/${created.num}`);
+			const { valid, reason } = $game.validateDesign(design);
+			if (valid) {
+				const created = await $game.createDesign(design);
+				goto(`/games/${$game.id}/designs/${created.num}`);
+			} else {
+				error = reason ?? 'invalid design';
+			}
 		} catch (e) {
 			error = `${e}`;
 		}

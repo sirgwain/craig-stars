@@ -17,9 +17,13 @@
 	export let highlightedSlots: HullSlot[] = [];
 	export let highlightedClass: string = '';
 	export let cargoCapacity = hull.cargoCapacity ?? 0;
+	export let showTooltips = true;
 </script>
 
-<div class="relative m-2 bg-base-200 dark:bg-base-300" style={`width: ${containerWidth}px; height: ${containerHeight}px`}>
+<div
+	class="relative m-2 bg-base-200 dark:bg-base-300"
+	style={`width: ${containerWidth}px; height: ${containerHeight}px`}
+>
 	{#each hull.slots as slot, index}
 		{@const shipDesignSlot = shipDesignSlots.find((s) => s.hullSlotIndex === index + 1)}
 		{#if index == 1 && cargoCapacity > 0}
@@ -67,6 +71,7 @@
 				required={slot.required}
 				highlighted={highlightedSlots.findIndex((s) => s === slot) != -1}
 				{highlightedClass}
+				{showTooltips}
 				on:clicked={(e) => {
 					dispatch('slot-clicked', { index, slot, shipDesignSlot });
 				}}

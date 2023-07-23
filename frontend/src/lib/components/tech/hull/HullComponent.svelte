@@ -17,6 +17,7 @@
 	export let shipDesignSlot: ShipDesignSlot | undefined = undefined;
 	export let highlighted = false;
 	export let highlightedClass = 'border-accent';
+	export let showTooltips = false;
 
 	function typeDescription() {
 		switch (type) {
@@ -66,10 +67,11 @@
 		on:click={() => {
 			dispatch('clicked');
 		}}
-		on:pointerdown|preventDefault={(e) =>
-			shipDesignSlot?.hullComponent &&
-			!highlighted &&
-			onTechTooltip(e, $techs.getHullComponent(shipDesignSlot?.hullComponent))}
+		on:pointerdown|preventDefault={(e) => {
+			if (shipDesignSlot?.hullComponent && showTooltips) {
+				onTechTooltip(e, $techs.getHullComponent(shipDesignSlot?.hullComponent));
+			}
+		}}
 		class="w-full h-full"
 	>
 		<div class="flex flex-col justify-between w-full h-full">

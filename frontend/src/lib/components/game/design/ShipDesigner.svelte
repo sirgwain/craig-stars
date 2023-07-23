@@ -188,6 +188,7 @@
 						cargoCapacity={designSpec.cargoCapacity}
 						{highlightedSlots}
 						highlightedClass={'border-accent'}
+						showTooltips={false}
 						on:slot-clicked={(e) =>
 							onSlotClicked(e.detail.index, e.detail.slot, e.detail.shipDesignSlot)}
 					/>

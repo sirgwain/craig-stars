@@ -12,6 +12,7 @@
 
 	export let design: ShipDesign;
 	export let href: string
+	export let copyhref: string;
 
 	const deleteDesign = async (design: ShipDesign) => {
 		if (design.num != undefined && confirm(`Are you sure you want to delete ${design.name}?`)) {
@@ -51,12 +52,13 @@
 					</span>
 				</div>
 			</div>
-			<div>
-				<button class="btn" on:click={(e) => deleteDesign(design)}>
+			<div class="flex flex-row join">
+				<button class="btn btn-outline btn-secondary joint-item" on:click={(e) => deleteDesign(design)}>
 					<Icon src={Trash} size="24" class="hover:stroke-accent" />
 				</button>
+				<a class="btn btn-outline btn-secondary joint-item" href={copyhref}>Copy</a>
 				{#if !design.spec?.numInstances}
-					<a class="btn" href={`${href}}/edit`}>Edit</a>
+					<a class="btn btn-outline btn-secondary joint-item" href={`${href}}/edit`}>Edit</a>
 				{/if}
 			</div>
 		</div>
