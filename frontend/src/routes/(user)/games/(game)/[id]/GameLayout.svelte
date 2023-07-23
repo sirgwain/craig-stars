@@ -163,7 +163,7 @@
 </script>
 
 {#if fg}
-	<main class="flex flex-col h-screen">
+	<main class="flex flex-col h-[100dvh]">
 		<header class="flex-none z-50">
 			<GameMenu on:submit-turn={onSubmitTurn} />
 		</header>
