@@ -127,7 +127,7 @@ func (v *victory) checkProductionCapacity(player *Player, score PlayerScore) {
 			productionCapacity += planet.Spec.ResourcesPerYear
 		}
 	}
-	if productionCapacity >= v.game.VictoryConditions.ProductionCapacity {
+	if productionCapacity >= v.game.VictoryConditions.ProductionCapacity * 1000 {
 		player.AchievedVictoryConditions |= Bitmask(VictoryConditionProductionCapacity)
 	}
 }

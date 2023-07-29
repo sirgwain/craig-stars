@@ -570,7 +570,7 @@ CREATE TABLE IF NOT EXISTS techHulls (
   fuelCapacity INTEGER,
   cargoCapacity INTEGER,
   spaceDock INTEGER,
-  mineLayingFactor INTEGER,
+  mineLayingBonus NUMERIC,
   builtInScanner NUMERIC,
   initiative INTEGER,
   repairBonus REAL,

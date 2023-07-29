@@ -2323,7 +2323,7 @@ var MiniMineLayer = TechHull{Tech: NewTech("Mini Mine Layer", NewCost(8, 2, 5, 2
 	Mass:                  10,
 	Armor:                 60,
 	FuelCapacity:          400,
-	MineLayingFactor:      2,
+	MineLayingBonus:       1,
 	ImmuneToOwnDetonation: true,
 	Slots: []TechHullSlot{
 		{Position: Vector{-1, 0}, Type: HullSlotTypeEngine, Capacity: 1, Required: true},
@@ -2337,7 +2337,7 @@ var SuperMineLayer = TechHull{Tech: NewTech("Super Mine Layer", NewCost(20, 3, 9
 	FuelCapacity:          2200,
 	Armor:                 1200,
 	Mass:                  30,
-	MineLayingFactor:      2,
+	MineLayingBonus:       1,
 	ImmuneToOwnDetonation: true,
 	Slots: []TechHullSlot{
 		{Position: Vector{-1.5, 0}, Type: HullSlotTypeEngine, Capacity: 1, Required: true},

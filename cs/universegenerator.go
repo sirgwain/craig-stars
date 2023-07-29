@@ -330,8 +330,8 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 			if err := playerPlanet.initStartingWorld(player, &ug.Rules, startingPlanet, homeworldMinConc, surfaceMinerals); err != nil {
 				return err
 			}
-			if playerPlanet.starbase != nil {
-				ug.universe.Starbases = append(ug.universe.Starbases, playerPlanet.starbase)
+			if playerPlanet.Starbase != nil {
+				ug.universe.Starbases = append(ug.universe.Starbases, playerPlanet.Starbase)
 			}
 			// generate some fleets on the homeworld
 			if err := ug.generatePlayerFleets(player, playerPlanet, &fleetNum, startingPlanet.StartingFleets); err != nil {

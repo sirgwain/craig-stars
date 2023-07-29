@@ -23,7 +23,7 @@ type Planet struct {
 	Scanner              bool       `json:"scanner,omitempty"`
 	BonusResources       int        `json:"-"`
 	Spec                 PlanetSpec `json:"spec,omitempty"`
-	starbase             *Fleet
+	Starbase             *Fleet     `json:"-"`
 }
 
 type PlanetOrders struct {
@@ -143,7 +143,7 @@ func (p *Planet) setPopulation(pop int) {
 
 // true if this planet can build a ship with a given mass
 func (p *Planet) CanBuild(mass int) bool {
-	return p.Spec.HasStarbase && (p.starbase.Spec.SpaceDock == UnlimitedSpaceDock || p.starbase.Spec.SpaceDock >= mass)
+	return p.Spec.HasStarbase && (p.Starbase.Spec.SpaceDock == UnlimitedSpaceDock || p.Starbase.Spec.SpaceDock >= mass)
 }
 
 // populate the costs of each item in the planet production queue
@@ -156,7 +156,8 @@ func (p *Planet) PopulateProductionQueueCosts(player *Player) error {
 			if newDesign == nil {
 				return fmt.Errorf("player %v does not have design %d", player, item.DesignNum)
 			}
-			item.CostOfOne = costCalculator.StarbaseUpgradeCost(p.starbase.Tokens[0].design, newDesign)
+			p.Starbase.Tokens[0].design = player.GetDesign(p.Starbase.Tokens[0].DesignNum)
+			item.CostOfOne = costCalculator.StarbaseUpgradeCost(p.Starbase.Tokens[0].design, newDesign)
 
 		} else {
 			costOfOne, err := costCalculator.CostOfOne(player, *item)
@@ -209,7 +210,7 @@ func (p *Planet) reset() {
 // empty this planet of pop, owner
 func (p *Planet) emptyPlanet() {
 	p.PlayerNum = Unowned
-	p.starbase = nil
+	p.Starbase = nil
 	p.Scanner = false
 	p.Defenses = 0 // defenses are all gone, rest of the structures can stay
 	p.ProductionQueue = []ProductionQueueItem{}
@@ -341,8 +342,8 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 
 // build a starbase on this planet
 func (p *Planet) buildStarbase(rules *Rules, player *Player, design *ShipDesign) *Fleet {
-	if p.starbase != nil {
-		oldDesign := p.starbase.Tokens[0].design
+	if p.Starbase != nil {
+		oldDesign := p.Starbase.Tokens[0].design
 		oldDesign.MarkDirty()
 	}
 	design.Spec.NumBuilt++
@@ -351,10 +352,10 @@ func (p *Planet) buildStarbase(rules *Rules, player *Player, design *ShipDesign)
 	// build the new starbase and compute the fleet spec for it
 	starbase := newStarbase(player, p, design, design.Name)
 	starbase.Spec = ComputeFleetSpec(rules, player, &starbase)
-	p.starbase = &starbase
+	p.Starbase = &starbase
 	p.PacketSpeed = starbase.Spec.SafePacketSpeed
 
-	return p.starbase
+	return p.Starbase
 }
 
 // Get the number of innate mines this player would have on this planet
@@ -468,11 +469,11 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 func computePlanetStarbaseSpec(rules *Rules, player *Player, planet *Planet) PlanetStarbaseSpec {
 	spec := PlanetStarbaseSpec{}
 
-	starbase := planet.starbase
+	starbase := planet.Starbase
 	spec.HasStarbase = starbase != nil
 	if starbase != nil {
-		spec.StarbaseDesignNum = planet.starbase.Tokens[0].DesignNum
-		spec.StarbaseDesignName = planet.starbase.Tokens[0].design.Name
+		spec.StarbaseDesignNum = planet.Starbase.Tokens[0].DesignNum
+		spec.StarbaseDesignName = planet.Starbase.Tokens[0].design.Name
 		if starbase.Spec.HasStargate {
 			spec.HasStargate = true
 			spec.Stargate = starbase.Spec.Stargate

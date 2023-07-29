@@ -114,7 +114,7 @@ func (u *Universe) buildMaps(players []*Player) {
 	}
 
 	for _, starbase := range u.Starbases {
-		u.Planets[starbase.PlanetNum-1].starbase = starbase
+		u.Planets[starbase.PlanetNum-1].Starbase = starbase
 		for i := range starbase.Tokens {
 			token := &starbase.Tokens[i]
 			token.design = u.designsByNum[playerObjectKey(starbase.PlayerNum, token.DesignNum)]

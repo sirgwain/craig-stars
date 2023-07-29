@@ -37,10 +37,10 @@ type Tech struct {
 
 type TechRequirements struct {
 	TechLevel
-	PRTDenied    PRT `json:"prtDenied,omitempty"`
-	LRTsRequired LRT `json:"lrtsRequired,omitempty"`
-	LRTsDenied   LRT `json:"lrtsDenied,omitempty"`
-	PRTRequired  PRT `json:"prtRequired,omitempty"`
+	PRTDenied    PRT      `json:"prtDenied,omitempty"`
+	LRTsRequired LRT      `json:"lrtsRequired,omitempty"`
+	LRTsDenied   LRT      `json:"lrtsDenied,omitempty"`
+	PRTRequired  PRT      `json:"prtRequired,omitempty"`
 	HullsAllowed []string `json:"hullsAllowed,omitempty"`
 	HullsDenied  []string `json:"hullsDenied,omitempty"`
 }
@@ -120,7 +120,7 @@ type TechHull struct {
 	SpaceDockSlotPosition    Vector         `json:"spaceDockSlotPosition,omitempty"`
 	SpaceDockSlotSize        Vector         `json:"spaceDockSlotSize,omitempty"`
 	SpaceDockSlotCircle      bool           `json:"spaceDockSlotCircle,omitempty"`
-	MineLayingFactor         int            `json:"mineLayingFactor,omitempty"`
+	MineLayingBonus          float64        `json:"mineLayingBonus,omitempty"`
 	BuiltInScanner           bool           `json:"builtInScanner,omitempty"`
 	Initiative               int            `json:"initiative,omitempty"`
 	RepairBonus              float64        `json:"repairBonus,omitempty"`

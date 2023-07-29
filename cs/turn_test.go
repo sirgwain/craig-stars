@@ -32,8 +32,8 @@ func createSingleUnitGame() *FullGame {
 
 	planet := &Planet{
 		MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 1", Num: 1, PlayerNum: player.Num},
-		Hab: Hab{50, 50, 50},
-		BaseHab: Hab{50, 50, 50},
+		Hab:       Hab{50, 50, 50},
+		BaseHab:   Hab{50, 50, 50},
 		Cargo: Cargo{
 			Colonists: 2500,
 		},
@@ -637,7 +637,7 @@ func Test_turn_fleetRepair(t *testing.T) {
 	starbase.Tokens[0].QuantityDamaged = 1
 	starbase.Tokens[0].Damage = 100
 	game.Starbases = append(game.Starbases, &starbase)
-	planet.starbase = &starbase
+	planet.Starbase = &starbase
 
 	turn := turn{
 		game: game,
@@ -977,7 +977,7 @@ func Test_turn_fleetRefuel(t *testing.T) {
 	starbase.Tokens[0].QuantityDamaged = 1
 	starbase.Tokens[0].Damage = 100
 	game.Starbases = append(game.Starbases, &starbase)
-	planet.starbase = &starbase
+	planet.Starbase = &starbase
 
 	turn := turn{
 		game: game,

@@ -2722,7 +2722,7 @@
 			"cargoSlotSize": { "x": 0, "y": 0 },
 			"spaceDockSlotPosition": { "x": 0, "y": 0 },
 			"spaceDockSlotSize": { "x": 0, "y": 0 },
-			"mineLayingFactor": 2,
+			"mineLayingBonus": 1,
 			"immuneToOwnDetonation": true,
 			"slots": [
 				{ "type": 2, "capacity": 1, "required": true, "position": { "x": -1, "y": 0 } },
@@ -2745,7 +2745,7 @@
 			"cargoSlotSize": { "x": 0, "y": 0 },
 			"spaceDockSlotPosition": { "x": 0, "y": 0 },
 			"spaceDockSlotSize": { "x": 0, "y": 0 },
-			"mineLayingFactor": 2,
+			"mineLayingBonus": 1,
 			"immuneToOwnDetonation": true,
 			"slots": [
 				{ "type": 2, "capacity": 1, "required": true, "position": { "x": -1.5, "y": 0 } },

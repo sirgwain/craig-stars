@@ -30,7 +30,7 @@ func invadePlanet(planet *Planet, fleet *Fleet, defender *Player, attacker *Play
 		// take over the planet.
 		// empty this planet
 		planet.PlayerNum = attacker.Num
-		planet.starbase = nil
+		planet.Starbase = nil
 		planet.Scanner = false
 		planet.Defenses = 0 // defenses are destroyed during invasion
 		planet.ProductionQueue = []ProductionQueueItem{}

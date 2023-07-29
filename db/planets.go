@@ -142,15 +142,97 @@ func (c *client) GetPlanetsForPlayer(gameID int64, playerNum int) ([]*cs.Planet,
 
 func (c *client) GetPlanetByNum(gameID int64, num int) (*cs.Planet, error) {
 
-	item := Planet{}
-	if err := c.db.Get(&item, `SELECT * FROM planets WHERE gameId = ? AND num = ?`, gameID, num); err != nil {
+	type planetStarbaseJoin struct {
+		Planet `json:"planet,omitempty"`
+		Fleet  `json:"fleet,omitempty"`
+	}
+
+	item := planetStarbaseJoin{}
+	if err := c.db.Get(&item, `
+	SELECT 
+		p.id AS 'planet.id',
+		p.createdAt AS 'planet.createdAt',
+		p.updatedAt AS 'planet.updatedAt',
+		p.gameId AS 'planet.gameId',
+		p.x AS 'planet.x',
+		p.y AS 'planet.y',
+		p.name AS 'planet.name',
+		p.num AS 'planet.num',
+		p.playerNum AS 'planet.playerNum',
+		p.grav AS 'planet.grav',
+		p.temp AS 'planet.temp',
+		p.rad AS 'planet.rad',
+		p.baseGrav AS 'planet.baseGrav',
+		p.baseTemp AS 'planet.baseTemp',
+		p.baseRad AS 'planet.baseRad',
+		p.terraformedAmountGrav AS 'planet.terraformedAmountGrav',
+		p.terraformedAmountTemp AS 'planet.terraformedAmountTemp',
+		p.terraformedAmountRad AS 'planet.terraformedAmountRad',
+		p.mineralConcIronium AS 'planet.mineralConcIronium',
+		p.mineralConcBoranium AS 'planet.mineralConcBoranium',
+		p.mineralConcGermanium AS 'planet.mineralConcGermanium',
+		p.mineYearsIronium AS 'planet.mineYearsIronium',
+		p.mineYearsBoranium AS 'planet.mineYearsBoranium',
+		p.mineYearsGermanium AS 'planet.mineYearsGermanium',
+		p.ironium AS 'planet.ironium',
+		p.boranium AS 'planet.boranium',
+		p.germanium AS 'planet.germanium',
+		p.colonists AS 'planet.colonists',
+		p.mines AS 'planet.mines',
+		p.factories AS 'planet.factories',
+		p.defenses AS 'planet.defenses',
+		p.homeworld AS 'planet.homeworld',
+		p.contributesOnlyLeftoverToResearch AS 'planet.contributesOnlyLeftoverToResearch',
+		p.scanner AS 'planet.scanner',
+		p.routeTargetType AS 'planet.routeTargetType',
+		p.routeTargetNum AS 'planet.routeTargetNum',
+		p.routeTargetPlayerNum AS 'planet.routeTargetPlayerNum',
+		p.packetTargetNum AS 'planet.packetTargetNum',
+		p.packetSpeed AS 'planet.packetSpeed',
+		p.productionQueue AS 'planet.productionQueue',
+		p.spec AS 'planet.spec',
+
+		f.createdAt AS 'fleet.createdAt',
+		f.updatedAt AS 'fleet.updatedAt',
+		COALESCE(f.id, 0) AS 'fleet.id',
+		COALESCE(f.gameId, 0) AS 'fleet.gameId',
+		COALESCE(f.battlePlanNum, 0) AS 'fleet.battlePlanNum',
+		COALESCE(f.x, 0) AS 'fleet.x',
+		COALESCE(f.y, 0) AS 'fleet.y',
+		COALESCE(f.name, '') AS 'fleet.name',
+		COALESCE(f.num, 0) AS 'fleet.num',
+		COALESCE(f.playerNum, 0) AS 'fleet.playerNum',
+		COALESCE(f.tokens, '{}') AS 'fleet.tokens',
+		COALESCE(f.waypoints, '{}') AS 'fleet.waypoints',
+		COALESCE(f.repeatOrders, 0) AS 'fleet.repeatOrders',
+		COALESCE(f.planetNum, 0) AS 'fleet.planetNum',
+		COALESCE(f.baseName, '') AS 'fleet.baseName',
+		COALESCE(f.ironium, 0) AS 'fleet.ironium',
+		COALESCE(f.boranium, 0) AS 'fleet.boranium',
+		COALESCE(f.germanium, 0) AS 'fleet.germanium',
+		COALESCE(f.colonists, 0) AS 'fleet.colonists',
+		COALESCE(f.fuel, 0) AS 'fleet.fuel',
+		COALESCE(f.age, 0) AS 'fleet.age',
+		COALESCE(f.headingX, 0) AS 'fleet.headingX',
+		COALESCE(f.headingY, 0) AS 'fleet.headingY',
+		COALESCE(f.warpSpeed, 0) AS 'fleet.warpSpeed',
+		COALESCE(f.orbitingPlanetNum, 0) AS 'fleet.orbitingPlanetNum',
+		COALESCE(f.starbase, 0) AS 'fleet.starbase',
+		COALESCE(f.spec, '{}') AS 'fleet.spec'	
+
+	FROM planets p 
+	LEFT JOIN fleets f 
+	WHERE p.gameId = ? AND p.num = ?`, gameID, num); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
 		return nil, err
 	}
 
-	planet := c.converter.ConvertPlanet(&item)
+	planet := c.converter.ConvertPlanet(&item.Planet)
+	if item.Fleet.ID != 0 {
+		planet.Starbase = c.converter.ConvertFleet(&item.Fleet)
+	}
 	return planet, nil
 
 }

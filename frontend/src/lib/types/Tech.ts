@@ -114,7 +114,7 @@ export interface TechHull extends Tech {
 	builtInScanner?: boolean;
 	initiative?: number;
 	repairBonus?: number;
-	mineLayingFactor?: number;
+	mineLayingBonus?: number;
 	immuneToOwnDetonation?: boolean;
 	rangeBonus?: number;
 	starbase?: boolean;

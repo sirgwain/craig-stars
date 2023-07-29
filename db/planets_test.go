@@ -131,3 +131,83 @@ func TestUpdatePlanet(t *testing.T) {
 	assert.Less(t, planet.UpdatedAt, updated.UpdatedAt)
 
 }
+
+func TestGetPlanetByNum(t *testing.T) {
+	c := connectTestDB()
+	g, player := c.createTestGameWithPlayer()
+	planet1 := cs.Planet{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, Name: "name", Num: 1, Type: cs.MapObjectTypePlanet}}
+	if err := c.createPlanet(&planet1, c.db); err != nil {
+		t.Errorf("create planet %s", err)
+		return
+	}
+
+	planet2 := cs.Planet{
+		MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, Name: "name", PlayerNum: player.Num, Num: 2, Type: cs.MapObjectTypePlanet},
+	}
+	if err := c.createPlanet(&planet2, c.db); err != nil {
+		t.Errorf("create planet %s", err)
+		return
+	}
+
+	design := cs.NewShipDesign(player, 1).WithHull(cs.SpaceStation.Name)
+	c.createTestShipDesign(player, design)
+
+	fleet := cs.Fleet{
+		MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, PlayerNum: player.Num, Name: "name", Type: cs.MapObjectTypeFleet},
+		Tokens: []cs.ShipToken{
+			{Quantity: 1, DesignNum: design.Num},
+		},
+		FleetOrders: cs.FleetOrders{
+			Waypoints: []cs.Waypoint{
+				cs.NewPositionWaypoint(cs.Vector{X: 2, Y: 3}, 4),
+			},
+		},
+		PlanetNum: planet2.Num,
+	}
+	if err := c.createFleet(&fleet, c.db); err != nil {
+		t.Errorf("create fleet %s", err)
+		return
+	}
+	planet2.Starbase = &fleet
+
+	type args struct {
+		gameID int64
+		num    int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *cs.Planet
+		wantErr bool
+	}{
+		{"No results", args{gameID: 0, num: 0}, nil, false},
+		{"Got planet Without Starbase", args{gameID: planet1.GameID, num: planet1.Num}, &planet1, false},
+		{"Got planet With Starbase", args{gameID: planet2.GameID, num: planet2.Num}, &planet2, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := c.GetPlanetByNum(tt.args.gameID, tt.args.num)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetPlanet() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != nil {
+				tt.want.UpdatedAt = got.UpdatedAt
+				tt.want.CreatedAt = got.CreatedAt
+			}
+			if !test.CompareAsJSON(t, got, tt.want) {
+				t.Errorf("GetPlanetByNum() = %v, want %v", got, tt.want)
+			}
+
+			if tt.want != nil && tt.want.Starbase != nil {
+				if got.Starbase != nil {
+					tt.want.Starbase.UpdatedAt = got.Starbase.UpdatedAt
+					tt.want.Starbase.CreatedAt = got.Starbase.CreatedAt
+				}
+				if !test.CompareAsJSON(t, got.Starbase, tt.want.Starbase) {
+					t.Errorf("GetPlanetByNum() Starbase = %v, want %v", got, tt.want)
+				}	
+			}
+		})
+	}
+}

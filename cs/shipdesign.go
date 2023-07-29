@@ -287,7 +287,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 				if _, ok := spec.MineLayingRateByMineType[component.MineFieldType]; !ok {
 					spec.MineLayingRateByMineType[component.MineFieldType] = 0
 				}
-				spec.MineLayingRateByMineType[component.MineFieldType] += component.MineLayingRate * slot.Quantity * hull.MineLayingFactor
+				spec.MineLayingRateByMineType[component.MineFieldType] += int(float64(component.MineLayingRate) * float64(slot.Quantity) * (1 + hull.MineLayingBonus))
 			}
 
 			// i.e. two .3f battle computers is (1 -.3) * (1 - .3) or (.7 * .7) or it decreases innaccuracy by 49%

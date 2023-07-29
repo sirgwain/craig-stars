@@ -101,7 +101,7 @@ func (t *turn) generateTurn() error {
 	// reset all players
 	// and do player specific things like scanning
 	// and patrol orders
-	t.computeSpecs()     // make sure our specs are up to date
+	t.computeSpecs()           // make sure our specs are up to date
 	t.game.updateTokenCounts() // update token counts
 	for _, player := range t.game.Players {
 		player.Spec = computePlayerSpec(player, &t.game.Rules, t.game.Planets)
@@ -1344,8 +1344,8 @@ func (t *turn) fleetBattle() {
 			}
 			if p, ok := mo.(*Planet); ok {
 				planet = p
-				if p.starbase != nil {
-					fleets = append(fleets, p.starbase)
+				if p.Starbase != nil {
+					fleets = append(fleets, p.Starbase)
 					playersAtPosition[p.PlayerNum] = t.game.getPlayer(planet.PlayerNum)
 				}
 			}
@@ -1373,7 +1373,7 @@ func (t *turn) fleetBattle() {
 				}
 
 				// discover parts of this planet's starbase
-				if planet != nil && planet.starbase != nil && planet.PlayerNum != player.Num {
+				if planet != nil && planet.Starbase != nil && planet.PlayerNum != player.Num {
 					discoverer.discoverPlanetStarbase(player, planet)
 				}
 

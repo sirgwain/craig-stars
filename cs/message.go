@@ -812,7 +812,7 @@ func (m *messageClient) buildMineralPacketNoTarget(player *Player, planet *Plane
 
 func (m *messageClient) mineralPacketDamage(player *Player, planet *Planet, packet *MineralPacket, colonistsKilled, defensesDestroyed int) {
 	var text string
-	if planet.Spec.HasStarbase && planet.starbase.Spec.HasMassDriver {
+	if planet.Spec.HasStarbase && planet.Starbase.Spec.HasMassDriver {
 		if defensesDestroyed == 0 {
 			text = fmt.Sprintf("Your mass accelerator at %s was partially successful in capturing a %dkT mineral packet. Unable to completely slow the packet, %d of your colonists were killed in the collision.", planet.Name, packet.Cargo.Total(), colonistsKilled)
 		} else {
