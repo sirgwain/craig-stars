@@ -140,7 +140,9 @@ func (o *orders) TransferPlanetCargo(rules *Rules, player *Player, source *Fleet
 	if dest.Starbase != nil {
 		dest.Starbase.Tokens[0].design = player.GetDesign(dest.Starbase.Tokens[0].DesignNum)
 	}
+	starbaseSpec := dest.Spec.PlanetStarbaseSpec
 	dest.Spec = computePlanetSpec(rules, player, dest)
+	dest.Spec.PlanetStarbaseSpec = starbaseSpec
 
 	source.MarkDirty()
 	dest.MarkDirty()
