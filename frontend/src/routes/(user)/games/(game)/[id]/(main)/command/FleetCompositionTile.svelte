@@ -7,6 +7,7 @@
 	import CommandTile from './CommandTile.svelte';
 	import type { SplitFleetEvent } from '../../dialogs/split/SplitFleetDialog.svelte';
 	import type { MergeFleetsEvent } from '../../dialogs/merge/MergeFleetsDialog.svelte';
+	import { Infinite } from '$lib/types/MapObject';
 
 	const dispatchSplit = createEventDispatcher<SplitFleetEvent>();
 	const dispatchMerge = createEventDispatcher<MergeFleetsEvent>();
@@ -70,11 +71,11 @@
 		</div>
 		<div class="flex justify-between my-1">
 			<div>Est Range:</div>
-			<div>{fleet.spec.estimatedRange ? `${fleet.spec.estimatedRange} l.y.` : '--'}</div>
+			<div>{fleet.spec.estimatedRange ? fleet.spec.estimatedRange === Infinite ? "Infinite" : `${fleet.spec.estimatedRange} l.y.` : '--'}</div>
 		</div>
 		<div class="flex justify-between my-1">
 			<div>Percent Cloaked</div>
-			<div>{fleet.spec.cloakPercent ? fleet.spec.cloakPercent * 100 + '%' : 'none'}</div>
+			<div>{fleet.spec.cloakPercent ? fleet.spec.cloakPercent + '%' : 'none'}</div>
 		</div>
 		<div class="flex justify-between">
 			<button on:click={split} class="btn btn-outline btn-sm normal-case btn-secondary"

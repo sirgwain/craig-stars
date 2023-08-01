@@ -29,8 +29,12 @@
 
 <div class="flex flex-row min-h-[11rem]">
 	<div class="flex flex-col">
-		<div class="avatar ">
-			<div class="border-2 border-neutral mr-2 p-2 bg-black">
+		<div class="avatar mr-2">
+			<div class="border-2 border-neutral p-2 bg-black">
+				{#if fleet.tokens && fleet.tokens.reduce((count, t) => count + t.quantity, 0) > 1}
+					<div class="absolute -right-2 -top-1 text-xl w-6 h-6">+</div>
+				{/if}
+
 				<div class="fleet-avatar {icon} bg-black">
 					<button
 						type="button"

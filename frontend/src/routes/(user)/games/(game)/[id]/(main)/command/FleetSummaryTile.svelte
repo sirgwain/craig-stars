@@ -32,7 +32,10 @@
 
 <CommandTile title={fleet.name}>
 	<div class="grid grid-cols-2">
-		<div class="avatar border border-secondary p-2 bg-black m-auto">
+		<div class="avatar border border-secondary p-2 bg-black m-auto relative">
+			{#if fleet.tokens.reduce((count, t) => count + t.quantity, 0) > 1}
+				<div class="absolute -right-2 -top-1 text-xl w-6 h-6">+</div>
+			{/if}
 			<div class="fleet-avatar {icon} bg-black" />
 		</div>
 		<div class="flex flex-col gap-y-1">
