@@ -4,7 +4,12 @@
 	import { commandMapObject, selectMapObject, zoomToMapObject } from '$lib/services/Stores';
 	import type { Fleet } from '$lib/types/Fleet';
 	import { MapObjectType, None, ownedBy } from '$lib/types/MapObject';
-	import { MessageTargetType, type Message, MessageType } from '$lib/types/Message';
+	import {
+		MessageTargetType,
+		type Message,
+		MessageType,
+		getNextVisibleMessageNum
+	} from '$lib/types/Message';
 	import {
 		ArrowLongLeft,
 		ArrowLongRight,
@@ -17,32 +22,25 @@
 	import { kebabCase } from 'lodash-es';
 	import { onMount } from 'svelte/internal';
 
-	const { game, player, universe, settings } = getGameContext();
+	const { game, player, universe, settings, messageNum } = getGameContext();
 
 	export let showMessages = false;
 	export let messages: Message[];
-	let messageNum = 0;
 	let showFilteredMessages = false;
 
-	$: message = messages.length ? messages[messageNum] : undefined;
-	$: nextVisibleMessageNum = getNextVisibleMessageNum(messageNum, showFilteredMessages, messages);
+	$: message = messages.length ? messages[$messageNum] : undefined;
+	$: nextVisibleMessageNum = getNextVisibleMessageNum(
+		$messageNum,
+		showFilteredMessages,
+		messages,
+		$settings
+	);
 	$: previousVisibleMessageNum = getPreviousVisibleMessageNum(
-		messageNum,
+		$messageNum,
 		showFilteredMessages,
 		messages
 	);
 	$: visible = (message && $settings.isMessageVisible(message.type)) ?? false;
-
-	onMount(() => {
-		// reset the message num when our player updates
-		const unsubscribe = player.subscribe(() => {
-			messageNum = getNextVisibleMessageNum(-1, showFilteredMessages, $player.messages);
-		});
-
-		return () => {
-			unsubscribe();
-		};
-	});
 
 	function onFilterMessageType(type: number) {
 		if ($settings.isMessageVisible(type)) {
@@ -52,19 +50,6 @@
 		}
 		$settings = $settings;
 		visible = (message && $settings.isMessageVisible(message.type)) ?? false;
-	}
-
-	function getNextVisibleMessageNum(
-		num: number,
-		showFilteredMessages: boolean,
-		messages: Message[]
-	): number {
-		for (let i = num + 1; i < messages.length; i++) {
-			if (showFilteredMessages || $settings.isMessageVisible(messages[i].type)) {
-				return i;
-			}
-		}
-		return num;
 	}
 
 	function getPreviousVisibleMessageNum(
@@ -81,17 +66,17 @@
 	}
 
 	const previous = () => {
-		messageNum = getPreviousVisibleMessageNum(messageNum, showFilteredMessages, messages);
+		$messageNum = getPreviousVisibleMessageNum($messageNum, showFilteredMessages, messages);
 	};
 	const next = () => {
-		messageNum = getNextVisibleMessageNum(messageNum, showFilteredMessages, messages);
+		$messageNum = getNextVisibleMessageNum($messageNum, showFilteredMessages, messages, $settings);
 	};
 
 	function isMessageGotoable(message: Message | undefined): boolean {
 		if (!message) {
 			return false;
 		}
-		
+
 		if (message.targetType !== MessageTargetType.None) {
 			return true;
 		}
@@ -204,7 +189,7 @@
 				</div>
 
 				<div class="flex-1 text-center text-lg font-semibold text-secondary">
-					Year: {$game.year} Message {messageNum + 1} of {messages.length}
+					Year: {$game.year} Message {$messageNum + 1} of {messages.length}
 				</div>
 				<div
 					class="tooltip tooltip-left"
@@ -241,7 +226,7 @@
 							<div class="tooltip" data-tip="previous">
 								<button
 									on:click={previous}
-									disabled={messageNum === previousVisibleMessageNum}
+									disabled={$messageNum === previousVisibleMessageNum}
 									class="btn btn-outline btn-sm normal-case btn-secondary"
 									title="previous"
 									><Icon src={ArrowLongLeft} size="16" class="hover:stroke-accent inline" /></button
@@ -263,7 +248,7 @@
 							<div class="tooltip" data-tip="next">
 								<button
 									on:click={next}
-									disabled={messageNum === nextVisibleMessageNum}
+									disabled={$messageNum === nextVisibleMessageNum}
 									class="btn btn-outline btn-sm normal-case btn-secondary"
 									title="next"
 									><Icon

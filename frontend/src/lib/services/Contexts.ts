@@ -1,3 +1,4 @@
+import { getNextVisibleMessageNum } from '$lib/types/Message';
 import { Player } from '$lib/types/Player';
 import { PlayerSettings } from '$lib/types/PlayerSettings';
 import type { ShipDesign } from '$lib/types/ShipDesign';
@@ -17,6 +18,7 @@ type GameContext = {
 	universe: Readable<Universe>;
 	settings: Writable<PlayerSettings>;
 	designs: Writable<ShipDesign[]>;
+	messageNum: Writable<number>;
 };
 
 export const gameStore: GameContext = {
@@ -24,7 +26,8 @@ export const gameStore: GameContext = {
 	player: writable<Player>(new Player()),
 	universe: universe,
 	settings: writable<PlayerSettings>(new PlayerSettings()),
-	designs: writable<ShipDesign[]>([])
+	designs: writable<ShipDesign[]>([]),
+	messageNum: writable<number>(0)
 };
 
 // init the game context with empty data
@@ -32,7 +35,7 @@ export const initGameContext = () => setContext<GameContext>(gameKey, gameStore)
 export const getGameContext = () => getContext<GameContext>(gameKey);
 export const clearGameContext = () =>
 	updateGameContext(new FullGame(), new Player(), new Universe());
-	
+
 // update the game context after a load
 export const updateGameContext = (game: FullGame, player: Player, universe: Universe) => {
 	// update the settings, or use existing settings from localStorage
@@ -56,6 +59,9 @@ export const updateGameContext = (game: FullGame, player: Player, universe: Univ
 
 	// update the designs store when the universe updates
 	gameStore.designs.update(() => universe.getMyDesigns());
+
+	// init the messageNum when we load a game or have a new turn
+	gameStore.messageNum.update(() => getNextVisibleMessageNum(-1, false, player.messages, settings));
 };
 
 export const updateGame = (game: FullGame) => {

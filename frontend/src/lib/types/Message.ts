@@ -1,5 +1,6 @@
 import type { Target } from './Fleet';
 import { MapObjectType } from './MapObject';
+import type { PlayerSettings } from './PlayerSettings';
 import type { TechField } from './TechLevel';
 
 export type Message = {
@@ -105,4 +106,19 @@ export enum MessageType {
 	PacketPermaform,
 	RemoteMined,
 	TechGained
+}
+
+// get the next visible message taking into account filters
+export function getNextVisibleMessageNum(
+	num: number,
+	showFilteredMessages: boolean,
+	messages: Message[],
+	settings: PlayerSettings
+): number {
+	for (let i = num + 1; i < messages.length; i++) {
+		if (showFilteredMessages || settings.isMessageVisible(messages[i].type)) {
+			return i;
+		}
+	}
+	return num;
 }

@@ -4,7 +4,7 @@
 	import TableSearchInput from '$lib/components/TableSearchInput.svelte';
 	import MineralMini from '$lib/components/game/MineralMini.svelte';
 	import { getGameContext } from '$lib/services/Contexts';
-	import { commandMapObject, zoomToMapObject } from '$lib/services/Stores';
+	import { commandMapObject, selectMapObject, zoomToMapObject } from '$lib/services/Stores';
 	import { getQueueItemShortName, planetsSortBy, type Planet } from '$lib/types/Planet';
 	import { SvelteTable, type SvelteTableColumn } from '@hurtigruten/svelte-table';
 
@@ -12,6 +12,7 @@
 
 	const selectPlanet = (planet: Planet) => {
 		commandMapObject(planet);
+		selectMapObject(planet);
 		zoomToMapObject(planet);
 		goto(`/games/${$game.id}`);
 	};
