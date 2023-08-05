@@ -6,7 +6,7 @@
 	type="text"
 	name="search"
 	placeholder="search"
-	class="input input-bordered w-full sm:w-auto"
+	class="input input-bordered input-sm w-full sm:w-auto"
 	autocomplete="off"
 	autocorrect="off"
 	autocapitalize="off"
