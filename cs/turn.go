@@ -5,6 +5,7 @@ import (
 	"math"
 
 	"github.com/rs/zerolog/log"
+	"golang.org/x/exp/slices"
 )
 
 type turn struct {
@@ -96,7 +97,6 @@ func (t *turn) generateTurn() error {
 	t.fleetSweepMines()
 	t.fleetRepair()
 	t.fleetRemoteTerraform()
-	t.calculateScores()
 
 	// reset all players
 	// and do player specific things like scanning
@@ -111,10 +111,12 @@ func (t *turn) generateTurn() error {
 			return fmt.Errorf("scan universe and update player intel -> %w", err)
 		}
 		t.fleetPatrol(player)
-		t.checkVictory(player)
 
 		player.SubmittedTurn = false
 	}
+
+	// as a last turn step, calculate scores and check for victories
+	t.calculateScores()
 
 	t.game.State = GameStateWaitingForPlayers
 
@@ -1831,10 +1833,34 @@ func (t *turn) calculateScores() {
 		// add this to the player's score history
 		player.ScoreHistory = append(player.ScoreHistory, *score)
 
+		// check for victory for this player
+		t.checkVictory(player)
 	}
 
-	// share score intel if show public scores is enabled
-	if t.game.PublicPlayerScores && t.game.rules.ShowPublicScoresAfterYears > 0 && t.game.YearsPassed() >= t.game.rules.ShowPublicScoresAfterYears {
+	// sort players by score, highest to lowest
+	scoreSortedPlayers := make([]*Player, len(t.game.Players))
+	copy(scoreSortedPlayers, t.game.Players)
+	slices.SortFunc(scoreSortedPlayers, func(p1, p2 *Player) bool {
+		return p1.GetScore().Score > p2.GetScore().Score
+	})
+
+	// update rank for all scores
+	rank := 1
+	for i, player := range scoreSortedPlayers {
+		if i > 0 {
+			if scoreSortedPlayers[i-1].GetScore().Score != player.GetScore().Score {
+				rank++
+			}
+		}
+
+		if len(player.ScoreHistory) > 0 {
+			score := &player.ScoreHistory[len(player.ScoreHistory)-1]
+			score.Rank = rank
+		}
+	}
+
+	// share score intel if show public scores is enabled, or if a victor has been found
+	if (t.game.PublicPlayerScores && t.game.rules.ShowPublicScoresAfterYears > 0 && t.game.YearsPassed() >= t.game.rules.ShowPublicScoresAfterYears) || t.game.VictorDeclared {
 		for _, player := range t.game.Players {
 			discoverer := newDiscoverer(player)
 			for _, otherPlayer := range t.game.Players {

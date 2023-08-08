@@ -2,6 +2,7 @@
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import { getGameContext } from '$lib/services/Contexts';
 	import PlayerScores from './PlayerScores.svelte';
+	import PlayerVictoryConditions from './PlayerVictoryConditions.svelte';
 	import PlayersStatus from './PlayersStatus.svelte';
 
 	const { game, player, universe } = getGameContext();
@@ -15,6 +16,11 @@
 <div class="w-full">
 	<ItemTitle>Score</ItemTitle>
 	<PlayerScores />
+</div>
+
+<div class="w-full">
+	<ItemTitle>Victory Conditions</ItemTitle>
+	<PlayerVictoryConditions />
 </div>
 
 <div class="mb-10"/>

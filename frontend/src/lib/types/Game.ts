@@ -69,7 +69,7 @@ export type GameSettings = {
 	publicPlayerScores?: boolean;
 	startMode?: GameStartMode;
 	year?: number;
-	victoryConditions?: VictoryConditions;
+	victoryConditions: VictoryConditions;
 };
 
 export enum GameState {

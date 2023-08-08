@@ -43,6 +43,7 @@ export type PlayerResponse = {
 	techLevelsSpent: TechLevel;
 	designs?: ShipDesign[];
 	researchSpentLastYear?: number;
+	achievedVictoryConditions?: number;
 	spec: PlayerSpec;
 } & PlayerOrders &
 	PlayerMessages &
@@ -137,6 +138,7 @@ export type PlayerScore = {
 	resources: number;
 	score: number;
 	rank: number;
+	achievedVictoryConditions?: number;
 };
 
 export enum NextResearchField {

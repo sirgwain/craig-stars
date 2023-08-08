@@ -20,6 +20,7 @@
 	import GameSettingsEditor from './GameSettingsEditor.svelte';
 	import NewGamePlayer from './NewGamePlayer.svelte';
 	import { getColor } from './playerColors';
+	import VictoryConditions from './VictoryConditions.svelte';
 
 	export let players = [
 		{ type: NewGamePlayerType.Host, color: getColor(0) },
@@ -44,7 +45,7 @@
 			conditions:
 				VictoryCondition.OwnPlanets |
 				VictoryCondition.AttainTechLevels |
-				VictoryCondition.ExceedsScore,
+				VictoryCondition.ExceedsSecondPlaceScore,
 			numCriteriaRequired: 1,
 			yearsPassed: 50,
 			ownPlanets: 60,
@@ -52,7 +53,7 @@
 			attainTechLevelNumFields: 4,
 			exceedsScore: 11000,
 			exceedsSecondPlaceScore: 100,
-			productionCapacity: 100000,
+			productionCapacity: 100,
 			ownCapitalShips: 100,
 			highestScoreAfterYears: 100
 		}
@@ -107,4 +108,7 @@
 	{#each settings.players as player, i}
 		<NewGamePlayer bind:player index={i + 1} />
 	{/each}
+
+	<SectionHeader>Victory Conditions</SectionHeader>
+	<VictoryConditions bind:settings/>
 </form>

@@ -71,6 +71,12 @@ func (v *victory) checkForVictor(player *Player) error {
 		v.checkHighestScore(player, score)
 	}
 
+	// update the history with this player's AchievedVictoryConditions
+	// this way we know over time when victories were achieved
+	// and when a victor is declared, other players will know when
+	// victory was achieved.	
+	score.AchievedVictoryConditions = player.AchievedVictoryConditions
+
 	if player.AchievedVictoryConditions.countBits() >= v.game.VictoryConditions.NumCriteriaRequired && v.game.YearsPassed() >= v.game.VictoryConditions.YearsPassed {
 		// we have a victor!
 		player.Victor = true
@@ -127,7 +133,7 @@ func (v *victory) checkProductionCapacity(player *Player, score PlayerScore) {
 			productionCapacity += planet.Spec.ResourcesPerYear
 		}
 	}
-	if productionCapacity >= v.game.VictoryConditions.ProductionCapacity * 1000 {
+	if productionCapacity >= v.game.VictoryConditions.ProductionCapacity*1000 {
 		player.AchievedVictoryConditions |= Bitmask(VictoryConditionProductionCapacity)
 	}
 }

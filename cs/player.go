@@ -111,15 +111,16 @@ type PlayerSpec struct {
 }
 
 type PlayerScore struct {
-	Planets      int `json:"planets"`
-	Starbases    int `json:"starbases"`
-	UnarmedShips int `json:"unarmedShips"`
-	EscortShips  int `json:"escortShips"`
-	CapitalShips int `json:"capitalShips"`
-	TechLevels   int `json:"techLevels"`
-	Resources    int `json:"resources"`
-	Score        int `json:"score"`
-	Rank         int `json:"rank"`
+	Planets                   int     `json:"planets"`
+	Starbases                 int     `json:"starbases"`
+	UnarmedShips              int     `json:"unarmedShips"`
+	EscortShips               int     `json:"escortShips"`
+	CapitalShips              int     `json:"capitalShips"`
+	TechLevels                int     `json:"techLevels"`
+	Resources                 int     `json:"resources"`
+	Score                     int     `json:"score"`
+	Rank                      int     `json:"rank"`
+	AchievedVictoryConditions Bitmask `json:"achievedVictoryConditions"`
 }
 
 type BattlePlan struct {
@@ -330,6 +331,14 @@ func (p *Player) withSpec(rules *Rules) *Player {
 
 func (p *Player) String() string {
 	return fmt.Sprintf("Player %d (%d) %s", p.Num, p.ID, p.Race.PluralName)
+}
+
+// return the most recent PlayerScore or an empty score if there is no score history
+func (p *Player) GetScore() PlayerScore {
+	if len(p.ScoreHistory) > 0 {
+		return p.ScoreHistory[len(p.ScoreHistory)-1]
+	}
+	return PlayerScore{}
 }
 
 // Get a player ShipDesign, or nil if no design found
