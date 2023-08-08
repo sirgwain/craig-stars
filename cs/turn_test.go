@@ -1034,3 +1034,54 @@ func Test_turn_playerResearch(t *testing.T) {
 	assert.Equal(t, 1045, player.Spec.ResourcesPerYear, " planet grew, spend more next year")
 	assert.Equal(t, 1045, player.Spec.ResourcesPerYearResearch)
 }
+
+func Test_turn_buildStarbase(t *testing.T) {
+	game := createSingleUnitGame()
+	player := game.Players[0]
+	planet := game.Planets[0]
+
+	// create a new starbase design
+	starbaseDesign := NewShipDesign(player, 2).WithName("Sad empty base").WithHull(SpaceStation.Name).WithSpec(&rules, player)
+	player.Designs = append(player.Designs, starbaseDesign)
+
+	// build a starbase
+	planet.ProductionQueue = append(planet.ProductionQueue, ProductionQueueItem{Type: QueueItemTypeStarbase, Quantity: 1, DesignNum: starbaseDesign.Num})
+	planet.Cargo = Mineral{1000, 1000, 1000}.ToCargo()
+	planet.setPopulation(1_000_000)
+	planet.Factories = 1000
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// should have no starbase
+	assert.Nil(t, planet.Starbase)
+	assert.Equal(t, 0, len(game.Starbases))
+
+	// generate a turn to build a starbase
+	turn.generateTurn()
+
+	// should have a starbase at the planet
+	assert.NotNil(t, planet.Starbase)
+	assert.Equal(t, 1, len(game.Starbases))
+
+	// upgrade the starbase with A LASER!
+	starbaseDesignUpgrade := NewShipDesign(player, 3).WithName("LASER BASE!").WithHull(SpaceStation.Name).WithSlots(
+		[]ShipDesignSlot{
+			{HullComponent: Laser.Name, HullSlotIndex: 2, Quantity: 1},
+		},
+	).WithSpec(&rules, player)
+	player.Designs = append(player.Designs, starbaseDesignUpgrade)
+
+	planet.ProductionQueue = append(planet.ProductionQueue, ProductionQueueItem{Type: QueueItemTypeStarbase, Quantity: 1, DesignNum: starbaseDesignUpgrade.Num})
+
+	// generate a turn to upgrade the starbase
+	turn.generateTurn()
+
+	// should have an upgraded starbase at the planet, and the other should be
+	// marked for deletion
+	assert.Equal(t, "LASER BASE!", planet.Starbase.Tokens[0].design.Name)
+	assert.Equal(t, 2, len(game.Starbases))
+	assert.True(t, game.Starbases[0].Delete)
+}

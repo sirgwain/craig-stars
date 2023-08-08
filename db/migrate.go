@@ -109,6 +109,8 @@ func (c *client) mustMigrateDatabase(datasource string, fs embed.FS, path string
 		log.Info().Msgf("database %s, no migration required", path)
 		// remove the backup, we don't need it
 		os.Remove(backup)
+	} else if err == nil {
+		log.Info().Msgf("database %s migrated", path)
 	}
 
 	if err != nil && err != migrate.ErrNoChange {

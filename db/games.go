@@ -513,6 +513,19 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 
 	// save fleets and starbases
 	remainingFleets := make([]*cs.Fleet, 0, len(fullGame.Fleets))
+
+	// first delete fleets. This way if we end up creating a new fleet
+	// with an in use unique index, we'll delete the old one first
+	for _, fleet := range append(fullGame.Fleets, fullGame.Starbases...) {
+		if fleet.Delete {
+			if err := c.deleteFleet(fleet.ID, tx); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("delete fleet %w", err)
+			}
+			// log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Deleted fleet %s", fleet.Name)
+		}
+	}
+
 	for _, fleet := range append(fullGame.Fleets, fullGame.Starbases...) {
 		if fleet.ID == 0 {
 			fleet.GameID = fullGame.ID
@@ -522,13 +535,7 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 			}
 			remainingFleets = append(remainingFleets, fleet)
 			// log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Created fleet %s", fleet.Name)
-		} else if fleet.Delete {
-			if err := c.deleteFleet(fleet.ID, tx); err != nil {
-				tx.Rollback()
-				return fmt.Errorf("delete fleet %w", err)
-			}
-			// log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Deleted fleet %s", fleet.Name)
-		} else if fleet.Dirty {
+		} else if fleet.Dirty && !fleet.Delete {
 			if err := c.updateFleet(fleet, tx); err != nil {
 				tx.Rollback()
 				return fmt.Errorf("update fleet %w", err)

@@ -114,6 +114,7 @@ func (u *Universe) buildMaps(players []*Player) {
 	}
 
 	for _, starbase := range u.Starbases {
+		u.addMapObjectByPosition(starbase, starbase.Position)
 		u.Planets[starbase.PlanetNum-1].Starbase = starbase
 		for i := range starbase.Tokens {
 			token := &starbase.Tokens[i]
@@ -327,8 +328,13 @@ func (u *Universe) updateTokenCounts() {
 func (u *Universe) deleteFleet(fleet *Fleet) {
 	fleet.Delete = true
 
-	index := slices.Index(u.Fleets, fleet)
-	slices.Delete(u.Fleets, index, index)
+	if fleet.Starbase {
+		index := slices.Index(u.Starbases, fleet)
+		slices.Delete(u.Starbases, index, index)
+	} else {
+		index := slices.Index(u.Fleets, fleet)
+		slices.Delete(u.Fleets, index, index)	
+	}
 
 	delete(u.fleetsByNum, playerObjectKey(fleet.PlayerNum, fleet.Num))
 
@@ -346,6 +352,23 @@ func (u *Universe) deleteFleet(fleet *Fleet) {
 		Int("Player", fleet.PlayerNum).
 		Str("Fleet", fleet.Name).
 		Msgf("deleted fleet")
+
+}
+
+// mark a starbase as deleted and remove it from the universe
+func (u *Universe) deleteStarbase(fleet *Fleet) {
+	fleet.Delete = true
+
+	index := slices.Index(u.Starbases, fleet)
+	slices.Delete(u.Starbases, index, index)
+
+	u.removeMapObjectAtPosition(fleet, fleet.Position)
+
+	log.Debug().
+		Int64("GameID", fleet.GameID).
+		Int("Player", fleet.PlayerNum).
+		Str("Starbase", fleet.Name).
+		Msgf("deleted starbase")
 
 }
 

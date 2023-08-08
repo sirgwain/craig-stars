@@ -1027,7 +1027,12 @@ func (t *turn) planetProduction() {
 				messager.mineralPacket(player, planet, packet, target.Name)
 			}
 			if result.starbase != nil {
+				if planet.Starbase != nil {
+					planet.Starbase.Delete = true
+					planet.Starbase.MarkDirty()
+				}
 				starbase := t.buildStarbase(player, planet, result.starbase)
+				planet.Starbase = starbase
 				messager.starbaseBuilt(player, planet, starbase)
 			}
 			if result.scanner {
@@ -1342,13 +1347,6 @@ func (t *turn) fleetBattle() {
 				fleets = append(fleets, fleet)
 				playersAtPosition[fleet.PlayerNum] = t.game.getPlayer(fleet.PlayerNum)
 			}
-			if p, ok := mo.(*Planet); ok {
-				planet = p
-				if p.Starbase != nil {
-					fleets = append(fleets, p.Starbase)
-					playersAtPosition[p.PlayerNum] = t.game.getPlayer(planet.PlayerNum)
-				}
-			}
 		}
 
 		if len(playersAtPosition) <= 1 {
@@ -1397,7 +1395,11 @@ func (t *turn) fleetBattle() {
 				fleet.Tokens = updatedTokens
 
 				if len(fleet.Tokens) == 0 {
-					t.game.deleteFleet(fleet)
+					if fleet.Starbase {
+						t.game.deleteStarbase(fleet)
+					} else {
+						t.game.deleteFleet(fleet)
+					}
 				}
 			}
 
