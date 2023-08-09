@@ -12,7 +12,7 @@ export const bindNavigationHotkeys = (gameId: number, page: Readable<Page>) => {
 		goto(`/games/${gameId}/research`);
 	});
 	hotkeys('F4', () => {
-		goto(`/games/${gameId}/designs`);
+		goto(`/games/${gameId}/designer`);
 	});
 	hotkeys('F3', () => {
 		const pathname = get(page)?.url.pathname;
@@ -24,6 +24,9 @@ export const bindNavigationHotkeys = (gameId: number, page: Readable<Page>) => {
 				goto(`/games/${gameId}/fleets`);
 				break;
 			case `/games/${gameId}/fleets`:
+				goto(`/games/${gameId}/designs`);
+				break;
+			case `/games/${gameId}/designs`:
 				goto(`/games/${gameId}/messages`);
 				break;
 			case `/games/${gameId}/messages`:
@@ -37,7 +40,6 @@ export const bindNavigationHotkeys = (gameId: number, page: Readable<Page>) => {
 	hotkeys('F10', () => {
 		goto(`/games/${gameId}/players`);
 	});
-
 };
 
 export const unbindNavigationHotkeys = () => {

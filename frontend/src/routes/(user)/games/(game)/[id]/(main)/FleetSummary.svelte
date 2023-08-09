@@ -30,7 +30,10 @@
 <div class="flex flex-row min-h-[11rem]">
 	<div class="flex flex-col">
 		<div class="avatar mr-2">
-			<div class="border-2 border-neutral p-2 bg-black">
+			<div
+				class="border-2 border-neutral p-2 bg-black"
+				style={`border-color: ${$universe.getPlayerColor(fleet.playerNum)};`}
+			>
 				{#if fleet.tokens && fleet.tokens.reduce((count, t) => count + t.quantity, 0) > 1}
 					<div class="absolute -right-2 -top-1 text-xl w-6 h-6">+</div>
 				{/if}
@@ -48,26 +51,26 @@
 	</div>
 	<div class="flex flex-col grow">
 		<div class="flex flex-row">
-			<div class="w-24">Ship Count:</div>
+			<div class="w-32">Ship Count:</div>
 			<div>
 				{fleet.tokens ? fleet.tokens.reduce((count, t) => count + t.quantity, 0) : 'unknown'}
 			</div>
 		</div>
 		<div class="flex flex-row">
-			<div class="w-24">Fleet Mass:</div>
+			<div class="w-32">Fleet Mass:</div>
 			<div>
 				{fleet.spec?.mass ?? fleet.mass ?? 0}kT
 			</div>
 		</div>
 		{#if ownedBy(fleet, $player.num)}
 			<div class="flex flex-row">
-				<div class="w-24">Fuel:</div>
+				<div class="w-32">Fuel:</div>
 				<div class="grow">
 					<FuelBar value={fleet.fuel ?? 0} capacity={fleet.spec?.fuelCapacity ?? 0} />
 				</div>
 			</div>
 			<div class="flex flex-row">
-				<div class="w-24">Cargo:</div>
+				<div class="w-32">Cargo:</div>
 				<div class="grow">
 					<CargoBar value={fleet.cargo} capacity={fleet.spec?.cargoCapacity ?? 0} />
 				</div>
@@ -75,17 +78,46 @@
 		{/if}
 		{#if fleet.waypoints && fleet.waypoints.length > 1}
 			<div class="flex flex-row">
-				<div class="w-24">Next Waypoint:</div>
+				<div class="w-32">Next Waypoint:</div>
 				<div>{fleet.waypoints[1].targetName}</div>
 			</div>
 			<div class="flex flex-row">
-				<div class="w-24">Task:</div>
+				<div class="w-32">Task:</div>
 				<div>{startCase(fleet.waypoints[1].task)}</div>
 			</div>
 		{/if}
 		<div class="flex flex-row">
-			<div class="w-24">Warp Speed:</div>
+			<div class="w-32">Warp Speed:</div>
 			<div>{fleet.warpSpeed ?? 0}</div>
 		</div>
+
+		{#if !ownedBy(fleet, $player.num) && fleet.tokens}
+			<div>
+				Fleet Composition:
+				<div class="bg-base-100 h-16 overflow-y-auto mt-1 w-full md:w-60">
+					<ul class="w-full h-full">
+						{#each fleet.tokens as token, index}
+							<li class="pl-1">
+								<button
+									type="button"
+									class="w-full cursor-help"
+									on:pointerdown|preventDefault={(e) =>
+										onShipDesignTooltip(e, $universe.getDesign(fleet.playerNum, token.designNum))}
+								>
+									<div class="flex flex-row justify-between">
+										<div>
+											{$universe.getDesign(fleet.playerNum, token.designNum)?.name}
+										</div>
+										<div>
+											{token.quantity}
+										</div>
+									</div>
+								</button>
+							</li>
+						{/each}
+					</ul>
+				</div>
+			</div>
+		{/if}
 	</div>
 </div>

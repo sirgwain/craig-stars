@@ -541,8 +541,14 @@ func (d *discover) discoverDesign(player *Player, design *ShipDesign, discoverSl
 	if discoverSlots && len(intel.Slots) == 0 {
 		intel.Slots = make([]ShipDesignSlot, len(design.Slots))
 		copy(intel.Slots, design.Slots)
+		intel.Spec.Mass = design.Spec.Mass
 		intel.Spec.Armor = design.Spec.Armor
 		intel.Spec.Shields = design.Spec.Shields
+		intel.Spec.PowerRating = design.Spec.PowerRating
+		intel.Spec.FuelCapacity = design.Spec.FuelCapacity
+		intel.Spec.Movement = design.Spec.Movement
+		intel.Spec.Initiative = design.Spec.Initiative
+		intel.Spec.CloakPercent = design.Spec.CloakPercent
 	}
 }
 

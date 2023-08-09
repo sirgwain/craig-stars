@@ -12,7 +12,7 @@
 
 <Breadcrumb>
 	<svelte:fragment slot="crumbs">
-		<li><a class="cs-link" href={`/games/${$game.id}/designs`}>Ship Designs</a></li>
+		<li><a class="cs-link" href={`/games/${$game.id}/designer`}>Ship Designs</a></li>
 		<li>Choose Hull</li>
 	</svelte:fragment>
 </Breadcrumb>
@@ -20,7 +20,7 @@
 	{#each $techs.hulls as hull}
 		{#if $player && canLearnTech($game.player, hull) && hasRequiredLevels($player.techLevels, hull.requirements)}
 			<li>
-				<a class="cs-link" href={`/games/${$game.id}/designs/create/${kebabCase(hull.name)}`}>
+				<a class="cs-link" href={`/games/${$game.id}/designer/create/${kebabCase(hull.name)}`}>
 					<div class="flex flex-row place-items-center">
 						<div class="mr-2 mb-2 border border-secondary bg-black p-1">
 							<TechAvatar tech={hull} />

@@ -54,7 +54,7 @@
 						class=" menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-300"
 					>
 						<li><a href={`/games/${$game.id}/research`}>Research</a></li>
-						<li><a href={`/games/${$game.id}/designs`}>Ship Designs</a></li>
+						<li><a href={`/games/${$game.id}/designer`}>Ship Designer</a></li>
 						<li><a href={`/games/${$game.id}/battle-plans`}>Battle Plans</a></li>
 						<li><a href={`/games/${$game.id}/production-plans`}>Production Plans</a></li>
 						<li><a href={`/games/${$game.id}/transport-plans`}>Transport Plans</a></li>
@@ -71,6 +71,7 @@
 						<li><a href={`/games/${$game.id}/players`}>Players</a></li>
 						<li><a href={`/games/${$game.id}/planets`}>Planets</a></li>
 						<li><a href={`/games/${$game.id}/fleets`}>Fleets</a></li>
+						<li><a href={`/games/${$game.id}/designs`}>Designs</a></li>
 						<li><a href={`/games/${$game.id}/messages`}>Messages</a></li>
 						<li><a href={`/games/${$game.id}/battles`}>Battles</a></li>
 					</ul>
@@ -99,7 +100,7 @@
 						<span>Commands</span>
 					</li>
 					<li class="md:hidden"><a href={`/games/${$game.id}/research`}>Research</a></li>
-					<li class="md:hidden"><a href={`/games/${$game.id}/designs`}>Ship Designs</a></li>
+					<li class="md:hidden"><a href={`/games/${$game.id}/designer`}>Ship Designer</a></li>
 					<li class="md:hidden"><a href={`/games/${$game.id}/battle-plans`}>Battle Plans</a></li>
 					<li class="md:hidden">
 						<a href={`/games/${$game.id}/production-plans`}>Production Plans</a>
@@ -114,6 +115,7 @@
 					<li class="md:hidden"><a href={`/games/${$game.id}/players`}>Players</a></li>
 					<li class="md:hidden"><a href={`/games/${$game.id}/planets`}>Planets</a></li>
 					<li class="md:hidden"><a href={`/games/${$game.id}/fleets`}>Fleets</a></li>
+					<li class="md:hidden"><a href={`/games/${$game.id}/designs`}>Designs</a></li>
 					<li class="md:hidden"><a href={`/games/${$game.id}/messages`}>Messages</a></li>
 					<li class="md:hidden"><a href={`/games/${$game.id}/battles`}>Battles</a></li>
 				{/if}

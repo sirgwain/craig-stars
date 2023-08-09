@@ -48,7 +48,7 @@
 			const { valid, reason } = $game.validateDesign(design);
 			if (valid) {
 				const created = await $game.createDesign(design);
-				goto(`/games/${$game.id}/designs/${created.num}`);
+				goto(`/games/${$game.id}/designer/${created.num}`);
 			} else {
 				error = reason ?? 'invalid design';
 			}
@@ -60,8 +60,8 @@
 
 <Breadcrumb>
 	<svelte:fragment slot="crumbs">
-		<li><a class="cs-link" href={`/games/${$game.id}/designs`}>Ship Designs</a></li>
-		<li><a class="cs-link" href={`/games/${$game.id}/designs/create`}>Choose Hull</a></li>
+		<li><a class="cs-link" href={`/games/${$game.id}/designer`}>Ship Designs</a></li>
+		<li><a class="cs-link" href={`/games/${$game.id}/designer/create`}>Choose Hull</a></li>
 		<li>{design.name == '' ? 'new' : design.name}</li>
 	</svelte:fragment>
 	<div slot="end" class="flex justify-end mb-1">

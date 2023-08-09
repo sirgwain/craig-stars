@@ -23,7 +23,7 @@
 				if (valid) {
 					// update this design
 					await $game.updateDesign(design);
-					goto(`/games/${$game.id}/designs/${design.num}`);
+					goto(`/games/${$game.id}/designer/${design.num}`);
 				}
 			}
 		} catch (e) {
@@ -35,7 +35,7 @@
 {#if design && hull && $game}
 	<Breadcrumb>
 		<svelte:fragment slot="crumbs">
-			<li><a class="cs-link" href={`/games/${$game.id}/designs`}>Ship Designs</a></li>
+			<li><a class="cs-link" href={`/games/${$game.id}/designer`}>Ship Designs</a></li>
 			<li>{design.name == '' ? 'new' : design.name}</li>
 		</svelte:fragment>
 		<div slot="end" class="flex justify-end mb-1">
