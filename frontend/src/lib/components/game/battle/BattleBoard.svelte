@@ -1,12 +1,15 @@
 <script lang="ts">
-	import type { Universe } from '$lib/services/Universe';
+	import { playerFinderKey } from '$lib/services/Contexts';
+	import type { PlayerFinder } from '$lib/services/Universe';
 	import type { Battle, PhaseToken } from '$lib/types/Battle';
-	import type { Player } from '$lib/types/Player';
+	import { getContext } from 'svelte';
 	import BattleBoardAction from './BattleBoardAction.svelte';
 	import BattleBoardAttack from './BattleBoardAttack.svelte';
 	import BattleBoardPhaseControls from './BattleBoardPhaseControls.svelte';
 	import BattleBoardSelectedToken from './BattleBoardSelectedToken.svelte';
 	import BattleBoardSquare from './BattleBoardSquare.svelte';
+
+	const playerFinder = getContext<PlayerFinder>(playerFinderKey);
 
 	export let battle: Battle;
 	export let phase: number = 0;
@@ -68,7 +71,12 @@
 					</div>
 				{/if}
 				{#if selectedToken}
-					<div class="w-full card bg-base-200 shadow rounded-sm border-2 border-base-300">
+					<div
+						class="w-full card bg-base-200 shadow rounded-sm border-2 border-base-300"
+						style={selectedToken
+							? `border-color: ${playerFinder.getPlayerColor(selectedToken.playerNum)};`
+							: ''}
+					>
 						<div class="card-body p-3 gap-0">
 							<h2 class="text-lg font-semibold text-center mb-1 text-secondary">Selection</h2>
 							<BattleBoardSelectedToken {battle} token={selectedToken} {phase} />

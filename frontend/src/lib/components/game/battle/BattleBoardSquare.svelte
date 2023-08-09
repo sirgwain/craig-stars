@@ -1,11 +1,13 @@
 <script lang="ts">
-	import { designFinderKey } from '$lib/services/Contexts';
-	import type { DesignFinder } from '$lib/services/Universe';
+	import { designFinderKey, playerFinderKey } from '$lib/services/Contexts';
+	import type { DesignFinder, PlayerFinder } from '$lib/services/Universe';
 	import type { PhaseToken } from '$lib/types/Battle';
 	import { kebabCase } from 'lodash-es';
 	import { createEventDispatcher, getContext } from 'svelte';
 
 	const designFinder = getContext<DesignFinder>(designFinderKey);
+	const playerFinder = getContext<PlayerFinder>(playerFinderKey);
+
 	const dispatch = createEventDispatcher();
 
 	export let tokens: PhaseToken[] | undefined = undefined;
@@ -31,8 +33,11 @@
 
 <div
 	class={`bg-black tech-avatar border-2 box-content ${icon(tokens, tokenIndex)}`}
-	class:border-neutral={!selected}
+	class:border-neutral={!selected && !tokens}
 	class:border-accent={selected}
+	style={!selected && tokens
+		? `border-color: ${playerFinder.getPlayerColor(tokens[tokenIndex].playerNum)};`
+		: ''}
 >
 	{#if tokens}
 		<button

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import TorpedoHit from '$lib/components/icons/TorpedoHit.svelte';
-	import { type PhaseToken, type TokenAction, TokenActionType, Battle } from '$lib/types/Battle';
+	import { Battle, TokenActionType } from '$lib/types/Battle';
 	import { emptyVector, minus } from '$lib/types/Vector';
 	import { tweened } from 'svelte/motion';
 

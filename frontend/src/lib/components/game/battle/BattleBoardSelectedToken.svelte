@@ -1,9 +1,12 @@
 <script lang="ts">
 	import { designFinderKey, playerFinderKey } from '$lib/services/Contexts';
-	import type { DesignFinder, PlayerFinder, Universe } from '$lib/services/Universe';
+	import type { DesignFinder, PlayerFinder } from '$lib/services/Universe';
 	import type { Battle, PhaseToken } from '$lib/types/Battle';
+	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
+	import { Icon } from '@steeze-ui/svelte-icon';
 	import { startCase } from 'lodash-es';
 	import { getContext } from 'svelte';
+	import { onShipDesignTooltip } from '../tooltips/ShipDesignTooltip.svelte';
 
 	const designFinder = getContext<DesignFinder>(designFinderKey);
 	const playerFinder = getContext<PlayerFinder>(playerFinderKey);
@@ -19,16 +22,25 @@
 	$: shields = design?.spec.shields ?? 0;
 </script>
 
-<div class="w-full">
+<div
+	class="w-full"	
+>
 	{#if token && design && tokenState}
-		<div>
-			Selection: ({token.x}, {token.y})
-		</div>
 		<div>
 			The {raceName ?? ''}
 		</div>
+		<div>
+			Selection: ({token.x}, {token.y})
+		</div>
 		<div class="text-primary">
-			{design?.name}
+			<button
+				type="button"
+				class="w-full h-full cursor-help text-left"
+				on:pointerdown|preventDefault={(e) => onShipDesignTooltip(e, design)}
+			>
+				{design?.name}
+				<Icon src={QuestionMarkCircle} size="16" class=" cursor-help inline-block" />
+			</button>
 		</div>
 		<div class="flex justify-between">
 			<div>

@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { DesignFinder, PlayerFinder, Universe } from '$lib/services/Universe';
+	import { designFinderKey, playerFinderKey } from '$lib/services/Contexts';
+	import type { DesignFinder, PlayerFinder } from '$lib/services/Universe';
 	import { Battle, type BattleRecord } from '$lib/types/Battle';
 	import { setContext } from 'svelte/internal';
 	import BattleBoard from './BattleBoard.svelte';
-	import { designFinderKey, playerFinderKey } from '$lib/services/Contexts';
 
 	export let designFinder: DesignFinder;
 	export let playerFinder: PlayerFinder;
