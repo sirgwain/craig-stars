@@ -12,6 +12,12 @@
 	import { $enum as eu } from 'ts-enum-util';
 	import TransportTasksMini from '../../(plans)/transport-plans/TransportTasksMini.svelte';
 	import CommandTile from './CommandTile.svelte';
+	import { PencilSquare } from '@steeze-ui/heroicons';
+	import { Icon } from '@steeze-ui/svelte-icon';
+	import { createEventDispatcher } from 'svelte';
+	import type { TransportTasksEvent } from '../../dialogs/transport/TransportTasksDialog.svelte';
+
+	const dispatch = createEventDispatcher<TransportTasksEvent>();
 
 	const { game, player, universe } = getGameContext();
 
@@ -99,7 +105,16 @@
 				<div>
 					<TransportTasksMini transportTasks={$selectedWaypoint.transportTasks} />
 				</div>
-				<div class="ml-auto mt-1">
+				<div class="ml-auto mt-1 flex flex-row gap-1">
+					<div>
+						<button
+							on:click={() =>
+								$selectedWaypoint &&
+								dispatch('transport-tasks-dialog', { fleet, waypoint: $selectedWaypoint })}
+							class="btn btn-outline btn-sm normal-case btn-secondary inline-block p-1"
+							><Icon src={PencilSquare} size="16" class="hover:stroke-accent inline" /></button
+						>
+					</div>
 					<DropdownButton
 						title="Apply Plan"
 						items={$player.transportPlans}

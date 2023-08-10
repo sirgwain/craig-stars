@@ -265,7 +265,11 @@
 				if (hullComponent.torpedoBonus ?? (0 > 0 || hullComponent.initiativeBonus) ?? 0 > 0) {
 					if (hullComponent.torpedoBonus ?? (0 > 0 && hullComponent.initiativeBonus) ?? 0 > 0) {
 						descriptions.push(
-							`This module increases the accuracy of your torpedos by ${hullComponent.torpedoBonus}% and increases your initiative by ${hullComponent.initiativeBonus}. If an enemy ship has jammers the computer acts to offset their effects.`
+							`This module increases the accuracy of your torpedos by ${
+								(hullComponent.torpedoBonus ?? 0) * 100
+							}% and increases your initiative by ${
+								hullComponent.initiativeBonus
+							}. If an enemy ship has jammers the computer acts to offset their effects.`
 						);
 					} else if (hullComponent.initiativeBonus ?? 0 > 0) {
 						descriptions.push(
@@ -273,7 +277,7 @@
 						);
 					} else if (hullComponent.torpedoBonus ?? 0 > 0) {
 						descriptions.push(
-							`This module increases the accuracy of your torpedos by ${hullComponent.torpedoBonus}%. If an enemy ship has jammers the computer acts to offset their effects.`
+							`This module increases the accuracy of your torpedos by ${(hullComponent.torpedoBonus ?? 0) * 100}%. If an enemy ship has jammers the computer acts to offset their effects.`
 						);
 					}
 				}

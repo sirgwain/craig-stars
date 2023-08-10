@@ -2,6 +2,7 @@
 	import EnumSelect from '$lib/components/EnumSelect.svelte';
 	import NumberInput from '$lib/components/NumberInput.svelte';
 	import { WaypointTaskTransportAction } from '$lib/types/Fleet';
+	import { startCase } from 'lodash-es';
 
 	export let action: WaypointTaskTransportAction | undefined;
 	export let amount: number | undefined;
@@ -18,6 +19,7 @@
 		enumType={WaypointTaskTransportAction}
 		bind:value={action}
 		titleClass="hidden"
+		typeTitle={(value) => (!value || value === WaypointTaskTransportAction.None ? 'None' : startCase(value))}
 	/>
 </div>
 <div>

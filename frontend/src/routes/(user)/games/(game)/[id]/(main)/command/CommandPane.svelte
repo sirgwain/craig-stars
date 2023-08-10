@@ -67,6 +67,9 @@
 			on:cargo-transfer-dialog={(e) => dispatch('cargo-transfer-dialog', e.detail)}
 		/>
 		<FleetWaypointsTile fleet={$commandedFleet} />
-		<FleetWaypointTaskTile fleet={$commandedFleet} />
+		<FleetWaypointTaskTile
+			fleet={$commandedFleet}
+			on:transport-tasks-dialog={(e) => dispatch('transport-tasks-dialog', e.detail)}
+		/>
 	</div>
 {/if}

@@ -113,7 +113,10 @@
 			/>
 		</div>
 		<div id="fleet-waypoint-task-tile" class="carousel-item w-full">
-			<FleetWaypointTaskTile fleet={$commandedFleet} />
+			<FleetWaypointTaskTile
+				fleet={$commandedFleet}
+				on:transport-tasks-dialog={(e) => dispatch('transport-tasks-dialog', e.detail)}
+			/>
 		</div>
 		<div id="fleet-other-fleets-here-tile" class="carousel-item w-full">
 			<FleetOtherFleetsHereTile
