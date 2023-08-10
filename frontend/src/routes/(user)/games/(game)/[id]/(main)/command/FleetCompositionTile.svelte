@@ -2,7 +2,7 @@
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import { getGameContext } from '$lib/services/Contexts';
 	import { selectedWaypoint } from '$lib/services/Stores';
-	import type { CommandedFleet } from '$lib/types/Fleet';
+	import { getDamagePercentForToken, type CommandedFleet } from '$lib/types/Fleet';
 	import { createEventDispatcher } from 'svelte';
 	import CommandTile from './CommandTile.svelte';
 	import type { SplitFleetEvent } from '../../dialogs/split/SplitFleetDialog.svelte';
@@ -34,7 +34,7 @@
 	<CommandTile title="Fleet Composition">
 		<div class="bg-base-100 h-20 overflow-y-auto">
 			<ul class="w-full h-full">
-				{#each fleet.tokens as token, index}
+				{#each fleet.tokens as token}
 					<li class="pl-1">
 						<button
 							type="button"
@@ -42,7 +42,16 @@
 							on:pointerdown|preventDefault={(e) =>
 								onShipDesignTooltip(e, $universe.getDesign($player.num, token.designNum))}
 						>
-							<div class="flex flex-row justify-between">
+							<div class="flex flex-row justify-between relative">
+								{#if (token.damage ?? 0) > 0 && (token.quantityDamaged ?? 0) > 0}
+									<div
+										style={`width: ${getDamagePercentForToken(
+											token,
+											$universe.getMyDesign(token.designNum)
+										).toFixed()}%`}
+										class="damage-bar h-full absolute opacity-50"
+									/>
+								{/if}
 								<div>
 									{$universe.getDesign($player.num, token.designNum)?.name}
 								</div>
@@ -71,7 +80,13 @@
 		</div>
 		<div class="flex justify-between my-1">
 			<div>Est Range:</div>
-			<div>{fleet.spec.estimatedRange ? fleet.spec.estimatedRange === Infinite ? "Infinite" : `${fleet.spec.estimatedRange} l.y.` : '--'}</div>
+			<div>
+				{fleet.spec.estimatedRange
+					? fleet.spec.estimatedRange === Infinite
+						? 'Infinite'
+						: `${fleet.spec.estimatedRange} l.y.`
+					: '--'}
+			</div>
 		</div>
 		<div class="flex justify-between my-1">
 			<div>Percent Cloaked</div>

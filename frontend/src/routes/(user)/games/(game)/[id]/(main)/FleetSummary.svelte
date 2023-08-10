@@ -3,7 +3,7 @@
 	import FuelBar from '$lib/components/game/FuelBar.svelte';
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import { getGameContext } from '$lib/services/Contexts';
-	import type { Fleet } from '$lib/types/Fleet';
+	import { getDamagePercentForToken, type Fleet } from '$lib/types/Fleet';
 	import { ownedBy } from '$lib/types/MapObject';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import { kebabCase, startCase } from 'lodash-es';
@@ -104,7 +104,17 @@
 									on:pointerdown|preventDefault={(e) =>
 										onShipDesignTooltip(e, $universe.getDesign(fleet.playerNum, token.designNum))}
 								>
-									<div class="flex flex-row justify-between">
+									<div class="flex flex-row justify-between relative">
+										{#if (token.damage ?? 0) > 0 && (token.quantityDamaged ?? 0) > 0}
+											<div
+												style={`width: ${getDamagePercentForToken(
+													token,
+													$universe.getDesign(fleet.playerNum, token.designNum)
+												).toFixed()}%`}
+												class="damage-bar h-full absolute opacity-50"
+											/>
+										{/if}
+
 										<div>
 											{$universe.getDesign(fleet.playerNum, token.designNum)?.name}
 										</div>

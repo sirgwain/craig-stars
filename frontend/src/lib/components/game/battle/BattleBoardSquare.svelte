@@ -35,7 +35,7 @@
 	class={`bg-black tech-avatar border-2 box-content ${icon(tokens, tokenIndex)}`}
 	class:border-neutral={!selected && !tokens}
 	class:border-accent={selected}
-	style={!selected && tokens
+	style={!selected && tokens && tokens[tokenIndex]
 		? `border-color: ${playerFinder.getPlayerColor(tokens[tokenIndex].playerNum)};`
 		: ''}
 >

@@ -4,6 +4,7 @@ import { totalCargo, type Cargo } from './Cargo';
 import type { Cost } from './Cost';
 import { MapObjectType, None, type MovingMapObject } from './MapObject';
 import type { MessageTargetType } from './Message';
+import type { ShipDesign } from './ShipDesign';
 import type { Engine } from './Tech';
 import type { Vector } from './Vector';
 
@@ -207,6 +208,20 @@ export class CommandedFleet implements Fleet {
 
 		return fuelCost;
 	}
+}
+
+export function getDamagePercentForToken(token: ShipToken, design: ShipDesign | undefined): number {
+	const armor = design?.spec.armor ?? 0;
+	const totalArmor = armor * token.quantity;
+	const quantityDamaged =
+		(token.quantityDamaged ?? 0) > (token.quantity ?? 0)
+			? token.quantity ?? 0
+			: token.quantityDamaged ?? 0;
+	const totalDamage = quantityDamaged * (token.damage ?? 0);
+	if (totalArmor > 0 && totalDamage > 0) {
+		return (totalDamage / totalArmor) * 100;
+	}
+	return 0;
 }
 
 function getFuelCostForEngine(

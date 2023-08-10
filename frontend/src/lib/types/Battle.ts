@@ -1,4 +1,5 @@
 import { flatten, groupBy, sumBy } from 'lodash-es';
+import { levelsAbove } from './TechLevel';
 import type { Vector } from './Vector';
 
 export type BattleRecord = {
@@ -113,10 +114,15 @@ export class Battle implements BattleRecord {
 	// get all remaining tokens at a location for a phase
 	getTokensAtLocation(phase: number, x: number, y: number): PhaseToken[] | undefined {
 		const phaseTokens = this.tokensByPhaseByLocation[phase];
-		return (
-			phaseTokens &&
-			phaseTokens[getTokenLocationKey(x, y)]?.filter((t) => !(t.ranAway || t.destroyed))
-		);
+		if (phaseTokens) {
+			const remainingPhaseTokens = phaseTokens[getTokenLocationKey(x, y)]?.filter(
+				(t) => !(t.ranAway || t.destroyed)
+			);
+			// return undefined if we don't have any remaining tokens at this location for this phase
+			if (remainingPhaseTokens?.length) {
+				return remainingPhaseTokens;
+			}
+		}
 	}
 
 	// get the token performing an action for a phase

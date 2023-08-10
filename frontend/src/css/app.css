@@ -54,6 +54,9 @@
 	.germanium-concentration {
 		@apply stroke-[#7f7f00] fill-[#7f7f00];
 	}
+	.damage-bar {
+		@apply bg-[#FF0000];
+	}
 	.fuel-bar {
 		@apply bg-[#FF0000];
 	}
