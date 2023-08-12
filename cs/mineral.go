@@ -65,11 +65,28 @@ func (m Mineral) ToCost() Cost {
 }
 
 // add an int to all components of the mineral
+func (m Mineral) Add(m2 Mineral) Mineral {
+	return Mineral{
+		Ironium:   m.Ironium + m2.Ironium,
+		Boranium:  m.Boranium + m2.Boranium,
+		Germanium: m.Germanium + m2.Germanium,
+	}
+}
+
+// add an int to all components of the mineral
 func (m Mineral) AddInt(num int) Mineral {
 	return Mineral{
 		Ironium:   m.Ironium + num,
 		Boranium:  m.Boranium + num,
 		Germanium: m.Germanium + num,
+	}
+}
+
+func (c Mineral) MultiplyFloat64(factor float64) Mineral {
+	return Mineral{
+		Ironium:   int(float64(c.Ironium) * factor),
+		Boranium:  int(float64(c.Boranium) * factor),
+		Germanium: int(float64(c.Germanium) * factor),
 	}
 }
 

@@ -18,10 +18,11 @@ type PlayerMessage struct {
 }
 
 type PlayerMessageSpec struct {
-	Amount     int       `json:"amount,omitempty"`
-	Field      TechField `json:"field,omitempty"`
-	NextField  TechField `json:"nextField,omitempty"`
-	TechGained string    `json:"techGained,omitempty"`
+	Amount     int               `json:"amount,omitempty"`
+	Field      TechField         `json:"field,omitempty"`
+	NextField  TechField         `json:"nextField,omitempty"`
+	TechGained string            `json:"techGained,omitempty"`
+	Battle     BattleRecordStats `json:"battle,omitempty"`
 }
 
 type PlayerMessageTargetType string
@@ -646,7 +647,7 @@ func (m *messageClient) battle(player *Player, planet *Planet, battle *BattleRec
 		targetType = TargetPlanet
 	}
 	text = fmt.Sprintf("A battle took place at %s.", location)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageBattle, Text: text, TargetType: targetType, TargetNum: planetNum, BattleNum: battle.Num})
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageBattle, Text: text, TargetType: targetType, TargetNum: planetNum, BattleNum: battle.Num, Spec: PlayerMessageSpec{Battle: battle.Stats}})
 }
 
 func (m *messageClient) techLevel(player *Player, field TechField, level int, nextField TechField) {

@@ -1348,7 +1348,10 @@ func (t *turn) fleetBattle() {
 			if fleet, ok := mo.(*Fleet); ok && !fleet.Delete {
 				fleets = append(fleets, fleet)
 				playersAtPosition[fleet.PlayerNum] = t.game.getPlayer(fleet.PlayerNum)
+			} else if p, ok := mo.(*Planet); ok {
+				planet = p
 			}
+
 		}
 
 		if len(playersAtPosition) <= 1 {
@@ -1380,10 +1383,23 @@ func (t *turn) fleetBattle() {
 				// store this discoverer for discovering designs
 				discoverersByPlayer[player.Num] = discoverer
 
-				// player knows about the battle
-				player.BattleRecords = append(player.BattleRecords, *record)
-				messager.battle(player, planet, record)
 			}
+
+			// figure out how much salvage this generates
+			destroyedCost := Cost{}
+			salvageOwner := 1
+			salvageFactor := t.game.rules.SalvageFromBattleFactor
+			if salvageFactor == 0 {
+				// TODO: remove this when games are up to date
+				salvageFactor = .3 // upgrade old games before this rule was available
+			}
+			for _, token := range record.DestroyedTokens {
+				destroyedCost = destroyedCost.Add(token.design.Spec.Cost.MultiplyInt(token.Quantity))
+				// TODO: who owns this salvage
+				salvageOwner = token.PlayerNum
+			}
+			salvageMinerals := destroyedCost.MultiplyFloat64(t.game.rules.SalvageFromBattleFactor).ToMineral()
+
 			for _, fleet := range fleets {
 				updatedTokens := make([]ShipToken, 0, len(fleet.Tokens))
 				for _, token := range fleet.Tokens {
@@ -1403,6 +1419,27 @@ func (t *turn) fleetBattle() {
 						t.game.deleteFleet(fleet)
 					}
 				}
+
+				// recompute the spec of this fleet and make sure we don't have extra fuel sitting around
+				fleet.Spec = ComputeFleetSpec(t.game.rules, t.game.getPlayer(fleet.PlayerNum), fleet)
+				fleet.reduceFuelToMax()
+
+				// jettison cargo
+				jettisoned := fleet.reduceCargoToMax()
+				record.Stats.CargoLostByPlayer[fleet.PlayerNum] = record.Stats.CargoLostByPlayer[fleet.PlayerNum].Add(jettisoned)
+				jettisonedMinerals := jettisoned.ToMineral()
+				if jettisonedMinerals.Total() > 0 {
+					salvageMinerals = salvageMinerals.Add(jettisonedMinerals)
+				}
+			}
+
+			if salvageMinerals.Total() > 0 {
+				if planet == nil {
+					t.game.createSalvage(record.Position, salvageOwner, salvageMinerals.ToCargo())
+				} else {
+					planet.Cargo = planet.Cargo.AddMineral(salvageMinerals)
+					planet.MarkDirty()
+				}
 			}
 
 			// discover all enemy designs
@@ -1414,6 +1451,13 @@ func (t *turn) fleetBattle() {
 					}
 				}
 
+			}
+
+			// message each player
+			for _, player := range playersAtPosition {
+				// player knows about the battle
+				player.BattleRecords = append(player.BattleRecords, *record)
+				messager.battle(player, planet, record)
 			}
 			battleNum++
 		}

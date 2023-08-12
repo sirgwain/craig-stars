@@ -216,6 +216,7 @@ func Test_turn_fleetRoute(t *testing.T) {
 func Test_turn_fleetMove(t *testing.T) {
 	game := createSingleUnitGame()
 
+	planet := game.Planets[0]
 	fleet := game.Fleets[0]
 
 	fleet.Waypoints = append(fleet.Waypoints, NewPositionWaypoint(Vector{10, 10}, 5))
@@ -231,6 +232,8 @@ func Test_turn_fleetMove(t *testing.T) {
 	// should have consumed that waypoint and moved to the space
 	assert.Equal(t, 1, len(fleet.Waypoints))
 	assert.Equal(t, Vector{10, 10}, fleet.Position)
+	assert.Equal(t, 1, len(game.getMapObjectsAtPosition(planet.Position)))
+	assert.Equal(t, 1, len(game.getMapObjectsAtPosition(fleet.Position)))
 }
 
 func Test_turn_fleetMoveRepeatOrders(t *testing.T) {

@@ -11,7 +11,7 @@
 	export let max = capacity;
 	export let editable = false;
 
-	$: percent = capacity > 0 ? (value / capacity) * 100 : 0;
+	$: percent = capacity > 0 ? clamp((value / capacity) * 100, 0, 100) : 0;
 
 	let pointerdown = false;
 

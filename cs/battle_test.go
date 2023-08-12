@@ -432,7 +432,7 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			b := &battle{rules: &rules,
 				record: newBattleRecord(1, None, Vector{}, []BattleRecordToken{})}
-			b.record.RecordNewRound()
+			b.record.recordNewRound()
 
 			// setup this weapon's token based on shipQuantity and position
 			tt.args.weapon.weaponSlot.token = &battleToken{
@@ -672,7 +672,7 @@ func Test_battle_fireTorpedo(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			b := &battle{rules: &rules,
 				record: newBattleRecord(1, None, Vector{}, []BattleRecordToken{})}
-			b.record.RecordNewRound()
+			b.record.recordNewRound()
 
 			// setup this weapon's token based on shipQuantity and position
 			tt.args.weapon.weaponSlot.token = &battleToken{
@@ -733,4 +733,6 @@ func Test_battle_runBattle1(t *testing.T) {
 
 	// ran some number of turns
 	assert.Greater(t, len(record.ActionsPerRound), 1)
+	assert.Equal(t, 2, record.Stats.NumShipsByPlayer[player1.Num])
+	assert.Equal(t, 1, record.Stats.NumShipsByPlayer[player2.Num])
 }

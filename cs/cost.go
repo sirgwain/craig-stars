@@ -34,6 +34,14 @@ func (c Cost) ToCargo() Cargo {
 	}
 }
 
+func (c Cost) ToMineral() Mineral {
+	return Mineral{
+		Ironium:   c.Ironium,
+		Boranium:  c.Boranium,
+		Germanium: c.Germanium,
+	}
+}
+
 func (c Cost) Total() int {
 	return c.Ironium + c.Boranium + c.Germanium + c.Resources
 }

@@ -333,7 +333,7 @@ func (u *Universe) deleteFleet(fleet *Fleet) {
 		slices.Delete(u.Starbases, index, index)
 	} else {
 		index := slices.Index(u.Fleets, fleet)
-		slices.Delete(u.Fleets, index, index)	
+		slices.Delete(u.Fleets, index, index)
 	}
 
 	delete(u.fleetsByNum, playerObjectKey(fleet.PlayerNum, fleet.Num))
@@ -548,12 +548,14 @@ func (u *Universe) getMapObjectsAtPosition(position Vector) []interface{} {
 func (u *Universe) updateMapObjectAtPosition(mo interface{}, originalPosition, newPosition Vector) {
 	mos := u.mapObjectsByPosition[originalPosition]
 	if mos != nil {
-		index := slices.IndexFunc(mos, func(item interface{}) bool { return item == mo })
-		if index >= 0 && index < len(mos) {
-			slices.Delete(mos, index, index)
-		} else {
-			log.Warn().Msgf("tried to update position of %s from %v to %v, but index %d of original position out of range", mo, originalPosition, newPosition, index)
+		updatedMos := make([]interface{}, 0, len(mos)-1)
+		for _, existingMo := range mos {
+			if existingMo == mo {
+				continue
+			}
+			updatedMos = append(updatedMos, existingMo)
 		}
+		u.mapObjectsByPosition[originalPosition] = updatedMos
 	} else {
 		log.Warn().Msgf("tried to update position of %s from %v to %v, no mapobjects were found at %v", mo, originalPosition, newPosition, originalPosition)
 	}

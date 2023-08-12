@@ -14,7 +14,7 @@
 	<Breadcrumb>
 		<svelte:fragment slot="crumbs">
 			<li><a class="cs-link" href={`/games/${$game.id}/battles`}>Battles</a></li>
-			<li>{$universe.getBattleLocation(battle, $universe)}</li>
+			<li>{$universe.getBattleLocation(battle)}</li>
 		</svelte:fragment>
 	</Breadcrumb>
 

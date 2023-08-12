@@ -125,6 +125,7 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 		}
 	}
 
+
 	getPlayerScoreHistory(num: number): PlayerScore[] | undefined {
 		if (num >= 1 && num <= this.scores.length && this.scores[num - 1]) {
 			return this.scores[num - 1];
@@ -186,7 +187,7 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 		return this.designs.find((d) => d.playerNum === this.playerNum && d.num === num);
 	}
 
-	getBattle(num: number): BattleRecord | undefined {
+	getBattle(num: number | undefined): BattleRecord | undefined {
 		return this.battles.find((b) => b.num === num);
 	}
 
@@ -201,9 +202,9 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 		this.designs = [...this.designs, design];
 	}
 
-	getBattleLocation(battle: BattleRecord, universe: Universe): string {
+	getBattleLocation(battle: BattleRecord): string {
 		if (battle.planetNum) {
-			const planet = universe.getPlanet(battle.planetNum);
+			const planet = this.getPlanet(battle.planetNum);
 			return planet?.name ?? 'Unknown';
 		}
 		return `Space (${battle.position.x}, ${battle.position.y})`;

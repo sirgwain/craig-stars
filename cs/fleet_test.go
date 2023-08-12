@@ -334,6 +334,41 @@ func Test_computeFleetSpec(t *testing.T) {
 			BaseCloakedCargo: 0,
 			TotalShips:       2,
 		}},
+		{"0 Scouts", args{&rules, starterHumanoidPlayer, &Fleet{
+			BaseName: "Long Range Scout",
+			Tokens: []ShipToken{
+				{
+					DesignNum: 1,
+					Quantity:  0,
+					design: NewShipDesign(starterHumanoidPlayer, 1).
+						WithHull(Scout.Name).
+						WithSlots([]ShipDesignSlot{
+							{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+							{HullComponent: RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
+							{HullComponent: FuelTank.Name, HullSlotIndex: 3, Quantity: 1},
+						}).
+						WithSpec(&rules, starterHumanoidPlayer)},
+			},
+		}}, FleetSpec{
+			ShipDesignSpec: ShipDesignSpec{
+				Cost:         Cost{},
+				FuelCapacity: 0,
+				ScanRange:    66,
+				ScanRangePen: 30,
+				Scanner:      true,
+				Mass:         0,
+				Armor:        0,
+				Engine: Engine{
+					IdealSpeed: QuickJump5.IdealSpeed,
+					FreeSpeed:  QuickJump5.FreeSpeed,
+				},
+			},
+			Purposes:         map[ShipDesignPurpose]bool{},
+			MassEmpty:        0,
+			BaseCloakedCargo: 0,
+			TotalShips:       0,
+			EstimatedRange:   Infinite,
+		}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -869,6 +904,44 @@ func TestFleet_getFuelGeneration(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.fleet.getFuelGeneration(tt.args.warpSpeed, tt.args.distance); got != tt.want {
 				t.Errorf("Fleet.getFuelGeneration() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestFleet_reduceCargoToMax(t *testing.T) {
+	type fields struct {
+		cargo         Cargo
+		cargoCapacity int
+	}
+	tests := []struct {
+		name           string
+		fields         fields
+		wantCargo      Cargo
+		wantJettisoned Cargo
+	}{
+		{name: "empty", fields: fields{cargo: Cargo{}, cargoCapacity: 0}, wantCargo: Cargo{}, wantJettisoned: Cargo{}},
+		{name: "no reduce", fields: fields{cargo: Cargo{Ironium: 10}, cargoCapacity: 10}, wantCargo: Cargo{Ironium: 10}, wantJettisoned: Cargo{}},
+		{name: "no room left", fields: fields{cargo: Cargo{Ironium: 10}, cargoCapacity: 0}, wantCargo: Cargo{}, wantJettisoned: Cargo{Ironium: 10}},
+		{name: "save the people!", fields: fields{cargo: Cargo{Ironium: 10, Colonists: 10}, cargoCapacity: 5}, wantCargo: Cargo{Colonists: 5}, wantJettisoned: Cargo{Ironium: 10, Colonists: 5}},
+		{name: "save 50% of each", fields: fields{cargo: Cargo{10, 8, 6, 0}, cargoCapacity: 12}, wantCargo: Cargo{5, 4, 3, 0}, wantJettisoned: Cargo{5, 4, 3, 0}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fleet := &Fleet{
+				Cargo: tt.fields.cargo,
+				Spec: FleetSpec{
+					ShipDesignSpec: ShipDesignSpec{
+						CargoCapacity: tt.fields.cargoCapacity,
+					},
+				},
+			}
+
+			if got := fleet.reduceCargoToMax(); got != tt.wantJettisoned {
+				t.Errorf("Fleet.reduceCargoToMax() = %v, wantJettisoned %v", got, tt.wantJettisoned)
+			}
+			if got := fleet.Cargo; got != tt.wantCargo {
+				t.Errorf("Fleet.reduceCargoToMax() cargo = %v, wantCargo %v", got, tt.wantCargo)
 			}
 		})
 	}

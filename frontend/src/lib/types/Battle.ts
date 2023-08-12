@@ -1,5 +1,5 @@
 import { flatten, groupBy, sumBy } from 'lodash-es';
-import { levelsAbove } from './TechLevel';
+import type { Cargo } from './Cargo';
 import type { Vector } from './Vector';
 
 export type BattleRecord = {
@@ -8,6 +8,8 @@ export type BattleRecord = {
 	position: Vector;
 	tokens: Token[];
 	actionsPerRound: Array<TokenAction[]>;
+	destroyedTokens: BattleRecordDestroyedToken[];
+	stats: BattleRecordStats;
 };
 
 export type Token = {
@@ -15,6 +17,7 @@ export type Token = {
 	playerNum: number;
 	designNum: number;
 	position: Vector;
+	startingQuantity: number;
 	damage?: number;
 	quantityDamaged?: number;
 	quantity?: number;
@@ -24,6 +27,13 @@ export type Token = {
 	primaryTarget: BattleTarget | string;
 	secondaryTarget: BattleTarget | string;
 	attackWho: BattleAttackWho | string;
+};
+
+export type BattleRecordDestroyedToken = {
+	num: number;
+	playerNum: number;
+	designNum: number;
+	quantity: number;
 };
 
 export type TokenAction = {
@@ -40,6 +50,14 @@ export type TokenAction = {
 	damageDoneArmor?: number;
 	torpedoHits?: number;
 	torpedoMisses?: number;
+};
+
+export type BattleRecordStats = {
+	numPlayers?: number;
+	numShipsByPlayer?: { [key: number]: number };
+	shipsDestroyedByPlayer?: { [key: number]: number };
+	damageTakenByPlayer?: { [key: number]: number };
+	cargoLostByPlayer?: { [key: number]: Cargo };
 };
 
 export enum BattleTactic {
@@ -79,7 +97,8 @@ export enum TokenActionType {
 export type PhaseToken = {
 	action?: TokenAction;
 	ranAway?: boolean;
-	destroyed?: boolean;
+	destroyedPhase?: number;
+	target?: boolean;
 } & Token &
 	Vector;
 
@@ -90,10 +109,20 @@ export class Battle implements BattleRecord {
 		Object.assign(this, record);
 		this.totalPhases = sumBy(this.actionsPerRound, (a) => a.length);
 		this.totalRounds = this.actionsPerRound.length;
+		this.tokens.forEach((t) => (t.quantity = t.startingQuantity));
 		this.buildPhaseTokensForBattle();
 		this.tokens.sort((a, b) => a.num - b.num);
 		this.actions = flatten(this.actionsPerRound);
 	}
+
+	destroyedTokens: BattleRecordDestroyedToken[] = [];
+	stats: BattleRecordStats = {
+		numPlayers: 0,
+		numShipsByPlayer: {},
+		shipsDestroyedByPlayer: {},
+		damageTakenByPlayer: {},
+		cargoLostByPlayer: {}
+	};
 
 	planetNum?: number | undefined;
 	tokens: Token[] = [];
@@ -116,7 +145,7 @@ export class Battle implements BattleRecord {
 		const phaseTokens = this.tokensByPhaseByLocation[phase];
 		if (phaseTokens) {
 			const remainingPhaseTokens = phaseTokens[getTokenLocationKey(x, y)]?.filter(
-				(t) => !(t.ranAway || t.destroyed)
+				(t) => !(t.ranAway || (t.destroyedPhase && phase > t.destroyedPhase))
 			);
 			// return undefined if we don't have any remaining tokens at this location for this phase
 			if (remainingPhaseTokens?.length) {
@@ -139,6 +168,10 @@ export class Battle implements BattleRecord {
 		return this.tokensByPhase[phase].find((t) => t.num == num);
 	}
 
+	getTargetForPhase(phase: number): PhaseToken | undefined {
+		return this.tokensByPhase[phase].find((t) => t.target);
+	}
+
 	private buildPhaseTokensForBattle() {
 		this.tokensByPhaseByLocation = [];
 
@@ -153,32 +186,40 @@ export class Battle implements BattleRecord {
 		this.tokensByPhaseByLocation.push(groupBy(tokens, (t) => getTokenLocationKey(t.x, t.y)));
 		this.tokensByPhase.push(tokens);
 
+		// a phase is incremented per action
+		let phase = 1;
 		for (let round = 1; round < this.actionsPerRound.length; round++) {
 			const roundActions = this.actionsPerRound[round];
-			for (let actionIndex = 0; actionIndex < roundActions.length; actionIndex++) {
+			for (let actionIndex = 0; actionIndex < roundActions.length; actionIndex++, phase++) {
 				// find the action for this phase
 				const action = roundActions[actionIndex];
 				const phaseTokens = tokens.map((t) => {
 					// clone each token for this phase
-					const clonedToken = structuredClone(t);
+					const phaseToken = structuredClone(t);
+					phaseToken.target = false; // clear out active target
 
 					// if this token is being acted upon, update it
-					if (clonedToken.num == action.tokenNum) {
-						clonedToken.action = action;
+					if (phaseToken.num == action.tokenNum) {
+						phaseToken.action = action;
 						if (action.type == TokenActionType.Move) {
-							clonedToken.x = action.to?.x ?? clonedToken.x;
-							clonedToken.y = action.to?.y ?? clonedToken.y;
+							phaseToken.x = action.to?.x ?? phaseToken.x;
+							phaseToken.y = action.to?.y ?? phaseToken.y;
 						} else if (action.type == TokenActionType.RanAway) {
-							clonedToken.ranAway = true;
+							phaseToken.ranAway = true;
 						}
 					} else {
 						// this token is idle, remove the action
-						clonedToken.action = undefined;
+						phaseToken.action = undefined;
 					}
-					if (action.target && action.targetNum === clonedToken.num) {
-						Object.assign(clonedToken, action.target);
+					if (action.target && action.targetNum === phaseToken.num) {
+						Object.assign(phaseToken, action.target);
+						phaseToken.target = true;
+						if (!action.target.quantity) {
+							// token was destroyed
+							phaseToken.destroyedPhase = phase;
+						}
 					}
-					return clonedToken;
+					return phaseToken;
 				});
 				// keep track of our progress
 				tokens = phaseTokens;

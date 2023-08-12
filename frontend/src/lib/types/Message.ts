@@ -1,5 +1,8 @@
+import type { Universe } from '$lib/services/Universe';
+import type { BattleRecordStats } from './Battle';
 import type { Target } from './Fleet';
 import { MapObjectType } from './MapObject';
+import type { Player } from './Player';
 import type { PlayerSettings } from './PlayerSettings';
 import type { TechField } from './TechLevel';
 
@@ -15,6 +18,7 @@ export type PlayerMessageSpec = {
 	field: TechField;
 	nextField: TechField;
 	techGained: string;
+	battle: BattleRecordStats;
 };
 
 export enum MessageTargetType {
@@ -121,4 +125,44 @@ export function getNextVisibleMessageNum(
 		}
 	}
 	return num;
+}
+
+function getBattleMessage(message: Message, universe: Universe, player: Player): string {
+	const stats = message.spec.battle;
+	const battle = universe.getBattle(message.battleNum);
+	if (battle) {
+		const location = universe.getBattleLocation(battle) ?? 'unknown';
+		let text = `A battle took place at ${location}.`;
+
+		const myShips = stats.numShipsByPlayer ? stats.numShipsByPlayer[player.num] ?? 0 : 0;
+
+		const myShipsLost = stats.shipsDestroyedByPlayer
+			? stats.shipsDestroyedByPlayer[player.num] ?? 0
+			: 0;
+
+		const myRemainingShips = myShips - myShipsLost;
+
+		if (myShipsLost === myShips) {
+			text += ' All of your forces were destroyed by enemy forces.';
+		} else if (myShipsLost === 0) {
+			text += ' None of your forces were destroyed.';
+		} else if (myRemainingShips === 1) {
+			text += ` Only one of your ships survived.`;
+		} else if (myRemainingShips > 1) {
+			text += ` ${myRemainingShips} of your ships surived.`;
+		}
+
+		return text;
+	} else {
+		return `A battle took place at an unknown location`;
+	}
+}
+
+export function getMessageText(message: Message, universe: Universe, player: Player): string {
+	switch (message.type) {
+		case MessageType.Battle:
+			return getBattleMessage(message, universe, player);
+		default:
+			return message.text;
+	}
 }

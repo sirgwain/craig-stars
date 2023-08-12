@@ -243,7 +243,17 @@ export class Player implements PlayerResponse {
 	}
 
 	hasTech(tech: Tech): boolean {
-		return canLearnTech(this, tech) && hasRequiredLevels(this.techLevels, tech.requirements)
+		return canLearnTech(this, tech) && hasRequiredLevels(this.techLevels, tech.requirements);
+	}
+
+	getAllies(): number[] {
+		const allies: number[] = [];
+		this.relations.forEach((r, index) => {
+			if (r.relation === PlayerRelation.Friend) {
+				allies.push(index + 1);
+			}
+		});
+		return allies;
 	}
 }
 

@@ -22,15 +22,13 @@
 	$: shields = design?.spec.shields ?? 0;
 </script>
 
-<div
-	class="w-full"	
->
+<div class="w-full">
 	{#if token && design && tokenState}
 		<div>
 			The {raceName ?? ''}
 		</div>
 		<div>
-			Selection: ({token.x}, {token.y})
+			Location: ({token.x}, {token.y})
 		</div>
 		<div class="text-primary">
 			<button
@@ -39,6 +37,9 @@
 				on:pointerdown|preventDefault={(e) => onShipDesignTooltip(e, design)}
 			>
 				{design?.name}
+				{#if (token.quantity ?? 0) > 1}
+					x{token.quantity}
+				{/if}
 				<Icon src={QuestionMarkCircle} size="16" class=" cursor-help inline-block" />
 			</button>
 		</div>
@@ -54,7 +55,9 @@
 			<div>
 				Armor: {armor}dp
 			</div>
-			{#if tokenState.damage && armor}
+			{#if tokenState.destroyedPhase && phase >= tokenState.destroyedPhase}
+				<div class="text-error">Destroyed</div>
+			{:else if tokenState.damage && armor}
 				<div class="text-error">
 					Damage: {tokenState.quantityDamaged}@{((tokenState.damage / armor) * 100).toFixed(1)}%
 				</div>

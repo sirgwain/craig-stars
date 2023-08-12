@@ -8,7 +8,8 @@
 		MessageTargetType,
 		type Message,
 		MessageType,
-		getNextVisibleMessageNum
+		getNextVisibleMessageNum,
+		getMessageText
 	} from '$lib/types/Message';
 	import {
 		ArrowLongLeft,
@@ -216,7 +217,7 @@
 							</div>
 						{/if}
 						{#if message}
-							{message.text}
+							{getMessageText(message, $universe, $player)}
 						{/if}
 					</div>
 				</div>

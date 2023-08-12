@@ -651,6 +651,8 @@ func (gr *gameRunner) generateTurn(fullGame *cs.FullGame) error {
 	// time.Sleep(8 * time.Second)
 
 	if err := gr.db.UpdateFullGame(fullGame); err != nil {
+		gr.db.UpdateGameState(fullGame.ID, cs.GameStateGeneratingTurnError)
+
 		return fmt.Errorf("save game after turn generation -> %w", err)
 	}
 	return nil

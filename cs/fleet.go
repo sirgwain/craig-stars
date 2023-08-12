@@ -523,6 +523,58 @@ func computeFleetCloakPercent(spec *FleetSpec, cargoTotal int, freeCargoCloaking
 	return getCloakPercentForCloakUnits(cloakUnits)
 }
 
+// make sure we don't overflow our fuel. After a battle, we might have more fuel than our fleet can hold
+func (fleet *Fleet) reduceFuelToMax() {
+	fleet.Fuel = minInt(fleet.Spec.FuelCapacity, fleet.Fuel)
+}
+
+// make sure we don't overflow our cargo. After a battle, we might have more cargo than our fleet can hold
+// return any dropped cargo
+func (fleet *Fleet) reduceCargoToMax() Cargo {
+	capacity := fleet.Spec.CargoCapacity
+	cargo := fleet.Cargo
+
+	// no capacity, no cargo
+	if capacity == 0 {
+		fleet.Cargo = Cargo{}
+		return cargo
+	}
+
+	// check if we have more cargo than we can hold
+	total := fleet.Cargo.Total()
+	if total > capacity {
+
+		// save the people first!
+		if fleet.Cargo.Colonists > 0 {
+			fleet.Cargo.Colonists = minInt(fleet.Cargo.Colonists, capacity)
+		}
+
+		// if we have 110kT of space and 10kT is taken up by colonists, we have 100kT remaining capacity
+		// if we have 200kT of minerals left, we keep half of each
+		minerals := fleet.Cargo.ToMineral()
+		remainingCapacity := maxInt(0, capacity-fleet.Cargo.Colonists)
+
+		// if we have no capacity left, drop all minerals and
+		if remainingCapacity == 0 {
+			fleet.Cargo = Cargo{Colonists: fleet.Cargo.Colonists}
+			return cargo.Subtract(fleet.Cargo)
+		}
+		totalMinerals := minerals.Total()
+
+		// reduce each mineral by a percent
+		percentToKeep := 1 / (float64(totalMinerals) / float64(remainingCapacity))
+		minerals = minerals.MultiplyFloat64(percentToKeep)
+		fleet.Cargo = Cargo{
+			minerals.Ironium,
+			minerals.Boranium,
+			minerals.Germanium,
+			fleet.Cargo.Colonists,
+		}
+	}
+
+	return cargo.Subtract(fleet.Cargo)
+}
+
 // return true if this fleet would attack another player's fleet, planet, minefield, etc.
 func (fleet *Fleet) willAttack(fleetPlayer *Player, otherPlayerNum int) bool {
 	switch fleet.battlePlan.AttackWho {

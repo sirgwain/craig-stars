@@ -8,28 +8,43 @@ import (
 
 // BattleRecord is a recording of a single battle.
 type BattleRecord struct {
-	Num             int                         `json:"num,omitempty"`
-	PlanetNum       int                         `json:"planetNum,omitempty"`
-	Position        Vector                      `json:"position,omitempty"`
-	Tokens          []BattleRecordToken         `json:"tokens,omitempty"`
-	ActionsPerRound [][]BattleRecordTokenAction `json:"actionsPerRound,omitempty"`
-	Stats           struct {
-		TokensDestroyedByPlayer map[int]int `json:"tokensDestroyedByPlayer,omitempty"`
-	} `json:"stats,omitempty"`
+	Num             int                          `json:"num,omitempty"`
+	PlanetNum       int                          `json:"planetNum,omitempty"`
+	Position        Vector                       `json:"position,omitempty"`
+	Tokens          []BattleRecordToken          `json:"tokens,omitempty"`
+	ActionsPerRound [][]BattleRecordTokenAction  `json:"actionsPerRound,omitempty"`
+	DestroyedTokens []BattleRecordDestroyedToken `json:"destroyedTokens,omitempty"`
+	Stats           BattleRecordStats            `json:"stats,omitempty"`
+}
+type BattleRecordStats struct {
+	NumPlayers             int           `json:"numPlayers,omitempty"`
+	NumShipsByPlayer       map[int]int   `json:"numShipsByPlayer,omitempty"`
+	ShipsDestroyedByPlayer map[int]int   `json:"shipsDestroyedByPlayer,omitempty"`
+	DamageTakenByPlayer    map[int]int   `json:"damageTakenByPlayer,omitempty"`
+	CargoLostByPlayer      map[int]Cargo `json:"cargoLostByPlayer,omitempty"`
 }
 
 // A token on a battle board
 type BattleRecordToken struct {
-	Num             int             `json:"num,omitempty"`
-	PlayerNum       int             `json:"playerNum,omitempty"`
-	DesignNum       int             `json:"designNum,omitempty"`
-	Position        Vector          `json:"position,omitempty"`
-	Initiative      int             `json:"initiative,omitempty"`
-	Movement        int             `json:"movement,omitempty"`
-	Tactic          BattleTactic    `json:"tactic,omitempty"`
-	PrimaryTarget   BattleTarget    `json:"primaryTarget,omitempty"`
-	SecondaryTarget BattleTarget    `json:"secondaryTarget,omitempty"`
-	AttackWho       BattleAttackWho `json:"attackWho,omitempty"`
+	Num              int             `json:"num,omitempty"`
+	PlayerNum        int             `json:"playerNum,omitempty"`
+	DesignNum        int             `json:"designNum,omitempty"`
+	Position         Vector          `json:"position,omitempty"`
+	Initiative       int             `json:"initiative,omitempty"`
+	Movement         int             `json:"movement,omitempty"`
+	StartingQuantity int             `json:"startingQuantity,omitempty"`
+	Tactic           BattleTactic    `json:"tactic,omitempty"`
+	PrimaryTarget    BattleTarget    `json:"primaryTarget,omitempty"`
+	SecondaryTarget  BattleTarget    `json:"secondaryTarget,omitempty"`
+	AttackWho        BattleAttackWho `json:"attackWho,omitempty"`
+}
+
+type BattleRecordDestroyedToken struct {
+	Num       int `json:"num,omitempty"`
+	PlayerNum int `json:"playerNum,omitempty"`
+	DesignNum int `json:"designNum,omitempty"`
+	Quantity  int `json:"quantity,omitempty"`
+	design    *ShipDesign
 }
 
 // BattleRecordTokenAction represents an action for a token in a battle.
@@ -78,20 +93,43 @@ func (t BattleRecordTokenActionType) String() string {
 
 // SetupRecord populates a lookup table of items by guid.
 func newBattleRecord(num int, planetNum int, position Vector, tokens []BattleRecordToken) *BattleRecord {
+	numShipsByPlayer := make(map[int]int, 2)
 	tokensByNum := make(map[int]*BattleRecordToken)
+	playerNums := make(map[int]bool, 2)
 	for i := range tokens {
 		token := &tokens[i]
 		tokensByNum[token.Num] = token
+		numShipsByPlayer[token.PlayerNum] = numShipsByPlayer[token.PlayerNum] + token.StartingQuantity
+		playerNums[token.PlayerNum] = true
 	}
 	// always start with one round
 	actionsPerRound := make([][]BattleRecordTokenAction, 1)
 	actionsPerRound[0] = make([]BattleRecordTokenAction, 0)
+
+	// setup some default stats
+	shipsDestroyedByPlayer := make(map[int]int, len(playerNums))
+	damageTakenByPlayer := make(map[int]int, len(playerNums))
+	cargoLostByPlayer := make(map[int]Cargo, len(playerNums))
+
+	for playerNum := range playerNums {
+		shipsDestroyedByPlayer[playerNum] = 0
+		damageTakenByPlayer[playerNum] = 0
+		cargoLostByPlayer[playerNum] = Cargo{}
+	}
+
 	return &BattleRecord{
 		Num:             num,
 		PlanetNum:       planetNum,
 		Position:        position,
 		Tokens:          tokens,
 		ActionsPerRound: actionsPerRound,
+		Stats: BattleRecordStats{
+			NumPlayers:             len(playerNums),
+			NumShipsByPlayer:       numShipsByPlayer,
+			ShipsDestroyedByPlayer: shipsDestroyedByPlayer,
+			DamageTakenByPlayer:    damageTakenByPlayer,
+			CargoLostByPlayer:      cargoLostByPlayer,
+		},
 	}
 }
 
@@ -100,12 +138,12 @@ func (a BattleRecordTokenAction) String() string {
 }
 
 // Add a new round to the record
-func (b *BattleRecord) RecordNewRound() {
+func (b *BattleRecord) recordNewRound() {
 	b.ActionsPerRound = append(b.ActionsPerRound, []BattleRecordTokenAction{})
 }
 
 // Record a move
-func (b *BattleRecord) RecordMove(round int, token *battleToken, from, to Vector) {
+func (b *BattleRecord) recordMove(round int, token *battleToken, from, to Vector) {
 	action := BattleRecordTokenAction{Type: TokenActionMove, Round: round, TokenNum: token.Num, From: from, To: to}
 	actions := b.ActionsPerRound[len(b.ActionsPerRound)-1]
 	actions = append(actions, action)
@@ -115,7 +153,7 @@ func (b *BattleRecord) RecordMove(round int, token *battleToken, from, to Vector
 }
 
 // Record a token running away
-func (b *BattleRecord) RecordRunAway(round int, token *battleToken) {
+func (b *BattleRecord) recordRunAway(round int, token *battleToken) {
 	action := BattleRecordTokenAction{Type: TokenActionRanAway, Round: round, TokenNum: token.Num}
 	actions := b.ActionsPerRound[len(b.ActionsPerRound)-1]
 	actions = append(actions, action)
@@ -126,7 +164,7 @@ func (b *BattleRecord) RecordRunAway(round int, token *battleToken) {
 }
 
 // Record a token firing a beam weapon
-func (b *BattleRecord) RecordBeamFire(round int, token *battleToken, from Vector, to Vector, slot int, target battleToken, damageDoneShields int, damageDoneArmor int, tokensDestroyed int) {
+func (b *BattleRecord) recordBeamFire(round int, token *battleToken, from Vector, to Vector, slot int, target battleToken, damageDoneShields int, damageDoneArmor int, tokensDestroyed int) {
 	// copy the ship token into the record
 	shipToken := *target.ShipToken
 
@@ -134,13 +172,14 @@ func (b *BattleRecord) RecordBeamFire(round int, token *battleToken, from Vector
 	actions := b.ActionsPerRound[len(b.ActionsPerRound)-1]
 	actions = append(actions, action)
 	b.ActionsPerRound[len(b.ActionsPerRound)-1] = actions
+	b.Stats.DamageTakenByPlayer[token.PlayerNum] += damageDoneArmor
 
 	log.Debug().Msgf("Round: %d %s", round, action)
 
 }
 
 // Record a token firing a salvo of torpedos
-func (b *BattleRecord) RecordTorpedoFire(round int, token *battleToken, from Vector, to Vector, slot int, target *battleToken, damageDoneShields int, damageDoneArmor int, tokensDestroyed int, hits int, misses int) {
+func (b *BattleRecord) recordTorpedoFire(round int, token *battleToken, from Vector, to Vector, slot int, target *battleToken, damageDoneShields int, damageDoneArmor int, tokensDestroyed int, hits int, misses int) {
 	// copy the ship token into the record
 	shipToken := *target.ShipToken
 	action := BattleRecordTokenAction{
@@ -161,7 +200,19 @@ func (b *BattleRecord) RecordTorpedoFire(round int, token *battleToken, from Vec
 	actions := b.ActionsPerRound[len(b.ActionsPerRound)-1]
 	actions = append(actions, action)
 	b.ActionsPerRound[len(b.ActionsPerRound)-1] = actions
+	b.Stats.DamageTakenByPlayer[token.PlayerNum] += damageDoneArmor
 
 	log.Debug().Msgf("Round: %d %s", round, action)
+}
 
+// record a destroyed token for the battle message
+func (b *BattleRecord) recordDestroyedToken(token *battleToken, quantityDestroyed int) {
+	destroyedTokens := BattleRecordDestroyedToken{}
+	destroyedTokens.Num = token.Num
+	destroyedTokens.PlayerNum = token.PlayerNum
+	destroyedTokens.DesignNum = token.design.Num
+	destroyedTokens.Quantity = quantityDestroyed
+	destroyedTokens.design = token.design
+	b.DestroyedTokens = append(b.DestroyedTokens, destroyedTokens)
+	b.Stats.ShipsDestroyedByPlayer[token.PlayerNum] += quantityDestroyed
 }
