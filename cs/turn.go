@@ -1086,6 +1086,7 @@ func (t *turn) buildStarbase(player *Player, planet *Planet, design *ShipDesign)
 		Str("Starbase", starbase.Name).
 		Msgf("starbase built")
 
+	t.game.Starbases = append(t.game.Starbases, starbase)
 	t.game.addStarbase(starbase)
 	return starbase
 }
