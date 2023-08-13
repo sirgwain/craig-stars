@@ -8,18 +8,39 @@
 
 	const { game, player, universe } = getGameContext();
 
+	type BattleRow = {
+		num: number;
+		location: string;
+		numPlayers: number;
+		numShips: number;
+		ours: number;
+		theirs: number;
+		ourDead: number;
+		theirDead: number;
+		oursLeft: number;
+		theirsLeft: number;
+	};
+
 	// filterable battles
-	let filteredBattles: BattleRecord[] = [];
+	let filteredBattles: BattleRow[] = [];
 	let search = '';
-
-	$: filteredBattles = $universe.battles ?? [];
-	$: filteredBattles =
-		$universe.battles.filter(
-			(i) =>
-				$universe.getBattleLocation(i).toLowerCase().indexOf(search.toLowerCase()) != -1
-		) ?? [];
-
 	$: allies = new Set($player.getAllies());
+
+	$: battleRows = $universe.battles.map((b) => ({
+		num: b.num,
+		location: $universe.getBattleLocation(b),
+		numPlayers: Object.keys(b.stats?.numShipsByPlayer ?? {}).length,
+		numShips: getNumShips(b),
+		ours: getOurShips(b),
+		theirs: getTheirDead(b),
+		ourDead: getOurDead(b),
+		theirDead: getTheirDead(b),
+		oursLeft: getOurShips(b) - getOurDead(b),
+		theirsLeft: getTheirShips(b) - getTheirDead(b)
+	}));
+
+	$: filteredBattles =
+		battleRows.filter((i) => i.location.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? [];
 
 	function getNumShips(record: BattleRecord): number {
 		return Object.values(record.stats.numShipsByPlayer ?? {}).reduce(
@@ -38,13 +59,13 @@
 
 	function getTheirShips(record: BattleRecord): number {
 		let count = 0;
-		allies.forEach(
-			(ally) =>
-				(count +=
-					record.stats?.numShipsByPlayer && !record.stats?.numShipsByPlayer[ally]
-						? record.stats?.numShipsByPlayer[ally]
-						: 0)
-		);
+		Object.entries(record.stats?.numShipsByPlayer ?? {}).forEach((entry) => {
+			const playerNum: number = parseInt(entry[0]);
+			const numShips = entry[1];
+			if (!allies.has(playerNum)) {
+				count += numShips;
+			}
+		});
 		return count;
 	}
 
@@ -61,13 +82,13 @@
 
 	function getTheirDead(record: BattleRecord): number {
 		let count = 0;
-		allies.forEach(
-			(ally) =>
-				(count +=
-					record.stats?.shipsDestroyedByPlayer && !record.stats?.shipsDestroyedByPlayer[ally]
-						? record.stats?.shipsDestroyedByPlayer[ally]
-						: 0)
-		);
+		Object.entries(record.stats?.shipsDestroyedByPlayer ?? {}).forEach((entry) => {
+			const playerNum: number = parseInt(entry[0]);
+			const numShips = entry[1];
+			if (!allies.has(playerNum)) {
+				count += numShips;
+			}
+		});
 		return count;
 	}
 
@@ -77,11 +98,11 @@
 			title: 'Location'
 		},
 		{
-			key: 'players',
+			key: 'numPlayers',
 			title: 'Players'
 		},
 		{
-			key: 'ships',
+			key: 'numShips',
 			title: 'Ships'
 		},
 		{
@@ -139,25 +160,8 @@
 
 		<span slot="cell">
 			{#if column.key == 'location'}
-				<a class="cs-link text-2xl" href={`/games/${$game.id}/battles/${row.num}`}
-					>{$universe.getBattleLocation(row)}</a
+				<a class="cs-link text-2xl" href={`/games/${$game.id}/battles/${row.num}`}>{row.location}</a
 				>
-			{:else if column.key == 'players'}
-				{row.stats?.numPlayers ?? 0}
-			{:else if column.key == 'ships'}
-				{getNumShips(row)}
-			{:else if column.key == 'ours'}
-				{getOurShips(row)}
-			{:else if column.key == 'theirs'}
-				{getTheirShips(row)}
-			{:else if column.key == 'ourDead'}
-				{getOurDead(row)}
-			{:else if column.key == 'theirDead'}
-				{getTheirDead(row)}
-			{:else if column.key == 'oursLeft'}
-				{getOurShips(row) - getOurDead(row)}
-			{:else if column.key == 'theirsLeft'}
-				{getTheirShips(row) - getTheirDead(row)}
 			{:else}
 				{cell ?? ''}
 			{/if}

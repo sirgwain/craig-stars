@@ -1029,12 +1029,7 @@ func (t *turn) planetProduction() {
 				messager.mineralPacket(player, planet, packet, target.Name)
 			}
 			if result.starbase != nil {
-				if planet.Starbase != nil {
-					planet.Starbase.Delete = true
-					planet.Starbase.MarkDirty()
-				}
 				starbase := t.buildStarbase(player, planet, result.starbase)
-				planet.Starbase = starbase
 				messager.starbaseBuilt(player, planet, starbase)
 			}
 			if result.scanner {
@@ -1078,6 +1073,11 @@ func (t *turn) buildStarbase(player *Player, planet *Planet, design *ShipDesign)
 	player.Stats.StarbasesBuilt++
 	player.Stats.TokensBuilt++
 
+	// remove the old starbase
+	if planet.Starbase != nil {
+		t.game.deleteStarbase(planet.Starbase)
+	}
+
 	starbase := planet.buildStarbase(t.game.rules, player, design)
 	log.Debug().
 		Int64("GameID", t.game.ID).
@@ -1086,7 +1086,7 @@ func (t *turn) buildStarbase(player *Player, planet *Planet, design *ShipDesign)
 		Str("Starbase", starbase.Name).
 		Msgf("starbase built")
 
-	t.game.Starbases = append(t.game.Starbases, starbase)
+	t.game.addStarbase(starbase)
 	return starbase
 }
 
@@ -1338,6 +1338,7 @@ func (t *turn) randomPlanetaryChange() {
 
 func (t *turn) fleetBattle() {
 	battleNum := 1
+
 	for _, mos := range t.game.mapObjectsByPosition {
 		playersAtPosition := map[int]*Player{}
 		fleets := make([]*Fleet, 0, len(mos))

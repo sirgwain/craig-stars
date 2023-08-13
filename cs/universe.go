@@ -17,7 +17,6 @@ type Universe struct {
 	rules                *Rules
 	battlePlansByNum     map[playerBattlePlanNum]*BattlePlan
 	mapObjectsByPosition map[Vector][]interface{}
-	fleetsByPosition     map[Vector][]*Fleet
 	fleetsByNum          map[playerObject]*Fleet
 	designsByNum         map[playerObject]*ShipDesign
 	mineFieldsByNum      map[playerObject]*MineField
@@ -33,7 +32,6 @@ func NewUniverse(rules *Rules) Universe {
 		rules:                rules,
 		battlePlansByNum:     make(map[playerBattlePlanNum]*BattlePlan),
 		mapObjectsByPosition: make(map[Vector][]interface{}),
-		fleetsByPosition:     make(map[Vector][]*Fleet),
 		designsByNum:         make(map[playerObject]*ShipDesign),
 		fleetsByNum:          make(map[playerObject]*Fleet),
 		mineFieldsByNum:      make(map[playerObject]*MineField),
@@ -107,20 +105,13 @@ func (u *Universe) buildMaps(players []*Player) {
 		}
 	}
 
-	u.fleetsByPosition = make(map[Vector][]*Fleet)
 	u.fleetsByNum = make(map[playerObject]*Fleet, len(u.Fleets))
 	for _, fleet := range u.Fleets {
 		u.addFleet(fleet)
 	}
 
 	for _, starbase := range u.Starbases {
-		u.addMapObjectByPosition(starbase, starbase.Position)
-		u.Planets[starbase.PlanetNum-1].Starbase = starbase
-		for i := range starbase.Tokens {
-			token := &starbase.Tokens[i]
-			token.design = u.designsByNum[playerObjectKey(starbase.PlayerNum, token.DesignNum)]
-		}
-		starbase.battlePlan = u.battlePlansByNum[playerBattlePlanNum{starbase.PlayerNum, starbase.BattlePlanNum}]
+		u.addStarbase(starbase)
 	}
 
 	for _, planet := range u.Planets {
@@ -327,23 +318,12 @@ func (u *Universe) updateTokenCounts() {
 // mark a fleet as deleted and remove it from the universe
 func (u *Universe) deleteFleet(fleet *Fleet) {
 	fleet.Delete = true
+	fleet.MarkDirty()
 
-	if fleet.Starbase {
-		index := slices.Index(u.Starbases, fleet)
-		slices.Delete(u.Starbases, index, index)
-	} else {
-		index := slices.Index(u.Fleets, fleet)
-		slices.Delete(u.Fleets, index, index)
-	}
+	index := slices.Index(u.Fleets, fleet)
+	slices.Delete(u.Fleets, index, index)
 
 	delete(u.fleetsByNum, playerObjectKey(fleet.PlayerNum, fleet.Num))
-
-	fleetsByPosition := u.fleetsByPosition[fleet.Position]
-	positionIndex := slices.Index(fleetsByPosition, fleet)
-	slices.Delete(fleetsByPosition, positionIndex, positionIndex)
-	if len(fleetsByPosition) == 0 {
-		delete(u.fleetsByPosition, fleet.Position)
-	}
 
 	u.removeMapObjectAtPosition(fleet, fleet.Position)
 
@@ -356,18 +336,19 @@ func (u *Universe) deleteFleet(fleet *Fleet) {
 }
 
 // mark a starbase as deleted and remove it from the universe
-func (u *Universe) deleteStarbase(fleet *Fleet) {
-	fleet.Delete = true
+func (u *Universe) deleteStarbase(starbase *Fleet) {
+	starbase.Delete = true
+	starbase.MarkDirty()
 
-	index := slices.Index(u.Starbases, fleet)
+	index := slices.Index(u.Starbases, starbase)
 	slices.Delete(u.Starbases, index, index)
 
-	u.removeMapObjectAtPosition(fleet, fleet.Position)
+	u.removeMapObjectAtPosition(starbase, starbase.Position)
 
 	log.Debug().
-		Int64("GameID", fleet.GameID).
-		Int("Player", fleet.PlayerNum).
-		Str("Starbase", fleet.Name).
+		Int64("GameID", starbase.GameID).
+		Int("Player", starbase.PlayerNum).
+		Str("Starbase", starbase.Name).
 		Msgf("deleted starbase")
 
 }
@@ -375,22 +356,6 @@ func (u *Universe) deleteStarbase(fleet *Fleet) {
 // move a fleet from one position to another
 func (u *Universe) moveFleet(fleet *Fleet, originalPosition Vector) {
 	fleet.MarkDirty()
-	originalPositionFleets := u.fleetsByPosition[originalPosition]
-	index := slices.Index(originalPositionFleets, fleet)
-	if index != -1 {
-		slices.Delete(originalPositionFleets, index, index)
-		if len(originalPositionFleets) == 0 {
-			delete(u.fleetsByPosition, originalPosition)
-		}
-	}
-
-	// move to new location
-	fleets, found := u.fleetsByPosition[fleet.Position]
-	if !found {
-		fleets = []*Fleet{}
-	}
-	fleets = append(fleets, fleet)
-	u.fleetsByPosition[fleet.Position] = fleets
 
 	// upadte mapobjects position
 	u.updateMapObjectAtPosition(fleet, originalPosition, fleet.Position)
@@ -398,12 +363,6 @@ func (u *Universe) moveFleet(fleet *Fleet, originalPosition Vector) {
 
 func (u *Universe) addFleet(fleet *Fleet) {
 	u.addMapObjectByPosition(fleet, fleet.Position)
-	fleets, found := u.fleetsByPosition[fleet.Position]
-	if !found {
-		fleets = []*Fleet{fleet}
-	}
-	fleets = append(fleets, fleet)
-	u.fleetsByPosition[fleet.Position] = fleets
 
 	u.fleetsByNum[playerObjectKey(fleet.PlayerNum, fleet.Num)] = fleet
 
@@ -413,6 +372,20 @@ func (u *Universe) addFleet(fleet *Fleet) {
 	for i := range fleet.Tokens {
 		token := &fleet.Tokens[i]
 		token.design = u.designsByNum[playerObjectKey(fleet.PlayerNum, token.DesignNum)]
+	}
+}
+
+func (u *Universe) addStarbase(starbase *Fleet) {
+	u.Planets[starbase.PlanetNum-1].Starbase = starbase
+
+	u.addMapObjectByPosition(starbase, starbase.Position)
+
+	starbase.battlePlan = u.battlePlansByNum[playerBattlePlanNum{starbase.PlayerNum, starbase.BattlePlanNum}]
+
+	// inject the design into this
+	for i := range starbase.Tokens {
+		token := &starbase.Tokens[i]
+		token.design = u.designsByNum[playerObjectKey(starbase.PlayerNum, token.DesignNum)]
 	}
 }
 
