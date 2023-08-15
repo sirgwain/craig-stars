@@ -41,6 +41,7 @@ type ShipDesignSpec struct {
 	ScanRangePen              int                   `json:"scanRangePen,omitempty"`
 	RepairBonus               float64               `json:"repairBonus,omitempty"`
 	TorpedoInaccuracyFactor   float64               `json:"torpedoInaccuracyFactor,omitempty"`
+	TorpedoJamming            float64               `json:"torpedoJamming,omitempty"`
 	Initiative                int                   `json:"initiative,omitempty"`
 	Movement                  int                   `json:"movement,omitempty"`
 	PowerRating               int                   `json:"powerRating,omitempty"`
@@ -238,6 +239,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		HullType:                hull.Type,
 	}
 
+	torpedoJammingFactor := 1.0
 	numTachyonDetectors := 0
 
 	for _, slot := range design.Slots {
@@ -296,6 +298,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 			// 100 - (100 - 75) * .7 * .7 * .5 = 94% accurate
 			// if TorpedoInnaccuracyDecrease is 1 (default), it's just 75%
 			spec.TorpedoInaccuracyFactor *= float64(math.Pow((1 - float64(component.TorpedoBonus)), float64(slot.Quantity)))
+			torpedoJammingFactor *= float64(math.Pow((1 - float64(component.TorpedoJamming)), float64(slot.Quantity)))
 
 			// if this slot has a bomb, this design is a bomber
 			if component.HullSlotType == HullSlotTypeBomb || component.MinKillRate > 0 {
@@ -364,6 +367,8 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 			}
 		}
 	}
+
+	spec.TorpedoJamming = 1 - torpedoJammingFactor
 
 	// determine the safe speed for this design
 	spec.SafePacketSpeed = spec.BasePacketSpeed + spec.AdditionalMassDrivers

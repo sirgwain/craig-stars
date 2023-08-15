@@ -81,6 +81,7 @@
 			hotkeys.unbind('F9');
 			hotkeys.unbind('n');
 			hotkeys.unbind('p');
+			hotkeys.deleteScope('root');
 
 			// load a new game, when this is successful, the $game contenxt will be updated
 			const loaded = await $game.load(id);
@@ -102,12 +103,13 @@
 				hotkeys('F9', () => {
 					onSubmitTurn();
 				});
-				hotkeys('n', () => {
+				hotkeys('n', 'root', () => {
 					nextMapObject();
 				});
-				hotkeys('p', () => {
+				hotkeys('p', 'root', () => {
 					previousMapObject();
 				});
+				hotkeys.setScope('root');
 			}
 		} finally {
 			clearLoadingModalText();
@@ -180,4 +182,3 @@
 		<ErrorPage {error} />
 	</main>
 {/if}
-

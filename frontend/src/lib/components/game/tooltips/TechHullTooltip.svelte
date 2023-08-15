@@ -2,7 +2,7 @@
 	import { showTooltip } from '$lib/services/Stores';
 	import TechHullTooltip from './TechHullTooltip.svelte';
 
-	export function onTechHullTooltip(e: PointerEvent, hull: TechHull | undefined) {
+	export function onTechHullTooltip(e: PointerEvent | MouseEvent, hull: TechHull | undefined) {
 		if (hull) {
 			showTooltip<TechHullTooltipProps>(e.x, e.y, TechHullTooltip, { hull: hull });
 		}

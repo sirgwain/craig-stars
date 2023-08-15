@@ -7,7 +7,9 @@ export const bindNavigationHotkeys = (gameId: number, page: Readable<Page>) => {
 	hotkeys('esc', () => {
 		goto(`/games/${gameId}`);
 	});
-
+	hotkeys('F2', () => {
+		goto(`/games/${gameId}/techs`);
+	});
 	hotkeys('F5', () => {
 		goto(`/games/${gameId}/research`);
 	});
@@ -47,5 +49,6 @@ export const unbindNavigationHotkeys = () => {
 	hotkeys.unbind('F5');
 	hotkeys.unbind('F4');
 	hotkeys.unbind('F3');
+	hotkeys.unbind('F2');
 	hotkeys.unbind('F10');
 };

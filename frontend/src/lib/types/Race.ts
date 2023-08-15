@@ -115,6 +115,23 @@ export enum LRT {
 	CE = 1 << 13
 }
 
+export const lrts = [
+	LRT.IFE,
+	LRT.TT,
+	LRT.ARM,
+	LRT.ISB,
+	LRT.GR,
+	LRT.UR,
+	LRT.NRSE,
+	LRT.OBRM,
+	LRT.NAS,
+	LRT.LSP,
+	LRT.BET,
+	LRT.RS,
+	LRT.MA,
+	LRT.CE,
+]
+
 export enum SpendLeftoverPointsOn {
 	SurfaceMinerals = 'SurfaceMinerals',
 	MineralConcentrations = 'MineralConcentrations',

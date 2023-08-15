@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { startCase } from 'lodash-es';
-	import type { TechField } from '$lib/types/Player';
 	import { ResearchCostLevel, type Race } from '$lib/types/Race';
+	import type { TechField } from '$lib/types/TechLevel';
 
 	export let field: TechField;
 	export let value: ResearchCostLevel;
@@ -31,7 +31,7 @@
 					class="radio radio-sm checked:bg-primary"
 					bind:group={value}
 				/>
-				<span class="label-text ml-2">Costs stamdard amount</span>
+				<span class="label-text ml-2">Costs standard amount</span>
 			</label>
 			<label class="label cursor-pointer justify-start">
 				<input

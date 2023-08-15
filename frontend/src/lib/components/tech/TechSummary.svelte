@@ -35,12 +35,16 @@
 
 {#if tech}
 	<div
-		class="card bg-base-200 shadow rounded-sm border-2 border-base-300 max-h-fit min-h-fit w-full"
+		class="card bg-base-200 shadow rounded-sm border-2 border-base-300 max-h-fit min-h-fit w-full h-full"
 	>
 		<div class="card-body p-3 gap-0">
 			<h2 class="text-lg font-semibold text-center mb-1 text-secondary">
 				<div class="indicator w-full">
-					<span class:hidden={!player || above != 0} class="indicator-item badge badge-accent">new</span>
+					{#if player?.hasTech(tech)}
+						<span class:hidden={!player || above !== 0} class="indicator-item badge badge-accent"
+							>new
+						</span>
+					{/if}
 					<div class="w-full">
 						{#if player}
 							<a href={`/games/${player.gameId}/techs/${kebabCase(tech.name)}`}>{tech.name}</a>

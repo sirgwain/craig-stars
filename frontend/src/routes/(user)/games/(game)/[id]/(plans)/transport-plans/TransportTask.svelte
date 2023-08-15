@@ -20,6 +20,7 @@
 		bind:value={action}
 		titleClass="hidden"
 		typeTitle={(value) => (!value || value === WaypointTaskTransportAction.None ? 'None' : startCase(value))}
+		showEmpty={true}
 	/>
 </div>
 <div>

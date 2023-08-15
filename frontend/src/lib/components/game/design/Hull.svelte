@@ -5,6 +5,8 @@
 	import CargoComponent from '../../tech/hull/CargoComponent.svelte';
 	import HullComponent from '../../tech/hull/HullComponent.svelte';
 	import SpaceDockComponent from '../../tech/hull/SpaceDockComponent.svelte';
+	import { onTechTooltip } from '../tooltips/TechTooltip.svelte';
+	import { techs } from '$lib/services/Stores';
 
 	const dispatch = createEventDispatcher();
 
@@ -63,6 +65,8 @@
 			style={`left: ${
 				slot.position.x * componentSize + (containerWidth / 2 - componentSize / 2)
 			}px; top: ${slot.position.y * componentSize + (containerHeight / 2 - componentSize / 2)}px;`}
+			on:contextmenu|preventDefault={(e) =>
+				shipDesignSlot && onTechTooltip(e, $techs.getHullComponent(shipDesignSlot?.hullComponent))}
 		>
 			<HullComponent
 				{shipDesignSlot}

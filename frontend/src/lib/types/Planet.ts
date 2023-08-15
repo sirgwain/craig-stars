@@ -416,6 +416,10 @@ export function planetsSortBy(key: string): ((a: Planet, b: Planet) => number) |
 		case 'resources':
 			return (a, b) =>
 				(a.spec.resourcesPerYearAvailable ?? 0) - (b.spec.resourcesPerYearAvailable ?? 0);
+		case 'contributesOnlyLeftoverToResearch':
+			return (a, b) =>
+				(a.contributesOnlyLeftoverToResearch ?? false ? 1 : 0) -
+				(b.contributesOnlyLeftoverToResearch ?? false ? 1 : 0);
 		default:
 			return (a, b) => a.num - b.num;
 	}

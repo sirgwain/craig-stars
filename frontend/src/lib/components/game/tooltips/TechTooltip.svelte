@@ -4,12 +4,11 @@
 	import type { Tech } from '$lib/types/Tech';
 	import TechTooltip from './TechTooltip.svelte';
 
-	export function onTechTooltip(e: PointerEvent, tech: Tech | undefined) {
+	export function onTechTooltip(e: PointerEvent | MouseEvent, tech: Tech | undefined) {
 		if (tech) {
 			showTooltip<TechTooltipProps>(e.x, e.y, TechTooltip, { tech });
 		}
 	}
-
 
 	export type TechTooltipProps = {
 		tech: Tech;
@@ -20,6 +19,6 @@
 	export let tech: Tech;
 </script>
 
-<div class="md:w-[380px] h-[380px]">
+<div class="md:w-[380px] h-[420px]">
 	<TechSummary {tech} />
 </div>

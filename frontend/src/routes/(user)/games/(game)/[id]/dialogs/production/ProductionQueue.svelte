@@ -3,7 +3,6 @@
 	import { getQuantityModifier } from '$lib/quantityModifier';
 	import { getGameContext } from '$lib/services/Contexts';
 	import { PlanetService } from '$lib/services/PlanetService';
-	import { nextMapObject, previousMapObject } from '$lib/services/Stores';
 	import type { Cost } from '$lib/types/Cost';
 	import { Infinite } from '$lib/types/MapObject';
 	import type { CommandedPlanet, ProductionQueueItem } from '$lib/types/Planet';
@@ -18,7 +17,7 @@
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import hotkeys from 'hotkeys-js';
 	import { clamp } from 'lodash-es';
-	import { createEventDispatcher } from 'svelte';
+	import { createEventDispatcher, onMount } from 'svelte';
 
 	const { game, player, universe, designs } = getGameContext();
 
@@ -186,7 +185,19 @@
 		selectedQueueItemIndex = -1;
 	};
 
-	const ok = async () => {
+	const next = () => {
+		planet.productionQueue = queueItems ?? [];
+		planet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
+		dispatch('next');
+	};
+
+	const prev = () => {
+		planet.productionQueue = queueItems ?? [];
+		planet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
+		dispatch('prev');
+	};
+
+	const ok = () => {
 		planet.productionQueue = queueItems ?? [];
 		planet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
 		dispatch('ok');
@@ -307,9 +318,20 @@
 
 	const dispatch = createEventDispatcher();
 
-	hotkeys('Esc', () => cancel());
-	hotkeys('Enter', () => {
-		ok();
+	onMount(() => {
+		hotkeys('Esc', cancel);
+		hotkeys('Enter', ok);
+		hotkeys('n', 'production', next);
+		hotkeys('p', 'production', prev);
+		hotkeys.setScope('production');
+
+		return () => {
+			hotkeys.unbind('Esc', cancel);
+			hotkeys.unbind('Enter', ok);
+			hotkeys.unbind('n', 'production', next);
+			hotkeys.unbind('p', 'production', prev);
+			hotkeys.deleteScope('production');
+		};
 	});
 
 	const resetQueue = () => {
@@ -323,11 +345,10 @@
 	$: planet && resetQueue();
 </script>
 
-
 <div
-class="flex flex-col h-full bg-base-200 shadow max-h-fit min-h-fit rounded-sm border-2 border-base-300 text-base"
+	class="flex flex-col h-full bg-base-200 shadow max-h-fit min-h-fit rounded-sm border-2 border-base-300 text-base"
 >
-<div class="text-center"><h2 class="text-lg">{planet.name}</h2></div>
+	<div class="text-center"><h2 class="text-lg">{planet.name}</h2></div>
 	<div class="flex-col h-full w-full">
 		<div class="flex flex-col h-full w-full">
 			<div class="flex flex-row h-full w-full grid-cols-3">
@@ -480,15 +501,11 @@ class="flex flex-col h-full bg-base-200 shadow max-h-fit min-h-fit rounded-sm bo
 				</div>
 				<div class="w-1/2 flex flex-row flex-wrap justify-between sm:justify-end">
 					<div class="grow">
-						<button
-							class="btn btn-sm btn-outline btn-secondary w-full"
-							on:click={() => nextMapObject()}>Prev</button
+						<button class="btn btn-sm btn-outline btn-secondary w-full" on:click={prev}>Prev</button
 						>
 					</div>
 					<div class="grow">
-						<button
-							class="btn btn-sm btn-outline btn-secondary w-full"
-							on:click={() => previousMapObject()}>Next</button
+						<button class="btn btn-sm btn-outline btn-secondary w-full" on:click={next}>Next</button
 						>
 					</div>
 					<div class="grow">

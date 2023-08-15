@@ -12,6 +12,7 @@
 	export let titleClass = 'label-text w-32 text-right';
 	export let required = false;
 	export let typeTitle = (type: any) => startCase(type);
+	export let showEmpty = false;
 
 	$: !title && (title = startCase(name));
 </script>
@@ -27,7 +28,9 @@
 			on:change={(e) => dispatch('change', e)}
 		>
 			{#each eu(enumType).getValues() as type}
-				<option value={type}>{typeTitle(type)}</option>
+				{#if showEmpty || `${type}` !== ''}
+					<option value={type}>{typeTitle(type)}</option>
+				{/if}
 			{/each}
 		</select>
 	</label>

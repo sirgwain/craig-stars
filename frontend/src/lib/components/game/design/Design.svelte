@@ -26,10 +26,10 @@
 	</div>
 {/if}
 {#if 'spec' in design}
-	<div class="flex flex-col text-sm">
-		<div>Cost of one {design.name}</div>
+	<div class="flex flex-col">
 		<div class="flex justify-between">
 			<div class="ml-2">
+				<div>Cost of one {design.name}</div>
 				<Cost cost={design.spec.cost} />
 			</div>
 			<div>

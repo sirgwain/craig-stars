@@ -46,6 +46,7 @@ export type Spec = {
 	scanRangePen?: number;
 	repairBonus?: number;
 	torpedoInaccuracyFactor?: number;
+	torpedoJamming?: number;
 	initiative?: number;
 	movement?: number;
 	powerRating?: number;

@@ -1,12 +1,27 @@
-
 <script lang="ts">
 	import { getGameContext } from '$lib/services/Contexts';
-	import { commandedPlanet } from '$lib/services/Stores';
+	import { commandedPlanet, nextMapObject, previousMapObject } from '$lib/services/Stores';
 	import ProductionQueue from './ProductionQueue.svelte';
 
 	const { game, player, universe } = getGameContext();
 
 	export let show = false;
+
+	async function onNext() {
+		if ($commandedPlanet) {
+			await $game.updatePlanetOrders($commandedPlanet);
+		}
+
+		nextMapObject();
+	}
+
+	async function onPrev() {
+		if ($commandedPlanet) {
+			await $game.updatePlanetOrders($commandedPlanet);
+		}
+
+		previousMapObject();
+	}
 
 	async function onOk() {
 		if ($commandedPlanet) {
@@ -20,10 +35,12 @@
 	<div
 		class="modal-box max-w-full max-h-max h-full w-full lg:max-w-[40rem] lg:max-h-[48rem] p-0 md:p-[1.25rem]"
 	>
-		{#if $commandedPlanet}
+		{#if $commandedPlanet && show}
 			<ProductionQueue
 				planet={$commandedPlanet}
 				on:ok={onOk}
+				on:next={onNext}
+				on:prev={onPrev}
 				on:cancel={() => (show = false)}
 			/>
 		{/if}

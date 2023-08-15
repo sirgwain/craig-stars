@@ -7,6 +7,8 @@
 	import { commandMapObject, selectMapObject, zoomToMapObject } from '$lib/services/Stores';
 	import { getQueueItemShortName, planetsSortBy, type Planet } from '$lib/types/Planet';
 	import { SvelteTable, type SvelteTableColumn } from '@hurtigruten/svelte-table';
+	import { Check, CheckBadge } from '@steeze-ui/heroicons';
+	import { Icon } from '@steeze-ui/svelte-icon';
 
 	const { game, player, universe, settings } = getGameContext();
 
@@ -96,6 +98,11 @@
 			sortBy: planetsSortBy('resources')
 		},
 		{
+			key: 'contributesOnlyLeftoverToResearch',
+			title: 'Contributes Only Leftover To Research',
+			sortBy: planetsSortBy('contributesOnlyLeftoverToResearch')
+		},
+		{
 			key: 'driverDest',
 			title: 'Driver Destination',
 			sortable: false
@@ -127,7 +134,7 @@
 		let:cell
 		let:row
 	>
-		<span slot="head" let:isSorted let:sortDescending>
+		<div slot="head" let:isSorted let:sortDescending>
 			<SortableTableHeader
 				{column}
 				isSorted={isSorted || $settings.sortPlanetsKey === column.key}
@@ -137,7 +144,7 @@
 					onSorted(column, e.detail.sortDescending);
 				}}
 			/>
-		</span>
+		</div>
 
 		<span slot="cell">
 			{#if column.key == 'name'}
@@ -173,6 +180,10 @@
 				<MineralMini mineral={row.mineralConcentration} />
 			{:else if column.key == 'resources'}
 				{row.spec.resourcesPerYearAvailable ?? 0} / {row.spec.resourcesPerYear ?? 0}
+			{:else if column.key == 'contributesOnlyLeftoverToResearch'}
+				{#if row.contributesOnlyLeftoverToResearch}
+					<Icon src={Check} size="24" class="stroke-success" />
+				{/if}
 			{:else if column.key == 'driverDest'}
 				--
 			{:else if column.key == 'routingDestination'}

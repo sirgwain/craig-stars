@@ -24,6 +24,7 @@
 	import Research from './Research.svelte';
 	import { RaceService } from '$lib/services/RaceService';
 	import { Service } from '$lib/services/Service';
+	import LRTsDescriptions from './LRTsDescriptions.svelte';
 
 	let id = $page.params.id;
 	let race: Race;
@@ -118,7 +119,6 @@
 		<EnumSelect
 			name="spendLeftoverPointsOn"
 			enumType={SpendLeftoverPointsOn}
-			typeTitle={(type) => type}
 			bind:value={race.spendLeftoverPointsOn}
 		/>
 
@@ -138,6 +138,7 @@
 
 		<SectionHeader>Lesser Racial Traits</SectionHeader>
 		<LRTs bind:race />
+		<LRTsDescriptions bind:race />
 
 		<SectionHeader>Habitability</SectionHeader>
 		<Habitability bind:race />

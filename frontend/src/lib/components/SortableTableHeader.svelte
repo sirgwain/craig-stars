@@ -10,22 +10,25 @@
 	export let sortDescending: boolean = false;
 </script>
 
-{#if column.sortable ?? true}
-	<th
-		class="hover:text-accent cursor-pointer select-none"
-		on:click={() =>
-			dispatch('sorted', { sortDescending: isSorted ? !sortDescending : false, column })}
-		>{column.title}
-		{#if isSorted}
-			{#if sortDescending}
-				<Icon src={ArrowUp} size="16" class="hover:stroke-accent inline-block" />
+<div class="h-full">
+	{#if column.sortable ?? true}
+		<button
+			class="hover:text-accent cursor-pointer select-none"
+			on:click={() =>
+				dispatch('sorted', { sortDescending: isSorted ? !sortDescending : false, column })}
+		>
+			{column.title}
+			{#if isSorted}
+				{#if sortDescending}
+					<Icon src={ArrowUp} size="16" class="hover:stroke-accent inline-block" />
+				{:else}
+					<Icon src={ArrowDown} size="16" class="hover:stroke-accent inline-block" />
+				{/if}
 			{:else}
-				<Icon src={ArrowDown} size="16" class="hover:stroke-accent inline-block" />
+				<Icon src={ArrowsUpDown} size="16" class="hover:stroke-accent inline-block" />
 			{/if}
-		{:else}
-			<Icon src={ArrowsUpDown} size="16" class="hover:stroke-accent inline-block" />
-		{/if}
-	</th>
-{:else}
-	<th>{column.title}</th>
-{/if}
+		</button>
+	{:else}
+		{column.title}
+	{/if}
+</div>
