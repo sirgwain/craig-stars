@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import SortableTableHeader from '$lib/components/SortableTableHeader.svelte';
 	import TableSearchInput from '$lib/components/TableSearchInput.svelte';
 	import { getGameContext } from '$lib/services/Contexts';

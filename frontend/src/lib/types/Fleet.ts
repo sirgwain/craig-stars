@@ -15,16 +15,19 @@ export type Fleet = {
 	fuel?: number;
 	cargo?: Cargo;
 	damage?: number;
-	battlePlanNum?: number;
 	tokens?: ShipToken[];
-	waypoints?: Waypoint[];
-
-	repeatOrders?: boolean;
 	mass?: number;
 	orbitingPlanetNum?: number;
 	starbase?: boolean;
 	spec?: Spec;
-} & MovingMapObject;
+} & MovingMapObject &
+	FleetOrders;
+
+export type FleetOrders = {
+	waypoints?: Waypoint[];
+	repeatOrders?: boolean;
+	battlePlanNum?: number;
+};
 
 export type ShipToken = {
 	id?: number;

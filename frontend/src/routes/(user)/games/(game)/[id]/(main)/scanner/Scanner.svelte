@@ -7,6 +7,7 @@
 		commandedPlanet,
 		currentSelectedWaypointIndex,
 		highlightMapObject,
+		mostRecentMapObject,
 		selectMapObject,
 		selectWaypoint,
 		selectedMapObject,
@@ -18,21 +19,24 @@
 		MapObjectType,
 		None,
 		equal as mapObjectEqual,
-		type MapObject,
-		owned
+		owned,
+		type MapObject
 	} from '$lib/types/MapObject';
+	import type { Planet } from '$lib/types/Planet';
 	import { emptyVector, equal, type Vector } from '$lib/types/Vector';
 	import type { ScaleLinear } from 'd3-scale';
 	import { scaleLinear } from 'd3-scale';
 	import { select } from 'd3-selection';
 	import { ZoomTransform, zoom, type D3ZoomEvent, type ZoomBehavior } from 'd3-zoom';
+	import hotkeys from 'hotkeys-js';
 	import { Html, LayerCake, Svg } from 'layercake';
-	import { setContext } from 'svelte';
+	import { onMount, setContext } from 'svelte';
 	import { writable } from 'svelte/store';
 	import MapObjectQuadTreeFinder, {
 		type FinderEventDetails
 	} from './MapObjectQuadTreeFinder.svelte';
 	import ScannerFleets from './ScannerFleets.svelte';
+	import ScannerMapObjectLocation from './ScannerMapObjectLocation.svelte';
 	import ScannerMineFieldPattern from './ScannerMineFieldPattern.svelte';
 	import ScannerMineFields from './ScannerMineFields.svelte';
 	import ScannerMineralPackets from './ScannerMineralPackets.svelte';
@@ -47,7 +51,6 @@
 	import ScannerWormholes from './ScannerWormholes.svelte';
 	import SelectedMapObject from './SelectedMapObject.svelte';
 	import SelectedWaypoint from './SelectedWaypoint.svelte';
-	import type { Planet } from '$lib/types/Planet';
 
 	const { game, player, universe, settings } = getGameContext();
 
@@ -64,11 +67,20 @@
 	let scaleX: ScaleLinear<number, number, never>;
 	let scaleY: ScaleLinear<number, number, never>;
 	let zooming = false;
+	let showLocator = false;
 
 	const scale = writable($game.area.y / 400); // tiny games are at 1x starting zoom, the rest zoom in based on universe size
 	const clampedScale = writable($scale);
 	$: $clampedScale = Math.min(3, $scale); // don't let the scale used for scanner objects go more than 1/2th size
 	// $: console.log('scale ', $scale, ' clampedScale', $clampedScale);
+
+	onMount(() => {
+		hotkeys('v', showTargetLocation);
+
+		return () => {
+			hotkeys.unbind('v', showTargetLocation);
+		};
+	});
 
 	// handle zoom in/out
 	// this behavior controls how the zoom behaves
@@ -134,6 +146,13 @@
 		// compute scales
 		scaleX = scaleLinear().range(xRange()).domain([0, $game.area.x]);
 		scaleY = scaleLinear().range(yRange()).domain([0, $game.area.y]);
+	}
+
+	zoomTarget.subscribe(() => showTargetLocation());
+
+	function showTargetLocation() {
+		showLocator = true;
+		setTimeout(() => (showLocator = false), 500);
 	}
 
 	function handleZoom(e: D3ZoomEvent<HTMLElement, any>) {
@@ -224,7 +243,6 @@
 			dragging = true;
 			selectWaypoint(fleetWaypoint);
 		}
-
 	}
 
 	function onPointerDown(e: CustomEvent<FinderEventDetails>) {
@@ -514,6 +532,9 @@
 				<ScannerWormholeLinks />
 				<ScannerSalvages />
 				<SelectedMapObject />
+				{#if showLocator}
+					<ScannerMapObjectLocation show={$mostRecentMapObject} />
+				{/if}
 			</g>
 		</Svg>
 		<Html>

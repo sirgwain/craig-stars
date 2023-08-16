@@ -44,7 +44,7 @@ type Fleet struct {
 type FleetOrders struct {
 	Waypoints     []Waypoint `json:"waypoints"`
 	RepeatOrders  bool       `json:"repeatOrders,omitempty"`
-	BattlePlanNum int        `json:"battlePlanNum"`
+	BattlePlanNum int        `json:"battlePlanNum,omitempty"`
 }
 
 type FleetSpec struct {

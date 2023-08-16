@@ -192,7 +192,7 @@ func (p *Planet) PopulateProductionQueueEstimates() error {
 
 	// populate completion estimates
 	completionEstimator := newCompletionEstimator()
-	p.ProductionQueue = completionEstimator.GetProductionWithEstimates(p.ProductionQueue, mineralsOnHand, yearlyAvailableToSpend)
+	p.ProductionQueue = completionEstimator.GetProductionWithEstimates(p, p.ProductionQueue, mineralsOnHand, yearlyAvailableToSpend)
 
 	return nil
 }

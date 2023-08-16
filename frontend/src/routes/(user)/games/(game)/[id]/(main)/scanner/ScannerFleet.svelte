@@ -3,12 +3,14 @@
   A fleet that is flying outside of a planet
  -->
 <script lang="ts">
+	import { getGameContext } from '$lib/services/Contexts';
 	import { radiansToDegrees } from '$lib/services/Math';
 	import type { Fleet } from '$lib/types/Fleet';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 	import type { Writable } from 'svelte/store';
 
+	const { settings } = getGameContext();
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 	const scale = getContext<Writable<number>>('scale');
 
@@ -33,6 +35,8 @@
 				) + angleOffset;
 		}
 	}
+
+	$: tokenCount = fleet.tokens ? fleet.tokens.reduce((count, t) => count + t.quantity, 0) : 0;
 </script>
 
 <!-- ScannerFleet -->
@@ -43,3 +47,9 @@
 		-size / 2
 	})`}
 />
+{#if $settings.showFleetTokenCounts}
+	<!-- translate the group to the location of the fleet so when we scale the text it is around the center-->
+	<g transform={`translate(${$xGet(fleet) - size / 2} ${$yGet(fleet) + size * 2.5})`}>
+		<text transform={`scale(${1 / $scale})`} class="fill-base-content">{tokenCount}</text>
+	</g>
+{/if}

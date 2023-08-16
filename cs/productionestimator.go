@@ -9,7 +9,7 @@ type CompletionEstimator interface {
 	GetCompletionEstimate(item ProductionQueueItem, mineralsOnHand Cost, yearlyAvailableToSpend Cost) QueueItemCompletionEstimate
 
 	// get a ProductionQueue with estimates filled in
-	GetProductionWithEstimates(items []ProductionQueueItem, mineralsOnHand Cost, yearlyAvailableToSpend Cost) []ProductionQueueItem
+	GetProductionWithEstimates(planet *Planet, items []ProductionQueueItem, mineralsOnHand Cost, yearlyAvailableToSpend Cost) []ProductionQueueItem
 }
 
 type completionEstimate struct {
@@ -58,12 +58,13 @@ func (e *completionEstimate) GetCompletionEstimate(item ProductionQueueItem, min
 }
 
 // For a set of ProductionQueueItems, calculate the YearsToBuild and YearsToBuildOne properties
-func (e *completionEstimate) GetProductionWithEstimates(items []ProductionQueueItem, mineralsOnHand Cost, yearlyAvailableToSpend Cost) []ProductionQueueItem {
+func (e *completionEstimate) GetProductionWithEstimates(planet *Planet, items []ProductionQueueItem, mineralsOnHand Cost, yearlyAvailableToSpend Cost) []ProductionQueueItem {
 
 	// go through each item and update it's YearsToComplete field
 	updatedItems := make([]ProductionQueueItem, len(items))
 	for i := range items {
 		item := items[i]
+		item.MaxBuildable = planet.maxBuildable(item.Type)
 
 		// skip items we can't build
 		if item.Type.IsAuto() && item.MaxBuildable == 0 {

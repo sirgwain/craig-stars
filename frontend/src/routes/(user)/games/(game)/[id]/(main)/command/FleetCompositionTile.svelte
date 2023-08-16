@@ -11,7 +11,7 @@
 
 	const dispatchSplit = createEventDispatcher<SplitFleetEvent>();
 	const dispatchMerge = createEventDispatcher<MergeFleetsEvent>();
-	const { player, universe } = getGameContext();
+	const { game, player, universe } = getGameContext();
 
 	export let fleet: CommandedFleet;
 
@@ -27,6 +27,11 @@
 			fleet,
 			otherFleetsHere: $universe.getMyFleetsByPosition(fleet).filter((f) => f.num !== fleet.num)
 		});
+	};
+
+	const updateBattlePlan = async (num: number) => {
+		fleet.battlePlanNum = num;
+		await $game.updateFleetOrders(fleet);
 	};
 </script>
 
@@ -71,6 +76,7 @@
 					class="select select-outline select-secondary select-sm text-sm"
 					name="battlePlan"
 					bind:value={fleet.battlePlanNum}
+					on:change={(e) => updateBattlePlan(parseInt(e.currentTarget.value))}
 				>
 					{#each $player.battlePlans as battlePlan}
 						<option value={battlePlan.num}>{battlePlan.name}</option>

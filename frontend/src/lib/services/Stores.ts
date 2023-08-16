@@ -1,10 +1,7 @@
 import { goto } from '$app/navigation';
 import { CommandedFleet, type Fleet, type Waypoint } from '$lib/types/Fleet';
 import { equal, MapObjectType, None, ownedBy, type MapObject } from '$lib/types/MapObject';
-import {
-	getMapObjectTypeForMessageType, MessageType,
-	type Message
-} from '$lib/types/Message';
+import { getMapObjectTypeForMessageType, MessageType, type Message } from '$lib/types/Message';
 import { CommandedPlanet } from '$lib/types/Planet';
 import type { Player } from '$lib/types/Player';
 import { emptyUser, type User } from '$lib/types/User';
@@ -34,6 +31,7 @@ export const selectedMapObjectPeers = writable<MapObject[]>([]);
 export const selectedWaypoint = writable<Waypoint | undefined>();
 export const highlightedMapObject = writable<MapObject | undefined>();
 export const highlightedMapObjectPeers = writable<MapObject[]>([]);
+export const mostRecentMapObject = writable<MapObject | undefined>();
 
 export const commandedMapObjectName = writable<string>();
 export const zoomTarget = writable<MapObject | undefined>();
@@ -201,6 +199,7 @@ export const nextMapObject = () => {
 
 export const selectMapObject = (mo: MapObject) => {
 	selectedMapObject.update(() => mo);
+	mostRecentMapObject.update(() => mo);
 };
 
 export const selectWaypoint = (wp: Waypoint) => {
@@ -209,6 +208,7 @@ export const selectWaypoint = (wp: Waypoint) => {
 
 export const commandMapObject = (mo: MapObject) => {
 	commandedMapObject.update(() => mo);
+	mostRecentMapObject.update(() => mo);
 	if (mo.type == MapObjectType.Planet) {
 		commandedPlanet.update(() => Object.assign(new CommandedPlanet(), mo));
 		commandedFleet.update(() => undefined);
@@ -233,6 +233,7 @@ export const highlightMapObject = (mo: MapObject | undefined) => {
 
 export const zoomToMapObject = (mo: MapObject) => {
 	zoomTarget.update(() => mo);
+	mostRecentMapObject.update(() => mo);
 };
 
 export const setLoadingModalText = (text: string) => {

@@ -1,5 +1,5 @@
 import type { Cargo } from '$lib/types/Cargo';
-import { CommandedFleet, type Fleet, type Waypoint } from '$lib/types/Fleet';
+import { CommandedFleet, type Fleet, type FleetOrders, type Waypoint } from '$lib/types/Fleet';
 import type { MapObject } from '$lib/types/MapObject';
 import type { Planet } from '$lib/types/Planet';
 import type { PlayerRelation, PlayerResponse } from '$lib/types/Player';
@@ -7,8 +7,12 @@ import type { Salvage } from '$lib/types/Salvage';
 import { Service } from './Service';
 
 // orders sent to the server
-export class FleetOrders {
-	constructor(private waypoints: Waypoint[], private repeatOrders: boolean = false) {}
+export class FleetOrdersRequest implements FleetOrders {
+	constructor(
+		public waypoints: Waypoint[],
+		public repeatOrders: boolean = false,
+		public battlePlanNum: number = 1
+	) {}
 }
 
 type TransferCargoResponse = {
@@ -98,7 +102,7 @@ export class FleetService {
 	}
 
 	static async updateFleetOrders(fleet: CommandedFleet): Promise<Fleet> {
-		const fleetOrders = new FleetOrders(fleet.waypoints ?? [], fleet.repeatOrders);
+		const fleetOrders = new FleetOrdersRequest(fleet.waypoints ?? [], fleet.repeatOrders, fleet.battlePlanNum);
 
 		const response = await fetch(`/api/games/${fleet.gameId}/fleets/${fleet.num}`, {
 			method: 'PUT',

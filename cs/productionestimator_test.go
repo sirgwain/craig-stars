@@ -305,7 +305,9 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			e := newCompletionEstimator()
 
-			if got := e.GetProductionWithEstimates(tt.args.items, tt.args.mineralsOnHand, tt.args.yearlyAvailableToSpend); !test.CompareAsJSON(t, got, tt.want) {
+			planet := NewPlanet()
+
+			if got := e.GetProductionWithEstimates(planet, tt.args.items, tt.args.mineralsOnHand, tt.args.yearlyAvailableToSpend); !test.CompareAsJSON(t, got, tt.want) {
 				t.Errorf("PopulateCompletionEstimates() = \n%v, want \n%v", got, tt.want)
 			}
 		})

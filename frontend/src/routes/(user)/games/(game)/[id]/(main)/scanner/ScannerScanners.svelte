@@ -71,6 +71,8 @@
 			scanners = Array.from(scannersByPosition.values());
 		}
 	}
+
+	$: scannerScale = ($settings.scannerPercent / 100.0)
 </script>
 
 {#if $settings.showScanners}
@@ -78,7 +80,7 @@
 		<circle
 			cx={$xGet(scanner)}
 			cy={$yGet(scanner)}
-			r={$xScale(scanner.scanRange)}
+			r={$xScale(scanner.scanRange * scannerScale)}
 			class="scanner"
 		/>
 	{/each}
@@ -87,7 +89,7 @@
 			<circle
 				cx={$xGet(scanner)}
 				cy={$yGet(scanner)}
-				r={$xScale(scanner.scanRangePen)}
+				r={$xScale(scanner.scanRangePen * scannerScale)}
 				class="scanner-pen"
 			/>
 		{/if}

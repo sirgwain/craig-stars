@@ -7,6 +7,7 @@
 	import { Infinite } from '$lib/types/MapObject';
 	import type { CommandedPlanet, ProductionQueueItem } from '$lib/types/Planet';
 	import { QueueItemType, isAuto } from '$lib/types/Planet';
+	import type { ProductionPlan } from '$lib/types/Player';
 	import {
 		ArrowLongDown,
 		ArrowLongLeft,
@@ -184,6 +185,19 @@
 		selectedQueueItem = undefined;
 		selectedQueueItemIndex = -1;
 	};
+
+	function applyPlan(plan: ProductionPlan | undefined) {
+		if (plan) {
+			if (queueItems[0].percentComplete) {
+				queueItems = [queueItems[0], ...plan.items];
+			} else {
+				queueItems = plan.items;
+			}
+			queueItems.forEach((item) => (item.costOfOne = getItemCost(item) ?? {}));
+			contributesOnlyLeftoverToResearch = plan.contributesOnlyLeftoverToResearch ?? false;
+			updateQueueEstimates();
+		}
+	}
 
 	const next = () => {
 		planet.productionQueue = queueItems ?? [];
@@ -427,6 +441,20 @@
 								class="hover:stroke-accent inline"
 							/>
 						</button>
+						<select
+							class="select select-outline select-sm select-secondary w-12 sm:w-full text-secondary"
+							on:change|preventDefault={(e) => {
+								applyPlan(
+									$player.productionPlans.find((p) => p.num == parseInt(e.currentTarget.value))
+								);
+								e.currentTarget.value = '0';
+							}}
+						>
+							<option value={0}>Apply Plan</option>
+							{#each $player.productionPlans as plan}
+								<option value={plan.num}>{plan.name}</option>
+							{/each}
+						</select>
 					</div>
 				</div>
 				<div class="flex-1 h-full bg-base-100 py-1 px-1">

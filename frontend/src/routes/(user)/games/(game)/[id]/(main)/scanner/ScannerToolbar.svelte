@@ -12,6 +12,8 @@
 	import PlanetViewStates from './toolbar/PlanetViewStates.svelte';
 	import MineralConcentration from '$lib/components/icons/MineralConcentration.svelte';
 	import SurfaceMinerals from '$lib/components/icons/SurfaceMinerals.svelte';
+	import { clamp } from '$lib/services/Math';
+	import FleetCount from '$lib/components/icons/FleetCount.svelte';
 
 	const { game, player, universe, settings } = getGameContext();
 </script>
@@ -60,6 +62,28 @@
 					><span><Scanner class="w-6 h-6" /></span></a
 				>
 			</li>
+			<li class="hidden sm:block">
+				<div class="w-full px-1">
+					<input
+						class="input input-sm input-bordered w-16 pr-0 pl-1"
+						type="number"
+						min={0}
+						max={100}
+						step={10}
+						value={$settings.scannerPercent}
+						on:change={(e) => {
+							const val = parseInt(e.currentTarget.value);
+							if (val) {
+								$settings.scannerPercent = clamp(val, 0, 100);
+								e.currentTarget.value = `${$settings.scannerPercent}`;
+							} else {
+								$settings.scannerPercent = 0;
+								e.currentTarget.value = '0';
+							}
+						}}
+					/>
+				</div>
+			</li>
 			<li>
 				<a
 					href="#add-waypoint"
@@ -68,6 +92,18 @@
 					class="btn btn-ghost btn-xs h-full border"
 					on:click|preventDefault={() => ($settings.addWaypoint = !$settings.addWaypoint)}
 					><Path class="w-6 h-6" /></a
+				>
+			</li>
+
+			<li>
+				<a
+					href="#show-fleet-token-count"
+					class:fill-accent={$settings.showFleetTokenCounts}
+					class:fill-current={!$settings.showFleetTokenCounts}
+					class="btn btn-ghost btn-xs h-full border"
+					on:click|preventDefault={() =>
+						($settings.showFleetTokenCounts = !$settings.showFleetTokenCounts)}
+					><FleetCount class="w-6 h-6" /></a
 				>
 			</li>
 			<li>

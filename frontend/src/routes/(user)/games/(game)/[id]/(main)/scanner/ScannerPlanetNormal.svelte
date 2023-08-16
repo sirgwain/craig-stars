@@ -1,11 +1,13 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/Contexts';
+	import type { Fleet } from '$lib/types/Fleet';
 	import { MapObjectType } from '$lib/types/MapObject';
 	import { Unexplored, type Planet } from '$lib/types/Planet';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 	import type { Writable } from 'svelte/store';
 
+	const { settings } = getGameContext();
 	const { game, player, universe } = getGameContext();
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 	const scale = getContext<Writable<number>>('scale');
@@ -26,6 +28,10 @@
 	$: starbaseWidth = (commanded ? 6 : 4) / $scale;
 	$: starbaseXOffset = (commanded ? 5 : 2) / $scale;
 	$: starbaseYOffset = (commanded ? 11 : 6) / $scale;
+	$: tokenCountOffset = (commanded ? 13 : 8) / $scale;
+	$: radius = (commanded ? 7 : 3) / $scale;
+	$: ringRadius = (commanded ? 10 : 5) / $scale;
+	let orbitingTokens = 0;
 
 	$: {
 		const orbitingFleets = $universe
@@ -70,16 +76,24 @@
 				stroke: ringColor,
 				'stroke-dasharray': strokeDashArray,
 				'stroke-width': 1 / $scale,
-				r: (1 * (commanded ? 10 : 5)) / $scale,
+				r: ringRadius,
 				'fill-opacity': 0
 			};
+
+			orbitingTokens = orbitingFleets
+				.map((of) => of as Fleet)
+				.reduce(
+					(count, f) =>
+						count + (f.tokens ? f.tokens.reduce((tokenCount, t) => tokenCount + t.quantity, 0) : 0),
+					0
+				);
 		} else {
 			ringProps = undefined;
 		}
 
 		// setup the properties of our planet circle
 		props = {
-			r: (1 * (commanded ? 7 : 3)) / $scale,
+			r: radius,
 			fill: color,
 			stroke: strokeColor,
 			'stroke-width': strokeWidth
@@ -120,4 +134,10 @@
 		x={planetX - starbaseWidth / 2}
 		y={planetY - starbaseYOffset - starbaseWidth / 2}
 	/>
+{/if}
+{#if $settings.showFleetTokenCounts && orbitingTokens}
+	<!-- translate the group to the location of the fleet so when we scale the text it is around the center-->
+	<g transform={`translate(${planetX - ringRadius} ${planetY + tokenCountOffset * 2.5})`}>
+		<text transform={`scale(${1 / $scale})`} class="fill-base-content">{orbitingTokens}</text>
+	</g>
 {/if}

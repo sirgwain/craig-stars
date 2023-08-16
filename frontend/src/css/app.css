@@ -120,6 +120,13 @@
 	stroke-linecap: round;
 }
 
+.show-location-line {
+	fill: none;
+	stroke: #FFFFFF;
+	stroke-linecap: round;
+	stroke-width: 2;
+}
+
 .waypoint-line {
 	fill: none;
 	stroke-linejoin: round;
