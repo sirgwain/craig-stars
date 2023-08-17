@@ -59,32 +59,33 @@ type PRTSpec struct {
 }
 
 type LRTSpec struct {
-	LRT                          LRT            `json:"lrt,omitempty"`
-	PointCost                    int            `json:"pointCost,omitempty"`
-	StartingTechLevels           TechLevel      `json:"startingTechLevels,omitempty"`
-	TechCostOffset               TechCostOffset `json:"techCostOffset,omitempty"`
-	NewTechCostFactor            float64        `json:"newTechCostFactor,omitempty"`
-	MiniaturizationMax           float64        `json:"miniaturizationMax,omitempty"`
-	MiniaturizationPerLevel      float64        `json:"miniaturizationPerLevel,omitempty"`
-	NoAdvancedScanners           bool           `json:"noAdvancedScanners,omitempty"`
-	ScanRangeFactor              float64        `json:"scanRangeFactor,omitempty"`
-	FuelEfficiencyOffset         float64        `json:"fuelEfficiencyOffset,omitempty"`
-	MaxPopulationOffset          float64        `json:"maxPopulationOffset,omitempty"`
-	TerraformCostOffset          Cost           `json:"terraformCostOffset,omitempty"`
-	MineralAlchemyCostOffset     int            `json:"mineralAlchemyCostOffset,omitempty"`
-	ScrapMineralOffset           float64        `json:"scrapMineralOffset,omitempty"`
-	ScrapMineralOffsetStarbase   float64        `json:"scrapMineralOffsetStarbase,omitempty"`
-	ScrapResourcesOffset         float64        `json:"scrapResourcesOffset,omitempty"`
-	ScrapResourcesOffsetStarbase float64        `json:"scrapResourcesOffsetStarbase,omitempty"`
-	StartingPopulationFactor     float64        `json:"startingPopulationFactor,omitempty"`
-	StarbaseBuiltInCloakUnits    int            `json:"starbaseBuiltInCloakUnits,omitempty"`
-	StarbaseCostFactor           float64        `json:"starbaseCostFactor,omitempty"`
-	ResearchFactor               float64        `json:"researchFactor,omitempty"`
-	ResearchSplashDamage         float64        `json:"researchSplashDamage,omitempty"`
-	ShieldStrengthFactor         float64        `json:"shieldStrengthFactor,omitempty"`
-	ShieldRegenerationRate       float64        `json:"shieldRegenerationRate,omitempty"`
-	EngineFailureRate            float64        `json:"engineFailureRate,omitempty"`
-	EngineReliableSpeed          int            `json:"engineReliableSpeed,omitempty"`
+	LRT                          LRT             `json:"lrt,omitempty"`
+	StartingFleets               []StartingFleet `json:"startingFleets,omitempty"`
+	PointCost                    int             `json:"pointCost,omitempty"`
+	StartingTechLevels           TechLevel       `json:"startingTechLevels,omitempty"`
+	TechCostOffset               TechCostOffset  `json:"techCostOffset,omitempty"`
+	NewTechCostFactor            float64         `json:"newTechCostFactor,omitempty"`
+	MiniaturizationMax           float64         `json:"miniaturizationMax,omitempty"`
+	MiniaturizationPerLevel      float64         `json:"miniaturizationPerLevel,omitempty"`
+	NoAdvancedScanners           bool            `json:"noAdvancedScanners,omitempty"`
+	ScanRangeFactor              float64         `json:"scanRangeFactor,omitempty"`
+	FuelEfficiencyOffset         float64         `json:"fuelEfficiencyOffset,omitempty"`
+	MaxPopulationOffset          float64         `json:"maxPopulationOffset,omitempty"`
+	TerraformCostOffset          Cost            `json:"terraformCostOffset,omitempty"`
+	MineralAlchemyCostOffset     int             `json:"mineralAlchemyCostOffset,omitempty"`
+	ScrapMineralOffset           float64         `json:"scrapMineralOffset,omitempty"`
+	ScrapMineralOffsetStarbase   float64         `json:"scrapMineralOffsetStarbase,omitempty"`
+	ScrapResourcesOffset         float64         `json:"scrapResourcesOffset,omitempty"`
+	ScrapResourcesOffsetStarbase float64         `json:"scrapResourcesOffsetStarbase,omitempty"`
+	StartingPopulationFactor     float64         `json:"startingPopulationFactor,omitempty"`
+	StarbaseBuiltInCloakUnits    int             `json:"starbaseBuiltInCloakUnits,omitempty"`
+	StarbaseCostFactor           float64         `json:"starbaseCostFactor,omitempty"`
+	ResearchFactor               float64         `json:"researchFactor,omitempty"`
+	ResearchSplashDamage         float64         `json:"researchSplashDamage,omitempty"`
+	ShieldStrengthFactor         float64         `json:"shieldStrengthFactor,omitempty"`
+	ShieldRegenerationRate       float64         `json:"shieldRegenerationRate,omitempty"`
+	EngineFailureRate            float64         `json:"engineFailureRate,omitempty"`
+	EngineReliableSpeed          int             `json:"engineReliableSpeed,omitempty"`
 }
 
 type TechCostOffset struct {
@@ -130,6 +131,7 @@ const (
 	StartingFleetHullMiniColonyShip  StartingFleetHull = "Mini-Colony Ship"
 	StartingFleetHullMiniMineLayer   StartingFleetHull = "Mini Mine Layer"
 	StartingFleetHullMiniMiner       StartingFleetHull = "Mini-Miner"
+	StartingFleetHullMidgetMiner     StartingFleetHull = "Midget-Miner"
 	StartingFleetHullPrivateer       StartingFleetHull = "Privateer"
 	StartingFleetHullScout           StartingFleetHull = "Scout"
 )
@@ -468,7 +470,13 @@ func ttSpec() LRTSpec {
 }
 
 func armSpec() LRTSpec {
-	return LRTSpec{}
+	spec := LRTSpec{}
+	spec.StartingFleets = []StartingFleet{
+		{"Potato Bug", StartingFleetHullMidgetMiner, 0, ShipDesignPurposeMiner},
+		{"Potato Bug", StartingFleetHullMidgetMiner, 0, ShipDesignPurposeMiner},
+	}
+
+	return spec
 }
 
 func isbSpec() LRTSpec {

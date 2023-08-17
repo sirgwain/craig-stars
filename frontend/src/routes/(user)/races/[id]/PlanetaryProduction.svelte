@@ -2,6 +2,7 @@
 	import { clamp } from '$lib/services/Math';
 	import { PRT, type Race } from '$lib/types/Race';
 	import type { Action } from 'svelte/action';
+	import type { FocusEventHandler } from 'svelte/elements';
 
 	export let race: Race;
 
@@ -9,12 +10,14 @@
 		race.popEfficiency = value / 100;
 	};
 
-	const validateNumberInput: Action<HTMLInputElement, number> = (node, value = 0) => {
-		return {			
-			update(value) {
-				node.value = `${clamp(value, parseInt(node.min), parseInt(node.max))}`;
-			}
-		};
+	const validateNumberrInput: FocusEventHandler<HTMLInputElement> = (e) => {
+		e.currentTarget.value = String(
+			clamp(
+				parseInt(e.currentTarget.value),
+				parseInt(e.currentTarget.min),
+				parseInt(e.currentTarget.max)
+			)
+		);
 	};
 </script>
 
@@ -26,10 +29,11 @@
 			type="number"
 			name="popEfficiency"
 			bind:value={race.popEfficiency}
-			use:validateNumberInput={race.popEfficiency}
+			on:blur={validateNumberrInput}
 			step={1}
 			min={7}
 			max={25}
+			pattern="\d+"
 		/>
 		).
 	</p>
@@ -42,6 +46,7 @@
 			name="popEfficiency"
 			value={race.popEfficiency * 100}
 			on:change={(e) => updatePopEfficiency(e.currentTarget.valueAsNumber)}
+			on:blur={validateNumberrInput}
 			step={100}
 			min={700}
 			max={2500}
@@ -55,6 +60,7 @@
 			type="number"
 			name="factoryOutput"
 			bind:value={race.factoryOutput}
+			on:blur={validateNumberrInput}
 			step={1}
 			min={5}
 			max={15}
@@ -68,6 +74,7 @@
 			type="number"
 			name="factoryCost"
 			bind:value={race.factoryCost}
+			on:blur={validateNumberrInput}
 			step={1}
 			min={5}
 			max={25}
@@ -81,6 +88,7 @@
 			type="number"
 			name="numFactories"
 			bind:value={race.numFactories}
+			on:blur={validateNumberrInput}
 			step={1}
 			min={5}
 			max={25}
@@ -104,6 +112,7 @@
 			type="number"
 			name="mineOutput"
 			bind:value={race.mineOutput}
+			on:blur={validateNumberrInput}
 			step={1}
 			min={5}
 			max={25}
@@ -116,6 +125,7 @@
 			type="number"
 			name="mineCost"
 			bind:value={race.mineCost}
+			on:blur={validateNumberrInput}
 			step={1}
 			min={2}
 			max={15}
@@ -129,6 +139,7 @@
 			type="number"
 			name="numMines"
 			bind:value={race.numMines}
+			on:blur={validateNumberrInput}
 			step={1}
 			min={5}
 			max={25}

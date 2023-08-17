@@ -70,21 +70,23 @@
 			<div>{planet.spec.scanRange ?? '--'} l.y.</div>
 		</div>
 
-		<div class="divider p-0 m-0" />
+		{#if $player.race.spec?.canBuildDefenses}
+			<div class="divider p-0 m-0" />
 
-		<div class="flex justify-between cursor-help" on:pointerdown|preventDefault={onDefensePoopup}>
-			<div>Defenses</div>
-			<div>{planet.defenses} of {planet.spec.maxDefenses}</div>
-		</div>
-		<div class="flex justify-between cursor-help" on:pointerdown|preventDefault={onDefensePoopup}>
-			<div>Defense Type</div>
-			<div>{planet.spec.defense}</div>
-		</div>
-		<div class="flex justify-between cursor-help" on:pointerdown|preventDefault={onDefensePoopup}>
-			<div>Defense Coverage</div>
-			<div>
-				{((planet.spec.defenseCoverage ?? 0) * 100).toFixed(1)}%
+			<div class="flex justify-between cursor-help" on:pointerdown|preventDefault={onDefensePoopup}>
+				<div>Defenses</div>
+				<div>{planet.defenses} of {planet.spec.maxDefenses}</div>
 			</div>
-		</div>
+			<div class="flex justify-between cursor-help" on:pointerdown|preventDefault={onDefensePoopup}>
+				<div>Defense Type</div>
+				<div>{planet.spec.defense}</div>
+			</div>
+			<div class="flex justify-between cursor-help" on:pointerdown|preventDefault={onDefensePoopup}>
+				<div>Defense Coverage</div>
+				<div>
+					{((planet.spec.defenseCoverage ?? 0) * 100).toFixed(1)}%
+				</div>
+			</div>
+		{/if}
 	</CommandTile>
 {/if}

@@ -721,7 +721,7 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		spec.StartingTechLevels.Biotechnology += lrtSpec.StartingTechLevels.Biotechnology
 
 		spec.NewTechCostFactor += lrtSpec.NewTechCostFactor
-		spec.TerraformCostOffset.Add(lrtSpec.TerraformCostOffset)
+		spec.TerraformCostOffset = spec.TerraformCostOffset.Add(lrtSpec.TerraformCostOffset)
 		spec.MiniaturizationMax += lrtSpec.MiniaturizationMax
 		spec.MiniaturizationPerLevel += lrtSpec.MiniaturizationPerLevel
 		spec.ScanRangeFactor += lrtSpec.ScanRangeFactor
@@ -741,6 +741,8 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		spec.ShieldRegenerationRate += lrtSpec.ShieldRegenerationRate
 		spec.EngineFailureRate += lrtSpec.EngineFailureRate
 		spec.EngineReliableSpeed += lrtSpec.EngineReliableSpeed
+
+		spec.StartingPlanets[0].StartingFleets = append(spec.StartingPlanets[0].StartingFleets, lrtSpec.StartingFleets...)
 
 		if lrtSpec.NoAdvancedScanners {
 			spec.NoAdvancedScanners = true

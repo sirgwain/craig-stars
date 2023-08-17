@@ -72,7 +72,10 @@
 			<div class="text-boranium">Boranium</div>
 			<div>{planet.cargo.boranium ?? 0}kT</div>
 		</div>
-		<div class="flex justify-between cursor-help" on:pointerdown|preventDefault={onGermaniumTooltip}>
+		<div
+			class="flex justify-between cursor-help"
+			on:pointerdown|preventDefault={onGermaniumTooltip}
+		>
 			<div class="text-germanium">Germanium</div>
 			<div>{planet.cargo.germanium ?? 0}kT</div>
 		</div>
@@ -82,13 +85,24 @@
 		<div class="flex justify-between cursor-help" on:pointerdown|preventDefault={onMinesTooltip}>
 			<div>Mines</div>
 			<div>
-				{planet.mines} of {planet.spec.maxMines}
+				{#if $player.race.spec?.innateMining}
+					{planet.mines}*
+				{:else}
+					{planet.mines} of {planet.spec.maxMines}
+				{/if}
 			</div>
 		</div>
-		<div class="flex justify-between cursor-help" on:pointerdown|preventDefault={onFactoriesTooltip}>
+		<div
+			class="flex justify-between cursor-help"
+			on:pointerdown|preventDefault={onFactoriesTooltip}
+		>
 			<div>Factories</div>
 			<div>
-				{planet.factories} of {planet.spec.maxFactories}
+				{#if $player.race.spec?.innateResources}
+					n/a
+				{:else}
+					{planet.factories} of {planet.spec.maxFactories}
+				{/if}
 			</div>
 		</div>
 	</CommandTile>
