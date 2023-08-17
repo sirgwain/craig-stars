@@ -82,7 +82,7 @@
 	<!-- for phone displays, use a carousel -->
 	<div class="flex flex-col flex-0">
 		<CommandPaneCarousel
-			on:production={(e) => (showProductionQueueDialog = true)}
+			on:change-production={(e) => (showProductionQueueDialog = true)}
 			on:cargo-transfer-dialog={(e) => {
 				showCargoTransferDialog = true;
 				cargoTransferDetails = e.detail;

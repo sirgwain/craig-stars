@@ -11,14 +11,14 @@
 	const lrts = eu(LRT).getValues();
 </script>
 
-<div class="flex flex-col text-base">
-	{#if tech.requirements.prtRequired && tech.requirements.prtRequired != PRT.None}
+<div class="flex flex-col text-base p-1">
+	{#if tech.requirements.prtRequired}
 		<div class:text-error={player && player.race.prt != tech.requirements.prtRequired}>
 			This part requires the Primary Racial trait {getLabelForPRT(tech.requirements.prtRequired)}
 		</div>
 	{/if}
 
-	{#if tech.requirements.prtDenied && tech.requirements.prtDenied != PRT.None}
+	{#if tech.requirements.prtDenied}
 		<div class:text-error={player && player.race.prt == tech.requirements.prtDenied}>
 			This part will not be available to the Primary Racial trait {getLabelForPRT(
 				tech.requirements.prtDenied

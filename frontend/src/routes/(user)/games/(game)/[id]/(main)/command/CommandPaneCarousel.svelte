@@ -41,7 +41,7 @@
 		<div id="planet-production-tile" class="carousel-item w-full">
 			<PlanetProductionTile
 				planet={$commandedPlanet}
-				on:change-production={(e) => dispatch('change-production', e)}
+				on:change-production={(e) => dispatch('change-production', e.detail)}
 			/>
 		</div>
 		<div id="planet-minerals-on-hand-tile" class="carousel-item w-full">
