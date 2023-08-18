@@ -370,7 +370,7 @@ func (store *TechStore) GetBestColonizationModule(player *Player) *TechHullCompo
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
-		if tech.ColonizationModule && player.HasTech(&tech.Tech) {
+		if (tech.ColonizationModule || tech.OrbitalConstructionModule) && player.HasTech(&tech.Tech) {
 			// techs are sorted by rank, so the latest is the best
 			bestTech = tech
 		}
@@ -1500,7 +1500,7 @@ var SpeedTrap50 = TechHullComponent{Tech: NewTech("Speed Trap 50", NewCost(40, 0
 	MineLayingRate: 50,
 	HullSlotType:   HullSlotTypeMineLayer,
 }
-var ColonizationModule = TechHullComponent{Tech: NewTech("Colonization Module", NewCost(11, 9, 9, 9), TechRequirements{TechLevel: TechLevel{}}, 0, TechCategoryMechanical),
+var ColonizationModule = TechHullComponent{Tech: NewTech("Colonization Module", NewCost(11, 9, 9, 9), TechRequirements{TechLevel: TechLevel{}, PRTDenied: AR}, 0, TechCategoryMechanical),
 
 	Mass:               32,
 	ColonizationModule: true,

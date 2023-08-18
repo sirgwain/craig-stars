@@ -48,7 +48,7 @@ func TestPlanet_GetInnateMines(t *testing.T) {
 
 	// should get 40 mines for 16k pop when the player has innate mining
 	player.Race.Spec.InnateMining = true
-	if got := planet.innateMines(player); got != 40 {
+	if got := planet.innateMines(player); got != 12 {
 		t.Errorf("Planet.GetInnateMines() = %v, want %v", got, 40)
 	}
 

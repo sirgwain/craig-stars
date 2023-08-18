@@ -53,6 +53,7 @@ func (ug *universeGenerator) Generate() (*Universe, error) {
 
 	ug.generateAIPlayers()
 	ug.generatePlayerTechLevels()
+	ug.generatePlayerPlans()
 	ug.generatePlayerShipDesigns()
 	ug.generatePlayerRelations()
 
@@ -190,6 +191,12 @@ func (ug *universeGenerator) generateAIPlayers() {
 func (ug *universeGenerator) generatePlayerTechLevels() {
 	for _, player := range ug.players {
 		player.TechLevels = TechLevel(player.Race.Spec.StartingTechLevels)
+	}
+}
+
+func (ug *universeGenerator) generatePlayerPlans() {
+	for _, player := range ug.players {
+		player.PlayerPlans = player.defaultPlans()
 	}
 }
 

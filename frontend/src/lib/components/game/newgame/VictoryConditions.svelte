@@ -5,7 +5,6 @@
 
 	export let settings: GameSettings;
 
-	$: console.log(settings.victoryConditions.conditions);
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->

@@ -13,13 +13,14 @@
 		VictoryCondition,
 		type Game,
 		type GameSettings,
-		type NewGamePlayers
+		type NewGamePlayers,
+		type NewGamePlayer as Player
 	} from '$lib/types/Game';
 	import { PlusCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import GameSettingsEditor from './GameSettingsEditor.svelte';
 	import NewGamePlayer from './NewGamePlayer.svelte';
-	import { getColor } from './playerColors';
+	import { getColor, getFirstAvailableColor } from './playerColors';
 	import VictoryConditions from './VictoryConditions.svelte';
 
 	export let players = [
@@ -78,10 +79,16 @@
 	};
 
 	const addPlayer = () => {
+		const usedColors = new Set<string>(settings.players.map<string>((p) => p.color ?? ''));
+
 		settings.players = [
 			...settings.players,
-			{ type: NewGamePlayerType.AI, color: getColor(settings.players.length + 1) }
+			{ type: NewGamePlayerType.AI, color: getFirstAvailableColor(usedColors) }
 		];
+	};
+
+	const removePlayer = (player: Player) => {
+		settings.players = settings.players.filter((p) => p !== player);
 	};
 
 	let error = '';
@@ -106,9 +113,9 @@
 	>
 
 	{#each settings.players as player, i}
-		<NewGamePlayer bind:player index={i + 1} />
+		<NewGamePlayer bind:player index={i + 1} on:remove={() => removePlayer(player)} />
 	{/each}
 
 	<SectionHeader>Victory Conditions</SectionHeader>
-	<VictoryConditions bind:settings/>
+	<VictoryConditions bind:settings />
 </form>

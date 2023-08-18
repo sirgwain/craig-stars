@@ -219,7 +219,7 @@ func NewPlayer(userID int64, race *Race) *Player {
 	playerRace.UpdatedAt = time.Time{}
 	playerRace.CreatedAt = time.Time{}
 
-	return &Player{
+	player := &Player{
 		UserID: userID,
 		Race:   playerRace,
 		Color:  "#0000FF", // default to blue
@@ -229,69 +229,10 @@ func NewPlayer(userID int64, race *Race) *Player {
 			ResearchAmount:    15,
 			NextResearchField: NextResearchFieldLowestField,
 		},
-		PlayerPlans: PlayerPlans{
-			BattlePlans: []BattlePlan{
-				{
-					Num:             0,
-					Name:            "Default",
-					PrimaryTarget:   BattleTargetArmedShips,
-					SecondaryTarget: BattleTargetAny,
-					Tactic:          BattleTacticMaximizeDamageRatio,
-					AttackWho:       BattleAttackWhoEnemiesAndNeutrals,
-				},
-			},
-			ProductionPlans: []ProductionPlan{
-				{
-					Num:  0,
-					Name: "Default", Items: []ProductionPlanItem{
-						{Type: QueueItemTypeAutoMinTerraform, Quantity: 1},
-						{Type: QueueItemTypeAutoFactories, Quantity: 100},
-						{Type: QueueItemTypeAutoMines, Quantity: 100},
-					},
-				},
-			},
-			TransportPlans: []TransportPlan{
-				{
-					Num:  0,
-					Name: "Default",
-				},
-				{
-					Num:  1,
-					Name: "Quick Load",
-					Tasks: WaypointTransportTasks{
-						Fuel:      WaypointTransportTask{Action: TransportActionLoadOptimal},
-						Ironium:   WaypointTransportTask{Action: TransportActionLoadAll},
-						Boranium:  WaypointTransportTask{Action: TransportActionLoadAll},
-						Germanium: WaypointTransportTask{Action: TransportActionLoadAll},
-					},
-				},
-				{
-					Num:  2,
-					Name: "Quick Drop",
-					Tasks: WaypointTransportTasks{
-						Fuel:      WaypointTransportTask{Action: TransportActionLoadOptimal},
-						Ironium:   WaypointTransportTask{Action: TransportActionUnloadAll},
-						Boranium:  WaypointTransportTask{Action: TransportActionUnloadAll},
-						Germanium: WaypointTransportTask{Action: TransportActionUnloadAll},
-					},
-				},
-				{
-					Num:  3,
-					Name: "Load Colonists",
-					Tasks: WaypointTransportTasks{
-						Colonists: WaypointTransportTask{Action: TransportActionLoadAll},
-					},
-				},
-				{
-					Num:  4,
-					Name: "Unload Colonists",
-					Tasks: WaypointTransportTasks{
-						Colonists: WaypointTransportTask{Action: TransportActionUnloadAll},
-					},
-				},
-			},
-		},
 	}
+
+	player.PlayerPlans = player.defaultPlans()
+	return player
 }
 
 func (p *Player) WithNum(num int) *Player {
@@ -489,6 +430,87 @@ func (p *Player) defaultRelationships(players []*Player, aiFormsAlliances bool) 
 
 	}
 	return relations
+}
+
+// get the default relationships for a player with other players
+func (p *Player) defaultPlans() PlayerPlans {
+
+	// AR races don't build factories or mines
+	defaultProductionPlan := ProductionPlan{
+
+		Num:  0,
+		Name: "Default",
+		Items: []ProductionPlanItem{
+			{Type: QueueItemTypeAutoMinTerraform, Quantity: 1},
+		},
+	}
+
+	if !p.Race.Spec.InnateResources {
+		defaultProductionPlan.Items = append(defaultProductionPlan.Items,
+			ProductionPlanItem{Type: QueueItemTypeAutoFactories, Quantity: 100},
+		)
+	}
+
+	if !p.Race.Spec.InnateMining {
+		defaultProductionPlan.Items = append(defaultProductionPlan.Items,
+			ProductionPlanItem{Type: QueueItemTypeAutoMines, Quantity: 100},
+		)
+	}
+
+	return PlayerPlans{ProductionPlans: []ProductionPlan{
+		defaultProductionPlan,
+	},
+		BattlePlans: []BattlePlan{
+			{
+				Num:             0,
+				Name:            "Default",
+				PrimaryTarget:   BattleTargetArmedShips,
+				SecondaryTarget: BattleTargetAny,
+				Tactic:          BattleTacticMaximizeDamageRatio,
+				AttackWho:       BattleAttackWhoEnemiesAndNeutrals,
+			},
+		},
+		TransportPlans: []TransportPlan{
+			{
+				Num:  0,
+				Name: "Default",
+			},
+			{
+				Num:  1,
+				Name: "Quick Load",
+				Tasks: WaypointTransportTasks{
+					Fuel:      WaypointTransportTask{Action: TransportActionLoadOptimal},
+					Ironium:   WaypointTransportTask{Action: TransportActionLoadAll},
+					Boranium:  WaypointTransportTask{Action: TransportActionLoadAll},
+					Germanium: WaypointTransportTask{Action: TransportActionLoadAll},
+				},
+			},
+			{
+				Num:  2,
+				Name: "Quick Drop",
+				Tasks: WaypointTransportTasks{
+					Fuel:      WaypointTransportTask{Action: TransportActionLoadOptimal},
+					Ironium:   WaypointTransportTask{Action: TransportActionUnloadAll},
+					Boranium:  WaypointTransportTask{Action: TransportActionUnloadAll},
+					Germanium: WaypointTransportTask{Action: TransportActionUnloadAll},
+				},
+			},
+			{
+				Num:  3,
+				Name: "Load Colonists",
+				Tasks: WaypointTransportTasks{
+					Colonists: WaypointTransportTask{Action: TransportActionLoadAll},
+				},
+			},
+			{
+				Num:  4,
+				Name: "Unload Colonists",
+				Tasks: WaypointTransportTasks{
+					Colonists: WaypointTransportTask{Action: TransportActionUnloadAll},
+				},
+			},
+		},
+	}
 }
 
 // get the default intels for a player for other players

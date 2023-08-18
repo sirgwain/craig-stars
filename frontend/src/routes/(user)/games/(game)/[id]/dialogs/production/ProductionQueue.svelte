@@ -350,7 +350,7 @@
 
 	const resetQueue = () => {
 		queueItems = planet.productionQueue?.map((item) => ({ ...item } as ProductionQueueItem));
-		availableItems = planet.getAvailableProductionQueueItems(planet, $designs);
+		availableItems = planet.getAvailableProductionQueueItems(planet, $designs, $player.race.spec?.innateMining, $player.race.spec?.innateResources, $player.race.spec?.livesOnStarbases);
 		selectedAvailableItem = availableItems.length > 0 ? availableItems[0] : selectedAvailableItem;
 		contributesOnlyLeftoverToResearch = planet.contributesOnlyLeftoverToResearch ?? false;
 	};

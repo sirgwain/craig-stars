@@ -361,7 +361,7 @@ func (p *Planet) buildStarbase(rules *Rules, player *Player, design *ShipDesign)
 // Get the number of innate mines this player would have on this planet
 func (p *Planet) innateMines(player *Player) int {
 	if player.Race.Spec.InnateMining {
-		return int(math.Sqrt(float64(p.population()) * float64(.1)))
+		return int(math.Sqrt(float64(p.population())) * float64(.1))
 	}
 	return 0
 }
@@ -432,7 +432,7 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	}
 
 	if race.Spec.InnateResources {
-		spec.ResourcesPerYear = int(math.Sqrt(float64(planet.population()) * float64(player.TechLevels.Energy) / float64(race.PopEfficiency)))
+		spec.ResourcesPerYear = int(math.Sqrt(float64(planet.population()) * float64(player.TechLevels.Energy) / float64(race.PopEfficiency)) + .5)
 	} else {
 		// compute resources from population
 		resourcesFromPop := planet.population() / (race.PopEfficiency * 100)

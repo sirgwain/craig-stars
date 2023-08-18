@@ -1115,6 +1115,12 @@ func (t *turn) playerResearch() {
 
 	// figure out how much each player can spend on research this turn
 	resourcesToSpendByPlayer := make(map[int]int, len(t.game.Players))
+
+	// start with leftover from production
+	for _, player := range t.game.Players {
+		resourcesToSpendByPlayer[player.Num] = player.leftoverResources
+	}
+
 	for _, planet := range t.game.Planets {
 		if planet.Owned() {
 			resourcesToSpendByPlayer[planet.PlayerNum] += planet.Spec.ResourcesPerYearResearch
@@ -1273,6 +1279,12 @@ func (t *turn) planetGrow() {
 	for _, planet := range t.game.Planets {
 		if planet.Owned() {
 			planet.setPopulation(planet.population() + planet.Spec.GrowthAmount)
+
+			player := t.game.getPlayer(planet.PlayerNum)
+			if player.Race.Spec.InnateMining {
+				planet.Mines = planet.innateMines(player)
+			}
+
 			planet.MarkDirty()
 
 			log.Debug().

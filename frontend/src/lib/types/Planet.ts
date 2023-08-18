@@ -129,7 +129,10 @@ export class CommandedPlanet implements Planet {
 	 */
 	public getAvailableProductionQueueItems(
 		planet: Planet,
-		designs: ShipDesign[]
+		designs: ShipDesign[],
+		innateMining: boolean | undefined,
+		innateResources: boolean | undefined,
+		livesOnStarbases: boolean | undefined
 	): ProductionQueueItem[] {
 		const items: ProductionQueueItem[] = [];
 
@@ -173,12 +176,17 @@ export class CommandedPlanet implements Planet {
 			);
 		}
 
-		items.push(
-			fromQueueItemType(QueueItemType.Factory),
-			fromQueueItemType(QueueItemType.Mine),
-			fromQueueItemType(QueueItemType.Defenses),
-			fromQueueItemType(QueueItemType.MineralAlchemy)
-		);
+		if (!innateResources) {
+			items.push(fromQueueItemType(QueueItemType.Factory));
+		}
+		if (!innateMining) {
+			items.push(fromQueueItemType(QueueItemType.Mine));
+		}
+		if (!livesOnStarbases) {
+			items.push(fromQueueItemType(QueueItemType.Defenses));
+		}
+
+		items.push(fromQueueItemType(QueueItemType.MineralAlchemy));
 
 		if (!planet.scanner) {
 			items.push(fromQueueItemType(QueueItemType.PlanetaryScanner));
@@ -189,10 +197,17 @@ export class CommandedPlanet implements Planet {
 		}
 
 		// add auto items
+		if (!innateResources) {
+			items.push(fromQueueItemType(QueueItemType.AutoFactories));
+		}
+		if (!innateMining) {
+			items.push(fromQueueItemType(QueueItemType.AutoMines));
+		}
+		if (!livesOnStarbases) {
+			items.push(fromQueueItemType(QueueItemType.AutoDefenses));
+		}
+
 		items.push(
-			fromQueueItemType(QueueItemType.AutoFactories),
-			fromQueueItemType(QueueItemType.AutoMines),
-			fromQueueItemType(QueueItemType.AutoDefenses),
 			fromQueueItemType(QueueItemType.AutoMineralAlchemy),
 			fromQueueItemType(QueueItemType.AutoMaxTerraform),
 			fromQueueItemType(QueueItemType.AutoMinTerraform)
