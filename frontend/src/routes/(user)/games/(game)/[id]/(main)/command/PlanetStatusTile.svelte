@@ -1,4 +1,5 @@
 <script lang="ts">
+	import InnateScannerTooltip from '$lib/components/game/tooltips/InnateScannerTooltip.svelte';
 	import type { PopulationTooltipProps } from '$lib/components/game/tooltips/PopulationTooltip.svelte';
 	import PopulationTooltip from '$lib/components/game/tooltips/PopulationTooltip.svelte';
 	import ResourcesTooltip, {
@@ -33,7 +34,11 @@
 	}
 
 	function onScannerPopup(e: PointerEvent) {
-		onTechTooltip(e, $techs.getTech(planet.spec.scanner));
+		if ($player.race.spec?.innateScanner) {
+			showTooltip(e.x, e.y, InnateScannerTooltip);
+		} else {
+			onTechTooltip(e, $techs.getTech(planet.spec.scanner));
+		}
 	}
 	function onDefensePoopup(e: PointerEvent) {
 		onTechTooltip(e, $techs.getTech(planet.spec.defense));
@@ -47,7 +52,7 @@
 			on:pointerdown|preventDefault={onPopulationTooltip}
 		>
 			<div>Population</div>
-			<div>{(planet.cargo.colonists ?? 0) * 100}</div>
+			<div>{((planet.cargo.colonists ?? 0) * 100).toLocaleString()}</div>
 		</div>
 		<div
 			class="flex justify-between cursor-help"

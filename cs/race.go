@@ -672,6 +672,7 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		InnateMining:            prtSpec.InnateMining,
 		InnateResources:         prtSpec.InnateResources,
 		InnateScanner:           prtSpec.InnateScanner,
+		InnatePopulationFactor:  prtSpec.InnatePopulationFactor,
 		CanBuildDefenses:        prtSpec.CanBuildDefenses,
 		LivesOnStarbases:        prtSpec.LivesOnStarbases,
 

@@ -297,7 +297,7 @@ export const tooltipComponent = writable<
 export const tooltipLocation = writable<Vector>({ x: 0, y: 0 });
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const showTooltip = <T>(x: number, y: number, component: ComponentType, props: T) => {
+export const showTooltip = <T>(x: number, y: number, component: ComponentType, props?: T) => {
 	tooltipLocation.update(() => ({
 		x,
 		y

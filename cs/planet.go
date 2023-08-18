@@ -361,7 +361,15 @@ func (p *Planet) buildStarbase(rules *Rules, player *Player, design *ShipDesign)
 // Get the number of innate mines this player would have on this planet
 func (p *Planet) innateMines(player *Player) int {
 	if player.Race.Spec.InnateMining {
-		return int(math.Sqrt(float64(p.population())) * float64(.1))
+		return int(math.Sqrt(float64(p.population())) * float64(player.Race.Spec.InnatePopulationFactor))
+	}
+	return 0
+}
+
+// Get the number of innate mines this player would have on this planet
+func (p *Planet) innateScanner(player *Player) int {
+	if player.Race.Spec.InnateScanner {
+		return int(math.Sqrt(float64(p.population()) * float64(player.Race.Spec.InnatePopulationFactor)))
 	}
 	return 0
 }
@@ -432,7 +440,7 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	}
 
 	if race.Spec.InnateResources {
-		spec.ResourcesPerYear = int(math.Sqrt(float64(planet.population()) * float64(player.TechLevels.Energy) / float64(race.PopEfficiency)) + .5)
+		spec.ResourcesPerYear = int(math.Sqrt(float64(planet.population())*float64(player.TechLevels.Energy)/float64(race.PopEfficiency)) + .5)
 	} else {
 		// compute resources from population
 		resourcesFromPop := planet.population() / (race.PopEfficiency * 100)
@@ -454,7 +462,10 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 		spec.DefenseCoverageSmart = float64(1.0 - (math.Pow((1 - (player.Spec.Defense.DefenseCoverage / 100 * rules.SmartDefenseCoverageFactor)), float64(clamp(planet.Defenses, 0, spec.MaxDefenses)))))
 	}
 
-	if planet.Scanner {
+	if race.Spec.InnateScanner {
+		spec.Scanner = "Organic"
+		spec.ScanRange = planet.innateScanner(player)
+	} else if planet.Scanner {
 		scanner := player.Spec.PlanetaryScanner
 		spec.Scanner = scanner.Name
 		spec.ScanRange = scanner.ScanRange

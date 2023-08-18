@@ -37,7 +37,7 @@ func TestPlanet_String(t *testing.T) {
 	}
 }
 
-func TestPlanet_GetInnateMines(t *testing.T) {
+func TestPlanet_innateMines(t *testing.T) {
 	player := NewPlayer(1, &Race{Spec: RaceSpec{InnateMining: false}})
 	planet := Planet{}
 	planet.setPopulation(16000)
@@ -48,8 +48,27 @@ func TestPlanet_GetInnateMines(t *testing.T) {
 
 	// should get 40 mines for 16k pop when the player has innate mining
 	player.Race.Spec.InnateMining = true
+	player.Race.Spec.InnatePopulationFactor = .1
 	if got := planet.innateMines(player); got != 12 {
 		t.Errorf("Planet.GetInnateMines() = %v, want %v", got, 40)
+	}
+
+}
+
+func TestPlanet_innateScanner(t *testing.T) {
+	player := NewPlayer(1, &Race{Spec: RaceSpec{InnateMining: false}})
+	planet := Planet{}
+	planet.setPopulation(67300)
+
+	if got := planet.innateScanner(player); got != 0 {
+		t.Errorf("Planet.GetInnateMines() = %v, want %v", got, 0)
+	}
+
+	// should get 40 mines for 16k pop when the player has innate mining
+	player.Race.Spec.InnateScanner = true
+	player.Race.Spec.InnatePopulationFactor = .1
+	if got := planet.innateScanner(player); got != 82 {
+		t.Errorf("Planet.GetInnateMines() = %v, want %v", got, 82)
 	}
 
 }
