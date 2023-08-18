@@ -3,8 +3,8 @@ import hotkeys from 'hotkeys-js';
 let tenModifier = 1;
 let hundredModifier = 1;
 
-export const bindQuantityModifier = () => {
-	hotkeys('*', { keyup: true }, function (event) {
+export const bindQuantityModifier = (scope = 'root') => {
+	hotkeys('*', { keyup: true, scope }, function (event) {
 		if (hotkeys.shift) {
 			if (event.type === 'keydown') {
 				tenModifier = 10;
@@ -22,8 +22,8 @@ export const bindQuantityModifier = () => {
 	});
 };
 
-export const unbindQuantityModifier = () => {
-	hotkeys.unbind('*');
+export const unbindQuantityModifier = (scope = 'root') => {
+	hotkeys.unbind('*', scope);
 };
 
 export const getQuantityModifier = () => tenModifier * hundredModifier;

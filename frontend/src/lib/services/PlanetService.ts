@@ -1,4 +1,6 @@
+import type { Cost } from '$lib/types/Cost';
 import { CommandedPlanet, type Planet, type PlanetOrders } from '$lib/types/Planet';
+import type { ShipDesign } from '$lib/types/ShipDesign';
 import { CSError, type ErrorResponse } from './Errors';
 import { Service } from './Service';
 
@@ -27,6 +29,21 @@ export class PlanetService {
 		}
 		const updated = await response.json();
 		return Object.assign(new CommandedPlanet(), updated);
+	}
+
+	static async getStarbaseUpgradeCost(design: ShipDesign, newDesign: ShipDesign): Promise<Cost> {
+		const response = await fetch(`/api/calculators/starbase-upgrade-cost`, {
+			method: 'POST',
+			headers: {
+				accept: 'application/json'
+			},
+			body: JSON.stringify({ design, newDesign })
+		});
+
+		if (!response.ok) {
+			await Service.throwError(response);
+		}
+		return await response.json();
 	}
 
 	static async updatePlanetOrders(planet: CommandedPlanet): Promise<Planet> {

@@ -14,7 +14,16 @@ type planetRequest struct {
 	*cs.Planet
 }
 
+type stabaseUpgradeRequest struct {
+	Design    *cs.ShipDesign `json:"design,omitempty"`
+	NewDesign *cs.ShipDesign `json:"newDesign,omitempty"`
+}
+
 func (req *planetRequest) Bind(r *http.Request) error {
+	return nil
+}
+
+func (req *stabaseUpgradeRequest) Bind(r *http.Request) error {
 	return nil
 }
 
@@ -103,4 +112,18 @@ func (s *server) getPlanetProductionEstimate(w http.ResponseWriter, r *http.Requ
 
 	planet.PopulateProductionQueueEstimates()
 	rest.RenderJSON(w, planet)
+}
+
+// get an estimate for production completion based on a planet's production queue items
+func (s *server) getStarbaseUpgradeCost(w http.ResponseWriter, r *http.Request) {
+
+	upgradeRequest := stabaseUpgradeRequest{}
+	if err := render.Bind(r, &upgradeRequest); err != nil {
+		render.Render(w, r, ErrBadRequest(err))
+		return
+	}
+
+	calculator := cs.NewCostCalculator()
+	cost := calculator.StarbaseUpgradeCost(upgradeRequest.Design, upgradeRequest.NewDesign)
+	rest.RenderJSON(w, cost)
 }

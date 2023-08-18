@@ -1,6 +1,10 @@
 <script lang="ts">
 	import CostComponent from '$lib/components/game/Cost.svelte';
-	import { getQuantityModifier } from '$lib/quantityModifier';
+	import {
+		bindQuantityModifier,
+		getQuantityModifier,
+		unbindQuantityModifier
+	} from '$lib/quantityModifier';
 	import { getGameContext } from '$lib/services/Contexts';
 	import { PlanetService } from '$lib/services/PlanetService';
 	import type { Cost } from '$lib/types/Cost';
@@ -8,6 +12,7 @@
 	import type { CommandedPlanet, ProductionQueueItem } from '$lib/types/Planet';
 	import { QueueItemType, isAuto } from '$lib/types/Planet';
 	import type { ProductionPlan } from '$lib/types/Player';
+	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import {
 		ArrowLongDown,
 		ArrowLongLeft,
@@ -29,9 +34,11 @@
 	let contributesOnlyLeftoverToResearch = false;
 
 	let selectedAvailableItem: ProductionQueueItem | undefined;
+	let selectedAvailableItemCost: Cost | undefined;
 
 	let selectedQueueItemIndex = -1;
 	let selectedQueueItem: ProductionQueueItem | undefined;
+	let selectedQueueItemCost: Cost | undefined;
 
 	$: updatedPlanet = planet;
 
@@ -73,13 +80,15 @@
 		}
 	};
 
-	const availableItemSelected = (type: ProductionQueueItem) => {
+	const availableItemSelected = async (type: ProductionQueueItem) => {
 		selectedAvailableItem = type;
+		selectedAvailableItemCost = await getItemCost(selectedAvailableItem);
 	};
 
-	const queueItemClicked = (index: number, item?: ProductionQueueItem) => {
+	const queueItemClicked = async (index: number, item?: ProductionQueueItem) => {
 		selectedQueueItemIndex = index;
 		selectedQueueItem = item;
+		selectedQueueItemCost = await getItemCost(selectedQueueItem, selectedQueueItem?.quantity);
 	};
 
 	const updateQueueEstimates = async () => {
@@ -88,6 +97,7 @@
 		updatedPlanet = await PlanetService.getPlanetProductionEstimates(updatedPlanet);
 		queueItems = updatedPlanet.productionQueue;
 		selectedQueueItem = queueItems[selectedQueueItemIndex];
+		selectedQueueItemCost = await getItemCost(selectedQueueItem, selectedQueueItem?.quantity);
 	};
 
 	const addAvailableItem = async (item?: ProductionQueueItem) => {
@@ -102,7 +112,7 @@
 			// don't add something we can't build any more of
 			return;
 		}
-		const cost = getItemCost(item) ?? {};
+		const cost = (await getItemCost(item)) ?? {};
 		if (selectedQueueItem) {
 			if (selectedQueueItem.type == item?.type && selectedQueueItem.designNum == item?.designNum) {
 				selectedQueueItem.quantity += quantity;
@@ -118,6 +128,7 @@
 				});
 				selectedQueueItemIndex++;
 				selectedQueueItem = queueItems[selectedQueueItemIndex];
+				selectedQueueItemCost = await getItemCost(selectedQueueItem, selectedQueueItem?.quantity);
 			}
 		} else {
 			let nextItem = queueItems.length ? queueItems[0] : undefined;
@@ -125,6 +136,7 @@
 				nextItem.quantity++;
 				selectedQueueItemIndex = 0;
 				selectedQueueItem = nextItem;
+				selectedQueueItemCost = await getItemCost(selectedQueueItem, selectedQueueItem?.quantity);
 			} else {
 				// prepend a new queue item
 				queueItems = [
@@ -139,13 +151,14 @@
 				];
 				selectedQueueItemIndex++;
 				selectedQueueItem = queueItems[selectedQueueItemIndex];
+				selectedQueueItemCost = await getItemCost(selectedQueueItem, selectedQueueItem?.quantity);
 			}
 		}
 
 		updateQueueEstimates();
 	};
 
-	const removeItem = () => {
+	const removeItem = async () => {
 		if (queueItems && selectedQueueItem) {
 			selectedQueueItem.quantity -= getQuantityModifier();
 			queueItems = queueItems;
@@ -154,6 +167,8 @@
 				queueItems = queueItems?.filter((item) => item != selectedQueueItem);
 				selectedQueueItem =
 					queueItems[selectedQueueItemIndex > -1 ? selectedQueueItemIndex - 1 : 0];
+				selectedQueueItemCost = await getItemCost(selectedQueueItem, selectedQueueItem?.quantity);
+
 				selectedQueueItemIndex--;
 			}
 			updateQueueEstimates();
@@ -184,6 +199,7 @@
 		queueItems = [];
 		selectedQueueItem = undefined;
 		selectedQueueItemIndex = -1;
+		selectedQueueItemCost = {};
 	};
 
 	function applyPlan(plan: ProductionPlan | undefined) {
@@ -193,7 +209,7 @@
 			} else {
 				queueItems = plan.items;
 			}
-			queueItems.forEach((item) => (item.costOfOne = getItemCost(item) ?? {}));
+			queueItems.forEach(async (item) => (item.costOfOne = (await getItemCost(item)) ?? {}));
 			contributesOnlyLeftoverToResearch = plan.contributesOnlyLeftoverToResearch ?? false;
 			updateQueueEstimates();
 		}
@@ -281,17 +297,33 @@
 	 * @param item the item to get cost for
 	 * @param quantity the quantity of items to multiply by cost, defaults to 1
 	 */
-	const getItemCost = (item: ProductionQueueItem | undefined, quantity = 1): Cost | undefined => {
+	const getItemCost = async (
+		item: ProductionQueueItem | undefined,
+		quantity = 1
+	): Promise<Cost | undefined> => {
 		let cost: Cost | undefined;
 		switch (item?.type) {
 			case QueueItemType.ShipToken:
-			case QueueItemType.Starbase:
 				if (item.designNum) {
 					const design = $universe.getMyDesign(item.designNum);
 					cost = design?.spec.cost;
 				}
 				break;
+			case QueueItemType.Starbase:
+				if (item.designNum) {
+					const design = $universe.getMyDesign(item.designNum);
+					if (design) {
+						if (planet.spec.hasStarbase) {
+							cost = await getStarbaseUpgradeCost(design);
+						} else {
+							cost = design?.spec.cost;
+						}
+					}
+				}
+				break;
+
 			default:
+				cost = item?.costOfOne;
 				if (item && $player.race.spec?.costs) {
 					cost = $player.race.spec.costs[item.type];
 				}
@@ -304,6 +336,15 @@
 					resources: (cost.resources ?? 0) * quantity
 			  }
 			: undefined;
+	};
+
+	// get the upgrade cost of a starbase for this planet
+	const getStarbaseUpgradeCost = async (newDesign: ShipDesign): Promise<Cost> => {
+		const design = $universe.getMyDesign(planet.spec.starbaseDesignNum);
+		if (design) {
+			return await PlanetService.getStarbaseUpgradeCost(design, newDesign);
+		}
+		return newDesign.spec.cost ?? {};
 	};
 
 	const getCompletionDescription = (item: ProductionQueueItem) => {
@@ -333,25 +374,35 @@
 	const dispatch = createEventDispatcher();
 
 	onMount(() => {
+		const scope = 'production';
 		hotkeys('Esc', cancel);
 		hotkeys('Enter', ok);
-		hotkeys('n', 'production', next);
-		hotkeys('p', 'production', prev);
-		hotkeys.setScope('production');
+		hotkeys('n', scope, next);
+		hotkeys('p', scope, prev);
+		bindQuantityModifier(scope);
+		hotkeys.setScope(scope);
 
 		return () => {
 			hotkeys.unbind('Esc', cancel);
 			hotkeys.unbind('Enter', ok);
-			hotkeys.unbind('n', 'production', next);
-			hotkeys.unbind('p', 'production', prev);
-			hotkeys.deleteScope('production');
+			hotkeys.unbind('n', scope, next);
+			hotkeys.unbind('p', scope, prev);
+			unbindQuantityModifier(scope);
+			hotkeys.deleteScope(scope);
 		};
 	});
 
-	const resetQueue = () => {
+	const resetQueue = async () => {
 		queueItems = planet.productionQueue?.map((item) => ({ ...item } as ProductionQueueItem));
-		availableItems = planet.getAvailableProductionQueueItems(planet, $designs, $player.race.spec?.innateMining, $player.race.spec?.innateResources, $player.race.spec?.livesOnStarbases);
+		availableItems = planet.getAvailableProductionQueueItems(
+			planet,
+			$designs,
+			$player.race.spec?.innateMining,
+			$player.race.spec?.innateResources,
+			$player.race.spec?.livesOnStarbases
+		);
 		selectedAvailableItem = availableItems.length > 0 ? availableItems[0] : selectedAvailableItem;
+		selectedAvailableItemCost = await getItemCost(selectedAvailableItem);
 		contributesOnlyLeftoverToResearch = planet.contributesOnlyLeftoverToResearch ?? false;
 	};
 
@@ -389,7 +440,7 @@
 						<div class="h-32">
 							{#if selectedAvailableItem}
 								<h3>Cost of one {getFullName(selectedAvailableItem)}</h3>
-								<CostComponent cost={getItemCost(selectedAvailableItem)} />
+								<CostComponent cost={selectedAvailableItemCost} />
 							{/if}
 						</div>
 					</div>
@@ -506,7 +557,7 @@
 								<h3>
 									Cost of {getFullName(selectedQueueItem)} x {selectedQueueItem.quantity}
 								</h3>
-								<CostComponent cost={getItemCost(selectedQueueItem, selectedQueueItem?.quantity)} />
+								<CostComponent cost={selectedQueueItemCost} />
 								<div class="mt-1 text-base">
 									{((selectedQueueItem.percentComplete ?? 0) * 100)?.toFixed()}% Done, Completion {getCompletionDescription(
 										selectedQueueItem
