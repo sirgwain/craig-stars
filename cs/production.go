@@ -136,6 +136,12 @@ func (p *production) produce() productionResult {
 			continue
 		}
 
+		if !item.Type.IsAuto() && maxBuildable == 0 {
+			// can't build this, skip it
+			// it shouldn't have been ever added to the queue, but just in case of a bug
+			continue
+		}
+
 		if item.Type.IsPacket() && !planet.Spec.HasMassDriver {
 			messager.buildMineralPacketNoMassDriver(player, planet)
 			continue

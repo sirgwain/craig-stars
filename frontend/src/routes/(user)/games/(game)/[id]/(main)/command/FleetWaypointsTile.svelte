@@ -232,7 +232,7 @@
 			</div>
 			<div class="flex justify-between mt-1">
 				<span>Est Fuel Usage</span>
-				<span class:text-error={(estimatedFuelUsage) > fleet.spec.fuelCapacity}
+				<span class:text-error={(estimatedFuelUsage) > fleet.fuel}
 					>{estimatedFuelUsage}mg</span
 				>
 			</div>

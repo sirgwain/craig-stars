@@ -65,7 +65,7 @@ func Test_production_produce3(t *testing.T) {
 	player, planet := newTestPlayerPlanet()
 
 	// build 2/5 auto factories and 5 mines
-	// we only have enough minerals on hand to build 2 factories so 
+	// we only have enough minerals on hand to build 2 factories so
 	// we will skip after 2 and build mines
 	planet.ProductionQueue = []ProductionQueueItem{
 		{Type: QueueItemTypeAutoFactories, Quantity: 5},
@@ -116,6 +116,29 @@ func Test_production_produce4(t *testing.T) {
 	assert.Equal(t, 5, planet.ProductionQueue[1].Quantity)
 	assert.Equal(t, QueueItemTypeAutoMines, planet.ProductionQueue[2].Type)
 	assert.Equal(t, 5, planet.ProductionQueue[2].Quantity)
+
+}
+
+func Test_production_produce5(t *testing.T) {
+	player, planet := newTestPlayerPlanet()
+
+	// build 100 auto defenses when we have 90 already and one partial in the queue
+	planet.ProductionQueue = []ProductionQueueItem{
+		{Type: QueueItemTypeDefenses, Quantity: 1, Allocated: Cost{5, 5, 5, 14}},
+		{Type: QueueItemTypeAutoDefenses, Quantity: 100},
+	}
+	planet.Cargo = Cargo{5000, 5000, 5000, 1_000_000}
+	planet.Defenses = 90
+	planet.Spec = computePlanetSpec(&rules, player, planet)
+	player.Messages = []PlayerMessage{}
+
+	// should end up with 100 defenses and the auto defenses still in the queue
+	producer := newProducer(planet, player)
+	producer.produce()
+	assert.Equal(t, 100, planet.Defenses)
+	assert.Equal(t, 1, len(planet.ProductionQueue))
+	assert.Equal(t, QueueItemTypeAutoDefenses, planet.ProductionQueue[0].Type)
+	assert.Equal(t, 100, planet.ProductionQueue[0].Quantity)
 
 }
 
