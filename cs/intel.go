@@ -31,7 +31,7 @@ type discoverer interface {
 	discoverFleet(player *Player, fleet *Fleet)
 	discoverFleetCargo(player *Player, fleet *Fleet)
 	discoverMineField(player *Player, mineField *MineField)
-	discoverMineralPacket(player *Player, mineralPacket *MineralPacket)
+	discoverMineralPacket(rules *Rules, player *Player, mineralPacket *MineralPacket, packetPlayer *Player, target *Planet)
 	discoverSalvage(salvage *Salvage)
 	discoverWormhole(wormhole *Wormhole)
 	discoverWormholeLink(wormhole1, wormhole2 *Wormhole)
@@ -42,6 +42,9 @@ type discoverer interface {
 	getWormholeIntel(num int) *WormholeIntel
 	getMysteryTraderIntel(num int) *MysteryTraderIntel
 	getMineFieldIntel(playerNum, num int) *MineFieldIntel
+	getMineralPacketIntel(playerNum, num int) *MineralPacketIntel
+	getFleetIntel(playerNum, num int) *FleetIntel
+	getSalvageIntel(num int) *SalvageIntel	
 }
 
 func newDiscoverer(player *Player) discoverer {
@@ -154,9 +157,10 @@ type FleetIntel struct {
 
 type MineralPacketIntel struct {
 	MapObjectIntel
-	WarpSpeed int    `json:"warpSpeed,omitempty"`
-	Heading   Vector `json:"heading"`
-	Cargo     Cargo  `json:"cargo,omitempty"`
+	WarpSpeed       int    `json:"warpSpeed,omitempty"`
+	Heading         Vector `json:"heading"`
+	Cargo           Cargo  `json:"cargo,omitempty"`
+	TargetPlanetNum int    `json:"targetPlanetNum,omitempty"`
 }
 
 type SalvageIntel struct {
@@ -496,7 +500,7 @@ func (d *discover) discoverMineField(player *Player, mineField *MineField) {
 }
 
 // discover a mineralPacket and add it to the player's mineralPacket intel
-func (d *discover) discoverMineralPacket(player *Player, mineralPacket *MineralPacket) {
+func (d *discover) discoverMineralPacket(rules *Rules, player *Player, mineralPacket *MineralPacket, packetPlayer *Player, target *Planet) {
 	key := playerObjectKey(mineralPacket.PlayerNum, mineralPacket.Num)
 	intel, found := d.mineralPacketIntelsByKey[key]
 	if !found {
@@ -507,11 +511,21 @@ func (d *discover) discoverMineralPacket(player *Player, mineralPacket *MineralP
 		d.mineralPacketIntelsByKey[intel.playerObjectKey()] = intel
 	}
 
+	if player.Num != mineralPacket.PlayerNum {
+		if target.PlayerNum == player.Num {
+			damage := mineralPacket.getDamage(rules, target)
+			messager.mineralPacketDiscoveredTargettingPlayer(player, mineralPacket, packetPlayer, target, damage)
+		} else {
+			messager.mineralPacketDiscovered(player, mineralPacket, packetPlayer, target)
+		}
+	}
+
 	intel.Name = mineralPacket.Name
 	intel.Position = mineralPacket.Position
 	intel.Heading = mineralPacket.Heading
 	intel.WarpSpeed = mineralPacket.WarpSpeed
 	intel.Cargo = mineralPacket.Cargo
+	intel.TargetPlanetNum = mineralPacket.TargetPlanetNum
 }
 
 // discover a player's design. This is a noop if we already know about
@@ -652,4 +666,18 @@ func (d *discover) getMysteryTraderIntel(num int) *MysteryTraderIntel {
 func (d *discover) getMineFieldIntel(playerNum, num int) *MineFieldIntel {
 	key := playerObjectKey(playerNum, num)
 	return d.mineFieldIntelsByKey[key]
+}
+
+func (d *discover) getMineralPacketIntel(playerNum, num int) *MineralPacketIntel {
+	key := playerObjectKey(playerNum, num)
+	return d.mineralPacketIntelsByKey[key]
+}
+
+func (d *discover) getFleetIntel(playerNum, num int) *FleetIntel {
+	key := playerObjectKey(playerNum, num)
+	return d.fleetIntelsByKey[key]
+}
+
+func (d *discover) getSalvageIntel(num int) *SalvageIntel {
+	return d.salvageIntelsByKey[num]
 }

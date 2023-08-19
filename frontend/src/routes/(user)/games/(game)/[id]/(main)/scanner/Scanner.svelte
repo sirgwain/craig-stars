@@ -342,7 +342,9 @@
 			return;
 		}
 
-		const warpSpeed = $selectedWaypoint?.warpSpeed ?? $commandedFleet.spec?.engine?.idealSpeed ?? 5;
+		const warpSpeed = $selectedWaypoint?.warpSpeed
+			? $selectedWaypoint?.warpSpeed
+			: $commandedFleet.spec?.engine?.idealSpeed ?? 5;
 		const task = $selectedWaypoint?.task ?? WaypointTask.None;
 		const transportTasks = $selectedWaypoint?.transportTasks ?? {
 			fuel: {},

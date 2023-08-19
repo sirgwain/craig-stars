@@ -124,6 +124,9 @@
 					case MessageTargetType.MysteryTrader:
 						moType = MapObjectType.MysteryTrader;
 						break;
+					case MessageTargetType.MineralPacket:
+						moType = MapObjectType.MineralPacket;
+						break;
 					case MessageTargetType.Battle:
 						break;
 				}

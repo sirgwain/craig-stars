@@ -292,6 +292,8 @@ func (u *Universe) getCargoHolder(mapObjectType MapObjectType, num int, playerNu
 		return u.getPlanet(num)
 	case MapObjectTypeFleet:
 		return u.getFleet(playerNum, num)
+	case MapObjectTypeMineralPacket:
+		return u.getMineralPacket(playerNum, num)
 	case MapObjectTypeSalvage:
 		return u.getSalvage(num)
 	}
@@ -318,10 +320,7 @@ func (u *Universe) updateTokenCounts() {
 // mark a fleet as deleted and remove it from the universe
 func (u *Universe) deleteFleet(fleet *Fleet) {
 	fleet.Delete = true
-	fleet.MarkDirty()
-
-	index := slices.Index(u.Fleets, fleet)
-	slices.Delete(u.Fleets, index, index)
+	fleet.MarkDirty()	
 
 	delete(u.fleetsByNum, playerObjectKey(fleet.PlayerNum, fleet.Num))
 
@@ -338,10 +337,7 @@ func (u *Universe) deleteFleet(fleet *Fleet) {
 // mark a starbase as deleted and remove it from the universe
 func (u *Universe) deleteStarbase(starbase *Fleet) {
 	starbase.Delete = true
-	starbase.MarkDirty()
-
-	index := slices.Index(u.Starbases, starbase)
-	slices.Delete(u.Starbases, index, index)
+	starbase.MarkDirty()	
 
 	u.removeMapObjectAtPosition(starbase, starbase.Position)
 
@@ -397,10 +393,7 @@ func (u *Universe) moveWormhole(wormhole *Wormhole, originalPosition Vector) {
 
 // delete a wormhole from the universe
 func (u *Universe) deleteWormhole(wormhole *Wormhole) {
-	wormhole.Delete = true
-
-	index := slices.Index(u.Wormholes, wormhole)
-	slices.Delete(u.Wormholes, index, index)
+	wormhole.Delete = true	
 
 	delete(u.wormholesByNum, wormhole.Num)
 	u.removeMapObjectAtPosition(wormhole, wormhole.Position)
@@ -453,13 +446,18 @@ func (u *Universe) createSalvage(position Vector, playerNum int, cargo Cargo) *S
 
 // delete a salvage from the universe
 func (u *Universe) deleteSalvage(salvage *Salvage) {
-	salvage.Delete = true
-
-	index := slices.Index(u.Salvages, salvage)
-	slices.Delete(u.Salvages, index, index)
+	salvage.Delete = true	
 
 	delete(u.salvagesByNum, salvage.Num)
 	u.removeMapObjectAtPosition(salvage, salvage.Position)
+}
+
+// delete a salvage from the universe
+func (u *Universe) deletePacket(packet *MineralPacket) {
+	packet.Delete = true	
+
+	delete(u.mineralPacketsByNum, playerObjectKey(packet.PlayerNum, packet.Num))
+	u.removeMapObjectAtPosition(packet, packet.Position)
 }
 
 func (u *Universe) getPlanets(playerNum int) []*Planet {
@@ -543,7 +541,7 @@ func (u *Universe) removeMapObjectAtPosition(mo interface{}, position Vector) {
 	if mos != nil {
 		index := slices.IndexFunc(mos, func(item interface{}) bool { return item == mo })
 		if index >= 0 && index < len(mos) {
-			slices.Delete(mos, index, index)
+			u.mapObjectsByPosition[position] = slices.Delete(mos, index, index+1)
 		} else {
 			log.Warn().Msgf("tried to remove mapobject %s at position %v but index %d of position out of range", mo, position, index)
 		}
@@ -569,10 +567,7 @@ func (u *Universe) addMineField(mineField *MineField) {
 
 // mark a mineField as deleted and remove it from the universe
 func (u *Universe) deleteMineField(mineField *MineField) {
-	mineField.Delete = true
-
-	index := slices.Index(u.MineFields, mineField)
-	slices.Delete(u.MineFields, index, index)
+	mineField.Delete = true	
 
 	delete(u.mineFieldsByNum, playerObjectKey(mineField.PlayerNum, mineField.Num))
 	u.removeMapObjectAtPosition(mineField, mineField.Position)

@@ -4,7 +4,8 @@
  -->
 <script lang="ts">
 	import { commandedFleet, selectedWaypoint } from '$lib/services/Stores';
-	import { equal } from '$lib/types/Vector';
+	import type { Waypoint } from '$lib/types/Fleet';
+	import { distance, equal } from '$lib/types/Vector';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 	import type { Writable } from 'svelte/store';
@@ -28,6 +29,10 @@
 			: '';
 
 	$: strokeWidth = 6 / $scale;
+
+	function getDistance(wp0: Waypoint, wp1: Waypoint): number {
+		return Math.min(wp1.warpSpeed * wp1.warpSpeed, distance(wp0.position, wp1.position));
+	}
 </script>
 
 {#if $commandedFleet && $selectedWaypoint && wpIndex && wpIndex > 0}
@@ -37,5 +42,6 @@
 		)}L${$xGet($selectedWaypoint)}, ${$yGet($selectedWaypoint)}` + wpNextIndexLine ?? ''}
 		class="waypoint-line-selected"
 		stroke-width={strokeWidth}
+		stroke-dasharray={`${$xScale(getDistance($commandedFleet.waypoints[wpIndex - 1], $selectedWaypoint)) - $xScale(5)} ${$xScale(5)}`}
 	/>
 {/if}

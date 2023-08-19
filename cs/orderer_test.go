@@ -29,8 +29,6 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 		}).
 		WithSpec(&rules, player)
 
-	player.Designs = append(player.Designs, scoutDesign, freighterDesign)
-
 	type args struct {
 		player *Player
 		source *Fleet
@@ -366,6 +364,8 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			player.Designs = append(player.Designs, scoutDesign, freighterDesign)
+
 			o := &orders{}
 
 			// we assume the player knows about the source fleet

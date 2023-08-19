@@ -317,7 +317,7 @@ func (t *turn) fleetLoad() {
 
 		if !wp.processed && wp.Task == WaypointTaskTransport {
 			dest := t.game.getCargoHolder(wp.TargetType, wp.TargetNum, wp.TargetPlayerNum)
-			if dest == nil {
+			if dest == nil || dest.getMapObject().Delete {
 				// can't load from space
 				return
 			}
@@ -379,6 +379,28 @@ func (t *turn) fleetLoad() {
 				t.fleetTransferCargo(fleet, -transferAmount, cargoType, dest)
 			}
 
+			// delete this salvage if we emptied it
+			if salvage, ok := dest.(*Salvage); ok && salvage.Cargo == (Cargo{}) {
+				t.game.deleteSalvage(salvage)
+
+				log.Debug().
+					Int64("GameID", salvage.GameID).
+					Int("Player", salvage.PlayerNum).
+					Str("Salvage", salvage.Name).
+					Msgf("deleted salvage")
+
+			}
+			// delete this packet if we emptied it
+			if packet, ok := dest.(*MineralPacket); ok && packet.Cargo == (Cargo{}) {
+				t.game.deletePacket(packet)
+
+				log.Debug().
+					Int64("GameID", packet.GameID).
+					Int("Player", packet.PlayerNum).
+					Str("Packet", packet.Name).
+					Msgf("deleted salvage")
+
+			}
 		}
 	}
 }
@@ -822,6 +844,17 @@ func (t *turn) decayPackets() {
 			Str("Packet", packet.Name).
 			Str("Cargo", packet.Cargo.PrettyString()).
 			Msgf("decayed packet")
+
+		if (packet.Cargo == Cargo{}) {
+			t.game.deletePacket(packet)
+
+			log.Debug().
+				Int64("GameID", packet.GameID).
+				Int("Player", packet.PlayerNum).
+				Str("Packet", packet.Name).
+				Msgf("deleted salvage")
+
+		}
 
 	}
 }

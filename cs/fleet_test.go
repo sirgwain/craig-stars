@@ -35,6 +35,7 @@ func testLongRangeScout(player *Player) *Fleet {
 	}
 	fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
 	fleet.Fuel = fleet.Spec.FuelCapacity
+	player.Designs = append(player.Designs, fleet.Tokens[0].design)
 	return fleet
 }
 

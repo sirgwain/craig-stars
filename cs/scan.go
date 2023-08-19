@@ -1,6 +1,10 @@
 package cs
 
-import "math"
+import (
+	"math"
+
+	"golang.org/x/exp/slices"
+)
 
 type scanner struct {
 	Position            Vector
@@ -74,6 +78,8 @@ func (scan *playerScan) scan() error {
 	scan.scanMysteryTraders(scanners)
 
 	scan.discoverPlayers()
+
+	scan.updateFleetTargets()
 
 	return nil
 }
@@ -265,16 +271,19 @@ func (scan *playerScan) scanMineralPackets(scanners []scanner) {
 			continue
 		}
 
+		target := scan.universe.getPlanet(packet.TargetPlanetNum)
+		packetPlayer := scan.players[packet.PlayerNum-1]
+
 		// PP races detect all packets in flight
 		if scan.player.Race.Spec.DetectAllPackets {
-			scan.discoverer.discoverMineralPacket(scan.player, packet)
+			scan.discoverer.discoverMineralPacket(scan.rules, scan.player, packet, packetPlayer, target)
 			continue
 		}
 
 		for _, scanner := range scanners {
 			// we only care about regular scanners for mineral packets
 			if float64(scanner.RangeSquared) >= scanner.Position.DistanceSquaredTo(packet.Position) {
-				scan.discoverer.discoverMineralPacket(scan.player, packet)
+				scan.discoverer.discoverMineralPacket(scan.rules, scan.player, packet, packetPlayer, target)
 				break
 			}
 		}
@@ -463,4 +472,77 @@ func (scan *playerScan) getCargoScanners() []scanner {
 	}
 
 	return scanners
+}
+
+// make sure our fleets are pointing to valid targets
+func (scan *playerScan) updateFleetTargets() {
+	for _, fleet := range scan.universe.Fleets {
+		// skip deleted fleets
+		if fleet.Delete {
+			continue
+		}
+		if !fleet.OwnedBy(scan.player.Num) {
+			// Skip fleets we don't own
+			continue
+		}
+
+		if len(fleet.Waypoints) == 1 {
+			wp0 := fleet.Waypoints[0]
+			if fleet.OrbitingPlanetNum == None && wp0.TargetType != MapObjectTypeNone {
+				// we arrived at our target, but it's not a planet. Keep it as wp1
+				fleet.Waypoints = []Waypoint{NewPositionWaypoint(fleet.Position, fleet.WarpSpeed), wp0}
+			} else {
+				fleet.WarpSpeed = 0
+				fleet.Heading = Vector{}
+			}
+		}
+
+		for i := 1; i < len(fleet.Waypoints); i++ {
+			wp := &fleet.Waypoints[i]
+
+			// none and planet targets always work
+			if wp.TargetType == MapObjectTypeNone || wp.TargetType == MapObjectTypePlanet {
+				continue
+			}
+
+			switch wp.TargetType {
+			case MapObjectTypeFleet:
+				target := scan.discoverer.getFleetIntel(wp.TargetPlayerNum, wp.TargetNum)
+				if target == nil {
+					messager.fleetTargetLost(scan.player, fleet, wp.TargetName, wp.TargetType)
+					wp.TargetType = MapObjectTypeNone
+					wp.TargetPlayerNum = None
+					wp.TargetNum = None
+					wp.TargetName = ""
+				}
+
+			case MapObjectTypeSalvage:
+				target := scan.discoverer.getSalvageIntel(wp.TargetNum)
+				if target == nil {
+					messager.fleetTargetLost(scan.player, fleet, wp.TargetName, wp.TargetType)
+					wp.TargetType = MapObjectTypeNone
+					wp.TargetPlayerNum = None
+					wp.TargetNum = None
+					wp.TargetName = ""
+				}
+
+			case MapObjectTypeMineralPacket:
+				target := scan.discoverer.getMineralPacketIntel(wp.TargetPlayerNum, wp.TargetNum)
+				if target == nil {
+					messager.fleetTargetLost(scan.player, fleet, wp.TargetName, wp.TargetType)
+					wp.TargetType = MapObjectTypeNone
+					wp.TargetPlayerNum = None
+					wp.TargetNum = None
+					wp.TargetName = ""
+				}
+			}
+
+			// this waypoint is now the same as the one before it, so delete it
+			if wp.TargetType == MapObjectTypeNone && wp.Position == fleet.Waypoints[i-1].Position {
+				fleet.Waypoints = slices.Delete(fleet.Waypoints, i, i+1)
+				i--
+			}
+		}
+
+	}
 }

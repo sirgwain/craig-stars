@@ -28,6 +28,7 @@ export enum MessageTargetType {
 	Wormhole = 'Wormhole',
 	MineField = 'MineField',
 	MysteryTrader = 'MysteryTrader',
+	MineralPacket = 'MineralPacket',
 	Battle = 'Battle'
 }
 
@@ -45,6 +46,8 @@ export function getMapObjectTypeForMessageType(
 			return MapObjectType.MineField;
 		case MessageTargetType.MysteryTrader:
 			return MapObjectType.MysteryTrader;
+		case MessageTargetType.MineralPacket:
+			return MapObjectType.MineralPacket;
 	}
 
 	return MapObjectType.None;
@@ -101,6 +104,8 @@ export enum MessageType {
 	MineralPacketCaught,
 	MineralPacketDamage,
 	MineralPacketLanded,
+	MineralPacketDiscovered,
+	MineralPacketTargettingPlayerDiscovered,
 	Victor,
 	FleetReproduce,
 	RandomMineralDeposit,
@@ -109,7 +114,8 @@ export enum MessageType {
 	PacketTerraform,
 	PacketPermaform,
 	RemoteMined,
-	TechGained
+	TechGained,
+	FleetTargetLost
 }
 
 // get the next visible message taking into account filters

@@ -1,11 +1,13 @@
 <script lang="ts">
 	import { commandedFleet } from '$lib/services/Stores';
-	import { emptyVector } from '$lib/types/Vector';
+	import { distance, emptyVector } from '$lib/types/Vector';
 
 	import { getGameContext } from '$lib/services/Contexts';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 	import type { Writable } from 'svelte/store';
+	import type { Waypoint } from '$lib/types/Fleet';
+	import { empty } from 'svelte/internal';
 
 	const { game, player, universe } = getGameContext();
 	const scale = getContext<Writable<number>>('scale');
@@ -26,9 +28,11 @@
 			lines = fleets
 				.filter((fleet) => (fleet.waypoints?.length ?? 0) > 1)
 				.map((fleet) => {
-					const coords = fleet.waypoints?.map((wp) => {
-						return { position: { x: wp.position.x, y: wp.position.y } };
-					}) ?? [{ position: emptyVector }];
+					const waypoints = fleet.waypoints ?? [{ position: emptyVector, warpSpeed: 0 }];
+					const coords = waypoints.map((wp) => ({
+						position: { x: wp.position.x, y: wp.position.y }
+					}));
+					const distancesPerYear = waypoints.map((wp) => wp.warpSpeed * wp.warpSpeed);
 					// move the first coord along the heading a bit so the line starts after our icon
 					const heading = fleet.heading ?? { x: 0, y: 0 };
 					coords[0].position.x += (heading.x * 5) / $scale;
@@ -45,6 +49,10 @@
 					};
 				});
 		}
+	}
+
+	function getDistance(wp0: Waypoint, wp1: Waypoint): number {
+		return Math.min(wp1.warpSpeed * wp1.warpSpeed, distance(wp0.position, wp1.position));
 	}
 </script>
 

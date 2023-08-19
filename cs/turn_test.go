@@ -58,6 +58,8 @@ func createSingleUnitGame() *FullGame {
 	universe.Planets = append(universe.Planets, planet)
 	universe.Fleets = append(universe.Fleets, fleet)
 
+	universe.buildMaps(players)
+
 	return &FullGame{
 		Game:      game,
 		Universe:  &universe,
@@ -844,14 +846,12 @@ func Test_turn_fleetPatrol(t *testing.T) {
 	fleet := testStalwartDefender(player)
 	fleet.Waypoints[0].Task = WaypointTaskPatrol
 	fleet.Waypoints[0].PatrolRange = 50
-	player.Designs[0] = fleet.Tokens[0].design
 	game.Fleets[0] = fleet
 
 	// create a new enemy player with a fleet 100ly away
 	enemyPlayer := NewPlayer(2, NewRace().WithSpec(rules)).WithNum(2).withSpec(rules)
 	enemyFleet := testLongRangeScout(enemyPlayer)
 	enemyFleet.Position = Vector{60, 0}
-	enemyPlayer.Designs = []*ShipDesign{enemyFleet.Tokens[0].design}
 	game.Players = append(game.Players, enemyPlayer)
 	game.Fleets = append(game.Fleets, enemyFleet)
 
@@ -882,10 +882,10 @@ func Test_turn_fleetPatrol(t *testing.T) {
 
 	// should not attack
 	assert.Equal(t, len(fleet.Waypoints), 2)
-	assert.Equal(t, fleet.Waypoints[1].TargetType, MapObjectTypeFleet)
-	assert.Equal(t, fleet.Waypoints[1].TargetPlayerNum, enemyFleet.PlayerNum)
-	assert.Equal(t, fleet.Waypoints[1].TargetNum, enemyFleet.Num)
-	assert.Equal(t, fleet.Waypoints[1].WarpSpeed, 6)
+	assert.Equal(t, MapObjectTypeFleet, fleet.Waypoints[1].TargetType)
+	assert.Equal(t, enemyFleet.PlayerNum, fleet.Waypoints[1].TargetPlayerNum)
+	assert.Equal(t, enemyFleet.Num, fleet.Waypoints[1].TargetNum)
+	assert.Equal(t, 6, fleet.Waypoints[1].WarpSpeed)
 
 }
 

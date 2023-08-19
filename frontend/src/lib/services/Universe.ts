@@ -334,7 +334,7 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 
 			return `${startCase(mo.type)} #${mo.num}`;
 		}
-		return `Space: (${wp.position.x}, ${wp.position.y})`;
+		return `Space: (${wp.position.x.toFixed()}, ${wp.position.y.toFixed()})`;
 	}
 
 	// get a mapobject by type, number, and optionally player num

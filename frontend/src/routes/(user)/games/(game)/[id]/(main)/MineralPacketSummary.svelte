@@ -31,25 +31,23 @@
 				{mineralPacket.warpSpeed}
 			</div>
 		</div>
-		{#if ownedBy(mineralPacket, $player.num)}
-			<div class="flex flex-row">
-				<div class="w-28 mr-2">Destination:</div>
-				<div>
-					{$universe.getPlanet(mineralPacket.targetPlanetNum ?? 0)?.name ?? 'Unknown'}
-				</div>
+		<div class="flex flex-row">
+			<div class="w-28 mr-2">Destination:</div>
+			<div>
+				{$universe.getPlanet(mineralPacket.targetPlanetNum ?? 0)?.name ?? 'Unknown'}
 			</div>
-			<div class="flex flex-row mt-2">
-				<div class="text-ironium w-28 mr-2">Ironium</div>
-				<div>{mineralPacket.cargo.ironium ?? 0}kT</div>
-			</div>
-			<div class="flex flex-row">
-				<div class="text-boranium w-28 mr-2">Boranium</div>
-				<div>{mineralPacket.cargo.boranium ?? 0}kT</div>
-			</div>
-			<div class="flex flex-row">
-				<div class="text-germanium w-28 mr-2">Germanium</div>
-				<div>{mineralPacket.cargo.germanium ?? 0}kT</div>
-			</div>
-		{/if}
+		</div>
+		<div class="flex flex-row mt-2">
+			<div class="text-ironium w-28 mr-2">Ironium</div>
+			<div>{mineralPacket.cargo.ironium ?? 0}kT</div>
+		</div>
+		<div class="flex flex-row">
+			<div class="text-boranium w-28 mr-2">Boranium</div>
+			<div>{mineralPacket.cargo.boranium ?? 0}kT</div>
+		</div>
+		<div class="flex flex-row">
+			<div class="text-germanium w-28 mr-2">Germanium</div>
+			<div>{mineralPacket.cargo.germanium ?? 0}kT</div>
+		</div>
 	</div>
 </div>

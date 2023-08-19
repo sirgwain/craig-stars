@@ -18,11 +18,12 @@ type PlayerMessage struct {
 }
 
 type PlayerMessageSpec struct {
-	Amount     int               `json:"amount,omitempty"`
-	Field      TechField         `json:"field,omitempty"`
-	NextField  TechField         `json:"nextField,omitempty"`
-	TechGained string            `json:"techGained,omitempty"`
-	Battle     BattleRecordStats `json:"battle,omitempty"`
+	Amount         int               `json:"amount,omitempty"`
+	Field          TechField         `json:"field,omitempty"`
+	NextField      TechField         `json:"nextField,omitempty"`
+	TechGained     string            `json:"techGained,omitempty"`
+	Battle         BattleRecordStats `json:"battle,omitempty"`
+	LostTargetType MapObjectType     `json:"lostTargetType,omitempty"`
 }
 
 type PlayerMessageTargetType string
@@ -34,6 +35,7 @@ const (
 	TargetWormhole      PlayerMessageTargetType = "Wormhole"
 	TargetMineField     PlayerMessageTargetType = "MineField"
 	TargetMysteryTrader PlayerMessageTargetType = "MysteryTrader"
+	TargetMineralPacket PlayerMessageTargetType = "MineralPacket"
 	TargetBattle        PlayerMessageTargetType = "Battle"
 )
 
@@ -90,6 +92,8 @@ const (
 	PlayerMessageMineralPacketCaught
 	PlayerMessageMineralPacketDamage
 	PlayerMessageMineralPacketLanded
+	PlayerMessageMineralPacketDiscovered
+	PlayerMessageMineralPacketTargettingPlayerDiscovered
 	PlayerMessageVictor
 	PlayerMessageFleetReproduce
 	PlayerMessageRandomMineralDeposit
@@ -99,6 +103,7 @@ const (
 	PlayerMessagePacketPermaform
 	PlayerMessageRemoteMined
 	PlayerMessageTechGained
+	PlayerMessageFleetTargetLost
 )
 
 type Messager interface {
@@ -524,6 +529,16 @@ func (m *messageClient) fleetMineFieldSwept(player *Player, fleet *Fleet, mineFi
 	})
 }
 
+func (m *messageClient) fleetTargetLost(player *Player, fleet *Fleet, targetName string, targetType MapObjectType) {
+	text := ""
+	if targetType == MapObjectTypeFleet {
+		text = fmt.Sprintf("The fleet you were tracking with %s, appears to have outrun the range of your scanners. Orders for your fleet have been changed to go to the last known location of that fleet.", fleet.Name)
+	} else {
+		text = fmt.Sprintf("%s that you were tracking with %s, appears to have disappeared. Orders for your fleet have been changed to go to the last known location of the target.", targetName, fleet.Name)
+	}
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetTargetLost, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum, Spec: PlayerMessageSpec{LostTargetType: targetType}})
+}
+
 func (m *messageClient) colonizeNonPlanet(player *Player, fleet *Fleet) {
 	text := fmt.Sprintf("%s has attempted to colonize a waypoint with no Planet.", fleet.Name)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum})
@@ -799,6 +814,25 @@ func (m *messageClient) mineralPacketArrived(player *Player, planet *Planet, pac
 func (m *messageClient) mineralPacketCaught(player *Player, planet *Planet, packet *MineralPacket) {
 	text := fmt.Sprintf("Your mass accelerator at %s has successfully captured a packet containing %dkT of minerals.", planet.Name, packet.Cargo.Total())
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageMineralPacketCaught, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
+}
+
+func (m *messageClient) mineralPacketDiscovered(player *Player, packet *MineralPacket, packetPlayer *Player, target *Planet) {
+	text := fmt.Sprintf("A %s mineral packet containing %dkT of minerals has been detected. It is travelling at %d towards %s", packetPlayer.Race.Name, packet.Cargo.Total(), packet.WarpSpeed, target.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageMineralPacketDiscovered, Text: text, TargetType: TargetMineralPacket, TargetNum: packet.Num, TargetPlayerNum: packetPlayer.Num})
+}
+
+func (m *messageClient) mineralPacketDiscoveredTargettingPlayer(player *Player, packet *MineralPacket, packetPlayer *Player, target *Planet, damage MineralPacketDamage) {
+	text := fmt.Sprintf("A %s mineral packet containing %dkT of minerals has been detected. It is travelling at warp %d towards your planet, %s.", packetPlayer.Race.Name, packet.Cargo.Total(), packet.WarpSpeed, target.Name)
+	if damage.Killed > 0 || damage.DefensesDestroyed > 0 {
+		if target.Spec.HasStarbase {
+			text += fmt.Sprintf(" Your starbase does not have a powerful enough mass driver to catch this packet. Approximately %d defenses will be destroyed, and %d colonists will be killed when the packet hits.", damage.DefensesDestroyed, damage.Killed)
+		} else {
+			text += fmt.Sprintf(" You have no starbase with a mass driver to catch this packet. Approximately %d defenses will be destroyed, and %d colonists will be killed when the packet hits.", damage.DefensesDestroyed, damage.Killed)
+		}
+	} else {
+		text += " Your starbase will have no trouble catching this packet."
+	}
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageMineralPacketTargettingPlayerDiscovered, Text: text, TargetType: TargetMineralPacket, TargetNum: packet.Num, TargetPlayerNum: packetPlayer.Num})
 }
 
 func (m *messageClient) buildMineralPacketNoMassDriver(player *Player, planet *Planet) {
