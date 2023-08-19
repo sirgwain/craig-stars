@@ -57,7 +57,7 @@
 			<button
 				type="button"
 				class="w-full h-full text-left"
-				on:pointerdown|preventDefault={(e) => onTechTooltip(e, futureTech.tech)}
+				on:pointerdown|preventDefault={(e) => onTechTooltip(e, futureTech.tech, true)}
 				>{futureTech.tech.name}</button
 			>
 		</li>

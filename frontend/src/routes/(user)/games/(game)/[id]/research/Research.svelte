@@ -27,7 +27,7 @@
 
 	const updatePlayerOrders = async () => {
 		dispatch('update-player');
-	};
+	};	
 
 	let spent = 0;
 	$: {

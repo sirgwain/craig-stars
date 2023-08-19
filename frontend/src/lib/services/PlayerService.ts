@@ -1,5 +1,6 @@
 import type { Planet } from '$lib/types/Planet';
 import type { PlayerOrders, PlayerResponse } from '$lib/types/Player';
+import type { TechLevel } from '$lib/types/TechLevel';
 import type { TurnGenerationResponse } from './GameService';
 import { Service } from './Service';
 
@@ -70,5 +71,20 @@ export class PlayerService extends Service {
 			await Service.throwError(response);
 		}
 		return response.json();
+	}
+
+	static async getResearchCost(gameId: number, techLevel: TechLevel): Promise<{ resources: number }> {
+		const response = await fetch(`/api/games/${gameId}/research-cost`, {
+			method: 'POST',
+			headers: {
+				accept: 'application/json'
+			},
+			body: JSON.stringify(techLevel)
+		});
+
+		if (!response.ok) {
+			await Service.throwError(response);
+		}
+		return await response.json();
 	}
 }

@@ -39,7 +39,7 @@ const (
 type researcher interface {
 	research(player *Player, resourcesToSpend int, onLevelGained func(player *Player, field TechField)) (spent TechLevel)
 	researchField(player *Player, field TechField, resourcesToSpend int, onLevelGained func(player *Player, field TechField))
-	getTotalCost(player *Player, field TechField, level int) int
+	getTotalCost(techLevels TechLevel, field TechField, researchCostLevel ResearchCostLevel, level int) int
 }
 
 type research struct {
@@ -50,38 +50,39 @@ func NewResearcher(rules *Rules) researcher { return &research{rules} }
 
 // This function will be called repeatedly until no more levels are passed
 // From starsfaq
-//   The cost of a tech level depends on four things:
-//  1) Your research setting for that field (cheap, normal, or expensive)
-//  2) The level you are researching (higher level, higher cost)
-//  3) The total number of tech levels you have already have in all fields (you can add it up yourself, or look at 'tech levels' on the 'score' screen).
-//  4) whether 'slow tech advance' was selected as a game parameter.
 //
-//  in general,
+//	 The cost of a tech level depends on four things:
+//	1) Your research setting for that field (cheap, normal, or expensive)
+//	2) The level you are researching (higher level, higher cost)
+//	3) The total number of tech levels you have already have in all fields (you can add it up yourself, or look at 'tech levels' on the 'score' screen).
+//	4) whether 'slow tech advance' was selected as a game parameter.
 //
-//  totalCost=(baseCost + (totalLevels * 10)) * costFactor
+//	in general,
 //
-//  where  totalLevels=the sum of your current levels in all fields
-//    costFactor =.5 if your setting for the field is '50% less'
-//                       =1 if your setting for the field is 'normal'
-//                       =1.75 if your setting for the field is '75% more expensive'
+//	totalCost=(baseCost + (totalLevels * 10)) * costFactor
 //
-//  If 'slow tech advance' is a game parameter, totalCost should be doubled.
+//	where  totalLevels=the sum of your current levels in all fields
+//	  costFactor =.5 if your setting for the field is '50% less'
+//	                     =1 if your setting for the field is 'normal'
+//	                     =1.75 if your setting for the field is '75% more expensive'
 //
-//  Below is a table showing the base cost of each level.
+//	If 'slow tech advance' is a game parameter, totalCost should be doubled.
 //
-//  1     50              14    18040
-//  2     80              15    22440
-//  3     130             16    27050
-//  4     210             17    31870
-//  5     340             18    36900
-//  6     550             19    42140
-//  7     890             20    47590
-//  8     1440            21    53250
-//  9     2330            22    59120
-//  10    3770            23    65200
-//  11    6100            24    71490
-//  12    9870            25    77990
-//  13    13850           26    84700
+//	Below is a table showing the base cost of each level.
+//
+//	1     50              14    18040
+//	2     80              15    22440
+//	3     130             16    27050
+//	4     210             17    31870
+//	5     340             18    36900
+//	6     550             19    42140
+//	7     890             20    47590
+//	8     1440            21    53250
+//	9     2330            22    59120
+//	10    3770            23    65200
+//	11    6100            24    71490
+//	12    9870            25    77990
+//	13    13850           26    84700
 func (r *research) research(player *Player, resourcesToSpend int, onLevelGained func(player *Player, field TechField)) (spent TechLevel) {
 	// keep spending resources until we are done
 	for {
@@ -138,7 +139,7 @@ func (r *research) researchFieldOnce(player *Player, field TechField, resourcesT
 	// add the resourcesToSpend to how much we've currently spent
 	spent := player.TechLevelsSpent.Get(field)
 
-	totalCost := r.getTotalCost(player, field, level)
+	totalCost := r.getTotalCost(player.TechLevels, field, player.Race.ResearchCost.Get(field), level)
 
 	if spent+resourcesToSpend >= totalCost {
 		// increase a level
@@ -161,7 +162,7 @@ func (r *research) researchFieldOnce(player *Player, field TechField, resourcesT
 	return levelGained, resourcesLeftover
 }
 
-func (r *research) getTotalCost(player *Player, field TechField, level int) int {
+func (r *research) getTotalCost(techLevels TechLevel, field TechField, researchCostLevel ResearchCostLevel, level int) int {
 	maxTechLevel := len(r.rules.TechBaseCost) - 1
 	// we can't research more than tech level 26
 	if level >= maxTechLevel {
@@ -169,13 +170,12 @@ func (r *research) getTotalCost(player *Player, field TechField, level int) int 
 	}
 
 	// figure out our total levels
-	totalLevels := player.TechLevels.Sum()
+	totalLevels := techLevels.Sum()
 
 	// figure out the cost to advance to the next level
 	baseCost := r.rules.TechBaseCost[level+1]
-	researchCost := player.Race.ResearchCost.Get(field)
 	costFactor := 1.0
-	switch researchCost {
+	switch researchCostLevel {
 	case ResearchCostExtra:
 		costFactor = 1.75
 	case ResearchCostLess:

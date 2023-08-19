@@ -28,6 +28,14 @@ func (req *playerPlansRequest) Bind(r *http.Request) error {
 	return nil
 }
 
+type researchCostRequest struct {
+	cs.TechLevel
+}
+
+func (req *researchCostRequest) Bind(r *http.Request) error {
+	return nil
+}
+
 // context for /api/games/{id} calls that require a player
 func (s *server) playerCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -451,4 +459,19 @@ func (s *server) updatePlayerPlans(w http.ResponseWriter, r *http.Request) {
 
 	log.Info().Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update plans")
 	rest.RenderJSON(w, player)
+}
+
+// get an estimate for production completion based on a planet's production queue items
+func (s *server) getResearchCost(w http.ResponseWriter, r *http.Request) {
+	game := s.contextGame(r)
+	player := s.contextPlayer(r)
+
+	researchCost := researchCostRequest{}
+	if err := render.Bind(r, &researchCost); err != nil {
+		render.Render(w, r, ErrBadRequest(err))
+		return
+	}
+
+	resources := player.GetResearchCost(&game.Rules, researchCost.TechLevel)
+	rest.RenderJSON(w, rest.JSON{"resources": resources})
 }

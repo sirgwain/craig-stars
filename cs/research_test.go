@@ -86,7 +86,9 @@ func Test_research_getTotalCost(t *testing.T) {
 			r := &research{
 				rules: &rules,
 			}
-			if got := r.getTotalCost(tt.args.player, tt.args.field, tt.args.level); got != tt.want {
+			techLevels := tt.args.player.TechLevels
+			researchCostLevel := tt.args.player.Race.ResearchCost.Get(tt.args.field)
+			if got := r.getTotalCost(techLevels, tt.args.field, researchCostLevel, tt.args.level); got != tt.want {
 				t.Errorf("research.getTotalCost() = %v, want %v", got, tt.want)
 			}
 		})

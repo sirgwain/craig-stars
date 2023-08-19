@@ -381,7 +381,7 @@ func computePlayerSpec(player *Player, rules *Rules, planets []*Planet) PlayerSp
 		}
 	}
 
-	spec.CurrentResearchCost = researcher.getTotalCost(player, player.Researching, player.TechLevels.Get(player.Researching))
+	spec.CurrentResearchCost = researcher.getTotalCost(player.TechLevels, player.Researching, player.Race.ResearchCost.Get(player.Researching), player.TechLevels.Get(player.Researching))
 	return spec
 }
 
@@ -408,6 +408,33 @@ func (p *Player) CanLearnTech(tech *Tech) bool {
 	}
 
 	return true
+}
+
+// return the cost, in resources, it will take to reach this tech level
+func (p *Player) GetResearchCost(rules *Rules, techLevel TechLevel) int {
+	researcher := NewResearcher(rules)
+
+	techLevels := p.TechLevels
+	resources := 0
+	for _, field := range TechFields {
+		requiredLevel := techLevel.Get(field)
+		playerLevel := techLevels.Get(field)
+		spent := p.TechLevelsSpent.Get(field)
+		researchCostLevel := p.Race.ResearchCost.Get(field)
+
+		// we require this field
+		if requiredLevel > playerLevel {
+			resources -= spent
+			for i := 0; i < requiredLevel-playerLevel; i++ {
+				// find the cost for the next level in this field
+				resources += researcher.getTotalCost(techLevels, field, researchCostLevel, playerLevel+i)
+				// assume we gained this for future calcs
+				techLevels.Set(field, playerLevel+i+1)
+			}
+		}
+	}
+
+	return resources
 }
 
 // get the default relationships for a player with other players

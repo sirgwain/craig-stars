@@ -19,18 +19,31 @@
 	import { kebabCase } from 'lodash-es';
 	import TechAvatar from './TechAvatar.svelte';
 	import TechDefenseGraph from './TechDefenseGraph.svelte';
+	import { PlayerService } from '$lib/services/PlayerService';
+	import type { FullGame } from '$lib/services/FullGame';
 
 	export let tech: Tech;
 	export let player: Player | undefined = undefined;
+	export let game: FullGame | undefined = undefined;
+	export let showResearchCost = false;
 
 	let defense: TechDefense;
 	let hullComponent: TechHullComponent;
 	let engine: TechEngine;
+	let researchCost = 0;
 
 	$: tech && isHullComponent(tech.category) && (hullComponent = tech as TechHullComponent);
 	$: tech && tech.category == TechCategory.Engine && (engine = tech as TechEngine);
 	$: tech && tech.category == TechCategory.PlanetaryDefense && (defense = tech as TechDefense);
 	$: above = player?.hasTech(tech) ? levelsAbove(tech.requirements, player.techLevels) : 0;
+
+	$: {
+		if (showResearchCost && player && game) {
+			PlayerService.getResearchCost(game.id, tech.requirements).then(
+				(result) => (researchCost = result.resources)
+			);
+		}
+	}
 </script>
 
 {#if tech}
@@ -60,6 +73,16 @@
 					<!-- icon and tech requirements row-->
 					<TechAvatar {tech} hullTooltip={true} />
 					<TechLevelRequirements {tech} {player} />
+					{#if showResearchCost && researchCost}
+						<div
+							class="flex flex-row justify-between gap-1"
+							class:text-error={player?.techLevels &&
+								(player.techLevels.energy ?? 0) < (tech.requirements.energy ?? 0)}
+						>
+							<div>Research Cost:</div>
+							<div>{researchCost}</div>
+						</div>
+					{/if}
 				</div>
 
 				<div class="flex flex-col flex-1">

@@ -219,7 +219,7 @@ func Start(db DBClient, config config.Config) {
 
 		r.Route("/api/calculators", func(r chi.Router) {
 			r.Post("/planet-production-estimate", server.getPlanetProductionEstimate)
-			r.Post("/starbase-upgrade-cost", server.getStarbaseUpgradeCost)
+			r.Post("/starbase-upgrade-cost", server.getStarbaseUpgradeCost)			
 		})
 
 		// route for all operations that act on a game
@@ -258,7 +258,8 @@ func Start(db DBClient, config config.Config) {
 					r.Put("/player/plans", server.updatePlayerPlans)
 					r.Post("/submit-turn", server.submitTurn)
 					r.Post("/unsubmit-turn", server.unSubmitTurn)
-
+					r.Post("/research-cost", server.getResearchCost)
+					
 					// ship designs
 					r.Route("/designs", func(r chi.Router) {
 						r.Get("/", server.shipDesigns)
