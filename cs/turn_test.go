@@ -815,7 +815,7 @@ func Test_turn_decayPackets(t *testing.T) {
 
 	// create some Packets with 100kT of each mineral
 	packetSafe := newMineralPacket(player, 1, 5, 5, Cargo{100, 100, 100, 0}, Vector{200, 0}, 1)
-	packetTooFast := newMineralPacket(player, 1, 8, 5, Cargo{100, 100, 100, 0}, Vector{200, 0}, 1)
+	packetTooFast := newMineralPacket(player, 1, 10, 7, Cargo{500, 500, 500, 0}, Vector{0, 200}, 1)
 	packetNewlyBuilt := newMineralPacket(player, 1, 8, 5, Cargo{100, 100, 100, 0}, Vector{200, 0}, 1)
 	packetNewlyBuilt.builtThisTurn = true
 
@@ -833,7 +833,7 @@ func Test_turn_decayPackets(t *testing.T) {
 
 	// no decay, 50% decay, and half of 50% decay for a newly built overfast packet
 	assert.Equal(t, packetSafe.Cargo, Cargo{100, 100, 100, 0})
-	assert.Equal(t, packetTooFast.Cargo, Cargo{50, 50, 50, 0})
+	assert.Equal(t, packetTooFast.Cargo, Cargo{250, 250, 250, 0})
 	assert.Equal(t, packetNewlyBuilt.Cargo, Cargo{75, 75, 75, 0})
 }
 

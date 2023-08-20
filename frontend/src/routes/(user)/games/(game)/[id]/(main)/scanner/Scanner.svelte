@@ -50,7 +50,6 @@
 	import ScannerWormholeLinks from './ScannerWormholeLinks.svelte';
 	import ScannerWormholes from './ScannerWormholes.svelte';
 	import SelectedMapObject from './SelectedMapObject.svelte';
-	import SelectedWaypoint from './SelectedWaypoint.svelte';
 
 	const { game, player, universe, settings } = getGameContext();
 
@@ -525,7 +524,6 @@
 				<ScannerMineFields />
 				<ScannerPacketDests />
 				<ScannerWaypoints />
-				<SelectedWaypoint />
 				<ScannerPlanets />
 				<ScannerMineralPackets />
 				<ScannerWormholes />

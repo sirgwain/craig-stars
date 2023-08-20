@@ -41,6 +41,11 @@
 	let validHullSlotTypes = hull.slots.reduce((type, slot) => type | +slot.type, HullSlotType.None);
 
 	$: design && DesignService.computeSpec($game.id, design).then((s) => (designSpec = s));
+	$: selectedComponent =
+		$shipDesignerContext.selectedHullComponent ??
+		($shipDesignerContext.selectedShipDesignSlot?.hullComponent
+			? $techs.getHullComponent($shipDesignerContext.selectedShipDesignSlot?.hullComponent)
+			: undefined);
 
 	onMount(() => {
 		design.hull = hull.name;
@@ -241,13 +246,13 @@
 				{/each}
 			</ul>
 			<div class="flex flex-col mt-3">
-				{#if $shipDesignerContext.selectedHullComponent}
+				{#if selectedComponent}
 					<div>
-						Cost of one {$shipDesignerContext.selectedHullComponent.name}
+						Cost of one {selectedComponent.name}
 						<span
 							class="inline-block"
 							on:pointerdown|preventDefault={(e) =>
-								onTechTooltip(e, $shipDesignerContext.selectedHullComponent)}
+								onTechTooltip(e, selectedComponent)}
 							><Icon
 								src={QuestionMarkCircle}
 								size="16"
@@ -256,7 +261,7 @@
 						>
 					</div>
 					<div class="pl-2">
-						<Cost cost={$shipDesignerContext.selectedHullComponent.cost} />
+						<Cost cost={selectedComponent.cost} />
 					</div>
 				{/if}
 			</div>

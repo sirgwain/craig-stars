@@ -68,13 +68,22 @@
 					previousWaypoint ? previousWaypoint.position : nextWaypoint?.position
 			  )
 			: 0;
-	$: estimatedFuelUsage = fleet.getFuelCost(
-		$universe,
-		$player.race.spec?.fuelEfficiencyOffset ?? 0,
-		$selectedWaypoint?.warpSpeed ?? 0,
-		dist,
-		fleet.spec.cargoCapacity ?? 0
-	);
+
+	// calculate the fuel used per leg of each waypoint, starting at wp1
+	$: fuelUsagePerLeg = fleet.waypoints
+		.slice(1)
+		.map((wp1, index) =>
+			fleet.getFuelCost(
+				$universe,
+				$player.race.spec?.fuelEfficiencyOffset ?? 0,
+				$selectedWaypoint === wp1 ? $selectedWaypoint.warpSpeed : wp1.warpSpeed ?? 0,
+				distance(fleet.waypoints[index].position, wp1.position),
+				fleet.spec.cargoCapacity ?? 0
+			)
+		);
+
+	$: fuelUsageToSelectedWaypoint = fuelUsagePerLeg.reduce((total, wpUsage) => total + wpUsage, 0);
+	$: fuelUsageTotal = fuelUsagePerLeg.reduce((total, wpUsage) => total + wpUsage, 0);
 
 	const onRepeatOrdersChanged = async (repeatOrders: boolean) => {
 		if ($selectedWaypoint) {
@@ -193,7 +202,6 @@
 					on:click={deleteWaypoint}
 					>Delete
 				</button>
-				
 			</div>
 
 			<div class="flex justify-between mt-1">
@@ -231,11 +239,14 @@
 				>
 			</div>
 			<div class="flex justify-between mt-1">
-				<span>Est Fuel Usage</span>
-				<span class:text-error={(estimatedFuelUsage) > fleet.fuel}
-					>{estimatedFuelUsage}mg</span
-				>
+				<span>Leg Fuel Usage</span>
+				<span>{fuelUsagePerLeg[selectedWaypointIndex - 1]}mg</span>
 			</div>
+			<div class="flex justify-between mt-1">
+				<span>Total Fuel Usage</span>
+				<span class:text-error={fuelUsageTotal > fleet.fuel}>{fuelUsageTotal}mg</span>
+			</div>
+
 			<label>
 				<input
 					on:change={(e) => onRepeatOrdersChanged(e.currentTarget.checked ? true : false)}
@@ -262,8 +273,8 @@
 				<span>{Math.ceil(dist / (nextWaypoint.warpSpeed * nextWaypoint.warpSpeed))} years</span>
 			</div>
 			<div class="flex justify-between mt-1">
-				<span>Est Fuel Usage</span>
-				<span>{nextWaypoint.estFuelUsage ?? 0}mg</span>
+				<span>Total Fuel Usage</span>
+				<span class:text-error={fuelUsageTotal > fleet.fuel}>{fuelUsageTotal}mg</span>
 			</div>
 			<label>
 				<input

@@ -140,6 +140,9 @@
 				if (hullComponent.initiative) {
 					stats.push({ label: 'Initiative', text: `${hullComponent.initiative}` });
 				}
+				if (hullComponent.accuracy) {
+					stats.push({ label: 'Accuracy', text: `${hullComponent.accuracy}%` });
+				}
 				if (hullComponent.hitsAllTargets) {
 					descriptions.push(`This weapon hits all targets in range each time it is fired.`);
 				}
