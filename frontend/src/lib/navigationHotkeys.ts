@@ -10,12 +10,6 @@ export const bindNavigationHotkeys = (gameId: number, page: Readable<Page>) => {
 	hotkeys('F2', () => {
 		goto(`/games/${gameId}/techs`);
 	});
-	hotkeys('F5', () => {
-		goto(`/games/${gameId}/research`);
-	});
-	hotkeys('F4', () => {
-		goto(`/games/${gameId}/designer`);
-	});
 	hotkeys('F3', () => {
 		const pathname = get(page)?.url.pathname;
 		switch (pathname) {
@@ -38,6 +32,15 @@ export const bindNavigationHotkeys = (gameId: number, page: Readable<Page>) => {
 				goto(`/games/${gameId}`);
 				break;
 		}
+	});	
+	hotkeys('F4', () => {
+		goto(`/games/${gameId}/designer`);
+	});
+	hotkeys('F5', () => {
+		goto(`/games/${gameId}/research`);
+	});
+	hotkeys('F8', () => {
+		goto(`/games/${gameId}/race`);
 	});
 	hotkeys('F10', () => {
 		goto(`/games/${gameId}/players`);
@@ -46,9 +49,10 @@ export const bindNavigationHotkeys = (gameId: number, page: Readable<Page>) => {
 
 export const unbindNavigationHotkeys = () => {
 	hotkeys.unbind('esc');
-	hotkeys.unbind('F5');
-	hotkeys.unbind('F4');
-	hotkeys.unbind('F3');
 	hotkeys.unbind('F2');
+	hotkeys.unbind('F3');
+	hotkeys.unbind('F4');
+	hotkeys.unbind('F5');
+	hotkeys.unbind('F9');
 	hotkeys.unbind('F10');
 };

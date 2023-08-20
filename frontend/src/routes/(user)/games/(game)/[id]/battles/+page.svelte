@@ -3,7 +3,7 @@
 	import TableSearchInput from '$lib/components/TableSearchInput.svelte';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import { getGameContext } from '$lib/services/Contexts';
-	import type { BattleRecord } from '$lib/types/Battle';
+	import { getNumShips, getOurDead, getOurShips, getTheirDead, getTheirShips, type BattleRecord } from '$lib/types/Battle';
 	import { SvelteTable, type SvelteTableColumn } from '@hurtigruten/svelte-table';
 
 	const { game, player, universe } = getGameContext();
@@ -31,66 +31,18 @@
 		location: $universe.getBattleLocation(b),
 		numPlayers: Object.keys(b.stats?.numShipsByPlayer ?? {}).length,
 		numShips: getNumShips(b),
-		ours: getOurShips(b),
-		theirs: getTheirDead(b),
-		ourDead: getOurDead(b),
-		theirDead: getTheirDead(b),
-		oursLeft: getOurShips(b) - getOurDead(b),
-		theirsLeft: getTheirShips(b) - getTheirDead(b)
+		ours: getOurShips(b, allies),
+		theirs: getTheirDead(b, allies),
+		ourDead: getOurDead(b, allies),
+		theirDead: getTheirDead(b, allies),
+		oursLeft: getOurShips(b, allies) - getOurDead(b, allies),
+		theirsLeft: getTheirShips(b, allies) - getTheirDead(b, allies)
 	}));
 
 	$: filteredBattles =
 		battleRows.filter((i) => i.location.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? [];
 
-	function getNumShips(record: BattleRecord): number {
-		return Object.values(record.stats.numShipsByPlayer ?? {}).reduce(
-			(count, num) => count + num,
-			0
-		);
-	}
 
-	function getOurShips(record: BattleRecord): number {
-		let count = 0;
-		allies.forEach(
-			(ally) => (count += record.stats?.numShipsByPlayer ? record.stats?.numShipsByPlayer[ally] : 0)
-		);
-		return count;
-	}
-
-	function getTheirShips(record: BattleRecord): number {
-		let count = 0;
-		Object.entries(record.stats?.numShipsByPlayer ?? {}).forEach((entry) => {
-			const playerNum: number = parseInt(entry[0]);
-			const numShips = entry[1];
-			if (!allies.has(playerNum)) {
-				count += numShips;
-			}
-		});
-		return count;
-	}
-
-	function getOurDead(record: BattleRecord): number {
-		let count = 0;
-		allies.forEach(
-			(ally) =>
-				(count += record.stats?.shipsDestroyedByPlayer
-					? record.stats?.shipsDestroyedByPlayer[ally]
-					: 0)
-		);
-		return count;
-	}
-
-	function getTheirDead(record: BattleRecord): number {
-		let count = 0;
-		Object.entries(record.stats?.shipsDestroyedByPlayer ?? {}).forEach((entry) => {
-			const playerNum: number = parseInt(entry[0]);
-			const numShips = entry[1];
-			if (!allies.has(playerNum)) {
-				count += numShips;
-			}
-		});
-		return count;
-	}
 
 	const columns: SvelteTableColumn<BattleRecord>[] = [
 		{

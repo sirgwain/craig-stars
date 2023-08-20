@@ -233,3 +233,50 @@ export class Battle implements BattleRecord {
 }
 
 export const getTokenLocationKey = (x: number, y: number): string => `${x}-${y}`;
+
+export function getNumShips(record: BattleRecord): number {
+	return Object.values(record.stats.numShipsByPlayer ?? {}).reduce((count, num) => count + num, 0);
+}
+
+export function getOurShips(record: BattleRecord, allies: Set<number>): number {
+	let count = 0;
+	allies.forEach(
+		(ally) => (count += record.stats?.numShipsByPlayer ? record.stats?.numShipsByPlayer[ally] : 0)
+	);
+	return count;
+}
+
+export function getTheirShips(record: BattleRecord, allies: Set<number>): number {
+	let count = 0;
+	Object.entries(record.stats?.numShipsByPlayer ?? {}).forEach((entry) => {
+		const playerNum: number = parseInt(entry[0]);
+		const numShips = entry[1];
+		if (!allies.has(playerNum)) {
+			count += numShips;
+		}
+	});
+	return count;
+}
+
+export function getOurDead(record: BattleRecord, allies: Set<number>): number {
+	let count = 0;
+	allies.forEach(
+		(ally) =>
+			(count += record.stats?.shipsDestroyedByPlayer
+				? record.stats?.shipsDestroyedByPlayer[ally]
+				: 0)
+	);
+	return count;
+}
+
+export function getTheirDead(record: BattleRecord, allies: Set<number>): number {
+	let count = 0;
+	Object.entries(record.stats?.shipsDestroyedByPlayer ?? {}).forEach((entry) => {
+		const playerNum: number = parseInt(entry[0]);
+		const numShips = entry[1];
+		if (!allies.has(playerNum)) {
+			count += numShips;
+		}
+	});
+	return count;
+}

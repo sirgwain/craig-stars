@@ -14,7 +14,7 @@
 		type Race
 	} from '$lib/types/Race';
 	import { onMount } from 'svelte';
-	import PRTDescription from './PRTDescription.svelte';
+	import PRTDescription from '$lib/components/game/race/PRTDescription.svelte';
 	import LRTs from './LRTs.svelte';
 	import PlanetaryProduction from './PlanetaryProduction.svelte';
 	import SectionHeader from '$lib/components/SectionHeader.svelte';
@@ -24,7 +24,7 @@
 	import Research from './Research.svelte';
 	import { RaceService } from '$lib/services/RaceService';
 	import { Service } from '$lib/services/Service';
-	import LRTsDescriptions from './LRTsDescriptions.svelte';
+	import LRTsDescriptions from '$lib/components/game/race/LRTsDescriptions.svelte';
 
 	let id = $page.params.id;
 	let race: Race;

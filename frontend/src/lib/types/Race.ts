@@ -129,8 +129,8 @@ export const lrts = [
 	LRT.BET,
 	LRT.RS,
 	LRT.MA,
-	LRT.CE,
-]
+	LRT.CE
+];
 
 export enum SpendLeftoverPointsOn {
 	SurfaceMinerals = 'SurfaceMinerals',
@@ -432,4 +432,22 @@ export function getPlanetHabitability(race: Race, hab: Hab): number {
 	planetValuePoints = (planetValuePoints * ideality) / 10000;
 
 	return planetValuePoints;
+}
+
+export function getHabWidth(race: Race) {
+	return {
+		grav: (race.habHigh.grav ?? 0) - (race.habLow.grav ?? 0),
+		temp: (race.habHigh.temp ?? 0) - (race.habLow.temp ?? 0),
+		rad: (race.habHigh.rad ?? 0) - (race.habLow.rad ?? 0)
+	};
+}
+
+export function getHabChance(race: Race): number {
+	const habWidth = getHabWidth(race);
+	// do a straight calc of hab width, so if we have a hab with widths of 50, 50% of planets will be habitable
+	// so we get (.5 * .5 * .5) = .125, or 1 in 8 planets
+	const gravChance = race.immuneGrav ? 1.0 : habWidth.grav / 100.0;
+	const tempChance = race.immuneTemp ? 1.0 : habWidth.temp / 100.0;
+	const radChance = race.immuneRad ? 1.0 : habWidth.rad / 100.0;
+	return gravChance * tempChance * radChance;
 }

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Race } from '$lib/types/Race';
+	import { PRT, type Race } from '$lib/types/Race';
 	import { TechField } from '$lib/types/TechLevel';
 	import ResearchCostField from './ResearchCostField.svelte';
 
@@ -22,5 +22,5 @@
 		name="techsStartHigh"
 		bind:checked={race.techsStartHigh}
 	/>
-	<span class="ml-2">All 'Costs 75% extra' research fields start at Tech 4</span>
+	<span class="ml-2">All 'Costs 75% extra' research fields start at Tech {race.prt == PRT.JoaT ? '4' : '3'}</span>
 </label>
