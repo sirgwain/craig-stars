@@ -7,7 +7,7 @@
 	import { commandMapObject, selectMapObject, zoomToMapObject } from '$lib/services/Stores';
 	import { getQueueItemShortName, planetsSortBy, type Planet } from '$lib/types/Planet';
 	import { SvelteTable, type SvelteTableColumn } from '@hurtigruten/svelte-table';
-	import { Check, CheckBadge } from '@steeze-ui/heroicons';
+	import { Check } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
 	const { game, player, universe, settings } = getGameContext();

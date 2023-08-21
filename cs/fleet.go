@@ -1027,6 +1027,7 @@ func (fleet *Fleet) completeMove(mapObjectGetter mapObjectGetter, player *Player
 }
 
 // colonize a planet
+// TODO: return an error and stop colonization
 func (fleet *Fleet) colonizePlanet(rules *Rules, player *Player, planet *Planet) {
 	planet.MarkDirty()
 	planet.PlayerNum = player.Num
@@ -1049,6 +1050,13 @@ func (fleet *Fleet) colonizePlanet(rules *Rules, player *Player, planet *Planet)
 			starbase := newStarbase(player, planet, design, design.Name)
 			starbase.Spec = ComputeFleetSpec(rules, player, &starbase)
 			planet.Starbase = &starbase
+		} else {
+			log.Error().
+				Int64("GameID", fleet.GameID).
+				Int("Player", fleet.PlayerNum).
+				Str("Fleet", fleet.Name).
+				Str("Planet", planet.Name).
+				Msgf("colonizer can't find Starter Colony design.")
 		}
 	}
 

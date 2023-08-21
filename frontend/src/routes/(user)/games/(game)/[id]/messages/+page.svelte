@@ -3,7 +3,7 @@
 	import TableSearchInput from '$lib/components/TableSearchInput.svelte';
 	import { getGameContext } from '$lib/services/Contexts';
 	import { gotoMessageTarget } from '$lib/services/Stores';
-	import { MessageType, type Message } from '$lib/types/Message';
+	import { MessageType, type Message, getMessageText } from '$lib/types/Message';
 	import { SvelteTable, type SvelteTableColumn } from '@hurtigruten/svelte-table';
 
 	const { game, player, universe } = getGameContext();
@@ -78,7 +78,7 @@
 					>{getTarget(row)}</button
 				>
 			{:else}
-				{cell}
+				{getMessageText(row, $universe, $player)}
 			{/if}
 		</span>
 	</SvelteTable>

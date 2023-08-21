@@ -1519,8 +1519,8 @@ func (t *turn) fleetBomb() {
 			// can't bomb uninhabited planets, planets with starbases
 			continue
 		}
-		player := t.game.getPlayer(planet.PlayerNum)
-		if player.Race.Spec.LivesOnStarbases {
+		planetPlayer := t.game.getPlayer(planet.PlayerNum)
+		if planetPlayer.Race.Spec.LivesOnStarbases {
 			// can't bomb planets that are owned by AR races
 			continue
 		}
@@ -1528,14 +1528,18 @@ func (t *turn) fleetBomb() {
 		// find any enemy bombers orbiting this planet
 		enemyBombers := []*Fleet{}
 		for _, mo := range t.game.getMapObjectsAtPosition(planet.Position) {
-			if fleet, ok := mo.(*Fleet); ok && !fleet.Delete && fleet.Spec.Bomber && t.game.getPlayer(fleet.PlayerNum).IsEnemy(planet.PlayerNum) {
-				enemyBombers = append(enemyBombers, fleet)
+			if fleet, ok := mo.(*Fleet); ok {
+				fleetPlayer := t.game.getPlayer(fleet.PlayerNum)
+				willBomb := fleet.willAttack(fleetPlayer, planet.PlayerNum)
+				if !fleet.Delete && fleet.Spec.Bomber && willBomb {
+					enemyBombers = append(enemyBombers, fleet)
+				}
 			}
 		}
 
 		if len(enemyBombers) > 0 {
 			// see if this planet has enemy bomber fleets, and if so, bomb it
-			bomber.bombPlanet(planet, player, enemyBombers, t.game)
+			bomber.bombPlanet(planet, planetPlayer, enemyBombers, t.game)
 		}
 	}
 }
@@ -1895,6 +1899,7 @@ func (t *turn) calculateScores() {
 		// Calculate tech levels
 		for _, field := range TechFields {
 			level := player.TechLevels.Get(field)
+			score.TechLevels += level
 			switch {
 			case level >= 1 && level <= 3:
 				score.Score += 1

@@ -1,5 +1,11 @@
 import type { Universe } from '$lib/services/Universe';
-import { getOurDead, getOurShips, getTheirDead, getTheirShips, type BattleRecordStats } from './Battle';
+import {
+	getOurDead,
+	getOurShips,
+	getTheirDead,
+	getTheirShips,
+	type BattleRecordStats
+} from './Battle';
 import type { Target } from './Fleet';
 import { MapObjectType } from './MapObject';
 import type { Player } from './Player';
@@ -149,20 +155,20 @@ function getBattleMessage(message: Message, universe: Universe, player: Player):
 		const oursLeft = ours - ourDead;
 		const theirsLeft = theirs - theirDead;
 
-		if (ourDead === ours) {
-			text += ' All of your forces were destroyed by enemy forces.';
-		} else if (ourDead === 0) {
+		if (ourDead === 0) {
 			text += ' None of your forces were destroyed.';
+		} else if (ourDead === ours) {
+			text += ' All of your forces were destroyed by enemy forces.';
 		} else if (oursLeft === 1) {
 			text += ` Only one of your ships survived.`;
 		} else if (oursLeft > 1) {
 			text += ` ${oursLeft} of your ships surived.`;
 		}
 
-		if (theirDead === theirs) {
-			text += ' All enemy forces were destroyed.';
-		} else if (theirDead === 0) {
+		if (theirDead === 0) {
 			text += ' None of the enemy forces were destroyed.';
+		} else if (theirDead === theirs) {
+			text += ' All enemy forces were destroyed.';
 		} else if (theirsLeft === 1) {
 			text += ` Only one enemy ship survived.`;
 		} else if (theirsLeft > 1) {

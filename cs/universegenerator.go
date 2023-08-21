@@ -227,7 +227,6 @@ func (ug *universeGenerator) generatePlayerShipDesigns() {
 
 		for i := range starbaseDesigns {
 			design := &starbaseDesigns[i]
-			design.Purpose = ShipDesignPurposeStarbase
 			design.Spec = ComputeShipDesignSpec(&ug.Rules, player.TechLevels, player.Race.Spec, design)
 			player.Designs = append(player.Designs, design)
 		}

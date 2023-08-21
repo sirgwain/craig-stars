@@ -28,6 +28,7 @@
 	}
 
 	function ok() {
+		// TODO: otherFleetsHere[i] is sometimes undefined
 		const fleetNums = selectedFleetIndexes.map((i) => otherFleetsHere[i].num);
 		if (fleetNums.length > 0) {
 			dispatch('merge-fleets', { fleet, fleetNums });

@@ -390,6 +390,26 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		spec.Movement = 0
 	}
 
+	// from freestars, compute rating
+	// Ship Rating:
+	// Beams:
+	// Firepower * (speed/2.5 + .4)
+	// If speed/2.5 + .4 < 1, round up, if > 1, round down.
+	// 50% penalty for sappers
+	// 25% penalty for range 0s
+	// 25% bonus for range 2
+	// 50% bonus for range 3 and gatlings
+	// caps affect firepower, therefore rating
+	// Nothing else affects it
+
+	// Torps and missiles
+	// Firepower * (range - 2) / 2
+	// Nothing else affects it
+
+	// Bombs
+	// %kill * 20 + installations * 2
+	// Nothing else affects it
+
 	spec.computeScanRanges(rules, raceSpec.ScannerSpec, techLevels, design, hull)
 
 	return spec
