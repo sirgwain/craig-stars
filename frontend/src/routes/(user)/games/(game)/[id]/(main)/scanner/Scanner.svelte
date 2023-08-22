@@ -419,9 +419,24 @@
 			};
 			$commandedFleet.waypoints.splice(waypointIndex + 1, 0, wp);
 
+			const remoteMining =
+				$commandedFleet.spec.miningRate &&
+				$commandedFleet.spec.miningRate > 0 &&
+				mo.type === MapObjectType.Planet &&
+				(!owned(mo) || $player.race.spec?.canRemoteMineOwnPlanets);
+
 			// if this is a colonizer and the target is a habitable planet
 			if (colonizing) {
 				wp.task = WaypointTask.Colonize;
+				wp.transportTasks = {
+					fuel: {},
+					ironium: {},
+					boranium: {},
+					germanium: {},
+					colonists: {}
+				};
+			} else if (remoteMining) {
+				wp.task = WaypointTask.RemoteMining;
 				wp.transportTasks = {
 					fuel: {},
 					ironium: {},

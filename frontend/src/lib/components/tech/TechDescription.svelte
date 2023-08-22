@@ -13,7 +13,6 @@
 		type TechPlanetaryScanner,
 		type TechTerraform
 	} from '$lib/types/Tech';
-	import { startCase } from 'lodash-es';
 	import { onMount } from 'svelte';
 
 	export let tech: Tech;
