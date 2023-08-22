@@ -211,6 +211,54 @@ export class CommandedFleet implements Fleet {
 
 		return fuelCost;
 	}
+
+	getMinimalWarp(dist: number, idealSpeed: number): number {
+		let speed = idealSpeed;
+		const freeSpeed = this.spec?.engine?.freeSpeed ?? 1;
+
+		const yearsAtIdealSpeed = dist / (idealSpeed * idealSpeed);
+		for (let i = idealSpeed; i > freeSpeed; i--) {
+			const yearsAtSpeed = dist / (i * i);
+			// it takes the same time to go slower, so go slower
+			if (Math.ceil(yearsAtIdealSpeed) == Math.ceil(yearsAtSpeed)) {
+				speed = i;
+			}
+		}
+
+		return speed;
+	}
+
+	// get the max warp we have fuel for to make it to the dest
+	getMaxWarp(dist: number, designFinder: DesignFinder, fuelEfficiencyOffset: number): number {
+		// start at one above free speed
+		const freeSpeed = this.spec?.engine?.freeSpeed ?? 1;
+		let speed: number;
+		for (speed = freeSpeed + 1; speed < 9; speed++) {
+			const fuelUsed = this.getFuelCost(
+				designFinder,
+				fuelEfficiencyOffset,
+				speed,
+				dist,
+				this.spec.cargoCapacity ?? 0
+			);
+			if (fuelUsed > this.fuel) {
+				speed--;
+				break;
+			}
+		}
+
+		const idealSpeed = this.spec?.engine?.idealSpeed ?? 1;
+
+		// if we are using a ramscoop, make sure we at least go the ideal
+		// speed of the engine. If we run out, oh well, it'll drop to
+		// the free speed
+		if (freeSpeed > 1 && speed < idealSpeed) {
+			speed = idealSpeed;
+		}
+
+		// don't go faster than we need
+		return this.getMinimalWarp(dist, speed);
+	}
 }
 
 export function getDamagePercentForToken(token: ShipToken, design: ShipDesign | undefined): number {

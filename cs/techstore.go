@@ -649,7 +649,7 @@ var SubGalacticFuelScoop = TechEngine{
 	TechHullComponent: TechHullComponent{Tech: NewTech("Sub-Galactic Fuel Scoop", NewCost(4, 4, 7, 12), TechRequirements{TechLevel: TechLevel{Energy: 2, Propulsion: 8}, LRTsDenied: NRSE}, 110, TechCategoryEngine), Mass: 20, HullSlotType: HullSlotTypeEngine},
 	Engine: Engine{
 		IdealSpeed: 7,
-		FreeSpeed:  7,
+		FreeSpeed:  5,
 		FuelUsage: [11]int{
 			0,
 			0,
@@ -669,7 +669,7 @@ var TransGalacticFuelScoop = TechEngine{
 	TechHullComponent: TechHullComponent{Tech: NewTech("Trans-Galactic Fuel Scoop", NewCost(5, 4, 12, 18), TechRequirements{TechLevel: TechLevel{Energy: 3, Propulsion: 9}, LRTsDenied: NRSE}, 120, TechCategoryEngine), Mass: 19, HullSlotType: HullSlotTypeEngine},
 	Engine: Engine{
 		IdealSpeed: 8,
-		FreeSpeed:  8,
+		FreeSpeed:  6,
 		FuelUsage: [11]int{
 			0,
 			0,
@@ -689,7 +689,7 @@ var TransGalacticSuperScoop = TechEngine{
 	TechHullComponent: TechHullComponent{Tech: NewTech("Trans-Galactic Super Scoop", NewCost(6, 4, 16, 24), TechRequirements{TechLevel: TechLevel{Energy: 4, Propulsion: 12}, LRTsDenied: NRSE}, 130, TechCategoryEngine), Mass: 18, HullSlotType: HullSlotTypeEngine},
 	Engine: Engine{
 		IdealSpeed: 9,
-		FreeSpeed:  9,
+		FreeSpeed:  7,
 		FuelUsage: [11]int{
 			0,
 			0,
@@ -709,7 +709,7 @@ var TransGalacticMizerScoop = TechEngine{
 	TechHullComponent: TechHullComponent{Tech: NewTech("Trans-Galactic Mizer Scoop", NewCost(5, 2, 13, 11), TechRequirements{TechLevel: TechLevel{Energy: 4, Propulsion: 16}, LRTsDenied: NRSE}, 140, TechCategoryEngine), Mass: 11, HullSlotType: HullSlotTypeEngine},
 	Engine: Engine{
 		IdealSpeed: 10,
-		FreeSpeed:  10,
+		FreeSpeed:  8,
 		FuelUsage: [11]int{
 			0,
 			0,
@@ -729,7 +729,7 @@ var GalaxyScoop = TechEngine{
 	TechHullComponent: TechHullComponent{Tech: NewTech("Galaxy Scoop", NewCost(4, 2, 9, 12), TechRequirements{TechLevel: TechLevel{Energy: 5, Propulsion: 20}, LRTsRequired: IFE, LRTsDenied: NRSE}, 150, TechCategoryEngine), Mass: 8, HullSlotType: HullSlotTypeEngine},
 	Engine: Engine{
 		IdealSpeed: 10,
-		FreeSpeed:  10,
+		FreeSpeed:  9,
 		FuelUsage: [11]int{
 			0,
 			0,

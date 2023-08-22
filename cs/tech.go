@@ -96,9 +96,10 @@ type TechHullComponent struct {
 }
 
 type Engine struct {
-	IdealSpeed int     `json:"idealSpeed,omitempty"`
-	FreeSpeed  int     `json:"freeSpeed,omitempty"`
-	FuelUsage  [11]int `json:"fuelUsage,omitempty"`
+	IdealSpeed   int     `json:"idealSpeed,omitempty"`
+	FreeSpeed    int     `json:"freeSpeed,omitempty"`
+	MaxSafeSpeed int     `json:"maxSafeSpeed,omitempty"`
+	FuelUsage    [11]int `json:"fuelUsage,omitempty"`
 }
 
 type TechEngine struct {

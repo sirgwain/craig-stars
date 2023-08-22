@@ -23,7 +23,7 @@
 		type MapObject
 	} from '$lib/types/MapObject';
 	import type { Planet } from '$lib/types/Planet';
-	import { emptyVector, equal, type Vector } from '$lib/types/Vector';
+	import { distance, emptyVector, equal, type Vector } from '$lib/types/Vector';
 	import type { ScaleLinear } from 'd3-scale';
 	import { scaleLinear } from 'd3-scale';
 	import { select } from 'd3-selection';
@@ -279,13 +279,11 @@
 	}
 
 	// move the selected waypoint around snapping to targets
-	function dragWaypointMove(position: Vector, target: MapObject | undefined) {
+	function dragWaypointMove(position: Vector, mo: MapObject | undefined) {
 		if ($selectedWaypoint && $currentSelectedWaypointIndex && $commandedFleet) {
 			// don't move the waypoint to any adjacent waypoints
-			if (target && !positionWaypoint) {
-				const index = $commandedFleet.waypoints.findIndex((wp) =>
-					equal(wp.position, target.position)
-				);
+			if (mo && !positionWaypoint) {
+				const index = $commandedFleet.waypoints.findIndex((wp) => equal(wp.position, mo.position));
 				if (
 					index == $currentSelectedWaypointIndex - 1 ||
 					index == $currentSelectedWaypointIndex + 1
@@ -294,18 +292,32 @@
 				}
 			}
 
-			if (positionWaypoint || !target) {
+			let warpSpeed = $selectedWaypoint?.warpSpeed;
+
+			// update the ideal speed
+			let waypointIndex = $currentSelectedWaypointIndex;
+
+			if (waypointIndex > 0) {
+				const previousWaypoint = $commandedFleet.waypoints[waypointIndex - 1];
+				const dist = distance(mo?.position ?? position, previousWaypoint.position);
+
+				warpSpeed = $commandedFleet.getMinimalWarp(dist, previousWaypoint.warpSpeed);
+			}
+
+			if (positionWaypoint || !mo) {
 				$selectedWaypoint.position = position;
+				$selectedWaypoint.warpSpeed = warpSpeed;
 				$selectedWaypoint.targetType = MapObjectType.None;
 				$selectedWaypoint.targetNum = None;
 				$selectedWaypoint.targetPlayerNum = None;
 				$selectedWaypoint.targetName = '';
-			} else if (target) {
-				$selectedWaypoint.position = target.position;
-				$selectedWaypoint.targetType = target.type;
-				$selectedWaypoint.targetNum = target.num;
-				$selectedWaypoint.targetPlayerNum = target.playerNum;
-				$selectedWaypoint.targetName = target.name;
+			} else if (mo) {
+				$selectedWaypoint.position = mo.position;
+				$selectedWaypoint.warpSpeed = warpSpeed;
+				$selectedWaypoint.targetType = mo.type;
+				$selectedWaypoint.targetNum = mo.num;
+				$selectedWaypoint.targetPlayerNum = mo.playerNum;
+				$selectedWaypoint.targetName = mo.name;
 			}
 		}
 	}
@@ -313,6 +325,19 @@
 	function dragWaypointDone(position: Vector, mo: MapObject | undefined) {
 		// reset waypoint dragging
 		if ($selectedWaypoint && $commandedFleet && dragging) {
+			let waypointIndex = $currentSelectedWaypointIndex;
+
+			if (waypointIndex > 0) {
+				const previousWaypoint = $commandedFleet.waypoints[waypointIndex - 1];
+				let warpSpeed = $selectedWaypoint?.warpSpeed
+					? $selectedWaypoint?.warpSpeed
+					: $commandedFleet.spec?.engine?.idealSpeed ?? 5;
+				const dist = distance(mo?.position ?? position, previousWaypoint.position);
+
+				warpSpeed = $commandedFleet.getMinimalWarp(dist, warpSpeed);
+				$selectedWaypoint.warpSpeed = warpSpeed;
+			}
+
 			$game.updateFleetOrders($commandedFleet);
 		}
 	}
@@ -341,9 +366,30 @@
 			return;
 		}
 
-		const warpSpeed = $selectedWaypoint?.warpSpeed
+		const colonizing =
+			$commandedFleet.spec.colonizer &&
+			$commandedFleet.cargo.colonists &&
+			mo &&
+			mo.type === MapObjectType.Planet &&
+			!owned(mo) &&
+			((mo as Planet).spec.terraformedHabitability ?? 0) > 0;
+
+		let warpSpeed = $selectedWaypoint?.warpSpeed
 			? $selectedWaypoint?.warpSpeed
 			: $commandedFleet.spec?.engine?.idealSpeed ?? 5;
+		const dist = distance(mo?.position ?? position, currentWaypoint.position);
+
+		// if colonizing, we want the max possible warp
+		if (colonizing) {
+			warpSpeed = $commandedFleet.getMaxWarp(
+				dist,
+				$universe,
+				$player.race.spec?.fuelEfficiencyOffset ?? 0
+			);
+		} else {
+			// use the minimal warp based on our ideal speed
+			warpSpeed = $commandedFleet.getMinimalWarp(dist, warpSpeed);
+		}
 		const task = $selectedWaypoint?.task ?? WaypointTask.None;
 		const transportTasks = $selectedWaypoint?.transportTasks ?? {
 			fuel: {},
@@ -374,13 +420,7 @@
 			$commandedFleet.waypoints.splice(waypointIndex + 1, 0, wp);
 
 			// if this is a colonizer and the target is a habitable planet
-			if (
-				$commandedFleet.spec.colonizer &&
-				$commandedFleet.cargo.colonists &&
-				mo.type === MapObjectType.Planet &&
-				!owned(mo) &&
-				((mo as Planet).spec.terraformedHabitability ?? 0) > 0
-			) {
+			if (colonizing) {
 				wp.task = WaypointTask.Colonize;
 				wp.transportTasks = {
 					fuel: {},
