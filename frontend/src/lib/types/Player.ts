@@ -265,13 +265,11 @@ export function canLearnTech(player: PlayerResponse, tech: Tech): boolean {
 	if (requirements.prtDenied && player.race.prt === requirements.prtDenied) {
 		return false;
 	}
-	if (
-		requirements.lrtsRequired &&
-		(player.race.lrts & (1 << requirements.lrtsRequired)) !== 1 << requirements.lrtsRequired
-	) {
+
+	if (requirements.lrtsRequired && (player.race.lrts & requirements.lrtsRequired) == 0) {
 		return false;
 	}
-	if (requirements.lrtsDenied && (player.race.lrts & (1 << requirements.lrtsDenied)) !== 0) {
+	if (requirements.lrtsDenied && (player.race.lrts & requirements.lrtsDenied) > 0) {
 		return false;
 	}
 	return true;
