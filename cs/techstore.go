@@ -1511,7 +1511,7 @@ var OrbitalConstructionModule = TechHullComponent{Tech: NewTech("Orbital Constru
 	Mass:                      50,
 	MinKillRate:               2000,
 	OrbitalConstructionModule: true,
-	HullSlotType:              HullSlotTypeArmor,
+	HullSlotType:              HullSlotTypeMechanical,
 }
 var CargoPod = TechHullComponent{Tech: NewTech("Cargo Pod", NewCost(5, 0, 2, 10), TechRequirements{TechLevel: TechLevel{Construction: 3}}, 20, TechCategoryMechanical),
 
