@@ -21,6 +21,7 @@
 	import TechDefenseGraph from './TechDefenseGraph.svelte';
 	import { PlayerService } from '$lib/services/PlayerService';
 	import type { FullGame } from '$lib/services/FullGame';
+	import TechWarnings from './TechWarnings.svelte';
 
 	export let tech: Tech;
 	export let player: Player | undefined = undefined;
@@ -108,12 +109,14 @@
 					{:else}
 						<div class="border border-base-300 bg-base-100 grow min-h-[14rem]">
 							<TechDescription {tech} />
+							<TechWarnings {tech} />
 						</div>
 					{/if}
 				</div>
 			</div>
 		</div>
-		<div class="flex flex-row min-h-[2rem]">
+		<div class="flex flex-col min-h-[2rem]">
+			<TechWarnings {tech} />
 			<TechTraitRequirements {tech} {player} />
 		</div>
 	</div>

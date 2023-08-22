@@ -21,7 +21,7 @@
 <div class="flex flex-col sm:w-[26rem] m-auto">
 	<div>
 		{#if ownedBy(planet, player.num) && planet.spec.population}
-			{#if planet.spec.habitability ?? 0 > 0}
+			{#if (planet.spec.habitability ?? 0) > 0}
 				Your population on <span class="font-semibold">{planet.name}</span> is
 				<span class="font-semibold">{planet.spec.population.toLocaleString()}</span> ({(planet.spec.populationDensity*100).toFixed()}% of capacity).
 				<span class="font-semibold">{planet.name}</span> will support a population of up to
@@ -57,7 +57,7 @@
 		{:else if owned(planet) && planet.reportAge != Unexplored}
 			<span class="font-semibold">{planet.name}</span> is currently occupied by the
 			<span class="font-semibold">{playerFinder.getPlayerName(planet.playerNum)}</span>.
-			{#if planet.spec.habitability ?? 0 > 0}
+			{#if (planet.spec.habitability ?? 0) > 0}
 				If you were to colonize <span class="font-semibold">{planet.name}</span>, it would support
 				up to <span class="font-semibold">{planet.spec.maxPopulation?.toLocaleString()}</span>
 				of your colonists

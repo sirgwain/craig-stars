@@ -78,7 +78,7 @@ type TechHullComponent struct {
 	CloakUnarmedOnly          bool          `json:"cloakUnarmedOnly,omitempty"`
 	MineFieldType             MineFieldType `json:"mineFieldType,omitempty"`
 	MineLayingRate            int           `json:"mineLayingRate,omitempty"`
-	BeamDefense               int           `json:"beamDefense,omitempty"`
+	BeamDefense               float64       `json:"beamDefense,omitempty"`
 	CargoBonus                int           `json:"cargoBonus,omitempty"`
 	ColonizationModule        bool          `json:"colonizationModule,omitempty"`
 	FuelBonus                 int           `json:"fuelBonus,omitempty"`

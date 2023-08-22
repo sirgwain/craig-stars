@@ -59,6 +59,7 @@ func (t *turn) generateTurn() error {
 	t.packetMove(false)
 	t.mysteryTraderMove()
 	t.fleetMove()
+	t.fleetDieoff()
 	t.fleetReproduce()
 	t.decaySalvage()
 	t.decayPackets()
@@ -753,6 +754,51 @@ func (t *turn) moveFleet(fleet *Fleet) {
 
 	// update the game dictionaries with this fleet's new position
 	t.game.moveFleet(fleet, originalPosition)
+}
+
+// kill off colonists on fleets from radiation poisoning
+// https://wiki.starsautohost.org/wiki/Radiating_Ramscoop
+// DeathRate/Year % = int ((86 - C)/2)
+// where C is the center of your Rad-Hab-Range (mR)
+
+func (t *turn) fleetDieoff() {
+	for _, fleet := range t.game.Fleets {
+		if fleet.Delete {
+			continue
+		}
+
+		if fleet.Cargo.Colonists == 0 {
+			continue
+		}
+
+		// we're safe, no radiation in this fleet
+		if !fleet.Spec.Radiating {
+			continue
+		}
+
+		// check if this player's freighters reproduce
+		player := t.game.getPlayer(fleet.PlayerNum)
+		habCenter := player.Race.Spec.HabCenter
+		deathRate := math.Max(0, float64(t.game.rules.RadiatingImmune+1)-float64(habCenter.Rad)) / 2 / 100
+
+		if deathRate > 0 {
+			killed := maxInt(1, int(deathRate*float64(fleet.Cargo.Colonists)))
+			fleet.Cargo.Colonists = maxInt(0, fleet.Cargo.Colonists-killed)
+			fleet.MarkDirty()
+
+			// Message the player
+			messager.fleetColonistsDieoff(player, fleet, killed*100)
+
+			log.Debug().
+				Int64("GameID", t.game.ID).
+				Str("Name", t.game.Name).
+				Int("Year", t.game.Year).
+				Int("Player", fleet.PlayerNum).
+				Str("Fleet", fleet.Name).
+				Msgf("fleet radiation dieoff")
+		}
+
+	}
 }
 
 func (t *turn) fleetReproduce() {

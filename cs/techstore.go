@@ -1553,7 +1553,7 @@ var BeamDeflector = TechHullComponent{Tech: NewTech("Beam Deflector", NewCost(0,
 
 	Mass:         1,
 	HullSlotType: HullSlotTypeMechanical,
-	BeamDefense:  1,
+	BeamDefense:  .1,
 }
 var Laser = TechHullComponent{Tech: NewTech("Laser", NewCost(0, 6, 0, 5), TechRequirements{TechLevel: TechLevel{}}, 0, TechCategoryBeamWeapon),
 

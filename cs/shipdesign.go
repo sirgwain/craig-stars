@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math"
 	"strings"
+
+	"golang.org/x/exp/slices"
 )
 
 type ShipDesign struct {
@@ -42,6 +44,8 @@ type ShipDesignSpec struct {
 	RepairBonus               float64               `json:"repairBonus,omitempty"`
 	TorpedoInaccuracyFactor   float64               `json:"torpedoInaccuracyFactor,omitempty"`
 	TorpedoJamming            float64               `json:"torpedoJamming,omitempty"`
+	BeamBonus                 float64               `json:"beamBonus,omitempty"`
+	BeamDefense               float64               `json:"beamDefense,omitempty"`
 	Initiative                int                   `json:"initiative,omitempty"`
 	Movement                  int                   `json:"movement,omitempty"`
 	PowerRating               int                   `json:"powerRating,omitempty"`
@@ -76,6 +80,7 @@ type ShipDesignSpec struct {
 	SafePacketSpeed           int                   `json:"safePacketSpeed,omitempty"`
 	BasePacketSpeed           int                   `json:"basePacketSpeed,omitempty"`
 	AdditionalMassDrivers     int                   `json:"additionalMassDrivers,omitempty"`
+	Radiating                 bool                  `json:"radiating,omitempty"`
 	NumInstances              int                   `json:"numInstances,omitempty"`
 	NumBuilt                  int                   `json:"numBuilt,omitempty"`
 }
@@ -180,6 +185,14 @@ func (sd *ShipDesign) Validate(rules *Rules, player *Player) error {
 				return fmt.Errorf("hull component %s won't work in slot %v", hc.Name, hullSlot.Type)
 			}
 
+			if len(hc.Requirements.HullsAllowed) > 0 && slices.IndexFunc(hc.Requirements.HullsAllowed, func(h string) bool { return hull.Name == h }) == -1 {
+				return fmt.Errorf("hull component %s is not mountable to this hull", hc.Name)
+			}
+
+			if len(hc.Requirements.HullsDenied) > 0 && slices.IndexFunc(hc.Requirements.HullsDenied, func(h string) bool { return hull.Name == h }) != -1 {
+				return fmt.Errorf("hull component %s is not mountable to this hull", hc.Name)
+			}
+
 			if !player.HasTech(&hc.Tech) {
 				return fmt.Errorf("hull component %s is not available to player", hc.Name)
 			}
@@ -242,6 +255,11 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 	torpedoJammingFactor := 1.0
 	numTachyonDetectors := 0
 
+	// rating calcs
+	beamPower := 0
+	torpedoPower := 0
+	bombsPower := 0
+
 	for _, slot := range design.Slots {
 		if slot.Quantity > 0 {
 			component := rules.techs.GetHullComponent(slot.HullComponent)
@@ -279,6 +297,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 			spec.OrbitalConstructionModule = spec.OrbitalConstructionModule || component.OrbitalConstructionModule
 			spec.CanStealFleetCargo = spec.CanStealFleetCargo || component.CanStealFleetCargo
 			spec.CanStealPlanetCargo = spec.CanStealPlanetCargo || component.CanStealPlanetCargo
+			spec.Radiating = spec.Radiating || component.Radiating
 
 			// Add this mine type to the layers this design has
 			if component.MineLayingRate > 0 {
@@ -300,6 +319,10 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 			spec.TorpedoInaccuracyFactor *= float64(math.Pow((1 - float64(component.TorpedoBonus)), float64(slot.Quantity)))
 			torpedoJammingFactor *= float64(math.Pow((1 - float64(component.TorpedoJamming)), float64(slot.Quantity)))
 
+			// beam bonuses
+			spec.BeamBonus += component.BeamBonus * float64(slot.Quantity)
+			spec.BeamDefense += component.BeamDefense * float64(slot.Quantity)
+
 			// if this slot has a bomb, this design is a bomber
 			if component.HullSlotType == HullSlotTypeBomb || component.MinKillRate > 0 {
 				spec.Bomber = true
@@ -317,12 +340,26 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 				} else {
 					spec.Bombs = append(spec.Bombs, bomb)
 				}
+
+				// bombs add to rating
+				bombsPower += int((bomb.KillRate+bomb.StructureDestroyRate)*10) * slot.Quantity * 2
 			}
 
 			if component.Power > 0 {
 				spec.HasWeapons = true
-				spec.PowerRating += component.Power * slot.Quantity
 				spec.WeaponSlots = append(spec.WeaponSlots, slot)
+				switch component.Category {
+				case TechCategoryBeamWeapon:
+					// beams contribute to the rating based on range, but sappers
+					// are 1/3rd rated
+					rating := component.Power * slot.Quantity * (component.Range + 3) / 4
+					if component.DamageShieldsOnly {
+						rating /= 3
+					}
+					beamPower += rating
+				case TechCategoryTorpedo:
+					torpedoPower += component.Power * slot.Quantity * (component.Range - 2) / 2
+				}
 			}
 
 			// cloaking
@@ -390,25 +427,17 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		spec.Movement = 0
 	}
 
-	// from freestars, compute rating
-	// Ship Rating:
-	// Beams:
-	// Firepower * (speed/2.5 + .4)
-	// If speed/2.5 + .4 < 1, round up, if > 1, round down.
-	// 50% penalty for sappers
-	// 25% penalty for range 0s
-	// 25% bonus for range 2
-	// 50% bonus for range 3 and gatlings
-	// caps affect firepower, therefore rating
-	// Nothing else affects it
+	beamPower = int(float64(beamPower) * (1 + spec.BeamBonus))
+	if beamPower > 0 {
+		// starbases don't move, but for the beam power calcs
+		// assume they have a movement of "2" which is the lowest possible
+		movement := clamp(spec.Movement, 2, 10)
 
-	// Torps and missiles
-	// Firepower * (range - 2) / 2
-	// Nothing else affects it
-
-	// Bombs
-	// %kill * 20 + installations * 2
-	// Nothing else affects it
+		// a movement of 1 1/2 int the UI (i.e. 6) doesn't impact your beam
+		// power rating. Anything less reduces your beam power, anything higher increases it
+		beamPower += (beamPower * (movement - 6)) / 10
+	}
+	spec.PowerRating = beamPower + torpedoPower + bombsPower
 
 	spec.computeScanRanges(rules, raceSpec.ScannerSpec, techLevels, design, hull)
 

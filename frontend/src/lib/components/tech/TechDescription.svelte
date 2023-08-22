@@ -13,6 +13,7 @@
 		type TechPlanetaryScanner,
 		type TechTerraform
 	} from '$lib/types/Tech';
+	import { startCase } from 'lodash-es';
 	import { onMount } from 'svelte';
 
 	export let tech: Tech;
@@ -112,7 +113,7 @@
 					descriptions.push(
 						`This shield also contains an armor component which will absorb ${hullComponent.armor} damage points.`
 					);
-				} else if (hullComponent.armor ?? 0 > 0) {
+				} else if ((hullComponent.armor ?? 0) > 0) {
 					stats.push({
 						label: 'Armor Strength',
 						text: hullComponent.armor ? hullComponent.armor.toString() : '0'
@@ -124,7 +125,7 @@
 					descriptions.push(
 						`This armor also acts as part shield which will absorb ${hullComponent.shield} damage points.`
 					);
-				} else if (hullComponent.shield ?? 0 > 0) {
+				} else if ((hullComponent.shield ?? 0) > 0) {
 					stats.push({
 						label: 'Shield Strength',
 						text: hullComponent.shield ? hullComponent.shield.toString() : ''
@@ -157,12 +158,12 @@
 					descriptions.push(`This weapon will only damage shields, it has no effect on armor.`);
 				}
 
-				if (hullComponent.killRate ?? (0 > 0 && !hullComponent.orbitalConstructionModule)) {
+				if ((hullComponent.killRate ?? 0) > 0 && !hullComponent.orbitalConstructionModule) {
 					// we have special text for orbital construction modules.
 					descriptions.push(
 						`This bomb will kill approimately ${hullComponent.killRate}% of a planet's populatation each year.`
 					);
-					if (hullComponent.minKillRate ?? 0 > 0) {
+					if ((hullComponent.minKillRate ?? 0) > 0) {
 						descriptions.push(
 							`If a planet has no defenses, this bomb is guaranteed to kill at least ${hullComponent.minKillRate} colonists.`
 						);
@@ -172,29 +173,29 @@
 					}
 				}
 
-				if (hullComponent.miningRate ?? 0 > 0) {
+				if ((hullComponent.miningRate ?? 0) > 0) {
 					descriptions.push(
 						`This module contains robots capable of mining up to ${hullComponent.miningRate}kT of each mineral (depending on concentration) from an uninhabited planet the ship is orbiting. The fleet must have orders set to 'Remote Mining'.`
 					);
 				}
 
-				if (hullComponent.terraformRate ?? 0 > 0) {
+				if ((hullComponent.terraformRate ?? 0) > 0) {
 					descriptions.push(
 						`This modified mining robot terraforms inhabited planets by ${hullComponent.terraformRate} per year. It has a positive effect on friendly planets, a negative effect on neutral and enemy planets.`
 					);
 
-					if (hullComponent.cloakUnits ?? 0 > 0) {
+					if ((hullComponent.cloakUnits ?? 0) > 0) {
 						descriptions.push(`It also provides ${hullComponent.cloakUnits}% cloaking.`);
 					}
 				}
 
-				if (hullComponent.structureDestroyRate ?? 0 > 0) {
+				if ((hullComponent.structureDestroyRate ?? 0) > 0) {
 					descriptions.push(
 						`This bomb will destroy approximately ${hullComponent.structureDestroyRate} of a planet's mines, factories, and/or defenses each year.`
 					);
 				}
 
-				if (hullComponent.unterraformRate ?? 0 > 0) {
+				if ((hullComponent.unterraformRate ?? 0) > 0) {
 					descriptions.push(
 						`This bomb does not kill colonists or destroy installations. This bomb 'unterraforms' planets toward their original state up to ${hullComponent.unterraformRate}% per variable per bombing run. Planetary defenses have no effect on this bomb.`
 					);
@@ -220,11 +221,11 @@
 					}
 				}
 
-				if (hullComponent.fuelBonus ?? 0 > 0) {
+				if ((hullComponent.fuelBonus ?? 0) > 0) {
 					descriptions.push(`This part acts as a ${hullComponent.fuelBonus}mg fuel tank.`);
 				}
 
-				if (hullComponent.fuelRegenerationRate ?? 0 > 0) {
+				if ((hullComponent.fuelRegenerationRate ?? 0) > 0) {
 					descriptions.push(
 						`This part generates ${hullComponent.fuelRegenerationRate}mg of fuel every year.`
 					);
@@ -240,33 +241,35 @@
 					descriptions.push(
 						'This module contains an empty orbital hull which can be deployed in orbit of an uninhabited planet.'
 					);
-					if (hullComponent.minKillRate ?? 0 > 0) {
+					if ((hullComponent.minKillRate ?? 0) > 0) {
 						descriptions.push(
 							`This pod also contains viral weapons capable of killing ${hullComponent.minKillRate} enemy colonists per attack.`
 						);
 					}
 				}
 
-				if (hullComponent.cargoBonus ?? 0 > 0) {
+				if ((hullComponent.cargoBonus ?? 0) > 0) {
 					descriptions.push(
 						`This pod increases the cargo capacity of the ship by ${hullComponent.cargoBonus}kT`
 					);
 				}
 
-				if (hullComponent.movementBonus ?? 0 > 0) {
+				if ((hullComponent.movementBonus ?? 0) > 0) {
 					descriptions.push(
 						`Increases speed in battle by ${hullComponent.movementBonus} square of movement.`
 					);
 				}
 
-				if (hullComponent.beamDefense ?? 0 > 0) {
+				if (hullComponent.beamDefense && hullComponent.beamDefense > 0) {
 					descriptions.push(
-						`The deflector decreases damage done by beam weapons to this ship by up to ${hullComponent.beamDefense}%`
+						`The deflector decreases damage done by beam weapons to this ship by up to ${(
+							hullComponent.beamDefense * 100
+						).toFixed()}%`
 					);
 				}
 
-				if (hullComponent.torpedoBonus ?? (0 > 0 || hullComponent.initiativeBonus) ?? 0 > 0) {
-					if (hullComponent.torpedoBonus ?? (0 > 0 && hullComponent.initiativeBonus) ?? 0 > 0) {
+				if ((hullComponent.torpedoBonus ?? 0) > 0 || (hullComponent.initiativeBonus ?? 0) > 0) {
+					if ((hullComponent.torpedoBonus ?? 0) > 0 && (hullComponent.initiativeBonus ?? 0) > 0) {
 						descriptions.push(
 							`This module increases the accuracy of your torpedos by ${
 								(hullComponent.torpedoBonus ?? 0) * 100
@@ -274,13 +277,15 @@
 								hullComponent.initiativeBonus
 							}. If an enemy ship has jammers the computer acts to offset their effects.`
 						);
-					} else if (hullComponent.initiativeBonus ?? 0 > 0) {
+					} else if ((hullComponent.initiativeBonus ?? 0) > 0) {
 						descriptions.push(
 							`This module increases your initiative by ${hullComponent.initiativeBonus}.`
 						);
-					} else if (hullComponent.torpedoBonus ?? 0 > 0) {
+					} else if ((hullComponent.torpedoBonus ?? 0) > 0) {
 						descriptions.push(
-							`This module increases the accuracy of your torpedos by ${(hullComponent.torpedoBonus ?? 0) * 100}%. If an enemy ship has jammers the computer acts to offset their effects.`
+							`This module increases the accuracy of your torpedos by ${
+								(hullComponent.torpedoBonus ?? 0) * 100
+							}%. If an enemy ship has jammers the computer acts to offset their effects.`
 						);
 					}
 				}
@@ -301,7 +306,7 @@
 					);
 				}
 
-				if (hullComponent.reduceMovement ?? 0 > 0) {
+				if ((hullComponent.reduceMovement ?? 0) > 0) {
 					descriptions.push(
 						`Slows all ships in combat by ${hullComponent.reduceMovement} square of movement.`
 					);
@@ -313,7 +318,7 @@
 					);
 				}
 
-				if (hullComponent.safeRange ?? 0 > 0) {
+				if ((hullComponent.safeRange ?? 0) > 0) {
 					descriptions.push(
 						'Allows fleets without cargo to jump to any other planet with a Stargate in a single year.'
 					);
@@ -347,7 +352,7 @@
 					}
 				}
 
-				if (hullComponent.packetSpeed ?? 0 > 0) {
+				if ((hullComponent.packetSpeed ?? 0) > 0) {
 					stats.push({ label: 'Warp', text: `${hullComponent.packetSpeed}` });
 					descriptions.push('Allows planets to fling mineral packets at other planets.');
 					warnings.push(
@@ -355,8 +360,8 @@
 					);
 				}
 
-				if (hullComponent.scanRange ?? 0 > 0) {
-					if (hullComponent.scanRange ?? 0 > 0) {
+				if ((hullComponent.scanRange ?? 0) > 0) {
+					if ((hullComponent.scanRange ?? 0) > 0) {
 						if (hullComponent.scanRange == ScanWithZeroRange) {
 							// special case for bat scanner
 							descriptions.push(
@@ -376,7 +381,7 @@
 						}
 					}
 
-					if (hullComponent.scanRangePen ?? 0 > 0) {
+					if ((hullComponent.scanRangePen ?? 0) > 0) {
 						descriptions.push(
 							`This scanner can determine a planet's basic stats from a distance up to ${hullComponent.scanRangePen} light years. The scanner will also spot enemy fleets attempting to hide behind planets within range.`
 						);

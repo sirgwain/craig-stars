@@ -230,6 +230,79 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				Movement:                4,
 			},
 		},
+		{name: "Humanoid Starter Armored Probe",
+			args: args{
+				techLevels: TechLevel{3, 3, 3, 3, 3, 3},
+				raceSpec:   humanoids.Spec,
+				design: NewShipDesign(player, 1).
+					WithHull(Scout.Name).
+					WithSlots([]ShipDesignSlot{
+						{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
+						{HullComponent: XRayLaser.Name, HullSlotIndex: 2, Quantity: 1},
+						{HullComponent: RhinoScanner.Name, HullSlotIndex: 3, Quantity: 1},
+					}),
+			},
+			want: ShipDesignSpec{
+				HullType:                TechHullTypeScout,
+				Engine:                  LongHump6.Engine,
+				NumEngines:              1,
+				Cost:                    Cost{12, 8, 7, 24},
+				Mass:                    23,
+				Armor:                   20,
+				FuelCapacity:            50,
+				Initiative:              1,
+				Movement:                4,
+				MineSweep:               16,
+				HasWeapons:              true,
+				PowerRating:             13,
+				Scanner:                 true,
+				ScanRange:               66,
+				ScanRangePen:            30,
+				TorpedoInaccuracyFactor: 1,
+				WeaponSlots: []ShipDesignSlot{
+					{
+						HullComponent: XRayLaser.Name,
+						HullSlotIndex: 2,
+						Quantity:      1,
+					},
+				},
+			},
+		},
+		{name: "Mini Bomber",
+			args: args{
+				techLevels: TechLevel{3, 3, 3, 3, 3, 3},
+				raceSpec:   humanoids.Spec,
+				design: NewShipDesign(player, 1).
+					WithHull(MiniBomber.Name).
+					WithSlots([]ShipDesignSlot{
+						{HullComponent: AlphaDrive8.Name, HullSlotIndex: 1, Quantity: 1},
+						{HullComponent: LadyFingerBomb.Name, HullSlotIndex: 2, Quantity: 1},
+					}),
+			},
+			want: ShipDesignSpec{
+				HullType:                TechHullTypeBomber,
+				Engine:                  AlphaDrive8.Engine,
+				NumEngines:              1,
+				Cost:                    Cost{34, 24, 12, 63},
+				Mass:                    85,
+				Armor:                   50,
+				FuelCapacity:            120,
+				Movement:                5,
+				Bomber:                  true,
+				PowerRating:             16,
+				ScanRange:               NoScanner,
+				ScanRangePen:            NoScanner,
+				TorpedoInaccuracyFactor: 1,
+				Bombs: []Bomb{
+					{
+						Quantity:             1,
+						KillRate:             .6,
+						MinKillRate:          300,
+						StructureDestroyRate: .2,
+					},
+				},
+			},
+		},
 		{name: "PP Starbase",
 			args: args{
 				techLevels: TechLevel{4, 0, 0, 0, 0, 0},
@@ -254,7 +327,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				Armor:                   500,
 				Shields:                 400,
 				MineSweep:               640,
-				PowerRating:             320,
+				PowerRating:             192,
 				HasWeapons:              true,
 				Initiative:              14,
 				BasePacketSpeed:         5,

@@ -47,6 +47,7 @@ type Rules struct {
 	MaxStartingMineralConcentration    int                                 `json:"maxStartingMineralConcentration"`
 	HighRadGermaniumBonus              int                                 `json:"highRadGermaniumBonus"`
 	HighRadGermaniumBonusThreshold     int                                 `json:"highRadGermaniumBonusThreshold"`
+	RadiatingImmune                    int                                 `json:"radiatingImmune"`
 	MaxStartingMineralSurface          int                                 `json:"maxStartingMineralSurface"`
 	MinStartingMineralSurface          int                                 `json:"minStartingMineralSurface"`
 	MineralDecayFactor                 int                                 `json:"mineralDecayFactor"`
@@ -132,6 +133,7 @@ func NewRulesWithSeed(seed int64) Rules {
 		MineFieldCloak:                75,
 		StargateMaxRangeFactor:        5,
 		StargateMaxHullMassFactor:     5,
+		RadiatingImmune:               85, // hab center of > 85 are immune to radating damage
 		RandomEventChances: map[RandomEvent]float64{
 			RandomEventComet:           0.01,
 			RandomEventMineralDeposit:  0.01,

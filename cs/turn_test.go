@@ -708,6 +708,52 @@ func Test_turn_fleetReproduce(t *testing.T) {
 
 }
 
+func Test_turn_fleetDieoff(t *testing.T) {
+	game := createSingleUnitGame()
+
+	// make an IS race for reproducing
+	player := game.Players[0]
+
+	// make a new freighter with some colonists
+	fleet := testSmallFreighter(player)
+	fleet.Cargo.Colonists = 50 // 5000 colonists
+	design := fleet.Tokens[0].design
+	player.Designs[0] = design
+	game.Fleets[0] = fleet
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// generate turn to simulate die off
+	turn.generateTurn()
+
+	// should not die
+	assert.Equal(t, 50, fleet.Cargo.Colonists)
+
+	// add a radiating hydro ramscoop
+	design.Slots[0].HullComponent = RadiatingHydroRamScoop.Name
+	design.Spec = ComputeShipDesignSpec(&rules, player.TechLevels, player.Race.Spec, design)
+	fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
+
+	// generate turn to simulate die off
+	turn.generateTurn()
+
+	// should not die
+	assert.Equal(t, 41, fleet.Cargo.Colonists)
+
+	// make the player a high rad race
+	player.Race.HabHigh.Rad = 100
+	player.Race.HabLow.Rad = 80
+	player.Race.Spec = computeRaceSpec(&player.Race, &rules)
+	turn.generateTurn()
+
+	// should not die
+	assert.Equal(t, 41, fleet.Cargo.Colonists)
+
+}
+
 func Test_turn_detonateMines(t *testing.T) {
 
 	mineFieldPlayer := NewPlayer(1, NewRace().WithPRT(SD).WithSpec(&rules)).WithNum(1).withSpec(&rules)

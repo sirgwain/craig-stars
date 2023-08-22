@@ -4,6 +4,7 @@
 	import { $enum as eu } from 'ts-enum-util';
 
 	import type { Tech } from '$lib/types/Tech';
+	import { startCase } from 'lodash-es';
 
 	export let tech: Tech;
 	export let player: PlayerResponse | undefined = undefined;
@@ -12,6 +13,30 @@
 </script>
 
 <div class="flex flex-col text-base p-1">
+	{#if tech.requirements.hullsAllowed}
+		<div class="text-warning">
+			{#if tech.requirements.hullsAllowed.length === 1}
+				This {`${startCase(tech.category).toLowerCase()}`} can only be mounted on the {tech
+					.requirements.hullsAllowed[0]} Hull.
+			{:else}
+				This {`${startCase(tech.category).toLowerCase()}`} can only be mounted on these hulls: {tech.requirements.hullsAllowed.join(
+					', '
+				)}.
+			{/if}
+		</div>
+	{/if}
+	{#if tech.requirements.hullsDenied}
+		<div class="text-warning">
+			{#if tech.requirements.hullsDenied.length === 1}
+				This {`${startCase(tech.category).toLowerCase()}`} can not be mounted on the {tech
+					.requirements.hullsDenied[0]} Hull.
+			{:else}
+				This {`${startCase(tech.category).toLowerCase()}`} can not be mounted on these hulls: {tech.requirements.hullsDenied.join(
+					', '
+				)}.
+			{/if}
+		</div>
+	{/if}
 	{#if tech.requirements.prtRequired}
 		<div class:text-error={player && player.race.prt != tech.requirements.prtRequired}>
 			This part requires the Primary Racial trait {getLabelForPRT(tech.requirements.prtRequired)}

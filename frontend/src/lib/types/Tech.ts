@@ -71,6 +71,7 @@ export interface TechHullComponent extends Tech {
 	minKillRate?: number;
 	structureDestroyRate?: number;
 	unterraformRate?: number;
+	radiating?: boolean;
 	smart?: boolean;
 	canStealFleetCargo?: boolean;
 	canStealPlanetCargo?: boolean;
@@ -205,6 +206,8 @@ export interface TechRequirements extends TechLevel {
 	lrtsDenied?: number;
 	prtRequired?: PRT;
 	prtDenied?: PRT;
+	hullsAllowed?: string[];
+	hullsDenied?: string[];
 }
 
 /**
@@ -240,6 +243,17 @@ export const isHullComponent = (category: TechCategory): boolean => {
 
 export function canFillSlot(hcType: HullSlotType, type: HullSlotType): boolean {
 	return (hcType & type) > 0;
+}
+
+// true if this hull is allowed to mount this component
+export function hullAllowed(hull: string, tech: Tech): boolean {
+	const hullAllowed = tech.requirements.hullsAllowed
+		? tech.requirements.hullsAllowed.indexOf(hull) != -1
+		: true;
+	const hullDenied = tech.requirements.hullsDenied
+		? tech.requirements.hullsDenied.indexOf(hull) != -1
+		: false;
+	return hullAllowed && !hullDenied;
 }
 
 export function getDefenseCoverage(defense: TechDefense, defenses: number): number {

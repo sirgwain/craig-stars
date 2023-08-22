@@ -399,6 +399,9 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 		spec.Colonizer = spec.Colonizer || token.design.Spec.Colonizer
 		spec.OrbitalConstructionModule = spec.OrbitalConstructionModule || token.design.Spec.OrbitalConstructionModule
 
+		// radiating parts
+		spec.Radiating = spec.Radiating || token.design.Spec.Radiating
+
 		// spec all mine layers in the fleet
 		if token.design.Spec.CanLayMines {
 			spec.CanLayMines = true

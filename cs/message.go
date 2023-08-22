@@ -104,6 +104,7 @@ const (
 	PlayerMessageRemoteMined
 	PlayerMessageTechGained
 	PlayerMessageFleetTargetLost
+	PlayerMessageFleetColonistDieoff
 )
 
 type Messager interface {
@@ -418,6 +419,11 @@ func (m *messageClient) fleetReproduce(player *Player, fleet *Fleet, colonistsGr
 	}
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetReproduce, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
 
+}
+
+func (m *messageClient) fleetColonistsDieoff(player *Player, fleet *Fleet, colonistsKilled int) {
+	text := fmt.Sprintf("Engine radiation has killed %d colonists traveling in %s.", colonistsKilled, fleet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetColonistDieoff, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num, Spec: PlayerMessageSpec{Amount: colonistsKilled}})
 }
 
 func (m *messageClient) fleetCompletedAssignedOrders(player *Player, fleet *Fleet) {

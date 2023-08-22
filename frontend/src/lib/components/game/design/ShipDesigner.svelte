@@ -13,7 +13,8 @@
 		canFillSlot,
 		type HullSlot,
 		type TechHull,
-		type TechHullComponent
+		type TechHullComponent,
+		hullAllowed
 	} from '$lib/types/Tech';
 	import { ChevronLeft, ChevronRight, QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
@@ -218,7 +219,7 @@
 		<div>
 			<div class="font-bold text-2xl">Hull Components</div>
 			<ul class="w-full h-[400px] border-b sm:w-[16rem] px-1 p-1 overflow-y-auto">
-				{#each $techs.hullComponents as hc}
+				{#each $techs.hullComponents.filter((hc) => hullAllowed(hull.name, hc)) as hc}
 					{#if canLearnTech($player, hc) && hasRequiredLevels($player.techLevels, hc.requirements) && (!$shipDesignerContext.selectedSlot || canFillSlot(hc.hullSlotType, $shipDesignerContext.selectedSlot.type)) && canFillSlot(hc.hullSlotType, validHullSlotTypes)}
 						<li>
 							<div
@@ -251,8 +252,7 @@
 						Cost of one {selectedComponent.name}
 						<span
 							class="inline-block"
-							on:pointerdown|preventDefault={(e) =>
-								onTechTooltip(e, selectedComponent)}
+							on:pointerdown|preventDefault={(e) => onTechTooltip(e, selectedComponent)}
 							><Icon
 								src={QuestionMarkCircle}
 								size="16"

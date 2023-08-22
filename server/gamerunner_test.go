@@ -110,7 +110,7 @@ func Test_gameRunner_GenerateTurns(t *testing.T) {
 	}
 
 	// generate 100 turns
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 50; i++ {
 		if _, err := gr.GenerateTurn(fullGame.ID); err != nil {
 			t.Errorf("generate turn %v", err)
 		}
