@@ -105,6 +105,8 @@ const (
 	PlayerMessageTechGained
 	PlayerMessageFleetTargetLost
 	PlayerMessageFleetColonistDieoff
+	PlayerMessagePlanetDiedOff
+	PlayerMessagePlanetEmptied
 )
 
 type Messager interface {
@@ -659,6 +661,15 @@ func (m *messageClient) planetRetroBombed(player *Player, planet *Planet, fleet 
 		text = fmt.Sprintf("%s %s has retro-bombed your %s, undoing %d%% of its terraforming.", fleetOwner, fleet.Name, planet.Name, unterraformAmount.absSum())
 		player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageEnemyPlanetRetroBombed, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
 	}
+}
+
+func (m *messageClient) planetDiedOff(player *Player, planet *Planet) {
+	text := fmt.Sprintf("All of your colonists orbiting %s have died off. Your starbase has been lost and you no longer control the planet.", planet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetDiedOff, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
+}
+
+func (m *messageClient) planetEmptied(player *Player, planet *Planet) {
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetEmptied, TargetType: TargetPlanet, TargetNum: planet.Num})
 }
 
 func (m *messageClient) battle(player *Player, planet *Planet, battle *BattleRecord) {

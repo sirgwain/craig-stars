@@ -1507,6 +1507,13 @@ func (t *turn) fleetBattle() {
 
 				if len(fleet.Tokens) == 0 {
 					if fleet.Starbase {
+						// AR races live on starbases, so empty the planet
+						player := t.game.getPlayer(fleet.PlayerNum)
+						if player.Race.Spec.LivesOnStarbases {
+							planet.emptyPlanet()
+							planet.MarkDirty()
+							messager.planetDiedOff(player, planet)
+						}
 						t.game.deleteStarbase(fleet)
 					} else {
 						t.game.deleteFleet(fleet)

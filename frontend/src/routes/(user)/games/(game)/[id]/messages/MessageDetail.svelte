@@ -70,7 +70,6 @@
 				return message.text;
 		}
 	}
-
 </script>
 
 {#if message.type == MessageType.Battle}
@@ -98,6 +97,13 @@
 		{/if}
 	{:else}
 		You have discovered a new planet.
+	{/if}
+{:else if message.type === MessageType.PlanetDiedOff && target}
+	{#if $player.race.spec?.livesOnStarbases}
+		All of your colonists orbiting {target.name} have died off. Your starbase has been lost and you no
+		longer control the planet.
+	{:else}
+		All of your colonists on {target.name} have died off. You no longer control the planet.
 	{/if}
 {:else}
 	{message.text}

@@ -144,6 +144,7 @@ func (packet *MineralPacket) completeMove(rules *Rules, player *Player, planet *
 		messager.mineralPacketDamage(planetPlayer, planet, packet, damage.Killed, damage.DefensesDestroyed)
 		if planet.population() == 0 {
 			planet.emptyPlanet()
+			messager.planetDiedOff(planetPlayer, planet)
 		}
 	}
 

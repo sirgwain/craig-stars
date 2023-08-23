@@ -113,7 +113,9 @@ export enum MessageType {
 	PacketPermaform,
 	RemoteMined,
 	TechGained,
-	FleetTargetLost
+	FleetTargetLost,
+	PlanetDiedOff,
+	PlanetEmptied
 }
 
 // get the next visible message taking into account filters
