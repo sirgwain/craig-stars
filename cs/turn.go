@@ -242,6 +242,20 @@ func (t *turn) fleetColonize() {
 				Str("Fleet", fleet.Name).
 				Msgf("colonized planet")
 
+			if fleet.Spec.OrbitalConstructionModule {
+				design := player.GetLatestDesign(ShipDesignPurposeStarterColony)
+				if design != nil {
+					t.buildStarbase(player, planet, design)
+				} else {
+					log.Error().
+						Int64("GameID", fleet.GameID).
+						Int("Player", fleet.PlayerNum).
+						Str("Fleet", fleet.Name).
+						Str("Planet", planet.Name).
+						Msgf("colonizer can't find Starter Colony design.")
+				}
+			}
+
 			// colonize the planet and scrap the fleet
 			fleet.colonizePlanet(&t.game.Rules, player, planet)
 			t.scrapFleet(fleet)

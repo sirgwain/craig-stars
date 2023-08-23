@@ -1047,22 +1047,6 @@ func (fleet *Fleet) colonizePlanet(rules *Rules, player *Player, planet *Planet)
 		planet.Mines = planet.innateMines(player)
 	}
 
-	if fleet.Spec.OrbitalConstructionModule {
-		design := player.GetLatestDesign(ShipDesignPurposeStarterColony)
-		if design != nil {
-			starbase := newStarbase(player, planet, design, design.Name)
-			starbase.Spec = ComputeFleetSpec(rules, player, &starbase)
-			planet.Starbase = &starbase
-		} else {
-			log.Error().
-				Int64("GameID", fleet.GameID).
-				Int("Player", fleet.PlayerNum).
-				Str("Fleet", fleet.Name).
-				Str("Planet", planet.Name).
-				Msgf("colonizer can't find Starter Colony design.")
-		}
-	}
-
 	planet.Spec = computePlanetSpec(rules, player, planet)
 }
 
