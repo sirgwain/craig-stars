@@ -307,3 +307,21 @@ export const showTooltip = <T>(x: number, y: number, component: ComponentType, p
 		props
 	}));
 };
+
+export const popupComponent = writable<
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	{ component: typeof SvelteComponent; props: any } | undefined
+>();
+export const popupLocation = writable<Vector>({ x: 0, y: 0 });
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const showPopup = <T>(x: number, y: number, component: ComponentType, props?: T) => {
+	popupLocation.update(() => ({
+		x,
+		y
+	}));
+	popupComponent.update(() => ({
+		component,
+		props
+	}));
+};

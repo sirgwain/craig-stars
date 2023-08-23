@@ -4,6 +4,7 @@
 	import ErrorToast from '$lib/components/ErrorToast.svelte';
 	import LoadingModal from '$lib/components/LoadingModal.svelte';
 	import Menu from '$lib/components/Menu.svelte';
+	import Popup from '$lib/components/game/tooltips/Popup.svelte';
 	import Tooltip from '$lib/components/game/tooltips/Tooltip.svelte';
 	import { bindNavigationHotkeys, unbindNavigationHotkeys } from '$lib/navigationHotkeys';
 	import { bindQuantityModifier, unbindQuantityModifier } from '$lib/quantityModifier';
@@ -174,6 +175,7 @@
 		<slot>Game</slot>
 	</main>
 	<Tooltip />
+	<Popup />
 {:else if error}
 	<main class="flex flex-col">
 		<div class="flex-initial">

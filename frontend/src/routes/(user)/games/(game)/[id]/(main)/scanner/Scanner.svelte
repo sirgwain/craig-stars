@@ -12,6 +12,7 @@
 		selectWaypoint,
 		selectedMapObject,
 		selectedWaypoint,
+		showTooltip,
 		zoomTarget
 	} from '$lib/services/Stores';
 	import { WaypointTask, type Waypoint } from '$lib/types/Fleet';
@@ -50,6 +51,10 @@
 	import ScannerWormholeLinks from './ScannerWormholeLinks.svelte';
 	import ScannerWormholes from './ScannerWormholes.svelte';
 	import SelectedMapObject from './SelectedMapObject.svelte';
+	import ScannerContextPopup, {
+		onScannerContextPopup,
+		type ScannerContextPopupProps
+	} from '$lib/components/game/tooltips/ScannerContextPopup.svelte';
 
 	const { game, player, universe, settings } = getGameContext();
 
@@ -203,6 +208,15 @@
 	// if we just added a waypoint, don't drag it around
 	let waypointJustAdded = false;
 
+	// turn off dragging
+	function onContextMenu(e: CustomEvent<FinderEventDetails>) {
+		const { event, found } = e.detail;
+
+		if (found) {
+			onScannerContextPopup(event, found.position);
+		}
+	}
+
 	// as the pointer moves, find the items it is under
 	function onPointerMove(e: CustomEvent<FinderEventDetails>) {
 		const { event, found, position } = e.detail;
@@ -246,6 +260,10 @@
 
 	function onPointerDown(e: CustomEvent<FinderEventDetails>) {
 		const { event, found, position } = e.detail;
+		if (event.button != 0) {
+			// we only care about the first button
+			return;
+		}
 		pointerDown = true;
 
 		if (found) {
@@ -264,6 +282,10 @@
 	// turn off dragging
 	function onPointerUp(e: CustomEvent<FinderEventDetails>) {
 		const { event, found, position } = e.detail;
+		if (event.button != 0) {
+			// we only care about the first button
+			return;
+		}
 
 		if (dragging) {
 			if (!dragAndZoomEnabled) {
@@ -597,6 +619,7 @@
 				<ScannerNames {transform} />
 
 				<MapObjectQuadTreeFinder
+					on:contextmenu={onContextMenu}
 					on:pointermove={onPointerMove}
 					on:pointerdown={onPointerDown}
 					on:pointerup={onPointerUp}

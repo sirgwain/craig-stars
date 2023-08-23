@@ -1,6 +1,6 @@
 <script lang="ts" context="module">
 	export type FinderEventDetails = {
-		event: PointerEvent;
+		event: PointerEvent | MouseEvent;
 		position: Vector;
 		found: MapObject | undefined;
 	};
@@ -8,6 +8,7 @@
 		pointermove: FinderEventDetails;
 		pointerdown: FinderEventDetails;
 		pointerup: FinderEventDetails;
+		contextmenu: FinderEventDetails;
 	};
 </script>
 
@@ -73,6 +74,13 @@
 		dispatch('pointerup', { event, position, found });
 	}
 
+	function onContextMenu(event: MouseEvent) {
+		const evt = event as PointerEvent & { layerX: number; layerY: number };
+		const { position, found } = findItem(evt.layerX, evt.layerY);
+
+		dispatch('contextmenu', { event, position, found });
+	}
+
 	$: finder = quadtree<MapObject>()
 		.extent([
 			[-1, -1],
@@ -85,6 +93,7 @@
 
 <div
 	class="absolute h-full w-full z-10"
+	on:contextmenu|preventDefault={onContextMenu}
 	on:pointermove={onPointerMove}
 	on:pointerdown={onPointerDown}
 	on:pointerup={onPointerUp}
