@@ -89,6 +89,7 @@ func (b *bomb) bombPlanet(planet *Planet, planetOwner *Player, enemyBombers []*F
 	// if, after bombing, the planet is all out of pop, empty it
 	if planet.population() == 0 {
 		planet.emptyPlanet()
+		messager.planetDiedOff(planetOwner, planet)
 	}
 }
 
