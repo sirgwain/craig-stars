@@ -43,7 +43,7 @@
 				next year.
 			{/if}
 		{:else if !owned(planet) && planet.reportAge != Unexplored}
-			<span class="font-semibold">{planet.name} is uninhabited. {planet.spec.habitability}</span>
+			<span class="font-semibold">{planet.name} is uninhabited. </span>
 			{#if planet.spec.habitability && planet.spec.habitability > 0}
 				If you were to colonize <span class="font-semibold">{planet.name}</span>, it would support
 				up to <span class="font-semibold">{planet.spec.maxPopulation?.toLocaleString()}</span>

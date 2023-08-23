@@ -1,14 +1,6 @@
-import type { Universe } from '$lib/services/Universe';
-import {
-	getOurDead,
-	getOurShips,
-	getTheirDead,
-	getTheirShips,
-	type BattleRecordStats
-} from './Battle';
+import type { BattleRecordStats } from './Battle';
 import type { Target } from './Fleet';
 import { MapObjectType } from './MapObject';
-import type { Player } from './Player';
 import type { PlayerSettings } from './PlayerSettings';
 import type { TechField } from './TechLevel';
 
@@ -137,55 +129,4 @@ export function getNextVisibleMessageNum(
 		}
 	}
 	return num;
-}
-
-function getBattleMessage(message: Message, universe: Universe, player: Player): string {
-	const stats = message.spec.battle;
-	const battle = universe.getBattle(message.battleNum);
-	if (battle) {
-		const location = universe.getBattleLocation(battle) ?? 'unknown';
-		let text = `A battle took place at ${location}.`;
-
-		const allies = new Set(player.getAllies());
-
-		const ours = getOurShips(battle, allies);
-		const theirs = getTheirDead(battle, allies);
-		const ourDead = getOurDead(battle, allies);
-		const theirDead = getTheirDead(battle, allies);
-		const oursLeft = ours - ourDead;
-		const theirsLeft = theirs - theirDead;
-
-		if (ourDead === 0) {
-			text += ' None of your forces were destroyed.';
-		} else if (ourDead === ours) {
-			text += ' All of your forces were destroyed by enemy forces.';
-		} else if (oursLeft === 1) {
-			text += ` Only one of your ships survived.`;
-		} else if (oursLeft > 1) {
-			text += ` ${oursLeft} of your ships surived.`;
-		}
-
-		if (theirDead === 0) {
-			text += ' None of the enemy forces were destroyed.';
-		} else if (theirDead === theirs) {
-			text += ' All enemy forces were destroyed.';
-		} else if (theirsLeft === 1) {
-			text += ` Only one enemy ship survived.`;
-		} else if (theirsLeft > 1) {
-			text += ` ${theirsLeft} enemy ships surived.`;
-		}
-
-		return text;
-	} else {
-		return `A battle took place at an unknown location`;
-	}
-}
-
-export function getMessageText(message: Message, universe: Universe, player: Player): string {
-	switch (message.type) {
-		case MessageType.Battle:
-			return getBattleMessage(message, universe, player);
-		default:
-			return message.text;
-	}
 }

@@ -3,8 +3,9 @@
 	import TableSearchInput from '$lib/components/TableSearchInput.svelte';
 	import { getGameContext } from '$lib/services/Contexts';
 	import { gotoMessageTarget } from '$lib/services/Stores';
-	import { MessageType, type Message, getMessageText } from '$lib/types/Message';
+	import { MessageType, type Message } from '$lib/types/Message';
 	import { SvelteTable, type SvelteTableColumn } from '@hurtigruten/svelte-table';
+	import MessageDetail from './MessageDetail.svelte';
 
 	const { game, player, universe } = getGameContext();
 
@@ -27,7 +28,7 @@
 		if (target) {
 			return target.name;
 		}
-		return ''
+		return '';
 	};
 
 	// filterable messages
@@ -78,7 +79,7 @@
 					>{getTarget(row)}</button
 				>
 			{:else}
-				{getMessageText(row, $universe, $player)}
+				<MessageDetail message={row} />
 			{/if}
 		</span>
 	</SvelteTable>

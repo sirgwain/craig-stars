@@ -17,7 +17,7 @@
 					warnings.push(
 						`This ${startCase(
 							hullComponent.category
-						).toLowerCase()} creates powerful waves of radiation and will kill some of your colomists it the midpoit of your race's Radiation band isn't at least 85mR.`
+						).toLowerCase()} creates powerful waves of radiation and will kill some of your colonists if the midpoint of your race's Radiation band isn't at least 85mR.`
 					);
 				}
 			}

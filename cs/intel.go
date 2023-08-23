@@ -342,6 +342,11 @@ func (d *discover) discoverPlanet(rules *Rules, player *Player, planet *Planet, 
 	if penScanned || ownedByPlayer {
 		intel.PlayerNum = planet.PlayerNum
 
+		if !ownedByPlayer && intel.ReportAge == ReportAgeUnexplored {
+			// let the player know we discovered a new planet
+			messager.planetDiscovered(player, planet)
+		}
+
 		// if we pen scanned the planet, we learn some things
 		intel.ReportAge = 0
 		intel.Hab = planet.Hab
@@ -368,7 +373,7 @@ func (d *discover) discoverPlanet(rules *Rules, player *Player, planet *Planet, 
 		} else {
 			var randomPopulationError = rules.random.Float64()*(rules.PopulationScannerError-(-rules.PopulationScannerError)) - rules.PopulationScannerError
 			intel.Spec.Population = int(float64(planet.population()) * (1 - randomPopulationError))
-		}
+		}		
 	}
 	return nil
 }

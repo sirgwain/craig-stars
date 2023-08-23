@@ -505,6 +505,19 @@ func (scan *playerScan) updateFleetTargets() {
 				continue
 			}
 
+			if wp.TargetPlayerNum == scan.player.Num {
+				// we own this and won't have intel for it
+				mo := scan.universe.getMapObject(wp.TargetType, wp.TargetNum, wp.TargetPlayerNum)
+				if mo == nil {
+					messager.fleetTargetLost(scan.player, fleet, wp.TargetName, wp.TargetType)
+					wp.TargetType = MapObjectTypeNone
+					wp.TargetPlayerNum = None
+					wp.TargetNum = None
+					wp.TargetName = ""
+				}
+				continue
+			}
+
 			switch wp.TargetType {
 			case MapObjectTypeFleet:
 				target := scan.discoverer.getFleetIntel(wp.TargetPlayerNum, wp.TargetNum)

@@ -6,10 +6,9 @@
 	import { MapObjectType, None, ownedBy } from '$lib/types/MapObject';
 	import {
 		MessageTargetType,
-		type Message,
 		MessageType,
 		getNextVisibleMessageNum,
-		getMessageText
+		type Message
 	} from '$lib/types/Message';
 	import {
 		ArrowLongLeft,
@@ -22,6 +21,7 @@
 	import hotkeys from 'hotkeys-js';
 	import { kebabCase } from 'lodash-es';
 	import { onMount } from 'svelte/internal';
+	import MessageDetail from '../messages/MessageDetail.svelte';
 
 	const { game, player, universe, settings, messageNum } = getGameContext();
 
@@ -220,7 +220,7 @@
 							</div>
 						{/if}
 						{#if message}
-							{getMessageText(message, $universe, $player)}
+							<MessageDetail {message} />
 						{/if}
 					</div>
 				</div>

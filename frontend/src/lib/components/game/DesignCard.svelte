@@ -11,7 +11,7 @@
 	const dispatch = createEventDispatcher();
 
 	export let design: ShipDesign;
-	export let href: string
+	export let href: string;
 	export let copyhref: string;
 
 	const deleteDesign = async (design: ShipDesign) => {
@@ -53,11 +53,17 @@
 				</div>
 			</div>
 			<div class="flex flex-row join">
-				<button class="btn btn-outline btn-secondary joint-item" on:click={(e) => deleteDesign(design)}>
-					<Icon src={Trash} size="24" class="hover:stroke-accent" />
-				</button>
+				{#if design.canDelete}
+					<button
+						class="btn btn-outline btn-secondary joint-item"
+						on:click={(e) => deleteDesign(design)}
+					>
+						<Icon src={Trash} size="24" class="hover:stroke-accent" />
+					</button>
+				{/if}
 				<a class="btn btn-outline btn-secondary joint-item" href={copyhref}>Copy</a>
-				{#if !design.spec?.numInstances}
+				<!-- canDelete = false is for designs that are reserved for the system -->
+				{#if !design.spec?.numInstances && design.canDelete}
 					<a class="btn btn-outline btn-secondary joint-item" href={`${href}}/edit`}>Edit</a>
 				{/if}
 			</div>

@@ -12,9 +12,6 @@
 	const { player, universe } = getGameContext();
 
 	function getColor(mineField: MineField) {
-		if (mineField.playerNum === $player.num) {
-			return '#0900FF';
-		}
 		return $universe.getPlayerColor(mineField.playerNum);
 	}
 

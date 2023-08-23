@@ -567,6 +567,11 @@ func (m *messageClient) colonizeWithNoColonists(player *Player, fleet *Fleet) {
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum})
 }
 
+func (m *messageClient) planetDiscovered(player *Player, planet *Planet) {
+	text := fmt.Sprintf("You have discovered a new planet %s", planet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetDiscovery, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
+}
+
 func (m *messageClient) planetColonized(player *Player, planet *Planet) {
 	text := fmt.Sprintf("Your colonists are now in control of %s", planet.Name)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetColonized, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})

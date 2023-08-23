@@ -151,13 +151,19 @@ func (s *server) deleteShipDesign(w http.ResponseWriter, r *http.Request) {
 	player := s.contextPlayer(r)
 	design := s.contextShipDesign(r)
 
-	gameID := design.GameID
+	// validate
+
+	if !design.CanDelete {
+		log.Error().Int64("ID", player.ID).Str("DesignName", design.Name).Msg("delete design with CanDelete = false")
+		render.Render(w, r, ErrBadRequest(fmt.Errorf("shipDesign cannot be deleted")))
+		return
+	}
 
 	// delete the ship design
 
-	playerFleets, err := s.db.GetFleetsForPlayer(gameID, player.Num)
+	playerFleets, err := s.db.GetFleetsForPlayer(game.ID, player.Num)
 	if err != nil {
-		log.Error().Err(err).Int64("GameID", gameID).Int("PlayerNum", player.Num).Msg("load fleets from database")
+		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("load fleets from database")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
@@ -189,26 +195,26 @@ func (s *server) deleteShipDesign(w http.ResponseWriter, r *http.Request) {
 
 	// delete a ship design and update fleets in one transaction
 	if err := s.db.DeleteShipDesignWithFleets(design.ID, fleetsToUpdate, fleetsToDelete); err != nil {
-		log.Error().Err(err).Int64("GameID", gameID).Int("PlayerNum", player.Num).Msg("load fleets from database")
+		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("load fleets from database")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
 	// log what we did
-	log.Info().Int64("GameID", gameID).Int("PlayerNum", player.Num).Int("Num", design.Num).Msgf("deleted design %s", design.Name)
+	log.Info().Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", design.Num).Msgf("deleted design %s", design.Name)
 
 	for _, fleet := range fleetsToUpdate {
-		log.Info().Int64("GameID", gameID).Int("PlayerNum", player.Num).Int("Num", design.Num).Msgf("updated fleet %s after deleting design", fleet.Name)
+		log.Info().Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", design.Num).Msgf("updated fleet %s after deleting design", fleet.Name)
 	}
 
 	for _, fleet := range fleetsToDelete {
-		log.Info().Int64("GameID", gameID).Int("PlayerNum", player.Num).Int("Num", design.Num).Msgf("deleted fleet %s after deleting design", fleet.Name)
+		log.Info().Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", design.Num).Msgf("deleted fleet %s after deleting design", fleet.Name)
 	}
 
-	allFleets, err := s.db.GetFleetsForPlayer(gameID, player.Num)
+	allFleets, err := s.db.GetFleetsForPlayer(game.ID, player.Num)
 
 	if err != nil {
-		log.Error().Err(err).Int64("GameID", gameID).Int("PlayerNum", player.Num).Int("Num", design.Num).Msg("load fleets from database")
+		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", design.Num).Msg("load fleets from database")
 		render.Render(w, r, ErrInternalServerError(err))
 	}
 
