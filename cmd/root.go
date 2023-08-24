@@ -14,10 +14,10 @@ var debug bool
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "craig-stars",
-	Short: "A go + svelte server",
+	Short: "A Stars! clone",
 	Long: `
-A server running in go with an embedded svelte front end for a single binary webserver.
-Also has a CLI for interacting with the server resources such as users.
+craig-stars will start a webserver for playing the game, or act as a
+CLI for interacting with the server resources such as users.
 `,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		// enable debug mode if configured

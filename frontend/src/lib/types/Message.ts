@@ -114,6 +114,7 @@ export enum MessageType {
 	RemoteMined,
 	TechGained,
 	FleetTargetLost,
+	FleetColonistDieoff,
 	PlanetDiedOff,
 	PlanetEmptied
 }

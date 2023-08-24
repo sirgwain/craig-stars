@@ -22,9 +22,10 @@ build:
 	mkdir -p dist
 	GOARCH=arm64 GOOS=darwin go build -o dist/${BINARY_NAME}-darwin-arm64 main.go
 
+# use docker to build an amd64 image for linux deployment
 build_docker:
-	docker build --platform linux/amd64 . -t brew-builder
-	docker run --platform linux/amd64 -v ${CURDIR}/dist:/dist brew-builder
+	docker build -f builder.Dockerfile --platform linux/amd64 . -t craig-stars-builder
+	docker run -f builder.Dockerfile --platform linux/amd64 -v ${CURDIR}/dist:/dist craig-stars-builder
 
 test:
 	go test ./...

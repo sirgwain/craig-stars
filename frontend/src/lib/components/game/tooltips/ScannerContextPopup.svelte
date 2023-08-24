@@ -52,7 +52,7 @@
 <ul class="menu overflow-y-auto px-0.5">
 	{#if otherMapObjectsHere[MapObjectType.Planet]}
 		<li class="menu-title w-full">
-			Planets
+			Planet
 			<ul>
 				{#each otherMapObjectsHere[MapObjectType.Planet] as mo}
 					<li>

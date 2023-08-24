@@ -7,14 +7,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// listCmd represents the list command
+// root list command
 var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List various resources",
 	Long:  `List various resources`,
 }
 
-// listUsersCmd represents the listUsers command
+// listUsersCmd lists users in the database
 var listUsersCmd = &cobra.Command{
 	Use:   "users",
 	Short: "List users",
@@ -43,7 +43,7 @@ func init() {
 func addListGamesCmd() {
 	var userID int64
 
-	// listUsersCmd represents the listUsers command
+	// listGamesCmd to list games in the database
 	var listGamesCmd = &cobra.Command{
 		Use:   "games",
 		Short: "List games",

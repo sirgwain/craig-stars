@@ -13,11 +13,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func timeTrack(start time.Time, name string) {
-	elapsed := time.Since(start)
-	log.Debug().Msgf("%s took %s", name, elapsed)
-}
-
 func newServeCmd() *cobra.Command {
 	var generateUniverse bool
 	serveCmd := &cobra.Command{
@@ -46,6 +41,11 @@ func newServeCmd() *cobra.Command {
 	return serveCmd
 }
 
+func timeTrack(start time.Time, name string) {
+	elapsed := time.Since(start)
+	log.Debug().Msgf("%s took %s", name, elapsed)
+}
+
 func generateTestGame(db server.DBClient, config config.Config) error {
 	defer timeTrack(time.Now(), "generateTestGame")
 
@@ -59,8 +59,6 @@ func generateTestGame(db server.DBClient, config config.Config) error {
 
 	// admin user will host a game with an ai player
 	if _, err := gameRunner.HostGame(admin.ID, cs.NewGameSettings().
-		// WithSize(game.SizeTiny).
-		// WithDensity(game.DensitySparse).
 		WithHost(adminRace.ID).
 		WithPublicPlayerScores(true).
 		WithAIPlayer(cs.AIDifficultyNormal, 1)); err != nil {
@@ -161,21 +159,6 @@ func generateTestGame(db server.DBClient, config config.Config) error {
 		return err
 	}
 	_ = multiplayerGame
-
-	// user2, user2Race, err := createTestUser(db, "craig", config.GeneratedUserPassword, "craig@craig-stars.net", cs.RoleUser)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// // user2 will also host a game so with an open player slot
-	// _, err = gameRunner.HostGame(user2.ID, cs.NewGameSettings().
-	// 	WithName("Joinable Game").
-	// 	WithHost(user2Race.ID).
-	// 	WithOpenPlayerSlot().
-	// 	WithAIPlayer(cs.AIDifficultyNormal, 1))
-	// if err != nil {
-	// 	return err
-	// }
 
 	return nil
 }

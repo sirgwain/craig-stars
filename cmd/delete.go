@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// deleteCmd represents the delete command
+// deleteCmd is the root delete command for delete operations
 var deleteCmd = &cobra.Command{
 	Use:   "delete",
 	Short: "Delete various resources",
@@ -24,7 +24,7 @@ func init() {
 func addDeleteUserCmd() {
 	var id int64
 
-	// deleteUserCmd represents the deleteUsers command
+	// deleteUserCmd deletes a user from the database
 	var deleteUserCmd = &cobra.Command{
 		Use:   "user",
 		Short: "Delete user",
@@ -53,7 +53,7 @@ func addDeleteUserCmd() {
 func addDeleteGameCmd() {
 	var id int64
 
-	// deleteUsersCmd represents the deleteUsers command
+	// deleteGameCmd deletes a game from the database
 	var deleteGameCmd = &cobra.Command{
 		Use:   "game",
 		Short: "Delete game",

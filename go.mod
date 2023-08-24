@@ -1,6 +1,6 @@
 module github.com/sirgwain/craig-stars
 
-go 1.18
+go 1.20
 
 require (
 	github.com/kataras/tablewriter v0.0.0-20180708051242-e063d29b7c23

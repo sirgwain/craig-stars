@@ -29,7 +29,7 @@ func addCreateUserCommand() {
 	var password string
 	var role = cs.RoleUser
 
-	// createUserCmd represents the createUser command
+	// createUserCmd creates a new user in the database
 	createUserCmd := &cobra.Command{
 		Use:   "user",
 		Short: "A brief description of your command",
