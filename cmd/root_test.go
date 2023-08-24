@@ -17,7 +17,7 @@ func TestExecute(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if string(out) != "" {
-		t.Fatalf("expected \"%s\" got \"%s\"", usage, string(out))
+	if string(out) == "" {
+		t.Fatalf("no usage")
 	}
 }
