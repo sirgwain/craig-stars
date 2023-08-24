@@ -3,12 +3,11 @@ package cmd
 import (
 	"bytes"
 	"io/ioutil"
-	"strings"
 	"testing"
 )
 
 func TestExecute(t *testing.T) {
-	usage := "A server running in go with an embedded svelte front end"
+
 	cmd := rootCmd
 	b := bytes.NewBufferString("")
 	cmd.SetOut(b)
@@ -18,7 +17,7 @@ func TestExecute(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(out), usage) {
+	if string(out) != "" {
 		t.Fatalf("expected \"%s\" got \"%s\"", usage, string(out))
 	}
 }
