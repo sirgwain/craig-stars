@@ -16,6 +16,7 @@
 	export let step = 1;
 	export let min = 0;
 	export let max = 100;
+	export let unit = '';
 
 	function increase() {
 		value = clamp(value + step, min, max);
@@ -32,6 +33,9 @@
 	<div class="flex flex-row">
 		<div class="my-auto text-accent mr-1">
 			{value}
+		</div>
+		<div class="my-auto mr-1">
+			{unit}
 		</div>
 		<div class="flex flex-col">
 			<button class="btn btn-xs" on:click={increase}>

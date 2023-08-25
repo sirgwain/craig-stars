@@ -15,6 +15,7 @@
 	import { createEventDispatcher } from 'svelte';
 	import { $enum as eu } from 'ts-enum-util';
 	import FutureTechs from './FutureTechs.svelte';
+	import SpinnerNumberText from '$lib/components/SpinnerNumberText.svelte';
 
 	const dispatch = createEventDispatcher();
 
@@ -27,7 +28,7 @@
 
 	const updatePlayerOrders = async () => {
 		dispatch('update-player');
-	};	
+	};
 
 	let spent = 0;
 	$: {
@@ -84,16 +85,18 @@
 	<div class="w-full">
 		<SectionHeader>Tech Levels</SectionHeader>
 
-		<NumberInput
-			name="researchAmount"
-			title="Research Budget"
+		<SpinnerNumberText
+			class="flex flex-row gap-1 place-content-center text-2xl mb-2"
 			bind:value={$player.researchAmount}
 			min={0}
 			max={100}
 			step={1}
 			unit="%"
 			on:change={updatePlayerOrders}
-		/>
+		>
+			<svelte:fragment slot="begin">Research Budget</svelte:fragment>
+			<svelte:fragment slot="end"></svelte:fragment>
+		</SpinnerNumberText>
 
 		<div class="grid grid-cols-2">
 			<div class="text-center">

@@ -1,8 +1,5 @@
 <script lang="ts">
-	import SpinnerNumber from '$lib/components/SpinnerNumber.svelte';
-	import { clamp } from '$lib/services/Math';
 	import { PRT, type Race } from '$lib/types/Race';
-	import type { FocusEventHandler } from 'svelte/elements';
 	import SpinnerNumberText from '../../../../lib/components/SpinnerNumberText.svelte';
 
 	export let race: Race;
