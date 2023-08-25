@@ -1,7 +1,9 @@
 <script lang="ts">
+	import SpinnerNumber from '$lib/components/SpinnerNumber.svelte';
 	import { clamp } from '$lib/services/Math';
 	import { PRT, type Race } from '$lib/types/Race';
 	import type { FocusEventHandler } from 'svelte/elements';
+	import SpinnerNumberText from './SpinnerNumberText.svelte';
 
 	export let race: Race;
 
@@ -22,77 +24,43 @@
 
 {#if race.prt === PRT.AR}
 	<p>
-		Annual Resources = Planet Value * sqrt(Population * Energy Tech /
-		<input
-			class="input input-bordered w-24 input-sm"
-			type="number"
-			name="popEfficiency"
-			bind:value={race.popEfficiency}
-			on:blur={validateNumberrInput}
-			step={1}
-			min={7}
-			max={25}
-			pattern="\d+"
-		/>
-		).
+		<SpinnerNumberText bind:value={race.popEfficiency} step={1} min={7} max={25}>
+			<svelte:fragment slot="begin"
+				>Annual Resources = Planet Value * sqrt(Population * Energy Tech /</svelte:fragment
+			>
+			<svelte:fragment slot="end">)</svelte:fragment>
+		</SpinnerNumberText>
 	</p>
 {:else}
 	<p>
-		One resource is generated each year for every
-		<input
-			class="input input-bordered w-24 input-sm"
-			type="number"
-			name="popEfficiency"
-			value={race.popEfficiency * 100}
-			on:change={(e) => updatePopEfficiency(e.currentTarget.valueAsNumber)}
-			on:blur={validateNumberrInput}
+		<SpinnerNumberText
 			step={100}
+			value={race.popEfficiency * 100}
+			on:change={(e) => updatePopEfficiency(e.detail)}
 			min={700}
 			max={2500}
-		/>
-		colonists.
+		>
+			<svelte:fragment slot="begin">One resource is generated each year for every</svelte:fragment>
+			<svelte:fragment slot="end">colonists.</svelte:fragment>
+		</SpinnerNumberText>
 	</p>
 	<p>
-		Every 10 factories produce
-		<input
-			class="input input-bordered w-16 input-sm"
-			type="number"
-			name="factoryOutput"
-			bind:value={race.factoryOutput}
-			on:blur={validateNumberrInput}
-			step={1}
-			min={5}
-			max={15}
-		/>
-		resources each year.
+		<SpinnerNumberText bind:value={race.factoryOutput} step={1} min={5} max={15}>
+			<svelte:fragment slot="begin">Every 10 factories produce</svelte:fragment>
+			<svelte:fragment slot="end">resources each year.</svelte:fragment>
+		</SpinnerNumberText>
 	</p>
 	<p>
-		Factories require
-		<input
-			class="input input-bordered w-16 input-sm"
-			type="number"
-			name="factoryCost"
-			bind:value={race.factoryCost}
-			on:blur={validateNumberrInput}
-			step={1}
-			min={5}
-			max={25}
-		/>
-		resources to build.
+		<SpinnerNumberText bind:value={race.factoryCost} step={1} min={5} max={25}>
+			<svelte:fragment slot="begin">Factories require</svelte:fragment>
+			<svelte:fragment slot="end">resources to build.</svelte:fragment>
+		</SpinnerNumberText>
 	</p>
 	<p>
-		Every 10,000 colonists may operate up to
-		<input
-			class="input input-bordered w-16 input-sm"
-			type="number"
-			name="numFactories"
-			bind:value={race.numFactories}
-			on:blur={validateNumberrInput}
-			step={1}
-			min={5}
-			max={25}
-		/>
-		factories.
+		<SpinnerNumberText bind:value={race.numFactories} step={1} min={5} max={25}>
+			<svelte:fragment slot="begin">Every 10,000 colonists may operate up to</svelte:fragment>
+			<svelte:fragment slot="end">factories.</svelte:fragment>
+		</SpinnerNumberText>
 	</p>
 
 	<p>
@@ -105,44 +73,21 @@
 		Factories cost 1kT less of Germanium to build
 	</p>
 	<p>
-		Every 10 mines produce up to
-		<input
-			class="input input-bordered w-16 input-sm"
-			type="number"
-			name="mineOutput"
-			bind:value={race.mineOutput}
-			on:blur={validateNumberrInput}
-			step={1}
-			min={5}
-			max={25}
-		/>kT of each mineral every year.
+		<SpinnerNumberText bind:value={race.mineOutput} step={1} min={5} max={25}>
+			<svelte:fragment slot="begin">Every 10 mines produce up to</svelte:fragment>
+			<svelte:fragment slot="end">kT of each mineral every year.</svelte:fragment>
+		</SpinnerNumberText>
 	</p>
 	<p>
-		Mines require
-		<input
-			class="input input-bordered w-16 input-sm"
-			type="number"
-			name="mineCost"
-			bind:value={race.mineCost}
-			on:blur={validateNumberrInput}
-			step={1}
-			min={2}
-			max={15}
-		/>
-		resources to build.
+		<SpinnerNumberText bind:value={race.mineCost} step={1} min={2} max={15}>
+			<svelte:fragment slot="begin">Mines require</svelte:fragment>
+			<svelte:fragment slot="end">resources to build.</svelte:fragment>
+		</SpinnerNumberText>
 	</p>
 	<p>
-		Every 10,000 colonists may operate up to
-		<input
-			class="input input-bordered w-16 input-sm"
-			type="number"
-			name="numMines"
-			bind:value={race.numMines}
-			on:blur={validateNumberrInput}
-			step={1}
-			min={5}
-			max={25}
-		/>
-		mines.
+		<SpinnerNumberText bind:value={race.numMines} step={1} min={5} max={25}>
+			<svelte:fragment slot="begin">Every 10,000 colonists may operate up to</svelte:fragment>
+			<svelte:fragment slot="end">mines.</svelte:fragment>
+		</SpinnerNumberText>
 	</p>
 {/if}

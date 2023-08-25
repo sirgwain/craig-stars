@@ -3,6 +3,7 @@
 	import { HabType } from '$lib/types/Hab';
 	import type { Race } from '$lib/types/Race';
 	import HabBar from './HabBar.svelte';
+	import SpinnerNumberText from './SpinnerNumberText.svelte';
 
 	export let race: Race;
 </script>
@@ -26,17 +27,10 @@
 		bind:habHigh={race.habHigh.rad}
 		bind:immune={race.immuneRad}
 	/>
-	<label>
-		Maxium Colonist Growth Rate Per Year
-		<input
-			class="input input-sm input-bordered"
-			type="number"
-			name="growthRate"
-			min={1}
-			max={100}
-			bind:value={race.growthRate}
-		/></label
-	>
+	<SpinnerNumberText min={1} max={100} bind:value={race.growthRate}>
+		<svelte:fragment slot="begin">Maxium Colonist Growth Rate Per Year</svelte:fragment>
+		<svelte:fragment slot="end">%.</svelte:fragment>
+	</SpinnerNumberText>
 
 	<HabChance {race} />
 </div>
