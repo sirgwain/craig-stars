@@ -22,7 +22,6 @@
 	const { game, player, universe } = getGameContext();
 
 	function showStarbaseDesign(e: MouseEvent) {
-		console.log(selectedPlanet)
 		if (selectedPlanet?.spec.starbaseDesignNum) {
 			onShipDesignTooltip(e, $universe.getDesign(selectedPlanet.playerNum, selectedPlanet.spec.starbaseDesignNum));
 		}
