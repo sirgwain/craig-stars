@@ -10,14 +10,12 @@
 	export let max = 100;
 </script>
 
-<div>
-	<div class="flex flex-row gap-1">
-		<div class="my-auto align-middle">
-			<slot name="begin"></slot>
-		</div>
-		<SpinnerNumber {step} bind:value on:change={(e) => dispatch('change', e.detail)} {min} {max} />
-		<div class="my-auto align-middle">
-			<slot name="end"></slot>
-		</div>
+<div class="flex flex-row gap-1" {...$$restProps}>
+	<div class="my-auto align-middle">
+		<slot name="begin" />
+	</div>
+	<SpinnerNumber {step} bind:value on:change={(e) => dispatch('change', e.detail)} {min} {max} />
+	<div class="my-auto align-middle">
+		<slot name="end" />
 	</div>
 </div>

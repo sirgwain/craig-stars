@@ -3,22 +3,12 @@
 	import { clamp } from '$lib/services/Math';
 	import { PRT, type Race } from '$lib/types/Race';
 	import type { FocusEventHandler } from 'svelte/elements';
-	import SpinnerNumberText from './SpinnerNumberText.svelte';
+	import SpinnerNumberText from '../../../../lib/components/SpinnerNumberText.svelte';
 
 	export let race: Race;
 
 	const updatePopEfficiency = (value: number) => {
 		race.popEfficiency = value / 100;
-	};
-
-	const validateNumberrInput: FocusEventHandler<HTMLInputElement> = (e) => {
-		e.currentTarget.value = String(
-			clamp(
-				parseInt(e.currentTarget.value),
-				parseInt(e.currentTarget.min),
-				parseInt(e.currentTarget.max)
-			)
-		);
 	};
 </script>
 

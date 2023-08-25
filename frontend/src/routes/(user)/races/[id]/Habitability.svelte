@@ -3,7 +3,7 @@
 	import { HabType } from '$lib/types/Hab';
 	import type { Race } from '$lib/types/Race';
 	import HabBar from './HabBar.svelte';
-	import SpinnerNumberText from './SpinnerNumberText.svelte';
+	import SpinnerNumberText from '../../../../lib/components/SpinnerNumberText.svelte';
 
 	export let race: Race;
 </script>
