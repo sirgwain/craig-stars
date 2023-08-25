@@ -61,7 +61,7 @@
 				}}
 			/>
 		</div>
-		<div class="hidden lg:block lg:p-1">
+		<div class="hidden lg:block lg:p-1 mx-2">
 			<MapObjectSummary />
 		</div>
 	</div>

@@ -1,5 +1,7 @@
 <script lang="ts">
+	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import Cycle from '$lib/components/icons/Cycle.svelte';
+	import Starbase from '$lib/components/icons/Starbase.svelte';
 	import { getGameContext } from '$lib/services/Contexts';
 	import { selectNextMapObject, selectedMapObject } from '$lib/services/Stores';
 	import type { Fleet } from '$lib/types/Fleet';
@@ -18,6 +20,13 @@
 	import WormholeSummary from './WormholeSummary.svelte';
 
 	const { game, player, universe } = getGameContext();
+
+	function showStarbaseDesign(e: MouseEvent) {
+		console.log(selectedPlanet)
+		if (selectedPlanet?.spec.starbaseDesignNum) {
+			onShipDesignTooltip(e, $universe.getDesign(selectedPlanet.playerNum, selectedPlanet.spec.starbaseDesignNum));
+		}
+	}
 
 	let selectedPlanet: Planet | undefined;
 	let selectedFleet: Fleet | undefined;
@@ -55,9 +64,16 @@
 			<div class="flex-1 text-center text-lg font-semibold text-secondary">
 				{$selectedMapObject?.name ?? ''}
 			</div>
-			<button type="button" on:click|preventDefault={() => selectNextMapObject()}>
-				<Cycle class="w-4 h-4 fill-base-content hover:stroke-accent" /></button
-			>
+			<div>
+				{#if selectedPlanet && selectedPlanet.spec.hasStarbase}
+					<button type="button" on:pointerdown|preventDefault={showStarbaseDesign}>
+						<Starbase class="w-4 h-4 starbase" /></button
+					>
+				{/if}
+				<button type="button" on:pointerdown|preventDefault={selectNextMapObject}>
+					<Cycle class="w-4 h-4 fill-base-content hover:stroke-accent" /></button
+				>
+			</div>
 		</div>
 		{#if selectedPlanet}
 			<PlanetSummary planet={selectedPlanet} />

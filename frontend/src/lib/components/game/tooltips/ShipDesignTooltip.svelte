@@ -3,7 +3,10 @@
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import ShipDesignTooltip from './ShipDesignTooltip.svelte';
 
-	export function onShipDesignTooltip(e: PointerEvent, design: ShipDesign | undefined) {
+	export function onShipDesignTooltip(
+		e: PointerEvent | MouseEvent,
+		design: ShipDesign | undefined
+	) {
 		if (design) {
 			showTooltip<ShipDesignTooltipProps>(e.x, e.y, ShipDesignTooltip, { design });
 		}

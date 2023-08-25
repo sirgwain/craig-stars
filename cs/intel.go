@@ -44,7 +44,7 @@ type discoverer interface {
 	getMineFieldIntel(playerNum, num int) *MineFieldIntel
 	getMineralPacketIntel(playerNum, num int) *MineralPacketIntel
 	getFleetIntel(playerNum, num int) *FleetIntel
-	getSalvageIntel(num int) *SalvageIntel	
+	getSalvageIntel(num int) *SalvageIntel
 }
 
 func newDiscoverer(player *Player) discoverer {
@@ -367,13 +367,21 @@ func (d *discover) discoverPlanet(rules *Rules, player *Player, planet *Planet, 
 		intel.Spec.HasMassDriver = planet.Spec.HasMassDriver
 		intel.Spec.HasStargate = planet.Spec.HasStargate
 
+		// these should never be nil...
+		if planet.Spec.HasStarbase && planet.Starbase != nil && planet.Starbase.Tokens[0].design != nil {
+			design := planet.Starbase.Tokens[0].design
+			intel.Spec.StarbaseDesignName = design.Name
+			intel.Spec.StarbaseDesignNum = design.Num
+			d.discoverDesign(player, design, false)
+		}
+
 		// players know their planet pops, but other planets are slightly off
 		if ownedByPlayer {
 			intel.Spec.Population = planet.population()
 		} else {
 			var randomPopulationError = rules.random.Float64()*(rules.PopulationScannerError-(-rules.PopulationScannerError)) - rules.PopulationScannerError
 			intel.Spec.Population = int(float64(planet.population()) * (1 - randomPopulationError))
-		}		
+		}
 	}
 	return nil
 }

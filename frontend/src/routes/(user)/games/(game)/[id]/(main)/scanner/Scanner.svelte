@@ -580,7 +580,7 @@
 
 <div
 	class:cursor-grab={waypointHighlighted}
-	class={`grow bg-black overflow-hidden p-[${padding}px]`}
+	class={`grow bg-black overflow-hidden p-[${padding}px] select-none`}
 >
 	<LayerCake
 		{data}
