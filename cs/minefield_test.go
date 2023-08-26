@@ -135,3 +135,58 @@ func Test_checkForMineFieldCollision_Miss(t *testing.T) {
 	assert.Equal(t, 1, fleet.Tokens[0].Quantity)
 
 }
+
+func TestMineField_moveTowardsMineLayer(t *testing.T) {
+	player := NewPlayer(0, NewRace()).WithNum(1)
+	type fields struct {
+		mineFieldPosition Vector
+		numMines          int
+	}
+	type args struct {
+		position  Vector
+		minesLaid int
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   Vector
+	}{
+		{
+			name:   "no movement",
+			fields: fields{mineFieldPosition: Vector{}, numMines: 1000},
+			args:   args{position: Vector{}, minesLaid: 1000},
+			want:   Vector{},
+		},
+		{
+			name:   "move towards fleet completely",
+			fields: fields{mineFieldPosition: Vector{}, numMines: 1000},
+			args:   args{position: Vector{5, 5}, minesLaid: 1000},
+			want:   Vector{5, 5},
+		},
+		{
+			name:   "move towards fleet halfway",
+			fields: fields{mineFieldPosition: Vector{}, numMines: 1000},
+			args:   args{position: Vector{6, 6}, minesLaid: 500},
+			want:   Vector{3, 3},
+		},
+		{
+			name:   "move towards fleet halfway round up",
+			fields: fields{mineFieldPosition: Vector{}, numMines: 1000},
+			args:   args{position: Vector{5, 5}, minesLaid: 500},
+			want:   Vector{3, 3},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			mineField := newMineField(player, MineFieldTypeStandard, tt.fields.numMines, 1, tt.fields.mineFieldPosition)
+			mineField.moveTowardsMineLayer(tt.args.position, tt.args.minesLaid)
+
+			if mineField.Position != tt.want {
+				t.Errorf("MineField.moveTowardsMineLayer() = %v, want %v", mineField.Position, tt.want)
+			}
+
+		})
+	}
+}

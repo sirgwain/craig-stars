@@ -271,3 +271,15 @@ func checkForMineFieldCollision(rules *Rules, playerGetter playerGetter, mapObje
 
 	return distance
 }
+
+// Move this minefield closer to us (in case it's not in our location)
+// This was taken from the FreeStars codebase (like many other things)
+func (mineField *MineField) moveTowardsMineLayer(position Vector, minesLaid int) {
+	totalDist := position.DistanceTo(mineField.Position)
+
+	moveTowardsFactor := math.Min(1, float64(minesLaid)/float64(mineField.NumMines))
+	heading := position.Subtract(mineField.Position).Normalized()
+
+	// move the minefield towards the fleet
+	mineField.Position = mineField.Position.Add(heading.Normalized().Scale(totalDist * moveTowardsFactor)).Round()
+}

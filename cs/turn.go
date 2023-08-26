@@ -1677,10 +1677,7 @@ func (t *turn) fleetLayMines() {
 				if mineField.Position != fleet.Position {
 					// Move this minefield closer to us (in case it's not in our location)
 					// This was taken from the FreeStars codebase (like many other things)
-					mineField.Position = Vector{
-						X: float64(minesLaid)/float64(mineField.NumMines)*(float64(fleet.Position.X)-float64(mineField.Position.X)) + mineField.Position.X,
-						Y: float64(minesLaid)/float64(mineField.NumMines)*(float64(fleet.Position.Y)-float64(mineField.Position.Y)) + mineField.Position.Y,
-					}
+					mineField.moveTowardsMineLayer(fleet.Position, minesLaid)
 				}
 
 				// TODO (performance): the radius will be computed in the spec as well. hmmmm
