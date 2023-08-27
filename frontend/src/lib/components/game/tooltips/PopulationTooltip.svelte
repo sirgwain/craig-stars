@@ -29,7 +29,7 @@
 				of your colonists.
 			{:else}
 				Your population on <span class="font-semibold">{planet.name}</span> is
-				<span class="font-semibold">{planet.spec.population.toLocaleString()}</span>." + $"<span
+				<span class="font-semibold">{planet.spec.population.toLocaleString()}</span>. <span
 					class="font-semibold">{planet.name}</span
 				> has a hostile environment and will no support any of your colonists.
 			{/if}
