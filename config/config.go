@@ -14,6 +14,7 @@ type Config struct {
 		Filename      string `yaml:"Filename,omitempty"`
 		UsersFilename string `yaml:"UsersFilename,omitempty"`
 		DebugLogging  bool   `yaml:"DebugLogging,omitempty"`
+		SkipUpgrade   bool   `yaml:"SkipUpgrade,omitempty"`
 	}
 	Auth struct {
 		Secret      string `yaml:"Secret,omitempty"`
