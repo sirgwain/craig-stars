@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/sirgwain/craig-stars/cs"
 )
 
@@ -61,9 +62,13 @@ func (item *Rules) Scan(src interface{}) error {
 }
 
 func (c *client) GetGames() ([]cs.Game, error) {
+	return c.getGames(c.db)
+}
+
+func (c *client) getGames(db SQLSelector) ([]cs.Game, error) {
 
 	items := []Game{}
-	if err := c.db.Select(&items, `SELECT * FROM Games`); err != nil {
+	if err := db.Select(&items, `SELECT * FROM games`); err != nil {
 		if err == sql.ErrNoRows {
 			return []cs.Game{}, nil
 		}
@@ -218,8 +223,12 @@ func (c *client) getGameWithPlayersStatus(where string, args ...interface{}) ([]
 
 // get a game by id
 func (c *client) GetFullGame(id int64) (*cs.FullGame, error) {
+	return c.getFullGame(c.db, id)
+}
+
+func (c *client) getFullGame(db SQLSelector, id int64) (*cs.FullGame, error) {
 	item := Game{}
-	if err := c.db.Get(&item, "SELECT * FROM games WHERE id = ?", id); err != nil {
+	if err := db.Get(&item, "SELECT * FROM games WHERE id = ?", id); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
@@ -228,21 +237,21 @@ func (c *client) GetFullGame(id int64) (*cs.FullGame, error) {
 
 	game := c.converter.ConvertGame(item)
 
-	players, err := c.getPlayersForGame(game.ID)
+	players, err := c.getPlayersForGame(db, game.ID)
 	if err != nil {
 		return nil, fmt.Errorf("load players for game %w", err)
 	}
 
 	universe := cs.NewUniverse(&game.Rules)
 
-	planets, err := c.getPlanetsForGame(game.ID)
+	planets, err := c.getPlanetsForGame(db, game.ID)
 	if err != nil {
 		return nil, fmt.Errorf("load planets for game %w", err)
 	}
 	universe.Planets = planets
 
 	// load fleets and starbases
-	fleets, err := c.getFleetsForGame(game.ID)
+	fleets, err := c.getFleetsForGame(db, game.ID)
 	if err != nil {
 		return nil, fmt.Errorf("load fleets for game %w", err)
 	}
@@ -258,25 +267,25 @@ func (c *client) GetFullGame(id int64) (*cs.FullGame, error) {
 		}
 	}
 
-	wormholes, err := c.getWormholesForGame(game.ID)
+	wormholes, err := c.getWormholesForGame(db, game.ID)
 	if err != nil {
 		return nil, fmt.Errorf("load wormholes for game %w", err)
 	}
 	universe.Wormholes = wormholes
 
-	salvages, err := c.GetSalvagesForGame(game.ID)
+	salvages, err := c.getSalvagesForGame(db, game.ID)
 	if err != nil {
 		return nil, fmt.Errorf("load salvages for game %w", err)
 	}
 	universe.Salvages = salvages
 
-	mineFields, err := c.getMineFieldsForGame(game.ID)
+	mineFields, err := c.getMineFieldsForGame(db, game.ID)
 	if err != nil {
 		return nil, fmt.Errorf("load mineFields for game %w", err)
 	}
 	universe.MineFields = mineFields
 
-	mineralPackets, err := c.getMineralPacketsForGame(game.ID)
+	mineralPackets, err := c.getMineralPacketsForGame(db, game.ID)
 	if err != nil {
 		return nil, fmt.Errorf("load mineralPackets for game %w", err)
 	}
@@ -285,7 +294,7 @@ func (c *client) GetFullGame(id int64) (*cs.FullGame, error) {
 	// load a tech store if this game has a separate one
 	techStore := &cs.StaticTechStore
 	if game.Rules.TechsID != 0 {
-		techStore, err = c.GetTechStore(game.Rules.TechsID)
+		techStore, err = c.getTechStore(db, game.Rules.TechsID)
 		if err != nil {
 			return nil, err
 		}
@@ -475,8 +484,23 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 		return err
 	}
 
-	if err := c.updateGameWithNamedExecer(fullGame.Game, tx); err != nil {
+	// update it all...
+	if err := c.updateFullGame(fullGame, tx); err != nil {
 		tx.Rollback()
+		return err
+	}
+
+	// we made it without error, commit!
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *client) updateFullGame(fullGame *cs.FullGame, tx *sqlx.Tx) error {
+
+	if err := c.updateGameWithNamedExecer(fullGame.Game, tx); err != nil {
 		return fmt.Errorf("update game %w", err)
 	}
 
@@ -484,12 +508,10 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 		if player.ID == 0 {
 			player.GameID = fullGame.ID
 			if err := c.createPlayer(player, tx); err != nil {
-				tx.Rollback()
 				return fmt.Errorf("create player %w", err)
 			}
 		}
 		if err := c.updateFullPlayerWithTransaction(player, tx); err != nil {
-			tx.Rollback()
 			return fmt.Errorf("update player %w", err)
 		}
 	}
@@ -498,13 +520,11 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 		if planet.ID == 0 {
 			planet.GameID = fullGame.ID
 			if err := c.createPlanet(planet, tx); err != nil {
-				tx.Rollback()
 				return fmt.Errorf("create planet %w", err)
 			}
 			// log.Debug().Int64("GameID", planet.GameID).Int64("ID", planet.ID).Msgf("Created planet %s", planet.Name)
 		} else if planet.Dirty {
 			if err := c.updatePlanet(planet, tx); err != nil {
-				tx.Rollback()
 				return fmt.Errorf("update planet %w", err)
 			}
 			// log.Debug().Int64("GameID", planet.GameID).Int64("ID", planet.ID).Msgf("Updated planet %s", planet.Name)
@@ -519,7 +539,6 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 	for _, fleet := range append(fullGame.Fleets, fullGame.Starbases...) {
 		if fleet.Delete {
 			if err := c.deleteFleet(fleet.ID, tx); err != nil {
-				tx.Rollback()
 				return fmt.Errorf("delete fleet %w", err)
 			}
 			// log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Deleted fleet %s", fleet.Name)
@@ -530,14 +549,12 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 		if fleet.ID == 0 {
 			fleet.GameID = fullGame.ID
 			if err := c.createFleet(fleet, tx); err != nil {
-				tx.Rollback()
 				return fmt.Errorf("create fleet %w", err)
 			}
 			remainingFleets = append(remainingFleets, fleet)
 			// log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Created fleet %s", fleet.Name)
 		} else if fleet.Dirty && !fleet.Delete {
 			if err := c.updateFleet(fleet, tx); err != nil {
-				tx.Rollback()
 				return fmt.Errorf("update fleet %w", err)
 			}
 			remainingFleets = append(remainingFleets, fleet)
@@ -551,19 +568,16 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 		if wormhole.ID == 0 {
 			wormhole.GameID = fullGame.ID
 			if err := c.createWormhole(wormhole, tx); err != nil {
-				tx.Rollback()
 				return fmt.Errorf("create wormhole %w", err)
 			}
 			// log.Debug().Int64("GameID", wormhole.GameID).Int64("ID", wormhole.ID).Msgf("Created wormhole %v", wormhole)
 		} else if wormhole.Delete {
 			if err := c.deleteWormhole(wormhole.ID, tx); err != nil {
-				tx.Rollback()
 				return fmt.Errorf("delete wormhole %w", err)
 			}
 			// log.Debug().Int64("GameID", wormhole.GameID).Int64("ID", wormhole.ID).Msgf("Deleted wormhole %s", wormhole.Name)
 		} else if wormhole.Dirty {
 			if err := c.updateWormhole(wormhole, tx); err != nil {
-				tx.Rollback()
 				return fmt.Errorf("update wormhole %w", err)
 			}
 			// log.Debug().Int64("GameID", wormhole.GameID).Int64("ID", wormhole.ID).Msgf("Updated wormhole %v", wormhole)
@@ -575,19 +589,16 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 		if salvage.ID == 0 {
 			salvage.GameID = fullGame.ID
 			if err := c.createSalvage(salvage, tx); err != nil {
-				tx.Rollback()
 				return fmt.Errorf("create salvage %w", err)
 			}
 			// log.Debug().Int64("GameID", salvage.GameID).Int64("ID", salvage.ID).Msgf("Created salvage %s", salvage.Name)
 		} else if salvage.Delete {
 			if err := c.deleteSalvage(salvage.ID, tx); err != nil {
-				tx.Rollback()
 				return fmt.Errorf("delete salvage %w", err)
 			}
 			// log.Debug().Int64("GameID", salvage.GameID).Int64("ID", salvage.ID).Msgf("Deleted salvage %s", salvage.Name)
 		} else if salvage.Dirty {
 			if err := c.updateSalvage(salvage, tx); err != nil {
-				tx.Rollback()
 				return fmt.Errorf("update salvage %w", err)
 			}
 			// log.Debug().Int64("GameID", salvage.GameID).Int64("ID", salvage.ID).Msgf("Updated salvage %s", salvage.Name)
@@ -599,19 +610,16 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 		if mineField.ID == 0 {
 			mineField.GameID = fullGame.ID
 			if err := c.createMineField(mineField, tx); err != nil {
-				tx.Rollback()
 				return fmt.Errorf("create mineField %w", err)
 			}
 			// log.Debug().Int64("GameID", mineField.GameID).Int64("ID", mineField.ID).Msgf("Created mineField %s", mineField.Name)
 		} else if mineField.Delete {
 			if err := c.deleteMineField(mineField.ID, tx); err != nil {
-				tx.Rollback()
 				return fmt.Errorf("delete mineField %w", err)
 			}
 			// log.Debug().Int64("GameID", mineField.GameID).Int64("ID", mineField.ID).Msgf("Deleted mineField %s", mineField.Name)
 		} else if mineField.Dirty {
 			if err := c.updateMineField(mineField, tx); err != nil {
-				tx.Rollback()
 				return fmt.Errorf("update mineField %w", err)
 			}
 			// log.Debug().Int64("GameID", mineField.GameID).Int64("ID", mineField.ID).Msgf("Updated mineField %s", mineField.Name)
@@ -623,19 +631,16 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 		if mineralPacket.ID == 0 {
 			mineralPacket.GameID = fullGame.ID
 			if err := c.createMineralPacket(mineralPacket, tx); err != nil {
-				tx.Rollback()
 				return fmt.Errorf("create mineralPacket %w", err)
 			}
 			// log.Debug().Int64("GameID", mineralPacket.GameID).Int64("ID", mineralPacket.ID).Msgf("Created mineralPacket %s", mineralPacket.Name)
 		} else if mineralPacket.Delete {
 			if err := c.deleteMineralPacket(mineralPacket.ID, tx); err != nil {
-				tx.Rollback()
 				return fmt.Errorf("delete mineralPacket %w", err)
 			}
 			// log.Debug().Int64("GameID", mineralPacket.GameID).Int64("ID", mineralPacket.ID).Msgf("Deleted mineralPacket %s", mineralPacket.Name)
 		} else if mineralPacket.Dirty {
 			if err := c.updateMineralPacket(mineralPacket, tx); err != nil {
-				tx.Rollback()
 				return fmt.Errorf("update mineralPacket %w", err)
 			}
 			// log.Debug().Int64("GameID", mineralPacket.GameID).Int64("ID", mineralPacket.ID).Msgf("Updated mineralPacket %s", mineralPacket.Name)
@@ -647,28 +652,21 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 		if mysteryTrader.ID == 0 {
 			mysteryTrader.GameID = fullGame.ID
 			if err := c.createMysteryTrader(mysteryTrader, tx); err != nil {
-				tx.Rollback()
 				return fmt.Errorf("create mysteryTrader %w", err)
 			}
 			// log.Debug().Int64("GameID", mysteryTrader.GameID).Int64("ID", mysteryTrader.ID).Msgf("Created mysteryTrader %s", mysteryTrader.Name)
 		} else if mysteryTrader.Delete {
 			if err := c.deleteMysteryTrader(mysteryTrader.ID, tx); err != nil {
-				tx.Rollback()
 				return fmt.Errorf("delete mysteryTrader %w", err)
 			}
 			// log.Debug().Int64("GameID", mysteryTrader.GameID).Int64("ID", mysteryTrader.ID).Msgf("Deleted mysteryTrader %s", mysteryTrader.Name)
 		} else if mysteryTrader.Dirty {
 			if err := c.updateMysteryTrader(mysteryTrader, tx); err != nil {
-				tx.Rollback()
 				return fmt.Errorf("update mysteryTrader %w", err)
 			}
 			// log.Debug().Int64("GameID", mysteryTrader.GameID).Int64("ID", mysteryTrader.ID).Msgf("Updated mysteryTrader %s", mysteryTrader.Name)
 		}
 	}
-	if err := tx.Commit(); err != nil {
-		return err
-	}
-
 	return nil
 
 }

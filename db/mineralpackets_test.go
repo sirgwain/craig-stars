@@ -92,7 +92,7 @@ func TestGetMineralPackets(t *testing.T) {
 	g, player := c.createTestGameWithPlayer()
 
 	// start with 1 planet from connectTestDB
-	result, err := c.getMineralPacketsForGame(g.ID)
+	result, err := c.getMineralPacketsForGame(c.db, g.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, []*cs.MineralPacket{}, result)
 
@@ -102,7 +102,7 @@ func TestGetMineralPackets(t *testing.T) {
 		return
 	}
 
-	result, err = c.getMineralPacketsForGame(g.ID)
+	result, err = c.getMineralPacketsForGame(c.db, g.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result))
 

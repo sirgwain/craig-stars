@@ -104,7 +104,7 @@ func TestGetFleets(t *testing.T) {
 	g, player := c.createTestGameWithPlayer()
 
 	// start with 1 planet from connectTestDB
-	result, err := c.getFleetsForGame(g.ID)
+	result, err := c.getFleetsForGame(c.db, g.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, []*cs.Fleet{}, result)
 
@@ -114,7 +114,7 @@ func TestGetFleets(t *testing.T) {
 		return
 	}
 
-	result, err = c.getFleetsForGame(g.ID)
+	result, err = c.getFleetsForGame(c.db, g.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result))
 

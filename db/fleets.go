@@ -138,10 +138,10 @@ func (c *client) GetFleet(id int64) (*cs.Fleet, error) {
 	return fleet, nil
 }
 
-func (c *client) getFleetsForGame(gameID int64) ([]*cs.Fleet, error) {
+func (c *client) getFleetsForGame(db SQLSelector, gameID int64) ([]*cs.Fleet, error) {
 
 	items := []Fleet{}
-	if err := c.db.Select(&items, `SELECT * FROM fleets WHERE gameId = ?`, gameID); err != nil {
+	if err := db.Select(&items, `SELECT * FROM fleets WHERE gameId = ?`, gameID); err != nil {
 		if err == sql.ErrNoRows {
 			return []*cs.Fleet{}, nil
 		}

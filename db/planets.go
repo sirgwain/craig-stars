@@ -104,10 +104,10 @@ func (c *client) GetPlanet(id int64) (*cs.Planet, error) {
 	return planet, nil
 }
 
-func (c *client) getPlanetsForGame(gameID int64) ([]*cs.Planet, error) {
+func (c *client) getPlanetsForGame(db SQLSelector, gameID int64) ([]*cs.Planet, error) {
 
 	items := []Planet{}
-	if err := c.db.Select(&items, `SELECT * FROM planets WHERE gameId = ?`, gameID); err != nil {
+	if err := db.Select(&items, `SELECT * FROM planets WHERE gameId = ?`, gameID); err != nil {
 		if err == sql.ErrNoRows {
 			return []*cs.Planet{}, nil
 		}

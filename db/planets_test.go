@@ -50,7 +50,7 @@ func TestGetPlanets(t *testing.T) {
 	game := c.createTestGame()
 
 	// start with 1 planet from connectTestDB
-	result, err := c.getPlanetsForGame(game.ID)
+	result, err := c.getPlanetsForGame(c.db, game.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, []*cs.Planet{}, result)
 
@@ -60,7 +60,7 @@ func TestGetPlanets(t *testing.T) {
 		return
 	}
 
-	result, err = c.getPlanetsForGame(game.ID)
+	result, err = c.getPlanetsForGame(c.db, game.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result))
 

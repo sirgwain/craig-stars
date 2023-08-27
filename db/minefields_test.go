@@ -94,7 +94,7 @@ func TestGetMineFields(t *testing.T) {
 	g, player := c.createTestGameWithPlayer()
 
 	// start with 1 planet from connectTestDB
-	result, err := c.getMineFieldsForGame(g.ID)
+	result, err := c.getMineFieldsForGame(c.db, g.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, []*cs.MineField{}, result)
 
@@ -104,7 +104,7 @@ func TestGetMineFields(t *testing.T) {
 		return
 	}
 
-	result, err = c.getMineFieldsForGame(g.ID)
+	result, err = c.getMineFieldsForGame(c.db, g.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result))
 

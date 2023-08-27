@@ -50,7 +50,7 @@ func TestGetWormholes(t *testing.T) {
 	game := c.createTestGame()
 
 	// start with 1 wormhole from connectTestDB
-	result, err := c.getWormholesForGame(game.ID)
+	result, err := c.getWormholesForGame(c.db, game.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, []*cs.Wormhole{}, result)
 
@@ -60,7 +60,7 @@ func TestGetWormholes(t *testing.T) {
 		return
 	}
 
-	result, err = c.getWormholesForGame(game.ID)
+	result, err = c.getWormholesForGame(c.db, game.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result))
 

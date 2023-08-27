@@ -132,6 +132,11 @@ type SQLExecer interface {
 	Exec(query string, args ...any) (sql.Result, error)
 }
 
+type SQLSelector interface {
+	Select(dest interface{}, query string, args ...interface{}) error
+	Get(dest interface{}, query string, args ...interface{}) error
+}
+
 func (c *client) Connect(cfg *config.Config) error {
 
 	c.databaseInMemory = strings.Contains(cfg.Database.Filename, ":memory:")
@@ -188,6 +193,9 @@ func (c *client) Connect(cfg *config.Config) error {
 	if c.databaseInMemory {
 		c.setupInMemoryDatabase()
 	}
+
+	// make sure the data is updated
+	c.mustUpgrade()
 
 	return nil
 }

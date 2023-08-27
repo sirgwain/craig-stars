@@ -54,9 +54,13 @@ func (c *client) GetSalvageByNum(gameID int64, num int) (*cs.Salvage, error) {
 }
 
 func (c *client) GetSalvagesForGame(gameID int64) ([]*cs.Salvage, error) {
+	return c.getSalvagesForGame(c.db, gameID)
+}
+
+func (c *client) getSalvagesForGame(db SQLSelector, gameID int64) ([]*cs.Salvage, error) {
 
 	items := []Salvage{}
-	if err := c.db.Select(&items, `SELECT * FROM salvages WHERE gameId = ? ORDER BY num`, gameID); err != nil {
+	if err := db.Select(&items, `SELECT * FROM salvages WHERE gameId = ? ORDER BY num`, gameID); err != nil {
 		if err == sql.ErrNoRows {
 			return []*cs.Salvage{}, nil
 		}

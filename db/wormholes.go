@@ -51,10 +51,10 @@ func (c *client) GetWormhole(id int64) (*cs.Wormhole, error) {
 	return wormhole, nil
 }
 
-func (c *client) getWormholesForGame(gameID int64) ([]*cs.Wormhole, error) {
+func (c *client) getWormholesForGame(db SQLSelector, gameID int64) ([]*cs.Wormhole, error) {
 
 	items := []Wormhole{}
-	if err := c.db.Select(&items, `SELECT * FROM wormholes WHERE gameId = ?`, gameID); err != nil {
+	if err := db.Select(&items, `SELECT * FROM wormholes WHERE gameId = ?`, gameID); err != nil {
 		if err == sql.ErrNoRows {
 			return []*cs.Wormhole{}, nil
 		}

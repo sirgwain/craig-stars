@@ -12,6 +12,11 @@ func (c *client) CreateTechStore(tech *cs.TechStore) error {
 	return nil
 }
 
+
+func (c *client) getTechStore(db SQLSelector, id int64) (*cs.TechStore, error) {
+	return nil, nil
+}
+
 func (c *client) GetTechStore(id int64) (*cs.TechStore, error) {
 	// TODO: implement
 	return nil, nil

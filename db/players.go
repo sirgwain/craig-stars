@@ -298,10 +298,10 @@ func (c *client) GetPlayersForUser(userID int64) ([]cs.Player, error) {
 }
 
 // get all the players for a game, with data loaded
-func (c *client) getPlayersForGame(gameID int64) ([]*cs.Player, error) {
+func (c *client) getPlayersForGame(db SQLSelector, gameID int64) ([]*cs.Player, error) {
 
 	items := []Player{}
-	if err := c.db.Select(&items, `SELECT * FROM players WHERE gameId = ?`, gameID); err != nil {
+	if err := db.Select(&items, `SELECT * FROM players WHERE gameId = ?`, gameID); err != nil {
 		if err == sql.ErrNoRows {
 			return []*cs.Player{}, nil
 		}
@@ -313,7 +313,7 @@ func (c *client) getPlayersForGame(gameID int64) ([]*cs.Player, error) {
 		player := c.converter.ConvertPlayer(items[i])
 		players[i] = &player
 
-		designs, err := c.GetShipDesignsForPlayer(gameID, player.Num)
+		designs, err := c.getShipDesignsForPlayer(db, gameID, player.Num)
 		if err != nil {
 			return nil, fmt.Errorf("get designs for player %w", err)
 		}

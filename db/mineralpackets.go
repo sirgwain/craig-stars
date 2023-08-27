@@ -63,10 +63,10 @@ func (c *client) GetMineralPacketsForPlayer(gameID int64, playerNum int) ([]*cs.
 	return results, nil
 }
 
-func (c *client) getMineralPacketsForGame(gameID int64) ([]*cs.MineralPacket, error) {
+func (c *client) getMineralPacketsForGame(db SQLSelector, gameID int64) ([]*cs.MineralPacket, error) {
 
 	items := []MineralPacket{}
-	if err := c.db.Select(&items, `SELECT * FROM mineralPackets WHERE gameId = ?`, gameID); err != nil {
+	if err := db.Select(&items, `SELECT * FROM mineralPackets WHERE gameId = ?`, gameID); err != nil {
 		if err == sql.ErrNoRows {
 			return []*cs.MineralPacket{}, nil
 		}

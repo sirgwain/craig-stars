@@ -79,10 +79,10 @@ func (c *client) GetMineFieldsForPlayer(gameID int64, playerNum int) ([]*cs.Mine
 	return results, nil
 }
 
-func (c *client) getMineFieldsForGame(gameID int64) ([]*cs.MineField, error) {
+func (c *client) getMineFieldsForGame(db SQLSelector, gameID int64) ([]*cs.MineField, error) {
 
 	items := []MineField{}
-	if err := c.db.Select(&items, `SELECT * FROM mineFields WHERE gameId = ?`, gameID); err != nil {
+	if err := db.Select(&items, `SELECT * FROM mineFields WHERE gameId = ?`, gameID); err != nil {
 		if err == sql.ErrNoRows {
 			return []*cs.MineField{}, nil
 		}

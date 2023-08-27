@@ -49,9 +49,13 @@ func (item *ShipDesignSpec) Scan(src interface{}) error {
 }
 
 func (c *client) GetShipDesignsForPlayer(gameID int64, playerNum int) ([]*cs.ShipDesign, error) {
+	return c.getShipDesignsForPlayer(c.db, gameID, playerNum)
+}
+
+func (c *client) getShipDesignsForPlayer(db SQLSelector, gameID int64, playerNum int) ([]*cs.ShipDesign, error) {
 
 	items := []*ShipDesign{}
-	if err := c.db.Select(&items, `SELECT * FROM shipDesigns WHERE gameId = ? AND playerNum = ?`, gameID, playerNum); err != nil {
+	if err := db.Select(&items, `SELECT * FROM shipDesigns WHERE gameId = ? AND playerNum = ?`, gameID, playerNum); err != nil {
 		if err == sql.ErrNoRows {
 			return []*cs.ShipDesign{}, nil
 		}

@@ -368,7 +368,7 @@ func (d *discover) discoverPlanet(rules *Rules, player *Player, planet *Planet, 
 		intel.Spec.HasStargate = planet.Spec.HasStargate
 
 		// these should never be nil...
-		if planet.Spec.HasStarbase && planet.Starbase != nil && planet.Starbase.Tokens[0].design != nil {
+		if !ownedByPlayer && planet.Spec.HasStarbase && planet.Starbase != nil && planet.Starbase.Tokens[0].design != nil {
 			design := planet.Starbase.Tokens[0].design
 			intel.Spec.StarbaseDesignName = design.Name
 			intel.Spec.StarbaseDesignNum = design.Num
