@@ -58,7 +58,7 @@ type mapObjectGetter interface {
 	getMysteryTrader(num int) *MysteryTrader
 	getWormhole(num int) *Wormhole
 	getSalvage(num int) *Salvage
-	getCargoHolder(mapObjectType MapObjectType, num int, playerNum int) cargoHolder
+	getCargoHolder(mapObjectType MapObjectType, num int, playerNum int) (cargoHolder, bool)
 	getMapObjectsAtPosition(position Vector) []interface{}
 	isPositionValid(pos Vector, occupiedLocations *[]Vector, minDistance float64) bool
 	updateMapObjectAtPosition(mo interface{}, originalPosition, newPosition Vector)
@@ -286,18 +286,22 @@ func (u *Universe) getMysteryTrader(num int) *MysteryTrader {
 }
 
 // get a cargo holder by natural key (num, playerNum, etc)
-func (u *Universe) getCargoHolder(mapObjectType MapObjectType, num int, playerNum int) cargoHolder {
+func (u *Universe) getCargoHolder(mapObjectType MapObjectType, num int, playerNum int) (cargoHolder, bool) {
 	switch mapObjectType {
 	case MapObjectTypePlanet:
-		return u.getPlanet(num)
+		mo := u.getPlanet(num)
+		return mo, mo != nil
 	case MapObjectTypeFleet:
-		return u.getFleet(playerNum, num)
+		mo := u.getFleet(playerNum, num)
+		return mo, mo != nil
 	case MapObjectTypeMineralPacket:
-		return u.getMineralPacket(playerNum, num)
+		mo := u.getMineralPacket(playerNum, num)
+		return mo, mo != nil
 	case MapObjectTypeSalvage:
-		return u.getSalvage(num)
+		mo := u.getSalvage(num)
+		return mo, mo != nil
 	}
-	return nil
+	return nil, false
 }
 
 // update the num instances for all tokens
@@ -320,7 +324,7 @@ func (u *Universe) updateTokenCounts() {
 // mark a fleet as deleted and remove it from the universe
 func (u *Universe) deleteFleet(fleet *Fleet) {
 	fleet.Delete = true
-	fleet.MarkDirty()	
+	fleet.MarkDirty()
 
 	delete(u.fleetsByNum, playerObjectKey(fleet.PlayerNum, fleet.Num))
 
@@ -337,7 +341,7 @@ func (u *Universe) deleteFleet(fleet *Fleet) {
 // mark a starbase as deleted and remove it from the universe
 func (u *Universe) deleteStarbase(starbase *Fleet) {
 	starbase.Delete = true
-	starbase.MarkDirty()	
+	starbase.MarkDirty()
 
 	u.removeMapObjectAtPosition(starbase, starbase.Position)
 
@@ -393,7 +397,7 @@ func (u *Universe) moveWormhole(wormhole *Wormhole, originalPosition Vector) {
 
 // delete a wormhole from the universe
 func (u *Universe) deleteWormhole(wormhole *Wormhole) {
-	wormhole.Delete = true	
+	wormhole.Delete = true
 
 	delete(u.wormholesByNum, wormhole.Num)
 	u.removeMapObjectAtPosition(wormhole, wormhole.Position)
@@ -446,7 +450,7 @@ func (u *Universe) createSalvage(position Vector, playerNum int, cargo Cargo) *S
 
 // delete a salvage from the universe
 func (u *Universe) deleteSalvage(salvage *Salvage) {
-	salvage.Delete = true	
+	salvage.Delete = true
 
 	delete(u.salvagesByNum, salvage.Num)
 	u.removeMapObjectAtPosition(salvage, salvage.Position)
@@ -454,7 +458,7 @@ func (u *Universe) deleteSalvage(salvage *Salvage) {
 
 // delete a salvage from the universe
 func (u *Universe) deletePacket(packet *MineralPacket) {
-	packet.Delete = true	
+	packet.Delete = true
 
 	delete(u.mineralPacketsByNum, playerObjectKey(packet.PlayerNum, packet.Num))
 	u.removeMapObjectAtPosition(packet, packet.Position)
@@ -567,7 +571,7 @@ func (u *Universe) addMineField(mineField *MineField) {
 
 // mark a mineField as deleted and remove it from the universe
 func (u *Universe) deleteMineField(mineField *MineField) {
-	mineField.Delete = true	
+	mineField.Delete = true
 
 	delete(u.mineFieldsByNum, playerObjectKey(mineField.PlayerNum, mineField.Num))
 	u.removeMapObjectAtPosition(mineField, mineField.Position)

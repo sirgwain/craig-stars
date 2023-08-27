@@ -275,9 +275,9 @@ func (t *turn) fleetUnload() {
 		wp := &fleet.Waypoints[0]
 
 		if !wp.processed && wp.Task == WaypointTaskTransport {
-			dest := t.game.getCargoHolder(wp.TargetType, wp.TargetNum, wp.TargetPlayerNum)
+			dest, found := t.game.getCargoHolder(wp.TargetType, wp.TargetNum, wp.TargetPlayerNum)
 			var salvage *Salvage
-			if dest == nil {
+			if !found {
 
 				salvage = t.game.createSalvage(fleet.Position, fleet.PlayerNum, Cargo{})
 				dest = salvage
@@ -331,8 +331,8 @@ func (t *turn) fleetLoad() {
 		wp := &fleet.Waypoints[0]
 
 		if !wp.processed && wp.Task == WaypointTaskTransport {
-			dest := t.game.getCargoHolder(wp.TargetType, wp.TargetNum, wp.TargetPlayerNum)
-			if dest == nil || dest.getMapObject().Delete {
+			dest, ok := t.game.getCargoHolder(wp.TargetType, wp.TargetNum, wp.TargetPlayerNum)
+			if !ok || dest.getMapObject().Delete {
 				// can't load from space
 				return
 			}
