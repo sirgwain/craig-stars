@@ -18,6 +18,7 @@ func connectTestDB() *client {
 	cfg.Database.UsersFilename = ":memory:"
 	cfg.Database.Recreate = true
 	cfg.Database.DebugLogging = true
+	cfg.Database.SkipUpgrade = true
 	if err := c.Connect(cfg); err != nil {
 		panic(fmt.Errorf("connect to test database, %w", err))
 	}

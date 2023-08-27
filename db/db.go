@@ -195,7 +195,9 @@ func (c *client) Connect(cfg *config.Config) error {
 	}
 
 	// make sure the data is updated
-	c.mustUpgrade()
+	if !cfg.Database.SkipUpgrade {
+		c.mustUpgrade()
+	}
 
 	return nil
 }

@@ -10,6 +10,16 @@ import (
 	"github.com/sirgwain/craig-stars/cs"
 )
 
+/*
+Upgrade data in the database based on game updates
+
+Version Info:
+
+001 - Fix player discovers own starbase designs on planet discovery and adds them to intel
+
+
+*/
+
 type Version struct {
 	ID        int64     `json:"id,omitempty"`
 	CreatedAt time.Time `json:"createdAt,omitempty"`
