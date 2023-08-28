@@ -53,6 +53,5 @@ export const unbindNavigationHotkeys = () => {
 	hotkeys.unbind('F3');
 	hotkeys.unbind('F4');
 	hotkeys.unbind('F5');
-	hotkeys.unbind('F9');
 	hotkeys.unbind('F10');
 };

@@ -67,9 +67,10 @@
 
 		unbindQuantityModifier();
 		unbindNavigationHotkeys();
-		hotkeys.unbind('F9');
-		hotkeys.unbind('n');
-		hotkeys.unbind('p');
+		hotkeys.unbind('F9', 'root');
+		hotkeys.unbind('n', 'root');
+		hotkeys.unbind('p', 'root');
+		hotkeys.deleteScope('root');
 	});
 
 	async function loadGame() {
@@ -79,9 +80,9 @@
 			unsubscribe && unsubscribe();
 
 			unbindNavigationHotkeys();
-			hotkeys.unbind('F9');
-			hotkeys.unbind('n');
-			hotkeys.unbind('p');
+			hotkeys.unbind('F9', 'root');
+			hotkeys.unbind('n', 'root');
+			hotkeys.unbind('p', 'root');
 			hotkeys.deleteScope('root');
 
 			// load a new game, when this is successful, the $game contenxt will be updated
@@ -101,7 +102,7 @@
 
 				bindNavigationHotkeys(id, page);
 
-				hotkeys('F9', () => {
+				hotkeys('F9', 'root', () => {
 					onSubmitTurn();
 				});
 				hotkeys('n', 'root', () => {
