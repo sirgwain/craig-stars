@@ -39,10 +39,11 @@ func (req *researchCostRequest) Bind(r *http.Request) error {
 // context for /api/games/{id} calls that require a player
 func (s *server) playerCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		db := s.contextDb(r)
 		user := s.contextUser(r)
 		game := s.contextGame(r)
 
-		player, err := s.db.GetLightPlayerForGame(game.ID, user.ID)
+		player, err := db.GetLightPlayerForGame(game.ID, user.ID)
 		if err != nil {
 			render.Render(w, r, ErrInternalServerError(err))
 			return
@@ -69,9 +70,10 @@ func (s *server) player(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) playerIntels(w http.ResponseWriter, r *http.Request) {
+	db := s.contextDb(r)
 	user := s.contextUser(r)
 	game := s.contextGame(r)
-	intels, err := s.db.GetPlayerIntelsForGame(game.ID, user.ID)
+	intels, err := db.GetPlayerIntelsForGame(game.ID, user.ID)
 
 	if err != nil {
 		render.Render(w, r, ErrInternalServerError(err))
@@ -82,10 +84,11 @@ func (s *server) playerIntels(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) fullPlayer(w http.ResponseWriter, r *http.Request) {
+	db := s.contextDb(r)
 	user := s.contextUser(r)
 	game := s.contextGame(r)
 
-	player, err := s.db.GetPlayerForGame(game.ID, user.ID)
+	player, err := db.GetPlayerForGame(game.ID, user.ID)
 	if err != nil {
 		render.Render(w, r, ErrInternalServerError(err))
 		return
@@ -101,6 +104,7 @@ func (s *server) fullPlayer(w http.ResponseWriter, r *http.Request) {
 
 // get mapObjects for a player
 func (s *server) mapObjects(w http.ResponseWriter, r *http.Request) {
+	db := s.contextDb(r)
 	user := s.contextUser(r)
 
 	gameID, err := s.int64URLParam(r, "id")
@@ -109,7 +113,7 @@ func (s *server) mapObjects(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mapObjects, err := s.db.GetPlayerMapObjects(*gameID, user.ID)
+	mapObjects, err := db.GetPlayerMapObjects(*gameID, user.ID)
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", *gameID).Int64("UserID", user.ID).Msg("load player map objects database")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -143,16 +147,17 @@ type playerUniverseResponse struct {
 
 // get mapObjects for a player
 func (s *server) universe(w http.ResponseWriter, r *http.Request) {
+	db := s.contextDb(r)
 	user := s.contextUser(r)
 	game := s.contextGame(r)
 
-	player, err := s.db.GetPlayerForGame(game.ID, user.ID)
+	player, err := db.GetPlayerForGame(game.ID, user.ID)
 	if err != nil {
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	pmos, err := s.db.GetPlayerMapObjects(game.ID, user.ID)
+	pmos, err := db.GetPlayerMapObjects(game.ID, user.ID)
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Int64("UserID", user.ID).Msg("load player map objects database")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -164,7 +169,7 @@ func (s *server) universe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	intels, err := s.db.GetPlayerIntelsForGame(game.ID, user.ID)
+	intels, err := db.GetPlayerIntelsForGame(game.ID, user.ID)
 	if err != nil {
 		render.Render(w, r, ErrInternalServerError(err))
 		return
@@ -175,7 +180,7 @@ func (s *server) universe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	designs, err := s.db.GetShipDesignsForPlayer(game.ID, player.Num)
+	designs, err := db.GetShipDesignsForPlayer(game.ID, player.Num)
 	if err != nil {
 		render.Render(w, r, ErrInternalServerError(err))
 		return
@@ -286,19 +291,21 @@ func buildUniverse(player *cs.Player, designs []*cs.ShipDesign, pmos cs.PlayerMa
 
 // submit a player turn and return the newly generated turn if there is one
 func (s *server) submitTurn(w http.ResponseWriter, r *http.Request) {
+	db := s.contextDb(r)
 	game := s.contextGame(r)
 	player := s.contextPlayer(r)
 
 	// submit the turn
 	player.SubmittedTurn = true
-	if err := s.db.SubmitPlayerTurn(player.GameID, player.Num, true); err != nil {
+	if err := db.SubmitPlayerTurn(player.GameID, player.Num, true); err != nil {
 		log.Error().Err(err).Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update player")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
 	// TODO: this should probably be a goroutine or something
-	result, err := s.gameRunner.CheckAndGenerateTurn(player.GameID)
+	gr := s.newGameRunner(r)
+	result, err := gr.CheckAndGenerateTurn(player.GameID)
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", player.GameID).Msg("check and generate new turn")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -306,13 +313,13 @@ func (s *server) submitTurn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if result == TurnGenerated {
-		s.sendNewTurnNotification(game.ID)
+		s.sendNewTurnNotification(db, game.ID)
 		s.renderFullPlayerGame(w, r, player.GameID, player.UserID)
 		return
 	}
 
 	// return the game status
-	game, err = s.db.GetGame(player.GameID)
+	game, err = db.GetGame(player.GameID)
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", player.GameID).Msg("load game")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -324,11 +331,12 @@ func (s *server) submitTurn(w http.ResponseWriter, r *http.Request) {
 
 // submit a player turn and return the newly generated turn if there is one
 func (s *server) unSubmitTurn(w http.ResponseWriter, r *http.Request) {
+	db := s.contextDb(r)
 	player := s.contextPlayer(r)
 
 	// submit the turn
 	player.SubmittedTurn = false
-	if err := s.db.SubmitPlayerTurn(player.GameID, player.Num, false); err != nil {
+	if err := db.SubmitPlayerTurn(player.GameID, player.Num, false); err != nil {
 		log.Error().Err(err).Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update player")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
@@ -339,7 +347,8 @@ func (s *server) unSubmitTurn(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) renderFullPlayerGame(w http.ResponseWriter, r *http.Request, gameID, userID int64) {
 	// return a new turn
-	game, fullPlayer, err := s.gameRunner.LoadPlayerGame(gameID, userID)
+	gr := s.newGameRunner(r)
+	game, fullPlayer, err := gr.LoadPlayerGame(gameID, userID)
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Msg("load full game from database")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -358,6 +367,7 @@ func (s *server) renderFullPlayerGame(w http.ResponseWriter, r *http.Request, ga
 
 // Submit a turn for the player
 func (s *server) updatePlayerOrders(w http.ResponseWriter, r *http.Request) {
+	db := s.contextDb(r)
 	game := s.contextGame(r)
 	player := s.contextPlayer(r)
 
@@ -372,7 +382,7 @@ func (s *server) updatePlayerOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	planets, err := s.db.GetPlanetsForPlayer(player.GameID, player.Num)
+	planets, err := db.GetPlanetsForPlayer(player.GameID, player.Num)
 	if err != nil {
 		log.Error().Err(err).Int64("ID", player.ID).Msg("loading player planets from database")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -380,7 +390,7 @@ func (s *server) updatePlayerOrders(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// load this player but with designs so the update works correctly
-	player, err = s.db.GetPlayerWithDesignsForGame(game.ID, player.Num)
+	player, err = db.GetPlayerWithDesignsForGame(game.ID, player.Num)
 	if err != nil {
 		log.Error().Err(err).Int64("ID", player.ID).Msg("loading player from database")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -391,7 +401,7 @@ func (s *server) updatePlayerOrders(w http.ResponseWriter, r *http.Request) {
 	orderer.UpdatePlayerOrders(player, planets, *orders.PlayerOrders, &game.Rules)
 
 	// save the player to the database
-	if err := s.db.UpdatePlayerOrders(player); err != nil {
+	if err := db.UpdatePlayerOrders(player); err != nil {
 		log.Error().Err(err).Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update player")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
@@ -401,7 +411,7 @@ func (s *server) updatePlayerOrders(w http.ResponseWriter, r *http.Request) {
 		if planet.Dirty {
 			// TODO: only update the planet spec? that's all that changes
 			// TODO: do this all in one transaction?
-			if err := s.db.UpdatePlanet(planet); err != nil {
+			if err := db.UpdatePlanet(planet); err != nil {
 				log.Error().Err(err).Int64("ID", player.ID).Msg("updating player planet in database")
 				render.Render(w, r, ErrInternalServerError(err))
 				return
@@ -415,6 +425,7 @@ func (s *server) updatePlayerOrders(w http.ResponseWriter, r *http.Request) {
 
 // Submit a turn for the player
 func (s *server) updatePlayerPlans(w http.ResponseWriter, r *http.Request) {
+	db := s.contextDb(r)
 	player := s.contextPlayer(r)
 
 	plans := playerPlansRequest{}
@@ -451,7 +462,7 @@ func (s *server) updatePlayerPlans(w http.ResponseWriter, r *http.Request) {
 	player.PlayerPlans = *plans.PlayerPlans
 
 	// save the player to the database
-	if err := s.db.UpdatePlayerPlans(player); err != nil {
+	if err := db.UpdatePlayerPlans(player); err != nil {
 		log.Error().Err(err).Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update player")
 		render.Render(w, r, ErrInternalServerError(err))
 		return

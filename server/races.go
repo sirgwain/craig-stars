@@ -22,6 +22,7 @@ func (req *raceRequest) Bind(r *http.Request) error {
 // context for /api/races/{id} calls
 func (s *server) raceCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		db := s.contextDb(r)
 		user := s.contextUser(r)
 
 		// load the race by id from the database
@@ -31,7 +32,7 @@ func (s *server) raceCtx(next http.Handler) http.Handler {
 			return
 		}
 
-		race, err := s.db.GetRace(*id)
+		race, err := db.GetRace(*id)
 		if err != nil {
 			render.Render(w, r, ErrInternalServerError(err))
 			return
@@ -57,9 +58,10 @@ func (s *server) contextRace(r *http.Request) *cs.Race {
 }
 
 func (s *server) races(w http.ResponseWriter, r *http.Request) {
+	db := s.contextDb(r)
 	user := s.contextUser(r)
 
-	races, err := s.db.GetRacesForUser(user.ID)
+	races, err := db.GetRacesForUser(user.ID)
 	if err != nil {
 		log.Error().Err(err).Int64("UserID", user.ID).Msg("get races from database")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -76,6 +78,7 @@ func (s *server) race(w http.ResponseWriter, r *http.Request) {
 
 // create a new race for a user
 func (s *server) createRace(w http.ResponseWriter, r *http.Request) {
+	db := s.contextDb(r)
 	user := s.contextUser(r)
 
 	race := raceRequest{}
@@ -85,7 +88,7 @@ func (s *server) createRace(w http.ResponseWriter, r *http.Request) {
 	}
 
 	race.UserID = user.ID
-	if err := s.db.CreateRace(race.Race); err != nil {
+	if err := db.CreateRace(race.Race); err != nil {
 		log.Error().Err(err).Int64("UserID", user.ID).Msg("create race")
 		render.Render(w, r, ErrBadRequest(err))
 		return
@@ -109,6 +112,7 @@ func (s *server) getRacePoints(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) updateRace(w http.ResponseWriter, r *http.Request) {
+	db := s.contextDb(r)
 	race := raceRequest{}
 	if err := render.Bind(r, &race); err != nil {
 		render.Render(w, r, ErrBadRequest(err))
@@ -125,7 +129,7 @@ func (s *server) updateRace(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := s.db.UpdateRace(race.Race); err != nil {
+	if err := db.UpdateRace(race.Race); err != nil {
 		log.Error().Err(err).Int64("ID", race.ID).Msg("update race in database")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
@@ -135,9 +139,10 @@ func (s *server) updateRace(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) deleteRace(w http.ResponseWriter, r *http.Request) {
+	db := s.contextDb(r)
 	race := s.contextRace(r)
 
-	if err := s.db.DeleteRace(race.ID); err != nil {
+	if err := db.DeleteRace(race.ID); err != nil {
 		log.Error().Err(err).Int64("ID", race.ID).Msg("delete race from database")
 		render.Render(w, r, ErrInternalServerError(err))
 		return

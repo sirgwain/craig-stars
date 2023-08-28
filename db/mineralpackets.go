@@ -32,7 +32,7 @@ type MineralPacket struct {
 }
 
 // get a mineralPacket by id
-func (c *client) GetMineralPacket(id int64) (*cs.MineralPacket, error) {
+func (c *txClient) GetMineralPacket(id int64) (*cs.MineralPacket, error) {
 	item := MineralPacket{}
 	if err := c.db.Get(&item, "SELECT * FROM mineralPackets WHERE id = ?", id); err != nil {
 		if err == sql.ErrNoRows {
@@ -45,7 +45,7 @@ func (c *client) GetMineralPacket(id int64) (*cs.MineralPacket, error) {
 	return mineralPacket, nil
 }
 
-func (c *client) GetMineralPacketsForPlayer(gameID int64, playerNum int) ([]*cs.MineralPacket, error) {
+func (c *txClient) GetMineralPacketsForPlayer(gameID int64, playerNum int) ([]*cs.MineralPacket, error) {
 
 	items := []MineralPacket{}
 	if err := c.db.Select(&items, `SELECT * FROM mineralPackets WHERE gameId = ? AND playerNum = ?`, gameID, playerNum); err != nil {
@@ -63,10 +63,10 @@ func (c *client) GetMineralPacketsForPlayer(gameID int64, playerNum int) ([]*cs.
 	return results, nil
 }
 
-func (c *client) getMineralPacketsForGame(db SQLSelector, gameID int64) ([]*cs.MineralPacket, error) {
+func (c *txClient) getMineralPacketsForGame(gameID int64) ([]*cs.MineralPacket, error) {
 
 	items := []MineralPacket{}
-	if err := db.Select(&items, `SELECT * FROM mineralPackets WHERE gameId = ?`, gameID); err != nil {
+	if err := c.db.Select(&items, `SELECT * FROM mineralPackets WHERE gameId = ?`, gameID); err != nil {
 		if err == sql.ErrNoRows {
 			return []*cs.MineralPacket{}, nil
 		}
@@ -82,9 +82,9 @@ func (c *client) getMineralPacketsForGame(db SQLSelector, gameID int64) ([]*cs.M
 }
 
 // create a new game
-func (c *client) createMineralPacket(mineralPacket *cs.MineralPacket, tx SQLExecer) error {
+func (c *txClient) createMineralPacket(mineralPacket *cs.MineralPacket) error {
 	item := c.converter.ConvertGameMineralPacket(mineralPacket)
-	result, err := tx.NamedExec(`
+	result, err := c.db.NamedExec(`
 	INSERT INTO mineralPackets (
 		createdAt,
 		updatedAt,
@@ -140,16 +140,12 @@ func (c *client) createMineralPacket(mineralPacket *cs.MineralPacket, tx SQLExec
 	return nil
 }
 
-func (c *client) UpdateMineralPacket(mineralPacket *cs.MineralPacket) error {
-	return c.updateMineralPacket(mineralPacket, c.db)
-}
-
 // update an existing mineralPacket
-func (c *client) updateMineralPacket(mineralPacket *cs.MineralPacket, tx SQLExecer) error {
+func (c *txClient) updateMineralPacket(mineralPacket *cs.MineralPacket) error {
 
 	item := c.converter.ConvertGameMineralPacket(mineralPacket)
 
-	if _, err := tx.NamedExec(`
+	if _, err := c.db.NamedExec(`
 	UPDATE mineralPackets SET
 		updatedAt = CURRENT_TIMESTAMP,
 		gameId = :gameId,
@@ -176,8 +172,8 @@ func (c *client) updateMineralPacket(mineralPacket *cs.MineralPacket, tx SQLExec
 	return nil
 }
 
-func (c *client) deleteMineralPacket(mineralPacketID int64, tx SQLExecer) error {
-	if _, err := tx.Exec("DELETE FROM mineralPackets where id = ?", mineralPacketID); err != nil {
+func (c *txClient) deleteMineralPacket(mineralPacketID int64) error {
+	if _, err := c.db.Exec("DELETE FROM mineralPackets where id = ?", mineralPacketID); err != nil {
 		return fmt.Errorf("delete mineralPacket %d %w", mineralPacketID, err)
 	}
 	return nil

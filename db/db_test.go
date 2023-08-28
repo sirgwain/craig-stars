@@ -7,11 +7,9 @@ import (
 	"github.com/sirgwain/craig-stars/cs"
 )
 
-func connectTestDB() *client {
+func connectTestDB() *txClient {
 
-	c := client{
-		converter: &GameConverter{},
-	}
+	dbClient := dbClient{}
 	cfg := &config.Config{}
 	// cfg.Database.Filename = "../data/sqlx.db"
 	cfg.Database.Filename = ":memory:"
@@ -19,9 +17,15 @@ func connectTestDB() *client {
 	cfg.Database.Recreate = true
 	cfg.Database.DebugLogging = true
 	cfg.Database.SkipUpgrade = true
-	if err := c.Connect(cfg); err != nil {
+	if err := dbClient.Connect(cfg); err != nil {
 		panic(fmt.Errorf("connect to test database, %w", err))
 	}
+
+	c, err := dbClient.BeginTransaction()
+	if err != nil {
+		panic(fmt.Errorf("begin transaction, %w", err))
+	}
+	defer func() { dbClient.Rollback(c) }()
 
 	// create a test user
 	user, err := cs.NewUser("admin", "admin", "admin@craig-stars.net", cs.RoleAdmin)
@@ -32,11 +36,26 @@ func connectTestDB() *client {
 		panic(fmt.Errorf("create test database user, %w", err))
 	}
 
-	return &c
+	if err := dbClient.Commit(c); err != nil {
+		panic(fmt.Errorf("commit transaction for test user create, %w", err))
+	}
+
+	tx, err := dbClient.db.Beginx()
+	if err != nil {
+		panic(fmt.Errorf("begin test transaction, %w", err))
+	}
+
+	return newTransaction(tx)
+}
+
+func closeTestDB(c *txClient) {
+	if err := c.commit(); err != nil {
+		panic(fmt.Errorf("commit test transaction, %w", err))
+	}
 }
 
 // create a new game
-func (c *client) createTestGame() *cs.Game {
+func (c *txClient) createTestGame() *cs.Game {
 
 	game := cs.NewGame()
 	game.HostID = 1
@@ -48,7 +67,7 @@ func (c *client) createTestGame() *cs.Game {
 }
 
 // create a simple game with one player
-func (c *client) createTestGameWithPlayer() (*cs.Game, *cs.Player) {
+func (c *txClient) createTestGameWithPlayer() (*cs.Game, *cs.Player) {
 
 	gameClient := cs.NewGamer()
 	game := gameClient.CreateGame(1, *cs.NewGameSettings())
@@ -67,7 +86,7 @@ func (c *client) createTestGameWithPlayer() (*cs.Game, *cs.Player) {
 	return game, player
 }
 
-func (c *client) createTestShipDesign(player *cs.Player, design *cs.ShipDesign) {
+func (c *txClient) createTestShipDesign(player *cs.Player, design *cs.ShipDesign) {
 	design.PlayerNum = player.Num
 	design.GameID = player.GameID
 	if err := c.CreateShipDesign(design); err != nil {
@@ -75,7 +94,7 @@ func (c *client) createTestShipDesign(player *cs.Player, design *cs.ShipDesign) 
 	}
 }
 
-func (c *client) createTestFullGame() *cs.FullGame {
+func (c *txClient) createTestFullGame() *cs.FullGame {
 	gameClient := cs.NewGamer()
 	g, player := c.createTestGameWithPlayer()
 

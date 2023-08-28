@@ -17,7 +17,8 @@ import (
 var errNotFound = errors.New("resource was not found")
 
 type TurnGenerationCheckResult uint
-type DBClient db.Client
+type DBClient db.DBClient
+type TXClient db.Client
 
 const (
 	TurnNotGenerated TurnGenerationCheckResult = iota
@@ -58,12 +59,12 @@ type GameRunner interface {
 }
 
 type gameRunner struct {
-	db     DBClient
+	db     TXClient
 	client cs.Gamer
 	config config.Config
 }
 
-func NewGameRunner(db DBClient, config config.Config) GameRunner {
+func NewGameRunner(db TXClient, config config.Config) GameRunner {
 	return &gameRunner{db, cs.NewGamer(), config}
 }
 

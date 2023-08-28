@@ -48,7 +48,7 @@ func (item *MineFieldSpec) Scan(src interface{}) error {
 }
 
 // get a mineField by id
-func (c *client) GetMineField(id int64) (*cs.MineField, error) {
+func (c *txClient) GetMineField(id int64) (*cs.MineField, error) {
 	item := MineField{}
 	if err := c.db.Get(&item, "SELECT * FROM mineFields WHERE id = ?", id); err != nil {
 		if err == sql.ErrNoRows {
@@ -61,7 +61,7 @@ func (c *client) GetMineField(id int64) (*cs.MineField, error) {
 	return mineField, nil
 }
 
-func (c *client) GetMineFieldsForPlayer(gameID int64, playerNum int) ([]*cs.MineField, error) {
+func (c *txClient) GetMineFieldsForPlayer(gameID int64, playerNum int) ([]*cs.MineField, error) {
 
 	items := []MineField{}
 	if err := c.db.Select(&items, `SELECT * FROM mineFields WHERE gameId = ? AND playerNum = ?`, gameID, playerNum); err != nil {
@@ -79,10 +79,10 @@ func (c *client) GetMineFieldsForPlayer(gameID int64, playerNum int) ([]*cs.Mine
 	return results, nil
 }
 
-func (c *client) getMineFieldsForGame(db SQLSelector, gameID int64) ([]*cs.MineField, error) {
+func (c *txClient) getMineFieldsForGame(gameID int64) ([]*cs.MineField, error) {
 
 	items := []MineField{}
-	if err := db.Select(&items, `SELECT * FROM mineFields WHERE gameId = ?`, gameID); err != nil {
+	if err := c.db.Select(&items, `SELECT * FROM mineFields WHERE gameId = ?`, gameID); err != nil {
 		if err == sql.ErrNoRows {
 			return []*cs.MineField{}, nil
 		}
@@ -98,9 +98,9 @@ func (c *client) getMineFieldsForGame(db SQLSelector, gameID int64) ([]*cs.MineF
 }
 
 // create a new game
-func (c *client) createMineField(mineField *cs.MineField, tx SQLExecer) error {
+func (c *txClient) createMineField(mineField *cs.MineField) error {
 	item := c.converter.ConvertGameMineField(mineField)
-	result, err := tx.NamedExec(`
+	result, err := c.db.NamedExec(`
 	INSERT INTO mineFields (
 		createdAt,
 		updatedAt,
@@ -144,16 +144,11 @@ func (c *client) createMineField(mineField *cs.MineField, tx SQLExecer) error {
 	return nil
 }
 
-func (c *client) UpdateMineField(mineField *cs.MineField) error {
-	return c.updateMineField(mineField, c.db)
-}
-
 // update an existing mineField
-func (c *client) updateMineField(mineField *cs.MineField, tx SQLExecer) error {
-
+func (c *txClient) UpdateMineField(mineField *cs.MineField) error {
 	item := c.converter.ConvertGameMineField(mineField)
 
-	if _, err := tx.NamedExec(`
+	if _, err := c.db.NamedExec(`
 	UPDATE mineFields SET
 		updatedAt = CURRENT_TIMESTAMP,
 		gameId = :gameId,
@@ -174,8 +169,8 @@ func (c *client) updateMineField(mineField *cs.MineField, tx SQLExecer) error {
 	return nil
 }
 
-func (c *client) deleteMineField(mineFieldID int64, tx SQLExecer) error {
-	if _, err := tx.Exec("DELETE FROM mineFields where id = ?", mineFieldID); err != nil {
+func (c *txClient) deleteMineField(mineFieldID int64) error {
+	if _, err := c.db.Exec("DELETE FROM mineFields where id = ?", mineFieldID); err != nil {
 		return fmt.Errorf("delete mineField %d %w", mineFieldID, err)
 	}
 	return nil

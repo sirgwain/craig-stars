@@ -11,7 +11,7 @@ import (
 
 func TestCreatePlanet(t *testing.T) {
 	type args struct {
-		c      *client
+		c      *txClient
 		planet *cs.Planet
 	}
 	tests := []struct {
@@ -30,7 +30,7 @@ func TestCreatePlanet(t *testing.T) {
 			tt.args.planet.GameID = game.ID
 
 			want := *tt.args.planet
-			err := tt.args.c.createPlanet(tt.args.planet, tt.args.c.db)
+			err := tt.args.c.createPlanet(tt.args.planet)
 
 			// id is automatically added
 			want.ID = tt.args.planet.ID
@@ -47,20 +47,22 @@ func TestCreatePlanet(t *testing.T) {
 
 func TestGetPlanets(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
+
 	game := c.createTestGame()
 
 	// start with 1 planet from connectTestDB
-	result, err := c.getPlanetsForGame(c.db, game.ID)
+	result, err := c.getPlanetsForGame(game.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, []*cs.Planet{}, result)
 
 	planet := cs.Planet{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: game.ID}}}
-	if err := c.createPlanet(&planet, c.db); err != nil {
+	if err := c.createPlanet(&planet); err != nil {
 		t.Errorf("create planet %s", err)
 		return
 	}
 
-	result, err = c.getPlanetsForGame(c.db, game.ID)
+	result, err = c.getPlanetsForGame(game.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result))
 
@@ -68,9 +70,11 @@ func TestGetPlanets(t *testing.T) {
 
 func TestGetPlanet(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
+
 	game := c.createTestGame()
 	planet := cs.Planet{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: game.ID}, Name: "name", Type: cs.MapObjectTypePlanet}}
-	if err := c.createPlanet(&planet, c.db); err != nil {
+	if err := c.createPlanet(&planet); err != nil {
 		t.Errorf("create planet %s", err)
 		return
 	}
@@ -107,9 +111,11 @@ func TestGetPlanet(t *testing.T) {
 
 func TestUpdatePlanet(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
+
 	game := c.createTestGame()
 	planet := cs.Planet{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: game.ID}}}
-	if err := c.createPlanet(&planet, c.db); err != nil {
+	if err := c.createPlanet(&planet); err != nil {
 		t.Errorf("create planet %s", err)
 		return
 	}
@@ -134,9 +140,11 @@ func TestUpdatePlanet(t *testing.T) {
 
 func TestGetPlanetByNum(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
+
 	g, player := c.createTestGameWithPlayer()
 	planet1 := cs.Planet{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, Name: "name", Num: 1, Type: cs.MapObjectTypePlanet}}
-	if err := c.createPlanet(&planet1, c.db); err != nil {
+	if err := c.createPlanet(&planet1); err != nil {
 		t.Errorf("create planet %s", err)
 		return
 	}
@@ -144,7 +152,7 @@ func TestGetPlanetByNum(t *testing.T) {
 	planet2 := cs.Planet{
 		MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, Name: "name", PlayerNum: player.Num, Num: 2, Type: cs.MapObjectTypePlanet},
 	}
-	if err := c.createPlanet(&planet2, c.db); err != nil {
+	if err := c.createPlanet(&planet2); err != nil {
 		t.Errorf("create planet %s", err)
 		return
 	}
@@ -164,7 +172,7 @@ func TestGetPlanetByNum(t *testing.T) {
 		},
 		PlanetNum: planet2.Num,
 	}
-	if err := c.createFleet(&fleet, c.db); err != nil {
+	if err := c.createFleet(&fleet); err != nil {
 		t.Errorf("create fleet %s", err)
 		return
 	}
@@ -206,7 +214,7 @@ func TestGetPlanetByNum(t *testing.T) {
 				}
 				if !test.CompareAsJSON(t, got.Starbase, tt.want.Starbase) {
 					t.Errorf("GetPlanetByNum() Starbase = %v, want %v", got, tt.want)
-				}	
+				}
 			}
 		})
 	}

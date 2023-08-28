@@ -22,6 +22,7 @@ func (req *shipDesignRequest) Bind(r *http.Request) error {
 // context for /api/games/{id}/designs/{num} calls that require a shipDesign
 func (s *server) shipdDesignCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		db := s.contextDb(r)
 		player := s.contextPlayer(r)
 
 		num, err := s.intURLParam(r, "num")
@@ -30,7 +31,7 @@ func (s *server) shipdDesignCtx(next http.Handler) http.Handler {
 			return
 		}
 
-		design, err := s.db.GetShipDesignByNum(player.GameID, player.Num, *num)
+		design, err := db.GetShipDesignByNum(player.GameID, player.Num, *num)
 		if err != nil {
 			render.Render(w, r, ErrInternalServerError(err))
 			return
@@ -52,9 +53,10 @@ func (s *server) contextShipDesign(r *http.Request) *cs.ShipDesign {
 
 // CRUD for ship designs
 func (s *server) shipDesigns(w http.ResponseWriter, r *http.Request) {
+	db := s.contextDb(r)
 	player := s.contextPlayer(r)
 
-	shipDesigns, err := s.db.GetShipDesignsForPlayer(player.GameID, player.Num)
+	shipDesigns, err := db.GetShipDesignsForPlayer(player.GameID, player.Num)
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("get shipDesigns from database")
 		render.Render(w, r, ErrBadRequest(err))
@@ -70,6 +72,7 @@ func (s *server) shipDesign(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) createShipDesign(w http.ResponseWriter, r *http.Request) {
+	db := s.contextDb(r)
 	game := s.contextGame(r)
 	player := s.contextPlayer(r)
 
@@ -85,7 +88,7 @@ func (s *server) createShipDesign(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	designs, err := s.db.GetShipDesignsForPlayer(game.ID, player.Num)
+	designs, err := db.GetShipDesignsForPlayer(game.ID, player.Num)
 	if err != nil {
 		log.Error().Err(err).Int64("ID", player.ID).Msg("load designs for player")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -97,7 +100,7 @@ func (s *server) createShipDesign(w http.ResponseWriter, r *http.Request) {
 	design.Num = player.GetNextDesignNum(designs)
 	design.Spec = cs.ComputeShipDesignSpec(&game.Rules, player.TechLevels, player.Race.Spec, design.ShipDesign)
 
-	if err := s.db.CreateShipDesign(design.ShipDesign); err != nil {
+	if err := db.CreateShipDesign(design.ShipDesign); err != nil {
 		log.Error().Err(err).Int64("ID", player.ID).Str("DesignName", design.Name).Msg("save new player design")
 		render.Render(w, r, ErrInternalServerError(err))
 	}
@@ -106,6 +109,7 @@ func (s *server) createShipDesign(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) updateShipDesign(w http.ResponseWriter, r *http.Request) {
+	db := s.contextDb(r)
 	game := s.contextGame(r)
 	player := s.contextPlayer(r)
 
@@ -137,7 +141,7 @@ func (s *server) updateShipDesign(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := s.db.UpdateShipDesign(design.ShipDesign); err != nil {
+	if err := db.UpdateShipDesign(design.ShipDesign); err != nil {
 		log.Error().Err(err).Int64("ID", design.ID).Msg("update shipDesign in database")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
@@ -147,6 +151,7 @@ func (s *server) updateShipDesign(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) deleteShipDesign(w http.ResponseWriter, r *http.Request) {
+	db := s.contextDb(r)
 	game := s.contextGame(r)
 	player := s.contextPlayer(r)
 	design := s.contextShipDesign(r)
@@ -161,7 +166,7 @@ func (s *server) deleteShipDesign(w http.ResponseWriter, r *http.Request) {
 
 	// delete the ship design
 
-	playerFleets, err := s.db.GetFleetsForPlayer(game.ID, player.Num)
+	playerFleets, err := db.GetFleetsForPlayer(game.ID, player.Num)
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("load fleets from database")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -194,7 +199,7 @@ func (s *server) deleteShipDesign(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// delete a ship design and update fleets in one transaction
-	if err := s.db.DeleteShipDesignWithFleets(design.ID, fleetsToUpdate, fleetsToDelete); err != nil {
+	if err := db.DeleteShipDesignWithFleets(design.ID, fleetsToUpdate, fleetsToDelete); err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("load fleets from database")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
@@ -211,7 +216,7 @@ func (s *server) deleteShipDesign(w http.ResponseWriter, r *http.Request) {
 		log.Info().Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", design.Num).Msgf("deleted fleet %s after deleting design", fleet.Name)
 	}
 
-	allFleets, err := s.db.GetFleetsForPlayer(game.ID, player.Num)
+	allFleets, err := db.GetFleetsForPlayer(game.ID, player.Num)
 
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", design.Num).Msg("load fleets from database")

@@ -3,7 +3,7 @@ package db
 import "github.com/sirgwain/craig-stars/cs"
 
 // Get the rules for a game
-func (c *client) GetRulesForGame(gameID int64) (*cs.Rules, error) {
+func (c *txClient) GetRulesForGame(gameID int64) (*cs.Rules, error) {
 
 	// TODO: implement rules saving to DB
 	rules := cs.NewRules()

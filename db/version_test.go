@@ -6,8 +6,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUpdateVersion(t *testing.T) {
+func Test_updateVersion(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
 
 	version, err := c.getVersion()
 	if err != nil {
@@ -15,20 +16,10 @@ func TestUpdateVersion(t *testing.T) {
 		return
 	}
 
-	tx, err := c.db.Beginx()
-	if err != nil {
-		t.Errorf("begin transaction %s", err)
-		return
-	}
-
 	version.Current = 1
-	if err := c.updateVersion(version, tx); err != nil {
+	if err := c.updateVersion(version); err != nil {
 		t.Errorf("update version %s", err)
 		return
-	}
-
-	if err := tx.Commit(); err != nil {
-		t.Errorf("commit transaction %s", err)
 	}
 
 	updated, err := c.getVersion()
@@ -41,31 +32,4 @@ func TestUpdateVersion(t *testing.T) {
 	assert.Equal(t, version.Current, updated.Current)
 	assert.Less(t, version.UpdatedAt, updated.UpdatedAt)
 
-}
-
-func TestEnsureUpgrade(t *testing.T) {
-	c := connectTestDB()
-
-	c.createTestFullGame()
-
-	version, err := c.getVersion()
-	if err != nil {
-		t.Errorf("EnsureUpgrade() failed to getVersion(): %v", err)
-		return
-	}
-
-	// start at 0, run an upgrade
-	assert.Equal(t, 0, version.Current)
-	if err := c.ensureUpgrade(); err != nil {
-		t.Errorf("EnsureUpgrade() failed: %v", err)
-		return
-	}
-
-	version, err = c.getVersion()
-	if err != nil {
-		t.Errorf("EnsureUpgrade() failed to getVersion() after upgrade: %v", err)
-		return
-	}
-
-	assert.Equal(t, 1, version.Current)
 }

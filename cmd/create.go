@@ -3,18 +3,18 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/sirgwain/craig-stars/config"
 	"github.com/sirgwain/craig-stars/cs"
-	"github.com/sirgwain/craig-stars/db"
 
 	"github.com/spf13/cobra"
 )
 
 // createCmd represents the create command
 var createCmd = &cobra.Command{
-	Use:   "create",
-	Short: "Create a resource",
-	Long:  `Create a resource.`,
+	Use:                "create",
+	Short:              "Create a resource",
+	Long:               `Create a resource.`,
+	PersistentPreRunE:  dbPreRun,
+	PersistentPostRunE: dbPostRun,
 }
 
 func init() {
@@ -40,11 +40,7 @@ func addCreateUserCommand() {
 				return err
 			}
 
-			db := db.NewClient()
-			cfg := config.GetConfig()
-			db.Connect(cfg)
-
-			err = db.CreateUser(user)
+			err = client.CreateUser(user)
 			if err != nil {
 				return err
 			}

@@ -12,7 +12,7 @@ import (
 func TestCreateRace(t *testing.T) {
 
 	type args struct {
-		c    *client
+		c    *txClient
 		race *cs.Race
 	}
 	tests := []struct {
@@ -42,6 +42,8 @@ func TestCreateRace(t *testing.T) {
 
 func TestUpdateRace(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
+
 	race := cs.Race{UserID: 1, Name: "Test"}
 	if err := c.CreateRace(&race); err != nil {
 		t.Errorf("create race %s", err)
@@ -70,6 +72,8 @@ func TestUpdateRace(t *testing.T) {
 
 func TestGetRace(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
+
 	rules := cs.NewRules()
 	race := &cs.Race{UserID: 1, Name: "Test", PluralName: "testers"}
 	race = race.WithSpec(&rules)
@@ -111,6 +115,7 @@ func TestGetRace(t *testing.T) {
 
 func TestGetRaces(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
 
 	// start with 1 race from connectTestDB
 	result, err := c.GetRaces()
@@ -131,6 +136,7 @@ func TestGetRaces(t *testing.T) {
 
 func TestDeleteRaces(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
 
 	result, err := c.GetRaces()
 	assert.Nil(t, err)

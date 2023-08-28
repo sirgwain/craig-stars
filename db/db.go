@@ -19,15 +19,37 @@ import (
 	sqldblogger "github.com/simukti/sqldb-logger"
 )
 
-type client struct {
+type dbClient struct {
 	db               *sqlx.DB
+	databaseInMemory bool
+	usersInMemory    bool
+}
+
+type txClient struct {
+	db               *sqlx.Tx
 	converter        Converter
 	databaseInMemory bool
 	usersInMemory    bool
 }
 
-type Client interface {
+type DBClient interface {
 	Connect(config *config.Config) error
+	BeginTransaction() (Client, error)
+	Rollback(c Client) error
+	Commit(c Client) error
+
+	// call within a single transaction
+	GetUserByUsername(username string) (*cs.User, error)
+	CreateUser(user *cs.User) error
+	UpdateUser(user *cs.User) error
+	CreateRace(race *cs.Race) error
+}
+
+type Client interface {
+	// private transaction management methods
+	rollback() error
+	commit() error
+	ensureUpgrade() error
 
 	GetUsers() ([]cs.User, error)
 	GetUser(id int64) (*cs.User, error)
@@ -120,10 +142,32 @@ type Client interface {
 	UpdateSalvage(salvage *cs.Salvage) error
 }
 
-func NewClient() Client {
-	return &client{
+func NewClient() DBClient {
+	return &dbClient{}
+}
+
+func newTransaction(tx *sqlx.Tx) *txClient {
+	return &txClient{
+		db:        tx,
 		converter: &GameConverter{},
 	}
+}
+
+func (dbClient *dbClient) BeginTransaction() (Client, error) {
+
+	tx, err := dbClient.db.Beginx()
+	if err != nil {
+		return nil, err
+	}
+
+	return newTransaction(tx), nil
+}
+
+func (dbClient *dbClient) Rollback(c Client) error {
+	return c.rollback()
+}
+func (dbClient *dbClient) Commit(c Client) error {
+	return c.commit()
 }
 
 // interface to support NamedExec as either a transaction or db
@@ -137,7 +181,7 @@ type SQLSelector interface {
 	Get(dest interface{}, query string, args ...interface{}) error
 }
 
-func (c *client) Connect(cfg *config.Config) error {
+func (c *dbClient) Connect(cfg *config.Config) error {
 
 	c.databaseInMemory = strings.Contains(cfg.Database.Filename, ":memory:")
 	c.usersInMemory = strings.Contains(cfg.Database.UsersFilename, ":memory:")
@@ -200,4 +244,51 @@ func (c *client) Connect(cfg *config.Config) error {
 	}
 
 	return nil
+}
+
+func (c *txClient) rollback() error {
+	return c.db.Rollback()
+}
+
+func (c *txClient) commit() error {
+	return c.db.Commit()
+}
+
+// helper function to wrap code in a transaction
+func (dbClient *dbClient) wrapInTransaction(wrap func(c Client) error) error {
+	c, err := dbClient.BeginTransaction()
+	if err != nil {
+		return err
+	}
+	defer func() { dbClient.Rollback(c) }()
+
+	if err := wrap(c); err != nil {
+		return err
+	}
+
+	return dbClient.Commit(c)
+}
+
+func (dbClient *dbClient) GetUserByUsername(username string) (*cs.User, error) {
+	var user *cs.User
+
+	err := dbClient.wrapInTransaction(func(c Client) error {
+		var err error
+		user, err = c.GetUserByUsername(username)
+		return err
+	})
+
+	return user, err
+}
+
+func (dbClient *dbClient) CreateUser(user *cs.User) error {
+	return dbClient.wrapInTransaction(func(c Client) error { return c.CreateUser(user) })
+}
+
+func (dbClient *dbClient) UpdateUser(user *cs.User) error {
+	return dbClient.wrapInTransaction(func(c Client) error { return c.UpdateUser(user) })
+}
+
+func (dbClient *dbClient) CreateRace(race *cs.Race) error {
+	return dbClient.wrapInTransaction(func(c Client) error { return c.CreateRace(race) })
 }

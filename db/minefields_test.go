@@ -10,7 +10,7 @@ import (
 
 func TestCreateMineField(t *testing.T) {
 	type args struct {
-		c         *client
+		c         *txClient
 		mineField *cs.MineField
 	}
 	tests := []struct {
@@ -31,7 +31,7 @@ func TestCreateMineField(t *testing.T) {
 			tt.args.mineField.PlayerNum = player.Num
 
 			want := *tt.args.mineField
-			err := tt.args.c.createMineField(tt.args.mineField, tt.args.c.db)
+			err := tt.args.c.createMineField(tt.args.mineField)
 
 			// id is automatically added
 			want.ID = tt.args.mineField.ID
@@ -48,13 +48,15 @@ func TestCreateMineField(t *testing.T) {
 
 func TestGetMineField(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
+
 	g, player := c.createTestGameWithPlayer()
 
 	mineField := cs.MineField{
 		MapObject:     cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, PlayerNum: player.Num, Name: "name", Type: cs.MapObjectTypeMineField},
 		MineFieldType: cs.MineFieldTypeStandard,
 	}
-	if err := c.createMineField(&mineField, c.db); err != nil {
+	if err := c.createMineField(&mineField); err != nil {
 		t.Errorf("create mineField %s", err)
 		return
 	}
@@ -91,20 +93,22 @@ func TestGetMineField(t *testing.T) {
 
 func TestGetMineFields(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
+
 	g, player := c.createTestGameWithPlayer()
 
 	// start with 1 planet from connectTestDB
-	result, err := c.getMineFieldsForGame(c.db, g.ID)
+	result, err := c.getMineFieldsForGame(g.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, []*cs.MineField{}, result)
 
 	mineField := cs.MineField{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, PlayerNum: player.Num}}
-	if err := c.createMineField(&mineField, c.db); err != nil {
+	if err := c.createMineField(&mineField); err != nil {
 		t.Errorf("create planet %s", err)
 		return
 	}
 
-	result, err = c.getMineFieldsForGame(c.db, g.ID)
+	result, err = c.getMineFieldsForGame(g.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result))
 
@@ -112,9 +116,11 @@ func TestGetMineFields(t *testing.T) {
 
 func TestUpdateMineField(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
+
 	g, player := c.createTestGameWithPlayer()
 	planet := cs.MineField{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, PlayerNum: player.Num}}
-	if err := c.createMineField(&planet, c.db); err != nil {
+	if err := c.createMineField(&planet); err != nil {
 		t.Errorf("create planet %s", err)
 		return
 	}

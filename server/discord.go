@@ -19,6 +19,7 @@ import (
 func (s *server) pingDiscordForGameUpdate(w http.ResponseWriter, r *http.Request) {
 	user := s.contextUser(r)
 	game := s.contextGame(r)
+	db := s.contextDb(r)
 
 	if user.ID != game.HostID {
 		log.Error().Int64("GameID", game.ID).Str("User", user.Username).Msg("access denied for sending discord updates")
@@ -26,19 +27,19 @@ func (s *server) pingDiscordForGameUpdate(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	s.sendNewTurnNotification(game.ID)
+	s.sendNewTurnNotification(db, game.ID)
 }
 
 // send a notification about a new turn
 // this will not send for single players games or games with the admin (my tests)
-func (s *server) sendNewTurnNotification(gameID int64) {
+func (s *server) sendNewTurnNotification(db TXClient, gameID int64) {
 	if !s.config.Discord.WebhookNotify {
 		// no webhook notifications for this server
 		return
 	}
 
 	go func() {
-		game, err := s.db.GetGame(gameID)
+		game, err := db.GetGame(gameID)
 		if err != nil {
 			log.Error().Err(err).Msg("get game for discord notification")
 			return
@@ -58,7 +59,7 @@ func (s *server) sendNewTurnNotification(gameID int64) {
 			}
 		}
 
-		users, err := s.db.GetUsersForGame(gameID)
+		users, err := db.GetUsersForGame(gameID)
 		if err != nil {
 			log.Error().Err(err).Msg("get users for game for discord notification")
 			return

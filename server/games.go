@@ -56,6 +56,7 @@ func (req *playerRequest) Bind(r *http.Request) error {
 func (s *server) gameCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := s.contextUser(r)
+		db := s.contextDb(r)
 		// load the game by id from the database
 		id, err := s.int64URLParam(r, "id")
 		if id == nil || err != nil {
@@ -63,7 +64,7 @@ func (s *server) gameCtx(next http.Handler) http.Handler {
 			return
 		}
 
-		game, err := s.db.GetGame(*id)
+		game, err := db.GetGame(*id)
 		if err != nil {
 			render.Render(w, r, ErrInternalServerError(err))
 			return
@@ -108,8 +109,9 @@ func (s *server) contextGame(r *http.Request) *cs.GameWithPlayers {
 
 func (s *server) games(w http.ResponseWriter, r *http.Request) {
 	user := s.contextUser(r)
+	db := s.contextDb(r)
 
-	games, err := s.db.GetGamesForUser(user.ID)
+	games, err := db.GetGamesForUser(user.ID)
 	if err != nil {
 		log.Error().Err(err).Int64("UserID", user.ID).Msg("get games from database")
 		render.Render(w, r, ErrBadRequest(err))
@@ -121,8 +123,9 @@ func (s *server) games(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) hostedGames(w http.ResponseWriter, r *http.Request) {
 	user := s.contextUser(r)
+	db := s.contextDb(r)
 
-	games, err := s.db.GetGamesForHost(user.ID)
+	games, err := db.GetGamesForHost(user.ID)
 	if err != nil {
 		log.Error().Err(err).Int64("UserID", user.ID).Msg("get games from database")
 		render.Render(w, r, ErrBadRequest(err))
@@ -133,8 +136,9 @@ func (s *server) hostedGames(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) openGames(w http.ResponseWriter, r *http.Request) {
+	db := s.contextDb(r)
 
-	games, err := s.db.GetOpenGames()
+	games, err := db.GetOpenGames()
 	if err != nil {
 		log.Error().Err(err).Msg("get games from database")
 		render.Render(w, r, ErrBadRequest(err))
@@ -145,6 +149,8 @@ func (s *server) openGames(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) openGamesByHash(w http.ResponseWriter, r *http.Request) {
+	db := s.contextDb(r)
+
 	// load open games by hash from the database
 	hash := chi.URLParam(r, "hash")
 	if hash == "" {
@@ -152,7 +158,7 @@ func (s *server) openGamesByHash(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	games, err := s.db.GetOpenGamesByHash(hash)
+	games, err := db.GetOpenGamesByHash(hash)
 	if err != nil {
 		log.Error().Err(err).Str("Hash", hash).Msg("get open games by hash from database")
 		render.Render(w, r, ErrBadRequest(err))
@@ -178,7 +184,8 @@ func (s *server) createGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	game, err := s.gameRunner.HostGame(user.ID, settings.GameSettings)
+	gr := s.newGameRunner(r)
+	game, err := gr.HostGame(user.ID, settings.GameSettings)
 	if err != nil {
 		log.Error().Err(err).Int64("UserID", user.ID).Msgf("host game %v", settings.GameSettings)
 		render.Render(w, r, ErrInternalServerError(err))
@@ -191,6 +198,7 @@ func (s *server) createGame(w http.ResponseWriter, r *http.Request) {
 func (s *server) updateGame(w http.ResponseWriter, r *http.Request) {
 	user := s.contextUser(r)
 	game := s.contextGame(r)
+	db := s.contextDb(r)
 
 	update := updateGameRequest{}
 	if err := render.Bind(r, &update); err != nil {
@@ -222,7 +230,7 @@ func (s *server) updateGame(w http.ResponseWriter, r *http.Request) {
 	game.QuickStartTurns = update.QuickStartTurns
 	game.VictoryConditions = update.VictoryConditions
 
-	if err := s.db.UpdateGame(&game.Game); err != nil {
+	if err := db.UpdateGame(&game.Game); err != nil {
 		log.Error().Err(err).Int64("ID", game.ID).Msg("update game in database")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
@@ -235,6 +243,7 @@ func (s *server) updateGame(w http.ResponseWriter, r *http.Request) {
 func (s *server) joinGame(w http.ResponseWriter, r *http.Request) {
 	user := s.contextUser(r)
 	game := s.contextGame(r)
+	gr := s.newGameRunner(r)
 
 	join := joinGameRequest{}
 	if err := render.Bind(r, &join); err != nil {
@@ -243,7 +252,7 @@ func (s *server) joinGame(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// try and join this game
-	if err := s.gameRunner.JoinGame(game.ID, user.ID, join.RaceID); err != nil {
+	if err := gr.JoinGame(game.ID, user.ID, join.RaceID); err != nil {
 		log.Error().Err(err).Msg("join game")
 		render.Render(w, r, ErrBadRequest(err))
 	}
@@ -253,6 +262,7 @@ func (s *server) joinGame(w http.ResponseWriter, r *http.Request) {
 func (s *server) leaveGame(w http.ResponseWriter, r *http.Request) {
 	user := s.contextUser(r)
 	game := s.contextGame(r)
+	gr := s.newGameRunner(r)
 
 	if game.State != cs.GameStateSetup {
 		err := fmt.Errorf("cannot leave game after setup")
@@ -261,7 +271,7 @@ func (s *server) leaveGame(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// try and join this game
-	if err := s.gameRunner.LeaveGame(game.ID, user.ID); err != nil {
+	if err := gr.LeaveGame(game.ID, user.ID); err != nil {
 		log.Error().Err(err).Msg("leave game")
 		render.Render(w, r, ErrBadRequest(err))
 	}
@@ -269,8 +279,10 @@ func (s *server) leaveGame(w http.ResponseWriter, r *http.Request) {
 
 // Join an open game
 func (s *server) kickPlayer(w http.ResponseWriter, r *http.Request) {
+	db := s.contextDb(r)
 	user := s.contextUser(r)
 	game := s.contextGame(r)
+	gr := s.newGameRunner(r)
 
 	if game.State != cs.GameStateSetup {
 		err := fmt.Errorf("cannot leave game after setup")
@@ -291,13 +303,13 @@ func (s *server) kickPlayer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// try and join this game
-	if err := s.gameRunner.KickPlayer(game.ID, kickPlayer.PlayerNum); err != nil {
+	if err := gr.KickPlayer(game.ID, kickPlayer.PlayerNum); err != nil {
 		log.Error().Err(err).Msg("leave game")
 		render.Render(w, r, ErrBadRequest(err))
 	}
 
 	// reload the game for the response
-	game, err := s.db.GetGame(game.ID)
+	game, err := db.GetGame(game.ID)
 	if err != nil {
 		render.Render(w, r, ErrInternalServerError(err))
 		return
@@ -307,8 +319,10 @@ func (s *server) kickPlayer(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) addOpenPlayerSlot(w http.ResponseWriter, r *http.Request) {
+	db := s.contextDb(r)
 	user := s.contextUser(r)
 	game := s.contextGame(r)
+	gr := s.newGameRunner(r)
 
 	if game.State != cs.GameStateSetup {
 		err := fmt.Errorf("cannot leave game after setup")
@@ -323,14 +337,14 @@ func (s *server) addOpenPlayerSlot(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// add a new player slot to this game
-	if _, err := s.gameRunner.AddOpenPlayerSlot(game); err != nil {
+	if _, err := gr.AddOpenPlayerSlot(game); err != nil {
 		log.Error().Err(err).Msg("add player slot")
 		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
 
 	// reload the game for the response
-	game, err := s.db.GetGame(game.ID)
+	game, err := db.GetGame(game.ID)
 	if err != nil {
 		render.Render(w, r, ErrInternalServerError(err))
 		return
@@ -340,8 +354,10 @@ func (s *server) addOpenPlayerSlot(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) addAIPlayer(w http.ResponseWriter, r *http.Request) {
+	db := s.contextDb(r)
 	user := s.contextUser(r)
 	game := s.contextGame(r)
+	gr := s.newGameRunner(r)
 
 	if game.State != cs.GameStateSetup {
 		err := fmt.Errorf("cannot leave game after setup")
@@ -356,14 +372,14 @@ func (s *server) addAIPlayer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// add a new player slot to this game
-	if _, err := s.gameRunner.AddAIPlayer(game); err != nil {
+	if _, err := gr.AddAIPlayer(game); err != nil {
 		log.Error().Err(err).Msg("add player slot")
 		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
 
 	// reload the game for the response
-	game, err := s.db.GetGame(game.ID)
+	game, err := db.GetGame(game.ID)
 	if err != nil {
 		render.Render(w, r, ErrInternalServerError(err))
 		return
@@ -373,8 +389,10 @@ func (s *server) addAIPlayer(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) deletePlayerSlot(w http.ResponseWriter, r *http.Request) {
+	db := s.contextDb(r)
 	user := s.contextUser(r)
 	game := s.contextGame(r)
+	gr := s.newGameRunner(r)
 
 	if game.State != cs.GameStateSetup {
 		err := fmt.Errorf("cannot leave game after setup")
@@ -395,14 +413,14 @@ func (s *server) deletePlayerSlot(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// add a new player slot to this game
-	if err := s.gameRunner.DeletePlayerSlot(game.ID, kickPlayer.PlayerNum); err != nil {
+	if err := gr.DeletePlayerSlot(game.ID, kickPlayer.PlayerNum); err != nil {
 		log.Error().Err(err).Msg("delete player slot")
 		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
 
 	// reload the game for the response
-	game, err := s.db.GetGame(game.ID)
+	game, err := db.GetGame(game.ID)
 	if err != nil {
 		render.Render(w, r, ErrInternalServerError(err))
 		return
@@ -412,6 +430,7 @@ func (s *server) deletePlayerSlot(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) updatePlayerSlot(w http.ResponseWriter, r *http.Request) {
+	db := s.contextDb(r)
 	user := s.contextUser(r)
 	game := s.contextGame(r)
 
@@ -435,7 +454,7 @@ func (s *server) updatePlayerSlot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	existing, err := s.db.GetPlayer(player.ID)
+	existing, err := db.GetPlayer(player.ID)
 	if err != nil {
 		log.Error().Int64("GameID", game.ID).Int64("PlayerID", player.ID).Msg("load player to update")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -463,14 +482,14 @@ func (s *server) updatePlayerSlot(w http.ResponseWriter, r *http.Request) {
 	existing.DefaultHullSet = player.DefaultHullSet
 	existing.Race = player.Race
 
-	if err := s.db.UpdatePlayer(existing); err != nil {
+	if err := db.UpdatePlayer(existing); err != nil {
 		log.Error().Int64("GameID", game.ID).Int64("PlayerID", player.ID).Msg("updating player in database")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
 	// reload the game for the response
-	game, err = s.db.GetGame(game.ID)
+	game, err = db.GetGame(game.ID)
 	if err != nil {
 		render.Render(w, r, ErrInternalServerError(err))
 		return
@@ -481,8 +500,10 @@ func (s *server) updatePlayerSlot(w http.ResponseWriter, r *http.Request) {
 
 // Generate a universe for a host
 func (s *server) startGame(w http.ResponseWriter, r *http.Request) {
+	db := s.contextDb(r)
 	user := s.contextUser(r)
 	game := s.contextGame(r)
+	gr := s.newGameRunner(r)
 
 	// validate
 	if user.ID != game.HostID {
@@ -490,19 +511,21 @@ func (s *server) startGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := s.gameRunner.StartGame(&game.Game); err != nil {
+	if err := gr.StartGame(&game.Game); err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Msg("generating universe")
 		render.Render(w, r, ErrInternalServerError(err))
 	}
 
 	// send the full game to the host
-	s.sendNewTurnNotification(game.ID)
+	s.sendNewTurnNotification(db, game.ID)
 	s.renderFullPlayerGame(w, r, game.ID, user.ID)
 }
 
 func (s *server) generateTurn(w http.ResponseWriter, r *http.Request) {
+	db := s.contextDb(r)
 	user := s.contextUser(r)
 	game := s.contextGame(r)
+	gr := s.newGameRunner(r)
 
 	// validate
 	if user.ID != game.HostID {
@@ -510,14 +533,14 @@ func (s *server) generateTurn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := s.gameRunner.GenerateTurn(game.ID)
+	result, err := gr.GenerateTurn(game.ID)
 	if err != nil {
 		log.Error().Err(err).Msg("generate turn")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	player, err := s.db.GetPlayerForGame(game.ID, user.ID)
+	player, err := db.GetPlayerForGame(game.ID, user.ID)
 	if err != nil {
 		log.Error().Err(err).Msg("loading player after turn generation")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -525,7 +548,7 @@ func (s *server) generateTurn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// return the game status
-	game, err = s.db.GetGame(player.GameID)
+	game, err = db.GetGame(player.GameID)
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", player.GameID).Msg("load game")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -540,7 +563,7 @@ func (s *server) generateTurn(w http.ResponseWriter, r *http.Request) {
 
 	// return the new game
 	if result == TurnGenerated {
-		s.sendNewTurnNotification(game.ID)
+		s.sendNewTurnNotification(db, game.ID)
 		s.renderFullPlayerGame(w, r, player.GameID, player.UserID)
 		return
 	}
@@ -549,6 +572,7 @@ func (s *server) generateTurn(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) computeSpecs(w http.ResponseWriter, r *http.Request) {
+	db := s.contextDb(r)
 	user := s.contextUser(r)
 	game := s.contextGame(r)
 
@@ -558,7 +582,7 @@ func (s *server) computeSpecs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fg, err := s.db.GetFullGame(game.ID)
+	fg, err := db.GetFullGame(game.ID)
 	if err != nil {
 		log.Error().Err(err).Msg("load full game")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -572,7 +596,7 @@ func (s *server) computeSpecs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := s.db.UpdateFullGame(fg); err != nil {
+	if err := db.UpdateFullGame(fg); err != nil {
 		log.Error().Err(err).Msg("update game in database")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
@@ -581,6 +605,7 @@ func (s *server) computeSpecs(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) deleteGame(w http.ResponseWriter, r *http.Request) {
+	db := s.contextDb(r)
 	user := s.contextUser(r)
 	game := s.contextGame(r)
 
@@ -590,10 +615,9 @@ func (s *server) deleteGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := s.db.DeleteGame(game.ID); err != nil {
+	if err := db.DeleteGame(game.ID); err != nil {
 		log.Error().Err(err).Int64("ID", game.ID).Msg("delete game from database")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 }
-

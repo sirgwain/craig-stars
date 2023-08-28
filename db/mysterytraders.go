@@ -38,7 +38,7 @@ func (item *MysteryTraderSpec) Scan(src interface{}) error {
 }
 
 // get a mysteryTrader by id
-func (c *client) GetMysteryTrader(id int64) (*cs.MysteryTrader, error) {
+func (c *txClient) GetMysteryTrader(id int64) (*cs.MysteryTrader, error) {
 	item := MysteryTrader{}
 	if err := c.db.Get(&item, "SELECT * FROM mysteryTraders WHERE id = ?", id); err != nil {
 		if err == sql.ErrNoRows {
@@ -51,7 +51,7 @@ func (c *client) GetMysteryTrader(id int64) (*cs.MysteryTrader, error) {
 	return mysteryTrader, nil
 }
 
-func (c *client) getMysteryTradersForGame(gameID int64) ([]*cs.MysteryTrader, error) {
+func (c *txClient) getMysteryTradersForGame(gameID int64) ([]*cs.MysteryTrader, error) {
 
 	items := []MysteryTrader{}
 	if err := c.db.Select(&items, `SELECT * FROM mysteryTraders WHERE gameId = ?`, gameID); err != nil {
@@ -70,9 +70,9 @@ func (c *client) getMysteryTradersForGame(gameID int64) ([]*cs.MysteryTrader, er
 }
 
 // create a new game
-func (c *client) createMysteryTrader(mysteryTrader *cs.MysteryTrader, tx SQLExecer) error {
+func (c *txClient) createMysteryTrader(mysteryTrader *cs.MysteryTrader) error {
 	item := c.converter.ConvertGameMysteryTrader(mysteryTrader)
-	result, err := tx.NamedExec(`
+	result, err := c.db.NamedExec(`
 	INSERT INTO mysteryTraders (
 		createdAt,
 		updatedAt,
@@ -114,16 +114,12 @@ func (c *client) createMysteryTrader(mysteryTrader *cs.MysteryTrader, tx SQLExec
 	return nil
 }
 
-func (c *client) UpdateMysteryTrader(mysteryTrader *cs.MysteryTrader) error {
-	return c.updateMysteryTrader(mysteryTrader, c.db)
-}
-
 // update an existing mysteryTrader
-func (c *client) updateMysteryTrader(mysteryTrader *cs.MysteryTrader, tx SQLExecer) error {
+func (c *txClient) updateMysteryTrader(mysteryTrader *cs.MysteryTrader) error {
 
 	item := c.converter.ConvertGameMysteryTrader(mysteryTrader)
 
-	if _, err := tx.NamedExec(`
+	if _, err := c.db.NamedExec(`
 	UPDATE mysteryTraders SET
 		updatedAt = CURRENT_TIMESTAMP,
 		gameId = :gameId,
@@ -143,8 +139,8 @@ func (c *client) updateMysteryTrader(mysteryTrader *cs.MysteryTrader, tx SQLExec
 	return nil
 }
 
-func (c *client) deleteMysteryTrader(mysteryTraderID int64, tx SQLExecer) error {
-	if _, err := tx.Exec("DELETE FROM mysteryTraders where id = ?", mysteryTraderID); err != nil {
+func (c *txClient) deleteMysteryTrader(mysteryTraderID int64) error {
+	if _, err := c.db.Exec("DELETE FROM mysteryTraders where id = ?", mysteryTraderID); err != nil {
 		return fmt.Errorf("delete mysteryTrader %d %w", mysteryTraderID, err)
 	}
 	return nil

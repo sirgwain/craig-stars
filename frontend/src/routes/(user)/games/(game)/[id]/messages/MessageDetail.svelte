@@ -7,6 +7,7 @@
 	import type { MineField } from '$lib/types/MineField';
 	import type { MineralPacket } from '$lib/types/MineralPacket';
 	import type { Planet } from '$lib/types/Planet';
+	import PlanetMessageDetail from './PlanetMessageDetail.svelte';
 
 	const { game, player, universe, settings } = getGameContext();
 
@@ -74,37 +75,8 @@
 
 {#if message.type == MessageType.Battle}
 	{getBattleMessage(message)}
-{:else if message.type === MessageType.PlanetDiscovery}
-	{#if planet}
-		{#if owner}
-			You have found a planet occupied by someone else. {planet.name} is currently owned by the {owner.racePluralName}
-		{:else if planet.spec.habitability && planet.spec.habitability > 0}
-			You have found a new habitable planet. Your colonists will grow by up {(
-				(planet.spec.habitability * $player.race.growthRate) /
-				100
-			).toFixed()}% per year if you colonize {planet.name}
-		{:else if planet.spec.terraformedHabitability && planet.spec.terraformedHabitability > 0}
-			You have found a new planet which you have the ability to make habitable. With terraforming,
-			your colonists will grow by up to {(
-				(planet.spec.terraformedHabitability * $player.race.growthRate) /
-				100
-			).toFixed()}% per year if you colonize {planet.name}.
-		{:else}
-			You have found a new planet which unfortunately is not habitable by you. {-(
-				((planet.spec.habitability ?? 0) * $player.race.growthRate) /
-				100
-			).toFixed()}% of your colonists will die per year if you colonize {planet.name}
-		{/if}
-	{:else}
-		You have discovered a new planet.
-	{/if}
-{:else if message.type === MessageType.PlanetDiedOff && target}
-	{#if $player.race.spec?.livesOnStarbases}
-		All of your colonists orbiting {target.name} have died off. Your starbase has been lost and you no
-		longer control the planet.
-	{:else}
-		All of your colonists on {target.name} have died off. You no longer control the planet.
-	{/if}
+{:else if planet}
+	<PlanetMessageDetail {message} {planet} {owner} />
 {:else}
 	{message.text}
 {/if}

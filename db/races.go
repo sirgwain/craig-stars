@@ -59,7 +59,7 @@ func (item *RaceSpec) Scan(src interface{}) error {
 	return scanJSON(src, item)
 }
 
-func (c *client) GetRaces() ([]cs.Race, error) {
+func (c *txClient) GetRaces() ([]cs.Race, error) {
 
 	items := []Race{}
 	if err := c.db.Select(&items, `SELECT * FROM races`); err != nil {
@@ -72,7 +72,7 @@ func (c *client) GetRaces() ([]cs.Race, error) {
 	return c.converter.ConvertRaces(items), nil
 }
 
-func (c *client) GetRacesForUser(userID int64) ([]cs.Race, error) {
+func (c *txClient) GetRacesForUser(userID int64) ([]cs.Race, error) {
 
 	items := []Race{}
 	if err := c.db.Select(&items, `SELECT * FROM races WHERE userId = ?`, userID); err != nil {
@@ -86,7 +86,7 @@ func (c *client) GetRacesForUser(userID int64) ([]cs.Race, error) {
 }
 
 // get a race by id
-func (c *client) GetRace(id int64) (*cs.Race, error) {
+func (c *txClient) GetRace(id int64) (*cs.Race, error) {
 	item := Race{}
 	if err := c.db.Get(&item, "SELECT * FROM races WHERE id = ?", id); err != nil {
 		if err == sql.ErrNoRows {
@@ -99,15 +99,11 @@ func (c *client) GetRace(id int64) (*cs.Race, error) {
 	return &race, nil
 }
 
-func (c *client) CreateRace(race *cs.Race) error {
-	return c.createRace(race, c.db)
-}
-
 // create a new race
-func (c *client) createRace(race *cs.Race, tx SQLExecer) error {
+func (c *txClient) CreateRace(race *cs.Race) error {
 
 	item := c.converter.ConvertGameRace(race)
-	result, err := tx.NamedExec(`
+	result, err := c.db.NamedExec(`
 	INSERT INTO races (
 		createdAt,
 		updatedAt,
@@ -198,7 +194,7 @@ func (c *client) createRace(race *cs.Race, tx SQLExecer) error {
 }
 
 // update an existing race
-func (c *client) UpdateRace(race *cs.Race) error {
+func (c *txClient) UpdateRace(race *cs.Race) error {
 
 	item := c.converter.ConvertGameRace(race)
 
@@ -246,7 +242,7 @@ func (c *client) UpdateRace(race *cs.Race) error {
 }
 
 // delete a race by id
-func (c *client) DeleteRace(id int64) error {
+func (c *txClient) DeleteRace(id int64) error {
 	if _, err := c.db.Exec("DELETE FROM races WHERE id = ?", id); err != nil {
 		return err
 	}

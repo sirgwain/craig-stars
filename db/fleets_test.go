@@ -11,7 +11,7 @@ import (
 
 func TestCreateFleet(t *testing.T) {
 	type args struct {
-		c     *client
+		c     *txClient
 		fleet *cs.Fleet
 	}
 	tests := []struct {
@@ -32,7 +32,7 @@ func TestCreateFleet(t *testing.T) {
 			tt.args.fleet.PlayerNum = player.Num
 
 			want := *tt.args.fleet
-			err := tt.args.c.createFleet(tt.args.fleet, tt.args.c.db)
+			err := tt.args.c.createFleet(tt.args.fleet)
 
 			// id is automatically added
 			want.ID = tt.args.fleet.ID
@@ -49,6 +49,8 @@ func TestCreateFleet(t *testing.T) {
 
 func TestGetFleet(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
+
 	g, player := c.createTestGameWithPlayer()
 	design := cs.NewShipDesign(player, 1).WithHull(cs.Scout.Name)
 	c.createTestShipDesign(player, design)
@@ -64,7 +66,7 @@ func TestGetFleet(t *testing.T) {
 			},
 		},
 	}
-	if err := c.createFleet(&fleet, c.db); err != nil {
+	if err := c.createFleet(&fleet); err != nil {
 		t.Errorf("create fleet %s", err)
 		return
 	}
@@ -101,20 +103,22 @@ func TestGetFleet(t *testing.T) {
 
 func TestGetFleets(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
+
 	g, player := c.createTestGameWithPlayer()
 
 	// start with 1 planet from connectTestDB
-	result, err := c.getFleetsForGame(c.db, g.ID)
+	result, err := c.getFleetsForGame(g.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, []*cs.Fleet{}, result)
 
 	fleet := cs.Fleet{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, PlayerNum: player.Num}}
-	if err := c.createFleet(&fleet, c.db); err != nil {
+	if err := c.createFleet(&fleet); err != nil {
 		t.Errorf("create planet %s", err)
 		return
 	}
 
-	result, err = c.getFleetsForGame(c.db, g.ID)
+	result, err = c.getFleetsForGame(g.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result))
 
@@ -122,9 +126,11 @@ func TestGetFleets(t *testing.T) {
 
 func TestUpdateFleet(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
+
 	g, player := c.createTestGameWithPlayer()
 	planet := cs.Fleet{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, PlayerNum: player.Num}}
-	if err := c.createFleet(&planet, c.db); err != nil {
+	if err := c.createFleet(&planet); err != nil {
 		t.Errorf("create planet %s", err)
 		return
 	}

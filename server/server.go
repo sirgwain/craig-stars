@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"crypto/sha1"
 	"io/fs"
 	"net/http"
@@ -28,7 +29,8 @@ const databaseIDAttr = "DatabaseID"
 type contextKey int
 
 const (
-	keyUser contextKey = iota
+	keyDb contextKey = iota
+	keyUser
 	keyRace
 	keyGame
 	keyPlayer
@@ -42,9 +44,8 @@ const (
 )
 
 type server struct {
-	db         DBClient
-	config     config.Config
-	gameRunner GameRunner
+	db     DBClient
+	config config.Config
 }
 
 func Start(db DBClient, config config.Config) {
@@ -57,9 +58,8 @@ func Start(db DBClient, config config.Config) {
 
 	// create a server
 	server := &server{
-		db:         db,
-		config:     config,
-		gameRunner: NewGameRunner(db, config),
+		db:     db,
+		config: config,
 	}
 	_ = server
 
@@ -180,6 +180,10 @@ func Start(db DBClient, config config.Config) {
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(requestLogger(&log.Logger))
+
+	// wrap requests in a transaction
+	// do this before Recoverer so we can rollback panics
+	r.Use(server.transaction)
 	r.Use(middleware.Recoverer)
 
 	// Set a timeout value on the request context (ctx), that will signal
@@ -219,7 +223,7 @@ func Start(db DBClient, config config.Config) {
 
 		r.Route("/api/calculators", func(r chi.Router) {
 			r.Post("/planet-production-estimate", server.getPlanetProductionEstimate)
-			r.Post("/starbase-upgrade-cost", server.getStarbaseUpgradeCost)			
+			r.Post("/starbase-upgrade-cost", server.getStarbaseUpgradeCost)
 		})
 
 		// route for all operations that act on a game
@@ -259,7 +263,7 @@ func Start(db DBClient, config config.Config) {
 					r.Post("/submit-turn", server.submitTurn)
 					r.Post("/unsubmit-turn", server.unSubmitTurn)
 					r.Post("/research-cost", server.getResearchCost)
-					
+
 					// ship designs
 					r.Route("/designs", func(r chi.Router) {
 						r.Get("/", server.shipDesigns)
@@ -352,6 +356,51 @@ func Start(db DBClient, config config.Config) {
 	r.Handle("/*", http.FileServer(http.FS(sub)))
 
 	http.ListenAndServe(":8080", r)
+}
+
+// custom transaction middleware to begin a transaction and commit it if successful
+func (s *server) transaction(next http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		tx, err := s.db.BeginTransaction()
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			log.Error().Err(err).Msg("failed to begin db transaction for request")
+			return
+		}
+
+		// create new context from `r` request context, and assign key `"tx"`
+		// to the transaction
+		ctx := context.WithValue(r.Context(), keyDb, tx)
+		ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
+
+		next.ServeHTTP(ww, r.WithContext(ctx))
+
+		if ww.Status() >= 400 {
+			err := s.db.Rollback(tx)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				log.Error().Err(err).Msgf("failed to rollback transaction: %s \n", err.Error())
+			}
+		} else {
+			err = s.db.Commit(tx)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				log.Error().Err(err).Msgf("failed to commit transaction: %s \n", err.Error())
+			}
+		}
+
+	}
+	return http.HandlerFunc(fn)
+}
+
+func (s *server) contextDb(r *http.Request) TXClient {
+	return r.Context().Value(keyDb).(TXClient)
+}
+
+// create a new gameRunner for this request
+func (s *server) newGameRunner(r *http.Request) GameRunner {
+	db := s.contextDb(r)
+	return NewGameRunner(db, s.config)
 }
 
 // create a new request logger with zerolog. Inspired by https://github.com/ironstar-io/chizerolog

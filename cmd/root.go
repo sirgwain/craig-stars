@@ -11,6 +11,16 @@ import (
 
 var debug bool
 
+// prerun method for enabling debug logging
+func debugPreRun(cmd *cobra.Command, args []string) {
+	// enable debug mode if configured
+	if debug {
+		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+		log.Debug().Msg("Debug logging enabled")
+	}
+}
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "craig-stars",
@@ -19,14 +29,7 @@ var rootCmd = &cobra.Command{
 craig-stars will start a webserver for playing the game, or act as a
 CLI for interacting with the server resources such as users.
 `,
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		// enable debug mode if configured
-		if debug {
-			log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-			zerolog.SetGlobalLevel(zerolog.DebugLevel)
-			log.Debug().Msg("Debug logging enabled")
-		}
-	},
+	PersistentPreRun: debugPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Show usage
 		cmd.Help()
@@ -39,6 +42,7 @@ CLI for interacting with the server resources such as users.
 func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
+		dbRollback()
 		os.Exit(1)
 	}
 }

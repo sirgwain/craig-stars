@@ -1,17 +1,16 @@
 package cmd
 
 import (
-	"github.com/sirgwain/craig-stars/config"
-	"github.com/sirgwain/craig-stars/db"
-
 	"github.com/spf13/cobra"
 )
 
 // root list command
 var listCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List various resources",
-	Long:  `List various resources`,
+	Use:                "list",
+	Short:              "List various resources",
+	Long:               `List various resources`,
+	PersistentPreRunE:  dbPreRun,
+	PersistentPostRunE: dbPostRun,
 }
 
 // listUsersCmd lists users in the database
@@ -20,11 +19,7 @@ var listUsersCmd = &cobra.Command{
 	Short: "List users",
 	Long:  `List users in the database`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		db := db.NewClient()
-		cfg := config.GetConfig()
-		db.Connect(cfg)
-
-		users, err := db.GetUsers()
+		users, err := client.GetUsers()
 		if err != nil {
 			return err
 		}
@@ -49,19 +44,15 @@ func addListGamesCmd() {
 		Short: "List games",
 		Long:  `List games in the database`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			db := db.NewClient()
-			cfg := config.GetConfig()
-			db.Connect(cfg)
-
 			if userID != 0 {
-				games, err := db.GetGamesForUser(userID)
+				games, err := client.GetGamesForUser(userID)
 				if err != nil {
 					return err
 				}
 
 				PrintTable("Games", games)
 			} else {
-				games, err := db.GetGames()
+				games, err := client.GetGames()
 				if err != nil {
 					return err
 				}

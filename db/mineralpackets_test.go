@@ -10,7 +10,7 @@ import (
 
 func TestCreateMineralPacket(t *testing.T) {
 	type args struct {
-		c             *client
+		c             *txClient
 		mineralPacket *cs.MineralPacket
 	}
 	tests := []struct {
@@ -30,7 +30,7 @@ func TestCreateMineralPacket(t *testing.T) {
 			tt.args.mineralPacket.PlayerNum = player.Num
 
 			want := *tt.args.mineralPacket
-			err := tt.args.c.createMineralPacket(tt.args.mineralPacket, tt.args.c.db)
+			err := tt.args.c.createMineralPacket(tt.args.mineralPacket)
 
 			// id is automatically added
 			want.ID = tt.args.mineralPacket.ID
@@ -47,12 +47,14 @@ func TestCreateMineralPacket(t *testing.T) {
 
 func TestGetMineralPacket(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
+
 	g, player := c.createTestGameWithPlayer()
 
 	mineralPacket := cs.MineralPacket{
 		MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, PlayerNum: player.Num, Name: "name", Type: cs.MapObjectTypeMineralPacket},
 	}
-	if err := c.createMineralPacket(&mineralPacket, c.db); err != nil {
+	if err := c.createMineralPacket(&mineralPacket); err != nil {
 		t.Errorf("create mineralPacket %s", err)
 		return
 	}
@@ -89,36 +91,40 @@ func TestGetMineralPacket(t *testing.T) {
 
 func TestGetMineralPackets(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
+
 	g, player := c.createTestGameWithPlayer()
 
 	// start with 1 planet from connectTestDB
-	result, err := c.getMineralPacketsForGame(c.db, g.ID)
+	result, err := c.getMineralPacketsForGame(g.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, []*cs.MineralPacket{}, result)
 
 	mineralPacket := cs.MineralPacket{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, PlayerNum: player.Num}}
-	if err := c.createMineralPacket(&mineralPacket, c.db); err != nil {
+	if err := c.createMineralPacket(&mineralPacket); err != nil {
 		t.Errorf("create planet %s", err)
 		return
 	}
 
-	result, err = c.getMineralPacketsForGame(c.db, g.ID)
+	result, err = c.getMineralPacketsForGame(g.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result))
 
 }
 
-func TestUpdateMineralPacket(t *testing.T) {
+func Test_updateMineralPacket(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
+
 	g, player := c.createTestGameWithPlayer()
 	planet := cs.MineralPacket{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, PlayerNum: player.Num}}
-	if err := c.createMineralPacket(&planet, c.db); err != nil {
+	if err := c.createMineralPacket(&planet); err != nil {
 		t.Errorf("create planet %s", err)
 		return
 	}
 
 	planet.Name = "Test2"
-	if err := c.UpdateMineralPacket(&planet); err != nil {
+	if err := c.updateMineralPacket(&planet); err != nil {
 		t.Errorf("update planet %s", err)
 		return
 	}

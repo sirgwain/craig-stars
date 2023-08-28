@@ -12,7 +12,7 @@ import (
 func TestCreateShipDesign(t *testing.T) {
 
 	type args struct {
-		c          *client
+		c          *txClient
 		shipDesign *cs.ShipDesign
 	}
 	tests := []struct {
@@ -48,6 +48,8 @@ func TestCreateShipDesign(t *testing.T) {
 func TestGetShipDesign(t *testing.T) {
 	rules := cs.NewRules()
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
+
 	game, player := c.createTestGameWithPlayer()
 	shipDesign := cs.NewShipDesign(player, 1).WithHull(cs.Scout.Name).WithSpec(&rules, player)
 	shipDesign.GameID = game.ID
@@ -88,6 +90,8 @@ func TestGetShipDesign(t *testing.T) {
 
 func TestGetShipDesigns(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
+
 	game, player := c.createTestGameWithPlayer()
 
 	// start with 1 shipDesign from connectTestDB
@@ -110,6 +114,8 @@ func TestGetShipDesigns(t *testing.T) {
 
 func TestDeleteShipDesigns(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
+
 	game, player := c.createTestGameWithPlayer()
 
 	result, err := c.GetShipDesignsForPlayer(player.GameID, player.Num)

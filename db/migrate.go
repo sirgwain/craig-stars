@@ -27,7 +27,7 @@ var gamesSchemaFiles embed.FS
 //go:embed schema/memory/*.sql
 var memorySchemaFiles embed.FS
 
-func (c *client) mustMigrate(cfg *config.Config) {
+func (c *dbClient) mustMigrate(cfg *config.Config) {
 	if !c.usersInMemory {
 		c.mustMigrateDatabase(cfg.Database.UsersFilename, usersSchemaFiles, "schema/users")
 	}
@@ -38,7 +38,7 @@ func (c *client) mustMigrate(cfg *config.Config) {
 
 // in memory databases are different because the user and games database has to live in the same
 // memory space so we have to "migrate" them together
-func (c *client) setupInMemoryDatabase() {
+func (c *dbClient) setupInMemoryDatabase() {
 	schema, err := iofs.New(memorySchemaFiles, "schema/memory")
 	if err != nil {
 		log.Fatal().Err(err).Msg("loading embedded schema")
@@ -65,7 +65,7 @@ func (c *client) setupInMemoryDatabase() {
 
 }
 
-func (c *client) mustMigrateDatabase(datasource string, fs embed.FS, path string) {
+func (c *dbClient) mustMigrateDatabase(datasource string, fs embed.FS, path string) {
 	d, err := iofs.New(fs, path)
 	if err != nil {
 		log.Fatal().Err(err).Msg("loading embedded schema")
@@ -119,7 +119,7 @@ func (c *client) mustMigrateDatabase(datasource string, fs embed.FS, path string
 
 }
 
-func (c *client) mustBackup(filename string, version uint) string {
+func (c *dbClient) mustBackup(filename string, version uint) string {
 
 	if strings.Contains(filename, ":memory") {
 		log.Debug().Msg("not backing up in memory db")
@@ -138,7 +138,7 @@ func (c *client) mustBackup(filename string, version uint) string {
 }
 
 // copy a file from one place to another
-func (c *client) copyFile(sourceFile, destinationFile string) error {
+func (c *dbClient) copyFile(sourceFile, destinationFile string) error {
 	input, err := ioutil.ReadFile(sourceFile)
 	if err != nil {
 		return err

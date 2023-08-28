@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/sirgwain/craig-stars/cs"
 )
 
@@ -271,7 +270,7 @@ func (item *WormholeIntels) Scan(src interface{}) error {
 	return scanJSON(src, item)
 }
 
-func (c *client) GetPlayers() ([]cs.Player, error) {
+func (c *txClient) GetPlayers() ([]cs.Player, error) {
 
 	items := []Player{}
 	if err := c.db.Select(&items, `SELECT * FROM players`); err != nil {
@@ -284,7 +283,7 @@ func (c *client) GetPlayers() ([]cs.Player, error) {
 	return c.converter.ConvertPlayers(items), nil
 }
 
-func (c *client) GetPlayersForUser(userID int64) ([]cs.Player, error) {
+func (c *txClient) GetPlayersForUser(userID int64) ([]cs.Player, error) {
 
 	items := []Player{}
 	if err := c.db.Select(&items, `SELECT * FROM players WHERE userId = ?`, userID); err != nil {
@@ -298,10 +297,10 @@ func (c *client) GetPlayersForUser(userID int64) ([]cs.Player, error) {
 }
 
 // get all the players for a game, with data loaded
-func (c *client) getPlayersForGame(db SQLSelector, gameID int64) ([]*cs.Player, error) {
+func (c *txClient) getPlayersForGame(gameID int64) ([]*cs.Player, error) {
 
 	items := []Player{}
-	if err := db.Select(&items, `SELECT * FROM players WHERE gameId = ?`, gameID); err != nil {
+	if err := c.db.Select(&items, `SELECT * FROM players WHERE gameId = ?`, gameID); err != nil {
 		if err == sql.ErrNoRows {
 			return []*cs.Player{}, nil
 		}
@@ -313,7 +312,7 @@ func (c *client) getPlayersForGame(db SQLSelector, gameID int64) ([]*cs.Player, 
 		player := c.converter.ConvertPlayer(items[i])
 		players[i] = &player
 
-		designs, err := c.getShipDesignsForPlayer(db, gameID, player.Num)
+		designs, err := c.GetShipDesignsForPlayer(gameID, player.Num)
 		if err != nil {
 			return nil, fmt.Errorf("get designs for player %w", err)
 		}
@@ -324,7 +323,7 @@ func (c *client) getPlayersForGame(db SQLSelector, gameID int64) ([]*cs.Player, 
 }
 
 // get all the players for a game, with data loaded
-func (c *client) GetPlayersStatusForGame(gameID int64) ([]*cs.Player, error) {
+func (c *txClient) GetPlayersStatusForGame(gameID int64) ([]*cs.Player, error) {
 
 	items := []Player{}
 	if err := c.db.Select(&items, `
@@ -356,7 +355,7 @@ func (c *client) GetPlayersStatusForGame(gameID int64) ([]*cs.Player, error) {
 	return players, nil
 }
 
-func (c *client) getPlayerWithDesigns(where string, args ...interface{}) ([]cs.Player, error) {
+func (c *txClient) getPlayerWithDesigns(where string, args ...interface{}) ([]cs.Player, error) {
 	type playerDesignsJoin struct {
 		Player     `json:"player,omitempty"`
 		ShipDesign `json:"shipDesign,omitempty"`
@@ -482,7 +481,7 @@ func (c *client) getPlayerWithDesigns(where string, args ...interface{}) ([]cs.P
 }
 
 // get a player by id
-func (c *client) GetPlayer(id int64) (*cs.Player, error) {
+func (c *txClient) GetPlayer(id int64) (*cs.Player, error) {
 	item := Player{}
 	if err := c.db.Get(&item, "SELECT * FROM players WHERE id = ?", id); err != nil {
 		if err == sql.ErrNoRows {
@@ -496,7 +495,7 @@ func (c *client) GetPlayer(id int64) (*cs.Player, error) {
 }
 
 // Get all player data except universe intel
-func (c *client) GetPlayerForGame(gameID, userID int64) (*cs.Player, error) {
+func (c *txClient) GetPlayerForGame(gameID, userID int64) (*cs.Player, error) {
 	item := Player{}
 	if err := c.db.Get(&item, `
 	SELECT 
@@ -553,7 +552,7 @@ func (c *client) GetPlayerForGame(gameID, userID int64) (*cs.Player, error) {
 }
 
 // Get player intel
-func (c *client) GetPlayerIntelsForGame(gameID, userID int64) (*cs.PlayerIntels, error) {
+func (c *txClient) GetPlayerIntelsForGame(gameID, userID int64) (*cs.PlayerIntels, error) {
 	item := Player{}
 	if err := c.db.Get(&item, `
 	SELECT
@@ -582,7 +581,7 @@ func (c *client) GetPlayerIntelsForGame(gameID, userID int64) (*cs.PlayerIntels,
 	return &player.PlayerIntels, nil
 }
 
-func (c *client) GetPlayerByNum(gameID int64, num int) (*cs.Player, error) {
+func (c *txClient) GetPlayerByNum(gameID int64, num int) (*cs.Player, error) {
 	item := Player{}
 	if err := c.db.Get(&item, "SELECT * FROM players WHERE gameId = ? AND num = ?", gameID, num); err != nil {
 		if err == sql.ErrNoRows {
@@ -603,7 +602,7 @@ func (c *client) GetPlayerByNum(gameID int64, num int) (*cs.Player, error) {
 	return &player, nil
 }
 
-func (c *client) GetLightPlayerForGame(gameID, userID int64) (*cs.Player, error) {
+func (c *txClient) GetLightPlayerForGame(gameID, userID int64) (*cs.Player, error) {
 	item := Player{}
 	if err := c.db.Get(&item, `
 	SELECT 
@@ -658,7 +657,7 @@ func (c *client) GetLightPlayerForGame(gameID, userID int64) (*cs.Player, error)
 }
 
 // get a full player by id with all dependencies loaded
-func (c *client) GetFullPlayerForGame(gameID, userID int64) (*cs.FullPlayer, error) {
+func (c *txClient) GetFullPlayerForGame(gameID, userID int64) (*cs.FullPlayer, error) {
 	player := cs.FullPlayer{}
 
 	item := Player{}
@@ -716,7 +715,7 @@ func (c *client) GetFullPlayerForGame(gameID, userID int64) (*cs.FullPlayer, err
 	return &player, nil
 }
 
-func (c *client) GetPlayerMapObjects(gameID, userID int64) (*cs.PlayerMapObjects, error) {
+func (c *txClient) GetPlayerMapObjects(gameID, userID int64) (*cs.PlayerMapObjects, error) {
 	mapObjects := cs.PlayerMapObjects{}
 	var num int
 	if err := c.db.Get(&num, "SELECT num FROM players WHERE gameId = ? AND userId = ?", gameID, userID); err != nil {
@@ -764,7 +763,7 @@ func (c *client) GetPlayerMapObjects(gameID, userID int64) (*cs.PlayerMapObjects
 }
 
 // get a player with designs loaded
-func (c *client) GetPlayerWithDesignsForGame(gameID int64, num int) (*cs.Player, error) {
+func (c *txClient) GetPlayerWithDesignsForGame(gameID int64, num int) (*cs.Player, error) {
 	player := cs.Player{}
 
 	item := Player{}
@@ -787,14 +786,9 @@ func (c *client) GetPlayerWithDesignsForGame(gameID int64, num int) (*cs.Player,
 	return &player, nil
 }
 
-func (c *client) CreatePlayer(player *cs.Player) error {
-	return c.createPlayer(player, c.db)
-}
-
-// create a new game
-func (c *client) createPlayer(player *cs.Player, tx SQLExecer) error {
+func (c *txClient) CreatePlayer(player *cs.Player) error {
 	item := c.converter.ConvertGamePlayer(player)
-	result, err := tx.NamedExec(`
+	result, err := c.db.NamedExec(`
 	INSERT INTO players (
 		createdAt,
 		updatedAt,
@@ -916,13 +910,8 @@ func (c *client) createPlayer(player *cs.Player, tx SQLExecer) error {
 	return nil
 }
 
-// update an existing player
-func (c *client) UpdatePlayer(player *cs.Player) error {
-	return c.updatePlayerWithNamedExecer(player, c.db)
-}
-
 // update an existing player's lightweight fields
-func (c *client) UpdateLightPlayer(player *cs.Player) error {
+func (c *txClient) UpdateLightPlayer(player *cs.Player) error {
 	item := c.converter.ConvertGamePlayer(player)
 
 	if _, err := c.db.NamedExec(`
@@ -948,7 +937,7 @@ func (c *client) UpdateLightPlayer(player *cs.Player) error {
 }
 
 // update an existing player's lightweight fields
-func (c *client) UpdatePlayerOrders(player *cs.Player) error {
+func (c *txClient) UpdatePlayerOrders(player *cs.Player) error {
 	item := c.converter.ConvertGamePlayer(player)
 
 	if _, err := c.db.NamedExec(`
@@ -973,7 +962,7 @@ func (c *client) UpdatePlayerOrders(player *cs.Player) error {
 }
 
 // update an existing player's lightweight fields
-func (c *client) SubmitPlayerTurn(gameID int64, num int, submittedTurn bool) error {
+func (c *txClient) SubmitPlayerTurn(gameID int64, num int, submittedTurn bool) error {
 	type submitData struct {
 		GameID        int64 `json:"gameID"`
 		Num           int   `json:"num"`
@@ -993,7 +982,7 @@ func (c *client) SubmitPlayerTurn(gameID int64, num int, submittedTurn bool) err
 }
 
 // update an existing player's lightweight fields
-func (c *client) UpdatePlayerPlans(player *cs.Player) error {
+func (c *txClient) UpdatePlayerPlans(player *cs.Player) error {
 	item := c.converter.ConvertGamePlayer(player)
 
 	if _, err := c.db.NamedExec(`
@@ -1011,7 +1000,7 @@ func (c *client) UpdatePlayerPlans(player *cs.Player) error {
 }
 
 // update a players salvage intels (used after creating a new salvage)
-func (c *client) UpdatePlayerSalvageIntels(player *cs.Player) error {
+func (c *txClient) UpdatePlayerSalvageIntels(player *cs.Player) error {
 	item := c.converter.ConvertGamePlayer(player)
 
 	if _, err := c.db.NamedExec(`
@@ -1027,10 +1016,11 @@ func (c *client) UpdatePlayerSalvageIntels(player *cs.Player) error {
 }
 
 // helper to update a player using a transaction or DB
-func (c *client) updatePlayerWithNamedExecer(player *cs.Player, tx SQLExecer) error {
+// update an existing player
+func (c *txClient) UpdatePlayer(player *cs.Player) error {
 	item := c.converter.ConvertGamePlayer(player)
 
-	if _, err := tx.NamedExec(`
+	if _, err := c.db.NamedExec(`
 	UPDATE players SET
 		updatedAt = CURRENT_TIMESTAMP,
 		gameId = :gameId,
@@ -1089,26 +1079,11 @@ func (c *client) updatePlayerWithNamedExecer(player *cs.Player, tx SQLExecer) er
 	return nil
 }
 
-func (c *client) updateFullPlayer(player *cs.Player) error {
-	tx, err := c.db.Beginx()
-	if err != nil {
-		return err
-	}
-
-	if err := c.updateFullPlayerWithTransaction(player, tx); err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	tx.Commit()
-	return nil
-}
-
 // update an existing player
-func (c *client) updateFullPlayerWithTransaction(player *cs.Player, tx *sqlx.Tx) error {
+func (c *txClient) updateFullPlayer(player *cs.Player) error {
 
-	if err := c.updatePlayerWithNamedExecer(player, tx); err != nil {
-		tx.Rollback()
+	if err := c.UpdatePlayer(player); err != nil {
+		c.db.Rollback()
 		return fmt.Errorf("update player %w", err)
 	}
 
@@ -1116,13 +1091,13 @@ func (c *client) updateFullPlayerWithTransaction(player *cs.Player, tx *sqlx.Tx)
 		design := player.Designs[i]
 		if design.ID == 0 {
 			design.GameID = player.GameID
-			if err := c.createShipDesign(design, tx); err != nil {
-				tx.Rollback()
+			if err := c.CreateShipDesign(design); err != nil {
+				c.db.Rollback()
 				return fmt.Errorf("create design %w", err)
 			}
 		} else if design.Dirty {
-			if err := c.updateShipDesign(design, tx); err != nil {
-				tx.Rollback()
+			if err := c.UpdateShipDesign(design); err != nil {
+				c.db.Rollback()
 				return fmt.Errorf("update design %w", err)
 			}
 		}
@@ -1132,7 +1107,7 @@ func (c *client) updateFullPlayerWithTransaction(player *cs.Player, tx *sqlx.Tx)
 }
 
 // delete a player by id
-func (c *client) DeletePlayer(id int64) error {
+func (c *txClient) DeletePlayer(id int64) error {
 	if _, err := c.db.Exec("DELETE FROM players WHERE id = ?", id); err != nil {
 		return err
 	}

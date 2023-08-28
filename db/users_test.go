@@ -11,7 +11,7 @@ import (
 func TestCreateUser(t *testing.T) {
 
 	type args struct {
-		c    *client
+		c    *txClient
 		user *cs.User
 	}
 	tests := []struct {
@@ -41,6 +41,8 @@ func TestCreateUser(t *testing.T) {
 
 func TestUpdateUser(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
+
 	user := cs.User{Username: "Test"}
 	if err := c.CreateUser(&user); err != nil {
 		t.Errorf("create user %s", err)
@@ -71,6 +73,8 @@ func TestUpdateUser(t *testing.T) {
 
 func TestGetUser(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
+
 	user := cs.User{Username: "Test"}
 	if err := c.CreateUser(&user); err != nil {
 		t.Errorf("create user %s", err)
@@ -109,6 +113,7 @@ func TestGetUser(t *testing.T) {
 
 func TestGetUsers(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
 
 	// start with 1 user from connectTestDB
 	result, err := c.GetUsers()
@@ -129,6 +134,7 @@ func TestGetUsers(t *testing.T) {
 
 func TestDeleteUsers(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
 
 	_, err := c.GetUsers()
 	assert.Nil(t, err)

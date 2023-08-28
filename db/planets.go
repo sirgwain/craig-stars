@@ -91,7 +91,7 @@ func (item *Tags) Scan(src interface{}) error {
 }
 
 // get a planet by id
-func (c *client) GetPlanet(id int64) (*cs.Planet, error) {
+func (c *txClient) GetPlanet(id int64) (*cs.Planet, error) {
 	item := Planet{}
 	if err := c.db.Get(&item, "SELECT * FROM planets WHERE id = ?", id); err != nil {
 		if err == sql.ErrNoRows {
@@ -104,10 +104,10 @@ func (c *client) GetPlanet(id int64) (*cs.Planet, error) {
 	return planet, nil
 }
 
-func (c *client) getPlanetsForGame(db SQLSelector, gameID int64) ([]*cs.Planet, error) {
+func (c *txClient) getPlanetsForGame(gameID int64) ([]*cs.Planet, error) {
 
 	items := []Planet{}
-	if err := db.Select(&items, `SELECT * FROM planets WHERE gameId = ?`, gameID); err != nil {
+	if err := c.db.Select(&items, `SELECT * FROM planets WHERE gameId = ?`, gameID); err != nil {
 		if err == sql.ErrNoRows {
 			return []*cs.Planet{}, nil
 		}
@@ -122,7 +122,7 @@ func (c *client) getPlanetsForGame(db SQLSelector, gameID int64) ([]*cs.Planet, 
 	return results, nil
 }
 
-func (c *client) GetPlanetsForPlayer(gameID int64, playerNum int) ([]*cs.Planet, error) {
+func (c *txClient) GetPlanetsForPlayer(gameID int64, playerNum int) ([]*cs.Planet, error) {
 
 	items := []Planet{}
 	if err := c.db.Select(&items, `SELECT * FROM planets WHERE gameId = ? AND playerNum = ?`, gameID, playerNum); err != nil {
@@ -140,7 +140,7 @@ func (c *client) GetPlanetsForPlayer(gameID int64, playerNum int) ([]*cs.Planet,
 	return results, nil
 }
 
-func (c *client) GetPlanetByNum(gameID int64, num int) (*cs.Planet, error) {
+func (c *txClient) GetPlanetByNum(gameID int64, num int) (*cs.Planet, error) {
 
 	type planetStarbaseJoin struct {
 		Planet `json:"planet,omitempty"`
@@ -238,9 +238,9 @@ func (c *client) GetPlanetByNum(gameID int64, num int) (*cs.Planet, error) {
 }
 
 // create a new game
-func (c *client) createPlanet(planet *cs.Planet, tx SQLExecer) error {
+func (c *txClient) createPlanet(planet *cs.Planet) error {
 	item := c.converter.ConvertGamePlanet(planet)
-	result, err := tx.NamedExec(`
+	result, err := c.db.NamedExec(`
 	INSERT INTO planets (
 		createdAt,
 		updatedAt,
@@ -340,31 +340,12 @@ func (c *client) createPlanet(planet *cs.Planet, tx SQLExecer) error {
 	return nil
 }
 
-func (c *client) UpdatePlanet(planet *cs.Planet) error {
-	return c.updatePlanet(planet, c.db)
-}
+// update an existing planet
+func (c *txClient) UpdatePlanet(planet *cs.Planet) error {
 
-// UpdatePlanetSpec updates only a planets spec field
-func (c *client) UpdatePlanetSpec(planet *cs.Planet) error {
 	item := c.converter.ConvertGamePlanet(planet)
 
 	if _, err := c.db.NamedExec(`
-	UPDATE planets SET
-		spec = :spec
-	WHERE id = :id
-	`, item); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// update an existing planet
-func (c *client) updatePlanet(planet *cs.Planet, tx SQLExecer) error {
-
-	item := c.converter.ConvertGamePlanet(planet)
-
-	if _, err := tx.NamedExec(`
 	UPDATE planets SET
 		updatedAt = CURRENT_TIMESTAMP,
 		gameId = :gameId,
@@ -404,6 +385,21 @@ func (c *client) updatePlanet(planet *cs.Planet, tx SQLExecer) error {
 		packetTargetNum = :packetTargetNum,
 		packetSpeed = :packetSpeed,
 		productionQueue = :productionQueue,
+		spec = :spec
+	WHERE id = :id
+	`, item); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// UpdatePlanetSpec updates only a planets spec field
+func (c *txClient) UpdatePlanetSpec(planet *cs.Planet) error {
+	item := c.converter.ConvertGamePlanet(planet)
+
+	if _, err := c.db.NamedExec(`
+	UPDATE planets SET
 		spec = :spec
 	WHERE id = :id
 	`, item); err != nil {

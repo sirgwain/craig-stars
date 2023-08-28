@@ -22,7 +22,7 @@ type User struct {
 	DiscordAvatar *string    `json:"discordAvatar,omitempty"`
 }
 
-func (c *client) GetUsers() ([]cs.User, error) {
+func (c *txClient) GetUsers() ([]cs.User, error) {
 
 	// don't include password in bulk select
 	items := []User{}
@@ -50,7 +50,7 @@ func (c *client) GetUsers() ([]cs.User, error) {
 }
 
 // get a user by id
-func (c *client) GetUser(id int64) (*cs.User, error) {
+func (c *txClient) GetUser(id int64) (*cs.User, error) {
 	item := User{}
 	if err := c.db.Get(&item, "SELECT * FROM users WHERE id = ?", id); err != nil {
 		if err == sql.ErrNoRows {
@@ -64,7 +64,7 @@ func (c *client) GetUser(id int64) (*cs.User, error) {
 }
 
 // get a user by id
-func (c *client) GetUserByUsername(username string) (*cs.User, error) {
+func (c *txClient) GetUserByUsername(username string) (*cs.User, error) {
 	item := User{}
 	if err := c.db.Get(&item, "SELECT * FROM users WHERE username = ?", username); err != nil {
 		if err == sql.ErrNoRows {
@@ -77,7 +77,7 @@ func (c *client) GetUserByUsername(username string) (*cs.User, error) {
 	return &user, nil
 }
 
-func (c *client) GetUsersForGame(gameID int64) ([]cs.User, error) {
+func (c *txClient) GetUsersForGame(gameID int64) ([]cs.User, error) {
 
 	// don't include password in bulk select
 	items := []User{}
@@ -105,7 +105,7 @@ func (c *client) GetUsersForGame(gameID int64) ([]cs.User, error) {
 }
 
 // create a new user
-func (c *client) CreateUser(user *cs.User) error {
+func (c *txClient) CreateUser(user *cs.User) error {
 	item := c.converter.ConvertGameUser(user)
 
 	result, err := c.db.NamedExec(`
@@ -151,7 +151,7 @@ func (c *client) CreateUser(user *cs.User) error {
 }
 
 // update an existing user
-func (c *client) UpdateUser(user *cs.User) error {
+func (c *txClient) UpdateUser(user *cs.User) error {
 
 	item := c.converter.ConvertGameUser(user)
 
@@ -178,7 +178,7 @@ func (c *client) UpdateUser(user *cs.User) error {
 }
 
 // delete a user by id
-func (c *client) DeleteUser(id int64) error {
+func (c *txClient) DeleteUser(id int64) error {
 	if _, err := c.db.Exec("DELETE FROM users WHERE id = ?", id); err != nil {
 		return err
 	}

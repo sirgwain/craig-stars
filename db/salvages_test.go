@@ -11,7 +11,7 @@ import (
 
 func TestCreateSalvage(t *testing.T) {
 	type args struct {
-		c       *client
+		c       *txClient
 		salvage *cs.Salvage
 	}
 	tests := []struct {
@@ -31,7 +31,7 @@ func TestCreateSalvage(t *testing.T) {
 			tt.args.salvage.PlayerNum = player.Num
 
 			want := *tt.args.salvage
-			err := tt.args.c.createSalvage(tt.args.salvage, tt.args.c.db)
+			err := tt.args.c.CreateSalvage(tt.args.salvage)
 
 			// id is automatically added
 			want.ID = tt.args.salvage.ID
@@ -48,12 +48,14 @@ func TestCreateSalvage(t *testing.T) {
 
 func TestGetSalvage(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
+
 	g, player := c.createTestGameWithPlayer()
 
 	salvage := cs.Salvage{
 		MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, PlayerNum: player.Num, Name: "name", Type: cs.MapObjectTypeSalvage},
 	}
-	if err := c.createSalvage(&salvage, c.db); err != nil {
+	if err := c.CreateSalvage(&salvage); err != nil {
 		t.Errorf("create salvage %s", err)
 		return
 	}
@@ -90,6 +92,8 @@ func TestGetSalvage(t *testing.T) {
 
 func TestGetSalvages(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
+
 	g, player := c.createTestGameWithPlayer()
 
 	// start with 1 planet from connectTestDB
@@ -98,7 +102,7 @@ func TestGetSalvages(t *testing.T) {
 	assert.Equal(t, []*cs.Salvage{}, result)
 
 	salvage := cs.Salvage{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, PlayerNum: player.Num}}
-	if err := c.createSalvage(&salvage, c.db); err != nil {
+	if err := c.CreateSalvage(&salvage); err != nil {
 		t.Errorf("create planet %s", err)
 		return
 	}
@@ -111,9 +115,11 @@ func TestGetSalvages(t *testing.T) {
 
 func TestUpdateSalvage(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
+
 	g, player := c.createTestGameWithPlayer()
 	planet := cs.Salvage{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, PlayerNum: player.Num}}
-	if err := c.createSalvage(&planet, c.db); err != nil {
+	if err := c.CreateSalvage(&planet); err != nil {
 		t.Errorf("create planet %s", err)
 		return
 	}

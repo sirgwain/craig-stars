@@ -12,7 +12,7 @@ import (
 func TestCreateGame(t *testing.T) {
 
 	type args struct {
-		c    *client
+		c    *txClient
 		game *cs.Game
 	}
 	tests := []struct {
@@ -42,6 +42,8 @@ func TestCreateGame(t *testing.T) {
 
 func TestUpdateGame(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
+
 	game := cs.Game{HostID: 1, Name: "Test"}
 	if err := c.CreateGame(&game); err != nil {
 		t.Errorf("create game %s", err)
@@ -68,6 +70,8 @@ func TestUpdateGame(t *testing.T) {
 
 func TestGetGame(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
+
 	game := cs.NewGame().WithSettings(*cs.NewGameSettings().WithHost(1).WithName("test"))
 	game.Area = cs.Vector{X: 1, Y: 2}
 
@@ -128,6 +132,7 @@ func TestGetGames(t *testing.T) {
 
 func TestGetOpenGames(t *testing.T) {
 	c := connectTestDB()
+    defer func() { closeTestDB(c) }()
 
 	// start with 1 game from connectTestDB
 	result, err := c.GetOpenGames()
@@ -160,6 +165,8 @@ func TestGetOpenGames(t *testing.T) {
 
 func TestGetGameWithPlayersStatus(t *testing.T) {
 	c := connectTestDB()
+    defer func() { closeTestDB(c) }()
+
 	fg := c.createTestFullGame()
 
 	// make sure we don't see our own games
@@ -172,6 +179,7 @@ func TestGetGameWithPlayersStatus(t *testing.T) {
 
 func TestDeleteGames(t *testing.T) {
 	c := connectTestDB()
+    defer func() { closeTestDB(c) }()
 
 	result, err := c.GetGames()
 	assert.Nil(t, err)
@@ -201,6 +209,8 @@ func TestDeleteGames(t *testing.T) {
 
 func TestUpdateFullGame(t *testing.T) {
 	c := connectTestDB()
+    defer func() { closeTestDB(c) }()
+
 	fg := c.createTestFullGame()
 
 	if err := c.UpdateFullGame(fg); err != nil {

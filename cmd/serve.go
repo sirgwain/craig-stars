@@ -20,19 +20,30 @@ func newServeCmd() *cobra.Command {
 		Short: "Start the webserver",
 		Long:  `Start a local webserver and serve requests.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-
-			db := db.NewClient()
 			cfg := config.GetConfig()
-			if err := db.Connect(cfg); err != nil {
-				return err
-			}
 
+			// generate test games if asked
 			if generateUniverse {
-				if err := generateTestGame(db, *cfg); err != nil {
+				client, err := dbClient.BeginTransaction()
+				if err != nil {
+					return err
+				}
+
+				if err := generateTestGame(client, *cfg); err != nil {
+					return err
+				}
+				if err := dbClient.Commit(client); err != nil {
 					return err
 				}
 			}
-			server.Start(db, *cfg)
+
+			// create a new connection for the server to use
+			dbClient := db.NewClient()
+			if err := dbClient.Connect(cfg); err != nil {
+				return err
+			}
+
+			server.Start(dbClient, *cfg)
 			return nil
 		},
 	}
@@ -46,7 +57,7 @@ func timeTrack(start time.Time, name string) {
 	log.Debug().Msgf("%s took %s", name, elapsed)
 }
 
-func generateTestGame(db server.DBClient, config config.Config) error {
+func generateTestGame(db server.TXClient, config config.Config) error {
 	defer timeTrack(time.Now(), "generateTestGame")
 
 	admin, adminRace, err := createTestUser(db, "admin", config.GeneratedUserPassword, "admin@craig-stars.net", cs.RoleAdmin)
@@ -163,7 +174,7 @@ func generateTestGame(db server.DBClient, config config.Config) error {
 	return nil
 }
 
-func createTestUser(db server.DBClient, username string, password string, email string, role string) (*cs.User, *cs.Race, error) {
+func createTestUser(db server.TXClient, username string, password string, email string, role string) (*cs.User, *cs.Race, error) {
 	user, err := db.GetUserByUsername(username)
 	if err != nil {
 		return nil, nil, err
@@ -212,7 +223,7 @@ func createTestUser(db server.DBClient, username string, password string, email 
 }
 
 // ensure this user has test races for all PRTs
-func ensureTestRaces(db server.DBClient, userID int64) error {
+func ensureTestRaces(db server.TXClient, userID int64) error {
 
 	races, err := db.GetRacesForUser(userID)
 	if err != nil {

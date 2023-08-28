@@ -57,7 +57,6 @@ func (s *server) mustGetUser(w http.ResponseWriter, r *http.Request) sessionUser
 }
 
 func me(w http.ResponseWriter, r *http.Request) {
-
 	userInfo, err := token.GetUserInfo(r)
 	if err != nil {
 		log.Printf("failed to get user info, %s", err)

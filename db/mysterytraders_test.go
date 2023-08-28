@@ -11,7 +11,7 @@ import (
 
 func TestCreateMysteryTrader(t *testing.T) {
 	type args struct {
-		c             *client
+		c             *txClient
 		mysteryTrader *cs.MysteryTrader
 	}
 	tests := []struct {
@@ -30,7 +30,7 @@ func TestCreateMysteryTrader(t *testing.T) {
 			tt.args.mysteryTrader.GameID = game.ID
 
 			want := *tt.args.mysteryTrader
-			err := tt.args.c.createMysteryTrader(tt.args.mysteryTrader, tt.args.c.db)
+			err := tt.args.c.createMysteryTrader(tt.args.mysteryTrader)
 
 			// id is automatically added
 			want.ID = tt.args.mysteryTrader.ID
@@ -47,6 +47,8 @@ func TestCreateMysteryTrader(t *testing.T) {
 
 func TestGetMysteryTraders(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
+
 	game := c.createTestGame()
 
 	// start with 1 mysteryTrader from connectTestDB
@@ -55,7 +57,7 @@ func TestGetMysteryTraders(t *testing.T) {
 	assert.Equal(t, []*cs.MysteryTrader{}, result)
 
 	mysteryTrader := cs.MysteryTrader{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: game.ID}}}
-	if err := c.createMysteryTrader(&mysteryTrader, c.db); err != nil {
+	if err := c.createMysteryTrader(&mysteryTrader); err != nil {
 		t.Errorf("create mysteryTrader %s", err)
 		return
 	}
@@ -68,9 +70,11 @@ func TestGetMysteryTraders(t *testing.T) {
 
 func TestGetMysteryTrader(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
+
 	game := c.createTestGame()
 	mysteryTrader := cs.MysteryTrader{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: game.ID}, Name: "name", Type: cs.MapObjectTypeMysteryTrader}}
-	if err := c.createMysteryTrader(&mysteryTrader, c.db); err != nil {
+	if err := c.createMysteryTrader(&mysteryTrader); err != nil {
 		t.Errorf("create mysteryTrader %s", err)
 		return
 	}
@@ -107,15 +111,17 @@ func TestGetMysteryTrader(t *testing.T) {
 
 func TestUpdateMysteryTrader(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
+
 	game := c.createTestGame()
 	mysteryTrader := cs.MysteryTrader{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: game.ID}}}
-	if err := c.createMysteryTrader(&mysteryTrader, c.db); err != nil {
+	if err := c.createMysteryTrader(&mysteryTrader); err != nil {
 		t.Errorf("create mysteryTrader %s", err)
 		return
 	}
 
 	mysteryTrader.Name = "Test2"
-	if err := c.UpdateMysteryTrader(&mysteryTrader); err != nil {
+	if err := c.updateMysteryTrader(&mysteryTrader); err != nil {
 		t.Errorf("update mysteryTrader %s", err)
 		return
 	}

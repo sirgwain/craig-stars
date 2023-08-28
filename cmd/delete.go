@@ -1,17 +1,16 @@
 package cmd
 
 import (
-	"github.com/sirgwain/craig-stars/config"
-	"github.com/sirgwain/craig-stars/db"
-
 	"github.com/spf13/cobra"
 )
 
 // deleteCmd is the root delete command for delete operations
 var deleteCmd = &cobra.Command{
-	Use:   "delete",
-	Short: "Delete various resources",
-	Long:  `Delete various resources`,
+	Use:                "delete",
+	Short:              "Delete various resources",
+	Long:               `Delete various resources`,
+	PersistentPreRunE:  dbPreRun,
+	PersistentPostRunE: dbPostRun,
 }
 
 func init() {
@@ -30,12 +29,8 @@ func addDeleteUserCmd() {
 		Short: "Delete user",
 		Long:  `Delete user from the database`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			db := db.NewClient()
-			cfg := config.GetConfig()
-			db.Connect(cfg)
-
-			db.DeleteUser(id)
-			users, err := db.GetUsers()
+			client.DeleteUser(id)
+			users, err := client.GetUsers()
 			if err != nil {
 				return err
 			}
@@ -59,12 +54,8 @@ func addDeleteGameCmd() {
 		Short: "Delete game",
 		Long:  `Delete game from the database`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			db := db.NewClient()
-			cfg := config.GetConfig()
-			db.Connect(cfg)
-
-			db.DeleteGame(id)
-			games, err := db.GetGames()
+			client.DeleteGame(id)
+			games, err := client.GetGames()
 			if err != nil {
 				return err
 			}

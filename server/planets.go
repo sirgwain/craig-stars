@@ -30,6 +30,7 @@ func (req *stabaseUpgradeRequest) Bind(r *http.Request) error {
 // context for /api/games/{id}/planets/{num} calls that require a shipDesign
 func (s *server) planetCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		db := s.contextDb(r)
 		player := s.contextPlayer(r)
 
 		num, err := s.intURLParam(r, "num")
@@ -38,7 +39,7 @@ func (s *server) planetCtx(next http.Handler) http.Handler {
 			return
 		}
 
-		planet, err := s.db.GetPlanetByNum(player.GameID, *num)
+		planet, err := db.GetPlanetByNum(player.GameID, *num)
 		if err != nil {
 			render.Render(w, r, ErrInternalServerError(err))
 			return
@@ -72,6 +73,7 @@ func (s *server) planet(w http.ResponseWriter, r *http.Request) {
 
 // Allow a user to update a planet's orders
 func (s *server) updatePlanetOrders(w http.ResponseWriter, r *http.Request) {
+	db := s.contextDb(r)
 	game := s.contextGame(r)
 	existingPlanet := s.contextPlanet(r)
 	player := s.contextPlayer(r)
@@ -83,7 +85,7 @@ func (s *server) updatePlanetOrders(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// load the full player to update planet production estimates
-	player, err := s.db.GetPlayerWithDesignsForGame(game.ID, player.Num)
+	player, err := db.GetPlayerWithDesignsForGame(game.ID, player.Num)
 	if err != nil {
 		render.Render(w, r, ErrInternalServerError(err))
 		return
@@ -92,7 +94,7 @@ func (s *server) updatePlanetOrders(w http.ResponseWriter, r *http.Request) {
 	orderer := cs.NewOrderer()
 	orderer.UpdatePlanetOrders(player, existingPlanet, planet.PlanetOrders)
 
-	if err := s.db.UpdatePlanet(existingPlanet); err != nil {
+	if err := db.UpdatePlanet(existingPlanet); err != nil {
 		log.Error().Err(err).Int64("ID", planet.ID).Msg("update planet in database")
 		render.Render(w, r, ErrInternalServerError(err))
 		return

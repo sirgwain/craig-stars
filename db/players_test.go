@@ -12,7 +12,7 @@ import (
 
 func TestCreatePlayer(t *testing.T) {
 	type args struct {
-		c      *client
+		c      *txClient
 		player *cs.Player
 	}
 	tests := []struct {
@@ -46,6 +46,8 @@ func TestCreatePlayer(t *testing.T) {
 
 func TestUpdatePlayer(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
+
 	c.createTestGame()
 	player := cs.Player{GameDBObject: cs.GameDBObject{GameID: 1}, UserID: 1, Name: "Test"}
 	if err := c.CreatePlayer(&player); err != nil {
@@ -76,6 +78,8 @@ func TestUpdatePlayer(t *testing.T) {
 func TestGetPlayer(t *testing.T) {
 	rules := cs.NewRules()
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
+
 	c.createTestGame()
 	player := cs.Player{GameDBObject: cs.GameDBObject{GameID: 1}, UserID: 1, Name: "Test", Race: *cs.NewRace().WithSpec(&rules)}
 	if err := c.CreatePlayer(&player); err != nil {
@@ -116,6 +120,8 @@ func TestGetPlayer(t *testing.T) {
 func Test_getPlayerWithDesigns(t *testing.T) {
 	rules := cs.NewRules()
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
+
 	game := c.createTestGame()
 	player := cs.Player{GameDBObject: cs.GameDBObject{GameID: 1}, UserID: 1, Num: 1, Name: "Test", Race: *cs.NewRace().WithSpec(&rules)}
 	if err := c.CreatePlayer(&player); err != nil {
@@ -172,6 +178,8 @@ func Test_getPlayerWithDesigns(t *testing.T) {
 
 func TestGetPlayers(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
+
 	c.createTestGame()
 
 	// start with 1 player from connectTestDB
@@ -193,6 +201,8 @@ func TestGetPlayers(t *testing.T) {
 
 func TestDeletePlayers(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
+
 	c.createTestGame()
 
 	result, err := c.GetPlayers()
@@ -223,6 +233,8 @@ func TestDeletePlayers(t *testing.T) {
 
 func TestUpdateFullPlayer(t *testing.T) {
 	c := connectTestDB()
+	defer func() { closeTestDB(c) }()
+
 	game := c.createTestGame()
 	player := cs.Player{GameDBObject: cs.GameDBObject{GameID: game.ID}, UserID: 1, Name: "Test"}
 	if err := c.CreatePlayer(&player); err != nil {

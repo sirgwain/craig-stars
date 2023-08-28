@@ -20,23 +20,28 @@ func createTestGameRunner() GameRunner {
 		panic(fmt.Errorf("connect to test database, %w", err))
 	}
 
+	client, err := db.BeginTransaction()
+	if err != nil {
+		panic(fmt.Errorf("connect to test database, %w", err))
+	}
+
 	// create a test user with a single race
 	user, err := cs.NewUser("admin", "admin", "admin@craig-stars.net", cs.RoleAdmin)
 	if err != nil {
 		panic(fmt.Errorf("generate test user, %w", err))
 	}
-	if err := db.CreateUser(user); err != nil {
+	if err := client.CreateUser(user); err != nil {
 		panic(fmt.Errorf("create test database user, %w", err))
 	}
 
 	race := cs.Humanoids()
 	race.UserID = 1
-	if err := db.CreateRace(&race); err != nil {
+	if err := client.CreateRace(&race); err != nil {
 		panic(fmt.Errorf("create test user race, %w", err))
 	}
 
 	return &gameRunner{
-		db:     db,
+		db:     client,
 		client: cs.NewGamer(),
 	}
 }
@@ -58,20 +63,26 @@ func Test_gameRunner_HostGame(t *testing.T) {
 
 func Test_gameRunner_GenerateTurns(t *testing.T) {
 
-	db := db.NewClient()
+	dbClient := db.NewClient()
 	cfg := &config.Config{}
 	cfg.Database.Filename = ":memory:"
 	cfg.Database.UsersFilename = ":memory:"
-	if err := db.Connect(cfg); err != nil {
+	if err := dbClient.Connect(cfg); err != nil {
 		panic(fmt.Errorf("connect to test database, %w", err))
 	}
+
+	tx, err := dbClient.BeginTransaction()
+	if err != nil {
+		panic(fmt.Errorf("connect to test database, %w", err))
+	}
+	defer func() { dbClient.Rollback(tx) }()
 
 	// create a test user
 	user, err := cs.NewUser("admin", "admin", "admin@craig-stars.net", cs.RoleAdmin)
 	if err != nil {
 		panic(fmt.Errorf("generate test user, %w", err))
 	}
-	if err := db.CreateUser(user); err != nil {
+	if err := tx.CreateUser(user); err != nil {
 		panic(fmt.Errorf("create test database user, %w", err))
 	}
 
@@ -86,7 +97,7 @@ func Test_gameRunner_GenerateTurns(t *testing.T) {
 	}
 
 	gr := gameRunner{
-		db:     db,
+		db:     tx,
 		client: cs.NewGamer(),
 	}
 
@@ -109,10 +120,33 @@ func Test_gameRunner_GenerateTurns(t *testing.T) {
 		t.Errorf("host game %v", err)
 	}
 
+	// commit the game changes before we gen turns
+	err = dbClient.Commit(tx)
+	if err != nil {
+		t.Errorf("commit %v", err)
+	}
+
 	// generate 100 turns
 	for i := 0; i < 50; i++ {
+		tx, err := dbClient.BeginTransaction()
+		if err != nil {
+			t.Errorf("begin transaction for turn %d %v", i, err)
+			return
+		}
+		defer func() { dbClient.Rollback(tx) }()
+
+		gr := gameRunner{
+			db:     tx,
+			client: cs.NewGamer(),
+		}
+
 		if _, err := gr.GenerateTurn(fullGame.ID); err != nil {
 			t.Errorf("generate turn %v", err)
+		}
+
+		if err := dbClient.Commit(tx); err != nil {
+			t.Errorf("commit transaction for turn %d %v", i, err)
+			return
 		}
 	}
 }
