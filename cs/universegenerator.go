@@ -344,12 +344,6 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 				return err
 			}
 
-			// // create a test minefield
-			// testMineField := newMineField(player, MineFieldTypeStandard, 1200, ug.universe.getNextMineFieldNum(), playerPlanet.Position)
-			// testMineField.Spec = computeMinefieldSpec(testMineField)
-			// ug.universe.MineFields = append(ug.universe.MineFields, testMineField)
-
-			messager.longMessage(player)
 		}
 	}
 

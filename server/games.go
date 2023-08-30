@@ -10,6 +10,7 @@ import (
 	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
+	"github.com/sirgwain/craig-stars/db"
 )
 
 type hostGameRequest struct {
@@ -184,7 +185,7 @@ func (s *server) createGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	gr := s.newGameRunner(r)
+	gr := s.newGameRunner()
 	game, err := gr.HostGame(user.ID, settings.GameSettings)
 	if err != nil {
 		log.Error().Err(err).Int64("UserID", user.ID).Msgf("host game %v", settings.GameSettings)
@@ -243,7 +244,7 @@ func (s *server) updateGame(w http.ResponseWriter, r *http.Request) {
 func (s *server) joinGame(w http.ResponseWriter, r *http.Request) {
 	user := s.contextUser(r)
 	game := s.contextGame(r)
-	gr := s.newGameRunner(r)
+	gr := s.newGameRunner()
 
 	join := joinGameRequest{}
 	if err := render.Bind(r, &join); err != nil {
@@ -262,7 +263,7 @@ func (s *server) joinGame(w http.ResponseWriter, r *http.Request) {
 func (s *server) leaveGame(w http.ResponseWriter, r *http.Request) {
 	user := s.contextUser(r)
 	game := s.contextGame(r)
-	gr := s.newGameRunner(r)
+	gr := s.newGameRunner()
 
 	if game.State != cs.GameStateSetup {
 		err := fmt.Errorf("cannot leave game after setup")
@@ -282,7 +283,7 @@ func (s *server) kickPlayer(w http.ResponseWriter, r *http.Request) {
 	db := s.contextDb(r)
 	user := s.contextUser(r)
 	game := s.contextGame(r)
-	gr := s.newGameRunner(r)
+	gr := s.newGameRunner()
 
 	if game.State != cs.GameStateSetup {
 		err := fmt.Errorf("cannot leave game after setup")
@@ -322,7 +323,7 @@ func (s *server) addOpenPlayerSlot(w http.ResponseWriter, r *http.Request) {
 	db := s.contextDb(r)
 	user := s.contextUser(r)
 	game := s.contextGame(r)
-	gr := s.newGameRunner(r)
+	gr := s.newGameRunner()
 
 	if game.State != cs.GameStateSetup {
 		err := fmt.Errorf("cannot leave game after setup")
@@ -357,7 +358,7 @@ func (s *server) addAIPlayer(w http.ResponseWriter, r *http.Request) {
 	db := s.contextDb(r)
 	user := s.contextUser(r)
 	game := s.contextGame(r)
-	gr := s.newGameRunner(r)
+	gr := s.newGameRunner()
 
 	if game.State != cs.GameStateSetup {
 		err := fmt.Errorf("cannot leave game after setup")
@@ -392,7 +393,7 @@ func (s *server) deletePlayerSlot(w http.ResponseWriter, r *http.Request) {
 	db := s.contextDb(r)
 	user := s.contextUser(r)
 	game := s.contextGame(r)
-	gr := s.newGameRunner(r)
+	gr := s.newGameRunner()
 
 	if game.State != cs.GameStateSetup {
 		err := fmt.Errorf("cannot leave game after setup")
@@ -503,7 +504,7 @@ func (s *server) startGame(w http.ResponseWriter, r *http.Request) {
 	db := s.contextDb(r)
 	user := s.contextUser(r)
 	game := s.contextGame(r)
-	gr := s.newGameRunner(r)
+	gr := s.newGameRunner()
 
 	// validate
 	if user.ID != game.HostID {
@@ -525,7 +526,7 @@ func (s *server) generateTurn(w http.ResponseWriter, r *http.Request) {
 	db := s.contextDb(r)
 	user := s.contextUser(r)
 	game := s.contextGame(r)
-	gr := s.newGameRunner(r)
+	gr := s.newGameRunner()
 
 	// validate
 	if user.ID != game.HostID {
@@ -572,7 +573,7 @@ func (s *server) generateTurn(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) computeSpecs(w http.ResponseWriter, r *http.Request) {
-	db := s.contextDb(r)
+	readWriteClient := s.contextDb(r)
 	user := s.contextUser(r)
 	game := s.contextGame(r)
 
@@ -582,7 +583,7 @@ func (s *server) computeSpecs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fg, err := db.GetFullGame(game.ID)
+	fg, err := readWriteClient.GetFullGame(game.ID)
 	if err != nil {
 		log.Error().Err(err).Msg("load full game")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -596,7 +597,9 @@ func (s *server) computeSpecs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := db.UpdateFullGame(fg); err != nil {
+	if err := s.db.WrapInTransaction(func(c db.Client) error {
+		return c.UpdateFullGame(fg)
+	}); err != nil {
 		log.Error().Err(err).Msg("update game in database")
 		render.Render(w, r, ErrInternalServerError(err))
 		return

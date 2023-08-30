@@ -11,7 +11,7 @@ import (
 
 func TestCreateSalvage(t *testing.T) {
 	type args struct {
-		c       *txClient
+		c       *client
 		salvage *cs.Salvage
 	}
 	tests := []struct {

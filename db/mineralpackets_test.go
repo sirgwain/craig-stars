@@ -10,7 +10,7 @@ import (
 
 func TestCreateMineralPacket(t *testing.T) {
 	type args struct {
-		c             *txClient
+		c             *client
 		mineralPacket *cs.MineralPacket
 	}
 	tests := []struct {

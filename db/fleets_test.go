@@ -11,7 +11,7 @@ import (
 
 func TestCreateFleet(t *testing.T) {
 	type args struct {
-		c     *txClient
+		c     *client
 		fleet *cs.Fleet
 	}
 	tests := []struct {

@@ -12,7 +12,7 @@ import (
 func TestCreateRace(t *testing.T) {
 
 	type args struct {
-		c    *txClient
+		c    *client
 		race *cs.Race
 	}
 	tests := []struct {

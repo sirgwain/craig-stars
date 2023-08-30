@@ -28,22 +28,17 @@ type Version struct {
 
 const LATEST_VERSION = 1
 
-func (dbClient *dbClient) mustUpgrade() {
-	c, err := dbClient.BeginTransaction()
-	if err != nil {
-		log.Fatal().Err(err).Msg("failed to begin upgrade transaction")
-	}
-	defer func() { dbClient.Rollback(c) }()
+func (conn *dbConn) mustUpgrade() {
 
-	if err := c.ensureUpgrade(); err != nil {
-		log.Fatal().Err(err).Msg("failed to upgrade database data to latest version")
+	if err := conn.WrapInTransaction(func(c Client) error {
+		return c.ensureUpgrade()
+	}); err != nil {
+		panic(fmt.Sprintf("failed to upgrade database %v", err))
 	}
-
-	dbClient.Commit(c)
 }
 
-func (c *txClient) ensureUpgrade() error {
-	version, err := c.getVersion()
+func (tx *client) ensureUpgrade() error {
+	version, err := tx.getVersion()
 	if err != nil {
 		return err
 	}
@@ -54,7 +49,7 @@ func (c *txClient) ensureUpgrade() error {
 			switch current {
 			case 0:
 				log.Info().Msgf("upgrading database data from v0 to v1")
-				err = c.upgrade1()
+				err = tx.upgrade1()
 			}
 
 			// check for any issues upgrading
@@ -65,7 +60,7 @@ func (c *txClient) ensureUpgrade() error {
 
 		// update the version to the latest so our one time upgrade only runs once
 		version.Current = LATEST_VERSION
-		if err = c.updateVersion(version); err != nil {
+		if err = tx.updateVersion(version); err != nil {
 			return fmt.Errorf("update version %w", err)
 		}
 	}
@@ -74,9 +69,9 @@ func (c *txClient) ensureUpgrade() error {
 }
 
 // get the version of the database
-func (c *txClient) getVersion() (Version, error) {
+func (c *client) getVersion() (Version, error) {
 	item := Version{}
-	if err := c.db.Get(&item, "SELECT * FROM versions"); err != nil {
+	if err := c.reader.Get(&item, "SELECT * FROM versions"); err != nil {
 		if err == sql.ErrNoRows {
 			return Version{}, nil
 		}
@@ -86,8 +81,8 @@ func (c *txClient) getVersion() (Version, error) {
 	return item, nil
 }
 
-func (c *txClient) updateVersion(version Version) error {
-	if _, err := c.db.NamedExec(`
+func (c *client) updateVersion(version Version) error {
+	if _, err := c.writer.NamedExec(`
 	UPDATE versions SET 
 		updatedAt = CURRENT_TIMESTAMP,
 		current = :current
@@ -98,15 +93,15 @@ func (c *txClient) updateVersion(version Version) error {
 	return nil
 }
 
-func (c *txClient) upgrade1() error {
+func (tx *client) upgrade1() error {
 
-	games, err := c.GetGames()
+	games, err := tx.GetGames()
 	if err != nil {
 		return err
 	}
 
 	for _, game := range games {
-		fg, err := c.GetFullGame(game.ID)
+		fg, err := tx.GetFullGame(game.ID)
 		if err != nil {
 			return err
 		}
@@ -115,7 +110,7 @@ func (c *txClient) upgrade1() error {
 		cleaner.RemovePlayerDesignIntels(fg)
 
 		// save changes to the DB
-		if err := c.UpdateFullGame(fg); err != nil {
+		if err := tx.UpdateFullGame(fg); err != nil {
 			return err
 		}
 	}

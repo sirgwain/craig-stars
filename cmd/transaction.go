@@ -10,16 +10,16 @@ import (
 )
 
 var client db.Client
-var dbClient db.DBClient
+var dbConn db.DBConn
 
 func dbPreRun(cmd *cobra.Command, args []string) error {
 	debugPreRun(cmd, args)
-	dbClient = db.NewClient()
+	dbConn = db.NewConn()
 	cfg := config.GetConfig()
-	dbClient.Connect(cfg)
+	dbConn.Connect(cfg)
 
 	var err error
-	client, err = dbClient.BeginTransaction()
+	client, err = dbConn.BeginTransaction()
 	if err != nil {
 		return err
 	}
@@ -28,16 +28,16 @@ func dbPreRun(cmd *cobra.Command, args []string) error {
 }
 
 func dbPostRun(cmd *cobra.Command, args []string) error {
-	if err := dbClient.Commit(client); err != nil {
+	if err := dbConn.Commit(client); err != nil {
 		return err
 	}
 	return nil
 }
 
 func dbRollback() error {
-	if client != nil && dbClient != nil {
+	if client != nil && dbConn != nil {
 		log.Info().Msgf("rolling back transaction")
-		if err := dbClient.Rollback(client); err != nil {
+		if err := dbConn.Rollback(client); err != nil {
 			panic(fmt.Errorf("failed to rollback transaction %v", err))
 		}
 	}

@@ -22,11 +22,11 @@ type User struct {
 	DiscordAvatar *string    `json:"discordAvatar,omitempty"`
 }
 
-func (c *txClient) GetUsers() ([]cs.User, error) {
+func (c *client) GetUsers() ([]cs.User, error) {
 
 	// don't include password in bulk select
 	items := []User{}
-	if err := c.db.Select(&items, `
+	if err := c.reader.Select(&items, `
 	SELECT 
 		createdAt,
 		updatedAt,
@@ -50,9 +50,9 @@ func (c *txClient) GetUsers() ([]cs.User, error) {
 }
 
 // get a user by id
-func (c *txClient) GetUser(id int64) (*cs.User, error) {
+func (c *client) GetUser(id int64) (*cs.User, error) {
 	item := User{}
-	if err := c.db.Get(&item, "SELECT * FROM users WHERE id = ?", id); err != nil {
+	if err := c.reader.Get(&item, "SELECT * FROM users WHERE id = ?", id); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
@@ -64,9 +64,9 @@ func (c *txClient) GetUser(id int64) (*cs.User, error) {
 }
 
 // get a user by id
-func (c *txClient) GetUserByUsername(username string) (*cs.User, error) {
+func (c *client) GetUserByUsername(username string) (*cs.User, error) {
 	item := User{}
-	if err := c.db.Get(&item, "SELECT * FROM users WHERE username = ?", username); err != nil {
+	if err := c.reader.Get(&item, "SELECT * FROM users WHERE username = ?", username); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
@@ -77,11 +77,11 @@ func (c *txClient) GetUserByUsername(username string) (*cs.User, error) {
 	return &user, nil
 }
 
-func (c *txClient) GetUsersForGame(gameID int64) ([]cs.User, error) {
+func (c *client) GetUsersForGame(gameID int64) ([]cs.User, error) {
 
 	// don't include password in bulk select
 	items := []User{}
-	if err := c.db.Select(&items, `
+	if err := c.reader.Select(&items, `
 	SELECT 
 		createdAt,
 		updatedAt,
@@ -105,10 +105,10 @@ func (c *txClient) GetUsersForGame(gameID int64) ([]cs.User, error) {
 }
 
 // create a new user
-func (c *txClient) CreateUser(user *cs.User) error {
+func (c *client) CreateUser(user *cs.User) error {
 	item := c.converter.ConvertGameUser(user)
 
-	result, err := c.db.NamedExec(`
+	result, err := c.writer.NamedExec(`
 	INSERT INTO users (
 		createdAt,
 		updatedAt,
@@ -151,11 +151,11 @@ func (c *txClient) CreateUser(user *cs.User) error {
 }
 
 // update an existing user
-func (c *txClient) UpdateUser(user *cs.User) error {
+func (c *client) UpdateUser(user *cs.User) error {
 
 	item := c.converter.ConvertGameUser(user)
 
-	if _, err := c.db.NamedExec(`
+	if _, err := c.writer.NamedExec(`
 	UPDATE users SET 
 		updatedAt = CURRENT_TIMESTAMP,
 		username = :username,
@@ -178,8 +178,8 @@ func (c *txClient) UpdateUser(user *cs.User) error {
 }
 
 // delete a user by id
-func (c *txClient) DeleteUser(id int64) error {
-	if _, err := c.db.Exec("DELETE FROM users WHERE id = ?", id); err != nil {
+func (c *client) DeleteUser(id int64) error {
+	if _, err := c.writer.Exec("DELETE FROM users WHERE id = ?", id); err != nil {
 		return err
 	}
 

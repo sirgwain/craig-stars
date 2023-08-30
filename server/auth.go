@@ -11,6 +11,7 @@ import (
 	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
+	"github.com/sirgwain/craig-stars/db"
 )
 
 type sessionUser struct {
@@ -82,9 +83,9 @@ func me(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res := sessionUser{
-		ID:       userID,
-		Username: userInfo.Name,
-		Role:     userInfo.Role,
+		ID:            userID,
+		Username:      userInfo.Name,
+		Role:          userInfo.Role,
 		DiscordID:     discordID,
 		DiscordAvatar: discordAvatar,
 	}
@@ -115,21 +116,26 @@ func (s *server) createNewUser(tokenUser *token.User) (*cs.User, error) {
 		log.Error().Err(err).Str("Username", user.Username).Msg("failed to create new user")
 		return nil, err
 	}
-	err = s.db.CreateUser(user)
-	if err != nil {
-		log.Error().Err(err).Str("Username", user.Username).Msg("failed to create new user")
-		return nil, err
-	}
-	log.Info().Str("Username", user.Username).Int64("ID", user.ID).Msg("created new user from token")
 
-	// create a new test race
-	race := cs.Humanoids()
-	race.UserID = user.ID
-	err = s.db.CreateRace(&race)
-	log.Info().Str("Username", user.Username).Int64("ID", user.ID).Msg("created new race for user")
-	if err != nil {
+	if err := s.db.WrapInTransaction(func(c db.Client) error {
+		if err := c.CreateUser(user); err != nil {
+			log.Error().Err(err).Str("Username", user.Username).Msg("failed to create new user")
+			return err
+		}
+		log.Info().Str("Username", user.Username).Int64("ID", user.ID).Msg("created new user from token")
+
+		// create a new test race
+		race := cs.Humanoids()
+		race.UserID = user.ID
+		if err = c.CreateRace(&race); err != nil {
+			return err
+		}
+		log.Info().Str("Username", user.Username).Int64("ID", user.ID).Msg("created new race for user")
+		return nil
+	}); err != nil {
 		return nil, err
 	}
+
 	return user, nil
 }
 
@@ -148,8 +154,8 @@ func (s *server) updateUser(tokenUser *token.User, user *cs.User) error {
 	now := time.Now()
 	user.LastLogin = &now
 
-	err := s.db.UpdateUser(user)
-	if err != nil {
+	readWriteClient := s.db.NewReadWriteClient()
+	if err := readWriteClient.UpdateUser(user); err != nil {
 		log.Error().Err(err).Str("Username", user.Username).Msg("failed to update user")
 		return err
 	}

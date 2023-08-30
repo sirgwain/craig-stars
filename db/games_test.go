@@ -12,7 +12,7 @@ import (
 func TestCreateGame(t *testing.T) {
 
 	type args struct {
-		c    *txClient
+		c    *client
 		game *cs.Game
 	}
 	tests := []struct {
@@ -132,7 +132,7 @@ func TestGetGames(t *testing.T) {
 
 func TestGetOpenGames(t *testing.T) {
 	c := connectTestDB()
-    defer func() { closeTestDB(c) }()
+	defer func() { closeTestDB(c) }()
 
 	// start with 1 game from connectTestDB
 	result, err := c.GetOpenGames()
@@ -165,7 +165,7 @@ func TestGetOpenGames(t *testing.T) {
 
 func TestGetGameWithPlayersStatus(t *testing.T) {
 	c := connectTestDB()
-    defer func() { closeTestDB(c) }()
+	defer func() { closeTestDB(c) }()
 
 	fg := c.createTestFullGame()
 
@@ -179,7 +179,7 @@ func TestGetGameWithPlayersStatus(t *testing.T) {
 
 func TestDeleteGames(t *testing.T) {
 	c := connectTestDB()
-    defer func() { closeTestDB(c) }()
+	defer func() { closeTestDB(c) }()
 
 	result, err := c.GetGames()
 	assert.Nil(t, err)
@@ -209,7 +209,7 @@ func TestDeleteGames(t *testing.T) {
 
 func TestUpdateFullGame(t *testing.T) {
 	c := connectTestDB()
-    defer func() { closeTestDB(c) }()
+	defer func() { closeTestDB(c) }()
 
 	fg := c.createTestFullGame()
 

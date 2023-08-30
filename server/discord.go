@@ -32,7 +32,7 @@ func (s *server) pingDiscordForGameUpdate(w http.ResponseWriter, r *http.Request
 
 // send a notification about a new turn
 // this will not send for single players games or games with the admin (my tests)
-func (s *server) sendNewTurnNotification(db TXClient, gameID int64) {
+func (s *server) sendNewTurnNotification(db DBClient, gameID int64) {
 	if !s.config.Discord.WebhookNotify {
 		// no webhook notifications for this server
 		return

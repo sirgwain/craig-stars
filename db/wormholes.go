@@ -38,9 +38,9 @@ func (item *WormholeSpec) Scan(src interface{}) error {
 }
 
 // get a wormhole by id
-func (c *txClient) GetWormhole(id int64) (*cs.Wormhole, error) {
+func (c *client) GetWormhole(id int64) (*cs.Wormhole, error) {
 	item := Wormhole{}
-	if err := c.db.Get(&item, "SELECT * FROM wormholes WHERE id = ?", id); err != nil {
+	if err := c.reader.Get(&item, "SELECT * FROM wormholes WHERE id = ?", id); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
@@ -51,10 +51,10 @@ func (c *txClient) GetWormhole(id int64) (*cs.Wormhole, error) {
 	return wormhole, nil
 }
 
-func (c *txClient) getWormholesForGame(gameID int64) ([]*cs.Wormhole, error) {
+func (c *client) getWormholesForGame(gameID int64) ([]*cs.Wormhole, error) {
 
 	items := []Wormhole{}
-	if err := c.db.Select(&items, `SELECT * FROM wormholes WHERE gameId = ?`, gameID); err != nil {
+	if err := c.reader.Select(&items, `SELECT * FROM wormholes WHERE gameId = ?`, gameID); err != nil {
 		if err == sql.ErrNoRows {
 			return []*cs.Wormhole{}, nil
 		}
@@ -70,9 +70,9 @@ func (c *txClient) getWormholesForGame(gameID int64) ([]*cs.Wormhole, error) {
 }
 
 // create a new game
-func (c *txClient) createWormhole(wormhole *cs.Wormhole) error {
+func (c *client) createWormhole(wormhole *cs.Wormhole) error {
 	item := c.converter.ConvertGameWormhole(wormhole)
-	result, err := c.db.NamedExec(`
+	result, err := c.writer.NamedExec(`
 	INSERT INTO wormholes (
 		createdAt,
 		updatedAt,
@@ -115,10 +115,10 @@ func (c *txClient) createWormhole(wormhole *cs.Wormhole) error {
 }
 
 // update an existing wormhole
-func (c *txClient) updateWormhole(wormhole *cs.Wormhole) error {
+func (c *client) updateWormhole(wormhole *cs.Wormhole) error {
 	item := c.converter.ConvertGameWormhole(wormhole)
 
-	if _, err := c.db.NamedExec(`
+	if _, err := c.writer.NamedExec(`
 	UPDATE wormholes SET
 		updatedAt = CURRENT_TIMESTAMP,
 		gameId = :gameId,
@@ -138,8 +138,8 @@ func (c *txClient) updateWormhole(wormhole *cs.Wormhole) error {
 	return nil
 }
 
-func (c *txClient) deleteWormhole(wormholeID int64) error {
-	if _, err := c.db.Exec("DELETE FROM wormholes where id = ?", wormholeID); err != nil {
+func (c *client) deleteWormhole(wormholeID int64) error {
+	if _, err := c.writer.Exec("DELETE FROM wormholes where id = ?", wormholeID); err != nil {
 		return fmt.Errorf("delete wormhole %d %w", wormholeID, err)
 	}
 	return nil

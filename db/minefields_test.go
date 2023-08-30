@@ -10,7 +10,7 @@ import (
 
 func TestCreateMineField(t *testing.T) {
 	type args struct {
-		c         *txClient
+		c         *client
 		mineField *cs.MineField
 	}
 	tests := []struct {

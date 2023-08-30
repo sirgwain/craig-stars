@@ -304,7 +304,7 @@ func (s *server) submitTurn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO: this should probably be a goroutine or something
-	gr := s.newGameRunner(r)
+	gr := s.newGameRunner()
 	result, err := gr.CheckAndGenerateTurn(player.GameID)
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", player.GameID).Msg("check and generate new turn")
@@ -347,7 +347,7 @@ func (s *server) unSubmitTurn(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) renderFullPlayerGame(w http.ResponseWriter, r *http.Request, gameID, userID int64) {
 	// return a new turn
-	gr := s.newGameRunner(r)
+	gr := s.newGameRunner()
 	game, fullPlayer, err := gr.LoadPlayerGame(gameID, userID)
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Msg("load full game from database")

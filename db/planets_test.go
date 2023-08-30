@@ -11,7 +11,7 @@ import (
 
 func TestCreatePlanet(t *testing.T) {
 	type args struct {
-		c      *txClient
+		c      *client
 		planet *cs.Planet
 	}
 	tests := []struct {

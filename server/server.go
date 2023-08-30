@@ -3,10 +3,15 @@ package server
 import (
 	"context"
 	"crypto/sha1"
+	"fmt"
 	"io/fs"
 	"net/http"
+	"os"
+	"os/signal"
 	"runtime/debug"
 	"strconv"
+	"strings"
+	"syscall"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -15,6 +20,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/config"
+	"github.com/sirgwain/craig-stars/db"
 	"golang.org/x/oauth2"
 
 	"github.com/go-pkgz/auth"
@@ -44,11 +50,16 @@ const (
 )
 
 type server struct {
-	db     DBClient
+	db     DBConnection
 	config config.Config
 }
 
-func Start(db DBClient, config config.Config) {
+func Start(config config.Config) error {
+
+	dbConn := db.NewConn()
+	if err := dbConn.Connect(&config); err != nil {
+		return fmt.Errorf("failed to connect to database %v", err)
+	}
 
 	// static resources
 	sub, err := fs.Sub(assets, "frontend/build")
@@ -58,7 +69,7 @@ func Start(db DBClient, config config.Config) {
 
 	// create a server
 	server := &server{
-		db:     db,
+		db:     dbConn,
 		config: config,
 	}
 	_ = server
@@ -85,7 +96,8 @@ func Start(db DBClient, config config.Config) {
 		AvatarResizeLimit: 200,                                   // resizes avatars to 200x200
 		ClaimsUpd: token.ClaimsUpdFunc(func(claims token.Claims) token.Claims { // modify issued token
 			if claims.User != nil {
-				user, err := server.db.GetUserByUsername(claims.User.Name)
+				client := server.db.NewReadClient()
+				user, err := client.GetUserByUsername(claims.User.Name)
 				if err != nil {
 					log.Error().Err(err).Msgf("failed to load %s from database during claims update", claims.User.Name)
 					// TODO: add a rejection or something?
@@ -115,6 +127,7 @@ func Start(db DBClient, config config.Config) {
 
 			if claims.User != nil {
 				// TODO: if the user is blocked, reject them here
+				_ = 1 // make the static checker happy, we may fill in this eventually and I want the comment
 				return true
 			}
 			return false
@@ -128,7 +141,8 @@ func Start(db DBClient, config config.Config) {
 
 	service.AddDirectProvider("local", provider.CredCheckerFunc(func(username, password string) (ok bool, err error) {
 
-		user, err := server.db.GetUserByUsername(username)
+		client := server.db.NewReadClient()
+		user, err := client.GetUserByUsername(username)
 		if err != nil {
 			log.Error().Err(err).Str("Username", username).Msg("get user from database")
 			return false, err
@@ -183,7 +197,7 @@ func Start(db DBClient, config config.Config) {
 
 	// wrap requests in a transaction
 	// do this before Recoverer so we can rollback panics
-	r.Use(server.transaction)
+	r.Use(server.dbClientMiddleware)
 	r.Use(middleware.Recoverer)
 
 	// Set a timeout value on the request context (ctx), that will signal
@@ -355,52 +369,81 @@ func Start(db DBClient, config config.Config) {
 
 	r.Handle("/*", http.FileServer(http.FS(sub)))
 
-	http.ListenAndServe(":8080", r)
+	// The HTTP Server
+	httpServer := &http.Server{Addr: ":8080", Handler: r}
+
+	// Server run context
+	serverCtx, serverStopCtx := context.WithCancel(context.Background())
+
+	// Listen for syscall signals for process to interrupt/quit
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	go func() {
+		<-sig
+
+		log.Info().Msg("shutdown signal received")
+
+		// Shutdown signal with grace period of 30 seconds
+		shutdownCtx, _ := context.WithTimeout(serverCtx, 30*time.Second)
+
+		go func() {
+			<-shutdownCtx.Done()
+			if shutdownCtx.Err() == context.DeadlineExceeded {
+				log.Fatal().Msg("graceful shutdown timed out.. forcing exit.")
+			}
+		}()
+
+		// Trigger graceful shutdown
+		log.Info().Msg("shutting down http server")
+		err := httpServer.Shutdown(shutdownCtx)
+		if err != nil {
+			log.Fatal().Err(err).Msg("graceful shutdown failed")
+		}
+		// close the db
+		log.Info().Msg("closing database")
+		if err = dbConn.Close(); err != nil {
+			log.Fatal().Err(err).Msg("close db failed")
+		}
+		serverStopCtx()
+	}()
+
+	// Run the httpServer
+	err = httpServer.ListenAndServe()
+	if err != nil && err != http.ErrServerClosed {
+		log.Fatal().Err(err).Msg("server closed")
+	}
+
+	// Wait for server context to be stopped
+	<-serverCtx.Done()
+
+	return nil
 }
 
-// custom transaction middleware to begin a transaction and commit it if successful
-func (s *server) transaction(next http.Handler) http.Handler {
+// custom dbClient Middleware to begin a dbClientMiddleware and commit it if successful
+func (s *server) dbClientMiddleware(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		tx, err := s.db.BeginTransaction()
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			log.Error().Err(err).Msg("failed to begin db transaction for request")
+		// for GET, just use the read client, no need to create a transaction
+		if strings.ToUpper(r.Method) == "GET" {
+			ctx := context.WithValue(r.Context(), keyDb, s.db.NewReadClient())
+			next.ServeHTTP(w, r.WithContext(ctx))
 			return
 		}
 
-		// create new context from `r` request context, and assign key `"tx"`
-		// to the transaction
-		ctx := context.WithValue(r.Context(), keyDb, tx)
-		ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
+		// for POST/PUT/DELETE, etc wrap this request in a transaction
+		ctx := context.WithValue(r.Context(), keyDb, s.db.NewReadWriteClient())
 
-		next.ServeHTTP(ww, r.WithContext(ctx))
-
-		if ww.Status() >= 400 {
-			err := s.db.Rollback(tx)
-			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				log.Error().Err(err).Msgf("failed to rollback transaction: %s \n", err.Error())
-			}
-		} else {
-			err = s.db.Commit(tx)
-			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				log.Error().Err(err).Msgf("failed to commit transaction: %s \n", err.Error())
-			}
-		}
-
+		next.ServeHTTP(w, r.WithContext(ctx))
 	}
 	return http.HandlerFunc(fn)
 }
 
-func (s *server) contextDb(r *http.Request) TXClient {
-	return r.Context().Value(keyDb).(TXClient)
+func (s *server) contextDb(r *http.Request) DBClient {
+	return r.Context().Value(keyDb).(DBClient)
 }
 
 // create a new gameRunner for this request
-func (s *server) newGameRunner(r *http.Request) GameRunner {
-	db := s.contextDb(r)
-	return NewGameRunner(db, s.config)
+func (s *server) newGameRunner() GameRunner {
+	return NewGameRunner(s.db, s.config)
 }
 
 // create a new request logger with zerolog. Inspired by https://github.com/ironstar-io/chizerolog

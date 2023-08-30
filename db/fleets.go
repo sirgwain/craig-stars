@@ -105,9 +105,9 @@ func (item *FleetSpec) Scan(src interface{}) error {
 }
 
 // get a fleet by id
-func (c *txClient) GetFleet(id int64) (*cs.Fleet, error) {
+func (c *client) GetFleet(id int64) (*cs.Fleet, error) {
 	item := Fleet{}
-	if err := c.db.Get(&item, "SELECT * FROM fleets WHERE id = ?", id); err != nil {
+	if err := c.reader.Get(&item, "SELECT * FROM fleets WHERE id = ?", id); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
@@ -138,10 +138,10 @@ func (c *txClient) GetFleet(id int64) (*cs.Fleet, error) {
 	return fleet, nil
 }
 
-func (c *txClient) getFleetsForGame(gameID int64) ([]*cs.Fleet, error) {
+func (c *client) getFleetsForGame(gameID int64) ([]*cs.Fleet, error) {
 
 	items := []Fleet{}
-	if err := c.db.Select(&items, `SELECT * FROM fleets WHERE gameId = ?`, gameID); err != nil {
+	if err := c.reader.Select(&items, `SELECT * FROM fleets WHERE gameId = ?`, gameID); err != nil {
 		if err == sql.ErrNoRows {
 			return []*cs.Fleet{}, nil
 		}
@@ -156,10 +156,10 @@ func (c *txClient) getFleetsForGame(gameID int64) ([]*cs.Fleet, error) {
 	return results, nil
 }
 
-func (c *txClient) GetFleetsForPlayer(gameID int64, playerNum int) ([]*cs.Fleet, error) {
+func (c *client) GetFleetsForPlayer(gameID int64, playerNum int) ([]*cs.Fleet, error) {
 
 	items := []Fleet{}
-	if err := c.db.Select(&items, `SELECT * FROM fleets WHERE gameId = ? AND playerNum = ?`, gameID, playerNum); err != nil {
+	if err := c.reader.Select(&items, `SELECT * FROM fleets WHERE gameId = ? AND playerNum = ?`, gameID, playerNum); err != nil {
 		if err == sql.ErrNoRows {
 			return []*cs.Fleet{}, nil
 		}
@@ -174,10 +174,10 @@ func (c *txClient) GetFleetsForPlayer(gameID int64, playerNum int) ([]*cs.Fleet,
 	return results, nil
 }
 
-func (c *txClient) GetFleetByNum(gameID int64, playerNum int, num int) (*cs.Fleet, error) {
+func (c *client) GetFleetByNum(gameID int64, playerNum int, num int) (*cs.Fleet, error) {
 
 	item := Fleet{}
-	if err := c.db.Get(&item, `SELECT * FROM fleets WHERE gameId = ? AND playerNum = ? AND num = ?`, gameID, playerNum, num); err != nil {
+	if err := c.reader.Get(&item, `SELECT * FROM fleets WHERE gameId = ? AND playerNum = ? AND num = ?`, gameID, playerNum, num); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
@@ -189,16 +189,16 @@ func (c *txClient) GetFleetByNum(gameID int64, playerNum int, num int) (*cs.Flee
 
 }
 
-func (c *txClient) GetFleetsByNums(gameID int64, playerNum int, nums []int) ([]*cs.Fleet, error) {
+func (c *client) GetFleetsByNums(gameID int64, playerNum int, nums []int) ([]*cs.Fleet, error) {
 
 	query, args, err := sqlx.In(`SELECT * FROM fleets WHERE gameId = ? AND playerNum = ? AND num IN (?)`, gameID, playerNum, nums)
 	if err != nil {
 		return nil, err
 	}
 
-	query = c.db.Rebind(query)
+	query = c.reader.Rebind(query)
 	items := []Fleet{}
-	if err := c.db.Select(&items, query, args...); err != nil {
+	if err := c.reader.Select(&items, query, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return []*cs.Fleet{}, nil
 		}
@@ -214,9 +214,9 @@ func (c *txClient) GetFleetsByNums(gameID int64, playerNum int, nums []int) ([]*
 }
 
 // create a new game
-func (c *txClient) createFleet(fleet *cs.Fleet) error {
+func (c *client) createFleet(fleet *cs.Fleet) error {
 	item := c.converter.ConvertGameFleet(fleet)
-	result, err := c.db.NamedExec(`
+	result, err := c.writer.NamedExec(`
 	INSERT INTO fleets (
 		createdAt,
 		updatedAt,
@@ -292,7 +292,7 @@ func (c *txClient) createFleet(fleet *cs.Fleet) error {
 	return nil
 }
 
-func (c *txClient) CreateUpdateOrDeleteFleets(gameID int64, fleets []*cs.Fleet) error {
+func (c *client) CreateUpdateOrDeleteFleets(gameID int64, fleets []*cs.Fleet) error {
 
 	// create/update fleets
 	for _, fleet := range fleets {
@@ -305,7 +305,6 @@ func (c *txClient) CreateUpdateOrDeleteFleets(gameID int64, fleets []*cs.Fleet) 
 
 		} else if fleet.Delete {
 			if err := c.DeleteFleet(fleet.ID); err != nil {
-				c.db.Rollback()
 				return fmt.Errorf("delete fleet %w", err)
 			}
 			// log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Deleted fleet %s", fleet.Name)
@@ -317,15 +316,15 @@ func (c *txClient) CreateUpdateOrDeleteFleets(gameID int64, fleets []*cs.Fleet) 
 		}
 	}
 
-	return c.db.Commit()
+	return nil
 }
 
 // update an existing fleet
-func (c *txClient) UpdateFleet(fleet *cs.Fleet) error {
+func (c *client) UpdateFleet(fleet *cs.Fleet) error {
 
 	item := c.converter.ConvertGameFleet(fleet)
 
-	if _, err := c.db.NamedExec(`
+	if _, err := c.writer.NamedExec(`
 	UPDATE fleets SET
 		updatedAt = CURRENT_TIMESTAMP,
 		gameId = :gameId,
@@ -362,8 +361,8 @@ func (c *txClient) UpdateFleet(fleet *cs.Fleet) error {
 	return nil
 }
 
-func (c *txClient) DeleteFleet(fleetID int64) error {
-	if _, err := c.db.Exec("DELETE FROM fleets where id = ?", fleetID); err != nil {
+func (c *client) DeleteFleet(fleetID int64) error {
+	if _, err := c.writer.Exec("DELETE FROM fleets where id = ?", fleetID); err != nil {
 		return fmt.Errorf("delete fleet %d %w", fleetID, err)
 	}
 	return nil

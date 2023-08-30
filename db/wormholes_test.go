@@ -11,7 +11,7 @@ import (
 
 func TestCreateWormhole(t *testing.T) {
 	type args struct {
-		c        *txClient
+		c        *client
 		wormhole *cs.Wormhole
 	}
 	tests := []struct {

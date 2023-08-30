@@ -11,7 +11,7 @@ import (
 func TestCreateUser(t *testing.T) {
 
 	type args struct {
-		c    *txClient
+		c    *client
 		user *cs.User
 	}
 	tests := []struct {

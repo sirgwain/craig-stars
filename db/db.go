@@ -19,36 +19,55 @@ import (
 	sqldblogger "github.com/simukti/sqldb-logger"
 )
 
-type dbClient struct {
-	db               *sqlx.DB
+type dbConn struct {
+	dbRead           *sqlx.DB
+	dbWrite          *sqlx.DB
 	databaseInMemory bool
 	usersInMemory    bool
 }
 
-type txClient struct {
-	db               *sqlx.Tx
-	converter        Converter
-	databaseInMemory bool
-	usersInMemory    bool
+type client struct {
+	reader    sqlReader
+	writer    sqlWriter
+	tx        *sqlx.Tx
+	converter Converter
 }
 
-type DBClient interface {
+type sqlReader interface {
+	Select(dest interface{}, query string, args ...interface{}) error
+	Get(dest interface{}, query string, args ...interface{}) error
+	Rebind(query string) string
+}
+
+type sqlWriter interface {
+	NamedExec(query string, arg interface{}) (sql.Result, error)
+	Exec(query string, args ...any) (sql.Result, error)
+}
+
+type DBConn interface {
 	Connect(config *config.Config) error
+	Close() error
+
+	// create a new read client
+	NewReadClient() Client
+	NewReadWriteClient() Client
+
+	// for write clients we use transactions
 	BeginTransaction() (Client, error)
 	Rollback(c Client) error
 	Commit(c Client) error
 
-	// call within a single transaction
-	GetUserByUsername(username string) (*cs.User, error)
-	CreateUser(user *cs.User) error
-	UpdateUser(user *cs.User) error
-	CreateRace(race *cs.Race) error
+	// wrap a function call inside a transaction
+	WrapInTransaction(wrap func(c Client) error) error
 }
 
 type Client interface {
-	// private transaction management methods
+	// private transaction management methods used by DBConn RollBack, Commit
 	rollback() error
 	commit() error
+
+	// private method used during DBConn Connect to upgrade a client
+	// this is
 	ensureUpgrade() error
 
 	GetUsers() ([]cs.User, error)
@@ -142,46 +161,70 @@ type Client interface {
 	UpdateSalvage(salvage *cs.Salvage) error
 }
 
-func NewClient() DBClient {
-	return &dbClient{}
+func NewConn() DBConn {
+	return &dbConn{}
 }
 
-func newTransaction(tx *sqlx.Tx) *txClient {
-	return &txClient{
-		db:        tx,
+func (conn *dbConn) NewReadClient() Client {
+	return &client{
+		reader:    conn.dbRead,
 		converter: &GameConverter{},
 	}
 }
 
-func (dbClient *dbClient) BeginTransaction() (Client, error) {
+func (conn *dbConn) NewReadWriteClient() Client {
+	return &client{
+		reader:    conn.dbRead,
+		writer:    conn.dbWrite,
+		converter: &GameConverter{},
+	}
+}
 
-	tx, err := dbClient.db.Beginx()
+// create a new dbClient from a transaction
+func newTransactionClient(tx *sqlx.Tx) *client {
+	return &client{
+		reader:    tx,
+		writer:    tx,
+		tx:        tx,
+		converter: &GameConverter{},
+	}
+}
+
+func (conn *dbConn) BeginTransaction() (Client, error) {
+
+	// log.Debug().Msg("begin transaction")
+	tx, err := conn.dbWrite.Beginx()
 	if err != nil {
 		return nil, err
 	}
-
-	return newTransaction(tx), nil
+	return newTransactionClient(tx), nil
 }
 
-func (dbClient *dbClient) Rollback(c Client) error {
+func (conn *dbConn) Rollback(c Client) error {
+	// log.Debug().Msg("rollback transaction")
 	return c.rollback()
 }
-func (dbClient *dbClient) Commit(c Client) error {
+func (conn *dbConn) Commit(c Client) error {
+	// log.Debug().Msg("commit transaction")
 	return c.commit()
 }
 
-// interface to support NamedExec as either a transaction or db
-type SQLExecer interface {
-	NamedExec(query string, arg interface{}) (sql.Result, error)
-	Exec(query string, args ...any) (sql.Result, error)
+// helper function to wrap a series of db calls in a transaction
+func (conn *dbConn) WrapInTransaction(wrap func(c Client) error) error {
+	c, err := conn.BeginTransaction()
+	if err != nil {
+		return err
+	}
+	defer func() { conn.Rollback(c) }()
+
+	if err := wrap(c); err != nil {
+		return err
+	}
+
+	return conn.Commit(c)
 }
 
-type SQLSelector interface {
-	Select(dest interface{}, query string, args ...interface{}) error
-	Get(dest interface{}, query string, args ...interface{}) error
-}
-
-func (c *dbClient) Connect(cfg *config.Config) error {
+func (c *dbConn) Connect(cfg *config.Config) error {
 
 	c.databaseInMemory = strings.Contains(cfg.Database.Filename, ":memory:")
 	c.usersInMemory = strings.Contains(cfg.Database.UsersFilename, ":memory:")
@@ -204,7 +247,7 @@ func (c *dbClient) Connect(cfg *config.Config) error {
 	// make sure the database is up to date
 	c.mustMigrate(cfg)
 
-	log.Debug().Msgf("Connecting to database %s", cfg.Database.Filename)
+	log.Debug().Msgf("Connecting to database %s%s", cfg.Database.Filename, cfg.Database.ReadConnectionParams)
 
 	// create a new logger for logging database calls
 	var zlogger zerolog.Logger
@@ -215,23 +258,33 @@ func (c *dbClient) Connect(cfg *config.Config) error {
 	}
 	loggerAdapter := NewLoggerWithLogger(&zlogger)
 
-	db := sqldblogger.OpenDriver(cfg.Database.Filename, &sqlite3.SQLiteDriver{
-		ConnectHook: func(conn *sqlite3.SQLiteConn) error {
+	// dsn is like file::memory:?cache=shared, or file:data.db?_journal=WAL
+	dsn := fmt.Sprintf("file:%s%s", cfg.Database.Filename, cfg.Database.ReadConnectionParams)
+	connectHook := func(conn *sqlite3.SQLiteConn) error {
+		if _, err := conn.Exec(fmt.Sprintf("ATTACH DATABASE '%s' as users;", cfg.Database.UsersFilename), nil); err != nil {
+			return err
+		}
+		if _, err := conn.Exec("PRAGMA foreign_keys = ON;", nil); err != nil {
+			return err
+		}
+		return nil
+	}
 
-			if _, err := conn.Exec(fmt.Sprintf("ATTACH DATABASE '%s' as users;", cfg.Database.UsersFilename), nil); err != nil {
-				return err
-			}
-			if _, err := conn.Exec("PRAGMA foreign_keys = ON;", nil); err != nil {
-				return err
-			}
-			return nil
-		},
-	}, loggerAdapter /*, ...options */)
+	dbRead := sqldblogger.OpenDriver(dsn, &sqlite3.SQLiteDriver{ConnectHook: connectHook}, loggerAdapter)
+	dbWrite := sqldblogger.OpenDriver(dsn, &sqlite3.SQLiteDriver{ConnectHook: connectHook}, loggerAdapter)
 
-	c.db = sqlx.NewDb(db, "sqlite3")
+	c.dbRead = sqlx.NewDb(dbRead, "sqlite3")
+	if c.databaseInMemory {
+		// no separate write connetion for in memory dbs
+		c.dbWrite = c.dbRead
+	} else {
+		c.dbWrite = sqlx.NewDb(dbWrite, "sqlite3")
+		c.dbWrite.SetMaxOpenConns(1)
+	}
 
 	// Create a new mapper which will use the struct field tag "json" instead of "db"
-	c.db.Mapper = reflectx.NewMapperFunc("json", strings.ToLower)
+	c.dbRead.Mapper = reflectx.NewMapperFunc("json", strings.ToLower)
+	c.dbWrite.Mapper = reflectx.NewMapperFunc("json", strings.ToLower)
 
 	// do some special processing for in memory databases
 	if c.databaseInMemory {
@@ -243,52 +296,25 @@ func (c *dbClient) Connect(cfg *config.Config) error {
 		c.mustUpgrade()
 	}
 
+	log.Info().Msg("connect() complete")
+
 	return nil
 }
 
-func (c *txClient) rollback() error {
-	return c.db.Rollback()
-}
-
-func (c *txClient) commit() error {
-	return c.db.Commit()
-}
-
-// helper function to wrap code in a transaction
-func (dbClient *dbClient) wrapInTransaction(wrap func(c Client) error) error {
-	c, err := dbClient.BeginTransaction()
-	if err != nil {
+func (c *dbConn) Close() error {
+	if err := c.dbRead.Close(); err != nil {
 		return err
 	}
-	defer func() { dbClient.Rollback(c) }()
-
-	if err := wrap(c); err != nil {
+	if err := c.dbWrite.Close(); err != nil {
 		return err
 	}
-
-	return dbClient.Commit(c)
+	return nil
 }
 
-func (dbClient *dbClient) GetUserByUsername(username string) (*cs.User, error) {
-	var user *cs.User
-
-	err := dbClient.wrapInTransaction(func(c Client) error {
-		var err error
-		user, err = c.GetUserByUsername(username)
-		return err
-	})
-
-	return user, err
+func (c *client) rollback() error {
+	return c.tx.Rollback()
 }
 
-func (dbClient *dbClient) CreateUser(user *cs.User) error {
-	return dbClient.wrapInTransaction(func(c Client) error { return c.CreateUser(user) })
-}
-
-func (dbClient *dbClient) UpdateUser(user *cs.User) error {
-	return dbClient.wrapInTransaction(func(c Client) error { return c.UpdateUser(user) })
-}
-
-func (dbClient *dbClient) CreateRace(race *cs.Race) error {
-	return dbClient.wrapInTransaction(func(c Client) error { return c.CreateRace(race) })
+func (c *client) commit() error {
+	return c.tx.Commit()
 }

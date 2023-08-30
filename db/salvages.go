@@ -25,9 +25,9 @@ type Salvage struct {
 }
 
 // get a salvage by id
-func (c *txClient) GetSalvage(id int64) (*cs.Salvage, error) {
+func (c *client) GetSalvage(id int64) (*cs.Salvage, error) {
 	item := Salvage{}
-	if err := c.db.Get(&item, "SELECT * FROM salvages WHERE id = ?", id); err != nil {
+	if err := c.reader.Get(&item, "SELECT * FROM salvages WHERE id = ?", id); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
@@ -38,10 +38,10 @@ func (c *txClient) GetSalvage(id int64) (*cs.Salvage, error) {
 	return salvage, nil
 }
 
-func (c *txClient) GetSalvageByNum(gameID int64, num int) (*cs.Salvage, error) {
+func (c *client) GetSalvageByNum(gameID int64, num int) (*cs.Salvage, error) {
 
 	item := Salvage{}
-	if err := c.db.Get(&item, `SELECT * FROM salvages WHERE gameId = ? AND num = ?`, gameID, num); err != nil {
+	if err := c.reader.Get(&item, `SELECT * FROM salvages WHERE gameId = ? AND num = ?`, gameID, num); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
@@ -53,14 +53,14 @@ func (c *txClient) GetSalvageByNum(gameID int64, num int) (*cs.Salvage, error) {
 
 }
 
-func (c *txClient) GetSalvagesForGame(gameID int64) ([]*cs.Salvage, error) {
+func (c *client) GetSalvagesForGame(gameID int64) ([]*cs.Salvage, error) {
 	return c.getSalvagesForGame(gameID)
 }
 
-func (c *txClient) getSalvagesForGame(gameID int64) ([]*cs.Salvage, error) {
+func (c *client) getSalvagesForGame(gameID int64) ([]*cs.Salvage, error) {
 
 	items := []Salvage{}
-	if err := c.db.Select(&items, `SELECT * FROM salvages WHERE gameId = ? ORDER BY num`, gameID); err != nil {
+	if err := c.reader.Select(&items, `SELECT * FROM salvages WHERE gameId = ? ORDER BY num`, gameID); err != nil {
 		if err == sql.ErrNoRows {
 			return []*cs.Salvage{}, nil
 		}
@@ -75,10 +75,10 @@ func (c *txClient) getSalvagesForGame(gameID int64) ([]*cs.Salvage, error) {
 	return results, nil
 }
 
-func (c *txClient) GetSalvagesForPlayer(gameID int64, playerNum int) ([]*cs.Salvage, error) {
+func (c *client) GetSalvagesForPlayer(gameID int64, playerNum int) ([]*cs.Salvage, error) {
 
 	items := []Salvage{}
-	if err := c.db.Select(&items, `SELECT * FROM salvages WHERE gameId = ? AND playerNum = ?`, gameID, playerNum); err != nil {
+	if err := c.reader.Select(&items, `SELECT * FROM salvages WHERE gameId = ? AND playerNum = ?`, gameID, playerNum); err != nil {
 		if err == sql.ErrNoRows {
 			return []*cs.Salvage{}, nil
 		}
@@ -94,9 +94,9 @@ func (c *txClient) GetSalvagesForPlayer(gameID int64, playerNum int) ([]*cs.Salv
 }
 
 // create a new salvage
-func (c *txClient) CreateSalvage(salvage *cs.Salvage) error {
+func (c *client) CreateSalvage(salvage *cs.Salvage) error {
 	item := c.converter.ConvertGameSalvage(salvage)
-	result, err := c.db.NamedExec(`
+	result, err := c.writer.NamedExec(`
 	INSERT INTO salvages (
 		createdAt,
 		updatedAt,
@@ -139,11 +139,11 @@ func (c *txClient) CreateSalvage(salvage *cs.Salvage) error {
 }
 
 // update an existing salvage
-func (c *txClient) UpdateSalvage(salvage *cs.Salvage) error {
+func (c *client) UpdateSalvage(salvage *cs.Salvage) error {
 
 	item := c.converter.ConvertGameSalvage(salvage)
 
-	if _, err := c.db.NamedExec(`
+	if _, err := c.writer.NamedExec(`
 	UPDATE salvages SET
 		updatedAt = CURRENT_TIMESTAMP,
 		gameId = :gameId,
@@ -163,8 +163,8 @@ func (c *txClient) UpdateSalvage(salvage *cs.Salvage) error {
 	return nil
 }
 
-func (c *txClient) deleteSalvage(salvageID int64) error {
-	if _, err := c.db.Exec("DELETE FROM salvages where id = ?", salvageID); err != nil {
+func (c *client) deleteSalvage(salvageID int64) error {
+	if _, err := c.writer.Exec("DELETE FROM salvages where id = ?", salvageID); err != nil {
 		return fmt.Errorf("delete salvage %d %w", salvageID, err)
 	}
 	return nil

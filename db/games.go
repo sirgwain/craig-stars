@@ -60,10 +60,10 @@ func (item *Rules) Scan(src interface{}) error {
 	return scanJSON(src, item)
 }
 
-func (c *txClient) GetGames() ([]cs.Game, error) {
+func (c *client) GetGames() ([]cs.Game, error) {
 
 	items := []Game{}
-	if err := c.db.Select(&items, `SELECT * FROM games`); err != nil {
+	if err := c.reader.Select(&items, `SELECT * FROM games`); err != nil {
 		if err == sql.ErrNoRows {
 			return []cs.Game{}, nil
 		}
@@ -73,25 +73,25 @@ func (c *txClient) GetGames() ([]cs.Game, error) {
 	return c.converter.ConvertGames(items), nil
 }
 
-func (c *txClient) GetGamesForHost(userID int64) ([]cs.GameWithPlayers, error) {
+func (c *client) GetGamesForHost(userID int64) ([]cs.GameWithPlayers, error) {
 	return c.getGameWithPlayersStatus(`g.hostId = ?`, userID)
 }
 
-func (c *txClient) GetGamesForUser(userID int64) ([]cs.GameWithPlayers, error) {
+func (c *client) GetGamesForUser(userID int64) ([]cs.GameWithPlayers, error) {
 	return c.getGameWithPlayersStatus(`g.hostId = ? OR g.id in (SELECT gameId from players p WHERE p.userId = ?)`, userID, userID)
 }
 
-func (c *txClient) GetOpenGames() ([]cs.GameWithPlayers, error) {
+func (c *client) GetOpenGames() ([]cs.GameWithPlayers, error) {
 	return c.getGameWithPlayersStatus(`g.state = ? AND g.openPlayerSlots > 0`, cs.GameStateSetup)
 
 }
 
-func (c *txClient) GetOpenGamesByHash(hash string) ([]cs.GameWithPlayers, error) {
+func (c *client) GetOpenGamesByHash(hash string) ([]cs.GameWithPlayers, error) {
 	return c.getGameWithPlayersStatus(`g.state = ? AND g.openPlayerSlots > 0 AND g.hash = ?`, cs.GameStateSetup, hash)
 }
 
 // get a game by id
-func (c *txClient) GetGame(id int64) (*cs.GameWithPlayers, error) {
+func (c *client) GetGame(id int64) (*cs.GameWithPlayers, error) {
 	games, err := c.getGameWithPlayersStatus("g.id = ?", id)
 	if err != nil {
 		return nil, err
@@ -103,7 +103,7 @@ func (c *txClient) GetGame(id int64) (*cs.GameWithPlayers, error) {
 	return &games[0], nil
 }
 
-func (c *txClient) GetGameWithPlayersStatus(gameID int64) (*cs.GameWithPlayers, error) {
+func (c *client) GetGameWithPlayersStatus(gameID int64) (*cs.GameWithPlayers, error) {
 	games, err := c.getGameWithPlayersStatus("g.id = ?", gameID)
 	if err != nil {
 		return nil, err
@@ -115,7 +115,7 @@ func (c *txClient) GetGameWithPlayersStatus(gameID int64) (*cs.GameWithPlayers, 
 	return &games[0], nil
 }
 
-func (c *txClient) getGameWithPlayersStatus(where string, args ...interface{}) ([]cs.GameWithPlayers, error) {
+func (c *client) getGameWithPlayersStatus(where string, args ...interface{}) ([]cs.GameWithPlayers, error) {
 	type gamePlayersJoin struct {
 		Game            `json:"game,omitempty"`
 		cs.PlayerStatus `json:"player,omitempty"`
@@ -123,7 +123,7 @@ func (c *txClient) getGameWithPlayersStatus(where string, args ...interface{}) (
 
 	rows := []gamePlayersJoin{}
 
-	err := c.db.Select(&rows, fmt.Sprintf(`
+	err := c.reader.Select(&rows, fmt.Sprintf(`
 	SELECT 
 		g.id AS 'game.id',
 		g.createdAt AS 'game.createdAt',
@@ -217,9 +217,9 @@ func (c *txClient) getGameWithPlayersStatus(where string, args ...interface{}) (
 }
 
 // get a game by id
-func (c *txClient) GetFullGame(id int64) (*cs.FullGame, error) {
+func (c *client) GetFullGame(id int64) (*cs.FullGame, error) {
 	item := Game{}
-	if err := c.db.Get(&item, "SELECT * FROM games WHERE id = ?", id); err != nil {
+	if err := c.reader.Get(&item, "SELECT * FROM games WHERE id = ?", id); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
@@ -307,10 +307,10 @@ func (c *txClient) GetFullGame(id int64) (*cs.FullGame, error) {
 }
 
 // create a new game
-func (c *txClient) CreateGame(game *cs.Game) error {
+func (c *client) CreateGame(game *cs.Game) error {
 
 	item := c.converter.ConvertGameGame(game)
-	result, err := c.db.NamedExec(`
+	result, err := c.writer.NamedExec(`
 	INSERT INTO games (
 		createdAt,
 		updatedAt,
@@ -400,9 +400,9 @@ func (c *txClient) CreateGame(game *cs.Game) error {
 	return nil
 }
 
-func (c *txClient) UpdateGameState(gameID int64, state cs.GameState) error {
+func (c *client) UpdateGameState(gameID int64, state cs.GameState) error {
 
-	if _, err := c.db.Exec(`
+	if _, err := c.writer.Exec(`
 	UPDATE games SET
 		updatedAt = CURRENT_TIMESTAMP,
 		state = ?
@@ -415,11 +415,11 @@ func (c *txClient) UpdateGameState(gameID int64, state cs.GameState) error {
 }
 
 // update an existing game
-func (c *txClient) UpdateGame(game *cs.Game) error {
+func (c *client) UpdateGame(game *cs.Game) error {
 
 	item := c.converter.ConvertGameGame(game)
 
-	if _, err := c.db.NamedExec(`
+	if _, err := c.writer.NamedExec(`
 	UPDATE games SET
 		updatedAt = CURRENT_TIMESTAMP,
 		hostId = :hostId,
@@ -463,7 +463,7 @@ func (c *txClient) UpdateGame(game *cs.Game) error {
 	return nil
 }
 
-func (c *txClient) UpdateFullGame(fullGame *cs.FullGame) error {
+func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 
 	if err := c.UpdateGame(fullGame.Game); err != nil {
 		return fmt.Errorf("update game %w", err)
@@ -637,8 +637,8 @@ func (c *txClient) UpdateFullGame(fullGame *cs.FullGame) error {
 }
 
 // delete a game by id
-func (c *txClient) DeleteGame(id int64) error {
-	if _, err := c.db.Exec("DELETE FROM games WHERE id = ?", id); err != nil {
+func (c *client) DeleteGame(id int64) error {
+	if _, err := c.writer.Exec("DELETE FROM games WHERE id = ?", id); err != nil {
 		return err
 	}
 

@@ -12,7 +12,7 @@ import (
 
 func TestCreatePlayer(t *testing.T) {
 	type args struct {
-		c      *txClient
+		c      *client
 		player *cs.Player
 	}
 	tests := []struct {

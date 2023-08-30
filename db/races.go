@@ -59,10 +59,10 @@ func (item *RaceSpec) Scan(src interface{}) error {
 	return scanJSON(src, item)
 }
 
-func (c *txClient) GetRaces() ([]cs.Race, error) {
+func (c *client) GetRaces() ([]cs.Race, error) {
 
 	items := []Race{}
-	if err := c.db.Select(&items, `SELECT * FROM races`); err != nil {
+	if err := c.reader.Select(&items, `SELECT * FROM races`); err != nil {
 		if err == sql.ErrNoRows {
 			return []cs.Race{}, nil
 		}
@@ -72,10 +72,10 @@ func (c *txClient) GetRaces() ([]cs.Race, error) {
 	return c.converter.ConvertRaces(items), nil
 }
 
-func (c *txClient) GetRacesForUser(userID int64) ([]cs.Race, error) {
+func (c *client) GetRacesForUser(userID int64) ([]cs.Race, error) {
 
 	items := []Race{}
-	if err := c.db.Select(&items, `SELECT * FROM races WHERE userId = ?`, userID); err != nil {
+	if err := c.reader.Select(&items, `SELECT * FROM races WHERE userId = ?`, userID); err != nil {
 		if err == sql.ErrNoRows {
 			return []cs.Race{}, nil
 		}
@@ -86,9 +86,9 @@ func (c *txClient) GetRacesForUser(userID int64) ([]cs.Race, error) {
 }
 
 // get a race by id
-func (c *txClient) GetRace(id int64) (*cs.Race, error) {
+func (c *client) GetRace(id int64) (*cs.Race, error) {
 	item := Race{}
-	if err := c.db.Get(&item, "SELECT * FROM races WHERE id = ?", id); err != nil {
+	if err := c.reader.Get(&item, "SELECT * FROM races WHERE id = ?", id); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
@@ -100,10 +100,10 @@ func (c *txClient) GetRace(id int64) (*cs.Race, error) {
 }
 
 // create a new race
-func (c *txClient) CreateRace(race *cs.Race) error {
+func (c *client) CreateRace(race *cs.Race) error {
 
 	item := c.converter.ConvertGameRace(race)
-	result, err := c.db.NamedExec(`
+	result, err := c.writer.NamedExec(`
 	INSERT INTO races (
 		createdAt,
 		updatedAt,
@@ -194,11 +194,11 @@ func (c *txClient) CreateRace(race *cs.Race) error {
 }
 
 // update an existing race
-func (c *txClient) UpdateRace(race *cs.Race) error {
+func (c *client) UpdateRace(race *cs.Race) error {
 
 	item := c.converter.ConvertGameRace(race)
 
-	if _, err := c.db.NamedExec(`
+	if _, err := c.writer.NamedExec(`
 	UPDATE races SET
 		updatedAt = CURRENT_TIMESTAMP,
 		userId = :userId,
@@ -242,8 +242,8 @@ func (c *txClient) UpdateRace(race *cs.Race) error {
 }
 
 // delete a race by id
-func (c *txClient) DeleteRace(id int64) error {
-	if _, err := c.db.Exec("DELETE FROM races WHERE id = ?", id); err != nil {
+func (c *client) DeleteRace(id int64) error {
+	if _, err := c.writer.Exec("DELETE FROM races WHERE id = ?", id); err != nil {
 		return err
 	}
 

@@ -27,7 +27,7 @@ var gamesSchemaFiles embed.FS
 //go:embed schema/memory/*.sql
 var memorySchemaFiles embed.FS
 
-func (c *dbClient) mustMigrate(cfg *config.Config) {
+func (c *dbConn) mustMigrate(cfg *config.Config) {
 	if !c.usersInMemory {
 		c.mustMigrateDatabase(cfg.Database.UsersFilename, usersSchemaFiles, "schema/users")
 	}
@@ -38,7 +38,7 @@ func (c *dbClient) mustMigrate(cfg *config.Config) {
 
 // in memory databases are different because the user and games database has to live in the same
 // memory space so we have to "migrate" them together
-func (c *dbClient) setupInMemoryDatabase() {
+func (c *dbConn) setupInMemoryDatabase() {
 	schema, err := iofs.New(memorySchemaFiles, "schema/memory")
 	if err != nil {
 		log.Fatal().Err(err).Msg("loading embedded schema")
@@ -48,7 +48,7 @@ func (c *dbClient) setupInMemoryDatabase() {
 		MigrationsTable: "my_migration_table",
 	}
 
-	driver, err := sqlite3.WithInstance(c.db.DB, config)
+	driver, err := sqlite3.WithInstance(c.dbRead.DB, config)
 	if err != nil {
 		log.Fatal().Err(err).Msg("creating database driver")
 	}
@@ -65,7 +65,7 @@ func (c *dbClient) setupInMemoryDatabase() {
 
 }
 
-func (c *dbClient) mustMigrateDatabase(datasource string, fs embed.FS, path string) {
+func (c *dbConn) mustMigrateDatabase(datasource string, fs embed.FS, path string) {
 	d, err := iofs.New(fs, path)
 	if err != nil {
 		log.Fatal().Err(err).Msg("loading embedded schema")
@@ -119,7 +119,7 @@ func (c *dbClient) mustMigrateDatabase(datasource string, fs embed.FS, path stri
 
 }
 
-func (c *dbClient) mustBackup(filename string, version uint) string {
+func (c *dbConn) mustBackup(filename string, version uint) string {
 
 	if strings.Contains(filename, ":memory") {
 		log.Debug().Msg("not backing up in memory db")
@@ -138,7 +138,7 @@ func (c *dbClient) mustBackup(filename string, version uint) string {
 }
 
 // copy a file from one place to another
-func (c *dbClient) copyFile(sourceFile, destinationFile string) error {
+func (c *dbConn) copyFile(sourceFile, destinationFile string) error {
 	input, err := ioutil.ReadFile(sourceFile)
 	if err != nil {
 		return err

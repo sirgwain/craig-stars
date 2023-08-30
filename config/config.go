@@ -10,11 +10,13 @@ import (
 
 type Config struct {
 	Database struct {
-		Recreate      bool   `yaml:"Recreate,omitempty"`
-		Filename      string `yaml:"Filename,omitempty"`
-		UsersFilename string `yaml:"UsersFilename,omitempty"`
-		DebugLogging  bool   `yaml:"DebugLogging,omitempty"`
-		SkipUpgrade   bool   `yaml:"SkipUpgrade,omitempty"`
+		Recreate              bool   `yaml:"Recreate,omitempty"`
+		Filename              string `yaml:"Filename,omitempty"`
+		ReadConnectionParams  string `yaml:"ReadConnectionParams"`
+		WriteConnectionParams string `yaml:"WriteConnectionParams"`
+		UsersFilename         string `yaml:"UsersFilename,omitempty"`
+		DebugLogging          bool   `yaml:"DebugLogging,omitempty"`
+		SkipUpgrade           bool   `yaml:"SkipUpgrade,omitempty"`
 	}
 	Auth struct {
 		Secret      string `yaml:"Secret,omitempty"`
@@ -49,6 +51,8 @@ func GetConfig() *Config {
 
 		// Set default values for local dev
 		viper.SetDefault("Database.Filename", "data/data.db")
+		viper.SetDefault("Database.ReadConnectionParams", "?_txlock=deferred")
+		viper.SetDefault("Database.WriteConnectionParams", "?_txlock=immediate&_busy_timeout=1200")
 		viper.SetDefault("Database.UsersFilename", "data/users.db")
 		viper.SetDefault("Auth.Secret", "secret")             // default for local dev
 		viper.SetDefault("Auth.URL", "http://localhost:5173") // default for local dev

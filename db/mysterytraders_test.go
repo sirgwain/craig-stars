@@ -11,7 +11,7 @@ import (
 
 func TestCreateMysteryTrader(t *testing.T) {
 	type args struct {
-		c             *txClient
+		c             *client
 		mysteryTrader *cs.MysteryTrader
 	}
 	tests := []struct {
