@@ -205,6 +205,7 @@ func (c *client) DeleteShipDesign(id int64) error {
 
 // delete a ship design and update/delete fleets associated with the design
 // this is a separate function so we can do all the db interactions in a single transaction
+// TODO: move this into a wrapInTransaction
 func (c *client) DeleteShipDesignWithFleets(id int64, fleetsToUpdate, fleetsToDelete []*cs.Fleet) error {
 
 	if _, err := c.writer.Exec("DELETE FROM shipDesigns WHERE id = ?", id); err != nil {

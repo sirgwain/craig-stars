@@ -1047,6 +1047,10 @@ func (fleet *Fleet) colonizePlanet(rules *Rules, player *Player, planet *Planet)
 		planet.Mines = planet.innateMines(player)
 	}
 
+	if player.Race.Spec.InnateScanner {
+		planet.Scanner = true
+	}
+
 	planet.Spec = computePlanetSpec(rules, player, planet)
 }
 

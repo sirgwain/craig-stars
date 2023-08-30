@@ -107,7 +107,30 @@ const (
 	PlayerMessageFleetColonistDieoff
 	PlayerMessagePlanetDiedOff
 	PlayerMessagePlanetEmptied
+	PlayerMessagePlanetDiscoveryHabitable
+	PlayerMessagePlanetDiscoveryTerraformable
+	PlayerMessagePlanetDiscoveryUninhabitable
 )
+
+// create a new message targeting a planet
+func newPlanetMessage(messageType PlayerMessageType, target *Planet) PlayerMessage {
+	return PlayerMessage{Type: messageType, TargetType: TargetPlanet, TargetNum: target.Num}
+}
+
+// create a new message targeting a fleet
+func newFleetMessage(messageType PlayerMessageType, target *Fleet) PlayerMessage {
+	return PlayerMessage{Type: messageType, TargetType: TargetFleet, TargetPlayerNum: target.PlayerNum, TargetNum: target.Num}
+}
+
+func (m PlayerMessage) withSpec(spec PlayerMessageSpec) PlayerMessage {
+	m.Spec = spec
+	return m
+}
+
+func (m PlayerMessage) withText(text string) PlayerMessage {
+	m.Text = text
+	return m
+}
 
 type Messager interface {
 	homePlanet(player *Player, planet *Planet)
@@ -124,18 +147,13 @@ func (m *messageClient) error(player *Player, err error) {
 }
 
 func (m *messageClient) homePlanet(player *Player, planet *Planet) {
-	text := fmt.Sprintf("Your home planet is %s. Your people are ready to leave the nest and explore the universe.  Good luck.", planet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageHomePlanet, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
-}
-
-func (m *messageClient) longMessage(player *Player) {
-	text := "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum."
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageHomePlanet, Text: text})
+	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessageHomePlanet, planet))
 }
 
 func (m *messageClient) mineralAlchemyBuilt(player *Player, planet *Planet, numBuilt int) {
+	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessageBuiltMine, planet).withSpec(PlayerMessageSpec{Amount: numBuilt}))
 	text := fmt.Sprintf("Your scientists on %s have transmuted common materials into %dkT each of Ironium, Boranium and Germanium.", planet.Name, numBuilt)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageBuiltMine, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageBuiltMineralAlchemy, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
 
 }
 
@@ -424,8 +442,11 @@ func (m *messageClient) fleetReproduce(player *Player, fleet *Fleet, colonistsGr
 }
 
 func (m *messageClient) fleetColonistsDieoff(player *Player, fleet *Fleet, colonistsKilled int) {
-	text := fmt.Sprintf("Engine radiation has killed %d colonists traveling in %s.", colonistsKilled, fleet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetColonistDieoff, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num, Spec: PlayerMessageSpec{Amount: colonistsKilled}})
+	player.Messages = append(player.Messages,
+		newFleetMessage(PlayerMessageFleetColonistDieoff, fleet).
+			withText(fmt.Sprintf("Engine radiation has killed %d colonists traveling in %s.", colonistsKilled, fleet.Name)).
+			withSpec(PlayerMessageSpec{Amount: colonistsKilled}),
+	)
 }
 
 func (m *messageClient) fleetCompletedAssignedOrders(player *Player, fleet *Fleet) {
@@ -571,7 +592,22 @@ func (m *messageClient) colonizeWithNoColonists(player *Player, fleet *Fleet) {
 
 func (m *messageClient) planetDiscovered(player *Player, planet *Planet) {
 	text := fmt.Sprintf("You have discovered a new planet %s", planet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetDiscovery, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
+	messageType := PlayerMessagePlanetDiscovery
+	hab := player.Race.GetPlanetHabitability(planet.Hab)
+
+	terraformer := NewTerraformer()
+	terraformAmount := terraformer.getTerraformAmount(planet.Hab, planet.BaseHab, player, player)
+	habTerraformed := player.Race.GetPlanetHabitability(planet.Hab.Add(terraformAmount))
+
+	if hab >= 0 {
+		messageType = PlayerMessagePlanetDiscoveryHabitable
+	} else if habTerraformed > 0 {
+		messageType = PlayerMessagePlanetDiscoveryTerraformable
+	} else {
+		messageType = PlayerMessagePlanetDiscoveryUninhabitable
+	}
+
+	player.Messages = append(player.Messages, PlayerMessage{Type: messageType, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
 }
 
 func (m *messageClient) planetColonized(player *Player, planet *Planet) {

@@ -503,7 +503,7 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 	design := NewShipDesign(player, num).WithName(name).WithHull(hull.Name)
 	design.Purpose = purpose
 
-	engine := techStore.GetBestEngine(player)
+	engine := techStore.GetBestEngine(player, hull)
 	scanner := techStore.GetBestScanner(player)
 	fuelTank := techStore.GetBestFuelTank(player)
 	cargoPod := techStore.GetBestCargoPod(player)

@@ -292,6 +292,8 @@ func (c *client) createFleet(fleet *cs.Fleet) error {
 	return nil
 }
 
+// This should always be wrapped in a transaction
+// TODO: move this somewhere else?
 func (c *client) CreateUpdateOrDeleteFleets(gameID int64, fleets []*cs.Fleet) error {
 
 	// create/update fleets

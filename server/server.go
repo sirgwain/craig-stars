@@ -416,6 +416,8 @@ func Start(config config.Config) error {
 	// Wait for server context to be stopped
 	<-serverCtx.Done()
 
+	log.Info().Msg("shutdown complete")
+
 	return nil
 }
 

@@ -1079,29 +1079,6 @@ func (c *client) UpdatePlayer(player *cs.Player) error {
 	return nil
 }
 
-// update an existing player
-func (c *client) updateFullPlayer(player *cs.Player) error {
-
-	if err := c.UpdatePlayer(player); err != nil {
-		return fmt.Errorf("update player %w", err)
-	}
-
-	for i := range player.Designs {
-		design := player.Designs[i]
-		if design.ID == 0 {
-			design.GameID = player.GameID
-			if err := c.CreateShipDesign(design); err != nil {
-				return fmt.Errorf("create design %w", err)
-			}
-		} else if design.Dirty {
-			if err := c.UpdateShipDesign(design); err != nil {
-				return fmt.Errorf("update design %w", err)
-			}
-		}
-	}
-
-	return nil
-}
 
 // delete a player by id
 func (c *client) DeletePlayer(id int64) error {

@@ -25,7 +25,7 @@
 				<div class="stat-title">Growth Rate</div>
 				<div class="stat-figure"><Population class="w-8 h-8 fill-base-content" /></div>
 				<div class="stat-value">
-					{race.growthRate}%
+					{race.growthRate * (race.spec?.growthFactor ?? 0)}%
 				</div>
 			</div>
 		</div>

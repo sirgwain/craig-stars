@@ -116,7 +116,10 @@ export enum MessageType {
 	FleetTargetLost,
 	FleetColonistDieoff,
 	PlanetDiedOff,
-	PlanetEmptied
+	PlanetEmptied,
+	PlanetDiscoveryHabitable,
+	PlanetDiscoveryTerraformable,
+	PlanetDiscoveryUninhabitable
 }
 
 // get the next visible message taking into account filters

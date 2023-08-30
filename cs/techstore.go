@@ -3,6 +3,8 @@ package cs
 import (
 	"math"
 	"strings"
+
+	"golang.org/x/exp/slices"
 )
 
 const ScanWithZeroRange = 1
@@ -47,7 +49,7 @@ type TechFinder interface {
 	GetBestDefense(player *Player) *TechDefense
 	GetBestTerraform(player *Player, terraformHabType TerraformHabType) *TechTerraform
 	GetBestScanner(player *Player) *TechHullComponent
-	GetBestEngine(player *Player) *TechEngine
+	GetBestEngine(player *Player, hull *TechHull) *TechEngine
 	GetBestMineLayer(player *Player, mineFieldType MineFieldType) *TechHullComponent
 	GetEngine(name string) *TechEngine
 	GetTech(name string) interface{}
@@ -224,13 +226,25 @@ func (store *TechStore) GetBestTerraform(player *Player, terraformHabType Terraf
 }
 
 // get the best engine for a player
-func (store *TechStore) GetBestEngine(player *Player) *TechEngine {
+func (store *TechStore) GetBestEngine(player *Player, hull *TechHull) *TechEngine {
 	bestTech := &store.Engines[0]
 	for i := range store.Engines {
 		tech := &store.Engines[i]
 		if player.HasTech(&tech.Tech) {
+			// if this tech is only allowed on certain hulls (like the Settler's Delight and the mini colony ship), use it for those
+			if len(tech.Requirements.HullsAllowed) > 0 && slices.Contains(tech.Requirements.HullsAllowed, hull.Name) {
+				bestTech = tech
+				break
+			}
+
+			// skip this tech if it's not allowed on this hull
+			if len(tech.Requirements.HullsDenied) > 0 && slices.Contains(tech.Requirements.HullsDenied, hull.Name) {
+				continue
+			}
+
 			// techs are sorted by rank, so the latest is the best
 			bestTech = tech
+
 		}
 	}
 	return bestTech

@@ -464,11 +464,11 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 
 	if race.Spec.InnateScanner {
 		spec.Scanner = "Organic"
-		spec.ScanRange = planet.innateScanner(player)
+		spec.ScanRange = int(float64(planet.innateScanner(player)) * player.Race.Spec.ScanRangeFactor)
 	} else if planet.Scanner {
 		scanner := player.Spec.PlanetaryScanner
 		spec.Scanner = scanner.Name
-		spec.ScanRange = scanner.ScanRange
+		spec.ScanRange = int(float64(scanner.ScanRange) * player.Race.Spec.ScanRangeFactor)
 		spec.ScanRangePen = scanner.ScanRangePen
 	}
 

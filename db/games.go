@@ -463,6 +463,8 @@ func (c *client) UpdateGame(game *cs.Game) error {
 	return nil
 }
 
+// Save an entire game in the database. This should always be wrapped in a transaction
+// TODO: move this into GameRunner so it's clear it should be wrapped in a transaction?
 func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 
 	if err := c.UpdateGame(fullGame.Game); err != nil {
@@ -634,6 +636,30 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 	}
 	return nil
 
+}
+
+// update a player and their designs
+func (c *client) updateFullPlayer(player *cs.Player) error {
+
+	if err := c.UpdatePlayer(player); err != nil {
+		return fmt.Errorf("update player %w", err)
+	}
+
+	for i := range player.Designs {
+		design := player.Designs[i]
+		if design.ID == 0 {
+			design.GameID = player.GameID
+			if err := c.CreateShipDesign(design); err != nil {
+				return fmt.Errorf("create design %w", err)
+			}
+		} else if design.Dirty {
+			if err := c.UpdateShipDesign(design); err != nil {
+				return fmt.Errorf("update design %w", err)
+			}
+		}
+	}
+
+	return nil
 }
 
 // delete a game by id

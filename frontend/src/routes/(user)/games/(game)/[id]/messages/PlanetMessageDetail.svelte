@@ -9,6 +9,8 @@
 	export let message: Message;
 	export let planet: Planet;
 	export let owner: PlayerIntel | undefined;
+
+	$: growthRate = $player.race.growthRate * ($player.race.spec?.growthFactor ?? 0);
 </script>
 
 {#if message.type === MessageType.HomePlanet}
@@ -17,23 +19,23 @@
 {:else if message.type === MessageType.BuiltMineralAlchemy}
 	Your scientists on {planet.name} have transmuted common materials into {message.spec.amount ??
 		0}kT each of Ironium, Boranium and Germanium.
-{:else if message.type === MessageType.PlanetDiscovery}
+{:else if [MessageType.PlanetDiscovery, MessageType.PlanetDiscoveryHabitable, MessageType.PlanetDiscoveryTerraformable, MessageType.PlanetDiscoveryUninhabitable].indexOf(message.type) != -1}
 	{#if owner}
 		You have found a planet occupied by someone else. {planet.name} is currently owned by the {owner.racePluralName}
 	{:else if planet.spec.habitability && planet.spec.habitability > 0}
 		You have found a new habitable planet. Your colonists will grow by up {(
-			(planet.spec.habitability * $player.race.growthRate) /
+			(planet.spec.habitability * growthRate) /
 			100
 		).toFixed()}% per year if you colonize {planet.name}
 	{:else if planet.spec.terraformedHabitability && planet.spec.terraformedHabitability > 0}
 		You have found a new planet which you have the ability to make habitable. With terraforming,
 		your colonists will grow by up to {(
-			(planet.spec.terraformedHabitability * $player.race.growthRate) /
+			(planet.spec.terraformedHabitability * growthRate) /
 			100
 		).toFixed()}% per year if you colonize {planet.name}.
 	{:else}
 		You have found a new planet which unfortunately is not habitable by you. {-(
-			((planet.spec.habitability ?? 0) * $player.race.growthRate) /
+			((planet.spec.habitability ?? 0) * growthRate) /
 			100
 		).toFixed()}% of your colonists will die per year if you colonize {planet.name}
 	{/if}

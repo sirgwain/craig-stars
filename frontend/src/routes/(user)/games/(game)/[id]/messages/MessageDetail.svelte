@@ -8,6 +8,7 @@
 	import type { MineralPacket } from '$lib/types/MineralPacket';
 	import type { Planet } from '$lib/types/Planet';
 	import PlanetMessageDetail from './PlanetMessageDetail.svelte';
+	import FleetMessageDetail from './FleetMessageDetail.svelte';
 
 	const { game, player, universe, settings } = getGameContext();
 
@@ -77,6 +78,8 @@
 	{getBattleMessage(message)}
 {:else if planet}
 	<PlanetMessageDetail {message} {planet} {owner} />
+{:else if fleet}
+	<FleetMessageDetail {message} {fleet} {owner} />
 {:else}
 	{message.text}
 {/if}
