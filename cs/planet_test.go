@@ -180,7 +180,7 @@ func Test_getMaxPopulation(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := getMaxPopulation(&rules, tt.args.hab, tt.args.maxPopulationOffset); got != tt.want {
+			if got := getMaxPopulation(rules.MaxPopulation, rules.MinMaxPopulationPercent, tt.args.hab, tt.args.maxPopulationOffset); got != tt.want {
 				t.Errorf("getMaxPopulation() = %v, want %v", got, tt.want)
 			}
 		})

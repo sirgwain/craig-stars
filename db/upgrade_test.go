@@ -31,5 +31,5 @@ func TestEnsureUpgrade(t *testing.T) {
 		return
 	}
 
-	assert.Equal(t, 1, version.Current)
+	assert.Equal(t, LATEST_VERSION, version.Current)
 }

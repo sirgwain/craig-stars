@@ -80,6 +80,7 @@ type ShipDesignSpec struct {
 	SafePacketSpeed           int                   `json:"safePacketSpeed,omitempty"`
 	BasePacketSpeed           int                   `json:"basePacketSpeed,omitempty"`
 	AdditionalMassDrivers     int                   `json:"additionalMassDrivers,omitempty"`
+	MaxPopulation             int                   `json:"maxPopulation,omitempty"`
 	Radiating                 bool                  `json:"radiating,omitempty"`
 	NumInstances              int                   `json:"numInstances,omitempty"`
 	NumBuilt                  int                   `json:"numBuilt,omitempty"`
@@ -249,6 +250,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		ScanRangePen:            NoScanner,
 		SpaceDock:               hull.SpaceDock,
 		Starbase:                hull.Starbase,
+		MaxPopulation:           hull.MaxPopulation,
 		HullType:                hull.Type,
 	}
 
@@ -404,6 +406,15 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 			}
 		}
 	}
+
+	// ISB gives some special starbase bonuses
+	if hull.Starbase {
+		spec.CloakUnits += raceSpec.BuiltInCloakUnits
+		spec.Cost = spec.Cost.MultiplyFloat64(raceSpec.StarbaseCostFactor)
+	}
+
+	spec.Shields = int(float64(spec.Shields) * raceSpec.ShieldStrengthFactor)
+	spec.Armor = int(float64(spec.Armor) * raceSpec.ArmorStrengthFactor)
 
 	spec.TorpedoJamming = 1 - torpedoJammingFactor
 

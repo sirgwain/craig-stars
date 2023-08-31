@@ -47,7 +47,6 @@ func Test_getScanners(t *testing.T) {
 				Fleets:         tt.args.fleets,
 				MineralPackets: tt.args.mineralPackets,
 				MineFields:     tt.args.mineFields,
-				rules:          &rules,
 			}, &rules, player, []*Player{player}, make(map[int]bool), newDiscoverer(player)}
 			if got := scan.getScanners(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("getScanners() = \n%v, want \n%v", got, tt.want)
@@ -148,7 +147,7 @@ func Test_updateFleetTargets(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			enemyFleet.Delete = tt.args.targetDestroyed
-			scan := newPlayerScanner(game.Universe, game.Players, game.rules, player)
+			scan := newPlayerScanner(game.Universe, game.Players, &game.Rules, player)
 			scan.scan()
 			// check the waypoints returned vs what we want
 			if got := fleet.Waypoints; !test.CompareAsJSON(t, got, tt.want) {

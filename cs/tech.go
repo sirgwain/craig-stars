@@ -130,6 +130,7 @@ type TechHull struct {
 	Starbase                 bool           `json:"starbase,omitempty"`
 	OrbitalConstructionHull  bool           `json:"orbitalConstructionHull,omitempty"`
 	DoubleMineEfficiency     bool           `json:"doubleMineEfficiency,omitempty"`
+	MaxPopulation            int            `json:"maxPopulation,omitempty"`
 	InnateScanRangePenFactor float64        `json:"innateScanRangePenFactor,omitempty"`
 	Slots                    []TechHullSlot `json:"slots,omitempty"`
 }

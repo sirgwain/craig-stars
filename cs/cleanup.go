@@ -12,6 +12,7 @@ This file will hold cleanup functions for cleaning up this sort of data on the g
 
 type Cleaner interface {
 	RemovePlayerDesignIntels(game *FullGame)
+	AddScannerToInnateScannerPlanets(game *FullGame)
 }
 
 type cleanup struct {
@@ -36,5 +37,26 @@ func (c *cleanup) RemovePlayerDesignIntels(game *FullGame) {
 			}
 		}
 		player.ShipDesignIntels = designIntels
+	}
+}
+
+// ensure AR planets have scanners
+func (c *cleanup) AddScannerToInnateScannerPlanets(game *FullGame) {
+	for _, planet := range game.Planets {
+		if !planet.Owned() {
+			continue
+		}
+
+		player := game.getPlayer(planet.PlayerNum)
+		if !player.Race.Spec.InnateScanner {
+			continue
+		}
+
+		planet.Scanner = true
+		planet.MarkDirty()
+		log.Info().
+			Int64("GameID", game.ID).
+			Str("Name", game.Name).
+			Msgf("cleanup: setting scanner to true for player %d's %s planet", player.Num, planet.Name)
 	}
 }

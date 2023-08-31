@@ -339,6 +339,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				Starbase:                true,
 				TorpedoInaccuracyFactor: 1,
 				MassDriver:              MassDriver5.Name,
+				MaxPopulation:           1_000_000,
 				WeaponSlots: []ShipDesignSlot{
 					{HullComponent: Laser.Name, HullSlotIndex: 2, Quantity: 8},
 					{HullComponent: Laser.Name, HullSlotIndex: 4, Quantity: 8},

@@ -360,7 +360,7 @@ func (d *discover) discoverPlanet(rules *Rules, player *Player, planet *Planet, 
 		intel.Spec.MinTerraformAmount = terraformer.getMinTerraformAmount(intel.Hab, intel.BaseHab, player, player)
 		intel.Spec.CanTerraform = intel.Spec.TerraformAmount.absSum() > 0
 		intel.Spec.TerraformedHabitability = player.Race.GetPlanetHabitability(planet.Hab.Add(intel.Spec.TerraformAmount))
-		intel.Spec.MaxPopulation = getMaxPopulation(rules, intel.Spec.Habitability, player.Race.Spec.MaxPopulationOffset)
+		intel.Spec.MaxPopulation = getMaxPopulation(rules.MaxPopulation, rules.MinMaxPopulationPercent, intel.Spec.Habitability, player.Race.Spec.MaxPopulationOffset)
 
 		// discover starbases on scan, but don't discover designs
 		intel.Spec.HasStarbase = planet.Spec.HasStarbase

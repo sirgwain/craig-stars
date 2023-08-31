@@ -149,6 +149,7 @@ type RaceSpec struct {
 	StarbaseCostFactor               float64                `json:"starbaseCostFactor,omitempty"`
 	ResearchFactor                   float64                `json:"researchFactor,omitempty"`
 	ResearchSplashDamage             float64                `json:"researchSplashDamage,omitempty"`
+	ArmorStrengthFactor              float64                `json:"armorStrengthFactor,omitempty"`
 	ShieldStrengthFactor             float64                `json:"shieldStrengthFactor,omitempty"`
 	ShieldRegenerationRate           float64                `json:"shieldRegenerationRate,omitempty"`
 	EngineFailureRate                float64                `json:"engineFailureRate,omitempty"`
@@ -606,6 +607,7 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		StartingPopulationFactor: 1,
 		ResearchFactor:           1,
 		ShieldStrengthFactor:     1,
+		ArmorStrengthFactor:      1,
 		EngineReliableSpeed:      10,
 		MiniaturizationSpec: MiniaturizationSpec{
 			NewTechCostFactor:       1,
@@ -721,11 +723,11 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		spec.StartingTechLevels.Electronics += lrtSpec.StartingTechLevels.Electronics
 		spec.StartingTechLevels.Biotechnology += lrtSpec.StartingTechLevels.Biotechnology
 
-		spec.NewTechCostFactor += lrtSpec.NewTechCostFactor
+		spec.NewTechCostFactor += lrtSpec.NewTechCostFactorOffset
 		spec.TerraformCostOffset = spec.TerraformCostOffset.Add(lrtSpec.TerraformCostOffset)
 		spec.MiniaturizationMax += lrtSpec.MiniaturizationMax
 		spec.MiniaturizationPerLevel += lrtSpec.MiniaturizationPerLevel
-		spec.ScanRangeFactor += lrtSpec.ScanRangeFactor
+		spec.ScanRangeFactor += lrtSpec.ScanRangeFactorOffset
 		spec.FuelEfficiencyOffset += lrtSpec.FuelEfficiencyOffset
 		spec.MaxPopulationOffset += lrtSpec.MaxPopulationOffset
 		spec.MineralAlchemyCostOffset += lrtSpec.MineralAlchemyCostOffset
@@ -733,14 +735,15 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		spec.ScrapMineralOffsetStarbase += lrtSpec.ScrapMineralOffsetStarbase
 		spec.ScrapResourcesOffset += lrtSpec.ScrapResourcesOffset
 		spec.ScrapResourcesOffsetStarbase += lrtSpec.ScrapResourcesOffsetStarbase
-		spec.StartingPopulationFactor += lrtSpec.StartingPopulationFactor
+		spec.StartingPopulationFactor += lrtSpec.StartingPopulationFactorDelta
 		spec.StarbaseBuiltInCloakUnits += lrtSpec.StarbaseBuiltInCloakUnits
-		spec.StarbaseCostFactor += lrtSpec.StarbaseCostFactor
+		spec.StarbaseCostFactor = math.Max(spec.StarbaseCostFactor, lrtSpec.StarbaseCostFactorOffset) // this isn't cumulative
 		spec.ResearchFactor += lrtSpec.ResearchFactor
 		spec.ResearchSplashDamage += lrtSpec.ResearchSplashDamage
-		spec.ShieldStrengthFactor += lrtSpec.ShieldStrengthFactor
-		spec.ShieldRegenerationRate += lrtSpec.ShieldRegenerationRate
-		spec.EngineFailureRate += lrtSpec.EngineFailureRate
+		spec.ShieldStrengthFactor += lrtSpec.ShieldStrengthFactorOffset
+		spec.ShieldRegenerationRate += lrtSpec.ShieldRegenerationRateOffset
+		spec.ArmorStrengthFactor += lrtSpec.ArmorStrengthFactorOffset
+		spec.EngineFailureRate += lrtSpec.EngineFailureRateOffset
 		spec.EngineReliableSpeed += lrtSpec.EngineReliableSpeed
 
 		spec.StartingPlanets[0].StartingFleets = append(spec.StartingPlanets[0].StartingFleets, lrtSpec.StartingFleets...)

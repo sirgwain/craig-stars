@@ -25,7 +25,7 @@
 				Your population on <span class="font-semibold">{planet.name}</span> is
 				<span class="font-semibold">{planet.spec.population.toLocaleString()}</span> ({(planet.spec.populationDensity*100).toFixed()}% of capacity).
 				<span class="font-semibold">{planet.name}</span> will support a population of up to
-				<span class="font-semibold">{planet.spec.maxPopulation.toLocaleString()}</span>
+				<span class="font-semibold">{planet.spec.maxPopulation?.toLocaleString() ?? 0}</span>
 				of your colonists.
 			{:else}
 				Your population on <span class="font-semibold">{planet.name}</span> is

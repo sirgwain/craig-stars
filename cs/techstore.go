@@ -2411,7 +2411,8 @@ var OrbitalFort = TechHull{Tech: NewTech("Orbital Fort", NewCost(24, 0, 34, 80),
 	RangeBonus:              1,
 	Starbase:                true,
 	OrbitalConstructionHull: true,
-	RepairBonus:             .03, // 8% total repair rate
+	RepairBonus:             .03,     // 8% total repair rate
+	MaxPopulation:           250_000, // AR races can have a pop of up to 250k on this base
 	Slots: []TechHullSlot{
 		{Position: Vector{0, 0}, Type: HullSlotTypeOrbitalElectrical, Capacity: 1},
 		{Position: Vector{0, -1}, Type: HullSlotTypeWeapon, Capacity: 12},
@@ -2431,7 +2432,8 @@ var SpaceDock = TechHull{Tech: NewTech("Space Dock", NewCost(40, 10, 50, 200), T
 	Initiative:            12,
 	RangeBonus:            1,
 	Starbase:              true,
-	RepairBonus:           .03, // 8% total repair rate
+	RepairBonus:           .03,     // 8% total repair rate
+	MaxPopulation:         500_000, // AR races can have a pop of up to 500k on this base
 	Slots: []TechHullSlot{
 		{Position: Vector{-1, -1}, Type: HullSlotTypeOrbitalElectrical, Capacity: 1},
 		{Position: Vector{0, -1.5}, Type: HullSlotTypeWeapon, Capacity: 16},
@@ -2452,7 +2454,8 @@ var SpaceStation = TechHull{Tech: NewTech("Space Station", NewCost(120, 80, 250,
 	Initiative:            14,
 	RangeBonus:            1,
 	Starbase:              true,
-	RepairBonus:           .15, // 20% total repair rate
+	RepairBonus:           .15,       // 20% total repair rate
+	MaxPopulation:         1_000_000, // AR races can have a pop of up to 1 million on this base
 	Slots: []TechHullSlot{
 		{Position: Vector{-1, 0}, Type: HullSlotTypeOrbitalElectrical, Capacity: 1},
 		{Position: Vector{0.5, -2}, Type: HullSlotTypeWeapon, Capacity: 16},
@@ -2476,8 +2479,9 @@ var UltraStation = TechHull{Tech: NewTech("Ultra Station", NewCost(120, 80, 300,
 	Armor:                    1000,
 	Initiative:               16,
 	Starbase:                 true,
-	RepairBonus:              .15, // 20% total repair rate
-	InnateScanRangePenFactor: .5,  // AR races get half innate scanning range for pen scanning
+	RepairBonus:              .15,       // 20% total repair rate
+	InnateScanRangePenFactor: .5,        // AR races get half innate scanning range for pen scanning
+	MaxPopulation:            2_000_000, // AR races can have a pop of up to 2 million on this base
 	Slots: []TechHullSlot{
 		{Position: Vector{0, -1}, Type: HullSlotTypeOrbitalElectrical, Capacity: 1},
 		{Position: Vector{-2, 0.5}, Type: HullSlotTypeWeapon, Capacity: 16},
@@ -2505,8 +2509,9 @@ var DeathStar = TechHull{Tech: NewTech("Death Star", NewCost(120, 80, 350, 750),
 	Armor:                    1500,
 	Initiative:               18,
 	Starbase:                 true,
-	RepairBonus:              .15, // 20% total repair rate
-	InnateScanRangePenFactor: .5,  // AR races get half innate scanning range for pen scanning
+	RepairBonus:              .15,       // 20% total repair rate
+	InnateScanRangePenFactor: .5,        // AR races get half innate scanning range for pen scanning
+	MaxPopulation:            3_000_000, // AR races can have a pop of up to 3 million on this base
 	Slots: []TechHullSlot{
 		{Position: Vector{0, -1.5}, Type: HullSlotTypeOrbitalElectrical, Capacity: 1},
 		{Position: Vector{-2, 1}, Type: HullSlotTypeWeapon, Capacity: 32},

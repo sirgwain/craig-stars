@@ -482,7 +482,7 @@ func (t *turn) fleetMerge() {
 		}
 
 		orderer := NewOrderer()
-		_, err := orderer.Merge(t.game.rules, player, []*Fleet{target, fleet})
+		_, err := orderer.Merge(&t.game.Rules, player, []*Fleet{target, fleet})
 		if err != nil {
 			log.Err(err).Int64("GameID", t.game.ID).Int("PlayerNum", player.Num).Int("Num", fleet.Num).Msgf("Failed to merge %v with %v", fleet, target)
 			messager.error(player, err)
@@ -637,7 +637,7 @@ func (t *turn) packetMove(builtThisTurn bool) {
 			planetPlayer = t.game.getPlayer(planet.PlayerNum)
 		}
 
-		packet.movePacket(t.game.rules, player, planet, planetPlayer)
+		packet.movePacket(&t.game.Rules, player, planet, planetPlayer)
 
 		log.Debug().
 			Int64("GameID", t.game.ID).
@@ -793,7 +793,7 @@ func (t *turn) fleetDieoff() {
 		// check if this player's freighters reproduce
 		player := t.game.getPlayer(fleet.PlayerNum)
 		habCenter := player.Race.Spec.HabCenter
-		deathRate := math.Max(0, float64(t.game.rules.RadiatingImmune+1)-float64(habCenter.Rad)) / 2 / 100
+		deathRate := math.Max(0, float64(t.game.Rules.RadiatingImmune+1)-float64(habCenter.Rad)) / 2 / 100
 
 		if deathRate > 0 {
 			killed := maxInt(1, int(deathRate*float64(fleet.Cargo.Colonists)))
@@ -868,7 +868,7 @@ func (t *turn) fleetReproduce() {
 // decay each salvage and remove it from the universe if it's empty
 func (t *turn) decaySalvage() {
 	for _, salvage := range t.game.Salvages {
-		salvage.decay(t.game.rules)
+		salvage.decay(&t.game.Rules)
 
 		log.Debug().
 			Int64("GameID", salvage.GameID).
@@ -895,7 +895,7 @@ func (t *turn) decayPackets() {
 	for _, packet := range t.game.MineralPackets {
 		player := t.game.getPlayer(packet.PlayerNum)
 		// update the decay rate based on this distance traveled this turn
-		decayRate := 1 - packet.getPacketDecayRate(t.game.rules, &player.Race)*(packet.distanceTravelled/float64(packet.WarpSpeed*packet.WarpSpeed))
+		decayRate := 1 - packet.getPacketDecayRate(&t.game.Rules, &player.Race)*(packet.distanceTravelled/float64(packet.WarpSpeed*packet.WarpSpeed))
 		packet.Cargo = packet.Cargo.Multiply(decayRate)
 
 		log.Debug().
@@ -946,7 +946,7 @@ func (t *turn) wormholeJiggle() {
 
 			// create the new wormhole
 			companion := t.game.Universe.getWormhole(wormhole.DestinationNum)
-			newWormhole := t.game.createWormhole(position, WormholeStabilityRockSolid, companion)
+			newWormhole := t.game.createWormhole(&t.game.Rules, position, WormholeStabilityRockSolid, companion)
 
 			// queue the old wormhole for deletion and add the new wormhole to the universe
 			t.game.deleteWormhole(wormhole)
@@ -971,7 +971,7 @@ func (t *turn) detonateMines() {
 			continue
 		}
 
-		stats := t.game.rules.MineFieldStatsByType[mineField.MineFieldType]
+		stats := t.game.Rules.MineFieldStatsByType[mineField.MineFieldType]
 		if !stats.CanDetonate {
 			continue
 		}
@@ -1084,7 +1084,7 @@ func (t *turn) remoteMine(fleet *Fleet, player *Player, planet *Planet) {
 	// don't mine if we moved here this round, otherwise mine
 	if fleet.PreviousPosition == nil || *fleet.PreviousPosition == fleet.Position {
 		numMines := fleet.Spec.MiningRate
-		mineralOutput := planet.getMineralOutput(numMines, t.game.rules.RemoteMiningMineOutput)
+		mineralOutput := planet.getMineralOutput(numMines, t.game.Rules.RemoteMiningMineOutput)
 		planet.Cargo = planet.Cargo.AddMineral(mineralOutput)
 		planet.MineYears.AddInt(numMines)
 		planet.reduceMineralConcentration(&t.game.Rules)
@@ -1127,7 +1127,7 @@ func (t *turn) planetProduction() {
 			}
 			if result.scanner {
 				planet.Scanner = true
-				planet.Spec = computePlanetSpec(t.game.rules, player, planet)
+				planet.Spec = computePlanetSpec(&t.game.Rules, player, planet)
 				planet.MarkDirty()
 				messager.scannerBuilt(player, planet, planet.Spec.Scanner)
 			}
@@ -1171,7 +1171,7 @@ func (t *turn) buildStarbase(player *Player, planet *Planet, design *ShipDesign)
 		t.game.deleteStarbase(planet.Starbase)
 	}
 
-	starbase := planet.buildStarbase(t.game.rules, player, design)
+	starbase := planet.buildStarbase(&t.game.Rules, player, design)
 	log.Debug().
 		Int64("GameID", t.game.ID).
 		Int("Player", starbase.PlayerNum).
@@ -1466,7 +1466,7 @@ func (t *turn) fleetBattle() {
 			continue
 		}
 
-		battler := newBattler(t.game.rules, t.game.rules.techs, battleNum, playersAtPosition, fleets, planet)
+		battler := newBattler(&t.game.Rules, t.game.Rules.techs, battleNum, playersAtPosition, fleets, planet)
 
 		if battler.hasTargets() {
 			// someone wants to fight, run the battle!
@@ -1495,7 +1495,7 @@ func (t *turn) fleetBattle() {
 			// figure out how much salvage this generates
 			destroyedCost := Cost{}
 			salvageOwner := 1
-			salvageFactor := t.game.rules.SalvageFromBattleFactor
+			salvageFactor := t.game.Rules.SalvageFromBattleFactor
 			if salvageFactor == 0 {
 				// TODO: remove this when games are up to date
 				salvageFactor = .3 // upgrade old games before this rule was available
@@ -1505,7 +1505,7 @@ func (t *turn) fleetBattle() {
 				// TODO: who owns this salvage
 				salvageOwner = token.PlayerNum
 			}
-			salvageMinerals := destroyedCost.MultiplyFloat64(t.game.rules.SalvageFromBattleFactor).ToMineral()
+			salvageMinerals := destroyedCost.MultiplyFloat64(t.game.Rules.SalvageFromBattleFactor).ToMineral()
 
 			for _, fleet := range fleets {
 				updatedTokens := make([]ShipToken, 0, len(fleet.Tokens))
@@ -1535,7 +1535,7 @@ func (t *turn) fleetBattle() {
 				}
 
 				// recompute the spec of this fleet and make sure we don't have extra fuel sitting around
-				fleet.Spec = ComputeFleetSpec(t.game.rules, t.game.getPlayer(fleet.PlayerNum), fleet)
+				fleet.Spec = ComputeFleetSpec(&t.game.Rules, t.game.getPlayer(fleet.PlayerNum), fleet)
 				fleet.reduceFuelToMax()
 
 				// jettison cargo
@@ -1624,7 +1624,7 @@ func (t *turn) decayMines() {
 			t.game.deleteMineField(mineField)
 			continue
 		}
-		mineField.Spec = computeMinefieldSpec(t.game.rules, player, mineField, t.game.Universe.numPlanetsWithin(mineField.Position, mineField.Radius()))
+		mineField.Spec = computeMinefieldSpec(&t.game.Rules, player, mineField, t.game.Universe.numPlanetsWithin(mineField.Position, mineField.Radius()))
 		mineField.MarkDirty()
 
 		log.Debug().
@@ -1681,7 +1681,7 @@ func (t *turn) fleetLayMines() {
 				}
 
 				// TODO (performance): the radius will be computed in the spec as well. hmmmm
-				mineField.Spec = computeMinefieldSpec(t.game.rules, player, mineField, t.game.Universe.numPlanetsWithin(mineField.Position, mineField.Radius()))
+				mineField.Spec = computeMinefieldSpec(&t.game.Rules, player, mineField, t.game.Universe.numPlanetsWithin(mineField.Position, mineField.Radius()))
 				mineField.MarkDirty()
 
 				log.Debug().
@@ -1743,7 +1743,7 @@ func (t *turn) fleetSweepMines() {
 				// sweep mines
 				if fleet.willAttack(fleetPlayer, mineField.PlayerNum) && isPointInCircle(fleet.Position, mineField.Position, mineField.Radius()) {
 					mineFieldPlayer := t.game.getPlayer(mineField.PlayerNum)
-					mineField.sweep(t.game.rules, fleet, fleetPlayer, mineFieldPlayer)
+					mineField.sweep(&t.game.Rules, fleet, fleetPlayer, mineFieldPlayer)
 
 					log.Debug().
 						Int64("GameID", t.game.ID).
@@ -1771,7 +1771,7 @@ func (t *turn) fleetSweepMines() {
 	for _, mineField := range t.game.MineFields {
 		if mineField.Dirty && !mineField.Delete {
 			mineFieldPlayer := t.game.getPlayer(mineField.PlayerNum)
-			mineField.Spec = computeMinefieldSpec(t.game.rules, mineFieldPlayer, mineField, t.game.Universe.numPlanetsWithin(mineField.Position, mineField.Radius()))
+			mineField.Spec = computeMinefieldSpec(&t.game.Rules, mineFieldPlayer, mineField, t.game.Universe.numPlanetsWithin(mineField.Position, mineField.Radius()))
 		}
 	}
 }
@@ -1785,7 +1785,7 @@ func (t *turn) fleetRepair() {
 
 		player := t.game.getPlayer(fleet.PlayerNum)
 		orbiting := t.game.getOrbitingPlanet(fleet)
-		fleet.repairFleet(t.game.rules, player, orbiting)
+		fleet.repairFleet(&t.game.Rules, player, orbiting)
 	}
 
 	for _, starbase := range t.game.Starbases {
@@ -1798,7 +1798,7 @@ func (t *turn) fleetRepair() {
 		}
 
 		player := t.game.getPlayer(starbase.PlayerNum)
-		starbase.repairStarbase(t.game.rules, player)
+		starbase.repairStarbase(&t.game.Rules, player)
 	}
 }
 
@@ -2020,7 +2020,7 @@ func (t *turn) calculateScores() {
 	}
 
 	// share score intel if show public scores is enabled, or if a victor has been found
-	if (t.game.PublicPlayerScores && t.game.rules.ShowPublicScoresAfterYears > 0 && t.game.YearsPassed() >= t.game.rules.ShowPublicScoresAfterYears) || t.game.VictorDeclared {
+	if (t.game.PublicPlayerScores && t.game.Rules.ShowPublicScoresAfterYears > 0 && t.game.YearsPassed() >= t.game.Rules.ShowPublicScoresAfterYears) || t.game.VictorDeclared {
 		for _, player := range t.game.Players {
 			discoverer := newDiscoverer(player)
 			for _, otherPlayer := range t.game.Players {

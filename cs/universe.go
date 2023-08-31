@@ -14,7 +14,6 @@ type Universe struct {
 	MineFields           []*MineField     `json:"mineFields,omitempty"`
 	MysteryTraders       []*MysteryTrader `json:"mysteryTraders,omitempty"`
 	Salvages             []*Salvage       `json:"salvage,omitempty"`
-	rules                *Rules
 	battlePlansByNum     map[playerBattlePlanNum]*BattlePlan
 	mapObjectsByPosition map[Vector][]interface{}
 	fleetsByNum          map[playerObject]*Fleet
@@ -29,7 +28,6 @@ type Universe struct {
 
 func NewUniverse(rules *Rules) Universe {
 	return Universe{
-		rules:                rules,
 		battlePlansByNum:     make(map[playerBattlePlanNum]*BattlePlan),
 		mapObjectsByPosition: make(map[Vector][]interface{}),
 		designsByNum:         make(map[playerObject]*ShipDesign),
@@ -411,7 +409,7 @@ func (u *Universe) deleteWormhole(wormhole *Wormhole) {
 }
 
 // create a new wormhole in the universe
-func (u *Universe) createWormhole(position Vector, stability WormholeStability, companion *Wormhole) *Wormhole {
+func (u *Universe) createWormhole(rules *Rules, position Vector, stability WormholeStability, companion *Wormhole) *Wormhole {
 	num := 1
 	if len(u.Wormholes) > 0 {
 		num = u.Wormholes[len(u.Wormholes)-1].Num + 1
@@ -425,7 +423,7 @@ func (u *Universe) createWormhole(position Vector, stability WormholeStability, 
 	}
 
 	// compute the spec for this wormhole
-	wormhole.Spec = computeWormholeSpec(wormhole, u.rules)
+	wormhole.Spec = computeWormholeSpec(wormhole, rules)
 
 	u.Wormholes = append(u.Wormholes, wormhole)
 	u.wormholesByNum[wormhole.Num] = wormhole

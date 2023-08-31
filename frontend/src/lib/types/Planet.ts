@@ -336,7 +336,7 @@ export interface PlanetSpec {
 	maxDefenses: number;
 	population?: number;
 	populationDensity: number;
-	maxPopulation: number;
+	maxPopulation?: number;
 	growthAmount: number;
 	miningOutput: Mineral;
 	resourcesPerYear: number;

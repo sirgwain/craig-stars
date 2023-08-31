@@ -15,7 +15,7 @@ Upgrade data in the database based on game updates
 Version Info:
 
 001 - Fix player discovers own starbase designs on planet discovery and adds them to intel
-
+002 - Ensure all AR planets have scanners
 
 */
 
@@ -26,7 +26,12 @@ type Version struct {
 	Current   int       `json:"current,omitempty"`
 }
 
-const LATEST_VERSION = 1
+// game upgrader
+type upgrade struct {
+	tx *client
+}
+
+const LATEST_VERSION = 2
 
 func (conn *dbConn) mustUpgrade() {
 
@@ -44,12 +49,15 @@ func (tx *client) ensureUpgrade() error {
 	}
 
 	if version.Current < LATEST_VERSION {
+		u := upgrade{tx: tx}
 		for current := version.Current; current < LATEST_VERSION; current++ {
+			log.Info().Msgf("upgrading database data from v%d to v%d", current, current+1)
 			// check each version and call the upgrade functionality
 			switch current {
 			case 0:
-				log.Info().Msgf("upgrading database data from v0 to v1")
-				err = tx.upgrade1()
+				err = u.upgrade1()
+			case 1:
+				err = u.upgrade2()
 			}
 
 			// check for any issues upgrading
@@ -93,27 +101,46 @@ func (c *client) updateVersion(version Version) error {
 	return nil
 }
 
-func (tx *client) upgrade1() error {
+// helper function to get all games in the db and call an upgrade function on each game
+// then save the game back to the db
+func (u *upgrade) upgradeGames(upgradeGame func(fg *cs.FullGame) error) error {
 
-	games, err := tx.GetGames()
+	games, err := u.tx.GetGames()
 	if err != nil {
 		return err
 	}
 
 	for _, game := range games {
-		fg, err := tx.GetFullGame(game.ID)
+		fg, err := u.tx.GetFullGame(game.ID)
 		if err != nil {
 			return err
 		}
 
-		cleaner := cs.NewCleaner()
-		cleaner.RemovePlayerDesignIntels(fg)
+		// call the passed in function
+		if err := upgradeGame(fg); err != nil {
+			return err
+		}
 
 		// save changes to the DB
-		if err := tx.UpdateFullGame(fg); err != nil {
+		if err := u.tx.UpdateFullGame(fg); err != nil {
 			return err
 		}
 	}
-
 	return nil
+}
+
+func (u *upgrade) upgrade1() error {
+	return u.upgradeGames(func(fg *cs.FullGame) error {
+		cleaner := cs.NewCleaner()
+		cleaner.RemovePlayerDesignIntels(fg)
+		return nil
+	})
+}
+
+func (u *upgrade) upgrade2() error {
+	return u.upgradeGames(func(fg *cs.FullGame) error {
+		cleaner := cs.NewCleaner()
+		cleaner.AddScannerToInnateScannerPlanets(fg)
+		return nil
+	})
 }

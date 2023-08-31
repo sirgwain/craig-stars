@@ -417,7 +417,7 @@ func TestFleet_moveFleet(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			universe := Universe{Fleets: []*Fleet{tt.fleet}, rules: &rules}
+			universe := Universe{Fleets: []*Fleet{tt.fleet}}
 
 			tt.fleet.moveFleet(&rules, &universe, newTestPlayerGetter(player))
 
@@ -481,7 +481,7 @@ func TestFleet_gateFleet(t *testing.T) {
 			for _, token := range tt.fleet.Tokens {
 				player.Designs = append(player.Designs, token.design)
 			}
-			universe := Universe{Fleets: []*Fleet{tt.fleet}, Planets: tt.args.planets, rules: &rules, designsByNum: map[playerObject]*ShipDesign{}}
+			universe := Universe{Fleets: []*Fleet{tt.fleet}, Planets: tt.args.planets, designsByNum: map[playerObject]*ShipDesign{}}
 			universe.buildMaps(tt.args.players)
 
 			tt.fleet.gateFleet(&rules, &universe, newTestPlayerGetter(player))

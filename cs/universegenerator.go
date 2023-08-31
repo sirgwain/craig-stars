@@ -164,7 +164,7 @@ func (ug *universeGenerator) generateWormholes() error {
 		if i%2 > 0 {
 			companion = wormholes[i-1]
 		}
-		wormhole := ug.universe.createWormhole(position, stability, companion)
+		wormhole := ug.universe.createWormhole(&ug.Rules, position, stability, companion)
 		log.Debug().Msgf("generated Wormhole at (%0.0f, %0.0f)", wormhole.Position.X, wormhole.Position.Y)
 
 		wormholePositions[i] = wormhole.Position

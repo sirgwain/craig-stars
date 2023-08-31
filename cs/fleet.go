@@ -355,6 +355,7 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 		if token.design.Spec.Starbase {
 			spec.Starbase = true
 		}
+		spec.MaxPopulation = maxInt(spec.MaxPopulation, token.design.Spec.MaxPopulation)
 
 		// use the lowest ideal speed for this fleet
 		// if we have multiple engines

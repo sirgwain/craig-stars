@@ -307,10 +307,10 @@ func Test_turn_fleetMoveRepeatOrders(t *testing.T) {
 
 func Test_turn_fleetMoveDestroyedByMineField(t *testing.T) {
 	game := createSingleUnitGame()
-	rules := game.rules
+	rules := &game.Rules
 
 	// change the rules so going 4 warp over the limit guarantee's a hit
-	stats := game.rules.MineFieldStatsByType[MineFieldTypeStandard]
+	stats := rules.MineFieldStatsByType[MineFieldTypeStandard]
 	stats.MaxSpeed = 5
 	stats.ChanceOfHit = .25
 	stats.MinDecay = 0 // turn off decay
@@ -542,10 +542,10 @@ func Test_turn_fleetLayMines(t *testing.T) {
 
 func Test_turn_fleetSweepMines(t *testing.T) {
 	game := createSingleUnitGame()
-	rules := game.rules
+	rules := &game.Rules
 
 	// change the rules so we don't decay
-	stats := game.rules.MineFieldStatsByType[MineFieldTypeStandard]
+	stats := rules.MineFieldStatsByType[MineFieldTypeStandard]
 	stats.MinDecay = 0 // turn off decay
 	rules.MineFieldStatsByType[MineFieldTypeStandard] = stats
 
@@ -885,7 +885,7 @@ func Test_turn_decayPackets(t *testing.T) {
 
 func Test_turn_fleetPatrol(t *testing.T) {
 	game := createSingleUnitGame()
-	rules := game.rules
+	rules := &game.Rules
 
 	// make a new destroyer to patrol within 50ly
 	player := game.Players[0]
@@ -937,7 +937,7 @@ func Test_turn_fleetPatrol(t *testing.T) {
 
 func Test_turn_fleetRemoteTerraform(t *testing.T) {
 	game := createSingleUnitGame()
-	rules := game.rules
+	rules := &game.Rules
 
 	// give player TT so it can terraform these other worlds
 	player := game.Players[0]
