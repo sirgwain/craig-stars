@@ -16,7 +16,7 @@
 </div>
 
 <div class="mt-2"
-	>All 'Costs 75% extra' research fields start at <span class="text-accent"
+	>All 'Costs 75% extra' research fields start at <span class="text-primary font-semibold"
 		>Tech {race.prt == PRT.JoaT ? '4' : '3'}</span
 	></div
 >

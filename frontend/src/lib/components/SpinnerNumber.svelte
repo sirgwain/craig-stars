@@ -31,7 +31,7 @@
 
 <div class="inline-block">
 	<div class="flex flex-row">
-		<div class="my-auto text-accent mr-1">
+		<div class="my-auto text-primary font-semibold mr-1">
 			{value}
 		</div>
 		<div class="my-auto mr-1">

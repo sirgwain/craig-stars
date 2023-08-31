@@ -738,7 +738,7 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		spec.StartingPopulationFactor += lrtSpec.StartingPopulationFactorDelta
 		spec.StarbaseBuiltInCloakUnits += lrtSpec.StarbaseBuiltInCloakUnits
 		spec.StarbaseCostFactor = math.Max(spec.StarbaseCostFactor, lrtSpec.StarbaseCostFactorOffset) // this isn't cumulative
-		spec.ResearchFactor += lrtSpec.ResearchFactor
+		spec.ResearchFactor += lrtSpec.ResearchFactorOffset
 		spec.ResearchSplashDamage += lrtSpec.ResearchSplashDamage
 		spec.ShieldStrengthFactor += lrtSpec.ShieldStrengthFactorOffset
 		spec.ShieldRegenerationRate += lrtSpec.ShieldRegenerationRateOffset

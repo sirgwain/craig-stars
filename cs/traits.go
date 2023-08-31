@@ -64,11 +64,11 @@ type LRTSpec struct {
 	PointCost                     int             `json:"pointCost,omitempty"`
 	StartingTechLevels            TechLevel       `json:"startingTechLevels,omitempty"`
 	TechCostOffset                TechCostOffset  `json:"techCostOffset,omitempty"`
-	NewTechCostFactorOffset       float64         `json:"newTechCostFactor,omitempty"`
+	NewTechCostFactorOffset       float64         `json:"newTechCostFactorOffset,omitempty"`
 	MiniaturizationMax            float64         `json:"miniaturizationMax,omitempty"`
 	MiniaturizationPerLevel       float64         `json:"miniaturizationPerLevel,omitempty"`
 	NoAdvancedScanners            bool            `json:"noAdvancedScanners,omitempty"`
-	ScanRangeFactorOffset         float64         `json:"scanRangeFactor,omitempty"`
+	ScanRangeFactorOffset         float64         `json:"scanRangeFactorOffset,omitempty"`
 	FuelEfficiencyOffset          float64         `json:"fuelEfficiencyOffset,omitempty"`
 	MaxPopulationOffset           float64         `json:"maxPopulationOffset,omitempty"`
 	TerraformCostOffset           Cost            `json:"terraformCostOffset,omitempty"`
@@ -77,15 +77,15 @@ type LRTSpec struct {
 	ScrapMineralOffsetStarbase    float64         `json:"scrapMineralOffsetStarbase,omitempty"`
 	ScrapResourcesOffset          float64         `json:"scrapResourcesOffset,omitempty"`
 	ScrapResourcesOffsetStarbase  float64         `json:"scrapResourcesOffsetStarbase,omitempty"`
-	StartingPopulationFactorDelta float64         `json:"startingPopulationFactor,omitempty"`
+	StartingPopulationFactorDelta float64         `json:"startingPopulationFactorDelta,omitempty"`
 	StarbaseBuiltInCloakUnits     int             `json:"starbaseBuiltInCloakUnits,omitempty"`
 	StarbaseCostFactorOffset      float64         `json:"starbaseCostFactorOffset,omitempty"`
-	ResearchFactor                float64         `json:"researchFactor,omitempty"`
+	ResearchFactorOffset          float64         `json:"researchFactorOffset,omitempty"`
 	ResearchSplashDamage          float64         `json:"researchSplashDamage,omitempty"`
-	ShieldStrengthFactorOffset    float64         `json:"shieldStrengthFactor,omitempty"`
-	ShieldRegenerationRateOffset  float64         `json:"shieldRegenerationRate,omitempty"`
+	ShieldStrengthFactorOffset    float64         `json:"shieldStrengthFactorOffset,omitempty"`
+	ShieldRegenerationRateOffset  float64         `json:"shieldRegenerationRateOffset,omitempty"`
 	ArmorStrengthFactorOffset     float64         `json:"armorStrengthFactorOffset,omitempty"`
-	EngineFailureRateOffset       float64         `json:"engineFailureRate,omitempty"`
+	EngineFailureRateOffset       float64         `json:"engineFailureRateOffset,omitempty"`
 	EngineReliableSpeed           int             `json:"engineReliableSpeed,omitempty"`
 }
 
@@ -489,8 +489,8 @@ func isbSpec() LRTSpec {
 
 func grSpec() LRTSpec {
 	return LRTSpec{
-		ResearchFactor:       .5,
-		ResearchSplashDamage: .15,
+		ResearchFactorOffset: -.5, // research is 50% less effective
+		ResearchSplashDamage: .15, // our research applies 15% to all other fields
 	}
 }
 

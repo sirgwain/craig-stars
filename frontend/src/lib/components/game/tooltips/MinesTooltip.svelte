@@ -26,7 +26,7 @@
 			You have <span class="font-semibold">{mines} Mines</span> on
 			<span class="font-semibold">{planetName}</span>. You may build up to
 			<span class="font-semibold">{maxPossibleMines} Mines</span>; however, your colonists are
-			currently capable of operating only <span class="font-semibold">{maxMines}</span> of them
+			currently capable of operating only <span class="font-semibold">{maxMines}</span> of them.
 		{/if}
 	</div>
 </div>

@@ -6,7 +6,7 @@
 	import { Beaker } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
-	import NumberInput from '$lib/components/NumberInput.svelte';
+	import SpinnerNumberText from '$lib/components/SpinnerNumberText.svelte';
 	import Factory from '$lib/components/icons/Factory.svelte';
 	import Microscope from '$lib/components/icons/Microscope.svelte';
 	import { getGameContext } from '$lib/services/Contexts';
@@ -15,7 +15,6 @@
 	import { createEventDispatcher } from 'svelte';
 	import { $enum as eu } from 'ts-enum-util';
 	import FutureTechs from './FutureTechs.svelte';
-	import SpinnerNumberText from '$lib/components/SpinnerNumberText.svelte';
 
 	const dispatch = createEventDispatcher();
 
