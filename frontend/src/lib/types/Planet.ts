@@ -1,5 +1,5 @@
 import type { DesignFinder } from '$lib/services/Universe';
-import { startCase } from 'lodash-es';
+import { sortBy, startCase } from 'lodash-es';
 import type { Cargo } from './Cargo';
 import type { Cost } from './Cost';
 import type { Hab } from './Hab';
@@ -122,59 +122,80 @@ export class CommandedPlanet implements Planet {
 	};
 
 	/**
-	 * get a list of available ProductionQueueItems a planet can build
+	 * get a list of available ProductionQueueItems for ship designs a planet can build
 	 * @param planet the planet to get items for
-	 * @param player the player to add items for
+	 * @param designs the designs to load by num to get items for
 	 * @returns a list of items for a planet
 	 */
-	public getAvailableProductionQueueItems(
+	public getAvailableProductionQueueShipDesigns(
 		planet: Planet,
-		designs: ShipDesign[],
-		innateMining: boolean | undefined,
-		innateResources: boolean | undefined,
-		livesOnStarbases: boolean | undefined
+		designs: ShipDesign[]
 	): ProductionQueueItem[] {
 		const items: ProductionQueueItem[] = [];
 
 		if (planet.spec.dockCapacity == UnlimitedSpaceDock || planet.spec.dockCapacity > 0) {
-			designs
-				.filter(
-					(d) =>
-						planet.spec.dockCapacity == UnlimitedSpaceDock ||
-						(d.spec.mass ?? 0) <= planet.spec.dockCapacity
-				)
-				.filter((d) => !d.spec.starbase)
-				.forEach((d) => {
-					items.push({
-						quantity: 0,
-						type: QueueItemType.ShipToken,
-						designNum: d.num,
-						costOfOne: d.spec.cost ?? {},
-						allocated: {}
-					});
-				});
-		}
-		// add starbase designs
-		designs
-			.filter((d) => d.spec.starbase && planet.spec.starbaseDesignNum !== d.num)
-			.forEach((d) => {
+			sortBy(
+				designs
+					.filter(
+						(d) =>
+							planet.spec.dockCapacity == UnlimitedSpaceDock ||
+							(d.spec.mass ?? 0) <= planet.spec.dockCapacity
+					)
+					.filter((d) => !d.spec.starbase),
+				(d) => d.name
+			).forEach((d) => {
 				items.push({
 					quantity: 0,
-					type: QueueItemType.Starbase,
+					type: QueueItemType.ShipToken,
 					designNum: d.num,
 					costOfOne: d.spec.cost ?? {},
 					allocated: {}
 				});
 			});
-
-		if (planet.spec.hasMassDriver) {
-			items.push(
-				fromQueueItemType(QueueItemType.IroniumMineralPacket),
-				fromQueueItemType(QueueItemType.BoraniumMineralPacket),
-				fromQueueItemType(QueueItemType.GermaniumMineralPacket),
-				fromQueueItemType(QueueItemType.MixedMineralPacket)
-			);
 		}
+
+		return items;
+	}
+
+	/**
+	 * get a list of available ProductionQueueItems for ship designs a planet can build
+	 * @param planet the planet to get items for
+	 * @param designs the designs to load by num to get items for
+	 * @returns a list of items for a planet
+	 */
+	public getAvailableProductionQueueStarbaseDesigns(
+		planet: Planet,
+		designs: ShipDesign[]
+	): ProductionQueueItem[] {
+		const items: ProductionQueueItem[] = [];
+
+		// filter starbase designs
+		return sortBy(
+			designs.filter((d) => d.spec.starbase && planet.spec.starbaseDesignNum !== d.num),
+			(d) => d.name
+		).map<ProductionQueueItem>(
+			(d: ShipDesign): ProductionQueueItem => ({
+				quantity: 0,
+				type: QueueItemType.Starbase,
+				designNum: d.num,
+				costOfOne: d.spec.cost ?? {},
+				allocated: {}
+			})
+		);
+
+		return items;
+	}
+
+	/**
+	 * get a list of available ProductionQueueItems a planet can build
+	 */
+	public getAvailableProductionQueueItems(
+		planet: Planet,
+		innateMining: boolean | undefined,
+		innateResources: boolean | undefined,
+		livesOnStarbases: boolean | undefined
+	): ProductionQueueItem[] {
+		const items: ProductionQueueItem[] = [];
 
 		if (!innateResources) {
 			items.push(fromQueueItemType(QueueItemType.Factory));
@@ -194,6 +215,15 @@ export class CommandedPlanet implements Planet {
 
 		if (planet.spec.canTerraform) {
 			items.push(fromQueueItemType(QueueItemType.TerraformEnvironment));
+		}
+
+		if (planet.spec.hasMassDriver) {
+			items.push(
+				fromQueueItemType(QueueItemType.IroniumMineralPacket),
+				fromQueueItemType(QueueItemType.BoraniumMineralPacket),
+				fromQueueItemType(QueueItemType.GermaniumMineralPacket),
+				fromQueueItemType(QueueItemType.MixedMineralPacket)
+			);
 		}
 
 		// add auto items

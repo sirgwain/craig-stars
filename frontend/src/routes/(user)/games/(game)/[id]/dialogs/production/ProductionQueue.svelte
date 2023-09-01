@@ -30,6 +30,8 @@
 	export let planet: CommandedPlanet;
 
 	let availableItems: ProductionQueueItem[] = [];
+	let availableShipDesigns: ProductionQueueItem[] = [];
+	let availableStarbaseDesigns: ProductionQueueItem[] = [];
 	let queueItems: ProductionQueueItem[] = [];
 	let contributesOnlyLeftoverToResearch = false;
 
@@ -396,12 +398,19 @@
 		queueItems = planet.productionQueue?.map((item) => ({ ...item } as ProductionQueueItem));
 		availableItems = planet.getAvailableProductionQueueItems(
 			planet,
-			$designs,
 			$player.race.spec?.innateMining,
 			$player.race.spec?.innateResources,
 			$player.race.spec?.livesOnStarbases
 		);
-		selectedAvailableItem = availableItems.length > 0 ? availableItems[0] : selectedAvailableItem;
+		availableShipDesigns = planet.getAvailableProductionQueueShipDesigns(planet, $designs);
+		availableStarbaseDesigns = planet.getAvailableProductionQueueStarbaseDesigns(planet, $designs);
+		if (availableShipDesigns.length > 0) {
+			selectedAvailableItem = availableShipDesigns[0];
+		} else if (availableStarbaseDesigns.length > 0) {
+			selectedAvailableItem = availableStarbaseDesigns[0];
+		} else if (availableItems.length > 0) {
+			selectedAvailableItem = availableItems[0];
+		}
 		selectedAvailableItemCost = await getItemCost(selectedAvailableItem);
 		contributesOnlyLeftoverToResearch = planet.contributesOnlyLeftoverToResearch ?? false;
 	};
@@ -420,6 +429,50 @@
 				<div class="flex-1 h-full bg-base-100 py-1 px-1">
 					<div class="flex flex-col h-full">
 						<ul class="grow h-20 overflow-y-auto">
+							{#if availableShipDesigns.length > 0}
+								<li class="font-semibold text-secondary text-lg border-b border-b-secondary mb-0.5">
+									Ships
+								</li>
+								{#each availableShipDesigns as item}
+									<li>
+										<button
+											type="button"
+											on:click={() => availableItemSelected(item)}
+											on:dblclick={() => addAvailableItem(item)}
+											class:italic={isAuto(item.type)}
+											class:bg-primary={item === selectedAvailableItem}
+											class="w-full text-left cursor-default select-none hover:text-secondary-focus }
+									{isAuto(item.type) ? ' italic' : ''}"
+										>
+											{getFullName(item)}
+										</button>
+									</li>
+								{/each}
+							{/if}
+
+							{#if availableStarbaseDesigns.length > 0}
+								<li class="font-semibold text-secondary text-lg border-b border-b-secondary my-0.5">
+									Starbases
+								</li>
+								{#each availableStarbaseDesigns as item}
+									<li>
+										<button
+											type="button"
+											on:click={() => availableItemSelected(item)}
+											on:dblclick={() => addAvailableItem(item)}
+											class:italic={isAuto(item.type)}
+											class:bg-primary={item === selectedAvailableItem}
+											class="w-full text-left cursor-default select-none hover:text-secondary-focus }
+									{isAuto(item.type) ? ' italic' : ''}"
+										>
+											{getFullName(item)}
+										</button>
+									</li>
+								{/each}
+							{/if}
+							<li class="font-semibold text-secondary text-lg border-b border-b-secondary mb-0.5">
+								Planetary Structures
+							</li>
 							{#each availableItems as item}
 								<li>
 									<button
