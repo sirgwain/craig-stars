@@ -142,6 +142,34 @@ func Test_production_produce5(t *testing.T) {
 
 }
 
+func Test_production_produce6(t *testing.T) {
+	player, planet := newTestPlayerPlanet()
+
+	// auto build up to the max
+	planet.ProductionQueue = []ProductionQueueItem{
+		{Type: QueueItemTypeAutoFactories, Quantity: 10},
+		{Type: QueueItemTypeAutoMines, Quantity: 10},
+	}
+	planet.Cargo = Cargo{1000, 1000, 1000, 2500}
+	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 1000, MaxFactories: 10, MaxMines: 10}
+	planet.Factories = 9
+	planet.Mines = 0
+	player.Messages = []PlayerMessage{}
+
+	// should build 1 factories, 10 mines and have leftover for research
+	producer := newProducer(planet, player)
+	producer.produce()
+	assert.Equal(t, 10, planet.Factories)
+	assert.Equal(t, 10, planet.Mines)
+	assert.Equal(t, 2, len(planet.ProductionQueue))
+	assert.Equal(t, QueueItemTypeAutoFactories, planet.ProductionQueue[0].Type)
+	assert.Equal(t, 10, planet.ProductionQueue[0].Quantity)
+	assert.Equal(t, QueueItemTypeAutoMines, planet.ProductionQueue[1].Type)
+	assert.Equal(t, 10, planet.ProductionQueue[1].Quantity)
+	assert.Equal(t, 940, player.leftoverResources)
+
+}
+
 func Test_production_produceTerraform(t *testing.T) {
 	player, planet := newTestPlayerPlanet()
 

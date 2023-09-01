@@ -172,8 +172,8 @@ func (p *production) produce() productionResult {
 				available = available.Add(result.alchemy.ToCost())
 			}
 
-			if numBuilt < item.Quantity {
-				// allocate to this item
+			// If we didn't finish building all the items and we can still build more, allocate leftover resources to this item
+			if numBuilt < item.Quantity && (maxBuildable == Infinite || numBuilt < maxBuildable) {
 				item.Allocated = p.allocatePartialBuild(cost, available)
 				available = available.Minus(item.Allocated)
 			}
