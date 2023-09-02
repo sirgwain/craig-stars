@@ -399,6 +399,46 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 			},
 			wantLeftoverResources: 470,
 		},
+		{
+			name: "auto factories when have more than max",
+			args: args{
+				items: []ProductionQueueItem{
+					{
+						Type:      QueueItemTypeAutoFactories,
+						Quantity:  100,
+						CostOfOne: Cost{Germanium: 4, Resources: 10},
+					},
+					{
+						Type:      QueueItemTypeAutoMines,
+						Quantity:  100,
+						CostOfOne: Cost{Resources: 5},
+					},
+				},
+				surfaceMinerals: Mineral{2000, 2000, 2000},
+				population:      100_000,
+				mines:           200, // we have 200, pop only supports 100
+				factories:       200,
+			},
+			want: []ProductionQueueItem{
+				{
+					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+						Skipped: true,
+					},
+					Type:      QueueItemTypeAutoFactories,
+					Quantity:  100,
+					CostOfOne: Cost{Germanium: 4, Resources: 10},
+				},
+				{
+					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+						Skipped: true,
+					},
+					Type:      QueueItemTypeAutoMines,
+					Quantity:  100,
+					CostOfOne: Cost{Resources: 5},
+				},
+			},
+			wantLeftoverResources: 255,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

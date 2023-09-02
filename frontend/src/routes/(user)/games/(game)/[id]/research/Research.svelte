@@ -22,7 +22,7 @@
 
 	const getLevel = (player: Player, field: TechField | string): number => {
 		const f: keyof TechLevel = `${field}`.toLowerCase() as keyof TechLevel;
-		return $player.techLevels[f] ?? 0;
+		return player.techLevels[f] ?? 0;
 	};
 
 	const updatePlayerOrders = async () => {

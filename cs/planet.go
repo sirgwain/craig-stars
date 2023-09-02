@@ -546,17 +546,17 @@ func getMaxPopulation(maxPossiblePop int, minMaxPopulationPercent float64, hab i
 func (planet *Planet) maxBuildable(t QueueItemType) int {
 	switch t {
 	case QueueItemTypeAutoMines:
-		return planet.Spec.MaxMines - planet.Mines
+		return maxInt(0, planet.Spec.MaxMines-planet.Mines)
 	case QueueItemTypeMine:
-		return planet.Spec.MaxPossibleMines - planet.Mines
+		return maxInt(0, planet.Spec.MaxPossibleMines-planet.Mines)
 	case QueueItemTypeAutoFactories:
-		return planet.Spec.MaxFactories - planet.Factories
+		return maxInt(0, planet.Spec.MaxFactories-planet.Factories)
 	case QueueItemTypeFactory:
-		return planet.Spec.MaxPossibleFactories - planet.Factories
+		return maxInt(0, planet.Spec.MaxPossibleFactories-planet.Factories)
 	case QueueItemTypeAutoDefenses:
 		fallthrough
 	case QueueItemTypeDefenses:
-		return planet.Spec.MaxDefenses - planet.Defenses
+		return maxInt(0, planet.Spec.MaxDefenses-planet.Defenses)
 	case QueueItemTypeTerraformEnvironment:
 	case QueueItemTypeAutoMaxTerraform:
 		return planet.Spec.TerraformAmount.absSum()

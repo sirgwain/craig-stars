@@ -8,6 +8,7 @@ import (
 	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
+	"github.com/sirgwain/craig-stars/db"
 )
 
 type planetRequest struct {
@@ -83,7 +84,7 @@ func (s *server) planet(w http.ResponseWriter, r *http.Request) {
 
 // Allow a user to update a planet's orders
 func (s *server) updatePlanetOrders(w http.ResponseWriter, r *http.Request) {
-	db := s.contextDb(r)
+	dbClient := s.contextDb(r)
 	game := s.contextGame(r)
 	existingPlanet := s.contextPlanet(r)
 	player := s.contextPlayer(r)
@@ -95,7 +96,7 @@ func (s *server) updatePlanetOrders(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// load the full player to update planet production estimates
-	player, err := db.GetPlayerWithDesignsForGame(game.ID, player.Num)
+	player, err := dbClient.GetPlayerWithDesignsForGame(game.ID, player.Num)
 	if err != nil {
 		render.Render(w, r, ErrInternalServerError(err))
 		return
@@ -107,13 +108,26 @@ func (s *server) updatePlanetOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := db.UpdatePlanet(existingPlanet); err != nil {
-		log.Error().Err(err).Int64("ID", planet.ID).Msg("update planet in database")
+	// update this planet and the player's spec in the database
+	if err := s.db.WrapInTransaction(func(c db.Client) error {
+		if err := c.UpdatePlanet(existingPlanet); err != nil {
+			log.Error().Err(err).Int64("ID", planet.ID).Msg("update planet in database")
+			return err
+		}
+
+		// update the player spec as well because changes in planet orders impact resources
+		// available for research
+		if err := c.UpdatePlayerSpec(player); err != nil {
+			log.Error().Err(err).Int64("ID", planet.ID).Msg("update player spec in database")
+			return err
+		}
+		return nil
+	}); err != nil {
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	rest.RenderJSON(w, existingPlanet)
+	rest.RenderJSON(w, rest.JSON{"planet": existingPlanet, "player": player})
 }
 
 // get an estimate for production completion based on a planet's production queue items

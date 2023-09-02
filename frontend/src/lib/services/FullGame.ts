@@ -345,8 +345,13 @@ export class FullGame implements Game {
 	}
 
 	async updatePlanetOrders(planet: CommandedPlanet) {
-		const updatedPlanet = await PlanetService.updatePlanetOrders(planet);
-		planet = Object.assign(planet, updatedPlanet);
+		const resp = await PlanetService.updatePlanetOrders(planet);
+
+		// changing the planet orders changes the player's spec
+		Object.assign(this.player, resp.player);
+		updatePlayer(this.player);
+
+		planet = Object.assign(planet, resp.planet);
 		this.universe.updatePlanet(planet);
 		commandedPlanet.update(() => planet);
 		updateUniverse(this.universe);

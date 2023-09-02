@@ -59,6 +59,11 @@ func (o *orders) UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet
 	}
 
 	spec := &planet.Spec
+
+	// update the player spec with new values from this planet
+	oldResourcesPerYearResearch := spec.ResourcesPerYearResearch
+	oldResourcesPerYearResearchEstimatedLeftover := spec.ResourcesPerYearResearchEstimatedLeftover
+
 	spec.computeResourcesPerYearAvailable(player, planet)
 	if err := planet.PopulateProductionQueueDesigns(player); err != nil {
 		return err
@@ -68,6 +73,10 @@ func (o *orders) UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet
 	}
 
 	planet.PopulateProductionQueueEstimates(rules, player)
+
+	// update the player spec with the change in resources for this planet
+	player.Spec.ResourcesPerYearResearch = player.Spec.ResourcesPerYearResearch - oldResourcesPerYearResearch + spec.ResourcesPerYearResearch
+	player.Spec.ResourcesPerYearResearchEstimated = player.Spec.ResourcesPerYearResearchEstimated - oldResourcesPerYearResearchEstimatedLeftover + spec.ResourcesPerYearResearchEstimatedLeftover
 
 	planet.MarkDirty()
 	return nil

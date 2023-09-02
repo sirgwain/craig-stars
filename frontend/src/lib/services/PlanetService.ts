@@ -1,6 +1,6 @@
 import type { Cost } from '$lib/types/Cost';
 import { CommandedPlanet, type Planet, type PlanetOrders } from '$lib/types/Planet';
-import type { Player } from '$lib/types/Player';
+import type { Player, PlayerResponse } from '$lib/types/Player';
 import type { ShipDesign } from '$lib/types/ShipDesign';
 import { Service } from './Service';
 
@@ -15,14 +15,16 @@ export class PlanetService {
 		return Object.assign(commandedPlanet, planet);
 	}
 
-	static async getPlanetProductionEstimates(planet: CommandedPlanet, player: Player): Promise<CommandedPlanet> {
-
+	static async getPlanetProductionEstimates(
+		planet: CommandedPlanet,
+		player: Player
+	): Promise<CommandedPlanet> {
 		const response = await fetch(`/api/calculators/planet-production-estimate`, {
 			method: 'POST',
 			headers: {
 				accept: 'application/json'
 			},
-			body: JSON.stringify({planet, player})
+			body: JSON.stringify({ planet, player })
 		});
 
 		if (!response.ok) {
@@ -47,7 +49,9 @@ export class PlanetService {
 		return await response.json();
 	}
 
-	static async updatePlanetOrders(planet: CommandedPlanet): Promise<Planet> {
+	static async updatePlanetOrders(
+		planet: CommandedPlanet
+	): Promise<{ planet: Planet; player: PlayerResponse }> {
 		const planetOrders: PlanetOrders = {
 			contributesOnlyLeftoverToResearch: planet.contributesOnlyLeftoverToResearch,
 			routeTargetType: planet.routeTargetType,
