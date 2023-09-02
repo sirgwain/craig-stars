@@ -7,7 +7,7 @@ import (
 	"github.com/sirgwain/craig-stars/test"
 )
 
-func Test_completionEstimate_GetCompletionEstimate(t *testing.T) {
+func Test_completionEstimate_GetYearsToBuildOne(t *testing.T) {
 	type args struct {
 		item                   ProductionQueueItem
 		mineralsOnHand         Mineral
@@ -16,7 +16,7 @@ func Test_completionEstimate_GetCompletionEstimate(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want QueueItemCompletionEstimate
+		want int
 	}{
 		{
 			name: "one item, no resources, indefinite build time",
@@ -28,11 +28,7 @@ func Test_completionEstimate_GetCompletionEstimate(t *testing.T) {
 				},
 				yearlyAvailableToSpend: Cost{},
 			},
-			want: QueueItemCompletionEstimate{
-				YearsToBuildOne: Infinite,
-				YearsToBuildAll: Infinite,
-				PercentComplete: 0,
-			},
+			want: Infinite,
 		},
 		{
 			name: "two items, can build one a year",
@@ -43,11 +39,7 @@ func Test_completionEstimate_GetCompletionEstimate(t *testing.T) {
 				},
 				yearlyAvailableToSpend: Cost{Ironium: 1},
 			},
-			want: QueueItemCompletionEstimate{
-				YearsToBuildOne: 1,
-				YearsToBuildAll: 2,
-				PercentComplete: 0,
-			},
+			want: 1,
 		},
 		{
 			name: "two items, two years to build each, four years total",
@@ -58,11 +50,7 @@ func Test_completionEstimate_GetCompletionEstimate(t *testing.T) {
 				},
 				yearlyAvailableToSpend: Cost{Ironium: 1},
 			},
-			want: QueueItemCompletionEstimate{
-				YearsToBuildOne: 2,
-				YearsToBuildAll: 4,
-				PercentComplete: 0,
-			},
+			want: 2,
 		},
 		{
 			name: "one item half done, two more years to build",
@@ -74,11 +62,7 @@ func Test_completionEstimate_GetCompletionEstimate(t *testing.T) {
 				},
 				yearlyAvailableToSpend: Cost{Ironium: 1},
 			},
-			want: QueueItemCompletionEstimate{
-				YearsToBuildOne: 2,
-				YearsToBuildAll: 2,
-				PercentComplete: .5,
-			},
+			want: 2,
 		},
 		{
 			name: "one item, some minerals on hand, should complete in one year",
@@ -90,11 +74,7 @@ func Test_completionEstimate_GetCompletionEstimate(t *testing.T) {
 				mineralsOnHand:         Mineral{Ironium: 3},
 				yearlyAvailableToSpend: Cost{Ironium: 1},
 			},
-			want: QueueItemCompletionEstimate{
-				YearsToBuildOne: 1,
-				YearsToBuildAll: 1,
-				PercentComplete: 0,
-			},
+			want: 1,
 		},
 		{
 			name: "two items, lots of minerals on hand, should complete in two years for needing resources",
@@ -106,11 +86,7 @@ func Test_completionEstimate_GetCompletionEstimate(t *testing.T) {
 				mineralsOnHand:         Mineral{Ironium: 100},
 				yearlyAvailableToSpend: Cost{Ironium: 1, Resources: 1},
 			},
-			want: QueueItemCompletionEstimate{
-				YearsToBuildOne: 1,
-				YearsToBuildAll: 2,
-				PercentComplete: 0,
-			},
+			want: 1,
 		},
 		{
 			name: "mine, 2 resources per year",
@@ -123,17 +99,13 @@ func Test_completionEstimate_GetCompletionEstimate(t *testing.T) {
 				mineralsOnHand:         Mineral{},
 				yearlyAvailableToSpend: Cost{Resources: 2},
 			},
-			want: QueueItemCompletionEstimate{
-				YearsToBuildOne: 3,
-				YearsToBuildAll: 13,
-				PercentComplete: 0,
-			},
+			want: 3,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			e := &completionEstimate{}
-			if got := e.GetCompletionEstimate(tt.args.item, tt.args.mineralsOnHand, tt.args.yearlyAvailableToSpend); !reflect.DeepEqual(got, tt.want) {
+			if got := e.GetYearsToBuildOne(tt.args.item, tt.args.mineralsOnHand, tt.args.yearlyAvailableToSpend); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("completionEstimate.GetCompletionEstimate() = %v, want %v", got, tt.want)
 			}
 		})
@@ -146,6 +118,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 		surfaceMinerals Mineral
 		population      int
 		mines           int
+		factories       int
 	}
 	tests := []struct {
 		name string
@@ -359,10 +332,64 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				{
 					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
 						YearsToBuildOne: 3,
-						YearsToBuildAll: Infinite, // TODO: we really don't build this in 100 years?
+						YearsToBuildAll: 17, // it takes a while to build all these mines
 					},
 					Type:      QueueItemTypeAutoMines,
 					Quantity:  5,
+					CostOfOne: Cost{Resources: 5},
+				},
+			},
+		},
+		{
+			name: "Test later year planet with high everything",
+			args: args{
+				items: []ProductionQueueItem{
+					{
+						Type:      QueueItemTypeAutoMinTerraform,
+						Quantity:  1,
+						CostOfOne: Cost{Resources: 100},
+					},
+					{
+						Type:      QueueItemTypeAutoFactories,
+						Quantity:  100,
+						CostOfOne: Cost{Germanium: 4, Resources: 10},
+					},
+					{
+						Type:      QueueItemTypeAutoMines,
+						Quantity:  100,
+						CostOfOne: Cost{Resources: 5},
+					},
+				},
+				surfaceMinerals: Mineral{2000, 2000, 2000},
+				population:      700_000,
+				mines:           634,
+				factories:       664,
+			},
+			want: []ProductionQueueItem{
+				{
+					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+						Skipped: true, // this is skipped as it's not needed
+					},
+					Type:      QueueItemTypeAutoMinTerraform,
+					Quantity:  1,
+					CostOfOne: Cost{Resources: 100},
+				},
+				{
+					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+						YearsToBuildOne: 1, // we easily build all auto buildable factories in one turn
+						YearsToBuildAll: 1,
+					},
+					Type:      QueueItemTypeAutoFactories,
+					Quantity:  100,
+					CostOfOne: Cost{Germanium: 4, Resources: 10},
+				},
+				{
+					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+						YearsToBuildOne: 1, // we easily build all auto buildable mines in one turn
+						YearsToBuildAll: 1,
+					},
+					Type:      QueueItemTypeAutoMines,
+					Quantity:  100,
 					CostOfOne: Cost{Resources: 5},
 				},
 			},
@@ -379,6 +406,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 			planet.Cargo = planet.Cargo.AddMineral(tt.args.surfaceMinerals)
 			planet.setPopulation(tt.args.population)
 			planet.Mines = tt.args.mines
+			planet.Factories = tt.args.factories
 			planet.Spec = computePlanetSpec(&rules, player, planet)
 			planet.ProductionQueue = tt.args.items
 

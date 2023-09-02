@@ -2,6 +2,8 @@ package cs
 
 import (
 	"math"
+
+	"github.com/rs/zerolog/log"
 )
 
 // producers perform planet production
@@ -147,13 +149,14 @@ type productionResult struct {
 
 type itemBuilt struct {
 	index    int
-	quantity int
 	numBuilt int
 	skipped  bool
+	never    bool
 }
 
 type buildItemResult struct {
 	skipped   bool
+	never     bool
 	numBuilt  int
 	spent     Cost
 	leftover  Cost
@@ -178,13 +181,24 @@ func (p *production) produce() productionResult {
 		if message, valid := p.validateItem(item, maxBuildable, planet); !valid {
 			// skip this item and remove it from the queue
 			productionResult.messages = append(productionResult.messages, message)
+			productionResult.itemsBuilt = append(productionResult.itemsBuilt, itemBuilt{index: item.index, never: true})
+			continue
+		}
+
+		// we can't build anymore of this auto item, skip it but leave it in the queue
+		if maxBuildable == 0 && item.Type.IsAuto() {
 			productionResult.itemsBuilt = append(productionResult.itemsBuilt, itemBuilt{index: item.index, skipped: true})
+			newQueue = append(newQueue, item)
 			continue
 		}
 
 		// build this item
 		result := p.processQueueItem(item, available, maxBuildable)
-		if result.skipped {
+
+		// this one is an auto that will never be completed
+		// leave it in the queue but move on to the next
+		if result.never {
+			productionResult.itemsBuilt = append(productionResult.itemsBuilt, itemBuilt{index: item.index, skipped: result.skipped, never: result.never})
 			newQueue = append(newQueue, item)
 			continue
 		}
@@ -197,20 +211,20 @@ func (p *production) produce() productionResult {
 			}
 
 			p.updateResult(item, result.numBuilt, &productionResult)
-			// log.Debug().
-			// 	Int("Player", planet.PlayerNum).
-			// 	Str("Planet", planet.Name).
-			// 	Str("Item", string(item.Type)).
-			// 	Int("DesignNum", item.DesignNum).
-			// 	Int("NumBuilt", result.numBuilt).
-			// 	Msgf("built item")
+			log.Debug().
+				Int("Player", planet.PlayerNum).
+				Str("Planet", planet.Name).
+				Str("Item", string(item.Type)).
+				Int("DesignNum", item.DesignNum).
+				Int("NumBuilt", result.numBuilt).
+				Msgf("built item")
 
 			available = available.Minus(result.spent)
 
 			// if we built mineral alchemy, add it back in to our available amount
 			available = available.Add(productionResult.alchemy.ToCost())
 
-			productionResult.itemsBuilt = append(productionResult.itemsBuilt, itemBuilt{index: item.index, numBuilt: result.numBuilt, quantity: item.Quantity})
+			productionResult.itemsBuilt = append(productionResult.itemsBuilt, itemBuilt{index: item.index, numBuilt: result.numBuilt})
 		}
 
 		// once we partially allocate, we're done
@@ -324,8 +338,8 @@ func (p *production) processQueueItem(item ProductionQueueItem, availableToSpend
 	// and skip them to build factories, then mines
 	yearlyAvailableToSpend := FromMineralAndResources(p.planet.Spec.MiningOutput, p.planet.Spec.ResourcesPerYearAvailable)
 	yearsToBuildOne := p.estimator.GetYearsToBuildOne(item, availableToSpend.ToMineral(), yearlyAvailableToSpend)
-	if item.Skipped || (item.Type.IsAuto() && (yearsToBuildOne > 100 || yearsToBuildOne == Infinite)) {
-		return buildItemResult{skipped: true}
+	if item.Type.IsAuto() && (yearsToBuildOne > 100 || yearsToBuildOne == Infinite) {
+		return buildItemResult{never: true}
 	}
 
 	result := buildItemResult{}
