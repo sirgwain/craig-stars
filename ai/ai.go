@@ -54,11 +54,12 @@ func (p *aiPlayer) buildMaps() {
 }
 
 // process an AI player's turn
-func (ai *aiPlayer) ProcessTurn() {
+func (ai *aiPlayer) ProcessTurn() error {
 	ai.scout()
 	ai.scoutPackets()
 	ai.colonize()
 	ai.layMines()
+	return nil
 }
 
 // dispatch scouts to unknown planets
@@ -107,7 +108,7 @@ func (ai *aiPlayer) scout() {
 		if existingQueueItemIndex == -1 {
 			// put a new scout at the front of the queue
 			planet.ProductionQueue = append([]cs.ProductionQueueItem{{Type: cs.QueueItemTypeShipToken, Quantity: 1, DesignNum: design.Num}}, planet.ProductionQueue...)
-			ai.client.UpdatePlanetOrders(ai.Player, planet, planet.PlanetOrders)
+			ai.client.UpdatePlanetOrders(&ai.game.Rules, ai.Player, planet, planet.PlanetOrders)
 
 		}
 	}
@@ -185,7 +186,7 @@ func (ai *aiPlayer) scoutPackets() {
 				planet.ProductionQueue = append([]cs.ProductionQueueItem{{Type: queueItemType, Quantity: 1}}, planet.ProductionQueue...)
 				delete(unknownPlanetsByNum, farthest.Num)
 
-				ai.client.UpdatePlanetOrders(ai.Player, planet, planet.PlanetOrders)
+				ai.client.UpdatePlanetOrders(&ai.game.Rules, ai.Player, planet, planet.PlanetOrders)
 
 			}
 		}
@@ -251,7 +252,7 @@ func (ai *aiPlayer) colonize() {
 			if existingQueueItemIndex == -1 {
 				// put a new scout at the front of the queue
 				planet.ProductionQueue = append([]cs.ProductionQueueItem{{Type: cs.QueueItemTypeShipToken, Quantity: 1, DesignNum: design.Num}}, planet.ProductionQueue...)
-				ai.client.UpdatePlanetOrders(ai.Player, planet, planet.PlanetOrders)
+				ai.client.UpdatePlanetOrders(&ai.game.Rules, ai.Player, planet, planet.PlanetOrders)
 			}
 		}
 	}
