@@ -17,11 +17,11 @@ func Test_production_produce(t *testing.T) {
 	planet.Mines = 0
 
 	// should build 1 mine, leaving empty queue
+	planet.PopulateProductionQueueCosts(player)
 	producer := newProducer(planet, player)
 	producer.produce()
 	assert.Equal(t, 1, planet.Mines)
 	assert.Equal(t, 0, len(planet.ProductionQueue))
-	assert.Equal(t, 1, len(player.Messages))
 
 	// build 5 auto mines, leaving them in the queue
 	planet.ProductionQueue = []ProductionQueueItem{{Type: QueueItemTypeAutoMines, Quantity: 5}}
@@ -31,13 +31,13 @@ func Test_production_produce(t *testing.T) {
 	player.Messages = []PlayerMessage{}
 
 	// should build 5 mine, leaving the auto build in the queu
+	planet.PopulateProductionQueueCosts(player)
 	producer = newProducer(planet, player)
 	producer.produce()
 	assert.Equal(t, 5, planet.Mines)
 	assert.Equal(t, 1, len(planet.ProductionQueue))
 	assert.Equal(t, QueueItemTypeAutoMines, planet.ProductionQueue[0].Type)
 	assert.Equal(t, 5, planet.ProductionQueue[0].Quantity)
-	assert.Equal(t, 1, len(player.Messages))
 }
 
 func Test_production_produce2(t *testing.T) {
@@ -51,13 +51,13 @@ func Test_production_produce2(t *testing.T) {
 	player.Messages = []PlayerMessage{}
 
 	// should build 5 mine, leaving the auto build in the queu
+	planet.PopulateProductionQueueCosts(player)
 	producer := newProducer(planet, player)
 	producer.produce()
 	assert.Equal(t, 5, planet.Factories)
 	assert.Equal(t, 1, len(planet.ProductionQueue))
 	assert.Equal(t, QueueItemTypeAutoFactories, planet.ProductionQueue[0].Type)
 	assert.Equal(t, 5, planet.ProductionQueue[0].Quantity)
-	assert.Equal(t, 1, len(player.Messages))
 
 }
 
@@ -79,6 +79,7 @@ func Test_production_produce3(t *testing.T) {
 	player.Messages = []PlayerMessage{}
 
 	// should build 2 factories and 5 mines, leaving the auto builds in the queue
+	planet.PopulateProductionQueueCosts(player)
 	producer := newProducer(planet, player)
 	producer.produce()
 	assert.Equal(t, 2, planet.Factories)
@@ -104,6 +105,7 @@ func Test_production_produce4(t *testing.T) {
 	player.Messages = []PlayerMessage{}
 
 	// should build 2 factories, 1 mine and one partial mine, leaving the auto builds in the queue
+	planet.PopulateProductionQueueCosts(player)
 	producer := newProducer(planet, player)
 	producer.produce()
 	assert.Equal(t, 2, planet.Factories)
@@ -133,13 +135,13 @@ func Test_production_produce5(t *testing.T) {
 	player.Messages = []PlayerMessage{}
 
 	// should end up with 100 defenses and the auto defenses still in the queue
+	planet.PopulateProductionQueueCosts(player)
 	producer := newProducer(planet, player)
 	producer.produce()
 	assert.Equal(t, 100, planet.Defenses)
 	assert.Equal(t, 1, len(planet.ProductionQueue))
 	assert.Equal(t, QueueItemTypeAutoDefenses, planet.ProductionQueue[0].Type)
 	assert.Equal(t, 100, planet.ProductionQueue[0].Quantity)
-
 }
 
 func Test_production_produce6(t *testing.T) {
@@ -157,8 +159,9 @@ func Test_production_produce6(t *testing.T) {
 	player.Messages = []PlayerMessage{}
 
 	// should build 1 factories, 10 mines and have leftover for research
+	planet.PopulateProductionQueueCosts(player)
 	producer := newProducer(planet, player)
-	producer.produce()
+	result := producer.produce()
 	assert.Equal(t, 10, planet.Factories)
 	assert.Equal(t, 10, planet.Mines)
 	assert.Equal(t, 2, len(planet.ProductionQueue))
@@ -166,7 +169,77 @@ func Test_production_produce6(t *testing.T) {
 	assert.Equal(t, 10, planet.ProductionQueue[0].Quantity)
 	assert.Equal(t, QueueItemTypeAutoMines, planet.ProductionQueue[1].Type)
 	assert.Equal(t, 10, planet.ProductionQueue[1].Quantity)
-	assert.Equal(t, 940, player.leftoverResources)
+	assert.Equal(t, 940, result.leftoverResources)
+
+}
+
+func Test_production_produce7(t *testing.T) {
+	player, planet := newTestPlayerPlanet()
+
+	// auto build factories, but we have no mines or minerals, so they'll never build
+	// until we build mines and mine a bit
+	planet.ProductionQueue = []ProductionQueueItem{
+		{Type: QueueItemTypeAutoFactories, Quantity: 100},
+		{Type: QueueItemTypeAutoMines, Quantity: 100},
+	}
+	planet.Cargo = Cargo{0, 0, 0, 25}
+	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 2, MaxFactories: 10, MaxMines: 10}
+	player.Messages = []PlayerMessage{}
+
+	// should build nothing, but queue up a mine partially done
+	planet.PopulateProductionQueueCosts(player)
+	producer := newProducer(planet, player)
+	producer.produce()
+	assert.Equal(t, 0, planet.Factories)
+	assert.Equal(t, 0, planet.Mines)
+	assert.Equal(t, 3, len(planet.ProductionQueue))
+	assert.Equal(t, QueueItemTypeMine, planet.ProductionQueue[0].Type)
+	assert.Equal(t, 1, planet.ProductionQueue[0].Quantity)
+	assert.Equal(t, Cost{Resources: 2}, planet.ProductionQueue[0].Allocated)
+	assert.Equal(t, QueueItemTypeAutoFactories, planet.ProductionQueue[1].Type)
+	assert.Equal(t, 100, planet.ProductionQueue[1].Quantity)
+	assert.Equal(t, Cost{}, planet.ProductionQueue[1].Allocated)
+	assert.Equal(t, QueueItemTypeAutoMines, planet.ProductionQueue[2].Type)
+	assert.Equal(t, 100, planet.ProductionQueue[2].Quantity)
+	assert.Equal(t, Cost{}, planet.ProductionQueue[2].Allocated)
+
+}
+
+func Test_production_produce8(t *testing.T) {
+	player, planet := newTestPlayerPlanet()
+
+	// build the half completed factory, keep building more factories but don't add a partial mine
+	planet.ProductionQueue = []ProductionQueueItem{
+		{Type: QueueItemTypeFactory, Quantity: 1, Allocated: Cost{Germanium: 2, Resources: 5}},
+		{Type: QueueItemTypeAutoMinTerraform, Quantity: 1},
+		{Type: QueueItemTypeAutoFactories, Quantity: 100},
+		{Type: QueueItemTypeAutoMines, Quantity: 100},
+	}
+	planet.Cargo = Cargo{361, 382, 1173, 331}
+	planet.Mines = 11
+	planet.Factories = 16
+	planet.Spec = computePlanetSpec(&rules, player, planet)
+
+	// should build nothing, but queue up a mine partially done
+	planet.PopulateProductionQueueCosts(player)
+	producer := newProducer(planet, player)
+	producer.produce()
+	assert.Equal(t, 20, planet.Factories)
+	assert.Equal(t, 11, planet.Mines)
+	assert.Equal(t, 4, len(planet.ProductionQueue))
+	assert.Equal(t, QueueItemTypeFactory, planet.ProductionQueue[0].Type)
+	assert.Equal(t, 1, planet.ProductionQueue[0].Quantity)
+	assert.Equal(t, Cost{Resources: 2}, planet.ProductionQueue[0].Allocated)
+	assert.Equal(t, QueueItemTypeAutoMinTerraform, planet.ProductionQueue[1].Type)
+	assert.Equal(t, 1, planet.ProductionQueue[1].Quantity)
+	assert.Equal(t, Cost{}, planet.ProductionQueue[1].Allocated)
+	assert.Equal(t, QueueItemTypeAutoFactories, planet.ProductionQueue[2].Type)
+	assert.Equal(t, 100, planet.ProductionQueue[2].Quantity)
+	assert.Equal(t, Cost{}, planet.ProductionQueue[2].Allocated)
+
+	assert.Equal(t, QueueItemTypeAutoMines, planet.ProductionQueue[3].Type)
+	assert.Equal(t, 100, planet.ProductionQueue[3].Quantity)
+	assert.Equal(t, Cost{}, planet.ProductionQueue[3].Allocated)
 
 }
 
@@ -186,11 +259,11 @@ func Test_production_produceTerraform(t *testing.T) {
 	player.Messages = []PlayerMessage{}
 
 	// build 5 terraform steps, make planet better, log some messages
+	planet.PopulateProductionQueueCosts(player)
 	producer := newProducer(planet, player)
 	producer.produce()
 	assert.Equal(t, Hab{42, 42, 41}, planet.Hab)
 	assert.Equal(t, 0, len(planet.ProductionQueue))
-	assert.Equal(t, 5, len(player.Messages))
 
 }
 
@@ -205,6 +278,7 @@ func Test_production_produceMineralPackets(t *testing.T) {
 	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 100, PlanetStarbaseSpec: PlanetStarbaseSpec{HasMassDriver: true, SafePacketSpeed: 6, BasePacketSpeed: 6}}
 
 	// should build 5 mine, leaving the auto build in the queu
+	planet.PopulateProductionQueueCosts(player)
 	producer := newProducer(planet, player)
 	result := producer.produce()
 	assert.Equal(t, 1, len(result.packets))

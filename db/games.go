@@ -282,6 +282,9 @@ func (c *client) GetFullGame(id int64) (*cs.FullGame, error) {
 	}
 	universe.MineralPackets = mineralPackets
 
+	// TODO: allow rules overrides, but for now, always use standard rules
+	game.Rules = cs.NewRules()
+
 	// load a tech store if this game has a separate one
 	techStore := &cs.StaticTechStore
 	if game.Rules.TechsID != 0 {

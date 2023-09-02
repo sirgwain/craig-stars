@@ -8,7 +8,7 @@ import (
 // handle player orders
 type Orderer interface {
 	UpdatePlayerOrders(player *Player, playerPlanets []*Planet, order PlayerOrders, rules *Rules)
-	UpdatePlanetOrders(player *Player, planet *Planet, orders PlanetOrders)
+	UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet, orders PlanetOrders) error
 	UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrders)
 	UpdateMineFieldOrders(player *Player, minefield *MineField, orders MineFieldOrders)
 	TransferFleetCargo(rules *Rules, player, destPlayer *Player, source, dest *Fleet, transferAmount Cargo) error
@@ -49,13 +49,28 @@ func (o *orders) UpdatePlayerOrders(player *Player, playerPlanets []*Planet, ord
 }
 
 // update a planet orders
-func (o *orders) UpdatePlanetOrders(player *Player, planet *Planet, orders PlanetOrders) {
+func (o *orders) UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet, orders PlanetOrders) error {
 	planet.PlanetOrders = orders
+
+	// make sure if we have a starbase, it has a design so we can compute
+	// upgrade costs
+	if err := planet.PopulateStarbaseDesign(player); err != nil {
+		return err
+	}
 
 	spec := &planet.Spec
 	spec.computeResourcesPerYearAvailable(player, planet)
-	planet.PopulateProductionQueueCosts(player)
+	if err := planet.PopulateProductionQueueDesigns(player); err != nil {
+		return err
+	}
+	if err := planet.PopulateProductionQueueCosts(player); err != nil {
+		return err
+	}
+
+	planet.PopulateProductionQueueEstimates(rules, player)
+
 	planet.MarkDirty()
+	return nil
 }
 
 // update the orders to a fleet

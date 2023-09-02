@@ -997,10 +997,7 @@ func (t *turn) detonateMines() {
 func (t *turn) planetMine() {
 	for _, planet := range t.game.Planets {
 		if planet.Owned() {
-			planet.Cargo = planet.Cargo.AddMineral(planet.Spec.MiningOutput)
-			planet.MineYears.AddInt(planet.Mines)
-			planet.reduceMineralConcentration(&t.game.Rules)
-
+			planet.mine(&t.game.Rules)
 			log.Debug().
 				Int64("GameID", t.game.ID).
 				Int("Player", planet.PlayerNum).
@@ -1086,7 +1083,7 @@ func (t *turn) remoteMine(fleet *Fleet, player *Player, planet *Planet) {
 		numMines := fleet.Spec.MiningRate
 		mineralOutput := planet.getMineralOutput(numMines, t.game.Rules.RemoteMiningMineOutput)
 		planet.Cargo = planet.Cargo.AddMineral(mineralOutput)
-		planet.MineYears.AddInt(numMines)
+		planet.MineYears = planet.MineYears.AddInt(numMines)
 		planet.reduceMineralConcentration(&t.game.Rules)
 		planet.MarkDirty()
 
@@ -1106,13 +1103,45 @@ func (t *turn) remoteMine(fleet *Fleet, player *Player, planet *Planet) {
 	}
 }
 
+// go through each player planet and process it's production queue
 func (t *turn) planetProduction() {
 	for _, planet := range t.game.Planets {
 		if planet.Owned() && len(planet.ProductionQueue) > 0 {
 			player := t.game.Players[planet.PlayerNum-1]
+			planet.PopulateProductionQueueCosts(player)
 			producer := newProducer(planet, player)
 			result := producer.produce()
+
+			// add any invalid messages we encountered
+			if len(result.messages) > 0 {
+				player.Messages = append(player.Messages, result.messages...)
+			}
+
+			if result.mines > 0 {
+				messager.minesBuilt(player, planet, result.mines)
+			}
+			if result.factories > 0 {
+				messager.factoriesBuilt(player, planet, result.factories)
+			}
+			if result.defenses > 0 {
+				messager.defensesBuilt(player, planet, result.defenses)
+			}
+			if result.alchemy != (Mineral{}) {
+				// alchemy builds evenly, but we only message the single amount
+				numBuilt := result.alchemy.Ironium
+				messager.mineralAlchemyBuilt(player, planet, numBuilt)
+			}
+			if len(result.terraformResults) > 0 {
+				for _, terraformResult := range result.terraformResults {
+					messager.terraform(player, planet, terraformResult.Type, terraformResult.Direction)
+				}
+			}
 			for _, token := range result.tokens {
+				design := token.design
+				design.Spec.NumBuilt += token.Quantity
+				design.Spec.NumInstances += token.Quantity
+				design.MarkDirty()
+
 				fleet := t.buildFleet(player, planet, token)
 				messager.fleetBuilt(player, planet, fleet, token.Quantity)
 			}
@@ -1131,6 +1160,9 @@ func (t *turn) planetProduction() {
 				planet.MarkDirty()
 				messager.scannerBuilt(player, planet, planet.Spec.Scanner)
 			}
+
+			// any leftover resources go back to the player for research
+			player.leftoverResources += result.leftoverResources
 		}
 	}
 }
@@ -1165,6 +1197,7 @@ func (t *turn) buildFleet(player *Player, planet *Planet, token ShipToken) *Flee
 func (t *turn) buildStarbase(player *Player, planet *Planet, design *ShipDesign) *Fleet {
 	player.Stats.StarbasesBuilt++
 	player.Stats.TokensBuilt++
+	design.Spec.NumBuilt++
 
 	// remove the old starbase
 	if planet.Starbase != nil {
@@ -1371,13 +1404,8 @@ func (t *turn) permaform() {
 func (t *turn) planetGrow() {
 	for _, planet := range t.game.Planets {
 		if planet.Owned() {
-			planet.setPopulation(planet.population() + planet.Spec.GrowthAmount)
-
 			player := t.game.getPlayer(planet.PlayerNum)
-			if player.Race.Spec.InnateMining {
-				planet.Mines = planet.innateMines(player)
-			}
-
+			planet.grow(player)
 			planet.MarkDirty()
 
 			log.Debug().

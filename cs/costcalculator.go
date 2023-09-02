@@ -26,11 +26,10 @@ func (p *costCalculate) StarbaseUpgradeCost(design, newDesign *ShipDesign) Cost 
 func (p *costCalculate) CostOfOne(player *Player, item ProductionQueueItem) (Cost, error) {
 	cost := player.Race.Spec.Costs[item.Type]
 	if item.Type == QueueItemTypeStarbase || item.Type == QueueItemTypeShipToken {
-		design := player.GetDesign(item.DesignNum)
-		if design != nil {
-			cost = design.Spec.Cost
+		if item.design != nil {
+			cost = item.design.Spec.Cost
 		} else {
-			return Cost{}, fmt.Errorf("player %s has no design: %d", player, item.DesignNum)
+			return Cost{}, fmt.Errorf("design %d not populated in queue item", item.DesignNum)
 		}
 	}
 	return cost, nil

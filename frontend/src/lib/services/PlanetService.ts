@@ -1,7 +1,7 @@
 import type { Cost } from '$lib/types/Cost';
 import { CommandedPlanet, type Planet, type PlanetOrders } from '$lib/types/Planet';
+import type { Player } from '$lib/types/Player';
 import type { ShipDesign } from '$lib/types/ShipDesign';
-import { CSError, type ErrorResponse } from './Errors';
 import { Service } from './Service';
 
 export class PlanetService {
@@ -15,13 +15,14 @@ export class PlanetService {
 		return Object.assign(commandedPlanet, planet);
 	}
 
-	static async getPlanetProductionEstimates(planet: CommandedPlanet): Promise<CommandedPlanet> {
+	static async getPlanetProductionEstimates(planet: CommandedPlanet, player: Player): Promise<CommandedPlanet> {
+
 		const response = await fetch(`/api/calculators/planet-production-estimate`, {
 			method: 'POST',
 			headers: {
 				accept: 'application/json'
 			},
-			body: JSON.stringify(planet)
+			body: JSON.stringify({planet, player})
 		});
 
 		if (!response.ok) {

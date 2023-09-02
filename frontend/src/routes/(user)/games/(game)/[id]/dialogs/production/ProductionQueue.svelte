@@ -96,7 +96,7 @@
 	const updateQueueEstimates = async () => {
 		// update with estimates from the server
 		updatedPlanet.productionQueue = queueItems;
-		updatedPlanet = await PlanetService.getPlanetProductionEstimates(updatedPlanet);
+		updatedPlanet = await PlanetService.getPlanetProductionEstimates(updatedPlanet, $player);
 		queueItems = updatedPlanet.productionQueue;
 		selectedQueueItem = queueItems[selectedQueueItemIndex];
 		selectedQueueItemCost = await getItemCost(selectedQueueItem, selectedQueueItem?.quantity);
@@ -441,7 +441,7 @@
 											on:dblclick={() => addAvailableItem(item)}
 											class:italic={isAuto(item.type)}
 											class:bg-primary={item === selectedAvailableItem}
-											class="w-full text-left cursor-default select-none hover:text-secondary-focus }
+											class="w-full pl-0.5 text-left cursor-default select-none hover:text-secondary-focus }
 									{isAuto(item.type) ? ' italic' : ''}"
 										>
 											{getFullName(item)}
@@ -462,7 +462,7 @@
 											on:dblclick={() => addAvailableItem(item)}
 											class:italic={isAuto(item.type)}
 											class:bg-primary={item === selectedAvailableItem}
-											class="w-full text-left cursor-default select-none hover:text-secondary-focus }
+											class="w-full pl-0.5 text-left cursor-default select-none hover:text-secondary-focus }
 									{isAuto(item.type) ? ' italic' : ''}"
 										>
 											{getFullName(item)}
@@ -481,7 +481,7 @@
 										on:dblclick={() => addAvailableItem(item)}
 										class:italic={isAuto(item.type)}
 										class:bg-primary={item === selectedAvailableItem}
-										class="w-full text-left cursor-default select-none hover:text-secondary-focus }
+										class="w-full pl-0.5 text-left cursor-default select-none hover:text-secondary-focus }
 									{isAuto(item.type) ? ' italic' : ''}"
 									>
 										{getFullName(item)}
@@ -561,7 +561,7 @@
 						</select>
 					</div>
 				</div>
-				<div class="flex-1 h-full bg-base-100 py-1 px-1">
+				<div class="flex-1 h-full bg-base-100 py-1">
 					<div class="flex flex-col h-full">
 						<ul class="grow h-20 overflow-y-auto">
 							<li>
@@ -589,7 +589,7 @@
 												(queueItem.yearsToBuildOne ?? 0) <= 1}
 											class:text-queue-item-skipped={queueItem.skipped}
 											class:bg-primary={queueItem === selectedQueueItem}
-											class="w-full text-left pl-1 select-none cursor-default hover:text-secondary-focus"
+											class="w-full text-left px-1 select-none cursor-default hover:text-secondary-focus"
 										>
 											<div class="flex justify-between ">
 												<div>
@@ -621,7 +621,7 @@
 					</div>
 				</div>
 			</div>
-			<div class="flex justify-between pt-2">
+			<div class="flex justify-between p-1 pt-2">
 				<div class="w-1/2 mr-14">
 					<label>
 						<input

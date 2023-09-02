@@ -1,10 +1,7 @@
 package cs
 
 import (
-	"fmt"
 	"math"
-
-	"github.com/rs/zerolog/log"
 )
 
 // producers perform planet production
@@ -15,22 +12,16 @@ type producer interface {
 // create a new planet production object
 func newProducer(planet *Planet, player *Player) producer {
 	return &production{
-		planet: planet,
-		player: player,
+		planet:    planet,
+		player:    player,
+		estimator: newCompletionEstimator(),
 	}
 }
 
 type production struct {
-	planet *Planet
-	player *Player
-}
-
-type productionResult struct {
-	tokens   []ShipToken
-	packets  []Cargo
-	scanner  bool
-	starbase *ShipDesign
-	alchemy  Mineral
+	planet    *Planet
+	player    *Player
+	estimator CompletionEstimator
 }
 
 type QueueItemCompletionEstimate struct {
@@ -48,6 +39,22 @@ type ProductionQueueItem struct {
 	CostOfOne    Cost          `json:"costOfOne"`
 	MaxBuildable int           `json:"maxBuildable"`
 	Allocated    Cost          `json:"allocated"`
+	index        int           // used for holding a place in the queue while estimating
+	design       *ShipDesign
+}
+
+// get the percent this build item has been completed
+func (item ProductionQueueItem) percentComplete() float64 {
+	if item.Allocated.Total() == 0 {
+		return 0
+	}
+
+	// update the percent complete based on how much we've allocated vs the total cost of all items
+	costOfAll := item.CostOfOne.MultiplyInt(item.Quantity)
+	if !(item.Allocated == Cost{}) {
+		return clampFloat64(item.Allocated.Divide(costOfAll), 0, 1)
+	}
+	return 0
 }
 
 type QueueItemType string
@@ -94,6 +101,13 @@ func (t QueueItemType) IsPacket() bool {
 		t == QueueItemTypeGermaniumMineralPacket
 }
 
+// true if this is a terraform type
+func (t QueueItemType) IsTerraform() bool {
+	return t == QueueItemTypeAutoMaxTerraform ||
+		t == QueueItemTypeAutoMinTerraform ||
+		t == QueueItemTypeTerraformEnvironment
+}
+
 // return the concrete version of this auto type
 func (t QueueItemType) concreteType() QueueItemType {
 	switch t {
@@ -115,126 +129,239 @@ func (t QueueItemType) concreteType() QueueItemType {
 	return t
 }
 
-// produce one turns worth of items from the production queue
+type productionResult struct {
+	itemsBuilt        []itemBuilt
+	leftoverResources int
+	tokens            []ShipToken
+	packets           []Cargo
+	scanner           bool
+	starbase          *ShipDesign
+	alchemy           Mineral
+	mines             int
+	factories         int
+	defenses          int
+	terraformSteps    int
+	terraformResults  []TerraformResult
+	messages          []PlayerMessage
+}
+
+type itemBuilt struct {
+	index    int
+	quantity int
+	numBuilt int
+	skipped  bool
+}
+
+type buildItemResult struct {
+	skipped   bool
+	numBuilt  int
+	spent     Cost
+	leftover  Cost
+	allocated Cost
+}
+
+// produce all items in the production queue
 func (p *production) produce() productionResult {
-	player, planet := p.player, p.planet
-	planet.PopulateProductionQueueCosts(player)
-	result := productionResult{}
+	planet := p.planet
+
+	productionResult := productionResult{}
 	available := Cost{Resources: planet.Spec.ResourcesPerYearAvailable}.AddCargoMinerals(planet.Cargo)
 	newQueue := []ProductionQueueItem{}
-	for itemIndex, item := range planet.ProductionQueue {
+	for itemIndex := range planet.ProductionQueue {
+		item := planet.ProductionQueue[itemIndex]
 		maxBuildable := planet.maxBuildable(item.Type)
 		if maxBuildable == Infinite {
 			maxBuildable = math.MaxInt
 		}
 
-		// skip auto items that will never complete, or that we don't need
-		// this way we can put auto terraforming items up top
-		// and skip them to build factories, then mines
-		if item.Skipped || (item.Type.IsAuto() && (item.YearsToBuildOne > 100 || item.YearsToBuildOne == Infinite)) {
+		// make sure this item is buildable, and if not, send the player a message and move on.
+		if message, valid := p.validateItem(item, maxBuildable, planet); !valid {
+			// skip this item and remove it from the queue
+			productionResult.messages = append(productionResult.messages, message)
+			productionResult.itemsBuilt = append(productionResult.itemsBuilt, itemBuilt{index: item.index, skipped: true})
+			continue
+		}
+
+		// build this item
+		result := p.processQueueItem(item, available, maxBuildable)
+		if result.skipped {
 			newQueue = append(newQueue, item)
 			continue
 		}
 
-		if !item.Type.IsAuto() && maxBuildable == 0 {
-			// can't build this, skip it
-			// it shouldn't have been ever added to the queue, but just in case of a bug
-			continue
-		}
-
-		if item.Type.IsPacket() && !planet.Spec.HasMassDriver {
-			messager.buildMineralPacketNoMassDriver(player, planet)
-			continue
-		}
-		if item.Type.IsPacket() && planet.PacketTargetNum == None {
-			messager.buildMineralPacketNoTarget(player, planet)
-			continue
-		}
-
-		// add in anything allocated in previous turns
-		available = available.Add(item.Allocated)
-		item.Allocated = Cost{}
-
-		// get the cost of the current item
-		cost := item.CostOfOne
-
-		if (cost != Cost{}) {
-			// figure out how many we can build
-			// and make sure we only build up to the quantity, and we don't build more than the planet supports
-			numBuilt := maxInt(0, available.NumBuildable(cost))
-			numBuilt = minInt(numBuilt, item.Quantity)
-			numBuilt = minInt(numBuilt, maxBuildable)
-
-			if numBuilt > 0 {
-				// build the items on the planet and remove from our available
-				p.buildItems(item, numBuilt, &result)
-				available = available.Minus(cost.MultiplyInt(numBuilt))
-				available = available.Add(result.alchemy.ToCost())
+		if result.numBuilt > 0 {
+			// build the items on the planet and remove from our available
+			p.addPlanetaryInstallations(item, result.numBuilt)
+			if item.Type.IsTerraform() {
+				productionResult.terraformResults = append(productionResult.terraformResults, p.terraformPlanet(result.numBuilt)...)
 			}
 
-			// If we didn't finish building all the items and we can still build more, allocate leftover resources to this item
-			if numBuilt < item.Quantity && (maxBuildable == Infinite || numBuilt < maxBuildable) {
-				item.Allocated = p.allocatePartialBuild(cost, available)
-				available = available.Minus(item.Allocated)
-			}
+			p.updateResult(item, result.numBuilt, &productionResult)
+			// log.Debug().
+			// 	Int("Player", planet.PlayerNum).
+			// 	Str("Planet", planet.Name).
+			// 	Str("Item", string(item.Type)).
+			// 	Int("DesignNum", item.DesignNum).
+			// 	Int("NumBuilt", result.numBuilt).
+			// 	Msgf("built item")
 
-			if item.Type.IsAuto() {
-				if available.Resources == 0 {
-					// we are out of resources, create a partial item end production
-					if (item.Allocated != Cost{}) && numBuilt < item.Quantity {
-						// we partially built an auto items, create a partial concrete item
-						// we have some leftover to allocate so create a concrete item
-						concreteItem := ProductionQueueItem{Type: item.Type.concreteType(), Quantity: 1, Allocated: item.Allocated}
-						item.Allocated = Cost{}
+			available = available.Minus(result.spent)
 
-						// add the concreate item to the top of the queue
-						newQueue = append([]ProductionQueueItem{concreteItem}, newQueue...)
-					}
-					// auto items stay in the list
-					newQueue = append(newQueue, item)
+			// if we built mineral alchemy, add it back in to our available amount
+			available = available.Add(productionResult.alchemy.ToCost())
 
-					if available.Resources == 0 {
-						// we are out of resources, so we are done building
-						if itemIndex < len(planet.ProductionQueue)-1 {
-							// append the unfinished queue back to the end of our remaining items
-							newQueue = append(newQueue, planet.ProductionQueue[itemIndex+1:]...)
-						}
-						break
-					}
-				} else {
-					// auto items stay in the list
-					// and we have resources leftover so move on
-					item.Allocated = Cost{}
-					newQueue = append(newQueue, item)
-				}
+			productionResult.itemsBuilt = append(productionResult.itemsBuilt, itemBuilt{index: item.index, numBuilt: result.numBuilt, quantity: item.Quantity})
+		}
+
+		// once we partially allocate, we're done
+		partialAllocated := result.allocated.Total() > 0
+		if partialAllocated {
+			if item.Type.IsAuto() && result.leftover.Resources == 0 {
+				// add the partially completed concrete item to the top of the queue
+				newQueue = append([]ProductionQueueItem{
+					{
+						Type:      item.Type.concreteType(),
+						Quantity:  1,
+						Allocated: result.allocated,
+						CostOfOne: item.CostOfOne,
+						index:     item.index, // for build estimates, keep track of the index of the auto item we're building
+					}}, newQueue...)
+				// add the rest of the items back to the queue and quit
+				newQueue = append(newQueue, planet.ProductionQueue[itemIndex:]...)
+				break
 			} else {
-				item.Quantity -= numBuilt
-				if item.Quantity != 0 {
-					// we didn't finish, add the item back onto the remaining list
-					newQueue = append(newQueue, item)
-					if itemIndex < len(planet.ProductionQueue)-1 {
-						// append the unfinished queue back to the end of our remaining items
-						newQueue = append(newQueue, planet.ProductionQueue[itemIndex+1:]...)
-					}
-					// we finished, break out
-					break
+				item.Allocated = result.allocated
+			}
+		}
+
+		if item.Type.IsAuto() {
+			if available.Resources == 0 {
+				// we are out of resources, so we are done building
+				// append the unfinished queue back to the end of our remaining items
+				newQueue = append(newQueue, planet.ProductionQueue[itemIndex:]...)
+				break
+			}
+
+			// auto items stay in the queue
+			newQueue = append(newQueue, item)
+		} else {
+			item.Quantity -= result.numBuilt
+			if item.Quantity > 0 {
+				// keep it in the queue for next time
+				newQueue = append(newQueue, item)
+				if itemIndex < len(planet.ProductionQueue)-1 {
+					// append the unfinished queue back to the end of our remaining items
+					newQueue = append(newQueue, planet.ProductionQueue[itemIndex+1:]...)
 				}
+				break
 			}
 		}
 	}
+
 	// replace the queue with what's leftover
 	planet.ProductionQueue = newQueue
-	player.leftoverResources += available.Resources
 	planet.Cargo = Cargo{available.Ironium, available.Boranium, available.Germanium, planet.Cargo.Colonists}
+
+	// any leftover resources go back to the player for research
+	productionResult.leftoverResources = available.Resources
+	return productionResult
+}
+
+// for things that are built on the planet (mines, factories, etc) add them
+func (p *production) addPlanetaryInstallations(item ProductionQueueItem, numBuilt int) {
+	switch item.Type {
+	case QueueItemTypeAutoMines:
+		fallthrough
+	case QueueItemTypeMine:
+		p.planet.Mines += numBuilt
+	case QueueItemTypeAutoFactories:
+		fallthrough
+	case QueueItemTypeFactory:
+		p.planet.Factories += numBuilt
+	case QueueItemTypeAutoDefenses:
+		fallthrough
+	case QueueItemTypeDefenses:
+		p.planet.Defenses += numBuilt
+	}
+}
+
+// terraform the planet and save the results for messages
+func (p *production) terraformPlanet(numSteps int) []TerraformResult {
+	planet, player := p.planet, p.player
+	terraformer := NewTerraformer()
+	terraformResults := make([]TerraformResult, numSteps)
+
+	for i := 0; i < numSteps; i++ {
+		// terraform one at a time to ensure the best things get terraformed
+		terraformResults[i] = terraformer.TerraformOneStep(planet, player, nil, false)
+	}
+
+	return terraformResults
+}
+
+// validate an item in the production queue
+func (p *production) validateItem(item ProductionQueueItem, maxBuildable int, planet *Planet) (PlayerMessage, bool) {
+	if item.Type.IsPacket() && !planet.Spec.HasMassDriver {
+		return newPlanetMessage(PlayerMessageBuildMineralPacketNoMassDriver, planet), false
+	}
+	if item.Type.IsPacket() && planet.PacketTargetNum == None {
+		return newPlanetMessage(PlayerMessageBuildMineralPacketNoTarget, planet), false
+	}
+	if !item.Type.IsAuto() && maxBuildable == 0 {
+		// can't build this, skip it
+		// it shouldn't have been ever added to the queue, but just in case of a bug
+		return newPlanetMessage(PlayerMessageBuildInvalidItem, planet), false
+	}
+
+	return PlayerMessage{}, true
+}
+
+// build a single item in the queue, returning a result of what was built
+func (p *production) processQueueItem(item ProductionQueueItem, availableToSpend Cost, maxBuildable int) buildItemResult {
+
+	// skip auto items that will never complete, or that we don't need
+	// this way we can put auto terraforming items up top
+	// and skip them to build factories, then mines
+	yearlyAvailableToSpend := FromMineralAndResources(p.planet.Spec.MiningOutput, p.planet.Spec.ResourcesPerYearAvailable)
+	yearsToBuildOne := p.estimator.GetYearsToBuildOne(item, availableToSpend.ToMineral(), yearlyAvailableToSpend)
+	if item.Skipped || (item.Type.IsAuto() && (yearsToBuildOne > 100 || yearsToBuildOne == Infinite)) {
+		return buildItemResult{skipped: true}
+	}
+
+	result := buildItemResult{}
+
+	// add in anything allocated in previous turns
+	availableToSpend = availableToSpend.Add(item.Allocated)
+	item.Allocated = Cost{}
+
+	// get the cost of the current item
+	cost := item.CostOfOne
+
+	if (cost != Cost{}) {
+		// figure out how many we can build
+		// and make sure we only build up to the quantity, and we don't build more than the planet supports
+		numBuilt := maxInt(0, availableToSpend.NumBuildable(cost))
+		numBuilt = minInt(numBuilt, item.Quantity)
+		numBuilt = minInt(numBuilt, maxBuildable)
+
+		if numBuilt > 0 {
+			result.numBuilt = numBuilt
+			result.spent = cost.MultiplyInt(numBuilt)
+		}
+		result.leftover = availableToSpend.Minus(result.spent)
+
+		// If we didn't finish building all the items and we can still build more, allocate leftover resources to this item
+		if numBuilt < item.Quantity && (maxBuildable == Infinite || numBuilt < maxBuildable) {
+			result.allocated = p.allocatePartialBuild(cost, result.leftover)
+			result.leftover = result.leftover.Minus(result.allocated)
+		}
+	}
 
 	return result
 }
 
 // add built items to planet, build fleets, update player messages, etc
-func (p *production) buildItems(item ProductionQueueItem, numBuilt int, result *productionResult) {
-
-	player, planet := p.player, p.planet
-
+func (p *production) updateResult(item ProductionQueueItem, numBuilt int, result *productionResult) {
 	switch item.Type {
 	case QueueItemTypeAutoMineralAlchemy:
 		fallthrough
@@ -244,22 +371,18 @@ func (p *production) buildItems(item ProductionQueueItem, numBuilt int, result *
 			numBuilt,
 			numBuilt,
 		}
-		messager.mineralAlchemyBuilt(player, planet, numBuilt)
 	case QueueItemTypeAutoMines:
 		fallthrough
 	case QueueItemTypeMine:
-		planet.Mines += numBuilt
-		messager.minesBuilt(player, planet, numBuilt)
+		result.mines += numBuilt
 	case QueueItemTypeAutoFactories:
 		fallthrough
 	case QueueItemTypeFactory:
-		planet.Factories += numBuilt
-		messager.factoriesBuilt(player, planet, numBuilt)
+		result.factories += numBuilt
 	case QueueItemTypeAutoDefenses:
 		fallthrough
 	case QueueItemTypeDefenses:
-		planet.Defenses += numBuilt
-		messager.defensesBuilt(player, planet, numBuilt)
+		result.defenses += numBuilt
 	case QueueItemTypeAutoMineralPacket:
 		fallthrough
 	case QueueItemTypeMixedMineralPacket:
@@ -271,66 +394,21 @@ func (p *production) buildItems(item ProductionQueueItem, numBuilt int, result *
 	case QueueItemTypeGermaniumMineralPacket:
 		// add this packet cargo to the production result
 		// so it can be added as packets to the universe later
-		cargo := player.Race.Spec.Costs[item.Type].MultiplyInt(numBuilt).ToCargo()
+		cargo := item.CostOfOne.MultiplyInt(numBuilt).ToCargo()
 		result.packets = append(result.packets, cargo)
 	case QueueItemTypeAutoMaxTerraform:
 		fallthrough
 	case QueueItemTypeAutoMinTerraform:
 		fallthrough
 	case QueueItemTypeTerraformEnvironment:
-		terraformer := NewTerraformer()
-		for i := 0; i < numBuilt; i++ {
-			// terraform one at a time to ensure the best things get terraformed
-			result := terraformer.TerraformOneStep(planet, player, nil, false)
-			messager.terraform(player, planet, result.Type, result.Direction)
-		}
+		result.terraformSteps += numBuilt
 	case QueueItemTypeShipToken:
-		design := player.GetDesign(item.DesignNum)
-		if design == nil {
-			err := fmt.Errorf("tried to build a ship from design %d, but the design was not found", item.DesignNum)
-			messager.error(player, err)
-			log.Error().
-				Int("Player", player.Num).
-				Str("Planet", planet.Name).
-				Str("Item", string(item.Type)).
-				Int("DesignNum", item.DesignNum).
-				Int("NumBuilt", numBuilt).
-				Err(err).
-				Msg("failed to build ShipToken")
-			break
-		}
-		design.Spec.NumBuilt += numBuilt
-		design.Spec.NumInstances += numBuilt
-		design.MarkDirty()
-		result.tokens = append(result.tokens, ShipToken{Quantity: numBuilt, design: design, DesignNum: design.Num})
+		result.tokens = append(result.tokens, ShipToken{Quantity: numBuilt, design: item.design, DesignNum: item.DesignNum})
 	case QueueItemTypeStarbase:
-		design := player.GetDesign(item.DesignNum)
-		if design == nil {
-			err := fmt.Errorf("tried to build a starbase from design %d, but the design was not found", item.DesignNum)
-			messager.error(player, err)
-			log.Error().
-				Int("Player", player.Num).
-				Str("Planet", planet.Name).
-				Str("Item", string(item.Type)).
-				Int("DesignNum", item.DesignNum).
-				Int("NumBuilt", numBuilt).
-				Err(err).
-				Msg("failed to build Starbase")
-			break
-		}
-		result.starbase = design
+		result.starbase = item.design
 	case QueueItemTypePlanetaryScanner:
 		result.scanner = true
 	}
-
-	log.Debug().
-		Int("Player", player.Num).
-		Str("Planet", planet.Name).
-		Str("Item", string(item.Type)).
-		Int("DesignNum", item.DesignNum).
-		Int("NumBuilt", numBuilt).
-		Msgf("built item")
-
 }
 
 // Allocate resources to the top item on this production queue

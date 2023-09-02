@@ -1,6 +1,8 @@
 package cs
 
 import (
+	"fmt"
+
 	"github.com/rs/zerolog/log"
 	"golang.org/x/exp/slices"
 )
@@ -75,7 +77,7 @@ type playerBattlePlanNum struct {
 }
 
 // build the maps used for the Get functions
-func (u *Universe) buildMaps(players []*Player) {
+func (u *Universe) buildMaps(players []*Player) error {
 
 	// make a big map to hold all of our universe objects by position
 	u.mapObjectsByPosition = make(map[Vector][]interface{}, len(u.Planets))
@@ -114,6 +116,18 @@ func (u *Universe) buildMaps(players []*Player) {
 
 	for _, planet := range u.Planets {
 		u.addMapObjectByPosition(planet, planet.Position)
+		// for owned planets, populate their designs
+		if planet.Owned() {
+			if planet.PlayerNum > 0 && planet.PlayerNum < len(players)+1 {
+				player := players[planet.PlayerNum-1]
+				if err := planet.PopulateProductionQueueDesigns(player); err != nil {
+					return fmt.Errorf("planet %s unable to populate queue designs %w", planet.Name, err)
+				}
+			} else {
+				return fmt.Errorf("planet %s owner %d out of range", planet.Name, planet.PlayerNum)
+			}
+		}
+
 	}
 
 	for _, mineralPacket := range u.MineralPackets {
@@ -145,6 +159,7 @@ func (u *Universe) buildMaps(players []*Player) {
 		u.addMapObjectByPosition(mysteryTrader, mysteryTrader.Position)
 	}
 
+	return nil
 }
 
 func (u *Universe) addMapObjectByPosition(mo interface{}, position Vector) {

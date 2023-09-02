@@ -18,6 +18,15 @@ func NewCost(
 	return Cost{ironium, boranium, germanium, resources}
 }
 
+func FromMineralAndResources(m Mineral, resources int) Cost {
+	return Cost{
+		Ironium:   m.Ironium,
+		Boranium:  m.Boranium,
+		Germanium: m.Germanium,
+		Resources: resources,
+	}
+}
+
 func FromMineral(m Mineral) Cost {
 	return Cost{
 		Ironium:   m.Ironium,
@@ -70,6 +79,15 @@ func (c Cost) Minus(other Cost) Cost {
 		Boranium:  c.Boranium - other.Boranium,
 		Germanium: c.Germanium - other.Germanium,
 		Resources: c.Resources - other.Resources,
+	}
+}
+
+func (c Cost) MinusMineral(other Mineral) Cost {
+	return Cost{
+		Ironium:   c.Ironium - other.Ironium,
+		Boranium:  c.Boranium - other.Boranium,
+		Germanium: c.Germanium - other.Germanium,
+		Resources: c.Resources,
 	}
 }
 

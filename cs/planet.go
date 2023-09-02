@@ -146,18 +146,46 @@ func (p *Planet) CanBuild(mass int) bool {
 	return p.Spec.HasStarbase && (p.Starbase.Spec.SpaceDock == UnlimitedSpaceDock || p.Starbase.Spec.SpaceDock >= mass)
 }
 
+// populate a starbase design for a planet
+func (p *Planet) PopulateStarbaseDesign(player *Player) error {
+	if p.Starbase != nil {
+		if len(p.Starbase.Tokens) != 1 {
+			return fmt.Errorf("planet %s starbase has no tokens", p.Name)
+		}
+		designNum := p.Starbase.Tokens[0].DesignNum
+		design := player.GetDesign(designNum)
+
+		if design == nil {
+			return fmt.Errorf("player %v does not have design %d", player, designNum)
+		}
+		p.Starbase.Tokens[0].design = player.GetDesign(designNum)
+	}
+	return nil
+}
+
+// add designs to each production queue item
+func (p *Planet) PopulateProductionQueueDesigns(player *Player) error {
+	for i := range p.ProductionQueue {
+		item := &p.ProductionQueue[i]
+		if item.Type == QueueItemTypeStarbase || item.Type == QueueItemTypeShipToken {
+			design := player.GetDesign(item.DesignNum)
+			if design == nil {
+				return fmt.Errorf("player %v does not have design %d", player, item.DesignNum)
+			}
+			item.design = design
+		}
+	}
+	return nil
+}
+
 // populate the costs of each item in the planet production queue
 func (p *Planet) PopulateProductionQueueCosts(player *Player) error {
 	costCalculator := NewCostCalculator()
 	for i := range p.ProductionQueue {
 		item := &p.ProductionQueue[i]
 		if item.Type == QueueItemTypeStarbase && p.Spec.HasStarbase {
-			newDesign := player.GetDesign(item.DesignNum)
-			if newDesign == nil {
-				return fmt.Errorf("player %v does not have design %d", player, item.DesignNum)
-			}
 			p.Starbase.Tokens[0].design = player.GetDesign(p.Starbase.Tokens[0].DesignNum)
-			item.CostOfOne = costCalculator.StarbaseUpgradeCost(p.Starbase.Tokens[0].design, newDesign)
+			item.CostOfOne = costCalculator.StarbaseUpgradeCost(p.Starbase.Tokens[0].design, item.design)
 
 		} else {
 			costOfOne, err := costCalculator.CostOfOne(player, *item)
@@ -169,32 +197,14 @@ func (p *Planet) PopulateProductionQueueCosts(player *Player) error {
 		item.MaxBuildable = p.maxBuildable(item.Type)
 	}
 
-	p.PopulateProductionQueueEstimates()
-
 	return nil
 }
 
 // populate the costs of each item in the planet production queue
-func (p *Planet) PopulateProductionQueueEstimates() error {
-	// figure out how many resources we have per year
-	yearlyResources := 0
-	if p.ContributesOnlyLeftoverToResearch {
-		yearlyResources = p.Spec.ResourcesPerYear
-	} else {
-		yearlyResources = p.Spec.ResourcesPerYearAvailable
-	}
-
-	mineralsOnHand := p.Cargo.ToCost()
-
-	// this is how man resources and minerals our planet produces each year
-	yearlyAvailableToSpend := p.Spec.MiningOutput.ToCost()
-	yearlyAvailableToSpend.Resources = yearlyResources
-
+func (p *Planet) PopulateProductionQueueEstimates(rules *Rules, player *Player) {
 	// populate completion estimates
 	completionEstimator := newCompletionEstimator()
-	p.ProductionQueue = completionEstimator.GetProductionWithEstimates(p, p.ProductionQueue, mineralsOnHand, yearlyAvailableToSpend)
-
-	return nil
+	p.ProductionQueue = completionEstimator.GetProductionWithEstimates(rules, player, *p)
 }
 
 func (p *Planet) reset() {
@@ -561,6 +571,22 @@ func (planet *Planet) maxBuildable(t QueueItemType) int {
 	}
 	// default to infinite
 	return Infinite
+}
+
+// mine minerals on this planet
+func (planet *Planet) mine(rules *Rules) {
+	planet.Cargo = planet.Cargo.AddMineral(planet.Spec.MiningOutput)
+	planet.MineYears = planet.MineYears.AddInt(planet.Mines)
+	planet.reduceMineralConcentration(rules)
+}
+
+// grow pop on this planet (or starbase)
+func (planet *Planet) grow(player *Player) {
+	planet.setPopulation(planet.population() + planet.Spec.GrowthAmount)
+
+	if player.Race.Spec.InnateMining {
+		planet.Mines = planet.innateMines(player)
+	}
 }
 
 // reduce the mineral concentrations of a planet after mining.

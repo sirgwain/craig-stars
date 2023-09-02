@@ -64,7 +64,7 @@ func (m Mineral) ToCost() Cost {
 	}
 }
 
-// add an int to all components of the mineral
+// add two minerals
 func (m Mineral) Add(m2 Mineral) Mineral {
 	return Mineral{
 		Ironium:   m.Ironium + m2.Ironium,
@@ -79,6 +79,24 @@ func (m Mineral) AddInt(num int) Mineral {
 		Ironium:   m.Ironium + num,
 		Boranium:  m.Boranium + num,
 		Germanium: m.Germanium + num,
+	}
+}
+
+// subtract two minerals
+func (m Mineral) Minus(m2 Mineral) Mineral {
+	return Mineral{
+		Ironium:   m.Ironium - m2.Ironium,
+		Boranium:  m.Boranium - m2.Boranium,
+		Germanium: m.Germanium - m2.Germanium,
+	}
+}
+
+// subtract the mineral components of a Cost
+func (m Mineral) MinusCost(m2 Cost) Mineral {
+	return Mineral{
+		Ironium:   m.Ironium - m2.Ironium,
+		Boranium:  m.Boranium - m2.Boranium,
+		Germanium: m.Germanium - m2.Germanium,
 	}
 }
 

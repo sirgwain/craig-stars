@@ -14,12 +14,22 @@ type planetRequest struct {
 	*cs.Planet
 }
 
+type planetProductionEstimateRequest struct {
+	Planet *cs.Planet `json:"planet,omitempty"`
+	Rules  *cs.Rules  `json:"rules,omitempty"`
+	Player *cs.Player `json:"player,omitempty"`
+}
+
 type stabaseUpgradeRequest struct {
 	Design    *cs.ShipDesign `json:"design,omitempty"`
 	NewDesign *cs.ShipDesign `json:"newDesign,omitempty"`
 }
 
 func (req *planetRequest) Bind(r *http.Request) error {
+	return nil
+}
+
+func (req *planetProductionEstimateRequest) Bind(r *http.Request) error {
 	return nil
 }
 
@@ -92,7 +102,10 @@ func (s *server) updatePlanetOrders(w http.ResponseWriter, r *http.Request) {
 	}
 
 	orderer := cs.NewOrderer()
-	orderer.UpdatePlanetOrders(player, existingPlanet, planet.PlanetOrders)
+	if err := orderer.UpdatePlanetOrders(&game.Rules, player, existingPlanet, planet.PlanetOrders); err != nil {
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
 
 	if err := db.UpdatePlanet(existingPlanet); err != nil {
 		log.Error().Err(err).Int64("ID", planet.ID).Msg("update planet in database")
@@ -106,13 +119,21 @@ func (s *server) updatePlanetOrders(w http.ResponseWriter, r *http.Request) {
 // get an estimate for production completion based on a planet's production queue items
 func (s *server) getPlanetProductionEstimate(w http.ResponseWriter, r *http.Request) {
 
-	planet := planetRequest{}
-	if err := render.Bind(r, &planet); err != nil {
+	estimateRequest := planetProductionEstimateRequest{}
+	if err := render.Bind(r, &estimateRequest); err != nil {
 		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
 
-	planet.PopulateProductionQueueEstimates()
+	rules := cs.StandardRules
+	if estimateRequest.Rules != nil {
+		rules = *estimateRequest.Rules
+	}
+
+	planet := estimateRequest.Planet
+
+	// populate the production queue estimates
+	planet.PopulateProductionQueueEstimates(&rules, estimateRequest.Player)
 	rest.RenderJSON(w, planet)
 }
 

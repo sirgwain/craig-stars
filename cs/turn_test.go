@@ -25,6 +25,7 @@ func (m MockRand) Int63() int64 {
 func createSingleUnitGame() *FullGame {
 	client := NewGamer()
 	game := client.CreateGame(1, *NewGameSettings())
+	game.Rules.ResetSeed(0) // keep the same seed for tests
 	player := client.NewPlayer(1, *NewRace(), &game.Rules).withSpec(&game.Rules)
 	player.Num = 1
 	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}} // friends with themselves
@@ -607,7 +608,6 @@ func Test_turn_instaform(t *testing.T) {
 	// allow Grav3 terraform
 	player.Race.PRT = CA
 	player.TechLevels = TechLevel{Propulsion: 1, Biotechnology: 1}
-	player.Race.Spec = computeRaceSpec(&player.Race, &rules)
 
 	planet.Hab = Hab{45, 50, 50}
 	planet.BaseHab = Hab{45, 50, 50}
@@ -622,6 +622,7 @@ func Test_turn_instaform(t *testing.T) {
 	turn.generateTurn()
 
 	// should terraform 3 grav points
+	// TODO: sometimes this fails if we randomly permaform...
 	assert.Equal(t, Hab{48, 50, 50}, planet.Hab)
 }
 

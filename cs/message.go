@@ -110,6 +110,9 @@ const (
 	PlayerMessagePlanetDiscoveryHabitable
 	PlayerMessagePlanetDiscoveryTerraformable
 	PlayerMessagePlanetDiscoveryUninhabitable
+	PlayerMessageBuildInvalidItem
+	PlayerMessageBuildMineralPacketNoMassDriver
+	PlayerMessageBuildMineralPacketNoTarget
 )
 
 // create a new message targeting a planet
@@ -527,9 +530,9 @@ func (m *messageClient) fleetMineFieldSwept(player *Player, fleet *Fleet, mineFi
 	var text string
 
 	if fleet.PlayerNum == player.Num {
-		text = fmt.Sprintf("%s has swept %d from a mineField at %v", fleet.Name, numMinesSwept, mineField.Position)
+		text = fmt.Sprintf("%s has swept %d mines from a mine field at %v", fleet.Name, numMinesSwept, mineField.Position)
 	} else {
-		text = fmt.Sprintf("Someone has swept %d from your mineField at %v", numMinesSwept, mineField.Position)
+		text = fmt.Sprintf("Someone has swept %d mines from your mine field at %v", numMinesSwept, mineField.Position)
 	}
 
 	targetType := TargetNone

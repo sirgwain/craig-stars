@@ -671,7 +671,9 @@ func (gr *gameRunner) processAITurns(fullGame *cs.FullGame) {
 		// TODO: ai only ai processing
 		pmo := fullGame.Universe.GetPlayerMapObjects(player.Num)
 		ai := ai.NewAIPlayer(fullGame.Game, fullGame.TechStore, player, pmo)
-		ai.ProcessTurn()
+		if err := ai.ProcessTurn(); err != nil {
+			log.Error().Err(err).Int64("GameID", fullGame.ID).Int("PlayerNum", player.Num).Msgf("ai process turn")
+		}
 
 		if player.AIControlled {
 			player.SubmittedTurn = true

@@ -96,6 +96,8 @@ const (
 	RepairRateStarbase          RepairRate = "Starbase"
 )
 
+var StandardRules = NewRules()
+
 // Seed the random number generator with the rules Seed value
 // This should be called after deserializing
 func (r *Rules) ResetSeed(seed int64) {

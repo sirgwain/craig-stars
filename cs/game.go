@@ -330,13 +330,30 @@ func (g *FullGame) computeSpecs() error {
 		}
 	}
 
+	for _, starbase := range g.Starbases {
+		player := g.getPlayer(starbase.PlayerNum)
+		starbase.Spec = ComputeFleetSpec(rules, player, starbase)
+
+		for _, token := range starbase.Tokens {
+			design := g.designsByNum[playerObjectKey(starbase.PlayerNum, token.DesignNum)]
+			design.Spec.NumInstances += token.Quantity
+		}
+		starbase.MarkDirty()
+		log.Debug().Msgf("computed starbase spec for player %d, fleet %s", player.Num, starbase.Name)
+	}
+
 	for _, planet := range g.Planets {
 		if planet.Owned() {
 			player := g.getPlayer(planet.PlayerNum)
 			planet.Spec = computePlanetSpec(rules, player, planet)
-			if err := planet.PopulateProductionQueueCosts(player); err != nil {
-				return err
+			if err := planet.PopulateProductionQueueDesigns(player); err != nil {
+				return fmt.Errorf("planet %s unable to populate queue designs %w", planet.Name, err)
 			}
+			if err := planet.PopulateProductionQueueCosts(player); err != nil {
+				return fmt.Errorf("planet %s unable to populate queue costs %w", planet.Name, err)
+			}
+			planet.PopulateProductionQueueEstimates(rules, player)
+
 			planet.MarkDirty()
 			log.Debug().Msgf("computed planet spec for player %d, planet %s", player.Num, planet.Name)
 		}
