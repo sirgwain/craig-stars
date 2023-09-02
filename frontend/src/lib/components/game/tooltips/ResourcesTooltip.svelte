@@ -3,6 +3,7 @@
 		planetName: string;
 		resourcesPerYear: number;
 		resourcesPerYearResearch: number;
+		resourcesPerYearResearchEstimated: number;
 		resourcesPerYearAvailable: number;
 		innateResources: boolean;
 	};
@@ -12,6 +13,7 @@
 	export let planetName: string;
 	export let resourcesPerYear: number;
 	export let resourcesPerYearResearch: number;
+	export let resourcesPerYearResearchEstimated: number;
 	export let resourcesPerYearAvailable: number;
 	export let innateResources: boolean;
 </script>
@@ -29,6 +31,12 @@
 			Your resources at the planet increase with population and <span class="font-semibold"
 				>Energy</span
 			> tech.
+		{/if}
+
+		{#if resourcesPerYearResearchEstimated > 0}
+			Planetary production will leave an estimated <span class="font-semibold"
+				>{resourcesPerYearResearchEstimated}</span
+			> resources leftover that will be spent on research.
 		{/if}
 	</div>
 </div>

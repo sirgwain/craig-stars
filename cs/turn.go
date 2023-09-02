@@ -259,7 +259,6 @@ func (t *turn) fleetColonize() {
 			// colonize the planet and scrap the fleet
 			fleet.colonizePlanet(&t.game.Rules, player, planet)
 			t.scrapFleet(fleet)
-			t.game.deleteFleet(fleet)
 			messager.planetColonized(player, planet)
 		}
 	}
@@ -1117,6 +1116,7 @@ func (t *turn) planetProduction() {
 				player.Messages = append(player.Messages, result.messages...)
 			}
 
+			// message about planetary installations
 			if result.mines > 0 {
 				messager.minesBuilt(player, planet, result.mines)
 			}
@@ -1126,11 +1126,15 @@ func (t *turn) planetProduction() {
 			if result.defenses > 0 {
 				messager.defensesBuilt(player, planet, result.defenses)
 			}
+
+			// message about mineral alchemy
 			if result.alchemy != (Mineral{}) {
 				// alchemy builds evenly, but we only message the single amount
 				numBuilt := result.alchemy.Ironium
 				messager.mineralAlchemyBuilt(player, planet, numBuilt)
 			}
+
+			// message about each terraform step
 			if len(result.terraformResults) > 0 {
 				for _, terraformResult := range result.terraformResults {
 					messager.terraform(player, planet, terraformResult.Type, terraformResult.Direction)
@@ -1159,6 +1163,18 @@ func (t *turn) planetProduction() {
 				planet.Spec = computePlanetSpec(&t.game.Rules, player, planet)
 				planet.MarkDirty()
 				messager.scannerBuilt(player, planet, planet.Spec.Scanner)
+			}
+
+			// log what we actually did
+			for _, itemBuilt := range result.itemsBuilt {
+				log.Debug().
+					Int("Player", planet.PlayerNum).
+					Str("Planet", planet.Name).
+					Str("Item", string(itemBuilt.queueItemType)).
+					Int("DesignNum", itemBuilt.designNum).
+					Int("NumBuilt", itemBuilt.numBuilt).
+					Msgf("built item")
+
 			}
 
 			// any leftover resources go back to the player for research

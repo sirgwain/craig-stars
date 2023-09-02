@@ -21,6 +21,7 @@
 			resourcesPerYear: planet.spec.resourcesPerYear,
 			resourcesPerYearAvailable: planet.spec.resourcesPerYearAvailable,
 			resourcesPerYearResearch: planet.spec.resourcesPerYearResearch,
+			resourcesPerYearResearchEstimated: planet.spec.resourcesPerYearResearchEstimatedLeftover,
 			innateResources: $player.race.spec?.innateResources ?? false
 		});
 	}

@@ -36,7 +36,7 @@
 	}
 
 	$: leftToSpend = ($player.spec.currentResearchCost ?? 0) - spent;
-	$: yearsLeft = leftToSpend / ($player.spec.resourcesPerYearResearch ?? 0) + 1;
+	$: yearsLeft = leftToSpend / ($player.spec.resourcesPerYearResearchEstimated ?? 0) + 1;
 </script>
 
 <ItemTitle>Research</ItemTitle>
@@ -58,7 +58,7 @@
 	</div>
 	<div class="stat place-items-center sm:grow">
 		<div class="stat-title">Resources Available</div>
-		<div class="stat-figure"><Factory class="w-8 h-8" /></div>
+		<div class="stat-figure"><Factory class="w-8 h-8 fill-primary" /></div>
 		<div class="stat-value">
 			{$player.spec.resourcesPerYear}
 		</div>
@@ -67,16 +67,16 @@
 <div class="stats stats-vertical sm:stats-horizontal sm:flex shadow border border-base-200 w-full">
 	<div class="stat place-items-center sm:grow">
 		<div class="stat-title">Spent Last Year</div>
-		<div class="stat-figure"><Microscope class="w-8 h-8" /></div>
+		<div class="stat-figure"><Microscope class="w-8 h-8 fill-primary" /></div>
 		<div class="stat-value">
 			{$player.researchSpentLastYear ?? 0}
 		</div>
 	</div>
 	<div class="grow stat place-items-center">
-		<div class="stat-title">Spending Next Year</div>
-		<div class="stat-figure"><Microscope class="w-8 h-8" /></div>
+		<div class="stat-title">Estimated Spending Next Year</div>
+		<div class="stat-figure"><Microscope class="w-8 h-8 fill-warning" /></div>
 		<div class="stat-value">
-			{$player.spec.resourcesPerYearResearch ?? 0}
+			{$player.spec.resourcesPerYearResearchEstimated ?? 0}
 		</div>
 	</div>
 </div>

@@ -32,5 +32,6 @@
 	resourcesPerYear={35}
 	resourcesPerYearAvailable={30}
 	resourcesPerYearResearch={5}
+	resourcesPerYearResearchEstimated={1}
 	innateResources={true}
 />

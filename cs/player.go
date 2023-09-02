@@ -102,12 +102,13 @@ const (
 )
 
 type PlayerSpec struct {
-	PlanetaryScanner         TechPlanetaryScanner                `json:"planetaryScanner,omitempty"`
-	Defense                  TechDefense                         `json:"defense,omitempty"`
-	Terraform                map[TerraformHabType]*TechTerraform `json:"terraform,omitempty"`
-	ResourcesPerYear         int                                 `json:"resourcesPerYear,omitempty"`
-	ResourcesPerYearResearch int                                 `json:"resourcesPerYearResearch,omitempty"`
-	CurrentResearchCost      int                                 `json:"currentResearchCost,omitempty"`
+	PlanetaryScanner                  TechPlanetaryScanner                `json:"planetaryScanner,omitempty"`
+	Defense                           TechDefense                         `json:"defense,omitempty"`
+	Terraform                         map[TerraformHabType]*TechTerraform `json:"terraform,omitempty"`
+	ResourcesPerYear                  int                                 `json:"resourcesPerYear,omitempty"`
+	ResourcesPerYearResearch          int                                 `json:"resourcesPerYearResearch,omitempty"`
+	ResourcesPerYearResearchEstimated int                                 `json:"resourcesPerYearResearchEstimated,omitempty"`
+	CurrentResearchCost               int                                 `json:"currentResearchCost,omitempty"`
 }
 
 type PlayerScore struct {
@@ -378,6 +379,7 @@ func computePlayerSpec(player *Player, rules *Rules, planets []*Planet) PlayerSp
 		if planet.OwnedBy(player.Num) {
 			spec.ResourcesPerYear += planet.Spec.ResourcesPerYear
 			spec.ResourcesPerYearResearch += planet.Spec.ResourcesPerYearResearch
+			spec.ResourcesPerYearResearchEstimated += planet.Spec.ResourcesPerYearResearch + planet.Spec.ResourcesPerYearResearchEstimatedLeftover
 		}
 	}
 

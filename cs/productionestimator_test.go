@@ -121,9 +121,10 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 		factories       int
 	}
 	tests := []struct {
-		name string
-		args args
-		want []ProductionQueueItem
+		name                  string
+		args                  args
+		want                  []ProductionQueueItem
+		wantLeftoverResources int
 	}{
 		{
 			name: "one item, never complete",
@@ -150,6 +151,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 					CostOfOne: Cost{Germanium: 4, Resources: 10},
 				},
 			},
+			wantLeftoverResources: 1,
 		},
 		{
 			name: "one item, two years to go",
@@ -178,6 +180,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 					Allocated: Cost{Germanium: 2, Resources: 5},
 				},
 			},
+			wantLeftoverResources: 3,
 		},
 		{
 			name: "two item, first completes this year, second takes 2 years",
@@ -339,6 +342,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 					CostOfOne: Cost{Resources: 5},
 				},
 			},
+			wantLeftoverResources: 2,
 		},
 		{
 			name: "Test later year planet with high everything",
@@ -393,6 +397,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 					CostOfOne: Cost{Resources: 5},
 				},
 			},
+			wantLeftoverResources: 470,
 		},
 	}
 	for _, tt := range tests {
@@ -410,8 +415,13 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 			planet.Spec = computePlanetSpec(&rules, player, planet)
 			planet.ProductionQueue = tt.args.items
 
-			if got := e.GetProductionWithEstimates(&rules, player, *planet); !test.CompareAsJSON(t, got, tt.want) {
+			got, gotLeftover := e.GetProductionWithEstimates(&rules, player, *planet)
+			if !test.CompareAsJSON(t, got, tt.want) {
 				t.Errorf("PopulateCompletionEstimates() = \n%v, want \n%v", got, tt.want)
+			}
+
+			if gotLeftover != tt.wantLeftoverResources {
+				t.Errorf("PopulateCompletionEstimates() leftover = \n%v, wantLeftover \n%v", gotLeftover, tt.wantLeftoverResources)
 			}
 		})
 	}

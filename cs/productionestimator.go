@@ -8,7 +8,7 @@ type CompletionEstimator interface {
 	GetYearsToBuildOne(item ProductionQueueItem, mineralsOnHand Mineral, yearlyAvailableToSpend Cost) int
 
 	// get a ProductionQueue with estimates filled in
-	GetProductionWithEstimates(rules *Rules, player *Player, planet Planet) []ProductionQueueItem
+	GetProductionWithEstimates(rules *Rules, player *Player, planet Planet) ([]ProductionQueueItem, int)
 }
 
 type completionEstimate struct {
@@ -40,10 +40,10 @@ func (e *completionEstimate) GetYearsToBuildOne(item ProductionQueueItem, minera
 // For each year of growth, it checks what was built. If an item was built for the first time
 // it records the year. If the item completed building, it records the last year
 // when all items are complete or 100 years have passed, iit returns
-func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Player, planet Planet) []ProductionQueueItem {
+func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Player, planet Planet) (items []ProductionQueueItem, leftoverResourcesForResearch int) {
 
 	// copy the queue so we can update it
-	items := make([]ProductionQueueItem, len(planet.ProductionQueue))
+	items = make([]ProductionQueueItem, len(planet.ProductionQueue))
 	copy(items, planet.ProductionQueue)
 
 	// reset any estimates
@@ -70,7 +70,10 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 		// build!
 		result := producer.produce()
 
-		//
+		if year == 1 {
+			leftoverResourcesForResearch = result.leftoverResources
+		}
+
 		for _, itemBuilt := range result.itemsBuilt {
 			item := &items[itemBuilt.index]
 			maxBuildable := planet.maxBuildable(item.Type)
@@ -127,5 +130,5 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 		planet.Spec = computePlanetSpec(rules, player, &planet)
 	}
 
-	return items
+	return items, leftoverResourcesForResearch
 }

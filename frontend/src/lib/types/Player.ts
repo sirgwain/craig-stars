@@ -116,6 +116,7 @@ export type PlayerSpec = {
 	defense?: TechDefense;
 	resourcesPerYear?: number;
 	resourcesPerYearResearch?: number;
+	resourcesPerYearResearchEstimated?: number;
 	currentResearchCost?: number;
 };
 

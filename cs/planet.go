@@ -38,30 +38,31 @@ type PlanetOrders struct {
 
 type PlanetSpec struct {
 	PlanetStarbaseSpec
-	CanTerraform              bool    `json:"canTerraform,omitempty"`
-	Defense                   string  `json:"defense,omitempty"`
-	DefenseCoverage           float64 `json:"defenseCoverage,omitempty"`
-	DefenseCoverageSmart      float64 `json:"defenseCoverageSmart,omitempty"`
-	GrowthAmount              int     `json:"growthAmount,omitempty"`
-	Habitability              int     `json:"habitability,omitempty"`
-	MaxDefenses               int     `json:"maxDefenses,omitempty"`
-	MaxFactories              int     `json:"maxFactories,omitempty"`
-	MaxMines                  int     `json:"maxMines,omitempty"`
-	MaxPopulation             int     `json:"maxPopulation,omitempty"`
-	MaxPossibleFactories      int     `json:"maxPossibleFactories,omitempty"`
-	MaxPossibleMines          int     `json:"maxPossibleMines,omitempty"`
-	MiningOutput              Mineral `json:"miningOutput,omitempty"`
-	Population                int     `json:"population,omitempty"`
-	PopulationDensity         float64 `json:"populationDensity,omitempty"`
-	ResourcesPerYear          int     `json:"resourcesPerYear,omitempty"`
-	ResourcesPerYearAvailable int     `json:"resourcesPerYearAvailable,omitempty"`
-	ResourcesPerYearResearch  int     `json:"resourcesPerYearResearch,omitempty"`
-	Scanner                   string  `json:"scanner,omitempty"`
-	ScanRange                 int     `json:"scanRange,omitempty"`
-	ScanRangePen              int     `json:"scanRangePen,omitempty"`
-	TerraformAmount           Hab     `json:"terraformAmount,omitempty"`
-	MinTerraformAmount        Hab     `json:"minTerraformAmount,omitempty"`
-	TerraformedHabitability   int     `json:"terraformedHabitability,omitempty"`
+	CanTerraform                              bool    `json:"canTerraform,omitempty"`
+	Defense                                   string  `json:"defense,omitempty"`
+	DefenseCoverage                           float64 `json:"defenseCoverage,omitempty"`
+	DefenseCoverageSmart                      float64 `json:"defenseCoverageSmart,omitempty"`
+	GrowthAmount                              int     `json:"growthAmount,omitempty"`
+	Habitability                              int     `json:"habitability,omitempty"`
+	MaxDefenses                               int     `json:"maxDefenses,omitempty"`
+	MaxFactories                              int     `json:"maxFactories,omitempty"`
+	MaxMines                                  int     `json:"maxMines,omitempty"`
+	MaxPopulation                             int     `json:"maxPopulation,omitempty"`
+	MaxPossibleFactories                      int     `json:"maxPossibleFactories,omitempty"`
+	MaxPossibleMines                          int     `json:"maxPossibleMines,omitempty"`
+	MiningOutput                              Mineral `json:"miningOutput,omitempty"`
+	Population                                int     `json:"population,omitempty"`
+	PopulationDensity                         float64 `json:"populationDensity,omitempty"`
+	ResourcesPerYear                          int     `json:"resourcesPerYear,omitempty"`
+	ResourcesPerYearAvailable                 int     `json:"resourcesPerYearAvailable,omitempty"`
+	ResourcesPerYearResearch                  int     `json:"resourcesPerYearResearch,omitempty"`
+	ResourcesPerYearResearchEstimatedLeftover int     `json:"resourcesPerYearResearchEstimatedLeftover,omitempty"`
+	Scanner                                   string  `json:"scanner,omitempty"`
+	ScanRange                                 int     `json:"scanRange,omitempty"`
+	ScanRangePen                              int     `json:"scanRangePen,omitempty"`
+	TerraformAmount                           Hab     `json:"terraformAmount,omitempty"`
+	MinTerraformAmount                        Hab     `json:"minTerraformAmount,omitempty"`
+	TerraformedHabitability                   int     `json:"terraformedHabitability,omitempty"`
 }
 
 type PlanetStarbaseSpec struct {
@@ -204,7 +205,7 @@ func (p *Planet) PopulateProductionQueueCosts(player *Player) error {
 func (p *Planet) PopulateProductionQueueEstimates(rules *Rules, player *Player) {
 	// populate completion estimates
 	completionEstimator := newCompletionEstimator()
-	p.ProductionQueue = completionEstimator.GetProductionWithEstimates(rules, player, *p)
+	p.ProductionQueue, p.Spec.ResourcesPerYearResearchEstimatedLeftover = completionEstimator.GetProductionWithEstimates(rules, player, *p)
 }
 
 func (p *Planet) reset() {

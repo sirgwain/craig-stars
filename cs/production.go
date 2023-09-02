@@ -2,8 +2,6 @@ package cs
 
 import (
 	"math"
-
-	"github.com/rs/zerolog/log"
 )
 
 // producers perform planet production
@@ -142,25 +140,18 @@ type productionResult struct {
 	mines             int
 	factories         int
 	defenses          int
-	terraformSteps    int
 	terraformResults  []TerraformResult
 	messages          []PlayerMessage
 }
 
+// for logging and for estimating, keep track of each item built
 type itemBuilt struct {
-	index    int
-	numBuilt int
-	skipped  bool
-	never    bool
-}
-
-type buildItemResult struct {
-	skipped   bool
-	never     bool
-	numBuilt  int
-	spent     Cost
-	leftover  Cost
-	allocated Cost
+	queueItemType QueueItemType
+	designNum     int
+	index         int
+	numBuilt      int
+	skipped       bool
+	never         bool
 }
 
 // produce all items in the production queue
@@ -193,50 +184,44 @@ func (p *production) produce() productionResult {
 		}
 
 		// build this item
-		result := p.processQueueItem(item, available, maxBuildable)
+		itemResult := p.processQueueItem(item, available, maxBuildable)
 
 		// this one is an auto that will never be completed
 		// leave it in the queue but move on to the next
-		if result.never {
-			productionResult.itemsBuilt = append(productionResult.itemsBuilt, itemBuilt{index: item.index, skipped: result.skipped, never: result.never})
+		if itemResult.never {
+			productionResult.itemsBuilt = append(productionResult.itemsBuilt, itemBuilt{index: item.index, never: itemResult.never})
 			newQueue = append(newQueue, item)
 			continue
 		}
 
-		if result.numBuilt > 0 {
+		// we built something, record ship buildings/packets for later, add installations and terraform right now
+		if itemResult.numBuilt > 0 {
 			// build the items on the planet and remove from our available
-			p.addPlanetaryInstallations(item, result.numBuilt)
+			p.addPlanetaryInstallations(item, itemResult.numBuilt)
 			if item.Type.IsTerraform() {
-				productionResult.terraformResults = append(productionResult.terraformResults, p.terraformPlanet(result.numBuilt)...)
+				productionResult.terraformResults = append(productionResult.terraformResults, p.terraformPlanet(itemResult.numBuilt)...)
 			}
 
-			p.updateResult(item, result.numBuilt, &productionResult)
-			log.Debug().
-				Int("Player", planet.PlayerNum).
-				Str("Planet", planet.Name).
-				Str("Item", string(item.Type)).
-				Int("DesignNum", item.DesignNum).
-				Int("NumBuilt", result.numBuilt).
-				Msgf("built item")
+			p.updateProductionResult(item, itemResult.numBuilt, &productionResult)
 
-			available = available.Minus(result.spent)
+			available = available.Minus(itemResult.spent)
 
 			// if we built mineral alchemy, add it back in to our available amount
 			available = available.Add(productionResult.alchemy.ToCost())
 
-			productionResult.itemsBuilt = append(productionResult.itemsBuilt, itemBuilt{index: item.index, numBuilt: result.numBuilt})
+			productionResult.itemsBuilt = append(productionResult.itemsBuilt, itemBuilt{index: item.index, queueItemType: item.Type, designNum: item.DesignNum, numBuilt: itemResult.numBuilt})
 		}
 
 		// once we partially allocate, we're done
-		partialAllocated := result.allocated.Total() > 0
+		partialAllocated := itemResult.allocated.Total() > 0
 		if partialAllocated {
-			if item.Type.IsAuto() && result.leftover.Resources == 0 {
+			if item.Type.IsAuto() && itemResult.leftover.Resources == 0 {
 				// add the partially completed concrete item to the top of the queue
 				newQueue = append([]ProductionQueueItem{
 					{
 						Type:      item.Type.concreteType(),
 						Quantity:  1,
-						Allocated: result.allocated,
+						Allocated: itemResult.allocated,
 						CostOfOne: item.CostOfOne,
 						index:     item.index, // for build estimates, keep track of the index of the auto item we're building
 					}}, newQueue...)
@@ -244,7 +229,7 @@ func (p *production) produce() productionResult {
 				newQueue = append(newQueue, planet.ProductionQueue[itemIndex:]...)
 				break
 			} else {
-				item.Allocated = result.allocated
+				item.Allocated = itemResult.allocated
 			}
 		}
 
@@ -259,7 +244,7 @@ func (p *production) produce() productionResult {
 			// auto items stay in the queue
 			newQueue = append(newQueue, item)
 		} else {
-			item.Quantity -= result.numBuilt
+			item.Quantity -= itemResult.numBuilt
 			if item.Quantity > 0 {
 				// keep it in the queue for next time
 				newQueue = append(newQueue, item)
@@ -330,8 +315,17 @@ func (p *production) validateItem(item ProductionQueueItem, maxBuildable int, pl
 	return PlayerMessage{}, true
 }
 
+// the result of processing an item in the queue
+type processQueueItemResult struct {
+	never     bool
+	numBuilt  int
+	spent     Cost
+	leftover  Cost
+	allocated Cost
+}
+
 // build a single item in the queue, returning a result of what was built
-func (p *production) processQueueItem(item ProductionQueueItem, availableToSpend Cost, maxBuildable int) buildItemResult {
+func (p *production) processQueueItem(item ProductionQueueItem, availableToSpend Cost, maxBuildable int) processQueueItemResult {
 
 	// skip auto items that will never complete, or that we don't need
 	// this way we can put auto terraforming items up top
@@ -339,10 +333,10 @@ func (p *production) processQueueItem(item ProductionQueueItem, availableToSpend
 	yearlyAvailableToSpend := FromMineralAndResources(p.planet.Spec.MiningOutput, p.planet.Spec.ResourcesPerYearAvailable)
 	yearsToBuildOne := p.estimator.GetYearsToBuildOne(item, availableToSpend.ToMineral(), yearlyAvailableToSpend)
 	if item.Type.IsAuto() && (yearsToBuildOne > 100 || yearsToBuildOne == Infinite) {
-		return buildItemResult{never: true}
+		return processQueueItemResult{never: true}
 	}
 
-	result := buildItemResult{}
+	result := processQueueItemResult{}
 
 	// add in anything allocated in previous turns
 	availableToSpend = availableToSpend.Add(item.Allocated)
@@ -375,7 +369,7 @@ func (p *production) processQueueItem(item ProductionQueueItem, availableToSpend
 }
 
 // add built items to planet, build fleets, update player messages, etc
-func (p *production) updateResult(item ProductionQueueItem, numBuilt int, result *productionResult) {
+func (p *production) updateProductionResult(item ProductionQueueItem, numBuilt int, result *productionResult) {
 	switch item.Type {
 	case QueueItemTypeAutoMineralAlchemy:
 		fallthrough
@@ -410,12 +404,6 @@ func (p *production) updateResult(item ProductionQueueItem, numBuilt int, result
 		// so it can be added as packets to the universe later
 		cargo := item.CostOfOne.MultiplyInt(numBuilt).ToCargo()
 		result.packets = append(result.packets, cargo)
-	case QueueItemTypeAutoMaxTerraform:
-		fallthrough
-	case QueueItemTypeAutoMinTerraform:
-		fallthrough
-	case QueueItemTypeTerraformEnvironment:
-		result.terraformSteps += numBuilt
 	case QueueItemTypeShipToken:
 		result.tokens = append(result.tokens, ShipToken{Quantity: numBuilt, design: item.design, DesignNum: item.DesignNum})
 	case QueueItemTypeStarbase:

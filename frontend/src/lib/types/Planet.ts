@@ -103,6 +103,7 @@ export class CommandedPlanet implements Planet {
 		resourcesPerYear: 0,
 		resourcesPerYearAvailable: 0,
 		resourcesPerYearResearch: 0,
+		resourcesPerYearResearchEstimatedLeftover: 0,
 		defense: '',
 		defenseCoverage: 0,
 		defenseCoverageSmart: 0,
@@ -372,6 +373,7 @@ export interface PlanetSpec {
 	resourcesPerYear: number;
 	resourcesPerYearAvailable: number;
 	resourcesPerYearResearch: number;
+	resourcesPerYearResearchEstimatedLeftover: number;
 	defense: string;
 	defenseCoverage: number;
 	defenseCoverageSmart: number;
