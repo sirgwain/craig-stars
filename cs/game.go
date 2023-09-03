@@ -14,10 +14,10 @@ type Tags map[string]string
 type NewGamePlayerType string
 
 const (
-	NewGamePlayerTypeHost   NewGamePlayerType = "Host"
-	NewGamePlayerTypeInvite NewGamePlayerType = "Invite"
-	NewGamePlayerTypeOpen   NewGamePlayerType = "Open"
-	NewGamePlayerTypeAI     NewGamePlayerType = "AI"
+	NewGamePlayerTypeHost  NewGamePlayerType = "Host"
+	NewGamePlayerTypeGuest NewGamePlayerType = "Guest"
+	NewGamePlayerTypeOpen  NewGamePlayerType = "Open"
+	NewGamePlayerTypeAI    NewGamePlayerType = "AI"
 )
 
 type AIDifficulty string
@@ -70,7 +70,7 @@ type Game struct {
 	PublicPlayerScores           bool              `json:"publicPlayerScores,omitempty"`
 	StartMode                    GameStartMode     `json:"startMode,omitempty"`
 	QuickStartTurns              int               `json:"quickStartTurns,omitempty"`
-	OpenPlayerSlots              uint              `json:"openPlayerSlots,omitempty"`
+	OpenPlayerSlots              int              `json:"openPlayerSlots,omitempty"`
 	NumPlayers                   int               `json:"numPlayers,omitempty"`
 	VictoryConditions            VictoryConditions `json:"victoryConditions"`
 	Seed                         int64             `json:"seed"`
@@ -95,7 +95,6 @@ func (g *GameWithPlayers) IsSinglePlayer() bool {
 		}
 	}
 	return nonAiPlayers > 1
-
 }
 
 // A game with players and a universe, used in universe and turn generation
@@ -104,6 +103,17 @@ type FullGame struct {
 	*Universe
 	*TechStore
 	Players []*Player `json:"players,omitempty"`
+}
+
+// return true if this is a single player game
+func (g *FullGame) IsSinglePlayer() bool {
+	nonAiPlayers := 0
+	for _, p := range g.Players {
+		if p.AIControlled {
+			nonAiPlayers++
+		}
+	}
+	return nonAiPlayers > 1
 }
 
 type Size string
@@ -291,7 +301,7 @@ func (g *Game) WithSettings(settings GameSettings) *Game {
 	return g
 }
 
-// generate an invite hash for
+// generate an invite hash for this game
 func (g *Game) GenerateHash(salt string) string {
 	hasher := sha1.New()
 	hasher.Write([]byte(fmt.Sprintf("%d-%s", g.ID, salt)))

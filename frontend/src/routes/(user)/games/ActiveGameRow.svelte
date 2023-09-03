@@ -26,7 +26,7 @@
 		{game.numPlayers}
 	{/if}
 </div>
-{#if game.hostId == $me?.id}
+{#if game.hostId == $me.id}
 	<div class="col-span-2">
 		<button on:click={() => dispatch('delete')} class="float-right btn btn-error btn-danger btn-sm">
 			<Icon src={XMark} size="16" class="hover:stroke-accent md:hidden" />

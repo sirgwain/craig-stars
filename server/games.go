@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
@@ -30,18 +29,18 @@ func (req *updateGameRequest) Bind(r *http.Request) error {
 }
 
 type joinGameRequest struct {
-	RaceID int64 `json:"raceId"`
+	Race cs.Race `json:"race"`
 }
 
 func (req *joinGameRequest) Bind(r *http.Request) error {
 	return nil
 }
 
-type kickPlayerRequest struct {
+type playerNumRequest struct {
 	PlayerNum int `json:"playerNum"`
 }
 
-func (req *kickPlayerRequest) Bind(r *http.Request) error {
+func (req *playerNumRequest) Bind(r *http.Request) error {
 	return nil
 }
 
@@ -149,30 +148,36 @@ func (s *server) openGames(w http.ResponseWriter, r *http.Request) {
 	rest.RenderJSON(w, games)
 }
 
-func (s *server) openGamesByHash(w http.ResponseWriter, r *http.Request) {
-	db := s.contextDb(r)
+func (s *server) game(w http.ResponseWriter, r *http.Request) {
+	game := s.contextGame(r)
+	rest.RenderJSON(w, game)
+}
 
-	// load open games by hash from the database
-	hash := chi.URLParam(r, "hash")
-	if hash == "" {
-		render.Render(w, r, ErrBadRequest(fmt.Errorf("invalid invite hash in url")))
+func (s *server) getGuestUser(w http.ResponseWriter, r *http.Request) {
+	game := s.contextGame(r)
+	user := s.contextUser(r)
+	db := s.contextDb(r)
+	if user.ID != game.HostID {
+		log.Error().Int64("GameID", game.ID).Str("User", user.Username).Msg("only host can load guests")
+		render.Render(w, r, ErrForbidden)
 		return
 	}
 
-	games, err := db.GetOpenGamesByHash(hash)
-	if err != nil {
-		log.Error().Err(err).Str("Hash", hash).Msg("get open games by hash from database")
+	// load the game by id from the database
+	num, err := s.intURLParam(r, "num")
+	if num == nil || err != nil {
 		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
 
-	rest.RenderJSON(w, games)
-}
+	guest, err := db.GetGuestUserForGame(game.ID, *num)
+	if err != nil {
+		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", *num).Str("User", user.Username).Msgf("get guest for game")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
 
-func (s *server) game(w http.ResponseWriter, r *http.Request) {
-	// TODO: any need to prevent a non-player from loading this game?
-	game := s.contextGame(r)
-	rest.RenderJSON(w, game)
+	rest.RenderJSON(w, guest)
 }
 
 // Host a new game
@@ -253,7 +258,7 @@ func (s *server) joinGame(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// try and join this game
-	if err := gr.JoinGame(game.ID, user.ID, join.RaceID); err != nil {
+	if err := gr.JoinGame(game.ID, user.ID, join.Race); err != nil {
 		log.Error().Err(err).Msg("join game")
 		render.Render(w, r, ErrBadRequest(err))
 	}
@@ -297,7 +302,7 @@ func (s *server) kickPlayer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	kickPlayer := kickPlayerRequest{}
+	kickPlayer := playerNumRequest{}
 	if err := render.Bind(r, &kickPlayer); err != nil {
 		render.Render(w, r, ErrBadRequest(err))
 		return
@@ -339,6 +344,41 @@ func (s *server) addOpenPlayerSlot(w http.ResponseWriter, r *http.Request) {
 
 	// add a new player slot to this game
 	if _, err := gr.AddOpenPlayerSlot(game); err != nil {
+		log.Error().Err(err).Msg("add player slot")
+		render.Render(w, r, ErrBadRequest(err))
+		return
+	}
+
+	// reload the game for the response
+	game, err := db.GetGame(game.ID)
+	if err != nil {
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	rest.RenderJSON(w, game)
+}
+
+func (s *server) addGuestPlayer(w http.ResponseWriter, r *http.Request) {
+	db := s.contextDb(r)
+	user := s.contextUser(r)
+	game := s.contextGame(r)
+	gr := s.newGameRunner()
+
+	if game.State != cs.GameStateSetup {
+		err := fmt.Errorf("cannot leave game after setup")
+		log.Error().Err(err).Msg("leave game")
+		render.Render(w, r, ErrBadRequest(err))
+	}
+
+	if user.ID != game.HostID {
+		log.Error().Int64("GameID", game.ID).Str("User", user.Username).Msg("user is not host")
+		render.Render(w, r, ErrForbidden)
+		return
+	}
+
+	// add a new player slot to this game
+	if _, err := gr.AddGuestPlayer(game); err != nil {
 		log.Error().Err(err).Msg("add player slot")
 		render.Render(w, r, ErrBadRequest(err))
 		return
@@ -407,7 +447,7 @@ func (s *server) deletePlayerSlot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	kickPlayer := kickPlayerRequest{}
+	kickPlayer := playerNumRequest{}
 	if err := render.Bind(r, &kickPlayer); err != nil {
 		render.Render(w, r, ErrBadRequest(err))
 		return
@@ -608,7 +648,6 @@ func (s *server) computeSpecs(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) deleteGame(w http.ResponseWriter, r *http.Request) {
-	db := s.contextDb(r)
 	user := s.contextUser(r)
 	game := s.contextGame(r)
 
@@ -618,8 +657,21 @@ func (s *server) deleteGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := db.DeleteGame(game.ID); err != nil {
-		log.Error().Err(err).Int64("ID", game.ID).Msg("delete game from database")
+	if err := s.db.WrapInTransaction(func(c db.Client) error {
+		if err := c.DeleteGame(game.ID); err != nil {
+			log.Error().Err(err).Int64("ID", game.ID).Msg("delete game from database")
+			return err
+		}
+
+		// delete any guest users
+		if err := c.DeleteGameUsers(game.ID); err != nil {
+			log.Error().Err(err).Int64("ID", game.ID).Msg("delete game guest users from database")
+			return err
+		}
+
+		return nil
+
+	}); err != nil {
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}

@@ -252,6 +252,7 @@ type Converter interface {
 	// goverter:mapExtend Cargo ExtendPlanetCargo
 	// goverter:mapExtend MapObject ExtendPlanetMapObject
 	// goverter:mapExtend PlanetOrders ExtendPlanetPlanetOrders
+	// goverter:ignore Starbase
 	ConvertPlanet(source *Planet) *cs.Planet
 
 	// goverter:map MapObject.GameDBObject.ID ID

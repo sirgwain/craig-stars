@@ -28,7 +28,7 @@
 <GameStatus title="Waiting for players to play" game={$game}>
 	<form>
 		<div class="gap-2 mt-2">
-			{#if $me?.id == $game.hostId}
+			{#if $me.id == $game.hostId}
 				<button on:click={onForceGenerate} type="button" class="btn btn-primary"
 					>Force Generate Turn</button
 				>

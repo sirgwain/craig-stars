@@ -192,6 +192,7 @@ func (c *GameConverter) ConvertPlayer(source Player) cs.Player {
 	csPlayer.Num = source.Num
 	csPlayer.Ready = source.Ready
 	csPlayer.AIControlled = source.AIControlled
+	csPlayer.Guest = source.Guest
 	csPlayer.SubmittedTurn = source.SubmittedTurn
 	csPlayer.Color = source.Color
 	csPlayer.DefaultHullSet = source.DefaultHullSet
@@ -278,9 +279,11 @@ func (c *GameConverter) ConvertUser(source User) cs.User {
 	csUser.Username = source.Username
 	csUser.Password = source.Password
 	csUser.Email = source.Email
-	csUser.Role = source.Role
+	csUser.Role = cs.UserRole(source.Role)
 	csUser.Banned = source.Banned
 	csUser.Verified = source.Verified
+	csUser.GameID = source.GameID
+	csUser.PlayerNum = source.PlayerNum
 	var pTimeTime *time.Time
 	if source.LastLogin != nil {
 		timeTime := TimeToTime((*source.LastLogin))
@@ -522,6 +525,7 @@ func (c *GameConverter) csPlayerToDbPlayer(source cs.Player) Player {
 	dbPlayer.Num = source.Num
 	dbPlayer.Ready = source.Ready
 	dbPlayer.AIControlled = source.AIControlled
+	dbPlayer.Guest = source.Guest
 	dbPlayer.SubmittedTurn = source.SubmittedTurn
 	dbPlayer.Color = source.Color
 	dbPlayer.DefaultHullSet = source.DefaultHullSet
@@ -644,10 +648,12 @@ func (c *GameConverter) csUserToDbUser(source cs.User) User {
 	dbUser.ID = source.DBObject.ID
 	dbUser.CreatedAt = TimeToTime(source.DBObject.CreatedAt)
 	dbUser.UpdatedAt = TimeToTime(source.DBObject.UpdatedAt)
+	dbUser.GameID = source.GameID
+	dbUser.PlayerNum = source.PlayerNum
 	dbUser.Username = source.Username
 	dbUser.Password = source.Password
 	dbUser.Email = source.Email
-	dbUser.Role = source.Role
+	dbUser.Role = cs.UserRole(source.Role)
 	dbUser.Banned = source.Banned
 	dbUser.Verified = source.Verified
 	var pTimeTime *time.Time

@@ -10,6 +10,8 @@
 
 	let myGames: Game[];
 	let myGamesWaitingToGenerate: Game[];
+	let myGamesWaitingToStart: Game[];
+	let gamesWaitingToStart: Game[];
 	let openGames: Game[];
 	let pendingGames: Game[];
 	let singlePlayerGames: Game[];
@@ -19,7 +21,7 @@
 		loadGames();
 	});
 
-	const loadGames = () => {
+	function loadGames() {
 		const sorter = (a: Game, b: Game) =>
 			b.createdAt && a.createdAt ? b.createdAt.localeCompare(a.createdAt) : 0;
 
@@ -32,6 +34,11 @@
 				.filter((g) => !g.players.find((p) => p.userId == $me.id)?.submittedTurn)
 				.filter((g) => g.players.find((p) => p.userId != $me.id && !p.aiControlled));
 
+			// find all multiplayer games where we haven't submitted a turn yet
+			gamesWaitingToStart = games
+				.filter((g) => g.state == GameState.Setup)
+				.filter((g) => g.players.find((p) => p.userId != $me.id));
+
 			// find all games where we've submitted our turn
 			submittedGames = games.filter(
 				(g) => g.players.find((p) => p.userId == $me.id)?.submittedTurn
@@ -43,7 +50,7 @@
 			);
 
 			myGamesWaitingToGenerate = games.filter(
-				(g) => g.hostId == $me.id && g.state == GameState.Setup && !g.players.find((p) => !p.ready)
+				(g) => g.hostId == $me.id && g.state == GameState.Setup
 			);
 			pendingGames.push(...myGamesWaitingToGenerate);
 		});
@@ -52,7 +59,11 @@
 			openGames = games;
 			openGames.sort(sorter);
 		});
-	};
+	}
+
+	function ready(game: Game): boolean {
+		return game.players.find((p) => p.userId == $me.id)?.ready ?? false;
+	}
 
 	const deleteGame = async (game: Game) => {
 		if (confirm(`Are you sure you want to delete ${game.name}?`)) {
@@ -115,6 +126,26 @@
 		<div class="col-span-2" />
 		{#each singlePlayerGames as game}
 			<ActiveGameRow {game} showNumSubmitted={false} on:delete={() => deleteGame(game)} />
+		{/each}
+	</div>
+{/if}
+
+{#if gamesWaitingToStart?.length > 0}
+	<ItemTitle>Waiting to Start</ItemTitle>
+	<div class="mt-2 grid grid-cols-12 gap-1">
+		<div class="col-span-6 text-secondary">Name</div>
+		<div class="col-span-6 text-secondary">Players</div>
+
+		{#each gamesWaitingToStart as game}
+			<div class="col-span-6">
+				<a
+					class="text-primary text-2xl hover:text-accent w-full"
+					href={ready(game) ? `/games/${game.id}` : `/join-game/${game.id}`}>{game.name}</a
+				>
+			</div>
+			<div class="col-span-3 text-md">
+				{(game.numPlayers ?? 0) - (game.openPlayerSlots ?? 0)} / {game.numPlayers}
+			</div>
 		{/each}
 	</div>
 {/if}

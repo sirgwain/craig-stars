@@ -168,7 +168,7 @@ func generateTestGame(config config.Config) error {
 	return nil
 }
 
-func createTestUser(db server.DBClient, username string, password string, email string, role string) (*cs.User, *cs.Race, error) {
+func createTestUser(db server.DBClient, username string, password string, email string, role cs.UserRole) (*cs.User, *cs.Race, error) {
 	user, err := db.GetUserByUsername(username)
 	if err != nil {
 		return nil, nil, err

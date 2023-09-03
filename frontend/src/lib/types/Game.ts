@@ -41,6 +41,7 @@ export enum GameStartMode {
 
 export enum NewGamePlayerType {
 	Host = 'Host',
+	Guest = 'Guest',
 	Open = 'Open',
 	AI = 'AI'
 }

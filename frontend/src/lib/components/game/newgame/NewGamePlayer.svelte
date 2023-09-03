@@ -11,6 +11,7 @@
 
 	enum NewGamePlayerChooseType {
 		Open = 'Open',
+		Gueset = 'Guest',
 		AI = 'AI'
 	}
 

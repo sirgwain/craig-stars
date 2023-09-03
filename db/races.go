@@ -249,3 +249,12 @@ func (c *client) DeleteRace(id int64) error {
 
 	return nil
 }
+
+// delete all races belonging to a user
+func (c *client) DeleteUserRaces(userID int64) error {
+	if _, err := c.writer.Exec("DELETE FROM races WHERE userId = ?", userID); err != nil {
+		return err
+	}
+
+	return nil
+}

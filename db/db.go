@@ -73,9 +73,13 @@ type Client interface {
 	GetUsers() ([]cs.User, error)
 	GetUser(id int64) (*cs.User, error)
 	GetUserByUsername(username string) (*cs.User, error)
+	GetGuestUser(hash string) (*cs.User, error)
+	GetGuestUserForGame(gameID int64, playerNum int) (*cs.User, error)
+	GetGuestUsersForGame(gameID int64) ([]cs.User, error)
 	CreateUser(user *cs.User) error
 	UpdateUser(user *cs.User) error
 	DeleteUser(id int64) error
+	DeleteGameUsers(gameID int64) error
 	GetUsersForGame(gameID int64) ([]cs.User, error)
 
 	GetRaces() ([]cs.Race, error)
@@ -84,7 +88,8 @@ type Client interface {
 	CreateRace(race *cs.Race) error
 	UpdateRace(race *cs.Race) error
 	DeleteRace(id int64) error
-
+	DeleteUserRaces(userID int64) error
+	
 	GetTechStores() ([]cs.TechStore, error)
 	CreateTechStore(tech *cs.TechStore) error
 	GetTechStore(id int64) (*cs.TechStore, error)
@@ -95,7 +100,6 @@ type Client interface {
 	GetGamesForHost(userID int64) ([]cs.GameWithPlayers, error)
 	GetGamesForUser(userID int64) ([]cs.GameWithPlayers, error)
 	GetOpenGames() ([]cs.GameWithPlayers, error)
-	GetOpenGamesByHash(hash string) ([]cs.GameWithPlayers, error)
 	GetGame(id int64) (*cs.GameWithPlayers, error)
 	GetGameWithPlayersStatus(gameID int64) (*cs.GameWithPlayers, error)
 	GetFullGame(id int64) (*cs.FullGame, error)
@@ -104,6 +108,7 @@ type Client interface {
 	UpdateGameState(gameID int64, state cs.GameState) error
 	UpdateFullGame(fullGame *cs.FullGame) error
 	DeleteGame(id int64) error
+	DeleteUserGames(hostID int64) error
 
 	GetPlayers() ([]cs.Player, error)
 	GetPlayersForUser(userID int64) ([]cs.Player, error)

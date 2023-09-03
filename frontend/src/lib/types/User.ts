@@ -14,10 +14,11 @@ export enum UserStatus {
 export interface User {
 	id?: number;
 	username: string;
+	password?: string; // guest users have a hash for the password
 	role: UserRole;
 	status: UserStatus;
-	discordId: string;
-	discordAvatar: string;
+	discordId?: string;
+	discordAvatar?: string;
 }
 
 export const emptyUser: User = {

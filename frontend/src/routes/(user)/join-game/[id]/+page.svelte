@@ -9,9 +9,10 @@
 	import { Service } from '$lib/services/Service';
 	import { onMount } from 'svelte';
 	import PlayerChooser from '../../../../lib/components/game/newgame/PlayerChooser.svelte';
+	import { humanoid } from '$lib/types/Race';
 
 	let game: Game | undefined;
-	let raceId: number;
+	let race = Object.assign({}, humanoid);
 
 	onMount(async () => {
 		try {
@@ -29,7 +30,7 @@
 
 	const onSubmit = async () => {
 		if (game) {
-			const data = JSON.stringify({ raceId });
+			const data = JSON.stringify({ race });
 
 			const response = await fetch(`/api/games/${game.id}/join`, {
 				method: 'POST',
@@ -59,7 +60,7 @@
 
 	<form on:submit|preventDefault={onSubmit}>
 		<fieldset name="players" class="form-control mt-3">
-			<PlayerChooser bind:raceId />
+			<PlayerChooser bind:race />
 		</fieldset>
 		<button class="btn btn-primary">Join</button>
 	</form>

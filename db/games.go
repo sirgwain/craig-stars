@@ -26,7 +26,7 @@ type Game struct {
 	PublicPlayerScores                        bool               `json:"publicPlayerScores,omitempty"`
 	StartMode                                 cs.GameStartMode   `json:"startMode,omitempty"`
 	QuickStartTurns                           int                `json:"quickStartTurns,omitempty"`
-	OpenPlayerSlots                           uint               `json:"openPlayerSlots,omitempty"`
+	OpenPlayerSlots                           int                `json:"openPlayerSlots,omitempty"`
 	NumPlayers                                int                `json:"numPlayers,omitempty"`
 	VictoryConditionsConditions               cs.Bitmask         `json:"victoryConditionsConditions,omitempty"`
 	VictoryConditionsNumCriteriaRequired      int                `json:"victoryConditionsNumCriteriaRequired,omitempty"`
@@ -82,12 +82,8 @@ func (c *client) GetGamesForUser(userID int64) ([]cs.GameWithPlayers, error) {
 }
 
 func (c *client) GetOpenGames() ([]cs.GameWithPlayers, error) {
-	return c.getGameWithPlayersStatus(`g.state = ? AND g.openPlayerSlots > 0`, cs.GameStateSetup)
+	return c.getGameWithPlayersStatus(`g.state = ? AND g.openPlayerSlots > 0 AND g.public = 1`, cs.GameStateSetup)
 
-}
-
-func (c *client) GetOpenGamesByHash(hash string) ([]cs.GameWithPlayers, error) {
-	return c.getGameWithPlayersStatus(`g.state = ? AND g.openPlayerSlots > 0 AND g.hash = ?`, cs.GameStateSetup, hash)
 }
 
 // get a game by id
@@ -167,6 +163,7 @@ func (c *client) getGameWithPlayersStatus(where string, args ...interface{}) ([]
 		COALESCE(p.num, 0) AS 'player.num',
 		COALESCE(p.ready, 0) AS 'player.ready',
 		COALESCE(p.aiControlled, 0) AS 'player.aiControlled',
+		COALESCE(p.guest, 0) AS 'player.guest',
 		COALESCE(p.submittedTurn, 0) AS 'player.submittedTurn',
 		COALESCE(p.color, '') AS 'player.color',
 		COALESCE(p.victor, 0) AS 'player.victor'
@@ -668,6 +665,15 @@ func (c *client) updateFullPlayer(player *cs.Player) error {
 // delete a game by id
 func (c *client) DeleteGame(id int64) error {
 	if _, err := c.writer.Exec("DELETE FROM games WHERE id = ?", id); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// delete a game by id
+func (c *client) DeleteUserGames(hostID int64) error {
+	if _, err := c.writer.Exec("DELETE FROM games WHERE hostId = ?", hostID); err != nil {
 		return err
 	}
 

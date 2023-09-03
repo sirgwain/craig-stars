@@ -18,7 +18,7 @@
 		</div>
 	{:else}
 		<div class="flex flex-row">
-			<div class="w-20">Open</div>
+			<div class="w-20">Waiting</div>
 			<Icon src={XMark} size="24" class="stroke-error" />
 		</div>
 	{/if}

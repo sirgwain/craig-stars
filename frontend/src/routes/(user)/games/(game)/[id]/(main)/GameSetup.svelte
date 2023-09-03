@@ -9,9 +9,11 @@
 	import { me } from '$lib/services/Stores';
 	import type { GameSettings } from '$lib/types/Game';
 	import type { PlayerStatus } from '$lib/types/Player';
-	import { CheckBadge, XMark } from '@steeze-ui/heroicons';
+	import type { User } from '$lib/types/User';
+	import { CheckBadge, Square2Stack, XMark } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onDestroy, onMount } from 'svelte';
+	import GuestLink from './GuestLink.svelte';
 
 	const { game } = getGameContext();
 
@@ -53,10 +55,16 @@
 		$game = Object.assign($game, result);
 	};
 
-	const onAddPlayer = async () => {
-		const result = await GameService.addPlayer($game.id);
+	const onAddOpenSlot = async () => {
+		const result = await GameService.addOpenPlayerSlot($game.id);
 		$game = Object.assign($game, result);
 	};
+
+	const onAddGuestPlayer = async () => {
+		const result = await GameService.addGuestPlayer($game.id);
+		$game = Object.assign($game, result);
+	};
+
 	const onAddAIPlayer = async () => {
 		const result = await GameService.addAIPlayer($game.id);
 		$game = Object.assign($game, result);
@@ -101,12 +109,16 @@
 
 	onDestroy(() => $game.stopPollingStatus());
 
-	$: isHost = $me?.id === $game.hostId;
+	$: isHost = $me.id === $game.hostId;
+	$: myPlayer = $game.players.find((p) => p.userId == $me.id);
 </script>
 
 <div class="w-full mx-auto md:max-w-2xl">
 	<ItemTitle>{$game.name}</ItemTitle>
 
+	<div>
+		Welcome, {myPlayer?.name}
+	</div>
 	<form class="mt-2">
 		<div class="flex flex-col justify-center gap-2 place-items-center">
 			<div>
@@ -145,7 +157,7 @@
 								</div>
 							{:else}
 								<div class="flex flex-row">
-									<div class="w-20">Open</div>
+									<div class="w-20">Waiting</div>
 									<Icon src={XMark} size="24" class="stroke-error" />
 								</div>
 							{/if}
@@ -158,12 +170,14 @@
 										type="button"
 										class="btn btn-outline btn-sm my-1 normal-case">Kick</button
 									>
+									<GuestLink player={playerStatus} />
 								{:else if playerStatus.aiControlled || !playerStatus.userId}
 									<button
 										on:click={() => onDeletePlayer(playerStatus.num)}
 										type="button"
 										class="btn btn-outline btn-sm my-1 normal-case">Delete</button
 									>
+									<GuestLink player={playerStatus} />
 								{/if}
 							</div>
 						{/if}
@@ -179,8 +193,11 @@
 				<button type="button" class="btn btn-secondary" on:click={() => onAddAIPlayer()}
 					>Add AI</button
 				>
-				<button type="button" class="btn btn-secondary" on:click={() => onAddPlayer()}
-					>Add Player</button
+				<button type="button" class="btn btn-secondary" on:click={() => onAddOpenSlot()}
+					>Add Open Slot</button
+				>
+				<button type="button" class="btn btn-secondary" on:click={() => onAddGuestPlayer()}
+					>Add Guest</button
 				>
 				<button
 					disabled={$game.players.findIndex((p) => !p.ready) != -1}
