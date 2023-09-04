@@ -2,7 +2,7 @@
 	import InfoToast from '$lib/components/InfoToast.svelte';
 	import { getGameContext } from '$lib/services/Contexts';
 	import type { PlayerStatus } from '$lib/types/Player';
-	import type { User } from '$lib/types/User';
+	import type { SessionUser } from '$lib/types/User';
 	import { Square2Stack } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onMount } from 'svelte';
@@ -12,7 +12,7 @@
 	export let player: PlayerStatus;
 	export let hideText = false;
 
-	let guest: User | undefined;
+	let guest: SessionUser | undefined;
 	let copiedText = '';
 
 	onMount(async () => {
@@ -32,10 +32,7 @@
 			<input class="input input-sm input-bordered w-full" readonly value={link} />
 		</div>
 		<div>
-			<div
-				class="tooltip"
-				data-tip="Copy Invite Link"
-			>
+			<div class="tooltip" data-tip="Copy Invite Link">
 				<button
 					on:click={() => {
 						navigator.clipboard.writeText(link);

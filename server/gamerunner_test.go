@@ -48,7 +48,7 @@ func Test_gameRunner_HostGame(t *testing.T) {
 
 	gr := createTestGameRunner()
 
-	fullGame, err := gr.HostGame(1, cs.NewGameSettings().WithHost(1).WithAIPlayer(cs.AIDifficultyNormal, 0))
+	fullGame, err := gr.HostGame(1, cs.NewGameSettings().WithHost(cs.Humanoids()).WithAIPlayer(cs.AIDifficultyNormal, 0))
 
 	if err != nil {
 		t.Errorf("host game %v", err)

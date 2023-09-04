@@ -99,7 +99,7 @@
 		<button class="btn btn-success" type="submit">Create Game</button>
 	</div>
 
-	<ItemTitle>Host New Game</ItemTitle>
+	<ItemTitle>New Game</ItemTitle>
 
 	<GameSettingsEditor bind:settings />
 

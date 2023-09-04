@@ -6,7 +6,7 @@ import {
 	type PlayerStatus,
 	type PlayerUniverse
 } from '$lib/types/Player';
-import type { User } from '$lib/types/User';
+import type { SessionUser } from '$lib/types/User';
 import { Service } from './Service';
 
 export type TurnGenerationResponse = {
@@ -85,7 +85,7 @@ export class GameService {
 		return (await response.json()) as Game;
 	}
 
-	static async loadGuest(gameId: number | string, playerNum: number): Promise<User> {
+	static async loadGuest(gameId: number | string, playerNum: number): Promise<SessionUser> {
 		const response = await fetch(`/api/games/${gameId}/guest/${playerNum}`, {
 			method: 'GET',
 			headers: {

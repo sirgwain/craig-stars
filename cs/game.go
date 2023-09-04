@@ -31,7 +31,6 @@ const (
 
 type NewGamePlayer struct {
 	Type           NewGamePlayerType `json:"type,omitempty"`
-	RaceID         int64             `json:"raceId,omitempty"`
 	AIDifficulty   AIDifficulty      `json:"aiDifficulty,omitempty"`
 	Color          string            `json:"color,omitempty"`
 	DefaultHullSet int               `json:"hullSetNum,omitempty"`
@@ -70,7 +69,7 @@ type Game struct {
 	PublicPlayerScores           bool              `json:"publicPlayerScores,omitempty"`
 	StartMode                    GameStartMode     `json:"startMode,omitempty"`
 	QuickStartTurns              int               `json:"quickStartTurns,omitempty"`
-	OpenPlayerSlots              int              `json:"openPlayerSlots,omitempty"`
+	OpenPlayerSlots              int               `json:"openPlayerSlots,omitempty"`
 	NumPlayers                   int               `json:"numPlayers,omitempty"`
 	VictoryConditions            VictoryConditions `json:"victoryConditions"`
 	Seed                         int64             `json:"seed"`
@@ -249,8 +248,8 @@ func (settings *GameSettings) WithPublicPlayerScores(publicPlayerScores bool) *G
 }
 
 // add a host to this game
-func (settings *GameSettings) WithHost(raceID int64) *GameSettings {
-	settings.Players = append(settings.Players, NewGamePlayer{Type: NewGamePlayerTypeHost, RaceID: raceID, Color: "#0000FF"})
+func (settings *GameSettings) WithHost(race Race) *GameSettings {
+	settings.Players = append(settings.Players, NewGamePlayer{Type: NewGamePlayerTypeHost, Race: race, Color: "#0000FF"})
 	return settings
 }
 
@@ -269,6 +268,16 @@ func (settings *GameSettings) WithAIPlayer(aiDifficulty AIDifficulty, defaultHul
 func (settings *GameSettings) WithAIPlayerRace(race Race, aiDifficulty AIDifficulty, defaultHullSet int) *GameSettings {
 	settings.Players = append(settings.Players, NewGamePlayer{Type: NewGamePlayerTypeAI, AIDifficulty: aiDifficulty, DefaultHullSet: defaultHullSet, Race: race})
 	return settings
+}
+
+func (settings *GameSettings) IsSinglePlayer() bool {
+	numHumanPlayers := 0
+	for _, player := range settings.Players {
+		if player.Type != NewGamePlayerTypeAI {
+			numHumanPlayers++
+		}
+	}
+	return numHumanPlayers <= 1
 }
 
 func (g *Game) String() string {

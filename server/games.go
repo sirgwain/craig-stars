@@ -207,6 +207,13 @@ func (s *server) createGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// make sure guests don't create multiplayer games
+	if user.isGuest() && !settings.IsSinglePlayer() {
+		log.Error().Str("User", user.Username).Msg("cannot host multiplayer games")
+		render.Render(w, r, ErrForbidden)
+		return
+	}
+
 	gr := s.newGameRunner()
 	game, err := gr.HostGame(user.ID, settings.GameSettings)
 	if err != nil {
@@ -371,6 +378,12 @@ func (s *server) addOpenPlayerSlot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if user.isGuest() {
+		log.Error().Str("User", user.Username).Msg("cannot add open slots to games")
+		render.Render(w, r, ErrForbidden)
+		return
+	}
+
 	// add a new player slot to this game
 	if _, err := gr.AddOpenPlayerSlot(game); err != nil {
 		log.Error().Err(err).Msg("add player slot")
@@ -402,6 +415,12 @@ func (s *server) addGuestPlayer(w http.ResponseWriter, r *http.Request) {
 
 	if user.ID != game.HostID {
 		log.Error().Int64("GameID", game.ID).Str("User", user.Username).Msg("user is not host")
+		render.Render(w, r, ErrForbidden)
+		return
+	}
+
+	if user.isGuest() {
+		log.Error().Str("User", user.Username).Msg("cannot add guests to games")
 		render.Render(w, r, ErrForbidden)
 		return
 	}
@@ -577,6 +596,12 @@ func (s *server) startGame(w http.ResponseWriter, r *http.Request) {
 
 	// validate
 	if user.ID != game.HostID {
+		render.Render(w, r, ErrForbidden)
+		return
+	}
+
+	if user.isGuest() && !game.IsSinglePlayer() {
+		log.Error().Str("User", user.Username).Msg("cannot start multiplayer game")
 		render.Render(w, r, ErrForbidden)
 		return
 	}

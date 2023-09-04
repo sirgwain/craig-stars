@@ -64,7 +64,7 @@ func generateTestGame(config config.Config) error {
 
 	// admin user will host a game with an ai player
 	if _, err := gameRunner.HostGame(admin.ID, cs.NewGameSettings().
-		WithHost(adminRace.ID).
+		WithHost(*adminRace).
 		WithPublicPlayerScores(true).
 		WithAIPlayer(cs.AIDifficultyNormal, 1)); err != nil {
 		return err
@@ -75,7 +75,7 @@ func generateTestGame(config config.Config) error {
 		WithName("Medium Game").
 		WithSize(cs.SizeMedium).
 		WithPublicPlayerScores(true).
-		WithHost(adminRace.ID).
+		WithHost(*adminRace).
 		WithAIPlayerRace(cs.HEs(), cs.AIDifficultyNormal, 0).
 		WithAIPlayerRace(cs.SSs(), cs.AIDifficultyNormal, 1).
 		WithAIPlayerRace(cs.WMs(), cs.AIDifficultyNormal, 2).
@@ -108,7 +108,7 @@ func generateTestGame(config config.Config) error {
 		WithName("Tiny Game").
 		WithSize(cs.SizeTiny).
 		WithPublicPlayerScores(true).
-		WithHost(adminRace.ID).
+		WithHost(*adminRace).
 		WithAIPlayerRace(cs.HEs(), cs.AIDifficultyNormal, 0).
 		WithAIPlayerRace(cs.SDs(), cs.AIDifficultyNormal, 1).
 		WithAIPlayerRace(cs.PPs(), cs.AIDifficultyNormal, 2).
@@ -142,7 +142,7 @@ func generateTestGame(config config.Config) error {
 		_, err := gameRunner.HostGame(admin.ID, cs.NewGameSettings().
 			WithName(fmt.Sprintf("%s Test Game", race.PluralName)).
 			WithSize(cs.SizeTiny).
-			WithHost(race.ID).
+			WithHost(race).
 			WithAIPlayer(cs.AIDifficultyNormal, 1).
 			WithAIPlayer(cs.AIDifficultyNormal, 2))
 		if err != nil {
@@ -155,7 +155,7 @@ func generateTestGame(config config.Config) error {
 		WithName("Multiplayer Game").
 		WithSize(cs.SizeTiny).
 		WithPublicPlayerScores(true).
-		WithHost(adminRace.ID).
+		WithHost(*adminRace).
 		WithOpenPlayerSlot().
 		WithAIPlayerRace(cs.SDs(), cs.AIDifficultyNormal, 1).
 		WithAIPlayerRace(cs.PPs(), cs.AIDifficultyNormal, 2),

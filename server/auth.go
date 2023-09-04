@@ -23,6 +23,10 @@ type sessionUser struct {
 	DiscordAvatar string `json:"discordAvatar,omitempty"`
 }
 
+func (u *sessionUser) isGuest() bool {
+	return u.Role == string(cs.RoleGuest)
+}
+
 const (
 	attrDatabaseID    string = "database_id"
 	attrDiscordID     string = "discord_id"

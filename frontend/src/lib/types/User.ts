@@ -12,7 +12,7 @@ export enum UserStatus {
 	LoggedIn,
 	NotFound
 }
-export interface User {
+export type SessionUser = {
 	id?: number;
 	username: string;
 	password?: string; // guest users have a hash for the password
@@ -20,16 +20,30 @@ export interface User {
 	status: UserStatus;
 	discordId?: string;
 	discordAvatar?: string;
+};
+
+export class User implements SessionUser {
+	id = 0;
+	username = '';
+	password = '';
+	role = UserRole.guest;
+	status = UserStatus.Unknown;
+	discordId = '';
+	discordAvatar = '';
+
+	isGuest() {
+		return this.role == UserRole.guest;
+	}
 }
 
-export const emptyUser: User = {
+export const emptyUser = Object.assign(new User(), {
 	username: '',
 	role: UserRole.user,
 	status: UserStatus.Unknown
-};
+});
 
-export const userNotFound: User = {
+export const userNotFound = Object.assign(new User(), {
 	username: '',
 	role: UserRole.user,
 	status: UserStatus.NotFound
-};
+});

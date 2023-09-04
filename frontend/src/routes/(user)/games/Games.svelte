@@ -74,10 +74,12 @@
 </script>
 
 <div class="flex justify-evenly">
-	<a class="btn gap-2" href="/host-game">
-		<Galaxy class="fill-current w-12 h-12" />
-		Host
-	</a>
+	{#if !$me.isGuest()}
+		<a class="btn gap-2" href="/host-game">
+			<Galaxy class="fill-current w-12 h-12" />
+			Host
+		</a>
+	{/if}
 	<a class="btn gap-2" href="/single-player-game">
 		<Processor class="fill-current w-12 h-12" />
 		Single Player
@@ -150,7 +152,7 @@
 	</div>
 {/if}
 
-{#if openGames?.length > 0}
+{#if openGames?.length > 0 && !$me.isGuest()}
 	<ItemTitle>New Open Games</ItemTitle>
 	<div class="mt-2 grid grid-cols-12 gap-1">
 		<h2 class="font-semibold text-xl col-span-full">Open Games</h2>

@@ -72,7 +72,7 @@ func TestGetGame(t *testing.T) {
 	c := connectTestDB()
 	defer func() { closeTestDB(c) }()
 
-	game := cs.NewGame().WithSettings(*cs.NewGameSettings().WithHost(1).WithName("test"))
+	game := cs.NewGame().WithSettings(*cs.NewGameSettings().WithHost(cs.Humanoids()).WithName("test"))
 	game.Area = cs.Vector{X: 1, Y: 2}
 
 	if err := c.CreateGame(game); err != nil {

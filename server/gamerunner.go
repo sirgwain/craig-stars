@@ -119,16 +119,8 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 		for i, playerSetting := range settings.Players {
 			if playerSetting.Type == cs.NewGamePlayerTypeHost {
 
-				// add the host player with the host race
-				race, err := c.GetRace(playerSetting.RaceID)
-				if err != nil {
-					return err
-				}
-				if race.UserID != hostID {
-					return fmt.Errorf("user %d does not own Race %d", hostID, race.ID)
-				}
 				log.Debug().Int64("hostID", hostID).Msg("Adding host to game")
-				player := gr.client.NewPlayer(hostID, *race, &game.Rules)
+				player := gr.client.NewPlayer(hostID, playerSetting.Race, &game.Rules)
 				player.GameID = game.ID
 				player.Num = i + 1
 				player.Name = user.Username

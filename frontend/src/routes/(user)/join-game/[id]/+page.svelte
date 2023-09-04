@@ -7,12 +7,11 @@
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import GameCard from '$lib/components/game/GameCard.svelte';
 	import { Service } from '$lib/services/Service';
+	import { me } from '$lib/services/Stores';
+	import { humanoid } from '$lib/types/Race';
+	import { UserRole } from '$lib/types/User';
 	import { onMount } from 'svelte';
 	import PlayerChooser from '../../../../lib/components/game/newgame/PlayerChooser.svelte';
-	import { humanoid } from '$lib/types/Race';
-	import TextInput from '$lib/components/TextInput.svelte';
-	import { me } from '$lib/services/Stores';
-	import { UserRole } from '$lib/types/User';
 
 	let game: Game | undefined;
 	let race = Object.assign({}, humanoid);
