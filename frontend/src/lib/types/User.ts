@@ -1,6 +1,7 @@
 export enum UserRole {
-	admin,
-	user
+	user = 'user',
+	admin = 'admin',
+	guest = 'guest'
 }
 
 // The status of the user

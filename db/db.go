@@ -100,6 +100,7 @@ type Client interface {
 	GetGamesForHost(userID int64) ([]cs.GameWithPlayers, error)
 	GetGamesForUser(userID int64) ([]cs.GameWithPlayers, error)
 	GetOpenGames() ([]cs.GameWithPlayers, error)
+	GetOpenGamesByHash(hash string) ([]cs.GameWithPlayers, error)
 	GetGame(id int64) (*cs.GameWithPlayers, error)
 	GetGameWithPlayersStatus(gameID int64) (*cs.GameWithPlayers, error)
 	GetFullGame(id int64) (*cs.FullGame, error)

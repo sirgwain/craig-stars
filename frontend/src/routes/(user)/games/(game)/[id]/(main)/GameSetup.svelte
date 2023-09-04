@@ -8,12 +8,13 @@
 	import { Service } from '$lib/services/Service';
 	import { me } from '$lib/services/Stores';
 	import type { GameSettings } from '$lib/types/Game';
-	import type { PlayerStatus } from '$lib/types/Player';
-	import type { User } from '$lib/types/User';
-	import { CheckBadge, Square2Stack, XMark } from '@steeze-ui/heroicons';
+	import type { PlayerResponse, PlayerStatus } from '$lib/types/Player';
+	import { CheckBadge, XMark } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onDestroy, onMount } from 'svelte';
 	import GuestLink from './GuestLink.svelte';
+	import { PlayerService } from '$lib/services/PlayerService';
+	import RaceView from '../race/RaceView.svelte';
 
 	const { game } = getGameContext();
 
@@ -102,22 +103,27 @@
 	};
 	let error = '';
 
+	let player: PlayerResponse | undefined;
+
 	onMount(async () => {
 		await $game.loadStatus();
 		$game.startPollingStatus();
+
+		player = await GameService.loadFullPlayer($game.id);
 	});
 
 	onDestroy(() => $game.stopPollingStatus());
 
 	$: isHost = $me.id === $game.hostId;
 	$: myPlayer = $game.players.find((p) => p.userId == $me.id);
+	$: hasGuests = isHost && $game.players.find((p) => p.guest);
 </script>
 
-<div class="w-full mx-auto md:max-w-2xl">
+<div class="w-full mx-auto md:max-w-3xl">
 	<ItemTitle>{$game.name}</ItemTitle>
 
 	<div>
-		Welcome, {myPlayer?.name}
+		Welcome, {myPlayer?.name}. You are playing as the {player?.race.pluralName}.
 	</div>
 	<form class="mt-2">
 		<div class="flex flex-col justify-center gap-2 place-items-center">
@@ -129,17 +135,17 @@
 				{/if}
 			</div>
 			<div class="w-full bg-base-200 shadow rounded-sm border-2 border-base-300 py-2 m-2 ">
-				<div class="grid grid-cols-2 gap-x-5 px-2" class:grid-cols-3={isHost}>
+				<div class="grid grid-cols-2 gap-x-5 px-2" class:grid-cols-3={hasGuests}>
 					<div class="text-center border-b border-b-secondary mb-1">Player</div>
 					<div class="text-center border-b border-b-secondary mb-1 font-semibold text-xl">
 						Status
 					</div>
-					{#if isHost}
-						<div class="border-b border-b-secondary mb-1" />
+					{#if hasGuests}
+						<div class="text-center border-b border-b-secondary mb-1">Invite Link</div>
 					{/if}
 
 					{#each $game.players as playerStatus, index}
-						<div class="flex flex-row h-8">
+						<div class="flex flex-row h-8 my-auto">
 							<div class="w-4">
 								{playerStatus.num}
 							</div>
@@ -147,38 +153,42 @@
 								class="h-4 w-4 my-auto border border-secondary mx-2"
 								style={`background-color: ${playerStatus.color}`}
 							/>
-							{playerStatus.name}
+							<div class="h-8">
+								{playerStatus.name}
+							</div>
 						</div>
-						<div>
-							{#if playerStatus.ready}
-								<div class="flex flex-row">
+						<div class="flex flex-row" class:justify-center={!hasGuests}>
+							<div class="flex flex-row my-auto">
+								{#if playerStatus.ready}
 									<div class="w-20">Ready</div>
 									<Icon src={CheckBadge} size="24" class="stroke-success" />
-								</div>
-							{:else}
-								<div class="flex flex-row">
+								{:else}
 									<div class="w-20">Waiting</div>
 									<Icon src={XMark} size="24" class="stroke-error" />
+								{/if}
+							</div>
+
+							{#if isHost}
+								<div class="flex grow justify-center mx-2">
+									{#if !playerStatus.aiControlled && playerStatus.userId && index != 0}
+										<button
+											on:click={() => onKickPlayer(playerStatus.num)}
+											type="button"
+											class="w-full btn btn-outline btn-sm my-1 normal-case">Kick</button
+										>
+									{:else if playerStatus.aiControlled || !playerStatus.userId}
+										<button
+											on:click={() => onDeletePlayer(playerStatus.num)}
+											type="button"
+											class="w-full btn btn-outline btn-sm my-1 normal-case">Delete</button
+										>
+									{/if}
 								</div>
 							{/if}
 						</div>
-						{#if isHost}
-							<div class="flex justify-center">
-								{#if !playerStatus.aiControlled && playerStatus.userId && index != 0}
-									<button
-										on:click={() => onKickPlayer(playerStatus.num)}
-										type="button"
-										class="btn btn-outline btn-sm my-1 normal-case">Kick</button
-									>
-									<GuestLink player={playerStatus} />
-								{:else if playerStatus.aiControlled || !playerStatus.userId}
-									<button
-										on:click={() => onDeletePlayer(playerStatus.num)}
-										type="button"
-										class="btn btn-outline btn-sm my-1 normal-case">Delete</button
-									>
-									<GuestLink player={playerStatus} />
-								{/if}
+						{#if hasGuests}
+							<div>
+								<GuestLink player={playerStatus} />
 							</div>
 						{/if}
 					{/each}
@@ -210,4 +220,9 @@
 			{/if}
 		</div>
 	</form>
+
+	{#if player}
+		<ItemTitle>Your Race - {player.race.pluralName}</ItemTitle>
+		<RaceView race={player.race} />
+	{/if}
 </div>

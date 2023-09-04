@@ -94,7 +94,7 @@ func (g *GameWithPlayers) IsSinglePlayer() bool {
 			nonAiPlayers++
 		}
 	}
-	return nonAiPlayers > 1
+	return nonAiPlayers <= 1 // all ai players is basically a single player game. :)
 }
 
 // A game with players and a universe, used in universe and turn generation
@@ -109,11 +109,11 @@ type FullGame struct {
 func (g *FullGame) IsSinglePlayer() bool {
 	nonAiPlayers := 0
 	for _, p := range g.Players {
-		if p.AIControlled {
+		if !p.AIControlled {
 			nonAiPlayers++
 		}
 	}
-	return nonAiPlayers > 1
+	return nonAiPlayers <= 1 // all ai players is basically a single player game. :)
 }
 
 type Size string

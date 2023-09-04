@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
@@ -30,6 +31,7 @@ func (req *updateGameRequest) Bind(r *http.Request) error {
 
 type joinGameRequest struct {
 	Race cs.Race `json:"race"`
+	Name string  `json:"name,omitempty"`
 }
 
 func (req *joinGameRequest) Bind(r *http.Request) error {
@@ -148,6 +150,21 @@ func (s *server) openGames(w http.ResponseWriter, r *http.Request) {
 	rest.RenderJSON(w, games)
 }
 
+func (s *server) openGamesByHash(w http.ResponseWriter, r *http.Request) {
+	db := s.contextDb(r)
+	// load open games by hash from the database
+	hash := chi.URLParam(r, "hash")
+	if hash == "" {
+		render.Render(w, r, ErrBadRequest(fmt.Errorf("invalid invite hash in url")))
+		games, err := db.GetOpenGamesByHash(hash)
+		if err != nil {
+			log.Error().Err(err).Str("Hash", hash).Msg("get open games by hash from database")
+			rest.RenderJSON(w, games)
+		}
+		rest.RenderJSON(w, games)
+	}
+}
+
 func (s *server) game(w http.ResponseWriter, r *http.Request) {
 	game := s.contextGame(r)
 	rest.RenderJSON(w, game)
@@ -257,8 +274,20 @@ func (s *server) joinGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if game.State != cs.GameStateSetup {
+		err := fmt.Errorf("cannot join game after setup")
+		log.Error().Err(err).Msg("join game")
+		render.Render(w, r, ErrBadRequest(err))
+	}
+
+	if join.Name == "" {
+		err := fmt.Errorf("name cannot be empty")
+		log.Error().Err(err).Msg("join game")
+		render.Render(w, r, ErrBadRequest(err))
+	}
+
 	// try and join this game
-	if err := gr.JoinGame(game.ID, user.ID, join.Race); err != nil {
+	if err := gr.JoinGame(game.ID, user.ID, join.Name, join.Race); err != nil {
 		log.Error().Err(err).Msg("join game")
 		render.Render(w, r, ErrBadRequest(err))
 	}

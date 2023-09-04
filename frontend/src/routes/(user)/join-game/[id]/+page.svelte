@@ -10,9 +10,13 @@
 	import { onMount } from 'svelte';
 	import PlayerChooser from '../../../../lib/components/game/newgame/PlayerChooser.svelte';
 	import { humanoid } from '$lib/types/Race';
+	import TextInput from '$lib/components/TextInput.svelte';
+	import { me } from '$lib/services/Stores';
+	import { UserRole } from '$lib/types/User';
 
 	let game: Game | undefined;
 	let race = Object.assign({}, humanoid);
+	let name = $me.username;
 
 	onMount(async () => {
 		try {
@@ -30,7 +34,7 @@
 
 	const onSubmit = async () => {
 		if (game) {
-			const data = JSON.stringify({ race });
+			const data = JSON.stringify({ race, name });
 
 			const response = await fetch(`/api/games/${game.id}/join`, {
 				method: 'POST',
@@ -48,6 +52,7 @@
 	};
 
 	let error = '';
+	let valid = true;
 </script>
 
 <ItemTitle>Join Game</ItemTitle>
@@ -59,9 +64,13 @@
 	</div>
 
 	<form on:submit|preventDefault={onSubmit}>
+		{#if $me.role == UserRole.guest}
+			<label class="label" for="name">Name</label>
+			<input name="name" bind:value={name} class="input input-bordered" />
+		{/if}
 		<fieldset name="players" class="form-control mt-3">
-			<PlayerChooser bind:race />
+			<PlayerChooser bind:race bind:valid />
 		</fieldset>
-		<button class="btn btn-primary">Join</button>
+		<button class="btn btn-primary mt-2" disabled={!valid}>Join</button>
 	</form>
 {/if}

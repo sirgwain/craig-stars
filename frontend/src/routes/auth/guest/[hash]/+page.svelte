@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
-	import Login from '$lib/components/auth/Login.svelte';
+	import { GameService } from '$lib/services/GameService';
+	import { GameState } from '$lib/types/Game';
 	import { onMount } from 'svelte';
 
 	let hash = $page.params.hash;
@@ -23,7 +24,12 @@
 			const resolvedResponse = (await response?.json()) as { attrs?: { game_id?: string } };
 			const gameId = resolvedResponse?.attrs?.game_id;
 			if (gameId) {
-				document.location = `/join-game/${gameId}`;
+				const game = await GameService.loadGame(gameId);
+				if (game.state == GameState.Setup) {
+					document.location = `/join-game/${gameId}`;
+				} else {
+					document.location = `/games/${gameId}`;
+				}
 			} else {
 				// no game_id, send them to / I guess...
 				document.location = '/';

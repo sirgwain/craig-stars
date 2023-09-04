@@ -83,8 +83,12 @@ func (c *client) GetGamesForUser(userID int64) ([]cs.GameWithPlayers, error) {
 
 func (c *client) GetOpenGames() ([]cs.GameWithPlayers, error) {
 	return c.getGameWithPlayersStatus(`g.state = ? AND g.openPlayerSlots > 0 AND g.public = 1`, cs.GameStateSetup)
-
 }
+
+func (c *client) GetOpenGamesByHash(hash string) ([]cs.GameWithPlayers, error) {
+	return c.getGameWithPlayersStatus(`g.state = ? AND g.openPlayerSlots > 0 AND g.hash = ?`, cs.GameStateSetup, hash)
+}
+
 
 // get a game by id
 func (c *client) GetGame(id int64) (*cs.GameWithPlayers, error) {

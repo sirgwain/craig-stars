@@ -24,20 +24,22 @@
 	<div class="font-semibold text-xl">Status</div>
 	{#each $game.players as playerStatus}
 		<div class="flex flex-row">
-			<div class="w-4">
+			<div class="w-4 my-auto">
 				{playerStatus.num}
 			</div>
 			<div
 				class="h-4 w-4 my-auto border border-secondary mx-2"
 				style={`background-color: ${playerStatus.color}`}
 			/>
-			{playerStatus.name}
+			<div class="my-auto">
+				{playerStatus.name}
+			</div>
 		</div>
 		{#if !settingUp}
-			<div>{$universe.getPlayerIntel(playerStatus.num)?.racePluralName ?? 'unknown'}</div>
+			<div class="my-auto">
+				{$universe.getPlayerIntel(playerStatus.num)?.racePluralName ?? 'unknown'}
+			</div>
 		{/if}
-		<div>
-			<PlayerStatus {playerStatus} />
-		</div>
+		<PlayerStatus {playerStatus} />
 	{/each}
 </div>

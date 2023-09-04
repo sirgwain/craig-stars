@@ -38,10 +38,10 @@
 			{unit}
 		</div>
 		<div class="flex flex-col">
-			<button class="btn btn-xs" on:click={increase}>
+			<button type="button" class="btn btn-xs" on:click={increase}>
 				<Icon src={ChevronUp} size="12" class="hover:stroke-accent" />
 			</button>
-			<button class="btn btn-xs" on:click={decrease}>
+			<button type="button" class="btn btn-xs" on:click={decrease}>
 				<Icon src={ChevronDown} size="12" class="hover:stroke-accent" />
 			</button>
 		</div>

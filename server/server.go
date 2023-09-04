@@ -281,6 +281,7 @@ func Start(config config.Config) error {
 			r.Get("/", server.games)
 			r.Get("/hosted", server.hostedGames)
 			r.Get("/open", server.openGames)
+			r.Get("/invite/{hash:[a-zA-Z0-9]+}", server.openGamesByHash)
 
 			// game by id operations
 			r.Route("/{id:[0-9]+}", func(r chi.Router) {

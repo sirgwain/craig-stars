@@ -48,7 +48,7 @@ var colors = []string{
 
 type GameRunner interface {
 	HostGame(hostID int64, settings *cs.GameSettings) (*cs.FullGame, error)
-	JoinGame(gameID int64, userID int64, race cs.Race) error
+	JoinGame(gameID int64, userID int64, name string, race cs.Race) error
 	LeaveGame(gameID, userID int64) error
 	KickPlayer(gameID int64, playerNum int) error
 	AddOpenPlayerSlot(game *cs.GameWithPlayers) (*cs.Player, error)
@@ -238,7 +238,7 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 }
 
 // add a player to an existing game
-func (gr *gameRunner) JoinGame(gameID int64, userID int64, race cs.Race) error {
+func (gr *gameRunner) JoinGame(gameID int64, userID int64, name string, race cs.Race) error {
 	readClient := gr.dbConn.NewReadClient()
 	user, err := readClient.GetUser(userID)
 	if err != nil {
@@ -276,10 +276,10 @@ func (gr *gameRunner) JoinGame(gameID int64, userID int64, race cs.Race) error {
 
 	player := gr.client.NewPlayer(userID, race, &fullGame.Rules)
 	player.GameID = fullGame.ID
-	player.Name = user.Username
 	player.Ready = true
 	player.AIControlled = false
 	player.Guest = invitedGuest
+	player.Name = name
 
 	if err := gr.dbConn.WrapInTransaction(func(c db.Client) error {
 
