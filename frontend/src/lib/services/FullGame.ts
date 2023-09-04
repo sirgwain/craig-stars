@@ -23,6 +23,7 @@ import {
 } from '$lib/types/Player';
 import type { Salvage } from '$lib/types/Salvage';
 import type { ShipDesign } from '$lib/types/ShipDesign';
+import type { SessionUser } from '$lib/types/User';
 import type { Vector } from '$lib/types/Vector';
 import { get } from 'svelte/store';
 import { BattlePlanService } from './BattlePlanService';
@@ -183,6 +184,10 @@ export class FullGame implements Game {
 		Object.assign(this, result);
 		updateGame(this);
 		return this;
+	}
+
+	async loadGuest(playerNum: number): Promise<SessionUser> {
+		return await GameService.loadGuest(this.id, playerNum);
 	}
 
 	// start polling the server for player status

@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -16,10 +15,87 @@ import (
 
 type sessionUser struct {
 	ID            int64  `json:"id"`
-	Username      string `json:"username"`
 	Role          string `json:"role"`
-	DiscordID     string `json:"discordId"`
-	DiscordAvatar string `json:"discordAvatar"`
+	GameID        int64  `json:"gameID,omitempty"`
+	PlayerNum     int    `json:"playerNum,omitempty"`
+	Username      string `json:"username,omitempty"`
+	DiscordID     string `json:"discordId,omitempty"`
+	DiscordAvatar string `json:"discordAvatar,omitempty"`
+}
+
+func (u *sessionUser) isGuest() bool {
+	return u.Role == string(cs.RoleGuest)
+}
+
+const (
+	attrDatabaseID    string = "database_id"
+	attrDiscordID     string = "discord_id"
+	attrDiscordAvatar string = "discord_avatar"
+	attrGameID        string = "game_id"
+	attrPlayerNum     string = "player_num"
+)
+
+type tokenUser struct {
+	*token.User
+}
+
+func newTokenUser(u *token.User) tokenUser {
+	return tokenUser{User: u}
+}
+
+func (u *tokenUser) setDatabaseID(val int64) {
+	u.SetStrAttr(attrDatabaseID, strconv.FormatInt(val, 10))
+}
+
+func (u *tokenUser) databaseID() int64 {
+	if val := u.StrAttr(attrDatabaseID); val != "" {
+		i, _ := strconv.ParseInt(val, 10, 64)
+		return i
+	}
+
+	return 0
+}
+
+func (u *tokenUser) setDiscordID(val string) {
+	u.SetStrAttr(attrDiscordID, val)
+}
+
+func (u *tokenUser) discordID() string {
+	return u.StrAttr(attrDiscordID)
+}
+
+func (u *tokenUser) setDiscordAvatar(val string) {
+	u.SetStrAttr(attrDiscordAvatar, val)
+}
+
+func (u *tokenUser) discordAvatar() string {
+	return u.StrAttr(attrDiscordAvatar)
+}
+
+func (u *tokenUser) setGameID(val int64) {
+	u.SetStrAttr(attrGameID, strconv.FormatInt(val, 10))
+}
+
+func (u *tokenUser) gameID() int64 {
+	if val := u.StrAttr(attrGameID); val != "" {
+		i, _ := strconv.ParseInt(val, 10, 64)
+		return i
+	}
+
+	return 0
+}
+
+func (u *tokenUser) setPlayerNum(val int) {
+	u.SetStrAttr(attrPlayerNum, strconv.Itoa(val))
+}
+
+func (u *tokenUser) playerNum() int {
+	if val := u.StrAttr(attrPlayerNum); val != "" {
+		i, _ := strconv.Atoi(val)
+		return i
+	}
+
+	return 0
 }
 
 // get the user from the context
@@ -33,20 +109,13 @@ func (s *server) mustGetUser(w http.ResponseWriter, r *http.Request) sessionUser
 		panic("failed to load user")
 	}
 
-	userID, err := strconv.ParseInt(userInfo.StrAttr(databaseIDAttr), 10, 64)
-	if err != nil {
-		panic("failed to load user")
-	}
+	tokenUser := newTokenUser(&userInfo)
 
-	var discordID string
-	var discordAvatar string
-
-	if val, ok := userInfo.Attributes["discord_id"]; ok {
-		discordID = val.(string)
-	}
-	if val, ok := userInfo.Attributes["discord_avatar"]; ok {
-		discordAvatar = val.(string)
-	}
+	userID := tokenUser.databaseID()
+	discordID := tokenUser.discordID()
+	discordAvatar := tokenUser.discordAvatar()
+	gameID := tokenUser.gameID()
+	playerNum := tokenUser.playerNum()
 
 	return sessionUser{
 		ID:            userID,
@@ -54,6 +123,8 @@ func (s *server) mustGetUser(w http.ResponseWriter, r *http.Request) sessionUser
 		Role:          userInfo.Role,
 		DiscordID:     discordID,
 		DiscordAvatar: discordAvatar,
+		GameID:        gameID,
+		PlayerNum:     playerNum,
 	}
 }
 
@@ -65,7 +136,7 @@ func me(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, err := strconv.ParseInt(userInfo.StrAttr(databaseIDAttr), 10, 64)
+	userID, err := strconv.ParseInt(userInfo.StrAttr(attrDatabaseID), 10, 64)
 	if err != nil {
 		log.Printf("failed to get user info, %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -103,15 +174,9 @@ func (s *server) userCtx(next http.Handler) http.Handler {
 }
 
 // create a new user from a token
-func (s *server) createNewUser(tokenUser *token.User) (*cs.User, error) {
+func (s *server) createNewDiscordUser(tokenUser tokenUser) (*cs.User, error) {
 
-	discordID, foundDiscordID := tokenUser.Attributes["discord_id"]
-	discordAvatar, foundDiscordAvatar := tokenUser.Attributes["discord_avatar"]
-	if !foundDiscordID || !foundDiscordAvatar {
-		return nil, fmt.Errorf("trying to create new user that isn't a discord user")
-	}
-
-	user, err := cs.NewDiscordUser(tokenUser.Name, discordID.(string), discordAvatar.(string))
+	user, err := cs.NewDiscordUser(tokenUser.Name, tokenUser.discordID(), tokenUser.discordAvatar())
 	if err != nil {
 		log.Error().Err(err).Str("Username", user.Username).Msg("failed to create new user")
 		return nil, err
@@ -139,16 +204,10 @@ func (s *server) createNewUser(tokenUser *token.User) (*cs.User, error) {
 	return user, nil
 }
 
-func (s *server) updateUser(tokenUser *token.User, user *cs.User) error {
+func (s *server) updateUser(tokenUser tokenUser, user *cs.User) error {
 
-	discordID, foundDiscordID := tokenUser.Attributes["discord_id"]
-	discordAvatar, foundDiscordAvatar := tokenUser.Attributes["discord_avatar"]
-	if !foundDiscordID || !foundDiscordAvatar {
-		return fmt.Errorf("trying to create new user that isn't a discord user")
-	}
-
-	idStr := discordID.(string)
-	avatarStr := discordAvatar.(string)
+	idStr := tokenUser.discordID()
+	avatarStr := tokenUser.discordAvatar()
 	user.DiscordID = &idStr
 	user.DiscordAvatar = &avatarStr
 	now := time.Now()

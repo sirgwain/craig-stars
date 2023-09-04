@@ -27,7 +27,7 @@ func addCreateUserCommand() {
 	var username string
 	var email string
 	var password string
-	var role = cs.RoleUser
+	var role = "user"
 
 	// createUserCmd creates a new user in the database
 	createUserCmd := &cobra.Command{
@@ -35,7 +35,7 @@ func addCreateUserCommand() {
 		Short: "A brief description of your command",
 		Long:  ``,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			user, err := cs.NewUser(username, password, email, role)
+			user, err := cs.NewUser(username, password, email, cs.UserRoleFromString(role))
 			if err != nil {
 				return err
 			}

@@ -64,7 +64,7 @@
 	<div class="text-center md:text-right md:w-[5.5rem] h-full my-auto mr-2">{habType}</div>
 	<div class="grow flex flex-col">
 		<div class="flex flex-row h-8">
-			<button on:click|preventDefault={() => onLeft()} class="btn btn-outline btn-sm"
+			<button type="button" on:click|preventDefault={() => onLeft()} class="btn btn-outline btn-sm"
 				><Icon src={ChevronLeft} size="20" />
 			</button>
 
@@ -83,13 +83,16 @@
 					{/if}
 				</div>
 			</div>
-			<button on:click|preventDefault={() => onRight()} class="btn btn-outline btn-sm"
+			<button type="button" on:click|preventDefault={() => onRight()} class="btn btn-outline btn-sm"
 				><Icon src={ChevronRight} size="20" />
 			</button>
 		</div>
 		<div class="flex flex-row grow mt-2">
 			<div>
-				<button on:click|preventDefault={() => onGrow()} class="btn btn-outline btn-sm"
+				<button
+					type="button"
+					on:click|preventDefault={() => onGrow()}
+					class="btn btn-outline btn-sm"
 					><Icon src={ChevronDoubleLeft} size="20" />
 					<Icon src={ChevronDoubleRight} size="20" /></button
 				>
@@ -98,7 +101,10 @@
 				<label><input type="checkbox" bind:checked={immune} /> Immune to {habType}</label>
 			</div>
 			<div>
-				<button on:click|preventDefault={() => onShrink()} class="btn btn-outline btn-sm"
+				<button
+					type="button"
+					on:click|preventDefault={() => onShrink()}
+					class="btn btn-outline btn-sm"
 					><Icon src={ChevronDoubleRight} size="20" />
 					<Icon src={ChevronDoubleLeft} size="20" /></button
 				>

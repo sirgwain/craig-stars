@@ -22,6 +22,7 @@ export type PlayerStatus = {
 	race: Race;
 	ready?: boolean;
 	aiControlled?: boolean;
+	guest?: boolean;
 	submittedTurn?: boolean;
 };
 
@@ -38,6 +39,7 @@ export type PlayerResponse = {
 	race: Race;
 	ready?: boolean;
 	aiControlled?: boolean;
+	guest?: boolean;
 	submittedTurn?: boolean;
 	techLevels: TechLevel;
 	techLevelsSpent: TechLevel;

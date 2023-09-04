@@ -21,6 +21,7 @@ type PlayerStatus struct {
 	Num           int        `json:"num,omitempty"`
 	Ready         bool       `json:"ready,omitempty"`
 	AIControlled  bool       `json:"aiControlled,omitempty"`
+	Guest         bool       `json:"guest,omitempty"`
 	SubmittedTurn bool       `json:"submittedTurn,omitempty"`
 	Color         string     `json:"color,omitempty"`
 	Victor        bool       `json:"victor,omitempty"`
@@ -36,6 +37,7 @@ type Player struct {
 	Num                       int                  `json:"num,omitempty"`
 	Ready                     bool                 `json:"ready"`
 	AIControlled              bool                 `json:"aiControlled,omitempty"`
+	Guest                     bool                 `json:"guest,omitempty"`
 	SubmittedTurn             bool                 `json:"submittedTurn"`
 	Color                     string               `json:"color,omitempty"`
 	DefaultHullSet            int                  `json:"defaultHullSet,omitempty"`

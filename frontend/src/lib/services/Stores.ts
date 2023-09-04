@@ -4,7 +4,7 @@ import { equal, MapObjectType, None, ownedBy, type MapObject } from '$lib/types/
 import { getMapObjectTypeForMessageType, MessageType, type Message } from '$lib/types/Message';
 import { CommandedPlanet } from '$lib/types/Planet';
 import type { Player } from '$lib/types/Player';
-import { emptyUser, type User } from '$lib/types/User';
+import { emptyUser, User } from '$lib/types/User';
 import type { Vector } from '$lib/types/Vector';
 import { findIndex, kebabCase } from 'lodash-es';
 import type { ComponentType, SvelteComponent } from 'svelte';

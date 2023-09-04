@@ -48,7 +48,7 @@ func Test_gameRunner_HostGame(t *testing.T) {
 
 	gr := createTestGameRunner()
 
-	fullGame, err := gr.HostGame(1, cs.NewGameSettings().WithHost(1).WithAIPlayer(cs.AIDifficultyNormal, 0))
+	fullGame, err := gr.HostGame(1, cs.NewGameSettings().WithHost(cs.Humanoids()).WithAIPlayer(cs.AIDifficultyNormal, 0))
 
 	if err != nil {
 		t.Errorf("host game %v", err)
@@ -125,5 +125,33 @@ func Test_gameRunner_GenerateTurns(t *testing.T) {
 		if _, err := gr.GenerateTurn(fullGame.ID); err != nil {
 			t.Errorf("generate turn %v", err)
 		}
+	}
+}
+
+func Test_gameRunner_getGuestNum(t *testing.T) {
+	tests := []struct {
+		name     string
+		username string
+		want     int
+		wantErr  bool
+	}{
+		{"1", "guest-1-1", 1, false},
+		{"20", "guest-29-20", 20, false},
+		{"fail", "bob", 0, true},
+		{"fail", "bob-1-bob", 0, true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gr := &gameRunner{}
+			u := cs.User{Username: tt.username}
+			got, err := gr.getGuestNum(&u)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("gameRunner.getGuestNum() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("gameRunner.getGuestNum() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }

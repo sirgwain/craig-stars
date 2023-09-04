@@ -16,6 +16,7 @@
 		enumType={PlayerPositions}
 		bind:value={settings.playerPositions}
 	/>
+	<CheckboxInput name="public" bind:checked={settings.public} />
 	<CheckboxInput name="randomEvents" bind:checked={settings.randomEvents} />
 	<CheckboxInput name="publicPlayerScores" bind:checked={settings.publicPlayerScores} />
 	<CheckboxInput

@@ -72,7 +72,7 @@ func TestGetGame(t *testing.T) {
 	c := connectTestDB()
 	defer func() { closeTestDB(c) }()
 
-	game := cs.NewGame().WithSettings(*cs.NewGameSettings().WithHost(1).WithName("test"))
+	game := cs.NewGame().WithSettings(*cs.NewGameSettings().WithHost(cs.Humanoids()).WithName("test"))
 	game.Area = cs.Vector{X: 1, Y: 2}
 
 	if err := c.CreateGame(game); err != nil {
@@ -139,7 +139,7 @@ func TestGetOpenGames(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, []cs.GameWithPlayers{}, result)
 
-	g1 := cs.Game{HostID: 2, Name: "Test", State: cs.GameStateSetup, OpenPlayerSlots: 1}
+	g1 := cs.Game{HostID: 2, Name: "Test", State: cs.GameStateSetup, OpenPlayerSlots: 1, Public: true}
 	if err := c.CreateGame(&g1); err != nil {
 		t.Errorf("create game %s", err)
 		return

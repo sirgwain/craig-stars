@@ -6,6 +6,7 @@ import {
 	type PlayerStatus,
 	type PlayerUniverse
 } from '$lib/types/Player';
+import type { SessionUser } from '$lib/types/User';
 import { Service } from './Service';
 
 export type TurnGenerationResponse = {
@@ -21,8 +22,12 @@ export class GameService {
 		return Service.update(settings, `/api/games/${id}`);
 	}
 
-	static async addPlayer(id: number): Promise<Game> {
-		return Service.post(undefined, `/api/games/${id}/add-player`);
+	static async addOpenPlayerSlot(id: number): Promise<Game> {
+		return Service.post(undefined, `/api/games/${id}/add-open-player-slot`);
+	}
+
+	static async addGuestPlayer(id: number): Promise<Game> {
+		return Service.post(undefined, `/api/games/${id}/add-guest-player`);
 	}
 
 	static async addAIPlayer(id: number): Promise<Game> {
@@ -78,6 +83,20 @@ export class GameService {
 			await Service.throwError(response);
 		}
 		return (await response.json()) as Game;
+	}
+
+	static async loadGuest(gameId: number | string, playerNum: number): Promise<SessionUser> {
+		const response = await fetch(`/api/games/${gameId}/guest/${playerNum}`, {
+			method: 'GET',
+			headers: {
+				accept: 'application/json'
+			}
+		});
+
+		if (!response.ok) {
+			await Service.throwError(response);
+		}
+		return await response.json();
 	}
 
 	static async loadGameByHash(hash: string): Promise<Game[]> {

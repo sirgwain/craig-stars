@@ -1,7 +1,5 @@
 <script lang="ts">
-	import { clamp } from '$lib/services/Math';
 	import { PRT, type Race } from '$lib/types/Race';
-	import type { FocusEventHandler } from 'svelte/elements';
 
 	export let race: Race;
 </script>

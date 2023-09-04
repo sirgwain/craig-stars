@@ -9,7 +9,7 @@
 		{ type: NewGamePlayerType.AI, color: getColor(2) }
 	];
 
-	const name = $me?.username ? `${$me.username}'s game` : undefined;
+	const name = $me.username ? `${$me.username}'s game` : undefined;
 </script>
 
 <NewGame {players} {name} />

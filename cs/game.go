@@ -14,10 +14,10 @@ type Tags map[string]string
 type NewGamePlayerType string
 
 const (
-	NewGamePlayerTypeHost   NewGamePlayerType = "Host"
-	NewGamePlayerTypeInvite NewGamePlayerType = "Invite"
-	NewGamePlayerTypeOpen   NewGamePlayerType = "Open"
-	NewGamePlayerTypeAI     NewGamePlayerType = "AI"
+	NewGamePlayerTypeHost  NewGamePlayerType = "Host"
+	NewGamePlayerTypeGuest NewGamePlayerType = "Guest"
+	NewGamePlayerTypeOpen  NewGamePlayerType = "Open"
+	NewGamePlayerTypeAI    NewGamePlayerType = "AI"
 )
 
 type AIDifficulty string
@@ -31,7 +31,6 @@ const (
 
 type NewGamePlayer struct {
 	Type           NewGamePlayerType `json:"type,omitempty"`
-	RaceID         int64             `json:"raceId,omitempty"`
 	AIDifficulty   AIDifficulty      `json:"aiDifficulty,omitempty"`
 	Color          string            `json:"color,omitempty"`
 	DefaultHullSet int               `json:"hullSetNum,omitempty"`
@@ -70,7 +69,7 @@ type Game struct {
 	PublicPlayerScores           bool              `json:"publicPlayerScores,omitempty"`
 	StartMode                    GameStartMode     `json:"startMode,omitempty"`
 	QuickStartTurns              int               `json:"quickStartTurns,omitempty"`
-	OpenPlayerSlots              uint              `json:"openPlayerSlots,omitempty"`
+	OpenPlayerSlots              int               `json:"openPlayerSlots,omitempty"`
 	NumPlayers                   int               `json:"numPlayers,omitempty"`
 	VictoryConditions            VictoryConditions `json:"victoryConditions"`
 	Seed                         int64             `json:"seed"`
@@ -94,8 +93,7 @@ func (g *GameWithPlayers) IsSinglePlayer() bool {
 			nonAiPlayers++
 		}
 	}
-	return nonAiPlayers > 1
-
+	return nonAiPlayers <= 1 // all ai players is basically a single player game. :)
 }
 
 // A game with players and a universe, used in universe and turn generation
@@ -104,6 +102,17 @@ type FullGame struct {
 	*Universe
 	*TechStore
 	Players []*Player `json:"players,omitempty"`
+}
+
+// return true if this is a single player game
+func (g *FullGame) IsSinglePlayer() bool {
+	nonAiPlayers := 0
+	for _, p := range g.Players {
+		if !p.AIControlled {
+			nonAiPlayers++
+		}
+	}
+	return nonAiPlayers <= 1 // all ai players is basically a single player game. :)
 }
 
 type Size string
@@ -239,8 +248,8 @@ func (settings *GameSettings) WithPublicPlayerScores(publicPlayerScores bool) *G
 }
 
 // add a host to this game
-func (settings *GameSettings) WithHost(raceID int64) *GameSettings {
-	settings.Players = append(settings.Players, NewGamePlayer{Type: NewGamePlayerTypeHost, RaceID: raceID, Color: "#0000FF"})
+func (settings *GameSettings) WithHost(race Race) *GameSettings {
+	settings.Players = append(settings.Players, NewGamePlayer{Type: NewGamePlayerTypeHost, Race: race, Color: "#0000FF"})
 	return settings
 }
 
@@ -259,6 +268,16 @@ func (settings *GameSettings) WithAIPlayer(aiDifficulty AIDifficulty, defaultHul
 func (settings *GameSettings) WithAIPlayerRace(race Race, aiDifficulty AIDifficulty, defaultHullSet int) *GameSettings {
 	settings.Players = append(settings.Players, NewGamePlayer{Type: NewGamePlayerTypeAI, AIDifficulty: aiDifficulty, DefaultHullSet: defaultHullSet, Race: race})
 	return settings
+}
+
+func (settings *GameSettings) IsSinglePlayer() bool {
+	numHumanPlayers := 0
+	for _, player := range settings.Players {
+		if player.Type != NewGamePlayerTypeAI {
+			numHumanPlayers++
+		}
+	}
+	return numHumanPlayers <= 1
 }
 
 func (g *Game) String() string {
@@ -291,7 +310,7 @@ func (g *Game) WithSettings(settings GameSettings) *Game {
 	return g
 }
 
-// generate an invite hash for
+// generate an invite hash for this game
 func (g *Game) GenerateHash(salt string) string {
 	hasher := sha1.New()
 	hasher.Write([]byte(fmt.Sprintf("%d-%s", g.ID, salt)))

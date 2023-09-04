@@ -4,7 +4,7 @@
 	export let user: User;
 </script>
 
-{#if user.discordAvatar != ''}
+{#if user.discordAvatar && user.discordAvatar != ''}
 	<div class="rounded-full">
 		<img
 			src={`https://cdn.discordapp.com/avatars/${user.discordId}/${user.discordAvatar}`}
@@ -14,7 +14,7 @@
 {:else}
 	<div class="avatar placeholder select-none">
 		<div class="bg-neutral-focus text-neutral-content rounded-full border">
-			<span class="text-2xl">A</span>
+			<span class="text-2xl uppercase">{user.username[0]}</span>
 		</div>
 	</div>
 {/if}

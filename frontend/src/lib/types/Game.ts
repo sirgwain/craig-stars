@@ -2,6 +2,7 @@ import type { Cost } from './Cost';
 import type { EnumDictionary } from './EnumDictionary';
 import type { MineFieldStats, MineFieldType } from './MineField';
 import type { PlayerStatus } from './Player';
+import type { Race } from './Race';
 import type { TechStore } from './Tech';
 import type { Vector } from './Vector';
 
@@ -41,6 +42,7 @@ export enum GameStartMode {
 
 export enum NewGamePlayerType {
 	Host = 'Host',
+	Guest = 'Guest',
 	Open = 'Open',
 	AI = 'AI'
 }
@@ -48,7 +50,7 @@ export enum NewGamePlayerType {
 export type NewGamePlayer = {
 	type: NewGamePlayerType;
 	userId?: number;
-	raceId?: number;
+	race?: Race;
 	color?: string;
 };
 
