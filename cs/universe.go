@@ -107,10 +107,16 @@ func (u *Universe) buildMaps(players []*Player) error {
 
 	u.fleetsByNum = make(map[playerObject]*Fleet, len(u.Fleets))
 	for _, fleet := range u.Fleets {
+		if fleet.Delete {
+			continue
+		}
 		u.addFleet(fleet)
 	}
 
 	for _, starbase := range u.Starbases {
+		if starbase.Delete {
+			continue
+		}
 		u.addStarbase(starbase)
 	}
 
@@ -131,10 +137,16 @@ func (u *Universe) buildMaps(players []*Player) error {
 	}
 
 	for _, mineralPacket := range u.MineralPackets {
+		if mineralPacket.Delete {
+			continue
+		}
 		u.mineralPacketsByNum[playerObjectKey(mineralPacket.PlayerNum, mineralPacket.Num)] = mineralPacket
 		u.addMapObjectByPosition(mineralPacket, mineralPacket.Position)
 	}
 	for _, mineField := range u.MineFields {
+		if mineField.Delete {
+			continue
+		}
 		u.mineFieldsByNum[playerObjectKey(mineField.PlayerNum, mineField.Num)] = mineField
 		u.addMapObjectByPosition(mineField, mineField.Position)
 	}
@@ -142,6 +154,9 @@ func (u *Universe) buildMaps(players []*Player) error {
 	u.salvagesByPosition = make(map[Vector]*Salvage, len(u.Salvages))
 	u.salvagesByNum = make(map[int]*Salvage, len(u.Salvages))
 	for _, salvage := range u.Salvages {
+		if salvage.Delete {
+			continue
+		}
 		u.salvagesByNum[salvage.Num] = salvage
 		u.addMapObjectByPosition(salvage, salvage.Position)
 		u.salvagesByPosition[salvage.Position] = salvage
@@ -149,12 +164,18 @@ func (u *Universe) buildMaps(players []*Player) error {
 
 	u.wormholesByNum = make(map[int]*Wormhole, len(u.Wormholes))
 	for _, wormhole := range u.Wormholes {
+		if wormhole.Delete {
+			continue
+		}
 		u.wormholesByNum[wormhole.Num] = wormhole
 		u.addMapObjectByPosition(wormhole, wormhole.Position)
 	}
 
 	u.mysteryTradersByNum = make(map[int]*MysteryTrader, len(u.MysteryTraders))
 	for _, mysteryTrader := range u.MysteryTraders {
+		if mysteryTrader.Delete {
+			continue
+		}
 		u.mysteryTradersByNum[mysteryTrader.Num] = mysteryTrader
 		u.addMapObjectByPosition(mysteryTrader, mysteryTrader.Position)
 	}

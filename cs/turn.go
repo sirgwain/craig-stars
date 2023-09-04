@@ -1572,7 +1572,10 @@ func (t *turn) fleetBattle() {
 							planet.MarkDirty()
 							messager.planetDiedOff(player, planet)
 						}
+						// remove this starbase from the planet
 						t.game.deleteStarbase(fleet)
+						planet.Starbase = nil
+						planet.MarkDirty()
 					} else {
 						t.game.deleteFleet(fleet)
 					}
