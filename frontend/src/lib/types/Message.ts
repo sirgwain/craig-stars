@@ -1,6 +1,7 @@
 import type { BattleRecordStats } from './Battle';
 import type { Target } from './Fleet';
 import { MapObjectType } from './MapObject';
+import type { QueueItemType } from './Planet';
 import type { PlayerSettings } from './PlayerSettings';
 import type { TechField } from './TechLevel';
 
@@ -12,10 +13,11 @@ export type Message = {
 } & Target;
 
 export type PlayerMessageSpec = {
-	amount: number;
-	field: TechField;
-	nextField: TechField;
-	techGained: string;
+	amount?: number;
+	field?: TechField;
+	nextField?: TechField;
+	techGained?: string;
+	queueItemType?: QueueItemType;
 	battle: BattleRecordStats;
 };
 
@@ -119,7 +121,10 @@ export enum MessageType {
 	PlanetEmptied,
 	PlanetDiscoveryHabitable,
 	PlanetDiscoveryTerraformable,
-	PlanetDiscoveryUninhabitable
+	PlanetDiscoveryUninhabitable,
+	BuildInvalidItem,
+	BuildMineralPacketNoMassDriver,
+	BuildMineralPacketNoTarget
 }
 
 // get the next visible message taking into account filters

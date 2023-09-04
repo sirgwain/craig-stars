@@ -19,11 +19,12 @@ type PlayerMessage struct {
 
 type PlayerMessageSpec struct {
 	Amount         int               `json:"amount,omitempty"`
+	QueueItemType  QueueItemType     `json:"queueItemType,omitempty"`
 	Field          TechField         `json:"field,omitempty"`
 	NextField      TechField         `json:"nextField,omitempty"`
 	TechGained     string            `json:"techGained,omitempty"`
-	Battle         BattleRecordStats `json:"battle,omitempty"`
 	LostTargetType MapObjectType     `json:"lostTargetType,omitempty"`
+	Battle         BattleRecordStats `json:"battle,omitempty"`
 }
 
 type PlayerMessageTargetType string
@@ -894,16 +895,6 @@ func (m *messageClient) mineralPacketDiscoveredTargettingPlayer(player *Player, 
 		text += " Your starbase will have no trouble catching this packet."
 	}
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageMineralPacketTargettingPlayerDiscovered, Text: text, TargetType: TargetMineralPacket, TargetNum: packet.Num, TargetPlayerNum: packetPlayer.Num})
-}
-
-func (m *messageClient) buildMineralPacketNoMassDriver(player *Player, planet *Planet) {
-	text := fmt.Sprintf("You have attempted to build a mineral packet on %s, but you have no Starbase equipped with a mass driver on this planet. Production for this planet has been cancelled.", planet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
-}
-
-func (m *messageClient) buildMineralPacketNoTarget(player *Player, planet *Planet) {
-	text := fmt.Sprintf("You have attempted to build a mineral packet on %s, but you have not specified a target. The minerals have been returned to the planet and production has been cancelled.", planet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
 }
 
 func (m *messageClient) mineralPacketDamage(player *Player, planet *Planet, packet *MineralPacket, colonistsKilled, defensesDestroyed int) {

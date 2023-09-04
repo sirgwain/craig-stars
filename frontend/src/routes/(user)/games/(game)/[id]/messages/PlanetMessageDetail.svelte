@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/Contexts';
 	import { MessageType, type Message } from '$lib/types/Message';
-	import type { Planet } from '$lib/types/Planet';
+	import type { Planet, getQueueItemShortName } from '$lib/types/Planet';
 	import type { PlayerIntel } from '$lib/types/Player';
+	import { startCase } from 'lodash-es';
 
 	const { game, player, universe, settings } = getGameContext();
 
@@ -16,6 +17,15 @@
 {#if message.type === MessageType.HomePlanet}
 	Your home planet is {planet.name}. Your people are ready to leave the nest and explore the
 	universe. Good luck.
+{:else if message.type === MessageType.BuildInvalidItem}
+	You have attempted to build {startCase(message.spec.queueItemType)} on {planet.name}, but {planet.name}
+	is unable to build any of these.
+{:else if message.type === MessageType.BuildMineralPacketNoMassDriver}
+	You have attempted to build a mineral packet on {planet.name}, but you have no Starbase equipped
+	with a mass driver on this planet. Production for this planet has been cancelled.
+{:else if message.type === MessageType.BuildMineralPacketNoTarget}
+	You have attempted to build a mineral packet on {planet.name}, but you have not specified a
+	target. The minerals have been returned to the planet and production has been cancelled.
 {:else if message.type === MessageType.BuiltMineralAlchemy}
 	Your scientists on {planet.name} have transmuted common materials into {message.spec.amount ??
 		0}kT each of Ironium, Boranium and Germanium.
