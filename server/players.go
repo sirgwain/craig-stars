@@ -313,7 +313,7 @@ func (s *server) submitTurn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if result == TurnGenerated {
-		s.sendNewTurnNotification(db, game.ID)
+		s.sendNewTurnNotification(r, game.ID)
 		s.renderFullPlayerGame(w, r, player.GameID, player.UserID)
 		return
 	}

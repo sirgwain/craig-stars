@@ -89,7 +89,7 @@ type GameWithPlayers struct {
 func (g *GameWithPlayers) IsSinglePlayer() bool {
 	nonAiPlayers := 0
 	for _, p := range g.Players {
-		if p.AIControlled {
+		if !p.AIControlled {
 			nonAiPlayers++
 		}
 	}

@@ -589,7 +589,6 @@ func (s *server) updatePlayerSlot(w http.ResponseWriter, r *http.Request) {
 
 // Generate a universe for a host
 func (s *server) startGame(w http.ResponseWriter, r *http.Request) {
-	db := s.contextDb(r)
 	user := s.contextUser(r)
 	game := s.contextGame(r)
 	gr := s.newGameRunner()
@@ -612,7 +611,7 @@ func (s *server) startGame(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// send the full game to the host
-	s.sendNewTurnNotification(db, game.ID)
+	s.sendNewTurnNotification(r, game.ID)
 	s.renderFullPlayerGame(w, r, game.ID, user.ID)
 }
 
@@ -658,7 +657,7 @@ func (s *server) generateTurn(w http.ResponseWriter, r *http.Request) {
 
 	// return the new game
 	if result == TurnGenerated {
-		s.sendNewTurnNotification(db, game.ID)
+		s.sendNewTurnNotification(r, game.ID)
 		s.renderFullPlayerGame(w, r, player.GameID, player.UserID)
 		return
 	}
