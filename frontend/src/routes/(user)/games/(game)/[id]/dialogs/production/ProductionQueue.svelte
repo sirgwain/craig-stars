@@ -1,5 +1,6 @@
 <script lang="ts">
 	import CostComponent from '$lib/components/game/Cost.svelte';
+	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import {
 		bindQuantityModifier,
 		getQuantityModifier,
@@ -18,6 +19,7 @@
 		ArrowLongLeft,
 		ArrowLongRight,
 		ArrowLongUp,
+		QuestionMarkCircle,
 		XCircle
 	} from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
@@ -440,6 +442,8 @@
 											type="button"
 											on:click={() => availableItemSelected(item)}
 											on:dblclick={() => addAvailableItem(item)}
+											on:contextmenu|preventDefault={(e) =>
+												onShipDesignTooltip(e, $universe.getMyDesign(item.designNum))}
 											class:italic={isAuto(item.type)}
 											class:bg-primary={item === selectedAvailableItem}
 											class:text-queue-item-this-year={(item.yearsToBuildOne ?? 0) == 1}
@@ -464,12 +468,13 @@
 											type="button"
 											on:click={() => availableItemSelected(item)}
 											on:dblclick={() => addAvailableItem(item)}
+											on:contextmenu|preventDefault={(e) =>
+												onShipDesignTooltip(e, $universe.getMyDesign(item.designNum))}
 											class:italic={isAuto(item.type)}
 											class:bg-primary={item === selectedAvailableItem}
 											class:text-queue-item-this-year={(item.yearsToBuildOne ?? 0) == 1}
 											class:text-queue-item-next-year={(item.yearsToBuildOne ?? 0) == 2}
 											class:text-queue-item-never={(item.yearsToBuildOne ?? 0) == Infinite}
-
 											class="w-full pl-0.5 text-left cursor-default select-none hover:text-secondary-focus }
 									{isAuto(item.type) ? ' italic' : ''}"
 										>
@@ -500,7 +505,25 @@
 						<div class="divider" />
 						<div class="h-32">
 							{#if selectedAvailableItem && selectedAvailableItemCost}
-								<h3>Cost of one {getFullName(selectedAvailableItem)}</h3>
+								<h3>
+									{#if selectedAvailableItem.designNum}
+										<button
+											type="button"
+											on:pointerdown={(e) =>
+												onShipDesignTooltip(
+													e,
+													$universe.getMyDesign(selectedAvailableItem?.designNum)
+												)}
+											>Cost of {getFullName(selectedAvailableItem)}<Icon
+												src={QuestionMarkCircle}
+												size="16"
+												class="cursor-help inline-block ml-1"
+											/></button
+										>
+									{:else}
+										Cost of {getFullName(selectedAvailableItem)}
+									{/if}
+								</h3>
 								<CostComponent cost={selectedAvailableItemCost} />
 								{#if selectedAvailableItem.yearsToBuildOne}
 									Completion {getCompletionDescription(selectedAvailableItem)}
@@ -591,6 +614,8 @@
 										<button
 											type="button"
 											on:click={() => queueItemClicked(index, queueItem)}
+											on:contextmenu|preventDefault={(e) =>
+												onShipDesignTooltip(e, $universe.getMyDesign(queueItem.designNum))}
 											class:italic={isAuto(queueItem.type)}
 											class:text-queue-item-this-year={!queueItem.skipped &&
 												(queueItem.yearsToBuildOne ?? 0) <= 1}
@@ -619,7 +644,20 @@
 						<div class="h-32">
 							{#if selectedQueueItem}
 								<h3>
-									Cost of {getFullName(selectedQueueItem)} x {selectedQueueItem.quantity}
+									{#if selectedQueueItem.designNum}
+										<button
+											type="button"
+											on:pointerdown={(e) =>
+												onShipDesignTooltip(e, $universe.getMyDesign(selectedQueueItem?.designNum))}
+											>Cost of {getFullName(selectedQueueItem)} x {selectedQueueItem.quantity}<Icon
+												src={QuestionMarkCircle}
+												size="16"
+												class="cursor-help inline-block ml-1"
+											/></button
+										>
+									{:else}
+										Cost of {getFullName(selectedQueueItem)} x {selectedQueueItem.quantity}
+									{/if}
 								</h3>
 								<CostComponent cost={selectedQueueItemCost} />
 								<div class="mt-1 text-base">

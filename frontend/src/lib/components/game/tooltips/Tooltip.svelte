@@ -46,7 +46,7 @@
 	bind:this={component}
 	class:block={!!$tooltipComponent}
 	class:hidden={!$tooltipComponent}
-	class="absolute bg-base-300 rounded-sm p-2 border-2 shadow-md z-50 text-base select-none w-full md:w-auto"
+	class="absolute bg-base-300 rounded-sm p-2 border-2 shadow-md z-[1000] text-base select-none w-full md:w-auto"
 	style={`left: ${x}px; top: ${y}px;`}
 >
 	{#if $tooltipComponent}
