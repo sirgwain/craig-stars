@@ -1,9 +1,9 @@
 import type { DesignFinder } from '$lib/services/Universe';
 import { sortBy, startCase } from 'lodash-es';
 import type { Cargo } from './Cargo';
-import type { Cost } from './Cost';
+import { divide, minus, minZero, type Cost } from './Cost';
 import type { Hab } from './Hab';
-import { MapObjectType, None, type MapObject } from './MapObject';
+import { Infinite, MapObjectType, None, type MapObject } from './MapObject';
 import { totalMinerals, type Mineral } from './Mineral';
 import type { ShipDesign } from './ShipDesign';
 import { UnlimitedSpaceDock } from './Tech';
@@ -135,6 +135,11 @@ export class CommandedPlanet implements Planet {
 		const items: ProductionQueueItem[] = [];
 
 		if (planet.spec.dockCapacity == UnlimitedSpaceDock || planet.spec.dockCapacity > 0) {
+			const yearlyAvailableToSpend = {
+				resources: planet.spec.resourcesPerYearAvailable,
+				...planet.spec.miningOutput
+			};
+
 			sortBy(
 				designs
 					.filter(
@@ -150,7 +155,12 @@ export class CommandedPlanet implements Planet {
 					type: QueueItemType.ShipToken,
 					designNum: d.num,
 					costOfOne: d.spec.cost ?? {},
-					allocated: {}
+					allocated: {},
+					yearsToBuildOne: this.getYearsToBuildOne(
+						d.spec.cost ?? {},
+						this.cargo,
+						yearlyAvailableToSpend
+					)
 				});
 			});
 		}
@@ -168,10 +178,12 @@ export class CommandedPlanet implements Planet {
 		planet: Planet,
 		designs: ShipDesign[]
 	): ProductionQueueItem[] {
-		const items: ProductionQueueItem[] = [];
-
+		const yearlyAvailableToSpend = {
+			resources: planet.spec.resourcesPerYearAvailable,
+			...planet.spec.miningOutput
+		};
 		// filter starbase designs
-		return sortBy(
+		const items = sortBy(
 			designs.filter((d) => d.spec.starbase && planet.spec.starbaseDesignNum !== d.num),
 			(d) => d.name
 		).map<ProductionQueueItem>(
@@ -180,7 +192,9 @@ export class CommandedPlanet implements Planet {
 				type: QueueItemType.Starbase,
 				designNum: d.num,
 				costOfOne: d.spec.cost ?? {},
-				allocated: {}
+				allocated: {},
+				yearsToBuildOne: this.getYearsToBuildOne(d.spec.cost, this.cargo, yearlyAvailableToSpend),
+				yearsToBuildAll: 0
 			})
 		);
 
@@ -250,12 +264,27 @@ export class CommandedPlanet implements Planet {
 
 		return items;
 	}
+
+	// get the estimated years to build one item
+	getYearsToBuildOne(
+		cost: Cost = {},
+		mineralsOnHand: Mineral,
+		yearlyAvailableToSpend: Cost
+	): number {
+		const numBuiltInAYear = divide(yearlyAvailableToSpend, minZero(minus(cost, mineralsOnHand)));
+
+		if (numBuiltInAYear === 0 || isNaN(numBuiltInAYear) || numBuiltInAYear == Infinity) {
+			return Infinite;
+		}
+
+		return Math.ceil(1 / numBuiltInAYear);
+	}
 }
 
-export const fromQueueItemType = (type: QueueItemType): ProductionQueueItem => ({
+export const fromQueueItemType = (type: QueueItemType, costOfOne = {}): ProductionQueueItem => ({
 	type,
 	quantity: 0,
-	costOfOne: {},
+	costOfOne: costOfOne,
 	allocated: {}
 });
 

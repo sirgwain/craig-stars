@@ -432,7 +432,7 @@ func (c *client) getPlayerWithDesigns(where string, args ...interface{}) ([]cs.P
 		COALESCE(d.version, 0) AS 'shipDesign.version',
 		COALESCE(d.hull, '') AS 'shipDesign.hull',
 		COALESCE(d.hullSetNumber, 0) AS 'shipDesign.hullSetNumber',
-		COALESCE(d.canDelete, 0) AS 'shipDesign.canDelete',
+		COALESCE(d.cannotDelete, 0) AS 'shipDesign.cannotDelete',
 		COALESCE(d.slots, '[]') AS 'shipDesign.slots',
 		COALESCE(d.purpose, '') AS 'shipDesign.purpose',
 		COALESCE(d.spec, '{}') AS 'shipDesign.spec'

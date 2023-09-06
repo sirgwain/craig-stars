@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { playerFinderKey } from '$lib/services/Contexts';
 	import type { PlayerFinder } from '$lib/services/Universe';
-	import type { Battle, PhaseToken } from '$lib/types/Battle';
+	import { TokenActionType, type Battle, type PhaseToken } from '$lib/types/Battle';
 	import { getContext } from 'svelte';
 	import BattleBoardAction from './BattleBoardAction.svelte';
 	import BattleBoardAttack from './BattleBoardAttack.svelte';
@@ -77,23 +77,21 @@
 					</div>
 				{/if}
 				{#if selectedToken}
-					<div
-						class="w-full card bg-base-200 shadow rounded-sm border-2 border-base-300 mb-2"
-						style={selectedToken
-							? `border-color: ${playerFinder.getPlayerColor(selectedToken.playerNum)};`
-							: ''}
-					>
+					<div class="w-full card bg-base-200 shadow rounded-sm border-2 border-base-300 mb-2">
 						<div class="card-body p-3 gap-0">
-							<h2 class="text-lg font-semibold text-center mb-1 text-secondary">Selection</h2>
+							<h2 class="text-lg font-semibold text-center mb-1 text-secondary">
+								{#if selectedToken.action?.type === TokenActionType.BeamFire || selectedToken.action?.type === TokenActionType.TorpedoFire}
+									Attacker
+								{:else}
+									Selection
+								{/if}
+							</h2>
 							<BattleBoardTokenDetails {battle} token={selectedToken} {phase} />
 						</div>
 					</div>
 				{/if}
 				{#if target && selectedToken === actionToken}
-					<div
-						class="w-full card bg-base-200 shadow rounded-sm border-2 border-base-300"
-						style={`border-color: ${playerFinder.getPlayerColor(target.playerNum)};`}
-					>
+					<div class="w-full card bg-base-200 shadow rounded-sm border-2 border-base-300">
 						<div class="card-body p-3 gap-0">
 							<h2 class="text-lg font-semibold text-center mb-1 text-secondary">Target</h2>
 							<BattleBoardTokenDetails {battle} token={target} {phase} />

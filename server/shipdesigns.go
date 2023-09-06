@@ -158,8 +158,8 @@ func (s *server) deleteShipDesign(w http.ResponseWriter, r *http.Request) {
 
 	// validate
 
-	if !design.CanDelete {
-		log.Error().Int64("ID", player.ID).Str("DesignName", design.Name).Msg("delete design with CanDelete = false")
+	if design.CannotDelete {
+		log.Error().Int64("ID", player.ID).Str("DesignName", design.Name).Msg("delete design with CannotDelete = true")
 		render.Render(w, r, ErrBadRequest(fmt.Errorf("shipDesign cannot be deleted")))
 		return
 	}

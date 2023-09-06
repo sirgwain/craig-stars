@@ -53,7 +53,7 @@
 				</div>
 			</div>
 			<div class="flex flex-row join">
-				{#if design.canDelete}
+				{#if !design.cannotDelete}
 					<button
 						class="btn btn-outline btn-secondary joint-item"
 						on:click={(e) => deleteDesign(design)}
@@ -62,8 +62,8 @@
 					</button>
 				{/if}
 				<a class="btn btn-outline btn-secondary joint-item" href={copyhref}>Copy</a>
-				<!-- canDelete = false is for designs that are reserved for the system -->
-				{#if !design.spec?.numInstances && design.canDelete}
+				<!-- cannotDelete = true is for designs that are reserved for the system -->
+				{#if !design.spec?.numInstances && !design.cannotDelete}
 					<a class="btn btn-outline btn-secondary joint-item" href={`${href}}/edit`}>Edit</a>
 				{/if}
 			</div>

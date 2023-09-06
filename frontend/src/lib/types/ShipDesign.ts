@@ -12,7 +12,7 @@ export type ShipDesign = {
 	version: number;
 	hull: string;
 	hullSetNumber: number;
-	canDelete?: boolean;
+	cannotDelete?: boolean;
 	slots: ShipDesignSlot[];
 	purpose?: string;
 	reportAge?: number;

@@ -19,10 +19,11 @@ type ShipDesign struct {
 	Version       int                  `json:"version,omitempty"`
 	Hull          string               `json:"hull,omitempty"`
 	HullSetNumber int                  `json:"hullSetNumber,omitempty"`
-	CanDelete     bool                 `json:"canDelete,omitempty"`
+	CannotDelete  bool                 `json:"cannotDelete,omitempty"`
 	Slots         *ShipDesignSlots     `json:"slots,omitempty"`
 	Purpose       cs.ShipDesignPurpose `json:"purpose,omitempty"`
 	Spec          *ShipDesignSpec      `json:"spec,omitempty"`
+	CanDelete     sql.NullBool         `json:"canDelete,omitempty"` // unused
 }
 
 type ShipDesignSlots []cs.ShipDesignSlot
@@ -132,7 +133,7 @@ func (c *client) CreateShipDesign(shipDesign *cs.ShipDesign) error {
 		version,
 		hull,
 		hullSetNumber,
-		canDelete,
+		cannotDelete,
 		slots,
 		purpose,
 		spec
@@ -147,7 +148,7 @@ func (c *client) CreateShipDesign(shipDesign *cs.ShipDesign) error {
 		:version,
 		:hull,
 		:hullSetNumber,
-		:canDelete,
+		:cannotDelete,
 		:slots,
 		:purpose,
 		:spec
@@ -182,7 +183,7 @@ func (c *client) UpdateShipDesign(shipDesign *cs.ShipDesign) error {
 		version = :version,
 		hull = :hull,
 		hullSetNumber = :hullSetNumber,
-		canDelete = :canDelete,
+		cannotDelete = :cannotDelete,
 		slots = :slots,
 		purpose = :purpose,
 		spec = :spec

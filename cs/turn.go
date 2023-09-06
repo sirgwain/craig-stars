@@ -1167,14 +1167,15 @@ func (t *turn) planetProduction() {
 
 			// log what we actually did
 			for _, itemBuilt := range result.itemsBuilt {
-				log.Debug().
-					Int("Player", planet.PlayerNum).
-					Str("Planet", planet.Name).
-					Str("Item", string(itemBuilt.queueItemType)).
-					Int("DesignNum", itemBuilt.designNum).
-					Int("NumBuilt", itemBuilt.numBuilt).
-					Msgf("built item")
-
+				if itemBuilt.numBuilt > 0 {
+					log.Debug().
+						Int("Player", planet.PlayerNum).
+						Str("Planet", planet.Name).
+						Str("Item", string(itemBuilt.queueItemType)).
+						Int("DesignNum", itemBuilt.designNum).
+						Int("NumBuilt", itemBuilt.numBuilt).
+						Msgf("built item")
+				}
 			}
 
 			// any leftover resources go back to the player for research

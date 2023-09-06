@@ -18,6 +18,8 @@ import (
 // goverter:extend TimeToTime
 // goverter:extend NullTimeToTime
 // goverter:extend TimeToNullTime
+// goverter:extend NullBoolToBool
+// goverter:extend BoolToNullBool
 // goverter:extend RulesToGameRules
 // goverter:extend GameRulesToRules
 // goverter:extend RaceSpecToGameRaceSpec
@@ -292,8 +294,10 @@ type Converter interface {
 	// goverter:map GameDBObject.GameID GameID
 	// goverter:map GameDBObject.CreatedAt CreatedAt
 	// goverter:map GameDBObject.UpdatedAt UpdatedAt
+	// goverter:ignore CanDelete
 	ConvertGameShipDesign(source *cs.ShipDesign) *ShipDesign
 	// goverter:ignore Dirty
+	// goverter:ignore CanDelete
 	// goverter:mapExtend GameDBObject ExtendShipDesignGameDBObject
 	ConvertShipDesign(source *ShipDesign) *cs.ShipDesign
 
@@ -416,6 +420,20 @@ func TimeToNullTime(source time.Time) sql.NullTime {
 	return sql.NullTime{
 		Valid: true,
 		Time:  source,
+	}
+}
+
+func NullBoolToBool(source sql.NullBool) bool {
+	if source.Valid {
+		return source.Bool
+	}
+	return false
+}
+
+func BoolToNullBool(source bool) sql.NullBool {
+	return sql.NullBool{
+		Valid: true,
+		Bool:  source,
 	}
 }
 

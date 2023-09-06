@@ -7,6 +7,8 @@
 	import { startCase } from 'lodash-es';
 	import { getContext } from 'svelte';
 	import { onShipDesignTooltip } from '../tooltips/ShipDesignTooltip.svelte';
+	import TechAvatar from '$lib/components/tech/TechAvatar.svelte';
+	import { techs } from '$lib/services/Stores';
 
 	const designFinder = getContext<DesignFinder>(designFinderKey);
 	const playerFinder = getContext<PlayerFinder>(playerFinderKey);
@@ -30,18 +32,30 @@
 		<div>
 			Location: ({token.x}, {token.y})
 		</div>
-		<div class="text-primary">
+		<div class="text-primary mt-1">
 			<button
 				type="button"
-				class="w-full h-full cursor-help text-left"
+				class="w-full h-full cursor-help"
 				on:pointerdown|preventDefault={(e) => onShipDesignTooltip(e, design)}
 			>
-				{design?.name}
-				{#if (token.quantity ?? 0) > 1}
-					x{token.quantity}
-				{/if}
-				<Icon src={QuestionMarkCircle} size="16" class=" cursor-help inline-block" />
-			</button>
+				<div class="flex flex-col">
+					<div>
+						{design?.name}
+						{#if (token.quantity ?? 0) > 1}
+							x{token.quantity}
+						{/if}
+						<Icon src={QuestionMarkCircle} size="16" class=" cursor-help inline-block" />
+					</div>
+					<div class="flex flex-row justify-center">
+						<div
+							class="border"
+							style={`border-color: ${playerFinder.getPlayerColor(design.playerNum)};`}
+						>
+							<TechAvatar tech={$techs.getHull(design.hull)} hullSetNumber={design.hullSetNumber} />
+						</div>
+					</div>
+				</div></button
+			>
 		</div>
 		<div class="flex justify-between">
 			<div>

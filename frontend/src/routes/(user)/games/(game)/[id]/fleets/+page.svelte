@@ -21,12 +21,9 @@
 	let search = '';
 
 	$: filteredFleets =
-		$universe.fleets
-			.sort((a, b) => a.num - b.num)
-			.filter(
-				(i) =>
-					i.playerNum === $player.num && i.name.toLowerCase().indexOf(search.toLowerCase()) != -1
-			) ?? [];
+		$universe
+			.getMyFleets()
+			.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? [];
 
 	const columns: SvelteTableColumn<Fleet>[] = [
 		{

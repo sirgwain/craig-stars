@@ -391,7 +391,7 @@ func (ug *universeGenerator) getStartingStarbaseDesigns(techStore *TechStore, pl
 			WithHull(OrbitalFort.Name).
 			WithPurpose(ShipDesignPurposeStarterColony).
 			WithHullSetNumber(player.DefaultHullSet)
-		starterColony.CanDelete = false
+		starterColony.CannotDelete = true
 		designNumStart++
 		designs = append(designs, *starterColony)
 	}

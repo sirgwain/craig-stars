@@ -20,11 +20,11 @@ func newCompletionEstimator() CompletionEstimator {
 
 // get the estimated years to build one item
 func (e *completionEstimate) GetYearsToBuildOne(item ProductionQueueItem, mineralsOnHand Mineral, yearlyAvailableToSpend Cost) int {
-	numYearsToBuildOne := yearlyAvailableToSpend.Divide(item.CostOfOne.Minus(item.Allocated).MinusMineral(mineralsOnHand).MinZero())
-	if numYearsToBuildOne == 0 || math.IsInf(numYearsToBuildOne, 1) {
+	numBuiltInAYear := yearlyAvailableToSpend.Divide(item.CostOfOne.Minus(item.Allocated).MinusMineral(mineralsOnHand).MinZero())
+	if numBuiltInAYear == 0 || math.IsInf(numBuiltInAYear, 1) {
 		return Infinite
 	}
-	return int(math.Ceil(1 / numYearsToBuildOne))
+	return int(math.Ceil(1 / numBuiltInAYear))
 }
 
 // simulate up to 100 years of production to determine the time each item will take to build

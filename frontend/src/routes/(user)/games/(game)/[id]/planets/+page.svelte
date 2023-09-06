@@ -28,7 +28,7 @@
 			.getMyPlanets()
 			.filter(
 				(i) =>
-					i.playerNum == $player.num && i.name.toLowerCase().indexOf(search.toLowerCase()) != -1
+					i.name.toLowerCase().indexOf(search.toLowerCase()) != -1
 			) ?? [];
 
 	const columns: SvelteTableColumn<Planet>[] = [

@@ -355,7 +355,7 @@
 		}
 
 		const yearsToBuildOne = item.yearsToBuildOne ?? 1;
-		const yearsToBuildAll = item.yearsToBuildAll ?? 1;
+		const yearsToBuildAll = item.yearsToBuildAll;
 		if (yearsToBuildOne === yearsToBuildAll) {
 			if (yearsToBuildAll == 1) {
 				return '1 year';
@@ -365,12 +365,13 @@
 			}
 			return `${yearsToBuildAll} years`;
 		}
-		if (yearsToBuildOne != yearsToBuildAll) {
+		if (yearsToBuildAll && yearsToBuildOne != yearsToBuildAll) {
 			if (yearsToBuildAll === Infinite) {
 				return `${yearsToBuildOne} to ???`;
 			}
 			return `${yearsToBuildOne} to ${yearsToBuildAll} years`;
 		}
+		return `${yearsToBuildOne} years`;
 	};
 
 	const dispatch = createEventDispatcher();
@@ -441,6 +442,9 @@
 											on:dblclick={() => addAvailableItem(item)}
 											class:italic={isAuto(item.type)}
 											class:bg-primary={item === selectedAvailableItem}
+											class:text-queue-item-this-year={(item.yearsToBuildOne ?? 0) == 1}
+											class:text-queue-item-next-year={(item.yearsToBuildOne ?? 0) == 2}
+											class:text-queue-item-never={(item.yearsToBuildOne ?? 0) == Infinite}
 											class="w-full pl-0.5 text-left cursor-default select-none hover:text-secondary-focus }
 									{isAuto(item.type) ? ' italic' : ''}"
 										>
@@ -462,6 +466,10 @@
 											on:dblclick={() => addAvailableItem(item)}
 											class:italic={isAuto(item.type)}
 											class:bg-primary={item === selectedAvailableItem}
+											class:text-queue-item-this-year={(item.yearsToBuildOne ?? 0) == 1}
+											class:text-queue-item-next-year={(item.yearsToBuildOne ?? 0) == 2}
+											class:text-queue-item-never={(item.yearsToBuildOne ?? 0) == Infinite}
+
 											class="w-full pl-0.5 text-left cursor-default select-none hover:text-secondary-focus }
 									{isAuto(item.type) ? ' italic' : ''}"
 										>
@@ -491,9 +499,12 @@
 						</ul>
 						<div class="divider" />
 						<div class="h-32">
-							{#if selectedAvailableItem}
+							{#if selectedAvailableItem && selectedAvailableItemCost}
 								<h3>Cost of one {getFullName(selectedAvailableItem)}</h3>
 								<CostComponent cost={selectedAvailableItemCost} />
+								{#if selectedAvailableItem.yearsToBuildOne}
+									Completion {getCompletionDescription(selectedAvailableItem)}
+								{/if}
 							{/if}
 						</div>
 					</div>

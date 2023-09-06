@@ -637,7 +637,7 @@ func (c *GameConverter) csShipDesignToDbShipDesign(source cs.ShipDesign) ShipDes
 	dbShipDesign.Version = source.Version
 	dbShipDesign.Hull = source.Hull
 	dbShipDesign.HullSetNumber = source.HullSetNumber
-	dbShipDesign.CanDelete = source.CanDelete
+	dbShipDesign.CannotDelete = source.CannotDelete
 	dbShipDesign.Slots = GameShipDesignSlotsToShipDesignSlots(source.Slots)
 	dbShipDesign.Purpose = cs.ShipDesignPurpose(source.Purpose)
 	dbShipDesign.Spec = GameShipDesignSpecToShipDesignSpec(source.Spec)
@@ -773,7 +773,7 @@ func (c *GameConverter) dbShipDesignToCsShipDesign(source ShipDesign) cs.ShipDes
 	csShipDesign.Version = source.Version
 	csShipDesign.Hull = source.Hull
 	csShipDesign.HullSetNumber = source.HullSetNumber
-	csShipDesign.CanDelete = source.CanDelete
+	csShipDesign.CannotDelete = source.CannotDelete
 	csShipDesign.Slots = ShipDesignSlotsToGameShipDesignSlots(source.Slots)
 	csShipDesign.Purpose = cs.ShipDesignPurpose(source.Purpose)
 	csShipDesign.Spec = ShipDesignSpecToGameShipDesignSpec(source.Spec)

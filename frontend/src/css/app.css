@@ -98,7 +98,11 @@
 	}
 
 	.text-queue-item-skipped {
-		@apply text-secondary
+		@apply text-secondary;
+	}
+
+	.text-queue-item-never {
+		@apply text-error;
 	}
 
 	.text-queue-item-this-year {
@@ -107,7 +111,7 @@
 
 	.text-queue-item-next-year {
 		@apply text-[#0960ff];
-	}	
+	}
 }
 
 .scanner-wormhole {
@@ -122,7 +126,7 @@
 
 .show-location-line {
 	fill: none;
-	stroke: #FFFFFF;
+	stroke: #ffffff;
 	stroke-linecap: round;
 	stroke-width: 2;
 }

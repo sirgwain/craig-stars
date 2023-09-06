@@ -16,7 +16,6 @@
 	let copiedText = '';
 
 	onMount(async () => {
-		console.log(player);
 		if (player.guest) {
 			guest = await $game.loadGuest(player.num);
 		}
