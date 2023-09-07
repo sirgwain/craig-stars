@@ -4,6 +4,7 @@
 	import type { Planet, getQueueItemShortName } from '$lib/types/Planet';
 	import type { PlayerIntel } from '$lib/types/Player';
 	import { startCase } from 'lodash-es';
+	import FallbackMessageDetail from './FallbackMessageDetail.svelte';
 
 	const { game, player, universe, settings } = getGameContext();
 
@@ -56,6 +57,13 @@
 	{:else}
 		All of your colonists on {planet.name} have died off. You no longer control the planet.
 	{/if}
+{:else if message.type === MessageType.PlanetPopulationDecreased}
+	The population on {planet.name} has decreased from {(
+		message.spec.prevAmount ?? 0
+	).toLocaleString()} to {(message.spec.amount ?? 0).toLocaleString}.
+{:else if message.type === MessageType.PlanetPopulationDecreasedOvercrowding}
+	The population on {planet.name} has decreased by {(-(message.spec.amount ?? 0)).toLocaleString()} due
+	to overcrowding.
 {:else}
-	{message.text}
+	<FallbackMessageDetail {message} />
 {/if}

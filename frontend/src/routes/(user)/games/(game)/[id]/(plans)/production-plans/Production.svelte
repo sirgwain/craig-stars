@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { getQuantityModifier } from '$lib/quantityModifier';
+	import { quantityModifier } from '$lib/quantityModifier';
+	import type { DesignFinder } from '$lib/services/Universe';
 	import {
 		QueueItemType,
 		fromQueueItemType,
@@ -9,7 +10,6 @@
 	} from '$lib/types/Planet';
 	import { createEventDispatcher } from 'svelte';
 	import ProductionPlanItemsButtons from './ProductionItemsButtons.svelte';
-	import type { DesignFinder } from '$lib/services/Universe';
 
 	const dispatch = createEventDispatcher();
 
@@ -43,13 +43,13 @@
 		dispatch('queue-item-selected', selectedQueueItem);
 	};
 
-	const addAvailableItem = (item?: ProductionQueueItem) => {
+	const addAvailableItem = (e: MouseEvent, item?: ProductionQueueItem) => {
 		item = item ?? selectedAvailableItem;
 		if (!queueItems || !item) {
 			return;
 		}
 
-		const quantity = getQuantityModifier();
+		const quantity = quantityModifier(e);
 		if (selectedQueueItem) {
 			if (selectedQueueItem.type == item?.type && selectedQueueItem.designNum == item?.designNum) {
 				selectedQueueItem.quantity += quantity;
@@ -79,9 +79,9 @@
 		queueItems = queueItems;
 	};
 
-	const removeItem = () => {
+	const removeItem = (e: MouseEvent) => {
 		if (queueItems && selectedQueueItem) {
-			selectedQueueItem.quantity -= getQuantityModifier();
+			selectedQueueItem.quantity -= quantityModifier(e);
 			queueItems = queueItems;
 			if (selectedQueueItem.quantity <= 0) {
 				// select the item up in the list
@@ -128,7 +128,7 @@
 					<button
 						type="button"
 						on:click={() => availableItemSelected(item)}
-						on:dblclick={() => addAvailableItem(item)}
+						on:dblclick={(e) => addAvailableItem(e, item)}
 						class="w-full text-left cursor-default select-none hover:text-secondary-focus {item ==
 						selectedAvailableItem
 							? ' bg-primary'
@@ -144,8 +144,8 @@
 
 	<div>
 		<ProductionPlanItemsButtons
-			on:add-item={() => addAvailableItem()}
-			on:remove-item={() => removeItem()}
+			on:add-item={(e) => addAvailableItem(e.detail)}
+			on:remove-item={(e) => removeItem(e.detail)}
 			on:item-up={() => itemUp()}
 			on:item-down={() => itemDown()}
 			on:clear={() => clear()}

@@ -73,6 +73,10 @@ func (c *client) GetGames() ([]cs.Game, error) {
 	return c.converter.ConvertGames(items), nil
 }
 
+func (c *client) GetGamesWithPlayers() ([]cs.GameWithPlayers, error) {
+	return c.getGameWithPlayersStatus("", nil)
+}
+
 func (c *client) GetGamesForHost(userID int64) ([]cs.GameWithPlayers, error) {
 	return c.getGameWithPlayersStatus(`g.hostId = ?`, userID)
 }
@@ -88,7 +92,6 @@ func (c *client) GetOpenGames() ([]cs.GameWithPlayers, error) {
 func (c *client) GetOpenGamesByHash(hash string) ([]cs.GameWithPlayers, error) {
 	return c.getGameWithPlayersStatus(`g.state = ? AND g.openPlayerSlots > 0 AND g.hash = ?`, cs.GameStateSetup, hash)
 }
-
 
 // get a game by id
 func (c *client) GetGame(id int64) (*cs.GameWithPlayers, error) {
@@ -119,6 +122,11 @@ func (c *client) getGameWithPlayersStatus(where string, args ...interface{}) ([]
 	type gamePlayersJoin struct {
 		Game            `json:"game,omitempty"`
 		cs.PlayerStatus `json:"player,omitempty"`
+	}
+
+	whereClause := ""
+	if where != "" {
+		whereClause = fmt.Sprintf("WHERE %s", where)
 	}
 
 	rows := []gamePlayersJoin{}
@@ -175,8 +183,8 @@ func (c *client) getGameWithPlayersStatus(where string, args ...interface{}) ([]
 	FROM games g
 	LEFT JOIN players p
 		ON g.id = p.gameId
-	WHERE %s
-`, where), args...)
+	%s
+`, whereClause), args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return []cs.GameWithPlayers{}, nil

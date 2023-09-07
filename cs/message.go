@@ -19,6 +19,7 @@ type PlayerMessage struct {
 
 type PlayerMessageSpec struct {
 	Amount         int               `json:"amount,omitempty"`
+	PrevAmount     int               `json:"prevAmount,omitempty"`
 	QueueItemType  QueueItemType     `json:"queueItemType,omitempty"`
 	Field          TechField         `json:"field,omitempty"`
 	NextField      TechField         `json:"nextField,omitempty"`
@@ -114,7 +115,15 @@ const (
 	PlayerMessageBuildInvalidItem
 	PlayerMessageBuildMineralPacketNoMassDriver
 	PlayerMessageBuildMineralPacketNoTarget
+	PlayerMessagePlanetPopulationDecreased
+	PlayerMessagePlanetPopulationDecreasedOvercrowding
+	PlayerMessagePlayerDead
+	PlayerMessagePlayerNoPlanets
 )
+
+func newMessage(messageType PlayerMessageType) PlayerMessage {
+	return PlayerMessage{Type: messageType}
+}
 
 // create a new message targeting a planet
 func newPlanetMessage(messageType PlayerMessageType, target *Planet) PlayerMessage {
@@ -710,6 +719,14 @@ func (m *messageClient) planetDiedOff(player *Player, planet *Planet) {
 
 func (m *messageClient) planetEmptied(player *Player, planet *Planet) {
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetEmptied, TargetType: TargetPlanet, TargetNum: planet.Num})
+}
+
+func (m *messageClient) planetPopulationDecreased(player *Player, planet *Planet, prevAmount int, amount int) {
+	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetPopulationDecreased, planet).withSpec(PlayerMessageSpec{PrevAmount: prevAmount, Amount: amount}))
+}
+
+func (m *messageClient) planetPopulationDecreasedOvercrowding(player *Player, planet *Planet, amount int) {
+	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetPopulationDecreasedOvercrowding, planet).withSpec(PlayerMessageSpec{Amount: amount}))
 }
 
 func (m *messageClient) battle(player *Player, planet *Planet, battle *BattleRecord) {

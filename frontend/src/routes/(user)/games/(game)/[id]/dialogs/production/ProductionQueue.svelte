@@ -2,9 +2,8 @@
 	import CostComponent from '$lib/components/game/Cost.svelte';
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import {
-		bindQuantityModifier,
-		getQuantityModifier,
-		unbindQuantityModifier
+		quantityModifier
+
 	} from '$lib/quantityModifier';
 	import { getGameContext } from '$lib/services/Contexts';
 	import { PlanetService } from '$lib/services/PlanetService';
@@ -104,14 +103,14 @@
 		selectedQueueItemCost = await getItemCost(selectedQueueItem, selectedQueueItem?.quantity);
 	};
 
-	const addAvailableItem = async (item?: ProductionQueueItem) => {
+	const addAvailableItem = async (e: MouseEvent, item?: ProductionQueueItem) => {
 		item = item ?? selectedAvailableItem;
 		if (!queueItems || !item) {
 			return;
 		}
 
 		const max = getMaxBuildable(item.type);
-		const quantity = clamp(getQuantityModifier(), 0, max);
+		const quantity = clamp(quantityModifier(e), 0, max);
 		if (quantity == 0) {
 			// don't add something we can't build any more of
 			return;
@@ -162,9 +161,9 @@
 		updateQueueEstimates();
 	};
 
-	const removeItem = async () => {
+	const removeItem = async (e: MouseEvent) => {
 		if (queueItems && selectedQueueItem) {
-			selectedQueueItem.quantity -= getQuantityModifier();
+			selectedQueueItem.quantity -= quantityModifier(e);
 			queueItems = queueItems;
 			if (selectedQueueItem.quantity <= 0) {
 				// select the item up in the list
@@ -384,7 +383,6 @@
 		hotkeys('Enter', ok);
 		hotkeys('n', scope, next);
 		hotkeys('p', scope, prev);
-		bindQuantityModifier(scope);
 		hotkeys.setScope(scope);
 
 		return () => {
@@ -392,7 +390,6 @@
 			hotkeys.unbind('Enter', ok);
 			hotkeys.unbind('n', scope, next);
 			hotkeys.unbind('p', scope, prev);
-			unbindQuantityModifier(scope);
 			hotkeys.deleteScope(scope);
 		};
 	});
@@ -441,7 +438,7 @@
 										<button
 											type="button"
 											on:click={() => availableItemSelected(item)}
-											on:dblclick={() => addAvailableItem(item)}
+											on:dblclick={(e) => addAvailableItem(e, item)}
 											on:contextmenu|preventDefault={(e) =>
 												onShipDesignTooltip(e, $universe.getMyDesign(item.designNum))}
 											class:italic={isAuto(item.type)}
@@ -467,7 +464,7 @@
 										<button
 											type="button"
 											on:click={() => availableItemSelected(item)}
-											on:dblclick={() => addAvailableItem(item)}
+											on:dblclick={(e) => addAvailableItem(e, item)}
 											on:contextmenu|preventDefault={(e) =>
 												onShipDesignTooltip(e, $universe.getMyDesign(item.designNum))}
 											class:italic={isAuto(item.type)}
@@ -491,7 +488,7 @@
 									<button
 										type="button"
 										on:click={() => availableItemSelected(item)}
-										on:dblclick={() => addAvailableItem(item)}
+										on:dblclick={(e) => addAvailableItem(e, item)}
 										class:italic={isAuto(item.type)}
 										class:bg-primary={item === selectedAvailableItem}
 										class="w-full pl-0.5 text-left cursor-default select-none hover:text-secondary-focus }
@@ -535,7 +532,7 @@
 				<div class="flex-none h-full mx-0.5 md:w-32 px-1">
 					<div class="flex-row flex-none gap-y-2">
 						<button
-							on:click={() => addAvailableItem()}
+							on:click={(e) => addAvailableItem(e)}
 							class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
 							><span class="hidden sm:inline">Add </span><Icon
 								src={ArrowLongRight}

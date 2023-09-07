@@ -33,6 +33,7 @@ func (c *client) GetUsers() ([]cs.User, error) {
 		createdAt,
 		updatedAt,
 		username,
+		id,
 		gameId,
 		playerNum,
 		email,

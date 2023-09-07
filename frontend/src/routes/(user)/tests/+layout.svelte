@@ -1,17 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { bindQuantityModifier, unbindQuantityModifier } from '$lib/quantityModifier';
-	import { getContext, onMount } from 'svelte';
+	import { getContext } from 'svelte';
 	import TestBreadcrumb from './TestBreadcrumb.svelte';
-
-	onMount(() => {
-		// setup the quantityModifier
-		bindQuantityModifier();
-
-		return () => {
-			unbindQuantityModifier();
-		};
-	});
 
 	let title = getContext<string>('title');
 

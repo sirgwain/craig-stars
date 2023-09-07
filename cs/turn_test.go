@@ -182,6 +182,56 @@ func Test_generateTurns(t *testing.T) {
 
 }
 
+func Test_turn_grow(t *testing.T) {
+	game := createSingleUnitGame()
+
+	player := game.Players[0]
+
+	// add a second, third, and fourth planet
+	// first two are hostile and will lose colonists
+	// the final planet is for overcrowding
+	game.Planets = append(game.Planets,
+		&Planet{
+			MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 2", Num: 2, PlayerNum: player.Num},
+			Hab:       Hab{0, 0, 0}, // bad planet
+			BaseHab:   Hab{0, 0, 0},
+		},
+		&Planet{
+			MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 3", Num: 3, PlayerNum: player.Num},
+			Hab:       Hab{0, 0, 0}, // bad planet
+			BaseHab:   Hab{0, 0, 0},
+		},
+		&Planet{
+			MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 3", Num: 3, PlayerNum: player.Num},
+			Hab:       Hab{50, 50, 50}, // good planet
+			BaseHab:   Hab{50, 50, 50},
+		},
+	)
+
+	planet1 := game.Planets[0]
+	planet2 := game.Planets[1]
+	planet3 := game.Planets[2]
+	planet4 := game.Planets[3]
+	planet1.setPopulation(100_000)
+	planet2.setPopulation(100_000)
+	planet3.setPopulation(100) // last turn with us
+	planet4.setPopulation(2_400_000) // should lose 4%
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	turn.generateTurn()
+
+	// one planet should grow, another should not, the other should die off completely
+	assert.Equal(t, 115_000, planet1.population())
+	assert.Equal(t, 95_500, planet2.population())
+	assert.Equal(t, 0, planet3.population())
+	assert.Equal(t, false, planet3.Owned())
+	assert.Equal(t, 2_304_000, planet4.population())
+}
+
 func Test_turn_fleetRoute(t *testing.T) {
 	game := createSingleUnitGame()
 

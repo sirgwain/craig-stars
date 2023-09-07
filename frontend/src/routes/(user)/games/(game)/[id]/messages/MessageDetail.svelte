@@ -9,6 +9,7 @@
 	import type { Planet } from '$lib/types/Planet';
 	import PlanetMessageDetail from './PlanetMessageDetail.svelte';
 	import FleetMessageDetail from './FleetMessageDetail.svelte';
+	import PlayerMessageDetail from './PlayerMessageDetail.svelte';
 
 	const { game, player, universe, settings } = getGameContext();
 
@@ -81,5 +82,5 @@
 {:else if fleet}
 	<FleetMessageDetail {message} {fleet} {owner} />
 {:else}
-	{message.text}
+	<PlayerMessageDetail {message}/>
 {/if}

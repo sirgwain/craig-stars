@@ -97,6 +97,7 @@ type Client interface {
 	GetRulesForGame(gameID int64) (*cs.Rules, error)
 
 	GetGames() ([]cs.Game, error)
+	GetGamesWithPlayers() ([]cs.GameWithPlayers, error)
 	GetGamesForHost(userID int64) ([]cs.GameWithPlayers, error)
 	GetGamesForUser(userID int64) ([]cs.GameWithPlayers, error)
 	GetOpenGames() ([]cs.GameWithPlayers, error)

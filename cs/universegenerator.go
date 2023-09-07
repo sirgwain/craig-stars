@@ -337,14 +337,19 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 				surfaceMinerals = extraWorldSurfaceMinerals
 			}
 
-			// first planet is a homeworld
-			// make a new homeworld
-			if err := playerPlanet.initStartingWorld(player, &ug.Rules, startingPlanet, homeworldMinConc, surfaceMinerals); err != nil {
-				return err
+			// make a new starter world
+			playerPlanet.initStartingWorld(player, &ug.Rules, startingPlanet, homeworldMinConc, surfaceMinerals)
+
+			// add a starbase to this homewrold
+			if startingPlanet.StarbaseDesignName != "" {
+				if err := ug.buildStarbase(player, playerPlanet, startingPlanet.StarbaseDesignName); err != nil {
+					return err
+				}
 			}
-			if playerPlanet.Starbase != nil {
-				ug.universe.Starbases = append(ug.universe.Starbases, playerPlanet.Starbase)
-			}
+
+			// tell theplayer about the homeworld
+			messager.homePlanet(player, playerPlanet)
+
 			// generate some fleets on the homeworld
 			if err := ug.generatePlayerFleets(player, playerPlanet, &fleetNum, startingPlanet.StartingFleets); err != nil {
 				return err
@@ -352,6 +357,24 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 
 		}
 	}
+
+	return nil
+}
+
+// build a starbase on a planet
+func (ug *universeGenerator) buildStarbase(player *Player, planet *Planet, designName string) error {
+	// // the homeworld gets a starbase
+	design := player.GetDesignByName(designName)
+	if design == nil {
+		return fmt.Errorf("no design named %s found", designName)
+	}
+
+	design.Spec.NumBuilt++
+	starbase := newStarbase(player, planet, design, design.Name)
+	starbase.Spec = ComputeFleetSpec(&ug.Rules, player, &starbase)
+	planet.setStarbase(&ug.Rules, player, &starbase)
+
+	ug.universe.Starbases = append(ug.universe.Starbases, &starbase)
 
 	return nil
 }

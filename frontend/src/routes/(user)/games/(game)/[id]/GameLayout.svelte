@@ -7,7 +7,6 @@
 	import Popup from '$lib/components/game/tooltips/Popup.svelte';
 	import Tooltip from '$lib/components/game/tooltips/Tooltip.svelte';
 	import { bindNavigationHotkeys, unbindNavigationHotkeys } from '$lib/navigationHotkeys';
-	import { bindQuantityModifier, unbindQuantityModifier } from '$lib/quantityModifier';
 	import { clearGameContext, getGameContext, initGameContext } from '$lib/services/Contexts';
 	import type { CSError } from '$lib/services/Errors';
 	import type { FullGame } from '$lib/services/FullGame';
@@ -53,9 +52,6 @@
 				error = `${e}`;
 			}
 		}
-
-		// setup the quantityModifier
-		bindQuantityModifier();
 	});
 
 	// async onMount means onDestroy needs to live
@@ -65,7 +61,6 @@
 		unsubscribe && unsubscribe();
 		clearGameContext();
 
-		unbindQuantityModifier();
 		unbindNavigationHotkeys();
 		hotkeys.unbind('F9', 'root');
 		hotkeys.unbind('n', 'root');

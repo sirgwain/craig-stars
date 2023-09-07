@@ -126,6 +126,7 @@ func Start(config config.Config) error {
 					tokenUser.setDatabaseID(user.ID)
 					tokenUser.setGameID(user.GameID)
 					tokenUser.setPlayerNum(user.PlayerNum)
+					tokenUser.SetRole(string(user.Role))
 
 					// if we're admin, set the admin claim
 					if user.Role == cs.RoleAdmin { // set attributes for admin
@@ -273,6 +274,13 @@ func Start(config config.Config) error {
 		r.Route("/api/calculators", func(r chi.Router) {
 			r.Post("/planet-production-estimate", server.getPlanetProductionEstimate)
 			r.Post("/starbase-upgrade-cost", server.getStarbaseUpgradeCost)
+		})
+
+		// admin routes
+		r.Route("/api/admin", func(r chi.Router) {
+			r.Use(server.adminRequired)
+			r.Get("/games", server.allGames)
+			r.Get("/users", server.users)
 		})
 
 		// route for all operations that act on a game

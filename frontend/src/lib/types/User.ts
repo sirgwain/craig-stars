@@ -24,12 +24,15 @@ export type SessionUser = {
 
 export class User implements SessionUser {
 	id = 0;
+	createdAt = '';
+	updatedAt = '';
 	username = '';
 	password = '';
 	role = UserRole.guest;
 	status = UserStatus.Unknown;
 	discordId = '';
 	discordAvatar = '';
+	lastLogin = '';
 
 	isGuest() {
 		return this.role == UserRole.guest;

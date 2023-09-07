@@ -286,11 +286,7 @@ func (p *Planet) randomize(rules *Rules) {
 }
 
 // Initialize a planet to be a homeworld for a payer with ideal hab, starting mineral concentration, etc
-func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet StartingPlanet, concentration Mineral, surface Mineral) error {
-
-	if len(player.Race.Spec.StartingPlanets) == 0 {
-		return fmt.Errorf("no starting planets defined for player %v, race %v", player, player.Race)
-	}
+func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet StartingPlanet, concentration Mineral, surface Mineral) {
 
 	log.Debug().Msgf("Assigning %s to %s as homeworld", p, player)
 
@@ -334,39 +330,17 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 	p.ContributesOnlyLeftoverToResearch = false
 	p.Scanner = true
 
-	// // the homeworld gets a starbase
-	starbaseDesign := player.GetDesignByName(startingPlanet.StarbaseDesignName)
-	if starbaseDesign == nil {
-		return fmt.Errorf("no design named %s found", startingPlanet.StarbaseDesignName)
-	}
-	p.buildStarbase(rules, player, starbaseDesign)
-
 	if len(player.ProductionPlans) > 0 {
 		plan := player.ProductionPlans[0]
 		plan.Apply(p)
 	}
 
-	messager.homePlanet(player, p)
-
-	return nil
 }
 
-// build a starbase on this planet
-func (p *Planet) buildStarbase(rules *Rules, player *Player, design *ShipDesign) *Fleet {
-	if p.Starbase != nil {
-		oldDesign := p.Starbase.Tokens[0].design
-		oldDesign.MarkDirty()
-	}
-	design.Spec.NumBuilt++
-	design.MarkDirty()
-
-	// build the new starbase and compute the fleet spec for it
-	starbase := newStarbase(player, p, design, design.Name)
-	starbase.Spec = ComputeFleetSpec(rules, player, &starbase)
-	p.Starbase = &starbase
+// set this planet's starbase on this planet
+func (p *Planet) setStarbase(rules *Rules, player *Player, starbase *Fleet) {
+	p.Starbase = starbase
 	p.PacketSpeed = starbase.Spec.SafePacketSpeed
-
-	return p.Starbase
 }
 
 // Get the number of innate mines this player would have on this planet
@@ -404,7 +378,7 @@ func (p *Planet) getMineralOutput(numMines int, mineOutput int) Mineral {
 }
 
 // get how much a player will grow on a planet, given a max population the player can have on the planet
-func (p *Planet) getGrowthAmount(player *Player, maxPopulation int) int {
+func (p *Planet) getGrowthAmount(player *Player, maxPopulation int, populationOvercrowdDieoffRate, populationOvercrowdDieoffRateMax float64) int {
 	race := &player.Race
 	growthFactor := race.Spec.GrowthFactor
 	capacity := float64(p.population()) / float64(maxPopulation)
@@ -412,7 +386,19 @@ func (p *Planet) getGrowthAmount(player *Player, maxPopulation int) int {
 	if habValue > 0 {
 		popGrowth := int(float64(p.population())*float64(race.GrowthRate)*growthFactor/100.0*float64(habValue)/100.0 + .5)
 
-		if capacity > .25 {
+		if capacity > 1 {
+			// overpopulation calcs: https://wiki.starsautohost.org/wiki/Overpopulation
+			// Population Death from overcrowding is 0.04% per % over 100% cap.
+			// Thus a 200% capacity planet is 100% over and thus has (0.04 * 100 = 4%) a 4% death rate. This maxes out at 400% capacity at 12%
+			// Credit: Thomas Harley
+			// In addition to deaths:
+			// excess population on overcrowded planets cannot work factories or mines
+			// the first 200% overpopulation (300% capacity) only produce half their normal production(for a net population production of 200%).
+			// Population over 300% produce nothing.
+
+			dieoffPercent := clampFloat64((1-capacity)*populationOvercrowdDieoffRate, -populationOvercrowdDieoffRateMax, 0)
+			popGrowth = int(float64(p.population()) * float64(dieoffPercent))
+		} else if capacity > .25 {
 			crowdingFactor := 16.0 / 9.0 * (1.0 - capacity) * (1.0 - capacity)
 			popGrowth = int(float64(popGrowth) * crowdingFactor)
 		}
@@ -440,7 +426,7 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	if spec.MaxPopulation > 0 {
 		spec.PopulationDensity = float64(planet.population()) / float64(spec.MaxPopulation)
 	}
-	spec.GrowthAmount = planet.getGrowthAmount(player, spec.MaxPopulation)
+	spec.GrowthAmount = planet.getGrowthAmount(player, spec.MaxPopulation, rules.PopulationOvercrowdDieoffRate, rules.PopulationOvercrowdDieoffRateMax)
 	spec.MiningOutput = planet.getMineralOutput(planet.Mines, race.MineOutput)
 
 	// terraforming

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getQuantityModifier } from '$lib/quantityModifier';
+	import { quantityModifier } from '$lib/quantityModifier';
 	import { getGameContext } from '$lib/services/Contexts';
 	import { clamp } from '$lib/services/Math';
 	import { emptyCargo, negativeCargo, totalCargo, type Cargo, add } from '$lib/types/Cargo';
@@ -157,23 +157,23 @@
 						{/if}
 						<div class="mt-16">
 							<TransferButtons
-								on:transfer-to-source={() => transferIronium(getQuantityModifier())}
-								on:transfer-to-dest={() => transferIronium(-getQuantityModifier())}
+								on:transfer-to-source={(e) => transferIronium(quantityModifier(e.detail))}
+								on:transfer-to-dest={(e) => transferIronium(-quantityModifier(e.detail))}
 								class="my-2"
 							/>
 							<TransferButtons
-								on:transfer-to-source={() => transferBoranium(getQuantityModifier())}
-								on:transfer-to-dest={() => transferBoranium(-getQuantityModifier())}
+								on:transfer-to-source={(e) => transferBoranium(quantityModifier(e.detail))}
+								on:transfer-to-dest={(e) => transferBoranium(-quantityModifier(e.detail))}
 								class="my-2"
 							/>
 							<TransferButtons
-								on:transfer-to-source={() => transferGermanium(getQuantityModifier())}
-								on:transfer-to-dest={() => transferGermanium(-getQuantityModifier())}
+								on:transfer-to-source={(e) => transferGermanium(quantityModifier(e.detail))}
+								on:transfer-to-dest={(e) => transferGermanium(-quantityModifier(e.detail))}
 								class="my-2"
 							/>
 							<TransferButtons
-								on:transfer-to-source={() => transferColonists(getQuantityModifier())}
-								on:transfer-to-dest={() => transferColonists(-getQuantityModifier())}
+								on:transfer-to-source={(e) => transferColonists(quantityModifier(e.detail))}
+								on:transfer-to-dest={(e) => transferColonists(-quantityModifier(e.detail))}
 								class="my-2"
 							/>
 						</div>

@@ -27,6 +27,10 @@ func (u *sessionUser) isGuest() bool {
 	return u.Role == string(cs.RoleGuest)
 }
 
+func (u *sessionUser) isAdmin() bool {
+	return u.Role == string(cs.RoleAdmin)
+}
+
 const (
 	attrDatabaseID    string = "database_id"
 	attrDiscordID     string = "discord_id"
@@ -96,6 +100,14 @@ func (u *tokenUser) playerNum() int {
 	}
 
 	return 0
+}
+
+func (u *tokenUser) setRole(role cs.UserRole) {
+	u.User.SetRole(string(role))
+}
+
+func (u *tokenUser) getRole() cs.UserRole {
+	return cs.UserRoleFromString(u.User.GetRole())
 }
 
 // get the user from the context

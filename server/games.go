@@ -123,6 +123,7 @@ func (s *server) games(w http.ResponseWriter, r *http.Request) {
 	rest.RenderJSON(w, games)
 }
 
+
 func (s *server) hostedGames(w http.ResponseWriter, r *http.Request) {
 	user := s.contextUser(r)
 	db := s.contextDb(r)

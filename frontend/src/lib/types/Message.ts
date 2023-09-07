@@ -14,6 +14,7 @@ export type Message = {
 
 export type PlayerMessageSpec = {
 	amount?: number;
+	prevAmount?: number;
 	field?: TechField;
 	nextField?: TechField;
 	techGained?: string;
@@ -124,7 +125,11 @@ export enum MessageType {
 	PlanetDiscoveryUninhabitable,
 	BuildInvalidItem,
 	BuildMineralPacketNoMassDriver,
-	BuildMineralPacketNoTarget
+	BuildMineralPacketNoTarget,
+	PlanetPopulationDecreased,
+	PlanetPopulationDecreasedOvercrowding,
+	PlayerDead,
+	PlayerNoPlanets
 }
 
 // get the next visible message taking into account filters

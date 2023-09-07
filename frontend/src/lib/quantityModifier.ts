@@ -1,29 +1,4 @@
-import hotkeys from 'hotkeys-js';
 
-let tenModifier = 1;
-let hundredModifier = 1;
-
-export const bindQuantityModifier = (scope = 'root') => {
-	hotkeys('*', { keyup: true, scope }, function (event) {
-		if (hotkeys.shift) {
-			if (event.type === 'keydown') {
-				tenModifier = 10;
-			} else if (event.type === 'keyup') {
-				tenModifier = 1;
-			}
-		}
-		if (hotkeys.control || hotkeys.command) {
-			if (event.type === 'keydown') {
-				hundredModifier = 100;
-			} else if (event.type === 'keyup') {
-				hundredModifier = 1;
-			}
-		}
-	});
-};
-
-export const unbindQuantityModifier = (scope = 'root') => {
-	hotkeys.unbind('*', scope);
-};
-
-export const getQuantityModifier = () => tenModifier * hundredModifier;
+// get the quantity modifier for multiplying adding/removing items
+export const quantityModifier = (e: MouseEvent) =>
+	(e.shiftKey ? 10 : 1) * (e.metaKey || e.ctrlKey ? 100 : 1);

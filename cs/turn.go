@@ -118,6 +118,7 @@ func (t *turn) generateTurn() error {
 
 	// as a last turn step, calculate scores and check for victories
 	t.calculateScores()
+	t.checkDeath()
 
 	t.game.State = GameStateWaitingForPlayers
 
@@ -1221,7 +1222,9 @@ func (t *turn) buildStarbase(player *Player, planet *Planet, design *ShipDesign)
 		t.game.deleteStarbase(planet.Starbase)
 	}
 
-	starbase := planet.buildStarbase(&t.game.Rules, player, design)
+	starbase := newStarbase(player, planet, design, design.Name)
+	starbase.Spec = ComputeFleetSpec(&t.game.Rules, player, &starbase)
+	planet.setStarbase(&t.game.Rules, player, &starbase)
 	log.Debug().
 		Int64("GameID", t.game.ID).
 		Int("Player", starbase.PlayerNum).
@@ -1229,9 +1232,9 @@ func (t *turn) buildStarbase(player *Player, planet *Planet, design *ShipDesign)
 		Str("Starbase", starbase.Name).
 		Msgf("starbase built")
 
-	t.game.Starbases = append(t.game.Starbases, starbase)
-	t.game.addStarbase(starbase)
-	return starbase
+	t.game.Starbases = append(t.game.Starbases, &starbase)
+	t.game.addStarbase(&starbase)
+	return &starbase
 }
 
 // build a mineral packet with cargo
@@ -1422,16 +1425,39 @@ func (t *turn) planetGrow() {
 	for _, planet := range t.game.Planets {
 		if planet.Owned() {
 			player := t.game.getPlayer(planet.PlayerNum)
+			prevPop := planet.population()
 			planet.grow(player)
 			planet.MarkDirty()
+
+			// tell players about dieing colonists
+			if planet.Spec.GrowthAmount < 0 {
+				if planet.Spec.PopulationDensity > 1 {
+					messager.planetPopulationDecreasedOvercrowding(player, planet, planet.Spec.GrowthAmount)
+				} else {
+					messager.planetPopulationDecreased(player, planet, prevPop, planet.population())
+				}
+			}
 
 			log.Debug().
 				Int64("GameID", t.game.ID).
 				Int("Player", planet.PlayerNum).
 				Str("Planet", planet.Name).
+				Int("Capacity", int(planet.Spec.PopulationDensity*100)).
+				Int("PrevPopulation", prevPop).
+				Int("GrowthAmount", planet.Spec.GrowthAmount).
 				Int("Population", planet.population()).
-				Msgf("planet grew")
+				Msgf("planet grow")
 
+			if planet.population() <= 0 {
+				planet.emptyPlanet()
+				messager.planetDiedOff(player, planet)
+
+				log.Debug().
+					Int64("GameID", t.game.ID).
+					Int("Player", player.Num).
+					Str("Planet", planet.Name).
+					Msgf("planet pop died off")
+			}
 		}
 	}
 }
@@ -2041,7 +2067,7 @@ func (t *turn) calculateScores() {
 		// add this to the player's score history
 		player.ScoreHistory = append(player.ScoreHistory, *score)
 
-		// check for victory for this player
+		// check for victory/death for this player
 		t.checkVictory(player)
 	}
 
@@ -2117,4 +2143,47 @@ func (t *turn) checkVictory(player *Player) {
 			}
 		}
 	}
+}
+
+func (t *turn) checkDeath() {
+	for _, player := range t.game.Players {
+
+		numPlanets := 0
+		numFleets := 0
+		numColonists := 0
+		for _, planet := range t.game.Planets {
+			if planet.PlayerNum == player.Num {
+				numPlanets++
+				numColonists += planet.population()
+			}
+		}
+
+		for _, fleet := range t.game.Fleets {
+			if fleet.PlayerNum == player.Num && !fleet.Delete {
+				numFleets++
+				numColonists += fleet.Cargo.Colonists * 100
+			}
+		}
+
+		// tell players they are dead
+		if numPlanets == 0 && numFleets == 0 {
+			player.Messages = append([]PlayerMessage{newMessage(PlayerMessagePlayerDead)}, player.Messages...)
+			log.Debug().
+				Int64("GameID", t.game.ID).
+				Int("Player", player.Num).
+				Str("PlayerName", player.Name).
+				Str("Race", player.Race.PluralName).
+				Msgf("player is dead")
+		} else if numPlanets == 0 && numFleets > 0 {
+			player.Messages = append([]PlayerMessage{newMessage(PlayerMessagePlayerNoPlanets).withSpec(PlayerMessageSpec{Amount: numColonists})}, player.Messages...)
+			log.Debug().
+				Int64("GameID", t.game.ID).
+				Int("Player", player.Num).
+				Str("PlayerName", player.Name).
+				Str("Race", player.Race.PluralName).
+				Int("NumColonists", numColonists).
+				Msgf("player has no planets")
+		}
+	}
+
 }

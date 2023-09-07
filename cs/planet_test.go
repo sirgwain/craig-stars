@@ -95,6 +95,8 @@ func TestPlanet_getGrowthAmount(t *testing.T) {
 		{name: "no more growth past a certain capacity", fields: fields{Hab{50, 50, 50}, 1_190_000}, args: args{NewPlayer(1, NewRace()), 1_200_000}, want: 0},
 		{name: "hostile planets kill off colonists", fields: fields{Hab{10, 15, 15}, 2500}, args: args{NewPlayer(1, NewRace()), 0}, want: -100},
 		{name: "super hostile planet with 100k people, should be -45% habitable, so should kill off -4.5% of the pop", fields: fields{Hab{}, 100_000}, args: args{NewPlayer(1, NewRace()), 0}, want: -4500},
+		{name: "double cap planet should kill off 4% of the pop", fields: fields{Hab{50, 50, 50}, 2_400_000}, args: args{NewPlayer(1, NewRace()), 1_200_000}, want: -96_000},
+		{name: "5x cap planet should kill off max of 12% of the pop", fields: fields{Hab{50, 50, 50}, 6_000_000}, args: args{NewPlayer(1, NewRace()), 1_200_000}, want: -720_000},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -105,7 +107,7 @@ func TestPlanet_getGrowthAmount(t *testing.T) {
 			// 10% growth for easier math
 			tt.args.player.Race.GrowthRate = 10
 			tt.args.player.Race.Spec = computeRaceSpec(&tt.args.player.Race, &rules)
-			if got := p.getGrowthAmount(tt.args.player, tt.args.maxPopulation); got != tt.want {
+			if got := p.getGrowthAmount(tt.args.player, tt.args.maxPopulation, rules.PopulationOvercrowdDieoffRate, rules.PopulationOvercrowdDieoffRateMax); got != tt.want {
 				t.Errorf("Planet.getGrowthAmount() = %v, want %v", got, tt.want)
 			}
 		})

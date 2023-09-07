@@ -3,6 +3,7 @@
 	import { MessageType, type Message } from '$lib/types/Message';
 	import type { Fleet } from '$lib/types/Fleet';
 	import type { PlayerIntel } from '$lib/types/Player';
+	import FallbackMessageDetail from './FallbackMessageDetail.svelte';
 
 	const { game, player, universe, settings } = getGameContext();
 
@@ -14,5 +15,5 @@
 {#if message.type === MessageType.FleetColonistDieoff}
 	Engine radiation has killed {message.spec.amount} colonists traveling in {fleet.name}.
 {:else}
-	{message.text}
+	<FallbackMessageDetail {message} />
 {/if}

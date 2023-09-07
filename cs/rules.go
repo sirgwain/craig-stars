@@ -14,6 +14,8 @@ type Rules struct {
 	TachyonCloakReduction              int                                 `json:"tachyonCloakReduction"`
 	MaxPopulation                      int                                 `json:"maxPopulation"`
 	MinMaxPopulationPercent            float64                             `json:"minMaxPopulationPercent"`
+	PopulationOvercrowdDieoffRate      float64                             `json:"populationOvercrowdDieoffRate"`
+	PopulationOvercrowdDieoffRateMax   float64                             `json:"populationOvercrowdDieoffRateMax"`
 	PopulationScannerError             float64                             `json:"populationScannerError"`
 	SmartDefenseCoverageFactor         float64                             `json:"smartDefenseCoverageFactor"`
 	InvasionDefenseCoverageFactor      float64                             `json:"invasionDefenseCoverageFactor"`
@@ -119,23 +121,25 @@ func NewRulesWithSeed(seed int64) Rules {
 	random := rand.New(rand.NewSource(seed))
 
 	return Rules{
-		random:                        random,
-		TachyonCloakReduction:         5,
-		MaxPopulation:                 1000000,
-		MinMaxPopulationPercent:       .05,
-		PopulationScannerError:        0.2,
-		SmartDefenseCoverageFactor:    0.5,
-		InvasionDefenseCoverageFactor: 0.75,
-		NumBattleRounds:               16,
-		MovesToRunAway:                7,
-		BeamRangeDropoff:              0.1,
-		TorpedoSplashDamage:           0.125,
-		SalvageDecayRate:              0.1,
-		SalvageDecayMin:               10,
-		MineFieldCloak:                75,
-		StargateMaxRangeFactor:        5,
-		StargateMaxHullMassFactor:     5,
-		RadiatingImmune:               85, // hab center of > 85 are immune to radating damage
+		random:                           random,
+		TachyonCloakReduction:            5,
+		MaxPopulation:                    1000000,
+		MinMaxPopulationPercent:          .05,
+		PopulationOvercrowdDieoffRate:    .04, // overcrowded pops die off at 4% per doubling
+		PopulationOvercrowdDieoffRateMax: .12, // overcrowded pops will not die off more than 12% (3x pop) in a year
+		PopulationScannerError:           0.2,
+		SmartDefenseCoverageFactor:       0.5,
+		InvasionDefenseCoverageFactor:    0.75,
+		NumBattleRounds:                  16,
+		MovesToRunAway:                   7,
+		BeamRangeDropoff:                 0.1,
+		TorpedoSplashDamage:              0.125,
+		SalvageDecayRate:                 0.1,
+		SalvageDecayMin:                  10,
+		MineFieldCloak:                   75,
+		StargateMaxRangeFactor:           5,
+		StargateMaxHullMassFactor:        5,
+		RadiatingImmune:                  85, // hab center of > 85 are immune to radating damage
 		RandomEventChances: map[RandomEvent]float64{
 			RandomEventComet:           0.01,
 			RandomEventMineralDeposit:  0.01,
