@@ -396,7 +396,7 @@ func Test_turn_fleetMoveDestroyedByMineField(t *testing.T) {
 	// we should have struck the minefield and lost the ship
 	assert.True(t, fleet.Delete)
 	assert.Equal(t, 1, len(game.Players[0].Messages))
-	assert.Equal(t, 1, len(game.Players[1].Messages))
+	assert.Equal(t, 2, len(game.Players[1].Messages))
 
 	// the MineField should have lost some mines in the collision
 	assert.Equal(t, 88, mineField.NumMines)
