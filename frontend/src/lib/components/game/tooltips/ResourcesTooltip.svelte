@@ -23,7 +23,7 @@
 	<div>
 		<span class="font-semibold">{planetName}</span> generates
 		<span class="font-semibold">{resourcesPerYear}</span>
-		resources each year. <span class="font-semibold">{resourcesPerYearResearch}</span> of these
+		resources each year. <span class="font-semibold">{resourcesPerYearResearch ?? 'None'}</span> of these
 		resources have been alloocated to research. That leaves
 		<span class="font-semibold">{resourcesPerYearAvailable}</span>
 		resources for use by the planet.

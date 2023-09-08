@@ -1,7 +1,10 @@
 package cs
 
 import (
+	"fmt"
 	"math"
+
+	"github.com/rs/zerolog/log"
 )
 
 // producers perform planet production
@@ -204,17 +207,31 @@ func (p *production) produce() productionResult {
 
 			p.updateProductionResult(item, itemResult.numBuilt, &productionResult)
 
-			available = available.Minus(itemResult.spent)
+			// remove how much we spent from our available amount
+			available = itemResult.leftover
 
 			// if we built mineral alchemy, add it back in to our available amount
 			available = available.Add(productionResult.alchemy.ToCost())
 
 			productionResult.itemsBuilt = append(productionResult.itemsBuilt, itemBuilt{index: item.index, queueItemType: item.Type, designNum: item.DesignNum, numBuilt: itemResult.numBuilt})
+
+			// planets are ending up with negative minerals. Trying to figure out why...
+			if available.MinZero() != available {
+				log.Warn().
+					Int64("GameID", planet.GameID).
+					Int64("ID", planet.ID).
+					Str("Name", planet.Name).
+					Str("Cargo", fmt.Sprintf("%+v", planet.Cargo)).
+					Str("ProductionQueue", fmt.Sprintf("%+v", planet.ProductionQueue)).
+					Str("itemResult", fmt.Sprintf("%+v", productionResult)).
+					Msgf("available minerals and resources went negative - available: %+v", available)
+				available = available.MinZero()
+			}
 		}
 
 		// once we partially allocate, we're done
-		partialAllocated := itemResult.allocated.Total() > 0
-		if partialAllocated {
+		allocatedToPartialItem := itemResult.allocated.Total() > 0
+		if allocatedToPartialItem {
 			if item.Type.IsAuto() && itemResult.leftover.Resources == 0 {
 				// add the partially completed concrete item to the top of the queue
 				newQueue = append([]ProductionQueueItem{
@@ -260,6 +277,15 @@ func (p *production) produce() productionResult {
 	// replace the queue with what's leftover
 	planet.ProductionQueue = newQueue
 	planet.Cargo = Cargo{available.Ironium, available.Boranium, available.Germanium, planet.Cargo.Colonists}
+	if planet.Cargo.MinZero() != planet.Cargo {
+		log.Warn().
+			Int64("GameID", planet.GameID).
+			Int64("ID", planet.ID).
+			Str("Name", planet.Name).
+			Str("productionResult", fmt.Sprintf("%+v", productionResult)).
+			Msgf("planet cargo was negative after production: %s", planet.Cargo.PrettyString())
+		// planet.Cargo = planet.Cargo.MinZero()
+	}
 
 	// any leftover resources go back to the player for research
 	productionResult.leftoverResources = available.Resources
@@ -361,6 +387,11 @@ func (p *production) processQueueItem(item ProductionQueueItem, availableToSpend
 		// If we didn't finish building all the items and we can still build more, allocate leftover resources to this item
 		if numBuilt < item.Quantity && (maxBuildable == Infinite || numBuilt < maxBuildable) {
 			result.allocated = p.allocatePartialBuild(cost, result.leftover)
+			// don't allocate resources to an auto item if we're totally out minerals. We might never build it
+			// and should move on to the next one
+			// if item.Type.IsAuto() && item.CostOfOne.ToMineral().Total() > 0 && result.allocated.ToMineral().Total() == 0 {
+			// 	result.allocated.Resources = 0
+			// }
 			result.leftover = result.leftover.Minus(result.allocated)
 		}
 	}
@@ -416,28 +447,28 @@ func (p *production) updateProductionResult(item ProductionQueueItem, numBuilt i
 // Allocate resources to the top item on this production queue
 // and return the leftover resources
 //
-// Costs are allocated by lowest percentage, i.e. if (we require
+// Costs are allocated by lowest percentage (except resources), i.e. if we require
 // Cost(10, 10, 10, 100) and we only have Cost(1, 10, 10, 100)
-// we allocate Cost(1, 1, 1, 10)
+// we allocate Cost(1, 1, 1, 100)
 //
 // The min amount we have is 10 percent of the ironium, so we
 // apply 10 percent to each cost amount
 func (p *production) allocatePartialBuild(costPerItem Cost, allocated Cost) Cost {
-	ironiumPerc := 100.0
+	ironiumPerc := 1.0
 	if costPerItem.Ironium > 0 {
-		ironiumPerc = float64(allocated.Ironium) / float64(costPerItem.Ironium)
+		ironiumPerc = math.Min(1, float64(allocated.Ironium)/float64(costPerItem.Ironium))
 	}
-	boraniumPerc := 100.0
+	boraniumPerc := 1.0
 	if costPerItem.Boranium > 0 {
-		boraniumPerc = float64(allocated.Boranium) / float64(costPerItem.Boranium)
+		boraniumPerc = math.Min(1, float64(allocated.Boranium)/float64(costPerItem.Boranium))
 	}
-	germaniumPerc := 100.0
+	germaniumPerc := 1.0
 	if costPerItem.Germanium > 0 {
-		germaniumPerc = float64(allocated.Germanium) / float64(costPerItem.Germanium)
+		germaniumPerc = math.Min(1, float64(allocated.Germanium)/float64(costPerItem.Germanium))
 	}
-	resourcesPerc := 100.0
+	resourcesPerc := 1.0
 	if costPerItem.Resources > 0 {
-		resourcesPerc = float64(allocated.Resources) / float64(costPerItem.Resources)
+		resourcesPerc = math.Min(1, float64(allocated.Resources)/float64(costPerItem.Resources))
 	}
 
 	// figure out the lowest percentage

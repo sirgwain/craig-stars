@@ -9,6 +9,7 @@ import (
 	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
+	"github.com/sirgwain/craig-stars/db"
 )
 
 type cargoTransferRequest struct {
@@ -279,9 +280,9 @@ func (s *server) transferCargo(w http.ResponseWriter, r *http.Request) {
 
 // transfer cargo from a fleet to/from a planet
 func (s *server) transferCargoFleetPlanet(w http.ResponseWriter, r *http.Request, game *cs.Game, player *cs.Player, fleet *cs.Fleet, num int, transferAmount cs.Cargo) {
-	db := s.contextDb(r)
+	readClient := s.contextDb(r)
 	// find the planet planet by id so we can perform the transfer
-	planet, err := db.GetPlanetByNum(game.ID, num)
+	planet, err := readClient.GetPlanetByNum(game.ID, num)
 	if err != nil {
 		log.Error().Err(err).Msg("get planet from database")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -291,6 +292,12 @@ func (s *server) transferCargoFleetPlanet(w http.ResponseWriter, r *http.Request
 	if planet == nil {
 		log.Error().Int64("GameID", fleet.GameID).Int("Num", num).Msg("dest planet not found")
 		render.Render(w, r, ErrNotFound)
+		return
+	}
+
+	if !planet.OwnedBy(player.Num) {
+		log.Error().Int64("GameID", fleet.GameID).Int("Num", num).Int("PlayerNum", planet.PlayerNum).Msg("dest planet not owned by player")
+		render.Render(w, r, ErrForbidden)
 		return
 	}
 
@@ -307,14 +314,18 @@ func (s *server) transferCargoFleetPlanet(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if err := db.UpdatePlanet(planet); err != nil {
-		log.Error().Err(err).Int64("ID", planet.ID).Msg("update planet in database")
-		render.Render(w, r, ErrInternalServerError(err))
-		return
-	}
+	if err := s.db.WrapInTransaction(func(c db.Client) error {
 
-	if err := db.UpdateFleet(fleet); err != nil {
-		log.Error().Err(err).Msg("update fleet in database")
+		if err := readClient.UpdatePlanet(planet); err != nil {
+			return err
+		}
+
+		if err := readClient.UpdateFleet(fleet); err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		log.Error().Err(err).Int64("PlanetID", planet.ID).Int64("FleetID", fleet.ID).Msg("update planet and fleet in database")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}

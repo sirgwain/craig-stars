@@ -42,14 +42,14 @@ func TestPlanet_innateMines(t *testing.T) {
 	planet := Planet{}
 	planet.setPopulation(16000)
 
-	if got := planet.innateMines(player); got != 0 {
+	if got := planet.innateMines(player, planet.population()); got != 0 {
 		t.Errorf("Planet.GetInnateMines() = %v, want %v", got, 0)
 	}
 
 	// should get 40 mines for 16k pop when the player has innate mining
 	player.Race.Spec.InnateMining = true
 	player.Race.Spec.InnatePopulationFactor = .1
-	if got := planet.innateMines(player); got != 12 {
+	if got := planet.innateMines(player, planet.population()); got != 12 {
 		t.Errorf("Planet.GetInnateMines() = %v, want %v", got, 40)
 	}
 
@@ -60,14 +60,14 @@ func TestPlanet_innateScanner(t *testing.T) {
 	planet := Planet{}
 	planet.setPopulation(67300)
 
-	if got := planet.innateScanner(player); got != 0 {
+	if got := planet.innateScanner(player, planet.population()); got != 0 {
 		t.Errorf("Planet.GetInnateMines() = %v, want %v", got, 0)
 	}
 
 	// should get 40 mines for 16k pop when the player has innate mining
 	player.Race.Spec.InnateScanner = true
 	player.Race.Spec.InnatePopulationFactor = .1
-	if got := planet.innateScanner(player); got != 82 {
+	if got := planet.innateScanner(player, planet.population()); got != 82 {
 		t.Errorf("Planet.GetInnateMines() = %v, want %v", got, 82)
 	}
 
@@ -168,21 +168,21 @@ func TestPlanet_reduceMineralConcentration(t *testing.T) {
 func Test_getMaxPopulation(t *testing.T) {
 	type args struct {
 		hab                 int
-		maxPopulationOffset float64
 	}
 	tests := []struct {
 		name string
 		args args
 		want int
 	}{
-		{"plain homeworld", args{100, 0}, 1_000_000},
-		{"joat homeworld", args{100, .2}, 1_200_000},
-		{"low hab world", args{1, 0}, 50_000},
-		{"bad hab world", args{-45, 0}, 50_000},
+		{"joat homeworld", args{100}, 1_200_000},
+		{"low hab world", args{1}, 60_000},
+		{"bad hab world", args{-45}, 60_000},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := getMaxPopulation(rules.MaxPopulation, rules.MinMaxPopulationPercent, tt.args.hab, tt.args.maxPopulationOffset); got != tt.want {
+			planet := NewPlanet()
+			player := NewPlayer(0, NewRace().WithSpec(&rules)).withSpec(&rules)
+			if got := planet.getMaxPopulation(&rules, player, tt.args.hab); got != tt.want {
 				t.Errorf("getMaxPopulation() = %v, want %v", got, tt.want)
 			}
 		})

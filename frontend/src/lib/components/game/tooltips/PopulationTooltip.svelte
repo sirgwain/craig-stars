@@ -15,7 +15,6 @@
 	export let playerFinder: PlayerFinder;
 	export let player: Player;
 	export let planet: Planet;
-
 </script>
 
 <div class="flex flex-col sm:w-[26rem] m-auto">
@@ -23,15 +22,17 @@
 		{#if ownedBy(planet, player.num) && planet.spec.population}
 			{#if (planet.spec.habitability ?? 0) > 0}
 				Your population on <span class="font-semibold">{planet.name}</span> is
-				<span class="font-semibold">{planet.spec.population.toLocaleString()}</span> ({(planet.spec.populationDensity*100).toFixed()}% of capacity).
+				<span class="font-semibold">{planet.spec.population.toLocaleString()}</span> ({(
+					planet.spec.populationDensity * 100
+				).toFixed()}% of capacity).
 				<span class="font-semibold">{planet.name}</span> will support a population of up to
 				<span class="font-semibold">{planet.spec.maxPopulation?.toLocaleString() ?? 0}</span>
 				of your colonists.
 			{:else}
 				Your population on <span class="font-semibold">{planet.name}</span> is
-				<span class="font-semibold">{planet.spec.population.toLocaleString()}</span>. <span
-					class="font-semibold">{planet.name}</span
-				> has a hostile environment and will no support any of your colonists.
+				<span class="font-semibold">{planet.spec.population.toLocaleString()}</span>.
+				<span class="font-semibold">{planet.name}</span> has a hostile environment and will no support
+				any of your colonists.
 			{/if}
 			{#if planet.spec.growthAmount > 0}
 				Your population on <span class="font-semibold">{planet.name}</span> will grow by {planet.spec.growthAmount.toLocaleString()}
@@ -39,6 +40,9 @@
 			{:else if planet.spec.growthAmount === 0}
 				Your population on <span class="font-semibold">{planet.name}</span> will not grow next year.
 			{:else if planet.spec.growthAmount < 0}
+				{#if planet.spec.populationDensity > 1}
+					<span class="font-semibold">{planet.name}</span> is overcrowded.
+				{/if}
 				Approximately {Math.abs(planet.spec.growthAmount).toLocaleString()} of your colonists will die
 				next year.
 			{/if}

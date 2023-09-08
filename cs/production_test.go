@@ -243,6 +243,31 @@ func Test_production_produce8(t *testing.T) {
 
 }
 
+func Test_production_produce9(t *testing.T) {
+	player, planet := newTestPlayerPlanet()
+
+	// build the half completed factory, keep building more factories but don't add a partial mine
+	planet.ProductionQueue = []ProductionQueueItem{
+		{Type: QueueItemTypeFactory, Quantity: 1, Allocated: Cost{Germanium: 2, Resources: 5}},
+		{Type: QueueItemTypeAutoMinTerraform, Quantity: 1},
+		{Type: QueueItemTypeAutoFactories, Quantity: 100},
+		{Type: QueueItemTypeAutoMines, Quantity: 100},
+	}
+	planet.Cargo = Cargo{7, 2, 1, 37}
+	planet.Mines = 2
+	planet.Factories = 1
+	planet.Spec = computePlanetSpec(&rules, player, planet)
+
+	// should build nothing, but queue up a mine partially done
+	planet.PopulateProductionQueueCosts(player)
+	producer := newProducer(planet, player)
+	producer.produce()
+
+	// don't go negative
+	assert.Equal(t, planet.Cargo, planet.Cargo.MinZero())
+
+}
+
 func Test_production_produceTerraform(t *testing.T) {
 	player, planet := newTestPlayerPlanet()
 
