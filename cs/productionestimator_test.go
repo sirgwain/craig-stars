@@ -326,7 +326,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				{
 					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
 						YearsToBuildOne: 7,
-						YearsToBuildAll: 13,
+						YearsToBuildAll: 12,
 					},
 					Type:      QueueItemTypeAutoFactories,
 					Quantity:  5,
@@ -335,7 +335,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				{
 					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
 						YearsToBuildOne: 3,
-						YearsToBuildAll: 17, // it takes a while to build all these mines
+						YearsToBuildAll: 13, // it takes a while to build all these mines
 					},
 					Type:      QueueItemTypeAutoMines,
 					Quantity:  5,

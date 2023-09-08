@@ -229,7 +229,7 @@ func Test_production_produce8(t *testing.T) {
 	assert.Equal(t, 4, len(planet.ProductionQueue))
 	assert.Equal(t, QueueItemTypeFactory, planet.ProductionQueue[0].Type)
 	assert.Equal(t, 1, planet.ProductionQueue[0].Quantity)
-	assert.Equal(t, Cost{Resources: 2}, planet.ProductionQueue[0].Allocated)
+	assert.Equal(t, Cost{Germanium: 2, Resources: 7}, planet.ProductionQueue[0].Allocated)
 	assert.Equal(t, QueueItemTypeAutoMinTerraform, planet.ProductionQueue[1].Type)
 	assert.Equal(t, 1, planet.ProductionQueue[1].Quantity)
 	assert.Equal(t, Cost{}, planet.ProductionQueue[1].Allocated)
