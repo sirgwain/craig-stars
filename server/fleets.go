@@ -316,11 +316,11 @@ func (s *server) transferCargoFleetPlanet(w http.ResponseWriter, r *http.Request
 
 	if err := s.db.WrapInTransaction(func(c db.Client) error {
 
-		if err := readClient.UpdatePlanet(planet); err != nil {
+		if err := c.UpdatePlanet(planet); err != nil {
 			return err
 		}
 
-		if err := readClient.UpdateFleet(fleet); err != nil {
+		if err := c.UpdateFleet(fleet); err != nil {
 			return err
 		}
 		return nil
