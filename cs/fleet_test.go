@@ -216,8 +216,9 @@ func Test_computeFleetSpec(t *testing.T) {
 				Mass:         20,
 				Armor:        20,
 				Engine: Engine{
-					IdealSpeed: QuickJump5.IdealSpeed,
-					FreeSpeed:  QuickJump5.FreeSpeed,
+					IdealSpeed:   QuickJump5.IdealSpeed,
+					FreeSpeed:    QuickJump5.FreeSpeed,
+					MaxSafeSpeed: QuickJump5.MaxSafeSpeed,
 				},
 			},
 			Purposes:         map[ShipDesignPurpose]bool{},
@@ -291,8 +292,9 @@ func Test_computeFleetSpec(t *testing.T) {
 				CloakUnits:   70,
 				CloakPercent: 35,
 				Engine: Engine{
-					IdealSpeed: QuickJump5.IdealSpeed,
-					FreeSpeed:  QuickJump5.FreeSpeed,
+					IdealSpeed:   QuickJump5.IdealSpeed,
+					FreeSpeed:    QuickJump5.FreeSpeed,
+					MaxSafeSpeed: QuickJump5.MaxSafeSpeed,
 				},
 			},
 			Purposes:         map[ShipDesignPurpose]bool{},
@@ -327,8 +329,9 @@ func Test_computeFleetSpec(t *testing.T) {
 				CloakUnits:   70,
 				CloakPercent: 35, // still 35%
 				Engine: Engine{
-					IdealSpeed: QuickJump5.IdealSpeed,
-					FreeSpeed:  QuickJump5.FreeSpeed,
+					IdealSpeed:   QuickJump5.IdealSpeed,
+					FreeSpeed:    QuickJump5.FreeSpeed,
+					MaxSafeSpeed: QuickJump5.MaxSafeSpeed,
 				},
 			},
 			Purposes:         map[ShipDesignPurpose]bool{},
@@ -361,8 +364,9 @@ func Test_computeFleetSpec(t *testing.T) {
 				Mass:         0,
 				Armor:        0,
 				Engine: Engine{
-					IdealSpeed: QuickJump5.IdealSpeed,
-					FreeSpeed:  QuickJump5.FreeSpeed,
+					IdealSpeed:   QuickJump5.IdealSpeed,
+					FreeSpeed:    QuickJump5.FreeSpeed,
+					MaxSafeSpeed: QuickJump5.MaxSafeSpeed,
 				},
 			},
 			Purposes:         map[ShipDesignPurpose]bool{},
@@ -385,7 +389,7 @@ func TestFleet_moveFleet(t *testing.T) {
 	player := NewPlayer(1, NewRace().WithSpec(&rules))
 
 	type args struct {
-		player *Player
+		player *Player ``
 	}
 	type want struct {
 		position Vector
