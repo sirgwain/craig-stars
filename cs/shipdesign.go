@@ -187,11 +187,11 @@ func (sd *ShipDesign) Validate(rules *Rules, player *Player) error {
 			}
 
 			if len(hc.Requirements.HullsAllowed) > 0 && slices.IndexFunc(hc.Requirements.HullsAllowed, func(h string) bool { return hull.Name == h }) == -1 {
-				return fmt.Errorf("hull component %s is not mountable to this hull", hc.Name)
+				return fmt.Errorf("hull component %s is not mountable on the %s hull", hc.Name, sd.Hull)
 			}
 
 			if len(hc.Requirements.HullsDenied) > 0 && slices.IndexFunc(hc.Requirements.HullsDenied, func(h string) bool { return hull.Name == h }) != -1 {
-				return fmt.Errorf("hull component %s is not mountable to this hull", hc.Name)
+				return fmt.Errorf("hull component %s is not mountable on the %s hull", hc.Name, sd.Hull)
 			}
 
 			if !player.HasTech(&hc.Tech) {

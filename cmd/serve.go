@@ -14,7 +14,7 @@ import (
 )
 
 func newServeCmd() *cobra.Command {
-	var generateUniverse bool
+	var generate bool
 	serveCmd := &cobra.Command{
 		Use:   "serve",
 		Short: "Start the webserver",
@@ -23,17 +23,21 @@ func newServeCmd() *cobra.Command {
 			cfg := config.GetConfig()
 
 			// generate test games if asked
-			if generateUniverse {
+			if generate {
 				if err := generateTestGame(*cfg); err != nil {
 					return err
 				}
+
+				// if we have recreate configured, turn it off after we generate a test game
+				// so we don't recreate the db conn again when the server starts
+				cfg.Database.Recreate = false
 			}
 
 			server.Start(*cfg)
 			return nil
 		},
 	}
-	serveCmd.Flags().BoolVar(&generateUniverse, "generate-test-game", false, "Generate a test user and game")
+	serveCmd.Flags().BoolVar(&generate, "generate-test-game", false, "Generate a test user and game")
 
 	return serveCmd
 }
@@ -73,19 +77,21 @@ func generateTestGame(config config.Config) error {
 	// also create a medium size game with 25 turns generated
 	mediumGame, err := gameRunner.HostGame(admin.ID, cs.NewGameSettings().
 		WithName("Medium Game").
-		WithSize(cs.SizeMedium).
+		WithSize(cs.SizeSmall).
+		WithDensity(cs.DensityPacked).
 		WithPublicPlayerScores(true).
 		WithHost(*adminRace).
-		WithAIPlayerRace(cs.HEs(), cs.AIDifficultyNormal, 0).
-		WithAIPlayerRace(cs.SSs(), cs.AIDifficultyNormal, 1).
-		WithAIPlayerRace(cs.WMs(), cs.AIDifficultyNormal, 2).
-		WithAIPlayerRace(cs.CAs(), cs.AIDifficultyNormal, 3).
-		WithAIPlayerRace(cs.ISs(), cs.AIDifficultyNormal, 0).
-		WithAIPlayerRace(cs.SDs(), cs.AIDifficultyNormal, 1).
-		WithAIPlayerRace(cs.PPs(), cs.AIDifficultyNormal, 2).
-		WithAIPlayerRace(cs.ITs(), cs.AIDifficultyNormal, 3).
-		WithAIPlayerRace(cs.ARs(), cs.AIDifficultyNormal, 0).
-		WithAIPlayerRace(cs.JoaTs(), cs.AIDifficultyNormal, 1))
+		// WithAIPlayerRace(cs.HEs().WithName(cs.AINames[0]), cs.AIDifficultyNormal, 0).
+		// WithAIPlayerRace(cs.SSs().WithName(cs.AINames[1]), cs.AIDifficultyNormal, 1).
+		// WithAIPlayerRace(cs.WMs().WithName(cs.AINames[2]), cs.AIDifficultyNormal, 2).
+		// WithAIPlayerRace(cs.CAs().WithName(cs.AINames[3]), cs.AIDifficultyNormal, 3).
+		// WithAIPlayerRace(cs.ISs().WithName(cs.AINames[4]), cs.AIDifficultyNormal, 0).
+		WithAIPlayerRace(cs.SDs().WithName(cs.AINames[5]), cs.AIDifficultyNormal, 1).
+		WithAIPlayerRace(cs.PPs().WithName(cs.AINames[6]), cs.AIDifficultyNormal, 2),
+	// 	WithAIPlayerRace(cs.ITs().WithName(cs.AINames[7]), cs.AIDifficultyNormal, 3).
+	// 	WithAIPlayerRace(cs.ARs().WithName(cs.AINames[8]), cs.AIDifficultyNormal, 0).
+	// 	WithAIPlayerRace(cs.JoaTs().WithName(cs.AINames[9]), cs.AIDifficultyNormal, 1),
+	)
 
 	if err != nil {
 		return err
@@ -93,7 +99,7 @@ func generateTestGame(config config.Config) error {
 	mediumGame.Players[0].AIControlled = true
 	db.UpdateLightPlayer(mediumGame.Players[0])
 
-	for i := 0; i < 40; i++ {
+	for i := 0; i < 75; i++ {
 		gameRunner.SubmitTurn(mediumGame.ID, mediumGame.HostID)
 		if _, err := gameRunner.CheckAndGenerateTurn(mediumGame.ID); err != nil {
 			log.Error().Err(err).Msg("check and generate new turn")
@@ -103,67 +109,67 @@ func generateTestGame(config config.Config) error {
 	mediumGame.Players[0].AIControlled = false
 	db.UpdateLightPlayer(mediumGame.Players[0])
 
-	// also create a medium size game with 25 turns generated
-	tinyGame, err := gameRunner.HostGame(admin.ID, cs.NewGameSettings().
-		WithName("Tiny Game").
-		WithSize(cs.SizeTiny).
-		WithPublicPlayerScores(true).
-		WithHost(*adminRace).
-		WithAIPlayerRace(cs.HEs(), cs.AIDifficultyNormal, 0).
-		WithAIPlayerRace(cs.SDs(), cs.AIDifficultyNormal, 1).
-		WithAIPlayerRace(cs.PPs(), cs.AIDifficultyNormal, 2).
-		WithAIPlayerRace(cs.ITs(), cs.AIDifficultyNormal, 3).
-		WithAIPlayerRace(cs.JoaTs(), cs.AIDifficultyNormal, 1),
-	)
-	if err != nil {
-		return err
-	}
+	// // also create a medium size game with 25 turns generated
+	// tinyGame, err := gameRunner.HostGame(admin.ID, cs.NewGameSettings().
+	// 	WithName("Tiny Game").
+	// 	WithSize(cs.SizeTiny).
+	// 	WithPublicPlayerScores(true).
+	// 	WithHost(*adminRace).
+	// 	WithAIPlayerRace(cs.HEs(), cs.AIDifficultyNormal, 0).
+	// 	WithAIPlayerRace(cs.SDs(), cs.AIDifficultyNormal, 1).
+	// 	WithAIPlayerRace(cs.PPs(), cs.AIDifficultyNormal, 2).
+	// 	WithAIPlayerRace(cs.ITs(), cs.AIDifficultyNormal, 3).
+	// 	WithAIPlayerRace(cs.JoaTs(), cs.AIDifficultyNormal, 1),
+	// )
+	// if err != nil {
+	// 	return err
+	// }
 
-	tinyGame.Players[0].AIControlled = true
-	db.UpdateLightPlayer(tinyGame.Players[0])
+	// tinyGame.Players[0].AIControlled = true
+	// db.UpdateLightPlayer(tinyGame.Players[0])
 
-	for i := 0; i < 9; i++ {
-		gameRunner.SubmitTurn(tinyGame.ID, tinyGame.HostID)
-		if _, err := gameRunner.CheckAndGenerateTurn(tinyGame.ID); err != nil {
-			log.Error().Err(err).Msg("check and generate new turn")
-		}
-	}
+	// for i := 0; i < 9; i++ {
+	// 	gameRunner.SubmitTurn(tinyGame.ID, tinyGame.HostID)
+	// 	if _, err := gameRunner.CheckAndGenerateTurn(tinyGame.ID); err != nil {
+	// 		log.Error().Err(err).Msg("check and generate new turn")
+	// 	}
+	// }
 
-	tinyGame.Players[0].AIControlled = false
-	db.UpdateLightPlayer(tinyGame.Players[0])
+	// tinyGame.Players[0].AIControlled = false
+	// db.UpdateLightPlayer(tinyGame.Players[0])
 
-	// create a new tiny game for each race
-	races, err := db.GetRacesForUser(admin.ID)
-	if err != nil {
-		return err
-	}
+	// // create a new tiny game for each race
+	// races, err := db.GetRacesForUser(admin.ID)
+	// if err != nil {
+	// 	return err
+	// }
 
-	for _, race := range races {
-		_, err := gameRunner.HostGame(admin.ID, cs.NewGameSettings().
-			WithName(fmt.Sprintf("%s Test Game", race.PluralName)).
-			WithSize(cs.SizeTiny).
-			WithHost(race).
-			WithAIPlayer(cs.AIDifficultyNormal, 1).
-			WithAIPlayer(cs.AIDifficultyNormal, 2))
-		if err != nil {
-			return err
-		}
-	}
+	// for _, race := range races {
+	// 	_, err := gameRunner.HostGame(admin.ID, cs.NewGameSettings().
+	// 		WithName(fmt.Sprintf("%s Test Game", race.PluralName)).
+	// 		WithSize(cs.SizeTiny).
+	// 		WithHost(race).
+	// 		WithAIPlayer(cs.AIDifficultyNormal, 1).
+	// 		WithAIPlayer(cs.AIDifficultyNormal, 2))
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
 
-	// also create a medium size game with 25 turns generated
-	multiplayerGame, err := gameRunner.HostGame(admin.ID, cs.NewGameSettings().
-		WithName("Multiplayer Game").
-		WithSize(cs.SizeTiny).
-		WithPublicPlayerScores(true).
-		WithHost(*adminRace).
-		WithOpenPlayerSlot().
-		WithAIPlayerRace(cs.SDs(), cs.AIDifficultyNormal, 1).
-		WithAIPlayerRace(cs.PPs(), cs.AIDifficultyNormal, 2),
-	)
-	if err != nil {
-		return err
-	}
-	_ = multiplayerGame
+	// // also create a medium size game with 25 turns generated
+	// multiplayerGame, err := gameRunner.HostGame(admin.ID, cs.NewGameSettings().
+	// 	WithName("Multiplayer Game").
+	// 	WithSize(cs.SizeTiny).
+	// 	WithPublicPlayerScores(true).
+	// 	WithHost(*adminRace).
+	// 	WithOpenPlayerSlot().
+	// 	WithAIPlayerRace(cs.SDs(), cs.AIDifficultyNormal, 1).
+	// 	WithAIPlayerRace(cs.PPs(), cs.AIDifficultyNormal, 2),
+	// )
+	// if err != nil {
+	// 	return err
+	// }
+	// _ = multiplayerGame
 
 	return nil
 }

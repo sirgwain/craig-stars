@@ -360,7 +360,7 @@ func (r *Race) WithPRT(prt PRT) *Race {
 	return r
 }
 
-func (r *Race) WithName(name string) *Race {
+func (r Race) WithName(name string) Race {
 	r.Name = name
 	return r
 }

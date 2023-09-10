@@ -232,9 +232,13 @@ func (store *TechStore) GetBestEngine(player *Player, hull *TechHull, purpose Sh
 		tech := &store.Engines[i]
 		if player.HasTech(&tech.Tech) {
 			// if this tech is only allowed on certain hulls (like the Settler's Delight and the mini colony ship), use it for those
-			if len(tech.Requirements.HullsAllowed) > 0 && slices.Contains(tech.Requirements.HullsAllowed, hull.Name) {
-				bestTech = tech
-				break
+			if len(tech.Requirements.HullsAllowed) > 0 {
+				if slices.Contains(tech.Requirements.HullsAllowed, hull.Name) {
+					bestTech = tech
+					break
+				}
+				// skip it otherwise
+				continue
 			}
 
 			// skip this tech if it's not allowed on this hull
@@ -243,13 +247,12 @@ func (store *TechStore) GetBestEngine(player *Player, hull *TechHull, purpose Sh
 			}
 
 			// colony ships don't want radiating engines
-			if purpose == ShipDesignPurposeColonistFreighter || purpose == ShipDesignPurposeColonizer && tech.Radiating {
+			if (purpose == ShipDesignPurposeColonistFreighter || purpose == ShipDesignPurposeColonizer) && tech.Radiating {
 				continue
 			}
 
 			// techs are sorted by rank, so the latest is the best
 			bestTech = tech
-
 		}
 	}
 	return bestTech

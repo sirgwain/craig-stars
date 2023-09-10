@@ -8,6 +8,54 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func Test_aiPlayer_ProcessTurn(t *testing.T) {
+	type fields struct {
+		prt cs.PRT
+	}
+	tests := []struct {
+		name   string
+		fields fields
+	}{
+		{"HE", fields{cs.HE}},
+		{"SS", fields{cs.SS}},
+		{"WM", fields{cs.WM}},
+		{"CA", fields{cs.CA}},
+		{"IS", fields{cs.IS}},
+		{"SD", fields{cs.SD}},
+		{"PP", fields{cs.PP}},
+		{"IT", fields{cs.IT}},
+		{"AR", fields{cs.AR}},
+		{"JoaT", fields{cs.JoaT}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			race := cs.NewRace().WithPRT(tt.fields.prt)
+			gamer := cs.NewGamer()
+			game := gamer.CreateGame(0, *cs.NewGameSettings().WithAIPlayer(cs.AIDifficultyEasy, 0))
+			player := gamer.NewPlayer(0, *race, &game.Rules)
+			player.Num = 1
+			player.Name = cs.AINames[0]
+			universe, err := gamer.GenerateUniverse(game, []*cs.Player{player})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			// process a turn
+			ai := NewAIPlayer(game, &cs.StaticTechStore, player, universe.GetPlayerMapObjects(player.Num))
+			if err := ai.ProcessTurn(); err != nil {
+				t.Errorf("process turn %v", err)
+				return
+			}
+			ai.SubmittedTurn = true
+
+			// generate a ne turn, make sure no errors
+			gamer.GenerateTurn(game, universe, []*cs.Player{player})
+		})
+	}
+}
+
 func Test_getClosestPlanet(t *testing.T) {
 	game := cs.NewGame()
 	player := cs.NewPlayer(1, cs.NewRace().WithSpec(&game.Rules))
