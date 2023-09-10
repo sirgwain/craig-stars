@@ -442,7 +442,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			e := newCompletionEstimator()
+			e := NewCompletionEstimator()
 
 			player := NewPlayer(1, NewRace().WithSpec(&rules)).withSpec(&rules)
 			planet := NewPlanet().WithPlayerNum(1)

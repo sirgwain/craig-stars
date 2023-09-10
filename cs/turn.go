@@ -738,6 +738,8 @@ func (t *turn) moveFleet(fleet *Fleet) {
 		Int("Year", t.game.Year).
 		Int("Player", fleet.PlayerNum).
 		Str("Fleet", fleet.Name).
+		Str("Fuel", fmt.Sprintf("%d/%d", fleet.Fuel, fleet.Spec.FuelCapacity)).
+		Int("WarpSpeed", fleet.WarpSpeed).
 		Str("Start", wp0.Position.String()).
 		Str("End", fleet.Position.String()).
 		Msgf("moved fleet")
@@ -2110,6 +2112,7 @@ func (t *turn) calculateScores() {
 
 }
 
+// check if this player is victorious, and if so, notify everyone
 func (t *turn) checkVictory(player *Player) {
 	victoryChecker := newVictoryChecker(t.game)
 	for _, player := range t.game.Players {
@@ -2121,25 +2124,18 @@ func (t *turn) checkVictory(player *Player) {
 
 	// we don't declare a victor until some time has passed
 	if t.game.YearsPassed() >= t.game.VictoryConditions.YearsPassed && t.game.VictorDeclared {
-		victors := make([]*Player, 0, 1)
-		for _, player := range t.game.Players {
-			if player.Victor {
-				victors = append(victors, player)
 
-				log.Debug().
-					Int64("GameID", t.game.ID).
-					Int("Player", player.Num).
-					Str("PlayerName", player.Name).
-					Str("Race", player.Race.PluralName).
-					Msgf("you are victorious your majesty!")
+		// if we won, tell everyone about it!
+		if player.Victor {
+			log.Debug().
+				Int64("GameID", t.game.ID).
+				Int("Player", player.Num).
+				Str("PlayerName", player.Name).
+				Str("Race", player.Race.PluralName).
+				Msgf("you are victorious your majesty!")
 
-			}
-		}
-
-		// tell everyone about it!
-		for _, player := range t.game.Players {
-			for _, victor := range victors {
-				messager.victory(player, victor)
+			for _, p := range t.game.Players {
+				messager.victory(p, player)
 			}
 		}
 	}

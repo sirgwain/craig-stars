@@ -74,8 +74,9 @@ func (v *victory) checkForVictor(player *Player) error {
 	// update the history with this player's AchievedVictoryConditions
 	// this way we know over time when victories were achieved
 	// and when a victor is declared, other players will know when
-	// victory was achieved.	
+	// victory was achieved.
 	score.AchievedVictoryConditions = player.AchievedVictoryConditions
+	player.ScoreHistory[len(player.ScoreHistory)-1] = score
 
 	if player.AchievedVictoryConditions.countBits() >= v.game.VictoryConditions.NumCriteriaRequired && v.game.YearsPassed() >= v.game.VictoryConditions.YearsPassed {
 		// we have a victor!
@@ -120,7 +121,9 @@ func (v *victory) checkExceedSecondPlaceScore(player *Player, score PlayerScore)
 		sort.Slice(scores, func(i, j int) bool {
 			return scores[i] > scores[j]
 		})
-		if float64(score.Score)/float64(scores[1]-1)*100 > float64(v.game.VictoryConditions.ExceedsSecondPlaceScore) {
+
+		// if my score is 150 and the second place score is 100, I exceed their score by 1-(150/100) = 50%
+		if (1-float64(score.Score)/float64(scores[1]))*100 > float64(v.game.VictoryConditions.ExceedsSecondPlaceScore) {
 			player.AchievedVictoryConditions |= Bitmask(VictoryConditionExceedsSecondPlaceScore)
 		}
 	}

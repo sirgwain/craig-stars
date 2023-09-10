@@ -338,14 +338,14 @@ func (g *FullGame) computeSpecs() error {
 	for _, player := range g.Players {
 		player.Race.Spec = computeRaceSpec(&player.Race, rules)
 		player.Spec = computePlayerSpec(player, rules, g.Planets)
-		log.Debug().Msgf("computed race and player spec for %v %s", player, player.Race.PluralName)
+		log.Debug().Msgf("computing specs for %v %s", player, player.Race.PluralName)
 
 		for _, design := range player.Designs {
 			numBuilt := design.Spec.NumBuilt
 			design.Spec = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
 			design.Spec.NumBuilt = numBuilt
 			design.MarkDirty()
-			log.Debug().Msgf("computed design spec for player %d, design %s", player.Num, design.Name)
+			// log.Debug().Msgf("computed design spec for player %d, design %s", player.Num, design.Name)
 		}
 	}
 
@@ -358,7 +358,7 @@ func (g *FullGame) computeSpecs() error {
 			design.Spec.NumInstances += token.Quantity
 		}
 		starbase.MarkDirty()
-		log.Debug().Msgf("computed starbase spec for player %d, fleet %s", player.Num, starbase.Name)
+		// log.Debug().Msgf("computed starbase spec for player %d, fleet %s", player.Num, starbase.Name)
 	}
 
 	for _, planet := range g.Planets {
@@ -374,7 +374,7 @@ func (g *FullGame) computeSpecs() error {
 			planet.PopulateProductionQueueEstimates(rules, player)
 
 			planet.MarkDirty()
-			log.Debug().Msgf("computed planet spec for player %d, planet %s", player.Num, planet.Name)
+			// log.Debug().Msgf("computed planet spec for player %d, planet %s", player.Num, planet.Name)
 		}
 	}
 
@@ -387,20 +387,20 @@ func (g *FullGame) computeSpecs() error {
 			design.Spec.NumInstances += token.Quantity
 		}
 		fleet.MarkDirty()
-		log.Debug().Msgf("computed fleet spec for player %d, fleet %s", player.Num, fleet.Name)
+		// log.Debug().Msgf("computed fleet spec for player %d, fleet %s", player.Num, fleet.Name)
 	}
 
 	for _, mineField := range g.MineFields {
 		player := g.getPlayer(mineField.PlayerNum)
 		mineField.Spec = computeMinefieldSpec(rules, player, mineField, g.numPlanetsWithin(mineField.Position, mineField.Radius()))
 		mineField.MarkDirty()
-		log.Debug().Msgf("computed mineField spec for player %d, mineField %s", player.Num, mineField.Name)
+		// log.Debug().Msgf("computed mineField spec for player %d, mineField %s", player.Num, mineField.Name)
 	}
 
 	for _, wormhole := range g.Wormholes {
 		wormhole.Spec = computeWormholeSpec(wormhole, rules)
 		wormhole.MarkDirty()
-		log.Debug().Msgf("computed wormhole spec %s", wormhole.Name)
+		// log.Debug().Msgf("computed wormhole spec %s", wormhole.Name)
 	}
 
 	return nil

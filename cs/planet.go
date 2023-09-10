@@ -211,7 +211,7 @@ func (p *Planet) PopulateProductionQueueCosts(player *Player) error {
 // populate the costs of each item in the planet production queue
 func (p *Planet) PopulateProductionQueueEstimates(rules *Rules, player *Player) {
 	// populate completion estimates
-	completionEstimator := newCompletionEstimator()
+	completionEstimator := NewCompletionEstimator()
 	p.ProductionQueue, p.Spec.ResourcesPerYearResearchEstimatedLeftover = completionEstimator.GetProductionWithEstimates(rules, player, *p)
 }
 
@@ -302,11 +302,17 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 
 	habWidth := player.Race.HabWidth()
 	habCenter := player.Race.HabCenter()
-	p.Hab = Hab{
-		Grav: habCenter.Grav + int(float64((habWidth.Grav-rules.random.Intn(habWidth.Grav-1)))/2*startingPlanet.HabPenaltyFactor),
-		Temp: habCenter.Temp + int(float64((habWidth.Temp-rules.random.Intn(habWidth.Temp-1)))/2*startingPlanet.HabPenaltyFactor),
-		Rad:  habCenter.Rad + int(float64((habWidth.Rad-rules.random.Intn(habWidth.Rad-1)))/2*startingPlanet.HabPenaltyFactor),
+
+	if !player.Race.ImmuneGrav {
+		p.Hab.Grav = habCenter.Grav + int(float64((habWidth.Grav-rules.random.Intn(habWidth.Grav-1)))/2*startingPlanet.HabPenaltyFactor)
 	}
+	if !player.Race.ImmuneTemp {
+		p.Hab.Temp = habCenter.Temp + int(float64((habWidth.Temp-rules.random.Intn(habWidth.Temp-1)))/2*startingPlanet.HabPenaltyFactor)
+	}
+	if !player.Race.ImmuneRad {
+		p.Hab.Rad = habCenter.Rad + int(float64((habWidth.Rad-rules.random.Intn(habWidth.Rad-1)))/2*startingPlanet.HabPenaltyFactor)
+	}
+
 	p.MineralConcentration = concentration
 	p.Cargo = surface.ToCargo()
 
@@ -534,7 +540,7 @@ func (p *Planet) getMaxPopulation(rules *Rules, player *Player, habitability int
 	// for a regular race with 1 million max pop, the minimum max population is 50,000
 	minMaxPop := float64(maxPossiblePop) * maxPopulationFactor * rules.MinMaxPopulationPercent
 
-	if player.Race.Spec.LivesOnStarbases {
+	if player.Race.Spec.LivesOnStarbases && p.PlayerNum == player.Num {
 		maxPossiblePop = p.Starbase.Spec.MaxPopulation
 	}
 	return roundToNearest100f(math.Max(minMaxPop, float64(maxPossiblePop)*maxPopulationFactor*float64(habitability)/100.0))

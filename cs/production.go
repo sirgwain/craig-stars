@@ -17,7 +17,7 @@ func newProducer(planet *Planet, player *Player) producer {
 	return &production{
 		planet:    planet,
 		player:    player,
-		estimator: newCompletionEstimator(),
+		estimator: NewCompletionEstimator(),
 	}
 }
 

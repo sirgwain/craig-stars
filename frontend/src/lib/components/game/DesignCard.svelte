@@ -1,12 +1,13 @@
 <script lang="ts">
 	import { techs } from '$lib/services/Stores';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
-	import { Trash } from '@steeze-ui/heroicons';
+	import { QuestionMarkCircle, Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { createEventDispatcher } from 'svelte';
 	import TechAvatar from '../tech/TechAvatar.svelte';
 	import Cost from './Cost.svelte';
 	import DesignStats from './DesignStats.svelte';
+	import { onShipDesignTooltip } from './tooltips/ShipDesignTooltip.svelte';
 
 	const dispatch = createEventDispatcher();
 
@@ -31,7 +32,20 @@
 	</figure>
 	<div class="card-body">
 		<h2 class="card-title">
-			<a class="cs-link" {href}>{design.name}</a>
+			<div class="flex flex-row gap-1">
+				<div>
+					<a class="cs-link" {href}>{design.name}</a>
+				</div>
+				<div>
+					<button
+						type="button"
+						class="w-full h-full cursor-help"
+						on:pointerdown|preventDefault={(e) => onShipDesignTooltip(e, design)}
+					>
+						<Icon src={QuestionMarkCircle} size="16" class=" cursor-help inline-block" />
+					</button>
+				</div>
+			</div>
 		</h2>
 		<div class="flex flex-row justify-between">
 			<div class="mr-2">

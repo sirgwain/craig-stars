@@ -77,7 +77,7 @@ func GetConfig() *Config {
 		// Config
 		log.Debug().Msgf("Database.Filename : %v", config.Database.Filename)
 		log.Debug().Msgf("Database.UsersFilename : %v", config.Database.UsersFilename)
-		log.Debug().Msgf("DataDir : %v", config)
+		log.Debug().Msgf("Config : %+v", config)
 		if config.GeneratedUserPassword != "" {
 			log.Debug().Msgf("GeneratedUserPassword is set")
 		}

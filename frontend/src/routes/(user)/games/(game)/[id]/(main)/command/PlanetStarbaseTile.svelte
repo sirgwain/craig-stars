@@ -53,11 +53,11 @@
 			</div>
 			<div class="flex justify-between">
 				<div>Armor</div>
-				<div>{starbase.spec.armor}</div>
+				<div>{starbase.spec.armor}dp</div>
 			</div>
 			<div class="flex justify-between">
 				<div>Shields</div>
-				<div>{starbase.spec.shield ?? 'none'}</div>
+				<div>{starbase.spec.shields ? starbase.spec.shields + 'dp' : 'none'}</div>
 			</div>
 			<div class="flex justify-between">
 				<div>Damage</div>

@@ -134,7 +134,7 @@ export type Spec = {
 	smartBombs?: number;
 	retroBombs?: number;
 	scanner?: boolean;
-	shield?: number;
+	shields?: number;
 	colonizer?: number;
 	canLayMines?: number;
 	spaceDock?: number;

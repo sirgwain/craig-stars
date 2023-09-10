@@ -58,9 +58,7 @@
 		All of your colonists on {planet.name} have died off. You no longer control the planet.
 	{/if}
 {:else if message.type === MessageType.PlanetPopulationDecreased}
-	The population on {planet.name} has decreased from {(
-		message.spec.prevAmount ?? 0
-	).toLocaleString()} to {(message.spec.amount ?? 0).toLocaleString}.
+	The population on {planet.name} has decreased from {(message.spec.prevAmount ?? 0).toLocaleString()} to {(message.spec.amount ?? 0).toLocaleString()}.
 {:else if message.type === MessageType.PlanetPopulationDecreasedOvercrowding}
 	The population on {planet.name} has decreased by {(-(message.spec.amount ?? 0)).toLocaleString()} due
 	to overcrowding.

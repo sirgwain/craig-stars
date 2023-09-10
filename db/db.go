@@ -255,7 +255,6 @@ func (c *dbConn) Connect(cfg *config.Config) error {
 	// make sure the database is up to date
 	c.mustMigrate(cfg)
 
-	log.Debug().Msgf("Connecting to database %s%s", cfg.Database.Filename, cfg.Database.ReadConnectionParams)
 
 	// create a new logger for logging database calls
 	var zlogger zerolog.Logger
@@ -268,7 +267,9 @@ func (c *dbConn) Connect(cfg *config.Config) error {
 
 	// dsn is like file::memory:?cache=shared, or file:data.db?_journal=WAL
 	dsn := fmt.Sprintf("file:%s%s", cfg.Database.Filename, cfg.Database.ReadConnectionParams)
+	log.Debug().Msgf("Connecting to database %s", dsn)
 	connectHook := func(conn *sqlite3.SQLiteConn) error {
+		log.Debug().Msgf("Attaching Users database %s", cfg.Database.UsersFilename)
 		if _, err := conn.Exec(fmt.Sprintf("ATTACH DATABASE '%s' as users;", cfg.Database.UsersFilename), nil); err != nil {
 			return err
 		}

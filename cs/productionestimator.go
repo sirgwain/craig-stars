@@ -14,7 +14,7 @@ type CompletionEstimator interface {
 type completionEstimate struct {
 }
 
-func newCompletionEstimator() CompletionEstimator {
+func NewCompletionEstimator() CompletionEstimator {
 	return &completionEstimate{}
 }
 

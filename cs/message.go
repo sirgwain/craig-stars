@@ -939,7 +939,7 @@ func (mc *messageClient) victory(player *Player, victor *Player) {
 	if player.Num == victor.Num {
 		text = "You have been declared the winner of this game. You may continue to play though, if you wish to really rub everyone's nose in your grand victory."
 	} else {
-		text = fmt.Sprintf("The forces of %s have been declared the winner of this game. You are advised to accept their supremacy, though you may continue the fight.", player.Race.PluralName)
+		text = fmt.Sprintf("The forces of %s have been declared the winner of this game. You are advised to accept their supremacy, though you may continue the fight.", victor.Race.PluralName)
 	}
 	// Victory messages are always the first message of the year
 	player.Messages = append([]PlayerMessage{{Type: PlayerMessageVictor, Text: text}}, player.Messages...)

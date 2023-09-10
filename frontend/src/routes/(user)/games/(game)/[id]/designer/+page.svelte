@@ -1,6 +1,6 @@
 <script lang="ts">
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
-import TableSearchInput from '$lib/components/TableSearchInput.svelte';
+	import TableSearchInput from '$lib/components/TableSearchInput.svelte';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import DesignCard from '$lib/components/game/DesignCard.svelte';
 	import { getGameContext } from '$lib/services/Contexts';
@@ -15,6 +15,7 @@ import TableSearchInput from '$lib/components/TableSearchInput.svelte';
 	$: filteredDesigns =
 		$universe
 			.getMyDesigns()
+			.sort((a, b) => a.name.localeCompare(b.name))
 			.filter(
 				(i) =>
 					i.name.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
@@ -35,7 +36,6 @@ import TableSearchInput from '$lib/components/TableSearchInput.svelte';
 		</div>
 	</div>
 </Breadcrumb>
-
 
 <div class="flex flex-wrap justify-evenly gap-2">
 	{#each filteredDesigns.filter((d) => d.playerNum === $player.num && !d.spec.starbase) as design (design.num)}

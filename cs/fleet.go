@@ -363,9 +363,11 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 			if spec.Engine.IdealSpeed == 0 {
 				spec.Engine.IdealSpeed = token.design.Spec.Engine.IdealSpeed
 				spec.Engine.FreeSpeed = token.design.Spec.Engine.FreeSpeed
+				spec.Engine.MaxSafeSpeed = token.design.Spec.Engine.MaxSafeSpeed
 			} else {
 				spec.Engine.IdealSpeed = minInt(spec.Engine.IdealSpeed, token.design.Spec.Engine.IdealSpeed)
-				spec.Engine.FreeSpeed = minInt(spec.Engine.FreeSpeed, token.design.Spec.Engine.FreeSpeed)
+				spec.Engine.FreeSpeed = token.design.Spec.Engine.FreeSpeed
+				spec.Engine.MaxSafeSpeed = minInt(spec.Engine.MaxSafeSpeed, token.design.Spec.Engine.MaxSafeSpeed)
 			}
 		}
 		// cost
