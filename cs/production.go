@@ -46,6 +46,10 @@ type ProductionQueueItem struct {
 	design       *ShipDesign
 }
 
+func (item *ProductionQueueItem) SetDesign(design *ShipDesign) {
+	item.design = design
+}
+
 // get the percent this build item has been completed
 func (item ProductionQueueItem) percentComplete() float64 {
 	if item.Allocated.Total() == 0 {
@@ -282,6 +286,7 @@ func (p *production) produce() productionResult {
 			Int64("GameID", planet.GameID).
 			Int64("ID", planet.ID).
 			Str("Name", planet.Name).
+			Str("Cargo", fmt.Sprintf("%+v", planet.Cargo)).
 			Str("productionResult", fmt.Sprintf("%+v", productionResult)).
 			Msgf("planet cargo was negative after production: %s", planet.Cargo.PrettyString())
 		// planet.Cargo = planet.Cargo.MinZero()

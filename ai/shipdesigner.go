@@ -25,6 +25,18 @@ func (ai *aiPlayer) designShip(name string, purpose cs.ShipDesignPurpose) (updat
 		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeFreighter))
 	case cs.ShipDesignPurposeFighter:
 		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeFighter))
+	case cs.ShipDesignPurposeStarbase:
+		fallthrough
+	case cs.ShipDesignPurposePacketThrower:
+		fallthrough
+	case cs.ShipDesignPurposeStargater:
+		fallthrough
+	case cs.ShipDesignPurposeFuelDepot:
+		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeStarbase))
+	case cs.ShipDesignPurposeFort:
+		fallthrough
+	case cs.ShipDesignPurposeStarterColony:
+		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeStarbase))
 	}
 
 	if hull == nil {

@@ -16,9 +16,12 @@ func (ai *aiPlayer) transportColonists() error {
 	feedersByNum := map[int]*cs.Planet{}
 	needersByNum := map[int]*cs.Planet{}
 
+	// transport from planets that are fully terraformed and above the growth rate
 	for _, planet := range ai.Planets {
 		if planet.Spec.PopulationDensity >= ai.config.colonizerPopulationDensity {
-			feedersByNum[planet.Num] = planet
+			if !planet.Spec.CanTerraform {
+				feedersByNum[planet.Num] = planet
+			}
 		} else {
 			needersByNum[planet.Num] = planet
 		}
@@ -83,9 +86,13 @@ func (ai *aiPlayer) loadColonistsAndTarget(fleet *cs.Fleet, planet *cs.Planet) e
 
 	// if our transport is out in space or already has cargo, don't try and load more
 	if fleet.OrbitingPlanetNum != cs.None || fleet.Cargo.Total() == 0 {
-		// we are over our world, load colonists
-		if err := ai.client.TransferPlanetCargo(&ai.game.Rules, ai.Player, fleet, ai.getPlanet(fleet.OrbitingPlanetNum), cs.Cargo{Colonists: fleet.Spec.CargoCapacity}); err != nil {
-			return err
+		// make sure the planet we're orbiting still has enough pop to feed
+		orbiting := ai.getPlanet(fleet.OrbitingPlanetNum)
+		if orbiting != nil && orbiting.Spec.PopulationDensity >= ai.config.colonizerPopulationDensity {
+			// we are over our world, load colonists
+			if err := ai.client.TransferPlanetCargo(&ai.game.Rules, ai.Player, fleet, orbiting, cs.Cargo{Colonists: fleet.Spec.CargoCapacity}); err != nil {
+				return err
+			}
 		}
 	}
 

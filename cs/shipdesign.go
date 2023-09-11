@@ -111,6 +111,7 @@ const (
 	ShipDesignPurposeDamageMineLayer       ShipDesignPurpose = "DamageMineLayer"
 	ShipDesignPurposeSpeedMineLayer        ShipDesignPurpose = "SpeedMineLayer"
 	ShipDesignPurposeStarbase              ShipDesignPurpose = "Starbase"
+	ShipDesignPurposeFuelDepot             ShipDesignPurpose = "FuelDepot"
 	ShipDesignPurposePacketThrower         ShipDesignPurpose = "PacketThrower"
 	ShipDesignPurposeStargater             ShipDesignPurpose = "Stargater"
 	ShipDesignPurposeFort                  ShipDesignPurpose = "Fort"
@@ -513,6 +514,11 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 
 	design := NewShipDesign(player, num).WithName(name).WithHull(hull.Name)
 	design.Purpose = purpose
+
+	// fuel depots are empty
+	if purpose == ShipDesignPurposeFuelDepot {
+		return design
+	}
 
 	engine := techStore.GetBestEngine(player, hull, purpose)
 	scanner := techStore.GetBestScanner(player)

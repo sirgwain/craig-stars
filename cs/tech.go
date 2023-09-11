@@ -156,6 +156,7 @@ const (
 	TechHullTypeMiner                 TechHullType = "Miner"
 	TechHullTypeMineLayer             TechHullType = "MineLayer"
 	TechHullTypeStarbase              TechHullType = "Starbase"
+	TechHullTypeOrbitalFort           TechHullType = "OrbitalFort"
 )
 
 type HullSlotType Bitmask

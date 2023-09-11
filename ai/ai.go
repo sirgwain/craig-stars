@@ -3,7 +3,6 @@ package ai
 import (
 	"math"
 
-	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 	"golang.org/x/exp/slices"
 )
@@ -28,6 +27,7 @@ type requests struct {
 
 type playerConfig struct {
 	colonizerPopulationDensity float64
+	minYearsToQueueStarbase    int
 	namesByPurpose             map[cs.ShipDesignPurpose]string
 }
 
@@ -41,6 +41,7 @@ func NewAIPlayer(game *cs.Game, techStore *cs.TechStore, player *cs.Player, play
 		},
 		config: playerConfig{
 			colonizerPopulationDensity: .25, // default to requiring 25% pop density before sending off colonizers
+			minYearsToQueueStarbase:    2,   // don't build starbases if it takes over 2 years to build it
 			namesByPurpose: map[cs.ShipDesignPurpose]string{
 				cs.ShipDesignPurposeScout:                 "Long Range Scout",
 				cs.ShipDesignPurposeColonizer:             "Santa Maria",
@@ -64,6 +65,7 @@ func NewAIPlayer(game *cs.Game, techStore *cs.TechStore, player *cs.Player, play
 				cs.ShipDesignPurposeStargater:             "Teleporter",
 				cs.ShipDesignPurposeFort:                  "Orbital Fort",
 				cs.ShipDesignPurposeStarterColony:         "Starter Colony",
+				cs.ShipDesignPurposeFuelDepot:             "Fuel Depot",
 			},
 		},
 		PlayerMapObjects: playerMapObjects,
@@ -120,7 +122,7 @@ func (ai *aiPlayer) buildMaps() {
 					hull:     ai.getHull(colonizer),
 				},
 				{
-					purpose:  cs.ShipDesignPurposeFreighter,
+					purpose:  cs.ShipDesignPurposeColonistFreighter,
 					quantity: 2,
 					hull:     ai.getHull(transport),
 				},
@@ -289,83 +291,6 @@ func (ai *aiPlayer) scoutPackets() error {
 	return nil
 }
 
-// find all colonizable planets and send colony ships to them
-func (ai *aiPlayer) colonize() error {
-	colonizablePlanets := map[int]cs.PlanetIntel{}
-
-	// find all the unexplored planets
-	for _, planet := range ai.Player.PlanetIntels {
-		if planet.Explored() && !planet.Owned() && ai.Player.Race.GetPlanetHabitability(planet.Hab) > 0 {
-			colonizablePlanets[planet.Num] = planet
-		}
-	}
-
-	// find all idle fleets that are colonizers
-	colonizerFleets := []*cs.Fleet{}
-	for _, fleet := range ai.Fleets {
-		if _, contains := fleet.Spec.Purposes[cs.ShipDesignPurposeColonizer]; contains && fleet.Spec.Colonizer {
-			if len(fleet.Waypoints) <= 1 {
-				planet := ai.getPlanet(fleet.OrbitingPlanetNum)
-				if planet != nil && planet.OwnedBy(ai.Player.Num) && planet.Spec.PopulationDensity > ai.config.colonizerPopulationDensity {
-					// this fleet can be sent to colonize a planet
-					colonizerFleets = append(colonizerFleets, fleet)
-				}
-			} else {
-				// this fleet is already colonizing a planet, remove the target from the colonizable planets list
-				for _, wp := range fleet.Waypoints[1:] {
-					if wp.TargetNum != cs.None {
-						delete(colonizablePlanets, wp.TargetNum)
-					}
-
-					target := ai.getPlanetIntel(wp.TargetNum)
-					if target.Owned() {
-						// this planet is owned, don't target it anymore and return this colonizer to the queue
-						fleet.Waypoints = fleet.Waypoints[:1]
-						colonizerFleets = append(colonizerFleets, fleet)
-						continue
-					}
-				}
-			}
-		}
-	}
-
-	// TODO: we should sort by best planet and find the closest fleet to that planet to send a colonizer
-	for _, fleet := range colonizerFleets {
-		bestPlanet := ai.getHighestHabPlanet(colonizablePlanets)
-		if bestPlanet != nil {
-
-			// if our colonizer is out in space or already has cargo, don't try and load more
-			if fleet.OrbitingPlanetNum != cs.None || fleet.Cargo.Total() == 0 {
-
-				// make sure we aren't orbiting another player's planet, somehow
-				planet := ai.getPlanetIntel(fleet.OrbitingPlanetNum)
-				if planet.PlayerNum != ai.Num {
-					continue
-				}
-
-				// we are over our world, load colonists
-				if err := ai.client.TransferPlanetCargo(&ai.game.Rules, ai.Player, fleet, ai.getPlanet(fleet.OrbitingPlanetNum), cs.Cargo{Colonists: fleet.Spec.CargoCapacity}); err != nil {
-					// something went wrong, skipi this planet
-					log.Error().Err(err).Msg("transferring colonists from planet, skipping")
-					continue
-				}
-
-			}
-
-			warpSpeed := ai.getWarpSpeed(fleet, bestPlanet.Position)
-			fleet.Waypoints = append(fleet.Waypoints, cs.NewPlanetWaypoint(bestPlanet.Position, bestPlanet.Num, bestPlanet.Name, warpSpeed).WithTask(cs.WaypointTaskColonize))
-			ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders)
-			delete(colonizablePlanets, bestPlanet.Num)
-		}
-	}
-
-	// build scout ships where necessary
-	if len(colonizablePlanets) > 0 {
-		ai.addShipBuildRequest(cs.ShipDesignPurposeColonizer, len(colonizablePlanets))
-	}
-	return nil
-}
-
 func (ai *aiPlayer) layMines() error {
 	design := ai.Player.GetLatestDesign(cs.ShipDesignPurposeDamageMineLayer)
 
@@ -488,17 +413,6 @@ func (p *aiPlayer) getPlanetIntel(num int) cs.PlanetIntel {
 	return p.Player.PlanetIntels[num-1]
 }
 
-// get all planets the player owns that can build ships of mass mass
-func (p *aiPlayer) getBuildablePlanets(mass int) []*cs.Planet {
-	planets := []*cs.Planet{}
-	for _, planet := range p.Planets {
-		if planet.CanBuild(mass) {
-			planets = append(planets, planet)
-		}
-	}
-	return planets
-}
-
 // get all planets we own with space docks
 func (p *aiPlayer) getPlanetsWithDocks() []*cs.Planet {
 	planets := []*cs.Planet{}
@@ -560,19 +474,11 @@ func (ai *aiPlayer) getClosestPlanet(fleet *cs.Fleet, planetsByNum map[int]*cs.P
 	return closest
 }
 
-// get the planet with the highest hab value
-func (ai *aiPlayer) getHighestHabPlanet(colonizablePlanets map[int]cs.PlanetIntel) *cs.PlanetIntel {
-	highestHabValue := math.MinInt
-	var best *cs.PlanetIntel = nil
-
-	for num := range colonizablePlanets {
-		intel := colonizablePlanets[num]
-		habValue := ai.Player.Race.GetPlanetHabitability(intel.Hab)
-		if habValue > highestHabValue {
-			highestHabValue = habValue
-			best = &intel
+func (ai *aiPlayer) isStarbaseInQueue(planet *cs.Planet) bool {
+	for _, item := range planet.ProductionQueue {
+		if item.Type == cs.QueueItemTypeStarbase {
+			return true
 		}
 	}
-
-	return best
+	return false
 }

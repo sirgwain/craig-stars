@@ -241,6 +241,7 @@ func (t *turn) fleetColonize() {
 				Int("Player", player.Num).
 				Str("Planet", planet.Name).
 				Str("Fleet", fleet.Name).
+				Int("Colonists", fleet.Cargo.Colonists*100).
 				Msgf("colonized planet")
 
 			if fleet.Spec.OrbitalConstructionModule {

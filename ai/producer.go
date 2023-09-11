@@ -57,7 +57,16 @@ func (ai *aiPlayer) produce() error {
 				continue
 			}
 
-			existingQueueItemIndex := slices.IndexFunc(planet.ProductionQueue, func(item cs.ProductionQueueItem) bool { return item.DesignNum == design.Num })
+			existingQueueItemIndex := slices.IndexFunc(planet.ProductionQueue, func(item cs.ProductionQueueItem) bool {
+				if item.Type == cs.QueueItemTypeShipToken {
+					itemDesign := ai.GetDesign(item.DesignNum)
+					if itemDesign != nil {
+						// true if this design or one like it is already queued
+						return item.DesignNum == design.Num || itemDesign.Purpose == purpose
+					}
+				}
+				return false
+			})
 			if existingQueueItemIndex == -1 {
 				// put a new scout at the front of the queue
 				planet.ProductionQueue = append([]cs.ProductionQueueItem{{Type: cs.QueueItemTypeShipToken, Quantity: 1, DesignNum: design.Num}}, planet.ProductionQueue...)
@@ -70,6 +79,24 @@ func (ai *aiPlayer) produce() error {
 
 	for _, planet := range ai.Planets {
 		yearlyAvailableToSpend := cs.FromMineralAndResources(planet.Spec.MiningOutput, planet.Spec.ResourcesPerYearAvailable)
+
+		// try and build starbases
+		// TODO: upgrade starbases
+		if !planet.Spec.HasStarbase && !ai.isStarbaseInQueue(planet) {
+			// try and build a full starbase
+			queued, err := ai.checkPlanetStarbaseBuild(planet, cs.ShipDesignPurposeStarbase, costCalculator, yearlyAvailableToSpend, completionEstimator)
+			if err != nil {
+				return err
+			}
+			if !queued {
+				// try a fuel depot
+				_, err := ai.checkPlanetStarbaseBuild(planet, cs.ShipDesignPurposeFuelDepot, costCalculator, yearlyAvailableToSpend, completionEstimator)
+				if err != nil {
+					return err
+				}
+
+			}
+		}
 
 		// check for terraforming
 		if planet.Spec.CanTerraform {
@@ -87,6 +114,31 @@ func (ai *aiPlayer) produce() error {
 		}
 	}
 	return nil
+}
+
+func (ai *aiPlayer) checkPlanetStarbaseBuild(planet *cs.Planet, purpose cs.ShipDesignPurpose, costCalculator cs.CostCalculator, yearlyAvailableToSpend cs.Cost, completionEstimator cs.CompletionEstimator) (bool, error) {
+	// design and upgrade this ship
+	design, err := ai.designShip(ai.config.namesByPurpose[purpose], purpose)
+	if err != nil {
+		return false, fmt.Errorf("unable to design ship %v %w", purpose, err)
+	}
+
+	item := cs.ProductionQueueItem{Type: cs.QueueItemTypeStarbase, Quantity: 1, DesignNum: design.Num}
+	item.SetDesign(design)
+	cost, err := costCalculator.CostOfOne(ai.Player, item)
+	if err != nil {
+		return false, fmt.Errorf("calculate starbase cost %w", err)
+	}
+	item.CostOfOne = cost
+
+	// if we can complete this soon, queue it
+	yearsToBuild := completionEstimator.GetYearsToBuildOne(item, planet.Spec.MiningOutput, yearlyAvailableToSpend)
+	if yearsToBuild != cs.Infinite && yearsToBuild <= ai.config.minYearsToQueueStarbase {
+		planet.ProductionQueue = append([]cs.ProductionQueueItem{item}, planet.ProductionQueue...)
+		return true, nil
+	}
+
+	return false, nil
 }
 
 // add a new ship build request

@@ -232,6 +232,7 @@ func (p *Planet) emptyPlanet() {
 	p.Scanner = false
 	p.Defenses = 0 // defenses are all gone, rest of the structures can stay
 	p.ProductionQueue = []ProductionQueueItem{}
+	p.setPopulation(0)
 	p.Spec = PlanetSpec{}
 	// reset any instaforming
 	p.Hab = p.BaseHab.Add(p.TerraformedAmount)

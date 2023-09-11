@@ -2427,7 +2427,7 @@ var MetaMorph = TechHull{Tech: NewTech("Meta Morph", NewCost(50, 12, 12, 120), T
 	},
 }
 var OrbitalFort = TechHull{Tech: NewTech("Orbital Fort", NewCost(24, 0, 34, 80), TechRequirements{TechLevel: TechLevel{}}, 10, TechCategoryStarbaseHull),
-	Type:                    TechHullTypeStarbase,
+	Type:                    TechHullTypeOrbitalFort,
 	SpaceDock:               0,
 	Armor:                   100,
 	Initiative:              10,
