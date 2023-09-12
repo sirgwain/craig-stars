@@ -229,7 +229,7 @@ func buildUniverse(player *cs.Player, designs []*cs.ShipDesign, pmos cs.PlayerMa
 	for i, item := range intels.ScoreIntels {
 		universe.Scores[i] = item.ScoreHistory
 	}
-	if player.Num < len(universe.Scores) {
+	if player.Num <= len(universe.Scores) {
 		universe.Scores[player.Num-1] = player.ScoreHistory
 	}
 

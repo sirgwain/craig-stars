@@ -114,8 +114,8 @@ func (b *bomb) normalBombPlanet(planet *Planet, defender *Player, attacker *Play
 			killRateColonistsKilled := roundToNearest100f(b.getColonistsKilledForBombs(planet.population(), defenseCoverage, fleet.Spec.Bombs))
 			minColonistsKilled := roundToNearest100(b.getMinColonistsKilledForBombs(planet.population(), defenseCoverage, fleet.Spec.Bombs))
 
-			killed := maxInt(killRateColonistsKilled, minColonistsKilled)
-			leftoverPopulation := maxInt(0, planet.population()-killed)
+			killed := MaxInt(killRateColonistsKilled, minColonistsKilled)
+			leftoverPopulation := MaxInt(0, planet.population()-killed)
 			actualKilled := planet.population() - leftoverPopulation
 			planet.setPopulation(leftoverPopulation)
 
@@ -126,9 +126,9 @@ func (b *bomb) normalBombPlanet(planet *Planet, defender *Player, attacker *Play
 			leftoverFactories := 0
 			leftoverDefenses := 0
 			if totalStructures > 0 {
-				leftoverMines = maxInt(0, int(float64(planet.Mines)-float64(structuresDestroyed)*float64(planet.Mines)/float64(totalStructures)))
-				leftoverFactories = maxInt(0, int(float64(planet.Factories)-float64(structuresDestroyed)*float64(planet.Factories)/float64(totalStructures)))
-				leftoverDefenses = maxInt(0, int(float64(planet.Defenses)-float64(structuresDestroyed)*float64(planet.Defenses)/float64(totalStructures)))
+				leftoverMines = MaxInt(0, int(float64(planet.Mines)-float64(structuresDestroyed)*float64(planet.Mines)/float64(totalStructures)))
+				leftoverFactories = MaxInt(0, int(float64(planet.Factories)-float64(structuresDestroyed)*float64(planet.Factories)/float64(totalStructures)))
+				leftoverDefenses = MaxInt(0, int(float64(planet.Defenses)-float64(structuresDestroyed)*float64(planet.Defenses)/float64(totalStructures)))
 			}
 
 			// make sure we only count stuctures that were actually destroyed
@@ -173,7 +173,7 @@ func (b *bomb) smartBombPlanet(planet *Planet, defender *Player, attacker *Playe
 			// figure out the killRate and minKill for this fleet's bombs
 			smartKilled := roundToNearest100f(b.getColonistsKilledWithSmartBombs(planet.population(), smartDefenseCoverage, fleet.Spec.SmartBombs))
 
-			leftoverPopulation := maxInt(0, planet.population()-smartKilled)
+			leftoverPopulation := MaxInt(0, planet.population()-smartKilled)
 			actualKilled := planet.population() - leftoverPopulation
 			planet.setPopulation(leftoverPopulation)
 

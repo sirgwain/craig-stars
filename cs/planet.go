@@ -142,7 +142,7 @@ func (p *Planet) population() int {
 // anything over 3x is unproductive
 func (p *Planet) productivePopulation(maxPop int) int {
 
-	return minInt(p.population(), 3*maxPop)
+	return MinInt(p.population(), 3*maxPop)
 }
 
 func (p *Planet) setPopulation(pop int) {
@@ -232,6 +232,7 @@ func (p *Planet) emptyPlanet() {
 	p.Scanner = false
 	p.Defenses = 0 // defenses are all gone, rest of the structures can stay
 	p.ProductionQueue = []ProductionQueueItem{}
+	p.setPopulation(0)
 	p.Spec = PlanetSpec{}
 	// reset any instaforming
 	p.Hab = p.BaseHab.Add(p.TerraformedAmount)
@@ -421,7 +422,7 @@ func (p *Planet) getGrowthAmount(player *Player, maxPopulation int, populationOv
 	} else {
 		// kill off (habValue / 10)% colonists every year. I.e. a habValue of -4% kills off .4%
 		deathAmount := int(float64(p.population()) * (float64(habValue) / 1000.0))
-		return roundToNearest100(clamp(deathAmount, deathAmount, -100))
+		return roundToNearest100(Clamp(deathAmount, deathAmount, -100))
 	}
 }
 
@@ -472,8 +473,8 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	if race.Spec.CanBuildDefenses {
 		spec.MaxDefenses = 100
 		spec.Defense = player.Spec.Defense.Name
-		spec.DefenseCoverage = float64(1.0 - (math.Pow((1 - (player.Spec.Defense.DefenseCoverage / 100)), float64(clamp(planet.Defenses, 0, spec.MaxDefenses)))))
-		spec.DefenseCoverageSmart = float64(1.0 - (math.Pow((1 - (player.Spec.Defense.DefenseCoverage / 100 * rules.SmartDefenseCoverageFactor)), float64(clamp(planet.Defenses, 0, spec.MaxDefenses)))))
+		spec.DefenseCoverage = float64(1.0 - (math.Pow((1 - (player.Spec.Defense.DefenseCoverage / 100)), float64(Clamp(planet.Defenses, 0, spec.MaxDefenses)))))
+		spec.DefenseCoverageSmart = float64(1.0 - (math.Pow((1 - (player.Spec.Defense.DefenseCoverage / 100 * rules.SmartDefenseCoverageFactor)), float64(Clamp(planet.Defenses, 0, spec.MaxDefenses)))))
 	}
 
 	if race.Spec.InnateScanner {
@@ -549,17 +550,17 @@ func (p *Planet) getMaxPopulation(rules *Rules, player *Player, habitability int
 func (planet *Planet) maxBuildable(t QueueItemType) int {
 	switch t {
 	case QueueItemTypeAutoMines:
-		return maxInt(0, planet.Spec.MaxMines-planet.Mines)
+		return MaxInt(0, planet.Spec.MaxMines-planet.Mines)
 	case QueueItemTypeMine:
-		return maxInt(0, planet.Spec.MaxPossibleMines-planet.Mines)
+		return MaxInt(0, planet.Spec.MaxPossibleMines-planet.Mines)
 	case QueueItemTypeAutoFactories:
-		return maxInt(0, planet.Spec.MaxFactories-planet.Factories)
+		return MaxInt(0, planet.Spec.MaxFactories-planet.Factories)
 	case QueueItemTypeFactory:
-		return maxInt(0, planet.Spec.MaxPossibleFactories-planet.Factories)
+		return MaxInt(0, planet.Spec.MaxPossibleFactories-planet.Factories)
 	case QueueItemTypeAutoDefenses:
 		fallthrough
 	case QueueItemTypeDefenses:
-		return maxInt(0, planet.Spec.MaxDefenses-planet.Defenses)
+		return MaxInt(0, planet.Spec.MaxDefenses-planet.Defenses)
 	case QueueItemTypeTerraformEnvironment:
 	case QueueItemTypeAutoMaxTerraform:
 		return planet.Spec.TerraformAmount.absSum()

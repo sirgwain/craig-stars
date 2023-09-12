@@ -78,4 +78,6 @@ export type Spec = {
 	maxRange?: number;
 	numInstances?: number;
 	numBuilt?: number;
+	estimatedRange?: number;
+	estimatedRangeFull?: number;
 };

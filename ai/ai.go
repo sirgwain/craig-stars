@@ -3,32 +3,72 @@ package ai
 import (
 	"math"
 
-	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
-	"golang.org/x/exp/slices"
 )
 
 type aiPlayer struct {
 	*cs.Player
 	cs.PlayerMapObjects
-	game         *cs.Game
-	techStore    *cs.TechStore
-	config       aiPlayerConfig
-	client       cs.Orderer
-	planetsByNum map[int]*cs.Planet
-	fleetsByNum  map[int]*cs.Fleet
+	requests
+	game              *cs.Game
+	techStore         *cs.TechStore
+	config            playerConfig
+	client            cs.Orderer
+	planetsByNum      map[int]*cs.Planet
+	fleetsByNum       map[int]*cs.Fleet
+	fleetsByPlanetNum map[int][]*cs.Fleet
+	designsByPurpose  map[cs.ShipDesignPurpose]*cs.ShipDesign
+	fleetsByPurpose   map[cs.FleetPurpose]fleet
 }
 
-type aiPlayerConfig struct {
+type requests struct {
+	fleetBuilds map[cs.FleetPurpose]int
+}
+
+type playerConfig struct {
 	colonizerPopulationDensity float64
+	invasionFactor             float64
+	minYearsToQueueStarbase    int
+	namesByPurpose             map[cs.ShipDesignPurpose]string
 }
 
 func NewAIPlayer(game *cs.Game, techStore *cs.TechStore, player *cs.Player, playerMapObjects cs.PlayerMapObjects) *aiPlayer {
 	aiPlayer := aiPlayer{
-		Player: player,
-		game:   game,
-		config: aiPlayerConfig{
+		Player:    player,
+		game:      game,
+		techStore: techStore,
+		requests: requests{
+			fleetBuilds: make(map[cs.FleetPurpose]int),
+		},
+		config: playerConfig{
 			colonizerPopulationDensity: .25, // default to requiring 25% pop density before sending off colonizers
+			minYearsToQueueStarbase:    2,   // don't build starbases if it takes over 2 years to build it
+			invasionFactor:             2,   // we invade if we have 2x the colonists to drop
+			namesByPurpose: map[cs.ShipDesignPurpose]string{
+				cs.ShipDesignPurposeScout:                 "Long Range Scout",
+				cs.ShipDesignPurposeColonizer:             "Santa Maria",
+				cs.ShipDesignPurposeBomber:                "Bomber",
+				cs.ShipDesignPurposeStructureBomber:       "Structure Bomber",
+				cs.ShipDesignPurposeSmartBomber:           "Smart Bomber",
+				cs.ShipDesignPurposeFighter:               "Stalwart Defender",
+				cs.ShipDesignPurposeFighterScout:          "Armed Probe",
+				cs.ShipDesignPurposeCapitalShip:           "Warship",
+				cs.ShipDesignPurposeFreighter:             "Teamster",
+				cs.ShipDesignPurposeColonistFreighter:     "Colonist Freighter",
+				cs.ShipDesignPurposeFuelFreighter:         "Fuel Freighter",
+				cs.ShipDesignPurposeMultiPurposeFreighter: "Swashbuckler",
+				cs.ShipDesignPurposeArmedFreighter:        "Armed Freighter",
+				cs.ShipDesignPurposeMiner:                 "Cotton Picker",
+				cs.ShipDesignPurposeTerraformer:           "Change of Heart",
+				cs.ShipDesignPurposeDamageMineLayer:       "Little Hen",
+				cs.ShipDesignPurposeSpeedMineLayer:        "Speed Turtle",
+				cs.ShipDesignPurposeStarbase:              "Starbase",
+				cs.ShipDesignPurposePacketThrower:         "Flinger",
+				cs.ShipDesignPurposeStargater:             "Teleporter",
+				cs.ShipDesignPurposeFort:                  "Orbital Fort",
+				cs.ShipDesignPurposeStarterColony:         "Starter Colony",
+				cs.ShipDesignPurposeFuelDepot:             "Fuel Depot",
+			},
 		},
 		PlayerMapObjects: playerMapObjects,
 		client:           cs.NewOrderer(),
@@ -40,290 +80,173 @@ func NewAIPlayer(game *cs.Game, techStore *cs.TechStore, player *cs.Player, play
 }
 
 // build maps used for quick lookups for various player objects
-func (p *aiPlayer) buildMaps() {
-	p.planetsByNum = make(map[int]*cs.Planet, len(p.Planets))
-	for _, planet := range p.Planets {
-		p.planetsByNum[planet.Num] = planet
+func (ai *aiPlayer) buildMaps() {
+	ai.planetsByNum = make(map[int]*cs.Planet, len(ai.Planets))
+	for _, planet := range ai.Planets {
+		ai.planetsByNum[planet.Num] = planet
 	}
 
-	p.fleetsByNum = make(map[int]*cs.Fleet, len(p.Fleets))
-	for _, fleet := range p.Fleets {
-		p.fleetsByNum[fleet.Num] = fleet
+	ai.fleetsByNum = make(map[int]*cs.Fleet, len(ai.Fleets))
+	ai.fleetsByPlanetNum = make(map[int][]*cs.Fleet, len(ai.Planets))
+	for _, fleet := range ai.Fleets {
+		ai.fleetsByNum[fleet.Num] = fleet
+		ai.fleetsByPlanetNum[fleet.OrbitingPlanetNum] = append(ai.fleetsByPlanetNum[fleet.OrbitingPlanetNum], fleet)
 	}
 
+	ai.designsByPurpose = make(map[cs.ShipDesignPurpose]*cs.ShipDesign, len(ai.Designs))
+	for _, design := range ai.Designs {
+		if existing, ok := ai.designsByPurpose[design.Purpose]; ok {
+			// add latest version
+			if existing.Version < design.Version {
+				ai.designsByPurpose[design.Purpose] = design
+			}
+		} else {
+			ai.designsByPurpose[design.Purpose] = design
+		}
+	}
+
+	// TODO: use this. :)
+	ai.fleetsByPurpose = map[cs.FleetPurpose]fleet{
+		cs.FleetPurposeScout: {
+			purpose: cs.FleetPurposeScout,
+			ships: []fleetShip{
+				{
+					purpose:  cs.ShipDesignPurposeScout,
+					quantity: 1,
+				},
+			},
+		},
+		cs.FleetPurposeColonizer: {
+			purpose: cs.FleetPurposeColonizer,
+			ships: []fleetShip{
+				{
+					purpose:  cs.ShipDesignPurposeColonistFreighter,
+					quantity: 1,
+				},
+				{
+					purpose:  cs.ShipDesignPurposeFuelFreighter,
+					quantity: 1,
+				},
+				{
+					purpose:  cs.ShipDesignPurposeColonizer,
+					quantity: 1,
+				},
+			},
+		},
+		cs.FleetPurposeColonistFreighter: {
+			purpose: cs.FleetPurposeColonistFreighter,
+			ships: []fleetShip{
+				{
+					purpose:  cs.ShipDesignPurposeColonistFreighter,
+					quantity: 1,
+				},
+				{
+					purpose:  cs.ShipDesignPurposeFuelFreighter,
+					quantity: 1,
+				},
+			},
+		},
+		cs.FleetPurposeBomber: {
+			purpose: cs.FleetPurposeBomber,
+			ships: []fleetShip{
+				{
+					purpose:  cs.ShipDesignPurposeBomber,
+					quantity: 5,
+				},
+				{
+					purpose:  cs.ShipDesignPurposeFighter,
+					quantity: 5,
+				},
+			},
+		},
+	}
 }
 
 // process an AI player's turn
 func (ai *aiPlayer) ProcessTurn() error {
-	ai.scout()
-	ai.scoutPackets()
-	ai.colonize()
-	ai.layMines()
+	ai.plan()
+
+	if err := ai.scout(); err != nil {
+		return err
+	}
+	if err := ai.scoutPackets(); err != nil {
+		return err
+	}
+	if err := ai.colonize(); err != nil {
+		return err
+	}
+	if err := ai.layMines(); err != nil {
+		return err
+	}
+	if err := ai.invade(); err != nil {
+		return err
+	}
+	if err := ai.bomb(); err != nil {
+		return err
+	}
+	// if err := ai.transport(); err != nil {
+	// 	return err
+	// }
+	if err := ai.produce(); err != nil {
+		return err
+	}
 	return nil
-}
-
-// dispatch scouts to unknown planets
-func (ai *aiPlayer) scout() {
-	design := ai.Player.GetLatestDesign(cs.ShipDesignPurposeScout)
-	unknownPlanetsByNum := map[int]cs.PlanetIntel{}
-	buildablePlanets := ai.getBuildablePlanets(design.Spec.Mass)
-
-	// find all the unexplored planets
-	for _, planet := range ai.Player.PlanetIntels {
-		if planet.Unexplored() {
-			unknownPlanetsByNum[planet.Num] = planet
-		}
-	}
-
-	// find all idle fleets that have scanners
-	scannerFleets := []*cs.Fleet{}
-	for _, fleet := range ai.Fleets {
-		if _, contains := fleet.Spec.Purposes[cs.ShipDesignPurposeScout]; contains && fleet.Spec.Scanner {
-			if len(fleet.Waypoints) <= 1 {
-				// this fleet can be sent to scan a planet
-				scannerFleets = append(scannerFleets, fleet)
-			} else {
-				// this fleet is already scanning a planet, remove the target from the unknown planets list
-				for _, wp := range fleet.Waypoints[1:] {
-					if wp.TargetNum != cs.None {
-						delete(unknownPlanetsByNum, wp.TargetNum)
-					}
-				}
-			}
-		}
-	}
-
-	for _, fleet := range scannerFleets {
-		closestPlanet := ai.getClosestPlanetIntel(fleet.Position, unknownPlanetsByNum)
-		if closestPlanet != nil {
-			warpSpeed := ai.getWarpSpeed(fleet, closestPlanet.Position)
-			fleet.Waypoints = append(fleet.Waypoints, cs.NewPlanetWaypoint(closestPlanet.Position, closestPlanet.Num, closestPlanet.Name, warpSpeed))
-			ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders)
-			delete(unknownPlanetsByNum, closestPlanet.Num)
-		}
-	}
-
-	for _, planet := range buildablePlanets {
-		existingQueueItemIndex := slices.IndexFunc(planet.ProductionQueue, func(item cs.ProductionQueueItem) bool { return item.DesignNum == design.Num })
-		if existingQueueItemIndex == -1 {
-			// put a new scout at the front of the queue
-			planet.ProductionQueue = append([]cs.ProductionQueueItem{{Type: cs.QueueItemTypeShipToken, Quantity: 1, DesignNum: design.Num}}, planet.ProductionQueue...)
-			ai.client.UpdatePlanetOrders(&ai.game.Rules, ai.Player, planet, planet.PlanetOrders)
-
-		}
-	}
-}
-
-// fling packets at planets to scout
-func (ai *aiPlayer) scoutPackets() {
-	if !ai.Player.Race.Spec.PacketBuiltInScanner {
-		return
-	}
-	unknownPlanetsByNum := map[int]cs.PlanetIntel{}
-
-	// find all the unexplored planets
-	for _, planet := range ai.Player.PlanetIntels {
-		if planet.Unexplored() {
-			unknownPlanetsByNum[planet.Num] = planet
-		}
-	}
-
-	// remove any planets we're already targetting
-	for _, packet := range ai.MineralPackets {
-		// this packet travels along a path to the target
-		// build a rectangle in the shape of the scan path
-		//
-		angle := math.Atan2(packet.Heading.Y, packet.Heading.X)
-		target := ai.getPlanetIntel(packet.TargetPlanetNum)
-		dist := packet.Position.DistanceTo(target.Position)
-
-		// the rectangle is the height of the scan range and the width of the distance
-		// from the packet to the target
-		// i.e
-		// rect origin is upper left corner
-		//          *-------------
-		// packet    |           |  target
-		// (x,y)    *|>>>>>>>>>>>|* (x, y)
-		//           |           |
-		//           -------------
-		height := float64(packet.ScanRangePen * 2)
-		width := dist
-		rect := cs.Rect{X: packet.Position.X, Y: packet.Position.Y - height/2, Width: width, Height: height}
-		for num, planet := range unknownPlanetsByNum {
-			// we will catch this in our scanners, remove it
-			if rect.PointInRotatedRectangle(planet.Position, angle) {
-				delete(unknownPlanetsByNum, num)
-			}
-		}
-		delete(unknownPlanetsByNum, packet.TargetPlanetNum)
-	}
-
-	for _, planet := range ai.Planets {
-		if planet.Spec.HasMassDriver {
-			existingQueueItemIndex := slices.IndexFunc(planet.ProductionQueue, func(item cs.ProductionQueueItem) bool { return item.Type.IsPacket() })
-			if existingQueueItemIndex == -1 {
-
-				// find the farthest planet
-				farthest := ai.getFarthestPlanetIntel(planet.Position, unknownPlanetsByNum)
-				if farthest == nil {
-					continue
-				}
-
-				// fling a packet with the mineral we have the most of
-				cargoType := planet.Cargo.GreatestMineralType()
-				queueItemType := cs.QueueItemTypeMixedMineralPacket
-				switch cargoType {
-				case cs.Ironium:
-					queueItemType = cs.QueueItemTypeIroniumMineralPacket
-				case cs.Boranium:
-					queueItemType = cs.QueueItemTypeBoraniumMineralPacket
-				case cs.Germanium:
-					queueItemType = cs.QueueItemTypeGermaniumMineralPacket
-				}
-
-				// Build a new packet targetted towards this planet
-				planet.PacketTargetNum = farthest.Num
-				planet.ProductionQueue = append([]cs.ProductionQueueItem{{Type: queueItemType, Quantity: 1}}, planet.ProductionQueue...)
-				delete(unknownPlanetsByNum, farthest.Num)
-
-				ai.client.UpdatePlanetOrders(&ai.game.Rules, ai.Player, planet, planet.PlanetOrders)
-
-			}
-		}
-	}
-}
-
-// find all colonizable planets and send colony ships to them
-func (ai *aiPlayer) colonize() {
-	design := ai.Player.GetLatestDesign(cs.ShipDesignPurposeColonizer)
-	colonizablePlanets := map[int]cs.PlanetIntel{}
-	buildablePlanets := ai.getBuildablePlanets(design.Spec.Mass)
-
-	// find all the unexplored planets
-	for _, planet := range ai.Player.PlanetIntels {
-		if planet.Explored() && !planet.Owned() && ai.Player.Race.GetPlanetHabitability(planet.Hab) > 0 {
-			colonizablePlanets[planet.Num] = planet
-		}
-	}
-
-	// find all idle fleets that are colonizers
-	colonizerFleets := []*cs.Fleet{}
-	for _, fleet := range ai.Fleets {
-		if _, contains := fleet.Spec.Purposes[cs.ShipDesignPurposeColonizer]; contains && fleet.Spec.Colonizer {
-			if len(fleet.Waypoints) <= 1 {
-				planet := ai.getPlanet(fleet.OrbitingPlanetNum)
-				if planet != nil && planet.OwnedBy(ai.Player.Num) && planet.Spec.PopulationDensity > ai.config.colonizerPopulationDensity {
-					// this fleet can be sent to colonize a planet
-					colonizerFleets = append(colonizerFleets, fleet)
-				}
-			} else {
-				// this fleet is already scanning a planet, remove the target from the colonizable planets list
-				for _, wp := range fleet.Waypoints[1:] {
-					if wp.TargetNum != cs.None {
-						delete(colonizablePlanets, wp.TargetNum)
-					}
-				}
-			}
-		}
-	}
-
-	// TODO: we should sort by best planet and find the closest fleet to that planet to send a colonizer
-	for _, fleet := range colonizerFleets {
-		bestPlanet := ai.getHighestHabPlanet(colonizablePlanets)
-		if bestPlanet != nil {
-			// load colonists
-			if err := ai.client.TransferPlanetCargo(&ai.game.Rules, ai.Player, fleet, ai.getPlanet(fleet.OrbitingPlanetNum), cs.Cargo{Colonists: fleet.Spec.CargoCapacity}); err != nil {
-				// something went wrong, skipi this planet
-				log.Error().Err(err).Msg("transferring colonists from planet, skipping")
-				continue
-			}
-
-			warpSpeed := ai.getWarpSpeed(fleet, bestPlanet.Position)
-			fleet.Waypoints = append(fleet.Waypoints, cs.NewPlanetWaypoint(bestPlanet.Position, bestPlanet.Num, bestPlanet.Name, warpSpeed).WithTask(cs.WaypointTaskColonize))
-			ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders)
-			delete(colonizablePlanets, bestPlanet.Num)
-		}
-	}
-
-	for _, planet := range buildablePlanets {
-
-		if planet.Spec.PopulationDensity >= ai.config.colonizerPopulationDensity {
-			existingQueueItemIndex := slices.IndexFunc(planet.ProductionQueue, func(item cs.ProductionQueueItem) bool { return item.DesignNum == design.Num })
-			if existingQueueItemIndex == -1 {
-				// put a new scout at the front of the queue
-				planet.ProductionQueue = append([]cs.ProductionQueueItem{{Type: cs.QueueItemTypeShipToken, Quantity: 1, DesignNum: design.Num}}, planet.ProductionQueue...)
-				ai.client.UpdatePlanetOrders(&ai.game.Rules, ai.Player, planet, planet.PlanetOrders)
-			}
-		}
-	}
-}
-
-func (ai *aiPlayer) layMines() {
-	design := ai.Player.GetLatestDesign(cs.ShipDesignPurposeDamageMineLayer)
-
-	// no mine layers
-	if design == nil {
-		return
-	}
-
-	// lay mines to protect all our planets
-	planetsToProtect := make([]*cs.Planet, len(ai.Planets))
-	copy(planetsToProtect, ai.Planets)
-	planetsToProtectByNum := map[int]*cs.Planet{}
-	for _, planet := range ai.Planets {
-		planetsToProtectByNum[planet.Num] = planet
-	}
-
-	// find all idle fleets that have scanners
-	mineLayerFleets := []*cs.Fleet{}
-	for _, fleet := range ai.Fleets {
-		if _, contains := fleet.Spec.Purposes[cs.ShipDesignPurposeDamageMineLayer]; contains && fleet.Spec.MineLayingRateByMineType != nil {
-			if len(fleet.Waypoints) <= 1 && fleet.Waypoints[0].Task != cs.WaypointTaskLayMineField {
-				// this fleet can be sent to scan a planet
-				mineLayerFleets = append(mineLayerFleets, fleet)
-			} else {
-				// this fleet is already scanning a planet, remove the target from the unknown planets list
-				for _, wp := range fleet.Waypoints[1:] {
-					if wp.TargetNum != cs.None {
-						delete(planetsToProtectByNum, wp.TargetNum)
-					}
-				}
-			}
-		}
-	}
-
-	for _, fleet := range mineLayerFleets {
-		closestPlanet := ai.getClosestPlanet(fleet, planetsToProtectByNum)
-		if closestPlanet != nil {
-			if fleet.Position == closestPlanet.Position {
-				fleet.Waypoints[0].Task = cs.WaypointTaskLayMineField
-				fleet.Waypoints[0].LayMineFieldDuration = cs.Indefinite
-				ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders)
-				delete(planetsToProtectByNum, closestPlanet.Num)
-			} else {
-				warpSpeed := ai.getWarpSpeed(fleet, closestPlanet.Position)
-				fleet.Waypoints = append(fleet.Waypoints, cs.NewPlanetWaypoint(closestPlanet.Position, closestPlanet.Num, closestPlanet.Name, warpSpeed))
-				ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders)
-				delete(planetsToProtectByNum, closestPlanet.Num)
-			}
-		}
-	}
-
-	// TODO: build new minelayer fleets when some conditions are true...
-	buildablePlanets := ai.getBuildablePlanets(design.Spec.Mass)
-	_ = buildablePlanets
-
 }
 
 func (ai *aiPlayer) getWarpSpeed(fleet *cs.Fleet, position cs.Vector) int {
 	dist := fleet.Position.DistanceTo(position)
-	fuelUsage := fleet.GetFuelCost(ai.Player, fleet.Spec.Engine.IdealSpeed, dist)
-	warpSpeed := fleet.Spec.Engine.IdealSpeed
-	for ; fuelUsage > fleet.Fuel && warpSpeed > 1; warpSpeed-- {
-		fuelUsage = fleet.GetFuelCost(ai.Player, warpSpeed, dist)
+	return ai.getMaxWarp(dist, fleet)
+}
+
+// get the maximum warp we can travel to reach the destination
+// in the minimal number of years, within our fuel constraints
+func (ai *aiPlayer) getMaxWarp(dist float64, fleet *cs.Fleet) int {
+	freeSpeed := fleet.Spec.Engine.FreeSpeed
+
+	// start at freespeed+1 and move up until we run out of fuel
+	var speed int
+	for speed = freeSpeed + 1; speed <= fleet.Spec.Engine.MaxSafeSpeed; speed++ {
+		fuelUsed := fleet.GetFuelCost(ai.Player, speed, dist)
+
+		// we are using too much fuel, go to the previous speed
+		if fuelUsed > fleet.Fuel {
+			speed--
+			break
+		}
 	}
 
-	return warpSpeed
+	idealSpeed := fleet.Spec.Engine.IdealSpeed
+
+	// if we are using a ramscoop, make sure we at least go the ideal
+	// speed of the engine. If we run out, oh well, it'll drop to
+	// the free speed
+	if freeSpeed > 1 && speed < idealSpeed {
+		speed = idealSpeed
+	}
+
+	// don't go faster than we need
+	return ai.getMinimalWarp(dist, speed, fleet)
+}
+
+// get the minimal warp starting at an idealSpeed and working downward
+// if we can travel the same amount of time at a lower speed, do it
+func (ai *aiPlayer) getMinimalWarp(dist float64, idealSpeed int, fleet *cs.Fleet) int {
+	speed := idealSpeed
+
+	freeSpeed := fleet.Spec.Engine.FreeSpeed
+
+	// travelling 49 ly at warp 7 takes one year
+	yearsAtIdealSpeed := int(math.Ceil(dist / float64(idealSpeed*idealSpeed)))
+	for i := idealSpeed; i > freeSpeed; i-- {
+		yearsAtSpeed := int(math.Ceil(dist / float64(i*i)))
+
+		// It takes the same time to go slower, so go slower
+		if yearsAtIdealSpeed == yearsAtSpeed {
+			speed = i
+		}
+	}
+
+	return speed
 }
 
 // get a player owned planet by num, or nil if it doesn't exist
@@ -336,11 +259,11 @@ func (p *aiPlayer) getPlanetIntel(num int) cs.PlanetIntel {
 	return p.Player.PlanetIntels[num-1]
 }
 
-// get all planets the player owns that can build ships of mass mass
-func (p *aiPlayer) getBuildablePlanets(mass int) []*cs.Planet {
+// get all planets we own with space docks
+func (p *aiPlayer) getPlanetsWithDocks() []*cs.Planet {
 	planets := []*cs.Planet{}
 	for _, planet := range p.Planets {
-		if planet.CanBuild(mass) {
+		if planet.Spec.HasStarbase && planet.Spec.DockCapacity != 0 {
 			planets = append(planets, planet)
 		}
 	}
@@ -397,19 +320,62 @@ func (ai *aiPlayer) getClosestPlanet(fleet *cs.Fleet, planetsByNum map[int]*cs.P
 	return closest
 }
 
-// get the planet with the highest hab value
-func (ai *aiPlayer) getHighestHabPlanet(colonizablePlanets map[int]cs.PlanetIntel) *cs.PlanetIntel {
-	highestHabValue := math.MinInt
-	var best *cs.PlanetIntel = nil
+// get the closest planet to this fleet from a list of unknown planets
+func (ai *aiPlayer) getClosestStarbasePlanet(fleet *cs.Fleet) *cs.Planet {
+	shortestDist := math.MaxFloat64
+	var closest *cs.Planet = nil
 
-	for num := range colonizablePlanets {
-		intel := colonizablePlanets[num]
-		habValue := ai.Player.Race.GetPlanetHabitability(intel.Hab)
-		if habValue > highestHabValue {
-			highestHabValue = habValue
-			best = &intel
+	for _, planet := range ai.Planets {
+		if !planet.Spec.HasStarbase {
+			continue
+		}
+
+		distSquared := fleet.Position.DistanceSquaredTo(planet.Position)
+		if shortestDist > distSquared {
+			shortestDist = distSquared
+			closest = planet
 		}
 	}
 
-	return best
+	return closest
+}
+
+// check if a starbase is already in the queue
+func (ai *aiPlayer) isStarbaseInQueue(planet *cs.Planet) bool {
+	for _, item := range planet.ProductionQueue {
+		if item.Type == cs.QueueItemTypeStarbase {
+			return true
+		}
+	}
+	return false
+}
+
+// check if a shipdesign with the given purpose is in the queue
+func (ai *aiPlayer) isShipInQueue(planet *cs.Planet, purpose cs.ShipDesignPurpose, quantity int) bool {
+	for _, item := range planet.ProductionQueue {
+		if item.Type == cs.QueueItemTypeShipToken {
+			design := ai.GetDesign(item.DesignNum)
+			if design != nil && design.Purpose == purpose && item.Quantity >= quantity {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (ai *aiPlayer) getIdleShipCount(planet *cs.Planet, purpose cs.ShipDesignPurpose) int {
+	count := 0
+	for _, fleet := range ai.fleetsByPlanetNum[planet.Num] {
+		if !fleet.Idle() {
+			continue
+		}
+
+		for _, token := range fleet.Tokens {
+			design := ai.GetDesign(token.DesignNum)
+			if design != nil && design.Purpose == purpose {
+				count += token.Quantity
+			}
+		}
+	}
+	return count
 }

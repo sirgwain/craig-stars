@@ -49,7 +49,7 @@ type TechFinder interface {
 	GetBestDefense(player *Player) *TechDefense
 	GetBestTerraform(player *Player, terraformHabType TerraformHabType) *TechTerraform
 	GetBestScanner(player *Player) *TechHullComponent
-	GetBestEngine(player *Player, hull *TechHull, purpose ShipDesignPurpose) *TechEngine
+	GetBestEngine(player *Player, hull *TechHull, purpose FleetPurpose) *TechEngine
 	GetBestMineLayer(player *Player, mineFieldType MineFieldType) *TechHullComponent
 	GetEngine(name string) *TechEngine
 	GetTech(name string) interface{}
@@ -226,15 +226,19 @@ func (store *TechStore) GetBestTerraform(player *Player, terraformHabType Terraf
 }
 
 // get the best engine for a player
-func (store *TechStore) GetBestEngine(player *Player, hull *TechHull, purpose ShipDesignPurpose) *TechEngine {
+func (store *TechStore) GetBestEngine(player *Player, hull *TechHull, purpose FleetPurpose) *TechEngine {
 	bestTech := &store.Engines[0]
 	for i := range store.Engines {
 		tech := &store.Engines[i]
 		if player.HasTech(&tech.Tech) {
 			// if this tech is only allowed on certain hulls (like the Settler's Delight and the mini colony ship), use it for those
-			if len(tech.Requirements.HullsAllowed) > 0 && slices.Contains(tech.Requirements.HullsAllowed, hull.Name) {
-				bestTech = tech
-				break
+			if len(tech.Requirements.HullsAllowed) > 0 {
+				if slices.Contains(tech.Requirements.HullsAllowed, hull.Name) {
+					bestTech = tech
+					break
+				}
+				// skip it otherwise
+				continue
 			}
 
 			// skip this tech if it's not allowed on this hull
@@ -243,13 +247,12 @@ func (store *TechStore) GetBestEngine(player *Player, hull *TechHull, purpose Sh
 			}
 
 			// colony ships don't want radiating engines
-			if purpose == ShipDesignPurposeColonistFreighter || purpose == ShipDesignPurposeColonizer && tech.Radiating {
+			if (purpose == FleetPurposeColonizer || purpose == FleetPurposeColonistFreighter) && tech.Radiating {
 				continue
 			}
 
 			// techs are sorted by rank, so the latest is the best
 			bestTech = tech
-
 		}
 	}
 	return bestTech
@@ -2424,7 +2427,7 @@ var MetaMorph = TechHull{Tech: NewTech("Meta Morph", NewCost(50, 12, 12, 120), T
 	},
 }
 var OrbitalFort = TechHull{Tech: NewTech("Orbital Fort", NewCost(24, 0, 34, 80), TechRequirements{TechLevel: TechLevel{}}, 10, TechCategoryStarbaseHull),
-	Type:                    TechHullTypeStarbase,
+	Type:                    TechHullTypeOrbitalFort,
 	SpaceDock:               0,
 	Armor:                   100,
 	Initiative:              10,

@@ -23,7 +23,7 @@ func (tl TechLevel) HasRequiredLevels(required TechLevel) bool {
 
 // return the minimum tech level
 func (tl TechLevel) Min() int {
-	return minInt(
+	return MinInt(
 		tl.Energy,
 		tl.Weapons,
 		tl.Propulsion,
@@ -107,22 +107,22 @@ func (tl *TechLevel) Add(other TechLevel) {
 func (tl TechLevel) LevelsAbove(other TechLevel) int {
 	levelsAbove := math.MaxInt
 	if tl.Energy != 0 {
-		levelsAbove = minInt(levelsAbove, other.Energy-tl.Energy)
+		levelsAbove = MinInt(levelsAbove, other.Energy-tl.Energy)
 	}
 	if tl.Weapons != 0 {
-		levelsAbove = minInt(levelsAbove, other.Weapons-tl.Weapons)
+		levelsAbove = MinInt(levelsAbove, other.Weapons-tl.Weapons)
 	}
 	if tl.Propulsion != 0 {
-		levelsAbove = minInt(levelsAbove, other.Propulsion-tl.Propulsion)
+		levelsAbove = MinInt(levelsAbove, other.Propulsion-tl.Propulsion)
 	}
 	if tl.Construction != 0 {
-		levelsAbove = minInt(levelsAbove, other.Construction-tl.Construction)
+		levelsAbove = MinInt(levelsAbove, other.Construction-tl.Construction)
 	}
 	if tl.Electronics != 0 {
-		levelsAbove = minInt(levelsAbove, other.Electronics-tl.Electronics)
+		levelsAbove = MinInt(levelsAbove, other.Electronics-tl.Electronics)
 	}
 	if tl.Biotechnology != 0 {
-		levelsAbove = minInt(levelsAbove, other.Biotechnology-tl.Biotechnology)
+		levelsAbove = MinInt(levelsAbove, other.Biotechnology-tl.Biotechnology)
 	}
 	return levelsAbove
 }

@@ -44,7 +44,7 @@ func (t *terraform) getTerraformAbility(player *Player) Hab {
 		// find out which terraform tech has the greater terraform ability
 		ability := totalTerraformAbility
 		if bestHabTerraform != nil {
-			ability = maxInt(ability, bestHabTerraform.Ability)
+			ability = MaxInt(ability, bestHabTerraform.Ability)
 			terraformAbility.Set(habType, ability)
 		}
 
@@ -99,7 +99,7 @@ func (t *terraform) getTerraformAmount(hab Hab, baseHab Hab, player, terraformer
 				// we can either terrform up to our full ability, or however much
 				// we have left to terraform on this
 				alreadyTerraformed := fromIdealBase - fromIdeal
-				terraformAmount.Set(habType, minInt(ability-alreadyTerraformed, fromIdeal))
+				terraformAmount.Set(habType, MinInt(ability-alreadyTerraformed, fromIdeal))
 			}
 		} else if fromIdeal < 0 {
 			if enemy {
@@ -108,7 +108,7 @@ func (t *terraform) getTerraformAmount(hab Hab, baseHab Hab, player, terraformer
 			} else {
 				// i.e. our ideal is 50 and the planet hab is 53
 				alreadyTerraformed := fromIdeal - fromIdealBase
-				terraformAmount.Set(habType, maxInt(-(ability-alreadyTerraformed), fromIdeal))
+				terraformAmount.Set(habType, MaxInt(-(ability-alreadyTerraformed), fromIdeal))
 			}
 		} else if enemy {
 			// the terrformer is enemies with the player, terraform away from ideal
@@ -183,13 +183,13 @@ func (t *terraform) getMinTerraformAmount(hab Hab, baseHab Hab, player *Player, 
 			// we can either terrform up to our full ability, or however much
 			// we have left to terraform on this
 			alreadyTerraformed := fromIdealBaseDistance - fromIdealDistance
-			terraformAmountPossible := minInt(ability-alreadyTerraformed, fromIdealDistance)
+			terraformAmountPossible := MinInt(ability-alreadyTerraformed, fromIdealDistance)
 
 			// if we are in range for this hab type, we won't terraform at
 
 			// if we are in range for this hab type, we won't terraform at all, otherwise return the max possible terraforming
 			// left.
-			terraformAmount.Set(habType, minInt(fromHabitableDistance, terraformAmountPossible))
+			terraformAmount.Set(habType, MinInt(fromHabitableDistance, terraformAmountPossible))
 		}
 
 	}
@@ -243,7 +243,7 @@ func (t *terraform) GetBestTerraform(planet *Planet, player *Player, terraformer
 			// we can either terrform up to our full ability, or however much
 			// we have left to terraform on this
 			alreadyTerraformed := fromIdealBaseDistance - fromIdealDistance
-			terraformAmount = minInt(ability-alreadyTerraformed, fromIdealDistance)
+			terraformAmount = MinInt(ability-alreadyTerraformed, fromIdealDistance)
 		}
 
 		// we want to get the largest distance that we can terraform

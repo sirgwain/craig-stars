@@ -228,6 +228,8 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				TorpedoInaccuracyFactor: 1,
 				Initiative:              1,
 				Movement:                4,
+				EstimatedRange:          2272,
+				EstimatedRangeFull:      2272,
 			},
 		},
 		{name: "Humanoid Starter Armored Probe",
@@ -259,6 +261,8 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				ScanRange:               66,
 				ScanRangePen:            30,
 				TorpedoInaccuracyFactor: 1,
+				EstimatedRange:          413,
+				EstimatedRangeFull:      413,
 				WeaponSlots: []ShipDesignSlot{
 					{
 						HullComponent: XRayLaser.Name,
@@ -293,6 +297,8 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				ScanRange:               NoScanner,
 				ScanRangePen:            NoScanner,
 				TorpedoInaccuracyFactor: 1,
+				EstimatedRange:          245,
+				EstimatedRangeFull:      245,
 				Bombs: []Bomb{
 					{
 						Quantity:             1,

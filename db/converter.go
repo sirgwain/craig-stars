@@ -1,4 +1,4 @@
-// to run locally: 
+// to run locally:
 // install this version (new versions don't support mapExtend)
 // TODO: update goverter. :)
 // go install github.com/jmattheis/goverter/cmd/goverter@v0.12.0
@@ -272,6 +272,7 @@ type Converter interface {
 	// goverter:map FleetOrders.BattlePlanNum BattlePlanNum
 	// goverter:map FleetOrders.Waypoints Waypoints
 	// goverter:map FleetOrders.RepeatOrders RepeatOrders
+	// goverter:map FleetOrders.Purpose Purpose
 	// goverter:ignore Tags
 	// goverter:map Heading.X HeadingX
 	// goverter:map Heading.Y HeadingY
@@ -1071,6 +1072,7 @@ func ExtendFleetFleetOrders(source Fleet) cs.FleetOrders {
 		BattlePlanNum: source.BattlePlanNum,
 		Waypoints:     *source.Waypoints,
 		RepeatOrders:  source.RepeatOrders,
+		Purpose:       source.Purpose,
 	}
 }
 

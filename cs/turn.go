@@ -241,6 +241,7 @@ func (t *turn) fleetColonize() {
 				Int("Player", player.Num).
 				Str("Planet", planet.Name).
 				Str("Fleet", fleet.Name).
+				Int("Colonists", fleet.Cargo.Colonists*100).
 				Msgf("colonized planet")
 
 			if fleet.Spec.OrbitalConstructionModule {
@@ -798,8 +799,8 @@ func (t *turn) fleetDieoff() {
 		deathRate := math.Max(0, float64(t.game.Rules.RadiatingImmune+1)-float64(habCenter.Rad)) / 2 / 100
 
 		if deathRate > 0 {
-			killed := maxInt(1, int(deathRate*float64(fleet.Cargo.Colonists)))
-			fleet.Cargo.Colonists = maxInt(0, fleet.Cargo.Colonists-killed)
+			killed := MaxInt(1, int(deathRate*float64(fleet.Cargo.Colonists)))
+			fleet.Cargo.Colonists = MaxInt(0, fleet.Cargo.Colonists-killed)
 			fleet.MarkDirty()
 
 			// Message the player
@@ -837,10 +838,10 @@ func (t *turn) fleetReproduce() {
 		planet := t.game.getOrbitingPlanet(fleet)
 
 		growthFactor := player.Race.Spec.FreighterGrowthFactor
-		growth := maxInt(1, int(growthFactor*float64(player.Race.GrowthRate)/100.0*float64(fleet.Cargo.Colonists)))
+		growth := MaxInt(1, int(growthFactor*float64(player.Race.GrowthRate)/100.0*float64(fleet.Cargo.Colonists)))
 		fleet.Cargo.Colonists = fleet.Cargo.Colonists + growth
 		fleet.MarkDirty()
-		over := maxInt(0, fleet.Cargo.Total()-fleet.Spec.CargoCapacity)
+		over := MaxInt(0, fleet.Cargo.Total()-fleet.Spec.CargoCapacity)
 		if over > 0 {
 			// remove excess colonists
 			fleet.Cargo.Colonists = fleet.Cargo.Colonists - over

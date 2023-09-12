@@ -3,6 +3,8 @@ package cs
 import (
 	"fmt"
 	"math"
+
+	"github.com/rs/zerolog/log"
 )
 
 // handle player orders
@@ -339,7 +341,7 @@ func (o *orders) SplitFleetTokens(rules *Rules, player *Player, playerFleets []*
 				sourceToken.QuantityDamaged = 0
 				sourceToken.Damage = 0
 			} else {
-				splitToken.QuantityDamaged = minInt(sourceToken.QuantityDamaged, splitToken.Quantity)
+				splitToken.QuantityDamaged = MinInt(sourceToken.QuantityDamaged, splitToken.Quantity)
 				sourceToken.QuantityDamaged -= splitToken.QuantityDamaged
 			}
 		}
@@ -415,8 +417,12 @@ func (o *orders) Merge(rules *Rules, player *Player, fleets []*Fleet) (*Fleet, e
 		tokensByDesign[token.DesignNum] = token
 	}
 
+	src := fleets[0].Name
+	dest := make([]string, 0, len(fleets)-1)
+
 	for i := 1; i < len(fleets); i++ {
 		mergingFleet := fleets[i]
+		dest = append(dest, mergingFleet.Name)
 
 		for _, token := range mergingFleet.Tokens {
 			if t, found := tokensByDesign[token.DesignNum]; found {
@@ -448,6 +454,13 @@ func (o *orders) Merge(rules *Rules, player *Player, fleets []*Fleet) (*Fleet, e
 		// mark the merging fleet for deletion
 		mergingFleet.Delete = true
 	}
+
+	log.Info().
+		Int64("GameID", player.GameID).
+		Int("PlayerNum", player.Num).
+		Str("Source", src).
+		Strs("Dest", dest).
+		Msg("merged fleet")
 
 	fleet.Spec = ComputeFleetSpec(rules, player, fleet)
 	fleet.MarkDirty()

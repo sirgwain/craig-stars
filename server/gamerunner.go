@@ -130,7 +130,7 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 				players = append(players, player)
 			} else if playerSetting.Type == cs.NewGamePlayerTypeAI {
 				log.Debug().Int64("hostID", hostID).Msg("Adding ai player to game")
-				race := *cs.NewRace()
+				race := ai.GetRandomRace()
 				if playerSetting.Race.Name != "" {
 					race = playerSetting.Race
 				}

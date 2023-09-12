@@ -60,7 +60,7 @@ func (packet *MineralPacket) getPacketDecayRate(rules *Rules, race *Race) float6
 	overSafeWarp += race.Spec.PacketOverSafeWarpPenalty
 
 	// we only care about packets thrown up to 3 warp over the limit
-	overSafeWarp = minInt(packet.WarpSpeed-packet.SafeWarpSpeed, 3)
+	overSafeWarp = MinInt(packet.WarpSpeed-packet.SafeWarpSpeed, 3)
 
 	packetDecayRate := 0.0
 	if overSafeWarp > 0 {
@@ -138,8 +138,8 @@ func (packet *MineralPacket) completeMove(rules *Rules, player *Player, planet *
 		messager.mineralPacketCaught(planetPlayer, planet, packet)
 	} else if damage.Killed > 0 || damage.DefensesDestroyed > 0 {
 		// kill off colonists and defenses
-		planet.setPopulation(roundToNearest100(clamp(planet.population()-damage.Killed, 0, planet.population())))
-		planet.Defenses = clamp(planet.Defenses-damage.DefensesDestroyed, 0, planet.Defenses)
+		planet.setPopulation(roundToNearest100(Clamp(planet.population()-damage.Killed, 0, planet.population())))
+		planet.Defenses = Clamp(planet.Defenses-damage.DefensesDestroyed, 0, planet.Defenses)
 
 		messager.mineralPacketDamage(planetPlayer, planet, packet, damage.Killed, damage.DefensesDestroyed)
 		if planet.population() == 0 {
@@ -203,8 +203,8 @@ func (packet *MineralPacket) getDamage(rules *Rules, planet *Planet) MineralPack
 
 	// kill off colonists and defenses
 	return MineralPacketDamage{
-		Killed:            roundToNearest100(minInt(colonistsKilled, planet.population())),
-		DefensesDestroyed: minInt(planet.Defenses, defensesDestroyed),
+		Killed:            roundToNearest100(MinInt(colonistsKilled, planet.population())),
+		DefensesDestroyed: MinInt(planet.Defenses, defensesDestroyed),
 		Uncaught:          uncaught,
 	}
 

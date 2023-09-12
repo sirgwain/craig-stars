@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import SortableTableHeader from '$lib/components/SortableTableHeader.svelte';
 	import TableSearchInput from '$lib/components/TableSearchInput.svelte';
 	import { getGameContext } from '$lib/services/Contexts';
@@ -11,6 +12,7 @@
 
 	const selectMessage = (message: Message) => {
 		gotoMessageTarget($game, $player, message);
+		goto(`/games/${$game.id}`);
 	};
 
 	const getTarget = (message: Message) => {
@@ -38,7 +40,7 @@
 	$: filteredMessages =
 		$player.messages.filter(
 			(i) =>
-				i.text.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
+				i.text?.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
 				i.type.toString().toLowerCase().indexOf(search.toLowerCase()) != -1
 		) ?? [];
 

@@ -331,7 +331,7 @@ func (p *Player) GetLatestDesign(purpose ShipDesignPurpose) *ShipDesign {
 func (p *Player) GetNextDesignNum(designs []*ShipDesign) int {
 	num := 0
 	for _, design := range designs {
-		num = maxInt(num, design.Num)
+		num = MaxInt(num, design.Num)
 	}
 	return num + 1
 }
@@ -340,7 +340,7 @@ func (p *Player) GetNextDesignNum(designs []*ShipDesign) int {
 func (p *Player) GetNextBattlePlanNum() int {
 	num := 0
 	for _, plan := range p.BattlePlans {
-		num = maxInt(num, plan.Num)
+		num = MaxInt(num, plan.Num)
 	}
 	return num + 1
 }
@@ -349,7 +349,7 @@ func (p *Player) GetNextBattlePlanNum() int {
 func (p *Player) GetNextProductionPlanNum() int {
 	num := 0
 	for _, plan := range p.ProductionPlans {
-		num = maxInt(num, plan.Num)
+		num = MaxInt(num, plan.Num)
 	}
 	return num + 1
 }
@@ -358,7 +358,7 @@ func (p *Player) GetNextProductionPlanNum() int {
 func (p *Player) GetNextTransportPlanNum() int {
 	num := 0
 	for _, plan := range p.TransportPlans {
-		num = maxInt(num, plan.Num)
+		num = MaxInt(num, plan.Num)
 	}
 	return num + 1
 }
@@ -454,6 +454,7 @@ func (p *Player) defaultRelationships(players []*Player, aiFormsAlliances bool) 
 			// team up! destroy all humans!
 			relationship.Relation = PlayerRelationFriend
 		} else if otherPlayer.AIControlled || p.AIControlled {
+			// AI is always the enemy
 			relationship.Relation = PlayerRelationEnemy
 		} else {
 			relationship.Relation = PlayerRelationNeutral
@@ -468,7 +469,6 @@ func (p *Player) defaultPlans() PlayerPlans {
 
 	// AR races don't build factories or mines
 	defaultProductionPlan := ProductionPlan{
-
 		Num:  0,
 		Name: "Default",
 		Items: []ProductionPlanItem{
@@ -621,7 +621,7 @@ func (p *Player) getNextFleetNum(playerFleets []*Fleet) int {
 func (p *Player) getNextMineralPacketNum(packets []*MineralPacket) int {
 	num := 0
 	for _, packet := range packets {
-		num = maxInt(num, packet.Num)
+		num = MaxInt(num, packet.Num)
 	}
 	return num + 1
 }

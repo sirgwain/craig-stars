@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/sirgwain/craig-stars/ai"
 	"github.com/sirgwain/craig-stars/config"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
@@ -81,8 +82,6 @@ func Test_gameRunner_GenerateTurns(t *testing.T) {
 		panic(fmt.Errorf("create test database user, %w", err))
 	}
 
-	prts := make(map[cs.PRT]cs.Race, len(cs.PRTs))
-
 	// create a race per PRT
 	for _, prt := range cs.PRTs {
 		race := cs.NewRace()
@@ -100,23 +99,23 @@ func Test_gameRunner_GenerateTurns(t *testing.T) {
 	fullGame, err := gr.HostGame(1, cs.NewGameSettings().
 		WithName("All Races Test").
 		WithSize(cs.SizeMedium).
-		WithAIPlayerRace(prts[cs.HE], cs.AIDifficultyNormal, 0).
-		WithAIPlayerRace(prts[cs.SS], cs.AIDifficultyNormal, 1).
-		WithAIPlayerRace(prts[cs.WM], cs.AIDifficultyNormal, 2).
-		WithAIPlayerRace(prts[cs.CA], cs.AIDifficultyNormal, 3).
-		WithAIPlayerRace(prts[cs.IS], cs.AIDifficultyNormal, 0).
-		WithAIPlayerRace(prts[cs.SD], cs.AIDifficultyNormal, 1).
-		WithAIPlayerRace(prts[cs.PP], cs.AIDifficultyNormal, 2).
-		WithAIPlayerRace(prts[cs.IT], cs.AIDifficultyNormal, 3).
-		WithAIPlayerRace(prts[cs.AR], cs.AIDifficultyNormal, 0).
-		WithAIPlayerRace(prts[cs.JoaT], cs.AIDifficultyNormal, 1))
+		WithAIPlayerRace(ai.Races[0], cs.AIDifficultyNormal, 0).
+		WithAIPlayerRace(ai.Races[1], cs.AIDifficultyNormal, 1).
+		WithAIPlayerRace(ai.Races[2], cs.AIDifficultyNormal, 2).
+		WithAIPlayerRace(ai.Races[3], cs.AIDifficultyNormal, 3).
+		WithAIPlayerRace(ai.Races[4], cs.AIDifficultyNormal, 0).
+		WithAIPlayerRace(ai.Races[5], cs.AIDifficultyNormal, 1).
+		WithAIPlayerRace(ai.Races[6], cs.AIDifficultyNormal, 2).
+		WithAIPlayerRace(ai.Races[7], cs.AIDifficultyNormal, 3).
+		WithAIPlayerRace(ai.Races[8], cs.AIDifficultyNormal, 0).
+		WithAIPlayerRace(ai.Races[9], cs.AIDifficultyNormal, 1))
 
 	if err != nil {
 		t.Errorf("host game %v", err)
 	}
 
 	// generate 100 turns
-	for i := 0; i < 50; i++ {
+	for i := 0; i < 100; i++ {
 		gr := gameRunner{
 			dbConn: dbConn,
 			client: cs.NewGamer(),

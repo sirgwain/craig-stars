@@ -128,6 +128,11 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 		// grow pop
 		planet.grow(player)
 		planet.Spec = computePlanetSpec(rules, player, &planet)
+		
+		// colonists died off, no more production
+		if planet.population() < 0 {
+			break
+		}
 	}
 
 	return items, leftoverResourcesForResearch
