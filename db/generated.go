@@ -370,6 +370,7 @@ func (c *GameConverter) csFleetToDbFleet(source cs.Fleet) Fleet {
 	dbFleet.PreviousPositionY = pFloat644
 	dbFleet.OrbitingPlanetNum = source.OrbitingPlanetNum
 	dbFleet.Starbase = source.Starbase
+	dbFleet.Purpose = cs.FleetPurpose(source.FleetOrders.Purpose)
 	dbFleet.Spec = GameFleetSpecToFleetSpec(source.Spec)
 	return dbFleet
 }

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Infinite } from '$lib/types/MapObject';
 	import { MineFieldType } from '$lib/types/MineField';
 	import type { ShipDesign, Spec } from '$lib/types/ShipDesign';
 	import { NoScanner } from '$lib/types/Tech';
@@ -19,6 +20,20 @@
 		<div class="font-semibold mr-5">Max Fuel</div>
 		<div>{spec.fuelCapacity ?? 0}mg</div>
 	</div>
+	<div class="flex justify-between">
+		<div class="font-semibold mr-5">Est Range</div>
+
+		<div>
+			{#if spec.estimatedRange == Infinite}
+				Infinite
+			{:else if spec.cargoCapacity}
+				{spec.estimatedRange ?? 0}ly/{spec.estimatedRangeFull ?? 0}ly
+			{:else}
+				{spec.estimatedRange ?? 0}ly
+			{/if}
+		</div>
+	</div>
+
 	{#if spec.cargoCapacity}
 		<div class="flex justify-between">
 			<div class="font-semibold mr-5">Cargo Capacity</div>

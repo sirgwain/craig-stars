@@ -1165,10 +1165,10 @@ func (race *Race) getHabRangePoints() int64 {
 				testHabWidth[habType] = 11
 			} else {
 				// start at the minimum hab range
-				testHabStart[habType] = clamp(race.HabLow.Get(habType)-ttCorrectionFactor, 0, 100)
+				testHabStart[habType] = Clamp(race.HabLow.Get(habType)-ttCorrectionFactor, 0, 100)
 
 				// get the high range for this hab type
-				habHigh := clamp(race.HabHigh.Get(habType)+ttCorrectionFactor, 0, 100)
+				habHigh := Clamp(race.HabHigh.Get(habType)+ttCorrectionFactor, 0, 100)
 
 				// figure out the width for this hab type's starting range
 				testHabWidth[habType] = habHigh - testHabStart[habType]

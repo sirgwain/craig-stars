@@ -3,75 +3,70 @@ package ai
 import (
 	"fmt"
 
+	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
-	"golang.org/x/exp/slices"
 )
-
-type fleetPurpose uint
-
-const (
-	scout fleetPurpose = iota
-	colonizer
-	transport
-	miner
-	minelayer
-	fighter
-	bomber
-)
-
-type fleet struct {
-	purpose fleetPurpose
-	ships   []fleetShip
-}
-
-type fleetShip struct {
-	purpose  cs.ShipDesignPurpose
-	hull     *cs.TechHull
-	quantity int
-}
 
 func (ai *aiPlayer) produce() error {
-	buildablePlanets := ai.getPlanetsWithDocks()
 	costCalculator := cs.NewCostCalculator()
 	completionEstimator := cs.NewCompletionEstimator()
 
-	for purpose, quantity := range ai.requests.shipBuilds {
+	// check for builds of whole fleets
+	for fleetPurpose, quantity := range ai.requests.fleetBuilds {
 		if quantity <= 0 {
 			continue
 		}
 
-		// design and upgrade this ship
-		design, err := ai.designShip(ai.config.namesByPurpose[purpose], purpose)
-		if err != nil {
-			return fmt.Errorf("unable to design ship %v %w", purpose, err)
-		}
+		for _, planet := range ai.Planets {
+			fleetMakeup := ai.fleetsByPurpose[fleetPurpose].clone()
+			for shipIndex, ship := range fleetMakeup.ships {
 
-		for _, planet := range buildablePlanets {
-			if !planet.CanBuild(design.Spec.Mass) {
-				continue
-			}
-
-			// don't build colonizers or freighters on this planet if it doesn't have the pop to remove them
-			if (purpose == cs.ShipDesignPurposeColonistFreighter || purpose == cs.ShipDesignPurposeColonizer) &&
-				planet.Spec.PopulationDensity < ai.config.colonizerPopulationDensity {
-				continue
-			}
-
-			existingQueueItemIndex := slices.IndexFunc(planet.ProductionQueue, func(item cs.ProductionQueueItem) bool {
-				if item.Type == cs.QueueItemTypeShipToken {
-					itemDesign := ai.GetDesign(item.DesignNum)
-					if itemDesign != nil {
-						// true if this design or one like it is already queued
-						return item.DesignNum == design.Num || itemDesign.Purpose == purpose
+				idleShips := ai.getIdleShipCount(planet, ship.purpose)
+				if idleShips > 0 {
+					quantityNeeded := ship.quantity - idleShips
+					if quantityNeeded > 0 {
+						// queue it on this planet
+						fleetMakeup.ships[shipIndex].quantity = quantityNeeded
+					} else {
+						fleetMakeup.ships[shipIndex].quantity = 0
 					}
 				}
-				return false
-			})
-			if existingQueueItemIndex == -1 {
-				// put a new scout at the front of the queue
-				planet.ProductionQueue = append([]cs.ProductionQueueItem{{Type: cs.QueueItemTypeShipToken, Quantity: 1, DesignNum: design.Num}}, planet.ProductionQueue...)
-				if err := ai.client.UpdatePlanetOrders(&ai.game.Rules, ai.Player, planet, planet.PlanetOrders); err != nil {
-					return err
+			}
+
+			for _, ship := range fleetMakeup.ships {
+				if ship.quantity <= 0 {
+					continue
+				}
+
+				// don't build colonizers or freighters on this planet if it doesn't have the pop to remove them
+				if (ship.purpose == cs.ShipDesignPurposeColonistFreighter || ship.purpose == cs.ShipDesignPurposeColonizer) &&
+					planet.Spec.PopulationDensity < ai.config.colonizerPopulationDensity {
+					continue
+				}
+
+				// design and upgrade this ship
+				design, err := ai.designShip(ai.config.namesByPurpose[ship.purpose], ship.purpose, fleetMakeup.purpose)
+				if err != nil {
+					return fmt.Errorf("unable to design ship %v %w", ship.purpose, err)
+				}
+				if design == nil {
+					log.Debug().
+						Int64("GameID", ai.GameID).
+						Int("PlayerNum", ai.Num).
+						Msgf("unable to design ship %v", ship.purpose)
+					continue
+				}
+
+				if !planet.CanBuild(design.Spec.Mass) {
+					continue
+				}
+
+				if !ai.isShipInQueue(planet, ship.purpose, ship.quantity) {
+					// put this ship at the top of the queue
+					planet.ProductionQueue = append([]cs.ProductionQueueItem{{Type: cs.QueueItemTypeShipToken, Quantity: ship.quantity, DesignNum: design.Num}}, planet.ProductionQueue...)
+					if err := ai.client.UpdatePlanetOrders(&ai.game.Rules, ai.Player, planet, planet.PlanetOrders); err != nil {
+						return err
+					}
 				}
 			}
 		}
@@ -80,9 +75,9 @@ func (ai *aiPlayer) produce() error {
 	for _, planet := range ai.Planets {
 		yearlyAvailableToSpend := cs.FromMineralAndResources(planet.Spec.MiningOutput, planet.Spec.ResourcesPerYearAvailable)
 
-		// try and build starbases
+		// try and build starbase if we don't have one built or queued
 		// TODO: upgrade starbases
-		if !planet.Spec.HasStarbase && !ai.isStarbaseInQueue(planet) {
+		if !(planet.Spec.HasStarbase || ai.isStarbaseInQueue(planet)) {
 			// try and build a full starbase
 			queued, err := ai.checkPlanetStarbaseBuild(planet, cs.ShipDesignPurposeStarbase, costCalculator, yearlyAvailableToSpend, completionEstimator)
 			if err != nil {
@@ -94,22 +89,6 @@ func (ai *aiPlayer) produce() error {
 				if err != nil {
 					return err
 				}
-
-			}
-		}
-
-		// check for terraforming
-		if planet.Spec.CanTerraform {
-			item := cs.ProductionQueueItem{Type: cs.QueueItemTypeTerraformEnvironment, Quantity: 1}
-			cost, err := costCalculator.CostOfOne(ai.Player, item)
-			if err != nil {
-				return fmt.Errorf("calculate terraform cost %w", err)
-			}
-
-			// if it takes only a year to build this, add it to the production queue
-			item.CostOfOne = cost
-			if completionEstimator.GetYearsToBuildOne(item, planet.Cargo.ToMineral(), yearlyAvailableToSpend) <= 1 {
-				planet.ProductionQueue = append([]cs.ProductionQueueItem{item}, planet.ProductionQueue...)
 			}
 		}
 	}
@@ -118,7 +97,7 @@ func (ai *aiPlayer) produce() error {
 
 func (ai *aiPlayer) checkPlanetStarbaseBuild(planet *cs.Planet, purpose cs.ShipDesignPurpose, costCalculator cs.CostCalculator, yearlyAvailableToSpend cs.Cost, completionEstimator cs.CompletionEstimator) (bool, error) {
 	// design and upgrade this ship
-	design, err := ai.designShip(ai.config.namesByPurpose[purpose], purpose)
+	design, err := ai.designShip(ai.config.namesByPurpose[purpose], purpose, cs.FleetPurposeFromShipDesignPurpose(purpose))
 	if err != nil {
 		return false, fmt.Errorf("unable to design ship %v %w", purpose, err)
 	}
@@ -142,7 +121,7 @@ func (ai *aiPlayer) checkPlanetStarbaseBuild(planet *cs.Planet, purpose cs.ShipD
 }
 
 // add a new ship build request
-func (ai *aiPlayer) addShipBuildRequest(purpose cs.ShipDesignPurpose, count int) {
-	current := ai.requests.shipBuilds[purpose]
-	ai.requests.shipBuilds[purpose] = current + count
+func (ai *aiPlayer) addFleetBuildRequest(purpose cs.FleetPurpose, count int) {
+	current := ai.requests.fleetBuilds[purpose]
+	ai.requests.fleetBuilds[purpose] = current + count
 }

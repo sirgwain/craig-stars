@@ -3,7 +3,7 @@
 	import techjson from '$lib/ssr/techs.json';
 	import { Player, canLearnTech } from '$lib/types/Player';
 	import { TechCategory, type Tech, type TechStore } from '$lib/types/Tech';
-	import { kebabCase, startCase } from 'lodash-es';
+	import { kebabCase, sortBy, startCase } from 'lodash-es';
 	import { onMount } from 'svelte';
 	import { $enum as eu } from 'ts-enum-util';
 	import SectionHeader from './SectionHeader.svelte';
@@ -135,7 +135,7 @@
 			><SectionHeader title={startCase(category)} /></a
 		>
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-			{#each techsByCategory[category] as tech (tech.name)}
+			{#each sortBy(techsByCategory[category], 'rank') as tech (tech.name)}
 				{#if showAll || (player && canLearnTech(player, tech) && hasRequiredLevels(player.techLevels, tech.requirements))}
 					<div>
 						<TechSummary {tech} {player} />

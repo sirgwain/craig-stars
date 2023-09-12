@@ -49,7 +49,7 @@ type TechFinder interface {
 	GetBestDefense(player *Player) *TechDefense
 	GetBestTerraform(player *Player, terraformHabType TerraformHabType) *TechTerraform
 	GetBestScanner(player *Player) *TechHullComponent
-	GetBestEngine(player *Player, hull *TechHull, purpose ShipDesignPurpose) *TechEngine
+	GetBestEngine(player *Player, hull *TechHull, purpose FleetPurpose) *TechEngine
 	GetBestMineLayer(player *Player, mineFieldType MineFieldType) *TechHullComponent
 	GetEngine(name string) *TechEngine
 	GetTech(name string) interface{}
@@ -226,7 +226,7 @@ func (store *TechStore) GetBestTerraform(player *Player, terraformHabType Terraf
 }
 
 // get the best engine for a player
-func (store *TechStore) GetBestEngine(player *Player, hull *TechHull, purpose ShipDesignPurpose) *TechEngine {
+func (store *TechStore) GetBestEngine(player *Player, hull *TechHull, purpose FleetPurpose) *TechEngine {
 	bestTech := &store.Engines[0]
 	for i := range store.Engines {
 		tech := &store.Engines[i]
@@ -247,7 +247,7 @@ func (store *TechStore) GetBestEngine(player *Player, hull *TechHull, purpose Sh
 			}
 
 			// colony ships don't want radiating engines
-			if (purpose == ShipDesignPurposeColonistFreighter || purpose == ShipDesignPurposeColonizer) && tech.Radiating {
+			if (purpose == FleetPurposeColonizer || purpose == FleetPurposeColonistFreighter) && tech.Radiating {
 				continue
 			}
 

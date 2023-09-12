@@ -741,7 +741,7 @@ func (b *battle) fireTorpedo(weapon *battleWeaponSlot, targets []*battleToken) {
 					// remove a ship from this stack
 					target.Quantity--
 					target.quantityDestroyed++
-					target.QuantityDamaged = maxInt(target.QuantityDamaged-1, 0)
+					target.QuantityDamaged = MaxInt(target.QuantityDamaged-1, 0)
 
 					if target.QuantityDamaged > 0 {
 						// we destroyed a token, but we still have damaged tokens in the stack
@@ -838,7 +838,7 @@ func (b *battle) regenerateShields(token *battleToken) {
 
 	if player.Race.Spec.ShieldRegenerationRate > 0 && token.stackShields > 0 {
 		regenerationAmount := int(float64(token.totalStackShields)*player.Race.Spec.ShieldRegenerationRate + 0.5)
-		token.stackShields = int(clamp(token.stackShields+regenerationAmount, 0, token.totalStackShields))
+		token.stackShields = int(Clamp(token.stackShields+regenerationAmount, 0, token.totalStackShields))
 	}
 }
 
@@ -857,8 +857,8 @@ func (b *battle) maximizeDamage(token *battleToken) {
 		}
 
 		// we can't move off board
-		newPosition.X = float64(clamp(int(newPosition.X), 0, 9))
-		newPosition.Y = float64(clamp(int(newPosition.Y), 0, 9))
+		newPosition.X = float64(Clamp(int(newPosition.X), 0, 9))
+		newPosition.Y = float64(Clamp(int(newPosition.Y), 0, 9))
 
 		// create a move record for the viewer and then move the token
 		b.record.recordMove(b.round, token, token.Position, newPosition)
@@ -925,8 +925,8 @@ func (b *battle) runAway(token *battleToken, weapons []*battleWeaponSlot) {
 		}
 
 		// we can't move off board (this should never be a problem)
-		newPosition.X = float64(clamp(int(newPosition.X), 0, 9))
-		newPosition.Y = float64(clamp(int(newPosition.Y), 0, 9))
+		newPosition.X = float64(Clamp(int(newPosition.X), 0, 9))
+		newPosition.Y = float64(Clamp(int(newPosition.Y), 0, 9))
 
 		// move to our new position
 		b.record.recordMove(b.round, token, token.Position, newPosition)
@@ -936,8 +936,8 @@ func (b *battle) runAway(token *battleToken, weapons []*battleWeaponSlot) {
 		newPosition = possiblePositions[b.rules.random.Intn(len(possiblePositions))]
 
 		// we can't move off board (this should never be a problem)
-		newPosition.X = float64(clamp(int(newPosition.X), 0, 9))
-		newPosition.Y = float64(clamp(int(newPosition.Y), 0, 9))
+		newPosition.X = float64(Clamp(int(newPosition.X), 0, 9))
+		newPosition.Y = float64(Clamp(int(newPosition.Y), 0, 9))
 
 		b.record.recordMove(b.round, token, token.Position, newPosition)
 		token.Position = newPosition

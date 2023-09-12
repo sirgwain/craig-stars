@@ -7,7 +7,7 @@ import (
 )
 
 // get a ship design for a purpose
-func (ai *aiPlayer) designShip(name string, purpose cs.ShipDesignPurpose) (updated *cs.ShipDesign, err error) {
+func (ai *aiPlayer) designShip(name string, purpose cs.ShipDesignPurpose, fleetPurpose cs.FleetPurpose) (updated *cs.ShipDesign, err error) {
 
 	existing, found := ai.designsByPurpose[purpose]
 	if found && existing.ID == 0 {
@@ -21,10 +21,16 @@ func (ai *aiPlayer) designShip(name string, purpose cs.ShipDesignPurpose) (updat
 		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeScout))
 	case cs.ShipDesignPurposeColonizer:
 		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeColonizer))
+	case cs.ShipDesignPurposeFreighter:
+		fallthrough
 	case cs.ShipDesignPurposeColonistFreighter:
+		fallthrough
+	case cs.ShipDesignPurposeFuelFreighter:
 		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeFreighter))
 	case cs.ShipDesignPurposeFighter:
 		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeFighter))
+	case cs.ShipDesignPurposeBomber:
+		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeBomber))
 	case cs.ShipDesignPurposeStarbase:
 		fallthrough
 	case cs.ShipDesignPurposePacketThrower:
@@ -43,10 +49,15 @@ func (ai *aiPlayer) designShip(name string, purpose cs.ShipDesignPurpose) (updat
 		return existing, nil
 	}
 
-	updated = cs.DesignShip(ai.techStore, hull, name, ai.Player, ai.GetNextDesignNum(ai.Designs), ai.DefaultHullSet, purpose)
+	updated = cs.DesignShip(ai.techStore, hull, name, ai.Player, ai.GetNextDesignNum(ai.Designs), ai.DefaultHullSet, purpose, fleetPurpose)
 	updated.HullSetNumber = ai.DefaultHullSet
 	updated.Purpose = purpose
 	updated.Spec = cs.ComputeShipDesignSpec(&ai.game.Rules, ai.TechLevels, ai.Race.Spec, updated)
+
+	// if we tried to build a bomber with no bombs, ignore it
+	if purpose == cs.ShipDesignPurposeBomber && !updated.Spec.Bomber {
+		return nil, nil
+	}
 
 	if existing != nil {
 		updated.Version = existing.Version + 1
@@ -69,22 +80,6 @@ func (ai *aiPlayer) designShip(name string, purpose cs.ShipDesignPurpose) (updat
 
 	// otherwise return the new design
 	return updated, nil
-}
-
-func (ai *aiPlayer) getHull(purpose fleetPurpose) *cs.TechHull {
-	switch purpose {
-	case scout:
-		return ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeScout))
-	case colonizer:
-		return ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeColonizer))
-	case fighter:
-		return ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeFighter))
-	case bomber:
-		return ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeBomber))
-	case transport:
-		return ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeFreighter))
-	}
-	return nil
 }
 
 // get the best hull we can build by iterating through the list backwards

@@ -10,7 +10,7 @@ func roundToNearest100(value int) int {
 	return int(math.Round(float64(value)/100) * 100)
 }
 
-func clamp(value, min, max int) int {
+func Clamp(value, min, max int) int {
 	if value < min {
 		return min
 	} else {
@@ -32,7 +32,7 @@ func clampFloat64(value, min, max float64) float64 {
 	return value
 }
 
-func maxInt(nums ...int) int {
+func MaxInt(nums ...int) int {
 	result := math.MinInt
 	for _, value := range nums {
 		if value > result {
@@ -43,7 +43,7 @@ func maxInt(nums ...int) int {
 	return result
 }
 
-func minInt(nums ...int) int {
+func MinInt(nums ...int) int {
 	result := math.MaxInt
 	for _, value := range nums {
 		if value < result {

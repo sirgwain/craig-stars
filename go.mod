@@ -18,6 +18,7 @@ require (
 	github.com/go-pkgz/auth v1.21.0
 	github.com/go-pkgz/rest v1.17.0
 	github.com/golang-migrate/migrate/v4 v4.16.2
+	github.com/golodash/godash v1.3.0
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/simukti/sqldb-logger v0.0.0-20220521163925-faf2f2be0eb6
 	golang.org/x/exp v0.0.0-20230315142452-642cacee5cc0
@@ -43,7 +44,7 @@ require (
 	github.com/dghubble/oauth1 v0.7.2 // indirect
 	github.com/go-oauth2/oauth2/v4 v4.5.2 // indirect
 	github.com/go-pkgz/repeater v1.1.3 // indirect
-	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/gorilla/css v1.0.0 // indirect

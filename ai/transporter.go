@@ -32,8 +32,15 @@ func (ai *aiPlayer) transportColonists() error {
 		return nil
 	}
 
-	fleets := []*cs.Fleet{}
-	for _, fleet := range ai.Fleets {
+	fleetMakeup := ai.fleetsByPurpose[cs.FleetPurposeColonistFreighter]
+	// find all idle ships that can be part of our transport fleets
+	// and merge them into a single fleet with purpose
+	fleets, err := ai.assembleFromIdleFleets(fleetMakeup)
+	if err != nil {
+		return err
+	}
+
+	for _, fleet := range fleetMakeup.getFleetsMatchingMakeup(ai, ai.Fleets) {
 		if _, contains := fleet.Spec.Purposes[cs.ShipDesignPurposeColonistFreighter]; contains {
 			if len(fleet.Waypoints) <= 1 {
 				// this fleet is over a feeder, great!
@@ -76,7 +83,7 @@ func (ai *aiPlayer) transportColonists() error {
 
 	// for each planet remaining, we need a transport
 	if len(needersByNum) > 0 {
-		ai.addShipBuildRequest(cs.ShipDesignPurposeColonistFreighter, len(needersByNum))
+		ai.addFleetBuildRequest(cs.FleetPurposeColonistFreighter, len(needersByNum))
 	}
 
 	return nil

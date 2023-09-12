@@ -154,10 +154,10 @@ func (c Cost) Negate() Cost {
 // return this cost with a minimum of zero for each value
 func (c Cost) MinZero() Cost {
 	return Cost{
-		Ironium:   maxInt(c.Ironium, 0),
-		Boranium:  maxInt(c.Boranium, 0),
-		Germanium: maxInt(c.Germanium, 0),
-		Resources: maxInt(c.Resources, 0),
+		Ironium:   MaxInt(c.Ironium, 0),
+		Boranium:  MaxInt(c.Boranium, 0),
+		Germanium: MaxInt(c.Germanium, 0),
+		Resources: MaxInt(c.Resources, 0),
 	}
 }
 
@@ -178,7 +178,7 @@ func (available Cost) NumBuildable(cost Cost) int {
 		buildable.Resources = available.Resources / cost.Resources
 	}
 
-	return minInt(
+	return MinInt(
 		buildable.Ironium,
 		buildable.Boranium,
 		buildable.Germanium,

@@ -84,6 +84,8 @@ type ShipDesignSpec struct {
 	Radiating                 bool                  `json:"radiating,omitempty"`
 	NumInstances              int                   `json:"numInstances,omitempty"`
 	NumBuilt                  int                   `json:"numBuilt,omitempty"`
+	EstimatedRange            int                   `json:"estimatedRange,omitempty"`
+	EstimatedRangeFull        int                   `json:"estimatedRangeFull,omitempty"`
 }
 
 type MineLayingRateByMineType struct {
@@ -387,7 +389,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 				if spec.BasePacketSpeed == component.PacketSpeed {
 					spec.AdditionalMassDrivers++
 				}
-				spec.BasePacketSpeed = maxInt(spec.BasePacketSpeed, component.PacketSpeed)
+				spec.BasePacketSpeed = MaxInt(spec.BasePacketSpeed, component.PacketSpeed)
 				spec.MassDriver = component.Name
 			}
 
@@ -434,7 +436,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		// Movement = IdealEngineSpeed - 2 - Mass / 70 / NumEngines + NumManeuveringJets + 2*NumOverThrusters
 		// we added any MovementBonus components above
 		// we round up the slightest bit, and we can't go below 2, or above 10
-		spec.Movement = clamp((spec.Engine.IdealSpeed-2)-spec.Mass/70/spec.NumEngines+spec.Movement+raceSpec.MovementBonus, 2, 10)
+		spec.Movement = Clamp((spec.Engine.IdealSpeed-2)-spec.Mass/70/spec.NumEngines+spec.Movement+raceSpec.MovementBonus, 2, 10)
 	} else {
 		spec.Movement = 0
 	}
@@ -443,7 +445,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 	if beamPower > 0 {
 		// starbases don't move, but for the beam power calcs
 		// assume they have a movement of "2" which is the lowest possible
-		movement := clamp(spec.Movement, 2, 10)
+		movement := Clamp(spec.Movement, 2, 10)
 
 		// a movement of 1 1/2 int the UI (i.e. 6) doesn't impact your beam
 		// power rating. Anything less reduces your beam power, anything higher increases it
@@ -453,6 +455,19 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 
 	spec.computeScanRanges(rules, raceSpec.ScannerSpec, techLevels, design, hull)
 
+	// compute the estimated range for this design
+	if spec.NumEngines > 0 {
+		fuelCostFor1kly := spec.Engine.getFuelCostForEngine(spec.Engine.IdealSpeed, spec.Mass, 1000, 1+raceSpec.FuelEfficiencyOffset)
+		fuelCostFor1klyFull := spec.Engine.getFuelCostForEngine(spec.Engine.IdealSpeed, spec.Mass+spec.CargoCapacity, 1000, 1+raceSpec.FuelEfficiencyOffset)
+
+		if fuelCostFor1kly == 0 {
+			spec.EstimatedRange = Infinite
+			spec.EstimatedRangeFull = Infinite
+		} else {
+			spec.EstimatedRange = int(float64(spec.FuelCapacity) / float64(fuelCostFor1kly) * 1000)
+			spec.EstimatedRangeFull = int(float64(spec.FuelCapacity) / float64(fuelCostFor1klyFull) * 1000)
+		}
+	}
 	return spec
 }
 
@@ -510,7 +525,7 @@ func (spec *ShipDesignSpec) computeScanRanges(rules *Rules, scannerSpec ScannerS
 	spec.Scanner = spec.ScanRange != NoScanner || spec.ScanRangePen != NoScanner
 }
 
-func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Player, num int, hullSetNumber int, purpose ShipDesignPurpose) *ShipDesign {
+func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Player, num int, hullSetNumber int, purpose ShipDesignPurpose, fleetPurpose FleetPurpose) *ShipDesign {
 
 	design := NewShipDesign(player, num).WithName(name).WithHull(hull.Name)
 	design.Purpose = purpose
@@ -520,7 +535,7 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 		return design
 	}
 
-	engine := techStore.GetBestEngine(player, hull, purpose)
+	engine := techStore.GetBestEngine(player, hull, fleetPurpose)
 	scanner := techStore.GetBestScanner(player)
 	fuelTank := techStore.GetBestFuelTank(player)
 	cargoPod := techStore.GetBestCargoPod(player)
@@ -580,9 +595,16 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 					slot.HullComponent = structureBomb.Name
 				}
 			default:
-				slot.HullComponent = bomb.Name
+				if bomb != nil {
+					slot.HullComponent = bomb.Name
+				}
 			}
 		case HullSlotTypeShieldArmor:
+			// fuel freighters stay fast and loose
+			if purpose == ShipDesignPurposeFuelFreighter {
+				continue
+			}
+
 			// if we are choosing shield or armor, pick  armor first, then shield
 			if numArmors > numShields {
 				slot.HullComponent = shield.Name
@@ -590,9 +612,17 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 				slot.HullComponent = armor.Name
 			}
 		case HullSlotTypeArmor:
+			// fuel freighters stay fast and loose
+			if purpose == ShipDesignPurposeFuelFreighter {
+				continue
+			}
 			slot.HullComponent = armor.Name
 			numArmors++
 		case HullSlotTypeShield:
+			// fuel freighters stay fast and loose
+			if purpose == ShipDesignPurposeFuelFreighter {
+				continue
+			}
 			slot.HullComponent = shield.Name
 			numShields++
 		case HullSlotTypeMining:
@@ -652,9 +682,18 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 			}
 		case HullSlotTypeMechanical:
 			switch purpose {
-			case ShipDesignPurposeColonizer:
+			case ShipDesignPurposeFuelFreighter:
+				slot.HullComponent = fuelTank.Name
+				numFuelTanks++
+			case ShipDesignPurposeFreighter:
 				fallthrough
 			case ShipDesignPurposeColonistFreighter:
+				// add cargo pods to freighters if we have a ramscoop
+				if engine.FreeSpeed > 1 && cargoPod != nil {
+					slot.HullComponent = cargoPod.Name
+					numCargoPods++
+				}
+			case ShipDesignPurposeColonizer:
 				if colonizationModule != nil && numColonizationModules == 0 {
 					numColonizationModules++
 					slot.HullComponent = colonizationModule.Name
@@ -675,16 +714,28 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 			}
 		case HullSlotTypeScannerElectricalMechanical:
 			switch purpose {
-			case ShipDesignPurposeColonizer:
+			case ShipDesignPurposeFuelFreighter:
+				slot.HullComponent = fuelTank.Name
+				numFuelTanks++
+			case ShipDesignPurposeFreighter:
 				fallthrough
 			case ShipDesignPurposeColonistFreighter:
+				// add cargo pods to freighters if we have a ramscoop
+				if engine.FreeSpeed > 1 && cargoPod != nil {
+					slot.HullComponent = cargoPod.Name
+					numCargoPods++
+				} else {
+					slot.HullComponent = fuelTank.Name
+					numFuelTanks++
+				}
+			case ShipDesignPurposeColonizer:
 				if colonizationModule != nil && numColonizationModules == 0 {
 					numColonizationModules++
 					slot.HullComponent = colonizationModule.Name
 					slot.Quantity = 1 // we only need 1 colonization module
 				} else {
 					// balance fuel and cargo, fuel firsts
-					if numFuelTanks > numCargoPods {
+					if numFuelTanks > numCargoPods && cargoPod != nil {
 						slot.HullComponent = cargoPod.Name
 						numCargoPods++
 					} else {
@@ -705,15 +756,16 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 
 		case HullSlotTypeArmorScannerElectricalMechanical:
 			switch purpose {
+			case ShipDesignPurposeFuelFreighter:
+				slot.HullComponent = fuelTank.Name
+				numFuelTanks++
 			case ShipDesignPurposeColonizer:
-				fallthrough
-			case ShipDesignPurposeColonistFreighter:
 				if colonizationModule != nil && numColonizationModules == 0 {
 					numColonizationModules++
 					slot.HullComponent = colonizationModule.Name
 					slot.Quantity = 1 // we only need 1 colonization module
 				} else { // balance fuel and cargo, fuel firsts
-					if numFuelTanks > numCargoPods {
+					if numFuelTanks > numCargoPods && cargoPod != nil {
 						slot.HullComponent = cargoPod.Name
 						numCargoPods++
 					} else {
@@ -733,11 +785,12 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 
 		case HullSlotTypeGeneral:
 			switch purpose {
+			case ShipDesignPurposeFuelFreighter:
+				slot.HullComponent = fuelTank.Name
+				numFuelTanks++
 			case ShipDesignPurposeColonizer:
-				fallthrough
-			case ShipDesignPurposeColonistFreighter:
 				// balance fuel and cargo, fuel firsts
-				if numFuelTanks > numCargoPods {
+				if numFuelTanks > numCargoPods && cargoPod != nil {
 					slot.HullComponent = cargoPod.Name
 					numCargoPods++
 				} else {

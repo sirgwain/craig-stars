@@ -13,8 +13,12 @@ func invadePlanet(planet *Planet, fleet *Fleet, defender *Player, attacker *Play
 	attackBonus := attacker.Race.Spec.InvasionAttackBonus
 	defenseBonus := defender.Race.Spec.InvasionDefendBonus
 
+	remainingAttackers := 0
+	remainingDefenders := 0
+
 	if float64(attackers)*attackBonus > float64(defenders)*defenseBonus {
-		remainingAttackers := roundToNearest100f(float64(attackers) - float64(defenders)*defenseBonus/attackBonus)
+		remainingDefenders = 0
+		remainingAttackers = roundToNearest100f(float64(attackers) - float64(defenders)*defenseBonus/attackBonus)
 
 		// if we have a last-person-standing, they instantly repopulate. :)
 		if remainingAttackers == 0 {
@@ -43,7 +47,8 @@ func invadePlanet(planet *Planet, fleet *Fleet, defender *Player, attacker *Play
 		}
 
 	} else {
-		var remainingDefenders = roundToNearest100f(float64(defenders) - (float64(attackers)*attackBonus)/defenseBonus)
+		remainingAttackers = 0
+		remainingDefenders = roundToNearest100f(float64(defenders) - (float64(attackers)*attackBonus)/defenseBonus)
 
 		// if we have a last-person-standing, they instantly repopulate. :)
 		if remainingDefenders == 0 {
@@ -67,6 +72,9 @@ func invadePlanet(planet *Planet, fleet *Fleet, defender *Player, attacker *Play
 		Str("Planet", planet.Name).
 		Int("Attackers", attackers).
 		Int("Defenders", defenders).
+		Int("RemainingAttackers", remainingAttackers).
+		Int("RemainingDefenders", remainingDefenders).
+		Bool("AttackerWon", planet.PlayerNum == attacker.Num).
 		Int("PlanetPlayerNum", planet.PlayerNum).
 		Msgf("planet invaded")
 

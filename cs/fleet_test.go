@@ -187,8 +187,8 @@ func Test_computeFleetSpec(t *testing.T) {
 				ScanRange:    NoScanner,
 				ScanRangePen: NoScanner,
 				SpaceDock:    UnlimitedSpaceDock,
+				EstimatedRange: Infinite,
 			},
-			EstimatedRange: Infinite,
 			Purposes:       map[ShipDesignPurpose]bool{},
 		}},
 		{"Starter Humanoid Long Range Scout", args{&rules, starterHumanoidPlayer, &Fleet{
@@ -368,12 +368,12 @@ func Test_computeFleetSpec(t *testing.T) {
 					FreeSpeed:    QuickJump5.FreeSpeed,
 					MaxSafeSpeed: QuickJump5.MaxSafeSpeed,
 				},
+				EstimatedRange:   Infinite,
 			},
 			Purposes:         map[ShipDesignPurpose]bool{},
 			MassEmpty:        0,
 			BaseCloakedCargo: 0,
 			TotalShips:       0,
-			EstimatedRange:   Infinite,
 		}},
 	}
 	for _, tt := range tests {

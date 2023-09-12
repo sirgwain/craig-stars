@@ -379,9 +379,9 @@ func (p *production) processQueueItem(item ProductionQueueItem, availableToSpend
 	if (cost != Cost{}) {
 		// figure out how many we can build
 		// and make sure we only build up to the quantity, and we don't build more than the planet supports
-		numBuilt := maxInt(0, availableToSpend.NumBuildable(cost))
-		numBuilt = minInt(numBuilt, item.Quantity)
-		numBuilt = minInt(numBuilt, maxBuildable)
+		numBuilt := MaxInt(0, availableToSpend.NumBuildable(cost))
+		numBuilt = MinInt(numBuilt, item.Quantity)
+		numBuilt = MinInt(numBuilt, maxBuildable)
 
 		if numBuilt > 0 {
 			result.numBuilt = numBuilt

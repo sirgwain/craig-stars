@@ -26,10 +26,7 @@
 	$: filteredPlanets =
 		$universe
 			.getMyPlanets()
-			.filter(
-				(i) =>
-					i.name.toLowerCase().indexOf(search.toLowerCase()) != -1
-			) ?? [];
+			.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? [];
 
 	const columns: SvelteTableColumn<Planet>[] = [
 		{
@@ -156,7 +153,21 @@
 			{:else if column.key == 'populationDensity'}
 				{((row.spec.populationDensity ?? 0) * 100).toFixed(1)}%
 			{:else if column.key == 'habitability'}
-				{row.spec.habitability ?? 0}%
+				{#if row.spec.canTerraform}
+					<span
+						class:text-habitable={(row.spec.habitability ?? 0) > 0}
+						class:text-uninhabitable={(row.spec.habitability ?? 0) < 0}
+						>{row.spec.habitability ?? 0}%</span
+					>
+					/ <span class="text-terraformable">{row.spec.terraformedHabitability ?? 0}%</span>
+				{:else}
+					<span
+						class:text-habitable={(row.spec.habitability ?? 0) > 0}
+						class:text-uninhabitable={(row.spec.habitability ?? 0) < 0}
+					>
+						{row.spec.habitability ?? 0}%</span
+					>
+				{/if}
 			{:else if column.key == 'production'}
 				{#if row.productionQueue?.length}
 					<div class="flex justify-between">
