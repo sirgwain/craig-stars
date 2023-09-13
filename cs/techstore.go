@@ -1462,10 +1462,10 @@ var TachyonDetector = TechHullComponent{Tech: NewTech("Tachyon Detector", NewCos
 }
 var AntiMatterGenerator = TechHullComponent{Tech: NewTech("Anti-Matter Generator", NewCost(8, 3, 3, 10), TechRequirements{TechLevel: TechLevel{Weapons: 12, Biotechnology: 7}, PRTRequired: IT}, 150, TechCategoryElectrical),
 
-	Mass:                 10,
-	FuelRegenerationRate: 50,
-	FuelBonus:            200,
-	HullSlotType:         HullSlotTypeElectrical,
+	Mass:           10,
+	FuelGeneration: 50,
+	FuelBonus:      200,
+	HullSlotType:   HullSlotTypeElectrical,
 }
 var MineDispenser40 = TechHullComponent{Tech: NewTech("Mine Dispenser 40", NewCost(2, 9, 7, 40), TechRequirements{TechLevel: TechLevel{}, PRTRequired: SD}, 0, TechCategoryMineLayer),
 
@@ -2333,22 +2333,24 @@ var UltraMiner = TechHull{Tech: NewTech("Ultra-Miner", NewCost(30, 0, 6, 130), T
 	},
 }
 var FuelTransport = TechHull{Tech: NewTech("Fuel Transport", NewCost(10, 0, 5, 50), TechRequirements{TechLevel: TechLevel{Construction: 4}, PRTRequired: IS}, 260, TechCategoryShipHull),
-	Type:         TechHullTypeFuelTransport,
-	Mass:         12,
-	Armor:        5,
-	FuelCapacity: 750,
-	RepairBonus:  .05, // +5% repair
+	Type:           TechHullTypeFuelTransport,
+	Mass:           12,
+	Armor:          5,
+	FuelCapacity:   750,
+	FuelGeneration: 200, // generates 200mg of fuel per year
+	RepairBonus:    .05, // +5% repair
 	Slots: []TechHullSlot{
 		{Position: Vector{-0.5, 0}, Type: HullSlotTypeEngine, Capacity: 1, Required: true},
 		{Position: Vector{0.5, 0}, Type: HullSlotTypeShield, Capacity: 1},
 	},
 }
-var SuperFuelXport = TechHull{Tech: NewTech("Super Fuel Xport", NewCost(20, 0, 8, 70), TechRequirements{TechLevel: TechLevel{Construction: 7}, PRTRequired: IS}, 270, TechCategoryShipHull),
-	Type:         TechHullTypeFuelTransport,
-	Mass:         111,
-	Armor:        12,
-	FuelCapacity: 2250,
-	RepairBonus:  .1, // +10% repair
+var SuperFuelXport = TechHull{Tech: NewTech("Super Fuel Xport", NewCost(20, 0, 8, 70), TechRequirements{TechLevel: TechLevel{Construction: 7}}, 270, TechCategoryShipHull),
+	Type:           TechHullTypeFuelTransport,
+	Mass:           111,
+	Armor:          12,
+	FuelCapacity:   2250,
+	FuelGeneration: 200, // generates 200mg of fuel per year
+	RepairBonus:    .1,  // +10% repair
 	Slots: []TechHullSlot{
 		{Position: Vector{-1, 0}, Type: HullSlotTypeEngine, Capacity: 2, Required: true},
 		{Position: Vector{0, 0}, Type: HullSlotTypeShield, Capacity: 2},

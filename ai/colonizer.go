@@ -29,6 +29,11 @@ func (ai *aiPlayer) colonize() error {
 		return err
 	}
 
+	log.Debug().
+		Int64("GameID", ai.GameID).
+		Int("PlayerNum", ai.Num).
+		Msgf("%d colonizer fleets assembled from idle fleets", len(colonizerFleets))
+
 	// go through fleets in space that may have been misassigned
 	for _, fleet := range fleetMakeup.getFleetsMatchingMakeup(ai, ai.Fleets) {
 		if fleet.Purpose == cs.FleetPurposeColonizer && fleet.Spec.Colonizer {
@@ -71,6 +76,11 @@ func (ai *aiPlayer) colonize() error {
 							// remove the target return this colonizer to the available queue
 							fleet.Waypoints = fleet.Waypoints[:1]
 							colonizerFleets = append(colonizerFleets, fleet)
+							log.Debug().
+								Int64("GameID", ai.GameID).
+								Int("PlayerNum", ai.Num).
+								Msgf("Fleet %s was targeting %s for colonizing, but it is owned by another player", fleet.Name, target.Name)
+
 						}
 						continue
 					}
@@ -101,6 +111,14 @@ func (ai *aiPlayer) colonize() error {
 				growth := orbiting.Spec.GrowthAmount
 				newDensity := float64(((orbiting.Cargo.Colonists-colonistsToLoad)*100)+growth) / float64(orbiting.Spec.MaxPopulation)
 				if newDensity < ai.config.colonizerPopulationDensity {
+					log.Debug().
+						Int64("GameID", ai.GameID).
+						Int("PlayerNum", ai.Num).
+						Int("ColonistsAvailable", orbiting.Cargo.Colonists*100).
+						Int("ColonistsNeeded", colonistsToLoad*100).
+						Int("DensityAfterLoad", int(newDensity)).
+						Msgf("Fleet %s cannot load colonists from %s", fleet.Name, orbiting.Name)
+
 					continue
 				}
 				if err := ai.client.TransferPlanetCargo(&ai.game.Rules, ai.Player, fleet, orbiting, cs.Cargo{Colonists: colonistsToLoad}); err != nil {
@@ -109,12 +127,27 @@ func (ai *aiPlayer) colonize() error {
 					continue
 				}
 
+				log.Debug().
+					Int64("GameID", ai.GameID).
+					Int("PlayerNum", ai.Num).
+					Int("ColonistsAvailable", orbiting.Cargo.Colonists*100).
+					Int("ColonistsNeeded", colonistsToLoad*100).
+					Int("DensityAfterLoad", int(newDensity)).
+					Msgf("Fleet %s loaded %d colonists from %s", fleet.Name, colonistsToLoad*100, orbiting.Name)
+
 			}
 
 			warpSpeed := ai.getWarpSpeed(fleet, bestPlanet.Position)
 			fleet.Waypoints = append(fleet.Waypoints, cs.NewPlanetWaypoint(bestPlanet.Position, bestPlanet.Num, bestPlanet.Name, warpSpeed).WithTask(cs.WaypointTaskColonize))
 			ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders)
 			delete(colonizablePlanets, bestPlanet.Num)
+
+			log.Debug().
+				Int64("GameID", ai.GameID).
+				Int("PlayerNum", ai.Num).
+				Int("WarpSpeed", warpSpeed).
+				Msgf("Fleet %s targeting %s for colonizing", fleet.Name, bestPlanet.Name)
+
 		}
 	}
 

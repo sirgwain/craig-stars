@@ -110,14 +110,18 @@ func (u *Universe) buildMaps(players []*Player) error {
 		if fleet.Delete {
 			continue
 		}
-		u.addFleet(fleet)
+		if err := u.addFleet(fleet); err != nil {
+			return err
+		}
 	}
 
 	for _, starbase := range u.Starbases {
 		if starbase.Delete {
 			continue
 		}
-		u.addStarbase(starbase)
+		if err := u.addStarbase(starbase); err != nil {
+			return err
+		}
 	}
 
 	for _, planet := range u.Planets {
@@ -395,7 +399,7 @@ func (u *Universe) moveFleet(fleet *Fleet, originalPosition Vector) {
 	u.updateMapObjectAtPosition(fleet, originalPosition, fleet.Position)
 }
 
-func (u *Universe) addFleet(fleet *Fleet) {
+func (u *Universe) addFleet(fleet *Fleet) error {
 	u.addMapObjectByPosition(fleet, fleet.Position)
 
 	u.fleetsByNum[playerObjectKey(fleet.PlayerNum, fleet.Num)] = fleet
@@ -406,10 +410,14 @@ func (u *Universe) addFleet(fleet *Fleet) {
 	for i := range fleet.Tokens {
 		token := &fleet.Tokens[i]
 		token.design = u.designsByNum[playerObjectKey(fleet.PlayerNum, token.DesignNum)]
+		if token.design == nil {
+			return fmt.Errorf("unable to find design %d for fleet %s", token.DesignNum, fleet.Name)
+		}
 	}
+	return nil
 }
 
-func (u *Universe) addStarbase(starbase *Fleet) {
+func (u *Universe) addStarbase(starbase *Fleet) error {
 	u.Planets[starbase.PlanetNum-1].Starbase = starbase
 
 	u.addMapObjectByPosition(starbase, starbase.Position)
@@ -420,7 +428,12 @@ func (u *Universe) addStarbase(starbase *Fleet) {
 	for i := range starbase.Tokens {
 		token := &starbase.Tokens[i]
 		token.design = u.designsByNum[playerObjectKey(starbase.PlayerNum, token.DesignNum)]
+		if token.design == nil {
+			return fmt.Errorf("unable to find design %d for fleet %s", token.DesignNum, starbase.Name)
+		}
 	}
+
+	return nil
 }
 
 // move a wormhole from one position to another
@@ -511,6 +524,9 @@ func (u *Universe) getPlanets(playerNum int) []*Planet {
 func (u *Universe) getFleets(playerNum int) []*Fleet {
 	fleets := []*Fleet{}
 	for _, fleet := range u.Fleets {
+		if fleet.Delete {
+			continue
+		}
 		if fleet.PlayerNum == playerNum {
 			fleets = append(fleets, fleet)
 		}
@@ -521,6 +537,9 @@ func (u *Universe) getFleets(playerNum int) []*Fleet {
 func (u *Universe) getStarbases(playerNum int) []*Fleet {
 	starbases := []*Fleet{}
 	for _, starbase := range u.Starbases {
+		if starbase.Delete {
+			continue
+		}
 		if starbase.PlayerNum == playerNum {
 			starbases = append(starbases, starbase)
 		}
@@ -531,6 +550,10 @@ func (u *Universe) getStarbases(playerNum int) []*Fleet {
 func (u *Universe) getMineFields(playerNum int) []*MineField {
 	mineFields := []*MineField{}
 	for _, mineField := range u.MineFields {
+		if mineField.Delete {
+			continue
+		}
+
 		if mineField.PlayerNum == playerNum {
 			mineFields = append(mineFields, mineField)
 		}
@@ -541,6 +564,10 @@ func (u *Universe) getMineFields(playerNum int) []*MineField {
 func (u *Universe) getMineralPackets(playerNum int) []*MineralPacket {
 	mineralPackets := []*MineralPacket{}
 	for _, mineralPacket := range u.MineralPackets {
+		if mineralPacket.Delete {
+			continue
+		}
+
 		if mineralPacket.PlayerNum == playerNum {
 			mineralPackets = append(mineralPackets, mineralPacket)
 		}

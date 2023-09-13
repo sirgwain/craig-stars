@@ -3,6 +3,7 @@ package ai
 import (
 	"math"
 
+	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 	"golang.org/x/exp/slices"
 )
@@ -33,6 +34,11 @@ func (ai *aiPlayer) scout() error {
 
 						target := ai.getPlanetIntel(wp.TargetNum)
 						if target.ReportAge != cs.ReportAgeUnexplored {
+							log.Debug().
+								Int64("GameID", ai.GameID).
+								Int("PlayerNum", ai.Num).
+								Msgf("Scout %s no longer targeting %s, it's already explored", fleet.Name, target.Name)
+
 							// we discovered this target in some other way, change targets
 							fleet.Waypoints = fleet.Waypoints[:1]
 							scannerFleets = append(scannerFleets, fleet)
@@ -47,10 +53,18 @@ func (ai *aiPlayer) scout() error {
 	for _, fleet := range scannerFleets {
 		closestPlanet := ai.getClosestPlanetIntel(fleet.Position, unknownPlanetsByNum)
 		if closestPlanet != nil {
-			warpSpeed := ai.getWarpSpeed(fleet, closestPlanet.Position)
+			warpSpeed := ai.getScoutWarpSpeed(fleet, closestPlanet.Position)
+
 			fleet.Waypoints = append(fleet.Waypoints, cs.NewPlanetWaypoint(closestPlanet.Position, closestPlanet.Num, closestPlanet.Name, warpSpeed))
 			ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders)
 			delete(unknownPlanetsByNum, closestPlanet.Num)
+
+			log.Debug().
+				Int64("GameID", ai.GameID).
+				Int("PlayerNum", ai.Num).
+				Int("WarpSpeed", warpSpeed).
+				Msgf("Scout %s targeting %s", fleet.Name, closestPlanet.Name)
+
 		}
 	}
 
@@ -60,6 +74,15 @@ func (ai *aiPlayer) scout() error {
 	}
 
 	return nil
+}
+
+func (ai *aiPlayer) getScoutWarpSpeed(fleet *cs.Fleet, position cs.Vector) int {
+	dist := fleet.Position.DistanceTo(position)
+	if float64(fleet.Fuel)/float64(fleet.Spec.FuelCapacity) > .5 {
+		return ai.getMaxWarp(dist, fleet)
+	}
+	// slow down when we run low on fuel
+	return ai.getMinimalWarp(dist, fleet.Spec.Engine.IdealSpeed, fleet)
 }
 
 // fling packets at planets to scout
@@ -137,6 +160,12 @@ func (ai *aiPlayer) scoutPackets() error {
 				if err := ai.client.UpdatePlanetOrders(&ai.game.Rules, ai.Player, planet, planet.PlanetOrders); err != nil {
 					return err
 				}
+
+				log.Debug().
+					Int64("GameID", ai.GameID).
+					Int("PlayerNum", ai.Num).
+					Int("WarpSpeed", planet.PacketSpeed).
+					Msgf("Planet %s is sending a scout packet to %s", planet.Name, farthest.Name)
 
 			}
 		}

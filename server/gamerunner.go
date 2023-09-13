@@ -909,6 +909,21 @@ func (gr *gameRunner) generateTurn(readWriteClient DBClient, fullGame *cs.FullGa
 		// 	time.Sleep(10 * time.Second)
 		// }
 
+		for _, player := range fullGame.Players {
+			if !player.AIControlled {
+				continue
+			}
+
+			for _, design := range player.Designs {
+				if design.Delete && design.ID != 0 && !design.CannotDelete {
+					log.Debug().Msgf("player %d deleting design %d - id %d", player.Num, design.Num, design.ID)
+					if err := c.DeleteShipDesign(design.ID); err != nil {
+						return fmt.Errorf("delete AI player design %s %v", design.Name, err)
+					}
+				}
+			}
+		}
+
 		if err := c.UpdateFullGame(fullGame); err != nil {
 
 			if err := readWriteClient.UpdateGameState(fullGame.ID, cs.GameStateGeneratingTurnError); err != nil {

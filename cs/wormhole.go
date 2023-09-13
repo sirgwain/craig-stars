@@ -82,7 +82,7 @@ func generateWormhole(mapObjectGetter mapObjectGetter, num int, area Vector, ran
 		position = Vector{X: float64(random.Intn(width)), Y: float64(random.Intn(height))}
 		posCheckCount++
 		if posCheckCount > 1000 {
-			return Vector{}, WormholeStabilityNone, fmt.Errorf("find a valid position for a planet in 1000 tries, min: %d, numPlanets: %d, numWormholes: %d, area: %v", minDistanceFromPlanets, len(planetPositions), len(wormholePositions), area)
+			return Vector{}, WormholeStabilityNone, fmt.Errorf("find a valid position for a wormhole in 1000 tries, min: %d, numPlanets: %d, numWormholes: %d, area: %v", minDistanceFromPlanets, len(planetPositions), len(wormholePositions), area)
 		}
 	}
 

@@ -296,6 +296,17 @@ func (p *Player) GetDesign(num int) *ShipDesign {
 	return nil
 }
 
+// Get a ShipDesignIntel, or nil if no design found
+func (p *Player) GetForeignDesign(playerNum int, num int) *ShipDesignIntel {
+	for i := range p.ShipDesignIntels {
+		design := &p.ShipDesignIntels[i]
+		if design.PlayerNum == playerNum && design.Num == num {
+			return design
+		}
+	}
+	return nil
+}
+
 // Get a player ShipDesign, or nil if no design found
 func (p *Player) GetDesignByName(name string) *ShipDesign {
 	for i := range p.Designs {
@@ -627,7 +638,7 @@ func (p *Player) getNextMineralPacketNum(packets []*MineralPacket) int {
 }
 
 // inject player designs into tokens for a slice of fleets
-func (p *Player) InjectDesigns(fleets []*Fleet) {
+func (p *Player) InjectDesigns(fleets []*Fleet) error {
 
 	designsByNum := make(map[int]*ShipDesign, len(p.Designs))
 	for i := range p.Designs {
@@ -640,9 +651,13 @@ func (p *Player) InjectDesigns(fleets []*Fleet) {
 		for i := range f.Tokens {
 			token := &f.Tokens[i]
 			token.design = designsByNum[token.DesignNum]
+			if token.design == nil {
+				return fmt.Errorf("unable to find design %d for fleet %s", token.DesignNum, f.Name)
+			}
 		}
 	}
 
+	return nil
 }
 
 // validate this battle plan

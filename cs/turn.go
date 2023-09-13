@@ -67,7 +67,9 @@ func (t *turn) generateTurn() error {
 	t.detonateMines()
 	t.planetMine()
 	t.fleetRemoteMineAR() // sort of a wp1 task, for AR races it happens before production
-	t.planetProduction()
+	if err := t.planetProduction(); err != nil {
+		return err
+	}
 	t.playerResearch()
 	t.permaform()
 	t.planetGrow()
@@ -1107,7 +1109,7 @@ func (t *turn) remoteMine(fleet *Fleet, player *Player, planet *Planet) {
 }
 
 // go through each player planet and process it's production queue
-func (t *turn) planetProduction() {
+func (t *turn) planetProduction() error {
 	for _, planet := range t.game.Planets {
 		if planet.Owned() && len(planet.ProductionQueue) > 0 {
 			player := t.game.Players[planet.PlayerNum-1]
@@ -1146,11 +1148,17 @@ func (t *turn) planetProduction() {
 			}
 			for _, token := range result.tokens {
 				design := token.design
+				if design == nil {
+					return fmt.Errorf("player %d has no design %d", player.Num, token.DesignNum)
+				}
 				design.Spec.NumBuilt += token.Quantity
 				design.Spec.NumInstances += token.Quantity
 				design.MarkDirty()
 
-				fleet := t.buildFleet(player, planet, token)
+				fleet, err := t.buildFleet(player, planet, token)
+				if err != nil {
+					return err
+				}
 				messager.fleetBuilt(player, planet, fleet, token.Quantity)
 			}
 			for _, cargo := range result.packets {
@@ -1159,7 +1167,10 @@ func (t *turn) planetProduction() {
 				messager.mineralPacket(player, planet, packet, target.Name)
 			}
 			if result.starbase != nil {
-				starbase := t.buildStarbase(player, planet, result.starbase)
+				starbase, err := t.buildStarbase(player, planet, result.starbase)
+				if err != nil {
+					return err
+				}
 				messager.starbaseBuilt(player, planet, starbase)
 			}
 			if result.scanner {
@@ -1186,10 +1197,11 @@ func (t *turn) planetProduction() {
 			player.leftoverResources += result.leftoverResources
 		}
 	}
+	return nil
 }
 
 // build a fleet with some number of tokens
-func (t *turn) buildFleet(player *Player, planet *Planet, token ShipToken) *Fleet {
+func (t *turn) buildFleet(player *Player, planet *Planet, token ShipToken) (*Fleet, error) {
 	player.Stats.FleetsBuilt++
 	player.Stats.TokensBuilt += token.Quantity
 
@@ -1210,12 +1222,14 @@ func (t *turn) buildFleet(player *Player, planet *Planet, token ShipToken) *Flee
 		Msgf("fleet built")
 
 	t.game.Fleets = append(t.game.Fleets, &fleet)
-	t.game.Universe.addFleet(&fleet)
-	return &fleet
+	if err := t.game.Universe.addFleet(&fleet); err != nil {
+		return nil, err
+	}
+	return &fleet, nil
 }
 
 // build a starbase on a planet
-func (t *turn) buildStarbase(player *Player, planet *Planet, design *ShipDesign) *Fleet {
+func (t *turn) buildStarbase(player *Player, planet *Planet, design *ShipDesign) (*Fleet, error) {
 	player.Stats.StarbasesBuilt++
 	player.Stats.TokensBuilt++
 	design.Spec.NumBuilt++
@@ -1236,8 +1250,10 @@ func (t *turn) buildStarbase(player *Player, planet *Planet, design *ShipDesign)
 		Msgf("starbase built")
 
 	t.game.Starbases = append(t.game.Starbases, &starbase)
-	t.game.addStarbase(&starbase)
-	return &starbase
+	if err := t.game.addStarbase(&starbase); err != nil {
+		return nil, err
+	}
+	return &starbase, nil
 }
 
 // build a mineral packet with cargo
@@ -1476,6 +1492,19 @@ func (t *turn) fleetRefuel() {
 			continue
 		}
 
+		player := t.game.getPlayer(fleet.PlayerNum)
+
+		if fleet.Spec.FuelGeneration > 0 {
+			fleet.Fuel = Clamp(fleet.Fuel+fleet.Spec.FuelGeneration, 0, fleet.Spec.FuelCapacity)
+			fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed, fleet.Spec.CargoCapacity)
+			fleet.MarkDirty()
+			log.Debug().
+				Int64("GameID", t.game.ID).
+				Int("Player", fleet.PlayerNum).
+				Str("Fleet", fleet.Name).
+				Msgf("fleet generated fuel")
+		}
+
 		planet := t.game.getOrbitingPlanet(fleet)
 		if planet == nil {
 			continue
@@ -1486,7 +1515,6 @@ func (t *turn) fleetRefuel() {
 
 		planetPlayer := t.game.getPlayer(planet.PlayerNum)
 		if planetPlayer.IsFriend(fleet.PlayerNum) {
-			player := t.game.getPlayer(fleet.PlayerNum)
 			fleet.Fuel = fleet.Spec.FuelCapacity
 			fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed, fleet.Spec.CargoCapacity)
 			fleet.MarkDirty()

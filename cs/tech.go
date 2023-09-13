@@ -82,6 +82,7 @@ type TechHullComponent struct {
 	CargoBonus                int           `json:"cargoBonus,omitempty"`
 	ColonizationModule        bool          `json:"colonizationModule,omitempty"`
 	FuelBonus                 int           `json:"fuelBonus,omitempty"`
+	FuelGeneration            int           `json:"fuelGeneration,omitempty"`
 	MovementBonus             int           `json:"movementBonus,omitempty"`
 	OrbitalConstructionModule bool          `json:"orbitalConstructionModule,omitempty"`
 	Power                     int           `json:"power,omitempty"`
@@ -90,7 +91,6 @@ type TechHullComponent struct {
 	Gattling                  bool          `json:"gattling,omitempty"`
 	HitsAllTargets            bool          `json:"hitsAllTargets,omitempty"`
 	DamageShieldsOnly         bool          `json:"damageShieldsOnly,omitempty"`
-	FuelRegenerationRate      int           `json:"fuelRegenerationRate,omitempty"`
 	Accuracy                  int           `json:"accuracy,omitempty"`
 	CapitalShipMissile        bool          `json:"capitalShipMissile,omitempty"`
 }
@@ -113,6 +113,7 @@ type TechHull struct {
 	Mass                     int            `json:"mass,omitempty"`
 	Armor                    int            `json:"armor,omitempty"`
 	FuelCapacity             int            `json:"fuelCapacity,omitempty"`
+	FuelGeneration           int            `json:"fuelGeneration,omitempty"`
 	CargoCapacity            int            `json:"cargoCapacity,omitempty"`
 	CargoSlotPosition        Vector         `json:"cargoSlotPosition,omitempty"`
 	CargoSlotSize            Vector         `json:"cargoSlotSize,omitempty"`
@@ -158,6 +159,14 @@ const (
 	TechHullTypeStarbase              TechHullType = "Starbase"
 	TechHullTypeOrbitalFort           TechHullType = "OrbitalFort"
 )
+
+func (t TechHullType) IsAttackHull() bool {
+	return t == TechHullTypeFighter || t == TechHullTypeCapitalShip || t == TechHullTypeMultiPurposeFreighter
+}
+
+func (t TechHullType) IsBomber() bool {
+	return t == TechHullTypeBomber
+}
 
 type HullSlotType Bitmask
 

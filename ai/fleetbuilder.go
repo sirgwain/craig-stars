@@ -3,7 +3,6 @@ package ai
 import (
 	"fmt"
 
-	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 	"golang.org/x/exp/slices"
 )
@@ -79,11 +78,10 @@ func (f *fleet) mergeFromIdleFleets(ai *aiPlayer, fleets []*cs.Fleet) (fleet *cs
 		if len(required) == 0 {
 			// add any fleets we skipped to the remaining list and break out, we're done
 			remainingFleets = append(remainingFleets, fleets[i+1:]...)
-			log.Debug().
-				Int64("GameID", ai.GameID).
-				Int("PlayerNum", ai.Num).
-				Str("Purpose", string(f.purpose)).
-				Msgf("found ships for purpose, %d fleets remaining", len(remainingFleets))
+			// log.Debug().
+			// 	Int64("GameID", ai.GameID).
+			// 	Int("PlayerNum", ai.Num).
+			// 	Msgf("found ships for %s, %d fleets remaining", string(f.purpose), len(remainingFleets))
 
 			break
 		}

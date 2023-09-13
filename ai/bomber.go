@@ -3,6 +3,7 @@ package ai
 import (
 	"math"
 
+	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 )
 
@@ -26,6 +27,11 @@ func (ai *aiPlayer) bomb() error {
 		return err
 	}
 
+	log.Debug().
+		Int64("GameID", ai.GameID).
+		Int("PlayerNum", ai.Num).
+		Msgf("%d bomber fleets assembled from idle fleets", len(bomberFleets))
+
 	// go through fleets in space that may have been misassigned
 	for _, fleet := range fleetMakeup.getFleetsMatchingMakeup(ai, ai.Fleets) {
 		if fleet.Purpose == cs.FleetPurposeBomber {
@@ -35,8 +41,14 @@ func (ai *aiPlayer) bomb() error {
 					if _, found := bombablePlanets[wp.TargetNum]; !found {
 						// this fleet is targeting a planet that is no longer bombable, clear its waypoints so it can be used
 						// to bomb something else
+						target := ai.getPlanetIntel(wp.TargetNum)
 						fleet.Waypoints = fleet.Waypoints[:1]
 						bomberFleets = append(bomberFleets, fleet)
+						log.Debug().
+							Int64("GameID", ai.GameID).
+							Int("PlayerNum", ai.Num).
+							Msgf("Fleet %s was going to bomb %s, but it's no longer a bombable target", fleet.Name, target.Name)
+
 					} else {
 						delete(bombablePlanets, wp.TargetNum)
 					}
@@ -60,6 +72,15 @@ func (ai *aiPlayer) bomb() error {
 			fleet.Waypoints = append(fleet.Waypoints, cs.NewPlanetWaypoint(bestPlanet.Position, bestPlanet.Num, bestPlanet.Name, warpSpeed))
 			ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders)
 			delete(bombablePlanets, bestPlanet.Num)
+
+			log.Debug().
+				Int64("GameID", ai.GameID).
+				Int("PlayerNum", ai.Num).
+				Int("WarpSpeed", warpSpeed).
+				Int("Population", bestPlanet.Spec.Population).
+				Bool("HasStarbase", bestPlanet.Spec.HasStarbase).
+				Msgf("Fleet %s targeting %s for bombing", fleet.Name, bestPlanet.Name)
+
 		}
 	}
 
@@ -75,7 +96,7 @@ func (ai *aiPlayer) getBestPlanetToBomb(fleet *cs.Fleet, planets map[int]cs.Plan
 	var best *cs.PlanetIntel = nil
 
 	// lowest weight wins
-	bestWeight := math.MaxFloat64
+	bestWeight := 0.0
 	yearlyTravelDistance := float64(fleet.Spec.Engine.IdealSpeed * fleet.Spec.Engine.IdealSpeed)
 
 	for num := range planets {
@@ -86,20 +107,27 @@ func (ai *aiPlayer) getBestPlanetToBomb(fleet *cs.Fleet, planets map[int]cs.Plan
 
 		// avoid starbases if there are better targets
 		starbaseFactor := 1.0
-		if intel.Spec.HasStargate {
+		if intel.Spec.HasStarbase {
 			starbaseFactor = 2.0
 		}
 		dist := intel.Position.DistanceTo(fleet.Position)
 		yearsToTravel := math.Ceil(dist / yearlyTravelDistance)
 
 		// weight is based on distance (in years) and pop
-		// as distance goes up, weight goes up. As pop goes up, weight goes up
-		// low weight wins
-		// distance is weighted heavier than pop
-		weight := math.MaxFloat64
-		// only colonize terraformable planets if they're really close
-		weight = starbaseFactor * (yearsToTravel * yearsToTravel) * float64(pop)
-		if weight < bestWeight {
+		// closer is better, lower pop is better, starbases are discouraged
+		weight := (1 / float64(pop)) / (2 * yearsToTravel) / starbaseFactor
+
+		// log.Debug().
+		// 	Int64("GameID", ai.GameID).
+		// 	Int("PlayerNum", ai.Num).
+		// 	Float64("dist", dist).
+		// 	Int("pop", pop).
+		// 	Float64("yearsToTravel", yearsToTravel).
+		// 	Bool("hasStarbase", intel.Spec.HasStarbase).
+		// 	Float64("weight", weight*1000).
+		// 	Msgf("getBestPlanetToBomb %s", intel.Name)
+
+		if weight > bestWeight {
 			bestWeight = weight
 			best = &intel
 		}

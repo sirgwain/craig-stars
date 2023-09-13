@@ -3,6 +3,7 @@ package ai
 import (
 	"fmt"
 
+	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 )
 
@@ -24,23 +25,30 @@ func (ai *aiPlayer) designShip(name string, purpose cs.ShipDesignPurpose, fleetP
 	case cs.ShipDesignPurposeFreighter:
 		fallthrough
 	case cs.ShipDesignPurposeColonistFreighter:
-		fallthrough
-	case cs.ShipDesignPurposeFuelFreighter:
 		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeFreighter))
+	case cs.ShipDesignPurposeFuelFreighter:
+		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeFuelTransport))
+		if hull == nil {
+			hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeFreighter))
+		}
 	case cs.ShipDesignPurposeFighter:
 		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeFighter))
 	case cs.ShipDesignPurposeBomber:
 		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeBomber))
 	case cs.ShipDesignPurposeStarbase:
 		fallthrough
-	case cs.ShipDesignPurposePacketThrower:
+	case cs.ShipDesignPurposeStarbaseQuarter:
 		fallthrough
-	case cs.ShipDesignPurposeStargater:
+	case cs.ShipDesignPurposeStarbaseHalf:
 		fallthrough
 	case cs.ShipDesignPurposeFuelDepot:
 		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeStarbase))
+	case cs.ShipDesignPurposePacketThrower:
+		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeOrbitalFort))
+	case cs.ShipDesignPurposeStargater:
+		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeOrbitalFort))
 	case cs.ShipDesignPurposeFort:
-		fallthrough
+		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeOrbitalFort))
 	case cs.ShipDesignPurposeStarterColony:
 		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeStarbase))
 	}
@@ -80,6 +88,46 @@ func (ai *aiPlayer) designShip(name string, purpose cs.ShipDesignPurpose, fleetP
 
 	// otherwise return the new design
 	return updated, nil
+}
+
+func (ai *aiPlayer) removedUnusedDesigns() {
+	var unusedDesigns map[int]bool = map[int]bool{}
+
+	// find any designs with no instances
+	for _, design := range ai.Designs {
+		if design.Spec.NumInstances == 0 && !design.CannotDelete {
+			log.Debug().
+				Int64("GameID", ai.GameID).
+				Int("PlayerNum", ai.Num).
+				Msgf("marking %s for deletion, unused", design.Name)
+
+			unusedDesigns[design.Num] = true
+		}
+	}
+
+	// find any designs that may be queued on planets, don't delete those
+	for _, planet := range ai.Planets {
+		for _, item := range planet.ProductionQueue {
+			if item.DesignNum != 0 {
+				delete(unusedDesigns, item.DesignNum)
+
+				log.Debug().
+					Int64("GameID", ai.GameID).
+					Int("PlayerNum", ai.Num).
+					Msgf("design %d still used, not marking for deletion", item.DesignNum)
+			}
+		}
+	}
+
+	for _, design := range ai.Designs {
+		if found, found2 := unusedDesigns[design.Num]; found && found2 {
+			log.Debug().
+				Int64("GameID", ai.GameID).
+				Int("PlayerNum", ai.Num).
+				Msgf("marking %s, design %d for deletion, unused", design.Name, design.Num)
+			design.Delete = true
+		}
+	}
 }
 
 // get the best hull we can build by iterating through the list backwards

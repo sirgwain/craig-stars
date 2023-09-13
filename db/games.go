@@ -659,12 +659,12 @@ func (c *client) updateFullPlayer(player *cs.Player) error {
 
 	for i := range player.Designs {
 		design := player.Designs[i]
-		if design.ID == 0 {
+		if design.ID == 0 && !design.Delete {
 			design.GameID = player.GameID
 			if err := c.CreateShipDesign(design); err != nil {
 				return fmt.Errorf("create design %w", err)
 			}
-		} else if design.Dirty {
+		} else if !design.Delete {
 			if err := c.UpdateShipDesign(design); err != nil {
 				return fmt.Errorf("update design %w", err)
 			}

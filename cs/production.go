@@ -42,12 +42,29 @@ type ProductionQueueItem struct {
 	CostOfOne    Cost          `json:"costOfOne"`
 	MaxBuildable int           `json:"maxBuildable"`
 	Allocated    Cost          `json:"allocated"`
+	Tags         Tags          `json:"tags"`
 	index        int           // used for holding a place in the queue while estimating
 	design       *ShipDesign
 }
 
 func (item *ProductionQueueItem) SetDesign(design *ShipDesign) {
 	item.design = design
+}
+
+func NewProductionQueueItemShip(quantity int, design *ShipDesign) *ProductionQueueItem {
+	return &ProductionQueueItem{Type: QueueItemTypeShipToken, Quantity: quantity, DesignNum: design.Num}
+}
+
+func (item *ProductionQueueItem) WithTag(key, value string) *ProductionQueueItem {
+	if item.Tags == nil {
+		item.Tags = make(Tags)
+	}
+	item.Tags[key] = value
+	return item
+}
+
+func (item *ProductionQueueItem) GetTag(key string) string {
+	return item.Tags[key]
 }
 
 // get the percent this build item has been completed

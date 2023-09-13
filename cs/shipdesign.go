@@ -21,6 +21,7 @@ type ShipDesign struct {
 	Slots         []ShipDesignSlot  `json:"slots"`
 	Purpose       ShipDesignPurpose `json:"purpose,omitempty"`
 	Spec          ShipDesignSpec    `json:"spec"`
+	Delete        bool              // used by the AI to mark a design for deletion
 }
 
 type ShipDesignSlot struct {
@@ -37,6 +38,7 @@ type ShipDesignSpec struct {
 	Mass                      int                   `json:"mass,omitempty"`
 	Armor                     int                   `json:"armor,omitempty"`
 	FuelCapacity              int                   `json:"fuelCapacity,omitempty"`
+	FuelGeneration            int                   `json:"fuelGeneration,omitempty"`
 	CargoCapacity             int                   `json:"cargoCapacity,omitempty"`
 	CloakUnits                int                   `json:"cloakUnits,omitempty"`
 	ScanRange                 int                   `json:"scanRange,omitempty"`
@@ -114,6 +116,8 @@ const (
 	ShipDesignPurposeSpeedMineLayer        ShipDesignPurpose = "SpeedMineLayer"
 	ShipDesignPurposeStarbase              ShipDesignPurpose = "Starbase"
 	ShipDesignPurposeFuelDepot             ShipDesignPurpose = "FuelDepot"
+	ShipDesignPurposeStarbaseQuarter       ShipDesignPurpose = "StarbaseQuarter"
+	ShipDesignPurposeStarbaseHalf          ShipDesignPurpose = "StarbaseHalf"
 	ShipDesignPurposePacketThrower         ShipDesignPurpose = "PacketThrower"
 	ShipDesignPurposeStargater             ShipDesignPurpose = "Stargater"
 	ShipDesignPurposeFort                  ShipDesignPurpose = "Fort"
@@ -242,6 +246,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		Mass:                    hull.Mass,
 		Armor:                   hull.Armor,
 		FuelCapacity:            hull.FuelCapacity,
+		FuelGeneration:          hull.FuelGeneration,
 		Cost:                    hull.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec),
 		CargoCapacity:           hull.CargoCapacity,
 		CloakUnits:              raceSpec.BuiltInCloakUnits,
@@ -294,6 +299,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 			spec.Shields += component.Shield * slot.Quantity
 			spec.CargoCapacity += component.CargoBonus * slot.Quantity
 			spec.FuelCapacity += component.FuelBonus * slot.Quantity
+			spec.FuelGeneration += component.FuelGeneration * slot.Quantity
 			spec.Colonizer = spec.Colonizer || component.ColonizationModule || component.OrbitalConstructionModule
 			spec.Initiative += component.InitiativeBonus
 			spec.Movement += component.MovementBonus * slot.Quantity
@@ -570,6 +576,19 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 		slot := ShipDesignSlot{HullSlotIndex: i + 1}
 		slot.Quantity = hullSlot.Capacity
 
+		// reduce quantity of armor and weapons when designing starbases for defense
+		if hullSlot.Type == HullSlotTypeArmor ||
+			hullSlot.Type == HullSlotTypeShield ||
+			hullSlot.Type == HullSlotTypeShieldArmor ||
+			hullSlot.Type == HullSlotTypeWeaponShield ||
+			hullSlot.Type == HullSlotTypeWeapon {
+			if purpose == ShipDesignPurposeStarbaseQuarter {
+				slot.Quantity = MaxInt(1, hullSlot.Capacity/4)
+			} else if purpose == ShipDesignPurposeStarbaseHalf {
+				slot.Quantity = MaxInt(1, hullSlot.Capacity/2)
+			}
+		}
+
 		switch hullSlot.Type {
 		case HullSlotTypeEngine:
 			slot.HullComponent = engine.Name
@@ -577,10 +596,12 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 			numScanners++
 			slot.HullComponent = scanner.Name
 		case HullSlotTypeWeapon:
-			if numTorpedos >= numBeamWeapons {
+			if numTorpedos > numBeamWeapons {
 				slot.HullComponent = beamWeapon.Name
+				numBeamWeapons++
 			} else {
 				slot.HullComponent = torpedo.Name
+				numTorpedos++
 			}
 		case HullSlotTypeBomb:
 			// fill the bomb slot based on the type of bomber we want
@@ -655,14 +676,13 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 					numStargates++
 				}
 			default:
-				if numStargates > 0 && packetThrower != nil {
-					if numPacketThrowers > 0 && hullSlot.Type == HullSlotTypeOrbitalElectrical {
-						slot.HullComponent = battleComputer.Name
-					} else {
-						slot.HullComponent = packetThrower.Name
-					}
-				} else if stargate != nil {
+				// packet throwers for defense, then stargates
+				if numPacketThrowers == 0 && packetThrower != nil {
+					slot.HullComponent = packetThrower.Name
+					numPacketThrowers++
+				} else if numStargates == 0 && stargate != nil {
 					slot.HullComponent = stargate.Name
+					numStargates++
 				}
 				if slot.HullComponent == "" && hullSlot.Type == HullSlotTypeOrbitalElectrical {
 					slot.HullComponent = battleComputer.Name

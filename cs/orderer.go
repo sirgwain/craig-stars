@@ -260,7 +260,9 @@ func (o *orders) SplitFleetTokens(rules *Rules, player *Player, playerFleets []*
 
 	// finally, time to split!
 	// make sure our fleets all have designs
-	player.InjectDesigns(append(playerFleets, source))
+	if err := player.InjectDesigns(append(playerFleets, source)); err != nil {
+		return nil, err
+	}
 
 	// now create the new fleet
 	fleetNum := player.getNextFleetNum(playerFleets)
@@ -276,11 +278,19 @@ func (o *orders) SplitFleetTokens(rules *Rules, player *Player, playerFleets []*
 	for i := range tokens {
 		token := &tokens[i]
 		token.design = designsByNum[token.DesignNum]
+
+		if token.design == nil {
+			return nil, fmt.Errorf("unable to find design %d", token.DesignNum)
+		}
 	}
 
 	for i := range source.Tokens {
 		token := &source.Tokens[i]
 		token.design = designsByNum[token.DesignNum]
+
+		if token.design == nil {
+			return nil, fmt.Errorf("unable to find design %d for fleet %s", token.DesignNum, source.Name)
+		}
 	}
 
 	var baseDesign = tokens[0].design

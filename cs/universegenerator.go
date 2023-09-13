@@ -232,7 +232,7 @@ func (ug *universeGenerator) generatePlayerShipDesigns() {
 		starbaseDesigns := ug.getStartingStarbaseDesigns(ug.Rules.techs, player, num)
 
 		for i := range starbaseDesigns {
-			design := &starbaseDesigns[i]
+			design := &starbaseDesigns[i]			
 			design.Spec = ComputeShipDesignSpec(&ug.Rules, player.TechLevels, player.Race.Spec, design)
 			player.Designs = append(player.Designs, design)
 		}
@@ -370,6 +370,7 @@ func (ug *universeGenerator) buildStarbase(player *Player, planet *Planet, desig
 	}
 
 	design.Spec.NumBuilt++
+	design.Spec.NumInstances++
 	starbase := newStarbase(player, planet, design, design.Name)
 	starbase.Spec = ComputeFleetSpec(&ug.Rules, player, &starbase)
 	planet.setStarbase(&ug.Rules, player, &starbase)

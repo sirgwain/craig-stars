@@ -10,15 +10,16 @@ type aiPlayer struct {
 	*cs.Player
 	cs.PlayerMapObjects
 	requests
-	game              *cs.Game
-	techStore         *cs.TechStore
-	config            playerConfig
-	client            cs.Orderer
-	planetsByNum      map[int]*cs.Planet
-	fleetsByNum       map[int]*cs.Fleet
-	fleetsByPlanetNum map[int][]*cs.Fleet
-	designsByPurpose  map[cs.ShipDesignPurpose]*cs.ShipDesign
-	fleetsByPurpose   map[cs.FleetPurpose]fleet
+	game                   *cs.Game
+	techStore              *cs.TechStore
+	config                 playerConfig
+	client                 cs.Orderer
+	planetsByNum           map[int]*cs.Planet
+	fleetsByNum            map[int]*cs.Fleet
+	fleetsByPlanetNum      map[int][]*cs.Fleet
+	fleetIntelsByPlanetNum map[int][]*cs.FleetIntel
+	designsByPurpose       map[cs.ShipDesignPurpose]*cs.ShipDesign
+	fleetsByPurpose        map[cs.FleetPurpose]fleet
 }
 
 type requests struct {
@@ -26,10 +27,13 @@ type requests struct {
 }
 
 type playerConfig struct {
-	colonizerPopulationDensity float64
-	invasionFactor             float64
-	minYearsToQueueStarbase    int
-	namesByPurpose             map[cs.ShipDesignPurpose]string
+	colonizerPopulationDensity       float64
+	colonistTransportDensity         float64
+	invasionFactor                   float64
+	fleetProductionCutoff            float64
+	minYearsToQueueStarbasePeaceTime int
+	minYearsToQueueStarbaseWarTime   int
+	namesByPurpose                   map[cs.ShipDesignPurpose]string
 }
 
 func NewAIPlayer(game *cs.Game, techStore *cs.TechStore, player *cs.Player, playerMapObjects cs.PlayerMapObjects) *aiPlayer {
@@ -41,9 +45,12 @@ func NewAIPlayer(game *cs.Game, techStore *cs.TechStore, player *cs.Player, play
 			fleetBuilds: make(map[cs.FleetPurpose]int),
 		},
 		config: playerConfig{
-			colonizerPopulationDensity: .25, // default to requiring 25% pop density before sending off colonizers
-			minYearsToQueueStarbase:    2,   // don't build starbases if it takes over 2 years to build it
-			invasionFactor:             2,   // we invade if we have 2x the colonists to drop
+			colonizerPopulationDensity:       .25, // default to requiring 25% pop density before sending off colonizers
+			colonistTransportDensity:         .5,  // default to requiring 50% pop density before taking colonists from a feeder to a needer
+			minYearsToQueueStarbasePeaceTime: 2,   // don't build starbases if it takes over 2 years to build it
+			minYearsToQueueStarbaseWarTime:   4,   // don't build starbases if it takes over 2 years to build it
+			invasionFactor:                   2,   // we invade if we have 2x the colonists to drop
+			fleetProductionCutoff:            .5,  // don't try and build starbases until we have 50% factories/mines built first
 			namesByPurpose: map[cs.ShipDesignPurpose]string{
 				cs.ShipDesignPurposeScout:                 "Long Range Scout",
 				cs.ShipDesignPurposeColonizer:             "Santa Maria",
@@ -63,6 +70,8 @@ func NewAIPlayer(game *cs.Game, techStore *cs.TechStore, player *cs.Player, play
 				cs.ShipDesignPurposeDamageMineLayer:       "Little Hen",
 				cs.ShipDesignPurposeSpeedMineLayer:        "Speed Turtle",
 				cs.ShipDesignPurposeStarbase:              "Starbase",
+				cs.ShipDesignPurposeStarbaseQuarter:       "Tiny Base",
+				cs.ShipDesignPurposeStarbaseHalf:          "Small Base",
 				cs.ShipDesignPurposePacketThrower:         "Flinger",
 				cs.ShipDesignPurposeStargater:             "Teleporter",
 				cs.ShipDesignPurposeFort:                  "Orbital Fort",
@@ -91,6 +100,11 @@ func (ai *aiPlayer) buildMaps() {
 	for _, fleet := range ai.Fleets {
 		ai.fleetsByNum[fleet.Num] = fleet
 		ai.fleetsByPlanetNum[fleet.OrbitingPlanetNum] = append(ai.fleetsByPlanetNum[fleet.OrbitingPlanetNum], fleet)
+	}
+
+	ai.fleetIntelsByPlanetNum = make(map[int][]*cs.FleetIntel, len(ai.PlanetIntels))
+	for _, fleet := range ai.FleetIntels {
+		ai.fleetIntelsByPlanetNum[fleet.OrbitingPlanetNum] = append(ai.fleetIntelsByPlanetNum[fleet.OrbitingPlanetNum], &fleet)
 	}
 
 	ai.designsByPurpose = make(map[cs.ShipDesignPurpose]*cs.ShipDesign, len(ai.Designs))
@@ -184,12 +198,19 @@ func (ai *aiPlayer) ProcessTurn() error {
 	if err := ai.bomb(); err != nil {
 		return err
 	}
-	// if err := ai.transport(); err != nil {
-	// 	return err
-	// }
+	if err := ai.updateFleetWarpSpeed(); err != nil {
+		return err
+	}
+	if err := ai.transport(); err != nil {
+		return err
+	}
 	if err := ai.produce(); err != nil {
 		return err
 	}
+
+	// cleanup any old designs we haven't built
+	ai.removedUnusedDesigns()
+
 	return nil
 }
 
@@ -351,9 +372,9 @@ func (ai *aiPlayer) isStarbaseInQueue(planet *cs.Planet) bool {
 }
 
 // check if a shipdesign with the given purpose is in the queue
-func (ai *aiPlayer) isShipInQueue(planet *cs.Planet, purpose cs.ShipDesignPurpose, quantity int) bool {
+func (ai *aiPlayer) isShipInQueue(planet *cs.Planet, fleetPurpose cs.FleetPurpose, purpose cs.ShipDesignPurpose, quantity int) bool {
 	for _, item := range planet.ProductionQueue {
-		if item.Type == cs.QueueItemTypeShipToken {
+		if item.Type == cs.QueueItemTypeShipToken && item.GetTag("purpose") == string(fleetPurpose) {
 			design := ai.GetDesign(item.DesignNum)
 			if design != nil && design.Purpose == purpose && item.Quantity >= quantity {
 				return true
@@ -378,4 +399,37 @@ func (ai *aiPlayer) getIdleShipCount(planet *cs.Planet, purpose cs.ShipDesignPur
 		}
 	}
 	return count
+}
+
+// get all the enemy ships above a planet
+func (ai *aiPlayer) enemyShipsAbovePlanet(planet *cs.Planet) []*cs.FleetIntel {
+	fleets := []*cs.FleetIntel{}
+
+	for _, fleet := range ai.fleetIntelsByPlanetNum[planet.Num] {
+		if ai.IsEnemy(fleet.PlayerNum) {
+			fleets = append(fleets, fleet)
+		}
+	}
+
+	return fleets
+}
+
+// hasAttackShips returns true if the fleet intels likely contains hostile ships
+func (ai *aiPlayer) hasAttackShips(fleets []*cs.FleetIntel) bool {
+	for _, fleet := range fleets {
+		for _, token := range fleet.Tokens {
+			design := ai.GetForeignDesign(fleet.PlayerNum, token.DesignNum)
+			if design != nil {
+				if design.Spec.PowerRating > 0 {
+					return true
+				}
+				hull := ai.techStore.GetHull(design.Hull)
+				if hull != nil && hull.Type.IsAttackHull() {
+					// we aren't positive this is hostile without checking slots, but it likely is
+					return true
+				}
+			}
+		}
+	}
+	return false
 }

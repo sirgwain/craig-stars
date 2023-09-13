@@ -387,7 +387,7 @@ func (wp Waypoint) getTransportTasks() transportTaskByType {
 }
 
 // inject designs into tokens so all the various Compute* functions work
-func (f *Fleet) InjectDesigns(designs []*ShipDesign) {
+func (f *Fleet) InjectDesigns(designs []*ShipDesign) error {
 
 	designsByNum := make(map[int]*ShipDesign, len(designs))
 	for i := range designs {
@@ -399,8 +399,12 @@ func (f *Fleet) InjectDesigns(designs []*ShipDesign) {
 	for i := range f.Tokens {
 		token := &f.Tokens[i]
 		token.design = designsByNum[token.DesignNum]
+		if token.design == nil {
+			return fmt.Errorf("unable to find design %d for fleet %s", token.DesignNum, f.Name)
+		}
 	}
 
+	return nil
 }
 
 // compute all the computable values of this fleet (cargo capacity, armor, mass)
@@ -460,6 +464,7 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 
 		// fuel
 		spec.FuelCapacity += token.design.Spec.FuelCapacity * token.Quantity
+		spec.FuelGeneration += token.design.Spec.FuelGeneration * token.Quantity
 
 		// minesweep
 		spec.MineSweep += token.design.Spec.MineSweep * token.Quantity
