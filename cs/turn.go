@@ -440,7 +440,7 @@ func (t *turn) fleetTransferCargo(fleet *Fleet, transferAmount int, cargoType Ca
 			}
 			defender := t.game.getPlayer(planet.PlayerNum)
 
-			invadePlanet(planet, fleet, defender, player, transferAmount*100, t.game.Rules.InvasionDefenseCoverageFactor)
+			invadePlanet(&t.game.Rules, planet, fleet, defender, player, transferAmount*100)
 			fleet.Cargo.Colonists -= transferAmount
 			fleet.MarkDirty()
 			planet.MarkDirty()

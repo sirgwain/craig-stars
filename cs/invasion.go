@@ -3,7 +3,8 @@ package cs
 import "github.com/rs/zerolog/log"
 
 // invade a planet with a colonist drop
-func invadePlanet(planet *Planet, fleet *Fleet, defender *Player, attacker *Player, colonistsDropped int, invasionDefenseCoverageFactor float64) {
+func invadePlanet(rules *Rules, planet *Planet, fleet *Fleet, defender *Player, attacker *Player, colonistsDropped int) {
+	invasionDefenseCoverageFactor := rules.InvasionDefenseCoverageFactor
 
 	// figure out how many attackers are stopped by defenses
 	attackers := int(float64(colonistsDropped) * (1 - planet.Spec.DefenseCoverage*invasionDefenseCoverageFactor))
@@ -39,6 +40,11 @@ func invadePlanet(planet *Planet, fleet *Fleet, defender *Player, attacker *Play
 		planet.Defenses = 0 // defenses are destroyed during invasion
 		planet.ProductionQueue = []ProductionQueueItem{}
 		planet.setPopulation(remainingAttackers)
+
+		// make sure the defender knows about this new planet
+		// the last dying colonist sends a report to their compatriots
+		discover := newDiscoverer(defender)
+		discover.discoverPlanet(rules, defender, planet, true)
 
 		// apply a production plan
 		if len(attacker.ProductionPlans) > 0 {
