@@ -18,6 +18,7 @@ type MysteryTrader struct {
 	Y         float64            `json:"y,omitempty"`
 	Name      string             `json:"name,omitempty"`
 	Num       int                `json:"num,omitempty"`
+	Tags      *Tags              `json:"tags,omitempty"`
 	HeadingX  float64            `json:"headingX,omitempty"`
 	HeadingY  float64            `json:"headingY,omitempty"`
 	WarpSpeed int                `json:"warpSpeed,omitempty"`
@@ -81,6 +82,7 @@ func (c *client) createMysteryTrader(mysteryTrader *cs.MysteryTrader) error {
 		y,
 		name,
 		num,
+		tags,
 		headingX,
 		headingY,
 		warpSpeed,
@@ -94,6 +96,7 @@ func (c *client) createMysteryTrader(mysteryTrader *cs.MysteryTrader) error {
 		:y,
 		:name,
 		:num,
+		:tags,
 		:headingX,
 		:headingY,
 		:warpSpeed,
@@ -127,6 +130,7 @@ func (c *client) updateMysteryTrader(mysteryTrader *cs.MysteryTrader) error {
 		y = :y,
 		name = :name,
 		num = :num,
+		tags = :tags,
 		headingX = :headingX,
 		headingY = :headingY,
 		warpSpeed = :warpSpeed,

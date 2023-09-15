@@ -35,5 +35,5 @@ func (ai *aiPlayer) plan() {
 
 	// update the player orders
 	ai.client.UpdatePlayerOrders(ai.Player, ai.Planets, ai.PlayerOrders, &ai.game.Rules)
-
 }
+

@@ -20,7 +20,7 @@ type MineField struct {
 	Name          string           `json:"name,omitempty"`
 	Num           int              `json:"num,omitempty"`
 	PlayerNum     int              `json:"playerNum,omitempty"`
-	Tags          Tags             `json:"tags,omitempty"`
+	Tags          *Tags            `json:"tags,omitempty"`
 	MineFieldType cs.MineFieldType `json:"mineFieldType,omitempty"`
 	NumMines      int              `json:"numMines,omitempty"`
 	Detonate      bool             `json:"detonate,omitempty"`
@@ -110,6 +110,7 @@ func (c *client) createMineField(mineField *cs.MineField) error {
 		name,
 		num,
 		playerNum,
+		tags,
 		mineFieldType,
 		numMines,
 		detonate,
@@ -124,6 +125,7 @@ func (c *client) createMineField(mineField *cs.MineField) error {
 		:name,
 		:num,
 		:playerNum,
+		:tags,
 		:mineFieldType,
 		:numMines,
 		:detonate,
@@ -157,6 +159,7 @@ func (c *client) UpdateMineField(mineField *cs.MineField) error {
 		name = :name,
 		num = :num,
 		playerNum = :playerNum,
+		tags = :tags,
 		mineFieldType = :mineFieldType,
 		numMines = :numMines,
 		detonate = :detonate,

@@ -27,7 +27,7 @@ type MapObject struct {
 	Num       int           `json:"num"`
 	PlayerNum int           `json:"playerNum"`
 	Name      string        `json:"name"`
-	// Tags      Tags           `json:"tags"`
+	Tags      Tags          `json:"tags"`
 }
 
 type MapObjectType string
@@ -41,6 +41,10 @@ const (
 	MapObjectTypeMysteryTrader MapObjectType = "MysteryTrader"
 	MapObjectTypeSalvage       MapObjectType = "Salvage"
 	MapObjectTypeMineralPacket MapObjectType = "MineralPacket"
+)
+
+const (
+	TagPurpose = "purpose"
 )
 
 func (mo *MapObject) String() string {
@@ -57,4 +61,15 @@ func (mo *MapObject) OwnedBy(num int) bool {
 
 func (mo *MapObject) MarkDirty() {
 	mo.Dirty = true
+}
+
+func (mo *MapObject) GetTag(key string) string {
+	return mo.Tags[key]
+}
+
+func (mo *MapObject) SetTag(key, value string) {
+	if mo.Tags == nil {
+		mo.Tags = make(Tags)
+	}
+	mo.Tags[key] = value
 }

@@ -29,14 +29,14 @@ func (ai *aiPlayer) colonize() error {
 		return err
 	}
 
-	log.Debug().
-		Int64("GameID", ai.GameID).
-		Int("PlayerNum", ai.Num).
-		Msgf("%d colonizer fleets assembled from idle fleets", len(colonizerFleets))
+	// log.Debug().
+	// 	Int64("GameID", ai.GameID).
+	// 	Int("PlayerNum", ai.Num).
+	// 	Msgf("%d colonizer fleets assembled from idle fleets", len(colonizerFleets))
 
 	// go through fleets in space that may have been misassigned
 	for _, fleet := range fleetMakeup.getFleetsMatchingMakeup(ai, ai.Fleets) {
-		if fleet.Purpose == cs.FleetPurposeColonizer && fleet.Spec.Colonizer {
+		if fleet.GetTag(cs.TagPurpose) == string(cs.FleetPurposeColonizer) && fleet.Spec.Colonizer {
 			if len(fleet.Waypoints) <= 1 {
 				planet := ai.getPlanet(fleet.OrbitingPlanetNum)
 				if planet != nil && planet.OwnedBy(ai.Player.Num) && planet.Spec.PopulationDensity > ai.config.colonizerPopulationDensity {
@@ -79,7 +79,7 @@ func (ai *aiPlayer) colonize() error {
 							log.Debug().
 								Int64("GameID", ai.GameID).
 								Int("PlayerNum", ai.Num).
-								Msgf("Fleet %s was targeting %s for colonizing, but it is owned by another player", fleet.Name, target.Name)
+								Msgf("Fleet %s was targeting %s for colonizing, but it is owned by player %d", fleet.Name, target.Name, target.PlayerNum)
 
 						}
 						continue
@@ -88,6 +88,13 @@ func (ai *aiPlayer) colonize() error {
 			}
 		}
 	}
+
+	// after colonizing, we may have idle fleets leftover
+	idleFleets := len(colonizerFleets)
+	log.Debug().
+		Int64("GameID", ai.GameID).
+		Int("PlayerNum", ai.Num).
+		Msgf("%d colonizerFleets, %d colonizable planets", idleFleets, len(colonizablePlanets))
 
 	for _, fleet := range colonizerFleets {
 		bestPlanet := ai.getBestPlanetToColonize(fleet, colonizablePlanets)
@@ -141,6 +148,7 @@ func (ai *aiPlayer) colonize() error {
 			fleet.Waypoints = append(fleet.Waypoints, cs.NewPlanetWaypoint(bestPlanet.Position, bestPlanet.Num, bestPlanet.Name, warpSpeed).WithTask(cs.WaypointTaskColonize))
 			ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders)
 			delete(colonizablePlanets, bestPlanet.Num)
+			idleFleets--
 
 			log.Debug().
 				Int64("GameID", ai.GameID).
@@ -152,8 +160,8 @@ func (ai *aiPlayer) colonize() error {
 	}
 
 	// build colonizer fleets where necessary
-	if len(colonizablePlanets) > 0 {
-		ai.addFleetBuildRequest(cs.FleetPurposeColonizer, len(colonizablePlanets))
+	if len(colonizablePlanets)-idleFleets > 0 {
+		ai.addFleetBuildRequest(cs.FleetPurposeColonizer, len(colonizablePlanets)-idleFleets)
 	}
 	return nil
 }

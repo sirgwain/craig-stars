@@ -44,6 +44,9 @@ func (f *fleet) mergeFromIdleFleets(ai *aiPlayer, fleets []*cs.Fleet) (fleet *cs
 	// see if we have enough of what we need
 	fleetsToMerge := []*cs.Fleet{}
 	for i, fleet := range fleets {
+		if fleet.GetTag("purpose") != string(f.purpose) {
+			continue
+		}
 		foundShip := false
 		if len(fleet.Tokens) == 1 {
 			design := ai.GetDesign(fleet.Tokens[0].DesignNum)
@@ -117,6 +120,10 @@ func (f *fleet) getFleetsMatchingMakeup(ai *aiPlayer, fleets []*cs.Fleet) []*cs.
 	}
 
 	for _, fleet := range fleets {
+		if fleet.GetTag(cs.TagPurpose) != string(f.purpose) {
+			continue
+		}
+
 		matches := 0
 		for _, token := range fleet.Tokens {
 			design := ai.GetDesign(token.DesignNum)

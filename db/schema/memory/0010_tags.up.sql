@@ -1,0 +1,14 @@
+ALTER TABLE planets
+ADD tags TEXT;
+ALTER TABLE fleets
+ADD tags TEXT;
+ALTER TABLE mineralPackets
+ADD tags TEXT;
+ALTER TABLE salvages
+ADD tags TEXT;
+ALTER TABLE wormholes
+ADD tags TEXT;
+ALTER TABLE mysteryTraders
+ADD tags TEXT;
+ALTER TABLE mineFields
+ADD tags TEXT;

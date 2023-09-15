@@ -333,6 +333,7 @@ func (c *GameConverter) csFleetToDbFleet(source cs.Fleet) Fleet {
 	dbFleet.Name = source.MapObject.Name
 	dbFleet.Num = source.MapObject.Num
 	dbFleet.PlayerNum = source.MapObject.PlayerNum
+	dbFleet.Tags = GameTagsToTags(source.MapObject.Tags)
 	dbFleet.Tokens = GameShipTokensToShipTokens(source.Tokens)
 	dbFleet.Waypoints = GameWaypointsToWaypoints(source.FleetOrders.Waypoints)
 	dbFleet.RepeatOrders = source.FleetOrders.RepeatOrders
@@ -424,6 +425,7 @@ func (c *GameConverter) csMineFieldToDbMineField(source cs.MineField) MineField 
 	dbMineField.Name = source.MapObject.Name
 	dbMineField.Num = source.MapObject.Num
 	dbMineField.PlayerNum = source.MapObject.PlayerNum
+	dbMineField.Tags = GameTagsToTags(source.MapObject.Tags)
 	dbMineField.MineFieldType = cs.MineFieldType(source.MineFieldType)
 	dbMineField.NumMines = source.NumMines
 	dbMineField.Detonate = source.MineFieldOrders.Detonate
@@ -441,6 +443,7 @@ func (c *GameConverter) csMineralPacketToDbMineralPacket(source cs.MineralPacket
 	dbMineralPacket.Name = source.MapObject.Name
 	dbMineralPacket.Num = source.MapObject.Num
 	dbMineralPacket.PlayerNum = source.MapObject.PlayerNum
+	dbMineralPacket.Tags = GameTagsToTags(source.MapObject.Tags)
 	dbMineralPacket.TargetPlanetNum = source.TargetPlanetNum
 	dbMineralPacket.Ironium = source.Cargo.Ironium
 	dbMineralPacket.Boranium = source.Cargo.Boranium
@@ -463,6 +466,7 @@ func (c *GameConverter) csMysteryTraderToDbMysteryTrader(source cs.MysteryTrader
 	dbMysteryTrader.Y = source.MapObject.Position.Y
 	dbMysteryTrader.Name = source.MapObject.Name
 	dbMysteryTrader.Num = source.MapObject.Num
+	dbMysteryTrader.Tags = GameTagsToTags(source.MapObject.Tags)
 	dbMysteryTrader.HeadingX = source.Heading.X
 	dbMysteryTrader.HeadingY = source.Heading.Y
 	dbMysteryTrader.WarpSpeed = source.WarpSpeed
@@ -480,6 +484,7 @@ func (c *GameConverter) csPlanetToDbPlanet(source cs.Planet) Planet {
 	dbPlanet.Name = source.MapObject.Name
 	dbPlanet.Num = source.MapObject.Num
 	dbPlanet.PlayerNum = source.MapObject.PlayerNum
+	dbPlanet.Tags = GameTagsToTags(source.MapObject.Tags)
 	dbPlanet.Grav = source.Hab.Grav
 	dbPlanet.Temp = source.Hab.Temp
 	dbPlanet.Rad = source.Hab.Rad
@@ -621,6 +626,7 @@ func (c *GameConverter) csSalvageToDbSalvage(source cs.Salvage) Salvage {
 	dbSalvage.Name = source.MapObject.Name
 	dbSalvage.Num = source.MapObject.Num
 	dbSalvage.PlayerNum = source.MapObject.PlayerNum
+	dbSalvage.Tags = GameTagsToTags(source.MapObject.Tags)
 	dbSalvage.Ironium = source.Cargo.Ironium
 	dbSalvage.Boranium = source.Cargo.Boranium
 	dbSalvage.Germanium = source.Cargo.Germanium
@@ -687,6 +693,7 @@ func (c *GameConverter) csWormholeToDbWormhole(source cs.Wormhole) Wormhole {
 	dbWormhole.Y = source.MapObject.Position.Y
 	dbWormhole.Name = source.MapObject.Name
 	dbWormhole.Num = source.MapObject.Num
+	dbWormhole.Tags = GameTagsToTags(source.MapObject.Tags)
 	dbWormhole.DestinationNum = source.DestinationNum
 	dbWormhole.Stability = cs.WormholeStability(source.Stability)
 	dbWormhole.YearsAtStability = source.YearsAtStability

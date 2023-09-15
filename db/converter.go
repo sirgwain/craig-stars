@@ -22,6 +22,8 @@ import (
 // goverter:extend BoolToNullBool
 // goverter:extend RulesToGameRules
 // goverter:extend GameRulesToRules
+// goverter:extend TagsToGameTags
+// goverter:extend GameTagsToTags
 // goverter:extend RaceSpecToGameRaceSpec
 // goverter:extend GameRaceSpecToRaceSpec
 // goverter:extend ProductionPlansToGameProductionPlans
@@ -216,7 +218,8 @@ type Converter interface {
 	// goverter:map MapObject.Position.Y Y
 	// goverter:map MapObject.Name Name
 	// goverter:map MapObject.Num Num
-	// goverter:map MapObject.PlayerNum	 PlayerNum
+	// goverter:map MapObject.PlayerNum	PlayerNum
+	// goverter:map MapObject.Tags Tags
 	// goverter:map PlanetOrders.ContributesOnlyLeftoverToResearch ContributesOnlyLeftoverToResearch
 	// goverter:map PlanetOrders.ProductionQueue ProductionQueue
 	// goverter:map PlanetOrders.RouteTargetType RouteTargetType
@@ -224,7 +227,6 @@ type Converter interface {
 	// goverter:map PlanetOrders.RouteTargetPlayerNum RouteTargetPlayerNum
 	// goverter:map PlanetOrders.PacketTargetNum PacketTargetNum
 	// goverter:map PlanetOrders.PacketSpeed PacketSpeed
-	// goverter:ignore Tags
 	// goverter:map Hab.Grav Grav
 	// goverter:map Hab.Temp Temp
 	// goverter:map Hab.Rad Rad
@@ -268,12 +270,12 @@ type Converter interface {
 	// goverter:map MapObject.Position.Y Y
 	// goverter:map MapObject.Name Name
 	// goverter:map MapObject.Num Num
-	// goverter:map MapObject.PlayerNum	 PlayerNum
+	// goverter:map MapObject.PlayerNum	PlayerNum
+	// goverter:map MapObject.Tags Tags
 	// goverter:map FleetOrders.BattlePlanNum BattlePlanNum
 	// goverter:map FleetOrders.Waypoints Waypoints
 	// goverter:map FleetOrders.RepeatOrders RepeatOrders
 	// goverter:map FleetOrders.Purpose Purpose
-	// goverter:ignore Tags
 	// goverter:map Heading.X HeadingX
 	// goverter:map Heading.Y HeadingY
 	// goverter:map PreviousPosition.X PreviousPositionX
@@ -296,9 +298,11 @@ type Converter interface {
 	// goverter:map GameDBObject.CreatedAt CreatedAt
 	// goverter:map GameDBObject.UpdatedAt UpdatedAt
 	// goverter:ignore CanDelete
+	// goverter:ignore Delete
 	ConvertGameShipDesign(source *cs.ShipDesign) *ShipDesign
 	// goverter:ignore Dirty
 	// goverter:ignore CanDelete
+	// goverter:ignore Delete
 	// goverter:mapExtend GameDBObject ExtendShipDesignGameDBObject
 	ConvertShipDesign(source *ShipDesign) *cs.ShipDesign
 
@@ -313,6 +317,7 @@ type Converter interface {
 	// goverter:map MapObject.Position.Y Y
 	// goverter:map MapObject.Name Name
 	// goverter:map MapObject.Num Num
+	// goverter:map MapObject.Tags Tags
 	// goverter:ignore PlayerNum
 	ConvertGameWormhole(source *cs.Wormhole) *Wormhole
 
@@ -330,6 +335,7 @@ type Converter interface {
 	// goverter:map MapObject.Position.Y Y
 	// goverter:map MapObject.Name Name
 	// goverter:map MapObject.Num Num
+	// goverter:map MapObject.Tags Tags
 	// goverter:map Heading.X HeadingX
 	// goverter:map Heading.Y HeadingY
 	// goverter:ignore PlayerNum
@@ -350,8 +356,8 @@ type Converter interface {
 	// goverter:map MapObject.Position.Y Y
 	// goverter:map MapObject.Name Name
 	// goverter:map MapObject.Num Num
-	// goverter:map MapObject.PlayerNum	 PlayerNum
-	// goverter:ignore Tags
+	// goverter:map MapObject.Tags Tags
+	// goverter:map MapObject.PlayerNum	PlayerNum
 	// goverter:map Cargo.Ironium Ironium
 	// goverter:map Cargo.Boranium Boranium
 	// goverter:map Cargo.Germanium Germanium
@@ -372,8 +378,8 @@ type Converter interface {
 	// goverter:map MapObject.Name Name
 	// goverter:map MapObject.Num Num
 	// goverter:map MapObject.PlayerNum PlayerNum
+	// goverter:map MapObject.Tags Tags
 	// goverter:map MineFieldOrders.Detonate Detonate
-	// goverter:ignore Tags
 	ConvertGameMineField(source *cs.MineField) *MineField
 
 	// goverter:mapExtend MapObject ExtendMineFieldMapObject
@@ -391,8 +397,8 @@ type Converter interface {
 	// goverter:map MapObject.Position.Y Y
 	// goverter:map MapObject.Name Name
 	// goverter:map MapObject.Num Num
-	// goverter:map MapObject.PlayerNum	 PlayerNum
-	// goverter:ignore Tags
+	// goverter:map MapObject.PlayerNum	PlayerNum
+	// goverter:map MapObject.Tags Tags
 	// goverter:map Cargo.Ironium Ironium
 	// goverter:map Cargo.Boranium Boranium
 	// goverter:map Cargo.Germanium Germanium
@@ -452,6 +458,17 @@ func RaceSpecToGameRaceSpec(source *RaceSpec) cs.RaceSpec {
 
 func GameRaceSpecToRaceSpec(source cs.RaceSpec) *RaceSpec {
 	return (*RaceSpec)(&source)
+}
+
+func TagsToGameTags(source *Tags) cs.Tags {
+	if source == nil {
+		return cs.Tags{}
+	}
+	return (cs.Tags)(*source)
+}
+
+func GameTagsToTags(source cs.Tags) *Tags {
+	return (*Tags)(&source)
 }
 
 func BattlePlansToGameBattlePlans(source *BattlePlans) []cs.BattlePlan {
@@ -982,7 +999,7 @@ func ExtendPlanetMapObject(source Planet) cs.MapObject {
 		Name:      source.Name,
 		Num:       source.Num,
 		PlayerNum: source.PlayerNum,
-		// Tags:      source.Tags,
+		Tags:      TagsToGameTags(source.Tags),
 	}
 }
 
@@ -1063,7 +1080,7 @@ func ExtendFleetMapObject(source Fleet) cs.MapObject {
 		Name:      source.Name,
 		Num:       source.Num,
 		PlayerNum: source.PlayerNum,
-		// Tags:      source.Tags,
+		Tags:      TagsToGameTags(source.Tags),
 	}
 }
 
@@ -1117,6 +1134,7 @@ func ExtendWormholeMapObject(source Wormhole) cs.MapObject {
 		},
 		Name: source.Name,
 		Num:  source.Num,
+		Tags: TagsToGameTags(source.Tags),
 	}
 }
 
@@ -1135,6 +1153,7 @@ func ExtendMysteryTraderMapObject(source MysteryTrader) cs.MapObject {
 		},
 		Name: source.Name,
 		Num:  source.Num,
+		Tags: TagsToGameTags(source.Tags),
 	}
 }
 
@@ -1161,7 +1180,7 @@ func ExtendSalvageMapObject(source Salvage) cs.MapObject {
 		Name:      source.Name,
 		Num:       source.Num,
 		PlayerNum: source.PlayerNum,
-		// Tags:      source.Tags,
+		Tags:      TagsToGameTags(source.Tags),
 	}
 }
 
@@ -1189,7 +1208,7 @@ func ExtendMineFieldMapObject(source MineField) cs.MapObject {
 		Name:      source.Name,
 		Num:       source.Num,
 		PlayerNum: source.PlayerNum,
-		// Tags:      source.Tags,
+		Tags:      TagsToGameTags(source.Tags),
 	}
 }
 
@@ -1222,7 +1241,7 @@ func ExtendMineralPacketMapObject(source MineralPacket) cs.MapObject {
 		Name:      source.Name,
 		Num:       source.Num,
 		PlayerNum: source.PlayerNum,
-		// Tags:      source.Tags,
+		Tags:      TagsToGameTags(source.Tags),
 	}
 }
 

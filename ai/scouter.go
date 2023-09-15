@@ -22,7 +22,7 @@ func (ai *aiPlayer) scout() error {
 	// find all idle fleets that have scanners
 	scannerFleets := []*cs.Fleet{}
 	for _, fleet := range ai.Fleets {
-		if _, contains := fleet.Spec.Purposes[cs.ShipDesignPurposeScout]; contains && fleet.Spec.Scanner {
+		if fleet.GetTag(cs.TagPurpose) == string(cs.FleetPurposeScout) && fleet.Spec.Scanner {
 			if len(fleet.Waypoints) <= 1 {
 				// this fleet can be sent to scan a planet
 				scannerFleets = append(scannerFleets, fleet)
@@ -50,6 +50,12 @@ func (ai *aiPlayer) scout() error {
 		}
 	}
 
+	idleFleets := len(scannerFleets)
+	log.Debug().
+		Int64("GameID", ai.GameID).
+		Int("PlayerNum", ai.Num).
+		Msgf("%d scannerFleets, %d unknown planets", idleFleets, len(unknownPlanetsByNum))
+
 	for _, fleet := range scannerFleets {
 		closestPlanet := ai.getClosestPlanetIntel(fleet.Position, unknownPlanetsByNum)
 		if closestPlanet != nil {
@@ -58,19 +64,19 @@ func (ai *aiPlayer) scout() error {
 			fleet.Waypoints = append(fleet.Waypoints, cs.NewPlanetWaypoint(closestPlanet.Position, closestPlanet.Num, closestPlanet.Name, warpSpeed))
 			ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders)
 			delete(unknownPlanetsByNum, closestPlanet.Num)
+			idleFleets--
 
 			log.Debug().
 				Int64("GameID", ai.GameID).
 				Int("PlayerNum", ai.Num).
 				Int("WarpSpeed", warpSpeed).
 				Msgf("Scout %s targeting %s", fleet.Name, closestPlanet.Name)
-
 		}
 	}
 
 	// build scout ships where necessary
-	if len(unknownPlanetsByNum) > 0 {
-		ai.addFleetBuildRequest(cs.FleetPurposeScout, len(unknownPlanetsByNum))
+	if len(unknownPlanetsByNum)-idleFleets > 0 {
+		ai.addFleetBuildRequest(cs.FleetPurposeScout, len(unknownPlanetsByNum)-idleFleets)
 	}
 
 	return nil

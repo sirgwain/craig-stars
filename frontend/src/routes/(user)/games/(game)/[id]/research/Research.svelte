@@ -57,7 +57,7 @@
 		</div>
 	</div>
 	<div class="stat place-items-center sm:grow">
-		<div class="stat-title">Resources Allocated</div>
+		<div class="stat-title">Resources Available</div>
 		<div class="stat-figure"><Factory class="w-8 h-8 fill-primary" /></div>
 		<div class="stat-value">
 			{$player.spec.resourcesPerYear ?? 0}

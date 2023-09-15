@@ -33,6 +33,12 @@
 			{/each}
 		</tr>
 		<tr>
+			<td>Escort Ships</td>
+			{#each players as player}
+				<td>{$universe.getPlayerScore(player.num)?.escortShips ?? ''}</td>
+			{/each}
+		</tr>
+		<tr>
 			<td>Capital Ships</td>
 			{#each players as player}
 				<td>{$universe.getPlayerScore(player.num)?.capitalShips ?? ''}</td>

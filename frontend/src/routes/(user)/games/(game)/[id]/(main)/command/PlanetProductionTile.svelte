@@ -16,7 +16,6 @@
 			$game.updatePlanetOrders(planet);
 		}
 	};
-
 </script>
 
 <CommandTile title="Production">
@@ -29,11 +28,14 @@
 							class="flex flex-row justify-between"
 							class:italic={isAuto(queueItem.type)}
 							class:text-queue-item-this-year={!queueItem.skipped &&
-								(queueItem.yearsToBuildOne ?? 0) <= 1}
+								(queueItem.yearsToBuildOne ?? 0) <= 1 &&
+								queueItem.yearsToBuildOne != Infinite}
 							class:text-queue-item-next-year={!queueItem.skipped &&
 								((queueItem.yearsToBuildAll ?? 0) > 1 || queueItem.yearsToBuildAll === Infinite) &&
-								(queueItem.yearsToBuildOne ?? 0) <= 1}
+								(queueItem.yearsToBuildOne ?? 0) <= 1 &&
+								queueItem.yearsToBuildOne != Infinite}
 							class:text-queue-item-skipped={queueItem.skipped}
+							class:text-queue-item-never={queueItem.yearsToBuildOne == Infinite}
 						>
 							<div>
 								{getQueueItemShortName(queueItem, $universe)}
@@ -52,8 +54,9 @@
 		<span>{''}</span>
 	</div>
 	<div class="flex justify-between">
-		<button on:click={() => dispatch("change-production", planet)} class="btn btn-outline btn-sm normal-case btn-secondary"
-			>Change</button
+		<button
+			on:click={() => dispatch('change-production', planet)}
+			class="btn btn-outline btn-sm normal-case btn-secondary">Change</button
 		>
 		<button on:click={clear} class="btn btn-outline btn-sm normal-case btn-secondary">Clear</button>
 		<button class="btn btn-outline btn-sm normal-case btn-secondary">Route</button>

@@ -156,7 +156,7 @@ func (t QueueItemType) concreteType() QueueItemType {
 type productionResult struct {
 	itemsBuilt        []itemBuilt
 	leftoverResources int
-	tokens            []ShipToken
+	tokens            []builtShip
 	packets           []Cargo
 	scanner           bool
 	starbase          *ShipDesign
@@ -176,6 +176,12 @@ type itemBuilt struct {
 	numBuilt      int
 	skipped       bool
 	never         bool
+	tags          Tags
+}
+
+type builtShip struct {
+	ShipToken
+	tags Tags
 }
 
 // produce all items in the production queue
@@ -458,7 +464,7 @@ func (p *production) updateProductionResult(item ProductionQueueItem, numBuilt i
 		cargo := item.CostOfOne.MultiplyInt(numBuilt).ToCargo()
 		result.packets = append(result.packets, cargo)
 	case QueueItemTypeShipToken:
-		result.tokens = append(result.tokens, ShipToken{Quantity: numBuilt, design: item.design, DesignNum: item.DesignNum})
+		result.tokens = append(result.tokens, builtShip{ShipToken: ShipToken{Quantity: numBuilt, design: item.design, DesignNum: item.DesignNum}, tags: item.Tags})
 	case QueueItemTypeStarbase:
 		result.starbase = item.design
 	case QueueItemTypePlanetaryScanner:

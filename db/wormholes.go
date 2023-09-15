@@ -18,6 +18,7 @@ type Wormhole struct {
 	Y                float64              `json:"y,omitempty"`
 	Name             string               `json:"name,omitempty"`
 	Num              int                  `json:"num,omitempty"`
+	Tags             *Tags                 `json:"tags,omitempty"`
 	DestinationNum   int                  `json:"destinationNum,omitempty"`
 	Stability        cs.WormholeStability `json:"stability,omitempty"`
 	YearsAtStability int                  `json:"yearsAtStability,omitempty"`
@@ -81,6 +82,7 @@ func (c *client) createWormhole(wormhole *cs.Wormhole) error {
 		y,
 		name,
 		num,
+		tags,
 		destinationNum,
 		stability,
 		yearsAtStability,
@@ -94,6 +96,7 @@ func (c *client) createWormhole(wormhole *cs.Wormhole) error {
 		:y,
 		:name,
 		:num,
+		:tags,
 		:destinationNum,
 		:stability,
 		:yearsAtStability,
@@ -126,6 +129,7 @@ func (c *client) updateWormhole(wormhole *cs.Wormhole) error {
 		y = :y,
 		name = :name,
 		num = :num,
+		tags = :tags,
 		destinationNum = :destinationNum,
 		stability = :stability,
 		yearsAtStability = :yearsAtStability,

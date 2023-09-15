@@ -22,7 +22,7 @@ type Fleet struct {
 	Name              string          `json:"name,omitempty"`
 	Num               int             `json:"num,omitempty"`
 	PlayerNum         int             `json:"playerNum,omitempty"`
-	Tags              Tags            `json:"tags,omitempty"`
+	Tags              *Tags           `json:"tags,omitempty"`
 	Tokens            *ShipTokens     `json:"tokens,omitempty"`
 	Waypoints         *Waypoints      `json:"waypoints,omitempty"`
 	RepeatOrders      bool            `json:"repeatOrders,omitempty"`
@@ -228,6 +228,7 @@ func (c *client) createFleet(fleet *cs.Fleet) error {
 		name,
 		num,
 		playerNum,
+		tags,
 		tokens,
 		waypoints,
 		repeatOrders,
@@ -259,6 +260,7 @@ func (c *client) createFleet(fleet *cs.Fleet) error {
 		:name,
 		:num,
 		:playerNum,
+		:tags,
 		:tokens,
 		:waypoints,
 		:repeatOrders,
@@ -339,6 +341,7 @@ func (c *client) UpdateFleet(fleet *cs.Fleet) error {
 		name = :name,
 		num = :num,
 		playerNum = :playerNum,
+		tags = :tags,
 		tokens = :tokens,
 		waypoints = :waypoints,
 		repeatOrders = :repeatOrders,

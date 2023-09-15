@@ -244,7 +244,7 @@ func NewRulesWithSeed(seed int64) Rules {
 		},
 		MaxPlayers:                         16,
 		StartingYear:                       2400,
-		ShowPublicScoresAfterYears:         1,
+		ShowPublicScoresAfterYears:         20,
 		PlanetMinDistance:                  15,
 		MaxExtraWorldDistance:              180,
 		MinExtraWorldDistance:              130,

@@ -1,10 +1,7 @@
 <script lang="ts">
 	import CostComponent from '$lib/components/game/Cost.svelte';
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
-	import {
-		quantityModifier
-
-	} from '$lib/quantityModifier';
+	import { quantityModifier } from '$lib/quantityModifier';
 	import { getGameContext } from '$lib/services/Contexts';
 	import { PlanetService } from '$lib/services/PlanetService';
 	import type { Cost } from '$lib/types/Cost';
@@ -615,12 +612,15 @@
 												onShipDesignTooltip(e, $universe.getMyDesign(queueItem.designNum))}
 											class:italic={isAuto(queueItem.type)}
 											class:text-queue-item-this-year={!queueItem.skipped &&
-												(queueItem.yearsToBuildOne ?? 0) <= 1}
+												(queueItem.yearsToBuildOne ?? 0) <= 1 &&
+												queueItem.yearsToBuildOne != Infinite}
 											class:text-queue-item-next-year={!queueItem.skipped &&
 												((queueItem.yearsToBuildAll ?? 0) > 1 ||
 													queueItem.yearsToBuildAll === Infinite) &&
-												(queueItem.yearsToBuildOne ?? 0) <= 1}
+												(queueItem.yearsToBuildOne ?? 0) <= 1 &&
+												queueItem.yearsToBuildOne != Infinite}
 											class:text-queue-item-skipped={queueItem.skipped}
+											class:text-queue-item-never={queueItem.yearsToBuildOne == Infinite}
 											class:bg-primary={queueItem === selectedQueueItem}
 											class="w-full text-left px-1 select-none cursor-default hover:text-secondary-focus"
 										>

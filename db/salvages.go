@@ -18,7 +18,7 @@ type Salvage struct {
 	Name      string    `json:"name,omitempty"`
 	Num       int       `json:"num,omitempty"`
 	PlayerNum int       `json:"playerNum,omitempty"`
-	Tags      Tags      `json:"tags,omitempty"`
+	Tags      *Tags     `json:"tags,omitempty"`
 	Ironium   int       `json:"ironium,omitempty"`
 	Boranium  int       `json:"boranium,omitempty"`
 	Germanium int       `json:"germanium,omitempty"`
@@ -106,6 +106,7 @@ func (c *client) CreateSalvage(salvage *cs.Salvage) error {
 		name,
 		num,
 		playerNum,
+		tags,
 		ironium,
 		boranium,
 		germanium
@@ -119,6 +120,7 @@ func (c *client) CreateSalvage(salvage *cs.Salvage) error {
 		:name,
 		:num,
 		:playerNum,
+		:tags,
 		:ironium,
 		:boranium,
 		:germanium
@@ -152,6 +154,7 @@ func (c *client) UpdateSalvage(salvage *cs.Salvage) error {
 		name = :name,
 		num = :num,
 		playerNum = :playerNum,
+		tags = :tags,
 		ironium = :ironium,
 		boranium = :boranium,
 		germanium = :germanium

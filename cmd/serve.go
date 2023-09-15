@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
+	"github.com/sirgwain/craig-stars/ai"
 	"github.com/sirgwain/craig-stars/config"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
@@ -62,6 +63,7 @@ func generateTestGame(config config.Config) error {
 	if err != nil {
 		return err
 	}
+	_ = adminRace
 
 	// create a game runner to host some games
 	gameRunner := server.NewGameRunner(dbConn, config)
@@ -72,18 +74,17 @@ func generateTestGame(config config.Config) error {
 		WithSize(cs.SizeSmall).
 		WithDensity(cs.DensityNormal).
 		WithPublicPlayerScores(true).
-		WithHost(*adminRace),
-		// WithAIPlayer(cs.AIDifficultyNormal, 1).
-		// WithAIPlayer(cs.AIDifficultyNormal, 2),
-		// WithAIPlayerRace(cs.SSs().WithName(cs.AINames[1]), cs.AIDifficultyNormal, 1).
-		// WithAIPlayerRace(cs.WMs().WithName(cs.AINames[2]), cs.AIDifficultyNormal, 2).
-		// WithAIPlayerRace(cs.CAs().WithName(cs.AINames[0]), cs.AIDifficultyNormal, 3).
-		// WithAIPlayerRace(cs.ISs().WithName(cs.AINames[4]), cs.AIDifficultyNormal, 0).
-		// WithAIPlayerRace(cs.SDs().WithName(cs.AINames[5]), cs.AIDifficultyNormal, 1).
-		// WithAIPlayerRace(cs.PPs().WithName(cs.AINames[1]), cs.AIDifficultyNormal, 2),
-	// 	WithAIPlayerRace(cs.ITs().WithName(cs.AINames[7]), cs.AIDifficultyNormal, 3).
-	// 	WithAIPlayerRace(cs.ARs().WithName(cs.AINames[8]), cs.AIDifficultyNormal, 0).
-	// 	WithAIPlayerRace(cs.JoaTs().WithName(cs.AINames[9]), cs.AIDifficultyNormal, 1),
+		WithHost(ai.Races[9]).
+		WithAIPlayerRace(ai.Races[0], cs.AIDifficultyNormal, 1). // HE
+		// WithAIPlayerRace(ai.Races[1], cs.AIDifficultyNormal, 2). // SS
+		 WithAIPlayerRace(ai.Races[2], cs.AIDifficultyNormal, 3), // WM
+		// WithAIPlayerRace(ai.Races[3], cs.AIDifficultyNormal, 1), // CA
+		// WithAIPlayerRace(ai.Races[4], cs.AIDifficultyNormal, 2). // IS
+		// WithAIPlayerRace(ai.Races[5], cs.AIDifficultyNormal, 3). // SD
+		// WithAIPlayerRace(ai.Races[6], cs.AIDifficultyNormal, 1). // PP
+		// WithAIPlayerRace(ai.Races[7], cs.AIDifficultyNormal, 2). // IT
+		// WithAIPlayerRace(ai.Races[8], cs.AIDifficultyNormal, 3). // AR
+		// WithAIPlayerRace(ai.Races[9], cs.AIDifficultyNormal, 3), // JoaT
 	)
 
 	if err != nil {
@@ -92,15 +93,22 @@ func generateTestGame(config config.Config) error {
 	mediumGame.Players[0].AIControlled = true
 	db.UpdateLightPlayer(mediumGame.Players[0])
 
-	for i := 0; i < 85; i++ {
+	for i := 0; i < 75; i++ {
 		gameRunner.SubmitTurn(mediumGame.ID, mediumGame.HostID)
 		if _, err := gameRunner.CheckAndGenerateTurn(mediumGame.ID); err != nil {
 			log.Error().Err(err).Msg("check and generate new turn")
 		}
 	}
 
-	mediumGame.Players[0].AIControlled = false
-	db.UpdateLightPlayer(mediumGame.Players[0])
+	// update the player back to a player
+	player, err := db.GetPlayer(mediumGame.Players[0].ID)
+	if err != nil {
+		return err
+	}
+
+	player.AIControlled = false
+	player.SubmittedTurn = false
+	db.UpdateLightPlayer(player)
 
 	return nil
 }

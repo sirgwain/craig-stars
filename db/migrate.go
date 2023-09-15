@@ -29,10 +29,10 @@ var memorySchemaFiles embed.FS
 
 func (c *dbConn) mustMigrate(cfg *config.Config) {
 	if !c.usersInMemory {
-		c.mustMigrateDatabase(cfg.Database.UsersFilename, usersSchemaFiles, "schema/users")
+		c.mustMigrateDatabase(cfg.Database.UsersFilename, usersSchemaFiles, "schema/users", !cfg.Database.Recreate)
 	}
 	if !c.databaseInMemory {
-		c.mustMigrateDatabase(cfg.Database.Filename, gamesSchemaFiles, "schema/games")
+		c.mustMigrateDatabase(cfg.Database.Filename, gamesSchemaFiles, "schema/games", !cfg.Database.Recreate)
 	}
 }
 
@@ -65,7 +65,7 @@ func (c *dbConn) setupInMemoryDatabase() {
 
 }
 
-func (c *dbConn) mustMigrateDatabase(datasource string, fs embed.FS, path string) {
+func (c *dbConn) mustMigrateDatabase(datasource string, fs embed.FS, path string, backup bool) {
 	d, err := iofs.New(fs, path)
 	if err != nil {
 		log.Fatal().Err(err).Msg("loading embedded schema")
@@ -103,12 +103,17 @@ func (c *dbConn) mustMigrateDatabase(datasource string, fs embed.FS, path string
 	}
 
 	log.Info().Msgf("database %s is version %d", path, version)
-	backup := c.mustBackup(datasource, version)
+	var backupFile string
+	if backup {
+		backupFile = c.mustBackup(datasource, version)
+	}
 	err = m.Up()
 	if err == migrate.ErrNoChange {
 		log.Info().Msgf("database %s, no migration required", path)
-		// remove the backup, we don't need it
-		os.Remove(backup)
+		if backup {
+			// remove the backup, we don't need it
+			os.Remove(backupFile)
+		}
 	} else if err == nil {
 		log.Info().Msgf("database %s migrated", path)
 	}

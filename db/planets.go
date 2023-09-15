@@ -18,7 +18,7 @@ type Planet struct {
 	Name                              string                `json:"name,omitempty"`
 	Num                               int                   `json:"num,omitempty"`
 	PlayerNum                         int                   `json:"playerNum,omitempty"`
-	Tags                              Tags                  `json:"tags,omitempty"`
+	Tags                              *Tags                 `json:"tags,omitempty"`
 	Grav                              int                   `json:"grav,omitempty"`
 	Temp                              int                   `json:"temp,omitempty"`
 	Rad                               int                   `json:"rad,omitempty"`
@@ -159,6 +159,7 @@ func (c *client) GetPlanetByNum(gameID int64, num int) (*cs.Planet, error) {
 		p.name AS 'planet.name',
 		p.num AS 'planet.num',
 		p.playerNum AS 'planet.playerNum',
+		p.tags AS 'planet.tags',
 		p.grav AS 'planet.grav',
 		p.temp AS 'planet.temp',
 		p.rad AS 'planet.rad',
@@ -202,6 +203,7 @@ func (c *client) GetPlanetByNum(gameID int64, num int) (*cs.Planet, error) {
 		COALESCE(f.name, '') AS 'fleet.name',
 		COALESCE(f.num, 0) AS 'fleet.num',
 		COALESCE(f.playerNum, 0) AS 'fleet.playerNum',
+		COALESCE(f.tags, '{}') AS 'fleet.tags',
 		COALESCE(f.tokens, '{}') AS 'fleet.tokens',
 		COALESCE(f.waypoints, '{}') AS 'fleet.waypoints',
 		COALESCE(f.repeatOrders, 0) AS 'fleet.repeatOrders',
@@ -250,6 +252,7 @@ func (c *client) createPlanet(planet *cs.Planet) error {
 		name,
 		num,
 		playerNum,
+		tags,
 		grav,
 		temp,
 		rad,
@@ -292,6 +295,7 @@ func (c *client) createPlanet(planet *cs.Planet) error {
 		:name,
 		:num,
 		:playerNum,
+		:tags,
 		:grav,
 		:temp,
 		:rad,
@@ -354,6 +358,7 @@ func (c *client) UpdatePlanet(planet *cs.Planet) error {
 		name = :name,
 		num = :num,
 		playerNum = :playerNum,
+		tags = :tags,
 		grav = :grav,
 		temp = :temp,
 		rad = :rad,

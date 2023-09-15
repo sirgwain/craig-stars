@@ -46,7 +46,8 @@ func (ai *aiPlayer) transportColonists() error {
 		Msgf("%d colonist transport fleets assembled from idle fleets", len(fleets))
 
 	for _, fleet := range fleetMakeup.getFleetsMatchingMakeup(ai, ai.Fleets) {
-		if _, contains := fleet.Spec.Purposes[cs.ShipDesignPurposeColonistFreighter]; contains {
+		// don't use colonizer fleets as transports
+		if !fleet.Spec.Colonizer {
 			if len(fleet.Waypoints) <= 1 {
 				// this fleet is over a feeder, great!
 				if _, found := feedersByNum[fleet.OrbitingPlanetNum]; found {
@@ -65,6 +66,9 @@ func (ai *aiPlayer) transportColonists() error {
 						warpSpeed := ai.getWarpSpeed(fleet, closestFeeder.Position)
 						fleet.Waypoints = append(fleet.Waypoints, cs.NewPlanetWaypoint(closestFeeder.Position, closestFeeder.Num, closestFeeder.Name, warpSpeed))
 
+						// TODO: only remove a feeder if we have too many targets?
+						delete(feedersByNum, closestFeeder.Num)
+
 						log.Debug().
 							Int64("GameID", ai.GameID).
 							Int("PlayerNum", ai.Num).
@@ -82,6 +86,12 @@ func (ai *aiPlayer) transportColonists() error {
 		}
 
 	}
+
+	idleFleets := len(fleets)
+	log.Debug().
+		Int64("GameID", ai.GameID).
+		Int("PlayerNum", ai.Num).
+		Msgf("%d transport, %d needy planets", idleFleets, len(needersByNum))
 
 	for _, fleet := range fleets {
 		planet := ai.getClosestPlanet(fleet, needersByNum)
@@ -127,6 +137,7 @@ func (ai *aiPlayer) transportColonists() error {
 				WithTransportTasks(cs.WaypointTransportTasks{Colonists: cs.WaypointTransportTask{Action: cs.TransportActionUnloadAll}}))
 			ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders)
 
+			idleFleets--
 			delete(needersByNum, planet.Num)
 
 			log.Debug().
@@ -141,8 +152,8 @@ func (ai *aiPlayer) transportColonists() error {
 	}
 
 	// for each planet remaining, we need a transport
-	if len(needersByNum) > 0 {
-		ai.addFleetBuildRequest(cs.FleetPurposeColonistFreighter, len(needersByNum))
+	if len(needersByNum)-idleFleets > 0 {
+		ai.addFleetBuildRequest(cs.FleetPurposeColonistFreighter, len(needersByNum)-idleFleets)
 	}
 
 	return nil

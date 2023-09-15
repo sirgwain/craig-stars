@@ -18,7 +18,7 @@ type MineralPacket struct {
 	Name            string    `json:"name,omitempty"`
 	Num             int       `json:"num,omitempty"`
 	PlayerNum       int       `json:"playerNum,omitempty"`
-	Tags            Tags      `json:"tags,omitempty"`
+	Tags            *Tags      `json:"tags,omitempty"`
 	TargetPlanetNum int       `json:"targetPlanetNum,omitempty"`
 	Ironium         int       `json:"ironium,omitempty"`
 	Boranium        int       `json:"boranium,omitempty"`
@@ -94,6 +94,7 @@ func (c *client) createMineralPacket(mineralPacket *cs.MineralPacket) error {
 		name,
 		num,
 		playerNum,
+		tags,
 		targetPlanetNum,
 		ironium,
 		boranium,
@@ -114,6 +115,7 @@ func (c *client) createMineralPacket(mineralPacket *cs.MineralPacket) error {
 		:name,
 		:num,
 		:playerNum,
+		:tags,
 		:targetPlanetNum,
 		:ironium,
 		:boranium,
@@ -154,6 +156,7 @@ func (c *client) updateMineralPacket(mineralPacket *cs.MineralPacket) error {
 		name = :name,
 		num = :num,
 		playerNum = :playerNum,
+		tags = :tags,
 		targetPlanetNum = :targetPlanetNum,
 		ironium = :ironium,
 		boranium = :boranium,

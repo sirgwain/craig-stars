@@ -74,8 +74,8 @@ func (ai *aiPlayer) designShip(name string, purpose cs.ShipDesignPurpose, fleetP
 	}
 	updated.Name = fmt.Sprintf("%s v%d", name, updated.Version+1)
 
-	// if our existing design is equivalent, return it
-	if found && existing.SlotsEqual(updated) {
+	// if our existing design is equivalent, or higher rated, return it
+	if found && existing.SlotsEqual(updated) || (existing != nil && existing.Spec.PowerRating != 0 && existing.Spec.PowerRating >= updated.Spec.PowerRating) {
 		return existing, nil
 	}
 
@@ -90,16 +90,53 @@ func (ai *aiPlayer) designShip(name string, purpose cs.ShipDesignPurpose, fleetP
 	return updated, nil
 }
 
+// design various types of starbases we may build on planets
+func (ai *aiPlayer) designStarbases() error {
+	var err error
+
+	purpose := cs.ShipDesignPurposeFuelDepot
+	ai.fuelDepotDesign, err = ai.designShip(ai.config.namesByPurpose[purpose], purpose, cs.FleetPurposeFromShipDesignPurpose(purpose))
+	if err != nil {
+		return fmt.Errorf("unable to design ship %v %w", purpose, err)
+	}
+
+	purpose = cs.ShipDesignPurposeFort
+	ai.fortDesign, err = ai.designShip(ai.config.namesByPurpose[purpose], purpose, cs.FleetPurposeFromShipDesignPurpose(purpose))
+	if err != nil {
+		return fmt.Errorf("unable to design ship %v %w", purpose, err)
+	}
+
+	purpose = cs.ShipDesignPurposeStarbaseQuarter
+	ai.starbaseQuarterDesign, err = ai.designShip(ai.config.namesByPurpose[purpose], purpose, cs.FleetPurposeFromShipDesignPurpose(purpose))
+	if err != nil {
+		return fmt.Errorf("unable to design ship %v %w", purpose, err)
+	}
+
+	purpose = cs.ShipDesignPurposeStarbaseHalf
+	ai.starbaseHalfDesign, err = ai.designShip(ai.config.namesByPurpose[purpose], purpose, cs.FleetPurposeFromShipDesignPurpose(purpose))
+	if err != nil {
+		return fmt.Errorf("unable to design ship %v %w", purpose, err)
+	}
+
+	purpose = cs.ShipDesignPurposeStarbase
+	ai.starbaseDesign, err = ai.designShip(ai.config.namesByPurpose[purpose], purpose, cs.FleetPurposeFromShipDesignPurpose(purpose))
+	if err != nil {
+		return fmt.Errorf("unable to design ship %v %w", purpose, err)
+	}
+
+	return nil
+}
+
 func (ai *aiPlayer) removedUnusedDesigns() {
 	var unusedDesigns map[int]bool = map[int]bool{}
 
 	// find any designs with no instances
 	for _, design := range ai.Designs {
 		if design.Spec.NumInstances == 0 && !design.CannotDelete {
-			log.Debug().
-				Int64("GameID", ai.GameID).
-				Int("PlayerNum", ai.Num).
-				Msgf("marking %s for deletion, unused", design.Name)
+			// log.Debug().
+			// 	Int64("GameID", ai.GameID).
+			// 	Int("PlayerNum", ai.Num).
+			// 	Msgf("marking %s for deletion, unused", design.Name)
 
 			unusedDesigns[design.Num] = true
 		}
@@ -111,21 +148,35 @@ func (ai *aiPlayer) removedUnusedDesigns() {
 			if item.DesignNum != 0 {
 				delete(unusedDesigns, item.DesignNum)
 
-				log.Debug().
-					Int64("GameID", ai.GameID).
-					Int("PlayerNum", ai.Num).
-					Msgf("design %d still used, not marking for deletion", item.DesignNum)
+				// log.Debug().
+				// 	Int64("GameID", ai.GameID).
+				// 	Int("PlayerNum", ai.Num).
+				// 	Msgf("design %d still used, not marking for deletion", item.DesignNum)
 			}
 		}
 	}
 
 	for _, design := range ai.Designs {
 		if found, found2 := unusedDesigns[design.Num]; found && found2 {
-			log.Debug().
-				Int64("GameID", ai.GameID).
-				Int("PlayerNum", ai.Num).
-				Msgf("marking %s, design %d for deletion, unused", design.Name, design.Num)
+			// log a message if we're deleting an existing design
+			if design.ID != 0 {
+				log.Debug().
+					Int64("GameID", ai.GameID).
+					Int("PlayerNum", ai.Num).
+					Msgf("marking %s, design %d for deletion, unused", design.Name, design.Num)
+			}
 			design.Delete = true
+		}
+	}
+}
+
+// assign a purpose to any fleets that don't have it (for starter fleets)
+func (ai *aiPlayer) assignPurpose() {
+	for _, fleet := range ai.Fleets {
+		if fleet.Purpose == cs.FleetPurposeNone {
+			design := ai.GetDesign(fleet.Tokens[0].DesignNum)
+			fleet.Purpose = cs.FleetPurposeFromShipDesignPurpose(design.Purpose)
+			fleet.MarkDirty()
 		}
 	}
 }

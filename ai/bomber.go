@@ -27,14 +27,9 @@ func (ai *aiPlayer) bomb() error {
 		return err
 	}
 
-	log.Debug().
-		Int64("GameID", ai.GameID).
-		Int("PlayerNum", ai.Num).
-		Msgf("%d bomber fleets assembled from idle fleets", len(bomberFleets))
-
 	// go through fleets in space that may have been misassigned
 	for _, fleet := range fleetMakeup.getFleetsMatchingMakeup(ai, ai.Fleets) {
-		if fleet.Purpose == cs.FleetPurposeBomber {
+		if fleet.GetTag(cs.TagPurpose) == string(cs.FleetPurposeBomber) && fleet.Spec.Bomber {
 			if len(fleet.Waypoints) > 1 {
 				// this fleet is already targeting a planet, remove the target from the bombable planets list
 				for _, wp := range fleet.Waypoints[1:] {
@@ -65,6 +60,13 @@ func (ai *aiPlayer) bomb() error {
 		}
 	}
 
+	// after colonizing, we may have idle fleets leftover
+	idleFleets := len(bomberFleets)
+	log.Debug().
+		Int64("GameID", ai.GameID).
+		Int("PlayerNum", ai.Num).
+		Msgf("%d bomber, %d bombable planets", idleFleets, len(bombablePlanets))
+
 	for _, fleet := range bomberFleets {
 		bestPlanet := ai.getBestPlanetToBomb(fleet, bombablePlanets)
 		if bestPlanet != nil {
@@ -72,6 +74,7 @@ func (ai *aiPlayer) bomb() error {
 			fleet.Waypoints = append(fleet.Waypoints, cs.NewPlanetWaypoint(bestPlanet.Position, bestPlanet.Num, bestPlanet.Name, warpSpeed))
 			ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders)
 			delete(bombablePlanets, bestPlanet.Num)
+			idleFleets--
 
 			log.Debug().
 				Int64("GameID", ai.GameID).
@@ -85,8 +88,8 @@ func (ai *aiPlayer) bomb() error {
 	}
 
 	// build colonizer fleets where necessary
-	if len(bombablePlanets) > 0 {
-		ai.addFleetBuildRequest(cs.FleetPurposeBomber, len(bombablePlanets))
+	if len(bombablePlanets)-idleFleets > 0 {
+		ai.addFleetBuildRequest(cs.FleetPurposeBomber, len(bombablePlanets)-idleFleets)
 	}
 	return nil
 }

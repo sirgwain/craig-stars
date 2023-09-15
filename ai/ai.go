@@ -20,10 +20,23 @@ type aiPlayer struct {
 	fleetIntelsByPlanetNum map[int][]*cs.FleetIntel
 	designsByPurpose       map[cs.ShipDesignPurpose]*cs.ShipDesign
 	fleetsByPurpose        map[cs.FleetPurpose]fleet
+	targetedPlanets        map[int][]*cs.FleetIntel
+
+	fuelDepotDesign       *cs.ShipDesign
+	fortDesign            *cs.ShipDesign
+	starbaseQuarterDesign *cs.ShipDesign
+	starbaseHalfDesign    *cs.ShipDesign
+	starbaseDesign        *cs.ShipDesign
 }
 
 type requests struct {
 	fleetBuilds map[cs.FleetPurpose]int
+}
+
+type fleetBuildRequest struct {
+	count    int
+	fleet    fleet
+	priority int
 }
 
 type playerConfig struct {
@@ -31,10 +44,34 @@ type playerConfig struct {
 	colonistTransportDensity         float64
 	invasionFactor                   float64
 	fleetProductionCutoff            float64
+	bomberProductionCutoff           float64
 	minYearsToQueueStarbasePeaceTime int
 	minYearsToQueueStarbaseWarTime   int
+	minYearsToBuildScanner           int
+	minYearsToBuildFort              int
 	namesByPurpose                   map[cs.ShipDesignPurpose]string
 }
+
+// each AI has a personality that influences decisions
+type Personality string
+
+const (
+	Neutral    Personality = ""
+	Aggressive Personality = "Aggressive"
+	Defensive  Personality = "Defensive"
+	Sneaky     Personality = "Sneaky"
+)
+
+// each AI has a personality that influences decisions
+type Stage string
+
+const (
+	Start       Stage = ""
+	Explore     Stage = "Explore"
+	Expand      Stage = "Expand"
+	Exploit     Stage = "Exploit"
+	Exterminate Stage = "Exterminate"
+)
 
 func NewAIPlayer(game *cs.Game, techStore *cs.TechStore, player *cs.Player, playerMapObjects cs.PlayerMapObjects) *aiPlayer {
 	aiPlayer := aiPlayer{
@@ -49,8 +86,11 @@ func NewAIPlayer(game *cs.Game, techStore *cs.TechStore, player *cs.Player, play
 			colonistTransportDensity:         .5,  // default to requiring 50% pop density before taking colonists from a feeder to a needer
 			minYearsToQueueStarbasePeaceTime: 2,   // don't build starbases if it takes over 2 years to build it
 			minYearsToQueueStarbaseWarTime:   4,   // don't build starbases if it takes over 2 years to build it
-			invasionFactor:                   2,   // we invade if we have 2x the colonists to drop
-			fleetProductionCutoff:            .5,  // don't try and build starbases until we have 50% factories/mines built first
+			minYearsToBuildFort:              10,  // if we are being threatened and need to throw up a fort, do it even if it takes a bit
+			minYearsToBuildScanner:           1,
+			invasionFactor:                   2,  // we invade if we have 2x the colonists to drop
+			fleetProductionCutoff:            .5, // don't try and build starbases until we have 50% factories/mines built first
+			bomberProductionCutoff:           .9, // don't try and build bombers until we have 90% factories/mines built first
 			namesByPurpose: map[cs.ShipDesignPurpose]string{
 				cs.ShipDesignPurposeScout:                 "Long Range Scout",
 				cs.ShipDesignPurposeColonizer:             "Santa Maria",
@@ -174,11 +214,16 @@ func (ai *aiPlayer) buildMaps() {
 			},
 		},
 	}
+
+	ai.targetedPlanets = make(map[int][]*cs.FleetIntel)
 }
 
 // process an AI player's turn
 func (ai *aiPlayer) ProcessTurn() error {
+	ai.assignPurpose()
+	ai.gatherIntel()
 	ai.plan()
+	ai.designStarbases()
 
 	if err := ai.scout(); err != nil {
 		return err
@@ -208,6 +253,8 @@ func (ai *aiPlayer) ProcessTurn() error {
 		return err
 	}
 
+	// make sure our research is optimal
+	ai.research()
 	// cleanup any old designs we haven't built
 	ai.removedUnusedDesigns()
 
@@ -216,7 +263,7 @@ func (ai *aiPlayer) ProcessTurn() error {
 
 func (ai *aiPlayer) getWarpSpeed(fleet *cs.Fleet, position cs.Vector) int {
 	dist := fleet.Position.DistanceTo(position)
-	return ai.getMaxWarp(dist, fleet)
+	return cs.Clamp(ai.getMaxWarp(dist, fleet), 1, 10)
 }
 
 // get the maximum warp we can travel to reach the destination
@@ -267,7 +314,7 @@ func (ai *aiPlayer) getMinimalWarp(dist float64, idealSpeed int, fleet *cs.Fleet
 		}
 	}
 
-	return speed
+	return cs.Clamp(speed, 1, 10)
 }
 
 // get a player owned planet by num, or nil if it doesn't exist
@@ -371,10 +418,20 @@ func (ai *aiPlayer) isStarbaseInQueue(planet *cs.Planet) bool {
 	return false
 }
 
+// check if a the queue contains any ships with this fleet purpose
+func (ai *aiPlayer) isFleetInQueue(planet *cs.Planet, fleetPurpose cs.FleetPurpose) bool {
+	for _, item := range planet.ProductionQueue {
+		if item.GetTag(cs.TagPurpose) == string(fleetPurpose) {
+			return true
+		}
+	}
+	return false
+}
+
 // check if a shipdesign with the given purpose is in the queue
 func (ai *aiPlayer) isShipInQueue(planet *cs.Planet, fleetPurpose cs.FleetPurpose, purpose cs.ShipDesignPurpose, quantity int) bool {
 	for _, item := range planet.ProductionQueue {
-		if item.Type == cs.QueueItemTypeShipToken && item.GetTag("purpose") == string(fleetPurpose) {
+		if item.Type == cs.QueueItemTypeShipToken && item.GetTag(cs.TagPurpose) == string(fleetPurpose) {
 			design := ai.GetDesign(item.DesignNum)
 			if design != nil && design.Purpose == purpose && item.Quantity >= quantity {
 				return true
@@ -384,10 +441,15 @@ func (ai *aiPlayer) isShipInQueue(planet *cs.Planet, fleetPurpose cs.FleetPurpos
 	return false
 }
 
-func (ai *aiPlayer) getIdleShipCount(planet *cs.Planet, purpose cs.ShipDesignPurpose) int {
+// get the number of idle ships above a planet, matching a fleet and ship purpose
+func (ai *aiPlayer) getIdleShipCount(planet *cs.Planet, fleetPurpose cs.FleetPurpose, purpose cs.ShipDesignPurpose) int {
 	count := 0
 	for _, fleet := range ai.fleetsByPlanetNum[planet.Num] {
 		if !fleet.Idle() {
+			continue
+		}
+
+		if fleet.GetTag(cs.TagPurpose) != string(fleetPurpose) {
 			continue
 		}
 

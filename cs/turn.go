@@ -1155,7 +1155,7 @@ func (t *turn) planetProduction() error {
 				design.Spec.NumInstances += token.Quantity
 				design.MarkDirty()
 
-				fleet, err := t.buildFleet(player, planet, token)
+				fleet, err := t.buildFleet(player, planet, token.ShipToken, token.tags)
 				if err != nil {
 					return err
 				}
@@ -1201,7 +1201,7 @@ func (t *turn) planetProduction() error {
 }
 
 // build a fleet with some number of tokens
-func (t *turn) buildFleet(player *Player, planet *Planet, token ShipToken) (*Fleet, error) {
+func (t *turn) buildFleet(player *Player, planet *Planet, token ShipToken, tags Tags) (*Fleet, error) {
 	player.Stats.FleetsBuilt++
 	player.Stats.TokensBuilt += token.Quantity
 
@@ -1213,6 +1213,7 @@ func (t *turn) buildFleet(player *Player, planet *Planet, token ShipToken) (*Fle
 	fleet.Fuel = fleet.Spec.FuelCapacity
 	fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed, fleet.Spec.CargoCapacity)
 	fleet.OrbitingPlanetNum = planet.Num
+	fleet.Tags = tags
 
 	log.Debug().
 		Int64("GameID", t.game.ID).
@@ -2067,17 +2068,19 @@ func (t *turn) calculateScores() {
 
 		// Calculate tech levels
 		for _, field := range TechFields {
-			level := player.TechLevels.Get(field)
-			score.TechLevels += level
-			switch {
-			case level >= 1 && level <= 3:
-				score.Score += 1
-			case level >= 4 && level <= 6:
-				score.Score += 2
-			case level >= 7 && level <= 9:
-				score.Score += 3
-			case level >= 10:
-				score.Score += 4
+			achievedLevel := player.TechLevels.Get(field)
+			score.TechLevels += achievedLevel
+			for level := 0; level <= achievedLevel; level++ {
+				switch {
+				case level >= 1 && level <= 3:
+					score.Score += 1
+				case level >= 4 && level <= 6:
+					score.Score += 2
+				case level >= 7 && level <= 9:
+					score.Score += 3
+				case level >= 10:
+					score.Score += 4
+				}
 			}
 		}
 
