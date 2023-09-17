@@ -9,11 +9,6 @@ type Vector struct {
 	X float64 `json:"x"`
 	Y float64 `json:"y"`
 }
-	
-var VectorRight Vector = Vector{1, 0}
-var VectorLeft Vector = Vector{-1, 0}
-var VectorUp Vector = Vector{0, 1}
-var VectorDown Vector = Vector{0, -1}
 
 func (v Vector) String() string {
 	return fmt.Sprintf("(%0.0f, %0.0f)", v.X, v.Y)

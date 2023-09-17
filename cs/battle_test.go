@@ -176,7 +176,7 @@ func Test_battle_willTarget(t *testing.T) {
 func Test_battleToken_getDistanceAway(t *testing.T) {
 
 	type args struct {
-		position Vector
+		position BattleVector
 	}
 	tests := []struct {
 		name string
@@ -184,10 +184,10 @@ func Test_battleToken_getDistanceAway(t *testing.T) {
 		args args
 		want int
 	}{
-		{"no distance", battleToken{BattleRecordToken: BattleRecordToken{Position: Vector{0, 0}}}, args{Vector{0, 0}}, 0},
-		{"x distance greatest", battleToken{BattleRecordToken: BattleRecordToken{Position: Vector{2, 1}}}, args{Vector{4, 2}}, 2},
-		{"y distance greatest", battleToken{BattleRecordToken: BattleRecordToken{Position: Vector{1, 2}}}, args{Vector{2, 5}}, 3},
-		{"negative distance (token behind)", battleToken{BattleRecordToken: BattleRecordToken{Position: Vector{1, 1}}}, args{Vector{0, 0}}, 1},
+		{"no distance", battleToken{BattleRecordToken: BattleRecordToken{Position: BattleVector{0, 0}}}, args{BattleVector{0, 0}}, 0},
+		{"x distance greatest", battleToken{BattleRecordToken: BattleRecordToken{Position: BattleVector{2, 1}}}, args{BattleVector{4, 2}}, 2},
+		{"y distance greatest", battleToken{BattleRecordToken: BattleRecordToken{Position: BattleVector{1, 2}}}, args{BattleVector{2, 5}}, 3},
+		{"negative distance (token behind)", battleToken{BattleRecordToken: BattleRecordToken{Position: BattleVector{1, 1}}}, args{BattleVector{0, 0}}, 1},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -200,7 +200,7 @@ func Test_battleToken_getDistanceAway(t *testing.T) {
 
 func Test_battleWeaponSlot_isInRangePosition(t *testing.T) {
 	type args struct {
-		position Vector
+		position BattleVector
 	}
 	tests := []struct {
 		name   string
@@ -208,9 +208,9 @@ func Test_battleWeaponSlot_isInRangePosition(t *testing.T) {
 		args   args
 		want   bool
 	}{
-		{"no distance, in range", battleWeaponSlot{token: &battleToken{BattleRecordToken: BattleRecordToken{Position: Vector{0, 0}}}}, args{Vector{0, 0}}, true},
-		{"distance 1, in range", battleWeaponSlot{token: &battleToken{BattleRecordToken: BattleRecordToken{Position: Vector{0, 0}}}, weaponRange: 1}, args{Vector{1, 1}}, true},
-		{"distance 2, out of range", battleWeaponSlot{token: &battleToken{BattleRecordToken: BattleRecordToken{Position: Vector{0, 0}}}, weaponRange: 1}, args{Vector{1, 2}}, false},
+		{"no distance, in range", battleWeaponSlot{token: &battleToken{BattleRecordToken: BattleRecordToken{Position: BattleVector{0, 0}}}}, args{BattleVector{0, 0}}, true},
+		{"distance 1, in range", battleWeaponSlot{token: &battleToken{BattleRecordToken: BattleRecordToken{Position: BattleVector{0, 0}}}, weaponRange: 1}, args{BattleVector{1, 1}}, true},
+		{"distance 2, out of range", battleWeaponSlot{token: &battleToken{BattleRecordToken: BattleRecordToken{Position: BattleVector{0, 0}}}, weaponRange: 1}, args{BattleVector{1, 2}}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -226,7 +226,7 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 	type weapon struct {
 		weaponSlot   *battleWeaponSlot
 		shipQuantity int
-		position     Vector
+		position     BattleVector
 	}
 	type args struct {
 		weapon  weapon
@@ -304,7 +304,7 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 						weaponRange: 2,
 					},
 					shipQuantity: 1,
-					position:     Vector{2, 0}, // 1 away from target
+					position:     BattleVector{2, 0}, // 1 away from target
 				},
 				targets: []*battleToken{
 					{
@@ -313,7 +313,7 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 							design:   &ShipDesign{Name: "defender"}, // for logging
 						},
 						BattleRecordToken: BattleRecordToken{
-							Position: Vector{0, 0},
+							Position: BattleVector{0, 0},
 						},
 						armor: 20,
 					},
@@ -472,7 +472,7 @@ func Test_battle_fireTorpedo(t *testing.T) {
 	type weapon struct {
 		weaponSlot   *battleWeaponSlot
 		shipQuantity int
-		position     Vector
+		position     BattleVector
 	}
 	type args struct {
 		weapon  weapon

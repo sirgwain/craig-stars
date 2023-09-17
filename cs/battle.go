@@ -148,6 +148,9 @@ import (
 // * Capital Ship missiles doing double damage to capital ships
 // * Unit test FireTorpedo and FireBeamWeapon
 // * Add other battle plan tactics besides MaximizeDamage
+
+const battleWidth, battleHeight = 10, 10
+
 type battler interface {
 	hasTargets() bool
 	runBattle() *BattleRecord
@@ -160,6 +163,7 @@ type battle struct {
 	tokens   []*battleToken
 	round    int
 	players  map[int]*Player
+	board    [battleWidth][battleHeight]int // the number of tokens in each square
 	record   *BattleRecord
 	rules    *Rules
 }
@@ -173,6 +177,8 @@ const (
 	battleTokenAttributeFreighter     battleTokenAttribute = 1 << 2
 	battleTokenAttributeStarbase      battleTokenAttribute = 1 << 3
 	battleTokenAttributeFuelTransport battleTokenAttribute = 1 << 4
+	battleTokenAttributeHasBeams      battleTokenAttribute = 1 << 5
+	battleTokenAttributeHasTorpedos   battleTokenAttribute = 1 << 6
 )
 
 // a token for a battle
@@ -192,10 +198,17 @@ type battleToken struct {
 	shields           int
 	stackShields      int
 	totalStackShields int
+	minRange          int
+	maxRange          int
+	maxDamageRange    int
 }
 
 func (bt *battleToken) hasWeapons() bool {
 	return (bt.attributes & battleTokenAttributeArmed) > 0
+}
+
+func (bt *battleToken) hasBeamWeapons() bool {
+	return (bt.attributes & battleTokenAttributeHasBeams) > 0
 }
 
 // check if this token is still in the battle
@@ -203,8 +216,8 @@ func (bt *battleToken) isStillInBattle() bool {
 	return !bt.destroyed && !bt.ranAway
 }
 
-func (bt *battleToken) getDistanceAway(position Vector) int {
-	return int(math.Max(math.Abs(bt.Position.X-position.X), math.Abs(bt.Position.Y-position.Y)))
+func (bt *battleToken) getDistanceAway(position BattleVector) int {
+	return MaxInt(absInt(bt.Position.X-position.X), absInt(bt.Position.Y-position.Y))
 }
 
 func (bt *battleToken) String() string {
@@ -250,7 +263,7 @@ func (slot *battleWeaponSlot) isInRange(target *battleToken) bool {
 	return slot.isInRangePosition(target.Position)
 }
 
-func (slot *battleWeaponSlot) isInRangePosition(position Vector) bool {
+func (slot *battleWeaponSlot) isInRangePosition(position BattleVector) bool {
 	// diagonal shots count as one move, so we take the max distance on the x or y as our actual distance away
 	// i.e. 4 over, 1 up is 4 range away, 3 over 2 up is 3 range away, etc.
 	return slot.token.getDistanceAway(position) <= slot.weaponRange
@@ -260,7 +273,7 @@ func (slot *battleWeaponSlot) isInRangeValue(rangeValue int) bool {
 	return rangeValue <= slot.weaponRange
 }
 
-var positionsByPlayer = []Vector{
+var positionsByPlayer = []BattleVector{
 	{1, 4},
 	{8, 5},
 	{4, 1},
@@ -299,7 +312,7 @@ func newBattler(rules *Rules, techFinder TechFinder, battleNum int, players map[
 	}
 	sort.Ints(sortedPlayerNums)
 
-	playerStartingPositions := make(map[int]Vector)
+	playerStartingPositions := make(map[int]BattleVector)
 	for i, num := range sortedPlayerNums {
 		if i >= len(positionsByPlayer) {
 			log.Warn().Msg("Oh noes! We have a battle with more players than we have positions for...")
@@ -307,6 +320,7 @@ func newBattler(rules *Rules, techFinder TechFinder, battleNum int, players map[
 		playerStartingPositions[num] = positionsByPlayer[i%len(positionsByPlayer)]
 	}
 
+	board := [battleWidth][battleHeight]int{}
 	// add each fleet's token to the battle
 	tokens := []*battleToken{}
 	tokenRecords := []BattleRecordToken{}
@@ -316,11 +330,12 @@ func newBattler(rules *Rules, techFinder TechFinder, battleNum int, players map[
 			token := &fleet.Tokens[i]
 			num++
 
+			position := playerStartingPositions[fleet.PlayerNum]
 			battleToken := &battleToken{
 				BattleRecordToken: BattleRecordToken{
 					Num:              num,
 					PlayerNum:        fleet.PlayerNum,
-					Position:         playerStartingPositions[fleet.PlayerNum],
+					Position:         position,
 					DesignNum:        token.DesignNum,
 					Initiative:       token.design.Spec.Initiative,
 					Movement:         token.design.Spec.Movement,
@@ -337,14 +352,36 @@ func newBattler(rules *Rules, techFinder TechFinder, battleNum int, players map[
 				totalStackShields: token.Quantity * token.design.Spec.Shields,
 				attributes:        getBattleTokenAttributes(token.design.Spec.HullType, token.design.Spec.HasWeapons),
 			}
+			board[position.X][position.Y] += battleToken.StartingQuantity
 			// get the weapon slots for a token
 			weaponSlots := make([]*battleWeaponSlot, 0)
 			hull := techFinder.GetHull(token.design.Hull)
-			for _, slot := range token.design.Spec.WeaponSlots {
-				bws := newBattleWeaponSlot(battleToken, slot, techFinder.GetHullComponent(slot.HullComponent), hull.RangeBonus, token.design.Spec.TorpedoInaccuracyFactor)
-				weaponSlots = append(weaponSlots, bws)
+			if len(token.design.Spec.WeaponSlots) > 0 {
+				minRange := math.MaxInt
+				maxRange := 0
+				for _, slot := range token.design.Spec.WeaponSlots {
+					bws := newBattleWeaponSlot(battleToken, slot, techFinder.GetHullComponent(slot.HullComponent), hull.RangeBonus, token.design.Spec.TorpedoInaccuracyFactor)
+					weaponSlots = append(weaponSlots, bws)
+					minRange = MinInt(minRange, bws.weaponRange)
+					maxRange = MaxInt(maxRange, bws.weaponRange)
+					if bws.weaponType == battleWeaponTypeBeam {
+						battleToken.attributes |= battleTokenAttributeHasBeams
+					} else if bws.weaponType == battleWeaponTypeTorpedo {
+						battleToken.attributes |= battleTokenAttributeHasTorpedos
+					}
+				}
+				battleToken.weaponSlots = weaponSlots
+				battleToken.minRange = minRange
+				battleToken.maxRange = maxRange
+
+				// to maximize our damage, we either close in all the way
+				// or get close enough so all our weapons can fire
+				if battleToken.hasBeamWeapons() {
+					battleToken.maxDamageRange = 0
+				} else {
+					battleToken.minRange = 0
+				}
 			}
-			battleToken.weaponSlots = weaponSlots
 
 			tokens = append(tokens, battleToken)
 			tokenRecords = append(tokenRecords, battleToken.BattleRecordToken)
@@ -631,6 +668,7 @@ func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot, targets []*battleToken
 				numDestroyed = target.Quantity
 				target.Quantity = 0
 				target.quantityDestroyed += numDestroyed
+				b.board[target.Position.Y][target.Position.X] -= numDestroyed
 				remainingDamage -= float64(armor * numDestroyed)
 
 				target.destroyed = true
@@ -641,6 +679,7 @@ func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot, targets []*battleToken
 				if numDestroyed > 0 {
 					target.Quantity -= numDestroyed
 					target.quantityDestroyed += numDestroyed
+					b.board[target.Position.Y][target.Position.X] -= numDestroyed
 				}
 
 				remainingDamage -= float64(armor * numDestroyed)
@@ -664,6 +703,30 @@ func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot, targets []*battleToken
 
 		target.damaged = true
 	}
+}
+
+func (b *battle) getDamageDone(token *battleToken, distance int) int {
+	damageDone := 0
+	for _, weapon := range token.weaponSlots {
+		if !weapon.isInRangeValue(distance) {
+			// no damage, skip this weapon
+			continue
+		}
+		switch weapon.weaponType {
+		case battleWeaponTypeBeam:
+			// TODO: consider sappers + shields
+			damage := weapon.power * weapon.slot.Quantity * token.Quantity
+			if weapon.weaponRange > 0 {
+				damage = int(float64(damage) * (1 - b.rules.BeamRangeDropoff*float64(distance)/float64(weapon.weaponRange)))
+			}
+			damageDone += damage
+		case battleWeaponTypeTorpedo:
+			// assume every torpedo hits
+			damageDone += weapon.power * weapon.slot.Quantity * token.Quantity
+		}
+	}
+
+	return damageDone
 }
 
 // Fire a torpedo slot from a ship. Torpedos are different than beam weapons
@@ -741,6 +804,7 @@ func (b *battle) fireTorpedo(weapon *battleWeaponSlot, targets []*battleToken) {
 					// remove a ship from this stack
 					target.Quantity--
 					target.quantityDestroyed++
+					b.board[target.Position.Y][target.Position.X] -= 1
 					target.QuantityDamaged = MaxInt(target.QuantityDamaged-1, 0)
 
 					if target.QuantityDamaged > 0 {
@@ -812,23 +876,29 @@ func (b *battle) moveToken(token *battleToken, weaponSlots []*battleWeaponSlot) 
 	token.movesMade++
 
 	// always disengage if we have no weapons or targets
-	tactic := token.Tactic
 	if token.moveTarget == nil || !token.hasWeapons() {
-		tactic = BattleTacticDisengage
+		token.Tactic = BattleTacticDisengage
 	}
 
-	switch tactic {
-	case BattleTacticDisengage:
-		b.runAway(token, weaponSlots)
-	case BattleTacticDisengageIfChallenged:
-		if token.damaged {
-			b.runAway(token, weaponSlots)
-		} else {
-			b.maximizeDamage(token)
-		}
-	case BattleTacticMinimizeDamageToSelf, BattleTacticMaximizeNetDamage, BattleTacticMaximizeDamageRatio, BattleTacticMaximizeDamage:
-		b.maximizeDamage(token)
+	// disengage if we are a scared little token
+	if token.Tactic == BattleTacticDisengageIfChallenged && token.damaged {
+		token.Tactic = BattleTacticDisengage
 	}
+
+	oldPosition := token.Position
+
+	if token.Tactic == BattleTacticDisengage {
+		b.runAway(token, weaponSlots)
+	} else {
+		// create a move record for the viewer and then move the token
+		bestMove := b.getBestAttackMove(token)
+		b.record.recordMove(b.round, token, token.Position, bestMove)
+		token.Position = bestMove
+	}
+
+	// update the board after a token moves
+	b.board[oldPosition.Y][oldPosition.X] -= token.Quantity
+	b.board[token.Position.Y][token.Position.X] += token.Quantity
 }
 
 // regenerateShields regenerates the shields of the given token if the player regenerates shields
@@ -842,106 +912,145 @@ func (b *battle) regenerateShields(token *battleToken) {
 	}
 }
 
-func (b *battle) maximizeDamage(token *battleToken) {
-	if token.moveTarget != nil {
-		newPosition := token.Position
-		if token.Position.Y > token.moveTarget.Position.Y {
-			newPosition.Y--
-		} else {
-			newPosition.Y++
-		}
-		if token.Position.X > token.moveTarget.Position.X {
-			newPosition.X--
-		} else {
-			newPosition.X++
-		}
+func (b *battle) getBestAttackMove(token *battleToken) BattleVector {
 
-		// we can't move off board
-		newPosition.X = float64(Clamp(int(newPosition.X), 0, 9))
-		newPosition.Y = float64(Clamp(int(newPosition.Y), 0, 9))
+	bestDamageDone := 0
+	bestDamageTaken := math.MaxInt
+	target := token.moveTarget
+	var bestMove = token.Position
+	var lowestDamageMove = token.Position
+	bestDamageTakenForLowestDamageMove := math.MaxInt
+	currentDistance := token.getDistanceAway(target.Position)
 
-		// create a move record for the viewer and then move the token
-		b.record.recordMove(b.round, token, token.Position, newPosition)
-		token.Position = newPosition
+	for dx := -1; dx <= 1; dx++ {
+		for dy := -1; dy <= 1; dy++ {
+			newPosition := BattleVector{token.Position.X + dx, token.Position.Y + dy}
+			if newPosition.X < 0 || newPosition.X >= battleWidth || newPosition.Y < 0 || newPosition.Y >= battleHeight {
+				// skip invalid squares
+				continue
+			}
+
+			// figure out how well this move is
+			distance := newPosition.distance(target.Position)
+			damageDone := b.getDamageDone(token, distance)
+			damageTaken := 0
+			for _, attacker := range token.targetedBy {
+				distanceToAttacker := token.getDistanceAway(attacker.Position)
+				damageTaken += b.getDamageDone(attacker, distanceToAttacker)
+			}
+
+			// if this will move us closer to our target, see if it's the best low damage move
+			if distance < currentDistance && bestDamageTakenForLowestDamageMove >= damageTaken {
+				// if this damage is the same, flip a coin to take this new move or not
+				if bestDamageTakenForLowestDamageMove == damageTaken && b.rules.random.Intn(2) == 0 {
+					break
+				}
+				bestDamageTakenForLowestDamageMove = damageTaken
+				lowestDamageMove = newPosition
+			}
+
+			switch token.Tactic {
+			case BattleTacticMaximizeDamageRatio:
+				if (damageTaken == 0 && damageDone > bestDamageDone) || (damageTaken > 0 &&
+					damageDone/damageTaken > bestDamageDone) {
+					bestDamageDone = damageDone
+					bestMove = newPosition
+				}
+			case BattleTacticMaximizeNetDamage:
+				if damageDone-damageTaken > bestDamageDone {
+					bestDamageDone = damageDone
+					bestMove = newPosition
+				}
+
+			case BattleTacticMinimizeDamageToSelf:
+				if damageTaken < bestDamageTaken {
+					bestDamageTaken = damageTaken
+					bestMove = newPosition
+				}
+
+			case BattleTacticMaximizeDamage:
+				if damageDone > bestDamageDone {
+					bestDamageDone = damageDone
+					bestMove = newPosition
+				}
+			}
+		}
 	}
+
+	// if we are getting away, or none of our moves lead to damage, pick the lowest damage move
+	if token.Tactic == BattleTacticDisengage || bestDamageDone == 0 {
+		return lowestDamageMove
+	}
+
+	return bestMove
 }
 
+func (b *battle) getBestRunAwayMove(token *battleToken) BattleVector {
+
+	bestDamageTaken := math.MaxInt
+	var bestMove = token.Position
+	bestDistance := math.MaxInt
+	pickedMove := false
+
+	for dx := -1; dx <= 1; dx++ {
+		for dy := -1; dy <= 1; dy++ {
+			newPosition := BattleVector{token.Position.X + dx, token.Position.Y + dy}
+			if newPosition.X < 0 || newPosition.X >= battleWidth || newPosition.Y < 0 || newPosition.Y >= battleHeight {
+				// skip invalid squares
+				continue
+			}
+
+			if len(token.targetedBy) == 0 {
+				if !pickedMove {
+					bestMove = newPosition
+					continue
+				}
+
+				// flip a coin to pick this move
+				if b.rules.random.Intn(2) == 0 {
+					bestMove = newPosition
+					pickedMove = true
+				}
+			}
+
+			// for each attacker targetting us, check the distance
+			// and possible damange taken if we were to move
+			// into this square
+			damageTaken := 0
+			for _, attacker := range token.targetedBy {
+				distance := token.getDistanceAway(attacker.Position)
+				damageTaken += b.getDamageDone(attacker, distance)
+
+				// if this will move us away from this fleet targeting us, see if it's the best low damage move
+				if distance <= bestDistance && bestDamageTaken <= damageTaken {
+					// if this damage is the same, flip a coin to take this new move or not
+					if bestDamageTaken == damageTaken && b.rules.random.Intn(2) == 0 {
+						break
+					}
+					bestDistance = distance
+					bestDamageTaken = damageTaken
+					bestMove = newPosition
+				}
+			}
+		}
+	}
+
+	return bestMove
+}
 func (b *battle) runAway(token *battleToken, weapons []*battleWeaponSlot) {
 
 	if token.movesMade >= b.rules.MovesToRunAway {
+		// we've moved enough to leave the board
 		token.ranAway = true
+		b.board[token.Position.Y][token.Position.X] -= token.Quantity
 		b.record.recordRunAway(b.round, token)
 		return
 	}
 
-	// if we are in range of a weapon, move away, otherwise move randomly
-	weaponsInRange := make([]*battleWeaponSlot, 0)
-	for _, weapon := range weapons {
-		if weapon.isInRange(token) {
-			weaponsInRange = append(weaponsInRange, weapon)
-		}
-	}
-
-	possiblePositions := []Vector{
-		token.Position.Add(VectorRight),
-		token.Position.Add(VectorLeft),
-		token.Position.Add(VectorDown),
-		token.Position.Add(VectorUp),
-		token.Position.Add(VectorUp).Add(VectorRight),
-		token.Position.Add(VectorUp).Add(VectorLeft),
-		token.Position.Add(VectorDown).Add(VectorRight),
-		token.Position.Add(VectorDown).Add(VectorLeft),
-	}
-
-	var newPosition Vector
-	if len(weaponsInRange) > 0 {
-		// default to move to a random position
-		newPosition = possiblePositions[b.rules.random.Intn(len(possiblePositions))]
-
-		// move to a position that is out of range, or to the greatest distance away we can get
-		maxNumWeaponsInRange := math.MinInt32
-		for _, possiblePosition := range possiblePositions {
-			// can't move here
-			if possiblePosition.X < 0 || possiblePosition.X > 9 || possiblePosition.Y < 0 || possiblePosition.Y > 9 {
-				continue
-			}
-			numWeaponsInRange := 0
-			for _, weapon := range weaponsInRange {
-				distanceAway := weapon.token.getDistanceAway(possiblePosition)
-				if weapon.isInRangeValue(distanceAway) {
-					numWeaponsInRange++
-					if distanceAway > maxNumWeaponsInRange {
-						maxNumWeaponsInRange = distanceAway
-						newPosition = possiblePosition
-					}
-				}
-			}
-
-			// no weapons in range of this position, move there
-			if numWeaponsInRange == 0 {
-				newPosition = possiblePosition
-				break
-			}
-		}
-
-		// we can't move off board (this should never be a problem)
-		newPosition.X = float64(Clamp(int(newPosition.X), 0, 9))
-		newPosition.Y = float64(Clamp(int(newPosition.Y), 0, 9))
-
-		// move to our new position
-		b.record.recordMove(b.round, token, token.Position, newPosition)
-		token.Position = newPosition
-	} else {
-		// move at random
-		newPosition = possiblePositions[b.rules.random.Intn(len(possiblePositions))]
-
-		// we can't move off board (this should never be a problem)
-		newPosition.X = float64(Clamp(int(newPosition.X), 0, 9))
-		newPosition.Y = float64(Clamp(int(newPosition.Y), 0, 9))
-
-		b.record.recordMove(b.round, token, token.Position, newPosition)
-		token.Position = newPosition
-	}
+	// find the best move for running away
+	newPosition := b.getBestRunAwayMove(token)
+	b.record.recordMove(b.round, token, token.Position, newPosition)
+	token.Position = newPosition
 }
 
 // getTarget returns the primary or secondary target based on the attacker's battle plan and the defenders available

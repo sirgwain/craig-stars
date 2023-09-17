@@ -29,7 +29,7 @@ type BattleRecordToken struct {
 	Num              int             `json:"num,omitempty"`
 	PlayerNum        int             `json:"playerNum,omitempty"`
 	DesignNum        int             `json:"designNum,omitempty"`
-	Position         Vector          `json:"position,omitempty"`
+	Position         BattleVector    `json:"position,omitempty"`
 	Initiative       int             `json:"initiative,omitempty"`
 	Movement         int             `json:"movement,omitempty"`
 	StartingQuantity int             `json:"startingQuantity,omitempty"`
@@ -52,8 +52,8 @@ type BattleRecordTokenAction struct {
 	Type              BattleRecordTokenActionType `json:"type,omitempty"`
 	TokenNum          int                         `json:"tokenNum,omitempty"`
 	Round             int                         `json:"round,omitempty"`
-	From              Vector                      `json:"from,omitempty"`
-	To                Vector                      `json:"to,omitempty"`
+	From              BattleVector                `json:"from,omitempty"`
+	To                BattleVector                `json:"to,omitempty"`
 	Slot              int                         `json:"slot,omitempty"`
 	TargetNum         int                         `json:"targetNum,omitempty"`
 	Target            *ShipToken                  `json:"target,omitempty"`
@@ -89,6 +89,28 @@ func (t BattleRecordTokenActionType) String() string {
 	default:
 		return fmt.Sprintf("Unknown BattleRecordTokenActionType (%d)", t)
 	}
+}
+
+type BattleVector struct {
+	X int `json:"x,omitempty"`
+	Y int `json:"y,omitempty"`
+}
+
+var BattleVectorRight BattleVector = BattleVector{1, 0}
+var BattleVectorLeft BattleVector = BattleVector{-1, 0}
+var BattleVectorUp BattleVector = BattleVector{0, 1}
+var BattleVectorDown BattleVector = BattleVector{0, -1}
+var BattleVectorUpRight BattleVector = BattleVector{1, 1}
+var BattleVectorUpLeft BattleVector = BattleVector{-1, 1}
+var BattleVectorDownRight BattleVector = BattleVector{1, -1}
+var BattleVectorDownLeft BattleVector = BattleVector{-1, -1}
+
+func (v1 BattleVector) Add(v2 BattleVector) BattleVector {
+	return BattleVector{v1.X + v2.X, v1.Y + v2.Y}
+}
+
+func (v1 BattleVector) distance(v2 BattleVector) int {
+	return MaxInt(absInt(v1.X-v2.X), absInt(v1.Y-v2.Y))
 }
 
 // SetupRecord populates a lookup table of items by guid.
@@ -143,7 +165,7 @@ func (b *BattleRecord) recordNewRound() {
 }
 
 // Record a move
-func (b *BattleRecord) recordMove(round int, token *battleToken, from, to Vector) {
+func (b *BattleRecord) recordMove(round int, token *battleToken, from, to BattleVector) {
 	action := BattleRecordTokenAction{Type: TokenActionMove, Round: round, TokenNum: token.Num, From: from, To: to}
 	actions := b.ActionsPerRound[len(b.ActionsPerRound)-1]
 	actions = append(actions, action)
@@ -164,7 +186,7 @@ func (b *BattleRecord) recordRunAway(round int, token *battleToken) {
 }
 
 // Record a token firing a beam weapon
-func (b *BattleRecord) recordBeamFire(round int, token *battleToken, from Vector, to Vector, slot int, target battleToken, damageDoneShields int, damageDoneArmor int, tokensDestroyed int) {
+func (b *BattleRecord) recordBeamFire(round int, token *battleToken, from BattleVector, to BattleVector, slot int, target battleToken, damageDoneShields int, damageDoneArmor int, tokensDestroyed int) {
 	// copy the ship token into the record
 	shipToken := *target.ShipToken
 
@@ -179,7 +201,7 @@ func (b *BattleRecord) recordBeamFire(round int, token *battleToken, from Vector
 }
 
 // Record a token firing a salvo of torpedos
-func (b *BattleRecord) recordTorpedoFire(round int, token *battleToken, from Vector, to Vector, slot int, target *battleToken, damageDoneShields int, damageDoneArmor int, tokensDestroyed int, hits int, misses int) {
+func (b *BattleRecord) recordTorpedoFire(round int, token *battleToken, from BattleVector, to BattleVector, slot int, target *battleToken, damageDoneShields int, damageDoneArmor int, tokensDestroyed int, hits int, misses int) {
 	// copy the ship token into the record
 	shipToken := *target.ShipToken
 	action := BattleRecordTokenAction{
