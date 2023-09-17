@@ -37,6 +37,10 @@ export class User implements SessionUser {
 	isGuest() {
 		return this.role == UserRole.guest;
 	}
+
+	isAdmin() {
+		return this.role == UserRole.admin;
+	}
 }
 
 export const emptyUser = Object.assign(new User(), {

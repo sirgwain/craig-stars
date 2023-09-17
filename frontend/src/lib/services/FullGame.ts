@@ -217,6 +217,13 @@ export class FullGame implements Game {
 		}
 	}
 
+	async updatePlayerRelations() {
+		const result = await PlayerService.updateRelations(this.player);
+		if (result) {
+			Object.assign(this.player, result);
+		}
+	}
+
 	async createBattlePlan(plan: BattlePlan) {
 		const created = await BattlePlanService.create(this.id, plan);
 		this.player.battlePlans = [...this.player.battlePlans, created];

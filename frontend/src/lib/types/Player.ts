@@ -46,6 +46,7 @@ export type PlayerResponse = {
 	designs?: ShipDesign[];
 	researchSpentLastYear?: number;
 	achievedVictoryConditions?: number;
+	relations: PlayerRelationship[];
 	spec: PlayerSpec;
 } & PlayerOrders &
 	PlayerMessages &

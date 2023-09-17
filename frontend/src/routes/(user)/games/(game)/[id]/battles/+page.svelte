@@ -42,8 +42,6 @@
 	$: filteredBattles =
 		battleRows.filter((i) => i.location.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? [];
 
-
-
 	const columns: SvelteTableColumn<BattleRecord>[] = [
 		{
 			key: 'location',

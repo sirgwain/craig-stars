@@ -10,6 +10,7 @@
 	import PlanetMessageDetail from './PlanetMessageDetail.svelte';
 	import FleetMessageDetail from './FleetMessageDetail.svelte';
 	import PlayerMessageDetail from './PlayerMessageDetail.svelte';
+	import FleetEngineStrainMessageDetail from './FleetEngineStrainMessageDetail.svelte';
 
 	const { game, player, universe, settings } = getGameContext();
 
@@ -81,6 +82,9 @@
 	<PlanetMessageDetail {message} {planet} {owner} />
 {:else if fleet}
 	<FleetMessageDetail {message} {fleet} {owner} />
+{:else if message.type === MessageType.FleetShipExceededSafeSpeed}
+	<!-- The fleet could have been destroyed, in which case we won't have a fleet for this message so capture it here -->
+	<FleetEngineStrainMessageDetail {message} />
 {:else}
-	<PlayerMessageDetail {message}/>
+	<PlayerMessageDetail {message} />
 {/if}

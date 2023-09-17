@@ -2,9 +2,12 @@
 	import Cost from '$lib/components/game/Cost.svelte';
 	import Hull from '$lib/components/game/design/Hull.svelte';
 	import TechAvatar from '$lib/components/tech/TechAvatar.svelte';
+	import { getGameContext } from '$lib/services/Contexts';
 	import { techs } from '$lib/services/Stores';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import DesignStats from '../DesignStats.svelte';
+
+	const { game, player, universe, settings } = getGameContext();
 
 	export let design: ShipDesign;
 
@@ -15,6 +18,9 @@
 	<div class="border border-secondary bg-black p-1">
 		<TechAvatar tech={hull} hullSetNumber={design.hullSetNumber} />
 	</div>
+	<h1 class="text-lg font-semibold mx-auto">
+		{design.name}
+	</h1>
 </div>
 {#if hull}
 	<div class="flex flex-row justify-center">
@@ -28,10 +34,12 @@
 {#if 'spec' in design}
 	<div class="flex flex-col">
 		<div class="flex justify-between">
-			<div class="ml-2">
-				<div>Cost of one {design.name}</div>
-				<Cost cost={design.spec.cost} />
-			</div>
+			{#if design.playerNum == $player.num}
+				<div class="mx-2">
+					<div>Cost of one {design.name}</div>
+					<Cost cost={design.spec.cost} />
+				</div>
+			{/if}
 			<div>
 				<DesignStats spec={design.spec} />
 			</div>

@@ -45,6 +45,21 @@ export class PlayerService extends Service {
 		return (await response.json()) as PlayerResponse;
 	}
 
+	static async updateRelations(player: PlayerResponse): Promise<PlayerResponse | undefined> {
+		const response = await fetch(`/api/games/${player.gameId}/player/relations`, {
+			method: 'PUT',
+			body: JSON.stringify(player),
+			headers: {
+				accept: 'application/json'
+			}
+		});
+
+		if (!response.ok) {
+			await Service.throwError(response);
+		}
+		return (await response.json()) as PlayerResponse;
+	}
+
 	static async submitTurn(gameId: number | string): Promise<TurnGenerationResponse | undefined> {
 		const response = await fetch(`/api/games/${gameId}/submit-turn`, {
 			method: 'POST',

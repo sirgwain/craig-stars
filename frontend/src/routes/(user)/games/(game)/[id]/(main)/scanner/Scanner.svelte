@@ -79,10 +79,10 @@
 	// $: console.log('scale ', $scale, ' clampedScale', $clampedScale);
 
 	onMount(() => {
-		hotkeys('v', showTargetLocation);
+		hotkeys('v', 'root', showTargetLocation);
 
 		return () => {
-			hotkeys.unbind('v', showTargetLocation);
+			hotkeys.unbind('v', 'root', showTargetLocation);
 		};
 	});
 

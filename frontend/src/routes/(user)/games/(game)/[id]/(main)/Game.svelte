@@ -27,13 +27,13 @@
 	let transportTasksDialogEventDetails: TransportTasksDialogEventDetails | undefined = undefined;
 
 	onMount(() => {
-		hotkeys('q', () => {
+		hotkeys('q', 'root', () => {
 			if ($commandedPlanet) {
 				showProductionQueueDialog = true;
 			}
 		});
 		return () => {
-			hotkeys.unbind('q');
+			hotkeys.unbind('q', 'root');
 		};
 	});
 </script>

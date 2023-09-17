@@ -319,6 +319,7 @@ func Start(config config.Config) error {
 					r.Get("/player/intels", server.playerIntels)
 					r.Put("/player", server.updatePlayerOrders)
 					r.Put("/player/plans", server.updatePlayerPlans)
+					r.Put("/player/relations", server.updatePlayerRelations)
 					r.Post("/submit-turn", server.submitTurn)
 					r.Post("/unsubmit-turn", server.unSubmitTurn)
 					r.Post("/research-cost", server.getResearchCost)

@@ -345,7 +345,7 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 				if err := ug.buildStarbase(player, playerPlanet, startingPlanet.StarbaseDesignName); err != nil {
 					return err
 				}
-			}
+			}			
 
 			// tell theplayer about the homeworld
 			messager.homePlanet(player, playerPlanet)

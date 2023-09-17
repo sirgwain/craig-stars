@@ -971,6 +971,22 @@ func (c *client) UpdatePlayerOrders(player *cs.Player) error {
 }
 
 // update an existing player's lightweight fields
+func (c *client) UpdatePlayerRelations(player *cs.Player) error {
+	item := c.converter.ConvertGamePlayer(player)
+
+	if _, err := c.writer.NamedExec(`
+	UPDATE players SET
+		updatedAt = CURRENT_TIMESTAMP,
+		relations = :relations
+	WHERE id = :id
+	`, item); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// update an existing player's lightweight fields
 func (c *client) SubmitPlayerTurn(gameID int64, num int, submittedTurn bool) error {
 	type submitData struct {
 		GameID        int64 `json:"gameID"`

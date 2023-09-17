@@ -58,6 +58,14 @@ func (h Hab) Subtract(other Hab) Hab {
 	}
 }
 
+func (h Hab) Clamp(min, max int) Hab {
+	return Hab{
+		Grav: Clamp(h.Grav, min, max),
+		Temp: Clamp(h.Temp, min, max),
+		Rad:  Clamp(h.Rad, min, max),
+	}
+}
+
 func (h Hab) Get(habType HabType) int {
 	switch habType {
 	case Grav:

@@ -21,9 +21,10 @@ type Planet struct {
 	Defenses             int        `json:"defenses,omitempty"`
 	Homeworld            bool       `json:"homeworld,omitempty"`
 	Scanner              bool       `json:"scanner,omitempty"`
-	BonusResources       int        `json:"-"`
 	Spec                 PlanetSpec `json:"spec,omitempty"`
+	RandomArtifact       bool       `json:"-"`
 	Starbase             *Fleet     `json:"-"`
+	bonusResources       int
 }
 
 type PlanetOrders struct {
@@ -291,6 +292,11 @@ func (p *Planet) randomize(rules *Rules) {
 	if p.MineralConcentration.Germanium > 30 {
 		p.MineralConcentration.Germanium = 30 + rules.random.Intn(45) + germRadBonus + rules.random.Intn(45)
 	}
+
+	// check if this planet has a random artifact
+	if rules.RandomEventChances[RandomEventAncientArtifact] > rules.random.Float64() {
+		p.RandomArtifact = true
+	}
 }
 
 // Initialize a planet to be a homeworld for a payer with ideal hab, starting mineral concentration, etc
@@ -299,6 +305,7 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 	log.Debug().Msgf("Assigning %s to %s as homeworld", p, player)
 
 	p.Homeworld = true
+	p.RandomArtifact = false // no random artifacts on the homeworld
 	p.PlayerNum = player.Num
 
 	habWidth := player.Race.HabWidth()

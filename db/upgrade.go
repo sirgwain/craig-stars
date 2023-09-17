@@ -31,7 +31,7 @@ type upgrade struct {
 	tx *client
 }
 
-const LATEST_VERSION = 2
+const LATEST_VERSION = 3
 
 func (conn *dbConn) mustUpgrade() {
 
@@ -58,6 +58,8 @@ func (tx *client) ensureUpgrade() error {
 				err = u.upgrade1()
 			case 1:
 				err = u.upgrade2()
+			case 2:
+				err = u.upgrade3()
 			}
 
 			// check for any issues upgrading
@@ -141,6 +143,14 @@ func (u *upgrade) upgrade2() error {
 	return u.upgradeGames(func(fg *cs.FullGame) error {
 		cleaner := cs.NewCleaner()
 		cleaner.AddScannerToInnateScannerPlanets(fg)
+		return nil
+	})
+}
+
+func (u *upgrade) upgrade3() error {
+	return u.upgradeGames(func(fg *cs.FullGame) error {
+		cleaner := cs.NewCleaner()
+		cleaner.AddRandomArtifactsToPlanets(fg)
 		return nil
 	})
 }

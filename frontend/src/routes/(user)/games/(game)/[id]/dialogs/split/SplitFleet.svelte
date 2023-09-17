@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
 	import hotkeys from 'hotkeys-js';
-	import { createEventDispatcher } from 'svelte';
+	import { createEventDispatcher, onMount } from 'svelte';
 
 	const dispatch = createEventDispatcher();
 
@@ -13,7 +13,20 @@
 		dispatch('cancel');
 	}
 
-	hotkeys('Esc', () => cancel());
+	onMount(() => {
+		const originalScope = hotkeys.getScope();
+		const scope = 'cargoTransfer';
+		hotkeys('Esc', scope, cancel);
+		hotkeys('Enter', scope, ok);
+		hotkeys.setScope(scope);
+
+		return () => {
+			hotkeys.unbind('Esc', scope, cancel);
+			hotkeys.unbind('Enter', scope, ok);
+			hotkeys.deleteScope(scope);
+			hotkeys.setScope(originalScope);
+		};
+	});
 </script>
 
 <div class="flex flex-row justify-center px-1 w-full">

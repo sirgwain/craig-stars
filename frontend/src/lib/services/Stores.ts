@@ -244,52 +244,6 @@ export const clearLoadingModalText = () => {
 	loadingModalText.update(() => undefined);
 };
 
-export const gotoMessageTarget = (game: FullGame, player: Player, message: Message | undefined) => {
-	if (message) {
-		const u = get(universe);
-
-		if (message.battleNum) {
-			goto(`/games/${game.id}/battles/${message.battleNum}`);
-			return;
-		}
-
-		if (message.type === MessageType.GainTechLevel) {
-			goto(`/games/${game.id}/research`);
-			return;
-		}
-
-		if (message.type === MessageType.TechGained) {
-			goto(`/games/${game.id}/techs/${kebabCase(message.spec.techGained)}`);
-			return;
-		}
-
-		const moType = getMapObjectTypeForMessageType(message.targetType);
-
-		if (moType != MapObjectType.None) {
-			const target = u.getMapObject(message);
-			if (target) {
-				if (target.type == MapObjectType.Fleet) {
-					const orbitingPlanetNum = (target as Fleet).orbitingPlanetNum;
-					if (orbitingPlanetNum && orbitingPlanetNum != None) {
-						const orbiting = u.getPlanet(orbitingPlanetNum);
-						if (orbiting) {
-							selectMapObject(orbiting);
-						}
-					}
-				} else {
-					selectMapObject(target);
-				}
-				if (ownedBy(target, player.num)) {
-					commandMapObject(target);
-				}
-
-				// zoom on goto
-				zoomToMapObject(target);
-			}
-		}
-	}
-};
-
 export const tooltipComponent = writable<
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	{ component: typeof SvelteComponent; props: any } | undefined

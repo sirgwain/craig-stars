@@ -55,6 +55,7 @@
 					>
 						<li><a href={`/games/${$game.id}/research`}>Research</a></li>
 						<li><a href={`/games/${$game.id}/designer`}>Ship Designer</a></li>
+						<li><a href={`/games/${$game.id}/relations`}>Relations</a></li>
 						<li><a href={`/games/${$game.id}/battle-plans`}>Battle Plans</a></li>
 						<li><a href={`/games/${$game.id}/production-plans`}>Production Plans</a></li>
 						<li><a href={`/games/${$game.id}/transport-plans`}>Transport Plans</a></li>
@@ -129,6 +130,15 @@
 				<li>
 					<a href={`/games/${$game.id}/techs`} class="justify-between">Techs</a>
 				</li>
+				{#if $me.isAdmin()}
+					<li><div class="divider" /></li>
+					<li>
+						<a href={`/admin/games`} class="justify-between">All Games</a>
+					</li>
+					<li>
+						<a href={`/admin/users`} class="justify-between">Users</a>
+					</li>
+				{/if}
 				<li><div class="divider" /></li>
 				<li><a href="/auth/logout">Logout, {$me.username}</a></li>
 			</ul>

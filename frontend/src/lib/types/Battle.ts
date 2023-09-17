@@ -1,5 +1,7 @@
+import type { Universe } from '$lib/services/Universe';
 import { flatten, groupBy, sumBy } from 'lodash-es';
 import type { Cargo } from './Cargo';
+import type { MapObject } from './MapObject';
 import type { Vector } from './Vector';
 
 export type BattleRecord = {
@@ -279,4 +281,23 @@ export function getTheirDead(record: BattleRecord, allies: Set<number>): number 
 		}
 	});
 	return count;
+}
+
+// get a target for the scanner so we can "goto" a battle and select this mapobject
+export function getScannerTarget(
+	battle: BattleRecord,
+	universe: Universe
+): MapObject | undefined {
+	if (battle.planetNum) {
+		return universe.getPlanet(battle.planetNum);
+	} else {
+		const myMapObjectsAtPosition = universe.getMyMapObjectsByPosition(battle.position);
+		const mapObjectsAtPosition = universe.getMapObjectsByPosition(battle.position);
+
+		if (myMapObjectsAtPosition.length > 0) {
+			return myMapObjectsAtPosition[0];
+		} else if (mapObjectsAtPosition) {
+			return mapObjectsAtPosition[0];
+		}
+	}
 }

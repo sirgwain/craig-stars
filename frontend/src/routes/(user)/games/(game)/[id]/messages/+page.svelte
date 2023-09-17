@@ -1,23 +1,26 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import SortableTableHeader from '$lib/components/SortableTableHeader.svelte';
 	import TableSearchInput from '$lib/components/TableSearchInput.svelte';
 	import { getGameContext } from '$lib/services/Contexts';
-	import { gotoMessageTarget } from '$lib/services/Stores';
-	import { MessageType, type Message } from '$lib/types/Message';
+	import { MessageType, gotoTarget, type Message } from '$lib/types/Message';
 	import { SvelteTable, type SvelteTableColumn } from '@hurtigruten/svelte-table';
 	import MessageDetail from './MessageDetail.svelte';
 
 	const { game, player, universe } = getGameContext();
 
 	const selectMessage = (message: Message) => {
-		gotoMessageTarget($game, $player, message);
-		goto(`/games/${$game.id}`);
+		gotoTarget(message, $game.id, $player.num, $universe);
 	};
 
 	const getTarget = (message: Message) => {
 		if (message.battleNum) {
-			return 'Battle';
+			const battle = $universe.getBattle(message.battleNum);
+
+			if (battle) {
+				return `Battle at ${$universe.getBattleLocation(battle)}`;
+			} else {
+				return 'Battle';
+			}
 		}
 		if (message.type === MessageType.GainTechLevel) {
 			return 'Research';

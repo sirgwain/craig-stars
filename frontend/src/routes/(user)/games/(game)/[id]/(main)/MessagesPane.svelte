@@ -1,25 +1,25 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import { getGameContext } from '$lib/services/Contexts';
-	import { commandMapObject, selectMapObject, zoomToMapObject } from '$lib/services/Stores';
-	import type { Fleet } from '$lib/types/Fleet';
-	import { MapObjectType, None, ownedBy } from '$lib/types/MapObject';
+	import { selectMapObject, zoomToMapObject } from '$lib/services/Stores';
+	import { getScannerTarget } from '$lib/types/Battle';
+	import type { MapObject } from '$lib/types/MapObject';
 	import {
 		MessageTargetType,
 		MessageType,
 		getNextVisibleMessageNum,
+		gotoTarget,
 		type Message
 	} from '$lib/types/Message';
 	import {
 		ArrowLongLeft,
 		ArrowLongRight,
 		ArrowTopRightOnSquare,
+		Eye,
 		MagnifyingGlassMinus,
 		MagnifyingGlassPlus
 	} from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import hotkeys from 'hotkeys-js';
-	import { kebabCase } from 'lodash-es';
 	import { onMount } from 'svelte/internal';
 	import MessageDetail from '../messages/MessageDetail.svelte';
 
@@ -28,6 +28,7 @@
 	export let showMessages = false;
 	export let messages: Message[];
 	let showFilteredMessages = false;
+	let viewBattle = false;
 
 	$: message = messages.length ? messages[$messageNum] : undefined;
 	$: nextVisibleMessageNum = getNextVisibleMessageNum(
@@ -66,13 +67,6 @@
 		return num;
 	}
 
-	const previous = () => {
-		$messageNum = getPreviousVisibleMessageNum($messageNum, showFilteredMessages, messages);
-	};
-	const next = () => {
-		$messageNum = getNextVisibleMessageNum($messageNum, showFilteredMessages, messages, $settings);
-	};
-
 	function isMessageGotoable(message: Message | undefined): boolean {
 		if (!message) {
 			return false;
@@ -89,92 +83,55 @@
 		return false;
 	}
 
-	const gotoTarget = () => {
-		if (message) {
-			const targetType = message.targetType ?? MessageTargetType.None;
-			let moType = MapObjectType.None;
-
-			if (message.battleNum) {
-				goto(`/games/${$game.id}/battles/${message.battleNum}`);
-				return;
-			}
-
-			if (message.type === MessageType.GainTechLevel) {
-				goto(`/games/${$game.id}/research`);
-			}
-
-			if (message.type === MessageType.TechGained && message.spec.techGained) {
-				goto(`/games/${$game.id}/techs/${kebabCase(message.spec.techGained)}`);
-			}
-
-			if (message.targetNum) {
-				switch (targetType) {
-					case MessageTargetType.Planet:
-						moType = MapObjectType.Planet;
-						break;
-					case MessageTargetType.Fleet:
-						moType = MapObjectType.Fleet;
-						break;
-					case MessageTargetType.Wormhole:
-						moType = MapObjectType.Wormhole;
-						break;
-					case MessageTargetType.MineField:
-						moType = MapObjectType.MineField;
-						break;
-					case MessageTargetType.MysteryTrader:
-						moType = MapObjectType.MysteryTrader;
-						break;
-					case MessageTargetType.MineralPacket:
-						moType = MapObjectType.MineralPacket;
-						break;
-					case MessageTargetType.Battle:
-						break;
-				}
-
-				if (moType != MapObjectType.None) {
-					const target = $universe.getMapObject(message);
-					if (target) {
-						if (target.type == MapObjectType.Fleet) {
-							const orbitingPlanetNum = (target as Fleet).orbitingPlanetNum;
-							if (orbitingPlanetNum && orbitingPlanetNum != None) {
-								const orbiting = $universe.getPlanet(orbitingPlanetNum);
-								if (orbiting) {
-									selectMapObject(orbiting);
-								}
-							}
-						} else {
-							selectMapObject(target);
-						}
-						if (ownedBy(target, $player.num)) {
-							commandMapObject(target);
-						}
-
-						// zoom on goto
-						zoomToMapObject(target);
-					}
-				}
-			}
-		}
+	const previous = (event: Event) => {
+		event.preventDefault();
+		$messageNum = getPreviousVisibleMessageNum($messageNum, showFilteredMessages, messages);
+		viewBattle = false;
+		showMessages = true;
 	};
 
+	const next = (event: Event) => {
+		event.preventDefault();
+		$messageNum = getNextVisibleMessageNum($messageNum, showFilteredMessages, messages, $settings);
+		viewBattle = false;
+		showMessages = true;
+	};
+
+	function goto() {
+		if (message) {
+			// battles go to the location on first click, and go to vattle view on second clic
+			if (message.battleNum) {
+				if (viewBattle) {
+					viewBattle = false;
+					gotoTarget(message, $game.id, $player.num, $universe);
+				} else {
+					viewBattle = true;
+					const battle = $universe.getBattle(message.battleNum);
+					if (battle) {
+						const target = getScannerTarget(battle, $universe);
+						if (target) {
+							selectMapObject(target);
+							zoomToMapObject(target);
+						} else {
+							zoomToMapObject({ position: battle.position } as MapObject);
+					}
+					}
+				}
+			} else {
+				gotoTarget(message, $game.id, $player.num, $universe);
+			}
+		}
+	}
+
 	onMount(() => {
-		hotkeys('up', () => {
-			showMessages = true;
-			previous();
-		});
-		hotkeys('down', () => {
-			showMessages = true;
-			next();
-		});
-		hotkeys('enter', () => {
-			showMessages = true;
-			gotoTarget();
-		});
+		hotkeys('up', 'root', previous);
+		hotkeys('down', 'root', next);
+		hotkeys('enter', 'root', goto);
 
 		return () => {
-			hotkeys.unbind('up');
-			hotkeys.unbind('down');
-			hotkeys.unbind('enter');
+			hotkeys.unbind('up', 'root', previous);
+			hotkeys.unbind('down', 'root', next);
+			hotkeys.unbind('enter', 'root', goto);
 		};
 	});
 </script>
@@ -238,16 +195,20 @@
 							</div>
 							<div class="tooltip" data-tip="goto">
 								<button
-									on:click={gotoTarget}
+									on:click={goto}
 									disabled={!isMessageGotoable(message)}
 									class="btn btn-outline btn-sm normal-case btn-secondary"
 									title="goto"
-									><Icon
-										src={ArrowTopRightOnSquare}
-										size="16"
-										class="hover:stroke-accent inline"
-									/></button
-								>
+									>{#if viewBattle}
+										<Icon src={Eye} size="16" class="hover:stroke-accent inline" />
+									{:else}
+										<Icon
+											src={ArrowTopRightOnSquare}
+											size="16"
+											class="hover:stroke-accent inline"
+										/>
+									{/if}
+								</button>
 							</div>
 							<div class="tooltip" data-tip="next">
 								<button

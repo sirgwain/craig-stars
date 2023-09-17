@@ -40,7 +40,7 @@
 
 <div class="modal" class:modal-open={show}>
 	<div class="modal-box max-w-full max-h-max h-full w-full lg:max-w-[40rem] lg:max-h-[48rem]">
-		{#if props}
+		{#if props && show}
 			<SplitFleet fleet={props.fleet} on:ok={onOk} on:cancel={() => (show = false)} />
 		{/if}
 	</div>

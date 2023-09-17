@@ -515,7 +515,7 @@ func (c *GameConverter) csPlanetToDbPlanet(source cs.Planet) Planet {
 	dbPlanet.RouteTargetPlayerNum = source.PlanetOrders.RouteTargetPlayerNum
 	dbPlanet.PacketTargetNum = source.PlanetOrders.PacketTargetNum
 	dbPlanet.PacketSpeed = source.PlanetOrders.PacketSpeed
-	dbPlanet.BonusResources = source.BonusResources
+	dbPlanet.RandomArtifact = source.RandomArtifact
 	dbPlanet.ProductionQueue = GameProductionQueueItemsToProductionQueueItems(source.PlanetOrders.ProductionQueue)
 	dbPlanet.Spec = GamePlanetSpecToPlanetSpec(source.Spec)
 	return dbPlanet
@@ -762,8 +762,8 @@ func (c *GameConverter) dbPlanetToCsPlanet(source Planet) cs.Planet {
 	csPlanet.Defenses = source.Defenses
 	csPlanet.Homeworld = source.Homeworld
 	csPlanet.Scanner = source.Scanner
-	csPlanet.BonusResources = source.BonusResources
 	csPlanet.Spec = PlanetSpecToGamePlanetSpec(source.Spec)
+	csPlanet.RandomArtifact = source.RandomArtifact
 	return csPlanet
 }
 func (c *GameConverter) dbSalvageToCsSalvage(source Salvage) cs.Salvage {

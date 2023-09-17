@@ -156,20 +156,20 @@
 
 	onMount(() => {
 		// TODO: these hotkeys can't be on the component... they are wired up twice because we render the command pane twice
-		hotkeys('Delete', () => {
+		hotkeys('Delete', 'root', () => {
 			deleteWaypoint();
 		});
-		hotkeys('Backspace', () => {
+		hotkeys('Backspace', 'root', () => {
 			deleteWaypoint();
 		});
-		hotkeys('down', () => onNextWaypoint());
-		hotkeys('up', () => onPrevWaypoint());
+		// hotkeys('down', () => onNextWaypoint());
+		// hotkeys('up', () => onPrevWaypoint());
 
 		return () => {
-			hotkeys.unbind('Delete');
-			hotkeys.unbind('Backspace');
-			hotkeys.unbind('down');
-			hotkeys.unbind('up');
+			hotkeys.unbind('Delete', 'root');
+			hotkeys.unbind('Backspace', 'root');
+			// hotkeys.unbind('down');
+			// hotkeys.unbind('up');
 		};
 	});
 </script>

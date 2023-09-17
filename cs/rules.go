@@ -28,8 +28,13 @@ type Rules struct {
 	MineFieldCloak                     int                                 `json:"mineFieldCloak"`
 	StargateMaxRangeFactor             int                                 `json:"stargateMaxRangeFactor"`
 	StargateMaxHullMassFactor          int                                 `json:"stargateMaxHullMassFactor"`
+	FleetSafeSpeedExplosionChance      float64                             `json:"fleetSafeSpeedExplosionChance"`
 	RandomEventChances                 map[RandomEvent]float64             `json:"randomEventChances"`
 	RandomMineralDepositBonusRange     [2]int                              `json:"randomMineralDepositBonusRange"`
+	RandomArtifactResearchBonusRange   [2]int                              `json:"randomArtifactResearchBonusRange"`
+	RandomCometMinYear                 int                                 `json:"randomCometMinYear,omitempty"`
+	RandomCometMinYearPlayerWorld      int                                 `json:"randomCometMinYearPlayerWorld,omitempty"`
+	CometStatsBySize                   map[CometSize]CometStats            `json:"cometStatsBySize,omitempty"`
 	WormholeCloak                      int                                 `json:"wormholeCloak"`
 	WormholeMinPlanetDistance          int                                 `json:"wormholeMinDistance"`
 	WormholeStatsByStability           map[WormholeStability]WormholeStats `json:"wormholeStatsByStability"`
@@ -44,7 +49,10 @@ type Rules struct {
 	MinExtraWorldDistance              int                                 `json:"minExtraWorldDistance"`
 	MinHomeworldMineralConcentration   int                                 `json:"minHomeworldMineralConcentration"`
 	MinExtraPlanetMineralConcentration int                                 `json:"minExtraPlanetMineralConcentration"`
+	MinHab                             int                                 `json:"minHab"`
+	MaxHab                             int                                 `json:"maxHab"`
 	MinMineralConcentration            int                                 `json:"minMineralConcentration"`
+	MaxMineralConcentration            int                                 `json:"maxMineralConcentration"`
 	MinStartingMineralConcentration    int                                 `json:"minStartingMineralConcentration"`
 	MaxStartingMineralConcentration    int                                 `json:"maxStartingMineralConcentration"`
 	HighRadGermaniumBonus              int                                 `json:"highRadGermaniumBonus"`
@@ -87,6 +95,38 @@ const (
 	RandomEventMysteryTrader   RandomEvent = "MysteryTrader"
 )
 
+type CometSize string
+
+const (
+	CometSmall  CometSize = "Small"
+	CometMedium CometSize = "Medium"
+	CometLarge  CometSize = "Large"
+	CometHuge   CometSize = "Huge"
+)
+
+var CometSizes = []CometSize{
+	CometSmall,
+	CometMedium,
+	CometLarge,
+	CometHuge,
+}
+
+// each type of comet has stats for minerals added to each mineral type
+// as well as some additional mineral types that get bonuses
+type CometStats struct {
+	AllMinerals              int     `json:"minMinerals,omitempty"`
+	AllRandomMinerals        int     `json:"randomMinerals,omitempty"`
+	BonusMinerals            int     `json:"bonusMinerals,omitempty"`
+	BonusRandomMinerals      int     `json:"bonusRandomMinerals,omitempty"`
+	BonusMinConcentration    int     `json:"minConcentrationBonus,omitempty"`
+	BonusRandomConcentration int     `json:"randomConcentrationBonus,omitempty"`
+	BonusAffectsMinerals     int     `json:"affectsMinerals,omitempty"`
+	MinTerraform             int     `json:"minTerraform,omitempty"`
+	RandomTerraform          int     `json:"randomTerraform,omitempty"`
+	AffectsHabs              int     `json:"affectsHabs,omitempty"`
+	PopKilledPercent         float64 `json:"popKilledPercent,omitempty"`
+}
+
 type RepairRate string
 
 const (
@@ -102,11 +142,12 @@ var StandardRules = NewRules()
 
 // Seed the random number generator with the rules Seed value
 // This should be called after deserializing
+// This can be used to generate the same world repeatedly (hopefully)
 func (r *Rules) ResetSeed(seed int64) {
 	r.random = rand.New(rand.NewSource(seed))
 }
 
-func (r *Rules) WithTechStore(techStore *TechStore) *Rules {
+func (r *Rules) SetTechStore(techStore *TechStore) *Rules {
 	r.techs = techStore
 	return r
 }
@@ -139,17 +180,75 @@ func NewRulesWithSeed(seed int64) Rules {
 		MineFieldCloak:                   75,
 		StargateMaxRangeFactor:           5,
 		StargateMaxHullMassFactor:        5,
+		FleetSafeSpeedExplosionChance:    .1, // 10% chance of losing a ship
 		RadiatingImmune:                  85, // hab center of > 85 are immune to radating damage
 		RandomEventChances: map[RandomEvent]float64{
-			RandomEventComet:           0.01,
-			RandomEventMineralDeposit:  0.01,
-			RandomEventPlanetaryChange: 0.01,
-			RandomEventAncientArtifact: 0.01,
-			RandomEventMysteryTrader:   0.01,
+			RandomEventComet:           .05, // 1 in 20 chance of a planet being struck by a comet in a given turn
+			RandomEventMineralDeposit:  .05,
+			RandomEventPlanetaryChange: .05,
+			RandomEventAncientArtifact: .33, // 1 in 3 planets have random artifacts
+			RandomEventMysteryTrader:   .05,
 		},
-		RandomMineralDepositBonusRange: [2]int{20, 50},
-		WormholeCloak:                  75,
-		WormholeMinPlanetDistance:      30,
+		RandomCometMinYear:            10,
+		RandomCometMinYearPlayerWorld: 20,
+		CometStatsBySize: map[CometSize]CometStats{
+			CometSmall: {
+				AllMinerals:              50, // adds 50 minerals to 300 minerals (>> 4) to all types
+				AllRandomMinerals:        250,
+				BonusMinerals:            3000, // adds (3000 to 20000) >> 4 bonus minerals
+				BonusRandomMinerals:      17000,
+				BonusMinConcentration:    50, // adds 50 to 100 mineral concentration
+				BonusRandomConcentration: 50,
+				BonusAffectsMinerals:     1,   // only one mineral gets a bonus + concentration
+				MinTerraform:             3,   // terraforms by +/- 3 points
+				RandomTerraform:          3,   // randomly terraforms by an additional +/- 3 points
+				AffectsHabs:              1,   // terraforming affects one hab
+				PopKilledPercent:         .25, // 25% pop killed
+			},
+			CometMedium: {
+				AllMinerals:              50, // adds 50 minerals to 300 minerals (>> 4) to all types
+				AllRandomMinerals:        250,
+				BonusMinerals:            3000, // adds (3000 to 20000) >> 4 bonus minerals
+				BonusRandomMinerals:      17000,
+				BonusMinConcentration:    50, // adds 50 to 100 mineral concentration
+				BonusRandomConcentration: 50,
+				BonusAffectsMinerals:     2, // two minerals gets a bonus + concentration
+				MinTerraform:             3,
+				RandomTerraform:          3,
+				AffectsHabs:              2, // terraforming affects two habs
+				PopKilledPercent:         .45,
+			},
+			CometLarge: {
+				AllMinerals:              50, // adds 50 minerals to 300 minerals (>> 4) to all types
+				AllRandomMinerals:        250,
+				BonusMinerals:            3000, // adds (3000 to 20000) >> 4 bonus minerals
+				BonusRandomMinerals:      17000,
+				BonusMinConcentration:    50, // adds 50 to 100 mineral concentration
+				BonusRandomConcentration: 50,
+				BonusAffectsMinerals:     3, // three minerals gets a bonus + concentration
+				MinTerraform:             3,
+				RandomTerraform:          3,
+				AffectsHabs:              3, // terraforming affects three habs
+				PopKilledPercent:         .65,
+			},
+			CometHuge: {
+				AllMinerals:              50, // adds 50 minerals to 300 minerals (>> 4) to all types
+				AllRandomMinerals:        250,
+				BonusMinerals:            3000, // adds (3000 to 20000) >> 4 bonus minerals
+				BonusRandomMinerals:      17000,
+				BonusMinConcentration:    65, // adds 65 to 130 mineral concentration
+				BonusRandomConcentration: 65,
+				BonusAffectsMinerals:     3, // three minerals gets a bonus + concentration
+				MinTerraform:             6, // terraforms 6 to 12 in a random direction
+				RandomTerraform:          6,
+				AffectsHabs:              3, // terraforming affects three habs
+				PopKilledPercent:         .85,
+			},
+		},
+		RandomMineralDepositBonusRange:   [2]int{20, 50},
+		RandomArtifactResearchBonusRange: [2]int{120, 400},
+		WormholeCloak:                    75,
+		WormholeMinPlanetDistance:        30,
 		WormholeStatsByStability: map[WormholeStability]WormholeStats{
 			WormholeStabilityRockSolid: {
 				YearsToDegrade: 10,
@@ -251,6 +350,9 @@ func NewRulesWithSeed(seed int64) Rules {
 		MinHomeworldMineralConcentration:   30,
 		MinExtraPlanetMineralConcentration: 30,
 		MinMineralConcentration:            1,
+		MaxMineralConcentration:            200,
+		MinHab:                             1,
+		MaxHab:                             99,
 		MinStartingMineralConcentration:    1,
 		MaxStartingMineralConcentration:    100,
 		HighRadGermaniumBonus:              5,

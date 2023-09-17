@@ -4,13 +4,15 @@ import hotkeys from 'hotkeys-js';
 import { get, type Readable } from 'svelte/store';
 
 export const bindNavigationHotkeys = (gameId: number, page: Readable<Page>) => {
-	hotkeys('esc', () => {
+	hotkeys('esc', 'root', () => {
 		goto(`/games/${gameId}`);
 	});
-	hotkeys('F2', () => {
+	hotkeys('F2', 'root', (event) => {
+		event.preventDefault();
 		goto(`/games/${gameId}/techs`);
 	});
-	hotkeys('F3', () => {
+	hotkeys('F3', 'root', (event) => {
+		event.preventDefault();
 		const pathname = get(page)?.url.pathname;
 		switch (pathname) {
 			case `/games/${gameId}`:
@@ -32,26 +34,36 @@ export const bindNavigationHotkeys = (gameId: number, page: Readable<Page>) => {
 				goto(`/games/${gameId}`);
 				break;
 		}
-	});	
-	hotkeys('F4', () => {
+	});
+	hotkeys('F4', 'root', (event) => {
+		event.preventDefault();
 		goto(`/games/${gameId}/designer`);
 	});
-	hotkeys('F5', () => {
+	hotkeys('F5', 'root', (event) => {
+		event.preventDefault();
 		goto(`/games/${gameId}/research`);
 	});
-	hotkeys('F8', () => {
+	hotkeys('F7', 'root', (event) => {
+		event.preventDefault();
+		goto(`/games/${gameId}/relations`);
+	});
+	hotkeys('F8', 'root', (event) => {
+		event.preventDefault();
 		goto(`/games/${gameId}/race`);
 	});
-	hotkeys('F10', () => {
+	hotkeys('F10', 'root', (event) => {
+		event.preventDefault();
 		goto(`/games/${gameId}/players`);
 	});
 };
 
 export const unbindNavigationHotkeys = () => {
-	hotkeys.unbind('esc');
-	hotkeys.unbind('F2');
-	hotkeys.unbind('F3');
-	hotkeys.unbind('F4');
-	hotkeys.unbind('F5');
-	hotkeys.unbind('F10');
+	hotkeys.unbind('esc', 'root');
+	hotkeys.unbind('F2', 'root');
+	hotkeys.unbind('F3', 'root');
+	hotkeys.unbind('F4', 'root');
+	hotkeys.unbind('F5', 'root');
+	hotkeys.unbind('F7', 'root');
+	hotkeys.unbind('F8', 'root');
+	hotkeys.unbind('F10', 'root');
 };

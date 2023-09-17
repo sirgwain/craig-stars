@@ -20,19 +20,20 @@
 		<div class="font-semibold mr-5">Max Fuel</div>
 		<div>{spec.fuelCapacity ?? 0}mg</div>
 	</div>
-	<div class="flex justify-between">
-		<div class="font-semibold mr-5">Est Range</div>
-
-		<div>
-			{#if spec.estimatedRange == Infinite}
-				Infinite
-			{:else if spec.cargoCapacity}
-				{spec.estimatedRange ?? 0}ly/{spec.estimatedRangeFull ?? 0}ly
-			{:else}
-				{spec.estimatedRange ?? 0}ly
-			{/if}
+	{#if spec.estimatedRange}
+		<div class="flex justify-between">
+			<div class="font-semibold mr-5">Est Range</div>
+			<div>
+				{#if spec.estimatedRange == Infinite}
+					Infinite
+				{:else if spec.cargoCapacity}
+					{spec.estimatedRange ?? 0}ly/{spec.estimatedRangeFull ?? 0}ly
+				{:else}
+					{spec.estimatedRange ?? 0}ly
+				{/if}
+			</div>
 		</div>
-	</div>
+	{/if}
 
 	{#if spec.cargoCapacity}
 		<div class="flex justify-between">

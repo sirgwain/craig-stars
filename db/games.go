@@ -303,10 +303,7 @@ func (c *client) GetFullGame(id int64) (*cs.FullGame, error) {
 		}
 	}
 
-	game.Rules.WithTechStore(techStore)
-
-	// init the random generator after load
-	(&game.Rules).ResetSeed(game.Seed)
+	game.Rules.SetTechStore(techStore)
 
 	fg := cs.FullGame{
 		Game:      &game,

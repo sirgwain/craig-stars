@@ -49,7 +49,7 @@ type Planet struct {
 	RouteTargetPlayerNum              int                   `json:"routeTargetPlayerNum,omitempty"`
 	PacketTargetNum                   int                   `json:"packetTargetNum,omitempty"`
 	PacketSpeed                       int                   `json:"packetSpeed,omitempty"`
-	BonusResources                    int                   `json:"bonusResources,omitempty"`
+	RandomArtifact                    bool                  `json:"randomArtifact,omitempty"`
 	ProductionQueue                   *ProductionQueueItems `json:"productionQueue,omitempty"`
 	Spec                              *PlanetSpec           `json:"spec,omitempty"`
 }
@@ -190,6 +190,7 @@ func (c *client) GetPlanetByNum(gameID int64, num int) (*cs.Planet, error) {
 		p.routeTargetPlayerNum AS 'planet.routeTargetPlayerNum',
 		p.packetTargetNum AS 'planet.packetTargetNum',
 		p.packetSpeed AS 'planet.packetSpeed',
+		p.randomArtifact AS 'planet.randomArtifact',
 		p.productionQueue AS 'planet.productionQueue',
 		p.spec AS 'planet.spec',
 
@@ -283,6 +284,7 @@ func (c *client) createPlanet(planet *cs.Planet) error {
 		routeTargetPlayerNum,
 		packetTargetNum,
 		packetSpeed,
+		randomArtifact,
 		productionQueue,
 		spec
 	)
@@ -326,6 +328,7 @@ func (c *client) createPlanet(planet *cs.Planet) error {
 		:routeTargetPlayerNum,
 		:packetTargetNum,
 		:packetSpeed,
+		:randomArtifact,
 		:productionQueue,
 		:spec
 	)
@@ -389,6 +392,7 @@ func (c *client) UpdatePlanet(planet *cs.Planet) error {
 		routeTargetPlayerNum = :routeTargetPlayerNum,
 		packetTargetNum = :packetTargetNum,
 		packetSpeed = :packetSpeed,
+		randomArtifact = :randomArtifact,
 		productionQueue = :productionQueue,
 		spec = :spec
 	WHERE id = :id

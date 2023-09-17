@@ -18,14 +18,24 @@ type PlayerMessage struct {
 }
 
 type PlayerMessageSpec struct {
-	Amount         int               `json:"amount,omitempty"`
-	PrevAmount     int               `json:"prevAmount,omitempty"`
-	QueueItemType  QueueItemType     `json:"queueItemType,omitempty"`
-	Field          TechField         `json:"field,omitempty"`
-	NextField      TechField         `json:"nextField,omitempty"`
-	TechGained     string            `json:"techGained,omitempty"`
-	LostTargetType MapObjectType     `json:"lostTargetType,omitempty"`
-	Battle         BattleRecordStats `json:"battle,omitempty"`
+	Amount         int                     `json:"amount,omitempty"`
+	PrevAmount     int                     `json:"prevAmount,omitempty"`
+	Name           string                  `json:"name,omitempty"`
+	QueueItemType  QueueItemType           `json:"queueItemType,omitempty"`
+	Field          TechField               `json:"field,omitempty"`
+	NextField      TechField               `json:"nextField,omitempty"`
+	TechGained     string                  `json:"techGained,omitempty"`
+	LostTargetType MapObjectType           `json:"lostTargetType,omitempty"`
+	Battle         BattleRecordStats       `json:"battle,omitempty"`
+	Comet          *PlayerMessageSpecComet `json:"comet,omitempty"`
+}
+
+type PlayerMessageSpecComet struct {
+	Size                          CometSize `json:"size,omitempty"`
+	MineralsAdded                 Mineral   `json:"mineralsAdded,omitempty"`
+	MineralConcentrationIncreased Mineral   `json:"mineralConcentrationIncreased,omitempty"`
+	HabChanged                    Hab       `json:"habChanged,omitempty"`
+	ColonistsKilled               int       `json:"colonistsKilled,omitempty"`
 }
 
 type PlayerMessageTargetType string
@@ -119,6 +129,10 @@ const (
 	PlayerMessagePlanetPopulationDecreasedOvercrowding
 	PlayerMessagePlayerDead
 	PlayerMessagePlayerNoPlanets
+	PlayerMessageCometStrike
+	PlayerMessageCometStrikeMyPlanet
+	PlayerMessageFleetShipExceededSafeSpeed
+	PlayerMessageBonusResearchArtifact
 )
 
 func newMessage(messageType PlayerMessageType) PlayerMessage {
@@ -132,7 +146,7 @@ func newPlanetMessage(messageType PlayerMessageType, target *Planet) PlayerMessa
 
 // create a new message targeting a fleet
 func newFleetMessage(messageType PlayerMessageType, target *Fleet) PlayerMessage {
-	return PlayerMessage{Type: messageType, TargetType: TargetFleet, TargetPlayerNum: target.PlayerNum, TargetNum: target.Num}
+	return PlayerMessage{Type: messageType, TargetType: TargetFleet, TargetPlayerNum: target.PlayerNum, TargetNum: target.Num, Spec: PlayerMessageSpec{Name: target.Name}}
 }
 
 func (m PlayerMessage) withSpec(spec PlayerMessageSpec) PlayerMessage {

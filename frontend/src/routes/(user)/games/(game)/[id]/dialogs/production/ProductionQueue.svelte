@@ -375,6 +375,7 @@
 	const dispatch = createEventDispatcher();
 
 	onMount(() => {
+		const originalScope = hotkeys.getScope();
 		const scope = 'production';
 		hotkeys('Esc', cancel);
 		hotkeys('Enter', ok);
@@ -388,6 +389,7 @@
 			hotkeys.unbind('n', scope, next);
 			hotkeys.unbind('p', scope, prev);
 			hotkeys.deleteScope(scope);
+			hotkeys.setScope(originalScope);
 		};
 	});
 

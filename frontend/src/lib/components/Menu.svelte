@@ -55,6 +55,16 @@
 					<li class="md:hidden"><a href="/games">Games</a></li>
 					<li class="md:hidden"><a href="/races">Races</a></li>
 					<li class="md:hidden"><a href="/techs">Techs</a></li>
+					{#if user.isAdmin()}
+						<li><div class="divider" /></li>
+						<li>
+							<a href={`/admin/games`} class="justify-between">All Games</a>
+						</li>
+						<li>
+							<a href={`/admin/users`} class="justify-between">Users</a>
+						</li>
+					{/if}
+					<li><div class="divider" /></li>
 					<li><a href="/auth/logout">Logout, {user.username}</a></li>
 				{:else}
 					<li class="md:hidden"><a href="/techs">Techs</a></li>

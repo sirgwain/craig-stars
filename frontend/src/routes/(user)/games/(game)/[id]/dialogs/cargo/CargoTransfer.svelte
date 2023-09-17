@@ -7,7 +7,7 @@
 	import { MapObjectType } from '$lib/types/MapObject';
 	import type { Planet } from '$lib/types/Planet';
 	import hotkeys from 'hotkeys-js';
-	import { createEventDispatcher } from 'svelte';
+	import { createEventDispatcher, onMount } from 'svelte';
 	import type { CargoTransferEvent } from './CargoTranfserDialog.svelte';
 	import FleetTransfer from './FleetTransfer.svelte';
 	import PlanetTransfer from './PlanetTransfer.svelte';
@@ -34,7 +34,7 @@
 		fuel = 0;
 	};
 
-	const ok = async () => {
+	const ok = () => {
 		dispatch('transfer-cargo', { src, dest, transferAmount });
 		reset();
 	};
@@ -44,9 +44,19 @@
 		dispatch('cancel');
 	};
 
-	hotkeys('Esc', () => cancel());
-	hotkeys('Enter', () => {
-		ok();
+	onMount(() => {
+		const originalScope = hotkeys.getScope();
+		const scope = 'cargoTransfer';
+		hotkeys('Esc', scope, cancel);
+		hotkeys('Enter', scope, ok);
+		hotkeys.setScope(scope);
+
+		return () => {
+			hotkeys.unbind('Esc', scope, cancel);
+			hotkeys.unbind('Enter', scope, ok);
+			hotkeys.deleteScope(scope);
+			hotkeys.setScope(originalScope);
+		};
 	});
 
 	$: src && src.cargo && (cargo = src.cargo);

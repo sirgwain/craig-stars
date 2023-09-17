@@ -108,6 +108,14 @@ func (c Mineral) MultiplyFloat64(factor float64) Mineral {
 	}
 }
 
+func (m Mineral) Clamp(min, max int) Mineral {
+	return Mineral{
+		Ironium:   Clamp(m.Ironium, min, max),
+		Boranium:  Clamp(m.Boranium, min, max),
+		Germanium: Clamp(m.Germanium, min, max),
+	}
+}
+
 func (c Mineral) GreatestType() CargoType {
 	if c.Ironium >= c.Boranium && c.Ironium >= c.Germanium {
 		return Ironium

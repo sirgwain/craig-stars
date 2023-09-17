@@ -127,6 +127,7 @@ type Client interface {
 	UpdatePlayer(player *cs.Player) error
 	SubmitPlayerTurn(gameID int64, num int, submittedTurn bool) error
 	UpdatePlayerOrders(player *cs.Player) error
+	UpdatePlayerRelations(player *cs.Player) error
 	UpdatePlayerSpec(player *cs.Player) error
 	UpdatePlayerPlans(player *cs.Player) error
 	UpdatePlayerSalvageIntels(player *cs.Player) error

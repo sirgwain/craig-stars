@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/Contexts';
-	import { MessageType, type Message } from '$lib/types/Message';
+	import { MessageType, type Message, CometSize } from '$lib/types/Message';
 	import type { Planet, getQueueItemShortName } from '$lib/types/Planet';
 	import type { PlayerIntel } from '$lib/types/Player';
 	import { startCase } from 'lodash-es';
@@ -58,10 +58,54 @@
 		All of your colonists on {planet.name} have died off. You no longer control the planet.
 	{/if}
 {:else if message.type === MessageType.PlanetPopulationDecreased}
-	The population on {planet.name} has decreased from {(message.spec.prevAmount ?? 0).toLocaleString()} to {(message.spec.amount ?? 0).toLocaleString()}.
+	The population on {planet.name} has decreased from {(
+		message.spec.prevAmount ?? 0
+	).toLocaleString()} to {(message.spec.amount ?? 0).toLocaleString()}.
 {:else if message.type === MessageType.PlanetPopulationDecreasedOvercrowding}
 	The population on {planet.name} has decreased by {(-(message.spec.amount ?? 0)).toLocaleString()} due
 	to overcrowding.
+{:else if message.type === MessageType.CometStrike}
+	{#if message.spec.comet?.size == CometSize.Small}
+		A small comet has crashed into {planet.name} bringing new minerals and altering the planet's environment.
+	{:else if message.spec.comet?.size == CometSize.Medium}
+		A medium-sized comet has crashed into {planet.name} bringing a significant quantity of minerals to
+		the planet.
+	{:else if message.spec.comet?.size == CometSize.Large}
+		A large comet has crashed into {planet.name} bringing a wide variety of new minerals and drastically
+		altering the planet's environment.
+	{:else if message.spec.comet?.size == CometSize.Huge}
+		A huge comet has crashed into {planet.name} embedding vast quantities of minerals in the planet and
+		radically altering its environment.
+	{:else}
+		A comet has crashed into {planet.name} bringing new minerals and altering the planet's environment.
+	{/if}
+{:else if message.type === MessageType.CometStrikeMyPlanet}
+	{#if message.spec.comet?.size == CometSize.Small}
+		A small comet has crashed into your planet {planet.name}, killing {(
+			message.spec.comet?.colonistsKilled ?? 0
+		).toLocaleString()} of your colonists. The comet brought additional minerals and has slightly altered
+		the planet's habitat.
+	{:else if message.spec.comet?.size == CometSize.Medium}
+		A medium-sized comet has crashed into your planet {planet.name}, killing {(
+			message.spec.comet?.colonistsKilled ?? 0
+		).toLocaleString()} of your colonists. The comet brought additional minerals and has altered the
+		planet's environment.
+	{:else if message.spec.comet?.size == CometSize.Large}
+		A large comet has crashed into your planet {planet.name}, killing {(
+			message.spec.comet?.colonistsKilled ?? 0
+		).toLocaleString()} of your colonists. The comet brought significant quantities of minerals and has
+		greatly altered the planet's environment.
+	{:else if message.spec.comet?.size == CometSize.Huge}
+		A huge comet has crashed into your planet {planet.name}, killing {(
+			message.spec.comet?.colonistsKilled ?? 0
+		).toLocaleString()} of your colonists. The comet has embedded vast stores of minerals and has drastically
+		altered the planet's environment.
+	{:else}
+		A comet has crashed into {planet.name} bringing new minerals and altering the planet's environment.
+	{/if}
+{:else if message.type === MessageType.BonusResearchArtifact}
+	Your colonists settling {planet.name} have found a strange artifact boosting your research in {message
+		.spec.field} by {message.spec.amount} resources.
 {:else}
 	<FallbackMessageDetail {message} />
 {/if}

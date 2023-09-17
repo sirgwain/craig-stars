@@ -178,7 +178,7 @@ func (t *turn) scrapFleet(fleet *Fleet) {
 		planet.Cargo = planet.Cargo.AddCostMinerals(cost)
 		planet.Cargo = planet.Cargo.AddMineral(fleet.Cargo.ToMineral())
 		if planet.OwnedBy(player.Num) {
-			planet.BonusResources += cost.Resources
+			planet.bonusResources += cost.Resources
 		}
 	} else {
 		// create salvage
@@ -418,6 +418,12 @@ func (t *turn) fleetLoad() {
 					Str("Packet", packet.Name).
 					Msgf("deleted salvage")
 
+			}
+
+			// after load, remove the transport task if this isn't a repeating order
+			if !fleet.RepeatOrders && !wp.WaitAtWaypoint {
+				wp.Task = WaypointTaskNone
+				wp.TransportTasks = WaypointTransportTasks{}
 			}
 		}
 	}
@@ -696,7 +702,9 @@ func (t *turn) fleetMove() {
 	}
 }
 
+// move the actual fleet in the universe from a to b handling minefield destruction, engine strain, stargates, etc
 func (t *turn) moveFleet(fleet *Fleet) {
+	player := t.game.getPlayer(fleet.PlayerNum)
 	originalPosition := fleet.Position
 	wp0 := fleet.Waypoints[0]
 	wp1 := &fleet.Waypoints[1]
@@ -747,6 +755,48 @@ func (t *turn) moveFleet(fleet *Fleet) {
 		Str("End", fleet.Position.String()).
 		Msgf("moved fleet")
 
+	// check for exploded ships
+	explodedShips := 0
+	updatedTokens := make([]ShipToken, 0, len(fleet.Tokens))
+	for tokenIndex := range fleet.Tokens {
+		token := &fleet.Tokens[tokenIndex]
+		if wp1.WarpSpeed > token.design.Spec.Engine.MaxSafeSpeed {
+			// explode some fleets if you go too fast
+			for shipIndex := 0; shipIndex < token.Quantity; shipIndex++ {
+				if t.game.Rules.FleetSafeSpeedExplosionChance > t.game.Rules.random.Float64() {
+					explodedShips++
+					token.Quantity--
+				}
+			}
+			if token.Quantity > 0 {
+				updatedTokens = append(updatedTokens, *token)
+			}
+		} else {
+			updatedTokens = append(updatedTokens, *token)
+		}
+	}
+
+	// tell the player they lost ships
+	if explodedShips > 0 {
+		log.Debug().
+			Int64("GameID", t.game.ID).
+			Str("Name", t.game.Name).
+			Int("Year", t.game.Year).
+			Int("Player", fleet.PlayerNum).
+			Str("Fleet", fleet.Name).
+			Int("ExplodedShips", explodedShips).
+			Int("Warp", wp1.WarpSpeed).
+			Msgf("fleet ships exploded due to unsafe warp")
+
+		player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetShipExceededSafeSpeed, fleet).withSpec(
+			PlayerMessageSpec{Name: fleet.Name, Amount: explodedShips},
+		))
+	}
+	fleet.Tokens = updatedTokens
+
+	// update the game dictionaries with this fleet's new position
+	t.game.moveFleet(fleet, originalPosition)
+
 	// make sure we have tokens left after move
 	if len(fleet.Tokens) == 0 {
 		t.game.deleteFleet(fleet)
@@ -770,9 +820,6 @@ func (t *turn) moveFleet(fleet *Fleet) {
 			Str("Waypoint", fmt.Sprintf("%s: %s", wp0.TargetName, wp0.Task)).
 			Msgf("repeating waypoint")
 	}
-
-	// update the game dictionaries with this fleet's new position
-	t.game.moveFleet(fleet, originalPosition)
 }
 
 // kill off colonists on fleets from radiation poisoning
@@ -1316,6 +1363,44 @@ func (t *turn) playerResearch() {
 
 	// keep track of how many research resources are stealable by other players
 	stealableResearchResources := TechLevel{}
+
+	// handle bonus artifacts
+	if t.game.RandomEvents {
+
+		for _, planet := range t.game.Planets {
+			if planet.RandomArtifact && planet.Owned() {
+				// score, we got a new artifact, but only once
+				planet.RandomArtifact = false
+				planet.MarkDirty()
+
+				// figure out which field we research
+				player := t.game.getPlayer(planet.PlayerNum)
+				bonusRange := t.game.Rules.RandomArtifactResearchBonusRange
+				amount := t.game.Rules.random.Intn(bonusRange[1]-bonusRange[0]) + bonusRange[0]
+				field := TechFields[t.game.Rules.random.Intn(len(TechFields))]
+
+				// research the field this random artifact came in
+				r.researchField(player, field, amount, onLevelGained)
+				stealableResearchResources.Set(field, stealableResearchResources.Get(field)+amount)
+				player.ResearchSpentLastYear += amount
+
+				player.Messages = append(player.Messages, newPlanetMessage(PlayerMessageBonusResearchArtifact, planet).withSpec(
+					PlayerMessageSpec{Amount: amount, Field: field},
+				))
+
+				log.Debug().
+					Int64("GameID", t.game.ID).
+					Int("Player", player.Num).
+					Str("Planet", planet.Name).
+					Int("Amount", amount).
+					Str("Field", string(field)).
+					Msgf("player found a research bonus artifact")
+
+			}
+		}
+	}
+
+	// finally, do regular research for each player
 	for _, player := range t.game.Players {
 		primaryField := player.Researching
 		resourcesToSpend := int(float64(resourcesToSpendByPlayer[player.Num])*player.Race.Spec.ResearchFactor + .5)
@@ -1533,7 +1618,114 @@ func (t *turn) fleetRefuel() {
 	}
 }
 
+// strike a random planet with a comet
 func (t *turn) randomCometStrike() {
+	if t.game.Year < t.game.Rules.StartingYear+t.game.Rules.RandomCometMinYear {
+		return
+	}
+
+	random := t.game.Rules.random
+	chance := t.game.Rules.RandomEventChances[RandomEventComet]
+	if chance == 0 || t.game.Rules.random.Float64() > chance {
+		// no strike today
+		return
+	}
+
+	planet := t.game.Planets[random.Intn(len(t.game.Planets))]
+	if planet.Owned() && t.game.Year < t.game.Rules.StartingYear+t.game.Rules.RandomCometMinYearPlayerWorld {
+		// don't hit a player world in the first 20 years
+		return
+	}
+
+	// pick a random sizeIndex
+	sizeIndex := random.Intn(len(CometSizes))
+	size := CometSizes[sizeIndex]
+	stats := t.game.Rules.CometStatsBySize[size]
+
+	// we made it, time to tear it up
+	var minerals [3]int
+	var mineralConcentration [3]int
+	var terraformAmount [3]int
+
+	for i := 0; i < 3; i++ {
+		// every mineral gets a slight boost
+		minerals[i] = (stats.AllMinerals + random.Intn(stats.AllRandomMinerals))
+
+		// add a bonus to some other minerals, 1 to 3 of them depending on comet size
+		if i < stats.BonusAffectsMinerals {
+			minerals[i] += (stats.BonusMinerals + random.Intn(stats.BonusRandomMinerals))
+			mineralConcentration[i] = stats.BonusMinConcentration + random.Intn(stats.BonusRandomConcentration)
+		}
+		// drop down the random numbers a bit
+		minerals[i] = minerals[i] >> 4
+
+		if i < stats.AffectsHabs {
+			// terraform up or down randomly
+			terraformFactor := t.game.Rules.random.Intn(2)*2 - 1
+			terraformAmount[i] = (stats.MinTerraform + random.Intn(stats.RandomTerraform)) * terraformFactor
+		}
+	}
+
+	// shuffle the amounts so comets don't always hit the same things
+	random.Shuffle(len(minerals), func(i, j int) {
+		minerals[i], minerals[j] = minerals[j], minerals[i]
+		mineralConcentration[i], mineralConcentration[j] = mineralConcentration[j], mineralConcentration[i]
+	})
+	random.Shuffle(len(terraformAmount), func(i, j int) {
+		terraformAmount[i], terraformAmount[j] = terraformAmount[j], terraformAmount[i]
+	})
+
+	mineralsAdded := Mineral{minerals[0], minerals[1], minerals[2]}
+	mineralConcentrationIncreased := Mineral{mineralConcentration[0], mineralConcentration[1], mineralConcentration[2]}
+	habChanged := Hab{terraformAmount[0], terraformAmount[1], terraformAmount[2]}
+	colonistsKilled := 0
+
+	planet.Cargo = planet.Cargo.AddMineral(mineralsAdded)
+	planet.MineralConcentration = planet.MineralConcentration.Add(mineralConcentrationIncreased).Clamp(t.game.Rules.MinMineralConcentration, t.game.Rules.MaxMineralConcentration)
+	planet.Hab = planet.Hab.Add(habChanged).Clamp(t.game.Rules.MinHab, t.game.Rules.MaxHab)
+	planet.BaseHab = planet.BaseHab.Add(habChanged).Clamp(t.game.Rules.MinHab, t.game.Rules.MaxHab)
+	if planet.Cargo.Colonists > 0 {
+		pop := planet.population()
+		planet.Cargo.Colonists = int(float64(planet.Cargo.Colonists) * (1 - stats.PopKilledPercent))
+		colonistsKilled = pop - planet.population()
+	}
+	planet.MarkDirty()
+
+	for _, player := range t.game.Players {
+		if planet.PlayerNum == player.Num {
+			player.Messages = append(player.Messages, newPlanetMessage(PlayerMessageCometStrikeMyPlanet, planet).withSpec(
+				PlayerMessageSpec{
+					Comet: &PlayerMessageSpecComet{
+						Size:                          size,
+						MineralsAdded:                 mineralsAdded,
+						MineralConcentrationIncreased: mineralConcentrationIncreased,
+						HabChanged:                    habChanged,
+						ColonistsKilled:               colonistsKilled,
+					},
+				},
+			))
+		} else {
+			player.Messages = append(player.Messages, newPlanetMessage(PlayerMessageCometStrike, planet).withSpec(
+				PlayerMessageSpec{
+					Comet: &PlayerMessageSpecComet{
+						Size: size,
+					},
+				},
+			))
+		}
+	}
+
+	log.Debug().
+		Int64("GameID", t.game.ID).
+		Str("Name", t.game.Name).
+		Int("Year", t.game.Year).
+		Str("Planet", planet.Name).
+		Int("Player", planet.PlayerNum).
+		Str("MineralsAdded", fmt.Sprintf("%+v", mineralsAdded)).
+		Str("MineralConcentrationIncreased", fmt.Sprintf("%+v", mineralConcentrationIncreased)).
+		Str("HabChanged", fmt.Sprintf("%+v", habChanged)).
+		Int("ColonistsKilled", colonistsKilled).
+		Msgf("planet struck by %v comet", size)
 
 }
 

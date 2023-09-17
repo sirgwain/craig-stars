@@ -304,7 +304,7 @@ func (g *Game) WithSettings(settings GameSettings) *Game {
 
 	// use custome tech store for this game
 	if settings.TechStore != nil {
-		g.Rules.WithTechStore(settings.TechStore)
+		g.Rules.SetTechStore(settings.TechStore)
 	}
 
 	return g

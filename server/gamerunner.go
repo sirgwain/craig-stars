@@ -737,13 +737,13 @@ func (gr *gameRunner) LoadPlayerGame(gameID int64, userID int64) (*cs.GameWithPl
 	}
 
 	if game.Rules.TechsID == 0 {
-		game.Rules.WithTechStore(&cs.StaticTechStore)
+		game.Rules.SetTechStore(&cs.StaticTechStore)
 	} else {
 		techs, err := readClient.GetTechStore(game.Rules.TechsID)
 		if err != nil {
 			return nil, nil, err
 		}
-		game.Rules.WithTechStore(techs)
+		game.Rules.SetTechStore(techs)
 	}
 
 	player, err := readClient.GetFullPlayerForGame(gameID, userID)

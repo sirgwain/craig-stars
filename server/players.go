@@ -36,6 +36,14 @@ func (req *researchCostRequest) Bind(r *http.Request) error {
 	return nil
 }
 
+type playerRelationsRequest struct {
+	*cs.Player
+}
+
+func (req *playerRelationsRequest) Bind(r *http.Request) error {
+	return nil
+}
+
 // context for /api/games/{id} calls that require a player
 func (s *server) playerCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -365,7 +373,7 @@ func (s *server) renderFullPlayerGame(w http.ResponseWriter, r *http.Request, ga
 	rest.RenderJSON(w, rest.JSON{"game": game, "player": fullPlayer.Player, "universe": universe})
 }
 
-// Submit a turn for the player
+// Update a player's orders (research field, research amount)
 func (s *server) updatePlayerOrders(w http.ResponseWriter, r *http.Request) {
 	db := s.contextDb(r)
 	game := s.contextGame(r)
@@ -423,7 +431,35 @@ func (s *server) updatePlayerOrders(w http.ResponseWriter, r *http.Request) {
 	rest.RenderJSON(w, rest.JSON{"player": player, "planets": planets})
 }
 
-// Submit a turn for the player
+// update the player's relations with other players
+func (s *server) updatePlayerRelations(w http.ResponseWriter, r *http.Request) {
+	db := s.contextDb(r)
+	player := s.contextPlayer(r)
+
+	relationsRequest := playerRelationsRequest{}
+	if err := render.Bind(r, &relationsRequest); err != nil {
+		render.Render(w, r, ErrBadRequest(err))
+		return
+	}
+
+	if len(relationsRequest.Relations) != len(player.Relations) {
+		render.Render(w, r, ErrBadRequest(fmt.Errorf("must include all player relations")))
+		return
+	}
+
+	// save the player to the database
+	player.Relations = relationsRequest.Relations
+	if err := db.UpdatePlayerRelations(player); err != nil {
+		log.Error().Err(err).Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update player relations")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	log.Info().Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update relations")
+	rest.RenderJSON(w, player.Relations)
+}
+
+// Update a player's plans
 func (s *server) updatePlayerPlans(w http.ResponseWriter, r *http.Request) {
 	db := s.contextDb(r)
 	player := s.contextPlayer(r)

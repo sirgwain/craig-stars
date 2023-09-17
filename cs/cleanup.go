@@ -13,6 +13,7 @@ This file will hold cleanup functions for cleaning up this sort of data on the g
 type Cleaner interface {
 	RemovePlayerDesignIntels(game *FullGame)
 	AddScannerToInnateScannerPlanets(game *FullGame)
+	AddRandomArtifactsToPlanets(game *FullGame)
 }
 
 type cleanup struct {
@@ -58,5 +59,30 @@ func (c *cleanup) AddScannerToInnateScannerPlanets(game *FullGame) {
 			Int64("GameID", game.ID).
 			Str("Name", game.Name).
 			Msgf("cleanup: setting scanner to true for player %d's %s planet", player.Num, planet.Name)
+	}
+}
+
+// we support random artifacts now, yay! upgrade our existing games
+func (c *cleanup) AddRandomArtifactsToPlanets(game *FullGame) {
+	if !game.RandomEvents {
+		return
+	}
+
+	for _, planet := range game.Planets {
+		if planet.Owned() {
+			continue
+		}
+
+		// check if this planet should have a random artifact
+		if game.Rules.RandomEventChances[RandomEventAncientArtifact] > game.Rules.random.Float64() {
+			planet.RandomArtifact = true
+			planet.MarkDirty()
+
+			log.Info().
+				Int64("GameID", game.ID).
+				Str("Name", game.Name).
+				Msgf("cleanup: added random artifact to planet %s", planet.Name)
+		}
+
 	}
 }
