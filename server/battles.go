@@ -62,7 +62,20 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 				{HullComponent: cs.Superlatanium.Name, HullSlotIndex: 5, Quantity: 1},
 				{HullComponent: cs.Overthruster.Name, HullSlotIndex: 6, Quantity: 1},
 				{HullComponent: cs.BattleComputer.Name, HullSlotIndex: 7, Quantity: 1},
-			}))
+			}),
+		cs.NewShipDesign(player2, 2).
+			WithName("Stalwart Sapper").
+			WithHull(cs.Destroyer.Name).
+			WithSlots([]cs.ShipDesignSlot{
+				{HullComponent: cs.LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
+				{HullComponent: cs.PulsedSapper.Name, HullSlotIndex: 2, Quantity: 1},
+				{HullComponent: cs.PulsedSapper.Name, HullSlotIndex: 3, Quantity: 1},
+				{HullComponent: cs.RhinoScanner.Name, HullSlotIndex: 4, Quantity: 1},
+				{HullComponent: cs.Superlatanium.Name, HullSlotIndex: 5, Quantity: 1},
+				{HullComponent: cs.Overthruster.Name, HullSlotIndex: 6, Quantity: 1},
+				{HullComponent: cs.Overthruster.Name, HullSlotIndex: 7, Quantity: 1},
+			}),
+	)
 
 	fleets := []*cs.Fleet{
 		{

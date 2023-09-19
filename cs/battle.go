@@ -201,6 +201,8 @@ type battleToken struct {
 	minRange          int
 	maxRange          int
 	maxDamageRange    int
+	torpedoJamming    float64
+	beamDefense       float64
 }
 
 func (bt *battleToken) hasWeapons() bool {
@@ -248,11 +250,23 @@ type battleWeaponSlot struct {
 	// the power of the weapon
 	power int
 
+	// true if this weapon damages shields only (i.e. a sapper)
+	damagesShieldsOnly bool
+
 	// the accuracy of the weapon, if it's a torpedo
 	accuracy float64
 
 	// the initiative of the weapon
 	initiative int
+}
+
+// Return true if this weapon slot wiil damage this token
+// if this is a sapper and the target is out of shields, return false
+func (slot *battleWeaponSlot) willDamage(target *battleToken) bool {
+	if target == nil {
+		return false
+	}
+	return !slot.damagesShieldsOnly || (slot.damagesShieldsOnly && target.stackShields > 0)
 }
 
 // Return true if this weapon slot is in range of the token target
@@ -325,6 +339,7 @@ func newBattler(rules *Rules, techFinder TechFinder, battleNum int, players map[
 	tokens := []*battleToken{}
 	tokenRecords := []BattleRecordToken{}
 	num := 0
+	dampening := 0
 	for _, fleet := range fleets {
 		for i := range fleet.Tokens {
 			token := &fleet.Tokens[i]
@@ -350,6 +365,8 @@ func newBattler(rules *Rules, techFinder TechFinder, battleNum int, players map[
 				shields:           token.design.Spec.Shields,
 				stackShields:      token.Quantity * token.design.Spec.Shields,
 				totalStackShields: token.Quantity * token.design.Spec.Shields,
+				torpedoJamming:    token.design.Spec.TorpedoJamming,
+				beamDefense:       token.design.Spec.BeamDefense,
 				attributes:        getBattleTokenAttributes(token.design.Spec.HullType, token.design.Spec.HasWeapons),
 			}
 			board[position.X][position.Y] += battleToken.StartingQuantity
@@ -360,7 +377,7 @@ func newBattler(rules *Rules, techFinder TechFinder, battleNum int, players map[
 				minRange := math.MaxInt
 				maxRange := 0
 				for _, slot := range token.design.Spec.WeaponSlots {
-					bws := newBattleWeaponSlot(battleToken, slot, techFinder.GetHullComponent(slot.HullComponent), hull.RangeBonus, token.design.Spec.TorpedoInaccuracyFactor)
+					bws := newBattleWeaponSlot(battleToken, slot, techFinder.GetHullComponent(slot.HullComponent), hull.RangeBonus, token.design.Spec.TorpedoInaccuracyFactor, token.design.Spec.BeamBonus)
 					weaponSlots = append(weaponSlots, bws)
 					minRange = MinInt(minRange, bws.weaponRange)
 					maxRange = MaxInt(maxRange, bws.weaponRange)
@@ -383,8 +400,22 @@ func newBattler(rules *Rules, techFinder TechFinder, battleNum int, players map[
 				}
 			}
 
+			// find the highest dampener we have
+			dampening = MaxInt(dampening, token.design.Spec.ReduceMovement)
+
 			tokens = append(tokens, battleToken)
 			tokenRecords = append(tokenRecords, battleToken.BattleRecordToken)
+		}
+	}
+
+	// apply dampening
+	if dampening > 0 {
+		for _, token := range tokens {
+			// we only dampen movement of ships that move, not starbases (obviously)
+			// and we can't go below 2
+			if token.Movement > 0 {
+				token.Movement = Clamp(token.Movement - dampening, 2, 10)
+			}
 		}
 	}
 
@@ -404,18 +435,20 @@ func newBattler(rules *Rules, techFinder TechFinder, battleNum int, players map[
 }
 
 // newBattleWeaponSlot creates a new BattleWeaponSlot object
-func newBattleWeaponSlot(token *battleToken, slot ShipDesignSlot, hc *TechHullComponent, rangeBonus int, torpedoInaccuracyFactor float64) *battleWeaponSlot {
+func newBattleWeaponSlot(token *battleToken, slot ShipDesignSlot, hc *TechHullComponent, rangeBonus int, torpedoInaccuracyFactor float64, beamBonus float64) *battleWeaponSlot {
 	weaponSlot := &battleWeaponSlot{
-		token:       token,
-		slot:        slot,
-		weaponRange: hc.Range + rangeBonus,
-		power:       hc.Power,
-		accuracy:    (100.0 - (100.0-float64(hc.Accuracy))*torpedoInaccuracyFactor) / 100.0,
-		initiative:  hc.Initiative,
+		token:              token,
+		slot:               slot,
+		weaponRange:        hc.Range + rangeBonus,
+		power:              hc.Power,
+		damagesShieldsOnly: hc.DamageShieldsOnly,
+		accuracy:           (100.0 - (100.0-float64(hc.Accuracy))*torpedoInaccuracyFactor) / 100.0,
+		initiative:         hc.Initiative,
 	}
 
 	if hc.Category == TechCategoryBeamWeapon {
 		weaponSlot.weaponType = battleWeaponTypeBeam
+		weaponSlot.power = int(float64(weaponSlot.power) * (1 + beamBonus))
 	} else if hc.Category == TechCategoryTorpedo {
 		weaponSlot.weaponType = battleWeaponTypeTorpedo
 	}
@@ -540,9 +573,9 @@ func (b *battle) findTargets(weapon *battleWeaponSlot, tokens []*battleToken) (t
 		}
 
 		// if we will target this
-		if b.willTarget(primaryTarget, token) && weapon.isInRange(token) {
+		if b.willTarget(primaryTarget, token) && weapon.isInRange(token) && weapon.willDamage(token) {
 			primaryTargets = append(primaryTargets, token)
-		} else if b.willTarget(secondaryTarget, token) && weapon.isInRange(token) {
+		} else if b.willTarget(secondaryTarget, token) && weapon.isInRange(token) && weapon.willDamage(token) {
 			secondaryTargets = append(secondaryTargets, token)
 		}
 	}
@@ -643,6 +676,10 @@ func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot, targets []*battleToken
 		if remainingDamage == 0 {
 			break
 		}
+		// skip targets that are out of shields for sappers
+		if weapon.damagesShieldsOnly && target.stackShields <= 0 {
+			continue
+		}
 
 		shields := target.stackShields
 		armor := target.armor
@@ -654,9 +691,12 @@ func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot, targets []*battleToken
 			rangedDamage = remainingDamage * (1 - b.rules.BeamRangeDropoff*float64(distance)/float64(weapon.weaponRange))
 		}
 
+		// account for beam defense
+		rangedDamage = rangedDamage * (1 - target.beamDefense)
+
 		log.Debug().Msgf("%v fired %v %v(s) at %v (shields: %v, armor: %v, distance: %v, %v@%v damage) for %v (range adjusted to %v)", weapon.token, weapon.slot.Quantity, weapon.slot.HullComponent, target, shields, armor, distance, target.Quantity, target.Damage, remainingDamage, rangedDamage)
 
-		if rangedDamage > float64(shields) {
+		if rangedDamage > float64(shields) && !weapon.damagesShieldsOnly {
 			remainingDamage = rangedDamage - float64(shields)
 			target.stackShields = 0
 
@@ -696,6 +736,7 @@ func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot, targets []*battleToken
 
 		} else {
 			target.stackShields -= int(rangedDamage)
+			target.stackShields = MaxInt(0, target.stackShields) // make sure we don't go below 0
 			log.Debug().Msgf("%v firing %v %v(s) did %v damage to %v shields, leaving %v shields still operational.", weapon.token, weapon.slot.Quantity, weapon.slot.HullComponent, rangedDamage, target, target.stackShields)
 			b.record.recordBeamFire(b.round, weapon.token, weapon.token.Position, target.Position, weapon.slot.HullSlotIndex, *target, int(rangedDamage), 0, 0)
 		}
@@ -772,7 +813,7 @@ func (b *battle) fireTorpedo(weapon *battleWeaponSlot, targets []*battleToken) {
 			// fire a torpedo
 			torpedoNum++
 			remainingTorpedos--
-			hit := accuracy > float64(rand.Float64())
+			hit := (accuracy - target.torpedoJamming) > float64(rand.Float64())
 
 			if hit {
 				hits++
@@ -912,6 +953,10 @@ func (b *battle) regenerateShields(token *battleToken) {
 	}
 }
 
+// get the best move to attack a target
+// this checks all the nearby squares and moves in the direction that gets the token
+// closer or does the best damage, according to the battle plan
+// i.e. max damage, max damage ratio, max net damage, etc
 func (b *battle) getBestAttackMove(token *battleToken) BattleVector {
 
 	bestDamageDone := 0
@@ -989,7 +1034,7 @@ func (b *battle) getBestRunAwayMove(token *battleToken) BattleVector {
 
 	bestDamageTaken := math.MaxInt
 	var bestMove = token.Position
-	bestDistance := math.MaxInt
+	bestDistance := 0
 	pickedMove := false
 
 	for dx := -1; dx <= 1; dx++ {
@@ -1022,7 +1067,7 @@ func (b *battle) getBestRunAwayMove(token *battleToken) BattleVector {
 				damageTaken += b.getDamageDone(attacker, distance)
 
 				// if this will move us away from this fleet targeting us, see if it's the best low damage move
-				if distance <= bestDistance && bestDamageTaken <= damageTaken {
+				if distance >= bestDistance && bestDamageTaken <= damageTaken {
 					// if this damage is the same, flip a coin to take this new move or not
 					if bestDamageTaken == damageTaken && b.rules.random.Intn(2) == 0 {
 						break
@@ -1095,20 +1140,26 @@ func (b *battle) getTarget(attacker *battleToken, defenders []*battleToken) *bat
 	return secondaryTarget
 }
 
+// get the attractiveness of a token based on cost and defense capabilities
 func (defender *battleToken) getAttractiveness(attacker *battleToken) float64 {
 	cost := defender.design.Spec.Cost.MultiplyInt(defender.Quantity)
 	defense := (defender.armor + defender.shields) * defender.Quantity
 
-	// TODO: change defense based on attacker weapons
-
 	return float64(float64(cost.Germanium+cost.Resources) / float64(defense))
 }
 
+// get the attractiveness of a token versus a weapon
 func (weapon *battleWeaponSlot) getAttractiveness(target *battleToken) float64 {
 	cost := target.design.Spec.Cost.MultiplyInt(target.Quantity)
-	defense := (target.armor + target.shields) * target.Quantity
+	defense := float64((target.armor + target.shields) * target.Quantity)
 
-	// TODO: change defense based on attacker weapons
+	// increase the defense for jammers and beam deflectors
+	switch weapon.weaponType {
+	case battleWeaponTypeBeam:
+		defense = defense * (1 + target.beamDefense)
+	case battleWeaponTypeTorpedo:
+		defense = defense * (1 + target.torpedoJamming)
+	}
 
 	return float64(float64(cost.Germanium+cost.Resources) / float64(defense))
 }

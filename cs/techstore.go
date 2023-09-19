@@ -276,7 +276,20 @@ func (store *TechStore) GetBestBeamWeapon(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
-		if tech.Category == TechCategoryBeamWeapon && tech.Power > 0 && player.HasTech(&tech.Tech) {
+		if tech.Category == TechCategoryBeamWeapon && tech.Power > 0 && !tech.DamageShieldsOnly && player.HasTech(&tech.Tech) {
+			// techs are sorted by rank, so the latest is the best
+			bestTech = tech
+		}
+	}
+	return bestTech
+}
+
+// get the best sapper for a player
+func (store *TechStore) GetBestSapper(player *Player) *TechHullComponent {
+	var bestTech *TechHullComponent
+	for i := range store.HullComponents {
+		tech := &store.HullComponents[i]
+		if tech.Category == TechCategoryBeamWeapon && tech.Power > 0 && tech.DamageShieldsOnly && player.HasTech(&tech.Tech) {
 			// techs are sorted by rank, so the latest is the best
 			bestTech = tech
 		}
@@ -1445,13 +1458,13 @@ var EnergyCapacitor = TechHullComponent{Tech: NewTech("Energy Capacitor", NewCos
 var FluxCapacitor = TechHullComponent{Tech: NewTech("Flux Capacitor", NewCost(0, 0, 8, 5), TechRequirements{TechLevel: TechLevel{Energy: 14, Electronics: 8}, PRTRequired: HE}, 120, TechCategoryElectrical),
 
 	Mass:         1,
-	BeamBonus:    .1,
+	BeamBonus:    .2,
 	HullSlotType: HullSlotTypeElectrical,
 }
 var EnergyDampener = TechHullComponent{Tech: NewTech("Energy Dampener", NewCost(5, 10, 0, 50), TechRequirements{TechLevel: TechLevel{Energy: 14, Propulsion: 8}, PRTRequired: SD}, 130, TechCategoryElectrical),
 
 	Mass:           2,
-	ReduceMovement: 1,
+	ReduceMovement: 4,
 	HullSlotType:   HullSlotTypeElectrical,
 }
 var TachyonDetector = TechHullComponent{Tech: NewTech("Tachyon Detector", NewCost(1, 5, 0, 70), TechRequirements{TechLevel: TechLevel{Energy: 8, Electronics: 14}, PRTRequired: IS}, 140, TechCategoryElectrical),

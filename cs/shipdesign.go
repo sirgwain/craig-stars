@@ -50,6 +50,7 @@ type ShipDesignSpec struct {
 	BeamDefense               float64               `json:"beamDefense,omitempty"`
 	Initiative                int                   `json:"initiative,omitempty"`
 	Movement                  int                   `json:"movement,omitempty"`
+	ReduceMovement            int                   `json:"reduceMovement,omitempty"`
 	PowerRating               int                   `json:"powerRating,omitempty"`
 	Bomber                    bool                  `json:"bomber,omitempty"`
 	Bombs                     []Bomb                `json:"bombs,omitempty"`
@@ -303,6 +304,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 			spec.Colonizer = spec.Colonizer || component.ColonizationModule || component.OrbitalConstructionModule
 			spec.Initiative += component.InitiativeBonus
 			spec.Movement += component.MovementBonus * slot.Quantity
+			spec.ReduceMovement = MaxInt(spec.ReduceMovement, component.ReduceMovement) // these don't stack
 			spec.MiningRate += component.MiningRate * slot.Quantity
 			spec.TerraformRate += component.TerraformRate * slot.Quantity
 			spec.OrbitalConstructionModule = spec.OrbitalConstructionModule || component.OrbitalConstructionModule

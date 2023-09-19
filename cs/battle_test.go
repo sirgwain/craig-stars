@@ -736,3 +736,117 @@ func Test_battle_runBattle1(t *testing.T) {
 	assert.Equal(t, 2, record.Stats.NumShipsByPlayer[player1.Num])
 	assert.Equal(t, 1, record.Stats.NumShipsByPlayer[player2.Num])
 }
+
+func Test_battle_runBattle2(t *testing.T) {
+	player1 := NewPlayer(0, NewRace()).WithNum(1)
+	player2 := NewPlayer(0, NewRace()).WithNum(2)
+	player1.Name = AINames[0] + "s"
+	player2.Name = AINames[1] + "s"
+	player1.Race.PluralName = AINames[0] + "s"
+	player2.Race.PluralName = AINames[1] + "s"
+	player1.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationEnemy}}
+	player2.Relations = []PlayerRelationship{{Relation: PlayerRelationEnemy}, {Relation: PlayerRelationFriend}}
+	player1.PlayerIntels.PlayerIntels = []PlayerIntel{{Num: player1.Num}, {Num: player2.Num}}
+	player2.PlayerIntels.PlayerIntels = []PlayerIntel{{Num: player1.Num}, {Num: player2.Num}}
+
+	player1.Designs = append(player1.Designs,
+		NewShipDesign(player1, 1).
+			WithName("Battle Cruiser").
+			WithHull(BattleCruiser.Name).
+			WithSlots([]ShipDesignSlot{
+				{HullComponent: TransStar10.Name, HullSlotIndex: 1, Quantity: 2},
+				{HullComponent: Overthruster.Name, HullSlotIndex: 2, Quantity: 2},
+				{HullComponent: BattleSuperComputer.Name, HullSlotIndex: 3, Quantity: 2},
+				{HullComponent: ColloidalPhaser.Name, HullSlotIndex: 4, Quantity: 3},
+				{HullComponent: DeltaTorpedo.Name, HullSlotIndex: 5, Quantity: 3},
+				{HullComponent: Overthruster.Name, HullSlotIndex: 6, Quantity: 3},
+				{HullComponent: GorillaDelagator.Name, HullSlotIndex: 7, Quantity: 4},
+			}),
+	)
+
+	player2.Designs = append(player2.Designs,
+		NewShipDesign(player2, 1).
+			WithName("Teamster").
+			WithHull(SmallFreighter.Name).
+			WithSlots([]ShipDesignSlot{
+				{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
+				{HullComponent: Crobmnium.Name, HullSlotIndex: 2, Quantity: 1},
+				{HullComponent: RhinoScanner.Name, HullSlotIndex: 3, Quantity: 1},
+			}),
+		NewShipDesign(player2, 2).
+			WithName("Long Range Scout").
+			WithHull(Scout.Name).
+			WithSlots([]ShipDesignSlot{
+				{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
+				{HullComponent: RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
+				{HullComponent: CompletePhaseShield.Name, HullSlotIndex: 3, Quantity: 1},
+			}),
+		NewShipDesign(player2, 3).
+			WithName("Jammed&Fluxed Defender").
+			WithHull(Destroyer.Name).
+			WithSlots([]ShipDesignSlot{
+				{HullComponent: TransStar10.Name, HullSlotIndex: 1, Quantity: 1},
+				{HullComponent: ColloidalPhaser.Name, HullSlotIndex: 2, Quantity: 1},
+				{HullComponent: ColloidalPhaser.Name, HullSlotIndex: 3, Quantity: 1},
+				{HullComponent: RhinoScanner.Name, HullSlotIndex: 4, Quantity: 1},
+				{HullComponent: Superlatanium.Name, HullSlotIndex: 5, Quantity: 1},
+				{HullComponent: Jammer30.Name, HullSlotIndex: 6, Quantity: 1},
+				{HullComponent: FluxCapacitor.Name, HullSlotIndex: 7, Quantity: 1},
+			}),
+		NewShipDesign(player2, 4).
+			WithName("Stalwart Sapper").
+			WithHull(Destroyer.Name).
+			WithSlots([]ShipDesignSlot{
+				{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
+				{HullComponent: PulsedSapper.Name, HullSlotIndex: 2, Quantity: 1},
+				{HullComponent: PulsedSapper.Name, HullSlotIndex: 3, Quantity: 1},
+				{HullComponent: RhinoScanner.Name, HullSlotIndex: 4, Quantity: 1},
+				{HullComponent: Superlatanium.Name, HullSlotIndex: 5, Quantity: 1},
+				{HullComponent: Overthruster.Name, HullSlotIndex: 6, Quantity: 1},
+				{HullComponent: Overthruster.Name, HullSlotIndex: 7, Quantity: 1},
+			}),
+	)
+
+	fleets := []*Fleet{
+		{
+			MapObject: MapObject{
+				PlayerNum: player1.Num,
+			},
+			BaseName: "Battle Cruiser",
+			Tokens: []ShipToken{
+				{
+					DesignNum: player1.Designs[0].Num,
+					Quantity:  2,
+				},
+			},
+		},
+		// player2's teamster
+		{
+			MapObject: MapObject{
+				PlayerNum: player2.Num,
+			},
+			BaseName: "Teamster+",
+			Tokens: []ShipToken{
+				{
+					Quantity:  5,
+					DesignNum: player2.Designs[0].Num,
+				},
+				{
+					Quantity:  2,
+					DesignNum: player2.Designs[1].Num,
+				},
+				{
+					Quantity:  3,
+					DesignNum: player2.Designs[2].Num,
+				},
+				{
+					Quantity:  4,
+					DesignNum: player2.Designs[3].Num,
+				},
+			},
+		}}
+
+	record := RunTestBattle([]*Player{player1, player2}, fleets)
+	// ran some number of turns
+	assert.Less(t, 5, len(record.ActionsPerRound))
+}
