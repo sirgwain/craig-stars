@@ -38,5 +38,5 @@
 		on:change={(e) => raceChanged(e.detail)}
 	/>
 
-	<ColorInput bind:value={player.color} name="color" />
+	<!-- <ColorInput bind:value={player.color} name="color" /> -->
 {/if}

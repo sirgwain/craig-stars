@@ -5,4 +5,4 @@
 	export let player: NewGamePlayer;
 </script>
 
-<ColorInput bind:value={player.color} name="color" />
+<!-- <ColorInput bind:value={player.color} name="color" /> -->

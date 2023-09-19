@@ -9,13 +9,11 @@
 	import ActiveGameRow from './ActiveGameRow.svelte';
 
 	let myGames: Game[];
-	let myGamesWaitingToGenerate: Game[];
-	let myGamesWaitingToStart: Game[];
 	let gamesWaitingToStart: Game[];
 	let openGames: Game[];
-	let pendingGames: Game[];
+	let newTurnGames: Game[];
 	let singlePlayerGames: Game[];
-	let submittedGames: Game[];
+	let submittedTurnGames: Game[];
 
 	onMount(() => {
 		loadGames();
@@ -29,18 +27,13 @@
 			myGames = games;
 			myGames.sort(sorter);
 			// find all multiplayer games where we haven't submitted a turn yet
-			pendingGames = games
+			newTurnGames = games
 				.filter((g) => g.state != GameState.Setup)
 				.filter((g) => !g.players.find((p) => p.userId == $me.id)?.submittedTurn)
 				.filter((g) => g.players.find((p) => p.userId != $me.id && !p.aiControlled));
 
-			// find all multiplayer games where we haven't submitted a turn yet
-			gamesWaitingToStart = games
-				.filter((g) => g.state == GameState.Setup)
-				.filter((g) => g.players.find((p) => p.userId != $me.id));
-
 			// find all games where we've submitted our turn
-			submittedGames = games.filter(
+			submittedTurnGames = games.filter(
 				(g) => g.players.find((p) => p.userId == $me.id)?.submittedTurn
 			);
 
@@ -49,15 +42,16 @@
 				(g) => !g.players.find((p) => p.userId != $me.id && !p.aiControlled)
 			);
 
-			myGamesWaitingToGenerate = games.filter(
-				(g) => g.hostId == $me.id && g.state == GameState.Setup
-			);
-			pendingGames.push(...myGamesWaitingToGenerate);
+			// find all multiplayer games we are part of in setup
+			gamesWaitingToStart = games
+				.filter((g) => g.state == GameState.Setup)
+				.filter((g) => g.players.find((p) => p.userId != $me.id));
 		});
 
 		GameService.loadOpenGames().then((games) => {
 			openGames = games;
 			openGames.sort(sorter);
+			openGames = openGames.filter((g) => g.hostId != $me.id);
 		});
 	}
 
@@ -86,35 +80,20 @@
 	</a>
 </div>
 
-{#if pendingGames?.length > 0}
-	<ItemTitle>Games Waiting on You</ItemTitle>
+{#if newTurnGames?.length > 0}
+	<ItemTitle>New Turns</ItemTitle>
 
 	<div class="mt-2 grid grid-cols-12 gap-1">
-		{#if pendingGames?.length > 0}
-			<div class="col-span-6 text-secondary">Name</div>
+		{#if newTurnGames?.length > 0}
+			<div class="col-span-5 text-secondary">Name</div>
 			<div class="col-span-2 text-secondary">Year</div>
-			<div class="col-span-2 text-secondary">Players</div>
+			<div class="col-span-3 text-secondary">Players</div>
 			<div class="col-span-2" />
 
-			{#each pendingGames as game}
+			{#each newTurnGames as game}
 				<ActiveGameRow {game} on:delete={() => deleteGame(game)} />
 			{/each}
 		{/if}
-	</div>
-{/if}
-
-{#if submittedGames?.length > 0}
-	<ItemTitle>Games Waiting on Others</ItemTitle>
-
-	<div class="mt-2 grid grid-cols-12 gap-1">
-		<div class="col-span-6 text-secondary">Name</div>
-		<div class="col-span-2 text-secondary">Year</div>
-		<div class="col-span-2 text-secondary">Players</div>
-		<div class="col-span-2" />
-
-		{#each submittedGames as game}
-			<ActiveGameRow {game} on:delete={() => deleteGame(game)} />
-		{/each}
 	</div>
 {/if}
 
@@ -122,9 +101,9 @@
 	<ItemTitle>Single Player Games</ItemTitle>
 
 	<div class="mt-2 grid grid-cols-12 gap-1">
-		<div class="col-span-6 text-secondary">Name</div>
+		<div class="col-span-5 text-secondary">Name</div>
 		<div class="col-span-2 text-secondary">Year</div>
-		<div class="col-span-2 text-secondary">Players</div>
+		<div class="col-span-3 text-secondary">Players</div>
 		<div class="col-span-2" />
 		{#each singlePlayerGames as game}
 			<ActiveGameRow {game} showNumSubmitted={false} on:delete={() => deleteGame(game)} />
@@ -132,12 +111,25 @@
 	</div>
 {/if}
 
+{#if submittedTurnGames?.length > 0}
+	<ItemTitle>Submitted</ItemTitle>
+
+	<div class="mt-2 grid grid-cols-12 gap-1">
+		<div class="col-span-5 text-secondary">Name</div>
+		<div class="col-span-2 text-secondary">Year</div>
+		<div class="col-span-3 text-secondary">Players</div>
+		<div class="col-span-2" />
+
+		{#each submittedTurnGames as game}
+			<ActiveGameRow {game} on:delete={() => deleteGame(game)} />
+		{/each}
+	</div>
+{/if}
 {#if gamesWaitingToStart?.length > 0}
 	<ItemTitle>Waiting to Start</ItemTitle>
 	<div class="mt-2 grid grid-cols-12 gap-1">
 		<div class="col-span-6 text-secondary">Name</div>
 		<div class="col-span-6 text-secondary">Players</div>
-
 		{#each gamesWaitingToStart as game}
 			<div class="col-span-6">
 				<a
@@ -155,7 +147,6 @@
 {#if openGames?.length > 0 && !$me.isGuest()}
 	<ItemTitle>New Open Games</ItemTitle>
 	<div class="mt-2 grid grid-cols-12 gap-1">
-		<h2 class="font-semibold text-xl col-span-full">Open Games</h2>
 		<div class="col-span-6 text-secondary">Name</div>
 		<div class="col-span-6 text-secondary">Players</div>
 

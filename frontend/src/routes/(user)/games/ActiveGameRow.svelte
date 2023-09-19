@@ -13,15 +13,15 @@
 	$: numSubmitted = game.players.filter((p) => p.submittedTurn).length;
 </script>
 
-<div class="col-span-6">
+<div class="col-span-5">
 	<a class="text-primary text-2xl hover:text-accent w-full" href="/games/{game.id}">{game.name}</a>
 </div>
 <div class="col-span-2 text-md">
 	{game.year}
 </div>
-<div class="col-span-2 text-md">
+<div class="col-span-3 text-md">
 	{#if showNumSubmitted}
-		{numSubmitted} / {game.numPlayers} Done
+		{numSubmitted} / {game.numPlayers} Submitted
 	{:else}
 		{game.numPlayers}
 	{/if}
