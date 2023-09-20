@@ -6,6 +6,7 @@
 	import type { User } from '$lib/types/User';
 	import { SvelteTable, type SvelteTableColumn } from '@hurtigruten/svelte-table';
 	import { format, parseJSON } from 'date-fns';
+	import { reverse, sortBy } from 'lodash-es';
 	import { onMount } from 'svelte';
 
 	const columns: SvelteTableColumn[] = [
@@ -26,6 +27,14 @@
 			title: 'Updated'
 		},
 		{
+			key: 'year',
+			title: 'Year'
+		},
+		{
+			key: 'size',
+			title: 'Size'
+		},
+		{
 			key: 'players',
 			title: 'Players'
 		}
@@ -36,10 +45,17 @@
 	let usersById: Map<number, User> = new Map();
 	let filteredGames: Game[] = [];
 	let search = '';
+	let sortKey = 'updatedAt';
+	let descending = true;
 
 	$: filteredGames = games;
 
-	$: filteredGames = games?.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1);
+	$: filteredGames = sortBy(
+		games?.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1),
+		sortKey
+	);
+
+	$: descending && (filteredGames = reverse(filteredGames));
 
 	onMount(async () => {
 		try {
@@ -71,7 +87,15 @@
 		let:row
 	>
 		<span slot="head" let:isSorted let:sortDescending>
-			<SortableTableHeader {column} {isSorted} {sortDescending} />
+			<SortableTableHeader
+				{column}
+				isSorted={isSorted || sortKey === column.key}
+				sortDescending={sortDescending || (sortKey === column.key && descending)}
+				on:sorted={(e) => {
+					sortKey = column;
+					descending = e.detail.sortDescending;
+				}}
+			/>
 		</span>
 
 		<span slot="cell">
