@@ -1191,7 +1191,7 @@ func (fleet *Fleet) getScrapAmount(rules *Rules, player *Player, planet *Planet)
 
 // getTransferAmount gets the amount of cargo to transfer for loading a cargo type from a cargoholder
 func (fleet *Fleet) getCargoLoadAmount(dest cargoHolder, cargoType CargoType, task WaypointTransportTask) (transferAmount int, waitAtWaypoint bool) {
-	capacity := fleet.Spec.CargoCapacity - fleet.Cargo.Total()
+	availableCapacity := fleet.Spec.CargoCapacity - fleet.Cargo.Total()
 	availableToLoad := dest.getCargo().GetAmount(cargoType)
 	currentAmount := fleet.Cargo.GetAmount(cargoType)
 	switch task.Action {
@@ -1215,29 +1215,32 @@ func (fleet *Fleet) getCargoLoadAmount(dest cargoHolder, cargoType CargoType, ta
 		}
 	case TransportActionLoadAll:
 		// load all available, based on our constraints
-		transferAmount = MinInt(availableToLoad, capacity)
+		transferAmount = MinInt(availableToLoad, availableCapacity)
 	case TransportActionLoadAmount:
-		transferAmount = MinInt(MinInt(availableToLoad, task.Amount), capacity)
+		transferAmount = MinInt(MinInt(availableToLoad, task.Amount), availableCapacity)
 	case TransportActionWaitForPercent:
 		fallthrough
 	case TransportActionFillPercent:
 		// we want a percent of our hold to be filled with some amount, figure out how
 		// much that is in kT, i.e. 50% of 100kT would be 50kT of this mineral
-		var taskAmountkT = int(float64(task.Amount) / 100 * float64(capacity))
+		var taskAmountkT = int(float64(task.Amount) / 100 * float64(fleet.Spec.CargoCapacity))
 
 		if currentAmount >= taskAmountkT {
 			// no need to transfer any, move on
 			return 0, false
 		} else {
 
-			transferAmount = MinInt(MinInt(availableToLoad, taskAmountkT-currentAmount), capacity)
-			if transferAmount < taskAmountkT && task.Action == TransportActionWaitForPercent {
+			// transfer up to our percent specified
+			// wait here if we haven't loaded the amount we want
+			// but move on if we are out of cargo space (in case the user suffers from innumeracy and said they wanted 50% 50% 50%)
+			transferAmount = MinInt(MinInt(availableToLoad, taskAmountkT-currentAmount), availableCapacity)
+			if (transferAmount+currentAmount) < taskAmountkT && task.Action == TransportActionWaitForPercent && (availableCapacity-transferAmount) > 0 {
 				waitAtWaypoint = true
 			}
 		}
 	case TransportActionSetAmountTo:
 		// only transfer the min of what we have, vs what we need, vs the capacity
-		transferAmount = MinInt(MinInt(availableToLoad, task.Amount-currentAmount), capacity)
+		transferAmount = MinInt(MinInt(availableToLoad, task.Amount-currentAmount), availableCapacity)
 		if transferAmount < (task.Amount - currentAmount) {
 			waitAtWaypoint = true
 		}
@@ -1302,9 +1305,6 @@ func (fleet *Fleet) getCargoUnloadAmount(dest cargoHolder, cargoType CargoType, 
 				transferAmount = MinInt(availableToUnload, task.Amount-currentAmount)
 			} else {
 				transferAmount = MinInt(MinInt(availableToUnload, task.Amount-currentAmount), capacity)
-			}
-			if transferAmount < task.Amount {
-				waitAtWaypoint = true
 			}
 		}
 	}

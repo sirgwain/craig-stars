@@ -143,7 +143,7 @@ func (t *turn) fleetInit() {
 	for _, fleet := range t.game.Fleets {
 		// age this fleet by 1 year
 		fleet.Age++
-		wp0 := fleet.Waypoints[0]
+		wp0 := &fleet.Waypoints[0]
 		wp0.processed = false
 
 		if wp0.Task == WaypointTaskTransport {
@@ -680,7 +680,14 @@ func (t *turn) fleetMove() {
 		originalPosition := fleet.Position
 
 		if len(fleet.Waypoints) > 1 {
+			wp0 := fleet.Waypoints[0]
 			wp1 := fleet.Waypoints[1]
+
+			// no move this turn, we wait
+			if wp0.WaitAtWaypoint {
+				continue				
+			}
+
 			if wp1.TargetType == MapObjectTypeFleet {
 				// move this after all the fleets not targeting fleets move
 				fleetsTargetingFleets = append(fleetsTargetingFleets, fleet)

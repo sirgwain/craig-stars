@@ -77,6 +77,41 @@ func testSmallFreighter(player *Player) *Fleet {
 }
 
 // create a new small freighter (with cargo pod) fleet for testing
+func testGalleon(player *Player) *Fleet {
+	fleet := &Fleet{
+		MapObject: MapObject{
+			Type:      MapObjectTypeFleet,
+			PlayerNum: player.Num,
+			Num:       1,
+		},
+		BaseName: "Galleon",
+		Tokens: []ShipToken{
+			{
+				Quantity:  1,
+				DesignNum: 1,
+				design: NewShipDesign(player, 1).
+					WithHull(Galleon.Name).
+					WithSlots([]ShipDesignSlot{
+						{HullComponent: SubGalacticFuelScoop.Name, HullSlotIndex: 1, Quantity: 4},
+					}).
+					WithSpec(&rules, player)},
+		},
+		battlePlan:        &player.BattlePlans[0],
+		OrbitingPlanetNum: None,
+		FleetOrders: FleetOrders{
+			Waypoints: []Waypoint{
+				NewPositionWaypoint(Vector{}, 5),
+			},
+		},
+	}
+
+	fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
+	fleet.Fuel = fleet.Spec.FuelCapacity
+	return fleet
+
+}
+
+// create a new small freighter (with cargo pod) fleet for testing
 func testMiniMineLayer(player *Player) *Fleet {
 	fleet := &Fleet{
 		MapObject: MapObject{
