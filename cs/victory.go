@@ -115,15 +115,16 @@ func (v *victory) checkExceedScore(player *Player, score PlayerScore) {
 func (v *victory) checkExceedSecondPlaceScore(player *Player, score PlayerScore) {
 	if len(v.game.Players) > 1 {
 		scores := make([]int, len(v.game.Players))
-		for i := range v.game.Players {
-			scores[i] = score.Score
+		for i, player := range v.game.Players {
+			scores[i] = player.GetScore().Score
 		}
 		sort.Slice(scores, func(i, j int) bool {
 			return scores[i] > scores[j]
 		})
 
-		// if my score is 150 and the second place score is 100, I exceed their score by 1-(150/100) = 50%
-		if (1-float64(score.Score)/float64(scores[1]))*100 > float64(v.game.VictoryConditions.ExceedsSecondPlaceScore) {
+		// if my score is 150 and the second place score is 100, my score is 150% of their score
+		percentSecondPlace := int(float64(score.Score) / float64(scores[1]) * 100)
+		if percentSecondPlace >= 100+v.game.VictoryConditions.ExceedsSecondPlaceScore {
 			player.AchievedVictoryConditions |= Bitmask(VictoryConditionExceedsSecondPlaceScore)
 		}
 	}
