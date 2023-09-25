@@ -140,7 +140,6 @@ type Client interface {
 	CreateShipDesign(shipDesign *cs.ShipDesign) error
 	UpdateShipDesign(shipDesign *cs.ShipDesign) error
 	DeleteShipDesign(id int64) error
-	DeleteShipDesignWithFleets(id int64, fleetsToUpdate, fleetsToDelete []*cs.Fleet) error
 
 	GetPlanet(id int64) (*cs.Planet, error)
 	GetPlanetByNum(gameID int64, num int) (*cs.Planet, error)

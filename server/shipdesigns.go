@@ -9,6 +9,7 @@ import (
 	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
+	"github.com/sirgwain/craig-stars/db"
 )
 
 type shipDesignRequest struct {
@@ -105,6 +106,8 @@ func (s *server) createShipDesign(w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, ErrInternalServerError(err))
 	}
 
+	log.Info().Int64("GameID", design.GameID).Int("PlayerNum", player.Num).Str("DesignName", design.Name).Msg("created player design")
+
 	rest.RenderJSON(w, design)
 }
 
@@ -122,11 +125,16 @@ func (s *server) updateShipDesign(w http.ResponseWriter, r *http.Request) {
 	// load in the existing shipDesign from the context
 	existingDesign := s.contextShipDesign(r)
 
-	// validate
-
-	design.PlayerNum = player.Num
-	design.GameID = player.GameID
-	design.Spec = cs.ComputeShipDesignSpec(&game.Rules, player.TechLevels, player.Race.Spec, design.ShipDesign)
+	if existingDesign.Spec.NumInstances > 0 {
+		log.Error().
+			Int64("GameID", existingDesign.GameID).
+			Int64("ID", existingDesign.ID).
+			Int("PlayerNum", existingDesign.PlayerNum).
+			Str("DesignName", design.Name).
+			Msgf("design in use (%d instances), cannot update", existingDesign.Spec.NumInstances)
+		render.Render(w, r, ErrBadRequest(fmt.Errorf("design is in use, cannot update")))
+		return
+	}
 
 	// edge case for bad request where the url num doesn't match the request payload
 	if design.Num != existingDesign.Num {
@@ -134,6 +142,11 @@ func (s *server) updateShipDesign(w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, ErrBadRequest(fmt.Errorf("shipDesign id/user id does not match existing shipDesign")))
 		return
 	}
+
+	// validate
+	design.PlayerNum = player.Num
+	design.GameID = player.GameID
+	design.Spec = cs.ComputeShipDesignSpec(&game.Rules, player.TechLevels, player.Race.Spec, design.ShipDesign)
 
 	if err := design.Validate(&game.Rules, player); err != nil {
 		log.Error().Err(err).Int64("ID", player.ID).Str("DesignName", design.Name).Msg("validate player design")
@@ -147,11 +160,13 @@ func (s *server) updateShipDesign(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Info().Int64("GameID", design.GameID).Int("PlayerNum", player.Num).Str("DesignName", design.Name).Msg("updated player design")
+
 	rest.RenderJSON(w, design)
 }
 
 func (s *server) deleteShipDesign(w http.ResponseWriter, r *http.Request) {
-	db := s.contextDb(r)
+	readWriteClient := s.contextDb(r)
 	game := s.contextGame(r)
 	player := s.contextPlayer(r)
 	design := s.contextShipDesign(r)
@@ -164,11 +179,23 @@ func (s *server) deleteShipDesign(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// delete the ship design
-
-	playerFleets, err := db.GetFleetsForPlayer(game.ID, player.Num)
+	// to delete ship designs we have to remove any tokens using the design from fleets
+	playerFleets, err := readWriteClient.GetFleetsForPlayer(game.ID, player.Num)
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("load fleets from database")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	playerDesigns, err := readWriteClient.GetShipDesignsForPlayer(game.ID, player.Num)
+	if err != nil {
+		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("get designs for player")
+		render.Render(w, r, ErrInternalServerError(err))
+	}
+
+	playerPlanets, err := readWriteClient.GetPlanetsForPlayer(game.ID, player.Num)
+	if err != nil {
+		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("load planets from database")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
@@ -191,50 +218,77 @@ func (s *server) deleteShipDesign(w http.ResponseWriter, r *http.Request) {
 			// had before, update this fleet
 			if len(updatedTokens) != len(fleet.Tokens) {
 				fleet.Tokens = updatedTokens
+				fleet.InjectDesigns(playerDesigns)
 				fleet.Spec = cs.ComputeFleetSpec(&game.Rules, player, fleet)
 				fleetsToUpdate = append(fleetsToUpdate, fleet)
 			}
 		}
-
 	}
 
-	// delete a ship design and update fleets in one transaction
-	if err := db.DeleteShipDesignWithFleets(design.ID, fleetsToUpdate, fleetsToDelete); err != nil {
-		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("load fleets from database")
+	// remove this design from any production queues
+	planetsToUpdate := []*cs.Planet{}
+	for _, planet := range playerPlanets {
+		newQueue := make([]cs.ProductionQueueItem, 0, len(planet.ProductionQueue))
+		for _, item := range planet.ProductionQueue {
+			if item.DesignNum == design.Num {
+				// remove this design from the queue and mark this planet for update
+				planetsToUpdate = append(planetsToUpdate, planet)
+				continue
+			}
+			newQueue = append(newQueue, item)
+		}
+		planet.ProductionQueue = newQueue
+	}
+
+	// update fleets to remove tokens, delete fleets without tokens, update planets with production queue changes
+	if err := s.db.WrapInTransaction(func(c db.Client) error {
+
+		for _, fleet := range fleetsToUpdate {
+			if err := c.UpdateFleet(fleet); err != nil {
+				return fmt.Errorf("update fleet in database %w", err)
+			}
+			log.Info().Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", design.Num).Msgf("updated fleet %s after deleting design", fleet.Name)
+		}
+
+		for _, fleet := range fleetsToDelete {
+			if err := c.DeleteFleet(fleet.ID); err != nil {
+				return fmt.Errorf("delete fleet from database %w", err)
+			}
+			log.Info().Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", design.Num).Msgf("deleted fleet %s after deleting design", fleet.Name)
+		}
+
+		for _, planet := range planetsToUpdate {
+			if err := c.UpdatePlanet(planet); err != nil {
+				return fmt.Errorf("update planet in database %w", err)
+			}
+			log.Info().Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", design.Num).Msgf("updated planet %s after deleting design", planet.Name)
+
+		}
+
+		if err := c.DeleteShipDesign(design.ID); err != nil {
+			return fmt.Errorf("delete design from database %w", err)
+		}
+		log.Info().Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", design.Num).Msgf("deleted design %s", design.Name)
+
+		return nil
+	}); err != nil {
+		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("delete design from database")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	// log what we did
-	log.Info().Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", design.Num).Msgf("deleted design %s", design.Name)
-
-	for _, fleet := range fleetsToUpdate {
-		log.Info().Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", design.Num).Msgf("updated fleet %s after deleting design", fleet.Name)
-	}
-
-	for _, fleet := range fleetsToDelete {
-		log.Info().Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", design.Num).Msgf("deleted fleet %s after deleting design", fleet.Name)
-	}
-
-	allFleets, err := db.GetFleetsForPlayer(game.ID, player.Num)
-
-	if err != nil {
-		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", design.Num).Msg("load fleets from database")
-		render.Render(w, r, ErrInternalServerError(err))
-	}
-
 	// split the player fleets into fleets and starbases
-	fleets := make([]*cs.Fleet, 0, len(allFleets))
+	fleets := make([]*cs.Fleet, 0, len(playerFleets))
 	starbases := make([]*cs.Fleet, 0)
-	for i := range allFleets {
-		fleet := allFleets[i]
+	for i := range playerFleets {
+		fleet := playerFleets[i]
 		if fleet.Starbase {
 			starbases = append(starbases, fleet)
 		} else {
 			fleets = append(fleets, fleet)
 		}
 	}
-	rest.RenderJSON(w, rest.JSON{"fleets": fleets, "starbases": starbases})
+	rest.RenderJSON(w, rest.JSON{"fleets": fleets, "starbases": starbases, "planets": playerPlanets})
 }
 
 func (s *server) computeShipDesignSpec(w http.ResponseWriter, r *http.Request) {
