@@ -11,4 +11,8 @@ export class AdminService {
 		const response = await Service.get<SessionUser[]>('/api/admin/users');
 		return response.map((su) => Object.assign(new User(), su));
 	}
+
+	static async loadUserGames(userId: number | string): Promise<Game[]> {
+		return Service.get<Game[]>(`/api/admin/users/${userId}/games`);
+	}
 }

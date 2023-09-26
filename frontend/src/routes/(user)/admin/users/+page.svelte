@@ -67,7 +67,10 @@
 		</span>
 
 		<span slot="cell">
-			{#if column.key == 'createdAt'}
+			{#if column.key == 'username'}
+				{cell}
+				{#if row.isGuest()}<a href={`/admin/users/convert-guest/${row.id}`} class="btn btn-ghost btn-outline btn-sm">Convert Guest</a>{/if}
+			{:else if column.key == 'createdAt'}
 				{format(parseJSON(cell), 'E, MMM do yyyy hh:mm aaa')}
 			{:else if column.key == 'lastLogin' && cell}
 				{format(parseJSON(cell), 'E, MMM do yyyy hh:mm aaa')}

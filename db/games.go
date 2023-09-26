@@ -671,6 +671,19 @@ func (c *client) updateFullPlayer(player *cs.Player) error {
 	return nil
 }
 
+func (c *client) UpdateGameHost(gameID int64, hostId int64) error {
+	if _, err := c.writer.Exec(`
+		UPDATE games SET
+			updatedAt = CURRENT_TIMESTAMP,
+			hostId = ?
+		WHERE id = ?
+		`, hostId, gameID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // delete a game by id
 func (c *client) DeleteGame(id int64) error {
 	if _, err := c.writer.Exec("DELETE FROM games WHERE id = ?", id); err != nil {

@@ -281,6 +281,8 @@ func Start(config config.Config) error {
 			r.Use(server.adminRequired)
 			r.Get("/games", server.allGames)
 			r.Get("/users", server.users)
+			r.Get("/users/{id:[0-9]+}/games", server.userGames)
+			r.Post("/users/{id:[0-9]+}/convert-guest-user", server.convertGuestUser)
 		})
 
 		// route for all operations that act on a game

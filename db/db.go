@@ -109,6 +109,7 @@ type Client interface {
 	UpdateGame(game *cs.Game) error
 	UpdateGameState(gameID int64, state cs.GameState) error
 	UpdateFullGame(fullGame *cs.FullGame) error
+	UpdateGameHost(gameID int64, hostId int64) error
 	DeleteGame(id int64) error
 	DeleteUserGames(hostID int64) error
 
@@ -132,6 +133,7 @@ type Client interface {
 	UpdatePlayerPlans(player *cs.Player) error
 	UpdatePlayerSalvageIntels(player *cs.Player) error
 	UpdateLightPlayer(player *cs.Player) error
+	UpdatePlayerUserId(player *cs.Player) error
 	DeletePlayer(id int64) error
 
 	GetShipDesignsForPlayer(gameID int64, playerNum int) ([]*cs.ShipDesign, error)

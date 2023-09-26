@@ -3,7 +3,6 @@
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import Design from '$lib/components/game/design/Design.svelte';
 	import { getGameContext } from '$lib/services/Contexts';
-	import type { ShipDesign } from '$lib/types/ShipDesign';
 
 	const { game, player, universe, designs } = getGameContext();
 	let num = parseInt($page.params.num);

@@ -1121,6 +1121,23 @@ func (c *client) UpdatePlayer(player *cs.Player) error {
 	return nil
 }
 
+// helper to update a player using a transaction or DB
+// update an existing player
+func (c *client) UpdatePlayerUserId(player *cs.Player) error {
+	item := c.converter.ConvertGamePlayer(player)
+
+	if _, err := c.writer.NamedExec(`
+	UPDATE players SET
+		updatedAt = CURRENT_TIMESTAMP,
+		userId = :userId
+	WHERE id = :id
+	`, item); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // delete a player by id
 func (c *client) DeletePlayer(id int64) error {
 	if _, err := c.writer.Exec("DELETE FROM players WHERE id = ?", id); err != nil {
