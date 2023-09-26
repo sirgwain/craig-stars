@@ -258,6 +258,12 @@ type battleWeaponSlot struct {
 
 	// the initiative of the weapon
 	initiative int
+
+	// gattling guns hit all targets in range
+	hitsAllTargets bool
+
+	// capital ships missiles do double damage after shields are gone
+	capitalShipMissile bool
 }
 
 // Return true if this weapon slot wiil damage this token
@@ -414,7 +420,7 @@ func newBattler(rules *Rules, techFinder TechFinder, battleNum int, players map[
 			// we only dampen movement of ships that move, not starbases (obviously)
 			// and we can't go below 2
 			if token.Movement > 0 {
-				token.Movement = Clamp(token.Movement - dampening, 2, 10)
+				token.Movement = Clamp(token.Movement-dampening, 2, 10)
 			}
 		}
 	}
@@ -444,6 +450,8 @@ func newBattleWeaponSlot(token *battleToken, slot ShipDesignSlot, hc *TechHullCo
 		damagesShieldsOnly: hc.DamageShieldsOnly,
 		accuracy:           (100.0 - (100.0-float64(hc.Accuracy))*torpedoInaccuracyFactor) / 100.0,
 		initiative:         hc.Initiative,
+		hitsAllTargets:     hc.HitsAllTargets,
+		capitalShipMissile: hc.CapitalShipMissile,
 	}
 
 	if hc.Category == TechCategoryBeamWeapon {
@@ -740,6 +748,12 @@ func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot, targets []*battleToken
 			log.Debug().Msgf("%v firing %v %v(s) did %v damage to %v shields, leaving %v shields still operational.", weapon.token, weapon.slot.Quantity, weapon.slot.HullComponent, rangedDamage, target, target.stackShields)
 			b.record.recordBeamFire(b.round, weapon.token, weapon.token.Position, target.Position, weapon.slot.HullSlotIndex, *target, int(rangedDamage), 0, 0)
 		}
+
+		// reset damage for the next target
+		if weapon.hitsAllTargets {
+			remainingDamage = rangedDamage
+		}
+
 		log.Debug().Msgf("%v %v %v(s) has %v remaining dp to burn through %v additional targets.", weapon.token, weapon.slot.Quantity, weapon.slot.HullComponent, remainingDamage, len(targets)-1)
 
 		target.damaged = true
@@ -829,12 +843,18 @@ func (b *battle) fireTorpedo(weapon *battleWeaponSlot, targets []*battleToken) {
 				if afterShieldsDamaged < 0 {
 					// We did more damage to shields than they had remaining
 					// apply the difference to armor
-					armorDamage += float64(-afterShieldsDamaged)
 					actualShieldDamage = shieldDamage + afterShieldsDamaged
+					armorDamage += float64(-afterShieldsDamaged)
+
 				} else {
 					actualShieldDamage = shieldDamage
 				}
 				target.stackShields -= int(actualShieldDamage)
+
+				if target.stackShields <= 0 && weapon.capitalShipMissile {
+					// capital ship missiles double damage after shields are gone
+					armorDamage *= 2
+				}
 
 				totalShieldDamage += int(actualShieldDamage)
 				totalArmorDamage += int(armorDamage)

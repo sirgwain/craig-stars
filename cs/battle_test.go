@@ -426,6 +426,40 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 				{damage: 90, quantityDamaged: 1, quantityRemaining: 1},
 			},
 		},
+		{name: "one minigun, do 10 damage to all targets",
+			args: args{
+				weapon: weapon{
+					weaponSlot: &battleWeaponSlot{
+						slot: ShipDesignSlot{
+							Quantity: 1,
+						},
+						power:          10,
+						hitsAllTargets: true,
+					},
+					shipQuantity: 1,
+				},
+				targets: []*battleToken{
+					{
+						ShipToken: &ShipToken{
+							Quantity: 2,
+							design:   &ShipDesign{Name: "defender1"},
+						},
+						armor: 10,
+					},
+					{
+						ShipToken: &ShipToken{
+							Quantity: 2,
+							design:   &ShipDesign{Name: "defender2"},
+						},
+						armor: 100,
+					},
+				},
+			},
+			want: []want{
+				{damage: 0, quantityDamaged: 0, quantityRemaining: 1}, // destroy one token
+				{damage: 5, quantityDamaged: 2, quantityRemaining: 2}, // damage both tokens
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -564,7 +598,6 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			},
 			want: []want{{damage: 0, quantityDamaged: 0, quantityRemaining: 1}},
 		},
-
 		{name: "two torpedos, do 15 damage each, kill ship with first hit",
 			args: args{
 				weapon: weapon{
@@ -588,6 +621,32 @@ func Test_battle_fireTorpedo(t *testing.T) {
 				},
 			},
 			want: []want{{damage: 0, quantityDamaged: 0, quantityRemaining: 0}},
+		},
+		{name: "two capital missiles, do 10 damage each, take down shields with first hit, double damage with second",
+			args: args{
+				weapon: weapon{
+					weaponSlot: &battleWeaponSlot{
+						slot: ShipDesignSlot{
+							Quantity: 2, // 2 torpedos
+						},
+						power:              10, // 15 damage per torpedo
+						accuracy:           1,
+						capitalShipMissile: true,
+					},
+					shipQuantity: 1, // one ship in the attacker stack
+				},
+				targets: []*battleToken{
+					{
+						ShipToken: &ShipToken{
+							Quantity: 1,
+							design:   &ShipDesign{Name: "defender"},
+						},
+						stackShields: 5,  // 5 shields will be gone first hit
+						armor:        35, // 10 armor gone first hit, then 10x2=20 damage on second hit
+					},
+				},
+			},
+			want: []want{{damage: 30, quantityDamaged: 1, quantityRemaining: 1}},
 		},
 		{name: "two torpedos, two attacker ships, 4x torpedos do 40 damage total, one kill, one damaged",
 			args: args{
