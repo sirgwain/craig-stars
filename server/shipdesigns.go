@@ -136,6 +136,17 @@ func (s *server) updateShipDesign(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if existingDesign.OriginalPlayerNum != cs.None {
+		log.Error().
+			Int64("GameID", existingDesign.GameID).
+			Int64("ID", existingDesign.ID).
+			Int("PlayerNum", existingDesign.PlayerNum).
+			Str("DesignName", design.Name).
+			Msg("design is transferred from another player, cannot update")
+		render.Render(w, r, ErrBadRequest(fmt.Errorf("design is transferred, cannot update")))
+		return
+	}
+
 	// edge case for bad request where the url num doesn't match the request payload
 	if design.Num != existingDesign.Num {
 		log.Error().Int64("ID", design.ID).Msgf("design.Num %d != existingDesign.Num %d", design.ID, existingDesign.ID)

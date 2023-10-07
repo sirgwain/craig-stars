@@ -43,6 +43,10 @@
 		$game.updateFleetOrders(fleet);
 	}
 
+	function onTransferToPlayerChanged() {
+		$game.updateFleetOrders(fleet);
+	}
+
 	function applyTransportPlan(plan: TransportPlan) {
 		if ($selectedWaypoint) {
 			$selectedWaypoint.transportTasks = plan.tasks;
@@ -162,6 +166,19 @@
 				<option value={3}>for 3 years</option>
 				<option value={4}>for 4 years</option>
 				<option value={5}>for 5 years</option>
+			</select>
+		{:else if $selectedWaypoint?.task === WaypointTask.TransferFleet}
+			<select
+				class="select select-outline select-secondary select-sm py-0 text-sm mt-1"
+				bind:value={$selectedWaypoint.transferToPlayer}
+				on:change|preventDefault={() => onTransferToPlayerChanged()}
+			>
+				<option value={undefined}>None</option>
+				{#each $game.players as otherPlayer}
+					{#if otherPlayer.num != $player.num}
+						<option value={otherPlayer.num}>{$universe.getPlayerName(otherPlayer.num)}</option>
+					{/if}
+				{/each}
 			</select>
 		{:else}
 			<!-- else content here -->

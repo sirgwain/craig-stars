@@ -291,6 +291,7 @@ func (g *Game) WithSettings(settings GameSettings) *Game {
 	g.Size = settings.Size
 	g.Density = settings.Density
 	g.PlayerPositions = settings.PlayerPositions
+	g.Public = settings.Public
 	g.RandomEvents = settings.RandomEvents
 	g.ComputerPlayersFormAlliances = settings.ComputerPlayersFormAlliances
 	g.PublicPlayerScores = settings.PublicPlayerScores
@@ -341,6 +342,10 @@ func (g *FullGame) computeSpecs() error {
 		log.Debug().Msgf("computing specs for %v %s", player, player.Race.PluralName)
 
 		for _, design := range player.Designs {
+			if design.OriginalPlayerNum != None {
+				// don't recompute specs of other player's designs, they're static
+				continue
+			}
 			numBuilt := design.Spec.NumBuilt
 			design.Spec = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
 			design.Spec.NumBuilt = numBuilt

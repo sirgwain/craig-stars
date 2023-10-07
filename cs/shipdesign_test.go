@@ -363,3 +363,85 @@ func TestComputeShipDesignSpec(t *testing.T) {
 		})
 	}
 }
+
+func TestShipDesign_SlotsEqual(t *testing.T) {
+
+	type args struct {
+		sourceSlots []ShipDesignSlot
+		otherSlots  []ShipDesignSlot
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "equal",
+			args: args{
+				sourceSlots: []ShipDesignSlot{
+					{HullComponent: Laser.Name, HullSlotIndex: 2, Quantity: 8},
+					{HullComponent: MoleSkinShield.Name, HullSlotIndex: 3, Quantity: 8},
+				},
+				otherSlots: []ShipDesignSlot{
+					{HullComponent: Laser.Name, HullSlotIndex: 2, Quantity: 8},
+					{HullComponent: MoleSkinShield.Name, HullSlotIndex: 3, Quantity: 8},
+				},
+			},
+			want: true,
+		},
+		{
+			name: "wrong num",
+			args: args{
+				sourceSlots: []ShipDesignSlot{
+					{HullComponent: Laser.Name, HullSlotIndex: 2, Quantity: 8},
+				},
+				otherSlots: []ShipDesignSlot{
+					{HullComponent: Laser.Name, HullSlotIndex: 2, Quantity: 8},
+					{HullComponent: MoleSkinShield.Name, HullSlotIndex: 3, Quantity: 8},
+				},
+			},
+			want: false,
+		},
+		{
+			name: "unequal quantity",
+			args: args{
+				sourceSlots: []ShipDesignSlot{
+					{HullComponent: Laser.Name, HullSlotIndex: 2, Quantity: 4},
+					{HullComponent: MoleSkinShield.Name, HullSlotIndex: 3, Quantity: 8},
+				},
+				otherSlots: []ShipDesignSlot{
+					{HullComponent: Laser.Name, HullSlotIndex: 2, Quantity: 8},
+					{HullComponent: MoleSkinShield.Name, HullSlotIndex: 3, Quantity: 8},
+				},
+			},
+			want: false,
+		},
+		{
+			name: "unequal type",
+			args: args{
+				sourceSlots: []ShipDesignSlot{
+					{HullComponent: Laser.Name, HullSlotIndex: 2, Quantity: 8},
+					{HullComponent: MoleSkinShield.Name, HullSlotIndex: 3, Quantity: 8},
+				},
+				otherSlots: []ShipDesignSlot{
+					{HullComponent: XRayLaser.Name, HullSlotIndex: 2, Quantity: 8},
+					{HullComponent: MoleSkinShield.Name, HullSlotIndex: 3, Quantity: 8},
+				},
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			source := &ShipDesign{
+				Slots: tt.args.sourceSlots,
+			}
+			other := &ShipDesign{
+				Slots: tt.args.otherSlots,
+			}
+			if got := source.SlotsEqual(other); got != tt.want {
+				t.Errorf("ShipDesign.SlotsEqual() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

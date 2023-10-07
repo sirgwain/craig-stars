@@ -8,6 +8,7 @@
 	import Cost from './Cost.svelte';
 	import DesignStats from './DesignStats.svelte';
 	import { onShipDesignTooltip } from './tooltips/ShipDesignTooltip.svelte';
+	import { None } from '$lib/types/MapObject';
 
 	const dispatch = createEventDispatcher();
 
@@ -55,16 +56,18 @@
 		</div>
 		<div class="card-actions justify-start">
 			<div class="grow">
-				<div
-					class="tooltip"
-					data-tip={`${design.spec.numInstances ?? 0} remaining of ${
-						design.spec.numBuilt ?? 0
-					} built`}
-				>
-					<span class="btn rounded-lg border border-secondary normal-case">
-						{design.spec.numInstances ?? 0} of {design.spec.numBuilt ?? 0}
-					</span>
-				</div>
+				{#if design.originalPlayerNum == None}
+					<div
+						class="tooltip"
+						data-tip={`${design.spec.numInstances ?? 0} remaining of ${
+							design.spec.numBuilt ?? 0
+						} built`}
+					>
+						<span class="btn rounded-lg border border-secondary normal-case">
+							{design.spec.numInstances ?? 0} of {design.spec.numBuilt ?? 0}
+						</span>
+					</div>
+				{/if}
 			</div>
 			<div class="flex flex-row join">
 				{#if !design.cannotDelete}
@@ -75,10 +78,12 @@
 						<Icon src={Trash} size="24" class="hover:stroke-accent" />
 					</button>
 				{/if}
-				<a class="btn btn-outline btn-secondary joint-item" href={copyhref}>Copy</a>
-				<!-- cannotDelete = true is for designs that are reserved for the system -->
-				{#if !design.spec?.numInstances && !design.cannotDelete}
-					<a class="btn btn-outline btn-secondary joint-item" href={`${href}}/edit`}>Edit</a>
+				{#if design.originalPlayerNum == None}
+					<a class="btn btn-outline btn-secondary joint-item" href={copyhref}>Copy</a>
+					<!-- cannotDelete = true is for designs that are reserved for the system -->
+					{#if !design.spec?.numInstances && !design.cannotDelete}
+						<a class="btn btn-outline btn-secondary joint-item" href={`${href}}/edit`}>Edit</a>
+					{/if}
 				{/if}
 			</div>
 		</div>

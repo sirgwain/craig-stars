@@ -685,7 +685,7 @@ func (t *turn) fleetMove() {
 
 			// no move this turn, we wait
 			if wp0.WaitAtWaypoint {
-				continue				
+				continue
 			}
 
 			if wp1.TargetType == MapObjectTypeFleet {
@@ -2004,8 +2004,150 @@ func (t *turn) fleetLayMines() {
 
 }
 
+// process transfer fleet orders to gift fleets to other players
 func (t *turn) fleetTransferOwner() {
+	for _, fleet := range t.game.Fleets {
+		if fleet.Delete {
+			continue
+		}
 
+		wp0 := &fleet.Waypoints[0]
+		if wp0.Task == WaypointTaskTransferFleet {
+			player := t.game.getPlayer(fleet.PlayerNum)
+			targetPlayer := t.game.getPlayer(wp0.TransferToPlayer)
+
+			if fleet.Cargo.Colonists > 0 {
+				// can't give colonists
+				player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetTransferGivenFailedColonists, fleet).
+					withSpec(PlayerMessageSpec{SourcePlayerNum: player.Num, DestPlayerNum: targetPlayer.Num}))
+				log.Debug().
+					Int64("GameID", t.game.ID).
+					Int("Player", fleet.PlayerNum).
+					Str("Fleet", fleet.Name).
+					Msgf("transferring fleet %s failed, fleet has colonists", fleet.Name)
+
+				wp0.Task = WaypointTaskNone
+				wp0.TransferToPlayer = None
+				continue
+			}
+
+			if targetPlayer == nil {
+				// can't find target player
+				player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetTransferGivenFailed, fleet).
+					withSpec(PlayerMessageSpec{SourcePlayerNum: player.Num}))
+				log.Error().
+					Int64("GameID", t.game.ID).
+					Int("Player", fleet.PlayerNum).
+					Str("Fleet", fleet.Name).
+					Msgf("tried to transfer fleet player %d, but target player doesn't exist.", wp0.TargetPlayerNum)
+				wp0.Task = WaypointTaskNone
+				wp0.TransferToPlayer = None
+				continue
+			}
+
+			if targetPlayer == player {
+				log.Error().
+					Int64("GameID", t.game.ID).
+					Int("Player", fleet.PlayerNum).
+					Str("Fleet", fleet.Name).
+					Msgf("tried to transfer fleet to self")
+				wp0.Task = WaypointTaskNone
+				wp0.TransferToPlayer = None
+				continue
+			}
+
+			if !targetPlayer.IsFriend(player.Num) {
+				// they are not allies, they will refuse the offer
+				player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetTransferGivenRefused, fleet).
+					withSpec(PlayerMessageSpec{SourcePlayerNum: player.Num, DestPlayerNum: targetPlayer.Num, Name: fleet.Name}))
+				targetPlayer.Messages = append(targetPlayer.Messages, newFleetMessage(PlayerMessageFleetTransferReceivedRefused, fleet).
+					withSpec(PlayerMessageSpec{SourcePlayerNum: player.Num, DestPlayerNum: targetPlayer.Num, Name: fleet.Name}))
+				log.Debug().
+					Int64("GameID", t.game.ID).
+					Int("Player", fleet.PlayerNum).
+					Str("Fleet", fleet.Name).
+					Int("TargetPlayer", targetPlayer.Num).
+					Msgf("transferring fleet %s to player %d, target player refused", fleet.Name, targetPlayer.Num)
+
+				wp0.Task = WaypointTaskNone
+				wp0.TransferToPlayer = None
+
+				continue
+			}
+
+			// give the gift of this fleet!
+			log.Debug().
+				Int64("GameID", t.game.ID).
+				Int("Player", fleet.PlayerNum).
+				Str("Fleet", fleet.Name).
+				Int("TargetPlayer", targetPlayer.Num).
+				Msgf("transferring fleet %s to player %d", fleet.Name, targetPlayer.Num)
+
+			for i := range fleet.Tokens {
+				token := &fleet.Tokens[i]
+				design := token.design
+
+				// give the player a copy of this design
+				newName := fmt.Sprintf("%s %s", player.Race.PluralName, design.Name)
+				targetPlayerDesign := targetPlayer.GetDesignByName(newName)
+				if targetPlayerDesign != nil {
+					if !targetPlayerDesign.SlotsEqual(design) {
+						// uh oh, design has been updated since the last time it was transferred to us...
+						// create a new design for the target player
+						num := targetPlayer.GetNextDesignNum(targetPlayer.Designs)
+						newDesign := *design
+						newDesign.GameDBObject = GameDBObject{}
+						newDesign.OriginalPlayerNum = player.Num
+						newDesign.PlayerNum = targetPlayer.Num
+						newDesign.Num = num
+						// rev the version and append it to the name
+						newDesign.Version++
+						newDesign.Name = fmt.Sprintf("%s v%d", newName, newDesign.Version)
+						newDesign.MarkDirty()
+						targetPlayerDesign = &newDesign
+						targetPlayer.Designs = append(targetPlayer.Designs, targetPlayerDesign)
+					}
+				} else {
+					// create a new design for the target player
+					num := targetPlayer.GetNextDesignNum(targetPlayer.Designs)
+					newDesign := *design
+					newDesign.GameDBObject = GameDBObject{}
+					newDesign.Name = newName
+					newDesign.OriginalPlayerNum = player.Num
+					newDesign.PlayerNum = targetPlayer.Num
+					newDesign.Num = num
+					newDesign.MarkDirty()
+					targetPlayerDesign = &newDesign
+					targetPlayer.Designs = append(targetPlayer.Designs, targetPlayerDesign)
+				}
+
+				// make sure we don't update this spec
+				targetPlayerDesign.Spec.NumBuilt = 0
+				targetPlayerDesign.Spec.NumInstances = 0
+
+				token.design = targetPlayerDesign
+				token.DesignNum = targetPlayerDesign.Num
+			}
+
+			fleet.PlayerNum = targetPlayer.Num
+			playerFleets := t.game.getFleets(targetPlayer.Num)
+			fleet.Num = targetPlayer.getNextFleetNum(playerFleets)
+
+			// clear out the waypoints
+			wp0.Task = WaypointTaskNone
+			wp0.TransferToPlayer = None
+			fleet.Waypoints = fleet.Waypoints[:1]
+
+			// notify the player here (before we give it away and change the name)
+			player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetTransferGiven, fleet).
+				withSpec(PlayerMessageSpec{SourcePlayerNum: player.Num, DestPlayerNum: targetPlayer.Num, Name: fleet.BaseName}))
+			targetPlayer.Messages = append(targetPlayer.Messages, newFleetMessage(PlayerMessageFleetTransferReceived, fleet).
+				withSpec(PlayerMessageSpec{SourcePlayerNum: player.Num, DestPlayerNum: targetPlayer.Num, Name: fleet.BaseName}))
+
+			fleet.Rename(fmt.Sprintf("%s %s", player.Race.PluralName, fleet.BaseName))
+
+		}
+	}
 }
 
 func (t *turn) instaform() {

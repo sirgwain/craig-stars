@@ -147,7 +147,8 @@ export class CommandedPlanet implements Planet {
 							planet.spec.dockCapacity == UnlimitedSpaceDock ||
 							(d.spec.mass ?? 0) <= planet.spec.dockCapacity
 					)
-					.filter((d) => !d.spec.starbase),
+					.filter((d) => !d.spec.starbase)
+					.filter((d) => d.originalPlayerNum == None),
 				(d) => d.name
 			).forEach((d) => {
 				items.push({

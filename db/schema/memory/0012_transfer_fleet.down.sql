@@ -1,0 +1,1 @@
+ALTER TABLE shipDesigns DROP COLUMN originalPlayerNum;

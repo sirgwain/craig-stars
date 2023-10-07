@@ -10,18 +10,19 @@ import (
 
 type ShipDesign struct {
 	GameDBObject
-	Num           int               `json:"num,omitempty"`
-	PlayerNum     int               `json:"playerNum"`
-	Name          string            `json:"name"`
-	Dirty         bool              `json:"-"`
-	Version       int               `json:"version"`
-	Hull          string            `json:"hull"`
-	HullSetNumber int               `json:"hullSetNumber"`
-	CannotDelete  bool              `json:"cannotDelete,omitempty"`
-	Slots         []ShipDesignSlot  `json:"slots"`
-	Purpose       ShipDesignPurpose `json:"purpose,omitempty"`
-	Spec          ShipDesignSpec    `json:"spec"`
-	Delete        bool              // used by the AI to mark a design for deletion
+	Num               int               `json:"num,omitempty"`
+	PlayerNum         int               `json:"playerNum"`
+	OriginalPlayerNum int               `json:"originalPlayerNum"`
+	Name              string            `json:"name"`
+	Dirty             bool              `json:"-"`
+	Version           int               `json:"version"`
+	Hull              string            `json:"hull"`
+	HullSetNumber     int               `json:"hullSetNumber"`
+	CannotDelete      bool              `json:"cannotDelete,omitempty"`
+	Slots             []ShipDesignSlot  `json:"slots"`
+	Purpose           ShipDesignPurpose `json:"purpose,omitempty"`
+	Spec              ShipDesignSpec    `json:"spec"`
+	Delete            bool              // used by the AI to mark a design for deletion
 }
 
 type ShipDesignSlot struct {
@@ -228,6 +229,7 @@ func (sd *ShipDesign) Validate(rules *Rules, player *Player) error {
 	return nil
 }
 
+// compare two ship design's slots and return true if they are equal
 func (d *ShipDesign) SlotsEqual(other *ShipDesign) bool {
 	if len(d.Slots) != len(other.Slots) {
 		return false

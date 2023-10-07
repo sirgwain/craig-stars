@@ -18,16 +18,18 @@ type PlayerMessage struct {
 }
 
 type PlayerMessageSpec struct {
-	Amount         int                     `json:"amount,omitempty"`
-	PrevAmount     int                     `json:"prevAmount,omitempty"`
-	Name           string                  `json:"name,omitempty"`
-	QueueItemType  QueueItemType           `json:"queueItemType,omitempty"`
-	Field          TechField               `json:"field,omitempty"`
-	NextField      TechField               `json:"nextField,omitempty"`
-	TechGained     string                  `json:"techGained,omitempty"`
-	LostTargetType MapObjectType           `json:"lostTargetType,omitempty"`
-	Battle         BattleRecordStats       `json:"battle,omitempty"`
-	Comet          *PlayerMessageSpecComet `json:"comet,omitempty"`
+	Amount          int                     `json:"amount,omitempty"`
+	PrevAmount      int                     `json:"prevAmount,omitempty"`
+	SourcePlayerNum int                     `json:"sourcePlayerNum,omitempty"`
+	DestPlayerNum   int                     `json:"destPlayerNum,omitempty"`
+	Name            string                  `json:"name,omitempty"`
+	QueueItemType   QueueItemType           `json:"queueItemType,omitempty"`
+	Field           TechField               `json:"field,omitempty"`
+	NextField       TechField               `json:"nextField,omitempty"`
+	TechGained      string                  `json:"techGained,omitempty"`
+	LostTargetType  MapObjectType           `json:"lostTargetType,omitempty"`
+	Battle          BattleRecordStats       `json:"battle,omitempty"`
+	Comet           *PlayerMessageSpecComet `json:"comet,omitempty"`
 }
 
 type PlayerMessageSpecComet struct {
@@ -133,6 +135,13 @@ const (
 	PlayerMessageCometStrikeMyPlanet
 	PlayerMessageFleetShipExceededSafeSpeed
 	PlayerMessageBonusResearchArtifact
+	PlayerMessageFleetTransferGiven
+	PlayerMessageFleetTransferGivenFailed
+	PlayerMessageFleetTransferGivenFailedColonists
+	PlayerMessageFleetTransferGivenRefused
+	PlayerMessageFleetTransferReceived
+	PlayerMessageFleetTransferReceivedFailed
+	PlayerMessageFleetTransferReceivedRefused
 )
 
 func newMessage(messageType PlayerMessageType) PlayerMessage {

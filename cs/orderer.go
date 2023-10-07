@@ -70,6 +70,14 @@ func (o *orders) UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet
 	if err := planet.PopulateProductionQueueDesigns(player); err != nil {
 		return err
 	}
+
+	// make sure we can actually build this stuff
+	for _, item := range planet.ProductionQueue {
+		if item.design != nil && item.design.OriginalPlayerNum != None {
+			return fmt.Errorf("cannot build %s, it was transferred from another player", item.design.Name)
+		}
+	}
+
 	if err := planet.PopulateProductionQueueCosts(player); err != nil {
 		return err
 	}

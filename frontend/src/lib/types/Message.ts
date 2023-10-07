@@ -21,6 +21,8 @@ export type Message = {
 export type PlayerMessageSpec = {
 	amount?: number;
 	name?: string;
+	sourcePlayerNum?: number;
+	destPlayerNum?: number;
 	prevAmount?: number;
 	field?: TechField;
 	nextField?: TechField;
@@ -157,6 +159,13 @@ export enum MessageType {
 	CometStrikeMyPlanet,
 	FleetShipExceededSafeSpeed,
 	BonusResearchArtifact,
+	FleetTransferGiven,
+	FleetTransferGivenFailed,
+	FleetTransferGivenFailedColonists,
+	FleetTransferGivenRefused,
+	FleetTransferReceived,
+	FleetTransferReceivedFailed,
+	FleetTransferReceivedRefused
 }
 
 // get the next visible message taking into account filters
@@ -224,7 +233,8 @@ export function gotoTarget(
 		if (moType != MapObjectType.None) {
 			const target = universe.getMapObject(message);
 			if (target) {
-				if (target.type == MapObjectType.Fleet) {
+				// if this is a fleet that we own, select the planet before we command the fleet
+				if (target.type == MapObjectType.Fleet && target.playerNum == playerNum) {
 					const orbitingPlanetNum = (target as Fleet).orbitingPlanetNum;
 					if (orbitingPlanetNum && orbitingPlanetNum != None) {
 						const orbiting = universe.getPlanet(orbitingPlanetNum);

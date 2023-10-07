@@ -640,6 +640,7 @@ func (c *GameConverter) csShipDesignToDbShipDesign(source cs.ShipDesign) ShipDes
 	dbShipDesign.CreatedAt = TimeToNullTime(source.GameDBObject.CreatedAt)
 	dbShipDesign.Num = source.Num
 	dbShipDesign.PlayerNum = source.PlayerNum
+	dbShipDesign.OriginalPlayerNum = source.OriginalPlayerNum
 	dbShipDesign.Name = source.Name
 	dbShipDesign.Version = source.Version
 	dbShipDesign.Hull = source.Hull
@@ -777,6 +778,7 @@ func (c *GameConverter) dbShipDesignToCsShipDesign(source ShipDesign) cs.ShipDes
 	csShipDesign.GameDBObject = ExtendShipDesignGameDBObject(source)
 	csShipDesign.Num = source.Num
 	csShipDesign.PlayerNum = source.PlayerNum
+	csShipDesign.OriginalPlayerNum = source.OriginalPlayerNum
 	csShipDesign.Name = source.Name
 	csShipDesign.Version = source.Version
 	csShipDesign.Hull = source.Hull

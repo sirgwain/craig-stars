@@ -11,6 +11,7 @@
 	import FleetMessageDetail from './FleetMessageDetail.svelte';
 	import PlayerMessageDetail from './PlayerMessageDetail.svelte';
 	import FleetEngineStrainMessageDetail from './FleetEngineStrainMessageDetail.svelte';
+	import { isFuture } from 'date-fns';
 
 	const { game, player, universe, settings } = getGameContext();
 
@@ -85,6 +86,14 @@
 {:else if message.type === MessageType.FleetShipExceededSafeSpeed}
 	<!-- The fleet could have been destroyed, in which case we won't have a fleet for this message so capture it here -->
 	<FleetEngineStrainMessageDetail {message} />
+{:else if message.type === MessageType.FleetTransferGiven}
+	{message.spec.name} has successfully been given to {$universe.getPlayerName(
+		message.spec.destPlayerNum
+	)}
+{:else if message.type === MessageType.FleetTransferReceivedRefused}
+	{$universe.getPlayerName(message.spec.sourcePlayerNum)} has attempted to gift you {message.spec
+		.name}, but you have refused their offer. If you wish to receive gifts from this player in the
+	future, make sure you are allies.
 {:else}
 	<PlayerMessageDetail {message} />
 {/if}

@@ -17,6 +17,7 @@ func testLongRangeScout(player *Player) *Fleet {
 				Quantity:  1,
 				DesignNum: 1,
 				design: NewShipDesign(player, 1).
+					WithName("Long Range Scout").
 					WithHull(Scout.Name).
 					WithSlots([]ShipDesignSlot{
 						{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
@@ -53,6 +54,7 @@ func testSmallFreighter(player *Player) *Fleet {
 				Quantity:  1,
 				DesignNum: 1,
 				design: NewShipDesign(player, 1).
+					WithName("Small Freighter").
 					WithHull(SmallFreighter.Name).
 					WithSlots([]ShipDesignSlot{
 						{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
@@ -90,6 +92,7 @@ func testGalleon(player *Player) *Fleet {
 				Quantity:  1,
 				DesignNum: 1,
 				design: NewShipDesign(player, 1).
+					WithName("Galleon").
 					WithHull(Galleon.Name).
 					WithSlots([]ShipDesignSlot{
 						{HullComponent: SubGalacticFuelScoop.Name, HullSlotIndex: 1, Quantity: 4},
@@ -125,6 +128,7 @@ func testMiniMineLayer(player *Player) *Fleet {
 				Quantity:  1,
 				DesignNum: 1,
 				design: NewShipDesign(player, 1).
+					WithName("Little Hen").
 					WithHull(MiniMineLayer.Name).
 					WithSlots([]ShipDesignSlot{
 						{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
@@ -157,6 +161,7 @@ func testCloakedScout(player *Player) *Fleet {
 				DesignNum: 1,
 				Quantity:  1,
 				design: NewShipDesign(player, 1).
+					WithName("Cloaked Scout").
 					WithHull(Scout.Name).
 					WithSlots([]ShipDesignSlot{
 						{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
@@ -181,6 +186,7 @@ func testRemoteTerraformer(player *Player) *Fleet {
 				Quantity:  1,
 				DesignNum: 1,
 				design: NewShipDesign(player, 1).
+					WithName("Remote Terraformer").
 					WithHull(MiniMiner.Name).
 					WithSlots([]ShipDesignSlot{
 						{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},

@@ -9,21 +9,22 @@ import (
 )
 
 type ShipDesign struct {
-	ID            int64                `json:"id,omitempty"`
-	GameID        int64                `json:"gameId,omitempty"`
-	UpdatedAt     sql.NullTime         `json:"updatedAt,omitempty"`
-	CreatedAt     sql.NullTime         `json:"createdAt,omitempty"`
-	Num           int                  `json:"num,omitempty"`
-	PlayerNum     int                  `json:"playerNum,omitempty"`
-	Name          string               `json:"name,omitempty"`
-	Version       int                  `json:"version,omitempty"`
-	Hull          string               `json:"hull,omitempty"`
-	HullSetNumber int                  `json:"hullSetNumber,omitempty"`
-	CannotDelete  bool                 `json:"cannotDelete,omitempty"`
-	Slots         *ShipDesignSlots     `json:"slots,omitempty"`
-	Purpose       cs.ShipDesignPurpose `json:"purpose,omitempty"`
-	Spec          *ShipDesignSpec      `json:"spec,omitempty"`
-	CanDelete     sql.NullBool         `json:"canDelete,omitempty"` // unused
+	ID                int64                `json:"id,omitempty"`
+	GameID            int64                `json:"gameId,omitempty"`
+	UpdatedAt         sql.NullTime         `json:"updatedAt,omitempty"`
+	CreatedAt         sql.NullTime         `json:"createdAt,omitempty"`
+	Num               int                  `json:"num,omitempty"`
+	PlayerNum         int                  `json:"playerNum,omitempty"`
+	OriginalPlayerNum int                  `json:"originalPlayerNum,omitempty"`
+	Name              string               `json:"name,omitempty"`
+	Version           int                  `json:"version,omitempty"`
+	Hull              string               `json:"hull,omitempty"`
+	HullSetNumber     int                  `json:"hullSetNumber,omitempty"`
+	CannotDelete      bool                 `json:"cannotDelete,omitempty"`
+	Slots             *ShipDesignSlots     `json:"slots,omitempty"`
+	Purpose           cs.ShipDesignPurpose `json:"purpose,omitempty"`
+	Spec              *ShipDesignSpec      `json:"spec,omitempty"`
+	CanDelete         sql.NullBool         `json:"canDelete,omitempty"` // unused
 }
 
 type ShipDesignSlots []cs.ShipDesignSlot
@@ -129,6 +130,7 @@ func (c *client) CreateShipDesign(shipDesign *cs.ShipDesign) error {
 		gameId,
 		num,
 		playerNum,
+		originalPlayerNum,
 		name,
 		version,
 		hull,
@@ -144,6 +146,7 @@ func (c *client) CreateShipDesign(shipDesign *cs.ShipDesign) error {
 		:gameId,
 		:num,
 		:playerNum,
+		:originalPlayerNum,
 		:name,
 		:version,
 		:hull,
@@ -179,6 +182,7 @@ func (c *client) UpdateShipDesign(shipDesign *cs.ShipDesign) error {
 		gameId = :gameId,
 		num = :num,
 		playerNum = :playerNum,
+		originalPlayerNum = :originalPlayerNum,
 		name = :name,
 		version = :version,
 		hull = :hull,
@@ -203,4 +207,3 @@ func (c *client) DeleteShipDesign(id int64) error {
 
 	return nil
 }
-

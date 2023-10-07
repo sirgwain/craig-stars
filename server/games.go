@@ -93,7 +93,7 @@ func (s *server) gameCtx(next http.Handler) http.Handler {
 			}
 		}
 
-		if (r.Method == "POST" || r.Method == "PUT" || r.Method == "DELETE") && (game.State == cs.GameStateGeneratingTurn || game.State == cs.GameStateGeneratingUniverse) {
+		if (r.Method == "POST" || r.Method == "PUT") && (game.State == cs.GameStateGeneratingTurn || game.State == cs.GameStateGeneratingUniverse) {
 			err := fmt.Errorf("game is generating universe or new turn, cannot update")
 			log.Error().Err(err).Int64("GameID", *id).Msg("update game during turn generation")
 			render.Render(w, r, ErrConflict(err))

@@ -70,6 +70,83 @@ func createSingleUnitGame() *FullGame {
 
 }
 
+func createTwoPlayerGame() *FullGame {
+	client := NewGamer()
+	game := client.CreateGame(1, *NewGameSettings())
+	game.Rules.ResetSeed(0) // keep the same seed for tests
+	player1 := client.NewPlayer(1, *NewRace(), &game.Rules).withSpec(&game.Rules)
+	player1.Num = 1
+	player1.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
+
+	player2 := client.NewPlayer(1, *NewRace(), &game.Rules).withSpec(&game.Rules)
+	player2.Num = 2
+	player2.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
+
+	player1.PlayerIntels.PlayerIntels = player1.defaultPlayerIntels([]*Player{player1, player2})
+	player2.PlayerIntels.PlayerIntels = player2.defaultPlayerIntels([]*Player{player2, player2})
+
+	// create homeworlds
+	planet1 := &Planet{
+		MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 1", Num: 1, PlayerNum: player1.Num},
+		Hab:       Hab{50, 50, 50},
+		BaseHab:   Hab{50, 50, 50},
+		Cargo: Cargo{
+			Colonists: 2500,
+		},
+	}
+	planet1.Spec = computePlanetSpec(&game.Rules, player1, planet1)
+
+	planet2 := &Planet{
+		MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 2", Num: 2, PlayerNum: player2.Num, Position: Vector{100, 0}},
+		Hab:       Hab{50, 50, 50},
+		BaseHab:   Hab{50, 50, 50},
+		Cargo: Cargo{
+			Colonists: 2500,
+		},
+	}
+	planet2.Spec = computePlanetSpec(&game.Rules, player2, planet2)
+
+	// setup initial planet intels for this planet
+	player1.initDefaultPlanetIntels(&game.Rules, []*Planet{planet1, planet2})
+	player2.initDefaultPlanetIntels(&game.Rules, []*Planet{planet1, planet2})
+
+	// give each player a scout on their homeworld
+	fleet1 := testLongRangeScout(player1)
+	fleet1.OrbitingPlanetNum = planet1.Num
+	fleet1.Waypoints = []Waypoint{
+		NewPlanetWaypoint(Vector{}, 1, "Planet 1", 5),
+	}
+	player1.Designs = []*ShipDesign{
+		fleet1.Tokens[0].design,
+	}
+
+	// give each player a scout on their homeworld
+	fleet2 := testLongRangeScout(player2)
+	fleet2.OrbitingPlanetNum = planet2.Num
+	fleet2.Waypoints = []Waypoint{
+		NewPlanetWaypoint(Vector{}, 2, "Planet 2", 5),
+	}
+	player2.Designs = []*ShipDesign{
+		fleet2.Tokens[0].design,
+	}
+
+	players := []*Player{player1, player2}
+
+	universe := NewUniverse(&game.Rules)
+	universe.Planets = append(universe.Planets, planet1, planet2)
+	universe.Fleets = append(universe.Fleets, fleet1, fleet2)
+
+	universe.buildMaps(players)
+
+	return &FullGame{
+		Game:      game,
+		Universe:  &universe,
+		TechStore: &StaticTechStore,
+		Players:   players,
+	}
+
+}
+
 func Test_generateTurn(t *testing.T) {
 	client := NewGamer()
 	game := client.CreateGame(1, *NewGameSettings())
@@ -1361,4 +1438,36 @@ func Test_turn_buildStarbase(t *testing.T) {
 	assert.Equal(t, "LASER BASE!", planet.Starbase.Tokens[0].design.Name)
 	assert.Equal(t, 2, len(game.Starbases))
 	assert.True(t, game.Starbases[0].Delete)
+}
+
+func Test_turn_fleetTransferOwner(t *testing.T) {
+	game := createTwoPlayerGame()
+	player1 := game.Players[0]
+	player2 := game.Players[1]
+	fleet := game.Fleets[0]
+
+	player1.Race.Name = "Rabbitoid"
+	player1.Race.PluralName = "Rabbitoids"
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	fleet.Waypoints[0].Task = WaypointTaskTransferFleet
+	fleet.Waypoints[0].TransferToPlayer = player2.Num
+
+	// transfer
+	turn.generateTurn()
+
+	// should have transferred the fleet, updated the name and the design
+	assert.Equal(t, player2.Num, fleet.PlayerNum)
+	assert.Equal(t, "Rabbitoids Long Range Scout #2", fleet.Name)
+	assert.Equal(t, player1.Num, fleet.Tokens[0].design.OriginalPlayerNum)
+	assert.Equal(t, "Rabbitoids Long Range Scout", fleet.Tokens[0].design.Name)
+	assert.Equal(t, 2, len(player2.Designs))
+	assert.Equal(t, 1, len(fleet.Waypoints))
+	assert.Equal(t, None, fleet.Waypoints[0].TransferToPlayer)
+	assert.Equal(t, WaypointTaskNone, string(fleet.Waypoints[0].Task))
+
 }

@@ -8,6 +8,7 @@ export type ShipDesign = {
 	updatedAt?: Date;
 	num?: number;
 	playerNum: number;
+	originalPlayerNum: number;
 	name: string;
 	version: number;
 	hull: string;
