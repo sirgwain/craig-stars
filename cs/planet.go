@@ -64,6 +64,7 @@ type PlanetSpec struct {
 	TerraformAmount                           Hab     `json:"terraformAmount,omitempty"`
 	MinTerraformAmount                        Hab     `json:"minTerraformAmount,omitempty"`
 	TerraformedHabitability                   int     `json:"terraformedHabitability,omitempty"`
+	Contested                                 bool    `json:"contested,omitempty"`
 }
 
 type PlanetStarbaseSpec struct {

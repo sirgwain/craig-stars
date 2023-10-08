@@ -2,10 +2,11 @@
 	import CargoBar from '$lib/components/game/CargoBar.svelte';
 	import FuelBar from '$lib/components/game/FuelBar.svelte';
 	import { getGameContext } from '$lib/services/Contexts';
-	import type { CommandedFleet } from '$lib/types/Fleet';
+	import { canTransferCargo, type CommandedFleet, type Fleet } from '$lib/types/Fleet';
 	import { createEventDispatcher } from 'svelte';
 	import CommandTile from './CommandTile.svelte';
 	import type { CargoTransferEvent } from '../../dialogs/cargo/CargoTranfserDialog.svelte';
+	import { MapObjectType, ownedBy } from '$lib/types/MapObject';
 
 	const dispatch = createEventDispatcher<CargoTransferEvent>();
 	const { game, player, universe } = getGameContext();
@@ -38,6 +39,7 @@
 			<div class="ml-1 h-full w-full">
 				<CargoBar
 					on:cargo-transfer-dialog={() => transfer()}
+					canTransferCargo={canTransferCargo(fleet, $universe)}
 					value={fleet.cargo}
 					capacity={fleet.spec.cargoCapacity}
 				/>

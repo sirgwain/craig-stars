@@ -2,7 +2,7 @@ import type { DesignFinder, Universe } from '$lib/services/Universe';
 import { get as pluck } from 'lodash-es';
 import { totalCargo, type Cargo } from './Cargo';
 import type { Cost } from './Cost';
-import { MapObjectType, None, type MovingMapObject } from './MapObject';
+import { MapObjectType, None, type MovingMapObject, ownedBy } from './MapObject';
 import type { MessageTargetType } from './Message';
 import type { ShipDesign } from './ShipDesign';
 import type { Engine } from './Tech';
@@ -17,6 +17,7 @@ export type Fleet = {
 	damage?: number;
 	tokens?: ShipToken[];
 	mass?: number;
+	freighter?: boolean;
 	orbitingPlanetNum?: number;
 	starbase?: boolean;
 	spec?: Spec;
@@ -273,6 +274,31 @@ export function getDamagePercentForToken(token: ShipToken, design: ShipDesign | 
 		return (totalDamage / totalArmor) * 100;
 	}
 	return 0;
+}
+
+// true if this fleet can transfer cargo
+export function canTransferCargo(fleet: Fleet, universe: Universe): boolean {
+	if (!fleet.spec?.cargoCapacity) {
+		return false;
+	}
+	if (fleet.orbitingPlanetNum) {
+		const planet = universe.getPlanet(fleet.orbitingPlanetNum);
+		if (planet && !ownedBy(planet, fleet.playerNum)) {
+			// if any of these fleets can transport, it's a contested planet
+			const orbitingForeignFreighters = universe
+				.getMapObjectsByPosition(planet)
+				.filter((mo) => mo.type === MapObjectType.Fleet)
+				.map((mo) => mo as Fleet)
+				.filter((f: Fleet) => f.freighter)
+				.filter((f) => f.playerNum !== fleet.playerNum);
+
+			// don't allow manual transfers over contested planets
+			if (orbitingForeignFreighters.length > 0) {
+				return false;
+			}
+		}
+	}
+	return true;
 }
 
 function getFuelCostForEngine(

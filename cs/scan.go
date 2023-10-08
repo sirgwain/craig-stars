@@ -3,6 +3,7 @@ package cs
 import (
 	"math"
 
+	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 )
 
@@ -60,12 +61,12 @@ func (scan *playerScan) scan() error {
 		}
 	}
 
-	// TODO: add in player mineral packets, minefields, etc
 	scanners := scan.getScanners()
+	remoteMiningScanners := scan.getRemoteMiningScanners()
 	cargoScanners := scan.getCargoScanners()
 
 	// scan planets
-	if err := scan.scanPlanets(scanners, cargoScanners); err != nil {
+	if err := scan.scanPlanets(scanners, append(cargoScanners, remoteMiningScanners...)); err != nil {
 		return err
 	}
 
@@ -132,8 +133,6 @@ func (scan *playerScan) scanPlanets(scanners []scanner, cargoScanners []scanner)
 
 // scan this planet
 func (scan *playerScan) scanPlanet(planet *Planet, scanner scanner) (bool, error) {
-	dist := scanner.Position.DistanceSquaredTo(planet.Position)
-	_ = dist
 	if float64(scanner.RangePenSquared) >= scanner.Position.DistanceSquaredTo(planet.Position) {
 		if planet.Owned() {
 			scan.discoveredPlayers[planet.PlayerNum] = true
@@ -438,6 +437,29 @@ func (scan *playerScan) getScanners() []scanner {
 	}
 
 	return scanners
+}
+
+// get a list of remote mining scanners by player
+func (scan *playerScan) getRemoteMiningScanners() []scanner {
+	scanningFleetsByPosition := map[Vector]scanner{}
+	for _, fleet := range scan.universe.Fleets {
+		if fleet.Delete {
+			continue
+		}
+
+		// find any fleets that remote mined this turn, but only add one per position
+		if fleet.PlayerNum == scan.player.Num && fleet.remoteMined {
+			if scanner, found := scanningFleetsByPosition[fleet.Position]; !found {
+				scanner.Position = fleet.Position
+				scanner.RangeSquared = 0
+				scanner.RangePenSquared = 0
+				scanner.DiscoverPlanetCargo = true
+				scanningFleetsByPosition[fleet.Position] = scanner
+			}
+		}
+	}
+
+	return maps.Values(scanningFleetsByPosition)
 }
 
 // get a list of scanners that can scan cargo from fleets or planets

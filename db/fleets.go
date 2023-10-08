@@ -214,6 +214,23 @@ func (c *client) GetFleetsByNums(gameID int64, playerNum int, nums []int) ([]*cs
 	return results, nil
 }
 
+func (c *client) GetFleetsOrbitingPlanet(gameID int64, planetNum int) ([]*cs.Fleet, error) {
+	items := []Fleet{}
+	if err := c.reader.Select(&items, `SELECT * FROM fleets WHERE gameId = ? AND orbitingPlanetNum = ?`, gameID, planetNum); err != nil {
+		if err == sql.ErrNoRows {
+			return []*cs.Fleet{}, nil
+		}
+		return nil, err
+	}
+
+	results := make([]*cs.Fleet, len(items))
+	for i := range items {
+		results[i] = c.converter.ConvertFleet(&items[i])
+	}
+
+	return results, nil
+}
+
 // create a new game
 func (c *client) createFleet(fleet *cs.Fleet) error {
 	item := c.converter.ConvertGameFleet(fleet)

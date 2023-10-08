@@ -152,6 +152,7 @@ type FleetIntel struct {
 	Mass              int         `json:"mass,omitempty"`
 	Cargo             Cargo       `json:"cargo,omitempty"`
 	CargoDiscovered   bool        `json:"cargoDiscovered,omitempty"`
+	Freighter         bool        `json:"freighter,omitempty"`
 	Tokens            []ShipToken `json:"tokens,omitempty"`
 }
 
@@ -459,6 +460,7 @@ func (d *discover) discoverFleet(player *Player, fleet *Fleet) {
 	intel.Heading = fleet.Heading
 	intel.WarpSpeed = fleet.WarpSpeed
 	intel.Mass = fleet.Spec.Mass
+	intel.Freighter = fleet.Spec.CargoCapacity > 0
 	intel.Tokens = fleet.Tokens
 
 	player.FleetIntels = append(player.FleetIntels, intel)

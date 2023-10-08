@@ -39,6 +39,7 @@ type Fleet struct {
 	Spec              FleetSpec   `json:"spec,omitempty"`
 	battlePlan        *BattlePlan
 	struckMineField   bool
+	remoteMined   bool
 }
 
 type FleetOrders struct {

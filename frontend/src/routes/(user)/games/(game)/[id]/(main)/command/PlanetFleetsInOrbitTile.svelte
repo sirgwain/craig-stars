@@ -1,14 +1,15 @@
 <script lang="ts">
 	import CargoBar from '$lib/components/game/CargoBar.svelte';
 	import FuelBar from '$lib/components/game/FuelBar.svelte';
-	import { commandedMapObjectName, commandMapObject } from '$lib/services/Stores';
-	import { CommandedFleet, type Fleet } from '$lib/types/Fleet';
+	import { commandedMapObjectName, commandMapObject, universe } from '$lib/services/Stores';
+	import { canTransferCargo, CommandedFleet, type Fleet } from '$lib/types/Fleet';
 	import type { CommandedPlanet } from '$lib/types/Planet';
 	import { ArrowTopRightOnSquare } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { createEventDispatcher } from 'svelte';
 	import type { CargoTransferEvent } from '../../dialogs/cargo/CargoTranfserDialog.svelte';
 	import CommandTile from './CommandTile.svelte';
+	import { union } from 'd3-array';
 
 	const dispatch = createEventDispatcher<CargoTransferEvent>();
 
@@ -67,6 +68,7 @@
 			<div class="ml-1 h-full w-full">
 				<CargoBar
 					on:cargo-transfer-dialog={transfer}
+					canTransferCargo={canTransferCargo(selectedFleet, $universe)}
 					value={selectedFleet.cargo}
 					capacity={selectedFleet.spec.cargoCapacity}
 				/>

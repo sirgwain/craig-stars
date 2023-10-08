@@ -156,7 +156,8 @@ type Client interface {
 	CreateUpdateOrDeleteFleets(gameID int64, fleets []*cs.Fleet) error
 	DeleteFleet(id int64) error
 	GetFleetsForPlayer(gameID int64, playerNum int) ([]*cs.Fleet, error)
-
+	GetFleetsOrbitingPlanet(gameID int64, planetNum int) ([]*cs.Fleet, error)
+	
 	GetMineField(id int64) (*cs.MineField, error)
 	GetMineFieldsForPlayer(gameID int64, playerNum int) ([]*cs.MineField, error)
 	UpdateMineField(fleet *cs.MineField) error

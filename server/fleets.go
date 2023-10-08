@@ -295,10 +295,23 @@ func (s *server) transferCargoFleetPlanet(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if !planet.OwnedBy(player.Num) {
-		log.Error().Int64("GameID", fleet.GameID).Int("Num", num).Int("PlayerNum", planet.PlayerNum).Msg("dest planet not owned by player")
-		render.Render(w, r, ErrForbidden)
-		return
+	// don't allow cargo transfers from contested planets
+	if !planet.Owned() {
+		fleetsInOrbit, err := readClient.GetFleetsOrbitingPlanet(fleet.GameID, planet.Num)
+		if err != nil {
+			log.Error().Err(err).Msg("get fleets in orbit of planet from database")
+			render.Render(w, r, ErrInternalServerError(err))
+			return
+		}
+
+		// check if any of these fleets are freighters and are owned by someone other than the player
+		for _, f := range fleetsInOrbit {
+			if f.Spec.CargoCapacity > 0 && f.PlayerNum != fleet.PlayerNum {
+				log.Error().Int64("GameID", fleet.GameID).Int("Num", num).Int("PlayerNum", planet.PlayerNum).Msg("dest planet is contested")
+				render.Render(w, r, ErrForbidden)
+				return
+			}
+		}
 	}
 
 	if planet.Owned() && !planet.OwnedBy(player.Num) {

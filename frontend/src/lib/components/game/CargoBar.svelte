@@ -13,6 +13,7 @@
 	};
 
 	export let capacity = 0;
+	export let canTransferCargo = false;
 
 	let percent: Cargo = emptyCargo();
 
@@ -30,8 +31,9 @@
 </script>
 
 <div
-	on:pointerdown={() => dispatch('cargo-transfer-dialog')}
-	class="border border-secondary h-[1rem] text-[0rem] relative bg-base-200 cursor-pointer select-none"
+	on:pointerdown={() => canTransferCargo && dispatch('cargo-transfer-dialog')}
+	class="border border-secondary h-[1rem] text-[0rem] relative bg-base-200 select-none"
+	class:cursor-pointer={canTransferCargo}
 >
 	<div
 		class="font-semibold text-sm text-center align-middle text-secondary w-full bg-blend-difference absolute"

@@ -1146,9 +1146,9 @@ func (t *turn) remoteMine(fleet *Fleet, player *Player, planet *Planet) {
 		planet.reduceMineralConcentration(&t.game.Rules)
 		planet.MarkDirty()
 
-		// make sure we know about this planet's cargo after remote mining
-		d := newDiscoverer(player)
-		d.discoverPlanetCargo(player, planet)
+		// make sure we know about this planet's cargo after remote mining, mark this fleet as having
+		// remote mined so it gets added as a planetary cargo scanner
+		fleet.remoteMined = true
 		messager.remoteMined(player, fleet, planet, mineralOutput)
 
 		log.Debug().
