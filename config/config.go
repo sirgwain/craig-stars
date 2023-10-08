@@ -37,6 +37,7 @@ type Config struct {
 		InviteLinkSalt string `yaml:"InviteLinkSalt,omitempty"`
 	}
 	GeneratedUserPassword string
+	Address               string
 }
 
 var config *Config
@@ -60,6 +61,7 @@ func GetConfig() *Config {
 		viper.SetDefault("Discord.CookieDuration", "24h")     // default for local dev
 
 		viper.SetDefault("Game.InviteLinkSalt", "salt") // default for local dev
+		viper.SetDefault("Address", "localhost:8080") // default for local dev, override to :8080 for deployment
 
 		// write config if not present
 		if err := os.MkdirAll(path, os.ModePerm); err != nil {

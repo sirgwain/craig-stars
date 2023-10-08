@@ -418,7 +418,7 @@ func Start(config config.Config) error {
 	r.Handle("/*", http.FileServer(http.FS(sub)))
 
 	// The HTTP Server
-	httpServer := &http.Server{Addr: "localhost:8080", Handler: r}
+	httpServer := &http.Server{Addr: config.Address, Handler: r}
 
 	// Server run context
 	serverCtx, serverStopCtx := context.WithCancel(context.Background())
