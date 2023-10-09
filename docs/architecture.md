@@ -116,7 +116,6 @@ erDiagram
 
   Game ||--|{ Player: has
   Game ||--|| Universe: has
-
 ```
 
 ## db
