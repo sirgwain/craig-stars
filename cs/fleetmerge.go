@@ -1,12 +1,17 @@
 package cs
 
+// A SplitFleetOrder is for splitting tokens off of single fleet to form a second new fleet
+// TODO: not yet implemented
 type SplitFleetOrder struct {
-	// The tokens to split out of this fleet into a new one
-	Source      *Fleet
+	Source      *Fleet      `json:"source,omitempty"`
 	SplitTokens []ShipToken `json:"splitTokens,omitempty"`
 }
 
+// A MergeFleetOrder is for moving tokens between two fleets
+// TODO: not yet implemented
 type MergeFleetOrder struct {
-	// The tokens to split out of this fleet into a new one
-	SplitTokens []ShipToken `json:"splitTokens,omitempty"`
+	Source       *Fleet      `json:"source,omitempty"`
+	Dest         *Fleet      `json:"dest,omitempty"`
+	SourceTokens []ShipToken `json:"splitTokens,omitempty"`
+	DestTokens   []ShipToken `json:"destTokens,omitempty"`
 }

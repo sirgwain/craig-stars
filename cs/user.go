@@ -14,6 +14,8 @@ import (
 	"golang.org/x/crypto/argon2"
 )
 
+// A User corresponds to a human logged into craig-stars. This might not actually belong
+// in the cs package, but I didn't feel like breaking it out into a new package.
 type User struct {
 	DBObject
 	Username      string     `json:"username" header:"Username"`

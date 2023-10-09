@@ -2,7 +2,7 @@ package cs
 
 import "math"
 
-// handles terraforming planets
+// The Terraformer interface handles terraforming planets
 type Terraformer interface {
 	PermaformOneStep(planet *Planet, player *Player, habType HabType) TerraformResult
 	TerraformOneStep(planet *Planet, player *Player, terraformer *Player, reverse bool) TerraformResult
@@ -93,7 +93,7 @@ func (t *terraform) getTerraformAmount(hab Hab, baseHab Hab, player, terraformer
 		if fromIdeal > 0 {
 			// i.e. our ideal is 50 and the planet hab is 47
 			if enemy {
-				alreadyTerraformed := absInt(fromIdealBase - fromIdeal)
+				alreadyTerraformed := AbsInt(fromIdealBase - fromIdeal)
 				terraformAmount.Set(habType, -(ability - alreadyTerraformed))
 			} else {
 				// we can either terrform up to our full ability, or however much
@@ -103,7 +103,7 @@ func (t *terraform) getTerraformAmount(hab Hab, baseHab Hab, player, terraformer
 			}
 		} else if fromIdeal < 0 {
 			if enemy {
-				alreadyTerraformed := absInt(fromIdealBase - fromIdeal)
+				alreadyTerraformed := AbsInt(fromIdealBase - fromIdeal)
 				terraformAmount.Set(habType, ability-alreadyTerraformed)
 			} else {
 				// i.e. our ideal is 50 and the planet hab is 53
@@ -112,7 +112,7 @@ func (t *terraform) getTerraformAmount(hab Hab, baseHab Hab, player, terraformer
 			}
 		} else if enemy {
 			// the terrformer is enemies with the player, terraform away from ideal
-			alreadyTerraformed := absInt(fromIdealBase - fromIdeal)
+			alreadyTerraformed := AbsInt(fromIdealBase - fromIdeal)
 			terraformAbility.Set(habType, ability-alreadyTerraformed)
 		}
 	}
@@ -175,10 +175,10 @@ func (t *terraform) getMinTerraformAmount(hab Hab, baseHab Hab, player *Player, 
 		if fromHabitableDistance > 0 {
 			// the distance from the current hab of this planet
 			fromIdeal := playerHabIdeal - planetHabValue
-			fromIdealDistance := absInt(fromIdeal)
+			fromIdealDistance := AbsInt(fromIdeal)
 
 			// The distance from the starting hab of this planet
-			fromIdealBaseDistance := absInt(playerHabIdeal - baseHab.Get(habType))
+			fromIdealBaseDistance := AbsInt(playerHabIdeal - baseHab.Get(habType))
 
 			// we can either terrform up to our full ability, or however much
 			// we have left to terraform on this
@@ -228,14 +228,14 @@ func (t *terraform) GetBestTerraform(planet *Planet, player *Player, terraformer
 		playerHabIdeal := habCenter.Get(habType)
 
 		// The distance from the starting hab of this planet
-		fromIdealBaseDistance := absInt(playerHabIdeal - planet.BaseHab.Get(habType))
+		fromIdealBaseDistance := AbsInt(playerHabIdeal - planet.BaseHab.Get(habType))
 
 		// figure out what our hab is without any instaforming
 		habWithoutInstaforming := planet.BaseHab.Add(planet.TerraformedAmount)
 
 		// the distance from the current hab of this planet
 		fromIdeal := playerHabIdeal - habWithoutInstaforming.Get(habType)
-		fromIdealDistance := absInt(fromIdeal)
+		fromIdealDistance := AbsInt(fromIdeal)
 
 		terraformAmount := 0
 		// if we have any left to terraform
@@ -282,13 +282,13 @@ func (t *terraform) getBestUnterraform(planet *Planet, player, terraformer *Play
 		}
 
 		fromIdeal := habCenter.Get(habType) - planet.Hab.Get(habType)
-		terraformedAlready := absInt(planet.TerraformedAmount.Get(habType))
+		terraformedAlready := AbsInt(planet.TerraformedAmount.Get(habType))
 
 		// if we can terraform this at all
 		if terraformedAlready < terraformAbility.Get(habType) {
 			// pick the farthest from ideal
-			if absInt(fromIdeal) > farthestAmount {
-				farthestAmount = absInt(fromIdeal)
+			if AbsInt(fromIdeal) > farthestAmount {
+				farthestAmount = AbsInt(fromIdeal)
 				newFarthest := habType
 				farthest = &newFarthest
 			}

@@ -19,31 +19,10 @@ import (
 	sqldblogger "github.com/simukti/sqldb-logger"
 )
 
-type dbConn struct {
-	dbRead           *sqlx.DB
-	dbWrite          *sqlx.DB
-	databaseInMemory bool
-	usersInMemory    bool
-}
-
-type client struct {
-	reader    sqlReader
-	writer    sqlWriter
-	tx        *sqlx.Tx
-	converter Converter
-}
-
-type sqlReader interface {
-	Select(dest interface{}, query string, args ...interface{}) error
-	Get(dest interface{}, query string, args ...interface{}) error
-	Rebind(query string) string
-}
-
-type sqlWriter interface {
-	NamedExec(query string, arg interface{}) (sql.Result, error)
-	Exec(query string, args ...any) (sql.Result, error)
-}
-
+// DBConn represents a connection to the database
+// Some database connections are read only, others are readwrite
+// A readWrite connection can be wrapped in a transaction, but be warned, this locks the
+// database until the transaction completes or fails.
 type DBConn interface {
 	Connect(config *config.Config) error
 	Close() error
@@ -61,6 +40,7 @@ type DBConn interface {
 	WrapInTransaction(wrap func(c Client) error) error
 }
 
+// A database Client interface is used to make all calls that modify the database
 type Client interface {
 	// private transaction management methods used by DBConn RollBack, Commit
 	rollback() error
@@ -89,7 +69,7 @@ type Client interface {
 	UpdateRace(race *cs.Race) error
 	DeleteRace(id int64) error
 	DeleteUserRaces(userID int64) error
-	
+
 	GetTechStores() ([]cs.TechStore, error)
 	CreateTechStore(tech *cs.TechStore) error
 	GetTechStore(id int64) (*cs.TechStore, error)
@@ -157,7 +137,7 @@ type Client interface {
 	DeleteFleet(id int64) error
 	GetFleetsForPlayer(gameID int64, playerNum int) ([]*cs.Fleet, error)
 	GetFleetsOrbitingPlanet(gameID int64, planetNum int) ([]*cs.Fleet, error)
-	
+
 	GetMineField(id int64) (*cs.MineField, error)
 	GetMineFieldsForPlayer(gameID int64, playerNum int) ([]*cs.MineField, error)
 	UpdateMineField(fleet *cs.MineField) error
@@ -170,6 +150,31 @@ type Client interface {
 	GetSalvageByNum(gameID int64, num int) (*cs.Salvage, error)
 	CreateSalvage(salvage *cs.Salvage) error
 	UpdateSalvage(salvage *cs.Salvage) error
+}
+
+type dbConn struct {
+	dbRead           *sqlx.DB
+	dbWrite          *sqlx.DB
+	databaseInMemory bool
+	usersInMemory    bool
+}
+
+type client struct {
+	reader    sqlReader
+	writer    sqlWriter
+	tx        *sqlx.Tx
+	converter Converter
+}
+
+type sqlReader interface {
+	Select(dest interface{}, query string, args ...interface{}) error
+	Get(dest interface{}, query string, args ...interface{}) error
+	Rebind(query string) string
+}
+
+type sqlWriter interface {
+	NamedExec(query string, arg interface{}) (sql.Result, error)
+	Exec(query string, args ...any) (sql.Result, error)
 }
 
 func NewConn() DBConn {
@@ -202,8 +207,6 @@ func newTransactionClient(tx *sqlx.Tx) *client {
 }
 
 func (conn *dbConn) BeginTransaction() (Client, error) {
-
-	// log.Debug().Msg("begin transaction")
 	tx, err := conn.dbWrite.Beginx()
 	if err != nil {
 		return nil, err
@@ -211,12 +214,10 @@ func (conn *dbConn) BeginTransaction() (Client, error) {
 	return newTransactionClient(tx), nil
 }
 
-func (conn *dbConn) Rollback(c Client) error {
-	// log.Debug().Msg("rollback transaction")
+func (conn *dbConn) Rollback(c Client) error {	
 	return c.rollback()
 }
-func (conn *dbConn) Commit(c Client) error {
-	// log.Debug().Msg("commit transaction")
+func (conn *dbConn) Commit(c Client) error {	
 	return c.commit()
 }
 
@@ -258,7 +259,6 @@ func (c *dbConn) Connect(cfg *config.Config) error {
 	// make sure the database is up to date
 	c.mustMigrate(cfg)
 
-
 	// create a new logger for logging database calls
 	var zlogger zerolog.Logger
 	if cfg.Database.DebugLogging {
@@ -266,7 +266,7 @@ func (c *dbConn) Connect(cfg *config.Config) error {
 	} else {
 		zlogger = zerolog.New(os.Stderr).With().Timestamp().Logger().Level(zerolog.WarnLevel)
 	}
-	loggerAdapter := NewLoggerWithLogger(&zlogger)
+	loggerAdapter := newLoggerWithLogger(&zlogger)
 
 	// dsn is like file::memory:?cache=shared, or file:data.db?_journal=WAL
 	dsn := fmt.Sprintf("file:%s%s", cfg.Database.Filename, cfg.Database.ReadConnectionParams)

@@ -1,5 +1,8 @@
 package cs
 
+// The mystery trader travels through space and gives a boon to any player that gives it a fleet
+// full of minerals
+// TODO: not yet implemented
 type MysteryTrader struct {
 	MapObject
 	Heading   Vector            `json:"heading,omitempty"`

@@ -4,6 +4,8 @@ import (
 	"fmt"
 )
 
+// The CostCalculator interface is used to calculate costs of single items or starbase upgrades
+// This is used by planetary production and estimating production queue completion
 type CostCalculator interface {
 	StarbaseUpgradeCost(design, newDesign *ShipDesign) Cost
 	CostOfOne(player *Player, item ProductionQueueItem) (Cost, error)

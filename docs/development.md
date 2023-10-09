@@ -1,6 +1,9 @@
 # Development
 craig-stars is a web based game. The backend is written in [golang](https://go.dev). The frontend is written in [typescript](https://www.typescriptlang.org) and powered by [`SvelteKit`](https://kit.svelte.dev).
 
+## Architecture
+For detailed information about `craig-stars` architecture, check out the [architecture](architecture.md) page.
+
 ## Tech Stack
 `craig-stars` is built on top of the following excellent technologies:
 

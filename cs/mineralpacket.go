@@ -5,6 +5,7 @@ import (
 	"math"
 )
 
+// Starbases with Packet Throwers can build mineral packets and fling them at other planets.
 type MineralPacket struct {
 	MapObject
 	TargetPlanetNum   int    `json:"targetPlanetNum,omitempty"`

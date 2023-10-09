@@ -7,6 +7,7 @@ import (
 	"github.com/sirgwain/craig-stars/cs"
 )
 
+// send a test battle to the user. This is hardcoded for now, but eventually it will support custom battles designed by the player.
 func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 	player1 := cs.NewPlayer(0, cs.NewRace()).WithNum(1)
 	player2 := cs.NewPlayer(0, cs.NewRace()).WithNum(2)

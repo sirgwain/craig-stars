@@ -6,6 +6,13 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+// The FleetMover builds a movement graph to handle fleets chasing fleets chasing fleets
+// in the case of a circular graph, each fleet will move one ly at a time
+// TODO: not yet implemented
+type fleetMover interface {
+	buildFleetMoveGraph(fleets []*Fleet, fleetGetter fleetGetter) fleetMoveGraph
+}
+
 type fleetMoveGraph struct {
 	fleetsNotTargetingFleets []*Fleet
 	fleetsTargetingFleets    []fleetMoveNode
@@ -21,9 +28,6 @@ func (node fleetMoveNode) String() string {
 	return fmt.Sprintf("fleet %d -> %d", node.fleet.Num, node.target.fleet.Num)
 }
 
-type fleetMover interface {
-	buildFleetMoveGraph(fleets []*Fleet, fleetGetter fleetGetter) fleetMoveGraph
-}
 
 type fleetMove struct {
 }

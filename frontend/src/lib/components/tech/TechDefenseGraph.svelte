@@ -116,6 +116,7 @@
 
 		<Html>
 			<GroupLabels />
+			<!-- TODO: get this working so we can see values on our graphs -->
 			<!-- <SharedTooltip dataset={dataQuadTree} /> -->
 		</Html>
 	</LayerCake>

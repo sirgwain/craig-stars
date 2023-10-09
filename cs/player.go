@@ -7,26 +7,8 @@ import (
 	"time"
 )
 
-// a player and all mapobjects the player owns
-// this is used by the UI when loading a player's game
-type FullPlayer struct {
-	Player
-	PlayerMapObjects
-}
-
-type PlayerStatus struct {
-	UpdatedAt     *time.Time `json:"updatedAt,omitempty"`
-	UserID        int64      `json:"userId,omitempty"`
-	Name          string     `json:"name,omitempty"`
-	Num           int        `json:"num,omitempty"`
-	Ready         bool       `json:"ready,omitempty"`
-	AIControlled  bool       `json:"aiControlled,omitempty"`
-	Guest         bool       `json:"guest,omitempty"`
-	SubmittedTurn bool       `json:"submittedTurn,omitempty"`
-	Color         string     `json:"color,omitempty"`
-	Victor        bool       `json:"victor,omitempty"`
-}
-
+// A Player contains all intel, messages, tech levels, and research orders for a single empire in the game.
+// It is tied to a single User (or no user, for AI)
 type Player struct {
 	GameDBObject
 	PlayerOrders
@@ -54,6 +36,26 @@ type Player struct {
 	Stats                     *PlayerStats         `json:"stats,omitempty"`
 	Spec                      PlayerSpec           `json:"spec,omitempty"`
 	leftoverResources         int
+}
+
+// a player and all mapobjects the player owns
+// this is used by the UI when loading a player's game
+type FullPlayer struct {
+	Player
+	PlayerMapObjects
+}
+
+type PlayerStatus struct {
+	UpdatedAt     *time.Time `json:"updatedAt,omitempty"`
+	UserID        int64      `json:"userId,omitempty"`
+	Name          string     `json:"name,omitempty"`
+	Num           int        `json:"num,omitempty"`
+	Ready         bool       `json:"ready,omitempty"`
+	AIControlled  bool       `json:"aiControlled,omitempty"`
+	Guest         bool       `json:"guest,omitempty"`
+	SubmittedTurn bool       `json:"submittedTurn,omitempty"`
+	Color         string     `json:"color,omitempty"`
+	Victor        bool       `json:"victor,omitempty"`
 }
 
 type PlayerIntels struct {

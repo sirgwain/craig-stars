@@ -46,6 +46,8 @@ var colors = []string{
 	"#F0FFF0",
 }
 
+// The GameRunner handles hosting games, updating players of games before they are started, loading a full Player game from 
+// the database, and generating new turns.
 type GameRunner interface {
 	HostGame(hostID int64, settings *cs.GameSettings) (*cs.FullGame, error)
 	JoinGame(gameID int64, userID int64, name string, race cs.Race) error

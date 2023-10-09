@@ -5,6 +5,7 @@ import (
 	"math"
 )
 
+// Represents a habitability point for a planet. Values range from 1 to 99
 type Hab struct {
 	Grav int `json:"grav,omitempty"`
 	Temp int `json:"temp,omitempty"`
@@ -99,7 +100,7 @@ func HabFromInts(hab [3]int) Hab {
 }
 
 func (h Hab) absSum() int {
-	return absInt(h.Grav) + absInt(h.Temp) + absInt(h.Rad)
+	return AbsInt(h.Grav) + AbsInt(h.Temp) + AbsInt(h.Rad)
 }
 
 func gravString(grav int) string {

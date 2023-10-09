@@ -2,6 +2,8 @@ package cs
 
 const Unlimited = -1
 
+// The cargoHolder is an interface implemented by any map object that can hold cargo. It's used for handling
+// cargo transfers between different types of map objects.
 type cargoHolder interface {
 	getMapObject() MapObject
 	getCargo() *Cargo

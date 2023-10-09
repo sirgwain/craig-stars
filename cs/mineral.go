@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// Minerals are mined from planets and turned into Cargo
 type Mineral struct {
 	Ironium   int `json:"ironium,omitempty"`
 	Boranium  int `json:"boranium,omitempty"`

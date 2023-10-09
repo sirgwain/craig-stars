@@ -17,6 +17,7 @@ func main() {
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 
+	// set the embedded assets on the server so it can vend them to the user
 	server.SetAssets(assets)
 	cmd.Execute()
 }

@@ -6,6 +6,9 @@ import (
 	"time"
 )
 
+// The Rules struct contains all the various constants and configuration values that determine 
+// how the game mechanics work. These are designed to be unique per game, if desired. Currently for testing, all
+// games just use the default rule set.
 type Rules struct {
 	ID                                 int64                               `json:"id"`
 	CreatedAt                          time.Time                           `json:"createdAt"`

@@ -8,12 +8,14 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-type turn struct {
-	game *FullGame
-}
-
+// When all players submit their turns, the turn generator is used to generate a new turn
+// This follows the Stars! order of events: https://wiki.starsautohost.org/wiki/Order_of_Events
 type turnGenerator interface {
 	generateTurn() error
+}
+
+type turn struct {
+	game *FullGame
 }
 
 func newTurnGenerator(game *FullGame) turnGenerator {
@@ -25,6 +27,8 @@ func newTurnGenerator(game *FullGame) turnGenerator {
 }
 
 // generate a new turn
+// TODO: add more error handling. A failed turn generation is easier to fix than
+// a corrupt game
 func (t *turn) generateTurn() error {
 	log.Debug().
 		Int64("GameID", t.game.ID).

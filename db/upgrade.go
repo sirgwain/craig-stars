@@ -16,6 +16,7 @@ Version Info:
 
 001 - Fix player discovers own starbase designs on planet discovery and adds them to intel
 002 - Ensure all AR planets have scanners
+003 - Add random artifacts to undiscovered planets
 
 */
 

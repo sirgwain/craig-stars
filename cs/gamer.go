@@ -87,6 +87,7 @@ func (c *gamer) GenerateTurn(game *Game, universe *Universe, players []*Player) 
 	return turnGenerator.generateTurn()
 }
 
+// out of band ComputeSpecs call used after fixing bugs.
 func (c *gamer) ComputeSpecs(game *FullGame) error {
 	return game.computeSpecs()
 }
