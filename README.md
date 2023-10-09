@@ -1,66 +1,19 @@
 # craig-stars
 
+![screenshot](docs/screenshots/screenshot1.png)
+
 A web based Stars! clone.
 
-## Tech Stack
+[![Build Status](https://github.com/sirgwain/craig-stars/actions/workflows/build.yaml/badge.svg)](https://github.com/sirgwain/craig-stars/actions/workflows/build.yaml)
 
-- [go-chi](https://github.com/chi/go-chi)
-- [cobra](https://github.com/spf13/cobra) (for cli)
-- [viper](https://github.com/spf13/viper) (for config)
-- [sqlx](https://github.com/jmoiron/sqlx) + sqlite (for session/user management)
-- [sveltekit](https://kit.svelte.dev) (with static adaptor)
-- [tailwindcss](https://tailwindcss.com)
-- [daisyui](https://daisyui.com)
-- [game-icons.net](https://game-icons.net)
+## About
 
-# dev
+`craig-stars` is an interstellar, turn based strategy game and a member of the 4X genre (eXplore, eXpand, eXploit, eXterminate). The original [Stars!](https://wiki.starsautohost.org/) was written by Jeff Johnson and Jeff McBride with help from Jeffrey Krauss (collectively known as the Jeffs). `craig-stars` attempts to remain as close to the original as possible in both UI and gameplay.
 
-For development, install air `go install github.com/cosmtrek/air@latest`.
+The [Stars! wiki](https://wiki.starsautohost.org/) is a great place for learning about Stars! The [strategy guide](https://wiki.starsautohost.org/wikinew/ssg/ssg.htm) is a good starting point.
 
-## backend
+There is also an active [discord server](https://discord.gg/QUuat62H).
 
-Start the go webserver:
+## Development
 
-```zsh
-❯ air
-
-  __    _   ___
- / /\  | | | |_)
-/_/--\ |_| |_| \_ , built with Go
-
-watching .
-watching ai
-watching cmd
-watching config
-watching cs
-!exclude data
-watching db
-!exclude dist
-!exclude frontend
-watching server
-watching test
-!exclude tmp
-!exclude vendor
-building...
-running...
-7:47AM DBG Debug logging enabled
-```
-
-## frontend
-
-Launch the frontend in development mode with
-
-```zsh
-yarn --cwd frontend run dev
-```
-
-Point your browser at [http://localhost:5173](http://localhost:5173) to see a live reloading frontend proxied to the go server on port `:8080`. Updating go code will relaunch the backend automatically. Updating frontend code will do a hot reload with sveltekit/vite.
-
-# test
-
-Run tests
-
-```zsh
-go test ./...
-yarn --cwd frontend run test
-```
+For information on how to run a local instances of craig-stars for development, see the [development](docs/development.md) page.

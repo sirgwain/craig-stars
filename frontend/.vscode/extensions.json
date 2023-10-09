@@ -1,0 +1,9 @@
+{
+    "recommendations": [
+        "esbenp.prettier-vscode",
+        "svelte.svelte-vscode",
+        "bradlc.vscode-tailwindcss",
+        "fivethree.vscode-svelte-snippets",
+        "zixuanchen.vitest-explorer"
+    ]
+}

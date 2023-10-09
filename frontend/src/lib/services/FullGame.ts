@@ -380,6 +380,12 @@ export class FullGame implements Game {
 		if (result.dest?.type == MapObjectType.Planet) {
 			const planet = result.dest as Planet;
 			this.universe.updatePlanet(planet);
+
+			// if we are currently commanding the destination, make sure it updates
+			const p = get(commandedPlanet);
+			if (p?.num == planet.num) {
+				commandMapObject(planet);
+			}
 		}
 
 		if (result.salvages) {

@@ -144,10 +144,6 @@ import (
 // ===================================================================
 // TODO:
 // * Accuracy/Beam Defense modifications to attractiveness
-// * Beam Bonus
-// * Capital Ship missiles doing double damage to capital ships
-// * Unit test FireTorpedo and FireBeamWeapon
-// * Add other battle plan tactics besides MaximizeDamage
 
 const battleWidth, battleHeight = 10, 10
 
@@ -928,7 +924,6 @@ func (b *battle) fireTorpedo(weapon *battleWeaponSlot, targets []*battleToken) {
 }
 
 // moveToken moves a token towards or away from its target
-// TODO: figure out moving away/random
 func (b *battle) moveToken(token *battleToken, weaponSlots []*battleWeaponSlot) {
 	if !token.isStillInBattle() {
 		return

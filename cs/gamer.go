@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type client struct {
+type gamer struct {
 }
 
 // external interface for creating/interacting with games
@@ -26,7 +26,7 @@ type Gamer interface {
 }
 
 func NewGamer() Gamer {
-	return &client{}
+	return &gamer{}
 }
 
 func timeTrack(start time.Time, name string) {
@@ -34,7 +34,7 @@ func timeTrack(start time.Time, name string) {
 	log.Printf("%s took %s", name, elapsed)
 }
 
-func (c *client) CreateGame(hostID int64, settings GameSettings) *Game {
+func (c *gamer) CreateGame(hostID int64, settings GameSettings) *Game {
 	game := NewGame().WithSettings(settings)
 	game.HostID = hostID
 
@@ -42,7 +42,7 @@ func (c *client) CreateGame(hostID int64, settings GameSettings) *Game {
 }
 
 // create a new player
-func (c *client) NewPlayer(userID int64, race Race, rules *Rules) *Player {
+func (c *gamer) NewPlayer(userID int64, race Race, rules *Rules) *Player {
 	player := NewPlayer(userID, &race)
 	player.Race.Spec = computeRaceSpec(&player.Race, rules)
 
@@ -50,7 +50,7 @@ func (c *client) NewPlayer(userID int64, race Race, rules *Rules) *Player {
 }
 
 // Generate a new universe
-func (c *client) GenerateUniverse(game *Game, players []*Player) (*Universe, error) {
+func (c *gamer) GenerateUniverse(game *Game, players []*Player) (*Universe, error) {
 	defer timeTrack(time.Now(), "GenerateUniverse")
 
 	ug := NewUniverseGenerator(game, players)
@@ -66,12 +66,12 @@ func (c *client) GenerateUniverse(game *Game, players []*Player) (*Universe, err
 	return universe, nil
 }
 
-func (c *client) SubmitTurn(player *Player) {
+func (c *gamer) SubmitTurn(player *Player) {
 	player.SubmittedTurn = true
 }
 
 // check if all players have submitted their turn
-func (c *client) CheckAllPlayersSubmitted(players []*Player) bool {
+func (c *gamer) CheckAllPlayersSubmitted(players []*Player) bool {
 	for _, player := range players {
 		if !player.SubmittedTurn {
 			return false
@@ -81,12 +81,12 @@ func (c *client) CheckAllPlayersSubmitted(players []*Player) bool {
 }
 
 // generate a new turn for this game
-func (c *client) GenerateTurn(game *Game, universe *Universe, players []*Player) error {
+func (c *gamer) GenerateTurn(game *Game, universe *Universe, players []*Player) error {
 	defer timeTrack(time.Now(), "GenerateTurn")
 	turnGenerator := newTurnGenerator(&FullGame{game, universe, game.Rules.techs, players})
 	return turnGenerator.generateTurn()
 }
 
-func (c *client) ComputeSpecs(game *FullGame) error {
+func (c *gamer) ComputeSpecs(game *FullGame) error {
 	return game.computeSpecs()
 }

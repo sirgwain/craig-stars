@@ -1,6 +1,6 @@
 // to run locally:
 // install this version (new versions don't support mapExtend)
-// TODO: update goverter. :)
+// TODO: update goverter to latest version. has breaking changes to syntax
 // go install github.com/jmattheis/goverter/cmd/goverter@v0.12.0
 // goverter --packageName db --output ./db/generated.go --packagePath github.com/sirgwain/craig-stars/db --ignoreUnexportedFields ./db
 //

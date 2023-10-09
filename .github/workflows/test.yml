@@ -31,8 +31,12 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'yarn'
-          cache-dependency-path: frontend/yarn.lock
-      - run: yarn --cwd frontend install
-      - run: yarn --cwd frontend run test
-      - run: yarn --cwd frontend run build
+          cache: 'npm'
+          cache-dependency-path: frontend/package.lock
+      - run: npm install
+        working-directory: ./frontend
+      - run: npm run test
+        working-directory: ./frontend
+      - run: npm run build
+        working-directory: ./frontend
+  

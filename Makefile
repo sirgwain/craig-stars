@@ -1,26 +1,17 @@
 BINARY_NAME=craig-stars
 
-build_all: build_frontend build_server_all
+# always redo these
+.PHONY: build test clean dev dev_backend dev_frontend
+
+build: build_frontend tidy vendor build_server
 
 build_frontend:
-	yarn --cwd frontend install
-	yarn --cwd frontend run build
+	cd frontend; npm install
+	cd frontend; npm run build
 
-package_frontend: 
-	yarn --cwd frontend install
-	yarn --cwd frontend run build
-	tar -cvf dist/frontend.tgz -C frontend/build .
-
-build_server_all:
+build_server:
 	mkdir -p dist
-	GOARCH=arm64 GOOS=darwin go build -o dist/${BINARY_NAME}-darwin-arm64 main.go
-	GOARCH=amd64 GOOS=darwin go build -o dist/${BINARY_NAME}-darwin-amd64 main.go
-	GOARCH=amd64 GOOS=linux go build -o dist/${BINARY_NAME}-linux main.go
-	lipo -create -output dist/${BINARY_NAME}-darwin-universal dist/${BINARY_NAME}-darwin-amd64 dist/${BINARY_NAME}-darwin-arm64
-
-build:
-	mkdir -p dist
-	GOARCH=arm64 GOOS=darwin go build -o dist/${BINARY_NAME}-darwin-arm64 main.go
+	go build -o dist/${BINARY_NAME} main.go
 
 # use docker to build an amd64 image for linux deployment
 build_docker:
@@ -29,22 +20,13 @@ build_docker:
 
 test:
 	go test ./...
-
-reset_db:
-	rm data/data.db && go run main.go migrate && go run main.go create user -u admin -p admin
-
-serve:
-	./dist/${BINARY_NAME}-darwin-arm64 serve
-
-build_and_run: build run
+	cd frontend; npm run test
 
 clean:
 	go clean
-	rm dist/${BINARY_NAME}-darwin-amd64
-	rm dist/${BINARY_NAME}-darwin-arm64
-	rm dist/${BINARY_NAME}-darwin-universal
-	rm dist/${BINARY_NAME}-linux
-	rm dist/${BINARY_NAME}-windows
+	rm -rf dist
+	rm -rf vendor
+	rm -rf frontend/build
 
 # uninstall unused modules
 tidy:
@@ -53,3 +35,13 @@ tidy:
 # get those deps local!
 vendor:
 	go mod vendor
+
+dev_frontend:
+	cd frontend; npm run dev
+
+dev_backend:
+	air
+
+dev:
+	make -j 2 dev_backend dev_frontend
+

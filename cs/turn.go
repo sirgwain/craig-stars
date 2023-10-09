@@ -1797,14 +1797,9 @@ func (t *turn) fleetBattle() {
 			// figure out how much salvage this generates
 			destroyedCost := Cost{}
 			salvageOwner := 1
-			salvageFactor := t.game.Rules.SalvageFromBattleFactor
-			if salvageFactor == 0 {
-				// TODO: remove this when games are up to date
-				salvageFactor = .3 // upgrade old games before this rule was available
-			}
 			for _, token := range record.DestroyedTokens {
 				destroyedCost = destroyedCost.Add(token.design.Spec.Cost.MultiplyInt(token.Quantity))
-				// TODO: who owns this salvage
+				// TODO: who owns this salvage if there are destroyed ships from different players?
 				salvageOwner = token.PlayerNum
 			}
 			salvageMinerals := destroyedCost.MultiplyFloat64(t.game.Rules.SalvageFromBattleFactor).ToMineral()

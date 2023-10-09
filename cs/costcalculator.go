@@ -17,7 +17,7 @@ type costCalculate struct {
 }
 
 // get the upgrade cost for a starbase
-// TODO: do this
+// TODO: better starbase upgrade calc
 func (p *costCalculate) StarbaseUpgradeCost(design, newDesign *ShipDesign) Cost {
 	return newDesign.Spec.Cost.Minus(design.Spec.Cost).MinZero()
 }

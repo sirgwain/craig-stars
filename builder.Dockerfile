@@ -12,7 +12,7 @@ WORKDIR /workspace
 
 COPY ./frontend /workspace/
 
-RUN yarn install && yarn run build
+RUN npm install && npm run build
 
 # -----------------------------------------------------------------------------
 #  Build Stage

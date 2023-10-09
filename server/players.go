@@ -408,6 +408,7 @@ func (s *server) updatePlayerOrders(w http.ResponseWriter, r *http.Request) {
 	orderer := cs.NewOrderer()
 	orderer.UpdatePlayerOrders(player, planets, *orders.PlayerOrders, &game.Rules)
 
+	// TODO: do this all in one transaction?
 	// save the player to the database
 	if err := db.UpdatePlayerOrders(player); err != nil {
 		log.Error().Err(err).Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update player")
@@ -418,7 +419,6 @@ func (s *server) updatePlayerOrders(w http.ResponseWriter, r *http.Request) {
 	for _, planet := range planets {
 		if planet.Dirty {
 			// TODO: only update the planet spec? that's all that changes
-			// TODO: do this all in one transaction?
 			if err := db.UpdatePlanet(planet); err != nil {
 				log.Error().Err(err).Int64("ID", player.ID).Msg("updating player planet in database")
 				render.Render(w, r, ErrInternalServerError(err))
