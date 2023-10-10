@@ -8,16 +8,17 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// The UniverseGenerator generates a new universe based on some game settings and players.
+type UniverseGenerator interface {
+	Generate() (*Universe, error)
+	Area() Vector
+}
+
 type universeGenerator struct {
 	*Game
 	universe Universe
 	players  []*Player
 	area     Vector
-}
-
-type UniverseGenerator interface {
-	Generate() (*Universe, error)
-	Area() Vector
 }
 
 func NewUniverseGenerator(game *Game, players []*Player) UniverseGenerator {

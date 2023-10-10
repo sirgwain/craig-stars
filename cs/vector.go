@@ -5,6 +5,8 @@ import (
 	"math"
 )
 
+// A simple 2D vector with handy functions for moving things in space, calculating distance, etc
+// Many of these functions were taken from Godot source, thanks Godot folks.
 type Vector struct {
 	X float64 `json:"x"`
 	Y float64 `json:"y"`
@@ -67,6 +69,9 @@ func (v Vector) Round() Vector {
 // SegmentIntersectsCircle checks whether a segment intersects a circle or not.
 // This returns what percent of the segment is NOT in the circle, or -1 if it doesn't
 // intersect
+// Who would have thought the godot developers would write a perfect function for determining if we collide with a minefield
+// while moving through space? 
+// https://github.com/godotengine/godot/blob/4.1.2-stable/core/math/geometry_2d.h#L217
 func segmentIntersectsCircle(segmentFrom, segmentTo, circlePosition Vector, circleRadius float64) float64 {
 	lineVec := segmentTo.Subtract(segmentFrom)
 	vecToLine := segmentFrom.Subtract(circlePosition)

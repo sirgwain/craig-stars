@@ -2,7 +2,7 @@ package cs
 
 import "math"
 
-// interface for populating completion estimates in a planet's production queue
+// The CompletionEstimator is used for populating completion estimates in a planet's production queue
 type CompletionEstimator interface {
 	// get the estimated years to build one item with minerals on hand and some yearly mineral/resource output
 	GetYearsToBuildOne(item ProductionQueueItem, mineralsOnHand Mineral, yearlyAvailableToSpend Cost) int

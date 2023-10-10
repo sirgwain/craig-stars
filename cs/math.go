@@ -2,6 +2,8 @@ package cs
 
 import "math"
 
+// population is often updated with floating point math, but we have to convert
+// it back to Colonist Cargo values, which are stored in units of 100 colonists per 1kT of Colonist Cargo
 func roundToNearest100f(value float64) int {
 	return int(math.Round(value/100) * 100)
 }
@@ -21,7 +23,7 @@ func Clamp(value, min, max int) int {
 	return value
 }
 
-func clampFloat64(value, min, max float64) float64 {
+func ClampFloat64(value, min, max float64) float64 {
 	if value < min {
 		return min
 	} else {
@@ -54,7 +56,7 @@ func MinInt(nums ...int) int {
 	return result
 }
 
-func minFloat64(nums ...float64) float64 {
+func MinFloat64(nums ...float64) float64 {
 	result := math.MaxFloat64
 	for _, value := range nums {
 		if value < result {
@@ -65,7 +67,7 @@ func minFloat64(nums ...float64) float64 {
 	return result
 }
 
-func absInt(num int) int {
+func AbsInt(num int) int {
 	if num < 0 {
 		return -num
 	}

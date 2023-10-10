@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// Cargo represents minerals and colonists that are in cargo holds, salvage, mineral packets, or on planets.
 type Cargo struct {
 	Ironium   int `json:"ironium,omitempty"`
 	Boranium  int `json:"boranium,omitempty"`

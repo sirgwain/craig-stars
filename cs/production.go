@@ -7,7 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// producers perform planet production
+// The producer interface performs planetary production
 type producer interface {
 	produce() productionResult
 }
@@ -76,7 +76,7 @@ func (item ProductionQueueItem) percentComplete() float64 {
 	// update the percent complete based on how much we've allocated vs the total cost of all items
 	costOfAll := item.CostOfOne.MultiplyInt(item.Quantity)
 	if !(item.Allocated == Cost{}) {
-		return clampFloat64(item.Allocated.Divide(costOfAll), 0, 1)
+		return ClampFloat64(item.Allocated.Divide(costOfAll), 0, 1)
 	}
 	return 0
 }
@@ -176,7 +176,6 @@ type itemBuilt struct {
 	numBuilt      int
 	skipped       bool
 	never         bool
-	tags          Tags
 }
 
 type builtShip struct {
@@ -500,7 +499,7 @@ func (p *production) allocatePartialBuild(costPerItem Cost, allocated Cost) Cost
 	}
 
 	// figure out the lowest percentage
-	minPerc := minFloat64(ironiumPerc, boraniumPerc, germaniumPerc, resourcesPerc)
+	minPerc := MinFloat64(ironiumPerc, boraniumPerc, germaniumPerc, resourcesPerc)
 
 	// allocate the lowest percentage of each cost
 	newAllocated := Cost{

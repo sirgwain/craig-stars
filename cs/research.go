@@ -34,7 +34,7 @@ const (
 	NextResearchFieldLowestField   NextResearchField = "LowestField"
 )
 
-// researcher interfaced used during turn generation to research for a player
+// The researcher interface is used during turn generation to research for a player
 // and research with splash damage/stolen resources
 type researcher interface {
 	research(player *Player, resourcesToSpend int, onLevelGained func(player *Player, field TechField)) (spent TechLevel)

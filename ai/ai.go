@@ -159,7 +159,6 @@ func (ai *aiPlayer) buildMaps() {
 		}
 	}
 
-	// TODO: use this. :)
 	ai.fleetsByPurpose = map[cs.FleetPurpose]fleet{
 		cs.FleetPurposeScout: {
 			purpose: cs.FleetPurposeScout,

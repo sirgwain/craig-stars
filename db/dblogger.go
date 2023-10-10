@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 	sqldblogger "github.com/simukti/sqldb-logger"
 )
 
@@ -12,13 +11,7 @@ type zerologAdapter struct {
 	logger *zerolog.Logger
 }
 
-func NewLogger() sqldblogger.Logger {
-	return &zerologAdapter{
-		logger: &log.Logger,
-	}
-}
-
-func NewLoggerWithLogger(l *zerolog.Logger) sqldblogger.Logger {
+func newLoggerWithLogger(l *zerolog.Logger) sqldblogger.Logger {
 	return &zerologAdapter{
 		logger: l,
 	}

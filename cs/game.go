@@ -29,31 +29,8 @@ const (
 	AIDifficultyHard   AIDifficulty = "Hard"
 )
 
-type NewGamePlayer struct {
-	Type           NewGamePlayerType `json:"type,omitempty"`
-	AIDifficulty   AIDifficulty      `json:"aiDifficulty,omitempty"`
-	Color          string            `json:"color,omitempty"`
-	DefaultHullSet int               `json:"hullSetNum,omitempty"`
-	Race           Race              `json:"race,omitempty"`
-}
-
-type GameSettings struct {
-	Name                         string            `json:"name"`
-	Public                       bool              `json:"public"`
-	QuickStartTurns              int               `json:"quickStartTurns"`
-	Size                         Size              `json:"size"`
-	Density                      Density           `json:"density"`
-	PlayerPositions              PlayerPositions   `json:"playerPositions"`
-	RandomEvents                 bool              `json:"randomEvents"`
-	ComputerPlayersFormAlliances bool              `json:"computerPlayersFormAlliances"`
-	PublicPlayerScores           bool              `json:"publicPlayerScores"`
-	StartMode                    GameStartMode     `json:"startMode"`
-	VictoryConditions            VictoryConditions `json:"victoryConditions"`
-	Players                      []NewGamePlayer   `json:"players,omitempty"`
-	Rules                        *Rules            `json:"rules,omitempty"`
-	TechStore                    *TechStore        `json:"techStore,omitempty"`
-}
-
+// The Game itself tracks some settings, the Rules, the Host and the current state (year/victory declared)
+// All other parts of a Game are stored in the Universe
 type Game struct {
 	DBObject
 	HostID                       int64             `json:"hostId"`
@@ -79,7 +56,34 @@ type Game struct {
 	VictorDeclared               bool              `json:"victorDeclared"`
 }
 
-// struct for holding a game with a list of player status
+// A new player in a game, only used during game setup
+type NewGamePlayer struct {
+	Type           NewGamePlayerType `json:"type,omitempty"`
+	AIDifficulty   AIDifficulty      `json:"aiDifficulty,omitempty"`
+	Color          string            `json:"color,omitempty"`
+	DefaultHullSet int               `json:"hullSetNum,omitempty"`
+	Race           Race              `json:"race,omitempty"`
+}
+
+// The settings for a new game, only used during game setup
+type GameSettings struct {
+	Name                         string            `json:"name"`
+	Public                       bool              `json:"public"`
+	QuickStartTurns              int               `json:"quickStartTurns"`
+	Size                         Size              `json:"size"`
+	Density                      Density           `json:"density"`
+	PlayerPositions              PlayerPositions   `json:"playerPositions"`
+	RandomEvents                 bool              `json:"randomEvents"`
+	ComputerPlayersFormAlliances bool              `json:"computerPlayersFormAlliances"`
+	PublicPlayerScores           bool              `json:"publicPlayerScores"`
+	StartMode                    GameStartMode     `json:"startMode"`
+	VictoryConditions            VictoryConditions `json:"victoryConditions"`
+	Players                      []NewGamePlayer   `json:"players,omitempty"`
+	Rules                        *Rules            `json:"rules,omitempty"`
+	TechStore                    *TechStore        `json:"techStore,omitempty"`
+}
+
+// A game with a list of player statuses
 type GameWithPlayers struct {
 	Game
 	Players []PlayerStatus `json:"players,omitempty"`
@@ -331,6 +335,7 @@ func (fg *FullGame) getPlayer(playerNum int) *Player {
 	return fg.Players[playerNum-1]
 }
 
+// compute all the various "specs" in the game. Called before and after turn generation
 func (g *FullGame) computeSpecs() error {
 
 	g.buildMaps(g.Players)
@@ -350,7 +355,6 @@ func (g *FullGame) computeSpecs() error {
 			design.Spec = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
 			design.Spec.NumBuilt = numBuilt
 			design.MarkDirty()
-			// log.Debug().Msgf("computed design spec for player %d, design %s", player.Num, design.Name)
 		}
 	}
 
@@ -363,7 +367,6 @@ func (g *FullGame) computeSpecs() error {
 			design.Spec.NumInstances += token.Quantity
 		}
 		starbase.MarkDirty()
-		// log.Debug().Msgf("computed starbase spec for player %d, fleet %s", player.Num, starbase.Name)
 	}
 
 	for _, planet := range g.Planets {
@@ -379,7 +382,6 @@ func (g *FullGame) computeSpecs() error {
 			planet.PopulateProductionQueueEstimates(rules, player)
 
 			planet.MarkDirty()
-			// log.Debug().Msgf("computed planet spec for player %d, planet %s", player.Num, planet.Name)
 		}
 	}
 
@@ -392,20 +394,17 @@ func (g *FullGame) computeSpecs() error {
 			design.Spec.NumInstances += token.Quantity
 		}
 		fleet.MarkDirty()
-		// log.Debug().Msgf("computed fleet spec for player %d, fleet %s", player.Num, fleet.Name)
 	}
 
 	for _, mineField := range g.MineFields {
 		player := g.getPlayer(mineField.PlayerNum)
 		mineField.Spec = computeMinefieldSpec(rules, player, mineField, g.numPlanetsWithin(mineField.Position, mineField.Radius()))
 		mineField.MarkDirty()
-		// log.Debug().Msgf("computed mineField spec for player %d, mineField %s", player.Num, mineField.Name)
 	}
 
 	for _, wormhole := range g.Wormholes {
 		wormhole.Spec = computeWormholeSpec(wormhole, rules)
 		wormhole.MarkDirty()
-		// log.Debug().Msgf("computed wormhole spec %s", wormhole.Name)
 	}
 
 	return nil

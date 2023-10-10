@@ -7,7 +7,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// handle player orders
+// The Orderer interface is used to handle any game logic with updating orders. This is used for 
+// updating planet and fleet psecs after cargo transfer, splitting and merging fleets, updating research, etc.
 type Orderer interface {
 	UpdatePlayerOrders(player *Player, playerPlanets []*Planet, order PlayerOrders, rules *Rules)
 	UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet, orders PlanetOrders) error

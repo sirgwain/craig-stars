@@ -7,6 +7,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// A user can have multiple races stored in the database. Each time a game is created, a Race is copied
+// into the Player object and stored separately (so changes to the User's race don't impact running games)
 type Race struct {
 	DBObject
 	UserID                int64                 `json:"userId,omitempty"`

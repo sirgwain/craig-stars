@@ -247,7 +247,7 @@ func (b *bomb) getUnterraformAmount(retroBombAmount int, baseHab, hab Hab) Hab {
 			largestTerraformHab := Grav
 			largestTerraformAmount := 0
 			for _, habType := range HabTypes {
-				if absInt(habDiff.Get(habType)) > absInt(largestTerraformAmount) {
+				if AbsInt(habDiff.Get(habType)) > AbsInt(largestTerraformAmount) {
 					largestTerraformAmount = habDiff.Get(habType)
 					largestTerraformHab = habType
 				}

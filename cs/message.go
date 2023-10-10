@@ -7,6 +7,9 @@ import (
 	"golang.org/x/text/message"
 )
 
+// Throughout a turn various events will result in messages being sent to players.
+// Messages have a type and a target (the target is focused in the UI when you click the Goto button)
+// Messages also have a Spec that is used to store specific numbers for the UI to display on the message.
 type PlayerMessage struct {
 	Type            PlayerMessageType       `json:"type,omitempty"`
 	Text            string                  `json:"text,omitempty"`
@@ -17,6 +20,8 @@ type PlayerMessage struct {
 	Spec            PlayerMessageSpec       `json:"spec,omitempty"`
 }
 
+// The PlayerMessageSpec contains data specific to each message, like the amount of mines built
+// of the field of research leveled up in.
 type PlayerMessageSpec struct {
 	Amount          int                     `json:"amount,omitempty"`
 	PrevAmount      int                     `json:"prevAmount,omitempty"`

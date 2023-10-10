@@ -9,17 +9,8 @@ import (
 const ReportAgeUnexplored = -1
 const Unowned = 0
 
-type discover struct {
-	player                   *Player
-	fleetIntelsByKey         map[playerObject]*FleetIntel
-	salvageIntelsByKey       map[int]*SalvageIntel
-	mineFieldIntelsByKey     map[playerObject]*MineFieldIntel
-	mineralPacketIntelsByKey map[playerObject]*MineralPacketIntel
-	designIntelsByKey        map[playerObject]*ShipDesignIntel
-	wormholeIntelsByKey      map[int]*WormholeIntel
-	mysteryTraderIntelsByKey map[int]*MysteryTraderIntel
-}
-
+// Each player has intel about planet, fleets, and other map objects. The discoverer is used to update the player
+// intel with knowledge about the universe. 
 type discoverer interface {
 	clearTransientReports()
 	discoverPlayer(player *Player)
@@ -45,6 +36,17 @@ type discoverer interface {
 	getMineralPacketIntel(playerNum, num int) *MineralPacketIntel
 	getFleetIntel(playerNum, num int) *FleetIntel
 	getSalvageIntel(num int) *SalvageIntel
+}
+
+type discover struct {
+	player                   *Player
+	fleetIntelsByKey         map[playerObject]*FleetIntel
+	salvageIntelsByKey       map[int]*SalvageIntel
+	mineFieldIntelsByKey     map[playerObject]*MineFieldIntel
+	mineralPacketIntelsByKey map[playerObject]*MineralPacketIntel
+	designIntelsByKey        map[playerObject]*ShipDesignIntel
+	wormholeIntelsByKey      map[int]*WormholeIntel
+	mysteryTraderIntelsByKey map[int]*MysteryTraderIntel
 }
 
 func newDiscoverer(player *Player) discoverer {

@@ -10,5 +10,5 @@
         "**/cypress/**",
         "**/.{idea,git,cache,output,temp}/**"
     ],
-    "vitest.commandLine": "yarn test:watch",
+    "vitest.commandLine": "npm run test:watch",
 }

@@ -31,12 +31,15 @@ const (
 	VictoryConditionHighestScoreAfterYears
 )
 
-type victory struct {
-	game *FullGame
-}
-
+// checks if the player has achieved victory in this game.
+// TODO: make this return the victory conditions achieved, and check it against the game settings
+// in the caller.
 type victoryChecker interface {
 	checkForVictor(player *Player) error
+}
+
+type victory struct {
+	game *FullGame
 }
 
 func newVictoryChecker(game *FullGame) victoryChecker {

@@ -2,6 +2,7 @@ package cs
 
 import "math"
 
+// A Cost represents minerals and resources required to build something, i.e. a mine, factory, or ship
 type Cost struct {
 	Ironium   int `json:"ironium,omitempty"`
 	Boranium  int `json:"boranium,omitempty"`

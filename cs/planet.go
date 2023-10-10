@@ -7,6 +7,9 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// Planets are the only static and constant MapObject. They don't move and they can't be destroyed. 
+// Players also start the game knowing all planet names and locations.
+// I suppose these should have been named Stars, since they represent a star system, ah well..
 type Planet struct {
 	MapObject
 	PlanetOrders
@@ -418,7 +421,7 @@ func (p *Planet) getGrowthAmount(player *Player, maxPopulation int, populationOv
 			// the first 200% overpopulation (300% capacity) only produce half their normal production(for a net population production of 200%).
 			// Population over 300% produce nothing.
 
-			dieoffPercent := clampFloat64((1-capacity)*populationOvercrowdDieoffRate, -populationOvercrowdDieoffRateMax, 0)
+			dieoffPercent := ClampFloat64((1-capacity)*populationOvercrowdDieoffRate, -populationOvercrowdDieoffRateMax, 0)
 			popGrowth = int(float64(p.population()) * float64(dieoffPercent))
 		} else if capacity > .25 {
 			crowdingFactor := 16.0 / 9.0 * (1.0 - capacity) * (1.0 - capacity)

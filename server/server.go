@@ -55,6 +55,7 @@ type server struct {
 
 const userRejected = "rejected"
 
+// Start the webserver, expose all the routes, inject all the middleware, etc.
 func Start(config config.Config) error {
 
 	dbConn := db.NewConn()

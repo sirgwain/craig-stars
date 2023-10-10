@@ -7,6 +7,8 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+// The Universe represents all the objects that occupy space in the game universe.
+// The Universe is used by the turn generator to lookup objects in space
 type Universe struct {
 	Planets              []*Planet        `json:"planets,omitempty"`
 	Fleets               []*Fleet         `json:"fleets,omitempty"`

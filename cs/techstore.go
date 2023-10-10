@@ -14,6 +14,9 @@ const NoGate = -1
 const InfiniteGate = math.MaxInt32
 const Infinite = -1
 
+// The TechStore contains all techs in the game. Eventually these will be user modifyable and
+// referenced per game, but for now all games use the StaticTechStore, which contains the default Stars!
+// techs.
 type TechStore struct {
 	Engines                  []TechEngine                          `json:"engines"`
 	PlanetaryScanners        []TechPlanetaryScanner                `json:"planetaryScanners"`

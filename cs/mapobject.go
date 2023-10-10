@@ -5,12 +5,15 @@ import (
 	"time"
 )
 
+// Every object stored in the database has an ID and a create/update timestamp.
+// Though the cs package doesn't deal with the database, they are still part of the models
 type DBObject struct {
 	ID        int64     `json:"id"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
+// A GameObject is a database object that is associated with a game
 type GameDBObject struct {
 	ID        int64     `json:"id"`
 	GameID    int64     `json:"gameId"`
@@ -18,6 +21,8 @@ type GameDBObject struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
+// Each object in the universe is a MapObject. MapObjects have a unique Num (and often a PlayerNum for player owned
+// map objects), as well as a Position in space.
 type MapObject struct {
 	GameDBObject
 	Type      MapObjectType `json:"type"`

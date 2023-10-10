@@ -2,6 +2,7 @@ package cs
 
 import "math"
 
+// Represents a TechLevel the player has or a tech requires, or the amount of research spent on each tech level
 type TechLevel struct {
 	Energy        int `json:"energy,omitempty"`
 	Weapons       int `json:"weapons,omitempty"`

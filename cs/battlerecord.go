@@ -110,7 +110,7 @@ func (v1 BattleVector) Add(v2 BattleVector) BattleVector {
 }
 
 func (v1 BattleVector) distance(v2 BattleVector) int {
-	return MaxInt(absInt(v1.X-v2.X), absInt(v1.Y-v2.Y))
+	return MaxInt(AbsInt(v1.X-v2.X), AbsInt(v1.Y-v2.Y))
 }
 
 // SetupRecord populates a lookup table of items by guid.

@@ -8,6 +8,9 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+// Fleets are made up of ships, and each ship has a design. Players start with designs created
+// during universe generation, and they can add new designs in the UI. 
+// Deleting a design deletes all fleets associated with it.
 type ShipDesign struct {
 	GameDBObject
 	Num               int               `json:"num,omitempty"`

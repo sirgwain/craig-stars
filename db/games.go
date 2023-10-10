@@ -473,7 +473,7 @@ func (c *client) UpdateGame(game *cs.Game) error {
 }
 
 // Save an entire game in the database. This should always be wrapped in a transaction
-// TODO: move this into GameRunner so it's clear it should be wrapped in a transaction?
+// TODO: move this into gameRunner so it's clear it should be wrapped in a transaction?
 func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 
 	if err := c.UpdateGame(fullGame.Game); err != nil {

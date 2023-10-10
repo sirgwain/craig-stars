@@ -7,6 +7,8 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+// The scanner is used at the end of the turn generation to update player intels
+// with their knowledge of the universe. It handles scanning planets, fleets, minefields, etc
 type scanner struct {
 	Position            Vector
 	RangeSquared        int
