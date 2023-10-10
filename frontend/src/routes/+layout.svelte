@@ -10,6 +10,7 @@
 	import '../css/mapobjects.css';
 	import '../css/techs.css';
 	import { page } from '$app/stores';
+	import HomePage from '$lib/components/HomePage.svelte';
 
 	const loggingIn = $page.url.pathname.startsWith('/auth')
 
@@ -25,5 +26,5 @@
 {#if $me.status == UserStatus.LoggedIn || loggingIn}
 	<slot>This is the main content</slot>
 {:else if $me.status == UserStatus.NotFound}
-	<Login />
+	<HomePage />
 {/if}

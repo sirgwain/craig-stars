@@ -4,6 +4,8 @@
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import DarkModeToggler from './DarkModeToggler.svelte';
 	import UserAvatar from './UserAvatar.svelte';
+	import Discord from './icons/Discord.svelte';
+	import GitHub from './icons/GitHub.svelte';
 
 	export let user: User | undefined;
 </script>
@@ -64,6 +66,17 @@
 							<a href={`/admin/users`} class="justify-between">Users</a>
 						</li>
 					{/if}
+					<li><div class="divider" /></li>
+					<li>
+						<a href="https://discord.gg/Ctdx7h6UZS" target="_blank"
+							><Discord class="fill-base-content w-5 h-5" /> Discord</a
+						>
+					</li>
+					<li>
+						<a href="https://github.com/sirgwain/craig-stars" target="_blank"
+							><GitHub class="fill-base-content w-5 h-5" /> GitHub</a
+						>
+					</li>
 					<li><div class="divider" /></li>
 					<li><a href="/auth/logout">Logout, {user.username}</a></li>
 				{:else}
