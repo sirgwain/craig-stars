@@ -56,7 +56,7 @@ erDiagram
   Planet {
     int PlayerNum
     int Num
-    *Fleet Starbase
+    Fleet Starbase
     PlanetSpec Spec
   }
 
@@ -105,17 +105,17 @@ erDiagram
   Universe ||--o{ MysteryTrader : has
   Universe ||--o{ Wormhole : has
 
-  Planet ||--|o Fleet: "has starbase"
+  Planet ||--o| Fleet : starbase
 
-  Player ||--o{ Planet: owns
-  Player ||--o{ Fleet: owns
-  Player ||--o{ MineField: owns
-  Player ||--o{ MineralPacket: owns
-  Player ||--o{ Salvage: owns
-  Player ||--o{ ShipDesign: owns
+  Player ||--o{ Planet : owns
+  Player ||--o{ Fleet : owns
+  Player ||--o{ MineField : owns
+  Player ||--o{ MineralPacket : owns
+  Player ||--o{ Salvage : owns
+  Player ||--o{ ShipDesign : owns
 
-  Game ||--|{ Player: has
-  Game ||--|| Universe: has
+  Game ||--|{ Player : has
+  Game ||--|| Universe : has
 ```
 
 ## db
