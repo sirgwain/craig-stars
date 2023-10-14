@@ -7,11 +7,10 @@
 	import type { MineField } from '$lib/types/MineField';
 	import type { MineralPacket } from '$lib/types/MineralPacket';
 	import type { Planet } from '$lib/types/Planet';
-	import PlanetMessageDetail from './PlanetMessageDetail.svelte';
-	import FleetMessageDetail from './FleetMessageDetail.svelte';
-	import PlayerMessageDetail from './PlayerMessageDetail.svelte';
 	import FleetEngineStrainMessageDetail from './FleetEngineStrainMessageDetail.svelte';
-	import { isFuture } from 'date-fns';
+	import FleetMessageDetail from './FleetMessageDetail.svelte';
+	import PlanetMessageDetail from './PlanetMessageDetail.svelte';
+	import PlayerMessageDetail from './PlayerMessageDetail.svelte';
 
 	const { game, player, universe, settings } = getGameContext();
 
@@ -94,6 +93,10 @@
 	{$universe.getPlayerName(message.spec.sourcePlayerNum)} has attempted to gift you {message.spec
 		.name}, but you have refused their offer. If you wish to receive gifts from this player in the
 	future, make sure you are allies.
+{:else if message.type === MessageType.TechLevelGainedBattle}
+	{@const battle = $universe.getBattle(message.battleNum)}
+	Wreckage from the battle that occurred in at {battle?.position.x ?? 0}, {battle?.position.y ?? 0} has
+	boosted your research in {message.spec.field}.
 {:else}
 	<PlayerMessageDetail {message} />
 {/if}

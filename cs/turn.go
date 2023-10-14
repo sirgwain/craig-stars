@@ -184,12 +184,44 @@ func (t *turn) scrapFleet(fleet *Fleet) {
 		if planet.OwnedBy(player.Num) {
 			planet.bonusResources += cost.Resources
 		}
+
+		// check for tech trade. We do this for every fleet. If it's the player's original ships, it won't lead
+		// to a tech trade because they obviously have the tech levels required to build
+		// the ship, but if a ship in the fleet was gifted to theplayer and we scrap it over their
+		// own planet they might gain tech from it
+		if planet.Owned() && planet.Spec.HasStarbase {
+			planetPlayer := t.game.getPlayer(planet.PlayerNum)
+			if !planetPlayer.techLevelGained {
+				techTrader := newTechTrader()
+				for _, token := range fleet.Tokens {
+					field := techTrader.techLevelGained(&t.game.Rules, planetPlayer.TechLevels, token.design.Spec.TechLevel)
+					if field == TechFieldNone {
+						continue
+					}
+					// we gained a level!
+					planetPlayer.techLevelGained = true
+					planetPlayer.TechLevels.Set(field, planetPlayer.TechLevels.Get(field)+1)
+					planetPlayer.Messages = append(planetPlayer.Messages, newPlanetMessage(PlayerMessageTechLevelGainedScrapFleet, planet).
+						withSpec(PlayerMessageSpec{Field: field, Name: fleet.Name}))
+
+					log.Debug().
+						Int64("GameID", planet.GameID).
+						Int("Player", planetPlayer.Num).
+						Str("Planet", planet.Name).
+						Str("Fleet", fleet.Name).
+						Str("field", string(field)).
+						Msgf("gained tech level from scrapped fleet")
+
+					break
+				}
+			}
+		}
 	} else {
 		// create salvage
 		t.game.createSalvage(fleet.Position, player.Num, cost.ToCargo())
 	}
 
-	messager.fleetScrapped(player, fleet, cost.ToCargo().Total(), cost.Resources, planet)
+	messager.fleetScrapped(player, fleet, cost, planet)
 	t.game.deleteFleet(fleet)
 }
 
@@ -1419,7 +1451,7 @@ func (t *turn) playerResearch() {
 
 		// research tech levels until the resources run out
 		spent := r.research(player, resourcesToSpend, onLevelGained)
-		stealableResearchResources.Add(spent)
+		stealableResearchResources = stealableResearchResources.Add(spent)
 
 		// some races research other techs in addition to their primary field
 		if player.Race.Spec.ResearchSplashDamage > 0 {
@@ -1779,7 +1811,7 @@ func (t *turn) fleetBattle() {
 			record := battler.runBattle()
 
 			// every player should discover all designs in a battle as if they were penscanned.
-			discoverersByPlayer := make(map[int]discoverer, len(t.game.Players))
+			discoverersByPlayer := make(map[int]discoverer, len(playersAtPosition))
 			designsToDiscover := map[playerObject]*ShipDesign{}
 			for _, player := range playersAtPosition {
 				discoverer := newDiscoverer(player)
@@ -1795,26 +1827,30 @@ func (t *turn) fleetBattle() {
 
 				// store this discoverer for discovering designs
 				discoverersByPlayer[player.Num] = discoverer
-
 			}
 
 			// figure out how much salvage this generates
+			var highestTechLevel TechLevel
 			destroyedCost := Cost{}
 			salvageOwner := 1
 			for _, token := range record.DestroyedTokens {
 				destroyedCost = destroyedCost.Add(token.design.Spec.Cost.MultiplyInt(token.Quantity))
 				// TODO: who owns this salvage if there are destroyed ships from different players?
 				salvageOwner = token.PlayerNum
+
+				// record it's tech level for tech trading
+				highestTechLevel = highestTechLevel.Max(token.design.Spec.TechLevel)
 			}
 			salvageMinerals := destroyedCost.MultiplyFloat64(t.game.Rules.SalvageFromBattleFactor).ToMineral()
 
+			survivingPlayers := make(map[int]bool, len(playersAtPosition))
 			for _, fleet := range fleets {
 				updatedTokens := make([]ShipToken, 0, len(fleet.Tokens))
 				for _, token := range fleet.Tokens {
 					// add this design to our set of designs that should be discovered
 					designsToDiscover[playerObjectKey(fleet.PlayerNum, token.DesignNum)] = token.design
-					// keep this token
 					if token.Quantity > 0 {
+						// keep this token
 						updatedTokens = append(updatedTokens, token)
 					}
 				}
@@ -1836,6 +1872,9 @@ func (t *turn) fleetBattle() {
 					} else {
 						t.game.deleteFleet(fleet)
 					}
+				} else {
+					// this player survived
+					survivingPlayers[fleet.PlayerNum] = true
 				}
 
 				// recompute the spec of this fleet and make sure we don't have extra fuel sitting around
@@ -1868,7 +1907,6 @@ func (t *turn) fleetBattle() {
 						d.discoverDesign(player, design, true)
 					}
 				}
-
 			}
 
 			// message each player
@@ -1877,6 +1915,35 @@ func (t *turn) fleetBattle() {
 				player.BattleRecords = append(player.BattleRecords, *record)
 				messager.battle(player, planet, record)
 			}
+
+			// check for tech trades
+			techTrader := newTechTrader()
+			for playerNum, survived := range survivingPlayers {
+				if !survived {
+					continue
+				}
+				player := t.game.getPlayer(playerNum)
+				if !player.techLevelGained {
+					field := techTrader.techLevelGained(&t.game.Rules, player.TechLevels, highestTechLevel)
+					if field == TechFieldNone {
+						continue
+					}
+					// we gained a level!
+					player.techLevelGained = true
+					player.TechLevels.Set(field, player.TechLevels.Get(field)+1)
+					player.Messages = append(player.Messages, newBattleMessage(PlayerMessageTechLevelGainedBattle, planet, record).withSpec(PlayerMessageSpec{Field: field}))
+
+					log.Debug().
+						Int64("GameID", planet.GameID).
+						Int("Battle", battleNum).
+						Int("Player", player.Num).
+						Str("field", string(field)).
+						Msgf("gained tech level from battle")
+
+				}
+
+			}
+
 			battleNum++
 		}
 

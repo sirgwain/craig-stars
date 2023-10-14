@@ -5,6 +5,7 @@
 	import type { PlayerIntel } from '$lib/types/Player';
 	import { startCase } from 'lodash-es';
 	import FallbackMessageDetail from './FallbackMessageDetail.svelte';
+	import { totalMinerals } from '$lib/types/Cost';
 
 	const { game, player, universe, settings } = getGameContext();
 
@@ -106,6 +107,27 @@
 {:else if message.type === MessageType.BonusResearchArtifact}
 	Your colonists settling {planet.name} have found a strange artifact boosting your research in {message
 		.spec.field} by {message.spec.amount} resources.
+{:else if message.type === MessageType.TechLevelGainedInvasion}
+	Your colonists invading {planet.name} have picked through the remains of the defenders looking for
+	technology. In the process you have gained a level in {message.spec.field}.
+{:else if message.type === MessageType.FleetScrapped}
+	{#if planet.spec.hasStarbase}
+		{message.spec.name} has been dismantled for {totalMinerals(message.spec.cost)}kT of minerals at
+		the starbase orbiting {planet.name}.
+	{:else}
+		{message.spec.name} has been dismantled for {totalMinerals(message.spec.cost)}kT of minerals
+		which have been deposited on {planet.name}.
+	{/if}
+	{#if message.spec.cost?.resources}
+		&nbsp;Ultimate recycling has also made {message.spec.cost?.resources} resources available for immediate
+		use (less if other ships were scrapped here this year).
+	{/if}
+{:else if message.type === MessageType.TechLevelGainedScrapFleet}
+	In the process of {message.spec.name} being scrapped above {planet.name}, you have gained a level
+	in {message.spec.field}
+{:else if message.type === MessageType.TechLevelGainedBattle}
+	Wreckage from the battle that occurred in orbit of {planet.name} has boosted your research in {message
+		.spec.field}.
 {:else}
 	<FallbackMessageDetail {message} />
 {/if}

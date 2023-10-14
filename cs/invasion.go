@@ -52,6 +52,26 @@ func invadePlanet(rules *Rules, planet *Planet, fleet *Fleet, defender *Player, 
 			plan.Apply(planet)
 		}
 
+		// check for tech trade
+		if !attacker.techLevelGained {
+			techTrader := newTechTrader()
+			field := techTrader.techLevelGained(rules, attacker.TechLevels, defender.TechLevels)
+			if field != TechFieldNone {
+				// sweet, we gained a tech level
+				attacker.techLevelGained = true
+				attacker.TechLevels.Set(field, attacker.TechLevels.Get(field)+1)
+				attacker.Messages = append(attacker.Messages, newPlanetMessage(PlayerMessageTechLevelGainedInvasion, planet).
+					withSpec(PlayerMessageSpec{Field: field}))
+				log.Debug().
+					Int64("GameID", planet.GameID).
+					Int("Attacker", attacker.Num).
+					Int("Defender", defender.Num).
+					Str("Planet", planet.Name).
+					Str("field", string(field)).
+					Msgf("invader gained tech level")
+
+			}
+		}
 	} else {
 		remainingAttackers = 0
 		remainingDefenders = roundToNearest100f(float64(defenders) - (float64(attackers)*attackBonus)/defenseBonus)
