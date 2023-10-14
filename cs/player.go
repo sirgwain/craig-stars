@@ -36,6 +36,7 @@ type Player struct {
 	Stats                     *PlayerStats         `json:"stats,omitempty"`
 	Spec                      PlayerSpec           `json:"spec,omitempty"`
 	leftoverResources         int
+	techLevelGained           bool
 }
 
 // a player and all mapobjects the player owns

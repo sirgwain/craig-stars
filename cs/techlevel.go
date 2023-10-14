@@ -92,13 +92,50 @@ func (tl *TechLevel) Set(field TechField, level int) {
 }
 
 // add a tech level to this one
-func (tl *TechLevel) Add(other TechLevel) {
-	tl.Energy += other.Energy
-	tl.Weapons += other.Weapons
-	tl.Propulsion += other.Propulsion
-	tl.Construction += other.Construction
-	tl.Electronics += other.Electronics
-	tl.Biotechnology += other.Biotechnology
+func (tl TechLevel) Add(other TechLevel) TechLevel {
+	return TechLevel{
+		tl.Energy + other.Energy,
+		tl.Weapons + other.Weapons,
+		tl.Propulsion + other.Propulsion,
+		tl.Construction + other.Construction,
+		tl.Electronics + other.Electronics,
+		tl.Biotechnology + other.Biotechnology,
+	}
+}
+
+func (tl TechLevel) Minus(tl2 TechLevel) TechLevel {
+	return TechLevel{
+		tl.Energy - tl2.Energy,
+		tl.Weapons - tl2.Weapons,
+		tl.Propulsion - tl2.Propulsion,
+		tl.Construction - tl2.Construction,
+		tl.Electronics - tl2.Electronics,
+		tl.Biotechnology - tl2.Biotechnology,
+	}
+}
+
+func (tl TechLevel) Max(tl2 TechLevel) TechLevel {
+	return TechLevel{
+		Energy:        MaxInt(tl.Energy, tl2.Energy),
+		Weapons:       MaxInt(tl.Weapons, tl2.Weapons),
+		Propulsion:    MaxInt(tl.Propulsion, tl2.Propulsion),
+		Construction:  MaxInt(tl.Construction, tl2.Construction),
+		Electronics:   MaxInt(tl.Electronics, tl2.Electronics),
+		Biotechnology: MaxInt(tl.Biotechnology, tl2.Biotechnology),
+	}
+}
+
+// return this TechLevel with a minimum of zero for each value
+func (tl TechLevel) MinZero() TechLevel {
+	return TechLevel{
+		Energy:        MaxInt(tl.Energy, 0),
+		Weapons:       MaxInt(tl.Weapons, 0),
+		Propulsion:    MaxInt(tl.Propulsion, 0),
+		Construction:  MaxInt(tl.Construction, 0),
+		Electronics:   MaxInt(tl.Electronics, 0),
+		Biotechnology: MaxInt(tl.Biotechnology, 0),
+	}
+
 }
 
 // Get the mininum levels above this tech
