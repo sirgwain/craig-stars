@@ -53,6 +53,7 @@ export class FullGame implements Game {
 	updatedAt = '';
 	hostId = 0;
 	name = '';
+	hash = '';
 	state = GameState.WaitingForPlayers;
 	numPlayers = 0;
 	openPlayerSlots = 0;
@@ -130,7 +131,10 @@ export class FullGame implements Game {
 
 	isMultiplayer(): boolean {
 		// we are multi player if any of the players are not ai controlled and not us
-		return this.players.findIndex((p) => p.num != this.player.num && !p.aiControlled) == -1;
+		return (
+			this.openPlayerSlots > 0 ||
+			this.players.findIndex((p) => p.num != this.player.num && !p.aiControlled) == -1
+		);
 	}
 
 	isSinglePlayer(): boolean {

@@ -18,11 +18,9 @@
 	let name = $me.username;
 
 	onMount(async () => {
-		try {
-			let id = parseInt($page.params.id);
-			game = await GameService.loadGame(id);
-		} catch {
-			error = 'No open game found for the invite';
+		const games = await GameService.loadGameByHash($page.params.hash);
+		if (games.length == 1) {
+			game = games[0];
 		}
 	});
 
@@ -45,12 +43,10 @@
 		}
 	};
 
-	let error = '';
 	$: valid = game && game.openPlayerSlots > 0;
 </script>
 
-<ItemTitle>Join Public Game</ItemTitle>
-<div class="text text-error">{error}</div>
+<ItemTitle>Join Private Game</ItemTitle>
 
 {#if game}
 	<div class="flex flex-col place-items-center">

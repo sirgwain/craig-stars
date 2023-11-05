@@ -123,7 +123,6 @@ func (s *server) games(w http.ResponseWriter, r *http.Request) {
 	rest.RenderJSON(w, games)
 }
 
-
 func (s *server) hostedGames(w http.ResponseWriter, r *http.Request) {
 	user := s.contextUser(r)
 	db := s.contextDb(r)
@@ -157,13 +156,22 @@ func (s *server) openGamesByHash(w http.ResponseWriter, r *http.Request) {
 	hash := chi.URLParam(r, "hash")
 	if hash == "" {
 		render.Render(w, r, ErrBadRequest(fmt.Errorf("invalid invite hash in url")))
-		games, err := db.GetOpenGamesByHash(hash)
-		if err != nil {
-			log.Error().Err(err).Str("Hash", hash).Msg("get open games by hash from database")
-			rest.RenderJSON(w, games)
-		}
+		return
+	}
+	
+	games, err := db.GetOpenGamesByHash(hash)
+	if err != nil {
+		log.Error().Err(err).Str("Hash", hash).Msg("get open games by hash from database")
 		rest.RenderJSON(w, games)
 	}
+
+	if len(games) == 0 {
+		render.Render(w, r, ErrNotFound)
+		return
+	}
+
+	// return games with this invite link
+	rest.RenderJSON(w, games)
 }
 
 func (s *server) game(w http.ResponseWriter, r *http.Request) {

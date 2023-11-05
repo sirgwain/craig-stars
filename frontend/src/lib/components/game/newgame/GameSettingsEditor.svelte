@@ -3,11 +3,16 @@
 	import EnumSelect from '$lib/components/EnumSelect.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
 	import { Density, PlayerPositions, Size, type GameSettings } from '$lib/types/Game';
+	import PrivateGameLink from '../../../../routes/(user)/games/(game)/[id]/(main)/PrivateGameLink.svelte';
 
 	export let settings: GameSettings;
+	export let showInviteLink = false;
 </script>
 
 <div class="flex flex-row flex-wrap">
+	{#if showInviteLink && !settings.public}
+		<PrivateGameLink />
+	{/if}
 	<TextInput name="name" bind:value={settings.name} />
 	<EnumSelect name="size" enumType={Size} bind:value={settings.size} />
 	<EnumSelect name="density" enumType={Density} bind:value={settings.density} />

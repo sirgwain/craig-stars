@@ -7,6 +7,7 @@
 	import { GameState, type Game } from '$lib/types/Game';
 	import { onMount } from 'svelte';
 	import ActiveGameRow from './ActiveGameRow.svelte';
+	import SetupGameRow from './SetupGameRow.svelte';
 
 	let myGames: Game[];
 	let gamesWaitingToStart: Game[];
@@ -53,10 +54,6 @@
 			openGames.sort(sorter);
 			openGames = openGames.filter((g) => g.hostId != $me.id);
 		});
-	}
-
-	function ready(game: Game): boolean {
-		return game.players.find((p) => p.userId == $me.id)?.ready ?? false;
 	}
 
 	const deleteGame = async (game: Game) => {
@@ -128,18 +125,11 @@
 {#if gamesWaitingToStart?.length > 0}
 	<ItemTitle>Waiting to Start</ItemTitle>
 	<div class="mt-2 grid grid-cols-12 gap-1">
-		<div class="col-span-6 text-secondary">Name</div>
-		<div class="col-span-6 text-secondary">Players</div>
+		<div class="col-span-5 text-secondary">Name</div>
+		<div class="col-span-5 text-secondary">Players</div>
+		<div class="col-span-2" />
 		{#each gamesWaitingToStart as game}
-			<div class="col-span-6">
-				<a
-					class="text-primary text-2xl hover:text-accent w-full"
-					href={ready(game) ? `/games/${game.id}` : `/join-game/${game.id}`}>{game.name}</a
-				>
-			</div>
-			<div class="col-span-3 text-md">
-				{(game.numPlayers ?? 0) - (game.openPlayerSlots ?? 0)} / {game.numPlayers}
-			</div>
+			<SetupGameRow {game} on:delete={() => deleteGame(game)} />
 		{/each}
 	</div>
 {/if}
@@ -147,20 +137,12 @@
 {#if openGames?.length > 0 && !$me.isGuest()}
 	<ItemTitle>New Open Games</ItemTitle>
 	<div class="mt-2 grid grid-cols-12 gap-1">
-		<div class="col-span-6 text-secondary">Name</div>
-		<div class="col-span-6 text-secondary">Players</div>
+		<div class="col-span-5 text-secondary">Name</div>
+		<div class="col-span-5 text-secondary">Players</div>
+		<div class="col-span-2" />
 
 		{#each openGames as game}
-			<div class="col-span-6">
-				<a
-					class="text-primary text-2xl hover:text-accent w-full"
-					href={game.hostId == $me.id ? `/games/${game.id}` : `/join-game/${game.id}`}
-					>{game.name}</a
-				>
-			</div>
-			<div class="col-span-3 text-md">
-				{game.numPlayers - game.openPlayerSlots} / {game.numPlayers}
-			</div>
+			<SetupGameRow {game} on:delete={() => deleteGame(game)} />
 		{/each}
 	</div>
 {/if}

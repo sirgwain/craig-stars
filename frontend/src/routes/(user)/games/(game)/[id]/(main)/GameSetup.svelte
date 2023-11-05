@@ -129,7 +129,7 @@
 		<div class="flex flex-col justify-center gap-2 place-items-center">
 			<div>
 				{#if isHost}
-					<GameSettingsEditor bind:settings />
+					<GameSettingsEditor bind:settings showInviteLink={$game.isMultiplayer() && $game.openPlayerSlots > 0} />
 				{:else}
 					<GameCard game={$game} />
 				{/if}

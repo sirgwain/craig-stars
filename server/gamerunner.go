@@ -46,7 +46,7 @@ var colors = []string{
 	"#F0FFF0",
 }
 
-// The GameRunner handles hosting games, updating players of games before they are started, loading a full Player game from 
+// The GameRunner handles hosting games, updating players of games before they are started, loading a full Player game from
 // the database, and generating new turns.
 type GameRunner interface {
 	HostGame(hostID int64, settings *cs.GameSettings) (*cs.FullGame, error)
@@ -396,6 +396,7 @@ func (gr *gameRunner) LeaveGame(gameID, userID int64) error {
 					race := cs.NewRace()
 					player := gr.client.NewPlayer(0, *race, &game.Rules)
 					player.GameID = game.ID
+					player.UserID = 0
 					player.Num = i + 1
 					player.Name = "Open Slot"
 					player.Guest = false
@@ -469,16 +470,17 @@ func (gr *gameRunner) KickPlayer(gameID int64, playerNum int) error {
 				race := cs.NewRace()
 				player := gr.client.NewPlayer(0, *race, &game.Rules)
 				player.GameID = game.ID
+				player.UserID = 0
 				player.Num = i + 1
 				player.Name = "Open Slot"
 				player.Guest = false
 				game.Players[i] = player
 				game.OpenPlayerSlots++
+				game.NumPlayers--
 
 				if err := c.CreatePlayer(player); err != nil {
 					return fmt.Errorf("update open slot player %s for game %d: %w", player, gameID, err)
-				}
-
+				}		
 			}
 		}
 
@@ -545,6 +547,7 @@ func (gr *gameRunner) DeletePlayerSlot(gameID int64, playerNum int) error {
 			// if we delete player 2 (i = 1), make player 3 player 2
 			if deleted {
 				player.Num = i
+				player.UserID = 0
 				// if the player was using a default color, use the previous one
 				if len(colors) > i+1 && player.Color == colors[i+1] {
 					player.Color = colors[i]
@@ -574,6 +577,7 @@ func (gr *gameRunner) DeletePlayerSlot(gameID int64, playerNum int) error {
 			return fmt.Errorf("update player colors %d: %w", gameID, err)
 		}
 
+		game.NumPlayers--
 		if err := c.UpdateGame(game.Game); err != nil {
 			return fmt.Errorf("save game %d: %w", gameID, err)
 		}
@@ -605,6 +609,7 @@ func (gr *gameRunner) AddOpenPlayerSlot(game *cs.GameWithPlayers) (*cs.Player, e
 		}
 
 		game.OpenPlayerSlots++
+		game.NumPlayers++
 		if err := c.UpdateGame(&game.Game); err != nil {
 			return fmt.Errorf("updating open player slots for game %d: %w", game.ID, err)
 		}
@@ -665,6 +670,7 @@ func (gr *gameRunner) AddGuestPlayer(game *cs.GameWithPlayers) (*cs.Player, erro
 			return fmt.Errorf("added slot player %s for game %d: %w", player, game.ID, err)
 		}
 
+		game.NumPlayers++
 		if err := c.UpdateGame(&game.Game); err != nil {
 			return fmt.Errorf("updating open player slots for game %d: %w", game.ID, err)
 		}
@@ -693,13 +699,22 @@ func (gr *gameRunner) AddAIPlayer(game *cs.GameWithPlayers) (*cs.Player, error) 
 	player.DefaultHullSet = player.Num % 4
 	player.Ready = true
 
-	dbClient := gr.dbConn.NewReadWriteClient()
-	if err := dbClient.CreatePlayer(player); err != nil {
-		return nil, fmt.Errorf("added slot player %s for game %d: %w", player, game.ID, err)
+	if err := gr.dbConn.WrapInTransaction(func(c db.Client) error {
+
+		if err := c.CreatePlayer(player); err != nil {
+			return fmt.Errorf("added slot player %s for game %d: %w", player, game.ID, err)
+		}
+
+		game.NumPlayers++
+		if err := c.UpdateGame(&game.Game); err != nil {
+			return fmt.Errorf("updating open player slots for game %d: %w", game.ID, err)
+		}
+
+		log.Info().Int64("GameID", game.ID).Int("Num", player.Num).Msgf("added player slot %d %s", player.Num, game.Name)
+		return nil
+	}); err != nil {
+		return nil, err
 	}
-
-	log.Info().Int64("GameID", game.ID).Int("Num", player.Num).Msgf("added player slot %d %s", player.Num, game.Name)
-
 	return player, nil
 }
 
