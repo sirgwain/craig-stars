@@ -36,7 +36,7 @@
 				</div>
 			</div>
 			<div class="border border-primary">
-				<img src="scanner.png" alt="screenshot" />
+				<img src="/scanner.png" alt="screenshot" />
 			</div>
 		</div>
 	</div>

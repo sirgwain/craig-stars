@@ -10,6 +10,7 @@ import type { Mineral } from './Mineral';
 import type { QueueItemType } from './Planet';
 import type { PlayerSettings } from './PlayerSettings';
 import type { TechField } from './TechLevel';
+import type { Cost } from './Cost';
 
 export type Message = {
 	type: MessageType;
@@ -24,6 +25,7 @@ export type PlayerMessageSpec = {
 	sourcePlayerNum?: number;
 	destPlayerNum?: number;
 	prevAmount?: number;
+	cost?: Cost;
 	field?: TechField;
 	nextField?: TechField;
 	techGained?: string;
@@ -165,7 +167,10 @@ export enum MessageType {
 	FleetTransferGivenRefused,
 	FleetTransferReceived,
 	FleetTransferReceivedFailed,
-	FleetTransferReceivedRefused
+	FleetTransferReceivedRefused,
+	TechLevelGainedInvasion,
+	TechLevelGainedScrapFleet,
+	TechLevelGainedBattle
 }
 
 // get the next visible message taking into account filters

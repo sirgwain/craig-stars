@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// The Rules struct contains all the various constants and configuration values that determine 
+// The Rules struct contains all the various constants and configuration values that determine
 // how the game mechanics work. These are designed to be unique per game, if desired. Currently for testing, all
 // games just use the default rule set.
 type Rules struct {
@@ -78,6 +78,7 @@ type Rules struct {
 	TerraformCost                      Cost                                `json:"terraformCost"`
 	StarbaseComponentCostFactor        float64                             `json:"starbaseComponentCostFactor"`
 	SalvageFromBattleFactor            float64                             `json:"salvageFromBattleFactor"`
+	TechTradeChance                    float64                             `json:"techTradeChance"`
 	PacketDecayRate                    map[int]float64                     `json:"packetDecayRate"`
 	MaxTechLevel                       int                                 `json:"maxTechLevel"`
 	TechBaseCost                       []int                               `json:"techBaseCost"`

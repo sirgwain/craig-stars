@@ -33,3 +33,13 @@ export function minus(a: Cost, b: Cost): Cost {
 		resources: (a.resources ?? 0) - (b.resources ?? 0)
 	};
 }
+
+export function total(cost?: Cost): number {
+	return cost
+		? (cost.ironium ?? 0) + (cost.boranium ?? 0) + (cost.germanium ?? 0) + (cost.resources ?? 0)
+		: 0;
+}
+
+export function totalMinerals(cost?: Cost): number {
+	return cost ? (cost.ironium ?? 0) + (cost.boranium ?? 0) + (cost.germanium ?? 0) : 0;
+}

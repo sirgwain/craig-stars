@@ -9,7 +9,7 @@ import (
 )
 
 // Fleets are made up of ships, and each ship has a design. Players start with designs created
-// during universe generation, and they can add new designs in the UI. 
+// during universe generation, and they can add new designs in the UI.
 // Deleting a design deletes all fleets associated with it.
 type ShipDesign struct {
 	GameDBObject
@@ -39,6 +39,7 @@ type ShipDesignSpec struct {
 	Engine                    Engine                `json:"engine,omitempty"`
 	NumEngines                int                   `json:"numEngines,omitempty"`
 	Cost                      Cost                  `json:"cost,omitempty"`
+	TechLevel                 TechLevel             `json:"techLevel,omitempty"`
 	Mass                      int                   `json:"mass,omitempty"`
 	Armor                     int                   `json:"armor,omitempty"`
 	FuelCapacity              int                   `json:"fuelCapacity,omitempty"`
@@ -243,7 +244,6 @@ func (d *ShipDesign) SlotsEqual(other *ShipDesign) bool {
 		}
 	}
 	return true
-
 }
 
 func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design *ShipDesign) ShipDesignSpec {
@@ -254,6 +254,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		FuelCapacity:            hull.FuelCapacity,
 		FuelGeneration:          hull.FuelGeneration,
 		Cost:                    hull.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec),
+		TechLevel:               hull.Requirements.TechLevel,
 		CargoCapacity:           hull.CargoCapacity,
 		CloakUnits:              raceSpec.BuiltInCloakUnits,
 		Initiative:              hull.Initiative,
@@ -299,6 +300,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 				spec.MineSweep += slot.Quantity * component.Power * ((component.Range + hull.RangeBonus) * component.Range) * gattlingMultiplier
 			}
 			spec.Cost = spec.Cost.Add(component.Tech.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec).MultiplyInt(slot.Quantity))
+			spec.TechLevel = spec.TechLevel.Max(component.Requirements.TechLevel)
 
 			spec.Mass += component.Mass * slot.Quantity
 			spec.Armor += component.Armor * slot.Quantity

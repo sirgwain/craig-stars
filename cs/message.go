@@ -28,6 +28,7 @@ type PlayerMessageSpec struct {
 	SourcePlayerNum int                     `json:"sourcePlayerNum,omitempty"`
 	DestPlayerNum   int                     `json:"destPlayerNum,omitempty"`
 	Name            string                  `json:"name,omitempty"`
+	Cost            *Cost                   `json:"cost,omitempty"`
 	QueueItemType   QueueItemType           `json:"queueItemType,omitempty"`
 	Field           TechField               `json:"field,omitempty"`
 	NextField       TechField               `json:"nextField,omitempty"`
@@ -147,6 +148,9 @@ const (
 	PlayerMessageFleetTransferReceived
 	PlayerMessageFleetTransferReceivedFailed
 	PlayerMessageFleetTransferReceivedRefused
+	PlayerMessageTechLevelGainedInvasion
+	PlayerMessageTechLevelGainedScrapFleet
+	PlayerMessageTechLevelGainedBattle
 )
 
 func newMessage(messageType PlayerMessageType) PlayerMessage {
@@ -161,6 +165,18 @@ func newPlanetMessage(messageType PlayerMessageType, target *Planet) PlayerMessa
 // create a new message targeting a fleet
 func newFleetMessage(messageType PlayerMessageType, target *Fleet) PlayerMessage {
 	return PlayerMessage{Type: messageType, TargetType: TargetFleet, TargetPlayerNum: target.PlayerNum, TargetNum: target.Num, Spec: PlayerMessageSpec{Name: target.Name}}
+}
+
+// create a new message targeting a battle with the Name field as the location of the battle
+func newBattleMessage(messageType PlayerMessageType, planet *Planet, battle *BattleRecord) PlayerMessage {
+	planetNum := None
+	targetType := TargetNone
+	if planet != nil {
+		planetNum = planet.Num
+		targetType = TargetPlanet
+	}
+
+	return PlayerMessage{Type: PlayerMessageBattle, TargetType: targetType, TargetNum: planetNum, BattleNum: battle.Num}
 }
 
 func (m PlayerMessage) withSpec(spec PlayerMessageSpec) PlayerMessage {
@@ -286,18 +302,20 @@ func (m *messageClient) fleetGeneratedFuel(player *Player, fleet *Fleet, fuelGen
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetGeneratedFuel, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum})
 }
 
-func (m *messageClient) fleetScrapped(player *Player, fleet *Fleet, totalMinerals int, resources int, planet *Planet) {
+func (m *messageClient) fleetScrapped(player *Player, fleet *Fleet, cost Cost, planet *Planet) {
 	var text string
 	if planet != nil {
 		if planet.Spec.HasStarbase {
-			text = fmt.Sprintf("%s has been dismantled for %dkT of minerals at the starbase orbiting %s.", fleet.Name, totalMinerals, planet.Name)
+			text = fmt.Sprintf("%s has been dismantled for %dkT of minerals at the starbase orbiting %s.", fleet.Name, cost.ToMineral().Total(), planet.Name)
 		} else {
-			text = fmt.Sprintf("%s has been dismantled for %dkT of minerals which have been deposited on %s.", fleet.Name, totalMinerals, planet.Name)
+			text = fmt.Sprintf("%s has been dismantled for %dkT of minerals which have been deposited on %s.", fleet.Name, cost.ToMineral().Total(), planet.Name)
 		}
-		if resources > 0 {
-			text += fmt.Sprintf(" Ultimate recycling has also made %d resources available for immediate use (less if other ships were scrapped here this year).", resources)
+		if cost.Resources > 0 {
+			text += fmt.Sprintf(" Ultimate recycling has also made %d resources available for immediate use (less if other ships were scrapped here this year).", cost.Resources)
 		}
-		player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetScrapped, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
+		player.Messages = append(player.Messages, newPlanetMessage(PlayerMessageFleetScrapped, planet).
+			withText(text).
+			withSpec(PlayerMessageSpec{Cost: &cost, Name: fleet.Name}))
 	} else {
 		text = fmt.Sprintf("%s has been dismantled. The scrap was left in deep space.", fleet.Name)
 		player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetScrapped, Text: text})
@@ -758,18 +776,15 @@ func (m *messageClient) planetPopulationDecreasedOvercrowding(player *Player, pl
 }
 
 func (m *messageClient) battle(player *Player, planet *Planet, battle *BattleRecord) {
-	var text string
-
 	location := fmt.Sprintf("Space (%0f, %0f)", battle.Position.X, battle.Position.Y)
-	planetNum := None
-	targetType := TargetNone
 	if planet != nil {
 		location = planet.Name
-		planetNum = planet.Num
-		targetType = TargetPlanet
 	}
-	text = fmt.Sprintf("A battle took place at %s.", location)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageBattle, Text: text, TargetType: targetType, TargetNum: planetNum, BattleNum: battle.Num, Spec: PlayerMessageSpec{Battle: battle.Stats}})
+
+	// create a new message targeting a battle
+	player.Messages = append(player.Messages, newBattleMessage(PlayerMessageBattle, planet, battle).
+		withText(fmt.Sprintf("A battle took place at %s.", location)).
+		withSpec(PlayerMessageSpec{Name: location, Battle: battle.Stats}))
 }
 
 func (m *messageClient) techLevel(player *Player, field TechField, level int, nextField TechField) {
