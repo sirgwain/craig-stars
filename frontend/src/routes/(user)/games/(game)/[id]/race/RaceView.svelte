@@ -4,7 +4,7 @@
 	import LRTsDescriptions from '$lib/components/game/race/LRTsDescriptions.svelte';
 	import PRTDescription from '$lib/components/game/race/PRTDescription.svelte';
 	import Population from '$lib/components/icons/Population.svelte';
-	import { HabType } from '$lib/types/Hab';
+	import { HabTypes } from '$lib/types/Hab';
 	import type { Race } from '$lib/types/Race';
 	import { getLabelForPRT } from '$lib/types/Race';
 	import HabBar from './HabBar.svelte';
@@ -48,19 +48,19 @@
 
 <div class="flex flex-col gap-2">
 	<HabBar
-		habType={HabType.Gravity}
+		habType={HabTypes.Gravity}
 		bind:habLow={race.habLow.grav}
 		bind:habHigh={race.habHigh.grav}
 		bind:immune={race.immuneGrav}
 	/>
 	<HabBar
-		habType={HabType.Temperature}
+		habType={HabTypes.Temperature}
 		bind:habLow={race.habLow.temp}
 		bind:habHigh={race.habHigh.temp}
 		bind:immune={race.immuneTemp}
 	/>
 	<HabBar
-		habType={HabType.Radiation}
+		habType={HabTypes.Radiation}
 		bind:habLow={race.habLow.rad}
 		bind:habHigh={race.habHigh.rad}
 		bind:immune={race.immuneRad}

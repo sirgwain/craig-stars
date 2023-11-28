@@ -1,15 +1,17 @@
 <script lang="ts">
 	import CostComponent from '$lib/components/game/Cost.svelte';
+	import ProductionQueueItemLine from '$lib/components/game/ProductionQueueItemLine.svelte';
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import { quantityModifier } from '$lib/quantityModifier';
 	import { getGameContext } from '$lib/services/Contexts';
-	import { PlanetService } from '$lib/services/PlanetService';
-	import type { Cost } from '$lib/types/Cost';
-	import { Infinite } from '$lib/types/MapObject';
-	import type { CommandedPlanet, ProductionQueueItem } from '$lib/types/Planet';
-	import { QueueItemType, isAuto } from '$lib/types/Planet';
+	import { NeverBuilt, getProductionEstimates } from '$lib/services/Producer';
+	import { techs } from '$lib/services/Stores';
+	import { multiply, type Cost } from '$lib/types/Cost';
+	import type { CommandedPlanet } from '$lib/types/Planet';
 	import type { ProductionPlan } from '$lib/types/Player';
-	import type { ShipDesign } from '$lib/types/ShipDesign';
+	import type { ProductionQueueItem } from '$lib/types/Production';
+	import { QueueItemTypes, getFullName, isAuto } from '$lib/types/QueueItemType';
+	import { getPlanetHabitability } from '$lib/types/Race';
 	import {
 		ArrowLongDown,
 		ArrowLongLeft,
@@ -42,63 +44,57 @@
 
 	$: updatedPlanet = planet;
 
-	const getFullName = (item: ProductionQueueItem): string => {
-		switch (item.type) {
-			case QueueItemType.Starbase:
-			case QueueItemType.ShipToken:
-				return $universe.getMyDesign(item.designNum)?.name ?? '';
-			case QueueItemType.AutoMineralAlchemy:
-				return 'Alchemy (Auto Build)';
-			case QueueItemType.MineralAlchemy:
-				return 'Alchemy';
-			case QueueItemType.AutoMines:
-				return 'Mine (Auto Build)';
-			case QueueItemType.AutoFactories:
-				return 'Factory (Auto Build)';
-			case QueueItemType.AutoDefenses:
-				return 'Defense (Auto Build)';
-			case QueueItemType.AutoMinTerraform:
-				return 'Minimum Terraform';
-			case QueueItemType.AutoMaxTerraform:
-				return 'Maximum Terraform';
-			case QueueItemType.IroniumMineralPacket:
-				return 'Mineral Packet (Ironium)';
-			case QueueItemType.BoraniumMineralPacket:
-				return 'Mineral Packet (Boranium)';
-			case QueueItemType.GermaniumMineralPacket:
-				return 'Mineral Packet (Germanium)';
-			case QueueItemType.TerraformEnvironment:
-				return 'Terraform Environment';
-			case QueueItemType.MixedMineralPacket:
-				return 'Mixed Mineral Packet';
-			case QueueItemType.AutoMineralPacket:
-				return 'Mixed Mineral Packet (Auto)';
-			case QueueItemType.PlanetaryScanner:
-				return 'Planetary Scanner';
-			default:
-				return item.type.toString();
-		}
-	};
-
 	const availableItemSelected = async (type: ProductionQueueItem) => {
 		selectedAvailableItem = type;
-		selectedAvailableItemCost = await getItemCost(selectedAvailableItem);
+		selectedAvailableItemCost = $player.getItemCost(
+			selectedAvailableItem,
+			$universe,
+			$techs,
+			planet
+		);
 	};
 
 	const queueItemClicked = async (index: number, item?: ProductionQueueItem) => {
 		selectedQueueItemIndex = index;
 		selectedQueueItem = item;
-		selectedQueueItemCost = await getItemCost(selectedQueueItem, selectedQueueItem?.quantity);
+		selectedQueueItemCost = $player.getItemCost(
+			selectedQueueItem,
+			$universe,
+			$techs,
+			planet,
+			selectedQueueItem?.quantity
+		);
 	};
 
-	const updateQueueEstimates = async () => {
-		// update with estimates from the server
+	function updateQueueEstimates() {
+		// get updated production queue estimates
 		updatedPlanet.productionQueue = queueItems;
-		updatedPlanet = await PlanetService.getPlanetProductionEstimates(updatedPlanet, $player);
+		const itemEstimates = getProductionEstimates(
+			$game.rules,
+			$techs,
+			$player,
+			updatedPlanet,
+			$universe
+		);
+
+		for (let i = 0; i < queueItems.length; i++) {
+			const estimate = itemEstimates[i];
+			Object.assign(queueItems[i], {
+				yearsToBuildOne: estimate.yearsToBuildOne,
+				yearsToBuildAll: estimate.yearsToBuildAll,
+				yearsToSkipAuto: estimate.yearsToSkipAuto
+			});
+		}
+
+		// update the reactive variable so the UI updates
 		queueItems = updatedPlanet.productionQueue;
+
 		selectedQueueItem = queueItems[selectedQueueItemIndex];
-		selectedQueueItemCost = await getItemCost(selectedQueueItem, selectedQueueItem?.quantity);
-	};
+		selectedQueueItemCost = multiply(
+			$player.getItemCost(selectedQueueItem, $universe, $techs, planet),
+			selectedQueueItem?.quantity
+		);
+	}
 
 	const addAvailableItem = async (e: MouseEvent, item?: ProductionQueueItem) => {
 		item = item ?? selectedAvailableItem;
@@ -106,13 +102,19 @@
 			return;
 		}
 
-		const max = getMaxBuildable(item.type);
+		const maxPopulation = planet.getMaxPopulation(
+			$game.rules,
+			$player,
+			getPlanetHabitability($player.race, planet.hab)
+		);
+		const amountInQueue = planet.getAmountInQueue(item.type, queueItems);
+		const max = planet.getMaxBuildable($techs, $player, maxPopulation, item.type, amountInQueue);
 		const quantity = clamp(quantityModifier(e), 0, max);
 		if (quantity == 0) {
 			// don't add something we can't build any more of
 			return;
 		}
-		const cost = (await getItemCost(item)) ?? {};
+		const cost = $player.getItemCost(item, $universe, $techs, planet) ?? {};
 		if (selectedQueueItem) {
 			if (selectedQueueItem.type == item?.type && selectedQueueItem.designNum == item?.designNum) {
 				selectedQueueItem.quantity += quantity;
@@ -128,7 +130,13 @@
 				});
 				selectedQueueItemIndex++;
 				selectedQueueItem = queueItems[selectedQueueItemIndex];
-				selectedQueueItemCost = await getItemCost(selectedQueueItem, selectedQueueItem?.quantity);
+				selectedQueueItemCost = $player.getItemCost(
+					selectedQueueItem,
+					$universe,
+					$techs,
+					planet,
+					selectedQueueItem?.quantity
+				);
 			}
 		} else {
 			let nextItem = queueItems.length ? queueItems[0] : undefined;
@@ -136,7 +144,13 @@
 				nextItem.quantity++;
 				selectedQueueItemIndex = 0;
 				selectedQueueItem = nextItem;
-				selectedQueueItemCost = await getItemCost(selectedQueueItem, selectedQueueItem?.quantity);
+				selectedQueueItemCost = $player.getItemCost(
+					selectedQueueItem,
+					$universe,
+					$techs,
+					planet,
+					selectedQueueItem?.quantity
+				);
 			} else {
 				// prepend a new queue item
 				queueItems = [
@@ -151,7 +165,13 @@
 				];
 				selectedQueueItemIndex++;
 				selectedQueueItem = queueItems[selectedQueueItemIndex];
-				selectedQueueItemCost = await getItemCost(selectedQueueItem, selectedQueueItem?.quantity);
+				selectedQueueItemCost = $player.getItemCost(
+					selectedQueueItem,
+					$universe,
+					$techs,
+					planet,
+					selectedQueueItem?.quantity
+				);
 			}
 		}
 
@@ -161,13 +181,20 @@
 	const removeItem = async (e: MouseEvent) => {
 		if (queueItems && selectedQueueItem) {
 			selectedQueueItem.quantity -= quantityModifier(e);
+			selectedQueueItem.quantity = Math.max(0, selectedQueueItem.quantity);
 			queueItems = queueItems;
 			if (selectedQueueItem.quantity <= 0) {
 				// select the item up in the list
 				queueItems = queueItems?.filter((item) => item != selectedQueueItem);
 				selectedQueueItem =
 					queueItems[selectedQueueItemIndex > -1 ? selectedQueueItemIndex - 1 : 0];
-				selectedQueueItemCost = await getItemCost(selectedQueueItem, selectedQueueItem?.quantity);
+				selectedQueueItemCost = $player.getItemCost(
+					selectedQueueItem,
+					$universe,
+					$techs,
+					planet,
+					selectedQueueItem?.quantity
+				);
 
 				selectedQueueItemIndex--;
 			}
@@ -209,7 +236,10 @@
 			} else {
 				queueItems = plan.items;
 			}
-			queueItems.forEach(async (item) => (item.costOfOne = (await getItemCost(item)) ?? {}));
+			queueItems.forEach(
+				async (item) =>
+					(item.costOfOne = $player.getItemCost(item, $universe, $techs, planet) ?? {})
+			);
 			contributesOnlyLeftoverToResearch = plan.contributesOnlyLeftoverToResearch ?? false;
 			updateQueueEstimates();
 		}
@@ -240,131 +270,24 @@
 		}
 	};
 
-	const getAmountInQueue = (type: QueueItemType): number => {
-		return queueItems.reduce((count, i) => count + (i.type === type ? i.quantity : 0), 0);
-	};
-
-	const getMaxBuildable = (type: QueueItemType): number => {
-		const amountInQueue = getAmountInQueue(type);
-		switch (type) {
-			case QueueItemType.AutoMines:
-				return 1000;
-			case QueueItemType.Mine:
-				return Math.max(0, (planet.spec.maxPossibleMines ?? 0) - (planet.mines + amountInQueue));
-			case QueueItemType.AutoFactories:
-				return 1000;
-			case QueueItemType.Factory:
-				return Math.max(
-					0,
-					(planet.spec.maxPossibleFactories ?? 0) - (planet.factories + amountInQueue)
-				);
-			case QueueItemType.AutoDefenses:
-				return 100;
-			case QueueItemType.Defenses:
-				return 100 - planet.defenses + amountInQueue;
-			case QueueItemType.AutoMineralAlchemy:
-			case QueueItemType.MineralAlchemy:
-				return 1000;
-			case QueueItemType.AutoMinTerraform:
-			case QueueItemType.AutoMaxTerraform:
-				return 100;
-			case QueueItemType.AutoMineralPacket:
-				return 1000;
-			case QueueItemType.TerraformEnvironment:
-				return (
-					Math.abs(planet.spec.terraformAmount?.grav ?? 0) +
-					Math.abs(planet.spec.terraformAmount?.temp ?? 0) +
-					Math.abs(planet.spec.terraformAmount?.rad ?? 0) -
-					amountInQueue
-				);
-			case QueueItemType.IroniumMineralPacket:
-			case QueueItemType.BoraniumMineralPacket:
-			case QueueItemType.GermaniumMineralPacket:
-			case QueueItemType.MixedMineralPacket:
-				return 1000;
-			case QueueItemType.ShipToken:
-				return 1000;
-			case QueueItemType.Starbase:
-				return clamp(1 - amountInQueue, 0, 1);
-
-			case QueueItemType.PlanetaryScanner:
-				return planet.scanner || amountInQueue > 0 ? 0 : 1;
-		}
-		return 0;
-	};
-	/**
-	 * Get the cost of a ProductionQueueItem
-	 * @param item the item to get cost for
-	 * @param quantity the quantity of items to multiply by cost, defaults to 1
-	 */
-	const getItemCost = async (
-		item: ProductionQueueItem | undefined,
-		quantity = 1
-	): Promise<Cost | undefined> => {
-		let cost: Cost | undefined;
-		switch (item?.type) {
-			case QueueItemType.ShipToken:
-				if (item.designNum) {
-					const design = $universe.getMyDesign(item.designNum);
-					cost = design?.spec.cost;
-				}
-				break;
-			case QueueItemType.Starbase:
-				if (item.designNum) {
-					const design = $universe.getMyDesign(item.designNum);
-					if (design) {
-						if (planet.spec.hasStarbase) {
-							cost = await getStarbaseUpgradeCost(design);
-						} else {
-							cost = design?.spec.cost;
-						}
-					}
-				}
-				break;
-
-			default:
-				cost = item?.costOfOne;
-				if (item && $player.race.spec?.costs) {
-					cost = $player.race.spec.costs[item.type];
-				}
-		}
-		return cost
-			? {
-					ironium: (cost.ironium ?? 0) * quantity,
-					boranium: (cost.boranium ?? 0) * quantity,
-					germanium: (cost.germanium ?? 0) * quantity,
-					resources: (cost.resources ?? 0) * quantity
-			  }
-			: undefined;
-	};
-
-	// get the upgrade cost of a starbase for this planet
-	const getStarbaseUpgradeCost = async (newDesign: ShipDesign): Promise<Cost> => {
-		const design = $universe.getMyDesign(planet.spec.starbaseDesignNum);
-		if (design) {
-			return await PlanetService.getStarbaseUpgradeCost(design, newDesign);
-		}
-		return newDesign.spec.cost ?? {};
-	};
-
 	const getCompletionDescription = (item: ProductionQueueItem) => {
 		if (item.skipped) {
 			return 'Skipped';
 		}
 
 		const yearsToBuildOne = item.yearsToBuildOne ?? 1;
-		const yearsToBuildAll = item.yearsToBuildAll;
+		const yearsToBuildAll = isAuto(item.type) ? item.yearsToSkipAuto : item.yearsToBuildAll;
 		if (yearsToBuildOne === yearsToBuildAll) {
 			if (yearsToBuildAll == 1) {
 				return '1 year';
 			}
-			if (yearsToBuildAll === Infinite) {
+			if (yearsToBuildAll === NeverBuilt) {
 				return 'never';
 			}
 			return `${yearsToBuildAll} years`;
 		}
 		if (yearsToBuildAll && yearsToBuildOne != yearsToBuildAll) {
-			if (yearsToBuildAll === Infinite) {
+			if (yearsToBuildAll === NeverBuilt) {
 				return `${yearsToBuildOne} to ???`;
 			}
 			return `${yearsToBuildOne} to ${yearsToBuildAll} years`;
@@ -410,8 +333,14 @@
 		} else if (availableItems.length > 0) {
 			selectedAvailableItem = availableItems[0];
 		}
-		selectedAvailableItemCost = await getItemCost(selectedAvailableItem);
+		selectedAvailableItemCost = $player.getItemCost(
+			selectedAvailableItem,
+			$universe,
+			$techs,
+			planet
+		);
 		contributesOnlyLeftoverToResearch = planet.contributesOnlyLeftoverToResearch ?? false;
+		updateQueueEstimates();
 	};
 
 	// clone the production queue whenever the planet is updated
@@ -444,11 +373,11 @@
 											class:bg-primary={item === selectedAvailableItem}
 											class:text-queue-item-this-year={(item.yearsToBuildOne ?? 0) == 1}
 											class:text-queue-item-next-year={(item.yearsToBuildOne ?? 0) == 2}
-											class:text-queue-item-never={(item.yearsToBuildOne ?? 0) == Infinite}
+											class:text-queue-item-never={(item.yearsToBuildOne ?? 0) == NeverBuilt}
 											class="w-full pl-0.5 text-left cursor-default select-none hover:text-secondary-focus }
 									{isAuto(item.type) ? ' italic' : ''}"
 										>
-											{getFullName(item)}
+											{getFullName(item, $universe)}
 										</button>
 									</li>
 								{/each}
@@ -470,11 +399,11 @@
 											class:bg-primary={item === selectedAvailableItem}
 											class:text-queue-item-this-year={(item.yearsToBuildOne ?? 0) == 1}
 											class:text-queue-item-next-year={(item.yearsToBuildOne ?? 0) == 2}
-											class:text-queue-item-never={(item.yearsToBuildOne ?? 0) == Infinite}
+											class:text-queue-item-never={(item.yearsToBuildOne ?? 0) == NeverBuilt}
 											class="w-full pl-0.5 text-left cursor-default select-none hover:text-secondary-focus }
 									{isAuto(item.type) ? ' italic' : ''}"
 										>
-											{getFullName(item)}
+											{getFullName(item, $universe)}
 										</button>
 									</li>
 								{/each}
@@ -493,7 +422,7 @@
 										class="w-full pl-0.5 text-left cursor-default select-none hover:text-secondary-focus }
 									{isAuto(item.type) ? ' italic' : ''}"
 									>
-										{getFullName(item)}
+										{getFullName(item, $universe)}
 									</button>
 								</li>
 							{/each}
@@ -510,14 +439,14 @@
 													e,
 													$universe.getMyDesign(selectedAvailableItem?.designNum)
 												)}
-											>Cost of {getFullName(selectedAvailableItem)}<Icon
+											>Cost of {getFullName(selectedAvailableItem, $universe)}<Icon
 												src={QuestionMarkCircle}
 												size="16"
 												class="cursor-help inline-block ml-1"
 											/></button
 										>
 									{:else}
-										Cost of {getFullName(selectedAvailableItem)}
+										Cost of {getFullName(selectedAvailableItem, $universe)}
 									{/if}
 								</h3>
 								<CostComponent cost={selectedAvailableItemCost} />
@@ -607,34 +536,12 @@
 							{#if queueItems}
 								{#each queueItems as queueItem, index}
 									<li>
-										<button
-											type="button"
-											on:click={() => queueItemClicked(index, queueItem)}
-											on:contextmenu|preventDefault={(e) =>
-												onShipDesignTooltip(e, $universe.getMyDesign(queueItem.designNum))}
-											class:italic={isAuto(queueItem.type)}
-											class:text-queue-item-this-year={!queueItem.skipped &&
-												(queueItem.yearsToBuildOne ?? 0) <= 1 &&
-												queueItem.yearsToBuildOne != Infinite}
-											class:text-queue-item-next-year={!queueItem.skipped &&
-												((queueItem.yearsToBuildAll ?? 0) > 1 ||
-													queueItem.yearsToBuildAll === Infinite) &&
-												(queueItem.yearsToBuildOne ?? 0) <= 1 &&
-												queueItem.yearsToBuildOne != Infinite}
-											class:text-queue-item-skipped={queueItem.skipped}
-											class:text-queue-item-never={queueItem.yearsToBuildOne == Infinite}
-											class:bg-primary={queueItem === selectedQueueItem}
-											class="w-full text-left px-1 select-none cursor-default hover:text-secondary-focus"
-										>
-											<div class="flex justify-between ">
-												<div>
-													{getFullName(queueItem)}
-												</div>
-												<div>
-													{queueItem.quantity}
-												</div>
-											</div>
-										</button>
+										<ProductionQueueItemLine
+											{queueItem}
+											{index}
+											on:queue-item-clicked={() => queueItemClicked(index, queueItem)}
+											selected={queueItem === selectedQueueItem}
+										/>
 									</li>
 								{/each}
 							{/if}
@@ -648,14 +555,14 @@
 											type="button"
 											on:pointerdown={(e) =>
 												onShipDesignTooltip(e, $universe.getMyDesign(selectedQueueItem?.designNum))}
-											>Cost of {getFullName(selectedQueueItem)} x {selectedQueueItem.quantity}<Icon
+											>Cost of {getFullName(selectedQueueItem, $universe)} x {selectedQueueItem.quantity}<Icon
 												src={QuestionMarkCircle}
 												size="16"
 												class="cursor-help inline-block ml-1"
 											/></button
 										>
 									{:else}
-										Cost of {getFullName(selectedQueueItem)} x {selectedQueueItem.quantity}
+										Cost of {getFullName(selectedQueueItem, $universe)} x {selectedQueueItem.quantity}
 									{/if}
 								</h3>
 								<CostComponent cost={selectedQueueItemCost} />

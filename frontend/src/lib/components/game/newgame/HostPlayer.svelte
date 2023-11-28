@@ -7,7 +7,7 @@
 	import { onMount } from 'svelte';
 
 	// races for the host
-	let hostRaces: Race[] = [humanoid];
+	let hostRaces: Race[] = [humanoid()];
 
 	export let player: NewGamePlayer;
 

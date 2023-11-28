@@ -22,7 +22,7 @@
 			}
 		} else {
 			// create a new humanoid
-			race = Object.assign({}, humanoid);
+			race = Object.assign({}, humanoid());
 		}
 	});
 

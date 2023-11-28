@@ -1,12 +1,13 @@
 <script lang="ts">
+	import ProductionQueueItemLine from '$lib/components/game/ProductionQueueItemLine.svelte';
 	import { getGameContext } from '$lib/services/Contexts';
-	import { Infinite } from '$lib/types/MapObject';
-	import { CommandedPlanet, getQueueItemShortName, isAuto } from '$lib/types/Planet';
+	import { techs } from '$lib/services/Stores';
+	import type { CommandedPlanet } from '$lib/types/Planet';
 	import { createEventDispatcher } from 'svelte';
 	import CommandTile from './CommandTile.svelte';
 
 	const dispatch = createEventDispatcher();
-	const { game, universe } = getGameContext();
+	const { game, player, universe } = getGameContext();
 
 	export let planet: CommandedPlanet;
 
@@ -16,34 +17,17 @@
 			$game.updatePlanetOrders(planet);
 		}
 	};
+
+	$: queueItems = planet.updateProductionQueueEstimates($game.rules, $techs, $player, $universe);
 </script>
 
 <CommandTile title="Production">
 	<div class="bg-base-100 h-20 overflow-y-auto">
 		{#if planet.productionQueue}
 			<ul class="w-full h-full">
-				{#each planet.productionQueue as queueItem}
+				{#each queueItems as queueItem, index}
 					<li class="pl-1">
-						<div
-							class="flex flex-row justify-between"
-							class:italic={isAuto(queueItem.type)}
-							class:text-queue-item-this-year={!queueItem.skipped &&
-								(queueItem.yearsToBuildOne ?? 0) <= 1 &&
-								queueItem.yearsToBuildOne != Infinite}
-							class:text-queue-item-next-year={!queueItem.skipped &&
-								((queueItem.yearsToBuildAll ?? 0) > 1 || queueItem.yearsToBuildAll === Infinite) &&
-								(queueItem.yearsToBuildOne ?? 0) <= 1 &&
-								queueItem.yearsToBuildOne != Infinite}
-							class:text-queue-item-skipped={queueItem.skipped}
-							class:text-queue-item-never={queueItem.yearsToBuildOne == Infinite}
-						>
-							<div>
-								{getQueueItemShortName(queueItem, $universe)}
-							</div>
-							<div>
-								{queueItem.quantity}
-							</div>
-						</div>
+						<ProductionQueueItemLine {queueItem} {index} shortName={true} />
 					</li>
 				{/each}
 			</ul>

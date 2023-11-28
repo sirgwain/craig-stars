@@ -1,13 +1,22 @@
 import type { DesignFinder } from '$lib/services/Universe';
 import { sortBy, startCase } from 'lodash-es';
-import type { Cargo } from './Cargo';
+import { addMineral, type Cargo } from './Cargo';
 import { divide, minus, minZero, type Cost } from './Cost';
-import type { Hab } from './Hab';
+import { absSum, getHabValue, getLargest, withHabValue, type Hab, add } from './Hab';
 import { Infinite, MapObjectType, None, type MapObject } from './MapObject';
-import { totalMinerals, type Mineral } from './Mineral';
+import { totalMinerals, type Mineral, addInt } from './Mineral';
 import type { ShipDesign } from './ShipDesign';
-import { UnlimitedSpaceDock } from './Tech';
+import { UnlimitedSpaceDock, type TechStore, type Tech } from './Tech';
 import type { Vector } from './Vector';
+import { getPlanetHabitability, type Race } from './Race';
+import { roundToNearest100 } from '$lib/services/Math';
+import type { Rules } from './Rules';
+import type { Player } from './Player';
+import type { Fleet } from './Fleet';
+import { type QueueItemType, QueueItemTypes } from './QueueItemType';
+import type { ProductionQueueItem } from './Production';
+import { getTerraformAmount } from '$lib/services/Terraformer';
+import { getProductionEstimates } from '$lib/services/Producer';
 
 export const Unexplored = -1;
 
@@ -39,18 +48,6 @@ export type PlanetOrders = {
 	productionQueue?: ProductionQueueItem[];
 };
 
-export interface ProductionQueueItem {
-	type: QueueItemType;
-	quantity: number;
-	designNum?: number;
-	allocated: Cost;
-	costOfOne: Cost;
-	skipped?: boolean;
-	yearsToBuildOne?: number;
-	yearsToBuildAll?: number;
-	percentComplete?: number;
-}
-
 /**
  * A planet that can be commanded and updated by the player
  */
@@ -77,9 +74,10 @@ export class CommandedPlanet implements Planet {
 	name = '';
 	num = 0;
 	playerNum = 0;
+	starbase: Fleet | undefined = undefined;
 
 	// orders
-	contributesOnlyLeftoverToResearch = false;
+	contributesOnlyLeftoverToResearch = true;
 	productionQueue: ProductionQueueItem[] = [];
 	routeTargetType = MapObjectType.None;
 	routeTargetNum = None;
@@ -122,6 +120,304 @@ export class CommandedPlanet implements Planet {
 		hasStargate: false
 	};
 
+	// get the population from a planet's cargo
+	public get population() {
+		return (this.cargo.colonists ?? 0) * 100;
+	}
+
+	public set population(value: number) {
+		this.cargo.colonists = Math.floor(value / 100);
+	}
+
+	// get the max popluation this planet will support for a player
+	public getMaxPopulation(rules: Rules, player: Player, habitability: number): number {
+		const maxPopulationFactor = 1 + (player.race.spec?.maxPopulationOffset ?? 0);
+		let maxPossiblePop = rules.maxPopulation;
+		const minMaxPop = maxPossiblePop * maxPopulationFactor * rules.minMaxPopulationPercent;
+
+		if (player.race.spec?.livesOnStarbases && this.playerNum === player.num) {
+			maxPossiblePop = this.starbase?.spec?.maxPopulation ?? 0;
+		}
+
+		return roundToNearest100(
+			Math.max(minMaxPop, (maxPossiblePop * maxPopulationFactor * habitability) / 100.0)
+		);
+	}
+
+	public getGrowthAmount(
+		race: Race,
+		maxPopulation: number,
+		populationOvercrowdDieoffRate: number,
+		populationOvercrowdDieoffRateMax: number
+	): number {
+		const growthFactor = race.spec?.growthFactor ?? 0;
+		const capacity = this.population / maxPopulation;
+		const habValue = getPlanetHabitability(race, this.hab);
+
+		if (habValue > 0) {
+			let popGrowth =
+				((this.population * race.growthRate * growthFactor) / 100.0) * (habValue / 100.0) + 0.5;
+
+			if (capacity > 1) {
+				// Overpopulation calculations
+				const dieoffPercent = Math.max(
+					Math.min((1 - capacity) * populationOvercrowdDieoffRate, 0),
+					-populationOvercrowdDieoffRateMax
+				);
+				popGrowth = this.population * dieoffPercent;
+			} else if (capacity > 0.25) {
+				const crowdingFactor = (16 / 9) * (1 - capacity) * (1 - capacity);
+				popGrowth *= crowdingFactor;
+			}
+
+			// Round to the nearest 100 colonists
+			return roundToNearest100(popGrowth);
+		} else {
+			// Kill off (habValue / 10)% colonists every year
+			const deathAmount = this.population * (habValue / 1000);
+			return roundToNearest100(Math.max(deathAmount, -100));
+		}
+	}
+
+	public getProductivePopulation(maxPop: number): number {
+		return Math.min(this.population, 3 * maxPop);
+	}
+
+	public getInnateMines(race: Race, population: number): number {
+		if (race.spec?.innateMining) {
+			return Math.floor(Math.sqrt(population) * (race.spec.innatePopulationFactor ?? 0));
+		}
+		return 0;
+	}
+
+	public getMaxMines(race: Race, maxPopulation: number): number {
+		if (!race.spec?.innateMining) {
+			return Math.floor((maxPopulation * race.numMines) / 10000);
+		}
+		return 0;
+	}
+
+	public getMaxFactories(race: Race, maxPopulation: number): number {
+		if (!race.spec?.innateResources) {
+			return Math.floor((maxPopulation * race.numFactories) / 10000);
+		}
+		return 0;
+	}
+
+	// get the amount of a given item in the queue
+	public getAmountInQueue(
+		type: QueueItemType,
+		queueItems: ProductionQueueItem[] | undefined = undefined
+	): number {
+		queueItems = queueItems ?? this.productionQueue;
+		return queueItems.reduce((count, i) => count + (i.type === type ? i.quantity : 0), 0);
+	}
+
+	public getMaxBuildable(
+		techStore: TechStore,
+		player: Player,
+		maxPopulation: number,
+		type: QueueItemType,
+		amountInQueue = 0
+	): number {
+		const productivePop = this.getProductivePopulation(maxPopulation);
+		const race = player.race;
+
+		switch (type) {
+			case QueueItemTypes.AutoDefenses:
+			case QueueItemTypes.Defenses:
+				return Math.max(0, 100 - (this.defenses + amountInQueue));
+			case QueueItemTypes.AutoMines:
+				return Math.max(0, this.getMaxMines(race, productivePop) - (this.mines + amountInQueue));
+			case QueueItemTypes.Mine:
+				return Math.max(0, this.getMaxMines(race, maxPopulation) - (this.mines + amountInQueue));
+			case QueueItemTypes.AutoFactories:
+				return Math.max(
+					0,
+					this.getMaxFactories(race, productivePop) - (this.factories + amountInQueue)
+				);
+			case QueueItemTypes.Factory:
+				return Math.max(
+					0,
+					this.getMaxFactories(race, maxPopulation) - (this.factories + amountInQueue)
+				);
+			case QueueItemTypes.AutoMinTerraform:
+			case QueueItemTypes.AutoMaxTerraform:
+			case QueueItemTypes.TerraformEnvironment:
+				return (
+					absSum(getTerraformAmount(techStore, this.hab, this.baseHab, player)) - amountInQueue
+				);
+			case QueueItemTypes.AutoMineralPacket:
+			case QueueItemTypes.IroniumMineralPacket:
+			case QueueItemTypes.BoraniumMineralPacket:
+			case QueueItemTypes.GermaniumMineralPacket:
+			case QueueItemTypes.MixedMineralPacket:
+			case QueueItemTypes.AutoMineralAlchemy:
+			case QueueItemTypes.MineralAlchemy:
+				return Number.MAX_SAFE_INTEGER - amountInQueue;
+			case QueueItemTypes.PlanetaryScanner:
+				// only one scanner per planet, assuming the race can build scanners...
+				return Math.max(0, (this.scanner || race.spec?.innateScanner ? 0 : 1) - amountInQueue);
+			case QueueItemTypes.ShipToken:
+				return Number.MAX_SAFE_INTEGER - amountInQueue;
+			case QueueItemTypes.Starbase:
+				return Math.max(0, 1 - amountInQueue);
+		}
+	}
+
+	// update the production queue estimates for the planet's production queue
+	public updateProductionQueueEstimates(
+		rules: Rules,
+		techStore: TechStore,
+		player: Player,
+		designFinder: DesignFinder
+	): ProductionQueueItem[] {
+		const itemEstimates = getProductionEstimates(rules, techStore, player, this, designFinder);
+
+		for (let i = 0; i < this.productionQueue.length; i++) {
+			const estimate = itemEstimates[i];
+			Object.assign(this.productionQueue[i], {
+				yearsToBuildOne: estimate.yearsToBuildOne,
+				yearsToBuildAll: estimate.yearsToBuildAll,
+				yearsToSkipAuto: estimate.yearsToSkipAuto
+			});
+		}
+
+		return this.productionQueue;
+	}
+
+	// grow pop on this planet. This is used when estimating production queues
+	public grow(rules: Rules, player: Player) {
+		const habitability = getPlanetHabitability(player.race, this.hab);
+		const maxPopulation = this.getMaxPopulation(rules, player, habitability);
+		const growthAmount = this.getGrowthAmount(
+			player.race,
+			maxPopulation,
+			rules.populationOvercrowdDieoffRate,
+			rules.populationOvercrowdDieoffRateMax
+		);
+		this.population = this.population + growthAmount;
+
+		if (player.race.spec?.innateMining) {
+			const productivePop = this.getProductivePopulation(maxPopulation);
+			this.mines = this.getInnateMines(player.race, productivePop);
+		}
+	}
+
+	public mine(rules: Rules, race: Race) {
+		this.cargo = addMineral(this.cargo, this.getMineralOutput(this.mines, race.mineOutput));
+		this.mineYears = addInt(this.mineYears, this.mines);
+		this.reduceMineralConcentration(rules);
+	}
+
+	reduceMineralConcentration(rules: Rules) {
+		const mineralDecayFactor = rules.mineralDecayFactor;
+		let minMineralConcentration = rules.minMineralConcentration;
+		if (this.homeworld) {
+			minMineralConcentration = rules.minHomeworldMineralConcentration;
+		}
+
+		const planetMineYears = [
+			this.mineYears.ironium ?? 0,
+			this.mineYears.boranium ?? 0,
+			this.mineYears.germanium ?? 0
+		];
+		const planetMineralConcentration = [
+			this.mineralConcentration.ironium ?? 0,
+			this.mineralConcentration.boranium ?? 0,
+			this.mineralConcentration.germanium ?? 0
+		];
+
+		for (let i = 0; i < 3; i++) {
+			let conc = planetMineralConcentration[i];
+
+			if (conc < minMineralConcentration) {
+				// Ensure the concentration is at least the minimum value
+				conc = minMineralConcentration;
+				planetMineralConcentration[i] = conc;
+			}
+
+			const minesPer = Math.floor(mineralDecayFactor / conc / conc);
+			let mineYears = planetMineYears[i];
+
+			if (mineYears > minesPer) {
+				conc -= Math.floor(mineYears / minesPer);
+
+				if (conc < minMineralConcentration) {
+					conc = minMineralConcentration;
+				}
+
+				mineYears %= minesPer;
+
+				planetMineYears[i] = mineYears;
+				planetMineralConcentration[i] = conc;
+			}
+		}
+
+		this.mineYears = {
+			ironium: planetMineYears[0],
+			boranium: planetMineYears[1],
+			germanium: planetMineYears[2]
+		};
+		this.mineralConcentration = {
+			ironium: planetMineralConcentration[0],
+			boranium: planetMineralConcentration[1],
+			germanium: planetMineralConcentration[2]
+		};
+	}
+
+	// terraform this planet one step
+	public terraformOneStep(techStore: TechStore, player: Player) {
+		const terraformAmount = getTerraformAmount(techStore, this.hab, this.baseHab, player);
+
+		if (absSum(terraformAmount) === 0) {
+			// no need to terraform, return
+			return;
+		}
+
+		const habType = getLargest(terraformAmount);
+		const terraformPossibleAmount = getHabValue(terraformAmount, habType);
+		if (terraformPossibleAmount > 0) {
+			this.hab = add(this.hab, withHabValue(habType, 1));
+		} else {
+			this.hab = add(this.hab, withHabValue(habType, -1));
+		}
+	}
+
+	// get the mineral output of a planet based on mineOutput (10 for remote mining)
+	public getMineralOutput(numMines: number, mineOutput: number): Mineral {
+		return {
+			ironium: Math.floor(
+				((((this.mineralConcentration.ironium ?? 0) / 100) * numMines) / 10) * mineOutput
+			),
+			boranium: Math.floor(
+				((((this.mineralConcentration.boranium ?? 0) / 100) * numMines) / 10) * mineOutput
+			),
+			germanium: Math.floor(
+				((((this.mineralConcentration.germanium ?? 0) / 100) * numMines) / 10) * mineOutput
+			)
+		};
+	}
+
+	// get the resources produced by this planet each year
+	public getResourcesAvailable(player: Player): number {
+		const productivePop = this.getProductivePopulation(this.population);
+		const race = player.race;
+		if (race.spec?.innateMining) {
+			return Math.floor(
+				Math.sqrt((productivePop * (player.techLevels.energy ?? 0)) / race.popEfficiency)
+			);
+		} else {
+			// compute resources from population
+			const resourcesFromPop = productivePop / (race.popEfficiency * 100);
+
+			// compute resources from factories
+			const resourcesFromFactories = (this.factories * race.factoryOutput) / 10;
+
+			return Math.floor(resourcesFromPop + resourcesFromFactories);
+		}
+	}
+
 	/**
 	 * get a list of available ProductionQueueItems for ship designs a planet can build
 	 * @param planet the planet to get items for
@@ -153,7 +449,7 @@ export class CommandedPlanet implements Planet {
 			).forEach((d) => {
 				items.push({
 					quantity: 0,
-					type: QueueItemType.ShipToken,
+					type: QueueItemTypes.ShipToken,
 					designNum: d.num,
 					costOfOne: d.spec.cost ?? {},
 					allocated: {},
@@ -190,7 +486,7 @@ export class CommandedPlanet implements Planet {
 		).map<ProductionQueueItem>(
 			(d: ShipDesign): ProductionQueueItem => ({
 				quantity: 0,
-				type: QueueItemType.Starbase,
+				type: QueueItemTypes.Starbase,
 				designNum: d.num,
 				costOfOne: d.spec.cost ?? {},
 				allocated: {},
@@ -214,60 +510,60 @@ export class CommandedPlanet implements Planet {
 		const items: ProductionQueueItem[] = [];
 
 		if (!innateResources) {
-			items.push(fromQueueItemType(QueueItemType.Factory));
+			items.push(fromQueueItemType(QueueItemTypes.Factory));
 		}
 		if (!innateMining) {
-			items.push(fromQueueItemType(QueueItemType.Mine));
+			items.push(fromQueueItemType(QueueItemTypes.Mine));
 		}
 		if (!livesOnStarbases) {
-			items.push(fromQueueItemType(QueueItemType.Defenses));
+			items.push(fromQueueItemType(QueueItemTypes.Defenses));
 		}
 
-		items.push(fromQueueItemType(QueueItemType.MineralAlchemy));
+		items.push(fromQueueItemType(QueueItemTypes.MineralAlchemy));
 
 		if (!planet.scanner) {
-			items.push(fromQueueItemType(QueueItemType.PlanetaryScanner));
+			items.push(fromQueueItemType(QueueItemTypes.PlanetaryScanner));
 		}
 
 		if (planet.spec.canTerraform) {
-			items.push(fromQueueItemType(QueueItemType.TerraformEnvironment));
+			items.push(fromQueueItemType(QueueItemTypes.TerraformEnvironment));
 		}
 
 		if (planet.spec.hasMassDriver) {
 			items.push(
-				fromQueueItemType(QueueItemType.IroniumMineralPacket),
-				fromQueueItemType(QueueItemType.BoraniumMineralPacket),
-				fromQueueItemType(QueueItemType.GermaniumMineralPacket),
-				fromQueueItemType(QueueItemType.MixedMineralPacket)
+				fromQueueItemType(QueueItemTypes.IroniumMineralPacket),
+				fromQueueItemType(QueueItemTypes.BoraniumMineralPacket),
+				fromQueueItemType(QueueItemTypes.GermaniumMineralPacket),
+				fromQueueItemType(QueueItemTypes.MixedMineralPacket)
 			);
 		}
 
 		// add auto items
 		if (!innateResources) {
-			items.push(fromQueueItemType(QueueItemType.AutoFactories));
+			items.push(fromQueueItemType(QueueItemTypes.AutoFactories));
 		}
 		if (!innateMining) {
-			items.push(fromQueueItemType(QueueItemType.AutoMines));
+			items.push(fromQueueItemType(QueueItemTypes.AutoMines));
 		}
 		if (!livesOnStarbases) {
-			items.push(fromQueueItemType(QueueItemType.AutoDefenses));
+			items.push(fromQueueItemType(QueueItemTypes.AutoDefenses));
 		}
 
 		items.push(
-			fromQueueItemType(QueueItemType.AutoMineralAlchemy),
-			fromQueueItemType(QueueItemType.AutoMaxTerraform),
-			fromQueueItemType(QueueItemType.AutoMinTerraform)
+			fromQueueItemType(QueueItemTypes.AutoMineralAlchemy),
+			fromQueueItemType(QueueItemTypes.AutoMaxTerraform),
+			fromQueueItemType(QueueItemTypes.AutoMinTerraform)
 		);
 
 		if (planet.spec.hasMassDriver) {
-			items.push(fromQueueItemType(QueueItemType.AutoMineralPacket));
+			items.push(fromQueueItemType(QueueItemTypes.AutoMineralPacket));
 		}
 
 		return items;
 	}
 
 	// get the estimated years to build one item
-	getYearsToBuildOne(
+	public getYearsToBuildOne(
 		cost: Cost = {},
 		mineralsOnHand: Mineral,
 		yearlyAvailableToSpend: Cost
@@ -289,101 +585,30 @@ export const fromQueueItemType = (type: QueueItemType, costOfOne = {}): Producti
 	allocated: {}
 });
 
-export enum QueueItemType {
-	AutoMines = 'AutoMines',
-	AutoFactories = 'AutoFactories',
-	AutoDefenses = 'AutoDefenses',
-	AutoMineralAlchemy = 'AutoMineralAlchemy',
-	AutoMinTerraform = 'AutoMinTerraform',
-	AutoMaxTerraform = 'AutoMaxTerraform',
-	AutoMineralPacket = 'AutoMineralPacket',
-	Factory = 'Factory',
-	Mine = 'Mine',
-	Defenses = 'Defenses',
-	MineralAlchemy = 'MineralAlchemy',
-	TerraformEnvironment = 'TerraformEnvironment',
-	IroniumMineralPacket = 'IroniumMineralPacket',
-	BoraniumMineralPacket = 'BoraniumMineralPacket',
-	GermaniumMineralPacket = 'GermaniumMineralPacket',
-	MixedMineralPacket = 'MixedMineralPacket',
-	ShipToken = 'ShipToken',
-	Starbase = 'Starbase',
-	PlanetaryScanner = 'PlanetaryScanner'
-}
-
 export const getQueueItemShortName = (
 	item: ProductionQueueItem,
 	designFinder: DesignFinder
 ): string => {
 	switch (item.type) {
-		case QueueItemType.Starbase:
-		case QueueItemType.ShipToken:
+		case QueueItemTypes.Starbase:
+		case QueueItemTypes.ShipToken:
 			return designFinder.getMyDesign(item.designNum)?.name ?? '';
-		case QueueItemType.TerraformEnvironment:
+		case QueueItemTypes.TerraformEnvironment:
 			return 'Terraform Environment';
-		case QueueItemType.AutoMines:
+		case QueueItemTypes.AutoMines:
 			return 'Mine (Auto)';
-		case QueueItemType.AutoFactories:
+		case QueueItemTypes.AutoFactories:
 			return 'Factory (Auto)';
-		case QueueItemType.AutoDefenses:
+		case QueueItemTypes.AutoDefenses:
 			return 'Defenses (Auto)';
-		case QueueItemType.AutoMineralAlchemy:
+		case QueueItemTypes.AutoMineralAlchemy:
 			return 'Alchemy (Auto)';
-		case QueueItemType.AutoMaxTerraform:
+		case QueueItemTypes.AutoMaxTerraform:
 			return 'Max Terraform (Auto)';
-		case QueueItemType.AutoMinTerraform:
+		case QueueItemTypes.AutoMinTerraform:
 			return 'Min Terraform (Auto)';
 		default:
 			return `${startCase(item.type)}`;
-	}
-};
-
-export const stringToQueueItemType = (value: string): QueueItemType => {
-	return QueueItemType[value as keyof typeof QueueItemType];
-};
-
-/**
- * Determine if a ProductionQueueItem is an auto item
- * @param type The type to check
- * @returns
- */
-export const isAuto = (type: QueueItemType): boolean => {
-	switch (type) {
-		case QueueItemType.AutoMines:
-		case QueueItemType.AutoFactories:
-		case QueueItemType.AutoDefenses:
-		case QueueItemType.AutoMineralAlchemy:
-		case QueueItemType.AutoMinTerraform:
-		case QueueItemType.AutoMaxTerraform:
-		case QueueItemType.AutoMineralPacket:
-			return true;
-		default:
-			return false;
-	}
-};
-
-/**
- * Get the concrete type for a queue item type,
- * @param type The QueueItemType
- * @returns Factory for AuotFactories, Mine for AutoMines, etc
- */
-export const concreteType = (type: QueueItemType): QueueItemType => {
-	switch (type) {
-		case QueueItemType.AutoMines:
-			return QueueItemType.Mine;
-		case QueueItemType.AutoFactories:
-			return QueueItemType.Factory;
-		case QueueItemType.AutoDefenses:
-			return QueueItemType.Defenses;
-		case QueueItemType.AutoMineralAlchemy:
-			return QueueItemType.MineralAlchemy;
-		case QueueItemType.AutoMinTerraform:
-		case QueueItemType.AutoMaxTerraform:
-			return QueueItemType.TerraformEnvironment;
-		case QueueItemType.AutoMineralPacket:
-			return QueueItemType.MixedMineralPacket;
-		default:
-			return type;
 	}
 };
 

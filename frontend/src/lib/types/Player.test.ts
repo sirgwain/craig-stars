@@ -1,7 +1,8 @@
+import techjson from '$lib/ssr/techs.json';
 import { describe, expect, it } from 'vitest';
-import { canLearnTech, Player } from './Player';
+import { Player, canLearnTech } from './Player';
 import { LRT } from './Race';
-import { TechCategory, type TechEngine } from './Tech';
+import { TechCategory, type TechEngine, type TechStore } from './Tech';
 
 const fuelMizer: TechEngine = {
 	name: 'Fuel Mizer',
@@ -22,6 +23,8 @@ const fuelMizer: TechEngine = {
 	fuelUsage: [0, 0, 0, 0, 0, 35, 120, 175, 235, 360, 420]
 };
 
+const techStore = techjson as TechStore;
+
 describe('player test', () => {
 	it('checks tech requirements', () => {
 		const player = new Player();
@@ -35,5 +38,22 @@ describe('player test', () => {
 		// make this available
 		player.race.lrts = LRT.IFE;
 		expect(canLearnTech(player, fuelMizer)).toBe(true);
+	});
+
+	it('getTerraformAbility', () => {
+		const player = new Player();
+
+		expect(player.getTerraformAbility(techStore)).toEqual({ grav: 0, temp: 0, rad: 0 });
+
+		// get some tech
+		player.techLevels = {
+			energy: 3,
+			weapons: 3,
+			propulsion: 3,
+			construction: 3,
+			electronics: 3,
+			biotechnology: 3
+		};
+		expect(player.getTerraformAbility(techStore)).toEqual({ grav: 3, temp: 3, rad: 3 });
 	});
 });

@@ -1,5 +1,6 @@
 import type { Cost } from './Cost';
 import type { Engine } from './Tech';
+import type { TechLevel } from './TechLevel';
 
 export type ShipDesign = {
 	id?: number;
@@ -36,6 +37,8 @@ export type Bomb = {
 
 export type Spec = {
 	engine: Engine;
+	hullType?: string;
+	techLevel: TechLevel;
 	numEngines?: number;
 	cost?: Cost;
 	mass?: number;
@@ -77,6 +80,7 @@ export type Spec = {
 	safeRange?: number;
 	maxHullMass?: number;
 	maxRange?: number;
+	maxPopulation?: number;
 	numInstances?: number;
 	numBuilt?: number;
 	estimatedRange?: number;

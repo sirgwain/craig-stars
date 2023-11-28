@@ -1,23 +1,36 @@
 import type { BattleRecord } from '$lib/types/Battle';
+import type { Cost } from '$lib/types/Cost';
 import { fleetsSortBy, type Fleet, type Target, type Waypoint } from '$lib/types/Fleet';
-import { equal, MapObjectType, type MapObject } from '$lib/types/MapObject';
+import { MapObjectType, equal, type MapObject } from '$lib/types/MapObject';
 import type { MineField } from '$lib/types/MineField';
 import type { MineralPacket } from '$lib/types/MineralPacket';
 import type { MysteryTrader } from '$lib/types/MysteryTrader';
 import { planetsSortBy, type Planet } from '$lib/types/Planet';
 import type { PlayerIntel, PlayerIntels, PlayerScore, PlayerUniverse } from '$lib/types/Player';
 import { PlayerSettings } from '$lib/types/PlayerSettings';
+import type { ProductionQueueItem } from '$lib/types/Production';
 import type { Salvage } from '$lib/types/Salvage';
 import type { ShipDesign } from '$lib/types/ShipDesign';
 import type { Vector } from '$lib/types/Vector';
 import type { Wormhole } from '$lib/types/Wormhole';
 import { groupBy, startCase } from 'lodash-es';
 import { get } from 'svelte/store';
-import { selectedMapObject, selectMapObject } from './Stores';
+import { selectMapObject, selectedMapObject } from './Stores';
+import type { TechStore } from '$lib/types/Tech';
 
 export interface DesignFinder {
 	getDesign(playerNum: number, num: number): ShipDesign | undefined;
 	getMyDesign(num: number | undefined): ShipDesign | undefined;
+}
+
+export interface CostFinder {
+	getItemCost(
+		item: ProductionQueueItem | undefined,
+		designFinder: DesignFinder,
+		techStore: TechStore,
+		planet?: Planet,
+		quantity?: number
+	): Cost;
 }
 
 export interface PlayerFinder {
@@ -124,7 +137,6 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 			return this.players[num - 1];
 		}
 	}
-
 
 	getPlayerScoreHistory(num: number): PlayerScore[] | undefined {
 		if (num >= 1 && num <= this.scores.length && this.scores[num - 1]) {

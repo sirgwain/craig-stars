@@ -1,33 +1,35 @@
-export enum HabType {
-	Gravity = 'Gravity',
-	Temperature = 'Temperature',
-	Radiation = 'Radiation'
-}
+export type HabType = (typeof HabTypes)[keyof typeof HabTypes];
 
-export interface Hab {
+export const HabTypes = {
+	Gravity: 0,
+	Temperature: 1,
+	Radiation: 2
+} as const;
+
+export type Hab = {
 	grav?: number;
 	temp?: number;
 	rad?: number;
-}
+};
 
 export function getHabValue(hab: Hab | undefined, type: HabType): number {
 	switch (type) {
-		case HabType.Gravity:
+		case HabTypes.Gravity:
 			return hab?.grav ?? 0;
-		case HabType.Temperature:
+		case HabTypes.Temperature:
 			return hab?.temp ?? 0;
-		case HabType.Radiation:
+		case HabTypes.Radiation:
 			return hab?.rad ?? 0;
 	}
 }
 
 export function withHabValue(type: HabType, value: number): Hab {
 	switch (type) {
-		case HabType.Gravity:
+		case HabTypes.Gravity:
 			return { grav: value };
-		case HabType.Temperature:
+		case HabTypes.Temperature:
 			return { temp: value };
-		case HabType.Radiation:
+		case HabTypes.Radiation:
 			return { rad: value };
 	}
 }
@@ -43,7 +45,7 @@ export function add(h1: Hab, h2: Hab) {
 // get gravity as a string. This goes from 0.25g to 4.00g
 // math credit @ekolis
 export function getGravString(grav: number): string {
-	const value = Math.pow(4, (grav - 50) / 50)
+	const value = Math.pow(4, (grav - 50) / 50);
 	return `${value.toFixed(2)}g`;
 }
 
@@ -57,12 +59,35 @@ export function getRadString(rad: number): string {
 
 export function getHabValueString(habType: HabType, value: number): string {
 	switch (habType) {
-		case HabType.Gravity:
+		case HabTypes.Gravity:
 			return getGravString(value);
-		case HabType.Temperature:
+		case HabTypes.Temperature:
 			return getTempString(value);
-		case HabType.Radiation:
+		case HabTypes.Radiation:
 			return getRadString(value);
 	}
 	return `${value}`;
+}
+
+export function getLargest(hab: Hab): HabType {
+	hab.grav = hab.grav ?? 0;
+	hab.temp = hab.temp ?? 0;
+	hab.rad = hab.rad ?? 0;
+	if (hab.grav >= hab.temp) {
+		if (hab.grav >= hab.rad) {
+			return HabTypes.Gravity;
+		} else {
+			return HabTypes.Radiation;
+		}
+	} else {
+		if (hab.temp >= hab.rad) {
+			return HabTypes.Temperature;
+		} else {
+			return HabTypes.Radiation;
+		}
+	}
+}
+
+export function absSum(hab: Hab): number {
+	return Math.abs(hab.grav ?? 0) + Math.abs(hab.temp ?? 0) + Math.abs(hab.rad ?? 0);
 }

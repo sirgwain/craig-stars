@@ -1,6 +1,7 @@
 import { clamp } from '$lib/services/Math';
 import type { Cost } from './Cost';
 import type { MineFieldType } from './MineField';
+import type { Player } from './Player';
 import type { PRT } from './Race';
 import type { TechLevel } from './TechLevel';
 import type { Vector } from './Vector';
@@ -11,16 +12,16 @@ export const NoScanner = -1;
 export const NoGate = -1;
 export const InfinteGate = 2147483647;
 
-export interface TechStore {
+export type TechStore = {
 	engines: TechEngine[];
 	planetaryScanners: TechPlanetaryScanner[];
 	terraforms: TechTerraform[];
 	defenses: TechDefense[];
 	hullComponents: TechHullComponent[];
 	hulls: TechHull[];
-}
+};
 
-export interface Tech {
+export type Tech = {
 	id?: number;
 	createdAt?: string;
 	updatedAt?: string;
@@ -29,32 +30,34 @@ export interface Tech {
 	name: string;
 	cost: Cost;
 	requirements: TechRequirements;
-	ranking: number;
+	ranking?: number;
 	category: TechCategory;
-}
+};
 
-export interface TechPlanetaryScanner extends Tech {
+export type TechPlanetaryScanner = {
 	scanRange: number;
 	scanRangePen?: number;
-}
+} & Tech;
 
-export interface TechTerraform extends Tech {
+export type TechTerraform = {
 	ability: number;
 	habType: TerraformHabType;
-}
+} & Tech;
 
-export enum TerraformHabType {
-	Gravity = 'Gravity',
-	Temperature = 'Temperature',
-	Radiation = 'Radiation',
-	All = 'All'
-}
+export type TerraformHabType = (typeof TerraformHabTypes)[keyof typeof TerraformHabTypes];
+export const TerraformHabTypes = {
+	None: '',
+	Gravity: 'Grav',
+	Temperature: 'Temp',
+	Radiation: 'Rad',
+	All: 'All'
+} as const;
 
-export interface TechDefense extends Tech {
+export type TechDefense = {
 	defenseCoverage: number;
-}
+} & Tech;
 
-export interface TechHullComponent extends Tech {
+export type TechHullComponent = {
 	hullSlotType: HullSlotType;
 	mass: number;
 	scanRange?: number;
@@ -101,9 +104,9 @@ export interface TechHullComponent extends Tech {
 	damageShieldsOnly?: boolean;
 	accuracy?: number;
 	capitalShipMissile?: boolean;
-}
+} & Tech;
 
-export interface TechHull extends Tech {
+export type TechHull = {
 	mass?: number;
 	armor: number;
 	fuelCapacity?: number;
@@ -125,14 +128,14 @@ export interface TechHull extends Tech {
 	spaceDockSlotSize?: Vector;
 	spaceDockSlotCircle?: boolean;
 	innateScanRangePenFactor?: number;
-}
+} & Tech;
 
-export interface HullSlot {
+export type HullSlot = {
 	type: HullSlotType;
 	capacity: number;
 	required?: boolean;
 	position: Vector;
-}
+};
 
 export enum HullSlotType {
 	None = 0,
@@ -177,6 +180,7 @@ export enum HullSlotType {
 export type Engine = {
 	idealSpeed?: number;
 	freeSpeed?: number;
+	maxSafeSpeed?: number;
 	fuelUsage?: number[];
 };
 export type TechEngine = Engine & TechHullComponent;
@@ -201,14 +205,14 @@ export enum TechCategory {
 	Torpedo = 'Torpedo'
 }
 
-export interface TechRequirements extends TechLevel {
+export type TechRequirements = {
 	lrtsRequired?: number;
 	lrtsDenied?: number;
 	prtRequired?: PRT;
 	prtDenied?: PRT;
 	hullsAllowed?: string[];
 	hullsDenied?: string[];
-}
+} & TechLevel;
 
 /**
  * Determine if a tech is a hull component
@@ -300,4 +304,15 @@ export function getCloakPercentForCloakUnits(cloakUnits: number): number {
 			}
 		}
 	}
+}
+
+export function getBestTerraform(
+	techStore: TechStore,
+	player: Player,
+	habType: TerraformHabType
+): TechTerraform | undefined {
+	// get the best terraform for a given type, sorted largest to smallest ranking
+	return techStore.terraforms
+		.filter((t) => player.hasTech(t) && t.habType == habType)
+		.sort((a, b) => (b.ranking ?? 0) - (a.ranking ?? 0))[0];
 }

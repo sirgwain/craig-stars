@@ -414,11 +414,6 @@ func (p *production) processQueueItem(item ProductionQueueItem, availableToSpend
 		// If we didn't finish building all the items and we can still build more, allocate leftover resources to this item
 		if numBuilt < item.Quantity && (maxBuildable == Infinite || numBuilt < maxBuildable) {
 			result.allocated = p.allocatePartialBuild(cost, result.leftover)
-			// don't allocate resources to an auto item if we're totally out minerals. We might never build it
-			// and should move on to the next one
-			// if item.Type.IsAuto() && item.CostOfOne.ToMineral().Total() > 0 && result.allocated.ToMineral().Total() == 0 {
-			// 	result.allocated.Resources = 0
-			// }
 			result.leftover = result.leftover.Minus(result.allocated)
 		}
 	}

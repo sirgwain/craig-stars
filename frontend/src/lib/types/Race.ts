@@ -1,8 +1,8 @@
-import type { Hab } from './Hab';
 import type { Cost } from './Cost';
-import type { QueueItemType } from './Planet';
+import type { PartialEnumDictionary } from './EnumDictionary';
+import { HabTypes, type Hab, type HabType } from './Hab';
+import { type QueueItemType, QueueItemTypes } from './QueueItemType';
 import type { TechLevel } from './TechLevel';
-import type { EnumDictionary } from './EnumDictionary';
 
 export interface Race {
 	id?: number;
@@ -155,9 +155,15 @@ export interface ResearchCost {
 	biotechnology: ResearchCostLevel;
 }
 
-declare interface RaceSpec {
+export type RaceSpec = {
+	newTechCostFactor: number;
+	miniaturizationMax: number;
+	miniaturizationPerLevel: number;
+	builtInScannerMultiplier: number;
+	armorStrengthFactor: number;
+	scanRangeFactor: number;
 	habCenter?: Hab;
-	costs: EnumDictionary<QueueItemType, Cost>;
+	costs: PartialEnumDictionary<QueueItemType, Cost>;
 	startingTechLevels?: TechLevel;
 	startingPlanets?: StartingPlanet[];
 	techCostOffset: TechCostOffset;
@@ -225,7 +231,7 @@ declare interface RaceSpec {
 	shieldRegenerationRate?: number;
 	engineFailureRate?: number;
 	engineReliableSpeed?: number;
-}
+};
 
 declare interface StealsResearch {
 	energy?: number;
@@ -261,7 +267,7 @@ declare interface StartingFleet {
 	purpose?: string;
 }
 
-export const humanoid: Race = {
+export const humanoid = (): Race => ({
 	name: 'Humanoid',
 	pluralName: 'Humanoids',
 	spendLeftoverPointsOn: SpendLeftoverPointsOn.SurfaceMinerals,
@@ -284,8 +290,172 @@ export const humanoid: Race = {
 		construction: ResearchCostLevel.Standard,
 		electronics: ResearchCostLevel.Standard,
 		biotechnology: ResearchCostLevel.Standard
+	},
+	spec: {
+		newTechCostFactor: 1,
+		miniaturizationMax: 0.75,
+		miniaturizationPerLevel: 0.04,
+		builtInScannerMultiplier: 20,
+		scanRangeFactor: 1,
+		habCenter: {
+			grav: 50,
+			temp: 50,
+			rad: 50
+		},
+		costs: {
+			[QueueItemTypes.AutoDefenses]: {
+				ironium: 5,
+				boranium: 5,
+				germanium: 5,
+				resources: 15
+			},
+			[QueueItemTypes.AutoFactories]: {
+				germanium: 4,
+				resources: 10
+			},
+			[QueueItemTypes.AutoMaxTerraform]: {
+				resources: 100
+			},
+			[QueueItemTypes.AutoMinTerraform]: {
+				resources: 100
+			},
+			[QueueItemTypes.AutoMineralAlchemy]: {
+				resources: 100
+			},
+			[QueueItemTypes.AutoMineralPacket]: {
+				ironium: 40,
+				boranium: 40,
+				germanium: 40,
+				resources: 10
+			},
+			[QueueItemTypes.AutoMines]: {
+				resources: 5
+			},
+			[QueueItemTypes.BoraniumMineralPacket]: {
+				boranium: 100,
+				resources: 10
+			},
+			[QueueItemTypes.Defenses]: {
+				ironium: 5,
+				boranium: 5,
+				germanium: 5,
+				resources: 15
+			},
+			[QueueItemTypes.Factory]: {
+				germanium: 4,
+				resources: 10
+			},
+			[QueueItemTypes.GermaniumMineralPacket]: {
+				germanium: 100,
+				resources: 10
+			},
+			[QueueItemTypes.IroniumMineralPacket]: {
+				ironium: 100,
+				resources: 10
+			},
+			[QueueItemTypes.Mine]: {
+				resources: 5
+			},
+			[QueueItemTypes.MineralAlchemy]: {
+				resources: 100
+			},
+			[QueueItemTypes.MixedMineralPacket]: {
+				ironium: 40,
+				boranium: 40,
+				germanium: 40,
+				resources: 10
+			},
+			[QueueItemTypes.PlanetaryScanner]: {
+				ironium: 10,
+				boranium: 10,
+				germanium: 70,
+				resources: 100
+			},
+			[QueueItemTypes.TerraformEnvironment]: {
+				resources: 100
+			}
+		},
+		startingTechLevels: {
+			energy: 3,
+			weapons: 3,
+			propulsion: 3,
+			construction: 3,
+			electronics: 3,
+			biotechnology: 3
+		},
+		startingPlanets: [
+			{
+				population: 25000,
+				starbaseDesignName: 'Starbase',
+				starbaseHull: 'Space Station',
+				startingFleets: [
+					{
+						name: 'Long Range Scout',
+						hullName: 'Scout',
+						purpose: 'Scout'
+					},
+					{
+						name: 'Santa Maria',
+						hullName: 'Colony Ship',
+						purpose: 'Colonizer'
+					},
+					{
+						name: 'Teamster',
+						hullName: 'Medium Freighter',
+						purpose: 'Freighter'
+					},
+					{
+						name: 'Cotton Picker',
+						hullName: 'Mini-Miner',
+						purpose: 'Miner'
+					},
+					{
+						name: 'Armored Probe',
+						hullName: 'Scout',
+						hullSetNumber: 1,
+						purpose: 'FighterScout'
+					},
+					{
+						name: 'Stalwart Defender',
+						hullName: 'Destroyer',
+						purpose: 'Fighter'
+					}
+				]
+			}
+		],
+		techCostOffset: {},
+		mineralsPerSingleMineralPacket: 100,
+		mineralsPerMixedMineralPacket: 40,
+		packetResourceCost: 10,
+		packetMineralCostFactor: 1,
+		packetReceiverFactor: 1,
+		packetDecayFactor: 1,
+		packetPermaTerraformSizeUnit: 100,
+		shipsVanishInVoid: true,
+		techsCostExtraLevel: 4,
+		growthFactor: 1,
+		maxPopulationOffset: 0.2,
+		stealsResearch: {},
+		mineFieldMinDecayFactor: 1,
+		mineFieldBaseDecayRate: 0.02,
+		mineFieldPlanetDecayRate: 0.04,
+		mineFieldMaxDecayRate: 0.5,
+		mineFieldDetonateDecayRate: 0.25,
+		invasionAttackBonus: 1.1,
+		invasionDefendBonus: 1,
+		repairFactor: 1,
+		starbaseRepairFactor: 1,
+		innatePopulationFactor: 1,
+		canBuildDefenses: true,
+		terraformCostOffset: {},
+		startingPopulationFactor: 1,
+		starbaseCostFactor: 1,
+		researchFactor: 1,
+		armorStrengthFactor: 1,
+		shieldStrengthFactor: 1,
+		engineReliableSpeed: 10
 	}
-};
+});
 
 export const getLabelForPRT = (prt: PRT): string => {
 	switch (prt) {
@@ -431,7 +601,7 @@ export function getPlanetHabitability(race: Race, hab: Hab): number {
 	planetValuePoints = Math.sqrt(planetValuePoints / 3.0) + 0.9;
 	planetValuePoints = (planetValuePoints * ideality) / 10000;
 
-	return planetValuePoints;
+	return Math.floor(planetValuePoints);
 }
 
 export function getHabWidth(race: Race) {
@@ -450,4 +620,15 @@ export function getHabChance(race: Race): number {
 	const tempChance = race.immuneTemp ? 1.0 : habWidth.temp / 100.0;
 	const radChance = race.immuneRad ? 1.0 : habWidth.rad / 100.0;
 	return gravChance * tempChance * radChance;
+}
+
+export function isImmune(race: Race, habType: HabType): boolean {
+	switch (habType) {
+		case HabTypes.Gravity:
+			return race.immuneGrav ?? false;
+		case HabTypes.Temperature:
+			return race.immuneTemp ?? false;
+		case HabTypes.Radiation:
+			return race.immuneRad ?? false;
+	}
 }

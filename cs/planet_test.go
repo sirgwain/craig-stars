@@ -50,7 +50,7 @@ func TestPlanet_innateMines(t *testing.T) {
 	player.Race.Spec.InnateMining = true
 	player.Race.Spec.InnatePopulationFactor = .1
 	if got := planet.innateMines(player, planet.population()); got != 12 {
-		t.Errorf("Planet.GetInnateMines() = %v, want %v", got, 40)
+		t.Errorf("Planet.GetInnateMines() = %v, want %v", got, 12)
 	}
 
 }
