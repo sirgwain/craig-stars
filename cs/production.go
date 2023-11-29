@@ -31,6 +31,7 @@ type QueueItemCompletionEstimate struct {
 	Skipped         bool    `json:"skipped,omitempty"`
 	YearsToBuildOne int     `json:"yearsToBuildOne,omitempty"`
 	YearsToBuildAll int     `json:"yearsToBuildAll,omitempty"`
+	YearsToSkipAuto int     `json:"yearsToSkipAuto,omitempty"`
 	PercentComplete float64 `json:"percentComplete,omitempty"`
 }
 
@@ -166,6 +167,7 @@ type productionResult struct {
 	defenses          int
 	terraformResults  []TerraformResult
 	messages          []PlayerMessage
+	completed         bool
 }
 
 // for logging and for estimating, keep track of each item built
@@ -187,14 +189,34 @@ type builtShip struct {
 func (p *production) produce() productionResult {
 	planet := p.planet
 
+	costCalculator := NewCostCalculator()
 	productionResult := productionResult{}
 	available := Cost{Resources: planet.Spec.ResourcesPerYearAvailable}.AddCargoMinerals(planet.Cargo)
 	newQueue := []ProductionQueueItem{}
 	for itemIndex := range planet.ProductionQueue {
 		item := planet.ProductionQueue[itemIndex]
 		maxBuildable := planet.maxBuildable(item.Type)
+		cost, err := costCalculator.CostOfOne(p.player, item)
+		if err != nil {
+			// return nil, err
+		}
+
+		// Infinite is the constant int of -1, but for our purposes we want a very large number
 		if maxBuildable == Infinite {
 			maxBuildable = math.MaxInt
+		}
+
+		// check for auto items we should skip
+		// we skip auto items if we can't build any more because we don't have the minerals
+		if item.Type.IsAuto() && (maxBuildable <= 0 || available.DivideByMineral(cost.ToMineral()) < 1) {
+			productionResult.itemsBuilt = append(productionResult.itemsBuilt, itemBuilt{index: item.index, skipped: true})
+			newQueue = append(newQueue, item)
+
+			// we skipped the last item in the queue, so we're done
+			if itemIndex == len(planet.ProductionQueue)-1 {
+				productionResult.completed = true
+			}
+			continue
 		}
 
 		// make sure this item is buildable, and if not, send the player a message and move on.
@@ -205,41 +227,31 @@ func (p *production) produce() productionResult {
 			continue
 		}
 
-		// we can't build anymore of this auto item, skip it but leave it in the queue
-		if maxBuildable == 0 && item.Type.IsAuto() {
-			productionResult.itemsBuilt = append(productionResult.itemsBuilt, itemBuilt{index: item.index, skipped: true})
-			newQueue = append(newQueue, item)
-			continue
-		}
+		// add in any previously allocated resources to this item into our pot
+		available = available.Add(item.Allocated)
+		item.Allocated = Cost{}
 
-		// build this item
-		itemResult := p.processQueueItem(item, available, maxBuildable)
+		// determine how many we can build
+		numBuilt, spent := p.getNumBuilt(item, cost, available, maxBuildable)
 
-		// this one is an auto that will never be completed
-		// leave it in the queue but move on to the next
-		if itemResult.never {
-			productionResult.itemsBuilt = append(productionResult.itemsBuilt, itemBuilt{index: item.index, never: itemResult.never})
-			newQueue = append(newQueue, item)
-			continue
-		}
+		// deduct what was built from available
+		available = available.Minus(spent)
 
 		// we built something, record ship buildings/packets for later, add installations and terraform right now
-		if itemResult.numBuilt > 0 {
-			// build the items on the planet and remove from our available
-			p.addPlanetaryInstallations(item, itemResult.numBuilt)
+		if numBuilt > 0 {
+			// add mines and factories to the planet, terraform
+			p.addPlanetaryInstallations(item, numBuilt)
+
 			if item.Type.IsTerraform() {
-				productionResult.terraformResults = append(productionResult.terraformResults, p.terraformPlanet(itemResult.numBuilt)...)
+				productionResult.terraformResults = append(productionResult.terraformResults, p.terraformPlanet(numBuilt)...)
 			}
 
-			p.updateProductionResult(item, itemResult.numBuilt, &productionResult)
-
-			// remove how much we spent from our available amount
-			available = itemResult.leftover
+			p.updateProductionResult(item, numBuilt, &productionResult)
 
 			// if we built mineral alchemy, add it back in to our available amount
 			available = available.Add(productionResult.alchemy.ToCost())
 
-			productionResult.itemsBuilt = append(productionResult.itemsBuilt, itemBuilt{index: item.index, queueItemType: item.Type, designNum: item.DesignNum, numBuilt: itemResult.numBuilt})
+			productionResult.itemsBuilt = append(productionResult.itemsBuilt, itemBuilt{index: item.index, queueItemType: item.Type, designNum: item.DesignNum, numBuilt: numBuilt})
 
 			// planets are ending up with negative minerals. Trying to figure out why...
 			if available.MinZero() != available {
@@ -255,46 +267,61 @@ func (p *production) produce() productionResult {
 			}
 		}
 
-		// once we partially allocate, we're done
-		allocatedToPartialItem := itemResult.allocated.Total() > 0
-		if allocatedToPartialItem {
-			if item.Type.IsAuto() && itemResult.leftover.Resources == 0 {
-				// add the partially completed concrete item to the top of the queue
-				newQueue = append([]ProductionQueueItem{
-					{
-						Type:      item.Type.concreteType(),
-						Quantity:  1,
-						Allocated: itemResult.allocated,
-						CostOfOne: item.CostOfOne,
-						index:     item.index, // for build estimates, keep track of the index of the auto item we're building
-					}}, newQueue...)
-				// add the rest of the items back to the queue and quit
+		if itemIndex == len(planet.ProductionQueue)-1 && (numBuilt >= item.Quantity || numBuilt >= maxBuildable) {
+			// we built all of the last item in the queue, we're all done
+			productionResult.completed = true
+			if item.Type.IsAuto() {
+				// append the unfinished queue back to the end of our remaining items
 				newQueue = append(newQueue, planet.ProductionQueue[itemIndex:]...)
-				break
-			} else {
-				item.Allocated = itemResult.allocated
 			}
+			break
 		}
 
 		if item.Type.IsAuto() {
-			if available.Resources == 0 {
-				// we are out of resources, so we are done building
-				// append the unfinished queue back to the end of our remaining items
-				newQueue = append(newQueue, planet.ProductionQueue[itemIndex:]...)
-				break
-			}
-
 			// auto items stay in the queue
 			newQueue = append(newQueue, item)
-		} else {
-			item.Quantity -= itemResult.numBuilt
-			if item.Quantity > 0 {
-				// keep it in the queue for next time
-				newQueue = append(newQueue, item)
+
+			// if we are an auto item and we have resources left, move on to the next
+			// auto items don't block the queue
+			if available.Resources > 0 {
+				// if we still have auto items to build, and
+				// if we have enough minerals to complete an auto item, add a concrete one to the queue
+
+				if !(numBuilt >= item.Quantity || numBuilt >= maxBuildable) && available.DivideByMineral(cost.ToMineral()) >= 1 {
+					// add the partially completed concrete item to the top of the queue
+					newQueue = append([]ProductionQueueItem{
+						{
+							Type:      item.Type.concreteType(),
+							Quantity:  1,
+							Allocated: Cost{Resources: available.Resources},
+							CostOfOne: item.CostOfOne,
+							index:     -1, // we don't track concrete auto items, we only care about the first fully built auto item
+						}}, newQueue...)
+					available.Resources -= newQueue[0].Allocated.Resources
+
+					if itemIndex < len(planet.ProductionQueue)-1 {
+						// if this isn't the last item, append the unfinished queue back to the end of our remaining items
+						newQueue = append(newQueue, planet.ProductionQueue[itemIndex+1:]...)
+					}
+					break
+				}
+			} else {
 				if itemIndex < len(planet.ProductionQueue)-1 {
-					// append the unfinished queue back to the end of our remaining items
+					// if this isn't the last item, append the unfinished queue back to the end of our remaining items
 					newQueue = append(newQueue, planet.ProductionQueue[itemIndex+1:]...)
 				}
+				break
+			}
+		} else {
+			item.Quantity -= numBuilt
+			if item.Quantity > 0 {
+				// allocate remaining resources to this partially built item
+				item.Allocated.Resources = MinInt(cost.Resources, available.Resources)
+				available.Resources -= item.Allocated.Resources
+				planet.ProductionQueue[itemIndex] = item
+
+				// keep it in the queue for next time
+				newQueue = append(newQueue, planet.ProductionQueue[itemIndex:]...)
 				break
 			}
 		}
@@ -370,55 +397,25 @@ func (p *production) validateItem(item ProductionQueueItem, maxBuildable int, pl
 
 // the result of processing an item in the queue
 type processQueueItemResult struct {
-	never     bool
-	numBuilt  int
-	spent     Cost
-	leftover  Cost
-	allocated Cost
+	numBuilt int
+	spent    Cost
 }
 
-// build a single item in the queue, returning a result of what was built
-func (p *production) processQueueItem(item ProductionQueueItem, availableToSpend Cost, maxBuildable int) processQueueItemResult {
-
-	// skip auto items that will never complete, or that we don't need
-	// this way we can put auto terraforming items up top
-	// and skip them to build factories, then mines
-	yearlyAvailableToSpend := FromMineralAndResources(p.planet.Spec.MiningOutput, p.planet.Spec.ResourcesPerYearAvailable)
-	yearsToBuildOne := p.estimator.GetYearsToBuildOne(item, availableToSpend.ToMineral(), yearlyAvailableToSpend)
-	if item.Type.IsAuto() && (yearsToBuildOne > 100 || yearsToBuildOne == Infinite) {
-		return processQueueItemResult{never: true}
-	}
-
-	result := processQueueItemResult{}
+// determine how many of this production item we can build
+func (p *production) getNumBuilt(item ProductionQueueItem, cost, availableToSpend Cost, maxBuildable int) (numBuilt int, spent Cost) {
 
 	// add in anything allocated in previous turns
 	availableToSpend = availableToSpend.Add(item.Allocated)
 	item.Allocated = Cost{}
 
-	// get the cost of the current item
-	cost := item.CostOfOne
-
 	if (cost != Cost{}) {
 		// figure out how many we can build
 		// and make sure we only build up to the quantity, and we don't build more than the planet supports
-		numBuilt := MaxInt(0, availableToSpend.NumBuildable(cost))
-		numBuilt = MinInt(numBuilt, item.Quantity)
-		numBuilt = MinInt(numBuilt, maxBuildable)
-
-		if numBuilt > 0 {
-			result.numBuilt = numBuilt
-			result.spent = cost.MultiplyInt(numBuilt)
-		}
-		result.leftover = availableToSpend.Minus(result.spent)
-
-		// If we didn't finish building all the items and we can still build more, allocate leftover resources to this item
-		if numBuilt < item.Quantity && (maxBuildable == Infinite || numBuilt < maxBuildable) {
-			result.allocated = p.allocatePartialBuild(cost, result.leftover)
-			result.leftover = result.leftover.Minus(result.allocated)
-		}
+		numBuilt = MaxInt(0, MinInt(item.Quantity, maxBuildable, availableToSpend.NumBuildable(cost)))
+		spent = cost.MultiplyInt(numBuilt)
 	}
 
-	return result
+	return numBuilt, spent
 }
 
 // add built items to planet, build fleets, update player messages, etc
@@ -464,46 +461,4 @@ func (p *production) updateProductionResult(item ProductionQueueItem, numBuilt i
 	case QueueItemTypePlanetaryScanner:
 		result.scanner = true
 	}
-}
-
-// Allocate resources to the top item on this production queue
-// and return the leftover resources
-//
-// Costs are allocated by lowest percentage (except resources), i.e. if we require
-// Cost(10, 10, 10, 100) and we only have Cost(1, 10, 10, 100)
-// we allocate Cost(1, 1, 1, 100)
-//
-// The min amount we have is 10 percent of the ironium, so we
-// apply 10 percent to each cost amount
-func (p *production) allocatePartialBuild(costPerItem Cost, allocated Cost) Cost {
-	ironiumPerc := 1.0
-	if costPerItem.Ironium > 0 {
-		ironiumPerc = math.Min(1, float64(allocated.Ironium)/float64(costPerItem.Ironium))
-	}
-	boraniumPerc := 1.0
-	if costPerItem.Boranium > 0 {
-		boraniumPerc = math.Min(1, float64(allocated.Boranium)/float64(costPerItem.Boranium))
-	}
-	germaniumPerc := 1.0
-	if costPerItem.Germanium > 0 {
-		germaniumPerc = math.Min(1, float64(allocated.Germanium)/float64(costPerItem.Germanium))
-	}
-	resourcesPerc := 1.0
-	if costPerItem.Resources > 0 {
-		resourcesPerc = math.Min(1, float64(allocated.Resources)/float64(costPerItem.Resources))
-	}
-
-	// figure out the lowest percentage
-	minPerc := MinFloat64(ironiumPerc, boraniumPerc, germaniumPerc, resourcesPerc)
-
-	// allocate the lowest percentage of each cost
-	newAllocated := Cost{
-		int(float64(costPerItem.Ironium) * minPerc),
-		int(float64(costPerItem.Boranium) * minPerc),
-		int(float64(costPerItem.Germanium) * minPerc),
-		int(float64(costPerItem.Resources) * minPerc),
-	}
-
-	// return the amount we allocate to the top queued item
-	return newAllocated
 }

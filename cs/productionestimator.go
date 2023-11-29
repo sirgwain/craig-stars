@@ -53,6 +53,7 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 		item.QueueItemCompletionEstimate = QueueItemCompletionEstimate{
 			YearsToBuildOne: Infinite,
 			YearsToBuildAll: Infinite,
+			YearsToSkipAuto: Infinite,
 		}
 		item.PercentComplete = item.percentComplete()
 	}
@@ -60,7 +61,6 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 	// keep track of items built so we know how many auto items are completed
 	numBuilt := make([]int, len(planet.ProductionQueue))
 	producer := newProducer(&planet, player)
-	completedItems := 0
 	for year := 1; year <= 100; year++ {
 		// mine for minerals
 		planet.mine(rules)
@@ -75,34 +75,33 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 		}
 
 		for _, itemBuilt := range result.itemsBuilt {
+			if itemBuilt.index == -1 {
+				// skip partial auto builds
+				continue
+			}
 			item := &items[itemBuilt.index]
 			maxBuildable := planet.maxBuildable(item.Type)
 
 			// this will be skipped if we've hit the max allowed
 			if itemBuilt.skipped {
-				item.Skipped = true
-				if item.YearsToBuildOne == Infinite {
-					item.YearsToBuildOne = 0
+				if year == 1 && maxBuildable == 0 {
+					item.Skipped = true
+					item.YearsToSkipAuto = 1
 				} else {
-					item.YearsToBuildOne = year
+					if item.YearsToSkipAuto == Infinite {
+						item.YearsToSkipAuto = year
+					}
 				}
-				if item.YearsToBuildAll == Infinite {
-					item.YearsToBuildAll = 0
-				} else {
-					item.YearsToBuildAll = year
-				}
-				completedItems++
 				continue
 			}
 
-			// this item will never complete. If it's auto, it'll be ignored
+			// this item will never complete
 			if itemBuilt.never {
 				continue
 			}
 			numBuiltSoFar := numBuilt[itemBuilt.index] + itemBuilt.numBuilt
 			numBuilt[itemBuilt.index] = numBuiltSoFar
 
-			// TODO: this index changes... dang
 			// see if we already recorded when the first item was built
 			first := item.YearsToBuildOne
 			if first == Infinite {
@@ -114,21 +113,28 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 			// if we've built the item's original quantity, or we've built some and the maxBuildable remaining is 0
 			// we're done
 			last := item.YearsToBuildAll
-			if last == Infinite && (numBuiltSoFar >= item.Quantity || (numBuiltSoFar > 0 && maxBuildable == 0)) {
-				item.YearsToBuildAll = year
-				completedItems++
+			if last == Infinite {
+				if item.Type.IsAuto() {
+					if itemBuilt.numBuilt >= item.Quantity || (itemBuilt.numBuilt >= maxBuildable) {
+						item.YearsToBuildAll = year
+					}
+				} else {
+					if numBuiltSoFar >= item.Quantity || (itemBuilt.numBuilt >= maxBuildable) {
+						item.YearsToBuildAll = year
+					}
+				}
 			}
 		}
 
-		if completedItems >= len(items) {
-			// we have end build years for all items, no need to loop anymore
+		if result.completed {
+			// we built everything in the queue, no need to loop anymore
 			break
 		}
 
 		// grow pop
 		planet.grow(player)
 		planet.Spec = computePlanetSpec(rules, player, &planet)
-		
+
 		// colonists died off, no more production
 		if planet.population() < 0 {
 			break

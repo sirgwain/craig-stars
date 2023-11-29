@@ -102,7 +102,7 @@ export function produce(
 		availableToSpend = add(availableToSpend, item.allocated);
 		item.allocated = {};
 
-		// process this item in the queue
+		// determine how many we can build
 		const numBuiltResult = getNumBuilt(item, cost, availableToSpend, maxBuildable);
 
 		// deduct what was built from available

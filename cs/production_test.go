@@ -1,7 +1,6 @@
 package cs
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -229,7 +228,7 @@ func Test_production_produce8(t *testing.T) {
 	assert.Equal(t, 4, len(planet.ProductionQueue))
 	assert.Equal(t, QueueItemTypeFactory, planet.ProductionQueue[0].Type)
 	assert.Equal(t, 1, planet.ProductionQueue[0].Quantity)
-	assert.Equal(t, Cost{Germanium: 2, Resources: 7}, planet.ProductionQueue[0].Allocated)
+	assert.Equal(t, Cost{Resources: 7}, planet.ProductionQueue[0].Allocated)
 	assert.Equal(t, QueueItemTypeAutoMinTerraform, planet.ProductionQueue[1].Type)
 	assert.Equal(t, 1, planet.ProductionQueue[1].Quantity)
 	assert.Equal(t, Cost{}, planet.ProductionQueue[1].Allocated)
@@ -309,30 +308,4 @@ func Test_production_produceMineralPackets(t *testing.T) {
 	assert.Equal(t, 1, len(result.packets))
 	assert.Equal(t, Cargo{40, 40, 40, 0}, result.packets[0])
 	assert.Equal(t, 0, len(planet.ProductionQueue))
-}
-
-func Test_production_allocatePartialBuild(t *testing.T) {
-	_, planet := newTestPlayerPlanet()
-
-	type args struct {
-		costPerItem Cost
-		allocated   Cost
-	}
-	tests := []struct {
-		name string
-		args args
-		want Cost
-	}{
-		{"Allocate Partial", args{costPerItem: Cost{10, 20, 30, 40}, allocated: Cost{5, 100, 100, 100}}, Cost{5, 10, 15, 20}},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
-			production := production{planet: planet}
-
-			if got := production.allocatePartialBuild(tt.args.costPerItem, tt.args.allocated); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Planet.allocatePartialBuild() = %v, want %v", got, tt.want)
-			}
-		})
-	}
 }
