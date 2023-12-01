@@ -247,6 +247,7 @@ export class CommandedPlanet implements Planet {
 				return (
 					absSum(getTerraformAmount(techStore, this.hab, this.baseHab, player)) - amountInQueue
 				);
+
 			case QueueItemTypes.AutoMineralPacket:
 			case QueueItemTypes.IroniumMineralPacket:
 			case QueueItemTypes.BoraniumMineralPacket:
@@ -451,7 +452,6 @@ export class CommandedPlanet implements Planet {
 					quantity: 0,
 					type: QueueItemTypes.ShipToken,
 					designNum: d.num,
-					costOfOne: d.spec.cost ?? {},
 					allocated: {},
 					yearsToBuildOne: this.getYearsToBuildOne(
 						d.spec.cost ?? {},
@@ -488,7 +488,6 @@ export class CommandedPlanet implements Planet {
 				quantity: 0,
 				type: QueueItemTypes.Starbase,
 				designNum: d.num,
-				costOfOne: d.spec.cost ?? {},
 				allocated: {},
 				yearsToBuildOne: this.getYearsToBuildOne(d.spec.cost, this.cargo, yearlyAvailableToSpend),
 				yearsToBuildAll: 0
@@ -578,10 +577,9 @@ export class CommandedPlanet implements Planet {
 	}
 }
 
-export const fromQueueItemType = (type: QueueItemType, costOfOne = {}): ProductionQueueItem => ({
+export const fromQueueItemType = (type: QueueItemType): ProductionQueueItem => ({
 	type,
 	quantity: 0,
-	costOfOne: costOfOne,
 	allocated: {}
 });
 

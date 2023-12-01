@@ -10,6 +10,7 @@ import (
 func Test_completionEstimate_GetYearsToBuildOne(t *testing.T) {
 	type args struct {
 		item                   ProductionQueueItem
+		cost                   Cost
 		mineralsOnHand         Mineral
 		yearlyAvailableToSpend Cost
 	}
@@ -22,10 +23,10 @@ func Test_completionEstimate_GetYearsToBuildOne(t *testing.T) {
 			name: "one item, no resources, indefinite build time",
 			args: args{
 				item: ProductionQueueItem{
-					Type:      QueueItemTypeFactory,
-					Quantity:  1,
-					CostOfOne: Cost{Ironium: 1},
+					Type:     QueueItemTypeFactory,
+					Quantity: 1,
 				},
+				cost:                   Cost{Ironium: 1},
 				yearlyAvailableToSpend: Cost{},
 			},
 			want: Infinite,
@@ -34,9 +35,9 @@ func Test_completionEstimate_GetYearsToBuildOne(t *testing.T) {
 			name: "two items, can build one a year",
 			args: args{
 				item: ProductionQueueItem{
-					Quantity:  2,
-					CostOfOne: Cost{Ironium: 1},
+					Quantity: 2,
 				},
+				cost:                   Cost{Ironium: 1},
 				yearlyAvailableToSpend: Cost{Ironium: 1},
 			},
 			want: 1,
@@ -45,9 +46,9 @@ func Test_completionEstimate_GetYearsToBuildOne(t *testing.T) {
 			name: "two items, two years to build each, four years total",
 			args: args{
 				item: ProductionQueueItem{
-					Quantity:  2,
-					CostOfOne: Cost{Ironium: 2},
+					Quantity: 2,
 				},
+				cost:                   Cost{Ironium: 2},
 				yearlyAvailableToSpend: Cost{Ironium: 1},
 			},
 			want: 2,
@@ -57,9 +58,9 @@ func Test_completionEstimate_GetYearsToBuildOne(t *testing.T) {
 			args: args{
 				item: ProductionQueueItem{
 					Quantity:  1,
-					CostOfOne: Cost{Ironium: 4},
 					Allocated: Cost{Ironium: 2},
 				},
+				cost:                   Cost{Ironium: 4},
 				yearlyAvailableToSpend: Cost{Ironium: 1},
 			},
 			want: 2,
@@ -68,9 +69,9 @@ func Test_completionEstimate_GetYearsToBuildOne(t *testing.T) {
 			name: "one item, some minerals on hand, should complete in one year",
 			args: args{
 				item: ProductionQueueItem{
-					Quantity:  1,
-					CostOfOne: Cost{Ironium: 4},
+					Quantity: 1,
 				},
+				cost:                   Cost{Ironium: 4},
 				mineralsOnHand:         Mineral{Ironium: 3},
 				yearlyAvailableToSpend: Cost{Ironium: 1},
 			},
@@ -80,9 +81,9 @@ func Test_completionEstimate_GetYearsToBuildOne(t *testing.T) {
 			name: "two items, lots of minerals on hand, should complete in two years for needing resources",
 			args: args{
 				item: ProductionQueueItem{
-					Quantity:  2,
-					CostOfOne: Cost{Ironium: 4, Resources: 1},
+					Quantity: 2,
 				},
+				cost:                   Cost{Ironium: 4, Resources: 1},
 				mineralsOnHand:         Mineral{Ironium: 100},
 				yearlyAvailableToSpend: Cost{Ironium: 1, Resources: 1},
 			},
@@ -92,10 +93,10 @@ func Test_completionEstimate_GetYearsToBuildOne(t *testing.T) {
 			name: "mine, 2 resources per year",
 			args: args{
 				item: ProductionQueueItem{
-					Type:      QueueItemTypeAutoMines,
-					Quantity:  5,
-					CostOfOne: Cost{Resources: 5},
+					Type:     QueueItemTypeAutoMines,
+					Quantity: 5,
 				},
+				cost:                   Cost{Resources: 5},
 				mineralsOnHand:         Mineral{},
 				yearlyAvailableToSpend: Cost{Resources: 2},
 			},
@@ -105,7 +106,7 @@ func Test_completionEstimate_GetYearsToBuildOne(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			e := &completionEstimate{}
-			if got := e.GetYearsToBuildOne(tt.args.item, tt.args.mineralsOnHand, tt.args.yearlyAvailableToSpend); !reflect.DeepEqual(got, tt.want) {
+			if got := e.GetYearsToBuildOne(tt.args.item, tt.args.cost, tt.args.mineralsOnHand, tt.args.yearlyAvailableToSpend); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("completionEstimate.GetCompletionEstimate() = %v, want %v", got, tt.want)
 			}
 		})
@@ -131,9 +132,8 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 			args: args{
 				items: []ProductionQueueItem{
 					{
-						Type:      QueueItemTypeFactory,
-						Quantity:  1,
-						CostOfOne: Cost{Germanium: 4, Resources: 10},
+						Type:     QueueItemTypeFactory,
+						Quantity: 1,
 					},
 				},
 				population:      1000,
@@ -145,11 +145,9 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 						YearsToBuildOne: Infinite,
 						YearsToBuildAll: Infinite,
 						YearsToSkipAuto: Infinite,
-						PercentComplete: 0,
 					},
-					Type:      QueueItemTypeFactory,
-					Quantity:  1,
-					CostOfOne: Cost{Germanium: 4, Resources: 10},
+					Type:     QueueItemTypeFactory,
+					Quantity: 1,
 				},
 			},
 			wantLeftoverResources: 0,
@@ -161,7 +159,6 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 					{
 						Type:      QueueItemTypeFactory,
 						Quantity:  1,
-						CostOfOne: Cost{Germanium: 4, Resources: 10},
 						Allocated: Cost{Resources: 5},
 					},
 				},
@@ -177,7 +174,6 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 					},
 					Type:      QueueItemTypeFactory,
 					Quantity:  1,
-					CostOfOne: Cost{Germanium: 4, Resources: 10},
 					Allocated: Cost{Resources: 5},
 				},
 			},
@@ -188,14 +184,12 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 			args: args{
 				items: []ProductionQueueItem{
 					{
-						Type:      QueueItemTypeMine,
-						Quantity:  1,
-						CostOfOne: Cost{Resources: 5},
+						Type:     QueueItemTypeMine,
+						Quantity: 1,
 					},
 					{
-						Type:      QueueItemTypeFactory,
-						Quantity:  2,
-						CostOfOne: Cost{Germanium: 4, Resources: 10},
+						Type:     QueueItemTypeFactory,
+						Quantity: 2,
 					},
 				},
 				mines:      2,    // mine 2 germ a year
@@ -207,22 +201,18 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 						YearsToBuildOne: 1,
 						YearsToBuildAll: 1,
 						YearsToSkipAuto: Infinite,
-						PercentComplete: 0,
 					},
-					Type:      QueueItemTypeMine,
-					CostOfOne: Cost{Resources: 5},
-					Quantity:  1,
+					Type:     QueueItemTypeMine,
+					Quantity: 1,
 				},
 				{
 					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
 						YearsToBuildOne: 3,
 						YearsToBuildAll: 5,
 						YearsToSkipAuto: Infinite,
-						PercentComplete: 0,
 					},
-					Type:      QueueItemTypeFactory,
-					CostOfOne: Cost{Germanium: 4, Resources: 10},
-					Quantity:  2,
+					Type:     QueueItemTypeFactory,
+					Quantity: 2,
 				},
 			},
 		},
@@ -231,12 +221,12 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 			args: args{
 				items: []ProductionQueueItem{
 					{
-						Type:      QueueItemTypeFactory,
-						Quantity:  1,
+						Type:     QueueItemTypeFactory,
+						Quantity: 1,
 					},
 					{
-						Type:      QueueItemTypeMine,
-						Quantity:  2,
+						Type:     QueueItemTypeMine,
+						Quantity: 2,
 					},
 				},
 				surfaceMinerals: Mineral{Ironium: 100, Boranium: 100, Germanium: 100},
@@ -250,8 +240,8 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 						YearsToBuildAll: 8,
 						YearsToSkipAuto: Infinite,
 					},
-					Type:      QueueItemTypeFactory,
-					Quantity:  1,
+					Type:     QueueItemTypeFactory,
+					Quantity: 1,
 				},
 				{
 					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
@@ -259,8 +249,8 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 						YearsToBuildAll: 11,
 						YearsToSkipAuto: Infinite,
 					},
-					Type:      QueueItemTypeMine,
-					Quantity:  2,
+					Type:     QueueItemTypeMine,
+					Quantity: 2,
 				},
 			},
 		},
@@ -269,14 +259,12 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 			args: args{
 				items: []ProductionQueueItem{
 					{
-						Type:      QueueItemTypeAutoFactories,
-						Quantity:  5,
-						CostOfOne: Cost{Germanium: 4, Resources: 10},
+						Type:     QueueItemTypeAutoFactories,
+						Quantity: 5,
 					},
 					{
-						Type:      QueueItemTypeAutoMines,
-						Quantity:  10,
-						CostOfOne: Cost{Resources: 5},
+						Type:     QueueItemTypeAutoMines,
+						Quantity: 10,
 					},
 				},
 				surfaceMinerals: Mineral{Ironium: 0, Boranium: 0, Germanium: 8}, // start with enough germ for two factories
@@ -289,9 +277,8 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 						YearsToBuildAll: 6,
 						YearsToSkipAuto: 2,
 					},
-					Type:      QueueItemTypeAutoFactories,
-					Quantity:  5,
-					CostOfOne: Cost{Germanium: 4, Resources: 10},
+					Type:     QueueItemTypeAutoFactories,
+					Quantity: 5,
 				},
 				{
 					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
@@ -299,9 +286,8 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 						YearsToBuildAll: 9, // we finish them the next year
 						YearsToSkipAuto: Infinite,
 					},
-					Type:      QueueItemTypeAutoMines,
-					Quantity:  10,
-					CostOfOne: Cost{Resources: 5},
+					Type:     QueueItemTypeAutoMines,
+					Quantity: 10,
 				},
 			},
 		},
@@ -310,14 +296,12 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 			args: args{
 				items: []ProductionQueueItem{
 					{
-						Type:      QueueItemTypeAutoFactories,
-						Quantity:  5,
-						CostOfOne: Cost{Germanium: 4, Resources: 10},
+						Type:     QueueItemTypeAutoFactories,
+						Quantity: 5,
 					},
 					{
-						Type:      QueueItemTypeAutoMines,
-						Quantity:  5,
-						CostOfOne: Cost{Resources: 5},
+						Type:     QueueItemTypeAutoMines,
+						Quantity: 5,
 					},
 				},
 				surfaceMinerals: Mineral{},
@@ -330,9 +314,8 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 						YearsToBuildAll: 23,
 						YearsToSkipAuto: 1,
 					},
-					Type:      QueueItemTypeAutoFactories,
-					Quantity:  5,
-					CostOfOne: Cost{Germanium: 4, Resources: 10},
+					Type:     QueueItemTypeAutoFactories,
+					Quantity: 5,
 				},
 				{
 					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
@@ -340,9 +323,8 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 						YearsToBuildAll: 25, // it takes a while to build all these mines
 						YearsToSkipAuto: Infinite,
 					},
-					Type:      QueueItemTypeAutoMines,
-					Quantity:  5,
-					CostOfOne: Cost{Resources: 5},
+					Type:     QueueItemTypeAutoMines,
+					Quantity: 5,
 				},
 			},
 			wantLeftoverResources: 0,
@@ -352,19 +334,16 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 			args: args{
 				items: []ProductionQueueItem{
 					{
-						Type:      QueueItemTypeAutoMinTerraform,
-						Quantity:  1,
-						CostOfOne: Cost{Resources: 100},
+						Type:     QueueItemTypeAutoMinTerraform,
+						Quantity: 1,
 					},
 					{
-						Type:      QueueItemTypeAutoFactories,
-						Quantity:  100,
-						CostOfOne: Cost{Germanium: 4, Resources: 10},
+						Type:     QueueItemTypeAutoFactories,
+						Quantity: 100,
 					},
 					{
-						Type:      QueueItemTypeAutoMines,
-						Quantity:  100,
-						CostOfOne: Cost{Resources: 5},
+						Type:     QueueItemTypeAutoMines,
+						Quantity: 100,
 					},
 				},
 				surfaceMinerals: Mineral{2000, 2000, 2000},
@@ -380,9 +359,8 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 						YearsToBuildAll: Infinite,
 						YearsToSkipAuto: 1,
 					},
-					Type:      QueueItemTypeAutoMinTerraform,
-					Quantity:  1,
-					CostOfOne: Cost{Resources: 100},
+					Type:     QueueItemTypeAutoMinTerraform,
+					Quantity: 1,
 				},
 				{
 					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
@@ -390,9 +368,8 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 						YearsToBuildAll: 1,
 						YearsToSkipAuto: Infinite,
 					},
-					Type:      QueueItemTypeAutoFactories,
-					Quantity:  100,
-					CostOfOne: Cost{Germanium: 4, Resources: 10},
+					Type:     QueueItemTypeAutoFactories,
+					Quantity: 100,
 				},
 				{
 					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
@@ -400,9 +377,8 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 						YearsToBuildAll: 1,
 						YearsToSkipAuto: Infinite,
 					},
-					Type:      QueueItemTypeAutoMines,
-					Quantity:  100,
-					CostOfOne: Cost{Resources: 5},
+					Type:     QueueItemTypeAutoMines,
+					Quantity: 100,
 				},
 			},
 			wantLeftoverResources: 470,
@@ -412,14 +388,12 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 			args: args{
 				items: []ProductionQueueItem{
 					{
-						Type:      QueueItemTypeAutoFactories,
-						Quantity:  100,
-						CostOfOne: Cost{Germanium: 4, Resources: 10},
+						Type:     QueueItemTypeAutoFactories,
+						Quantity: 100,
 					},
 					{
-						Type:      QueueItemTypeAutoMines,
-						Quantity:  100,
-						CostOfOne: Cost{Resources: 5},
+						Type:     QueueItemTypeAutoMines,
+						Quantity: 100,
 					},
 				},
 				surfaceMinerals: Mineral{2000, 2000, 2000},
@@ -435,9 +409,8 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 						YearsToBuildAll: Infinite,
 						YearsToSkipAuto: 1,
 					},
-					Type:      QueueItemTypeAutoFactories,
-					Quantity:  100,
-					CostOfOne: Cost{Germanium: 4, Resources: 10},
+					Type:     QueueItemTypeAutoFactories,
+					Quantity: 100,
 				},
 				{
 					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
@@ -446,9 +419,8 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 						YearsToBuildAll: Infinite,
 						YearsToSkipAuto: 1,
 					},
-					Type:      QueueItemTypeAutoMines,
-					Quantity:  100,
-					CostOfOne: Cost{Resources: 5},
+					Type:     QueueItemTypeAutoMines,
+					Quantity: 100,
 				},
 			},
 			wantLeftoverResources: 255,

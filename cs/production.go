@@ -28,11 +28,10 @@ type production struct {
 }
 
 type QueueItemCompletionEstimate struct {
-	Skipped         bool    `json:"skipped,omitempty"`
-	YearsToBuildOne int     `json:"yearsToBuildOne,omitempty"`
-	YearsToBuildAll int     `json:"yearsToBuildAll,omitempty"`
-	YearsToSkipAuto int     `json:"yearsToSkipAuto,omitempty"`
-	PercentComplete float64 `json:"percentComplete,omitempty"`
+	Skipped         bool `json:"skipped,omitempty"`
+	YearsToBuildOne int  `json:"yearsToBuildOne,omitempty"`
+	YearsToBuildAll int  `json:"yearsToBuildAll,omitempty"`
+	YearsToSkipAuto int  `json:"yearsToSkipAuto,omitempty"`
 }
 
 type ProductionQueueItem struct {
@@ -40,8 +39,6 @@ type ProductionQueueItem struct {
 	Type         QueueItemType `json:"type"`
 	DesignNum    int           `json:"designNum,omitempty"`
 	Quantity     int           `json:"quantity"`
-	CostOfOne    Cost          `json:"costOfOne"`
-	MaxBuildable int           `json:"maxBuildable"`
 	Allocated    Cost          `json:"allocated"`
 	Tags         Tags          `json:"tags"`
 	index        int           // used for holding a place in the queue while estimating
@@ -66,20 +63,6 @@ func (item *ProductionQueueItem) WithTag(key, value string) *ProductionQueueItem
 
 func (item *ProductionQueueItem) GetTag(key string) string {
 	return item.Tags[key]
-}
-
-// get the percent this build item has been completed
-func (item ProductionQueueItem) percentComplete() float64 {
-	if item.Allocated.Total() == 0 {
-		return 0
-	}
-
-	// update the percent complete based on how much we've allocated vs the total cost of all items
-	costOfAll := item.CostOfOne.MultiplyInt(item.Quantity)
-	if !(item.Allocated == Cost{}) {
-		return ClampFloat64(item.Allocated.Divide(costOfAll), 0, 1)
-	}
-	return 0
 }
 
 type QueueItemType string
@@ -196,9 +179,15 @@ func (p *production) produce() productionResult {
 	for itemIndex := range planet.ProductionQueue {
 		item := planet.ProductionQueue[itemIndex]
 		maxBuildable := planet.maxBuildable(item.Type)
-		cost, err := costCalculator.CostOfOne(p.player, item)
-		if err != nil {
-			// return nil, err
+		var cost Cost
+		if item.Type == QueueItemTypeStarbase && planet.Spec.HasStarbase {
+			cost = costCalculator.StarbaseUpgradeCost(planet.Starbase.Tokens[0].design, item.design)
+		} else {
+			var err error
+			cost, err = costCalculator.CostOfOne(p.player, item)
+			if err != nil {
+				// return nil, err
+			}
 		}
 
 		// Infinite is the constant int of -1, but for our purposes we want a very large number
@@ -246,7 +235,7 @@ func (p *production) produce() productionResult {
 				productionResult.terraformResults = append(productionResult.terraformResults, p.terraformPlanet(numBuilt)...)
 			}
 
-			p.updateProductionResult(item, numBuilt, &productionResult)
+			p.updateProductionResult(item, numBuilt, cost, &productionResult)
 
 			// if we built mineral alchemy, add it back in to our available amount
 			available = available.Add(productionResult.alchemy.ToCost())
@@ -294,7 +283,6 @@ func (p *production) produce() productionResult {
 							Type:      item.Type.concreteType(),
 							Quantity:  1,
 							Allocated: Cost{Resources: available.Resources},
-							CostOfOne: item.CostOfOne,
 							index:     -1, // we don't track concrete auto items, we only care about the first fully built auto item
 						}}, newQueue...)
 					available.Resources -= newQueue[0].Allocated.Resources
@@ -419,7 +407,7 @@ func (p *production) getNumBuilt(item ProductionQueueItem, cost, availableToSpen
 }
 
 // add built items to planet, build fleets, update player messages, etc
-func (p *production) updateProductionResult(item ProductionQueueItem, numBuilt int, result *productionResult) {
+func (p *production) updateProductionResult(item ProductionQueueItem, numBuilt int, cost Cost, result *productionResult) {
 	switch item.Type {
 	case QueueItemTypeAutoMineralAlchemy:
 		fallthrough
@@ -452,7 +440,7 @@ func (p *production) updateProductionResult(item ProductionQueueItem, numBuilt i
 	case QueueItemTypeGermaniumMineralPacket:
 		// add this packet cargo to the production result
 		// so it can be added as packets to the universe later
-		cargo := item.CostOfOne.MultiplyInt(numBuilt).ToCargo()
+		cargo := cost.MultiplyInt(numBuilt).ToCargo()
 		result.packets = append(result.packets, cargo)
 	case QueueItemTypeShipToken:
 		result.tokens = append(result.tokens, builtShip{ShipToken: ShipToken{Quantity: numBuilt, design: item.design, DesignNum: item.DesignNum}, tags: item.Tags})

@@ -55,8 +55,7 @@
 					type: item.type,
 					quantity,
 					designNum: item.designNum,
-					allocated: {},
-					costOfOne: {}
+					allocated: {}
 				});
 				selectedQueueItemIndex++;
 				selectedQueueItem = queueItems[selectedQueueItemIndex];
@@ -64,7 +63,7 @@
 		} else {
 			// prepend a new queue item
 			queueItems = [
-				{ type: item.type, designNum: item.designNum, quantity, allocated: {}, costOfOne: {} },
+				{ type: item.type, designNum: item.designNum, quantity, allocated: {} },
 				...queueItems
 			];
 			selectedQueueItemIndex++;

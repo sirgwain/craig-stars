@@ -21,40 +21,39 @@
 	const { universe } = getGameContext();
 
 	export let index: number;
-	export let queueItem: ProductionQueueItem;
+	export let item: ProductionQueueItem;
 	export let selected = false;
 	export let shortName = false;
 
-	$: yearsToBuildAll = isAuto(queueItem.type)
-		? queueItem.yearsToSkipAuto
-		: queueItem.yearsToBuildAll;
+	$: yearsToBuildAll = isAuto(item.type) ? item.yearsToSkipAuto : item.yearsToBuildAll;
+	$: skipped =
+		isAuto(item.type) && item.yearsToBuildOne == NeverBuilt && item.yearsToBuildAll == NeverBuilt;
 </script>
 
 <button
 	type="button"
-	on:click={() => dispatch('queue-item-clicked', { index, queueItem })}
+	on:click={() => dispatch('queue-item-clicked', { index, queueItem: item })}
 	on:contextmenu|preventDefault={(e) =>
-		onShipDesignTooltip(e, $universe.getMyDesign(queueItem.designNum))}
-	class:italic={isAuto(queueItem.type)}
-	class:text-queue-item-this-year={!queueItem.skipped &&
-		(queueItem.yearsToBuildOne ?? 0) <= 1 &&
-		queueItem.yearsToBuildOne != NeverBuilt}
-	class:text-queue-item-next-year={!queueItem.skipped &&
+		onShipDesignTooltip(e, $universe.getMyDesign(item.designNum))}
+	class:italic={isAuto(item.type)}
+	class:text-queue-item-this-year={!item.skipped &&
+		(item.yearsToBuildOne ?? 0) <= 1 &&
+		item.yearsToBuildOne != NeverBuilt}
+	class:text-queue-item-next-year={!item.skipped &&
 		((yearsToBuildAll ?? 0) > 1 || yearsToBuildAll === NeverBuilt) &&
-		(queueItem.yearsToBuildOne ?? 0) <= 1 &&
-		queueItem.yearsToBuildOne != NeverBuilt}
-	class:text-queue-item-skipped={queueItem.yearsToSkipAuto === 1}
-	class:text-queue-item-never={queueItem.yearsToBuildOne == NeverBuilt &&
-		queueItem.yearsToSkipAuto !== 1}
+		(item.yearsToBuildOne ?? 0) <= 1 &&
+		item.yearsToBuildOne != NeverBuilt}
+	class:text-queue-item-skipped={skipped}
+	class:text-queue-item-never={item.yearsToBuildOne == NeverBuilt && !skipped}
 	class:bg-primary={selected}
 	class="w-full text-left px-1 select-none cursor-default hover:text-secondary-focus"
 >
 	<div class="flex justify-between ">
 		<div>
-			{shortName ? getShortName(queueItem, $universe) : getFullName(queueItem, $universe)}
+			{shortName ? getShortName(item, $universe) : getFullName(item, $universe)}
 		</div>
 		<div>
-			{queueItem.quantity}
+			{item.quantity}
 		</div>
 	</div>
 </button>

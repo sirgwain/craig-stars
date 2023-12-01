@@ -5,7 +5,7 @@ import "math"
 // The CompletionEstimator is used for populating completion estimates in a planet's production queue
 type CompletionEstimator interface {
 	// get the estimated years to build one item with minerals on hand and some yearly mineral/resource output
-	GetYearsToBuildOne(item ProductionQueueItem, mineralsOnHand Mineral, yearlyAvailableToSpend Cost) int
+	GetYearsToBuildOne(item ProductionQueueItem, cost Cost, mineralsOnHand Mineral, yearlyAvailableToSpend Cost) int
 
 	// get a ProductionQueue with estimates filled in
 	GetProductionWithEstimates(rules *Rules, player *Player, planet Planet) ([]ProductionQueueItem, int)
@@ -19,8 +19,8 @@ func NewCompletionEstimator() CompletionEstimator {
 }
 
 // get the estimated years to build one item
-func (e *completionEstimate) GetYearsToBuildOne(item ProductionQueueItem, mineralsOnHand Mineral, yearlyAvailableToSpend Cost) int {
-	numBuiltInAYear := yearlyAvailableToSpend.Divide(item.CostOfOne.Minus(item.Allocated).MinusMineral(mineralsOnHand).MinZero())
+func (e *completionEstimate) GetYearsToBuildOne(item ProductionQueueItem, cost Cost, mineralsOnHand Mineral, yearlyAvailableToSpend Cost) int {
+	numBuiltInAYear := yearlyAvailableToSpend.Divide(cost.Minus(item.Allocated).MinusMineral(mineralsOnHand).MinZero())
 	if numBuiltInAYear == 0 || math.IsInf(numBuiltInAYear, 1) {
 		return Infinite
 	}
@@ -55,7 +55,6 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 			YearsToBuildAll: Infinite,
 			YearsToSkipAuto: Infinite,
 		}
-		item.PercentComplete = item.percentComplete()
 	}
 
 	// keep track of items built so we know how many auto items are completed

@@ -317,7 +317,7 @@ export class Player implements PlayerResponse, CostFinder {
 		updatedDesign: ShipDesign
 	): Cost {
 		// TODO: update this if we update the server side
-		return minZero(minus(design.spec?.cost ?? {}, updatedDesign.spec?.cost ?? {}));
+		return minZero(minus(updatedDesign.spec?.cost ?? {}, design.spec?.cost ?? {}));
 	}
 
 	// get a player's ability to terraform

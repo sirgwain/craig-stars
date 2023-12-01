@@ -370,5 +370,70 @@ describe('Producer test', () => {
 			}
 		]);
 	});
-	
+
+	it('estimate 20 Auto Factories, 20 auto mines, 20 auto max terraform', () => {
+		const planet = new CommandedPlanet();
+		const player = new Player();
+		player.techLevels = {
+			energy: 3,
+			weapons: 3,
+			propulsion: 3,
+			construction: 3,
+			electronics: 3,
+			biotechnology: 3
+		};
+
+		// perfect planet
+		planet.baseHab = { grav: 50, temp: 50, rad: 50 };
+		planet.hab = { grav: 50, temp: 50, rad: 50 };
+
+		// we have enough minerals to build factories, but not enough resources
+		planet.mineralConcentration = {
+			ironium: 100,
+			boranium: 100,
+			germanium: 100
+		};
+		planet.cargo = {
+			ironium: 1000,
+			boranium: 1000,
+			germanium: 1000
+		};
+		planet.population = 100_000; // 100_000 colonists generate 100 resources per year
+
+		planet.factories = 100;
+		planet.mines = 20;
+		planet.productionQueue = [
+			{ type: QueueItemTypes.AutoFactories, quantity: 100 },
+			{ type: QueueItemTypes.AutoMines, quantity: 100 },
+			{ type: QueueItemTypes.AutoMaxTerraform, quantity: 10 }
+		];
+
+		const designFinder = new TestDesignFinder();
+
+		// we build a mine each year, but we have to wait for our planet to grow to build
+		// the factory, which costs 10 resources and we keep auto building the mine each year
+		const items = getProductionEstimates(defaultRules, techStore, player, planet, designFinder);
+
+		// should return a new production queue with estimates in it
+		expect(items).toMatchObject([
+			{
+				type: QueueItemTypes.AutoFactories,
+				yearsToBuildOne: 2,
+				yearsToBuildAll: 100,
+				yearsToSkipAuto: 1
+			},
+			{
+				type: QueueItemTypes.AutoMines,
+				yearsToBuildOne: 1,
+				yearsToBuildAll: 100,
+				yearsToSkipAuto: 13
+			},
+			{
+				type: QueueItemTypes.AutoMaxTerraform,
+				yearsToBuildOne: 100,
+				yearsToBuildAll: 100,
+				yearsToSkipAuto: 13
+			}
+		]);
+	});
 });

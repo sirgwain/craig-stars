@@ -27,7 +27,7 @@
 			<ul class="w-full h-full">
 				{#each queueItems as queueItem, index}
 					<li class="pl-1">
-						<ProductionQueueItemLine {queueItem} {index} shortName={true} />
+						<ProductionQueueItemLine item={queueItem} {index} shortName={true} />
 					</li>
 				{/each}
 			</ul>

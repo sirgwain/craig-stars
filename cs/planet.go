@@ -192,28 +192,6 @@ func (p *Planet) PopulateProductionQueueDesigns(player *Player) error {
 }
 
 // populate the costs of each item in the planet production queue
-func (p *Planet) PopulateProductionQueueCosts(player *Player) error {
-	costCalculator := NewCostCalculator()
-	for i := range p.ProductionQueue {
-		item := &p.ProductionQueue[i]
-		if item.Type == QueueItemTypeStarbase && p.Spec.HasStarbase {
-			p.Starbase.Tokens[0].design = player.GetDesign(p.Starbase.Tokens[0].DesignNum)
-			item.CostOfOne = costCalculator.StarbaseUpgradeCost(p.Starbase.Tokens[0].design, item.design)
-
-		} else {
-			costOfOne, err := costCalculator.CostOfOne(player, *item)
-			if err != nil {
-				return err
-			}
-			item.CostOfOne = costOfOne
-		}
-		item.MaxBuildable = p.maxBuildable(item.Type)
-	}
-
-	return nil
-}
-
-// populate the costs of each item in the planet production queue
 func (p *Planet) PopulateProductionQueueEstimates(rules *Rules, player *Player) {
 	// populate completion estimates
 	completionEstimator := NewCompletionEstimator()

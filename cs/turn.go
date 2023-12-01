@@ -1203,7 +1203,6 @@ func (t *turn) planetProduction() error {
 	for _, planet := range t.game.Planets {
 		if planet.Owned() && len(planet.ProductionQueue) > 0 {
 			player := t.game.Players[planet.PlayerNum-1]
-			planet.PopulateProductionQueueCosts(player)
 			producer := newProducer(planet, player)
 			result := producer.produce()
 

@@ -292,8 +292,7 @@ func (ai *aiPlayer) getYearsToBuild(planet *cs.Planet, t cs.QueueItemType, quant
 	}
 
 	// get the years to build one of these
-	item.CostOfOne = cost
-	yearsToBuild := completionEstimator.GetYearsToBuildOne(item, planet.Spec.MiningOutput, yearlyAvailableToSpend)
+	yearsToBuild := completionEstimator.GetYearsToBuildOne(item, cost, planet.Spec.MiningOutput, yearlyAvailableToSpend)
 
 	// make our conditionals easier
 	if yearsToBuild == cs.Infinite {
@@ -312,18 +311,19 @@ func (ai *aiPlayer) getYearsToBuildStarbase(planet *cs.Planet, design *cs.ShipDe
 	item.SetDesign(design)
 
 	var err error
+	var cost cs.Cost
 	if planet.Spec.HasStarbase {
 		existingStarbase := ai.GetDesign(planet.Starbase.Tokens[0].DesignNum)
-		item.CostOfOne = costCalculator.StarbaseUpgradeCost(existingStarbase, design)
+		cost = costCalculator.StarbaseUpgradeCost(existingStarbase, design)
 	} else {
-		item.CostOfOne, err = costCalculator.CostOfOne(ai.Player, item)
+		cost, err = costCalculator.CostOfOne(ai.Player, item)
 		if err != nil {
 			return math.MaxInt, fmt.Errorf("calculate starbase cost %w", err)
 		}
 	}
 
 	// if we can complete this soon, queue it
-	yearsToBuild := completionEstimator.GetYearsToBuildOne(item, planet.Spec.MiningOutput, yearlyAvailableToSpend)
+	yearsToBuild := completionEstimator.GetYearsToBuildOne(item, cost, planet.Spec.MiningOutput, yearlyAvailableToSpend)
 	// log.Debug().
 	// 	Int64("GameID", ai.GameID).
 	// 	Int("PlayerNum", ai.Num).

@@ -1,3 +1,12 @@
+<script lang="ts" context="module">
+	export type ProductionQueueEvent = {
+		next: void;
+		prev: void;
+		ok: void;
+		cancel: void;
+	};
+</script>
+
 <script lang="ts">
 	import CostComponent from '$lib/components/game/Cost.svelte';
 	import ProductionQueueItemLine from '$lib/components/game/ProductionQueueItemLine.svelte';
@@ -6,11 +15,11 @@
 	import { getGameContext } from '$lib/services/Contexts';
 	import { NeverBuilt, getProductionEstimates } from '$lib/services/Producer';
 	import { techs } from '$lib/services/Stores';
-	import { multiply, type Cost } from '$lib/types/Cost';
+	import { divide, multiply, total, type Cost } from '$lib/types/Cost';
 	import type { CommandedPlanet } from '$lib/types/Planet';
 	import type { ProductionPlan } from '$lib/types/Player';
 	import type { ProductionQueueItem } from '$lib/types/Production';
-	import { QueueItemTypes, getFullName, isAuto } from '$lib/types/QueueItemType';
+	import { getFullName, isAuto } from '$lib/types/QueueItemType';
 	import { getPlanetHabitability } from '$lib/types/Race';
 	import {
 		ArrowLongDown,
@@ -26,6 +35,7 @@
 	import { createEventDispatcher, onMount } from 'svelte';
 
 	const { game, player, universe, designs } = getGameContext();
+	const dispatch = createEventDispatcher<ProductionQueueEvent>();
 
 	export let planet: CommandedPlanet;
 
@@ -41,10 +51,13 @@
 	let selectedQueueItemIndex = -1;
 	let selectedQueueItem: ProductionQueueItem | undefined;
 	let selectedQueueItemCost: Cost | undefined;
+	$: selectedQueueItemPercentComplete = selectedQueueItem
+		? getPercentComplete(selectedQueueItem)
+		: 0;
 
 	$: updatedPlanet = planet;
 
-	const availableItemSelected = async (type: ProductionQueueItem) => {
+	function availableItemSelected(type: ProductionQueueItem) {
 		selectedAvailableItem = type;
 		selectedAvailableItemCost = $player.getItemCost(
 			selectedAvailableItem,
@@ -52,9 +65,9 @@
 			$techs,
 			planet
 		);
-	};
+	}
 
-	const queueItemClicked = async (index: number, item?: ProductionQueueItem) => {
+	function queueItemClicked(index: number, item?: ProductionQueueItem) {
 		selectedQueueItemIndex = index;
 		selectedQueueItem = item;
 		selectedQueueItemCost = $player.getItemCost(
@@ -64,7 +77,7 @@
 			planet,
 			selectedQueueItem?.quantity
 		);
-	};
+	}
 
 	function updateQueueEstimates() {
 		// get updated production queue estimates
@@ -96,7 +109,22 @@
 		);
 	}
 
-	const addAvailableItem = async (e: MouseEvent, item?: ProductionQueueItem) => {
+	function getPercentComplete(item: ProductionQueueItem): number {
+		if ((item.allocated?.resources ?? 0) === 0) {
+			return 0;
+		}
+
+		const cost = $player.getItemCost(item, $universe, $techs, planet, item.quantity);
+		const resourcePercent = cost.resources
+			? (item.allocated?.resources ?? 0) / cost.resources
+			: 1.0;
+		const mineralsPercent = divide(planet.cargo, { ...item.allocated, resources: 0 });
+
+		// if we are mineral or resource constrained, report the percent complete based on the lowest.
+		return Math.min(resourcePercent, mineralsPercent);
+	}
+
+	function addAvailableItem(e: MouseEvent, item?: ProductionQueueItem) {
 		item = item ?? selectedAvailableItem;
 		if (!queueItems || !item) {
 			return;
@@ -108,7 +136,12 @@
 			getPlanetHabitability($player.race, planet.hab)
 		);
 		const amountInQueue = planet.getAmountInQueue(item.type, queueItems);
-		const max = planet.getMaxBuildable($techs, $player, maxPopulation, item.type, amountInQueue);
+		// get the max number of items we can build on this planet. For auto items, let them add 5k because it's ok to
+		// add more than our auto items will build. This getMaxBuildable function returns the number of usuable mines for auto, but
+		// when updating the production queue we don't care about that
+		const max = isAuto(item.type)
+			? 5000
+			: planet.getMaxBuildable($techs, $player, maxPopulation, item.type, amountInQueue);
 		const quantity = clamp(quantityModifier(e), 0, max);
 		if (quantity == 0) {
 			// don't add something we can't build any more of
@@ -125,7 +158,6 @@
 					type: item.type,
 					quantity,
 					designNum: item.designNum,
-					costOfOne: cost,
 					allocated: {}
 				});
 				selectedQueueItemIndex++;
@@ -157,7 +189,6 @@
 					{
 						type: item.type,
 						designNum: item.designNum,
-						costOfOne: cost,
 						allocated: {},
 						quantity
 					},
@@ -176,9 +207,9 @@
 		}
 
 		updateQueueEstimates();
-	};
+	}
 
-	const removeItem = async (e: MouseEvent) => {
+	function removeItem(e: MouseEvent) {
 		if (queueItems && selectedQueueItem) {
 			selectedQueueItem.quantity -= quantityModifier(e);
 			selectedQueueItem.quantity = Math.max(0, selectedQueueItem.quantity);
@@ -200,9 +231,9 @@
 			}
 			updateQueueEstimates();
 		}
-	};
+	}
 
-	const itemUp = () => {
+	function itemUp() {
 		if (queueItems && selectedQueueItem && selectedQueueItemIndex > 0) {
 			const swap = queueItems[selectedQueueItemIndex - 1];
 			queueItems[selectedQueueItemIndex - 1] = selectedQueueItem;
@@ -210,9 +241,9 @@
 			selectedQueueItemIndex--;
 			queueItems = queueItems;
 		}
-	};
+	}
 
-	const itemDown = () => {
+	function itemDown() {
 		if (queueItems && selectedQueueItem && selectedQueueItemIndex < queueItems.length - 1) {
 			const swap = queueItems[selectedQueueItemIndex + 1];
 			queueItems[selectedQueueItemIndex + 1] = selectedQueueItem;
@@ -220,58 +251,56 @@
 			selectedQueueItemIndex++;
 			queueItems = queueItems;
 		}
-	};
+	}
 
-	const clear = () => {
+	function clear() {
 		queueItems = [];
 		selectedQueueItem = undefined;
 		selectedQueueItemIndex = -1;
 		selectedQueueItemCost = {};
-	};
+	}
 
 	function applyPlan(plan: ProductionPlan | undefined) {
 		if (plan) {
-			if (queueItems[0].percentComplete) {
+			if (total(queueItems[0].allocated) > 0) {
 				queueItems = [queueItems[0], ...plan.items];
 			} else {
 				queueItems = plan.items;
 			}
-			queueItems.forEach(
-				async (item) =>
-					(item.costOfOne = $player.getItemCost(item, $universe, $techs, planet) ?? {})
-			);
 			contributesOnlyLeftoverToResearch = plan.contributesOnlyLeftoverToResearch ?? false;
 			updateQueueEstimates();
 		}
 	}
 
-	const next = () => {
+	function next() {
 		planet.productionQueue = queueItems ?? [];
 		planet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
 		dispatch('next');
-	};
+	}
 
-	const prev = () => {
+	function prev() {
 		planet.productionQueue = queueItems ?? [];
 		planet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
 		dispatch('prev');
-	};
+	}
 
-	const ok = () => {
+	function ok() {
 		planet.productionQueue = queueItems ?? [];
 		planet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
 		dispatch('ok');
-	};
-	const cancel = () => {
+	}
+	function cancel() {
 		if (planet) {
 			queueItems = planet.productionQueue?.map((item) => ({ ...item } as ProductionQueueItem));
 			contributesOnlyLeftoverToResearch = planet.contributesOnlyLeftoverToResearch ?? false;
 			dispatch('cancel');
 		}
-	};
+	}
 
-	const getCompletionDescription = (item: ProductionQueueItem) => {
-		if (item.skipped) {
+	function getCompletionDescription(item: ProductionQueueItem) {
+		const skipped =
+			isAuto(item.type) && item.yearsToBuildOne == NeverBuilt && item.yearsToBuildAll == NeverBuilt;
+		if (skipped) {
 			return 'Skipped';
 		}
 
@@ -293,9 +322,7 @@
 			return `${yearsToBuildOne} to ${yearsToBuildAll} years`;
 		}
 		return `${yearsToBuildOne} years`;
-	};
-
-	const dispatch = createEventDispatcher();
+	}
 
 	onMount(() => {
 		const originalScope = hotkeys.getScope();
@@ -316,7 +343,7 @@
 		};
 	});
 
-	const resetQueue = async () => {
+	function resetQueue() {
 		queueItems = planet.productionQueue?.map((item) => ({ ...item } as ProductionQueueItem));
 		availableItems = planet.getAvailableProductionQueueItems(
 			planet,
@@ -341,7 +368,7 @@
 		);
 		contributesOnlyLeftoverToResearch = planet.contributesOnlyLeftoverToResearch ?? false;
 		updateQueueEstimates();
-	};
+	}
 
 	// clone the production queue whenever the planet is updated
 	$: planet && resetQueue();
@@ -537,7 +564,7 @@
 								{#each queueItems as queueItem, index}
 									<li>
 										<ProductionQueueItemLine
-											{queueItem}
+											item={queueItem}
 											{index}
 											on:queue-item-clicked={() => queueItemClicked(index, queueItem)}
 											selected={queueItem === selectedQueueItem}
@@ -567,9 +594,10 @@
 								</h3>
 								<CostComponent cost={selectedQueueItemCost} />
 								<div class="mt-1 text-base">
-									{((selectedQueueItem.percentComplete ?? 0) * 100)?.toFixed()}% Done, Completion {getCompletionDescription(
-										selectedQueueItem
-									)}
+									{#if selectedQueueItemPercentComplete}
+										{(selectedQueueItemPercentComplete * 100)?.toFixed()}% Done,
+									{/if}
+									Completion {getCompletionDescription(selectedQueueItem)}
 								</div>
 							{/if}
 						</div>

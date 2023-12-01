@@ -79,10 +79,6 @@ func (o *orders) UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet
 		}
 	}
 
-	if err := planet.PopulateProductionQueueCosts(player); err != nil {
-		return err
-	}
-
 	planet.PopulateProductionQueueEstimates(rules, player)
 
 	// update the player spec with the change in resources for this planet

@@ -6,11 +6,9 @@ export interface ProductionQueueItem {
 	quantity: number;
 	designNum?: number;
 	allocated?: Cost;
-	costOfOne?: Cost;
 	skipped?: boolean;
 	yearsToBuildOne?: number;
 	yearsToBuildAll?: number;
 	yearsToSkipAuto?: number;
-	percentComplete?: number;
 }
 
