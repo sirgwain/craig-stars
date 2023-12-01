@@ -206,24 +206,11 @@ export const commandMapObject = (mo: MapObject) => {
 	commandedMapObject.update(() => mo);
 	mostRecentMapObject.update(() => mo);
 	if (mo.type == MapObjectType.Planet) {
-		const planet = Object.assign(new CommandedPlanet(), mo);
-		// if (gameStore) {
-		// 	// make sure the planet has an up to date production queue
-		// 	const { game, player, universe } = gameStore;
-		// 	const g = get(game);
-		// 	const t = get(techs);
-		// 	const p = get(player);
-		// 	const u = get(universe);
-		// 	if (g && t && p && u) {
-		// 		planet.updateProductionQueueEstimates(g.rules, t, p, u);
-		// 	}
-		// }
-
-		commandedPlanet.update(() => planet);
+		commandedPlanet.update(() => Object.assign(new CommandedPlanet(), mo));
 		commandedFleet.update(() => undefined);
 	} else if (mo.type == MapObjectType.Fleet) {
-		commandedPlanet.update(() => undefined);
 		commandedFleet.update(() => Object.assign(new CommandedFleet(), mo));
+		commandedPlanet.update(() => undefined);
 		selectedWaypoint.update(() => {
 			const fleet = mo as Fleet;
 			if (fleet?.waypoints && fleet.waypoints.length) {
