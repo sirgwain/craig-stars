@@ -1,15 +1,28 @@
+import { fromHabType } from '$lib/services/Terraformer';
+import type { CostFinder, DesignFinder } from '$lib/services/Universe';
+import type { ProductionQueueItem } from '$lib/types/Production';
 import type { BattleAttackWho, BattleRecord, BattleTactic, BattleTarget } from './Battle';
+import { multiply, type Cost, minus, minZero } from './Cost';
 import type { Fleet, WaypointTransportTasks } from './Fleet';
+import { HabTypes, type Hab } from './Hab';
 import type { Message } from './Message';
 import type { MineField } from './MineField';
 import type { MineralPacket } from './MineralPacket';
 import type { MysteryTrader } from './MysteryTrader';
-import type { Planet, ProductionQueueItem } from './Planet';
+import type { Planet } from './Planet';
+import { QueueItemTypes } from './QueueItemType';
 import { humanoid, type Race } from './Race';
 import type { Salvage } from './Salvage';
 import type { ShipDesign } from './ShipDesign';
-import type { Tech, TechDefense, TechPlanetaryScanner } from './Tech';
-import { emptyTechLevel, hasRequiredLevels, TechField, type TechLevel } from './TechLevel';
+import {
+	TerraformHabTypes,
+	getBestTerraform,
+	type Tech,
+	type TechDefense,
+	type TechPlanetaryScanner,
+	type TechStore
+} from './Tech';
+import { TechField, emptyTechLevel, hasRequiredLevels, type TechLevel } from './TechLevel';
 import type { Wormhole } from './Wormhole';
 
 export type PlayerStatus = {
@@ -167,7 +180,7 @@ export enum PlayerRelation {
 	Enemy = 'Enemy'
 }
 
-export class Player implements PlayerResponse {
+export class Player implements PlayerResponse, CostFinder {
 	id = 0;
 	createdAt?: string | undefined;
 	updatedAt?: string | undefined;
@@ -178,7 +191,7 @@ export class Player implements PlayerResponse {
 	userId?: number | undefined;
 	name = '';
 	color = '#00FF00';
-	race = { ...humanoid };
+	race = { ...humanoid() };
 	ready = false;
 	aiControlled = false;
 	submittedTurn = false;
@@ -258,6 +271,74 @@ export class Player implements PlayerResponse {
 			}
 		});
 		return allies;
+	}
+
+	public getItemCost(
+		item: ProductionQueueItem | undefined,
+		designFinder: DesignFinder,
+		techStore: TechStore,
+		planet?: Planet,
+		quantity = 1
+	): Cost {
+		if (item) {
+			switch (item.type) {
+				case QueueItemTypes.Starbase: // TODO: starbase upgrades...
+					if (item.designNum) {
+						const design = designFinder.getMyDesign(item.designNum);
+						if (planet?.spec.hasStarbase) {
+							const starbaseToUpgrade = designFinder.getMyDesign(planet.spec.starbaseDesignNum);
+							if (starbaseToUpgrade && design) {
+								return multiply(
+									this.getStarbaseUpgradeCost(techStore, starbaseToUpgrade, design),
+									quantity
+								);
+							}
+						}
+						return multiply(design?.spec.cost ?? {}, quantity);
+					}
+					break;
+				case QueueItemTypes.ShipToken:
+					if (item.designNum) {
+						const design = designFinder.getMyDesign(item.designNum);
+						return multiply(design?.spec.cost ?? {}, quantity);
+					}
+					break;
+				default:
+					return multiply(this.race?.spec?.costs[item.type] ?? {}, quantity);
+			}
+		}
+		return {};
+	}
+
+	// get the cost of upgrading this starbase
+	public getStarbaseUpgradeCost(
+		techStore: TechStore,
+		design: ShipDesign,
+		updatedDesign: ShipDesign
+	): Cost {
+		// TODO: update this if we update the server side
+		return minZero(minus(updatedDesign.spec?.cost ?? {}, design.spec?.cost ?? {}));
+	}
+
+	// get a player's ability to terraform
+	public getTerraformAbility(techStore: TechStore): Hab {
+		const terraformAbility: Hab = { grav: 0, temp: 0, rad: 0 };
+		const bestTT = getBestTerraform(techStore, this, TerraformHabTypes.All);
+		if (bestTT) {
+			terraformAbility.grav = bestTT.ability;
+			terraformAbility.temp = bestTT.ability;
+			terraformAbility.rad = bestTT.ability;
+		}
+
+		Object.values(HabTypes).forEach((habType) => {
+			const bestTerraform = getBestTerraform(techStore, this, fromHabType(habType));
+			if (bestTerraform) {
+				terraformAbility.grav = Math.max(bestTerraform.ability, terraformAbility.grav ?? 0);
+				terraformAbility.temp = Math.max(bestTerraform.ability, terraformAbility.temp ?? 0);
+				terraformAbility.rad = Math.max(bestTerraform.ability, terraformAbility.rad ?? 0);
+			}
+		});
+		return terraformAbility;
 	}
 }
 

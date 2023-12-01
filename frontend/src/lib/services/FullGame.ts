@@ -1,7 +1,6 @@
 import type { Cargo } from '$lib/types/Cargo';
 import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
 import {
-	defaultRules,
 	Density,
 	GameStartMode,
 	GameState,
@@ -46,6 +45,7 @@ import {
 import { TechService } from './TechService';
 import { TransportPlanService } from './TransportPlanService';
 import { Universe } from './Universe';
+import { defaultRules } from '$lib/types/Rules';
 
 export class FullGame implements Game {
 	id = 0;

@@ -80,9 +80,6 @@ func (ug *universeGenerator) Generate() (*Universe, error) {
 			if err := planet.PopulateProductionQueueDesigns(player); err != nil {
 				return nil, fmt.Errorf("%s failed to populate queue designs: %w", planet, err)
 			}
-			if err := planet.PopulateProductionQueueCosts(player); err != nil {
-				return nil, fmt.Errorf("%s failed to populate queue costs: %w", planet, err)
-			}
 			planet.PopulateProductionQueueEstimates(&ug.Rules, player)
 		}
 	}

@@ -140,7 +140,32 @@ func (a Cost) Divide(b Cost) float64 {
 	}
 
 	return math.Min(newResources, math.Min(newIronium, math.Min(newBoranium, newGermanium)))
+}
 
+// divide a cost by a mineral. This will tell us if we have enough minerals to build some item
+func (a Cost) DivideByMineral(b Mineral) float64 {
+	var newIronium float64
+	if b.Ironium == 0 {
+		newIronium = math.Inf(1)
+	} else {
+		newIronium = float64(a.Ironium) / float64(b.Ironium)
+	}
+
+	var newBoranium float64
+	if b.Boranium == 0 {
+		newBoranium = math.Inf(1)
+	} else {
+		newBoranium = float64(a.Boranium) / float64(b.Boranium)
+	}
+
+	var newGermanium float64
+	if b.Germanium == 0 {
+		newGermanium = math.Inf(1)
+	} else {
+		newGermanium = float64(a.Germanium) / float64(b.Germanium)
+	}
+
+	return math.Min(newIronium, math.Min(newBoranium, newGermanium))
 }
 
 func (c Cost) Negate() Cost {

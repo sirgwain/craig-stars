@@ -1,13 +1,9 @@
 <script lang="ts">
 	import { quantityModifier } from '$lib/quantityModifier';
 	import type { DesignFinder } from '$lib/services/Universe';
-	import {
-		QueueItemType,
-		fromQueueItemType,
-		getQueueItemShortName,
-		isAuto,
-		type ProductionQueueItem
-	} from '$lib/types/Planet';
+	import { fromQueueItemType, getQueueItemShortName } from '$lib/types/Planet';
+	import type { ProductionQueueItem } from '$lib/types/Production';
+	import { QueueItemTypes, isAuto } from '$lib/types/QueueItemType';
 	import { createEventDispatcher } from 'svelte';
 	import ProductionPlanItemsButtons from './ProductionItemsButtons.svelte';
 
@@ -16,12 +12,12 @@
 	export let designFinder: DesignFinder;
 	// default to auto tasks
 	export let availableItems: ProductionQueueItem[] = [
-		fromQueueItemType(QueueItemType.AutoFactories),
-		fromQueueItemType(QueueItemType.AutoMines),
-		fromQueueItemType(QueueItemType.AutoDefenses),
-		fromQueueItemType(QueueItemType.AutoMineralAlchemy),
-		fromQueueItemType(QueueItemType.AutoMaxTerraform),
-		fromQueueItemType(QueueItemType.AutoMinTerraform)
+		fromQueueItemType(QueueItemTypes.AutoFactories),
+		fromQueueItemType(QueueItemTypes.AutoMines),
+		fromQueueItemType(QueueItemTypes.AutoDefenses),
+		fromQueueItemType(QueueItemTypes.AutoMineralAlchemy),
+		fromQueueItemType(QueueItemTypes.AutoMaxTerraform),
+		fromQueueItemType(QueueItemTypes.AutoMinTerraform)
 	];
 	export let queueItems: ProductionQueueItem[] = [];
 
@@ -59,8 +55,7 @@
 					type: item.type,
 					quantity,
 					designNum: item.designNum,
-					allocated: {},
-					costOfOne: {}
+					allocated: {}
 				});
 				selectedQueueItemIndex++;
 				selectedQueueItem = queueItems[selectedQueueItemIndex];
@@ -68,7 +63,7 @@
 		} else {
 			// prepend a new queue item
 			queueItems = [
-				{ type: item.type, designNum: item.designNum, quantity, allocated: {}, costOfOne: {} },
+				{ type: item.type, designNum: item.designNum, quantity, allocated: {} },
 				...queueItems
 			];
 			selectedQueueItemIndex++;

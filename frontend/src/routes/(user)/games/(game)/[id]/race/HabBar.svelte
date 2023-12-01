@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { HabType, getHabValueString } from '$lib/types/Hab';
+	import { HabTypes, getHabValueString, type HabType } from '$lib/types/Hab';
 
 	export let habType: HabType;
 	export let habLow: number | undefined;
@@ -18,9 +18,9 @@
 					<div
 						style={`width: ${habWidth.toFixed()}%; left: ${habLow}%;`}
 						class="relative h-full"
-						class:grav-bar={habType === HabType.Gravity}
-						class:temp-bar={habType === HabType.Temperature}
-						class:rad-bar={habType === HabType.Radiation}
+						class:grav-bar={habType === HabTypes.Gravity}
+						class:temp-bar={habType === HabTypes.Temperature}
+						class:rad-bar={habType === HabTypes.Radiation}
 					/>
 				{/if}
 			</div>

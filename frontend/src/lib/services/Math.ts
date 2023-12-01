@@ -34,3 +34,5 @@ export const rollover = (value: number, min: number, max: number): number => {
 };
 
 export const radiansToDegrees = (radians: number): number => radians * (180 / Math.PI);
+
+export const roundToNearest100 = (value: number): number => Math.round(value / 100) * 100;

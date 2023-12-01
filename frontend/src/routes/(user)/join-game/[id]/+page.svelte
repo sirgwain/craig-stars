@@ -14,7 +14,7 @@
 	import PlayerChooser from '../../../../lib/components/game/newgame/PlayerChooser.svelte';
 
 	let game: Game | undefined;
-	let race = Object.assign({}, humanoid);
+	let race = Object.assign({}, humanoid());
 	let name = $me.username;
 
 	onMount(async () => {

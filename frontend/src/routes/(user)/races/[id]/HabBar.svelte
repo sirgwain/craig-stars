@@ -1,14 +1,14 @@
 <script lang="ts">
-	import { draggable, type DragEventData } from '@neodrag/svelte';
-	import { getHabValueString, HabType } from '$lib/types/Hab';
-	import { Icon } from '@steeze-ui/svelte-icon';
-	import {
-		ChevronLeft,
-		ChevronRight,
-		ChevronDoubleLeft,
-		ChevronDoubleRight
-	} from '@steeze-ui/heroicons';
 	import { clamp } from '$lib/services/Math';
+	import { HabTypes, getHabValueString, type HabType } from '$lib/types/Hab';
+	import { draggable, type DragEventData } from '@neodrag/svelte';
+	import {
+		ChevronDoubleLeft,
+		ChevronDoubleRight,
+		ChevronLeft,
+		ChevronRight
+	} from '@steeze-ui/heroicons';
+	import { Icon } from '@steeze-ui/svelte-icon';
 
 	export let habType: HabType;
 	export let habLow: number | undefined;
@@ -76,9 +76,9 @@
 							on:neodrag={(e) => onDrag(e.detail)}
 							style={`width: ${habWidth.toFixed()}%`}
 							class="h-full"
-							class:grav-bar={habType === HabType.Gravity}
-							class:temp-bar={habType === HabType.Temperature}
-							class:rad-bar={habType === HabType.Radiation}
+							class:grav-bar={habType === HabTypes.Gravity}
+							class:temp-bar={habType === HabTypes.Temperature}
+							class:rad-bar={habType === HabTypes.Radiation}
 						/>
 					{/if}
 				</div>

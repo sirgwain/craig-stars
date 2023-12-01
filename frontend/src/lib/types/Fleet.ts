@@ -150,6 +150,7 @@ export type Spec = {
 	hasWeapons?: boolean;
 	hasStargate?: boolean;
 	hasMassDriver?: boolean;
+	maxPopulation?: number;
 };
 
 export class CommandedFleet implements Fleet {

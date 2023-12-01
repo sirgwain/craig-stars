@@ -1,20 +1,20 @@
 <script lang="ts">
 	import PlanetHabPoint from '$lib/components/game/PlanetHabPoint.svelte';
 	import PlanetHabTerraformLine from '$lib/components/game/PlanetHabTerraformLine.svelte';
+	import type { HabTooltipProps } from '$lib/components/game/tooltips/HabTooltip.svelte';
+	import HabTooltip from '$lib/components/game/tooltips/HabTooltip.svelte';
 	import PopulationTooltip, {
 		type PopulationTooltipProps
 	} from '$lib/components/game/tooltips/PopulationTooltip.svelte';
 	import { getGameContext } from '$lib/services/Contexts';
 	import { clamp } from '$lib/services/Math';
 	import { showTooltip } from '$lib/services/Stores';
-	import { HabType, add, getGravString, getRadString, getTempString } from '$lib/types/Hab';
+	import { HabTypes, add, getGravString, getRadString, getTempString } from '$lib/types/Hab';
 	import { None } from '$lib/types/MapObject';
 	import { Unexplored, type Planet } from '$lib/types/Planet';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import PlanetMineralsGraph from './PlanetMineralsGraph.svelte';
-	import type { HabTooltipProps } from '$lib/components/game/tooltips/HabTooltip.svelte';
-	import HabTooltip from '$lib/components/game/tooltips/HabTooltip.svelte';
 
 	const { game, player, universe } = getGameContext();
 
@@ -63,7 +63,7 @@
 		showTooltip<HabTooltipProps>(e.x, e.y, HabTooltip, {
 			player: $player,
 			planet,
-			habType: HabType.Gravity
+			habType: HabTypes.Gravity
 		});
 	}
 
@@ -71,7 +71,7 @@
 		showTooltip<HabTooltipProps>(e.x, e.y, HabTooltip, {
 			player: $player,
 			planet,
-			habType: HabType.Temperature
+			habType: HabTypes.Temperature
 		});
 	}
 
@@ -79,7 +79,7 @@
 		showTooltip<HabTooltipProps>(e.x, e.y, HabTooltip, {
 			player: $player,
 			planet,
-			habType: HabType.Radiation
+			habType: HabTypes.Radiation
 		});
 	}
 </script>

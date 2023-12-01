@@ -209,8 +209,8 @@ export const commandMapObject = (mo: MapObject) => {
 		commandedPlanet.update(() => Object.assign(new CommandedPlanet(), mo));
 		commandedFleet.update(() => undefined);
 	} else if (mo.type == MapObjectType.Fleet) {
-		commandedPlanet.update(() => undefined);
 		commandedFleet.update(() => Object.assign(new CommandedFleet(), mo));
+		commandedPlanet.update(() => undefined);
 		selectedWaypoint.update(() => {
 			const fleet = mo as Fleet;
 			if (fleet?.waypoints && fleet.waypoints.length) {

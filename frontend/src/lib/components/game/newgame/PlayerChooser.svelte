@@ -8,7 +8,7 @@
 
 	// races for the host
 	let races: Race[] = [];
-	export let race: Race = humanoid;
+	export let race: Race = humanoid();
 	export let valid = true;
 
 	onMount(async () => {

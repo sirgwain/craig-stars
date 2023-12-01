@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { defaultRules, type Rules } from '$lib/types/Game';
+	import { defaultRules, type Rules } from '$lib/types/Rules';
 
 	import {
 		getCloakPercentForCloakUnits,
 		InfinteGate,
 		ScanWithZeroRange,
 		TechCategory,
-		TerraformHabType,
+		TerraformHabTypes,
 		type Tech,
 		type TechHull,
 		type TechHullComponent,
@@ -72,7 +72,7 @@
 
 		if (tech.category == TechCategory.Terraforming) {
 			const terraform = tech as TechTerraform;
-			if (terraform.habType == TerraformHabType.All) {
+			if (terraform.habType == TerraformHabTypes.All) {
 				descriptions.push(
 					`Allows you to modify any of a planet's three environment variables up to ${terraform.ability}% from its original value`
 				);

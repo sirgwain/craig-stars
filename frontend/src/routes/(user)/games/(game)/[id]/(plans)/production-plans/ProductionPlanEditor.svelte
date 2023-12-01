@@ -1,20 +1,22 @@
 <script lang="ts">
 	import TextInput from '$lib/components/TextInput.svelte';
 	import type { DesignFinder } from '$lib/services/Universe';
-	import { QueueItemType, fromQueueItemType, type ProductionQueueItem } from '$lib/types/Planet';
+	import { fromQueueItemType } from '$lib/types/Planet';
 	import type { ProductionPlan } from '$lib/types/Player';
+	import type { ProductionQueueItem } from '$lib/types/Production';
+	import { QueueItemTypes } from '$lib/types/QueueItemType';
 	import Production from './Production.svelte';
 
 	export let designFinder: DesignFinder;
 	export let plan: ProductionPlan;
 
 	let availableItems: ProductionQueueItem[] = [
-		fromQueueItemType(QueueItemType.AutoFactories),
-		fromQueueItemType(QueueItemType.AutoMines),
-		fromQueueItemType(QueueItemType.AutoDefenses),
-		fromQueueItemType(QueueItemType.AutoMineralAlchemy),
-		fromQueueItemType(QueueItemType.AutoMaxTerraform),
-		fromQueueItemType(QueueItemType.AutoMinTerraform)
+		fromQueueItemType(QueueItemTypes.AutoFactories),
+		fromQueueItemType(QueueItemTypes.AutoMines),
+		fromQueueItemType(QueueItemTypes.AutoDefenses),
+		fromQueueItemType(QueueItemTypes.AutoMineralAlchemy),
+		fromQueueItemType(QueueItemTypes.AutoMaxTerraform),
+		fromQueueItemType(QueueItemTypes.AutoMinTerraform)
 	];
 </script>
 
