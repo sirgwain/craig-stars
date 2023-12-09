@@ -335,9 +335,8 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 	}
 
 	getTargetName(wp: Waypoint): string {
-		if (wp.targetName && wp.targetName !== '') {
-			return wp.targetName;
-		}
+		// first see if we can load this waypoint target as a mapobject
+		// if so, use its name
 		const mo = this.getMapObject(wp);
 		if (mo) {
 			if (mo.name && mo.name !== '') {
@@ -345,7 +344,12 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 			}
 
 			return `${startCase(mo.type)} #${mo.num}`;
+		} else if (wp.targetName && wp.targetName !== '') {
+			// we can't load it from the universe, see if the server gave us a target name
+			return wp.targetName;
 		}
+
+		// we don't have a target name and we can't find the map object, just point it to the space location
 		return `Space: (${wp.position.x.toFixed()}, ${wp.position.y.toFixed()})`;
 	}
 

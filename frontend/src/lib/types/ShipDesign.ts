@@ -70,6 +70,7 @@ export type Spec = {
 	terraformRate?: number;
 	mineSweep?: number;
 	cloakPercent?: number;
+	cloakPercentFullCargo?: number;
 	reduceCloaking?: number;
 	canStealFleetCargo?: boolean;
 	canStealPlanetCargo?: boolean;

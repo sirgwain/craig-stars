@@ -2,7 +2,7 @@
 	import { selectMapObject } from '$lib/services/Stores';
 
 	import { MapObjectType, type MapObject } from '$lib/types/MapObject';
-	import { MineFieldType, type MineField } from '$lib/types/MineField';
+	import { MineFieldTypes, type MineField } from '$lib/types/MineField';
 	import { LayerCake, Svg } from 'layercake';
 	import ScannerMineField from '../../../games/(game)/[id]/(main)/scanner/ScannerMineField.svelte';
 	import ScannerMineFieldPattern from '../../../games/(game)/[id]/(main)/scanner/ScannerMineFieldPattern.svelte';
@@ -17,9 +17,10 @@
 			name: `Humanoid MineField #1`,
 			num: 1,
 			playerNum: 1,
-			mineFieldType: MineFieldType.Standard,
+			mineFieldType: MineFieldTypes.Standard,
 			numMines: 100,
 			spec: {
+				decayRate: 100,
 				radius: Math.sqrt(100)
 			}
 		},
@@ -32,9 +33,10 @@
 			name: `Humanoid MineField #2`,
 			num: 2,
 			playerNum: 1,
-			mineFieldType: MineFieldType.Standard,
+			mineFieldType: MineFieldTypes.Standard,
 			numMines: 200,
 			spec: {
+				decayRate: 100,
 				radius: Math.sqrt(200)
 			}
 		}

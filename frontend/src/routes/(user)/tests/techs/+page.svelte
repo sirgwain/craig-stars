@@ -1,6 +1,6 @@
 <script lang="ts">
 	import TechSummary from '$lib/components/tech/TechSummary.svelte';
-	import { MineFieldType } from '$lib/types/MineField';
+	import { MineFieldTypes } from '$lib/types/MineField';
 
 	import { Player } from '$lib/types/Player';
 	import { PRT } from '$lib/types/Race';
@@ -93,7 +93,7 @@
 			category: TechCategory.MineLayer,
 			hullSlotType: 8192,
 			mass: 25,
-			mineFieldType: MineFieldType.Standard,
+			mineFieldType: MineFieldTypes.Standard,
 			mineLayingRate: 40
 		},
 		{
@@ -116,7 +116,7 @@
 		}
 	];
 
-	const testPlayer = new Player()
+	const testPlayer = new Player();
 </script>
 
 <TestBreadcrumb title="Techs" />

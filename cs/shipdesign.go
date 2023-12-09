@@ -73,6 +73,7 @@ type ShipDesignSpec struct {
 	TerraformRate             int                   `json:"terraformRate,omitempty"`
 	MineSweep                 int                   `json:"mineSweep,omitempty"`
 	CloakPercent              int                   `json:"cloakPercent,omitempty"`
+	CloakPercentFullCargo     int                   `json:"cloakPercentFullCargo,omitempty"`
 	ReduceCloaking            float64               `json:"reduceCloaking,omitempty"`
 	CanStealFleetCargo        bool                  `json:"canStealFleetCargo,omitempty"`
 	CanStealPlanetCargo       bool                  `json:"canStealPlanetCargo,omitempty"`
@@ -441,6 +442,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 
 	// figure out the cloak as a percentage after we specd our cloak units
 	spec.CloakPercent = getCloakPercentForCloakUnits(spec.CloakUnits)
+	spec.CloakPercentFullCargo = getCloakPercentForCloakUnits(int(math.Round(float64(spec.CloakUnits) * float64(spec.Mass) / float64(spec.Mass+spec.CargoCapacity))))
 
 	if numTachyonDetectors > 0 {
 		// 95% ^ (SQRT(#_of_detectors) = Reduction factor for other player's cloaking (Capped at 81% or 17TDs)

@@ -10,7 +10,7 @@ const ReportAgeUnexplored = -1
 const Unowned = 0
 
 // Each player has intel about planet, fleets, and other map objects. The discoverer is used to update the player
-// intel with knowledge about the universe. 
+// intel with knowledge about the universe.
 type discoverer interface {
 	clearTransientReports()
 	discoverPlayer(player *Player)
@@ -317,6 +317,8 @@ func (intel *PlanetIntel) Explored() bool {
 func (d *discover) clearTransientReports() {
 	d.player.FleetIntels = []FleetIntel{}
 	d.fleetIntelsByKey = make(map[playerObject]*FleetIntel)
+	d.player.MineFieldIntels = []MineFieldIntel{}
+	d.mineFieldIntelsByKey = make(map[playerObject]*MineFieldIntel)
 	d.player.SalvageIntels = []SalvageIntel{}
 	d.salvageIntelsByKey = make(map[int]*SalvageIntel)
 	d.player.MineralPacketIntels = []MineralPacketIntel{}

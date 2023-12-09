@@ -48,7 +48,7 @@
 				</div>
 			</div>
 		</h2>
-		<div class="flex flex-row justify-between">
+		<div class="flex flex-col sm:flex-row justify-between">
 			<div class="mr-2">
 				<Cost cost={design.spec.cost} />
 			</div>
