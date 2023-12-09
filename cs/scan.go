@@ -551,6 +551,9 @@ func (scan *playerScan) updateFleetTargets() {
 					wp.TargetPlayerNum = None
 					wp.TargetNum = None
 					wp.TargetName = ""
+				} else {
+					// fleets move, make sure our position updates
+					wp.Position = target.Position
 				}
 
 			case MapObjectTypeSalvage:
@@ -571,6 +574,22 @@ func (scan *playerScan) updateFleetTargets() {
 					wp.TargetPlayerNum = None
 					wp.TargetNum = None
 					wp.TargetName = ""
+				} else {
+					// fleets move, make sure our position updates
+					wp.Position = target.Position
+				}
+
+			case MapObjectTypeWormhole:
+				target := scan.discoverer.getWormholeIntel(wp.TargetNum)
+				if target == nil {
+					messager.fleetTargetLost(scan.player, fleet, wp.TargetName, wp.TargetType)
+					wp.TargetType = MapObjectTypeNone
+					wp.TargetPlayerNum = None
+					wp.TargetNum = None
+					wp.TargetName = ""
+				} else {
+					// wormholes move, make sure our position updates
+					wp.Position = target.Position
 				}
 			}
 

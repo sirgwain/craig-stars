@@ -16,11 +16,13 @@ export type MineFieldSpec = {
 	decayRate: number;
 };
 
-export enum MineFieldType {
-	Standard = 'Standard',
-	Heavy = 'Heavy',
-	SpeedBump = 'SpeedBump'
-}
+export type MineFieldType = (typeof MineFieldTypes)[keyof typeof MineFieldTypes];
+
+export const MineFieldTypes = {
+	Standard: 'Standard',
+	Heavy: 'Heavy',
+	SpeedBump: 'SpeedBump'
+} as const;
 
 export type MineFieldStats = {
 	minDamagePerFleetRS: number;

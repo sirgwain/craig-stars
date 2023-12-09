@@ -1,7 +1,7 @@
 import type { Cost } from './Cost';
 import type { EnumDictionary } from './EnumDictionary';
 import type { Size } from './Game';
-import type { MineFieldType, MineFieldStats } from './MineField';
+import type { MineFieldStats, MineFieldType } from './MineField';
 import type { TechStore } from './Tech';
 
 export type Rules = {

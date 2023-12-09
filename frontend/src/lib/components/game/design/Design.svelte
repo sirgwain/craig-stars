@@ -33,14 +33,14 @@
 {/if}
 {#if 'spec' in design}
 	<div class="flex flex-col">
-		<div class="flex justify-between">
+		<div class="flex flex-col sm:flex-row gap-1 justify-between">
 			{#if design.playerNum == $player.num}
 				<div class="mx-2">
 					<div>Cost of one {design.name}</div>
 					<Cost cost={design.spec.cost} />
 				</div>
 			{/if}
-			<div>
+			<div class="mx-2 sm:mx-0">
 				<DesignStats spec={design.spec} />
 			</div>
 		</div>

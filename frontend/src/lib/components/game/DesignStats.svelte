@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Infinite } from '$lib/types/MapObject';
-	import { MineFieldType } from '$lib/types/MineField';
-	import type { ShipDesign, Spec } from '$lib/types/ShipDesign';
+	import { MineFieldTypes } from '$lib/types/MineField';
+	import type { Spec } from '$lib/types/ShipDesign';
 	import { NoScanner } from '$lib/types/Tech';
 
 	export let spec: Spec;
@@ -11,7 +11,7 @@
 	}
 </script>
 
-<div class="flex flex-col min-w-[8rem] mr-2">
+<div class="flex flex-col min-w-[8rem]">
 	<div class="flex justify-between">
 		<div class="font-semibold mr-5">Mass</div>
 		<div>{spec.mass ?? 0}kT</div>
@@ -22,16 +22,18 @@
 	</div>
 	{#if spec.estimatedRange}
 		<div class="flex justify-between">
-			<div class="font-semibold mr-5">Est Range</div>
-			<div>
-				{#if spec.estimatedRange == Infinite}
-					Infinite
-				{:else if spec.cargoCapacity}
-					{spec.estimatedRange ?? 0}ly/{spec.estimatedRangeFull ?? 0}ly
-				{:else}
-					{spec.estimatedRange ?? 0}ly
-				{/if}
-			</div>
+			{#if spec.estimatedRange == Infinite}
+				<div class="font-semibold mr-5">Est Range</div>
+				<div>Infinite</div>
+			{:else if spec.cargoCapacity}
+				<div class="font-semibold mr-5">Est Range (with cargo)</div>
+				<div>
+					{spec.estimatedRange ?? 0}ly ({spec.estimatedRangeFull ?? 0}ly)
+				</div>
+			{:else}
+				<div class="font-semibold mr-5">Est Range</div>
+				<div>{spec.estimatedRange ?? 0}ly</div>
+			{/if}
 		</div>
 	{/if}
 
@@ -58,10 +60,23 @@
 			<div>{spec.powerRating}</div>
 		</div>
 	{/if}
-	{#if spec.cloakPercent || spec.torpedoJamming}
+	{#if spec.cloakPercent}
+		{#if spec.cargoCapacity}
+			<div class="flex justify-between">
+				<div class="font-semibold mr-5">Cloak (with cargo)</div>
+				<div>{spec.cloakPercent ?? 0}% ({spec.cloakPercentFullCargo ?? 0}%)</div>
+			</div>
+		{:else}
+			<div class="flex justify-between">
+				<div class="font-semibold mr-5">Cloak</div>
+				<div>{spec.cloakPercent ?? 0}%</div>
+			</div>
+		{/if}
+	{/if}
+	{#if spec.torpedoJamming}
 		<div class="flex justify-between">
-			<div class="font-semibold mr-5">Cloak/Jam</div>
-			<div>{spec.cloakPercent ?? 0}%/{((spec.torpedoJamming ?? 0) * 100).toFixed()}%</div>
+			<div class="font-semibold mr-5">Torpedo Jamming</div>
+			<div>{((spec.torpedoJamming ?? 0) * 100).toFixed()}%</div>
 		</div>
 	{/if}
 	<div class="flex justify-between">
@@ -75,22 +90,22 @@
 		</div>
 	{/if}
 
-	{#if spec.mineLayingRateByMineType && spec.mineLayingRateByMineType[MineFieldType.Standard]}
+	{#if spec.mineLayingRateByMineType && spec.mineLayingRateByMineType[MineFieldTypes.Standard]}
 		<div class="flex justify-between">
 			<div class="font-semibold mr-5">Mine Laying</div>
-			<div>{spec.mineLayingRateByMineType[MineFieldType.Standard]} std/yr</div>
+			<div>{spec.mineLayingRateByMineType[MineFieldTypes.Standard]} std/yr</div>
 		</div>
 	{/if}
-	{#if spec.mineLayingRateByMineType && spec.mineLayingRateByMineType[MineFieldType.Heavy]}
+	{#if spec.mineLayingRateByMineType && spec.mineLayingRateByMineType[MineFieldTypes.Heavy]}
 		<div class="flex justify-between">
 			<div class="font-semibold mr-5">Mine Laying</div>
-			<div>{spec.mineLayingRateByMineType[MineFieldType.Heavy]} hvy/yr</div>
+			<div>{spec.mineLayingRateByMineType[MineFieldTypes.Heavy]} hvy/yr</div>
 		</div>
 	{/if}
-	{#if spec.mineLayingRateByMineType && spec.mineLayingRateByMineType[MineFieldType.SpeedBump]}
+	{#if spec.mineLayingRateByMineType && spec.mineLayingRateByMineType[MineFieldTypes.SpeedBump]}
 		<div class="flex justify-between">
 			<div class="font-semibold mr-5">Mine Laying</div>
-			<div>{spec.mineLayingRateByMineType[MineFieldType.SpeedBump]} spd/yr</div>
+			<div>{spec.mineLayingRateByMineType[MineFieldTypes.SpeedBump]} spd/yr</div>
 		</div>
 	{/if}
 	{#if spec.miningRate}

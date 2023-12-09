@@ -31,13 +31,13 @@
 	$: selectedWaypointPlanetFriendly =
 		selectedWaypointPlanet && $player.isFriend(selectedWaypointPlanet.playerNum);
 
-	const getWaypointTarget = (wp: Waypoint): MapObject | undefined => {
+	function getWaypointTarget(wp: Waypoint): MapObject | undefined {
 		if (wp && wp.targetType && wp.targetNum) {
 			return $universe.getMapObject(wp);
 		}
-	};
+	}
 
-	const updateNextPrevWaypoints = () => {
+	function updateNextPrevWaypoints() {
 		// find the next/previous waypoint
 		previousWaypoint = previousWaypointMO = nextWaypoint = nextWaypointMO = undefined;
 		if (selectedWaypointIndex > 0) {
@@ -48,9 +48,9 @@
 			nextWaypoint = fleet.waypoints[selectedWaypointIndex + 1];
 			nextWaypointMO = getWaypointTarget(nextWaypoint);
 		}
-	};
+	}
 
-	const onSelectWaypoint = (wp: Waypoint, index: number) => {
+	function onSelectWaypoint(wp: Waypoint, index: number) {
 		selectedWaypointIndex = index;
 		selectWaypoint(wp);
 		const mo = getWaypointTarget(wp);
@@ -59,7 +59,7 @@
 		}
 
 		updateNextPrevWaypoints();
-	};
+	}
 
 	$: dist =
 		$selectedWaypoint && (nextWaypoint || previousWaypoint)
@@ -85,7 +85,7 @@
 	$: fuelUsageToSelectedWaypoint = fuelUsagePerLeg.reduce((total, wpUsage) => total + wpUsage, 0);
 	$: fuelUsageTotal = fuelUsagePerLeg.reduce((total, wpUsage) => total + wpUsage, 0);
 
-	const onRepeatOrdersChanged = async (repeatOrders: boolean) => {
+	async function onRepeatOrdersChanged(repeatOrders: boolean) {
 		if ($selectedWaypoint) {
 			fleet.repeatOrders = repeatOrders;
 			await $game.updateFleetOrders(fleet);
@@ -93,9 +93,9 @@
 			// update the commanded object
 			updateNextPrevWaypoints();
 		}
-	};
+	}
 
-	const onWarpSpeedChanged = async (warpSpeed: number) => {
+	async function onWarpSpeedChanged(warpSpeed: number) {
 		if ($selectedWaypoint) {
 			$selectedWaypoint.warpSpeed = warpSpeed;
 			await $game.updateFleetOrders(fleet);
@@ -103,15 +103,15 @@
 			// update the commanded object
 			updateNextPrevWaypoints();
 		}
-	};
+	}
 
-	const onWarpSpeedDragged = async (warpSpeed: number) => {
+	async function onWarpSpeedDragged(warpSpeed: number) {
 		if ($selectedWaypoint) {
 			$selectedWaypoint.warpSpeed = warpSpeed;
 		}
-	};
+	}
 
-	const deleteWaypoint = async () => {
+	async function deleteWaypoint() {
 		if (selectedWaypointIndex != 0 && fleet.waypoints) {
 			fleet.waypoints = fleet.waypoints.filter((wp) => wp != $selectedWaypoint);
 			selectedWaypointIndex--;
@@ -119,19 +119,19 @@
 			await $game.updateFleetOrders(fleet).then(() => updateNextPrevWaypoints());
 			onSelectWaypoint(fleet.waypoints[selectedWaypointIndex], selectedWaypointIndex);
 		}
-	};
+	}
 
-	const onNextWaypoint = () => {
+	function onNextWaypoint() {
 		if (selectedWaypointIndex + 1 < fleet.waypoints.length) {
 			onSelectWaypoint(fleet.waypoints[selectedWaypointIndex + 1], selectedWaypointIndex + 1);
 		}
-	};
+	}
 
-	const onPrevWaypoint = () => {
+	function onPrevWaypoint() {
 		if (selectedWaypointIndex > 0) {
 			onSelectWaypoint(fleet.waypoints[selectedWaypointIndex - 1], selectedWaypointIndex - 1);
 		}
-	};
+	}
 
 	commandedMapObjectName.subscribe(() => {
 		selectedWaypointIndex = 0;
