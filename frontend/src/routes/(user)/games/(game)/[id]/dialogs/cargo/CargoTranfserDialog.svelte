@@ -1,5 +1,5 @@
 <script lang="ts" context="module">
-	import type { Cargo } from '$lib/types/Cargo';
+	import type { CargoTransferRequest } from '$lib/types/Cargo';
 	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
 	import type { Planet } from '$lib/types/Planet';
 
@@ -10,7 +10,7 @@
 	export type TransferCargoEventDetails = {
 		src: CommandedFleet;
 		dest?: Fleet | Planet | Salvage;
-		transferAmount: Cargo;
+		transferAmount: CargoTransferRequest;
 	};
 	export type CargoTransferEvent = {
 		'cargo-transfer-dialog': CargoTransferDialogEventDetails;
@@ -22,8 +22,8 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/Contexts';
 	import { subtract } from '$lib/types/Cargo';
-	import CargoTransfer from './CargoTransfer.svelte';
 	import { newSalvage, type Salvage } from '$lib/types/Salvage';
+	import CargoTransfer from './CargoTransfer.svelte';
 
 	const { game, player, universe } = getGameContext();
 
@@ -31,7 +31,7 @@
 	export let props: CargoTransferDialogEventDetails | undefined;
 
 	const onTransferCargo = async (detail: TransferCargoEventDetails) => {
-		if (detail) {
+		if (detail && detail.transferAmount.absoluteSize() > 0) {
 			if (!detail.dest) {
 				detail.dest = newSalvage();
 			}

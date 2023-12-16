@@ -8,6 +8,8 @@
 	export let min = 0;
 	export let max = capacity;
 	export let color = 'ironium-bar';
+	export let unit = 'kT';
+	export let readonly = false
 
 	const dispatch = createEventDispatcher<ValueChangedEvent>();
 
@@ -19,13 +21,13 @@
 	const getXFromPointerEvent = (e: PointerEvent) =>
 		(e.clientX - ref.getBoundingClientRect().left) / ref.getBoundingClientRect()?.width;
 
-	const onPointerDown = (x: number) => {
+	function onPointerDown(x: number) {
 		pointerdown = true;
 		updateValue(x);
 		window.addEventListener('pointerup', onPointerUp);
 		window.addEventListener('pointermove', onPointerMove);
 		document.body.classList.remove('select-none', 'touch-none');
-	};
+	}
 
 	function onPointerUp(e: PointerEvent) {
 		e.preventDefault();
@@ -35,30 +37,31 @@
 		pointerdown = false;
 	}
 
-	const onPointerMove = (e: PointerEvent) => {
+	function onPointerMove(e: PointerEvent) {
 		if (pointerdown) {
 			updateValue(getXFromPointerEvent(e));
 		}
-	};
+	}
 
-	const updateValue = (x: number) => {
+	function updateValue(x: number) {
 		let newValue = clamp(Math.round(x * capacity), min, max);
 		if (newValue != value) {
 			value = newValue;
 			dispatch('valuechanged', value);
 		}
-	};
+	}
 </script>
 
 <div
 	bind:this={ref}
-	class="border border-secondary w-full h-[1rem] text-[0rem] relative bg-base-200 cursor-pointer select-none"
-	on:pointerdown|preventDefault={(e) => onPointerDown(getXFromPointerEvent(e))}
+	class="border border-secondary w-full h-[1rem] text-[0rem] relative bg-base-200 select-none"
+	class:cursor-pointer={!readonly}
+	on:pointerdown|preventDefault={(e) => !readonly && onPointerDown(getXFromPointerEvent(e))}
 >
 	<div
 		class="font-semibold text-sm text-center align-middle text-secondary w-full bg-blend-difference absolute"
 	>
-		{value} of {capacity}kT
+		{value} of {capacity}{unit}
 	</div>
 
 	<div style={`width: ${percent.toFixed()}%`} class="{color} h-full" />

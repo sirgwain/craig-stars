@@ -297,6 +297,11 @@ func (f *Fleet) withCargo(cargo Cargo) *Fleet {
 	return f
 }
 
+func (f *Fleet) withFuel(fuel int) *Fleet {
+	f.Fuel = fuel
+	return f
+}
+
 func (f *Fleet) withPosition(position Vector) *Fleet {
 	f.Position = position
 	// todo: should we set waypoints in a builder?
@@ -679,6 +684,10 @@ func (fleet *Fleet) willAttack(fleetPlayer *Player, otherPlayerNum int) bool {
 
 func (f *Fleet) availableCargoSpace() int {
 	return Clamp(f.Spec.CargoCapacity-f.Cargo.Total(), 0, f.Spec.CargoCapacity)
+}
+
+func (f *Fleet) availableFuelSpace() int {
+	return Clamp(f.Spec.FuelCapacity-f.Fuel, 0, f.Spec.FuelCapacity)
 }
 
 // transfer cargo from a fleet to a cargo holder
