@@ -122,7 +122,7 @@ func (ai *aiPlayer) transportColonists() error {
 
 						continue
 					}
-					if err := ai.client.TransferPlanetCargo(&ai.game.Rules, ai.Player, fleet, orbiting, cs.Cargo{Colonists: colonistsToLoad}); err != nil {
+					if err := ai.client.TransferPlanetCargo(&ai.game.Rules, ai.Player, fleet, orbiting, cs.CargoTransferRequest{Cargo: cs.Cargo{Colonists: colonistsToLoad}}); err != nil {
 						// something went wrong, skipi this planet
 						log.Error().Err(err).Msg("transferring colonists from planet, skipping")
 						continue

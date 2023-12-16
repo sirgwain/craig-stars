@@ -2,7 +2,6 @@ import type { Cargo } from '$lib/types/Cargo';
 import { CommandedFleet, type Fleet, type FleetOrders, type Waypoint } from '$lib/types/Fleet';
 import type { MapObject } from '$lib/types/MapObject';
 import type { Planet } from '$lib/types/Planet';
-import type { PlayerRelation, PlayerResponse } from '$lib/types/Player';
 import type { Salvage } from '$lib/types/Salvage';
 import { Service } from './Service';
 

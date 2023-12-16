@@ -1,4 +1,4 @@
-import type { Cargo } from '$lib/types/Cargo';
+import type { CargoTransferRequest } from '$lib/types/Cargo';
 import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
 import {
 	Density,
@@ -20,6 +20,7 @@ import {
 	type ProductionPlan,
 	type TransportPlan
 } from '$lib/types/Player';
+import { defaultRules } from '$lib/types/Rules';
 import type { Salvage } from '$lib/types/Salvage';
 import type { ShipDesign } from '$lib/types/ShipDesign';
 import type { SessionUser } from '$lib/types/User';
@@ -34,9 +35,9 @@ import { PlanetService } from './PlanetService';
 import { PlayerService } from './PlayerService';
 import { ProductionPlanService } from './ProductionPlanService';
 import {
+	commandMapObject,
 	commandedFleet,
 	commandedPlanet,
-	commandMapObject,
 	currentSelectedWaypointIndex,
 	selectMapObject,
 	selectWaypoint,
@@ -45,7 +46,6 @@ import {
 import { TechService } from './TechService';
 import { TransportPlanService } from './TransportPlanService';
 import { Universe } from './Universe';
-import { defaultRules } from '$lib/types/Rules';
 
 export class FullGame implements Game {
 	id = 0;
@@ -376,7 +376,7 @@ export class FullGame implements Game {
 	async transferCargo(
 		fleet: CommandedFleet,
 		dest: Fleet | Planet | Salvage,
-		transferAmount: Cargo
+		transferAmount: CargoTransferRequest
 	) {
 		const selectedWaypointIndex = get(currentSelectedWaypointIndex);
 		const result = await FleetService.transferCargo(fleet, dest, transferAmount);
@@ -390,6 +390,10 @@ export class FullGame implements Game {
 			if (p?.num == planet.num) {
 				commandMapObject(planet);
 			}
+		} else if (result.dest?.type == MapObjectType.Fleet) {
+			// update the destination fleet in the universe
+			const destFleet = result.dest as Fleet;
+			this.universe.updateFleet(destFleet);
 		}
 
 		if (result.salvages) {

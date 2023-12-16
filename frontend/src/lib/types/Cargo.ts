@@ -4,6 +4,35 @@ export type Cargo = {
 	colonists?: number;
 } & Mineral;
 
+export class CargoTransferRequest implements Cargo {
+	ironium = 0;
+	boranium = 0;
+	germanium = 0;
+	colonists = 0;
+	fuel = 0;
+
+	constructor(cargo?: Cargo, fuel?: number) {
+		Object.assign(this, cargo);
+		this.fuel = fuel ?? 0;
+	}
+
+	// return a new CargoTransferRequest from this one, but negated
+	negative(): CargoTransferRequest {
+		return new CargoTransferRequest(negativeCargo(this), -this.fuel);
+	}
+
+	// return the absolute size of this transfer request
+	absoluteSize(): number {
+		return (
+			Math.abs(this.ironium) +
+			Math.abs(this.boranium) +
+			Math.abs(this.germanium) +
+			Math.abs(this.colonists) +
+			Math.abs(this.fuel)
+		);
+	}
+}
+
 export const totalCargo = (c: Cargo | undefined) =>
 	c ? (c.ironium ?? 0) + (c.boranium ?? 0) + (c.germanium ?? 0) + (c.colonists ?? 0) : 0;
 

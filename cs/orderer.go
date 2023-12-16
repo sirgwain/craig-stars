@@ -7,16 +7,21 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// The Orderer interface is used to handle any game logic with updating orders. This is used for 
+type CargoTransferRequest struct {
+	Cargo
+	Fuel int `json:"fuel,omitempty"`
+}
+
+// The Orderer interface is used to handle any game logic with updating orders. This is used for
 // updating planet and fleet psecs after cargo transfer, splitting and merging fleets, updating research, etc.
 type Orderer interface {
 	UpdatePlayerOrders(player *Player, playerPlanets []*Planet, order PlayerOrders, rules *Rules)
 	UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet, orders PlanetOrders) error
 	UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrders)
 	UpdateMineFieldOrders(player *Player, minefield *MineField, orders MineFieldOrders)
-	TransferFleetCargo(rules *Rules, player, destPlayer *Player, source, dest *Fleet, transferAmount Cargo) error
-	TransferPlanetCargo(rules *Rules, player *Player, source *Fleet, dest *Planet, transferAmount Cargo) error
-	TransferSalvageCargo(rules *Rules, player *Player, source *Fleet, dest *Salvage, nextSalvageNum int, transferAmount Cargo) (*Salvage, error)
+	TransferFleetCargo(rules *Rules, player, destPlayer *Player, source, dest *Fleet, transferAmount CargoTransferRequest) error
+	TransferPlanetCargo(rules *Rules, player *Player, source *Fleet, dest *Planet, transferAmount CargoTransferRequest) error
+	TransferSalvageCargo(rules *Rules, player *Player, source *Fleet, dest *Salvage, nextSalvageNum int, transferAmount CargoTransferRequest) (*Salvage, error)
 	SplitFleetTokens(rules *Rules, player *Player, playerFleets []*Fleet, source *Fleet, tokens []ShipToken) (*Fleet, error)
 	SplitAll(rules *Rules, player *Player, playerFleets []*Fleet, source *Fleet) ([]*Fleet, error)
 	Merge(rules *Rules, player *Player, fleets []*Fleet) (*Fleet, error)
@@ -27,6 +32,10 @@ type orders struct {
 
 func NewOrderer() Orderer {
 	return &orders{}
+}
+
+func (ctr CargoTransferRequest) Negative() CargoTransferRequest {
+	return CargoTransferRequest{Cargo: ctr.Cargo.Negative(), Fuel: -ctr.Fuel}
 }
 
 // update a player's orders
@@ -118,27 +127,37 @@ func (o *orders) UpdateMineFieldOrders(player *Player, minefield *MineField, ord
 }
 
 // transfer cargo from a fleet to/from a fleet
-func (o *orders) TransferFleetCargo(rules *Rules, player, destPlayer *Player, source, dest *Fleet, transferAmount Cargo) error {
+func (o *orders) TransferFleetCargo(rules *Rules, player, destPlayer *Player, source, dest *Fleet, transferAmount CargoTransferRequest) error {
 
 	if source.availableCargoSpace() < transferAmount.Total() {
 		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", source.Name, source.availableCargoSpace(), transferAmount.Total(), dest.Name)
+	}
+
+	if source.availableFuelSpace() < transferAmount.Fuel {
+		return fmt.Errorf("fleet %s has %d fuel space available, cannot transfer %dmg from %s", source.Name, source.availableFuelSpace(), transferAmount.Fuel, dest.Name)
 	}
 
 	if dest.availableCargoSpace() < -transferAmount.Total() {
 		return fmt.Errorf("dest %s has %d cargo space available, cannot transfer %dkT from %s", dest.Name, dest.availableCargoSpace(), transferAmount.Total(), dest.Name)
 	}
 
-	if !dest.Cargo.CanTransfer(transferAmount) {
+	if dest.availableFuelSpace() < -transferAmount.Fuel {
+		return fmt.Errorf("dest %s has %d fuel space available, cannot transfer %dmg from %s", dest.Name, dest.availableFuelSpace(), transferAmount.Fuel, dest.Name)
+	}
+
+	if !dest.canTransfer(transferAmount) {
 		return fmt.Errorf("fleet %s cannot transfer %v from %s, there is not enough to transfer", source.Name, transferAmount, dest.Name)
 	}
 
-	if !source.Cargo.CanTransfer(transferAmount.Negative()) {
+	if !source.canTransfer(transferAmount.Negative()) {
 		return fmt.Errorf("fleet %s cannot transfer %v to %s, the fleet does not have enough the required cargo", source.Name, transferAmount.Negative(), dest.Name)
 	}
 
 	// transfer the cargo
-	source.Cargo = source.Cargo.Add(transferAmount)
-	dest.Cargo = dest.Cargo.Subtract(transferAmount)
+	source.Cargo = source.Cargo.Add(transferAmount.Cargo)
+	dest.Cargo = dest.Cargo.Subtract(transferAmount.Cargo)
+	source.Fuel += transferAmount.Fuel
+	dest.Fuel -= transferAmount.Fuel
 
 	source.Spec = ComputeFleetSpec(rules, player, source)
 	dest.Spec = ComputeFleetSpec(rules, destPlayer, dest)
@@ -149,23 +168,23 @@ func (o *orders) TransferFleetCargo(rules *Rules, player, destPlayer *Player, so
 }
 
 // transfer cargo from a planet to/from a fleet
-func (o *orders) TransferPlanetCargo(rules *Rules, player *Player, source *Fleet, dest *Planet, transferAmount Cargo) error {
+func (o *orders) TransferPlanetCargo(rules *Rules, player *Player, source *Fleet, dest *Planet, transferAmount CargoTransferRequest) error {
 
 	if source.availableCargoSpace() < transferAmount.Total() {
 		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", source.Name, source.availableCargoSpace(), transferAmount.Total(), dest.Name)
 	}
 
-	if !dest.Cargo.CanTransfer(transferAmount) {
+	if !dest.canTransfer(transferAmount) {
 		return fmt.Errorf("fleet %s cannot transfer %v from %s, the planet does not have the required cargo", source.Name, transferAmount, dest.Name)
 	}
 
-	if !source.Cargo.CanTransfer(transferAmount.Negative()) {
+	if !source.canTransfer(transferAmount.Negative()) {
 		return fmt.Errorf("fleet %s cannot transfer %v to %s, the fleet does not have enough the required cargo", source.Name, transferAmount.Negative(), dest.Name)
 	}
 
 	// transfer the cargo
-	source.Cargo = source.Cargo.Add(transferAmount)
-	dest.Cargo = dest.Cargo.Subtract(transferAmount)
+	source.Cargo = source.Cargo.Add(transferAmount.Cargo)
+	dest.Cargo = dest.Cargo.Subtract(transferAmount.Cargo)
 	source.Spec = ComputeFleetSpec(rules, player, source)
 
 	if dest.Starbase != nil {
@@ -181,28 +200,32 @@ func (o *orders) TransferPlanetCargo(rules *Rules, player *Player, source *Fleet
 }
 
 // transfer cargo from a planet to/from a fleet
-func (o *orders) TransferSalvageCargo(rules *Rules, player *Player, source *Fleet, dest *Salvage, nextSalvageNum int, transferAmount Cargo) (*Salvage, error) {
+func (o *orders) TransferSalvageCargo(rules *Rules, player *Player, source *Fleet, dest *Salvage, nextSalvageNum int, transferAmount CargoTransferRequest) (*Salvage, error) {
+
+	if transferAmount.Total() == 0 {
+		return nil, fmt.Errorf("fleet %s attempted to transfer 0kT of cargo to salvage", source.Name)
+	}
 
 	if source.availableCargoSpace() < transferAmount.Total() {
 		return nil, fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", source.Name, source.availableCargoSpace(), transferAmount.Total(), dest.Name)
 	}
 
-	if dest != nil && !dest.Cargo.CanTransfer(transferAmount) {
+	if dest != nil && !dest.canTransfer(transferAmount) {
 		return nil, fmt.Errorf("fleet %s cannot transfer %v from %s, the salvage does not have the required cargo", source.Name, transferAmount, dest.Name)
 	}
 
-	if !source.Cargo.CanTransfer(transferAmount.Negative()) {
+	if !source.canTransfer(transferAmount.Negative()) {
 		return nil, fmt.Errorf("fleet %s cannot transfer %v to %s, the fleet does not have enough the required cargo", source.Name, transferAmount.Negative(), dest.Name)
 	}
 
 	if dest == nil {
-		dest = newSalvage(source.Position, nextSalvageNum, source.PlayerNum, transferAmount.Negative())
+		dest = newSalvage(source.Position, nextSalvageNum, source.PlayerNum, transferAmount.Cargo.Negative())
 	} else {
-		dest.Cargo = dest.Cargo.Subtract(transferAmount)
+		dest.Cargo = dest.Cargo.Subtract(transferAmount.Cargo)
 	}
 
 	// transfer the cargo
-	source.Cargo = source.Cargo.Add(transferAmount)
+	source.Cargo = source.Cargo.Add(transferAmount.Cargo)
 	source.Spec = ComputeFleetSpec(rules, player, source)
 
 	// make our player aware of this salvage

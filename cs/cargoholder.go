@@ -12,6 +12,7 @@ type cargoHolder interface {
 	getFuelCapacity() int
 	canLoad(playerNum int) bool
 	MarkDirty()
+	canTransfer(transferAmount CargoTransferRequest) bool
 }
 
 func (ch *Planet) getMapObject() MapObject {
@@ -43,6 +44,14 @@ func (ch *Planet) canLoad(playerNum int) bool {
 	return !ch.Owned() || ch.OwnedBy(playerNum)
 }
 
+// planets can't transfer fuel
+func (ch *Planet) canTransfer(transferAmount CargoTransferRequest) bool {
+	if transferAmount.Fuel > 0 {
+		return false
+	}
+	return ch.Cargo.CanTransfer(transferAmount.Cargo)
+}
+
 func (ch *Fleet) getMapObject() MapObject {
 	return ch.MapObject
 }
@@ -68,6 +77,11 @@ func (ch *Fleet) canLoad(playerNum int) bool {
 	return ch.OwnedBy(playerNum)
 }
 
+// planets can't transfer fuel
+func (ch *Fleet) canTransfer(transferAmount CargoTransferRequest) bool {
+	return ch.Fuel >= transferAmount.Fuel && ch.Cargo.CanTransfer(transferAmount.Cargo)
+}
+
 func (ch *Salvage) getMapObject() MapObject {
 	return ch.MapObject
 }
@@ -86,6 +100,14 @@ func (ch *Salvage) getFuel() int {
 
 func (ch *Salvage) getFuelCapacity() int {
 	return 0
+}
+
+// salvage can't transfer fuel
+func (ch *Salvage) canTransfer(transferAmount CargoTransferRequest) bool {
+	if transferAmount.Fuel > 0 {
+		return false
+	}
+	return ch.Cargo.CanTransfer(transferAmount.Cargo)
 }
 
 // players can load from all salvages
@@ -116,4 +138,12 @@ func (ch *MineralPacket) getFuelCapacity() int {
 // players can load from all mineralPackets
 func (ch *MineralPacket) canLoad(playerNum int) bool {
 	return true
+}
+
+// mineral packets can't transfer fuel
+func (ch *MineralPacket) canTransfer(transferAmount CargoTransferRequest) bool {
+	if transferAmount.Fuel > 0 {
+		return false
+	}
+	return ch.Cargo.CanTransfer(transferAmount.Cargo)
 }

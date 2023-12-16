@@ -851,7 +851,7 @@ func Test_orders_TransferPlanetCargo(t *testing.T) {
 	type args struct {
 		source         *Fleet
 		dest           *Planet
-		transferAmount Cargo
+		transferAmount CargoTransferRequest
 	}
 	tests := []struct {
 		name    string
@@ -863,7 +863,7 @@ func Test_orders_TransferPlanetCargo(t *testing.T) {
 			args{
 				source:         testTeamster(player),
 				dest:           NewPlanet().WithCargo(Cargo{Ironium: 10}),
-				transferAmount: Cargo{Ironium: 10},
+				transferAmount: CargoTransferRequest{Cargo{Ironium: 10}, 0},
 			},
 			false,
 		},
@@ -872,7 +872,7 @@ func Test_orders_TransferPlanetCargo(t *testing.T) {
 			args{
 				source:         testTeamster(player),
 				dest:           NewPlanet().WithCargo(Cargo{Ironium: 5}),
-				transferAmount: Cargo{Ironium: 10},
+				transferAmount: CargoTransferRequest{Cargo{Ironium: 10}, 0},
 			},
 			true,
 		},
@@ -881,7 +881,7 @@ func Test_orders_TransferPlanetCargo(t *testing.T) {
 			args{
 				source:         testTeamster(player).withCargo(Cargo{Ironium: 10}),
 				dest:           NewPlanet(),
-				transferAmount: Cargo{Ironium: -10},
+				transferAmount: CargoTransferRequest{Cargo{Ironium: -10}, 0},
 			},
 			false,
 		},
@@ -890,7 +890,7 @@ func Test_orders_TransferPlanetCargo(t *testing.T) {
 			args{
 				source:         testTeamster(player),
 				dest:           NewPlanet(),
-				transferAmount: Cargo{Ironium: -10},
+				transferAmount: CargoTransferRequest{Cargo{Ironium: -10}, 0},
 			},
 			true,
 		},
@@ -899,7 +899,7 @@ func Test_orders_TransferPlanetCargo(t *testing.T) {
 			args{
 				source:         testTeamster(player),
 				dest:           NewPlanet().WithCargo(Cargo{1000, 1000, 1000, 1000}),
-				transferAmount: Cargo{Ironium: 70, Boranium: 70, Germanium: 70},
+				transferAmount: CargoTransferRequest{Cargo{Ironium: 70, Boranium: 70, Germanium: 70}, 0},
 			},
 			false,
 		},
@@ -908,7 +908,7 @@ func Test_orders_TransferPlanetCargo(t *testing.T) {
 			args{
 				source:         testTeamster(player),
 				dest:           NewPlanet().WithCargo(Cargo{1000, 1000, 1000, 1000}),
-				transferAmount: Cargo{Ironium: 70, Boranium: 70, Germanium: 70, Colonists: 1},
+				transferAmount: CargoTransferRequest{Cargo{Ironium: 70, Boranium: 70, Germanium: 70, Colonists: 1}, 0},
 			},
 			true,
 		},
@@ -925,8 +925,8 @@ func Test_orders_TransferPlanetCargo(t *testing.T) {
 
 			if err == nil {
 				// we should transfer from the dest to the soruce
-				assert.Equal(t, sourceCargo.Add(tt.args.transferAmount), tt.args.source.Cargo)
-				assert.Equal(t, destCargo.Subtract(tt.args.transferAmount), tt.args.dest.Cargo)
+				assert.Equal(t, sourceCargo.Add(tt.args.transferAmount.Cargo), tt.args.source.Cargo)
+				assert.Equal(t, destCargo.Subtract(tt.args.transferAmount.Cargo), tt.args.dest.Cargo)
 			}
 		})
 	}
@@ -937,7 +937,7 @@ func Test_orders_TransferFleetCargo(t *testing.T) {
 	type args struct {
 		source         *Fleet
 		dest           *Fleet
-		transferAmount Cargo
+		transferAmount CargoTransferRequest
 	}
 	tests := []struct {
 		name    string
@@ -949,7 +949,7 @@ func Test_orders_TransferFleetCargo(t *testing.T) {
 			args{
 				source:         testTeamster(player),
 				dest:           testTeamster(player).withCargo(Cargo{Ironium: 10}),
-				transferAmount: Cargo{Ironium: 10},
+				transferAmount: CargoTransferRequest{Cargo{Ironium: 10}, 0},
 			},
 			false,
 		},
@@ -958,7 +958,7 @@ func Test_orders_TransferFleetCargo(t *testing.T) {
 			args{
 				source:         testTeamster(player),
 				dest:           testTeamster(player).withCargo(Cargo{Ironium: 5}),
-				transferAmount: Cargo{Ironium: 10},
+				transferAmount: CargoTransferRequest{Cargo{Ironium: 10}, 0},
 			},
 			true,
 		},
@@ -967,7 +967,7 @@ func Test_orders_TransferFleetCargo(t *testing.T) {
 			args{
 				source:         testTeamster(player).withCargo(Cargo{Ironium: 10}),
 				dest:           testTeamster(player),
-				transferAmount: Cargo{Ironium: -10},
+				transferAmount: CargoTransferRequest{Cargo{Ironium: -10}, 0},
 			},
 			false,
 		},
@@ -976,7 +976,7 @@ func Test_orders_TransferFleetCargo(t *testing.T) {
 			args{
 				source:         testTeamster(player),
 				dest:           testTeamster(player),
-				transferAmount: Cargo{Ironium: -10},
+				transferAmount: CargoTransferRequest{Cargo{Ironium: -10}, 0},
 			},
 			true,
 		},
@@ -985,7 +985,7 @@ func Test_orders_TransferFleetCargo(t *testing.T) {
 			args{
 				source:         testTeamster(player),
 				dest:           testTeamster(player).withCargo(Cargo{Ironium: 70, Boranium: 70, Germanium: 70}),
-				transferAmount: Cargo{Ironium: 70, Boranium: 70, Germanium: 70},
+				transferAmount: CargoTransferRequest{Cargo{Ironium: 70, Boranium: 70, Germanium: 70}, 0},
 			},
 			false,
 		},
@@ -994,7 +994,7 @@ func Test_orders_TransferFleetCargo(t *testing.T) {
 			args{
 				source:         testTeamster(player).withCargo(Cargo{Colonists: 1}),
 				dest:           testTeamster(player).withCargo(Cargo{Ironium: 70, Boranium: 70, Germanium: 70}),
-				transferAmount: Cargo{Ironium: 70, Boranium: 70, Germanium: 70},
+				transferAmount: CargoTransferRequest{Cargo{Ironium: 70, Boranium: 70, Germanium: 70}, 0},
 			},
 			true,
 		},
@@ -1003,7 +1003,43 @@ func Test_orders_TransferFleetCargo(t *testing.T) {
 			args{
 				source:         testTeamster(player).withCargo(Cargo{Ironium: 70, Boranium: 70, Germanium: 70}),
 				dest:           testTeamster(player).withCargo(Cargo{Colonists: 1}),
-				transferAmount: Cargo{Ironium: -70, Boranium: -70, Germanium: -70},
+				transferAmount: CargoTransferRequest{Cargo{Ironium: -70, Boranium: -70, Germanium: -70}, 0},
+			},
+			true,
+		},
+		{
+			"transfer 10mg Fuel from fleet",
+			args{
+				source:         testTeamster(player).withFuel(0),
+				dest:           testTeamster(player).withFuel(10),
+				transferAmount: CargoTransferRequest{Fuel: 10},
+			},
+			false,
+		},
+		{
+			"fail to transfer 10mg Fuel from fleet",
+			args{
+				source:         testTeamster(player).withFuel(0),
+				dest:           testTeamster(player).withFuel(5),
+				transferAmount: CargoTransferRequest{Fuel: 10},
+			},
+			true,
+		},
+		{
+			"transfer 10mg Fuel to fleet",
+			args{
+				source:         testTeamster(player).withFuel(10),
+				dest:           testTeamster(player).withFuel(0),
+				transferAmount: CargoTransferRequest{Fuel: -10},
+			},
+			false,
+		},
+		{
+			"fail to transfer 10mg Fuel to fleet",
+			args{
+				source:         testTeamster(player).withFuel(0),
+				dest:           testTeamster(player).withFuel(0),
+				transferAmount: CargoTransferRequest{Fuel: -10},
 			},
 			true,
 		},
@@ -1013,7 +1049,9 @@ func Test_orders_TransferFleetCargo(t *testing.T) {
 			o := &orders{}
 
 			sourceCargo := tt.args.source.Cargo
+			sourceFuel := tt.args.source.Fuel
 			destCargo := tt.args.dest.Cargo
+			destFuel := tt.args.dest.Fuel
 
 			err := o.TransferFleetCargo(&rules, player, player, tt.args.source, tt.args.dest, tt.args.transferAmount)
 			if (err != nil) != tt.wantErr {
@@ -1021,8 +1059,10 @@ func Test_orders_TransferFleetCargo(t *testing.T) {
 			}
 			if err == nil {
 				// we should transfer from the dest to the soruce
-				assert.Equal(t, sourceCargo.Add(tt.args.transferAmount), tt.args.source.Cargo)
-				assert.Equal(t, destCargo.Subtract(tt.args.transferAmount), tt.args.dest.Cargo)
+				assert.Equal(t, sourceCargo.Add(tt.args.transferAmount.Cargo), tt.args.source.Cargo)
+				assert.Equal(t, sourceFuel+tt.args.transferAmount.Fuel, tt.args.source.Fuel)
+				assert.Equal(t, destCargo.Subtract(tt.args.transferAmount.Cargo), tt.args.dest.Cargo)
+				assert.Equal(t, destFuel-tt.args.transferAmount.Fuel, tt.args.dest.Fuel)
 			}
 
 		})
