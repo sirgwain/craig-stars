@@ -343,7 +343,7 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 				if err := ug.buildStarbase(player, playerPlanet, startingPlanet.StarbaseDesignName); err != nil {
 					return err
 				}
-			}			
+			}
 
 			// tell theplayer about the homeworld
 			messager.homePlanet(player, playerPlanet)
@@ -384,7 +384,7 @@ func (ug *universeGenerator) generatePlayerFleets(player *Player, planet *Planet
 		if design == nil {
 			return fmt.Errorf("no design named %s found for player %s", startingFleet.Name, player)
 		}
-		fleet := newFleet(player, design, *fleetNum, startingFleet.Name, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, design.Spec.Engine.IdealSpeed)})
+		fleet := newFleetForDesign(player, design, *fleetNum, startingFleet.Name, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, design.Spec.Engine.IdealSpeed)})
 		fleet.OrbitingPlanetNum = planet.Num
 		fleet.Spec = ComputeFleetSpec(&ug.Rules, player, &fleet)
 		fleet.Fuel = fleet.Spec.FuelCapacity

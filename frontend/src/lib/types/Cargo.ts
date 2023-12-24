@@ -4,6 +4,15 @@ export type Cargo = {
 	colonists?: number;
 } & Mineral;
 
+export const CargoTypes = {
+	Ironium: 'ironium',
+	Boranium: 'boranium',
+	Germanium: 'germanium',
+	Colonists: 'colonists'
+} as const;
+
+export type CargoType = (typeof CargoTypes)[keyof typeof CargoTypes];
+
 export class CargoTransferRequest implements Cargo {
 	ironium = 0;
 	boranium = 0;
@@ -29,6 +38,29 @@ export class CargoTransferRequest implements Cargo {
 			Math.abs(this.germanium) +
 			Math.abs(this.colonists) +
 			Math.abs(this.fuel)
+		);
+	}
+
+	// return the absolute size of this transfer request
+	absoluteCargoSize(): number {
+		return (
+			Math.abs(this.ironium) +
+			Math.abs(this.boranium) +
+			Math.abs(this.germanium) +
+			Math.abs(this.colonists)
+		);
+	}
+
+	// add a CargoTransferRequest to another CargoTransferRequest, returning a new one
+	add(c: CargoTransferRequest) {
+		return new CargoTransferRequest(
+			{
+				ironium: this.ironium + c.ironium,
+				boranium: this.boranium + c.boranium,
+				germanium: this.germanium + c.germanium,
+				colonists: this.colonists + c.colonists
+			},
+			this.fuel + c.fuel
 		);
 	}
 }

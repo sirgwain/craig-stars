@@ -1,5 +1,11 @@
-import type { Cargo } from '$lib/types/Cargo';
-import { CommandedFleet, type Fleet, type FleetOrders, type Waypoint } from '$lib/types/Fleet';
+import type { Cargo, CargoTransferRequest } from '$lib/types/Cargo';
+import {
+	CommandedFleet,
+	type Fleet,
+	type FleetOrders,
+	type ShipToken,
+	type Waypoint
+} from '$lib/types/Fleet';
 import type { MapObject } from '$lib/types/MapObject';
 import type { Planet } from '$lib/types/Planet';
 import type { Salvage } from '$lib/types/Salvage';
@@ -18,6 +24,11 @@ type TransferCargoResponse = {
 	fleet: Fleet;
 	dest: MapObject | undefined;
 	salvages?: Salvage[];
+};
+
+type SplitFleetResponse = {
+	source: Fleet;
+	dest: Fleet;
 };
 
 export class FleetService {
@@ -68,6 +79,35 @@ export class FleetService {
 		return (await response.json()) as TransferCargoResponse;
 	}
 
+	static async split(
+		source: CommandedFleet,
+		dest: Fleet | undefined,
+		sourceTokens: ShipToken[],
+		destTokens: ShipToken[],
+		transferAmount: CargoTransferRequest
+	): Promise<SplitFleetResponse> {
+		const url = `/api/games/${source.gameId}/fleets/${source.num}/split`;
+		const response = await fetch(url, {
+			method: 'POST',
+			headers: {
+				accept: 'application/json'
+			},
+			body: JSON.stringify({
+				sourceFleetNum: source.num,
+				destFleetNum: dest?.num,
+				sourceTokens,
+				destTokens,
+				transferAmount
+			})
+		});
+
+		if (!response.ok) {
+			await Service.throwError(response);
+		}
+
+		return await response.json();
+	}
+
 	static async splitAll(gameId: number | string, fleet: Fleet): Promise<Fleet[]> {
 		const url = `/api/games/${gameId}/fleets/${fleet.num}/split-all`;
 		const response = await fetch(url, {
@@ -101,7 +141,11 @@ export class FleetService {
 	}
 
 	static async updateFleetOrders(fleet: CommandedFleet): Promise<Fleet> {
-		const fleetOrders = new FleetOrdersRequest(fleet.waypoints ?? [], fleet.repeatOrders, fleet.battlePlanNum);
+		const fleetOrders = new FleetOrdersRequest(
+			fleet.waypoints ?? [],
+			fleet.repeatOrders,
+			fleet.battlePlanNum
+		);
 
 		const response = await fetch(`/api/games/${fleet.gameId}/fleets/${fleet.num}`, {
 			method: 'PUT',

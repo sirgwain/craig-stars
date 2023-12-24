@@ -263,6 +263,10 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 		return this.planets.find((p) => p.num === num);
 	}
 
+	getFleet(playerNum: number, num: number) {
+		return this.fleets.find((f) => f.playerNum === playerNum && f.num === num);
+	}
+
 	getPlanetStarbase(planetNum: number) {
 		return this.starbases.find((sb) => sb.planetNum === planetNum);
 	}

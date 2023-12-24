@@ -32,7 +32,7 @@ func TestCreateFleet(t *testing.T) {
 			tt.args.fleet.PlayerNum = player.Num
 
 			want := *tt.args.fleet
-			err := tt.args.c.createFleet(tt.args.fleet)
+			err := tt.args.c.CreateFleet(tt.args.fleet)
 
 			// id is automatically added
 			want.ID = tt.args.fleet.ID
@@ -66,7 +66,7 @@ func TestGetFleet(t *testing.T) {
 			},
 		},
 	}
-	if err := c.createFleet(&fleet); err != nil {
+	if err := c.CreateFleet(&fleet); err != nil {
 		t.Errorf("create fleet %s", err)
 		return
 	}
@@ -113,7 +113,7 @@ func TestGetFleets(t *testing.T) {
 	assert.Equal(t, []*cs.Fleet{}, result)
 
 	fleet := cs.Fleet{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, PlayerNum: player.Num}}
-	if err := c.createFleet(&fleet); err != nil {
+	if err := c.CreateFleet(&fleet); err != nil {
 		t.Errorf("create planet %s", err)
 		return
 	}
@@ -130,7 +130,7 @@ func TestUpdateFleet(t *testing.T) {
 
 	g, player := c.createTestGameWithPlayer()
 	planet := cs.Fleet{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, PlayerNum: player.Num}}
-	if err := c.createFleet(&planet); err != nil {
+	if err := c.CreateFleet(&planet); err != nil {
 		t.Errorf("create planet %s", err)
 		return
 	}

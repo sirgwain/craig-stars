@@ -15,9 +15,9 @@
 	import { PencilSquare } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { createEventDispatcher } from 'svelte';
-	import type { TransportTasksEvent } from '../../dialogs/transport/TransportTasksDialog.svelte';
+	import type { TransportTasksDialogEvent } from '../../dialogs/transport/TransportTasksDialog.svelte';
 
-	const dispatch = createEventDispatcher<TransportTasksEvent>();
+	const dispatch = createEventDispatcher<TransportTasksDialogEvent>();
 
 	const { game, player, universe } = getGameContext();
 

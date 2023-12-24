@@ -9,12 +9,16 @@ import (
 
 // create a new long rang scout fleet for testing
 func testLongRangeScout(player *Player) *Fleet {
+	return testLongRangeScoutWithQuantity(player, 1)
+}
+
+func testLongRangeScoutWithQuantity(player *Player, quantity int) *Fleet {
 	fleet := &Fleet{
 		MapObject: MapObject{Type: MapObjectTypeFleet, Num: 1, PlayerNum: player.Num},
 		BaseName:  "Long Range Scout",
 		Tokens: []ShipToken{
 			{
-				Quantity:  1,
+				Quantity:  quantity,
 				DesignNum: 1,
 				design: NewShipDesign(player, 1).
 					WithName("Long Range Scout").
@@ -24,7 +28,8 @@ func testLongRangeScout(player *Player) *Fleet {
 						{HullComponent: RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
 						{HullComponent: FuelTank.Name, HullSlotIndex: 3, Quantity: 1},
 					}).
-					WithSpec(&rules, player)},
+					WithSpec(&rules, player),
+			},
 		},
 		battlePlan:        &player.BattlePlans[0],
 		OrbitingPlanetNum: None,
@@ -42,6 +47,10 @@ func testLongRangeScout(player *Player) *Fleet {
 
 // create a new small freighter (with cargo pod) fleet for testing
 func testSmallFreighter(player *Player) *Fleet {
+	return testSmallFreighterWithQuantity(player, 1)
+}
+
+func testSmallFreighterWithQuantity(player *Player, quantity int) *Fleet {
 	fleet := &Fleet{
 		MapObject: MapObject{
 			Type:      MapObjectTypeFleet,
@@ -51,7 +60,7 @@ func testSmallFreighter(player *Player) *Fleet {
 		BaseName: "Small Freighter",
 		Tokens: []ShipToken{
 			{
-				Quantity:  1,
+				Quantity:  quantity,
 				DesignNum: 1,
 				design: NewShipDesign(player, 1).
 					WithName("Small Freighter").
@@ -75,7 +84,6 @@ func testSmallFreighter(player *Player) *Fleet {
 	fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
 	fleet.Fuel = fleet.Spec.FuelCapacity
 	return fleet
-
 }
 
 // create a new small freighter (with cargo pod) fleet for testing
@@ -225,12 +233,12 @@ func Test_computeFleetSpec(t *testing.T) {
 	}{
 		{"empty", args{&rules, NewPlayer(1, NewRace().WithSpec(&rules)), &Fleet{}}, FleetSpec{
 			ShipDesignSpec: ShipDesignSpec{
-				ScanRange:    NoScanner,
-				ScanRangePen: NoScanner,
-				SpaceDock:    UnlimitedSpaceDock,
+				ScanRange:      NoScanner,
+				ScanRangePen:   NoScanner,
+				SpaceDock:      UnlimitedSpaceDock,
 				EstimatedRange: Infinite,
 			},
-			Purposes:       map[ShipDesignPurpose]bool{},
+			Purposes: map[ShipDesignPurpose]bool{},
 		}},
 		{"Starter Humanoid Long Range Scout", args{&rules, starterHumanoidPlayer, &Fleet{
 			BaseName: "Long Range Scout",
@@ -409,7 +417,7 @@ func Test_computeFleetSpec(t *testing.T) {
 					FreeSpeed:    QuickJump5.FreeSpeed,
 					MaxSafeSpeed: QuickJump5.MaxSafeSpeed,
 				},
-				EstimatedRange:   Infinite,
+				EstimatedRange: Infinite,
 			},
 			Purposes:         map[ShipDesignPurpose]bool{},
 			MassEmpty:        0,

@@ -1,5 +1,5 @@
 import type { CargoTransferRequest } from '$lib/types/Cargo';
-import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
+import { CommandedFleet, type Fleet, type ShipToken } from '$lib/types/Fleet';
 import {
 	Density,
 	GameStartMode,
@@ -410,6 +410,39 @@ export class FullGame implements Game {
 			fleet.waypoints.length > selectedWaypointIndex
 		) {
 			selectWaypoint(fleet.waypoints[selectedWaypointIndex]);
+		}
+
+		updateUniverse(this.universe);
+	}
+
+	async split(
+		src: CommandedFleet,
+		dest: Fleet | undefined,
+		srcTokens: ShipToken[],
+		destTokens: ShipToken[],
+		transferAmount: CargoTransferRequest
+	) {
+		const selectedWaypointIndex = get(currentSelectedWaypointIndex);
+		const response = await FleetService.split(src, dest, srcTokens, destTokens, transferAmount);
+
+		// update the commanded fleet
+		const source = Object.assign(new CommandedFleet(), response.source);
+		this.universe.updateFleet(response.source);
+		commandedFleet.update(() => source);
+
+		// update or add the new fleets to the universe
+		if (dest?.num == 0) {
+			this.universe.addFleets([response.dest]);
+		} else {
+			this.universe.updateFleet(response.dest);
+		}
+
+		if (
+			selectedWaypointIndex > -1 &&
+			source.waypoints &&
+			source.waypoints.length > selectedWaypointIndex
+		) {
+			selectWaypoint(source.waypoints[selectedWaypointIndex]);
 		}
 
 		updateUniverse(this.universe);

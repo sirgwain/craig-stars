@@ -3,27 +3,29 @@
 	import { getGameContext } from '$lib/services/Contexts';
 	import { selectedWaypoint } from '$lib/services/Stores';
 	import { getDamagePercentForToken, type CommandedFleet } from '$lib/types/Fleet';
-	import { createEventDispatcher } from 'svelte';
-	import CommandTile from './CommandTile.svelte';
-	import type { SplitFleetEvent } from '../../dialogs/split/SplitFleetDialog.svelte';
-	import type { MergeFleetsEvent } from '../../dialogs/merge/MergeFleetsDialog.svelte';
 	import { Infinite } from '$lib/types/MapObject';
+	import { createEventDispatcher } from 'svelte';
+	import type { MergeFleetsDialogEvent } from '../../dialogs/merge/MergeFleetsDialog.svelte';
+	import type { SplitFleetEvent } from '../../dialogs/split/SplitFleet.svelte';
+	import type { SplitFleetDialogEvent } from '../../dialogs/split/SplitFleetDialog.svelte';
+	import CommandTile from './CommandTile.svelte';
 
-	const dispatchSplit = createEventDispatcher<SplitFleetEvent>();
-	const dispatchMerge = createEventDispatcher<MergeFleetsEvent>();
+	const dispatch = createEventDispatcher<
+		SplitFleetEvent & SplitFleetDialogEvent & MergeFleetsDialogEvent
+	>();
 	const { game, player, universe } = getGameContext();
 
 	export let fleet: CommandedFleet;
 
 	const split = () => {
-		dispatchSplit('split-fleet-dialog', { fleet });
+		dispatch('split-fleet-dialog', { src: fleet });
 	};
 
 	const splitAll = async () => {
-		dispatchSplit('split-all');
+		dispatch('split-all');
 	};
 	const merge = () => {
-		dispatchMerge('merge-fleets-dialog', {
+		dispatch('merge-fleets-dialog', {
 			fleet,
 			otherFleetsHere: $universe.getMyFleetsByPosition(fleet).filter((f) => f.num !== fleet.num)
 		});

@@ -172,7 +172,7 @@ func TestGetPlanetByNum(t *testing.T) {
 		},
 		PlanetNum: planet2.Num,
 	}
-	if err := c.createFleet(&fleet); err != nil {
+	if err := c.CreateFleet(&fleet); err != nil {
 		t.Errorf("create fleet %s", err)
 		return
 	}

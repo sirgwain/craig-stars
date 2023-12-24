@@ -393,6 +393,7 @@ func Start(config config.Config) error {
 							r.Use(server.fleetCtx)
 							r.Get("/", server.fleet)
 							r.Put("/", server.updateFleetOrders)
+							r.Post("/split", server.split)
 							r.Post("/split-all", server.splitAll)
 							r.Post("/merge", server.merge)
 							r.Post("/transfer-cargo", server.transferCargo)

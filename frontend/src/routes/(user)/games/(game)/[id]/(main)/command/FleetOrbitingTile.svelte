@@ -4,10 +4,10 @@
 	import type { CommandedFleet } from '$lib/types/Fleet';
 	import { None, ownedBy } from '$lib/types/MapObject';
 	import { createEventDispatcher } from 'svelte';
-	import type { CargoTransferEvent } from '../../dialogs/cargo/CargoTranfserDialog.svelte';
+	import type { CargoTransferDialogEvent } from '../../dialogs/cargo/CargoTranfserDialog.svelte';
 	import CommandTile from './CommandTile.svelte';
 
-	const dispatch = createEventDispatcher<CargoTransferEvent>();
+	const dispatch = createEventDispatcher<CargoTransferDialogEvent>();
 	const { game, player, universe, settings } = getGameContext();
 
 	export let fleet: CommandedFleet;

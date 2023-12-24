@@ -158,7 +158,7 @@ export class CommandedFleet implements Fleet {
 	gameId = 0;
 	createdAt?: string | undefined;
 	updatedAt?: string | undefined;
-	readonly type = MapObjectType.Planet;
+	readonly type = MapObjectType.Fleet;
 
 	name = '';
 	playerNum = 0;
