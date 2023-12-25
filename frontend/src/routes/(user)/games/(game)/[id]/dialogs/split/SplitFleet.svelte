@@ -131,12 +131,23 @@
 			destTokens = cloneDeep(dest.tokens ?? []);
 		} else {
 			// we have a source and a dest, make the srcTokens and destTokens match up
-			srcTokens = cloneDeep(
-				src.tokens.concat((dest.tokens ?? []).map((t) => Object.assign({}, t, { quantity: 0 })))
-			);
-			destTokens = cloneDeep(
-				src.tokens.map((t) => Object.assign({}, t, { quantity: 0 })).concat(dest.tokens ?? [])
-			);
+			srcTokens = cloneDeep(src.tokens);
+			destTokens = cloneDeep(src.tokens.map((t) => Object.assign({}, t, { quantity: 0 })));
+
+			dest.tokens?.forEach((token) => {
+				const tokenWithDesignInSrc = srcTokens.find((t) => t.designNum === token.designNum);
+				if (!tokenWithDesignInSrc) {
+					// this token only exists in the destination, so add a 0 quantity copy to the src
+					srcTokens.push(Object.assign({}, token, { quantity: 0 }));
+					destTokens.push(Object.assign({}, token));
+				} else {
+					// this token exists in the src, so update the quantity in the destination
+					const tokenWithDesignInDest = destTokens.find((t) => t.designNum === token.designNum);
+					if (tokenWithDesignInDest) {
+						tokenWithDesignInDest.quantity = token.quantity;
+					}
+				}
+			});
 		}
 
 		return () => {

@@ -238,7 +238,7 @@ func newFleet(player *Player, num int, name string, waypoints []Waypoint) Fleet 
 			Position:  waypoints[0].Position,
 		},
 		BaseName: name,
-		Tokens: []ShipToken{},
+		Tokens:   []ShipToken{},
 		FleetOrders: FleetOrders{
 			Waypoints: waypoints,
 		},
@@ -248,7 +248,7 @@ func newFleet(player *Player, num int, name string, waypoints []Waypoint) Fleet 
 }
 
 // create a new fleet with a design
-func newFleetForDesign(player *Player, design *ShipDesign, num int, name string, waypoints []Waypoint) Fleet {
+func newFleetForDesign(player *Player, design *ShipDesign, quantity, num int, name string, waypoints []Waypoint) Fleet {
 	return Fleet{
 		MapObject: MapObject{
 			Type:      MapObjectTypeFleet,
@@ -260,7 +260,7 @@ func newFleetForDesign(player *Player, design *ShipDesign, num int, name string,
 		},
 		BaseName: name,
 		Tokens: []ShipToken{
-			{design: design, DesignNum: design.Num, Quantity: 1},
+			{design: design, DesignNum: design.Num, Quantity: quantity},
 		},
 		FleetOrders: FleetOrders{
 			Waypoints: waypoints,
@@ -291,7 +291,7 @@ func newFleetForToken(player *Player, num int, token ShipToken, waypoints []Wayp
 
 // create a new fleet that is a starbase
 func newStarbase(player *Player, planet *Planet, design *ShipDesign, name string) Fleet {
-	fleet := newFleetForDesign(player, design, 0, name, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 1)})
+	fleet := newFleetForDesign(player, design, 1, 0, name, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 1)})
 	fleet.PlanetNum = planet.Num
 	fleet.Starbase = true
 

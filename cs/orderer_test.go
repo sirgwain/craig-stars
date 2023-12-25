@@ -5,7 +5,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
 )
@@ -1073,7 +1072,27 @@ func Test_orders_TransferFleetCargo(t *testing.T) {
 }
 
 func Test_orders_SplitFleet(t *testing.T) {
-	player := NewPlayer(0, NewRace().WithSpec(&rules)).withSpec(&rules)
+	player := NewPlayer(0, NewRace().WithSpec(&rules)).WithNum(1).withSpec(&rules)
+	scoutDesign := NewShipDesign(player, 1).
+		WithName("Long Range Scout").
+		WithHull(Scout.Name).
+		WithSlots([]ShipDesignSlot{
+			{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
+			{HullComponent: RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
+			{HullComponent: FuelTank.Name, HullSlotIndex: 3, Quantity: 1},
+		}).
+		WithSpec(&rules, player)
+
+	freighterDesign := NewShipDesign(player, 2).
+		WithName("Teamster").
+		WithHull(SmallFreighter.Name).
+		WithSlots([]ShipDesignSlot{
+			{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+			{HullComponent: CargoPod.Name, HullSlotIndex: 2, Quantity: 1},
+			{HullComponent: BatScanner.Name, HullSlotIndex: 3, Quantity: 1},
+		}).
+		WithSpec(&rules, player)
+
 	type args struct {
 		source         *Fleet
 		dest           *Fleet
@@ -1082,29 +1101,20 @@ func Test_orders_SplitFleet(t *testing.T) {
 		transferAmount CargoTransferRequest
 	}
 
+	type want struct {
+		err          bool
+		errContains  string
+		deleteSource bool
+		deleteDest   bool
+	}
+
 	tests := []struct {
-		name            string
-		args            args
-		wantErr         bool
-		wantErrContains string
+		name string
+		args args
+		want want
 	}{
-		{"fail with missing source", args{source: nil, dest: nil}, true, "no source fleet"},
-		{"fail with missing tokens", args{source: testLongRangeScoutWithQuantity(player, 2), dest: nil}, true, "transfer tokens and source fleet tokens must be the same length"},
-		{
-			name: "fail with missing dest tokens",
-			args: args{
-				source: testLongRangeScoutWithQuantity(player, 2),
-				dest:   nil,
-				sourceTokens: []ShipToken{
-					{
-						Quantity:  2,
-						DesignNum: 1,
-					},
-				},
-			},
-			wantErr:         true,
-			wantErrContains: "source tokens and dest tokens must be the same length",
-		},
+		{"fail with missing source", args{source: nil, dest: nil}, want{err: true, errContains: "no source fleet"}},
+		{"fail with missing tokens", args{source: testLongRangeScoutWithQuantity(player, 2), dest: nil}, want{err: true, errContains: "source fleet tokens and split request tokens don't match"}},
 		{
 			name: "fail trying to add extra ship to dest",
 			args: args{
@@ -1123,8 +1133,7 @@ func Test_orders_SplitFleet(t *testing.T) {
 					},
 				},
 			},
-			wantErr:         true,
-			wantErrContains: "split fleet cannot create extra ships",
+			want: want{err: true, errContains: "token in original fleet has different quantity that token in split request"},
 		},
 		{
 			name: "fail trying to add extra ship stack",
@@ -1152,8 +1161,7 @@ func Test_orders_SplitFleet(t *testing.T) {
 					},
 				},
 			},
-			wantErr:         true,
-			wantErrContains: "transfer tokens and source fleet tokens must be the same length",
+			want: want{err: true, errContains: "source fleet tokens and split request tokens don't match"},
 		},
 		{
 			name: "split 2 scout fleet into two fleets",
@@ -1174,21 +1182,142 @@ func Test_orders_SplitFleet(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "split 2 freighters into two fleets",
+			args: args{
+				source: testSmallFreighterWithQuantity(player, 2).withCargo(Cargo{10, 10, 10, 10}),
+				dest:   nil,
+				sourceTokens: []ShipToken{
+					{
+						Quantity:  1,
+						DesignNum: 1,
+					},
+				},
+				destTokens: []ShipToken{
+					{
+						Quantity:  1,
+						DesignNum: 1,
+					},
+				},
+				transferAmount: CargoTransferRequest{Cargo: Cargo{-5, -5, -5, -5}, Fuel: -130},
+			},
+		},
+		{
+			name: "split mixed fleet of 2 scouts <-> 2 freighters into one of each",
+			args: args{
+				source: &Fleet{
+					MapObject: MapObject{
+						Type:      MapObjectTypeFleet,
+						Num:       1,
+						PlayerNum: player.Num,
+						Name:      "Fleet #1",
+					},
+					BaseName: "Fleet",
+					FleetOrders: FleetOrders{
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
+					},
+					Tokens: []ShipToken{
+						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 2},
+					},
+					Fuel: scoutDesign.Spec.FuelCapacity * 2, // fully fueled
+				},
+				dest: &Fleet{
+					MapObject: MapObject{
+						Type:      MapObjectTypeFleet,
+						Num:       2,
+						PlayerNum: player.Num,
+						Name:      "Fleet #2",
+					},
+					BaseName: "Fleet",
+					FleetOrders: FleetOrders{
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
+					},
+					Tokens: []ShipToken{
+						{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 2},
+					},
+					Fuel: freighterDesign.Spec.FuelCapacity * 2, // fully fueled
+				},
+				sourceTokens: []ShipToken{
+					{
+						Quantity:  1,
+						DesignNum: scoutDesign.Num,
+					},
+					{
+						Quantity:  1,
+						DesignNum: freighterDesign.Num,
+					},
+				},
+				destTokens: []ShipToken{
+					{
+						Quantity:  1,
+						DesignNum: scoutDesign.Num,
+					},
+					{
+						Quantity:  1,
+						DesignNum: freighterDesign.Num,
+					},
+				},
+				// give one freighter's worth of fuel but take one scout's worth of fuel
+				transferAmount: CargoTransferRequest{Fuel: freighterDesign.Spec.FuelCapacity - scoutDesign.Spec.FuelCapacity},
+			},
+		},
+		{
+			name: "delete source",
+			args: args{
+				source: testLongRangeScoutWithQuantity(player, 1).withNum(1),
+				dest:   testLongRangeScoutWithQuantity(player, 1).withNum(2),
+				destTokens: []ShipToken{
+					{
+						Quantity:  2,
+						DesignNum: 1,
+					},
+				},
+			},
+			want: want{deleteSource: true},
+		},
+		{
+			name: "delete dest",
+			args: args{
+				source: testLongRangeScoutWithQuantity(player, 1).withNum(1),
+				dest:   testLongRangeScoutWithQuantity(player, 1).withNum(2),
+				sourceTokens: []ShipToken{
+					{
+						Quantity:  2,
+						DesignNum: 1,
+					},
+				},
+			},
+			want: want{deleteDest: true},
+		},		
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			o := &orders{}
 
+			designsByNum := make(map[int]*ShipDesign)
 			var sourceCargo, destCargo Cargo
 			var sourceFuel, destFuel int
 			if tt.args.source != nil {
 				sourceCargo = tt.args.source.Cargo
 				sourceFuel = tt.args.source.Fuel
+				for _, token := range tt.args.source.Tokens {
+					designsByNum[token.DesignNum] = token.design
+				}
 			}
 
 			if tt.args.dest != nil {
 				destCargo = tt.args.dest.Cargo
 				destFuel = tt.args.dest.Fuel
+				for _, token := range tt.args.dest.Tokens {
+					if _, found := designsByNum[token.DesignNum]; !found {
+						designsByNum[token.DesignNum] = token.design
+					}
+				}
+			}
+
+			player.Designs = make([]*ShipDesign, 0, len(designsByNum))
+			for designNum := range designsByNum {
+				player.Designs = append(player.Designs, designsByNum[designNum])
 			}
 
 			playerFleets := []*Fleet{tt.args.source}
@@ -1200,12 +1329,11 @@ func Test_orders_SplitFleet(t *testing.T) {
 				DestTokens:     tt.args.destTokens,
 				TransferAmount: tt.args.transferAmount,
 			})
-			log.Error().Err(err).Msgf("test failed")
-			if (err != nil) != tt.wantErr {
-				t.Errorf("orders.SplitFleet() error = %v, wantErr %v", err, tt.wantErr)
+			if (err != nil) != tt.want.err {
+				t.Errorf("orders.SplitFleet() error = %v, wantErr %v", err, tt.want.err)
 			}
-			if err != nil && !strings.Contains(fmt.Sprint(err), tt.wantErrContains) {
-				t.Errorf("orders.SplitFleet() error = %v, wantErrContains %s", err, tt.wantErrContains)
+			if err != nil && !strings.Contains(fmt.Sprint(err), tt.want.errContains) {
+				t.Errorf("orders.SplitFleet() error = %v, wantErrContains %s", err, tt.want.errContains)
 			}
 			if err == nil {
 				// the dest and source should have the passed in tokens
@@ -1217,7 +1345,15 @@ func Test_orders_SplitFleet(t *testing.T) {
 				assert.Equal(t, sourceFuel+tt.args.transferAmount.Fuel, source.Fuel)
 				assert.Equal(t, destCargo.Subtract(tt.args.transferAmount.Cargo), dest.Cargo)
 				assert.Equal(t, destFuel-tt.args.transferAmount.Fuel, dest.Fuel)
+
+				if tt.want.deleteSource {
+					assert.True(t, source.Delete)
+				}
+				if tt.want.deleteDest {
+					assert.True(t, dest.Delete)
+				}
 			}
+
 
 		})
 	}

@@ -307,48 +307,53 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 		return nil, nil, fmt.Errorf("no source fleet to split")
 	}
 
-	if len(request.SourceTokens) != len(request.DestTokens) {
-		return nil, nil, fmt.Errorf("source tokens and dest tokens must be the same length")
+	// build a map of tokens by design
+	tokensByDesign := map[int]*ShipToken{}
+	for _, token := range request.Source.Tokens {
+		t := token
+		tokensByDesign[token.DesignNum] = &t
 	}
-
-	if len(request.SourceTokens) != len(request.Source.Tokens) {
-		return nil, nil, fmt.Errorf("transfer tokens and source fleet tokens must be the same length")
-	}
-
-	// make sure the player isn't trying to create tokens out of thin air
-	hasSourceTokens := false
-	hasDestTokens := false
-	for index, srcToken := range request.SourceTokens {
-		srcFleetToken := request.Source.Tokens[index]
-		destToken := request.DestTokens[index]
-		if srcToken.Quantity > 0 {
-			hasSourceTokens = true
-		}
-		if destToken.Quantity > 0 {
-			hasDestTokens = true
-		}
-
-		if srcFleetToken.Quantity != srcToken.Quantity + destToken.Quantity {
-			return nil, nil, fmt.Errorf("split fleet cannot create extra ships")
-		}
-
-		// clear out quantity for this copy of the token to compare them
-		srcFleetToken.Quantity = 0
-		srcToken.Quantity = 0
-		destToken.Quantity = 0
-		srcFleetToken.design = nil
-		srcToken.design = nil
-		destToken.design = nil
-		if srcToken != srcFleetToken {
-			return nil, nil, fmt.Errorf("source fleet tokens and transfer tokens must only differ in quantity")
-		}
-		if srcToken != destToken {
-			return nil, nil, fmt.Errorf("source tokens and dest tokens must only differ in quantity")
+	if request.Dest != nil {
+		for _, token := range request.Dest.Tokens {
+			if t, found := tokensByDesign[token.DesignNum]; found {
+				t.Quantity += token.Quantity
+				t.QuantityDamaged += token.QuantityDamaged
+			} else {
+				t := token
+				tokensByDesign[token.DesignNum] = &t
+			}
 		}
 	}
 
-	if !hasSourceTokens || !hasDestTokens {
-		return nil, nil, fmt.Errorf("cannot split a fleet without at least one token in the source and destination")
+	// build a map of the split request tokens by design
+	splitTokensByDesign := map[int]*ShipToken{}
+	for _, token := range request.SourceTokens {
+		t := token
+		splitTokensByDesign[token.DesignNum] = &t
+	}
+	for _, token := range request.DestTokens {
+		if t, found := splitTokensByDesign[token.DesignNum]; found {
+			t.Quantity += token.Quantity
+			t.QuantityDamaged += token.QuantityDamaged
+		} else {
+			t := token
+			splitTokensByDesign[token.DesignNum] = &t
+		}
+	}
+
+	if len(tokensByDesign) != len(splitTokensByDesign) {
+		return nil, nil, fmt.Errorf("source fleet tokens and split request tokens don't match")
+	}
+
+	for designNum, token := range tokensByDesign {
+		splitToken := splitTokensByDesign[designNum]
+		if splitToken == nil {
+			return nil, nil, fmt.Errorf("found token in original fleets but not in split request")
+		}
+
+		if splitToken.Quantity != token.Quantity || splitToken.QuantityDamaged != token.QuantityDamaged {
+			return nil, nil, fmt.Errorf("token in original fleet has different quantity that token in split request")
+		}
 	}
 
 	if !source.canTransfer(request.TransferAmount.Negative()) {
@@ -374,11 +379,8 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 	}
 
 	// update the tokens for each fleet
-	for index, srcToken := range request.SourceTokens {
-		destToken := request.DestTokens[index]
-		source.Tokens[index] = srcToken
-		dest.Tokens[index] = destToken
-	}
+	source.Tokens = request.SourceTokens
+	dest.Tokens = request.DestTokens
 
 	// remove any empty tokens
 	tokens := []ShipToken{}
@@ -405,6 +407,13 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 	// finally, transfer the cargo
 	if err = o.TransferFleetCargo(rules, player, player, source, dest, request.TransferAmount); err != nil {
 		return nil, nil, err
+	}
+
+	if len(source.Tokens) == 0 {
+		source.Delete = true
+	}
+	if len(dest.Tokens) == 0 {
+		dest.Delete = true
 	}
 
 	source.MarkDirty()
@@ -549,7 +558,7 @@ func (o *orders) splitFleetTokens(rules *Rules, player *Player, playerFleets []*
 	}
 
 	var baseDesign = tokens[0].design
-	fleet := newFleetForDesign(player, baseDesign, fleetNum, baseDesign.Name, source.Waypoints)
+	fleet := newFleetForDesign(player, baseDesign, 1, fleetNum, baseDesign.Name, source.Waypoints)
 	fleet.OrbitingPlanetNum = source.OrbitingPlanetNum
 	fleet.Heading = source.Heading
 	fleet.WarpSpeed = source.WarpSpeed

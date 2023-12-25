@@ -233,15 +233,32 @@ func (s *server) split(w http.ResponseWriter, r *http.Request) {
 
 	// save the updated fleets back to the database
 	if err := s.db.WrapInTransaction(func(c db.Client) error {
-		if err := c.UpdateFleet(source); err != nil {
-			log.Error().Err(err).Msg("update fleet in database")
-			return err
+		if source.Delete {
+			if err := c.DeleteFleet(source.ID); err != nil {
+				log.Error().Err(err).Msg("delete fleet in database")
+				return err
+			}
+		} else {
+			if err := c.UpdateFleet(source); err != nil {
+				log.Error().Err(err).Msg("update fleet in database")
+				return err
+			}
 		}
 
 		if dest.ID == 0 {
-			dest.GameID = game.ID
-			if err := c.CreateFleet(dest); err != nil {
-				log.Error().Err(err).Msg("update fleet in database")
+			// it's possible the user sent a "split" request with no dest but didn't split any
+			// in this case dest will be marked for deletion but won't ever have been saved
+			// to the database, so just ignore it
+			if !dest.Delete {
+				dest.GameID = game.ID
+				if err := c.CreateFleet(dest); err != nil {
+					log.Error().Err(err).Msg("delete fleet in database")
+					return err
+				}
+			}
+		} else if dest.Delete {
+			if err := c.DeleteFleet(dest.ID); err != nil {
+				log.Error().Err(err).Msg("delete fleet in database")
 				return err
 			}
 		} else {
