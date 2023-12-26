@@ -1133,7 +1133,7 @@ func Test_orders_SplitFleet(t *testing.T) {
 					},
 				},
 			},
-			want: want{err: true, errContains: "token in original fleet has different quantity that token in split request"},
+			want: want{err: true, errContains: "token in original fleet has different quantity/damage that token in split request"},
 		},
 		{
 			name: "fail trying to add extra ship stack",
@@ -1183,7 +1183,181 @@ func Test_orders_SplitFleet(t *testing.T) {
 			},
 		},
 		{
-			name: "split 2 freighters into two fleets",
+			name: "split damaged 2 scout fleet into two fleets",
+			args: args{
+				source: &Fleet{
+					MapObject: MapObject{
+						Type:      MapObjectTypeFleet,
+						Num:       1,
+						PlayerNum: player.Num,
+						Name:      "Fleet #1",
+					},
+					BaseName: "Fleet",
+					FleetOrders: FleetOrders{
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
+					},
+					Tokens: []ShipToken{
+						// one of these scouts has 10 damage
+						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 2, QuantityDamaged: 1, Damage: 10},
+					},
+					Fuel: scoutDesign.Spec.FuelCapacity * 2,
+				},
+				dest: nil,
+				sourceTokens: []ShipToken{
+					{
+						Quantity:  1,
+						DesignNum: 1,
+					},
+				},
+				// move the damaged token into a new fleet
+				destTokens: []ShipToken{
+					{
+						Quantity:        1,
+						DesignNum:       1,
+						QuantityDamaged: 1,
+						Damage:          10,
+					},
+				},
+			},
+		},
+		{
+			name: "split damaged 3 scout fleet",
+			args: args{
+				source: &Fleet{
+					MapObject: MapObject{
+						Type:      MapObjectTypeFleet,
+						Num:       1,
+						PlayerNum: player.Num,
+						Name:      "Fleet #1",
+					},
+					BaseName: "Fleet",
+					FleetOrders: FleetOrders{
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
+					},
+					Tokens: []ShipToken{
+						// one of these scouts has 10 damage
+						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 3, QuantityDamaged: 2, Damage: 10},
+					},
+					Fuel: scoutDesign.Spec.FuelCapacity * 3,
+				},
+				dest: nil,
+				// keep one of the damaged tokens in the old fleet
+				sourceTokens: []ShipToken{
+					{
+						Quantity:        2,
+						DesignNum:       1,
+						QuantityDamaged: 1,
+						Damage:          10,
+					},
+				},
+				// move one of the damaged tokens into a new fleet
+				destTokens: []ShipToken{
+					{
+						Quantity:        1,
+						DesignNum:       1,
+						QuantityDamaged: 1,
+						Damage:          10,
+					},
+				},
+			},
+		},
+		{
+			name: "fail if split tries to remove damage",
+			args: args{
+				source: &Fleet{
+					MapObject: MapObject{
+						Type:      MapObjectTypeFleet,
+						Num:       1,
+						PlayerNum: player.Num,
+						Name:      "Fleet #1",
+					},
+					BaseName: "Fleet",
+					FleetOrders: FleetOrders{
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
+					},
+					Tokens: []ShipToken{
+						// one of these scouts has 10 damage
+						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 3, QuantityDamaged: 2, Damage: 10},
+					},
+					Fuel: scoutDesign.Spec.FuelCapacity * 3,
+				},
+				dest: nil,
+				// pretend like our source fleet is undamaged (cheater!, or more likely a UI bug...)
+				sourceTokens: []ShipToken{
+					{
+						Quantity:  2,
+						DesignNum: 1,
+					},
+				},
+				// move one of the damaged tokens into a new fleet
+				destTokens: []ShipToken{
+					{
+						Quantity:        1,
+						DesignNum:       1,
+						QuantityDamaged: 1,
+						Damage:          10,
+					},
+				},
+			},
+			want: want{err: true, errContains: "token in original fleet has different quantity/damage that token in split request"},
+		},
+		{
+			name: "merge two indepdently damaged fleets",
+			args: args{
+				source: &Fleet{
+					MapObject: MapObject{
+						Type:      MapObjectTypeFleet,
+						Num:       1,
+						PlayerNum: player.Num,
+						Name:      "Fleet #1",
+					},
+					BaseName: "Fleet",
+					FleetOrders: FleetOrders{
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
+					},
+					Tokens: []ShipToken{
+						// one of these scouts has 10 damage
+						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 2, QuantityDamaged: 1, Damage: 10},
+					},
+					Fuel: scoutDesign.Spec.FuelCapacity * 3,
+				},
+				dest: &Fleet{
+					MapObject: MapObject{
+						Type:      MapObjectTypeFleet,
+						Num:       1,
+						PlayerNum: player.Num,
+						Name:      "Fleet #1",
+					},
+					BaseName: "Fleet",
+					FleetOrders: FleetOrders{
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
+					},
+					Tokens: []ShipToken{
+						// one of these scouts has 5 damage
+						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 2, QuantityDamaged: 1, Damage: 5},
+					},
+					Fuel: scoutDesign.Spec.FuelCapacity * 3,
+				},
+				// move the 10 dmg scout to the 5dmg scout fleet
+				sourceTokens: []ShipToken{
+					{
+						Quantity:  1,
+						DesignNum: 1,
+					},
+				},
+				// move one of the damaged tokens into a new fleet
+				destTokens: []ShipToken{
+					{
+						Quantity:        3,
+						DesignNum:       1,
+						QuantityDamaged: 2,
+						Damage:          (10. + 5.) / 2.,
+					},
+				},
+			},
+		},
+		{
+			name: "split 2 freighters",
 			args: args{
 				source: testSmallFreighterWithQuantity(player, 2).withCargo(Cargo{10, 10, 10, 10}),
 				dest:   nil,
@@ -1288,7 +1462,7 @@ func Test_orders_SplitFleet(t *testing.T) {
 				},
 			},
 			want: want{deleteDest: true},
-		},		
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1353,7 +1527,6 @@ func Test_orders_SplitFleet(t *testing.T) {
 					assert.True(t, dest.Delete)
 				}
 			}
-
 
 		})
 	}

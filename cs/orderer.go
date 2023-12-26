@@ -311,6 +311,7 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 	tokensByDesign := map[int]*ShipToken{}
 	for _, token := range request.Source.Tokens {
 		t := token
+		t.Damage *= float64(t.QuantityDamaged)
 		tokensByDesign[token.DesignNum] = &t
 	}
 	if request.Dest != nil {
@@ -318,8 +319,10 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 			if t, found := tokensByDesign[token.DesignNum]; found {
 				t.Quantity += token.Quantity
 				t.QuantityDamaged += token.QuantityDamaged
+				t.Damage += token.Damage * float64(token.QuantityDamaged)
 			} else {
 				t := token
+				t.Damage *= float64(t.QuantityDamaged)
 				tokensByDesign[token.DesignNum] = &t
 			}
 		}
@@ -329,14 +332,17 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 	splitTokensByDesign := map[int]*ShipToken{}
 	for _, token := range request.SourceTokens {
 		t := token
+		t.Damage *= float64(t.QuantityDamaged)
 		splitTokensByDesign[token.DesignNum] = &t
 	}
 	for _, token := range request.DestTokens {
 		if t, found := splitTokensByDesign[token.DesignNum]; found {
 			t.Quantity += token.Quantity
 			t.QuantityDamaged += token.QuantityDamaged
+			t.Damage += token.Damage * float64(token.QuantityDamaged)
 		} else {
 			t := token
+			t.Damage *= float64(t.QuantityDamaged)
 			splitTokensByDesign[token.DesignNum] = &t
 		}
 	}
@@ -351,8 +357,8 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 			return nil, nil, fmt.Errorf("found token in original fleets but not in split request")
 		}
 
-		if splitToken.Quantity != token.Quantity || splitToken.QuantityDamaged != token.QuantityDamaged {
-			return nil, nil, fmt.Errorf("token in original fleet has different quantity that token in split request")
+		if splitToken.Quantity != token.Quantity || splitToken.QuantityDamaged != token.QuantityDamaged || splitToken.Damage != token.Damage {
+			return nil, nil, fmt.Errorf("token in original fleet has different quantity/damage that token in split request")
 		}
 	}
 

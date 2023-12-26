@@ -1,6 +1,6 @@
 <script lang="ts" context="module">
 	import { getGameContext } from '$lib/services/Contexts';
-	import { CommandedFleet, type Fleet, type ShipToken } from '$lib/types/Fleet';
+	import { CommandedFleet, moveDamagedTokens, type Fleet, type ShipToken } from '$lib/types/Fleet';
 	import { ArrowLongLeft, ArrowLongRight } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
@@ -26,8 +26,9 @@
 	import { CargoTransferRequest, emptyCargo, type Cargo } from '$lib/types/Cargo';
 	import { total } from '$lib/types/Cost';
 	import hotkeys from 'hotkeys-js';
-	import { cloneDeep, maxBy } from 'lodash-es';
+	import { cloneDeep } from 'lodash-es';
 	import { createEventDispatcher, onMount } from 'svelte';
+	import { clamp } from '$lib/services/Math';
 
 	const dispatch = createEventDispatcher<SplitFleetEvent>();
 	const { game, player, universe } = getGameContext();
@@ -68,8 +69,19 @@
 		const fuelPercent = (designFuelCapacity * quantity) / (srcFuelCapacity + destFuelCapacity);
 		transferAmount.fuel -= Math.sign(fuelPercent) * Math.floor(Math.abs(totalFuel * fuelPercent));
 
-		srcTokens[index].quantity -= quantity;
-		destTokens[index].quantity += quantity;
+		const srcToken = srcTokens[index];
+		const destToken = destTokens[index];
+
+		srcToken.quantity -= quantity;
+		destToken.quantity += quantity;
+
+		if (quantity > 0) {
+			// move from left to right
+			moveDamagedTokens(srcToken, destToken, quantity);
+		} else if (quantity < 0) {
+			// move from right to left
+			moveDamagedTokens(destToken, srcToken, -quantity);
+		}
 
 		srcFuelCapacity -= designFuelCapacity * quantity;
 		srcCargoCapacity -= designCargoCapacity * quantity;
