@@ -524,7 +524,7 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 	for _, fleet := range append(fullGame.Fleets, fullGame.Starbases...) {
 		if fleet.ID == 0 && !fleet.Delete {
 			fleet.GameID = fullGame.ID
-			if err := c.createFleet(fleet); err != nil {
+			if err := c.CreateFleet(fleet); err != nil {
 				return fmt.Errorf("create fleet %w", err)
 			}
 			remainingFleets = append(remainingFleets, fleet)

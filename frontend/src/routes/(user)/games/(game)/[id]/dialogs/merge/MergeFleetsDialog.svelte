@@ -5,12 +5,15 @@
 		otherFleetsHere: Fleet[];
 	};
 
+	export type MergeFleetsDialogEvent = {
+		'merge-fleets-dialog': MergeFleetsDialogEventDetails;
+	};
+
 	export type MergeFleetsEventDetails = {
 		fleet: CommandedFleet;
 		fleetNums: number[];
 	};
 	export type MergeFleetsEvent = {
-		'merge-fleets-dialog': MergeFleetsDialogEventDetails;
 		'merge-fleets': MergeFleetsEventDetails;
 		cancel: void;
 	};

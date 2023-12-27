@@ -104,6 +104,7 @@ func (s *server) createShipDesign(w http.ResponseWriter, r *http.Request) {
 	if err := db.CreateShipDesign(design.ShipDesign); err != nil {
 		log.Error().Err(err).Int64("ID", player.ID).Str("DesignName", design.Name).Msg("save new player design")
 		render.Render(w, r, ErrInternalServerError(err))
+		return
 	}
 
 	log.Info().Int64("GameID", design.GameID).Int("PlayerNum", player.Num).Str("DesignName", design.Name).Msg("created player design")
@@ -202,6 +203,7 @@ func (s *server) deleteShipDesign(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("get designs for player")
 		render.Render(w, r, ErrInternalServerError(err))
+		return
 	}
 
 	playerPlanets, err := readWriteClient.GetPlanetsForPlayer(game.ID, player.Num)

@@ -4,9 +4,10 @@
 	import { techs } from '$lib/services/Stores';
 	import type { CommandedPlanet } from '$lib/types/Planet';
 	import { createEventDispatcher } from 'svelte';
+	import type { ProductionQueueDialogEvent } from '../../dialogs/production/ProductionQueueDialog.svelte';
 	import CommandTile from './CommandTile.svelte';
 
-	const dispatch = createEventDispatcher();
+	const dispatch = createEventDispatcher<ProductionQueueDialogEvent>();
 	const { game, player, universe } = getGameContext();
 
 	export let planet: CommandedPlanet;

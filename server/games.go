@@ -294,18 +294,21 @@ func (s *server) joinGame(w http.ResponseWriter, r *http.Request) {
 		err := fmt.Errorf("cannot join game after setup")
 		log.Error().Err(err).Msg("join game")
 		render.Render(w, r, ErrBadRequest(err))
+		return
 	}
 
 	if join.Name == "" {
 		err := fmt.Errorf("name cannot be empty")
 		log.Error().Err(err).Msg("join game")
 		render.Render(w, r, ErrBadRequest(err))
+		return
 	}
 
 	// try and join this game
 	if err := gr.JoinGame(game.ID, user.ID, join.Name, join.Race); err != nil {
 		log.Error().Err(err).Msg("join game")
 		render.Render(w, r, ErrBadRequest(err))
+		return
 	}
 }
 
@@ -319,12 +322,14 @@ func (s *server) leaveGame(w http.ResponseWriter, r *http.Request) {
 		err := fmt.Errorf("cannot leave game after setup")
 		log.Error().Err(err).Msg("leave game")
 		render.Render(w, r, ErrBadRequest(err))
+		return
 	}
 
 	// try and join this game
 	if err := gr.LeaveGame(game.ID, user.ID); err != nil {
 		log.Error().Err(err).Msg("leave game")
 		render.Render(w, r, ErrBadRequest(err))
+		return
 	}
 }
 
@@ -339,6 +344,7 @@ func (s *server) kickPlayer(w http.ResponseWriter, r *http.Request) {
 		err := fmt.Errorf("cannot leave game after setup")
 		log.Error().Err(err).Msg("leave game")
 		render.Render(w, r, ErrBadRequest(err))
+		return
 	}
 
 	if user.ID != game.HostID {
@@ -379,6 +385,7 @@ func (s *server) addOpenPlayerSlot(w http.ResponseWriter, r *http.Request) {
 		err := fmt.Errorf("cannot leave game after setup")
 		log.Error().Err(err).Msg("leave game")
 		render.Render(w, r, ErrBadRequest(err))
+		return
 	}
 
 	if user.ID != game.HostID {
@@ -420,6 +427,7 @@ func (s *server) addGuestPlayer(w http.ResponseWriter, r *http.Request) {
 		err := fmt.Errorf("cannot leave game after setup")
 		log.Error().Err(err).Msg("leave game")
 		render.Render(w, r, ErrBadRequest(err))
+		return
 	}
 
 	if user.ID != game.HostID {
@@ -461,6 +469,7 @@ func (s *server) addAIPlayer(w http.ResponseWriter, r *http.Request) {
 		err := fmt.Errorf("cannot leave game after setup")
 		log.Error().Err(err).Msg("leave game")
 		render.Render(w, r, ErrBadRequest(err))
+		return
 	}
 
 	if user.ID != game.HostID {
@@ -496,6 +505,7 @@ func (s *server) deletePlayerSlot(w http.ResponseWriter, r *http.Request) {
 		err := fmt.Errorf("cannot leave game after setup")
 		log.Error().Err(err).Msg("leave game")
 		render.Render(w, r, ErrBadRequest(err))
+		return
 	}
 
 	if user.ID != game.HostID {
@@ -536,6 +546,7 @@ func (s *server) updatePlayerSlot(w http.ResponseWriter, r *http.Request) {
 		err := fmt.Errorf("cannot leave game after setup")
 		log.Error().Err(err).Msg("leave game")
 		render.Render(w, r, ErrBadRequest(err))
+		return
 	}
 
 	player := playerRequest{}
@@ -617,6 +628,7 @@ func (s *server) startGame(w http.ResponseWriter, r *http.Request) {
 	if err := gr.StartGame(&game.Game); err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Msg("generating universe")
 		render.Render(w, r, ErrInternalServerError(err))
+		return
 	}
 
 	// send the full game to the host

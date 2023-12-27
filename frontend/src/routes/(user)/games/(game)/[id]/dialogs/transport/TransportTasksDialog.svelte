@@ -10,7 +10,7 @@
 		waypoint: Waypoint;
 		transportTasks: WaypointTransportTasks;
 	};
-	export type TransportTasksEvent = {
+	export type TransportTasksDialogEvent = {
 		'transport-tasks-dialog': TransportTasksDialogEventDetails;
 	};
 </script>

@@ -4,11 +4,11 @@ export interface Mineral {
 	germanium?: number;
 }
 
-export enum MineralType {
-	Ironium,
-	Boranium,
-	Germanium
-}
+export const MineralTypes = {
+	Ironium: 0,
+	Boranium: 1,
+	Germanium: 2
+} as const;
 
 export const totalMinerals = (c: Mineral | undefined) =>
 	c ? (c.ironium ?? 0) + (c.boranium ?? 0) + (c.germanium ?? 0) : 0;

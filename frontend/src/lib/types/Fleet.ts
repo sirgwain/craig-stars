@@ -158,7 +158,7 @@ export class CommandedFleet implements Fleet {
 	gameId = 0;
 	createdAt?: string | undefined;
 	updatedAt?: string | undefined;
-	readonly type = MapObjectType.Planet;
+	readonly type = MapObjectType.Fleet;
 
 	name = '';
 	playerNum = 0;
@@ -369,5 +369,39 @@ export function fleetsSortBy(
 			return (a, b) => (a.fuel ?? 0) - (b.fuel ?? 0);
 		default:
 			return (a, b) => `${pluck(a, key)}`.localeCompare(`${pluck(b, key)}`);
+	}
+}
+
+/**
+ * Move a postitive quantity of damaged tokens from a source to a dest token
+ * @param srcToken the source to move damaged tokens from
+ * @param destToken the dest to move damaged tokens to
+ * @param quantity a positive quanityt to move
+ */
+export function moveDamagedTokens(srcToken: ShipToken, destToken: ShipToken, quantity: number) {
+	const quantityDamagedToMove = Math.min(quantity, srcToken.quantityDamaged ?? 0);
+
+	// figure out how much total damage we are moving over and how much current damage there is
+	// the idea is if we have a stack on each side like this:
+	//
+	// src = 1 damaged token @10 damage
+	// dest = 1 damaged token @5 damage
+	//
+	// after moving 1 damaged token from src to dest, we have 2 damaged tokens with 15 total damage between (i.e 7.5 damage / token)
+	const damageToMove = quantityDamagedToMove * (srcToken.damage ?? 0);
+	const currentDestDamage = (destToken.quantityDamaged ?? 0) * (destToken.damage ?? 0);
+
+	// Move up to quantity damaged tokens
+	destToken.quantityDamaged = (destToken.quantityDamaged ?? 0) + quantityDamagedToMove;
+	if (destToken.quantityDamaged) {
+		destToken.damage = (currentDestDamage + damageToMove) / destToken.quantityDamaged;
+	} else {
+		destToken.damage = 0;
+	}
+
+	// move the damaged tokens away from the source and zero out the damage if we have no damaged tokens remaining
+	srcToken.quantityDamaged = (srcToken.quantityDamaged ?? 0) - quantityDamagedToMove;
+	if (srcToken.quantityDamaged == 0) {
+		srcToken.damage = 0;
 	}
 }

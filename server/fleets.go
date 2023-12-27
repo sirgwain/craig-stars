@@ -46,6 +46,28 @@ func (req *mergeFleetRequest) Bind(r *http.Request) error {
 	return nil
 }
 
+type splitFleetRequest struct {
+	// the source/dest fleet num
+	SourceFleetNum int `json:"sourceFleetNum,omitempty"`
+	DestFleetNum   int `json:"destFleetNum,omitempty"`
+
+	// a matching slice of source and dest tokens that only differ in token.Quantity
+	SourceTokens []cs.ShipToken `json:"sourceTokens,omitempty"`
+	DestTokens   []cs.ShipToken `json:"destTokens,omitempty"`
+
+	// the amount of cargo to transfer from the source fleet to the dest when splitting
+	TransferAmount cs.CargoTransferRequest `json:"transferAmount,omitempty"`
+}
+
+type splitFleetResponse struct {
+	Source *cs.Fleet `json:"source,omitempty"`
+	Dest   *cs.Fleet `json:"dest,omitempty"`
+}
+
+func (req *splitFleetRequest) Bind(r *http.Request) error {
+	return nil
+}
+
 // context for /api/games/{id}/fleets/{num} calls that require a shipDesign
 func (s *server) fleetCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -137,6 +159,7 @@ func (s *server) updateFleetOrders(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("get fleets for player")
 		render.Render(w, r, ErrInternalServerError(err))
+		return
 	}
 
 	existingFleet.InjectDesigns(player.Designs)
@@ -153,6 +176,116 @@ func (s *server) updateFleetOrders(w http.ResponseWriter, r *http.Request) {
 	rest.RenderJSON(w, existingFleet)
 }
 
+// split a fleet into 2 fleets
+func (s *server) split(w http.ResponseWriter, r *http.Request) {
+	readWriteClient := s.contextDb(r)
+	sourceFleet := s.contextFleet(r)
+	game := s.contextGame(r)
+	player := s.contextPlayer(r)
+
+	splitFleet := splitFleetRequest{}
+	if err := render.Bind(r, &splitFleet); err != nil {
+		render.Render(w, r, ErrBadRequest(err))
+		return
+	}
+
+	// load the dest fleet, designs, and player fleets from the db
+	var err error
+	var destFleet *cs.Fleet
+	if splitFleet.DestFleetNum != 0 {
+		destFleet, err = readWriteClient.GetFleetByNum(game.ID, player.Num, splitFleet.DestFleetNum)
+		if err != nil {
+			log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", splitFleet.DestFleetNum).Msg("get dest fleet for split")
+			render.Render(w, r, ErrInternalServerError(err))
+			return
+		}
+	}
+
+	player.Designs, err = readWriteClient.GetShipDesignsForPlayer(game.ID, player.Num)
+	if err != nil {
+		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("get fleets for player")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	playerFleets, err := readWriteClient.GetFleetsForPlayer(game.ID, player.Num)
+	if err != nil {
+		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("get fleets for player")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	// execute the order
+	orderer := cs.NewOrderer()
+	splitFleetRequest := cs.SplitFleetRequest{
+		Source:         sourceFleet,
+		Dest:           destFleet,
+		SourceTokens:   splitFleet.SourceTokens,
+		DestTokens:     splitFleet.DestTokens,
+		TransferAmount: splitFleet.TransferAmount,
+	}
+
+	source, dest, err := orderer.SplitFleet(&game.Rules, player, playerFleets, splitFleetRequest)
+	if err != nil {
+		render.Render(w, r, ErrBadRequest(err))
+		return
+	}
+
+	// save the updated fleets back to the database
+	if err := s.db.WrapInTransaction(func(c db.Client) error {
+		if source.Delete {
+			if err := c.DeleteFleet(source.ID); err != nil {
+				log.Error().Err(err).Msg("delete fleet in database")
+				return err
+			}
+		} else {
+			if err := c.UpdateFleet(source); err != nil {
+				log.Error().Err(err).Msg("update fleet in database")
+				return err
+			}
+		}
+
+		if dest.ID == 0 {
+			// it's possible the user sent a "split" request with no dest but didn't split any
+			// in this case dest will be marked for deletion but won't ever have been saved
+			// to the database, so just ignore it
+			if !dest.Delete {
+				dest.GameID = game.ID
+				if err := c.CreateFleet(dest); err != nil {
+					log.Error().Err(err).Msg("delete fleet in database")
+					return err
+				}
+			}
+		} else if dest.Delete {
+			if err := c.DeleteFleet(dest.ID); err != nil {
+				log.Error().Err(err).Msg("delete fleet in database")
+				return err
+			}
+		} else {
+			if err := c.UpdateFleet(dest); err != nil {
+				log.Error().Err(err).Msg("update fleet in database")
+				return err
+			}
+		}
+		return nil
+	}); err != nil {
+		log.Error().Err(err).Msg("update game in database")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	if source.Delete {
+		// we are deleting the source, so the new source to return to the player
+		// is the dest (it should not be deleted)
+		source = dest
+		dest = nil
+	} else if dest.Delete {
+		dest = nil
+	}
+
+	rest.RenderJSON(w, splitFleetResponse{Source: source, Dest: dest})
+}
+
 // split all a fleet's tokens into separate fleets
 func (s *server) splitAll(w http.ResponseWriter, r *http.Request) {
 	db := s.contextDb(r)
@@ -164,12 +297,14 @@ func (s *server) splitAll(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("get fleets for player")
 		render.Render(w, r, ErrInternalServerError(err))
+		return
 	}
 
 	player.Designs, err = db.GetShipDesignsForPlayer(game.ID, player.Num)
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("get fleets for player")
 		render.Render(w, r, ErrInternalServerError(err))
+		return
 	}
 
 	orderer := cs.NewOrderer()
@@ -184,6 +319,7 @@ func (s *server) splitAll(w http.ResponseWriter, r *http.Request) {
 	if err := db.CreateUpdateOrDeleteFleets(game.ID, newFleets); err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("get fleets for player")
 		render.Render(w, r, ErrInternalServerError(err))
+		return
 	}
 
 	rest.RenderJSON(w, newFleets)
@@ -214,12 +350,14 @@ func (s *server) merge(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("get fleets for merge")
 		render.Render(w, r, ErrInternalServerError(err))
+		return
 	}
 
 	player.Designs, err = db.GetShipDesignsForPlayer(game.ID, player.Num)
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("get fleets for player")
 		render.Render(w, r, ErrInternalServerError(err))
+		return
 	}
 
 	orderer := cs.NewOrderer()
@@ -235,6 +373,7 @@ func (s *server) merge(w http.ResponseWriter, r *http.Request) {
 	if err := db.CreateUpdateOrDeleteFleets(game.ID, fleets); err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("get fleets for player")
 		render.Render(w, r, ErrInternalServerError(err))
+		return
 	}
 
 	rest.RenderJSON(w, updatedFleet)
@@ -261,6 +400,7 @@ func (s *server) transferCargo(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("get fleets for player")
 		render.Render(w, r, ErrInternalServerError(err))
+		return
 	}
 
 	fleet.InjectDesigns(player.Designs)
@@ -474,6 +614,7 @@ func (s *server) transferCargoFleetFleet(w http.ResponseWriter, r *http.Request,
 		if err != nil {
 			log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", destPlayer.Num).Msg("get fleets for player")
 			render.Render(w, r, ErrInternalServerError(err))
+			return
 		}
 
 		dest.InjectDesigns(destPlayer.Designs)

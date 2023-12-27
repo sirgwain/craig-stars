@@ -17,13 +17,19 @@
 	import ScannerToolbar from './scanner/ScannerToolbar.svelte';
 	import type { TransportTasksDialogEventDetails } from '../dialogs/transport/TransportTasksDialog.svelte';
 	import TransportTasksDialog from '../dialogs/transport/TransportTasksDialog.svelte';
+	import SplitFleetDialog, {
+		type SplitFleetDialogEventDetails
+	} from '../dialogs/split/SplitFleetDialog.svelte';
+	import type { CommandedFleet } from '$lib/types/Fleet';
 
 	let showProductionQueueDialog = false;
 	let showCargoTransferDialog = false;
 	let showMergeFleetsDialog = false;
+	let showSplitFleetDialog = false;
 	let showTransportTasksDialog = false;
 	let cargoTransferDetails: CargoTransferDialogEventDetails | undefined = undefined;
 	let mergeFleetsDialogEventDetails: MergeFleetsDialogEventDetails | undefined = undefined;
+	let splitFleetDialogEventDetails: SplitFleetDialogEventDetails | undefined = undefined;
 	let transportTasksDialogEventDetails: TransportTasksDialogEventDetails | undefined = undefined;
 
 	onMount(() => {
@@ -54,6 +60,10 @@
 				on:merge-fleets-dialog={(e) => {
 					showMergeFleetsDialog = true;
 					mergeFleetsDialogEventDetails = e.detail;
+				}}
+				on:split-fleet-dialog={(e) => {
+					showSplitFleetDialog = true;
+					splitFleetDialogEventDetails = e.detail;
 				}}
 				on:transport-tasks-dialog={(e) => {
 					showTransportTasksDialog = true;
@@ -91,6 +101,10 @@
 				showMergeFleetsDialog = true;
 				mergeFleetsDialogEventDetails = e.detail;
 			}}
+			on:split-fleet-dialog={(e) => {
+				showSplitFleetDialog = true;
+				splitFleetDialogEventDetails = e.detail;
+			}}
 			on:transport-tasks-dialog={(e) => {
 				showTransportTasksDialog = true;
 				transportTasksDialogEventDetails = e.detail;
@@ -103,6 +117,7 @@
 <ProductionQueueDialog bind:show={showProductionQueueDialog} />
 <CargoTranfserDialog bind:show={showCargoTransferDialog} bind:props={cargoTransferDetails} />
 <MergeFleetsDialog bind:show={showMergeFleetsDialog} bind:props={mergeFleetsDialogEventDetails} />
+<SplitFleetDialog bind:show={showSplitFleetDialog} bind:props={splitFleetDialogEventDetails} />
 <TransportTasksDialog
 	bind:show={showTransportTasksDialog}
 	bind:props={transportTasksDialogEventDetails}

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { CommandedFleet } from './Fleet';
+import { CommandedFleet, moveDamagedTokens, type ShipToken } from './Fleet';
 
-describe('fleet test', () => {
+describe('Fleet test', () => {
 	const fleet = new CommandedFleet();
 	it('returns minimal speeds for distances', () => {
 		// one year to go 49 ly
@@ -18,4 +18,29 @@ describe('fleet test', () => {
 		// might as well go warp 5
 		expect(fleet.getMinimalWarp(25, 7)).toBe(5);
 	});
+});
+
+describe('ShipToken moveDamagedTokens test', () => {
+	it('transfer no damaged tokens', () => {
+		const srcToken: ShipToken = { designNum: 1, quantity: 1 };
+		const destToken: ShipToken = { designNum: 1, quantity: 1 };
+		moveDamagedTokens(srcToken, destToken, 1);
+		expect(srcToken).toEqual({ designNum: 1, quantity: 1, quantityDamaged: 0, damage: 0 });
+		expect(destToken).toEqual({ designNum: 1, quantity: 1, quantityDamaged: 0, damage: 0 });
+	});
+	it('transfer 1 damaged token into undamaged stack', () => {
+		const srcToken: ShipToken = { designNum: 1, quantity: 1, quantityDamaged: 1, damage: 10 };
+		const destToken: ShipToken = { designNum: 1, quantity: 1 };
+		moveDamagedTokens(srcToken, destToken, 1);
+		expect(srcToken).toEqual({ designNum: 1, quantity: 1, quantityDamaged: 0, damage: 0 });
+		expect(destToken).toEqual({ designNum: 1, quantity: 1, quantityDamaged: 1, damage: 10 });
+	});
+	it('transfer 1 damaged token into damaged stack', () => {
+		const srcToken: ShipToken = { designNum: 1, quantity: 1, quantityDamaged: 1, damage: 10 };
+		const destToken: ShipToken = { designNum: 1, quantity: 1, quantityDamaged: 1, damage: 5 };
+		moveDamagedTokens(srcToken, destToken, 1);
+		expect(srcToken).toEqual({ designNum: 1, quantity: 1, quantityDamaged: 0, damage: 0 });
+		expect(destToken).toEqual({ designNum: 1, quantity: 1, quantityDamaged: 2, damage: 7.5 });
+	});
+
 });

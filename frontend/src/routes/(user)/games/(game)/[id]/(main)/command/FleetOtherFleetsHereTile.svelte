@@ -3,11 +3,10 @@
 	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
 	import { createEventDispatcher } from 'svelte';
 	import CommandTile from './CommandTile.svelte';
-	import type { CargoTransferEvent } from '../../dialogs/cargo/CargoTranfserDialog.svelte';
-	import type { SplitFleetEvent } from '../../dialogs/split/SplitFleetDialog.svelte';
+	import type { CargoTransferDialogEvent } from '../../dialogs/cargo/CargoTranfserDialog.svelte';
+	import type { SplitFleetDialogEvent } from '../../dialogs/split/SplitFleetDialog.svelte';
 
-	const dispatchCargoTransfer = createEventDispatcher<CargoTransferEvent>();
-	const dispatchSplit = createEventDispatcher<SplitFleetEvent>();
+	const dispatch = createEventDispatcher<SplitFleetDialogEvent & CargoTransferDialogEvent>();
 
 	export let fleet: CommandedFleet;
 	export let fleetsInOrbit: Fleet[];
@@ -30,7 +29,7 @@
 
 	const transfer = () => {
 		if (selectedFleet) {
-			dispatchCargoTransfer('cargo-transfer-dialog', { src: fleet, dest: selectedFleet });
+			dispatch('cargo-transfer-dialog', { src: fleet, dest: selectedFleet });
 		}
 	};
 
@@ -42,7 +41,7 @@
 
 	const mergeTarget = () => {
 		if ($commandedFleet && selectedFleet) {
-			dispatchSplit('split-fleet-dialog', {fleet: $commandedFleet, target: selectedFleet});
+			dispatch('split-fleet-dialog', { src: $commandedFleet, dest: selectedFleet });
 		}
 	};
 </script>

@@ -23,8 +23,8 @@
 	const dispatch = createEventDispatcher<FleetTransferEvent>();
 </script>
 
-<div class="grid grid-cols-2">
-	<div class="text-right mr-1 h-8">Fuel</div>
+<div class="sm:grid sm:grid-cols-label-value">
+	<div class="sm:text-right mr-1 h-8">Fuel</div>
 	<div class="my-auto">
 		<MineralBar
 			value={cargo.fuel + transferAmount.fuel}
@@ -37,14 +37,14 @@
 		/>
 	</div>
 
-	<div class="text-right mr-1 h-8">Cargo Hold</div>
+	<div class="sm:text-right mr-1 h-8">Cargo Hold</div>
 	<div class="my-auto">
 		<CargoBar value={add(cargo, transferAmount)} capacity={cargoCapacity} />
 	</div>
 
-	<div class="col-span-2 mt-5" />
+	<div class="col-span-2 mt-10 sm:mt-5" />
 
-	<div class="text-right mr-1 h-8">Ironium</div>
+	<div class="sm:text-right mr-1 h-8">Ironium</div>
 	<div class="my-auto">
 		<MineralBar
 			value={cargo.ironium + transferAmount.ironium}
@@ -54,7 +54,7 @@
 				dispatch('transfer-ironium', e.detail - (cargo.ironium + transferAmount.ironium))}
 		/>
 	</div>
-	<div class="text-right mr-1 h-8">Boranium</div>
+	<div class="sm:text-right mr-1 h-8">Boranium</div>
 	<div class="my-auto">
 		<MineralBar
 			value={cargo.boranium + transferAmount.boranium}
@@ -64,7 +64,7 @@
 				dispatch('transfer-boranium', e.detail - (cargo.boranium + transferAmount.boranium))}
 		/>
 	</div>
-	<div class="text-right mr-1 h-8">Germanium</div>
+	<div class="sm:text-right mr-1 h-8">Germanium</div>
 	<div class="my-auto">
 		<MineralBar
 			value={cargo.germanium + transferAmount.germanium}
@@ -75,7 +75,7 @@
 		/>
 	</div>
 
-	<div class="text-right mr-1 h-8">Colonists</div>
+	<div class="sm:text-right mr-1 h-8">Colonists</div>
 	<div class="my-auto">
 		<MineralBar
 			value={cargo.colonists + transferAmount.colonists}

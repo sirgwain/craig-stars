@@ -13,7 +13,13 @@ module.exports = {
 			'5xl': ['48px']
 		},
 
-		extend: {}
+		extend: {
+			gridTemplateColumns: {
+				// 2 column grid with an auto size label and a max value
+				'label-value': 'auto minmax(0, 1fr)',		
+			  }
+		
+		}
 	},
 
 	plugins: [require('@tailwindcss/typography'), require('daisyui')],

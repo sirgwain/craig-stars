@@ -7,11 +7,11 @@
 	import { ArrowTopRightOnSquare } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { createEventDispatcher } from 'svelte';
-	import type { CargoTransferEvent } from '../../dialogs/cargo/CargoTranfserDialog.svelte';
+	import type { CargoTransferDialogEvent } from '../../dialogs/cargo/CargoTranfserDialog.svelte';
 	import CommandTile from './CommandTile.svelte';
 	import { union } from 'd3-array';
 
-	const dispatch = createEventDispatcher<CargoTransferEvent>();
+	const dispatch = createEventDispatcher<CargoTransferDialogEvent>();
 
 	export let planet: CommandedPlanet;
 	export let fleetsInOrbit: Fleet[];

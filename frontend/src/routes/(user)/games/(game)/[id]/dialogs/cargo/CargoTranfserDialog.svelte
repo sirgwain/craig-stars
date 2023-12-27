@@ -1,5 +1,4 @@
 <script lang="ts" context="module">
-	import type { CargoTransferRequest } from '$lib/types/Cargo';
 	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
 	import type { Planet } from '$lib/types/Planet';
 
@@ -7,14 +6,8 @@
 		src: CommandedFleet;
 		dest?: Fleet | Planet | Salvage | undefined;
 	};
-	export type TransferCargoEventDetails = {
-		src: CommandedFleet;
-		dest?: Fleet | Planet | Salvage;
-		transferAmount: CargoTransferRequest;
-	};
-	export type CargoTransferEvent = {
+	export type CargoTransferDialogEvent = {
 		'cargo-transfer-dialog': CargoTransferDialogEventDetails;
-		'transfer-cargo': TransferCargoEventDetails;
 		cancel: void;
 	};
 </script>
@@ -23,7 +16,7 @@
 	import { getGameContext } from '$lib/services/Contexts';
 	import { subtract } from '$lib/types/Cargo';
 	import { newSalvage, type Salvage } from '$lib/types/Salvage';
-	import CargoTransfer from './CargoTransfer.svelte';
+	import CargoTransfer, { type TransferCargoEventDetails } from './CargoTransfer.svelte';
 
 	const { game, player, universe } = getGameContext();
 

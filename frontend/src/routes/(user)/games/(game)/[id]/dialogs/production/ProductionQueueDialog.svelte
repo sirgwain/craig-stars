@@ -1,3 +1,11 @@
+<script lang="ts" context="module">
+	import type { CommandedPlanet } from '$lib/types/Planet';
+
+	export type ProductionQueueDialogEvent = {
+		'change-production': CommandedPlanet;
+	};
+</script>
+
 <script lang="ts">
 	import { getGameContext } from '$lib/services/Contexts';
 	import { commandedPlanet, nextMapObject, previousMapObject } from '$lib/services/Stores';

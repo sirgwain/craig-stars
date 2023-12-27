@@ -2,6 +2,10 @@
 	import { getGameContext } from '$lib/services/Contexts';
 	import { commandedFleet, commandedPlanet } from '$lib/services/Stores';
 	import { createEventDispatcher } from 'svelte';
+	import type { CargoTransferDialogEvent } from '../../dialogs/cargo/CargoTranfserDialog.svelte';
+	import type { MergeFleetsDialogEvent } from '../../dialogs/merge/MergeFleetsDialog.svelte';
+	import type { ProductionQueueDialogEvent } from '../../dialogs/production/ProductionQueueDialog.svelte';
+	import type { SplitFleetDialogEvent } from '../../dialogs/split/SplitFleetDialog.svelte';
 	import FleetCompositionTile from './FleetCompositionTile.svelte';
 	import FleetFuelAndCargoTile from './FleetFuelAndCargoTile.svelte';
 	import FleetOrbitingTile from './FleetOrbitingTile.svelte';
@@ -15,8 +19,15 @@
 	import PlanetStarbaseTile from './PlanetStarbaseTile.svelte';
 	import PlanetStatusTile from './PlanetStatusTile.svelte';
 	import PlanetSummaryTile from './PlanetSummaryTile.svelte';
+	import type { TransportTasksDialogEvent } from '../../dialogs/transport/TransportTasksDialog.svelte';
 
-	const dispatch = createEventDispatcher();
+	const dispatch = createEventDispatcher<
+		SplitFleetDialogEvent &
+			MergeFleetsDialogEvent &
+			CargoTransferDialogEvent &
+			ProductionQueueDialogEvent &
+			TransportTasksDialogEvent
+	>();
 	const { game, player, universe } = getGameContext();
 </script>
 
@@ -53,11 +64,13 @@
 			fleetsInOrbit={$universe
 				.getMyFleetsByPosition($commandedFleet)
 				.filter((f) => f.num !== $commandedFleet?.num)}
+			on:split-fleet-dialog={(e) => dispatch('split-fleet-dialog', e.detail)}
 			on:cargo-transfer-dialog={(e) => dispatch('cargo-transfer-dialog', e.detail)}
 		/>
 		<FleetCompositionTile
 			fleet={$commandedFleet}
 			on:split-all={() => $commandedFleet && $game.splitAll($commandedFleet)}
+			on:split-fleet-dialog={(e) => dispatch('split-fleet-dialog', e.detail)}
 			on:merge-fleets-dialog={(e) => dispatch('merge-fleets-dialog', e.detail)}
 		/>
 	</div>

@@ -232,7 +232,7 @@ func (c *client) GetFleetsOrbitingPlanet(gameID int64, planetNum int) ([]*cs.Fle
 }
 
 // create a new game
-func (c *client) createFleet(fleet *cs.Fleet) error {
+func (c *client) CreateFleet(fleet *cs.Fleet) error {
 	item := c.converter.ConvertGameFleet(fleet)
 	result, err := c.writer.NamedExec(`
 	INSERT INTO fleets (
@@ -322,7 +322,7 @@ func (c *client) CreateUpdateOrDeleteFleets(gameID int64, fleets []*cs.Fleet) er
 	for _, fleet := range fleets {
 		if fleet.ID == 0 {
 			fleet.GameID = gameID
-			if err := c.createFleet(fleet); err != nil {
+			if err := c.CreateFleet(fleet); err != nil {
 				return fmt.Errorf("create fleet %w", err)
 			}
 			// log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Created fleet %s", fleet.Name)

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { getGameContext } from '$lib/services/Contexts';
-	import { commandedFleet } from '$lib/services/Stores';
+	import { commandMapObject, commandedFleet } from '$lib/services/Stores';
 	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
 	import MergeFleets from '../../../dialogs/merge/MergeFleets.svelte';
 
@@ -11,10 +11,15 @@
 	let fleetsInOrbit: Fleet[] = [];
 
 	$: {
-		if ($commandedFleet) {
+		if ($commandedFleet && $commandedFleet.num === num) {
 			fleetsInOrbit = $universe
 				.getMyFleetsByPosition($commandedFleet)
 				.filter((mo) => mo.num !== $commandedFleet?.num) as Fleet[];
+		} else {
+			const fleet = $universe.getFleet($player.num, num);
+			if (fleet) {
+				commandMapObject(fleet);
+			}
 		}
 	}
 

@@ -1,5 +1,5 @@
 import type { CargoTransferRequest } from '$lib/types/Cargo';
-import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
+import { CommandedFleet, type Fleet, type ShipToken } from '$lib/types/Fleet';
 import {
 	Density,
 	GameStartMode,
@@ -410,6 +410,52 @@ export class FullGame implements Game {
 			fleet.waypoints.length > selectedWaypointIndex
 		) {
 			selectWaypoint(fleet.waypoints[selectedWaypointIndex]);
+		}
+
+		updateUniverse(this.universe);
+	}
+
+	async split(
+		src: CommandedFleet,
+		dest: Fleet | undefined,
+		srcTokens: ShipToken[],
+		destTokens: ShipToken[],
+		transferAmount: CargoTransferRequest
+	) {
+		const selectedWaypointIndex = get(currentSelectedWaypointIndex);
+		const response = await FleetService.split(src, dest, srcTokens, destTokens, transferAmount);
+
+		// if the original source is different than the returned source
+		// and we have no response.dest, this means the original source was deleted
+		// and has become the source, i.e. we moved all tokens from source to dest, creating
+		// a new fleet. Weird edge case.
+		if (src.num != response.source.num) {
+			this.universe.removeFleets([src.num]);
+		}
+
+		// update the commanded fleet
+		const source = Object.assign(new CommandedFleet(), response.source);
+		this.universe.updateFleet(response.source);
+		commandedFleet.update(() => source);
+
+		// update or add the new fleets to the universe
+		if (response.dest) {
+			if (dest?.num == 0) {
+				this.universe.addFleets([response.dest]);
+			} else {
+				this.universe.updateFleet(response.dest);
+			}
+		} else {
+			// if we had a dest and it was deleted, remove it
+			dest && this.universe.removeFleets([dest.num]);
+		}
+
+		if (
+			selectedWaypointIndex > -1 &&
+			source.waypoints &&
+			source.waypoints.length > selectedWaypointIndex
+		) {
+			selectWaypoint(source.waypoints[selectedWaypointIndex]);
 		}
 
 		updateUniverse(this.universe);

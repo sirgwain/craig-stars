@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
 	import { emptyCargo, totalCargo, type Cargo } from '$lib/types/Cargo';
-	import type { CargoTransferEvent } from '../../../routes/(user)/games/(game)/[id]/dialogs/cargo/CargoTranfserDialog.svelte';
+	import type { CargoTransferDialogEvent } from '../../../routes/(user)/games/(game)/[id]/dialogs/cargo/CargoTranfserDialog.svelte';
 
-	const dispatch = createEventDispatcher<CargoTransferEvent>();
+	const dispatch = createEventDispatcher<CargoTransferDialogEvent>();
 
 	export let value: Cargo = {
 		ironium: 0,

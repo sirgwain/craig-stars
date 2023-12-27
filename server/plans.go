@@ -9,6 +9,7 @@ import (
 	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
+	"github.com/sirgwain/craig-stars/db"
 )
 
 type battlePlanRequest struct {
@@ -156,6 +157,7 @@ func (s *server) createBattlePlan(w http.ResponseWriter, r *http.Request) {
 	if err := db.UpdatePlayerPlans(player); err != nil {
 		log.Error().Err(err).Int64("PlayerID", player.ID).Str("PlanName", battlePlan.Name).Msg("save new player BattlePlan")
 		render.Render(w, r, ErrInternalServerError(err))
+		return
 	}
 
 	rest.RenderJSON(w, battlePlan)
@@ -196,13 +198,14 @@ func (s *server) updateBattlePlan(w http.ResponseWriter, r *http.Request) {
 	if err := db.UpdatePlayerPlans(player); err != nil {
 		log.Error().Err(err).Int64("PlayerID", player.ID).Str("PlanName", battlePlan.Name).Msg("save new player BattlePlan")
 		render.Render(w, r, ErrInternalServerError(err))
+		return
 	}
 
 	rest.RenderJSON(w, battlePlan)
 }
 
 func (s *server) deleteBattlePlan(w http.ResponseWriter, r *http.Request) {
-	db := s.contextDb(r)
+	readWriteClient := s.contextDb(r)
 	game := s.contextGame(r)
 	player := s.contextPlayer(r)
 	battlePlan := s.contextBattlePlan(r)
@@ -215,7 +218,7 @@ func (s *server) deleteBattlePlan(w http.ResponseWriter, r *http.Request) {
 
 	// delete the battle plan
 	// set all fleets using this battle plan to use the default one
-	playerFleets, err := db.GetFleetsForPlayer(game.ID, player.Num)
+	playerFleets, err := readWriteClient.GetFleetsForPlayer(game.ID, player.Num)
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("load fleets from database")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -231,13 +234,6 @@ func (s *server) deleteBattlePlan(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// update fleets in one transaction
-	if err := db.CreateUpdateOrDeleteFleets(game.ID, fleetsToUpdate); err != nil {
-		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("update fleets in database")
-		render.Render(w, r, ErrInternalServerError(err))
-		return
-	}
-
 	battlePlans := make([]cs.BattlePlan, 0, len(player.BattlePlans)-1)
 	for _, plan := range player.BattlePlans {
 		if plan.Num != battlePlan.Num {
@@ -246,25 +242,36 @@ func (s *server) deleteBattlePlan(w http.ResponseWriter, r *http.Request) {
 	}
 	player.BattlePlans = battlePlans
 
-	// update fleets in one transaction
-	if err := db.UpdatePlayerPlans(player); err != nil {
-		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("update player plans in database")
+	// save the updated fleets back to the database
+	if err := s.db.WrapInTransaction(func(c db.Client) error {
+		for _, fleet := range fleetsToUpdate {
+			if err := c.UpdateFleet(fleet); err != nil {
+				log.Error().Err(err).Msg("update fleet in database")
+				return err
+			}
+			log.Info().Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", battlePlan.Num).Msgf("updated fleet %s after deleting BattlePlan", fleet.Name)
+		}
+
+		// update fleets in one transaction
+		if err := c.UpdatePlayerPlans(player); err != nil {
+			log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("update player plans in database")
+			return err
+		}
+		log.Info().Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", battlePlan.Num).Msgf("deleted BattlePlan %s", battlePlan.Name)
+
+		return nil
+	}); err != nil {
+		log.Error().Err(err).Msg("update game in database")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	// log what we did
-	log.Info().Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", battlePlan.Num).Msgf("deleted BattlePlan %s", battlePlan.Name)
-
-	for _, fleet := range fleetsToUpdate {
-		log.Info().Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", battlePlan.Num).Msgf("updated fleet %s after deleting BattlePlan", fleet.Name)
-	}
-
-	allFleets, err := db.GetFleetsForPlayer(game.ID, player.Num)
-
+	// load all the fleets again and return them to the user
+	allFleets, err := readWriteClient.GetFleetsForPlayer(game.ID, player.Num)
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", battlePlan.Num).Msg("load fleets from database")
 		render.Render(w, r, ErrInternalServerError(err))
+		return
 	}
 
 	// split the player fleets into fleets and starbases
@@ -303,6 +310,7 @@ func (s *server) createProductionPlan(w http.ResponseWriter, r *http.Request) {
 	if err := db.UpdatePlayerPlans(player); err != nil {
 		log.Error().Err(err).Int64("PlayerID", player.ID).Str("PlanName", productionPlan.Name).Msg("save new player ProductionPlan")
 		render.Render(w, r, ErrInternalServerError(err))
+		return
 	}
 
 	rest.RenderJSON(w, productionPlan)
@@ -343,6 +351,7 @@ func (s *server) updateProductionPlan(w http.ResponseWriter, r *http.Request) {
 	if err := db.UpdatePlayerPlans(player); err != nil {
 		log.Error().Err(err).Int64("PlayerID", player.ID).Str("PlanName", productionPlan.Name).Msg("save new player ProductionPlan")
 		render.Render(w, r, ErrInternalServerError(err))
+		return
 	}
 
 	rest.RenderJSON(w, productionPlan)
@@ -403,6 +412,7 @@ func (s *server) createTransportPlan(w http.ResponseWriter, r *http.Request) {
 	if err := db.UpdatePlayerPlans(player); err != nil {
 		log.Error().Err(err).Int64("PlayerID", player.ID).Str("PlanName", transportPlan.Name).Msg("save new player TransportPlan")
 		render.Render(w, r, ErrInternalServerError(err))
+		return
 	}
 
 	rest.RenderJSON(w, transportPlan)
@@ -443,6 +453,7 @@ func (s *server) updateTransportPlan(w http.ResponseWriter, r *http.Request) {
 	if err := db.UpdatePlayerPlans(player); err != nil {
 		log.Error().Err(err).Int64("PlayerID", player.ID).Str("PlanName", transportPlan.Name).Msg("save new player TransportPlan")
 		render.Render(w, r, ErrInternalServerError(err))
+		return
 	}
 
 	rest.RenderJSON(w, transportPlan)
