@@ -83,6 +83,9 @@
 			moveDamagedTokens(destToken, srcToken, -quantity);
 		}
 
+		srcTokens[index] = srcToken;
+		destTokens[index] = destToken;
+
 		srcFuelCapacity -= designFuelCapacity * quantity;
 		srcCargoCapacity -= designCargoCapacity * quantity;
 

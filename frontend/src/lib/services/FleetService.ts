@@ -28,7 +28,7 @@ type TransferCargoResponse = {
 
 type SplitFleetResponse = {
 	source: Fleet;
-	dest: Fleet;
+	dest?: Fleet;
 };
 
 export class FleetService {

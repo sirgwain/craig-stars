@@ -274,6 +274,15 @@ func (s *server) split(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if source.Delete {
+		// we are deleting the source, so the new source to return to the player
+		// is the dest (it should not be deleted)
+		source = dest
+		dest = nil
+	} else if dest.Delete {
+		dest = nil
+	}
+
 	rest.RenderJSON(w, splitFleetResponse{Source: source, Dest: dest})
 }
 
