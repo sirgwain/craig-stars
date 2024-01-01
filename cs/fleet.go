@@ -1227,6 +1227,16 @@ func (fleet *Fleet) getCargoLoadAmount(dest cargoHolder, cargoType CargoType, ta
 	availableCapacity := fleet.Spec.CargoCapacity - fleet.Cargo.Total()
 	availableToLoad := dest.getCargo().GetAmount(cargoType)
 	currentAmount := fleet.Cargo.GetAmount(cargoType)
+	totalCapacity := fleet.Spec.CargoCapacity
+
+	// fuel transfers use different tanks
+	if cargoType == Fuel {
+		availableCapacity = fleet.Spec.FuelCapacity - fleet.Fuel
+		availableToLoad = dest.getFuel()
+		currentAmount = fleet.Fuel
+		totalCapacity = fleet.Spec.FuelCapacity
+	}
+
 	switch task.Action {
 	case TransportActionLoadOptimal:
 		// fuel only
@@ -1256,7 +1266,7 @@ func (fleet *Fleet) getCargoLoadAmount(dest cargoHolder, cargoType CargoType, ta
 	case TransportActionFillPercent:
 		// we want a percent of our hold to be filled with some amount, figure out how
 		// much that is in kT, i.e. 50% of 100kT would be 50kT of this mineral
-		var taskAmountkT = int(float64(task.Amount) / 100 * float64(fleet.Spec.CargoCapacity))
+		var taskAmountkT = int(float64(task.Amount) / 100 * float64(totalCapacity))
 
 		if currentAmount >= taskAmountkT {
 			// no need to transfer any, move on
@@ -1278,23 +1288,16 @@ func (fleet *Fleet) getCargoLoadAmount(dest cargoHolder, cargoType CargoType, ta
 			waitAtWaypoint = true
 		}
 	case TransportActionLoadDunnage:
-		transferAmount = fleet.getCargoLoadDunnageAmount(dest, cargoType)
+		// (minerals and colonists only) This command waits until all other loads and unloads are
+		// complete, then loads as many colonists or amount of a mineral as will fit in the remaining
+		// space. For example, setting Load All Germanium, Load Dunnage Ironium, will load all the
+		// Germanium that is available, then as much Ironium as possible. If more than one dunnage cargo
+		// is specified, they are loaded in the order of Ironium, Boranium, Germanium, and Colonists.
+		transferAmount = MinInt(availableToLoad, availableCapacity)
 	}
 
 	// let the caller know how much of this cargo we load
 	return transferAmount, waitAtWaypoint
-}
-
-func (fleet *Fleet) getCargoLoadDunnageAmount(dest cargoHolder, cargoType CargoType) (transferAmount int) {
-	capacity := fleet.Spec.CargoCapacity - fleet.Cargo.Total()
-	availableToLoad := dest.getCargo().GetAmount(cargoType)
-
-	// (minerals and colonists only) This command waits until all other loads and unloads are
-	// complete, then loads as many colonists or amount of a mineral as will fit in the remaining
-	// space. For example, setting Load All Germanium, Load Dunnage Ironium, will load all the
-	// Germanium that is available, then as much Ironium as possible. If more than one dunnage cargo
-	// is specified, they are loaded in the order of Ironium, Boranium, Germanium, and Colonists.
-	return MinInt(availableToLoad, capacity)
 }
 
 // getCargoUnloadAmount gets the amount of cargo to transfer for unloading a cargo type from a cargoholder
