@@ -137,7 +137,7 @@ func (packet *MineralPacket) completeMove(rules *Rules, player *Player, planet *
 	if damage == (MineralPacketDamage{}) {
 		// caught packet successfully, transfer cargo
 		messager.mineralPacketCaught(planetPlayer, planet, packet)
-	} else {
+	} else if planetPlayer != nil {
 		// kill off colonists and defenses
 		// note, for AR races, this will be 0 colonists killed or structures destroyed
 		planet.setPopulation(roundToNearest100(Clamp(planet.population()-damage.Killed, 0, planet.population())))
@@ -186,7 +186,7 @@ func (packet *MineralPacket) getDamage(rules *Rules, planet *Planet, planetPlaye
 		return MineralPacketDamage{}
 	}
 
-	if planetPlayer.Race.Spec.LivesOnStarbases {
+	if planetPlayer != nil && planetPlayer.Race.Spec.LivesOnStarbases {
 		// No damage, but all cargo is uncaught and might impact the planet
 		return MineralPacketDamage{Uncaught: packet.Cargo.Total()}
 	}
