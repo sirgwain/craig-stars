@@ -7,7 +7,7 @@
 	import { onMount } from 'svelte';
 	import { $enum as eu } from 'ts-enum-util';
 	import SectionHeader from './SectionHeader.svelte';
-	import TableSearchInput from './TableSearchInput.svelte';
+	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { hasRequiredLevels, levelsAbove } from '$lib/types/TechLevel';
 	import ItemTitle from './ItemTitle.svelte';
 

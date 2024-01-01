@@ -1,15 +1,15 @@
 <script lang="ts">
-	import SortableTableHeader from '$lib/components/SortableTableHeader.svelte';
-	import TableSearchInput from '$lib/components/TableSearchInput.svelte';
+	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
+	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { RaceService } from '$lib/services/RaceService';
 	import type { Race } from '$lib/types/Race';
-	import { SvelteTable, type SvelteTableColumn } from '@hurtigruten/svelte-table';
+	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
 	import { XCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { format, parseJSON } from 'date-fns';
 	import { onMount } from 'svelte';
 
-	const columns: SvelteTableColumn[] = [
+	const columns: TableColumn<Race>[] = [
 		{
 			key: 'pluralName',
 			title: 'Race'
@@ -58,7 +58,7 @@
 		<TableSearchInput bind:value={search} />
 		<a href="/races/new" class="btn btn-secondary">Create</a>
 	</div>
-	<SvelteTable
+	<Table
 		{columns}
 		rows={filteredRaces}
 		classes={{
@@ -66,15 +66,12 @@
 			td: 'first:table-cell nth-child(2):table-cell hidden sm:table-cell',
 			th: 'first:table-cell nth-child(2):table-cell hidden sm:table-cell'
 		}}
-		let:column
-		let:cell
-		let:row
 	>
-		<span slot="head" let:isSorted let:sortDescending>
+		<span slot="head" let:isSorted let:sortDescending let:column>
 			<SortableTableHeader {column} {isSorted} {sortDescending} />
 		</span>
 
-		<span slot="cell">
+		<span slot="cell" let:column let:row let:cell>
 			{#if column.key == 'pluralName'}
 				<a class="cs-link text-2xl" href="/races/{row.id}">{cell}</a>
 			{:else if column.key == 'createdAt'}
@@ -91,5 +88,5 @@
 				{cell}
 			{/if}
 		</span>
-	</SvelteTable>
+	</Table>
 </div>

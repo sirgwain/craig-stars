@@ -1,6 +1,6 @@
 <script lang="ts">
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
-	import TableSearchInput from '$lib/components/TableSearchInput.svelte';
+	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import DesignCard from '$lib/components/game/DesignCard.svelte';
 	import { getGameContext } from '$lib/services/Contexts';
