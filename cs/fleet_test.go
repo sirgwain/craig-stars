@@ -574,10 +574,22 @@ func TestFleet_getCargoLoadAmount(t *testing.T) {
 			wantTransferAmount: 1,
 		},
 		{
+			name:               "load 1mg fuel",
+			fleet:              testLongRangeScout(player).withFuel(0),
+			args:               args{dest: testLongRangeScout(player).withFuel(10), cargoType: Fuel, task: WaypointTransportTask{Action: TransportActionLoadAmount, Amount: 1}},
+			wantTransferAmount: 1,
+		},
+		{
 			name:               "load all ironium we can fit",
 			fleet:              testSmallFreighter(player),
 			args:               args{dest: planet, cargoType: Ironium, task: WaypointTransportTask{Action: TransportActionLoadAll}},
 			wantTransferAmount: 120, // small freighter has 120kT cargo capacity
+		},
+		{
+			name:               "load all fuel we can fit",
+			fleet:              testSmallFreighter(player).withFuel(0),
+			args:               args{dest: testSmallFreighter(player), cargoType: Fuel, task: WaypointTransportTask{Action: TransportActionLoadAll}},
+			wantTransferAmount: 130, // small freighter has 130mg fuel capacity
 		},
 		{
 			name:               "load all ironium we can fit (we already loaded 20)",
@@ -586,10 +598,22 @@ func TestFleet_getCargoLoadAmount(t *testing.T) {
 			wantTransferAmount: 100,
 		},
 		{
+			name:               "load all fuel we can fit (we already loaded 20)",
+			fleet:              testSmallFreighter(player).withFuel(20),
+			args:               args{dest: testSmallFreighter(player), cargoType: Fuel, task: WaypointTransportTask{Action: TransportActionLoadAll}},
+			wantTransferAmount: 110,
+		},
+		{
 			name:               "load fill percent",
 			fleet:              testSmallFreighter(player),
 			args:               args{dest: planet, cargoType: Ironium, task: WaypointTransportTask{Action: TransportActionFillPercent, Amount: 50}},
 			wantTransferAmount: 60, // 50% of 120kT capacity
+		},
+		{
+			name:               "load fill percent fuel",
+			fleet:              testSmallFreighter(player).withFuel(0),
+			args:               args{dest: testSmallFreighter(player), cargoType: Fuel, task: WaypointTransportTask{Action: TransportActionFillPercent, Amount: 50}},
+			wantTransferAmount: 65, // 50% of 130mg capacity
 		},
 		{
 			name:               "load fill percent but wait",
@@ -605,6 +629,12 @@ func TestFleet_getCargoLoadAmount(t *testing.T) {
 			wantTransferAmount: 10, // load 10kT more
 		},
 		{
+			name:               "set fuel amount to 20mg when we have 10mg already",
+			fleet:              testSmallFreighter(player).withFuel(10),
+			args:               args{dest: testSmallFreighter(player), cargoType: Fuel, task: WaypointTransportTask{Action: TransportActionSetAmountTo, Amount: 20}},
+			wantTransferAmount: 10, // load 10mg more
+		},
+		{
 			name:               "set amount to 20kT when we have 10kT already, but planet only has 5k",
 			fleet:              testSmallFreighter(player).withCargo(Cargo{Ironium: 10}),
 			args:               args{dest: NewPlanet().WithCargo(Cargo{Ironium: 5}), cargoType: Ironium, task: WaypointTransportTask{Action: TransportActionSetAmountTo, Amount: 20}},
@@ -612,10 +642,23 @@ func TestFleet_getCargoLoadAmount(t *testing.T) {
 			wantWaitAtWaypoint: true, // wait for remaining 5kT we want
 		},
 		{
+			name:               "set amount to 20mg fuel when we have 10mg already, but dest fleet only has 5mg",
+			fleet:              testSmallFreighter(player).withFuel(10),
+			args:               args{dest: testSmallFreighter(player).withFuel(5), cargoType: Fuel, task: WaypointTransportTask{Action: TransportActionSetAmountTo, Amount: 20}},
+			wantTransferAmount: 5,    // load 5mg more
+			wantWaitAtWaypoint: true, // wait for remaining 5mg we want
+		},
+		{
 			name:               "set amount to 20kT when we have 30kT already. We should unload 10kT to the planet",
 			fleet:              testSmallFreighter(player).withCargo(Cargo{Ironium: 30}),
 			args:               args{dest: planet, cargoType: Ironium, task: WaypointTransportTask{Action: TransportActionSetAmountTo, Amount: 20}},
 			wantTransferAmount: -10, // unload 10kT
+		},
+		{
+			name:               "set amount to 20mg fuel when we have 30mg already. We should unload 10mg to the dest fleet",
+			fleet:              testSmallFreighter(player).withFuel(30),
+			args:               args{dest: testSmallFreighter(player).withFuel(0), cargoType: Fuel, task: WaypointTransportTask{Action: TransportActionSetAmountTo, Amount: 20}},
+			wantTransferAmount: -10, // unload 10mg
 		},
 	}
 	for _, tt := range tests {
