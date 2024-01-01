@@ -142,8 +142,6 @@ import (
 // 2 1/2 is    3232
 //
 // ===================================================================
-// TODO:
-// * Accuracy/Beam Defense modifications to attractiveness
 
 const battleWidth, battleHeight = 10, 10
 

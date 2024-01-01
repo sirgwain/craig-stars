@@ -124,7 +124,7 @@ const (
 	PlayerMessageRemoteMined
 	PlayerMessageTechGained
 	PlayerMessageFleetTargetLost
-	PlayerMessageFleetColonistDieoff
+	PlayerMessageFleetRadiatingEngineDieoff
 	PlayerMessagePlanetDiedOff
 	PlayerMessagePlanetEmptied
 	PlayerMessagePlanetDiscoveryHabitable
@@ -151,6 +151,7 @@ const (
 	PlayerMessageTechLevelGainedInvasion
 	PlayerMessageTechLevelGainedScrapFleet
 	PlayerMessageTechLevelGainedBattle
+	PlayerMessageFleetDieoff
 )
 
 func newMessage(messageType PlayerMessageType) PlayerMessage {
@@ -500,9 +501,9 @@ func (m *messageClient) fleetReproduce(player *Player, fleet *Fleet, colonistsGr
 
 }
 
-func (m *messageClient) fleetColonistsDieoff(player *Player, fleet *Fleet, colonistsKilled int) {
+func (m *messageClient) fleetRadiatingEngineDieoff(player *Player, fleet *Fleet, colonistsKilled int) {
 	player.Messages = append(player.Messages,
-		newFleetMessage(PlayerMessageFleetColonistDieoff, fleet).
+		newFleetMessage(PlayerMessageFleetRadiatingEngineDieoff, fleet).
 			withText(fmt.Sprintf("Engine radiation has killed %d colonists traveling in %s.", colonistsKilled, fleet.Name)).
 			withSpec(PlayerMessageSpec{Amount: colonistsKilled}),
 	)

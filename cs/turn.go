@@ -63,6 +63,7 @@ func (t *turn) generateTurn() error {
 	t.packetMove(false)
 	t.mysteryTraderMove()
 	t.fleetMove()
+	t.fleetRadiatingEngineDieoff()
 	t.fleetDieoff()
 	t.fleetReproduce()
 	t.decaySalvage()
@@ -870,7 +871,7 @@ func (t *turn) moveFleet(fleet *Fleet) {
 // DeathRate/Year % = int ((86 - C)/2)
 // where C is the center of your Rad-Hab-Range (mR)
 
-func (t *turn) fleetDieoff() {
+func (t *turn) fleetRadiatingEngineDieoff() {
 	for _, fleet := range t.game.Fleets {
 		if fleet.Delete {
 			continue
@@ -896,7 +897,7 @@ func (t *turn) fleetDieoff() {
 			fleet.MarkDirty()
 
 			// Message the player
-			messager.fleetColonistsDieoff(player, fleet, killed*100)
+			messager.fleetRadiatingEngineDieoff(player, fleet, killed*100)
 
 			log.Debug().
 				Int64("GameID", t.game.ID).
@@ -922,7 +923,7 @@ func (t *turn) fleetReproduce() {
 
 		// check if this player's freighters reproduce
 		player := t.game.getPlayer(fleet.PlayerNum)
-		if player.Race.Spec.FreighterGrowthFactor == 0 {
+		if player.Race.Spec.FreighterGrowthFactor <= 0 {
 			continue
 		}
 
@@ -957,6 +958,43 @@ func (t *turn) fleetReproduce() {
 			Int("Over", over).
 			Msgf("fleet reproduced")
 
+	}
+}
+
+func (t *turn) fleetDieoff() {
+	for _, fleet := range t.game.Fleets {
+		if fleet.Delete {
+			continue
+		}
+
+		if fleet.Cargo.Colonists == 0 {
+			continue
+		}
+
+		// check if this player's freighters reproduce
+		player := t.game.getPlayer(fleet.PlayerNum)
+		if player.Race.Spec.FreighterGrowthFactor >= 0 {
+			continue
+		}
+
+		deathFactor := player.Race.Spec.FreighterGrowthFactor
+		death := MinInt(-1, int(deathFactor*float64(fleet.Cargo.Colonists)))
+		fleet.Cargo.Colonists = fleet.Cargo.Colonists + death
+		fleet.MarkDirty()
+
+		// Message the player
+		player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetDieoff, fleet).withSpec(
+			PlayerMessageSpec{Name: fleet.Name, Amount: death},
+		))
+
+		log.Debug().
+			Int64("GameID", t.game.ID).
+			Str("Name", t.game.Name).
+			Int("Year", t.game.Year).
+			Int("Player", fleet.PlayerNum).
+			Str("Fleet", fleet.Name).
+			Int("Death", death).
+			Msgf("fleet dieoff")
 	}
 }
 

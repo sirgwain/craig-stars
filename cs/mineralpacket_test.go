@@ -76,6 +76,17 @@ func TestMineralPacket_completeMoveUncaught(t *testing.T) {
 
 }
 
+func TestMineralPacket_completeMoveUncaughtAR(t *testing.T) {
+	player := NewPlayer(1, NewRace().WithPRT(AR).WithSpec(&rules)).WithNum(1).withSpec(&rules)
+	planet := NewPlanet().withPosition(Vector{20, 0}).WithNum(1).WithPlayerNum(1).WithCargo(Cargo{Colonists: 100})
+
+	packet := newMineralPacket(player, 1, 5, 5, Cargo{100, 0, 0, 0}, Vector{}, planet.Num)
+
+	packet.movePacket(&rules, player, planet, player)
+	assert.Equal(t, planet.Cargo, Cargo{Ironium: 100, Colonists: 100})
+	assert.True(t, packet.Delete)
+
+}
 func TestMineralPacket_completeMoveCaught(t *testing.T) {
 	player := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1).withSpec(&rules)
 	planet := NewPlanet().withPosition(Vector{20, 0}).WithNum(1).WithPlayerNum(1).WithCargo(Cargo{Colonists: 100})
