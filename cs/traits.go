@@ -421,6 +421,7 @@ func arSpec() PRTSpec {
 	}
 
 	spec.CanRemoteMineOwnPlanets = true
+	spec.FreighterGrowthFactor = -.03 // 3% of colonists on freighters die off every turn
 	spec.StarbaseCostFactor = .8
 	spec.InnateMining = true
 	spec.InnateResources = true

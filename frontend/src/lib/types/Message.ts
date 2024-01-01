@@ -3,14 +3,14 @@ import { commandMapObject, selectMapObject, zoomToMapObject } from '$lib/service
 import type { Universe } from '$lib/services/Universe';
 import { kebabCase } from 'lodash-es';
 import type { BattleRecordStats } from './Battle';
+import type { Cost } from './Cost';
 import type { Fleet, Target } from './Fleet';
 import type { Hab } from './Hab';
 import { MapObjectType, None, ownedBy } from './MapObject';
 import type { Mineral } from './Mineral';
-import type { QueueItemType } from './Planet';
 import type { PlayerSettings } from './PlayerSettings';
 import type { TechField } from './TechLevel';
-import type { Cost } from './Cost';
+import type { QueueItemType } from './QueueItemType';
 
 export type Message = {
 	type: MessageType;
@@ -170,7 +170,8 @@ export enum MessageType {
 	FleetTransferReceivedRefused,
 	TechLevelGainedInvasion,
 	TechLevelGainedScrapFleet,
-	TechLevelGainedBattle
+	TechLevelGainedBattle,
+	FleetDieoff,
 }
 
 // get the next visible message taking into account filters

@@ -641,7 +641,7 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		TechsCostExtraLevel: prtSpec.TechsCostExtraLevel,
 
 		// IS
-		FreighterGrowthFactor: prtSpec.FreighterGrowthFactor,
+		FreighterGrowthFactor: prtSpec.FreighterGrowthFactor, // AR sets this negative
 		InvasionDefendBonus:   prtSpec.InvasionDefendBonus,
 		RepairFactor:          prtSpec.RepairFactor,
 		StarbaseRepairFactor:  prtSpec.StarbaseRepairFactor,

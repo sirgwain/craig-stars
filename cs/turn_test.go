@@ -1016,6 +1016,38 @@ func Test_turn_fleetReproduce(t *testing.T) {
 func Test_turn_fleetDieoff(t *testing.T) {
 	game := createSingleUnitGame()
 
+	// make an AR race for dieoff
+	player := game.Players[0]
+	player.Race.PRT = AR
+	player.Race.Spec = computeRaceSpec(&player.Race, &rules)
+
+	// make a new freighter with some colonists
+	fleet := testSmallFreighter(player)
+	fleet.Cargo.Colonists = 50 // 5000 colonists
+	player.Designs[0] = fleet.Tokens[0].design
+	game.Fleets[0] = fleet
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	turn.fleetDieoff()
+
+	// should have lost a min of 1kt on freighter
+	assert.Equal(t, 49, fleet.Cargo.Colonists)
+
+	// set to 10000, so we lose 300 or 3%
+	fleet.Cargo.Colonists = 100
+	turn.fleetDieoff()
+
+	// should have lost a min of 1kt on freighter
+	assert.Equal(t, 97, fleet.Cargo.Colonists)
+}
+
+func Test_turn_fleetRadiatingEngineDieoff(t *testing.T) {
+	game := createSingleUnitGame()
+
 	// make an IS race for reproducing
 	player := game.Players[0]
 

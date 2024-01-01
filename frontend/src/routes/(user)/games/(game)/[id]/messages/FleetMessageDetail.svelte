@@ -17,6 +17,9 @@
 {#if message.type === MessageType.FleetColonistDieoff}
 	<!-- Colonist dieoff from engine radiation -->
 	Engine radiation has killed {message.spec.amount} colonists traveling in {fleet.name}.
+{:else if message.type === MessageType.FleetDieoff}
+	Due to the rigors of warp acceleration, {message.spec.amount} of your colonists on {fleet.name} have
+	died.
 {:else if message.type === MessageType.FleetShipExceededSafeSpeed}
 	<!-- Overwarp -->
 	<FleetEngineStrainMessageDetail {message} />

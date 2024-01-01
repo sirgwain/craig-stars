@@ -132,13 +132,14 @@ func (packet *MineralPacket) movePacket(rules *Rules, player *Player, target *Pl
 // #colonists killed = Max. of (1056 x 250,000 / 1000, 1056 x 100)
 // = Max.of( 264,000, 105600) destroying the colony
 func (packet *MineralPacket) completeMove(rules *Rules, player *Player, planet *Planet, planetPlayer *Player) {
-	damage := packet.getDamage(rules, planet)
+	damage := packet.getDamage(rules, planet, planetPlayer)
 
 	if damage == (MineralPacketDamage{}) {
 		// caught packet successfully, transfer cargo
 		messager.mineralPacketCaught(planetPlayer, planet, packet)
-	} else if damage.Killed > 0 || damage.DefensesDestroyed > 0 {
+	} else {
 		// kill off colonists and defenses
+		// note, for AR races, this will be 0 colonists killed or structures destroyed
 		planet.setPopulation(roundToNearest100(Clamp(planet.population()-damage.Killed, 0, planet.population())))
 		planet.Defenses = Clamp(planet.Defenses-damage.DefensesDestroyed, 0, planet.Defenses)
 
@@ -173,7 +174,7 @@ func (packet *MineralPacket) completeMove(rules *Rules, player *Player, planet *
 }
 
 // get the damage a mineral packet will do when it collides with a planet
-func (packet *MineralPacket) getDamage(rules *Rules, planet *Planet) MineralPacketDamage {
+func (packet *MineralPacket) getDamage(rules *Rules, planet *Planet, planetPlayer *Player) MineralPacketDamage {
 
 	if !planet.Owned() {
 		// unowned planets aren't damaged, but all cargo is uncaught
@@ -183,6 +184,11 @@ func (packet *MineralPacket) getDamage(rules *Rules, planet *Planet) MineralPack
 	if planet.Spec.HasMassDriver && planet.Spec.SafePacketSpeed >= packet.WarpSpeed {
 		// planet successfully caught this packet
 		return MineralPacketDamage{}
+	}
+
+	if planetPlayer.Race.Spec.LivesOnStarbases {
+		// No damage, but all cargo is uncaught and might impact the planet
+		return MineralPacketDamage{Uncaught: packet.Cargo.Total()}
 	}
 
 	// uh oh, this packet is going too fast and we'll take damage
