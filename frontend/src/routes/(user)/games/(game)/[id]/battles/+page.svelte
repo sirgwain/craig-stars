@@ -1,10 +1,16 @@
 <script lang="ts">
-	import SortableTableHeader from '$lib/components/SortableTableHeader.svelte';
-	import TableSearchInput from '$lib/components/TableSearchInput.svelte';
+	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
+	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
+	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import { getGameContext } from '$lib/services/Contexts';
-	import { getNumShips, getOurDead, getOurShips, getTheirDead, getTheirShips, type BattleRecord } from '$lib/types/Battle';
-	import { SvelteTable, type SvelteTableColumn } from '@hurtigruten/svelte-table';
+	import {
+		getNumShips,
+		getOurDead,
+		getOurShips,
+		getTheirDead,
+		getTheirShips
+	} from '$lib/types/Battle';
 
 	const { game, player, universe } = getGameContext();
 
@@ -42,7 +48,7 @@
 	$: filteredBattles =
 		battleRows.filter((i) => i.location.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? [];
 
-	const columns: SvelteTableColumn<BattleRecord>[] = [
+	const columns: TableColumn<BattleRow>[] = [
 		{
 			key: 'location',
 			title: 'Location'
@@ -92,7 +98,7 @@
 	<div class="flex flex-row justify-between m-2">
 		<TableSearchInput bind:value={search} />
 	</div>
-	<SvelteTable
+	<Table
 		{columns}
 		rows={filteredBattles}
 		classes={{
@@ -100,15 +106,12 @@
 			td: 'first:table-cell nth-child(2):table-cell hidden sm:table-cell',
 			th: 'first:table-cell nth-child(2):table-cell hidden sm:table-cell'
 		}}
-		let:column
-		let:cell
-		let:row
 	>
-		<span slot="head" let:isSorted let:sortDescending>
+		<span slot="head" let:isSorted let:sortDescending let:column>
 			<SortableTableHeader {column} {isSorted} {sortDescending} />
 		</span>
 
-		<span slot="cell">
+		<span slot="cell" let:column let:row let:cell>
 			{#if column.key == 'location'}
 				<a class="cs-link text-2xl" href={`/games/${$game.id}/battles/${row.num}`}>{row.location}</a
 				>
@@ -116,5 +119,5 @@
 				{cell ?? ''}
 			{/if}
 		</span>
-	</SvelteTable>
+	</Table>
 </div>

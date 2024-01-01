@@ -1,15 +1,15 @@
 <script lang="ts">
-	import SortableTableHeader from '$lib/components/SortableTableHeader.svelte';
-	import TableSearchInput from '$lib/components/TableSearchInput.svelte';
+	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
+	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { AdminService } from '$lib/services/AdminService';
 	import type { Game } from '$lib/types/Game';
 	import type { User } from '$lib/types/User';
-	import { SvelteTable, type SvelteTableColumn } from '@hurtigruten/svelte-table';
+	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
 	import { format, parseJSON } from 'date-fns';
 	import { reverse, sortBy } from 'lodash-es';
 	import { onMount } from 'svelte';
 
-	const columns: SvelteTableColumn[] = [
+	const columns: TableColumn<Game>[] = [
 		{
 			key: 'name',
 			title: 'Name'
@@ -74,7 +74,7 @@
 	<div class="flex flex-row justify-between m-2">
 		<TableSearchInput bind:value={search} />
 	</div>
-	<SvelteTable
+	<Table
 		{columns}
 		rows={filteredGames}
 		classes={{
@@ -82,23 +82,20 @@
 			td: 'first:table-cell nth-child(2):table-cell hidden sm:table-cell',
 			th: 'first:table-cell nth-child(2):table-cell hidden sm:table-cell'
 		}}
-		let:column
-		let:cell
-		let:row
 	>
-		<span slot="head" let:isSorted let:sortDescending>
+		<span slot="head" let:isSorted let:sortDescending let:column>
 			<SortableTableHeader
 				{column}
 				isSorted={isSorted || sortKey === column.key}
 				sortDescending={sortDescending || (sortKey === column.key && descending)}
 				on:sorted={(e) => {
-					sortKey = column;
+					sortKey = column.key;
 					descending = e.detail.sortDescending;
 				}}
 			/>
 		</span>
 
-		<span slot="cell">
+		<span slot="cell" let:column let:row let:cell>
 			{#if column.key == 'name'}
 				<a class="cs-link text-2xl" href="/games/{row.id}">{cell}</a>
 			{:else if column.key == 'createdAt'}
@@ -113,5 +110,5 @@
 				{cell}
 			{/if}
 		</span>
-	</SvelteTable>
+	</Table>
 </div>

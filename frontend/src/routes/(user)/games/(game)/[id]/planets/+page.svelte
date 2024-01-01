@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import SortableTableHeader from '$lib/components/SortableTableHeader.svelte';
-	import TableSearchInput from '$lib/components/TableSearchInput.svelte';
+	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
+	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
+	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import MineralMini from '$lib/components/game/MineralMini.svelte';
 	import { getGameContext } from '$lib/services/Contexts';
 	import { commandMapObject, selectMapObject, zoomToMapObject } from '$lib/services/Stores';
 	import { getQueueItemShortName, planetsSortBy, type Planet } from '$lib/types/Planet';
-	import { SvelteTable, type SvelteTableColumn } from '@hurtigruten/svelte-table';
 	import { Check } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
@@ -28,7 +28,7 @@
 			.getMyPlanets()
 			.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? [];
 
-	const columns: SvelteTableColumn<Planet>[] = [
+	const columns: TableColumn<Planet>[] = [
 		{
 			key: 'name',
 			title: 'Name',
@@ -111,7 +111,7 @@
 		}
 	];
 
-	function onSorted(column: SvelteTableColumn, sortDescending: boolean) {
+	function onSorted(column: TableColumn<Planet>, sortDescending: boolean) {
 		$settings.sortPlanetsDescending = sortDescending;
 		$settings.sortPlanetsKey = column.key;
 	}
@@ -121,17 +121,14 @@
 	<div class="flex flex-row justify-between m-2">
 		<TableSearchInput bind:value={search} />
 	</div>
-	<SvelteTable
+	<Table
 		{columns}
 		rows={filteredPlanets}
 		classes={{
 			table: 'table table-zebra table-compact table-auto w-full'
 		}}
-		let:column
-		let:cell
-		let:row
 	>
-		<div slot="head" let:isSorted let:sortDescending>
+		<div slot="head" let:isSorted let:sortDescending let:column>
 			<SortableTableHeader
 				{column}
 				isSorted={isSorted || $settings.sortPlanetsKey === column.key}
@@ -143,13 +140,13 @@
 			/>
 		</div>
 
-		<span slot="cell">
+		<span slot="cell" let:row let:column let:cell>
 			{#if column.key == 'name'}
 				<button class="cs-link text-2xl" on:click={() => selectPlanet(row)}>{cell}</button>
 			{:else if column.key == 'starbase'}
 				{row.spec.starbaseDesignName ?? ''}
 			{:else if column.key == 'population'}
-				{((row.cargo.colonists ?? 0) * 100).toLocaleString()}
+				{((row.cargo?.colonists ?? 0) * 100).toLocaleString()}
 			{:else if column.key == 'populationDensity'}
 				{((row.spec.populationDensity ?? 0) * 100).toFixed(1)}%
 			{:else if column.key == 'habitability'}
@@ -203,5 +200,5 @@
 				{cell}
 			{/if}
 		</span>
-	</SvelteTable>
+	</Table>
 </div>

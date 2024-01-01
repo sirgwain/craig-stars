@@ -1,13 +1,12 @@
 <script lang="ts">
-	import SortableTableHeader from '$lib/components/SortableTableHeader.svelte';
-	import TableSearchInput from '$lib/components/TableSearchInput.svelte';
+	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
+	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
+	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip.svelte';
 	import { getGameContext } from '$lib/services/Contexts';
 	import { techs } from '$lib/services/Stores';
-	import { ownedBy } from '$lib/types/MapObject';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
-	import { SvelteTable, type SvelteTableColumn } from '@hurtigruten/svelte-table';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { kebabCase } from 'lodash-es';
@@ -30,7 +29,7 @@
 					$universe.getPlayerName(i.playerNum).toLowerCase().indexOf(search.toLowerCase()) != -1
 			) ?? [];
 
-	const columns: SvelteTableColumn<ShipDesign>[] = [
+	const columns: TableColumn<ShipDesign>[] = [
 		{
 			key: 'playerNum',
 			title: 'Player'
@@ -91,21 +90,18 @@
 	<div class="flex flex-row justify-between m-2">
 		<TableSearchInput bind:value={search} />
 	</div>
-	<SvelteTable
+	<Table
 		{columns}
 		rows={filteredDesigns}
 		classes={{
 			table: 'table table-zebra table-compact table-auto w-full'
 		}}
-		let:column
-		let:cell
-		let:row
 	>
-		<span slot="head" let:isSorted let:sortDescending>
+		<span slot="head" let:isSorted let:sortDescending let:column>
 			<SortableTableHeader {column} {isSorted} {sortDescending} />
 		</span>
 
-		<span slot="cell">
+		<span slot="cell" let:column let:row let:cell>
 			{#if column.key === 'name'}
 				<button
 					class="w-full h-full cursor-help text-left"
@@ -157,5 +153,5 @@
 				{cell}
 			{/if}
 		</span>
-	</SvelteTable>
+	</Table>
 </div>

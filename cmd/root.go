@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"os"
+	"time"
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -15,7 +16,7 @@ var debug bool
 func debugPreRun(cmd *cobra.Command, args []string) {
 	// enable debug mode if configured
 	if debug {
-		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.DateTime})
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 		log.Debug().Msg("Debug logging enabled")
 	}

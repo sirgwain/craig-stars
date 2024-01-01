@@ -1,11 +1,12 @@
 <script lang="ts">
-	import type { SvelteTableColumn } from '@hurtigruten/svelte-table';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { ArrowsUpDown, ArrowUp, ArrowDown } from '@steeze-ui/heroicons';
 	import { createEventDispatcher } from 'svelte';
+	import type { TableColumn } from './Table.svelte';
 	const dispatch = createEventDispatcher();
 
-	export let column: SvelteTableColumn;
+	type T = $$Generic;
+	export let column: TableColumn<T>;
 	export let isSorted: boolean = false;
 	export let sortDescending: boolean = false;
 </script>
