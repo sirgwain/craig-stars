@@ -11,7 +11,7 @@
 	const minWidth = 250;
 	const minHeight = 250;
 
-	function hide() {
+	function hide(event: MouseEvent) {
 		$popupComponent = undefined;
 		document.body.className = document.body.className
 			.replaceAll('select-none', '')

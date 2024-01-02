@@ -87,6 +87,7 @@
 			<li>
 				<a
 					href="#add-waypoint"
+					id="add-waypoint"
 					class:fill-accent={$settings.addWaypoint}
 					class:fill-current={!$settings.addWaypoint}
 					class="btn btn-ghost btn-xs h-full border"

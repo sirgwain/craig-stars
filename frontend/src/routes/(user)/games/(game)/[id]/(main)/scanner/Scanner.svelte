@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { clickOutside } from '$lib/clickOutside';
 	import { getGameContext } from '$lib/services/Contexts';
 	import {
 		commandMapObject,
@@ -258,7 +259,7 @@
 		}
 	}
 
-	function onPointerDown(e: CustomEvent<FinderEventDetails>) {
+	async function onPointerDown(e: CustomEvent<FinderEventDetails>) {
 		const { event, found, position } = e.detail;
 		if (event.button != 0) {
 			// we only care about the first button
@@ -266,14 +267,17 @@
 		}
 		pointerDown = true;
 
+		// add a waypoint if we are currently commanding a fleet and we didn't just click
+		// on the fleet
+		const shouldAddWaypoint = $commandedFleet && (event.shiftKey || $settings.addWaypoint);
+
 		if (found) {
-			if (event.shiftKey || $settings.addWaypoint) {
-				addWaypoint(found, position);
+			if (shouldAddWaypoint && (await addWaypoint(found, position))) {
 			} else {
 				mapObjectSelected(found);
 			}
 		} else {
-			if (event.shiftKey || $settings.addWaypoint) {
+			if (shouldAddWaypoint) {
 				addWaypoint(found, position);
 			}
 		}
@@ -363,13 +367,27 @@
 			$game.updateFleetOrders($commandedFleet);
 		}
 	}
-	// if the shift key is held, add a waypoint instead of selecting a mapobject
-	async function addWaypoint(mo: MapObject | undefined, position: Vector) {
-		if (zooming) {
+
+	// disable add waypoint mode when the user clicks outside the
+	// scanner
+	function disableAddWaypointMode(event: MouseEvent) {
+		// ignore clicks on the add-waypoint toolbar button
+		const elem = event.target as Element;
+		if (elem?.id == 'add-waypoint' || elem?.parentElement?.id == 'add-waypoint') {
 			return;
 		}
+		if ($settings.addWaypoint) {
+			$settings.addWaypoint = false;
+		}
+	}
+
+	// if the shift key is held, add a waypoint instead of selecting a mapobject
+	async function addWaypoint(mo: MapObject | undefined, position: Vector): Promise<boolean> {
+		if (zooming) {
+			return false;
+		}
 		if (!$commandedFleet?.waypoints) {
-			return;
+			return false;
 		}
 
 		let waypointIndex = $currentSelectedWaypointIndex;
@@ -385,7 +403,7 @@
 		position = mo ? mo.position : position ?? emptyVector;
 		if (equal(position, currentWaypoint.position) || equal(position, nextWaypoint.position)) {
 			// don't duplicate waypoints
-			return;
+			return false;
 		}
 
 		const colonizing =
@@ -481,6 +499,8 @@
 				selectMapObject(mo);
 			}
 		}
+
+		return true;
 	}
 	/**
 	 * When a mapobject is selected we go through a few steps.
@@ -581,6 +601,7 @@
 <div
 	class:cursor-grab={waypointHighlighted}
 	class={`grow bg-black overflow-hidden p-[${padding}px] select-none`}
+	use:clickOutside={disableAddWaypointMode}
 >
 	<LayerCake
 		{data}

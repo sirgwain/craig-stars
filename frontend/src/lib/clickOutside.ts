@@ -1,7 +1,7 @@
 // from https://github.com/Th1nkK1D/svelte-use-click-outside
-export function clickOutside(node: HTMLElement, handler: () => void): { destroy: () => void } {
+export function clickOutside(node: HTMLElement, handler: (event: MouseEvent) => void): { destroy: () => void } {
 	const onClick = (event: MouseEvent) =>
-		node && !node.contains(event.target as HTMLElement) && !event.defaultPrevented && handler();
+		node && !node.contains(event.target as HTMLElement) && !event.defaultPrevented && handler(event);
 
 	document.addEventListener('click', onClick, true);
 
