@@ -86,7 +86,7 @@ import (
 // goverter:extend MysteryTraderSpecToGameMysteryTraderSpec
 // goverter:extend GameMysteryTraderSpecToMysteryTraderSpec
 type Converter interface {
-	// goverter:mapExtend DBObject ExtendUserDBObject
+	// goverter:map . DBObject | ExtendUserDBObject
 	ConvertUser(source User) cs.User
 
 	ConvertUsers(source []User) []cs.User
@@ -96,10 +96,10 @@ type Converter interface {
 	// goverter:map DBObject.UpdatedAt UpdatedAt
 	ConvertGameUser(source *cs.User) *User
 
-	// goverter:mapExtend DBObject ExtendRaceDBObject
-	// goverter:mapExtend ResearchCost ExtendResearchCost
-	// goverter:mapExtend HabLow ExtendHabLow
-	// goverter:mapExtend HabHigh ExtendHabHigh
+	// goverter:map . DBObject | ExtendRaceDBObject
+	// goverter:map . ResearchCost | ExtendResearchCost
+	// goverter:map . HabLow | ExtendHabLow
+	// goverter:map . HabHigh | ExtendHabHigh
 	ConvertRace(source Race) cs.Race
 
 	ConvertRaces(source []Race) []cs.Race
@@ -121,10 +121,10 @@ type Converter interface {
 	// goverter:map ResearchCost.Biotechnology ResearchCostBiotechnology
 	ConvertGameRace(source *cs.Race) *Race
 
-	// goverter:mapExtend DBObject ExtendGameDBObject
-	// goverter:mapExtend VictoryConditions ExtendVictoryConditions
-	// goverter:mapExtend Area ExtendArea
-	// goverter:mapExtend Rules ExtendDefaultRules
+	// goverter:map . DBObject | ExtendGameDBObject
+	// goverter:map . VictoryConditions | ExtendVictoryConditions
+	// goverter:map . Area | ExtendArea
+	// goverter:map . Rules | ExtendDefaultRules
 	ConvertGame(source Game) cs.Game
 
 	ConvertGames(source []Game) []cs.Game
@@ -183,12 +183,12 @@ type Converter interface {
 	// goverter:map PlayerPlans.TransportPlans TransportPlans
 	ConvertGamePlayer(source *cs.Player) *Player
 
-	// goverter:mapExtend GameDBObject ExtendPlayerGameDBObject
-	// goverter:mapExtend TechLevels ExtendTechLevels
-	// goverter:mapExtend TechLevelsSpent ExtendTechLevelsSpent
-	// goverter:mapExtend PlayerOrders ExtendPlayerPlayerOrders
-	// goverter:mapExtend PlayerIntels ExtendPlayerPlayerIntels
-	// goverter:mapExtend PlayerPlans ExtendPlayerPlayerPlans
+	// goverter:map . GameDBObject | ExtendPlayerGameDBObject
+	// goverter:map . TechLevels | ExtendTechLevels
+	// goverter:map . TechLevelsSpent | ExtendTechLevelsSpent
+	// goverter:map . PlayerOrders | ExtendPlayerPlayerOrders
+	// goverter:map . PlayerIntels | ExtendPlayerPlayerIntels
+	// goverter:map . PlayerPlans | ExtendPlayerPlayerPlans
 	// goverter:ignore Designs
 	ConvertPlayer(source Player) cs.Player
 
@@ -235,14 +235,14 @@ type Converter interface {
 	// goverter:map Cargo.Colonists Colonists
 	ConvertGamePlanet(source *cs.Planet) *Planet
 
-	// goverter:mapExtend Hab ExtendHab
-	// goverter:mapExtend BaseHab ExtendBaseHab
-	// goverter:mapExtend TerraformedAmount ExtendTerraformedAmount
-	// goverter:mapExtend MineralConcentration ExtendMineralConcentration
-	// goverter:mapExtend MineYears ExtendMineYears
-	// goverter:mapExtend Cargo ExtendPlanetCargo
-	// goverter:mapExtend MapObject ExtendPlanetMapObject
-	// goverter:mapExtend PlanetOrders ExtendPlanetPlanetOrders
+	// goverter:map . Hab | ExtendHab
+	// goverter:map . BaseHab | ExtendBaseHab
+	// goverter:map . TerraformedAmount | ExtendTerraformedAmount
+	// goverter:map . MineralConcentration | ExtendMineralConcentration
+	// goverter:map . MineYears | ExtendMineYears
+	// goverter:map . Cargo | ExtendPlanetCargo
+	// goverter:map . MapObject | ExtendPlanetMapObject
+	// goverter:map . PlanetOrders | ExtendPlanetPlanetOrders
 	// goverter:ignore Starbase
 	ConvertPlanet(source *Planet) *cs.Planet
 
@@ -273,11 +273,11 @@ type Converter interface {
 	// goverter:map Cargo.Colonists Colonists
 	ConvertGameFleet(source *cs.Fleet) *Fleet
 
-	// goverter:mapExtend Heading ExtendFleetHeading
-	// goverter:mapExtend PreviousPosition ExtendFleetPreviousPosition
-	// goverter:mapExtend Cargo ExtendFleetCargo
-	// goverter:mapExtend MapObject ExtendFleetMapObject
-	// goverter:mapExtend FleetOrders ExtendFleetFleetOrders
+	// goverter:map . Heading | ExtendFleetHeading
+	// goverter:map . PreviousPosition | ExtendFleetPreviousPosition
+	// goverter:map . Cargo | ExtendFleetCargo
+	// goverter:map . MapObject | ExtendFleetMapObject
+	// goverter:map . FleetOrders | ExtendFleetFleetOrders
 	ConvertFleet(source *Fleet) *cs.Fleet
 
 	// goverter:map GameDBObject.ID ID
@@ -290,7 +290,7 @@ type Converter interface {
 	// goverter:ignore Dirty
 	// goverter:ignore CanDelete
 	// goverter:ignore Delete
-	// goverter:mapExtend GameDBObject ExtendShipDesignGameDBObject
+	// goverter:map . GameDBObject | ExtendShipDesignGameDBObject
 	ConvertShipDesign(source *ShipDesign) *cs.ShipDesign
 
 	// goverter:map MapObject.GameDBObject.ID ID
@@ -308,7 +308,7 @@ type Converter interface {
 	// goverter:ignore PlayerNum
 	ConvertGameWormhole(source *cs.Wormhole) *Wormhole
 
-	// goverter:mapExtend MapObject ExtendWormholeMapObject
+	// goverter:map . MapObject | ExtendWormholeMapObject
 	ConvertWormhole(source *Wormhole) *cs.Wormhole
 
 	// goverter:map MapObject.GameDBObject.ID ID
@@ -328,8 +328,8 @@ type Converter interface {
 	// goverter:ignore PlayerNum
 	ConvertGameMysteryTrader(source *cs.MysteryTrader) *MysteryTrader
 
-	// goverter:mapExtend MapObject ExtendMysteryTraderMapObject
-	// goverter:mapExtend Heading ExtendMysteryTraderHeading
+	// goverter:map . MapObject | ExtendMysteryTraderMapObject
+	// goverter:map . Heading | ExtendMysteryTraderHeading
 	ConvertMysteryTrader(source *MysteryTrader) *cs.MysteryTrader
 
 	// goverter:map MapObject.GameDBObject.ID ID
@@ -350,8 +350,8 @@ type Converter interface {
 	// goverter:map Cargo.Germanium Germanium
 	ConvertGameSalvage(source *cs.Salvage) *Salvage
 
-	// goverter:mapExtend MapObject ExtendSalvageMapObject
-	// goverter:mapExtend Cargo ExtendSalvageCargo
+	// goverter:map . MapObject | ExtendSalvageMapObject
+	// goverter:map . Cargo | ExtendSalvageCargo
 	ConvertSalvage(source *Salvage) *cs.Salvage
 
 	// goverter:map MapObject.GameDBObject.ID ID
@@ -369,8 +369,8 @@ type Converter interface {
 	// goverter:map MineFieldOrders.Detonate Detonate
 	ConvertGameMineField(source *cs.MineField) *MineField
 
-	// goverter:mapExtend MapObject ExtendMineFieldMapObject
-	// goverter:mapExtend MineFieldOrders ExtendMineFieldMineFieldOrders
+	// goverter:map . MapObject | ExtendMineFieldMapObject
+	// goverter:map . MineFieldOrders | ExtendMineFieldMineFieldOrders
 	ConvertMineField(source *MineField) *cs.MineField
 
 	// goverter:map MapObject.GameDBObject.ID ID
@@ -393,9 +393,9 @@ type Converter interface {
 	// goverter:map Heading.Y HeadingY
 	ConvertGameMineralPacket(source *cs.MineralPacket) *MineralPacket
 
-	// goverter:mapExtend MapObject ExtendMineralPacketMapObject
-	// goverter:mapExtend Cargo ExtendMineralPacketCargo
-	// goverter:mapExtend Heading ExtendMineralPacketHeading
+	// goverter:map . MapObject | ExtendMineralPacketMapObject
+	// goverter:map . Cargo | ExtendMineralPacketCargo
+	// goverter:map . Heading | ExtendMineralPacketHeading
 	ConvertMineralPacket(source *MineralPacket) *cs.MineralPacket
 }
 
