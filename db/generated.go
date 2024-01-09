@@ -700,7 +700,7 @@ func (c *GameConverter) ConvertWormhole(source *Wormhole) *cs.Wormhole {
 	var pCsWormhole *cs.Wormhole
 	if source != nil {
 		var csWormhole cs.Wormhole
-		csWormhole.MapObject = ExtendWormholeMapObject((*source))
+		csWormhole.MapObject = c.wormHoleMapObject((*source))
 		csWormhole.DestinationNum = (*source).DestinationNum
 		csWormhole.Stability = cs.WormholeStability((*source).Stability)
 		csWormhole.YearsAtStability = (*source).YearsAtStability
@@ -818,6 +818,20 @@ func (c *GameConverter) dbUserToCsDBObject(source User) cs.DBObject {
 	csDBObject.UpdatedAt = TimeToTime(source.UpdatedAt)
 	return csDBObject
 }
+func (c *GameConverter) dbWormholeToCsGameDBObject(source Wormhole) cs.GameDBObject {
+	var csGameDBObject cs.GameDBObject
+	csGameDBObject.ID = source.ID
+	csGameDBObject.GameID = source.GameID
+	csGameDBObject.CreatedAt = TimeToTime(source.CreatedAt)
+	csGameDBObject.UpdatedAt = TimeToTime(source.UpdatedAt)
+	return csGameDBObject
+}
+func (c *GameConverter) dbWormholeToCsVector(source Wormhole) cs.Vector {
+	var csVector cs.Vector
+	csVector.X = source.X
+	csVector.Y = source.Y
+	return csVector
+}
 func (c *GameConverter) mineralPaketCargo(source MineralPacket) cs.Cargo {
 	var csCargo cs.Cargo
 	csCargo.Ironium = source.Ironium
@@ -839,4 +853,14 @@ func (c *GameConverter) salvageCargo(source Salvage) cs.Cargo {
 	csCargo.Boranium = source.Boranium
 	csCargo.Germanium = source.Germanium
 	return csCargo
+}
+func (c *GameConverter) wormHoleMapObject(source Wormhole) cs.MapObject {
+	var csMapObject cs.MapObject
+	csMapObject.GameDBObject = c.dbWormholeToCsGameDBObject(source)
+	csMapObject.Type = MapObjectTypeWormhole()
+	csMapObject.Position = c.dbWormholeToCsVector(source)
+	csMapObject.Num = source.Num
+	csMapObject.Name = source.Name
+	csMapObject.Tags = TagsToGameTags(source.Tags)
+	return csMapObject
 }

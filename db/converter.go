@@ -246,8 +246,16 @@ type Converter interface {
 	// goverter:autoMap MapObject
 	ConvertGameWormhole(source *cs.Wormhole) *Wormhole
 
-	// goverter:map . MapObject | ExtendWormholeMapObject
+	// goverter:map . MapObject
 	ConvertWormhole(source *Wormhole) *cs.Wormhole
+
+	// goverter:map . GameDBObject
+	// goverter:map . Position
+	// goverter:map Type | MapObjectTypeWormhole
+	// goverter:ignore Dirty
+	// goverter:ignore Delete
+	// goverter:ignore PlayerNum
+	wormHoleMapObject(source Wormhole) cs.MapObject
 
 	// goverter:autoMap MapObject.GameDBObject
 	// goverter:autoMap MapObject.Position
@@ -301,6 +309,10 @@ type Converter interface {
 
 	// goverter:ignore Colonists
 	mineralPaketCargo(source MineralPacket) cs.Cargo
+}
+
+func MapObjectTypeWormhole() cs.MapObjectType {
+	return cs.MapObjectTypeWormhole
 }
 
 func TimeToTime(source time.Time) time.Time {
@@ -840,25 +852,6 @@ func ExtendFleetPreviousPosition(source Fleet) *cs.Vector {
 	return &cs.Vector{
 		X: *source.PreviousPositionX,
 		Y: *source.PreviousPositionY,
-	}
-}
-
-func ExtendWormholeMapObject(source Wormhole) cs.MapObject {
-	return cs.MapObject{
-		GameDBObject: cs.GameDBObject{
-			ID:        source.ID,
-			GameID:    source.GameID,
-			CreatedAt: source.CreatedAt,
-			UpdatedAt: source.UpdatedAt,
-		},
-		Type: cs.MapObjectTypeWormhole,
-		Position: cs.Vector{
-			X: source.X,
-			Y: source.Y,
-		},
-		Name: source.Name,
-		Num:  source.Num,
-		Tags: TagsToGameTags(source.Tags),
 	}
 }
 
