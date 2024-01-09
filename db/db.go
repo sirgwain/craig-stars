@@ -185,7 +185,7 @@ func NewConn() DBConn {
 func (conn *dbConn) NewReadClient() Client {
 	return &client{
 		reader:    conn.dbRead,
-		converter: &GameConverter{},
+		converter: c,
 	}
 }
 
@@ -193,7 +193,7 @@ func (conn *dbConn) NewReadWriteClient() Client {
 	return &client{
 		reader:    conn.dbRead,
 		writer:    conn.dbWrite,
-		converter: &GameConverter{},
+		converter: c,
 	}
 }
 
@@ -203,7 +203,7 @@ func newTransactionClient(tx *sqlx.Tx) *client {
 		reader:    tx,
 		writer:    tx,
 		tx:        tx,
-		converter: &GameConverter{},
+		converter: c,
 	}
 }
 

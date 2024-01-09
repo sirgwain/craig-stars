@@ -9,6 +9,9 @@ import (
 	"github.com/sirgwain/craig-stars/cs"
 )
 
+// will be instanciated in ./converter.init.go
+var c Converter
+
 // goverter:converter
 // goverter:output:package github.com/sirgwain/craig-stars/db
 // goverter:output:file ./generated.go
