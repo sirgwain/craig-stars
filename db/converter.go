@@ -198,9 +198,6 @@ type Converter interface {
 	// goverter:map MapObject.GameDBObject.GameID GameID
 	// goverter:map MapObject.GameDBObject.CreatedAt CreatedAt
 	// goverter:map MapObject.GameDBObject.UpdatedAt UpdatedAt
-	// goverter:map MapObject.Type Type
-	// goverter:map MapObject.Dirty Dirty
-	// goverter:map MapObject.Delete Delete
 	// goverter:map MapObject.Position.X X
 	// goverter:map MapObject.Position.Y Y
 	// goverter:map MapObject.Name Name
@@ -250,9 +247,6 @@ type Converter interface {
 	// goverter:map MapObject.GameDBObject.GameID GameID
 	// goverter:map MapObject.GameDBObject.CreatedAt CreatedAt
 	// goverter:map MapObject.GameDBObject.UpdatedAt UpdatedAt
-	// goverter:map MapObject.Type Type
-	// goverter:map MapObject.Dirty Dirty
-	// goverter:map MapObject.Delete Delete
 	// goverter:map MapObject.Position.X X
 	// goverter:map MapObject.Position.Y Y
 	// goverter:map MapObject.Name Name
@@ -285,10 +279,8 @@ type Converter interface {
 	// goverter:map GameDBObject.CreatedAt CreatedAt
 	// goverter:map GameDBObject.UpdatedAt UpdatedAt
 	// goverter:ignore CanDelete
-	// goverter:ignore Delete
 	ConvertGameShipDesign(source *cs.ShipDesign) *ShipDesign
 	// goverter:ignore Dirty
-	// goverter:ignore CanDelete
 	// goverter:ignore Delete
 	// goverter:map . GameDBObject | ExtendShipDesignGameDBObject
 	ConvertShipDesign(source *ShipDesign) *cs.ShipDesign
@@ -297,15 +289,11 @@ type Converter interface {
 	// goverter:map MapObject.GameDBObject.GameID GameID
 	// goverter:map MapObject.GameDBObject.CreatedAt CreatedAt
 	// goverter:map MapObject.GameDBObject.UpdatedAt UpdatedAt
-	// goverter:map MapObject.Type Type
-	// goverter:map MapObject.Dirty Dirty
-	// goverter:map MapObject.Delete Delete
 	// goverter:map MapObject.Position.X X
 	// goverter:map MapObject.Position.Y Y
 	// goverter:map MapObject.Name Name
 	// goverter:map MapObject.Num Num
 	// goverter:map MapObject.Tags Tags
-	// goverter:ignore PlayerNum
 	ConvertGameWormhole(source *cs.Wormhole) *Wormhole
 
 	// goverter:map . MapObject | ExtendWormholeMapObject
@@ -315,9 +303,6 @@ type Converter interface {
 	// goverter:map MapObject.GameDBObject.GameID GameID
 	// goverter:map MapObject.GameDBObject.CreatedAt CreatedAt
 	// goverter:map MapObject.GameDBObject.UpdatedAt UpdatedAt
-	// goverter:map MapObject.Type Type
-	// goverter:map MapObject.Dirty Dirty
-	// goverter:map MapObject.Delete Delete
 	// goverter:map MapObject.Position.X X
 	// goverter:map MapObject.Position.Y Y
 	// goverter:map MapObject.Name Name
@@ -325,7 +310,6 @@ type Converter interface {
 	// goverter:map MapObject.Tags Tags
 	// goverter:map Heading.X HeadingX
 	// goverter:map Heading.Y HeadingY
-	// goverter:ignore PlayerNum
 	ConvertGameMysteryTrader(source *cs.MysteryTrader) *MysteryTrader
 
 	// goverter:map . MapObject | ExtendMysteryTraderMapObject
@@ -336,9 +320,6 @@ type Converter interface {
 	// goverter:map MapObject.GameDBObject.GameID GameID
 	// goverter:map MapObject.GameDBObject.CreatedAt CreatedAt
 	// goverter:map MapObject.GameDBObject.UpdatedAt UpdatedAt
-	// goverter:map MapObject.Type Type
-	// goverter:map MapObject.Dirty Dirty
-	// goverter:map MapObject.Delete Delete
 	// goverter:map MapObject.Position.X X
 	// goverter:map MapObject.Position.Y Y
 	// goverter:map MapObject.Name Name
@@ -358,8 +339,6 @@ type Converter interface {
 	// goverter:map MapObject.GameDBObject.GameID GameID
 	// goverter:map MapObject.GameDBObject.CreatedAt CreatedAt
 	// goverter:map MapObject.GameDBObject.UpdatedAt UpdatedAt
-	// goverter:map MapObject.Dirty Dirty
-	// goverter:map MapObject.Delete Delete
 	// goverter:map MapObject.Position.X X
 	// goverter:map MapObject.Position.Y Y
 	// goverter:map MapObject.Name Name
@@ -377,9 +356,6 @@ type Converter interface {
 	// goverter:map MapObject.GameDBObject.GameID GameID
 	// goverter:map MapObject.GameDBObject.CreatedAt CreatedAt
 	// goverter:map MapObject.GameDBObject.UpdatedAt UpdatedAt
-	// goverter:map MapObject.Type Type
-	// goverter:map MapObject.Dirty Dirty
-	// goverter:map MapObject.Delete Delete
 	// goverter:map MapObject.Position.X X
 	// goverter:map MapObject.Position.Y Y
 	// goverter:map MapObject.Name Name
