@@ -1,10 +1,5 @@
-// to run locally:
-// install this version (new versions don't support mapExtend)
-// TODO: update goverter to latest version. has breaking changes to syntax
-// go install github.com/jmattheis/goverter/cmd/goverter@v0.12.0
-// goverter --packageName db --output ./db/generated.go --packagePath github.com/sirgwain/craig-stars/db --ignoreUnexportedFields ./db
-//
-//go:generate go run github.com/jmattheis/goverter/cmd/goverter --packageName db --output ./db/generated.go --packagePath github.com/sirgwain/craig-stars/db --ignoreUnexportedFields ./db
+//go:generate go run github.com/jmattheis/goverter/cmd/goverter@v1.3.0 gen ./
+
 package db
 
 import (
@@ -15,6 +10,9 @@ import (
 )
 
 // goverter:converter
+// goverter:output:package github.com/sirgwain/craig-stars/db
+// goverter:output:file ./generated.go
+// goverter:ignoreUnexported
 // goverter:extend TimeToTime
 // goverter:extend NullTimeToTime
 // goverter:extend TimeToNullTime
