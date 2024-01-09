@@ -18,7 +18,7 @@ func (c *GameConverter) ConvertFleet(source *Fleet) *cs.Fleet {
 		csFleet.FleetOrders = ExtendFleetFleetOrders((*source))
 		csFleet.PlanetNum = (*source).PlanetNum
 		csFleet.BaseName = (*source).BaseName
-		csFleet.Cargo = ExtendFleetCargo((*source))
+		csFleet.Cargo = c.dbFleetToCsCargo((*source))
 		csFleet.Fuel = (*source).Fuel
 		csFleet.Age = (*source).Age
 		csFleet.Tokens = ShipTokensToGameShipTokens((*source).Tokens)
@@ -34,7 +34,7 @@ func (c *GameConverter) ConvertFleet(source *Fleet) *cs.Fleet {
 }
 func (c *GameConverter) ConvertGame(source Game) cs.Game {
 	var csGame cs.Game
-	csGame.DBObject = ExtendGameDBObject(source)
+	csGame.DBObject = c.dbGameToCsDBObject(source)
 	csGame.HostID = source.HostID
 	csGame.Name = source.Name
 	csGame.State = cs.GameState(source.State)
@@ -495,7 +495,7 @@ func (c *GameConverter) ConvertMineField(source *MineField) *cs.MineField {
 	if source != nil {
 		var csMineField cs.MineField
 		csMineField.MapObject = ExtendMineFieldMapObject((*source))
-		csMineField.MineFieldOrders = ExtendMineFieldMineFieldOrders((*source))
+		csMineField.MineFieldOrders = c.dbMineFieldToCsMineFieldOrders((*source))
 		csMineField.MineFieldType = cs.MineFieldType((*source).MineFieldType)
 		csMineField.NumMines = (*source).NumMines
 		csMineField.Spec = MineFieldSpecToGameMineFieldSpec((*source).Spec)
@@ -509,7 +509,7 @@ func (c *GameConverter) ConvertMineralPacket(source *MineralPacket) *cs.MineralP
 		var csMineralPacket cs.MineralPacket
 		csMineralPacket.MapObject = ExtendMineralPacketMapObject((*source))
 		csMineralPacket.TargetPlanetNum = (*source).TargetPlanetNum
-		csMineralPacket.Cargo = ExtendMineralPacketCargo((*source))
+		csMineralPacket.Cargo = c.mineralPaketCargo((*source))
 		csMineralPacket.WarpSpeed = (*source).WarpSpeed
 		csMineralPacket.SafeWarpSpeed = (*source).SafeWarpSpeed
 		csMineralPacket.Heading = ExtendMineralPacketHeading((*source))
@@ -536,13 +536,13 @@ func (c *GameConverter) ConvertPlanet(source *Planet) *cs.Planet {
 	if source != nil {
 		var csPlanet cs.Planet
 		csPlanet.MapObject = ExtendPlanetMapObject((*source))
-		csPlanet.PlanetOrders = ExtendPlanetPlanetOrders((*source))
-		csPlanet.Hab = ExtendHab((*source))
+		csPlanet.PlanetOrders = c.dbPlanetToCsPlanetOrders((*source))
+		csPlanet.Hab = c.dbPlanetToCsHab((*source))
 		csPlanet.BaseHab = ExtendBaseHab((*source))
 		csPlanet.TerraformedAmount = ExtendTerraformedAmount((*source))
 		csPlanet.MineralConcentration = ExtendMineralConcentration((*source))
 		csPlanet.MineYears = ExtendMineYears((*source))
-		csPlanet.Cargo = ExtendPlanetCargo((*source))
+		csPlanet.Cargo = c.dbPlanetToCsCargo((*source))
 		csPlanet.Mines = (*source).Mines
 		csPlanet.Factories = (*source).Factories
 		csPlanet.Defenses = (*source).Defenses
@@ -556,10 +556,10 @@ func (c *GameConverter) ConvertPlanet(source *Planet) *cs.Planet {
 }
 func (c *GameConverter) ConvertPlayer(source Player) cs.Player {
 	var csPlayer cs.Player
-	csPlayer.GameDBObject = ExtendPlayerGameDBObject(source)
-	csPlayer.PlayerOrders = ExtendPlayerPlayerOrders(source)
-	csPlayer.PlayerIntels = ExtendPlayerPlayerIntels(source)
-	csPlayer.PlayerPlans = ExtendPlayerPlayerPlans(source)
+	csPlayer.GameDBObject = c.dbPlayerToCsGameDBObject(source)
+	csPlayer.PlayerOrders = c.dbPlayerToCsPlayerOrders(source)
+	csPlayer.PlayerIntels = c.dbPlayerToCsPlayerIntels(source)
+	csPlayer.PlayerPlans = c.dbPlayerToCsPlayerPlans(source)
 	csPlayer.UserID = source.UserID
 	csPlayer.Name = source.Name
 	csPlayer.Num = source.Num
@@ -571,7 +571,7 @@ func (c *GameConverter) ConvertPlayer(source Player) cs.Player {
 	csPlayer.DefaultHullSet = source.DefaultHullSet
 	csPlayer.Race = PlayerRaceToGameRace(source.Race)
 	csPlayer.TechLevels = ExtendTechLevels(source)
-	csPlayer.TechLevelsSpent = ExtendTechLevelsSpent(source)
+	csPlayer.TechLevelsSpent = ExtendTechLevels(source)
 	csPlayer.ResearchSpentLastYear = source.ResearchSpentLastYear
 	csPlayer.Relations = PlayerRelationshipsToGamePlayerRelationships(source.Relations)
 	csPlayer.Messages = PlayerMessagesToGamePlayerMessages(source.Messages)
@@ -594,7 +594,7 @@ func (c *GameConverter) ConvertPlayers(source []Player) []cs.Player {
 }
 func (c *GameConverter) ConvertRace(source Race) cs.Race {
 	var csRace cs.Race
-	csRace.DBObject = ExtendRaceDBObject(source)
+	csRace.DBObject = c.dbRaceToCsDBObject(source)
 	csRace.UserID = source.UserID
 	csRace.Name = source.Name
 	csRace.PluralName = source.PluralName
@@ -635,7 +635,7 @@ func (c *GameConverter) ConvertSalvage(source *Salvage) *cs.Salvage {
 	if source != nil {
 		var csSalvage cs.Salvage
 		csSalvage.MapObject = ExtendSalvageMapObject((*source))
-		csSalvage.Cargo = ExtendSalvageCargo((*source))
+		csSalvage.Cargo = c.salvageCargo((*source))
 		pCsSalvage = &csSalvage
 	}
 	return pCsSalvage
@@ -644,7 +644,7 @@ func (c *GameConverter) ConvertShipDesign(source *ShipDesign) *cs.ShipDesign {
 	var pCsShipDesign *cs.ShipDesign
 	if source != nil {
 		var csShipDesign cs.ShipDesign
-		csShipDesign.GameDBObject = ExtendShipDesignGameDBObject((*source))
+		csShipDesign.GameDBObject = c.dbShipDesignToCsGameDBObject((*source))
 		csShipDesign.Num = (*source).Num
 		csShipDesign.PlayerNum = (*source).PlayerNum
 		csShipDesign.OriginalPlayerNum = (*source).OriginalPlayerNum
@@ -662,7 +662,7 @@ func (c *GameConverter) ConvertShipDesign(source *ShipDesign) *cs.ShipDesign {
 }
 func (c *GameConverter) ConvertUser(source User) cs.User {
 	var csUser cs.User
-	csUser.DBObject = ExtendUserDBObject(source)
+	csUser.DBObject = c.dbUserToCsDBObject(source)
 	csUser.Username = source.Username
 	csUser.Password = source.Password
 	csUser.Email = source.Email
@@ -712,6 +712,119 @@ func (c *GameConverter) ConvertWormhole(source *Wormhole) *cs.Wormhole {
 func (c *GameConverter) csResearchCostLevelToCsResearchCostLevel(source cs.ResearchCostLevel) cs.ResearchCostLevel {
 	return cs.ResearchCostLevel(source)
 }
+func (c *GameConverter) dbFleetToCsCargo(source Fleet) cs.Cargo {
+	var csCargo cs.Cargo
+	csCargo.Ironium = source.Ironium
+	csCargo.Boranium = source.Boranium
+	csCargo.Germanium = source.Germanium
+	csCargo.Colonists = source.Colonists
+	return csCargo
+}
+func (c *GameConverter) dbGameToCsDBObject(source Game) cs.DBObject {
+	var csDBObject cs.DBObject
+	csDBObject.ID = source.ID
+	csDBObject.CreatedAt = TimeToTime(source.CreatedAt)
+	csDBObject.UpdatedAt = TimeToTime(source.UpdatedAt)
+	return csDBObject
+}
+func (c *GameConverter) dbMineFieldToCsMineFieldOrders(source MineField) cs.MineFieldOrders {
+	var csMineFieldOrders cs.MineFieldOrders
+	csMineFieldOrders.Detonate = source.Detonate
+	return csMineFieldOrders
+}
+func (c *GameConverter) dbPlanetToCsCargo(source Planet) cs.Cargo {
+	var csCargo cs.Cargo
+	csCargo.Ironium = source.Ironium
+	csCargo.Boranium = source.Boranium
+	csCargo.Germanium = source.Germanium
+	csCargo.Colonists = source.Colonists
+	return csCargo
+}
+func (c *GameConverter) dbPlanetToCsHab(source Planet) cs.Hab {
+	var csHab cs.Hab
+	csHab.Grav = source.Grav
+	csHab.Temp = source.Temp
+	csHab.Rad = source.Rad
+	return csHab
+}
+func (c *GameConverter) dbPlanetToCsPlanetOrders(source Planet) cs.PlanetOrders {
+	var csPlanetOrders cs.PlanetOrders
+	csPlanetOrders.ContributesOnlyLeftoverToResearch = source.ContributesOnlyLeftoverToResearch
+	csPlanetOrders.ProductionQueue = ProductionQueueItemsToGameProductionQueueItems(source.ProductionQueue)
+	csPlanetOrders.RouteTargetType = cs.MapObjectType(source.RouteTargetType)
+	csPlanetOrders.RouteTargetNum = source.RouteTargetNum
+	csPlanetOrders.RouteTargetPlayerNum = source.RouteTargetPlayerNum
+	csPlanetOrders.PacketTargetNum = source.PacketTargetNum
+	csPlanetOrders.PacketSpeed = source.PacketSpeed
+	return csPlanetOrders
+}
+func (c *GameConverter) dbPlayerToCsGameDBObject(source Player) cs.GameDBObject {
+	var csGameDBObject cs.GameDBObject
+	csGameDBObject.ID = source.ID
+	csGameDBObject.GameID = source.GameID
+	csGameDBObject.CreatedAt = TimeToTime(source.CreatedAt)
+	csGameDBObject.UpdatedAt = TimeToTime(source.UpdatedAt)
+	return csGameDBObject
+}
+func (c *GameConverter) dbPlayerToCsPlayerIntels(source Player) cs.PlayerIntels {
+	var csPlayerIntels cs.PlayerIntels
+	csPlayerIntels.BattleRecords = BattleRecordsToGameBattleRecords(source.BattleRecords)
+	csPlayerIntels.PlayerIntels = PlayerIntelsToGamePlayerIntels(source.PlayerIntels)
+	csPlayerIntels.ScoreIntels = ScoreIntelsToGameScoreIntels(source.ScoreIntels)
+	csPlayerIntels.PlanetIntels = PlanetIntelsToGamePlanetIntels(source.PlanetIntels)
+	csPlayerIntels.FleetIntels = FleetIntelsToGameFleetIntels(source.FleetIntels)
+	csPlayerIntels.StarbaseIntels = FleetIntelsToGameFleetIntels(source.StarbaseIntels)
+	csPlayerIntels.ShipDesignIntels = ShipDesignIntelsToGameShipDesignIntels(source.ShipDesignIntels)
+	csPlayerIntels.MineralPacketIntels = MineralPacketIntelsToGameMineralPacketIntels(source.MineralPacketIntels)
+	csPlayerIntels.MineFieldIntels = MineFieldIntelsToGameMineFieldIntels(source.MineFieldIntels)
+	csPlayerIntels.WormholeIntels = WormholeIntelsToGameWormholeIntels(source.WormholeIntels)
+	csPlayerIntels.MysteryTraderIntels = MysteryTraderIntelsToGameMysteryTraderIntels(source.MysteryTraderIntels)
+	csPlayerIntels.SalvageIntels = SalvageIntelsToGameSalvageIntels(source.SalvageIntels)
+	return csPlayerIntels
+}
+func (c *GameConverter) dbPlayerToCsPlayerOrders(source Player) cs.PlayerOrders {
+	var csPlayerOrders cs.PlayerOrders
+	csPlayerOrders.Researching = cs.TechField(source.Researching)
+	csPlayerOrders.NextResearchField = cs.NextResearchField(source.NextResearchField)
+	csPlayerOrders.ResearchAmount = source.ResearchAmount
+	return csPlayerOrders
+}
+func (c *GameConverter) dbPlayerToCsPlayerPlans(source Player) cs.PlayerPlans {
+	var csPlayerPlans cs.PlayerPlans
+	csPlayerPlans.ProductionPlans = ProductionPlansToGameProductionPlans(source.ProductionPlans)
+	csPlayerPlans.BattlePlans = BattlePlansToGameBattlePlans(source.BattlePlans)
+	csPlayerPlans.TransportPlans = TransportPlansToGameTransportPlans(source.TransportPlans)
+	return csPlayerPlans
+}
+func (c *GameConverter) dbRaceToCsDBObject(source Race) cs.DBObject {
+	var csDBObject cs.DBObject
+	csDBObject.ID = source.ID
+	csDBObject.CreatedAt = TimeToTime(source.CreatedAt)
+	csDBObject.UpdatedAt = TimeToTime(source.UpdatedAt)
+	return csDBObject
+}
+func (c *GameConverter) dbShipDesignToCsGameDBObject(source ShipDesign) cs.GameDBObject {
+	var csGameDBObject cs.GameDBObject
+	csGameDBObject.ID = source.ID
+	csGameDBObject.GameID = source.GameID
+	csGameDBObject.CreatedAt = NullTimeToTime(source.CreatedAt)
+	csGameDBObject.UpdatedAt = NullTimeToTime(source.UpdatedAt)
+	return csGameDBObject
+}
+func (c *GameConverter) dbUserToCsDBObject(source User) cs.DBObject {
+	var csDBObject cs.DBObject
+	csDBObject.ID = source.ID
+	csDBObject.CreatedAt = TimeToTime(source.CreatedAt)
+	csDBObject.UpdatedAt = TimeToTime(source.UpdatedAt)
+	return csDBObject
+}
+func (c *GameConverter) mineralPaketCargo(source MineralPacket) cs.Cargo {
+	var csCargo cs.Cargo
+	csCargo.Ironium = source.Ironium
+	csCargo.Boranium = source.Boranium
+	csCargo.Germanium = source.Germanium
+	return csCargo
+}
 func (c *GameConverter) pTimeTimeToPTimeTime(source *time.Time) *time.Time {
 	var pTimeTime *time.Time
 	if source != nil {
@@ -719,4 +832,11 @@ func (c *GameConverter) pTimeTimeToPTimeTime(source *time.Time) *time.Time {
 		pTimeTime = &timeTime
 	}
 	return pTimeTime
+}
+func (c *GameConverter) salvageCargo(source Salvage) cs.Cargo {
+	var csCargo cs.Cargo
+	csCargo.Ironium = source.Ironium
+	csCargo.Boranium = source.Boranium
+	csCargo.Germanium = source.Germanium
+	return csCargo
 }

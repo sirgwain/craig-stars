@@ -89,7 +89,7 @@ var c Converter
 // goverter:extend MysteryTraderSpecToGameMysteryTraderSpec
 // goverter:extend GameMysteryTraderSpecToMysteryTraderSpec
 type Converter interface {
-	// goverter:map . DBObject | ExtendUserDBObject
+	// goverter:map . DBObject
 	ConvertUser(source User) cs.User
 
 	ConvertUsers(source []User) []cs.User
@@ -97,7 +97,7 @@ type Converter interface {
 	// goverter:autoMap DBObject
 	ConvertGameUser(source *cs.User) *User
 
-	// goverter:map . DBObject | ExtendRaceDBObject
+	// goverter:map . DBObject
 	// goverter:map . ResearchCost | ExtendResearchCost
 	// goverter:map . HabLow | ExtendHabLow
 	// goverter:map . HabHigh | ExtendHabHigh
@@ -120,7 +120,7 @@ type Converter interface {
 	// goverter:map ResearchCost.Biotechnology ResearchCostBiotechnology
 	ConvertGameRace(source *cs.Race) *Race
 
-	// goverter:map . DBObject | ExtendGameDBObject
+	// goverter:map . DBObject
 	// goverter:map . VictoryConditions | ExtendVictoryConditions
 	// goverter:map . Area | ExtendArea
 	// goverter:map . Rules | ExtendDefaultRules
@@ -173,12 +173,12 @@ type Converter interface {
 	// goverter:autoMap PlayerPlans
 	ConvertGamePlayer(source *cs.Player) *Player
 
-	// goverter:map . GameDBObject | ExtendPlayerGameDBObject
+	// goverter:map . GameDBObject
 	// goverter:map . TechLevels | ExtendTechLevels
-	// goverter:map . TechLevelsSpent | ExtendTechLevelsSpent
-	// goverter:map . PlayerOrders | ExtendPlayerPlayerOrders
-	// goverter:map . PlayerIntels | ExtendPlayerPlayerIntels
-	// goverter:map . PlayerPlans | ExtendPlayerPlayerPlans
+	// goverter:map . TechLevelsSpent | ExtendTechLevels
+	// goverter:map . PlayerOrders
+	// goverter:map . PlayerIntels
+	// goverter:map . PlayerPlans
 	// goverter:ignore Designs
 	ConvertPlayer(source Player) cs.Player
 
@@ -204,14 +204,14 @@ type Converter interface {
 	// goverter:autoMap Cargo
 	ConvertGamePlanet(source *cs.Planet) *Planet
 
-	// goverter:map . Hab | ExtendHab
+	// goverter:map . Hab
 	// goverter:map . BaseHab | ExtendBaseHab
 	// goverter:map . TerraformedAmount | ExtendTerraformedAmount
 	// goverter:map . MineralConcentration | ExtendMineralConcentration
 	// goverter:map . MineYears | ExtendMineYears
-	// goverter:map . Cargo | ExtendPlanetCargo
+	// goverter:map . Cargo
 	// goverter:map . MapObject | ExtendPlanetMapObject
-	// goverter:map . PlanetOrders | ExtendPlanetPlanetOrders
+	// goverter:map . PlanetOrders
 	// goverter:ignore Starbase
 	ConvertPlanet(source *Planet) *cs.Planet
 
@@ -228,7 +228,7 @@ type Converter interface {
 
 	// goverter:map . Heading | ExtendFleetHeading
 	// goverter:map . PreviousPosition | ExtendFleetPreviousPosition
-	// goverter:map . Cargo | ExtendFleetCargo
+	// goverter:map . Cargo
 	// goverter:map . MapObject | ExtendFleetMapObject
 	// goverter:map . FleetOrders | ExtendFleetFleetOrders
 	ConvertFleet(source *Fleet) *cs.Fleet
@@ -238,7 +238,7 @@ type Converter interface {
 	ConvertGameShipDesign(source *cs.ShipDesign) *ShipDesign
 	// goverter:ignore Dirty
 	// goverter:ignore Delete
-	// goverter:map . GameDBObject | ExtendShipDesignGameDBObject
+	// goverter:map . GameDBObject
 	ConvertShipDesign(source *ShipDesign) *cs.ShipDesign
 
 	// goverter:autoMap MapObject.GameDBObject
@@ -267,7 +267,7 @@ type Converter interface {
 	ConvertGameSalvage(source *cs.Salvage) *Salvage
 
 	// goverter:map . MapObject | ExtendSalvageMapObject
-	// goverter:map . Cargo | ExtendSalvageCargo
+	// goverter:map . Cargo
 	ConvertSalvage(source *Salvage) *cs.Salvage
 
 	// goverter:autoMap MapObject.GameDBObject
@@ -277,7 +277,7 @@ type Converter interface {
 	ConvertGameMineField(source *cs.MineField) *MineField
 
 	// goverter:map . MapObject | ExtendMineFieldMapObject
-	// goverter:map . MineFieldOrders | ExtendMineFieldMineFieldOrders
+	// goverter:map . MineFieldOrders
 	ConvertMineField(source *MineField) *cs.MineField
 
 	// goverter:autoMap MapObject.GameDBObject
@@ -292,9 +292,15 @@ type Converter interface {
 	ConvertGameMineralPacket(source *cs.MineralPacket) *MineralPacket
 
 	// goverter:map . MapObject | ExtendMineralPacketMapObject
-	// goverter:map . Cargo | ExtendMineralPacketCargo
+	// goverter:map . Cargo
 	// goverter:map . Heading | ExtendMineralPacketHeading
 	ConvertMineralPacket(source *MineralPacket) *cs.MineralPacket
+
+	// goverter:ignore Colonists
+	salvageCargo(source Salvage) cs.Cargo
+
+	// goverter:ignore Colonists
+	mineralPaketCargo(source MineralPacket) cs.Cargo
 }
 
 func TimeToTime(source time.Time) time.Time {
@@ -594,82 +600,6 @@ func GamePlayerStatsToPlayerStats(source *cs.PlayerStats) *PlayerStats {
 	return (*PlayerStats)(source)
 }
 
-func ExtendPlayerPlayerOrders(source Player) cs.PlayerOrders {
-	return cs.PlayerOrders{
-		Researching:       source.Researching,
-		NextResearchField: source.NextResearchField,
-		ResearchAmount:    source.ResearchAmount,
-	}
-}
-
-func ExtendPlayerPlayerPlans(source Player) cs.PlayerPlans {
-	plans := cs.PlayerPlans{}
-
-	if source.ProductionPlans != nil {
-		plans.ProductionPlans = *source.ProductionPlans
-	}
-
-	if source.BattlePlans != nil {
-		plans.BattlePlans = *source.BattlePlans
-	}
-
-	if source.TransportPlans != nil {
-		plans.TransportPlans = *source.TransportPlans
-	}
-
-	return plans
-}
-
-func ExtendPlayerPlayerIntels(source Player) cs.PlayerIntels {
-	intels := cs.PlayerIntels{}
-
-	if source.PlayerIntels != nil {
-		intels.PlayerIntels = *source.PlayerIntels
-	}
-
-	if source.ScoreIntels != nil {
-		intels.ScoreIntels = *source.ScoreIntels
-	}
-
-	if source.BattleRecords != nil {
-		intels.BattleRecords = *source.BattleRecords
-	}
-
-	if source.PlanetIntels != nil {
-		intels.PlanetIntels = *source.PlanetIntels
-	}
-
-	if source.FleetIntels != nil {
-		intels.FleetIntels = *source.FleetIntels
-	}
-
-	if source.ShipDesignIntels != nil {
-		intels.ShipDesignIntels = *source.ShipDesignIntels
-	}
-
-	if source.MineralPacketIntels != nil {
-		intels.MineralPacketIntels = *source.MineralPacketIntels
-	}
-
-	if source.SalvageIntels != nil {
-		intels.SalvageIntels = *source.SalvageIntels
-	}
-
-	if source.MineFieldIntels != nil {
-		intels.MineFieldIntels = *source.MineFieldIntels
-	}
-
-	if source.WormholeIntels != nil {
-		intels.WormholeIntels = *source.WormholeIntels
-	}
-
-	if source.MysteryTraderIntels != nil {
-		intels.MysteryTraderIntels = *source.MysteryTraderIntels
-	}
-
-	return intels
-}
-
 func PlanetSpecToGamePlanetSpec(source *PlanetSpec) cs.PlanetSpec {
 	return (cs.PlanetSpec)(*source)
 }
@@ -750,48 +680,6 @@ func GameMysteryTraderSpecToMysteryTraderSpec(source cs.MysteryTraderSpec) *Myst
 	return (*MysteryTraderSpec)(&source)
 }
 
-func ExtendGameDBObject(source Game) cs.DBObject {
-	return cs.DBObject{
-		ID:        source.ID,
-		CreatedAt: source.CreatedAt,
-		UpdatedAt: source.UpdatedAt,
-	}
-}
-
-func ExtendRaceDBObject(source Race) cs.DBObject {
-	return cs.DBObject{
-		ID:        source.ID,
-		CreatedAt: source.CreatedAt,
-		UpdatedAt: source.UpdatedAt,
-	}
-}
-
-func ExtendUserDBObject(source User) cs.DBObject {
-	return cs.DBObject{
-		ID:        source.ID,
-		CreatedAt: source.CreatedAt,
-		UpdatedAt: source.UpdatedAt,
-	}
-}
-
-func ExtendPlayerGameDBObject(source Player) cs.GameDBObject {
-	return cs.GameDBObject{
-		ID:        source.ID,
-		GameID:    source.GameID,
-		CreatedAt: source.CreatedAt,
-		UpdatedAt: source.UpdatedAt,
-	}
-}
-
-func ExtendShipDesignGameDBObject(source ShipDesign) cs.GameDBObject {
-	return cs.GameDBObject{
-		ID:        source.ID,
-		GameID:    source.GameID,
-		CreatedAt: source.CreatedAt.Time,
-		UpdatedAt: source.UpdatedAt.Time,
-	}
-}
-
 func ExtendResearchCost(source Race) cs.ResearchCost {
 	return cs.ResearchCost{
 		Energy:        source.ResearchCostEnergy,
@@ -857,17 +745,6 @@ func ExtendTechLevels(source Player) cs.TechLevel {
 	}
 }
 
-func ExtendTechLevelsSpent(source Player) cs.TechLevel {
-	return cs.TechLevel{
-		Energy:        source.TechLevelsSpentEnergy,
-		Weapons:       source.TechLevelsSpentWeapons,
-		Propulsion:    source.TechLevelsSpentPropulsion,
-		Construction:  source.TechLevelsSpentConstruction,
-		Electronics:   source.TechLevelsSpentElectronics,
-		Biotechnology: source.TechLevelsSpentBiotechnology,
-	}
-}
-
 func ExtendPlanetMapObject(source Planet) cs.MapObject {
 	return cs.MapObject{
 		GameDBObject: cs.GameDBObject{
@@ -885,26 +762,6 @@ func ExtendPlanetMapObject(source Planet) cs.MapObject {
 		Num:       source.Num,
 		PlayerNum: source.PlayerNum,
 		Tags:      TagsToGameTags(source.Tags),
-	}
-}
-
-func ExtendPlanetPlanetOrders(source Planet) cs.PlanetOrders {
-	return cs.PlanetOrders{
-		ContributesOnlyLeftoverToResearch: source.ContributesOnlyLeftoverToResearch,
-		ProductionQueue:                   *source.ProductionQueue,
-		RouteTargetType:                   source.RouteTargetType,
-		RouteTargetNum:                    source.RouteTargetNum,
-		RouteTargetPlayerNum:              source.RouteTargetPlayerNum,
-		PacketTargetNum:                   source.PacketTargetNum,
-		PacketSpeed:                       source.PacketSpeed,
-	}
-}
-
-func ExtendHab(source Planet) cs.Hab {
-	return cs.Hab{
-		Grav: source.Grav,
-		Temp: source.Temp,
-		Rad:  source.Rad,
 	}
 }
 
@@ -940,15 +797,6 @@ func ExtendMineYears(source Planet) cs.Mineral {
 	}
 }
 
-func ExtendPlanetCargo(source Planet) cs.Cargo {
-	return cs.Cargo{
-		Ironium:   source.Ironium,
-		Boranium:  source.Boranium,
-		Germanium: source.Germanium,
-		Colonists: source.Colonists,
-	}
-}
-
 func ExtendFleetMapObject(source Fleet) cs.MapObject {
 	return cs.MapObject{
 		GameDBObject: cs.GameDBObject{
@@ -975,15 +823,6 @@ func ExtendFleetFleetOrders(source Fleet) cs.FleetOrders {
 		Waypoints:     *source.Waypoints,
 		RepeatOrders:  source.RepeatOrders,
 		Purpose:       source.Purpose,
-	}
-}
-
-func ExtendFleetCargo(source Fleet) cs.Cargo {
-	return cs.Cargo{
-		Ironium:   source.Ironium,
-		Boranium:  source.Boranium,
-		Germanium: source.Germanium,
-		Colonists: source.Colonists,
 	}
 }
 
@@ -1069,14 +908,6 @@ func ExtendSalvageMapObject(source Salvage) cs.MapObject {
 	}
 }
 
-func ExtendSalvageCargo(source Salvage) cs.Cargo {
-	return cs.Cargo{
-		Ironium:   source.Ironium,
-		Boranium:  source.Boranium,
-		Germanium: source.Germanium,
-	}
-}
-
 func ExtendMineFieldMapObject(source MineField) cs.MapObject {
 	return cs.MapObject{
 		GameDBObject: cs.GameDBObject{
@@ -1094,12 +925,6 @@ func ExtendMineFieldMapObject(source MineField) cs.MapObject {
 		Num:       source.Num,
 		PlayerNum: source.PlayerNum,
 		Tags:      TagsToGameTags(source.Tags),
-	}
-}
-
-func ExtendMineFieldMineFieldOrders(source MineField) cs.MineFieldOrders {
-	return cs.MineFieldOrders{
-		Detonate: source.Detonate,
 	}
 }
 
@@ -1127,13 +952,5 @@ func ExtendMineralPacketMapObject(source MineralPacket) cs.MapObject {
 		Num:       source.Num,
 		PlayerNum: source.PlayerNum,
 		Tags:      TagsToGameTags(source.Tags),
-	}
-}
-
-func ExtendMineralPacketCargo(source MineralPacket) cs.Cargo {
-	return cs.Cargo{
-		Ironium:   source.Ironium,
-		Boranium:  source.Boranium,
-		Germanium: source.Germanium,
 	}
 }
