@@ -88,7 +88,7 @@ import (
 type Converter interface {
 	// goverter:mapExtend DBObject ExtendUserDBObject
 	ConvertUser(source User) cs.User
-	// goverter:mapExtend DBObject ExtendUserDBObject
+
 	ConvertUsers(source []User) []cs.User
 
 	// goverter:map DBObject.ID ID
@@ -101,10 +101,7 @@ type Converter interface {
 	// goverter:mapExtend HabLow ExtendHabLow
 	// goverter:mapExtend HabHigh ExtendHabHigh
 	ConvertRace(source Race) cs.Race
-	// goverter:mapExtend DBObject ExtendRaceDBObject
-	// goverter:mapExtend ResearchCost ExtendResearchCost
-	// goverter:mapExtend HabLow ExtendHabLow
-	// goverter:mapExtend HabHigh ExtendHabHigh
+
 	ConvertRaces(source []Race) []cs.Race
 
 	// goverter:map DBObject.ID ID
@@ -130,9 +127,6 @@ type Converter interface {
 	// goverter:mapExtend Rules ExtendDefaultRules
 	ConvertGame(source Game) cs.Game
 
-	// goverter:mapExtend DBObject ExtendGameDBObject
-	// goverter:mapExtend VictoryConditions ExtendVictoryConditions
-	// goverter:mapExtend Area ExtendArea
 	ConvertGames(source []Game) []cs.Game
 
 	// goverter:map DBObject.ID ID
@@ -197,12 +191,7 @@ type Converter interface {
 	// goverter:mapExtend PlayerPlans ExtendPlayerPlayerPlans
 	// goverter:ignore Designs
 	ConvertPlayer(source Player) cs.Player
-	// goverter:mapExtend GameDBObject ExtendPlayerGameDBObject
-	// goverter:mapExtend TechLevels ExtendTechLevels
-	// goverter:mapExtend TechLevelsSpent ExtendTechLevelsSpent
-	// goverter:mapExtend PlayerOrders ExtendPlayerPlayerOrders
-	// goverter:mapExtend PlayerIntels ExtendPlayerPlayerIntels
-	// goverter:mapExtend PlayerPlans ExtendPlayerPlayerPlans
+
 	ConvertPlayers(source []Player) []cs.Player
 
 	// goverter:map MapObject.GameDBObject.ID ID
