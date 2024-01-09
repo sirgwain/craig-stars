@@ -384,7 +384,7 @@ type Converter interface {
 	// goverter:map MapObject.Position.Y Y
 	// goverter:map MapObject.Name Name
 	// goverter:map MapObject.Num Num
-	// goverter:map MapObject.PlayerNum	PlayerNum
+	// goverter:map MapObject.PlayerNum PlayerNum
 	// goverter:map MapObject.Tags Tags
 	// goverter:map Cargo.Ironium Ironium
 	// goverter:map Cargo.Boranium Boranium
