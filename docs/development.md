@@ -11,6 +11,7 @@ For detailed information about `craig-stars` architecture, check out the [archit
 - [sveltekit](https://kit.svelte.dev) (with static adaptor)
 - [sqlx](https://github.com/jmoiron/sqlx) + [sqlite](https://www.sqlite.org)
 - [golang-migrate](https://github.com/golang-migrate/migrate)
+- [goverter](https://github.com/jmattheis/goverter)
 - [go-chi](https://github.com/chi/go-chi)
 - [zerolog](https://github.com/rs/zerolog)
 - [disgo](https://github.com/disgoorg/disgo)
