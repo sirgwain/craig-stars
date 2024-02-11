@@ -1971,7 +1971,7 @@ func (t *turn) fleetBattle() {
 					player.Messages = append(player.Messages, newBattleMessage(PlayerMessageTechLevelGainedBattle, planet, record).withSpec(PlayerMessageSpec{Field: field}))
 
 					log.Debug().
-						Int64("GameID", planet.GameID).
+						Int64("GameID", t.game.ID).
 						Int("Battle", battleNum).
 						Int("Player", player.Num).
 						Str("field", string(field)).
