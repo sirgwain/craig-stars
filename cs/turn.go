@@ -206,7 +206,7 @@ func (t *turn) scrapFleet(fleet *Fleet) {
 						withSpec(PlayerMessageSpec{Field: field, Name: fleet.Name}))
 
 					log.Debug().
-						Int64("GameID", planet.GameID).
+						Int64("GameID", t.game.ID).
 						Int("Player", planetPlayer.Num).
 						Str("Planet", planet.Name).
 						Str("Fleet", fleet.Name).
@@ -1298,6 +1298,8 @@ func (t *turn) planetProduction() error {
 				if err != nil {
 					return err
 				}
+				planet.Starbase = starbase
+				planet.Spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(&t.game.Rules, player, planet)
 				messager.starbaseBuilt(player, planet, starbase)
 			}
 			if result.scanner {
@@ -1365,6 +1367,8 @@ func (t *turn) buildStarbase(player *Player, planet *Planet, design *ShipDesign)
 	// remove the old starbase
 	if planet.Starbase != nil {
 		t.game.deleteStarbase(planet.Starbase)
+		planet.Starbase = nil
+		planet.Spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(&t.game.Rules, player, planet)
 	}
 
 	starbase := newStarbase(player, planet, design, design.Name)
@@ -1905,6 +1909,7 @@ func (t *turn) fleetBattle() {
 						// remove this starbase from the planet
 						t.game.deleteStarbase(fleet)
 						planet.Starbase = nil
+						planet.Spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(&t.game.Rules, player, planet)
 						planet.MarkDirty()
 					} else {
 						t.game.deleteFleet(fleet)

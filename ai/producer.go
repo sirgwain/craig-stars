@@ -207,6 +207,19 @@ func (ai *aiPlayer) buildOrUpgradeStarbase(planet *cs.Planet) error {
 // upgrade an existing starbase to a better or newer model
 func (ai *aiPlayer) upgradeStarbase(planet *cs.Planet, timeToWait int) error {
 	existingDesign := ai.GetDesign(planet.Spec.StarbaseDesignNum)
+	if existingDesign == nil {
+		err := fmt.Errorf("failed to find existing starbase design")
+		log.Err(err).
+			Int64("GameID", ai.GameID).
+			Int("PlayerNum", ai.Num).
+			Int("PlanetNum", planet.Num).
+			Str("PlanetName", planet.Name).
+			Int("DesignNum", planet.Spec.StarbaseDesignNum).
+			Str("DesignName", planet.Spec.StarbaseDesignName).
+			Msgf("design not found")
+
+		return err
+	}
 	if existingDesign.Purpose == cs.ShipDesignPurposeFort || existingDesign.Purpose == cs.ShipDesignPurposeFuelDepot {
 		// try and upgrade our fort/fueldepot to a quarter filled out starbase
 		yearsToBuild, err := ai.getYearsToBuildStarbase(planet, ai.starbaseQuarterDesign)
