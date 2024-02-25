@@ -43,7 +43,7 @@
 		"ts-enum-util": "^4.0.2",
 		"tslib": "^2.4.1",
 		"typescript": "^5.3.3",
-		"vite": "^4.0.4",
+		"vite": "^4.5.2",
 		"vitest": "^0.29.2"
 	},
 	"type": "module",
