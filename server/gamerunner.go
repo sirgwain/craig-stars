@@ -942,11 +942,6 @@ func (gr *gameRunner) generateTurn(readWriteClient DBClient, fullGame *cs.FullGa
 		}
 
 		if err := c.UpdateFullGame(fullGame); err != nil {
-
-			if err := readWriteClient.UpdateGameState(fullGame.ID, cs.GameStateGeneratingTurnError); err != nil {
-				log.Error().Err(err).Msgf("failed to update game state")
-			}
-
 			return fmt.Errorf("save game after turn generation -> %w", err)
 		}
 		return nil
