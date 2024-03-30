@@ -2237,9 +2237,9 @@ func (t *turn) fleetTransferOwner() {
 				token.DesignNum = targetPlayerDesign.Num
 			}
 
-			fleet.PlayerNum = targetPlayer.Num
 			playerFleets := t.game.getFleets(targetPlayer.Num)
 			fleet.Num = targetPlayer.getNextFleetNum(playerFleets)
+			fleet.PlayerNum = targetPlayer.Num
 
 			// clear out the waypoints
 			wp0.Task = WaypointTaskNone
