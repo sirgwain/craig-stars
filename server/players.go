@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/render"
 	"github.com/go-pkgz/rest"
@@ -311,9 +312,17 @@ func (s *server) submitTurn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: this should probably be a goroutine or something
-	gr := s.newGameRunner()
-	result, err := gr.CheckAndGenerateTurn(player.GameID)
+	// only allow one CheckAndGenerate to run at a time
+	// TODO: handle this differently if you ever scale out beyond one instance. :)
+	result, err, _ := s.sf.Do(strconv.FormatInt(game.ID, 10), func() (interface{}, error) {
+		gr := s.newGameRunner()
+		result, err := gr.CheckAndGenerateTurn(player.GameID)
+		if err != nil {
+			return nil, err
+		}
+		return result, nil
+	})
+
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", player.GameID).Msg("check and generate new turn")
 		render.Render(w, r, ErrInternalServerError(err))

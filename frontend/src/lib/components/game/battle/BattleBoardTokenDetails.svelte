@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { designFinderKey, playerFinderKey } from '$lib/services/Contexts';
+	import { designFinderKey, playerFinderKey } from '$lib/services/GameContext';
 	import type { DesignFinder, PlayerFinder } from '$lib/services/Universe';
 	import type { Battle, PhaseToken } from '$lib/types/Battle';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';

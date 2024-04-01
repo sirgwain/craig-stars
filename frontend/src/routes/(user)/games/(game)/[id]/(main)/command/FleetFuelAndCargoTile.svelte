@@ -1,7 +1,7 @@
 <script lang="ts">
 	import CargoBar from '$lib/components/game/CargoBar.svelte';
 	import FuelBar from '$lib/components/game/FuelBar.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { canTransferCargo, type CommandedFleet, type Fleet } from '$lib/types/Fleet';
 	import { createEventDispatcher } from 'svelte';
 	import CommandTile from './CommandTile.svelte';

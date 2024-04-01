@@ -1,6 +1,6 @@
 <script lang="ts" context="module">
 	export type PopupEvent = {
-		close: { event?: Event };
+		close?: { event?: Event };
 	};
 </script>
 

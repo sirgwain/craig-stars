@@ -1,15 +1,9 @@
 <script lang="ts">
-	import { commandedFleet, selectedWaypoint } from '$lib/services/Stores';
 
-	import { getGameContext } from '$lib/services/Contexts';
-	import type { LayerCake } from 'layercake';
-	import { getContext } from 'svelte';
-	import type { Writable } from 'svelte/store';
+	import { getGameContext } from '$lib/services/GameContext';
 	import ScannerWaypointLine from './ScannerWaypointLine.svelte';
 
-	const { game, player, universe } = getGameContext();
-	const scale = getContext<Writable<number>>('scale');
-	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
+	const { universe, commandedFleet, selectedWaypoint } = getGameContext();
 </script>
 
 {#each $universe.fleets as fleet}

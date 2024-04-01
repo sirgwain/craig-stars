@@ -129,7 +129,8 @@ The schema for the database is embedded with `go:embed`. When the server starts 
 There is also an [upgrade.go](/db/upgrade.go) that handles game logic updates, for example adding AR planet internal scanners, or adding artifacts. Any changes that require data changes to existing games can be made as an upgrade step here.
 
 ### json in the database
-Rather than create a unique column for every single value stored by `craig-stars`, many things are serialized as json blocks and put into the database as text. This makes it easier to update the schema. For objects that don't need to be independently queried from the DB, a json schema is generally used. Some examples of this are the various Specs, and a Player's Race. 
+
+Rather than create a unique column for every single value stored by `craig-stars`, many things are serialized as json blocks and put into the database as text. This makes it easier to update the schema. For objects that don't need to be independently queried from the DB, a json schema is generally used. Some examples of this are the various Specs, and a Player's Race.
 
 ## server
 
@@ -207,7 +208,7 @@ This context contains reactive stores with the state of the game, for example a 
   const { game, player, universe } = getGameContext();
 </script>
 
-<h1>{$game.year}</h1>
+<h1>{game.year}</h1>
 ```
 
 `craig-stars` frontend code makes great use of contexts and stores to update the UI and keep components small.

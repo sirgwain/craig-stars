@@ -6,7 +6,7 @@
 		type ResourcesTooltipProps
 	} from '$lib/components/game/tooltips/ResourcesTooltip.svelte';
 	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { showTooltip, techs } from '$lib/services/Stores';
 	import type { CommandedPlanet } from '$lib/types/Planet';
 	import CommandTile from './CommandTile.svelte';

@@ -3,13 +3,13 @@
 	import { page } from '$app/stores';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import ShipDesigner from '$lib/components/game/design/ShipDesigner.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
 
-	const { game, player, universe, designs } = getGameContext();
+	const { game, universe, updateDesign } = getGameContext();
 	let num = parseInt($page.params.num);
 
-	$: design = $designs.find((d) => d.num === num);
+	$: design = $universe.designs.find((d) => d.num === num);
 	$: hull = design && $techs.getHull(design.hull);
 
 	let error = '';
@@ -22,7 +22,7 @@
 				const { valid, reason } = $game.validateDesign(design);
 				if (valid) {
 					// update this design
-					await $game.updateDesign(design);
+					await updateDesign(design);
 					goto(`/games/${$game.id}/designer/${design.num}`);
 				}
 			}

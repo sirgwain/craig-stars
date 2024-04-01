@@ -1,6 +1,6 @@
 <script lang="ts" context="module">
 	import TechSummary from '$lib/components/tech/TechSummary.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { showTooltip } from '$lib/services/Stores';
 	import type { Tech } from '$lib/types/Tech';
 	import TechTooltip from './TechTooltip.svelte';

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { GameState } from '$lib/types/Game';
 	import Game from './Game.svelte';
 	import GameSetup from './GameSetup.svelte';

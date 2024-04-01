@@ -12,7 +12,7 @@
 	import ProductionQueueItemLine from '$lib/components/game/ProductionQueueItemLine.svelte';
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import { quantityModifier } from '$lib/quantityModifier';
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { NeverBuilt, getProductionEstimates } from '$lib/services/Producer';
 	import { techs } from '$lib/services/Stores';
 	import { divide, multiply, total, type Cost } from '$lib/types/Cost';
@@ -34,7 +34,7 @@
 	import { clamp } from 'lodash-es';
 	import { createEventDispatcher, onMount } from 'svelte';
 
-	const { game, player, universe, designs } = getGameContext();
+	const { game, player, universe } = getGameContext();
 	const dispatch = createEventDispatcher<ProductionQueueEvent>();
 
 	export let planet: CommandedPlanet;
@@ -351,8 +351,8 @@
 			$player.race.spec?.innateResources,
 			$player.race.spec?.livesOnStarbases
 		);
-		availableShipDesigns = planet.getAvailableProductionQueueShipDesigns(planet, $designs);
-		availableStarbaseDesigns = planet.getAvailableProductionQueueStarbaseDesigns(planet, $designs);
+		availableShipDesigns = planet.getAvailableProductionQueueShipDesigns(planet, $universe.designs);
+		availableStarbaseDesigns = planet.getAvailableProductionQueueStarbaseDesigns(planet, $universe.designs);
 		if (availableShipDesigns.length > 0) {
 			selectedAvailableItem = availableShipDesigns[0];
 		} else if (availableStarbaseDesigns.length > 0) {

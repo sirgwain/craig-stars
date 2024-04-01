@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { me } from '$lib/services/Stores';
 	import { GameState } from '$lib/types/Game';
 	import type { PlayerStatus } from '$lib/types/Player';

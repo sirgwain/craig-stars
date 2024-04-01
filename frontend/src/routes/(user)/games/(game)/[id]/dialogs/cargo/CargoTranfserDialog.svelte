@@ -13,12 +13,12 @@
 </script>
 
 <script lang="ts">
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { subtract } from '$lib/types/Cargo';
 	import { newSalvage, type Salvage } from '$lib/types/Salvage';
 	import CargoTransfer, { type TransferCargoEventDetails } from './CargoTransfer.svelte';
 
-	const { game, player, universe } = getGameContext();
+	const { transferCargo } = getGameContext();
 
 	export let show = false;
 	export let props: CargoTransferDialogEventDetails | undefined;
@@ -28,7 +28,7 @@
 			if (!detail.dest) {
 				detail.dest = newSalvage();
 			}
-			await $game.transferCargo(detail.src, detail.dest, detail.transferAmount);
+			await transferCargo(detail.src, detail.dest, detail.transferAmount);
 
 			if (detail?.dest?.cargo) {
 				detail.dest.cargo = subtract(detail.dest.cargo, detail.transferAmount);

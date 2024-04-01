@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { MessageType, type Message } from '$lib/types/Message';
 	import { $enum as eu } from 'ts-enum-util';
 	import FallbackMessageDetail from './FallbackMessageDetail.svelte';

@@ -6,7 +6,7 @@
 	import PopulationTooltip, {
 		type PopulationTooltipProps
 	} from '$lib/components/game/tooltips/PopulationTooltip.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
 	import { showTooltip } from '$lib/services/Stores';
 	import { HabTypes, add, getGravString, getRadString, getTempString } from '$lib/types/Hab';

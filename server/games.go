@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
@@ -158,7 +159,7 @@ func (s *server) openGamesByHash(w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, ErrBadRequest(fmt.Errorf("invalid invite hash in url")))
 		return
 	}
-	
+
 	games, err := db.GetOpenGamesByHash(hash)
 	if err != nil {
 		log.Error().Err(err).Str("Hash", hash).Msg("get open games by hash from database")
@@ -640,7 +641,6 @@ func (s *server) generateTurn(w http.ResponseWriter, r *http.Request) {
 	db := s.contextDb(r)
 	user := s.contextUser(r)
 	game := s.contextGame(r)
-	gr := s.newGameRunner()
 
 	// validate
 	if user.ID != game.HostID {
@@ -648,7 +648,17 @@ func (s *server) generateTurn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := gr.GenerateTurn(game.ID)
+	// only allow one GenerateTurn to run at a time for a game
+	// TODO: handle this differently if you ever scale out beyond one instance. :)
+	result, err, _ := s.sf.Do(strconv.FormatInt(game.ID, 10), func() (interface{}, error) {
+		gr := s.newGameRunner()
+		result, err := gr.GenerateTurn(game.ID)
+		if err != nil {
+			return nil, err
+		}
+		return result, nil
+	})
+
 	if err != nil {
 		log.Error().Err(err).Msg("generate turn")
 		render.Render(w, r, ErrInternalServerError(err))

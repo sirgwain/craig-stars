@@ -3,24 +3,26 @@
 	import { page } from '$app/stores';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import ShipDesigner from '$lib/components/game/design/ShipDesigner.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import { onMount } from 'svelte';
 
-	const { game, player, universe } = getGameContext();
+	const { game, player, createDesign } = getGameContext();
 	let hullName = $page.params.hull;
 
 	let design: ShipDesign = {
 		name: '',
 		gameId: $game.id,
 		playerNum: $player.num ?? 0,
+		originalPlayerNum: 0,
 		version: 0,
 		hull: '',
 		hullSetNumber: 0,
 		slots: [],
 		spec: {
-			engine: {}
+			engine: {},
+			techLevel: {}
 		}
 	};
 
@@ -47,7 +49,7 @@
 		try {
 			const { valid, reason } = $game.validateDesign(design);
 			if (valid) {
-				const created = await $game.createDesign(design);
+				const created = await createDesign(design);
 				goto(`/games/${$game.id}/designer/${created.num}`);
 			} else {
 				error = reason ?? 'invalid design';

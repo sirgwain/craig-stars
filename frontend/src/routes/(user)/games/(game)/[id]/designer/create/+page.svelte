@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import TechAvatar from '$lib/components/tech/TechAvatar.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
 	import { canLearnTech } from '$lib/types/Player';
 	import { hasRequiredLevels } from '$lib/types/TechLevel';

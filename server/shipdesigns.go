@@ -215,6 +215,7 @@ func (s *server) deleteShipDesign(w http.ResponseWriter, r *http.Request) {
 
 	fleetsToDelete := []*cs.Fleet{}
 	fleetsToUpdate := []*cs.Fleet{}
+	leftoverPlayerFleets := []*cs.Fleet{}
 	for _, fleet := range playerFleets {
 		// find any tokens using this design
 		updatedTokens := make([]cs.ShipToken, 0, len(fleet.Tokens))
@@ -235,6 +236,7 @@ func (s *server) deleteShipDesign(w http.ResponseWriter, r *http.Request) {
 				fleet.Spec = cs.ComputeFleetSpec(&game.Rules, player, fleet)
 				fleetsToUpdate = append(fleetsToUpdate, fleet)
 			}
+			leftoverPlayerFleets = append(leftoverPlayerFleets, fleet)
 		}
 	}
 
@@ -290,11 +292,12 @@ func (s *server) deleteShipDesign(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	
 	// split the player fleets into fleets and starbases
-	fleets := make([]*cs.Fleet, 0, len(playerFleets))
+	fleets := make([]*cs.Fleet, 0, len(leftoverPlayerFleets))
 	starbases := make([]*cs.Fleet, 0)
-	for i := range playerFleets {
-		fleet := playerFleets[i]
+	for i := range leftoverPlayerFleets {
+		fleet := leftoverPlayerFleets[i]
 		if fleet.Starbase {
 			starbases = append(starbases, fleet)
 		} else {

@@ -4,7 +4,7 @@
 	import LRTsDescriptions from '$lib/components/game/race/LRTsDescriptions.svelte';
 	import PRTDescription from '$lib/components/game/race/PRTDescription.svelte';
 	import Population from '$lib/components/icons/Population.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { HabTypes } from '$lib/types/Hab';
 	import { getLabelForPRT } from '$lib/types/Race';
 	import HabBar from './HabBar.svelte';

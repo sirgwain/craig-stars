@@ -4,13 +4,13 @@
 	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import MineralMini from '$lib/components/game/MineralMini.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
-	import { commandMapObject, selectMapObject, zoomToMapObject } from '$lib/services/Stores';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { getQueueItemShortName, planetsSortBy, type Planet } from '$lib/types/Planet';
 	import { Check } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
-	const { game, player, universe, settings } = getGameContext();
+	const { game, universe, settings, commandMapObject, selectMapObject, zoomToMapObject } =
+		getGameContext();
 
 	const selectPlanet = (planet: Planet) => {
 		commandMapObject(planet);
@@ -25,7 +25,7 @@
 
 	$: filteredPlanets =
 		$universe
-			.getMyPlanets()
+			.getMyPlanets($settings.sortPlanetsKey, $settings.sortPlanetsDescending)
 			.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? [];
 
 	const columns: TableColumn<Planet>[] = [

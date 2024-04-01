@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { MessageType, type Message } from '$lib/types/Message';
 	import type { Fleet } from '$lib/types/Fleet';
 	import type { PlayerIntel } from '$lib/types/Player';

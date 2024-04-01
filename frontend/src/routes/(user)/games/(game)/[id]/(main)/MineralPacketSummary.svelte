@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { ownedBy } from '$lib/types/MapObject';
 	import type { MineralPacket } from '$lib/types/MineralPacket';
 

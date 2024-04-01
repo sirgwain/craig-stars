@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { getOurDead, getOurShips, getTheirDead } from '$lib/types/Battle';
 	import type { Fleet } from '$lib/types/Fleet';
 	import { MapObjectType } from '$lib/types/MapObject';

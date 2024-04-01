@@ -8,7 +8,7 @@
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import { PlayerRelation } from '$lib/types/Player';
 
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { createEventDispatcher } from 'svelte';
 	import SectionHeader from '$lib/components/SectionHeader.svelte';
 

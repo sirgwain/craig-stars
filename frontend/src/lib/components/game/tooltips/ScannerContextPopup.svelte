@@ -17,14 +17,14 @@
 </script>
 
 <script lang="ts">
-	import { getGameContext } from '$lib/services/Contexts';
-	import { commandMapObject, selectMapObject, showPopup } from '$lib/services/Stores';
+	import { getGameContext } from '$lib/services/GameContext';
+	import { showPopup } from '$lib/services/Stores';
 	import { MapObjectType, ownedBy, type MapObject } from '$lib/types/MapObject';
 	import { flatten, keys } from 'lodash-es';
 	import { createEventDispatcher } from 'svelte';
 	import type { PopupEvent } from './Popup.svelte';
 
-	const { game, player, universe } = getGameContext();
+	const { player, universe, commandMapObject, selectMapObject } = getGameContext();
 	const dispatch = createEventDispatcher<PopupEvent>();
 
 	export let position: Vector;

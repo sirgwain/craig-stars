@@ -3,12 +3,11 @@
 	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import CargoMini from '$lib/components/game/CargoMini.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
-	import { commandMapObject, zoomToMapObject } from '$lib/services/Stores';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { fleetsSortBy, getLocation, type Fleet } from '$lib/types/Fleet';
 	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
 
-	const { game, player, universe, settings } = getGameContext();
+	const { game, player, universe, settings, commandMapObject, zoomToMapObject } = getGameContext();
 
 	const selectFleet = (fleet: Fleet) => {
 		commandMapObject(fleet);
@@ -22,7 +21,7 @@
 
 	$: filteredFleets =
 		$universe
-			.getMyFleets()
+			.getMyFleets($settings.sortFleetsKey, $settings.sortFleetsDescending)
 			.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? [];
 
 	const columns: TableColumn<Fleet>[] = [

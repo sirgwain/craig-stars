@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"math/rand"
 
+	"slices"
+
 	"github.com/rs/zerolog/log"
-	"golang.org/x/exp/slices"
 )
 
 type Wormhole struct {

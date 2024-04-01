@@ -8,7 +8,7 @@
 	import MinesTooltip, {
 		type MinesTooltipProps
 	} from '$lib/components/game/tooltips/MinesTooltip.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { showTooltip } from '$lib/services/Stores';
 	import type { CommandedPlanet } from '$lib/types/Planet';
 	import CommandTile from './CommandTile.svelte';

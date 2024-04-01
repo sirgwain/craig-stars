@@ -1,12 +1,8 @@
 <script lang="ts">
-	import HabChance from '$lib/components/game/race/HabChance.svelte';
-	import { HabType } from '$lib/types/Hab';
-	import type { Race } from '$lib/types/Race';
-	import HabBar from './HabBar.svelte';
-	import SpinnerNumberText from '../../../../lib/components/SpinnerNumberText.svelte';
-	import { Icon } from '@steeze-ui/svelte-icon';
-	import { User } from '@steeze-ui/heroicons';
 	import { Service } from '$lib/services/Service';
+	import type { Race } from '$lib/types/Race';
+	import { User } from '@steeze-ui/heroicons';
+	import { Icon } from '@steeze-ui/svelte-icon';
 
 	export let race: Race;
 	export let points: number;

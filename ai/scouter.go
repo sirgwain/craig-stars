@@ -2,10 +2,10 @@ package ai
 
 import (
 	"math"
+	"slices"
 
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
-	"golang.org/x/exp/slices"
 )
 
 // dispatch scouts to unknown planets

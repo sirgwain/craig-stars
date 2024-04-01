@@ -2,8 +2,7 @@
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import Cycle from '$lib/components/icons/Cycle.svelte';
 	import Starbase from '$lib/components/icons/Starbase.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
-	import { selectNextMapObject, selectedMapObject } from '$lib/services/Stores';
+	import { getGameContext } from '$lib/services/GameContext';
 	import type { Fleet } from '$lib/types/Fleet';
 	import { MapObjectType } from '$lib/types/MapObject';
 	import type { MineField } from '$lib/types/MineField';
@@ -19,42 +18,35 @@
 	import UnknownSummary from './UnknownSummary.svelte';
 	import WormholeSummary from './WormholeSummary.svelte';
 
-	const { game, player, universe } = getGameContext();
+	const { universe, selectNextMapObject, selectedMapObject } = getGameContext();
 
 	function showStarbaseDesign(e: MouseEvent) {
 		if (selectedPlanet?.spec.starbaseDesignNum) {
-			onShipDesignTooltip(e, $universe.getDesign(selectedPlanet.playerNum, selectedPlanet.spec.starbaseDesignNum));
+			onShipDesignTooltip(
+				e,
+				$universe.getDesign(selectedPlanet.playerNum, selectedPlanet.spec.starbaseDesignNum)
+			);
 		}
 	}
 
-	let selectedPlanet: Planet | undefined;
-	let selectedFleet: Fleet | undefined;
-	let selectedMineField: MineField | undefined;
-	let selectedMineralPacket: MineralPacket | undefined;
-	let selectedSalvage: Salvage | undefined;
-	let selectedWormhole: Wormhole | undefined;
-	$: {
-		selectedPlanet =
-			$selectedMapObject?.type == MapObjectType.Planet ? ($selectedMapObject as Planet) : undefined;
-		selectedFleet =
-			$selectedMapObject?.type == MapObjectType.Fleet ? ($selectedMapObject as Fleet) : undefined;
-		selectedMineField =
-			$selectedMapObject?.type == MapObjectType.MineField
-				? ($selectedMapObject as MineField)
-				: undefined;
-		selectedMineralPacket =
-			$selectedMapObject?.type == MapObjectType.MineralPacket
-				? ($selectedMapObject as MineralPacket)
-				: undefined;
-		selectedSalvage =
-			$selectedMapObject?.type == MapObjectType.Salvage
-				? ($selectedMapObject as Salvage)
-				: undefined;
-		selectedWormhole =
-			$selectedMapObject?.type == MapObjectType.Wormhole
-				? ($selectedMapObject as Wormhole)
-				: undefined;
-	}
+	$: selectedPlanet =
+		$selectedMapObject?.type == MapObjectType.Planet ? ($selectedMapObject as Planet) : undefined;
+	$: selectedFleet =
+		$selectedMapObject?.type == MapObjectType.Fleet ? ($selectedMapObject as Fleet) : undefined;
+	$: selectedMineField =
+		$selectedMapObject?.type == MapObjectType.MineField
+			? ($selectedMapObject as MineField)
+			: undefined;
+	$: selectedMineralPacket =
+		$selectedMapObject?.type == MapObjectType.MineralPacket
+			? ($selectedMapObject as MineralPacket)
+			: undefined;
+	$: selectedSalvage =
+		$selectedMapObject?.type == MapObjectType.Salvage ? ($selectedMapObject as Salvage) : undefined;
+	$: selectedWormhole =
+		$selectedMapObject?.type == MapObjectType.Wormhole
+			? ($selectedMapObject as Wormhole)
+			: undefined;
 </script>
 
 <div class="card bg-base-200 shadow rounded-sm border-2 border-base-300 w-full">

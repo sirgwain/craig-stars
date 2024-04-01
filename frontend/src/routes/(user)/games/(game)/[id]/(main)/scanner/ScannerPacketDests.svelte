@@ -1,13 +1,12 @@
 <script lang="ts">
-	import { commandedPlanet } from '$lib/services/Stores';
 	import { None } from '$lib/types/MapObject';
 
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 	import type { Writable } from 'svelte/store';
 
-	const { universe } = getGameContext();
+	const { universe, commandedPlanet } = getGameContext();
 	const scale = getContext<Writable<number>>('scale');
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 

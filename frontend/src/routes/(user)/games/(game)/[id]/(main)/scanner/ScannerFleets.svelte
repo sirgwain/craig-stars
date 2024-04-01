@@ -3,15 +3,13 @@
   Generates an SVG scatter plot. This component can also work if the x- or y-scale is ordinal, i.e. it has a `.bandwidth` method. See the [timeplot chart](https://layercake.graphics/example/Timeplot) for an example.
  -->
 <script lang="ts">
-	import { getGameContext } from '$lib/services/Contexts';
-	import { commandedFleet } from '$lib/services/Stores';
+	import { getGameContext } from '$lib/services/GameContext';
 	import type { Fleet } from '$lib/types/Fleet';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 	import ScannerFleet from './ScannerFleet.svelte';
 
-	const { data } = getContext<LayerCake>('LayerCake');
-	const { game, universe } = getGameContext();
+	const { universe, commandedFleet } = getGameContext();
 
 	let fleets: Fleet[] = [];
 

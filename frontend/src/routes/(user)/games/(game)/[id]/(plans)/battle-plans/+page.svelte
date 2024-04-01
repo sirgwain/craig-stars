@@ -1,16 +1,16 @@
 <script lang="ts">
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { addError, type CSError } from '$lib/services/Errors';
 	import type { BattlePlan } from '$lib/types/Player';
 	import BattlePlanCard from './BattlePlanCard.svelte';
 
-	const { game, player, universe } = getGameContext();
+	const { game, player, deleteBattlePlan } = getGameContext();
 
 	async function deletePlan(plan: BattlePlan) {
 		if ($game) {
 			try {
-				await $game.deleteBattlePlan(plan.num);
+				await deleteBattlePlan(plan.num);
 				// trigger reactivity
 				$player.battlePlans = $player.battlePlans;
 			} catch (e) {

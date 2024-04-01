@@ -2,13 +2,13 @@
 	import { goto } from '$app/navigation';
 	import FormError from '$lib/components/FormError.svelte';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { CSError, addError } from '$lib/services/Errors';
 	import { WaypointTaskTransportAction } from '$lib/types/Fleet';
 	import type { TransportPlan } from '$lib/types/Player';
 	import TransportPlanEditor from '../TransportPlanEditor.svelte';
 
-	const { game, player, universe } = getGameContext();
+	const { game, player, createTransportPlan } = getGameContext();
 
 	let plan: TransportPlan = {
 		num: 0,
@@ -40,7 +40,7 @@
 		try {
 			if (plan && $game) {
 				// save to server
-				await $game.createTransportPlan(plan);
+				await createTransportPlan(plan);
 				goto(
 					`/games/${$game.id}/transport-plans/${
 						$player.transportPlans[$player.transportPlans.length - 1].num

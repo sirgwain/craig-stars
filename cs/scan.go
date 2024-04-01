@@ -2,9 +2,9 @@ package cs
 
 import (
 	"math"
+	"slices"
 
 	"golang.org/x/exp/maps"
-	"golang.org/x/exp/slices"
 )
 
 // The scanner is used at the end of the turn generation to update player intels

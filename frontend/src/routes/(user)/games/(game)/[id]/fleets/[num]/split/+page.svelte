@@ -1,11 +1,10 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { getGameContext } from '$lib/services/Contexts';
-	import { commandMapObject, commandedFleet } from '$lib/services/Stores';
+	import { getGameContext } from '$lib/services/GameContext';
 	import type { CommandedFleet } from '$lib/types/Fleet';
 	import SplitFleet from '../../../dialogs/split/SplitFleet.svelte';
 
-	const { game, player, universe } = getGameContext();
+	const { player, universe, commandMapObject, commandedFleet } = getGameContext();
 	let num = parseInt($page.params.num);
 
 	$: {

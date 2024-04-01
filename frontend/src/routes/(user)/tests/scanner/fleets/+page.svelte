@@ -1,11 +1,12 @@
 <script lang="ts">
-	import { commandMapObject, selectMapObject } from '$lib/services/Stores';
-
 	import { CommandedFleet, type Fleet } from '$lib/types/Fleet';
 	import type { MapObject } from '$lib/types/MapObject';
 	import { normalized } from '$lib/types/Vector';
 	import { LayerCake, Svg } from 'layercake';
 	import ScannerFleets from '../../../games/(game)/[id]/(main)/scanner/ScannerFleets.svelte';
+	import { getGameContext } from '$lib/services/GameContext';
+
+	const { commandMapObject, selectMapObject } = getGameContext();
 
 	type fleetPlacement = {
 		x: number;

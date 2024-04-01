@@ -20,17 +20,17 @@
 </script>
 
 <script lang="ts">
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import MergeFleets from './MergeFleets.svelte';
 
-	const { game, player, universe } = getGameContext();
+	const { merge } = getGameContext();
 
 	export let show = false;
 	export let props: MergeFleetsDialogEventDetails | undefined;
 
 	const onOk = async (props: MergeFleetsEventDetails) => {
 		if (props) {
-			await $game.merge(props.fleet, props.fleetNums);
+			await merge(props.fleet, props.fleetNums);
 		}
 
 		// close the dialog

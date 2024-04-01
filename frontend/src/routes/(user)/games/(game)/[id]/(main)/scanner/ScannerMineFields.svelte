@@ -3,13 +3,12 @@
   Show all minefields in the universe
  -->
 <script lang="ts">
-	import { getGameContext } from '$lib/services/Contexts';
-	import { selectedMapObject } from '$lib/services/Stores';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { MapObjectType, equal } from '$lib/types/MapObject';
 	import type { MineField } from '$lib/types/MineField';
 	import ScannerMineField from './ScannerMineField.svelte';
 
-	const { player, universe } = getGameContext();
+	const { universe, selectedMapObject } = getGameContext();
 
 	function getColor(mineField: MineField) {
 		return $universe.getPlayerColor(mineField.playerNum);

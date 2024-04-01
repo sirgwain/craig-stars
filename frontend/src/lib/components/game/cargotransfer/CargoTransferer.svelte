@@ -3,7 +3,7 @@
 	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
 	import type { Planet } from '$lib/types/Planet';
 	import { quantityModifier } from '$lib/quantityModifier';
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
 	import { add, negativeCargo, totalCargo } from '$lib/types/Cargo';
 	import { MapObjectType } from '$lib/types/MapObject';

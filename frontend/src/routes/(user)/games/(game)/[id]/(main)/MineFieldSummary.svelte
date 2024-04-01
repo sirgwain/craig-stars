@@ -2,7 +2,7 @@
 	import TextTooltip, {
 		type TextTooltipProps
 	} from '$lib/components/game/tooltips/TextTooltip.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { showTooltip } from '$lib/services/Stores';
 	import { ownedBy } from '$lib/types/MapObject';
 	import { MineFieldTypes, type MineField } from '$lib/types/MineField';

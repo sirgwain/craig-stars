@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
 	import { canLearnTech } from '$lib/types/Player';
 	import type { Tech } from '$lib/types/Tech';

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import type { Wormhole } from '$lib/types/Wormhole';
 	import { startCase } from 'lodash-es';
 

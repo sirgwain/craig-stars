@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { designFinderKey, playerFinderKey } from '$lib/services/Contexts';
+	import { designFinderKey, playerFinderKey } from '$lib/services/GameContext';
 	import type { DesignFinder, PlayerFinder } from '$lib/services/Universe';
 	import { Battle, type BattleRecord } from '$lib/types/Battle';
 	import { setContext } from 'svelte/internal';

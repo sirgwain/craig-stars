@@ -9,7 +9,7 @@
 	import SpinnerNumberText from '$lib/components/SpinnerNumberText.svelte';
 	import Factory from '$lib/components/icons/Factory.svelte';
 	import Microscope from '$lib/components/icons/Microscope.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { TechField, type TechLevel } from '$lib/types/TechLevel';
 	import { startCase } from 'lodash-es';
 	import { createEventDispatcher } from 'svelte';

@@ -2,8 +2,7 @@
 	import DropdownButton from '$lib/components/DropdownButton.svelte';
 	import OtherMapObjectsHere from '$lib/components/game/OtherMapObjectsHere.svelte';
 	import MineralMini from '$lib/components/game/MineralMini.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
-	import { selectedWaypoint } from '$lib/services/Stores';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { CommandedFleet, WaypointTask } from '$lib/types/Fleet';
 	import { MapObjectType, owned, ownedBy, type MapObject } from '$lib/types/MapObject';
 	import { Unexplored, getMineralOutput } from '$lib/types/Planet';
@@ -19,7 +18,7 @@
 
 	const dispatch = createEventDispatcher<TransportTasksDialogEvent>();
 
-	const { game, player, universe } = getGameContext();
+	const { game, player, universe, selectedWaypoint, updateFleetOrders } = getGameContext();
 
 	export let fleet: CommandedFleet;
 
@@ -35,23 +34,23 @@
 		if ($selectedWaypoint) {
 			$selectedWaypoint.task = task;
 
-			$game.updateFleetOrders(fleet);
+			updateFleetOrders(fleet);
 		}
 	};
 
 	function onLayMineFieldDurationChanged() {
-		$game.updateFleetOrders(fleet);
+		updateFleetOrders(fleet);
 	}
 
 	function onTransferToPlayerChanged() {
-		$game.updateFleetOrders(fleet);
+		updateFleetOrders(fleet);
 	}
 
 	function applyTransportPlan(plan: TransportPlan) {
 		if ($selectedWaypoint) {
 			$selectedWaypoint.transportTasks = plan.tasks;
 
-			$game.updateFleetOrders(fleet);
+			updateFleetOrders(fleet);
 		}
 	}
 
@@ -61,7 +60,7 @@
 			$selectedWaypoint.targetType = target.type;
 			$selectedWaypoint.targetNum = target.num;
 			$selectedWaypoint.targetPlayerNum = target.playerNum;
-			$game.updateFleetOrders(fleet);
+			updateFleetOrders(fleet);
 		}
 	}
 </script>

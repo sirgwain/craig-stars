@@ -3,10 +3,10 @@
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import DesignCard from '$lib/components/game/DesignCard.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 
-	const { game, player, universe, designs } = getGameContext();
+	const { game, player, universe, deleteDesign } = getGameContext();
 
 	// filterable designs
 	let filteredDesigns: ShipDesign[] = [];
@@ -43,7 +43,7 @@
 			{design}
 			href={`/games/${$game.id}/designer/${design.num}`}
 			copyhref={`/games/${$game.id}/designer/create/${design.hull}?copy=${design.num}`}
-			on:delete={() => design.num && $game.deleteDesign(design.num)}
+			on:delete={() => design.num && deleteDesign(design.num)}
 		/>
 	{/each}
 </div>
@@ -55,7 +55,7 @@
 			{design}
 			href={`/games/${$game.id}/designer/${design.num}`}
 			copyhref={`/games/${$game.id}/designer/create/${design.hull}?copy=${design.num}`}
-			on:delete={() => design.num && $game.deleteDesign(design.num)}
+			on:delete={() => design.num && deleteDesign(design.num)}
 		/>
 	{/each}
 </div>

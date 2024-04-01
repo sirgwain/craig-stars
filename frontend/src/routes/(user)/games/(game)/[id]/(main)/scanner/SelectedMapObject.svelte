@@ -4,11 +4,12 @@
  -->
 <script lang="ts">
 	import SelectedMapObject from '$lib/components/icons/SelectedMapObject.svelte';
-	import { selectedMapObject } from '$lib/services/Stores';
+	import { getGameContext } from '$lib/services/GameContext';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 	import type { Writable } from 'svelte/store';
 
+	const { selectedMapObject } = getGameContext();
 	const { xGet, yGet, xScale, yScale } = getContext<LayerCake>('LayerCake');
 	const scale = getContext<Writable<number>>('scale');
 
