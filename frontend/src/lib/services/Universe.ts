@@ -315,13 +315,6 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 		this.resetMyMapObjectsByPosition();
 	}
 
-	updatePlanets(planets: Planet[]): Universe {
-		this.planets = planets;
-		this.resetMapObjectsByPosition();
-		this.resetMyMapObjectsByPosition();
-		return this;
-	}
-
 	updateSalvages(salvages: Salvage[]) {
 		this.salvages = salvages;
 		this.resetMapObjectsByPosition();

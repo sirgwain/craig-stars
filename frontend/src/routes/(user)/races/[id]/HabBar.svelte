@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { clamp } from '$lib/services/Math';
-	import { HabTypes, getHabValueString, type HabType } from '$lib/types/Hab';
+	import { HabTypes, getHabValueString, type HabType, habTypeString } from '$lib/types/Hab';
 	import { draggable, type DragEventData } from '@neodrag/svelte';
 	import {
 		ChevronDoubleLeft,
@@ -23,7 +23,7 @@
 		? {
 				x: Math.floor(((habLow ?? 0) / 100) * containerWidth),
 				y: 0
-		  }
+			}
 		: undefined;
 
 	const onLeft = () => {
@@ -61,7 +61,9 @@
 </script>
 
 <div class="flex flex-col md:flex-row">
-	<div class="text-center md:text-right md:w-[5.5rem] h-full my-auto mr-2">{habType}</div>
+	<div class="text-center md:text-right md:w-[5.5rem] h-full my-auto mr-2">
+		{habTypeString(habType)}
+	</div>
 	<div class="grow flex flex-col">
 		<div class="flex flex-row h-8">
 			<button type="button" on:click|preventDefault={() => onLeft()} class="btn btn-outline btn-sm"
@@ -98,7 +100,7 @@
 				>
 			</div>
 			<div class="grow ml-2">
-				<label><input type="checkbox" bind:checked={immune} /> Immune to {habType}</label>
+				<label><input type="checkbox" bind:checked={immune} /> Immune to {habTypeString(habType)}</label>
 			</div>
 			<div>
 				<button

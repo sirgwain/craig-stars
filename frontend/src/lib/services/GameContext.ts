@@ -580,7 +580,11 @@ export function createGameContext(fg: FullGame): GameContext {
 					selectMapObject(planet);
 				}
 			});
-			universe.set(u.updatePlanets(result.planets));
+
+			u.resetMapObjectsByPosition();
+			u.resetMyMapObjectsByPosition();
+	
+			universe.set(u)
 		}
 	}
 

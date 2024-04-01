@@ -12,6 +12,17 @@ export type Hab = {
 	rad?: number;
 };
 
+export function habTypeString(type: HabType): string {
+	switch (type) {
+		case HabTypes.Gravity:
+			return 'Gravity';
+		case HabTypes.Temperature:
+			return 'Temperature';
+		case HabTypes.Radiation:
+			return 'Radiation';
+	}
+}
+
 export function getHabValue(hab: Hab | undefined, type: HabType): number {
 	switch (type) {
 		case HabTypes.Gravity:
