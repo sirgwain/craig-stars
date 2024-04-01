@@ -3,8 +3,7 @@
 	import PlanetWithStarbase from '$lib/components/icons/PlanetWithStarbase.svelte';
 	import Population from '$lib/components/icons/Population.svelte';
 	import Scanner from '$lib/components/icons/Scanner.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
-	import { nextMapObject, previousMapObject } from '$lib/services/Stores';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { PlanetViewState } from '$lib/types/PlayerSettings';
 	import { ArrowLongLeft, ArrowLongRight, Envelope } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
@@ -15,7 +14,7 @@
 	import { clamp } from '$lib/services/Math';
 	import FleetCount from '$lib/components/icons/FleetCount.svelte';
 
-	const { game, player, universe, settings } = getGameContext();
+	const { player, settings, nextMapObject, previousMapObject } = getGameContext();
 </script>
 
 <div class="flex-initial navbar bg-base-100 py-0 my-0 min-h-0">

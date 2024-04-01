@@ -2,13 +2,13 @@
 	import { goto } from '$app/navigation';
 	import FormError from '$lib/components/FormError.svelte';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { CSError, addError } from '$lib/services/Errors';
 	import { BattleAttackWho, BattleTactic, BattleTarget } from '$lib/types/Battle';
 	import type { BattlePlan } from '$lib/types/Player';
 	import BattlePlanEditor from '../BattlePlanEditor.svelte';
 
-	const { game, player, universe } = getGameContext();
+	const { game, player, createBattlePlan } = getGameContext();
 
 	let plan: BattlePlan = {
 		num: 0,
@@ -28,7 +28,7 @@
 		try {
 			if (plan && $game) {
 				// save to server
-				await $game.createBattlePlan(plan);
+				await createBattlePlan(plan);
 				goto(
 					`/games/${$game.id}/battle-plans/${$player.battlePlans[$player.battlePlans.length - 1].num}`
 				);

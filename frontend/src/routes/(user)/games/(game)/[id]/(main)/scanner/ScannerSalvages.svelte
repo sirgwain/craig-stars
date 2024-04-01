@@ -3,7 +3,7 @@
   Show all salvages in the universe
  -->
 <script lang="ts">
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import type { Salvage } from '$lib/types/Salvage';
 	import ScannerSalvage from './ScannerSalvage.svelte';
 

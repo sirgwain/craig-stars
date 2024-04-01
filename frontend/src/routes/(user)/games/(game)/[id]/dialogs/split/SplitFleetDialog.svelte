@@ -12,17 +12,17 @@
 </script>
 
 <script lang="ts">
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import SplitFleet, { type SplitFleetEventDetails } from './SplitFleet.svelte';
 
-	const { game, player, universe } = getGameContext();
+	const { split } = getGameContext();
 
 	export let show = false;
 	export let props: SplitFleetDialogEventDetails | undefined;
 
 	const onSplitFleet = async (details: SplitFleetEventDetails) => {
 		if (details) {
-			await $game.split(
+			await split(
 				details.src,
 				details.dest,
 				details.srcTokens,

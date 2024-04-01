@@ -1,11 +1,10 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { getGameContext } from '$lib/services/Contexts';
-	import { commandMapObject, commandedFleet } from '$lib/services/Stores';
+	import { getGameContext } from '$lib/services/GameContext';
 	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
 	import MergeFleets from '../../../dialogs/merge/MergeFleets.svelte';
 
-	const { game, player, universe } = getGameContext();
+	const { game, player, universe, commandedFleet, commandMapObject, merge } = getGameContext();
 	let num = parseInt($page.params.num);
 
 	let fleetsInOrbit: Fleet[] = [];
@@ -23,9 +22,6 @@
 		}
 	}
 
-	async function merge(fleet: CommandedFleet, fleetNums: number[]) {
-		$game.merge(fleet, fleetNums);
-	}
 </script>
 
 {#if $commandedFleet}

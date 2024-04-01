@@ -2,12 +2,12 @@
 	import { goto } from '$app/navigation';
 	import FormError from '$lib/components/FormError.svelte';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { CSError, addError } from '$lib/services/Errors';
 	import type { ProductionPlan } from '$lib/types/Player';
 	import ProductionPlanEditor from '../ProductionPlanEditor.svelte';
 
-	const { game, player, universe } = getGameContext();
+	const { game, player, universe, createProductionPlan } = getGameContext();
 
 	let plan: ProductionPlan = {
 		num: 0,
@@ -23,7 +23,7 @@
 		try {
 			if (plan && $game) {
 				// save to server
-				await $game.createProductionPlan(plan);
+				await createProductionPlan(plan);
 				goto(
 					`/games/${$game.id}/production-plans/${
 						$player.productionPlans[$player.productionPlans.length - 1].num

@@ -2,11 +2,11 @@
 	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
 	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
-	import { MessageType, gotoTarget, type Message } from '$lib/types/Message';
+	import { getGameContext } from '$lib/services/GameContext';
+	import { MessageType, type Message } from '$lib/types/Message';
 	import MessageDetail from './MessageDetail.svelte';
 
-	const { game, player, universe, settings } = getGameContext();
+	const { game, player, universe, settings, gotoTarget } = getGameContext();
 
 	function selectMessage(message: Message) {
 		gotoTarget(message, $game.id, $player.num, $universe);

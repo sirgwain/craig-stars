@@ -3,8 +3,9 @@ package cs
 import (
 	"fmt"
 
+	"slices"
+
 	"github.com/rs/zerolog/log"
-	"golang.org/x/exp/slices"
 )
 
 // The Universe represents all the objects that occupy space in the game universe.

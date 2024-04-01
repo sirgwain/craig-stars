@@ -1,11 +1,10 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/Contexts';
-	import { nextMapObject, previousMapObject } from '$lib/services/Stores';
+	import { getGameContext } from '$lib/services/GameContext';
 	import type { CommandedFleet } from '$lib/types/Fleet';
 	import { kebabCase } from 'lodash-es';
 	import CommandTile from './CommandTile.svelte';
 
-	const { game, player, universe } = getGameContext();
+	const { player, universe, nextMapObject, previousMapObject, renameFleet } = getGameContext();
 
 	export let fleet: CommandedFleet;
 
@@ -14,7 +13,7 @@
 	async function onRename() {
 		const name = prompt('Enter fleet name', fleet.baseName);
 		if (name && name != '') {
-			await $game.renameFleet(fleet, name);
+			await renameFleet(fleet, name);
 		}
 	}
 

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import ProductionQueueItemLine from '$lib/components/game/ProductionQueueItemLine.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
 	import type { CommandedPlanet } from '$lib/types/Planet';
 	import { createEventDispatcher } from 'svelte';
@@ -8,14 +8,14 @@
 	import CommandTile from './CommandTile.svelte';
 
 	const dispatch = createEventDispatcher<ProductionQueueDialogEvent>();
-	const { game, player, universe } = getGameContext();
+	const { game, player, universe, updatePlanetOrders } = getGameContext();
 
 	export let planet: CommandedPlanet;
 
 	const clear = async () => {
 		if (planet && confirm('Are you sure you want to clear the planet production queue?')) {
 			planet.productionQueue = [];
-			$game.updatePlanetOrders(planet);
+			updatePlanetOrders(planet);
 		}
 	};
 

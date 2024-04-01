@@ -4,9 +4,9 @@
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import { CSError, addError } from '$lib/services/Errors';
 	import BattlePlanEditor from '../BattlePlanEditor.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 
-	const { game, player, universe } = getGameContext();
+	const { game, player, updateBattlePlan } = getGameContext();
 	let num = parseInt($page.params.num);
 
 	$: plan = $player.battlePlans.find((p) => p.num == num);
@@ -19,7 +19,7 @@
 		try {
 			if (plan && $game) {
 				// save to server
-				await $game.updateBattlePlan(plan);
+				await updateBattlePlan(plan);
 			}
 		} catch (e) {
 			addError(e as CSError);

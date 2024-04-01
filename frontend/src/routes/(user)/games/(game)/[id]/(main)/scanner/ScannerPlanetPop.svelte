@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import type { Planet } from '$lib/types/Planet';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';

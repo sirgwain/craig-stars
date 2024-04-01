@@ -2,7 +2,7 @@
 	import WarpSpeedGauge from '$lib/components/game/WarpSpeedGauge.svelte';
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
 	import type { Fleet } from '$lib/types/Fleet';
 	import type { CommandedPlanet } from '$lib/types/Planet';
@@ -10,7 +10,7 @@
 	import { UnlimitedSpaceDock } from '$lib/types/Tech';
 	import CommandTile from './CommandTile.svelte';
 
-	const { game, player, universe, settings } = getGameContext();
+	const { game, player, universe, settings, updatePlanetOrders } = getGameContext();
 
 	export let starbase: Fleet | undefined;
 	export let planet: CommandedPlanet;
@@ -33,7 +33,7 @@
 	}
 
 	function updatePlanetOrdrers() {
-		$game.updatePlanetOrders(planet);
+		updatePlanetOrders(planet);
 	}
 </script>
 

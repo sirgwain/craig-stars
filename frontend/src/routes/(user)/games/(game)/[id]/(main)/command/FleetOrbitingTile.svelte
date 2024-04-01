@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/Contexts';
-	import { commandMapObject } from '$lib/services/Stores';
+	import { getGameContext } from '$lib/services/GameContext';
 	import type { CommandedFleet } from '$lib/types/Fleet';
 	import { None, ownedBy } from '$lib/types/MapObject';
 	import { createEventDispatcher } from 'svelte';
@@ -8,7 +7,7 @@
 	import CommandTile from './CommandTile.svelte';
 
 	const dispatch = createEventDispatcher<CargoTransferDialogEvent>();
-	const { game, player, universe, settings } = getGameContext();
+	const { player, universe, commandMapObject } = getGameContext();
 
 	export let fleet: CommandedFleet;
 

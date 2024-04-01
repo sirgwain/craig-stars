@@ -2,7 +2,7 @@
 	import Cost from '$lib/components/game/Cost.svelte';
 	import Hull from '$lib/components/game/design/Hull.svelte';
 	import TechAvatar from '$lib/components/tech/TechAvatar.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import DesignStats from '../DesignStats.svelte';

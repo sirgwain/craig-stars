@@ -23,6 +23,7 @@ import (
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
 	"golang.org/x/oauth2"
+	"golang.org/x/sync/singleflight"
 
 	"github.com/go-pkgz/auth"
 	"github.com/go-pkgz/auth/avatar"
@@ -51,6 +52,7 @@ const (
 type server struct {
 	db     DBConnection
 	config config.Config
+	sf     singleflight.Group
 }
 
 const userRejected = "rejected"

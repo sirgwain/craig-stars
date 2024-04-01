@@ -3,7 +3,7 @@ package cs
 import (
 	"fmt"
 
-	"golang.org/x/exp/slices"
+	"slices"
 )
 
 // The FleetMover builds a movement graph to handle fleets chasing fleets chasing fleets
@@ -27,7 +27,6 @@ type fleetMoveNode struct {
 func (node fleetMoveNode) String() string {
 	return fmt.Sprintf("fleet %d -> %d", node.fleet.Num, node.target.fleet.Num)
 }
-
 
 type fleetMove struct {
 }
@@ -113,11 +112,11 @@ func (fm *fleetMove) buildFleetMoveGraph(fleets []*Fleet, fleetGetter fleetGette
 	}
 
 	// sort results
-	slices.SortFunc(graph.fleetsTargetingFleets, func(f1, f2 fleetMoveNode) bool {
+	slices.SortFunc(graph.fleetsTargetingFleets, func(f1, f2 fleetMoveNode) int {
 		if f1.fleet.PlayerNum == f2.fleet.PlayerNum {
-			return f1.fleet.Num < f2.fleet.Num
+			return f1.fleet.Num - f2.fleet.Num
 		}
-		return f1.fleet.PlayerNum < f2.fleet.PlayerNum
+		return f1.fleet.PlayerNum - f2.fleet.PlayerNum
 	})
 
 	return graph

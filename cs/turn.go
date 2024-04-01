@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"math"
 
+	"slices"
+
 	"github.com/rs/zerolog/log"
-	"golang.org/x/exp/slices"
 )
 
 // When all players submit their turns, the turn generator is used to generate a new turn
@@ -2557,8 +2558,8 @@ func (t *turn) calculateScores() {
 	// sort players by score, highest to lowest
 	scoreSortedPlayers := make([]*Player, len(t.game.Players))
 	copy(scoreSortedPlayers, t.game.Players)
-	slices.SortFunc(scoreSortedPlayers, func(p1, p2 *Player) bool {
-		return p1.GetScore().Score > p2.GetScore().Score
+	slices.SortFunc(scoreSortedPlayers, func(p1, p2 *Player) int {
+		return p1.GetScore().Score - p2.GetScore().Score
 	})
 
 	// update rank for all scores

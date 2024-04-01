@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import type { Fleet, ShipToken } from '$lib/types/Fleet';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import { kebabCase } from 'lodash-es';

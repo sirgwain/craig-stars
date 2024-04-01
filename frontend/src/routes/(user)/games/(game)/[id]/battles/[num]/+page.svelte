@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import BattleView from '$lib/components/game/battle/BattleView.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 
 	const { game, player, universe } = getGameContext();
 	let num = parseInt($page.params.num);

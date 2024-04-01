@@ -1,13 +1,11 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/Contexts';
-	import { selectMapObject, zoomToMapObject } from '$lib/services/Stores';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { getScannerTarget } from '$lib/types/Battle';
 	import type { MapObject } from '$lib/types/MapObject';
 	import {
 		MessageTargetType,
 		MessageType,
 		getNextVisibleMessageNum,
-		gotoTarget,
 		type Message
 	} from '$lib/types/Message';
 	import {
@@ -20,10 +18,19 @@
 	} from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import hotkeys from 'hotkeys-js';
-	import { onMount } from 'svelte/internal';
+	import { onMount } from 'svelte';
 	import MessageDetail from '../messages/MessageDetail.svelte';
 
-	const { game, player, universe, settings, messageNum } = getGameContext();
+	const {
+		game,
+		player,
+		universe,
+		settings,
+		messageNum,
+		selectMapObject,
+		zoomToMapObject,
+		gotoTarget
+	} = getGameContext();
 
 	export let showMessages = false;
 	export let messages: Message[];
@@ -114,7 +121,7 @@
 							zoomToMapObject(target);
 						} else {
 							zoomToMapObject({ position: battle.position } as MapObject);
-					}
+						}
 					}
 				}
 			} else {

@@ -1,4 +1,4 @@
-import type { Game, GameSettings } from '$lib/types/Game';
+import { GameState, type Game, type GameSettings } from '$lib/types/Game';
 import {
 	Player,
 	type PlayerIntels,
@@ -7,6 +7,7 @@ import {
 	type PlayerUniverse
 } from '$lib/types/Player';
 import type { SessionUser } from '$lib/types/User';
+import { FullGame } from './FullGame';
 import { Service } from './Service';
 
 export type TurnGenerationResponse = {
@@ -171,4 +172,28 @@ export class GameService {
 
 		return await response.json();
 	}
+
+	// load in a full game with universe, techs, and player data
+	static async loadFullGame(gameId: number): Promise<FullGame> {
+		const id = parseInt(gameId.toString());
+		const game = await GameService.loadGame(id);
+		const fg = Object.assign(new FullGame(), game);
+		if (fg.state != GameState.Setup) {
+			await Promise.all([
+				GameService.loadFullPlayer(id).then((data) => {
+					fg.player = data;
+				}),
+				GameService.loadUniverse(id).then((u) => {
+					fg.universe.setData(u);
+				}),
+				// load techs the first time as well
+				fg.techs.fetch()
+			]);
+		}
+
+		// configure the universe for the player after the player is loaded
+		fg.universe.setPlayer(fg.player.num);
+
+		return fg;
+	}	
 }

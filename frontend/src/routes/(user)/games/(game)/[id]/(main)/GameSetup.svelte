@@ -3,7 +3,7 @@
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import GameCard from '$lib/components/game/GameCard.svelte';
 	import GameSettingsEditor from '$lib/components/game/newgame/GameSettingsEditor.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { GameService } from '$lib/services/GameService';
 	import { Service } from '$lib/services/Service';
 	import { me } from '$lib/services/Stores';
@@ -12,11 +12,10 @@
 	import { CheckBadge, XMark } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onDestroy, onMount } from 'svelte';
-	import GuestLink from './GuestLink.svelte';
-	import { PlayerService } from '$lib/services/PlayerService';
 	import RaceView from '../race/RaceView.svelte';
+	import GuestLink from './GuestLink.svelte';
 
-	const { game } = getGameContext();
+	const { game, loadStatus, startPollingStatus, stopPollingStatus, updateGame } = getGameContext();
 
 	let settings: GameSettings = {
 		name: $game.name,
@@ -34,7 +33,7 @@
 		victoryConditions: $game.victoryConditions
 	};
 
-	const onLeave = async () => {
+	async function onLeave() {
 		const response = await fetch(`/api/games/${$game.id}/leave`, {
 			method: 'POST',
 			headers: {
@@ -49,44 +48,44 @@
 			error = resolvedResponse.error;
 			console.error(error);
 		}
-	};
+	}
 
-	const onUpdateGame = async () => {
+	async function onUpdateGame() {
 		const result = await GameService.updateSettings($game.id, settings);
-		$game = Object.assign($game, result);
-	};
+		updateGame(result);
+	}
 
-	const onAddOpenSlot = async () => {
+	async function onAddOpenSlot() {
 		const result = await GameService.addOpenPlayerSlot($game.id);
-		$game = Object.assign($game, result);
-	};
+		updateGame(result);
+	}
 
-	const onAddGuestPlayer = async () => {
+	async function onAddGuestPlayer() {
 		const result = await GameService.addGuestPlayer($game.id);
-		$game = Object.assign($game, result);
-	};
+		updateGame(result);
+	}
 
-	const onAddAIPlayer = async () => {
+	async function onAddAIPlayer() {
 		const result = await GameService.addAIPlayer($game.id);
-		$game = Object.assign($game, result);
-	};
+		updateGame(result);
+	}
 
-	const onUpdatePlayer = async (player: PlayerStatus) => {
+	async function onUpdatePlayer(player: PlayerStatus) {
 		const result = await GameService.updatePlayer($game.id, player);
-		$game = Object.assign($game, result);
-	};
+		updateGame(result);
+	}
 
-	const onDeletePlayer = async (playerNum: number) => {
+	async function onDeletePlayer(playerNum: number) {
 		const result = await GameService.deletePlayer($game.id, playerNum);
-		$game = Object.assign($game, result);
-	};
+		updateGame(result);
+	}
 
-	const onKickPlayer = async (playerNum: number) => {
+	async function onKickPlayer(playerNum: number) {
 		const result = await GameService.kickPlayer($game.id, playerNum);
-		$game = Object.assign($game, result);
-	};
+		updateGame(result);
+	}
 
-	const onStartGame = async () => {
+	async function onStartGame() {
 		const response = await fetch(`/api/games/${$game.id}/start-game`, {
 			method: 'POST',
 			headers: {
@@ -98,21 +97,19 @@
 			await Service.throwError(response);
 		}
 		// force an update so the game reloads
-		await $game.loadStatus();
+		await loadStatus();
 		goto(`/games/${$game.id}`);
-	};
+	}
 	let error = '';
 
 	let player: PlayerResponse | undefined;
 
 	onMount(async () => {
-		await $game.loadStatus();
-		$game.startPollingStatus();
-
 		player = await GameService.loadFullPlayer($game.id);
+		startPollingStatus();
 	});
 
-	onDestroy(() => $game.stopPollingStatus());
+	onDestroy(stopPollingStatus);
 
 	$: isHost = $me.id === $game.hostId;
 	$: myPlayer = $game.players.find((p) => p.userId == $me.id);
@@ -129,12 +126,15 @@
 		<div class="flex flex-col justify-center gap-2 place-items-center">
 			<div>
 				{#if isHost}
-					<GameSettingsEditor bind:settings showInviteLink={$game.isMultiplayer() && $game.openPlayerSlots > 0} />
+					<GameSettingsEditor
+						bind:settings
+						showInviteLink={$game.isMultiplayer() && $game.openPlayerSlots > 0}
+					/>
 				{:else}
 					<GameCard game={$game} />
 				{/if}
 			</div>
-			<div class="w-full bg-base-200 shadow rounded-sm border-2 border-base-300 py-2 m-2 ">
+			<div class="w-full bg-base-200 shadow rounded-sm border-2 border-base-300 py-2 m-2">
 				<div class="grid grid-cols-2 gap-x-5 px-2" class:grid-cols-3={hasGuests}>
 					<div class="text-center border-b border-b-secondary mb-1">Player</div>
 					<div class="text-center border-b border-b-secondary mb-1 font-semibold text-xl">

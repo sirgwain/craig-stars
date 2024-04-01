@@ -16,10 +16,10 @@
 </script>
 
 <script lang="ts">
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import TransportTasks from '../../(plans)/transport-plans/TransportTasks.svelte';
 
-	const { game, player, universe } = getGameContext();
+	const { updateFleetOrders } = getGameContext();
 
 	export let show = false;
 	export let props: TransportTasksDialogEventDetails | undefined;
@@ -29,7 +29,7 @@
 	const onUpdateTransportTasks = async () => {
 		if (props && transportTasks) {
 			props.waypoint.transportTasks = transportTasks;
-			await $game.updateFleetOrders(props.fleet);
+			await updateFleetOrders(props.fleet);
 		}
 
 		// close the dialog

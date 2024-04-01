@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import type { CommandedFleet, Target } from '$lib/types/Fleet';
 	import { MapObjectType, equal, type MapObject } from '$lib/types/MapObject';
 	import { flatten, keys } from 'lodash-es';

@@ -1,16 +1,15 @@
 <script lang="ts">
+	import { page } from '$app/stores';
 	import { authGuard } from '$lib/authGuard';
-	import Login from '$lib/components/auth/Login.svelte';
+	import HomePage from '$lib/components/HomePage.svelte';
 	import { me } from '$lib/services/Stores';
 	import { UserStatus } from '$lib/types/User';
 	import { onMount } from 'svelte';
 	import '../css/app.css';
 	import '../css/hulls.css';
-	import '../css/planets.css';
 	import '../css/mapobjects.css';
+	import '../css/planets.css';
 	import '../css/techs.css';
-	import { page } from '$app/stores';
-	import HomePage from '$lib/components/HomePage.svelte';
 
 	const loggingIn = $page.url.pathname.startsWith('/auth')
 

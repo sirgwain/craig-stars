@@ -1,12 +1,9 @@
 <script lang="ts">
-	import { commandedPlanet } from '$lib/services/Stores';
-	import { None } from '$lib/types/MapObject';
-
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
+	import { minus, normalized } from '$lib/types/Vector';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 	import type { Writable } from 'svelte/store';
-	import { minus, normalized } from '$lib/types/Vector';
 
 	type Line = {
 		path: string;

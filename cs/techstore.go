@@ -4,7 +4,7 @@ import (
 	"math"
 	"strings"
 
-	"golang.org/x/exp/slices"
+	"slices"
 )
 
 const ScanWithZeroRange = 1

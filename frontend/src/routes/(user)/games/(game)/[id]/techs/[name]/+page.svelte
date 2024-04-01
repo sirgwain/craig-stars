@@ -4,7 +4,7 @@
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import TechHullSummary from '$lib/components/game/design/Hull.svelte';
 	import TechSummary from '$lib/components/tech/TechSummary.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 
 	import { TechCategory, type Tech, type TechHull } from '$lib/types/Tech';
 

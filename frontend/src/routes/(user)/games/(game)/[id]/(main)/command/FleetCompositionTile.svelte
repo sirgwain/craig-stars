@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
-	import { selectedWaypoint } from '$lib/services/Stores';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { getDamagePercentForToken, type CommandedFleet } from '$lib/types/Fleet';
 	import { Infinite } from '$lib/types/MapObject';
 	import { createEventDispatcher } from 'svelte';
@@ -13,7 +12,7 @@
 	const dispatch = createEventDispatcher<
 		SplitFleetEvent & SplitFleetDialogEvent & MergeFleetsDialogEvent
 	>();
-	const { game, player, universe } = getGameContext();
+	const { player, universe, selectedWaypoint, updateFleetOrders } = getGameContext();
 
 	export let fleet: CommandedFleet;
 
@@ -22,7 +21,7 @@
 	};
 
 	const splitAll = async () => {
-		dispatch('split-all');
+		dispatch('split-all', fleet);
 	};
 	const merge = () => {
 		dispatch('merge-fleets-dialog', {
@@ -33,7 +32,7 @@
 
 	const updateBattlePlan = async (num: number) => {
 		fleet.battlePlanNum = num;
-		await $game.updateFleetOrders(fleet);
+		await updateFleetOrders(fleet);
 	};
 </script>
 

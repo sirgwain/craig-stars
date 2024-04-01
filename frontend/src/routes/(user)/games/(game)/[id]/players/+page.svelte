@@ -1,6 +1,6 @@
 <script lang="ts">
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import PlayerScores from './PlayerScores.svelte';
 	import PlayerVictoryConditions from './PlayerVictoryConditions.svelte';
 	import PlayersStatus from './PlayersStatus.svelte';

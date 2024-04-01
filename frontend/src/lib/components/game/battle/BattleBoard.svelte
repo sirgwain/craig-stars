@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { playerFinderKey } from '$lib/services/Contexts';
+	import { playerFinderKey } from '$lib/services/GameContext';
 	import type { PlayerFinder } from '$lib/services/Universe';
 	import { TokenActionType, type Battle, type PhaseToken } from '$lib/types/Battle';
 	import { getContext } from 'svelte';

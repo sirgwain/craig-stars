@@ -27,6 +27,7 @@
 	export let player: Player | undefined = undefined;
 	export let game: FullGame | undefined = undefined;
 	export let showResearchCost = false;
+	export let hideGraph = false;
 
 	let defense: TechDefense;
 	let hullComponent: TechHullComponent;
@@ -100,11 +101,15 @@
 					</div>
 					{#if engine}
 						<div class="grow min-h-[14rem]">
-							<TechEngineGraph {engine} />
+							{#if !hideGraph}
+								<TechEngineGraph {engine} />
+							{/if}
 						</div>
 					{:else if defense}
 						<div class="grow min-h-[14rem]">
-							<TechDefenseGraph {defense} />
+							{#if !hideGraph}
+								<TechDefenseGraph {defense} />
+							{/if}
 						</div>
 					{:else}
 						<div class="border border-base-300 bg-base-100 grow min-h-[14rem]">

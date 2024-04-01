@@ -2,9 +2,9 @@ package ai
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/sirgwain/craig-stars/cs"
-	"golang.org/x/exp/slices"
 )
 
 type fleet struct {

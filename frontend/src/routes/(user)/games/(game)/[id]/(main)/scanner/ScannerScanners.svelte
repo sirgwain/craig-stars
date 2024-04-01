@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 
 	import { positionKey } from '$lib/types/MapObject';
 	import { NoScanner } from '$lib/types/Tech';

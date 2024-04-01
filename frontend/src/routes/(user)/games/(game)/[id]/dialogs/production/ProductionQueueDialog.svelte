@@ -7,17 +7,16 @@
 </script>
 
 <script lang="ts">
-	import { getGameContext } from '$lib/services/Contexts';
-	import { commandedPlanet, nextMapObject, previousMapObject } from '$lib/services/Stores';
+	import { getGameContext } from '$lib/services/GameContext';
 	import ProductionQueue from './ProductionQueue.svelte';
 
-	const { game, player, universe } = getGameContext();
+	const { commandedPlanet, nextMapObject, previousMapObject, updatePlanetOrders } = getGameContext();
 
 	export let show = false;
 
 	async function onNext() {
 		if ($commandedPlanet) {
-			await $game.updatePlanetOrders($commandedPlanet);
+			await updatePlanetOrders($commandedPlanet);
 		}
 
 		nextMapObject();
@@ -25,7 +24,7 @@
 
 	async function onPrev() {
 		if ($commandedPlanet) {
-			await $game.updatePlanetOrders($commandedPlanet);
+			await updatePlanetOrders($commandedPlanet);
 		}
 
 		previousMapObject();
@@ -33,7 +32,7 @@
 
 	async function onOk() {
 		if ($commandedPlanet) {
-			await $game.updatePlanetOrders($commandedPlanet);
+			await updatePlanetOrders($commandedPlanet);
 		}
 		show = false;
 	}

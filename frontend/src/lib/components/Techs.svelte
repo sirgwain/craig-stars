@@ -10,6 +10,7 @@
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { hasRequiredLevels, levelsAbove } from '$lib/types/TechLevel';
 	import ItemTitle from './ItemTitle.svelte';
+	import { isSafari } from '$lib/safariChecker';
 
 	// for ssr, we start with techs from a json file
 	export let techStore: TechStore = techjson as TechStore;
@@ -138,7 +139,8 @@
 			{#each sortBy(techsByCategory[category], 'rank') as tech (tech.name)}
 				{#if showAll || (player && canLearnTech(player, tech) && hasRequiredLevels(player.techLevels, tech.requirements))}
 					<div>
-						<TechSummary {tech} {player} />
+						<!-- Hide the graph on safari until svelte5 -->
+						<TechSummary {tech} {player} hideGraph={isSafari} />
 					</div>
 				{/if}
 			{/each}

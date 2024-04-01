@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import type { Fleet } from '$lib/types/Fleet';
 	import { MapObjectType, None } from '$lib/types/MapObject';
 	import { Unexplored, type Planet } from '$lib/types/Planet';

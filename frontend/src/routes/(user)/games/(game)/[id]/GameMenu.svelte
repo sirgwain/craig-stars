@@ -3,7 +3,7 @@
 	import { page } from '$app/stores';
 	import DarkModeToggler from '$lib/components/DarkModeToggler.svelte';
 	import UserAvatar from '$lib/components/UserAvatar.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { me } from '$lib/services/Stores';
 	import { GameState, type Game } from '$lib/types/Game';
 	import { ArrowUpTray, Bars3 } from '@steeze-ui/heroicons';

@@ -5,7 +5,7 @@ import (
 	"math"
 	"strings"
 
-	"golang.org/x/exp/slices"
+	"slices"
 )
 
 // Fleets are made up of ships, and each ship has a design. Players start with designs created

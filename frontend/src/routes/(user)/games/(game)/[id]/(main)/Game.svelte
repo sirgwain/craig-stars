@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { commandedPlanet } from '$lib/services/Stores';
+	import { getGameContext } from '$lib/services/GameContext';
 	import hotkeys from 'hotkeys-js';
 	import { onMount } from 'svelte';
 	import CargoTranfserDialog, {
@@ -9,18 +9,19 @@
 		type MergeFleetsDialogEventDetails
 	} from '../dialogs/merge/MergeFleetsDialog.svelte';
 	import ProductionQueueDialog from '../dialogs/production/ProductionQueueDialog.svelte';
+	import SplitFleetDialog, {
+		type SplitFleetDialogEventDetails
+	} from '../dialogs/split/SplitFleetDialog.svelte';
+	import type { TransportTasksDialogEventDetails } from '../dialogs/transport/TransportTasksDialog.svelte';
+	import TransportTasksDialog from '../dialogs/transport/TransportTasksDialog.svelte';
 	import HighlightedMapObjectStats from './HighlightedMapObjectStats.svelte';
 	import MapObjectSummary from './MapObjectSummary.svelte';
 	import CommandPane from './command/CommandPane.svelte';
 	import CommandPaneCarousel from './command/CommandPaneCarousel.svelte';
 	import Scanner from './scanner/Scanner.svelte';
 	import ScannerToolbar from './scanner/ScannerToolbar.svelte';
-	import type { TransportTasksDialogEventDetails } from '../dialogs/transport/TransportTasksDialog.svelte';
-	import TransportTasksDialog from '../dialogs/transport/TransportTasksDialog.svelte';
-	import SplitFleetDialog, {
-		type SplitFleetDialogEventDetails
-	} from '../dialogs/split/SplitFleetDialog.svelte';
-	import type { CommandedFleet } from '$lib/types/Fleet';
+
+	const { game, commandedPlanet, nextMapObject, previousMapObject } = getGameContext();
 
 	let showProductionQueueDialog = false;
 	let showCargoTransferDialog = false;
@@ -33,12 +34,21 @@
 	let transportTasksDialogEventDetails: TransportTasksDialogEventDetails | undefined = undefined;
 
 	onMount(() => {
+		hotkeys('n', 'root', () => {
+			nextMapObject();
+		});
+		hotkeys('p', 'root', () => {
+			previousMapObject();
+		});
 		hotkeys('q', 'root', () => {
 			if ($commandedPlanet) {
 				showProductionQueueDialog = true;
 			}
 		});
+
 		return () => {
+			hotkeys.unbind('n', 'root');
+			hotkeys.unbind('p', 'root');
 			hotkeys.unbind('q', 'root');
 		};
 	});

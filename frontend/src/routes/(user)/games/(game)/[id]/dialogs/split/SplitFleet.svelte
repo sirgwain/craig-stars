@@ -1,5 +1,5 @@
 <script lang="ts" context="module">
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { CommandedFleet, moveDamagedTokens, type Fleet, type ShipToken } from '$lib/types/Fleet';
 	import { ArrowLongLeft, ArrowLongRight } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';

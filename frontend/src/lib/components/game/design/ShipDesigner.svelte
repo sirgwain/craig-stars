@@ -3,7 +3,7 @@
 	import TextInput from '$lib/components/TextInput.svelte';
 	import Hull from '$lib/components/game/design/Hull.svelte';
 	import TechAvatar from '$lib/components/tech/TechAvatar.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { DesignService } from '$lib/services/DesignService';
 	import { techs } from '$lib/services/Stores';
 	import { canLearnTech } from '$lib/types/Player';

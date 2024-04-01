@@ -7,7 +7,7 @@
 		type MineralTooltipProps
 	} from '$lib/components/game/tooltips/MineralTooltip.svelte';
 	import { showTooltip } from '$lib/services/Stores';
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 
 	const { game, player, universe, settings } = getGameContext();
 

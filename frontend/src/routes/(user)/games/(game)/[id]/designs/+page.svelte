@@ -4,7 +4,7 @@
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';

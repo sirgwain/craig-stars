@@ -3,7 +3,7 @@
   A fleet that is flying outside of a planet
  -->
 <script lang="ts">
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { radiansToDegrees } from '$lib/services/Math';
 	import type { Fleet } from '$lib/types/Fleet';
 	import type { LayerCake } from 'layercake';

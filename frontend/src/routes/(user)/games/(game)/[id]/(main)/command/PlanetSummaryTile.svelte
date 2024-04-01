@@ -1,7 +1,9 @@
 <script lang="ts">
-	import { nextMapObject, previousMapObject } from '$lib/services/Stores';
+	import { getGameContext } from '$lib/services/GameContext';
 	import type { CommandedPlanet, Planet } from '$lib/types/Planet';
 	import CommandTile from './CommandTile.svelte';
+
+	const { nextMapObject, previousMapObject } = getGameContext();
 
 	export let planet: CommandedPlanet;
 	const icon = (planet: CommandedPlanet) => (planet ? `planet-${(planet.num - 1) % 26}` : '');

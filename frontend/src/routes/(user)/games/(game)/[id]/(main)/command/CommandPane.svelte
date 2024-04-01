@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/Contexts';
-	import { commandedFleet, commandedPlanet } from '$lib/services/Stores';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { createEventDispatcher } from 'svelte';
 	import type { CargoTransferDialogEvent } from '../../dialogs/cargo/CargoTranfserDialog.svelte';
 	import type { MergeFleetsDialogEvent } from '../../dialogs/merge/MergeFleetsDialog.svelte';
@@ -28,7 +27,9 @@
 			ProductionQueueDialogEvent &
 			TransportTasksDialogEvent
 	>();
-	const { game, player, universe } = getGameContext();
+
+	const { universe, commandedPlanet, commandedFleet, splitAll } = getGameContext();
+
 </script>
 
 {#if $commandedPlanet}
@@ -69,7 +70,7 @@
 		/>
 		<FleetCompositionTile
 			fleet={$commandedFleet}
-			on:split-all={() => $commandedFleet && $game.splitAll($commandedFleet)}
+			on:split-all={() => $commandedFleet && splitAll($commandedFleet)}
 			on:split-fleet-dialog={(e) => dispatch('split-fleet-dialog', e.detail)}
 			on:merge-fleets-dialog={(e) => dispatch('merge-fleets-dialog', e.detail)}
 		/>

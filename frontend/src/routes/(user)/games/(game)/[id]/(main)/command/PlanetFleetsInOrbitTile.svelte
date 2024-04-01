@@ -1,24 +1,23 @@
 <script lang="ts">
 	import CargoBar from '$lib/components/game/CargoBar.svelte';
 	import FuelBar from '$lib/components/game/FuelBar.svelte';
-	import { commandedMapObjectName, commandMapObject, universe } from '$lib/services/Stores';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { canTransferCargo, CommandedFleet, type Fleet } from '$lib/types/Fleet';
 	import type { CommandedPlanet } from '$lib/types/Planet';
 	import { ArrowTopRightOnSquare } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { createEventDispatcher } from 'svelte';
+	import { createEventDispatcher, onDestroy } from 'svelte';
 	import type { CargoTransferDialogEvent } from '../../dialogs/cargo/CargoTranfserDialog.svelte';
 	import CommandTile from './CommandTile.svelte';
-	import { union } from 'd3-array';
 
 	const dispatch = createEventDispatcher<CargoTransferDialogEvent>();
+
+	const { universe, commandedMapObject, commandMapObject } = getGameContext();
 
 	export let planet: CommandedPlanet;
 	export let fleetsInOrbit: Fleet[];
 	let selectedFleet: Fleet | undefined;
 	let selectedFleetIndex = 0;
-
-	commandedMapObjectName.subscribe(() => (selectedFleetIndex = 0));
 
 	$: {
 		if (fleetsInOrbit.length > 0) {
@@ -43,6 +42,9 @@
 			commandMapObject(selectedFleet);
 		}
 	};
+
+	const unsubscribe = commandedMapObject.subscribe(() => (selectedFleetIndex = 0));
+	onDestroy(unsubscribe);
 </script>
 
 <CommandTile title="Fleets In Orbit">

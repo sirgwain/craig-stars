@@ -1,11 +1,12 @@
 <script lang="ts">
-	import { selectMapObject } from '$lib/services/Stores';
-
 	import { MapObjectType, type MapObject } from '$lib/types/MapObject';
 	import { MineFieldTypes, type MineField } from '$lib/types/MineField';
 	import { LayerCake, Svg } from 'layercake';
 	import ScannerMineField from '../../../games/(game)/[id]/(main)/scanner/ScannerMineField.svelte';
 	import ScannerMineFieldPattern from '../../../games/(game)/[id]/(main)/scanner/ScannerMineFieldPattern.svelte';
+	import { getGameContext } from '$lib/services/GameContext';
+
+	const { selectMapObject } = getGameContext();
 
 	const mineFields: MineField[] = [
 		{

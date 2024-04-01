@@ -1,19 +1,19 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { GameState } from '$lib/types/Game';
 	import { onDestroy, onMount } from 'svelte';
 	import PlayerStatus from './PlayerStatus.svelte';
 
-	const { game, player, universe } = getGameContext();
+	const { game, universe, loadStatus, startPollingStatus, stopPollingStatus } = getGameContext();
 
 	$: settingUp = $game.state === GameState.Setup;
 
 	onMount(async () => {
-		await $game.loadStatus();
-		$game.startPollingStatus();
+		await loadStatus();
+		startPollingStatus();
 	});
 
-	onDestroy(() => $game.stopPollingStatus());
+	onDestroy(() => stopPollingStatus());
 </script>
 
 <div class:grid-cols-2={settingUp} class:grid-cols-3={!settingUp} class="grid px-2">

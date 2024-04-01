@@ -2,11 +2,11 @@
 	import { page } from '$app/stores';
 	import FormError from '$lib/components/FormError.svelte';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { CSError, addError } from '$lib/services/Errors';
 	import TransportPlanEditor from '../TransportPlanEditor.svelte';
 
-	const { game, player, universe } = getGameContext();
+	const { game, player, updateTransportPlan } = getGameContext();
 	let num = parseInt($page.params.num);
 
 	$: plan = $player.transportPlans.find((p) => p.num == num);
@@ -19,7 +19,7 @@
 		try {
 			if (plan && $game) {
 				// save to server
-				await $game.updateTransportPlan(plan);
+				await updateTransportPlan(plan);
 			}
 		} catch (e) {
 			addError(e as CSError);

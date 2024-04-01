@@ -2,7 +2,7 @@
 	import CargoBar from '$lib/components/game/CargoBar.svelte';
 	import FuelBar from '$lib/components/game/FuelBar.svelte';
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { getDamagePercentForToken, type Fleet } from '$lib/types/Fleet';
 	import { ownedBy } from '$lib/types/MapObject';
 	import type { ShipDesign } from '$lib/types/ShipDesign';

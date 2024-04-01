@@ -1,6 +1,8 @@
 <script lang="ts">
-	import { highlightedMapObject, selectedMapObject } from '$lib/services/Stores';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { distance } from '$lib/types/Vector';
+
+	const { highlightedMapObject, selectedMapObject } = getGameContext();
 
 	let dist = 0;
 

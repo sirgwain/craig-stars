@@ -3,22 +3,18 @@
   Generates an SVG scatter plot. This component can also work if the x- or y-scale is ordinal, i.e. it has a `.bandwidth` method. See the [timeplot chart](https://layercake.graphics/example/Timeplot) for an example.
  -->
 <script lang="ts">
-	import { getGameContext } from '$lib/services/Contexts';
-	import { commandedMapObject, commandedPlanet } from '$lib/services/Stores';
+	import { getGameContext } from '$lib/services/GameContext';
 	import type { Fleet } from '$lib/types/Fleet';
 	import { MapObjectType, type MapObject } from '$lib/types/MapObject';
 	import type { Planet } from '$lib/types/Planet';
 	import { PlanetViewState } from '$lib/types/PlayerSettings';
-	import type { LayerCake } from 'layercake';
-	import { getContext } from 'svelte';
+	import ScannerPlanetMineralConcentration from './ScannerPlanetMineralConcentration.svelte';
 	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';
 	import ScannerPlanetPercent from './ScannerPlanetPercent.svelte';
 	import ScannerPlanetPop from './ScannerPlanetPop.svelte';
-	import ScannerPlanetMineralConcentration from './ScannerPlanetMineralConcentration.svelte';
 	import ScannerPlanetSurfaceMinerals from './ScannerPlanetSurfaceMinerals.svelte';
 
-	const { game, player, universe, settings } = getGameContext();
-	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
+	const { universe, settings, commandedMapObject, commandedPlanet } = getGameContext();
 
 	const commanded = (
 		planet: Planet,

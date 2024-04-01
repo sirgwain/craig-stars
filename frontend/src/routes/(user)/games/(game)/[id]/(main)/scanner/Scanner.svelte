@@ -1,21 +1,7 @@
 <script lang="ts">
 	import { clickOutside } from '$lib/clickOutside';
-	import { getGameContext } from '$lib/services/Contexts';
-	import {
-		commandMapObject,
-		commandedFleet,
-		commandedMapObject,
-		commandedPlanet,
-		currentSelectedWaypointIndex,
-		highlightMapObject,
-		mostRecentMapObject,
-		selectMapObject,
-		selectWaypoint,
-		selectedMapObject,
-		selectedWaypoint,
-		showTooltip,
-		zoomTarget
-	} from '$lib/services/Stores';
+	import { onScannerContextPopup } from '$lib/components/game/tooltips/ScannerContextPopup.svelte';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { WaypointTask, type Waypoint } from '$lib/types/Fleet';
 	import {
 		MapObjectType,
@@ -32,7 +18,7 @@
 	import { ZoomTransform, zoom, type D3ZoomEvent, type ZoomBehavior } from 'd3-zoom';
 	import hotkeys from 'hotkeys-js';
 	import { Html, LayerCake, Svg } from 'layercake';
-	import { onMount, setContext } from 'svelte';
+	import { onDestroy, onMount, setContext } from 'svelte';
 	import { writable } from 'svelte/store';
 	import MapObjectQuadTreeFinder, {
 		type FinderEventDetails
@@ -52,12 +38,27 @@
 	import ScannerWormholeLinks from './ScannerWormholeLinks.svelte';
 	import ScannerWormholes from './ScannerWormholes.svelte';
 	import SelectedMapObject from './SelectedMapObject.svelte';
-	import ScannerContextPopup, {
-		onScannerContextPopup,
-		type ScannerContextPopupProps
-	} from '$lib/components/game/tooltips/ScannerContextPopup.svelte';
 
-	const { game, player, universe, settings } = getGameContext();
+	const {
+		game,
+		player,
+		universe,
+		settings,
+		commandMapObject,
+		commandedFleet,
+		commandedMapObject,
+		commandedPlanet,
+		currentSelectedWaypointIndex,
+		highlightMapObject,
+		mostRecentMapObject,
+		selectMapObject,
+		selectWaypoint,
+		selectedMapObject,
+		selectedWaypoint,
+		zoomTarget,
+		updatePlanetOrders,
+		updateFleetOrders
+	} = getGameContext();
 
 	const xGetter = (mo: MapObject) => mo?.position?.x;
 	const yGetter = (mo: MapObject) => mo?.position?.y;
@@ -79,12 +80,15 @@
 	$: $clampedScale = Math.min(3, $scale); // don't let the scale used for scanner objects go more than 1/2th size
 	// $: console.log('scale ', $scale, ' clampedScale', $clampedScale);
 
+	const unsubscribe = zoomTarget.subscribe(() => showTargetLocation());
+
 	onMount(() => {
 		hotkeys('v', 'root', showTargetLocation);
+	});
 
-		return () => {
-			hotkeys.unbind('v', 'root', showTargetLocation);
-		};
+	onDestroy(() => {
+		hotkeys.unbind('v', 'root', showTargetLocation);
+		unsubscribe();
 	});
 
 	// handle zoom in/out
@@ -152,8 +156,6 @@
 		scaleX = scaleLinear().range(xRange()).domain([0, $game.area.x]);
 		scaleY = scaleLinear().range(yRange()).domain([0, $game.area.y]);
 	}
-
-	zoomTarget.subscribe(() => showTargetLocation());
 
 	function showTargetLocation() {
 		showLocator = true;
@@ -364,7 +366,7 @@
 				$selectedWaypoint.warpSpeed = warpSpeed;
 			}
 
-			$game.updateFleetOrders($commandedFleet);
+			updateFleetOrders($commandedFleet);
 		}
 	}
 
@@ -488,7 +490,7 @@
 		}
 		waypointJustAdded = true;
 
-		await $game.updateFleetOrders($commandedFleet);
+		await updateFleetOrders($commandedFleet);
 
 		// select the new waypoint
 		selectWaypoint($commandedFleet.waypoints[$commandedFleet.waypoints.length - 1]);
@@ -519,7 +521,7 @@
 					return;
 				}
 				$commandedPlanet.packetTargetNum = mo.num;
-				$game.updatePlanetOrders($commandedPlanet);
+				updatePlanetOrders($commandedPlanet);
 				return;
 			}
 		}

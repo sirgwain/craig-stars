@@ -1,16 +1,12 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import Relations from './Relations.svelte';
 
-	const { game, player, universe } = getGameContext();
-
-	async function update() {
-		$game.updatePlayerRelations();
-	}
+	const { player, updatePlayerRelations } = getGameContext();
 </script>
 
 <div class="w-full mx-auto md:max-w-2xl">
 	{#if player}
-		<Relations on:update-player={update} />
+		<Relations on:update-player={updatePlayerRelations} />
 	{/if}
 </div>

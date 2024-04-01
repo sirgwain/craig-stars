@@ -10,7 +10,7 @@
 </script>
 
 <script lang="ts">
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { NeverBuilt } from '$lib/services/Producer';
 	import type { ProductionQueueItem } from '$lib/types/Production';
 	import { getFullName, getShortName, isAuto } from '$lib/types/QueueItemType';

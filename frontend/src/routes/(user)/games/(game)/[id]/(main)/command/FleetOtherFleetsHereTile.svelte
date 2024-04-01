@@ -1,12 +1,14 @@
 <script lang="ts">
-	import { commandedFleet, commandedMapObjectName, commandMapObject } from '$lib/services/Stores';
 	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
-	import { createEventDispatcher } from 'svelte';
+	import { createEventDispatcher, onDestroy } from 'svelte';
 	import CommandTile from './CommandTile.svelte';
 	import type { CargoTransferDialogEvent } from '../../dialogs/cargo/CargoTranfserDialog.svelte';
 	import type { SplitFleetDialogEvent } from '../../dialogs/split/SplitFleetDialog.svelte';
+	import { getGameContext } from '$lib/services/GameContext';
 
 	const dispatch = createEventDispatcher<SplitFleetDialogEvent & CargoTransferDialogEvent>();
+
+	const { commandedFleet, commandedMapObject, commandMapObject } = getGameContext();
 
 	export let fleet: CommandedFleet;
 	export let fleetsInOrbit: Fleet[];
@@ -19,8 +21,6 @@
 			selectedFleet = fleetsInOrbit[selectedFleetIndex];
 		}
 	}
-
-	commandedMapObjectName.subscribe(() => (selectedFleetIndex = 0));
 
 	const onSelectedFleetChange = (index: number) => {
 		selectedFleetIndex = index;
@@ -44,6 +44,10 @@
 			dispatch('split-fleet-dialog', { src: $commandedFleet, dest: selectedFleet });
 		}
 	};
+
+	// reset the waypoint index every time the commanded mapobject changes
+	const unsubscribe = commandedMapObject.subscribe(() => (selectedFleetIndex = 0));
+	onDestroy(unsubscribe);
 </script>
 
 {#if fleet}

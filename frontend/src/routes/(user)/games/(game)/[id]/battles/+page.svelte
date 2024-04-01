@@ -3,7 +3,7 @@
 	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import {
 		getNumShips,
 		getOurDead,

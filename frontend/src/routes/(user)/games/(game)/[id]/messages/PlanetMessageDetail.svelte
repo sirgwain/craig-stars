@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/Contexts';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { MessageType, type Message, CometSize } from '$lib/types/Message';
 	import type { Planet, getQueueItemShortName } from '$lib/types/Planet';
 	import type { PlayerIntel } from '$lib/types/Player';
