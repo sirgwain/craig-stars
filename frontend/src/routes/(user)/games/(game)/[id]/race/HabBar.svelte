@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { HabTypes, getHabValueString, type HabType } from '$lib/types/Hab';
+	import { HabTypes, getHabValueString, type HabType, habTypeString } from '$lib/types/Hab';
 
 	export let habType: HabType;
 	export let habLow: number | undefined;
@@ -10,7 +10,9 @@
 </script>
 
 <div class="flex flex-col md:flex-row">
-	<div class="text-center md:text-right md:w-[5.5rem] h-full my-auto mr-2">{habType}</div>
+	<div class="text-center md:text-right md:w-[5.5rem] h-full my-auto mr-2">
+		{habTypeString(habType)}
+	</div>
 	<div class="grow flex flex-col">
 		<div class="flex flex-row h-8 my-auto">
 			<div class="grow border-b border-base-300 bg-black mx-1 overflow-hidden h-full">

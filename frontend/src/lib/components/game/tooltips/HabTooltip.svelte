@@ -9,7 +9,7 @@
 </script>
 
 <script lang="ts">
-	import { getHabValue, getHabValueString, withHabValue, type HabType, add } from '$lib/types/Hab';
+	import { getHabValue, getHabValueString, withHabValue, type HabType, add, habTypeString } from '$lib/types/Hab';
 	import { getPlanetHabitability } from '$lib/types/Race';
 
 	export let player: Player;
@@ -28,15 +28,15 @@
 
 <div class="flex flex-col sm:w-[26rem] m-auto">
 	<div>
-		{habType} is currently
+		{habTypeString(habType)} is currently
 		<span class="font-semibold">{getHabValueString(habType, getHabValue(planet.hab, habType))}</span
-		>. Your colonists prefer planets where {habType}
+		>. Your colonists prefer planets where {habTypeString(habType)}
 		is between <span class="font-semibold">{habLowString}</span> and
 		<span class="font-semibold">{habHighString}</span>
 
 		{#if terraformedHab != 0}
 			<div>
-				You currently possess the technology to modify the {habType} on
+				You currently possess the technology to modify the {habTypeString(habType)} on
 				<span class="font-semibold">{planet.name}</span>
 				within the range of within the range of
 				<span class="font-semibold"
@@ -45,7 +45,7 @@
 				to
 				<span class="font-semibold"
 					>{currentHab > terraformedHab ? habString : terraformedHabString}</span
-				>. If you were to terraform <span class="font-semibold">{habType}</span> to
+				>. If you were to terraform <span class="font-semibold">{habTypeString(habType)}</span> to
 				<span class="font-semibold">{terraformedHabString}</span>, the planet's value would improve
 				to
 				<span class="font-semibold">{habitabilityAfterTerraforming.toFixed()}%</span>
