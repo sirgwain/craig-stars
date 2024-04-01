@@ -1240,7 +1240,7 @@ func (t *turn) remoteMine(fleet *Fleet, player *Player, planet *Planet) {
 // go through each player planet and process it's production queue
 func (t *turn) planetProduction() error {
 	for _, planet := range t.game.Planets {
-		if planet.Owned() && len(planet.ProductionQueue) > 0 {
+		if planet.Owned() {
 			player := t.game.Players[planet.PlayerNum-1]
 			producer := newProducer(planet, player)
 			result := producer.produce()

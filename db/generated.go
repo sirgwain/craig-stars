@@ -571,7 +571,7 @@ func (c *GameConverter) ConvertPlayer(source Player) cs.Player {
 	csPlayer.DefaultHullSet = source.DefaultHullSet
 	csPlayer.Race = PlayerRaceToGameRace(source.Race)
 	csPlayer.TechLevels = ExtendTechLevels(source)
-	csPlayer.TechLevelsSpent = ExtendTechLevels(source)
+	csPlayer.TechLevelsSpent = ExtendTechLevelsSpent(source)
 	csPlayer.ResearchSpentLastYear = source.ResearchSpentLastYear
 	csPlayer.Relations = PlayerRelationshipsToGamePlayerRelationships(source.Relations)
 	csPlayer.Messages = PlayerMessagesToGamePlayerMessages(source.Messages)

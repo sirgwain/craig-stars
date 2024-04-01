@@ -1,4 +1,4 @@
-//go:generate go run github.com/jmattheis/goverter/cmd/goverter@v1.3.0 gen ./
+//go:generate go run github.com/jmattheis/goverter/cmd/goverter@v1.4.0 gen ./
 
 package db
 
@@ -88,6 +88,7 @@ var c Converter
 // goverter:extend GameWormholeSpecToWormholeSpec
 // goverter:extend MysteryTraderSpecToGameMysteryTraderSpec
 // goverter:extend GameMysteryTraderSpecToMysteryTraderSpec
+// goverter:enum no
 type Converter interface {
 	// goverter:map . DBObject
 	ConvertUser(source User) cs.User
@@ -175,7 +176,7 @@ type Converter interface {
 
 	// goverter:map . GameDBObject
 	// goverter:map . TechLevels | ExtendTechLevels
-	// goverter:map . TechLevelsSpent | ExtendTechLevels
+	// goverter:map . TechLevelsSpent | ExtendTechLevelsSpent
 	// goverter:map . PlayerOrders
 	// goverter:map . PlayerIntels
 	// goverter:map . PlayerPlans
@@ -754,6 +755,17 @@ func ExtendTechLevels(source Player) cs.TechLevel {
 		Construction:  source.TechLevelsConstruction,
 		Electronics:   source.TechLevelsElectronics,
 		Biotechnology: source.TechLevelsBiotechnology,
+	}
+}
+
+func ExtendTechLevelsSpent(source Player) cs.TechLevel {
+	return cs.TechLevel{
+		Energy:        source.TechLevelsSpentEnergy,
+		Weapons:       source.TechLevelsSpentWeapons,
+		Propulsion:    source.TechLevelsSpentPropulsion,
+		Construction:  source.TechLevelsSpentConstruction,
+		Electronics:   source.TechLevelsSpentElectronics,
+		Biotechnology: source.TechLevelsSpentBiotechnology,
 	}
 }
 

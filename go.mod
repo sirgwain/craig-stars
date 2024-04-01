@@ -64,7 +64,7 @@ require (
 	go.mongodb.org/mongo-driver v1.14.0 // indirect
 	golang.org/x/image v0.15.0 // indirect
 	golang.org/x/oauth2 v0.18.0
-	golang.org/x/sync v0.6.0 // indirect
+	golang.org/x/sync v0.6.0
 	google.golang.org/appengine v1.6.8 // indirect
 )
 

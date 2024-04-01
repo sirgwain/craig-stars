@@ -632,6 +632,10 @@ func Test_turn_fleetMoveDestroyedByMineField(t *testing.T) {
 	// setup initial planet intels so turn generation works
 	mineFieldPlayer.initDefaultPlanetIntels(&game.Rules, game.Planets)
 
+	// make sure our player doesn't gain any tech levels since we're checking messages after turn generation
+	player := game.Players[0]
+	player.TechLevels = TechLevel{26, 26, 26, 26, 26, 26}
+
 	game.Players = append(game.Players, mineFieldPlayer)
 	game.MineFields = append(game.MineFields, mineField)
 

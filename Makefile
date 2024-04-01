@@ -3,7 +3,7 @@ BINARY_NAME=craig-stars
 # always redo these
 .PHONY: build test clean dev dev_backend dev_frontend
 
-build: build_frontend tidy vendor build_server
+build: build_frontend tidy vendor generate build_server
 
 build_frontend:
 	cd frontend; npm install
@@ -17,6 +17,9 @@ build_server:
 build_docker:
 	docker build -f builder.Dockerfile --platform linux/amd64 . -t craig-stars-builder
 	docker run -f builder.Dockerfile --platform linux/amd64 -v ${CURDIR}/dist:/dist craig-stars-builder
+
+generate:
+	go generate ./...
 
 test:
 	go test ./...
