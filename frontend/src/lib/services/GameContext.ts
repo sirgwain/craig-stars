@@ -158,6 +158,13 @@ export function createGameContext(fg: FullGame): GameContext {
 		messageNum.set(getNextVisibleMessageNum(-1, false, fg.player.messages, s));
 	}
 
+	// make sure updates to settings save to localStorage
+	settings.subscribe((value) => {
+		value.beforeSave();
+		localStorage.setItem(value.key, JSON.stringify(value));
+	});
+
+
 	function getNextVisibleMessageNum(
 		num: number,
 		showFilteredMessages: boolean,
