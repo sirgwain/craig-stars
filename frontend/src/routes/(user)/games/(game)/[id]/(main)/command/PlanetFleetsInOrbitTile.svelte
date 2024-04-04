@@ -12,7 +12,7 @@
 
 	const dispatch = createEventDispatcher<CargoTransferDialogEvent>();
 
-	const { universe, commandedMapObject, commandMapObject } = getGameContext();
+	const { universe, commandedMapObjectKey, commandMapObject } = getGameContext();
 
 	export let planet: CommandedPlanet;
 	export let fleetsInOrbit: Fleet[];
@@ -43,7 +43,7 @@
 		}
 	};
 
-	const unsubscribe = commandedMapObject.subscribe(() => (selectedFleetIndex = 0));
+	const unsubscribe = commandedMapObjectKey.subscribe(() => (selectedFleetIndex = 0));
 	onDestroy(unsubscribe);
 </script>
 

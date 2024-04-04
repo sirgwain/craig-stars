@@ -2,7 +2,7 @@ import { goto } from '$app/navigation';
 import type { CargoTransferRequest } from '$lib/types/Cargo';
 import { CommandedFleet, type Fleet, type ShipToken, type Waypoint } from '$lib/types/Fleet';
 import type { Game, GameSettings } from '$lib/types/Game';
-import { MapObjectType, None, equal, ownedBy, type MapObject } from '$lib/types/MapObject';
+import { MapObjectType, None, equal, ownedBy, type MapObject, key } from '$lib/types/MapObject';
 import { MessageTargetType, MessageType, type Message } from '$lib/types/Message';
 import { CommandedPlanet, type Planet } from '$lib/types/Planet';
 import {
@@ -17,7 +17,14 @@ import type { Salvage } from '$lib/types/Salvage';
 import type { ShipDesign } from '$lib/types/ShipDesign';
 import { findIndex, kebabCase } from 'lodash-es';
 import { getContext } from 'svelte';
-import { derived, get, writable, type Readable, type Writable } from 'svelte/store';
+import {
+	derived,
+	get,
+	writable,
+	type Readable,
+	type Writable,
+	type Unsubscriber
+} from 'svelte/store';
 import { BattlePlanService } from './BattlePlanService';
 import { DesignService } from './DesignService';
 import { FleetService } from './FleetService';
@@ -43,6 +50,7 @@ export type GameContext = {
 	commandedPlanet: Readable<CommandedPlanet | undefined>;
 	commandedFleet: Readable<CommandedFleet | undefined>;
 	commandedMapObject: Readable<MapObject | undefined>;
+	commandedMapObjectKey: Readable<string>;
 	selectedMapObject: Readable<MapObject | undefined>;
 	zoomTarget: Readable<MapObject | undefined>;
 	selectedWaypoint: Readable<Waypoint | undefined>;
@@ -117,6 +125,7 @@ export const getGameContext = () => getContext<GameContext>(gameKey);
 // update the game context after a load
 export function createGameContext(fg: FullGame): GameContext {
 	const gameId = fg.id;
+	const unsubscribers: Unsubscriber[] = [];
 
 	const game = writable(fg);
 	const player = writable(fg.player);
@@ -128,6 +137,7 @@ export function createGameContext(fg: FullGame): GameContext {
 	const commandedPlanet = writable<CommandedPlanet | undefined>();
 	const commandedFleet = writable<CommandedFleet | undefined>();
 	const commandedMapObject = writable<MapObject | undefined>();
+	const commandedMapObjectKey = writable<string>(key(undefined));
 	const selectedMapObject = writable<MapObject | undefined>();
 	const selectedWaypoint = writable<Waypoint | undefined>();
 	const highlightedMapObject = writable<MapObject | undefined>();
@@ -159,11 +169,24 @@ export function createGameContext(fg: FullGame): GameContext {
 	}
 
 	// make sure updates to settings save to localStorage
-	settings.subscribe((value) => {
-		value.beforeSave();
-		localStorage.setItem(value.key, JSON.stringify(value));
-	});
+	unsubscribers.push(
+		settings.subscribe((value) => {
+			value.beforeSave();
+			localStorage.setItem(value.key, JSON.stringify(value));
+		})
+	);
 
+	// for some use cases (like resetting the selectedWaypointIndex) we want to know when the commanded MapObject
+	// changes from one MapObject to another. We don't want to react if the existing MapObject is just updated though
+	unsubscribers.push(
+		commandedMapObject.subscribe((mo) => {
+			const existingKey = get(commandedMapObjectKey);
+			const updatedKey = key(mo);
+			if (existingKey != updatedKey) {
+				commandedMapObjectKey.set(updatedKey);
+			}
+		})
+	);
 
 	function getNextVisibleMessageNum(
 		num: number,
@@ -590,8 +613,8 @@ export function createGameContext(fg: FullGame): GameContext {
 
 			u.resetMapObjectsByPosition();
 			u.resetMyMapObjectsByPosition();
-	
-			universe.set(u)
+
+			universe.set(u);
 		}
 	}
 
@@ -810,6 +833,7 @@ export function createGameContext(fg: FullGame): GameContext {
 		commandedPlanet,
 		commandedFleet,
 		commandedMapObject,
+		commandedMapObjectKey,
 		selectedMapObject,
 		zoomTarget,
 		selectedWaypoint,

@@ -11,7 +11,7 @@
 	const {
 		player,
 		universe,
-		commandedMapObject,
+		commandedMapObjectKey,
 		selectedWaypoint,
 		selectMapObject,
 		selectWaypoint,
@@ -117,10 +117,12 @@
 	async function deleteWaypoint() {
 		if (selectedWaypointIndex != 0 && fleet.waypoints) {
 			fleet.waypoints = fleet.waypoints.filter((wp) => wp != $selectedWaypoint);
+			
+			// select the previous waypoint
 			selectedWaypointIndex--;
+			onSelectWaypoint(fleet.waypoints[selectedWaypointIndex], selectedWaypointIndex);
 
 			await updateFleetOrders(fleet).then(() => updateNextPrevWaypoints());
-			onSelectWaypoint(fleet.waypoints[selectedWaypointIndex], selectedWaypointIndex);
 		}
 	}
 
@@ -136,26 +138,6 @@
 		}
 	}
 
-	const unsubscribeSelectedWaypoint = selectedWaypoint?.subscribe(() => {
-		selectedWaypointIndex = fleet.waypoints.findIndex((wp) => wp == $selectedWaypoint);
-		if (selectedWaypointIndex == -1) {
-			selectedWaypointIndex = 0;
-		}
-		updateNextPrevWaypoints();
-
-		// if (waypointRefs.length > selectedWaypointIndex) {
-		// 	// TODO: this is making small screens jump by scrolling
-		// 	// to the waypoint
-		// 	// waypointRefs[selectedWaypointIndex]?.scrollIntoView();
-		// }
-	});
-
-	// reset the waypoint index every time the commanded mapobject changes
-	const unsubscribeCommandedMapObject = commandedMapObject.subscribe(() => {
-		selectedWaypointIndex = 0;
-		updateNextPrevWaypoints();
-	});
-
 	onMount(() => {
 		// TODO: these hotkeys can't be on the component... they are wired up twice because we render the command pane twice
 		hotkeys('Delete', 'root', () => {
@@ -166,17 +148,36 @@
 		});
 		// hotkeys('down', () => onNextWaypoint());
 		// hotkeys('up', () => onPrevWaypoint());
-	});
 
-	// unsubscribe
-	onDestroy(() => {
-		unsubscribeCommandedMapObject();
-		unsubscribeSelectedWaypoint();
+		const unsubscribeSelectedWaypoint = selectedWaypoint?.subscribe(() => {
+			selectedWaypointIndex = fleet.waypoints.findIndex((wp) => wp == $selectedWaypoint);
+			if (selectedWaypointIndex == -1) {
+				selectedWaypointIndex = 0;
+			}
+			updateNextPrevWaypoints();
 
-		hotkeys.unbind('Delete', 'root');
-		hotkeys.unbind('Backspace', 'root');
-		// hotkeys.unbind('down');
-		// hotkeys.unbind('up');
+			// if (waypointRefs.length > selectedWaypointIndex) {
+			// 	// TODO: this is making small screens jump by scrolling
+			// 	// to the waypoint
+			// 	// waypointRefs[selectedWaypointIndex]?.scrollIntoView();
+			// }
+		});
+
+		// reset the waypoint index every time the commanded mapobject changes
+		const unsubscribeCommandedMapObject = commandedMapObjectKey.subscribe(() => {
+			selectedWaypointIndex = 0;
+			updateNextPrevWaypoints();
+		});
+
+		return () => {
+			unsubscribeCommandedMapObject();
+			unsubscribeSelectedWaypoint();
+
+			hotkeys.unbind('Delete', 'root');
+			hotkeys.unbind('Backspace', 'root');
+			// hotkeys.unbind('down');
+			// hotkeys.unbind('up');
+		};
 	});
 </script>
 

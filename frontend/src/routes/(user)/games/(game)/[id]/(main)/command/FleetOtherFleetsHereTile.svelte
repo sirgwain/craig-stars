@@ -8,7 +8,7 @@
 
 	const dispatch = createEventDispatcher<SplitFleetDialogEvent & CargoTransferDialogEvent>();
 
-	const { commandedFleet, commandedMapObject, commandMapObject } = getGameContext();
+	const { commandedFleet, commandedMapObjectKey, commandMapObject } = getGameContext();
 
 	export let fleet: CommandedFleet;
 	export let fleetsInOrbit: Fleet[];
@@ -46,7 +46,7 @@
 	};
 
 	// reset the waypoint index every time the commanded mapobject changes
-	const unsubscribe = commandedMapObject.subscribe(() => (selectedFleetIndex = 0));
+	const unsubscribe = commandedMapObjectKey.subscribe(() => (selectedFleetIndex = 0));
 	onDestroy(unsubscribe);
 </script>
 
