@@ -202,8 +202,12 @@ func (t *terraform) GetBestTerraform(planet *Planet, player *Player, terraformer
 		return nil
 	}
 	// if we can terraform any, return true
-	largestDistance := 0
 	var bestHabType *HabType
+	var direction int
+	isRed := false
+	redness := math.MaxInt
+	greenness := math.MinInt
+	greatest := math.MinInt
 
 	// default the terraformer to the player
 	if terraformer == nil {
@@ -214,7 +218,6 @@ func (t *terraform) GetBestTerraform(planet *Planet, player *Player, terraformer
 	terraformAbility := t.getTerraformAbility(terraformer)
 
 	habCenter := player.Race.HabCenter()
-
 	for _, habType := range HabTypes {
 		if player.Race.IsImmune(habType) {
 			continue
@@ -227,33 +230,69 @@ func (t *terraform) GetBestTerraform(planet *Planet, player *Player, terraformer
 
 		playerHabIdeal := habCenter.Get(habType)
 
-		// The distance from the starting hab of this planet
-		fromIdealBaseDistance := AbsInt(playerHabIdeal - planet.BaseHab.Get(habType))
-
 		// figure out what our hab is without any instaforming
+		// instaforming doesn't count as "terraforming" in that the planet doesn't change, it's just more habitable
+		// for the CA populace
 		habWithoutInstaforming := planet.BaseHab.Add(planet.TerraformedAmount)
 
 		// the distance from the current hab of this planet
 		fromIdeal := playerHabIdeal - habWithoutInstaforming.Get(habType)
-		fromIdealDistance := AbsInt(fromIdeal)
-
-		terraformAmount := 0
-		// if we have any left to terraform
-		if fromIdealDistance > 0 {
-			// we can either terrform up to our full ability, or however much
-			// we have left to terraform on this
-			alreadyTerraformed := fromIdealBaseDistance - fromIdealDistance
-			terraformAmount = MinInt(ability-alreadyTerraformed, fromIdealDistance)
+		fromIdealDist := AbsInt(fromIdeal)
+		if fromIdeal > 0 {
+			// for example, the planet has Grav 49, but our player wants Grav 50
+			if ability <= planet.TerraformedAmount.Get(habType) {
+				continue
+			}
+			if player.Race.HabLow.Get(habType) > planet.Hab.Get(habType) {
+				isRed = true
+				// For red planets we want the smallest redness
+				// * Terraforming only improves reds with less than 15%
+				// * If all habs are over 15% then smallest is closest to being improved in the future
+				if player.Race.HabLow.Get(habType)-planet.Hab.Get(habType) < redness {
+					redness = player.Race.HabLow.Get(habType) - planet.Hab.Get(habType)
+					newBest := habType
+					bestHabType = &newBest
+				}
+				continue
+			}
+			direction = 1
+		} else if fromIdeal < 0 {
+			if ability <= -planet.TerraformedAmount.Get(habType) {
+				continue
+			}
+			if player.Race.HabHigh.Get(habType) < planet.Hab.Get(habType) {
+				isRed = true
+				if planet.Hab.Get(habType)-player.Race.HabHigh.Get(habType) < redness {
+					redness = planet.Hab.Get(habType) - player.Race.HabHigh.Get(habType)
+					newBest := habType
+					bestHabType = &newBest
+				}
+				continue
+			}
+			direction = -1
+		} else {
+			// terraforming complete for this habType
+			continue
 		}
-
-		// we want to get the largest distance that we can terraform
-		if fromIdealDistance > largestDistance && terraformAmount > 0 {
-			largestDistance = fromIdealDistance
-			newBest := habType
-			bestHabType = &newBest
+		if !isRed {
+			// Test every possible improvement and select the highest habitability
+			// for cases where the highest hab is equivalent, pick the largest distance
+			newHab := planet.Hab
+			newHab.Set(habType, planet.Hab.Get(habType)+direction)
+			habitability := player.Race.GetPlanetHabitability(newHab)
+			if habitability > greenness {
+				greenness = habitability
+				greatest = fromIdealDist
+				newBest := habType
+				bestHabType = &newBest
+			} else if habitability == greenness && fromIdealDist > greatest {
+				greenness = habitability
+				greatest = fromIdealDist
+				newBest := habType
+				bestHabType = &newBest
+			}
 		}
 	}
-
 	return bestHabType
 }
 

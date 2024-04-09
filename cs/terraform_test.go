@@ -220,8 +220,30 @@ func TestGetBestTerraform(t *testing.T) {
 			args: args{
 				player: player,
 				planet: &Planet{
-					BaseHab: Hab{Grav: 49, Temp: 50, Rad: 52},
+					BaseHab: Hab{Grav: 49, Temp: 50, Rad: 52}, // terraforming grav/rad are equivalent in hab bonus, so pick rad because it's farther away
 					Hab:     Hab{Grav: 49, Temp: 50, Rad: 52},
+				},
+			},
+			want: (*HabType)(&rad),
+		},
+		{
+			name: "best hab to terraform is rad because it's less red",
+			args: args{
+				player: player,
+				planet: &Planet{
+					BaseHab: Hab{Grav: 13, Temp: 50, Rad: 14},
+					Hab:     Hab{Grav: 13, Temp: 50, Rad: 14},
+				},
+			},
+			want: (*HabType)(&rad),
+		},
+		{
+			name: "best hab to terraform is rad because it's less red other direction",
+			args: args{
+				player: player,
+				planet: &Planet{
+					BaseHab: Hab{Grav: 13, Temp: 50, Rad: 86},
+					Hab:     Hab{Grav: 13, Temp: 50, Rad: 86},
 				},
 			},
 			want: (*HabType)(&rad),
