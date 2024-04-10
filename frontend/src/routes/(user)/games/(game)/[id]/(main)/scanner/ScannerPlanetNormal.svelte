@@ -39,9 +39,9 @@
 			.filter((mo) => mo.type === MapObjectType.Fleet);
 
 		// green for us, gray for unexplored, white for explored
-		let color = '#555';
+		let color = '#999999';
 		let strokeWidth = 0;
-		let strokeColor = '#555';
+		let strokeColor = '#999999';
 
 		if (planet.playerNum === $player.num) {
 			color = '#00FF00';

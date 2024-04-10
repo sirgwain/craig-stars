@@ -40,7 +40,7 @@
 </script>
 
 <div
-	class="border border-secondary w-full h-[1rem] text-[0rem] relative select-none"
+	class="border border-secondary w-full h-[1rem] text-[0rem] relative select-none bg-gauge"
 	class:cursor-pointer={editable}
 	on:pointerdown|preventDefault={(e) =>
 		editable &&
@@ -61,9 +61,7 @@
 				e.currentTarget.getBoundingClientRect().width
 		)}
 >
-	<div
-		class="font-extrabold text-sm text-center align-middle w-full absolute text-secondary"
-	>
+	<div class="font-extrabold text-sm text-center align-middle w-full absolute text-white">
 		{value} of {capacity}mg
 	</div>
 	<div style={`width: ${percent.toFixed()}%`} class="fuel-bar h-full" />

@@ -68,7 +68,7 @@
 {#if $selectedWaypoint}
 	<CommandTile title="Waypoint Task">
 		<div class="flex justify-between">
-			<div class="my-auto">Target</div>
+			<div class="my-auto text-tile-item-title">Target</div>
 			<div>
 				<OtherMapObjectsHere
 					{fleet}
@@ -80,7 +80,7 @@
 			</div>
 		</div>
 		<div class="flex justify-between my-1">
-			<div class="my-auto">Task</div>
+			<div class="my-auto text-tile-item-title">Task</div>
 			<div>
 				<select
 					class="select select-outline select-secondary select-sm text-sm w-36"

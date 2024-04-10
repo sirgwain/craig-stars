@@ -7,7 +7,7 @@
 		dest?: Fleet | Planet | Salvage | undefined;
 	};
 	export type CargoTransferDialogEvent = {
-		'cargo-transfer-dialog': CargoTransferDialogEventDetails;
+		'cargo-transfer-dialog'?: CargoTransferDialogEventDetails;
 		cancel: void;
 	};
 </script>

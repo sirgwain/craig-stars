@@ -71,7 +71,7 @@
 			</ul>
 		</div>
 		<div class="flex justify-between my-1">
-			<div class="my-auto">Battle Plan:</div>
+			<div class="my-auto text-tile-item-title">Battle Plan:</div>
 			<div>
 				<select
 					class="select select-outline select-secondary select-sm text-sm"
@@ -86,7 +86,7 @@
 			</div>
 		</div>
 		<div class="flex justify-between my-1">
-			<div>Est Range:</div>
+			<div class="text-tile-item-title">Est Range:</div>
 			<div>
 				{fleet.spec.estimatedRange
 					? fleet.spec.estimatedRange === Infinite
@@ -96,7 +96,7 @@
 			</div>
 		</div>
 		<div class="flex justify-between my-1">
-			<div>Percent Cloaked</div>
+			<div class="text-tile-item-title">Percent Cloaked</div>
 			<div>{fleet.spec.cloakPercent ? fleet.spec.cloakPercent + '%' : 'none'}</div>
 		</div>
 		<div class="flex justify-between">

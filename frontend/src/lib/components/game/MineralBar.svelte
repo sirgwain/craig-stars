@@ -54,12 +54,12 @@
 
 <div
 	bind:this={ref}
-	class="border border-secondary w-full h-[1rem] text-[0rem] relative bg-base-200 select-none"
+	class="border border-secondary w-full h-[1rem] text-[0rem] relative bg-gauge select-none"
 	class:cursor-pointer={!readonly}
 	on:pointerdown|preventDefault={(e) => !readonly && onPointerDown(getXFromPointerEvent(e))}
 >
 	<div
-		class="font-semibold text-sm text-center align-middle text-secondary w-full bg-blend-difference absolute"
+		class="font-semibold text-sm text-center align-middle text-white mix-blend-difference w-full bg-blend-difference absolute"
 	>
 		{value} of {capacity}{unit}
 	</div>

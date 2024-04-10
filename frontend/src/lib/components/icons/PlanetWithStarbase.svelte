@@ -10,11 +10,12 @@
 	viewBox="0 0 500 500"
 	xmlns="http://www.w3.org/2000/svg"
 	xmlns:xlink="http://www.w3.org/1999/xlink"
+	{style}
 	{...$$restProps}
 >
 	<path
 		id="Planet"
-		fill="#00ff00"
+		fill={planetColor}
 		fill-rule="evenodd"
 		stroke="#008200"
 		stroke-width="25"
@@ -31,7 +32,7 @@
 	/>
 	<path
 		id="Starbase"
-		fill="#fdfd00"
+		fill={starbaseColor}
 		fill-rule="evenodd"
 		stroke="#7f7f00"
 		stroke-width="10"
@@ -40,7 +41,7 @@
 	/>
 	<path
 		id="Stargate"
-		fill="#008100"
+		fill={stargateColor}
 		fill-rule="evenodd"
 		stroke="#005c00"
 		stroke-width="10"
@@ -49,7 +50,7 @@
 	/>
 	<path
 		id="MassDriver"
-		fill="#8d0085"
+		fill={massDriverColor}
 		fill-rule="evenodd"
 		stroke="#6b0065"
 		stroke-width="10"

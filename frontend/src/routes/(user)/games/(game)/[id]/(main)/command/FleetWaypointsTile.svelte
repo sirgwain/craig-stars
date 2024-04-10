@@ -212,15 +212,15 @@
 			</div>
 
 			<div class="flex justify-between mt-1">
-				<span>Coming From</span>
+				<span class="text-tile-item-title">Coming From</span>
 				<span>{$universe.getTargetName(previousWaypoint)}</span>
 			</div>
 			<div class="flex justify-between mt-1">
-				<span>Distance</span>
+				<span class="text-tile-item-title">Distance</span>
 				<span>{`${dist.toFixed(1)}`} l.y.</span>
 			</div>
 			<div class="flex mt-1">
-				<span>Warp Factor</span>
+				<span class="text-tile-item-title">Warp Factor</span>
 				<span class="flex-1 ml-1">
 					{#if selectedWaypointPlanet && selectedWaypointPlanetFriendly && selectedWaypointPlanet.spec.hasStargate}
 						<WarpSpeedGauge
@@ -240,17 +240,17 @@
 				</span>
 			</div>
 			<div class="flex justify-between mt-1">
-				<span>Travel Time</span>
+				<span class="text-tile-item-title">Travel Time</span>
 				<span
 					>{Math.ceil(dist / ($selectedWaypoint.warpSpeed * $selectedWaypoint.warpSpeed))} years</span
 				>
 			</div>
 			<div class="flex justify-between mt-1">
-				<span>Leg Fuel Usage</span>
+				<span class="text-tile-item-title">Leg Fuel Usage</span>
 				<span>{fuelUsagePerLeg[selectedWaypointIndex - 1]}mg</span>
 			</div>
 			<div class="flex justify-between mt-1">
-				<span>Total Fuel Usage</span>
+				<span class="text-tile-item-title">Total Fuel Usage</span>
 				<span class:text-error={fuelUsageTotal > fleet.fuel}>{fuelUsageTotal}mg</span>
 			</div>
 
@@ -264,23 +264,23 @@
 			</label>
 		{:else if nextWaypoint}
 			<div class="flex justify-between mt-1">
-				<span>Going to</span>
+				<span class="text-tile-item-title">Going to</span>
 				<span>{$universe.getTargetName(nextWaypoint)}</span>
 			</div>
 			<div class="flex justify-between mt-1">
-				<span>Distance</span>
+				<span class="text-tile-item-title">Distance</span>
 				<span>{`${dist.toFixed(1)}`} l.y.</span>
 			</div>
 			<div class="flex justify-between mt-1">
-				<span>Warp Factor</span>
+				<span class="text-tile-item-title">Warp Factor</span>
 				<span>{nextWaypoint.warpSpeed}</span>
 			</div>
 			<div class="flex justify-between mt-1">
-				<span>Travel Time</span>
+				<span class="text-tile-item-title">Travel Time</span>
 				<span>{Math.ceil(dist / (nextWaypoint.warpSpeed * nextWaypoint.warpSpeed))} years</span>
 			</div>
 			<div class="flex justify-between mt-1">
-				<span>Total Fuel Usage</span>
+				<span class="text-tile-item-title">Total Fuel Usage</span>
 				<span class:text-error={fuelUsageTotal > fleet.fuel}>{fuelUsageTotal}mg</span>
 			</div>
 			<label>

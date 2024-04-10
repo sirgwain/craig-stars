@@ -125,7 +125,7 @@
 					? $universe.getDesign(
 							$player.num,
 							row.tokens && row.tokens.length ? row.tokens[0].designNum : 0
-					  )
+						)
 					: undefined}
 				<div class="flex flex-row justify-between">
 					<div>

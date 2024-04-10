@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { createEventDispatcher } from 'svelte';
 	import { emptyCargo, totalCargo, type Cargo } from '$lib/types/Cargo';
+	import { createEventDispatcher } from 'svelte';
 	import type { CargoTransferDialogEvent } from '../../../routes/(user)/games/(game)/[id]/dialogs/cargo/CargoTranfserDialog.svelte';
 
 	const dispatch = createEventDispatcher<CargoTransferDialogEvent>();
@@ -32,11 +32,11 @@
 
 <div
 	on:pointerdown={() => canTransferCargo && dispatch('cargo-transfer-dialog')}
-	class="border border-secondary h-[1rem] text-[0rem] relative bg-base-200 select-none"
+	class="border border-secondary h-[1rem] text-[0rem] relative bg-gauge select-none"
 	class:cursor-pointer={canTransferCargo}
 >
 	<div
-		class="font-semibold text-sm text-center align-middle text-secondary w-full bg-blend-difference absolute"
+		class="font-semibold text-sm text-center align-middle text-white mix-blend-difference w-full bg-blend-difference absolute"
 	>
 		{totalCargo(value)} of {capacity}kT
 	</div>

@@ -17,7 +17,7 @@
 	const { player, settings, nextMapObject, previousMapObject } = getGameContext();
 </script>
 
-<div class="flex-initial navbar bg-base-100 py-0 my-0 min-h-0">
+<div class="flex-initial navbar bg-base-200 py-0 my-0 min-h-0">
 	<div class="flex-none hidden sm:block">
 		<PlanetViewStates class="menu menu-horizontal" />
 	</div>

@@ -132,7 +132,7 @@
 		</div>
 
 		<div class="flex flex-row cursor-help" on:pointerdown|preventDefault={onGravityTooltip}>
-			<div class="text-right w-[5.5rem]">Gravity</div>
+			<div class="text-right w-[5.5rem] text-tile-item-title">Gravity</div>
 			<div class="grow border-b border-base-300 bg-black mx-1 overflow-hidden">
 				<div class="h-full relative">
 					{#if !$player.race.immuneGrav}
@@ -164,7 +164,7 @@
 			<div class="w-[3rem]">{getGravString(planet.hab?.grav ?? 0)}</div>
 		</div>
 		<div class="flex flex-row cursor-help" on:pointerdown|preventDefault={onTemperatureTooltip}>
-			<div class="text-right w-[5.5rem]">Temperature</div>
+			<div class="text-right w-[5.5rem] text-tile-item-title">Temperature</div>
 			<div class="grow border-b border-base-300 bg-black mx-1 overflow-hidden">
 				<div class="h-full relative">
 					{#if !$player.race.immuneTemp}
@@ -188,7 +188,7 @@
 			<div class="w-[3rem]">{getTempString(planet.hab?.temp ?? 0)}</div>
 		</div>
 		<div class="flex flex-row cursor-help" on:pointerdown|preventDefault={onRadiationTooltip}>
-			<div class="text-right w-[5.5rem]">Radiation</div>
+			<div class="text-right w-[5.5rem] text-tile-item-title">Radiation</div>
 			<div class="grow bg-black mx-1 overflow-hidden">
 				<div class="h-full relative">
 					{#if !$player.race.immuneRad}

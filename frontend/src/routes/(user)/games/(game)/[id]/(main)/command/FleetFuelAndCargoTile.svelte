@@ -28,14 +28,14 @@
 {#if fleet?.spec}
 	<CommandTile title="Fuel & Cargo">
 		<div class="flex justify-between my-1">
-			<div class="w-12">Fuel</div>
+			<div class="w-12 text-tile-item-title">Fuel</div>
 			<div class="ml-1 h-full w-full">
 				<FuelBar value={fleet.fuel} capacity={fleet.spec.fuelCapacity} />
 			</div>
 		</div>
 
 		<div class="flex justify-between my-1">
-			<div class="w-12">Cargo</div>
+			<div class="w-12 text-tile-item-title">Cargo</div>
 			<div class="ml-1 h-full w-full">
 				<CargoBar
 					on:cargo-transfer-dialog={() => transfer()}
@@ -46,19 +46,19 @@
 			</div>
 		</div>
 		<div class="flex justify-between">
-			<div class="text-ironium">Ironium</div>
+			<div class="text-tile-item-title text-ironium">Ironium</div>
 			<div>{fleet.cargo.ironium ?? 0}kT</div>
 		</div>
 		<div class="flex justify-between">
-			<div class="text-boranium">Boranium</div>
+			<div class="text-tile-item-title text-boranium">Boranium</div>
 			<div>{fleet.cargo.boranium ?? 0}kT</div>
 		</div>
 		<div class="flex justify-between">
-			<div class="text-germanium">Germanium</div>
+			<div class="text-tile-item-title text-germanium">Germanium</div>
 			<div>{fleet.cargo.germanium ?? 0}kT</div>
 		</div>
 		<div class="flex justify-between">
-			<div class="text-colonists">Colonists</div>
+			<div class="text-tile-item-title text-colonists">Colonists</div>
 			<div>{fleet.cargo.colonists ?? 0}kT</div>
 		</div>
 	</CommandTile>

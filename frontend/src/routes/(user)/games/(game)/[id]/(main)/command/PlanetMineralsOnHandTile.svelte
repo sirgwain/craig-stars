@@ -65,25 +65,25 @@
 {#if planet}
 	<CommandTile title="Minerals on Hand">
 		<div class="flex justify-between cursor-help" on:pointerdown|preventDefault={onIroniumTooltip}>
-			<div class="text-ironium">Ironium</div>
+			<div class="text-tile-item-title text-ironium">Ironium</div>
 			<div>{planet.cargo.ironium ?? 0}kT</div>
 		</div>
 		<div class="flex justify-between cursor-help" on:pointerdown|preventDefault={onBoraniumTooltip}>
-			<div class="text-boranium">Boranium</div>
+			<div class="text-tile-item-title text-boranium">Boranium</div>
 			<div>{planet.cargo.boranium ?? 0}kT</div>
 		</div>
 		<div
 			class="flex justify-between cursor-help"
 			on:pointerdown|preventDefault={onGermaniumTooltip}
 		>
-			<div class="text-germanium">Germanium</div>
+			<div class="text-tile-item-title text-germanium">Germanium</div>
 			<div>{planet.cargo.germanium ?? 0}kT</div>
 		</div>
 
 		<div class="divider p-0 m-0" />
 
 		<div class="flex justify-between cursor-help" on:pointerdown|preventDefault={onMinesTooltip}>
-			<div>Mines</div>
+			<div class="text-tile-item-title">Mines</div>
 			<div>
 				{#if $player.race.spec?.innateMining}
 					{planet.mines}*
@@ -96,7 +96,7 @@
 			class="flex justify-between cursor-help"
 			on:pointerdown|preventDefault={onFactoriesTooltip}
 		>
-			<div>Factories</div>
+			<div class="text-tile-item-title">Factories</div>
 			<div>
 				{#if $player.race.spec?.innateResources}
 					n/a

@@ -42,7 +42,7 @@
 		<!-- svelte-ignore a11y-click-events-have-key-events -->
 		<div class="cursor-help" on:pointerdown|preventDefault={showDesign}>
 			<div class="flex justify-between">
-				<div>Dock Capacity</div>
+				<div class="text-tile-item-title">Dock Capacity</div>
 				{#if starbase.spec.spaceDock === UnlimitedSpaceDock}
 					<div>Unlimited</div>
 				{:else if (starbase.spec.spaceDock ?? 0) > 0}
@@ -52,15 +52,15 @@
 				{/if}
 			</div>
 			<div class="flex justify-between">
-				<div>Armor</div>
+				<div class="text-tile-item-title">Armor</div>
 				<div>{starbase.spec.armor}dp</div>
 			</div>
 			<div class="flex justify-between">
-				<div>Shields</div>
+				<div class="text-tile-item-title">Shields</div>
 				<div>{starbase.spec.shields ? starbase.spec.shields + 'dp' : 'none'}</div>
 			</div>
 			<div class="flex justify-between">
-				<div>Damage</div>
+				<div class="text-tile-item-title">Damage</div>
 				{#if !starbase.damage}
 					<div>none</div>
 				{:else}
@@ -74,7 +74,7 @@
 				class="flex justify-between cursor-help"
 				on:pointerdown|preventDefault={(e) => stargate && onTechTooltip(e, stargate)}
 			>
-				<div>Stargate</div>
+				<div class="text-tile-item-title">Stargate</div>
 				{#if stargate}
 					<div>
 						<button type="button" class="w-full h-full">
@@ -89,7 +89,7 @@
 				class="flex justify-between cursor-help"
 				on:pointerdown|preventDefault={(e) => massDriver && onTechTooltip(e, massDriver)}
 			>
-				<div>Mass Driver</div>
+				<div class="text-tile-item-title">Mass Driver</div>
 				{#if starbase.spec.hasMassDriver}
 					<div>
 						<button type="button" class="w-full h-full">
@@ -102,7 +102,7 @@
 			</div>
 			{#if starbase.spec.hasMassDriver}
 				<div class="flex justify-between">
-					<div>Destination</div>
+					<div class="text-tile-item-title">Destination</div>
 					<div>
 						{$universe.getPlanet(planet.packetTargetNum)?.name ?? 'none'}
 					</div>

@@ -13,25 +13,28 @@
 		@apply text-base;
 	}
 	.text-habitable {
-		@apply text-[#00FF00];
+		@apply text-[#058405] dark:text-[#00FF00] font-bold;
 	}
 	.text-uninhabitable {
-		@apply text-[#FF0000];
+		@apply text-[#FF0000] font-bold;
 	}
 	.text-terraformable {
-		@apply text-[#FEFF00];
+		@apply text-[#FEFF00] font-bold;
 	}
 	.text-fuel {
 		@apply text-[#FF0000];
 	}
 	.text-ironium {
-		@apply text-[#0960ff];
+		@apply text-[#0960ff] font-semibold;
 	}
 	.text-boranium {
-		@apply text-[#08810a];
+		@apply text-[#08810a] font-semibold;
 	}
 	.text-germanium {
-		@apply text-[#feff00] brightness-[.8] dark:brightness-100;
+		@apply text-[#FDFD06] font-semibold;
+	}
+	.text-tile-item-title {
+		@apply font-semibold;
 	}
 	.ironium-bar {
 		@apply bg-[#0900ff] fill-[#0900ff];

@@ -51,26 +51,26 @@
 	</div>
 	<div class="flex flex-col grow">
 		<div class="flex flex-row">
-			<div class="w-32">Ship Count:</div>
+			<div class="w-32 text-tile-item-title">Ship Count:</div>
 			<div>
 				{fleet.tokens ? fleet.tokens.reduce((count, t) => count + t.quantity, 0) : 'unknown'}
 			</div>
 		</div>
 		<div class="flex flex-row">
-			<div class="w-32">Fleet Mass:</div>
+			<div class="w-32 text-tile-item-title">Fleet Mass:</div>
 			<div>
 				{fleet.spec?.mass ?? fleet.mass ?? 0}kT
 			</div>
 		</div>
 		{#if ownedBy(fleet, $player.num)}
 			<div class="flex flex-row">
-				<div class="w-32">Fuel:</div>
+				<div class="w-32 text-tile-item-title">Fuel:</div>
 				<div class="grow">
 					<FuelBar value={fleet.fuel ?? 0} capacity={fleet.spec?.fuelCapacity ?? 0} />
 				</div>
 			</div>
 			<div class="flex flex-row">
-				<div class="w-32">Cargo:</div>
+				<div class="w-32 text-tile-item-title">Cargo:</div>
 				<div class="grow">
 					<CargoBar value={fleet.cargo} capacity={fleet.spec?.cargoCapacity ?? 0} />
 				</div>
@@ -78,23 +78,23 @@
 		{/if}
 		{#if fleet.waypoints && fleet.waypoints.length > 1}
 			<div class="flex flex-row">
-				<div class="w-32">Next Waypoint:</div>
+				<div class="w-32 text-tile-item-title">Next Waypoint:</div>
 				<div>{fleet.waypoints[1].targetName}</div>
 			</div>
 			<div class="flex flex-row">
-				<div class="w-32">Task:</div>
+				<div class="w-32 text-tile-item-title">Task:</div>
 				<div>{startCase(fleet.waypoints[1].task)}</div>
 			</div>
 		{/if}
 		<div class="flex flex-row">
-			<div class="w-32">Warp Speed:</div>
+			<div class="w-32 text-tile-item-title">Warp Speed:</div>
 			<div>{fleet.warpSpeed ?? 0}</div>
 		</div>
 
 		{#if !ownedBy(fleet, $player.num) && fleet.tokens}
-			<div>
+			<div class="text-tile-item-title">
 				Fleet Composition:
-				<div class="bg-base-100 h-16 overflow-y-auto mt-1 w-full md:w-60">
+				<div class="bg-base-100 h-16 overflow-y-auto mt-1 w-full md:w-60 font-normal">
 					<ul class="w-full h-full">
 						{#each fleet.tokens as token, index}
 							<li class="pl-1">
