@@ -2559,7 +2559,7 @@ func (t *turn) calculateScores() {
 	scoreSortedPlayers := make([]*Player, len(t.game.Players))
 	copy(scoreSortedPlayers, t.game.Players)
 	slices.SortFunc(scoreSortedPlayers, func(p1, p2 *Player) int {
-		return p1.GetScore().Score - p2.GetScore().Score
+		return p2.GetScore().Score - p1.GetScore().Score
 	})
 
 	// update rank for all scores
