@@ -53,7 +53,7 @@
 			<TorpedoHit
 				class="w-8 h-8 fill-transparent"
 				fill={'#FF0000'}
-				transform={`translate(${action.to.x * 66 + 32 - 16} ${action.to.y * 68 + 32 - 16})`}
+				style={`transform: translate(${action.to.x * 66 + 32 - 16}px, ${action.to.y * 68 + 32 - 16}px)`}
 			/>
 		</div>
 	{/if}
