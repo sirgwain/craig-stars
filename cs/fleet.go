@@ -339,6 +339,16 @@ func (f *Fleet) withOrbitingPlanetNum(num int) *Fleet {
 	return f
 }
 
+// get a pointer to a ShipToken a design, or nil if it's not present
+func (f *Fleet) getTokenByDesign(designNum int) *ShipToken {
+	for i, token := range f.Tokens {
+		if token.DesignNum == designNum {
+			return &f.Tokens[i]
+		}
+	}
+	return nil
+}
+
 func (f *Fleet) Orbiting() bool {
 	return f.OrbitingPlanetNum != None
 }

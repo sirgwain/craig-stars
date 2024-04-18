@@ -655,12 +655,6 @@ func (o *orders) Merge(rules *Rules, player *Player, fleets []*Fleet) (*Fleet, e
 
 	fleet := fleets[0]
 
-	tokensByDesign := map[int]*ShipToken{}
-	for i := range fleet.Tokens {
-		token := &fleet.Tokens[i]
-		tokensByDesign[token.DesignNum] = token
-	}
-
 	src := fleets[0].Name
 	dest := make([]string, 0, len(fleets)-1)
 
@@ -669,26 +663,26 @@ func (o *orders) Merge(rules *Rules, player *Player, fleets []*Fleet) (*Fleet, e
 		dest = append(dest, mergingFleet.Name)
 
 		for _, token := range mergingFleet.Tokens {
-			if t, found := tokensByDesign[token.DesignNum]; found {
-				t.Quantity += token.Quantity
-			} else {
+			existingToken := fleet.getTokenByDesign(token.DesignNum)
+			if existingToken == nil {
+				// we don't have a token for this design yet, so add it
 				fleet.Tokens = append(fleet.Tokens, token)
-				tokensByDesign[token.DesignNum] = &fleet.Tokens[len(fleet.Tokens)-1]
+				existingToken = &fleet.Tokens[len(fleet.Tokens)-1]
+			} else {
+				existingToken.Quantity += token.Quantity
 			}
 
 			if token.QuantityDamaged > 0 {
 				mergingTokenTotalDamage := float64(token.QuantityDamaged) * token.Damage
 				// the token we're merging in has damage
 				// figure out the total and add it to the fleet we're merging into
-				t := tokensByDesign[token.DesignNum]
-				destTokenTotalDamage := float64(t.QuantityDamaged) * t.Damage
+				destTokenTotalDamage := float64(existingToken.QuantityDamaged) * existingToken.Damage
 
 				// if we merge 2 damaged tokens in 1 damaged token, split the damage
 				// between the 3 damaged tokens
-				t.QuantityDamaged += token.QuantityDamaged
-				t.Damage = (mergingTokenTotalDamage + destTokenTotalDamage) / float64(t.QuantityDamaged)
+				existingToken.QuantityDamaged += token.QuantityDamaged
+				existingToken.Damage = (mergingTokenTotalDamage + destTokenTotalDamage) / float64(existingToken.QuantityDamaged)
 			}
-
 		}
 
 		// add cargo and fuel to the dest fleet

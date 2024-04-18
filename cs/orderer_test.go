@@ -821,7 +821,118 @@ func Test_orders_Merge(t *testing.T) {
 			},
 			wantErr: false,
 		},
-	}
+		{
+			name: "merge a scout and freighter, scout, freighter, scout",
+			fleets: []*Fleet{
+				{
+					MapObject: MapObject{
+						Type:      MapObjectTypeFleet,
+						Num:       1,
+						PlayerNum: player.Num,
+						Name:      "Scout #1",
+					},
+					BaseName: "Scout",
+					FleetOrders: FleetOrders{
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
+					},
+					Tokens: []ShipToken{
+						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 1},
+					},
+				},
+				{
+					MapObject: MapObject{
+						Type:      MapObjectTypeFleet,
+						Num:       2,
+						PlayerNum: player.Num,
+						Name:      "Teamster #2",
+					},
+					BaseName: "Teamster",
+					FleetOrders: FleetOrders{
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
+					},
+					Tokens: []ShipToken{
+						{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 1},
+					},
+				},
+				{
+					MapObject: MapObject{
+						Type:      MapObjectTypeFleet,
+						Num:       3,
+						PlayerNum: player.Num,
+						Name:      "Scout #3",
+					},
+					BaseName: "Scout",
+					FleetOrders: FleetOrders{
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
+					},
+					Tokens: []ShipToken{
+						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 1},
+					},
+				},
+				{
+					MapObject: MapObject{
+						Type:      MapObjectTypeFleet,
+						Num:       4,
+						PlayerNum: player.Num,
+						Name:      "Teamster #4",
+					},
+					BaseName: "Teamster",
+					FleetOrders: FleetOrders{
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
+					},
+					Tokens: []ShipToken{
+						{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 1},
+					},
+				},
+				{
+					MapObject: MapObject{
+						Type:      MapObjectTypeFleet,
+						Num:       5,
+						PlayerNum: player.Num,
+						Name:      "Scout #5",
+					},
+					BaseName: "Scout",
+					FleetOrders: FleetOrders{
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
+					},
+					Tokens: []ShipToken{
+						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 1},
+					},
+				},
+				{
+					MapObject: MapObject{
+						Type:      MapObjectTypeFleet,
+						Num:       6,
+						PlayerNum: player.Num,
+						Name:      "Teamster #6",
+					},
+					BaseName: "Teamster",
+					FleetOrders: FleetOrders{
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
+					},
+					Tokens: []ShipToken{
+						{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 1},
+					},
+				},
+			},
+			want: &Fleet{
+				MapObject: MapObject{
+					Type:      MapObjectTypeFleet,
+					Num:       1,
+					PlayerNum: player.Num,
+					Name:      "Scout #1",
+				},
+				BaseName: "Scout",
+				FleetOrders: FleetOrders{
+					Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
+				},
+				Tokens: []ShipToken{
+					{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 3},
+					{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 3},
+				},
+			},
+			wantErr: false,			
+		}}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			o := &orders{}
