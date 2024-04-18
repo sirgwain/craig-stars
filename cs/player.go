@@ -290,8 +290,7 @@ func (p *Player) GetScore() PlayerScore {
 
 // Get a player ShipDesign, or nil if no design found
 func (p *Player) GetDesign(num int) *ShipDesign {
-	for i := range p.Designs {
-		design := p.Designs[i]
+	for _, design := range p.Designs {
 		if design.Num == num {
 			return design
 		}

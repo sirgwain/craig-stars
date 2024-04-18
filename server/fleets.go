@@ -461,6 +461,10 @@ func (s *server) transferCargoFleetPlanet(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	if planet.Starbase != nil {
+		player.InjectDesigns([]*cs.Fleet{planet.Starbase})
+	}
+
 	orderer := cs.NewOrderer()
 	if err := orderer.TransferPlanetCargo(&game.Rules, player, fleet, planet, transferAmount); err != nil {
 		log.Error().Err(err).Msg("transfer cargo")

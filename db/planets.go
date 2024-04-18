@@ -194,8 +194,6 @@ func (c *client) GetPlanetByNum(gameID int64, num int) (*cs.Planet, error) {
 		p.productionQueue AS 'planet.productionQueue',
 		p.spec AS 'planet.spec',
 
-		f.createdAt AS 'fleet.createdAt',
-		f.updatedAt AS 'fleet.updatedAt',
 		COALESCE(f.id, 0) AS 'fleet.id',
 		COALESCE(f.gameId, 0) AS 'fleet.gameId',
 		COALESCE(f.battlePlanNum, 0) AS 'fleet.battlePlanNum',
@@ -205,8 +203,8 @@ func (c *client) GetPlanetByNum(gameID int64, num int) (*cs.Planet, error) {
 		COALESCE(f.num, 0) AS 'fleet.num',
 		COALESCE(f.playerNum, 0) AS 'fleet.playerNum',
 		COALESCE(f.tags, '{}') AS 'fleet.tags',
-		COALESCE(f.tokens, '{}') AS 'fleet.tokens',
-		COALESCE(f.waypoints, '{}') AS 'fleet.waypoints',
+		COALESCE(f.tokens, '[]') AS 'fleet.tokens',
+		COALESCE(f.waypoints, '[]') AS 'fleet.waypoints',
 		COALESCE(f.repeatOrders, 0) AS 'fleet.repeatOrders',
 		COALESCE(f.planetNum, 0) AS 'fleet.planetNum',
 		COALESCE(f.baseName, '') AS 'fleet.baseName',
@@ -224,7 +222,8 @@ func (c *client) GetPlanetByNum(gameID int64, num int) (*cs.Planet, error) {
 		COALESCE(f.spec, '{}') AS 'fleet.spec'	
 
 	FROM planets p 
-	LEFT JOIN fleets f 
+	LEFT JOIN fleets f
+		ON p.gameId = f.gameId AND p.num = f.planetNum
 	WHERE p.gameId = ? AND p.num = ?`, gameID, num); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
