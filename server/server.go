@@ -92,8 +92,9 @@ func Start(config config.Config) error {
 		SecretReader: token.SecretFunc(func(_ string) (string, error) { // secret key for JWT, ignores aud
 			return server.config.Auth.Secret, nil
 		}),
-		TokenDuration:     time.Minute,                           // short token, refreshed automatically
-		CookieDuration:    cookieDuration,                        // cookie fine to keep for long time
+		TokenDuration:     time.Minute,    // short token, refreshed automatically
+		CookieDuration:    cookieDuration, // cookie fine to keep for long time
+		SecureCookies:     true,
 		DisableXSRF:       config.Auth.DisableXSRF,               // don't disable XSRF in real-life applications!
 		Issuer:            issuer,                                // part of token, just informational
 		URL:               server.config.Auth.URL,                // base url of the protected service
@@ -243,6 +244,8 @@ func Start(config config.Config) error {
 	// through ctx.Done() that the request has timed out and further
 	// processing should be stopped.
 	r.Use(middleware.Timeout(60 * time.Second))
+
+	r.Use(middleware.Heartbeat("/api/ping"))
 
 	// techs are public
 	r.Route("/api/techs", func(r chi.Router) {
@@ -460,6 +463,7 @@ func Start(config config.Config) error {
 	}()
 
 	// Run the httpServer
+	log.Info().Msg("starting http server")
 	err = httpServer.ListenAndServe()
 	if err != nil && err != http.ErrServerClosed {
 		log.Fatal().Err(err).Msg("server closed")
