@@ -1485,6 +1485,9 @@ func Test_turn_fleetTransferOwner(t *testing.T) {
 	player1.Race.Name = "Rabbitoid"
 	player1.Race.PluralName = "Rabbitoids"
 
+	// make player2 like player1
+	player2.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
+
 	turn := turn{
 		game: game,
 	}
