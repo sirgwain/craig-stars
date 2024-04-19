@@ -3,7 +3,6 @@ package cs
 import (
 	"fmt"
 	"math"
-	"math/rand"
 	"sort"
 
 	"github.com/rs/zerolog/log"
@@ -825,7 +824,7 @@ func (b *battle) fireTorpedo(weapon *battleWeaponSlot, targets []*battleToken) {
 			// fire a torpedo
 			torpedoNum++
 			remainingTorpedos--
-			hit := (accuracy - target.torpedoJamming) > float64(rand.Float64())
+			hit := (accuracy - target.torpedoJamming) > float64(b.rules.random.Float64())
 
 			if hit {
 				hits++

@@ -7,6 +7,7 @@ import (
 	"slices"
 
 	"github.com/rs/zerolog/log"
+	"golang.org/x/exp/maps"
 )
 
 // When all players submit their turns, the turn generator is used to generate a new turn
@@ -1838,7 +1839,6 @@ func (t *turn) fleetBattle() {
 			} else if p, ok := mo.(*Planet); ok {
 				planet = p
 			}
-
 		}
 
 		if len(playersAtPosition) <= 1 {
@@ -1857,6 +1857,9 @@ func (t *turn) fleetBattle() {
 			designsToDiscover := map[playerObject]*ShipDesign{}
 			for _, player := range playersAtPosition {
 				discoverer := newDiscoverer(player)
+				// store this discoverer for discovering designs
+				discoverersByPlayer[player.Num] = discoverer
+
 				// discover other players at the battle
 				for _, otherplayer := range playersAtPosition {
 					discoverer.discoverPlayer(otherplayer)
@@ -1867,8 +1870,6 @@ func (t *turn) fleetBattle() {
 					discoverer.discoverPlanetStarbase(player, planet)
 				}
 
-				// store this discoverer for discovering designs
-				discoverersByPlayer[player.Num] = discoverer
 			}
 
 			// figure out how much salvage this generates
@@ -1986,6 +1987,14 @@ func (t *turn) fleetBattle() {
 				}
 
 			}
+
+			log.Debug().
+				Int64("GameID", t.game.ID).
+				Str("Name", t.game.Name).
+				Int("Year", t.game.Year).
+				Int("Battle", battleNum).
+				Str("Players", fmt.Sprintf("%v", maps.Keys(playersAtPosition))).
+				Msgf("battle between %d players", len(playersAtPosition))
 
 			battleNum++
 		}
