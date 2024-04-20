@@ -7,7 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// Planets are the only static and constant MapObject. They don't move and they can't be destroyed. 
+// Planets are the only static and constant MapObject. They don't move and they can't be destroyed.
 // Players also start the game knowing all planet names and locations.
 // I suppose these should have been named Stars, since they represent a star system, ah well..
 type Planet struct {
@@ -469,6 +469,9 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	if race.Spec.InnateScanner {
 		spec.Scanner = "Organic"
 		spec.ScanRange = int(float64(planet.innateScanner(player, productivePop)) * player.Race.Spec.ScanRangeFactor)
+		if !player.Race.Spec.NoAdvancedScanners && planet.Starbase != nil {
+			spec.ScanRangePen = int(float64(spec.ScanRange) * planet.Starbase.Spec.InnateScanRangePenFactor)
+		}
 	} else if planet.Scanner {
 		scanner := player.Spec.PlanetaryScanner
 		spec.Scanner = scanner.Name
