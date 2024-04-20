@@ -5,6 +5,7 @@
 	import type { MergeFleetsDialogEvent } from '../../dialogs/merge/MergeFleetsDialog.svelte';
 	import type { ProductionQueueDialogEvent } from '../../dialogs/production/ProductionQueueDialog.svelte';
 	import type { SplitFleetDialogEvent } from '../../dialogs/split/SplitFleetDialog.svelte';
+	import type { TransportTasksDialogEvent } from '../../dialogs/transport/TransportTasksDialog.svelte';
 	import FleetCompositionTile from './FleetCompositionTile.svelte';
 	import FleetFuelAndCargoTile from './FleetFuelAndCargoTile.svelte';
 	import FleetOrbitingTile from './FleetOrbitingTile.svelte';
@@ -18,7 +19,6 @@
 	import PlanetStarbaseTile from './PlanetStarbaseTile.svelte';
 	import PlanetStatusTile from './PlanetStatusTile.svelte';
 	import PlanetSummaryTile from './PlanetSummaryTile.svelte';
-	import type { TransportTasksDialogEvent } from '../../dialogs/transport/TransportTasksDialog.svelte';
 
 	const dispatch = createEventDispatcher<
 		SplitFleetDialogEvent &

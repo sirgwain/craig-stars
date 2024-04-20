@@ -307,10 +307,7 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 	}
 
 	updatePlanet(planet: Planet) {
-		const index = this.planets.findIndex((f) => f.num === planet.num);
-		if (index != -1) {
-			this.planets = [...this.planets.slice(0, index), planet, ...this.planets.slice(index + 1)];
-		}
+		this.planets[planet.num - 1] = planet;
 		this.resetMapObjectsByPosition();
 		this.resetMyMapObjectsByPosition();
 	}

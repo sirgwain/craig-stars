@@ -550,6 +550,9 @@ export function createGameContext(fg: FullGame): GameContext {
 		if (equal(get(selectedMapObject), planet)) {
 			selectMapObject(planet);
 		}
+
+		// trigger reactivity
+		universe.set(u);
 	}
 
 	// load the status of a game, but not all the universe data

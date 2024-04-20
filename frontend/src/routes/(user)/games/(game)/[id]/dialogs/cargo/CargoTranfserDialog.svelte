@@ -29,10 +29,6 @@
 				detail.dest = newSalvage();
 			}
 			await transferCargo(detail.src, detail.dest, detail.transferAmount);
-
-			if (detail?.dest?.cargo) {
-				detail.dest.cargo = subtract(detail.dest.cargo, detail.transferAmount);
-			}
 		}
 
 		// close the dialog
