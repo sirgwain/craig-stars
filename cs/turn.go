@@ -805,7 +805,7 @@ func (t *turn) moveFleet(fleet *Fleet) {
 	updatedTokens := make([]ShipToken, 0, len(fleet.Tokens))
 	for tokenIndex := range fleet.Tokens {
 		token := &fleet.Tokens[tokenIndex]
-		if wp1.WarpSpeed > token.design.Spec.Engine.MaxSafeSpeed {
+		if wp1.WarpSpeed > token.design.Spec.Engine.MaxSafeSpeed && wp1.WarpSpeed != StargateWarpSpeed {
 			// explode some fleets if you go too fast
 			for shipIndex := 0; shipIndex < token.Quantity; shipIndex++ {
 				if t.game.Rules.FleetSafeSpeedExplosionChance > t.game.Rules.random.Float64() {
