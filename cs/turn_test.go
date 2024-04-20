@@ -80,7 +80,7 @@ func createTwoPlayerGame() *FullGame {
 
 	player2 := client.NewPlayer(1, *NewRace(), &game.Rules).withSpec(&game.Rules)
 	player2.Num = 2
-	player2.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
+	player2.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
 
 	player1.PlayerIntels.PlayerIntels = player1.defaultPlayerIntels([]*Player{player1, player2})
 	player2.PlayerIntels.PlayerIntels = player2.defaultPlayerIntels([]*Player{player2, player2})
@@ -1485,6 +1485,9 @@ func Test_turn_fleetTransferOwner(t *testing.T) {
 	player1.Race.Name = "Rabbitoid"
 	player1.Race.PluralName = "Rabbitoids"
 
+	// make player2 like player1
+	player2.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
+
 	turn := turn{
 		game: game,
 	}
@@ -1506,4 +1509,170 @@ func Test_turn_fleetTransferOwner(t *testing.T) {
 	assert.Equal(t, None, fleet.Waypoints[0].TransferToPlayer)
 	assert.Equal(t, WaypointTaskNone, string(fleet.Waypoints[0].Task))
 
+}
+
+func Test_turn_fleetBattle(t *testing.T) {
+	game := createTwoPlayerGame()
+	player1 := game.Players[0]
+	player2 := game.Players[1]
+
+	// make them enemies!
+	player1.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationEnemy}}
+	player2.Relations = []PlayerRelationship{{Relation: PlayerRelationEnemy}, {Relation: PlayerRelationFriend}}
+
+	// replace player2 fleet with a destroyer
+	fleet2 := testStalwartDefender(player2)
+	player2.Designs[0] = fleet2.Tokens[0].design
+	game.Fleets[1] = fleet2
+
+	// move the fleets to deep space
+	fleet1 := game.Fleets[0]
+	fleet1.Position = Vector{100, 100}
+	fleet1.Waypoints = []Waypoint{NewPositionWaypoint(fleet1.Position, 5)}
+	fleet2.Position = fleet1.Position
+	fleet2.Waypoints = fleet1.Waypoints
+
+	player2.Race.Name = "Attacker"
+	player2.Race.PluralName = "Attackers"
+
+	design1 := fleet1.Tokens[0].design
+	design2 := fleet2.Tokens[0].design
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// make sure our battle is always uses the same random seed
+	turn.fleetBattle()
+
+	// should have a battle record
+	assert.Equal(t, 1, len(player1.BattleRecords))
+	assert.Equal(t, 1, len(player2.BattleRecords))
+
+	// ensure players were discovered
+	assert.Equal(t, player1.Race.PluralName, player2.PlayerIntels.PlayerIntels[0].RacePluralName)
+	assert.Equal(t, player2.Race.PluralName, player1.PlayerIntels.PlayerIntels[1].RacePluralName)
+
+	// ensure designs were discovered
+	assert.Equal(t, 1, len(player1.ShipDesignIntels))
+	assert.Equal(t, design2.Slots, player1.ShipDesignIntels[0].Slots)
+	assert.Equal(t, 1, len(player2.ShipDesignIntels))
+	assert.Equal(t, design1.Slots, player2.ShipDesignIntels[0].Slots)
+
+	// scout was destroyed, salvage created
+	assert.Equal(t, true, fleet1.Delete)
+	assert.Equal(t, 1, len(game.Salvages))
+}
+
+func Test_turn_fleetBattle3Players(t *testing.T) {
+	client := NewGamer()
+	game := client.CreateGame(1, *NewGameSettings())
+	game.Rules.ResetSeed(0) // keep the same seed for tests
+	player1 := client.NewPlayer(1, *NewRace(), &game.Rules).withSpec(&game.Rules)
+	player1.Num = 1
+	player1.Name = "Player 1"
+	player1.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
+
+	player2 := client.NewPlayer(1, *NewRace(), &game.Rules).withSpec(&game.Rules)
+	player2.Num = 2
+	player2.Name = "Player 2"
+	player2.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
+
+	player3 := client.NewPlayer(1, *NewRace(), &game.Rules).withSpec(&game.Rules)
+	player3.Num = 3
+	player3.Name = "Player 3"
+	player3.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
+
+	player1.PlayerIntels.PlayerIntels = player1.defaultPlayerIntels([]*Player{player1, player2, player3})
+	player2.PlayerIntels.PlayerIntels = player2.defaultPlayerIntels([]*Player{player1, player2, player3})
+	player3.PlayerIntels.PlayerIntels = player3.defaultPlayerIntels([]*Player{player1, player2, player3})
+
+	// make them enemies!
+	player1.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationEnemy}, {Relation: PlayerRelationEnemy}}
+	player2.Relations = []PlayerRelationship{{Relation: PlayerRelationEnemy}, {Relation: PlayerRelationFriend}, {Relation: PlayerRelationEnemy}}
+	player3.Relations = []PlayerRelationship{{Relation: PlayerRelationEnemy}, {Relation: PlayerRelationEnemy}, {Relation: PlayerRelationFriend}}
+
+	// give them descriptive names for the logs
+	player1.Race.Name = "Player1"
+	player1.Race.PluralName = "Player1s"
+	player2.Race.Name = "Player2"
+	player2.Race.PluralName = "Player2s"
+	player3.Race.Name = "Player3"
+	player3.Race.PluralName = "Player3s"
+
+	// give player 1 and 2 a scout, player3 a warship
+	fleet1 := testLongRangeScout(player1)
+	fleet1.Waypoints = []Waypoint{
+		NewPositionWaypoint(Vector{}, 5),
+	}
+	player1.Designs = []*ShipDesign{
+		fleet1.Tokens[0].design,
+	}
+
+	fleet2 := testLongRangeScout(player2)
+	fleet2.Waypoints = []Waypoint{
+		NewPositionWaypoint(Vector{}, 5),
+	}
+	player2.Designs = []*ShipDesign{
+		fleet2.Tokens[0].design,
+	}
+
+	fleet3 := testStalwartDefender(player3)
+	fleet3.Waypoints = []Waypoint{
+		NewPositionWaypoint(Vector{}, 5),
+	}
+	player3.Designs = []*ShipDesign{
+		fleet3.Tokens[0].design,
+	}
+
+	players := []*Player{player1, player2, player3}
+
+	universe := NewUniverse(&game.Rules)
+	universe.Fleets = append(universe.Fleets, fleet1, fleet2, fleet3)
+
+	universe.buildMaps(players)
+
+	fg := &FullGame{
+		Game:      game,
+		Universe:  &universe,
+		TechStore: &StaticTechStore,
+		Players:   players,
+	}
+
+	turn := turn{
+		game: fg,
+	}
+	turn.game.Universe.buildMaps(fg.Players)
+
+	// make sure our battle is always uses the same random seed
+	turn.fleetBattle()
+
+	// should have a battle record
+	assert.Equal(t, 1, len(player1.BattleRecords))
+	assert.Equal(t, 1, len(player2.BattleRecords))
+	assert.Equal(t, 1, len(player3.BattleRecords))
+
+	// ensure players were discovered
+	assert.Equal(t, player1.Race.PluralName, player2.PlayerIntels.PlayerIntels[0].RacePluralName)
+	assert.Equal(t, player1.Race.PluralName, player3.PlayerIntels.PlayerIntels[0].RacePluralName)
+	assert.Equal(t, player2.Race.PluralName, player1.PlayerIntels.PlayerIntels[1].RacePluralName)
+	assert.Equal(t, player2.Race.PluralName, player3.PlayerIntels.PlayerIntels[1].RacePluralName)
+	assert.Equal(t, player3.Race.PluralName, player1.PlayerIntels.PlayerIntels[2].RacePluralName)
+	assert.Equal(t, player3.Race.PluralName, player2.PlayerIntels.PlayerIntels[2].RacePluralName)
+
+	// ensure designs were discovered
+	assert.Equal(t, 2, len(player1.ShipDesignIntels))
+	assert.True(t, len(player1.ShipDesignIntels[0].Slots) > 0)
+	assert.True(t, len(player1.ShipDesignIntels[1].Slots) > 0)
+	assert.Equal(t, 2, len(player2.ShipDesignIntels))
+	assert.True(t, len(player2.ShipDesignIntels[0].Slots) > 0)
+	assert.True(t, len(player2.ShipDesignIntels[1].Slots) > 0)
+	assert.Equal(t, 2, len(player3.ShipDesignIntels))
+	assert.True(t, len(player3.ShipDesignIntels[0].Slots) > 0)
+	assert.True(t, len(player3.ShipDesignIntels[1].Slots) > 0)
+
+	// scout was destroyed, salvage created
+	assert.Equal(t, true, fleet2.Delete)
+	assert.Equal(t, 1, len(fg.Salvages))
 }
