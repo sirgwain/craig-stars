@@ -931,7 +931,7 @@ func Test_orders_Merge(t *testing.T) {
 					{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 3},
 				},
 			},
-			wantErr: false,			
+			wantErr: false,
 		}}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1022,6 +1022,15 @@ func Test_orders_TransferPlanetCargo(t *testing.T) {
 				source:         testTeamster(player),
 				dest:           NewPlanet().WithCargo(Cargo{1000, 1000, 1000, 1000}),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: 70, Boranium: 70, Germanium: 70, Colonists: 1}, 0},
+			},
+			true,
+		},
+		{
+			"transfer 4000kT Mixed Cargo from planet where planet is out of one mineral",
+			args{
+				source:         testPrivateer(player, 10),
+				dest:           NewPlanet().WithCargo(Cargo{2726 + 366, 4763 + 414, 0, 1601 + 3027}),
+				transferAmount: CargoTransferRequest{Cargo{Ironium: 366, Boranium: 414, Germanium: 193, Colonists: 3027}, 0},
 			},
 			true,
 		},

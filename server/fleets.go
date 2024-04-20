@@ -467,7 +467,15 @@ func (s *server) transferCargoFleetPlanet(w http.ResponseWriter, r *http.Request
 
 	orderer := cs.NewOrderer()
 	if err := orderer.TransferPlanetCargo(&game.Rules, player, fleet, planet, transferAmount); err != nil {
-		log.Error().Err(err).Msg("transfer cargo")
+		log.Error().
+			Int64("GameID", game.ID).
+			Int("Player", player.Num).
+			Str("Fleet", fleet.Name).
+			Str("Planet", planet.Name).
+			Str("FleetCargo", fmt.Sprintf("%v", fleet.Cargo)).
+			Str("PlanetCargo", fmt.Sprintf("%v", planet.Cargo)).
+			Str("TransferAmount", fmt.Sprintf("%v", transferAmount)).
+			Err(err).Msg("transfer cargo")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}

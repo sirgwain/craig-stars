@@ -72,6 +72,38 @@ func testTeamster(player *Player) *Fleet {
 
 }
 
+// create a new small freighter (with cargo pod) fleet for testing
+func testPrivateer(player *Player, quantity int) *Fleet {
+	fleet := &Fleet{
+		MapObject: MapObject{
+			PlayerNum: player.Num,
+		},
+		BaseName: "Privateer",
+		Tokens: []ShipToken{
+			{
+				Quantity:  quantity,
+				DesignNum: 1,
+				design: NewShipDesign(player, 1).
+					WithHull(Privateer.Name).
+					WithSlots([]ShipDesignSlot{
+						{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
+						{HullComponent: Crobmnium.Name, HullSlotIndex: 2, Quantity: 1},
+						{HullComponent: CargoPod.Name, HullSlotIndex: 3, Quantity: 1},
+						{HullComponent: CargoPod.Name, HullSlotIndex: 4, Quantity: 1},
+						{HullComponent: CargoPod.Name, HullSlotIndex: 5, Quantity: 1},
+					}).
+					WithSpec(&rules, player)},
+		},
+		battlePlan:        &player.BattlePlans[0],
+		OrbitingPlanetNum: None,
+	}
+
+	fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
+	fleet.Fuel = fleet.Spec.FuelCapacity
+	return fleet
+
+}
+
 func Test_battle_regenerateShields(t *testing.T) {
 	type args struct {
 		player *Player

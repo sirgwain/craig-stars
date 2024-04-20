@@ -223,6 +223,9 @@ func (o *orders) TransferPlanetCargo(rules *Rules, player *Player, source *Fleet
 	if !source.canTransfer(transferAmount.Negative()) {
 		return fmt.Errorf("fleet %s cannot transfer %v to %s, the fleet does not have enough the required cargo", source.Name, transferAmount.Negative(), dest.Name)
 	}
+	
+	sourceCargoInitial := source.Cargo
+	destCargoInitial := dest.Cargo
 
 	// transfer the cargo
 	source.Cargo = source.Cargo.Add(transferAmount.Cargo)
@@ -244,6 +247,10 @@ func (o *orders) TransferPlanetCargo(rules *Rules, player *Player, source *Fleet
 		Int("PlayerNum", player.Num).
 		Str("Source", source.Name).
 		Str("Dest", dest.Name).
+		Str("SourceCargoInitial", fmt.Sprintf("%v", sourceCargoInitial)).
+		Str("DestCargoInitial", fmt.Sprintf("%v", destCargoInitial)).
+		Str("SourceCargo", fmt.Sprintf("%v", source.Cargo)).
+		Str("DestCargo", fmt.Sprintf("%v", dest.Cargo)).
 		Str("TransferAmount", fmt.Sprintf("%v", transferAmount)).
 		Msg("transfer planet cargo")
 
