@@ -911,7 +911,7 @@ func (fleet *Fleet) gateFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 		messager.fleetStargateInvalidDestOwner(player, fleet, wp0, wp1)
 		return
 	}
-	if fleet.Cargo.Colonists > 0 && !sourcePlanet.OwnedBy(player.Num) {
+	if fleet.Cargo.Colonists > 0 && !sourcePlanet.OwnedBy(player.Num) && !player.Race.Spec.CanGateCargo {
 		messager.fleetStargateInvalidColonists(player, fleet, wp0, wp1)
 		return
 	}

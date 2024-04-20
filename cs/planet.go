@@ -534,7 +534,7 @@ func (p *Planet) getMaxPopulation(rules *Rules, player *Player, habitability int
 	minMaxPop := float64(maxPossiblePop) * maxPopulationFactor * rules.MinMaxPopulationPercent
 
 	if player.Race.Spec.LivesOnStarbases && p.PlayerNum == player.Num {
-		maxPossiblePop = p.Starbase.Spec.MaxPopulation
+		return roundToNearest100f(float64(p.Starbase.Spec.MaxPopulation) * maxPopulationFactor)
 	}
 	return roundToNearest100f(math.Max(minMaxPop, float64(maxPossiblePop)*maxPopulationFactor*float64(habitability)/100.0))
 }
