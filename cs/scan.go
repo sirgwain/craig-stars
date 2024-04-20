@@ -382,6 +382,11 @@ func (scan *playerScan) getScanners() []scanner {
 				RangePenSquared: planetaryScanner.ScanRangePen * planetaryScanner.ScanRangePen,
 			}
 
+			if scan.player.Race.Spec.InnateScanner {
+				scanner.RangeSquared = planet.Spec.ScanRange * planet.Spec.ScanRange
+				scanner.RangePenSquared = planet.Spec.ScanRangePen * planet.Spec.ScanRangePen
+			}
+
 			// use the fleet scanner if it's better
 			if fleetScanner, ok := scanningFleetsByPosition[planet.Position]; ok {
 				scanner.RangeSquared = MaxInt(scanner.RangeSquared, fleetScanner.RangeSquared)
