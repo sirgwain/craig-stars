@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { TechEngine } from '$lib/types/Tech';
 
+	import { scaleSqrt } from 'd3-scale';
 	import { Html, LayerCake, ScaledSvg } from 'layercake';
 	import Area from '../graph/Area.svelte';
 	import AxisX from '../graph/AxisX.html.svelte';
@@ -21,16 +22,16 @@
 
 <div class="border border-base-300 bg-base-100 w-full h-full mt-5 pb-7">
 	<LayerCake
-		ssr={true}
-		percentRange={true}		
+		percentRange={true}
 		x={xGetter}
 		y={yGetter}
-		yDomain={[0, 1200]}
+		yDomain={[1, 1200]}
+		yScale={scaleSqrt()}
 		{data}
 	>
 		<Html>
 			<AxisX />
-			<AxisY ticks={4} formatTick={(d) => `${d}%`} />
+			<AxisY ticks={[0, 25, 100, 200, 400, 800]} formatTick={(d) => `${d}%`} />
 		</Html>
 		<ScaledSvg>
 			<Line />
