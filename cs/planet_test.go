@@ -3,6 +3,8 @@ package cs
 import (
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func newTestPlayerPlanet() (player *Player, planet *Planet) {
@@ -14,6 +16,65 @@ func newTestPlayerPlanet() (player *Player, planet *Planet) {
 	player.Spec = computePlayerSpec(player, &rules, []*Planet{planet})
 
 	return player, planet
+}
+
+func testSpaceStation(player *Player, planet *Planet) *Fleet {
+	fleet := &Fleet{
+		MapObject: MapObject{
+			PlayerNum: player.Num,
+		},
+		BaseName: "Starbase",
+		Tokens: []ShipToken{
+			{
+				DesignNum: 1,
+				Quantity:  1,
+				design: NewShipDesign(player, 1).
+					WithHull(SpaceStation.Name).
+					WithSlots([]ShipDesignSlot{
+						{HullComponent: Laser.Name, HullSlotIndex: 2, Quantity: 8},
+						{HullComponent: MoleSkinShield.Name, HullSlotIndex: 3, Quantity: 8},
+						{HullComponent: Laser.Name, HullSlotIndex: 4, Quantity: 8},
+						{HullComponent: MoleSkinShield.Name, HullSlotIndex: 6, Quantity: 8},
+						{HullComponent: Laser.Name, HullSlotIndex: 8, Quantity: 8},
+						{HullComponent: Laser.Name, HullSlotIndex: 10, Quantity: 8},
+					}).
+					WithSpec(&rules, player)},
+		},
+		battlePlan: &player.BattlePlans[0],
+		FleetOrders: FleetOrders{
+			Waypoints: []Waypoint{
+				NewPositionWaypoint(planet.Position, 0),
+			},
+		},
+	}
+	fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
+	return fleet
+}
+
+func testDeathStar(player *Player, planet *Planet) *Fleet {
+	fleet := &Fleet{
+		MapObject: MapObject{
+			PlayerNum: player.Num,
+		},
+		BaseName: "Starbase",
+		Tokens: []ShipToken{
+			{
+				DesignNum: 1,
+				Quantity:  1,
+				design: NewShipDesign(player, 1).
+					WithHull(DeathStar.Name).
+					WithSlots([]ShipDesignSlot{}).
+					WithSpec(&rules, player)},
+		},
+		battlePlan: &player.BattlePlans[0],
+		FleetOrders: FleetOrders{
+			Waypoints: []Waypoint{
+				NewPositionWaypoint(planet.Position, 0),
+			},
+		},
+	}
+	fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
+	return fleet
 }
 
 func TestPlanet_String(t *testing.T) {
@@ -167,7 +228,7 @@ func TestPlanet_reduceMineralConcentration(t *testing.T) {
 
 func Test_getMaxPopulation(t *testing.T) {
 	type args struct {
-		hab                 int
+		hab int
 	}
 	tests := []struct {
 		name string
@@ -187,4 +248,26 @@ func Test_getMaxPopulation(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Test_computePlanetSpec(t *testing.T) {
+	player, planet := newTestPlayerPlanet()
+	planet.Starbase = testSpaceStation(player, planet)
+
+	player.Race.Spec.InnateScanner = true
+	player.Race.Spec.InnatePopulationFactor = .1
+	planet.setPopulation(67300)
+	planet.Spec = computePlanetSpec(&rules, player, planet)
+
+	assert.Equal(t, planet.Spec.ScanRange, 82)
+	assert.Equal(t, planet.Spec.ScanRangePen, 0)
+
+	// now use a death start
+	planet.Starbase = testDeathStar(player, planet)
+	planet.Spec = computePlanetSpec(&rules, player, planet)
+
+	assert.Equal(t, planet.Spec.ScanRange, 82)
+	assert.Equal(t, planet.Spec.ScanRangePen, 41)
+
+
 }

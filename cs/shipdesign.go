@@ -48,6 +48,7 @@ type ShipDesignSpec struct {
 	CloakUnits                int                   `json:"cloakUnits,omitempty"`
 	ScanRange                 int                   `json:"scanRange,omitempty"`
 	ScanRangePen              int                   `json:"scanRangePen,omitempty"`
+	InnateScanRangePenFactor  float64               `json:"innateScanRangePenFactor,omitempty"`
 	RepairBonus               float64               `json:"repairBonus,omitempty"`
 	TorpedoInaccuracyFactor   float64               `json:"torpedoInaccuracyFactor,omitempty"`
 	TorpedoJamming            float64               `json:"torpedoJamming,omitempty"`
@@ -250,24 +251,25 @@ func (d *ShipDesign) SlotsEqual(other *ShipDesign) bool {
 func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design *ShipDesign) ShipDesignSpec {
 	hull := rules.techs.GetHull(design.Hull)
 	spec := ShipDesignSpec{
-		Mass:                    hull.Mass,
-		Armor:                   hull.Armor,
-		FuelCapacity:            hull.FuelCapacity,
-		FuelGeneration:          hull.FuelGeneration,
-		Cost:                    hull.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec),
-		TechLevel:               hull.Requirements.TechLevel,
-		CargoCapacity:           hull.CargoCapacity,
-		CloakUnits:              raceSpec.BuiltInCloakUnits,
-		Initiative:              hull.Initiative,
-		TorpedoInaccuracyFactor: 1,
-		ImmuneToOwnDetonation:   hull.ImmuneToOwnDetonation,
-		RepairBonus:             hull.RepairBonus,
-		ScanRange:               NoScanner,
-		ScanRangePen:            NoScanner,
-		SpaceDock:               hull.SpaceDock,
-		Starbase:                hull.Starbase,
-		MaxPopulation:           hull.MaxPopulation,
-		HullType:                hull.Type,
+		Mass:                     hull.Mass,
+		Armor:                    hull.Armor,
+		FuelCapacity:             hull.FuelCapacity,
+		FuelGeneration:           hull.FuelGeneration,
+		Cost:                     hull.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec),
+		TechLevel:                hull.Requirements.TechLevel,
+		CargoCapacity:            hull.CargoCapacity,
+		CloakUnits:               raceSpec.BuiltInCloakUnits,
+		Initiative:               hull.Initiative,
+		TorpedoInaccuracyFactor:  1,
+		ImmuneToOwnDetonation:    hull.ImmuneToOwnDetonation,
+		RepairBonus:              hull.RepairBonus,
+		ScanRange:                NoScanner,
+		ScanRangePen:             NoScanner,
+		SpaceDock:                hull.SpaceDock,
+		Starbase:                 hull.Starbase,
+		MaxPopulation:            hull.MaxPopulation,
+		HullType:                 hull.Type,
+		InnateScanRangePenFactor: hull.InnateScanRangePenFactor,
 	}
 
 	torpedoJammingFactor := 1.0

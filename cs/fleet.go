@@ -471,6 +471,7 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 			spec.Starbase = true
 		}
 		spec.MaxPopulation = MaxInt(spec.MaxPopulation, token.design.Spec.MaxPopulation)
+		spec.InnateScanRangePenFactor = math.Max(spec.InnateScanRangePenFactor, token.design.Spec.InnateScanRangePenFactor) // Ultra Station and Death Stars have pen scanning
 
 		// use the lowest ideal speed for this fleet
 		// if we have multiple engines
