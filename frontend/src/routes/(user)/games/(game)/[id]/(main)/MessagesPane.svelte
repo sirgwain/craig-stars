@@ -67,7 +67,11 @@
 		messages: Message[]
 	): number {
 		for (let i = num - 1; i >= 0; i--) {
-			if (showFilteredMessages || $settings.isMessageVisible(messages[i].type)) {
+			if (
+				i >= 0 &&
+				messages.length < i &&
+				(showFilteredMessages || $settings.isMessageVisible(messages[i].type))
+			) {
 				return i;
 			}
 		}
