@@ -351,7 +351,6 @@ func (scan *playerScan) discoverPlayers() {
 // get a list of unique scanners per player.
 // This is a minimal list only containing the best scanner values for each position
 func (scan *playerScan) getScanners() []scanner {
-	planetaryScanner := scan.player.Spec.PlanetaryScanner
 	scanningFleetsByPosition := map[Vector]scanner{}
 	for _, fleet := range scan.universe.Fleets {
 		if fleet.Delete {
@@ -378,13 +377,8 @@ func (scan *playerScan) getScanners() []scanner {
 		if planet.PlayerNum == scan.player.Num && planet.Scanner {
 			scanner := scanner{
 				Position:        planet.Position,
-				RangeSquared:    planetaryScanner.ScanRange * planetaryScanner.ScanRange,
-				RangePenSquared: planetaryScanner.ScanRangePen * planetaryScanner.ScanRangePen,
-			}
-
-			if scan.player.Race.Spec.InnateScanner {
-				scanner.RangeSquared = planet.Spec.ScanRange * planet.Spec.ScanRange
-				scanner.RangePenSquared = planet.Spec.ScanRangePen * planet.Spec.ScanRangePen
+				RangeSquared:    planet.Spec.ScanRange * planet.Spec.ScanRange,
+				RangePenSquared: planet.Spec.ScanRangePen * planet.Spec.ScanRangePen,
 			}
 
 			// use the fleet scanner if it's better
