@@ -42,6 +42,10 @@ func Test_getScanners(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// planet scanners come from the spec
+			for _, planet := range tt.args.planets {
+				planet.Spec = computePlanetSpec(&rules, player, planet)
+			}
 			scan := playerScan{&Universe{
 				Planets:        tt.args.planets,
 				Fleets:         tt.args.fleets,

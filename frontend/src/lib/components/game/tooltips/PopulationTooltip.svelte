@@ -31,7 +31,7 @@
 			{:else}
 				Your population on <span class="font-semibold">{planet.name}</span> is
 				<span class="font-semibold">{planet.spec.population.toLocaleString()}</span>.
-				<span class="font-semibold">{planet.name}</span> has a hostile environment and will no support
+				<span class="font-semibold">{planet.name}</span> has a hostile environment and will not support
 				any of your colonists.
 			{/if}
 			{#if planet.spec.growthAmount > 0}
