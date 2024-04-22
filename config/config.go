@@ -19,9 +19,10 @@ type Config struct {
 		SkipUpgrade           bool   `yaml:"SkipUpgrade,omitempty"`
 	}
 	Auth struct {
-		Secret      string `yaml:"Secret,omitempty"`
-		URL         string `yaml:"URL,omitempty"`
-		DisableXSRF bool   `yaml:"DisableXSRF,omitempty"`
+		Secret       string `yaml:"Secret,omitempty"`
+		URL          string `yaml:"URL,omitempty"`
+		DisableXSRF  bool   `yaml:"DisableXSRF,omitempty"`
+		SecureCookie bool   `yaml:"SecureCookie,omitempty"`
 	}
 	Discord struct {
 		Enabled               bool   `yaml:"Enabled,omitempty"`
@@ -61,7 +62,7 @@ func GetConfig() *Config {
 		viper.SetDefault("Discord.CookieDuration", "24h")     // default for local dev
 
 		viper.SetDefault("Game.InviteLinkSalt", "salt") // default for local dev
-		viper.SetDefault("Address", "localhost:8080") // default for local dev, override to :8080 for deployment
+		viper.SetDefault("Address", "localhost:8080")   // default for local dev, override to :8080 for deployment
 
 		// write config if not present
 		if err := os.MkdirAll(path, os.ModePerm); err != nil {

@@ -92,9 +92,9 @@ func Start(config config.Config) error {
 		SecretReader: token.SecretFunc(func(_ string) (string, error) { // secret key for JWT, ignores aud
 			return server.config.Auth.Secret, nil
 		}),
-		TokenDuration:     time.Minute,    // short token, refreshed automatically
-		CookieDuration:    cookieDuration, // cookie fine to keep for long time
-		SecureCookies:     true,
+		TokenDuration:     time.Minute,                           // short token, refreshed automatically
+		CookieDuration:    cookieDuration,                        // cookie fine to keep for long time
+		SecureCookies:     server.config.Auth.SecureCookie,       // true for deployment, false for local dev
 		DisableXSRF:       config.Auth.DisableXSRF,               // don't disable XSRF in real-life applications!
 		Issuer:            issuer,                                // part of token, just informational
 		URL:               server.config.Auth.URL,                // base url of the protected service
