@@ -69,7 +69,7 @@
 		for (let i = num - 1; i >= 0; i--) {
 			if (
 				i >= 0 &&
-				messages.length < i &&
+				messages.length > i &&
 				(showFilteredMessages || $settings.isMessageVisible(messages[i].type))
 			) {
 				return i;
