@@ -1676,3 +1676,96 @@ func Test_turn_fleetBattle3Players(t *testing.T) {
 	assert.Equal(t, true, fleet2.Delete)
 	assert.Equal(t, 1, len(fg.Salvages))
 }
+
+func Test_turn_mysteryTraderSpawn(t *testing.T) {
+	game := createSingleUnitGame()
+	game.Rules.random = &testRandom{} // test random always rolls 0 by default
+	game.Year = game.Year + game.Rules.MysteryTraderRules.MinYear
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// move to place
+	turn.mysteryTraderSpawn()
+
+	// should have consumed that waypoint and moved to the space
+	assert.Equal(t, 1, len(game.MysteryTraders))
+	mt := game.MysteryTraders[0]
+	assert.Equal(t, 1, len(game.getMapObjectsAtPosition(mt.Position)))
+}
+
+func Test_turn_mysteryTraderMove(t *testing.T) {
+	game := createSingleUnitGame()
+	game.Rules.random = &testRandom{} // test random always rolls 0 by default
+	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardResearch))
+	mt := game.MysteryTraders[0]
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// move to place
+	turn.mysteryTraderMove()
+
+	// should have consumed that waypoint and moved to the space
+	assert.Equal(t, Vector{49, 0}, mt.Position)
+	assert.Equal(t, 1, len(game.getMapObjectsAtPosition(mt.Position)))
+}
+
+func Test_turn_mysteryTraderMeetNoReward(t *testing.T) {
+	game := createSingleUnitGame()
+	game.Rules.random = &testRandom{} // test random always rolls 0 by default
+	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardResearch))
+	mt := game.MysteryTraders[0]
+
+	fleet := game.Fleets[0]
+	player := game.Players[0]
+	player.TechLevels = TechLevel{}
+
+	// meet up
+	fleet.Position = mt.Position
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// meet mystery trader
+	turn.mysteryTraderMeet()
+
+	// fleet should be left alone
+	assert.Equal(t, false, fleet.Delete)
+	assert.Equal(t, PlayerMessageMysteryTraderMetWithoutReward, player.Messages[0].Type)
+	assert.Equal(t, TechLevel{}, player.TechLevels)
+}
+
+func Test_turn_mysteryTraderMeetReward(t *testing.T) {
+	game := createSingleUnitGame()
+	game.Rules.random = &testRandom{} // test random always rolls 0 by default
+	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardResearch))
+	mt := game.MysteryTraders[0]
+
+	fleet := game.Fleets[0]
+	player := game.Players[0]
+	player.TechLevels = TechLevel{}
+
+	// meet up
+	fleet.Position = mt.Position
+	fleet.Cargo = Cargo{5000, 0, 0, 0}
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// meet mystery trader
+	turn.mysteryTraderMeet()
+
+	// fleet should be deleted, player gained tech
+	assert.Equal(t, true, fleet.Delete)
+	assert.Equal(t, PlayerMessageMysteryTraderMetWithReward, player.Messages[0].Type)
+	assert.Equal(t, TechLevel{Energy: 6}, player.TechLevels)
+}

@@ -12,6 +12,7 @@ func Test_getCloakPercentForCloakUnits(t *testing.T) {
 		want int
 	}{
 		{"no cloak", args{0}, 0},
+		{"20 cloak units = 10% cloaking", args{20}, 10},
 		{"70 cloak units = 35% cloaking", args{70}, 35},
 		{"110 cloak units = 51% cloaking", args{110}, 51},
 		{"200 cloak units = 62% cloaking", args{200}, 62},

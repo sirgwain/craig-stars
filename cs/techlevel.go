@@ -186,3 +186,14 @@ func (tl TechLevel) LevelsAboveField(other TechLevel, field TechField) int {
 	}
 
 }
+
+// get all the learnable tech fields for a player
+func (tl TechLevel) LearnableTechFields(rules *Rules) []TechField {
+	fields := make([]TechField, 0, len(TechFields))
+	for _, field := range TechFields {
+		if tl.Get(field) < rules.MaxTechLevel {
+			fields = append(fields, field)
+		}
+	}
+	return fields
+}

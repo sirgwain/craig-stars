@@ -38,6 +38,7 @@ type Rules struct {
 	RandomCometMinYear                 int                                 `json:"randomCometMinYear,omitempty"`
 	RandomCometMinYearPlayerWorld      int                                 `json:"randomCometMinYearPlayerWorld,omitempty"`
 	CometStatsBySize                   map[CometSize]CometStats            `json:"cometStatsBySize,omitempty"`
+	MysteryTraderRules                 MysteryTraderRules                  `json:"mysteryTraderRules"`
 	WormholeCloak                      int                                 `json:"wormholeCloak"`
 	WormholeMinPlanetDistance          int                                 `json:"wormholeMinDistance"`
 	WormholeStatsByStability           map[WormholeStability]WormholeStats `json:"wormholeStatsByStability"`
@@ -85,7 +86,7 @@ type Rules struct {
 	PRTSpecs                           map[PRT]PRTSpec                     `json:"prtSpecs"`
 	LRTSpecs                           map[LRT]LRTSpec                     `json:"lrtSpecs"`
 	TechsID                            int64                               `json:"techsId"`
-	random                             *rand.Rand
+	random                             rng
 	techs                              *TechStore
 }
 
@@ -141,6 +142,27 @@ const (
 	RepairRateOrbitingOwnPlanet RepairRate = "OrbitingOwnPlanet"
 	RepairRateStarbase          RepairRate = "Starbase"
 )
+
+type MysteryTraderRules struct {
+	Chances           []int                        `json:"chances,omitempty"`
+	MinYear           int                          `json:"minYear,omitempty"`
+	EvenYearOnly      bool                         `json:"evenYearOnly,omitempty"`
+	MinWarp           int                          `json:"minWarp,omitempty"`
+	MaxWarp           int                          `json:"maxWarp,omitempty"`
+	MaxMysteryTraders int                          `json:"maxMysteryTraders,omitempty"`
+	RequestedBoon     int                          `json:"requestedBoon,omitempty"`
+	TechBoon          []MysteryTraderTechBoonRules `json:"techBoon,omitempty"`
+}
+
+type MysteryTraderTechBoonRules struct {
+	TechLevels int                                   `json:"techLevels,omitempty"`
+	Rewards    []MysteryTraderTechBoonMineralsReward `json:"rewards,omitempty"`
+}
+
+type MysteryTraderTechBoonMineralsReward struct {
+	MineralsGiven int `json:"mineralsGiven,omitempty"`
+	Reward        int `json:"reward,omitempty"`
+}
 
 var StandardRules = NewRules()
 
@@ -251,8 +273,80 @@ func NewRulesWithSeed(seed int64) Rules {
 		},
 		RandomMineralDepositBonusRange:   [2]int{20, 50},
 		RandomArtifactResearchBonusRange: [2]int{120, 400},
-		WormholeCloak:                    75,
-		WormholeMinPlanetDistance:        30,
+		MysteryTraderRules: MysteryTraderRules{
+			Chances: []int{7, 7, 7, 7, 7, 7, 7, 4, 4, 3, 2},
+			// Chances:      []int{1}, // force it
+			MinYear:           40,
+			EvenYearOnly:      true,
+			MinWarp:           7,
+			MaxWarp:           13,
+			MaxMysteryTraders: 5,
+			RequestedBoon:     5000,
+			TechBoon: []MysteryTraderTechBoonRules{
+				{
+					TechLevels: 59,
+					Rewards: []MysteryTraderTechBoonMineralsReward{
+						{MineralsGiven: 5000, Reward: 6},
+						{MineralsGiven: 6200, Reward: 7},
+						{MineralsGiven: 7400, Reward: 8},
+						{MineralsGiven: 8600, Reward: 9},
+						{MineralsGiven: 9800, Reward: 10},
+					},
+				},
+				{
+					TechLevels: 71,
+					Rewards: []MysteryTraderTechBoonMineralsReward{
+						{MineralsGiven: 5000, Reward: 5},
+						{MineralsGiven: 6200, Reward: 6},
+						{MineralsGiven: 7400, Reward: 7},
+						{MineralsGiven: 8600, Reward: 8},
+						{MineralsGiven: 9800, Reward: 9},
+					},
+				},
+				{
+					TechLevels: 83,
+					Rewards: []MysteryTraderTechBoonMineralsReward{
+						{MineralsGiven: 5000, Reward: 4},
+						{MineralsGiven: 6200, Reward: 5},
+						{MineralsGiven: 7400, Reward: 6},
+						{MineralsGiven: 8600, Reward: 7},
+						{MineralsGiven: 9800, Reward: 8},
+					},
+				},
+				{
+					TechLevels: 95,
+					Rewards: []MysteryTraderTechBoonMineralsReward{
+						{MineralsGiven: 5000, Reward: 3},
+						{MineralsGiven: 6200, Reward: 4},
+						{MineralsGiven: 7400, Reward: 5},
+						{MineralsGiven: 8600, Reward: 6},
+						{MineralsGiven: 9800, Reward: 7},
+					},
+				},
+				{
+					TechLevels: 107,
+					Rewards: []MysteryTraderTechBoonMineralsReward{
+						{MineralsGiven: 5000, Reward: 2},
+						{MineralsGiven: 6200, Reward: 2},
+						{MineralsGiven: 7400, Reward: 2},
+						{MineralsGiven: 8600, Reward: 2},
+						{MineralsGiven: 9800, Reward: 2},
+					},
+				},
+				{
+					TechLevels: 108,
+					Rewards: []MysteryTraderTechBoonMineralsReward{
+						{MineralsGiven: 5000, Reward: 1},
+						{MineralsGiven: 6200, Reward: 1},
+						{MineralsGiven: 7400, Reward: 1},
+						{MineralsGiven: 8600, Reward: 1},
+						{MineralsGiven: 9800, Reward: 1},
+					},
+				},
+			},
+		},
+		WormholeCloak:             75,
+		WormholeMinPlanetDistance: 30,
 		WormholeStatsByStability: map[WormholeStability]WormholeStats{
 			WormholeStabilityRockSolid: {
 				YearsToDegrade: 10,

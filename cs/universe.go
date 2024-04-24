@@ -618,7 +618,7 @@ func (u *Universe) removeMapObjectAtPosition(mo interface{}, position Vector) {
 	}
 }
 
-// get the next design number to use
+// get the next mineField number to use
 func (u *Universe) getNextMineFieldNum() int {
 	num := 0
 	for _, mineField := range u.MineFields {
@@ -667,4 +667,42 @@ func (u *Universe) fleetsWithin(position Vector, radius float64) []*Fleet {
 		}
 	}
 	return fleetsWithin
+}
+
+// get the next mysteryTrader number to use
+func (u *Universe) getNextMysteryTraderNum() int {
+	num := 0
+	for _, mysteryTrader := range u.MysteryTraders {
+		num = MaxInt(num, mysteryTrader.Num)
+	}
+	return num + 1
+}
+
+func (u *Universe) addMysteryTrader(mysteryTrader *MysteryTrader) {
+	u.MysteryTraders = append(u.MysteryTraders, mysteryTrader)
+	u.mysteryTradersByNum[mysteryTrader.Num] = mysteryTrader
+	u.addMapObjectByPosition(mysteryTrader, mysteryTrader.Position)
+}
+
+// move a fleet from one position to another
+func (u *Universe) moveMysteryTrader(mysteryTrader *MysteryTrader, originalPosition Vector) {
+	mysteryTrader.MarkDirty()
+
+	// upadte mapobjects position
+	u.updateMapObjectAtPosition(mysteryTrader, originalPosition, mysteryTrader.Position)
+}
+
+// mark a mysteryTrader as deleted and remove it from the universe
+func (u *Universe) deleteMysteryTrader(mysteryTrader *MysteryTrader) {
+	mysteryTrader.Delete = true
+
+	delete(u.mysteryTradersByNum, mysteryTrader.Num)
+	u.removeMapObjectAtPosition(mysteryTrader, mysteryTrader.Position)
+
+	log.Debug().
+		Int64("GameID", mysteryTrader.GameID).
+		Int("Player", mysteryTrader.PlayerNum).
+		Str("MysteryTrader", mysteryTrader.Name).
+		Msgf("deleted mysteryTrader")
+
 }

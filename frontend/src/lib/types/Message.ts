@@ -168,6 +168,11 @@ export enum MessageType {
 	TechLevelGainedScrapFleet,
 	TechLevelGainedBattle,
 	FleetDieoff,
+	MysteryTraderDiscovered,
+	MysteryTraderChangedCourse,
+	MysteryTraderAgain,
+	MysteryTraderMetWithReward,
+	MysteryTraderMetWithoutReward
 }
 
 // get the next visible message taking into account filters
@@ -184,5 +189,3 @@ export function getNextVisibleMessageNum(
 	}
 	return num;
 }
-
-

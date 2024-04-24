@@ -23,19 +23,20 @@ type PlayerMessage struct {
 // The PlayerMessageSpec contains data specific to each message, like the amount of mines built
 // of the field of research leveled up in.
 type PlayerMessageSpec struct {
-	Amount          int                     `json:"amount,omitempty"`
-	PrevAmount      int                     `json:"prevAmount,omitempty"`
-	SourcePlayerNum int                     `json:"sourcePlayerNum,omitempty"`
-	DestPlayerNum   int                     `json:"destPlayerNum,omitempty"`
-	Name            string                  `json:"name,omitempty"`
-	Cost            *Cost                   `json:"cost,omitempty"`
-	QueueItemType   QueueItemType           `json:"queueItemType,omitempty"`
-	Field           TechField               `json:"field,omitempty"`
-	NextField       TechField               `json:"nextField,omitempty"`
-	TechGained      string                  `json:"techGained,omitempty"`
-	LostTargetType  MapObjectType           `json:"lostTargetType,omitempty"`
-	Battle          BattleRecordStats       `json:"battle,omitempty"`
-	Comet           *PlayerMessageSpecComet `json:"comet,omitempty"`
+	Amount          int                             `json:"amount,omitempty"`
+	PrevAmount      int                             `json:"prevAmount,omitempty"`
+	SourcePlayerNum int                             `json:"sourcePlayerNum,omitempty"`
+	DestPlayerNum   int                             `json:"destPlayerNum,omitempty"`
+	Name            string                          `json:"name,omitempty"`
+	Cost            *Cost                           `json:"cost,omitempty"`
+	QueueItemType   QueueItemType                   `json:"queueItemType,omitempty"`
+	Field           TechField                       `json:"field,omitempty"`
+	NextField       TechField                       `json:"nextField,omitempty"`
+	TechGained      string                          `json:"techGained,omitempty"`
+	LostTargetType  MapObjectType                   `json:"lostTargetType,omitempty"`
+	Battle          BattleRecordStats               `json:"battle,omitempty"`
+	Comet           *PlayerMessageSpecComet         `json:"comet,omitempty"`
+	MysteryTrader   *PlayerMessageSpecMysteryTrader `json:"mysteryTrader,omitempty"`
 }
 
 type PlayerMessageSpecComet struct {
@@ -44,6 +45,10 @@ type PlayerMessageSpecComet struct {
 	MineralConcentrationIncreased Mineral   `json:"mineralConcentrationIncreased,omitempty"`
 	HabChanged                    Hab       `json:"habChanged,omitempty"`
 	ColonistsKilled               int       `json:"colonistsKilled,omitempty"`
+}
+
+type PlayerMessageSpecMysteryTrader struct {
+	MysteryTraderReward `json:"mysteryTraderReward,omitempty"`
 }
 
 type PlayerMessageTargetType string
@@ -152,6 +157,11 @@ const (
 	PlayerMessageTechLevelGainedScrapFleet
 	PlayerMessageTechLevelGainedBattle
 	PlayerMessageFleetDieoff
+	PlayerMessageMysteryTraderDiscovered
+	PlayerMessageMysteryTraderChangedCourse
+	PlayerMessageMysteryTraderAgain
+	PlayerMessageMysteryTraderMetWithReward
+	PlayerMessageMysteryTraderMetWithoutReward
 )
 
 func newMessage(messageType PlayerMessageType) PlayerMessage {
@@ -178,6 +188,11 @@ func newBattleMessage(messageType PlayerMessageType, planet *Planet, battle *Bat
 	}
 
 	return PlayerMessage{Type: PlayerMessageBattle, TargetType: targetType, TargetNum: planetNum, BattleNum: battle.Num}
+}
+
+// create a new message targeting a planet
+func newMysteryTraderMessage(messageType PlayerMessageType, target *MysteryTrader) PlayerMessage {
+	return PlayerMessage{Type: messageType, TargetType: TargetMysteryTrader, TargetNum: target.Num}
 }
 
 func (m PlayerMessage) withSpec(spec PlayerMessageSpec) PlayerMessage {

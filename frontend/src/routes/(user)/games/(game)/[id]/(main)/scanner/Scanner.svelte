@@ -38,6 +38,8 @@
 	import ScannerWormholeLinks from './ScannerWormholeLinks.svelte';
 	import ScannerWormholes from './ScannerWormholes.svelte';
 	import SelectedMapObject from './SelectedMapObject.svelte';
+	import ScannerMysteryTrader from './ScannerMysteryTrader.svelte';
+	import ScannerMysteryTraders from './ScannerMysteryTraders.svelte';
 
 	const {
 		game,
@@ -628,6 +630,7 @@
 				<ScannerMineralPackets />
 				<ScannerWormholes />
 				<ScannerFleets />
+				<ScannerMysteryTraders />
 				<ScannerWarpLine />
 				<ScannerWormholeLinks />
 				<ScannerSalvages />

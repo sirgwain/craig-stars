@@ -347,7 +347,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 			spec.BeamDefense += component.BeamDefense * float64(slot.Quantity)
 
 			// if this slot has a bomb, this design is a bomber
-			if component.HullSlotType == HullSlotTypeBomb || component.MinKillRate > 0 {
+			if component.HullSlotType == HullSlotTypeBomb || component.MinKillRate > 0 || component.KillRate > 0 || component.StructureDestroyRate > 0 || component.UnterraformRate > 0 {
 				spec.Bomber = true
 				bomb := Bomb{
 					Quantity:             slot.Quantity,

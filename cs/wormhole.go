@@ -2,7 +2,6 @@ package cs
 
 import (
 	"fmt"
-	"math/rand"
 
 	"slices"
 
@@ -71,7 +70,7 @@ func computeWormholeSpec(w *Wormhole, rules *Rules) WormholeSpec {
 	}
 }
 
-func generateWormhole(mapObjectGetter mapObjectGetter, num int, area Vector, random *rand.Rand, planetPositions []Vector, wormholePositions []Vector, minDistanceFromPlanets int) (position Vector, stability WormholeStability, err error) {
+func generateWormhole(mapObjectGetter mapObjectGetter, num int, area Vector, random rng, planetPositions []Vector, wormholePositions []Vector, minDistanceFromPlanets int) (position Vector, stability WormholeStability, err error) {
 	width, height := int(area.X), int(area.Y)
 
 	position = Vector{X: float64(random.Intn(width)), Y: float64(random.Intn(height))}
@@ -92,7 +91,7 @@ func generateWormhole(mapObjectGetter mapObjectGetter, num int, area Vector, ran
 	return position, stability, nil
 }
 
-func (w *Wormhole) jiggle(mapObjectGetter mapObjectGetter, random *rand.Rand) {
+func (w *Wormhole) jiggle(mapObjectGetter mapObjectGetter, random rng) {
 	stats := w.Spec.Stats
 
 	// don't infinite jiggle
@@ -129,7 +128,7 @@ func (w *Wormhole) degrade() {
 	}
 }
 
-func (w *Wormhole) shouldJump(random *rand.Rand) bool {
+func (w *Wormhole) shouldJump(random rng) bool {
 	randVal := random.Float64()
 	return w.Spec.Stats.ChanceToJump > randVal
 }

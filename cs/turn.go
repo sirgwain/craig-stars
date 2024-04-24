@@ -88,6 +88,7 @@ func (t *turn) generateTurn() error {
 	t.fleetBattle()
 	t.fleetBomb()
 	t.mysteryTraderMeet()
+	t.mysteryTraderSpawn()
 
 	// wp1 tasks
 	t.fleetRemoteMine()
@@ -699,8 +700,48 @@ func (t *turn) packetMove(builtThisTurn bool) {
 	}
 }
 
-func (t *turn) mysteryTraderMove() {
+func (t *turn) mysteryTraderSpawn() {
 
+	mt := generateMysteryTrader(&t.game.Rules, t.game.Game, t.game.getNextMysteryTraderNum())
+	if mt != nil {
+		// a mystery trader has spawned!
+		t.game.addMysteryTrader(mt)
+
+		// tell all the players
+		for _, player := range t.game.Players {
+			player.Messages = append(player.Messages, newMysteryTraderMessage(PlayerMessageMysteryTraderDiscovered, mt))
+		}
+
+		log.Debug().
+			Int64("GameID", t.game.ID).
+			Str("Name", t.game.Name).
+			Int("Year", t.game.Year).
+			Int("MysteryTrader", mt.Num).
+			Str("Position", mt.Position.String()).
+			Msgf("MysteryTrader spawned")
+	}
+}
+
+func (t *turn) mysteryTraderMove() {
+	for _, mysteryTrader := range t.game.MysteryTraders {
+		if mysteryTrader.Delete {
+			continue
+		}
+
+		originalPosition := mysteryTrader.Position
+		mysteryTrader.move()
+		t.game.moveMysteryTrader(mysteryTrader, originalPosition)
+
+		log.Debug().
+			Int64("GameID", t.game.ID).
+			Str("Name", t.game.Name).
+			Int("Year", t.game.Year).
+			Int("MysteryTrader", mysteryTrader.Num).
+			Int("WarpSpeed", mysteryTrader.WarpSpeed).
+			Str("Start", originalPosition.String()).
+			Str("End", mysteryTrader.Position.String()).
+			Msgf("moved mysteryTrader")
+	}
 }
 
 func (t *turn) fleetMove() {
@@ -2036,6 +2077,47 @@ func (t *turn) fleetBomb() {
 
 func (t *turn) mysteryTraderMeet() {
 
+	for _, mt := range t.game.MysteryTraders {
+
+		mapObjectsAtPosition := t.game.mapObjectsByPosition[mt.Position]
+		if len(mapObjectsAtPosition) <= 1 {
+			continue
+		}
+
+		for _, mo := range mapObjectsAtPosition {
+			if fleet, ok := mo.(*Fleet); ok && !fleet.Delete {
+
+				player := t.game.getPlayer(fleet.PlayerNum)
+				reward := mt.meet(&t.game.Rules, fleet, player)
+
+				if reward.Type == MysteryTraderRewardNone {
+					// fleet wasn't absorbed, move on
+					player.Messages = append(player.Messages, newMysteryTraderMessage(PlayerMessageMysteryTraderMetWithoutReward, mt))
+					continue
+				}
+
+				// player got a reward
+				player.Messages = append(player.Messages, newMysteryTraderMessage(PlayerMessageMysteryTraderMetWithReward, mt).withSpec(PlayerMessageSpec{MysteryTrader: &PlayerMessageSpecMysteryTrader{reward}}))
+
+				switch reward.Type {
+				case MysteryTraderRewardResearch:
+					// tech levels!
+					// we gained a level!
+					player.techLevelGained = true
+					player.TechLevels = player.TechLevels.Add(reward.TechLevels)
+					log.Debug().
+						Int64("GameID", t.game.ID).
+						Int("MysteryTrader", mt.Num).
+						Int("Player", player.Num).
+						Str("TechLevel", fmt.Sprintf("%v", reward.TechLevels)).
+						Msgf("gained tech levels from mysteryTrader")
+				}
+
+				// remove the absorbed fleet from the universe
+				t.game.deleteFleet(fleet)
+			}
+		}
+	}
 }
 
 // decay MineFields and remove any minefields that are too small

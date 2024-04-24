@@ -43,6 +43,7 @@ type TechRequirements struct {
 	PRTRequired  PRT      `json:"prtRequired,omitempty"`
 	HullsAllowed []string `json:"hullsAllowed,omitempty"`
 	HullsDenied  []string `json:"hullsDenied,omitempty"`
+	Hidden       bool     `json:"hidden,omitempty"`
 }
 
 type TechHullComponent struct {
@@ -93,6 +94,7 @@ type TechHullComponent struct {
 	DamageShieldsOnly         bool          `json:"damageShieldsOnly,omitempty"`
 	Accuracy                  int           `json:"accuracy,omitempty"`
 	CapitalShipMissile        bool          `json:"capitalShipMissile,omitempty"`
+	CanJump                   bool          `json:"canJump,omitempty"`
 }
 
 type Engine struct {
@@ -247,8 +249,13 @@ func (hst HullSlotType) String() string {
 	}
 }
 
-type TechPlanetaryScanner struct {
+type TechPlanetary struct {
 	Tech
+	ResetPlanet bool `json:"resetPlanet,omitempty"`
+}
+
+type TechPlanetaryScanner struct {
+	TechPlanetary
 	ScanRange    int `json:"scanRange,omitempty"`
 	ScanRangePen int `json:"scanRangePen,omitempty"`
 }
@@ -258,7 +265,7 @@ type Defense struct {
 }
 
 type TechDefense struct {
-	Tech
+	TechPlanetary
 	Defense
 }
 

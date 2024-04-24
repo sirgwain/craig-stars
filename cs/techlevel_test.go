@@ -2,6 +2,7 @@ package cs
 
 import (
 	"math"
+	"reflect"
 	"testing"
 )
 
@@ -75,6 +76,32 @@ func TestTechLevel_LevelsAboveField(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.tl.LevelsAboveField(tt.args.other, tt.args.field); got != tt.want {
 				t.Errorf("TechLevel.LevelsAboveField() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestTechLevel_GetLearnableTechFields(t *testing.T) {
+
+	tests := []struct {
+		name      string
+		techLevel TechLevel
+		want      []TechField
+	}{
+		{"All techs", TechLevel{}, TechFields},
+		{"Some techs", TechLevel{Energy: 26, Weapons: 25, Propulsion: 26, Construction: 10, Electronics: 5, Biotechnology: 0},
+			[]TechField{
+				Weapons,
+				Construction,
+				Electronics,
+				Biotechnology,
+			}},
+		{"No techs", TechLevel{Energy: 26, Weapons: 26, Propulsion: 26, Construction: 26, Electronics: 26, Biotechnology: 26}, []TechField{}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.techLevel.LearnableTechFields(&rules); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Player.GetLearnableTechFields() = %v, want %v", got, tt.want)
 			}
 		})
 	}
