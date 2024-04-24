@@ -77,7 +77,7 @@ export class CommandedPlanet implements Planet {
 	starbase: Fleet | undefined = undefined;
 
 	// orders
-	contributesOnlyLeftoverToResearch = true;
+	contributesOnlyLeftoverToResearch = false;
 	productionQueue: ProductionQueueItem[] = [];
 	routeTargetType = MapObjectType.None;
 	routeTargetNum = None;
