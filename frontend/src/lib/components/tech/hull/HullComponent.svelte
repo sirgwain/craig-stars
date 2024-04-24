@@ -54,7 +54,7 @@
 </script>
 
 <div
-	class={`flex bg-base-300 tech-avatar text-sm avatar ${icon(shipDesignSlot?.hullComponent)} ${
+	class={`flex bg-base-300 dark:bg-base-200 tech-avatar text-sm avatar ${icon(shipDesignSlot?.hullComponent)} ${
 		highlighted ? highlightedClass : ''
 	}`}
 	class:border={!shipDesignSlot}
