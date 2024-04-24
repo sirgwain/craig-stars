@@ -177,7 +177,7 @@ func newBattleMessage(messageType PlayerMessageType, planet *Planet, battle *Bat
 		targetType = TargetPlanet
 	}
 
-	return PlayerMessage{Type: PlayerMessageBattle, TargetType: targetType, TargetNum: planetNum, BattleNum: battle.Num}
+	return PlayerMessage{Type: messageType, TargetType: targetType, TargetNum: planetNum, BattleNum: battle.Num}
 }
 
 func (m PlayerMessage) withSpec(spec PlayerMessageSpec) PlayerMessage {
