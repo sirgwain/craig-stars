@@ -16,7 +16,7 @@ import type { Fleet } from './Fleet';
 import { type QueueItemType, QueueItemTypes } from './QueueItemType';
 import type { ProductionQueueItem } from './Production';
 import { getTerraformAmount } from '$lib/services/Terraformer';
-import { getProductionEstimates } from '$lib/services/Producer';
+import { NeverBuilt, getProductionEstimates } from '$lib/services/Producer';
 
 export const Unexplored = -1;
 
@@ -570,10 +570,10 @@ export class CommandedPlanet implements Planet {
 		const numBuiltInAYear = divide(yearlyAvailableToSpend, minZero(minus(cost, mineralsOnHand)));
 
 		if (numBuiltInAYear === 0 || isNaN(numBuiltInAYear) || numBuiltInAYear == Infinity) {
-			return Infinite;
+			return NeverBuilt;
 		}
 
-		return Math.ceil(1 / numBuiltInAYear);
+		return Math.min(NeverBuilt, Math.ceil(1 / numBuiltInAYear));
 	}
 }
 
@@ -679,7 +679,7 @@ export function planetsSortBy(key: string): ((a: Planet, b: Planet) => number) |
 								type: a.productionQueue[0].type,
 								design: a.productionQueue[0].designNum,
 								quantity: a.productionQueue[0].quantity
-						  })}`
+							})}`
 						: '';
 				const bItem =
 					b.productionQueue && (b.productionQueue?.length ?? 0) > 0
@@ -687,7 +687,7 @@ export function planetsSortBy(key: string): ((a: Planet, b: Planet) => number) |
 								type: b.productionQueue[0].type,
 								design: b.productionQueue[0].designNum,
 								quantity: b.productionQueue[0].quantity
-						  })}`
+							})}`
 						: '';
 				return aItem.localeCompare(bItem);
 			};

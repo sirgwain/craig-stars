@@ -291,7 +291,7 @@
 	}
 	function cancel() {
 		if (planet) {
-			queueItems = planet.productionQueue?.map((item) => ({ ...item } as ProductionQueueItem));
+			queueItems = planet.productionQueue?.map((item) => ({ ...item }) as ProductionQueueItem);
 			contributesOnlyLeftoverToResearch = planet.contributesOnlyLeftoverToResearch ?? false;
 			dispatch('cancel');
 		}
@@ -321,6 +321,13 @@
 			}
 			return `${yearsToBuildOne} to ${yearsToBuildAll} years`;
 		}
+
+		if (yearsToBuildOne == 1) {
+			return '1 year';
+		}
+		if (yearsToBuildOne === NeverBuilt) {
+			return 'never';
+		}
 		return `${yearsToBuildOne} years`;
 	}
 
@@ -344,7 +351,7 @@
 	});
 
 	function resetQueue() {
-		queueItems = planet.productionQueue?.map((item) => ({ ...item } as ProductionQueueItem));
+		queueItems = planet.productionQueue?.map((item) => ({ ...item }) as ProductionQueueItem);
 		availableItems = planet.getAvailableProductionQueueItems(
 			planet,
 			$player.race.spec?.innateMining,
@@ -352,7 +359,10 @@
 			$player.race.spec?.livesOnStarbases
 		);
 		availableShipDesigns = planet.getAvailableProductionQueueShipDesigns(planet, $universe.designs);
-		availableStarbaseDesigns = planet.getAvailableProductionQueueStarbaseDesigns(planet, $universe.designs);
+		availableStarbaseDesigns = planet.getAvailableProductionQueueStarbaseDesigns(
+			planet,
+			$universe.designs
+		);
 		if (availableShipDesigns.length > 0) {
 			selectedAvailableItem = availableShipDesigns[0];
 		} else if (availableStarbaseDesigns.length > 0) {
