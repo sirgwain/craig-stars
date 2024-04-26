@@ -227,6 +227,7 @@ describe('Producer test', () => {
 
 	it('estimate 1 mine, 1 factory, 5 resources per year', () => {
 		const planet = new CommandedPlanet();
+		planet.contributesOnlyLeftoverToResearch = true;
 		const player = new Player();
 		planet.hab = { grav: 50, temp: 50, rad: 50 };
 
@@ -269,6 +270,7 @@ describe('Producer test', () => {
 	it('estimate 1 auto mine, 1 auto factory, 5 resources per year', () => {
 		const planet = new CommandedPlanet();
 		const player = new Player();
+		planet.contributesOnlyLeftoverToResearch = true;
 		planet.hab = { grav: 50, temp: 50, rad: 50 };
 
 		// we have enough minerals to build factories, but not enough resources
@@ -309,6 +311,7 @@ describe('Producer test', () => {
 
 	it('estimate 5 MaxTerraform, 20 auto factories, 100 auto mines', () => {
 		const planet = new CommandedPlanet();
+		planet.contributesOnlyLeftoverToResearch = true;
 		const player = new Player();
 		player.techLevels = {
 			energy: 3,
@@ -373,6 +376,7 @@ describe('Producer test', () => {
 
 	it('estimate 20 Auto Factories, 20 auto mines, 20 auto max terraform', () => {
 		const planet = new CommandedPlanet();
+		planet.contributesOnlyLeftoverToResearch = true;
 		const player = new Player();
 		player.techLevels = {
 			energy: 3,

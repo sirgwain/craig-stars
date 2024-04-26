@@ -6,6 +6,7 @@ import { QueueItemTypes } from './QueueItemType';
 import { humanoid } from './Race';
 import { defaultRules } from './Rules';
 import type { TechStore } from './Tech';
+import { NeverBuilt } from '$lib/services/Producer';
 
 describe('Planet test', () => {
 	const techStore = techjson as TechStore;
@@ -84,12 +85,28 @@ describe('Planet test', () => {
 		const planet = new CommandedPlanet();
 		const player = new Player();
 		planet.hab = { grav: 50, temp: 50, rad: 50 };
-		planet.population = 10_000
+		planet.population = 10_000;
 		expect(planet.getResourcesAvailable(player)).toBe(10);
 
 		// 1 resource per factory
 		planet.factories = 1;
 		expect(planet.getResourcesAvailable(player)).toBe(11);
+	});
+
+	it('getYearsToBuildOne', () => {
+		const planet = new CommandedPlanet();
+		const player = new Player();
+		planet.hab = { grav: 50, temp: 50, rad: 50 };
+		planet.population = 10_000;
+		expect(planet.getYearsToBuildOne({ resources: 10 }, {}, { resources: 10 })).toBe(1);
+		expect(planet.getYearsToBuildOne({ resources: 20 }, {}, { resources: 10 })).toBe(2);
+
+		// never build because no ironium being mined
+		expect(planet.getYearsToBuildOne({ ironium: 10, resources: 10 }, {}, { resources: 10 })).toBe(NeverBuilt);
+
+		// takes > 100 years, so equivalent to never built
+		expect(planet.getYearsToBuildOne({ ironium: 110, resources: 110 }, {}, { ironium: 1, resources: 1 })).toBe(NeverBuilt);
+
 	});
 
 	it('getMaxBuildable', () => {
@@ -105,10 +122,14 @@ describe('Planet test', () => {
 		expect(planet.getMaxBuildable(techStore, player, 1_000_000, QueueItemTypes.Mine)).toBe(990);
 		expect(planet.getMaxBuildable(techStore, player, 1_000_000, QueueItemTypes.AutoMines)).toBe(90);
 		expect(planet.getMaxBuildable(techStore, player, 1_000_000, QueueItemTypes.Factory)).toBe(990);
-		expect(planet.getMaxBuildable(techStore, player, 1_000_000, QueueItemTypes.AutoFactories)).toBe(90);
+		expect(planet.getMaxBuildable(techStore, player, 1_000_000, QueueItemTypes.AutoFactories)).toBe(
+			90
+		);
 		expect(planet.getMaxBuildable(techStore, player, 1_000_000, QueueItemTypes.Defenses)).toBe(90);
-		expect(planet.getMaxBuildable(techStore, player, 1_000_000, QueueItemTypes.AutoDefenses)).toBe(90);
-		
+		expect(planet.getMaxBuildable(techStore, player, 1_000_000, QueueItemTypes.AutoDefenses)).toBe(
+			90
+		);
+
 		// should build a scanner
 		expect(planet.getMaxBuildable(techStore, player, 1, QueueItemTypes.PlanetaryScanner)).toBe(1);
 		planet.scanner = true;

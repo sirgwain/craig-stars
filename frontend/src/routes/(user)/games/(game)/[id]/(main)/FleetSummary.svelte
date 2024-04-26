@@ -3,7 +3,7 @@
 	import FuelBar from '$lib/components/game/FuelBar.svelte';
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { getDamagePercentForToken, type Fleet } from '$lib/types/Fleet';
+	import { getDamagePercentForToken, type Fleet, WaypointTask } from '$lib/types/Fleet';
 	import { ownedBy } from '$lib/types/MapObject';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import { kebabCase, startCase } from 'lodash-es';
@@ -79,17 +79,19 @@
 		{#if fleet.waypoints && fleet.waypoints.length > 1}
 			<div class="flex flex-row">
 				<div class="w-32 text-tile-item-title">Next Waypoint:</div>
-				<div>{fleet.waypoints[1].targetName}</div>
+				<div>{$universe.getTargetName(fleet.waypoints[1])}</div>
 			</div>
+			{#if fleet.waypoints[1].task != WaypointTask.None}
+				<div class="flex flex-row">
+					<div class="w-32 text-tile-item-title">Task:</div>
+					<div>{startCase(fleet.waypoints[1].task)}</div>
+				</div>
+			{/if}
 			<div class="flex flex-row">
-				<div class="w-32 text-tile-item-title">Task:</div>
-				<div>{startCase(fleet.waypoints[1].task)}</div>
+				<div class="w-32 text-tile-item-title">Warp Speed:</div>
+				<div>{fleet.waypoints[1].warpSpeed ?? 0}</div>
 			</div>
 		{/if}
-		<div class="flex flex-row">
-			<div class="w-32 text-tile-item-title">Warp Speed:</div>
-			<div>{fleet.warpSpeed ?? 0}</div>
-		</div>
 
 		{#if !ownedBy(fleet, $player.num) && fleet.tokens}
 			<div class="text-tile-item-title">

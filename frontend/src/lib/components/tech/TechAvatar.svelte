@@ -10,7 +10,7 @@
 
 	let hull: TechHull;
 
-	const icon = (hullSetNumber: number) => {
+	const icon = (tech: Tech, hullSetNumber: number) => {
 		const name = kebabCase(tech?.name.replace("'", '').replace(' ', '').replace('±', ''));
 		if (hull) {
 			return `hull-${name}-${hullSetNumber ?? 0}`;
@@ -25,7 +25,7 @@
 </script>
 
 <div
-	class="avatar tech-avatar {icon(hullSetNumber)}"
+	class="avatar tech-avatar {icon(tech, hullSetNumber)}"
 	on:contextmenu|preventDefault={(e) => onTechTooltip(e, tech)}
 >
 	{#if hullTooltip && hull}
