@@ -140,7 +140,7 @@ export enum MessageType {
 	RemoteMined,
 	TechGained,
 	FleetTargetLost,
-	FleetColonistDieoff,
+	FleetRadiatingEngineDieoff,
 	PlanetDiedOff,
 	PlanetEmptied,
 	PlanetDiscoveryHabitable,
