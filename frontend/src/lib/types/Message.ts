@@ -140,7 +140,7 @@ export enum MessageType {
 	RemoteMined,
 	TechGained,
 	FleetTargetLost,
-	FleetColonistDieoff,
+	FleetRadiatingEngineDieoff,
 	PlanetDiedOff,
 	PlanetEmptied,
 	PlanetDiscoveryHabitable,
@@ -167,7 +167,7 @@ export enum MessageType {
 	TechLevelGainedInvasion,
 	TechLevelGainedScrapFleet,
 	TechLevelGainedBattle,
-	FleetDieoff,
+	FleetDieoff
 }
 
 // get the next visible message taking into account filters
@@ -184,5 +184,3 @@ export function getNextVisibleMessageNum(
 	}
 	return num;
 }
-
-

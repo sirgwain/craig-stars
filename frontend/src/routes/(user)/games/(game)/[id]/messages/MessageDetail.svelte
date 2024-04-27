@@ -80,7 +80,7 @@
 	{getBattleMessage(message)}
 {:else if planet}
 	<PlanetMessageDetail {message} {planet} {owner} />
-{:else if fleet}
+{:else if target?.type == MapObjectType.Fleet || fleet}
 	<FleetMessageDetail {message} {fleet} {owner} />
 {:else if message.type === MessageType.FleetShipExceededSafeSpeed}
 	<!-- The fleet could have been destroyed, in which case we won't have a fleet for this message so capture it here -->
