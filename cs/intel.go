@@ -2,6 +2,7 @@ package cs
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/rs/zerolog/log"
 )
@@ -26,6 +27,7 @@ type discoverer interface {
 	discoverSalvage(salvage *Salvage)
 	discoverWormhole(wormhole *Wormhole)
 	discoverWormholeLink(wormhole1, wormhole2 *Wormhole)
+	forgetWormhole(num int)
 	discoverMysteryTrader(mineField *MysteryTrader)
 	discoverDesign(player *Player, design *ShipDesign, discoverSlots bool)
 
@@ -35,67 +37,16 @@ type discoverer interface {
 	getMineFieldIntel(playerNum, num int) *MineFieldIntel
 	getMineralPacketIntel(playerNum, num int) *MineralPacketIntel
 	getFleetIntel(playerNum, num int) *FleetIntel
+	getShipDesignIntel(playerNum, num int) *ShipDesignIntel
 	getSalvageIntel(num int) *SalvageIntel
 }
 
 type discover struct {
-	player                   *Player
-	fleetIntelsByKey         map[playerObject]*FleetIntel
-	salvageIntelsByKey       map[int]*SalvageIntel
-	mineFieldIntelsByKey     map[playerObject]*MineFieldIntel
-	mineralPacketIntelsByKey map[playerObject]*MineralPacketIntel
-	designIntelsByKey        map[playerObject]*ShipDesignIntel
-	wormholeIntelsByKey      map[int]*WormholeIntel
-	mysteryTraderIntelsByKey map[int]*MysteryTraderIntel
+	player *Player
 }
 
 func newDiscoverer(player *Player) discoverer {
-	d := &discover{
-		player: player,
-	}
-	d.fleetIntelsByKey = make(map[playerObject]*FleetIntel, len(player.FleetIntels))
-	for i := range player.FleetIntels {
-		intel := &player.FleetIntels[i]
-		d.fleetIntelsByKey[intel.playerObjectKey()] = intel
-	}
-
-	d.mineFieldIntelsByKey = make(map[playerObject]*MineFieldIntel, len(player.MineFieldIntels))
-	for i := range player.MineFieldIntels {
-		intel := &player.MineFieldIntels[i]
-		d.mineFieldIntelsByKey[intel.playerObjectKey()] = intel
-	}
-
-	d.mineralPacketIntelsByKey = make(map[playerObject]*MineralPacketIntel, len(player.MineralPacketIntels))
-	for i := range player.MineralPacketIntels {
-		intel := &player.MineralPacketIntels[i]
-		d.mineralPacketIntelsByKey[intel.playerObjectKey()] = intel
-	}
-
-	d.salvageIntelsByKey = make(map[int]*SalvageIntel, len(player.SalvageIntels))
-	for i := range player.SalvageIntels {
-		intel := &player.SalvageIntels[i]
-		d.salvageIntelsByKey[intel.Num] = intel
-	}
-
-	d.wormholeIntelsByKey = make(map[int]*WormholeIntel, len(player.WormholeIntels))
-	for i := range player.WormholeIntels {
-		intel := &player.WormholeIntels[i]
-		d.wormholeIntelsByKey[intel.Num] = intel
-	}
-
-	d.mysteryTraderIntelsByKey = make(map[int]*MysteryTraderIntel, len(player.MysteryTraderIntels))
-	for i := range player.MysteryTraderIntels {
-		intel := &player.MysteryTraderIntels[i]
-		d.mysteryTraderIntelsByKey[intel.Num] = intel
-	}
-
-	d.designIntelsByKey = make(map[playerObject]*ShipDesignIntel, len(player.ShipDesignIntels))
-	for i := range player.ShipDesignIntels {
-		intel := &player.ShipDesignIntels[i]
-		d.designIntelsByKey[intel.playerObjectKey()] = intel
-	}
-
-	return d
+	return &discover{player: player}
 }
 
 type Intel struct {
@@ -113,10 +64,6 @@ type MapObjectIntel struct {
 
 func (intel *Intel) String() string {
 	return fmt.Sprintf("Num: %3d %s", intel.Num, intel.Name)
-}
-
-func (intel *Intel) playerObjectKey() playerObject {
-	return playerObjectKey(intel.PlayerNum, intel.Num)
 }
 
 func (intel *Intel) Owned() bool {
@@ -316,13 +263,9 @@ func (intel *PlanetIntel) Explored() bool {
 // clear any transient player reports that are refreshed each turn
 func (d *discover) clearTransientReports() {
 	d.player.FleetIntels = []FleetIntel{}
-	d.fleetIntelsByKey = make(map[playerObject]*FleetIntel)
 	d.player.MineFieldIntels = []MineFieldIntel{}
-	d.mineFieldIntelsByKey = make(map[playerObject]*MineFieldIntel)
 	d.player.SalvageIntels = []SalvageIntel{}
-	d.salvageIntelsByKey = make(map[int]*SalvageIntel)
 	d.player.MineralPacketIntels = []MineralPacketIntel{}
-	d.mineralPacketIntelsByKey = make(map[playerObject]*MineralPacketIntel)
 }
 
 // discover a planet and add it to the player's intel
@@ -473,28 +416,25 @@ func (d *discover) discoverFleet(player *Player, fleet *Fleet) {
 	intel.Tokens = fleet.Tokens
 
 	player.FleetIntels = append(player.FleetIntels, intel)
-	d.fleetIntelsByKey[playerObjectKey(intel.PlayerNum, intel.Num)] = &intel
 }
 
 // discover cargo for an existing fleet
 func (d *discover) discoverFleetCargo(player *Player, fleet *Fleet) {
-	existingIntel, found := d.fleetIntelsByKey[playerObjectKey(fleet.PlayerNum, fleet.Num)]
-	if found {
+	existingIntel := d.getFleetIntel(fleet.PlayerNum, fleet.Num)
+	if existingIntel != nil {
 		existingIntel.Cargo = fleet.Cargo
 		existingIntel.CargoDiscovered = true
 	}
-
 }
 
 // discover a salvage and add it to the player's salvage intel
 func (d *discover) discoverSalvage(salvage *Salvage) {
 	player := d.player
-	intel, found := d.salvageIntelsByKey[salvage.Num]
-	if !found {
+	intel := d.getSalvageIntel(salvage.Num)
+	if intel == nil {
 		// discover this new wormhole
 		player.SalvageIntels = append(player.SalvageIntels, *newSalvageIntel(salvage.PlayerNum, salvage.Num))
 		intel = &player.SalvageIntels[len(player.SalvageIntels)-1]
-		d.salvageIntelsByKey[intel.Num] = intel
 
 		log.Debug().
 			Int64("GameID", player.GameID).
@@ -513,14 +453,12 @@ func (d *discover) discoverSalvage(salvage *Salvage) {
 
 // discover a mineField and add it to the player's mineField intel
 func (d *discover) discoverMineField(player *Player, mineField *MineField) {
-	key := playerObjectKey(mineField.PlayerNum, mineField.Num)
-	intel, found := d.mineFieldIntelsByKey[key]
-	if !found {
+	intel := d.getMineFieldIntel(mineField.PlayerNum, mineField.Num)
+	if intel == nil {
 		// discover this new mineField
 		intel = newMineFieldIntel(mineField.PlayerNum, mineField.Num)
 		player.MineFieldIntels = append(player.MineFieldIntels, *intel)
 		intel = &player.MineFieldIntels[len(player.MineFieldIntels)-1]
-		d.mineFieldIntelsByKey[intel.playerObjectKey()] = intel
 		log.Debug().
 			Int64("GameID", player.GameID).
 			Int("Player", player.Num).
@@ -538,14 +476,12 @@ func (d *discover) discoverMineField(player *Player, mineField *MineField) {
 
 // discover a mineralPacket and add it to the player's mineralPacket intel
 func (d *discover) discoverMineralPacket(rules *Rules, player *Player, mineralPacket *MineralPacket, packetPlayer *Player, target *Planet) {
-	key := playerObjectKey(mineralPacket.PlayerNum, mineralPacket.Num)
-	intel, found := d.mineralPacketIntelsByKey[key]
-	if !found {
+	intel := d.getMineralPacketIntel(mineralPacket.PlayerNum, mineralPacket.Num)
+	if intel == nil {
 		// discover this new mineralPacket
 		intel = newMineralPacketIntel(mineralPacket.PlayerNum, mineralPacket.Num)
 		player.MineralPacketIntels = append(player.MineralPacketIntels, *intel)
 		intel = &player.MineralPacketIntels[len(player.MineralPacketIntels)-1]
-		d.mineralPacketIntelsByKey[intel.playerObjectKey()] = intel
 		log.Debug().
 			Int64("GameID", player.GameID).
 			Int("Player", player.Num).
@@ -574,9 +510,8 @@ func (d *discover) discoverMineralPacket(rules *Rules, player *Player, mineralPa
 // discover a player's design. This is a noop if we already know about
 // the design and aren't discovering slots
 func (d *discover) discoverDesign(player *Player, design *ShipDesign, discoverSlots bool) {
-	key := playerObjectKey(design.PlayerNum, design.Num)
-	intel, found := d.designIntelsByKey[key]
-	if !found {
+	intel := d.getShipDesignIntel(design.PlayerNum, design.Num)
+	if intel == nil {
 		// create a new intel for this design
 		intel = &ShipDesignIntel{
 			Intel: Intel{
@@ -591,7 +526,6 @@ func (d *discover) discoverDesign(player *Player, design *ShipDesign, discoverSl
 		// save this new design to our intel
 		player.ShipDesignIntels = append(player.ShipDesignIntels, *intel)
 		intel = &player.ShipDesignIntels[len(player.ShipDesignIntels)-1]
-		d.designIntelsByKey[key] = intel
 
 		log.Debug().
 			Int64("GameID", player.GameID).
@@ -626,12 +560,11 @@ func (d *discover) discoverDesign(player *Player, design *ShipDesign, discoverSl
 // discover a wormhole and add it to the player's wormhole intel
 func (d *discover) discoverWormhole(wormhole *Wormhole) {
 	player := d.player
-	intel, found := d.wormholeIntelsByKey[wormhole.Num]
-	if !found {
+	intel := d.getWormholeIntel(wormhole.Num)
+	if intel == nil {
 		// discover this new wormhole
 		player.WormholeIntels = append(player.WormholeIntels, *newWormholeIntel(wormhole.Num))
 		intel = &player.WormholeIntels[len(player.WormholeIntels)-1]
-		d.wormholeIntelsByKey[intel.Num] = intel
 		log.Debug().
 			Int64("GameID", player.GameID).
 			Int("Player", player.Num).
@@ -646,12 +579,11 @@ func (d *discover) discoverWormhole(wormhole *Wormhole) {
 
 func (d *discover) discoverWormholeLink(wormhole1, wormhole2 *Wormhole) {
 	player := d.player
-	intel1, found := d.wormholeIntelsByKey[wormhole1.Num]
-	if !found {
+	intel1 := d.getWormholeIntel(wormhole1.Num)
+	if intel1 == nil {
 		// discover this new wormhole
 		player.WormholeIntels = append(player.WormholeIntels, *newWormholeIntel(wormhole1.Num))
 		intel1 = &player.WormholeIntels[len(player.WormholeIntels)-1]
-		d.wormholeIntelsByKey[intel1.Num] = intel1
 		log.Debug().
 			Int64("GameID", player.GameID).
 			Int("Player", player.Num).
@@ -659,12 +591,11 @@ func (d *discover) discoverWormholeLink(wormhole1, wormhole2 *Wormhole) {
 			Msgf("player discovered wormhole1 link")
 	}
 
-	intel2, found := d.wormholeIntelsByKey[wormhole2.Num]
-	if !found {
+	intel2 := d.getWormholeIntel(wormhole2.Num)
+	if intel2 == nil {
 		// discover this new wormhole
 		player.WormholeIntels = append(player.WormholeIntels, *newWormholeIntel(wormhole2.Num))
 		intel2 = &player.WormholeIntels[len(player.WormholeIntels)-1]
-		d.wormholeIntelsByKey[intel2.Num] = intel2
 		log.Debug().
 			Int64("GameID", player.GameID).
 			Int("Player", player.Num).
@@ -683,15 +614,42 @@ func (d *discover) discoverWormholeLink(wormhole1, wormhole2 *Wormhole) {
 	intel2.DestinationNum = wormhole2.DestinationNum
 }
 
+// forget about a wormhole
+func (d *discover) forgetWormhole(num int) {
+	player := d.player
+	intel := d.getWormholeIntel(num)
+
+	if intel == nil {
+		// no wormhole to forget
+		return
+	}
+
+	// remeber the dest
+	dest := intel.DestinationNum
+
+	// forget this wormhole
+	player.WormholeIntels = slices.DeleteFunc(player.WormholeIntels, func(w WormholeIntel) bool { return w.Num == num })
+	log.Debug().
+		Int64("GameID", player.GameID).
+		Int("Player", player.Num).
+		Int("Wormhole", num).
+		Msgf("player forgot wormhole")
+
+		// if we knew the destination, remove the link
+	intelLink := d.getWormholeIntel(dest)
+	if intelLink != nil {
+		intelLink.DestinationNum = None
+	}
+}
+
 // discover a mysteryTrader and add it to the player's mysteryTrader intel
 func (d *discover) discoverMysteryTrader(mysteryTrader *MysteryTrader) {
 	player := d.player
-	intel, found := d.mysteryTraderIntelsByKey[mysteryTrader.Num]
-	if !found {
+	intel := d.getMysteryTraderIntel(mysteryTrader.Num)
+	if intel == nil {
 		// discover this new mysteryTrader
 		player.MysteryTraderIntels = append(player.MysteryTraderIntels, *newMysteryTraderIntel(mysteryTrader.Num))
 		intel = &player.MysteryTraderIntels[len(player.MysteryTraderIntels)-1]
-		d.mysteryTraderIntelsByKey[intel.Num] = intel
 		log.Debug().
 			Int64("GameID", player.GameID).
 			Int("Player", player.Num).
@@ -733,28 +691,75 @@ func (d *discover) getPlanetIntel(num int) *PlanetIntel {
 }
 
 func (d *discover) getWormholeIntel(num int) *WormholeIntel {
-	return d.wormholeIntelsByKey[num]
+	for i := range d.player.WormholeIntels {
+		intel := &d.player.WormholeIntels[i]
+		if intel.Num == num {
+			return intel
+		}
+	}
+	return nil
 }
 
 func (d *discover) getMysteryTraderIntel(num int) *MysteryTraderIntel {
-	return d.mysteryTraderIntelsByKey[num]
+	for i := range d.player.MysteryTraderIntels {
+		intel := &d.player.MysteryTraderIntels[i]
+		if intel.Num == num {
+			return intel
+		}
+	}
+	return nil
 }
 
 func (d *discover) getMineFieldIntel(playerNum, num int) *MineFieldIntel {
-	key := playerObjectKey(playerNum, num)
-	return d.mineFieldIntelsByKey[key]
+	for i := range d.player.MineFieldIntels {
+		intel := &d.player.MineFieldIntels[i]
+		if intel.PlayerNum == playerNum && intel.Num == num {
+			return intel
+		}
+	}
+
+	return nil
 }
 
 func (d *discover) getMineralPacketIntel(playerNum, num int) *MineralPacketIntel {
-	key := playerObjectKey(playerNum, num)
-	return d.mineralPacketIntelsByKey[key]
+	for i := range d.player.MineralPacketIntels {
+		intel := &d.player.MineralPacketIntels[i]
+		if intel.PlayerNum == playerNum && intel.Num == num {
+			return intel
+		}
+	}
+
+	return nil
 }
 
 func (d *discover) getFleetIntel(playerNum, num int) *FleetIntel {
-	key := playerObjectKey(playerNum, num)
-	return d.fleetIntelsByKey[key]
+	for i := range d.player.FleetIntels {
+		intel := &d.player.FleetIntels[i]
+		if intel.PlayerNum == playerNum && intel.Num == num {
+			return intel
+		}
+	}
+
+	return nil
+}
+
+func (d *discover) getShipDesignIntel(playerNum, num int) *ShipDesignIntel {
+	for i := range d.player.ShipDesignIntels {
+		intel := &d.player.ShipDesignIntels[i]
+		if intel.PlayerNum == playerNum && intel.Num == num {
+			return intel
+		}
+	}
+
+	return nil
 }
 
 func (d *discover) getSalvageIntel(num int) *SalvageIntel {
-	return d.salvageIntelsByKey[num]
+	for i := range d.player.SalvageIntels {
+		intel := &d.player.SalvageIntels[i]
+		if intel.Num == num {
+			return intel
+		}
+	}
+	return nil
 }

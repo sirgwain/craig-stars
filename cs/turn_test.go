@@ -934,6 +934,36 @@ func Test_turn_instaform(t *testing.T) {
 	assert.Equal(t, Hab{48, 50, 50}, planet.Hab)
 }
 
+func Test_turn_instaformTakenPlanet(t *testing.T) {
+	game := createSingleUnitGame()
+	player := game.Players[0]
+	planet := game.Planets[0]
+
+	// allow Grav3 terraform
+	player.Race.PRT = CA
+	player.TechLevels = TechLevel{Propulsion: 1, Biotechnology: 1}
+
+	// pretend this planet's hab was changed by another instaformer
+	// we should reset it to the base hab + our terraform ability
+	// normally this won't be an issue because the planet hab should be reset on invasion
+	// but I had a bug in a game, so this will fix that. :)
+	planet.Hab = Hab{40, 50, 50}
+	planet.BaseHab = Hab{45, 50, 50}
+	planet.TerraformedAmount = Hab{}
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// instaform
+	turn.generateTurn()
+
+	// should terraform 3 grav points
+	// TODO: sometimes this fails if we randomly permaform...
+	assert.Equal(t, Hab{48, 50, 50}, planet.Hab)
+}
+
 func Test_turn_fleetRepair(t *testing.T) {
 	game := createSingleUnitGame()
 	player := game.Players[0]

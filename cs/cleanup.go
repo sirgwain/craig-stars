@@ -14,6 +14,7 @@ type Cleaner interface {
 	RemovePlayerDesignIntels(game *FullGame)
 	AddScannerToInnateScannerPlanets(game *FullGame)
 	AddRandomArtifactsToPlanets(game *FullGame)
+	ResetHomeworldBaseHab(game *FullGame)
 }
 
 type cleanup struct {
@@ -84,5 +85,24 @@ func (c *cleanup) AddRandomArtifactsToPlanets(game *FullGame) {
 				Msgf("cleanup: added random artifact to planet %s", planet.Name)
 		}
 
+	}
+}
+
+func (c *cleanup) ResetHomeworldBaseHab(game *FullGame) {
+	for _, planet := range game.Planets {
+		if !planet.Homeworld {
+			continue
+		}
+
+		// these are homeworlds. hopefully they haven't been hit by a comet
+		// and re-terraformed...
+		prevHab := planet.BaseHab
+		planet.BaseHab = planet.Hab
+
+		planet.MarkDirty()
+		log.Info().
+			Int64("GameID", game.ID).
+			Str("Name", game.Name).
+			Msgf("cleanup: reset BaseHab on homeworld %s from %s to %s", planet.Name, prevHab, planet.BaseHab)
 	}
 }

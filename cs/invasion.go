@@ -32,13 +32,11 @@ func invadePlanet(rules *Rules, planet *Planet, fleet *Fleet, defender *Player, 
 		messager.planetInvaded(defender, planet, fleet, defender.Race.PluralName, attacker.Race.PluralName, attackersKilled, planet.population(), true)
 		messager.planetInvaded(attacker, planet, fleet, defender.Race.PluralName, attacker.Race.PluralName, attackersKilled, planet.population(), true)
 
-		// take over the planet.
 		// empty this planet
+		planet.emptyPlanet()
+		
+		// take over the planet.
 		planet.PlayerNum = attacker.Num
-		planet.Starbase = nil
-		planet.Scanner = false
-		planet.Defenses = 0 // defenses are destroyed during invasion
-		planet.ProductionQueue = []ProductionQueueItem{}
 		planet.setPopulation(remainingAttackers)
 
 		// make sure the defender knows about this new planet

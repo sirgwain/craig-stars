@@ -17,6 +17,7 @@ Version Info:
 001 - Fix player discovers own starbase designs on planet discovery and adds them to intel
 002 - Ensure all AR planets have scanners
 003 - Add random artifacts to undiscovered planets
+004 - Set BaseHab of Homeworlds to Hab. They were accidentally 0
 
 */
 
@@ -32,7 +33,7 @@ type upgrade struct {
 	tx *client
 }
 
-const LATEST_VERSION = 3
+const LATEST_VERSION = 4
 
 func (conn *dbConn) mustUpgrade() {
 
@@ -61,6 +62,8 @@ func (tx *client) ensureUpgrade() error {
 				err = u.upgrade2()
 			case 2:
 				err = u.upgrade3()
+			case 3:
+				err = u.upgrade4()
 			}
 
 			// check for any issues upgrading
@@ -152,6 +155,14 @@ func (u *upgrade) upgrade3() error {
 	return u.upgradeGames(func(fg *cs.FullGame) error {
 		cleaner := cs.NewCleaner()
 		cleaner.AddRandomArtifactsToPlanets(fg)
+		return nil
+	})
+}
+
+func (u *upgrade) upgrade4() error {
+	return u.upgradeGames(func(fg *cs.FullGame) error {
+		cleaner := cs.NewCleaner()
+		cleaner.ResetHomeworldBaseHab(fg)
 		return nil
 	})
 }
