@@ -302,13 +302,14 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 	if !player.Race.ImmuneRad {
 		p.Hab.Rad = habCenter.Rad + int(float64((habWidth.Rad-rules.random.Intn(habWidth.Rad-1)))/2*startingPlanet.HabPenaltyFactor)
 	}
+	// BaseHab is the same as Hab
+	p.BaseHab = p.Hab
 
 	p.MineralConcentration = concentration
 	p.Cargo = surface.ToCargo()
 
-	// reset some fields in case this is called on an existing planet for some reason
+	// empty queue, no terraform
 	p.ProductionQueue = []ProductionQueueItem{}
-	p.BaseHab = Hab{}
 	p.TerraformedAmount = Hab{}
 
 	raceSpec := player.Race.Spec

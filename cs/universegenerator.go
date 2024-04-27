@@ -158,7 +158,7 @@ func (ug *universeGenerator) generateWormholes() error {
 	}
 
 	for i := 0; i < numPairs*2; i++ {
-		position, stability, err := generateWormhole(&ug.universe, i+1, ug.area, ug.Rules.random, planetPositions, wormholePositions, ug.Rules.WormholeMinPlanetDistance)
+		position, stability, err := generateWormhole(&ug.universe, ug.area, ug.Rules.random, planetPositions, wormholePositions, ug.Rules.WormholeMinPlanetDistance)
 
 		if err != nil {
 			return err

@@ -1104,16 +1104,15 @@ func (t *turn) wormholeJiggle() {
 	planetPositions := make([]Vector, len(t.game.Planets))
 	wormholePositions := make([]Vector, len(t.game.Wormholes))
 
-	latestNum := t.game.Wormholes[len(t.game.Wormholes)-1].Num
 	for _, wormhole := range t.game.Wormholes {
 		originalPosition := wormhole.Position
-		wormhole.jiggle(t.game.Universe, t.game.Rules.random)
+		wormhole.jiggle(t.game.Area, t.game.Universe, t.game.Rules.random)
 		t.game.moveWormhole(wormhole, originalPosition)
 
 		wormhole.degrade()
 		if wormhole.shouldJump(t.game.Rules.random) {
 			// this wormhole jumped. We actually delete the previous one and create a new one. This way scanner history is reset
-			position, _, err := generateWormhole(t.game.Universe, latestNum+1, t.game.Area, t.game.Rules.random, planetPositions, wormholePositions, t.game.Rules.WormholeMinPlanetDistance)
+			position, _, err := generateWormhole(t.game.Universe, t.game.Area, t.game.Rules.random, planetPositions, wormholePositions, t.game.Rules.WormholeMinPlanetDistance)
 			if err != nil {
 				// don't kill turn generation over this, just move on without a new wormhole
 				log.Error().Err(err).Msgf("failed to generate new wormhole after wormhole jump")
@@ -2355,17 +2354,24 @@ func (t *turn) instaform() {
 		if planet.Owned() {
 			player := t.game.getPlayer(planet.PlayerNum)
 			if player.Race.Spec.Instaforming {
-				terraformAmount := planet.Spec.TerraformAmount
-				if terraformAmount.absSum() > 0 {
+				// find out how much our instaform would terraform this planet from base
+				terraformer := NewTerraformer()
+				instaformAmount := terraformer.getTerraformAmount(planet.BaseHab, planet.BaseHab, player, player)
+				newHab := planet.BaseHab.Add(instaformAmount)
+			
+				// see if we would change this planet's hab
+				if newHab != planet.Hab {
 					// Instantly terraform this planet (but don't update planet.TerraformAmount, this change doesn't stick if we leave)
-					planet.Hab = planet.Hab.Add(terraformAmount)
+					prevHab := planet.Hab
+					planet.Hab = newHab
 					planet.Spec = computePlanetSpec(&t.game.Rules, player, planet)
-					messager.instaform(player, planet, terraformAmount)
+					messager.instaform(player, planet, instaformAmount)
 
 					log.Debug().
 						Int64("GameID", t.game.ID).
 						Int("Player", player.Num).
 						Str("Planet", planet.Name).
+						Str("PreviousHab", prevHab.String()).
 						Str("Hab", planet.Hab.String()).
 						Msgf("instaformed planet")
 

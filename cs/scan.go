@@ -220,10 +220,6 @@ func (scan *playerScan) fleetInScannerRange(fleet *Fleet, scanner scanner) bool 
 // scan all fleets and discover their designs if we should
 func (scan *playerScan) scanWormholes(scanners []scanner) {
 	for _, wormhole := range scan.universe.Wormholes {
-		if wormhole.Delete {
-			continue
-		}
-
 		intel := scan.discoverer.getWormholeIntel(wormhole.Num)
 		cloakFactor := 1.0 - (float64(scan.rules.WormholeCloak) / 100)
 		if intel != nil {
@@ -232,13 +228,35 @@ func (scan *playerScan) scanWormholes(scanners []scanner) {
 
 		for _, scanner := range scanners {
 			if cloakFactor != 1 {
-				// calculate cloak reduction for tachyon detectors if this minefield is cloaked
+				// calculate cloak reduction for tachyon detectors if this wormhole is cloaked
 				cloakFactor = 1 - (1-cloakFactor)*scanner.CloakReduction
 			}
 
 			// we only care about regular scanners for wormholes
 			if float64(scanner.RangeSquared)*cloakFactor >= scanner.Position.DistanceSquaredTo(wormhole.Position) {
-				scan.discoverer.discoverWormhole(wormhole)
+				if wormhole.Delete {
+					// this wormhole went away, rmeove it from intel
+					scan.discoverer.forgetWormhole(wormhole.Num)
+				} else {
+					scan.discoverer.discoverWormhole(wormhole)
+				}
+
+				break
+			}
+		}
+	}
+
+	intels := make([]WormholeIntel, len(scan.player.WormholeIntels))
+	copy(intels, scan.player.WormholeIntels)
+	for _, intel := range intels {
+		for _, scanner := range scanners {
+			// if we scanned this wormhole where we last saw it, but it no longer exists in the universe, forget it
+			if float64(scanner.RangeSquared) >= scanner.Position.DistanceSquaredTo(intel.Position) {
+				wormhole := scan.universe.getWormhole(intel.Num)
+				if wormhole == nil || wormhole.Delete {
+					// this wormhole went away, rmeove it from intel
+					scan.discoverer.forgetWormhole(intel.Num)
+				}
 				break
 			}
 		}

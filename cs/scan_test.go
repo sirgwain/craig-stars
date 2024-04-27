@@ -160,3 +160,66 @@ func Test_updateFleetTargets(t *testing.T) {
 		})
 	}
 }
+
+func Test_playerScan_scanWormholes(t *testing.T) {
+	type fields struct {
+		wormholes []*Wormhole
+		intel     []WormholeIntel
+	}
+	type args struct {
+		scanners []scanner
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   []WormholeIntel
+	}{
+		{
+			name:   "scan wormhole",
+			fields: fields{wormholes: []*Wormhole{newWormhole(Vector{}, 1, WormholeStabilityStable)}},
+			args:   args{[]scanner{{RangeSquared: 100}}},
+			want:   []WormholeIntel{{MapObjectIntel: MapObjectIntel{Type: MapObjectTypeWormhole, Intel: Intel{Num: 1}}, Stability: WormholeStabilityStable}},
+		},
+		{
+			name: "forget deleted wormhole",
+			fields: fields{
+				wormholes: []*Wormhole{{MapObject: MapObject{Num: 1, Type: MapObjectTypeWormhole, Delete: true}}},
+				intel:     []WormholeIntel{{MapObjectIntel: MapObjectIntel{Type: MapObjectTypeWormhole, Intel: Intel{Num: 1}}, Stability: WormholeStabilityStable}},
+			},
+			args: args{[]scanner{{RangeSquared: 100}}},
+			want: []WormholeIntel{},
+		},
+		{
+			name: "forget wormhole we scanned again that no longer exists in universe",
+			fields: fields{
+				intel: []WormholeIntel{{MapObjectIntel: MapObjectIntel{Type: MapObjectTypeWormhole, Intel: Intel{Num: 1}}, Stability: WormholeStabilityStable}},
+			},
+			args: args{[]scanner{{RangeSquared: 100}}},
+			want: []WormholeIntel{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			player := NewPlayer(1, NewRace().WithSpec(&rules))
+			player.WormholeIntels = tt.fields.intel
+			
+			players := []*Player{player}
+
+			universe := NewUniverse(&rules)
+			universe.Wormholes = tt.fields.wormholes
+			universe.buildMaps(players)
+
+			// make a new scanner
+			discoverer := newDiscoverer(player)
+			scan := playerScan{&universe, &rules, player, players, make(map[int]bool, len(player.PlayerIntels.PlayerIntels)), discoverer}
+			scan.scanWormholes(tt.args.scanners)
+
+			// check the waypoints returned vs what we want
+			if got := player.WormholeIntels; !test.CompareAsJSON(t, got, tt.want) {
+				t.Errorf("scanWormholes() = \n%v, want \n%v", got, tt.want)
+			}
+
+		})
+	}
+}

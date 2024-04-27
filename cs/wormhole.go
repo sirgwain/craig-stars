@@ -70,7 +70,7 @@ func computeWormholeSpec(w *Wormhole, rules *Rules) WormholeSpec {
 	}
 }
 
-func generateWormhole(mapObjectGetter mapObjectGetter, num int, area Vector, random rng, planetPositions []Vector, wormholePositions []Vector, minDistanceFromPlanets int) (position Vector, stability WormholeStability, err error) {
+func generateWormhole(mapObjectGetter mapObjectGetter, area Vector, random rng, planetPositions []Vector, wormholePositions []Vector, minDistanceFromPlanets int) (position Vector, stability WormholeStability, err error) {
 	width, height := int(area.X), int(area.Y)
 
 	position = Vector{X: float64(random.Intn(width)), Y: float64(random.Intn(height))}
@@ -91,7 +91,7 @@ func generateWormhole(mapObjectGetter mapObjectGetter, num int, area Vector, ran
 	return position, stability, nil
 }
 
-func (w *Wormhole) jiggle(mapObjectGetter mapObjectGetter, random rng) {
+func (w *Wormhole) jiggle(area Vector, mapObjectGetter mapObjectGetter, random rng) {
 	stats := w.Spec.Stats
 
 	// don't infinite jiggle
@@ -99,8 +99,8 @@ func (w *Wormhole) jiggle(mapObjectGetter mapObjectGetter, random rng) {
 	var newPosition Vector
 	for {
 		newPosition = Vector{
-			w.Position.X + float64(random.Intn(stats.JiggleDistance/2)-stats.JiggleDistance/2),
-			w.Position.Y + float64(random.Intn(stats.JiggleDistance/2)-stats.JiggleDistance/2),
+			ClampFloat64(w.Position.X+float64(random.Intn(stats.JiggleDistance/2)-stats.JiggleDistance/2), 0, area.X),
+			ClampFloat64(w.Position.Y+float64(random.Intn(stats.JiggleDistance/2)-stats.JiggleDistance/2), 0, area.Y),
 		}
 		log.Debug().Msgf("%v jiggled to %v", w, newPosition)
 		jiggleCount++
