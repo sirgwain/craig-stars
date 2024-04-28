@@ -72,6 +72,7 @@ type Player struct {
 	Race                         *PlayerRace          `json:"race,omitempty"`
 	Stats                        *PlayerStats         `json:"stats,omitempty"`
 	ScoreHistory                 *PlayerScores        `json:"scoreHistory,omitempty"`
+	AcquiredTechs                *AcquiredTechs       `json:"acquiredTechs,omitempty"`
 	AchievedVictoryConditions    cs.Bitmask           `json:"achievedVictoryConditions,omitempty"`
 	Victor                       bool                 `json:"victor,omitempty"`
 	Spec                         *PlayerSpec          `json:"spec,omitempty"`
@@ -84,6 +85,7 @@ type TransportPlans []cs.TransportPlan
 type PlayerRelationships []cs.PlayerRelationship
 type PlayerMessages []cs.PlayerMessage
 type PlayerScores []cs.PlayerScore
+type AcquiredTechs []string
 type BattleRecords []cs.BattleRecord
 type PlayerIntels []cs.PlayerIntel
 type ScoreIntels []cs.ScoreIntel
@@ -181,6 +183,14 @@ func (item *PlayerScores) Value() (driver.Value, error) {
 }
 
 func (item *PlayerScores) Scan(src interface{}) error {
+	return scanJSON(src, item)
+}
+
+func (item *AcquiredTechs) Value() (driver.Value, error) {
+	return valueJSON(item)
+}
+
+func (item *AcquiredTechs) Scan(src interface{}) error {
 	return scanJSON(src, item)
 }
 

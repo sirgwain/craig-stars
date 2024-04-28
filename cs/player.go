@@ -31,6 +31,7 @@ type Player struct {
 	Messages                  []PlayerMessage      `json:"messages,omitempty"`
 	Designs                   []*ShipDesign        `json:"designs,omitempty"`
 	ScoreHistory              []PlayerScore        `json:"scoreHistory"`
+	AcquiredTechs             []string             `json:"acquiredTechs,omitempty"`
 	AchievedVictoryConditions Bitmask              `json:"achievedVictoryConditions,omitempty"`
 	Victor                    bool                 `json:"victor"`
 	Stats                     *PlayerStats         `json:"stats,omitempty"`

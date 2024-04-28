@@ -10,7 +10,7 @@ type MysteryTrader struct {
 	WarpSpeed     int                     `json:"warpSpeed,omitempty"`
 	Destination   Vector                  `json:"destination"`
 	RequestedBoon int                     `json:"requestedBoon,omitempty"`
-	Reward        MysteryTraderRewardType `json:"reward"`
+	RewardType    MysteryTraderRewardType `json:"rewardType"`
 	Heading       Vector                  `json:"heading,omitempty"`
 	Spec          MysteryTraderSpec       `json:"spec,omitempty"`
 }
@@ -21,19 +21,36 @@ type MysteryTraderSpec struct {
 type MysteryTraderRewardType string
 
 const (
-	MysteryTraderRewardNone     MysteryTraderRewardType = ""
-	MysteryTraderRewardResearch MysteryTraderRewardType = "Research"
-	MysteryTraderRewardTorpedo  MysteryTraderRewardType = "Torpedo"
-	MysteryTraderRewardBeam     MysteryTraderRewardType = "Beam"
-	MysteryTraderRewardGenesis  MysteryTraderRewardType = "Genesis"
-	MysteryTraderRewardJumpgate MysteryTraderRewardType = "Jumpgate"
-	MysteryTraderRewardLifeboat MysteryTraderRewardType = "Lifeboat"
+	MysteryTraderRewardNone       MysteryTraderRewardType = ""
+	MysteryTraderRewardResearch   MysteryTraderRewardType = "Research"
+	MysteryTraderRewardEngine     MysteryTraderRewardType = "Engine"
+	MysteryTraderRewardBomb       MysteryTraderRewardType = "Bomb"
+	MysteryTraderRewardArmor      MysteryTraderRewardType = "Armor"
+	MysteryTraderRewardShield     MysteryTraderRewardType = "Shield"
+	MysteryTraderRewardElectrical MysteryTraderRewardType = "Electrical"
+	MysteryTraderRewardMechanical MysteryTraderRewardType = "Mechanical"
+	MysteryTraderRewardTorpedo    MysteryTraderRewardType = "Torpedo"
+	MysteryTraderRewardMineRobot  MysteryTraderRewardType = "MineRobot"
+	MysteryTraderRewardShipHull   MysteryTraderRewardType = "ShipHull"
+	MysteryTraderRewardBeamWeapon MysteryTraderRewardType = "BeamWeapon"
+	MysteryTraderRewardGenesis    MysteryTraderRewardType = "Genesis"
+	MysteryTraderRewardJumpgate   MysteryTraderRewardType = "Jumpgate"
+	MysteryTraderRewardLifeboat   MysteryTraderRewardType = "Lifeboat"
 )
 
-var Rewards = [6]MysteryTraderRewardType{
+var Rewards = [15]MysteryTraderRewardType{
 	MysteryTraderRewardNone,
+	MysteryTraderRewardResearch,
+	MysteryTraderRewardEngine,
+	MysteryTraderRewardBomb,
+	MysteryTraderRewardArmor,
+	MysteryTraderRewardShield,
+	MysteryTraderRewardElectrical,
+	MysteryTraderRewardMechanical,
 	MysteryTraderRewardTorpedo,
-	MysteryTraderRewardBeam,
+	MysteryTraderRewardBeamWeapon,
+	MysteryTraderRewardMineRobot,
+	MysteryTraderRewardShipHull,
 	MysteryTraderRewardGenesis,
 	MysteryTraderRewardJumpgate,
 	MysteryTraderRewardLifeboat,
@@ -57,7 +74,7 @@ func newMysteryTrader(position Vector, num int, warpSpeed int, destination Vecto
 		WarpSpeed:     warpSpeed,
 		Destination:   destination,
 		RequestedBoon: requestedBoon,
-		Reward:        reward,
+		RewardType:    reward,
 	}
 }
 
@@ -157,7 +174,7 @@ func (mt *MysteryTrader) meet(rules *Rules, fleet *Fleet, player *Player) Myster
 	if fleet.Cargo.ToMineral().Total() >= mt.RequestedBoon {
 		// it's a major award!
 
-		switch mt.Reward {
+		switch mt.RewardType {
 		// give the player tech levels
 		case MysteryTraderRewardResearch:
 			numLevels := player.TechLevels.Sum()
@@ -189,15 +206,7 @@ func (mt *MysteryTrader) meet(rules *Rules, fleet *Fleet, player *Player) Myster
 	return MysteryTraderReward{}
 }
 
-// func mysteryTraderTechs() []interface{} {
-// 	return []interface{}{
-// 		HushABoom,
-// 		EnigmaPulsar,
-// 		MegaPolyShell,
-// 	}
-// }
-
-var HushABoom = TechHullComponent{Tech: NewTech("Hush-a-Boom", NewCost(1, 2, 0, 2), TechRequirements{Hidden: true, TechLevel: TechLevel{Weapons: 12, Electronics: 12, Biotechnology: 12}}, 75, TechCategoryBomb),
+var HushABoom = TechHullComponent{Tech: NewTechWithOrigin("Hush-a-Boom", NewCost(1, 2, 0, 2), TechRequirements{Acquirable: true, TechLevel: TechLevel{Weapons: 12, Electronics: 12, Biotechnology: 12}}, 75, TechCategoryBomb, OriginMysteryTrader),
 	Mass:                 45,
 	KillRate:             3,
 	StructureDestroyRate: 2.0,
@@ -205,7 +214,7 @@ var HushABoom = TechHullComponent{Tech: NewTech("Hush-a-Boom", NewCost(1, 2, 0, 
 }
 
 var EnigmaPulsar = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Enigma Pulsar", NewCost(12, 15, 11, 40), TechRequirements{TechLevel: TechLevel{Energy: 7, Propulsion: 13, Construction: 5, Electronics: 9}}, 85, TechCategoryEngine),
+	TechHullComponent: TechHullComponent{Tech: NewTechWithOrigin("Enigma Pulsar", NewCost(12, 15, 11, 40), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 7, Propulsion: 13, Construction: 5, Electronics: 9}}, 85, TechCategoryEngine, OriginMysteryTrader),
 		Mass:          20,
 		HullSlotType:  HullSlotTypeEngine,
 		MovementBonus: 1,
@@ -230,7 +239,7 @@ var EnigmaPulsar = TechEngine{
 		},
 	},
 }
-var MegaPolyShell = TechHullComponent{Tech: NewTech("Mega Poly Shell", NewCost(14, 5, 5, 52), TechRequirements{TechLevel: TechLevel{Energy: 14, Construction: 14, Electronics: 14, Biotechnology: 6}}, 95, TechCategoryShield),
+var MegaPolyShell = TechHullComponent{Tech: NewTechWithOrigin("Mega Poly Shell", NewCost(14, 5, 5, 52), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 14, Construction: 14, Electronics: 14, Biotechnology: 6}}, 95, TechCategoryArmor, OriginMysteryTrader),
 
 	Mass:           20,
 	Shield:         100,
@@ -241,7 +250,7 @@ var MegaPolyShell = TechHullComponent{Tech: NewTech("Mega Poly Shell", NewCost(1
 	ScanRangePen:   40,
 	HullSlotType:   HullSlotTypeShield,
 }
-var LangstonShell = TechHullComponent{Tech: NewTech("Langston Shell", NewCost(6, 1, 4, 12), TechRequirements{TechLevel: TechLevel{Energy: 12, Propulsion: 9, Electronics: 9}}, 65, TechCategoryShield),
+var LangstonShell = TechHullComponent{Tech: NewTechWithOrigin("Langston Shell", NewCost(6, 1, 4, 12), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 12, Propulsion: 9, Electronics: 9}}, 65, TechCategoryShield, OriginMysteryTrader),
 
 	Mass:           10,
 	Shield:         125,
@@ -252,7 +261,7 @@ var LangstonShell = TechHullComponent{Tech: NewTech("Langston Shell", NewCost(6,
 	ScanRangePen:   25,
 	HullSlotType:   HullSlotTypeShield,
 }
-var MultiFunctionPod = TechHullComponent{Tech: NewTech("Multi-Function Pod", NewCost(5, 0, 5, 15), TechRequirements{TechLevel: TechLevel{Energy: 11, Propulsion: 11, Electronics: 11}}, 35, TechCategoryElectrical),
+var MultiFunctionPod = TechHullComponent{Tech: NewTechWithOrigin("Multi-Function Pod", NewCost(5, 0, 5, 15), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 11, Propulsion: 11, Electronics: 11}}, 35, TechCategoryElectrical, OriginMysteryTrader),
 
 	Mass:           2,
 	CloakUnits:     60,
@@ -260,7 +269,7 @@ var MultiFunctionPod = TechHullComponent{Tech: NewTech("Multi-Function Pod", New
 	MovementBonus:  1,
 	HullSlotType:   HullSlotTypeElectrical,
 }
-var AntiMatterTorpedo = TechHullComponent{Tech: NewTech("Anti Matter Torpedo", NewCost(3, 8, 1, 50), TechRequirements{TechLevel: TechLevel{Weapons: 11, Propulsion: 12, Biotechnology: 21}}, 65, TechCategoryTorpedo),
+var AntiMatterTorpedo = TechHullComponent{Tech: NewTechWithOrigin("Anti Matter Torpedo", NewCost(3, 8, 1, 50), TechRequirements{Acquirable: true, TechLevel: TechLevel{Weapons: 11, Propulsion: 12, Biotechnology: 21}}, 65, TechCategoryTorpedo, OriginMysteryTrader),
 
 	Mass:         8,
 	Initiative:   0,
@@ -269,12 +278,12 @@ var AntiMatterTorpedo = TechHullComponent{Tech: NewTech("Anti Matter Torpedo", N
 	Range:        6,
 	HullSlotType: HullSlotTypeWeapon,
 }
-var JumpGate = TechHullComponent{Tech: NewTech("Jump Gate", NewCost(0, 0, 38, 30), TechRequirements{TechLevel: TechLevel{Energy: 16, Propulsion: 20, Construction: 20, Electronics: 16}}, 75, TechCategoryMechanical),
+var JumpGate = TechHullComponent{Tech: NewTechWithOrigin("Jump Gate", NewCost(0, 0, 38, 30), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 16, Propulsion: 20, Construction: 20, Electronics: 16}}, 75, TechCategoryMechanical, OriginMysteryTrader),
 	Mass:         10,
 	CanJump:      true, // TODO: add support for this
 	HullSlotType: HullSlotTypeMechanical,
 }
-var MultiContainedMunition = TechHullComponent{Tech: NewTech("Multi Contained Munition", NewCost(5, 32, 5, 32), TechRequirements{TechLevel: TechLevel{Energy: 21, Weapons: 21, Electronics: 16, Biotechnology: 12}}, 175, TechCategoryBeamWeapon),
+var MultiContainedMunition = TechHullComponent{Tech: NewTechWithOrigin("Multi Contained Munition", NewCost(5, 32, 5, 32), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 21, Weapons: 21, Electronics: 16, Biotechnology: 12}}, 175, TechCategoryBeamWeapon, OriginMysteryTrader),
 	Mass:                 8,
 	Initiative:           6,
 	Power:                140,
@@ -288,7 +297,7 @@ var MultiContainedMunition = TechHullComponent{Tech: NewTech("Multi Contained Mu
 	MineLayingRate:       40,
 	HullSlotType:         HullSlotTypeWeapon,
 }
-var AlienMiner = TechHullComponent{Tech: NewTech("Alien Miner", NewCost(4, 0, 1, 10), TechRequirements{TechLevel: TechLevel{Energy: 5, Construction: 10, Electronics: 5, Biotechnology: 5}}, 55, TechCategoryMineRobot),
+var AlienMiner = TechHullComponent{Tech: NewTechWithOrigin("Alien Miner", NewCost(4, 0, 1, 10), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 5, Construction: 10, Electronics: 5, Biotechnology: 5}}, 55, TechCategoryMineRobot, OriginMysteryTrader),
 
 	Mass:           20,
 	MiningRate:     10,
@@ -297,14 +306,14 @@ var AlienMiner = TechHullComponent{Tech: NewTech("Alien Miner", NewCost(4, 0, 1,
 	MovementBonus:  1,
 	HullSlotType:   HullSlotTypeMining,
 }
-var MultiCargoPod = TechHullComponent{Tech: NewTech("Multi Cargo Pod", NewCost(12, 0, 3, 25), TechRequirements{TechLevel: TechLevel{Energy: 5, Construction: 11, Electronics: 5}}, 35, TechCategoryMechanical),
+var MultiCargoPod = TechHullComponent{Tech: NewTechWithOrigin("Multi Cargo Pod", NewCost(12, 0, 3, 25), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 5, Construction: 11, Electronics: 5}}, 35, TechCategoryMechanical, OriginMysteryTrader),
 	Mass:         9,
 	CargoBonus:   250,
 	Armor:        50,
 	CloakUnits:   20,
 	HullSlotType: HullSlotTypeMechanical,
 }
-var MiniMorph = TechHull{Tech: NewTech("Mini Morph", NewCost(30, 8, 8, 100), TechRequirements{TechLevel: TechLevel{Construction: 8}}, 305, TechCategoryShipHull),
+var MiniMorph = TechHull{Tech: NewTechWithOrigin("Mini Morph", NewCost(30, 8, 8, 100), TechRequirements{Acquirable: true, TechLevel: TechLevel{Construction: 8}}, 305, TechCategoryShipHull, OriginMysteryTrader),
 	Type:              TechHullTypeMultiPurposeFreighter,
 	Mass:              70,
 	Armor:             250,
@@ -323,6 +332,6 @@ var MiniMorph = TechHull{Tech: NewTech("Mini Morph", NewCost(30, 8, 8, 100), Tec
 		{Position: Vector{-1, 1}, Type: HullSlotTypeGeneral, Capacity: 2},
 	},
 }
-var GenesisDevice = TechPlanetary{Tech: NewTech("Genesis Device", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Energy: 20, Weapons: 10, Propulsion: 10, Construction: 20, Electronics: 10, Biotechnology: 20}}, 45, TechCategoryPlanetaryDefense),
+var GenesisDevice = TechPlanetary{Tech: NewTechWithOrigin("Genesis Device", NewCost(10, 10, 70, 100), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 20, Weapons: 10, Propulsion: 10, Construction: 20, Electronics: 10, Biotechnology: 20}}, 45, TechCategoryPlanetaryDefense, OriginMysteryTrader),
 	ResetPlanet: true,
 }

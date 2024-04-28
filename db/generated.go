@@ -224,6 +224,10 @@ func (c *GameConverter) ConvertGameMysteryTrader(source *cs.MysteryTrader) *Myst
 		dbMysteryTrader.HeadingX = (*source).Heading.X
 		dbMysteryTrader.HeadingY = (*source).Heading.Y
 		dbMysteryTrader.WarpSpeed = (*source).WarpSpeed
+		dbMysteryTrader.RequestedBoon = (*source).RequestedBoon
+		dbMysteryTrader.DestinationX = (*source).Destination.X
+		dbMysteryTrader.DestinationY = (*source).Destination.Y
+		dbMysteryTrader.RewardType = GameMysteryTraderRewardTypeToMysteryTraderRewardType((*source).RewardType)
 		dbMysteryTrader.Spec = GameMysteryTraderSpecToMysteryTraderSpec((*source).Spec)
 		pDbMysteryTrader = &dbMysteryTrader
 	}
@@ -333,6 +337,7 @@ func (c *GameConverter) ConvertGamePlayer(source *cs.Player) *Player {
 		dbPlayer.Race = GameRaceToPlayerRace((*source).Race)
 		dbPlayer.Stats = GamePlayerStatsToPlayerStats((*source).Stats)
 		dbPlayer.ScoreHistory = GamePlayerScoresToPlayerScores((*source).ScoreHistory)
+		dbPlayer.AcquiredTechs = GameAcquiredTechsToAcquiredTechs((*source).AcquiredTechs)
 		dbPlayer.AchievedVictoryConditions = cs.Bitmask((*source).AchievedVictoryConditions)
 		dbPlayer.Victor = (*source).Victor
 		dbPlayer.Spec = GamePlayerSpecToPlayerSpec((*source).Spec)
@@ -524,8 +529,11 @@ func (c *GameConverter) ConvertMysteryTrader(source *MysteryTrader) *cs.MysteryT
 	if source != nil {
 		var csMysteryTrader cs.MysteryTrader
 		csMysteryTrader.MapObject = ExtendMysteryTraderMapObject((*source))
-		csMysteryTrader.Heading = ExtendMysteryTraderHeading((*source))
 		csMysteryTrader.WarpSpeed = (*source).WarpSpeed
+		csMysteryTrader.Destination = ExtendMysteryTraderDestination((*source))
+		csMysteryTrader.RequestedBoon = (*source).RequestedBoon
+		csMysteryTrader.RewardType = MysteryTraderRewardTypeToGameMysteryTraderRewardType((*source).RewardType)
+		csMysteryTrader.Heading = ExtendMysteryTraderHeading((*source))
 		csMysteryTrader.Spec = MysteryTraderSpecToGameMysteryTraderSpec((*source).Spec)
 		pCsMysteryTrader = &csMysteryTrader
 	}
@@ -576,6 +584,7 @@ func (c *GameConverter) ConvertPlayer(source Player) cs.Player {
 	csPlayer.Relations = PlayerRelationshipsToGamePlayerRelationships(source.Relations)
 	csPlayer.Messages = PlayerMessagesToGamePlayerMessages(source.Messages)
 	csPlayer.ScoreHistory = PlayerScoresToGamePlayerScores(source.ScoreHistory)
+	csPlayer.AcquiredTechs = AcquiredTechsToGameAcquiredTechs(source.AcquiredTechs)
 	csPlayer.AchievedVictoryConditions = cs.Bitmask(source.AchievedVictoryConditions)
 	csPlayer.Victor = source.Victor
 	csPlayer.Stats = PlayerStatsToGamePlayerStats(source.Stats)

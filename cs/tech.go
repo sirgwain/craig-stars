@@ -17,6 +17,7 @@ const (
 	TechCategoryMineLayer        TechCategory = "MineLayer"
 	TechCategoryMineRobot        TechCategory = "MineRobot"
 	TechCategoryOrbital          TechCategory = "Orbital"
+	TechCategoryPlanetary        TechCategory = "Planetary"
 	TechCategoryPlanetaryScanner TechCategory = "PlanetaryScanner"
 	TechCategoryPlanetaryDefense TechCategory = "PlanetaryDefense"
 	TechCategoryScanner          TechCategory = "Scanner"
@@ -27,12 +28,18 @@ const (
 	TechCategoryTorpedo          TechCategory = "Torpedo"
 )
 
+const (
+	OriginNone          string = ""
+	OriginMysteryTrader string = "MysteryTrader"
+)
+
 type Tech struct {
 	Name         string           `json:"name"`
 	Cost         Cost             `json:"cost"`
 	Requirements TechRequirements `json:"requirements" `
 	Ranking      int              `json:"ranking,omitempty"`
 	Category     TechCategory     `json:"category,omitempty"`
+	Origin       string           `json:"origin,omitempty"`
 }
 
 type TechRequirements struct {
@@ -43,7 +50,7 @@ type TechRequirements struct {
 	PRTRequired  PRT      `json:"prtRequired,omitempty"`
 	HullsAllowed []string `json:"hullsAllowed,omitempty"`
 	HullsDenied  []string `json:"hullsDenied,omitempty"`
-	Hidden       bool     `json:"hidden,omitempty"`
+	Acquirable   bool     `json:"acquirable,omitempty"`
 }
 
 type TechHullComponent struct {
@@ -306,6 +313,12 @@ func NewTech(name string, cost Cost, requirements TechRequirements, ranking int,
 		Ranking:      ranking,
 		Category:     category,
 	}
+}
+
+func NewTechWithOrigin(name string, cost Cost, requirements TechRequirements, ranking int, category TechCategory, origin string) Tech {
+	t := NewTech(name, cost, requirements, ranking, category)
+	t.Origin = origin
+	return t
 }
 
 func (t *Tech) String() string                 { return t.Name }

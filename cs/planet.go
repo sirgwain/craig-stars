@@ -257,23 +257,23 @@ func (p *Planet) randomize(rules *Rules) {
 		germRadBonus = rules.HighRadGermaniumBonus
 	}
 
-	p.MineralConcentration = Mineral{
-		Ironium:   rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration+1),
-		Boranium:  rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration+1),
-		Germanium: rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration+1),
-	}
+p.MineralConcentration = Mineral{
+	Ironium:   rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration+1),
+	Boranium:  rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration+1),
+	Germanium: rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration+1),
+}
 
-	if p.MineralConcentration.Ironium > 30 {
-		p.MineralConcentration.Ironium = 30 + rules.random.Intn(45) + rules.random.Intn(45)
-	}
+if p.MineralConcentration.Ironium > 30 {
+	p.MineralConcentration.Ironium = 30 + rules.random.Intn(45) + rules.random.Intn(45)
+}
 
-	if p.MineralConcentration.Boranium > 30 {
-		p.MineralConcentration.Boranium = 30 + rules.random.Intn(45) + rules.random.Intn(45)
-	}
+if p.MineralConcentration.Boranium > 30 {
+	p.MineralConcentration.Boranium = 30 + rules.random.Intn(45) + rules.random.Intn(45)
+}
 
-	if p.MineralConcentration.Germanium > 30 {
-		p.MineralConcentration.Germanium = 30 + rules.random.Intn(45) + germRadBonus + rules.random.Intn(45)
-	}
+if p.MineralConcentration.Germanium > 30 {
+	p.MineralConcentration.Germanium = 30 + rules.random.Intn(45) + germRadBonus + rules.random.Intn(45)
+}
 
 	// check if this planet has a random artifact
 	if rules.RandomEventChances[RandomEventAncientArtifact] > rules.random.Float64() {

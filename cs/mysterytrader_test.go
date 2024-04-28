@@ -35,7 +35,7 @@ func Test_generateMysteryTrader(t *testing.T) {
 				WarpSpeed:     7,
 				Destination:   Vector{X: 20, Y: 20},
 				RequestedBoon: 5000,
-				Reward:        MysteryTraderRewardResearch,
+				RewardType:    MysteryTraderRewardResearch,
 			},
 		},
 	}

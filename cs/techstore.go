@@ -30,7 +30,7 @@ type TechStore struct {
 	hullsByName              map[string]*TechHull                  `json:"-"`
 	hullsByType              map[TechHullType][]*TechHull          `json:"-"`
 	enginesByName            map[string]*TechEngine                `json:"-"`
-	hullComponetnsByCategory map[TechCategory][]*TechHullComponent `json:"-"`
+	hullComponentsByCategory map[TechCategory][]*TechHullComponent `json:"-"`
 }
 
 // simple static tech store
@@ -86,7 +86,7 @@ func (store *TechStore) Init() {
 	store.hullsByName = make(map[string]*TechHull, len(store.Hulls))
 	store.enginesByName = make(map[string]*TechEngine, len(store.Engines))
 	store.hullComponentsByName = make(map[string]*TechHullComponent, len(store.Engines)+len(store.HullComponents))
-	store.hullComponetnsByCategory = map[TechCategory][]*TechHullComponent{}
+	store.hullComponentsByCategory = map[TechCategory][]*TechHullComponent{}
 
 	// we have 11 hull types. if this changes, we should update this make, but it's just for performance
 	store.hullsByType = make(map[TechHullType][]*TechHull, 11)
@@ -123,10 +123,10 @@ func (store *TechStore) Init() {
 		store.techsByName[name] = tech
 		store.hullComponentsByName[name] = tech
 
-		if _, ok := store.hullComponetnsByCategory[tech.Category]; !ok {
-			store.hullComponetnsByCategory[tech.Category] = []*TechHullComponent{}
+		if _, ok := store.hullComponentsByCategory[tech.Category]; !ok {
+			store.hullComponentsByCategory[tech.Category] = []*TechHullComponent{}
 		}
-		store.hullComponetnsByCategory[tech.Category] = append(store.hullComponetnsByCategory[tech.Category], tech)
+		store.hullComponentsByCategory[tech.Category] = append(store.hullComponentsByCategory[tech.Category], tech)
 	}
 
 	for i := range store.PlanetaryScanners {
@@ -183,10 +183,10 @@ func (store *TechStore) GetTechsJustGained(player *Player, field TechField) []*T
 
 // get all techs by category
 func (store *TechStore) GetHullComponentsByCategory(category TechCategory) []TechHullComponent {
-	techs := []TechHullComponent{}
-	for _, tech := range store.HullComponents {
+	techs := make([]TechHullComponent, 0, len(store.hullComponentsByCategory[category]))
+	for _, tech := range store.hullComponentsByCategory[category] {
 		if tech.Category == category {
-			techs = append(techs, tech)
+			techs = append(techs, *tech)
 		}
 	}
 

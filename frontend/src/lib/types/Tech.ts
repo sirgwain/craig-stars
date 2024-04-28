@@ -195,6 +195,7 @@ export enum TechCategory {
 	MineLayer = 'MineLayer',
 	MineRobot = 'MineRobot',
 	Orbital = 'Orbital',
+	Planetary = 'Planetary',
 	PlanetaryScanner = 'PlanetaryScanner',
 	PlanetaryDefense = 'PlanetaryDefense',
 	Scanner = 'Scanner',
@@ -234,6 +235,7 @@ export const isHullComponent = (category: TechCategory): boolean => {
 		case TechCategory.Torpedo:
 		case TechCategory.Shield:
 			return true;
+		case TechCategory.Planetary:
 		case TechCategory.PlanetaryScanner:
 		case TechCategory.PlanetaryDefense:
 		case TechCategory.ShipHull:
