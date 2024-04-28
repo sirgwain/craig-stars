@@ -44,12 +44,12 @@ func Test_getStartingStarbaseDesigns(t *testing.T) {
 	starbaseDesign.Hull = "Space Station"
 	starbaseDesign.Purpose = ShipDesignPurposeStarbase
 	starbaseDesign.Slots = []ShipDesignSlot{
-		{Laser.Name, 2, 8},
-		{MoleSkinShield.Name, 3, 8},
-		{Laser.Name, 4, 8},
-		{MoleSkinShield.Name, 6, 8},
-		{Laser.Name, 8, 8},
-		{Laser.Name, 10, 8},
+		{HullComponent: Laser.Name, HullSlotIndex: 2, Quantity: 8},
+		{HullComponent: MoleSkinShield.Name, HullSlotIndex: 3, Quantity: 8},
+		{HullComponent: Laser.Name, HullSlotIndex: 4, Quantity: 8},
+		{HullComponent: MoleSkinShield.Name, HullSlotIndex: 6, Quantity: 8},
+		{HullComponent: Laser.Name, HullSlotIndex: 8, Quantity: 8},
+		{HullComponent: Laser.Name, HullSlotIndex: 10, Quantity: 8},
 	}
 
 	type args struct {
