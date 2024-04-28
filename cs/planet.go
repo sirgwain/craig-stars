@@ -231,48 +231,30 @@ func (p *Planet) randomize(rules *Rules) {
 	// "I'm certain gravity and temperature probability is constant between 10 and 90 inclusive, and falls off towards 0 and 100.
 	// It never generates 0 or 100 so I have to change my random formula to (1 to 90)+(0 to 9)
 	// damn you all for sucking me into stars! again lol"
+	//
+	// update: hab is 1 to 99
 	p.Hab = Hab{
-		Grav: rules.random.Intn(91) + rules.random.Intn(10),
-		Temp: rules.random.Intn(91) + rules.random.Intn(10),
-		Rad:  1 + rules.random.Intn(100),
+		Grav: 1 + rules.random.Intn(90) + rules.random.Intn(10),
+		Temp: 1 + rules.random.Intn(90) + rules.random.Intn(10),
+		Rad:  1 + rules.random.Intn(99),
 	}
 	p.BaseHab = p.Hab
 	p.TerraformedAmount = Hab{}
 
-	// from @edmundmk on the Stars! discord, this is
-	//  Generate mineral concentration.  There is a 30% chance of a
-	//  concentration between 1 and 30.  Higher concentrations have a
-	//  distribution centred on 75, minimum 31 and maximum 199.
-	//  x = random 1 to 100 inclusive
-	//  if x > 30 then
-	//     x = 30 + random 0 to 44 inclusive + random 0 to 44 inclusive
-	//  end
-	//  return x
-
-	// also from @SuicideJunkie about a bonus to germ for high rad
-	// Only the exact example given in the help file it seems... "extreme values" is exactly rads being above 85, giving a small bonus to germanium.
-
-	germRadBonus := int(0)
-	if p.Hab.Rad >= rules.HighRadGermaniumBonusThreshold {
-		germRadBonus = rules.HighRadGermaniumBonus
-	}
-
+	// create minconc from min to max (31 to 121)
 	p.MineralConcentration = Mineral{
-		Ironium:   rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration+1),
-		Boranium:  rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration+1),
-		Germanium: rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration+1),
+		Ironium:   rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration-rules.MinStartingMineralConcentration),
+		Boranium:  rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration-rules.MinStartingMineralConcentration),
+		Germanium: rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration-rules.MinStartingMineralConcentration),
 	}
 
-	if p.MineralConcentration.Ironium > 30 {
-		p.MineralConcentration.Ironium = 30 + rules.random.Intn(45) + rules.random.Intn(45)
-	}
-
-	if p.MineralConcentration.Boranium > 30 {
-		p.MineralConcentration.Boranium = 30 + rules.random.Intn(45) + rules.random.Intn(45)
-	}
-
-	if p.MineralConcentration.Germanium > 30 {
-		p.MineralConcentration.Germanium = 30 + rules.random.Intn(45) + germRadBonus + rules.random.Intn(45)
+	// we have high rad, add some bonus minerals
+	if p.Hab.Rad >= rules.HighRadMineralConcentrationBonusThreshold {
+		p.MineralConcentration = Mineral{
+			Ironium:   p.MineralConcentration.Ironium + rules.random.Intn(99-MinInt(p.MineralConcentration.Ironium, 98))/2,
+			Boranium:  p.MineralConcentration.Boranium + rules.random.Intn(99-MinInt(p.MineralConcentration.Boranium, 98))/2,
+			Germanium: p.MineralConcentration.Germanium + rules.random.Intn(99-MinInt(p.MineralConcentration.Germanium, 98))/2,
+		}
 	}
 
 	// check if this planet has a random artifact

@@ -105,7 +105,7 @@
 		<div class="text-boranium">Boranium</div>
 		<div class="text-germanium">Germanium</div>
 	</div>
-	<div class="grow flex flex-col justify-evenly mx-1 px-0.5 py-1 bg-black line gap-2">
+	<div class="grow flex flex-col justify-evenly mx-1 px-0.5 py-1 bg-black line gap-2 pr-3">
 		<div class="h-full relative cursor-help" on:pointerdown|preventDefault={onIroniumTooltip}>
 			<MineralConcentrationPoint
 				style={`left: ${concentrationPercent.ironium?.toFixed()}%;`}

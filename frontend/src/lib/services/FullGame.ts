@@ -35,6 +35,8 @@ export class FullGame implements Game {
 	randomEvents = false;
 	computerPlayersFormAlliances = false;
 	publicPlayerScores = false;
+	maxMinerals = false;
+	acceleratedPlay = false;
 	startMode = GameStartMode.Normal;
 	year = 2400;
 	victoryConditions: VictoryConditions = {

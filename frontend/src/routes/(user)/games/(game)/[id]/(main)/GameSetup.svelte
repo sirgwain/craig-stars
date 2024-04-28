@@ -28,6 +28,8 @@
 		randomEvents: $game.randomEvents,
 		computerPlayersFormAlliances: $game.computerPlayersFormAlliances,
 		publicPlayerScores: $game.publicPlayerScores,
+		maxMinerals: $game.maxMinerals,
+		acceleratedPlay: $game.acceleratedPlay,
 		startMode: $game.startMode,
 		year: $game.year,
 		victoryConditions: $game.victoryConditions
