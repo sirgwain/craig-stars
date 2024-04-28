@@ -133,6 +133,13 @@ func (ug *universeGenerator) generatePlanets() error {
 		planet.Num = i + 1
 		planet.Position = pos
 		planet.randomize(rules)
+		
+		if ug.MaxMinerals {
+			planet.MineralConcentration = Mineral{100, 100, 100}
+		}
+		if !ug.RandomEvents {
+			planet.RandomArtifact = false
+		}
 
 		ug.universe.Planets[i] = planet
 		planetsByPosition[pos] = planet
@@ -258,6 +265,10 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 		Boranium:  rules.MinHomeworldMineralConcentration + random.Intn(rules.MaxStartingMineralConcentration),
 		Germanium: rules.MinHomeworldMineralConcentration + random.Intn(rules.MaxStartingMineralConcentration),
 	}
+	if ug.MaxMinerals {
+		homeworldMinConc = Mineral{100, 100, 100}
+	}
+
 
 	homeworldSurfaceMinerals := Mineral{
 		Ironium:   rules.MinStartingMineralSurface + random.Intn(rules.MaxStartingMineralSurface),

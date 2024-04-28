@@ -68,6 +68,16 @@
 					{/if}
 				</div>
 			</div>
+			<div class="flex flex-row">
+				<div class="text-right font-semibold mr-2 w-32">Beginner: Maximum Minerals</div>
+				<div class="my-auto">
+					{#if game.maxMinerals}
+						<Icon src={Check} size="20" class="stroke-success" />
+					{:else}
+						<Icon src={XMark} size="20" class="stroke-error" />
+					{/if}
+				</div>
+			</div>
 		</div>
 		{#if game.state == GameState.Setup}
 			<div class="flex flex-row">

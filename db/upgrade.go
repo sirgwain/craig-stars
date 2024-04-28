@@ -18,6 +18,7 @@ Version Info:
 002 - Ensure all AR planets have scanners
 003 - Add random artifacts to undiscovered planets
 004 - Set BaseHab of Homeworlds to Hab. They were accidentally 0
+005 - Update MineralConcentrations on all worlds where they are low
 
 */
 
@@ -33,7 +34,7 @@ type upgrade struct {
 	tx *client
 }
 
-const LATEST_VERSION = 4
+const LATEST_VERSION = 5
 
 func (conn *dbConn) mustUpgrade() {
 
@@ -64,6 +65,8 @@ func (tx *client) ensureUpgrade() error {
 				err = u.upgrade3()
 			case 3:
 				err = u.upgrade4()
+			case 4:
+				err = u.upgrade5()
 			}
 
 			// check for any issues upgrading
@@ -163,6 +166,14 @@ func (u *upgrade) upgrade4() error {
 	return u.upgradeGames(func(fg *cs.FullGame) error {
 		cleaner := cs.NewCleaner()
 		cleaner.ResetHomeworldBaseHab(fg)
+		return nil
+	})
+}
+
+func (u *upgrade) upgrade5() error {
+	return u.upgradeGames(func(fg *cs.FullGame) error {
+		cleaner := cs.NewCleaner()
+		cleaner.FixMineralConc(fg)
 		return nil
 	})
 }
