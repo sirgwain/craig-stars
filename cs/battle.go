@@ -999,7 +999,7 @@ func (b *battle) getBestAttackMove(token *battleToken) BattleVector {
 			damageDone := b.getDamageDone(token, distance)
 			damageTaken := 0
 			for _, attacker := range token.targetedBy {
-				distanceToAttacker := token.getDistanceAway(attacker.Position)
+				distanceToAttacker := newPosition.distance(attacker.Position)
 				damageTaken += b.getDamageDone(attacker, distanceToAttacker)
 			}
 
