@@ -602,6 +602,9 @@ func (b *battle) findTargets(weapon *battleWeaponSlot, tokens []*battleToken) (t
 func (b *battle) findMoveTargets(tokens []*battleToken) bool {
 	hasTargets := false
 	for _, token := range tokens {
+		token.targetedBy = nil
+	}
+	for _, token := range tokens {
 		if token.Movement == 0 || !token.hasWeapons() || !token.isStillInBattle() {
 			continue
 		}
