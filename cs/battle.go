@@ -1005,10 +1005,6 @@ func (b *battle) getBestAttackMove(token *battleToken) BattleVector {
 
 			// if this will move us closer to our target, see if it's the best low damage move
 			if distance < currentDistance && bestDamageTakenForLowestDamageMove >= damageTaken {
-				// if this damage is the same, flip a coin to take this new move or not
-				if bestDamageTakenForLowestDamageMove == damageTaken && b.rules.random.Intn(2) == 0 {
-					break
-				}
 				bestDamageTakenForLowestDamageMove = damageTaken
 				lowestDamageMove = newPosition
 			}
