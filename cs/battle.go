@@ -980,6 +980,8 @@ func (b *battle) getBestAttackMove(token *battleToken) BattleVector {
 
 	bestDamageDone := 0
 	bestDamageTaken := math.MaxInt
+	bestDamageRatio := 0.0
+	bestNetDamage := -math.MaxInt
 	target := token.moveTarget
 	var bestMove = token.Position
 	var lowestDamageMove = token.Position
@@ -1011,14 +1013,20 @@ func (b *battle) getBestAttackMove(token *battleToken) BattleVector {
 
 			switch token.Tactic {
 			case BattleTacticMaximizeDamageRatio:
-				if (damageTaken == 0 && damageDone > bestDamageDone) || (damageTaken > 0 &&
-					damageDone/damageTaken > bestDamageDone) {
-					bestDamageDone = damageDone
+				if (damageTaken == 0) {
+					if (damageDone > bestDamageDone) {
+						bestDamageTaken = 0
+						bestDamageDone = damageDone
+						bestMove = newPosition
+					}
+				} else if bestDamageDone == 0 && float64(damageDone)/float64(damageTaken) > bestDamageRatio {
+					bestDamageRatio = float64(damageDone)/float64(damageTaken)
 					bestMove = newPosition
 				}
 			case BattleTacticMaximizeNetDamage:
-				if damageDone-damageTaken > bestDamageDone {
+				if damageDone > 0 && damageDone-damageTaken > bestNetDamage {
 					bestDamageDone = damageDone
+					bestNetDamage = damageDone - damageTaken
 					bestMove = newPosition
 				}
 
@@ -1038,7 +1046,7 @@ func (b *battle) getBestAttackMove(token *battleToken) BattleVector {
 	}
 
 	// if we are getting away, or none of our moves lead to damage, pick the lowest damage move
-	if token.Tactic == BattleTacticDisengage || bestDamageDone == 0 {
+	if token.Tactic == BattleTacticDisengage || (bestDamageDone == 0 && bestDamageRatio == 0.0) {
 		return lowestDamageMove
 	}
 
