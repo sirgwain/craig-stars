@@ -1231,7 +1231,7 @@ func (b *battle) getSortedWeaponSlots(tokens []*battleToken) []*battleWeaponSlot
 		}
 	}
 	sort.Slice(slots, func(i, j int) bool {
-		return slots[i].initiative < slots[j].initiative
+		return slots[i].initiative > slots[j].initiative
 	})
 	return slots
 }
