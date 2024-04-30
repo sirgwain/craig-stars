@@ -424,6 +424,127 @@ func Test_computeFleetSpec(t *testing.T) {
 			BaseCloakedCargo: 0,
 			TotalShips:       0,
 		}},
+		{"Bomber", args{&rules, starterHumanoidPlayer, &Fleet{
+			BaseName: "Bomber",
+			Tokens: []ShipToken{
+				{
+					Quantity:  1,
+					DesignNum: 1,
+					design: NewShipDesign(starterHumanoidPlayer, 1).
+						WithHull(MiniBomber.Name).
+						WithSlots([]ShipDesignSlot{
+							{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+							{HullComponent: LadyFingerBomb.Name, HullSlotIndex: 2, Quantity: 2},
+						}).
+						WithSpec(&rules, starterHumanoidPlayer)},
+			},
+		}}, FleetSpec{
+			ShipDesignSpec: ShipDesignSpec{
+				Cost:         Cost{22, 43, 10, 43},
+				FuelCapacity: 120,
+				Mass:         112,
+				Armor:        50,
+				ScanRange:    NoScanner,
+				ScanRangePen: NoScanner,
+				Bomber:       true,
+				Bombs: []Bomb{
+					{Quantity: 2, KillRate: .6, MinKillRate: 300, StructureDestroyRate: .2},
+				},
+				Engine: Engine{
+					IdealSpeed:   QuickJump5.IdealSpeed,
+					FreeSpeed:    QuickJump5.FreeSpeed,
+					MaxSafeSpeed: QuickJump5.MaxSafeSpeed,
+				},
+			},
+			Purposes:         map[ShipDesignPurpose]bool{},
+			MassEmpty:        112,
+			BaseCloakedCargo: 112,
+			TotalShips:       1,
+		}},
+		{"2 Bombers", args{&rules, starterHumanoidPlayer, &Fleet{
+			BaseName: "Bomber",
+			Tokens: []ShipToken{
+				{
+					Quantity:  2,
+					DesignNum: 1,
+					design: NewShipDesign(starterHumanoidPlayer, 1).
+						WithHull(MiniBomber.Name).
+						WithSlots([]ShipDesignSlot{
+							{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+							{HullComponent: LadyFingerBomb.Name, HullSlotIndex: 2, Quantity: 2},
+						}).
+						WithSpec(&rules, starterHumanoidPlayer)},
+			},
+		}}, FleetSpec{
+			ShipDesignSpec: ShipDesignSpec{
+				Cost:         Cost{22, 43, 10, 43}.MultiplyInt(2),
+				FuelCapacity: 120 * 2,
+				Mass:         112 * 2,
+				Armor:        50 * 2,
+				ScanRange:    NoScanner,
+				ScanRangePen: NoScanner,
+				Bomber:       true,
+				Bombs: []Bomb{
+					{Quantity: 4, KillRate: .6, MinKillRate: 300, StructureDestroyRate: .2},
+				},
+				Engine: Engine{
+					IdealSpeed:   QuickJump5.IdealSpeed,
+					FreeSpeed:    QuickJump5.FreeSpeed,
+					MaxSafeSpeed: QuickJump5.MaxSafeSpeed,
+				},
+			},
+			Purposes:         map[ShipDesignPurpose]bool{},
+			MassEmpty:        112 * 2,
+			BaseCloakedCargo: 112 * 2,
+			TotalShips:       2,
+		}},
+		{"2 B52 Bombers with multiple bomb types", args{&rules, starterHumanoidPlayer, &Fleet{
+			BaseName: "Bomber",
+			Tokens: []ShipToken{
+				{
+					Quantity:  2,
+					DesignNum: 1,
+					design: NewShipDesign(starterHumanoidPlayer, 1).
+						WithHull(B52Bomber.Name).
+						WithSlots([]ShipDesignSlot{
+							{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 4},
+							{HullComponent: CherryBomb.Name, HullSlotIndex: 2, Quantity: 4},
+							{HullComponent: LBU32Bomb.Name, HullSlotIndex: 3, Quantity: 4},
+							{HullComponent: NeutronBomb.Name, HullSlotIndex: 4, Quantity: 4},
+							{HullComponent: RetroBomb.Name, HullSlotIndex: 5, Quantity: 4},
+						}).
+						WithSpec(&rules, starterHumanoidPlayer)},
+			},
+		}}, FleetSpec{
+			ShipDesignSpec: ShipDesignSpec{
+				Cost:         Cost{348, 782, 228, 1392},
+				FuelCapacity: 1500,
+				Mass:         1764,
+				Armor:        900,
+				ScanRange:    NoScanner,
+				ScanRangePen: NoScanner,
+				Bomber:       true,
+				Bombs: []Bomb{
+					{Quantity: 8, KillRate: 2.5, MinKillRate: 300, StructureDestroyRate: 1},
+					{Quantity: 8, KillRate: .3, StructureDestroyRate: 2.8},
+				},
+				SmartBombs: []Bomb{
+					{Quantity: 8, KillRate: 2.2},
+				},
+				RetroBombs: []Bomb{
+					{Quantity: 8, UnterraformRate: 1},
+				},
+				Engine: Engine{
+					IdealSpeed:   QuickJump5.IdealSpeed,
+					FreeSpeed:    QuickJump5.FreeSpeed,
+					MaxSafeSpeed: QuickJump5.MaxSafeSpeed,
+				},
+			},
+			Purposes:         map[ShipDesignPurpose]bool{},
+			MassEmpty:        1764,
+			BaseCloakedCargo: 1764,
+			TotalShips:       2,
+		}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

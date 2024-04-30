@@ -551,9 +551,18 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 		// add bombs
 		if token.design.Spec.Bomber {
 			spec.Bomber = true
-			spec.Bombs = append(spec.Bombs, token.design.Spec.Bombs...)
-			spec.SmartBombs = append(spec.SmartBombs, token.design.Spec.SmartBombs...)
-			spec.RetroBombs = append(spec.RetroBombs, token.design.Spec.RetroBombs...)
+			for _, bomb := range token.design.Spec.Bombs {
+				bomb.Quantity *= token.Quantity
+				spec.Bombs = append(spec.Bombs, bomb)
+			}
+			for _, bomb := range token.design.Spec.SmartBombs {
+				bomb.Quantity *= token.Quantity
+				spec.SmartBombs = append(spec.SmartBombs, bomb)
+			}
+			for _, bomb := range token.design.Spec.RetroBombs {
+				bomb.Quantity *= token.Quantity
+				spec.RetroBombs = append(spec.RetroBombs, bomb)
+			}
 		}
 
 		// check if any tokens have weapons
