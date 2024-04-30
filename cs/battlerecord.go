@@ -92,8 +92,8 @@ func (t BattleRecordTokenActionType) String() string {
 }
 
 type BattleVector struct {
-	X int `json:"x,omitempty"`
-	Y int `json:"y,omitempty"`
+	X int `json:"x"`
+	Y int `json:"y"`
 }
 
 var BattleVectorRight BattleVector = BattleVector{1, 0}
