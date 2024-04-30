@@ -602,6 +602,9 @@ func (b *battle) findTargets(weapon *battleWeaponSlot, tokens []*battleToken) (t
 func (b *battle) findMoveTargets(tokens []*battleToken) bool {
 	hasTargets := false
 	for _, token := range tokens {
+		token.targetedBy = nil
+	}
+	for _, token := range tokens {
 		if token.Movement == 0 || !token.hasWeapons() || !token.isStillInBattle() {
 			continue
 		}
@@ -977,6 +980,8 @@ func (b *battle) getBestAttackMove(token *battleToken) BattleVector {
 
 	bestDamageDone := 0
 	bestDamageTaken := math.MaxInt
+	bestDamageRatio := 0.0
+	bestNetDamage := -math.MaxInt
 	target := token.moveTarget
 	var bestMove = token.Position
 	var lowestDamageMove = token.Position
@@ -996,30 +1001,32 @@ func (b *battle) getBestAttackMove(token *battleToken) BattleVector {
 			damageDone := b.getDamageDone(token, distance)
 			damageTaken := 0
 			for _, attacker := range token.targetedBy {
-				distanceToAttacker := token.getDistanceAway(attacker.Position)
+				distanceToAttacker := newPosition.distance(attacker.Position)
 				damageTaken += b.getDamageDone(attacker, distanceToAttacker)
 			}
 
 			// if this will move us closer to our target, see if it's the best low damage move
 			if distance < currentDistance && bestDamageTakenForLowestDamageMove >= damageTaken {
-				// if this damage is the same, flip a coin to take this new move or not
-				if bestDamageTakenForLowestDamageMove == damageTaken && b.rules.random.Intn(2) == 0 {
-					break
-				}
 				bestDamageTakenForLowestDamageMove = damageTaken
 				lowestDamageMove = newPosition
 			}
 
 			switch token.Tactic {
 			case BattleTacticMaximizeDamageRatio:
-				if (damageTaken == 0 && damageDone > bestDamageDone) || (damageTaken > 0 &&
-					damageDone/damageTaken > bestDamageDone) {
-					bestDamageDone = damageDone
+				if (damageTaken == 0) {
+					if (damageDone > bestDamageDone) {
+						bestDamageTaken = 0
+						bestDamageDone = damageDone
+						bestMove = newPosition
+					}
+				} else if bestDamageDone == 0 && float64(damageDone)/float64(damageTaken) > bestDamageRatio {
+					bestDamageRatio = float64(damageDone)/float64(damageTaken)
 					bestMove = newPosition
 				}
 			case BattleTacticMaximizeNetDamage:
-				if damageDone-damageTaken > bestDamageDone {
+				if damageDone > 0 && damageDone-damageTaken > bestNetDamage {
 					bestDamageDone = damageDone
+					bestNetDamage = damageDone - damageTaken
 					bestMove = newPosition
 				}
 
@@ -1039,7 +1046,7 @@ func (b *battle) getBestAttackMove(token *battleToken) BattleVector {
 	}
 
 	// if we are getting away, or none of our moves lead to damage, pick the lowest damage move
-	if token.Tactic == BattleTacticDisengage || bestDamageDone == 0 {
+	if token.Tactic == BattleTacticDisengage || (bestDamageDone == 0 && bestDamageRatio == 0.0) {
 		return lowestDamageMove
 	}
 
@@ -1231,7 +1238,7 @@ func (b *battle) getSortedWeaponSlots(tokens []*battleToken) []*battleWeaponSlot
 		}
 	}
 	sort.Slice(slots, func(i, j int) bool {
-		return slots[i].initiative < slots[j].initiative
+		return slots[i].initiative > slots[j].initiative
 	})
 	return slots
 }
