@@ -27,7 +27,7 @@
 		{#if planet.productionQueue}
 			<ul class="w-full h-full">
 				{#each queueItems as queueItem, index}
-					<li class="pl-1">
+					<li class="pl-1 cursor-default">
 						<ProductionQueueItemLine item={queueItem} {index} shortName={true} />
 					</li>
 				{/each}

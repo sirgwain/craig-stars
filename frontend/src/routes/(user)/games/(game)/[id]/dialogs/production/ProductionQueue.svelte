@@ -572,7 +572,7 @@
 							</li>
 							{#if queueItems}
 								{#each queueItems as queueItem, index}
-									<li>
+									<li class="cursor-default">
 										<ProductionQueueItemLine
 											item={queueItem}
 											{index}

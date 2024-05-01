@@ -65,7 +65,7 @@
 				on:change-production={(e) => (showProductionQueueDialog = true)}
 				on:cargo-transfer-dialog={(e) => {
 					showCargoTransferDialog = true;
-					cargoTransferDetails = e.detail;
+					cargoTransferDetails = e?.detail;
 				}}
 				on:merge-fleets-dialog={(e) => {
 					showMergeFleetsDialog = true;
@@ -105,7 +105,7 @@
 			on:change-production={(e) => (showProductionQueueDialog = true)}
 			on:cargo-transfer-dialog={(e) => {
 				showCargoTransferDialog = true;
-				cargoTransferDetails = e.detail;
+				cargoTransferDetails = e?.detail;
 			}}
 			on:merge-fleets-dialog={(e) => {
 				showMergeFleetsDialog = true;

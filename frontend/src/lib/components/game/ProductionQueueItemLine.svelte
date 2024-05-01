@@ -46,7 +46,7 @@
 	class:text-queue-item-skipped={skipped}
 	class:text-queue-item-never={item.yearsToBuildOne == NeverBuilt && !skipped}
 	class:bg-primary={selected}
-	class="w-full text-left px-1 select-none cursor-default hover:text-secondary-focus"
+	class="w-full text-left px-1 select-none hover:text-secondary-focus"
 >
 	<div class="flex justify-between ">
 		<div>

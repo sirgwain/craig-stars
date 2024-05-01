@@ -1,13 +1,15 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import MineralMini from '$lib/components/game/MineralMini.svelte';
 	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
 	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
-	import MineralMini from '$lib/components/game/MineralMini.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { getQueueItemShortName, planetsSortBy, type Planet } from '$lib/types/Planet';
 	import { Check } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
+	import ProductionQueueDialog from '../dialogs/production/ProductionQueueDialog.svelte';
+	import ProductionQueueItemLine from '$lib/components/game/ProductionQueueItemLine.svelte';
 
 	const { game, universe, settings, commandMapObject, selectMapObject, zoomToMapObject } =
 		getGameContext();
@@ -22,6 +24,9 @@
 	// filterable planets
 	let filteredPlanets: Planet[] = [];
 	let search = '';
+
+	// production queue dialog
+	let showProductionQueueDialog = false;
 
 	$: filteredPlanets =
 		$universe
@@ -115,6 +120,11 @@
 		$settings.sortPlanetsDescending = sortDescending;
 		$settings.sortPlanetsKey = column.key;
 	}
+
+	function onProductionQueueDialog(planet: Planet) {
+		commandMapObject(planet);
+		showProductionQueueDialog = true;
+	}
 </script>
 
 <div class="w-full">
@@ -167,10 +177,12 @@
 				{/if}
 			{:else if column.key == 'production'}
 				{#if row.productionQueue?.length}
-					<div class="flex justify-between">
-						<div>{getQueueItemShortName(row.productionQueue[0], $universe)}</div>
-						<div>{row.productionQueue[0].quantity}</div>
-					</div>
+					<button
+						on:click={() => onProductionQueueDialog(row)}
+						class="text-base w-32 flex justify-between text-left cursor-pointer"
+					>
+						<ProductionQueueItemLine item={row.productionQueue[0]} index={0} shortName={true} />
+					</button>
 				{:else}
 					--- Queue is Empty ---
 				{/if}
@@ -202,3 +214,5 @@
 		</span>
 	</Table>
 </div>
+
+<ProductionQueueDialog bind:show={showProductionQueueDialog} />

@@ -718,9 +718,9 @@ func (m *messageClient) planetBombed(player *Player, planet *Planet, fleet *Flee
 		player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageEnemyPlanetBombed, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})
 	} else {
 		if planet.population() == 0 {
-			text = fmt.Sprintf("%s %s has bombed your %s killing off all colonists", fleetOwner, fleet.Name, planet.Name)
+			text = fmt.Sprintf("%s %s has bombed your planet %s killing off all colonists", fleetOwner, fleet.Name, planet.Name)
 		} else {
-			text = fmt.Sprintf("%s %s has bombed your %s killing %d colonists, and destroying %d mines, %d factories, and %d defenses.", fleetOwner, fleet.Name, planet.Name, colonistsKilled, minesDestroyed, factoriesDestroyed, defensesDestroyed)
+			text = fmt.Sprintf("%s %s has bombed your planet %s killing %d colonists, and destroying %d mines, %d factories, and %d defenses.", fleetOwner, fleet.Name, planet.Name, colonistsKilled, minesDestroyed, factoriesDestroyed, defensesDestroyed)
 		}
 
 		player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageMyPlanetBombed, Text: text, TargetType: TargetPlanet, TargetNum: planet.Num})

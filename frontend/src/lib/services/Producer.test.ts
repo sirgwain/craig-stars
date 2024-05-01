@@ -10,6 +10,9 @@ import { cloneDeep } from 'lodash-es';
 import { describe, expect, it } from 'vitest';
 import { getNumBuilt, getProductionEstimates, produce } from './Producer';
 import type { DesignFinder } from './Universe';
+import { baseStationDesign, orbitalFort2Design } from '$lib/types/Player.test';
+import { CommandedFleet, type Fleet } from '$lib/types/Fleet';
+import { MapObjectType } from '$lib/types/MapObject';
 
 describe('Producer test', () => {
 	const techStore = techjson as TechStore;
@@ -437,6 +440,86 @@ describe('Producer test', () => {
 				yearsToBuildOne: 100,
 				yearsToBuildAll: 100,
 				yearsToSkipAuto: 13
+			}
+		]);
+	});
+
+	it('getNumBuilt - no cost', () => {
+		// process building a single factory
+		const result = getNumBuilt(
+			{
+				type: QueueItemTypes.Factory,
+				quantity: 1
+			},
+			{},
+			{ ironium: 100, boranium: 100, germanium: 100, resources: 100 },
+			1
+		);
+		expect(result.numBuilt).toBe(1);
+	});
+
+	it('produce - 1 starbase upgrade costing nothing', () => {
+		const planet = new CommandedPlanet();
+		const player = new Player();
+		planet.hab = { grav: 50, temp: 50, rad: 50 };
+		planet.cargo = {
+			ironium: 100,
+			boranium: 100,
+			germanium: 100,
+			colonists: 1000
+		};
+		planet.productionQueue = [{ type: QueueItemTypes.Starbase, quantity: 1, designNum: 1 }];
+		planet.starbase = {
+			id: 6515,
+			gameId: 60,
+			type: MapObjectType.Fleet,
+			num: 0,
+			playerNum: 1,
+			name: 'Orbital Fort',
+			waypoints: [],
+			planetNum: 1,
+			baseName: 'Starbase 2',
+			cargo: {},
+			fuel: 0,
+			tokens: [
+				{
+					designNum: 2,
+					quantity: 1
+				}
+			],
+			heading: {
+				x: 0,
+				y: 0
+			},
+			starbase: true
+		} as unknown as Fleet;
+		planet.spec.hasStarbase = true;
+
+		class StarbaseDesignFinder implements DesignFinder {
+			getDesign(playerNum: number, num: number): ShipDesign | undefined {
+				throw new Error('Method not implemented.');
+			}
+			getMyDesign(num: number | undefined): ShipDesign | undefined {
+				if (num == 1) {
+					return baseStationDesign;
+				} else {
+					return orbitalFort2Design;
+				}
+			}
+		}
+		const designFinder = new StarbaseDesignFinder();
+
+		// we should build one mine and be done
+		// we should build one mine and be done
+		const items = getProductionEstimates(defaultRules, techStore, player, planet, designFinder);
+
+		// should return a new production queue with estimates in it
+		expect(items).toMatchObject([
+			{
+				type: QueueItemTypes.Starbase,
+				yearsToBuildOne: 1,
+				yearsToBuildAll: 1,
+				yearsToSkipAuto: 1
 			}
 		]);
 	});
