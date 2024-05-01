@@ -34,7 +34,7 @@
 		<PlayerScores />
 	</div>
 
-	<div class="h-[400px] w-[42rem] mx-auto my-5 py-5">
+	<div class="h-[400px] w-full sm:w-[42rem] mx-auto my-5 py-5 px-1">
 		<PlayerScoresGraph {type} />
 	</div>
 	<div class="flex flex-row flex-wrap gap-1 justify-center">

@@ -154,7 +154,7 @@ func Test_bomb_getColonistsKilledWithSmartBombs(t *testing.T) {
 			want: 837,
 		},
 		{
-			name: "Multiple bombs, high defense",
+			name: "Many smart bombs, low pop",
 			args: args{
 				population:           1000,
 				bombs: []Bomb{
