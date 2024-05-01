@@ -152,7 +152,7 @@
 
 		<span slot="cell" let:row let:column let:cell>
 			{#if column.key == 'name'}
-				<button class="cs-link text-2xl" on:click={() => selectPlanet(row)}>{cell}</button>
+				<button class="cs-link text-xl text-left" on:click={() => selectPlanet(row)}>{cell}</button>
 			{:else if column.key == 'starbase'}
 				{row.spec.starbaseDesignName ?? ''}
 			{:else if column.key == 'population'}

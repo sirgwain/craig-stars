@@ -107,7 +107,7 @@
 
 		<span slot="cell" let:column let:row let:cell>
 			{#if column.key == 'name'}
-				<button class="cs-link text-2xl" on:click={() => selectFleet(row)}>{cell}</button>
+				<button class="cs-link text-xl text-left" on:click={() => selectFleet(row)}>{cell}</button>
 			{:else if column.key == 'location'}
 				{getLocation(row, $universe)}
 			{:else if column.key == 'destination'}

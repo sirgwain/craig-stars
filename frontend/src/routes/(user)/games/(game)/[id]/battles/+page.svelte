@@ -113,7 +113,7 @@
 
 		<span slot="cell" let:column let:row let:cell>
 			{#if column.key == 'location'}
-				<a class="cs-link text-2xl" href={`/games/${$game.id}/battles/${row.num}`}>{row.location}</a
+				<a class="cs-link text-xl text-left" href={`/games/${$game.id}/battles/${row.num}`}>{row.location}</a
 				>
 			{:else}
 				{cell ?? ''}

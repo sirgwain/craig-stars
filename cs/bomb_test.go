@@ -153,6 +153,17 @@ func Test_bomb_getColonistsKilledWithSmartBombs(t *testing.T) {
 			},
 			want: 837,
 		},
+		{
+			name: "Multiple bombs, high defense",
+			args: args{
+				population:           1000,
+				bombs: []Bomb{
+					{Quantity: 17*4, KillRate: 2.2},
+					{Quantity: 17*4, KillRate: 2.2},
+				},
+			},
+			want: 1000,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

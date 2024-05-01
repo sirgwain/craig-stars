@@ -87,7 +87,7 @@
 
 		<span slot="cell" let:column let:row>
 			{#if column.key == 'target'}
-				<button class="cs-link text-2xl" on:click={() => selectMessage(row)}
+				<button class="cs-link text-xl text-left" on:click={() => selectMessage(row)}
 					>{getTarget(row)}</button
 				>
 			{:else}
