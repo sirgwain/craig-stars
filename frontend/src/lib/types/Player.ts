@@ -200,7 +200,7 @@ export class Player implements PlayerResponse, CostFinder {
 	researchSpentLastYear = 0;
 	researching: TechField = TechField.Energy;
 	nextResearchField: NextResearchField = NextResearchField.Energy;
-	researchAmount = 15;
+	researchAmount = 0;
 	battlePlans: BattlePlan[] = [];
 	productionPlans: ProductionPlan[] = [];
 	transportPlans: TransportPlan[] = [];
