@@ -48,7 +48,12 @@
 	$: turnsPassed = $game.year - $game.rules.startingYear;
 
 	// get the highest value from the scores
-	$: highestValue = Math.max(...$universe.scores.flat().map((score) => score[type] ?? 0));
+	$: highestValue = Math.max(
+		...$universe.scores
+			.filter((score) => score && score.length > 0)
+			.flat()
+			.map((score) => score[type] ?? 0)
+	);
 
 	$: {
 		// init an empty array for each player name
