@@ -27,11 +27,13 @@
 	const columns: TableColumn<Fleet>[] = [
 		{
 			key: 'name',
-			title: 'Name'
+			title: 'Name',
+			sortBy: fleetsSortBy('name', $universe)
 		},
 		{
 			key: 'num',
-			title: 'ID'
+			title: 'ID',
+			sortBy: fleetsSortBy('num', $universe)
 		},
 		{
 			key: 'location',
@@ -45,11 +47,13 @@
 		},
 		{
 			key: 'eta',
-			title: 'ETA'
+			title: 'ETA',
+			sortBy: fleetsSortBy('eta', $universe)
 		},
 		{
 			key: 'fuel',
-			title: 'Fuel'
+			title: 'Fuel',
+			sortBy: fleetsSortBy('fuel', $universe)
 		},
 		{
 			key: 'cargo',
@@ -59,15 +63,18 @@
 		{
 			key: 'composition',
 			title: 'Composition',
-			sortable: false
+			sortable: false,
+			sortBy: fleetsSortBy('composition', $universe)
 		},
 		{
 			key: 'cloak',
-			title: 'Cloak'
+			title: 'Cloak',
+			sortBy: fleetsSortBy('cloak', $universe)
 		},
 		{
 			key: 'battlePlanNum',
-			title: 'Battle Plan'
+			title: 'Battle Plan',
+			sortBy: fleetsSortBy('battlePlanNum', $universe)
 		},
 		{
 			key: 'mass',

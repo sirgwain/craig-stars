@@ -191,6 +191,15 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 		return planets;
 	}
 
+	getPlanets(sortKey: string, descending: boolean): Planet[] {
+		const planets = [...this.planets];
+		planets.sort(planetsSortBy(sortKey));
+		if (!descending) {
+			planets.reverse();
+		}
+		return planets;
+	}
+
 	getMyFleets(sortKey: string, descending: boolean): Fleet[] {
 		const fleets = this.fleets.filter((d) => d.playerNum === this.playerNum);
 		fleets.sort(fleetsSortBy(sortKey, this));

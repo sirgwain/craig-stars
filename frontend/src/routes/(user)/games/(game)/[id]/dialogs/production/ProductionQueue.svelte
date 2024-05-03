@@ -16,7 +16,7 @@
 	import { NeverBuilt, getProductionEstimates } from '$lib/services/Producer';
 	import { techs } from '$lib/services/Stores';
 	import { divide, multiply, total, type Cost } from '$lib/types/Cost';
-	import type { CommandedPlanet } from '$lib/types/Planet';
+	import { CommandedPlanet } from '$lib/types/Planet';
 	import type { ProductionPlan } from '$lib/types/Player';
 	import type { ProductionQueueItem } from '$lib/types/Production';
 	import { getFullName, isAuto } from '$lib/types/QueueItemType';
@@ -55,7 +55,7 @@
 		? getPercentComplete(selectedQueueItem)
 		: 0;
 
-	$: updatedPlanet = planet;
+	$: updatedPlanet = Object.assign(new CommandedPlanet(), planet);
 
 	function availableItemSelected(type: ProductionQueueItem) {
 		selectedAvailableItem = type;
@@ -81,7 +81,7 @@
 
 	function updateQueueEstimates() {
 		// get updated production queue estimates
-		updatedPlanet.productionQueue = queueItems;
+		updatedPlanet.productionQueue = [...queueItems];
 		const itemEstimates = getProductionEstimates(
 			$game.rules,
 			$techs,
@@ -262,11 +262,8 @@
 
 	function applyPlan(plan: ProductionPlan | undefined) {
 		if (plan) {
-			if (total(queueItems[0].allocated) > 0) {
-				queueItems = [queueItems[0], ...plan.items];
-			} else {
-				queueItems = plan.items;
-			}
+			const concreteItems = queueItems.filter((i) => !isAuto(i.type));
+			queueItems = [...concreteItems, ...plan.items];
 			contributesOnlyLeftoverToResearch = plan.contributesOnlyLeftoverToResearch ?? false;
 			updateQueueEstimates();
 		}
@@ -291,8 +288,7 @@
 	}
 	function cancel() {
 		if (planet) {
-			queueItems = planet.productionQueue?.map((item) => ({ ...item }) as ProductionQueueItem);
-			contributesOnlyLeftoverToResearch = planet.contributesOnlyLeftoverToResearch ?? false;
+			resetQueue();
 			dispatch('cancel');
 		}
 	}
@@ -351,7 +347,7 @@
 	});
 
 	function resetQueue() {
-		queueItems = planet.productionQueue?.map((item) => ({ ...item }) as ProductionQueueItem);
+		queueItems = [...planet.productionQueue?.map((item) => ({ ...item }) as ProductionQueueItem)];
 		availableItems = planet.getAvailableProductionQueueItems(
 			planet,
 			$player.race.spec?.innateMining,

@@ -695,7 +695,7 @@ export function planetsSortBy(key: string): ((a: Planet, b: Planet) => number) |
 			return (a, b) =>
 				(a.spec.starbaseDesignName ?? '').localeCompare(b.spec.starbaseDesignName ?? '');
 		case 'population':
-			return (a, b) => (a.cargo?.colonists ?? 0) - (b.cargo?.colonists ?? 0);
+			return (a, b) => (a.spec.population ?? 0) - (b.spec.population ?? 0);
 		case 'populationDensity':
 			return (a, b) => (a.spec.populationDensity ?? 0) - (b.spec.populationDensity ?? 0);
 		case 'habitability':

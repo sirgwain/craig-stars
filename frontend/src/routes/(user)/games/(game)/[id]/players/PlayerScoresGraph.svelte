@@ -109,6 +109,7 @@
 			yRange={[100, 0]}
 			zScale={scaleOrdinal()}
 			zRange={seriesColors}
+			zDomain={seriesNames}
 			flatData={flatten(dataLong)}
 			data={dataLong}
 		>

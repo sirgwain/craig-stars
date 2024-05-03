@@ -1,21 +1,25 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import MineralMini from '$lib/components/game/MineralMini.svelte';
+	import ProductionQueueItemLine from '$lib/components/game/ProductionQueueItemLine.svelte';
 	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
 	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { getQueueItemShortName, planetsSortBy, type Planet } from '$lib/types/Planet';
+	import { owned, ownedBy } from '$lib/types/MapObject';
+	import { totalMinerals } from '$lib/types/Mineral';
+	import { Unexplored, planetsSortBy, type Planet } from '$lib/types/Planet';
 	import { Check } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import ProductionQueueDialog from '../dialogs/production/ProductionQueueDialog.svelte';
-	import ProductionQueueItemLine from '$lib/components/game/ProductionQueueItemLine.svelte';
 
-	const { game, universe, settings, commandMapObject, selectMapObject, zoomToMapObject } =
+	const { game, player, universe, settings, commandMapObject, selectMapObject, zoomToMapObject } =
 		getGameContext();
 
 	const selectPlanet = (planet: Planet) => {
-		commandMapObject(planet);
+		if (ownedBy(planet, $player.num)) {
+			commandMapObject(planet);
+		}
 		selectMapObject(planet);
 		zoomToMapObject(planet);
 		goto(`/games/${$game.id}`);
@@ -28,16 +32,36 @@
 	// production queue dialog
 	let showProductionQueueDialog = false;
 
-	$: filteredPlanets =
-		$universe
-			.getMyPlanets($settings.sortPlanetsKey, $settings.sortPlanetsDescending)
-			.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? [];
+	$: filteredPlanets = $settings.showAllPlanets
+		? $universe
+				.getPlanets($settings.sortPlanetsKey, $settings.sortPlanetsDescending)
+				.filter(
+					(i) =>
+						i.name.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
+						$universe.getPlayerName(i.playerNum)?.toLowerCase().indexOf(search.toLowerCase()) != -1
+				) ?? []
+		: $universe
+				.getMyPlanets($settings.sortPlanetsKey, $settings.sortPlanetsDescending)
+				.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? [];
 
-	const columns: TableColumn<Planet>[] = [
+	$: columns = [
 		{
 			key: 'name',
 			title: 'Name',
 			sortBy: planetsSortBy('name')
+		},
+		{
+			key: 'owner',
+			title: 'Owner',
+			hidden: !$settings.showAllPlanets,
+			sortBy: (a, b) =>
+				$universe.getPlayerName(a.playerNum)?.localeCompare($universe.getPlayerName(b.playerNum))
+		},
+		{
+			key: 'reportAge',
+			title: 'Report Age',
+			hidden: !$settings.showAllPlanets,
+			sortBy: (a, b) => (a.reportAge ?? 0) - (b.reportAge ?? 0)
 		},
 		{
 			key: 'starbase',
@@ -52,6 +76,7 @@
 		{
 			key: 'populationDensity',
 			title: 'Cap',
+			hidden: $settings.showAllPlanets,
 			sortBy: planetsSortBy('populationDensity')
 		},
 		{
@@ -62,21 +87,25 @@
 		{
 			key: 'production',
 			title: 'Production',
+			hidden: $settings.showAllPlanets,
 			sortBy: planetsSortBy('production')
 		},
 		{
 			key: 'mines',
 			title: 'Mine',
+			hidden: $settings.showAllPlanets,
 			sortBy: planetsSortBy('mines')
 		},
 		{
 			key: 'factories',
 			title: 'Factories',
+			hidden: $settings.showAllPlanets,
 			sortBy: planetsSortBy('factories')
 		},
 		{
 			key: 'defense',
 			title: 'Defense',
+			hidden: $settings.showAllPlanets,
 			sortBy: planetsSortBy('defense')
 		},
 		{
@@ -87,6 +116,7 @@
 		{
 			key: 'miningRate',
 			title: 'Mining Rate',
+			hidden: $settings.showAllPlanets,
 			sortBy: planetsSortBy('miningRate')
 		},
 		{
@@ -97,24 +127,28 @@
 		{
 			key: 'resources',
 			title: 'Resources',
+			hidden: $settings.showAllPlanets,
 			sortBy: planetsSortBy('resources')
 		},
 		{
 			key: 'contributesOnlyLeftoverToResearch',
 			title: 'Contributes Only Leftover To Research',
+			hidden: $settings.showAllPlanets,
 			sortBy: planetsSortBy('contributesOnlyLeftoverToResearch')
 		},
 		{
 			key: 'driverDest',
 			title: 'Driver Destination',
+			hidden: $settings.showAllPlanets,
 			sortable: false
 		},
 		{
 			key: 'routingDestination',
 			title: 'routing Destination',
+			hidden: $settings.showAllPlanets,
 			sortable: false
 		}
-	];
+	] as TableColumn<Planet>[];
 
 	function onSorted(column: TableColumn<Planet>, sortDescending: boolean) {
 		$settings.sortPlanetsDescending = sortDescending;
@@ -129,7 +163,13 @@
 
 <div class="w-full">
 	<div class="flex flex-row justify-between m-2">
-		<TableSearchInput bind:value={search} />
+		<div><TableSearchInput bind:value={search} /></div>
+		<div class="form-control">
+			<label class="label cursor-pointer">
+				<span class="label-text mr-1">Show All</span>
+				<input type="checkbox" class="toggle" bind:checked={$settings.showAllPlanets} />
+			</label>
+		</div>
 	</div>
 	<Table
 		{columns}
@@ -153,10 +193,22 @@
 		<span slot="cell" let:row let:column let:cell>
 			{#if column.key == 'name'}
 				<button class="cs-link text-xl text-left" on:click={() => selectPlanet(row)}>{cell}</button>
+			{:else if column.key == 'owner'}
+				<span style={`color: ${$universe.getPlayerColor(row.playerNum)};`}>
+					{owned(row) ? $universe.getPlayerName(row.playerNum) ?? '' : ''}
+				</span>
+			{:else if column.key == 'reportAge'}
+				{#if row.reportAge == 0 || row.reportAge === undefined}
+					current
+				{:else if row.reportAge == Unexplored}
+					unexplored
+				{:else}
+					{row.reportAge} years old
+				{/if}
 			{:else if column.key == 'starbase'}
 				{row.spec.starbaseDesignName ?? ''}
 			{:else if column.key == 'population'}
-				{((row.cargo?.colonists ?? 0) * 100).toLocaleString()}
+				{row.spec.population ? row.spec.population.toLocaleString() : ''}
 			{:else if column.key == 'populationDensity'}
 				{((row.spec.populationDensity ?? 0) * 100).toFixed(1)}%
 			{:else if column.key == 'habitability'}
@@ -183,7 +235,7 @@
 					>
 						<ProductionQueueItemLine item={row.productionQueue[0]} index={0} shortName={true} />
 					</button>
-				{:else}
+				{:else if ownedBy(row, $player.num)}
 					--- Queue is Empty ---
 				{/if}
 			{:else if column.key == 'mines'}
@@ -193,7 +245,9 @@
 			{:else if column.key == 'defense'}
 				{((row.spec.defenseCoverage ?? 0) * 100).toFixed(1)}%
 			{:else if column.key == 'minerals'}
-				<MineralMini mineral={row.cargo} />
+				{#if totalMinerals(row.cargo) != 0}
+					<MineralMini mineral={row.cargo} />
+				{/if}
 			{:else if column.key == 'miningRate'}
 				<MineralMini mineral={row.spec.miningOutput} />
 			{:else if column.key == 'mineralConcentration'}
