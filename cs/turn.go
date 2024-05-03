@@ -1158,6 +1158,7 @@ func (t *turn) fleetRemoteMineAR() {
 			// can't remote mine deep space
 			if planet == nil {
 				messager.remoteMineDeepSpace(player, fleet)
+				wp0.Task = WaypointTaskNone
 				continue
 			}
 
@@ -1196,6 +1197,7 @@ func (t *turn) fleetRemoteMine() {
 
 			if planet.Owned() {
 				messager.remoteMineInhabited(player, fleet, planet)
+				wp0.Task = WaypointTaskNone
 				continue
 			}
 
@@ -1209,6 +1211,7 @@ func (t *turn) remoteMine(fleet *Fleet, player *Player, planet *Planet) {
 
 	if fleet.Spec.MiningRate == 0 {
 		messager.remoteMineNoMiners(player, fleet, planet)
+		fleet.Waypoints[0].Task = WaypointTaskNone
 		return
 	}
 
@@ -2276,7 +2279,7 @@ func (t *turn) instaform() {
 				terraformer := NewTerraformer()
 				instaformAmount := terraformer.getTerraformAmount(planet.BaseHab, planet.BaseHab, player, player)
 				newHab := planet.BaseHab.Add(instaformAmount)
-			
+
 				// see if we would change this planet's hab
 				if newHab != planet.Hab {
 					// Instantly terraform this planet (but don't update planet.TerraformAmount, this change doesn't stick if we leave)
@@ -2436,17 +2439,22 @@ func (t *turn) fleetPatrol(player *Player) {
 			continue
 		}
 
-		distSquared := float64(wp.PatrolRange * wp.PatrolRange)
+		rangeDistanceSquared := float64(wp.PatrolRange * wp.PatrolRange)
+		if wp.PatrolRange == PatrolRangeInfinite {
+			rangeDistanceSquared = math.MaxFloat64
+		}
+
 		closestDistance := float64(math.MaxFloat32)
 		var closest *FleetIntel
 
-		for _, enemyFleet := range player.FleetIntels {
+		for i := range player.FleetIntels {
+			enemyFleet := &player.FleetIntels[i]
 			if fleet.willAttack(player, enemyFleet.PlayerNum) {
 				distSquaredToFleet := fleet.Position.DistanceSquaredTo(enemyFleet.Position)
-				if distSquaredToFleet <= distSquared {
-					if distSquaredToFleet <= closestDistance {
+				if distSquaredToFleet <= rangeDistanceSquared {
+					if distSquaredToFleet < closestDistance {
 						closestDistance = distSquaredToFleet
-						closest = &enemyFleet
+						closest = enemyFleet
 					}
 				}
 			}
@@ -2459,7 +2467,9 @@ func (t *turn) fleetPatrol(player *Player) {
 			}
 			fleet.Waypoints = append(fleet.Waypoints, NewFleetWaypoint(closest.Position, closest.Num, closest.PlayerNum, closest.Name, wp.PatrolWarpSpeed))
 
-			messager.fleetPatrolTargeted(player, fleet, closest)
+			player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetPatrolTargeted, fleet).withSpec(
+				PlayerMessageSpec{Name: fleet.Name, TargetName: closest.Name, TargetNum: closest.Num, TargetPlayerNum: closest.PlayerNum, TargetType: MapObjectTypeFleet},
+			))
 
 			log.Debug().
 				Int64("GameID", t.game.ID).

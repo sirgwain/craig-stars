@@ -167,7 +167,7 @@
 		<div class="form-control">
 			<label class="label cursor-pointer">
 				<span class="label-text mr-1">Show All</span>
-				<input type="checkbox" class="toggle" bind:checked={$settings.showAllPlanets} />
+				<input type="checkbox" class="toggle" class:toggle-accent={$settings.showAllPlanets} bind:checked={$settings.showAllPlanets} />
 			</label>
 		</div>
 	</div>

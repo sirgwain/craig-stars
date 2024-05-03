@@ -559,11 +559,13 @@ func TestFleet_moveFleet(t *testing.T) {
 	player := NewPlayer(1, NewRace().WithSpec(&rules))
 
 	type args struct {
-		player *Player ``
+		player *Player
+		planet *Planet
 	}
 	type want struct {
-		position Vector
-		fuelUsed int
+		position          Vector
+		fuelUsed          int
+		orbitingPlanetNum int
 	}
 	tests := []struct {
 		name  string
@@ -574,25 +576,35 @@ func TestFleet_moveFleet(t *testing.T) {
 		{
 			"move 25ly at warp5",
 			testLongRangeScout(player).withWaypoints(NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{50, 0}, 5)),
-			args{player},
-			want{Vector{25, 0}, 4},
+			args{player: player},
+			want{Vector{25, 0}, 4, None},
 		},
 		{
 			"move 1ly at warp 1",
 			testLongRangeScout(player).withWaypoints(NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{1, 1}, 1)),
-			args{player},
-			want{Vector{1, 1}, 0},
+			args{player: player},
+			want{Vector{1, 1}, 0, None},
 		},
 		{
 			"overshoot waypoint at warp 5",
 			testLongRangeScout(player).withWaypoints(NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{5, 5}, 5)),
-			args{player},
-			want{Vector{5, 5}, 1},
+			args{player: player},
+			want{Vector{5, 5}, 1, None},
+		},
+		{
+			"end up at planet",
+			testLongRangeScout(player).withWaypoints(NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{5, 5}, 5)),
+			args{player: player, planet: NewPlanet().WithNum(1).withPosition(Vector{5, 5})},
+			want{Vector{5, 5}, 1, 1},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			universe := Universe{Fleets: []*Fleet{tt.fleet}}
+			if tt.args.planet != nil {
+				universe.Planets = []*Planet{tt.args.planet}
+			}
+			universe.buildMaps([]*Player{tt.args.player})
 
 			tt.fleet.moveFleet(&rules, &universe, newTestPlayerGetter(player))
 

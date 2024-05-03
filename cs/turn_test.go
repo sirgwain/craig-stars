@@ -1265,12 +1265,12 @@ func Test_turn_fleetPatrol(t *testing.T) {
 	fleet.Waypoints[0].PatrolRange = 50
 	game.Fleets[0] = fleet
 
-	// create a new enemy player with a fleet 100ly away
+	// create a new enemy player with a fleet 60ly away
 	enemyPlayer := NewPlayer(2, NewRace().WithSpec(rules)).WithNum(2).withSpec(rules)
-	enemyFleet := testLongRangeScout(enemyPlayer)
-	enemyFleet.Position = Vector{60, 0}
+	enemyFleet1 := testLongRangeScout(enemyPlayer)
+	enemyFleet1.Position = Vector{60, 0}
 	game.Players = append(game.Players, enemyPlayer)
-	game.Fleets = append(game.Fleets, enemyFleet)
+	game.Fleets = append(game.Fleets, enemyFleet1)
 
 	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
 	enemyPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
@@ -1293,15 +1293,22 @@ func Test_turn_fleetPatrol(t *testing.T) {
 	// should not attack
 	assert.Equal(t, 1, len(fleet.Waypoints))
 
-	// move closer, should target
-	enemyFleet.Position = Vector{50, 0}
+	// make a second enemy fleet closer
+	enemyFleet2 := testLongRangeScout(enemyPlayer)
+	enemyFleet2.Position = Vector{30, 0}
+	game.Fleets = append(game.Fleets, enemyFleet2)
+
+	// move first fleet within range as well
+	enemyFleet1.Position = Vector{50, 0}
+
+	// generate
 	turn.generateTurn()
 
-	// should not attack
+	// should attack fleet 2
 	assert.Equal(t, len(fleet.Waypoints), 2)
 	assert.Equal(t, MapObjectTypeFleet, fleet.Waypoints[1].TargetType)
-	assert.Equal(t, enemyFleet.PlayerNum, fleet.Waypoints[1].TargetPlayerNum)
-	assert.Equal(t, enemyFleet.Num, fleet.Waypoints[1].TargetNum)
+	assert.Equal(t, enemyFleet2.PlayerNum, fleet.Waypoints[1].TargetPlayerNum)
+	assert.Equal(t, enemyFleet2.Num, fleet.Waypoints[1].TargetNum)
 	assert.Equal(t, 6, fleet.Waypoints[1].WarpSpeed)
 
 }

@@ -16,9 +16,11 @@
 
 {#if message.type === MessageType.FleetRadiatingEngineDieoff}
 	<!-- Colonist dieoff from engine radiation -->
-	Engine radiation has killed {(message.spec.amount ?? 0) * -100} colonists traveling in {message.spec.name}.
+	Engine radiation has killed {(message.spec.amount ?? 0) * -100} colonists traveling in {message
+		.spec.name}.
 {:else if message.type === MessageType.FleetDieoff}
-	Due to the rigors of warp acceleration, {(message.spec.amount ?? 0) * -100} of your colonists on {message.spec.name}
+	Due to the rigors of warp acceleration, {(message.spec.amount ?? 0) * -100} of your colonists on {message
+		.spec.name}
 	have died.
 {:else if message.type === MessageType.FleetShipExceededSafeSpeed}
 	<!-- Overwarp -->
@@ -41,6 +43,8 @@
 	)}
 {:else if message.type === MessageType.FleetTransferReceived}
 	{$universe.getPlayerName(message.spec.sourcePlayerNum)} has given you {message.spec.name}
+{:else if message.type === MessageType.FleetPatrolTargeted}
+	Your patrolling {message.spec.name} has targeted {message.spec.targetName} for intercept.
 {:else}
 	<!-- Fallback for unknown message types -->
 	<FallbackMessageDetail {message} />

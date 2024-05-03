@@ -114,7 +114,7 @@
 	<div class="form-control" class:hidden={!player}>
 		<label class="label cursor-pointer">
 			<span class="label-text mr-1">Show All</span>
-			<input type="checkbox" class="toggle" bind:checked={showAll} />
+			<input type="checkbox" class="toggle" class:toggle-accent={showAll} bind:checked={showAll} />
 		</label>
 	</div>
 </div>

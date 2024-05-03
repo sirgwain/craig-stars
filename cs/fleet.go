@@ -886,6 +886,15 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 
 		fleet.Waypoints[0] = wp0
 	}
+
+	// if we ended up at a planet, make sure we are orbiting it
+	if fleet.OrbitingPlanetNum == None {
+		for _, mo := range mapObjectGetter.getMapObjectsAtPosition(fleet.Position) {
+			if planet, ok := mo.(*Planet); ok {
+				fleet.OrbitingPlanetNum = planet.Num
+			}
+		}
+	}
 }
 
 // GateFleet moves the fleet the cool way, with stargates!

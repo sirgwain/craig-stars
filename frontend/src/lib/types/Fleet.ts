@@ -56,6 +56,8 @@ export type Waypoint = {
 	task: WaypointTask;
 	waitAtWaypoint?: boolean;
 	layMineFieldDuration?: number;
+	patrolRange?: number;
+	patrolWarpSpeed?: number;
 	transferToPlayer?: number;
 	partiallyComplete?: boolean;
 	transportTasks: WaypointTransportTasks;

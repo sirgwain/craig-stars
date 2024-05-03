@@ -20,6 +20,10 @@ export type PlayerMessageSpec = {
 	name?: string;
 	sourcePlayerNum?: number;
 	destPlayerNum?: number;
+	targetName?: string;
+	targetNum?: number;
+	targetPlayerNum?: number;
+	targetType?: MapObjectType;
 	prevAmount?: number;
 	cost?: Cost;
 	field?: TechField;

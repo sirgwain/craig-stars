@@ -137,6 +137,8 @@ func (o *orders) UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrd
 	wp0.Task = newWP0.Task
 	wp0.TransportTasks = newWP0.TransportTasks
 	wp0.LayMineFieldDuration = newWP0.LayMineFieldDuration
+	wp0.PatrolRange = newWP0.PatrolRange
+	wp0.PatrolWarpSpeed = newWP0.PatrolWarpSpeed
 	wp0.WaitAtWaypoint = newWP0.WaitAtWaypoint
 	wp0.TargetName = newWP0.TargetName
 	wp0.TargetType = newWP0.TargetType

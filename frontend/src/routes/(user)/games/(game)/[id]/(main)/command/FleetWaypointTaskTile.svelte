@@ -15,6 +15,7 @@
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { createEventDispatcher } from 'svelte';
 	import type { TransportTasksDialogEvent } from '../../dialogs/transport/TransportTasksDialog.svelte';
+	import WarpSpeedGauge from '$lib/components/game/WarpSpeedGauge.svelte';
 
 	const dispatch = createEventDispatcher<TransportTasksDialogEvent>();
 
@@ -37,6 +38,23 @@
 			updateFleetOrders(fleet);
 		}
 	};
+
+	function onPatrolRangeChanged() {
+		updateFleetOrders(fleet);
+	}
+
+	async function onPatrolWarpSpeedChanged(warpSpeed: number) {
+		if ($selectedWaypoint) {
+			$selectedWaypoint.patrolWarpSpeed = warpSpeed;
+			await updateFleetOrders(fleet);
+		}
+	}
+
+	async function onPatrolWarpSpeedDragged(warpSpeed: number) {
+		if ($selectedWaypoint) {
+			$selectedWaypoint.patrolWarpSpeed = warpSpeed;
+		}
+	}
 
 	function onLayMineFieldDurationChanged() {
 		updateFleetOrders(fleet);
@@ -166,6 +184,42 @@
 				<option value={4}>for 4 years</option>
 				<option value={5}>for 5 years</option>
 			</select>
+		{:else if $selectedWaypoint?.task === WaypointTask.Patrol}
+			<div class="flex justify-between my-1">
+				<div class="my-auto text-tile-item-title">Intercept</div>
+				<div>
+					<select
+						class="select select-outline select-secondary select-sm py-0 text-sm mt-1"
+						bind:value={$selectedWaypoint.patrolRange}
+						on:change|preventDefault={() => onPatrolRangeChanged()}
+					>
+						<option value={50}>within 50 l.y.</option>
+						<option value={100}>within 100 l.y.</option>
+						<option value={150}>within 150 l.y.</option>
+						<option value={200}>within 200 l.y.</option>
+						<option value={250}>within 250 l.y.</option>
+						<option value={300}>within 300 l.y.</option>
+						<option value={350}>within 350 l.y.</option>
+						<option value={450}>within 450 l.y.</option>
+						<option value={550}>within 550 l.y.</option>
+						<option value={undefined}>any enemy</option>
+					</select>
+				</div>
+			</div>
+			<div class="flex mt-1">
+				<span class="text-tile-item-title">Warp Factor</span>
+				<span class="flex-1 ml-1">
+					<WarpSpeedGauge
+						on:valuechanged={(e) => onPatrolWarpSpeedChanged(e.detail)}
+						on:valuedragged={(e) => onPatrolWarpSpeedDragged(e.detail)}
+						bind:value={$selectedWaypoint.patrolWarpSpeed}
+						warnSpeed={fleet.spec.engine.maxSafeSpeed
+							? fleet.spec.engine.maxSafeSpeed + 1
+							: undefined}
+						warp0Text={'Automatic'}
+					/>
+				</span>
+			</div>
 		{:else if $selectedWaypoint?.task === WaypointTask.TransferFleet}
 			<select
 				class="select select-outline select-secondary select-sm py-0 text-sm mt-1"

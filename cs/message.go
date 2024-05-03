@@ -28,6 +28,10 @@ type PlayerMessageSpec struct {
 	SourcePlayerNum int                     `json:"sourcePlayerNum,omitempty"`
 	DestPlayerNum   int                     `json:"destPlayerNum,omitempty"`
 	Name            string                  `json:"name,omitempty"`
+	TargetName      string                  `json:"targetName,omitempty"`
+	TargetNum       int                     `json:"targetNum,omitempty"`
+	TargetPlayerNum int                     `json:"targetPlayerNum,omitempty"`
+	TargetType      MapObjectType           `json:"targetType,omitempty"`
 	Cost            *Cost                   `json:"cost,omitempty"`
 	QueueItemType   QueueItemType           `json:"queueItemType,omitempty"`
 	Field           TechField               `json:"field,omitempty"`
@@ -336,11 +340,6 @@ func (m *messageClient) fleetInvalidMergeNotFleet(player *Player, fleet *Fleet) 
 func (m *messageClient) fleetInvalidMergeNotOwned(player *Player, fleet *Fleet) {
 	text := fmt.Sprintf("%s was unable to complete it's merge orders as the destination fleet wasn't one of yours.", fleet.Name)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetInvalidMergeUnowned, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
-}
-
-func (m *messageClient) fleetPatrolTargeted(player *Player, fleet *Fleet, target *FleetIntel) {
-	text := fmt.Sprintf("Your patrolling %s has targeted %s for intercept.", fleet.Name, target.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetPatrolTargeted, Text: text, TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num})
 }
 
 func (m *messageClient) fleetInvalidRouteNotPlanet(player *Player, fleet *Fleet) {

@@ -69,7 +69,12 @@
 		<div class="form-control">
 			<label class="label cursor-pointer">
 				<span class="label-text mr-1">Show All Messages</span>
-				<input type="checkbox" class="toggle" bind:checked={showAllMessages} />
+				<input
+					type="checkbox"
+					class="toggle"
+					class:toggle-accent={showAllMessages}
+					bind:checked={showAllMessages}
+				/>
 			</label>
 		</div>
 	</div>
