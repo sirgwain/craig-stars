@@ -131,11 +131,8 @@ func (b *bomb) bombPlanet(planet *Planet, planetOwner *Player, enemyBombers []*F
 		attacker := pg.getPlayer(playerNum)
 
 		// let each player know a bombing happened
-		attacker.Messages = append(attacker.Messages, newFleetMessage(PlayerMessageFleetEnemyPlanetBombed, result.fleet).
-			withSpec(PlayerMessageSpec{Bombing: &result}.withTargetPlanet(planet)))
-		planetOwner.Messages = append(planetOwner.Messages, newPlanetMessage(PlayerMessageMyPlanetBombed, planet).
-			withSpec(PlayerMessageSpec{Bombing: &result}.withTargetFleet(result.fleet)))
-
+		messager.fleetBombedPlanet(attacker, result.fleet, planet, result)
+		messager.planetBombed(planetOwner, planet, result.fleet, result)
 	}
 
 	// if, after bombing, the planet is all out of pop, empty it

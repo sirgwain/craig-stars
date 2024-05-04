@@ -87,7 +87,7 @@
 			return true;
 		}
 
-		if (message.type === MessageType.GainTechLevel) {
+		if (message.type === MessageType.PlayerGainTechLevel) {
 			return true;
 		}
 

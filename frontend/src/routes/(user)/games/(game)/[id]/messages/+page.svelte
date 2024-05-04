@@ -22,10 +22,10 @@
 				return 'Battle';
 			}
 		}
-		if (message.type === MessageType.GainTechLevel) {
+		if (message.type === MessageType.PlayerGainTechLevel) {
 			return 'Research';
 		}
-		if (message.type === MessageType.TechGained) {
+		if (message.type === MessageType.PlayerTechGained) {
 			return message.spec.techGained;
 		}
 

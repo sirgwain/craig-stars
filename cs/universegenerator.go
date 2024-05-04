@@ -133,7 +133,7 @@ func (ug *universeGenerator) generatePlanets() error {
 		planet.Num = i + 1
 		planet.Position = pos
 		planet.randomize(rules)
-		
+
 		if ug.MaxMinerals {
 			planet.MineralConcentration = Mineral{100, 100, 100}
 		}
@@ -269,7 +269,6 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 		homeworldMinConc = Mineral{100, 100, 100}
 	}
 
-
 	homeworldSurfaceMinerals := Mineral{
 		Ironium:   rules.MinStartingMineralSurface + random.Intn(rules.MaxStartingMineralSurface),
 		Boranium:  rules.MinStartingMineralSurface + random.Intn(rules.MaxStartingMineralSurface),
@@ -357,7 +356,7 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 			}
 
 			// tell theplayer about the homeworld
-			messager.homePlanet(player, playerPlanet)
+			messager.planetHomeworld(player, playerPlanet)
 
 			// generate some fleets on the homeworld
 			if err := ug.generatePlayerFleets(player, playerPlanet, &fleetNum, startingPlanet.StartingFleets); err != nil {

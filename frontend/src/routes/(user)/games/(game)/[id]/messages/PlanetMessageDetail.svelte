@@ -21,37 +21,79 @@
 
 {#if message.text}
 	{message.text}
-{:else if message.type === MessageType.HomePlanet}
+{:else if message.type === MessageType.PlanetHomeworld}
 	Your home planet is {planet.name}. Your people are ready to leave the nest and explore the
 	universe. Good luck.
-{:else if message.type === MessageType.BuildInvalidItem}
+{:else if message.type === MessageType.PlanetBonusResearchArtifact}
+	Your colonists settling {planet.name} have found a strange artifact boosting your research in {message
+		.spec.field} by {message.spec.amount} resources.
+{:else if message.type === MessageType.PlanetBuiltInvalidItem}
 	You have attempted to build {startCase(message.spec.queueItemType)} on {planet.name}, but {planet.name}
 	is unable to build any of these.
-{:else if message.type === MessageType.BuildMineralPacketNoMassDriver}
+{:else if message.type === MessageType.PlanetBuiltInvalidMineralPacketNoMassDriver}
 	You have attempted to build a mineral packet on {planet.name}, but you have no Starbase equipped
 	with a mass driver on this planet. Production for this planet has been cancelled.
-{:else if message.type === MessageType.BuildMineralPacketNoTarget}
+{:else if message.type === MessageType.PlanetBuiltInvalidMineralPacketNoTarget}
 	You have attempted to build a mineral packet on {planet.name}, but you have not specified a
 	target. The minerals have been returned to the planet and production has been cancelled.
-{:else if message.type === MessageType.BuiltMine}
+{:else if message.type === MessageType.PlanetBuiltMine}
 	You have built {message.spec.amount ?? 0} mine(s) on {planet.name}.
-{:else if message.type === MessageType.BuiltFactory}
+{:else if message.type === MessageType.PlanetBuiltFactory}
 	You have built {message.spec.amount ?? 0} factory(s) on {planet.name}.
-{:else if message.type === MessageType.BuiltDefense}
+{:else if message.type === MessageType.PlanetBuiltDefense}
 	You have built {message.spec.amount ?? 0} defense(s) on {planet.name}.
-{:else if message.type === MessageType.BuiltMineralAlchemy}
+{:else if message.type === MessageType.PlanetBuiltMineralAlchemy}
 	Your scientists on {planet.name} have transmuted common materials into {message.spec.amount ??
 		0}kT each of Ironium, Boranium and Germanium.
-{:else if message.type === MessageType.BuiltScanner}
+{:else if message.type === MessageType.PlanetBuiltScanner}
 	{planet.name} has built a new {message.spec.name} planetary scanner.
-{:else if message.type === MessageType.BuiltShip}
+{:else if message.type === MessageType.PlanetBuiltShip}
 	Your starbase at {planet.name} has built {message.spec.amount ?? 'a'} new {message.spec.name}s.
-{:else if message.type === MessageType.BuiltStarbase}
+{:else if message.type === MessageType.PlanetBuiltStarbase}
 	{planet.name} has built a new {message.spec.name}.
 	{#if planet.spec.dockCapacity == UnlimitedSpaceDock}
 		Ships of any size can now be built here.
 	{:else if planet.spec.dockCapacity > 0}
 		Ships up to {planet.spec.dockCapacity}kT in total hull weight can now be built at this facility.
+	{/if}
+{:else if message.type === MessageType.PlanetCometStrike}
+	{#if message.spec.comet?.size == CometSize.Small}
+		A small comet has crashed into {planet.name} bringing new minerals and altering the planet's environment.
+	{:else if message.spec.comet?.size == CometSize.Medium}
+		A medium-sized comet has crashed into {planet.name} bringing a significant quantity of minerals to
+		the planet.
+	{:else if message.spec.comet?.size == CometSize.Large}
+		A large comet has crashed into {planet.name} bringing a wide variety of new minerals and drastically
+		altering the planet's environment.
+	{:else if message.spec.comet?.size == CometSize.Huge}
+		A huge comet has crashed into {planet.name} embedding vast quantities of minerals in the planet and
+		radically altering its environment.
+	{:else}
+		A comet has crashed into {planet.name} bringing new minerals and altering the planet's environment.
+	{/if}
+{:else if message.type === MessageType.PlanetCometStrikeMyPlanet}
+	{#if message.spec.comet?.size == CometSize.Small}
+		A small comet has crashed into your planet {planet.name}, killing {(
+			message.spec.comet?.colonistsKilled ?? 0
+		).toLocaleString()} of your colonists. The comet brought additional minerals and has slightly altered
+		the planet's habitat.
+	{:else if message.spec.comet?.size == CometSize.Medium}
+		A medium-sized comet has crashed into your planet {planet.name}, killing {(
+			message.spec.comet?.colonistsKilled ?? 0
+		).toLocaleString()} of your colonists. The comet brought additional minerals and has altered the
+		planet's environment.
+	{:else if message.spec.comet?.size == CometSize.Large}
+		A large comet has crashed into your planet {planet.name}, killing {(
+			message.spec.comet?.colonistsKilled ?? 0
+		).toLocaleString()} of your colonists. The comet brought significant quantities of minerals and has
+		greatly altered the planet's environment.
+	{:else if message.spec.comet?.size == CometSize.Huge}
+		A huge comet has crashed into your planet {planet.name}, killing {(
+			message.spec.comet?.colonistsKilled ?? 0
+		).toLocaleString()} of your colonists. The comet has embedded vast stores of minerals and has drastically
+		altered the planet's environment.
+	{:else}
+		A comet has crashed into {planet.name} bringing new minerals and altering the planet's environment.
 	{/if}
 {:else if [MessageType.PlanetDiscovery, MessageType.PlanetDiscoveryHabitable, MessageType.PlanetDiscoveryTerraformable, MessageType.PlanetDiscoveryUninhabitable].indexOf(message.type) != -1}
 	{#if owner}
@@ -87,49 +129,7 @@
 {:else if message.type === MessageType.PlanetPopulationDecreasedOvercrowding}
 	The population on {planet.name} has decreased by {(-(message.spec.amount ?? 0)).toLocaleString()} due
 	to overcrowding.
-{:else if message.type === MessageType.CometStrike}
-	{#if message.spec.comet?.size == CometSize.Small}
-		A small comet has crashed into {planet.name} bringing new minerals and altering the planet's environment.
-	{:else if message.spec.comet?.size == CometSize.Medium}
-		A medium-sized comet has crashed into {planet.name} bringing a significant quantity of minerals to
-		the planet.
-	{:else if message.spec.comet?.size == CometSize.Large}
-		A large comet has crashed into {planet.name} bringing a wide variety of new minerals and drastically
-		altering the planet's environment.
-	{:else if message.spec.comet?.size == CometSize.Huge}
-		A huge comet has crashed into {planet.name} embedding vast quantities of minerals in the planet and
-		radically altering its environment.
-	{:else}
-		A comet has crashed into {planet.name} bringing new minerals and altering the planet's environment.
-	{/if}
-{:else if message.type === MessageType.CometStrikeMyPlanet}
-	{#if message.spec.comet?.size == CometSize.Small}
-		A small comet has crashed into your planet {planet.name}, killing {(
-			message.spec.comet?.colonistsKilled ?? 0
-		).toLocaleString()} of your colonists. The comet brought additional minerals and has slightly altered
-		the planet's habitat.
-	{:else if message.spec.comet?.size == CometSize.Medium}
-		A medium-sized comet has crashed into your planet {planet.name}, killing {(
-			message.spec.comet?.colonistsKilled ?? 0
-		).toLocaleString()} of your colonists. The comet brought additional minerals and has altered the
-		planet's environment.
-	{:else if message.spec.comet?.size == CometSize.Large}
-		A large comet has crashed into your planet {planet.name}, killing {(
-			message.spec.comet?.colonistsKilled ?? 0
-		).toLocaleString()} of your colonists. The comet brought significant quantities of minerals and has
-		greatly altered the planet's environment.
-	{:else if message.spec.comet?.size == CometSize.Huge}
-		A huge comet has crashed into your planet {planet.name}, killing {(
-			message.spec.comet?.colonistsKilled ?? 0
-		).toLocaleString()} of your colonists. The comet has embedded vast stores of minerals and has drastically
-		altered the planet's environment.
-	{:else}
-		A comet has crashed into {planet.name} bringing new minerals and altering the planet's environment.
-	{/if}
-{:else if message.type === MessageType.BonusResearchArtifact}
-	Your colonists settling {planet.name} have found a strange artifact boosting your research in {message
-		.spec.field} by {message.spec.amount} resources.
-{:else if message.type === MessageType.TechLevelGainedInvasion}
+{:else if message.type === MessageType.PlayerTechLevelGainedInvasion}
 	Your colonists invading {planet.name} have picked through the remains of the defenders looking for
 	technology. In the process you have gained a level in {message.spec.field}.
 {:else if message.type === MessageType.FleetScrapped}
@@ -144,13 +144,13 @@
 		&nbsp;Ultimate recycling has also made {message.spec.cost?.resources} resources available for immediate
 		use (less if other ships were scrapped here this year).
 	{/if}
-{:else if message.type === MessageType.TechLevelGainedScrapFleet}
+{:else if message.type === MessageType.PlayerTechLevelGainedScrapFleet}
 	In the process of {message.targetName} being scrapped above {planet.name}, you have gained a level
 	in {message.spec.field}
-{:else if message.type === MessageType.TechLevelGainedBattle}
+{:else if message.type === MessageType.PlayerTechLevelGainedBattle}
 	Wreckage from the battle that occurred in orbit of {planet.name} has boosted your research in {message
 		.spec.field}.
-{:else if message.type === MessageType.MyPlanetBombed}
+{:else if message.type === MessageType.PlanetBombed}
 	{@const bombing = message.spec.bombing}
 	{#if bombing}
 		{#if bombing.numBombers == 1}

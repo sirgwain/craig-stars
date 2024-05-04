@@ -278,11 +278,11 @@ export function createGameContext(fg: FullGame): GameContext {
 			return;
 		}
 
-		if (message.type === MessageType.GainTechLevel) {
+		if (message.type === MessageType.PlayerGainTechLevel) {
 			goto(`/games/${gameId}/research`);
 		}
 
-		if (message.type === MessageType.TechGained && message.spec.techGained) {
+		if (message.type === MessageType.PlayerTechGained && message.spec.techGained) {
 			goto(`/games/${gameId}/techs/${kebabCase(message.spec.techGained)}`);
 		}
 
