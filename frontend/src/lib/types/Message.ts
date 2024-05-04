@@ -17,13 +17,10 @@ export type Message = {
 
 export type PlayerMessageSpec = {
 	amount?: number;
+	amount2?: number;
 	name?: string;
 	sourcePlayerNum?: number;
 	destPlayerNum?: number;
-	targetName?: string;
-	targetNum?: number;
-	targetPlayerNum?: number;
-	targetType?: MapObjectType;
 	prevAmount?: number;
 	cost?: Cost;
 	field?: TechField;
@@ -32,6 +29,19 @@ export type PlayerMessageSpec = {
 	queueItemType?: QueueItemType;
 	battle: BattleRecordStats;
 	comet?: PlayerMessageSpecComet;
+	bombing?: BombingResult;
+	mineral?: Mineral;
+} & Target;
+
+export type BombingResult = {
+	bomberName?: string;
+	numBombers?: number;
+	colonistsKilled?: number;
+	minesDestroyed?: number;
+	factoriesDestroyed?: number;
+	defensesDestroyed?: number;
+	unterraformAmount?: Hab;
+	planetEmptied?: boolean;
 };
 
 export type PlayerMessageSpecComet = {
@@ -118,7 +128,7 @@ export enum MessageType {
 	GainTechLevel,
 	MyPlanetBombed,
 	MyPlanetRetroBombed,
-	EnemyPlanetBombed,
+	FleetEnemyPlanetBombed,
 	EnemyPlanetRetroBombed,
 	MyPlanetInvaded,
 	EnemyPlanetInvaded,
@@ -141,7 +151,7 @@ export enum MessageType {
 	Instaform,
 	PacketTerraform,
 	PacketPermaform,
-	RemoteMined,
+	FleetRemoteMined,
 	TechGained,
 	FleetTargetLost,
 	FleetRadiatingEngineDieoff,

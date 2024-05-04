@@ -9,7 +9,9 @@
 	export let message: Message;
 </script>
 
-{#if message.type === MessageType.PlayerNoPlanets}
+{#if message.text}
+	{message.text}
+{:else if message.type === MessageType.PlayerNoPlanets}
 	All your planets have been overrun.
 	{#if (message.spec.amount ?? 0) > 0}
 		You still have colonists on a freighter, you can still recover from this this setback!

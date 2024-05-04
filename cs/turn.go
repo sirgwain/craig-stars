@@ -2465,10 +2465,16 @@ func (t *turn) fleetPatrol(player *Player) {
 			if wp.PatrolWarpSpeed == PatrolWarpSpeedAutomatic {
 				wp.PatrolWarpSpeed = fleet.Spec.Engine.IdealSpeed
 			}
+
+			// add a waypoint to the fleet
 			fleet.Waypoints = append(fleet.Waypoints, NewFleetWaypoint(closest.Position, closest.Num, closest.PlayerNum, closest.Name, wp.PatrolWarpSpeed))
 
+			// add a message to the player letting them know a fleet was targetted.
 			player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetPatrolTargeted, fleet).withSpec(
-				PlayerMessageSpec{Name: fleet.Name, TargetName: closest.Name, TargetNum: closest.Num, TargetPlayerNum: closest.PlayerNum, TargetType: MapObjectTypeFleet},
+				PlayerMessageSpec{
+					Name:   fleet.Name,
+					Target: Target[MapObjectType]{TargetType: MapObjectTypeFleet, TargetName: closest.Name, TargetPlayerNum: closest.PlayerNum, TargetNum: closest.Num},
+				},
 			))
 
 			log.Debug().

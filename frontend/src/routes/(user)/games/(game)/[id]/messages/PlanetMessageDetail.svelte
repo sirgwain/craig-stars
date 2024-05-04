@@ -6,6 +6,9 @@
 	import { startCase } from 'lodash-es';
 	import FallbackMessageDetail from './FallbackMessageDetail.svelte';
 	import { totalMinerals } from '$lib/types/Cost';
+	import { UnlimitedSpaceDock } from '$lib/types/Tech';
+	import { absSum } from '$lib/types/Hab';
+	import { text } from '@sveltejs/kit';
 
 	const { game, player, universe, settings } = getGameContext();
 
@@ -16,7 +19,9 @@
 	$: growthRate = $player.race.growthRate * ($player.race.spec?.growthFactor ?? 0);
 </script>
 
-{#if message.type === MessageType.HomePlanet}
+{#if message.text}
+	{message.text}
+{:else if message.type === MessageType.HomePlanet}
 	Your home planet is {planet.name}. Your people are ready to leave the nest and explore the
 	universe. Good luck.
 {:else if message.type === MessageType.BuildInvalidItem}
@@ -28,9 +33,26 @@
 {:else if message.type === MessageType.BuildMineralPacketNoTarget}
 	You have attempted to build a mineral packet on {planet.name}, but you have not specified a
 	target. The minerals have been returned to the planet and production has been cancelled.
+{:else if message.type === MessageType.BuiltMine}
+	You have built {message.spec.amount ?? 0} mine(s) on {planet.name}.
+{:else if message.type === MessageType.BuiltFactory}
+	You have built {message.spec.amount ?? 0} factory(s) on {planet.name}.
+{:else if message.type === MessageType.BuiltDefense}
+	You have built {message.spec.amount ?? 0} defense(s) on {planet.name}.
 {:else if message.type === MessageType.BuiltMineralAlchemy}
 	Your scientists on {planet.name} have transmuted common materials into {message.spec.amount ??
 		0}kT each of Ironium, Boranium and Germanium.
+{:else if message.type === MessageType.BuiltScanner}
+	{planet.name} has built a new {message.spec.name} planetary scanner.
+{:else if message.type === MessageType.BuiltShip}
+	Your starbase at {planet.name} has built {message.spec.amount ?? 'a'} new {message.spec.name}s.
+{:else if message.type === MessageType.BuiltStarbase}
+	{planet.name} has built a new {message.spec.name}.
+	{#if planet.spec.dockCapacity == UnlimitedSpaceDock}
+		Ships of any size can now be built here.
+	{:else if planet.spec.dockCapacity > 0}
+		Ships up to {planet.spec.dockCapacity}kT in total hull weight can now be built at this facility.
+	{/if}
 {:else if [MessageType.PlanetDiscovery, MessageType.PlanetDiscoveryHabitable, MessageType.PlanetDiscoveryTerraformable, MessageType.PlanetDiscoveryUninhabitable].indexOf(message.type) != -1}
 	{#if owner}
 		You have found a planet occupied by someone else. {planet.name} is currently owned by the {owner.racePluralName}
@@ -112,10 +134,10 @@
 	technology. In the process you have gained a level in {message.spec.field}.
 {:else if message.type === MessageType.FleetScrapped}
 	{#if planet.spec.hasStarbase}
-		{message.spec.name} has been dismantled for {totalMinerals(message.spec.cost)}kT of minerals at
+		{message.targetName} has been dismantled for {totalMinerals(message.spec.cost)}kT of minerals at
 		the starbase orbiting {planet.name}.
 	{:else}
-		{message.spec.name} has been dismantled for {totalMinerals(message.spec.cost)}kT of minerals
+		{message.targetName} has been dismantled for {totalMinerals(message.spec.cost)}kT of minerals
 		which have been deposited on {planet.name}.
 	{/if}
 	{#if message.spec.cost?.resources}
@@ -123,11 +145,38 @@
 		use (less if other ships were scrapped here this year).
 	{/if}
 {:else if message.type === MessageType.TechLevelGainedScrapFleet}
-	In the process of {message.spec.name} being scrapped above {planet.name}, you have gained a level
+	In the process of {message.targetName} being scrapped above {planet.name}, you have gained a level
 	in {message.spec.field}
 {:else if message.type === MessageType.TechLevelGainedBattle}
 	Wreckage from the battle that occurred in orbit of {planet.name} has boosted your research in {message
 		.spec.field}.
+{:else if message.type === MessageType.MyPlanetBombed}
+	{@const bombing = message.spec.bombing}
+	{#if bombing}
+		{#if bombing.numBombers == 1}
+			{$universe.getPlayerName(message.spec.targetPlayerNum)}
+			{message.spec.targetName} has bombed your planet {planet.name}
+			{#if message.spec.bombing?.planetEmptied}
+				killing off all colonists.
+			{:else}
+				killing {bombing.colonistsKilled ?? 0} colonists, and destroying {bombing.minesDestroyed ??
+					0} mines,
+				{bombing.factoriesDestroyed ?? 0} factories and {bombing.defensesDestroyed ?? 0} defenses.
+
+				{#if absSum(bombing.unterraformAmount ?? {}) > 0}
+					The bombers have retro-bombed the planet, undoing {absSum(
+						bombing.unterraformAmount ?? {}
+					)}% of its terraforming.
+				{/if}
+			{/if}
+		{:else}
+			{$universe.getPlayerName(message.spec.targetPlayerNum)}
+			{message.spec.targetName} has bombed your planet {planet.name} killing off all colonists
+		{/if}
+	{:else}
+		<!-- Generic message, no bombing data (unexpected) -->
+		Bombers have bombed planet ${planet.name}.
+	{/if}
 {:else}
 	<FallbackMessageDetail {message} />
 {/if}

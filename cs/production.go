@@ -377,7 +377,7 @@ func (p *production) validateItem(item ProductionQueueItem, maxBuildable int, pl
 	if !item.Type.IsAuto() && maxBuildable == 0 {
 		// can't build this, skip it
 		// it shouldn't have been ever added to the queue, but just in case of a bug
-		return newPlanetMessage(PlayerMessageBuildInvalidItem, planet).withSpec(PlayerMessageSpec{QueueItemType: item.Type}), false
+		return newPlanetMessage(PlayerMessageBuildInvalidItem, planet).withSpec(PlayerMessageSpec{Name: planet.Name, QueueItemType: item.Type}), false
 	}
 
 	return PlayerMessage{}, true

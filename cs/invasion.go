@@ -34,7 +34,7 @@ func invadePlanet(rules *Rules, planet *Planet, fleet *Fleet, defender *Player, 
 
 		// empty this planet
 		planet.emptyPlanet()
-		
+
 		// take over the planet.
 		planet.PlayerNum = attacker.Num
 		planet.setPopulation(remainingAttackers)
