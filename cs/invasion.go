@@ -34,7 +34,7 @@ func invadePlanet(rules *Rules, planet *Planet, fleet *Fleet, defender *Player, 
 
 		// empty this planet
 		planet.emptyPlanet()
-		
+
 		// take over the planet.
 		planet.PlayerNum = attacker.Num
 		planet.setPopulation(remainingAttackers)
@@ -58,8 +58,7 @@ func invadePlanet(rules *Rules, planet *Planet, fleet *Fleet, defender *Player, 
 				// sweet, we gained a tech level
 				attacker.techLevelGained = true
 				attacker.TechLevels.Set(field, attacker.TechLevels.Get(field)+1)
-				attacker.Messages = append(attacker.Messages, newPlanetMessage(PlayerMessageTechLevelGainedInvasion, planet).
-					withSpec(PlayerMessageSpec{Field: field}))
+				messager.playerTechGainedInvasion(attacker, planet, field)
 				log.Debug().
 					Int64("GameID", planet.GameID).
 					Int("Attacker", attacker.Num).
