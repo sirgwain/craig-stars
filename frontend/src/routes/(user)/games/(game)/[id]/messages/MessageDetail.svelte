@@ -81,23 +81,8 @@
 	{getBattleMessage(message)}
 {:else if planet}
 	<PlanetMessageDetail {message} {planet} {owner} />
-{:else if target?.type == MapObjectType.Fleet || fleet}
+{:else if message.targetType == MapObjectType.Fleet || fleet}
 	<FleetMessageDetail {message} />
-{:else if message.type === MessageType.FleetExceededSafeSpeed}
-	<!-- The fleet could have been destroyed, in which case we won't have a fleet for this message so capture it here -->
-	<FleetEngineStrainMessageDetail {message} />
-{:else if message.type === MessageType.FleetTransferGiven}
-	{message.targetName} has successfully been given to {$universe.getPlayerName(
-		message.spec.destPlayerNum
-	)}
-{:else if message.type === MessageType.FleetTransferInvalidReceiveRefused}
-	{$universe.getPlayerName(message.spec.sourcePlayerNum)} has attempted to gift you {message.targetName},
-	but you have refused their offer. If you wish to receive gifts from this player in the future,
-	make sure you are allies.
-{:else if message.type === MessageType.PlayerTechLevelGainedBattle}
-	{@const battle = $universe.getBattle(message.battleNum)}
-	Wreckage from the battle that occurred in at {battle?.position.x ?? 0}, {battle?.position.y ?? 0} has
-	boosted your research in {message.spec.field}.
 {:else}
 	<PlayerMessageDetail {message} />
 {/if}

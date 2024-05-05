@@ -24,9 +24,45 @@
 {:else if message.type === MessageType.PlanetHomeworld}
 	Your home planet is {planet.name}. Your people are ready to leave the nest and explore the
 	universe. Good luck.
+{:else if message.type === MessageType.PlanetBombed}
+	{@const bombing = message.spec.bombing}
+	{#if bombing}
+		{#if bombing.numBombers == 1}
+			{$universe.getPlayerName(message.spec.targetPlayerNum)}
+			{message.spec.targetName} has bombed your planet {planet.name}
+			{#if message.spec.bombing?.planetEmptied}
+				killing off all colonists.
+			{:else}
+				killing {bombing.colonistsKilled ?? 0} colonists, and destroying {bombing.minesDestroyed ??
+					0} mines,
+				{bombing.factoriesDestroyed ?? 0} factories and {bombing.defensesDestroyed ?? 0} defenses.
+
+				{#if absSum(bombing.unterraformAmount ?? {}) > 0}
+					The bombers have retro-bombed the planet, undoing {absSum(
+						bombing.unterraformAmount ?? {}
+					)}% of its terraforming.
+				{/if}
+			{/if}
+		{:else}
+			{$universe.getPlayerName(message.spec.targetPlayerNum)}
+			{message.spec.targetName} has bombed your planet {planet.name} killing off all colonists
+		{/if}
+	{:else}
+		<!-- Generic message, no bombing data (unexpected) -->
+		Bombers have bombed planet ${planet.name}.
+	{/if}
 {:else if message.type === MessageType.PlanetBonusResearchArtifact}
 	Your colonists settling {planet.name} have found a strange artifact boosting your research in {message
 		.spec.field} by {message.spec.amount} resources.
+{:else if message.type === MessageType.PlanetBuiltDefense}
+	You have built {message.spec.amount ?? 0} defense(s) on {planet.name}.
+{:else if message.type === MessageType.PlanetBuiltFactory}
+	You have built {message.spec.amount ?? 0} factory(s) on {planet.name}.
+{:else if message.type === MessageType.PlanetBuiltMineralAlchemy}
+	Your scientists on {planet.name} have transmuted common materials into {message.spec.amount ??
+		0}kT each of Ironium, Boranium and Germanium.
+{:else if message.type === MessageType.PlanetBuiltMine}
+	You have built {message.spec.amount ?? 0} mine(s) on {planet.name}.
 {:else if message.type === MessageType.PlanetBuiltInvalidItem}
 	You have attempted to build {startCase(message.spec.queueItemType)} on {planet.name}, but {planet.name}
 	is unable to build any of these.
@@ -36,15 +72,6 @@
 {:else if message.type === MessageType.PlanetBuiltInvalidMineralPacketNoTarget}
 	You have attempted to build a mineral packet on {planet.name}, but you have not specified a
 	target. The minerals have been returned to the planet and production has been cancelled.
-{:else if message.type === MessageType.PlanetBuiltMine}
-	You have built {message.spec.amount ?? 0} mine(s) on {planet.name}.
-{:else if message.type === MessageType.PlanetBuiltFactory}
-	You have built {message.spec.amount ?? 0} factory(s) on {planet.name}.
-{:else if message.type === MessageType.PlanetBuiltDefense}
-	You have built {message.spec.amount ?? 0} defense(s) on {planet.name}.
-{:else if message.type === MessageType.PlanetBuiltMineralAlchemy}
-	Your scientists on {planet.name} have transmuted common materials into {message.spec.amount ??
-		0}kT each of Ironium, Boranium and Germanium.
 {:else if message.type === MessageType.PlanetBuiltScanner}
 	{planet.name} has built a new {message.spec.name} planetary scanner.
 {:else if message.type === MessageType.PlanetBuiltShip}
@@ -95,6 +122,13 @@
 	{:else}
 		A comet has crashed into {planet.name} bringing new minerals and altering the planet's environment.
 	{/if}
+{:else if message.type === MessageType.PlanetDiedOff}
+	{#if $player.race.spec?.livesOnStarbases}
+		All of your colonists orbiting {planet.name} have died off. Your starbase has been lost and you no
+		longer control the planet.
+	{:else}
+		All of your colonists on {planet.name} have died off. You no longer control the planet.
+	{/if}
 {:else if [MessageType.PlanetDiscovery, MessageType.PlanetDiscoveryHabitable, MessageType.PlanetDiscoveryTerraformable, MessageType.PlanetDiscoveryUninhabitable].indexOf(message.type) != -1}
 	{#if owner}
 		You have found a planet occupied by someone else. {planet.name} is currently owned by the {owner.racePluralName}
@@ -115,13 +149,6 @@
 			100
 		).toFixed()}% of your colonists will die per year if you colonize {planet.name}
 	{/if}
-{:else if message.type === MessageType.PlanetDiedOff}
-	{#if $player.race.spec?.livesOnStarbases}
-		All of your colonists orbiting {planet.name} have died off. Your starbase has been lost and you no
-		longer control the planet.
-	{:else}
-		All of your colonists on {planet.name} have died off. You no longer control the planet.
-	{/if}
 {:else if message.type === MessageType.PlanetPopulationDecreased}
 	The population on {planet.name} has decreased from {(
 		message.spec.prevAmount ?? 0
@@ -140,7 +167,7 @@
 		{message.targetName} has been dismantled for {totalMinerals(message.spec.cost)}kT of minerals
 		which have been deposited on {planet.name}.
 	{/if}
-	{#if message.spec.cost?.resources}
+{#if message.spec.cost?.resources}
 		&nbsp;Ultimate recycling has also made {message.spec.cost?.resources} resources available for immediate
 		use (less if other ships were scrapped here this year).
 	{/if}
@@ -150,33 +177,6 @@
 {:else if message.type === MessageType.PlayerTechLevelGainedBattle}
 	Wreckage from the battle that occurred in orbit of {planet.name} has boosted your research in {message
 		.spec.field}.
-{:else if message.type === MessageType.PlanetBombed}
-	{@const bombing = message.spec.bombing}
-	{#if bombing}
-		{#if bombing.numBombers == 1}
-			{$universe.getPlayerName(message.spec.targetPlayerNum)}
-			{message.spec.targetName} has bombed your planet {planet.name}
-			{#if message.spec.bombing?.planetEmptied}
-				killing off all colonists.
-			{:else}
-				killing {bombing.colonistsKilled ?? 0} colonists, and destroying {bombing.minesDestroyed ??
-					0} mines,
-				{bombing.factoriesDestroyed ?? 0} factories and {bombing.defensesDestroyed ?? 0} defenses.
-
-				{#if absSum(bombing.unterraformAmount ?? {}) > 0}
-					The bombers have retro-bombed the planet, undoing {absSum(
-						bombing.unterraformAmount ?? {}
-					)}% of its terraforming.
-				{/if}
-			{/if}
-		{:else}
-			{$universe.getPlayerName(message.spec.targetPlayerNum)}
-			{message.spec.targetName} has bombed your planet {planet.name} killing off all colonists
-		{/if}
-	{:else}
-		<!-- Generic message, no bombing data (unexpected) -->
-		Bombers have bombed planet ${planet.name}.
-	{/if}
 {:else}
 	<FallbackMessageDetail {message} />
 {/if}

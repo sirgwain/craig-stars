@@ -13,9 +13,6 @@
 
 {#if message.text}
 	{message.text}
-{:else if message.type === MessageType.FleetDieoff}
-	Due to the rigors of warp acceleration, {(message.spec.amount ?? 0) * -100} of your colonists on {message.targetName}
-	have died.
 {:else if message.type === MessageType.FleetBombedPlanet}
 	{@const bombing = message.spec.bombing}
 	{#if bombing}
@@ -48,15 +45,17 @@
 		)} planet
 		{message.spec.targetName}
 	{/if}
+{:else if message.type === MessageType.FleetDieoff}
+	Due to the rigors of warp acceleration, {(message.spec.amount ?? 0) * -100} of your colonists on {message.targetName}
+	have died.
+{:else if message.type === MessageType.FleetExceededSafeSpeed}
+	<!-- Overwarp -->
+	<FleetEngineStrainMessageDetail {message} />
 {:else if message.type === MessageType.FleetPatrolTargeted}
 	Your patrolling {message.targetName} has targeted {message.spec.targetName} for intercept.
 {:else if message.type === MessageType.FleetRadiatingEngineDieoff}
 	<!-- Colonist dieoff from engine radiation -->
 	Engine radiation has killed {(message.spec.amount ?? 0) * -100} colonists traveling in {message.targetName}.
-{:else if message.type === MessageType.FleetRemoteMined}
-	{message.targetName} has remote mined {message.spec.targetName}, extracting {message.spec.mineral
-		?.ironium ?? 0}kT of ironium, {message.spec.mineral?.boranium ?? 0}kT of boranium, and {message
-		.spec.mineral?.germanium ?? 0}kT of germanium."
 {:else if message.type === MessageType.FleetReproduce}
 	{#if !message.spec.amount2 || !message.spec.targetNum}
 		Your colonists in {message.targetName} have made good use of their time increasing their on-board
@@ -67,25 +66,32 @@
 	{/if}
 	Due to the rigors of warp acceleration, {(message.spec.amount ?? 0) * -100} of your colonists on {message.targetName}
 	have died.
-{:else if message.type === MessageType.FleetExceededSafeSpeed}
-	<!-- Overwarp -->
-	<FleetEngineStrainMessageDetail {message} />
-{:else if message.type === MessageType.FleetTransferInvalidGiveFailed}
+{:else if message.type === MessageType.FleetRemoteMined}
+	{message.targetName} has remote mined {message.spec.targetName}, extracting {message.spec.mineral
+		?.ironium ?? 0}kT of ironium, {message.spec.mineral?.boranium ?? 0}kT of boranium, and {message
+		.spec.mineral?.germanium ?? 0}kT of germanium."
+{:else if message.type === MessageType.FleetTransferGiven}
+	{message.targetName} has successfully been given to {$universe.getPlayerName(
+		message.spec.destPlayerNum
+	)}
+{:else if message.type === MessageType.FleetScrapped}
+	{message.targetName} has been dismantled. The scrap was left in deep space.
+{:else if message.type === MessageType.FleetTransferInvalidPlayer}
 	<!-- Fleet Transfers -->
 	{#if message.spec.destPlayerNum == undefined || message.spec.destPlayerNum == None || message.spec.destPlayerNum < 0 || message.spec.destPlayerNum >= $game.players.length}
 		You cannot give {message.targetName} away. No player to transfer to was specified.
 	{:else}
 		You cannot give {message.targetName} to {$universe.getPlayerName(message.spec.destPlayerNum)}.
 	{/if}
+{:else if message.type === MessageType.FleetTransferInvalidColonists}
+	You couldn't give {message.targetName} away because there were some of your colonists on board.
 {:else if message.type === MessageType.FleetTransferInvalidGiveRefused}
 	{$universe.getPlayerName(message.spec.destPlayerNum)} snub your attempted gift and refuse the fleet
 	{message.targetName}. Are you sure they your allies?
-{:else if message.type === MessageType.FleetTransferInvalidGiveFailedColonists}
-	You couldn't give {message.targetName} away because there were some of your colonists on board.
-{:else if message.type === MessageType.FleetTransferGiven}
-	{message.targetName} has successfully been given to {$universe.getPlayerName(
-		message.spec.destPlayerNum
-	)}
+{:else if message.type === MessageType.FleetTransferInvalidReceiveRefused}
+	{$universe.getPlayerName(message.spec.sourcePlayerNum)} has attempted to gift you {message.targetName},
+	but you have refused their offer. If you wish to receive gifts from this player in the future,
+	make sure you are allies.
 {:else if message.type === MessageType.FleetTransferReceived}
 	{$universe.getPlayerName(message.spec.sourcePlayerNum)} has given you {message.targetName}
 {:else}

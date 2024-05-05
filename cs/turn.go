@@ -1290,7 +1290,7 @@ func (t *turn) planetProduction() error {
 			for _, cargo := range result.packets {
 				target := t.game.getPlanet(planet.PacketTargetNum)
 				packet := t.buildMineralPacket(player, planet, cargo, target)
-				messager.mineralPacket(player, planet, packet, target.Name)
+				messager.planetBuiltMineralPacket(player, planet, packet, target.Name)
 			}
 			if result.starbase != nil {
 				starbase, err := t.buildStarbase(player, planet, result.starbase)
@@ -2637,7 +2637,10 @@ func (t *turn) checkDeath() {
 
 		// tell players they are dead
 		if numPlanets == 0 && numFleets == 0 {
-			messager.playerDead(player)
+			// let everyone know this player died
+			for _, otherPlayer := range t.game.Players {
+				messager.playerDead(otherPlayer, player)
+			}
 			log.Debug().
 				Int64("GameID", t.game.ID).
 				Int("Player", player.Num).
