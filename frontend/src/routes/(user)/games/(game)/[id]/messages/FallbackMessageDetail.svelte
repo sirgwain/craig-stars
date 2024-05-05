@@ -3,8 +3,6 @@
 	import { $enum as eu } from 'ts-enum-util';
 
 	export let message: Message;
-
-	$: console.log(message)
 </script>
 
 {#if message.text}
