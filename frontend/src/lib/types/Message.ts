@@ -104,7 +104,7 @@ export enum MessageType {
 	PlanetBuiltMine,
 	PlanetBuiltFactory,
 	PlanetBuiltDefense,
-	PlanetBuiltShip,
+	FleetBuilt,
 	PlanetBuiltStarbase,
 	PlanetBuiltScanner,
 	PlanetBuiltMineralPacket,

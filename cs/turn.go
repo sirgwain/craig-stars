@@ -1285,7 +1285,7 @@ func (t *turn) planetProduction() error {
 				if err != nil {
 					return err
 				}
-				messager.planetBuiltFleet(player, planet, fleet, token.Quantity)
+				messager.fleetBuilt(player, planet, fleet, token.Quantity)
 			}
 			for _, cargo := range result.packets {
 				target := t.game.getPlanet(planet.PacketTargetNum)

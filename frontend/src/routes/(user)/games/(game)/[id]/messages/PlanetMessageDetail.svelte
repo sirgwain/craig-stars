@@ -74,8 +74,6 @@
 	target. The minerals have been returned to the planet and production has been cancelled.
 {:else if message.type === MessageType.PlanetBuiltScanner}
 	{planet.name} has built a new {message.spec.name} planetary scanner.
-{:else if message.type === MessageType.PlanetBuiltShip}
-	Your starbase at {planet.name} has built {message.spec.amount ?? 'a'} new {message.spec.name}s.
 {:else if message.type === MessageType.PlanetBuiltStarbase}
 	{planet.name} has built a new {message.spec.name}.
 	{#if planet.spec.dockCapacity == UnlimitedSpaceDock}
@@ -167,7 +165,7 @@
 		{message.targetName} has been dismantled for {totalMinerals(message.spec.cost)}kT of minerals
 		which have been deposited on {planet.name}.
 	{/if}
-{#if message.spec.cost?.resources}
+	{#if message.spec.cost?.resources}
 		&nbsp;Ultimate recycling has also made {message.spec.cost?.resources} resources available for immediate
 		use (less if other ships were scrapped here this year).
 	{/if}
@@ -177,6 +175,9 @@
 {:else if message.type === MessageType.PlayerTechLevelGainedBattle}
 	Wreckage from the battle that occurred in orbit of {planet.name} has boosted your research in {message
 		.spec.field}.
+{:else if message.type === MessageType.FleetBuilt}
+	<!-- TODO: remove this at some point. These are now fleet messages, not planet messages, but keeping this here so old savdes still target correctly -->
+	Your starbase at {planet.name} has built {message.spec.amount ?? 'a'} new {message.spec.name}s.
 {:else}
 	<FallbackMessageDetail {message} />
 {/if}

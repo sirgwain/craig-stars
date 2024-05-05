@@ -45,6 +45,9 @@
 		)} planet
 		{message.spec.targetName}
 	{/if}
+{:else if message.type === MessageType.FleetBuilt}
+	Your starbase at {message.targetName} has built {message.spec.amount ?? 'a'} new {message.spec
+		.name}s.
 {:else if message.type === MessageType.FleetDieoff}
 	Due to the rigors of warp acceleration, {(message.spec.amount ?? 0) * -100} of your colonists on {message.targetName}
 	have died.

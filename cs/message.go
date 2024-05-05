@@ -85,7 +85,7 @@ const (
 	PlayerMessagePlanetBuiltMine
 	PlayerMessagePlanetBuiltFactory
 	PlayerMessagePlanetBuiltDefense
-	PlayerMessagePlanetBuiltShip
+	PlayerMessageFleetBuilt
 	PlayerMessagePlanetBuiltStarbase
 	PlayerMessagePlanetBuiltScanner
 	PlayerMessagePlanetBuiltMineralPacket
@@ -273,6 +273,11 @@ func (m *messageClient) battle(player *Player, planet *Planet, battle *BattleRec
 func (m *messageClient) fleetBombedPlanet(player *Player, fleet *Fleet, planet *Planet, bombing BombingResult) {
 	player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetBombedPlanet, fleet).
 		withSpec(PlayerMessageSpec{Bombing: &bombing}.withTargetPlanet(planet)))
+}
+
+func (m *messageClient) fleetBuilt(player *Player, planet *Planet, fleet *Fleet, numBuilt int) {
+	player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetBuilt, fleet).
+		withSpec(PlayerMessageSpec{Name: fleet.BaseName, Amount: numBuilt}.withTargetPlanet(planet)))
 }
 
 func (m *messageClient) fleetColonizeNonPlanet(player *Player, fleet *Fleet) {
@@ -720,11 +725,6 @@ func (m *messageClient) planetBuiltMines(player *Player, planet *Planet, numBuil
 func (m *messageClient) planetBuiltScanner(player *Player, planet *Planet, scanner string) {
 	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetBuiltScanner, planet).
 		withSpec(PlayerMessageSpec{Name: scanner}))
-}
-
-func (m *messageClient) planetBuiltFleet(player *Player, planet *Planet, fleet *Fleet, numBuilt int) {
-	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetBuiltShip, planet).
-		withSpec(PlayerMessageSpec{Name: fleet.BaseName, Amount: numBuilt}.withTargetFleet(fleet)))
 }
 
 func (m *messageClient) planetBuiltStarbase(player *Player, planet *Planet, fleet *Fleet) {
