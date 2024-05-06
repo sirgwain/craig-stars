@@ -320,9 +320,17 @@ export function createGameContext(fg: FullGame): GameContext {
 							commandMapObject(target);
 							if (targetTarget) {
 								selectMapObject(targetTarget);
+							} else {
+								// select the planet as well if we don't have another target
+								// it's weird in the UI to go to a planet that sends a message
+								// and see another planet selected
+								selectMapObject(target);
 							}
 						} else {
 							selectMapObject(target);
+							if (targetTarget && targetTarget.playerNum == playerNum) {
+								commandMapObject(targetTarget);
+							}
 						}
 					} else {
 						selectMapObject(target);
