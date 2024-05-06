@@ -393,6 +393,19 @@ func NewPositionWaypoint(position Vector, warpSpeed int) Waypoint {
 	}
 }
 
+func (wp *Waypoint) clearTarget() {
+	wp.TargetName = ""
+	wp.TargetNum = None
+	wp.TargetPlayerNum = None
+	wp.TargetType = MapObjectTypeNone
+}
+
+func (wp *Waypoint) targetPlanet(planet *Planet) {
+	wp.TargetType = MapObjectTypePlanet
+	wp.TargetName = planet.Name
+	wp.TargetNum = planet.Num
+}
+
 func (wp Waypoint) WithTask(task WaypointTask) Waypoint {
 	wp.Task = task
 	return wp

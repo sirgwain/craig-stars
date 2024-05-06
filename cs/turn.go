@@ -1875,6 +1875,7 @@ func (t *turn) fleetBattle() {
 				fleet.Tokens = updatedTokens
 
 				if len(fleet.Tokens) == 0 {
+					// dead fleet, remove it
 					if fleet.Starbase {
 						// AR races live on starbases, so empty the planet
 						player := t.game.getPlayer(fleet.PlayerNum)
@@ -1890,6 +1891,17 @@ func (t *turn) fleetBattle() {
 						planet.MarkDirty()
 					} else {
 						t.game.deleteFleet(fleet)
+					}
+
+					// for any fleets targeting this dead fleet, update their target to the planet (or none)
+					for _, otherFleet := range fleets {
+						wp0 := &otherFleet.Waypoints[0]
+						if wp0.TargetPlayerNum == fleet.PlayerNum && wp0.TargetNum == fleet.Num {
+							wp0.clearTarget()
+							if planet != nil {
+								wp0.targetPlanet(planet)
+							}
+						}
 					}
 				} else {
 					// this player survived
@@ -2434,7 +2446,24 @@ func (t *turn) fleetPatrol(player *Player) {
 			}
 
 			// add a waypoint to the fleet
-			fleet.Waypoints = append(fleet.Waypoints, NewFleetWaypoint(closest.Position, closest.Num, closest.PlayerNum, closest.Name, wp.PatrolWarpSpeed))
+			wpTarget := NewFleetWaypoint(closest.Position, closest.Num, closest.PlayerNum, closest.Name, wp.PatrolWarpSpeed)
+			// this is an ephemeral waypoint that isn't ever "completed" and so shouldn't be repeated. This should probably be
+			// named differently...
+			wpTarget.PartiallyComplete = true
+
+			// for fleets that do Patrol + repeat orders, we let them intercept the fleet
+			// and head back to base to patrol again
+			// if they aren't repeating orders, we assume they just want to keep patroling
+			// and auto intercepting the closest fleet they will attack. Roaming the universe
+			// for all time.
+			if !fleet.RepeatOrders {
+				wpTarget.Task = WaypointTaskPatrol
+				wpTarget.PatrolRange = wp.PatrolRange
+				wpTarget.PatrolWarpSpeed = wp.PatrolWarpSpeed
+				wpTarget.PartiallyComplete = false
+			}
+
+			fleet.Waypoints = append(fleet.Waypoints, wpTarget)
 
 			messager.fleetPatrolTargeted(player, fleet, closest)
 

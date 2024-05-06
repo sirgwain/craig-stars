@@ -1713,3 +1713,162 @@ func Test_turn_fleetBattle3Players(t *testing.T) {
 	assert.Equal(t, true, fleet2.Delete)
 	assert.Equal(t, 1, len(fg.Salvages))
 }
+
+// test a fleet with repeat patrol orders
+// it should intercept and kill one fleet, then 
+// return to base and target another
+func Test_turn_fleetPatrolBattleRepeat(t *testing.T) {
+	game := createTwoPlayerGame()
+	player1 := game.Players[0]
+	player2 := game.Players[1]
+	planet := game.Planets[0]
+
+	// make them enemies!
+	player1.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationEnemy}}
+	player2.Relations = []PlayerRelationship{{Relation: PlayerRelationEnemy}, {Relation: PlayerRelationFriend}}
+
+	// add a starbase at the planet for refueling
+	starbaseDesign := NewShipDesign(player1, 2).WithHull(SpaceStation.Name).WithSpec(&rules, player1)
+	starbase := newStarbase(player1, planet,
+		starbaseDesign,
+		"Starbase",
+	)
+	player1.Designs = append(player1.Designs, starbaseDesign)
+	starbase.Spec = ComputeFleetSpec(&rules, player1, &starbase)
+	game.Starbases = append(game.Starbases, &starbase)
+	planet.Starbase = &starbase
+
+	// replace player1's fleet with a destroyer and set it to patrol
+	fleet1 := testStalwartDefender(player1)
+	player1.Designs[0] = fleet1.Tokens[0].design
+	game.Fleets[0] = fleet1
+	fleet1.Waypoints = []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 5).WithTask(WaypointTaskPatrol)}
+	fleet1.OrbitingPlanetNum = planet.Num
+	fleet1.RepeatOrders = true
+
+	// move player2's fleet out a bit
+	fleet2 := game.Fleets[1]
+	fleet2.Position = Vector{25, 0}
+	fleet2.OrbitingPlanetNum = None
+	fleet2.Waypoints[0] = NewPositionWaypoint(fleet2.Position, 5)
+
+	// create a third fleet farther away
+	// this fleet will be targeted after the ship returns to base
+	fleet3 := testLongRangeScout(player2)
+	fleet3.Num = fleet2.Num + 1
+	fleet3.Position = Vector{-30, 0}
+	fleet3.Waypoints[0] = NewPositionWaypoint(fleet3.Position, 5)
+	game.Fleets = append(game.Fleets, fleet3)
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// generate a turn to setup the patrol target
+	turn.generateTurn()
+
+	// fleet1 should target fleet2
+	assert.Equal(t, 2, len(fleet1.Waypoints))
+	assert.Equal(t, fleet2.PlayerNum, fleet1.Waypoints[1].TargetPlayerNum)
+	assert.Equal(t, fleet2.Num, fleet1.Waypoints[1].TargetNum)
+
+	// generate a turn to allow the player1 fleet to attack player2's fleet
+	turn.generateTurn()
+
+	// fleet moves to intercept
+	assert.Equal(t, fleet1.Position, fleet2.Position)
+
+	// should have a battle record
+	assert.Equal(t, 1, len(player1.BattleRecords))
+	assert.Equal(t, 1, len(player2.BattleRecords))
+
+	// scout was destroyed, salvage created
+	assert.Equal(t, true, fleet2.Delete)
+	assert.Equal(t, 1, len(game.Salvages))
+
+	// fleet1 should be returning to base after killing fleet2
+	assert.Equal(t, 2, len(fleet1.Waypoints))
+	assert.Equal(t, planet.Num, fleet1.Waypoints[1].TargetNum)
+	assert.Equal(t, MapObjectTypePlanet, fleet1.Waypoints[1].TargetType)
+
+	// generate a turn to allow the fleet1 to return home
+	// and target fleet 3
+	turn.generateTurn()
+
+	// fleet1 should target fleet3
+	assert.Equal(t, planet.Position, fleet1.Position)
+	assert.Equal(t, planet.Num, fleet1.OrbitingPlanetNum)
+	assert.Equal(t, 2, len(fleet1.Waypoints))
+	assert.Equal(t, fleet3.PlayerNum, fleet1.Waypoints[1].TargetPlayerNum)
+	assert.Equal(t, fleet3.Num, fleet1.Waypoints[1].TargetNum)
+
+}
+
+// test a fleet with open ended patrol orders
+// it should intercept and kill one fleet, then target
+// another
+func Test_turn_fleetPatrolKillPatrolAgain(t *testing.T) {
+	game := createTwoPlayerGame()
+	player1 := game.Players[0]
+	player2 := game.Players[1]
+	planet := game.Planets[0]
+
+	// make them enemies!
+	player1.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationEnemy}}
+	player2.Relations = []PlayerRelationship{{Relation: PlayerRelationEnemy}, {Relation: PlayerRelationFriend}}
+
+	// replace player1's fleet with a destroyer and set it to patrol
+	player1.TechLevels = TechLevel{3, 3, 3, 3, 3, 3}
+	fleet1 := testStalwartDefender(player1)
+	player1.Designs[0] = fleet1.Tokens[0].design
+	game.Fleets[0] = fleet1
+	fleet1.Waypoints = []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 5).WithTask(WaypointTaskPatrol)}
+	fleet1.OrbitingPlanetNum = planet.Num
+
+	// move player2's fleet out a bit
+	fleet2 := game.Fleets[1]
+	fleet2.Position = Vector{25, 0}
+	fleet2.OrbitingPlanetNum = None
+	fleet2.Waypoints[0] = NewPositionWaypoint(fleet2.Position, 5)
+
+	// create a third fleet farther away
+	// this fleet will be targeted after the ship returns to base
+	fleet3 := testLongRangeScout(player2)
+	fleet3.Num = fleet2.Num + 1
+	fleet3.Position = Vector{-30, 0}
+	fleet3.Waypoints[0] = NewPositionWaypoint(fleet3.Position, 5)
+	game.Fleets = append(game.Fleets, fleet3)
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// generate a turn to setup the patrol target
+	turn.generateTurn()
+
+	// fleet1 should target fleet2
+	assert.Equal(t, 2, len(fleet1.Waypoints))
+	assert.Equal(t, fleet2.PlayerNum, fleet1.Waypoints[1].TargetPlayerNum)
+	assert.Equal(t, fleet2.Num, fleet1.Waypoints[1].TargetNum)
+
+	// generate a turn to allow the player1 fleet to attack player2's fleet
+	turn.generateTurn()
+
+	// fleet moves to intercept
+	assert.Equal(t, fleet1.Position, fleet2.Position)
+
+	// should have a battle record
+	assert.Equal(t, 1, len(player1.BattleRecords))
+	assert.Equal(t, 1, len(player2.BattleRecords))
+
+	// scout was destroyed, salvage created
+	assert.Equal(t, true, fleet2.Delete)
+	assert.Equal(t, 1, len(game.Salvages))
+
+	// fleet1 should now target fleet3
+	assert.Equal(t, 2, len(fleet1.Waypoints))
+	assert.Equal(t, fleet3.PlayerNum, fleet1.Waypoints[1].TargetPlayerNum)
+	assert.Equal(t, fleet3.Num, fleet1.Waypoints[1].TargetNum)
+}

@@ -564,7 +564,7 @@ func (scan *playerScan) updateFleetTargets() {
 
 		if len(fleet.Waypoints) == 1 {
 			wp0 := fleet.Waypoints[0]
-			if fleet.OrbitingPlanetNum == None && wp0.TargetType != MapObjectTypeNone {
+			if fleet.PreviousPosition != nil && fleet.OrbitingPlanetNum == None && wp0.TargetType != MapObjectTypeNone {
 				// we arrived at our target, but it's not a planet. Keep it as wp1
 				fleet.Waypoints = []Waypoint{NewPositionWaypoint(fleet.Position, fleet.WarpSpeed), wp0}
 			} else {
