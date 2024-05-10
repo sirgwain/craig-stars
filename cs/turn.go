@@ -2504,6 +2504,9 @@ func (t *turn) calculateScores() {
 	// Sum up planets
 	for _, planet := range t.game.Planets {
 		if planet.Owned() {
+			// planets might be bombed, or starbases could be destroyed
+			planet.Spec = computePlanetSpec(&t.game.Rules, t.game.getPlayer(planet.PlayerNum), planet)
+			
 			score := &scores[planet.PlayerNum-1]
 			score.Planets++
 			if planet.Spec.HasStarbase {

@@ -154,6 +154,7 @@ func (o *orders) UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrd
 		Int64("GameID", player.GameID).
 		Int("PlayerNum", player.Num).
 		Str("Fleet", fleet.Name).
+		Interface("Orders", orders).
 		Msg("update fleet orders")
 
 }
@@ -225,7 +226,7 @@ func (o *orders) TransferPlanetCargo(rules *Rules, player *Player, source *Fleet
 	if !source.canTransfer(transferAmount.Negative()) {
 		return fmt.Errorf("fleet %s cannot transfer %v to %s, the fleet does not have enough the required cargo", source.Name, transferAmount.Negative(), dest.Name)
 	}
-	
+
 	sourceCargoInitial := source.Cargo
 	destCargoInitial := dest.Cargo
 
