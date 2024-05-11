@@ -2,10 +2,12 @@
 	import { clickOutside } from '$lib/clickOutside';
 	import { onScannerContextPopup } from '$lib/components/game/tooltips/ScannerContextPopup.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
+	import { totalCargo } from '$lib/types/Cargo';
 	import { WaypointTask, type Waypoint } from '$lib/types/Fleet';
 	import {
 		MapObjectType,
 		None,
+		StargateWarpSpeed,
 		equal as mapObjectEqual,
 		owned,
 		type MapObject
@@ -241,22 +243,11 @@
 	function onPointerMove(e: CustomEvent<FinderEventDetails>) {
 		const { event, found, position } = e.detail;
 
-		console.log(
-			'onPointerMove", "draggingWaypoint',
-			draggingWaypoint,
-			'zooming',
-			zooming,
-			event,
-			found,
-			position
-		);
-
 		highlightMapObject(found);
 
 		if (draggingWaypoint && !zooming) {
 			positionWaypoint = event.shiftKey;
 			dragWaypointMove(position, found);
-			console.log('onPointerMove: dragWaypointMove');
 		}
 
 		// check if we are over the commanded fleet's waypoint
@@ -268,12 +259,10 @@
 		if (waypointHighlighted) {
 			if (dragAndZoomEnabled) {
 				disableDragAndZoom();
-				console.log('onPointerMove: disableDragAndZoom');
 			}
 		} else {
 			if (!draggingWaypoint && !dragAndZoomEnabled) {
 				enableDragAndZoom();
-				console.log('onPointerMove: enableDragAndZoom');
 			}
 		}
 
@@ -286,14 +275,11 @@
 		if (!waypointJustAdded && !draggingWaypoint && pointerDown && fleetWaypoint) {
 			draggingWaypoint = true;
 			selectWaypoint(fleetWaypoint);
-			console.log('onPointerMove: draggingWaypoint started');
 		}
 	}
 
 	async function onPointerDown(e: CustomEvent<FinderEventDetails>) {
 		const { event, found, position } = e.detail;
-
-		console.log('onPointerDown', 'zooming', zooming, event, found, position);
 
 		if (event instanceof MouseEvent && event.button != 0) {
 			// we only care about the first button
@@ -333,7 +319,6 @@
 
 			dragWaypointDone(position, found);
 		}
-		console.log('draggingWaypoint stopped');
 		draggingWaypoint = false;
 		pointerDown = false;
 		waypointJustAdded = false;
@@ -441,6 +426,8 @@
 			return false;
 		}
 
+		const dist = distance(mo?.position ?? position, currentWaypoint.position);
+
 		const colonizing =
 			$commandedFleet.spec.colonizer &&
 			$commandedFleet.cargo.colonists &&
@@ -449,10 +436,21 @@
 			!owned(mo) &&
 			((mo as Planet).spec.terraformedHabitability ?? 0) > 0;
 
-		let warpSpeed = $selectedWaypoint?.warpSpeed
+		// use a stargate automatically if it's safe and in range
+		const safeHullMass = (mo as Planet).spec.safeHullMass ?? 0;
+		const stargate =
+			(totalCargo($commandedFleet.cargo) == 0 || $player.race.spec?.canGateCargo) &&
+			mo &&
+			mo.type == MapObjectType.Planet &&
+			owned(mo) &&
+			((mo as Planet).spec.safeRange ?? 0) >= dist &&
+			Math.max(
+				...$commandedFleet.tokens.map((t) => $universe.getMyDesign(t.designNum)?.spec.mass ?? 0)
+			) < safeHullMass;
+
+		let warpSpeed = ($selectedWaypoint?.warpSpeed && $selectedWaypoint.warpSpeed != StargateWarpSpeed)
 			? $selectedWaypoint?.warpSpeed
 			: $commandedFleet.spec?.engine?.idealSpeed ?? 5;
-		const dist = distance(mo?.position ?? position, currentWaypoint.position);
 
 		// if colonizing, we want the max possible warp
 		if (colonizing) {
@@ -464,6 +462,11 @@
 		} else {
 			// use the minimal warp based on our ideal speed
 			warpSpeed = $commandedFleet.getMinimalWarp(dist, warpSpeed);
+		}
+
+		// use a stargate if it's safe
+		if (stargate) {
+			warpSpeed = StargateWarpSpeed;
 		}
 		const task = $selectedWaypoint?.task ?? WaypointTask.None;
 		const transportTasks = $selectedWaypoint?.transportTasks ?? {
