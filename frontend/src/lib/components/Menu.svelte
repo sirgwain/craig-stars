@@ -79,7 +79,9 @@
 					</li>
 					<li><div class="divider" /></li>
 					<li><a href="/auth/logout">Logout, {user.username}</a></li>
-				{:else}
+					<li><div class="divider" /></li>
+					<li class="text-center">version {PKG.version}</li>
+					{:else}
 					<li class="md:hidden"><a href="/techs">Techs</a></li>
 				{/if}
 			</ul>

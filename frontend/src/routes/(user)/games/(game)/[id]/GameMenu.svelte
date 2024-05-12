@@ -141,6 +141,8 @@
 				{/if}
 				<li><div class="divider" /></li>
 				<li><a href="/auth/logout">Logout, {$me.username}</a></li>
+				<li><div class="divider" /></li>
+				<li class="text-center">version {PKG.version}</li>
 			</ul>
 		</div>
 	</div>
