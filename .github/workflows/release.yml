@@ -18,10 +18,10 @@ jobs:
       # get some build metadata we can put in the binary and package.json
       - name: Get version tag
         id: version
-        run: echo "${GITHUB_REF/\/refs\/tags\/}" >> $GITHUB_OUTPUT
+        run: echo "version=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_OUTPUT
       - name: Get build time
         id: buildTime
-        run: echo `date +'%y.%m.%d %H:%M:%S'` >> $GITHUB_OUTPUT
+        run: echo "buildTime=\"`date +'%y.%m.%d %H:%M:%S'`\"" >> $GITHUB_OUTPUT
 
       # build the frontend (this is slow)
       - uses: actions/setup-node@v3
