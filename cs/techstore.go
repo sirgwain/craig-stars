@@ -2084,8 +2084,8 @@ var Cruiser = TechHull{Tech: NewTech("Cruiser", NewCost(40, 5, 8, 85), TechRequi
 	FuelCapacity: 600,
 	Slots: []TechHullSlot{
 		{Position: Vector{-1.5, 0}, Type: HullSlotTypeEngine, Capacity: 2, Required: true},
-		{Position: Vector{-0.5, -0.5}, Type: HullSlotTypeScannerElectricalMechanical, Capacity: 1},
-		{Position: Vector{-0.5, 0.5}, Type: HullSlotTypeScannerElectricalMechanical, Capacity: 1},
+		{Position: Vector{-0.5, -0.5}, Type: HullSlotTypeShieldElectricalMechanical, Capacity: 1},
+		{Position: Vector{-0.5, 0.5}, Type: HullSlotTypeShieldElectricalMechanical, Capacity: 1},
 		{Position: Vector{0.5, -1}, Type: HullSlotTypeWeapon, Capacity: 2},
 		{Position: Vector{0.5, 1}, Type: HullSlotTypeWeapon, Capacity: 2},
 		{Position: Vector{1.5, 0}, Type: HullSlotTypeGeneral, Capacity: 2},
