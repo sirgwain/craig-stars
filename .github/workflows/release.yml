@@ -18,7 +18,7 @@ jobs:
       # get some build metadata we can put in the binary and package.json
       - name: Get version tag
         id: version
-        run: echo "version=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_OUTPUT
+        run: echo "tag=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_OUTPUT
       - name: Get build time
         id: buildTime
         run: echo "buildTime=\"`date +'%y.%m.%d %H:%M:%S'`\"" >> $GITHUB_OUTPUT
@@ -51,15 +51,15 @@ jobs:
           -ldflags="-s -w -extldflags '-static' \
           -X 'github.com/sirgwain/craig-stars/cmd.semver=${{ steps.version.outputs.tag }}' \
           -X 'github.com/sirgwain/craig-stars/cmd.commit=${GITHUB_SHA}' \
-          -X 'github.com/sirgwain/craig-stars/cmd.buildTime=${{ steps.version.outputs.tag }}'" \
+          -X 'github.com/sirgwain/craig-stars/cmd.buildTime=${{ steps.buildTime.outputs.buildTime }}'" \
           -o dist/craig-stars main.go
       - run: tar -cvf ./dist/craig-stars.tgz -C ./dist ./craig-stars
 
       # upload the dist folder to github's artifacts
       - uses: actions/upload-artifact@v3
         with:
-          name: dist-artifact
-          path: ./dist/
+          name: dist-artifacts
+          path: ./dist/*.tgz
           retention-days: 1
 
 
@@ -84,7 +84,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           name: Published ${{ github.ref_name }}
-          artifacts: ./artifacts/*.tgz
+          artifacts: ./artifacts/dist-artifacts/*.tgz
           artifactContentType: application/zip
           generateReleaseNotes: true
 
