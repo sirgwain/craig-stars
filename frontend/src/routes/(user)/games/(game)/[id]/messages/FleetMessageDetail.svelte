@@ -69,8 +69,6 @@
 		Breeding activities on {message.targetName} have overflowed living space. {message.spec.amount2}
 		colonists have been beamed down to {message.spec.targetName}.
 	{/if}
-	Due to the rigors of warp acceleration, {(message.spec.amount ?? 0) * -100} of your colonists on {message.targetName}
-	have died.
 {:else if message.type === MessageType.FleetRemoteMined}
 	{message.targetName} has remote mined {message.spec.targetName}, extracting {message.spec.mineral
 		?.ironium ?? 0}kT of ironium, {message.spec.mineral?.boranium ?? 0}kT of boranium, and {message

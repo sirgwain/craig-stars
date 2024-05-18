@@ -2463,7 +2463,7 @@ var OrbitalFort = TechHull{Tech: NewTech("Orbital Fort", NewCost(12, 0, 17, 40),
 	},
 }
 
-var SpaceDock = TechHull{Tech: NewTech("Space Dock", NewCost(20, 5, 25, 100), TechRequirements{TechLevel: TechLevel{Construction: 4}, LRTsRequired: ISB}, 20, TechCategoryStarbaseHull),
+var SpaceDock = TechHull{Tech: NewTech("Space Dock", NewCost(20, 5, 25, 80), TechRequirements{TechLevel: TechLevel{Construction: 4}, LRTsRequired: ISB}, 20, TechCategoryStarbaseHull),
 	Type:                  TechHullTypeStarbase,
 	SpaceDock:             200,
 	SpaceDockSlotPosition: Vector{-.125, -.125},
