@@ -219,7 +219,7 @@ func (ug *universeGenerator) generatePlayerShipDesigns() {
 		for _, startingPlanet := range player.Race.Spec.StartingPlanets {
 			for _, startingFleet := range startingPlanet.StartingFleets {
 				if designNames.Contains(startingFleet.Name) {
-					// only one design per name, i.e. Scout, Armored Probe
+					// only one design per name, i.e. Scout, Armed Probe
 					continue
 				}
 				techStore := ug.Rules.techs

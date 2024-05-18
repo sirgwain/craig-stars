@@ -731,7 +731,7 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		spec.MiniaturizationPerLevel += lrtSpec.MiniaturizationPerLevel
 		spec.ScanRangeFactor += lrtSpec.ScanRangeFactorOffset
 		spec.FuelEfficiencyOffset += lrtSpec.FuelEfficiencyOffset
-		spec.MaxPopulationOffset += lrtSpec.MaxPopulationOffset
+		spec.MaxPopulationOffset += prtSpec.MaxPopulationOffset * lrtSpec.MaxPopulationOffset // HE has a .5 growth offset
 		spec.MineralAlchemyCostOffset += lrtSpec.MineralAlchemyCostOffset
 		spec.ScrapMineralOffset += lrtSpec.ScrapMineralOffset
 		spec.ScrapMineralOffsetStarbase += lrtSpec.ScrapMineralOffsetStarbase

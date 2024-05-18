@@ -233,7 +233,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				EstimatedRangeFull:      2272,
 			},
 		},
-		{name: "Humanoid Starter Armored Probe",
+		{name: "Humanoid Starter Armed Probe",
 			args: args{
 				techLevels: TechLevel{3, 3, 3, 3, 3, 3},
 				raceSpec:   humanoids.Spec,
