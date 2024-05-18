@@ -437,20 +437,23 @@
 			((mo as Planet).spec.terraformedHabitability ?? 0) > 0;
 
 		// use a stargate automatically if it's safe and in range
-		const safeHullMass = (mo as Planet).spec.safeHullMass ?? 0;
+		const safeHullMass =
+			mo?.type == MapObjectType.Planet ? (mo as Planet).spec.safeHullMass ?? 0 : 0;
+		const safeRange = mo?.type == MapObjectType.Planet ? (mo as Planet).spec.safeRange ?? 0 : 0;
 		const stargate =
 			(totalCargo($commandedFleet.cargo) == 0 || $player.race.spec?.canGateCargo) &&
 			mo &&
 			mo.type == MapObjectType.Planet &&
 			owned(mo) &&
-			((mo as Planet).spec.safeRange ?? 0) >= dist &&
+			safeRange >= dist &&
 			Math.max(
 				...$commandedFleet.tokens.map((t) => $universe.getMyDesign(t.designNum)?.spec.mass ?? 0)
 			) < safeHullMass;
 
-		let warpSpeed = ($selectedWaypoint?.warpSpeed && $selectedWaypoint.warpSpeed != StargateWarpSpeed)
-			? $selectedWaypoint?.warpSpeed
-			: $commandedFleet.spec?.engine?.idealSpeed ?? 5;
+		let warpSpeed =
+			$selectedWaypoint?.warpSpeed && $selectedWaypoint.warpSpeed != StargateWarpSpeed
+				? $selectedWaypoint?.warpSpeed
+				: $commandedFleet.spec?.engine?.idealSpeed ?? 5;
 
 		// if colonizing, we want the max possible warp
 		if (colonizing) {
