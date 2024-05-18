@@ -21,7 +21,7 @@ jobs:
         run: echo "tag=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_OUTPUT
       - name: Get build time
         id: buildTime
-        run: echo "buildTime=\"`date +'%y.%m.%d %H:%M:%S'`\"" >> $GITHUB_OUTPUT
+        run: echo "buildTime=`date +'%y.%m.%d %H:%M:%S'`" >> $GITHUB_OUTPUT
 
       # build the frontend (this is slow)
       - uses: actions/setup-node@v3
