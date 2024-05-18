@@ -1,4 +1,7 @@
 BINARY_NAME=craig-stars
+VERSION=0.0.0-develop
+COMMIT=`git rev-parse HEAD`
+BUILDTIME=$$(date +'%y.%m.%d %H:%M:%S')
 
 # always redo these
 .PHONY: build test clean dev dev_backend dev_frontend
@@ -11,7 +14,13 @@ build_frontend:
 
 build_server:
 	mkdir -p dist
-	go build -o dist/${BINARY_NAME} main.go
+	go build \
+	-o dist/${BINARY_NAME} \
+	-ldflags \
+	"-X 'github.com/sirgwain/craig-stars/cmd.semver=${VERSION}' \
+	-X 'github.com/sirgwain/craig-stars/cmd.commit=${COMMIT}' \
+	-X 'github.com/sirgwain/craig-stars/cmd.buildTime=${BUILDTIME}'" \
+	main.go
 
 # use docker to build an amd64 image for linux deployment
 build_docker:
