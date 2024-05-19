@@ -978,7 +978,7 @@ func (b *battle) regenerateShields(token *battleToken) {
 // if not better and farther away, keep the bestMoves as is
 // if equivalent and the same distance from center, add it to bestMoves
 func updateBestMoves(better bool, newPosition BattleVector, bestMoves []BattleVector) []BattleVector {
-	// center of battle board is at (4.5, 4.5) so scale to 100x100 for 45,45 center
+	// center of battle board is at (4.5, 4.5) so scale to 100x100 for 45,45 scaled center
 	newDistance := newPosition.scale(10).distance(BattleVector{45, 45})
 	oldDistance := bestMoves[0].scale(10).distance(BattleVector{45, 45})
 
