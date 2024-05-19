@@ -113,6 +113,10 @@ func (v1 BattleVector) distance(v2 BattleVector) int {
 	return MaxInt(AbsInt(v1.X-v2.X), AbsInt(v1.Y-v2.Y))
 }
 
+func (v BattleVector) scale(scale int) BattleVector {
+	return BattleVector{v.X * scale, v.Y * scale}
+}
+
 // SetupRecord populates a lookup table of items by guid.
 func newBattleRecord(num int, planetNum int, position Vector, tokens []BattleRecordToken) *BattleRecord {
 	numShipsByPlayer := make(map[int]int, 2)

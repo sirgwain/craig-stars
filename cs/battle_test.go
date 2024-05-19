@@ -1,6 +1,7 @@
 package cs
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -940,4 +941,60 @@ func Test_battle_runBattle2(t *testing.T) {
 	record := RunTestBattle([]*Player{player1, player2}, fleets)
 	// ran some number of turns
 	assert.Less(t, 5, len(record.ActionsPerRound))
+}
+
+func Test_updateBestPositions(t *testing.T) {
+	type args struct {
+		better      bool
+		newPosition BattleVector
+		bestMoves   []BattleVector
+	}
+	tests := []struct {
+		name string
+		args args
+		want []BattleVector
+	}{
+		{
+			name: "better move 1,0, pick it",
+			args: args{better: true, newPosition: BattleVector{1, 0}, bestMoves: []BattleVector{{0, 0}}},
+			want: []BattleVector{{1, 0}},
+		},
+		{
+			name: "better move away from center, pick it",
+			args: args{better: true, newPosition: BattleVector{3, 3}, bestMoves: []BattleVector{{4, 4}, {4, 5}}},
+			want: []BattleVector{{3, 3}},
+		},
+		{
+			name: "equivalent damage move, but newPosition is closer to center",
+			args: args{better: false, newPosition: BattleVector{4, 4}, bestMoves: []BattleVector{{4, 3}}},
+			want: []BattleVector{{4, 4}},
+		},
+		{
+			name: "equivalent damage move, newPosition is closer to center",
+			args: args{better: false, newPosition: BattleVector{4, 5}, bestMoves: []BattleVector{{4, 3}}},
+			want: []BattleVector{{4, 5}},
+		},
+		{
+			name: "equivalent damage move, newPosition is same distance to center",
+			args: args{better: false, newPosition: BattleVector{4, 5}, bestMoves: []BattleVector{{4, 4}}},
+			want: []BattleVector{{4, 4}, {4, 5}},
+		},
+		{
+			name: "equivalent damage move, newPosition is same distance to center",
+			args: args{better: false, newPosition: BattleVector{5, 5}, bestMoves: []BattleVector{{4, 4}, {4, 5}}},
+			want: []BattleVector{{4, 4}, {4, 5}, {5, 5}},
+		},
+		{
+			name: "equivalent damage move, newPosition is farther from center, discard it",
+			args: args{better: false, newPosition: BattleVector{6, 5}, bestMoves: []BattleVector{{4, 4}, {4, 5}}},
+			want: []BattleVector{{4, 4}, {4, 5}},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := updateBestMoves(tt.args.better, tt.args.newPosition, tt.args.bestMoves); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("updateBestPositions() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }
