@@ -1715,7 +1715,7 @@ func Test_turn_fleetBattle3Players(t *testing.T) {
 }
 
 // test a fleet with repeat patrol orders
-// it should intercept and kill one fleet, then 
+// it should intercept and kill one fleet, then
 // return to base and target another
 func Test_turn_fleetPatrolBattleRepeat(t *testing.T) {
 	game := createTwoPlayerGame()
@@ -1739,7 +1739,7 @@ func Test_turn_fleetPatrolBattleRepeat(t *testing.T) {
 	planet.Starbase = &starbase
 
 	// replace player1's fleet with a destroyer and set it to patrol
-	fleet1 := testStalwartDefender(player1)
+	fleet1 := testJihadCruiser(player1)
 	player1.Designs[0] = fleet1.Tokens[0].design
 	game.Fleets[0] = fleet1
 	fleet1.Waypoints = []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 5).WithTask(WaypointTaskPatrol)}
@@ -1820,7 +1820,7 @@ func Test_turn_fleetPatrolKillPatrolAgain(t *testing.T) {
 
 	// replace player1's fleet with a destroyer and set it to patrol
 	player1.TechLevels = TechLevel{3, 3, 3, 3, 3, 3}
-	fleet1 := testStalwartDefender(player1)
+	fleet1 := testJihadCruiser(player1)
 	player1.Designs[0] = fleet1.Tokens[0].design
 	game.Fleets[0] = fleet1
 	fleet1.Waypoints = []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 5).WithTask(WaypointTaskPatrol)}
