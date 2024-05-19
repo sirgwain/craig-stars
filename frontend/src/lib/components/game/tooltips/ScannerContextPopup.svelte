@@ -55,7 +55,11 @@
 			Planet
 			<ul>
 				{#each otherMapObjectsHere[MapObjectType.Planet] as mo}
-					<li>
+					<li
+						style={mo.playerNum != $player.num
+							? `color: ${$universe.getPlayerColor(mo.playerNum)};`
+							: ''}
+					>
 						<button
 							class="py-1 pl-0.5 w-full text-left hover:text-accent"
 							on:click={() => gotoTarget(mo)}>{mo.name}</button
@@ -70,7 +74,11 @@
 			Fleets
 			<ul>
 				{#each otherMapObjectsHere[MapObjectType.Fleet] as mo}
-					<li>
+					<li
+						style={mo.playerNum != $player.num
+							? `color: ${$universe.getPlayerColor(mo.playerNum)};`
+							: ''}
+					>
 						<button
 							class="py-1 pl-0.5 w-full text-left hover:text-accent"
 							on:click={() => gotoTarget(mo)}>{mo.name}</button
@@ -86,7 +94,11 @@
 			Mine Fields
 			<ul>
 				{#each otherMapObjectsHere[MapObjectType.MineField] as mo}
-					<li>
+					<li
+						style={mo.playerNum != $player.num
+							? `color: ${$universe.getPlayerColor(mo.playerNum)};`
+							: ''}
+					>
 						<button
 							class="py-1 pl-0.5 w-full text-left hover:text-accent"
 							on:click={() => gotoTarget(mo)}>{mo.name}</button
@@ -101,7 +113,11 @@
 			Other
 			<ul>
 				{#each everythingElse as mo}
-					<li>
+					<li
+						style={mo.playerNum != $player.num
+							? `color: ${$universe.getPlayerColor(mo.playerNum)};`
+							: ''}
+					>
 						<button
 							class="py-1 pl-0.5 w-full text-left hover:text-accent"
 							on:click={() => gotoTarget(mo)}>{mo.name}</button

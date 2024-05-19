@@ -12,7 +12,7 @@ func Test_production_produce(t *testing.T) {
 	// build 1 mine
 	planet.ProductionQueue = []ProductionQueueItem{{Type: QueueItemTypeMine, Quantity: 1}}
 	planet.Cargo = Cargo{10, 20, 30, 2500}
-	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 100, MaxPossibleMines: 100}
+	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 100, MaxPossibleMines: 100, MaxPopulation: 1_000_000}
 	planet.Mines = 0
 
 	// should build 1 mine, leaving empty queue
@@ -24,7 +24,7 @@ func Test_production_produce(t *testing.T) {
 	// build 5 auto mines, leaving them in the queue
 	planet.ProductionQueue = []ProductionQueueItem{{Type: QueueItemTypeAutoMines, Quantity: 5}}
 	planet.Cargo = Cargo{10, 20, 30, 2500}
-	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 100, MaxMines: 100}
+	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 100, MaxMines: 100, MaxPopulation: 1_000_000}
 	planet.Mines = 0
 	player.Messages = []PlayerMessage{}
 
@@ -43,7 +43,7 @@ func Test_production_produce2(t *testing.T) {
 	// build 5 auto factories, leaving them in the queue
 	planet.ProductionQueue = []ProductionQueueItem{{Type: QueueItemTypeAutoFactories, Quantity: 5}}
 	planet.Cargo = Cargo{10, 20, 30, 2500}
-	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 100, MaxFactories: 100}
+	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 100, MaxFactories: 100, MaxPopulation: 1_000_000}
 	planet.Factories = 0
 	player.Messages = []PlayerMessage{}
 
@@ -70,7 +70,7 @@ func Test_production_produce3(t *testing.T) {
 	// give a planet with enough germanium to build 2.5 factories
 	// and enough resources to build all factories and all mines
 	planet.Cargo = Cargo{0, 0, 10, 2500}
-	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 100, MaxFactories: 100, MaxMines: 100}
+	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 100, MaxFactories: 100, MaxMines: 100, MaxPopulation: 1_000_000}
 	planet.Factories = 0
 	player.Messages = []PlayerMessage{}
 
@@ -95,7 +95,7 @@ func Test_production_produce4(t *testing.T) {
 		{Type: QueueItemTypeAutoMines, Quantity: 5},
 	}
 	planet.Cargo = Cargo{0, 0, 8, 2500}
-	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 10*2 + 8, MaxFactories: 100, MaxMines: 100}
+	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 10*2 + 8, MaxFactories: 100, MaxMines: 100, MaxPopulation: 1_000_000}
 	planet.Factories = 0
 	player.Messages = []PlayerMessage{}
 
@@ -145,8 +145,8 @@ func Test_production_produce6(t *testing.T) {
 		{Type: QueueItemTypeAutoFactories, Quantity: 10},
 		{Type: QueueItemTypeAutoMines, Quantity: 10},
 	}
-	planet.Cargo = Cargo{1000, 1000, 1000, 2500}
-	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 1000, MaxFactories: 10, MaxMines: 10}
+	planet.Cargo = Cargo{1000, 1000, 1000, 100}
+	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 1000, MaxFactories: 10, MaxMines: 10, MaxPopulation: 1_000_000}
 	planet.Factories = 9
 	planet.Mines = 0
 	player.Messages = []PlayerMessage{}
@@ -175,7 +175,7 @@ func Test_production_produce7(t *testing.T) {
 		{Type: QueueItemTypeAutoMines, Quantity: 100},
 	}
 	planet.Cargo = Cargo{0, 0, 0, 25}
-	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 2, MaxFactories: 10, MaxMines: 10}
+	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 2, MaxFactories: 10, MaxMines: 10, MaxPopulation: 1_000_000}
 	player.Messages = []PlayerMessage{}
 
 	// should build nothing, but queue up a mine partially done
@@ -254,6 +254,36 @@ func Test_production_produce9(t *testing.T) {
 
 	// don't go negative
 	assert.Equal(t, planet.Cargo, planet.Cargo.MinZero())
+
+}
+
+func Test_production_produce10(t *testing.T) {
+	player, planet := newTestPlayerPlanet()
+
+	// make mines/factories cheap so we can build them
+	player.Race.MineCost = 1
+	player.Race.FactoryCost = 1
+	player.Race.Spec = computeRaceSpec(&player.Race, &rules)
+
+	// auto build with future growth taken into account
+	planet.ProductionQueue = []ProductionQueueItem{
+		{Type: QueueItemTypeAutoMines, Quantity: 100},
+		{Type: QueueItemTypeAutoFactories, Quantity: 100},
+	}
+	planet.Cargo = Cargo{1000, 1000, 1000, 1000}
+	planet.Spec = computePlanetSpec(&rules, player, planet)
+
+	// max mines for current setting
+	planet.Mines = planet.Spec.MaxMines
+	planet.Factories = planet.Spec.MaxFactories
+
+	// should build nothing, but queue up a mine partially done
+	producer := newProducer(planet, player)
+	producer.produce()
+
+	// we should build mines/factories accounting for future growth
+	assert.Equal(t, 115, planet.Mines)
+	assert.Equal(t, 115, planet.Factories)
 
 }
 

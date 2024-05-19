@@ -1201,7 +1201,7 @@ func (fleet *Fleet) colonizePlanet(rules *Rules, player *Player, planet *Planet)
 	if player.Race.Spec.InnateMining {
 		hab := player.Race.GetPlanetHabitability(planet.Hab)
 		maxPop := planet.getMaxPopulation(rules, player, hab)
-		planet.Mines = planet.innateMines(player, planet.productivePopulation(maxPop))
+		planet.Mines = planet.innateMines(player, planet.productivePopulation(planet.population(), maxPop))
 	}
 
 	if player.Race.Spec.InnateScanner {

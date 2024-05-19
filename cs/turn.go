@@ -150,12 +150,17 @@ func (t *turn) fleetInit() {
 	for _, fleet := range t.game.Fleets {
 		// age this fleet by 1 year
 		fleet.Age++
+		
+		// remove previous position, it will be reset on move
+		fleet.PreviousPosition = nil
+
 		wp0 := &fleet.Waypoints[0]
 		wp0.processed = false
 
 		if wp0.Task == WaypointTaskTransport {
 			wp0.WaitAtWaypoint = false
 		}
+
 	}
 }
 
@@ -634,7 +639,12 @@ func (t *turn) fleetNotifyIdle() {
 		}
 
 		// we are moving/moved
-		if len(fleet.Waypoints) > 1 || *fleet.PreviousPosition != fleet.Position {
+		if len(fleet.Waypoints) > 1 {
+			continue
+		}
+
+		// if we don't have a previous position, we didn't move this round, don't notify
+		if fleet.PreviousPosition == nil {
 			continue
 		}
 
@@ -714,9 +724,6 @@ func (t *turn) fleetMove() {
 			continue
 		}
 
-		// remove the fleet from the list of map objects at it's current location
-		originalPosition := fleet.Position
-
 		if len(fleet.Waypoints) > 1 {
 			wp0 := fleet.Waypoints[0]
 			wp1 := fleet.Waypoints[1]
@@ -734,7 +741,6 @@ func (t *turn) fleetMove() {
 
 			t.moveFleet(fleet)
 		} else {
-			fleet.PreviousPosition = &originalPosition
 			fleet.WarpSpeed = 0
 			fleet.Heading = Vector{}
 		}
@@ -1211,7 +1217,7 @@ func (t *turn) remoteMine(fleet *Fleet, player *Player, planet *Planet) {
 	}
 
 	// don't mine if we moved here this round, otherwise mine
-	if fleet.PreviousPosition == nil || *fleet.PreviousPosition == fleet.Position {
+	if fleet.PreviousPosition == nil {
 		numMines := fleet.Spec.MiningRate
 		mineralOutput := planet.getMineralOutput(numMines, t.game.Rules.RemoteMiningMineOutput)
 		planet.Cargo = planet.Cargo.AddMineral(mineralOutput)
