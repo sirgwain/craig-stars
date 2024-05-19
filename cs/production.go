@@ -178,7 +178,7 @@ func (p *production) produce() productionResult {
 	newQueue := []ProductionQueueItem{}
 	for itemIndex := range planet.ProductionQueue {
 		item := planet.ProductionQueue[itemIndex]
-		maxBuildable := planet.maxBuildable(item.Type)
+		maxBuildable := planet.maxBuildable(p.player, item.Type)
 		var cost Cost
 		if item.Type == QueueItemTypeStarbase && planet.Spec.HasStarbase {
 			cost = costCalculator.StarbaseUpgradeCost(planet.Starbase.Tokens[0].design, item.design)

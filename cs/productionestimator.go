@@ -79,7 +79,7 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 				continue
 			}
 			item := &items[itemBuilt.index]
-			maxBuildable := planet.maxBuildable(item.Type)
+			maxBuildable := planet.maxBuildable(player, item.Type)
 
 			// this will be skipped if we've hit the max allowed
 			if itemBuilt.skipped {

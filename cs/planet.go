@@ -145,9 +145,8 @@ func (p *Planet) population() int {
 
 // get the population that is productive. This takes into account overcrowding
 // anything over 3x is unproductive
-func (p *Planet) productivePopulation(maxPop int) int {
-
-	return MinInt(p.population(), 3*maxPop)
+func (p *Planet) productivePopulation(pop, maxPop int) int {
+	return MinInt(pop, 3*maxPop)
 }
 
 func (p *Planet) setPopulation(pop int) {
@@ -419,10 +418,10 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	spec.CanTerraform = spec.TerraformAmount.absSum() > 0
 	spec.TerraformedHabitability = race.GetPlanetHabitability(planet.Hab.Add(spec.TerraformAmount))
 
-	productivePop := planet.productivePopulation(spec.MaxPopulation)
+	productivePop := planet.productivePopulation(spec.Population, spec.MaxPopulation)
 
 	if !race.Spec.InnateMining {
-		spec.MaxMines = productivePop * race.NumMines / 10000
+		spec.MaxMines = planet.getMaxMines(player, productivePop)
 		spec.MaxPossibleMines = spec.MaxPopulation * race.NumMines / 10000
 	}
 
@@ -436,7 +435,7 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 		resourcesFromFactories := planet.Factories * race.FactoryOutput / 10
 
 		spec.ResourcesPerYear = resourcesFromPop + resourcesFromFactories
-		spec.MaxFactories = planet.population() * race.NumFactories / 10000
+		spec.MaxFactories = planet.getMaxFactories(player, productivePop)
 		spec.MaxPossibleFactories = spec.MaxPopulation * race.NumFactories / 10000
 	}
 
@@ -522,14 +521,38 @@ func (p *Planet) getMaxPopulation(rules *Rules, player *Player, habitability int
 	return roundToNearest100f(math.Max(minMaxPop, float64(maxPossiblePop)*maxPopulationFactor*float64(habitability)/100.0))
 }
 
-func (planet *Planet) maxBuildable(t QueueItemType) int {
+// get max factories for a population
+func (p *Planet) getMaxFactories(player *Player, population int) int {
+	if player.Race.Spec.InnateResources {
+		return 0
+	} else {
+		return population * player.Race.NumFactories / 10000
+	}
+}
+
+// get max mines for a population
+func (p *Planet) getMaxMines(player *Player, population int) int {
+	if player.Race.Spec.InnateResources {
+		return 0
+	} else {
+		return population * player.Race.NumMines / 10000
+	}
+}
+
+func (planet *Planet) maxBuildable(player *Player, t QueueItemType) int {
 	switch t {
 	case QueueItemTypeAutoMines:
-		return MaxInt(0, planet.Spec.MaxMines-planet.Mines)
+		// for autobuild purposes, the maxFactories is next year's pop
+		futurePop := planet.productivePopulation(planet.population() + planet.Spec.GrowthAmount, planet.Spec.MaxPopulation)
+		maxMines := planet.getMaxMines(player, futurePop)
+		return MaxInt(0, maxMines-planet.Mines)
 	case QueueItemTypeMine:
 		return MaxInt(0, planet.Spec.MaxPossibleMines-planet.Mines)
 	case QueueItemTypeAutoFactories:
-		return MaxInt(0, planet.Spec.MaxFactories-planet.Factories)
+		// for autobuild purposes, the maxFactories is next year's pop
+		futurePop := planet.productivePopulation(planet.population() + planet.Spec.GrowthAmount, planet.Spec.MaxPopulation)
+		maxFactories := planet.getMaxFactories(player, futurePop)
+		return MaxInt(0, maxFactories-planet.Factories)
 	case QueueItemTypeFactory:
 		return MaxInt(0, planet.Spec.MaxPossibleFactories-planet.Factories)
 	case QueueItemTypeAutoDefenses:
@@ -565,7 +588,7 @@ func (planet *Planet) grow(player *Player) {
 	planet.setPopulation(planet.population() + planet.Spec.GrowthAmount)
 
 	if player.Race.Spec.InnateMining {
-		productivePop := planet.productivePopulation(planet.Spec.MaxPopulation)
+		productivePop := planet.productivePopulation(planet.population(), planet.Spec.MaxPopulation)
 		planet.Mines = planet.innateMines(player, productivePop)
 	}
 }
