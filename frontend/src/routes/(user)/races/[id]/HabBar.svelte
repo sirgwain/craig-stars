@@ -39,15 +39,15 @@
 	};
 
 	const onGrow = () => {
-		const width = clamp(habWidth + 2, 0, 100);
+		const width = clamp(habWidth + 2, 20, 100);
 		habLow = clamp((habLow ?? 0) - 1, 0, 100 - width);
 		habHigh = clamp((habHigh ?? 0) + 1, width, 100);
 	};
 
 	const onShrink = () => {
-		const width = clamp(habWidth - 2, 2, 100);
-		habLow = clamp((habLow ?? 0) + 1, 0, 100 - width);
-		habHigh = clamp((habHigh ?? 0) - 1, width, 100);
+		const width = clamp(habWidth - 2, 20, 100);
+		habLow = clamp((habLow ?? 0) + 1, 0, (habHigh ?? 0) - width);
+		habHigh = clamp((habHigh ?? 0) - 1, habLow + width, 100);
 	};
 
 	const onDrag = (data: DragEventData) => {
@@ -100,7 +100,9 @@
 				>
 			</div>
 			<div class="grow ml-2">
-				<label><input type="checkbox" bind:checked={immune} /> Immune to {habTypeString(habType)}</label>
+				<label
+					><input type="checkbox" bind:checked={immune} /> Immune to {habTypeString(habType)}</label
+				>
 			</div>
 			<div>
 				<button

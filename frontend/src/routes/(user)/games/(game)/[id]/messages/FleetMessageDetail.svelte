@@ -9,8 +9,6 @@
 	const { game, universe } = getGameContext();
 
 	export let message: Message;
-
-	$: console.log("message", message)
 </script>
 
 {#if message.text}
@@ -48,8 +46,8 @@
 		{message.spec.targetName}
 	{/if}
 {:else if message.type === MessageType.FleetBuilt}
-	Your starbase at {message.spec.targetName} has built {message.spec.amount ?? 'a'} new {message.spec
-		.name}s.
+	Your starbase at {message.spec.targetName} has built {message.spec.amount ?? 'a'} new {message
+		.spec.name}s.
 {:else if message.type === MessageType.FleetDieoff}
 	Due to the rigors of warp acceleration, {(message.spec.amount ?? 0) * -100} of your colonists on {message.targetName}
 	have died.

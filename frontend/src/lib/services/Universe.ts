@@ -7,7 +7,6 @@ import type { MineralPacket } from '$lib/types/MineralPacket';
 import type { MysteryTrader } from '$lib/types/MysteryTrader';
 import { planetsSortBy, type Planet } from '$lib/types/Planet';
 import type { PlayerIntel, PlayerIntels, PlayerScore, PlayerUniverse } from '$lib/types/Player';
-import { PlayerSettings } from '$lib/types/PlayerSettings';
 import type { ProductionQueueItem } from '$lib/types/Production';
 import type { Salvage } from '$lib/types/Salvage';
 import type { ShipDesign } from '$lib/types/ShipDesign';
