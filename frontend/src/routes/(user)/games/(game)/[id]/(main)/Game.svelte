@@ -91,7 +91,7 @@
 			<ScannerToolbar />
 			<Scanner />
 		</div>
-		<div>
+		<div class="hidden md:visible">
 			<HighlightedMapObjectStats />
 		</div>
 		<div class="hidden md:block md:w-full lg:hidden mb-2">
