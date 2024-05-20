@@ -409,7 +409,6 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 		spec.PopulationDensity = float64(planet.population()) / float64(spec.MaxPopulation)
 	}
 	spec.GrowthAmount = planet.getGrowthAmount(player, spec.MaxPopulation, rules.PopulationOvercrowdDieoffRate, rules.PopulationOvercrowdDieoffRateMax)
-	spec.MiningOutput = planet.getMineralOutput(planet.Mines, race.MineOutput)
 
 	// terraforming
 	terraformer := NewTerraformer()
@@ -431,14 +430,15 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 		// compute resources from population
 		resourcesFromPop := productivePop / (race.PopEfficiency * 100)
 
-		// compute resources from factories
-		resourcesFromFactories := planet.Factories * race.FactoryOutput / 10
-
-		spec.ResourcesPerYear = resourcesFromPop + resourcesFromFactories
 		spec.MaxFactories = planet.getMaxFactories(player, productivePop)
 		spec.MaxPossibleFactories = spec.MaxPopulation * race.NumFactories / 10000
+
+		// compute resources from factories
+		resourcesFromFactories := MinInt(planet.Factories, spec.MaxFactories) * race.FactoryOutput / 10
+		spec.ResourcesPerYear = resourcesFromPop + resourcesFromFactories
 	}
 
+	spec.MiningOutput = planet.getMineralOutput(MinInt(spec.MaxMines, planet.Mines), race.MineOutput)
 	spec.computeResourcesPerYearAvailable(player, planet)
 
 	if race.Spec.CanBuildDefenses {
@@ -543,14 +543,14 @@ func (planet *Planet) maxBuildable(player *Player, t QueueItemType) int {
 	switch t {
 	case QueueItemTypeAutoMines:
 		// for autobuild purposes, the maxFactories is next year's pop
-		futurePop := planet.productivePopulation(planet.population() + planet.Spec.GrowthAmount, planet.Spec.MaxPopulation)
+		futurePop := planet.productivePopulation(planet.population()+planet.Spec.GrowthAmount, planet.Spec.MaxPopulation)
 		maxMines := planet.getMaxMines(player, futurePop)
 		return MaxInt(0, maxMines-planet.Mines)
 	case QueueItemTypeMine:
 		return MaxInt(0, planet.Spec.MaxPossibleMines-planet.Mines)
 	case QueueItemTypeAutoFactories:
 		// for autobuild purposes, the maxFactories is next year's pop
-		futurePop := planet.productivePopulation(planet.population() + planet.Spec.GrowthAmount, planet.Spec.MaxPopulation)
+		futurePop := planet.productivePopulation(planet.population()+planet.Spec.GrowthAmount, planet.Spec.MaxPopulation)
 		maxFactories := planet.getMaxFactories(player, futurePop)
 		return MaxInt(0, maxFactories-planet.Factories)
 	case QueueItemTypeFactory:

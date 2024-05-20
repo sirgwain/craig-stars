@@ -423,7 +423,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 					Quantity: 100,
 				},
 			},
-			wantLeftoverResources: 255,
+			wantLeftoverResources: 170,
 		},
 	}
 	for _, tt := range tests {
