@@ -1,0 +1,25 @@
+# after a successful test on a push to develop, bump the tag to create a new release
+name: Tag
+on:
+    workflow_run:
+        workflows: [Test]
+        branches: [develop]
+        types: 
+        - completed
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+        - uses: actions/checkout@v4
+          with:
+            fetch-depth: '0'
+
+        - name: Bump version and push tag
+          uses: anothrNick/github-tag-action@v1
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            WITH_V: true
+            DEFAULT_BUMP: "patch"
+      
