@@ -823,6 +823,10 @@ func (m *messageClient) planetInvadeEmpty(player *Player, planet *Planet, fleet 
 	text := fmt.Sprintf("%s has attempted to invade %s, but the planet is uninhabited.", fleet.Name, planet.Name)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetPlanet, TargetNum: planet.Num}})
 }
+func (m *messageClient) planetInvadeStarbase(player *Player, planet *Planet, fleet *Fleet) {
+	text := fmt.Sprintf("%s has attempted to invade %s, but the planet is protected by a starbase.", fleet.Name, planet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetPlanet, TargetNum: planet.Num}})
+}
 
 func (m *messageClient) planetPacketArrived(player *Player, planet *Planet, packet *MineralPacket) {
 	text := fmt.Sprintf("Your mineral packet containing %dkT of minerals has landed at %s.", packet.Cargo.Total(), planet.Name)

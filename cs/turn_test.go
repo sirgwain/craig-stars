@@ -3,6 +3,7 @@ package cs
 import (
 	"math"
 	"math/rand"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -307,6 +308,95 @@ func Test_turn_grow(t *testing.T) {
 	assert.Equal(t, 0, planet3.population())
 	assert.Equal(t, false, planet3.Owned())
 	assert.Equal(t, 2_304_000, planet4.population())
+}
+
+func Test_turn_fleetTransferCargoInvade1(t *testing.T) {
+	game := createTwoPlayerGame()
+	player1 := game.Players[0]
+	player2 := game.Players[1]
+	fleet := game.Fleets[0]
+	planet := game.Planets[1]
+
+	player1.Race.Name = "Attacker"
+	player1.Race.PluralName = "Attackers"
+	player2.Race.Name = "Defender"
+	player2.Race.PluralName = "Defenders"
+
+	fleet.Position = planet.Position
+	fleet.OrbitingPlanetNum = planet.Num
+	fleet.Waypoints[0] = NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 5)
+	fleet.Waypoints[0].Task = WaypointTaskTransport
+	fleet.Waypoints[0].TransportTasks.Colonists.Action = TransportActionUnloadAll
+	fleet.Cargo.Colonists = planet.Cargo.Colonists * 2 // double attackers
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// transfer
+	turn.generateTurn()
+
+	// should have invaded the planet and taken it over
+	assert.Equal(t, planet.PlayerNum, fleet.PlayerNum)
+	assert.True(t, slices.ContainsFunc(player1.Messages, func(message PlayerMessage) bool {
+		return message.Type == PlayerMessageFleetInvadedPlanet
+	}))
+	assert.True(t, slices.ContainsFunc(player2.Messages, func(message PlayerMessage) bool {
+		return message.Type == PlayerMessagePlanetInvaded
+	}))
+}
+
+func Test_turn_fleetTransferCargoInvadeStarbase(t *testing.T) {
+	game := createTwoPlayerGame()
+	player1 := game.Players[0]
+	player2 := game.Players[1]
+	fleet := game.Fleets[0]
+	planet := game.Planets[1]
+
+	// create a new starbase
+	starbaseDesign := NewShipDesign(player2, 2).WithHull(SpaceStation.Name).WithSpec(&rules, player2)
+	starbase := newStarbase(player2, planet,
+		starbaseDesign,
+		"Starbase",
+	)
+	player2.Designs = append(player2.Designs, starbaseDesign)
+	starbase.Spec = ComputeFleetSpec(&rules, player2, &starbase)
+	starbase.Tokens[0].QuantityDamaged = 1
+	starbase.Tokens[0].Damage = 100
+	game.Starbases = append(game.Starbases, &starbase)
+	planet.Starbase = &starbase
+
+	player1.Race.Name = "Attacker"
+	player1.Race.PluralName = "Attackers"
+	player2.Race.Name = "Defender"
+	player2.Race.PluralName = "Defenders"
+
+	fleet.Position = planet.Position
+	fleet.OrbitingPlanetNum = planet.Num
+	fleet.Waypoints[0] = NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 5)
+	fleet.Waypoints[0].Task = WaypointTaskTransport
+	fleet.Waypoints[0].TransportTasks.Colonists.Action = TransportActionUnloadAll
+	numInvaders := planet.Cargo.Colonists * 2 // double attackers
+	fleet.Cargo.Colonists = numInvaders
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// transfer
+	turn.generateTurn()
+
+	// should not have invaded the planet because we have a starbase
+	assert.Equal(t, planet.PlayerNum, player2.Num)
+	assert.Equal(t, numInvaders, fleet.Cargo.Colonists)
+	assert.False(t, slices.ContainsFunc(player1.Messages, func(message PlayerMessage) bool {
+		return message.Type == PlayerMessageFleetInvadedPlanet
+	}))
+	assert.False(t, slices.ContainsFunc(player2.Messages, func(message PlayerMessage) bool {
+		return message.Type == PlayerMessagePlanetInvaded
+	}))
 }
 
 func Test_turn_fleetRoute(t *testing.T) {

@@ -150,7 +150,7 @@ func (t *turn) fleetInit() {
 	for _, fleet := range t.game.Fleets {
 		// age this fleet by 1 year
 		fleet.Age++
-		
+
 		// remove previous position, it will be reset on move
 		fleet.PreviousPosition = nil
 
@@ -344,18 +344,30 @@ func (t *turn) fleetUnload() {
 
 				wp.WaitAtWaypoint = wp.WaitAtWaypoint || waitAtWaypoint
 
-				t.fleetTransferCargo(fleet, transferAmount, cargoType, dest)
+				if err := t.fleetTransferCargo(fleet, transferAmount, cargoType, dest); err != nil {
+					log.Debug().
+						Int64("GameID", t.game.ID).
+						Str("Name", t.game.Name).
+						Int("Year", t.game.Year).
+						Int("Player", fleet.PlayerNum).
+						Str("Fleet", fleet.Name).
+						Str("Dest", dest.getMapObject().Name).
+						Int("Transfered", transferAmount).
+						Str("cargoType", cargoType.String()).
+						Msgf("unload cargo failed %v", err)
+				} else {
+					log.Debug().
+						Int64("GameID", t.game.ID).
+						Str("Name", t.game.Name).
+						Int("Year", t.game.Year).
+						Int("Player", fleet.PlayerNum).
+						Str("Fleet", fleet.Name).
+						Str("Dest", dest.getMapObject().Name).
+						Int("Transfered", transferAmount).
+						Str("cargoType", cargoType.String()).
+						Msgf("unloaded cargo")
+				}
 
-				log.Debug().
-					Int64("GameID", t.game.ID).
-					Str("Name", t.game.Name).
-					Int("Year", t.game.Year).
-					Int("Player", fleet.PlayerNum).
-					Str("Fleet", fleet.Name).
-					Str("Dest", dest.getMapObject().Name).
-					Int("Transfered", transferAmount).
-					Str("cargoType", cargoType.String()).
-					Msgf("unloaded cargo")
 			}
 
 			// we tried to load/unload from empty space but we didn't deposit any cargo
@@ -403,18 +415,29 @@ func (t *turn) fleetLoad() {
 				// if we need to wait for any task, wait
 				wp.WaitAtWaypoint = wp.WaitAtWaypoint || waitAtWaypoint
 
-				log.Debug().
-					Int64("GameID", t.game.ID).
-					Str("Name", t.game.Name).
-					Int("Year", t.game.Year).
-					Int("Player", fleet.PlayerNum).
-					Str("Fleet", fleet.Name).
-					Str("Dest", dest.getMapObject().Name).
-					Int("Transfered", transferAmount).
-					Str("cargoType", cargoType.String()).
-					Msgf("loaded cargo")
-
-				t.fleetTransferCargo(fleet, -transferAmount, cargoType, dest)
+				if err := t.fleetTransferCargo(fleet, -transferAmount, cargoType, dest); err != nil {
+					log.Debug().
+						Int64("GameID", t.game.ID).
+						Str("Name", t.game.Name).
+						Int("Year", t.game.Year).
+						Int("Player", fleet.PlayerNum).
+						Str("Fleet", fleet.Name).
+						Str("Dest", dest.getMapObject().Name).
+						Int("Transfered", transferAmount).
+						Str("cargoType", cargoType.String()).
+						Msgf("load cargo failed %v", err)
+				} else {
+					log.Debug().
+						Int64("GameID", t.game.ID).
+						Str("Name", t.game.Name).
+						Int("Year", t.game.Year).
+						Int("Player", fleet.PlayerNum).
+						Str("Fleet", fleet.Name).
+						Str("Dest", dest.getMapObject().Name).
+						Int("Transfered", transferAmount).
+						Str("cargoType", cargoType.String()).
+						Msgf("loaded cargo")
+				}
 			}
 
 			// process dunnage tasks
@@ -426,18 +449,31 @@ func (t *turn) fleetLoad() {
 				// if we need to wait for any task, wait
 				wp.WaitAtWaypoint = wp.WaitAtWaypoint || waitAtWaypoint
 
-				log.Debug().
-					Int64("GameID", t.game.ID).
-					Str("Name", t.game.Name).
-					Int("Year", t.game.Year).
-					Int("Player", fleet.PlayerNum).
-					Str("Fleet", fleet.Name).
-					Str("Dest", dest.getMapObject().Name).
-					Int("Transfered", transferAmount).
-					Str("cargoType", cargoType.String()).
-					Msgf("dunnage loaded cargo")
+				if err := t.fleetTransferCargo(fleet, -transferAmount, cargoType, dest); err != nil {
+					log.Debug().
+						Int64("GameID", t.game.ID).
+						Str("Name", t.game.Name).
+						Int("Year", t.game.Year).
+						Int("Player", fleet.PlayerNum).
+						Str("Fleet", fleet.Name).
+						Str("Dest", dest.getMapObject().Name).
+						Int("Transfered", transferAmount).
+						Str("cargoType", cargoType.String()).
+						Msgf("dunnage load cargo failed %v", err)
 
-				t.fleetTransferCargo(fleet, -transferAmount, cargoType, dest)
+				} else {
+					log.Debug().
+						Int64("GameID", t.game.ID).
+						Str("Name", t.game.Name).
+						Int("Year", t.game.Year).
+						Int("Player", fleet.PlayerNum).
+						Str("Fleet", fleet.Name).
+						Str("Dest", dest.getMapObject().Name).
+						Int("Transfered", transferAmount).
+						Str("cargoType", cargoType.String()).
+						Msgf("dunnage loaded cargo")
+				}
+
 			}
 
 			// delete this salvage if we emptied it
@@ -475,17 +511,23 @@ func (t *turn) fleetLoad() {
 // fleetTransferCargo transfers cargo from a fleet to a cargo holder
 // this will send a player a message if they are not allowed to load from this cargoholder
 // this will trigger an invasion if a player unloads colonists onto a planet
-func (t *turn) fleetTransferCargo(fleet *Fleet, transferAmount int, cargoType CargoType, dest cargoHolder) {
+func (t *turn) fleetTransferCargo(fleet *Fleet, transferAmount int, cargoType CargoType, dest cargoHolder) error {
 	if transferAmount != 0 {
 		player := t.game.Players[fleet.PlayerNum-1]
 		planet, ok := dest.(*Planet)
-		if transferAmount > 0 && cargoType == Colonists && ok && planet.Owned() && !planet.OwnedBy(fleet.PlayerNum) {
+		if transferAmount > 0 && cargoType == Colonists && ok && !planet.OwnedBy(fleet.PlayerNum) {
 			// invasion!
 			attacker := player
+
 			if !planet.Owned() || planet.population() == 0 {
 				// can't invade uninhabited planets
 				messager.planetInvadeEmpty(attacker, planet, fleet)
-				return
+				return fmt.Errorf("can't invade empty planet")
+			}
+			if planet.Spec.HasStarbase {
+				// can't invade starbase planet
+				messager.planetInvadeStarbase(attacker, planet, fleet)
+				return fmt.Errorf("can't invade planet with starbase")
 			}
 			defender := t.game.getPlayer(planet.PlayerNum)
 
@@ -496,6 +538,7 @@ func (t *turn) fleetTransferCargo(fleet *Fleet, transferAmount int, cargoType Ca
 		} else if transferAmount < 0 && !dest.canLoad(fleet.PlayerNum) {
 			// can't load from things we don't own
 			messager.fleetTransportInvalid(player, fleet, dest, cargoType, transferAmount)
+			return fmt.Errorf("can't load from planet we don't own")
 		} else {
 			fleet.transferToDest(dest, cargoType, transferAmount)
 			fleet.MarkDirty()
@@ -503,6 +546,7 @@ func (t *turn) fleetTransferCargo(fleet *Fleet, transferAmount int, cargoType Ca
 			messager.fleetTransportedCargo(player, fleet, dest, cargoType, transferAmount)
 		}
 	}
+	return nil
 }
 
 func (t *turn) fleetMerge() {
@@ -2512,7 +2556,7 @@ func (t *turn) calculateScores() {
 		if planet.Owned() {
 			// planets might be bombed, or starbases could be destroyed
 			planet.Spec = computePlanetSpec(&t.game.Rules, t.game.getPlayer(planet.PlayerNum), planet)
-			
+
 			score := &scores[planet.PlayerNum-1]
 			score.Planets++
 			if planet.Spec.HasStarbase {
