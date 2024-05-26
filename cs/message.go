@@ -504,7 +504,7 @@ func (m *messageClient) fleetRouted(player *Player, fleet *Fleet, planet *Planet
 func (m *messageClient) fleetScrapped(player *Player, fleet *Fleet, cost Cost, planet *Planet) {
 	if planet != nil {
 		player.Messages = append(player.Messages, newPlanetMessage(PlayerMessageFleetScrapped, planet).
-			withSpec(PlayerMessageSpec{Cost: &cost}))
+			withSpec(PlayerMessageSpec{Cost: &cost}.withTargetFleet(fleet)))
 	} else {
 		player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetScrapped, fleet))
 	}

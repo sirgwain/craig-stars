@@ -159,10 +159,10 @@
 	technology. In the process you have gained a level in {message.spec.field}.
 {:else if message.type === MessageType.FleetScrapped}
 	{#if planet.spec.hasStarbase}
-		{message.targetName} has been dismantled for {totalMinerals(message.spec.cost)}kT of minerals at
+		{message.spec.targetName} has been dismantled for {totalMinerals(message.spec.cost)}kT of minerals at
 		the starbase orbiting {planet.name}.
 	{:else}
-		{message.targetName} has been dismantled for {totalMinerals(message.spec.cost)}kT of minerals
+		{message.spec.targetName} has been dismantled for {totalMinerals(message.spec.cost)}kT of minerals
 		which have been deposited on {planet.name}.
 	{/if}
 	{#if message.spec.cost?.resources}
