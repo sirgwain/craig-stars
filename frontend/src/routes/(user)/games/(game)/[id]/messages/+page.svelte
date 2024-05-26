@@ -22,10 +22,10 @@
 				return 'Battle';
 			}
 		}
-		if (message.type === MessageType.GainTechLevel) {
+		if (message.type === MessageType.PlayerGainTechLevel) {
 			return 'Research';
 		}
-		if (message.type === MessageType.TechGained) {
+		if (message.type === MessageType.PlayerTechGained) {
 			return message.spec.techGained;
 		}
 
@@ -69,7 +69,12 @@
 		<div class="form-control">
 			<label class="label cursor-pointer">
 				<span class="label-text mr-1">Show All Messages</span>
-				<input type="checkbox" class="toggle" bind:checked={showAllMessages} />
+				<input
+					type="checkbox"
+					class="toggle"
+					class:toggle-accent={showAllMessages}
+					bind:checked={showAllMessages}
+				/>
 			</label>
 		</div>
 	</div>
@@ -87,7 +92,7 @@
 
 		<span slot="cell" let:column let:row>
 			{#if column.key == 'target'}
-				<button class="cs-link text-2xl" on:click={() => selectMessage(row)}
+				<button class="cs-link text-xl text-left" on:click={() => selectMessage(row)}
 					>{getTarget(row)}</button
 				>
 			{:else}

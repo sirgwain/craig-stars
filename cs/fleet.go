@@ -393,6 +393,19 @@ func NewPositionWaypoint(position Vector, warpSpeed int) Waypoint {
 	}
 }
 
+func (wp *Waypoint) clearTarget() {
+	wp.TargetName = ""
+	wp.TargetNum = None
+	wp.TargetPlayerNum = None
+	wp.TargetType = MapObjectTypeNone
+}
+
+func (wp *Waypoint) targetPlanet(planet *Planet) {
+	wp.TargetType = MapObjectTypePlanet
+	wp.TargetName = planet.Name
+	wp.TargetNum = planet.Num
+}
+
 func (wp Waypoint) WithTask(task WaypointTask) Waypoint {
 	wp.Task = task
 	return wp
@@ -551,9 +564,18 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 		// add bombs
 		if token.design.Spec.Bomber {
 			spec.Bomber = true
-			spec.Bombs = append(spec.Bombs, token.design.Spec.Bombs...)
-			spec.SmartBombs = append(spec.SmartBombs, token.design.Spec.SmartBombs...)
-			spec.RetroBombs = append(spec.RetroBombs, token.design.Spec.RetroBombs...)
+			for _, bomb := range token.design.Spec.Bombs {
+				bomb.Quantity *= token.Quantity
+				spec.Bombs = append(spec.Bombs, bomb)
+			}
+			for _, bomb := range token.design.Spec.SmartBombs {
+				bomb.Quantity *= token.Quantity
+				spec.SmartBombs = append(spec.SmartBombs, bomb)
+			}
+			for _, bomb := range token.design.Spec.RetroBombs {
+				bomb.Quantity *= token.Quantity
+				spec.RetroBombs = append(spec.RetroBombs, bomb)
+			}
 		}
 
 		// check if any tokens have weapons
@@ -877,6 +899,15 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 
 		fleet.Waypoints[0] = wp0
 	}
+
+	// if we ended up at a planet, make sure we are orbiting it
+	if fleet.OrbitingPlanetNum == None {
+		for _, mo := range mapObjectGetter.getMapObjectsAtPosition(fleet.Position) {
+			if planet, ok := mo.(*Planet); ok {
+				fleet.OrbitingPlanetNum = planet.Num
+			}
+		}
+	}
 }
 
 // GateFleet moves the fleet the cool way, with stargates!
@@ -1170,7 +1201,7 @@ func (fleet *Fleet) colonizePlanet(rules *Rules, player *Player, planet *Planet)
 	if player.Race.Spec.InnateMining {
 		hab := player.Race.GetPlanetHabitability(planet.Hab)
 		maxPop := planet.getMaxPopulation(rules, player, hab)
-		planet.Mines = planet.innateMines(player, planet.productivePopulation(maxPop))
+		planet.Mines = planet.innateMines(player, planet.productivePopulation(planet.population(), maxPop))
 	}
 
 	if player.Race.Spec.InnateScanner {

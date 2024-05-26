@@ -97,7 +97,7 @@
 
 		<span slot="cell" let:column let:row let:cell>
 			{#if column.key == 'name'}
-				<a class="cs-link text-2xl" href="/games/{row.id}">{cell}</a>
+				<a class="cs-link text-xl" href="/games/{row.id}">{cell}</a>
 			{:else if column.key == 'createdAt'}
 				{format(parseJSON(cell), 'E, MMM do yyyy hh:mm aaa')}
 			{:else if column.key == 'updatedAt'}

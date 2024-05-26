@@ -22,6 +22,8 @@
 	$: {
 		if (fleetsInOrbit.length > 0) {
 			selectedFleet = fleetsInOrbit[selectedFleetIndex];
+		} else {
+			selectedFleet = undefined;
 		}
 	}
 

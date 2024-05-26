@@ -302,7 +302,6 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 			},
 			wantErr: false,
 		},
-
 		{
 			name: "split a scoutx2 with 1 damaged and freighterx3 with 3 damaged into two fleets",
 			args: args{
@@ -359,6 +358,65 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 				Tokens: []ShipToken{
 					{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 1, Damage: 5, QuantityDamaged: 1},         // gets the damaged scout
 					{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 1, Damage: 6, QuantityDamaged: 1}, // gets 1 damaged freighter
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "split a scoutx3 damaged with floats",
+			args: args{
+				player: player,
+				source: &Fleet{
+					MapObject: MapObject{
+						Type:      MapObjectTypeFleet,
+						Num:       1,
+						PlayerNum: player.Num,
+						Name:      "Scout #1",
+					},
+					BaseName: "Scout",
+					FleetOrders: FleetOrders{
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
+					},
+					Tokens: []ShipToken{
+						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 20, Damage: 22.799999999999997, QuantityDamaged: 20},
+						{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 7},
+					},
+				},
+				// split out 20 damaged scouts with float damage, and 5 undamaged freighters
+				tokens: []ShipToken{
+					{DesignNum: scoutDesign.Num, Quantity: 20},
+					{DesignNum: freighterDesign.Num, Quantity: 5},
+				},
+			},
+			wantSourceFleet: &Fleet{
+				MapObject: MapObject{
+					Type:      MapObjectTypeFleet,
+					Num:       1,
+					PlayerNum: player.Num,
+					Name:      "Scout #1",
+				},
+				BaseName: "Scout",
+				FleetOrders: FleetOrders{
+					Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
+				},
+				Tokens: []ShipToken{
+					{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 2},
+				},
+			},
+			wantNewFleet: &Fleet{
+				MapObject: MapObject{
+					Type:      MapObjectTypeFleet,
+					Num:       2,
+					PlayerNum: player.Num,
+					Name:      "Long Range Scout #2",
+				},
+				BaseName: "Long Range Scout",
+				FleetOrders: FleetOrders{
+					Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
+				},
+				Tokens: []ShipToken{
+					{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 20, Damage: 22.799999999999997, QuantityDamaged: 20},
+					{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 5},
 				},
 			},
 			wantErr: false,

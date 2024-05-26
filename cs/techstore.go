@@ -2084,8 +2084,8 @@ var Cruiser = TechHull{Tech: NewTech("Cruiser", NewCost(40, 5, 8, 85), TechRequi
 	FuelCapacity: 600,
 	Slots: []TechHullSlot{
 		{Position: Vector{-1.5, 0}, Type: HullSlotTypeEngine, Capacity: 2, Required: true},
-		{Position: Vector{-0.5, -0.5}, Type: HullSlotTypeScannerElectricalMechanical, Capacity: 1},
-		{Position: Vector{-0.5, 0.5}, Type: HullSlotTypeScannerElectricalMechanical, Capacity: 1},
+		{Position: Vector{-0.5, -0.5}, Type: HullSlotTypeShieldElectricalMechanical, Capacity: 1},
+		{Position: Vector{-0.5, 0.5}, Type: HullSlotTypeShieldElectricalMechanical, Capacity: 1},
 		{Position: Vector{0.5, -1}, Type: HullSlotTypeWeapon, Capacity: 2},
 		{Position: Vector{0.5, 1}, Type: HullSlotTypeWeapon, Capacity: 2},
 		{Position: Vector{1.5, 0}, Type: HullSlotTypeGeneral, Capacity: 2},
@@ -2444,7 +2444,7 @@ var MetaMorph = TechHull{Tech: NewTech("Meta Morph", NewCost(50, 12, 12, 120), T
 		{Position: Vector{-1, 1}, Type: HullSlotTypeGeneral, Capacity: 2},
 	},
 }
-var OrbitalFort = TechHull{Tech: NewTech("Orbital Fort", NewCost(24, 0, 34, 80), TechRequirements{TechLevel: TechLevel{}}, 10, TechCategoryStarbaseHull),
+var OrbitalFort = TechHull{Tech: NewTech("Orbital Fort", NewCost(12, 0, 17, 40), TechRequirements{TechLevel: TechLevel{}}, 10, TechCategoryStarbaseHull),
 	Type:                    TechHullTypeOrbitalFort,
 	SpaceDock:               0,
 	Armor:                   100,
@@ -2463,7 +2463,7 @@ var OrbitalFort = TechHull{Tech: NewTech("Orbital Fort", NewCost(24, 0, 34, 80),
 	},
 }
 
-var SpaceDock = TechHull{Tech: NewTech("Space Dock", NewCost(40, 10, 50, 200), TechRequirements{TechLevel: TechLevel{Construction: 4}, LRTsRequired: ISB}, 20, TechCategoryStarbaseHull),
+var SpaceDock = TechHull{Tech: NewTech("Space Dock", NewCost(20, 5, 25, 80), TechRequirements{TechLevel: TechLevel{Construction: 4}, LRTsRequired: ISB}, 20, TechCategoryStarbaseHull),
 	Type:                  TechHullTypeStarbase,
 	SpaceDock:             200,
 	SpaceDockSlotPosition: Vector{-.125, -.125},

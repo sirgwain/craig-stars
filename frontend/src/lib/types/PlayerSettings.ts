@@ -28,6 +28,7 @@ export class PlayerSettings {
 	messageTypeFilterArray: number[] = [];
 	sortPlanetsKey = 'name';
 	sortPlanetsDescending = false;
+	showAllPlanets = false;
 	sortFleetsKey = 'name';
 	sortFleetsDescending = false;
 

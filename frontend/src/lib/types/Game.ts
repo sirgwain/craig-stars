@@ -66,6 +66,8 @@ export type GameSettings = {
 	randomEvents?: boolean;
 	computerPlayersFormAlliances?: boolean;
 	publicPlayerScores?: boolean;
+	maxMinerals?: boolean;
+	acceleratedPlay?: boolean;
 	startMode?: GameStartMode;
 	year?: number;
 	victoryConditions: VictoryConditions;
@@ -98,6 +100,8 @@ export interface Game {
 	randomEvents: boolean;
 	computerPlayersFormAlliances: boolean;
 	publicPlayerScores: boolean;
+	maxMinerals: boolean;
+	acceleratedPlay: boolean;
 	public?: boolean;
 	startMode: GameStartMode;
 	year: number;

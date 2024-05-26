@@ -1,0 +1,113 @@
+# workflow to cut a new tag for each successful push to develop
+name: Release
+on:
+  workflow_run:
+    workflows: [Build]
+    branches: [develop]
+    types: 
+    - completed
+
+jobs:
+  # cut a new tag
+  tag:
+    if:  ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+        contents: write
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: '0'
+
+    - name: Bump version and push tag
+      uses: anothrNick/github-tag-action@v1
+      id: bump
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        WITH_V: true
+        DEFAULT_BUMP: "patch"
+    outputs:
+      version: ${{ steps.bump.outputs.new_tag }}
+    
+  build:
+    if: github.repository == 'sirgwain/craig-stars'
+    strategy:
+      matrix:
+        go-version: [1.21.x]
+        node-version: [18]
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    needs: tag
+    steps:
+      - uses: actions/checkout@v3
+
+      # get some build metadata we can put in the binary and package.json
+      - name: Get build time
+        id: buildTime
+        run: echo "buildTime=`date +'%y.%m.%d %H:%M:%S'`" >> $GITHUB_OUTPUT
+
+      # build the frontend (this is slow)
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json        
+      - run: npm install
+        working-directory: ./frontend
+      - run: jq ".version = \"${{ needs.tag.outputs.version }}\"" package.json > package.json.tmp && mv package.json.tmp package.json
+        working-directory: ./frontend
+      - run: npm run build
+        working-directory: ./frontend
+      - run: mkdir -p dist/
+      - run: tar -cvf ./dist/frontend.tgz -C frontend/build .
+
+      # build the binary (this embeds the frontend built above for local runs)
+      - uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go-version }}
+          check-latest: true
+          cache: true    
+      - run: mkdir -p dist/
+      - run: |
+          go mod tidy && \
+          CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build \
+          -ldflags="-s -w -extldflags '-static' \
+          -X 'github.com/sirgwain/craig-stars/cmd.semver=${{ needs.tag.outputs.version }}' \
+          -X 'github.com/sirgwain/craig-stars/cmd.commit=${GITHUB_SHA}' \
+          -X 'github.com/sirgwain/craig-stars/cmd.buildTime=${{ steps.buildTime.outputs.buildTime }}'" \
+          -o dist/craig-stars main.go
+      - run: tar -cvf ./dist/craig-stars.tgz -C ./dist ./craig-stars
+
+      # upload the dist folder to github's artifacts
+      - uses: actions/upload-artifact@v3
+        with:
+          name: dist-artifacts
+          path: ./dist/*.tgz
+          retention-days: 1
+
+
+  release:
+    if: github.repository == 'sirgwain/craig-stars'
+    runs-on: ubuntu-latest
+    name: Create release
+    needs: [build]
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+
+      - name: Create release
+        id: create_release
+        uses: ncipollo/release-action@v1.8.10
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          name: Published ${{ github.ref_name }}
+          artifacts: ./artifacts/dist-artifacts/*.tgz
+          artifactContentType: application/zip
+          generateReleaseNotes: true
+

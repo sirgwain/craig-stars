@@ -145,9 +145,8 @@ func (p *Planet) population() int {
 
 // get the population that is productive. This takes into account overcrowding
 // anything over 3x is unproductive
-func (p *Planet) productivePopulation(maxPop int) int {
-
-	return MinInt(p.population(), 3*maxPop)
+func (p *Planet) productivePopulation(pop, maxPop int) int {
+	return MinInt(pop, 3*maxPop)
 }
 
 func (p *Planet) setPopulation(pop int) {
@@ -214,7 +213,7 @@ func (p *Planet) emptyPlanet() {
 	p.Starbase = nil
 	p.Scanner = false
 	p.Defenses = 0 // defenses are all gone, rest of the structures can stay
-	p.ProductionQueue = []ProductionQueueItem{}
+	p.PlanetOrders = PlanetOrders{} // clear any orders from previous owner
 	p.setPopulation(0)
 	p.Spec = PlanetSpec{}
 	// reset any instaforming
@@ -231,49 +230,31 @@ func (p *Planet) randomize(rules *Rules) {
 	// "I'm certain gravity and temperature probability is constant between 10 and 90 inclusive, and falls off towards 0 and 100.
 	// It never generates 0 or 100 so I have to change my random formula to (1 to 90)+(0 to 9)
 	// damn you all for sucking me into stars! again lol"
+	//
+	// update: hab is 1 to 99
 	p.Hab = Hab{
-		Grav: rules.random.Intn(91) + rules.random.Intn(10),
-		Temp: rules.random.Intn(91) + rules.random.Intn(10),
-		Rad:  1 + rules.random.Intn(100),
+		Grav: 1 + rules.random.Intn(90) + rules.random.Intn(10),
+		Temp: 1 + rules.random.Intn(90) + rules.random.Intn(10),
+		Rad:  1 + rules.random.Intn(99),
 	}
 	p.BaseHab = p.Hab
 	p.TerraformedAmount = Hab{}
 
-	// from @edmundmk on the Stars! discord, this is
-	//  Generate mineral concentration.  There is a 30% chance of a
-	//  concentration between 1 and 30.  Higher concentrations have a
-	//  distribution centred on 75, minimum 31 and maximum 199.
-	//  x = random 1 to 100 inclusive
-	//  if x > 30 then
-	//     x = 30 + random 0 to 44 inclusive + random 0 to 44 inclusive
-	//  end
-	//  return x
-
-	// also from @SuicideJunkie about a bonus to germ for high rad
-	// Only the exact example given in the help file it seems... "extreme values" is exactly rads being above 85, giving a small bonus to germanium.
-
-	germRadBonus := int(0)
-	if p.Hab.Rad >= rules.HighRadGermaniumBonusThreshold {
-		germRadBonus = rules.HighRadGermaniumBonus
+	// create minconc from min to max (31 to 121)
+	p.MineralConcentration = Mineral{
+		Ironium:   rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration-rules.MinStartingMineralConcentration),
+		Boranium:  rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration-rules.MinStartingMineralConcentration),
+		Germanium: rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration-rules.MinStartingMineralConcentration),
 	}
 
-p.MineralConcentration = Mineral{
-	Ironium:   rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration+1),
-	Boranium:  rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration+1),
-	Germanium: rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration+1),
-}
-
-if p.MineralConcentration.Ironium > 30 {
-	p.MineralConcentration.Ironium = 30 + rules.random.Intn(45) + rules.random.Intn(45)
-}
-
-if p.MineralConcentration.Boranium > 30 {
-	p.MineralConcentration.Boranium = 30 + rules.random.Intn(45) + rules.random.Intn(45)
-}
-
-if p.MineralConcentration.Germanium > 30 {
-	p.MineralConcentration.Germanium = 30 + rules.random.Intn(45) + germRadBonus + rules.random.Intn(45)
-}
+	// we have high rad, add some bonus minerals
+	if p.Hab.Rad >= rules.HighRadMineralConcentrationBonusThreshold {
+		p.MineralConcentration = Mineral{
+			Ironium:   p.MineralConcentration.Ironium + rules.random.Intn(99-MinInt(p.MineralConcentration.Ironium, 98))/2,
+			Boranium:  p.MineralConcentration.Boranium + rules.random.Intn(99-MinInt(p.MineralConcentration.Boranium, 98))/2,
+			Germanium: p.MineralConcentration.Germanium + rules.random.Intn(99-MinInt(p.MineralConcentration.Germanium, 98))/2,
+		}
+	}
 
 	// check if this planet has a random artifact
 	if rules.RandomEventChances[RandomEventAncientArtifact] > rules.random.Float64() {
@@ -428,7 +409,6 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 		spec.PopulationDensity = float64(planet.population()) / float64(spec.MaxPopulation)
 	}
 	spec.GrowthAmount = planet.getGrowthAmount(player, spec.MaxPopulation, rules.PopulationOvercrowdDieoffRate, rules.PopulationOvercrowdDieoffRateMax)
-	spec.MiningOutput = planet.getMineralOutput(planet.Mines, race.MineOutput)
 
 	// terraforming
 	terraformer := NewTerraformer()
@@ -437,10 +417,10 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	spec.CanTerraform = spec.TerraformAmount.absSum() > 0
 	spec.TerraformedHabitability = race.GetPlanetHabitability(planet.Hab.Add(spec.TerraformAmount))
 
-	productivePop := planet.productivePopulation(spec.MaxPopulation)
+	productivePop := planet.productivePopulation(spec.Population, spec.MaxPopulation)
 
 	if !race.Spec.InnateMining {
-		spec.MaxMines = productivePop * race.NumMines / 10000
+		spec.MaxMines = planet.getMaxMines(player, productivePop)
 		spec.MaxPossibleMines = spec.MaxPopulation * race.NumMines / 10000
 	}
 
@@ -450,14 +430,15 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 		// compute resources from population
 		resourcesFromPop := productivePop / (race.PopEfficiency * 100)
 
-		// compute resources from factories
-		resourcesFromFactories := planet.Factories * race.FactoryOutput / 10
-
-		spec.ResourcesPerYear = resourcesFromPop + resourcesFromFactories
-		spec.MaxFactories = planet.population() * race.NumFactories / 10000
+		spec.MaxFactories = planet.getMaxFactories(player, productivePop)
 		spec.MaxPossibleFactories = spec.MaxPopulation * race.NumFactories / 10000
+
+		// compute resources from factories
+		resourcesFromFactories := MinInt(planet.Factories, spec.MaxFactories) * race.FactoryOutput / 10
+		spec.ResourcesPerYear = resourcesFromPop + resourcesFromFactories
 	}
 
+	spec.MiningOutput = planet.getMineralOutput(MinInt(spec.MaxMines, planet.Mines), race.MineOutput)
 	spec.computeResourcesPerYearAvailable(player, planet)
 
 	if race.Spec.CanBuildDefenses {
@@ -540,14 +521,38 @@ func (p *Planet) getMaxPopulation(rules *Rules, player *Player, habitability int
 	return roundToNearest100f(math.Max(minMaxPop, float64(maxPossiblePop)*maxPopulationFactor*float64(habitability)/100.0))
 }
 
-func (planet *Planet) maxBuildable(t QueueItemType) int {
+// get max factories for a population
+func (p *Planet) getMaxFactories(player *Player, population int) int {
+	if player.Race.Spec.InnateResources {
+		return 0
+	} else {
+		return population * player.Race.NumFactories / 10000
+	}
+}
+
+// get max mines for a population
+func (p *Planet) getMaxMines(player *Player, population int) int {
+	if player.Race.Spec.InnateResources {
+		return 0
+	} else {
+		return population * player.Race.NumMines / 10000
+	}
+}
+
+func (planet *Planet) maxBuildable(player *Player, t QueueItemType) int {
 	switch t {
 	case QueueItemTypeAutoMines:
-		return MaxInt(0, planet.Spec.MaxMines-planet.Mines)
+		// for autobuild purposes, the maxFactories is next year's pop
+		futurePop := planet.productivePopulation(planet.population()+planet.Spec.GrowthAmount, planet.Spec.MaxPopulation)
+		maxMines := planet.getMaxMines(player, futurePop)
+		return MaxInt(0, maxMines-planet.Mines)
 	case QueueItemTypeMine:
 		return MaxInt(0, planet.Spec.MaxPossibleMines-planet.Mines)
 	case QueueItemTypeAutoFactories:
-		return MaxInt(0, planet.Spec.MaxFactories-planet.Factories)
+		// for autobuild purposes, the maxFactories is next year's pop
+		futurePop := planet.productivePopulation(planet.population()+planet.Spec.GrowthAmount, planet.Spec.MaxPopulation)
+		maxFactories := planet.getMaxFactories(player, futurePop)
+		return MaxInt(0, maxFactories-planet.Factories)
 	case QueueItemTypeFactory:
 		return MaxInt(0, planet.Spec.MaxPossibleFactories-planet.Factories)
 	case QueueItemTypeAutoDefenses:
@@ -583,7 +588,7 @@ func (planet *Planet) grow(player *Player) {
 	planet.setPopulation(planet.population() + planet.Spec.GrowthAmount)
 
 	if player.Race.Spec.InnateMining {
-		productivePop := planet.productivePopulation(planet.Spec.MaxPopulation)
+		productivePop := planet.productivePopulation(planet.population(), planet.Spec.MaxPopulation)
 		planet.Mines = planet.innateMines(player, productivePop)
 	}
 }

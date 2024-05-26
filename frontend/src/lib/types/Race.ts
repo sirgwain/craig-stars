@@ -410,7 +410,7 @@ export const humanoid = (): Race => ({
 						purpose: 'Miner'
 					},
 					{
-						name: 'Armored Probe',
+						name: 'Armed Probe',
 						hullName: 'Scout',
 						hullSetNumber: 1,
 						purpose: 'FighterScout'

@@ -7,7 +7,6 @@ import type { MineralPacket } from '$lib/types/MineralPacket';
 import type { MysteryTrader } from '$lib/types/MysteryTrader';
 import { planetsSortBy, type Planet } from '$lib/types/Planet';
 import type { PlayerIntel, PlayerIntels, PlayerScore, PlayerUniverse } from '$lib/types/Player';
-import { PlayerSettings } from '$lib/types/PlayerSettings';
 import type { ProductionQueueItem } from '$lib/types/Production';
 import type { Salvage } from '$lib/types/Salvage';
 import type { ShipDesign } from '$lib/types/ShipDesign';
@@ -184,6 +183,15 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 
 	getMyPlanets(sortKey: string, descending: boolean): Planet[] {
 		const planets = this.planets.filter((d) => d.playerNum === this.playerNum);
+		planets.sort(planetsSortBy(sortKey));
+		if (!descending) {
+			planets.reverse();
+		}
+		return planets;
+	}
+
+	getPlanets(sortKey: string, descending: boolean): Planet[] {
+		const planets = [...this.planets];
 		planets.sort(planetsSortBy(sortKey));
 		if (!descending) {
 			planets.reverse();

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { CommandedPlanet, Planet } from '$lib/types/Planet';
+	import type { CommandedPlanet } from '$lib/types/Planet';
 	import CommandTile from './CommandTile.svelte';
 
 	const { nextMapObject, previousMapObject } = getGameContext();

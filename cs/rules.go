@@ -10,84 +10,83 @@ import (
 // how the game mechanics work. These are designed to be unique per game, if desired. Currently for testing, all
 // games just use the default rule set.
 type Rules struct {
-	ID                                 int64                               `json:"id"`
-	CreatedAt                          time.Time                           `json:"createdAt"`
-	UpdatedAt                          time.Time                           `json:"updatedAt"`
-	GameID                             int64                               `json:"gameId"`
-	TachyonCloakReduction              int                                 `json:"tachyonCloakReduction"`
-	MaxPopulation                      int                                 `json:"maxPopulation"`
-	MinMaxPopulationPercent            float64                             `json:"minMaxPopulationPercent"`
-	PopulationOvercrowdDieoffRate      float64                             `json:"populationOvercrowdDieoffRate"`
-	PopulationOvercrowdDieoffRateMax   float64                             `json:"populationOvercrowdDieoffRateMax"`
-	PopulationScannerError             float64                             `json:"populationScannerError"`
-	SmartDefenseCoverageFactor         float64                             `json:"smartDefenseCoverageFactor"`
-	InvasionDefenseCoverageFactor      float64                             `json:"invasionDefenseCoverageFactor"`
-	NumBattleRounds                    int                                 `json:"numBattleRounds"`
-	MovesToRunAway                     int                                 `json:"movesToRunAway"`
-	BeamRangeDropoff                   float64                             `json:"beamRangeDropoff"`
-	TorpedoSplashDamage                float64                             `json:"torpedoSplashDamage"`
-	SalvageDecayRate                   float64                             `json:"salvageDecayRate"`
-	SalvageDecayMin                    int                                 `json:"salvageDecayMin"`
-	MineFieldCloak                     int                                 `json:"mineFieldCloak"`
-	StargateMaxRangeFactor             int                                 `json:"stargateMaxRangeFactor"`
-	StargateMaxHullMassFactor          int                                 `json:"stargateMaxHullMassFactor"`
-	FleetSafeSpeedExplosionChance      float64                             `json:"fleetSafeSpeedExplosionChance"`
-	RandomEventChances                 map[RandomEvent]float64             `json:"randomEventChances"`
-	RandomMineralDepositBonusRange     [2]int                              `json:"randomMineralDepositBonusRange"`
-	RandomArtifactResearchBonusRange   [2]int                              `json:"randomArtifactResearchBonusRange"`
-	RandomCometMinYear                 int                                 `json:"randomCometMinYear,omitempty"`
-	RandomCometMinYearPlayerWorld      int                                 `json:"randomCometMinYearPlayerWorld,omitempty"`
-	CometStatsBySize                   map[CometSize]CometStats            `json:"cometStatsBySize,omitempty"`
-	MysteryTraderRules                 MysteryTraderRules                  `json:"mysteryTraderRules"`
-	WormholeCloak                      int                                 `json:"wormholeCloak"`
-	WormholeMinPlanetDistance          int                                 `json:"wormholeMinDistance"`
-	WormholeStatsByStability           map[WormholeStability]WormholeStats `json:"wormholeStatsByStability"`
-	WormholePairsForSize               map[Size]int                        `json:"wormholePairsForSize"`
-	MineFieldStatsByType               map[MineFieldType]MineFieldStats    `json:"mineFieldStatsByType"`
-	RepairRates                        map[RepairRate]float64              `json:"repairRates"`
-	MaxPlayers                         int                                 `json:"maxPlayers"`
-	StartingYear                       int                                 `json:"startingYear"`
-	ShowPublicScoresAfterYears         int                                 `json:"showPublicScoresAfterYears"`
-	PlanetMinDistance                  int                                 `json:"planetMinDistance"`
-	MaxExtraWorldDistance              int                                 `json:"maxExtraWorldDistance"`
-	MinExtraWorldDistance              int                                 `json:"minExtraWorldDistance"`
-	MinHomeworldMineralConcentration   int                                 `json:"minHomeworldMineralConcentration"`
-	MinExtraPlanetMineralConcentration int                                 `json:"minExtraPlanetMineralConcentration"`
-	MinHab                             int                                 `json:"minHab"`
-	MaxHab                             int                                 `json:"maxHab"`
-	MinMineralConcentration            int                                 `json:"minMineralConcentration"`
-	MaxMineralConcentration            int                                 `json:"maxMineralConcentration"`
-	MinStartingMineralConcentration    int                                 `json:"minStartingMineralConcentration"`
-	MaxStartingMineralConcentration    int                                 `json:"maxStartingMineralConcentration"`
-	HighRadGermaniumBonus              int                                 `json:"highRadGermaniumBonus"`
-	HighRadGermaniumBonusThreshold     int                                 `json:"highRadGermaniumBonusThreshold"`
-	RadiatingImmune                    int                                 `json:"radiatingImmune"`
-	MaxStartingMineralSurface          int                                 `json:"maxStartingMineralSurface"`
-	MinStartingMineralSurface          int                                 `json:"minStartingMineralSurface"`
-	MineralDecayFactor                 int                                 `json:"mineralDecayFactor"`
-	RemoteMiningMineOutput             int                                 `json:"remoteMiningMineOutput"`
-	StartingMines                      int                                 `json:"startingMines"`
-	StartingFactories                  int                                 `json:"startingFactories"`
-	StartingDefenses                   int                                 `json:"startingDefenses"`
-	RaceStartingPoints                 int                                 `json:"raceStartingPoints"`
-	ScrapMineralAmount                 float64                             `json:"scrapMineralAmount"`
-	ScrapResourceAmount                float64                             `json:"scrapResourceAmount"`
-	FactoryCostGermanium               int                                 `json:"factoryCostGermanium"`
-	DefenseCost                        Cost                                `json:"defenseCost"`
-	MineralAlchemyCost                 int                                 `json:"mineralAlchemyCost"`
-	PlanetaryScannerCost               Cost                                `json:"planetaryScannerCost"`
-	TerraformCost                      Cost                                `json:"terraformCost"`
-	StarbaseComponentCostFactor        float64                             `json:"starbaseComponentCostFactor"`
-	SalvageFromBattleFactor            float64                             `json:"salvageFromBattleFactor"`
-	TechTradeChance                    float64                             `json:"techTradeChance"`
-	PacketDecayRate                    map[int]float64                     `json:"packetDecayRate"`
-	MaxTechLevel                       int                                 `json:"maxTechLevel"`
-	TechBaseCost                       []int                               `json:"techBaseCost"`
-	PRTSpecs                           map[PRT]PRTSpec                     `json:"prtSpecs"`
-	LRTSpecs                           map[LRT]LRTSpec                     `json:"lrtSpecs"`
-	TechsID                            int64                               `json:"techsId"`
-	random                             rng
-	techs                              *TechStore
+	ID                                        int64                               `json:"id"`
+	CreatedAt                                 time.Time                           `json:"createdAt"`
+	UpdatedAt                                 time.Time                           `json:"updatedAt"`
+	GameID                                    int64                               `json:"gameId"`
+	TachyonCloakReduction                     int                                 `json:"tachyonCloakReduction"`
+	MaxPopulation                             int                                 `json:"maxPopulation"`
+	MinMaxPopulationPercent                   float64                             `json:"minMaxPopulationPercent"`
+	PopulationOvercrowdDieoffRate             float64                             `json:"populationOvercrowdDieoffRate"`
+	PopulationOvercrowdDieoffRateMax          float64                             `json:"populationOvercrowdDieoffRateMax"`
+	PopulationScannerError                    float64                             `json:"populationScannerError"`
+	SmartDefenseCoverageFactor                float64                             `json:"smartDefenseCoverageFactor"`
+	InvasionDefenseCoverageFactor             float64                             `json:"invasionDefenseCoverageFactor"`
+	NumBattleRounds                           int                                 `json:"numBattleRounds"`
+	MovesToRunAway                            int                                 `json:"movesToRunAway"`
+	BeamRangeDropoff                          float64                             `json:"beamRangeDropoff"`
+	TorpedoSplashDamage                       float64                             `json:"torpedoSplashDamage"`
+	SalvageDecayRate                          float64                             `json:"salvageDecayRate"`
+	SalvageDecayMin                           int                                 `json:"salvageDecayMin"`
+	MineFieldCloak                            int                                 `json:"mineFieldCloak"`
+	StargateMaxRangeFactor                    int                                 `json:"stargateMaxRangeFactor"`
+	StargateMaxHullMassFactor                 int                                 `json:"stargateMaxHullMassFactor"`
+	FleetSafeSpeedExplosionChance             float64                             `json:"fleetSafeSpeedExplosionChance"`
+	RandomEventChances                        map[RandomEvent]float64             `json:"randomEventChances"`
+	RandomMineralDepositBonusRange            [2]int                              `json:"randomMineralDepositBonusRange"`
+	RandomArtifactResearchBonusRange          [2]int                              `json:"randomArtifactResearchBonusRange"`
+	RandomCometMinYear                        int                                 `json:"randomCometMinYear,omitempty"`
+	RandomCometMinYearPlayerWorld             int                                 `json:"randomCometMinYearPlayerWorld,omitempty"`
+	MysteryTraderRules                        MysteryTraderRules                  `json:"mysteryTraderRules"`
+	CometStatsBySize                          map[CometSize]CometStats            `json:"cometStatsBySize,omitempty"`
+	WormholeCloak                             int                                 `json:"wormholeCloak"`
+	WormholeMinPlanetDistance                 int                                 `json:"wormholeMinDistance"`
+	WormholeStatsByStability                  map[WormholeStability]WormholeStats `json:"wormholeStatsByStability"`
+	WormholePairsForSize                      map[Size]int                        `json:"wormholePairsForSize"`
+	MineFieldStatsByType                      map[MineFieldType]MineFieldStats    `json:"mineFieldStatsByType"`
+	RepairRates                               map[RepairRate]float64              `json:"repairRates"`
+	MaxPlayers                                int                                 `json:"maxPlayers"`
+	StartingYear                              int                                 `json:"startingYear"`
+	ShowPublicScoresAfterYears                int                                 `json:"showPublicScoresAfterYears"`
+	PlanetMinDistance                         int                                 `json:"planetMinDistance"`
+	MaxExtraWorldDistance                     int                                 `json:"maxExtraWorldDistance"`
+	MinExtraWorldDistance                     int                                 `json:"minExtraWorldDistance"`
+	MinHomeworldMineralConcentration          int                                 `json:"minHomeworldMineralConcentration"`
+	MinExtraPlanetMineralConcentration        int                                 `json:"minExtraPlanetMineralConcentration"`
+	MinHab                                    int                                 `json:"minHab"`
+	MaxHab                                    int                                 `json:"maxHab"`
+	MinMineralConcentration                   int                                 `json:"minMineralConcentration"`
+	MaxMineralConcentration                   int                                 `json:"maxMineralConcentration"`
+	MinStartingMineralConcentration           int                                 `json:"minStartingMineralConcentration"`
+	MaxStartingMineralConcentration           int                                 `json:"maxStartingMineralConcentration"`
+	HighRadMineralConcentrationBonusThreshold int                                 `json:"highRadGermaniumBonusThreshold"`
+	RadiatingImmune                           int                                 `json:"radiatingImmune"`
+	MaxStartingMineralSurface                 int                                 `json:"maxStartingMineralSurface"`
+	MinStartingMineralSurface                 int                                 `json:"minStartingMineralSurface"`
+	MineralDecayFactor                        int                                 `json:"mineralDecayFactor"`
+	RemoteMiningMineOutput                    int                                 `json:"remoteMiningMineOutput"`
+	StartingMines                             int                                 `json:"startingMines"`
+	StartingFactories                         int                                 `json:"startingFactories"`
+	StartingDefenses                          int                                 `json:"startingDefenses"`
+	RaceStartingPoints                        int                                 `json:"raceStartingPoints"`
+	ScrapMineralAmount                        float64                             `json:"scrapMineralAmount"`
+	ScrapResourceAmount                       float64                             `json:"scrapResourceAmount"`
+	FactoryCostGermanium                      int                                 `json:"factoryCostGermanium"`
+	DefenseCost                               Cost                                `json:"defenseCost"`
+	MineralAlchemyCost                        int                                 `json:"mineralAlchemyCost"`
+	PlanetaryScannerCost                      Cost                                `json:"planetaryScannerCost"`
+	TerraformCost                             Cost                                `json:"terraformCost"`
+	StarbaseComponentCostFactor               float64                             `json:"starbaseComponentCostFactor"`
+	SalvageFromBattleFactor                   float64                             `json:"salvageFromBattleFactor"`
+	TechTradeChance                           float64                             `json:"techTradeChance"`
+	PacketDecayRate                           map[int]float64                     `json:"packetDecayRate"`
+	MaxTechLevel                              int                                 `json:"maxTechLevel"`
+	TechBaseCost                              []int                               `json:"techBaseCost"`
+	PRTSpecs                                  map[PRT]PRTSpec                     `json:"prtSpecs"`
+	LRTSpecs                                  map[LRT]LRTSpec                     `json:"lrtSpecs"`
+	TechsID                                   int64                               `json:"techsId"`
+	random                                    rng
+	techs                                     *TechStore
 }
 
 type RandomEvent string
@@ -439,33 +438,32 @@ func NewRulesWithSeed(seed int64) Rules {
 			RepairRateOrbitingOwnPlanet: 0.05,
 			RepairRateStarbase:          0.1,
 		},
-		MaxPlayers:                         16,
-		StartingYear:                       2400,
-		ShowPublicScoresAfterYears:         20,
-		PlanetMinDistance:                  15,
-		MaxExtraWorldDistance:              180,
-		MinExtraWorldDistance:              130,
-		MinHomeworldMineralConcentration:   30,
-		MinExtraPlanetMineralConcentration: 30,
-		MinMineralConcentration:            1,
-		MaxMineralConcentration:            200,
-		MinHab:                             1,
-		MaxHab:                             99,
-		MinStartingMineralConcentration:    1,
-		MaxStartingMineralConcentration:    100,
-		HighRadGermaniumBonus:              5,
-		HighRadGermaniumBonusThreshold:     85,
-		MaxStartingMineralSurface:          1000,
-		MinStartingMineralSurface:          300,
-		MineralDecayFactor:                 1_500_000,
-		RemoteMiningMineOutput:             10,
-		StartingMines:                      10,
-		StartingFactories:                  10,
-		StartingDefenses:                   10,
-		RaceStartingPoints:                 1650,
-		ScrapMineralAmount:                 0.333333343,
-		ScrapResourceAmount:                0.0,
-		FactoryCostGermanium:               4,
+		MaxPlayers:                                16,
+		StartingYear:                              2400,
+		ShowPublicScoresAfterYears:                20,
+		PlanetMinDistance:                         15,
+		MaxExtraWorldDistance:                     180,
+		MinExtraWorldDistance:                     130,
+		MinHomeworldMineralConcentration:          30,
+		MinExtraPlanetMineralConcentration:        30,
+		MinMineralConcentration:                   1,
+		MaxMineralConcentration:                   200,
+		MinHab:                                    1,
+		MaxHab:                                    99,
+		MinStartingMineralConcentration:           31,
+		MaxStartingMineralConcentration:           121,
+		HighRadMineralConcentrationBonusThreshold: 90,
+		MaxStartingMineralSurface:                 1000,
+		MinStartingMineralSurface:                 300,
+		MineralDecayFactor:                        1_500_000,
+		RemoteMiningMineOutput:                    10,
+		StartingMines:                             10,
+		StartingFactories:                         10,
+		StartingDefenses:                          10,
+		RaceStartingPoints:                        1650,
+		ScrapMineralAmount:                        0.333333343,
+		ScrapResourceAmount:                       0.0,
+		FactoryCostGermanium:                      4,
 		DefenseCost: Cost{
 			Ironium:   5,
 			Boranium:  5,

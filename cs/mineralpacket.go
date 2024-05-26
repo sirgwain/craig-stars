@@ -136,14 +136,14 @@ func (packet *MineralPacket) completeMove(rules *Rules, player *Player, planet *
 
 	if damage == (MineralPacketDamage{}) {
 		// caught packet successfully, transfer cargo
-		messager.mineralPacketCaught(planetPlayer, planet, packet)
+		messager.planetPacketCaught(planetPlayer, planet, packet)
 	} else if planetPlayer != nil {
 		// kill off colonists and defenses
 		// note, for AR races, this will be 0 colonists killed or structures destroyed
 		planet.setPopulation(roundToNearest100(Clamp(planet.population()-damage.Killed, 0, planet.population())))
 		planet.Defenses = Clamp(planet.Defenses-damage.DefensesDestroyed, 0, planet.Defenses)
 
-		messager.mineralPacketDamage(planetPlayer, planet, packet, damage.Killed, damage.DefensesDestroyed)
+		messager.planetPacketDamage(planetPlayer, planet, packet, damage.Killed, damage.DefensesDestroyed)
 		if planet.population() == 0 {
 			planet.emptyPlanet()
 			messager.planetDiedOff(planetPlayer, planet)
@@ -166,7 +166,7 @@ func (packet *MineralPacket) completeMove(rules *Rules, player *Player, planet *
 			discoverer.discoverDesign(player, planet.Starbase.Tokens[0].design, true)
 		}
 
-		messager.mineralPacketArrived(player, planet, packet)
+		messager.planetPacketArrived(player, planet, packet)
 	}
 
 	// delete the packet
@@ -241,7 +241,7 @@ func (packet *MineralPacket) checkTerraform(rules *Rules, player *Player, planet
 
 				result := terraformer.TerraformOneStep(planet, player, nil, false)
 				if result.Terraformed() {
-					messager.packetTerraform(player, planet, result.Type, result.Direction)
+					messager.planetPacketTerraform(player, planet, result.Type, result.Direction)
 				}
 			}
 		}
@@ -256,7 +256,7 @@ func (p *MineralPacket) checkPermaform(rules *Rules, player *Player, planet *Pla
 				terraformer := NewTerraformer()
 				result := terraformer.PermaformOneStep(planet, player, habType)
 				if result.Terraformed() {
-					messager.packetPermaform(player, planet, result.Type, result.Direction)
+					messager.planetPacketPermaform(player, planet, result.Type, result.Direction)
 				}
 			}
 		}

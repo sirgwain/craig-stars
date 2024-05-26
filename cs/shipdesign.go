@@ -306,8 +306,8 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 			spec.TechLevel = spec.TechLevel.Max(component.Requirements.TechLevel)
 
 			spec.Mass += component.Mass * slot.Quantity
-			spec.Armor += component.Armor * slot.Quantity
-			spec.Shields += component.Shield * slot.Quantity
+			spec.Armor += int(float64(component.Armor)*raceSpec.ArmorStrengthFactor) * slot.Quantity
+			spec.Shields += int(float64(component.Shield)*raceSpec.ShieldStrengthFactor) * slot.Quantity
 			spec.CargoCapacity += component.CargoBonus * slot.Quantity
 			spec.FuelCapacity += component.FuelBonus * slot.Quantity
 			spec.FuelGeneration += component.FuelGeneration * slot.Quantity
@@ -433,9 +433,6 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		spec.CloakUnits += raceSpec.BuiltInCloakUnits
 		spec.Cost = spec.Cost.MultiplyFloat64(raceSpec.StarbaseCostFactor)
 	}
-
-	spec.Shields = int(float64(spec.Shields) * raceSpec.ShieldStrengthFactor)
-	spec.Armor = int(float64(spec.Armor) * raceSpec.ArmorStrengthFactor)
 
 	spec.TorpedoJamming = 1 - torpedoJammingFactor
 

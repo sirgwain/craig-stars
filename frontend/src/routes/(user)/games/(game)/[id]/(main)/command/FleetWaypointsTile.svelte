@@ -227,6 +227,7 @@
 							on:valuechanged={(e) => onWarpSpeedChanged(e.detail)}
 							on:valuedragged={(e) => onWarpSpeedDragged(e.detail)}
 							bind:value={$selectedWaypoint.warpSpeed}
+							warnSpeed={fleet.spec.engine.maxSafeSpeed ? fleet.spec.engine.maxSafeSpeed + 1 : undefined}
 							max={StargateWarpSpeed}
 							useStargate={true}
 						/>
@@ -234,6 +235,7 @@
 						<WarpSpeedGauge
 							on:valuechanged={(e) => onWarpSpeedChanged(e.detail)}
 							on:valuedragged={(e) => onWarpSpeedDragged(e.detail)}
+							warnSpeed={fleet.spec.engine.maxSafeSpeed ? fleet.spec.engine.maxSafeSpeed + 1 : undefined}
 							bind:value={$selectedWaypoint.warpSpeed}
 						/>
 					{/if}

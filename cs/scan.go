@@ -66,9 +66,10 @@ func (scan *playerScan) scan() error {
 	scanners := scan.getScanners()
 	remoteMiningScanners := scan.getRemoteMiningScanners()
 	cargoScanners := scan.getCargoScanners()
+	starGateScanners := scan.getStarGateScanners()
 
 	// scan planets
-	if err := scan.scanPlanets(scanners, append(cargoScanners, remoteMiningScanners...)); err != nil {
+	if err := scan.scanPlanets(scanners, append(cargoScanners, remoteMiningScanners...), starGateScanners); err != nil {
 		return err
 	}
 
@@ -88,7 +89,7 @@ func (scan *playerScan) scan() error {
 }
 
 // scan all planets with this player's scanners
-func (scan *playerScan) scanPlanets(scanners []scanner, cargoScanners []scanner) error {
+func (scan *playerScan) scanPlanets(scanners []scanner, cargoScanners []scanner, starGateScanners []scanner) error {
 	for _, planet := range scan.universe.Planets {
 		if planet.OwnedBy(scan.player.Num) {
 			if err := scan.discoverer.discoverPlanet(scan.rules, scan.player, planet, false); err != nil {
@@ -105,6 +106,21 @@ func (scan *playerScan) scanPlanets(scanners []scanner, cargoScanners []scanner)
 			}
 			if scanned {
 				break
+			}
+		}
+
+		// try and scan the planet with stargate
+		if planet.Spec.PlanetStarbaseSpec.HasStargate {
+			for _, scanner := range starGateScanners {
+				if scan.fleetInScannerRange(planet.Starbase, scanner) {
+					scanned, err := scan.scanPlanet(planet, scanner)
+					if err != nil {
+						return err
+					}
+					if scanned {
+						break
+					}
+				}
 			}
 		}
 
@@ -167,7 +183,7 @@ func (scan *playerScan) scanFleets(scanners []scanner, cargoScanners []scanner) 
 			continue
 		}
 
-		// try and scan the planet with this scanner
+		// try and scan the fleet with this scanner
 		for _, scanner := range scanners {
 			if scan.fleetInScannerRange(fleet, scanner) {
 				fleetsToScan = append(fleetsToScan, fleet)
@@ -175,7 +191,7 @@ func (scan *playerScan) scanFleets(scanners []scanner, cargoScanners []scanner) 
 			}
 		}
 
-		// try and scan the planet with a cargo scanner
+		// try and scan the fleet with a cargo scanner
 		for _, scanner := range cargoScanners {
 			if scan.fleetInScannerRange(fleet, scanner) {
 				fleetsToCargoScan = append(fleetsToScan, fleet)
@@ -515,6 +531,25 @@ func (scan *playerScan) getCargoScanners() []scanner {
 	return scanners
 }
 
+// get a list of star gates that can scan other star gates by player
+func (scan *playerScan) getStarGateScanners() []scanner {
+	scanners := []scanner{}
+	if !scan.player.Race.Spec.CanDetectStargatePlanets {
+		return scanners
+	}
+	for _, planet := range scan.universe.Planets {
+		if planet.PlayerNum == scan.player.Num && planet.Spec.PlanetStarbaseSpec.HasStargate {
+			penRange := MinInt(planet.Spec.PlanetStarbaseSpec.SafeRange, math.MaxInt16)
+			scanner := scanner{
+				Position:        planet.Position,
+				RangePenSquared: penRange * penRange,
+			}
+			scanners = append(scanners, scanner)
+		}
+	}
+	return scanners
+}
+
 // make sure our fleets are pointing to valid targets
 func (scan *playerScan) updateFleetTargets() {
 	for _, fleet := range scan.universe.Fleets {
@@ -529,7 +564,7 @@ func (scan *playerScan) updateFleetTargets() {
 
 		if len(fleet.Waypoints) == 1 {
 			wp0 := fleet.Waypoints[0]
-			if fleet.OrbitingPlanetNum == None && wp0.TargetType != MapObjectTypeNone {
+			if fleet.PreviousPosition != nil && fleet.OrbitingPlanetNum == None && wp0.TargetType != MapObjectTypeNone {
 				// we arrived at our target, but it's not a planet. Keep it as wp1
 				fleet.Waypoints = []Waypoint{NewPositionWaypoint(fleet.Position, fleet.WarpSpeed), wp0}
 			} else {

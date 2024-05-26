@@ -2,10 +2,12 @@
 	import { clickOutside } from '$lib/clickOutside';
 	import { onScannerContextPopup } from '$lib/components/game/tooltips/ScannerContextPopup.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
+	import { totalCargo } from '$lib/types/Cargo';
 	import { WaypointTask, type Waypoint } from '$lib/types/Fleet';
 	import {
 		MapObjectType,
 		None,
+		StargateWarpSpeed,
 		equal as mapObjectEqual,
 		owned,
 		type MapObject
@@ -74,6 +76,7 @@
 	let padding = 20; // 20 px, used in zooming
 	let scaleX: ScaleLinear<number, number, never>;
 	let scaleY: ScaleLinear<number, number, never>;
+	let zoomEnabled = true;
 	let zooming = false;
 	let showLocator = false;
 
@@ -120,10 +123,26 @@
 
 	$: setPacketDest = $settings.setPacketDest;
 
+	$: {
+		if ($settings.addWaypoint && zoomEnabled) {
+			disableDragAndZoom();
+		} else if (!$settings.addWaypoint && !zoomEnabled) {
+			enableDragAndZoom();
+		}
+	}
+
 	// enable drag and zoom, but disable dblclick zoom events
-	const enableDragAndZoom = () => select(root).call(zoomBehavior).on('dblclick.zoom', null);
+	function enableDragAndZoom() {
+		select(root).call(zoomBehavior).on('dblclick.zoom', null);
+		dragAndZoomEnabled = true;
+	}
+
 	// disable drag and zoom temporarily
-	const disableDragAndZoom = () => select(root).on('.zoom', null);
+	function disableDragAndZoom() {
+		select(root).on('.zoom', null);
+		dragAndZoomEnabled = false;
+		zooming = false;
+	}
 
 	const xRange = () => {
 		if (aspectRatio > 1 && clientHeight > clientWidth) {
@@ -202,7 +221,7 @@
 	}
 
 	let pointerDown = false;
-	let dragging = false;
+	let draggingWaypoint = false;
 	let waypointHighlighted = false;
 	let dragAndZoomEnabled = true;
 
@@ -217,7 +236,7 @@
 	function onContextMenu(e: CustomEvent<FinderEventDetails>) {
 		const { event, found } = e.detail;
 
-		if (found) {
+		if (found && event instanceof MouseEvent) {
 			onScannerContextPopup(event, found.position);
 		}
 	}
@@ -228,7 +247,7 @@
 
 		highlightMapObject(found);
 
-		if (dragging && !zooming) {
+		if (draggingWaypoint && !zooming) {
 			positionWaypoint = event.shiftKey;
 			dragWaypointMove(position, found);
 		}
@@ -241,12 +260,10 @@
 		waypointHighlighted = !!fleetWaypoint;
 		if (waypointHighlighted) {
 			if (dragAndZoomEnabled) {
-				dragAndZoomEnabled = false;
 				disableDragAndZoom();
 			}
 		} else {
-			if (!dragging && !dragAndZoomEnabled) {
-				dragAndZoomEnabled = true;
+			if (!draggingWaypoint && !dragAndZoomEnabled) {
 				enableDragAndZoom();
 			}
 		}
@@ -257,15 +274,16 @@
 		// * if the pointer is down
 		// * if we are over a mapobject
 		// * if we have a commanded fleet
-		if (!waypointJustAdded && !dragging && pointerDown && fleetWaypoint) {
-			dragging = true;
+		if (!waypointJustAdded && !draggingWaypoint && pointerDown && fleetWaypoint) {
+			draggingWaypoint = true;
 			selectWaypoint(fleetWaypoint);
 		}
 	}
 
 	async function onPointerDown(e: CustomEvent<FinderEventDetails>) {
 		const { event, found, position } = e.detail;
-		if (event.button != 0) {
+
+		if (event instanceof MouseEvent && event.button != 0) {
 			// we only care about the first button
 			return;
 		}
@@ -290,20 +308,20 @@
 	// turn off dragging
 	function onPointerUp(e: CustomEvent<FinderEventDetails>) {
 		const { event, found, position } = e.detail;
-		if (event.button != 0) {
+
+		if (event instanceof MouseEvent && event.button != 0) {
 			// we only care about the first button
 			return;
 		}
 
-		if (dragging) {
+		if (draggingWaypoint) {
 			if (!dragAndZoomEnabled) {
-				dragAndZoomEnabled = true;
 				enableDragAndZoom();
 			}
 
 			dragWaypointDone(position, found);
 		}
-		dragging = false;
+		draggingWaypoint = false;
 		pointerDown = false;
 		waypointJustAdded = false;
 	}
@@ -354,7 +372,7 @@
 
 	function dragWaypointDone(position: Vector, mo: MapObject | undefined) {
 		// reset waypoint dragging
-		if ($selectedWaypoint && $commandedFleet && dragging) {
+		if ($selectedWaypoint && $commandedFleet && draggingWaypoint) {
 			let waypointIndex = $currentSelectedWaypointIndex;
 
 			if (waypointIndex > 0) {
@@ -410,6 +428,8 @@
 			return false;
 		}
 
+		const dist = distance(mo?.position ?? position, currentWaypoint.position);
+
 		const colonizing =
 			$commandedFleet.spec.colonizer &&
 			$commandedFleet.cargo.colonists &&
@@ -418,10 +438,36 @@
 			!owned(mo) &&
 			((mo as Planet).spec.terraformedHabitability ?? 0) > 0;
 
-		let warpSpeed = $selectedWaypoint?.warpSpeed
-			? $selectedWaypoint?.warpSpeed
-			: $commandedFleet.spec?.engine?.idealSpeed ?? 5;
-		const dist = distance(mo?.position ?? position, currentWaypoint.position);
+		// use a stargate automatically if it's safe and in range
+		const orbiting = $universe.getPlanet($commandedFleet.orbitingPlanetNum);
+		const targetPlanet = mo?.type == MapObjectType.Planet ? (mo as Planet) : undefined;
+		let stargate = false;
+		if (orbiting && targetPlanet) {
+			const destSafeHullMass = targetPlanet.spec.safeHullMass ?? 0;
+			const destSafeRange = targetPlanet.spec.safeRange ?? 0;
+			const sourceSafeHullMass = orbiting.spec.safeHullMass ?? 0;
+			const sourceSafeRange = orbiting.spec.safeRange ?? 0;
+			const destStargateSafe =
+				(totalCargo($commandedFleet.cargo) == 0 || $player.race.spec?.canGateCargo) &&
+				owned(targetPlanet) &&
+				destSafeRange >= dist &&
+				Math.max(
+					...$commandedFleet.tokens.map((t) => $universe.getMyDesign(t.designNum)?.spec.mass ?? 0)
+				) < destSafeHullMass;
+			const sourceStargateSafe =
+				(totalCargo($commandedFleet.cargo) == 0 || $player.race.spec?.canGateCargo) &&
+				owned(orbiting) &&
+				sourceSafeRange >= dist &&
+				Math.max(
+					...$commandedFleet.tokens.map((t) => $universe.getMyDesign(t.designNum)?.spec.mass ?? 0)
+				) < sourceSafeHullMass;
+			stargate = !!destStargateSafe && !!sourceStargateSafe;
+		}
+
+		let warpSpeed =
+			$selectedWaypoint?.warpSpeed && $selectedWaypoint.warpSpeed != StargateWarpSpeed
+				? $selectedWaypoint?.warpSpeed
+				: $commandedFleet.spec?.engine?.idealSpeed ?? 5;
 
 		// if colonizing, we want the max possible warp
 		if (colonizing) {
@@ -433,6 +479,11 @@
 		} else {
 			// use the minimal warp based on our ideal speed
 			warpSpeed = $commandedFleet.getMinimalWarp(dist, warpSpeed);
+		}
+
+		// use a stargate if it's safe
+		if (stargate) {
+			warpSpeed = StargateWarpSpeed;
 		}
 		const task = $selectedWaypoint?.task ?? WaypointTask.None;
 		const transportTasks = $selectedWaypoint?.transportTasks ?? {
@@ -649,6 +700,7 @@
 					on:pointermove={onPointerMove}
 					on:pointerdown={onPointerDown}
 					on:pointerup={onPointerUp}
+					on:touchmove={onPointerMove}
 					searchRadius={20}
 					{transform}
 				/>

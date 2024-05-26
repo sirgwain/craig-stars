@@ -40,6 +40,8 @@
 		randomEvents: true,
 		computerPlayersFormAlliances: false,
 		publicPlayerScores: false,
+		maxMinerals: false,
+		acceleratedPlay: false,
 		startMode: GameStartMode.Normal,
 		players,
 		victoryConditions: {

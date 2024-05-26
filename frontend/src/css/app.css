@@ -3,6 +3,19 @@
 @tailwind utilities;
 
 @layer components {
+	.bg-primary-focus {
+		@apply bg-[color-mix(in_oklab,oklch(var(--p)),black_7%)];
+	}
+	.stroke-primary-focus {
+		@apply stroke-[color-mix(in_oklab,oklch(var(--p)),black_7%)];
+	}
+	.bg-neutral-focus {
+		@apply bg-[color-mix(in_oklab,oklch(var(--n)),black_7%)];
+	}
+	.text-secondary-focus {
+		@apply text-[color-mix(in_oklab,oklch(var(--s)),black_7%)];
+	}
+
 	.btn {
 		@apply touch-manipulation rounded-none;
 	}

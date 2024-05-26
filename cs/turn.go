@@ -151,12 +151,17 @@ func (t *turn) fleetInit() {
 	for _, fleet := range t.game.Fleets {
 		// age this fleet by 1 year
 		fleet.Age++
+
+		// remove previous position, it will be reset on move
+		fleet.PreviousPosition = nil
+
 		wp0 := &fleet.Waypoints[0]
 		wp0.processed = false
 
 		if wp0.Task == WaypointTaskTransport {
 			wp0.WaitAtWaypoint = false
 		}
+
 	}
 }
 
@@ -205,8 +210,7 @@ func (t *turn) scrapFleet(fleet *Fleet) {
 					// we gained a level!
 					planetPlayer.techLevelGained = true
 					planetPlayer.TechLevels.Set(field, planetPlayer.TechLevels.Get(field)+1)
-					planetPlayer.Messages = append(planetPlayer.Messages, newPlanetMessage(PlayerMessageTechLevelGainedScrapFleet, planet).
-						withSpec(PlayerMessageSpec{Field: field, Name: fleet.Name}))
+					messager.playerTechGainedScrappedFleet(planetPlayer, planet, fleet.Name, field)
 
 					log.Debug().
 						Int64("GameID", t.game.ID).
@@ -242,7 +246,7 @@ func (t *turn) fleetColonize() {
 			player := t.game.Players[fleet.PlayerNum-1]
 
 			if wp.TargetType != MapObjectTypePlanet {
-				messager.colonizeNonPlanet(player, fleet)
+				messager.fleetColonizeNonPlanet(player, fleet)
 				wp.Task = WaypointTaskNone
 				continue
 			}
@@ -259,19 +263,19 @@ func (t *turn) fleetColonize() {
 
 			planet := t.game.getPlanet(wp.TargetNum)
 			if planet.Owned() {
-				messager.colonizeOwnedPlanet(player, fleet)
+				messager.fleetColonizeOwnedPlanet(player, fleet)
 				wp.Task = WaypointTaskNone
 				continue
 			}
 
 			if !fleet.Spec.Colonizer {
-				messager.colonizeWithNoModule(player, fleet)
+				messager.fleetColonizeWithNoModule(player, fleet)
 				wp.Task = WaypointTaskNone
 				continue
 			}
 
 			if fleet.Cargo.Colonists == 0 {
-				messager.colonizeWithNoColonists(player, fleet)
+				messager.fleetColonizeWithNoColonists(player, fleet)
 				wp.Task = WaypointTaskNone
 				continue
 			}
@@ -341,18 +345,30 @@ func (t *turn) fleetUnload() {
 
 				wp.WaitAtWaypoint = wp.WaitAtWaypoint || waitAtWaypoint
 
-				t.fleetTransferCargo(fleet, transferAmount, cargoType, dest)
+				if err := t.fleetTransferCargo(fleet, transferAmount, cargoType, dest); err != nil {
+					log.Debug().
+						Int64("GameID", t.game.ID).
+						Str("Name", t.game.Name).
+						Int("Year", t.game.Year).
+						Int("Player", fleet.PlayerNum).
+						Str("Fleet", fleet.Name).
+						Str("Dest", dest.getMapObject().Name).
+						Int("Transfered", transferAmount).
+						Str("cargoType", cargoType.String()).
+						Msgf("unload cargo failed %v", err)
+				} else {
+					log.Debug().
+						Int64("GameID", t.game.ID).
+						Str("Name", t.game.Name).
+						Int("Year", t.game.Year).
+						Int("Player", fleet.PlayerNum).
+						Str("Fleet", fleet.Name).
+						Str("Dest", dest.getMapObject().Name).
+						Int("Transfered", transferAmount).
+						Str("cargoType", cargoType.String()).
+						Msgf("unloaded cargo")
+				}
 
-				log.Debug().
-					Int64("GameID", t.game.ID).
-					Str("Name", t.game.Name).
-					Int("Year", t.game.Year).
-					Int("Player", fleet.PlayerNum).
-					Str("Fleet", fleet.Name).
-					Str("Dest", dest.getMapObject().Name).
-					Int("Transfered", transferAmount).
-					Str("cargoType", cargoType.String()).
-					Msgf("unloaded cargo")
 			}
 
 			// we tried to load/unload from empty space but we didn't deposit any cargo
@@ -400,18 +416,29 @@ func (t *turn) fleetLoad() {
 				// if we need to wait for any task, wait
 				wp.WaitAtWaypoint = wp.WaitAtWaypoint || waitAtWaypoint
 
-				log.Debug().
-					Int64("GameID", t.game.ID).
-					Str("Name", t.game.Name).
-					Int("Year", t.game.Year).
-					Int("Player", fleet.PlayerNum).
-					Str("Fleet", fleet.Name).
-					Str("Dest", dest.getMapObject().Name).
-					Int("Transfered", transferAmount).
-					Str("cargoType", cargoType.String()).
-					Msgf("loaded cargo")
-
-				t.fleetTransferCargo(fleet, -transferAmount, cargoType, dest)
+				if err := t.fleetTransferCargo(fleet, -transferAmount, cargoType, dest); err != nil {
+					log.Debug().
+						Int64("GameID", t.game.ID).
+						Str("Name", t.game.Name).
+						Int("Year", t.game.Year).
+						Int("Player", fleet.PlayerNum).
+						Str("Fleet", fleet.Name).
+						Str("Dest", dest.getMapObject().Name).
+						Int("Transfered", transferAmount).
+						Str("cargoType", cargoType.String()).
+						Msgf("load cargo failed %v", err)
+				} else {
+					log.Debug().
+						Int64("GameID", t.game.ID).
+						Str("Name", t.game.Name).
+						Int("Year", t.game.Year).
+						Int("Player", fleet.PlayerNum).
+						Str("Fleet", fleet.Name).
+						Str("Dest", dest.getMapObject().Name).
+						Int("Transfered", transferAmount).
+						Str("cargoType", cargoType.String()).
+						Msgf("loaded cargo")
+				}
 			}
 
 			// process dunnage tasks
@@ -423,18 +450,31 @@ func (t *turn) fleetLoad() {
 				// if we need to wait for any task, wait
 				wp.WaitAtWaypoint = wp.WaitAtWaypoint || waitAtWaypoint
 
-				log.Debug().
-					Int64("GameID", t.game.ID).
-					Str("Name", t.game.Name).
-					Int("Year", t.game.Year).
-					Int("Player", fleet.PlayerNum).
-					Str("Fleet", fleet.Name).
-					Str("Dest", dest.getMapObject().Name).
-					Int("Transfered", transferAmount).
-					Str("cargoType", cargoType.String()).
-					Msgf("dunnage loaded cargo")
+				if err := t.fleetTransferCargo(fleet, -transferAmount, cargoType, dest); err != nil {
+					log.Debug().
+						Int64("GameID", t.game.ID).
+						Str("Name", t.game.Name).
+						Int("Year", t.game.Year).
+						Int("Player", fleet.PlayerNum).
+						Str("Fleet", fleet.Name).
+						Str("Dest", dest.getMapObject().Name).
+						Int("Transfered", transferAmount).
+						Str("cargoType", cargoType.String()).
+						Msgf("dunnage load cargo failed %v", err)
 
-				t.fleetTransferCargo(fleet, -transferAmount, cargoType, dest)
+				} else {
+					log.Debug().
+						Int64("GameID", t.game.ID).
+						Str("Name", t.game.Name).
+						Int("Year", t.game.Year).
+						Int("Player", fleet.PlayerNum).
+						Str("Fleet", fleet.Name).
+						Str("Dest", dest.getMapObject().Name).
+						Int("Transfered", transferAmount).
+						Str("cargoType", cargoType.String()).
+						Msgf("dunnage loaded cargo")
+				}
+
 			}
 
 			// delete this salvage if we emptied it
@@ -472,17 +512,23 @@ func (t *turn) fleetLoad() {
 // fleetTransferCargo transfers cargo from a fleet to a cargo holder
 // this will send a player a message if they are not allowed to load from this cargoholder
 // this will trigger an invasion if a player unloads colonists onto a planet
-func (t *turn) fleetTransferCargo(fleet *Fleet, transferAmount int, cargoType CargoType, dest cargoHolder) {
+func (t *turn) fleetTransferCargo(fleet *Fleet, transferAmount int, cargoType CargoType, dest cargoHolder) error {
 	if transferAmount != 0 {
 		player := t.game.Players[fleet.PlayerNum-1]
 		planet, ok := dest.(*Planet)
-		if transferAmount > 0 && cargoType == Colonists && ok && planet.Owned() && !planet.OwnedBy(fleet.PlayerNum) {
+		if transferAmount > 0 && cargoType == Colonists && ok && !planet.OwnedBy(fleet.PlayerNum) {
 			// invasion!
 			attacker := player
+
 			if !planet.Owned() || planet.population() == 0 {
 				// can't invade uninhabited planets
 				messager.planetInvadeEmpty(attacker, planet, fleet)
-				return
+				return fmt.Errorf("can't invade empty planet")
+			}
+			if planet.Spec.HasStarbase {
+				// can't invade starbase planet
+				messager.planetInvadeStarbase(attacker, planet, fleet)
+				return fmt.Errorf("can't invade planet with starbase")
 			}
 			defender := t.game.getPlayer(planet.PlayerNum)
 
@@ -492,7 +538,8 @@ func (t *turn) fleetTransferCargo(fleet *Fleet, transferAmount int, cargoType Ca
 			planet.MarkDirty()
 		} else if transferAmount < 0 && !dest.canLoad(fleet.PlayerNum) {
 			// can't load from things we don't own
-			messager.fleetInvalidLoadCargo(player, fleet, dest, cargoType, transferAmount)
+			messager.fleetTransportInvalid(player, fleet, dest, cargoType, transferAmount)
+			return fmt.Errorf("can't load from planet we don't own")
 		} else {
 			fleet.transferToDest(dest, cargoType, transferAmount)
 			fleet.MarkDirty()
@@ -500,6 +547,7 @@ func (t *turn) fleetTransferCargo(fleet *Fleet, transferAmount int, cargoType Ca
 			messager.fleetTransportedCargo(player, fleet, dest, cargoType, transferAmount)
 		}
 	}
+	return nil
 }
 
 func (t *turn) fleetMerge() {
@@ -636,7 +684,12 @@ func (t *turn) fleetNotifyIdle() {
 		}
 
 		// we are moving/moved
-		if len(fleet.Waypoints) > 1 || *fleet.PreviousPosition != fleet.Position {
+		if len(fleet.Waypoints) > 1 {
+			continue
+		}
+
+		// if we don't have a previous position, we didn't move this round, don't notify
+		if fleet.PreviousPosition == nil {
 			continue
 		}
 
@@ -756,9 +809,6 @@ func (t *turn) fleetMove() {
 			continue
 		}
 
-		// remove the fleet from the list of map objects at it's current location
-		originalPosition := fleet.Position
-
 		if len(fleet.Waypoints) > 1 {
 			wp0 := fleet.Waypoints[0]
 			wp1 := fleet.Waypoints[1]
@@ -776,7 +826,6 @@ func (t *turn) fleetMove() {
 
 			t.moveFleet(fleet)
 		} else {
-			fleet.PreviousPosition = &originalPosition
 			fleet.WarpSpeed = 0
 			fleet.Heading = Vector{}
 		}
@@ -875,9 +924,7 @@ func (t *turn) moveFleet(fleet *Fleet) {
 			Int("Warp", wp1.WarpSpeed).
 			Msgf("fleet ships exploded due to unsafe warp")
 
-		player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetShipExceededSafeSpeed, fleet).withSpec(
-			PlayerMessageSpec{Name: fleet.Name, Amount: explodedShips},
-		))
+		messager.fleetExceededSafeSpeed(player, fleet, explodedShips)
 	}
 	fleet.Tokens = updatedTokens
 
@@ -1026,9 +1073,7 @@ func (t *turn) fleetDieoff() {
 		fleet.MarkDirty()
 
 		// Message the player
-		player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetDieoff, fleet).withSpec(
-			PlayerMessageSpec{Name: fleet.Name, Amount: death},
-		))
+		messager.fleetDieOff(player, fleet, death)
 
 		log.Debug().
 			Int64("GameID", t.game.ID).
@@ -1198,7 +1243,8 @@ func (t *turn) fleetRemoteMineAR() {
 
 			// can't remote mine deep space
 			if planet == nil {
-				messager.remoteMineDeepSpace(player, fleet)
+				messager.fleetRemoteMineDeepSpace(player, fleet)
+				wp0.Task = WaypointTaskNone
 				continue
 			}
 
@@ -1226,7 +1272,7 @@ func (t *turn) fleetRemoteMine() {
 
 			// can't remote mine deep space
 			if planet == nil {
-				messager.remoteMineDeepSpace(player, fleet)
+				messager.fleetRemoteMineDeepSpace(player, fleet)
 				continue
 			}
 
@@ -1236,7 +1282,8 @@ func (t *turn) fleetRemoteMine() {
 			}
 
 			if planet.Owned() {
-				messager.remoteMineInhabited(player, fleet, planet)
+				messager.fleetRemoteMineInhabited(player, fleet, planet)
+				wp0.Task = WaypointTaskNone
 				continue
 			}
 
@@ -1249,12 +1296,13 @@ func (t *turn) fleetRemoteMine() {
 func (t *turn) remoteMine(fleet *Fleet, player *Player, planet *Planet) {
 
 	if fleet.Spec.MiningRate == 0 {
-		messager.remoteMineNoMiners(player, fleet, planet)
+		messager.fleetRemoteMineNoMiners(player, fleet, planet)
+		fleet.Waypoints[0].Task = WaypointTaskNone
 		return
 	}
 
 	// don't mine if we moved here this round, otherwise mine
-	if fleet.PreviousPosition == nil || *fleet.PreviousPosition == fleet.Position {
+	if fleet.PreviousPosition == nil {
 		numMines := fleet.Spec.MiningRate
 		mineralOutput := planet.getMineralOutput(numMines, t.game.Rules.RemoteMiningMineOutput)
 		planet.Cargo = planet.Cargo.AddMineral(mineralOutput)
@@ -1265,7 +1313,7 @@ func (t *turn) remoteMine(fleet *Fleet, player *Player, planet *Planet) {
 		// make sure we know about this planet's cargo after remote mining, mark this fleet as having
 		// remote mined so it gets added as a planetary cargo scanner
 		fleet.remoteMined = true
-		messager.remoteMined(player, fleet, planet, mineralOutput)
+		messager.fleetRemoteMined(player, fleet, planet, mineralOutput)
 
 		log.Debug().
 			Int64("GameID", t.game.ID).
@@ -1293,26 +1341,26 @@ func (t *turn) planetProduction() error {
 
 			// message about planetary installations
 			if result.mines > 0 {
-				messager.minesBuilt(player, planet, result.mines)
+				messager.planetBuiltMines(player, planet, result.mines)
 			}
 			if result.factories > 0 {
-				messager.factoriesBuilt(player, planet, result.factories)
+				messager.planetBuiltFactories(player, planet, result.factories)
 			}
 			if result.defenses > 0 {
-				messager.defensesBuilt(player, planet, result.defenses)
+				messager.planetBuiltDefenses(player, planet, result.defenses)
 			}
 
 			// message about mineral alchemy
 			if result.alchemy != (Mineral{}) {
 				// alchemy builds evenly, but we only message the single amount
 				numBuilt := result.alchemy.Ironium
-				messager.mineralAlchemyBuilt(player, planet, numBuilt)
+				messager.planetBuiltMineralAlchemy(player, planet, numBuilt)
 			}
 
 			// message about each terraform step
 			if len(result.terraformResults) > 0 {
 				for _, terraformResult := range result.terraformResults {
-					messager.terraform(player, planet, terraformResult.Type, terraformResult.Direction)
+					messager.planetTerraform(player, planet, terraformResult.Type, terraformResult.Direction)
 				}
 			}
 			for _, token := range result.tokens {
@@ -1333,7 +1381,7 @@ func (t *turn) planetProduction() error {
 			for _, cargo := range result.packets {
 				target := t.game.getPlanet(planet.PacketTargetNum)
 				packet := t.buildMineralPacket(player, planet, cargo, target)
-				messager.mineralPacket(player, planet, packet, target.Name)
+				messager.planetBuiltMineralPacket(player, planet, packet, target.Name)
 			}
 			if result.starbase != nil {
 				starbase, err := t.buildStarbase(player, planet, result.starbase)
@@ -1342,13 +1390,13 @@ func (t *turn) planetProduction() error {
 				}
 				planet.Starbase = starbase
 				planet.Spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(&t.game.Rules, player, planet)
-				messager.starbaseBuilt(player, planet, starbase)
+				messager.planetBuiltStarbase(player, planet, starbase)
 			}
 			if result.scanner {
 				planet.Scanner = true
 				planet.Spec = computePlanetSpec(&t.game.Rules, player, planet)
 				planet.MarkDirty()
-				messager.scannerBuilt(player, planet, planet.Spec.Scanner)
+				messager.planetBuiltScanner(player, planet, planet.Spec.Scanner)
 			}
 
 			// log what we actually did
@@ -1471,10 +1519,10 @@ func (t *turn) playerResearch() {
 
 	onLevelGained := func(player *Player, field TechField) {
 
-		messager.techLevel(player, field, player.TechLevels.Get(field), player.Researching)
+		messager.playerGainTechLevel(player, field, player.TechLevels.Get(field), player.Researching)
 		techsGained := t.game.TechStore.GetTechsJustGained(player, field)
 		for _, tech := range techsGained {
-			messager.techGained(player, field, tech)
+			messager.playerTechGained(player, field, tech)
 		}
 		playerGainedLevel[player.Num] = true
 
@@ -1510,9 +1558,7 @@ func (t *turn) playerResearch() {
 				stealableResearchResources.Set(field, stealableResearchResources.Get(field)+amount)
 				player.ResearchSpentLastYear += amount
 
-				player.Messages = append(player.Messages, newPlanetMessage(PlayerMessageBonusResearchArtifact, planet).withSpec(
-					PlayerMessageSpec{Amount: amount, Field: field},
-				))
+				messager.planetBonusResearchArtifact(player, planet, amount, field)
 
 				log.Debug().
 					Int64("GameID", t.game.ID).
@@ -1635,7 +1681,7 @@ func (t *turn) permaform() {
 				if result.Terraformed() {
 					planet.Spec = computePlanetSpec(&t.game.Rules, player, planet)
 					planet.MarkDirty()
-					messager.permaform(player, planet, result.Type, result.Direction)
+					messager.planetPermaform(player, planet, result.Type, result.Direction)
 
 					log.Debug().
 						Int64("GameID", t.game.ID).
@@ -1818,27 +1864,7 @@ func (t *turn) randomCometStrike() {
 	planet.MarkDirty()
 
 	for _, player := range t.game.Players {
-		if planet.PlayerNum == player.Num {
-			player.Messages = append(player.Messages, newPlanetMessage(PlayerMessageCometStrikeMyPlanet, planet).withSpec(
-				PlayerMessageSpec{
-					Comet: &PlayerMessageSpecComet{
-						Size:                          size,
-						MineralsAdded:                 mineralsAdded,
-						MineralConcentrationIncreased: mineralConcentrationIncreased,
-						HabChanged:                    habChanged,
-						ColonistsKilled:               colonistsKilled,
-					},
-				},
-			))
-		} else {
-			player.Messages = append(player.Messages, newPlanetMessage(PlayerMessageCometStrike, planet).withSpec(
-				PlayerMessageSpec{
-					Comet: &PlayerMessageSpecComet{
-						Size: size,
-					},
-				},
-			))
-		}
+		messager.planetComet(player, planet, size, mineralsAdded, mineralConcentrationIncreased, habChanged, colonistsKilled)
 	}
 
 	log.Debug().
@@ -1940,6 +1966,7 @@ func (t *turn) fleetBattle() {
 				fleet.Tokens = updatedTokens
 
 				if len(fleet.Tokens) == 0 {
+					// dead fleet, remove it
 					if fleet.Starbase {
 						// AR races live on starbases, so empty the planet
 						player := t.game.getPlayer(fleet.PlayerNum)
@@ -1955,6 +1982,17 @@ func (t *turn) fleetBattle() {
 						planet.MarkDirty()
 					} else {
 						t.game.deleteFleet(fleet)
+					}
+
+					// for any fleets targeting this dead fleet, update their target to the planet (or none)
+					for _, otherFleet := range fleets {
+						wp0 := &otherFleet.Waypoints[0]
+						if wp0.TargetPlayerNum == fleet.PlayerNum && wp0.TargetNum == fleet.Num {
+							wp0.clearTarget()
+							if planet != nil {
+								wp0.targetPlanet(planet)
+							}
+						}
 					}
 				} else {
 					// this player survived
@@ -2015,7 +2053,7 @@ func (t *turn) fleetBattle() {
 					// we gained a level!
 					player.techLevelGained = true
 					player.TechLevels.Set(field, player.TechLevels.Get(field)+1)
-					player.Messages = append(player.Messages, newBattleMessage(PlayerMessageTechLevelGainedBattle, planet, record).withSpec(PlayerMessageSpec{Field: field}))
+					messager.playerTechGainedBattle(player, planet, record, field)
 
 					log.Debug().
 						Int64("GameID", t.game.ID).
@@ -2217,8 +2255,7 @@ func (t *turn) fleetTransferOwner() {
 
 			if fleet.Cargo.Colonists > 0 {
 				// can't give colonists
-				player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetTransferGivenFailedColonists, fleet).
-					withSpec(PlayerMessageSpec{SourcePlayerNum: player.Num, DestPlayerNum: targetPlayer.Num}))
+				messager.fleetTransferInvalidColonists(player, fleet, targetPlayer)
 				log.Debug().
 					Int64("GameID", t.game.ID).
 					Int("Player", fleet.PlayerNum).
@@ -2232,8 +2269,7 @@ func (t *turn) fleetTransferOwner() {
 
 			if targetPlayer == nil {
 				// can't find target player
-				player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetTransferGivenFailed, fleet).
-					withSpec(PlayerMessageSpec{SourcePlayerNum: player.Num}))
+				messager.fleetTransferInvalidPlayer(player, fleet)
 				log.Error().
 					Int64("GameID", t.game.ID).
 					Int("Player", fleet.PlayerNum).
@@ -2257,10 +2293,8 @@ func (t *turn) fleetTransferOwner() {
 
 			if !targetPlayer.IsFriend(player.Num) {
 				// they are not allies, they will refuse the offer
-				player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetTransferGivenRefused, fleet).
-					withSpec(PlayerMessageSpec{SourcePlayerNum: player.Num, DestPlayerNum: targetPlayer.Num, Name: fleet.Name}))
-				targetPlayer.Messages = append(targetPlayer.Messages, newFleetMessage(PlayerMessageFleetTransferReceivedRefused, fleet).
-					withSpec(PlayerMessageSpec{SourcePlayerNum: player.Num, DestPlayerNum: targetPlayer.Num, Name: fleet.Name}))
+				messager.fleetTransferInvalidGiveRefused(player, fleet, targetPlayer)
+				messager.fleetTransferInvalidReceiveRefused(targetPlayer, fleet, player)
 				log.Debug().
 					Int64("GameID", t.game.ID).
 					Int("Player", fleet.PlayerNum).
@@ -2338,10 +2372,8 @@ func (t *turn) fleetTransferOwner() {
 			fleet.Waypoints = fleet.Waypoints[:1]
 
 			// notify the player here (before we give it away and change the name)
-			player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetTransferGiven, fleet).
-				withSpec(PlayerMessageSpec{SourcePlayerNum: player.Num, DestPlayerNum: targetPlayer.Num, Name: fleet.BaseName}))
-			targetPlayer.Messages = append(targetPlayer.Messages, newFleetMessage(PlayerMessageFleetTransferReceived, fleet).
-				withSpec(PlayerMessageSpec{SourcePlayerNum: player.Num, DestPlayerNum: targetPlayer.Num, Name: fleet.BaseName}))
+			messager.fleetTransferGiven(player, fleet, targetPlayer)
+			messager.fleetTransferReceived(targetPlayer, fleet, player)
 
 			fleet.Rename(fmt.Sprintf("%s %s", player.Race.PluralName, fleet.BaseName))
 
@@ -2358,14 +2390,14 @@ func (t *turn) instaform() {
 				terraformer := NewTerraformer()
 				instaformAmount := terraformer.getTerraformAmount(planet.BaseHab, planet.BaseHab, player, player)
 				newHab := planet.BaseHab.Add(instaformAmount)
-			
+
 				// see if we would change this planet's hab
 				if newHab != planet.Hab {
 					// Instantly terraform this planet (but don't update planet.TerraformAmount, this change doesn't stick if we leave)
 					prevHab := planet.Hab
 					planet.Hab = newHab
 					planet.Spec = computePlanetSpec(&t.game.Rules, player, planet)
-					messager.instaform(player, planet, instaformAmount)
+					messager.planetInstaform(player, planet, instaformAmount)
 
 					log.Debug().
 						Int64("GameID", t.game.ID).
@@ -2518,17 +2550,22 @@ func (t *turn) fleetPatrol(player *Player) {
 			continue
 		}
 
-		distSquared := float64(wp.PatrolRange * wp.PatrolRange)
+		rangeDistanceSquared := float64(wp.PatrolRange * wp.PatrolRange)
+		if wp.PatrolRange == PatrolRangeInfinite {
+			rangeDistanceSquared = math.MaxFloat64
+		}
+
 		closestDistance := float64(math.MaxFloat32)
 		var closest *FleetIntel
 
-		for _, enemyFleet := range player.FleetIntels {
+		for i := range player.FleetIntels {
+			enemyFleet := &player.FleetIntels[i]
 			if fleet.willAttack(player, enemyFleet.PlayerNum) {
 				distSquaredToFleet := fleet.Position.DistanceSquaredTo(enemyFleet.Position)
-				if distSquaredToFleet <= distSquared {
-					if distSquaredToFleet <= closestDistance {
+				if distSquaredToFleet <= rangeDistanceSquared {
+					if distSquaredToFleet < closestDistance {
 						closestDistance = distSquaredToFleet
-						closest = &enemyFleet
+						closest = enemyFleet
 					}
 				}
 			}
@@ -2539,7 +2576,26 @@ func (t *turn) fleetPatrol(player *Player) {
 			if wp.PatrolWarpSpeed == PatrolWarpSpeedAutomatic {
 				wp.PatrolWarpSpeed = fleet.Spec.Engine.IdealSpeed
 			}
-			fleet.Waypoints = append(fleet.Waypoints, NewFleetWaypoint(closest.Position, closest.Num, closest.PlayerNum, closest.Name, wp.PatrolWarpSpeed))
+
+			// add a waypoint to the fleet
+			wpTarget := NewFleetWaypoint(closest.Position, closest.Num, closest.PlayerNum, closest.Name, wp.PatrolWarpSpeed)
+			// this is an ephemeral waypoint that isn't ever "completed" and so shouldn't be repeated. This should probably be
+			// named differently...
+			wpTarget.PartiallyComplete = true
+
+			// for fleets that do Patrol + repeat orders, we let them intercept the fleet
+			// and head back to base to patrol again
+			// if they aren't repeating orders, we assume they just want to keep patroling
+			// and auto intercepting the closest fleet they will attack. Roaming the universe
+			// for all time.
+			if !fleet.RepeatOrders {
+				wpTarget.Task = WaypointTaskPatrol
+				wpTarget.PatrolRange = wp.PatrolRange
+				wpTarget.PatrolWarpSpeed = wp.PatrolWarpSpeed
+				wpTarget.PartiallyComplete = false
+			}
+
+			fleet.Waypoints = append(fleet.Waypoints, wpTarget)
 
 			messager.fleetPatrolTargeted(player, fleet, closest)
 
@@ -2580,6 +2636,9 @@ func (t *turn) calculateScores() {
 	// Sum up planets
 	for _, planet := range t.game.Planets {
 		if planet.Owned() {
+			// planets might be bombed, or starbases could be destroyed
+			planet.Spec = computePlanetSpec(&t.game.Rules, t.game.getPlayer(planet.PlayerNum), planet)
+
 			score := &scores[planet.PlayerNum-1]
 			score.Planets++
 			if planet.Spec.HasStarbase {
@@ -2714,7 +2773,7 @@ func (t *turn) checkVictory(player *Player) {
 				Msgf("you are victorious your majesty!")
 
 			for _, p := range t.game.Players {
-				messager.victory(p, player)
+				messager.playerVictory(p, player)
 			}
 		}
 	}
@@ -2742,7 +2801,10 @@ func (t *turn) checkDeath() {
 
 		// tell players they are dead
 		if numPlanets == 0 && numFleets == 0 {
-			player.Messages = append([]PlayerMessage{newMessage(PlayerMessagePlayerDead)}, player.Messages...)
+			// let everyone know this player died
+			for _, otherPlayer := range t.game.Players {
+				messager.playerDead(otherPlayer, player)
+			}
 			log.Debug().
 				Int64("GameID", t.game.ID).
 				Int("Player", player.Num).
@@ -2750,7 +2812,7 @@ func (t *turn) checkDeath() {
 				Str("Race", player.Race.PluralName).
 				Msgf("player is dead")
 		} else if numPlanets == 0 && numFleets > 0 {
-			player.Messages = append([]PlayerMessage{newMessage(PlayerMessagePlayerNoPlanets).withSpec(PlayerMessageSpec{Amount: numColonists})}, player.Messages...)
+			messager.playerNoPlanets(player, numColonists)
 			log.Debug().
 				Int64("GameID", t.game.ID).
 				Int("Player", player.Num).

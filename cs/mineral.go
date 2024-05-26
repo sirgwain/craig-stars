@@ -21,6 +21,10 @@ func NewMineral(values [3]int) Mineral {
 
 }
 
+func (m Mineral) String() string {
+	return fmt.Sprintf("Ironium: %d, Boranium: %d, Germanium: %d", m.Ironium, m.Boranium, m.Germanium)
+}
+
 func (c Mineral) PrettyString() string {
 	texts := make([]string, 0, 4)
 	if c.Ironium > 0 {

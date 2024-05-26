@@ -65,7 +65,7 @@
 				on:change-production={(e) => (showProductionQueueDialog = true)}
 				on:cargo-transfer-dialog={(e) => {
 					showCargoTransferDialog = true;
-					cargoTransferDetails = e.detail;
+					cargoTransferDetails = e?.detail;
 				}}
 				on:merge-fleets-dialog={(e) => {
 					showMergeFleetsDialog = true;
@@ -91,7 +91,7 @@
 			<ScannerToolbar />
 			<Scanner />
 		</div>
-		<div>
+		<div class="hidden md:block">
 			<HighlightedMapObjectStats />
 		</div>
 		<div class="hidden md:block md:w-full lg:hidden mb-2">
@@ -105,7 +105,7 @@
 			on:change-production={(e) => (showProductionQueueDialog = true)}
 			on:cargo-transfer-dialog={(e) => {
 				showCargoTransferDialog = true;
-				cargoTransferDetails = e.detail;
+				cargoTransferDetails = e?.detail;
 			}}
 			on:merge-fleets-dialog={(e) => {
 				showMergeFleetsDialog = true;

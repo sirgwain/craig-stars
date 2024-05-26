@@ -249,7 +249,7 @@ func wmSpec() PRTSpec {
 	spec.StartingPlanets[0].StartingFleets = []StartingFleet{
 		{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
 		{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
-		{"Armored Probe", StartingFleetHullScout, 1, ShipDesignPurposeFighterScout},
+		{"Armed Probe", StartingFleetHullScout, 1, ShipDesignPurposeFighterScout},
 	}
 
 	spec.TechCostOffset = TechCostOffset{
@@ -449,7 +449,7 @@ func joatSpec() PRTSpec {
 		{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
 		{"Teamster", StartingFleetHullMediumFreighter, 0, ShipDesignPurposeFreighter},
 		{"Cotton Picker", StartingFleetHullMiniMiner, 0, ShipDesignPurposeMiner},
-		{"Armored Probe", StartingFleetHullScout, 1, ShipDesignPurposeFighterScout},
+		{"Armed Probe", StartingFleetHullScout, 1, ShipDesignPurposeFighterScout},
 		{"Stalwart Defender", StartingFleetHullDestroyer, 0, ShipDesignPurposeFighter},
 	}
 

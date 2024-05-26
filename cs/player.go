@@ -108,13 +108,13 @@ const (
 )
 
 type PlayerSpec struct {
-	PlanetaryScanner                  TechPlanetaryScanner                `json:"planetaryScanner,omitempty"`
-	Defense                           TechDefense                         `json:"defense,omitempty"`
-	Terraform                         map[TerraformHabType]*TechTerraform `json:"terraform,omitempty"`
-	ResourcesPerYear                  int                                 `json:"resourcesPerYear,omitempty"`
-	ResourcesPerYearResearch          int                                 `json:"resourcesPerYearResearch,omitempty"`
-	ResourcesPerYearResearchEstimated int                                 `json:"resourcesPerYearResearchEstimated,omitempty"`
-	CurrentResearchCost               int                                 `json:"currentResearchCost,omitempty"`
+	PlanetaryScanner                  TechPlanetaryScanner                `json:"planetaryScanner"`
+	Defense                           TechDefense                         `json:"defense"`
+	Terraform                         map[TerraformHabType]*TechTerraform `json:"terraform"`
+	ResourcesPerYear                  int                                 `json:"resourcesPerYear"`
+	ResourcesPerYearResearch          int                                 `json:"resourcesPerYearResearch"`
+	ResourcesPerYearResearchEstimated int                                 `json:"resourcesPerYearResearchEstimated"`
+	CurrentResearchCost               int                                 `json:"currentResearchCost"`
 }
 
 type PlayerScore struct {

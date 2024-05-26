@@ -44,6 +44,8 @@ type Game struct {
 	RandomEvents                 bool              `json:"randomEvents,omitempty"`
 	ComputerPlayersFormAlliances bool              `json:"computerPlayersFormAlliances,omitempty"`
 	PublicPlayerScores           bool              `json:"publicPlayerScores,omitempty"`
+	MaxMinerals                  bool              `json:"maxMinerals,omitempty"`
+	AcceleratedPlay              bool              `json:"acceleratedPlay,omitempty"`
 	StartMode                    GameStartMode     `json:"startMode,omitempty"`
 	QuickStartTurns              int               `json:"quickStartTurns,omitempty"`
 	OpenPlayerSlots              int               `json:"openPlayerSlots,omitempty"`
@@ -76,6 +78,8 @@ type GameSettings struct {
 	RandomEvents                 bool              `json:"randomEvents"`
 	ComputerPlayersFormAlliances bool              `json:"computerPlayersFormAlliances"`
 	PublicPlayerScores           bool              `json:"publicPlayerScores"`
+	MaxMinerals                  bool              `json:"maxMinerals"`
+	AcceleratedPlay              bool              `json:"acceleratedPlay,omitempty"`
 	StartMode                    GameStartMode     `json:"startMode"`
 	VictoryConditions            VictoryConditions `json:"victoryConditions"`
 	Players                      []NewGamePlayer   `json:"players,omitempty"`
@@ -299,6 +303,8 @@ func (g *Game) WithSettings(settings GameSettings) *Game {
 	g.RandomEvents = settings.RandomEvents
 	g.ComputerPlayersFormAlliances = settings.ComputerPlayersFormAlliances
 	g.PublicPlayerScores = settings.PublicPlayerScores
+	g.MaxMinerals = settings.MaxMinerals
+	g.AcceleratedPlay = settings.AcceleratedPlay
 	g.StartMode = settings.StartMode
 	g.VictoryConditions = settings.VictoryConditions
 

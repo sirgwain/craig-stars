@@ -1,0 +1,4 @@
+ALTER TABLE games
+ADD maxMinerals NUMERIC DEFAULT 0;
+ALTER TABLE games
+ADD acceleratedPlay NUMERIC DEFAULT 0;

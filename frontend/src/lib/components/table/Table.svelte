@@ -4,6 +4,7 @@
 		title: string;
 		sortable?: boolean;
 		filterable?: boolean;
+		hidden?: boolean;
 		sortBy?: (a: T, b: T) => number;
 		filterBy?: (value: string, row: T) => boolean;
 	}
@@ -109,19 +110,21 @@
 	<thead class={assignedClasses.thead}>
 		<tr class={assignedClasses.headtr}>
 			{#each columns as column, colIdx}
-				<th scope="col" class={assignedClasses.th} on:click={() => sortRowsBy(column.key)}>
-					{#if $$slots.head}
-						<slot
-							name="head"
-							{column}
-							isSorted={lastSortedKey === column.key}
-							{sortDescending}
-							sortable={column.sortable !== false}
-						/>
-					{:else}
-						<span>{column.title}</span>
-					{/if}
-				</th>
+				{#if !column.hidden}
+					<th scope="col" class={assignedClasses.th} on:click={() => sortRowsBy(column.key)}>
+						{#if $$slots.head}
+							<slot
+								name="head"
+								{column}
+								isSorted={lastSortedKey === column.key}
+								{sortDescending}
+								sortable={column.sortable !== false}
+							/>
+						{:else}
+							<span>{column.title}</span>
+						{/if}
+					</th>
+				{/if}
 			{/each}
 		</tr>
 	</thead>
@@ -129,13 +132,15 @@
 		{#each filteredRows as row, rowIndex}
 			<tr class={`${assignedClasses.tr}`}>
 				{#each columns as column, columnIndex}
-					<td class={assignedClasses.td}>
-						{#if $$slots.cell}
-							<slot name="cell" {row} {column} cell={row[column.key]} />
-						{:else}
-							<span>{row[column.key]}</span>
-						{/if}
-					</td>
+					{#if !column.hidden}
+						<td class={assignedClasses.td}>
+							{#if $$slots.cell}
+								<slot name="cell" {row} {column} cell={row[column.key]} />
+							{:else}
+								<span>{row[column.key]}</span>
+							{/if}
+						</td>
+					{/if}
 				{/each}
 			</tr>
 		{:else}

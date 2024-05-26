@@ -2,7 +2,7 @@
 	import { clamp } from '$lib/services/Math';
 	import { createEventDispatcher } from 'svelte';
 
-	export let value = 0;
+	export let value: number | undefined = 0;
 	export let min = 0;
 	export let max = 10;
 	export let dangerSpeed = 11; // no danger speed unless doing packet warp bars
@@ -13,22 +13,23 @@
 	export let dangerColor = 'warp-danger-bar';
 	export let stargateColor = 'warp-stargate-bar';
 	export let useStargate = false;
+	export let warp0Text = 'Warp 0';
 
 	let percent = 0;
 	let color = defaultColor;
 
 	let pointerdown = false;
 
-	$: percent = max > 0 ? (value / max) * 100 : 0;
+	$: percent = max > 0 ? ((value ?? 0) / max) * 100 : 0;
 
 	$: {
 		color = defaultColor;
 
-		if (useStargate && value >= stargateSpeed) {
+		if (useStargate && (value ?? 0) >= stargateSpeed) {
 			color = stargateColor;
-		} else if (value >= dangerSpeed) {
+		} else if ((value ?? 0) >= dangerSpeed) {
 			color = dangerColor;
-		} else if (value >= warnSpeed) {
+		} else if ((value ?? 0) >= warnSpeed) {
 			color = warnColor;
 		}
 	}
@@ -65,7 +66,7 @@
 		const newValue = clamp(Math.round(x * max), min, max);
 		if (newValue != value) {
 			value = newValue;
-			dispatch("valuedragged", value)
+			dispatch('valuedragged', value);
 		}
 	};
 </script>
@@ -84,6 +85,8 @@
 	>
 		{#if useStargate && value === stargateSpeed}
 			Use Stargate
+		{:else if value === 0 || value == undefined}
+			{warp0Text}
 		{:else}
 			Warp {value}
 		{/if}

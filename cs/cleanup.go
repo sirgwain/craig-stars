@@ -15,6 +15,7 @@ type Cleaner interface {
 	AddScannerToInnateScannerPlanets(game *FullGame)
 	AddRandomArtifactsToPlanets(game *FullGame)
 	ResetHomeworldBaseHab(game *FullGame)
+	FixMineralConc(game *FullGame)
 }
 
 type cleanup struct {
@@ -104,5 +105,42 @@ func (c *cleanup) ResetHomeworldBaseHab(game *FullGame) {
 			Int64("GameID", game.ID).
 			Str("Name", game.Name).
 			Msgf("cleanup: reset BaseHab on homeworld %s from %s to %s", planet.Name, prevHab, planet.BaseHab)
+	}
+}
+
+func (c *cleanup) FixMineralConc(game *FullGame) {
+	rules := NewRules()
+	minMinConc := rules.MinStartingMineralConcentration
+	for _, planet := range game.Planets {
+		
+		// homeworlds are fine...
+		if planet.Homeworld {
+			continue
+		}
+
+		// this planet
+		if planet.MineralConcentration.Ironium < minMinConc ||
+			planet.MineralConcentration.Boranium < minMinConc ||
+			planet.MineralConcentration.Germanium < minMinConc {
+
+			prevMinConc := planet.MineralConcentration
+			if planet.MineralConcentration.Ironium < minMinConc {
+				planet.MineralConcentration.Ironium += minMinConc
+			}
+			if planet.MineralConcentration.Boranium < minMinConc {
+				planet.MineralConcentration.Boranium += minMinConc
+			}
+			if planet.MineralConcentration.Germanium < minMinConc {
+				planet.MineralConcentration.Germanium += minMinConc
+			}
+
+			planet.MarkDirty()
+			log.Info().
+				Int64("GameID", game.ID).
+				Str("Name", game.Name).
+				Msgf("cleanup: reset MineralConcentration on planet %s from %s to %s", planet.Name, prevMinConc, planet.MineralConcentration)
+
+		}
+
 	}
 }

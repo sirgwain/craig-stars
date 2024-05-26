@@ -3,7 +3,12 @@ import type { CargoTransferRequest } from '$lib/types/Cargo';
 import { CommandedFleet, type Fleet, type ShipToken, type Waypoint } from '$lib/types/Fleet';
 import type { Game, GameSettings } from '$lib/types/Game';
 import { MapObjectType, None, equal, ownedBy, type MapObject, key } from '$lib/types/MapObject';
-import { MessageTargetType, MessageType, type Message } from '$lib/types/Message';
+import {
+	MessageTargetType,
+	MessageType,
+	getMapObjectTypeForMessageType,
+	type Message
+} from '$lib/types/Message';
 import { CommandedPlanet, type Planet } from '$lib/types/Planet';
 import {
 	Player,
@@ -271,62 +276,64 @@ export function createGameContext(fg: FullGame): GameContext {
 	// goto a message target
 	function gotoTarget(message: Message, gameId: number, playerNum: number, universe: Universe) {
 		const targetType = message.targetType ?? MessageTargetType.None;
+		const targetTargetType = message.spec.targetType ?? MessageTargetType.None;
 		let moType = MapObjectType.None;
+		let targetTargetMapObjectType = MapObjectType.None;
 
 		if (message.battleNum) {
 			goto(`/games/${gameId}/battles/${message.battleNum}`);
 			return;
 		}
 
-		if (message.type === MessageType.GainTechLevel) {
+		if (message.type === MessageType.PlayerGainTechLevel) {
 			goto(`/games/${gameId}/research`);
 		}
 
-		if (message.type === MessageType.TechGained && message.spec.techGained) {
+		if (message.type === MessageType.PlayerTechGained && message.spec.techGained) {
 			goto(`/games/${gameId}/techs/${kebabCase(message.spec.techGained)}`);
 		}
 
 		if (message.targetNum) {
-			switch (targetType) {
-				case MessageTargetType.Planet:
-					moType = MapObjectType.Planet;
-					break;
-				case MessageTargetType.Fleet:
-					moType = MapObjectType.Fleet;
-					break;
-				case MessageTargetType.Wormhole:
-					moType = MapObjectType.Wormhole;
-					break;
-				case MessageTargetType.MineField:
-					moType = MapObjectType.MineField;
-					break;
-				case MessageTargetType.MysteryTrader:
-					moType = MapObjectType.MysteryTrader;
-					break;
-				case MessageTargetType.MineralPacket:
-					moType = MapObjectType.MineralPacket;
-					break;
-				case MessageTargetType.Battle:
-					break;
-			}
+			moType = getMapObjectTypeForMessageType(targetType);
+			targetTargetMapObjectType = getMapObjectTypeForMessageType(targetTargetType);
 
 			if (moType != MapObjectType.None) {
 				const target = universe.getMapObject(message);
+				const targetTarget = universe.getMapObject(message.spec);
 				if (target) {
 					// if this is a fleet that we own, select the planet before we command the fleet
-					if (target.type == MapObjectType.Fleet && target.playerNum == playerNum) {
-						const orbitingPlanetNum = (target as Fleet).orbitingPlanetNum;
-						if (orbitingPlanetNum && orbitingPlanetNum != None) {
-							const orbiting = universe.getPlanet(orbitingPlanetNum);
-							if (orbiting) {
-								selectMapObject(orbiting);
+					if (target.type == MapObjectType.Fleet) {
+						if (target.playerNum == playerNum) {
+							commandMapObject(target);
+							const orbitingPlanetNum = (target as Fleet).orbitingPlanetNum;
+							if (orbitingPlanetNum && orbitingPlanetNum != None) {
+								const orbiting = universe.getPlanet(orbitingPlanetNum);
+								if (orbiting) {
+									selectMapObject(orbiting);
+								}
+							}
+						} else {
+							selectMapObject(target);
+						}
+					} else if (target.type == MapObjectType.Planet) {
+						if (target.playerNum == playerNum) {
+							commandMapObject(target);
+							if (targetTarget) {
+								selectMapObject(targetTarget);
+							} else {
+								// select the planet as well if we don't have another target
+								// it's weird in the UI to go to a planet that sends a message
+								// and see another planet selected
+								selectMapObject(target);
+							}
+						} else {
+							selectMapObject(target);
+							if (targetTarget && targetTarget.playerNum == playerNum) {
+								commandMapObject(targetTarget);
 							}
 						}
 					} else {
 						selectMapObject(target);
-					}
-					if (ownedBy(target, playerNum)) {
-						commandMapObject(target);
 					}
 
 					// zoom on goto

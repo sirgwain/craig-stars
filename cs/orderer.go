@@ -137,6 +137,8 @@ func (o *orders) UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrd
 	wp0.Task = newWP0.Task
 	wp0.TransportTasks = newWP0.TransportTasks
 	wp0.LayMineFieldDuration = newWP0.LayMineFieldDuration
+	wp0.PatrolRange = newWP0.PatrolRange
+	wp0.PatrolWarpSpeed = newWP0.PatrolWarpSpeed
 	wp0.WaitAtWaypoint = newWP0.WaitAtWaypoint
 	wp0.TargetName = newWP0.TargetName
 	wp0.TargetType = newWP0.TargetType
@@ -152,6 +154,7 @@ func (o *orders) UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrd
 		Int64("GameID", player.GameID).
 		Int("PlayerNum", player.Num).
 		Str("Fleet", fleet.Name).
+		Interface("Orders", orders).
 		Msg("update fleet orders")
 
 }
@@ -223,7 +226,7 @@ func (o *orders) TransferPlanetCargo(rules *Rules, player *Player, source *Fleet
 	if !source.canTransfer(transferAmount.Negative()) {
 		return fmt.Errorf("fleet %s cannot transfer %v to %s, the fleet does not have enough the required cargo", source.Name, transferAmount.Negative(), dest.Name)
 	}
-	
+
 	sourceCargoInitial := source.Cargo
 	destCargoInitial := dest.Cargo
 

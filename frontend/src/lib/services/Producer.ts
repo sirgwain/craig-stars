@@ -1,4 +1,14 @@
-import { add, divide, minus, multiply, numBuildable, total, type Cost } from '$lib/types/Cost';
+import {
+	add,
+	divide,
+	emptyCost,
+	minZero,
+	minus,
+	multiply,
+	numBuildable,
+	total,
+	type Cost
+} from '$lib/types/Cost';
 import type { CommandedPlanet } from '$lib/types/Planet';
 import type { Player } from '$lib/types/Player';
 import type { ProductionQueueItem } from '$lib/types/Production';
@@ -211,6 +221,13 @@ export function getNumBuilt(
 	maxBuildable: number
 ): ProcessQueueItemResult {
 	const result = new ProcessQueueItemResult();
+
+	// if it costs nothing, we return as many are as buildable
+	// this will be the case with starbase upgrades until the upgrade logic is implemented
+	if (total(minZero(cost)) == 0) {
+		result.numBuilt = maxBuildable;
+		return result;
+	}
 
 	// add in anything allocated in previous turns
 	availableToSpend = add(availableToSpend, item.allocated);

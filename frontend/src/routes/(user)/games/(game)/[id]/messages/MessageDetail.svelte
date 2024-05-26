@@ -19,6 +19,7 @@
 	export let message: Message;
 
 	$: target = $universe.getMapObject(message);
+	$: specTarget = $universe.getMapObject(message.spec);
 	$: owner = target && target.playerNum ? $universe.getPlayerIntel(target.playerNum) : undefined;
 	$: planet = target?.type == MapObjectType.Planet ? (target as Planet) : undefined;
 	$: fleet = target?.type == MapObjectType.Fleet ? (target as Fleet) : undefined;
@@ -84,25 +85,10 @@
 	{getBattleMessage(message)}
 {:else if planet}
 	<PlanetMessageDetail {message} {planet} {owner} />
-{:else if target?.type == MapObjectType.Fleet || fleet}
-	<FleetMessageDetail {message} {fleet} {owner} />
 {:else if mysteryTrader}
 	<MysteryTraderMessageDetail {message} {mysteryTrader} />
-{:else if message.type === MessageType.FleetShipExceededSafeSpeed}
-	<!-- The fleet could have been destroyed, in which case we won't have a fleet for this message so capture it here -->
-	<FleetEngineStrainMessageDetail {message} />
-{:else if message.type === MessageType.FleetTransferGiven}
-	{message.spec.name} has successfully been given to {$universe.getPlayerName(
-		message.spec.destPlayerNum
-	)}
-{:else if message.type === MessageType.FleetTransferReceivedRefused}
-	{$universe.getPlayerName(message.spec.sourcePlayerNum)} has attempted to gift you {message.spec
-		.name}, but you have refused their offer. If you wish to receive gifts from this player in the
-	future, make sure you are allies.
-{:else if message.type === MessageType.TechLevelGainedBattle}
-	{@const battle = $universe.getBattle(message.battleNum)}
-	Wreckage from the battle that occurred in at {battle?.position.x ?? 0}, {battle?.position.y ?? 0} has
-	boosted your research in {message.spec.field}.
+{:else if message.targetType == MapObjectType.Fleet || fleet}
+	<FleetMessageDetail {message} />
 {:else}
 	<PlayerMessageDetail {message} />
 {/if}

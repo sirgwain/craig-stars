@@ -91,6 +91,11 @@
 				<div class="w-32 text-tile-item-title">Warp Speed:</div>
 				<div>{fleet.waypoints[1].warpSpeed ?? 0}</div>
 			</div>
+		{:else if fleet.warpSpeed}
+			<div class="flex flex-row">
+				<div class="w-32 text-tile-item-title">Warp Speed:</div>
+				<div>{fleet.warpSpeed ?? 0}</div>
+			</div>
 		{/if}
 
 		{#if !ownedBy(fleet, $player.num) && fleet.tokens}

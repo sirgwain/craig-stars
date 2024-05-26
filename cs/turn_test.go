@@ -3,6 +3,7 @@ package cs
 import (
 	"math"
 	"math/rand"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -307,6 +308,95 @@ func Test_turn_grow(t *testing.T) {
 	assert.Equal(t, 0, planet3.population())
 	assert.Equal(t, false, planet3.Owned())
 	assert.Equal(t, 2_304_000, planet4.population())
+}
+
+func Test_turn_fleetTransferCargoInvade1(t *testing.T) {
+	game := createTwoPlayerGame()
+	player1 := game.Players[0]
+	player2 := game.Players[1]
+	fleet := game.Fleets[0]
+	planet := game.Planets[1]
+
+	player1.Race.Name = "Attacker"
+	player1.Race.PluralName = "Attackers"
+	player2.Race.Name = "Defender"
+	player2.Race.PluralName = "Defenders"
+
+	fleet.Position = planet.Position
+	fleet.OrbitingPlanetNum = planet.Num
+	fleet.Waypoints[0] = NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 5)
+	fleet.Waypoints[0].Task = WaypointTaskTransport
+	fleet.Waypoints[0].TransportTasks.Colonists.Action = TransportActionUnloadAll
+	fleet.Cargo.Colonists = planet.Cargo.Colonists * 2 // double attackers
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// transfer
+	turn.generateTurn()
+
+	// should have invaded the planet and taken it over
+	assert.Equal(t, planet.PlayerNum, fleet.PlayerNum)
+	assert.True(t, slices.ContainsFunc(player1.Messages, func(message PlayerMessage) bool {
+		return message.Type == PlayerMessageFleetInvadedPlanet
+	}))
+	assert.True(t, slices.ContainsFunc(player2.Messages, func(message PlayerMessage) bool {
+		return message.Type == PlayerMessagePlanetInvaded
+	}))
+}
+
+func Test_turn_fleetTransferCargoInvadeStarbase(t *testing.T) {
+	game := createTwoPlayerGame()
+	player1 := game.Players[0]
+	player2 := game.Players[1]
+	fleet := game.Fleets[0]
+	planet := game.Planets[1]
+
+	// create a new starbase
+	starbaseDesign := NewShipDesign(player2, 2).WithHull(SpaceStation.Name).WithSpec(&rules, player2)
+	starbase := newStarbase(player2, planet,
+		starbaseDesign,
+		"Starbase",
+	)
+	player2.Designs = append(player2.Designs, starbaseDesign)
+	starbase.Spec = ComputeFleetSpec(&rules, player2, &starbase)
+	starbase.Tokens[0].QuantityDamaged = 1
+	starbase.Tokens[0].Damage = 100
+	game.Starbases = append(game.Starbases, &starbase)
+	planet.Starbase = &starbase
+
+	player1.Race.Name = "Attacker"
+	player1.Race.PluralName = "Attackers"
+	player2.Race.Name = "Defender"
+	player2.Race.PluralName = "Defenders"
+
+	fleet.Position = planet.Position
+	fleet.OrbitingPlanetNum = planet.Num
+	fleet.Waypoints[0] = NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 5)
+	fleet.Waypoints[0].Task = WaypointTaskTransport
+	fleet.Waypoints[0].TransportTasks.Colonists.Action = TransportActionUnloadAll
+	numInvaders := planet.Cargo.Colonists * 2 // double attackers
+	fleet.Cargo.Colonists = numInvaders
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// transfer
+	turn.generateTurn()
+
+	// should not have invaded the planet because we have a starbase
+	assert.Equal(t, planet.PlayerNum, player2.Num)
+	assert.Equal(t, numInvaders, fleet.Cargo.Colonists)
+	assert.False(t, slices.ContainsFunc(player1.Messages, func(message PlayerMessage) bool {
+		return message.Type == PlayerMessageFleetInvadedPlanet
+	}))
+	assert.False(t, slices.ContainsFunc(player2.Messages, func(message PlayerMessage) bool {
+		return message.Type == PlayerMessagePlanetInvaded
+	}))
 }
 
 func Test_turn_fleetRoute(t *testing.T) {
@@ -653,7 +743,7 @@ func Test_turn_fleetMoveDestroyedByMineField(t *testing.T) {
 
 	// we should have struck the minefield and lost the ship
 	assert.True(t, fleet.Delete)
-	assert.Equal(t, 1, len(game.Players[0].Messages))
+	assert.Equal(t, 2, len(game.Players[0].Messages))
 	assert.Equal(t, 2, len(game.Players[1].Messages))
 
 	// the MineField should have lost some mines in the collision
@@ -709,7 +799,7 @@ func Test_turn_fleetRemoteMine(t *testing.T) {
 		{name: "owned by us, invalid", fields: fields{task: WaypointTaskRemoteMining, planetPlayerNum: 1, orbitingPlanetNum: 2}, wantCargo: Cargo{}, wantMessageType: PlayerMessageInvalid},
 		{name: "owned by us, but we can remote mine our own, should skip", fields: fields{task: WaypointTaskRemoteMining, planetPlayerNum: 1, orbitingPlanetNum: 2, canRemoteMineOwnPlanets: true}, wantCargo: Cargo{}, wantMessageType: PlayerMessageNone},
 		{name: "no miners, invalid message", fields: fields{task: WaypointTaskRemoteMining, orbitingPlanetNum: 2}, wantCargo: Cargo{}, wantMessageType: PlayerMessageInvalid},
-		{name: "should mine", fields: fields{task: WaypointTaskRemoteMining, orbitingPlanetNum: 2, miningRate: 10}, wantCargo: Cargo{10, 10, 10, 0}, wantMessageType: PlayerMessageRemoteMined},
+		{name: "should mine", fields: fields{task: WaypointTaskRemoteMining, orbitingPlanetNum: 2, miningRate: 10}, wantCargo: Cargo{10, 10, 10, 0}, wantMessageType: PlayerMessageFleetRemoteMined},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -774,7 +864,7 @@ func Test_turn_fleetRemoteMineAR(t *testing.T) {
 		{name: "no task, do nothing", fields: fields{}, wantCargo: Cargo{}, wantMessageType: PlayerMessageNone},
 		{name: "no planet, invalid message", fields: fields{task: WaypointTaskRemoteMining}, wantCargo: Cargo{}, wantMessageType: PlayerMessageInvalid},
 		{name: "no miners, invalid message", fields: fields{task: WaypointTaskRemoteMining, orbitingPlanetNum: 2, planetPlayerNum: 1, canRemoteMineOwnPlanets: true}, wantCargo: Cargo{}, wantMessageType: PlayerMessageInvalid},
-		{name: "owned by us, but we can remote mine our own, should mine", fields: fields{task: WaypointTaskRemoteMining, orbitingPlanetNum: 2, planetPlayerNum: 1, canRemoteMineOwnPlanets: true, miningRate: 10}, wantCargo: Cargo{10, 10, 10, 0}, wantMessageType: PlayerMessageRemoteMined},
+		{name: "owned by us, but we can remote mine our own, should mine", fields: fields{task: WaypointTaskRemoteMining, orbitingPlanetNum: 2, planetPlayerNum: 1, canRemoteMineOwnPlanets: true, miningRate: 10}, wantCargo: Cargo{10, 10, 10, 0}, wantMessageType: PlayerMessageFleetRemoteMined},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1265,12 +1355,12 @@ func Test_turn_fleetPatrol(t *testing.T) {
 	fleet.Waypoints[0].PatrolRange = 50
 	game.Fleets[0] = fleet
 
-	// create a new enemy player with a fleet 100ly away
+	// create a new enemy player with a fleet 60ly away
 	enemyPlayer := NewPlayer(2, NewRace().WithSpec(rules)).WithNum(2).withSpec(rules)
-	enemyFleet := testLongRangeScout(enemyPlayer)
-	enemyFleet.Position = Vector{60, 0}
+	enemyFleet1 := testLongRangeScout(enemyPlayer)
+	enemyFleet1.Position = Vector{60, 0}
 	game.Players = append(game.Players, enemyPlayer)
-	game.Fleets = append(game.Fleets, enemyFleet)
+	game.Fleets = append(game.Fleets, enemyFleet1)
 
 	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
 	enemyPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
@@ -1293,15 +1383,22 @@ func Test_turn_fleetPatrol(t *testing.T) {
 	// should not attack
 	assert.Equal(t, 1, len(fleet.Waypoints))
 
-	// move closer, should target
-	enemyFleet.Position = Vector{50, 0}
+	// make a second enemy fleet closer
+	enemyFleet2 := testLongRangeScout(enemyPlayer)
+	enemyFleet2.Position = Vector{30, 0}
+	game.Fleets = append(game.Fleets, enemyFleet2)
+
+	// move first fleet within range as well
+	enemyFleet1.Position = Vector{50, 0}
+
+	// generate
 	turn.generateTurn()
 
-	// should not attack
+	// should attack fleet 2
 	assert.Equal(t, len(fleet.Waypoints), 2)
 	assert.Equal(t, MapObjectTypeFleet, fleet.Waypoints[1].TargetType)
-	assert.Equal(t, enemyFleet.PlayerNum, fleet.Waypoints[1].TargetPlayerNum)
-	assert.Equal(t, enemyFleet.Num, fleet.Waypoints[1].TargetNum)
+	assert.Equal(t, enemyFleet2.PlayerNum, fleet.Waypoints[1].TargetPlayerNum)
+	assert.Equal(t, enemyFleet2.Num, fleet.Waypoints[1].TargetNum)
 	assert.Equal(t, 6, fleet.Waypoints[1].WarpSpeed)
 
 }
@@ -1705,6 +1802,165 @@ func Test_turn_fleetBattle3Players(t *testing.T) {
 	// scout was destroyed, salvage created
 	assert.Equal(t, true, fleet2.Delete)
 	assert.Equal(t, 1, len(fg.Salvages))
+}
+
+// test a fleet with repeat patrol orders
+// it should intercept and kill one fleet, then
+// return to base and target another
+func Test_turn_fleetPatrolBattleRepeat(t *testing.T) {
+	game := createTwoPlayerGame()
+	player1 := game.Players[0]
+	player2 := game.Players[1]
+	planet := game.Planets[0]
+
+	// make them enemies!
+	player1.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationEnemy}}
+	player2.Relations = []PlayerRelationship{{Relation: PlayerRelationEnemy}, {Relation: PlayerRelationFriend}}
+
+	// add a starbase at the planet for refueling
+	starbaseDesign := NewShipDesign(player1, 2).WithHull(SpaceStation.Name).WithSpec(&rules, player1)
+	starbase := newStarbase(player1, planet,
+		starbaseDesign,
+		"Starbase",
+	)
+	player1.Designs = append(player1.Designs, starbaseDesign)
+	starbase.Spec = ComputeFleetSpec(&rules, player1, &starbase)
+	game.Starbases = append(game.Starbases, &starbase)
+	planet.Starbase = &starbase
+
+	// replace player1's fleet with a destroyer and set it to patrol
+	fleet1 := testJihadCruiser(player1)
+	player1.Designs[0] = fleet1.Tokens[0].design
+	game.Fleets[0] = fleet1
+	fleet1.Waypoints = []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 5).WithTask(WaypointTaskPatrol)}
+	fleet1.OrbitingPlanetNum = planet.Num
+	fleet1.RepeatOrders = true
+
+	// move player2's fleet out a bit
+	fleet2 := game.Fleets[1]
+	fleet2.Position = Vector{25, 0}
+	fleet2.OrbitingPlanetNum = None
+	fleet2.Waypoints[0] = NewPositionWaypoint(fleet2.Position, 5)
+
+	// create a third fleet farther away
+	// this fleet will be targeted after the ship returns to base
+	fleet3 := testLongRangeScout(player2)
+	fleet3.Num = fleet2.Num + 1
+	fleet3.Position = Vector{-30, 0}
+	fleet3.Waypoints[0] = NewPositionWaypoint(fleet3.Position, 5)
+	game.Fleets = append(game.Fleets, fleet3)
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// generate a turn to setup the patrol target
+	turn.generateTurn()
+
+	// fleet1 should target fleet2
+	assert.Equal(t, 2, len(fleet1.Waypoints))
+	assert.Equal(t, fleet2.PlayerNum, fleet1.Waypoints[1].TargetPlayerNum)
+	assert.Equal(t, fleet2.Num, fleet1.Waypoints[1].TargetNum)
+
+	// generate a turn to allow the player1 fleet to attack player2's fleet
+	turn.generateTurn()
+
+	// fleet moves to intercept
+	assert.Equal(t, fleet1.Position, fleet2.Position)
+
+	// should have a battle record
+	assert.Equal(t, 1, len(player1.BattleRecords))
+	assert.Equal(t, 1, len(player2.BattleRecords))
+
+	// scout was destroyed, salvage created
+	assert.Equal(t, true, fleet2.Delete)
+	assert.Equal(t, 1, len(game.Salvages))
+
+	// fleet1 should be returning to base after killing fleet2
+	assert.Equal(t, 2, len(fleet1.Waypoints))
+	assert.Equal(t, planet.Num, fleet1.Waypoints[1].TargetNum)
+	assert.Equal(t, MapObjectTypePlanet, fleet1.Waypoints[1].TargetType)
+
+	// generate a turn to allow the fleet1 to return home
+	// and target fleet 3
+	turn.generateTurn()
+
+	// fleet1 should target fleet3
+	assert.Equal(t, planet.Position, fleet1.Position)
+	assert.Equal(t, planet.Num, fleet1.OrbitingPlanetNum)
+	assert.Equal(t, 2, len(fleet1.Waypoints))
+	assert.Equal(t, fleet3.PlayerNum, fleet1.Waypoints[1].TargetPlayerNum)
+	assert.Equal(t, fleet3.Num, fleet1.Waypoints[1].TargetNum)
+
+}
+
+// test a fleet with open ended patrol orders
+// it should intercept and kill one fleet, then target
+// another
+func Test_turn_fleetPatrolKillPatrolAgain(t *testing.T) {
+	game := createTwoPlayerGame()
+	player1 := game.Players[0]
+	player2 := game.Players[1]
+	planet := game.Planets[0]
+
+	// make them enemies!
+	player1.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationEnemy}}
+	player2.Relations = []PlayerRelationship{{Relation: PlayerRelationEnemy}, {Relation: PlayerRelationFriend}}
+
+	// replace player1's fleet with a destroyer and set it to patrol
+	player1.TechLevels = TechLevel{3, 3, 3, 3, 3, 3}
+	fleet1 := testJihadCruiser(player1)
+	player1.Designs[0] = fleet1.Tokens[0].design
+	game.Fleets[0] = fleet1
+	fleet1.Waypoints = []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 5).WithTask(WaypointTaskPatrol)}
+	fleet1.OrbitingPlanetNum = planet.Num
+
+	// move player2's fleet out a bit
+	fleet2 := game.Fleets[1]
+	fleet2.Position = Vector{25, 0}
+	fleet2.OrbitingPlanetNum = None
+	fleet2.Waypoints[0] = NewPositionWaypoint(fleet2.Position, 5)
+
+	// create a third fleet farther away
+	// this fleet will be targeted after the ship returns to base
+	fleet3 := testLongRangeScout(player2)
+	fleet3.Num = fleet2.Num + 1
+	fleet3.Position = Vector{-30, 0}
+	fleet3.Waypoints[0] = NewPositionWaypoint(fleet3.Position, 5)
+	game.Fleets = append(game.Fleets, fleet3)
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// generate a turn to setup the patrol target
+	turn.generateTurn()
+
+	// fleet1 should target fleet2
+	assert.Equal(t, 2, len(fleet1.Waypoints))
+	assert.Equal(t, fleet2.PlayerNum, fleet1.Waypoints[1].TargetPlayerNum)
+	assert.Equal(t, fleet2.Num, fleet1.Waypoints[1].TargetNum)
+
+	// generate a turn to allow the player1 fleet to attack player2's fleet
+	turn.generateTurn()
+
+	// fleet moves to intercept
+	assert.Equal(t, fleet1.Position, fleet2.Position)
+
+	// should have a battle record
+	assert.Equal(t, 1, len(player1.BattleRecords))
+	assert.Equal(t, 1, len(player2.BattleRecords))
+
+	// scout was destroyed, salvage created
+	assert.Equal(t, true, fleet2.Delete)
+	assert.Equal(t, 1, len(game.Salvages))
+
+	// fleet1 should now target fleet3
+	assert.Equal(t, 2, len(fleet1.Waypoints))
+	assert.Equal(t, fleet3.PlayerNum, fleet1.Waypoints[1].TargetPlayerNum)
+	assert.Equal(t, fleet3.Num, fleet1.Waypoints[1].TargetNum)
 }
 
 func Test_turn_mysteryTraderSpawn(t *testing.T) {

@@ -36,13 +36,13 @@ type QueueItemCompletionEstimate struct {
 
 type ProductionQueueItem struct {
 	QueueItemCompletionEstimate
-	Type         QueueItemType `json:"type"`
-	DesignNum    int           `json:"designNum,omitempty"`
-	Quantity     int           `json:"quantity"`
-	Allocated    Cost          `json:"allocated"`
-	Tags         Tags          `json:"tags"`
-	index        int           // used for holding a place in the queue while estimating
-	design       *ShipDesign
+	Type      QueueItemType `json:"type"`
+	DesignNum int           `json:"designNum,omitempty"`
+	Quantity  int           `json:"quantity"`
+	Allocated Cost          `json:"allocated"`
+	Tags      Tags          `json:"tags"`
+	index     int           // used for holding a place in the queue while estimating
+	design    *ShipDesign
 }
 
 func (item *ProductionQueueItem) SetDesign(design *ShipDesign) {
@@ -178,7 +178,7 @@ func (p *production) produce() productionResult {
 	newQueue := []ProductionQueueItem{}
 	for itemIndex := range planet.ProductionQueue {
 		item := planet.ProductionQueue[itemIndex]
-		maxBuildable := planet.maxBuildable(item.Type)
+		maxBuildable := planet.maxBuildable(p.player, item.Type)
 		var cost Cost
 		if item.Type == QueueItemTypeStarbase && planet.Spec.HasStarbase {
 			cost = costCalculator.StarbaseUpgradeCost(planet.Starbase.Tokens[0].design, item.design)
@@ -369,15 +369,15 @@ func (p *production) terraformPlanet(numSteps int) []TerraformResult {
 // validate an item in the production queue
 func (p *production) validateItem(item ProductionQueueItem, maxBuildable int, planet *Planet) (PlayerMessage, bool) {
 	if item.Type.IsPacket() && !planet.Spec.HasMassDriver {
-		return newPlanetMessage(PlayerMessageBuildMineralPacketNoMassDriver, planet), false
+		return newPlanetMessage(PlayerMessagePlanetBuiltInvalidMineralPacketNoMassDriver, planet), false
 	}
 	if item.Type.IsPacket() && planet.PacketTargetNum == None {
-		return newPlanetMessage(PlayerMessageBuildMineralPacketNoTarget, planet), false
+		return newPlanetMessage(PlayerMessagePlanetBuiltInvalidMineralPacketNoTarget, planet), false
 	}
 	if !item.Type.IsAuto() && maxBuildable == 0 {
 		// can't build this, skip it
 		// it shouldn't have been ever added to the queue, but just in case of a bug
-		return newPlanetMessage(PlayerMessageBuildInvalidItem, planet).withSpec(PlayerMessageSpec{QueueItemType: item.Type}), false
+		return newPlanetMessage(PlayerMessagePlanetBuiltInvalidItem, planet).withSpec(PlayerMessageSpec{Name: planet.Name, QueueItemType: item.Type}), false
 	}
 
 	return PlayerMessage{}, true

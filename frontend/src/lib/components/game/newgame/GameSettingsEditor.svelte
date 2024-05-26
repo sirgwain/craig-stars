@@ -25,6 +25,11 @@
 	<CheckboxInput name="randomEvents" bind:checked={settings.randomEvents} />
 	<CheckboxInput name="publicPlayerScores" bind:checked={settings.publicPlayerScores} />
 	<CheckboxInput
+		title="Beginner: Max Minerals"
+		name="maxMinerals"
+		bind:checked={settings.maxMinerals}
+	/>
+	<CheckboxInput
 		name="computerPlayersFormAlliances"
 		bind:checked={settings.computerPlayersFormAlliances}
 	/>

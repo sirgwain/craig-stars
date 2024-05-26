@@ -348,8 +348,8 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				},
 				surfaceMinerals: Mineral{2000, 2000, 2000},
 				population:      700_000,
-				mines:           634,
-				factories:       664,
+				mines:           700,
+				factories:       700,
 			},
 			want: []ProductionQueueItem{
 				{
@@ -381,7 +381,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 					Quantity: 100,
 				},
 			},
-			wantLeftoverResources: 470,
+			wantLeftoverResources: 710,
 		},
 		{
 			name: "auto factories when have more than max",
@@ -423,7 +423,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 					Quantity: 100,
 				},
 			},
-			wantLeftoverResources: 255,
+			wantLeftoverResources: 170,
 		},
 	}
 	for _, tt := range tests {

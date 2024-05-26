@@ -92,8 +92,8 @@ func (t BattleRecordTokenActionType) String() string {
 }
 
 type BattleVector struct {
-	X int `json:"x,omitempty"`
-	Y int `json:"y,omitempty"`
+	X int `json:"x"`
+	Y int `json:"y"`
 }
 
 var BattleVectorRight BattleVector = BattleVector{1, 0}
@@ -111,6 +111,10 @@ func (v1 BattleVector) Add(v2 BattleVector) BattleVector {
 
 func (v1 BattleVector) distance(v2 BattleVector) int {
 	return MaxInt(AbsInt(v1.X-v2.X), AbsInt(v1.Y-v2.Y))
+}
+
+func (v BattleVector) scale(scale int) BattleVector {
+	return BattleVector{v.X * scale, v.Y * scale}
 }
 
 // SetupRecord populates a lookup table of items by guid.

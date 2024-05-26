@@ -20,7 +20,7 @@
 			case LRT.NRSE:
 				return 'You will not be able to build the Radiating Hydro-Ram Scoop, Sub-Galactic Fuel Scoop, Trans-Galactic Fuel Scoop, Trans-Galactic Super Scoop, Trans- Galactic Mizer Scoop or the Galaxy Scoop. You will be able to build the Interspace-10 engine, which can travel warp 10 without taking damage.';
 			case LRT.OBRM:
-				return 'No Robo-Miner, Robo-Maxi-Miner or Robo-Super-Miner robots.';
+				return "The only mining ship available to you will be the Mini-Miner. This trait overrides 'Advanced Remote Mining'. Your maximum population per planet is increased by 10%.";
 			case LRT.NAS:
 				return 'You will not have any standard scanners that can scan planets from a distance and see fleets hiding behind planets. All ranges for conventional scanners are doubled.';
 			case LRT.LSP:

@@ -134,6 +134,13 @@ func (ug *universeGenerator) generatePlanets() error {
 		planet.Position = pos
 		planet.randomize(rules)
 
+		if ug.MaxMinerals {
+			planet.MineralConcentration = Mineral{100, 100, 100}
+		}
+		if !ug.RandomEvents {
+			planet.RandomArtifact = false
+		}
+
 		ug.universe.Planets[i] = planet
 		planetsByPosition[pos] = planet
 		occupiedLocations = append(occupiedLocations, pos)
@@ -212,7 +219,7 @@ func (ug *universeGenerator) generatePlayerShipDesigns() {
 		for _, startingPlanet := range player.Race.Spec.StartingPlanets {
 			for _, startingFleet := range startingPlanet.StartingFleets {
 				if designNames.Contains(startingFleet.Name) {
-					// only one design per name, i.e. Scout, Armored Probe
+					// only one design per name, i.e. Scout, Armed Probe
 					continue
 				}
 				techStore := ug.Rules.techs
@@ -257,6 +264,9 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 		Ironium:   rules.MinHomeworldMineralConcentration + random.Intn(rules.MaxStartingMineralConcentration),
 		Boranium:  rules.MinHomeworldMineralConcentration + random.Intn(rules.MaxStartingMineralConcentration),
 		Germanium: rules.MinHomeworldMineralConcentration + random.Intn(rules.MaxStartingMineralConcentration),
+	}
+	if ug.MaxMinerals {
+		homeworldMinConc = Mineral{100, 100, 100}
 	}
 
 	homeworldSurfaceMinerals := Mineral{
@@ -346,7 +356,7 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 			}
 
 			// tell theplayer about the homeworld
-			messager.homePlanet(player, playerPlanet)
+			messager.planetHomeworld(player, playerPlanet)
 
 			// generate some fleets on the homeworld
 			if err := ug.generatePlayerFleets(player, playerPlanet, &fleetNum, startingPlanet.StartingFleets); err != nil {

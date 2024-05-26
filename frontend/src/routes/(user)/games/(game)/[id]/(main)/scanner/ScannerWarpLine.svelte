@@ -41,20 +41,22 @@
 				color = '#00FFFF'
 			}
 
-			const coords = [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5].map((dist: number) => ({
-				position: {
-					x: mo.position.x + heading.x * distPerLy * dist,
-					y: mo.position.y + heading.y * distPerLy * dist
-				}
-			}));
+			if (warpSpeed) {
+				const coords = [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5].map((dist: number) => ({
+					position: {
+						x: mo.position.x + heading.x * distPerLy * dist,
+						y: mo.position.y + heading.y * distPerLy * dist
+					}
+				}));
 
-			line = {
-				path: 'M' + coords.map((coord) => `${$xGet(coord)}, ${$yGet(coord)}`).join('L'),
-				props: {
-					'stroke-width': strokeWidth,
-					stroke: color
-				}
-			};
+				line = {
+					path: 'M' + coords.map((coord) => `${$xGet(coord)}, ${$yGet(coord)}`).join('L'),
+					props: {
+						'stroke-width': strokeWidth,
+						stroke: color
+					}
+				};
+			}
 		}
 	}
 </script>

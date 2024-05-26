@@ -56,6 +56,8 @@ export type Waypoint = {
 	task: WaypointTask;
 	waitAtWaypoint?: boolean;
 	layMineFieldDuration?: number;
+	patrolRange?: number;
+	patrolWarpSpeed?: number;
 	transferToPlayer?: number;
 	partiallyComplete?: boolean;
 	transportTasks: WaypointTransportTasks;
@@ -368,7 +370,14 @@ export function fleetsSortBy(
 		case 'fuel':
 			return (a, b) => (a.fuel ?? 0) - (b.fuel ?? 0);
 		default:
-			return (a, b) => `${pluck(a, key)}`.localeCompare(`${pluck(b, key)}`);
+			return (a, b) => {
+				const aVal = pluck(a, key);
+				const bVal = pluck(b, key);
+				if (typeof aVal == 'number' && typeof bVal == 'number') {
+					return aVal - bVal;
+				}
+				return `${aVal}`.localeCompare(`${bVal}`);
+			};
 	}
 }
 

@@ -36,7 +36,7 @@
 	}
 
 	$: leftToSpend = ($player.spec.currentResearchCost ?? 0) - spent;
-	$: yearsLeft = leftToSpend / ($player.spec.resourcesPerYearResearchEstimated ?? 0) + 1;
+	$: yearsLeft = Math.ceil(leftToSpend / ($player.spec.resourcesPerYearResearchEstimated ?? 0));
 </script>
 
 <ItemTitle>Research</ItemTitle>

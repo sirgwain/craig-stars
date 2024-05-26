@@ -166,9 +166,9 @@ func (mineField *MineField) damageFleet(player *Player, fleet *Fleet, fleetPlaye
 		}
 	}
 
-	messager.fleetHitMineField(fleetPlayer, fleet, fleetPlayer, mineField, totalDamage, shipsDestroyed)
+	messager.fleetMineFieldHit(fleetPlayer, fleet, fleetPlayer, mineField, totalDamage, shipsDestroyed)
 	if mineField.PlayerNum != fleetPlayer.Num {
-		messager.fleetHitMineField(player, fleet, fleetPlayer, mineField, totalDamage, shipsDestroyed)
+		messager.fleetMineFieldHit(player, fleet, fleetPlayer, mineField, totalDamage, shipsDestroyed)
 	}
 
 	log.Debug().
