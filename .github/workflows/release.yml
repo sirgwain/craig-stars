@@ -3,6 +3,12 @@ on:
   push:
     tags:
       - '**'
+  workflow_run:
+    workflows: [Tag]
+    branches: [develop]
+    types: 
+    - completed
+
 jobs:
   build:
     if: github.repository == 'sirgwain/craig-stars'
