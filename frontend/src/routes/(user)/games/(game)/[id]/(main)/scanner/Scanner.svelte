@@ -437,18 +437,30 @@
 			((mo as Planet).spec.terraformedHabitability ?? 0) > 0;
 
 		// use a stargate automatically if it's safe and in range
-		const safeHullMass =
-			mo?.type == MapObjectType.Planet ? (mo as Planet).spec.safeHullMass ?? 0 : 0;
-		const safeRange = mo?.type == MapObjectType.Planet ? (mo as Planet).spec.safeRange ?? 0 : 0;
-		const stargate =
-			(totalCargo($commandedFleet.cargo) == 0 || $player.race.spec?.canGateCargo) &&
-			mo &&
-			mo.type == MapObjectType.Planet &&
-			owned(mo) &&
-			safeRange >= dist &&
-			Math.max(
-				...$commandedFleet.tokens.map((t) => $universe.getMyDesign(t.designNum)?.spec.mass ?? 0)
-			) < safeHullMass;
+		const orbiting = $universe.getPlanet($commandedFleet.orbitingPlanetNum);
+		const targetPlanet = mo?.type == MapObjectType.Planet ? (mo as Planet) : undefined;
+		let stargate = false;
+		if (orbiting && targetPlanet) {
+			const destSafeHullMass = targetPlanet.spec.safeHullMass ?? 0;
+			const destSafeRange = targetPlanet.spec.safeRange ?? 0;
+			const sourceSafeHullMass = orbiting.spec.safeHullMass ?? 0;
+			const sourceSafeRange = orbiting.spec.safeRange ?? 0;
+			const destStargateSafe =
+				(totalCargo($commandedFleet.cargo) == 0 || $player.race.spec?.canGateCargo) &&
+				owned(targetPlanet) &&
+				destSafeRange >= dist &&
+				Math.max(
+					...$commandedFleet.tokens.map((t) => $universe.getMyDesign(t.designNum)?.spec.mass ?? 0)
+				) < destSafeHullMass;
+			const sourceStargateSafe =
+				(totalCargo($commandedFleet.cargo) == 0 || $player.race.spec?.canGateCargo) &&
+				owned(orbiting) &&
+				sourceSafeRange >= dist &&
+				Math.max(
+					...$commandedFleet.tokens.map((t) => $universe.getMyDesign(t.designNum)?.spec.mass ?? 0)
+				) < sourceSafeHullMass;
+			stargate = !!destStargateSafe && !!sourceStargateSafe;
+		}
 
 		let warpSpeed =
 			$selectedWaypoint?.warpSpeed && $selectedWaypoint.warpSpeed != StargateWarpSpeed

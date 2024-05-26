@@ -213,7 +213,7 @@ func (p *Planet) emptyPlanet() {
 	p.Starbase = nil
 	p.Scanner = false
 	p.Defenses = 0 // defenses are all gone, rest of the structures can stay
-	p.ProductionQueue = []ProductionQueueItem{}
+	p.PlanetOrders = PlanetOrders{} // clear any orders from previous owner
 	p.setPopulation(0)
 	p.Spec = PlanetSpec{}
 	// reset any instaforming

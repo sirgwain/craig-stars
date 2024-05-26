@@ -504,7 +504,7 @@ func (m *messageClient) fleetRouted(player *Player, fleet *Fleet, planet *Planet
 func (m *messageClient) fleetScrapped(player *Player, fleet *Fleet, cost Cost, planet *Planet) {
 	if planet != nil {
 		player.Messages = append(player.Messages, newPlanetMessage(PlayerMessageFleetScrapped, planet).
-			withSpec(PlayerMessageSpec{Cost: &cost}))
+			withSpec(PlayerMessageSpec{Cost: &cost}.withTargetFleet(fleet)))
 	} else {
 		player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetScrapped, fleet))
 	}
@@ -821,6 +821,10 @@ func (m *messageClient) planetInvaded(player *Player, planet *Planet, fleet *Fle
 
 func (m *messageClient) planetInvadeEmpty(player *Player, planet *Planet, fleet *Fleet) {
 	text := fmt.Sprintf("%s has attempted to invade %s, but the planet is uninhabited.", fleet.Name, planet.Name)
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetPlanet, TargetNum: planet.Num}})
+}
+func (m *messageClient) planetInvadeStarbase(player *Player, planet *Planet, fleet *Fleet) {
+	text := fmt.Sprintf("%s has attempted to invade %s, but the planet is protected by a starbase.", fleet.Name, planet.Name)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetPlanet, TargetNum: planet.Num}})
 }
 
