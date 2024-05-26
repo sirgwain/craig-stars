@@ -274,6 +274,48 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				},
 			},
 		},
+		{name: "RS Shielded Destroyer",
+			args: args{
+				techLevels: TechLevel{3, 3, 3, 3, 3, 3},
+				raceSpec:   NewRace().WithLRT(RS).WithSpec(&rules).Spec,
+				design: NewShipDesign(player, 1).
+					WithHull(Destroyer.Name).
+					WithSlots([]ShipDesignSlot{
+						{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
+						{HullComponent: Laser.Name, HullSlotIndex: 2, Quantity: 1},
+						{HullComponent: AlphaTorpedo.Name, HullSlotIndex: 3, Quantity: 1},
+						{HullComponent: MoleSkinShield.Name, HullSlotIndex: 4, Quantity: 1},
+						{HullComponent: Tritanium.Name, HullSlotIndex: 5, Quantity: 1},
+						{HullComponent: BattleComputer.Name, HullSlotIndex: 6, Quantity: 1},
+					}),
+			},
+			want: ShipDesignSpec{
+				HullType:                TechHullTypeFighter,
+				Engine:                  LongHump6.Engine,
+				NumEngines:              1,
+				Cost:                    Cost{34, 12, 22, 67},
+				TechLevel:               TechLevel{Propulsion: 3, Construction: 3},
+				Mass:                    127,
+				Armor:                   225, // 200 + 50/2 for the RS armor negative
+				FuelCapacity:            280,
+				Scanner:                 true,
+				ScanRange:               60,
+				ScanRangePen:            30,
+				TorpedoInaccuracyFactor: .8,
+				Initiative:              4,
+				Movement:                3,
+				PowerRating:             12,
+				Shields:                 35, // 25*1.4 for RS 40% better shields
+				MineSweep:               10,
+				HasWeapons:              true,
+				WeaponSlots: []ShipDesignSlot{
+					{HullComponent: Laser.Name, HullSlotIndex: 2, Quantity: 1},
+					{HullComponent: AlphaTorpedo.Name, HullSlotIndex: 3, Quantity: 1},
+				},
+				EstimatedRange:     419,
+				EstimatedRangeFull: 419,
+			},
+		},
 		{name: "Mini Bomber",
 			args: args{
 				techLevels: TechLevel{3, 3, 3, 3, 3, 3},
