@@ -1,15 +1,34 @@
+# workflow to cut a new tag for each successful push to develop
 name: Release
 on:
-  push:
-    tags:
-      - '**'
   workflow_run:
-    workflows: [Tag]
+    workflows: [Build]
     branches: [develop]
     types: 
     - completed
 
 jobs:
+  # cut a new tag
+  tag:
+    if:  ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+        contents: write
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: '0'
+
+    - name: Bump version and push tag
+      uses: anothrNick/github-tag-action@v1
+      id: bump
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        WITH_V: true
+        DEFAULT_BUMP: "patch"
+    outputs:
+      version: ${{ steps.bump.outputs.new_tag }}
+    
   build:
     if: github.repository == 'sirgwain/craig-stars'
     strategy:
@@ -18,13 +37,11 @@ jobs:
         node-version: [18]
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
+    needs: tag
     steps:
       - uses: actions/checkout@v3
 
       # get some build metadata we can put in the binary and package.json
-      - name: Get version tag
-        id: version
-        run: echo "tag=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_OUTPUT
       - name: Get build time
         id: buildTime
         run: echo "buildTime=`date +'%y.%m.%d %H:%M:%S'`" >> $GITHUB_OUTPUT
@@ -37,7 +54,7 @@ jobs:
           cache-dependency-path: frontend/package-lock.json        
       - run: npm install
         working-directory: ./frontend
-      - run: jq ".version = \"${{ steps.version.outputs.tag }}\"" package.json > package.json.tmp && mv package.json.tmp package.json
+      - run: jq ".version = \"${{ needs.tag.outputs.version }}\"" package.json > package.json.tmp && mv package.json.tmp package.json
         working-directory: ./frontend
       - run: npm run build
         working-directory: ./frontend
@@ -55,7 +72,7 @@ jobs:
           go mod tidy && \
           CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build \
           -ldflags="-s -w -extldflags '-static' \
-          -X 'github.com/sirgwain/craig-stars/cmd.semver=${{ steps.version.outputs.tag }}' \
+          -X 'github.com/sirgwain/craig-stars/cmd.semver=${{ needs.tag.outputs.version }}' \
           -X 'github.com/sirgwain/craig-stars/cmd.commit=${GITHUB_SHA}' \
           -X 'github.com/sirgwain/craig-stars/cmd.buildTime=${{ steps.buildTime.outputs.buildTime }}'" \
           -o dist/craig-stars main.go

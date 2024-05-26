@@ -1,12 +1,12 @@
-name: Test
+# workflow to build & test on each commit to develop or PR to develop
+name: Build
 on: 
   pull_request:
     branches:
       - 'develop'
   push:
     branches:
-      - 'develop'
-      
+      - 'develop'      
 jobs:
   test:
     strategy:
