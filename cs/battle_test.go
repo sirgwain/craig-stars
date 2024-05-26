@@ -462,7 +462,7 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			},
 			want: []want{{damage: 0, quantityDamaged: 0, quantityRemaining: 1, stackShields: 10}},
 		},
-		{name: "one super beam, do 100 damage destroy one stack and damage another",
+		{name: "one super beam, do 100 damage destroy one stack and we're done",
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
@@ -491,8 +491,8 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 				},
 			},
 			want: []want{
-				{damage: 0, quantityDamaged: 0, quantityRemaining: 0},
-				{damage: 90, quantityDamaged: 1, quantityRemaining: 1},
+				{damage: 0, quantityDamaged: 0, quantityRemaining: 0}, // first stack gone
+				{damage: 0, quantityDamaged: 0, quantityRemaining: 1}, // second stack undamaged
 			},
 		},
 		{name: "one minigun, do 10 damage to all targets",
