@@ -113,6 +113,9 @@ jobs:
           generateReleaseNotes: true
 
   deploy:
+    if: github.repository == 'sirgwain/craig-stars'
+    name: Deploy to server
+    needs: [release]
     runs-on: ubuntu-latest
     steps:
       - run: gh workflow run --repo sirgwain/craig-stars-ops deploy.yml
