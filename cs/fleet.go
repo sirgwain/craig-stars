@@ -1325,10 +1325,21 @@ func (fleet *Fleet) getCargoLoadAmount(dest cargoHolder, cargoType CargoType, ta
 		}
 	case TransportActionSetAmountTo:
 		// only transfer the min of what we have, vs what we need, vs the capacity
-		transferAmount = MinInt(MinInt(availableToLoad, task.Amount-currentAmount), availableCapacity)
+		transferAmount = MaxInt(0, MinInt(MinInt(availableToLoad, task.Amount-currentAmount), availableCapacity))
 		if transferAmount < (task.Amount - currentAmount) {
 			waitAtWaypoint = true
 		}
+	case TransportActionSetWaypointTo:
+		// Check how much the destination has of what we want
+		// if we SetWaypointTo 100kT germanium and they have 120kT, we load 20kT if we can fit it
+		if availableToLoad <= task.Amount {
+			// they are below the amount, we won't load (this TransportAction will possibly be used to unload later)
+			break
+		} else {
+			// only transfer down to what we set
+			transferAmount = MinInt(MinInt(availableToLoad, availableToLoad-task.Amount), availableCapacity)
+		}
+
 	case TransportActionLoadDunnage:
 		// (minerals and colonists only) This command waits until all other loads and unloads are
 		// complete, then loads as many colonists or amount of a mineral as will fit in the remaining
@@ -1345,16 +1356,17 @@ func (fleet *Fleet) getCargoLoadAmount(dest cargoHolder, cargoType CargoType, ta
 // getCargoUnloadAmount gets the amount of cargo to transfer for unloading a cargo type from a cargoholder
 func (fleet *Fleet) getCargoUnloadAmount(dest cargoHolder, cargoType CargoType, task WaypointTransportTask) (transferAmount int, waitAtWaypoint bool) {
 
+	capacity := dest.getCargoCapacity()
+	currentAmount := fleet.Cargo.GetAmount(cargoType)
+
 	var availableToUnload int
 	if cargoType == Fuel {
-
 		availableToUnload = fleet.Fuel
+		capacity = MaxInt(0, dest.getFuelCapacity()-dest.getFuel())
+		currentAmount = fleet.Fuel
 	} else {
 		availableToUnload = fleet.Cargo.GetAmount(cargoType)
 	}
-	currentAmount := fleet.Cargo.GetAmount(cargoType)
-	capacity := dest.getCargoCapacity()
-	_ = currentAmount
 	switch task.Action {
 	case TransportActionUnloadAll:
 		// unload all available, based on our constraints
@@ -1370,6 +1382,9 @@ func (fleet *Fleet) getCargoUnloadAmount(dest cargoHolder, cargoType CargoType, 
 		} else {
 			transferAmount = MinInt(MinInt(availableToUnload, task.Amount), capacity)
 		}
+	case TransportActionSetAmountTo:
+		// set the amount in our hold to amount, or do nothing if we have under that amount
+		transferAmount = MaxInt(0, MinInt(availableToUnload, currentAmount-task.Amount))
 	case TransportActionSetWaypointTo:
 		// Make sure the waypoint has at least whatever we specified
 		var currentAmount = dest.getCargo().GetAmount(cargoType)
