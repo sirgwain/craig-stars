@@ -33,6 +33,14 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 				{HullComponent: cs.Overthruster.Name, HullSlotIndex: 6, Quantity: 3},
 				{HullComponent: cs.GorillaDelagator.Name, HullSlotIndex: 7, Quantity: 4},
 			}),
+		cs.NewShipDesign(player1, 2).
+			WithName("Accelerator Platform").
+			WithHull(cs.OrbitalFort.Name).
+			WithSlots([]cs.ShipDesignSlot{
+				{HullComponent: cs.MassDriver5.Name, HullSlotIndex: 1, Quantity: 1},
+				{HullComponent: cs.Laser.Name, HullSlotIndex: 2, Quantity: 6},
+				{HullComponent: cs.Laser.Name, HullSlotIndex: 5, Quantity: 6},
+			}),
 	)
 
 	player2.Designs = append(player2.Designs,
@@ -52,7 +60,7 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 				{HullComponent: cs.RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
 				{HullComponent: cs.CompletePhaseShield.Name, HullSlotIndex: 3, Quantity: 1},
 			}),
-		cs.NewShipDesign(player2, 2).
+		cs.NewShipDesign(player2, 3).
 			WithName("Stalwart Defender").
 			WithHull(cs.Destroyer.Name).
 			WithSlots([]cs.ShipDesignSlot{
@@ -64,7 +72,7 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 				{HullComponent: cs.Overthruster.Name, HullSlotIndex: 6, Quantity: 1},
 				{HullComponent: cs.BattleComputer.Name, HullSlotIndex: 7, Quantity: 1},
 			}),
-		cs.NewShipDesign(player2, 2).
+		cs.NewShipDesign(player2, 4).
 			WithName("Stalwart Sapper").
 			WithHull(cs.Destroyer.Name).
 			WithSlots([]cs.ShipDesignSlot{
@@ -76,35 +84,45 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 				{HullComponent: cs.Overthruster.Name, HullSlotIndex: 6, Quantity: 1},
 				{HullComponent: cs.Overthruster.Name, HullSlotIndex: 7, Quantity: 1},
 			}),
+		cs.NewShipDesign(player2, 5).
+			WithName("Frigate").
+			WithHull(cs.Frigate.Name).
+			WithSlots([]cs.ShipDesignSlot{
+				{HullComponent: cs.QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+				{HullComponent: cs.BatScanner.Name, HullSlotIndex: 2, Quantity: 1},
+				{HullComponent: cs.Laser.Name, HullSlotIndex: 3, Quantity: 2},
+				{HullComponent: cs.WolverineDiffuseShield.Name, HullSlotIndex: 4, Quantity: 2},
+			}),
 	)
 
 	fleets := []*cs.Fleet{
+		// player1's platform
 		{
 			MapObject: cs.MapObject{
 				PlayerNum: player1.Num,
 			},
-			BaseName: "Battle Cruiser",
+			BaseName: "Accelerator Platform",
 			Tokens: []cs.ShipToken{
 				{
-					DesignNum: player1.Designs[0].Num,
-					Quantity:  2,
+					DesignNum: player1.Designs[1].Num,
+					Quantity:  1,
 				},
 			},
 		},
-		// player2's teamster
+		// player2's stalwart defenders
 		{
 			MapObject: cs.MapObject{
 				PlayerNum: player2.Num,
 			},
-			BaseName: "Teamster",
+			BaseName: "Frigate",
 			Tokens: []cs.ShipToken{
 				{
-					Quantity:  5,
-					DesignNum: player2.Designs[0].Num,
+					Quantity:  3,
+					DesignNum: player2.Designs[4].Num,
 				},
 				{
-					Quantity:  2,
-					DesignNum: player2.Designs[1].Num,
+					Quantity:  7,
+					DesignNum: player2.Designs[4].Num,
 				},
 			},
 		}}
