@@ -12,7 +12,7 @@
 	import FleetOtherFleetsHereTile from './FleetOtherFleetsHereTile.svelte';
 	import FleetSummaryTile from './FleetSummaryTile.svelte';
 	import FleetWaypointTaskTile from './FleetWaypointTaskTile.svelte';
-	import FleetWaypointsTile from './FleetWaypointsTile.svelte';
+	import FleetWaypointsTile, { type DeleteWaypointEvent } from './FleetWaypointsTile.svelte';
 	import PlanetFleetsInOrbitTile from './PlanetFleetsInOrbitTile.svelte';
 	import PlanetMineralsOnHandTile from './PlanetMineralsOnHandTile.svelte';
 	import PlanetProductionTile from './PlanetProductionTile.svelte';
@@ -25,11 +25,11 @@
 			MergeFleetsDialogEvent &
 			CargoTransferDialogEvent &
 			ProductionQueueDialogEvent &
-			TransportTasksDialogEvent
+			TransportTasksDialogEvent &
+			DeleteWaypointEvent
 	>();
 
 	const { universe, commandedPlanet, commandedFleet, splitAll } = getGameContext();
-
 </script>
 
 {#if $commandedPlanet}
@@ -42,7 +42,7 @@
 		<PlanetFleetsInOrbitTile
 			planet={$commandedPlanet}
 			fleetsInOrbit={$universe.getMyFleetsByPosition($commandedPlanet)}
-			on:cargo-transfer-dialog={(e) => dispatch('cargo-transfer-dialog', e.detail)}
+			on:cargo-transfer-dialog={(e) => dispatch('cargo-transfer-dialog', e?.detail)}
 		/>
 		<PlanetProductionTile
 			planet={$commandedPlanet}
@@ -58,7 +58,7 @@
 		<FleetSummaryTile fleet={$commandedFleet} />
 		<FleetOrbitingTile
 			fleet={$commandedFleet}
-			on:cargo-transfer-dialog={(e) => dispatch('cargo-transfer-dialog', e.detail)}
+			on:cargo-transfer-dialog={(e) => dispatch('cargo-transfer-dialog', e?.detail)}
 		/>
 		<FleetOtherFleetsHereTile
 			fleet={$commandedFleet}
@@ -66,7 +66,7 @@
 				.getMyFleetsByPosition($commandedFleet)
 				.filter((f) => f.num !== $commandedFleet?.num)}
 			on:split-fleet-dialog={(e) => dispatch('split-fleet-dialog', e.detail)}
-			on:cargo-transfer-dialog={(e) => dispatch('cargo-transfer-dialog', e.detail)}
+			on:cargo-transfer-dialog={(e) => dispatch('cargo-transfer-dialog', e?.detail)}
 		/>
 		<FleetCompositionTile
 			fleet={$commandedFleet}
@@ -78,9 +78,12 @@
 	<div class="lg:flex lg:flex-col">
 		<FleetFuelAndCargoTile
 			fleet={$commandedFleet}
-			on:cargo-transfer-dialog={(e) => dispatch('cargo-transfer-dialog', e.detail)}
+			on:cargo-transfer-dialog={(e) => dispatch('cargo-transfer-dialog', e?.detail)}
 		/>
-		<FleetWaypointsTile fleet={$commandedFleet} />
+		<FleetWaypointsTile
+			fleet={$commandedFleet}
+			on:delete-waypoint={(e) => dispatch('delete-waypoint')}
+		/>
 		<FleetWaypointTaskTile
 			fleet={$commandedFleet}
 			on:transport-tasks-dialog={(e) => dispatch('transport-tasks-dialog', e.detail)}

@@ -1,11 +1,16 @@
+<script lang="ts" context="module">
+	export type DeleteWaypointEvent = {
+		'delete-waypoint': void;
+	};
+</script>
+
 <script lang="ts">
 	import WarpSpeedGauge from '$lib/components/game/WarpSpeedGauge.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { CommandedFleet, Waypoint } from '$lib/types/Fleet';
-	import { MapObjectType, type MapObject, StargateWarpSpeed } from '$lib/types/MapObject';
+	import { MapObjectType, StargateWarpSpeed, type MapObject } from '$lib/types/MapObject';
 	import { distance } from '$lib/types/Vector';
-	import hotkeys from 'hotkeys-js';
-	import { onDestroy, onMount } from 'svelte';
+	import { createEventDispatcher, onMount } from 'svelte';
 	import CommandTile from './CommandTile.svelte';
 
 	const {
@@ -17,6 +22,7 @@
 		selectWaypoint,
 		updateFleetOrders
 	} = getGameContext();
+	const dispatch = createEventDispatcher<DeleteWaypointEvent>();
 
 	export let fleet: CommandedFleet;
 
@@ -114,18 +120,6 @@
 		}
 	}
 
-	async function deleteWaypoint() {
-		if (selectedWaypointIndex != 0 && fleet.waypoints) {
-			fleet.waypoints = fleet.waypoints.filter((wp) => wp != $selectedWaypoint);
-			
-			// select the previous waypoint
-			selectedWaypointIndex--;
-			onSelectWaypoint(fleet.waypoints[selectedWaypointIndex], selectedWaypointIndex);
-
-			await updateFleetOrders(fleet).then(() => updateNextPrevWaypoints());
-		}
-	}
-
 	function onNextWaypoint() {
 		if (selectedWaypointIndex + 1 < fleet.waypoints.length) {
 			onSelectWaypoint(fleet.waypoints[selectedWaypointIndex + 1], selectedWaypointIndex + 1);
@@ -139,16 +133,6 @@
 	}
 
 	onMount(() => {
-		// TODO: these hotkeys can't be on the component... they are wired up twice because we render the command pane twice
-		hotkeys('Delete', 'root', () => {
-			deleteWaypoint();
-		});
-		hotkeys('Backspace', 'root', () => {
-			deleteWaypoint();
-		});
-		// hotkeys('down', () => onNextWaypoint());
-		// hotkeys('up', () => onPrevWaypoint());
-
 		const unsubscribeSelectedWaypoint = selectedWaypoint?.subscribe(() => {
 			selectedWaypointIndex = fleet.waypoints.findIndex((wp) => wp == $selectedWaypoint);
 			if (selectedWaypointIndex == -1) {
@@ -172,11 +156,6 @@
 		return () => {
 			unsubscribeCommandedMapObject();
 			unsubscribeSelectedWaypoint();
-
-			hotkeys.unbind('Delete', 'root');
-			hotkeys.unbind('Backspace', 'root');
-			// hotkeys.unbind('down');
-			// hotkeys.unbind('up');
 		};
 	});
 </script>
@@ -206,7 +185,7 @@
 				<button
 					name="deleteWaypoint"
 					class="btn btn-outline btn-sm normal-case btn-secondary"
-					on:click={deleteWaypoint}
+					on:click={() => dispatch('delete-waypoint')}
 					>Delete
 				</button>
 			</div>
@@ -227,7 +206,9 @@
 							on:valuechanged={(e) => onWarpSpeedChanged(e.detail)}
 							on:valuedragged={(e) => onWarpSpeedDragged(e.detail)}
 							bind:value={$selectedWaypoint.warpSpeed}
-							warnSpeed={fleet.spec.engine.maxSafeSpeed ? fleet.spec.engine.maxSafeSpeed + 1 : undefined}
+							warnSpeed={fleet.spec.engine.maxSafeSpeed
+								? fleet.spec.engine.maxSafeSpeed + 1
+								: undefined}
 							max={StargateWarpSpeed}
 							useStargate={true}
 						/>
@@ -235,7 +216,9 @@
 						<WarpSpeedGauge
 							on:valuechanged={(e) => onWarpSpeedChanged(e.detail)}
 							on:valuedragged={(e) => onWarpSpeedDragged(e.detail)}
-							warnSpeed={fleet.spec.engine.maxSafeSpeed ? fleet.spec.engine.maxSafeSpeed + 1 : undefined}
+							warnSpeed={fleet.spec.engine.maxSafeSpeed
+								? fleet.spec.engine.maxSafeSpeed + 1
+								: undefined}
 							bind:value={$selectedWaypoint.warpSpeed}
 						/>
 					{/if}

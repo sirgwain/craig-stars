@@ -544,7 +544,7 @@
 		await updateFleetOrders($commandedFleet);
 
 		// select the new waypoint
-		selectWaypoint($commandedFleet.waypoints[$commandedFleet.waypoints.length - 1]);
+		selectWaypoint($commandedFleet.waypoints[waypointIndex + 1]);
 		if ($selectedWaypoint && $selectedWaypoint.targetType && $selectedWaypoint.targetNum) {
 			const mo = $universe.getMapObject($selectedWaypoint);
 
