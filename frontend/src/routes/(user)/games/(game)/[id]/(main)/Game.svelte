@@ -21,7 +21,19 @@
 	import Scanner from './scanner/Scanner.svelte';
 	import ScannerToolbar from './scanner/ScannerToolbar.svelte';
 
-	const { game, commandedPlanet, nextMapObject, previousMapObject } = getGameContext();
+	const {
+		game,
+		universe,
+		commandedPlanet,
+		commandedFleet,
+		selectedWaypoint,
+		currentSelectedWaypointIndex,
+		nextMapObject,
+		previousMapObject,
+		selectWaypoint,
+		selectMapObject,
+		updateFleetOrders
+	} = getGameContext();
 
 	let showProductionQueueDialog = false;
 	let showCargoTransferDialog = false;
@@ -45,13 +57,39 @@
 				showProductionQueueDialog = true;
 			}
 		});
+		hotkeys('Delete', 'root', () => {
+			onDeleteWaypoint();
+		});
+		hotkeys('Backspace', 'root', () => {
+			onDeleteWaypoint();
+		});
 
 		return () => {
 			hotkeys.unbind('n', 'root');
 			hotkeys.unbind('p', 'root');
 			hotkeys.unbind('q', 'root');
+			hotkeys.unbind('Delete', 'root');
+			hotkeys.unbind('Backspace', 'root');
 		};
 	});
+
+	async function onDeleteWaypoint() {
+		const selectedWaypointIndex = $currentSelectedWaypointIndex
+		if (selectedWaypoint && $commandedFleet && selectedWaypointIndex > 0) {
+			$commandedFleet.waypoints = $commandedFleet.waypoints.filter((wp) => wp != $selectedWaypoint);
+
+			// select the previous waypoint
+			const wp = $commandedFleet.waypoints[selectedWaypointIndex - 1];
+			selectWaypoint(wp);
+
+			const mo = $universe.getMapObject(wp);
+			if (mo) {
+				selectMapObject(mo);
+			}
+
+			await updateFleetOrders($commandedFleet);
+		}
+	}
 </script>
 
 <!-- for small mobile displays we put the scanner on top and the command pane below it-->
@@ -79,6 +117,7 @@
 					showTransportTasksDialog = true;
 					transportTasksDialogEventDetails = e.detail;
 				}}
+				on:delete-waypoint={onDeleteWaypoint}
 			/>
 		</div>
 		<div class="hidden lg:block lg:p-1 mx-2">
@@ -119,6 +158,7 @@
 				showTransportTasksDialog = true;
 				transportTasksDialogEventDetails = e.detail;
 			}}
+			on:delete-waypoint={onDeleteWaypoint}
 		/>
 	</div>
 </div>
