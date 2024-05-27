@@ -670,18 +670,19 @@ func (b *battle) fireWeaponSlot(weapon *battleWeaponSlot, targets []*battleToken
 }
 
 // fire a beam weapon slot at a slice of targets
-// this will find the first target still in the battle and fire at it
-// only one token stack can be hit by one beam weapon stack at a time
 func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot, targets []*battleToken) {
 	attackerShipToken := weapon.token
 	damage := weapon.power * weapon.slot.Quantity * attackerShipToken.Quantity
+	remainingDamage := float64(damage)
 
 	log.Debug().Msgf("%v is attempting to fire at %v targets for a total of %v damage", weapon.token, len(targets), damage)
 
-	// fire at each target. Note, regular beam weapons only hit one target, but gattlings keep firing
 	for _, target := range targets {
 		if !target.isStillInBattle() {
 			continue
+		}
+		if remainingDamage == 0 {
+			break
 		}
 		// skip targets that are out of shields for sappers
 		if weapon.damagesShieldsOnly && target.stackShields <= 0 {
@@ -693,29 +694,17 @@ func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot, targets []*battleToken
 
 		// beam weapon damage reduces by up to 10% over range. So a range 2 weapon is reduced 0% at 0 range, 5% at 1 range, and 10% at 2 range
 		distance := weapon.token.getDistanceAway(target.Position)
-		rangedDamage := float64(damage)
 		if weapon.weaponRange > 0 {
-			rangedDamage = rangedDamage * (1 - b.rules.BeamRangeDropoff*float64(distance)/float64(weapon.weaponRange))
+			remainingDamage = remainingDamage * (1 - b.rules.BeamRangeDropoff*float64(distance)/float64(weapon.weaponRange))
 		}
 
 		// account for beam defense
-		rangedDamage = rangedDamage * (1 - target.beamDefense)
+		remainingDamage = remainingDamage * (1 - target.beamDefense)
 
-		log.Debug().Msgf("%v fired %v %v(s) at %v (shields: %v, armor: %v, distance: %v, %v@%v damage) for %v (range adjusted to %v)",
-			weapon.token,
-			weapon.slot.Quantity,
-			weapon.slot.HullComponent,
-			target,
-			shields,
-			armor,
-			distance,
-			target.Quantity,
-			target.Damage,
-			damage,
-			rangedDamage)
+		log.Debug().Msgf("%v fired %v %v(s) at %v (shields: %v, armor: %v, distance: %v, %v@%v damage) for %v (range adjusted to %v)", weapon.token, weapon.slot.Quantity, weapon.slot.HullComponent, target, shields, armor, distance, target.Quantity, target.Damage, damage, remainingDamage)
 
-		if rangedDamage > float64(shields) && !weapon.damagesShieldsOnly {
-			remainingDamage := rangedDamage - float64(shields)
+		if remainingDamage > float64(shields) && !weapon.damagesShieldsOnly {
+			remainingDamage = remainingDamage - float64(shields)
 			target.stackShields = 0
 
 			existingDamage := target.Damage * float64(target.QuantityDamaged)
@@ -727,11 +716,12 @@ func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot, targets []*battleToken
 				target.Quantity = 0
 				target.quantityDestroyed += numDestroyed
 				b.board[target.Position.Y][target.Position.X] -= numDestroyed
+				remainingDamage -= float64(armor * numDestroyed)
 
 				target.destroyed = true
-				log.Debug().Msgf("%v %v %v(s) hit %v, did %v shield damage and %v armor damage and completely destroyed %v", weapon.token, weapon.slot.Quantity, weapon.slot.HullComponent, target, shields, int(rangedDamage)-shields, target)
+				log.Debug().Msgf("%v %v %v(s) hit %v, did %v shield damage and %v armor damage and completely destroyed %v", weapon.token, weapon.slot.Quantity, weapon.slot.HullComponent, target, shields, int(remainingDamage)-shields, target)
 
-				b.record.recordBeamFire(b.round, weapon.token, weapon.token.Position, target.Position, weapon.slot.HullSlotIndex, *target, shields, int(rangedDamage)-shields, numDestroyed)
+				b.record.recordBeamFire(b.round, weapon.token, weapon.token.Position, target.Position, weapon.slot.HullSlotIndex, *target, shields, int(remainingDamage)-shields, numDestroyed)
 			} else {
 				if numDestroyed > 0 {
 					target.Quantity -= numDestroyed
@@ -748,22 +738,26 @@ func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot, targets []*battleToken
 					log.Debug().Msgf("%v destroyed %v ships, leaving %v damaged %v@%v damage", weapon.token, numDestroyed, target, target.Quantity, target.Damage)
 				}
 
-				b.record.recordBeamFire(b.round, weapon.token, weapon.token.Position, target.Position, weapon.slot.HullSlotIndex, *target, shields, int(rangedDamage)-shields, numDestroyed)
+				b.record.recordBeamFire(b.round, weapon.token, weapon.token.Position, target.Position, weapon.slot.HullSlotIndex, *target, shields, int(remainingDamage)-shields, numDestroyed)
 			}
 
 		} else {
-			target.stackShields -= int(rangedDamage)
+			target.stackShields -= int(remainingDamage)
 			target.stackShields = MaxInt(0, target.stackShields) // make sure we don't go below 0
-			log.Debug().Msgf("%v firing %v %v(s) did %v damage to %v shields, leaving %v shields still operational.", weapon.token, weapon.slot.Quantity, weapon.slot.HullComponent, rangedDamage, target, target.stackShields)
-			b.record.recordBeamFire(b.round, weapon.token, weapon.token.Position, target.Position, weapon.slot.HullSlotIndex, *target, int(rangedDamage), 0, 0)
+			log.Debug().Msgf("%v firing %v %v(s) did %v damage to %v shields, leaving %v shields still operational.", weapon.token, weapon.slot.Quantity, weapon.slot.HullComponent, remainingDamage, target, target.stackShields)
+			b.record.recordBeamFire(b.round, weapon.token, weapon.token.Position, target.Position, weapon.slot.HullSlotIndex, *target, int(remainingDamage), 0, 0)
+			// no more damage left, all absorbed by shields
+			remainingDamage = 0
 		}
+
+		// reset damage for the next target
+		if weapon.hitsAllTargets {
+			remainingDamage = float64(damage)
+		}
+
+		log.Debug().Msgf("%v %v %v(s) has %v remaining dp to burn through %v additional targets.", weapon.token, weapon.slot.Quantity, weapon.slot.HullComponent, remainingDamage, len(targets)-1)
 
 		target.damaged = true
-
-		if !weapon.hitsAllTargets {
-			// we're not a gattling, so we're done after one shot
-			break
-		}
 	}
 }
 
