@@ -29,7 +29,7 @@
 		let color = '#555';
 		let strokeWidth = 0;
 		let strokeColor = '#888';
-		radius = 3;
+		radius = 2;
 
 		if (planet.reportAge !== Unexplored) {
 			strokeWidth = 1;
