@@ -81,7 +81,7 @@
 	const scale = writable($game.area.y / 400); // tiny games are at 1x starting zoom, the rest zoom in based on universe size
 	const clampedScale = writable($scale);
 	$: $clampedScale = Math.min(3, $scale); // don't let the scale used for scanner objects go more than 1/2th size
-	// $: console.log('scale ', $scale, ' clampedScale', $clampedScale);
+	$: console.log('scale ', $scale, ' clampedScale', $clampedScale);
 
 	const unsubscribe = zoomTarget.subscribe(() => showTargetLocation());
 
@@ -646,7 +646,8 @@
 		];
 	}
 
-	setContext('scale', clampedScale);
+	setContext('scale', scale);
+	setContext('clampedScale', clampedScale);
 </script>
 
 <svelte:window on:resize={handleResize} />

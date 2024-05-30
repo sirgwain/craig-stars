@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { Fleet } from '$lib/types/Fleet';
-	import { MapObjectType } from '$lib/types/MapObject';
+	import { MapObjectType, owned } from '$lib/types/MapObject';
 	import { Unexplored, type Planet } from '$lib/types/Planet';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 	import type { Writable } from 'svelte/store';
+	import ScannerFleetCount from './ScannerFleetCount.svelte';
 
 	const { settings } = getGameContext();
 	const { game, player, universe } = getGameContext();
@@ -25,41 +26,51 @@
 	$: planetX = $xGet(planet);
 	$: planetY = $yGet(planet);
 
-	$: starbaseWidth = (commanded ? 6 : 4) / $scale;
-	$: starbaseXOffset = (commanded ? 5 : 2) / $scale;
-	$: starbaseYOffset = (commanded ? 11 : 6) / $scale;
-	$: tokenCountOffset = (commanded ? 13 : 8) / $scale;
-	$: radius = (commanded ? 7 : 3) / $scale;
-	$: ringRadius = (commanded ? 10 : 5) / $scale;
-	let orbitingTokens = 0;
+	$: radius = owned(planet) ? (commanded ? 3 : 1.5) : commanded ? 2 : 1;
+	$: ringRadius = radius * 1.5;
+	$: strokeWidth = owned(planet) ? (commanded ? 0.5 : 0.3) : 0;
 
+	$: starbaseWidth = commanded ? 3 : 2;
+	$: starbaseXOffset = ringRadius * 0.75;
+	$: starbaseYOffset = ringRadius + starbaseWidth;
+
+	$: orbitingFleets = $universe
+		.getMapObjectsByPosition(planet)
+		.filter((mo) => mo.type === MapObjectType.Fleet);
+
+	// setup props for planet circle
 	$: {
-		const orbitingFleets = $universe
-			.getMapObjectsByPosition(planet)
-			.filter((mo) => mo.type === MapObjectType.Fleet);
-
 		// green for us, gray for unexplored, white for explored
 		let color = '#999999';
-		let strokeWidth = 0;
 		let strokeColor = '#999999';
 
 		if (planet.playerNum === $player.num) {
 			color = '#00FF00';
-			strokeWidth = 1 / $scale;
 		} else if (planet.playerNum) {
 			color = $universe.getPlayerColor(planet.playerNum) ?? '#FF0000';
 		} else if (planet.reportAge !== Unexplored && !planet.playerNum) {
 			color = '#FFF';
 		}
 
+		// setup the properties of our planet circle
+		props = {
+			r: radius,
+			fill: color,
+			stroke: strokeColor,
+			'stroke-width': strokeWidth
+		};
+	}
+
+	// setup props for the ring
+	$: {
 		// if anything is orbiting our planet, put a ring on it
 		if (orbitingFleets?.length > 0) {
-			let ringColor = '#fff';
+			let ringColor = '#FFFFFF';
 			let strokeDashArray = '';
 			const playerNums = new Set<number>(orbitingFleets.map((f) => f.playerNum));
 			if (playerNums.size == 1) {
 				if (orbitingFleets[0].playerNum === $player.num) {
-					ringColor = '#fff';
+					ringColor = '#FFFFFF';
 				} else if ($player.isEnemy(orbitingFleets[0].playerNum)) {
 					ringColor = '#FF0000';
 				} else {
@@ -71,33 +82,17 @@
 			}
 
 			ringProps = {
-				cx: $xGet(planet),
-				cy: $yGet(planet),
+				cx: planetX,
+				cy: planetY,
 				stroke: ringColor,
 				'stroke-dasharray': strokeDashArray,
-				'stroke-width': 1 / $scale,
+				'stroke-width': 0.5,
 				r: ringRadius,
 				'fill-opacity': 0
 			};
-
-			orbitingTokens = orbitingFleets
-				.map((of) => of as Fleet)
-				.reduce(
-					(count, f) =>
-						count + (f.tokens ? f.tokens.reduce((tokenCount, t) => tokenCount + t.quantity, 0) : 0),
-					0
-				);
 		} else {
 			ringProps = undefined;
 		}
-
-		// setup the properties of our planet circle
-		props = {
-			r: radius,
-			fill: color,
-			stroke: strokeColor,
-			'stroke-width': strokeWidth
-		};
 	}
 </script>
 
@@ -135,9 +130,4 @@
 		y={planetY - starbaseYOffset - starbaseWidth / 2}
 	/>
 {/if}
-{#if $settings.showFleetTokenCounts && orbitingTokens}
-	<!-- translate the group to the location of the fleet so when we scale the text it is around the center-->
-	<g transform={`translate(${planetX - ringRadius} ${planetY + tokenCountOffset * 2.5})`}>
-		<text transform={`scale(${1 / $scale})`} class="fill-base-content">{orbitingTokens}</text>
-	</g>
-{/if}
+<ScannerFleetCount {planet} yOffset={ringRadius} />

@@ -11,7 +11,6 @@
 
 	const { universe, highlightedMapObject } = getGameContext();
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
-	const scale = getContext<Writable<number>>('scale');
 
 	export let transform: ZoomTransform;
 
