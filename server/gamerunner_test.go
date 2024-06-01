@@ -23,22 +23,6 @@ func createTestGameRunner() GameRunner {
 		panic(fmt.Errorf("connect to test database, %w", err))
 	}
 
-	// create a test user with a single race
-	user, err := cs.NewUser("admin", "admin", "admin@craig-stars.net", cs.RoleAdmin)
-	if err != nil {
-		panic(fmt.Errorf("generate test user, %w", err))
-	}
-	readWriteClient := dbConn.NewReadWriteClient()
-	if err := readWriteClient.CreateUser(user); err != nil {
-		panic(fmt.Errorf("create test database user, %w", err))
-	}
-
-	race := cs.Humanoids()
-	race.UserID = 1
-	if err := readWriteClient.CreateRace(&race); err != nil {
-		panic(fmt.Errorf("create test user race, %w", err))
-	}
-
 	return &gameRunner{
 		dbConn: dbConn,
 		client: cs.NewGamer(),
@@ -69,17 +53,6 @@ func Test_gameRunner_GenerateTurns(t *testing.T) {
 	cfg.Database.UsersFilename = ":memory:"
 	if err := dbConn.Connect(cfg); err != nil {
 		panic(fmt.Errorf("connect to test database, %w", err))
-	}
-
-	// create a test user
-	user, err := cs.NewUser("admin", "admin", "admin@craig-stars.net", cs.RoleAdmin)
-	if err != nil {
-		panic(fmt.Errorf("generate test user, %w", err))
-	}
-
-	readWriteClient := dbConn.NewReadWriteClient()
-	if err := readWriteClient.CreateUser(user); err != nil {
-		panic(fmt.Errorf("create test database user, %w", err))
 	}
 
 	// create a race per PRT
