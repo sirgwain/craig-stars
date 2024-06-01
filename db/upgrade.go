@@ -58,6 +58,7 @@ func (tx *client) ensureUpgrade() error {
 			// check each version and call the upgrade functionality
 			switch current {
 			case 0:
+				err = u.initStarterDB()
 				err = u.upgrade1()
 			case 1:
 				err = u.upgrade2()
@@ -135,6 +136,26 @@ func (u *upgrade) upgradeGames(upgradeGame func(fg *cs.FullGame) error) error {
 			return err
 		}
 	}
+	return nil
+}
+
+func (u *upgrade) initStarterDB() error {
+	log.Info().Msg("initializing starter database with admin user, no password")
+	user, err := cs.NewUser("admin", "admin", "", cs.RoleAdmin)
+	if err != nil {
+		return err
+	}
+
+	// create the admin user, no password
+	if err := u.tx.CreateUser(user); err != nil {
+		return err
+	}
+
+	rules := cs.NewRules()
+	if err := u.tx.CreateRace(cs.NewRace().WithUserID(user.ID).WithSpec(&rules)); err != nil {
+		return err
+	}
+
 	return nil
 }
 

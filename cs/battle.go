@@ -499,7 +499,7 @@ func (b *battle) runBattle() *BattleRecord {
 			// which we figured out in BuildMovement
 			roundBlock := b.round % 4
 			for _, token := range moveOrder[roundBlock] {
-				b.moveToken(token, weaponSlots)
+				b.moveToken(token)
 			}
 
 			// iterate over each weapon and fire if they have a target
@@ -929,7 +929,7 @@ func (b *battle) fireTorpedo(weapon *battleWeaponSlot, targets []*battleToken) {
 }
 
 // moveToken moves a token towards or away from its target
-func (b *battle) moveToken(token *battleToken, weaponSlots []*battleWeaponSlot) {
+func (b *battle) moveToken(token *battleToken) {
 	if !token.isStillInBattle() {
 		return
 	}
@@ -949,10 +949,10 @@ func (b *battle) moveToken(token *battleToken, weaponSlots []*battleWeaponSlot) 
 	oldPosition := token.Position
 
 	if token.Tactic == BattleTacticDisengage {
-		b.runAway(token, weaponSlots)
+		b.runAway(token)
 	} else {
 		// create a move record for the viewer and then move the token
-		bestMove := b.getBestAttackMove(token)
+		bestMove := b.getBestMove(token)
 		b.record.recordMove(b.round, token, token.Position, bestMove)
 		token.Position = bestMove
 	}
@@ -997,25 +997,48 @@ func updateBestMoves(better bool, newPosition BattleVector, bestMoves []BattleVe
 // this checks all the nearby squares and moves in the direction that gets the token
 // closer or does the best damage, according to the battle plan
 // i.e. max damage, max damage ratio, max net damage, etc
-func (b *battle) getBestAttackMove(token *battleToken) BattleVector {
+func (b *battle) getBestMove(token *battleToken) BattleVector {
 
 	bestDamageDone := 0
 	bestDamageTaken := math.MaxInt
 	bestDamageRatio := 0.0
 	bestNetDamage := -math.MaxInt
-	target := token.moveTarget
 	bestMoves := make([]BattleVector, 0, 9)
 	bestMoves = append(bestMoves, token.Position)
 	lowestDamageMoves := make([]BattleVector, 0, 9)
 	lowestDamageMoves = append(lowestDamageMoves, token.Position)
 	bestDamageTakenForLowestDamageMove := math.MaxInt
-	currentDistance := token.getDistanceAway(target.Position)
+
+	// target is either whoever this token is targeting, or targeted by
+	target := token.moveTarget
+	var currentDistance int
+	if target != nil {
+		currentDistance = token.getDistanceAway(target.Position)
+	} else {
+		currentDistance = math.MaxInt
+		for _, targetedBy := range token.targetedBy {
+			// find the closest ship targeting us
+			// TODO: maybe find the scariest target?
+			dist := token.getDistanceAway(targetedBy.Position)
+			if dist < currentDistance {
+				currentDistance = dist
+				target = targetedBy
+			}
+		}
+	}
 
 	for dx := -1; dx <= 1; dx++ {
 		for dy := -1; dy <= 1; dy++ {
 			newPosition := BattleVector{token.Position.X + dx, token.Position.Y + dy}
 			if newPosition.X < 0 || newPosition.X >= battleWidth || newPosition.Y < 0 || newPosition.Y >= battleHeight {
 				// skip invalid squares
+				continue
+			}
+
+			// if we are running away and no one is targeting us
+			if target == nil {
+				// no one is targeting us, add this square to random moves
+				lowestDamageMoves = append(lowestDamageMoves, newPosition)
 				continue
 			}
 
@@ -1029,7 +1052,9 @@ func (b *battle) getBestAttackMove(token *battleToken) BattleVector {
 			}
 
 			// if this will move us closer to our target, see if it's the best low damage move
-			if distance < currentDistance && bestDamageTakenForLowestDamageMove >= damageTaken {
+			// or, if this distance is greater than our currentDistance and we're running away, see if it's the best low damage move
+			if distance < currentDistance && bestDamageTakenForLowestDamageMove >= damageTaken ||
+				token.Tactic == BattleTacticDisengage && distance > currentDistance && bestDamageTakenForLowestDamageMove >= damageTaken {
 				lowestDamageMoves = updateBestMoves(bestDamageTakenForLowestDamageMove > damageTaken, newPosition, lowestDamageMoves)
 				bestDamageTakenForLowestDamageMove = damageTaken
 			}
@@ -1076,59 +1101,7 @@ func (b *battle) getBestAttackMove(token *battleToken) BattleVector {
 	return bestMoves[b.rules.random.Intn(len(bestMoves))]
 }
 
-func (b *battle) getBestRunAwayMove(token *battleToken) BattleVector {
-
-	bestDamageTaken := math.MaxInt
-	var bestMove = token.Position
-	bestDistance := 0
-	pickedMove := false
-
-	for dx := -1; dx <= 1; dx++ {
-		for dy := -1; dy <= 1; dy++ {
-			newPosition := BattleVector{token.Position.X + dx, token.Position.Y + dy}
-			if newPosition.X < 0 || newPosition.X >= battleWidth || newPosition.Y < 0 || newPosition.Y >= battleHeight {
-				// skip invalid squares
-				continue
-			}
-
-			if len(token.targetedBy) == 0 {
-				if !pickedMove {
-					bestMove = newPosition
-					continue
-				}
-
-				// flip a coin to pick this move
-				if b.rules.random.Intn(2) == 0 {
-					bestMove = newPosition
-					pickedMove = true
-				}
-			}
-
-			// for each attacker targetting us, check the distance
-			// and possible damange taken if we were to move
-			// into this square
-			damageTaken := 0
-			for _, attacker := range token.targetedBy {
-				distance := token.getDistanceAway(attacker.Position)
-				damageTaken += b.getDamageDone(attacker, distance)
-
-				// if this will move us away from this fleet targeting us, see if it's the best low damage move
-				if distance >= bestDistance && bestDamageTaken <= damageTaken {
-					// if this damage is the same, flip a coin to take this new move or not
-					if bestDamageTaken == damageTaken && b.rules.random.Intn(2) == 0 {
-						break
-					}
-					bestDistance = distance
-					bestDamageTaken = damageTaken
-					bestMove = newPosition
-				}
-			}
-		}
-	}
-
-	return bestMove
-}
-func (b *battle) runAway(token *battleToken, weapons []*battleWeaponSlot) {
+func (b *battle) runAway(token *battleToken) {
 
 	if token.movesMade >= b.rules.MovesToRunAway {
 		// we've moved enough to leave the board
@@ -1139,7 +1112,7 @@ func (b *battle) runAway(token *battleToken, weapons []*battleWeaponSlot) {
 	}
 
 	// find the best move for running away
-	newPosition := b.getBestRunAwayMove(token)
+	newPosition := b.getBestMove(token)
 	b.record.recordMove(b.round, token, token.Position, newPosition)
 	token.Position = newPosition
 }

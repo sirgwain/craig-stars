@@ -50,7 +50,7 @@ Point your browser at [http://localhost:5173](http://localhost:5173) to see a li
 
 
 ## backend
-To launch the front end and backend separately, you can call `air` directly.
+To launch the front end and backend separately, you can call `air` directly. On first launch, this will create an empty database with a single `admin` user, password `admin`. 
 
 ```zsh
 ❯ air

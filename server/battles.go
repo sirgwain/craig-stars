@@ -34,6 +34,26 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 				{HullComponent: cs.GorillaDelagator.Name, HullSlotIndex: 7, Quantity: 4},
 			}),
 		cs.NewShipDesign(player1, 2).
+			WithName("Long Range Scout").
+			WithHull(cs.Scout.Name).
+			WithSlots([]cs.ShipDesignSlot{
+				{HullComponent: cs.LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
+				{HullComponent: cs.RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
+				{HullComponent: cs.CompletePhaseShield.Name, HullSlotIndex: 3, Quantity: 1},
+			}),
+		cs.NewShipDesign(player1, 3).
+			WithName("Stalwart Defender").
+			WithHull(cs.Destroyer.Name).
+			WithSlots([]cs.ShipDesignSlot{
+				{HullComponent: cs.LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
+				{HullComponent: cs.OmegaTorpedo.Name, HullSlotIndex: 2, Quantity: 1},
+				{HullComponent: cs.ColloidalPhaser.Name, HullSlotIndex: 3, Quantity: 1},
+				{HullComponent: cs.RhinoScanner.Name, HullSlotIndex: 4, Quantity: 1},
+				{HullComponent: cs.Superlatanium.Name, HullSlotIndex: 5, Quantity: 1},
+				{HullComponent: cs.Overthruster.Name, HullSlotIndex: 6, Quantity: 1},
+				{HullComponent: cs.BattleComputer.Name, HullSlotIndex: 7, Quantity: 1},
+			}),
+		cs.NewShipDesign(player1, 4).
 			WithName("Accelerator Platform").
 			WithHull(cs.OrbitalFort.Name).
 			WithSlots([]cs.ShipDesignSlot{
@@ -95,34 +115,49 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 			}),
 	)
 
+	p1BattleCruiser := player1.Designs[0]
+	p1Scout := player1.Designs[1]
+	p1StalwartDefender := player1.Designs[2]
+	p1AcceleratorPlatform := player1.Designs[3]
+	p2Teamster := player2.Designs[0]
+	p2Scout := player2.Designs[1]
+	p2StalwartDefender := player2.Designs[2]
+	p2Sapper := player2.Designs[3]
+	p2Frigate := player2.Designs[4]
+	_ = p1BattleCruiser
+	_ = p1Scout
+	_ = p1StalwartDefender
+	_ = p1AcceleratorPlatform
+	_ = p2Teamster
+	_ = p2Scout
+	_ = p2StalwartDefender
+	_ = p2Sapper
+	_ = p2Frigate
+
 	fleets := []*cs.Fleet{
-		// player1's platform
+		// player1's tokens
 		{
 			MapObject: cs.MapObject{
 				PlayerNum: player1.Num,
 			},
-			BaseName: "Accelerator Platform",
+			BaseName: "Fleet1",
 			Tokens: []cs.ShipToken{
 				{
-					DesignNum: player1.Designs[1].Num,
+					DesignNum: p1StalwartDefender.Num,
 					Quantity:  1,
 				},
 			},
 		},
-		// player2's stalwart defenders
+		// player2's tokens
 		{
 			MapObject: cs.MapObject{
 				PlayerNum: player2.Num,
 			},
-			BaseName: "Frigate",
+			BaseName: "Fleet2",
 			Tokens: []cs.ShipToken{
 				{
-					Quantity:  3,
-					DesignNum: player2.Designs[4].Num,
-				},
-				{
-					Quantity:  7,
-					DesignNum: player2.Designs[4].Num,
+					Quantity:  5,
+					DesignNum: p2Scout.Num,
 				},
 			},
 		}}
