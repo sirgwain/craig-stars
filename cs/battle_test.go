@@ -290,6 +290,57 @@ func Test_battleWeaponSlot_isInRangePosition(t *testing.T) {
 	}
 }
 
+func Test_battle_getBestMove(t *testing.T) {
+	type args struct {
+		token *battleToken
+	}
+	tests := []struct {
+		name string
+		args args
+		want BattleVector
+	}{
+		{
+			name: "token at 0,0 move towards target at 1,0",
+			args: args{
+				token: &battleToken{
+					BattleRecordToken: BattleRecordToken{Position: BattleVector{0, 0}},
+					moveTarget:        &battleToken{BattleRecordToken: BattleRecordToken{Position: BattleVector{1, 0}}}},
+			},
+			want: BattleVector{1, 0},
+		},
+		{
+			name: "token at 3,3 move away from targetedBy at 3,3",
+			args: args{
+				token: &battleToken{
+					BattleRecordToken: BattleRecordToken{Position: BattleVector{3, 3}, Tactic: BattleTacticDisengage},
+					targetedBy:        []*battleToken{{BattleRecordToken: BattleRecordToken{Position: BattleVector{3, 3}}}}},
+			},
+			want: BattleVector{4, 4},
+		},
+		// this depends on a random number. TODO: mock the random
+		// {
+		// 	name: "token at 8,5 move away from targetedBy at 1,4",
+		// 	args: args{
+		// 		token: &battleToken{
+		// 			BattleRecordToken: BattleRecordToken{Position: BattleVector{8, 5}, Tactic: BattleTacticDisengage},
+		// 			targetedBy:        []*battleToken{{BattleRecordToken: BattleRecordToken{Position: BattleVector{1, 4}}}}},
+		// 	},
+		// 	want: BattleVector{7, 5},
+		// },
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			b := &battle{
+				tokens: []*battleToken{tt.args.token},
+				rules:  &rules,
+			}
+			if got := b.getBestMove(tt.args.token); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("battle.getBestMove() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func Test_battle_fireBeamWeapon(t *testing.T) {
 
 	type weapon struct {

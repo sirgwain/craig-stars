@@ -1746,6 +1746,7 @@ func Test_turn_fleetBattle3Players(t *testing.T) {
 	}
 
 	fleet3 := testStalwartDefender(player3)
+	fleet3.Tokens[0].Quantity = 5
 	fleet3.Waypoints = []Waypoint{
 		NewPositionWaypoint(Vector{}, 5),
 	}
