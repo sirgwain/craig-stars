@@ -1,11 +1,13 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { Fleet } from '$lib/types/Fleet';
-	import { MapObjectType, None } from '$lib/types/MapObject';
+	import { None } from '$lib/types/MapObject';
 	import { Unexplored, type Planet } from '$lib/types/Planet';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
+	import ScannerFleetCount from './ScannerPlanetFleetCount.svelte';
+	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';
 	import type { Writable } from 'svelte/store';
+	import { clamp } from '$lib/services/Math';
 
 	const { game, player, universe, settings } = getGameContext();
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
@@ -19,19 +21,18 @@
 	$: planetX = $xGet(planet);
 	$: planetY = $yGet(planet);
 
-	const fullyHabitableRadius = 7;
-	let orbitingTokens = 0;
-	let radius = 3;
-	let tokenCountOffset = 8;
+	const fullyHabitableRadius = 15;
+	const minRadius = 3;
+	let radius = minRadius;
+
+	$: clampedScale = clamp($scale, 2, 10)
 
 	$: {
 		// green for us, gray for unexplored, white for explored
 		let color = '#555';
 		let strokeWidth = 0;
 		let strokeColor = '#888';
-		let minRadius = 2;
-		radius = 3;
-		tokenCountOffset = 8;
+		radius = minRadius;
 
 		if (planet.reportAge !== Unexplored) {
 			strokeWidth = 1;
@@ -58,20 +59,6 @@
 			}
 		}
 
-		tokenCountOffset = 3 + radius / $scale;
-
-		const orbitingFleets = $universe
-			.getMapObjectsByPosition(planet)
-			.filter((mo) => mo.type === MapObjectType.Fleet);
-
-		orbitingTokens = orbitingFleets
-			.map((of) => of as Fleet)
-			.reduce(
-				(count, f) =>
-					count + (f.tokens ? f.tokens.reduce((tokenCount, t) => tokenCount + t.quantity, 0) : 0),
-				0
-			);
-
 		// setup the properties of our planet circle
 		props = {
 			r: radius,
@@ -82,23 +69,16 @@
 	}
 </script>
 
-<circle cx={planetX} cy={planetY} {...props} />
-
-{#if planet.reportAge !== Unexplored && planet.playerNum != None}
-	<!-- draw the flag  -->
-	<rect width="8" height="6" x={planetX} y={planetY - fullyHabitableRadius * 2} fill={flagColor} />
-	<path
-		d={`M${planetX}, ${planetY}L${planetX}, ${planetY - fullyHabitableRadius * 2}`}
-		stroke={flagColor}
-	/>
-{/if}
-{#if $settings.showFleetTokenCounts && orbitingTokens}
-	<!-- translate the group to the location of the fleet so when we scale the text it is around the center-->
-	<g
-		transform={`translate(${planetX - (8/$scale)} ${
-			planetY + tokenCountOffset * 2.5
-		})`}
-	>
-		<text transform={`scale(${1 / $scale})`} class="fill-base-content">{orbitingTokens}</text>
+{#if planet.reportAge !== Unexplored}
+	<g transform={`translate(${planetX}, ${planetY}), scale(${1 / clampedScale})`}>
+		<circle cx={0} cy={0} {...props} />
+		{#if planet.playerNum != None}
+			<!-- draw the flag  -->
+			<rect width="12" height="10" x={0} y={-fullyHabitableRadius * 2} fill={flagColor} />
+			<path d={`M${0}, ${0}L${0}, ${-fullyHabitableRadius * 2}`} stroke={flagColor} stroke-width={2} />
+		{/if}
 	</g>
+	<ScannerFleetCount {planet} yOffset={radius} />
+{:else}
+	<ScannerPlanetNormal {planet} />
 {/if}

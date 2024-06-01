@@ -5,22 +5,36 @@
 <script lang="ts">
 	import SelectedMapObject from '$lib/components/icons/SelectedMapObject.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
+	import type { Fleet } from '$lib/types/Fleet';
+	import { MapObjectType, equal, type MapObject } from '$lib/types/MapObject';
+	import type { Planet } from '$lib/types/Planet';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
-	import type { Writable } from 'svelte/store';
+	import MapObjectScaler from './MapObjectScaler.svelte';
 
-	const { selectedMapObject } = getGameContext();
+	const { selectedMapObject, commandedMapObject } = getGameContext();
 	const { xGet, yGet, xScale, yScale } = getContext<LayerCake>('LayerCake');
-	const scale = getContext<Writable<number>>('scale');
 
-	$: size = 15 / $scale;
+	const commanded = (
+		selectedMapObject: MapObject | undefined,
+		commandedMapObject: MapObject | undefined
+	): boolean => {
+		if (
+			equal(selectedMapObject, commandedMapObject) ||
+			(commandedMapObject?.type == MapObjectType.Fleet &&
+				selectedMapObject?.type == MapObjectType.Planet &&
+				(commandedMapObject as Fleet).orbitingPlanetNum == selectedMapObject.num)
+		) {
+			return true;
+		}
+		return false;
+	};
+
+	$: size = commanded($selectedMapObject, $commandedMapObject) ? 15 : 10;
 </script>
 
 {#if $selectedMapObject}
-	<SelectedMapObject
-		x={$xGet($selectedMapObject) - 7.5 / $scale}
-		y={$yGet($selectedMapObject) + 9 / $scale}
-		width={size}
-		height={size}
-	/>
+	<MapObjectScaler mapObject={$selectedMapObject}>
+		<SelectedMapObject x={-size / 2} y={size * 0.5} width={size} height={size} />
+	</MapObjectScaler>
 {/if}

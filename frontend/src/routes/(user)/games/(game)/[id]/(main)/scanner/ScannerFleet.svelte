@@ -9,6 +9,7 @@
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 	import type { Writable } from 'svelte/store';
+	import MapObjectScaler from './MapObjectScaler.svelte';
 
 	const { settings } = getGameContext();
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
@@ -21,7 +22,7 @@
 
 	let angle = 0;
 
-	$: size = 8 / $scale;
+	const size = 8;
 
 	// identity or default is rotated 90º, or pointing up and to the right
 	const angleOffset = 225;
@@ -40,16 +41,16 @@
 </script>
 
 <!-- ScannerFleet -->
-<polygon
-	points={`0,0 0,${size} ${size},${size}`}
-	fill={commanded ? commandedColor : color}
-	transform={`translate(${$xGet(fleet)} ${$yGet(fleet)}) rotate(${angle}) translate(${-size / 2} ${
-		-size / 2
-	})`}
-/>
-{#if $settings.showFleetTokenCounts}
-	<!-- translate the group to the location of the fleet so when we scale the text it is around the center-->
-	<g transform={`translate(${$xGet(fleet) - size / 2} ${$yGet(fleet) + size * 2.5})`}>
-		<text transform={`scale(${1 / $scale})`} class="fill-base-content">{tokenCount}</text>
-	</g>
-{/if}
+<MapObjectScaler mapObject={fleet}>
+	<polygon
+		points={`0,0 0,${size} ${size},${size}`}
+		fill={commanded ? commandedColor : color}
+		transform={`rotate(${angle}) translate(${-size / 2} ${-size / 2})`}
+	/>
+	{#if $settings.showFleetTokenCounts}
+		<!-- position the text below the fleet -->
+		<text transform={`translate(0 ${size * 2.5})`} text-anchor="middle" class="fill-base-content"
+			>{tokenCount}</text
+		>
+	{/if}
+</MapObjectScaler>
