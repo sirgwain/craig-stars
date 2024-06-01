@@ -49,7 +49,7 @@
 	/>
 	{#if $settings.showFleetTokenCounts}
 		<!-- position the text below the fleet -->
-		<text transform={`translate(0 ${size * 2.5})`} text-anchor="middle" class="fill-base-content"
+		<text transform={`translate(0 ${size * 2.5})`} text-anchor="middle" class="fill-white"
 			>{tokenCount}</text
 		>
 	{/if}

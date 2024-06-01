@@ -30,7 +30,7 @@
 {#if $settings.showFleetTokenCounts && orbitingTokens}
 	<!-- translate the group to the location of the fleet so when we scale the text it is around the center-->
 	<g transform={`translate(${$xGet(planet)} ${$yGet(planet) + yOffset + 20 / $scale})`}>
-		<text transform={`scale(${1 / $scale})`} text-anchor="middle" class="fill-base-content"
+		<text transform={`scale(${1 / $scale})`} text-anchor="middle" class="fill-white"
 			>{orbitingTokens}</text
 		>
 	</g>
