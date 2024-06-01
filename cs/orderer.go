@@ -147,6 +147,10 @@ func (o *orders) UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrd
 	wp0.TransferToPlayer = newWP0.TransferToPlayer
 
 	fleet.Waypoints = append(fleet.Waypoints[:1], orders.Waypoints[1:]...)
+	if len(fleet.Waypoints) > 1 {
+		fleet.Heading = (fleet.Waypoints[1].Position.Subtract(fleet.Position)).Normalized()
+	}
+	
 	fleet.computeFuelUsage(player)
 	fleet.MarkDirty()
 
