@@ -1,12 +1,13 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { Fleet } from '$lib/types/Fleet';
-	import { MapObjectType, None } from '$lib/types/MapObject';
+	import { None } from '$lib/types/MapObject';
 	import { Unexplored, type Planet } from '$lib/types/Planet';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
+	import ScannerFleetCount from './ScannerPlanetFleetCount.svelte';
+	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';
 	import type { Writable } from 'svelte/store';
-	import ScannerFleetCount from './ScannerFleetCount.svelte';
+	import { clamp } from '$lib/services/Math';
 
 	const { game, player, universe, settings } = getGameContext();
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
@@ -20,16 +21,18 @@
 	$: planetX = $xGet(planet);
 	$: planetY = $yGet(planet);
 
-	const fullyHabitableRadius = 5;
-	const minRadius = 1;
-	let radius = 3;
+	const fullyHabitableRadius = 15;
+	const minRadius = 3;
+	let radius = minRadius;
+
+	$: clampedScale = clamp($scale, 2, 10)
 
 	$: {
 		// green for us, gray for unexplored, white for explored
 		let color = '#555';
 		let strokeWidth = 0;
 		let strokeColor = '#888';
-		radius = 2;
+		radius = minRadius;
 
 		if (planet.reportAge !== Unexplored) {
 			strokeWidth = 1;
@@ -66,14 +69,16 @@
 	}
 </script>
 
-<circle cx={planetX} cy={planetY} {...props} />
-
-{#if planet.reportAge !== Unexplored && planet.playerNum != None}
-	<!-- draw the flag  -->
-	<rect width="8" height="6" x={planetX} y={planetY - fullyHabitableRadius * 2} fill={flagColor} />
-	<path
-		d={`M${planetX}, ${planetY}L${planetX}, ${planetY - fullyHabitableRadius * 2}`}
-		stroke={flagColor}
-	/>
+{#if planet.reportAge !== Unexplored}
+	<g transform={`translate(${planetX}, ${planetY}), scale(${1 / clampedScale})`}>
+		<circle cx={0} cy={0} {...props} />
+		{#if planet.playerNum != None}
+			<!-- draw the flag  -->
+			<rect width="12" height="10" x={0} y={-fullyHabitableRadius * 2} fill={flagColor} />
+			<path d={`M${0}, ${0}L${0}, ${-fullyHabitableRadius * 2}`} stroke={flagColor} stroke-width={2} />
+		{/if}
+	</g>
+	<ScannerFleetCount {planet} yOffset={radius} />
+{:else}
+	<ScannerPlanetNormal {planet} />
 {/if}
-<ScannerFleetCount {planet} yOffset={radius} />

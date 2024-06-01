@@ -13,8 +13,15 @@
 	import SurfaceMinerals from '$lib/components/icons/SurfaceMinerals.svelte';
 	import { clamp } from '$lib/services/Math';
 	import FleetCount from '$lib/components/icons/FleetCount.svelte';
+	import { clickOutside } from '$lib/clickOutside';
 
 	const { player, settings, nextMapObject, previousMapObject } = getGameContext();
+	let menuDropdown: HTMLDetailsElement | undefined;
+
+	function closeMenu() {
+		menuDropdown?.removeAttribute('open');
+	}
+	settings.subscribe(closeMenu);
 </script>
 
 <div class="flex-initial navbar bg-base-200 py-0 my-0 min-h-0">
@@ -25,7 +32,7 @@
 		<ul class="menu menu-horizontal">
 			<!-- submenu -->
 			<li>
-				<details>
+				<details bind:this={menuDropdown} use:clickOutside={closeMenu}>
 					<summary>
 						<a href="#planet-view-states" class="btn btn-primary btn-xs w-12 h-12">
 							{#if $settings.planetViewState == PlanetViewState.Normal}

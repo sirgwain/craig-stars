@@ -1,17 +1,18 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { Fleet } from '$lib/types/Fleet';
 	import { MapObjectType, owned } from '$lib/types/MapObject';
 	import { Unexplored, type Planet } from '$lib/types/Planet';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
-	import type { Writable } from 'svelte/store';
-	import ScannerFleetCount from './ScannerFleetCount.svelte';
+	import ScannerFleetCount from './ScannerPlanetFleetCount.svelte';
+	import type { Readable, Writable } from 'svelte/store';
+	import { clamp } from '$lib/services/Math';
+	import MapObjectScaler from './MapObjectScaler.svelte';
 
 	const { settings } = getGameContext();
 	const { game, player, universe } = getGameContext();
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
-	const scale = getContext<Writable<number>>('scale');
+	const objectScale = getContext<Readable<number>>('objectScale');
 
 	export let planet: Planet;
 	export let commanded = false;
@@ -23,14 +24,11 @@
 	$: hasMassDriver = planet.spec?.hasMassDriver;
 	$: hasStargate = planet.spec?.hasStargate;
 
-	$: planetX = $xGet(planet);
-	$: planetY = $yGet(planet);
-
-	$: radius = owned(planet) ? (commanded ? 3 : 1.5) : commanded ? 2 : 1;
+	$: radius = owned(planet) ? (commanded ? 6 : 3) : commanded ? 4 : 2;
 	$: ringRadius = radius * 1.5;
-	$: strokeWidth = owned(planet) ? (commanded ? 0.5 : 0.3) : 0;
+	$: strokeWidth = owned(planet) ? (commanded ? 1 : 0.6) : 0;
 
-	$: starbaseWidth = commanded ? 3 : 2;
+	$: starbaseWidth = commanded ? 6 : 4;
 	$: starbaseXOffset = ringRadius * 0.75;
 	$: starbaseYOffset = ringRadius + starbaseWidth;
 
@@ -82,8 +80,6 @@
 			}
 
 			ringProps = {
-				cx: planetX,
-				cy: planetY,
 				stroke: ringColor,
 				'stroke-dasharray': strokeDashArray,
 				'stroke-width': 0.5,
@@ -96,38 +92,40 @@
 	}
 </script>
 
-{#if ringProps}
-	<circle {...ringProps} />
-{/if}
-<circle cx={planetX} cy={planetY} {...props} />
-{#if hasStarbase}
-	<rect
-		class="starbase"
-		width={starbaseWidth}
-		height={starbaseWidth}
-		rx={0.5}
-		x={planetX + starbaseXOffset}
-		y={planetY - starbaseYOffset}
-	/>
-{/if}
-{#if hasStargate}
-	<rect
-		class="stargate"
-		width={starbaseWidth}
-		height={starbaseWidth}
-		rx={0.5}
-		x={planetX - starbaseXOffset - starbaseWidth}
-		y={planetY - starbaseYOffset}
-	/>
-{/if}
-{#if hasMassDriver}
-	<rect
-		class="massdriver"
-		width={starbaseWidth}
-		height={starbaseWidth}
-		rx={0.5}
-		x={planetX - starbaseWidth / 2}
-		y={planetY - starbaseYOffset - starbaseWidth / 2}
-	/>
-{/if}
-<ScannerFleetCount {planet} yOffset={ringRadius} />
+<MapObjectScaler mapObject={planet}>
+	{#if ringProps}
+		<circle {...ringProps} />
+	{/if}
+	<circle {...props} />
+	{#if hasStarbase}
+		<rect
+			class="starbase"
+			width={starbaseWidth}
+			height={starbaseWidth}
+			rx={0.5}
+			x={starbaseXOffset}
+			y={-starbaseYOffset}
+		/>
+	{/if}
+	{#if hasStargate}
+		<rect
+			class="stargate"
+			width={starbaseWidth}
+			height={starbaseWidth}
+			rx={0.5}
+			x={-starbaseXOffset - starbaseWidth}
+			y={-starbaseYOffset}
+		/>
+	{/if}
+	{#if hasMassDriver}
+		<rect
+			class="massdriver"
+			width={starbaseWidth}
+			height={starbaseWidth}
+			rx={0.5}
+			x={-starbaseWidth / 2}
+			y={-starbaseYOffset - starbaseWidth / 2}
+		/>
+	{/if}
+</MapObjectScaler>
+<ScannerFleetCount {planet} yOffset={ringRadius/2} />

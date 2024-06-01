@@ -21,7 +21,7 @@
 	import hotkeys from 'hotkeys-js';
 	import { Html, LayerCake, Svg } from 'layercake';
 	import { onDestroy, onMount, setContext } from 'svelte';
-	import { writable } from 'svelte/store';
+	import { derived, writable } from 'svelte/store';
 	import MapObjectQuadTreeFinder, {
 		type FinderEventDetails
 	} from './MapObjectQuadTreeFinder.svelte';
@@ -40,6 +40,7 @@
 	import ScannerWormholeLinks from './ScannerWormholeLinks.svelte';
 	import ScannerWormholes from './ScannerWormholes.svelte';
 	import SelectedMapObject from './SelectedMapObject.svelte';
+	import { clamp } from '$lib/services/Math';
 
 	const {
 		game,
@@ -78,10 +79,16 @@
 	let zooming = false;
 	let showLocator = false;
 
-	const scale = writable($game.area.y / 400); // tiny games are at 1x starting zoom, the rest zoom in based on universe size
-	const clampedScale = writable($scale);
-	$: $clampedScale = Math.min(3, $scale); // don't let the scale used for scanner objects go more than 1/2th size
-	$: console.log('scale ', $scale, ' clampedScale', $clampedScale);
+	// our map scales for .75 to 10x, but the icons for the planets and fleets are 2x min
+	const minZoom = 0.75;
+	const maxZoom = 10;
+	const minObjectZoom = 2;
+	const scale = writable(3); // default 3x zoom
+	const objectScale = derived([scale], ([s]) => clamp(s, minObjectZoom, maxZoom));
+	setContext('scale', scale);
+	setContext('objectScale', objectScale);
+
+	// $: console.log('scale ', $scale);
 
 	const unsubscribe = zoomTarget.subscribe(() => showTargetLocation());
 
@@ -106,7 +113,7 @@
 					[0, 0],
 					[clientWidth, clientHeight]
 				])
-				.scaleExtent([0.75, 10])
+				.scaleExtent([minZoom, maxZoom])
 				.translateExtent([
 					[-20, -20],
 					[clientWidth + padding, clientHeight + padding]
@@ -645,9 +652,6 @@
 			...$universe.planets
 		];
 	}
-
-	setContext('scale', scale);
-	setContext('clampedScale', clampedScale);
 </script>
 
 <svelte:window on:resize={handleResize} />
@@ -670,7 +674,7 @@
 	>
 		<!-- <Svg viewBox={`0 0 ${game.area.x} ${game.area.y}`}> -->
 		<Svg>
-			<g preserveAspectRatio="true" transform={transform?.toString()}>
+			<g transform={transform?.toString()}>
 				<ScannerScanners />
 				<ScannerMineFieldPattern />
 				<ScannerMineFields />

@@ -5,10 +5,9 @@
 	import { getContext } from 'svelte';
 	import type { Writable } from 'svelte/store';
 	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';
-	import ScannerFleetCount from './ScannerFleetCount.svelte';
+	import ScannerFleetCount from './ScannerPlanetFleetCount.svelte';
 
 	const { game, player, universe, settings } = getGameContext();
-	const scale = getContext<Writable<number>>('scale');
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
 	export let planet: Planet;

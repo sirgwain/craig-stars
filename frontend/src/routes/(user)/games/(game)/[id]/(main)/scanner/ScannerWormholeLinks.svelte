@@ -11,10 +11,9 @@
 	};
 
 	const { universe } = getGameContext();
-	const scale = getContext<Writable<number>>('scale');
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
-	const strokeWidth = 3 / $scale;
+	const strokeWidth = 1;
 
 	$: wormholes = $universe.wormholes.filter((w) => w.destinationNum);
 

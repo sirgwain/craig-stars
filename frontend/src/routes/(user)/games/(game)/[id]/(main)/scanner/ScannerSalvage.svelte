@@ -7,31 +7,33 @@
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 	import type { Writable } from 'svelte/store';
+	import MapObjectScaler from './MapObjectScaler.svelte';
 
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
-	const scale = getContext<Writable<number>>('scale');
 
 	export let salvage: Salvage;
 	export let color = '#FFFF00';
 
-	$: size = 8 / $scale;
+	const size = 10;
 </script>
 
 <!-- ScannerSalvage -->
-<rect
-	x={$xGet(salvage) - size / 2}
-	y={$yGet(salvage) - size / 2}
-	width={size}
-	height={size}
-	stroke={color}
-	fill="none"
-	class="rotate"
-/>
+<MapObjectScaler mapObject={salvage}>
+	<rect
+		x={-size / 2}
+		y={-size / 2}
+		width={size}
+		height={size}
+		stroke={color}
+		fill="none"
+		class="rotate"
+	/>
 
-<style>
-	.rotate {
-		transform-box: fill-box;
-		transform-origin: center;
-		transform: rotate(45deg);
-	}
-</style>
+	<style>
+		.rotate {
+			transform-box: fill-box;
+			transform-origin: center;
+			transform: rotate(45deg);
+		}
+	</style>
+</MapObjectScaler>
