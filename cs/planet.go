@@ -447,6 +447,8 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	if !race.Spec.InnateMining {
 		spec.MaxMines = planet.getMaxMines(player, productivePop)
 		spec.MaxPossibleMines = spec.MaxPopulation * race.NumMines / 10000
+	} else {
+		spec.MaxMines = planet.Mines
 	}
 
 	if race.Spec.InnateResources {
