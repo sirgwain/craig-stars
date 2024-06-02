@@ -469,10 +469,15 @@
 			stargate = !!destStargateSafe && !!sourceStargateSafe;
 		}
 
+		// if the last waypoint warp is higher than the default engine speed, use it
+		// otherwise use the default engine speed
+		const engineIdealSpeed = $commandedFleet.spec?.engine?.idealSpeed ?? 5;
 		let warpSpeed =
-			$selectedWaypoint?.warpSpeed && $selectedWaypoint.warpSpeed != StargateWarpSpeed
+			$selectedWaypoint?.warpSpeed &&
+			$selectedWaypoint.warpSpeed != StargateWarpSpeed &&
+			$selectedWaypoint?.warpSpeed > engineIdealSpeed
 				? $selectedWaypoint?.warpSpeed
-				: $commandedFleet.spec?.engine?.idealSpeed ?? 5;
+				: engineIdealSpeed;
 
 		// if colonizing, we want the max possible warp
 		if (colonizing) {

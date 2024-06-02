@@ -35,7 +35,7 @@ make build
 Install air for automatic server restarts while developing: 
 
 ```bash
-go install github.com/cosmtrek/air@latest`
+go install github.com/cosmtrek/air@latest
 ```
 
 Launch the frontend and backend at the same time with `make`
