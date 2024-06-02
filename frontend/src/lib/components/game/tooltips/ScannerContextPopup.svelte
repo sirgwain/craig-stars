@@ -19,10 +19,11 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import { showPopup } from '$lib/services/Stores';
-	import { MapObjectType, ownedBy, type MapObject } from '$lib/types/MapObject';
+	import { MapObjectType, None, ownedBy, type MapObject } from '$lib/types/MapObject';
 	import { flatten, keys } from 'lodash-es';
 	import { createEventDispatcher } from 'svelte';
 	import type { PopupEvent } from './Popup.svelte';
+	import type { Fleet } from '$lib/types/Fleet';
 
 	const { player, universe, commandMapObject, selectMapObject } = getGameContext();
 	const dispatch = createEventDispatcher<PopupEvent>();
@@ -37,6 +38,14 @@
 				: []
 		)
 	);
+
+	function getTokenCount(mo: MapObject) {
+		if (mo.type == MapObjectType.Fleet) {
+			const fleet = mo as Fleet;
+			return fleet.tokens ? fleet.tokens.reduce((count, t) => count + t.quantity, 0) : 0;
+		}
+		return 0;
+	}
 
 	function gotoTarget(mo: MapObject) {
 		if (ownedBy(mo, $player.num)) {
@@ -56,7 +65,7 @@
 			<ul>
 				{#each otherMapObjectsHere[MapObjectType.Planet] as mo}
 					<li
-						style={mo.playerNum != $player.num
+						style={mo.playerNum != $player.num && mo.playerNum != None
 							? `color: ${$universe.getPlayerColor(mo.playerNum)};`
 							: ''}
 					>
@@ -81,7 +90,7 @@
 					>
 						<button
 							class="py-1 pl-0.5 w-full text-left hover:text-accent"
-							on:click={() => gotoTarget(mo)}>{mo.name}</button
+							on:click={() => gotoTarget(mo)}>{mo.name} ({getTokenCount(mo)})</button
 						>
 					</li>
 				{/each}
