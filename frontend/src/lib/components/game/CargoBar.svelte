@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { emptyCargo, totalCargo, type Cargo } from '$lib/types/Cargo';
+	import { cargoPercent, emptyCargo, totalCargo, type Cargo } from '$lib/types/Cargo';
 	import { createEventDispatcher } from 'svelte';
 	import type { CargoTransferDialogEvent } from '../../../routes/(user)/games/(game)/[id]/dialogs/cargo/CargoTranfserDialog.svelte';
 
@@ -12,22 +12,12 @@
 		colonists: 0
 	};
 
-	export let capacity = 0;
+	export let capacity: number | undefined = 0;
 	export let canTransferCargo = false;
 
 	let percent: Cargo = emptyCargo();
 
-	$: if (capacity > 0) {
-		percent = {
-			ironium: ((value.ironium ?? 0) / capacity) * 100,
-			boranium: ((value.boranium ?? 0) / capacity) * 100,
-			germanium: ((value.germanium ?? 0) / capacity) * 100,
-			colonists: ((value.colonists ?? 0) / capacity) * 100
-		};
-	} else {
-		capacity = 0;
-		percent = emptyCargo();
-	}
+	$: percent = cargoPercent(value, capacity);
 </script>
 
 <div
@@ -38,7 +28,7 @@
 	<div
 		class="font-semibold text-sm text-center align-middle text-white mix-blend-difference w-full bg-blend-difference absolute"
 	>
-		{totalCargo(value)} of {capacity}kT
+		{totalCargo(value)} of {capacity ?? 0}kT
 	</div>
 	<div
 		style={`left: 0%; width: ${percent.ironium?.toFixed()}%`}
