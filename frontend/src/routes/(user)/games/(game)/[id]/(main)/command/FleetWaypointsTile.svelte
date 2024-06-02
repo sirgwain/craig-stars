@@ -226,9 +226,13 @@
 			</div>
 			<div class="flex justify-between mt-1">
 				<span class="text-tile-item-title">Travel Time</span>
-				<span
-					>{Math.ceil(dist / ($selectedWaypoint.warpSpeed * $selectedWaypoint.warpSpeed))} years</span
-				>
+				<span>
+					{#if $selectedWaypoint.warpSpeed === StargateWarpSpeed}
+						1 year
+					{:else}
+						{Math.ceil(dist / ($selectedWaypoint.warpSpeed * $selectedWaypoint.warpSpeed))} years
+					{/if}
+				</span>
 			</div>
 			<div class="flex justify-between mt-1">
 				<span class="text-tile-item-title">Leg Fuel Usage</span>
