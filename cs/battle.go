@@ -734,11 +734,11 @@ func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot, targets []*battleToken
 				if remainingDamage > 0 {
 					target.Damage = remainingDamage / float64(target.Quantity)
 					target.QuantityDamaged = target.Quantity
-					remainingDamage = 0
 					log.Debug().Msgf("%v destroyed %v ships, leaving %v damaged %v@%v damage", weapon.token, numDestroyed, target, target.Quantity, target.Damage)
 				}
 
 				b.record.recordBeamFire(b.round, weapon.token, weapon.token.Position, target.Position, weapon.slot.HullSlotIndex, *target, shields, int(remainingDamage)-shields, numDestroyed)
+				remainingDamage = 0
 			}
 
 		} else {
