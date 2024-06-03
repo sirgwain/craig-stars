@@ -8,7 +8,7 @@
 </script>
 
 <span class="inline-block my-auto">
-	<div class="tooltip" data-tip={`${startCase(action)}`}>
+	<div class="tooltip tooltip-left lg:tooltip-top" data-tip={`${startCase(action)}`}>
 		{#if action && isLoadAction(action)}
 			<Icon src={ArrowUp} size="16" class="hover:stroke-accent stroke-2" />
 		{:else if action && isUnloadAction(action)}
