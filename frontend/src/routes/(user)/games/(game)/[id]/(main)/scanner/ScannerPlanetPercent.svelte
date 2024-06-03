@@ -8,6 +8,7 @@
 	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';
 	import type { Writable } from 'svelte/store';
 	import { clamp } from '$lib/services/Math';
+	import MapObjectScaler from './MapObjectScaler.svelte';
 
 	const { game, player, universe, settings } = getGameContext();
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
@@ -21,11 +22,12 @@
 	$: planetX = $xGet(planet);
 	$: planetY = $yGet(planet);
 
+	// area of cirlce is a = πr^2, so r = √(a/π)
 	const fullyHabitableRadius = 15;
+	const fullyHabitableArea = Math.PI * fullyHabitableRadius * fullyHabitableRadius;
 	const minRadius = 3;
+	const minArea = Math.PI * minRadius * minRadius;
 	let radius = minRadius;
-
-	$: clampedScale = clamp($scale, 2, 10)
 
 	$: {
 		// green for us, gray for unexplored, white for explored
@@ -40,16 +42,22 @@
 			let habitabilityTerraformed = planet.spec?.terraformedHabitability ?? 0;
 			if (habitability > 0) {
 				color = '#00FF00';
-				radius = Math.max((habitability / 100.0) * fullyHabitableRadius, minRadius);
+				radius = Math.sqrt(
+					Math.max((habitability / 100.0) * fullyHabitableArea, minArea) / Math.PI
+				);
 				strokeWidth = (habitability / 100.0) * strokeWidth;
 			} else {
 				if (habitabilityTerraformed > 0) {
 					color = '#FFFF00';
-					radius = Math.max((habitabilityTerraformed / 100.0) * fullyHabitableRadius, minRadius);
+					radius = Math.sqrt(
+						Math.max((habitabilityTerraformed / 100.0) * fullyHabitableArea, minArea) / Math.PI
+					);
 					strokeWidth = (habitabilityTerraformed / 100.0) * strokeWidth;
 				} else {
 					color = '#FF0000';
-					radius = Math.max((-habitability / 45.0) * fullyHabitableRadius, minRadius);
+					radius = Math.sqrt(
+						Math.max((-habitability / 45.0) * fullyHabitableArea, minArea) / Math.PI
+					);
 					strokeWidth = (-habitability / 45.0) * strokeWidth;
 				}
 			}
@@ -70,15 +78,20 @@
 </script>
 
 {#if planet.reportAge !== Unexplored}
-	<g transform={`translate(${planetX}, ${planetY}), scale(${1 / clampedScale})`}>
+	<MapObjectScaler mapObject={planet}>
 		<circle cx={0} cy={0} {...props} />
 		{#if planet.playerNum != None}
 			<!-- draw the flag  -->
 			<rect width="12" height="10" x={0} y={-fullyHabitableRadius * 2} fill={flagColor} />
-			<path d={`M${0}, ${0}L${0}, ${-fullyHabitableRadius * 2}`} stroke={flagColor} stroke-width={2} />
+			<path
+				d={`M${0}, ${0}L${0}, ${-fullyHabitableRadius * 2}`}
+				stroke={flagColor}
+				stroke-width={2}
+			/>
 		{/if}
-	</g>
-	<ScannerFleetCount {planet} yOffset={radius} />
+	</MapObjectScaler>
+
+	<ScannerFleetCount {planet} yOffset={radius-5} />
 {:else}
 	<ScannerPlanetNormal {planet} />
 {/if}

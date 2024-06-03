@@ -33,5 +33,5 @@
 		<text transform={`scale(${1 / $scale})`} text-anchor="middle" class="fill-white"
 			>{orbitingTokens}</text
 		>
-	</g>
+	</g>s
 {/if}

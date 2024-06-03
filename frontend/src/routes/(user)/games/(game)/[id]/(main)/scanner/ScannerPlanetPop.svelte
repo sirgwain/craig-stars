@@ -6,6 +6,7 @@
 	import type { Writable } from 'svelte/store';
 	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';
 	import ScannerFleetCount from './ScannerPlanetFleetCount.svelte';
+	import MapObjectScaler from './MapObjectScaler.svelte';
 
 	const { game, player, universe, settings } = getGameContext();
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
@@ -14,8 +15,10 @@
 
 	let props = {};
 
-	const fullyPopulatedRadius = 10;
+	const fullyPopulatedRadius = 18;
+	const fullyPopulatedArea = Math.PI * fullyPopulatedRadius * fullyPopulatedRadius;
 	const minRadius = 2;
+	const minArea = Math.PI * minRadius * minRadius;
 	const population = planet.spec.population ?? 0;
 	$: radius = 0;
 
@@ -26,7 +29,10 @@
 		let strokeWidth = 1;
 
 		if (population > 0) {
-			radius = Math.max((population / 1_300_000) * fullyPopulatedRadius, minRadius);
+			radius = Math.sqrt(
+				Math.max((population / 1_300_000) * fullyPopulatedArea, minArea) / Math.PI
+			);
+
 			strokeWidth = (population / 1_300_000) * strokeWidth;
 
 			if (planet.playerNum) {
@@ -45,8 +51,10 @@
 </script>
 
 {#if population > 0}
-	<circle cx={$xGet(planet)} cy={$yGet(planet)} {...props} />
-	<ScannerFleetCount {planet} yOffset={radius} />
+	<MapObjectScaler mapObject={planet}>
+		<circle cx={0} cy={0} {...props} />
+	</MapObjectScaler>
+	<ScannerFleetCount {planet} yOffset={radius-3} />
 {:else}
 	<ScannerPlanetNormal {planet} />
 {/if}
