@@ -53,11 +53,18 @@ export function add(h1: Hab, h2: Hab) {
 	};
 }
 
-// get gravity as a string. This goes from 0.25g to 4.00g
-// math credit @ekolis
 export function getGravString(grav: number): string {
-	const value = Math.pow(4, (grav - 50) / 50);
-	return `${value.toFixed(2)}g`;
+	let result, tmp = Math.abs(grav - 50);
+	if (tmp <= 25)
+		result = (tmp + 25) * 4;
+	else
+		result = tmp * 24 - 400;
+	if (grav < 50)
+		result = Math.floor(10000 / result);
+
+	let value = result + (result % 100 / 100.0);
+	
+	return `${(value/100).toFixed(2)}g`;
 }
 
 export function getTempString(temp: number): string {
