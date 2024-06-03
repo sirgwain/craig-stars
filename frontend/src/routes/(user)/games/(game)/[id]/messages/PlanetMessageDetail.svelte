@@ -131,20 +131,20 @@
 	{#if owner}
 		You have found a planet occupied by someone else. {planet.name} is currently owned by the {owner.racePluralName}
 	{:else if planet.spec.habitability && planet.spec.habitability > 0}
-		You have found a new habitable planet. Your colonists will grow by up {(
-			(planet.spec.habitability * growthRate) /
-			100
+		You have found a new habitable planet. Your colonists will grow by up {Math.max(
+			1,
+			(planet.spec.habitability * growthRate) / 100
 		).toFixed()}% per year if you colonize {planet.name}
 	{:else if planet.spec.terraformedHabitability && planet.spec.terraformedHabitability > 0}
 		You have found a new planet which you have the ability to make habitable. With terraforming,
-		your colonists will grow by up to {(
-			(planet.spec.terraformedHabitability * growthRate) /
-			100
+		your colonists will grow by up to {Math.max(
+			1,
+			(planet.spec.terraformedHabitability * growthRate) / 100
 		).toFixed()}% per year if you colonize {planet.name}.
 	{:else}
-		You have found a new planet which unfortunately is not habitable by you. {-(
-			((planet.spec.habitability ?? 0) * growthRate) /
-			100
+		You have found a new planet which unfortunately is not habitable by you. {Math.max(
+			1,
+			(-(planet.spec.habitability ?? 0) * growthRate) / 100
 		).toFixed()}% of your colonists will die per year if you colonize {planet.name}
 	{/if}
 {:else if message.type === MessageType.PlanetPopulationDecreased}
@@ -159,11 +159,11 @@
 	technology. In the process you have gained a level in {message.spec.field}.
 {:else if message.type === MessageType.FleetScrapped}
 	{#if planet.spec.hasStarbase}
-		{message.spec.targetName} has been dismantled for {totalMinerals(message.spec.cost)}kT of minerals at
-		the starbase orbiting {planet.name}.
+		{message.spec.targetName} has been dismantled for {totalMinerals(message.spec.cost)}kT of
+		minerals at the starbase orbiting {planet.name}.
 	{:else}
-		{message.spec.targetName} has been dismantled for {totalMinerals(message.spec.cost)}kT of minerals
-		which have been deposited on {planet.name}.
+		{message.spec.targetName} has been dismantled for {totalMinerals(message.spec.cost)}kT of
+		minerals which have been deposited on {planet.name}.
 	{/if}
 	{#if message.spec.cost?.resources}
 		&nbsp;Ultimate recycling has also made {message.spec.cost?.resources} resources available for immediate
