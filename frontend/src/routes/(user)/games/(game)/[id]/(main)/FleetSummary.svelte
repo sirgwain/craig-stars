@@ -4,7 +4,7 @@
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { getDamagePercentForToken, type Fleet, WaypointTask } from '$lib/types/Fleet';
-	import { ownedBy } from '$lib/types/MapObject';
+	import { StargateWarpSpeed, ownedBy } from '$lib/types/MapObject';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import { kebabCase, startCase } from 'lodash-es';
 
@@ -13,17 +13,29 @@
 	export let fleet: Fleet;
 
 	let design: ShipDesign | undefined;
-	let icon = '';
 
-	$: {
-		icon = '';
+	function getIcon(fleet: Fleet): string {
 		if (fleet.tokens && fleet.tokens.length > 0) {
 			const designNum = fleet.tokens[0].designNum;
 			design = $universe.getDesign(fleet.playerNum, designNum);
 			if (design) {
-				icon = `hull-${kebabCase(design.hull)}-${design.hullSetNumber ?? 0}`;
+				return `hull-${kebabCase(design.hull)}-${design.hullSetNumber ?? 0}`;
 			}
 		}
+		return '';
+	}
+
+	// get either warpSpeed as a number, or "stargate"
+	function getWarpSpeed(fleet: Fleet): string {
+		const warpSpeed: number =
+			(fleet?.waypoints && fleet.waypoints.length > 1
+				? fleet.waypoints[1].warpSpeed
+				: fleet.warpSpeed) ?? 0;
+
+		if (warpSpeed == StargateWarpSpeed) {
+			return 'Use Stargate';
+		}
+		return `${warpSpeed}`;
 	}
 </script>
 
@@ -38,7 +50,7 @@
 					<div class="absolute -right-2 -top-1 text-xl w-6 h-6">+</div>
 				{/if}
 
-				<div class="fleet-avatar {icon} bg-black">
+				<div class="fleet-avatar {getIcon(fleet)} bg-black">
 					<button
 						type="button"
 						class="w-full h-full cursor-help"
@@ -89,12 +101,12 @@
 			{/if}
 			<div class="flex flex-row">
 				<div class="w-32 text-tile-item-title">Warp Speed:</div>
-				<div>{fleet.waypoints[1].warpSpeed ?? 0}</div>
+				<div>{getWarpSpeed(fleet)}</div>
 			</div>
 		{:else if fleet.warpSpeed}
 			<div class="flex flex-row">
 				<div class="w-32 text-tile-item-title">Warp Speed:</div>
-				<div>{fleet.warpSpeed ?? 0}</div>
+				<div>{getWarpSpeed(fleet)}</div>
 			</div>
 		{/if}
 
