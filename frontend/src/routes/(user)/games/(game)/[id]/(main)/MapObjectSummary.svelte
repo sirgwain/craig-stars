@@ -21,7 +21,10 @@
 	import WormholeSummary from './WormholeSummary.svelte';
 	import { ChevronUp, ChevronDown } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
+	import { createEventDispatcher } from 'svelte';
+	import type { CargoTransferDialogEvent } from '../dialogs/cargo/CargoTranfserDialog.svelte';
 
+	const dispatch = createEventDispatcher<CargoTransferDialogEvent>();
 	const { universe, selectNextMapObject, selectedMapObject } = getGameContext();
 
 	// if we are in a CommandPaneCarousel, show the disclosure chevrons and hide/show the command pane on click
@@ -97,7 +100,10 @@
 		{#if selectedPlanet}
 			<PlanetSummary planet={selectedPlanet} />
 		{:else if selectedFleet}
-			<FleetSummary fleet={selectedFleet} />
+			<FleetSummary
+				fleet={selectedFleet}
+				on:cargo-transfer-dialog={(e) => dispatch('cargo-transfer-dialog', e?.detail)}
+			/>
 		{:else if selectedMineField}
 			<MineFieldSummary mineField={selectedMineField} />
 		{:else if selectedMineralPacket}

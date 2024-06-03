@@ -167,7 +167,10 @@
 							</div>
 						</button>
 					</div>
-					<FleetSummary fleet={$commandedFleet} />
+					<FleetSummary
+						fleet={$commandedFleet}
+						on:cargo-transfer-dialog={(e) => dispatch('cargo-transfer-dialog', e?.detail)}
+					/>
 				</div>
 			</div>
 		{:else}

@@ -3,11 +3,20 @@
 	import FuelBar from '$lib/components/game/FuelBar.svelte';
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { getDamagePercentForToken, type Fleet, WaypointTask } from '$lib/types/Fleet';
+	import {
+		getDamagePercentForToken,
+		type Fleet,
+		WaypointTask,
+		canTransferCargo,
+		CommandedFleet
+	} from '$lib/types/Fleet';
 	import { StargateWarpSpeed, ownedBy } from '$lib/types/MapObject';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import { kebabCase, startCase } from 'lodash-es';
+	import { createEventDispatcher } from 'svelte';
+	import type { CargoTransferDialogEvent } from '../dialogs/cargo/CargoTranfserDialog.svelte';
 
+	const dispatch = createEventDispatcher<CargoTransferDialogEvent>();
 	const { player, universe } = getGameContext();
 
 	export let fleet: Fleet;
@@ -36,6 +45,17 @@
 			return 'Use Stargate';
 		}
 		return `${warpSpeed}`;
+	}
+
+	function transfer() {
+		if (fleet.orbitingPlanetNum) {
+			const planet = $universe.getPlanet(fleet.orbitingPlanetNum);
+			dispatch('cargo-transfer-dialog', { src: new CommandedFleet(fleet), dest: planet });
+		} else {
+			// if there is salvage here, transfer to it
+			const salvage = $universe.getSalvageAtPosition(fleet);
+			dispatch('cargo-transfer-dialog', { src: new CommandedFleet(fleet), dest: salvage });
+		}
 	}
 </script>
 
@@ -84,7 +104,12 @@
 			<div class="flex flex-row">
 				<div class="w-32 text-tile-item-title">Cargo:</div>
 				<div class="grow">
-					<CargoBar value={fleet.cargo} capacity={fleet.spec?.cargoCapacity ?? 0} />
+					<CargoBar
+						on:cargo-transfer-dialog={() => transfer()}
+						canTransferCargo={canTransferCargo(fleet, $universe)}
+						value={fleet.cargo}
+						capacity={fleet.spec?.cargoCapacity}
+					/>
 				</div>
 			</div>
 		{/if}
