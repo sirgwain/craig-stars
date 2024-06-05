@@ -497,9 +497,7 @@ func (spec *ShipDesignSpec) computeScanRanges(rules *Rules, scannerSpec ScannerS
 	builtInScannerMultiplier := scannerSpec.BuiltInScannerMultiplier
 	if builtInScannerMultiplier > 0 && hull.BuiltInScanner {
 		spec.ScanRange = techLevels.Electronics * builtInScannerMultiplier
-		if !scannerSpec.NoAdvancedScanners {
-			spec.ScanRangePen = int(math.Pow(float64(spec.ScanRange)/2, 4))
-		}
+		spec.ScanRangePen = int(math.Pow(float64(spec.ScanRange)/2, 4))
 		spec.ScanRange = int(math.Pow(float64(spec.ScanRange), 4))
 	}
 
