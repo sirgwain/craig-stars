@@ -8,6 +8,7 @@
 	import type { Readable, Writable } from 'svelte/store';
 	import { clamp } from '$lib/services/Math';
 	import MapObjectScaler from './MapObjectScaler.svelte';
+	import { type Fleet, idleFleetsFilter } from '$lib/types/Fleet';
 
 	const { settings } = getGameContext();
 	const { game, player, universe } = getGameContext();
@@ -34,7 +35,8 @@
 
 	$: orbitingFleets = $universe
 		.getMapObjectsByPosition(planet)
-		.filter((mo) => mo.type === MapObjectType.Fleet);
+		.filter((mo) => mo.type === MapObjectType.Fleet)
+		.filter((f) => idleFleetsFilter(f as Fleet, $settings.showIdleFleetsOnly));
 
 	// setup props for planet circle
 	$: {
@@ -128,4 +130,4 @@
 		/>
 	{/if}
 </MapObjectScaler>
-<ScannerFleetCount {planet} yOffset={ringRadius/2} />
+<ScannerFleetCount {planet} yOffset={ringRadius / 2} />

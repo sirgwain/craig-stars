@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { Fleet } from '$lib/types/Fleet';
+	import { idleFleetsFilter, type Fleet } from '$lib/types/Fleet';
 	import { MapObjectType } from '$lib/types/MapObject';
 	import type { Planet } from '$lib/types/Planet';
 	import type { LayerCake } from 'layercake';
@@ -20,6 +20,7 @@
 
 	$: orbitingTokens = orbitingFleets
 		.map((of) => of as Fleet)
+		.filter((f: Fleet) => idleFleetsFilter(f, $settings.showIdleFleetsOnly))
 		.reduce(
 			(count, f) =>
 				count + (f.tokens ? f.tokens.reduce((tokenCount, t) => tokenCount + t.quantity, 0) : 0),

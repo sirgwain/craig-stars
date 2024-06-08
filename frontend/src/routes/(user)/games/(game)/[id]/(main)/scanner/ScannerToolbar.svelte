@@ -14,6 +14,7 @@
 	import { clamp } from '$lib/services/Math';
 	import FleetCount from '$lib/components/icons/FleetCount.svelte';
 	import { clickOutside } from '$lib/clickOutside';
+	import IdleFleets from '$lib/components/icons/IdleFleets.svelte';
 
 	const { player, settings, nextMapObject, previousMapObject } = getGameContext();
 	let menuDropdown: HTMLDetailsElement | undefined;
@@ -105,12 +106,25 @@
 			<li>
 				<a
 					href="#show-fleet-token-count"
+					title="Show Fleet Counts"
 					class:fill-accent={$settings.showFleetTokenCounts}
 					class:fill-current={!$settings.showFleetTokenCounts}
 					class="btn btn-ghost btn-xs h-full border"
 					on:click|preventDefault={() =>
 						($settings.showFleetTokenCounts = !$settings.showFleetTokenCounts)}
 					><FleetCount class="w-6 h-6" /></a
+				>
+			</li>
+			<li>
+				<a
+					href="#show-idle-fleets-only"
+					title="Idle Fleets Filter"
+					class:fill-accent={$settings.showIdleFleetsOnly}
+					class:fill-current={!$settings.showIdleFleetsOnly}
+					class="btn btn-ghost btn-xs h-full border"
+					on:click|preventDefault={() =>
+						($settings.showIdleFleetsOnly = !$settings.showIdleFleetsOnly)}
+					><IdleFleets class="w-6 h-6" /></a
 				>
 			</li>
 			<li>

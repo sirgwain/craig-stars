@@ -3,7 +3,7 @@
 	import { onScannerContextPopup } from '$lib/components/game/tooltips/ScannerContextPopup.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { totalCargo } from '$lib/types/Cargo';
-	import { WaypointTask, type Waypoint } from '$lib/types/Fleet';
+	import { WaypointTask, idleFleetsFilter, type Fleet, type Waypoint } from '$lib/types/Fleet';
 	import {
 		MapObjectType,
 		None,
