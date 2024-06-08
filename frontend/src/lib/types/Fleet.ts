@@ -304,6 +304,31 @@ export function canTransferCargo(fleet: Fleet, universe: Universe): boolean {
 	return true;
 }
 
+// This shows only your fleets that have no movement orders, and any active enemy ships (so you can match one with the other, if you wish).
+export function idleFleetsFilter(fleet: Fleet, showIdleFleetsOnly: boolean): boolean {
+	if (!showIdleFleetsOnly) {
+		// no filter, show all fleets
+		return true;
+	}
+
+	// show our fleets that are idle
+	if (
+		fleet.waypoints &&
+		fleet.waypoints.length == 1 &&
+		fleet.waypoints[0].task == WaypointTask.None
+	) {
+		return true;
+	}
+
+	// enemy fleet that is moving, show it so players can match idle fleets to moving fleets
+	if (!fleet.waypoints && fleet.warpSpeed) {
+		return true;
+	}
+
+	// don't show this fleet if we got here, it's our fleet and moving, or an enemy fleet and idle
+	return false;
+}
+
 function getFuelCostForEngine(
 	engine: Engine,
 	warpSpeed: number,

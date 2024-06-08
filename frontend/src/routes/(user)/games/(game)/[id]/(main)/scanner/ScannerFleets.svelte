@@ -4,16 +4,19 @@
  -->
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { Fleet } from '$lib/types/Fleet';
-	import type { LayerCake } from 'layercake';
-	import { getContext } from 'svelte';
+	import { idleFleetsFilter, type Fleet } from '$lib/types/Fleet';
+	import { equal } from '$lib/types/MapObject';
 	import ScannerFleet from './ScannerFleet.svelte';
 
-	const { universe, commandedFleet } = getGameContext();
+	const { universe, commandedFleet, settings } = getGameContext();
 
 	let fleets: Fleet[] = [];
 
-	$: fleets = $universe.fleets.filter((f: Fleet) => !f.orbitingPlanetNum);
+	$: fleets = $universe.fleets
+		.filter((f: Fleet) => !f.orbitingPlanetNum)
+		.filter(
+			(f: Fleet) => equal($commandedFleet, f) || idleFleetsFilter(f, $settings.showIdleFleetsOnly)
+		);
 </script>
 
 <!-- Fleets -->
