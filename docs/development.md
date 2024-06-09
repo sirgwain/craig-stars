@@ -26,7 +26,12 @@ Icons are either hand crafted or from the wonderful [game-icons.net](https://gam
 # Getting Started
 **Note**: The following instructions assume you have `make`, `go`, and `npm` installled.
 
-After cloning the repo, build `craig-stars` locally once. This will build the frontend and then the backend. The backend embeds the frontend resources into its binary to support a single binary deployment.
+After cloning the repo, build `craig-stars` locally once. This will build the frontend and then the backend. The backend embeds the frontend resources into its binary to support a single binary deployment. 
+
+## Assets
+You will need art assets, and those can be downloaded from [https://craig-stars.net/images/images.zip](https://craig-stars.net/images/images.zip). Copy these images into the `frontend/static/images` folder.
+
+## Building and Running
 
 ```bash
 make build
@@ -43,6 +48,8 @@ Launch the frontend and backend at the same time with `make`
 make dev
 ```
 
+**Note** On first launch, this will create an empty database with a single `admin` user, password `admin`.
+
 Point your browser at [http://localhost:5173](http://localhost:5173) to see a live reloading frontend proxied to the go server on port `:8080`. Updating go code will relaunch the backend automatically. Updating frontend code will do a hot reload with sveltekit/vite.
 
 # Visual Studio Code 
@@ -50,7 +57,7 @@ Point your browser at [http://localhost:5173](http://localhost:5173) to see a li
 
 
 ## backend
-To launch the front end and backend separately, you can call `air` directly. On first launch, this will create an empty database with a single `admin` user, password `admin`. 
+To launch the front end and backend separately, you can call `air` directly. 
 
 ```zsh
 ❯ air

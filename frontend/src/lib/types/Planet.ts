@@ -15,7 +15,7 @@ import type { Player } from './Player';
 import type { Fleet } from './Fleet';
 import { type QueueItemType, QueueItemTypes } from './QueueItemType';
 import type { ProductionQueueItem } from './Production';
-import { getTerraformAmount } from '$lib/services/Terraformer';
+import { getMinTerraformAmount, getTerraformAmount } from '$lib/services/Terraformer';
 import { NeverBuilt, getProductionEstimates } from '$lib/services/Producer';
 
 export const Unexplored = -1;
@@ -242,12 +242,15 @@ export class CommandedPlanet implements Planet {
 					this.getMaxFactories(race, maxPopulation) - (this.factories + amountInQueue)
 				);
 			case QueueItemTypes.AutoMinTerraform:
+				return (
+					absSum(getMinTerraformAmount(techStore, this.hab, this.baseHab, player)) - amountInQueue
+				);
 			case QueueItemTypes.AutoMaxTerraform:
 			case QueueItemTypes.TerraformEnvironment:
+				console.log("terraformAmount hab", this.hab, "baseHab", this.baseHab, "amount", getTerraformAmount(techStore, this.hab, this.baseHab, player))
 				return (
 					absSum(getTerraformAmount(techStore, this.hab, this.baseHab, player)) - amountInQueue
 				);
-
 			case QueueItemTypes.AutoMineralPacket:
 			case QueueItemTypes.IroniumMineralPacket:
 			case QueueItemTypes.BoraniumMineralPacket:
