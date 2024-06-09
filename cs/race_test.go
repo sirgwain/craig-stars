@@ -16,7 +16,7 @@ func TestRace_GetPlanetHabitability(t *testing.T) {
 	}{
 		{"Perfect Hab", args{Hab{50, 50, 50}, NewRace()}, 100},
 		{"Terrible Hab", args{Hab{0, 0, 0}, &Race{HabLow: Hab{99, 99, 99}, HabHigh: Hab{100, 100, 100}}}, -45},
-		// {"Moderate Hab", args{Hab{50, 50, 30}, NewRace()}, 75}, TODO: make sure this works with regular stars data
+		{"1% away", args{Hab{48, 50, 50}, NewRace()}, 99},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

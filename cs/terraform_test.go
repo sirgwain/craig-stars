@@ -105,6 +105,15 @@ func Test_getTerraformAmount(t *testing.T) {
 			player:   NewPlayer(1, NewRace().WithLRT(TT).WithSpec(&rules)).WithNum(1).withSpec(&rules),
 			expected: Hab{Grav: 2, Temp: -2, Rad: 0},
 		},
+		{
+			name: "high ability, mostly terraformed",
+			planet: &Planet{
+				BaseHab: Hab{Grav: 50, Temp: 33, Rad: 23},
+				Hab:     Hab{Grav: 50, Temp: 41, Rad: 34},
+			},
+			player:   NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1).WithTechLevels(TechLevel{11, 14, 11, 15, 10, 10}).withSpec(&rules),
+			expected: Hab{Grav: 0, Temp: 3, Rad: 0},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

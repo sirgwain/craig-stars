@@ -185,8 +185,6 @@ func (t *terraform) getMinTerraformAmount(hab Hab, baseHab Hab, player *Player, 
 			alreadyTerraformed := fromIdealBaseDistance - fromIdealDistance
 			terraformAmountPossible := MinInt(ability-alreadyTerraformed, fromIdealDistance)
 
-			// if we are in range for this hab type, we won't terraform at
-
 			// if we are in range for this hab type, we won't terraform at all, otherwise return the max possible terraforming
 			// left.
 			terraformAmount.Set(habType, MinInt(fromHabitableDistance, terraformAmountPossible))
