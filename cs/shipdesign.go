@@ -655,7 +655,9 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 			slot.HullComponent = shield.Name
 			numShields++
 		case HullSlotTypeMining:
-			slot.HullComponent = miningRobot.Name
+			if miningRobot != nil {
+				slot.HullComponent = miningRobot.Name
+			}
 		case HullSlotTypeMineLayer:
 			switch purpose {
 			case ShipDesignPurposeSpeedMineLayer:
