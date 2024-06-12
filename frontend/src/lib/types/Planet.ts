@@ -701,6 +701,8 @@ export function planetsSortBy(key: string): ((a: Planet, b: Planet) => number) |
 			return (a, b) => (a.spec.population ?? 0) - (b.spec.population ?? 0);
 		case 'populationDensity':
 			return (a, b) => (a.spec.populationDensity ?? 0) - (b.spec.populationDensity ?? 0);
+		case 'populationGrowth':
+			return (a, b) => (a.spec.growthAmount ?? 0) - (b.spec.growthAmount ?? 0);
 		case 'habitability':
 			return (a, b) => (a.spec.habitability ?? 0) - (b.spec.habitability ?? 0);
 		case 'mines':
