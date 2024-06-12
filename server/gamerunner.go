@@ -96,6 +96,8 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 	game := gr.client.CreateGame(hostID, *settings)
 	var fullGame *cs.FullGame
 
+	aiRaces := ai.GetRandomRaces(settings.GetNumAIPlayers())
+
 	if err := gr.dbConn.WrapInTransaction(func(c db.Client) error {
 		user, err := c.GetUser(hostID)
 		if err != nil {
@@ -117,6 +119,7 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 		game.NumPlayers = len(settings.Players)
 		players := make([]*cs.Player, 0, len(settings.Players))
 		guestNumber := 1
+		aiPlayerNumber := 0
 
 		for i, playerSetting := range settings.Players {
 			if playerSetting.Type == cs.NewGamePlayerTypeHost {
@@ -132,7 +135,8 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 				players = append(players, player)
 			} else if playerSetting.Type == cs.NewGamePlayerTypeAI {
 				log.Debug().Int64("hostID", hostID).Msg("Adding ai player to game")
-				race := ai.GetRandomRace()
+				race := aiRaces[aiPlayerNumber]
+				aiPlayerNumber++
 				if playerSetting.Race.Name != "" {
 					race = playerSetting.Race
 				}
@@ -480,7 +484,7 @@ func (gr *gameRunner) KickPlayer(gameID int64, playerNum int) error {
 
 				if err := c.CreatePlayer(player); err != nil {
 					return fmt.Errorf("update open slot player %s for game %d: %w", player, gameID, err)
-				}		
+				}
 			}
 		}
 
@@ -723,6 +727,16 @@ func (gr *gameRunner) StartGame(game *cs.Game) error {
 	fullGame, err := gr.loadGame(gr.dbConn.NewReadClient(), game.ID)
 	if err != nil {
 		return fmt.Errorf("load game %d: %w", game.ID, err)
+	}
+
+	// recreate all the AI players with new races
+	aiRaces := ai.GetRandomRaces(fullGame.GetNumAIPlayers())
+	aiPlayerNumber := 0
+	for _, player := range fullGame.Players {
+		if player.AIControlled {
+			player.Race = aiRaces[aiPlayerNumber]
+			aiPlayerNumber++
+		}
 	}
 
 	// generate the universe

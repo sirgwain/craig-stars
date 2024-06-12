@@ -36,6 +36,10 @@ func (ug *universeGenerator) Area() Vector {
 func (ug *universeGenerator) Generate() (*Universe, error) {
 	log.Debug().Msgf("%s: Generating universe", ug.Size)
 
+	for _, player := range ug.players {
+		player.Race.Spec = computeRaceSpec(&player.Race, &ug.Rules)
+	}
+
 	ug.universe = NewUniverse(&ug.Rules)
 	area, err := ug.Rules.GetArea(ug.Size)
 	if err != nil {
