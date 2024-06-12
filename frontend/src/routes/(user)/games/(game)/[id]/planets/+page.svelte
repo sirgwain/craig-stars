@@ -12,6 +12,9 @@
 	import { Check } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import ProductionQueueDialog from '../dialogs/production/ProductionQueueDialog.svelte';
+	import PopulationTooltip from '$lib/components/game/tooltips/PopulationTooltip.svelte';
+	import type { PopulationTooltipProps } from '$lib/components/game/tooltips/PopulationTooltip.svelte';
+	import { showTooltip } from '$lib/services/Stores';
 
 	const { game, player, universe, settings, commandMapObject, selectMapObject, zoomToMapObject } =
 		getGameContext();
@@ -78,6 +81,12 @@
 			title: 'Cap',
 			hidden: $settings.showAllPlanets,
 			sortBy: planetsSortBy('populationDensity')
+		},
+		{
+			key: 'populationGrowth',
+			title: 'Growth',
+			hidden: $settings.showAllPlanets,
+			sortBy: planetsSortBy('populationGrowth')
 		},
 		{
 			key: 'habitability',
@@ -159,6 +168,14 @@
 		commandMapObject(planet);
 		showProductionQueueDialog = true;
 	}
+
+	function onPopulationTooltip(e: PointerEvent, planet: Planet) {
+		showTooltip<PopulationTooltipProps>(e.x, e.y, PopulationTooltip, {
+			playerFinder: $universe,
+			player: $player,
+			planet
+		});
+	}
 </script>
 
 <div class="w-full">
@@ -167,7 +184,12 @@
 		<div class="form-control">
 			<label class="label cursor-pointer">
 				<span class="label-text mr-1">Show All</span>
-				<input type="checkbox" class="toggle" class:toggle-accent={$settings.showAllPlanets} bind:checked={$settings.showAllPlanets} />
+				<input
+					type="checkbox"
+					class="toggle"
+					class:toggle-accent={$settings.showAllPlanets}
+					bind:checked={$settings.showAllPlanets}
+				/>
 			</label>
 		</div>
 	</div>
@@ -208,9 +230,17 @@
 			{:else if column.key == 'starbase'}
 				{row.spec.starbaseDesignName ?? ''}
 			{:else if column.key == 'population'}
-				{row.spec.population ? row.spec.population.toLocaleString() : ''}
+				<div class="cursor-help" on:pointerdown|preventDefault={(e) => onPopulationTooltip(e, row)}>
+					{row.spec.population ? row.spec.population.toLocaleString() : ''}
+				</div>
 			{:else if column.key == 'populationDensity'}
-				{((row.spec.populationDensity ?? 0) * 100).toFixed(1)}%
+				<div class="cursor-help" on:pointerdown|preventDefault={(e) => onPopulationTooltip(e, row)}>
+					{((row.spec.populationDensity ?? 0) * 100).toFixed(1)}%
+				</div>
+			{:else if column.key == 'populationGrowth'}
+				<div class="cursor-help" on:pointerdown|preventDefault={(e) => onPopulationTooltip(e, row)}>
+					{(row.spec.growthAmount ?? 0).toLocaleString()}
+				</div>
 			{:else if column.key == 'habitability'}
 				{#if row.spec.canTerraform}
 					<span
