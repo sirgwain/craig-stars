@@ -18,13 +18,13 @@
 	export let max = 100;
 	export let unit = '';
 
-	function increase() {
-		value = clamp(value + step, min, max);
+	function increase(e) {
+		value = clamp(value + step * (e.shiftKey ? 10 : 1) * (e.metaKey || e.ctrlKey ? 100 : 1), min, max);
 		dispatch('change', value);
 	}
 
-	function decrease() {
-		value = clamp(value - step, min, max);
+	function decrease(e) {
+		value = clamp(value - step * (e.shiftKey ? 10 : 1) * (e.metaKey || e.ctrlKey ? 100 : 1), min, max);
 		dispatch('change', value);
 	}
 </script>
@@ -38,10 +38,10 @@
 			{unit}
 		</div>
 		<div class="flex flex-col">
-			<button type="button" class="btn btn-xs" on:click={increase}>
+			<button type="button" class="btn btn-xs" on:click={(e) => increase(e)}>
 				<Icon src={ChevronUp} size="12" class="hover:stroke-accent" />
 			</button>
-			<button type="button" class="btn btn-xs" on:click={decrease}>
+			<button type="button" class="btn btn-xs" on:click={(e) => decrease(e)}>
 				<Icon src={ChevronDown} size="12" class="hover:stroke-accent" />
 			</button>
 		</div>
