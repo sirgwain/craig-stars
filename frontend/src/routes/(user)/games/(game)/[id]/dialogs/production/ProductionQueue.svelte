@@ -142,10 +142,6 @@
 		const max = isAuto(item.type)
 			? 5000
 			: planet.getMaxBuildable($techs, $player, maxPopulation, item.type, amountInQueue);
-		console.log(
-			'maxBuildable',
-			planet.getMaxBuildable($techs, $player, maxPopulation, item.type, amountInQueue)
-		);
 		const quantity = clamp(quantityModifier(e), 0, max);
 		if (quantity == 0) {
 			// don't add something we can't build any more of
