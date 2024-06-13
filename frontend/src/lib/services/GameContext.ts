@@ -734,8 +734,10 @@ export function createGameContext(fg: FullGame): GameContext {
 	async function deleteDesign(num: number): Promise<void> {
 		const { fleets, starbases } = await DesignService.delete(gameId, num);
 		const u = get(universe);
-		u.fleets = fleets;
-		u.starbases = starbases;
+		const p = get(player);
+		// replace our fleets and starbases (but keep intel issue #146)
+		u.fleets = fleets.concat(u.fleets.filter((f) => f.playerNum != p.num));
+		u.starbases = starbases.concat(u.starbases.filter((f) => f.playerNum != p.num));
 		u.resetMapObjectsByPosition();
 		u.resetMyMapObjectsByPosition();
 

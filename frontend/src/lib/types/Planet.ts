@@ -247,7 +247,6 @@ export class CommandedPlanet implements Planet {
 				);
 			case QueueItemTypes.AutoMaxTerraform:
 			case QueueItemTypes.TerraformEnvironment:
-				console.log("terraformAmount hab", this.hab, "baseHab", this.baseHab, "amount", getTerraformAmount(techStore, this.hab, this.baseHab, player))
 				return (
 					absSum(getTerraformAmount(techStore, this.hab, this.baseHab, player)) - amountInQueue
 				);
