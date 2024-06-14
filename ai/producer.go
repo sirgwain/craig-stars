@@ -121,14 +121,20 @@ func (ai *aiPlayer) isPlanetReadyToBuildFleet(planet *cs.Planet, purpose cs.Flee
 	if !planet.Spec.HasStarbase || planet.Spec.DockCapacity == 0 {
 		return false
 	}
+
+	// don't worry about production, let this planet build scouts
+	if purpose == cs.FleetPurposeScout {
+		return true
+	}
+
 	// don't build colonizers or freighters on this planet if it doesn't have the pop to move them
 	if purpose == cs.FleetPurposeColonistFreighter &&
-		planet.Spec.PopulationDensity < ai.config.colonistTransportDensity {
-		return false
+		planet.Spec.PopulationDensity >= ai.config.colonistTransportDensity {
+		return true
 	}
 	if purpose == cs.FleetPurposeColonizer &&
-		planet.Spec.PopulationDensity < ai.config.colonizerPopulationDensity {
-		return false
+		planet.Spec.PopulationDensity >= ai.config.colonizerPopulationDensity {
+		return true
 	}
 
 	// don't build certain things unless we meet some requirements
