@@ -83,7 +83,7 @@ func NewAIPlayer(game *cs.Game, techStore *cs.TechStore, player *cs.Player, play
 		},
 		config: playerConfig{
 			colonizerPopulationDensity:       .25, // default to requiring 25% pop density before sending off colonizers
-			colonistTransportDensity:         .5,  // default to requiring 50% pop density before taking colonists from a feeder to a needer
+			colonistTransportDensity:         .25,  // default to requiring 50% pop density before taking colonists from a feeder to a needer
 			minYearsToQueueStarbasePeaceTime: 2,   // don't build starbases if it takes over 2 years to build it
 			minYearsToQueueStarbaseWarTime:   4,   // don't build starbases if it takes over 2 years to build it
 			minYearsToBuildFort:              10,  // if we are being threatened and need to throw up a fort, do it even if it takes a bit
