@@ -50,6 +50,7 @@ type playerConfig struct {
 	minYearsToBuildScanner           int
 	minYearsToBuildFort              int
 	namesByPurpose                   map[cs.ShipDesignPurpose]string
+	researchOrder                    []cs.TechLevel
 }
 
 // each AI has a personality that influences decisions
@@ -83,7 +84,7 @@ func NewAIPlayer(game *cs.Game, techStore *cs.TechStore, player *cs.Player, play
 		},
 		config: playerConfig{
 			colonizerPopulationDensity:       .25, // default to requiring 25% pop density before sending off colonizers
-			colonistTransportDensity:         .25,  // default to requiring 50% pop density before taking colonists from a feeder to a needer
+			colonistTransportDensity:         .25, // default to requiring 50% pop density before taking colonists from a feeder to a needer
 			minYearsToQueueStarbasePeaceTime: 2,   // don't build starbases if it takes over 2 years to build it
 			minYearsToQueueStarbaseWarTime:   4,   // don't build starbases if it takes over 2 years to build it
 			minYearsToBuildFort:              10,  // if we are being threatened and need to throw up a fort, do it even if it takes a bit
@@ -117,6 +118,29 @@ func NewAIPlayer(game *cs.Game, techStore *cs.TechStore, player *cs.Player, play
 				cs.ShipDesignPurposeFort:                  "Orbital Fort",
 				cs.ShipDesignPurposeStarterColony:         "Starter Colony",
 				cs.ShipDesignPurposeFuelDepot:             "Fuel Depot",
+			},
+			researchOrder: []cs.TechLevel{
+				{Propulsion: 2},
+				{Biotechnology: 1},
+				{Energy: 1},
+				{Weapons: 1},
+				{Construction: 4}, // destroyers/privateers
+				{Electronics: 1},
+				{Weapons: 6},
+				{Energy: 4, Propulsion: 4, Electronics: 4, Biotechnology: 4},
+				{Weapons: 8, Construction: 6},              // frigates/Phaser bazookas
+				{Energy: 6, Propulsion: 6, Electronics: 6}, //+7 Terraform
+				{Biotechnology: 7},                         //Organic Armor
+				{Weapons: 10},                              //CP and Deltas
+				{Construction: 9, Propulsion: 7},           //Cruisers/Warp 8 drives
+				{Weapons: 12},                              //Jihads
+				{Energy: 8, Propulsion: 8, Electronics: 8},
+				{Weapons: 16, Construction: 13},               //Battleships/Juggernauts
+				{Energy: 12, Propulsion: 12, Electronics: 11}, //Overthruster/SuperBC/LangstonShell
+				{Weapons: 20, Construction: 16},               //Dreadnoughts
+				{Energy: 14, Propulsion: 14, Electronics: 14}, //Backfill
+				{Weapons: 24},                                 //Armageddon
+				{Energy: 18, Propulsion: 16, Electronics: 19}, //Battle Nexus, Warp 10 RS
 			},
 		},
 		PlayerMapObjects: playerMapObjects,
