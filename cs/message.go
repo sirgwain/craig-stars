@@ -7,12 +7,7 @@ import (
 	"golang.org/x/text/message"
 )
 
-type Target[T PlayerMessageTargetType | MapObjectType] struct {
-	TargetType      T      `json:"targetType,omitempty"`
-	TargetName      string `json:"targetName,omitempty"`
-	TargetNum       int    `json:"targetNum,omitempty"`
-	TargetPlayerNum int    `json:"targetPlayerNum,omitempty"`
-}
+type PlayerMessageTarget Target[PlayerMessageTargetType]
 
 // Throughout a turn various events will result in messages being sent to players.
 // Messages have a type and a target (the target is focused in the UI when you click the Goto button)

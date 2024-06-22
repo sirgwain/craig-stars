@@ -165,7 +165,7 @@ func (s *server) updateFleetOrders(w http.ResponseWriter, r *http.Request) {
 	existingFleet.InjectDesigns(player.Designs)
 
 	orderer := cs.NewOrderer()
-	orderer.UpdateFleetOrders(player, existingFleet, fleet.FleetOrders)
+	orderer.UpdateFleetOrders(player, existingFleet, fleet.FleetOrders, fleet.Tags)
 
 	if err := db.UpdateFleet(existingFleet); err != nil {
 		log.Error().Err(err).Int64("ID", fleet.ID).Msg("update fleet in database")

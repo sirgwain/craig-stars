@@ -7,7 +7,7 @@ type CompletionEstimator interface {
 	// get the estimated years to build one item with minerals on hand and some yearly mineral/resource output
 	GetYearsToBuildOne(item ProductionQueueItem, cost Cost, mineralsOnHand Mineral, yearlyAvailableToSpend Cost) int
 
-	// get a ProductionQueue with estimates filled in
+	// get a ProductionQueue with estimates filled in and leftover resources
 	GetProductionWithEstimates(rules *Rules, player *Player, planet Planet) ([]ProductionQueueItem, int)
 }
 
@@ -56,6 +56,8 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 			YearsToSkipAuto: Infinite,
 		}
 	}
+
+	planet.Spec = computePlanetSpec(rules, player, &planet)
 
 	// keep track of items built so we know how many auto items are completed
 	numBuilt := make([]int, len(planet.ProductionQueue))

@@ -31,7 +31,7 @@ type SplitFleetRequest struct {
 type Orderer interface {
 	UpdatePlayerOrders(player *Player, playerPlanets []*Planet, order PlayerOrders, rules *Rules)
 	UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet, orders PlanetOrders) error
-	UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrders)
+	UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrders, tags Tags)
 	UpdateMineFieldOrders(player *Player, minefield *MineField, orders MineFieldOrders)
 	TransferFleetCargo(rules *Rules, player, destPlayer *Player, source, dest *Fleet, transferAmount CargoTransferRequest) error
 	TransferPlanetCargo(rules *Rules, player *Player, source *Fleet, dest *Planet, transferAmount CargoTransferRequest) error
@@ -106,6 +106,12 @@ func (o *orders) UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet
 		if item.design != nil && item.design.OriginalPlayerNum != None {
 			return fmt.Errorf("cannot build %s, it was transferred from another player", item.design.Name)
 		}
+		if item.design != nil && item.design.Spec.Starbase && item.Type != QueueItemTypeStarbase {
+			return fmt.Errorf("cannot build %s, it is a starbase design but being built as %v", item.design.Name, item.Type)
+		}
+		if item.design != nil && !item.design.Spec.Starbase && item.Type != QueueItemTypeShipToken {
+			return fmt.Errorf("cannot build %s, it is a ship design but being built as %v", item.design.Name, item.Type)
+		}
 	}
 
 	planet.PopulateProductionQueueEstimates(rules, player)
@@ -120,15 +126,17 @@ func (o *orders) UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet
 		Int64("GameID", player.GameID).
 		Int("PlayerNum", player.Num).
 		Str("Planet", planet.Name).
+		Interface("Orders", orders).
 		Msg("update planet orders")
 
 	return nil
 }
 
 // update the orders to a fleet
-func (o *orders) UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrders) {
+func (o *orders) UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrders, tags Tags) {
 	// copy user modifiable things to the fleet fleet
 	fleet.RepeatOrders = orders.RepeatOrders
+	fleet.Tags = tags
 	wp0 := &fleet.Waypoints[0]
 	newWP0 := orders.Waypoints[0]
 
@@ -150,7 +158,7 @@ func (o *orders) UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrd
 	if len(fleet.Waypoints) > 1 {
 		fleet.Heading = (fleet.Waypoints[1].Position.Subtract(fleet.Position)).Normalized()
 	}
-	
+
 	fleet.computeFuelUsage(player)
 	fleet.MarkDirty()
 

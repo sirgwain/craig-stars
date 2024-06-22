@@ -17,7 +17,7 @@ func (ai *aiPlayer) updateFleetWarpSpeed() error {
 						Msgf("Fleet %s increasing warp from %d to %d", fleet.Name, wp1.WarpSpeed, warpSpeed)
 
 					fleet.Waypoints[1].WarpSpeed = warpSpeed
-					ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders)
+					ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders, fleet.Tags)
 				}
 			}
 		}

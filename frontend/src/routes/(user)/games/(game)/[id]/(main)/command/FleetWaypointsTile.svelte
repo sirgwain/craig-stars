@@ -12,6 +12,7 @@
 	import { distance } from '$lib/types/Vector';
 	import { createEventDispatcher, onMount } from 'svelte';
 	import CommandTile from './CommandTile.svelte';
+	import FleetTravelTime from '$lib/components/game/FleetTravelTime.svelte';
 
 	const {
 		player,
@@ -227,11 +228,7 @@
 			<div class="flex justify-between mt-1">
 				<span class="text-tile-item-title">Travel Time</span>
 				<span>
-					{#if $selectedWaypoint.warpSpeed === StargateWarpSpeed}
-						1 year
-					{:else}
-						{Math.ceil(dist / ($selectedWaypoint.warpSpeed * $selectedWaypoint.warpSpeed))} years
-					{/if}
+					<FleetTravelTime wp1={previousWaypoint} wp2={$selectedWaypoint} />
 				</span>
 			</div>
 			<div class="flex justify-between mt-1">
@@ -266,7 +263,9 @@
 			</div>
 			<div class="flex justify-between mt-1">
 				<span class="text-tile-item-title">Travel Time</span>
-				<span>{Math.ceil(dist / (nextWaypoint.warpSpeed * nextWaypoint.warpSpeed))} years</span>
+				<span>
+					<FleetTravelTime wp1={$selectedWaypoint} wp2={nextWaypoint} />
+				</span>
 			</div>
 			<div class="flex justify-between mt-1">
 				<span class="text-tile-item-title">Total Fuel Usage</span>

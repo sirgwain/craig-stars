@@ -70,6 +70,10 @@ func (intel *Intel) Owned() bool {
 	return intel.PlayerNum != Unowned
 }
 
+func (intel *MapObjectIntel) Target() MapObjectTarget {
+	return MapObjectTarget{TargetType: intel.Type, TargetName: intel.Name, TargetNum: intel.Num, TargetPlayerNum: intel.PlayerNum}
+}
+
 type PlanetIntel struct {
 	MapObjectIntel
 	Hab                           Hab         `json:"hab,omitempty"`

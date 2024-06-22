@@ -62,7 +62,7 @@ func (ai *aiPlayer) scout() error {
 			warpSpeed := ai.getScoutWarpSpeed(fleet, closestPlanet.Position)
 
 			fleet.Waypoints = append(fleet.Waypoints, cs.NewPlanetWaypoint(closestPlanet.Position, closestPlanet.Num, closestPlanet.Name, warpSpeed))
-			ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders)
+			ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders, fleet.Tags)
 			delete(unknownPlanetsByNum, closestPlanet.Num)
 			idleFleets--
 

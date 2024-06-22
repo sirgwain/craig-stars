@@ -6,6 +6,7 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { fleetsSortBy, getLocation, type Fleet } from '$lib/types/Fleet';
 	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
+	import FleetTravelTime from '$lib/components/game/FleetTravelTime.svelte';
 
 	const { game, player, universe, settings, commandMapObject, zoomToMapObject } = getGameContext();
 
@@ -122,7 +123,10 @@
 					? $universe.getTargetName(row.waypoints[1])
 					: '--'}
 			{:else if column.key == 'eta'}
-				-- <!-- TODO: fleet class?  -->
+				<FleetTravelTime
+					wp1={row.waypoints ? row.waypoints[0] : undefined}
+					wp2={row.waypoints && row.waypoints.length > 1 ? row.waypoints[1] : undefined}
+				/>
 			{:else if column.key == 'fuel'}
 				{row.fuel}mg
 			{:else if column.key == 'cargo'}

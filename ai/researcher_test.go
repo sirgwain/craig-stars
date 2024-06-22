@@ -27,9 +27,7 @@ func Test_aiPlayer_research(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			game := cs.NewGame()
-			player := cs.NewPlayer(1, cs.NewRace().WithSpec(&game.Rules))
-			ai := NewAIPlayer(game, &cs.StaticTechStore, player, cs.PlayerMapObjects{})
+			ai := testAIPlayer()
 			ai.TechLevels = tt.techLevel
 
 			// trigger research

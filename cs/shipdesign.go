@@ -553,7 +553,7 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 	scanner := techStore.GetBestScanner(player)
 	fuelTank := techStore.GetBestFuelTank(player)
 	cargoPod := techStore.GetBestCargoPod(player)
-	beamWeapon := techStore.GetBestBeamWeapon(player)
+	// only build torpedo shooters for now...
 	torpedo := techStore.GetBestTorpedo(player)
 	bomb := techStore.GetBestBomb(player)
 	smartBomb := techStore.GetBestSmartBomb(player)
@@ -571,8 +571,6 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 
 	numColonizationModules := 0
 	numScanners := 0
-	numBeamWeapons := 0
-	numTorpedos := 0
 	numArmors := 0
 	numShields := 0
 	numFuelTanks := 0
@@ -604,13 +602,7 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 			numScanners++
 			slot.HullComponent = scanner.Name
 		case HullSlotTypeWeapon:
-			if numTorpedos > numBeamWeapons {
-				slot.HullComponent = beamWeapon.Name
-				numBeamWeapons++
-			} else {
-				slot.HullComponent = torpedo.Name
-				numTorpedos++
-			}
+			slot.HullComponent = torpedo.Name
 		case HullSlotTypeBomb:
 			// fill the bomb slot based on the type of bomber we want
 			// or leave it blank
@@ -834,7 +826,7 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 					slot.HullComponent = scanner.Name
 					numScanners++
 				} else {
-					slot.HullComponent = beamWeapon.Name
+					slot.HullComponent = torpedo.Name
 				}
 			default:
 				if numScanners == 0 {

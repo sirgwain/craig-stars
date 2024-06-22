@@ -135,7 +135,7 @@ func (ai *aiPlayer) transportColonists() error {
 			fleet.Waypoints = append(fleet.Waypoints, cs.NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, warpSpeed).
 				WithTask(cs.WaypointTaskTransport).
 				WithTransportTasks(cs.WaypointTransportTasks{Colonists: cs.WaypointTransportTask{Action: cs.TransportActionUnloadAll}}))
-			ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders)
+			ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders, fleet.Tags)
 
 			idleFleets--
 			delete(needersByNum, planet.Num)
@@ -155,11 +155,6 @@ func (ai *aiPlayer) transportColonists() error {
 	if len(needersByNum)-idleFleets > 0 {
 		ai.addFleetBuildRequest(cs.FleetPurposeColonistFreighter, len(needersByNum)-idleFleets)
 	}
-
-	return nil
-}
-
-func (ai *aiPlayer) loadColonistsAndTarget(fleet *cs.Fleet, planet *cs.Planet) error {
 
 	return nil
 }

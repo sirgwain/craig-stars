@@ -8,7 +8,7 @@ func roundToNearest100f(value float64) int {
 	return int(math.Round(value/100) * 100)
 }
 
-func roundToNearest100(value int) int {
+func RoundToNearest100(value int) int {
 	return int(math.Round(float64(value)/100) * 100)
 }
 

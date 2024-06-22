@@ -43,12 +43,12 @@ func (ai *aiPlayer) layMines() error {
 			if fleet.Position == closestPlanet.Position {
 				fleet.Waypoints[0].Task = cs.WaypointTaskLayMineField
 				fleet.Waypoints[0].LayMineFieldDuration = cs.Indefinite
-				ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders)
+				ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders, fleet.Tags)
 				delete(planetsToProtectByNum, closestPlanet.Num)
 			} else {
 				warpSpeed := ai.getWarpSpeed(fleet, closestPlanet.Position)
 				fleet.Waypoints = append(fleet.Waypoints, cs.NewPlanetWaypoint(closestPlanet.Position, closestPlanet.Num, closestPlanet.Name, warpSpeed))
-				ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders)
+				ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders, fleet.Tags)
 				delete(planetsToProtectByNum, closestPlanet.Num)
 			}
 		}

@@ -72,7 +72,7 @@ func (ai *aiPlayer) bomb() error {
 		if bestPlanet != nil {
 			warpSpeed := ai.getMaxWarp(fleet.Position.DistanceTo(bestPlanet.Position), fleet)
 			fleet.Waypoints = append(fleet.Waypoints, cs.NewPlanetWaypoint(bestPlanet.Position, bestPlanet.Num, bestPlanet.Name, warpSpeed))
-			ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders)
+			ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders, fleet.Tags)
 			delete(bombablePlanets, bestPlanet.Num)
 			idleFleets--
 

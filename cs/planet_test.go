@@ -153,6 +153,8 @@ func TestPlanet_getGrowthAmount(t *testing.T) {
 	}{
 		{name: "empty planet", fields: fields{Hab{50, 50, 50}, 0}, args: args{NewPlayer(1, NewRace()), 1_000_000}, want: 0},
 		{name: "less than 25% cap, grows at full 10% growth rate", fields: fields{Hab{50, 50, 50}, 100_000}, args: args{NewPlayer(1, NewRace()), 1_200_000}, want: 10_000},
+		{name: "25% cap, grows at full 10% growth rate", fields: fields{Hab{50, 50, 50}, 300_000}, args: args{NewPlayer(1, NewRace()), 1_200_000}, want: 30_000},
+		{name: "26% cap, grows almost at full 10% growth rate", fields: fields{Hab{50, 50, 50}, 260_000}, args: args{NewPlayer(1, NewRace()), 1_000_000}, want: 25_300},
 		{name: "at 50% cap, it slows down in growth", fields: fields{Hab{50, 50, 50}, 600_000}, args: args{NewPlayer(1, NewRace()), 1_200_000}, want: 26_700},
 		{name: "we are basicallly at capacity, we only grow a tiny amount", fields: fields{Hab{50, 50, 50}, 1_180_000}, args: args{NewPlayer(1, NewRace()), 1_200_000}, want: 100},
 		{name: "no more growth past a certain capacity", fields: fields{Hab{50, 50, 50}, 1_190_000}, args: args{NewPlayer(1, NewRace()), 1_200_000}, want: 0},
@@ -270,6 +272,5 @@ func Test_computePlanetSpec(t *testing.T) {
 
 	assert.Equal(t, planet.Spec.ScanRange, 82)
 	assert.Equal(t, planet.Spec.ScanRangePen, 41)
-
 
 }

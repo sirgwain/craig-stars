@@ -2,11 +2,11 @@ import type { DesignFinder, Universe } from '$lib/services/Universe';
 import { get as pluck } from 'lodash-es';
 import { totalCargo, type Cargo } from './Cargo';
 import type { Cost } from './Cost';
-import { MapObjectType, None, type MovingMapObject, ownedBy } from './MapObject';
+import { MapObjectType, None, type MovingMapObject, ownedBy, StargateWarpSpeed } from './MapObject';
 import type { MessageTargetType } from './Message';
 import type { ShipDesign } from './ShipDesign';
 import type { Engine } from './Tech';
-import type { Vector } from './Vector';
+import { distance, type Vector } from './Vector';
 
 export type Fleet = {
 	playerNum: number; // override mapObject fleets always have a player.
@@ -265,6 +265,22 @@ export class CommandedFleet implements Fleet {
 	}
 }
 
+export function getTravelTime(fleet: Fleet): number {
+	if (fleet.waypoints && fleet.waypoints.length > 1) {
+		const wp1 = fleet.waypoints[0];
+		const wp2 = fleet.waypoints[1];
+
+		// stargates are always a year
+		if (wp2.warpSpeed == StargateWarpSpeed) {
+			return 1;
+		}
+
+		const dist = distance(wp1.position, wp2.position);
+		return Math.ceil(dist / (wp2.warpSpeed * wp2.warpSpeed));
+	}
+	return 0;
+}
+
 export function getDamagePercentForToken(token: ShipToken, design: ShipDesign | undefined): number {
 	const armor = design?.spec.armor ?? 0;
 	const totalArmor = armor * token.quantity;
@@ -392,6 +408,8 @@ export function fleetsSortBy(
 			return (a, b) => totalCargo(a.cargo) - totalCargo(b.cargo);
 		case 'mass':
 			return (a, b) => (a.spec?.mass ?? 0) - (b.spec?.mass ?? 0);
+		case 'eta':
+			return (a, b) => getTravelTime(a) - getTravelTime(b);
 		case 'fuel':
 			return (a, b) => (a.fuel ?? 0) - (b.fuel ?? 0);
 		default:

@@ -173,7 +173,7 @@ func (b *bomb) normalBombPlanet(planet *Planet, defender *Player, attacker *Play
 	// figure out the killRate and minKill for this fleet's bombs
 	defenseCoverage := planet.Spec.DefenseCoverage
 	killRateColonistsKilled := roundToNearest100f(b.getColonistsKilledForBombs(planet.population(), defenseCoverage, bombs))
-	minColonistsKilled := roundToNearest100(b.getMinColonistsKilledForBombs(planet.population(), defenseCoverage, bombs))
+	minColonistsKilled := RoundToNearest100(b.getMinColonistsKilledForBombs(planet.population(), defenseCoverage, bombs))
 
 	killed := MaxInt(killRateColonistsKilled, minColonistsKilled)
 	leftoverPopulation := MaxInt(0, planet.population()-killed)

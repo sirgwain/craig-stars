@@ -8,12 +8,15 @@ import (
 )
 
 type fleet struct {
-	purpose cs.FleetPurpose
-	ships   []fleetShip
+	purpose               cs.FleetPurpose
+	ships                 []fleetShip
+	mustBuildInYears      int
+	onlyQueueOnePerPlanet bool
 }
 
 type fleetShip struct {
 	purpose  cs.ShipDesignPurpose
+	design   *cs.ShipDesign
 	quantity int
 }
 
@@ -44,7 +47,8 @@ func (f *fleet) mergeFromIdleFleets(ai *aiPlayer, fleets []*cs.Fleet) (fleet *cs
 	// see if we have enough of what we need
 	fleetsToMerge := []*cs.Fleet{}
 	for i, fleet := range fleets {
-		if fleet.GetTag("purpose") != string(f.purpose) {
+		// if this fleet already has a target, or is the wrong purpose, or is moving, it's not idle
+		if fleet.GetTag(cs.TagTarget) != "" || fleet.GetTag(cs.TagPurpose) != string(f.purpose) || len(fleet.Waypoints) > 1 {
 			continue
 		}
 		foundShip := false
@@ -147,11 +151,38 @@ func (f *fleet) getFleetsMatchingMakeup(ai *aiPlayer, fleets []*cs.Fleet) []*cs.
 	return matchingFleets
 }
 
+// find all fleets with the same target at the same planet and return a single fleet
+func (ai *aiPlayer) assembleFleetForTarget(t cs.MapObjectTarget, planetNum int, purpose cs.FleetPurpose) (fleet *cs.Fleet, err error) {
+	// find all fleets with the same target and merge them
+	target, ok := ai.targets[t]
+	if !ok || len(target.fleets) == 0 {
+		// no fleets found for this target, return nil
+		return nil, nil
+	}
+
+	fleets := make([]*cs.Fleet, 0, len(target.fleets))
+	for _, fleet := range target.fleets {
+		if fleet.OrbitingPlanetNum != planetNum || fleet.Purpose != purpose {
+			continue
+		}
+		fleets = append(fleets, fleet)
+	}
+
+	// return this fleet merged
+	return ai.merge(fleets)
+}
+
+// return true if we are waiting for production items for this target
+func (ai *aiPlayer) isTargetWaitingForProduction(t cs.MapObjectTarget) bool {
+	target, ok := ai.targets[t]
+	return !ok || len(target.production) > 0
+}
+
 // assemble fleets of a given purpose from all idle fleets over planets (i.e. fleets that were just built)
 func (ai *aiPlayer) assembleFromIdleFleets(fleetMakeup fleet) ([]*cs.Fleet, error) {
-	// find all idle fleets that are colonizers
+	// find all idle assembledFleets that are colonizers
 	// and merge them into a single fleet with purpose
-	fleets := []*cs.Fleet{}
+	assembledFleets := []*cs.Fleet{}
 	for planetNum, fleets := range ai.fleetsByPlanetNum {
 
 		fleetsToCheck := make([]*cs.Fleet, len(fleets))
@@ -168,15 +199,24 @@ func (ai *aiPlayer) assembleFromIdleFleets(fleetMakeup fleet) ([]*cs.Fleet, erro
 				}
 				// we made a fleet, hoorah
 				fleet.Purpose = fleetMakeup.purpose
+				assembledFleets = append(assembledFleets, fleet)
 			}
 		}
 	}
 
-	return fleets, nil
+	return assembledFleets, nil
 }
 
 // merge a fleet and update the ai maps
 func (ai *aiPlayer) merge(fleets []*cs.Fleet) (*cs.Fleet, error) {
+	// no fleets to merge
+	if len(fleets) == 0 {
+		return nil, nil
+	}
+	// if we only have one fleet, it's already merged, just return it
+	if len(fleets) == 1 {
+		return fleets[0], nil
+	}
 	fleet, err := ai.client.Merge(&ai.game.Rules, ai.Player, fleets)
 	if err != nil {
 		return nil, err
@@ -208,3 +248,4 @@ func (ai *aiPlayer) merge(fleets []*cs.Fleet) (*cs.Fleet, error) {
 
 	return fleet, nil
 }
+

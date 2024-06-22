@@ -29,7 +29,10 @@ func (ai *aiPlayer) designShip(name string, purpose cs.ShipDesignPurpose, fleetP
 	case cs.ShipDesignPurposeFuelFreighter:
 		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeFuelTransport))
 		if hull == nil {
-			hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeFreighter))
+			hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeMultiPurposeFreighter))
+			if hull == nil {
+				hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeFreighter))
+			}	
 		}
 	case cs.ShipDesignPurposeFighter:
 		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeFighter))
@@ -174,9 +177,13 @@ func (ai *aiPlayer) removedUnusedDesigns() {
 func (ai *aiPlayer) assignPurpose() {
 	for _, fleet := range ai.Fleets {
 		if fleet.Purpose == cs.FleetPurposeNone {
-			design := ai.GetDesign(fleet.Tokens[0].DesignNum)
-			fleet.Purpose = cs.FleetPurposeFromShipDesignPurpose(design.Purpose)
-			fleet.MarkDirty()
+			if tagPurpose := fleet.GetTag(cs.TagPurpose); tagPurpose != "" {
+				fleet.Purpose = cs.FleetPurpose(tagPurpose)
+			} else {
+				design := ai.GetDesign(fleet.Tokens[0].DesignNum)
+				fleet.Purpose = cs.FleetPurposeFromShipDesignPurpose(design.Purpose)
+				fleet.MarkDirty()
+			}
 		}
 	}
 }

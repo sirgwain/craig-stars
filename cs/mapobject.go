@@ -1,6 +1,7 @@
 package cs
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 )
@@ -50,10 +51,24 @@ const (
 
 const (
 	TagPurpose = "purpose"
+	TagTarget  = "target"
 )
+
+type Target[T PlayerMessageTargetType | MapObjectType] struct {
+	TargetType      T      `json:"targetType,omitempty"`
+	TargetName      string `json:"targetName,omitempty"`
+	TargetNum       int    `json:"targetNum,omitempty"`
+	TargetPlayerNum int    `json:"targetPlayerNum,omitempty"`
+}
+
+type MapObjectTarget Target[MapObjectType]
 
 func (mo *MapObject) String() string {
 	return fmt.Sprintf("GameID: %5d, ID: %5d, Num: %3d %s", mo.GameID, mo.ID, mo.Num, mo.Name)
+}
+
+func (mo *MapObject) Target() MapObjectTarget {
+	return MapObjectTarget{TargetType: mo.Type, TargetName: mo.Name, TargetNum: mo.Num, TargetPlayerNum: mo.PlayerNum}
 }
 
 func (mo *MapObject) Owned() bool {
@@ -77,4 +92,23 @@ func (mo *MapObject) SetTag(key, value string) {
 		mo.Tags = make(Tags)
 	}
 	mo.Tags[key] = value
+}
+
+func (mo *MapObject) RemoveTag(key string) {
+	delete(mo.Tags, key)
+}
+
+func (target MapObjectTarget) IsNone() bool {
+	return target.TargetType == MapObjectTypeNone
+}
+
+func (target MapObjectTarget) String() string {
+	json, _ := json.Marshal(target)
+	return string(json)
+}
+
+func TargetFromString(value string) MapObjectTarget {
+	target := MapObjectTarget{}
+	json.Unmarshal([]byte(value), &target)
+	return target
 }

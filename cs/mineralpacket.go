@@ -140,7 +140,7 @@ func (packet *MineralPacket) completeMove(rules *Rules, player *Player, planet *
 	} else if planetPlayer != nil {
 		// kill off colonists and defenses
 		// note, for AR races, this will be 0 colonists killed or structures destroyed
-		planet.setPopulation(roundToNearest100(Clamp(planet.population()-damage.Killed, 0, planet.population())))
+		planet.setPopulation(RoundToNearest100(Clamp(planet.population()-damage.Killed, 0, planet.population())))
 		planet.Defenses = Clamp(planet.Defenses-damage.DefensesDestroyed, 0, planet.Defenses)
 
 		messager.planetPacketDamage(planetPlayer, planet, packet, damage.Killed, damage.DefensesDestroyed)
@@ -210,7 +210,7 @@ func (packet *MineralPacket) getDamage(rules *Rules, planet *Planet, planetPlaye
 
 	// kill off colonists and defenses
 	return MineralPacketDamage{
-		Killed:            roundToNearest100(MinInt(colonistsKilled, planet.population())),
+		Killed:            RoundToNearest100(MinInt(colonistsKilled, planet.population())),
 		DefensesDestroyed: MinInt(planet.Defenses, defensesDestroyed),
 		Uncaught:          uncaught,
 	}

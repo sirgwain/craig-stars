@@ -120,6 +120,11 @@ func (p *Planet) WithMines(mines int) *Planet {
 	return p
 }
 
+func (p *Planet) WithFactories(factories int) *Planet {
+	p.Factories = factories
+	return p
+}
+
 func (p *Planet) WithMineralConcentration(mineralConcentration Mineral) *Planet {
 	p.MineralConcentration = mineralConcentration
 	return p
@@ -132,6 +137,11 @@ func (p *Planet) WithMineYears(mineYears Mineral) *Planet {
 
 func (p *Planet) WithScanner(scanner bool) *Planet {
 	p.Scanner = scanner
+	return p
+}
+
+func (p *Planet) WithProductionQueue(queue []ProductionQueueItem) *Planet {
+	p.ProductionQueue = queue
 	return p
 }
 
@@ -414,11 +424,11 @@ func (p *Planet) getGrowthAmount(player *Player, maxPopulation int, populationOv
 		}
 
 		// round to the nearest 100 colonists
-		return roundToNearest100(popGrowth)
+		return RoundToNearest100(popGrowth)
 	} else {
 		// kill off (habValue / 10)% colonists every year. I.e. a habValue of -4% kills off .4%
 		deathAmount := int(float64(p.population()) * (float64(habValue) / 1000.0))
-		return roundToNearest100(Clamp(deathAmount, deathAmount, -100))
+		return RoundToNearest100(Clamp(deathAmount, deathAmount, -100))
 	}
 }
 

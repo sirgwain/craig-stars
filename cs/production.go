@@ -53,7 +53,7 @@ func NewProductionQueueItemShip(quantity int, design *ShipDesign) *ProductionQue
 	return &ProductionQueueItem{Type: QueueItemTypeShipToken, Quantity: quantity, DesignNum: design.Num}
 }
 
-func (item *ProductionQueueItem) WithTag(key, value string) *ProductionQueueItem {
+func (item ProductionQueueItem) WithTag(key, value string) ProductionQueueItem {
 	if item.Tags == nil {
 		item.Tags = make(Tags)
 	}

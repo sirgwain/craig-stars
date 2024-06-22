@@ -14,6 +14,7 @@ export interface MapObject {
 	name: string;
 	num: number;
 	playerNum: number;
+	tags?: Record<string, string>;
 }
 
 export type MovingMapObject = {

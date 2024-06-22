@@ -1,6 +1,7 @@
 package ai
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/sirgwain/craig-stars/cs"
@@ -9,34 +10,31 @@ import (
 type aiPlayer struct {
 	*cs.Player
 	cs.PlayerMapObjects
-	requests
 	game                   *cs.Game
 	techStore              *cs.TechStore
 	config                 playerConfig
 	client                 cs.Orderer
 	planetsByNum           map[int]*cs.Planet
+	planetsWithDocks       []*cs.Planet
 	fleetsByNum            map[int]*cs.Fleet
 	fleetsByPlanetNum      map[int][]*cs.Fleet
 	fleetIntelsByPlanetNum map[int][]*cs.FleetIntel
 	designsByPurpose       map[cs.ShipDesignPurpose]*cs.ShipDesign
 	fleetsByPurpose        map[cs.FleetPurpose]fleet
 	targetedPlanets        map[int][]*cs.FleetIntel
+	colonizablePlanets     map[int]colonizablePlanet
+	colonizersByPlanet     map[int]colonizer
 
+	// fleets we need to build to accomplish our goals
+	fleetBuildRequests []fleetBuildRequest
+	targets            map[cs.MapObjectTarget]target
+
+	fuelTransportDesign   *cs.ShipDesign
 	fuelDepotDesign       *cs.ShipDesign
 	fortDesign            *cs.ShipDesign
 	starbaseQuarterDesign *cs.ShipDesign
 	starbaseHalfDesign    *cs.ShipDesign
 	starbaseDesign        *cs.ShipDesign
-}
-
-type requests struct {
-	fleetBuilds map[cs.FleetPurpose]int
-}
-
-type fleetBuildRequest struct {
-	count    int
-	fleet    fleet
-	priority int
 }
 
 type playerConfig struct {
@@ -74,19 +72,27 @@ const (
 	Exterminate Stage = "Exterminate"
 )
 
+type target struct {
+	fleets     []*cs.Fleet
+	production []productionTarget
+}
+
+type productionTarget struct {
+	planet *cs.Planet
+	item   cs.ProductionQueueItem
+}
+
 func NewAIPlayer(game *cs.Game, techStore *cs.TechStore, player *cs.Player, playerMapObjects cs.PlayerMapObjects) *aiPlayer {
 	aiPlayer := aiPlayer{
-		Player:    player,
-		game:      game,
-		techStore: techStore,
-		requests: requests{
-			fleetBuilds: make(map[cs.FleetPurpose]int),
-		},
+		Player:             player,
+		game:               game,
+		techStore:          techStore,
+		fleetBuildRequests: make([]fleetBuildRequest, 0, 100),
 		config: playerConfig{
 			colonizerPopulationDensity:       .25, // default to requiring 25% pop density before sending off colonizers
 			colonistTransportDensity:         .25, // default to requiring 50% pop density before taking colonists from a feeder to a needer
-			minYearsToQueueStarbasePeaceTime: 2,   // don't build starbases if it takes over 2 years to build it
-			minYearsToQueueStarbaseWarTime:   4,   // don't build starbases if it takes over 2 years to build it
+			minYearsToQueueStarbasePeaceTime: 4,   // don't build starbases if it takes over 2 years to build it
+			minYearsToQueueStarbaseWarTime:   6,   // don't build starbases if it takes over 2 years to build it
 			minYearsToBuildFort:              10,  // if we are being threatened and need to throw up a fort, do it even if it takes a bit
 			minYearsToBuildScanner:           1,
 			invasionFactor:                   2,  // we invade if we have 2x the colonists to drop
@@ -147,23 +153,55 @@ func NewAIPlayer(game *cs.Game, techStore *cs.TechStore, player *cs.Player, play
 		client:           cs.NewOrderer(),
 	}
 
-	aiPlayer.buildMaps()
-
 	return &aiPlayer
 }
 
 // build maps used for quick lookups for various player objects
-func (ai *aiPlayer) buildMaps() {
+func (ai *aiPlayer) buildMaps() error {
+	ai.targets = make(map[cs.MapObjectTarget]target)
 	ai.planetsByNum = make(map[int]*cs.Planet, len(ai.Planets))
 	for _, planet := range ai.Planets {
 		ai.planetsByNum[planet.Num] = planet
+		if planet.Spec.HasStarbase && planet.Spec.DockCapacity != 0 {
+			ai.planetsWithDocks = append(ai.planetsWithDocks, planet)
+
+			// find any production queue targets and add them to the ai target map
+			for _, item := range planet.ProductionQueue {
+				if tag := item.GetTag(cs.TagTarget); tag != "" {
+					t := cs.TargetFromString(tag)
+					target := ai.targets[t]
+					target.production = append(ai.targets[t].production, productionTarget{planet: planet, item: item})
+					ai.targets[t] = target
+				}
+			}
+		}
 	}
 
 	ai.fleetsByNum = make(map[int]*cs.Fleet, len(ai.Fleets))
 	ai.fleetsByPlanetNum = make(map[int][]*cs.Fleet, len(ai.Planets))
+	ai.colonizersByPlanet = make(map[int]colonizer)
 	for _, fleet := range ai.Fleets {
 		ai.fleetsByNum[fleet.Num] = fleet
 		ai.fleetsByPlanetNum[fleet.OrbitingPlanetNum] = append(ai.fleetsByPlanetNum[fleet.OrbitingPlanetNum], fleet)
+
+		// if this fleet has a target, add it to the ai target map
+		if tag := fleet.GetTag(cs.TagTarget); tag != "" {
+			t := cs.TargetFromString(tag)
+			target := ai.targets[t]
+			target.fleets = append(target.fleets, fleet)
+			ai.targets[t] = target
+		}
+
+		// idle fleet
+		if len(fleet.Waypoints) <= 1 {
+			continue
+		}
+		wpLast := fleet.Waypoints[len(fleet.Waypoints)-1]
+
+		if wpLast.Task == cs.WaypointTaskColonize {
+			planet := ai.getPlanetIntel(wpLast.TargetNum)
+			ai.colonizersByPlanet[planet.Num] = colonizer{Fleet: fleet, target: planet}
+		}
 	}
 
 	ai.fleetIntelsByPlanetNum = make(map[int][]*cs.FleetIntel, len(ai.PlanetIntels))
@@ -192,23 +230,18 @@ func (ai *aiPlayer) buildMaps() {
 					quantity: 1,
 				},
 			},
+			mustBuildInYears:      1,
+			onlyQueueOnePerPlanet: true,
 		},
 		cs.FleetPurposeColonizer: {
 			purpose: cs.FleetPurposeColonizer,
 			ships: []fleetShip{
 				{
-					purpose:  cs.ShipDesignPurposeColonistFreighter,
-					quantity: 1,
-				},
-				{
-					purpose:  cs.ShipDesignPurposeFuelFreighter,
-					quantity: 1,
-				},
-				{
 					purpose:  cs.ShipDesignPurposeColonizer,
 					quantity: 1,
 				},
 			},
+			mustBuildInYears: 1,
 		},
 		cs.FleetPurposeColonistFreighter: {
 			purpose: cs.FleetPurposeColonistFreighter,
@@ -219,9 +252,10 @@ func (ai *aiPlayer) buildMaps() {
 				},
 				{
 					purpose:  cs.ShipDesignPurposeFuelFreighter,
-					quantity: 1,
+					quantity: 2,
 				},
 			},
+			mustBuildInYears: 2,
 		},
 		cs.FleetPurposeBomber: {
 			purpose: cs.FleetPurposeBomber,
@@ -234,15 +268,43 @@ func (ai *aiPlayer) buildMaps() {
 					purpose:  cs.ShipDesignPurposeFighter,
 					quantity: 5,
 				},
+				{
+					purpose:  cs.ShipDesignPurposeFuelFreighter,
+					quantity: 2,
+				},
 			},
+			onlyQueueOnePerPlanet: true,
 		},
 	}
 
+	var err error
+	for i, fleet := range ai.fleetsByPurpose {
+		for j, ship := range fleet.ships {
+			// design and upgrade this ship
+			design, err := ai.designShip(ai.config.namesByPurpose[ship.purpose], ship.purpose, fleet.purpose)
+			if err != nil {
+				return fmt.Errorf("unable to design ship %v %w", ship.purpose, err)
+			}
+			ai.fleetsByPurpose[i].ships[j].design = design
+
+		}
+	}
+
+	ai.fuelTransportDesign, err = ai.designShip(ai.config.namesByPurpose[cs.ShipDesignPurposeFuelFreighter], cs.ShipDesignPurposeFuelFreighter, cs.FleetPurposeNone)
+	if err != nil {
+		return fmt.Errorf("unable to design ship %v %w", cs.ShipDesignPurposeFuelFreighter, err)
+	}
+
 	ai.targetedPlanets = make(map[int][]*cs.FleetIntel)
+	return nil
 }
 
 // process an AI player's turn
 func (ai *aiPlayer) ProcessTurn() error {
+	if err := ai.buildMaps(); err != nil {
+		return err
+	}
+
 	ai.assignPurpose()
 	ai.gatherIntel()
 	ai.plan()
@@ -350,17 +412,6 @@ func (p *aiPlayer) getPlanetIntel(num int) cs.PlanetIntel {
 	return p.Player.PlanetIntels[num-1]
 }
 
-// get all planets we own with space docks
-func (p *aiPlayer) getPlanetsWithDocks() []*cs.Planet {
-	planets := []*cs.Planet{}
-	for _, planet := range p.Planets {
-		if planet.Spec.HasStarbase && planet.Spec.DockCapacity != 0 {
-			planets = append(planets, planet)
-		}
-	}
-	return planets
-}
-
 // get the closest planet to this fleet from a list of unknown planets
 func (ai *aiPlayer) getClosestPlanetIntel(position cs.Vector, planetIntelsByNum map[int]cs.PlanetIntel) *cs.PlanetIntel {
 	shortestDist := math.MaxFloat64
@@ -441,16 +492,6 @@ func (ai *aiPlayer) isStarbaseInQueue(planet *cs.Planet) bool {
 	return false
 }
 
-// check if a the queue contains any ships with this fleet purpose
-func (ai *aiPlayer) isFleetInQueue(planet *cs.Planet, fleetPurpose cs.FleetPurpose) bool {
-	for _, item := range planet.ProductionQueue {
-		if item.GetTag(cs.TagPurpose) == string(fleetPurpose) {
-			return true
-		}
-	}
-	return false
-}
-
 // check if a shipdesign with the given purpose is in the queue
 func (ai *aiPlayer) isShipInQueue(planet *cs.Planet, fleetPurpose cs.FleetPurpose, purpose cs.ShipDesignPurpose, quantity int) bool {
 	for _, item := range planet.ProductionQueue {
@@ -469,6 +510,10 @@ func (ai *aiPlayer) getIdleShipCount(planet *cs.Planet, fleetPurpose cs.FleetPur
 	count := 0
 	for _, fleet := range ai.fleetsByPlanetNum[planet.Num] {
 		if !fleet.Idle() {
+			continue
+		}
+
+		if fleet.GetTag(cs.TagTarget) != "" {
 			continue
 		}
 
@@ -517,4 +562,8 @@ func (ai *aiPlayer) hasAttackShips(fleets []*cs.FleetIntel) bool {
 		}
 	}
 	return false
+}
+
+func (ai *aiPlayer) updateFleetOrders(fleet *cs.Fleet) {
+	ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders, fleet.Tags)
 }

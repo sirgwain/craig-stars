@@ -1,12 +1,25 @@
 package ai
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/stretchr/testify/assert"
 )
+
+func testAIPlayer() *aiPlayer {
+	game := cs.NewGame()
+	player := cs.NewPlayer(1, cs.NewRace().WithSpec(&game.Rules))
+	ai := NewAIPlayer(game, &cs.StaticTechStore, player, cs.PlayerMapObjects{})
+
+	if err := ai.buildMaps(); err != nil {
+		panic(fmt.Sprintf("failed to create test ai player %v", err))
+	}
+
+	return ai
+}
 
 func Test_aiPlayer_ProcessTurn(t *testing.T) {
 	type fields struct {
@@ -57,9 +70,7 @@ func Test_aiPlayer_ProcessTurn(t *testing.T) {
 }
 
 func Test_getClosestPlanet(t *testing.T) {
-	game := cs.NewGame()
-	player := cs.NewPlayer(1, cs.NewRace().WithSpec(&game.Rules))
-	aiPlayer := NewAIPlayer(game, &cs.StaticTechStore, player, cs.PlayerMapObjects{})
+	ai := testAIPlayer()
 
 	planetAt0_0 := cs.PlanetIntel{
 		MapObjectIntel: cs.MapObjectIntel{Position: cs.Vector{X: 0, Y: 0}},
@@ -100,7 +111,7 @@ func Test_getClosestPlanet(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := aiPlayer.getClosestPlanetIntel(tt.args.position, tt.args.unknownPlanetsByNum); !reflect.DeepEqual(got, tt.want) {
+			if got := ai.getClosestPlanetIntel(tt.args.position, tt.args.unknownPlanetsByNum); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("getClosestPlanet() = %v, want %v", got, tt.want)
 			}
 		})
@@ -108,19 +119,18 @@ func Test_getClosestPlanet(t *testing.T) {
 }
 
 func TestAIPlayer_GetPlanet(t *testing.T) {
-	game := cs.NewGame()
-	player := NewAIPlayer(game, &cs.StaticTechStore, cs.NewPlayer(1, cs.NewRace()), cs.PlayerMapObjects{})
+	ai := testAIPlayer()
 
 	// no planet by that id
-	assert.Nil(t, player.getPlanet(1))
+	assert.Nil(t, ai.getPlanet(1))
 
 	// should have a planet by this id
 	planet := cs.NewPlanet()
 	planet.Num = 1
-	player.Planets = append(player.Planets, planet)
-	player.buildMaps()
+	ai.Planets = append(ai.Planets, planet)
+	ai.buildMaps()
 
-	assert.Same(t, planet, player.getPlanet(1))
+	assert.Same(t, planet, ai.getPlanet(1))
 
-	assert.Nil(t, player.getPlanet(2))
+	assert.Nil(t, ai.getPlanet(2))
 }
