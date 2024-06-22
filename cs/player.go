@@ -537,6 +537,7 @@ func (p *Player) defaultPlans() PlayerPlans {
 					Ironium:   WaypointTransportTask{Action: TransportActionUnloadAll},
 					Boranium:  WaypointTransportTask{Action: TransportActionUnloadAll},
 					Germanium: WaypointTransportTask{Action: TransportActionUnloadAll},
+					Colonists: WaypointTransportTask{Action: TransportActionUnloadAll},
 				},
 			},
 			{
