@@ -510,12 +510,12 @@ func (d *discover) discoverMineralPacket(rules *Rules, player *Player, mineralPa
 // discover a player's design. This is a noop if we already know about
 // the design and aren't discovering slots
 func (d *discover) discoverDesign(player *Player, design *ShipDesign, discoverSlots bool) {
-	intel := d.getShipDesignIntel(design.PlayerNum, design.Num)
+	intel := d.getShipDesignIntel(design.PlayerNum, design.Num)	
 	if intel == nil {
 		// create a new intel for this design
 		intel = &ShipDesignIntel{
 			Intel: Intel{
-				Name:      design.Name,
+				Name:      design.Hull,
 				PlayerNum: design.PlayerNum,
 				Num:       design.Num,
 			},
@@ -542,6 +542,11 @@ func (d *discover) discoverDesign(player *Player, design *ShipDesign, discoverSl
 	if discoverSlots && len(intel.Slots) == 0 {
 		intel.Slots = make([]ShipDesignSlot, len(design.Slots))
 		copy(intel.Slots, design.Slots)
+		
+		// if we discovered slots, also discover the name
+		intel.Name = design.Name
+
+		// discover stats about the design
 		intel.Spec.Mass = design.Spec.Mass
 		intel.Spec.Armor = design.Spec.Armor
 		intel.Spec.Shields = design.Spec.Shields
