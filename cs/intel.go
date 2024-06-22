@@ -523,6 +523,9 @@ func (d *discover) discoverDesign(player *Player, design *ShipDesign, discoverSl
 			HullSetNumber: design.HullSetNumber,
 		}
 
+		// discover mass even without scanning components
+		intel.Spec.Mass = design.Spec.Mass
+
 		// save this new design to our intel
 		player.ShipDesignIntels = append(player.ShipDesignIntels, *intel)
 		intel = &player.ShipDesignIntels[len(player.ShipDesignIntels)-1]
