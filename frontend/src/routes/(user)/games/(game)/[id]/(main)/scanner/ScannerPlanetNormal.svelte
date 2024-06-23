@@ -9,6 +9,7 @@
 	import { clamp } from '$lib/services/Math';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 	import { type Fleet, idleFleetsFilter } from '$lib/types/Fleet';
+	import { find } from 'lodash-es';
 
 	const { settings } = getGameContext();
 	const { game, player, universe } = getGameContext();
@@ -26,8 +27,9 @@
 	$: hasStargate = planet.spec?.hasStargate;
 
 	$: radius = owned(planet) ? (commanded ? 6 : 3) : commanded ? 4 : 2;
-	$: ringRadius = radius * 1.5;
-	$: strokeWidth = owned(planet) ? (commanded ? 1 : 0.6) : 0;
+	$: strokeWidth = commanded ? 1 : .5;
+	$: ringRadius = radius * 2.5;
+	$: ringWidth = commanded ? 2 : 1.5;
 
 	$: starbaseWidth = commanded ? 6 : 4;
 	$: starbaseXOffset = ringRadius * 0.75;
@@ -77,14 +79,23 @@
 					ringColor = '#FFFF00';
 				}
 			} else {
-				ringColor = '#6A0DAD'; // both
-				strokeDashArray = '1 1';
+				const enemies = find(playerNums, (n: number) => $player.isEnemy(n));
+				const friends = find(playerNums, (n: number) => $player.isFriendOrNeutral(n));
+
+				if (friends && !enemies) {
+					ringColor = '#FFFF00';
+				} else if (!friends && enemies) {
+					ringColor = '#FF0000';
+				} else {
+					ringColor = '#FF00FF';
+				}
+				strokeDashArray = '10 6';
 			}
 
 			ringProps = {
 				stroke: ringColor,
 				'stroke-dasharray': strokeDashArray,
-				'stroke-width': 0.5,
+				'stroke-width': ringWidth,
 				r: ringRadius,
 				'fill-opacity': 0
 			};
