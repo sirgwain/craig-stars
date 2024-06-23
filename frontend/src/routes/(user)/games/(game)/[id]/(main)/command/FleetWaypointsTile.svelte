@@ -230,7 +230,7 @@
 					{#if $selectedWaypoint.warpSpeed === StargateWarpSpeed}
 						1 year
 					{:else}
-						{Math.ceil(dist / ($selectedWaypoint.warpSpeed * $selectedWaypoint.warpSpeed))} years
+						{Math.ceil(Math.floor(dist) / ($selectedWaypoint.warpSpeed * $selectedWaypoint.warpSpeed))} years
 					{/if}
 				</span>
 			</div>
@@ -266,7 +266,7 @@
 			</div>
 			<div class="flex justify-between mt-1">
 				<span class="text-tile-item-title">Travel Time</span>
-				<span>{Math.ceil(dist / (nextWaypoint.warpSpeed * nextWaypoint.warpSpeed))} years</span>
+				<span>{Math.ceil(Math.floor(dist) / (nextWaypoint.warpSpeed * nextWaypoint.warpSpeed))} years</span>
 			</div>
 			<div class="flex justify-between mt-1">
 				<span class="text-tile-item-title">Total Fuel Usage</span>

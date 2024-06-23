@@ -7,6 +7,7 @@
 		type Tech,
 		type TechDefense,
 		type TechEngine,
+		type TechHull,
 		type TechHullComponent
 	} from '$lib/types/Tech';
 	import Cost from '../game/Cost.svelte';
@@ -31,10 +32,12 @@
 
 	let defense: TechDefense;
 	let hullComponent: TechHullComponent;
+	let hull: TechHull;
 	let engine: TechEngine;
 	let researchCost = 0;
 
 	$: tech && isHullComponent(tech.category) && (hullComponent = tech as TechHullComponent);
+	$: tech && tech.category == TechCategory.ShipHull && (hull = tech as TechHull);
 	$: tech && tech.category == TechCategory.Engine && (engine = tech as TechEngine);
 	$: tech && tech.category == TechCategory.PlanetaryDefense && (defense = tech as TechDefense);
 	$: above = player?.hasTech(tech) ? levelsAbove(tech.requirements, player.techLevels) : 0;
@@ -96,6 +99,11 @@
 							<div class="flex justify-between gap-2">
 								<div>Mass:</div>
 								<div>{hullComponent.mass ?? 0}kT</div>
+							</div>
+						{:else if hull}
+							<div class="flex justify-between gap-2">
+								<div>Mass:</div>
+								<div>{hull.mass ?? 0}kT</div>
 							</div>
 						{/if}
 					</div>

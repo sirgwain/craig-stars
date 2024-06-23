@@ -50,6 +50,9 @@ func (v *victory) checkForVictor(player *Player) error {
 	if len(player.ScoreHistory) == 0 {
 		return nil
 	}
+	// reset player victory conditions to none
+	player.AchievedVictoryConditions = VictoryConditionNone
+
 	score := player.ScoreHistory[len(player.ScoreHistory)-1]
 
 	if v.game.VictoryConditions.Conditions&Bitmask(VictoryConditionOwnPlanets) > 0 {
@@ -81,7 +84,8 @@ func (v *victory) checkForVictor(player *Player) error {
 	score.AchievedVictoryConditions = player.AchievedVictoryConditions
 	player.ScoreHistory[len(player.ScoreHistory)-1] = score
 
-	if player.AchievedVictoryConditions.countBits() >= v.game.VictoryConditions.NumCriteriaRequired && v.game.YearsPassed() >= v.game.VictoryConditions.YearsPassed {
+	// if we don't have a victor yet, and we have one after the required years, declare them
+	if !v.game.VictorDeclared && player.AchievedVictoryConditions.countBits() >= v.game.VictoryConditions.NumCriteriaRequired && v.game.YearsPassed() >= v.game.VictoryConditions.YearsPassed {
 		// we have a victor!
 		player.Victor = true
 		v.game.VictorDeclared = true
