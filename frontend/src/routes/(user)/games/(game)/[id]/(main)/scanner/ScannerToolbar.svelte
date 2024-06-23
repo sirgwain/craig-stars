@@ -26,16 +26,20 @@
 </script>
 
 <div class="flex-initial navbar bg-base-200 py-0 my-0 min-h-0">
-	<div class="flex-none hidden sm:block">
+	<div class="flex-none hidden lg:block">
 		<PlanetViewStates class="menu menu-horizontal" />
 	</div>
-	<div class="flex-none block sm:hidden">
+	<div class="flex-none block lg:hidden">
 		<ul class="menu menu-horizontal">
 			<!-- submenu -->
 			<li>
 				<details bind:this={menuDropdown} use:clickOutside={closeMenu}>
 					<summary>
-						<a href="#planet-view-states" class="btn btn-primary btn-xs w-12 h-12">
+						<a
+							href="#planet-view-states"
+							class="btn btn-primary btn-xs w-12 h-12"
+							on:click={() => menuDropdown?.toggleAttribute('open')}
+						>
 							{#if $settings.planetViewState == PlanetViewState.Normal}
 								<PlanetWithStarbase class="w-6 h-6" />
 							{:else if $settings.planetViewState == PlanetViewState.SurfaceMinerals}
