@@ -57,7 +57,7 @@
 		<ul class="menu menu-horizontal">
 			<!-- submenu -->
 			<li>
-				<details open bind:this={planetsViewMenuDropdown} use:clickOutside={closePlanetsMenu}>
+				<details bind:this={planetsViewMenuDropdown} use:clickOutside={closePlanetsMenu}>
 					<summary class="p-0">
 						<a
 							href="#planet-view-states"
