@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
+	import { ownedBy, type MapObject } from '$lib/types/MapObject';
 	import hotkeys from 'hotkeys-js';
 	import { onMount } from 'svelte';
 	import CargoTranfserDialog, {
@@ -14,6 +15,7 @@
 	} from '../dialogs/split/SplitFleetDialog.svelte';
 	import type { TransportTasksDialogEventDetails } from '../dialogs/transport/TransportTasksDialog.svelte';
 	import TransportTasksDialog from '../dialogs/transport/TransportTasksDialog.svelte';
+	import SearchDialog from '../search/SearchDialog.svelte';
 	import HighlightedMapObjectStats from './HighlightedMapObjectStats.svelte';
 	import MapObjectSummary from './MapObjectSummary.svelte';
 	import CommandPane from './command/CommandPane.svelte';
@@ -24,10 +26,13 @@
 	const {
 		game,
 		universe,
+		player,
 		commandedPlanet,
 		commandedFleet,
 		selectedWaypoint,
 		currentSelectedWaypointIndex,
+		commandMapObject,
+		zoomToMapObject,
 		nextMapObject,
 		previousMapObject,
 		selectWaypoint,
@@ -40,6 +45,7 @@
 	let showMergeFleetsDialog = false;
 	let showSplitFleetDialog = false;
 	let showTransportTasksDialog = false;
+	let showSearchDialog = false;
 	let cargoTransferDetails: CargoTransferDialogEventDetails | undefined = undefined;
 	let mergeFleetsDialogEventDetails: MergeFleetsDialogEventDetails | undefined = undefined;
 	let splitFleetDialogEventDetails: SplitFleetDialogEventDetails | undefined = undefined;
@@ -56,6 +62,9 @@
 			if ($commandedPlanet) {
 				showProductionQueueDialog = true;
 			}
+		});
+		hotkeys('⌘+k', 'root', () => {
+			showSearchDialog = true;
 		});
 		hotkeys('Delete', 'root', () => {
 			onDeleteWaypoint();
@@ -88,6 +97,16 @@
 			}
 
 			await updateFleetOrders($commandedFleet);
+		}
+	}
+
+	function selectSearchResult(mo: MapObject | undefined) {
+		if (mo) {
+			if (ownedBy(mo, $player.num)) {
+				commandMapObject(mo);
+			}
+			selectMapObject(mo);
+			zoomToMapObject(mo);
 		}
 	}
 </script>
@@ -132,7 +151,7 @@
 
 	<div class="flex flex-col grow">
 		<div class="flex flex-col grow border-gray-700 border-2 shadow-sm">
-			<ScannerToolbar />
+			<ScannerToolbar on:show-search={() => (showSearchDialog = true)} />
 			<Scanner />
 		</div>
 		<div class="hidden md:block">
@@ -182,3 +201,4 @@
 	bind:show={showTransportTasksDialog}
 	bind:props={transportTasksDialogEventDetails}
 />
+<SearchDialog bind:show={showSearchDialog} on:select-result={(e) => selectSearchResult(e.detail)} />
