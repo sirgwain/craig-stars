@@ -12,4 +12,5 @@
 	autocapitalize="off"
 	spellcheck="false"
 	bind:value
+	{...$$restProps}
 />

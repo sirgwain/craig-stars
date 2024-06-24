@@ -1,44 +1,68 @@
+<script lang="ts" context="module">
+	export type ToolbarEvent = {
+		'show-search': void;
+	};
+</script>
+
 <script lang="ts">
+	import { clickOutside } from '$lib/clickOutside';
+	import MineralConcentration from '$lib/components/icons/MineralConcentration.svelte';
 	import Path from '$lib/components/icons/Path.svelte';
 	import PlanetWithStarbase from '$lib/components/icons/PlanetWithStarbase.svelte';
 	import Population from '$lib/components/icons/Population.svelte';
-	import Scanner from '$lib/components/icons/Scanner.svelte';
+	import SurfaceMinerals from '$lib/components/icons/SurfaceMinerals.svelte';
+	import Habitability from '$lib/components/icons/Habitability.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
+	import { clamp } from '$lib/services/Math';
 	import { PlanetViewState } from '$lib/types/PlayerSettings';
-	import { ArrowLongLeft, ArrowLongRight, Envelope } from '@steeze-ui/heroicons';
+	import {
+		ArrowLongLeft,
+		ArrowLongRight,
+		Envelope,
+		Funnel,
+		MagnifyingGlass
+	} from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
+	import { createEventDispatcher } from 'svelte';
 	import MessagesPane from '../MessagesPane.svelte';
 	import PlanetViewStates from './toolbar/PlanetViewStates.svelte';
-	import MineralConcentration from '$lib/components/icons/MineralConcentration.svelte';
-	import SurfaceMinerals from '$lib/components/icons/SurfaceMinerals.svelte';
-	import { clamp } from '$lib/services/Math';
-	import FleetCount from '$lib/components/icons/FleetCount.svelte';
-	import { clickOutside } from '$lib/clickOutside';
-	import IdleFleets from '$lib/components/icons/IdleFleets.svelte';
+	import ScannerToolbarFilter from './toolbar/ScannerToolbarFilter.svelte';
 
 	const { player, settings, nextMapObject, previousMapObject } = getGameContext();
-	let menuDropdown: HTMLDetailsElement | undefined;
+	const dispatch = createEventDispatcher<ToolbarEvent>();
 
-	function closeMenu() {
-		menuDropdown?.removeAttribute('open');
+	let planetsViewMenuDropdown: HTMLDetailsElement | undefined;
+	let filterMenuDropdown: HTMLDetailsElement | undefined;
+
+	function closePlanetsMenu() {
+		planetsViewMenuDropdown?.removeAttribute('open');
 	}
-	settings.subscribe(closeMenu);
+
+	function closeFilterMenu() {
+		filterMenuDropdown?.removeAttribute('open');
+	}
+
+	// close the planets menu when we switch views (but leave the filter menu open so we can filter more than one thing)
+	settings.subscribe(closePlanetsMenu);
 </script>
 
 <div class="flex-initial navbar bg-base-200 py-0 my-0 min-h-0">
 	<div class="flex-none hidden lg:block">
 		<PlanetViewStates class="menu menu-horizontal" />
 	</div>
+	<div class="flex-none hidden lg:block">
+		<ScannerToolbarFilter class="menu menu-horizontal" />
+	</div>
 	<div class="flex-none block lg:hidden">
 		<ul class="menu menu-horizontal">
 			<!-- submenu -->
 			<li>
-				<details bind:this={menuDropdown} use:clickOutside={closeMenu}>
-					<summary>
+				<details open bind:this={planetsViewMenuDropdown} use:clickOutside={closePlanetsMenu}>
+					<summary class="p-0">
 						<a
 							href="#planet-view-states"
 							class="btn btn-primary btn-xs w-12 h-12"
-							on:click={() => menuDropdown?.toggleAttribute('open')}
+							on:click|preventDefault={() => planetsViewMenuDropdown?.toggleAttribute('open')}
 						>
 							{#if $settings.planetViewState == PlanetViewState.Normal}
 								<PlanetWithStarbase class="w-6 h-6" />
@@ -47,7 +71,7 @@
 							{:else if $settings.planetViewState == PlanetViewState.MineralConcentration}
 								<MineralConcentration class="w-6 h-6" />
 							{:else if $settings.planetViewState == PlanetViewState.Percent}
-								<span>%</span>
+								<Habitability class="w-6 h-6" />
 							{:else if $settings.planetViewState == PlanetViewState.Population}
 								<Population class="w-6 h-6" />
 							{:else}
@@ -55,7 +79,24 @@
 							{/if}
 						</a>
 					</summary>
-					<PlanetViewStates class="menu menu-vertical bg-base-100 z-20 w-12" />
+					<PlanetViewStates class="menu menu-vertical bg-base-100 z-20 w-12 p-1" />
+				</details>
+			</li>
+		</ul>
+		<ul class="menu menu-horizontal">
+			<!-- submenu -->
+			<li>
+				<details bind:this={filterMenuDropdown} use:clickOutside={closeFilterMenu}>
+					<summary class="p-0">
+						<a
+							href="#filter-menu"
+							class="btn btn-primary btn-xs w-12 h-12"
+							on:click|preventDefault={() => filterMenuDropdown?.toggleAttribute('open')}
+						>
+							<Icon src={Funnel} class="w-6 h-6" />
+						</a>
+					</summary>
+					<ScannerToolbarFilter class="menu menu-vertical bg-base-100 z-20 w-12 p-1" />
 				</details>
 			</li>
 		</ul>
@@ -63,16 +104,6 @@
 
 	<div class="flex-none">
 		<ul class="menu menu-horizontal">
-			<li>
-				<a
-					href="#scanner-toggle"
-					class:fill-accent={$settings.showScanners}
-					class:fill-current={!$settings.showScanners}
-					class="btn btn-ghost btn-xs h-full border"
-					on:click|preventDefault={() => ($settings.showScanners = !$settings.showScanners)}
-					><span><Scanner class="w-6 h-6" /></span></a
-				>
-			</li>
 			<li class="hidden sm:block">
 				<div class="w-full px-1">
 					<input
@@ -109,30 +140,6 @@
 
 			<li>
 				<a
-					href="#show-fleet-token-count"
-					title="Show Fleet Counts"
-					class:fill-accent={$settings.showFleetTokenCounts}
-					class:fill-current={!$settings.showFleetTokenCounts}
-					class="btn btn-ghost btn-xs h-full border"
-					on:click|preventDefault={() =>
-						($settings.showFleetTokenCounts = !$settings.showFleetTokenCounts)}
-					><FleetCount class="w-6 h-6" /></a
-				>
-			</li>
-			<li>
-				<a
-					href="#show-idle-fleets-only"
-					title="Idle Fleets Filter"
-					class:fill-accent={$settings.showIdleFleetsOnly}
-					class:fill-current={!$settings.showIdleFleetsOnly}
-					class="btn btn-ghost btn-xs h-full border"
-					on:click|preventDefault={() =>
-						($settings.showIdleFleetsOnly = !$settings.showIdleFleetsOnly)}
-					><IdleFleets class="w-6 h-6" /></a
-				>
-			</li>
-			<li>
-				<a
 					href="#messages"
 					class="btn btn-ghost btn-xs h-full indicator"
 					on:click|preventDefault={() => ($settings.showMessagePane = !$settings.showMessagePane)}
@@ -147,6 +154,13 @@
 	</div>
 
 	<div class="ml-auto">
+		<button
+			on:click={() => dispatch('show-search')}
+			class="btn btn-outline btn-sm normal-case btn-secondary"
+			title="previous"
+			><Icon src={MagnifyingGlass} size="16" class="hover:stroke-accent inline" /></button
+		>
+
 		<div class="tooltip" data-tip="previous">
 			<button
 				on:click={() => previousMapObject()}

@@ -37,7 +37,7 @@
 
 	$: filteredPlanets = $settings.showAllPlanets
 		? $universe
-				.getPlanets($settings.sortPlanetsKey, $settings.sortPlanetsDescending)
+			.getPlanets($settings.sortPlanetsKey, $settings.sortPlanetsDescending)
 				.filter(
 					(i) =>
 						i.name.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
