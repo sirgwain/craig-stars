@@ -148,7 +148,7 @@
 							class:bg-primary={selectedItemIndex == index}
 							on:mouseover={(e) => (selectedItemIndex = index)}
 						>
-							<button class="text-xl text-left" on:click={ok}>
+							<button class="text-xl text-left w-full" on:click={ok}>
 								<div class="flex flex-row gap-1">
 									{#if planet.playerNum != None}
 										<span style={`color: ${$universe.getPlayerColor(planet.playerNum)}`}
@@ -215,7 +215,7 @@
 							class:bg-primary={selectedItemIndex == results.planets.length + index}
 							on:mouseover={(e) => (selectedItemIndex = results.planets.length + index)}
 						>
-							<button class="text-xl text-left" on:click={ok}>
+							<button class="text-xl text-left w-full" on:click={ok}>
 								<span style={`color: ${$universe.getPlayerColor(fleet.playerNum)}`}
 									>{$universe.getPlayerName(fleet.playerNum)}</span
 								>

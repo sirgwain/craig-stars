@@ -61,7 +61,7 @@
 					<summary class="p-0">
 						<a
 							href="#planet-view-states"
-							class="btn btn-primary btn-xs w-12 h-12"
+							class="btn btn-xs w-12 h-12"
 							on:click|preventDefault={() => planetsViewMenuDropdown?.toggleAttribute('open')}
 						>
 							{#if $settings.planetViewState == PlanetViewState.Normal}
@@ -90,7 +90,7 @@
 					<summary class="p-0">
 						<a
 							href="#filter-menu"
-							class="btn btn-primary btn-xs w-12 h-12"
+							class="btn btn-xs w-12 h-12"
 							on:click|preventDefault={() => filterMenuDropdown?.toggleAttribute('open')}
 						>
 							<Icon src={Funnel} class="w-6 h-6" />
