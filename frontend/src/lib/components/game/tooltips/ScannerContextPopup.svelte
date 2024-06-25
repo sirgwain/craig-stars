@@ -56,6 +56,11 @@
 		selectMapObject(mo);
 		dispatch('close');
 	}
+
+	function hasDestination(mo: MapObject): boolean {
+		const fleet = mo.type == MapObjectType.Fleet ? (mo as Fleet) : undefined;
+		return (fleet?.waypoints?.length ?? 0) > 1;
+	}
 </script>
 
 <ul class="menu overflow-y-auto px-0.5">
@@ -90,7 +95,8 @@
 					>
 						<button
 							class="py-1 pl-0.5 w-full text-left hover:text-accent"
-							on:click={() => gotoTarget(mo)}>{mo.name} ({getTokenCount(mo)})</button
+							on:click={() => gotoTarget(mo)}
+							>{mo.name} ({getTokenCount(mo)}){hasDestination(mo) ? '*' : ''}</button
 						>
 					</li>
 				{/each}
