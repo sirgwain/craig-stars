@@ -31,7 +31,8 @@ func (t *techTrade) techLevelGained(rules *Rules, current, target TechLevel) Tec
 			// if we are two levels above this is:
 			// .5 * (1 - .5*.5) = .375
 			chance := rules.TechTradeChance * (1 - math.Pow(rules.TechTradeChance, float64(level)))
-			if rules.random.Float64() >= chance {
+			// check if our random number between 0 and 1 is under the above, i.e. < .375 for 2 levels above
+			if rules.random.Float64() <= chance {
 				return field
 			}
 		}

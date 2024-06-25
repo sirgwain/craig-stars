@@ -183,6 +183,7 @@ func NewRulesWithSeed(seed int64) Rules {
 		MineFieldCloak:                   75,
 		StargateMaxRangeFactor:           5,
 		StargateMaxHullMassFactor:        5,
+		TechTradeChance:                  .5, // 50% chance of tech trading per level
 		FleetSafeSpeedExplosionChance:    .1, // 10% chance of losing a ship
 		RadiatingImmune:                  85, // hab center of > 85 are immune to radating damage
 		RandomEventChances: map[RandomEvent]float64{

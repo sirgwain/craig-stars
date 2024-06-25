@@ -202,24 +202,26 @@ func (t *turn) scrapFleet(fleet *Fleet) {
 			if !planetPlayer.techLevelGained {
 				techTrader := newTechTrader()
 				for _, token := range fleet.Tokens {
-					field := techTrader.techLevelGained(&t.game.Rules, planetPlayer.TechLevels, token.design.Spec.TechLevel)
-					if field == TechFieldNone {
-						continue
+					for i := 0; i < token.Quantity; i++ {
+						field := techTrader.techLevelGained(&t.game.Rules, planetPlayer.TechLevels, token.design.Spec.TechLevel)
+						if field == TechFieldNone {
+							continue
+						}
+						// we gained a level!
+						planetPlayer.techLevelGained = true
+						planetPlayer.TechLevels.Set(field, planetPlayer.TechLevels.Get(field)+1)
+						messager.playerTechGainedScrappedFleet(planetPlayer, planet, fleet.Name, field)
+
+						log.Debug().
+							Int64("GameID", t.game.ID).
+							Int("Player", planetPlayer.Num).
+							Str("Planet", planet.Name).
+							Str("Fleet", fleet.Name).
+							Str("field", string(field)).
+							Msgf("gained tech level from scrapped fleet")
+
+						break
 					}
-					// we gained a level!
-					planetPlayer.techLevelGained = true
-					planetPlayer.TechLevels.Set(field, planetPlayer.TechLevels.Get(field)+1)
-					messager.playerTechGainedScrappedFleet(planetPlayer, planet, fleet.Name, field)
-
-					log.Debug().
-						Int64("GameID", t.game.ID).
-						Int("Player", planetPlayer.Num).
-						Str("Planet", planet.Name).
-						Str("Fleet", fleet.Name).
-						Str("field", string(field)).
-						Msgf("gained tech level from scrapped fleet")
-
-					break
 				}
 			}
 		}
