@@ -344,10 +344,13 @@ export class Player implements PlayerResponse, CostFinder {
 
 export function canLearnTech(player: PlayerResponse, tech: Tech): boolean {
 	const requirements = tech.requirements;
-	if (requirements.prtRequired && requirements.prtRequired !== player.race.prt) {
+	if (
+		requirements.prtsRequired?.length &&
+		requirements.prtsRequired.indexOf(player.race.prt) == -1
+	) {
 		return false;
 	}
-	if (requirements.prtDenied && player.race.prt === requirements.prtDenied) {
+	if (requirements.prtsDenied?.length && requirements.prtsDenied.indexOf(player.race.prt) != -1) {
 		return false;
 	}
 

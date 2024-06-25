@@ -1,9 +1,9 @@
 import techjson from '$lib/ssr/techs.json';
 import { describe, expect, it } from 'vitest';
 import { Player, canLearnTech } from './Player';
-import { LRT } from './Race';
+import { LRT, PRT } from './Race';
 import type { ShipDesign } from './ShipDesign';
-import { TechCategory, type TechEngine, type TechStore } from './Tech';
+import { TechCategory, type TechEngine, type TechHullComponent, type TechStore } from './Tech';
 
 const fuelMizer: TechEngine = {
 	name: 'Fuel Mizer',
@@ -22,6 +22,46 @@ const fuelMizer: TechEngine = {
 	idealSpeed: 6,
 	freeSpeed: 4,
 	fuelUsage: [0, 0, 0, 0, 0, 35, 120, 175, 235, 360, 420]
+};
+
+const speedTrap20: TechHullComponent = {
+	name: 'Speed Trap 20',
+	cost: {
+		ironium: 30,
+		germanium: 12,
+		resources: 60
+	},
+	requirements: {
+		propulsion: 2,
+		biotechnology: 2,
+		prtsRequired: [PRT.SD, PRT.IS]
+	},
+	ranking: 70,
+	category: TechCategory.MineLayer,
+	hullSlotType: 8192,
+	mass: 100,
+	mineFieldType: 'SpeedBump',
+	mineLayingRate: 20
+};
+
+const smartBomb: TechHullComponent = {
+	name: 'Smart Bomb',
+	cost: {
+		ironium: 1,
+		boranium: 22,
+		resources: 27
+	},
+	requirements: {
+		weapons: 5,
+		biotechnology: 7,
+		prtsDenied: [PRT.IS]
+	},
+	ranking: 90,
+	category: TechCategory.Bomb,
+	hullSlotType: 16,
+	mass: 50,
+	killRate: 1.3,
+	smart: true
 };
 
 export const baseStationDesign: ShipDesign = {
@@ -146,6 +186,18 @@ describe('player test', () => {
 		// make this available
 		player.race.lrts = LRT.IFE;
 		expect(canLearnTech(player, fuelMizer)).toBe(true);
+
+		// IS can learn speed trap
+		player.race.prt = PRT.IS;
+		expect(canLearnTech(player, speedTrap20)).toBe(true);
+
+		// IS cannot learn smart bomb
+		player.race.prt = PRT.IS;
+		expect(canLearnTech(player, smartBomb)).toBe(false);
+
+		// SD can learn speed trap
+		player.race.prt = PRT.SD;
+		expect(canLearnTech(player, speedTrap20)).toBe(true);
 	});
 
 	it('getTerraformAbility', () => {

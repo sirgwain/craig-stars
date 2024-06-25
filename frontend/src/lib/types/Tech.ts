@@ -208,8 +208,8 @@ export enum TechCategory {
 export type TechRequirements = {
 	lrtsRequired?: number;
 	lrtsDenied?: number;
-	prtRequired?: PRT;
-	prtDenied?: PRT;
+	prtsRequired?: PRT[];
+	prtsDenied?: PRT[];
 	hullsAllowed?: string[];
 	hullsDenied?: string[];
 } & TechLevel;

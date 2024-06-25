@@ -37,17 +37,31 @@
 			{/if}
 		</div>
 	{/if}
-	{#if tech.requirements.prtRequired}
-		<div class:text-error={player && player.race.prt != tech.requirements.prtRequired}>
-			This part requires the Primary Racial trait {getLabelForPRT(tech.requirements.prtRequired)}
+	{#if tech.requirements.prtsRequired?.length}
+		<div class:text-error={player && tech.requirements.prtsRequired.indexOf(player.race.prt) == -1}>
+			{#if tech.requirements.prtsRequired?.length > 1}
+				This part requires the Primary Racial traits {tech.requirements.prtsRequired
+					.map((prt) => getLabelForPRT(prt))
+					.join(' or ')}
+			{:else}
+				This part requires the Primary Racial trait {getLabelForPRT(
+					tech.requirements.prtsRequired[0]
+				)}
+			{/if}
 		</div>
 	{/if}
 
-	{#if tech.requirements.prtDenied}
-		<div class:text-error={player && player.race.prt == tech.requirements.prtDenied}>
-			This part will not be available to the Primary Racial trait {getLabelForPRT(
-				tech.requirements.prtDenied
-			)}
+	{#if tech.requirements.prtsDenied?.length}
+		<div class:text-error={player && tech.requirements.prtsDenied.indexOf(player.race.prt) != -1}>
+			{#if tech.requirements.prtsDenied?.length > 1}
+				This part will not be available to the Primary Racial traits {tech.requirements.prtsDenied
+					.map((prt) => getLabelForPRT(prt))
+					.join(' or ')}
+			{:else}
+				This part will not be available to the Primary Racial trait {getLabelForPRT(
+					tech.requirements.prtsDenied[0]
+				)}
+			{/if}
 		</div>
 	{/if}
 
