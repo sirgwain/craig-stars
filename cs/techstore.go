@@ -525,7 +525,7 @@ var QuickJump5 = TechEngine{
 	},
 }
 var LongHump6 = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Long Hump 6", NewCost(5, 0, 1, 6), TechRequirements{TechLevel: TechLevel{Propulsion: 3}}, 40, TechCategoryEngine), Mass: 9, HullSlotType: HullSlotTypeEngine},
+	TechHullComponent: TechHullComponent{Tech: NewTech("Long Hump 6", NewCost(5, 0, 1, 6), TechRequirements{TechLevel: TechLevel{Propulsion: 3}}, 30, TechCategoryEngine), Mass: 9, HullSlotType: HullSlotTypeEngine},
 	Engine: Engine{
 		IdealSpeed:   6,
 		FreeSpeed:    1,
@@ -546,7 +546,7 @@ var LongHump6 = TechEngine{
 	},
 }
 var FuelMizer = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Fuel Mizer", NewCost(8, 0, 0, 11), TechRequirements{TechLevel: TechLevel{Propulsion: 2}, LRTsRequired: IFE}, 30, TechCategoryEngine), Mass: 6, HullSlotType: HullSlotTypeEngine},
+	TechHullComponent: TechHullComponent{Tech: NewTech("Fuel Mizer", NewCost(8, 0, 0, 11), TechRequirements{TechLevel: TechLevel{Propulsion: 2}, LRTsRequired: IFE}, 40, TechCategoryEngine), Mass: 6, HullSlotType: HullSlotTypeEngine},
 	Engine: Engine{
 		IdealSpeed:   6,
 		FreeSpeed:    4,
@@ -1060,50 +1060,50 @@ var UltraDriver13 = TechHullComponent{Tech: NewTech("Ultra Driver 13", NewCost(2
 	PacketSpeed:  13,
 	HullSlotType: HullSlotTypeOrbital,
 }
-var RoboMiner = TechHullComponent{Tech: NewTech("Robo-Miner", NewCost(30, 0, 7, 100), TechRequirements{TechLevel: TechLevel{Construction: 4, Electronics: 2}, LRTsDenied: OBRM}, 0, TechCategoryMineRobot),
-
-	Mass:         240,
-	MiningRate:   12,
-	HullSlotType: HullSlotTypeMining,
-}
-var RoboMaxiMiner = TechHullComponent{Tech: NewTech("Robo-Maxi-Miner", NewCost(30, 0, 7, 100), TechRequirements{TechLevel: TechLevel{Construction: 7, Electronics: 4}, LRTsDenied: OBRM}, 10, TechCategoryMineRobot),
-
-	Mass:         240,
-	MiningRate:   18,
-	HullSlotType: HullSlotTypeMining,
-}
-var RoboMidgetMiner = TechHullComponent{Tech: NewTech("Robo-Midget-Miner", NewCost(12, 0, 4, 44), TechRequirements{TechLevel: TechLevel{}, LRTsRequired: ARM}, 20, TechCategoryMineRobot),
+var RoboMidgetMiner = TechHullComponent{Tech: NewTech("Robo-Midget-Miner", NewCost(14, 0, 4, 50), TechRequirements{TechLevel: TechLevel{}, LRTsRequired: ARM}, 10, TechCategoryMineRobot),
 
 	Mass:         80,
 	MiningRate:   5,
 	HullSlotType: HullSlotTypeMining,
 }
-var RoboMiniMiner = TechHullComponent{Tech: NewTech("Robo-Mini-Miner", NewCost(29, 0, 7, 96), TechRequirements{TechLevel: TechLevel{Construction: 2, Electronics: 1}}, 30, TechCategoryMineRobot),
+var RoboMiniMiner = TechHullComponent{Tech: NewTech("Robo-Mini-Miner", NewCost(30, 0, 7, 100), TechRequirements{TechLevel: TechLevel{Construction: 2, Electronics: 1}}, 20, TechCategoryMineRobot),
 
 	Mass:         240,
 	MiningRate:   4,
 	HullSlotType: HullSlotTypeMining,
 }
-var RoboSuperMiner = TechHullComponent{Tech: NewTech("Robo-Super-Miner", NewCost(30, 0, 7, 100), TechRequirements{TechLevel: TechLevel{Construction: 12, Electronics: 6}, LRTsDenied: OBRM}, 40, TechCategoryMineRobot),
+var RoboMiner = TechHullComponent{Tech: NewTech("Robo-Miner", NewCost(30, 0, 7, 100), TechRequirements{TechLevel: TechLevel{Construction: 4, Electronics: 2}, LRTsDenied: OBRM}, 30, TechCategoryMineRobot),
+
+	Mass:         240,
+	MiningRate:   12,
+	HullSlotType: HullSlotTypeMining,
+}
+var RoboMaxiMiner = TechHullComponent{Tech: NewTech("Robo-Maxi-Miner", NewCost(30, 0, 7, 100), TechRequirements{TechLevel: TechLevel{Construction: 7, Electronics: 4}, LRTsDenied: OBRM}, 40, TechCategoryMineRobot),
+
+	Mass:         240,
+	MiningRate:   18,
+	HullSlotType: HullSlotTypeMining,
+}
+var RoboSuperMiner = TechHullComponent{Tech: NewTech("Robo-Super-Miner", NewCost(30, 0, 7, 100), TechRequirements{TechLevel: TechLevel{Construction: 12, Electronics: 6}, LRTsDenied: OBRM}, 50, TechCategoryMineRobot),
 
 	Mass:         240,
 	MiningRate:   27,
 	HullSlotType: HullSlotTypeMining,
 }
-var RoboUltraMiner = TechHullComponent{Tech: NewTech("Robo-Ultra-Miner", NewCost(14, 0, 4, 100), TechRequirements{TechLevel: TechLevel{Construction: 15, Electronics: 8}, LRTsRequired: ARM, LRTsDenied: OBRM}, 50, TechCategoryMineRobot),
+var RoboUltraMiner = TechHullComponent{Tech: NewTech("Robo-Ultra-Miner", NewCost(14, 0, 4, 100), TechRequirements{TechLevel: TechLevel{Construction: 15, Electronics: 8}, LRTsRequired: ARM, LRTsDenied: OBRM}, 60, TechCategoryMineRobot),
 
 	Mass:         80,
 	MiningRate:   25,
 	HullSlotType: HullSlotTypeMining,
 }
-var OrbitalAdjuster = TechHullComponent{Tech: NewTech("Orbital Adjuster", NewCost(25, 25, 25, 50), TechRequirements{TechLevel: TechLevel{Biotechnology: 6}, PRTRequired: CA}, 60, TechCategoryMineRobot),
+var OrbitalAdjuster = TechHullComponent{Tech: NewTech("Orbital Adjuster", NewCost(25, 25, 25, 50), TechRequirements{TechLevel: TechLevel{Biotechnology: 6}, PRTRequired: CA}, 70, TechCategoryMineRobot),
 
 	Mass:          80,
 	CloakUnits:    25,
 	TerraformRate: 1,
 	HullSlotType:  HullSlotTypeMining,
 }
-var LadyFingerBomb = TechHullComponent{Tech: NewTech("Lady Finger Bomb", NewCost(1, 19, 0, 5), TechRequirements{TechLevel: TechLevel{Weapons: 2}}, 0, TechCategoryBomb),
+var LadyFingerBomb = TechHullComponent{Tech: NewTech("Lady Finger Bomb", NewCost(1, 20, 0, 5), TechRequirements{TechLevel: TechLevel{Weapons: 2}}, 0, TechCategoryBomb),
 
 	Mass:                 40,
 	MinKillRate:          300,
@@ -1314,7 +1314,7 @@ var PeerlessScanner = TechHullComponent{Tech: NewTech("Peerless Scanner", NewCos
 	Mass:      4,
 	ScanRange: 500,
 }
-var Tritanium = TechHullComponent{Tech: NewTech("Tritanium", NewCost(5, 0, 0, 9), TechRequirements{TechLevel: TechLevel{}}, 10, TechCategoryArmor),
+var Tritanium = TechHullComponent{Tech: NewTech("Tritanium", NewCost(5, 0, 0, 10), TechRequirements{TechLevel: TechLevel{}}, 10, TechCategoryArmor),
 
 	Mass:         60,
 	Armor:        50,
@@ -1407,7 +1407,7 @@ var UltraStealthCloak = TechHullComponent{Tech: NewTech("Ultra-Stealth Cloak", N
 	CloakUnits:   540,
 	HullSlotType: HullSlotTypeElectrical,
 }
-var BattleComputer = TechHullComponent{Tech: NewTech("Battle Computer", NewCost(0, 0, 13, 5), TechRequirements{TechLevel: TechLevel{}}, 40, TechCategoryElectrical),
+var BattleComputer = TechHullComponent{Tech: NewTech("Battle Computer", NewCost(0, 0, 15, 6), TechRequirements{TechLevel: TechLevel{}}, 40, TechCategoryElectrical),
 
 	Mass:            1,
 	InitiativeBonus: 1,
@@ -1483,7 +1483,7 @@ var AntiMatterGenerator = TechHullComponent{Tech: NewTech("Anti-Matter Generator
 	FuelBonus:      200,
 	HullSlotType:   HullSlotTypeElectrical,
 }
-var MineDispenser40 = TechHullComponent{Tech: NewTech("Mine Dispenser 40", NewCost(2, 9, 7, 40), TechRequirements{TechLevel: TechLevel{}, PRTRequired: SD}, 0, TechCategoryMineLayer),
+var MineDispenser40 = TechHullComponent{Tech: NewTech("Mine Dispenser 40", NewCost(2, 10, 8, 45), TechRequirements{TechLevel: TechLevel{}, PRTRequired: SD}, 0, TechCategoryMineLayer),
 
 	Mass:           25,
 	MineFieldType:  MineFieldTypeStandard,
@@ -1532,7 +1532,7 @@ var HeavyDispenser200 = TechHullComponent{Tech: NewTech("Heavy Dispenser 200", N
 	MineLayingRate: 200,
 	HullSlotType:   HullSlotTypeMineLayer,
 }
-var SpeedTrap20 = TechHullComponent{Tech: NewTech("Speed Trap 20", NewCost(29, 0, 12, 58), TechRequirements{TechLevel: TechLevel{Propulsion: 2, Biotechnology: 2}, PRTRequired: SD}, 70, TechCategoryMineLayer),
+var SpeedTrap20 = TechHullComponent{Tech: NewTech("Speed Trap 20", NewCost(30, 0, 12, 60), TechRequirements{TechLevel: TechLevel{Propulsion: 2, Biotechnology: 2}, PRTRequired: SD}, 70, TechCategoryMineLayer),
 
 	Mass:           100,
 	MineFieldType:  MineFieldTypeSpeedBump,
@@ -1553,13 +1553,13 @@ var SpeedTrap50 = TechHullComponent{Tech: NewTech("Speed Trap 50", NewCost(40, 0
 	MineLayingRate: 50,
 	HullSlotType:   HullSlotTypeMineLayer,
 }
-var ColonizationModule = TechHullComponent{Tech: NewTech("Colonization Module", NewCost(11, 9, 9, 9), TechRequirements{TechLevel: TechLevel{}, PRTDenied: AR}, 0, TechCategoryMechanical),
+var ColonizationModule = TechHullComponent{Tech: NewTech("Colonization Module", NewCost(12, 10, 10, 10), TechRequirements{TechLevel: TechLevel{}, PRTDenied: AR}, 0, TechCategoryMechanical),
 
 	Mass:               32,
 	ColonizationModule: true,
 	HullSlotType:       HullSlotTypeMechanical,
 }
-var OrbitalConstructionModule = TechHullComponent{Tech: NewTech("Orbital Construction Module", NewCost(18, 13, 13, 18), TechRequirements{TechLevel: TechLevel{}, PRTRequired: AR}, 10, TechCategoryMechanical),
+var OrbitalConstructionModule = TechHullComponent{Tech: NewTech("Orbital Construction Module", NewCost(20, 15, 15, 20), TechRequirements{TechLevel: TechLevel{}, PRTRequired: AR}, 10, TechCategoryMechanical),
 
 	Mass:                      50,
 	MinKillRate:               2000,
@@ -1578,7 +1578,7 @@ var SuperCargoPod = TechHullComponent{Tech: NewTech("Super Cargo Pod", NewCost(8
 	CargoBonus:   100,
 	HullSlotType: HullSlotTypeMechanical,
 }
-var FuelTank = TechHullComponent{Tech: NewTech("Fuel Tank", NewCost(5, 0, 0, 4), TechRequirements{TechLevel: TechLevel{}}, 40, TechCategoryMechanical),
+var FuelTank = TechHullComponent{Tech: NewTech("Fuel Tank", NewCost(6, 0, 0, 4), TechRequirements{TechLevel: TechLevel{}}, 40, TechCategoryMechanical),
 
 	Mass:         3,
 	FuelBonus:    250,
@@ -1811,7 +1811,7 @@ var AntiMatterPulverizer = TechHullComponent{Tech: NewTech("Anti-Matter Pulveriz
 	HullSlotType: HullSlotTypeWeapon,
 	Range:        2,
 }
-var AlphaTorpedo = TechHullComponent{Tech: NewTech("Alpha Torpedo", NewCost(8, 3, 3, 4), TechRequirements{TechLevel: TechLevel{}}, 0, TechCategoryTorpedo),
+var AlphaTorpedo = TechHullComponent{Tech: NewTech("Alpha Torpedo", NewCost(9, 3, 3, 5), TechRequirements{TechLevel: TechLevel{}}, 0, TechCategoryTorpedo),
 
 	Mass:         25,
 	Initiative:   0,
@@ -2045,7 +2045,7 @@ var Scout = TechHull{Tech: NewTech("Scout", NewCost(4, 2, 4, 10), TechRequiremen
 		{Position: Vector{0, 0}, Type: HullSlotTypeGeneral, Capacity: 1},
 	},
 }
-var Frigate = TechHull{Tech: NewTech("Frigate", NewCost(4, 2, 5, 12), TechRequirements{TechLevel: TechLevel{Construction: 6}}, 60, TechCategoryShipHull),
+var Frigate = TechHull{Tech: NewTech("Frigate", NewCost(4, 2, 4, 12), TechRequirements{TechLevel: TechLevel{Construction: 6}}, 60, TechCategoryShipHull),
 	Type:           TechHullTypeFighter,
 	Mass:           8,
 	BuiltInScanner: true,
@@ -2221,7 +2221,7 @@ var MiniColonyShip = TechHull{Tech: NewTech("Mini-Colony Ship", NewCost(2, 0, 2,
 		{Position: Vector{1, 0}, Type: HullSlotTypeMechanical, Capacity: 1},
 	},
 }
-var ColonyShip = TechHull{Tech: NewTech("Colony Ship", NewCost(9, 0, 13, 18), TechRequirements{TechLevel: TechLevel{}}, 160, TechCategoryShipHull),
+var ColonyShip = TechHull{Tech: NewTech("Colony Ship", NewCost(10, 0, 15, 20), TechRequirements{TechLevel: TechLevel{}}, 160, TechCategoryShipHull),
 	Type:              TechHullTypeColonizer,
 	Mass:              20,
 	Armor:             20,
@@ -2463,7 +2463,7 @@ var OrbitalFort = TechHull{Tech: NewTech("Orbital Fort", NewCost(12, 0, 17, 40),
 	},
 }
 
-var SpaceDock = TechHull{Tech: NewTech("Space Dock", NewCost(20, 5, 25, 80), TechRequirements{TechLevel: TechLevel{Construction: 4}, LRTsRequired: ISB}, 20, TechCategoryStarbaseHull),
+var SpaceDock = TechHull{Tech: NewTech("Space Dock", NewCost(20, 5, 25, 100), TechRequirements{TechLevel: TechLevel{Construction: 4}, LRTsRequired: ISB}, 20, TechCategoryStarbaseHull),
 	Type:                  TechHullTypeStarbase,
 	SpaceDock:             200,
 	SpaceDockSlotPosition: Vector{-.125, -.125},
