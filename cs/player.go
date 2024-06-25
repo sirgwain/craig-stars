@@ -2,6 +2,7 @@ package cs
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -409,10 +410,10 @@ func (p *Player) HasTech(tech *Tech) bool {
 
 func (p *Player) CanLearnTech(tech *Tech) bool {
 	requirements := tech.Requirements
-	if requirements.PRTRequired != PRTNone && requirements.PRTRequired != p.Race.PRT {
+	if len(requirements.PRTsRequired) != 0 && !slices.Contains(requirements.PRTsRequired, p.Race.PRT) {
 		return false
 	}
-	if requirements.PRTDenied != PRTNone && p.Race.PRT == requirements.PRTDenied {
+	if len(requirements.PRTsDenied) != 0 && slices.Contains(requirements.PRTsDenied, p.Race.PRT) {
 		return false
 	}
 

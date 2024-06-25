@@ -16,7 +16,7 @@
 		techStoreId: 1,
 		name: "Settler's Delight",
 		cost: { ironium: 1, germanium: 1, resources: 2 },
-		requirements: { prtRequired: PRT.HE },
+		requirements: { prtsRequired: [PRT.HE] },
 		ranking: 10,
 		category: TechCategory.Engine,
 		hullSlotType: HullSlotType.Engine,
@@ -66,7 +66,7 @@
 			},
 			requirements: {
 				weapons: 5,
-				prtRequired: PRT.IS
+				prtsRequired: [PRT.IS]
 			},
 			ranking: 20,
 			category: TechCategory.BeamWeapon,
@@ -87,7 +87,7 @@
 				resources: 40
 			},
 			requirements: {
-				prtRequired: PRT.SD
+				prtsRequired: [PRT.SD]
 			},
 			ranking: 10,
 			category: TechCategory.MineLayer,
