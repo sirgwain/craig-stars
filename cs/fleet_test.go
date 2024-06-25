@@ -257,7 +257,7 @@ func Test_computeFleetSpec(t *testing.T) {
 			},
 		}}, FleetSpec{
 			ShipDesignSpec: ShipDesignSpec{
-				Cost:         Cost{15, 2, 7, 19},
+				Cost:         Cost{16, 2, 7, 19},
 				FuelCapacity: 300,
 				ScanRange:    66,
 				ScanRangePen: 30,
@@ -440,7 +440,7 @@ func Test_computeFleetSpec(t *testing.T) {
 			},
 		}}, FleetSpec{
 			ShipDesignSpec: ShipDesignSpec{
-				Cost:         Cost{22, 43, 10, 43},
+				Cost:         Cost{22, 45, 10, 43},
 				FuelCapacity: 120,
 				Mass:         112,
 				Armor:        50,
@@ -477,7 +477,7 @@ func Test_computeFleetSpec(t *testing.T) {
 			},
 		}}, FleetSpec{
 			ShipDesignSpec: ShipDesignSpec{
-				Cost:         Cost{22, 43, 10, 43}.MultiplyInt(2),
+				Cost:         Cost{22, 45, 10, 43}.MultiplyInt(2),
 				FuelCapacity: 120 * 2,
 				Mass:         112 * 2,
 				Armor:        50 * 2,
