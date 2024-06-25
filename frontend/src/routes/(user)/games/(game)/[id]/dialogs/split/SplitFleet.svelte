@@ -23,12 +23,10 @@
 	import FleetIcon from '$lib/components/FleetIcon.svelte';
 	import CargoTransferer from '$lib/components/game/cargotransfer/CargoTransferer.svelte';
 	import { quantityModifier } from '$lib/quantityModifier';
-	import { CargoTransferRequest, emptyCargo, type Cargo } from '$lib/types/Cargo';
-	import { total } from '$lib/types/Cost';
+	import { CargoTransferRequest, emptyCargo, totalCargo, type Cargo } from '$lib/types/Cargo';
 	import hotkeys from 'hotkeys-js';
 	import { cloneDeep } from 'lodash-es';
 	import { createEventDispatcher, onMount } from 'svelte';
-	import { clamp } from '$lib/services/Math';
 
 	const dispatch = createEventDispatcher<SplitFleetEvent>();
 	const { game, player, universe } = getGameContext();
@@ -72,10 +70,17 @@
 		const srcToken = srcTokens[index];
 		const destToken = destTokens[index];
 
+		const destShipQuantity = destTokens.reduce((count, token) => count + token.quantity, 0);
+
 		srcToken.quantity -= quantity;
 		destToken.quantity += quantity;
 
 		if (quantity > 0) {
+			// update the dest fleet name to be the name of the first token moved
+			if (destShipQuantity == 0) {
+				dest.baseName = design.name;
+				dest.name = dest.baseName;
+			}
 			// move from left to right
 			moveDamagedTokens(srcToken, destToken, quantity);
 		} else if (quantity < 0) {
@@ -93,8 +98,19 @@
 		destCargoCapacity += designCargoCapacity * quantity;
 
 		// if we have more cargo on the source than space available, move some out
-		if (total(src.cargo) - transferAmount.absoluteCargoSize() > srcCargoCapacity) {
-			let overload = total(src.cargo) - transferAmount.absoluteCargoSize() - srcCargoCapacity;
+		console.log(
+			'total',
+
+			totalCargo(src.cargo),
+			'capacity',
+			srcCargoCapacity,
+			'transfer',
+			transferAmount.absoluteCargoSize()
+		);
+
+		if (totalCargo(src.cargo) - transferAmount.absoluteCargoSize() > srcCargoCapacity) {
+			let overload = totalCargo(src.cargo) - transferAmount.absoluteCargoSize() - srcCargoCapacity;
+			console.log('total', totalCargo(src.cargo), 'overload', overload);
 
 			let key: keyof Cargo;
 			for (key in emptyCargo()) {
@@ -108,9 +124,9 @@
 		} else if (
 			dest &&
 			dest.cargo &&
-			total(dest.cargo) + transferAmount.absoluteCargoSize() > destCargoCapacity
+			totalCargo(dest.cargo) + transferAmount.absoluteCargoSize() > destCargoCapacity
 		) {
-			let overload = total(dest.cargo) + transferAmount.absoluteCargoSize() - destCargoCapacity;
+			let overload = totalCargo(dest.cargo) + transferAmount.absoluteCargoSize() - destCargoCapacity;
 
 			let key: keyof Cargo;
 			for (key in emptyCargo()) {
