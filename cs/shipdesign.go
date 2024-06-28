@@ -517,7 +517,11 @@ func (spec *ShipDesignSpec) computeScanRanges(rules *Rules, scannerSpec ScannerS
 		}
 
 		if component.ScanRangePen != NoScanner {
-			spec.ScanRangePen += int((math.Pow(float64(component.ScanRangePen), 4)) * float64(slot.Quantity))
+			if spec.ScanRangePen == NoScanner {
+				spec.ScanRangePen = component.ScanRangePen
+			} else {
+				spec.ScanRangePen += int((math.Pow(float64(component.ScanRangePen), 4)) * float64(slot.Quantity))
+			}
 		}
 	}
 
