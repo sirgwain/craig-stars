@@ -267,8 +267,8 @@ func checkForMineFieldCollision(rules *Rules, playerGetter playerGetter, mapObje
 						if mineFieldPlayer.Race.Spec.MineFieldsAreScanners {
 							// SD races discover the exact fleet makeup
 							for _, token := range fleet.Tokens {
-								discoverer := newDiscoverer(mineFieldPlayer)
-								discoverer.discoverDesign(mineFieldPlayer, token.design, true)
+								// SD races discover the exact fleet makeup
+								mineFieldPlayer.discoverer.discoverDesign(token.design, true)
 							}
 						}
 						return actualDistanceTravelled

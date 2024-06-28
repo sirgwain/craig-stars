@@ -252,7 +252,7 @@ func (ug *universeGenerator) generatePlayerShipDesigns() {
 // have each player discover all the planets in the universe
 func (ug *universeGenerator) generatePlayerPlanetReports() error {
 	for _, player := range ug.players {
-		player.initDefaultPlanetIntels(&ug.Rules, ug.universe.Planets)
+		player.initDefaultPlanetIntels(ug.universe.Planets)
 	}
 	return nil
 }

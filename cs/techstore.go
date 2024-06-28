@@ -7,7 +7,6 @@ import (
 	"slices"
 )
 
-const ScanWithZeroRange = 1
 const UnlimitedSpaceDock = -1
 const NoScanner = -1
 const NoGate = -1
@@ -266,7 +265,7 @@ func (store *TechStore) GetBestScanner(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
-		if (tech.ScanRange > 0 || tech.ScanRangePen > 0) && player.HasTech(&tech.Tech) {
+		if tech.Scanner && (tech.ScanRange >= 0 || tech.ScanRangePen >= 0) && player.HasTech(&tech.Tech) {
 			// techs are sorted by rank, so the latest is the best
 			bestTech = tech
 		}
@@ -1209,12 +1208,15 @@ var BatScanner = TechHullComponent{Tech: NewTech("Bat Scanner", NewCost(1, 0, 1,
 
 	HullSlotType: HullSlotTypeScanner,
 	Mass:         2,
-	ScanRange:    ScanWithZeroRange,
+	Scanner:      true,
+	ScanRange:    0, // this is redundant since it's the default, but just so we're clear that the bat scanner is a scanner with scanrange 0
+	ScanRangePen: 0,
 }
 var RhinoScanner = TechHullComponent{Tech: NewTech("Rhino Scanner", NewCost(3, 0, 2, 3), TechRequirements{TechLevel: TechLevel{Electronics: 1}}, 20, TechCategoryScanner),
 
 	HullSlotType: HullSlotTypeScanner,
 	Mass:         5,
+	Scanner:      true,
 	ScanRange:    50,
 }
 var MoleScanner = TechHullComponent{Tech: NewTech("Mole Scanner", NewCost(2, 0, 2, 9), TechRequirements{TechLevel: TechLevel{Electronics: 4}}, 30, TechCategoryScanner),
@@ -1222,18 +1224,21 @@ var MoleScanner = TechHullComponent{Tech: NewTech("Mole Scanner", NewCost(2, 0, 
 	HullSlotType: HullSlotTypeScanner,
 
 	Mass:      2,
+	Scanner:   true,
 	ScanRange: 100,
 }
 var DNAScanner = TechHullComponent{Tech: NewTech("DNA Scanner", NewCost(1, 1, 1, 5), TechRequirements{TechLevel: TechLevel{Propulsion: 3, Biotechnology: 6}}, 40, TechCategoryScanner),
 
 	HullSlotType: HullSlotTypeScanner,
 	Mass:         2,
+	Scanner:      true,
 	ScanRange:    125,
 }
 var PossumScanner = TechHullComponent{Tech: NewTech("Possum Scanner", NewCost(3, 0, 3, 18), TechRequirements{TechLevel: TechLevel{Electronics: 5}}, 50, TechCategoryScanner),
 
 	HullSlotType: HullSlotTypeScanner,
 	Mass:         3,
+	Scanner:      true,
 	ScanRange:    150,
 }
 var PickPocketScanner = TechHullComponent{Tech: NewTech("Pick Pocket Scanner", NewCost(8, 10, 6, 35), TechRequirements{TechLevel: TechLevel{Energy: 4, Electronics: 4, Biotechnology: 4}, PRTsRequired: []PRT{SS}}, 60, TechCategoryScanner),
@@ -1241,6 +1246,7 @@ var PickPocketScanner = TechHullComponent{Tech: NewTech("Pick Pocket Scanner", N
 	HullSlotType:       HullSlotTypeScanner,
 	Mass:               15,
 	CanStealFleetCargo: true,
+	Scanner:            true,
 	ScanRange:          80,
 }
 var ChameleonScanner = TechHullComponent{Tech: NewTech("Chameleon Scanner", NewCost(4, 6, 4, 25), TechRequirements{TechLevel: TechLevel{Energy: 3, Electronics: 6}, PRTsRequired: []PRT{SS}}, 70, TechCategoryScanner),
@@ -1249,6 +1255,7 @@ var ChameleonScanner = TechHullComponent{Tech: NewTech("Chameleon Scanner", NewC
 	Mass:         6,
 	ScanRange:    160,
 	CloakUnits:   40,
+	Scanner:      true,
 	ScanRangePen: 45,
 }
 var FerretScanner = TechHullComponent{Tech: NewTech("Ferret Scanner", NewCost(2, 0, 8, 36), TechRequirements{TechLevel: TechLevel{Energy: 3, Electronics: 7, Biotechnology: 2}, LRTsDenied: NAS}, 80, TechCategoryScanner),
@@ -1257,12 +1264,14 @@ var FerretScanner = TechHullComponent{Tech: NewTech("Ferret Scanner", NewCost(2,
 
 	Mass:         6,
 	ScanRange:    185,
+	Scanner:      true,
 	ScanRangePen: 50,
 }
 var DolphinScanner = TechHullComponent{Tech: NewTech("Dolphin Scanner", NewCost(5, 5, 10, 40), TechRequirements{TechLevel: TechLevel{Energy: 5, Electronics: 10, Biotechnology: 4}, LRTsDenied: NAS}, 90, TechCategoryScanner),
 
 	HullSlotType: HullSlotTypeScanner,
 	Mass:         4,
+	Scanner:      true,
 	ScanRange:    220,
 	ScanRangePen: 100,
 }
@@ -1270,6 +1279,7 @@ var GazelleScanner = TechHullComponent{Tech: NewTech("Gazelle Scanner", NewCost(
 
 	HullSlotType: HullSlotTypeScanner,
 	Mass:         5,
+	Scanner:      true,
 	ScanRange:    225,
 }
 var RNAScanner = TechHullComponent{Tech: NewTech("RNA Scanner", NewCost(1, 1, 2, 20), TechRequirements{TechLevel: TechLevel{Propulsion: 5, Biotechnology: 10}}, 110, TechCategoryScanner),
@@ -1277,18 +1287,21 @@ var RNAScanner = TechHullComponent{Tech: NewTech("RNA Scanner", NewCost(1, 1, 2,
 	HullSlotType: HullSlotTypeScanner,
 
 	Mass:      2,
+	Scanner:   true,
 	ScanRange: 230,
 }
 var CheetahScanner = TechHullComponent{Tech: NewTech("Cheetah Scanner", NewCost(3, 1, 13, 50), TechRequirements{TechLevel: TechLevel{Energy: 5, Electronics: 11}}, 120, TechCategoryScanner),
 
 	HullSlotType: HullSlotTypeScanner,
 	Mass:         4,
+	Scanner:      true,
 	ScanRange:    275,
 }
 var ElephantScanner = TechHullComponent{Tech: NewTech("Elephant Scanner", NewCost(8, 5, 14, 70), TechRequirements{TechLevel: TechLevel{Energy: 6, Electronics: 16, Biotechnology: 7}, LRTsDenied: NAS}, 130, TechCategoryScanner),
 
 	HullSlotType: HullSlotTypeScanner,
 	Mass:         6,
+	Scanner:      true,
 	ScanRange:    300,
 	ScanRangePen: 200,
 }
@@ -1296,6 +1309,7 @@ var EagleEyeScanner = TechHullComponent{Tech: NewTech("Eagle Eye Scanner", NewCo
 
 	HullSlotType: HullSlotTypeScanner,
 	Mass:         3,
+	Scanner:      true,
 	ScanRange:    335,
 }
 var RobberBaronScanner = TechHullComponent{Tech: NewTech("Robber Baron Scanner", NewCost(10, 10, 10, 90), TechRequirements{TechLevel: TechLevel{Energy: 10, Electronics: 15, Biotechnology: 10}, PRTsRequired: []PRT{SS}}, 150, TechCategoryScanner),
@@ -1304,6 +1318,7 @@ var RobberBaronScanner = TechHullComponent{Tech: NewTech("Robber Baron Scanner",
 	Mass:                20,
 	CanStealFleetCargo:  true,
 	CanStealPlanetCargo: true,
+	Scanner:             true,
 	ScanRange:           220,
 	ScanRangePen:        120,
 }
@@ -1312,6 +1327,7 @@ var PeerlessScanner = TechHullComponent{Tech: NewTech("Peerless Scanner", NewCos
 	HullSlotType: HullSlotTypeScanner,
 
 	Mass:      4,
+	Scanner:   true,
 	ScanRange: 500,
 }
 var Tritanium = TechHullComponent{Tech: NewTech("Tritanium", NewCost(5, 0, 0, 10), TechRequirements{TechLevel: TechLevel{}}, 10, TechCategoryArmor),

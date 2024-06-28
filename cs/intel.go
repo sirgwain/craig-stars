@@ -13,23 +13,22 @@ const Unowned = 0
 // Each player has intel about planet, fleets, and other map objects. The discoverer is used to update the player
 // intel with knowledge about the universe.
 type discoverer interface {
-	clearTransientReports()
 	discoverPlayer(player *Player)
 	discoverPlayerScores(player *Player)
-	discoverPlanet(rules *Rules, player *Player, planet *Planet, penScanned bool) error
-	discoverPlanetStarbase(player *Player, planet *Planet) error
-	discoverPlanetCargo(player *Player, planet *Planet) error
-	discoverPlanetTerraformability(player *Player, planetNum int) error
-	discoverFleet(player *Player, fleet *Fleet)
-	discoverFleetCargo(player *Player, fleet *Fleet)
-	discoverMineField(player *Player, mineField *MineField)
-	discoverMineralPacket(rules *Rules, player *Player, mineralPacket *MineralPacket, packetPlayer *Player, target *Planet)
+	discoverPlanet(rules *Rules, planet *Planet, penScanned bool) error
+	discoverPlanetStarbase(planet *Planet) error
+	discoverPlanetCargo(planet *Planet) error
+	discoverPlanetTerraformability(planetNum int) error
+	discoverFleet(fleet *Fleet)
+	discoverFleetCargo(fleet *Fleet)
+	discoverMineField(mineField *MineField)
+	discoverMineralPacket(rules *Rules, mineralPacket *MineralPacket, packetPlayer *Player, target *Planet)
 	discoverSalvage(salvage *Salvage)
 	discoverWormhole(wormhole *Wormhole)
 	discoverWormholeLink(wormhole1, wormhole2 *Wormhole)
 	forgetWormhole(num int)
 	discoverMysteryTrader(mineField *MysteryTrader)
-	discoverDesign(player *Player, design *ShipDesign, discoverSlots bool)
+	discoverDesign(design *ShipDesign, discoverSlots bool)
 
 	getPlanetIntel(num int) *PlanetIntel
 	getWormholeIntel(num int) *WormholeIntel
@@ -260,17 +259,10 @@ func (intel *PlanetIntel) Explored() bool {
 	return intel.ReportAge != ReportAgeUnexplored
 }
 
-// clear any transient player reports that are refreshed each turn
-func (d *discover) clearTransientReports() {
-	d.player.FleetIntels = []FleetIntel{}
-	d.player.MineFieldIntels = []MineFieldIntel{}
-	d.player.SalvageIntels = []SalvageIntel{}
-	d.player.MineralPacketIntels = []MineralPacketIntel{}
-}
-
 // discover a planet and add it to the player's intel
-func (d *discover) discoverPlanet(rules *Rules, player *Player, planet *Planet, penScanned bool) error {
+func (d *discover) discoverPlanet(rules *Rules, planet *Planet, penScanned bool) error {
 
+	player := d.player
 	var intel *PlanetIntel
 	planetIndex := planet.Num - 1
 
@@ -284,6 +276,13 @@ func (d *discover) discoverPlanet(rules *Rules, player *Player, planet *Planet, 
 	intel.Position = planet.Position
 	intel.Name = planet.Name
 	intel.Num = planet.Num
+
+	// scanning a planet tells you who owns it, and whether it has a starbase
+	// but you don't get hab/pop unlesss you own it
+	intel.PlayerNum = planet.PlayerNum	
+	intel.Spec.HasStarbase = planet.Spec.HasStarbase
+	intel.Spec.HasStargate = planet.Spec.HasStargate
+	intel.Spec.HasMassDriver = planet.Spec.HasMassDriver
 
 	ownedByPlayer := planet.PlayerNum != Unowned && player.Num == planet.PlayerNum
 
@@ -325,7 +324,7 @@ func (d *discover) discoverPlanet(rules *Rules, player *Player, planet *Planet, 
 			design := planet.Starbase.Tokens[0].design
 			intel.Spec.StarbaseDesignName = design.Name
 			intel.Spec.StarbaseDesignNum = design.Num
-			d.discoverDesign(player, design, false)
+			d.discoverDesign(design, false)
 		}
 
 		// players know their planet pops, but other planets are slightly off
@@ -340,7 +339,8 @@ func (d *discover) discoverPlanet(rules *Rules, player *Player, planet *Planet, 
 }
 
 // discover a planet's starbase specs after a battle
-func (d *discover) discoverPlanetStarbase(player *Player, planet *Planet) error {
+func (d *discover) discoverPlanetStarbase(planet *Planet) error {
+	player := d.player
 	var intel *PlanetIntel
 	planetIndex := planet.Num - 1
 
@@ -359,8 +359,9 @@ func (d *discover) discoverPlanetStarbase(player *Player, planet *Planet) error 
 }
 
 // discover the cargo of a planet
-func (d *discover) discoverPlanetCargo(player *Player, planet *Planet) error {
+func (d *discover) discoverPlanetCargo(planet *Planet) error {
 
+	player := d.player
 	var intel *PlanetIntel
 	planetIndex := planet.Num - 1
 
@@ -380,7 +381,8 @@ func (d *discover) discoverPlanetCargo(player *Player, planet *Planet) error {
 	return nil
 }
 
-func (d *discover) discoverPlanetTerraformability(player *Player, planetNum int) error {
+func (d *discover) discoverPlanetTerraformability(planetNum int) error {
+	player := d.player
 	var intel *PlanetIntel
 	planetIndex := planetNum - 1
 
@@ -403,7 +405,8 @@ func (d *discover) discoverPlanetTerraformability(player *Player, planetNum int)
 }
 
 // discover a fleet and add it to the player's fleet intel
-func (d *discover) discoverFleet(player *Player, fleet *Fleet) {
+func (d *discover) discoverFleet(fleet *Fleet) {
+	player := d.player
 	intel := newFleetIntel(fleet.PlayerNum, fleet.Num)
 
 	intel.Name = fleet.Name
@@ -419,7 +422,7 @@ func (d *discover) discoverFleet(player *Player, fleet *Fleet) {
 }
 
 // discover cargo for an existing fleet
-func (d *discover) discoverFleetCargo(player *Player, fleet *Fleet) {
+func (d *discover) discoverFleetCargo(fleet *Fleet) {
 	existingIntel := d.getFleetIntel(fleet.PlayerNum, fleet.Num)
 	if existingIntel != nil {
 		existingIntel.Cargo = fleet.Cargo
@@ -452,7 +455,8 @@ func (d *discover) discoverSalvage(salvage *Salvage) {
 }
 
 // discover a mineField and add it to the player's mineField intel
-func (d *discover) discoverMineField(player *Player, mineField *MineField) {
+func (d *discover) discoverMineField(mineField *MineField) {
+	player := d.player
 	intel := d.getMineFieldIntel(mineField.PlayerNum, mineField.Num)
 	if intel == nil {
 		// discover this new mineField
@@ -475,7 +479,8 @@ func (d *discover) discoverMineField(player *Player, mineField *MineField) {
 }
 
 // discover a mineralPacket and add it to the player's mineralPacket intel
-func (d *discover) discoverMineralPacket(rules *Rules, player *Player, mineralPacket *MineralPacket, packetPlayer *Player, target *Planet) {
+func (d *discover) discoverMineralPacket(rules *Rules, mineralPacket *MineralPacket, packetPlayer *Player, target *Planet) {
+	player := d.player
 	intel := d.getMineralPacketIntel(mineralPacket.PlayerNum, mineralPacket.Num)
 	if intel == nil {
 		// discover this new mineralPacket
@@ -509,8 +514,9 @@ func (d *discover) discoverMineralPacket(rules *Rules, player *Player, mineralPa
 
 // discover a player's design. This is a noop if we already know about
 // the design and aren't discovering slots
-func (d *discover) discoverDesign(player *Player, design *ShipDesign, discoverSlots bool) {
-	intel := d.getShipDesignIntel(design.PlayerNum, design.Num)	
+func (d *discover) discoverDesign(design *ShipDesign, discoverSlots bool) {
+	player := d.player
+	intel := d.getShipDesignIntel(design.PlayerNum, design.Num)
 	if intel == nil {
 		// create a new intel for this design
 		intel = &ShipDesignIntel{
@@ -542,7 +548,7 @@ func (d *discover) discoverDesign(player *Player, design *ShipDesign, discoverSl
 	if discoverSlots && len(intel.Slots) == 0 {
 		intel.Slots = make([]ShipDesignSlot, len(design.Slots))
 		copy(intel.Slots, design.Slots)
-		
+
 		// if we discovered slots, also discover the name
 		intel.Name = design.Name
 

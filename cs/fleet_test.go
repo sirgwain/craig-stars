@@ -233,7 +233,6 @@ func Test_computeFleetSpec(t *testing.T) {
 	}{
 		{"empty", args{&rules, NewPlayer(1, NewRace().WithSpec(&rules)), &Fleet{}}, FleetSpec{
 			ShipDesignSpec: ShipDesignSpec{
-				ScanRange:      NoScanner,
 				ScanRangePen:   NoScanner,
 				SpaceDock:      UnlimitedSpaceDock,
 				EstimatedRange: Infinite,
@@ -303,7 +302,7 @@ func Test_computeFleetSpec(t *testing.T) {
 				SpaceDock:     UnlimitedSpaceDock,
 				RepairBonus:   .15,
 				MineSweep:     640,
-				ScanRange:     NoScanner,
+				Scanner:       true,
 				ScanRangePen:  NoScanner,
 				HasWeapons:    true,
 				MaxPopulation: 1_000_000,
@@ -444,7 +443,7 @@ func Test_computeFleetSpec(t *testing.T) {
 				FuelCapacity: 120,
 				Mass:         112,
 				Armor:        50,
-				ScanRange:    NoScanner,
+				Scanner:      true,
 				ScanRangePen: NoScanner,
 				Bomber:       true,
 				Bombs: []Bomb{
@@ -481,7 +480,7 @@ func Test_computeFleetSpec(t *testing.T) {
 				FuelCapacity: 120 * 2,
 				Mass:         112 * 2,
 				Armor:        50 * 2,
-				ScanRange:    NoScanner,
+				Scanner:      true,
 				ScanRangePen: NoScanner,
 				Bomber:       true,
 				Bombs: []Bomb{
@@ -521,7 +520,7 @@ func Test_computeFleetSpec(t *testing.T) {
 				FuelCapacity: 1500,
 				Mass:         1764,
 				Armor:        900,
-				ScanRange:    NoScanner,
+				Scanner:      true,
 				ScanRangePen: NoScanner,
 				Bomber:       true,
 				Bombs: []Bomb{

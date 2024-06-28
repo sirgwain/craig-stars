@@ -6,7 +6,6 @@ import type { PRT } from './Race';
 import type { TechLevel } from './TechLevel';
 import type { Vector } from './Vector';
 
-export const ScanWithZeroRange = 1;
 export const UnlimitedSpaceDock = -1;
 export const NoScanner = -1;
 export const NoGate = -1;
@@ -60,6 +59,7 @@ export type TechDefense = {
 export type TechHullComponent = {
 	hullSlotType: HullSlotType;
 	mass: number;
+	scanner?: boolean;
 	scanRange?: number;
 	scanRangePen?: number;
 	safeHullMass?: number;

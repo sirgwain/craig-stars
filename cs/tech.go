@@ -49,6 +49,7 @@ type TechHullComponent struct {
 	Tech
 	HullSlotType              HullSlotType  `json:"hullSlotType"`
 	Mass                      int           `json:"mass,omitempty"`
+	Scanner                   bool          `json:"scanner,omitempty"`
 	ScanRange                 int           `json:"scanRange,omitempty"`
 	ScanRangePen              int           `json:"scanRangePen,omitempty"`
 	SafeHullMass              int           `json:"safeHullMass,omitempty"`

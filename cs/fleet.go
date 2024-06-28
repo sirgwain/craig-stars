@@ -463,7 +463,6 @@ func (f *Fleet) InjectDesigns(designs []*ShipDesign) error {
 func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 	spec := FleetSpec{
 		ShipDesignSpec: ShipDesignSpec{
-			ScanRange:    NoScanner,
 			ScanRangePen: NoScanner,
 			SpaceDock:    UnlimitedSpaceDock,
 		},
@@ -1161,8 +1160,7 @@ func (fleet *Fleet) completeMove(mapObjectGetter mapObjectGetter, player *Player
 	} else if wp1.TargetType == MapObjectTypeWormhole && wp1.TargetNum != None {
 		target := mapObjectGetter.getWormhole(wp1.TargetNum)
 		dest := mapObjectGetter.getWormhole(target.DestinationNum)
-		discoverer := newDiscoverer(player)
-		discoverer.discoverWormholeLink(target, dest)
+		player.discoverer.discoverWormholeLink(target, dest)
 		fleet.Position = dest.Position
 		fleet.Waypoints[1] = NewPositionWaypoint(fleet.Position, fleet.Spec.Engine.IdealSpeed)
 	}
