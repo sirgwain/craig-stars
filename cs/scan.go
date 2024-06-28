@@ -32,37 +32,11 @@ type playerScanner interface {
 }
 
 func newPlayerScanner(universe *Universe, players []*Player, rules *Rules, player *Player) playerScanner {
-	discoverer := newDiscoverer(player)
-	return &playerScan{universe, rules, player, players, make(map[int]bool, len(player.PlayerIntels.PlayerIntels)), discoverer}
+	return &playerScan{universe, rules, player, players, make(map[int]bool, len(player.PlayerIntels.PlayerIntels)), player.discoverer}
 }
 
 // scan planets, fleets, etc for a player
 func (scan *playerScan) scan() error {
-	// clear out any reports that we recreate each year
-	player := scan.player
-	scan.discoverer.clearTransientReports()
-
-	for i := range player.PlanetIntels {
-		planet := &player.PlanetIntels[i]
-		if planet.ReportAge != ReportAgeUnexplored {
-			planet.ReportAge++
-		}
-	}
-
-	for i := range player.WormholeIntels {
-		wormhole := &player.WormholeIntels[i]
-		if wormhole.ReportAge != ReportAgeUnexplored {
-			wormhole.ReportAge++
-		}
-	}
-
-	for i := range player.MineFieldIntels {
-		mineField := &player.MineFieldIntels[i]
-		if mineField.ReportAge != ReportAgeUnexplored {
-			mineField.ReportAge++
-		}
-	}
-
 	scanners := scan.getScanners()
 	remoteMiningScanners := scan.getRemoteMiningScanners()
 	cargoScanners := scan.getCargoScanners()
@@ -92,7 +66,7 @@ func (scan *playerScan) scan() error {
 func (scan *playerScan) scanPlanets(scanners []scanner, cargoScanners []scanner, starGateScanners []scanner) error {
 	for _, planet := range scan.universe.Planets {
 		if planet.OwnedBy(scan.player.Num) {
-			if err := scan.discoverer.discoverPlanet(scan.rules, scan.player, planet, false); err != nil {
+			if err := scan.discoverer.discoverPlanet(scan.rules, planet, false); err != nil {
 				return err
 			}
 			continue
@@ -104,6 +78,7 @@ func (scan *playerScan) scanPlanets(scanners []scanner, cargoScanners []scanner,
 			if err != nil {
 				return err
 			}
+
 			if scanned {
 				break
 			}
@@ -142,7 +117,7 @@ func (scan *playerScan) scanPlanets(scanners []scanner, cargoScanners []scanner,
 			if intel.BaseHab != planet.BaseHab {
 				intel.BaseHab = planet.BaseHab
 			}
-			scan.discoverer.discoverPlanetTerraformability(scan.player, planet.Num)
+			scan.discoverer.discoverPlanetTerraformability(planet.Num)
 		}
 	}
 
@@ -155,15 +130,25 @@ func (scan *playerScan) scanPlanet(planet *Planet, scanner scanner) (bool, error
 		if planet.Owned() {
 			scan.discoveredPlayers[planet.PlayerNum] = true
 		}
-		if err := scan.discoverer.discoverPlanet(scan.rules, scan.player, planet, true); err != nil {
+		if err := scan.discoverer.discoverPlanet(scan.rules, planet, true); err != nil {
 			return false, err
 		}
 		if scanner.DiscoverPlanetCargo {
-			if err := scan.discoverer.discoverPlanetCargo(scan.player, planet); err != nil {
+			if err := scan.discoverer.discoverPlanetCargo(planet); err != nil {
 				return false, err
 			}
 		}
 		return true, nil
+	}
+
+	// non-pen scan this planet if we are right on top
+	if scanner.RangeSquared != NoScanner && scanner.Position.DistanceSquaredTo(planet.Position) == 0 {
+		if planet.Owned() {
+			scan.discoveredPlayers[planet.PlayerNum] = true
+		}
+		if err := scan.discoverer.discoverPlanet(scan.rules, planet, false); err != nil {
+			return false, err
+		}
 	}
 	return false, nil
 }
@@ -203,14 +188,15 @@ func (scan *playerScan) scanFleets(scanners []scanner, cargoScanners []scanner) 
 	for _, fleet := range fleetsToScan {
 		scan.discoveredPlayers[fleet.PlayerNum] = true
 
-		scan.discoverer.discoverFleet(scan.player, fleet)
+		scan.discoverer.discoverFleet(fleet)
+
 		for _, token := range fleet.Tokens {
-			scan.discoverer.discoverDesign(scan.player, token.design, scan.player.Race.Spec.DiscoverDesignOnScan)
+			scan.discoverer.discoverDesign(token.design, scan.player.Race.Spec.DiscoverDesignOnScan)
 		}
 	}
 
 	for _, fleet := range fleetsToCargoScan {
-		scan.discoverer.discoverFleetCargo(scan.player, fleet)
+		scan.discoverer.discoverFleetCargo(fleet)
 	}
 }
 
@@ -311,14 +297,14 @@ func (scan *playerScan) scanMineralPackets(scanners []scanner) {
 
 		// PP races detect all packets in flight
 		if scan.player.Race.Spec.DetectAllPackets {
-			scan.discoverer.discoverMineralPacket(scan.rules, scan.player, packet, packetPlayer, target)
+			scan.discoverer.discoverMineralPacket(scan.rules, packet, packetPlayer, target)
 			continue
 		}
 
 		for _, scanner := range scanners {
 			// we only care about regular scanners for mineral packets
 			if float64(scanner.RangeSquared) >= scanner.Position.DistanceSquaredTo(packet.Position) {
-				scan.discoverer.discoverMineralPacket(scan.rules, scan.player, packet, packetPlayer, target)
+				scan.discoverer.discoverMineralPacket(scan.rules, packet, packetPlayer, target)
 				break
 			}
 		}
@@ -351,7 +337,7 @@ func (scan *playerScan) scanMineFields(scanners []scanner) {
 
 			// we only care about regular scanners for wormholes
 			if float64(scanner.RangeSquared)*cloakFactor >= scanner.Position.DistanceSquaredTo(mineField.Position) {
-				scan.discoverer.discoverMineField(scan.player, mineField)
+				scan.discoverer.discoverMineField(mineField)
 				break
 			}
 		}
@@ -398,8 +384,12 @@ func (scan *playerScan) getScanners() []scanner {
 				scanner.RangeSquared = NoScanner
 				scanner.RangePenSquared = NoScanner
 			}
-			scanner.RangeSquared = MaxInt(scanner.RangeSquared, fleet.Spec.ScanRange*fleet.Spec.ScanRange)
-			scanner.RangePenSquared = MaxInt(scanner.RangePenSquared, fleet.Spec.ScanRangePen*fleet.Spec.ScanRangePen)
+			if fleet.Spec.ScanRange != NoScanner {
+				scanner.RangeSquared = MaxInt(scanner.RangeSquared, fleet.Spec.ScanRange*fleet.Spec.ScanRange)
+			}
+			if fleet.Spec.ScanRangePen != NoScanner {
+				scanner.RangePenSquared = MaxInt(scanner.RangePenSquared, fleet.Spec.ScanRangePen*fleet.Spec.ScanRangePen)
+			}
 			scanner.CloakReduction = math.Max(scanner.CloakReduction, fleet.Spec.ReduceCloaking)
 			scanningFleetsByPosition[fleet.Position] = scanner
 		}
@@ -478,10 +468,6 @@ func (scan *playerScan) getScanners() []scanner {
 func (scan *playerScan) getRemoteMiningScanners() []scanner {
 	scanningFleetsByPosition := map[Vector]scanner{}
 	for _, fleet := range scan.universe.Fleets {
-		if fleet.Delete {
-			continue
-		}
-
 		// find any fleets that remote mined this turn, but only add one per position
 		if fleet.PlayerNum == scan.player.Num && fleet.remoteMined {
 			if scanner, found := scanningFleetsByPosition[fleet.Position]; !found {
@@ -503,10 +489,6 @@ func (scan *playerScan) getCargoScanners() []scanner {
 	scanningFleetsByPosition := map[Vector]scanner{}
 
 	for _, fleet := range scan.universe.Fleets {
-		if fleet.Delete {
-			continue
-		}
-
 		if fleet.PlayerNum == scan.player.Num && fleet.Spec.Scanner && (fleet.Spec.CanStealFleetCargo || fleet.Spec.CanStealPlanetCargo) {
 			scanner, found := scanningFleetsByPosition[fleet.Position]
 			if !found {

@@ -190,7 +190,7 @@ func Test_updateFleetTargets(t *testing.T) {
 		player.PlayerIntels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer})
 		enemyPlayer.PlayerIntels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer})
 		// setup initial planet intels so turn generation works
-		enemyPlayer.initDefaultPlanetIntels(&game.Rules, game.Planets)
+		enemyPlayer.initDefaultPlanetIntels(game.Planets)
 
 		// target the enemty fleet
 		fleet.Waypoints = []Waypoint{

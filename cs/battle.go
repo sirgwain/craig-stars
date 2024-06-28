@@ -1276,14 +1276,14 @@ func RunTestBattle(players []*Player, fleets []*Fleet) *BattleRecord {
 	battler := newBattler(&rules, &StaticTechStore, 1, playersByNum, fleets, nil)
 	record := battler.runBattle()
 	for _, player := range players {
-		discover := newDiscoverer(player)
+		
 		for _, otherplayer := range players {
-			discover.discoverPlayer(otherplayer)
+			player.discoverer.discoverPlayer(otherplayer)
 		}
 		for _, fleet := range fleets {
 			if fleet.PlayerNum != player.Num {
 				for _, token := range fleet.Tokens {
-					discover.discoverDesign(player, token.design, true)
+					player.discoverer.discoverDesign(token.design, true)
 				}
 			}
 		}

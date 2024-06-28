@@ -43,7 +43,7 @@ func createSingleUnitGame() *FullGame {
 	planet.Spec = computePlanetSpec(&game.Rules, player, planet)
 
 	// setup initial planet intels for this planet
-	player.initDefaultPlanetIntels(&game.Rules, []*Planet{planet})
+	player.initDefaultPlanetIntels([]*Planet{planet})
 
 	fleet := testLongRangeScout(player)
 	fleet.OrbitingPlanetNum = planet.Num
@@ -108,8 +108,8 @@ func createTwoPlayerGame() *FullGame {
 	planet2.Spec = computePlanetSpec(&game.Rules, player2, planet2)
 
 	// setup initial planet intels for this planet
-	player1.initDefaultPlanetIntels(&game.Rules, []*Planet{planet1, planet2})
-	player2.initDefaultPlanetIntels(&game.Rules, []*Planet{planet1, planet2})
+	player1.initDefaultPlanetIntels([]*Planet{planet1, planet2})
+	player2.initDefaultPlanetIntels([]*Planet{planet1, planet2})
 
 	// give each player a scout on their homeworld
 	fleet1 := testLongRangeScout(player1)
@@ -536,7 +536,7 @@ func Test_turn_fleetMoveTransportRepeat(t *testing.T) {
 	}
 	planet2.Spec = computePlanetSpec(&game.Rules, player, planet2)
 	game.Planets = []*Planet{planet1, planet2}
-	player.initDefaultPlanetIntels(&game.Rules, []*Planet{planet1, planet2})
+	player.initDefaultPlanetIntels([]*Planet{planet1, planet2})
 
 	// planet1 has pop, planet2 is a starer colony
 	planet1.Cargo = Cargo{1000, 1000, 1000, 10000}
@@ -634,7 +634,7 @@ func Test_turn_fleetMoveTransportWaitForPercent(t *testing.T) {
 	}
 	planet2.Spec = computePlanetSpec(&game.Rules, player, planet2)
 	game.Planets = []*Planet{planet1, planet2}
-	player.initDefaultPlanetIntels(&game.Rules, []*Planet{planet1, planet2})
+	player.initDefaultPlanetIntels([]*Planet{planet1, planet2})
 
 	// pull from planet1 to planet2
 	planet1.MineralConcentration = Mineral{100, 100, 100}
@@ -720,7 +720,7 @@ func Test_turn_fleetMoveDestroyedByMineField(t *testing.T) {
 	mineField := newMineField(mineFieldPlayer, MineFieldTypeStandard, radius*radius, 1, Vector{20, 0})
 	mineField.Spec = computeMinefieldSpec(rules, mineFieldPlayer, mineField, 0)
 	// setup initial planet intels so turn generation works
-	mineFieldPlayer.initDefaultPlanetIntels(&game.Rules, game.Planets)
+	mineFieldPlayer.initDefaultPlanetIntels(game.Planets)
 
 	// make sure our player doesn't gain any tech levels since we're checking messages after turn generation
 	player := game.Players[0]
@@ -965,7 +965,7 @@ func Test_turn_fleetSweepMines(t *testing.T) {
 	mineField := newMineField(mineFieldPlayer, MineFieldTypeStandard, radius*radius, 1, Vector{0, 0})
 	mineField.Spec = computeMinefieldSpec(rules, mineFieldPlayer, mineField, 0)
 	// setup initial planet intels so turn generation works
-	mineFieldPlayer.initDefaultPlanetIntels(&game.Rules, game.Planets)
+	mineFieldPlayer.initDefaultPlanetIntels(game.Planets)
 
 	game.Players = append(game.Players, mineFieldPlayer)
 	game.MineFields = append(game.MineFields, mineField)
@@ -1367,7 +1367,7 @@ func Test_turn_fleetPatrol(t *testing.T) {
 	player.PlayerIntels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer})
 	enemyPlayer.PlayerIntels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer})
 	// setup initial planet intels so turn generation works
-	enemyPlayer.initDefaultPlanetIntels(&game.Rules, game.Planets)
+	enemyPlayer.initDefaultPlanetIntels(game.Planets)
 
 	turn := turn{
 		game: game,
@@ -1455,9 +1455,9 @@ func Test_turn_fleetRemoteTerraform(t *testing.T) {
 	fleet2.OrbitingPlanetNum = planet2.Num
 
 	game.Planets = []*Planet{planet1, planet2}
-	player.initDefaultPlanetIntels(&game.Rules, []*Planet{planet1, planet2})
-	enemyPlayer.initDefaultPlanetIntels(&game.Rules, []*Planet{planet1, planet2})
-	friendlyPlayer.initDefaultPlanetIntels(&game.Rules, []*Planet{planet1, planet2})
+	player.initDefaultPlanetIntels([]*Planet{planet1, planet2})
+	enemyPlayer.initDefaultPlanetIntels([]*Planet{planet1, planet2})
+	friendlyPlayer.initDefaultPlanetIntels([]*Planet{planet1, planet2})
 
 	turn := turn{
 		game: game,

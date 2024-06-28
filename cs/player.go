@@ -38,6 +38,8 @@ type Player struct {
 	Spec                      PlayerSpec           `json:"spec,omitempty"`
 	leftoverResources         int
 	techLevelGained           bool
+	discoverer                discoverer
+	allyDiscoverers           []discoverer
 }
 
 // a player and all mapobjects the player owns
@@ -238,6 +240,8 @@ func NewPlayer(userID int64, race *Race) *Player {
 		},
 	}
 
+	// start with a base discoverer
+	player.discoverer = newDiscoverer(player)
 	player.PlayerPlans = player.defaultPlans()
 	return player
 }
@@ -375,6 +379,32 @@ func (p *Player) GetNextTransportPlanNum() int {
 		num = MaxInt(num, plan.Num)
 	}
 	return num + 1
+}
+
+// clear this player's transient intel
+func (p *Player) clearTransientIntel() {
+	p.FleetIntels = []FleetIntel{}
+	p.MineFieldIntels = []MineFieldIntel{}
+	p.SalvageIntels = []SalvageIntel{}
+	p.MineralPacketIntels = []MineralPacketIntel{}
+}
+
+// for reports that stick around, increment the report age
+func (p *Player) incrementReportAge() {
+	for i := range p.PlanetIntels {
+		planet := &p.PlanetIntels[i]
+		if planet.ReportAge != ReportAgeUnexplored {
+			planet.ReportAge++
+		}
+	}
+
+	for i := range p.WormholeIntels {
+		wormhole := &p.WormholeIntels[i]
+		if wormhole.ReportAge != ReportAgeUnexplored {
+			wormhole.ReportAge++
+		}
+	}
+
 }
 
 func computePlayerSpec(player *Player, rules *Rules, planets []*Planet) PlayerSpec {
@@ -580,8 +610,7 @@ func (p *Player) defaultPlayerIntels(players []*Player) []PlayerIntel {
 }
 
 // get the default intels for a player for other players
-func (player *Player) initDefaultPlanetIntels(rules *Rules, planets []*Planet) error {
-	discoverer := newDiscoverer(player)
+func (player *Player) initDefaultPlanetIntels(planets []*Planet) error {
 	player.PlanetIntels = make([]PlanetIntel, len(planets))
 	for j := range planets {
 		// start with some defaults
@@ -590,9 +619,11 @@ func (player *Player) initDefaultPlanetIntels(rules *Rules, planets []*Planet) e
 		intel.Type = MapObjectTypePlanet
 		intel.PlayerNum = Unowned
 
-		if err := discoverer.discoverPlanet(rules, player, planets[j], false); err != nil {
-			return err
-		}
+		// everyone knows about this
+		planet := planets[j]
+		intel.Position = planet.Position
+		intel.Name = planet.Name
+		intel.Num = planet.Num
 	}
 
 	return nil
