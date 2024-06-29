@@ -46,7 +46,7 @@
 
 		{#if !$player.submittedTurn}
 			<div class="hidden md:inline-block">
-				<div class="dropdown dropdown-end">
+				<div class="dropdown">
 					<label for="reports" tabindex="0" class="btn btn-ghost w-40">Commands</label>
 					<ul
 						id="commands"
@@ -62,7 +62,7 @@
 					</ul>
 				</div>
 
-				<div class="dropdown dropdown-end">
+				<div class="dropdown">
 					<label for="reports" tabindex="0" class="btn btn-ghost">Reports</label>
 					<ul
 						id="reports"
@@ -80,8 +80,8 @@
 			</div>
 		{/if}
 
-		<div class="dropdown dropdown-end">
-			<label class="avatar w-8 h-8 place-content-center">
+		<div class="dropdown">
+			<label class="avatar w-8 h-8 place-content-center mx-1">
 				<UserAvatar user={$me} />
 			</label>
 		</div>

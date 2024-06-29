@@ -31,6 +31,39 @@ func TestTechLevel_Lowest(t *testing.T) {
 	}
 }
 
+func TestTechLevel_LowestNonZero(t *testing.T) {
+	tests := []struct {
+		name string
+		tl   TechLevel
+		want TechField
+	}{
+		{"energy lowest by default", TechLevel{}, Energy},
+		{"biotech lowest", TechLevel{
+			Energy:        6,
+			Weapons:       5,
+			Propulsion:    4,
+			Construction:  3,
+			Electronics:   2,
+			Biotechnology: 1,
+		}, Biotechnology},
+		{"biotech lowest if everything else is 0", TechLevel{
+			Energy:        0,
+			Weapons:       0,
+			Propulsion:    0,
+			Construction:  0,
+			Electronics:   0,
+			Biotechnology: 1,
+		}, Biotechnology},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.tl.LowestNonZero(); got != tt.want {
+				t.Errorf("TechLevel.Lowest() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestTechLevel_LevelsAbove(t *testing.T) {
 	tests := []struct {
 		name  string
@@ -102,6 +135,32 @@ func TestTechLevel_GetLearnableTechFields(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.techLevel.LearnableTechFields(&rules); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Player.GetLearnableTechFields() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestTechLevel_LowestMissingLevel(t *testing.T) {
+	tests := []struct {
+		name      string
+		techLevel TechLevel
+		required  TechLevel
+		want      TechField
+	}{
+		{"none lower, return energy", TechLevel{}, TechLevel{}, Energy},
+		{"weapons lowest", TechLevel{}, TechLevel{Energy: 2, Weapons: 1}, Weapons},
+		{
+			name:      "electronics lowest",
+			techLevel: TechLevel{Energy: 2, Weapons: 2, Propulsion: 2, Construction: 2, Electronics: 2, Biotechnology: 2},
+			required:  TechLevel{Energy: 4, Weapons: 4, Propulsion: 4, Construction: 4, Electronics: 3, Biotechnology: 4},
+			want:      Electronics,
+		},
+		{"propulsion is only missing level", TechLevel{}, TechLevel{Propulsion: 2}, Propulsion},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.techLevel.LowestMissingLevel(tt.required); got != tt.want {
+				t.Errorf("TechLevel.LowestMissingLevel() = %v, want %v", got, tt.want)
 			}
 		})
 	}

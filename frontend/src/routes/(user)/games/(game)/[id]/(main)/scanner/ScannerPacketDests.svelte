@@ -7,7 +7,6 @@
 	import type { Writable } from 'svelte/store';
 
 	const { universe, commandedPlanet } = getGameContext();
-	const scale = getContext<Writable<number>>('scale');
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
 	$: planets = $universe.planets.filter(
@@ -23,7 +22,7 @@
 			{ position: target?.position ?? planet.position }
 		];
 
-		const strokeWidth = (planet.num === $commandedPlanet?.num ? 5 : 3) / $scale;
+		const strokeWidth = (planet.num === $commandedPlanet?.num ? 1.5 : 1);
 		const dist = (planet.packetSpeed ?? 0) * (planet.packetSpeed ?? 0);
 
 		return {

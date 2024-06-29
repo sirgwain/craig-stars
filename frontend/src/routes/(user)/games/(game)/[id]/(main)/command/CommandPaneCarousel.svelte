@@ -18,7 +18,7 @@
 	import FleetOrbitingTile from './FleetOrbitingTile.svelte';
 	import FleetOtherFleetsHereTile from './FleetOtherFleetsHereTile.svelte';
 	import FleetWaypointTaskTile from './FleetWaypointTaskTile.svelte';
-	import FleetWaypointsTile from './FleetWaypointsTile.svelte';
+	import FleetWaypointsTile, { type DeleteWaypointEvent } from './FleetWaypointsTile.svelte';
 	import PlanetFleetsInOrbitTile from './PlanetFleetsInOrbitTile.svelte';
 	import PlanetMineralsOnHandTile from './PlanetMineralsOnHandTile.svelte';
 	import PlanetProductionTile from './PlanetProductionTile.svelte';
@@ -30,7 +30,8 @@
 			MergeFleetsDialogEvent &
 			CargoTransferDialogEvent &
 			ProductionQueueDialogEvent &
-			TransportTasksDialogEvent
+			TransportTasksDialogEvent &
+			DeleteWaypointEvent
 	>();
 	const {
 		universe,
@@ -134,14 +135,6 @@
 	// anytime the selectedMapObject is updated, show the summary
 	const unsuscribeSelectedMapObject = selectedMapObject.subscribe((mo) => {
 		if (!$selectedWaypoint || !equal(mo, $universe.getMapObject($selectedWaypoint))) {
-			console.log('mo', mo);
-			console.log('$selectedWaypoint', $selectedWaypoint);
-			if ($selectedWaypoint) {
-				console.log(
-					'$universe.getMapObject($selectedWaypoint)',
-					$universe.getMapObject($selectedWaypoint)
-				);
-			}
 			activeNav = '#summary';
 		}
 	});
@@ -174,7 +167,10 @@
 							</div>
 						</button>
 					</div>
-					<FleetSummary fleet={$commandedFleet} />
+					<FleetSummary
+						fleet={$commandedFleet}
+						on:cargo-transfer-dialog={(e) => dispatch('cargo-transfer-dialog', e?.detail)}
+					/>
 				</div>
 			</div>
 		{:else}
@@ -231,7 +227,10 @@
 			/>
 		</div>
 		<div id="fleet-waypoints-tile" class="carousel-item w-full">
-			<FleetWaypointsTile fleet={$commandedFleet} />
+			<FleetWaypointsTile
+				fleet={$commandedFleet}
+				on:delete-waypoint={(e) => dispatch('delete-waypoint')}
+			/>
 		</div>
 		<div id="fleet-waypoint-task-tile" class="carousel-item w-full">
 			<FleetWaypointTaskTile

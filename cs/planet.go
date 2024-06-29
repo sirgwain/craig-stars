@@ -212,7 +212,7 @@ func (p *Planet) emptyPlanet() {
 	p.PlayerNum = Unowned
 	p.Starbase = nil
 	p.Scanner = false
-	p.Defenses = 0 // defenses are all gone, rest of the structures can stay
+	p.Defenses = 0                  // defenses are all gone, rest of the structures can stay
 	p.PlanetOrders = PlanetOrders{} // clear any orders from previous owner
 	p.setPopulation(0)
 	p.Spec = PlanetSpec{}
@@ -245,6 +245,31 @@ func (p *Planet) randomize(rules *Rules) {
 		Ironium:   rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration-rules.MinStartingMineralConcentration),
 		Boranium:  rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration-rules.MinStartingMineralConcentration),
 		Germanium: rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration-rules.MinStartingMineralConcentration),
+	}
+
+	// limit at least one mineral
+	// TODO: make this limiting configurable?
+	// it follows the original algorithm, but maybe there is a way to explain
+	// what it's doing and make it easy to update for a mod
+	// it picks a random number from 0 to 27, if under 18, limit a mineral
+	// if the number is 9 to 18, only limit 1
+	// if the number is 0, limit up to 4 times (limiter starts at 1, doubles each loop 1, 2, 4, 8)
+	limiter := rules.random.Intn(27)
+	if limiter < 18 {
+		if limiter >= 9 {
+			mineralType := MineralTypes[rules.random.Intn(len(MineralTypes))]
+			value := 1 + rules.random.Intn(rules.MinStartingMineralConcentration) - 1
+			p.MineralConcentration.Set(mineralType, value)
+		} else {
+			limiter++
+			for limiter < 16 {
+				mineralType := MineralTypes[rules.random.Intn(len(MineralTypes))]
+				value := 1 + rules.random.Intn(rules.MinStartingMineralConcentration) - 1
+				p.MineralConcentration.Set(mineralType, value)
+
+				limiter *= 2
+			}
+		}
 	}
 
 	// we have high rad, add some bonus minerals
@@ -422,6 +447,8 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	if !race.Spec.InnateMining {
 		spec.MaxMines = planet.getMaxMines(player, productivePop)
 		spec.MaxPossibleMines = spec.MaxPopulation * race.NumMines / 10000
+	} else {
+		spec.MaxMines = planet.Mines
 	}
 
 	if race.Spec.InnateResources {

@@ -62,13 +62,13 @@
 		@apply bg-[#ffffff];
 	}
 	.ironium-concentration {
-		@apply stroke-[#020085] fill-[#020085];
+		@apply  fill-[#020085] stroke-[#cccccc];
 	}
 	.boranium-concentration {
-		@apply stroke-[#008100] fill-[#008100];
+		@apply  fill-[#008100] stroke-[#cccccc];
 	}
 	.germanium-concentration {
-		@apply stroke-[#7f7f00] fill-[#7f7f00];
+		@apply  fill-[#7f7f00] stroke-[#cccccc];
 	}
 	.damage-bar {
 		@apply bg-[#FF0000];

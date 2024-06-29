@@ -7,7 +7,6 @@
 	import type { Writable } from 'svelte/store';
 
 	const { player, universe, selectedMapObject } = getGameContext();
-	const scale = getContext<Writable<number>>('scale');
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
 	type Line = {
@@ -18,7 +17,7 @@
 	let line: Line | undefined;
 	let color = '#ffffff';
 
-	$: strokeWidth = 3 / $scale;
+	$: strokeWidth = 1;
 
 	$: {
 		line = undefined;

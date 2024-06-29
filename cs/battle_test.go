@@ -290,6 +290,57 @@ func Test_battleWeaponSlot_isInRangePosition(t *testing.T) {
 	}
 }
 
+func Test_battle_getBestMove(t *testing.T) {
+	type args struct {
+		token *battleToken
+	}
+	tests := []struct {
+		name string
+		args args
+		want BattleVector
+	}{
+		{
+			name: "token at 0,0 move towards target at 1,0",
+			args: args{
+				token: &battleToken{
+					BattleRecordToken: BattleRecordToken{Position: BattleVector{0, 0}},
+					moveTarget:        &battleToken{BattleRecordToken: BattleRecordToken{Position: BattleVector{1, 0}}}},
+			},
+			want: BattleVector{1, 0},
+		},
+		{
+			name: "token at 3,3 move away from targetedBy at 3,3",
+			args: args{
+				token: &battleToken{
+					BattleRecordToken: BattleRecordToken{Position: BattleVector{3, 3}, Tactic: BattleTacticDisengage},
+					targetedBy:        []*battleToken{{BattleRecordToken: BattleRecordToken{Position: BattleVector{3, 3}}}}},
+			},
+			want: BattleVector{4, 4},
+		},
+		// this depends on a random number. TODO: mock the random
+		// {
+		// 	name: "token at 8,5 move away from targetedBy at 1,4",
+		// 	args: args{
+		// 		token: &battleToken{
+		// 			BattleRecordToken: BattleRecordToken{Position: BattleVector{8, 5}, Tactic: BattleTacticDisengage},
+		// 			targetedBy:        []*battleToken{{BattleRecordToken: BattleRecordToken{Position: BattleVector{1, 4}}}}},
+		// 	},
+		// 	want: BattleVector{7, 5},
+		// },
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			b := &battle{
+				tokens: []*battleToken{tt.args.token},
+				rules:  &rules,
+			}
+			if got := b.getBestMove(tt.args.token); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("battle.getBestMove() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func Test_battle_fireBeamWeapon(t *testing.T) {
 
 	type weapon struct {
@@ -437,6 +488,78 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			},
 			want: []want{{damage: 10, quantityDamaged: 1, quantityRemaining: 1}},
 		},
+		{name: "two weapons, two stacks, do 20 damage total, kill both",
+			args: args{
+				weapon: weapon{
+					weaponSlot: &battleWeaponSlot{
+						slot: ShipDesignSlot{
+							Quantity: 2, // 2 beam weapons
+						},
+						power: 10,
+					},
+					shipQuantity: 1, // 1 ships in attacker stack
+				},
+				targets: []*battleToken{
+					{
+						ShipToken: &ShipToken{
+							Quantity: 1,
+							design:   &ShipDesign{Name: "defender"},
+						},
+						armor: 10,
+					},
+					{
+						ShipToken: &ShipToken{
+							Quantity: 1,
+							design:   &ShipDesign{Name: "defender"},
+						},
+						armor: 10,
+					},
+				},
+			},
+			// both stacks gone
+			want: []want{
+				{damage: 0, quantityDamaged: 0, quantityRemaining: 0},
+				{damage: 0, quantityDamaged: 0, quantityRemaining: 0},
+			},
+		},
+		{name: "two weapons, two stacks, do 20 damage total, don't get through shield of the first stack",
+			args: args{
+				weapon: weapon{
+					weaponSlot: &battleWeaponSlot{
+						slot: ShipDesignSlot{
+							Quantity: 2, // 2 beam weapons
+						},
+						power: 10,
+					},
+					shipQuantity: 1, // 1 ships in attacker stack
+				},
+				targets: []*battleToken{
+					{
+						ShipToken: &ShipToken{
+							Quantity: 3,
+							design:   &ShipDesign{Name: "defender"},
+						},
+						armor:        10,
+						shields:      10,
+						stackShields: 30,
+					},
+					{
+						ShipToken: &ShipToken{
+							Quantity: 3,
+							design:   &ShipDesign{Name: "defender"},
+						},
+						armor:        10,
+						shields:      10,
+						stackShields: 30,
+					},
+				},
+			},
+			// both stacks alive, but first stack with 20 less stackShields
+			want: []want{
+				{damage: 0, quantityDamaged: 0, quantityRemaining: 3, stackShields: 10},
+				{damage: 0, quantityDamaged: 0, quantityRemaining: 3, stackShields: 30},
+			},
+		},
 		{name: "one weapon, do 10 damage to shields, no damage",
 			args: args{
 				weapon: weapon{
@@ -462,7 +585,7 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			},
 			want: []want{{damage: 0, quantityDamaged: 0, quantityRemaining: 1, stackShields: 10}},
 		},
-		{name: "one super beam, do 100 damage destroy one stack and we're done",
+		{name: "one super beam, do 100 damage destroy one stack and damage another",
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
@@ -491,8 +614,8 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 				},
 			},
 			want: []want{
-				{damage: 0, quantityDamaged: 0, quantityRemaining: 0}, // first stack gone
-				{damage: 0, quantityDamaged: 0, quantityRemaining: 1}, // second stack undamaged
+				{damage: 0, quantityDamaged: 0, quantityRemaining: 0},
+				{damage: 90, quantityDamaged: 1, quantityRemaining: 1},
 			},
 		},
 		{name: "one minigun, do 10 damage to all targets",

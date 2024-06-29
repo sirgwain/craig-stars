@@ -217,56 +217,66 @@ func checkForMineFieldCollision(rules *Rules, playerGetter playerGetter, mapObje
 
 	// see if we are colliding with any of these minefields
 	for _, mineField := range mapObjectGetter.getAllMineFields() {
-		if mineField.PlayerNum != fleet.PlayerNum {
-			// we only check if we are going faster than allowed by the minefield.
-			stats := rules.MineFieldStatsByType[mineField.MineFieldType]
-			if dest.WarpSpeed > stats.MaxSpeed+safeWarpBonus {
-				// this is not our minefield, and we are going fast, check if we intersect.
-				from := fleet.Position
-				to := (dest.Position.Subtract(fleet.Position).Normalized()).Scale(distance).Add(from)
-				collision := segmentIntersectsCircle(from, to, mineField.Position, mineField.Spec.Radius)
-				if collision == -1 {
-					// miss! phew, that was close!
-					return distance
-				} else {
-					// we are travelling through this minefield, for each light year we go through, check for a hit
-					// collision is 0 to 1, which is the percent of our travel segment that is NOT in the field.
-					// figure out what that is in lightYears
-					// if we are travelling 32 light years and 3/4 of it is through the minefield, we need to check
-					// for collision 24 times
-					lightYearsInField := int(math.Min(float64(mineField.Spec.Radius), math.Ceil(float64((1-collision)*distance))))
-					lightYearsBeforeField := collision * distance
+		// we don't hit our own minefields
+		if mineField.PlayerNum == fleet.PlayerNum {
+			continue
+		}
 
-					// Each type of minefield has a chance to hit based on how fast
-					// the fleet is travelling through the field. A normal mine has a .3% chance
-					// of hitting a ship per extra warp over warp 4, so a warp 9 ship
-					// has a 1.5% chance of hitting a mine per lightyear travelled
-					unsafeWarp := dest.WarpSpeed - (stats.MaxSpeed + safeWarpBonus)
-					chanceToHit := stats.ChanceOfHit * float64(unsafeWarp)
-					for checkNum := 0; checkNum < lightYearsInField; checkNum++ {
-						if chanceToHit >= rules.random.Float64() {
-							// ouch, we hit a minefield!
-							// we stop moving at the hit, so if we made it 8 checks out of 24 for our above example
-							// we only travel 8 lightyears through the field (plus whatever distance we travelled to get to the field)
-							fleet.struckMineField = true
-							actualDistanceTravelled := lightYearsBeforeField + float64(checkNum)
-							mineFieldPlayer := playerGetter.getPlayer(mineField.PlayerNum)
+		// our allies don't hit our minefields
+		mineFieldPlayer := playerGetter.getPlayer(mineField.PlayerNum)
+		if mineFieldPlayer.IsFriend(fleetPlayer.Num) {
+			continue
+		}
 
-							mineField.damageFleet(mineFieldPlayer, fleet, fleetPlayer, stats)
-							mineField.reduceMineFieldOnImpact()
-							if mineFieldPlayer.Race.Spec.MineFieldsAreScanners {
+		// we only check if we are going faster than allowed by the minefield.
+		stats := rules.MineFieldStatsByType[mineField.MineFieldType]
+		if dest.WarpSpeed > stats.MaxSpeed+safeWarpBonus {
+			// this is not our minefield, and we are going fast, check if we intersect.
+			from := fleet.Position
+			to := (dest.Position.Subtract(fleet.Position).Normalized()).Scale(distance).Add(from)
+			collision := segmentIntersectsCircle(from, to, mineField.Position, mineField.Spec.Radius)
+			if collision == -1 {
+				// miss! phew, that was close!
+				return distance
+			} else {
+				// we are travelling through this minefield, for each light year we go through, check for a hit
+				// collision is 0 to 1, which is the percent of our travel segment that is NOT in the field.
+				// figure out what that is in lightYears
+				// if we are travelling 32 light years and 3/4 of it is through the minefield, we need to check
+				// for collision 24 times
+				lightYearsInField := int(math.Min(float64(mineField.Spec.Radius), math.Ceil(float64((1-collision)*distance))))
+				lightYearsBeforeField := collision * distance
+
+				// Each type of minefield has a chance to hit based on how fast
+				// the fleet is travelling through the field. A normal mine has a .3% chance
+				// of hitting a ship per extra warp over warp 4, so a warp 9 ship
+				// has a 1.5% chance of hitting a mine per lightyear travelled
+				unsafeWarp := dest.WarpSpeed - (stats.MaxSpeed + safeWarpBonus)
+				chanceToHit := stats.ChanceOfHit * float64(unsafeWarp)
+				for checkNum := 0; checkNum < lightYearsInField; checkNum++ {
+					if chanceToHit >= rules.random.Float64() {
+						// ouch, we hit a minefield!
+						// we stop moving at the hit, so if we made it 8 checks out of 24 for our above example
+						// we only travel 8 lightyears through the field (plus whatever distance we travelled to get to the field)
+						fleet.struckMineField = true
+						actualDistanceTravelled := lightYearsBeforeField + float64(checkNum)
+						mineFieldPlayer := playerGetter.getPlayer(mineField.PlayerNum)
+
+						mineField.damageFleet(mineFieldPlayer, fleet, fleetPlayer, stats)
+						mineField.reduceMineFieldOnImpact()
+						if mineFieldPlayer.Race.Spec.MineFieldsAreScanners {
+							// SD races discover the exact fleet makeup
+							for _, token := range fleet.Tokens {
 								// SD races discover the exact fleet makeup
-								for _, token := range fleet.Tokens {
-									discoverer := newDiscoverer(mineFieldPlayer)
-									discoverer.discoverDesign(mineFieldPlayer, token.design, true)
-								}
+								mineFieldPlayer.discoverer.discoverDesign(token.design, true)
 							}
-							return actualDistanceTravelled
 						}
+						return actualDistanceTravelled
 					}
 				}
 			}
 		}
+
 	}
 
 	return distance

@@ -4,7 +4,6 @@
 	import {
 		getCloakPercentForCloakUnits,
 		InfinteGate,
-		ScanWithZeroRange,
 		TechCategory,
 		TerraformHabTypes,
 		type Tech,
@@ -359,25 +358,23 @@
 					);
 				}
 
-				if ((hullComponent.scanRange ?? 0) > 0) {
-					if ((hullComponent.scanRange ?? 0) > 0) {
-						if (hullComponent.scanRange == ScanWithZeroRange) {
-							// special case for bat scanner
-							descriptions.push(
-								'Enemy fleets cannot be detected boy this scanner unless they are at the same location as the scanner.'
-							);
-						} else {
-							descriptions.push(
-								`Enemy fleets not orbiting a planet can be detected up to ${hullComponent.scanRange} light years away.`
-							);
-						}
+				if (hullComponent.scanner) {
+					if ((hullComponent.scanRange ?? 0) == 0) {
+						// special case for bat scanner
+						descriptions.push(
+							'Enemy fleets cannot be detected by this scanner unless they are at the same location as the scanner.'
+						);
+					} else {
+						descriptions.push(
+							`Enemy fleets not orbiting a planet can be detected up to ${hullComponent.scanRange} light years away.`
+						);
+					}
 
-						if (!hullComponent.scanRangePen) {
-							// we have no pen scan, but we are a normal scanner, we can still scan planets we orbit
-							descriptions.push(
-								"This scanner is capable of determining a planet's environment and composition while in orbit of the planet."
-							);
-						}
+					if (!hullComponent.scanRangePen) {
+						// we have no pen scan, but we are a normal scanner, we can still scan planets we orbit
+						descriptions.push(
+							"This scanner is capable of determining a planet's environment and composition while in orbit of the planet."
+						);
 					}
 
 					if ((hullComponent.scanRangePen ?? 0) > 0) {

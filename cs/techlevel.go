@@ -56,6 +56,19 @@ func (tl TechLevel) Lowest() TechField {
 	return lowestField
 }
 
+func (tl TechLevel) LowestNonZero() TechField {
+	lowestField := Energy
+	lowest := math.MaxInt
+	for _, field := range TechFields {
+		level := tl.Get(field)
+		if level != 0 && level < lowest {
+			lowestField = field
+			lowest = level
+		}
+	}
+	return lowestField
+}
+
 func (tl TechLevel) Get(field TechField) int {
 	switch field {
 	case Energy:
@@ -196,4 +209,9 @@ func (tl TechLevel) LearnableTechFields(rules *Rules) []TechField {
 		}
 	}
 	return fields
+}
+
+// get the lowest field missing from tl for a requirement
+func (tl TechLevel) LowestMissingLevel(requirement TechLevel) TechField {
+	return requirement.Minus(tl).MinZero().LowestNonZero()
 }

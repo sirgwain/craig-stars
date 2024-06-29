@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
+	import { ownedBy, type MapObject } from '$lib/types/MapObject';
 	import hotkeys from 'hotkeys-js';
 	import { onMount } from 'svelte';
 	import CargoTranfserDialog, {
@@ -14,6 +15,7 @@
 	} from '../dialogs/split/SplitFleetDialog.svelte';
 	import type { TransportTasksDialogEventDetails } from '../dialogs/transport/TransportTasksDialog.svelte';
 	import TransportTasksDialog from '../dialogs/transport/TransportTasksDialog.svelte';
+	import SearchDialog from '../search/SearchDialog.svelte';
 	import HighlightedMapObjectStats from './HighlightedMapObjectStats.svelte';
 	import MapObjectSummary from './MapObjectSummary.svelte';
 	import CommandPane from './command/CommandPane.svelte';
@@ -21,13 +23,29 @@
 	import Scanner from './scanner/Scanner.svelte';
 	import ScannerToolbar from './scanner/ScannerToolbar.svelte';
 
-	const { game, commandedPlanet, nextMapObject, previousMapObject } = getGameContext();
+	const {
+		game,
+		universe,
+		player,
+		commandedPlanet,
+		commandedFleet,
+		selectedWaypoint,
+		currentSelectedWaypointIndex,
+		commandMapObject,
+		zoomToMapObject,
+		nextMapObject,
+		previousMapObject,
+		selectWaypoint,
+		selectMapObject,
+		updateFleetOrders
+	} = getGameContext();
 
 	let showProductionQueueDialog = false;
 	let showCargoTransferDialog = false;
 	let showMergeFleetsDialog = false;
 	let showSplitFleetDialog = false;
 	let showTransportTasksDialog = false;
+	let showSearchDialog = false;
 	let cargoTransferDetails: CargoTransferDialogEventDetails | undefined = undefined;
 	let mergeFleetsDialogEventDetails: MergeFleetsDialogEventDetails | undefined = undefined;
 	let splitFleetDialogEventDetails: SplitFleetDialogEventDetails | undefined = undefined;
@@ -45,20 +63,59 @@
 				showProductionQueueDialog = true;
 			}
 		});
+		hotkeys('⌘+k', 'root', () => {
+			showSearchDialog = true;
+		});
+		hotkeys('Delete', 'root', () => {
+			onDeleteWaypoint();
+		});
+		hotkeys('Backspace', 'root', () => {
+			onDeleteWaypoint();
+		});
 
 		return () => {
 			hotkeys.unbind('n', 'root');
 			hotkeys.unbind('p', 'root');
 			hotkeys.unbind('q', 'root');
+			hotkeys.unbind('Delete', 'root');
+			hotkeys.unbind('Backspace', 'root');
 		};
 	});
+
+	async function onDeleteWaypoint() {
+		const selectedWaypointIndex = $currentSelectedWaypointIndex;
+		if (selectedWaypoint && $commandedFleet && selectedWaypointIndex > 0) {
+			$commandedFleet.waypoints = $commandedFleet.waypoints.filter((wp) => wp != $selectedWaypoint);
+
+			// select the previous waypoint
+			const wp = $commandedFleet.waypoints[selectedWaypointIndex - 1];
+			selectWaypoint(wp);
+
+			const mo = $universe.getMapObject(wp);
+			if (mo) {
+				selectMapObject(mo);
+			}
+
+			await updateFleetOrders($commandedFleet);
+		}
+	}
+
+	function selectSearchResult(mo: MapObject | undefined) {
+		if (mo) {
+			if (ownedBy(mo, $player.num)) {
+				commandMapObject(mo);
+			}
+			selectMapObject(mo);
+			zoomToMapObject(mo);
+		}
+	}
 </script>
 
 <!-- for small mobile displays we put the scanner on top and the command pane below it-->
 <div class="flex flex-col h-full md:flex-row">
 	<!-- for medium+ displays, command pane goes on the left -->
 	<div
-		class="hidden md:flex md:flex-col md:flex-none justify-between md:w-[15.5rem] lg:w-[30rem] overflow-y-auto md:max-h-[calc(100dvh-4rem)]"
+		class="hidden overflow-x-hidden md:flex md:flex-col md:flex-none justify-between md:w-[15.5rem] lg:w-[30rem] overflow-y-auto md:max-h-[calc(100dvh-4rem)]"
 	>
 		<div class="flex flex-row flex-wrap gap-2 justify-center">
 			<CommandPane
@@ -79,23 +136,34 @@
 					showTransportTasksDialog = true;
 					transportTasksDialogEventDetails = e.detail;
 				}}
+				on:delete-waypoint={onDeleteWaypoint}
 			/>
 		</div>
 		<div class="hidden lg:block lg:p-1 mx-2">
-			<MapObjectSummary />
+			<MapObjectSummary
+				on:cargo-transfer-dialog={(e) => {
+					showCargoTransferDialog = true;
+					cargoTransferDetails = e?.detail;
+				}}
+			/>
 		</div>
 	</div>
 
 	<div class="flex flex-col grow">
 		<div class="flex flex-col grow border-gray-700 border-2 shadow-sm">
-			<ScannerToolbar />
+			<ScannerToolbar on:show-search={() => (showSearchDialog = true)} />
 			<Scanner />
 		</div>
 		<div class="hidden md:block">
 			<HighlightedMapObjectStats />
 		</div>
 		<div class="hidden md:block md:w-full lg:hidden mb-2">
-			<MapObjectSummary />
+			<MapObjectSummary
+				on:cargo-transfer-dialog={(e) => {
+					showCargoTransferDialog = true;
+					cargoTransferDetails = e?.detail;
+				}}
+			/>
 		</div>
 	</div>
 
@@ -119,6 +187,7 @@
 				showTransportTasksDialog = true;
 				transportTasksDialogEventDetails = e.detail;
 			}}
+			on:delete-waypoint={onDeleteWaypoint}
 		/>
 	</div>
 </div>
@@ -132,3 +201,4 @@
 	bind:show={showTransportTasksDialog}
 	bind:props={transportTasksDialogEventDetails}
 />
+<SearchDialog bind:show={showSearchDialog} on:select-result={(e) => selectSearchResult(e.detail)} />

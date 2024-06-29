@@ -52,7 +52,7 @@
 
 	<p>
 		<input
-			class="input input-bordered input-xs"
+			class="checkbox checkbox-xs"
 			type="checkbox"
 			name="factoriesCostLess"
 			bind:checked={race.factoriesCostLess}

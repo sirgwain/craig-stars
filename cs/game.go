@@ -288,6 +288,16 @@ func (settings *GameSettings) IsSinglePlayer() bool {
 	return numHumanPlayers <= 1
 }
 
+func (s *GameSettings) GetNumAIPlayers() int {
+	numAIs := 0
+	for _, player := range s.Players {
+		if player.Type == NewGamePlayerTypeAI {
+			numAIs++
+		}
+	}
+	return numAIs
+}
+
 func (g *Game) String() string {
 	return fmt.Sprintf("%s (%d)", g.Name, g.ID)
 }
@@ -339,6 +349,16 @@ func (fg *FullGame) getPlayer(playerNum int) *Player {
 		return nil
 	}
 	return fg.Players[playerNum-1]
+}
+
+func (fg *FullGame) GetNumAIPlayers() int {
+	numAIs := 0
+	for _, player := range fg.Players {
+		if player.AIControlled {
+			numAIs++
+		}
+	}
+	return numAIs
 }
 
 // compute all the various "specs" in the game. Called before and after turn generation

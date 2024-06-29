@@ -499,7 +499,7 @@ func (b *battle) runBattle() *BattleRecord {
 			// which we figured out in BuildMovement
 			roundBlock := b.round % 4
 			for _, token := range moveOrder[roundBlock] {
-				b.moveToken(token, weaponSlots)
+				b.moveToken(token)
 			}
 
 			// iterate over each weapon and fire if they have a target
@@ -670,18 +670,19 @@ func (b *battle) fireWeaponSlot(weapon *battleWeaponSlot, targets []*battleToken
 }
 
 // fire a beam weapon slot at a slice of targets
-// this will find the first target still in the battle and fire at it
-// only one token stack can be hit by one beam weapon stack at a time
 func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot, targets []*battleToken) {
 	attackerShipToken := weapon.token
 	damage := weapon.power * weapon.slot.Quantity * attackerShipToken.Quantity
+	remainingDamage := float64(damage)
 
 	log.Debug().Msgf("%v is attempting to fire at %v targets for a total of %v damage", weapon.token, len(targets), damage)
 
-	// fire at each target. Note, regular beam weapons only hit one target, but gattlings keep firing
 	for _, target := range targets {
 		if !target.isStillInBattle() {
 			continue
+		}
+		if remainingDamage == 0 {
+			break
 		}
 		// skip targets that are out of shields for sappers
 		if weapon.damagesShieldsOnly && target.stackShields <= 0 {
@@ -693,29 +694,17 @@ func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot, targets []*battleToken
 
 		// beam weapon damage reduces by up to 10% over range. So a range 2 weapon is reduced 0% at 0 range, 5% at 1 range, and 10% at 2 range
 		distance := weapon.token.getDistanceAway(target.Position)
-		rangedDamage := float64(damage)
 		if weapon.weaponRange > 0 {
-			rangedDamage = rangedDamage * (1 - b.rules.BeamRangeDropoff*float64(distance)/float64(weapon.weaponRange))
+			remainingDamage = remainingDamage * (1 - b.rules.BeamRangeDropoff*float64(distance)/float64(weapon.weaponRange))
 		}
 
 		// account for beam defense
-		rangedDamage = rangedDamage * (1 - target.beamDefense)
+		remainingDamage = remainingDamage * (1 - target.beamDefense)
 
-		log.Debug().Msgf("%v fired %v %v(s) at %v (shields: %v, armor: %v, distance: %v, %v@%v damage) for %v (range adjusted to %v)",
-			weapon.token,
-			weapon.slot.Quantity,
-			weapon.slot.HullComponent,
-			target,
-			shields,
-			armor,
-			distance,
-			target.Quantity,
-			target.Damage,
-			damage,
-			rangedDamage)
+		log.Debug().Msgf("%v fired %v %v(s) at %v (shields: %v, armor: %v, distance: %v, %v@%v damage) for %v (range adjusted to %v)", weapon.token, weapon.slot.Quantity, weapon.slot.HullComponent, target, shields, armor, distance, target.Quantity, target.Damage, damage, remainingDamage)
 
-		if rangedDamage > float64(shields) && !weapon.damagesShieldsOnly {
-			remainingDamage := rangedDamage - float64(shields)
+		if remainingDamage > float64(shields) && !weapon.damagesShieldsOnly {
+			remainingDamage = remainingDamage - float64(shields)
 			target.stackShields = 0
 
 			existingDamage := target.Damage * float64(target.QuantityDamaged)
@@ -727,11 +716,12 @@ func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot, targets []*battleToken
 				target.Quantity = 0
 				target.quantityDestroyed += numDestroyed
 				b.board[target.Position.Y][target.Position.X] -= numDestroyed
+				remainingDamage -= float64(armor * numDestroyed)
 
 				target.destroyed = true
-				log.Debug().Msgf("%v %v %v(s) hit %v, did %v shield damage and %v armor damage and completely destroyed %v", weapon.token, weapon.slot.Quantity, weapon.slot.HullComponent, target, shields, int(rangedDamage)-shields, target)
+				log.Debug().Msgf("%v %v %v(s) hit %v, did %v shield damage and %v armor damage and completely destroyed %v", weapon.token, weapon.slot.Quantity, weapon.slot.HullComponent, target, shields, int(remainingDamage)-shields, target)
 
-				b.record.recordBeamFire(b.round, weapon.token, weapon.token.Position, target.Position, weapon.slot.HullSlotIndex, *target, shields, int(rangedDamage)-shields, numDestroyed)
+				b.record.recordBeamFire(b.round, weapon.token, weapon.token.Position, target.Position, weapon.slot.HullSlotIndex, *target, shields, int(remainingDamage)-shields, numDestroyed)
 			} else {
 				if numDestroyed > 0 {
 					target.Quantity -= numDestroyed
@@ -744,26 +734,30 @@ func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot, targets []*battleToken
 				if remainingDamage > 0 {
 					target.Damage = remainingDamage / float64(target.Quantity)
 					target.QuantityDamaged = target.Quantity
-					remainingDamage = 0
 					log.Debug().Msgf("%v destroyed %v ships, leaving %v damaged %v@%v damage", weapon.token, numDestroyed, target, target.Quantity, target.Damage)
 				}
 
-				b.record.recordBeamFire(b.round, weapon.token, weapon.token.Position, target.Position, weapon.slot.HullSlotIndex, *target, shields, int(rangedDamage)-shields, numDestroyed)
+				b.record.recordBeamFire(b.round, weapon.token, weapon.token.Position, target.Position, weapon.slot.HullSlotIndex, *target, shields, int(remainingDamage)-shields, numDestroyed)
+				remainingDamage = 0
 			}
 
 		} else {
-			target.stackShields -= int(rangedDamage)
+			target.stackShields -= int(remainingDamage)
 			target.stackShields = MaxInt(0, target.stackShields) // make sure we don't go below 0
-			log.Debug().Msgf("%v firing %v %v(s) did %v damage to %v shields, leaving %v shields still operational.", weapon.token, weapon.slot.Quantity, weapon.slot.HullComponent, rangedDamage, target, target.stackShields)
-			b.record.recordBeamFire(b.round, weapon.token, weapon.token.Position, target.Position, weapon.slot.HullSlotIndex, *target, int(rangedDamage), 0, 0)
+			log.Debug().Msgf("%v firing %v %v(s) did %v damage to %v shields, leaving %v shields still operational.", weapon.token, weapon.slot.Quantity, weapon.slot.HullComponent, remainingDamage, target, target.stackShields)
+			b.record.recordBeamFire(b.round, weapon.token, weapon.token.Position, target.Position, weapon.slot.HullSlotIndex, *target, int(remainingDamage), 0, 0)
+			// no more damage left, all absorbed by shields
+			remainingDamage = 0
 		}
+
+		// reset damage for the next target
+		if weapon.hitsAllTargets {
+			remainingDamage = float64(damage)
+		}
+
+		log.Debug().Msgf("%v %v %v(s) has %v remaining dp to burn through %v additional targets.", weapon.token, weapon.slot.Quantity, weapon.slot.HullComponent, remainingDamage, len(targets)-1)
 
 		target.damaged = true
-
-		if !weapon.hitsAllTargets {
-			// we're not a gattling, so we're done after one shot
-			break
-		}
 	}
 }
 
@@ -935,7 +929,7 @@ func (b *battle) fireTorpedo(weapon *battleWeaponSlot, targets []*battleToken) {
 }
 
 // moveToken moves a token towards or away from its target
-func (b *battle) moveToken(token *battleToken, weaponSlots []*battleWeaponSlot) {
+func (b *battle) moveToken(token *battleToken) {
 	if !token.isStillInBattle() {
 		return
 	}
@@ -955,10 +949,10 @@ func (b *battle) moveToken(token *battleToken, weaponSlots []*battleWeaponSlot) 
 	oldPosition := token.Position
 
 	if token.Tactic == BattleTacticDisengage {
-		b.runAway(token, weaponSlots)
+		b.runAway(token)
 	} else {
 		// create a move record for the viewer and then move the token
-		bestMove := b.getBestAttackMove(token)
+		bestMove := b.getBestMove(token)
 		b.record.recordMove(b.round, token, token.Position, bestMove)
 		token.Position = bestMove
 	}
@@ -1003,25 +997,48 @@ func updateBestMoves(better bool, newPosition BattleVector, bestMoves []BattleVe
 // this checks all the nearby squares and moves in the direction that gets the token
 // closer or does the best damage, according to the battle plan
 // i.e. max damage, max damage ratio, max net damage, etc
-func (b *battle) getBestAttackMove(token *battleToken) BattleVector {
+func (b *battle) getBestMove(token *battleToken) BattleVector {
 
 	bestDamageDone := 0
 	bestDamageTaken := math.MaxInt
 	bestDamageRatio := 0.0
 	bestNetDamage := -math.MaxInt
-	target := token.moveTarget
 	bestMoves := make([]BattleVector, 0, 9)
 	bestMoves = append(bestMoves, token.Position)
 	lowestDamageMoves := make([]BattleVector, 0, 9)
 	lowestDamageMoves = append(lowestDamageMoves, token.Position)
 	bestDamageTakenForLowestDamageMove := math.MaxInt
-	currentDistance := token.getDistanceAway(target.Position)
+
+	// target is either whoever this token is targeting, or targeted by
+	target := token.moveTarget
+	var currentDistance int
+	if target != nil {
+		currentDistance = token.getDistanceAway(target.Position)
+	} else {
+		currentDistance = math.MaxInt
+		for _, targetedBy := range token.targetedBy {
+			// find the closest ship targeting us
+			// TODO: maybe find the scariest target?
+			dist := token.getDistanceAway(targetedBy.Position)
+			if dist < currentDistance {
+				currentDistance = dist
+				target = targetedBy
+			}
+		}
+	}
 
 	for dx := -1; dx <= 1; dx++ {
 		for dy := -1; dy <= 1; dy++ {
 			newPosition := BattleVector{token.Position.X + dx, token.Position.Y + dy}
 			if newPosition.X < 0 || newPosition.X >= battleWidth || newPosition.Y < 0 || newPosition.Y >= battleHeight {
 				// skip invalid squares
+				continue
+			}
+
+			// if we are running away and no one is targeting us
+			if target == nil {
+				// no one is targeting us, add this square to random moves
+				lowestDamageMoves = append(lowestDamageMoves, newPosition)
 				continue
 			}
 
@@ -1035,7 +1052,9 @@ func (b *battle) getBestAttackMove(token *battleToken) BattleVector {
 			}
 
 			// if this will move us closer to our target, see if it's the best low damage move
-			if distance < currentDistance && bestDamageTakenForLowestDamageMove >= damageTaken {
+			// or, if this distance is greater than our currentDistance and we're running away, see if it's the best low damage move
+			if distance < currentDistance && bestDamageTakenForLowestDamageMove >= damageTaken ||
+				token.Tactic == BattleTacticDisengage && distance > currentDistance && bestDamageTakenForLowestDamageMove >= damageTaken {
 				lowestDamageMoves = updateBestMoves(bestDamageTakenForLowestDamageMove > damageTaken, newPosition, lowestDamageMoves)
 				bestDamageTakenForLowestDamageMove = damageTaken
 			}
@@ -1082,59 +1101,7 @@ func (b *battle) getBestAttackMove(token *battleToken) BattleVector {
 	return bestMoves[b.rules.random.Intn(len(bestMoves))]
 }
 
-func (b *battle) getBestRunAwayMove(token *battleToken) BattleVector {
-
-	bestDamageTaken := math.MaxInt
-	var bestMove = token.Position
-	bestDistance := 0
-	pickedMove := false
-
-	for dx := -1; dx <= 1; dx++ {
-		for dy := -1; dy <= 1; dy++ {
-			newPosition := BattleVector{token.Position.X + dx, token.Position.Y + dy}
-			if newPosition.X < 0 || newPosition.X >= battleWidth || newPosition.Y < 0 || newPosition.Y >= battleHeight {
-				// skip invalid squares
-				continue
-			}
-
-			if len(token.targetedBy) == 0 {
-				if !pickedMove {
-					bestMove = newPosition
-					continue
-				}
-
-				// flip a coin to pick this move
-				if b.rules.random.Intn(2) == 0 {
-					bestMove = newPosition
-					pickedMove = true
-				}
-			}
-
-			// for each attacker targetting us, check the distance
-			// and possible damange taken if we were to move
-			// into this square
-			damageTaken := 0
-			for _, attacker := range token.targetedBy {
-				distance := token.getDistanceAway(attacker.Position)
-				damageTaken += b.getDamageDone(attacker, distance)
-
-				// if this will move us away from this fleet targeting us, see if it's the best low damage move
-				if distance >= bestDistance && bestDamageTaken <= damageTaken {
-					// if this damage is the same, flip a coin to take this new move or not
-					if bestDamageTaken == damageTaken && b.rules.random.Intn(2) == 0 {
-						break
-					}
-					bestDistance = distance
-					bestDamageTaken = damageTaken
-					bestMove = newPosition
-				}
-			}
-		}
-	}
-
-	return bestMove
-}
-func (b *battle) runAway(token *battleToken, weapons []*battleWeaponSlot) {
+func (b *battle) runAway(token *battleToken) {
 
 	if token.movesMade >= b.rules.MovesToRunAway {
 		// we've moved enough to leave the board
@@ -1145,7 +1112,7 @@ func (b *battle) runAway(token *battleToken, weapons []*battleWeaponSlot) {
 	}
 
 	// find the best move for running away
-	newPosition := b.getBestRunAwayMove(token)
+	newPosition := b.getBestMove(token)
 	b.record.recordMove(b.round, token, token.Position, newPosition)
 	token.Position = newPosition
 }
@@ -1309,14 +1276,14 @@ func RunTestBattle(players []*Player, fleets []*Fleet) *BattleRecord {
 	battler := newBattler(&rules, &StaticTechStore, 1, playersByNum, fleets, nil)
 	record := battler.runBattle()
 	for _, player := range players {
-		discover := newDiscoverer(player)
+		
 		for _, otherplayer := range players {
-			discover.discoverPlayer(otherplayer)
+			player.discoverer.discoverPlayer(otherplayer)
 		}
 		for _, fleet := range fleets {
 			if fleet.PlayerNum != player.Num {
 				for _, token := range fleet.Tokens {
-					discover.discoverDesign(player, token.design, true)
+					player.discoverer.discoverDesign(token.design, true)
 				}
 			}
 		}

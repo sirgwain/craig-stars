@@ -15,6 +15,7 @@
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import PlanetMineralsGraph from './PlanetMineralsGraph.svelte';
+	import PlanetBaseHabPoint from '$lib/components/game/PlanetBaseHabPoint.svelte';
 
 	const { game, player, universe } = getGameContext();
 
@@ -23,6 +24,7 @@
 	$: habLow = $player.race.habLow;
 	$: habHigh = $player.race.habHigh;
 	$: habPoint = planet.hab ?? {};
+	$: baseHab = planet.baseHab ?? {};
 	$: terraformHabPoint = add(habPoint, planet.spec.terraformAmount ?? {});
 	$: habWidth = {
 		grav: (habHigh.grav ?? 0) - (habLow.grav ?? 0),
@@ -34,6 +36,11 @@
 		grav: clamp(habPoint.grav ? (habPoint.grav / 100) * 100 : 0, 0, 100),
 		temp: clamp(habPoint.temp ? (habPoint.temp / 100) * 100 : 0, 0, 100),
 		rad: clamp(habPoint.rad ? (habPoint.rad / 100) * 100 : 0, 0, 100)
+	};
+	$: baseHabPercent = {
+		grav: clamp(baseHab.grav ? (baseHab.grav / 100) * 100 : 0, 0, 100),
+		temp: clamp(baseHab.temp ? (baseHab.temp / 100) * 100 : 0, 0, 100),
+		rad: clamp(baseHab.rad ? (baseHab.rad / 100) * 100 : 0, 0, 100)
 	};
 	$: terraformHabPointPercent = {
 		grav: clamp(terraformHabPoint.grav ? (terraformHabPoint.grav / 100) * 100 : 0, 0, 100),
@@ -145,6 +152,10 @@
 						style={`left: ${habPointPercent.grav.toFixed()}%;`}
 						class="absolute grav-point h-full -translate-x-1/2"
 					/>
+					<PlanetBaseHabPoint
+						style={`left: ${baseHabPercent.grav.toFixed()}%;`}
+						class="absolute grav-point h-full -translate-x-1/2"
+					/>
 					<!-- Terraform line -->
 					<div class="absolute h-full w-full">
 						<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -177,6 +188,10 @@
 						style={`left: ${habPointPercent.temp.toFixed()}%;`}
 						class="absolute temp-point h-full -translate-x-1/2"
 					/>
+					<PlanetBaseHabPoint
+						style={`left: ${baseHabPercent.temp.toFixed()}%;`}
+						class="absolute temp-point h-full -translate-x-1/2"
+					/>
 					<!-- Terraform line -->
 					<PlanetHabTerraformLine
 						x1={habPointPercent.temp}
@@ -199,6 +214,10 @@
 					{/if}
 					<PlanetHabPoint
 						style={`left: ${habPointPercent.rad.toFixed()}%;`}
+						class="absolute rad-point h-full -translate-x-1/2"
+					/>
+					<PlanetBaseHabPoint
+						style={`left: ${baseHabPercent.rad.toFixed()}%;`}
 						class="absolute rad-point h-full -translate-x-1/2"
 					/>
 					<!-- Terraform line -->

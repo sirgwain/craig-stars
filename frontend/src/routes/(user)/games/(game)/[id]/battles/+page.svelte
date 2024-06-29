@@ -1,8 +1,9 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
 	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
-	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import {
 		getNumShips,
@@ -12,7 +13,7 @@
 		getTheirShips
 	} from '$lib/types/Battle';
 
-	const { game, player, universe } = getGameContext();
+	const { game, player, universe, gotoBattle } = getGameContext();
 
 	type BattleRow = {
 		num: number;
@@ -86,6 +87,11 @@
 			title: 'Theirs Left'
 		}
 	];
+
+	function gotoTarget(row: BattleRow) {
+		gotoBattle(row.num);
+		goto(`/games/${$game.id}`);
+	}
 </script>
 
 <Breadcrumb>
@@ -113,8 +119,16 @@
 
 		<span slot="cell" let:column let:row let:cell>
 			{#if column.key == 'location'}
-				<a class="cs-link text-xl text-left" href={`/games/${$game.id}/battles/${row.num}`}>{row.location}</a
-				>
+				<div class="flex flex-row justify-between">
+					<a class="cs-link text-xl text-left" href={`/games/${$game.id}/battles/${row.num}`}
+						>{row.location}</a
+					>
+					<button
+						on:click={(e) => gotoTarget(row)}
+						class="btn btn-outline btn-sm normal-case btn-secondary p-2"
+						title="goto">Goto</button
+					>
+				</div>
 			{:else}
 				{cell ?? ''}
 			{/if}

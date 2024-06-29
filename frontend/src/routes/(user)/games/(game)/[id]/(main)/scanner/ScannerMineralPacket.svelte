@@ -6,23 +6,17 @@
 	import type { MineralPacket } from '$lib/types/MineralPacket';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
-	import type { Writable } from 'svelte/store';
+	import MapObjectScaler from './MapObjectScaler.svelte';
 
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
-	const scale = getContext<Writable<number>>('scale');
 
 	export let mineralPacket: MineralPacket;
 	export let color = '#0900FF';
 
-	$: size = 8 / $scale;
+	const size = 10;
 </script>
 
 <!-- ScannerMineralPacket -->
-<rect
-	x={$xGet(mineralPacket) - size / 2}
-	y={$yGet(mineralPacket) - size / 2}
-	width={size}
-	height={size}
-	stroke={color}
-	fill="none"
-/>
+<MapObjectScaler mapObject={mineralPacket}>
+	<rect x={-size / 2} y={-size / 2} width={size} height={size} stroke={color} fill="none" stroke-width={2} />
+</MapObjectScaler>

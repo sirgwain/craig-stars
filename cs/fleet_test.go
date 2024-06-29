@@ -233,7 +233,6 @@ func Test_computeFleetSpec(t *testing.T) {
 	}{
 		{"empty", args{&rules, NewPlayer(1, NewRace().WithSpec(&rules)), &Fleet{}}, FleetSpec{
 			ShipDesignSpec: ShipDesignSpec{
-				ScanRange:      NoScanner,
 				ScanRangePen:   NoScanner,
 				SpaceDock:      UnlimitedSpaceDock,
 				EstimatedRange: Infinite,
@@ -257,7 +256,7 @@ func Test_computeFleetSpec(t *testing.T) {
 			},
 		}}, FleetSpec{
 			ShipDesignSpec: ShipDesignSpec{
-				Cost:         Cost{15, 2, 7, 19},
+				Cost:         Cost{16, 2, 7, 19},
 				FuelCapacity: 300,
 				ScanRange:    66,
 				ScanRangePen: 30,
@@ -303,7 +302,7 @@ func Test_computeFleetSpec(t *testing.T) {
 				SpaceDock:     UnlimitedSpaceDock,
 				RepairBonus:   .15,
 				MineSweep:     640,
-				ScanRange:     NoScanner,
+				Scanner:       true,
 				ScanRangePen:  NoScanner,
 				HasWeapons:    true,
 				MaxPopulation: 1_000_000,
@@ -440,11 +439,11 @@ func Test_computeFleetSpec(t *testing.T) {
 			},
 		}}, FleetSpec{
 			ShipDesignSpec: ShipDesignSpec{
-				Cost:         Cost{22, 43, 10, 43},
+				Cost:         Cost{22, 45, 10, 43},
 				FuelCapacity: 120,
 				Mass:         112,
 				Armor:        50,
-				ScanRange:    NoScanner,
+				Scanner:      true,
 				ScanRangePen: NoScanner,
 				Bomber:       true,
 				Bombs: []Bomb{
@@ -477,11 +476,11 @@ func Test_computeFleetSpec(t *testing.T) {
 			},
 		}}, FleetSpec{
 			ShipDesignSpec: ShipDesignSpec{
-				Cost:         Cost{22, 43, 10, 43}.MultiplyInt(2),
+				Cost:         Cost{22, 45, 10, 43}.MultiplyInt(2),
 				FuelCapacity: 120 * 2,
 				Mass:         112 * 2,
 				Armor:        50 * 2,
-				ScanRange:    NoScanner,
+				Scanner:      true,
 				ScanRangePen: NoScanner,
 				Bomber:       true,
 				Bombs: []Bomb{
@@ -521,7 +520,7 @@ func Test_computeFleetSpec(t *testing.T) {
 				FuelCapacity: 1500,
 				Mass:         1764,
 				Armor:        900,
-				ScanRange:    NoScanner,
+				Scanner:      true,
 				ScanRangePen: NoScanner,
 				Bomber:       true,
 				Bombs: []Bomb{
@@ -782,22 +781,149 @@ func TestFleet_getCargoLoadAmount(t *testing.T) {
 			wantWaitAtWaypoint: true, // wait for remaining 5mg we want
 		},
 		{
-			name:               "set amount to 20kT when we have 30kT already. We should unload 10kT to the planet",
+			name:               "set amount to 20kT when we have 30kT already. We should do nothing as we already have > 20kT",
 			fleet:              testSmallFreighter(player).withCargo(Cargo{Ironium: 30}),
 			args:               args{dest: planet, cargoType: Ironium, task: WaypointTransportTask{Action: TransportActionSetAmountTo, Amount: 20}},
-			wantTransferAmount: -10, // unload 10kT
+			wantTransferAmount: 0, // don't unload
 		},
 		{
-			name:               "set amount to 20mg fuel when we have 30mg already. We should unload 10mg to the dest fleet",
+			name:               "set amount to 20mg fuel when we have 30mg already. We should do nothing, we already have > 20mg",
 			fleet:              testSmallFreighter(player).withFuel(30),
 			args:               args{dest: testSmallFreighter(player).withFuel(0), cargoType: Fuel, task: WaypointTransportTask{Action: TransportActionSetAmountTo, Amount: 20}},
-			wantTransferAmount: -10, // unload 10mg
+			wantTransferAmount: 0, // don't unload
+		},
+		{
+			name:               "set waypoint to 2500kT colonists",
+			fleet:              testSmallFreighter(player),
+			args:               args{dest: NewPlanet().WithCargo(Cargo{Colonists: 2600}), cargoType: Colonists, task: WaypointTransportTask{Action: TransportActionSetWaypointTo, Amount: 2500}},
+			wantTransferAmount: 100, // load 100kT
+		},
+		{
+			name:               "set waypoint to 2500kT colonists, nothing to load",
+			fleet:              testSmallFreighter(player),
+			args:               args{dest: NewPlanet().WithCargo(Cargo{Colonists: 2400}), cargoType: Colonists, task: WaypointTransportTask{Action: TransportActionSetWaypointTo, Amount: 2500}},
+			wantTransferAmount: 0, // no load, colonists too low
+		},
+		{
+			name:               "set waypoint to 2500kT colonists, fleet has colonists, don't unload during fleetLoad",
+			fleet:              testSmallFreighter(player).withCargo(Cargo{Colonists: 200}),
+			args:               args{dest: NewPlanet().WithCargo(Cargo{Colonists: 2400}), cargoType: Colonists, task: WaypointTransportTask{Action: TransportActionSetWaypointTo, Amount: 2500}},
+			wantTransferAmount: 0, // no load, colonists too low
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
 			gotTransferAmount, gotWaitAtWaypoint := tt.fleet.getCargoLoadAmount(tt.args.dest, tt.args.cargoType, tt.args.task)
+			if gotTransferAmount != tt.wantTransferAmount {
+				t.Errorf("Fleet.getCargoLoadAmount() gotTransferAmount = %v, want %v", gotTransferAmount, tt.wantTransferAmount)
+			}
+			if gotWaitAtWaypoint != tt.wantWaitAtWaypoint {
+				t.Errorf("Fleet.getCargoLoadAmount() gotWaitAtWaypoint = %v, want %v", gotWaitAtWaypoint, tt.wantWaitAtWaypoint)
+			}
+		})
+	}
+}
+
+func TestFleet_getCargoUnloadAmount(t *testing.T) {
+	player := NewPlayer(1, NewRace().WithSpec(&rules))
+	planet := NewPlanet().WithCargo(Cargo{Ironium: 1000, Boranium: 1000, Germanium: 1000, Colonists: 1000})
+
+	type args struct {
+		dest      cargoHolder
+		cargoType CargoType
+		task      WaypointTransportTask
+	}
+	tests := []struct {
+		name               string
+		fleet              *Fleet
+		args               args
+		wantTransferAmount int
+		wantWaitAtWaypoint bool
+	}{
+		{
+			name:               "unload 1kt ironium",
+			fleet:              testSmallFreighter(player).withCargo(Cargo{Ironium: 1}),
+			args:               args{dest: planet, cargoType: Ironium, task: WaypointTransportTask{Action: TransportActionUnloadAmount, Amount: 1}},
+			wantTransferAmount: 1,
+		},
+		{
+			name:               "unload 1mg fuel",
+			fleet:              testLongRangeScout(player).withFuel(10),
+			args:               args{dest: testLongRangeScout(player).withFuel(0), cargoType: Fuel, task: WaypointTransportTask{Action: TransportActionUnloadAmount, Amount: 1}},
+			wantTransferAmount: 1,
+		},
+		{
+			name:               "unload all ironium we have",
+			fleet:              testSmallFreighter(player).withCargo(Cargo{Ironium: 120}),
+			args:               args{dest: planet, cargoType: Ironium, task: WaypointTransportTask{Action: TransportActionUnloadAll}},
+			wantTransferAmount: 120,
+		},
+		{
+			name:               "unload all fuel the dest can fit",
+			fleet:              testSmallFreighter(player),
+			args:               args{dest: testSmallFreighter(player).withFuel(0), cargoType: Fuel, task: WaypointTransportTask{Action: TransportActionUnloadAll}},
+			wantTransferAmount: 130, // small freighter has 130mg fuel capacity
+		},
+		{
+			name:               "unload all ironium we have",
+			fleet:              testSmallFreighter(player).withCargo(Cargo{Ironium: 20}),
+			args:               args{dest: planet, cargoType: Ironium, task: WaypointTransportTask{Action: TransportActionUnloadAll}},
+			wantTransferAmount: 20,
+		},
+		{
+			name:               "unload all fuel dest can fit (they already have 20)",
+			fleet:              testSmallFreighter(player),
+			args:               args{dest: testSmallFreighter(player).withFuel(20), cargoType: Fuel, task: WaypointTransportTask{Action: TransportActionUnloadAll}},
+			wantTransferAmount: 110,
+		},
+		{
+			name:               "unload all fuel at planet, does nothing",
+			fleet:              testSmallFreighter(player),
+			args:               args{dest: planet, cargoType: Fuel, task: WaypointTransportTask{Action: TransportActionUnloadAll}},
+			wantTransferAmount: 0,
+		},
+		{
+			name:               "set amount to 20kT when we have 30kT already",
+			fleet:              testSmallFreighter(player).withCargo(Cargo{Ironium: 30}),
+			args:               args{dest: planet, cargoType: Ironium, task: WaypointTransportTask{Action: TransportActionSetAmountTo, Amount: 20}},
+			wantTransferAmount: 10, // unload 10kT onto planet
+		},
+		{
+			name:               "set fuel amount to 20mg when we have 30mg already",
+			fleet:              testSmallFreighter(player).withFuel(30),
+			args:               args{dest: testSmallFreighter(player).withFuel(0), cargoType: Fuel, task: WaypointTransportTask{Action: TransportActionSetAmountTo, Amount: 20}},
+			wantTransferAmount: 10, // load 10mg more
+		},
+		{
+			name:               "set amount to 20kT when we have 10kT, should unload nothing",
+			fleet:              testSmallFreighter(player).withCargo(Cargo{Ironium: 10}),
+			args:               args{dest: planet, cargoType: Ironium, task: WaypointTransportTask{Action: TransportActionSetAmountTo, Amount: 20}},
+			wantTransferAmount: 0,
+		},
+		{
+			name:               "set waypoint to 2500kT colonists, should unload 100kT",
+			fleet:              testSmallFreighter(player).withCargo(Cargo{Colonists: 100}),
+			args:               args{dest: NewPlanet().WithCargo(Cargo{Colonists: 2400}), cargoType: Colonists, task: WaypointTransportTask{Action: TransportActionSetWaypointTo, Amount: 2500}},
+			wantTransferAmount: 100, // unload 100kT
+		},
+		{
+			name:               "set waypoint to 2500kT colonists, nothing to unload",
+			fleet:              testSmallFreighter(player),
+			args:               args{dest: NewPlanet().WithCargo(Cargo{Colonists: 2400}), cargoType: Colonists, task: WaypointTransportTask{Action: TransportActionSetWaypointTo, Amount: 2500}},
+			wantTransferAmount: 0, // no unload
+		},
+		{
+			name:               "set waypoint to 2500kT colonists, fleet has colonists, planet has enough, don't unload",
+			fleet:              testSmallFreighter(player).withCargo(Cargo{Colonists: 200}),
+			args:               args{dest: NewPlanet().WithCargo(Cargo{Colonists: 2500}), cargoType: Colonists, task: WaypointTransportTask{Action: TransportActionSetWaypointTo, Amount: 2500}},
+			wantTransferAmount: 0, // no unload, planet has enough
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			gotTransferAmount, gotWaitAtWaypoint := tt.fleet.getCargoUnloadAmount(tt.args.dest, tt.args.cargoType, tt.args.task)
 			if gotTransferAmount != tt.wantTransferAmount {
 				t.Errorf("Fleet.getCargoLoadAmount() gotTransferAmount = %v, want %v", gotTransferAmount, tt.wantTransferAmount)
 			}

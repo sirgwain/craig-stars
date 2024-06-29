@@ -2,6 +2,7 @@ package cs
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -38,6 +39,8 @@ type Player struct {
 	Spec                      PlayerSpec           `json:"spec,omitempty"`
 	leftoverResources         int
 	techLevelGained           bool
+	discoverer                discoverer
+	allyDiscoverers           []discoverer
 }
 
 // a player and all mapobjects the player owns
@@ -238,6 +241,8 @@ func NewPlayer(userID int64, race *Race) *Player {
 		},
 	}
 
+	// start with a base discoverer
+	player.discoverer = newDiscoverer(player)
 	player.PlayerPlans = player.defaultPlans()
 	return player
 }
@@ -377,6 +382,32 @@ func (p *Player) GetNextTransportPlanNum() int {
 	return num + 1
 }
 
+// clear this player's transient intel
+func (p *Player) clearTransientIntel() {
+	p.FleetIntels = []FleetIntel{}
+	p.MineFieldIntels = []MineFieldIntel{}
+	p.SalvageIntels = []SalvageIntel{}
+	p.MineralPacketIntels = []MineralPacketIntel{}
+}
+
+// for reports that stick around, increment the report age
+func (p *Player) incrementReportAge() {
+	for i := range p.PlanetIntels {
+		planet := &p.PlanetIntels[i]
+		if planet.ReportAge != ReportAgeUnexplored {
+			planet.ReportAge++
+		}
+	}
+
+	for i := range p.WormholeIntels {
+		wormhole := &p.WormholeIntels[i]
+		if wormhole.ReportAge != ReportAgeUnexplored {
+			wormhole.ReportAge++
+		}
+	}
+
+}
+
 func computePlayerSpec(player *Player, rules *Rules, planets []*Planet) PlayerSpec {
 	researcher := NewResearcher(rules)
 	techs := rules.techs
@@ -410,10 +441,10 @@ func (p *Player) HasTech(tech *Tech) bool {
 
 func (p *Player) CanLearnTech(tech *Tech) bool {
 	requirements := tech.Requirements
-	if requirements.PRTRequired != PRTNone && requirements.PRTRequired != p.Race.PRT {
+	if len(requirements.PRTsRequired) != 0 && !slices.Contains(requirements.PRTsRequired, p.Race.PRT) {
 		return false
 	}
-	if requirements.PRTDenied != PRTNone && p.Race.PRT == requirements.PRTDenied {
+	if len(requirements.PRTsDenied) != 0 && slices.Contains(requirements.PRTsDenied, p.Race.PRT) {
 		return false
 	}
 
@@ -538,6 +569,7 @@ func (p *Player) defaultPlans() PlayerPlans {
 					Ironium:   WaypointTransportTask{Action: TransportActionUnloadAll},
 					Boranium:  WaypointTransportTask{Action: TransportActionUnloadAll},
 					Germanium: WaypointTransportTask{Action: TransportActionUnloadAll},
+					Colonists: WaypointTransportTask{Action: TransportActionUnloadAll},
 				},
 			},
 			{
@@ -579,8 +611,7 @@ func (p *Player) defaultPlayerIntels(players []*Player) []PlayerIntel {
 }
 
 // get the default intels for a player for other players
-func (player *Player) initDefaultPlanetIntels(rules *Rules, planets []*Planet) error {
-	discoverer := newDiscoverer(player)
+func (player *Player) initDefaultPlanetIntels(planets []*Planet) error {
 	player.PlanetIntels = make([]PlanetIntel, len(planets))
 	for j := range planets {
 		// start with some defaults
@@ -589,9 +620,11 @@ func (player *Player) initDefaultPlanetIntels(rules *Rules, planets []*Planet) e
 		intel.Type = MapObjectTypePlanet
 		intel.PlayerNum = Unowned
 
-		if err := discoverer.discoverPlanet(rules, player, planets[j], false); err != nil {
-			return err
-		}
+		// everyone knows about this
+		planet := planets[j]
+		intel.Position = planet.Position
+		intel.Name = planet.Name
+		intel.Num = planet.Num
 	}
 
 	return nil

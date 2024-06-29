@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { Fleet, Waypoint } from '$lib/types/Fleet';
+	import { StargateWarpSpeed } from '$lib/types/MapObject';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 	import type { Writable } from 'svelte/store';
@@ -42,9 +43,10 @@
 					props: {
 						class: commanded ? 'waypoint-line-commanded' : 'waypoint-line',
 						'stroke-width': strokeWidth,
-						'stroke-dasharray': commanded
-							? `${$xScale(distancePerYear) - $xScale(5)} ${$xScale(5)}`
-							: 0
+						'stroke-dasharray':
+							commanded && wp1.warpSpeed != StargateWarpSpeed
+								? `${$xScale(distancePerYear) - $xScale(5)} ${$xScale(5)}`
+								: 0
 					}
 				});
 			}

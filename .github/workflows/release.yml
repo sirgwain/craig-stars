@@ -90,7 +90,7 @@ jobs:
     if: github.repository == 'sirgwain/craig-stars'
     runs-on: ubuntu-latest
     name: Create release
-    needs: [build]
+    needs: [build, tag]
     permissions:
       contents: write
 
@@ -106,8 +106,19 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: Published ${{ github.ref_name }}
+          name: Published ${{ needs.tag.outputs.version }}
+          tag: ${{ needs.tag.outputs.version }}
           artifacts: ./artifacts/dist-artifacts/*.tgz
           artifactContentType: application/zip
           generateReleaseNotes: true
 
+  deploy:
+    if: github.repository == 'sirgwain/craig-stars'
+    name: Deploy to server
+    needs: [release]
+    runs-on: ubuntu-latest
+    steps:
+      - run: gh workflow run --repo sirgwain/craig-stars-ops deploy.yml
+        env:
+          GH_TOKEN: ${{ secrets.CRAIG_STARS_OPS_DEPLOY }}
+        

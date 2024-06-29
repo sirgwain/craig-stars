@@ -3,7 +3,7 @@
 	import { onScannerContextPopup } from '$lib/components/game/tooltips/ScannerContextPopup.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { totalCargo } from '$lib/types/Cargo';
-	import { WaypointTask, type Waypoint } from '$lib/types/Fleet';
+	import { WaypointTask, idleFleetsFilter, type Fleet, type Waypoint } from '$lib/types/Fleet';
 	import {
 		MapObjectType,
 		None,
@@ -21,7 +21,7 @@
 	import hotkeys from 'hotkeys-js';
 	import { Html, LayerCake, Svg } from 'layercake';
 	import { onDestroy, onMount, setContext } from 'svelte';
-	import { writable } from 'svelte/store';
+	import { derived, writable } from 'svelte/store';
 	import MapObjectQuadTreeFinder, {
 		type FinderEventDetails
 	} from './MapObjectQuadTreeFinder.svelte';
@@ -42,6 +42,7 @@
 	import SelectedMapObject from './SelectedMapObject.svelte';
 	import ScannerMysteryTrader from './ScannerMysteryTrader.svelte';
 	import ScannerMysteryTraders from './ScannerMysteryTraders.svelte';
+	import { clamp } from '$lib/services/Math';
 
 	const {
 		game,
@@ -80,10 +81,16 @@
 	let zooming = false;
 	let showLocator = false;
 
-	const scale = writable($game.area.y / 400); // tiny games are at 1x starting zoom, the rest zoom in based on universe size
-	const clampedScale = writable($scale);
-	$: $clampedScale = Math.min(3, $scale); // don't let the scale used for scanner objects go more than 1/2th size
-	// $: console.log('scale ', $scale, ' clampedScale', $clampedScale);
+	// our map scales for .75 to 10x, but the icons for the planets and fleets are 2x min
+	const minZoom = 0.75;
+	const maxZoom = 10;
+	const minObjectZoom = 2;
+	const scale = writable(3); // default 3x zoom
+	const objectScale = derived([scale], ([s]) => clamp(s, minObjectZoom, maxZoom));
+	setContext('scale', scale);
+	setContext('objectScale', objectScale);
+
+	// $: console.log('scale ', $scale);
 
 	const unsubscribe = zoomTarget.subscribe(() => showTargetLocation());
 
@@ -108,7 +115,7 @@
 					[0, 0],
 					[clientWidth, clientHeight]
 				])
-				.scaleExtent([0.75, 10])
+				.scaleExtent([minZoom, maxZoom])
 				.translateExtent([
 					[-20, -20],
 					[clientWidth + padding, clientHeight + padding]
@@ -464,10 +471,15 @@
 			stargate = !!destStargateSafe && !!sourceStargateSafe;
 		}
 
+		// if the last waypoint warp is higher than the default engine speed, use it
+		// otherwise use the default engine speed
+		const engineIdealSpeed = $commandedFleet.spec?.engine?.idealSpeed ?? 5;
 		let warpSpeed =
-			$selectedWaypoint?.warpSpeed && $selectedWaypoint.warpSpeed != StargateWarpSpeed
+			$selectedWaypoint?.warpSpeed &&
+			$selectedWaypoint.warpSpeed != StargateWarpSpeed &&
+			$selectedWaypoint?.warpSpeed > engineIdealSpeed
 				? $selectedWaypoint?.warpSpeed
-				: $commandedFleet.spec?.engine?.idealSpeed ?? 5;
+				: engineIdealSpeed;
 
 		// if colonizing, we want the max possible warp
 		if (colonizing) {
@@ -546,7 +558,7 @@
 		await updateFleetOrders($commandedFleet);
 
 		// select the new waypoint
-		selectWaypoint($commandedFleet.waypoints[$commandedFleet.waypoints.length - 1]);
+		selectWaypoint($commandedFleet.waypoints[waypointIndex + 1]);
 		if ($selectedWaypoint && $selectedWaypoint.targetType && $selectedWaypoint.targetNum) {
 			const mo = $universe.getMapObject($selectedWaypoint);
 
@@ -647,8 +659,6 @@
 			...$universe.planets
 		];
 	}
-
-	setContext('scale', clampedScale);
 </script>
 
 <svelte:window on:resize={handleResize} />
@@ -671,7 +681,7 @@
 	>
 		<!-- <Svg viewBox={`0 0 ${game.area.x} ${game.area.y}`}> -->
 		<Svg>
-			<g preserveAspectRatio="true" transform={transform?.toString()}>
+			<g transform={transform?.toString()}>
 				<ScannerScanners />
 				<ScannerMineFieldPattern />
 				<ScannerMineFields />

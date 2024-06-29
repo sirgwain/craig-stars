@@ -2,7 +2,7 @@
 	import { designFinderKey, playerFinderKey } from '$lib/services/GameContext';
 	import type { DesignFinder, PlayerFinder } from '$lib/services/Universe';
 	import { Battle, type BattleRecord } from '$lib/types/Battle';
-	import { setContext } from 'svelte/internal';
+	import { setContext } from 'svelte';
 	import BattleBoard from './BattleBoard.svelte';
 
 	export let designFinder: DesignFinder;

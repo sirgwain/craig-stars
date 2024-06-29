@@ -320,3 +320,30 @@ var Races []cs.Race = []cs.Race{
 func GetRandomRace() cs.Race {
 	return Races[rand.Intn(len(Races)-1)]
 }
+
+func GetRandomRaces(numRaces int) []cs.Race {
+	raceNums := make([]int, len(Races))
+	races := make([]cs.Race, numRaces)
+
+	for i := 0; i < len(Races); i++ {
+		raceNums[i] = i
+	}
+
+	// get a shuffled list of races we can pull from
+	rand.Shuffle(len(raceNums), func(i, j int) { raceNums[i], raceNums[j] = raceNums[j], raceNums[i] })
+
+	// make sure we include each race only once, then repeat with a new randomized list of AI races if we reach the end
+	count := 0
+	for r := 0; r < numRaces; r++ {
+		if count >= len(raceNums) {
+			// we've reached the end of our race list
+			// reset count and re-shuffle the list
+			count = 0
+			rand.Shuffle(len(raceNums), func(i, j int) { raceNums[i], raceNums[j] = raceNums[j], raceNums[i] })
+		}
+		races[r] = Races[raceNums[count]]
+		count++
+	}
+
+	return races
+}

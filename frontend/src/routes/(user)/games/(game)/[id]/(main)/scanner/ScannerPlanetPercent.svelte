@@ -1,11 +1,14 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { Fleet } from '$lib/types/Fleet';
-	import { MapObjectType, None } from '$lib/types/MapObject';
+	import { None } from '$lib/types/MapObject';
 	import { Unexplored, type Planet } from '$lib/types/Planet';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
+	import ScannerFleetCount from './ScannerPlanetFleetCount.svelte';
+	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';
 	import type { Writable } from 'svelte/store';
+	import { clamp } from '$lib/services/Math';
+	import MapObjectScaler from './MapObjectScaler.svelte';
 
 	const { game, player, universe, settings } = getGameContext();
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
@@ -19,19 +22,19 @@
 	$: planetX = $xGet(planet);
 	$: planetY = $yGet(planet);
 
-	const fullyHabitableRadius = 7;
-	let orbitingTokens = 0;
-	let radius = 3;
-	let tokenCountOffset = 8;
+	// area of cirlce is a = πr^2, so r = √(a/π)
+	const fullyHabitableRadius = 15;
+	const fullyHabitableArea = Math.PI * fullyHabitableRadius * fullyHabitableRadius;
+	const minRadius = 3;
+	const minArea = Math.PI * minRadius * minRadius;
+	let radius = minRadius;
 
 	$: {
 		// green for us, gray for unexplored, white for explored
 		let color = '#555';
 		let strokeWidth = 0;
 		let strokeColor = '#888';
-		let minRadius = 2;
-		radius = 3;
-		tokenCountOffset = 8;
+		radius = minRadius;
 
 		if (planet.reportAge !== Unexplored) {
 			strokeWidth = 1;
@@ -39,16 +42,22 @@
 			let habitabilityTerraformed = planet.spec?.terraformedHabitability ?? 0;
 			if (habitability > 0) {
 				color = '#00FF00';
-				radius = Math.max((habitability / 100.0) * fullyHabitableRadius, minRadius);
+				radius = Math.sqrt(
+					Math.max((habitability / 100.0) * fullyHabitableArea, minArea) / Math.PI
+				);
 				strokeWidth = (habitability / 100.0) * strokeWidth;
 			} else {
 				if (habitabilityTerraformed > 0) {
 					color = '#FFFF00';
-					radius = Math.max((habitabilityTerraformed / 100.0) * fullyHabitableRadius, minRadius);
+					radius = Math.sqrt(
+						Math.max((habitabilityTerraformed / 100.0) * fullyHabitableArea, minArea) / Math.PI
+					);
 					strokeWidth = (habitabilityTerraformed / 100.0) * strokeWidth;
 				} else {
 					color = '#FF0000';
-					radius = Math.max((-habitability / 45.0) * fullyHabitableRadius, minRadius);
+					radius = Math.sqrt(
+						Math.max((-habitability / 45.0) * fullyHabitableArea, minArea) / Math.PI
+					);
 					strokeWidth = (-habitability / 45.0) * strokeWidth;
 				}
 			}
@@ -57,20 +66,6 @@
 				flagColor = $universe.getPlayerColor(planet.playerNum) ?? '#FF0000';
 			}
 		}
-
-		tokenCountOffset = 3 + radius / $scale;
-
-		const orbitingFleets = $universe
-			.getMapObjectsByPosition(planet)
-			.filter((mo) => mo.type === MapObjectType.Fleet);
-
-		orbitingTokens = orbitingFleets
-			.map((of) => of as Fleet)
-			.reduce(
-				(count, f) =>
-					count + (f.tokens ? f.tokens.reduce((tokenCount, t) => tokenCount + t.quantity, 0) : 0),
-				0
-			);
 
 		// setup the properties of our planet circle
 		props = {
@@ -82,23 +77,21 @@
 	}
 </script>
 
-<circle cx={planetX} cy={planetY} {...props} />
+{#if planet.reportAge !== Unexplored}
+	<MapObjectScaler mapObject={planet}>
+		<circle cx={0} cy={0} {...props} />
+		{#if planet.playerNum != None}
+			<!-- draw the flag  -->
+			<rect width="12" height="10" x={0} y={-fullyHabitableRadius * 2} fill={flagColor} />
+			<path
+				d={`M${0}, ${0}L${0}, ${-fullyHabitableRadius * 2}`}
+				stroke={flagColor}
+				stroke-width={2}
+			/>
+		{/if}
+	</MapObjectScaler>
 
-{#if planet.reportAge !== Unexplored && planet.playerNum != None}
-	<!-- draw the flag  -->
-	<rect width="8" height="6" x={planetX} y={planetY - fullyHabitableRadius * 2} fill={flagColor} />
-	<path
-		d={`M${planetX}, ${planetY}L${planetX}, ${planetY - fullyHabitableRadius * 2}`}
-		stroke={flagColor}
-	/>
-{/if}
-{#if $settings.showFleetTokenCounts && orbitingTokens}
-	<!-- translate the group to the location of the fleet so when we scale the text it is around the center-->
-	<g
-		transform={`translate(${planetX - (8/$scale)} ${
-			planetY + tokenCountOffset * 2.5
-		})`}
-	>
-		<text transform={`scale(${1 / $scale})`} class="fill-base-content">{orbitingTokens}</text>
-	</g>
+	<ScannerFleetCount {planet} yOffset={radius-5} />
+{:else}
+	<ScannerPlanetNormal {planet} />
 {/if}

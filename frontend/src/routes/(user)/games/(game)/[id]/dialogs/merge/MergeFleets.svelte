@@ -68,7 +68,7 @@
 							class:bg-primary-focus={selectedFleetIndexes.indexOf(index) != -1}
 						>
 							<button class="w-full text-left" type="button" on:click={() => select(index)}>
-								{otherFleet.name}
+								{otherFleet.name}{(otherFleet.waypoints?.length ?? 0) > 1 ? '*' : ''}
 							</button>
 						</li>
 					{/if}

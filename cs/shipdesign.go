@@ -263,7 +263,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		TorpedoInaccuracyFactor:  1,
 		ImmuneToOwnDetonation:    hull.ImmuneToOwnDetonation,
 		RepairBonus:              hull.RepairBonus,
-		ScanRange:                NoScanner,
+		ScanRange:                0, // by default, all ships non-pen scan ships in their radius
 		ScanRangePen:             NoScanner,
 		SpaceDock:                hull.SpaceDock,
 		Starbase:                 hull.Starbase,
@@ -490,54 +490,52 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 // Compute the scan ranges for this ship design The formula is: (scanner1**4 + scanner2**4 + ...
 // + scannerN**4)**(.25)
 func (spec *ShipDesignSpec) computeScanRanges(rules *Rules, scannerSpec ScannerSpec, techLevels TechLevel, design *ShipDesign, hull *TechHull) {
-	spec.ScanRange = NoScanner
+	spec.ScanRange = 0
 	spec.ScanRangePen = NoScanner
 
 	// compute scanner as a built in JoaT scanner if it's built in
 	builtInScannerMultiplier := scannerSpec.BuiltInScannerMultiplier
 	if builtInScannerMultiplier > 0 && hull.BuiltInScanner {
 		spec.ScanRange = techLevels.Electronics * builtInScannerMultiplier
-		if !scannerSpec.NoAdvancedScanners {
-			spec.ScanRangePen = int(math.Pow(float64(spec.ScanRange)/2, 4))
-		}
+		spec.ScanRangePen = int(math.Pow(float64(spec.ScanRange)/2, 4))
 		spec.ScanRange = int(math.Pow(float64(spec.ScanRange), 4))
 	}
 
 	for _, slot := range design.Slots {
-		if slot.Quantity > 0 {
-			component := rules.techs.GetHullComponent(slot.HullComponent)
+		if slot.Quantity == 0 {
+			continue
+		}
 
-			// bat scanners have 0 range
-			if component.ScanRange != NoScanner {
-				spec.ScanRange += int(math.Pow(float64(component.ScanRange), 4) * float64(slot.Quantity))
-			}
+		component := rules.techs.GetHullComponent(slot.HullComponent)
+		if !component.Scanner {
+			continue
+		}
 
-			if component.ScanRangePen != NoScanner {
+		// bat scanners have 0 range
+		if component.ScanRange != NoScanner {
+			spec.ScanRange += int(math.Pow(float64(component.ScanRange), 4) * float64(slot.Quantity))
+		}
+
+		if component.ScanRangePen != NoScanner {
+			if spec.ScanRangePen == NoScanner {
+				spec.ScanRangePen = component.ScanRangePen
+			} else {
 				spec.ScanRangePen += int((math.Pow(float64(component.ScanRangePen), 4)) * float64(slot.Quantity))
 			}
 		}
 	}
 
 	// now quad root it
-	if spec.ScanRange != NoScanner {
+	if spec.ScanRange > 0 {
 		spec.ScanRange = int(math.Pow(float64(spec.ScanRange), .25) + .5)
 		spec.ScanRange = int(float64(spec.ScanRange) * scannerSpec.ScanRangeFactor)
 	}
 
-	if spec.ScanRangePen != NoScanner {
+	if spec.ScanRangePen > 0 {
 		spec.ScanRangePen = int(math.Pow(float64(spec.ScanRangePen), .25) + .5)
 	}
 
-	// if we have no pen scan but we have a regular scan, set the pen scan range to 0
-	if spec.ScanRangePen == NoScanner {
-		if spec.ScanRange != NoScanner {
-			spec.ScanRangePen = 0
-		} else {
-			spec.ScanRangePen = NoScanner
-		}
-	}
-
-	// true if we have any scanning capability
+	// true if we have any scanning capability (all fleets should be able to scan at 0, but not pen scan)
 	spec.Scanner = spec.ScanRange != NoScanner || spec.ScanRangePen != NoScanner
 }
 
@@ -657,7 +655,9 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 			slot.HullComponent = shield.Name
 			numShields++
 		case HullSlotTypeMining:
-			slot.HullComponent = miningRobot.Name
+			if miningRobot != nil {
+				slot.HullComponent = miningRobot.Name
+			}
 		case HullSlotTypeMineLayer:
 			switch purpose {
 			case ShipDesignPurposeSpeedMineLayer:

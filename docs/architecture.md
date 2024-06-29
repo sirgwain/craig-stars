@@ -191,8 +191,8 @@ type GameContext = {
   player: Readable<Player>;
   universe: Readable<Universe>;
   settings: Writable<PlayerSettings>;
-  designs: Writable<ShipDesign[]>;
   messageNum: Writable<number>;
+  ... and more
 };
 
 // accessed like this
@@ -213,7 +213,7 @@ This context contains reactive stores with the state of the game, for example a 
 
 `craig-stars` frontend code makes great use of contexts and stores to update the UI and keep components small.
 
-The [Stores.ts](/frontend/src/lib/services/Stores.ts) defines some common stores used in the game (these should probably be included in the context...). These stores maintain the current state of selection.
+The `GameContext` is used to react to state changes (`$game.year` updates each time a turn is generated). It also contains methods to update the state, such as `commandPlanet()` or `updatePlayerOrders()`. 
 
 Planets and Fleets owned by the player can be Commanded, at which point they show up in the Command Pane. All map objects can be Selected, at which point they show up in the Selection Summary.
 

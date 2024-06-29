@@ -7,10 +7,10 @@ describe('hab test', () => {
 	});
 
 	it('returns a grav string', () => {
-		expect(getGravString(0)).toBe('0.25g');
-		expect(getGravString(25)).toBe('0.50g');
+		expect(getGravString(0)).toBe('0.12g');
+		expect(getGravString(25)).toBe('0.51g');
 		expect(getGravString(50)).toBe('1.00g');
 		expect(getGravString(75)).toBe('2.00g');
-		expect(getGravString(100)).toBe('4.00g');
+		expect(getGravString(100)).toBe('8.00g');
 	});
 });

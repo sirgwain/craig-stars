@@ -41,6 +41,8 @@ func (t *turn) generateTurn() error {
 
 	// reset players for start of the turn
 	for _, player := range t.game.Players {
+		player.clearTransientIntel()
+		player.incrementReportAge()
 		player.Messages = []PlayerMessage{}
 		player.BattleRecords = []BattleRecord{}
 		player.leftoverResources = 0
@@ -114,16 +116,8 @@ func (t *turn) generateTurn() error {
 	// and patrol orders
 	t.computeSpecs()           // make sure our specs are up to date
 	t.game.updateTokenCounts() // update token counts
-	for _, player := range t.game.Players {
-		player.Spec = computePlayerSpec(player, &t.game.Rules, t.game.Planets)
-
-		scanner := newPlayerScanner(t.game.Universe, t.game.Players, &t.game.Rules, player)
-		if err := scanner.scan(); err != nil {
-			return fmt.Errorf("scan universe and update player intel -> %w", err)
-		}
-		t.fleetPatrol(player)
-
-		player.SubmittedTurn = false
+	if err := t.scan(); err != nil {
+		return err
 	}
 
 	// as a last turn step, calculate scores and check for victories
@@ -203,24 +197,26 @@ func (t *turn) scrapFleet(fleet *Fleet) {
 			if !planetPlayer.techLevelGained {
 				techTrader := newTechTrader()
 				for _, token := range fleet.Tokens {
-					field := techTrader.techLevelGained(&t.game.Rules, planetPlayer.TechLevels, token.design.Spec.TechLevel)
-					if field == TechFieldNone {
-						continue
+					for i := 0; i < token.Quantity; i++ {
+						field := techTrader.techLevelGained(&t.game.Rules, planetPlayer.TechLevels, token.design.Spec.TechLevel)
+						if field == TechFieldNone {
+							continue
+						}
+						// we gained a level!
+						planetPlayer.techLevelGained = true
+						planetPlayer.TechLevels.Set(field, planetPlayer.TechLevels.Get(field)+1)
+						messager.playerTechGainedScrappedFleet(planetPlayer, planet, fleet.Name, field)
+
+						log.Debug().
+							Int64("GameID", t.game.ID).
+							Int("Player", planetPlayer.Num).
+							Str("Planet", planet.Name).
+							Str("Fleet", fleet.Name).
+							Str("field", string(field)).
+							Msgf("gained tech level from scrapped fleet")
+
+						break
 					}
-					// we gained a level!
-					planetPlayer.techLevelGained = true
-					planetPlayer.TechLevels.Set(field, planetPlayer.TechLevels.Get(field)+1)
-					messager.playerTechGainedScrappedFleet(planetPlayer, planet, fleet.Name, field)
-
-					log.Debug().
-						Int64("GameID", t.game.ID).
-						Int("Player", planetPlayer.Num).
-						Str("Planet", planet.Name).
-						Str("Fleet", fleet.Name).
-						Str("field", string(field)).
-						Msgf("gained tech level from scrapped fleet")
-
-					break
 				}
 			}
 		}
@@ -1919,12 +1915,9 @@ func (t *turn) fleetBattle() {
 			record := battler.runBattle()
 
 			// every player should discover all designs in a battle as if they were penscanned.
-			discoverersByPlayer := make(map[int]discoverer, len(playersAtPosition))
 			designsToDiscover := map[playerObject]*ShipDesign{}
 			for _, player := range playersAtPosition {
-				discoverer := newDiscoverer(player)
-				// store this discoverer for discovering designs
-				discoverersByPlayer[player.Num] = discoverer
+				discoverer := player.discoverer
 
 				// discover other players at the battle
 				for _, otherplayer := range playersAtPosition {
@@ -1932,8 +1925,8 @@ func (t *turn) fleetBattle() {
 				}
 
 				// discover parts of this planet's starbase
-				if planet != nil && planet.Starbase != nil && planet.PlayerNum != player.Num {
-					discoverer.discoverPlanetStarbase(player, planet)
+				if planet != nil {
+					discoverer.discoverPlanet(&t.game.Rules, planet, false)
 				}
 
 			}
@@ -1997,6 +1990,13 @@ func (t *turn) fleetBattle() {
 				} else {
 					// this player survived
 					survivingPlayers[fleet.PlayerNum] = true
+					// all players discover each remaining fleet in the battle
+					for _, player := range playersAtPosition {
+						if fleet.PlayerNum == player.Num {
+							continue
+						}
+						player.discoverer.discoverFleet(fleet)
+					}
 				}
 
 				// recompute the spec of this fleet and make sure we don't have extra fuel sitting around
@@ -2025,8 +2025,7 @@ func (t *turn) fleetBattle() {
 			for _, design := range designsToDiscover {
 				for _, player := range playersAtPosition {
 					if player.Num != design.PlayerNum {
-						d := discoverersByPlayer[player.Num]
-						d.discoverDesign(player, design, true)
+						player.discoverer.discoverDesign(design, true)
 					}
 				}
 			}
@@ -2611,6 +2610,22 @@ func (t *turn) fleetPatrol(player *Player) {
 	}
 }
 
+func (t *turn) scan() error {
+	for _, player := range t.game.Players {
+		player.Spec = computePlayerSpec(player, &t.game.Rules, t.game.Planets)
+
+		scanner := newPlayerScanner(t.game.Universe, t.game.Players, &t.game.Rules, player)
+		if err := scanner.scan(); err != nil {
+			return fmt.Errorf("scan universe and update player intel -> %w", err)
+		}
+		t.fleetPatrol(player)
+
+		player.SubmittedTurn = false
+	}
+
+	return nil
+}
+
 // Calculate the score for this year for each player
 //
 // Note: this depends on each player having updated player reports
@@ -2736,7 +2751,7 @@ func (t *turn) calculateScores() {
 	// share score intel if show public scores is enabled, or if a victor has been found
 	if (t.game.PublicPlayerScores && t.game.Rules.ShowPublicScoresAfterYears > 0 && t.game.YearsPassed() >= t.game.Rules.ShowPublicScoresAfterYears) || t.game.VictorDeclared {
 		for _, player := range t.game.Players {
-			discoverer := newDiscoverer(player)
+			discoverer := player.discoverer
 			for _, otherPlayer := range t.game.Players {
 
 				if player.Num == otherPlayer.Num {

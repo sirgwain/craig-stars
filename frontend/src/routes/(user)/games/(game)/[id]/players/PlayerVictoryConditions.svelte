@@ -78,7 +78,7 @@
 		{#if ($game.victoryConditions.conditions & VictoryCondition.ProductionCapacity) > 0}
 			<tr>
 				<td>
-					Has a produ8ction capacity of {$game.victoryConditions.productionCapacity} thousand.
+					Has a production capacity of {$game.victoryConditions.productionCapacity} thousand.
 				</td>
 				{#each players as player}
 					<td>

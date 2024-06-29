@@ -44,10 +44,10 @@ type Tech struct {
 
 type TechRequirements struct {
 	TechLevel
-	PRTDenied    PRT      `json:"prtDenied,omitempty"`
+	PRTsDenied   []PRT    `json:"prtsDenied,omitempty"`
 	LRTsRequired LRT      `json:"lrtsRequired,omitempty"`
 	LRTsDenied   LRT      `json:"lrtsDenied,omitempty"`
-	PRTRequired  PRT      `json:"prtRequired,omitempty"`
+	PRTsRequired []PRT    `json:"prtsRequired,omitempty"`
 	HullsAllowed []string `json:"hullsAllowed,omitempty"`
 	HullsDenied  []string `json:"hullsDenied,omitempty"`
 	Acquirable   bool     `json:"acquirable,omitempty"`
@@ -57,6 +57,7 @@ type TechHullComponent struct {
 	Tech
 	HullSlotType              HullSlotType  `json:"hullSlotType"`
 	Mass                      int           `json:"mass,omitempty"`
+	Scanner                   bool          `json:"scanner,omitempty"`
 	ScanRange                 int           `json:"scanRange,omitempty"`
 	ScanRangePen              int           `json:"scanRangePen,omitempty"`
 	SafeHullMass              int           `json:"safeHullMass,omitempty"`

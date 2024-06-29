@@ -41,6 +41,7 @@ import { PlayerService } from './PlayerService';
 import { ProductionPlanService } from './ProductionPlanService';
 import { TransportPlanService } from './TransportPlanService';
 import { Universe } from './Universe';
+import { getScannerTarget } from '$lib/types/Battle';
 
 export const playerFinderKey = Symbol();
 export const designFinderKey = Symbol();
@@ -78,6 +79,7 @@ export type GameContext = {
 
 	// message
 	gotoTarget: (message: Message, gameId: number, playerNum: number, universe: Universe) => void;
+	gotoBattle: (battleNum: number) => void;
 
 	// game updates
 	updateGame: (game: FullGame | GameSettings | Game) => void;
@@ -341,6 +343,29 @@ export function createGameContext(fg: FullGame): GameContext {
 					goto(`/games/${gameId}`);
 				}
 			}
+		}
+	}
+
+	// select a battle location in the scanner and make the battle message the current message
+	function gotoBattle(battleNum: number) {
+		const u = get(universe);
+		const p = get(player);
+		const battle = u.getBattle(battleNum);
+		if (!battle) {
+			return;
+		}
+
+		const target = getScannerTarget(battle, u);
+		if (target) {
+			selectMapObject(target);
+			zoomToMapObject(target);
+		} else {
+			zoomToMapObject({ position: battle.position } as MapObject);
+		}
+
+		const battleMessageNum = p.messages.findIndex((m) => m.battleNum == battle.num);
+		if (battleMessageNum) {
+			messageNum.set(battleMessageNum);
 		}
 	}
 
@@ -709,8 +734,10 @@ export function createGameContext(fg: FullGame): GameContext {
 	async function deleteDesign(num: number): Promise<void> {
 		const { fleets, starbases } = await DesignService.delete(gameId, num);
 		const u = get(universe);
-		u.fleets = fleets;
-		u.starbases = starbases;
+		const p = get(player);
+		// replace our fleets and starbases (but keep intel issue #146)
+		u.fleets = fleets.concat(u.fleets.filter((f) => f.playerNum != p.num));
+		u.starbases = starbases.concat(u.starbases.filter((f) => f.playerNum != p.num));
 		u.resetMapObjectsByPosition();
 		u.resetMyMapObjectsByPosition();
 
@@ -863,6 +890,7 @@ export function createGameContext(fg: FullGame): GameContext {
 		zoomToMapObject,
 		nextCommandableMapObjectAtPosition,
 		gotoTarget,
+		gotoBattle,
 
 		updateGame,
 		loadStatus,

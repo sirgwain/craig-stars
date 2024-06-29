@@ -27,7 +27,7 @@
 		bind:habHigh={race.habHigh.rad}
 		bind:immune={race.immuneRad}
 	/>
-	<SpinnerNumberText min={1} max={100} bind:value={race.growthRate}>
+	<SpinnerNumberText min={1} max={20} bind:value={race.growthRate}>
 		<svelte:fragment slot="begin">Maximum Colonist Growth Rate Per Year</svelte:fragment>
 		<svelte:fragment slot="end">%.</svelte:fragment>
 	</SpinnerNumberText>

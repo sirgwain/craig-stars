@@ -106,6 +106,9 @@ func (u *Universe) buildMaps(players []*Player) error {
 			plan := &p.BattlePlans[i]
 			u.battlePlansByNum[playerBattlePlanNum{PlayerNum: p.Num, Num: plan.Num}] = plan
 		}
+
+		// create a discoverer for this player
+		p.discoverer = newDiscoverer(p)
 	}
 
 	u.fleetsByNum = make(map[playerObject]*Fleet, len(u.Fleets))

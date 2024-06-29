@@ -12,13 +12,20 @@ type Mineral struct {
 	Germanium int `json:"germanium,omitempty"`
 }
 
+type MineralType int
+
+var MineralTypes = [3]MineralType{
+	MineralType(Ironium),
+	MineralType(Boranium),
+	MineralType(Germanium),
+}
+
 func NewMineral(values [3]int) Mineral {
 	return Mineral{
 		Ironium:   values[0],
 		Boranium:  values[1],
 		Germanium: values[2],
 	}
-
 }
 
 func (m Mineral) String() string {
@@ -37,6 +44,18 @@ func (c Mineral) PrettyString() string {
 		texts = append(texts, fmt.Sprintf("%dkT germanium", c.Germanium))
 	}
 	return strings.Join(texts, ", ")
+}
+
+func (h *Mineral) Set(mineralType MineralType, value int) *Mineral {
+	switch mineralType {
+	case MineralType(Ironium):
+		h.Ironium = value
+	case MineralType(Boranium):
+		h.Boranium = value
+	case MineralType(Germanium):
+		h.Germanium = value
+	}
+	return h
 }
 
 func (m Mineral) Total() int {

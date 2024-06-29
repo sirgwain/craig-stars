@@ -54,6 +54,10 @@ func TestPlayer_CanLearnTech(t *testing.T) {
 		{"Only players with IFE can learn the FuelMizer", args{NewPlayer(1, NewRace()), &FuelMizer.Tech}, false},
 		{"Only players with IFE can learn the FuelMizer", args{NewPlayer(1, NewRace().WithLRT(IFE)), &FuelMizer.Tech}, true},
 		{"Players with NRSE cannot learn the ramscoops", args{NewPlayer(1, NewRace().WithLRT(NRSE)), &FuelMizer.Tech}, false},
+		{"IS can learn speed trap 20", args{NewPlayer(1, NewRace().WithPRT(IS)), &SpeedTrap20.Tech}, true},
+		{"SD can learn speed trap 20", args{NewPlayer(1, NewRace().WithPRT(SD)), &SpeedTrap20.Tech}, true},
+		{"WM cannot learn speed trap 20", args{NewPlayer(1, NewRace().WithPRT(WM)), &SpeedTrap20.Tech}, false},
+		{"IS cannot learn smart bombs", args{NewPlayer(1, NewRace().WithPRT(IS)), &SmartBomb.Tech}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

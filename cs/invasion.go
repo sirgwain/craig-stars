@@ -41,8 +41,7 @@ func invadePlanet(rules *Rules, planet *Planet, fleet *Fleet, defender *Player, 
 
 		// make sure the defender knows about this new planet
 		// the last dying colonist sends a report to their compatriots
-		discover := newDiscoverer(defender)
-		discover.discoverPlanet(rules, defender, planet, true)
+		defender.discoverer.discoverPlanet(rules, planet, true)
 
 		// apply a production plan
 		if len(attacker.ProductionPlans) > 0 {

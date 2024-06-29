@@ -162,8 +162,7 @@ func (packet *MineralPacket) completeMove(rules *Rules, player *Player, planet *
 	if planet.PlayerNum != packet.PlayerNum {
 		if player.Race.Spec.DetectPacketDestinationStarbases && planet.Spec.HasStarbase {
 			// discover the receiving planet's starbase design
-			discoverer := newDiscoverer(player)
-			discoverer.discoverDesign(player, planet.Starbase.Tokens[0].design, true)
+			player.discoverer.discoverDesign(planet.Starbase.Tokens[0].design, true)
 		}
 
 		messager.planetPacketArrived(player, planet, packet)

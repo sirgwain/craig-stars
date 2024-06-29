@@ -12,7 +12,7 @@
 {:else}
 	<p class="mb-1">
 		One resource is generated each year for every
-		<span class="text-primary font-semibold">{race.popEfficiency}</span>
+		<span class="text-primary font-semibold">{race.popEfficiency*100}</span>
 		colonists.
 	</p>
 	<p class="mb-1">

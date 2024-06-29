@@ -14,7 +14,6 @@
 
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { subtract } from '$lib/types/Cargo';
 	import { newSalvage, type Salvage } from '$lib/types/Salvage';
 	import CargoTransfer, { type TransferCargoEventDetails } from './CargoTransfer.svelte';
 

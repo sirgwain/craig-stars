@@ -208,6 +208,15 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 		return fleets;
 	}
 
+	getFleets(sortKey: string, descending: boolean): Fleet[] {
+		const fleets = [...this.fleets];
+		fleets.sort(fleetsSortBy(sortKey, this));
+		if (!descending) {
+			fleets.reverse();
+		}
+		return fleets;
+	}
+
 	getDesign(playerNum: number, num: number): ShipDesign | undefined {
 		return this.designs.find((d) => d.playerNum === playerNum && d.num === num);
 	}

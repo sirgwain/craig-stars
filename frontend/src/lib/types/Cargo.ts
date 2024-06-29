@@ -121,3 +121,23 @@ export function toMineral(cargo: Cargo): Mineral {
 		germanium: cargo.germanium
 	};
 }
+
+// if we are displaying cargo as a percent, don't let it be more than 100%
+export function cargoPercent(cargo: Cargo, capacity: number | undefined): Cargo {
+	if (capacity == 0 || capacity == undefined) {
+		return emptyCargo();
+	}
+
+	let total = 0;
+	const percent: Cargo = {
+		ironium: Math.round(((cargo.ironium ?? 0) / capacity) * 100)
+	};
+	total = percent.ironium ?? 0;
+	percent.boranium = Math.min(100 - total, Math.round(((cargo.boranium ?? 0) / capacity) * 100));
+	total += percent.boranium ?? 0;
+	percent.germanium = Math.min(100 - total, Math.round(((cargo.germanium ?? 0) / capacity) * 100));
+	total += percent.germanium ?? 0;
+	percent.colonists = Math.min(100 - total, Math.round(((cargo.colonists ?? 0) / capacity) * 100));
+
+	return percent;
+}
