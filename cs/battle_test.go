@@ -1157,3 +1157,26 @@ func Test_updateBestPositions(t *testing.T) {
 		})
 	}
 }
+
+func Test_getBattleMovement(t *testing.T) {
+	type args struct {
+		idealEngineSpeed int
+		mass             int
+		numEngines       int
+		movementBonus    int
+	}
+	tests := []struct {
+		name string
+		args args
+		want int
+	}{
+		{"Destroyer + Trans Galactic Drive + thruster", args{idealEngineSpeed: 9, mass: 244, numEngines: 1, movementBonus: 1}, 5},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := getBattleMovement(tt.args.idealEngineSpeed, tt.args.movementBonus, tt.args.mass, tt.args.numEngines); got != tt.want {
+				t.Errorf("getBattleMovement() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

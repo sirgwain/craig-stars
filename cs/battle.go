@@ -313,6 +313,11 @@ var movementByRound = [9][4]int{
 	{3, 2, 3, 2},
 }
 
+// get the movement of this design with additional cargo
+func getBattleMovement(idealEngineSpeed, movementBonus, mass, numEngines int) int {
+	return Clamp(((idealEngineSpeed+movementBonus)-2)-((mass)/numEngines/70), 2, 10)
+}
+
 // BuildBattle builds a battle recording with all the battle tokens for a list of fleets that contains more than one player.
 // We'll use this to determine if a battle should take place at this location.
 // Also, any players that have a potential battle will discover each other's designs.
@@ -446,7 +451,7 @@ func newBattleWeaponSlot(token *battleToken, slot ShipDesignSlot, hc *TechHullCo
 		power:              hc.Power,
 		damagesShieldsOnly: hc.DamageShieldsOnly,
 		accuracy:           (100.0 - (100.0-float64(hc.Accuracy))*torpedoInaccuracyFactor) / 100.0,
-		initiative:         hc.Initiative,
+		initiative:         token.design.Spec.Initiative + hc.Initiative,
 		hitsAllTargets:     hc.HitsAllTargets,
 		capitalShipMissile: hc.CapitalShipMissile,
 	}
@@ -1276,7 +1281,7 @@ func RunTestBattle(players []*Player, fleets []*Fleet) *BattleRecord {
 	battler := newBattler(&rules, &StaticTechStore, 1, playersByNum, fleets, nil)
 	record := battler.runBattle()
 	for _, player := range players {
-		
+
 		for _, otherplayer := range players {
 			player.discoverer.discoverPlayer(otherplayer)
 		}
