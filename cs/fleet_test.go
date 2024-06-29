@@ -616,7 +616,6 @@ func TestFleet_moveFleet(t *testing.T) {
 }
 
 func TestFleet_moveFleetEngineFailure(t *testing.T) {
-	rules := NewRules()
 
 	player := NewPlayer(1, NewRace().WithLRT(CE).WithSpec(&rules))
 	playerWithoutCE := NewPlayer(1, NewRace().WithSpec(&rules))
@@ -637,25 +636,25 @@ func TestFleet_moveFleetEngineFailure(t *testing.T) {
 		{
 			"move without engine failure",
 			testLongRangeScout(player).withWaypoints(NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{50, 0}, 6)),
-			args{player, newIntRandom(0)},
+			args{player, newFloat64Random(0)},
 			want{Vector{36, 0}},
 		},
 		{
 			"move without engine failure high speed",
 			testLongRangeScout(player).withWaypoints(NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{50, 0}, 7)),
-			args{player, newIntRandom(20)}, // engine failure occurs 10% of the time, < 10/100
+			args{player, newFloat64Random(.2)}, // engine failure occurs 10% of the time, < 10/100
 			want{Vector{49, 0}},
 		},
 		{
 			"move with engine failure",
 			testLongRangeScout(player).withWaypoints(NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{50, 0}, 7)),
-			args{player, newIntRandom(10)}, // engine failure at 10/100
+			args{player, newFloat64Random(.1)}, // engine failure at 10/100
 			want{Vector{0, 0}},
 		},
 		{
 			"move without engine failure, no CE",
 			testLongRangeScout(playerWithoutCE).withWaypoints(NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{50, 0}, 7)),
-			args{playerWithoutCE, newIntRandom(10)},
+			args{playerWithoutCE, newFloat64Random(.1)},
 			want{Vector{49, 0}},
 		},
 	}
@@ -664,6 +663,9 @@ func TestFleet_moveFleetEngineFailure(t *testing.T) {
 			player := tt.args.player
 			universe := Universe{Fleets: []*Fleet{tt.fleet}}
 			universe.buildMaps([]*Player{player})
+
+			rules := NewRules()
+			rules.random = tt.args.random
 
 			tt.fleet.moveFleet(&rules, &universe, newTestPlayerGetter(player))
 

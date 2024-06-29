@@ -258,13 +258,13 @@ func (p *Planet) randomize(rules *Rules) {
 	if limiter < 18 {
 		if limiter >= 9 {
 			mineralType := MineralTypes[rules.random.Intn(len(MineralTypes))]
-			value := 1 + rules.random.Intn(rules.MinStartingMineralConcentration) - 1
+			value := 1 + rules.random.Intn(rules.MinStartingMineralConcentration)
 			p.MineralConcentration.Set(mineralType, value)
 		} else {
 			limiter++
 			for limiter < 16 {
 				mineralType := MineralTypes[rules.random.Intn(len(MineralTypes))]
-				value := 1 + rules.random.Intn(rules.MinStartingMineralConcentration) - 1
+				value := 1 + rules.random.Intn(rules.MinStartingMineralConcentration)
 				p.MineralConcentration.Set(mineralType, value)
 
 				limiter *= 2
@@ -282,7 +282,7 @@ func (p *Planet) randomize(rules *Rules) {
 	}
 
 	// check if this planet has a random artifact
-	if rules.RandomEventChances[RandomEventAncientArtifact] > rules.random.Float64() {
+	if rules.RandomEventChances[RandomEventAncientArtifact] >= rules.random.Float64() {
 		p.RandomArtifact = true
 	}
 }

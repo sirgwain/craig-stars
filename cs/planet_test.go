@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -271,5 +272,74 @@ func Test_computePlanetSpec(t *testing.T) {
 	assert.Equal(t, planet.Spec.ScanRange, 82)
 	assert.Equal(t, planet.Spec.ScanRangePen, 41)
 
+}
 
+func TestPlanet_randomize(t *testing.T) {
+
+	type args struct {
+		rng rng
+	}
+	tests := []struct {
+		name string
+		args args
+		want Planet
+	}{
+		{
+			name: "planet gen with all 0 rng",
+			args: args{newIntRandom().addFloats(.50)},
+			want: Planet{
+				MapObject:            MapObject{Type: MapObjectTypePlanet, Dirty: true, PlayerNum: Unowned},
+				Hab:                  Hab{1, 1, 1},
+				BaseHab:              Hab{1, 1, 1},
+				MineralConcentration: Mineral{1, 31, 31},
+				PlanetOrders: PlanetOrders{
+					ProductionQueue: []ProductionQueueItem{},
+				},
+			},
+		},
+		{
+			name: "planet with random artifact",
+			args: args{newIntRandom().addFloats(.33)},
+			want: Planet{
+				MapObject:            MapObject{Type: MapObjectTypePlanet, Dirty: true, PlayerNum: Unowned},
+				Hab:                  Hab{1, 1, 1},
+				BaseHab:              Hab{1, 1, 1},
+				MineralConcentration: Mineral{1, 31, 31},
+				RandomArtifact:       true,
+				PlanetOrders: PlanetOrders{
+					ProductionQueue: []ProductionQueueItem{},
+				},
+			},
+		},
+		{
+			name: "planet with no random artifact",
+			args: args{newIntRandom().addFloats(.50)},
+			want: Planet{
+				MapObject:            MapObject{Type: MapObjectTypePlanet, Dirty: true, PlayerNum: Unowned},
+				Hab:                  Hab{1, 1, 1},
+				BaseHab:              Hab{1, 1, 1},
+				MineralConcentration: Mineral{1, 31, 31},
+				RandomArtifact:       false,
+				PlanetOrders: PlanetOrders{
+					ProductionQueue: []ProductionQueueItem{},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := NewPlanet()
+
+			rules := NewRules()
+			rules.random = tt.args.rng
+			got.randomize(&rules)
+
+			if !reflect.DeepEqual(got, &tt.want) {
+				// dump json, but this won't include some fields
+				test.CompareAsJSON(t, got, tt.want)
+				t.Errorf("randomize() = %#v, want %#v", got, tt.want)
+			}
+
+		})
+	}
 }

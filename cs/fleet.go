@@ -802,7 +802,7 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 	dist = math.Min(totalDist, dist)
 
 	// check for CE engine failure
-	if player.Race.Spec.EngineFailureRate > 0 && wp1.WarpSpeed > player.Race.Spec.EngineReliableSpeed && rules.random.Intn(100) <= player.Race.Spec.EngineFailureRate {
+	if player.Race.Spec.EngineFailureRate > 0 && wp1.WarpSpeed > player.Race.Spec.EngineReliableSpeed && rules.random.Float64() <= player.Race.Spec.EngineFailureRate {
 		messager.fleetEngineFailure(player, fleet)
 		return
 	}

@@ -154,7 +154,7 @@ type RaceSpec struct {
 	ArmorStrengthFactor              float64                `json:"armorStrengthFactor,omitempty"`
 	ShieldStrengthFactor             float64                `json:"shieldStrengthFactor,omitempty"`
 	ShieldRegenerationRate           float64                `json:"shieldRegenerationRate,omitempty"`
-	EngineFailureRate                int                    `json:"engineFailureRate,omitempty"`
+	EngineFailureRate                float64                `json:"engineFailureRate,omitempty"`
 	EngineReliableSpeed              int                    `json:"engineReliableSpeed,omitempty"`
 }
 
@@ -668,10 +668,10 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		// WM
 		DiscoverDesignOnScan: prtSpec.DiscoverDesignOnScan,
 		InvasionAttackBonus:  prtSpec.InvasionAttackBonus,
+		MovementBonus:        prtSpec.MovementBonus,
 
 		// AR
 		CanRemoteMineOwnPlanets: prtSpec.CanRemoteMineOwnPlanets,
-		MovementBonus:           prtSpec.MovementBonus,
 		StarbaseCostFactor:      prtSpec.StarbaseCostFactor,
 		InnateMining:            prtSpec.InnateMining,
 		InnateResources:         prtSpec.InnateResources,
