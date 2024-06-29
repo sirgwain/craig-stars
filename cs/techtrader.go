@@ -26,11 +26,7 @@ func (t *techTrade) techLevelGained(rules *Rules, current, target TechLevel) Tec
 	for _, field := range TechFields {
 		level := diff.Get(field)
 		if level > 0 {
-			// get the chance of a tech trade. If we are one level above this is:
-			// .5 * (1 - .5) = .25
-			// if we are two levels above this is:
-			// .5 * (1 - .5*.5) = .375
-			chance := rules.TechTradeChance * (1 - math.Pow(rules.TechTradeChance, float64(level)))
+			chance := techTradeChance(rules.TechTradeChance, level)
 			// check if our random number between 0 and 1 is under the above, i.e. < .375 for 2 levels above
 			if rules.random.Float64() <= chance {
 				return field
@@ -39,4 +35,12 @@ func (t *techTrade) techLevelGained(rules *Rules, current, target TechLevel) Tec
 	}
 
 	return TechFieldNone
+}
+
+// get the chance of a tech trade. If we are one level above this is:
+// .5 * (1 - .5) = .25
+// if we are two levels above this is:
+// .5 * (1 - .5*.5) = .375
+func techTradeChance(baseChance float64, level int) float64 {
+	return baseChance * (1 - math.Pow(baseChance, float64(level)))
 }

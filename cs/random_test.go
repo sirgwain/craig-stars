@@ -20,6 +20,16 @@ func newFloat64Random(floatsToReturn ...float64) *testRandom {
 	}
 }
 
+func (t *testRandom) addInts(values ...int) *testRandom {
+	t.intsToReturn = append(t.intsToReturn, values...)
+	return t
+}
+
+func (t *testRandom) addFloats(values ...float64) *testRandom {
+	t.floatsToReturn = append(t.floatsToReturn, values...)
+	return t
+}
+
 func (t *testRandom) Float64() float64 {
 	var result float64
 	if len(t.floatsToReturn) > t.floatCount {

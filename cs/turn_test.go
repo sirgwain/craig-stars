@@ -2,7 +2,6 @@ package cs
 
 import (
 	"math"
-	"math/rand"
 	"slices"
 	"testing"
 
@@ -762,14 +761,15 @@ func Test_turn_permaform(t *testing.T) {
 	}
 	turn.game.Universe.buildMaps(game.Players)
 
-	// 100% chance to permaform
-	player.Race.Spec.PermaformChance = 1
+	// 10% chance to permaform
+	player.Race.Spec.PermaformChance = .1
 	player.Race.Spec.PermaformPopulation = 0
 
 	// mock the random number generator to return temp as the hab to permaform
-	mockRand := MockRand{}
-	mockRand.int63Result = int64(Temp) << 32 // rand.Intn calls this int63 and >> 32 the result
-	game.Rules.random = rand.New(mockRand)
+	rng := testRandom{}
+	rng.addFloats(.1) // permaform chance
+	rng.addInts(1)    // permaform temp
+	game.Rules.random = &rng
 
 	turn.permaform()
 
