@@ -84,7 +84,7 @@ type Rules struct {
 	PRTSpecs                                  map[PRT]PRTSpec                     `json:"prtSpecs"`
 	LRTSpecs                                  map[LRT]LRTSpec                     `json:"lrtSpecs"`
 	TechsID                                   int64                               `json:"techsId"`
-	random                                    *rand.Rand
+	random                                    rng
 	techs                                     *TechStore
 }
 
