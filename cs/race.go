@@ -154,7 +154,7 @@ type RaceSpec struct {
 	ArmorStrengthFactor              float64                `json:"armorStrengthFactor,omitempty"`
 	ShieldStrengthFactor             float64                `json:"shieldStrengthFactor,omitempty"`
 	ShieldRegenerationRate           float64                `json:"shieldRegenerationRate,omitempty"`
-	EngineFailureRate                float64                `json:"engineFailureRate,omitempty"`
+	EngineFailureRate                int                    `json:"engineFailureRate,omitempty"`
 	EngineReliableSpeed              int                    `json:"engineReliableSpeed,omitempty"`
 }
 
@@ -749,8 +749,12 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		spec.ShieldStrengthFactor += lrtSpec.ShieldStrengthFactorOffset
 		spec.ShieldRegenerationRate += lrtSpec.ShieldRegenerationRateOffset
 		spec.ArmorStrengthFactor += lrtSpec.ArmorStrengthFactorOffset
+
+		// CE
 		spec.EngineFailureRate += lrtSpec.EngineFailureRateOffset
-		spec.EngineReliableSpeed += lrtSpec.EngineReliableSpeed
+		if lrtSpec.EngineReliableSpeed != 0 {
+			spec.EngineReliableSpeed = MinInt(spec.EngineReliableSpeed, lrtSpec.EngineReliableSpeed)
+		}
 
 		spec.StartingPlanets[0].StartingFleets = append(spec.StartingPlanets[0].StartingFleets, lrtSpec.StartingFleets...)
 

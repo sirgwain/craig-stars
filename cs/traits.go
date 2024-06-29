@@ -1,6 +1,5 @@
 package cs
 
-
 type PRTSpec struct {
 	PRT                              PRT              `json:"prt,omitempty"`
 	PointCost                        int              `json:"pointCost,omitempty"`
@@ -86,7 +85,7 @@ type LRTSpec struct {
 	ShieldStrengthFactorOffset    float64         `json:"shieldStrengthFactorOffset,omitempty"`
 	ShieldRegenerationRateOffset  float64         `json:"shieldRegenerationRateOffset,omitempty"`
 	ArmorStrengthFactorOffset     float64         `json:"armorStrengthFactorOffset,omitempty"`
-	EngineFailureRateOffset       float64         `json:"engineFailureRateOffset,omitempty"`
+	EngineFailureRateOffset       int             `json:"engineFailureRateOffset,omitempty"`
 	EngineReliableSpeed           int             `json:"engineReliableSpeed,omitempty"`
 }
 
@@ -559,7 +558,7 @@ func ceSpec() LRTSpec {
 			Engine: -.5, // engines cost 50% less
 		},
 
-		EngineFailureRateOffset: .1,
+		EngineFailureRateOffset: 10,
 		EngineReliableSpeed:     6,
 	}
 }

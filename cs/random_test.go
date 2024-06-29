@@ -8,13 +8,13 @@ type testRandom struct {
 	intsToReturn   []int
 }
 
-func newIntRandom(intsToReturn []int) *testRandom {
+func newIntRandom(intsToReturn ...int) *testRandom {
 	return &testRandom{
 		intsToReturn: intsToReturn,
 	}
 }
 
-func newFloat64Random(floatsToReturn []float64) *testRandom {
+func newFloat64Random(floatsToReturn ...float64) *testRandom {
 	return &testRandom{
 		floatsToReturn: floatsToReturn,
 	}
