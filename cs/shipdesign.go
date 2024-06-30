@@ -50,8 +50,8 @@ type ShipDesignSpec struct {
 	ScanRangePen              int                   `json:"scanRangePen,omitempty"`
 	InnateScanRangePenFactor  float64               `json:"innateScanRangePenFactor,omitempty"`
 	RepairBonus               float64               `json:"repairBonus,omitempty"`
-	TorpedoInaccuracyFactor   float64               `json:"torpedoInaccuracyFactor,omitempty"`
 	TorpedoJamming            float64               `json:"torpedoJamming,omitempty"`
+	TorpedoBonus              float64               `json:"torpedoBonus,omitempty"`
 	BeamBonus                 float64               `json:"beamBonus,omitempty"`
 	BeamDefense               float64               `json:"beamDefense,omitempty"`
 	Initiative                int                   `json:"initiative,omitempty"`
@@ -267,7 +267,6 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		CargoCapacity:            hull.CargoCapacity,
 		CloakUnits:               raceSpec.BuiltInCloakUnits,
 		Initiative:               hull.Initiative,
-		TorpedoInaccuracyFactor:  1,
 		ImmuneToOwnDetonation:    hull.ImmuneToOwnDetonation,
 		RepairBonus:              hull.RepairBonus,
 		ScanRange:                0, // by default, all ships non-pen scan ships in their radius
@@ -279,7 +278,6 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		InnateScanRangePenFactor: hull.InnateScanRangePenFactor,
 	}
 
-	torpedoJammingFactor := 1.0
 	numTachyonDetectors := 0
 
 	// rating calcs
@@ -346,8 +344,21 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 			// a 75% accurate torpedo with two 30% comps and one 50% comp would be
 			// 100 - (100 - 75) * .7 * .7 * .5 = 94% accurate
 			// if TorpedoInnaccuracyDecrease is 1 (default), it's just 75%
-			spec.TorpedoInaccuracyFactor *= float64(math.Pow((1 - float64(component.TorpedoBonus)), float64(slot.Quantity)))
-			torpedoJammingFactor *= float64(math.Pow((1 - float64(component.TorpedoJamming)), float64(slot.Quantity)))
+			if component.TorpedoBonus > 0 {
+				if spec.TorpedoBonus == 0 {
+					spec.TorpedoBonus = 1 - float64(math.Pow((1-float64(component.TorpedoBonus)), float64(slot.Quantity)))
+				} else {
+					spec.TorpedoBonus *= 1 - float64(math.Pow((1-float64(component.TorpedoBonus)), float64(slot.Quantity)))
+				}
+			}
+
+			if component.TorpedoJamming > 0 {
+				if spec.TorpedoJamming == 0 {
+					spec.TorpedoJamming = 1 - float64(math.Pow((1-float64(component.TorpedoJamming)), float64(slot.Quantity)))
+				} else {
+					spec.TorpedoJamming *= 1 - float64(math.Pow((1-float64(component.TorpedoJamming)), float64(slot.Quantity)))
+				}
+			}
 
 			// beam bonuses
 			spec.BeamBonus += component.BeamBonus * float64(slot.Quantity)
@@ -440,8 +451,6 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		spec.CloakUnits += raceSpec.BuiltInCloakUnits
 		spec.Cost = spec.Cost.MultiplyFloat64(raceSpec.StarbaseCostFactor)
 	}
-
-	spec.TorpedoJamming = 1 - torpedoJammingFactor
 
 	// determine the safe speed for this design
 	spec.SafePacketSpeed = spec.BasePacketSpeed + spec.AdditionalMassDrivers

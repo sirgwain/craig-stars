@@ -76,7 +76,6 @@ describe('Producer test', () => {
 					fuelCapacity: 300,
 					scanRange: 66,
 					scanRangePen: 30,
-					torpedoInaccuracyFactor: 1,
 					initiative: 1,
 					movement: 4,
 					scanner: true,

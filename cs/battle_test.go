@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -1275,6 +1276,129 @@ func Test_battle_buildMovementOrder(t *testing.T) {
 					}
 				}
 				t.Errorf("battle.buildMovementOrder() = %v, want %v", gotMoveOrder, tt.wantMoveOrder)
+			}
+		})
+	}
+}
+
+func Test_battleWeaponSlot_getAttractiveness(t *testing.T) {
+	type fields struct {
+		weaponType         battleWeaponType
+		accuracy           float64
+		damagesShieldsOnly bool
+		capitalShipMissile bool
+	}
+	type args struct {
+		cost           Cost
+		armor          int
+		shields        int
+		beamDefense    float64
+		torpedoJamming float64
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   float64
+	}{
+		{
+			name:   "beam, attractiveness 1",
+			fields: fields{weaponType: battleWeaponTypeBeam},
+			args: args{
+				cost:    Cost{Boranium: 1, Resources: 1},
+				armor:   1,
+				shields: 1,
+			},
+			want: 1,
+		},
+		{
+			name:   "torpedo, more shields than armor",
+			fields: fields{weaponType: battleWeaponTypeTorpedo, accuracy: .45},
+			args: args{
+				cost:    Cost{Boranium: 1, Resources: 1},
+				armor:   1,
+				shields: 2,
+			},
+			want: .45,
+		},
+		{
+			name:   "torpedo, more armor than shields",
+			fields: fields{weaponType: battleWeaponTypeTorpedo, accuracy: .45},
+			args: args{
+				cost:    Cost{Boranium: 1, Resources: 1},
+				armor:   2,
+				shields: 1,
+			},
+			want: .3,
+		},
+		{
+			name:   "torpedo, attractiveness 1",
+			fields: fields{weaponType: battleWeaponTypeTorpedo, accuracy: .45},
+			args: args{
+				cost:           Cost{Boranium: 1, Resources: 1},
+				armor:          1,
+				shields:        1,
+			},
+			want: .45,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			weapon := &battleWeaponSlot{
+				weaponType:         tt.fields.weaponType,
+				damagesShieldsOnly: tt.fields.damagesShieldsOnly,
+				accuracy:           tt.fields.accuracy,
+				capitalShipMissile: tt.fields.capitalShipMissile,
+			}
+			target := &battleToken{
+				// we only care about the design cost on the target shiptoken
+				ShipToken: &ShipToken{
+					design: &ShipDesign{
+						Spec: ShipDesignSpec{
+							Cost: tt.args.cost,
+						},
+					},
+				},
+				armor:          tt.args.armor,
+				shields:        tt.args.shields,
+				beamDefense:    tt.args.beamDefense,
+				torpedoJamming: tt.args.torpedoJamming,
+			}
+			if got := weapon.getAttractiveness(target); !test.WithinTolerance(got, tt.want, .01) {
+				t.Errorf("battleWeaponSlot.getAttractiveness() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_battleWeaponSlot_getAccuracy(t *testing.T) {
+	type fields struct {
+		accuracy     float64
+		torpedoBonus float64
+	}
+	type args struct {
+		torpedoJamming float64
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   float64
+	}{
+		{"beta torpedo", fields{accuracy: .45}, args{}, .45},
+		{"beta torpedo, 1 BC", fields{accuracy: .45, torpedoBonus: .2}, args{}, .56},
+		{"beta torpedo, 1 BC, 1 jammer 20", fields{accuracy: .45, torpedoBonus: .2}, args{torpedoJamming: .2}, .45},
+		{"beta torpedo, 1 BC, 1 jammer 10", fields{accuracy: .45, torpedoBonus: .2}, args{torpedoJamming: .1}, .505},
+		{"beta torpedo, 1 BC, 1 jammer 30", fields{accuracy: .45, torpedoBonus: .2}, args{torpedoJamming: .1}, .405},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			weapon := &battleWeaponSlot{
+				accuracy:     tt.fields.accuracy,
+				torpedoBonus: tt.fields.torpedoBonus,
+			}
+			if got := weapon.getAccuracy(tt.args.torpedoJamming); got != tt.want {
+				t.Errorf("battleWeaponSlot.getAccuracy() = %v, want %v", got, tt.want)
 			}
 		})
 	}

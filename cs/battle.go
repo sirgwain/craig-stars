@@ -261,6 +261,9 @@ type battleWeaponSlot struct {
 	// the accuracy of the weapon, if it's a torpedo
 	accuracy float64
 
+	// the accuracy bonus to the torpedo
+	torpedoBonus float64
+
 	// the initiative of the weapon
 	initiative int
 
@@ -414,7 +417,7 @@ func newBattler(rules *Rules, techFinder TechFinder, battleNum int, players map[
 						lastWeapon.quantity += slot.Quantity
 						continue
 					}
-					bws := newBattleWeaponSlot(battleToken, slot, techFinder.GetHullComponent(slot.HullComponent), hull.RangeBonus, token.design.Spec.TorpedoInaccuracyFactor, token.design.Spec.BeamBonus)
+					bws := newBattleWeaponSlot(battleToken, slot, weapon, hull.RangeBonus, token.design.Spec.TorpedoBonus, token.design.Spec.BeamBonus)
 					lastWeapon = bws
 					weaponSlots = append(weaponSlots, bws)
 					minRange = MinInt(minRange, bws.weaponRange)
@@ -473,7 +476,7 @@ func newBattler(rules *Rules, techFinder TechFinder, battleNum int, players map[
 }
 
 // newBattleWeaponSlot creates a new BattleWeaponSlot object
-func newBattleWeaponSlot(token *battleToken, slot ShipDesignSlot, hc *TechHullComponent, rangeBonus int, torpedoInaccuracyFactor float64, beamBonus float64) *battleWeaponSlot {
+func newBattleWeaponSlot(token *battleToken, slot ShipDesignSlot, hc *TechHullComponent, rangeBonus int, torpedoBonus float64, beamBonus float64) *battleWeaponSlot {
 	weaponSlot := &battleWeaponSlot{
 		token:              token,
 		slot:               slot,
@@ -481,7 +484,8 @@ func newBattleWeaponSlot(token *battleToken, slot ShipDesignSlot, hc *TechHullCo
 		weaponRange:        hc.Range + rangeBonus,
 		power:              hc.Power,
 		damagesShieldsOnly: hc.DamageShieldsOnly,
-		accuracy:           (100.0 - (100.0-float64(hc.Accuracy))*torpedoInaccuracyFactor) / 100.0,
+		accuracy:           float64(hc.Accuracy) / 100.0, // accuracy as 0 to 1.0
+		torpedoBonus:       torpedoBonus,
 		initiative:         token.Initiative + hc.Initiative,
 		hitsAllTargets:     hc.HitsAllTargets,
 		capitalShipMissile: hc.CapitalShipMissile,
@@ -596,7 +600,6 @@ func getBattleTokenAttributes(hullType TechHullType, hasWeapons bool) battleToke
 
 // Find all the targets for a weapon
 func (b *battle) findTargets(weapon *battleWeaponSlot, tokens []*battleToken) (targets []*battleToken) {
-	targets = []*battleToken{}
 	attacker := weapon.token
 	primaryTarget := attacker.PrimaryTarget
 	secondaryTarget := attacker.SecondaryTarget
@@ -623,12 +626,13 @@ func (b *battle) findTargets(weapon *battleWeaponSlot, tokens []*battleToken) (t
 
 	// our list of available targets is all primary and all secondary targets in range
 	sort.Slice(primaryTargets, func(i, j int) bool {
-		return weapon.getAttractiveness(primaryTargets[i]) < weapon.getAttractiveness(primaryTargets[j])
+		return weapon.getAttractiveness(primaryTargets[i]) > weapon.getAttractiveness(primaryTargets[j])
 	})
 	sort.Slice(secondaryTargets, func(i, j int) bool {
-		return weapon.getAttractiveness(secondaryTargets[i]) < weapon.getAttractiveness(secondaryTargets[j])
+		return weapon.getAttractiveness(secondaryTargets[i]) > weapon.getAttractiveness(secondaryTargets[j])
 	})
 
+	targets = make([]*battleToken, 0, len(primaryTargets)+len(secondaryTargets))
 	targets = append(targets, primaryTargets...)
 	targets = append(targets, secondaryTargets...)
 	return targets
@@ -830,11 +834,10 @@ func (b *battle) fireTorpedo(weapon *battleWeaponSlot, targets []*battleToken) {
 	attacker := weapon.token
 	// damage is power * number of weapons * number of attackers.
 	damage := weapon.power
-	accuracy := weapon.accuracy
 	numTorpedos := weapon.quantity * attacker.Quantity
 
 	log.Debug().Msgf("%s is attempting to fire at %d targets with %d torpedos at %.2f%% accuracy for %d damage each",
-		weapon.token, len(targets), numTorpedos, accuracy*100.0, damage)
+		weapon.token, len(targets), numTorpedos, (weapon.getAccuracy(0))*100.0, damage)
 
 	// fire each torpedo at each target until it's destroyed or we're out of torpedos
 	remainingTorpedos := numTorpedos
@@ -864,7 +867,7 @@ func (b *battle) fireTorpedo(weapon *battleWeaponSlot, targets []*battleToken) {
 			// fire a torpedo
 			torpedoNum++
 			remainingTorpedos--
-			hit := (accuracy - target.torpedoJamming) > float64(b.rules.random.Float64())
+			hit := b.rules.random.Float64() <= weapon.getAccuracy(target.torpedoJamming)
 
 			if hit {
 				hits++
@@ -1197,26 +1200,46 @@ func (b *battle) getTarget(attacker *battleToken, defenders []*battleToken) *bat
 
 // get the attractiveness of a token based on cost and defense capabilities
 func (defender *battleToken) getAttractiveness(attacker *battleToken) float64 {
-	cost := defender.design.Spec.Cost.MultiplyInt(defender.Quantity)
-	defense := (defender.armor + defender.shields) * defender.Quantity
+	cost := defender.design.Spec.Cost
+	defense := (defender.armor + defender.shields)
 
 	return float64(float64(cost.Germanium+cost.Resources) / float64(defense))
 }
 
 // get the attractiveness of a token versus a weapon
 func (weapon *battleWeaponSlot) getAttractiveness(target *battleToken) float64 {
-	cost := target.design.Spec.Cost.MultiplyInt(target.Quantity)
-	defense := float64((target.armor + target.shields) * target.Quantity)
+	cost := target.design.Spec.Cost
 
+	var defense float64
 	// increase the defense for jammers and beam deflectors
 	switch weapon.weaponType {
 	case battleWeaponTypeBeam:
-		defense = defense * (1 + target.beamDefense)
+		defense = float64((target.armor + target.shields)) * (1 + target.beamDefense)
 	case battleWeaponTypeTorpedo:
-		defense = defense * (1 + target.torpedoJamming)
+		accuracy := weapon.getAccuracy(target.torpedoJamming)
+		if target.shields >= target.armor {
+			defense = float64(target.armor*2) / (accuracy)
+		} else {
+			capitalShipMissileFactor := 1.0
+			if weapon.capitalShipMissile {
+				capitalShipMissileFactor = 2
+			}
+			defense = float64(target.shields*2)/(accuracy) + (float64(target.armor)-float64(target.shields))/(accuracy*capitalShipMissileFactor)
+		}
 	}
 
-	return float64(float64(cost.Germanium+cost.Resources) / float64(defense))
+	attractiveNess := float64(cost.Boranium+cost.Resources) / float64(defense)
+	log.Debug().Msgf("weapon %s attractiveness to %s = %f", weapon.slot.HullComponent, target.ShipToken.design.Name, attractiveNess)
+	return attractiveNess
+}
+
+// get the accuracy of a torpedo against a target
+func (weapon *battleWeaponSlot) getAccuracy(torpedoJamming float64) float64 {
+	if torpedoJamming >= weapon.torpedoBonus {
+		return weapon.accuracy * (1 - (torpedoJamming - weapon.torpedoBonus))
+	} else {
+		return weapon.accuracy + (1-(weapon.accuracy))*(weapon.torpedoBonus-torpedoJamming)
+	}
 }
 
 // return true if this fleet will attack a fleet by another player based on player
