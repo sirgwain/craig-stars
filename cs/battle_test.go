@@ -367,9 +367,7 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 1, // 1 beam weapon
-						},
+						quantity:    1, // 1 beam weapon
 						power:       10,
 						weaponRange: 1,
 					},
@@ -391,9 +389,7 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 1, // 1 beam weapon
-						},
+						quantity:    1, // 1 beam weapon
 						power:       30,
 						weaponRange: 1,
 					},
@@ -417,9 +413,7 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 1, // 1 beam weapon
-						},
+						quantity:    1, // 1 beam weapon
 						power:       10,
 						weaponRange: 2,
 					},
@@ -445,9 +439,7 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 2, // 2 beam weapons
-						},
+						quantity:    2,  // 2 beam weapons
 						power:       15, // 10 damage per beam
 						weaponRange: 2,
 					},
@@ -469,10 +461,8 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 2, // 2 beam weapons
-						},
-						power: 10,
+						quantity: 2, // 2 beam weapons
+						power:    10,
 					},
 					shipQuantity: 2, // 2 ships in attacker stack
 				},
@@ -492,10 +482,8 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 2, // 2 beam weapons
-						},
-						power: 10,
+						quantity: 2, // 2 beam weapons
+						power:    10,
 					},
 					shipQuantity: 1, // 1 ships in attacker stack
 				},
@@ -526,10 +514,8 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 2, // 2 beam weapons
-						},
-						power: 10,
+						quantity: 2, // 2 beam weapons
+						power:    10,
 					},
 					shipQuantity: 1, // 1 ships in attacker stack
 				},
@@ -564,10 +550,8 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 1,
-						},
-						power: 10,
+						quantity: 1,
+						power:    10,
 					},
 					shipQuantity: 1,
 				},
@@ -589,10 +573,8 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 1,
-						},
-						power: 100,
+						quantity: 1,
+						power:    100,
 					},
 					shipQuantity: 1,
 				},
@@ -622,9 +604,7 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 1,
-						},
+						quantity:       1,
 						power:          10,
 						hitsAllTargets: true,
 					},
@@ -719,9 +699,7 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 1, // 1 torpedo
-						},
+						quantity: 1, // 1 torpedo
 						power:    10,
 						accuracy: 1,
 					},
@@ -743,9 +721,7 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 1, // 1 torpedo
-						},
+						quantity: 1, // 1 torpedo
 						power:    10,
 						accuracy: 1,
 					},
@@ -770,9 +746,7 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 1, // 1 torpedo
-						},
+						quantity: 1, // 1 torpedo
 						power:    30,
 						accuracy: 1,
 					},
@@ -794,9 +768,7 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 2, // 2 torpedos
-						},
+						quantity: 2,  // 2 torpedos
 						power:    15, // 15 damage per torpedo
 						accuracy: 1,
 					},
@@ -818,9 +790,7 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 2, // 2 torpedos
-						},
+						quantity:           2,  // 2 torpedos
 						power:              10, // 15 damage per torpedo
 						accuracy:           1,
 						capitalShipMissile: true,
@@ -844,9 +814,7 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 2, // 2 torpedos
-						},
+						quantity: 2, // 2 torpedos
 						power:    10,
 						accuracy: 1,
 					},
@@ -868,9 +836,7 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 2, // 2 torpedos
-						},
+						quantity: 2,   // 2 torpedos
 						power:    300, // 600 damage total
 						accuracy: 1,
 					},
@@ -895,9 +861,7 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 1,
-						},
+						quantity: 1,
 						power:    10,
 						accuracy: 1,
 					},
