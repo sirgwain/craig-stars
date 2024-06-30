@@ -22,6 +22,9 @@
 	$: tokenState = token && battle.getTokenForPhase(token.num, phase);
 	$: armor = design?.spec.armor ?? 0;
 	$: shields = design?.spec.shields ?? 0;
+	$: currentArmor = token
+		? armor * (token.quantity ?? 0) - (token.damage ?? 0) * (token.quantityDamaged ?? 0)
+		: 0;
 </script>
 
 <div class="w-full">
@@ -67,7 +70,7 @@
 		</div>
 		<div class="flex justify-between">
 			<div>
-				Armor: {armor}dp
+				Armor: {currentArmor.toFixed(0)}dp
 			</div>
 			{#if tokenState.destroyedPhase && phase >= tokenState.destroyedPhase}
 				<div class="text-error">Destroyed</div>

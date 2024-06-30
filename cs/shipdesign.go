@@ -55,7 +55,9 @@ type ShipDesignSpec struct {
 	BeamBonus                 float64               `json:"beamBonus,omitempty"`
 	BeamDefense               float64               `json:"beamDefense,omitempty"`
 	Initiative                int                   `json:"initiative,omitempty"`
+	MovementBonus             int                   `json:"movementBonus,omitempty"`
 	Movement                  int                   `json:"movement,omitempty"`
+	MovementFull              int                   `json:"movementFull,omitempty"`
 	ReduceMovement            int                   `json:"reduceMovement,omitempty"`
 	PowerRating               int                   `json:"powerRating,omitempty"`
 	Bomber                    bool                  `json:"bomber,omitempty"`
@@ -248,6 +250,11 @@ func (d *ShipDesign) SlotsEqual(other *ShipDesign) bool {
 	return true
 }
 
+// get the movement for this ship design, based on cargoMass
+func (d *ShipDesign) getMovement(cargoMass int) int {
+	return getBattleMovement(d.Spec.Engine.IdealSpeed, d.Spec.MovementBonus, d.Spec.Mass+cargoMass, d.Spec.NumEngines)
+}
+
 func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design *ShipDesign) ShipDesignSpec {
 	hull := rules.techs.GetHull(design.Hull)
 	spec := ShipDesignSpec{
@@ -313,7 +320,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 			spec.FuelGeneration += component.FuelGeneration * slot.Quantity
 			spec.Colonizer = spec.Colonizer || component.ColonizationModule || component.OrbitalConstructionModule
 			spec.Initiative += component.InitiativeBonus
-			spec.Movement += component.MovementBonus * slot.Quantity
+			spec.MovementBonus += component.MovementBonus * slot.Quantity
 			spec.ReduceMovement = MaxInt(spec.ReduceMovement, component.ReduceMovement) // these don't stack
 			spec.MiningRate += component.MiningRate * slot.Quantity
 			spec.TerraformRate += component.TerraformRate * slot.Quantity
@@ -452,9 +459,11 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		// Movement = IdealEngineSpeed - 2 - Mass / 70 / NumEngines + NumManeuveringJets + 2*NumOverThrusters
 		// we added any MovementBonus components above
 		// we round up the slightest bit, and we can't go below 2, or above 10
-		spec.Movement = Clamp((spec.Engine.IdealSpeed-2)-spec.Mass/70/spec.NumEngines+spec.Movement+raceSpec.MovementBonus, 2, 10)
+		spec.Movement = getBattleMovement(spec.Engine.IdealSpeed, spec.MovementBonus, spec.Mass, spec.NumEngines)
+		spec.MovementFull = getBattleMovement(spec.Engine.IdealSpeed, spec.MovementBonus, spec.Mass+spec.CargoCapacity, spec.NumEngines)
 	} else {
 		spec.Movement = 0
+		spec.MovementFull = 0
 	}
 
 	beamPower = int(float64(beamPower) * (1 + spec.BeamBonus))

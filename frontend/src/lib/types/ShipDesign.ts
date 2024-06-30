@@ -53,6 +53,8 @@ export type Spec = {
 	torpedoJamming?: number;
 	initiative?: number;
 	movement?: number;
+	movementFull?: number;
+	movementBonus?: number;
 	powerRating?: number;
 	bomber?: boolean;
 	bombs?: Bomb[];
