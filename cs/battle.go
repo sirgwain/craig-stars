@@ -323,6 +323,9 @@ var movementByRound = [9][4]int{
 
 // get the movement of this design with additional cargo
 func getBattleMovement(idealEngineSpeed, movementBonus, mass, numEngines int) int {
+	if numEngines == 0 {
+		return 0
+	}
 	return Clamp(((idealEngineSpeed+movementBonus)-2)-((mass)/numEngines/70), 2, 10)
 }
 
@@ -530,7 +533,7 @@ func (b *battle) runBattle() *BattleRecord {
 
 			// movement is a repeating pattern of 4 movement blocks
 			// which we figured out in BuildMovement
-			roundBlock := ((b.round-1) % 4)
+			roundBlock := ((b.round - 1) % 4)
 			for _, token := range moveOrder[roundBlock] {
 				b.moveToken(token)
 			}
