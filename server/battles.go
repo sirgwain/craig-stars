@@ -15,6 +15,7 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 	player2.Name = cs.AINames[1] + "s"
 	player1.Race.PluralName = cs.AINames[0] + "s"
 	player2.Race.PluralName = cs.AINames[1] + "s"
+	player2.Color = colors[1]
 	player1.Relations = []cs.PlayerRelationship{{Relation: cs.PlayerRelationFriend}, {Relation: cs.PlayerRelationEnemy}}
 	player2.Relations = []cs.PlayerRelationship{{Relation: cs.PlayerRelationEnemy}, {Relation: cs.PlayerRelationFriend}}
 	player1.PlayerIntels.PlayerIntels = []cs.PlayerIntel{{Num: player1.Num}, {Num: player2.Num}}
@@ -132,6 +133,15 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 				{HullComponent: cs.PhaserBazooka.Name, HullSlotIndex: 3, Quantity: 3},
 				{HullComponent: cs.CowHideShield.Name, HullSlotIndex: 4, Quantity: 2},
 			}),
+		cs.NewShipDesign(player2, 6).
+			WithName("DD S 10").
+			WithHull(cs.Destroyer.Name).
+			WithSlots([]cs.ShipDesignSlot{
+				{HullComponent: cs.FuelMizer.Name, HullSlotIndex: 1, Quantity: 1},
+				{HullComponent: cs.ColloidalPhaser.Name, HullSlotIndex: 2, Quantity: 1},
+				{HullComponent: cs.ColloidalPhaser.Name, HullSlotIndex: 3, Quantity: 1},
+				{HullComponent: cs.BearNeutrinoBarrier.Name, HullSlotIndex: 4, Quantity: 1},
+			}),
 	)
 
 	p1BattleCruiser := player1.Designs[0]
@@ -144,6 +154,7 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 	p2StalwartDefender := player2.Designs[2]
 	p2Sapper := player2.Designs[3]
 	p2Frigate := player2.Designs[4]
+	p2DDS10 := player2.Designs[5]
 	_ = p1BattleCruiser
 	_ = p1Scout
 	_ = p1StalwartDefender
@@ -178,6 +189,10 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 				{
 					Quantity:  1,
 					DesignNum: p2Frigate.Num,
+				},
+				{
+					Quantity:  1,
+					DesignNum: p2DDS10.Num,
 				},
 			},
 		}}

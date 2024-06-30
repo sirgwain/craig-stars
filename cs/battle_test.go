@@ -257,6 +257,7 @@ func Test_battleToken_getDistanceAway(t *testing.T) {
 		{"x distance greatest", battleToken{BattleRecordToken: BattleRecordToken{Position: BattleVector{2, 1}}}, args{BattleVector{4, 2}}, 2},
 		{"y distance greatest", battleToken{BattleRecordToken: BattleRecordToken{Position: BattleVector{1, 2}}}, args{BattleVector{2, 5}}, 3},
 		{"negative distance (token behind)", battleToken{BattleRecordToken: BattleRecordToken{Position: BattleVector{1, 1}}}, args{BattleVector{0, 0}}, 1},
+		{"3,4 to 7,4", battleToken{BattleRecordToken: BattleRecordToken{Position: BattleVector{3, 4}}}, args{BattleVector{7, 4}}, 4},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1140,6 +1141,140 @@ func Test_getBattleMovement(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := getBattleMovement(tt.args.idealEngineSpeed, tt.args.movementBonus, tt.args.mass, tt.args.numEngines); got != tt.want {
 				t.Errorf("getBattleMovement() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_battle_buildMovementOrder(t *testing.T) {
+	tokenMovement2Mass1 := &battleToken{
+		ShipToken: &ShipToken{},
+		BattleRecordToken: BattleRecordToken{
+			PlayerNum: 1,
+			Num:       1,
+			Movement:  2,
+			Mass:      1,
+		},
+	}
+	tokenMovement4Mass1 := &battleToken{
+		ShipToken: &ShipToken{},
+		BattleRecordToken: BattleRecordToken{
+			PlayerNum: 2,
+			Num:       2,
+			Movement:  4,
+			Mass:      1,
+		},
+	}
+	tokenMovement4Mass2 := &battleToken{
+		ShipToken: &ShipToken{},
+		BattleRecordToken: BattleRecordToken{
+			PlayerNum: 3,
+			Num:       3,
+			Movement:  4,
+			Mass:      2,
+		},
+	}
+	tokenMovement5Mass2 := &battleToken{
+		ShipToken: &ShipToken{},
+		BattleRecordToken: BattleRecordToken{
+			PlayerNum: 4,
+			Num:       4,
+			Movement:  5,
+			Mass:      2,
+		},
+	}
+
+	tokenMovement6Mass190 := &battleToken{
+		ShipToken: &ShipToken{},
+		BattleRecordToken: BattleRecordToken{
+			PlayerNum: 5,
+			Num:       5,
+			Movement:  6,
+			Mass:      190,
+		},
+	}
+	tokenMovement4Mass22 := &battleToken{
+		ShipToken: &ShipToken{},
+		BattleRecordToken: BattleRecordToken{
+			PlayerNum: 6,
+			Num:       6,
+			Movement:  4,
+			Mass:      22,
+		},
+	}
+	tokenMovement4Mass41 := &battleToken{
+		ShipToken: &ShipToken{},
+		BattleRecordToken: BattleRecordToken{
+			PlayerNum: 6,
+			Num:       7,
+			Movement:  4,
+			Mass:      41,
+		},
+	}
+
+	type args struct {
+		tokens []*battleToken
+	}
+	tests := []struct {
+		name          string
+		args          args
+		wantMoveOrder [4][]*battleToken
+	}{
+		{name: "one token, move 2", args: args{[]*battleToken{tokenMovement2Mass1}},
+			wantMoveOrder: [4][]*battleToken{
+				{tokenMovement2Mass1},
+				nil,
+				{tokenMovement2Mass1},
+				nil,
+			},
+		},
+		{name: "two tokens, same mass, different movements", args: args{[]*battleToken{tokenMovement2Mass1, tokenMovement4Mass1}},
+			wantMoveOrder: [4][]*battleToken{
+				{tokenMovement2Mass1, tokenMovement4Mass1},
+				{tokenMovement4Mass1},
+				{tokenMovement2Mass1, tokenMovement4Mass1},
+				{tokenMovement4Mass1},
+			},
+		},
+		// higher mass moves first
+		{name: "two tokens, diff mass, same movement", args: args{[]*battleToken{tokenMovement4Mass1, tokenMovement4Mass2}},
+			wantMoveOrder: [4][]*battleToken{
+				{tokenMovement4Mass2, tokenMovement4Mass1},
+				{tokenMovement4Mass2, tokenMovement4Mass1},
+				{tokenMovement4Mass2, tokenMovement4Mass1},
+				{tokenMovement4Mass2, tokenMovement4Mass1},
+			},
+		},
+		// higher move/mass moves twice
+		{name: "two tokens, one higher move/mass", args: args{[]*battleToken{tokenMovement4Mass1, tokenMovement5Mass2}},
+			wantMoveOrder: [4][]*battleToken{
+				{tokenMovement5Mass2, tokenMovement5Mass2, tokenMovement4Mass1},
+				{tokenMovement5Mass2, tokenMovement4Mass1},
+				{tokenMovement5Mass2, tokenMovement4Mass1},
+				{tokenMovement5Mass2, tokenMovement4Mass1},
+			},
+		},
+		// higher mass should move twice, then other tokens move
+		{name: "three tokens", args: args{[]*battleToken{tokenMovement6Mass190, tokenMovement4Mass22, tokenMovement4Mass41}},
+			wantMoveOrder: [4][]*battleToken{
+				{tokenMovement6Mass190, tokenMovement6Mass190, tokenMovement4Mass41, tokenMovement4Mass22},
+				{tokenMovement6Mass190, tokenMovement4Mass41, tokenMovement4Mass22},
+				{tokenMovement6Mass190, tokenMovement6Mass190, tokenMovement4Mass41, tokenMovement4Mass22},
+				{tokenMovement6Mass190, tokenMovement4Mass41, tokenMovement4Mass22},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			b := &battle{rules: &rules}
+			if gotMoveOrder := b.buildMovementOrder(tt.args.tokens); !reflect.DeepEqual(gotMoveOrder, tt.wantMoveOrder) {
+				for _, r := range gotMoveOrder {
+					for _, t := range r {
+						s := t.String()
+						_ = s
+					}
+				}
+				t.Errorf("battle.buildMovementOrder() = %v, want %v", gotMoveOrder, tt.wantMoveOrder)
 			}
 		})
 	}

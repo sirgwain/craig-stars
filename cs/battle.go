@@ -220,7 +220,12 @@ func (bt *battleToken) getDistanceAway(position BattleVector) int {
 }
 
 func (bt *battleToken) String() string {
-	return fmt.Sprintf("Player: %d %sx%d", bt.PlayerNum, bt.design.Name, bt.Quantity)
+	// add some protection for unit tests where these values might not be filled in
+	designName := "<unknowndesign>"
+	if bt.ShipToken != nil && bt.ShipToken.design != nil {
+		designName = bt.design.Name
+	}
+	return fmt.Sprintf("Player: %d, Token: %d %sx%d", bt.PlayerNum, bt.Num, designName, bt.Quantity)
 }
 
 type battleWeaponType int
@@ -469,6 +474,7 @@ func newBattleWeaponSlot(token *battleToken, slot ShipDesignSlot, hc *TechHullCo
 	weaponSlot := &battleWeaponSlot{
 		token:              token,
 		slot:               slot,
+		quantity:           slot.Quantity,
 		weaponRange:        hc.Range + rangeBonus,
 		power:              hc.Power,
 		damagesShieldsOnly: hc.DamageShieldsOnly,
@@ -524,7 +530,7 @@ func (b *battle) runBattle() *BattleRecord {
 
 			// movement is a repeating pattern of 4 movement blocks
 			// which we figured out in BuildMovement
-			roundBlock := b.round % 4
+			roundBlock := ((b.round-1) % 4)
 			for _, token := range moveOrder[roundBlock] {
 				b.moveToken(token)
 			}
