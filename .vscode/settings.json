@@ -1,5 +1,4 @@
 {
-    "vitest.enable": false,
     "files.exclude": {
         "frontend": true
     },

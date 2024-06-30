@@ -77,14 +77,14 @@ type Rules struct {
 	TerraformCost                             Cost                                `json:"terraformCost"`
 	StarbaseComponentCostFactor               float64                             `json:"starbaseComponentCostFactor"`
 	SalvageFromBattleFactor                   float64                             `json:"salvageFromBattleFactor"`
-	TechTradeChance                           float64                             `json:"techTradeChance"`
+	TechTradeChance                           float64                                 `json:"techTradeChance"`
 	PacketDecayRate                           map[int]float64                     `json:"packetDecayRate"`
 	MaxTechLevel                              int                                 `json:"maxTechLevel"`
 	TechBaseCost                              []int                               `json:"techBaseCost"`
 	PRTSpecs                                  map[PRT]PRTSpec                     `json:"prtSpecs"`
 	LRTSpecs                                  map[LRT]LRTSpec                     `json:"lrtSpecs"`
 	TechsID                                   int64                               `json:"techsId"`
-	random                                    *rand.Rand
+	random                                    rng
 	techs                                     *TechStore
 }
 

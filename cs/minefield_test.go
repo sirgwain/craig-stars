@@ -123,14 +123,14 @@ func Test_checkForMineFieldCollision_Miss(t *testing.T) {
 		MineFields: []*MineField{mineField},
 	}
 
-	// send the fleet at warp 5, straight through the minefield, should be safe at warp 5
-	dest := NewPositionWaypoint(Vector{20, 0}, 5)
+	// send the fleet at warp 4, straight through the minefield, should be safe at warp 4
+	dest := NewPositionWaypoint(Vector{20, 0}, 4)
 	dist := float64(dest.WarpSpeed * dest.WarpSpeed)
 
 	actualDist := checkForMineFieldCollision(&rules, newTestPlayerGetter(fleetPlayer, mineFieldPlayer), u, fleet, dest, dist)
 
 	// we should come to a dead stop, ship destroyed
-	assert.Equal(t, 25.0, actualDist)
+	assert.Equal(t, 16.0, actualDist)
 	assert.Equal(t, 0.0, fleet.Tokens[0].Damage)
 	assert.Equal(t, 1, fleet.Tokens[0].Quantity)
 

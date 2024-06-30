@@ -668,10 +668,10 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		// WM
 		DiscoverDesignOnScan: prtSpec.DiscoverDesignOnScan,
 		InvasionAttackBonus:  prtSpec.InvasionAttackBonus,
+		MovementBonus:        prtSpec.MovementBonus,
 
 		// AR
 		CanRemoteMineOwnPlanets: prtSpec.CanRemoteMineOwnPlanets,
-		MovementBonus:           prtSpec.MovementBonus,
 		StarbaseCostFactor:      prtSpec.StarbaseCostFactor,
 		InnateMining:            prtSpec.InnateMining,
 		InnateResources:         prtSpec.InnateResources,
@@ -749,8 +749,12 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		spec.ShieldStrengthFactor += lrtSpec.ShieldStrengthFactorOffset
 		spec.ShieldRegenerationRate += lrtSpec.ShieldRegenerationRateOffset
 		spec.ArmorStrengthFactor += lrtSpec.ArmorStrengthFactorOffset
+
+		// CE
 		spec.EngineFailureRate += lrtSpec.EngineFailureRateOffset
-		spec.EngineReliableSpeed += lrtSpec.EngineReliableSpeed
+		if lrtSpec.EngineReliableSpeed != 0 {
+			spec.EngineReliableSpeed = MinInt(spec.EngineReliableSpeed, lrtSpec.EngineReliableSpeed)
+		}
 
 		spec.StartingPlanets[0].StartingFleets = append(spec.StartingPlanets[0].StartingFleets, lrtSpec.StartingFleets...)
 
