@@ -719,6 +719,7 @@ func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot, targets []*battleToken
 
 	beamNum := 0
 	remainingBeams := numBeams
+	leftoverBeamDamage := 0
 	for _, target := range targets {
 		if !target.isStillInBattle() {
 			continue
@@ -737,11 +738,16 @@ func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot, targets []*battleToken
 		// beam weapon damage reduces by up to 10% over range. So a range 2 weapon is reduced 0% at 0 range, 5% at 1 range, and 10% at 2 range
 		dist := weapon.token.getDistanceAway(target.Position)
 		damage = weapon.getDamage(dist, target.beamDefense, b.rules.BeamRangeDropoff)
+		if leftoverBeamDamage > 0 {
+			damage = leftoverBeamDamage
+			leftoverBeamDamage = 0
+		}
 
 		numDestroyed := 0
 		totalArmorDamage := 0
 		totalShieldDamage := 0
 
+		beamNum = 0
 		for remainingBeams > 0 && !target.destroyed {
 			// fire a torpedo
 			beamNum++
@@ -767,6 +773,12 @@ func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot, targets []*battleToken
 					target.quantityDestroyed += numDestroyed
 					b.board[target.Position.Y][target.Position.X] -= numDestroyed
 					armorDamage -= armor * numDestroyed
+
+					// if we have leftover juice, pass it to the next target
+					leftoverBeamDamage = (damage * beamNum) - (totalShieldDamage + armor * numDestroyed)
+					if leftoverBeamDamage > 0 {
+						remainingBeams++
+					}
 
 					target.destroyed = true
 					log.Debug().Msgf("%v %v did %v shield damage and %v armor damage and completely destroyed %v", weapon.token, weapon.slot.HullComponent, shields, armorDamage, target)
@@ -802,6 +814,7 @@ func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot, targets []*battleToken
 		// reuse all these beams for the next target
 		if weapon.hitsAllTargets {
 			remainingBeams = numBeams
+			leftoverBeamDamage = 0
 		}
 
 		log.Debug().Msgf("%v %v %v(s) has %d remaining beams to burn through %v additional targets.", weapon.token, remainingBeams, weapon.slot.HullComponent, remainingBeams, len(targets)-1)
