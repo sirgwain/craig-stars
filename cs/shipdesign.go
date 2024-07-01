@@ -346,10 +346,12 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 			// if TorpedoInnaccuracyDecrease is 1 (default), it's just 75%
 			if component.TorpedoBonus > 0 {
 				if spec.TorpedoBonus == 0 {
-					spec.TorpedoBonus = 1 - float64(math.Pow((1-float64(component.TorpedoBonus)), float64(slot.Quantity)))
+					spec.TorpedoBonus = 1 - math.Pow(1-component.TorpedoBonus, float64(slot.Quantity))
 				} else {
-					spec.TorpedoBonus *= 1 - float64(math.Pow((1-float64(component.TorpedoBonus)), float64(slot.Quantity)))
+					spec.TorpedoBonus *= 1 - math.Pow(1-component.TorpedoBonus, float64(slot.Quantity))
 				}
+				// golang, why you be like this? nobody wants 1-.2^1 to be .199999994
+				spec.TorpedoBonus = roundFloat(spec.TorpedoBonus, 3)
 			}
 
 			if component.TorpedoJamming > 0 {
@@ -358,6 +360,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 				} else {
 					spec.TorpedoJamming *= 1 - float64(math.Pow((1-float64(component.TorpedoJamming)), float64(slot.Quantity)))
 				}
+				spec.TorpedoJamming = roundFloat(spec.TorpedoJamming, 3)
 			}
 
 			// beam bonuses

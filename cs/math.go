@@ -12,6 +12,12 @@ func roundToNearest100(value int) int {
 	return int(math.Round(float64(value)/100) * 100)
 }
 
+func roundFloat(val float64, precision uint) float64 {
+    ratio := math.Pow(10, float64(precision))
+    return math.Round(val*ratio) / ratio
+}
+
+
 func Clamp(value, min, max int) int {
 	if value < min {
 		return min
