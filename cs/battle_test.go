@@ -442,7 +442,7 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
 						quantity:    2,  // 2 beam weapons
-						power:       15, // 10 damage per beam
+						power:       15, // 15 damage per beam
 						weaponRange: 2,
 					},
 					shipQuantity: 1, // one ship in the attacker stack
@@ -1335,9 +1335,9 @@ func Test_battleWeaponSlot_getAttractiveness(t *testing.T) {
 			name:   "torpedo, attractiveness 1",
 			fields: fields{weaponType: battleWeaponTypeTorpedo, accuracy: .45},
 			args: args{
-				cost:           Cost{Boranium: 1, Resources: 1},
-				armor:          1,
-				shields:        1,
+				cost:    Cost{Boranium: 1, Resources: 1},
+				armor:   1,
+				shields: 1,
 			},
 			want: .45,
 		},
@@ -1389,7 +1389,7 @@ func Test_battleWeaponSlot_getAccuracy(t *testing.T) {
 		{"beta torpedo, 1 BC", fields{accuracy: .45, torpedoBonus: .2}, args{}, .56},
 		{"beta torpedo, 1 BC, 1 jammer 20", fields{accuracy: .45, torpedoBonus: .2}, args{torpedoJamming: .2}, .45},
 		{"beta torpedo, 1 BC, 1 jammer 10", fields{accuracy: .45, torpedoBonus: .2}, args{torpedoJamming: .1}, .505},
-		{"beta torpedo, 1 BC, 1 jammer 30", fields{accuracy: .45, torpedoBonus: .2}, args{torpedoJamming: .1}, .405},
+		{"beta torpedo, 1 BC, 1 jammer 30", fields{accuracy: .45, torpedoBonus: .1}, args{torpedoJamming: .2}, .405},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1399,6 +1399,57 @@ func Test_battleWeaponSlot_getAccuracy(t *testing.T) {
 			}
 			if got := weapon.getAccuracy(tt.args.torpedoJamming); got != tt.want {
 				t.Errorf("battleWeaponSlot.getAccuracy() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_battleWeaponSlot_getDamage(t *testing.T) {
+	type fields struct {
+		weaponType  battleWeaponType
+		weaponRange int
+		power       int
+	}
+	type args struct {
+		dist        int
+		beamDefense float64
+		beamDropoff float64
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   int
+	}{
+		{"torpedo, base damage", fields{weaponType: battleWeaponTypeTorpedo, power: 10}, args{}, 10},
+		{
+			name:   "laser, 0 range",
+			fields: fields{weaponType: battleWeaponTypeBeam, weaponRange: 1, power: 10},
+			args:   args{dist: 0, beamDropoff: .1},
+			want:   10,
+		},
+		{
+			name:   "laser, 1 range",
+			fields: fields{weaponType: battleWeaponTypeBeam, weaponRange: 1, power: 10},
+			args:   args{dist: 1, beamDropoff: .1},
+			want:   9,
+		},
+		{
+			name:   "ColloidalPhaser, 3 range",
+			fields: fields{weaponType: battleWeaponTypeBeam, weaponRange: 3, power: 26},
+			args:   args{dist: 3, beamDropoff: .1},
+			want:   24,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			weapon := &battleWeaponSlot{
+				weaponType:  tt.fields.weaponType,
+				weaponRange: tt.fields.weaponRange,
+				power:       tt.fields.power,
+			}
+			if got := weapon.getDamage(tt.args.dist, tt.args.beamDefense, tt.args.beamDropoff); got != tt.want {
+				t.Errorf("battleWeaponSlot.getDamage() = %v, want %v", got, tt.want)
 			}
 		})
 	}
