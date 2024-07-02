@@ -369,9 +369,9 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						quantity:    1, // 1 beam weapon
-						power:       10,
-						weaponRange: 1,
+						slotQuantity: 1, // 1 beam weapon
+						power:        10,
+						weaponRange:  1,
 					},
 					shipQuantity: 1,
 				},
@@ -391,9 +391,9 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						quantity:    1, // 1 beam weapon
-						power:       30,
-						weaponRange: 1,
+						slotQuantity: 1, // 1 beam weapon
+						power:        30,
+						weaponRange:  1,
 					},
 					shipQuantity: 1,
 				},
@@ -415,9 +415,9 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						quantity:    1, // 1 beam weapon
-						power:       10,
-						weaponRange: 2,
+						slotQuantity: 1, // 1 beam weapon
+						power:        10,
+						weaponRange:  2,
 					},
 					shipQuantity: 1,
 					position:     BattleVector{2, 0}, // 1 away from target
@@ -441,9 +441,9 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						quantity:    2,  // 2 beam weapons
-						power:       15, // 15 damage per beam
-						weaponRange: 2,
+						slotQuantity: 2,  // 2 beam weapons
+						power:        15, // 15 damage per beam
+						weaponRange:  2,
 					},
 					shipQuantity: 1, // one ship in the attacker stack
 				},
@@ -463,8 +463,8 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						quantity: 2, // 2 beam weapons
-						power:    10,
+						slotQuantity: 2, // 2 beam weapons
+						power:        10,
 					},
 					shipQuantity: 2, // 2 ships in attacker stack
 				},
@@ -484,8 +484,8 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						quantity: 2, // 2 beam weapons
-						power:    10,
+						slotQuantity: 2, // 2 beam weapons
+						power:        10,
 					},
 					shipQuantity: 1, // 1 ships in attacker stack
 				},
@@ -516,8 +516,8 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						quantity: 2, // 2 beam weapons
-						power:    10,
+						slotQuantity: 2, // 2 beam weapons
+						power:        10,
 					},
 					shipQuantity: 1, // 1 ships in attacker stack
 				},
@@ -552,8 +552,8 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						quantity: 1,
-						power:    10,
+						slotQuantity: 1,
+						power:        10,
 					},
 					shipQuantity: 1,
 				},
@@ -575,8 +575,8 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						quantity: 1,
-						power:    100,
+						slotQuantity: 1,
+						power:        100,
 					},
 					shipQuantity: 1,
 				},
@@ -606,7 +606,7 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						quantity:       1,
+						slotQuantity:   1,
 						power:          10,
 						hitsAllTargets: true,
 					},
@@ -701,9 +701,9 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						quantity: 1, // 1 torpedo
-						power:    10,
-						accuracy: 1,
+						slotQuantity: 1, // 1 torpedo
+						power:        10,
+						accuracy:     1,
 					},
 					shipQuantity: 1,
 				},
@@ -723,9 +723,9 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						quantity: 1, // 1 torpedo
-						power:    10,
-						accuracy: 1,
+						slotQuantity: 1, // 1 torpedo
+						power:        10,
+						accuracy:     1,
 					},
 					shipQuantity: 1,
 				},
@@ -748,9 +748,9 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						quantity: 1, // 1 torpedo
-						power:    30,
-						accuracy: 1,
+						slotQuantity: 1, // 1 torpedo
+						power:        30,
+						accuracy:     1,
 					},
 					shipQuantity: 1,
 				},
@@ -770,9 +770,9 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						quantity: 2,  // 2 torpedos
-						power:    15, // 15 damage per torpedo
-						accuracy: 1,
+						slotQuantity: 2,  // 2 torpedos
+						power:        15, // 15 damage per torpedo
+						accuracy:     1,
 					},
 					shipQuantity: 1, // one ship in the attacker stack
 				},
@@ -792,7 +792,7 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						quantity:           2,  // 2 torpedos
+						slotQuantity:       2,  // 2 torpedos
 						power:              10, // 15 damage per torpedo
 						accuracy:           1,
 						capitalShipMissile: true,
@@ -816,9 +816,9 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						quantity: 2, // 2 torpedos
-						power:    10,
-						accuracy: 1,
+						slotQuantity: 2, // 2 torpedos
+						power:        10,
+						accuracy:     1,
 					},
 					shipQuantity: 2, // 2 ships in attacker stack
 				},
@@ -838,9 +838,9 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						quantity: 2,   // 2 torpedos
-						power:    300, // 600 damage total
-						accuracy: 1,
+						slotQuantity: 2,   // 2 torpedos
+						power:        300, // 600 damage total
+						accuracy:     1,
 					},
 					shipQuantity: 1,
 				},
@@ -863,9 +863,9 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						quantity: 1,
-						power:    10,
-						accuracy: 1,
+						slotQuantity: 1,
+						power:        10,
+						accuracy:     1,
 					},
 					shipQuantity: 1,
 				},
@@ -1450,6 +1450,159 @@ func Test_battleWeaponSlot_getDamage(t *testing.T) {
 			}
 			if got := weapon.getDamage(tt.args.dist, tt.args.beamDefense, tt.args.beamDropoff); got != tt.want {
 				t.Errorf("battleWeaponSlot.getDamage() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_battleWeaponSlot_getTargetBeamDamage(t *testing.T) {
+	type fields struct {
+		position           BattleVector
+		shipQuantity       int
+		slotQuantity       int
+		weaponRange        int
+		damagesShieldsOnly bool
+	}
+	type args struct {
+		damage               int
+		position             BattleVector
+		armor                int
+		shields              int
+		beamDefense          float64
+		tokenQuantity        int
+		tokenDamage          float64
+		tokenQuantityDamaged int
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   battleWeaponDamage
+	}{
+		{
+			name:   "1 laser, 20dp target, 10 damage done",
+			fields: fields{shipQuantity: 1, slotQuantity: 1, weaponRange: 1},
+			args: args{
+				damage:        10,
+				tokenQuantity: 1,
+				armor:         20,
+				shields:       0,
+			},
+			want: battleWeaponDamage{armorDamage: 10, damage: 10, quantityDamaged: 1},
+		},
+		{
+			name:   "1 laser, 1 range away, 20dp target, 9 damage done",
+			fields: fields{shipQuantity: 1, slotQuantity: 1, weaponRange: 1},
+			args: args{
+				position:      BattleVector{1, 0},
+				damage:        10,
+				tokenQuantity: 1,
+				armor:         20,
+				shields:       0,
+			},
+			want: battleWeaponDamage{armorDamage: 9, damage: 9, quantityDamaged: 1},
+		},
+		{
+			name:   "1 laser, 1 range away, 1 defelctor, 20dp target, 8 damage done",
+			fields: fields{shipQuantity: 1, slotQuantity: 1, weaponRange: 1},
+			args: args{
+				position:      BattleVector{1, 0},
+				damage:        10,
+				tokenQuantity: 1,
+				armor:         20,
+				shields:       0,
+				beamDefense:   .1,
+			},
+			want: battleWeaponDamage{armorDamage: 8, damage: 8, quantityDamaged: 1},
+		},
+		{
+			name:   "1 laser, 20 shields 20dp target, 10 damage done",
+			fields: fields{shipQuantity: 1, slotQuantity: 1, weaponRange: 1},
+			args: args{
+				damage:        10,
+				tokenQuantity: 1,
+				armor:         20,
+				shields:       20,
+			},
+			want: battleWeaponDamage{shieldDamage: 10},
+		},
+		{
+			name:   "3 lasers, 20 shields 20dp target, 20 shield, 10 armor damage done",
+			fields: fields{shipQuantity: 1, slotQuantity: 3, weaponRange: 1},
+			args: args{
+				damage:        30, // 3 lasers * 10 damage each
+				tokenQuantity: 1,
+				armor:         20,
+				shields:       20,
+			},
+			want: battleWeaponDamage{shieldDamage: 20, armorDamage: 10, damage: 10, quantityDamaged: 1},
+		},
+		{
+			name:   "2 ships, 3 lasers, 20 shields 20dp target, destroyed",
+			fields: fields{shipQuantity: 2, slotQuantity: 3, weaponRange: 1},
+			args: args{
+				damage:        60, // 3 lasers * 2 ships * 10 damage each
+				tokenQuantity: 1,
+				armor:         20,
+				shields:       20,
+			},
+			want: battleWeaponDamage{shieldDamage: 20, armorDamage: 20, numDestroyed: 1, leftoverDamage: 20, damage: 0, quantityDamaged: 0},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			weapon := &battleWeaponSlot{
+				token: &battleToken{
+					BattleRecordToken: BattleRecordToken{Position: tt.fields.position},
+					ShipToken: &ShipToken{
+						Quantity: tt.fields.shipQuantity,
+					},
+				},
+				slotQuantity:       tt.fields.slotQuantity,
+				weaponType:         battleWeaponTypeBeam,
+				weaponRange:        tt.fields.weaponRange,
+				damagesShieldsOnly: tt.fields.damagesShieldsOnly,
+			}
+
+			target := &battleToken{
+				BattleRecordToken: BattleRecordToken{Position: tt.args.position},
+				ShipToken: &ShipToken{
+					Quantity:        tt.args.tokenQuantity,
+					Damage:          tt.args.tokenDamage,
+					QuantityDamaged: tt.args.tokenQuantityDamaged,
+				},
+				armor:        tt.args.armor,
+				stackShields: tt.args.shields,
+				beamDefense:  tt.args.beamDefense,
+			}
+			if got := weapon.getTargetBeamDamage(tt.args.damage, target, rules.BeamRangeDropoff); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("battleWeaponSlot.getTargetBeamDamage() = %#v, want %#v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_getBeamDamageAtRange(t *testing.T) {
+	type args struct {
+		damage      int
+		weaponRange int
+		dist        int
+		beamDefense float64
+	}
+	tests := []struct {
+		name string
+		args args
+		want int
+	}{
+		{"1 laser, 0 range", args{damage: 10, weaponRange: 1, dist: 0}, 10},
+		{"1 laser, 1 range", args{damage: 10, weaponRange: 1, dist: 1}, 9},
+		{"1 laser, 0 range, 1 deflector", args{damage: 10, weaponRange: 1, dist: 0, beamDefense: .1}, 9},
+		{"1 laser, 1 range, 1 deflector", args{damage: 10, weaponRange: 1, dist: 1, beamDefense: .1}, 8},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := getBeamDamageAtRange(tt.args.damage, tt.args.weaponRange, tt.args.dist, tt.args.beamDefense, rules.BeamRangeDropoff); got != tt.want {
+				t.Errorf("getBeamDamageAtRange() = %v, want %v", got, tt.want)
 			}
 		})
 	}

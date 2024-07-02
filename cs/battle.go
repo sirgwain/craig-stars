@@ -244,7 +244,7 @@ type battleWeaponSlot struct {
 	slot ShipDesignSlot
 
 	// how many of this weapon are in this slot
-	quantity int
+	slotQuantity int
 
 	// The type of weapon this weapon slot is
 	weaponType battleWeaponType
@@ -272,6 +272,21 @@ type battleWeaponSlot struct {
 
 	// capital ships missiles do double damage after shields are gone
 	capitalShipMissile bool
+}
+
+type battleWeaponDamage struct {
+	// the damage inflicted on shields
+	shieldDamage int
+	// the damage inflicted on armor
+	armorDamage int
+	// the new stack damage
+	damage float64
+	// the new stack quantity damaged
+	quantityDamaged int
+	// the number of tokens destroyed
+	numDestroyed int
+	// any leftover damage we have after destroying ships
+	leftoverDamage int
 }
 
 // Return true if this weapon slot wiil damage this token
@@ -409,16 +424,9 @@ func newBattler(rules *Rules, techFinder TechFinder, battleNum int, players map[
 			if len(token.design.Spec.WeaponSlots) > 0 {
 				minRange := math.MaxInt
 				maxRange := 0
-				var lastWeapon *battleWeaponSlot
-				for slotIndex, slot := range token.design.Spec.WeaponSlots {
+				for _, slot := range token.design.Spec.WeaponSlots {
 					weapon := techFinder.GetHullComponent(slot.HullComponent)
-					if slotIndex != 0 && lastWeapon != nil && weapon != nil && lastWeapon.slot.HullComponent == weapon.Name {
-						// this weapon is the same, just add it's quantity
-						lastWeapon.quantity += slot.Quantity
-						continue
-					}
 					bws := newBattleWeaponSlot(battleToken, slot, weapon, hull.RangeBonus, token.design.Spec.TorpedoBonus, token.design.Spec.BeamBonus)
-					lastWeapon = bws
 					weaponSlots = append(weaponSlots, bws)
 					minRange = MinInt(minRange, bws.weaponRange)
 					maxRange = MaxInt(maxRange, bws.weaponRange)
@@ -480,7 +488,7 @@ func newBattleWeaponSlot(token *battleToken, slot ShipDesignSlot, hc *TechHullCo
 	weaponSlot := &battleWeaponSlot{
 		token:              token,
 		slot:               slot,
-		quantity:           slot.Quantity,
+		slotQuantity:       slot.Quantity,
 		weaponRange:        hc.Range + rangeBonus,
 		power:              hc.Power,
 		damagesShieldsOnly: hc.DamageShieldsOnly,
@@ -710,116 +718,74 @@ func (b *battle) fireWeaponSlot(weapon *battleWeaponSlot, targets []*battleToken
 }
 
 // fire a beam weapon slot at a slice of targets
+// weapons fire in volleys. A single slot fires a volley at a target
+// if you have 10 frigates with a 3 laser slot, they fire 30 lasers as a "volley"
+// if you have 10 destroyers with three 1-laser slots, they fire three volleys of 10 lasers each
 func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot, targets []*battleToken) {
+
+	// get the damage for this volley
 	attacker := weapon.token
-	damage := weapon.power
-	numBeams := weapon.quantity * attacker.Quantity
+	damage := weapon.power * weapon.slotQuantity * attacker.Quantity
+	log.Debug().Msgf("%v is to firing %vx%d at %d targets for a total of %v damage", weapon.token, weapon.slot.HullComponent, weapon.slotQuantity*attacker.Quantity, len(targets), damage)
 
-	log.Debug().Msgf("%v is to firing at %v targets with %d beams for a total of %v damage per beam", weapon.token, len(targets), numBeams, damage)
-
-	beamNum := 0
-	remainingBeams := numBeams
-	leftoverBeamDamage := 0
 	for _, target := range targets {
 		if !target.isStillInBattle() {
 			continue
-		}
-		if remainingBeams == 0 {
-			break
 		}
 		// skip targets that are out of shields for sappers
 		if weapon.damagesShieldsOnly && target.stackShields <= 0 {
 			continue
 		}
-
-		armor := target.armor
-		shields := target.stackShields
-
-		// beam weapon damage reduces by up to 10% over range. So a range 2 weapon is reduced 0% at 0 range, 5% at 1 range, and 10% at 2 range
-		dist := weapon.token.getDistanceAway(target.Position)
-		damage = weapon.getDamage(dist, target.beamDefense, b.rules.BeamRangeDropoff)
-		if leftoverBeamDamage > 0 {
-			damage = leftoverBeamDamage
-			leftoverBeamDamage = 0
+		// reset the damage to base damage if this weapon hits all targets
+		if weapon.hitsAllTargets {
+			damage = weapon.power * weapon.slotQuantity * attacker.Quantity
 		}
 
-		numDestroyed := 0
-		totalArmorDamage := 0
-		totalShieldDamage := 0
-
-		beamNum = 0
-		for remainingBeams > 0 && !target.destroyed {
-			// fire a torpedo
-			beamNum++
-			remainingBeams--
-
-			log.Debug().Msgf("%v fired a %v at %v (shields: %v, armor: %v, distance: %v, %v@%v damage) for %v (range adjusted to %v)", weapon.token, weapon.slot.HullComponent, target, shields, armor, dist, target.Quantity, target.Damage, weapon.power, damage)
-
-			if damage > shields && !weapon.damagesShieldsOnly {
-				armorDamage := damage - shields
-				totalArmorDamage += armorDamage
-				totalShieldDamage = shields
-				target.stackShields = 0
-
-				existingDamage := target.Damage * float64(target.QuantityDamaged)
-				armorDamage += int(existingDamage)
-
-				numDestroyed := int(float64(armorDamage) / float64(armor))
-				if numDestroyed >= target.Quantity {
-					numDestroyed = target.Quantity
-					target.Quantity = 0
-					target.QuantityDamaged = 0
-					target.Damage = 0
-					target.quantityDestroyed += numDestroyed
-					b.board[target.Position.Y][target.Position.X] -= numDestroyed
-					armorDamage -= armor * numDestroyed
-
-					// if we have leftover juice, pass it to the next target
-					leftoverBeamDamage = (damage * beamNum) - (totalShieldDamage + armor * numDestroyed)
-					if leftoverBeamDamage > 0 {
-						remainingBeams++
-					}
-
-					target.destroyed = true
-					log.Debug().Msgf("%v %v did %v shield damage and %v armor damage and completely destroyed %v", weapon.token, weapon.slot.HullComponent, shields, armorDamage, target)
-
-				} else {
-					if numDestroyed > 0 {
-						target.Quantity -= numDestroyed
-						target.quantityDestroyed += numDestroyed
-						b.board[target.Position.Y][target.Position.X] -= numDestroyed
-					}
-
-					armorDamage -= armor * numDestroyed
-
-					if armorDamage > 0 {
-						target.Damage = float64(armorDamage) / float64(target.Quantity)
-						target.QuantityDamaged = target.Quantity
-						log.Debug().Msgf("%v destroyed %v ships, leaving %v damaged %v@%v damage", weapon.token, numDestroyed, target, target.Quantity, target.Damage)
-					}
-				}
-
-			} else {
-				// no more damage left, all absorbed by shields
-				totalShieldDamage += damage
-				target.stackShields -= damage
-				target.stackShields = MaxInt(0, target.stackShields) // make sure we don't go below 0
-				log.Debug().Msgf("%v fired %v(s) did %v damage to %v shields, leaving %v shields still operational.", weapon.token, weapon.slot.HullComponent, damage, target, target.stackShields)
-			}
+		if damage == 0 {
+			// no more damage to do
+			break
 		}
+
+		// check the damage against this target
+		bwd := weapon.getTargetBeamDamage(damage, target, b.rules.BeamRangeDropoff)
+		log.Debug().Msgf("%v fired a %vx%d at %v (shields: %v, armor: %v, %v@%v damage) for %v damage", weapon.token, weapon.slot.HullComponent, weapon.slotQuantity*weapon.token.Quantity, target, target.totalStackShields, target.armor, target.Quantity, target.Damage, bwd.armorDamage)
+
+		// update stack shields
+		target.stackShields -= bwd.shieldDamage
+
+		// update damage for the next target
+		damage = bwd.leftoverDamage
+
+		if bwd.numDestroyed >= target.Quantity {
+			target.Quantity = 0
+			target.QuantityDamaged = 0
+			target.Damage = 0
+			target.quantityDestroyed += bwd.numDestroyed
+			b.board[target.Position.Y][target.Position.X] -= bwd.numDestroyed
+			target.destroyed = true
+			log.Debug().Msgf("%v %v did %v shield damage and %v armor damage (leftoverDamage %d) and completely destroyed %v", weapon.token, weapon.slot.HullComponent, bwd.shieldDamage, bwd.armorDamage, bwd.leftoverDamage, target)
+
+			// record one round of beam fire per target
+			b.record.recordBeamFire(b.round, weapon.token, weapon.token.Position, target.Position, weapon.slot.HullSlotIndex, *target, bwd.shieldDamage, bwd.armorDamage, bwd.numDestroyed)
+
+			// next target
+			continue
+		}
+
+		// handle any destroyed tokens
+		target.Quantity -= bwd.numDestroyed
+		target.quantityDestroyed += bwd.numDestroyed
+		b.board[target.Position.Y][target.Position.X] -= bwd.numDestroyed
+
+		// apply damage to this ship
+		target.Damage = bwd.damage
+		target.QuantityDamaged = bwd.quantityDamaged
+
+		log.Debug().Msgf("%v destroyed %v ships (leftoverDamage %d), leaving %v damaged %v@%v damage", weapon.token, bwd.numDestroyed, bwd.leftoverDamage, target, target.Quantity, target.Damage)
+		target.damaged = true
 
 		// record one round of beam fire per target
-		b.record.recordBeamFire(b.round, weapon.token, weapon.token.Position, target.Position, weapon.slot.HullSlotIndex, *target, totalShieldDamage, totalArmorDamage, numDestroyed)
-
-		// reuse all these beams for the next target
-		if weapon.hitsAllTargets {
-			remainingBeams = numBeams
-			leftoverBeamDamage = 0
-		}
-
-		log.Debug().Msgf("%v %v %v(s) has %d remaining beams to burn through %v additional targets.", weapon.token, remainingBeams, weapon.slot.HullComponent, remainingBeams, len(targets)-1)
-
-		target.damaged = true
+		b.record.recordBeamFire(b.round, weapon.token, weapon.token.Position, target.Position, weapon.slot.HullSlotIndex, *target, bwd.shieldDamage, bwd.armorDamage, bwd.numDestroyed)
 	}
 }
 
@@ -833,14 +799,14 @@ func (b *battle) getDamageDone(token *battleToken, distance int) int {
 		switch weapon.weaponType {
 		case battleWeaponTypeBeam:
 			// TODO: consider sappers + shields
-			damage := weapon.power * weapon.quantity * token.Quantity
+			damage := weapon.power * weapon.slotQuantity * token.Quantity
 			if weapon.weaponRange > 0 {
 				damage = int(float64(damage) * (1 - b.rules.BeamRangeDropoff*float64(distance)/float64(weapon.weaponRange)))
 			}
 			damageDone += damage
 		case battleWeaponTypeTorpedo:
 			// assume every torpedo hits
-			damageDone += weapon.power * weapon.quantity * token.Quantity
+			damageDone += weapon.power * weapon.slotQuantity * token.Quantity
 		}
 	}
 
@@ -855,7 +821,7 @@ func (b *battle) getDamageDone(token *battleToken, distance int) int {
 func (b *battle) fireTorpedo(weapon *battleWeaponSlot, targets []*battleToken) {
 	attacker := weapon.token
 	damage := weapon.power
-	numTorpedos := weapon.quantity * attacker.Quantity
+	numTorpedos := weapon.slotQuantity * attacker.Quantity
 
 	log.Debug().Msgf("%s is attempting to fire at %d targets with %d torpedos at %.2f%% accuracy for %d damage each",
 		weapon.token, len(targets), numTorpedos, (weapon.getAccuracy(0))*100.0, damage)
@@ -1264,6 +1230,67 @@ func (weapon *battleWeaponSlot) getDamage(dist int, beamDefense, beamDropoff flo
 		return int(math.Ceil(float64(weapon.power) * (1 - float64(dist)/float64(weapon.weaponRange)*beamDropoff) * (1 - beamDefense)))
 	}
 	return int(math.Ceil(float64(weapon.power) * (1 - beamDefense)))
+}
+
+// get beam damage with dropoff and defense included
+func getBeamDamageAtRange(damage, weaponRange, dist int, beamDefense float64, beamRangeDropoff float64) int {
+	if weaponRange > 0 {
+		return int(math.Round(float64(damage) * (1 - float64(dist)/float64(weaponRange)*beamRangeDropoff) * (1 - beamDefense)))
+	}
+	return int(math.Round(float64(damage) * (1 - beamDefense)))
+}
+
+// given a volly of beam damage, get how much will be applied to this target's shields and armor
+// and how much is leftover after
+func (weapon *battleWeaponSlot) getTargetBeamDamage(damage int, target *battleToken, beamRangeDropoff float64) battleWeaponDamage {
+
+	// drain any range/defelctor penalty from damage
+	dist := weapon.token.getDistanceAway(target.Position)
+	damage = getBeamDamageAtRange(damage, weapon.weaponRange, dist, target.beamDefense, beamRangeDropoff)
+
+	// sappers only damage shields, can't damage more shields than we have
+	if weapon.damagesShieldsOnly {
+		return battleWeaponDamage{shieldDamage: MinInt(target.stackShields, damage)}
+	}
+
+	armor := target.armor
+	shields := target.stackShields
+	if damage >= shields {
+		bwd := battleWeaponDamage{}
+		bwd.shieldDamage = shields
+		bwd.armorDamage = damage - shields
+
+		// if this stack is damaged froma previous hit, account for that
+		existingDamage := target.Damage * float64(target.QuantityDamaged)
+		newDamage := float64(bwd.armorDamage) + existingDamage
+
+		// see how many ships were destroyed
+		bwd.numDestroyed = int(newDamage / float64(armor))
+		newDamage -= float64(bwd.numDestroyed) * float64(armor)
+		if newDamage > 0 {
+			bwd.quantityDamaged = target.Quantity - bwd.numDestroyed
+			if bwd.quantityDamaged > 0 {
+				bwd.damage = newDamage / float64(bwd.quantityDamaged)
+			}
+		}
+
+		if bwd.numDestroyed >= target.Quantity {
+			// we killed the whole stack, make sure our damage numbers reflect that
+			bwd.numDestroyed = target.Quantity
+
+			// we destroyed all armor remaining and have some possible leftover damage
+			// at this point our armor damage and damage are the same
+			bwd.armorDamage = (armor * bwd.numDestroyed) - int(existingDamage)
+			bwd.leftoverDamage = damage - bwd.armorDamage - bwd.shieldDamage
+			bwd.quantityDamaged = 0
+			bwd.damage = 0
+		}
+
+		return bwd
+	}
+
+	// we didn't get through the shields
+	return battleWeaponDamage{shieldDamage: damage}
 }
 
 // get the accuracy of a torpedo against a target
