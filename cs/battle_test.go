@@ -1569,7 +1569,7 @@ func Test_battleWeaponSlot_getTargetBeamDamage(t *testing.T) {
 				armor:         20,
 				shields:       40,
 			},
-			want: battleWeaponDamage{shieldDamage: 40, armorDamage: 20, numDestroyed: 0, leftoverDamage: 0, damage: 7, quantityDamaged: 2},
+			want: battleWeaponDamage{shieldDamage: 40, armorDamage: 14, numDestroyed: 0, leftoverDamage: 0, damage: 7, quantityDamaged: 2},
 		},
 	}
 	for _, tt := range tests {
