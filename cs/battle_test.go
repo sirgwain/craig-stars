@@ -1548,6 +1548,29 @@ func Test_battleWeaponSlot_getTargetBeamDamage(t *testing.T) {
 			},
 			want: battleWeaponDamage{shieldDamage: 20, armorDamage: 20, numDestroyed: 1, leftoverDamage: 20, damage: 0, quantityDamaged: 0},
 		},
+		{
+			name:   "2 ships, 3 lasers, 2 targets with 20x2 shields 20dp, destroy one",
+			fields: fields{shipQuantity: 2, slotQuantity: 3, weaponRange: 1},
+			args: args{
+				damage:        60, // 3 lasers * 2 ships * 10 damage each
+				tokenQuantity: 2,
+				armor:         20,
+				shields:       40,
+			},
+			want: battleWeaponDamage{shieldDamage: 40, armorDamage: 20, numDestroyed: 1, leftoverDamage: 0, damage: 0, quantityDamaged: 0},
+		},
+		{
+			name:   "2 ships, 3 lasers, 2 targets 1sq away with 20x2 shields 20dp, damage both",
+			fields: fields{shipQuantity: 2, slotQuantity: 3, weaponRange: 1},
+			args: args{
+				position:      BattleVector{1, 0}, // 1 away
+				damage:        60,                 // 3 lasers * 2 ships * 10 damage each
+				tokenQuantity: 2,
+				armor:         20,
+				shields:       40,
+			},
+			want: battleWeaponDamage{shieldDamage: 40, armorDamage: 20, numDestroyed: 0, leftoverDamage: 0, damage: 7, quantityDamaged: 2},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
