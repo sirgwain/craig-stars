@@ -789,25 +789,15 @@ func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot, targets []*battleToken
 	}
 }
 
-func (b *battle) getDamageDone(token *battleToken, distance int) int {
+// Get estimated damage amounts this token's weapons will inflict at a given range
+func (b *battle) getEstimatedDamage(token *battleToken, distance int) int {
 	damageDone := 0
 	for _, weapon := range token.weaponSlots {
 		if !weapon.isInRangeValue(distance) {
 			// no damage, skip this weapon
 			continue
 		}
-		switch weapon.weaponType {
-		case battleWeaponTypeBeam:
-			// TODO: consider sappers + shields
-			damage := weapon.power * weapon.slotQuantity * token.Quantity
-			if weapon.weaponRange > 0 {
-				damage = int(float64(damage) * (1 - b.rules.BeamRangeDropoff*float64(distance)/float64(weapon.weaponRange)))
-			}
-			damageDone += damage
-		case battleWeaponTypeTorpedo:
-			// assume every torpedo hits
-			damageDone += weapon.power * weapon.slotQuantity * token.Quantity
-		}
+		damageDone += weapon.getDamage(distance, 0, b.rules.BeamRangeDropoff) * weapon.slotQuantity * token.Quantity
 	}
 
 	return damageDone
@@ -1070,11 +1060,11 @@ func (b *battle) getBestMove(token *battleToken) BattleVector {
 
 			// figure out how well this move is
 			distance := newPosition.distance(target.Position)
-			damageDone := b.getDamageDone(token, distance)
+			damageDone := b.getEstimatedDamage(token, distance)
 			damageTaken := 0
 			for _, attacker := range token.targetedBy {
 				distanceToAttacker := newPosition.distance(attacker.Position)
-				damageTaken += b.getDamageDone(attacker, distanceToAttacker)
+				damageTaken += b.getEstimatedDamage(attacker, distanceToAttacker)
 			}
 
 			// if this will move us closer to our target, see if it's the best low damage move

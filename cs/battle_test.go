@@ -1596,6 +1596,7 @@ func Test_getBeamDamageAtRange(t *testing.T) {
 	}{
 		{"1 laser, 0 range", args{damage: 10, weaponRange: 1, dist: 0}, 10},
 		{"1 laser, 1 range", args{damage: 10, weaponRange: 1, dist: 1}, 9},
+		{"2 colloidal phasers, 3 range", args{damage: 52, weaponRange: 3, dist: 3}, 47}, // real Stars! is 48...
 		{"1 laser, 0 range, 1 deflector", args{damage: 10, weaponRange: 1, dist: 0, beamDefense: .1}, 9},
 		{"1 laser, 1 range, 1 deflector", args{damage: 10, weaponRange: 1, dist: 1, beamDefense: .1}, 8},
 	}
