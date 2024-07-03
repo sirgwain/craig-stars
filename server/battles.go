@@ -77,7 +77,7 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 				{HullComponent: cs.TransGalacticDrive.Name, HullSlotIndex: 1, Quantity: 1},
 				{HullComponent: cs.ManeuveringJet.Name, HullSlotIndex: 6, Quantity: 1},
 				{HullComponent: cs.BattleComputer.Name, HullSlotIndex: 7, Quantity: 1},
-				{HullComponent: cs.Strobnium.Name, HullSlotIndex: 5, Quantity: 1},
+				{HullComponent: cs.Strobnium.Name, HullSlotIndex: 5, Quantity: 2},
 				{HullComponent: cs.BetaTorpedo.Name, HullSlotIndex: 2, Quantity: 1},
 				{HullComponent: cs.BetaTorpedo.Name, HullSlotIndex: 4, Quantity: 1},
 				{HullComponent: cs.BetaTorpedo.Name, HullSlotIndex: 3, Quantity: 1},
