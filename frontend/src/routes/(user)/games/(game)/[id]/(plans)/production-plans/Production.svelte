@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { quantityModifier } from '$lib/quantityModifier';
 	import type { DesignFinder } from '$lib/services/Universe';
 	import { fromQueueItemType, getQueueItemShortName } from '$lib/types/Planet';
 	import type { ProductionQueueItem } from '$lib/types/Production';
 	import { QueueItemTypes, isAuto } from '$lib/types/QueueItemType';
 	import { createEventDispatcher } from 'svelte';
 	import ProductionPlanItemsButtons from './ProductionItemsButtons.svelte';
+	import QuantityModifierButtons from '$lib/components/QuantityModifierButtons.svelte';
 
 	const dispatch = createEventDispatcher();
 
@@ -20,8 +20,9 @@
 		fromQueueItemType(QueueItemTypes.AutoMinTerraform)
 	];
 	export let queueItems: ProductionQueueItem[] = [];
-
 	export let queueItemDescription = getQueueItemShortName;
+
+	let quantityModifier = 1;
 
 	let selectedAvailableItem: ProductionQueueItem | undefined;
 
@@ -45,7 +46,7 @@
 			return;
 		}
 
-		const quantity = quantityModifier(e);
+		const quantity = quantityModifier;
 		if (selectedQueueItem) {
 			if (selectedQueueItem.type == item?.type && selectedQueueItem.designNum == item?.designNum) {
 				selectedQueueItem.quantity += quantity;
@@ -76,7 +77,7 @@
 
 	const removeItem = (e: MouseEvent) => {
 		if (queueItems && selectedQueueItem) {
-			selectedQueueItem.quantity -= quantityModifier(e);
+			selectedQueueItem.quantity -= quantityModifier;
 			queueItems = queueItems;
 			if (selectedQueueItem.quantity <= 0) {
 				// select the item up in the list
@@ -145,6 +146,9 @@
 			on:item-down={() => itemDown()}
 			on:clear={() => clear()}
 		/>
+		<div class="flex flex-col sm:flex-row justify-between mt-2 gap-1 mx-1">
+			<QuantityModifierButtons bind:modifier={quantityModifier} />
+		</div>
 	</div>
 
 	<div class="grow">
@@ -172,7 +176,7 @@
 								? 'bg-primary'
 								: ''} {isAuto(queueItem.type) ? 'italic' : ''}"
 						>
-							<div class="flex justify-between ">
+							<div class="flex justify-between">
 								<div>
 									{queueItemDescription(queueItem, designFinder)}
 								</div>

@@ -2,7 +2,6 @@
 	import { CargoTransferRequest } from '$lib/types/Cargo';
 	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
 	import type { Planet } from '$lib/types/Planet';
-	import { quantityModifier } from '$lib/quantityModifier';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
 	import { add, negativeCargo, totalCargo } from '$lib/types/Cargo';
@@ -12,6 +11,7 @@
 	import PlanetTransfer from './PlanetTransfer.svelte';
 	import SalvageTransfer from './SalvageTransfer.svelte';
 	import TransferButtons from './TransferButtons.svelte';
+	import QuantityModifierButtons from '$lib/components/QuantityModifierButtons.svelte';
 
 	const { game, player, universe } = getGameContext();
 
@@ -26,6 +26,7 @@
 
 	let srcCargo = new CargoTransferRequest(src.cargo, src.fuel);
 	let destCargo = new CargoTransferRequest(dest?.cargo, dest && 'fuel' in dest ? dest.fuel : 0);
+	let quantityModifier = 1;
 
 	$: destFleet = dest?.type === MapObjectType.Fleet ? (dest as Fleet) : undefined;
 
@@ -187,8 +188,8 @@
 		<div class="flex-none flex flex-col mx-0.5 w-20 px-1 mt-8">
 			{#if dest?.type == MapObjectType.Fleet}
 				<TransferButtons
-					on:transfer-to-source={(e) => transferFuel(quantityModifier(e.detail))}
-					on:transfer-to-dest={(e) => transferFuel(-quantityModifier(e.detail))}
+					on:transfer-to-source={(e) => transferFuel(quantityModifier)}
+					on:transfer-to-dest={(e) => transferFuel(-quantityModifier)}
 					class="mt-8 sm:mt-2"
 				/>
 			{:else}
@@ -196,21 +197,24 @@
 			{/if}
 			<div class="mt-28 h-40 sm:mt-16 sm:h-28 flex flex-col justify-between">
 				<TransferButtons
-					on:transfer-to-source={(e) => transferIronium(quantityModifier(e.detail))}
-					on:transfer-to-dest={(e) => transferIronium(-quantityModifier(e.detail))}
+					on:transfer-to-source={(e) => transferIronium(quantityModifier)}
+					on:transfer-to-dest={(e) => transferIronium(-quantityModifier)}
 				/>
 				<TransferButtons
-					on:transfer-to-source={(e) => transferBoranium(quantityModifier(e.detail))}
-					on:transfer-to-dest={(e) => transferBoranium(-quantityModifier(e.detail))}
+					on:transfer-to-source={(e) => transferBoranium(quantityModifier)}
+					on:transfer-to-dest={(e) => transferBoranium(-quantityModifier)}
 				/>
 				<TransferButtons
-					on:transfer-to-source={(e) => transferGermanium(quantityModifier(e.detail))}
-					on:transfer-to-dest={(e) => transferGermanium(-quantityModifier(e.detail))}
+					on:transfer-to-source={(e) => transferGermanium(quantityModifier)}
+					on:transfer-to-dest={(e) => transferGermanium(-quantityModifier)}
 				/>
 				<TransferButtons
-					on:transfer-to-source={(e) => transferColonists(quantityModifier(e.detail))}
-					on:transfer-to-dest={(e) => transferColonists(-quantityModifier(e.detail))}
+					on:transfer-to-source={(e) => transferColonists(quantityModifier)}
+					on:transfer-to-dest={(e) => transferColonists(-quantityModifier)}
 				/>
+			</div>
+			<div class="flex flex-col justify-between mt-2 gap-1 mx-1">
+				<QuantityModifierButtons bind:modifier={quantityModifier} />
 			</div>
 		</div>
 		<div class="flex-1 h-full bg-base-100 py-1 px-1">

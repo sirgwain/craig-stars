@@ -36,8 +36,8 @@
 		if (copyParam) {
 			const copyDesign = $game.universe.getMyDesign(parseInt(copyParam));
 			if (copyDesign) {
-				design.slots = copyDesign?.slots;
-				design.spec = copyDesign.spec;
+				design.slots = copyDesign?.slots.map((s) => Object.assign({}, s));
+				design.spec = Object.assign({}, copyDesign.spec);
 				design.hullSetNumber = copyDesign.hullSetNumber;
 				design.version = copyDesign.version + 1;
 			}

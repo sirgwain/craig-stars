@@ -11,11 +11,11 @@
 	import CostComponent from '$lib/components/game/Cost.svelte';
 	import ProductionQueueItemLine from '$lib/components/game/ProductionQueueItemLine.svelte';
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
-	import { quantityModifier } from '$lib/quantityModifier';
+	import QuantityModifierButtons from '$lib/components/QuantityModifierButtons.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { NeverBuilt, getProductionEstimates } from '$lib/services/Producer';
 	import { techs } from '$lib/services/Stores';
-	import { divide, multiply, total, type Cost } from '$lib/types/Cost';
+	import { divide, multiply, type Cost } from '$lib/types/Cost';
 	import { CommandedPlanet } from '$lib/types/Planet';
 	import type { ProductionPlan } from '$lib/types/Player';
 	import type { ProductionQueueItem } from '$lib/types/Production';
@@ -56,6 +56,9 @@
 		: 0;
 
 	$: updatedPlanet = Object.assign(new CommandedPlanet(), planet);
+
+	// keep track of the quantity modifier
+	let quantityModifer = 1;
 
 	function availableItemSelected(type: ProductionQueueItem) {
 		selectedAvailableItem = type;
@@ -142,7 +145,7 @@
 		const max = isAuto(item.type)
 			? 5000
 			: planet.getMaxBuildable($techs, $player, maxPopulation, item.type, amountInQueue);
-		const quantity = clamp(quantityModifier(e), 0, max);
+		const quantity = clamp(quantityModifer, 0, max);
 		if (quantity == 0) {
 			// don't add something we can't build any more of
 			return;
@@ -211,7 +214,7 @@
 
 	function removeItem(e: MouseEvent) {
 		if (queueItems && selectedQueueItem) {
-			selectedQueueItem.quantity -= quantityModifier(e);
+			selectedQueueItem.quantity -= quantityModifer;
 			selectedQueueItem.quantity = Math.max(0, selectedQueueItem.quantity);
 			queueItems = queueItems;
 			if (selectedQueueItem.quantity <= 0) {
@@ -490,7 +493,7 @@
 						</div>
 					</div>
 				</div>
-				<div class="flex-none h-full mx-0.5 md:w-32 px-1">
+				<div class="flex-none h-full mx-0.5 md:w-34 px-1">
 					<div class="flex-row flex-none gap-y-2">
 						<button
 							on:click={(e) => addAvailableItem(e)}
@@ -551,6 +554,9 @@
 								<option value={plan.num}>{plan.name}</option>
 							{/each}
 						</select>
+						<div class="flex flex-col sm:flex-row justify-between mt-2 gap-1 mx-1">
+							<QuantityModifierButtons bind:modifier={quantityModifer} />
+						</div>
 					</div>
 				</div>
 				<div class="flex-1 h-full bg-base-100 py-1">
