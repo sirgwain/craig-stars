@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { clamp } from '$lib/services/Math';
-	import { createEventDispatcher } from 'svelte';
 	import type { ValueChangedEvent } from '$lib/ValueChangedEvent';
-	import { read } from '$app/server';
+	import { createEventDispatcher } from 'svelte';
 
 	export let value = 0;
 	export let capacity = 0;
