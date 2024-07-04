@@ -310,7 +310,7 @@ func (t *TechPlanetaryScanner) String() string { return t.Name }
 func (t *TechDefense) String() string          { return t.Name }
 func (t *TechTerraform) String() string        { return t.Name }
 
-func (t *Tech) GetPlayerCost(techLevels TechLevel, spec MiniaturizationSpec) Cost {
+func (t *Tech) GetPlayerCost(techLevels TechLevel, spec MiniaturizationSpec, costOffset TechCostOffset) Cost {
 	// figure out miniaturization
 	// this is 4% per level above the required tech we have.
 	// We count the smallest diff, i.e. if you have
@@ -362,12 +362,26 @@ func (t *Tech) GetPlayerCost(techLevels TechLevel, spec MiniaturizationSpec) Cos
 		miniaturizationFactor = 1 - miniaturization
 	}
 
-	return Cost{
-		int(math.Ceil(float64(t.Cost.Ironium) * miniaturizationFactor)),
-		int(math.Ceil(float64(t.Cost.Boranium) * miniaturizationFactor)),
-		int(math.Ceil(float64(t.Cost.Germanium) * miniaturizationFactor)),
-		int(math.Ceil(float64(t.Cost.Resources) * miniaturizationFactor)),
+	// apply any tech cost offsets
+	cost := t.Cost
+	switch t.Category {
+	case TechCategoryEngine:
+		cost = cost.MultiplyFloat64(1 + costOffset.Engine)
+	case TechCategoryBeamWeapon:
+		cost = cost.MultiplyFloat64(1 + costOffset.BeamWeapon)
+	case TechCategoryBomb:
+		cost = cost.MultiplyFloat64(1 + costOffset.Bomb)
+	case TechCategoryTorpedo:
+		cost = cost.MultiplyFloat64(1 + costOffset.Torpedo)
 	}
+
+	return Cost{
+		int(math.Ceil(float64(cost.Ironium) * miniaturizationFactor)),
+		int(math.Ceil(float64(cost.Boranium) * miniaturizationFactor)),
+		int(math.Ceil(float64(cost.Germanium) * miniaturizationFactor)),
+		int(math.Ceil(float64(cost.Resources) * miniaturizationFactor)),
+	}
+
 	// if we are at level 26, a beginner tech would cost (26 * .04)
 	// return cost * (1 - Math.Min(.75, .04 * lowestRequiredDiff));
 }

@@ -15,6 +15,7 @@ import { humanoid, type Race } from './Race';
 import type { Salvage } from './Salvage';
 import type { ShipDesign } from './ShipDesign';
 import {
+	TechCategory,
 	TerraformHabTypes,
 	getBestTerraform,
 	type Tech,
@@ -22,7 +23,13 @@ import {
 	type TechPlanetaryScanner,
 	type TechStore
 } from './Tech';
-import { TechField, emptyTechLevel, hasRequiredLevels, type TechLevel } from './TechLevel';
+import {
+	TechField,
+	emptyTechLevel,
+	hasRequiredLevels,
+	minTechLevel,
+	type TechLevel
+} from './TechLevel';
 import type { Wormhole } from './Wormhole';
 
 export type PlayerStatus = {
@@ -339,6 +346,115 @@ export class Player implements PlayerResponse, CostFinder {
 			}
 		});
 		return terraformAbility;
+	}
+
+	public getTechCost(t: Tech): Cost {
+		// figure out miniaturization
+		// this is 4% per level above the required tech we have.
+		// We count the smallest diff, i.e. if you have
+		// tech level 10 energy, 12 bio and the tech costs 9 energy, 4 bio
+		// the smallest level difference you have is 1 energy level (not 8 bio levels)
+
+		const levelDiff: TechLevel = {
+			energy: -1,
+			weapons: -1,
+			propulsion: -1,
+			construction: -1,
+			electronics: -1,
+			biotechnology: -1
+		};
+
+		const techLevels = {
+			energy: this.techLevels.energy ?? 0,
+			weapons: this.techLevels.weapons ?? 0,
+			propulsion: this.techLevels.propulsion ?? 0,
+			construction: this.techLevels.construction ?? 0,
+			electronics: this.techLevels.electronics ?? 0,
+			biotechnology: this.techLevels.biotechnology ?? 0
+		};
+		const requirements = {
+			energy: t.requirements.energy ?? 0,
+			weapons: t.requirements.weapons ?? 0,
+			propulsion: t.requirements.propulsion ?? 0,
+			construction: t.requirements.construction ?? 0,
+			electronics: t.requirements.electronics ?? 0,
+			biotechnology: t.requirements.biotechnology ?? 0
+		};
+		// From the diff between the player level and the requirements, find the lowest difference
+		// i.e. 1 energey level in the example above
+		let numTechLevelsAboveRequired = Number.MAX_SAFE_INTEGER;
+		if (requirements.energy > 0) {
+			levelDiff.energy = techLevels.energy - requirements.energy;
+			numTechLevelsAboveRequired = Math.min(levelDiff.energy, numTechLevelsAboveRequired);
+		}
+		if (requirements.weapons > 0) {
+			levelDiff.weapons = techLevels.weapons - requirements.weapons;
+			numTechLevelsAboveRequired = Math.min(levelDiff.weapons, numTechLevelsAboveRequired);
+		}
+		if (requirements.propulsion > 0) {
+			levelDiff.propulsion = techLevels.propulsion - requirements.propulsion;
+			numTechLevelsAboveRequired = Math.min(levelDiff.propulsion, numTechLevelsAboveRequired);
+		}
+		if (requirements.construction > 0) {
+			levelDiff.construction = techLevels.construction - requirements.construction;
+			numTechLevelsAboveRequired = Math.min(levelDiff.construction, numTechLevelsAboveRequired);
+		}
+		if (requirements.electronics > 0) {
+			levelDiff.electronics = techLevels.electronics - requirements.electronics;
+			numTechLevelsAboveRequired = Math.min(levelDiff.electronics, numTechLevelsAboveRequired);
+		}
+		if (requirements.biotechnology > 0) {
+			levelDiff.biotechnology = techLevels.biotechnology - requirements.biotechnology;
+			numTechLevelsAboveRequired = Math.min(levelDiff.biotechnology, numTechLevelsAboveRequired);
+		}
+
+		// for starter techs, they are all 0 requirements, so just use our lowest field
+		if (numTechLevelsAboveRequired == Number.MAX_SAFE_INTEGER) {
+			numTechLevelsAboveRequired = minTechLevel(techLevels);
+		}
+
+		// As we learn techs, they get cheaper. We start off with full priced techs, but every additional level of research we learn makes
+		// techs cost a little less, maxing out at some discount (i.e. 75% or 80% for races with BET)
+
+		let miniaturization = Math.min(
+			this.race.spec?.miniaturizationMax ?? 0,
+			(this.race.spec?.miniaturizationPerLevel ?? 0) * numTechLevelsAboveRequired
+		);
+		// New techs cost BET races 2x
+		// new techs will have 0 for miniaturization.
+		let miniaturizationFactor = this.race.spec?.newTechCostFactor ?? 1;
+		if (numTechLevelsAboveRequired > 0) {
+			miniaturizationFactor = 1 - miniaturization;
+		}
+
+		let cost = Object.assign({}, t.cost);
+		const costOffset = {
+			engine: this.race.spec?.techCostOffset.engine ?? 0,
+			beamWeapon: this.race.spec?.techCostOffset.beamWeapon ?? 0,
+			torpedo: this.race.spec?.techCostOffset.torpedo ?? 0,
+			bomb: this.race.spec?.techCostOffset.bomb ?? 0,
+			planetaryDefense: this.race.spec?.techCostOffset.planetaryDefense ?? 0
+		};
+		switch (t.category) {
+			case TechCategory.Engine:
+				cost = multiply(cost, 1 + costOffset.engine);
+				break;
+			case TechCategory.BeamWeapon:
+				cost = multiply(cost, 1 + costOffset.beamWeapon);
+				break;
+			case TechCategory.Bomb:
+				cost = multiply(cost, 1 + costOffset.bomb);
+				break;
+			case TechCategory.Torpedo:
+				cost = multiply(cost, 1 + costOffset.torpedo);
+				break;
+		}
+		return {
+			ironium: Math.ceil((cost.ironium ?? 0) * miniaturizationFactor),
+			boranium: Math.ceil((cost.boranium ?? 0) * miniaturizationFactor),
+			germanium: Math.ceil((cost.germanium ?? 0) * miniaturizationFactor),
+			resources: Math.ceil((cost.resources ?? 0) * miniaturizationFactor)
+		};
 	}
 }
 

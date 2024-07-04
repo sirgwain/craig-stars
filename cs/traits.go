@@ -297,9 +297,9 @@ func isSpec() PRTSpec {
 
 	spec.TechCostOffset = TechCostOffset{
 		PlanetaryDefense: -.4, // defenses cost 40% less
-		BeamWeapon:       .25, // weapons cost 25% less
-		Torpedo:          .25, // weapons cost 25% less
-		Bomb:             .25, // weapons cost 25% less
+		BeamWeapon:       .25, // weapons cost 25% more
+		Torpedo:          .25, // weapons cost 25% more
+		Bomb:             .25, // weapons cost 25% more
 	}
 
 	spec.FreighterGrowthFactor = .5

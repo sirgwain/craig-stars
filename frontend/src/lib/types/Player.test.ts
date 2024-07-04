@@ -1,7 +1,7 @@
 import techjson from '$lib/ssr/techs.json';
 import { describe, expect, it } from 'vitest';
 import { Player, canLearnTech } from './Player';
-import { LRT, PRT } from './Race';
+import { LRT, PRT, type RaceSpec } from './Race';
 import type { ShipDesign } from './ShipDesign';
 import { TechCategory, type TechEngine, type TechHullComponent, type TechStore } from './Tech';
 
@@ -221,5 +221,39 @@ describe('player test', () => {
 		expect(player.getStarbaseUpgradeCost(techStore, orbitalFort2Design, baseStationDesign)).toEqual(
 			{ ironium: 0, boranium: 0, germanium: 0, resources: 0 }
 		);
+	});
+	it('getTechCost', () => {
+		const player = new Player();
+		player.techLevels = {};
+
+		// default
+		expect(player.getTechCost(fuelMizer)).toEqual({
+			ironium: 8,
+			boranium: 0,
+			germanium: 0,
+			resources: 11
+		});
+		// miniaturized
+		player.techLevels = { propulsion: 10 };
+		expect(player.getTechCost(fuelMizer)).toEqual({
+			ironium: 6,
+			boranium: 0,
+			germanium: 0,
+			resources: 8
+		});
+
+		// cheap engine race, 50% cheaper
+		player.techLevels = {};
+		player.race.spec = Object.assign(player.race.spec ?? {}, {
+			techCostOffset: {
+				engine: -0.5
+			}
+		}) as RaceSpec;
+		expect(player.getTechCost(fuelMizer)).toEqual({
+			ironium: 4,
+			boranium: 0,
+			germanium: 0,
+			resources: 5
+		});
 	});
 });
