@@ -99,3 +99,14 @@ export function get(tl: TechLevel, field: TechField): number {
 			throw new Error('invalid field: ' + field);
 	}
 }
+
+export function minTechLevel(tl: TechLevel): number {
+	return Math.min(
+		tl.energy ?? 0,
+		tl.weapons ?? 0,
+		tl.propulsion ?? 0,
+		tl.construction ?? 0,
+		tl.electronics ?? 0,
+		tl.biotechnology ?? 0
+	);
+}

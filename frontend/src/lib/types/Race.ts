@@ -423,7 +423,13 @@ export const humanoid = (): Race => ({
 				]
 			}
 		],
-		techCostOffset: {},
+		techCostOffset: {
+			engine: 0,
+			beamWeapon: 0,
+			torpedo: 0,
+			bomb: 0,
+			planetaryDefense: 0
+		},
 		mineralsPerSingleMineralPacket: 100,
 		mineralsPerMixedMineralPacket: 40,
 		packetResourceCost: 10,

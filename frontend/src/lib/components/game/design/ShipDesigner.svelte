@@ -261,7 +261,7 @@
 						>
 					</div>
 					<div class="pl-2">
-						<Cost cost={selectedComponent.cost} />
+						<Cost cost={$player.getTechCost(selectedComponent)} />
 					</div>
 				{/if}
 			</div>
