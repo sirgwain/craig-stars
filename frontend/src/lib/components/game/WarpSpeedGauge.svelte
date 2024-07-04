@@ -18,7 +18,8 @@
 	let percent = 0;
 	let color = defaultColor;
 
-	let pointerdown = false;
+	let pointerDown = false;
+	let touchStarted = false;
 
 	$: percent = max > 0 ? ((value ?? 0) / max) * 100 : 0;
 
@@ -41,26 +42,66 @@
 	const getXFromPointerEvent = (e: PointerEvent) =>
 		(e.clientX - ref.getBoundingClientRect().left) / ref.getBoundingClientRect().width;
 
-	const onPointerDown = (x: number) => {
-		pointerdown = true;
-		updateValue(x);
+	function onPointerDown(e: PointerEvent) {
+		if (touchStarted) {
+			return;
+		}
+		pointerDown = true;
+		updateValue(getXFromPointerEvent(e));
 		window.addEventListener('pointerup', onPointerUp);
 		window.addEventListener('pointermove', onPointerMove);
-	};
+		document.body.classList.add('select-none', 'touch-none');
+		document.body.classList.remove('touch-manipulation');
+	}
 
-	function onPointerUp(e: PointerEvent) {
-		e.preventDefault();
+	function onPointerUp() {
 		window.removeEventListener('pointerup', onPointerUp);
 		window.removeEventListener('pointermove', onPointerMove);
-		pointerdown = false;
+		document.body.classList.remove('select-none', 'touch-none');
+		document.body.classList.add('touch-manipulation');
+		pointerDown = false;
 		dispatch('valuechanged', value);
 	}
 
 	const onPointerMove = (e: PointerEvent) => {
-		if (pointerdown) {
+		if (pointerDown) {
 			updateValue(getXFromPointerEvent(e));
 		}
 	};
+
+	function getXFromTouchEvent(e: TouchEvent): number {
+		return (
+			(e.targetTouches[0].clientX - ref.getBoundingClientRect().left) /
+			ref.getBoundingClientRect()?.width
+		);
+	}
+
+	function onTouchStart(e: TouchEvent) {
+		if (e.cancelable) {
+			e.preventDefault();
+		}
+		touchStarted = true;
+		pointerDown = false;
+		onPointerUp();
+		updateValue(getXFromTouchEvent(e));
+		document.body.classList.add('select-none', 'touch-none');
+		document.body.classList.remove('touch-manipulation');
+	}
+
+	function onTouchEnd() {
+		document.body.classList.remove('select-none', 'touch-none');
+		document.body.classList.add('touch-manipulation');
+		touchStarted = false;
+	}
+
+	function onTouchMove(e: TouchEvent) {
+		if (touchStarted) {
+			if (e.cancelable) {
+				e.preventDefault();
+			}
+			updateValue(getXFromTouchEvent(e));
+		}
+	}
 
 	const updateValue = (x: number) => {
 		const newValue = clamp(Math.round(x * max), min, max);
@@ -74,11 +115,10 @@
 <div
 	bind:this={ref}
 	class="border border-secondary w-full h-[1rem] text-[0rem] relative cursor-pointer select-none"
-	on:pointerdown|preventDefault={(e) =>
-		onPointerDown(
-			(e.clientX - e.currentTarget.getBoundingClientRect().left) /
-				e.currentTarget.getBoundingClientRect().width
-		)}
+	on:pointerdown={onPointerDown}
+	on:touchstart={onTouchStart}
+	on:touchmove={onTouchMove}
+	on:touchend={onTouchEnd}
 >
 	<div
 		class="font-semibold text-sm text-center align-middle text-secondary w-full bg-blend-difference absolute"
