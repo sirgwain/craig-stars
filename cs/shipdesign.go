@@ -465,6 +465,8 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 	if numTachyonDetectors > 0 {
 		// 95% ^ (SQRT(#_of_detectors) = Reduction factor for other player's cloaking (Capped at 81% or 17TDs)
 		spec.ReduceCloaking = math.Pow((100.0-float64(rules.TachyonCloakReduction))/100, math.Sqrt(float64(numTachyonDetectors)))
+	} else {
+		spec.ReduceCloaking = 1
 	}
 
 	if spec.NumEngines > 0 {

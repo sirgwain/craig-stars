@@ -463,8 +463,9 @@ func (f *Fleet) InjectDesigns(designs []*ShipDesign) error {
 func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 	spec := FleetSpec{
 		ShipDesignSpec: ShipDesignSpec{
-			ScanRangePen: NoScanner,
-			SpaceDock:    UnlimitedSpaceDock,
+			ScanRangePen:   NoScanner,
+			SpaceDock:      UnlimitedSpaceDock,
+			ReduceCloaking: 1,
 		},
 		Purposes: map[ShipDesignPurpose]bool{},
 	}
@@ -595,7 +596,7 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 		}
 
 		// choose the best tachyon detector ship
-		spec.ReduceCloaking = math.Max(spec.ReduceCloaking, token.design.Spec.ReduceCloaking)
+		spec.ReduceCloaking = math.Min(spec.ReduceCloaking, token.design.Spec.ReduceCloaking)
 
 		spec.CanStealFleetCargo = spec.CanStealFleetCargo || token.design.Spec.CanStealFleetCargo
 		spec.CanStealPlanetCargo = spec.CanStealPlanetCargo || token.design.Spec.CanStealPlanetCargo
