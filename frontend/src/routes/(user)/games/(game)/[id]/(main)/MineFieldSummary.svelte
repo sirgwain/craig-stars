@@ -65,7 +65,7 @@
 		<div class="flex flex-row">
 			<div class="w-40">Chance/l.y. of a Hit:</div>
 			<div>
-				{stats.chanceOfHit * 100}%
+				{(stats.chanceOfHit * 100).toFixed(2)}%
 			</div>
 		</div>
 		<div class="flex flex-row">
