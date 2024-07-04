@@ -243,7 +243,7 @@ export function getNumShips(record: BattleRecord): number {
 export function getOurShips(record: BattleRecord, allies: Set<number>): number {
 	let count = 0;
 	allies.forEach(
-		(ally) => (count += record.stats?.numShipsByPlayer ? record.stats?.numShipsByPlayer[ally] : 0)
+		(ally) => (count += record.stats?.numShipsByPlayer ? (record.stats?.numShipsByPlayer[ally] ?? 0) : 0)
 	);
 	return count;
 }
@@ -265,7 +265,7 @@ export function getOurDead(record: BattleRecord, allies: Set<number>): number {
 	allies.forEach(
 		(ally) =>
 			(count += record.stats?.shipsDestroyedByPlayer
-				? record.stats?.shipsDestroyedByPlayer[ally]
+				? (record.stats?.shipsDestroyedByPlayer[ally] ?? 0)
 				: 0)
 	);
 	return count;
