@@ -7,12 +7,12 @@
 <script lang="ts">
 	import AxisX from '$lib/components/graph/AxisX.html.svelte';
 	import AxisY from '$lib/components/graph/AxisY.html.svelte';
-	import GroupLabels from '$lib/components/graph/GroupLabels.svelte';
 	import MultiLine from '$lib/components/graph/MultiLine.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 
 	import { scaleOrdinal } from 'd3-scale';
 	import { Html, LayerCake, ScaledSvg } from 'layercake';
+	import PlayerScoresGraphLabels from './PlayerScoresGraphLabels.svelte';
 
 	const { game, universe, player } = getGameContext();
 
@@ -22,7 +22,7 @@
 	type DataType = { [k: string]: ScoreTurnValueType[] };
 
 	type DataLongTurnValueType = { player: string; turn: number; value: number };
-	type DataLongType = { player: string; values: DataLongTurnValueType[] }[];
+	type DataLongType = { player: string; playerName: string; values: DataLongTurnValueType[] }[];
 
 	let data: DataType = {};
 
@@ -62,34 +62,51 @@
 
 		const scores = $universe.scores;
 
-		for (let turn = 0; turn < turnsPassed; turn += 1 /*turnsPassed / (numTicks - 1)*/) {
-			$universe.players.forEach((playerIntel, i) => {
-				const name = playerIntel.racePluralName ?? playerIntel.name;
-				const playerScores = scores[i];
-				data[name].push({
-					turn: turn,
-					value: playerScores && playerScores[turn] ? playerScores[turn][type] ?? 0 : 0
-				});
-			});
-		}
+		dataLong = $universe.players.map((playerIntel, i) => {
+			const name = playerIntel.racePluralName ?? playerIntel.name;
+			const playerScores = scores[i];
+
+			return {
+				[zKey]: String(playerIntel.num),
+				playerName: name,
+				values: [...Array(turnsPassed).keys()].map((turn => ({
+					[yKey]: playerScores && playerScores[turn] ? playerScores[turn][type] ?? 0 : 0,
+					[xKey]: turn,
+					[zKey]: String(playerIntel.num)
+				})))
+			}
+		});
+
+		// for (let turn = 0; turn < turnsPassed; turn += 1 /*turnsPassed / (numTicks - 1)*/) {
+		// 	$universe.players.forEach((playerIntel, i) => {
+		// 		const name = playerIntel.racePluralName ?? playerIntel.name;
+		// 		const playerScores = scores[i];
+		// 		data[playerIntel.num].push({
+		// 			turn: turn,
+		// 			value: playerScores && playerScores[turn] ? playerScores[turn][type] ?? 0 : 0
+		// 		});
+		// 	});
+		// }
 
 		/* --------------------------------------------
 		 * Create a "long" format that is a grouped series of data points
 		 * Layer Cake uses this data structure and the key names
 		 * set in xKey, yKey and zKey to map your data into each scale.
 		 */
-		dataLong = seriesNames.map((key) => {
-			return {
-				[zKey]: key,
-				values: data[key].map((d) => {
-					return {
-						[yKey]: d.value,
-						[xKey]: d.turn,
-						[zKey]: key
-					};
-				})
-			};
-		});
+		// dataLong = seriesNames.map((key) => {
+		// 	return {
+		// 		[zKey]: key,
+		// 		values: data[key].map((d) => {
+		// 			return {
+		// 				[yKey]: d.value,
+		// 				[xKey]: d.turn,
+		// 				[zKey]: key
+		// 			};
+		// 		})
+		// 	};
+		// });
+
+		console.log('dataLong', dataLong);
 	}
 </script>
 
@@ -122,7 +139,7 @@
 			</ScaledSvg>
 
 			<Html>
-				<GroupLabels />
+				<PlayerScoresGraphLabels />
 				<!-- TODO: get this working so we can see values on our graphs -->
 				<!-- <SharedTooltip dataset={dataQuadTree} /> -->
 			</Html>
