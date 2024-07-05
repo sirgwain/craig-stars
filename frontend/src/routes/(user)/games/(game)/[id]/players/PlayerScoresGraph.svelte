@@ -30,8 +30,10 @@
 	const yKey = 'value';
 	const zKey = 'player';
 
-	const seriesNames: string[] = $universe.players.map<string>((p) => p.racePluralName ?? p.name);
+	const seriesNames: string[] = $universe.players.map<string>((p) => String(p.num));
 	const seriesColors: string[] = $universe.players.map<string>((p) => p.color);
+
+	console.log('colours', seriesColors);
 
 	let dataLong: DataLongType;
 	/* --------------------------------------------
