@@ -14,17 +14,12 @@
 	import { Html, LayerCake, ScaledSvg } from 'layercake';
 	import PlayerScoresGraphLabels from './PlayerScoresGraphLabels.svelte';
 
-	const { game, universe, player } = getGameContext();
+	const { game, universe } = getGameContext();
 
 	export let type: ValueType = 'score';
 
-	type ScoreTurnValueType = { turn: number; value: number };
-	type DataType = { [k: string]: ScoreTurnValueType[] };
-
 	type DataLongTurnValueType = { player: string; turn: number; value: number };
 	type DataLongType = { player: string; playerName: string; values: DataLongTurnValueType[] }[];
-
-	let data: DataType = {};
 
 	const xKey = 'turn';
 	const yKey = 'value';
@@ -33,9 +28,6 @@
 	const seriesNames: string[] = $universe.players.map<string>((p) => String(p.num));
 	const seriesColors: string[] = $universe.players.map<string>((p) => p.color);
 
-	console.log('colours', seriesColors);
-
-	let dataLong: DataLongType;
 	/* --------------------------------------------
 	 * Make a flat array of the `values` of our nested series
 	 * we can pluck the field set from `yKey` from each item
@@ -57,16 +49,17 @@
 			.map((score) => score[type] ?? 0)
 	);
 
+	let dataLong: DataLongType;
+
 	$: {
-		// init an empty array for each player name
-		data = {};
-		seriesNames.forEach((p) => (data[p] = []));
-
-		const scores = $universe.scores;
-
+		/* --------------------------------------------
+		 * Create a "long" format that is a grouped series of data points
+		 * Layer Cake uses this data structure and the key names
+		 * set in xKey, yKey and zKey to map your data into each scale.
+		 */
 		dataLong = $universe.players.map((playerIntel, i) => {
 			const name = playerIntel.racePluralName ?? playerIntel.name;
-			const playerScores = scores[i];
+			const playerScores = $universe.scores[i];
 
 			return {
 				[zKey]: String(playerIntel.num),
@@ -78,42 +71,11 @@
 				})))
 			}
 		});
-
-		// for (let turn = 0; turn < turnsPassed; turn += 1 /*turnsPassed / (numTicks - 1)*/) {
-		// 	$universe.players.forEach((playerIntel, i) => {
-		// 		const name = playerIntel.racePluralName ?? playerIntel.name;
-		// 		const playerScores = scores[i];
-		// 		data[playerIntel.num].push({
-		// 			turn: turn,
-		// 			value: playerScores && playerScores[turn] ? playerScores[turn][type] ?? 0 : 0
-		// 		});
-		// 	});
-		// }
-
-		/* --------------------------------------------
-		 * Create a "long" format that is a grouped series of data points
-		 * Layer Cake uses this data structure and the key names
-		 * set in xKey, yKey and zKey to map your data into each scale.
-		 */
-		// dataLong = seriesNames.map((key) => {
-		// 	return {
-		// 		[zKey]: key,
-		// 		values: data[key].map((d) => {
-		// 			return {
-		// 				[yKey]: d.value,
-		// 				[xKey]: d.turn,
-		// 				[zKey]: key
-		// 			};
-		// 		})
-		// 	};
-		// });
-
-		console.log('dataLong', dataLong);
 	}
 </script>
 
 <div class="border border-base-300 bg-base-100 w-full h-full">
-	{#if highestValue == 0}
+	{#if highestValue === 0}
 		<div class="flex flex-row justify-center h-full">
 			<div class="my-auto">No Data</div>
 		</div>
