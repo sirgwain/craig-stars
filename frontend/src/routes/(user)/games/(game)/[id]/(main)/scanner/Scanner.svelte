@@ -78,6 +78,7 @@
 	let zoomEnabled = true;
 	let zooming = false;
 	let showLocator = false;
+	let shouldAddWaypoint = false;
 
 	// our map scales for .75 to 10x, but the icons for the planets and fleets are 2x min
 	const minZoom = 0.75;
@@ -181,6 +182,18 @@
 		// compute scales
 		scaleX = scaleLinear().range(xRange()).domain([0, $game.area.x]);
 		scaleY = scaleLinear().range(yRange()).domain([0, $game.area.y]);
+	}
+
+	function handleKeyDown(e: KeyboardEvent) {
+		// add a waypoint if we are currently commanding a fleet and we didn't just click
+		// on the fleet
+		shouldAddWaypoint = !!$commandedFleet && e.shiftKey;
+	}
+
+	function handleKeyUp(e: KeyboardEvent) {
+		// add a waypoint if we are currently commanding a fleet and we didn't just click
+		// on the fleet
+		shouldAddWaypoint = !!$commandedFleet && e.shiftKey;
 	}
 
 	function showTargetLocation() {
@@ -294,17 +307,13 @@
 		}
 		pointerDown = true;
 
-		// add a waypoint if we are currently commanding a fleet and we didn't just click
-		// on the fleet
-		const shouldAddWaypoint = $commandedFleet && (event.shiftKey || $settings.addWaypoint);
-
 		if (found) {
-			if (shouldAddWaypoint && (await addWaypoint(found, position))) {
+			if ((shouldAddWaypoint || $settings.addWaypoint) && (await addWaypoint(found, position))) {
 			} else {
 				mapObjectSelected(found);
 			}
 		} else {
-			if (shouldAddWaypoint) {
+			if (shouldAddWaypoint || $settings.addWaypoint) {
 				addWaypoint(found, position);
 			}
 		}
@@ -659,10 +668,11 @@
 	}
 </script>
 
-<svelte:window on:resize={handleResize} />
+<svelte:window on:resize={handleResize} on:keydown={handleKeyDown} on:keyup={handleKeyUp} />
 
 <div
 	class:cursor-grab={waypointHighlighted}
+	class:cursor-cell={shouldAddWaypoint || (!!$commandedFleet && $settings.addWaypoint)}
 	class={`grow bg-black overflow-hidden p-[${padding}px] select-none`}
 	use:clickOutside={disableAddWaypointMode}
 >

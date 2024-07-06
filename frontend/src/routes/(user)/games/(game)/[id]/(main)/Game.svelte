@@ -16,7 +16,7 @@
 	import type { TransportTasksDialogEventDetails } from '../dialogs/transport/TransportTasksDialog.svelte';
 	import TransportTasksDialog from '../dialogs/transport/TransportTasksDialog.svelte';
 	import SearchDialog from '../search/SearchDialog.svelte';
-	import HighlightedMapObjectStats from './HighlightedMapObjectStats.svelte';
+	import MapObjectStatsBar from './MapObjectStatsBar.svelte';
 	import MapObjectSummary from './MapObjectSummary.svelte';
 	import CommandPane from './command/CommandPane.svelte';
 	import CommandPaneCarousel from './command/CommandPaneCarousel.svelte';
@@ -40,6 +40,7 @@
 		updateFleetOrders
 	} = getGameContext();
 
+	let carouselOpen = true;
 	let showProductionQueueDialog = false;
 	let showCargoTransferDialog = false;
 	let showMergeFleetsDialog = false;
@@ -154,8 +155,8 @@
 			<ScannerToolbar on:show-search={() => (showSearchDialog = true)} />
 			<Scanner />
 		</div>
-		<div class="hidden md:block">
-			<HighlightedMapObjectStats />
+		<div class:hidden={!carouselOpen}>
+			<MapObjectStatsBar />
 		</div>
 		<div class="hidden md:block md:w-full lg:hidden mb-2">
 			<MapObjectSummary
@@ -170,6 +171,7 @@
 	<!-- for phone displays, use a carousel -->
 	<div class="flex flex-col flex-0">
 		<CommandPaneCarousel
+			bind:isOpen={carouselOpen}
 			on:change-production={(e) => (showProductionQueueDialog = true)}
 			on:cargo-transfer-dialog={(e) => {
 				showCargoTransferDialog = true;
