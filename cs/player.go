@@ -648,6 +648,16 @@ func (p *Player) defaultPlans() PlayerPlans {
 				},
 			},
 			{
+				Num:  2,
+				Name: "Wait For",
+				Tasks: WaypointTransportTasks{
+					Fuel:      WaypointTransportTask{Action: TransportActionLoadOptimal},
+					Ironium:   WaypointTransportTask{Action: TransportActionWaitForPercent, Amount: 100},
+					Boranium:  WaypointTransportTask{Action: TransportActionWaitForPercent, Amount: 100},
+					Germanium: WaypointTransportTask{Action: TransportActionWaitForPercent, Amount: 100},
+				},
+			},
+			{
 				Num:  3,
 				Name: "Load Colonists",
 				Tasks: WaypointTransportTasks{
