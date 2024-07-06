@@ -229,6 +229,15 @@ export class Player implements PlayerResponse, CostFinder {
 		);
 	}
 
+	isSharingMap(playerNum: number): boolean {
+		return (
+			playerNum > 0 &&
+			playerNum <= this.relations.length &&
+			this.relations[playerNum - 1].relation === PlayerRelation.Friend &&
+			!!this.relations[playerNum - 1].shareMap
+		);
+	}
+
 	isNeutral(playerNum: number): boolean {
 		return (
 			playerNum > 0 &&

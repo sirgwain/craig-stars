@@ -49,8 +49,10 @@
 
 	const { open } = carouselContext;
 
-	let carousel: HTMLDivElement | undefined;
+	export let isOpen: boolean = $open;
+	$: isOpen = $open;
 
+	let carousel: HTMLDivElement | undefined;
 	let activeNav = '#summary';
 
 	const onNavClicked: MouseEventHandler<HTMLAnchorElement> = (e) => {
@@ -139,6 +141,12 @@
 		}
 	});
 
+	const unsubscribeSelectedWaypoint = selectedWaypoint.subscribe((wp) => {
+		if (wp != $commandedFleet?.waypoints[0]) {
+			activeNav = '#fleet-waypoints-tile';
+		}
+	});
+
 	// wait until the DOM is updated before calling scrollTo
 	afterUpdate(() => {
 		scrollTo(activeNav);
@@ -147,6 +155,7 @@
 	onDestroy(() => {
 		unsuscribeCommandedMapObjectKey();
 		unsuscribeSelectedMapObject();
+		unsubscribeSelectedWaypoint();
 	});
 </script>
 

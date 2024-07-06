@@ -62,13 +62,13 @@
 		@apply bg-[#ffffff];
 	}
 	.ironium-concentration {
-		@apply  fill-[#020085] stroke-[#cccccc];
+		@apply fill-[#020085] stroke-[#cccccc];
 	}
 	.boranium-concentration {
-		@apply  fill-[#008100] stroke-[#cccccc];
+		@apply fill-[#008100] stroke-[#cccccc];
 	}
 	.germanium-concentration {
-		@apply  fill-[#7f7f00] stroke-[#cccccc];
+		@apply fill-[#7f7f00] stroke-[#cccccc];
 	}
 	.damage-bar {
 		@apply bg-[#FF0000];
@@ -127,6 +127,14 @@
 
 	.text-queue-item-next-year {
 		@apply text-[#0960ff];
+	}
+
+	.fill-ally-selected {
+		@apply fill-[#FDFD06] dark:fill-[#ffff00];
+	}
+
+	.fill-ally-current {
+		@apply fill-gray-500;
 	}
 }
 

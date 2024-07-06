@@ -38,6 +38,7 @@ func (ug *universeGenerator) Generate() (*Universe, error) {
 
 	for _, player := range ug.players {
 		player.Race.Spec = computeRaceSpec(&player.Race, &ug.Rules)
+		player.discoverer = newDiscovererWithAllies(player, ug.players)
 	}
 
 	ug.universe = NewUniverse(&ug.Rules)

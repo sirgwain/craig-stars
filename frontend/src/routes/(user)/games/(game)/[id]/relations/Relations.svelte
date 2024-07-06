@@ -67,8 +67,7 @@
 					/>
 				</label>
 			</div>
-			<!-- Coming Soon! -->
-			<!-- <div class="form-control">
+			<div class="form-control">
 				<label class="label cursor-pointer">
 					<span class="label-text">Share Map</span>
 					<input
@@ -79,7 +78,7 @@
 						on:change={updatePlayerOrders}
 					/>
 				</label>
-			</div> -->
+			</div>
 		{/if}
 	{/each}
 </div>

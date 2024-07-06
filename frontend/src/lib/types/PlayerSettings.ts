@@ -19,6 +19,7 @@ export class PlayerSettings {
 	showPlanetNames = false;
 	showFleetTokenCounts = false;
 	showScanners = true;
+	showAllyScanners = true;
 	showMineFields = true;
 	showIdleFleetsOnly = false;
 	showMessagePane = false;

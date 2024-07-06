@@ -17,6 +17,8 @@ export type Fleet = {
 	damage?: number;
 	tokens?: ShipToken[];
 	mass?: number;
+	scanRange?: number; // discoverable for allies when scanning
+	scanRangePen?: number;
 	freighter?: boolean;
 	orbitingPlanetNum?: number;
 	starbase?: boolean;

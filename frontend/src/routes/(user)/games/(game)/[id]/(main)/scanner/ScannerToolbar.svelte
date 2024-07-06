@@ -79,7 +79,7 @@
 							{/if}
 						</a>
 					</summary>
-					<PlanetViewStates class="menu menu-vertical bg-base-100 z-20 w-12 p-1" />
+					<PlanetViewStates class="menu menu-vertical bg-base-200 z-20 w-12 p-1" />
 				</details>
 			</li>
 		</ul>
@@ -96,7 +96,7 @@
 							<Icon src={Funnel} class="w-6 h-6" />
 						</a>
 					</summary>
-					<ScannerToolbarFilter class="menu menu-vertical bg-base-100 z-20 w-12 p-1" />
+					<ScannerToolbarFilter class="menu menu-vertical bg-base-200 z-20 w-12 p-1" />
 				</details>
 			</li>
 		</ul>
