@@ -40,6 +40,7 @@
 		commandedMapObjectKey,
 		selectedMapObject,
 		selectedWaypoint,
+		currentSelectedWaypointIndex,
 		splitAll
 	} = getGameContext();
 
@@ -54,6 +55,7 @@
 
 	let carousel: HTMLDivElement | undefined;
 	let activeNav = '#summary';
+	let activeWaypointIndex: number | undefined;
 
 	const onNavClicked: MouseEventHandler<HTMLAnchorElement> = (e) => {
 		const a = e.currentTarget;
@@ -141,9 +143,11 @@
 		}
 	});
 
-	const unsubscribeSelectedWaypoint = selectedWaypoint.subscribe((wp) => {
-		if (wp != $commandedFleet?.waypoints[0]) {
+	const unsubscribecurrentSelectedWaypointIndex = currentSelectedWaypointIndex.subscribe((i) => {
+		// if there is a new currentlySelectedWaypointIndex and it's not the first one, show the waypoints tile
+		if (i != -1 && i !== 0 && activeWaypointIndex !== i) {
 			activeNav = '#fleet-waypoints-tile';
+			activeWaypointIndex = i;
 		}
 	});
 
@@ -155,7 +159,7 @@
 	onDestroy(() => {
 		unsuscribeCommandedMapObjectKey();
 		unsuscribeSelectedMapObject();
-		unsubscribeSelectedWaypoint();
+		unsubscribecurrentSelectedWaypointIndex();
 	});
 </script>
 
