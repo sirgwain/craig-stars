@@ -26,7 +26,7 @@
 	}
 </script>
 
-<main class="flex flex-col h-[100dvh] overscroll-none">
+<main class="flex flex-col h-[100dvh]">
 	<header class="flex-none z-50">
 		<GameMenu on:submit-turn={onSubmitTurn} />
 	</header>

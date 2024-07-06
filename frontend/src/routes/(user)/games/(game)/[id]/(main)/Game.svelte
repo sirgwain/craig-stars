@@ -74,12 +74,18 @@
 			onDeleteWaypoint();
 		});
 
+		// on the game view, prevent scrolling
+		document.documentElement.classList.add("overscroll-none")
+
 		return () => {
 			hotkeys.unbind('n', 'root');
 			hotkeys.unbind('p', 'root');
 			hotkeys.unbind('q', 'root');
 			hotkeys.unbind('Delete', 'root');
 			hotkeys.unbind('Backspace', 'root');
+
+			// go back to normal
+			document.documentElement.classList.remove("overscroll-none")
 		};
 	});
 
