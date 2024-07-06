@@ -9,6 +9,7 @@
 	import { onMount } from 'svelte';
 	import RaceEditor from './RaceEditor.svelte';
 	import RacePoints from './RacePoints.svelte';
+	import { notify } from '$lib/services/Notifications';
 
 	let id = $page.params.id;
 	let race: Race;
@@ -46,6 +47,8 @@
 		if (create) {
 			await goto(`/races/${race.id}`);
 		}
+
+		notify('Saved ' + race.pluralName);
 	};
 
 	let points = 0;
@@ -58,7 +61,7 @@
 		</div>
 
 		<ItemTitle>{race.name}</ItemTitle>
-		<RacePoints bind:points race={race}/>
+		<RacePoints bind:points {race} />
 		<RaceEditor bind:race />
 	</form>
 {/if}
