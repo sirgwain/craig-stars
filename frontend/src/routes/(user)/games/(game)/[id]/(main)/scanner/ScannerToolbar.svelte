@@ -27,19 +27,15 @@
 	import MessagesPane from '../MessagesPane.svelte';
 	import PlanetViewStates from './toolbar/PlanetViewStates.svelte';
 	import ScannerToolbarFilter from './toolbar/ScannerToolbarFilter.svelte';
+	import MobileViewSettings from './toolbar/MobileViewSettings.svelte';
 
 	const { player, settings, nextMapObject, previousMapObject } = getGameContext();
 	const dispatch = createEventDispatcher<ToolbarEvent>();
 
 	let planetsViewMenuDropdown: HTMLDetailsElement | undefined;
-	let filterMenuDropdown: HTMLDetailsElement | undefined;
 
 	function closePlanetsMenu() {
 		planetsViewMenuDropdown?.removeAttribute('open');
-	}
-
-	function closeFilterMenu() {
-		filterMenuDropdown?.removeAttribute('open');
 	}
 
 	// close the planets menu when we switch views (but leave the filter menu open so we can filter more than one thing)
@@ -79,24 +75,11 @@
 							{/if}
 						</a>
 					</summary>
-					<PlanetViewStates class="menu menu-vertical bg-base-200 z-20 w-12 p-1" />
-				</details>
-			</li>
-		</ul>
-		<ul class="menu menu-horizontal">
-			<!-- submenu -->
-			<li>
-				<details bind:this={filterMenuDropdown} use:clickOutside={closeFilterMenu}>
-					<summary class="p-0">
-						<a
-							href="#filter-menu"
-							class="btn btn-xs w-12 h-12"
-							on:click|preventDefault={() => filterMenuDropdown?.toggleAttribute('open')}
-						>
-							<Icon src={Funnel} class="w-6 h-6" />
-						</a>
-					</summary>
-					<ScannerToolbarFilter class="menu menu-vertical bg-base-200 z-20 w-12 p-1" />
+					<ul class="bg-base-200 z-20 p-1 w-64">
+						<li>
+							<MobileViewSettings />
+						</li>
+					</ul>
 				</details>
 			</li>
 		</ul>

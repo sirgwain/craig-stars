@@ -92,7 +92,10 @@
 					<Icon src={Bars3} size="24" />
 				</div>
 			</label>
-			<div tabindex="0" class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-300 w-96">
+			<div
+				tabindex="0"
+				class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-300 w-[22rem] md:w-auto"
+			>
 				<div class="flex flex-row justify-between">
 					<ul class="mt-11">
 						{#if !$player.submittedTurn}
