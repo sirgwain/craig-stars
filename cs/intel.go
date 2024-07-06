@@ -38,7 +38,7 @@ type discover struct {
 	player *Player
 }
 
-// A discoverer of discoverers. This implements the discover interface and 
+// A discoverer of discoverers. This implements the discover interface and
 // is used to support discovering for a player and all of their allies when scanning, invading, etc
 type discovererWithAllies struct {
 	playerDiscoverer discover
@@ -197,8 +197,8 @@ func (d *ShipDesignIntel) String() string {
 }
 
 // create a new FleetIntel object by key
-func newFleetIntel(playerNum int, num int) FleetIntel {
-	return FleetIntel{
+func newFleetIntel(playerNum int, num int) *FleetIntel {
+	return &FleetIntel{
 		MapObjectIntel: MapObjectIntel{
 			Type: MapObjectTypeFleet,
 			Intel: Intel{
@@ -449,7 +449,19 @@ func (d *discover) discoverPlanetTerraformability(planetNum int) error {
 // discover a fleet and add it to the player's fleet intel
 func (d *discover) discoverFleet(fleet *Fleet) {
 	player := d.player
-	intel := newFleetIntel(fleet.PlayerNum, fleet.Num)
+	intel := player.getFleetIntel(fleet.PlayerNum, fleet.Num)
+	if intel == nil {
+		// discover this new mineField
+		intel = newFleetIntel(fleet.PlayerNum, fleet.Num)
+		player.FleetIntels = append(player.FleetIntels, *intel)
+		intel = &player.FleetIntels[len(player.FleetIntels)-1]
+		log.Debug().
+			Int64("GameID", player.GameID).
+			Int("Player", player.Num).
+			Int("FleetPlayer", fleet.PlayerNum).
+			Int("Fleet", fleet.Num).
+			Msgf("player discovered fleet")
+	}
 
 	intel.Name = fleet.Name
 	intel.Position = fleet.Position
@@ -460,7 +472,6 @@ func (d *discover) discoverFleet(fleet *Fleet) {
 	intel.Freighter = fleet.Spec.CargoCapacity > 0
 	intel.Tokens = fleet.Tokens
 
-	player.FleetIntels = append(player.FleetIntels, intel)
 }
 
 // discover cargo for an existing fleet
