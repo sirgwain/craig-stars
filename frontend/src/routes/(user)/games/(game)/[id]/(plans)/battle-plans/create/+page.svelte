@@ -7,6 +7,7 @@
 	import { BattleAttackWho, BattleTactic, BattleTarget } from '$lib/types/Battle';
 	import type { BattlePlan } from '$lib/types/Player';
 	import BattlePlanEditor from '../BattlePlanEditor.svelte';
+	import { notify } from '$lib/services/Notifications';
 
 	const { game, player, createBattlePlan } = getGameContext();
 
@@ -29,6 +30,7 @@
 			if (plan && $game) {
 				// save to server
 				await createBattlePlan(plan);
+				notify(`Saved ${plan.name}`);
 				goto(
 					`/games/${$game.id}/battle-plans/${$player.battlePlans[$player.battlePlans.length - 1].num}`
 				);

@@ -4,6 +4,7 @@
 	import { addError, type CSError } from '$lib/services/Errors';
 	import type { TransportPlan } from '$lib/types/Player';
 	import TransportPlanCard from './TransportPlanCard.svelte';
+	import { notify } from '$lib/services/Notifications';
 
 	const { game, player, deleteTransportPlan } = getGameContext();
 
