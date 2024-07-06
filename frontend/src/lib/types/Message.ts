@@ -181,7 +181,9 @@ export enum MessageType {
 	PlayerTechLevelGainedInvasion,
 	PlayerTechLevelGainedScrapFleet,
 	PlayerTechLevelGainedBattle,
-	FleetDieoff
+	FleetDieoff,
+	BattleAlly,
+	BattleReports
 }
 
 // get the next visible message taking into account filters

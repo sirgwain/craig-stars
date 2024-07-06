@@ -19,7 +19,6 @@
 	$: left = values => $xScale(max(values, $x)) / Math.max(...$xRange);
 	$: top = values => $yScale(max(values, $y)) / Math.max(...$yRange);
 
-	console.log('data', $data);
 </script>
 
 {#each $data as group}

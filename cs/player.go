@@ -728,7 +728,7 @@ func (p *Player) IsNeutral(playerNum int) bool {
 }
 
 func (p *Player) IsSharingMap(playerNum int) bool {
-	return playerNum > 0 && playerNum <= len(p.Relations) && p.Relations[playerNum-1].Relation == PlayerRelationFriend && p.Relations[playerNum-1].ShareMap
+	return playerNum != p.Num && playerNum > 0 && playerNum <= len(p.Relations) && p.Relations[playerNum-1].Relation == PlayerRelationFriend && p.Relations[playerNum-1].ShareMap
 }
 
 func (p *Player) getNextFleetNum(playerFleets []*Fleet) int {

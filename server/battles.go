@@ -183,6 +183,7 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 	_ = p2Sapper
 	_ = p2Frigate
 	_ = p2DDS10
+	_ = p2EmptySpaceDock
 
 	fleets := []*cs.Fleet{
 		// player1's tokens
@@ -207,11 +208,7 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 			Tokens: []cs.ShipToken{
 				{
 					Quantity:  1,
-					DesignNum: p2Frigate.Num,
-				},
-				{
-					Quantity:  1,
-					DesignNum: p2EmptySpaceDock.Num,
+					DesignNum: p2Scout.Num,
 				},
 			},
 		}}

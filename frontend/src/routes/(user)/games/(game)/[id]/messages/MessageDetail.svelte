@@ -7,7 +7,7 @@
 	import type { MineField } from '$lib/types/MineField';
 	import type { MineralPacket } from '$lib/types/MineralPacket';
 	import type { Planet } from '$lib/types/Planet';
-	import FleetEngineStrainMessageDetail from './FleetEngineStrainMessageDetail.svelte';
+	import BattleMessageDetail from './BattleMessageDetail.svelte';
 	import FleetMessageDetail from './FleetMessageDetail.svelte';
 	import PlanetMessageDetail from './PlanetMessageDetail.svelte';
 	import PlayerMessageDetail from './PlayerMessageDetail.svelte';
@@ -24,61 +24,10 @@
 	$: mineralPacket =
 		target?.type == MapObjectType.MineralPacket ? (target as MineralPacket) : undefined;
 	$: mineField = target?.type == MapObjectType.MineField ? (target as MineField) : undefined;
-
-	function getBattleMessage(message: Message): string {
-		const stats = message.spec.battle;
-		const battle = $universe.getBattle(message.battleNum);
-		if (battle) {
-			const location = $universe.getBattleLocation(battle) ?? 'unknown';
-			let text = `A battle took place at ${location}.`;
-
-			const allies = new Set($player.getAllies());
-
-			const ours = getOurShips(battle, allies);
-			const theirs = getTheirDead(battle, allies);
-			const ourDead = getOurDead(battle, allies);
-			const theirDead = getTheirDead(battle, allies);
-			const oursLeft = ours - ourDead;
-			const theirsLeft = theirs - theirDead;
-
-			if (ourDead === 0) {
-				text += ' None of your forces were destroyed.';
-			} else if (ourDead === ours) {
-				text += ' All of your forces were destroyed by enemy forces.';
-			} else if (oursLeft === 1) {
-				text += ` Only one of your ships survived.`;
-			} else if (oursLeft > 1) {
-				text += ` ${oursLeft} of your ships surived.`;
-			}
-
-			if (theirDead === 0) {
-				text += ' None of the enemy forces were destroyed.';
-			} else if (theirDead === theirs) {
-				text += ' All enemy forces were destroyed.';
-			} else if (theirsLeft === 1) {
-				text += ` Only one enemy ship survived.`;
-			} else if (theirsLeft > 1) {
-				text += ` ${theirsLeft} enemy ships surived.`;
-			}
-
-			return text;
-		} else {
-			return `A battle took place at an unknown location`;
-		}
-	}
-
-	export function getMessageText(message: Message): string {
-		switch (message.type) {
-			case MessageType.Battle:
-				return getBattleMessage(message);
-			default:
-				return message.text;
-		}
-	}
 </script>
 
-{#if message.type == MessageType.Battle}
-	{getBattleMessage(message)}
+{#if message.type == MessageType.Battle || message.type == MessageType.BattleAlly}
+	<BattleMessageDetail {message} />
 {:else if planet}
 	<PlanetMessageDetail {message} {planet} {owner} />
 {:else if message.targetType == MapObjectType.Fleet || fleet}

@@ -20,8 +20,7 @@
 	$: design = token && designFinder.getDesign(token.playerNum, token.designNum);
 	$: raceName = token && playerFinder.getPlayerIntel(token.playerNum)?.racePluralName;
 	$: tokenState = token && battle.getTokenForPhase(token.num, phase);
-	$: armor = design?.spec.armor ?? 0;
-	$: shields = design?.spec.shields ?? 0;
+	$: armor = design?.spec?.armor ?? 0;
 	$: currentArmor = token
 		? armor * (token.quantity ?? 0) - (token.damage ?? 0) * (token.quantityDamaged ?? 0)
 		: 0;
@@ -81,7 +80,7 @@
 			{/if}
 		</div>
 		<div>
-			Shields: {shields ?? 'none'}
+			Shields: {tokenState.stackShields ?? 'none'}
 		</div>
 		<div>
 			Tactic: {startCase(token.tactic)}
