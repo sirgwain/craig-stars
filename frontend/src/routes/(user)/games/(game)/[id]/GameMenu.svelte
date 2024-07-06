@@ -92,7 +92,10 @@
 					<Icon src={Bars3} size="24" />
 				</div>
 			</label>
-			<div tabindex="0" class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-300 w-96">
+			<div
+				tabindex="0"
+				class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-300 w-[22rem] md:w-auto"
+			>
 				<div class="flex flex-row justify-between">
 					<ul class="mt-11">
 						{#if !$player.submittedTurn}
@@ -101,7 +104,7 @@
 							</li>
 							<li class="md:hidden"><a href={`/games/${$game.id}/research`}>Research</a></li>
 							<li class="md:hidden"><a href={`/games/${$game.id}/designer`}>Ship Designer</a></li>
-							<li class="md:hidden"><a href={`/games/${$game.id}/relations`}>Ship Designer</a></li>
+							<li class="md:hidden"><a href={`/games/${$game.id}/relations`}>Relations</a></li>
 							<li class="md:hidden">
 								<a href={`/games/${$game.id}/battle-plans`}>Battle Plans</a>
 							</li>

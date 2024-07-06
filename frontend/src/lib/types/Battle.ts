@@ -280,7 +280,7 @@ export function getBattleRecordDetails(
 	const allies = new Set(player.getAllies());
 
 	const ours = getOurShips(battle, allies);
-	const theirs = getTheirDead(battle, allies);
+	const theirs = getTheirShips(battle, allies);
 	const ourDead = getOurDead(battle, allies);
 	const theirDead = getTheirDead(battle, allies);
 	const oursLeft = ours - ourDead;
