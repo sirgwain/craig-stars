@@ -291,6 +291,10 @@ export function createGameContext(fg: FullGame): GameContext {
 			goto(`/games/${gameId}/research`);
 		}
 
+		if (message.type === MessageType.BattleReports) {
+			goto(`/games/${gameId}/battles`);
+		}
+
 		if (message.type === MessageType.PlayerTechGained && message.spec.techGained) {
 			goto(`/games/${gameId}/techs/${kebabCase(message.spec.techGained)}`);
 		}

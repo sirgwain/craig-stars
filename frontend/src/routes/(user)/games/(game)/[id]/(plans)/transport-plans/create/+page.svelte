@@ -7,6 +7,7 @@
 	import { WaypointTaskTransportAction } from '$lib/types/Fleet';
 	import type { TransportPlan } from '$lib/types/Player';
 	import TransportPlanEditor from '../TransportPlanEditor.svelte';
+	import { notify } from '$lib/services/Notifications';
 
 	const { game, player, createTransportPlan } = getGameContext();
 
@@ -41,6 +42,7 @@
 			if (plan && $game) {
 				// save to server
 				await createTransportPlan(plan);
+				notify(`Saved ${plan.name}`);
 				goto(
 					`/games/${$game.id}/transport-plans/${
 						$player.transportPlans[$player.transportPlans.length - 1].num

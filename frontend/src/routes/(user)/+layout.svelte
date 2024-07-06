@@ -9,6 +9,7 @@
 	import '../../css/mapobjects.css';
 	import '../../css/planets.css';
 	import '../../css/techs.css';
+	import NotificationToast from '$lib/components/NotificationToast.svelte';
 
 	onMount(() => {
 		$errors = [];
@@ -23,4 +24,5 @@
 		<slot>This is the main content</slot>
 	</div>
 	<ErrorToast />
+	<NotificationToast />
 </main>

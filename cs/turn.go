@@ -119,6 +119,9 @@ func (t *turn) generateTurn() error {
 		return err
 	}
 
+	// notify about battles
+	t.checkBattleReports()
+
 	// as a last turn step, calculate scores and check for victories
 	t.calculateScores()
 	t.checkDeath()
@@ -1994,6 +1997,22 @@ func (t *turn) fleetBattle() {
 				// player knows about the battle
 				player.BattleRecords = append(player.BattleRecords, *record)
 				messager.battle(player, planet, record)
+
+				// share battle records with our allies
+				for _, otherPlayer := range t.game.Players {
+					if _, ok := playersAtPosition[otherPlayer.Num]; ok {
+						// player is already here, no need to record the battle
+						continue
+					}
+					if !player.IsSharingMap(otherPlayer.Num) {
+						// not sharing with this player
+						continue
+					}
+
+					// share the battle recording with this player
+					otherPlayer.BattleRecords = append(otherPlayer.BattleRecords, *record)
+					messager.battleAlly(otherPlayer, planet, record)
+				}
 			}
 
 			// check for tech trades
@@ -2679,6 +2698,16 @@ func (t *turn) calculateScores() {
 				discoverer.discoverPlayerScores(otherPlayer)
 			}
 		}
+	}
+}
+
+func (t *turn) checkBattleReports() {
+	for _, player := range t.game.Players {
+		if len(player.BattleRecords) == 0 {
+			continue
+		}
+		// notify this player there are battle reports
+		messager.battleReports(player)
 	}
 
 }

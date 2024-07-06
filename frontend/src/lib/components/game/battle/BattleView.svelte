@@ -12,7 +12,7 @@
 	setContext<DesignFinder>(designFinderKey, designFinder);
 	setContext<PlayerFinder>(playerFinderKey, playerFinder);
 
-	$: battle = new Battle(battleRecord.num, battleRecord.position, battleRecord);
+	$: battle = new Battle(battleRecord.num, battleRecord.position, designFinder, battleRecord);
 </script>
 
 <BattleBoard {battle} />

@@ -10,6 +10,12 @@
 
 {#if message.text}
 	{message.text}
+{:else if message.type === MessageType.BattleReports}
+	{#if $universe.battles?.length === 1}
+		You have received a battle recording this year.
+	{:else}
+		You have received {$universe.battles?.length} battle recordings this year.
+	{/if}
 {:else if message.type === MessageType.PlayerNoPlanets}
 	All your planets have been overrun.
 	{#if (message.spec.amount ?? 0) > 0}

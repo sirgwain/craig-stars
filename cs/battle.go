@@ -313,6 +313,8 @@ func newBattler(rules *Rules, techFinder TechFinder, battleNum int, players map[
 					DesignNum:        token.DesignNum,
 					Initiative:       token.design.Spec.Initiative,
 					Mass:             token.design.Spec.Mass + cargoMass,
+					Armor:            token.design.Spec.Armor,
+					StackShields:     token.design.Spec.Shields * token.Quantity,
 					Movement:         token.design.getMovement(cargoMass),
 					StartingQuantity: token.Quantity,
 					Tactic:           fleet.battlePlan.Tactic,

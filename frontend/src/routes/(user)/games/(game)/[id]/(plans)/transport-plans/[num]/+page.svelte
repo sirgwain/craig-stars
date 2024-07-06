@@ -5,6 +5,7 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { CSError, addError } from '$lib/services/Errors';
 	import TransportPlanEditor from '../TransportPlanEditor.svelte';
+	import { notify } from '$lib/services/Notifications';
 
 	const { game, player, updateTransportPlan } = getGameContext();
 	let num = parseInt($page.params.num);
@@ -20,6 +21,7 @@
 			if (plan && $game) {
 				// save to server
 				await updateTransportPlan(plan);
+				notify(`Saved ${plan.name}`);
 			}
 		} catch (e) {
 			addError(e as CSError);

@@ -102,6 +102,7 @@
 					</li>
 					<li class="md:hidden"><a href={`/games/${$game.id}/research`}>Research</a></li>
 					<li class="md:hidden"><a href={`/games/${$game.id}/designer`}>Ship Designer</a></li>
+					<li class="md:hidden"><a href={`/games/${$game.id}/relations`}>Ship Designer</a></li>
 					<li class="md:hidden"><a href={`/games/${$game.id}/battle-plans`}>Battle Plans</a></li>
 					<li class="md:hidden">
 						<a href={`/games/${$game.id}/production-plans`}>Production Plans</a>

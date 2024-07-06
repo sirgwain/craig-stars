@@ -98,19 +98,8 @@
 		destCargoCapacity += designCargoCapacity * quantity;
 
 		// if we have more cargo on the source than space available, move some out
-		console.log(
-			'total',
-
-			totalCargo(src.cargo),
-			'capacity',
-			srcCargoCapacity,
-			'transfer',
-			transferAmount.absoluteCargoSize()
-		);
-
 		if (totalCargo(src.cargo) - transferAmount.absoluteCargoSize() > srcCargoCapacity) {
 			let overload = totalCargo(src.cargo) - transferAmount.absoluteCargoSize() - srcCargoCapacity;
-			console.log('total', totalCargo(src.cargo), 'overload', overload);
 
 			let key: keyof Cargo;
 			for (key in emptyCargo()) {

@@ -163,6 +163,8 @@ const (
 	PlayerMessagePlayerTechLevelGainedScrapFleet
 	PlayerMessagePlayerTechLevelGainedBattle
 	PlayerMessageFleetDieoff
+	PlayerMessageBattleAlly
+	PlayerMessageBattleReports
 )
 
 func newMessage(messageType PlayerMessageType) PlayerMessage {
@@ -264,6 +266,22 @@ func (m *messageClient) battle(player *Player, planet *Planet, battle *BattleRec
 	// create a new message targeting a battle
 	player.Messages = append(player.Messages, newBattleMessage(PlayerMessageBattle, planet, battle).
 		withSpec(PlayerMessageSpec{Name: location, Battle: battle.Stats}))
+}
+
+func (m *messageClient) battleAlly(player *Player, planet *Planet, battle *BattleRecord) {
+	location := fmt.Sprintf("Space (%0f, %0f)", battle.Position.X, battle.Position.Y)
+	if planet != nil {
+		location = planet.Name
+	}
+
+	// create a new message targeting a battle
+	player.Messages = append(player.Messages, newBattleMessage(PlayerMessageBattleAlly, planet, battle).
+		withSpec(PlayerMessageSpec{Name: location, Battle: battle.Stats}))
+}
+
+func (mc *messageClient) battleReports(player *Player) {
+	// Battle report messages are always the first message of the year (other than victory)
+	player.Messages = append([]PlayerMessage{{Type: PlayerMessageBattleReports}}, player.Messages...)
 }
 
 /*

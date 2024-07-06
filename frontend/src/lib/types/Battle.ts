@@ -1,8 +1,9 @@
-import type { Universe } from '$lib/services/Universe';
+import type { DesignFinder, Universe } from '$lib/services/Universe';
 import { flatten, groupBy, sumBy } from 'lodash-es';
 import type { Cargo } from './Cargo';
 import type { MapObject } from './MapObject';
 import type { Vector } from './Vector';
+import type { Player } from './Player';
 
 export type BattleRecord = {
 	num: number;
@@ -19,6 +20,9 @@ export type Token = {
 	playerNum: number;
 	designNum: number;
 	position: Vector;
+	mass?: number;
+	armor?: number;
+	stackShields?: number;
 	startingQuantity: number;
 	damage?: number;
 	quantityDamaged?: number;
@@ -95,24 +99,45 @@ export enum TokenActionType {
 	RanAway
 }
 
+export type BattleRecordDetails = {
+	// whether the player was present at this battle
+	num: number;
+	present: boolean;
+	location: string;
+	numPlayers: number;
+	numShips: number;
+	ours: number;
+	theirs: number;
+	ourDead: number;
+	theirDead: number;
+	oursLeft: number;
+	theirsLeft: number;
+};
+
 // a phase token is a token combined with a position
 export type PhaseToken = {
 	action?: TokenAction;
 	ranAway?: boolean;
 	destroyedPhase?: number;
 	target?: boolean;
+	shields?: number;
 } & Token &
 	Vector;
 
 type TokensByLocation = Record<string, PhaseToken[]>;
 
 export class Battle implements BattleRecord {
-	constructor(public num: number, public position: Vector, record?: BattleRecord) {
+	constructor(
+		public num: number,
+		public position: Vector,
+		designFinder: DesignFinder,
+		record?: BattleRecord
+	) {
 		Object.assign(this, record);
 		this.totalPhases = sumBy(this.actionsPerRound, (a) => a.length);
 		this.totalRounds = this.actionsPerRound.length;
 		this.tokens.forEach((t) => (t.quantity = t.startingQuantity));
-		this.buildPhaseTokensForBattle();
+		this.buildPhaseTokensForBattle(designFinder);
 		this.tokens.sort((a, b) => a.num - b.num);
 		this.actions = flatten(this.actionsPerRound);
 	}
@@ -174,14 +199,16 @@ export class Battle implements BattleRecord {
 		return this.tokensByPhase[phase].find((t) => t.target);
 	}
 
-	private buildPhaseTokensForBattle() {
+	private buildPhaseTokensForBattle(designFinder: DesignFinder) {
 		this.tokensByPhaseByLocation = [];
 
 		// starting token configuration
 		let tokens: PhaseToken[] = this.tokens.map((t) => ({
 			...t,
 			x: t.position.x,
-			y: t.position.y
+			y: t.position.y,
+			stackShields:
+				(designFinder.getDesign(t.playerNum, t.designNum)?.spec?.shields ?? 0) * (t.quantity ?? 0)
 		}));
 
 		// set the first phase to our base tokens
@@ -220,6 +247,13 @@ export class Battle implements BattleRecord {
 							// token was destroyed
 							phaseToken.destroyedPhase = phase;
 						}
+						// apply shield damage
+						if ((action.damageDoneShields ?? 0) > 0) {
+							phaseToken.stackShields = Math.max(
+								0,
+								(phaseToken.stackShields ?? 0) - (action.damageDoneShields ?? 0)
+							);
+						}
 					}
 					return phaseToken;
 				});
@@ -236,6 +270,37 @@ export class Battle implements BattleRecord {
 
 export const getTokenLocationKey = (x: number, y: number): string => `${x}-${y}`;
 
+// get details about this battle for messages or the battle report
+export function getBattleRecordDetails(
+	battle: BattleRecord,
+	player: Player,
+	universe: Universe
+): BattleRecordDetails {
+	const location = universe.getBattleLocation(battle) ?? 'unknown';
+	const allies = new Set(player.getAllies());
+
+	const ours = getOurShips(battle, allies);
+	const theirs = getTheirDead(battle, allies);
+	const ourDead = getOurDead(battle, allies);
+	const theirDead = getTheirDead(battle, allies);
+	const oursLeft = ours - ourDead;
+	const theirsLeft = theirs - theirDead;
+
+	return {
+		num: battle.num,
+		present: !!battle.tokens.find((t) => t.playerNum == player.num),
+		location,
+		numPlayers: Object.keys(battle.stats?.numShipsByPlayer ?? {}).length,
+		numShips: getNumShips(battle),
+		ours,
+		theirs,
+		ourDead,
+		theirDead,
+		oursLeft,
+		theirsLeft
+	};
+}
+
 export function getNumShips(record: BattleRecord): number {
 	return Object.values(record.stats.numShipsByPlayer ?? {}).reduce((count, num) => count + num, 0);
 }
@@ -243,7 +308,8 @@ export function getNumShips(record: BattleRecord): number {
 export function getOurShips(record: BattleRecord, allies: Set<number>): number {
 	let count = 0;
 	allies.forEach(
-		(ally) => (count += record.stats?.numShipsByPlayer ? (record.stats?.numShipsByPlayer[ally] ?? 0) : 0)
+		(ally) =>
+			(count += record.stats?.numShipsByPlayer ? record.stats?.numShipsByPlayer[ally] ?? 0 : 0)
 	);
 	return count;
 }
@@ -265,7 +331,7 @@ export function getOurDead(record: BattleRecord, allies: Set<number>): number {
 	allies.forEach(
 		(ally) =>
 			(count += record.stats?.shipsDestroyedByPlayer
-				? (record.stats?.shipsDestroyedByPlayer[ally] ?? 0)
+				? record.stats?.shipsDestroyedByPlayer[ally] ?? 0
 				: 0)
 	);
 	return count;
@@ -284,10 +350,7 @@ export function getTheirDead(record: BattleRecord, allies: Set<number>): number 
 }
 
 // get a target for the scanner so we can "goto" a battle and select this mapobject
-export function getScannerTarget(
-	battle: BattleRecord,
-	universe: Universe
-): MapObject | undefined {
+export function getScannerTarget(battle: BattleRecord, universe: Universe): MapObject | undefined {
 	if (battle.planetNum) {
 		return universe.getPlanet(battle.planetNum);
 	} else {
