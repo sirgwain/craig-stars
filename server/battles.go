@@ -157,6 +157,17 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 			WithName("Empty Spacedock").
 			WithHull(cs.SpaceDock.Name).
 			WithSlots([]cs.ShipDesignSlot{}),
+		cs.NewShipDesign(player2, 8).
+			WithName("Laser/Torpdo Space Station").
+			WithHull(cs.SpaceStation.Name).
+			WithSlots([]cs.ShipDesignSlot{
+				{HullComponent: cs.ColloidalPhaser.Name, HullSlotIndex: 2, Quantity: 8},
+				{HullComponent: cs.MoleSkinShield.Name, HullSlotIndex: 3, Quantity: 8},
+				{HullComponent: cs.DeltaTorpedo.Name, HullSlotIndex: 4, Quantity: 8},
+				{HullComponent: cs.MoleSkinShield.Name, HullSlotIndex: 6, Quantity: 8},
+				{HullComponent: cs.ColloidalPhaser.Name, HullSlotIndex: 8, Quantity: 8},
+				{HullComponent: cs.ColloidalPhaser.Name, HullSlotIndex: 10, Quantity: 8},
+			}),
 	)
 
 	p1BattleCruiser := player1.Designs[0]
@@ -172,6 +183,7 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 	p2Frigate := player2.Designs[4]
 	p2DDS10 := player2.Designs[5]
 	p2EmptySpaceDock := player2.Designs[6]
+	p2ArmedStation := player2.Designs[7]
 	_ = p1BattleCruiser
 	_ = p1Scout
 	_ = p1StalwartDefender
@@ -184,6 +196,7 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 	_ = p2Frigate
 	_ = p2DDS10
 	_ = p2EmptySpaceDock
+	_ = p2ArmedStation
 
 	fleets := []*cs.Fleet{
 		// player1's tokens
@@ -195,7 +208,11 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 			Tokens: []cs.ShipToken{
 				{
 					DesignNum: p1DragonFly.Num,
-					Quantity:  1,
+					Quantity:  5,
+				},
+				{
+					DesignNum: p1Scout.Num,
+					Quantity:  5,
 				},
 			},
 		},
@@ -208,7 +225,15 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 			Tokens: []cs.ShipToken{
 				{
 					Quantity:  1,
+					DesignNum: p2ArmedStation.Num,
+				},
+				{
+					Quantity:  5,
 					DesignNum: p2Scout.Num,
+				},
+				{
+					Quantity:  2,
+					DesignNum: p2Frigate.Num,
 				},
 			},
 		}}

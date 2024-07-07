@@ -2,6 +2,7 @@ package cs
 
 import (
 	"math"
+	"sort"
 
 	"github.com/rs/zerolog/log"
 )
@@ -17,6 +18,9 @@ const (
 type battleWeaponSlot struct {
 	// The token with the weapon
 	token *battleToken
+
+	// all the other tokens this weapon is targeting
+	targets []*battleToken
 
 	// The weapon slot
 	slot ShipDesignSlot
@@ -104,7 +108,6 @@ func (slot *battleWeaponSlot) isInRangeValue(rangeValue int) bool {
 
 // get the attractiveness of a token versus a weapon
 func (weapon *battleWeaponSlot) getAttractiveness(target *battleToken) float64 {
-	cost := target.design.Spec.Cost
 
 	var defense float64
 	// increase the defense for jammers and beam deflectors
@@ -124,9 +127,63 @@ func (weapon *battleWeaponSlot) getAttractiveness(target *battleToken) float64 {
 		}
 	}
 
+	cost := target.cost
 	attractiveNess := float64(cost.Boranium+cost.Resources) / float64(defense)
-	log.Debug().Msgf("weapon %s attractiveness to %s = %f", weapon.slot.HullComponent, target.ShipToken.design.Name, attractiveNess)
+	log.Debug().Msgf("weapon %s attractiveness to %s = %f", weapon.slot.HullComponent, target.designName, attractiveNess)
 	return attractiveNess
+}
+
+// Find all the targets for this weapon
+func (weapon *battleWeaponSlot) findTargets(tokens []*battleToken) (targets []*battleToken) {
+	attacker := weapon.token
+	primaryTarget := attacker.PrimaryTarget
+	secondaryTarget := attacker.SecondaryTarget
+
+	var primaryTargets []*battleToken
+	var secondaryTargets []*battleToken
+
+	// Find all enemy tokens
+	for _, token := range tokens {
+		if !token.isStillInBattle() {
+			continue
+		}
+		if !attacker.willAttack(token.PlayerNum) {
+			continue
+		}
+
+		// if we will target this
+		if token.isTargetOf(primaryTarget) && weapon.willDamage(token) {
+			primaryTargets = append(primaryTargets, token)
+		} else if token.isTargetOf(secondaryTarget) && weapon.willDamage(token) {
+			secondaryTargets = append(secondaryTargets, token)
+		}
+	}
+
+	// our list of available targets is all primary and all secondary targets in range
+	sort.Slice(primaryTargets, func(i, j int) bool {
+		return weapon.getAttractiveness(primaryTargets[i]) > weapon.getAttractiveness(primaryTargets[j])
+	})
+	sort.Slice(secondaryTargets, func(i, j int) bool {
+		return weapon.getAttractiveness(secondaryTargets[i]) > weapon.getAttractiveness(secondaryTargets[j])
+	})
+
+	targets = make([]*battleToken, 0, len(primaryTargets)+len(secondaryTargets))
+	targets = append(targets, primaryTargets...)
+	targets = append(targets, secondaryTargets...)
+	return targets
+}
+
+// get all targets in range of this token.
+func (weapon *battleWeaponSlot) getTargetsInRange() []*battleToken {
+	tokensInRange := make([]*battleToken, 0, len(weapon.targets))
+
+	for _, token := range weapon.targets {
+		if !weapon.isInRange(token) {
+			continue
+		}
+		tokensInRange = append(tokensInRange, token)
+	}
+	return tokensInRange
 }
 
 // get the accuracy of a torpedo against a target

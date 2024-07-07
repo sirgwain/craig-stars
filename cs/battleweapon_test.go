@@ -127,14 +127,7 @@ func Test_battleWeaponSlot_getAttractiveness(t *testing.T) {
 				capitalShipMissile: tt.fields.capitalShipMissile,
 			}
 			target := &battleToken{
-				// we only care about the design cost on the target shiptoken
-				ShipToken: &ShipToken{
-					design: &ShipDesign{
-						Spec: ShipDesignSpec{
-							Cost: tt.args.cost,
-						},
-					},
-				},
+				cost:           tt.args.cost,
 				armor:          tt.args.armor,
 				shields:        tt.args.shields,
 				beamDefense:    tt.args.beamDefense,
@@ -480,7 +473,7 @@ func Test_battleWeaponSlot_getEstimatedTorpedoDamageToTarget(t *testing.T) {
 			},
 			// half damage shields/armor + 1/8th damage to shields for the two misses
 			want: battleWeaponDamage{shieldDamage: 40, armorDamage: 40},
-		},		
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
