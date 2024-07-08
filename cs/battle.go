@@ -919,18 +919,26 @@ func (b *battle) getBestAttackMoves(token *battleToken, weapons []*battleWeaponS
 			// figure out damage taken from all enemy weapons if we move to this square
 			damageTaken := b.getEstimatedDamageForWeapons(weapons, token, newPosition)
 
+			var damageRatio float64
+			if damageTaken > 0 {
+				damageRatio = float64(damageDone) / float64(damageTaken)
+			}
+
+			log.Debug().Msgf("moving to %#v, damageDone: %d, damageTaken: %d, netDamage: %d, damageRatio: %f", newPosition, damageDone, damageTaken, damageDone-damageTaken, damageRatio)
+
 			switch token.Tactic {
 			case BattleTacticMaximizeDamageRatio:
 				if damageTaken == 0 {
+					// we took no damage, so sort by best damage
 					if damageDone >= bestDamageDone {
-						// we found an equivelent or better damage move, update our best moves with it
 						bestDamageMoves = updateMovesWithCenterPreference(damageDone > bestDamageDone, newPosition, bestDamageMoves)
-						bestDamageTaken = 0
 						bestDamageDone = damageDone
 					}
-				} else if bestDamageDone == 0 && float64(damageDone)/float64(damageTaken) >= bestDamageRatio {
-					bestDamageMoves = updateMovesWithCenterPreference(float64(damageDone)/float64(damageTaken) > bestDamageRatio, newPosition, bestDamageMoves)
-					bestDamageRatio = float64(damageDone) / float64(damageTaken)
+				} else {
+					if damageRatio >= bestDamageRatio {
+						bestDamageMoves = updateMovesWithCenterPreference(damageRatio > bestDamageRatio, newPosition, bestDamageMoves)
+						bestDamageRatio = damageRatio
+					}
 				}
 			case BattleTacticMaximizeNetDamage:
 				if damageDone > 0 && damageDone-damageTaken >= bestNetDamage {
@@ -947,7 +955,7 @@ func (b *battle) getBestAttackMoves(token *battleToken, weapons []*battleWeaponS
 
 			case BattleTacticMaximizeDamage:
 				if damageDone >= bestDamageDone {
-					bestDamageMoves = updateMovesWithCenterPreference(damageTaken > bestDamageTaken, newPosition, bestDamageMoves)
+					bestDamageMoves = updateMovesWithCenterPreference(damageDone > bestDamageDone, newPosition, bestDamageMoves)
 					bestDamageDone = damageDone
 				}
 			}

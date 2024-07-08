@@ -216,9 +216,8 @@ func Test_battle_getBestFleeMoves(t *testing.T) {
 
 func Test_battle_getBestAttackMoves(t *testing.T) {
 	type args struct {
-		token       *battleToken
-		enemies     []*battleToken
-		targetEnemy int
+		token   *battleToken
+		enemies []*battleToken
 	}
 
 	laser := battleWeaponSlot{
@@ -232,10 +231,12 @@ func Test_battle_getBestAttackMoves(t *testing.T) {
 	attackingToken := func(position BattleVector, tactic BattleTactic, weapon battleWeaponSlot) *battleToken {
 		player := testPlayer().WithNum(1)
 		token := battleToken{
-			BattleRecordToken: BattleRecordToken{Position: position, PlayerNum: player.Num, Tactic: tactic, AttackWho: BattleAttackWhoEveryone, PrimaryTarget: BattleTargetAny},
+			BattleRecordToken: BattleRecordToken{Position: position, PlayerNum: player.Num, Tactic: tactic, AttackWho: BattleAttackWhoEveryone, PrimaryTarget: BattleTargetAny, Movement: 4},
 			ShipToken:         &ShipToken{Quantity: 1},
 			player:            player,
 			attributes:        battleTokenAttributeArmed,
+			armor:             100,
+			cost:              Cost{1, 1, 1, 1},
 		}
 
 		// put our token in the weapon passed in
@@ -249,10 +250,12 @@ func Test_battle_getBestAttackMoves(t *testing.T) {
 	enemyToken := func(position BattleVector, weapon *battleWeaponSlot) *battleToken {
 		player := testPlayer().WithNum(2)
 		token := battleToken{
-			BattleRecordToken: BattleRecordToken{Position: position, PlayerNum: player.Num, Tactic: BattleTacticMaximizeDamage, AttackWho: BattleAttackWhoEveryone, PrimaryTarget: BattleTargetAny},
+			BattleRecordToken: BattleRecordToken{Position: position, PlayerNum: player.Num, Tactic: BattleTacticMaximizeDamage, AttackWho: BattleAttackWhoEveryone, PrimaryTarget: BattleTargetAny, Movement: 4},
 			ShipToken:         &ShipToken{Quantity: 1},
 			player:            testPlayer().WithNum(2),
 			attributes:        battleTokenAttributeArmed,
+			armor:             100,
+			cost:              Cost{1, 1, 1, 1},
 		}
 
 		// if this enemy has a weapon, assign it now
@@ -277,8 +280,7 @@ func Test_battle_getBestAttackMoves(t *testing.T) {
 			// * * * *
 			name: "token move towards enemy",
 			args: args{
-				token:       attackingToken(BattleVector{0, 1}, BattleTacticMaximizeDamage, laser),
-				targetEnemy: 0,
+				token: attackingToken(BattleVector{0, 1}, BattleTacticMaximizeDamage, laser),
 				// make three weapons adjacent so we have to move straight back
 				enemies: []*battleToken{
 					enemyToken(BattleVector{4, 1}, nil),
@@ -293,8 +295,7 @@ func Test_battle_getBestAttackMoves(t *testing.T) {
 			// * * * T
 			name: "token move towards enemy right or right/down",
 			args: args{
-				token:       attackingToken(BattleVector{0, 0}, BattleTacticMaximizeDamage, laser),
-				targetEnemy: 0,
+				token: attackingToken(BattleVector{0, 0}, BattleTacticMaximizeDamage, laser),
 				// make three weapons adjacent so we have to move straight back
 				enemies: []*battleToken{
 					enemyToken(BattleVector{3, 2}, nil),
@@ -307,10 +308,9 @@ func Test_battle_getBestAttackMoves(t *testing.T) {
 			// A T * *
 			// * * * *
 			// * * * *
-			name: "token maximize beam damage",
+			name: "token maximize beam damage one target",
 			args: args{
-				token:       attackingToken(BattleVector{0, 0}, BattleTacticMaximizeDamage, laser),
-				targetEnemy: 0,
+				token: attackingToken(BattleVector{0, 0}, BattleTacticMaximizeDamage, laser),
 				// make three weapons adjacent so we have to move straight back
 				enemies: []*battleToken{
 					enemyToken(BattleVector{1, 0}, nil),
@@ -318,24 +318,60 @@ func Test_battle_getBestAttackMoves(t *testing.T) {
 			},
 			want: []BattleVector{{1, 0}},
 		},
+		{
+			// attacker should move to cause the most damage vs damage taken
+			// the board will have two tokens, a strong and a weak one
+			// * S * *
+			// A W * *
+			// * * * *
+			name: "token maximize damage ratio strong and weak target",
+			args: args{
+				token: attackingToken(BattleVector{0, 1}, BattleTacticMaximizeDamageRatio, laser),
+				// make three weapons adjacent so we have to move straight back
+				enemies: []*battleToken{
+					// strong 100 power beamer
+					enemyToken(BattleVector{1, 0}, &battleWeaponSlot{weaponType: battleWeaponTypeBeam, power: 100, slotQuantity: 1, weaponRange: 1}),
+					// weak 10 power beamer
+					enemyToken(BattleVector{1, 1}, &laser),
+				},
+			},
+			want: []BattleVector{{1, 2}}, // best damage ratio, and towards center
+		},
+		{
+			// attacker wants to cause the largest difference in damage
+			// the board will have three tokens, one up and right, and 2 down and right
+			// we will have a powerful beam that can burn through multiple tokens
+			// * 1 * *
+			// A * * *
+			// * 2 * *
+			name: "token maximize damage ratio strong and weak target",
+			args: args{
+				token: attackingToken(BattleVector{0, 1}, BattleTacticMaximizeNetDamage, battleWeaponSlot{weaponType: battleWeaponTypeBeam, power: 20, slotQuantity: 1, weaponRange: 1}),
+				// make three weapons adjacent so we have to move straight back
+				enemies: []*battleToken{
+					enemyToken(BattleVector{1, 0}, &laser),
+					// tokens at this spot
+					enemyToken(BattleVector{1, 2}, &laser),
+					enemyToken(BattleVector{1, 2}, &laser),
+				},
+			},
+			want: []BattleVector{{1, 2}}, // best damage ratio, and towards center
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			b := &battle{
-				tokens: []*battleToken{tt.args.token},
+				tokens: append([]*battleToken{tt.args.token}, tt.args.enemies...),
 				rules:  &rules,
 			}
 
 			// build a list of weapons on the board
 			weapons := append([]*battleWeaponSlot{}, tt.args.token.weaponSlots...)
-			for i, token := range tt.args.enemies {
-				if tt.args.targetEnemy == i {
-					// target this enemy as our move target
-					tt.args.token.moveTarget = token
-				}
+			for _, token := range tt.args.enemies {
 				weapons = append(weapons, token.weaponSlots...)
 			}
 
+			b.findMoveTargets(b.tokens)
 			// run away and record the new position
 			if got := b.getBestAttackMoves(tt.args.token, weapons); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("battle.getBestMove() = %v, want %v", got, tt.want)
