@@ -303,20 +303,20 @@ func (m *messageClient) fleetColonizeNonPlanet(player *Player, fleet *Fleet) {
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum}})
 }
 
-func (m *messageClient) fleetColonizeOwnedPlanet(player *Player, fleet *Fleet) {
-	text := fmt.Sprintf("%s has attempted to colonize a planet that is already inhabited.", fleet.Name)
+func (m *messageClient) fleetColonizeOwnedPlanet(player *Player, planet *Planet fleet *Fleet) {
+	text := fmt.Sprintf("%s has orders to colonize %s, but %s is already inhabited. The order has been canceled.", fleet.Name, Planet.Name, Planet.Name)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum}})
 
 }
 
 func (m *messageClient) fleetColonizeWithNoModule(player *Player, fleet *Fleet) {
-	text := fmt.Sprintf("%s has attempted to colonize a planet without a colonization module.", fleet.Name)
+	text := fmt.Sprintf("%s has attempted to colonize a planet without a colonization module. The order has been canceled.", fleet.Name)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum}})
 
 }
 
 func (m *messageClient) fleetColonizeWithNoColonists(player *Player, fleet *Fleet) {
-	text := fmt.Sprintf("%s has attempted to colonize a planet without bringing any colonists.", fleet.Name)
+	text := fmt.Sprintf("%s has attempted to colonize a planet without bringing any colonists. The order has been canceled.", fleet.Name)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum}})
 }
 
@@ -332,7 +332,7 @@ func (m *messageClient) fleetDieOff(player *Player, fleet *Fleet, death int) {
 }
 
 func (m *messageClient) fleetEngineFailure(player *Player, fleet *Fleet) {
-	text := fmt.Sprintf("%s was unable to engage it's engines due to balky equipment. Engineers think they have the problem fixed for the time being.", fleet.Name)
+	text := fmt.Sprintf("%s was unable to engage its engines due to balky equipment. Engineers think they have the problem fixed for the time being.", fleet.Name)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetEngineFailure, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum}})
 }
 
@@ -371,14 +371,14 @@ func (m *messageClient) fleetMineFieldHit(player *Player, fleet *Fleet, fleetPla
 						damage)
 				}
 			} else {
-				text = fmt.Sprintf("%s has been stopped in a %s mine field at %sv",
+				text = fmt.Sprintf("%s has been stopped in a %s mine field at %v.",
 					fleet.Name, mineField.Type, mineField.Position)
 			}
 		}
 	} else {
 		// it's not our fleet, it must be our minefield
 		if fleet.Spec.TotalShips <= shipsDestroyed {
-			text = fmt.Sprintf("%s %s has been annihilated in your %s mine field at %v",
+			text = fmt.Sprintf("%s %s has been annihilated in your %s mine field at %v.",
 				fleetPlayer.Race.PluralName, fleet.Name, mineField.Type, mineField.Position)
 		} else {
 			text = fmt.Sprintf("%s %s has been stopped in your %s mine field at %v.",
@@ -392,7 +392,7 @@ func (m *messageClient) fleetMineFieldHit(player *Player, fleet *Fleet, fleetPla
 						damage)
 				}
 			} else {
-				text = fmt.Sprintf("%s has been stopped in your %s mine field at %s.",
+				text = fmt.Sprintf("%s has been stopped in your %s mine field at %v.",
 					fleet.Name, mineField.Type, mineField.Position)
 			}
 		}
@@ -431,14 +431,14 @@ func (m *messageClient) fleetMineFieldSwept(player *Player, fleet *Fleet, mineFi
 }
 
 func (m *messageClient) fleetMinesLaidFailed(player *Player, fleet *Fleet) {
-	text := fmt.Sprintf("%s has attempted to lay mines. The order has been cancelled because the fleet has no mine layers.", fleet.Name)
+	text := fmt.Sprintf("%s has attempted to lay mines, but has no mine layers. The order has been cancelled.", fleet.Name)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num}})
 }
 
 func (m *messageClient) fleetMinesLaid(player *Player, fleet *Fleet, mineField *MineField, numMinesLaid int) {
 	var text string
 	if mineField.NumMines == numMinesLaid {
-		text = fmt.Sprintf("%s has dispersed %d mines.", fleet.Name, numMinesLaid)
+		text = fmt.Sprintf("%s has dispensed %d mines.", fleet.Name, numMinesLaid)
 	} else {
 		text = fmt.Sprintf("%s has increased a minefield by %d mines.", fleet.Name, numMinesLaid)
 	}
@@ -460,12 +460,12 @@ func (m *messageClient) fleetPatrolTargeted(player *Player, fleet *Fleet, target
 }
 
 func (m *messageClient) fleetInvalidMergeNotFleet(player *Player, fleet *Fleet) {
-	text := fmt.Sprintf("%s was unable to complete it's merge orders as the waypoint destination wasn't a fleet.", fleet.Name)
+	text := fmt.Sprintf("%s was unable to complete its merge orders as the waypoint destination wasn't a fleet.", fleet.Name)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetMergeInvalidNotFleet, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num}})
 }
 
 func (m *messageClient) fleetInvalidMergeNotOwned(player *Player, fleet *Fleet) {
-	text := fmt.Sprintf("%s was unable to complete it's merge orders as the destination fleet wasn't one of yours.", fleet.Name)
+	text := fmt.Sprintf("%s was unable to complete its merge orders as the destination fleet wasn't one of yours.", fleet.Name)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetMergeInvalidUnowned, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num}})
 }
 
@@ -475,7 +475,7 @@ func (m *messageClient) fleetInvalidRouteNotPlanet(player *Player, fleet *Fleet)
 }
 
 func (m *messageClient) fleetInvalidRouteNotFriendlyPlanet(player *Player, fleet *Fleet, planet *Planet) {
-	text := fmt.Sprintf("%s could not be routed because you are not friends with the owners of %s", fleet.Name, planet.Name)
+	text := fmt.Sprintf("%s could not be routed because you are not friends with the owners of %s.", fleet.Name, planet.Name)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetRouteInvalidNotFriendlyPlanet, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num}})
 }
 
