@@ -41,7 +41,7 @@
 		{:else if details.ourDead === details.ours && details.theirDead === 0}
 			Your forces were annihilated by the enemy, and they lost no ships.
 		{:else if details.ourDead > 0 && details.ours && details.theirDead > 0}
-			Both you and the enemy suffered losses during the exhange.
+			Both you and the enemy suffered losses during the exchange.
 		{/if}
 	{:else if message.type === MessageType.BattleAlly}
 		Your ally was involved in a battle at {details.location}.
@@ -50,12 +50,12 @@
 		{:else if details.ourDead === 0 && details.theirDead === details.theirs}
 			All enemy forces were destroyed. Your allies did not suffer a single casualty.
 		{:else if details.ourDead === details.ours && details.theirDead === 0}
-			Your friends were annihilated by the enemy, who lost no ships.
+			Your ally's forces were annihilated by the enemy, who lost no ships.
 		{:else if details.ourDead > 0 && details.ours && details.theirDead > 0}
-			Both your allies and the enemy suffered losses during the exhange.
+			Both your allies and the enemy suffered losses during the exchange.
 		{/if}
 	{:else}
-		A battle took place at an unknown location
+		A battle took place at an unknown location.
 	{/if}
 {:else}
 	<FallbackMessageDetail {message} />
