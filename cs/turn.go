@@ -1872,7 +1872,7 @@ func (t *turn) fleetBattle() {
 
 		battler := newBattler(&t.game.Rules, t.game.Rules.techs, battleNum, playersAtPosition, fleets, planet)
 
-		if battler.hasTargets() {
+		if battler.findTargets() {
 			// someone wants to fight, run the battle!
 			record := battler.runBattle()
 
@@ -2040,7 +2040,6 @@ func (t *turn) fleetBattle() {
 						Msgf("gained tech level from battle")
 
 				}
-
 			}
 
 			log.Debug().

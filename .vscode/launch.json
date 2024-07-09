@@ -56,8 +56,8 @@
             "type": "go",
             "request": "launch",
             "mode": "test",
-            "program": "${workspaceFolder}/cs/production_test.go",
-            "args": ["-test.run", "Test_production_produce10"]
+            "program": "${workspaceFolder}/cs/battle_test.go",
+            "args": ["-test.run", "Test_battle_getBestAttackMoves"]
         },
 
     ]

@@ -127,14 +127,7 @@ func Test_battleWeaponSlot_getAttractiveness(t *testing.T) {
 				capitalShipMissile: tt.fields.capitalShipMissile,
 			}
 			target := &battleToken{
-				// we only care about the design cost on the target shiptoken
-				ShipToken: &ShipToken{
-					design: &ShipDesign{
-						Spec: ShipDesignSpec{
-							Cost: tt.args.cost,
-						},
-					},
-				},
+				cost:           tt.args.cost,
 				armor:          tt.args.armor,
 				shields:        tt.args.shields,
 				beamDefense:    tt.args.beamDefense,
@@ -347,6 +340,18 @@ func Test_battleWeaponSlot_getBeamDamageToTarget(t *testing.T) {
 			},
 			want: battleWeaponDamage{shieldDamage: 40, armorDamage: 14, numDestroyed: 0, leftover: 0, damage: 7, quantityDamaged: 2},
 		},
+		{
+			name:   "1 beam 75 damage, 2 targets with 2@50% damage",
+			fields: fields{shipQuantity: 1, slotQuantity: 1, weaponRange: 1},
+			args: args{
+				damage:               75, // 1 big beam
+				tokenQuantity:        2,
+				armor:                100,
+				tokenDamage:          50,
+				tokenQuantityDamaged: 2,
+			},
+			want: battleWeaponDamage{shieldDamage: 0, armorDamage: 75, numDestroyed: 1, leftover: 0, damage: 75, quantityDamaged: 1},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -375,7 +380,7 @@ func Test_battleWeaponSlot_getBeamDamageToTarget(t *testing.T) {
 				beamDefense:  tt.args.beamDefense,
 			}
 			if got := weapon.getBeamDamageToTarget(tt.args.damage, target, rules.BeamRangeDropoff); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("battleWeaponSlot.getTargetBeamDamage() = %#v, want %#v", got, tt.want)
+				t.Errorf("battleWeaponSlot.getTargetBeamDamage() = \n%#v\n, want \n%#v", got, tt.want)
 			}
 		})
 	}
@@ -480,7 +485,7 @@ func Test_battleWeaponSlot_getEstimatedTorpedoDamageToTarget(t *testing.T) {
 			},
 			// half damage shields/armor + 1/8th damage to shields for the two misses
 			want: battleWeaponDamage{shieldDamage: 40, armorDamage: 40},
-		},		
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
