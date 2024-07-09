@@ -129,6 +129,7 @@ func (o *orders) UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet
 func (o *orders) UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrders) {
 	// copy user modifiable things to the fleet fleet
 	fleet.RepeatOrders = orders.RepeatOrders
+	fleet.BattlePlanNum = orders.BattlePlanNum
 	wp0 := &fleet.Waypoints[0]
 	newWP0 := orders.Waypoints[0]
 
@@ -390,7 +391,7 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 		fleet.Heading = source.Heading
 		fleet.WarpSpeed = source.WarpSpeed
 		fleet.PreviousPosition = source.PreviousPosition
-		fleet.battlePlan = source.battlePlan
+		fleet.BattlePlanNum = source.BattlePlanNum
 
 		// create a slice of empty tokens we will populate
 		fleet.Tokens = make([]ShipToken, len(source.Tokens))
@@ -583,7 +584,7 @@ func (o *orders) splitFleetTokens(rules *Rules, player *Player, playerFleets []*
 	fleet.Heading = source.Heading
 	fleet.WarpSpeed = source.WarpSpeed
 	fleet.PreviousPosition = source.PreviousPosition
-	fleet.battlePlan = source.battlePlan
+	fleet.BattlePlanNum = source.BattlePlanNum
 	fleet.Tokens = tokens
 
 	// the fleet has some percentage of fuel fullness

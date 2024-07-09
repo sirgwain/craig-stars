@@ -278,7 +278,7 @@ func Test_battle_getBestAttackMoves(t *testing.T) {
 			// * * * *
 			// A * * T
 			// * * * *
-			name: "token move towards enemy",
+			name: "move towards enemy",
 			args: args{
 				token: attackingToken(BattleVector{0, 1}, BattleTacticMaximizeDamage, laser),
 				// make three weapons adjacent so we have to move straight back
@@ -293,7 +293,7 @@ func Test_battle_getBestAttackMoves(t *testing.T) {
 			// A * * *
 			// * * * *
 			// * * * T
-			name: "token move towards enemy right or right/down",
+			name: "move towards enemy right or right/down",
 			args: args{
 				token: attackingToken(BattleVector{0, 0}, BattleTacticMaximizeDamage, laser),
 				// make three weapons adjacent so we have to move straight back
@@ -308,7 +308,7 @@ func Test_battle_getBestAttackMoves(t *testing.T) {
 			// A T * *
 			// * * * *
 			// * * * *
-			name: "token maximize beam damage one target",
+			name: "maximize beam damage one target",
 			args: args{
 				token: attackingToken(BattleVector{0, 0}, BattleTacticMaximizeDamage, laser),
 				// make three weapons adjacent so we have to move straight back
@@ -324,7 +324,7 @@ func Test_battle_getBestAttackMoves(t *testing.T) {
 			// * S * *
 			// A W * *
 			// * * * *
-			name: "token maximize damage ratio strong and weak target",
+			name: "maximize damage ratio strong and weak target",
 			args: args{
 				token: attackingToken(BattleVector{0, 1}, BattleTacticMaximizeDamageRatio, laser),
 				// make three weapons adjacent so we have to move straight back
@@ -338,24 +338,80 @@ func Test_battle_getBestAttackMoves(t *testing.T) {
 			want: []BattleVector{{1, 2}}, // best damage ratio, and towards center
 		},
 		{
+			// attacker has torpedos and wants to stay out of range of those lasers
+			// it should move back
+			// * * 1 *
+			// * A * *
+			// * * 2 *
+			name: "maximize damage ratio, prefer no damage",
+			args: args{
+				token: attackingToken(BattleVector{1, 1}, BattleTacticMaximizeDamageRatio, battleWeaponSlot{weaponType: battleWeaponTypeTorpedo, power: 10, accuracy: 1, slotQuantity: 3, weaponRange: 2}),
+				// make three weapons adjacent so we have to move straight back
+				enemies: []*battleToken{
+					enemyToken(BattleVector{2, 0}, &laser),
+					// put two tokens here
+					enemyToken(BattleVector{2, 2}, &laser),
+					enemyToken(BattleVector{2, 2}, &laser),
+				},
+			},
+			want: []BattleVector{{0, 0}, {0, 1}, {0, 2}},
+		},
+		{
+			// attacker has torpedos and wants to stay out of range of those lasers
+			// it should move back but stay near the center if possible
+			// * * 1 *
+			// * A * *
+			// * * 2 *
+			name: "maximize damage ratio, prefer no damage, start in center (5,5)",
+			args: args{
+				token: attackingToken(BattleVector{5, 5}, BattleTacticMaximizeDamageRatio, battleWeaponSlot{weaponType: battleWeaponTypeTorpedo, power: 10, accuracy: 1, slotQuantity: 3, weaponRange: 2}),
+				// make three weapons adjacent so we have to move straight back
+				enemies: []*battleToken{
+					enemyToken(BattleVector{6, 4}, &laser),
+					// put two tokens here
+					enemyToken(BattleVector{6, 6}, &laser),
+					enemyToken(BattleVector{6, 6}, &laser),
+				},
+			},
+			want: []BattleVector{{4, 4}, {4, 5}}, // we pick the 0 damageTaken options that keep us near center
+		},
+		{
 			// attacker wants to cause the largest difference in damage
-			// the board will have three tokens, one up and right, and 2 down and right
-			// we will have a powerful beam that can burn through multiple tokens
+			// the board will have three tokens, one up and right, and 2 down and right (one unarmed)
+			// we will have a powerful beam that can burn through multiple tokens so we'll move to the
+			// 2 token space to attack them both and only take damage from one
 			// * 1 * *
 			// A * * *
 			// * 2 * *
-			name: "token maximize damage ratio strong and weak target",
+			name: "maximize net damage",
 			args: args{
 				token: attackingToken(BattleVector{0, 1}, BattleTacticMaximizeNetDamage, battleWeaponSlot{weaponType: battleWeaponTypeBeam, power: 20, slotQuantity: 1, weaponRange: 1}),
 				// make three weapons adjacent so we have to move straight back
 				enemies: []*battleToken{
 					enemyToken(BattleVector{1, 0}, &laser),
 					// tokens at this spot
-					enemyToken(BattleVector{1, 2}, &laser),
+					enemyToken(BattleVector{1, 2}, nil),
 					enemyToken(BattleVector{1, 2}, &laser),
 				},
 			},
-			want: []BattleVector{{1, 2}}, // best damage ratio, and towards center
+			want: []BattleVector{{1, 2}}, // best net damage, move to two token square
+		},
+		{
+			// attacker has torpedos and wants to stay out of range of those lasers
+			// it should move back
+			// * * L *
+			// * A * *
+			// * * L *
+			name: "minimize damage to self",
+			args: args{
+				token: attackingToken(BattleVector{1, 1}, BattleTacticMinimizeDamageToSelf, battleWeaponSlot{weaponType: battleWeaponTypeTorpedo, power: 10, accuracy: 1, slotQuantity: 2, weaponRange: 2}),
+				// make three weapons adjacent so we have to move straight back
+				enemies: []*battleToken{
+					enemyToken(BattleVector{2, 0}, &laser),
+					enemyToken(BattleVector{2, 2}, &laser),
+				},
+			},
+			want: []BattleVector{{0, 0}, {0, 1}, {0, 2}}, // min damage, move out of range
 		},
 	}
 	for _, tt := range tests {
@@ -371,7 +427,7 @@ func Test_battle_getBestAttackMoves(t *testing.T) {
 				weapons = append(weapons, token.weaponSlots...)
 			}
 
-			b.findMoveTargets(b.tokens)
+			b.findTargets()
 			// run away and record the new position
 			if got := b.getBestAttackMoves(tt.args.token, weapons); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("battle.getBestMove() = %v, want %v", got, tt.want)

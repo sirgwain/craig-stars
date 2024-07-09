@@ -2,6 +2,7 @@ package cs
 
 import (
 	"fmt"
+	"math"
 )
 
 type battleTokenAttribute int
@@ -41,6 +42,99 @@ type battleToken struct {
 	maxDamageRange    int
 	torpedoJamming    float64
 	beamDefense       float64
+}
+
+// newBattleToken creates a new battle token from a shipToken.
+func newBattleToken(num int, position BattleVector, cargoMass int, token *ShipToken, battlePlan BattlePlan, player *Player, techFinder TechFinder) *battleToken {
+	battleToken := battleToken{
+		BattleRecordToken: BattleRecordToken{
+			Num:              num,
+			PlayerNum:        player.Num,
+			Position:         position,
+			DesignNum:        token.DesignNum,
+			Initiative:       token.design.Spec.Initiative,
+			Mass:             token.design.Spec.Mass + cargoMass,
+			Armor:            token.design.Spec.Armor,
+			StackShields:     token.design.Spec.Shields * token.Quantity,
+			Movement:         token.design.getMovement(cargoMass),
+			StartingQuantity: token.Quantity,
+			Tactic:           battlePlan.Tactic,
+			PrimaryTarget:    battlePlan.PrimaryTarget,
+			SecondaryTarget:  battlePlan.SecondaryTarget,
+			AttackWho:        battlePlan.AttackWho,
+		},
+		ShipToken:         token,
+		player:            player,
+		designName:        token.design.Name,
+		cost:              token.design.Spec.Cost,
+		armor:             token.design.Spec.Armor,
+		shields:           token.design.Spec.Shields,
+		stackShields:      token.Quantity * token.design.Spec.Shields,
+		totalStackShields: token.Quantity * token.design.Spec.Shields,
+		torpedoJamming:    token.design.Spec.TorpedoJamming,
+		beamDefense:       token.design.Spec.BeamDefense,
+		attributes:        getBattleTokenAttributes(token.design.Spec.HullType, token.design.Spec.HasWeapons),
+	}
+
+	// get the weapon slots for a token
+	weaponSlots := make([]*battleWeaponSlot, 0)
+	hull := techFinder.GetHull(token.design.Hull)
+	if len(token.design.Spec.WeaponSlots) > 0 {
+		minRange := math.MaxInt
+		maxRange := 0
+		for _, slot := range token.design.Spec.WeaponSlots {
+			weapon := techFinder.GetHullComponent(slot.HullComponent)
+			bws := newBattleWeaponSlot(&battleToken, slot, weapon, hull.RangeBonus, token.design.Spec.TorpedoBonus, token.design.Spec.BeamBonus)
+			weaponSlots = append(weaponSlots, bws)
+			minRange = MinInt(minRange, bws.weaponRange)
+			maxRange = MaxInt(maxRange, bws.weaponRange)
+			if bws.weaponType == battleWeaponTypeBeam {
+				battleToken.attributes |= battleTokenAttributeHasBeams
+			} else if bws.weaponType == battleWeaponTypeTorpedo {
+				battleToken.attributes |= battleTokenAttributeHasTorpedos
+			}
+		}
+		battleToken.weaponSlots = weaponSlots
+		battleToken.minRange = minRange
+		battleToken.maxRange = maxRange
+
+		// to maximize our damage, we either close in all the way
+		// or get close enough so all our weapons can fire
+		if battleToken.hasBeamWeapons() {
+			battleToken.maxDamageRange = 0
+		} else {
+			battleToken.minRange = 0
+		}
+	}
+
+	return &battleToken
+}
+
+// convert hulltype to BattleTokenAttributes
+func getBattleTokenAttributes(hullType TechHullType, hasWeapons bool) battleTokenAttribute {
+	attributes := battleTokenAttributeUnarmed
+
+	if hullType == TechHullTypeStarbase {
+		attributes |= battleTokenAttributeStarbase
+	}
+
+	if hasWeapons {
+		attributes |= battleTokenAttributeArmed
+	}
+
+	if hullType == TechHullTypeFreighter {
+		attributes |= battleTokenAttributeFreighter
+	}
+
+	if hullType == TechHullTypeFuelTransport {
+		attributes |= battleTokenAttributeFuelTransport
+	}
+
+	if hullType == TechHullTypeBomber {
+		attributes |= battleTokenAttributeBomber
+	}
+
+	return attributes
 }
 
 func (token *battleToken) hasWeapons() bool {

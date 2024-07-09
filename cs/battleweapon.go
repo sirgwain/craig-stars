@@ -71,6 +71,32 @@ type battleWeaponDamage struct {
 	leftover int
 }
 
+// newBattleWeaponSlot creates a new BattleWeaponSlot object
+func newBattleWeaponSlot(token *battleToken, slot ShipDesignSlot, hc *TechHullComponent, rangeBonus int, torpedoBonus float64, beamBonus float64) *battleWeaponSlot {
+	weaponSlot := &battleWeaponSlot{
+		token:              token,
+		slot:               slot,
+		slotQuantity:       slot.Quantity,
+		weaponRange:        hc.Range + rangeBonus,
+		power:              hc.Power,
+		damagesShieldsOnly: hc.DamageShieldsOnly,
+		accuracy:           float64(hc.Accuracy) / 100.0, // accuracy as 0 to 1.0
+		torpedoBonus:       torpedoBonus,
+		initiative:         token.Initiative + hc.Initiative,
+		hitsAllTargets:     hc.HitsAllTargets,
+		capitalShipMissile: hc.CapitalShipMissile,
+	}
+
+	if hc.Category == TechCategoryBeamWeapon {
+		weaponSlot.weaponType = battleWeaponTypeBeam
+		weaponSlot.power = int(float64(weaponSlot.power) * (1 + beamBonus))
+	} else if hc.Category == TechCategoryTorpedo {
+		weaponSlot.weaponType = battleWeaponTypeTorpedo
+	}
+
+	return weaponSlot
+}
+
 // get beam damage with dropoff and defense included
 func getBeamDamageAtDistance(damage, weaponRange, dist int, beamDefense float64, beamRangeDropoff float64) int {
 	if weaponRange > 0 {

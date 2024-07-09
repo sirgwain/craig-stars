@@ -148,7 +148,7 @@ const battleWidth, battleHeight = 10, 10
 // to check if a battle will occur, and run the battle.
 // Running a battle returns a BattleRecord that is passed along to each player.
 type battler interface {
-	hasTargets() bool
+	findTargets() bool
 	runBattle() *BattleRecord
 }
 
@@ -235,6 +235,7 @@ func newBattler(rules *Rules, techFinder TechFinder, battleNum int, players map[
 			token := &fleet.Tokens[i]
 			num++
 
+			// add cargo from the fleet to each token
 			cargoMass := 0
 			if totalCargo > 0 && token.design.Spec.CargoCapacity > 0 {
 				// see how much this ship's cargo capacity is compared to the fleet total
@@ -242,73 +243,16 @@ func newBattler(rules *Rules, techFinder TechFinder, battleNum int, players map[
 				cargoMass = int(float64(totalCargo) * shipCargoPercent)
 			}
 
-			position := playerStartingPositions[fleet.PlayerNum]
-			battleToken := &battleToken{
-				BattleRecordToken: BattleRecordToken{
-					Num:              num,
-					PlayerNum:        fleet.PlayerNum,
-					Position:         position,
-					DesignNum:        token.DesignNum,
-					Initiative:       token.design.Spec.Initiative,
-					Mass:             token.design.Spec.Mass + cargoMass,
-					Armor:            token.design.Spec.Armor,
-					StackShields:     token.design.Spec.Shields * token.Quantity,
-					Movement:         token.design.getMovement(cargoMass),
-					StartingQuantity: token.Quantity,
-					Tactic:           fleet.battlePlan.Tactic,
-					PrimaryTarget:    fleet.battlePlan.PrimaryTarget,
-					SecondaryTarget:  fleet.battlePlan.SecondaryTarget,
-					AttackWho:        fleet.battlePlan.AttackWho,
-				},
-				ShipToken:         token,
-				player:            player,
-				designName:        token.design.Name,
-				cost:              token.design.Spec.Cost,
-				armor:             token.design.Spec.Armor,
-				shields:           token.design.Spec.Shields,
-				stackShields:      token.Quantity * token.design.Spec.Shields,
-				totalStackShields: token.Quantity * token.design.Spec.Shields,
-				torpedoJamming:    token.design.Spec.TorpedoJamming,
-				beamDefense:       token.design.Spec.BeamDefense,
-				attributes:        getBattleTokenAttributes(token.design.Spec.HullType, token.design.Spec.HasWeapons),
-			}
-			board[position.X][position.Y] += battleToken.StartingQuantity
-			// get the weapon slots for a token
-			weaponSlots := make([]*battleWeaponSlot, 0)
-			hull := techFinder.GetHull(token.design.Hull)
-			if len(token.design.Spec.WeaponSlots) > 0 {
-				minRange := math.MaxInt
-				maxRange := 0
-				for _, slot := range token.design.Spec.WeaponSlots {
-					weapon := techFinder.GetHullComponent(slot.HullComponent)
-					bws := newBattleWeaponSlot(battleToken, slot, weapon, hull.RangeBonus, token.design.Spec.TorpedoBonus, token.design.Spec.BeamBonus)
-					weaponSlots = append(weaponSlots, bws)
-					minRange = MinInt(minRange, bws.weaponRange)
-					maxRange = MaxInt(maxRange, bws.weaponRange)
-					if bws.weaponType == battleWeaponTypeBeam {
-						battleToken.attributes |= battleTokenAttributeHasBeams
-					} else if bws.weaponType == battleWeaponTypeTorpedo {
-						battleToken.attributes |= battleTokenAttributeHasTorpedos
-					}
-				}
-				battleToken.weaponSlots = weaponSlots
-				battleToken.minRange = minRange
-				battleToken.maxRange = maxRange
+			position := playerStartingPositions[player.Num]
+			battleToken := newBattleToken(num, position, cargoMass, token, *fleet.battlePlan, player, techFinder)
+			tokens = append(tokens, battleToken)
+			tokenRecords = append(tokenRecords, battleToken.BattleRecordToken)
 
-				// to maximize our damage, we either close in all the way
-				// or get close enough so all our weapons can fire
-				if battleToken.hasBeamWeapons() {
-					battleToken.maxDamageRange = 0
-				} else {
-					battleToken.minRange = 0
-				}
-			}
+			// put this token on the board
+			board[position.X][position.Y] += battleToken.StartingQuantity
 
 			// find the highest dampener we have
 			dampening = MaxInt(dampening, token.design.Spec.ReduceMovement)
-
-			tokens = append(tokens, battleToken)
-			tokenRecords = append(tokenRecords, battleToken.BattleRecordToken)
 		}
 	}
 
@@ -337,49 +281,30 @@ func newBattler(rules *Rules, techFinder TechFinder, battleNum int, players map[
 		rules:    rules,
 	}
 
-	battle.findMoveTargets(battle.tokens)
-
 	return battle
 }
 
-// newBattleWeaponSlot creates a new BattleWeaponSlot object
-func newBattleWeaponSlot(token *battleToken, slot ShipDesignSlot, hc *TechHullComponent, rangeBonus int, torpedoBonus float64, beamBonus float64) *battleWeaponSlot {
-	weaponSlot := &battleWeaponSlot{
-		token:              token,
-		slot:               slot,
-		slotQuantity:       slot.Quantity,
-		weaponRange:        hc.Range + rangeBonus,
-		power:              hc.Power,
-		damagesShieldsOnly: hc.DamageShieldsOnly,
-		accuracy:           float64(hc.Accuracy) / 100.0, // accuracy as 0 to 1.0
-		torpedoBonus:       torpedoBonus,
-		initiative:         token.Initiative + hc.Initiative,
-		hitsAllTargets:     hc.HitsAllTargets,
-		capitalShipMissile: hc.CapitalShipMissile,
-	}
-
-	if hc.Category == TechCategoryBeamWeapon {
-		weaponSlot.weaponType = battleWeaponTypeBeam
-		weaponSlot.power = int(float64(weaponSlot.power) * (1 + beamBonus))
-	} else if hc.Category == TechCategoryTorpedo {
-		weaponSlot.weaponType = battleWeaponTypeTorpedo
-	}
-
-	return weaponSlot
-}
-
-// return true if this battle will have targets
-func (b *battle) hasTargets() bool {
+// findTargets allocates targets for each token in a battle
+// this returns false if no targets are found
+func (b *battle) findTargets() bool {
+	hasTargets := false
 	for _, token := range b.tokens {
-		if !token.design.Spec.HasWeapons {
+		if !token.hasWeapons() || !token.isStillInBattle() {
 			continue
 		}
-		// starbases may target a scout, but if they can't move towards it, a battle won't be triggered
-		if token.Movement > 0 && token.moveTarget != nil {
-			return true
+
+		// first determine all the targets for this token's weapons
+		token.findWeaponsTargets(b.tokens)
+
+		// if we move, find a move target
+		if token.Movement == 0 {
+			continue
 		}
+		token.moveTarget = token.findMoveTarget()
+		hasTargets = token.moveTarget != nil || hasTargets
 	}
-	return false
+
+	return hasTargets
 }
 
 // runBattle runs a battle!
@@ -390,6 +315,7 @@ func (b *battle) runBattle() *BattleRecord {
 		log.Info().Msgf("Running a battle at (%.2f, %.2f) involving %d players and %d tokens.", b.position.X, b.position.Y, len(b.players), len(b.tokens))
 	}
 
+	// movement order is set at the start of battle and doesn't change
 	moveOrder := b.buildMovementOrder(b.tokens)
 	for b.round = 1; b.round <= b.rules.NumBattleRounds; b.round++ {
 
@@ -398,33 +324,32 @@ func (b *battle) runBattle() *BattleRecord {
 		weaponSlots := b.getSortedWeaponSlots(b.tokens)
 
 		// find new targets
-		if b.findMoveTargets(b.tokens) {
-			// if we still have targets, process the round
-			b.record.recordNewRound()
-
-			// movement is a repeating pattern of 4 movement blocks
-			// which we figured out in BuildMovement
-			roundBlock := ((b.round - 1) % 4)
-			for _, token := range moveOrder[roundBlock] {
-				b.moveToken(token, weaponSlots)
-			}
-
-			// iterate over each weapon and fire if they have a target
-			for _, weaponSlot := range weaponSlots {
-				// find all available targets for this weapon
-				targets := weaponSlot.getTargetsInRange()
-				b.fireWeaponSlot(weaponSlot, targets)
-			}
-
-			// at the end of this round, regenerate shields
-			for _, token := range b.tokens {
-				if token.stackShields > 0 && token.isStillInBattle() {
-					token.regenerateShields()
-				}
-			}
-		} else {
-			// no one has targets, we are done
+		if !b.findTargets() {
+			// out of targets, battle is done
 			break
+		}
+
+		b.record.recordNewRound()
+
+		// movement is a repeating pattern of 4 movement blocks
+		// which we figured out in buildMovementOrder
+		roundBlock := ((b.round - 1) % 4)
+		for _, token := range moveOrder[roundBlock] {
+			b.moveToken(token, weaponSlots)
+		}
+
+		// iterate over each weapon and fire if they have a target in range
+		for _, weaponSlot := range weaponSlots {
+			// find all available targets for this weapon
+			targets := weaponSlot.getTargetsInRange()
+			b.fireWeaponSlot(weaponSlot, targets)
+		}
+
+		// at the end of this round, regenerate shields
+		for _, token := range b.tokens {
+			if token.stackShields > 0 && token.isStillInBattle() {
+				token.regenerateShields()
+			}
 		}
 	}
 
@@ -436,55 +361,6 @@ func (b *battle) runBattle() *BattleRecord {
 	}
 
 	return b.record
-}
-
-// convert hulltype to BattleTokenAttributes
-func getBattleTokenAttributes(hullType TechHullType, hasWeapons bool) battleTokenAttribute {
-	attributes := battleTokenAttributeUnarmed
-
-	if hullType == TechHullTypeStarbase {
-		attributes |= battleTokenAttributeStarbase
-	}
-
-	if hasWeapons {
-		attributes |= battleTokenAttributeArmed
-	}
-
-	if hullType == TechHullTypeFreighter {
-		attributes |= battleTokenAttributeFreighter
-	}
-
-	if hullType == TechHullTypeFuelTransport {
-		attributes |= battleTokenAttributeFuelTransport
-	}
-
-	if hullType == TechHullTypeBomber {
-		attributes |= battleTokenAttributeBomber
-	}
-
-	return attributes
-}
-
-// findMoveTargets allocates targets for each token in a battle.
-func (b *battle) findMoveTargets(tokens []*battleToken) bool {
-	hasTargets := false
-	for _, token := range tokens {
-		if !token.hasWeapons() || !token.isStillInBattle() {
-			continue
-		}
-
-		// first determine all the targets for this token's weapons
-		token.findWeaponsTargets(tokens)
-
-		// if we move, find a move target
-		if token.Movement == 0 {
-			continue
-		}
-		token.moveTarget = token.findMoveTarget()
-		hasTargets = token.moveTarget != nil || hasTargets
-	}
-
-	return hasTargets
 }
 
 // buildMovementOrder builds a list of Movers in this battle.
@@ -521,6 +397,288 @@ func (b *battle) buildMovementOrder(tokens []*battleToken) (moveOrder [4][]*batt
 		}
 	}
 	return moveOrder
+}
+
+// get all weapon slots on the board, sorted by initiative
+func (b *battle) getSortedWeaponSlots(tokens []*battleToken) []*battleWeaponSlot {
+	slots := []*battleWeaponSlot{}
+	for _, token := range tokens {
+		if token.isStillInBattle() {
+			slots = append(slots, token.weaponSlots...)
+		}
+	}
+	sort.Slice(slots, func(i, j int) bool {
+		return slots[i].initiative > slots[j].initiative
+	})
+	return slots
+}
+
+// moveToken moves a token towards or away from its target
+func (b *battle) moveToken(token *battleToken, weaponSlots []*battleWeaponSlot) {
+	if !token.isStillInBattle() {
+		return
+	}
+	// count this token's moves
+	token.movesMade++
+
+	// always disengage if we have no weapons or targets
+	if token.moveTarget == nil || !token.hasWeapons() {
+		token.Tactic = BattleTacticDisengage
+	}
+
+	// disengage if we are a scared little token
+	if token.Tactic == BattleTacticDisengageIfChallenged && token.damaged {
+		token.Tactic = BattleTacticDisengage
+	}
+
+	// assume we move nowhere
+	oldPosition := token.Position
+	var bestMoves []BattleVector
+
+	if token.Tactic == BattleTacticDisengage {
+		if token.movesMade >= b.rules.MovesToRunAway {
+			// we've moved enough to leave the board
+			token.ranAway = true
+			b.board[token.Position.Y][token.Position.X] -= token.Quantity
+			b.record.recordRunAway(b.round, token)
+			return
+		}
+
+		// move out of harms way
+		bestMoves = b.getBestFleeMoves(token, weaponSlots)
+
+	} else {
+		// move to best do some damage
+		bestMoves = b.getBestAttackMoves(token, weaponSlots)
+	}
+
+	// update the board after a token moves
+	bestMove := bestMoves[b.rules.random.Intn(len(bestMoves))]
+	b.record.recordMove(b.round, token, token.Position, bestMove)
+	token.Position = bestMove
+	b.board[oldPosition.Y][oldPosition.X] -= token.Quantity
+	b.board[token.Position.Y][token.Position.X] += token.Quantity
+}
+
+// getEstimatedDamageForWeapons estimates the damage for a group of weapons against a target
+// if it were to move to a position
+func (b *battle) getEstimatedDamageForWeapons(weapons []*battleWeaponSlot, target *battleToken, position BattleVector) int {
+	damageDone := 0
+	for _, weapon := range weapons {
+		if !weapon.token.willTarget(target) {
+			// this weapon wouldn't target the attacker, so don't add its damage
+			continue
+		}
+		distanceToWeapon := position.distance(weapon.token.Position)
+		damageDone += b.getEstimatedDamageForWeapon(weapon, target, distanceToWeapon)
+	}
+
+	return damageDone
+}
+
+// getEstimatedDamageForWeapon estimates the damage for a single weapon to a target at a distance
+func (b *battle) getEstimatedDamageForWeapon(weapon *battleWeaponSlot, target *battleToken, distance int) int {
+	if !weapon.isInRangeValue(distance) {
+		// no damage, skip this weapon
+		return 0
+	}
+
+	var bwd battleWeaponDamage
+	if weapon.weaponType == battleWeaponTypeBeam {
+		bwd = weapon.getBeamDamageToTargetAtDistance(weapon.power*weapon.slotQuantity*weapon.token.Quantity, target, distance, b.rules.BeamRangeDropoff)
+	} else {
+		bwd = weapon.getEstimatedTorpedoDamageToTarget(target)
+	}
+	// add up actual shield/armor damage plus any tokens that would be destroyed by this shot
+	return bwd.shieldDamage + bwd.armorDamage
+}
+
+// for a new position on the board, and an existing slice of bestMoves, return the new bestMoves
+// Note: this function is only called if a move is equal or better, never for worse moves
+// if better, take the new position and discard the others
+// if not better, but closer to center, take the new move and discard the others
+// if not better and farther away, keep the bestMoves as is
+// if equivalent and the same distance from center, add it to bestMoves
+func updateMovesWithCenterPreference(better bool, newPosition BattleVector, bestMoves []BattleVector) []BattleVector {
+	if len(bestMoves) == 0 {
+		// we have no moves at all, so this is newPosition is our best move
+		return append(bestMoves, newPosition)
+	}
+
+	if better {
+		// this move is better, start over with it
+		return []BattleVector{newPosition}
+	}
+
+	// center of battle board is at (4.5, 4.5) so scale to 100x100 for 45,45 scaled center
+	newDistanceFromCenter := newPosition.scale(10).distance(BattleVector{45, 45})
+	oldDistanceFromCenter := bestMoves[0].scale(10).distance(BattleVector{45, 45})
+
+	if oldDistanceFromCenter == newDistanceFromCenter {
+		// move is equivalent in damage and closeness to center, add new move
+		return append(bestMoves, newPosition)
+	}
+	if oldDistanceFromCenter > newDistanceFromCenter {
+		// damage is the same, but new position is closer to center, use only new move
+		return []BattleVector{newPosition}
+	}
+
+	// damage is the same but farther from center, keep what we have but don't add this move
+	return bestMoves
+}
+
+// get the best move to attack a target
+// this checks all the nearby squares and moves in the direction that gets the token
+// closer or does the best damage, according to the battle plan
+// i.e. max damage, max damage ratio, max net damage, etc
+func (b *battle) getBestAttackMoves(token *battleToken, weapons []*battleWeaponSlot) []BattleVector {
+
+	bestDamageDone := 0
+	bestDamageTaken := math.MaxInt
+	bestDamageRatio := 0.0
+	bestNetDamage := -math.MaxInt
+	bestDamageMoves := []BattleVector{}
+	bestMoveCloserMoves := []BattleVector{}
+
+	// if no other options are presented, we move towards the moveTarget
+	target := token.moveTarget
+	bestDistanceToTarget := token.getDistanceAway(target.Position)
+
+	for dx := -1; dx <= 1; dx++ {
+		for dy := -1; dy <= 1; dy++ {
+			newPosition := BattleVector{token.Position.X + dx, token.Position.Y + dy}
+			if newPosition.X < 0 || newPosition.X >= battleWidth || newPosition.Y < 0 || newPosition.Y >= battleHeight {
+				// skip invalid squares
+				continue
+			}
+
+			// see if this move puts us closer to the target
+			distanceToTarget := newPosition.distance(target.Position)
+			if distanceToTarget == bestDistanceToTarget {
+				bestMoveCloserMoves = append(bestMoveCloserMoves, newPosition)
+			} else if distanceToTarget < bestDistanceToTarget {
+				bestDistanceToTarget = distanceToTarget
+				bestMoveCloserMoves = []BattleVector{newPosition}
+			}
+
+			// figure out how much damage we will do if we move to this spot
+			damageDone := 0
+			for _, weapon := range token.weaponSlots {
+				// each weapon will fire a volley at the most attractive target
+				for _, target := range weapon.targets {
+					distance := newPosition.distance(target.Position)
+					weaponDamage := b.getEstimatedDamageForWeapon(weapon, target, distance)
+					if weaponDamage > 0 {
+						// targets are sorted by attractiveness and
+						// we would be able to damage this target, so add it to
+						// total damage and move to the next weapon
+						damageDone += weaponDamage
+						break
+					}
+				}
+			}
+
+			// figure out damage taken from all enemy weapons if we move to this square
+			damageTaken := b.getEstimatedDamageForWeapons(weapons, token, newPosition)
+
+			var damageRatio float64
+			if damageTaken > 0 {
+				damageRatio = float64(damageDone) / float64(damageTaken)
+			}
+
+			// log.Debug().Msgf("moving to %#v, damageDone: %d, damageTaken: %d, netDamage: %d, damageRatio: %f", newPosition, damageDone, damageTaken, damageDone-damageTaken, damageRatio)
+
+			switch token.Tactic {
+			case BattleTacticMaximizeDamageRatio:
+				// first see if this move is doing damage but taking no damage
+				// if our previous "best" move involved taking damage, this one is better
+				// reset our bestDamageDone to 0 to "start over"
+				if damageTaken == 0 && bestDamageTaken > 0 && damageDone > 0 {
+					bestDamageDone = 0
+					bestDamageTaken = 0
+				}
+				if damageTaken == 0 && damageDone > 0 {
+					// we took no damage, so sort by best damage
+					if damageDone >= bestDamageDone {
+						bestDamageMoves = updateMovesWithCenterPreference(damageDone > bestDamageDone, newPosition, bestDamageMoves)
+						bestDamageDone = damageDone
+					}
+				} else if bestDamageDone == 0 {
+					// we don't have a best damage yet, and this move
+					if damageRatio >= bestDamageRatio {
+						bestDamageMoves = updateMovesWithCenterPreference(damageRatio > bestDamageRatio, newPosition, bestDamageMoves)
+						bestDamageRatio = damageRatio
+					}
+				}
+			case BattleTacticMaximizeNetDamage:
+				if damageDone > 0 && damageDone-damageTaken >= bestNetDamage {
+					bestDamageMoves = updateMovesWithCenterPreference(damageDone-damageTaken > bestNetDamage, newPosition, bestDamageMoves)
+					bestDamageDone = damageDone
+					bestNetDamage = damageDone - damageTaken
+				}
+
+			case BattleTacticMinimizeDamageToSelf:
+				if damageTaken <= bestDamageTaken {
+					bestDamageMoves = updateMovesWithCenterPreference(damageTaken < bestDamageTaken, newPosition, bestDamageMoves)
+					bestDamageTaken = damageTaken
+					if damageDone > bestDamageDone {
+						bestDamageDone = damageDone
+					}
+				}
+
+			case BattleTacticMaximizeDamage:
+				if damageDone >= bestDamageDone {
+					bestDamageMoves = updateMovesWithCenterPreference(damageDone > bestDamageDone, newPosition, bestDamageMoves)
+					bestDamageDone = damageDone
+				}
+			}
+		}
+	}
+
+	// if none of our moves lead to damage, pick the move that moves us towards our target
+	if bestDamageDone == 0 && bestDamageRatio == 0.0 {
+		return bestMoveCloserMoves
+	}
+
+	return bestDamageMoves
+}
+
+// get the best move this token should fleet to based on weapons on the board
+func (b *battle) getBestFleeMoves(token *battleToken, weapons []*battleWeaponSlot) []BattleVector {
+	// find the best move for running away
+	lowestDamageMoves := make([]BattleVector, 0, 9)
+
+	// if we stayed still, figure out our damage
+	damageTaken := b.getEstimatedDamageForWeapons(weapons, token, token.Position)
+	lowestDamage := damageTaken
+
+	for dx := -1; dx <= 1; dx++ {
+		for dy := -1; dy <= 1; dy++ {
+			newPosition := BattleVector{token.Position.X + dx, token.Position.Y + dy}
+			if newPosition.X < 0 || newPosition.X >= battleWidth || newPosition.Y < 0 || newPosition.Y >= battleHeight {
+				// skip invalid squares
+				continue
+			}
+
+			// figure out damage taken from all weapons targeting us if we moved to this square
+			damageTaken := b.getEstimatedDamageForWeapons(weapons, token, newPosition)
+			// log.Debug().Msgf("moving to %#v causes %d damage", newPosition, damageTaken)
+
+			// if this move is the same as our previous one, add it to our possible list
+			if damageTaken == lowestDamage {
+				lowestDamageMoves = append(lowestDamageMoves, newPosition)
+			}
+
+			// if this move is better, replace the list
+			if damageTaken < lowestDamage {
+				lowestDamage = damageTaken
+				lowestDamageMoves = []BattleVector{newPosition}
+			}
+		}
+	}
+
+	// pick a random best move and move there
+	return lowestDamageMoves
 }
 
 // Fire the weapon slot towards its target
@@ -608,39 +766,6 @@ func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot, targets []*battleToken
 		// record one round of beam fire per target
 		b.record.recordBeamFire(b.round, weapon.token, weapon.token.Position, target.Position, weapon.slot.HullSlotIndex, *target, bwd.shieldDamage, bwd.armorDamage, bwd.numDestroyed)
 	}
-}
-
-// getEstimatedDamageForWeapons estimates the damage for a group of weapons against a target
-// if it were to move to a position
-func (b *battle) getEstimatedDamageForWeapons(weapons []*battleWeaponSlot, target *battleToken, position BattleVector) int {
-	damageDone := 0
-	for _, weapon := range weapons {
-		if !weapon.token.willTarget(target) {
-			// this weapon wouldn't target the attacker, so don't add its damage
-			continue
-		}
-		distanceToWeapon := position.distance(weapon.token.Position)
-		damageDone += b.getEstimatedDamageForWeapon(weapon, target, distanceToWeapon)
-	}
-
-	return damageDone
-}
-
-// getEstimatedDamageForWeapon estimates the damage for a single weapon to a target at a distance
-func (b *battle) getEstimatedDamageForWeapon(weapon *battleWeaponSlot, target *battleToken, distance int) int {
-	if !weapon.isInRangeValue(distance) {
-		// no damage, skip this weapon
-		return 0
-	}
-
-	var bwd battleWeaponDamage
-	if weapon.weaponType == battleWeaponTypeBeam {
-		bwd = weapon.getBeamDamageToTargetAtDistance(weapon.power*weapon.slotQuantity*weapon.token.Quantity, target, distance, b.rules.BeamRangeDropoff)
-	} else {
-		bwd = weapon.getEstimatedTorpedoDamageToTarget(target)
-	}
-	// add up actual shield/armor damage plus any tokens that would be destroyed by this shot
-	return bwd.shieldDamage + bwd.armorDamage
 }
 
 // Fire a torpedo slot from a ship. Torpedos are different than beam weapons
@@ -784,251 +909,13 @@ func (b *battle) fireTorpedo(weapon *battleWeaponSlot, targets []*battleToken) {
 	}
 }
 
-// moveToken moves a token towards or away from its target
-func (b *battle) moveToken(token *battleToken, weaponSlots []*battleWeaponSlot) {
-	if !token.isStillInBattle() {
-		return
-	}
-	// count this token's moves
-	token.movesMade++
-
-	// always disengage if we have no weapons or targets
-	if token.moveTarget == nil || !token.hasWeapons() {
-		token.Tactic = BattleTacticDisengage
-	}
-
-	// disengage if we are a scared little token
-	if token.Tactic == BattleTacticDisengageIfChallenged && token.damaged {
-		token.Tactic = BattleTacticDisengage
-	}
-
-	// assume we move nowhere
-	oldPosition := token.Position
-	var bestMoves []BattleVector
-
-	if token.Tactic == BattleTacticDisengage || token.moveTarget == nil {
-		if token.movesMade >= b.rules.MovesToRunAway {
-			// we've moved enough to leave the board
-			token.ranAway = true
-			b.board[token.Position.Y][token.Position.X] -= token.Quantity
-			b.record.recordRunAway(b.round, token)
-			return
-		}
-
-		// move out of harms way
-		bestMoves = b.getBestFleeMoves(token, weaponSlots)
-
-	} else {
-		// move to best do some damage
-		bestMoves = b.getBestAttackMoves(token, weaponSlots)
-	}
-
-	// update the board after a token moves
-	bestMove := bestMoves[b.rules.random.Intn(len(bestMoves))]
-	b.record.recordMove(b.round, token, token.Position, bestMove)
-	token.Position = bestMove
-	b.board[oldPosition.Y][oldPosition.X] -= token.Quantity
-	b.board[token.Position.Y][token.Position.X] += token.Quantity
-}
-
-// for a new position on the board, and an existing slice of bestMoves, return the new bestMoves
-// Note: this function is only called if a move is equal or better, never for worse moves
-// if better, take the new position and discard the others
-// if not better, but closer to center, take the new move and discard the others
-// if not better and farther away, keep the bestMoves as is
-// if equivalent and the same distance from center, add it to bestMoves
-func updateMovesWithCenterPreference(better bool, newPosition BattleVector, bestMoves []BattleVector) []BattleVector {
-	if len(bestMoves) == 0 {
-		// we have no moves at all, so this is newPosition is our best move
-		return append(bestMoves, newPosition)
-	}
-
-	if better {
-		// this move is better, start over with it
-		return []BattleVector{newPosition}
-	}
-
-	// center of battle board is at (4.5, 4.5) so scale to 100x100 for 45,45 scaled center
-	newDistanceFromCenter := newPosition.scale(10).distance(BattleVector{45, 45})
-	oldDistanceFromCenter := bestMoves[0].scale(10).distance(BattleVector{45, 45})
-
-	if oldDistanceFromCenter == newDistanceFromCenter {
-		// move is equivalent in damage and closeness to center, add new move
-		return append(bestMoves, newPosition)
-	}
-	if oldDistanceFromCenter > newDistanceFromCenter {
-		// damage is the same, but new position is closer to center, use only new move
-		return []BattleVector{newPosition}
-	}
-
-	// damage is the same but farther from center, keep what we have but don't add this move
-	return bestMoves
-}
-
-// get the best move to attack a target
-// this checks all the nearby squares and moves in the direction that gets the token
-// closer or does the best damage, according to the battle plan
-// i.e. max damage, max damage ratio, max net damage, etc
-func (b *battle) getBestAttackMoves(token *battleToken, weapons []*battleWeaponSlot) []BattleVector {
-
-	bestDamageDone := 0
-	bestDamageTaken := math.MaxInt
-	bestDamageRatio := 0.0
-	bestNetDamage := -math.MaxInt
-	bestDamageMoves := []BattleVector{}
-	bestMoveCloserMoves := []BattleVector{}
-
-	// if no other options are presented, we move towards the moveTarget
-	target := token.moveTarget
-	bestDistanceToTarget := token.getDistanceAway(target.Position)
-
-	for dx := -1; dx <= 1; dx++ {
-		for dy := -1; dy <= 1; dy++ {
-			newPosition := BattleVector{token.Position.X + dx, token.Position.Y + dy}
-			if newPosition.X < 0 || newPosition.X >= battleWidth || newPosition.Y < 0 || newPosition.Y >= battleHeight {
-				// skip invalid squares
-				continue
-			}
-
-			// see if this move puts us closer to the target
-			distanceToTarget := newPosition.distance(target.Position)
-			if distanceToTarget == bestDistanceToTarget {
-				bestMoveCloserMoves = append(bestMoveCloserMoves, newPosition)
-			} else if distanceToTarget < bestDistanceToTarget {
-				bestDistanceToTarget = distanceToTarget
-				bestMoveCloserMoves = []BattleVector{newPosition}
-			}
-
-			// figure out how much damage we will do if we move to this spot
-			damageDone := 0
-			for _, weapon := range token.weaponSlots {
-				// each weapon will fire a volley at the most attractive target
-				for _, target := range weapon.targets {
-					distance := newPosition.distance(target.Position)
-					weaponDamage := b.getEstimatedDamageForWeapon(weapon, target, distance)
-					if weaponDamage > 0 {
-						// targets are sorted by attractiveness and
-						// we would be able to damage this target, so add it to
-						// total damage and move to the next weapon
-						damageDone += weaponDamage
-						break
-					}
-				}
-			}
-
-			// figure out damage taken from all enemy weapons if we move to this square
-			damageTaken := b.getEstimatedDamageForWeapons(weapons, token, newPosition)
-
-			var damageRatio float64
-			if damageTaken > 0 {
-				damageRatio = float64(damageDone) / float64(damageTaken)
-			}
-
-			log.Debug().Msgf("moving to %#v, damageDone: %d, damageTaken: %d, netDamage: %d, damageRatio: %f", newPosition, damageDone, damageTaken, damageDone-damageTaken, damageRatio)
-
-			switch token.Tactic {
-			case BattleTacticMaximizeDamageRatio:
-				if damageTaken == 0 {
-					// we took no damage, so sort by best damage
-					if damageDone >= bestDamageDone {
-						bestDamageMoves = updateMovesWithCenterPreference(damageDone > bestDamageDone, newPosition, bestDamageMoves)
-						bestDamageDone = damageDone
-					}
-				} else {
-					if damageRatio >= bestDamageRatio {
-						bestDamageMoves = updateMovesWithCenterPreference(damageRatio > bestDamageRatio, newPosition, bestDamageMoves)
-						bestDamageRatio = damageRatio
-					}
-				}
-			case BattleTacticMaximizeNetDamage:
-				if damageDone > 0 && damageDone-damageTaken >= bestNetDamage {
-					bestDamageMoves = updateMovesWithCenterPreference(damageDone-damageTaken > bestNetDamage, newPosition, bestDamageMoves)
-					bestDamageDone = damageDone
-					bestNetDamage = damageDone - damageTaken
-				}
-
-			case BattleTacticMinimizeDamageToSelf:
-				if damageTaken <= bestDamageTaken {
-					bestDamageMoves = updateMovesWithCenterPreference(damageTaken < bestDamageTaken, newPosition, bestDamageMoves)
-					bestDamageTaken = damageTaken
-				}
-
-			case BattleTacticMaximizeDamage:
-				if damageDone >= bestDamageDone {
-					bestDamageMoves = updateMovesWithCenterPreference(damageDone > bestDamageDone, newPosition, bestDamageMoves)
-					bestDamageDone = damageDone
-				}
-			}
-		}
-	}
-
-	// if none of our moves lead to damage, pick the move that moves us towards our target
-	if bestDamageDone == 0 && bestDamageRatio == 0.0 {
-		return bestMoveCloserMoves
-	}
-
-	return bestDamageMoves
-}
-
-// get the best move this token should fleet to based on weapons on the board
-func (b *battle) getBestFleeMoves(token *battleToken, weapons []*battleWeaponSlot) []BattleVector {
-	// find the best move for running away
-	lowestDamageMoves := make([]BattleVector, 0, 9)
-
-	// if we stayed still, figure out our damage
-	damageTaken := b.getEstimatedDamageForWeapons(weapons, token, token.Position)
-	lowestDamage := damageTaken
-
-	for dx := -1; dx <= 1; dx++ {
-		for dy := -1; dy <= 1; dy++ {
-			newPosition := BattleVector{token.Position.X + dx, token.Position.Y + dy}
-			if newPosition.X < 0 || newPosition.X >= battleWidth || newPosition.Y < 0 || newPosition.Y >= battleHeight {
-				// skip invalid squares
-				continue
-			}
-
-			// figure out damage taken from all weapons targeting us if we moved to this square
-			damageTaken := b.getEstimatedDamageForWeapons(weapons, token, newPosition)
-			log.Debug().Msgf("moving to %#v causes %d damage", newPosition, damageTaken)
-
-			// if this move is the same as our previous one, add it to our possible list
-			if damageTaken == lowestDamage {
-				lowestDamageMoves = append(lowestDamageMoves, newPosition)
-			}
-
-			// if this move is better, replace the list
-			if damageTaken < lowestDamage {
-				lowestDamage = damageTaken
-				lowestDamageMoves = []BattleVector{newPosition}
-			}
-		}
-	}
-
-	// pick a random best move and move there
-	return lowestDamageMoves
-}
-
-// get all weapon slots on the board, sorted by initiative
-func (b *battle) getSortedWeaponSlots(tokens []*battleToken) []*battleWeaponSlot {
-	slots := []*battleWeaponSlot{}
-	for _, token := range tokens {
-		if token.isStillInBattle() {
-			slots = append(slots, token.weaponSlots...)
-		}
-	}
-	sort.Slice(slots, func(i, j int) bool {
-		return slots[i].initiative > slots[j].initiative
-	})
-	return slots
-}
-
 // Function to allow server to run test battles
 func RunTestBattle(players []*Player, fleets []*Fleet) *BattleRecord {
 	rules := NewRules()
 
 	playersByNum := map[int]*Player{}
 	designsByNum := make(map[playerObject]*ShipDesign)
-	battlePlansByName := make(map[playerBattlePlanNum]*BattlePlan)
+	battlePlansByNum := make(map[playerBattlePlanNum]*BattlePlan)
 
 	for _, player := range players {
 		playersByNum[player.Num] = player
@@ -1042,7 +929,7 @@ func RunTestBattle(players []*Player, fleets []*Fleet) *BattleRecord {
 
 		for i := range player.BattlePlans {
 			plan := &player.BattlePlans[i]
-			battlePlansByName[playerBattlePlanNum{PlayerNum: player.Num, Num: plan.Num}] = plan
+			battlePlansByNum[playerBattlePlanNum{PlayerNum: player.Num, Num: plan.Num}] = plan
 		}
 
 	}
@@ -1053,7 +940,7 @@ func RunTestBattle(players []*Player, fleets []*Fleet) *BattleRecord {
 			token.design = designsByNum[playerObjectKey(fleet.PlayerNum, token.DesignNum)]
 		}
 		fleet.Spec = ComputeFleetSpec(&rules, playersByNum[fleet.PlayerNum], fleet)
-		fleet.battlePlan = battlePlansByName[playerBattlePlanNum{fleet.PlayerNum, fleet.BattlePlanNum}]
+		fleet.battlePlan = battlePlansByNum[playerBattlePlanNum{fleet.PlayerNum, fleet.BattlePlanNum}]
 	}
 
 	battler := newBattler(&rules, &StaticTechStore, 1, playersByNum, fleets, nil)

@@ -410,7 +410,16 @@ func (u *Universe) addFleet(fleet *Fleet) error {
 
 	u.fleetsByNum[playerObjectKey(fleet.PlayerNum, fleet.Num)] = fleet
 
-	fleet.battlePlan = u.battlePlansByNum[playerBattlePlanNum{fleet.PlayerNum, fleet.BattlePlanNum}]
+	if battlePlan, ok := u.battlePlansByNum[playerBattlePlanNum{fleet.PlayerNum, fleet.BattlePlanNum}]; ok {
+		fleet.battlePlan = battlePlan
+	} else {
+		// use the default battle plan if we couldn't find one for some reason, but log a warning
+		log.Warn().
+			Int64("GameID", fleet.GameID).
+			Int("Player", fleet.PlayerNum).
+			Msgf("Unable to find battle plan %d for fleet %v", fleet.BattlePlanNum, fleet)
+		fleet.battlePlan = u.battlePlansByNum[playerBattlePlanNum{fleet.PlayerNum, 0}]
+	}
 
 	// inject the design into this
 	for i := range fleet.Tokens {
