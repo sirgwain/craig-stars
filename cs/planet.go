@@ -527,6 +527,7 @@ func computePlanetStarbaseSpec(rules *Rules, player *Player, planet *Planet) Pla
 func (spec *PlanetSpec) computeResourcesPerYearAvailable(player *Player, planet *Planet) {
 	if planet.ContributesOnlyLeftoverToResearch {
 		spec.ResourcesPerYearAvailable = spec.ResourcesPerYear
+		spec.ResourcesPerYearResearch = 0
 	} else {
 		spec.ResourcesPerYearResearch = int(float64(spec.ResourcesPerYear) * float64(player.ResearchAmount) / 100.0)
 		spec.ResourcesPerYearAvailable = spec.ResourcesPerYear - spec.ResourcesPerYearResearch

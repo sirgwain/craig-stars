@@ -11,6 +11,7 @@ import (
 	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
+	"github.com/sirgwain/craig-stars/db"
 )
 
 type playerOrdersRequest struct {
@@ -384,7 +385,7 @@ func (s *server) renderFullPlayerGame(w http.ResponseWriter, r *http.Request, ga
 
 // Update a player's orders (research field, research amount)
 func (s *server) updatePlayerOrders(w http.ResponseWriter, r *http.Request) {
-	db := s.contextDb(r)
+	readWriteClient := s.contextDb(r)
 	game := s.contextGame(r)
 	player := s.contextPlayer(r)
 
@@ -399,7 +400,7 @@ func (s *server) updatePlayerOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	planets, err := db.GetPlanetsForPlayer(player.GameID, player.Num)
+	planets, err := readWriteClient.GetPlanetsForPlayer(player.GameID, player.Num)
 	if err != nil {
 		log.Error().Err(err).Int64("ID", player.ID).Msg("loading player planets from database")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -407,7 +408,7 @@ func (s *server) updatePlayerOrders(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// load this player but with designs so the update works correctly
-	player, err = db.GetPlayerWithDesignsForGame(game.ID, player.Num)
+	player, err = readWriteClient.GetPlayerWithDesignsForGame(game.ID, player.Num)
 	if err != nil {
 		log.Error().Err(err).Int64("ID", player.ID).Msg("loading player from database")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -417,23 +418,28 @@ func (s *server) updatePlayerOrders(w http.ResponseWriter, r *http.Request) {
 	orderer := cs.NewOrderer()
 	orderer.UpdatePlayerOrders(player, planets, *orders.PlayerOrders, &game.Rules)
 
-	// TODO: do this all in one transaction?
-	// save the player to the database
-	if err := db.UpdatePlayerOrders(player); err != nil {
-		log.Error().Err(err).Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update player")
-		render.Render(w, r, ErrInternalServerError(err))
-		return
-	}
+	// save the updated fleets back to the database
+	if err := s.db.WrapInTransaction(func(c db.Client) error {
+		// save the player to the database
+		if err := c.UpdatePlayerOrders(player); err != nil {
+			log.Error().Err(err).Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update player")
+			return err
+		}
 
-	for _, planet := range planets {
-		if planet.Dirty {
-			// TODO: only update the planet spec? that's all that changes
-			if err := db.UpdatePlanet(planet); err != nil {
-				log.Error().Err(err).Int64("ID", player.ID).Msg("updating player planet in database")
-				render.Render(w, r, ErrInternalServerError(err))
-				return
+		for _, planet := range planets {
+			if planet.Dirty {
+				// TODO: only update the planet spec? that's all that changes
+				if err := c.UpdatePlanet(planet); err != nil {
+					log.Error().Err(err).Int64("ID", player.ID).Msg("updating player planet in database")
+					return err
+				}
 			}
 		}
+		return nil
+	}); err != nil {
+		log.Error().Err(err).Msg("update game in database")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
 	}
 
 	log.Info().Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update orders")
