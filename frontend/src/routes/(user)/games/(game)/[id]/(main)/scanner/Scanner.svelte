@@ -2,8 +2,9 @@
 	import { clickOutside } from '$lib/clickOutside';
 	import { onScannerContextPopup } from '$lib/components/game/tooltips/ScannerContextPopup.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
+	import { clamp } from '$lib/services/Math';
 	import { totalCargo } from '$lib/types/Cargo';
-	import { WaypointTask, idleFleetsFilter, type Fleet, type Waypoint } from '$lib/types/Fleet';
+	import { WaypointTask, type Waypoint } from '$lib/types/Fleet';
 	import {
 		MapObjectType,
 		None,
@@ -40,7 +41,6 @@
 	import ScannerWormholeLinks from './ScannerWormholeLinks.svelte';
 	import ScannerWormholes from './ScannerWormholes.svelte';
 	import SelectedMapObject from './SelectedMapObject.svelte';
-	import { clamp } from '$lib/services/Math';
 
 	const {
 		game,

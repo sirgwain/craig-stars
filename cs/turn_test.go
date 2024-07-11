@@ -1069,7 +1069,7 @@ func Test_turn_fleetRepair(t *testing.T) {
 	player.Designs = append(player.Designs, starbaseDesign)
 	starbase.Spec = ComputeFleetSpec(&rules, player, &starbase)
 	starbase.Tokens[0].QuantityDamaged = 1
-	starbase.Tokens[0].Damage = 100
+	starbase.Tokens[0].Damage = 400
 	game.Starbases = append(game.Starbases, &starbase)
 	planet.Starbase = &starbase
 
@@ -1088,7 +1088,9 @@ func Test_turn_fleetRepair(t *testing.T) {
 
 	// should repair fleet and starbase
 	assert.Equal(t, 9.0, fleet.Tokens[0].Damage)
-	assert.Equal(t, 50.0, starbase.Tokens[0].Damage)
+	assert.Equal(t, 1, fleet.Tokens[0].QuantityDamaged)
+	assert.Equal(t, 350.0, starbase.Tokens[0].Damage)
+	assert.Equal(t, 1, starbase.Tokens[0].QuantityDamaged)
 
 }
 
