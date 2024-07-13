@@ -6,12 +6,12 @@
 
 <script lang="ts">
 	import { clickOutside } from '$lib/clickOutside';
+	import Habitability from '$lib/components/icons/Habitability.svelte';
 	import MineralConcentration from '$lib/components/icons/MineralConcentration.svelte';
 	import Path from '$lib/components/icons/Path.svelte';
 	import PlanetWithStarbase from '$lib/components/icons/PlanetWithStarbase.svelte';
 	import Population from '$lib/components/icons/Population.svelte';
 	import SurfaceMinerals from '$lib/components/icons/SurfaceMinerals.svelte';
-	import Habitability from '$lib/components/icons/Habitability.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
 	import { PlanetViewState } from '$lib/types/PlayerSettings';
@@ -19,15 +19,14 @@
 		ArrowLongLeft,
 		ArrowLongRight,
 		Envelope,
-		Funnel,
 		MagnifyingGlass
 	} from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { createEventDispatcher } from 'svelte';
 	import MessagesPane from '../MessagesPane.svelte';
+	import MobileViewSettings from './toolbar/MobileViewSettings.svelte';
 	import PlanetViewStates from './toolbar/PlanetViewStates.svelte';
 	import ScannerToolbarFilter from './toolbar/ScannerToolbarFilter.svelte';
-	import MobileViewSettings from './toolbar/MobileViewSettings.svelte';
 
 	const { player, settings, nextMapObject, previousMapObject } = getGameContext();
 	const dispatch = createEventDispatcher<ToolbarEvent>();

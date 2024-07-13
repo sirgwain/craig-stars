@@ -7,7 +7,13 @@
 	import { format, parseJSON } from 'date-fns';
 	import { onMount } from 'svelte';
 
+	type UserWithNum = User & { num: number };
+
 	const columns: TableColumn<User>[] = [
+		{
+			key: 'num',
+			title: 'Num'
+		},
 		{
 			key: 'username',
 			title: 'Username'
@@ -28,14 +34,14 @@
 
 	// filterable users
 	let users: User[];
-	let filteredUsers: User[] = [];
+	let filteredUsers: UserWithNum[] = [];
 	let search = '';
 
-	$: filteredUsers = users;
+	$: filteredUsers = users?.map((u, i) => Object.assign(u, { num: i + 1 }));
 
-	$: filteredUsers = users?.filter(
-		(i) => i.username.toLowerCase().indexOf(search.toLowerCase()) != -1
-	);
+	$: filteredUsers = users
+		?.map((u, i) => Object.assign(u, { num: i + 1 }))
+		.filter((i) => i.username.toLowerCase().indexOf(search.toLowerCase()) != -1);
 
 	onMount(async () => {
 		try {
@@ -55,8 +61,8 @@
 		rows={filteredUsers}
 		classes={{
 			table: 'table table-compact table-auto w-full',
-			td: 'first:table-cell nth-child(2):table-cell hidden sm:table-cell',
-			th: 'first:table-cell nth-child(2):table-cell hidden sm:table-cell'
+			td: 'first:table-cell [&:nth-child(2)]:table-cell hidden sm:table-cell',
+			th: 'first:table-cell [&:nth-child(2)]:table-cell hidden sm:table-cell'
 		}}
 	>
 		<span slot="head" let:isSorted let:sortDescending let:column>

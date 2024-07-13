@@ -21,8 +21,10 @@
 	$: raceName = token && playerFinder.getPlayerIntel(token.playerNum)?.racePluralName;
 	$: tokenState = token && battle.getTokenForPhase(token.num, phase);
 	$: armor = design?.spec?.armor ?? 0;
+	$: totalArmor = armor * (tokenState?.quantity ?? 0);
 	$: currentArmor = token
-		? armor * (token.quantity ?? 0) - (token.damage ?? 0) * (token.quantityDamaged ?? 0)
+		? armor * (tokenState?.quantity ?? 0) -
+			(tokenState?.damage ?? 0) * (tokenState?.quantityDamaged ?? 0)
 		: 0;
 </script>
 
@@ -43,8 +45,8 @@
 				<div class="flex flex-col">
 					<div>
 						{design?.name}
-						{#if (token.quantity ?? 0) > 1}
-							x{token.quantity}
+						{#if (tokenState.quantity ?? 0) > 1}
+							x{tokenState.quantity}
 						{/if}
 						<Icon src={QuestionMarkCircle} size="16" class=" cursor-help inline-block" />
 					</div>
@@ -69,7 +71,7 @@
 		</div>
 		<div class="flex justify-between">
 			<div>
-				Armor: {currentArmor.toFixed(0)}dp
+				Armor: {currentArmor.toFixed(0)}/{totalArmor}dp
 			</div>
 			{#if tokenState.destroyedPhase && phase >= tokenState.destroyedPhase}
 				<div class="text-error">Destroyed</div>

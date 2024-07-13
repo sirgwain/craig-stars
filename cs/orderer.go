@@ -109,10 +109,14 @@ func (o *orders) UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet
 	}
 
 	planet.PopulateProductionQueueEstimates(rules, player)
+	spec = &planet.Spec
 
 	// update the player spec with the change in resources for this planet
-	player.Spec.ResourcesPerYearResearch = player.Spec.ResourcesPerYearResearch - oldResourcesPerYearResearch + spec.ResourcesPerYearResearch
-	player.Spec.ResourcesPerYearResearchEstimated = player.Spec.ResourcesPerYearResearchEstimated - oldResourcesPerYearResearchEstimatedLeftover + spec.ResourcesPerYearResearchEstimatedLeftover
+	// if we turned on/off Contribute Only Leftover Resources to Research, the amount this planet contributes to research goes up
+	planetResearchDiff := spec.ResourcesPerYearResearch - oldResourcesPerYearResearch
+	planetLeftoverDiff := spec.ResourcesPerYearResearchEstimatedLeftover - oldResourcesPerYearResearchEstimatedLeftover
+	player.Spec.ResourcesPerYearResearch = player.Spec.ResourcesPerYearResearch + planetResearchDiff
+	player.Spec.ResourcesPerYearResearchEstimated = player.Spec.ResourcesPerYearResearchEstimated + planetResearchDiff + planetLeftoverDiff
 
 	planet.MarkDirty()
 
@@ -129,6 +133,7 @@ func (o *orders) UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet
 func (o *orders) UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrders) {
 	// copy user modifiable things to the fleet fleet
 	fleet.RepeatOrders = orders.RepeatOrders
+	fleet.BattlePlanNum = orders.BattlePlanNum
 	wp0 := &fleet.Waypoints[0]
 	newWP0 := orders.Waypoints[0]
 
@@ -390,7 +395,7 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 		fleet.Heading = source.Heading
 		fleet.WarpSpeed = source.WarpSpeed
 		fleet.PreviousPosition = source.PreviousPosition
-		fleet.battlePlan = source.battlePlan
+		fleet.BattlePlanNum = source.BattlePlanNum
 
 		// create a slice of empty tokens we will populate
 		fleet.Tokens = make([]ShipToken, len(source.Tokens))
@@ -583,7 +588,7 @@ func (o *orders) splitFleetTokens(rules *Rules, player *Player, playerFleets []*
 	fleet.Heading = source.Heading
 	fleet.WarpSpeed = source.WarpSpeed
 	fleet.PreviousPosition = source.PreviousPosition
-	fleet.battlePlan = source.battlePlan
+	fleet.BattlePlanNum = source.BattlePlanNum
 	fleet.Tokens = tokens
 
 	// the fleet has some percentage of fuel fullness
