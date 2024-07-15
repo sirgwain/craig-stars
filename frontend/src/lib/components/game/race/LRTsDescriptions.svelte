@@ -8,7 +8,7 @@
 			case LRT.IFE:
 				return 'This gives you the Fuel Mizer and Galaxy Scoop engines and increases your starting Propulsion tech by 1 level. All engines use 15% less fuel.';
 			case LRT.TT:
-				return 'You will gain access to additional terraforming technologies by researching Biotechnology, starting with a 3% adjustment to all 3 environmental attributes up to a maximum of 30%. Terraforming requires 30% fewer resources.'
+				return 'You will gain access to additional terraforming technologies by researching Biotechnology, starting with a 3% adjustment to all 3 environmental attributes and reaching a maximum of 30%. Terraforming requires 30% fewer resources.'
 			case LRT.ARM:
 				return 'Gives you three additional mining hulls and two new robots. You will start the game with two Midget Miners.';
 			case LRT.ISB:
