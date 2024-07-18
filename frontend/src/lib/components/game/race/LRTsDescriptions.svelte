@@ -12,7 +12,7 @@
 			case LRT.ARM:
 				return 'Gives you three additional mining hulls and two new robots. You will start the game with two Midget Miners.';
 			case LRT.ISB:
-				return 'Gives you two new starbase designs. The Space Dock hull is a cheap starbase with a small space dock that can refuel ships and build small to medium vessels. The Ultra-Station is much larger and better fortified than a standard Starbase. Your starbases are automatically cloaked by 20% and cost 20% less to build.';
+				return 'Gives you two new starbase designs. The Space Dock is a cheap starbase with a small space dock that can refuel ships and build small to medium sized vessels. The Ultra-Station is much larger and better fortified than a standard Starbase. Your starbases are automatically cloaked by 20% and cost 20% less to build.';
 			case LRT.GR:
 				return 'Your race takes a holistic approach to research. Only half of the resources dedicated to research will be applied to the currently selected field, but 15% of the amount will be applied to all other fields (for a total of 125%).';
 			case LRT.UR:
@@ -32,7 +32,7 @@
 			case LRT.MA:
 				return 'You will be able to turn resources into minerals more efficiently. One instance of mineral alchemy will use 25 resources (instead of 100) to produce 1kT of each mineral.';
 			case LRT.CE:
-				return 'Engines cost you 50% less to build, but aren’t entirely reliable. When attempting to travel at speeds above warp 6, there is a 10% chance the engines will refuse to engage.';
+				return 'Engines cost you 50% less to build, but aren’t entirely reliable. When attempting to travel at speeds above warp 6, there is a 10% chance the engines will refuse to engage. Your starting Propulsion tech level will be increased by 1.';
 			default:
 				return lrt.toString();
 		}
