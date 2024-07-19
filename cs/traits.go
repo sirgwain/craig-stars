@@ -198,7 +198,7 @@ func heSpec() PRTSpec {
 	spec := defaultPRTSpec()
 
 	spec.StartingPlanets[0].StartingFleets = []StartingFleet{
-		{"Deep Space Probe", StartingFleetHullScout, 0, ShipDesignPurposeScout},
+		{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
 		{"Spore Cloud", StartingFleetHullMiniColonyShip, 0, ShipDesignPurposeColonizer},
 		{"Spore Cloud", StartingFleetHullMiniColonyShip, 0, ShipDesignPurposeColonizer},
 		{"Spore Cloud", StartingFleetHullMiniColonyShip, 0, ShipDesignPurposeColonizer},
@@ -282,7 +282,7 @@ func caSpec() PRTSpec {
 
 	spec.Instaforming = true
 	spec.PermaformChance = .1 // chance is 10% if pop is over 100k
-	spec.PermaformPopulation = 100_000
+	spec.PermaformPopulation = 100000
 
 	return spec
 }
@@ -341,7 +341,7 @@ func ppSpec() PRTSpec {
 
 	spec.StartingPlanets = []StartingPlanet{
 		// one homeworld, 20k people, no hab penalty
-		{Population: 25000, HabPenaltyFactor: 0, HasMassDriver: true, StarbaseHull: SpaceStation.Name, StarbaseDesignName: "Starbase",
+		{Population: 20000, HabPenaltyFactor: 0, HasMassDriver: true, StarbaseHull: SpaceStation.Name, StarbaseDesignName: "Starbase",
 			StartingFleets: []StartingFleet{
 				{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
 				{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
@@ -380,7 +380,7 @@ func itSpec() PRTSpec {
 
 	spec.StartingPlanets = []StartingPlanet{
 		// one homeworld, 20k people, no hab penalty
-		{Population: 25000, HabPenaltyFactor: 0, HasStargate: true, StarbaseHull: SpaceStation.Name, StarbaseDesignName: "Starbase",
+		{Population: 20000, HabPenaltyFactor: 0, HasStargate: true, StarbaseHull: SpaceStation.Name, StarbaseDesignName: "Starbase",
 			StartingFleets: []StartingFleet{
 				{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
 				{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
@@ -497,7 +497,7 @@ func grSpec() LRTSpec {
 
 func urSpec() LRTSpec {
 	return LRTSpec{
-		// UR gives us 45% of scrapped minerals and resources, versus 1/3 for races without UR
+		// UR gives us 45%/90% of scrapped minerals, versus 33%/80% for races without UR
 		ScrapMineralOffset:           .45 - (1.0 / 3),
 		ScrapMineralOffsetStarbase:   .9 - (1.0 / 3),
 		ScrapResourcesOffset:         .35,
