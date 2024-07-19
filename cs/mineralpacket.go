@@ -53,15 +53,15 @@ func newMineralPacket(player *Player, num int, warpSpeed int, safeWarpSpeed int,
 
 // get the rate of decay for a packet between 0 and 1
 // https://wiki.starsautohost.org/wiki/%22Mass_Packet_FAQ%22_by_Barry_Kearns_1997-02-07_v2.6b
-// Depending on how fast a packet is thrown compared to it's safe speed, it decays
+// Depending on how fast a packet is thrown compared to its safe speed, it decays
 func (packet *MineralPacket) getPacketDecayRate(rules *Rules, race *Race) float64 {
 	overSafeWarp := packet.WarpSpeed - packet.SafeWarpSpeed
 
-	// IT is always count as being at least 1 over the safe warp
-	overSafeWarp += race.Spec.PacketOverSafeWarpPenalty
-
-	// we only care about packets thrown up to 3 warp over the limit
+	// we only care about packets thrown up to 3 warps over the limit
 	overSafeWarp = MinInt(packet.WarpSpeed-packet.SafeWarpSpeed, 3)
+	
+	// IT is always counted as being at least 1 over the safe warp
+	overSafeWarp = MaxInt(race.Spec.PacketOverSafeWarpPenalty, overSafeWarp)
 
 	packetDecayRate := 0.0
 	if overSafeWarp > 0 {
@@ -108,7 +108,7 @@ func (packet *MineralPacket) movePacket(rules *Rules, player *Player, target *Pl
 	}
 }
 
-// Damage calcs the Stars! Manual
+// Damage calcs as per the Stars! Manual
 //
 // Example:
 // You fling a 1000kT packet at Warp 10 at a planet with a Warp 5 driver, a population of 250,000 and 50 defenses preventing 60% of incoming damage.
@@ -206,7 +206,7 @@ func (packet *MineralPacket) getDamage(rules *Rules, planet *Planet, planetPlaye
 	damageWithDefenses := rawDamage * (1 - planet.Spec.DefenseCoverage)
 	colonistsKilled := roundToNearest100f(math.Max(damageWithDefenses*float64(planet.population())/1000, damageWithDefenses*100))
 	defensesDestroyed := int(math.Max(float64(planet.Defenses)*damageWithDefenses/1000, damageWithDefenses/20))
-
+	
 	// kill off colonists and defenses
 	return MineralPacketDamage{
 		Killed:            roundToNearest100(MinInt(colonistsKilled, planet.population())),
