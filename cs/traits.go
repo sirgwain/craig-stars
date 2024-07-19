@@ -365,7 +365,7 @@ func ppSpec() PRTSpec {
 	spec.DetectPacketDestinationStarbases = true
 	spec.DetectAllPackets = true
 	spec.PacketTerraformChance = .5   // 50% per 100kT uncaught
-	spec.PacketPermaformChance = .001 // .1% per 100kT uncaught
+	spec.PacketPermaformChance = .05 // 5% per 100kT uncaught
 
 	return spec
 }
