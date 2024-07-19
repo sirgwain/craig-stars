@@ -364,8 +364,8 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 			}
 
 			// beam bonuses (capacitors are capped at 2.55x; beam deflectors are unlimited)
-			spec.BeamBonus += math.Min((math.Pow((1+component.BeamBonus), float64(slot.Quantity))-1), 1.55)
-			spec.BeamDefense += math.Pow((1+component.BeamDefense), float64(slot.Quantity))-1)
+			spec.BeamBonus += math.Min(math.Pow(1+component.BeamBonus, float64(slot.Quantity))-1, 1.55)
+			spec.BeamDefense += math.Pow(1+component.BeamDefense, float64(slot.Quantity))-1
 
 			// if this slot has a bomb, this design is a bomber
 			if component.HullSlotType == HullSlotTypeBomb || component.MinKillRate > 0 {
@@ -464,7 +464,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 
 	if numTachyonDetectors > 0 {
 		// 95% ^ (SQRT(#_of_detectors) = Reduction factor for other player's cloaking (Capped at 81% or 17TDs)
-		spec.ReduceCloaking = math.Max(math.Pow((100.0-float64(rules.TachyonCloakReduction))/100, math.Sqrt(float64(numTachyonDetectors))), 0.81)
+		spec.ReduceCloaking = math.Min(math.Pow((100.0-float64(rules.TachyonCloakReduction))/100, math.Sqrt(float64(numTachyonDetectors))), 0.81)
 	} else {
 		spec.ReduceCloaking = 1
 	}
