@@ -12,7 +12,6 @@ type PRTSpec struct {
 	PacketMineralCostFactor          float64          `json:"packetMineralCostFactor,omitempty"`
 	PacketReceiverFactor             float64          `json:"packetReceiverFactor,omitempty"`
 	PacketDecayFactor                float64          `json:"packetDecayFactor,omitempty"`
-	PacketMinDecay			 int		  `json:"packetMinDecay,omitempty"`
 	PacketOverSafeWarpPenalty        int              `json:"packetOverSafeWarpPenalty,omitempty"`
 	PacketBuiltInScanner             bool             `json:"packetBuiltInScanner,omitempty"`
 	DetectPacketDestinationStarbases bool             `json:"detectPacketDestinationStarbases,omitempty"`
@@ -149,7 +148,6 @@ func defaultPRTSpec() PRTSpec {
 		PacketMineralCostFactor:          1,
 		PacketReceiverFactor:             1,
 		PacketDecayFactor:                1,
-		PacketMinDecay:			  10,
 		PacketOverSafeWarpPenalty:        0,
 		PacketBuiltInScanner:             false,
 		DetectPacketDestinationStarbases: false,
@@ -363,12 +361,11 @@ func ppSpec() PRTSpec {
 	spec.PacketResourceCost = 5
 	spec.PacketMineralCostFactor = 1
 	spec.PacketDecayFactor = .5
-	spec.PacketMinDecay = 5
 	spec.PacketBuiltInScanner = true
 	spec.DetectPacketDestinationStarbases = true
 	spec.DetectAllPackets = true
 	spec.PacketTerraformChance = .5   // 50% per 100kT uncaught
-	spec.PacketPermaformChance = .05 // 5% per 100kT uncaught
+	spec.PacketPermaformChance = .001 // .1% per 100kT uncaught
 
 	return spec
 }
