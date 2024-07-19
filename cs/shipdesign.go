@@ -360,12 +360,12 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 				} else {
 					spec.TorpedoJamming *= 1 - float64(math.Pow((1-float64(component.TorpedoJamming)), float64(slot.Quantity)))
 				}
-				spec.TorpedoJamming = roundFloat(spec.TorpedoJamming, 3)
+				spec.TorpedoJamming = math.Min(roundFloat(spec.TorpedoJamming, 3), 0.95)
 			}
 
-			// beam bonuses
-			spec.BeamBonus += component.BeamBonus * float64(slot.Quantity)
-			spec.BeamDefense += component.BeamDefense * float64(slot.Quantity)
+			// beam bonuses (capacitors are capped at 2.55x; beam deflectors are unlimited)
+			spec.BeamBonus += math.Min((math.Pow((1+component.BeamBonus), float64(slot.Quantity))-1), 1.55)
+			spec.BeamDefense += math.Pow((1+component.BeamDefense), float64(slot.Quantity))-1)
 
 			// if this slot has a bomb, this design is a bomber
 			if component.HullSlotType == HullSlotTypeBomb || component.MinKillRate > 0 {
@@ -395,7 +395,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 				switch component.Category {
 				case TechCategoryBeamWeapon:
 					// beams contribute to the rating based on range, but sappers
-					// are 1/3rd rated
+					// are 1/3rd rated to compensate for high power
 					rating := component.Power * slot.Quantity * (component.Range + 3) / 4
 					if component.DamageShieldsOnly {
 						rating /= 3
@@ -423,7 +423,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 
 			// mass drivers
 			if component.PacketSpeed > 0 {
-				// if we already have a massdriver at this speed, add an additional mass driver to up
+				// if we already have a mass driver at this speed, add an additional mass driver to up
 				// our speed
 				if spec.BasePacketSpeed == component.PacketSpeed {
 					spec.AdditionalMassDrivers++
@@ -458,13 +458,13 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 	// determine the safe speed for this design
 	spec.SafePacketSpeed = spec.BasePacketSpeed + spec.AdditionalMassDrivers
 
-	// figure out the cloak as a percentage after we specd our cloak units
+	// figure out the cloak as a percentage after we spend our cloak units
 	spec.CloakPercent = getCloakPercentForCloakUnits(spec.CloakUnits)
 	spec.CloakPercentFullCargo = getCloakPercentForCloakUnits(int(math.Round(float64(spec.CloakUnits) * float64(spec.Mass) / float64(spec.Mass+spec.CargoCapacity))))
 
 	if numTachyonDetectors > 0 {
 		// 95% ^ (SQRT(#_of_detectors) = Reduction factor for other player's cloaking (Capped at 81% or 17TDs)
-		spec.ReduceCloaking = math.Pow((100.0-float64(rules.TachyonCloakReduction))/100, math.Sqrt(float64(numTachyonDetectors)))
+		spec.ReduceCloaking = math.Max(math.Pow((100.0-float64(rules.TachyonCloakReduction))/100, math.Sqrt(float64(numTachyonDetectors))), 0.81)
 	} else {
 		spec.ReduceCloaking = 1
 	}
