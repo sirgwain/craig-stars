@@ -303,8 +303,8 @@ func (m *messageClient) fleetColonizeNonPlanet(player *Player, fleet *Fleet) {
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum}})
 }
 
-func (m *messageClient) fleetColonizeOwnedPlanet(player *Player, planet *Planet fleet *Fleet) {
-	text := fmt.Sprintf("%s has orders to colonize %s, but %s is already populated. The order has been canceled.", fleet.Name, Planet.Name, Planet.Name)
+func (m *messageClient) fleetColonizeOwnedPlanet(player *Player, planet *Planet, fleet *Fleet) {
+	text := fmt.Sprintf("%s has orders to colonize %s, but %s is already populated. The order has been canceled.", fleet.Name, planet.Name, planet.Name)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum}})
 
 }
@@ -819,7 +819,7 @@ func (m *messageClient) planetInvaded(player *Player, planet *Planet, fleet *Fle
 	if player.Num == fleet.PlayerNum {
 		if successful {
 			// we invaded and won
-			text = p.Sprintf("Your troops have successfully wrested planet %s from %s control killing off all their colonists.", fleet.Name, planet.Name, planetOwner) 
+			text = p.Sprintf("Your troops have successfully wrested planet %s from %s control killing off all their colonists.", fleet.Name, planet.Name, planetOwner)
 		} else {
 			// we invaded and lost
 			text = p.Sprintf("Your troops tried to invade %s, but all of your colonists were massacred by the %s. Your valiant fighters managed to kill %d of their colonists in return.", fleet.Name, planet.Name, planetOwner, defendersKilled)

@@ -85,7 +85,7 @@ type LRTSpec struct {
 	ShieldStrengthFactorOffset    float64         `json:"shieldStrengthFactorOffset,omitempty"`
 	ShieldRegenerationRateOffset  float64         `json:"shieldRegenerationRateOffset,omitempty"`
 	ArmorStrengthFactorOffset     float64         `json:"armorStrengthFactorOffset,omitempty"`
-	EngineFailureRateOffset       float64             `json:"engineFailureRateOffset,omitempty"`
+	EngineFailureRateOffset       float64         `json:"engineFailureRateOffset,omitempty"`
 	EngineReliableSpeed           int             `json:"engineReliableSpeed,omitempty"`
 }
 
@@ -348,7 +348,7 @@ func ppSpec() PRTSpec {
 				{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
 			},
 		},
-		// on extra world where hab varies by 1/2 of the range
+		// extra world where hab varies by 1/2 of the range
 		{
 			Population: 10000, HabPenaltyFactor: 1, HasMassDriver: true, StarbaseHull: OrbitalFort.Name, StarbaseDesignName: "Accelerator Platform",
 			StartingFleets: []StartingFleet{
@@ -364,7 +364,7 @@ func ppSpec() PRTSpec {
 	spec.PacketBuiltInScanner = true
 	spec.DetectPacketDestinationStarbases = true
 	spec.DetectAllPackets = true
-	spec.PacketTerraformChance = .5   // 50% per 100kT uncaught
+	spec.PacketTerraformChance = .5  // 50% per 100kT uncaught
 	spec.PacketPermaformChance = .05 // 5% per 100kT uncaught
 
 	return spec
@@ -388,7 +388,7 @@ func itSpec() PRTSpec {
 				{"Stalwart Defender", StartingFleetHullDestroyer, 0, ShipDesignPurposeFighter},
 			},
 		},
-		// on extra world where hab varies by 1/2 of the range
+		// extra world where hab varies by 1/2 of the range
 		{
 			Population: 10000, HabPenaltyFactor: 1, HasStargate: true, StarbaseHull: OrbitalFort.Name, StarbaseDesignName: "Accelerator Platform",
 			StartingFleets: []StartingFleet{

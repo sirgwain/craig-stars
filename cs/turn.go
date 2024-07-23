@@ -261,7 +261,7 @@ func (t *turn) fleetColonize() {
 
 			planet := t.game.getPlanet(wp.TargetNum)
 			if planet.Owned() {
-				messager.fleetColonizeOwnedPlanet(player, fleet)
+				messager.fleetColonizeOwnedPlanet(player, planet, fleet)
 				wp.Task = WaypointTaskNone
 				continue
 			}
@@ -1073,9 +1073,23 @@ func (t *turn) decaySalvage() {
 func (t *turn) decayPackets() {
 	for _, packet := range t.game.MineralPackets {
 		player := t.game.getPlayer(packet.PlayerNum)
-		// update the decay rate based on this distance traveled this turn
+		// update the decay amount based on this distance traveled this turn
 		decayRate := 1 - packet.getPacketDecayRate(&t.game.Rules, &player.Race)*(packet.distanceTravelled/float64(packet.WarpSpeed*packet.WarpSpeed))
-		packet.Cargo = packet.Cargo.Multiply(decayRate)
+
+		//loop through all 3 mineral types and reduce each one in turn
+		for _, minType := range [3]CargoType{Ironium, Boranium, Germanium} {
+			mineral := float64(packet.Cargo.GetAmount(minType))
+			if decayRate*mineral < float64(t.game.Rules.PacketMinDecay)*float64(player.Race.Spec.PacketDecayFactor) {
+				decayAmount := &t.game.Rules.PacketMinDecay
+			} else {
+				decayAmount := decayRate * mineral
+			}
+			packet.Cargo.SubtractAmount(minType, decayAmount)
+			if packet.Cargo.GetAmount(minType) < 1 {
+				packet.Cargo = packet.Cargo.MinZero()
+				packet.Cargo.AddAmount(minType, 1)
+			}
+		}
 
 		log.Debug().
 			Int64("GameID", packet.GameID).
@@ -1086,15 +1100,13 @@ func (t *turn) decayPackets() {
 
 		if (packet.Cargo == Cargo{}) {
 			t.game.deletePacket(packet)
-
-			log.Debug().
-				Int64("GameID", packet.GameID).
-				Int("Player", packet.PlayerNum).
-				Str("Packet", packet.Name).
-				Msgf("deleted salvage")
-
 		}
 
+		log.Debug().
+			Int64("GameID", packet.GameID).
+			Int("Player", packet.PlayerNum).
+			Str("Packet", packet.Name).
+			Msgf("deleted salvage")
 	}
 }
 
