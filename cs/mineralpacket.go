@@ -227,7 +227,7 @@ func (packet *MineralPacket) estimateDamage(rules *Rules, player *Player, target
 		if i == (ETA - 1) {
 			// 1 turn until impact - only travels/decays partially
 			decayRate = 1 - packet.getPacketDecayRate(rules, &player.Race)*((float64(int(totalDist)%spd)+totalDist-math.Floor(totalDist))/float64(spd))
-x		} else {
+		} else {
 			decayRate = 1 - packet.getPacketDecayRate(rules, &player.Race)
 		}
 
@@ -241,7 +241,7 @@ x		} else {
 			decayAmount := 0
 			mineral := float64(packet.Cargo.GetAmount(minType))
 			if decayRate*mineral < float64(rules.PacketMinDecay)*float64(player.Race.Spec.PacketDecayFactor) {
-				decayAmount := rules.PacketMinDecay
+				decayAmount = rules.PacketMinDecay
 			} else {
 				decayAmount = int(decayRate * mineral)
 			}
