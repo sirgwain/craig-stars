@@ -219,15 +219,16 @@ func (packet *MineralPacket) getDamage(rules *Rules, planet *Planet, planetPlaye
 func (packet *MineralPacket) estimateDamage(rules *Rules, player *Player, target *Planet, planetPlayer *Player) MineralPacketDamage {
 	spd := packet.WarpSpeed * packet.WarpSpeed
 	totalDist := packet.Position.DistanceTo(target.Position)
+	decayRate := 0.0
 	ETA := int(math.Ceil(totalDist / float64(spd)))
 	//save copy of packet to revert to later
 	packetCopy := packet
 	for i := 0; i < ETA; i++ {
 		if i == (ETA - 1) {
-			// 1 turn until impact - only travels partially
-			decayRate := 1 - packet.getPacketDecayRate(rules, &player.Race)*((float64(int(totalDist)%spd)+totalDist-math.Floor(totalDist))/float64(spd))
-		} else {
-			decayRate := 1 - packet.getPacketDecayRate(rules, &player.Race)
+			// 1 turn until impact - only travels/decays partially
+			decayRate = 1 - packet.getPacketDecayRate(rules, &player.Race)*((float64(int(totalDist)%spd)+totalDist-math.Floor(totalDist))/float64(spd))
+x		} else {
+			decayRate = 1 - packet.getPacketDecayRate(rules, &player.Race)
 		}
 
 		//no decay, so we don't need to bother calculating decay amount
@@ -237,11 +238,12 @@ func (packet *MineralPacket) estimateDamage(rules *Rules, player *Player, target
 
 		//loop through all 3 mineral types and reduce each one in turn
 		for _, minType := range [3]CargoType{Ironium, Boranium, Germanium} {
+			decayAmount := 0
 			mineral := float64(packet.Cargo.GetAmount(minType))
 			if decayRate*mineral < float64(rules.PacketMinDecay)*float64(player.Race.Spec.PacketDecayFactor) {
 				decayAmount := rules.PacketMinDecay
 			} else {
-				decayAmount := decayRate * mineral
+				decayAmount = int(decayRate * mineral)
 			}
 			packet.Cargo.SubtractAmount(minType, decayAmount)
 			if packet.Cargo.GetAmount(minType) < 1 {

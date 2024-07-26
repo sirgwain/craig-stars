@@ -1079,11 +1079,7 @@ func (t *turn) decayPackets() {
 		//loop through all 3 mineral types and reduce each one in turn
 		for _, minType := range [3]CargoType{Ironium, Boranium, Germanium} {
 			mineral := float64(packet.Cargo.GetAmount(minType))
-			if decayRate*mineral < float64(t.game.Rules.PacketMinDecay)*float64(player.Race.Spec.PacketDecayFactor) {
-				decayAmount := &t.game.Rules.PacketMinDecay
-			} else {
-				decayAmount := decayRate * mineral
-			}
+			decayAmount := MaxInt(int(decayRate * mineral), int(float64(t.game.Rules.PacketMinDecay)*float64(player.Race.Spec.PacketDecayFactor)))
 			packet.Cargo.SubtractAmount(minType, decayAmount)
 			if packet.Cargo.GetAmount(minType) < 1 {
 				packet.Cargo = packet.Cargo.MinZero()
