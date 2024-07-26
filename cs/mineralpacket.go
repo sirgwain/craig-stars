@@ -59,8 +59,8 @@ func (packet *MineralPacket) getPacketDecayRate(rules *Rules, race *Race) float6
 	// we only care about packets thrown up to 3 warps over the limit
 	overSafeWarp := MinInt(packet.WarpSpeed-packet.SafeWarpSpeed, 3)
 
-	// IT is always counted as being at least 1 over the safe warp
-	overSafeWarp = MaxInt(race.Spec.PacketOverSafeWarpPenalty, overSafeWarp)
+	// IT is always counted as being 1 more over the safe warp
+	overSafeWarp = MinInt(race.Spec.PacketOverSafeWarpPenalty+overSafeWarp, 3)
 
 	packetDecayRate := 0.0
 	if overSafeWarp > 0 {
