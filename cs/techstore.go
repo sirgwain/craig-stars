@@ -13,9 +13,8 @@ const NoGate = -1
 const InfiniteGate = math.MaxInt32
 const Infinite = -1
 
-// The TechStore contains all techs in the game. Eventually these will be user modifyable and
-// referenced per game, but for now all games use the StaticTechStore, which contains the default Stars!
-// techs.
+// The TechStore contains all techs in the game. Eventually these will be user modifiable and
+// referenced per game, but for now all games use the StaticTechStore, which contains the default Stars! techs.
 type TechStore struct {
 	Engines                  []TechEngine                          `json:"engines"`
 	PlanetaryScanners        []TechPlanetaryScanner                `json:"planetaryScanners"`
@@ -420,7 +419,7 @@ func (store *TechStore) GetBestBattleComputer(player *Player) *TechHullComponent
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
-		if tech.InitiativeBonus > 0 && tech.TorpedoBonus > 0 && player.HasTech(&tech.Tech) {
+		if tech.InitiativeBonus > 0 && tech.torpedoInaccuracyMulti > 0 && player.HasTech(&tech.Tech) {
 			// techs are sorted by rank, so the latest is the best
 			bestTech = tech
 		}
@@ -1425,24 +1424,24 @@ var UltraStealthCloak = TechHullComponent{Tech: NewTech("Ultra-Stealth Cloak", N
 }
 var BattleComputer = TechHullComponent{Tech: NewTech("Battle Computer", NewCost(0, 0, 15, 6), TechRequirements{TechLevel: TechLevel{}}, 40, TechCategoryElectrical),
 
-	Mass:            1,
-	InitiativeBonus: 1,
-	TorpedoBonus:    .2,
-	HullSlotType:    HullSlotTypeElectrical,
+	Mass:                   1,
+	InitiativeBonus:        1,
+	torpedoInaccuracyMulti: .8,
+	HullSlotType:           HullSlotTypeElectrical,
 }
 var BattleSuperComputer = TechHullComponent{Tech: NewTech("Battle Super Computer", NewCost(0, 0, 25, 14), TechRequirements{TechLevel: TechLevel{Energy: 5, Electronics: 11}}, 50, TechCategoryElectrical),
 
-	Mass:            1,
-	InitiativeBonus: 2,
-	TorpedoBonus:    .3,
-	HullSlotType:    HullSlotTypeElectrical,
+	Mass:                   1,
+	InitiativeBonus:        2,
+	torpedoInaccuracyMulti: .7,
+	HullSlotType:           HullSlotTypeElectrical,
 }
 var BattleNexus = TechHullComponent{Tech: NewTech("Battle Nexus", NewCost(0, 0, 30, 15), TechRequirements{TechLevel: TechLevel{Energy: 10, Electronics: 19}}, 60, TechCategoryElectrical),
 
-	Mass:            1,
-	InitiativeBonus: 3,
-	TorpedoBonus:    .5,
-	HullSlotType:    HullSlotTypeElectrical,
+	Mass:                   1,
+	InitiativeBonus:        3,
+	torpedoInaccuracyMulti: .5,
+	HullSlotType:           HullSlotTypeElectrical,
 }
 var Jammer10 = TechHullComponent{Tech: NewTech("Jammer 10", NewCost(0, 0, 2, 6), TechRequirements{TechLevel: TechLevel{Energy: 2, Electronics: 6}, PRTsRequired: []PRT{IS}}, 70, TechCategoryElectrical),
 

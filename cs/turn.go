@@ -1085,9 +1085,10 @@ func (t *turn) decayPackets() {
 				decayAmount := decayRate * mineral
 			}
 			packet.Cargo.SubtractAmount(minType, decayAmount)
+
+			// if packet would decay down to 0, keep it at 1
 			if packet.Cargo.GetAmount(minType) < 1 {
-				packet.Cargo = packet.Cargo.MinZero()
-				packet.Cargo.AddAmount(minType, 1)
+				packet.Cargo.AddAmount(minType, AbsInt(packet.Cargo.GetAmount(minType))+1)
 			}
 		}
 

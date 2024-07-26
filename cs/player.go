@@ -161,10 +161,13 @@ const (
 	BattleTacticDisengage BattleTactic = "Disengage"
 	// MaximizeDamage until we are damaged, then disengage
 	BattleTacticDisengageIfChallenged BattleTactic = "DisengageIfChallenged"
-	// If in range of enemy weapons, move away. Only fire if cornered or if from a safe range
+	// If in range of enemy weapons, move away. Only fire if cornered or if at a safe range
 	BattleTacticMinimizeDamageToSelf BattleTactic = "MinimizeDamageToSelf"
+	// Get in range of all weapons then try to maximize damage dealt/damage taken
 	BattleTacticMaximizeNetDamage    BattleTactic = "MaximizeNetDamage"
+	// Get in range of at least 1 weapon, then tey to maximize damage dealt/damage taken
 	BattleTacticMaximizeDamageRatio  BattleTactic = "MaximizeDamageRatio"
+	// Do as much damage as possible; survivability is for losers
 	BattleTacticMaximizeDamage       BattleTactic = "MaximizeDamage"
 )
 
@@ -624,7 +627,7 @@ func (p *Player) defaultPlans() PlayerPlans {
 		TransportPlans: []TransportPlan{
 			{
 				Num:  0,
-				Name: "Default",
+				Name: "Clear",
 			},
 			{
 				Num:  1,
@@ -649,7 +652,7 @@ func (p *Player) defaultPlans() PlayerPlans {
 			},
 			{
 				Num:  2,
-				Name: "Wait For",
+				Name: "Wait Load",
 				Tasks: WaypointTransportTasks{
 					Fuel:      WaypointTransportTask{Action: TransportActionLoadOptimal},
 					Ironium:   WaypointTransportTask{Action: TransportActionWaitForPercent, Amount: 100},

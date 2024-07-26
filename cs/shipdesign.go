@@ -51,7 +51,7 @@ type ShipDesignSpec struct {
 	InnateScanRangePenFactor  float64               `json:"innateScanRangePenFactor,omitempty"`
 	RepairBonus               float64               `json:"repairBonus,omitempty"`
 	TorpedoJamming            float64               `json:"torpedoJamming,omitempty"`
-	TorpedoBonus              float64               `json:"torpedoBonus,omitempty"`
+	torpedoInaccuracyMulti    float64               `json:"torpedoInaccuracyMulti,omitempty"`
 	BeamBonus                 float64               `json:"beamBonus,omitempty"`
 	BeamDefense               float64               `json:"beamDefense,omitempty"`
 	Initiative                int                   `json:"initiative,omitempty"`
@@ -344,14 +344,14 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 			// a 75% accurate torpedo with two 30% comps and one 50% comp would be
 			// 100 - (100 - 75) * .7 * .7 * .5 = 94% accurate
 			// if TorpedoInnaccuracyDecrease is 1 (default), it's just 75%
-			if component.TorpedoBonus > 0 {
-				if spec.TorpedoBonus == 0 {
-					spec.TorpedoBonus = 1 - math.Pow(1-component.TorpedoBonus, float64(slot.Quantity))
+			if component.torpedoInaccuracyMulti > 0 {
+				if spec.torpedoInaccuracyMulti == 0 {
+					spec.torpedoInaccuracyMulti = math.Pow(component.torpedoInaccuracyMulti, float64(slot.Quantity))
 				} else {
-					spec.TorpedoBonus *= 1 - math.Pow(1-component.TorpedoBonus, float64(slot.Quantity))
+					spec.torpedoInaccuracyMulti *= math.Pow(component.torpedoInaccuracyMulti, float64(slot.Quantity))
 				}
 				// golang, why you be like this? nobody wants 1-.2^1 to be .199999994
-				spec.TorpedoBonus = roundFloat(spec.TorpedoBonus, 3)
+				spec.torpedoInaccuracyMulti = roundFloat(spec.torpedoInaccuracyMulti, 3)
 			}
 
 			if component.TorpedoJamming > 0 {
@@ -365,7 +365,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 
 			// beam bonuses (capacitors are capped at 2.55x; beam deflectors are unlimited)
 			spec.BeamBonus += math.Min(math.Pow(1+component.BeamBonus, float64(slot.Quantity))-1, 1.55)
-			spec.BeamDefense += math.Pow(1+component.BeamDefense, float64(slot.Quantity))-1
+			spec.BeamDefense += math.Pow(1+component.BeamDefense, float64(slot.Quantity)) - 1
 
 			// if this slot has a bomb, this design is a bomber
 			if component.HullSlotType == HullSlotTypeBomb || component.MinKillRate > 0 {

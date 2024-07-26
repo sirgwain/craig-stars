@@ -124,7 +124,7 @@ const (
 	PlayerMessagePlanetPacketDamage
 	PlayerMessagePlanetPacketLanded
 	PlayerMessageMineralPacketDiscovered
-	PlayerMessageMineralPacketTargettingPlayerDiscovered
+	PlayerMessageMineralPacketTargetingPlayerDiscovered
 	PlayerMessagePlayerVictor
 	PlayerMessageFleetReproduce
 	PlayerMessagePlanetRandomMineralDeposit
@@ -343,7 +343,19 @@ func (m *messageClient) fleetExceededSafeSpeed(player *Player, fleet *Fleet, exp
 }
 
 func (m *messageClient) fleetGeneratedFuel(player *Player, fleet *Fleet, fuelGenerated int) {
-	text := fmt.Sprintf("%s's ram scoops have produced %dmg of fuel from interstellar hydrogen.", fleet.Name, fuelGenerated)
+
+	hasRamScoop := true
+	for _, token := range fleet.Tokens {
+		if token.design.Spec.Engine.FreeSpeed > 1 {
+			hasRamScoop := true
+			break
+		}
+	}
+	if hasRamScoop {
+		text := fmt.Sprintf("%s's ramscoops have produced %dmg of fuel from interstellar hydrogen.", fleet.Name, fuelGenerated)
+	} else {
+		text := fmt.Sprintf("%s's engines have produced %dmg of fuel from interstellar hydrogen.", fleet.Name, fuelGenerated)
+	}
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetGeneratedFuel, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum}})
 }
 
@@ -684,12 +696,12 @@ func (m *messageClient) planetBuiltMineralPacket(player *Player, planet *Planet,
 }
 
 func (m *messageClient) mineralPacketDiscovered(player *Player, packet *MineralPacket, packetPlayer *Player, target *Planet) {
-	text := fmt.Sprintf("A %s mineral packet containing %dkT of minerals has been detected. It is travelling at warp %d towards %s.", packetPlayer.Race.Name, packet.Cargo.Total(), packet.WarpSpeed, target.Name)
+	text := fmt.Sprintf("A %s mineral packet containing %dkT of minerals has been detected. It is traveling at warp %d towards %s.", packetPlayer.Race.Name, packet.Cargo.Total(), packet.WarpSpeed, target.Name)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageMineralPacketDiscovered, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetMineralPacket, TargetNum: packet.Num, TargetPlayerNum: packetPlayer.Num}})
 }
 
-func (m *messageClient) mineralPacketDiscoveredTargettingPlayer(player *Player, packet *MineralPacket, packetPlayer *Player, target *Planet, damage MineralPacketDamage) {
-	text := fmt.Sprintf("A %s mineral packet containing %dkT of minerals has been detected. It is travelling at warp %d towards your planet, %s.", packetPlayer.Race.Name, packet.Cargo.Total(), packet.WarpSpeed, target.Name)
+func (m *messageClient) mineralPacketDiscoveredTargetingPlayer(player *Player, packet *MineralPacket, packetPlayer *Player, target *Planet, damage MineralPacketDamage) {
+	text := fmt.Sprintf("A %s mineral packet containing %dkT of minerals has been detected. It is traveling at warp %d towards your planet, %s.", packetPlayer.Race.Name, packet.Cargo.Total(), packet.WarpSpeed, target.Name)
 	if damage.Killed > 0 || damage.DefensesDestroyed > 0 {
 		if target.Spec.HasStarbase {
 			text += fmt.Sprintf(" Your starbase does not have a powerful enough mass driver to catch this packet. Approximately %d defenses will be destroyed and %d colonists will be killed if the packet hits.", damage.DefensesDestroyed, damage.Killed)
@@ -699,7 +711,7 @@ func (m *messageClient) mineralPacketDiscoveredTargettingPlayer(player *Player, 
 	} else {
 		text += " Your starbase will have no trouble catching this packet."
 	}
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageMineralPacketTargettingPlayerDiscovered, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetMineralPacket, TargetNum: packet.Num, TargetPlayerNum: packetPlayer.Num}})
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageMineralPacketTargetingPlayerDiscovered, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetMineralPacket, TargetNum: packet.Num, TargetPlayerNum: packetPlayer.Num}})
 }
 
 /*

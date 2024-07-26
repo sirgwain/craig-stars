@@ -134,3 +134,45 @@ func TestMineralPacket_getPacketDecayRate(t *testing.T) {
 		})
 	}
 }
+
+func TestMineralPacket_estimateDamage(t *testing.T) {
+	type fields struct {
+		SafeWarpSpeed int
+		WarpSpeed     int
+	}
+	type args struct {
+		race              *Race
+		planetDriverSpeed int
+		planetPosition    Vector
+		planetDefCoverage float64
+		targetRace        *Race
+		planetPop         int
+		mass              Cargo
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   MineralPacketDamage
+	}{
+		{"1 yr away; no decay/dmg", fields{WarpSpeed: 5, SafeWarpSpeed: 5}, args{NewRace().WithSpec(&rules), 5, Vector{25.0, 0.0}, 0.0, NewRace().WithSpec(&rules), 1000000, Cargo{10, 10, 10, 0}}, MineralPacketDamage{}},
+		{"3 lvls overwarp + 1 yr travel (50% left); 1M pop; no driver/defenses", fields{WarpSpeed: 8, SafeWarpSpeed: 5}, args{NewRace().WithSpec(&rules), 0, Vector{64.0, 0.0}, 0.0, NewRace().WithSpec(&rules), 1000000, Cargo{50, 0, 0, 0}}, MineralPacketDamage{Killed: 10000}},
+		{`3 lvls overwarp + 3.25 yr travel (10.9% left); 1M pop; W6 driver/50% defenses`, fields{WarpSpeed: 8, SafeWarpSpeed: 5}, args{NewRace().WithSpec(&rules), 6, Vector{208.0, 0.0}, 0.5, NewRace().WithSpec(&rules), 1000000, Cargo{1045, 0, 0, 0}}, MineralPacketDamage{Killed: 1000}},
+	}
+	//To sirgwain (or whoever happens to be unlucky enough to test this): I did not do an IT/PP example as of yet because I too lazy. Feel free to add one if/when you have the mental capacity to do so.
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			player := NewPlayer(1, tt.args.race).withSpec(&rules)
+			planet := NewPlanet().withPosition(tt.args.planetPosition)
+			planet.Spec.Population = tt.args.planetPop
+			planet.Spec.DefenseCoverage = tt.args.planetDefCoverage
+			planet.Spec.PlanetStarbaseSpec.SafePacketSpeed = tt.args.planetDriverSpeed
+			planetPlayer := NewPlayer(2, tt.args.targetRace).withSpec(&rules)
+			packet := newMineralPacket(player, 1, tt.fields.WarpSpeed, tt.fields.SafeWarpSpeed, tt.args.mass, Vector{0, 0}, 1)
+			if got := packet.estimateDamage(&rules, player, planet, planetPlayer); got != tt.want {
+				t.Errorf("MineralPacket.estimateDamage() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

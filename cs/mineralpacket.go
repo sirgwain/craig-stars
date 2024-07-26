@@ -59,8 +59,8 @@ func (packet *MineralPacket) getPacketDecayRate(rules *Rules, race *Race) float6
 	// we only care about packets thrown up to 3 warps over the limit
 	overSafeWarp := MinInt(packet.WarpSpeed-packet.SafeWarpSpeed, 3)
 
-	// IT is always counted as being at least 1 over the safe warp
-	overSafeWarp = MaxInt(race.Spec.PacketOverSafeWarpPenalty, overSafeWarp)
+	// IT is  counted as being 1 more over warp than normal
+	overSafeWarp = MinInt(race.Spec.PacketOverSafeWarpPenalty+overSafeWarp, 3)
 
 	packetDecayRate := 0.0
 	if overSafeWarp > 0 {
@@ -214,28 +214,27 @@ func (packet *MineralPacket) getDamage(rules *Rules, planet *Planet, planetPlaye
 
 }
 
-// Estimate potential damage of incoming mineral packet
-// Simulates decay each turn until impact
+// Estimate potential damage of incoming mineral packet; Simulates decay each turn until impact
 func (packet *MineralPacket) estimateDamage(rules *Rules, player *Player, target *Planet, planetPlayer *Player) MineralPacketDamage {
 	spd := packet.WarpSpeed * packet.WarpSpeed
 	totalDist := packet.Position.DistanceTo(target.Position)
 	ETA := int(math.Ceil(totalDist / float64(spd)))
-	//save copy of packet to revert to later
+	// save copy of packet mins to revert to later
 	packetCopy := packet
 	for i := 0; i < ETA; i++ {
 		if i == (ETA - 1) {
-			// 1 turn until impact - only travels partially
+			// 1 turn until impact - only travels/decays partially
 			decayRate := 1 - packet.getPacketDecayRate(rules, &player.Race)*((float64(int(totalDist)%spd)+totalDist-math.Floor(totalDist))/float64(spd))
 		} else {
 			decayRate := 1 - packet.getPacketDecayRate(rules, &player.Race)
 		}
 
-		//no decay, so we don't need to bother calculating decay amount
+		// no decay, so we don't need to bother calculating decay amount
 		if decayRate == 1 {
 			break
 		}
 
-		//loop through all 3 mineral types and reduce each one in turn
+		// loop through all 3 mineral types and reduce each one sequentially
 		for _, minType := range [3]CargoType{Ironium, Boranium, Germanium} {
 			mineral := float64(packet.Cargo.GetAmount(minType))
 			if decayRate*mineral < float64(rules.PacketMinDecay)*float64(player.Race.Spec.PacketDecayFactor) {
@@ -244,16 +243,18 @@ func (packet *MineralPacket) estimateDamage(rules *Rules, player *Player, target
 				decayAmount := decayRate * mineral
 			}
 			packet.Cargo.SubtractAmount(minType, decayAmount)
+
+			// prevent decay from bringing packet minerals down to 0
 			if packet.Cargo.GetAmount(minType) < 1 {
-				packet.Cargo = packet.Cargo.MinZero()
-				packet.Cargo.AddAmount(minType, 1)
+				packet.Cargo.AddAmount(minType, (AbsInt(packet.Cargo.GetAmount(minType) + 1)))
+
 			}
 		}
 	}
 
 	damage := packet.getDamage(rules, target, planetPlayer)
 
-	//revert stored mineral amounts - we're only simulating the decay, after all
+	// revert stored mineral amounts - we're only simulating the decay, after all
 	packet = packetCopy
 
 	return damage

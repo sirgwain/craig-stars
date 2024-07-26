@@ -44,7 +44,7 @@ type battleWeaponSlot struct {
 	accuracy float64
 
 	// the accuracy bonus to the torpedo
-	torpedoBonus float64
+	torpedoInaccuracyMulti float64
 
 	// the initiative of the weapon
 	initiative int
@@ -72,19 +72,19 @@ type battleWeaponDamage struct {
 }
 
 // newBattleWeaponSlot creates a new BattleWeaponSlot object
-func newBattleWeaponSlot(token *battleToken, slot ShipDesignSlot, hc *TechHullComponent, rangeBonus int, torpedoBonus float64, beamBonus float64) *battleWeaponSlot {
+func newBattleWeaponSlot(token *battleToken, slot ShipDesignSlot, hc *TechHullComponent, rangeBonus int, torpedoInaccuracyMulti float64, beamBonus float64) *battleWeaponSlot {
 	weaponSlot := &battleWeaponSlot{
-		token:              token,
-		slot:               slot,
-		slotQuantity:       slot.Quantity,
-		weaponRange:        hc.Range + rangeBonus,
-		power:              hc.Power,
-		damagesShieldsOnly: hc.DamageShieldsOnly,
-		accuracy:           float64(hc.Accuracy) / 100.0, // accuracy as 0 to 1.0
-		torpedoBonus:       torpedoBonus,
-		initiative:         token.Initiative + hc.Initiative,
-		hitsAllTargets:     hc.HitsAllTargets,
-		capitalShipMissile: hc.CapitalShipMissile,
+		token:                  token,
+		slot:                   slot,
+		slotQuantity:           slot.Quantity,
+		weaponRange:            hc.Range + rangeBonus,
+		power:                  hc.Power,
+		damagesShieldsOnly:     hc.DamageShieldsOnly,
+		accuracy:               float64(hc.Accuracy) / 100.0, // accuracy as 0 to 1.0
+		torpedoInaccuracyMulti: torpedoInaccuracyMulti,
+		initiative:             token.Initiative + hc.Initiative,
+		hitsAllTargets:         hc.HitsAllTargets,
+		capitalShipMissile:     hc.CapitalShipMissile,
 	}
 
 	if hc.Category == TechCategoryBeamWeapon {
@@ -367,9 +367,9 @@ func (weapon *battleWeaponSlot) getBeamDamageToTargetAtDistance(damage int, targ
 
 // get the accuracy of a torpedo against a target
 func (weapon *battleWeaponSlot) getAccuracy(torpedoJamming float64) float64 {
-	if torpedoJamming >= weapon.torpedoBonus {
-		return weapon.accuracy * (1 - (torpedoJamming - weapon.torpedoBonus))
+	if torpedoJamming >= weapon.torpedoInaccuracyMulti {
+		return weapon.accuracy * (1 - (torpedoJamming - weapon.torpedoInaccuracyMulti))
 	} else {
-		return weapon.accuracy + (1-(weapon.accuracy))*(weapon.torpedoBonus-torpedoJamming)
+		return weapon.accuracy + (1-(weapon.accuracy))*(weapon.torpedoInaccuracyMulti-torpedoJamming)
 	}
 }
