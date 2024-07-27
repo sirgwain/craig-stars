@@ -345,7 +345,7 @@ func (g *Game) YearsPassed() int {
 
 func (fg *FullGame) getPlayer(playerNum int) *Player {
 
-	if playerNum < 1 || playerNum > len(fg.Players)+1 {
+	if playerNum < 1 || playerNum > len(fg.Players) {
 		return nil
 	}
 	return fg.Players[playerNum-1]
