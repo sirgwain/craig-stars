@@ -45,8 +45,8 @@
 		showTooltip<MinesTooltipProps>(e.x, e.y, MinesTooltip, {
 			planetName: planet.name,
 			mines: planet.mines,
-			maxMines: planet.spec.maxMines,
-			maxPossibleMines: planet.spec.maxPossibleMines,
+			maxMines: planet.spec.maxMines ?? 0,
+			maxPossibleMines: planet.spec.maxPossibleMines ?? 0,
 			canBuildMines: $player.race.spec?.innateMining ?? false
 		});
 	}
@@ -55,8 +55,8 @@
 		showTooltip<FactoriesTooltipProps>(e.x, e.y, FactoriesTooltip, {
 			planetName: planet.name,
 			factories: planet.factories,
-			maxFactories: planet.spec.maxFactories,
-			maxPossibleFactories: planet.spec.maxPossibleFactories,
+			maxFactories: planet.spec.maxFactories ?? 0,
+			maxPossibleFactories: planet.spec.maxPossibleFactories ?? 0,
 			canBuildFactories: $player.race.spec?.innateResources ?? false
 		});
 	}
@@ -88,7 +88,7 @@
 				{#if $player.race.spec?.innateMining}
 					{planet.mines}*
 				{:else}
-					{planet.mines} of {planet.spec.maxMines}
+					{planet.mines} of {planet.spec.maxMines ?? 0}
 				{/if}
 			</div>
 		</div>
@@ -101,7 +101,7 @@
 				{#if $player.race.spec?.innateResources}
 					n/a
 				{:else}
-					{planet.factories} of {planet.spec.maxFactories}
+					{planet.factories} of {planet.spec.maxFactories ?? 0}
 				{/if}
 			</div>
 		</div>
