@@ -224,6 +224,10 @@ func (packet *MineralPacket) getDamage(rules *Rules, planet *Planet, planetPlaye
 // Estimate potential damage of incoming mineral packet
 // Simulates decay each turn until impact
 func (packet *MineralPacket) estimateDamage(rules *Rules, player *Player, target *Planet, planetPlayer *Player) MineralPacketDamage {
+	if target.Spec.HasMassDriver && target.Spec.SafePacketSpeed >= packet.WarpSpeed {
+		// planet successfully caught this packet
+		return MineralPacketDamage{}
+	}
 	spd := float64(packet.WarpSpeed * packet.WarpSpeed)
 	decayRate := 0.0
 	totalDist := packet.Position.DistanceTo(target.Position)
@@ -252,6 +256,7 @@ func (packet *MineralPacket) estimateDamage(rules *Rules, player *Player, target
 			mineral := packetCopy.Cargo.GetAmount(minType)
 
 			// subtract either the normal or minimum decay amounts, whichever is higher (but not exceeding packet min content)
+			// Stars! rounds down packet decay ()
 			if mineral > 0 {
 				decayAmount := MaxInt(int(decayRate*float64(mineral)), int(float64(rules.PacketMinDecay)*float64(player.Race.Spec.PacketDecayFactor)))
 				packetCopy.Cargo.SubtractAmount(minType, decayAmount)
