@@ -149,13 +149,20 @@ func (packet *MineralPacket) completeMove(rules *Rules, player *Player, planet *
 		}
 	}
 
+	mineralsRecovered := 1.0
 	if damage.Uncaught > 0 {
 		packet.checkTerraform(rules, player, planet, damage.Uncaught)
 		packet.checkPermaform(rules, player, planet, damage.Uncaught)
+		receiverDriverSpeed := 0
+		if planet.Spec.HasStarbase {
+			receiverDriverSpeed = planet.Spec.SafePacketSpeed
+		}
+		percentCaughtSafely := float64((packet.WarpSpeed * packet.WarpSpeed) / (receiverDriverSpeed * receiverDriverSpeed))
+		mineralsRecovered = percentCaughtSafely + (1-percentCaughtSafely)/3
 	}
 
 	// one way or another, these minerals are ending up on the planet
-	planet.Cargo = planet.Cargo.Add(packet.Cargo)
+	planet.Cargo = planet.Cargo.Add(packet.Cargo.Multiply(mineralsRecovered))
 
 	// if we didn't receive this planet, notify the sender
 	if planet.PlayerNum != packet.PlayerNum {
@@ -217,66 +224,53 @@ func (packet *MineralPacket) getDamage(rules *Rules, planet *Planet, planetPlaye
 // Estimate potential damage of incoming mineral packet
 // Simulates decay each turn until impact
 func (packet *MineralPacket) estimateDamage(rules *Rules, player *Player, target *Planet, planetPlayer *Player) MineralPacketDamage {
-	spd := packet.WarpSpeed * packet.WarpSpeed
-	totalDist := packet.Position.DistanceTo(target.Position)
+	spd := float64(packet.WarpSpeed * packet.WarpSpeed)
 	decayRate := 0.0
-	ETA := int(math.Ceil(totalDist / float64(spd)))
-	//save copy of packet to revert to later
-	packetCopy := packet
-	for i := 0; i < ETA; i++ {
-		if i == (ETA - 1) {
+	totalDist := packet.Position.DistanceTo(target.Position)
+	eta := int(totalDist / spd)
+
+	//save copy of packet so we don't alter the original
+	packetCopy := *packet
+
+	for i := 0; i <= eta; i++ {
+		if totalDist <= spd {
 			// 1 turn until impact - only travels/decays partially
-			decayRate = 1 - packet.getPacketDecayRate(rules, &player.Race)*((float64(int(totalDist)%spd)+totalDist-math.Floor(totalDist))/float64(spd))
+			distTraveled := totalDist / float64(spd)
+			decayRate = (packetCopy.getPacketDecayRate(rules, &player.Race) * distTraveled)
 		} else {
-			decayRate = 1 - packet.getPacketDecayRate(rules, &player.Race)
+			decayRate = packetCopy.getPacketDecayRate(rules, &player.Race)
+			totalDist -= spd
 		}
 
-		//no decay, so we don't need to bother calculating decay amount
+		// no decay, so we don't need to bother calculating decay amount
 		if decayRate == 1 {
 			break
 		}
 
-		//loop through all 3 mineral types and reduce each one in turn
+		// loop through all 3 mineral types and reduce each one in turn
 		for _, minType := range [3]CargoType{Ironium, Boranium, Germanium} {
-			decayAmount := 0
-			mineral := float64(packet.Cargo.GetAmount(minType))
-			if decayRate*mineral < float64(rules.PacketMinDecay)*float64(player.Race.Spec.PacketDecayFactor) {
-				decayAmount = rules.PacketMinDecay
-			} else {
-				decayAmount = int(decayRate * mineral)
-			}
-			packet.Cargo.SubtractAmount(minType, decayAmount)
-			if packet.Cargo.GetAmount(minType) < 1 {
-				packet.Cargo = packet.Cargo.MinZero()
-				packet.Cargo.AddAmount(minType, 1)
+			mineral := packetCopy.Cargo.GetAmount(minType)
+
+			// subtract either the normal or minimum decay amounts, whichever is higher (but not exceeding packet min content)
+			if mineral > 0 {
+				decayAmount := MaxInt(int(decayRate*float64(mineral)), int(float64(rules.PacketMinDecay)*float64(player.Race.Spec.PacketDecayFactor)))
+				packetCopy.Cargo.SubtractAmount(minType, decayAmount)
+				if packetCopy.Cargo.GetAmount(minType) <= 0 {
+					packetCopy.Cargo.AddAmount(minType, packetCopy.Cargo.GetAmount(minType)+1)
+				}
 			}
 		}
 	}
 
-	damage := packet.getDamage(rules, target, planetPlayer)
+	damage := packetCopy.getDamage(rules, target, planetPlayer)
 
-	//revert stored mineral amounts - we're only simulating the decay, after all
-	packet = packetCopy
+	// clear packet uncaught statistic as we don't care about it (this is a **damage** test function after all)
+	damage.Uncaught = 0
 
 	return damage
 }
 
-// From mazda on starsautohost: https://starsautohost.org/sahforum2/index.php?t=msg&th=1294&start=0&rid=0
-//
-// For each uncaught 100kT of mineral there is 50% chance of performing 1 click of normal terraforming on the target planet (i.e. the same terra with the same limits as if you were sat on the planet spending resources).
-// So a large packet of 2000kT on an unoccupied planet should expect to terrafrom it 10 clicks, which is a lot.
-//
-// Secondly, the same packet can also perform "permanent terraforming" by altering the underlying planet variables.
-// There is a 50% chance of performing 1 click of permanent terraforming per 1000kT of uncaught material.
-//
-// This ability is only available to PP and CA and for CAs it is random, whereas PP's can choose what planet to permanently alter.
-//
-// Note these figures are for uncaught amounts, so work best on planets with no defences and especially no flingers.
-//
-// The direction of terraforming in all cases is towards the optimum for the flinging race.
-// Whether the target is yours, friends, enemies or empty makes no difference.
-//
-// For an immunity I believe the terraforming is towards the closest edge.
+// Check if an uncaught PP packet will terraform the target planet's environment  (50% chance/100kT)
 func (packet *MineralPacket) checkTerraform(rules *Rules, player *Player, planet *Planet, uncaught int) {
 	if player.Race.Spec.PacketTerraformChance > 0 {
 		for uncaughtCheck := player.Race.Spec.PacketPermaTerraformSizeUnit; uncaughtCheck <= uncaught; uncaughtCheck += player.Race.Spec.PacketPermaTerraformSizeUnit {
@@ -292,6 +286,7 @@ func (packet *MineralPacket) checkTerraform(rules *Rules, player *Player, planet
 	}
 }
 
+// Check if an uncaught PP packet will permanently alter the target planet's environment (0.1% chance/100kT)
 func (p *MineralPacket) checkPermaform(rules *Rules, player *Player, planet *Planet, uncaught int) {
 	if player.Race.Spec.PacketPermaformChance > 0 && player.Race.Spec.PacketPermaTerraformSizeUnit > 0 {
 		for uncaughtCheck := player.Race.Spec.PacketPermaTerraformSizeUnit; uncaughtCheck <= uncaught; uncaughtCheck += player.Race.Spec.PacketPermaTerraformSizeUnit {
