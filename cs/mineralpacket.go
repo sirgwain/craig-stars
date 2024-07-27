@@ -153,11 +153,10 @@ func (packet *MineralPacket) completeMove(rules *Rules, player *Player, planet *
 	if damage.Uncaught > 0 {
 		packet.checkTerraform(rules, player, planet, damage.Uncaught)
 		packet.checkPermaform(rules, player, planet, damage.Uncaught)
-		receiverDriverSpeed := 0
-		if planet.Spec.HasStarbase {
-			receiverDriverSpeed = planet.Spec.SafePacketSpeed
+		var percentCaughtSafely float64
+		if planet.Spec.HasStarbase && planet.Spec.SafePacketSpeed > 0 {
+			percentCaughtSafely = float64((packet.WarpSpeed * packet.WarpSpeed) / (planet.Spec.SafePacketSpeed * planet.Spec.SafePacketSpeed))
 		}
-		percentCaughtSafely := float64((packet.WarpSpeed * packet.WarpSpeed) / (receiverDriverSpeed * receiverDriverSpeed))
 		mineralsRecovered = percentCaughtSafely + (1-percentCaughtSafely)/3
 	}
 
