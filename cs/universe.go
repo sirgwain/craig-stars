@@ -276,6 +276,9 @@ func (u *Universe) getShipDesign(playerNum int, num int) *ShipDesign {
 
 // Get a planet by num
 func (u *Universe) getPlanet(num int) *Planet {
+	if num < 1 || num > len(u.Planets) {
+		return nil
+	}
 	return u.Planets[num-1]
 }
 
