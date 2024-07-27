@@ -255,15 +255,17 @@ func (packet *MineralPacket) estimateDamage(rules *Rules, player *Player, target
 		for _, minType := range [3]CargoType{Ironium, Boranium, Germanium} {
 			mineral := packetCopy.Cargo.GetAmount(minType)
 
-			// subtract either the normal or minimum decay amounts, whichever is higher (but not exceeding packet min content)
-			// Stars! rounds down packet decay ()
+			// subtract either the normal or minimum decay amounts, whichever is higher (rounded DOWN)
 			if mineral > 0 {
 				decayAmount := MaxInt(int(decayRate*float64(mineral)), int(float64(rules.PacketMinDecay)*float64(player.Race.Spec.PacketDecayFactor)))
 				packetCopy.Cargo.SubtractAmount(minType, decayAmount)
-				if packetCopy.Cargo.GetAmount(minType) <= 0 {
-					packetCopy.Cargo.AddAmount(minType, packetCopy.Cargo.GetAmount(minType)+1)
 				}
 			}
+		
+		// packet out of minerals
+		if packetCopy.Cargo.GetAmount(Ironium) == 0 && packetCopy.Cargo.GetAmount(Boranium) == 0 && packetCopy.Cargo.GetAmount(Boranium) == 0 {
+			return MineralPacketDamage{}
+		}
 		}
 	}
 
