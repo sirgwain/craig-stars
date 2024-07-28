@@ -1,5 +1,5 @@
 import type { DesignFinder, Universe } from '$lib/services/Universe';
-import { flatten, groupBy, sumBy } from 'lodash-es';
+import { flatten, groupBy, sumBy, get as pluck } from 'lodash-es';
 import type { Cargo } from './Cargo';
 import type { MapObject } from './MapObject';
 import type { Vector } from './Vector';
@@ -347,6 +347,24 @@ export function getTheirDead(record: BattleRecord, allies: Set<number>): number 
 		}
 	});
 	return count;
+}
+
+// fleetsSortBy returns a sortBy function for fleets by key. This is used by the fleets report page
+// and sorting when cycling through Fleets
+export function battlesSortBy(
+	key: string
+): ((a: BattleRecordDetails, b: BattleRecordDetails) => number) | undefined {
+	switch (key) {
+		default:
+			return (a, b) => {
+				const aVal = pluck(a, key);
+				const bVal = pluck(b, key);
+				if (typeof aVal == 'number' && typeof bVal == 'number') {
+					return aVal - bVal;
+				}
+				return `${aVal}`.localeCompare(`${bVal}`);
+			};
+	}
 }
 
 // get a target for the scanner so we can "goto" a battle and select this mapobject
