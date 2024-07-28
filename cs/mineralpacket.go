@@ -153,7 +153,6 @@ func (packet *MineralPacket) completeMove(rules *Rules, player *Player, planet *
 	if damage.Uncaught > 0 {
 		packet.checkTerraform(rules, player, planet, damage.Uncaught)
 		packet.checkPermaform(rules, player, planet, damage.Uncaught)
-		receiverDriverSpeed := 0
 		var percentCaughtSafely float64
 		if planet.Spec.HasStarbase && planet.Spec.SafePacketSpeed > 0 {
 			percentCaughtSafely = float64((packet.WarpSpeed * packet.WarpSpeed) / (planet.Spec.SafePacketSpeed * planet.Spec.SafePacketSpeed))
@@ -259,13 +258,12 @@ func (packet *MineralPacket) estimateDamage(rules *Rules, player *Player, target
 			if mineral > 0 {
 				decayAmount := MaxInt(int(decayRate*float64(mineral)), int(float64(rules.PacketMinDecay)*float64(player.Race.Spec.PacketDecayFactor)))
 				packetCopy.Cargo.SubtractAmount(minType, decayAmount)
-				}
 			}
-		
+		}
+
 		// packet out of minerals
 		if packetCopy.Cargo.GetAmount(Ironium) == 0 && packetCopy.Cargo.GetAmount(Boranium) == 0 && packetCopy.Cargo.GetAmount(Boranium) == 0 {
 			return MineralPacketDamage{}
-		}
 		}
 	}
 
