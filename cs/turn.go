@@ -1074,12 +1074,12 @@ func (t *turn) decayPackets() {
 	for _, packet := range t.game.MineralPackets {
 		player := t.game.getPlayer(packet.PlayerNum)
 		// update the decay amount based on this distance traveled this turn
-		decayRate := packet.getPacketDecayRate(&t.game.Rules, &player.Race)*(packet.distanceTravelled/float64(packet.WarpSpeed*packet.WarpSpeed))
+		decayRate := packet.getPacketDecayRate(&t.game.Rules, &player.Race) * (packet.distanceTravelled / float64(packet.WarpSpeed*packet.WarpSpeed))
 
 		//loop through all 3 mineral types and reduce each one in turn
 		for _, minType := range [3]CargoType{Ironium, Boranium, Germanium} {
 			mineral := float64(packet.Cargo.GetAmount(minType))
-			decayAmount := MaxInt(int(decayRate * mineral), int(float64(t.game.Rules.PacketMinDecay)*float64(player.Race.Spec.PacketDecayFactor)))
+			decayAmount := MaxInt(int(decayRate*mineral), int(float64(t.game.Rules.PacketMinDecay)*float64(player.Race.Spec.PacketDecayFactor)))
 			packet.Cargo.SubtractAmount(minType, decayAmount)
 		}
 
@@ -1633,7 +1633,7 @@ func (t *turn) permaform() {
 			player := t.game.Players[planet.PlayerNum-1]
 			adjustedPermaformChance := player.Race.Spec.PermaformChance
 			if planet.population() <= player.Race.Spec.PermaformPopulation {
-				adjustedPermaformChance *= 1.0 - float64(player.Race.Spec.PermaformPopulation-planet.population())/float64(player.Race.Spec.PermaformPopulation)
+				adjustedPermaformChance *= float64(planet.population() / player.Race.Spec.PermaformPopulation)
 			}
 
 			if adjustedPermaformChance >= t.game.Rules.random.Float64() {
