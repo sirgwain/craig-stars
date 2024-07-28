@@ -24,7 +24,6 @@
 	$: filteredBattles =
 		battleRows.filter((i) => i.location.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? [];
 
-	$: console.log('first row: ', filteredBattles[0].location);
 
 	const columns: TableColumn<BattleRecordDetails>[] = [
 		{

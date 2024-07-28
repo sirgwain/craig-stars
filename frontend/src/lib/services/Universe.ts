@@ -229,7 +229,6 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 	}
 
 	getBattles(sortKey: string, descending: boolean, player: Player): BattleRecordDetails[] {
-		console.log(`getBattles sortKey: ${sortKey}, sortDescending: ${descending}`);
 		const battles = this.battles.map((b) => getBattleRecordDetails(b, player, this));
 		battles.sort(battlesSortBy(sortKey));
 		if (descending) {
