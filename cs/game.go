@@ -380,7 +380,6 @@ func (g *FullGame) computeSpecs() error {
 			numBuilt := design.Spec.NumBuilt
 			design.Spec = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
 			design.Spec.NumBuilt = numBuilt
-			design.MarkDirty()
 		}
 	}
 
@@ -392,7 +391,6 @@ func (g *FullGame) computeSpecs() error {
 			design := g.designsByNum[playerObjectKey(starbase.PlayerNum, token.DesignNum)]
 			design.Spec.NumInstances += token.Quantity
 		}
-		starbase.MarkDirty()
 	}
 
 	for _, planet := range g.Planets {
@@ -416,18 +414,15 @@ func (g *FullGame) computeSpecs() error {
 			design := g.designsByNum[playerObjectKey(fleet.PlayerNum, token.DesignNum)]
 			design.Spec.NumInstances += token.Quantity
 		}
-		fleet.MarkDirty()
 	}
 
 	for _, mineField := range g.MineFields {
 		player := g.getPlayer(mineField.PlayerNum)
 		mineField.Spec = computeMinefieldSpec(rules, player, mineField, g.numPlanetsWithin(mineField.Position, mineField.Radius()))
-		mineField.MarkDirty()
 	}
 
 	for _, wormhole := range g.Wormholes {
 		wormhole.Spec = computeWormholeSpec(wormhole, rules)
-		wormhole.MarkDirty()
 	}
 
 	return nil

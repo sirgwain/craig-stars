@@ -232,7 +232,6 @@ func newFleet(player *Player, num int, name string, waypoints []Waypoint) Fleet 
 		MapObject: MapObject{
 			Type:      MapObjectTypeFleet,
 			PlayerNum: player.Num,
-			Dirty:     true,
 			Num:       num,
 			Name:      fmt.Sprintf("%s #%d", name, num),
 			Position:  waypoints[0].Position,
@@ -253,7 +252,6 @@ func newFleetForDesign(player *Player, design *ShipDesign, quantity, num int, na
 		MapObject: MapObject{
 			Type:      MapObjectTypeFleet,
 			PlayerNum: player.Num,
-			Dirty:     true,
 			Num:       num,
 			Name:      fmt.Sprintf("%s #%d", name, num),
 			Position:  waypoints[0].Position,
@@ -275,7 +273,6 @@ func newFleetForToken(player *Player, num int, token ShipToken, waypoints []Wayp
 		MapObject: MapObject{
 			Type:      MapObjectTypeFleet,
 			PlayerNum: player.Num,
-			Dirty:     true,
 			Num:       num,
 			Name:      fmt.Sprintf("%s #%d", token.design.Name, num),
 			Position:  waypoints[0].Position,
@@ -1186,7 +1183,6 @@ func (fleet *Fleet) completeMove(mapObjectGetter mapObjectGetter, player *Player
 // colonize a planet
 // TODO: return an error and stop colonization
 func (fleet *Fleet) colonizePlanet(rules *Rules, player *Player, planet *Planet) {
-	planet.MarkDirty()
 	planet.PlayerNum = player.Num
 	planet.ProductionQueue = []ProductionQueueItem{}
 	planet.Cargo = planet.Cargo.Add(fleet.Cargo)
@@ -1471,7 +1467,6 @@ func (fleet *Fleet) repairFleet(rules *Rules, player *Player, orbiting *Planet) 
 				Msgf("fleet token repaired")
 
 		}
-		fleet.MarkDirty()
 	}
 }
 

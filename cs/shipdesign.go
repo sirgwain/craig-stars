@@ -17,7 +17,6 @@ type ShipDesign struct {
 	PlayerNum         int               `json:"playerNum"`
 	OriginalPlayerNum int               `json:"originalPlayerNum"`
 	Name              string            `json:"name"`
-	Dirty             bool              `json:"-"`
 	Version           int               `json:"version"`
 	Hull              string            `json:"hull"`
 	HullSetNumber     int               `json:"hullSetNumber"`
@@ -135,7 +134,7 @@ const (
 )
 
 func NewShipDesign(player *Player, num int) *ShipDesign {
-	return &ShipDesign{PlayerNum: player.Num, Num: num, Dirty: true, Slots: []ShipDesignSlot{}}
+	return &ShipDesign{PlayerNum: player.Num, Num: num, Slots: []ShipDesignSlot{}}
 }
 
 func (sd *ShipDesign) WithName(name string) *ShipDesign {
@@ -164,10 +163,6 @@ func (sd *ShipDesign) WithHullSetNumber(num int) *ShipDesign {
 func (sd *ShipDesign) WithSpec(rules *Rules, player *Player) *ShipDesign {
 	sd.Spec = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, sd)
 	return sd
-}
-
-func (sd *ShipDesign) MarkDirty() {
-	sd.Dirty = true
 }
 
 // validate that this ship design is available to the player

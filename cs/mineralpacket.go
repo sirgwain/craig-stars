@@ -31,7 +31,6 @@ func newMineralPacket(player *Player, num int, warpSpeed int, safeWarpSpeed int,
 			Type:      MapObjectTypeMineralPacket,
 			PlayerNum: player.Num,
 			Num:       num,
-			Dirty:     true,
 			Name:      fmt.Sprintf("%s Mineral Packet", player.Race.PluralName),
 			Position:  position,
 		},
@@ -103,8 +102,6 @@ func (packet *MineralPacket) movePacket(rules *Rules, player *Player, target *Pl
 		packet.Heading = target.Position.Subtract(packet.Position).Normalized()
 		packet.Position = packet.Position.Add(packet.Heading.Scale(dist))
 		packet.Position = packet.Position.Round()
-
-		packet.MarkDirty()
 	}
 }
 

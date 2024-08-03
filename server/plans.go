@@ -229,7 +229,6 @@ func (s *server) deleteBattlePlan(w http.ResponseWriter, r *http.Request) {
 	for _, fleet := range playerFleets {
 		if fleet.BattlePlanNum == battlePlan.Num {
 			fleet.BattlePlanNum = 0 // reset to default
-			fleet.MarkDirty()
 			fleetsToUpdate = append(fleetsToUpdate, fleet)
 		}
 	}

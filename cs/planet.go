@@ -27,6 +27,7 @@ type Planet struct {
 	Spec                 PlanetSpec `json:"spec,omitempty"`
 	RandomArtifact       bool       `json:"-"`
 	Starbase             *Fleet     `json:"-"`
+	Dirty                bool       `json:"-"`
 	bonusResources       int
 }
 
@@ -92,7 +93,11 @@ func (item *ProductionQueueItem) String() string {
 }
 
 func NewPlanet() *Planet {
-	return &Planet{MapObject: MapObject{Type: MapObjectTypePlanet, Dirty: true, PlayerNum: Unowned}}
+	return &Planet{MapObject: MapObject{Type: MapObjectTypePlanet, PlayerNum: Unowned}, Dirty: true}
+}
+
+func (p *Planet) MarkDirty() {
+	p.Dirty = true
 }
 
 func (p *Planet) withPosition(position Vector) *Planet {

@@ -288,7 +288,8 @@ func TestPlanet_randomize(t *testing.T) {
 			name: "planet gen with all 0 rng",
 			args: args{newIntRandom().addFloats(.50)},
 			want: Planet{
-				MapObject:            MapObject{Type: MapObjectTypePlanet, Dirty: true, PlayerNum: Unowned},
+				MapObject:            MapObject{Type: MapObjectTypePlanet, PlayerNum: Unowned},
+				Dirty:                true,
 				Hab:                  Hab{1, 1, 1},
 				BaseHab:              Hab{1, 1, 1},
 				MineralConcentration: Mineral{1, 31, 31},
@@ -301,7 +302,8 @@ func TestPlanet_randomize(t *testing.T) {
 			name: "planet with random artifact",
 			args: args{newIntRandom().addFloats(.33)},
 			want: Planet{
-				MapObject:            MapObject{Type: MapObjectTypePlanet, Dirty: true, PlayerNum: Unowned},
+				MapObject:            MapObject{Type: MapObjectTypePlanet, PlayerNum: Unowned},
+				Dirty:                true,
 				Hab:                  Hab{1, 1, 1},
 				BaseHab:              Hab{1, 1, 1},
 				MineralConcentration: Mineral{1, 31, 31},
@@ -315,7 +317,8 @@ func TestPlanet_randomize(t *testing.T) {
 			name: "planet with no random artifact",
 			args: args{newIntRandom().addFloats(.50)},
 			want: Planet{
-				MapObject:            MapObject{Type: MapObjectTypePlanet, Dirty: true, PlayerNum: Unowned},
+				MapObject:            MapObject{Type: MapObjectTypePlanet, PlayerNum: Unowned},
+				Dirty:                true,
 				Hab:                  Hab{1, 1, 1},
 				BaseHab:              Hab{1, 1, 1},
 				MineralConcentration: Mineral{1, 31, 31},
