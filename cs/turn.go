@@ -1086,6 +1086,7 @@ func (t *turn) decayPackets() {
 			mineral := float64(packet.Cargo.GetAmount(minType))
 			decayAmount := MaxInt(int(decayRate * mineral), int(float64(t.game.Rules.PacketMinDecay)*player.Race.Spec.PacketDecayFactor))
 			packet.Cargo.SubtractAmount(minType, decayAmount)
+			packet.Cargo.MinZero()
 		}
 		log.Debug().
 			Int64("GameID", packet.GameID).
@@ -1095,7 +1096,7 @@ func (t *turn) decayPackets() {
 			Msgf("decayed packet")
 
 		// delete empty packets
-		if (packet.Cargo == Cargo{}) {
+		if (packet.Cargo.Total() == 0) {
 			t.game.deletePacket(packet)
 			log.Debug().
 				Int64("GameID", packet.GameID).
