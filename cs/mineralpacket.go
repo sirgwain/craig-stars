@@ -260,7 +260,7 @@ func (packet *MineralPacket) estimateDamage(rules *Rules, player *Player, target
 			if mineral > 0 {
 				decayAmount := MaxInt(int(decayRate*float64(mineral)), int(float64(rules.PacketMinDecay)*float64(player.Race.Spec.PacketDecayFactor)))
 				packetCopy.Cargo.SubtractAmount(minType, decayAmount)
-				packetCopy.Cargo.MinZero()
+				packetCopy.Cargo = packetCopy.Cargo.MinZero()
 			}
 		}
 

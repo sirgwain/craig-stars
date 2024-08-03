@@ -1074,19 +1074,19 @@ func (t *turn) decayPackets() {
 	for _, packet := range t.game.MineralPackets {
 		player := t.game.getPlayer(packet.PlayerNum)
 		// update the decay amount based on this distance traveled this turn
-		decayRate := packet.getPacketDecayRate(&t.game.Rules, &player.Race)*(packet.distanceTravelled/float64(packet.WarpSpeed*packet.WarpSpeed))
+		decayRate := packet.getPacketDecayRate(&t.game.Rules, &player.Race) * (packet.distanceTravelled / float64(packet.WarpSpeed*packet.WarpSpeed))
 
 		// skip calcs if no decay
 		if decayRate == 0 {
 			continue
 		}
-		
+
 		// loop through all 3 mineral types and reduce each one in turn
 		for _, minType := range [3]CargoType{Ironium, Boranium, Germanium} {
 			mineral := float64(packet.Cargo.GetAmount(minType))
-			decayAmount := MaxInt(int(decayRate * mineral), int(float64(t.game.Rules.PacketMinDecay)*player.Race.Spec.PacketDecayFactor))
+			decayAmount := MaxInt(int(decayRate*mineral), int(float64(t.game.Rules.PacketMinDecay)*player.Race.Spec.PacketDecayFactor))
 			packet.Cargo.SubtractAmount(minType, decayAmount)
-			packet.Cargo.MinZero()
+			packet.Cargo = packet.Cargo.MinZero()
 		}
 		log.Debug().
 			Int64("GameID", packet.GameID).
@@ -1096,7 +1096,7 @@ func (t *turn) decayPackets() {
 			Msgf("decayed packet")
 
 		// delete empty packets
-		if (packet.Cargo.Total() == 0) {
+		if packet.Cargo.Total() == 0 {
 			t.game.deletePacket(packet)
 			log.Debug().
 				Int64("GameID", packet.GameID).
