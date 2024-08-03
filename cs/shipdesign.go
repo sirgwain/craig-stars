@@ -273,6 +273,10 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		InnateScanRangePenFactor: hull.InnateScanRangePenFactor,
 	}
 
+	// count the number of each type of battle computer we have
+	torpedoBonusesByCount := map[float64]int{}
+	torpedoJammersByCount := map[float64]int{}
+
 	numTachyonDetectors := 0
 
 	// rating calcs
@@ -334,28 +338,14 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 				spec.MineLayingRateByMineType[component.MineFieldType] += int(float64(component.MineLayingRate) * float64(slot.Quantity) * (1 + hull.MineLayingBonus))
 			}
 
-			// i.e. two .3f battle computers is (1 -.3) * (1 - .3) or (.7 * .7) or it decreases innaccuracy by 49%
-			// so a 75% accurate torpedo would be 100 - (100 - 75) * .49 = 100 - 12.25 or 88% accurate
-			// a 75% accurate torpedo with two 30% comps and one 50% comp would be
-			// 100 - (100 - 75) * .7 * .7 * .5 = 94% accurate
-			// if TorpedoInnaccuracyDecrease is 1 (default), it's just 75%
+			// count battle computers
 			if component.TorpedoBonus > 0 {
-				if spec.TorpedoBonus == 0 {
-					spec.TorpedoBonus = 1 - math.Pow(1-component.TorpedoBonus, float64(slot.Quantity))
-				} else {
-					spec.TorpedoBonus *= 1 - math.Pow(1-component.TorpedoBonus, float64(slot.Quantity))
-				}
-				// golang, why you be like this? nobody wants 1-.2^1 to be .199999994
-				spec.TorpedoBonus = roundFloat(spec.TorpedoBonus, 3)
+				torpedoBonusesByCount[component.TorpedoBonus] += slot.Quantity
 			}
 
+			// count jammers
 			if component.TorpedoJamming > 0 {
-				if spec.TorpedoJamming == 0 {
-					spec.TorpedoJamming = 1 - float64(math.Pow((1-float64(component.TorpedoJamming)), float64(slot.Quantity)))
-				} else {
-					spec.TorpedoJamming *= 1 - float64(math.Pow((1-float64(component.TorpedoJamming)), float64(slot.Quantity)))
-				}
-				spec.TorpedoJamming = roundFloat(spec.TorpedoJamming, 3)
+				torpedoJammersByCount[component.TorpedoJamming] += slot.Quantity
 			}
 
 			// beam bonuses
@@ -462,6 +452,42 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		spec.ReduceCloaking = math.Pow((100.0-float64(rules.TachyonCloakReduction))/100, math.Sqrt(float64(numTachyonDetectors)))
 	} else {
 		spec.ReduceCloaking = 1
+	}
+
+	if len(torpedoBonusesByCount) > 0 {
+		spec.TorpedoBonus = 1
+		for torpedoBonus, count := range torpedoBonusesByCount {
+			// for 3 Battle Computer 30s, this calc is 1-(.7^3) or 65%
+			bonus := 1 - math.Pow(1-torpedoBonus, float64(count))
+
+			// if there are multiple battle computer slots all adding together, they are added like
+			// 1−((1−BC20Bonus)×(1−BC30Bonus)×(1−BC50Bonus))
+			spec.TorpedoBonus *= 1 - bonus
+		}
+
+		// the final bonus is the above sum inverted
+		spec.TorpedoBonus = 1 - spec.TorpedoBonus
+
+		// golang, why you be like this? nobody wants 1-.2^1 to be .199999994
+		spec.TorpedoBonus = roundFloat(spec.TorpedoBonus, 4)
+	}
+
+	if len(torpedoJammersByCount) > 0 {
+		spec.TorpedoJamming = 1
+		for torpedoJammer, count := range torpedoJammersByCount {
+			// for 3 Jammer 10s, this calc is 1-(.9^3) or 65%
+			jammer := 1 - math.Pow(1-torpedoJammer, float64(count))
+
+			// if there are multiple battle computer slots all adding together, they are added like
+			// 1−((1−Jammer10)×(1−Jammer20)×(1−Jammer30))
+			spec.TorpedoJamming *= 1 - jammer
+		}
+
+		// the final jammer is the above sum inverted
+		spec.TorpedoJamming = 1 - spec.TorpedoJamming
+
+		// golang, why you be like this? nobody wants 1-.2^1 to be .199999994
+		spec.TorpedoJamming = math.Min(.95, roundFloat(spec.TorpedoJamming, 4))
 	}
 
 	if spec.NumEngines > 0 {
