@@ -659,7 +659,7 @@ func (m *messageClient) fleetTransportedCargo(player *Player, fleet *Fleet, dest
 }
 
 func (m *messageClient) fleetTransportInvalid(player *Player, fleet *Fleet, dest cargoHolder, cargoType CargoType, transferAmount int) {
-	text := fmt.Sprintf("%s attempted to load %dkT of %v from %s, but you do not own %s", fleet.Name, transferAmount, cargoType, dest.getMapObject().Name, dest.getMapObject().Name)
+	text := fmt.Sprintf("%s attempted to load %dkT of %v from %s, but you do not own %s", fleet.Name, -transferAmount, cargoType, dest.getMapObject().Name, dest.getMapObject().Name)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetTransportInvalid, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum}})
 
 }
