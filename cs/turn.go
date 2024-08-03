@@ -1506,13 +1506,12 @@ func (t *turn) playerResearch() {
 				bonusRange := t.game.Rules.RandomArtifactResearchBonusRange
 				amount := t.game.Rules.random.Intn(bonusRange[1]-bonusRange[0]) + bonusRange[0]
 				field := TechFields[t.game.Rules.random.Intn(len(TechFields))]
+				messager.planetBonusResearchArtifact(player, planet, amount, field)
 
 				// research the field this random artifact came in
 				r.researchField(player, field, amount, onLevelGained)
 				stealableResearchResources.Set(field, stealableResearchResources.Get(field)+amount)
 				player.ResearchSpentLastYear += amount
-
-				messager.planetBonusResearchArtifact(player, planet, amount, field)
 
 				log.Debug().
 					Int64("GameID", t.game.ID).
