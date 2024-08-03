@@ -346,3 +346,42 @@ func TestPlanet_randomize(t *testing.T) {
 		})
 	}
 }
+
+func TestPlanet_grow(t *testing.T) {
+	type fields struct {
+		hab        Hab
+		population int
+	}
+	type args struct {
+		race *Race
+	}
+	tests := []struct {
+		name           string
+		fields         fields
+		args           args
+		wantPopulation int
+	}{
+		{"standard humanoid starter world", fields{hab: Hab{50, 50, 50}, population: 25000}, args{NewRace().WithSpec(&rules)}, 28800},
+		{"full world", fields{hab: Hab{50, 50, 50}, population: 500_000}, args{NewRace().WithSpec(&rules)}, 545_400},
+		{"hostile world", fields{hab: Hab{1, 1, 1}, population: 25000}, args{NewRace().WithSpec(&rules)}, 23900},
+		{"hostile world, low pop", fields{hab: Hab{1, 1, 1}, population: 200}, args{NewRace().WithSpec(&rules)}, 100},
+		{"hostile world, low pop 2", fields{hab: Hab{1, 1, 1}, population: 100}, args{NewRace().WithSpec(&rules)}, 100},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			player := NewPlayer(0, tt.args.race).WithNum(1)
+			planet := NewPlanet().WithPlayerNum(player.Num)
+			planet.Hab = tt.fields.hab
+			planet.BaseHab = tt.fields.hab
+			planet.setPopulation(tt.fields.population)
+			planet.Spec = computePlanetSpec(&rules, player, planet)
+
+			planet.grow(player)
+
+			if planet.population() != tt.wantPopulation {
+				t.Errorf("grow() = %v, want %v", planet.population(), tt.wantPopulation)
+			}
+
+		})
+	}
+}
