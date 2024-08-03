@@ -1194,7 +1194,7 @@ func (t *turn) fleetRemoteMineAR() {
 			continue
 		}
 
-		wp0 := fleet.Waypoints[0]
+		wp0 := &fleet.Waypoints[0]
 		if wp0.Task == WaypointTaskRemoteMining {
 			player := t.game.getPlayer(fleet.PlayerNum)
 			planet := t.game.getOrbitingPlanet(fleet)
@@ -1223,7 +1223,7 @@ func (t *turn) fleetRemoteMine() {
 			continue
 		}
 
-		wp0 := fleet.Waypoints[0]
+		wp0 := &fleet.Waypoints[0]
 		if wp0.Task == WaypointTaskRemoteMining {
 			player := t.game.getPlayer(fleet.PlayerNum)
 			planet := t.game.getOrbitingPlanet(fleet)
@@ -1231,6 +1231,7 @@ func (t *turn) fleetRemoteMine() {
 			// can't remote mine deep space
 			if planet == nil {
 				messager.fleetRemoteMineDeepSpace(player, fleet)
+				wp0.Task = WaypointTaskNone
 				continue
 			}
 
