@@ -692,7 +692,7 @@ func (m *messageClient) mineralPacketDiscoveredTargettingPlayer(player *Player, 
 	text := fmt.Sprintf("A %s mineral packet containing %dkT of minerals has been detected. It is travelling at warp %d towards your planet, %s. /n", packetPlayer.Race.Name, packet.Cargo.Total(), packet.WarpSpeed, target.Name)
 	if damage.Killed > 0 || damage.DefensesDestroyed > 0 {
 		// packet causing damage
-		eta := int(packet.Position.DistanceTo(target.Position) / (packet.WarpSpeed * packet.WarpSpeed)) + 1
+		eta := int(packet.Position.DistanceTo(target.Position) / float64(packet.WarpSpeed * packet.WarpSpeed)) + 1
 		if target.Spec.HasStarbase {
 			if damage.Killed >= target.population() {
 				text += fmt.Sprintf("Your starbase does not have a powerful enough mass driver to safelt catch this packet. The entire planet will be annihilated when it strikes in %d years.", eta)
@@ -712,7 +712,7 @@ func (m *messageClient) mineralPacketDiscoveredTargettingPlayer(player *Player, 
 		} else if damage.Uncaught == -1 {
 			// special "exit code" specifying that packet will vanish before impact
 			text += "Thankfully, this packet will decay into nothingness before it reaches you."
-		} else if target.Race.Spec.LivesOnStarbases {
+		} else if player.Race.Spec.LivesOnStarbases {
 			text += "Thankfully, your race lives on starbases and will be unaffected by the ensuing collision."
 		} else {
 			text += "Thankfully, this packet will cause no damage. Hurrah!"

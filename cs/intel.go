@@ -560,7 +560,7 @@ func (d *discover) discoverMineralPacket(rules *Rules, mineralPacket *MineralPac
 
 	if player.Num != mineralPacket.PlayerNum {
 		if target.PlayerNum == player.Num {
-			damage := mineralPacket.estimateDamage(rules, PacketPlayer, target, player)
+			damage := mineralPacket.estimateDamage(rules, packetPlayer, target, player)
 			messager.mineralPacketDiscoveredTargettingPlayer(player, mineralPacket, packetPlayer, target, damage)
 		} else {
 			messager.mineralPacketDiscovered(player, mineralPacket, packetPlayer, target)
