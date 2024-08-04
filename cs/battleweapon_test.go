@@ -159,6 +159,7 @@ func Test_battleWeaponSlot_getAccuracy(t *testing.T) {
 		{"beta torpedo, 1 BC, 1 jammer 20", fields{accuracy: .45, torpedoBonus: .2}, args{torpedoJamming: .2}, .45},
 		{"beta torpedo, 1 BC, 1 jammer 10", fields{accuracy: .45, torpedoBonus: .2}, args{torpedoJamming: .1}, .505},
 		{"beta torpedo, 1 BC, 1 jammer 30", fields{accuracy: .45, torpedoBonus: .1}, args{torpedoJamming: .2}, .405},
+		{"jihad missile, 3 BC 20/30, 3 jammer 10/20", fields{accuracy: .20, torpedoBonus: .8244}, args{torpedoJamming: .6268}, .35808},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

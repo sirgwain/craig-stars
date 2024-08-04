@@ -20,7 +20,6 @@ func newMysteryTrader(position Vector, num int) *MysteryTrader {
 			Type:     MapObjectTypeMysteryTrader,
 			Position: position,
 			Num:      num,
-			Dirty:    true,
 		},
 	}
 }

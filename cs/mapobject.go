@@ -26,7 +26,6 @@ type GameDBObject struct {
 type MapObject struct {
 	GameDBObject
 	Type      MapObjectType `json:"type"`
-	Dirty     bool          `json:"-"`
 	Delete    bool          `json:"-"`
 	Position  Vector        `json:"position"`
 	Num       int           `json:"num"`
@@ -64,9 +63,6 @@ func (mo *MapObject) OwnedBy(num int) bool {
 	return mo.PlayerNum != Unowned && mo.PlayerNum == num
 }
 
-func (mo *MapObject) MarkDirty() {
-	mo.Dirty = true
-}
 
 func (mo *MapObject) GetTag(key string) string {
 	return mo.Tags[key]

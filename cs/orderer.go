@@ -160,7 +160,6 @@ func (o *orders) UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrd
 	}
 
 	fleet.computeFuelUsage(player)
-	fleet.MarkDirty()
 
 	log.Info().
 		Int64("GameID", player.GameID).
@@ -210,8 +209,6 @@ func (o *orders) TransferFleetCargo(rules *Rules, player, destPlayer *Player, so
 
 	source.Spec = ComputeFleetSpec(rules, player, source)
 	dest.Spec = ComputeFleetSpec(rules, destPlayer, dest)
-	source.MarkDirty()
-	dest.MarkDirty()
 
 	log.Info().
 		Int64("GameID", player.GameID).
@@ -253,8 +250,6 @@ func (o *orders) TransferPlanetCargo(rules *Rules, player *Player, source *Fleet
 	starbaseSpec := dest.Spec.PlanetStarbaseSpec
 	dest.Spec = computePlanetSpec(rules, player, dest)
 	dest.Spec.PlanetStarbaseSpec = starbaseSpec
-
-	source.MarkDirty()
 	dest.MarkDirty()
 
 	log.Info().
@@ -304,9 +299,6 @@ func (o *orders) TransferSalvageCargo(rules *Rules, player *Player, source *Flee
 	// make our player aware of this salvage
 	discover := newDiscoverer(player)
 	discover.discoverSalvage(dest)
-
-	source.MarkDirty()
-	dest.MarkDirty()
 
 	log.Info().
 		Int64("GameID", player.GameID).
@@ -448,9 +440,6 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 		dest.Delete = true
 	}
 
-	source.MarkDirty()
-	dest.MarkDirty()
-
 	log.Info().
 		Int64("GameID", player.GameID).
 		Int("PlayerNum", player.Num).
@@ -493,8 +482,6 @@ func (o *orders) SplitAll(rules *Rules, player *Player, playerFleets []*Fleet, s
 		}
 		index--
 	}
-
-	source.MarkDirty()
 
 	log.Info().
 		Int64("GameID", player.GameID).
@@ -727,7 +714,6 @@ func (o *orders) Merge(rules *Rules, player *Player, fleets []*Fleet) (*Fleet, e
 		Msg("merged fleet")
 
 	fleet.Spec = ComputeFleetSpec(rules, player, fleet)
-	fleet.MarkDirty()
 
 	return fleet, nil
 }
