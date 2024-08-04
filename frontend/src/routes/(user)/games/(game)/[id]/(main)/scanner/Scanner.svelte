@@ -188,6 +188,17 @@
 		// add a waypoint if we are currently commanding a fleet and we didn't just click
 		// on the fleet
 		shouldAddWaypoint = !!$commandedFleet && e.shiftKey;
+
+		switch (e.key) {
+			case '+':
+			case '=':
+				zoomViewport(clamp($scale + 1, minZoom, maxZoom));
+				break;
+			case '-':
+			case '_':
+				zoomViewport(clamp($scale - 1, minZoom, maxZoom));
+				break;
+		}
 	}
 
 	function handleKeyUp(e: KeyboardEvent) {
@@ -235,6 +246,13 @@
 			select(root)
 				.call(zoomBehavior.translateTo, scaled.x, scaled.y)
 				.call(zoomBehavior.scaleTo, localScale);
+		}
+	}
+
+	// zoom the viewport to a specific scale
+	function zoomViewport(scaleTo: number) {
+		if (root) {
+			select(root).call(zoomBehavior.scaleTo, scaleTo);
 		}
 	}
 
