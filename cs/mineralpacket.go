@@ -52,8 +52,9 @@ func newMineralPacket(player *Player, num int, warpSpeed int, safeWarpSpeed int,
 }
 
 // get the rate of decay for a packet between 0 and 1
-// https://wiki.starsautohost.org/wiki/%22Mass_Packet_FAQ%22_by_Barry_Kearns_1997-02-07_v2.6b
+// 
 // Depending on how fast a packet is thrown compared to its safe speed, it decays
+// Source: https://wiki.starsautohost.org/wiki/%22Mass_Packet_FAQ%22_by_Barry_Kearns_1997-02-07_v2.6b
 func (packet *MineralPacket) getPacketDecayRate(rules *Rules, race *Race) float64 {
 
 	// we only care about packets thrown up to 3 warps over the limit
@@ -73,17 +74,17 @@ func (packet *MineralPacket) getPacketDecayRate(rules *Rules, race *Race) float6
 	return packetDecayRate
 }
 
-// move this packet through spcae
+// move this packet through space
 func (packet *MineralPacket) movePacket(rules *Rules, player *Player, target *Planet, planetPlayer *Player) {
 	dist := float64(packet.WarpSpeed * packet.WarpSpeed)
 	totalDist := packet.Position.DistanceTo(target.Position)
 
 	// move at half distance if this packet was created this turn
 	if packet.builtThisTurn {
-		// half move packets...
 		dist /= 2
 	}
-	// round up, if we are <1 away, i.e. the target is 81.9 ly away, warp 9 (81 ly travel) should be able to make it there
+	
+	// round up, if we are <1 LY away, i.e. the target is 81.9 ly away, warp 9 (81 ly travel) should be able to make it there
 	if dist < totalDist && totalDist-dist < 1 {
 		dist = math.Ceil(totalDist)
 	}
@@ -264,9 +265,9 @@ func (packet *MineralPacket) estimateDamage(rules *Rules, player *Player, target
 			}
 		}
 
-		// packet out of minerals
+		// packet out of minerals; return special exit code
 		if packetCopy.Cargo.Total() == 0 {
-			return MineralPacketDamage{}
+			return MineralPacketDamage{Uncaught: -1}
 		}
 	}
 
