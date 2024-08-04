@@ -689,16 +689,35 @@ func (m *messageClient) mineralPacketDiscovered(player *Player, packet *MineralP
 }
 
 func (m *messageClient) mineralPacketDiscoveredTargettingPlayer(player *Player, packet *MineralPacket, packetPlayer *Player, target *Planet, damage MineralPacketDamage) {
-	text := fmt.Sprintf("A %s mineral packet containing %dkT of minerals has been detected. It is travelling at warp %d towards your planet, %s.", packetPlayer.Race.Name, packet.Cargo.Total(), packet.WarpSpeed, target.Name)
+	text := fmt.Sprintf("A %s mineral packet containing %dkT of minerals has been detected. It is travelling at warp %d towards your planet, %s. /n", packetPlayer.Race.Name, packet.Cargo.Total(), packet.WarpSpeed, target.Name)
 	if damage.Killed > 0 || damage.DefensesDestroyed > 0 {
+		// packet causing damage
+		eta := int(packet.Position.DistanceTo(target.Position) / (packet.WarpSpeed * packet.WarpSpeed)) + 1
 		if target.Spec.HasStarbase {
-			text += fmt.Sprintf(" Your starbase does not have a powerful enough mass driver to catch this packet. Approximately %d defenses will be destroyed and %d colonists will be killed if the packet hits.", damage.DefensesDestroyed, damage.Killed)
+			if damage.Killed >= target.population() {
+				text += fmt.Sprintf("Your starbase does not have a powerful enough mass driver to safelt catch this packet. The entire planet will be annihilated when it strikes in %d years.", eta)
+			} else {
+				text += fmt.Sprintf("Your starbase does not have a powerful enough mass driver to safely catch this packet. Approximately %d defenses will be destroyed and %d colonists will be killed when it strikes in %d years.", damage.DefensesDestroyed, damage.Killed, eta)
+			}
 		} else {
-			text += fmt.Sprintf(" You have no starbase with a mass driver to catch this packet. Approximately %d defenses will be destroyed and %d colonists will be killed when the packet hits.", damage.DefensesDestroyed, damage.Killed)
+			if damage.Killed >= target.population() {
+				text += fmt.Sprintf("You have no starbase with a mass driver to catch this packet. The entire planet will be annihilated when it strikes in %d years.", eta)
+			} else {
+				text += fmt.Sprintf("You have no starbase with a mass driver to catch this packet. Approximately %d defenses will be destroyed and %d colonists will be killed when it strikes in %d years.", damage.DefensesDestroyed, damage.Killed, eta)
+			}
 		}
 	} else {
-		text += " Your starbase will have no trouble catching this packet."
-	}
+		if target.Spec.HasStarbase && target.Spec.SafePacketSpeed >= packet.WarpSpeed {
+			text += "Thankfully, your starbase's mass driver is more than capable of safely catching this packet. Huzzah!"
+		} else if damage.Uncaught == -1 {
+			// special "exit code" specifying that packet will vanish before impact
+			text += "Thankfully, this packet will decay into nothingness before it reaches you."
+		} else if target.Race.Spec.LivesOnStarbases {
+			text += "Thankfully, your race lives on starbases and will be unaffected by the ensuing collision."
+		} else {
+			text += "Thankfully, this packet will cause no damage. Hurrah!"
+		}
+	
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageMineralPacketTargettingPlayerDiscovered, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetMineralPacket, TargetNum: packet.Num, TargetPlayerNum: packetPlayer.Num}})
 }
 
