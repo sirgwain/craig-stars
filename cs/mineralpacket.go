@@ -205,7 +205,6 @@ func (packet *MineralPacket) getDamage(rules *Rules, planet *Planet, planetPlaye
 	speedOfReceiver := receiverDriverSpeed * receiverDriverSpeed
 	percentCaughtSafely := float64(speedOfReceiver) / float64(speedOfPacket)
 	uncaught := int((1.0 - percentCaughtSafely) * float64(weight))
-	// mineralsRecovered := int(float64(weight)*percentCaughtSafely + float64(weight)*(1/3.0)*(1-percentCaughtSafely))
 	rawDamage := float64((speedOfPacket-speedOfReceiver)*weight) / 160
 	damageWithDefenses := rawDamage * (1 - planet.Spec.DefenseCoverage)
 	colonistsKilled := roundToNearest100f(math.Max(damageWithDefenses*float64(planet.population())/1000, damageWithDefenses*100))
