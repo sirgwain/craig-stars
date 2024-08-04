@@ -717,6 +717,7 @@ func (m *messageClient) mineralPacketDiscoveredTargettingPlayer(player *Player, 
 		} else {
 			text += "Thankfully, this packet will cause no damage. Hurrah!"
 		}
+	}
 	
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageMineralPacketTargettingPlayerDiscovered, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetMineralPacket, TargetNum: packet.Num, TargetPlayerNum: packetPlayer.Num}})
 }
