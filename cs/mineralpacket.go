@@ -51,7 +51,7 @@ func newMineralPacket(player *Player, num int, warpSpeed int, safeWarpSpeed int,
 }
 
 // get the rate of decay for a packet between 0 and 1
-// 
+//
 // Depending on how fast a packet is thrown compared to its safe speed, it decays
 // Source: https://wiki.starsautohost.org/wiki/%22Mass_Packet_FAQ%22_by_Barry_Kearns_1997-02-07_v2.6b
 func (packet *MineralPacket) getPacketDecayRate(rules *Rules, race *Race) float64 {
@@ -82,7 +82,7 @@ func (packet *MineralPacket) movePacket(rules *Rules, player *Player, target *Pl
 	if packet.builtThisTurn {
 		dist /= 2
 	}
-	
+
 	// round up, if we are <1 LY away, i.e. the target is 81.9 ly away, warp 9 (81 ly travel) should be able to make it there
 	if dist < totalDist && totalDist-dist < 1 {
 		dist = math.Ceil(totalDist)
@@ -229,12 +229,12 @@ func (packet *MineralPacket) estimateDamage(rules *Rules, player *Player, target
 	spd := float64(packet.WarpSpeed * packet.WarpSpeed)
 	decayRate := 0.0
 	totalDist := packet.Position.DistanceTo(target.Position)
-	eta := int(totalDist / spd)
+	eta := int(math.Ceil(totalDist / spd))
 
 	//save copy of packet so we don't alter the original
 	packetCopy := *packet
 
-	for i := 0; i <= eta; i++ {
+	for i := 0; i < eta; i++ {
 		if totalDist <= spd {
 			// 1 turn until impact - only travels/decays partially
 			distTraveled := totalDist / float64(spd)

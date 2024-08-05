@@ -70,8 +70,9 @@ func TestMineralPacket_completeMoveUncaught(t *testing.T) {
 
 	packet := newMineralPacket(player, 1, 5, 5, Cargo{480, 0, 0, 0}, Vector{}, planet.Num)
 
+	// 7500 colonists killed by 480kT undefended
 	packet.movePacket(&rules, player, planet, player)
-	assert.Equal(t, planet.Cargo, Cargo{Ironium: 160, Colonists: 2500})
+	assert.Equal(t, planet.Cargo, Cargo{Ironium: 160, Colonists: 9250})
 	assert.True(t, packet.Delete)
 
 }
@@ -170,10 +171,10 @@ func TestMineralPacket_estimateDamage(t *testing.T) {
 			MineralPacketDamage{Uncaught: -1},
 		},
 		{
-			`3 lvls overwarp + 1 yr travel w/ min decay (300 dmg)`,
+			`3 lvls overwarp + 1 yr travel with min decay (300 dmg)`,
 			fields{WarpSpeed: 10, SafeWarpSpeed: 7},
 			args{
-				race:              NewRace().WithSpec(&rules).WithPRT(PP),
+				race:              NewRace().WithPRT(PP).WithSpec(&rules),
 				planetDriverSpeed: 0,
 				planetPosition:    Vector{60, 80},
 				// 60^2 + 80^2 = 100^2
