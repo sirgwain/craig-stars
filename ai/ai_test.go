@@ -35,7 +35,7 @@ func Test_aiPlayer_ProcessTurn(t *testing.T) {
 			game := gamer.CreateGame(0, *cs.NewGameSettings().WithAIPlayer(cs.AIDifficultyEasy, 0))
 			player := gamer.NewPlayer(0, *race, &game.Rules)
 			player.Num = 1
-			player.Name = cs.AINames[0]
+			player.Name = cs.AINames[0][0]
 			universe, err := gamer.GenerateUniverse(game, []*cs.Player{player})
 			if err != nil {
 				t.Error(err)

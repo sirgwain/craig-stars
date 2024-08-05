@@ -96,7 +96,10 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 	game := gr.client.CreateGame(hostID, *settings)
 	var fullGame *cs.FullGame
 
-	aiRaces := ai.GetRandomRaces(settings.GetNumAIPlayers())
+	numAIPlayers := settings.GetNumAIPlayers()
+	numAICheaters := settings.GetNumAICheaterPlayers()
+	aiRaces := ai.GetRandomRaces(numAIPlayers-numAICheaters, false)
+	cheaterAIRaces := ai.GetRandomRaces(numAICheaters, true)
 
 	if err := gr.dbConn.WrapInTransaction(func(c db.Client) error {
 		user, err := c.GetUser(hostID)
@@ -120,6 +123,7 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 		players := make([]*cs.Player, 0, len(settings.Players))
 		guestNumber := 1
 		aiPlayerNumber := 0
+		cheaterAIPlayerNumber := 0
 
 		for i, playerSetting := range settings.Players {
 			if playerSetting.Type == cs.NewGamePlayerTypeHost {
@@ -135,8 +139,14 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 				players = append(players, player)
 			} else if playerSetting.Type == cs.NewGamePlayerTypeAI {
 				log.Debug().Int64("hostID", hostID).Msg("Adding ai player to game")
-				race := aiRaces[aiPlayerNumber]
-				aiPlayerNumber++
+				var race cs.Race
+				if playerSetting.AIDifficulty == cs.AIDifficultyCheater {
+					race = cheaterAIRaces[cheaterAIPlayerNumber]
+					cheaterAIPlayerNumber++
+				} else {
+					race = aiRaces[aiPlayerNumber]
+					aiPlayerNumber++
+				}
 				if playerSetting.Race.Name != "" {
 					race = playerSetting.Race
 				}
@@ -144,6 +154,7 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 				player.GameID = game.ID
 				player.Num = i + 1
 				player.AIControlled = true
+				player.AIDifficulty = playerSetting.AIDifficulty
 				player.Name = fmt.Sprintf("AI Player %d", player.Num)
 				player.Color = playerSetting.Color
 				player.DefaultHullSet = playerSetting.DefaultHullSet
@@ -730,12 +741,22 @@ func (gr *gameRunner) StartGame(game *cs.Game) error {
 	}
 
 	// recreate all the AI players with new races
-	aiRaces := ai.GetRandomRaces(fullGame.GetNumAIPlayers())
+	numAIPlayers := fullGame.GetNumAIPlayers()
+	numAICheaters := fullGame.GetNumCheaterAIPlayers()
+	aiRaces := ai.GetRandomRaces(numAIPlayers-numAICheaters, false)
+	cheaterAIRaces := ai.GetRandomRaces(numAICheaters, true)
+
 	aiPlayerNumber := 0
+	cheaterAIPlayerNumber := 0
 	for _, player := range fullGame.Players {
 		if player.AIControlled {
-			player.Race = aiRaces[aiPlayerNumber]
-			aiPlayerNumber++
+			if player.AIDifficulty == cs.AIDifficultyCheater {
+				player.Race = cheaterAIRaces[cheaterAIPlayerNumber]
+				cheaterAIPlayerNumber++
+			} else {
+				player.Race = aiRaces[aiPlayerNumber]
+				aiPlayerNumber++
+			}
 		}
 	}
 

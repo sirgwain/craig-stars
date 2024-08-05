@@ -23,10 +23,11 @@ const (
 type AIDifficulty string
 
 const (
-	AIDifficultyNone   AIDifficulty = ""
-	AIDifficultyEasy   AIDifficulty = "Easy"
-	AIDifficultyNormal AIDifficulty = "Normal"
-	AIDifficultyHard   AIDifficulty = "Hard"
+	AIDifficultyNone    AIDifficulty = ""
+	AIDifficultyEasy    AIDifficulty = "Easy"
+	AIDifficultyNormal  AIDifficulty = "Normal"
+	AIDifficultyHard    AIDifficulty = "Hard"
+	AIDifficultyCheater AIDifficulty = "Cheater"
 )
 
 // The Game itself tracks some settings, the Rules, the Host and the current state (year/victory declared)
@@ -298,6 +299,16 @@ func (s *GameSettings) GetNumAIPlayers() int {
 	return numAIs
 }
 
+func (s *GameSettings) GetNumAICheaterPlayers() int {
+	numCheaters := 0
+	for _, player := range s.Players {
+		if player.Type == NewGamePlayerTypeAI && player.AIDifficulty == AIDifficultyCheater {
+			numCheaters++
+		}
+	}
+	return numCheaters
+}
+
 func (g *Game) String() string {
 	return fmt.Sprintf("%s (%d)", g.Name, g.ID)
 }
@@ -355,6 +366,16 @@ func (fg *FullGame) GetNumAIPlayers() int {
 	numAIs := 0
 	for _, player := range fg.Players {
 		if player.AIControlled {
+			numAIs++
+		}
+	}
+	return numAIs
+}
+
+func (fg *FullGame) GetNumCheaterAIPlayers() int {
+	numAIs := 0
+	for _, player := range fg.Players {
+		if player.AIControlled && player.AIDifficulty == AIDifficultyCheater {
 			numAIs++
 		}
 	}
