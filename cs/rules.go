@@ -77,8 +77,9 @@ type Rules struct {
 	TerraformCost                             Cost                                `json:"terraformCost"`
 	StarbaseComponentCostFactor               float64                             `json:"starbaseComponentCostFactor"`
 	SalvageFromBattleFactor                   float64                             `json:"salvageFromBattleFactor"`
-	TechTradeChance                           float64                                 `json:"techTradeChance"`
+	TechTradeChance                           float64                             `json:"techTradeChance"`
 	PacketDecayRate                           map[int]float64                     `json:"packetDecayRate"`
+	PacketMinDecay                            int                                 `json:"packetMinDecay"`
 	MaxTechLevel                              int                                 `json:"maxTechLevel"`
 	TechBaseCost                              []int                               `json:"techBaseCost"`
 	PRTSpecs                                  map[PRT]PRTSpec                     `json:"prtSpecs"`
@@ -397,7 +398,8 @@ func NewRulesWithSeed(seed int64) Rules {
 			2: 0.25,
 			3: 0.5,
 		},
-		MaxTechLevel: 26,
+		PacketMinDecay: 10,
+		MaxTechLevel:   26,
 		TechBaseCost: []int{
 			0,
 			50,
