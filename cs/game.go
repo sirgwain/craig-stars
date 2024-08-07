@@ -23,11 +23,10 @@ const (
 type AIDifficulty string
 
 const (
-	AIDifficultyNone    AIDifficulty = ""
-	AIDifficultyEasy    AIDifficulty = "Easy"
-	AIDifficultyNormal  AIDifficulty = "Normal"
-	AIDifficultyHard    AIDifficulty = "Hard"
-	AIDifficultyCheater AIDifficulty = "Cheater"
+	AIDifficultyNone   AIDifficulty = ""
+	AIDifficultyEasy   AIDifficulty = "Easy"
+	AIDifficultyNormal AIDifficulty = "Normal"
+	AIDifficultyHard   AIDifficulty = "Hard"
 )
 
 // The Game itself tracks some settings, the Rules, the Host and the current state (year/victory declared)
@@ -299,16 +298,6 @@ func (s *GameSettings) GetNumAIPlayers() int {
 	return numAIs
 }
 
-func (s *GameSettings) GetNumAICheaterPlayers() int {
-	numCheaters := 0
-	for _, player := range s.Players {
-		if player.Type == NewGamePlayerTypeAI && player.AIDifficulty == AIDifficultyCheater {
-			numCheaters++
-		}
-	}
-	return numCheaters
-}
-
 func (g *Game) String() string {
 	return fmt.Sprintf("%s (%d)", g.Name, g.ID)
 }
@@ -356,7 +345,7 @@ func (g *Game) YearsPassed() int {
 
 func (fg *FullGame) getPlayer(playerNum int) *Player {
 
-	if playerNum < 1 || playerNum > len(fg.Players) {
+	if playerNum < 1 || playerNum > len(fg.Players)+1 {
 		return nil
 	}
 	return fg.Players[playerNum-1]
@@ -366,16 +355,6 @@ func (fg *FullGame) GetNumAIPlayers() int {
 	numAIs := 0
 	for _, player := range fg.Players {
 		if player.AIControlled {
-			numAIs++
-		}
-	}
-	return numAIs
-}
-
-func (fg *FullGame) GetNumCheaterAIPlayers() int {
-	numAIs := 0
-	for _, player := range fg.Players {
-		if player.AIControlled && player.AIDifficulty == AIDifficultyCheater {
 			numAIs++
 		}
 	}
@@ -401,6 +380,7 @@ func (g *FullGame) computeSpecs() error {
 			numBuilt := design.Spec.NumBuilt
 			design.Spec = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
 			design.Spec.NumBuilt = numBuilt
+			design.MarkDirty()
 		}
 	}
 
@@ -412,6 +392,7 @@ func (g *FullGame) computeSpecs() error {
 			design := g.designsByNum[playerObjectKey(starbase.PlayerNum, token.DesignNum)]
 			design.Spec.NumInstances += token.Quantity
 		}
+		starbase.MarkDirty()
 	}
 
 	for _, planet := range g.Planets {
@@ -435,15 +416,18 @@ func (g *FullGame) computeSpecs() error {
 			design := g.designsByNum[playerObjectKey(fleet.PlayerNum, token.DesignNum)]
 			design.Spec.NumInstances += token.Quantity
 		}
+		fleet.MarkDirty()
 	}
 
 	for _, mineField := range g.MineFields {
 		player := g.getPlayer(mineField.PlayerNum)
 		mineField.Spec = computeMinefieldSpec(rules, player, mineField, g.numPlanetsWithin(mineField.Position, mineField.Radius()))
+		mineField.MarkDirty()
 	}
 
 	for _, wormhole := range g.Wormholes {
 		wormhole.Spec = computeWormholeSpec(wormhole, rules)
+		wormhole.MarkDirty()
 	}
 
 	return nil

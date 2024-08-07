@@ -31,10 +31,10 @@
 	}
 
 	async function onOk() {
-		show = false;
 		if ($commandedPlanet) {
 			await updatePlanetOrders($commandedPlanet);
 		}
+		show = false;
 	}
 </script>
 

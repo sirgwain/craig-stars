@@ -44,16 +44,8 @@ export enum NewGamePlayerType {
 	AI = 'AI'
 }
 
-export enum AIDifficulty {
-	// Easy = 'Easy',
-	Normal = 'Normal',
-	// Hard = 'Hard',
-	Cheater = 'Cheater'
-}
-
 export type NewGamePlayer = {
 	type: NewGamePlayerType;
-	aiDifficulty?: AIDifficulty;
 	userId?: number;
 	race?: Race;
 	color?: string;
@@ -119,6 +111,8 @@ export interface Game {
 	players: PlayerStatus[];
 }
 
+
+
 export type VictoryConditions = {
 	conditions: number;
 	numCriteriaRequired: number;
@@ -143,3 +137,4 @@ export enum VictoryCondition {
 	OwnCapitalShips = 1 << 5,
 	HighestScoreAfterYears = 1 << 6
 }
+

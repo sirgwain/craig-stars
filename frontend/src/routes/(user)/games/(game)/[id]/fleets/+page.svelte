@@ -96,16 +96,16 @@
 	<Table
 		{columns}
 		rows={filteredFleets}
-		externalSortAndFilter={true}
 		classes={{
 			table: 'table table-zebra table-compact table-auto w-full'
 		}}
 	>
-		<span slot="head" let:column>
+		<span slot="head" let:isSorted let:sortDescending let:column>
 			<SortableTableHeader
 				{column}
-				isSorted={$settings.sortFleetsKey === column.key}
-				sortDescending={$settings.sortFleetsDescending}
+				isSorted={isSorted || $settings.sortFleetsKey === column.key}
+				sortDescending={sortDescending ||
+					($settings.sortFleetsKey === column.key && $settings.sortFleetsDescending)}
 				on:sorted={(e) => {
 					onSorted(column, e.detail.sortDescending);
 				}}

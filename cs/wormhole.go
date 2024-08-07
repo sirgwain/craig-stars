@@ -110,16 +110,19 @@ func (w *Wormhole) jiggle(area Vector, mapObjectGetter mapObjectGetter, random r
 		}
 	}
 	w.Position = newPosition
+	w.MarkDirty()
 }
 
 func (w *Wormhole) degrade() {
 	stats := w.Spec.Stats
 	w.YearsAtStability++
+	w.MarkDirty()
 	if w.YearsAtStability > stats.YearsToDegrade && stats.YearsToDegrade != Infinite {
 		if w.Stability != WormholeStabilityExtremelyVolatile {
 			// go to the next stability
 			w.Stability = WormholeStabilities[slices.Index(WormholeStabilities, w.Stability)+1]
 			w.YearsAtStability = 0
+			w.MarkDirty()
 			log.Debug().Msgf("%v degraded to %s", w, w.Stability)
 		}
 	}

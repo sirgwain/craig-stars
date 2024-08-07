@@ -158,26 +158,6 @@ export type Spec = {
 	maxPopulation?: number;
 };
 
-export function emptyTransportTasks(): WaypointTransportTasks {
-	return {
-		fuel: {
-			action: WaypointTaskTransportAction.None
-		},
-		ironium: {
-			action: WaypointTaskTransportAction.None
-		},
-		boranium: {
-			action: WaypointTaskTransportAction.None
-		},
-		germanium: {
-			action: WaypointTaskTransportAction.None
-		},
-		colonists: {
-			action: WaypointTaskTransportAction.None
-		}
-	};
-}
-
 export class CommandedFleet implements Fleet {
 	id = 0;
 	gameId = 0;

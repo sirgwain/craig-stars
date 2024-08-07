@@ -3,12 +3,7 @@
 	import OtherMapObjectsHere from '$lib/components/game/OtherMapObjectsHere.svelte';
 	import MineralMini from '$lib/components/game/MineralMini.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
-	import {
-		CommandedFleet,
-		emptyTransportTasks,
-		WaypointTask,
-		WaypointTaskTransportAction
-	} from '$lib/types/Fleet';
+	import { CommandedFleet, WaypointTask } from '$lib/types/Fleet';
 	import { MapObjectType, owned, ownedBy, type MapObject } from '$lib/types/MapObject';
 	import { Unexplored, getMineralOutput } from '$lib/types/Planet';
 	import type { TransportPlan } from '$lib/types/Player';
@@ -39,13 +34,6 @@
 	const onSelectedWaypointTaskChange = (task: WaypointTask) => {
 		if ($selectedWaypoint) {
 			$selectedWaypoint.task = task;
-
-			if (task != WaypointTask.Transport) {
-				// if we aren't doing a transport, reset the transport tasks to blank.
-				// If we don't do this, the user could pick a transport task in the future and assume it defaults to empty
-				// but it will have whatever it last had
-				$selectedWaypoint.transportTasks = emptyTransportTasks();
-			}
 
 			updateFleetOrders(fleet);
 		}

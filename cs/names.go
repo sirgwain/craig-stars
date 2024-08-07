@@ -1,34 +1,24 @@
 package cs
 
-var AINames = [][2]string{
-	{"American", "Americans"},
-	{"Berserker", "Berserkers"},
-	{"Bulushi", "Bulushis"},
-	{"Crusher", "Crushers"},
-	{"Ferret", "Ferrets"},
-	{"Golem", "Golems"},
-	{"Hawk", "Hawks"},
-	{"Hicardi", "Hicardis"},
-	{"Hooveron", "Hooverons"},
-	{"House Cat", "House Cats"},
-	{"Kurkonian", "Kurkonians"},
-	{"Loraxoid", "Loraxoids"},
-	{"Mensoid", "Mensoids"},
-	{"Nairnian", "Nairnians"},
-	{"Nee", "Nees"},
-	{"Rush", "Rushs"},
-	{"Tritizoid", "Tritizoids"},
-	{"Ubert", "Uberts"},
-}
-
-var AICheaterNames = [][2]string{
-	{"Legions of Terror", "Legions of Terror"},
-	{"Thundering Horde", "Thundering Hordes"},
-	{"Doomwalker", "Doomwalkers"},
-	{"Imperium of Vengence", "Imperium of Vengence"},
-	{"Plaguebearer", "Plaguebearers"},
-	{"Techno Viking", "Techno Vikings"},
-	{"Necro Barbarian", "Necro Barbarians"},
+var AINames = []string{
+	"American",
+	"Berserker",
+	"Bulushi",
+	"Crusher",
+	"Ferret",
+	"Golem",
+	"Hawk",
+	"Hicardi",
+	"Hooveron",
+	"House Cat",
+	"Kurkonian",
+	"Loraxoid",
+	"Mensoid",
+	"Nairnian",
+	"Nee",
+	"Rush",
+	"Tritizoid",
+	"Ubert",
 }
 
 var planetNames = []string{

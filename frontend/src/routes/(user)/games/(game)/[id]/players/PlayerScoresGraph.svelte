@@ -99,7 +99,7 @@
 				<AxisY ticks={6} formatTick={(d) => `${d}`} />
 			</Html>
 			<ScaledSvg>
-				<MultiLine zIsColorCode={true} />
+				<MultiLine colorIsCode={true} />
 			</ScaledSvg>
 
 			<Html>

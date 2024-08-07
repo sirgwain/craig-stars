@@ -1,5 +1,5 @@
 import type { DesignFinder } from '$lib/services/Universe';
-import { cloneDeep, sortBy, startCase } from 'lodash-es';
+import { sortBy, startCase } from 'lodash-es';
 import { addMineral, type Cargo } from './Cargo';
 import { divide, minus, minZero, type Cost } from './Cost';
 import { absSum, getHabValue, getLargest, withHabValue, type Hab, add } from './Hab';
@@ -434,6 +434,11 @@ export class CommandedPlanet implements Planet {
 		const items: ProductionQueueItem[] = [];
 
 		if (planet.spec.dockCapacity == UnlimitedSpaceDock || planet.spec.dockCapacity > 0) {
+			const yearlyAvailableToSpend = {
+				resources: planet.spec.resourcesPerYearAvailable,
+				...planet.spec.miningOutput
+			};
+
 			sortBy(
 				designs
 					.filter(
@@ -446,10 +451,15 @@ export class CommandedPlanet implements Planet {
 				(d) => d.name
 			).forEach((d) => {
 				items.push({
-					quantity: 1,
+					quantity: 0,
 					type: QueueItemTypes.ShipToken,
 					designNum: d.num,
-					allocated: {}
+					allocated: {},
+					yearsToBuildOne: this.getYearsToBuildOne(
+						d.spec.cost ?? {},
+						this.cargo,
+						yearlyAvailableToSpend
+					)
 				});
 			});
 		}
@@ -467,16 +477,21 @@ export class CommandedPlanet implements Planet {
 		planet: Planet,
 		designs: ShipDesign[]
 	): ProductionQueueItem[] {
+		const yearlyAvailableToSpend = {
+			resources: planet.spec.resourcesPerYearAvailable,
+			...planet.spec.miningOutput
+		};
 		// filter starbase designs
 		const items = sortBy(
 			designs.filter((d) => d.spec.starbase && planet.spec.starbaseDesignNum !== d.num),
 			(d) => d.name
 		).map<ProductionQueueItem>(
 			(d: ShipDesign): ProductionQueueItem => ({
-				quantity: 1,
+				quantity: 0,
 				type: QueueItemTypes.Starbase,
 				designNum: d.num,
 				allocated: {},
+				yearsToBuildOne: this.getYearsToBuildOne(d.spec.cost, this.cargo, yearlyAvailableToSpend),
 				yearsToBuildAll: 0
 			})
 		);
@@ -550,30 +565,23 @@ export class CommandedPlanet implements Planet {
 
 	// get the estimated years to build one item
 	public getYearsToBuildOne(
-		item: ProductionQueueItem,
-		rules: Rules,
-		techStore: TechStore,
-		player: Player,
-		designFinder: DesignFinder
+		cost: Cost = {},
+		mineralsOnHand: Mineral,
+		yearlyAvailableToSpend: Cost
 	): number {
-		const planetCopy = cloneDeep(this);
-		planetCopy.productionQueue = [item];
+		const numBuiltInAYear = divide(yearlyAvailableToSpend, minZero(minus(cost, mineralsOnHand)));
 
-		const itemEstimates = getProductionEstimates(
-			rules,
-			techStore,
-			player,
-			planetCopy,
-			designFinder
-		);
+		if (numBuiltInAYear === 0 || isNaN(numBuiltInAYear) || numBuiltInAYear == Infinity) {
+			return NeverBuilt;
+		}
 
-		return itemEstimates[0].yearsToBuildOne ?? NeverBuilt;
+		return Math.min(NeverBuilt, Math.ceil(1 / numBuiltInAYear));
 	}
 }
 
 export const fromQueueItemType = (type: QueueItemType): ProductionQueueItem => ({
 	type,
-	quantity: 1,
+	quantity: 0,
 	allocated: {}
 });
 
@@ -607,20 +615,20 @@ export const getQueueItemShortName = (
 export interface PlanetSpec {
 	habitability?: number;
 	terraformedHabitability?: number;
-	maxMines?: number;
-	maxPossibleMines?: number;
-	maxFactories?: number;
-	maxPossibleFactories?: number;
-	maxDefenses?: number;
+	maxMines: number;
+	maxPossibleMines: number;
+	maxFactories: number;
+	maxPossibleFactories: number;
+	maxDefenses: number;
 	population?: number;
 	populationDensity: number;
 	maxPopulation?: number;
 	growthAmount: number;
 	miningOutput: Mineral;
-	resourcesPerYear?: number;
-	resourcesPerYearAvailable?: number;
-	resourcesPerYearResearch?: number;
-	resourcesPerYearResearchEstimatedLeftover?: number;
+	resourcesPerYear: number;
+	resourcesPerYearAvailable: number;
+	resourcesPerYearResearch: number;
+	resourcesPerYearResearchEstimatedLeftover: number;
 	defense: string;
 	defenseCoverage: number;
 	defenseCoverageSmart: number;

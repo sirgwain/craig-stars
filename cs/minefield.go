@@ -62,6 +62,7 @@ func newMineField(player *Player, mineFieldType MineFieldType, numMines int, num
 		MapObject: MapObject{
 			Type:      MapObjectTypeMineField,
 			PlayerNum: player.Num,
+			Dirty:     true,
 			Num:       num,
 			Name:      fmt.Sprintf("%s Mine Field #%d", player.Race.PluralName, num),
 			Position:  position,

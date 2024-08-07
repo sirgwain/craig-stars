@@ -6,7 +6,7 @@
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 
-	export let zIsColorCode = false;
+	export let colorIsCode = true;
 
 	const { data, xGet, yGet, zGet, xScale, yScale, width, height } =
 		getContext<LayerCake>('LayerCake');
@@ -26,8 +26,8 @@
 <g class="line-group">
 	{#each $data as group}
 		<path
-			stroke={zIsColorCode ? $zGet(group) : undefined}
-			class="path-line {zIsColorCode ? undefined : $zGet(group)}"
+			stroke={colorIsCode ? $zGet(group) : undefined}
+			class="path-line {colorIsCode ?? $zGet(group)}"
 			d={path(group.values)}
 		/>
 	{/each}

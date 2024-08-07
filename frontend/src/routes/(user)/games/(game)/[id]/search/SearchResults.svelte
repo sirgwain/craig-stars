@@ -191,9 +191,7 @@
 										{#if ownedBy(planet, $player.num)}
 											<div>-</div>
 											<div class="text-base my-auto">
-												{planet.spec.resourcesPerYear
-													? planet.spec.resourcesPerYear.toLocaleString() + ' res'
-													: ''}
+												{planet.spec.resourcesPerYear.toLocaleString()} res
 											</div>
 											<div>-</div>
 											<div class="text-base my-auto">

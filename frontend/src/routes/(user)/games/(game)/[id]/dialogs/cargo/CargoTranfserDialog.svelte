@@ -23,15 +23,15 @@
 	export let props: CargoTransferDialogEventDetails | undefined;
 
 	const onTransferCargo = async (detail: TransferCargoEventDetails) => {
-		// close the dialog
-		show = false;
-
 		if (detail && detail.transferAmount.absoluteSize() > 0) {
 			if (!detail.dest) {
 				detail.dest = newSalvage();
 			}
 			await transferCargo(detail.src, detail.dest, detail.transferAmount);
 		}
+
+		// close the dialog
+		show = false;
 	};
 </script>
 

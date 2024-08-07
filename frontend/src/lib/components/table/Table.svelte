@@ -30,7 +30,6 @@
 	export let columns: TableColumn<T>[] = [];
 	export let rows: T[] = [];
 	export let filterBy = '';
-	export let externalSortAndFilter = false;
 
 	let lastSortedKey = '';
 	let sortDescending = false;
@@ -98,10 +97,6 @@
 	}
 
 	$: filteredRows = (() => {
-		if (externalSortAndFilter) {
-			// rows come filtered and sorted, return them as is
-			return rows;
-		}
 		if (lastSortedKey) {
 			sortRowsBy(lastSortedKey, true);
 		}
@@ -116,11 +111,7 @@
 		<tr class={assignedClasses.headtr}>
 			{#each columns as column, colIdx}
 				{#if !column.hidden}
-					<th
-						scope="col"
-						class={assignedClasses.th}
-						on:click={() => !externalSortAndFilter && sortRowsBy(column.key)}
-					>
+					<th scope="col" class={assignedClasses.th} on:click={() => sortRowsBy(column.key)}>
 						{#if $$slots.head}
 							<slot
 								name="head"

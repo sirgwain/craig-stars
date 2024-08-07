@@ -27,7 +27,6 @@ type Planet struct {
 	Spec                 PlanetSpec `json:"spec,omitempty"`
 	RandomArtifact       bool       `json:"-"`
 	Starbase             *Fleet     `json:"-"`
-	Dirty                bool       `json:"-"`
 	bonusResources       int
 }
 
@@ -93,11 +92,7 @@ func (item *ProductionQueueItem) String() string {
 }
 
 func NewPlanet() *Planet {
-	return &Planet{MapObject: MapObject{Type: MapObjectTypePlanet, PlayerNum: Unowned}, Dirty: true}
-}
-
-func (p *Planet) MarkDirty() {
-	p.Dirty = true
+	return &Planet{MapObject: MapObject{Type: MapObjectTypePlanet, Dirty: true, PlayerNum: Unowned}}
 }
 
 func (p *Planet) withPosition(position Vector) *Planet {
@@ -618,7 +613,7 @@ func (planet *Planet) mine(rules *Rules) {
 
 // grow pop on this planet (or starbase)
 func (planet *Planet) grow(player *Player) {
-	planet.setPopulation(MaxInt(100, planet.population() + planet.Spec.GrowthAmount))
+	planet.setPopulation(planet.population() + planet.Spec.GrowthAmount)
 
 	if player.Race.Spec.InnateMining {
 		productivePop := planet.productivePopulation(planet.population(), planet.Spec.MaxPopulation)

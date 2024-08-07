@@ -1050,10 +1050,10 @@ func Test_battle_runBattle1(t *testing.T) {
 func Test_battle_runBattle2(t *testing.T) {
 	player1 := NewPlayer(0, NewRace()).WithNum(1)
 	player2 := NewPlayer(0, NewRace()).WithNum(2)
-	player1.Name = AINames[0][1]
-	player2.Name = AINames[1][1]
-	player1.Race.PluralName = AINames[0][1]
-	player2.Race.PluralName = AINames[1][1]
+	player1.Name = AINames[0] + "s"
+	player2.Name = AINames[1] + "s"
+	player1.Race.PluralName = AINames[0] + "s"
+	player2.Race.PluralName = AINames[1] + "s"
 	player1.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationEnemy}}
 	player2.Relations = []PlayerRelationship{{Relation: PlayerRelationEnemy}, {Relation: PlayerRelationFriend}}
 	player1.PlayerIntels.PlayerIntels = []PlayerIntel{{Num: player1.Num}, {Num: player2.Num}}

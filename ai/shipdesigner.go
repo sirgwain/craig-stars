@@ -176,6 +176,7 @@ func (ai *aiPlayer) assignPurpose() {
 		if fleet.Purpose == cs.FleetPurposeNone {
 			design := ai.GetDesign(fleet.Tokens[0].DesignNum)
 			fleet.Purpose = cs.FleetPurposeFromShipDesignPurpose(design.Purpose)
+			fleet.MarkDirty()
 		}
 	}
 }

@@ -95,7 +95,6 @@ export class FleetService {
 			body: JSON.stringify({
 				sourceFleetNum: source.num,
 				destFleetNum: dest?.num,
-				destBaseName: dest?.baseName,
 				sourceTokens,
 				destTokens,
 				transferAmount

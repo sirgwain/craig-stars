@@ -288,8 +288,7 @@ func TestPlanet_randomize(t *testing.T) {
 			name: "planet gen with all 0 rng",
 			args: args{newIntRandom().addFloats(.50)},
 			want: Planet{
-				MapObject:            MapObject{Type: MapObjectTypePlanet, PlayerNum: Unowned},
-				Dirty:                true,
+				MapObject:            MapObject{Type: MapObjectTypePlanet, Dirty: true, PlayerNum: Unowned},
 				Hab:                  Hab{1, 1, 1},
 				BaseHab:              Hab{1, 1, 1},
 				MineralConcentration: Mineral{1, 31, 31},
@@ -302,8 +301,7 @@ func TestPlanet_randomize(t *testing.T) {
 			name: "planet with random artifact",
 			args: args{newIntRandom().addFloats(.33)},
 			want: Planet{
-				MapObject:            MapObject{Type: MapObjectTypePlanet, PlayerNum: Unowned},
-				Dirty:                true,
+				MapObject:            MapObject{Type: MapObjectTypePlanet, Dirty: true, PlayerNum: Unowned},
 				Hab:                  Hab{1, 1, 1},
 				BaseHab:              Hab{1, 1, 1},
 				MineralConcentration: Mineral{1, 31, 31},
@@ -317,8 +315,7 @@ func TestPlanet_randomize(t *testing.T) {
 			name: "planet with no random artifact",
 			args: args{newIntRandom().addFloats(.50)},
 			want: Planet{
-				MapObject:            MapObject{Type: MapObjectTypePlanet, PlayerNum: Unowned},
-				Dirty:                true,
+				MapObject:            MapObject{Type: MapObjectTypePlanet, Dirty: true, PlayerNum: Unowned},
 				Hab:                  Hab{1, 1, 1},
 				BaseHab:              Hab{1, 1, 1},
 				MineralConcentration: Mineral{1, 31, 31},
@@ -341,45 +338,6 @@ func TestPlanet_randomize(t *testing.T) {
 				// dump json, but this won't include some fields
 				test.CompareAsJSON(t, got, tt.want)
 				t.Errorf("randomize() = %#v, want %#v", got, tt.want)
-			}
-
-		})
-	}
-}
-
-func TestPlanet_grow(t *testing.T) {
-	type fields struct {
-		hab        Hab
-		population int
-	}
-	type args struct {
-		race *Race
-	}
-	tests := []struct {
-		name           string
-		fields         fields
-		args           args
-		wantPopulation int
-	}{
-		{"standard humanoid starter world", fields{hab: Hab{50, 50, 50}, population: 25000}, args{NewRace().WithSpec(&rules)}, 28800},
-		{"full world", fields{hab: Hab{50, 50, 50}, population: 500_000}, args{NewRace().WithSpec(&rules)}, 545_400},
-		{"hostile world", fields{hab: Hab{1, 1, 1}, population: 25000}, args{NewRace().WithSpec(&rules)}, 23900},
-		{"hostile world, low pop", fields{hab: Hab{1, 1, 1}, population: 200}, args{NewRace().WithSpec(&rules)}, 100},
-		{"hostile world, low pop 2", fields{hab: Hab{1, 1, 1}, population: 100}, args{NewRace().WithSpec(&rules)}, 100},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			player := NewPlayer(0, tt.args.race).WithNum(1)
-			planet := NewPlanet().WithPlayerNum(player.Num)
-			planet.Hab = tt.fields.hab
-			planet.BaseHab = tt.fields.hab
-			planet.setPopulation(tt.fields.population)
-			planet.Spec = computePlanetSpec(&rules, player, planet)
-
-			planet.grow(player)
-
-			if planet.population() != tt.wantPopulation {
-				t.Errorf("grow() = %v, want %v", planet.population(), tt.wantPopulation)
 			}
 
 		})

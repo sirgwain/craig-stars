@@ -32,8 +32,6 @@ export class PlayerSettings {
 	showAllPlanets = false;
 	sortFleetsKey = 'name';
 	sortFleetsDescending = false;
-	sortBattlesKey = 'num';
-	sortBattlesDescending = false;
 
 	constructor(public gameId = 0, public playerNum = 0) {}
 

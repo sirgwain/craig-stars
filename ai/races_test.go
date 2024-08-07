@@ -20,7 +20,7 @@ func TestGetRandomRaces(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := GetRandomRaces(tt.args.numRaces, false); len(got) != tt.args.numRaces {
+			if got := GetRandomRaces(tt.args.numRaces); len(got) != tt.args.numRaces {
 				t.Errorf("GetRandomRaces() = %d races, want %d races", len(got), tt.args.numRaces)
 			}
 		})

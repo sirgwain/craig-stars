@@ -16,6 +16,7 @@ func newSalvage(position Vector, num int, playerNum int, cargo Cargo) *Salvage {
 			Num:       num,
 			PlayerNum: playerNum,
 			Name:      fmt.Sprintf("Salvage #%d", num),
+			Dirty:     true,
 		},
 		Cargo: cargo,
 	}

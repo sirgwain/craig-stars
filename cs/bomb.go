@@ -203,6 +203,7 @@ func (b *bomb) normalBombPlanet(planet *Planet, defender *Player, attacker *Play
 
 	// update planet spec
 	planet.Spec = computePlanetSpec(b.rules, defender, planet)
+	planet.MarkDirty()
 
 	log.Debug().
 		Int64("GameID", planet.GameID).
@@ -256,6 +257,7 @@ func (b *bomb) smartBombPlanet(planet *Planet, defender *Player, attacker *Playe
 
 	// update planet spec
 	planet.Spec = computePlanetSpec(b.rules, defender, planet)
+	planet.MarkDirty()
 
 	log.Debug().
 		Int64("GameID", planet.GameID).
@@ -309,6 +311,7 @@ func (b *bomb) retroBombPlanet(planet *Planet, defender *Player, attacker *Playe
 
 	// update planet spec
 	planet.Spec = computePlanetSpec(b.rules, defender, planet)
+	planet.MarkDirty()
 
 	log.Debug().
 		Int64("GameID", planet.GameID).

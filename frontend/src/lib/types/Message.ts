@@ -4,7 +4,6 @@ import type { Target } from './Fleet';
 import type { Hab } from './Hab';
 import { MapObjectType } from './MapObject';
 import type { Mineral } from './Mineral';
-import type { MineralPacketDamage } from './MineralPacket';
 import type { PlayerSettings } from './PlayerSettings';
 import type { QueueItemType } from './QueueItemType';
 import type { TechField } from './TechLevel';
@@ -32,7 +31,6 @@ export type PlayerMessageSpec = {
 	comet?: PlayerMessageSpecComet;
 	bombing?: BombingResult;
 	mineral?: Mineral;
-	mineralPacketDamage?: MineralPacketDamage;
 } & Target;
 
 export type BombingResult = {

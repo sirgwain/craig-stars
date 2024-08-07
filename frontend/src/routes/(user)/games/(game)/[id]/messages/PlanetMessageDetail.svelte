@@ -160,14 +160,9 @@
 		).toFixed()}% of your colonists will die per year if you colonize {planet.name}.
 	{/if}
 {:else if message.type === MessageType.PlanetPopulationDecreased}
-	{#if message.spec.amount === message.spec.prevAmount}
-		Your colonists on {planet.name} are suffering under the planet's hostile conditions but for now they
-		are surviving.
-	{:else}
-		The population on {planet.name} has decreased from {(
-			message.spec.prevAmount ?? 0
-		).toLocaleString()} to {(message.spec.amount ?? 0).toLocaleString()}.
-	{/if}
+	The population on {planet.name} has decreased from {(
+		message.spec.prevAmount ?? 0
+	).toLocaleString()} to {(message.spec.amount ?? 0).toLocaleString()}.
 {:else if message.type === MessageType.PlanetPopulationDecreasedOvercrowding}
 	The population on {planet.name} has decreased by {(-(message.spec.amount ?? 0)).toLocaleString()} due
 	to overcrowding.

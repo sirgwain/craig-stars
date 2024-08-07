@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
+	import { getOurDead, getOurShips, getTheirDead } from '$lib/types/Battle';
 	import type { Fleet } from '$lib/types/Fleet';
 	import { MapObjectType } from '$lib/types/MapObject';
 	import { MessageType, type Message } from '$lib/types/Message';
@@ -8,7 +9,6 @@
 	import type { Planet } from '$lib/types/Planet';
 	import BattleMessageDetail from './BattleMessageDetail.svelte';
 	import FleetMessageDetail from './FleetMessageDetail.svelte';
-	import MineralPacketMessageDetail from './MineralPacketMessageDetail.svelte';
 	import PlanetMessageDetail from './PlanetMessageDetail.svelte';
 	import PlayerMessageDetail from './PlayerMessageDetail.svelte';
 
@@ -30,8 +30,6 @@
 	<BattleMessageDetail {message} />
 {:else if planet}
 	<PlanetMessageDetail {message} {planet} {owner} />
-{:else if mineralPacket && owner}
-	<MineralPacketMessageDetail {message} {mineralPacket} {owner} />
 {:else if message.targetType == MapObjectType.Fleet || fleet}
 	<FleetMessageDetail {message} />
 {:else}

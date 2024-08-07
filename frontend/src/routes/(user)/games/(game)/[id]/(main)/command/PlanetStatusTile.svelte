@@ -18,10 +18,10 @@
 	function onResourcesTooltip(e: PointerEvent) {
 		showTooltip<ResourcesTooltipProps>(e.x, e.y, ResourcesTooltip, {
 			planetName: planet.name,
-			resourcesPerYear: planet.spec.resourcesPerYear ?? 0,
-			resourcesPerYearAvailable: planet.spec.resourcesPerYearAvailable ?? 0,
-			resourcesPerYearResearch: planet.spec.resourcesPerYearResearch ?? 0,
-			resourcesPerYearResearchEstimated: planet.spec.resourcesPerYearResearchEstimatedLeftover ?? 0,
+			resourcesPerYear: planet.spec.resourcesPerYear,
+			resourcesPerYearAvailable: planet.spec.resourcesPerYearAvailable,
+			resourcesPerYearResearch: planet.spec.resourcesPerYearResearch,
+			resourcesPerYearResearchEstimated: planet.spec.resourcesPerYearResearchEstimatedLeftover,
 			innateResources: $player.race.spec?.innateResources ?? false
 		});
 	}
@@ -61,7 +61,7 @@
 		>
 			<div class="text-tile-item-title">Resources/Year</div>
 			<div>
-				{planet.spec.resourcesPerYearAvailable ?? 0} of {planet.spec.resourcesPerYear ?? 0}
+				{planet.spec.resourcesPerYearAvailable} of {planet.spec.resourcesPerYear}
 			</div>
 		</div>
 

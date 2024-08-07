@@ -11,6 +11,7 @@ type cargoHolder interface {
 	getFuel() int
 	getFuelCapacity() int
 	canLoad(playerNum int) bool
+	MarkDirty()
 	canTransfer(transferAmount CargoTransferRequest) bool
 }
 

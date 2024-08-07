@@ -1,6 +1,6 @@
 <script lang="ts">
 	import EnumSelect from '$lib/components/EnumSelect.svelte';
-	import { NewGamePlayerType, type NewGamePlayer } from '$lib/types/Game';
+	import type { NewGamePlayer } from '$lib/types/Game';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import AiPlayer from './AIPlayer.svelte';
 	import HostPlayer from './HostPlayer.svelte';
@@ -24,24 +24,19 @@
 	<div class="block">
 		{#if index != 1}
 			<div class="flex flex-row justify-end">
-				<div class="grow">
-					{#if !$me.isGuest()}
-						<div class="grow">
-							<EnumSelect
-								enumType={NewGamePlayerChooseType}
-								name="type"
-								bind:value={player.type}
-								title={`Player ${index}`}
-							/>
-						</div>
-					{:else}
-						<div class="text-xl mr-2 my-auto">AI Player {index}</div>
-					{/if}
-					{#if player.type === NewGamePlayerType.AI}
-						<AiPlayer {player} />
-					{/if}
-				</div>
-				<div class="my-auto mx-1">
+				{#if !$me.isGuest()}
+					<div class="grow">
+						<EnumSelect
+							enumType={NewGamePlayerChooseType}
+							name="type"
+							bind:value={player.type}
+							title={`Player ${index}`}
+						/>
+					</div>
+				{:else}
+					<div class="text-xl mr-2 my-auto">AI Player {index}</div>
+				{/if}
+				<div class="my-auto">
 					<button
 						on:click={() => dispatch('remove')}
 						type="button"
@@ -49,10 +44,10 @@
 					>
 				</div>
 			</div>
+			<AiPlayer {player} />
 		{:else}
 			<HostPlayer {player} />
 		{/if}
 	</div>
-
 	<div />
 {/if}

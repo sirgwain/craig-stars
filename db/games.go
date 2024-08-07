@@ -539,7 +539,7 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 			}
 			remainingFleets = append(remainingFleets, fleet)
 			// log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Created fleet %s", fleet.Name)
-		} else if !fleet.Delete {
+		} else if fleet.Dirty && !fleet.Delete {
 			if err := c.UpdateFleet(fleet); err != nil {
 				return fmt.Errorf("update fleet %w", err)
 			}
@@ -562,7 +562,7 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 				return fmt.Errorf("delete wormhole %w", err)
 			}
 			// log.Debug().Int64("GameID", wormhole.GameID).Int64("ID", wormhole.ID).Msgf("Deleted wormhole %s", wormhole.Name)
-		} else {
+		} else if wormhole.Dirty {
 			if err := c.updateWormhole(wormhole); err != nil {
 				return fmt.Errorf("update wormhole %w", err)
 			}
@@ -583,7 +583,7 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 				return fmt.Errorf("delete salvage %w", err)
 			}
 			// log.Debug().Int64("GameID", salvage.GameID).Int64("ID", salvage.ID).Msgf("Deleted salvage %s", salvage.Name)
-		} else {
+		} else if salvage.Dirty {
 			if err := c.UpdateSalvage(salvage); err != nil {
 				return fmt.Errorf("update salvage %w", err)
 			}
@@ -604,7 +604,7 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 				return fmt.Errorf("delete mineField %w", err)
 			}
 			// log.Debug().Int64("GameID", mineField.GameID).Int64("ID", mineField.ID).Msgf("Deleted mineField %s", mineField.Name)
-		} else {
+		} else if mineField.Dirty {
 			if err := c.UpdateMineField(mineField); err != nil {
 				return fmt.Errorf("update mineField %w", err)
 			}
@@ -625,7 +625,7 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 				return fmt.Errorf("delete mineralPacket %w", err)
 			}
 			// log.Debug().Int64("GameID", mineralPacket.GameID).Int64("ID", mineralPacket.ID).Msgf("Deleted mineralPacket %s", mineralPacket.Name)
-		} else {
+		} else if mineralPacket.Dirty {
 			if err := c.updateMineralPacket(mineralPacket); err != nil {
 				return fmt.Errorf("update mineralPacket %w", err)
 			}
@@ -646,7 +646,7 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 				return fmt.Errorf("delete mysteryTrader %w", err)
 			}
 			// log.Debug().Int64("GameID", mysteryTrader.GameID).Int64("ID", mysteryTrader.ID).Msgf("Deleted mysteryTrader %s", mysteryTrader.Name)
-		} else {
+		} else if mysteryTrader.Dirty {
 			if err := c.updateMysteryTrader(mysteryTrader); err != nil {
 				return fmt.Errorf("update mysteryTrader %w", err)
 			}

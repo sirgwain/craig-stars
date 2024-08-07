@@ -3,7 +3,7 @@ package cs
 import "github.com/rs/zerolog/log"
 
 // invade a planet with a colonist drop
-func invadePlanet(rules *Rules, techStore *TechStore, planet *Planet, fleet *Fleet, defender *Player, attacker *Player, colonistsDropped int) {
+func invadePlanet(rules *Rules, planet *Planet, fleet *Fleet, defender *Player, attacker *Player, colonistsDropped int) {
 	invasionDefenseCoverageFactor := rules.InvasionDefenseCoverageFactor
 
 	// figure out how many attackers are stopped by defenses
@@ -58,12 +58,6 @@ func invadePlanet(rules *Rules, techStore *TechStore, planet *Planet, fleet *Fle
 				attacker.techLevelGained = true
 				attacker.TechLevels.Set(field, attacker.TechLevels.Get(field)+1)
 				messager.playerTechGainedInvasion(attacker, planet, field)
-
-				techsGained := techStore.GetTechsJustGained(attacker, field)
-				for _, tech := range techsGained {
-					messager.playerTechGained(attacker, field, tech)
-				}
-
 				log.Debug().
 					Int64("GameID", planet.GameID).
 					Int("Attacker", attacker.Num).

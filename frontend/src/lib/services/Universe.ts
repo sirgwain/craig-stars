@@ -1,9 +1,4 @@
-import {
-	battlesSortBy,
-	getBattleRecordDetails,
-	type BattleRecord,
-	type BattleRecordDetails
-} from '$lib/types/Battle';
+import type { BattleRecord } from '$lib/types/Battle';
 import type { Cost } from '$lib/types/Cost';
 import { fleetsSortBy, type Fleet, type Target, type Waypoint } from '$lib/types/Fleet';
 import { MapObjectType, type MapObject } from '$lib/types/MapObject';
@@ -11,13 +6,7 @@ import type { MineField } from '$lib/types/MineField';
 import type { MineralPacket } from '$lib/types/MineralPacket';
 import type { MysteryTrader } from '$lib/types/MysteryTrader';
 import { planetsSortBy, type Planet } from '$lib/types/Planet';
-import type {
-	Player,
-	PlayerIntel,
-	PlayerIntels,
-	PlayerScore,
-	PlayerUniverse
-} from '$lib/types/Player';
+import type { PlayerIntel, PlayerIntels, PlayerScore, PlayerUniverse } from '$lib/types/Player';
 import type { ProductionQueueItem } from '$lib/types/Production';
 import type { Salvage } from '$lib/types/Salvage';
 import type { ShipDesign } from '$lib/types/ShipDesign';
@@ -195,7 +184,7 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 	getMyPlanets(sortKey: string, descending: boolean): Planet[] {
 		const planets = this.planets.filter((d) => d.playerNum === this.playerNum);
 		planets.sort(planetsSortBy(sortKey));
-		if (descending) {
+		if (!descending) {
 			planets.reverse();
 		}
 		return planets;
@@ -204,7 +193,7 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 	getPlanets(sortKey: string, descending: boolean): Planet[] {
 		const planets = [...this.planets];
 		planets.sort(planetsSortBy(sortKey));
-		if (descending) {
+		if (!descending) {
 			planets.reverse();
 		}
 		return planets;
@@ -213,7 +202,7 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 	getMyFleets(sortKey: string, descending: boolean): Fleet[] {
 		const fleets = this.fleets.filter((d) => d.playerNum === this.playerNum);
 		fleets.sort(fleetsSortBy(sortKey, this));
-		if (descending) {
+		if (!descending) {
 			fleets.reverse();
 		}
 		return fleets;
@@ -222,19 +211,10 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 	getFleets(sortKey: string, descending: boolean): Fleet[] {
 		const fleets = [...this.fleets];
 		fleets.sort(fleetsSortBy(sortKey, this));
-		if (descending) {
+		if (!descending) {
 			fleets.reverse();
 		}
 		return fleets;
-	}
-
-	getBattles(sortKey: string, descending: boolean, player: Player): BattleRecordDetails[] {
-		const battles = this.battles.map((b) => getBattleRecordDetails(b, player, this));
-		battles.sort(battlesSortBy(sortKey));
-		if (descending) {
-			battles.reverse();
-		}
-		return battles;
 	}
 
 	getDesign(playerNum: number, num: number): ShipDesign | undefined {

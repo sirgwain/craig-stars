@@ -20,7 +20,6 @@ type Player struct {
 	Num                       int                  `json:"num,omitempty"`
 	Ready                     bool                 `json:"ready"`
 	AIControlled              bool                 `json:"aiControlled,omitempty"`
-	AIDifficulty              AIDifficulty         `json:"aiDifficulty,omitempty"`
 	Guest                     bool                 `json:"guest,omitempty"`
 	SubmittedTurn             bool                 `json:"submittedTurn"`
 	Color                     string               `json:"color,omitempty"`

@@ -48,9 +48,8 @@ func (req *mergeFleetRequest) Bind(r *http.Request) error {
 
 type splitFleetRequest struct {
 	// the source/dest fleet num
-	SourceFleetNum int    `json:"sourceFleetNum,omitempty"`
-	DestFleetNum   int    `json:"destFleetNum,omitempty"`
-	DestBaseName   string `json:"destBaseName,omitempty"`
+	SourceFleetNum int `json:"sourceFleetNum,omitempty"`
+	DestFleetNum   int `json:"destFleetNum,omitempty"`
 
 	// a matching slice of source and dest tokens that only differ in token.Quantity
 	SourceTokens []cs.ShipToken `json:"sourceTokens,omitempty"`
@@ -223,7 +222,6 @@ func (s *server) split(w http.ResponseWriter, r *http.Request) {
 		Dest:           destFleet,
 		SourceTokens:   splitFleet.SourceTokens,
 		DestTokens:     splitFleet.DestTokens,
-		DestBaseName:   splitFleet.DestBaseName,
 		TransferAmount: splitFleet.TransferAmount,
 	}
 

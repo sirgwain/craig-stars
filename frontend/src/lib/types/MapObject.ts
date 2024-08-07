@@ -1,7 +1,6 @@
 import type { Vector } from './Vector';
 
 export const None = 0;
-export const Unknown = -1;
 export const Infinite = -1;
 export const StargateWarpSpeed = 11;
 
@@ -19,7 +18,7 @@ export interface MapObject {
 
 export type MovingMapObject = {
 	heading: Vector;
-	warpSpeed: number;
+	warpSpeed?: number;
 } & MapObject;
 
 export enum MapObjectType {

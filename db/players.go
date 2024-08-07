@@ -16,7 +16,6 @@ type PlayerStatus struct {
 	Num           int       `json:"num,omitempty"`
 	Ready         bool      `json:"ready,omitempty"`
 	AIControlled  bool      `json:"aiControlled,omitempty"`
-	AIDifficulty  bool      `json:"aiDifficulty,omitempty"`
 	Guest         bool      `json:"guest,omitempty"`
 	SubmittedTurn bool      `json:"submittedTurn,omitempty"`
 	Color         string    `json:"color,omitempty"`
@@ -33,7 +32,6 @@ type Player struct {
 	Num                          int                  `json:"num,omitempty"`
 	Ready                        bool                 `json:"ready,omitempty"`
 	AIControlled                 bool                 `json:"aiControlled,omitempty"`
-	AIDifficulty                 cs.AIDifficulty      `json:"aiDifficulty,omitempty"`
 	Guest                        bool                 `json:"guest,omitempty"`
 	SubmittedTurn                bool                 `json:"submittedTurn,omitempty"`
 	Color                        string               `json:"color,omitempty"`
@@ -341,7 +339,6 @@ func (c *client) GetPlayersStatusForGame(gameID int64) ([]*cs.Player, error) {
 	num,
 	ready,
 	aiControlled,
-	aiDifficulty,
 	guest,
 	submittedTurn,
 	color 
@@ -380,7 +377,6 @@ func (c *client) getPlayerWithDesigns(where string, args ...interface{}) ([]cs.P
 		p.num AS 'player.num',
 		p.ready AS 'player.ready',
 		p.aiControlled AS 'player.aiControlled',
-		p.aiDifficulty AS 'player.aiDifficulty',
 		p.guest AS 'player.guest',
 		p.submittedTurn AS 'player.submittedTurn',
 		p.color AS 'player.color',
@@ -516,7 +512,6 @@ func (c *client) GetPlayerForGame(gameID, userID int64) (*cs.Player, error) {
 	num,
 	ready,
 	aiControlled,
-	aiDifficulty,
 	guest,
 	submittedTurn,
 	color,
@@ -625,7 +620,6 @@ func (c *client) GetLightPlayerForGame(gameID, userID int64) (*cs.Player, error)
 	num,
 	ready,
 	aiControlled,
-	aiDifficulty,
 	guest,
 	submittedTurn,
 	color,
@@ -810,7 +804,6 @@ func (c *client) CreatePlayer(player *cs.Player) error {
 		num,
 		ready,
 		aiControlled,
-		aiDifficulty,
 		guest,
 		submittedTurn,
 		color,
@@ -864,7 +857,6 @@ func (c *client) CreatePlayer(player *cs.Player) error {
 		:num,
 		:ready,
 		:aiControlled,
-		:aiDifficulty,
 		:guest,
 		:submittedTurn,
 		:color,
@@ -937,7 +929,6 @@ func (c *client) UpdateLightPlayer(player *cs.Player) error {
 		num = :num,
 		ready = :ready,
 		aiControlled = :aiControlled,
-		aiDifficulty = :aiDifficulty,
 		guest = :guest,
 		submittedTurn = :submittedTurn,
 		color = :color,
@@ -1079,7 +1070,6 @@ func (c *client) UpdatePlayer(player *cs.Player) error {
 		num = :num,
 		ready = :ready,
 		aiControlled = :aiControlled,
-		aiDifficulty = :aiDifficulty,
 		guest = :guest,
 		submittedTurn = :submittedTurn,
 		color = :color,
