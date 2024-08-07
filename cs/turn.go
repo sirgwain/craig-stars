@@ -209,6 +209,11 @@ func (t *turn) scrapFleet(fleet *Fleet) {
 						planetPlayer.TechLevels.Set(field, planetPlayer.TechLevels.Get(field)+1)
 						messager.playerTechGainedScrappedFleet(planetPlayer, planet, fleet.Name, field)
 
+						techsGained := t.game.TechStore.GetTechsJustGained(player, field)
+						for _, tech := range techsGained {
+							messager.playerTechGained(player, field, tech)
+						}
+
 						log.Debug().
 							Int64("GameID", t.game.ID).
 							Int("Player", planetPlayer.Num).
@@ -530,7 +535,7 @@ func (t *turn) fleetTransferCargo(fleet *Fleet, transferAmount int, cargoType Ca
 			}
 			defender := t.game.getPlayer(planet.PlayerNum)
 
-			invadePlanet(&t.game.Rules, planet, fleet, defender, player, transferAmount*100)
+			invadePlanet(&t.game.Rules, t.game.TechStore, planet, fleet, defender, player, transferAmount*100)
 			fleet.Cargo.Colonists -= transferAmount
 
 		} else if transferAmount < 0 && !dest.canLoad(fleet.PlayerNum) {
@@ -540,7 +545,7 @@ func (t *turn) fleetTransferCargo(fleet *Fleet, transferAmount int, cargoType Ca
 		} else {
 			fleet.transferToDest(dest, cargoType, transferAmount)
 			messager.fleetTransportedCargo(player, fleet, dest, cargoType, transferAmount)
-			
+
 			// mark this planet for saving, it could be unowned and would miss this
 			if planet, ok := dest.(*Planet); ok {
 				planet.MarkDirty()
@@ -2029,6 +2034,10 @@ func (t *turn) fleetBattle() {
 					player.techLevelGained = true
 					player.TechLevels.Set(field, player.TechLevels.Get(field)+1)
 					messager.playerTechGainedBattle(player, planet, record, field)
+					techsGained := t.game.TechStore.GetTechsJustGained(player, field)
+					for _, tech := range techsGained {
+						messager.playerTechGained(player, field, tech)
+					}
 
 					log.Debug().
 						Int64("GameID", t.game.ID).

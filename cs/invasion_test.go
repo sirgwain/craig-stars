@@ -109,7 +109,7 @@ func Test_invadePlanet(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.args.planet.Spec = computePlanetSpec(&rules, tt.args.attacker, tt.args.planet)
 			tt.want.Spec = computePlanetSpec(&rules, tt.args.attacker, &tt.want)
-			invadePlanet(&rules, tt.args.planet, tt.args.fleet, tt.args.defender, tt.args.attacker, tt.args.colonistsDropped)
+			invadePlanet(&rules, &StaticTechStore, tt.args.planet, tt.args.fleet, tt.args.defender, tt.args.attacker, tt.args.colonistsDropped)
 
 			// recompute planet spec after invasion
 			tt.args.planet.Spec = computePlanetSpec(&rules, tt.args.attacker, tt.args.planet)
