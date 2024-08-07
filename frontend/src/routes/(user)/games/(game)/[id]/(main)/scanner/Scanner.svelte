@@ -127,8 +127,6 @@
 		}
 	}
 
-	$: setPacketDest = $settings.setPacketDest;
-
 	$: {
 		if ($settings.addWaypoint && zoomEnabled) {
 			disableDragAndZoom();
@@ -601,7 +599,7 @@
 	 * @param mo
 	 */
 	function mapObjectSelected(mo: MapObject) {
-		if (setPacketDest) {
+		if ($settings.setPacketDest) {
 			if (mo.type != MapObjectType.Planet) {
 				return;
 			} else {
@@ -610,7 +608,14 @@
 				if (!$commandedPlanet?.spec.hasMassDriver) {
 					return;
 				}
-				$commandedPlanet.packetTargetNum = mo.num;
+
+				if (mapObjectEqual(mo, $commandedPlanet)) {
+					// clear dest
+					$commandedPlanet.packetTargetNum = None;
+				} else {
+					$commandedPlanet.packetTargetNum = mo.num;
+				}
+
 				updatePlanetOrders($commandedPlanet);
 				return;
 			}
@@ -690,7 +695,9 @@
 
 <div
 	class:cursor-grab={waypointHighlighted}
-	class:cursor-cell={shouldAddWaypoint || (!!$commandedFleet && $settings.addWaypoint)}
+	class:cursor-cell={shouldAddWaypoint ||
+		(!!$commandedFleet && $settings.addWaypoint) ||
+		$settings.setPacketDest}
 	class={`grow bg-black overflow-hidden p-[${padding}px] select-none`}
 	use:clickOutside={disableAddWaypointMode}
 >
