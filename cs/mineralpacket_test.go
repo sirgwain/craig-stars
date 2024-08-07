@@ -57,21 +57,22 @@ func TestMineralPacket_completeMoveEmptyPlanet(t *testing.T) {
 	player := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1).withSpec(&rules)
 	planet := NewPlanet().withPosition(Vector{20, 0}).WithNum(1)
 
-	packet := newMineralPacket(player, 1, 5, 5, Cargo{100, 0, 0, 0}, Vector{}, planet.Num)
+	packet := newMineralPacket(player, 1, 5, 5, Cargo{300, 0, 0, 0}, Vector{}, planet.Num)
 
 	packet.movePacket(&rules, player, planet, nil)
-	assert.Equal(t, planet.Cargo, packet.Cargo)
+	assert.Equal(t, planet.Cargo, Cargo{Ironium: 100})
 	assert.True(t, packet.Delete)
 }
 
 func TestMineralPacket_completeMoveUncaught(t *testing.T) {
 	player := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1).withSpec(&rules)
-	planet := NewPlanet().withPosition(Vector{20, 0}).WithNum(1).WithPlayerNum(1).WithCargo(Cargo{Colonists: 100})
+	planet := NewPlanet().withPosition(Vector{20, 0}).WithNum(1).WithPlayerNum(1).WithCargo(Cargo{Colonists: 10000})
 
-	packet := newMineralPacket(player, 1, 5, 5, Cargo{100, 0, 0, 0}, Vector{}, planet.Num)
+	packet := newMineralPacket(player, 1, 5, 5, Cargo{480, 0, 0, 0}, Vector{}, planet.Num)
 
+	// 7500 colonists killed by 480kT undefended
 	packet.movePacket(&rules, player, planet, player)
-	assert.Equal(t, planet.Cargo, Cargo{Ironium: 100, Colonists: 84})
+	assert.Equal(t, planet.Cargo, Cargo{Ironium: 160, Colonists: 9250})
 	assert.True(t, packet.Delete)
 
 }
@@ -83,7 +84,7 @@ func TestMineralPacket_completeMoveUncaughtAR(t *testing.T) {
 	packet := newMineralPacket(player, 1, 5, 5, Cargo{100, 0, 0, 0}, Vector{}, planet.Num)
 
 	packet.movePacket(&rules, player, planet, player)
-	assert.Equal(t, planet.Cargo, Cargo{Ironium: 100, Colonists: 100})
+	assert.Equal(t, planet.Cargo, Cargo{Ironium: 33, Colonists: 100})
 	assert.True(t, packet.Delete)
 
 }
@@ -155,23 +156,93 @@ func TestMineralPacket_estimateDamage(t *testing.T) {
 		args   args
 		want   MineralPacketDamage
 	}{
-		{"1 yr away; no decay/dmg", fields{WarpSpeed: 5, SafeWarpSpeed: 5}, args{NewRace().WithSpec(&rules), 5, Vector{25.0, 0.0}, 0.0, NewRace().WithSpec(&rules), 1000000, Cargo{10, 10, 10, 0}}, MineralPacketDamage{}},
-		{"3 lvls overwarp + 1 yr travel (50% left); 1M pop; no driver/defenses", fields{WarpSpeed: 8, SafeWarpSpeed: 5}, args{NewRace().WithSpec(&rules), 0, Vector{64.0, 0.0}, 0.0, NewRace().WithSpec(&rules), 1000000, Cargo{50, 0, 0, 0}}, MineralPacketDamage{Killed: 10000}},
-		{`3 lvls overwarp + 3.25 yr travel (10.9% left); 1M pop; W6 driver/50% defenses`, fields{WarpSpeed: 8, SafeWarpSpeed: 5}, args{NewRace().WithSpec(&rules), 6, Vector{208.0, 0.0}, 0.5, NewRace().WithSpec(&rules), 1000000, Cargo{1045, 0, 0, 0}}, MineralPacketDamage{Killed: 1000}},
+		{
+			`1 yr away; no decay`,
+			fields{WarpSpeed: 5, SafeWarpSpeed: 5},
+			args{
+				race:              NewRace().WithSpec(&rules),
+				planetDriverSpeed: 0,
+				planetPosition:    Vector{25, 0},
+				planetDefCoverage: 0,
+				targetRace:        NewRace().WithSpec(&rules),
+				planetPop:         1000000,
+				mass:              Cargo{Ironium: 10, Boranium: 10, Germanium: 10},
+			},
+			MineralPacketDamage{Killed: 4700},
+		},
+		{
+			`1 yr away; vanishing packet`,
+			fields{WarpSpeed: 6, SafeWarpSpeed: 5},
+			args{
+				race:              NewRace().WithSpec(&rules),
+				planetDriverSpeed: 0,
+				planetPosition:    Vector{25, 0},
+				planetDefCoverage: 0,
+				targetRace:        NewRace().WithSpec(&rules),
+				planetPop:         1000000,
+				mass:              Cargo{Ironium: 10, Boranium: 10, Germanium: 10},
+			},
+			MineralPacketDamage{Uncaught: MineralPacketDecayToNothing},
+		},
+		{
+			`3 lvls overwarp + 1 yr travel with min decay (300 dmg)`,
+			fields{WarpSpeed: 10, SafeWarpSpeed: 7},
+			args{
+				race:              NewRace().WithPRT(PP).WithSpec(&rules),
+				planetDriverSpeed: 0,
+				planetPosition:    Vector{60, 80},
+				// 60^2 + 80^2 = 100^2
+				planetDefCoverage: 0,
+				targetRace:        NewRace().WithSpec(&rules),
+				planetPop:         100000,
+				mass:              Cargo{Ironium: 5, Boranium: 5, Germanium: 640},
+			},
+			MineralPacketDamage{Killed: 30000, DefensesDestroyed: 10},
+		},
+		{
+			`3 lvls overwarp + 0.33 yr travel (25.2 dmg)`,
+			fields{WarpSpeed: 8, SafeWarpSpeed: 5},
+			args{
+				race:              NewRace().WithSpec(&rules),
+				planetDriverSpeed: 0,
+				planetPosition:    Vector{21.333333, 0},
+				planetDefCoverage: 0,
+				targetRace:        NewRace().WithSpec(&rules),
+				planetPop:         1000000,
+				mass:              Cargo{Germanium: 75},
+			},
+			MineralPacketDamage{Killed: 25200, DefensesDestroyed: 1},
+		},
+		{
+			`3 lvls overwarp + 3.25 yr travel (70 dmg)`,
+			fields{WarpSpeed: 6, SafeWarpSpeed: 3},
+			args{
+				race:              NewRace().WithSpec(&rules),
+				planetDriverSpeed: 4,
+				planetPosition:    Vector{117, 0},
+				planetDefCoverage: 0.5,
+				targetRace:        NewRace().WithSpec(&rules),
+				planetPop:         100000,
+				mass:              Cargo{Ironium: 10240},
+			},
+			MineralPacketDamage{Killed: 7000, DefensesDestroyed: 3},
+		},
 	}
-	//To sirgwain (or whoever happens to be unlucky enough to test this): I did not do an IT/PP example as of yet because I too lazy. Feel free to add one if/when you have the mental capacity to do so.
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			player := NewPlayer(1, tt.args.race).withSpec(&rules)
-			planet := NewPlanet().withPosition(tt.args.planetPosition)
-			planet.Spec.Population = tt.args.planetPop
+			player := NewPlayer(1, tt.args.race).withSpec(&rules).WithNum(1)
+			planet := NewPlanet().withPosition(tt.args.planetPosition).WithPlayerNum(2)
+			planetPlayer := NewPlayer(2, tt.args.targetRace).withSpec(&rules).WithNum(2)
+			planet.setPopulation(tt.args.planetPop)
+			planet.Defenses = 10
 			planet.Spec.DefenseCoverage = tt.args.planetDefCoverage
+			planet.Spec.PlanetStarbaseSpec.HasStarbase = true
+			planet.Spec.PlanetStarbaseSpec.HasMassDriver = true
 			planet.Spec.PlanetStarbaseSpec.SafePacketSpeed = tt.args.planetDriverSpeed
-			planetPlayer := NewPlayer(2, tt.args.targetRace).withSpec(&rules)
 			packet := newMineralPacket(player, 1, tt.fields.WarpSpeed, tt.fields.SafeWarpSpeed, tt.args.mass, Vector{0, 0}, 1)
 			if got := packet.estimateDamage(&rules, player, planet, planetPlayer); got != tt.want {
-				t.Errorf("MineralPacket.estimateDamage() = %v, want %v", got, tt.want)
+				t.Errorf("MineralPacket.estimateDamage() = %v, want %v;", got, tt.want)
 			}
 		})
 	}

@@ -83,7 +83,7 @@ export function produce(
 		germanium: planet.cargo.germanium ?? 0,
 		resources:
 			planet.getResourcesAvailable(player) *
-			(!planet.contributesOnlyLeftoverToResearch ? (100 - player.researchAmount) / 100 : 1)
+			(planet.contributesOnlyLeftoverToResearch ? 1 : (100 - player.researchAmount) / 100)
 	};
 
 	const habitability = getPlanetHabitability(player.race, planet.hab);

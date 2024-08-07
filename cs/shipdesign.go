@@ -17,7 +17,6 @@ type ShipDesign struct {
 	PlayerNum         int               `json:"playerNum"`
 	OriginalPlayerNum int               `json:"originalPlayerNum"`
 	Name              string            `json:"name"`
-	Dirty             bool              `json:"-"`
 	Version           int               `json:"version"`
 	Hull              string            `json:"hull"`
 	HullSetNumber     int               `json:"hullSetNumber"`
@@ -51,7 +50,7 @@ type ShipDesignSpec struct {
 	InnateScanRangePenFactor  float64               `json:"innateScanRangePenFactor,omitempty"`
 	RepairBonus               float64               `json:"repairBonus,omitempty"`
 	TorpedoJamming            float64               `json:"torpedoJamming,omitempty"`
-	torpedoInaccuracyMulti    float64               `json:"torpedoInaccuracyMulti,omitempty"`
+	TorpedoBonus              float64               `json:"torpedoBonus,omitempty"`
 	BeamBonus                 float64               `json:"beamBonus,omitempty"`
 	BeamDefense               float64               `json:"beamDefense,omitempty"`
 	Initiative                int                   `json:"initiative,omitempty"`
@@ -135,7 +134,7 @@ const (
 )
 
 func NewShipDesign(player *Player, num int) *ShipDesign {
-	return &ShipDesign{PlayerNum: player.Num, Num: num, Dirty: true, Slots: []ShipDesignSlot{}}
+	return &ShipDesign{PlayerNum: player.Num, Num: num, Slots: []ShipDesignSlot{}}
 }
 
 func (sd *ShipDesign) WithName(name string) *ShipDesign {
@@ -164,10 +163,6 @@ func (sd *ShipDesign) WithHullSetNumber(num int) *ShipDesign {
 func (sd *ShipDesign) WithSpec(rules *Rules, player *Player) *ShipDesign {
 	sd.Spec = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, sd)
 	return sd
-}
-
-func (sd *ShipDesign) MarkDirty() {
-	sd.Dirty = true
 }
 
 // validate that this ship design is available to the player
@@ -278,6 +273,10 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		InnateScanRangePenFactor: hull.InnateScanRangePenFactor,
 	}
 
+	// count the number of each type of battle computer we have
+	torpedoBonusesByCount := map[float64]int{}
+	torpedoJammersByCount := map[float64]int{}
+
 	numTachyonDetectors := 0
 
 	// rating calcs
@@ -339,33 +338,19 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 				spec.MineLayingRateByMineType[component.MineFieldType] += int(float64(component.MineLayingRate) * float64(slot.Quantity) * (1 + hull.MineLayingBonus))
 			}
 
-			// i.e. two .3f battle computers is (1 -.3) * (1 - .3) or (.7 * .7) or it decreases innaccuracy by 49%
-			// so a 75% accurate torpedo would be 100 - (100 - 75) * .49 = 100 - 12.25 or 88% accurate
-			// a 75% accurate torpedo with two 30% comps and one 50% comp would be
-			// 100 - (100 - 75) * .7 * .7 * .5 = 94% accurate
-			// if TorpedoInnaccuracyDecrease is 1 (default), it's just 75%
-			if component.torpedoInaccuracyMulti > 0 {
-				if spec.torpedoInaccuracyMulti == 0 {
-					spec.torpedoInaccuracyMulti = math.Pow(component.torpedoInaccuracyMulti, float64(slot.Quantity))
-				} else {
-					spec.torpedoInaccuracyMulti *= math.Pow(component.torpedoInaccuracyMulti, float64(slot.Quantity))
-				}
-				// golang, why you be like this? nobody wants 1-.2^1 to be .199999994
-				spec.torpedoInaccuracyMulti = roundFloat(spec.torpedoInaccuracyMulti, 3)
+			// count battle computers
+			if component.TorpedoBonus > 0 {
+				torpedoBonusesByCount[component.TorpedoBonus] += slot.Quantity
 			}
 
+			// count jammers
 			if component.TorpedoJamming > 0 {
-				if spec.TorpedoJamming == 0 {
-					spec.TorpedoJamming = 1 - float64(math.Pow((1-float64(component.TorpedoJamming)), float64(slot.Quantity)))
-				} else {
-					spec.TorpedoJamming *= 1 - float64(math.Pow((1-float64(component.TorpedoJamming)), float64(slot.Quantity)))
-				}
-				spec.TorpedoJamming = math.Min(roundFloat(spec.TorpedoJamming, 3), 0.95)
+				torpedoJammersByCount[component.TorpedoJamming] += slot.Quantity
 			}
 
 			// beam bonuses (capacitors are capped at 2.55x; beam deflectors are unlimited)
 			spec.BeamBonus += math.Min(math.Pow(1+component.BeamBonus, float64(slot.Quantity))-1, 1.55)
-			spec.BeamDefense += math.Pow(1+component.BeamDefense, float64(slot.Quantity)) - 1
+			spec.BeamDefense += math.Pow(1+component.BeamDefense, float64(slot.Quantity))-1
 
 			// if this slot has a bomb, this design is a bomber
 			if component.HullSlotType == HullSlotTypeBomb || component.MinKillRate > 0 {
@@ -467,6 +452,42 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		spec.ReduceCloaking = math.Min(math.Pow((100.0-float64(rules.TachyonCloakReduction))/100, math.Sqrt(float64(numTachyonDetectors))), 0.81)
 	} else {
 		spec.ReduceCloaking = 1
+	}
+
+	if len(torpedoBonusesByCount) > 0 {
+		spec.TorpedoBonus = 1
+		for torpedoBonus, count := range torpedoBonusesByCount {
+			// for 3 Battle Computer 30s, this calc is 1-(.7^3) or 65%
+			bonus := 1 - math.Pow(1-torpedoBonus, float64(count))
+
+			// if there are multiple battle computer slots all adding together, they are added like
+			// 1−((1−BC20Bonus)×(1−BC30Bonus)×(1−BC50Bonus))
+			spec.TorpedoBonus *= 1 - bonus
+		}
+
+		// the final bonus is the above sum inverted
+		spec.TorpedoBonus = 1 - spec.TorpedoBonus
+
+		// golang, why you be like this? nobody wants 1-.2^1 to be .199999994
+		spec.TorpedoBonus = roundFloat(spec.TorpedoBonus, 4)
+	}
+
+	if len(torpedoJammersByCount) > 0 {
+		spec.TorpedoJamming = 1
+		for torpedoJammer, count := range torpedoJammersByCount {
+			// for 3 Jammer 10s, this calc is 1-(.9^3) or 65%
+			jammer := 1 - math.Pow(1-torpedoJammer, float64(count))
+
+			// if there are multiple battle computer slots all adding together, they are added like
+			// 1−((1−Jammer10)×(1−Jammer20)×(1−Jammer30))
+			spec.TorpedoJamming *= 1 - jammer
+		}
+
+		// the final jammer is the above sum inverted
+		spec.TorpedoJamming = 1 - spec.TorpedoJamming
+
+		// golang, why you be like this? nobody wants 1-.2^1 to be .199999994
+		spec.TorpedoJamming = math.Min(.95, roundFloat(spec.TorpedoJamming, 4))
 	}
 
 	if spec.NumEngines > 0 {

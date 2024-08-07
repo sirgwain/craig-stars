@@ -11,10 +11,10 @@ import (
 func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 	player1 := cs.NewPlayer(0, cs.NewRace()).WithNum(1)
 	player2 := cs.NewPlayer(0, cs.NewRace().WithLRT(cs.RS)).WithNum(2)
-	player1.Name = cs.AINames[0] + "s"
-	player2.Name = cs.AINames[1] + "s"
-	player1.Race.PluralName = cs.AINames[0] + "s"
-	player2.Race.PluralName = cs.AINames[1] + "s"
+	player1.Name = cs.AINames[0][1]
+	player2.Name = cs.AINames[1][1]
+	player1.Race.PluralName = cs.AINames[0][1]
+	player2.Race.PluralName = cs.AINames[1][1]
 	player2.Color = colors[1]
 	player1.Relations = []cs.PlayerRelationship{{Relation: cs.PlayerRelationFriend}, {Relation: cs.PlayerRelationEnemy}}
 	player2.Relations = []cs.PlayerRelationship{{Relation: cs.PlayerRelationEnemy}, {Relation: cs.PlayerRelationFriend}}

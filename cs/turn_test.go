@@ -291,7 +291,7 @@ func Test_turn_grow(t *testing.T) {
 	planet4 := game.Planets[3]
 	planet1.setPopulation(100_000)
 	planet2.setPopulation(100_000)
-	planet3.setPopulation(100)       // last turn with us
+	planet3.setPopulation(100)       // planets never die, hold strong little guys!
 	planet4.setPopulation(2_400_000) // should lose 4%
 
 	turn := turn{
@@ -304,8 +304,7 @@ func Test_turn_grow(t *testing.T) {
 	// one planet should grow, another should not, the other should die off completely
 	assert.Equal(t, 115_000, planet1.population())
 	assert.Equal(t, 95_500, planet2.population())
-	assert.Equal(t, 0, planet3.population())
-	assert.Equal(t, false, planet3.Owned())
+	assert.Equal(t, 100, planet3.population())
 	assert.Equal(t, 2_304_000, planet4.population())
 }
 

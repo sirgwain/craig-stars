@@ -1,7 +1,10 @@
 import techjson from '$lib/ssr/techs.json';
 import { multiply, type Cost } from '$lib/types/Cost';
+import { type Fleet } from '$lib/types/Fleet';
+import { MapObjectType } from '$lib/types/MapObject';
 import { CommandedPlanet } from '$lib/types/Planet';
 import { Player } from '$lib/types/Player';
+import { baseStationDesign, orbitalFort2Design } from '$lib/types/Player.test';
 import { QueueItemTypes } from '$lib/types/QueueItemType';
 import { defaultRules } from '$lib/types/Rules';
 import type { ShipDesign } from '$lib/types/ShipDesign';
@@ -10,9 +13,6 @@ import { cloneDeep } from 'lodash-es';
 import { describe, expect, it } from 'vitest';
 import { getNumBuilt, getProductionEstimates, produce } from './Producer';
 import type { DesignFinder } from './Universe';
-import { baseStationDesign, orbitalFort2Design } from '$lib/types/Player.test';
-import { CommandedFleet, type Fleet } from '$lib/types/Fleet';
-import { MapObjectType } from '$lib/types/MapObject';
 
 describe('Producer test', () => {
 	const techStore = techjson as TechStore;

@@ -70,7 +70,7 @@ func NewTechStore() TechFinder {
 // transform a proper case with spaces name to a keyable name, i.e.
 // Mini-Colony Ship becomes mini-colony-ship
 func (store *TechStore) transformName(name string) string {
-	return strings.ReplaceAll(strings.ToLower(name), " ", "-")
+	return strings.ReplaceAll(strings.ReplaceAll(strings.ToLower(name), " ", "-"), "'", "")
 }
 
 func (store *TechStore) Init() {
