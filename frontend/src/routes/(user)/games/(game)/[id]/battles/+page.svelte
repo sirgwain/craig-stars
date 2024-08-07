@@ -5,20 +5,25 @@
 	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { getBattleRecordDetails, type BattleRecordDetails } from '$lib/types/Battle';
+	import { type BattleRecordDetails } from '$lib/types/Battle';
 	import { Check } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
-	const { game, player, universe, gotoBattle } = getGameContext();
+	const { game, player, universe, settings, gotoBattle } = getGameContext();
 
 	// filterable battles
 	let filteredBattles: BattleRecordDetails[] = [];
 	let search = '';
 
-	$: battleRows = $universe.battles.map((b) => getBattleRecordDetails(b, $player, $universe));
+	$: battleRows = $universe.getBattles(
+		$settings.sortBattlesKey,
+		$settings.sortBattlesDescending,
+		$player
+	);
 
 	$: filteredBattles =
 		battleRows.filter((i) => i.location.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? [];
+
 
 	const columns: TableColumn<BattleRecordDetails>[] = [
 		{
@@ -68,6 +73,11 @@
 		gotoBattle(row.num);
 		goto(`/games/${$game.id}`);
 	}
+
+	function onSorted(column: TableColumn<BattleRecordDetails>, sortDescending: boolean) {
+		$settings.sortBattlesDescending = sortDescending;
+		$settings.sortBattlesKey = column.key;
+	}
 </script>
 
 <Breadcrumb>
@@ -83,14 +93,22 @@
 	<Table
 		{columns}
 		rows={filteredBattles}
+		externalSortAndFilter={true}
 		classes={{
 			table: 'table table-zebra table-compact table-auto w-full',
 			td: 'first:table-cell hidden sm:table-cell',
 			th: 'first:table-cell hidden sm:table-cell'
 		}}
 	>
-		<span slot="head" let:isSorted let:sortDescending let:column>
-			<SortableTableHeader {column} {isSorted} {sortDescending} />
+		<span slot="head" let:column>
+			<SortableTableHeader
+				{column}
+				isSorted={$settings.sortBattlesKey === column.key}
+				sortDescending={$settings.sortBattlesDescending}
+				on:sorted={(e) => {
+					onSorted(column, e.detail.sortDescending);
+				}}
+			/>
 		</span>
 
 		<span slot="cell" let:column let:row let:cell>

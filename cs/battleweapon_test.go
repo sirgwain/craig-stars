@@ -142,8 +142,8 @@ func Test_battleWeaponSlot_getAttractiveness(t *testing.T) {
 
 func Test_battleWeaponSlot_getAccuracy(t *testing.T) {
 	type fields struct {
-		accuracy               float64
-		torpedoInaccuracyMulti float64
+		accuracy     float64
+		torpedoBonus float64
 	}
 	type args struct {
 		torpedoJamming float64
@@ -155,16 +155,17 @@ func Test_battleWeaponSlot_getAccuracy(t *testing.T) {
 		want   float64
 	}{
 		{"beta torpedo", fields{accuracy: .45}, args{}, .45},
-		{"beta torpedo, 1 BC", fields{accuracy: .45, torpedoInaccuracyMulti: .2}, args{}, .56},
-		{"beta torpedo, 1 BC, 1 jammer 20", fields{accuracy: .45, torpedoInaccuracyMulti: .8}, args{torpedoJamming: .2}, .45},
-		{"beta torpedo, 1 BC, 1 jammer 10", fields{accuracy: .45, torpedoInaccuracyMulti: .8}, args{torpedoJamming: .1}, .505},
-		{"beta torpedo, 1 BC, 1 jammer 30", fields{accuracy: .45, torpedoInaccuracyMulti: .8}, args{torpedoJamming: .3}, .405},
+		{"beta torpedo, 1 BC", fields{accuracy: .45, torpedoBonus: .2}, args{}, .56},
+		{"beta torpedo, 1 BC, 1 jammer 20", fields{accuracy: .45, torpedoBonus: .2}, args{torpedoJamming: .2}, .45},
+		{"beta torpedo, 1 BC, 1 jammer 10", fields{accuracy: .45, torpedoBonus: .2}, args{torpedoJamming: .1}, .505},
+		{"beta torpedo, 1 BC, 1 jammer 30", fields{accuracy: .45, torpedoBonus: .1}, args{torpedoJamming: .2}, .405},
+		{"jihad missile, 3 BC 20/30, 3 jammer 10/20", fields{accuracy: .20, torpedoBonus: .8244}, args{torpedoJamming: .6268}, .35808},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			weapon := &battleWeaponSlot{
-				accuracy:               tt.fields.accuracy,
-				torpedoInaccuracyMulti: tt.fields.torpedoInaccuracyMulti,
+				accuracy:     tt.fields.accuracy,
+				torpedoBonus: tt.fields.torpedoBonus,
 			}
 			if got := weapon.getAccuracy(tt.args.torpedoJamming); got != tt.want {
 				t.Errorf("battleWeaponSlot.getAccuracy() = %v, want %v", got, tt.want)
@@ -388,11 +389,11 @@ func Test_battleWeaponSlot_getBeamDamageToTarget(t *testing.T) {
 
 func Test_battleWeaponSlot_getEstimatedTorpedoDamageToTarget(t *testing.T) {
 	type fields struct {
-		shipQuantity           int
-		slotQuantity           int
-		weaponPower            int
-		accuracy               float64
-		torpedoInaccuracyMulti float64
+		shipQuantity int
+		slotQuantity int
+		weaponPower  int
+		accuracy     float64
+		torpedoBonus float64
 	}
 	type args struct {
 		armor                int
@@ -496,11 +497,11 @@ func Test_battleWeaponSlot_getEstimatedTorpedoDamageToTarget(t *testing.T) {
 						Quantity: tt.fields.shipQuantity,
 					},
 				},
-				slotQuantity:           tt.fields.slotQuantity,
-				weaponType:             battleWeaponTypeTorpedo,
-				power:                  tt.fields.weaponPower,
-				accuracy:               tt.fields.accuracy,
-				torpedoInaccuracyMulti: tt.fields.torpedoInaccuracyMulti,
+				slotQuantity: tt.fields.slotQuantity,
+				weaponType:   battleWeaponTypeTorpedo,
+				power:        tt.fields.weaponPower,
+				accuracy:     tt.fields.accuracy,
+				torpedoBonus: tt.fields.torpedoBonus,
 			}
 
 			target := &battleToken{

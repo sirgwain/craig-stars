@@ -65,9 +65,11 @@
 					{/if}
 					<div class="w-full">
 						{#if player}
-							<a href={`/games/${player.gameId}/techs/${kebabCase(tech.name)}`}>{tech.name}</a>
+							<a href={`/games/${player.gameId}/techs/${kebabCase(tech.name.replaceAll("'", ''))}`}
+								>{tech.name}</a
+							>
 						{:else}
-							<a href="/techs/{kebabCase(tech.name)}">{tech.name}</a>
+							<a href="/techs/{kebabCase(tech.name.replaceAll("'", ''))}">{tech.name}</a>
 						{/if}
 					</div>
 				</div>

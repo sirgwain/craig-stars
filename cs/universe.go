@@ -276,6 +276,9 @@ func (u *Universe) getShipDesign(playerNum int, num int) *ShipDesign {
 
 // Get a planet by num
 func (u *Universe) getPlanet(num int) *Planet {
+	if num < 1 || num > len(u.Planets) {
+		return nil
+	}
 	return u.Planets[num-1]
 }
 
@@ -352,7 +355,6 @@ func (u *Universe) getCargoHolder(mapObjectType MapObjectType, num int, playerNu
 func (u *Universe) updateTokenCounts() {
 	for _, design := range u.designsByNum {
 		design.Spec.NumInstances = 0
-		design.MarkDirty()
 	}
 	for _, fleet := range append(u.Fleets, u.Starbases...) {
 		if fleet.Delete {
@@ -368,7 +370,6 @@ func (u *Universe) updateTokenCounts() {
 // mark a fleet as deleted and remove it from the universe
 func (u *Universe) deleteFleet(fleet *Fleet) {
 	fleet.Delete = true
-	fleet.MarkDirty()
 
 	delete(u.fleetsByNum, playerObjectKey(fleet.PlayerNum, fleet.Num))
 
@@ -385,7 +386,6 @@ func (u *Universe) deleteFleet(fleet *Fleet) {
 // mark a starbase as deleted and remove it from the universe
 func (u *Universe) deleteStarbase(starbase *Fleet) {
 	starbase.Delete = true
-	starbase.MarkDirty()
 
 	u.removeMapObjectAtPosition(starbase, starbase.Position)
 
@@ -399,8 +399,6 @@ func (u *Universe) deleteStarbase(starbase *Fleet) {
 
 // move a fleet from one position to another
 func (u *Universe) moveFleet(fleet *Fleet, originalPosition Vector) {
-	fleet.MarkDirty()
-
 	// upadte mapobjects position
 	u.updateMapObjectAtPosition(fleet, originalPosition, fleet.Position)
 }
@@ -453,7 +451,6 @@ func (u *Universe) addStarbase(starbase *Fleet) error {
 
 // move a wormhole from one position to another
 func (u *Universe) moveWormhole(wormhole *Wormhole, originalPosition Vector) {
-	wormhole.MarkDirty()
 	u.updateMapObjectAtPosition(wormhole, originalPosition, wormhole.Position)
 }
 

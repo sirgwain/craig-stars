@@ -282,7 +282,7 @@ func caSpec() PRTSpec {
 
 	spec.Instaforming = true
 	spec.PermaformChance = .1 // chance is 10% if pop is over 100k
-	spec.PermaformPopulation = 100000
+	spec.PermaformPopulation = 100_000
 
 	return spec
 }
@@ -365,7 +365,7 @@ func ppSpec() PRTSpec {
 	spec.DetectPacketDestinationStarbases = true
 	spec.DetectAllPackets = true
 	spec.PacketTerraformChance = .5  // 50% per 100kT uncaught
-	spec.PacketPermaformChance = .05 // 5% per 100kT uncaught
+	spec.PacketPermaformChance = .001 // 0.1% per 100kT uncaught
 
 	return spec
 }

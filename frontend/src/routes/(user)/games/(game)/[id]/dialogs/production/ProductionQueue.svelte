@@ -33,6 +33,7 @@
 	import hotkeys from 'hotkeys-js';
 	import { clamp } from 'lodash-es';
 	import { createEventDispatcher, onMount } from 'svelte';
+	import type { ChangeEventHandler } from 'svelte/elements';
 
 	const { game, player, universe } = getGameContext();
 	const dispatch = createEventDispatcher<ProductionQueueEvent>();
@@ -82,9 +83,15 @@
 		);
 	}
 
+	const contributesOnlyLeftoverToResearchChecked: ChangeEventHandler<HTMLInputElement> = (e) => {
+		contributesOnlyLeftoverToResearch = e.currentTarget.checked;
+		updateQueueEstimates();
+	};
+
 	function updateQueueEstimates() {
 		// get updated production queue estimates
 		updatedPlanet.productionQueue = [...queueItems];
+		updatedPlanet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
 		const itemEstimates = getProductionEstimates(
 			$game.rules,
 			$techs,
@@ -110,6 +117,50 @@
 			$player.getItemCost(selectedQueueItem, $universe, $techs, planet),
 			selectedQueueItem?.quantity
 		);
+
+		for (let i = 0; i < availableItems.length; i++) {
+			availableItems[i].yearsToBuildOne = updatedPlanet.getYearsToBuildOne(
+				availableItems[i],
+				$game.rules,
+				$techs,
+				$player,
+				$universe
+			);
+
+			if (selectedAvailableItem == availableItems[i]) {
+				selectedAvailableItem = availableItems[i];
+			}
+		}
+		availableItems = [...availableItems];
+
+		for (let i = 0; i < availableShipDesigns.length; i++) {
+			availableShipDesigns[i].yearsToBuildOne = updatedPlanet.getYearsToBuildOne(
+				availableShipDesigns[i],
+				$game.rules,
+				$techs,
+				$player,
+				$universe
+			);
+			if (selectedAvailableItem == availableShipDesigns[i]) {
+				selectedAvailableItem = availableShipDesigns[i];
+			}
+		}
+		availableShipDesigns = [...availableShipDesigns];
+
+		for (let i = 0; i < availableStarbaseDesigns.length; i++) {
+			availableStarbaseDesigns[i].yearsToBuildOne = updatedPlanet.getYearsToBuildOne(
+				availableStarbaseDesigns[i],
+				$game.rules,
+				$techs,
+				$player,
+				$universe
+			);
+
+			if (selectedAvailableItem == availableStarbaseDesigns[i]) {
+				selectedAvailableItem = availableStarbaseDesigns[i];
+			}
+		}
+		availableStarbaseDesigns = [...availableStarbaseDesigns];
 	}
 
 	function getPercentComplete(item: ProductionQueueItem): number {
@@ -350,6 +401,7 @@
 	});
 
 	function resetQueue() {
+		contributesOnlyLeftoverToResearch = planet.contributesOnlyLeftoverToResearch;
 		queueItems = [...planet.productionQueue?.map((item) => ({ ...item }) as ProductionQueueItem)];
 		availableItems = planet.getAvailableProductionQueueItems(
 			planet,
@@ -620,7 +672,8 @@
 				<div class="w-1/2 mr-14">
 					<label>
 						<input
-							bind:checked={contributesOnlyLeftoverToResearch}
+							checked={contributesOnlyLeftoverToResearch}
+							on:change={contributesOnlyLeftoverToResearchChecked}
 							class="checkbox checkbox-xs"
 							type="checkbox"
 						/> Contributes Only Leftover to Research
