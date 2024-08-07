@@ -157,7 +157,7 @@ func TestMineralPacket_estimateDamage(t *testing.T) {
 		want   MineralPacketDamage
 	}{
 		{
-			`1 yr away; vanishing packet`,
+			`1 yr away; no decay`,
 			fields{WarpSpeed: 5, SafeWarpSpeed: 5},
 			args{
 				race:              NewRace().WithSpec(&rules),
@@ -168,7 +168,21 @@ func TestMineralPacket_estimateDamage(t *testing.T) {
 				planetPop:         1000000,
 				mass:              Cargo{Ironium: 10, Boranium: 10, Germanium: 10},
 			},
-			MineralPacketDamage{Uncaught: -1},
+			MineralPacketDamage{Killed: 4700},
+		},
+		{
+			`1 yr away; vanishing packet`,
+			fields{WarpSpeed: 6, SafeWarpSpeed: 5},
+			args{
+				race:              NewRace().WithSpec(&rules),
+				planetDriverSpeed: 0,
+				planetPosition:    Vector{25, 0},
+				planetDefCoverage: 0,
+				targetRace:        NewRace().WithSpec(&rules),
+				planetPop:         1000000,
+				mass:              Cargo{Ironium: 10, Boranium: 10, Germanium: 10},
+			},
+			MineralPacketDamage{Uncaught: MineralPacketDecayToNothing},
 		},
 		{
 			`3 lvls overwarp + 1 yr travel with min decay (300 dmg)`,

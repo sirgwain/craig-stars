@@ -30,23 +30,24 @@ type PlayerMessage struct {
 type PlayerMessageSpec struct {
 	// the thing being targeted by the message target, i.e. the planet for a fleet bombed a planet message
 	Target[MapObjectType]
-	Amount          int                     `json:"amount,omitempty"`
-	Amount2         int                     `json:"amount2,omitempty"`
-	PrevAmount      int                     `json:"prevAmount,omitempty"`
-	SourcePlayerNum int                     `json:"sourcePlayerNum,omitempty"`
-	DestPlayerNum   int                     `json:"destPlayerNum,omitempty"`
-	Name            string                  `json:"name,omitempty"`
-	Cost            *Cost                   `json:"cost,omitempty"`
-	Mineral         *Mineral                `json:"mineral,omitempty"`
-	Cargo           *Cargo                  `json:"cargo,omitempty"`
-	QueueItemType   QueueItemType           `json:"queueItemType,omitempty"`
-	Field           TechField               `json:"field,omitempty"`
-	NextField       TechField               `json:"nextField,omitempty"`
-	TechGained      string                  `json:"techGained,omitempty"`
-	LostTargetType  MapObjectType           `json:"lostTargetType,omitempty"`
-	Battle          BattleRecordStats       `json:"battle,omitempty"`
-	Comet           *PlayerMessageSpecComet `json:"comet,omitempty"`
-	Bombing         *BombingResult          `json:"bombing,omitempty"`
+	Amount              int                     `json:"amount,omitempty"`
+	Amount2             int                     `json:"amount2,omitempty"`
+	PrevAmount          int                     `json:"prevAmount,omitempty"`
+	SourcePlayerNum     int                     `json:"sourcePlayerNum,omitempty"`
+	DestPlayerNum       int                     `json:"destPlayerNum,omitempty"`
+	Name                string                  `json:"name,omitempty"`
+	Cost                *Cost                   `json:"cost,omitempty"`
+	Mineral             *Mineral                `json:"mineral,omitempty"`
+	Cargo               *Cargo                  `json:"cargo,omitempty"`
+	QueueItemType       QueueItemType           `json:"queueItemType,omitempty"`
+	Field               TechField               `json:"field,omitempty"`
+	NextField           TechField               `json:"nextField,omitempty"`
+	TechGained          string                  `json:"techGained,omitempty"`
+	LostTargetType      MapObjectType           `json:"lostTargetType,omitempty"`
+	Battle              BattleRecordStats       `json:"battle,omitempty"`
+	Comet               *PlayerMessageSpecComet `json:"comet,omitempty"`
+	Bombing             *BombingResult          `json:"bombing,omitempty"`
+	MineralPacketDamage *MineralPacketDamage    `json:"mineralPacketDamage,omitempty"`
 }
 
 type PlayerMessageSpecComet struct {
@@ -181,9 +182,14 @@ func newFleetMessage(messageType PlayerMessageType, target *Fleet) PlayerMessage
 	return PlayerMessage{Type: messageType, Target: Target[PlayerMessageTargetType]{TargetType: TargetFleet, TargetName: target.Name, TargetPlayerNum: target.PlayerNum, TargetNum: target.Num}}
 }
 
-// create a new message targeting a fleet
+// create a new message targeting a minefield
 func newMineFieldMessage(messageType PlayerMessageType, target *MineField) PlayerMessage {
 	return PlayerMessage{Type: messageType, Target: Target[PlayerMessageTargetType]{TargetType: TargetMineField, TargetName: target.Name, TargetPlayerNum: target.PlayerNum, TargetNum: target.Num}}
+}
+
+// create a new message targeting a minefield
+func newMineralPacketMessage(messageType PlayerMessageType, target *MineralPacket) PlayerMessage {
+	return PlayerMessage{Type: messageType, Target: Target[PlayerMessageTargetType]{TargetType: TargetMineralPacket, TargetName: target.Name, TargetPlayerNum: target.PlayerNum, TargetNum: target.Num}}
 }
 
 // create a new message targeting a battle with the Name field as the location of the battle
@@ -679,47 +685,16 @@ func (m *messageClient) fleetTargetLost(player *Player, fleet *Fleet, targetName
  */
 
 func (m *messageClient) planetBuiltMineralPacket(player *Player, planet *Planet, packet *MineralPacket, target string) {
-	text := fmt.Sprintf("%s has produced a mineral packet which has a destination of %s.", planet.Name, target)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetBuiltMineralPacket, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetPlanet, TargetNum: planet.Num}})
+	player.Messages = append(player.Messages, newMineralPacketMessage(PlayerMessagePlanetBuiltMineralPacket, packet).
+		withSpec(PlayerMessageSpec{Amount: packet.Cargo.Total()}.withTargetPlanet(planet)))
 }
 
-func (m *messageClient) mineralPacketDiscovered(player *Player, packet *MineralPacket, packetPlayer *Player, target *Planet) {
-	text := fmt.Sprintf("A %s mineral packet containing %dkT of minerals has been detected. It is travelling at warp %d towards %s.", packetPlayer.Race.Name, packet.Cargo.Total(), packet.WarpSpeed, target.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageMineralPacketDiscovered, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetMineralPacket, TargetNum: packet.Num, TargetPlayerNum: packetPlayer.Num}})
+func (m *messageClient) mineralPacketDiscovered(player *Player, packet *MineralPacket, target *Planet) {
+	player.Messages = append(player.Messages, newMineralPacketMessage(PlayerMessageMineralPacketDiscovered, packet).withSpec(PlayerMessageSpec{}.withTargetPlanet(target)))
 }
 
-func (m *messageClient) mineralPacketDiscoveredTargettingPlayer(player *Player, packet *MineralPacket, packetPlayer *Player, target *Planet, damage MineralPacketDamage) {
-	text := fmt.Sprintf("A %s mineral packet containing %dkT of minerals has been detected. It is travelling at warp %d towards your planet, %s. /n", packetPlayer.Race.Name, packet.Cargo.Total(), packet.WarpSpeed, target.Name)
-	if damage.Killed > 0 || damage.DefensesDestroyed > 0 {
-		// packet causing damage
-		eta := int(packet.Position.DistanceTo(target.Position) / float64(packet.WarpSpeed * packet.WarpSpeed)) + 1
-		if target.Spec.HasStarbase {
-			if damage.Killed >= target.population() {
-				text += fmt.Sprintf("Your starbase does not have a powerful enough mass driver to safelt catch this packet. The entire planet will be annihilated when it strikes in %d years.", eta)
-			} else {
-				text += fmt.Sprintf("Your starbase does not have a powerful enough mass driver to safely catch this packet. Approximately %d defenses will be destroyed and %d colonists will be killed when it strikes in %d years.", damage.DefensesDestroyed, damage.Killed, eta)
-			}
-		} else {
-			if damage.Killed >= target.population() {
-				text += fmt.Sprintf("You have no starbase with a mass driver to catch this packet. The entire planet will be annihilated when it strikes in %d years.", eta)
-			} else {
-				text += fmt.Sprintf("You have no starbase with a mass driver to catch this packet. Approximately %d defenses will be destroyed and %d colonists will be killed when it strikes in %d years.", damage.DefensesDestroyed, damage.Killed, eta)
-			}
-		}
-	} else {
-		if target.Spec.HasStarbase && target.Spec.SafePacketSpeed >= packet.WarpSpeed {
-			text += "Thankfully, your starbase's mass driver is more than capable of safely catching this packet. Huzzah!"
-		} else if damage.Uncaught == -1 {
-			// special "exit code" specifying that packet will vanish before impact
-			text += "Thankfully, this packet will decay into nothingness before it reaches you."
-		} else if player.Race.Spec.LivesOnStarbases {
-			text += "Thankfully, your race lives on starbases and will be unaffected by the ensuing collision."
-		} else {
-			text += "Thankfully, this packet will cause no damage. Hurrah!"
-		}
-	}
-	
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageMineralPacketTargettingPlayerDiscovered, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetMineralPacket, TargetNum: packet.Num, TargetPlayerNum: packetPlayer.Num}})
+func (m *messageClient) mineralPacketDiscoveredTargettingPlayer(player *Player, packet *MineralPacket, target *Planet, damage MineralPacketDamage) {
+	player.Messages = append(player.Messages, newMineralPacketMessage(PlayerMessageMineralPacketTargettingPlayerDiscovered, packet).withSpec(PlayerMessageSpec{MineralPacketDamage: &damage}.withTargetPlanet(target)))
 }
 
 /*

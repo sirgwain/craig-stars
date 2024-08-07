@@ -45,7 +45,7 @@
 			{/if}
 		{:else}
 			{$universe.getPlayerName(message.spec.targetPlayerNum)}
-			{message.spec.targetName} has bombed your planet {planet.name} killing off all colonists.
+			{message.spec.targetName} has bombed your planet {planet.name} killing off all colonists
 		{/if}
 	{:else}
 		<!-- Generic message, no bombing data (unexpected) -->
@@ -55,35 +55,23 @@
 	Your colonists settling {planet.name} have found a strange artifact boosting your research in {message
 		.spec.field} by {message.spec.amount} resources.
 {:else if message.type === MessageType.PlanetBuiltDefense}
-	{#if message.spec.amount === 1}
-		You have built a defense outpost on {planet.name}.
-	{:else}
-		You have built {message.spec.amount ?? 0} defense outposts on {planet.name}.
-	{/if}
+	You have built {message.spec.amount ?? 0} defense(s) on {planet.name}.
 {:else if message.type === MessageType.PlanetBuiltFactory}
-	{#if message.spec.amount === 1}
-		You have built a factory on {planet.name}.
-	{:else}
-		You have built {message.spec.amount ?? 0} factories on {planet.name}.
-	{/if}
+	You have built {message.spec.amount ?? 0} factory(s) on {planet.name}.
 {:else if message.type === MessageType.PlanetBuiltMineralAlchemy}
 	Your scientists on {planet.name} have transmuted common materials into {message.spec.amount ??
 		0}kT each of Ironium, Boranium and Germanium.
 {:else if message.type === MessageType.PlanetBuiltMine}
-	{#if message.spec.amount === 1}
-		You have built a mine on {planet.name}.
-	{:else}
-		You have built {message.spec.amount ?? 0} mines on {planet.name}.
-	{/if}
+	You have built {message.spec.amount ?? 0} mine(s) on {planet.name}.
 {:else if message.type === MessageType.PlanetBuiltInvalidItem}
 	You have attempted to build {startCase(message.spec.queueItemType)} on {planet.name}, but {planet.name}
 	is unable to build any of these.
 {:else if message.type === MessageType.PlanetBuiltInvalidMineralPacketNoMassDriver}
 	You have attempted to build a mineral packet on {planet.name}, but you have no Starbase equipped
-	with a mass driver on this planet. The order has been canceled.
+	with a mass driver on this planet. Production for this planet has been cancelled.
 {:else if message.type === MessageType.PlanetBuiltInvalidMineralPacketNoTarget}
 	You have attempted to build a mineral packet on {planet.name}, but you have not specified a
-	target. The order has been canceled.
+	target. The minerals have been returned to the planet and production has been cancelled.
 {:else if message.type === MessageType.PlanetBuiltScanner}
 	{planet.name} has built a new {message.spec.name} planetary scanner.
 {:else if message.type === MessageType.PlanetBuiltStarbase}
@@ -127,7 +115,7 @@
 	{:else if message.spec.comet?.size == CometSize.Huge}
 		A huge comet has crashed into your planet {planet.name}, killing {(
 			message.spec.comet?.colonistsKilled ?? 0
-		).toLocaleString()} of your colonists. The comet has embedded vast stores of minerals and drastically
+		).toLocaleString()} of your colonists. The comet has embedded vast stores of minerals and has drastically
 		altered the planet's environment.
 	{:else}
 		A comet has crashed into {planet.name} bringing new minerals and altering the planet's environment.
@@ -141,12 +129,12 @@
 	{/if}
 {:else if [MessageType.PlanetDiscovery, MessageType.PlanetDiscoveryHabitable, MessageType.PlanetDiscoveryTerraformable, MessageType.PlanetDiscoveryUninhabitable].indexOf(message.type) != -1}
 	{#if owner}
-		You have found a planet occupied by someone else. {planet.name} is currently owned by the {owner.racePluralName}.
+		You have found a planet occupied by someone else. {planet.name} is currently owned by the {owner.racePluralName}
 	{:else if planet.spec.habitability && planet.spec.habitability > 0}
-		You have found a new habitable planet. Your colonists will grow by up to {Math.max(
+		You have found a new habitable planet. Your colonists will grow by up {Math.max(
 			1,
 			(planet.spec.habitability * growthRate) / 100
-		).toFixed()}% per year if you colonize {planet.name}.
+		).toFixed()}% per year if you colonize {planet.name}
 	{:else if planet.spec.terraformedHabitability && planet.spec.terraformedHabitability > 0}
 		You have found a new planet which you have the ability to make habitable. With terraforming,
 		your colonists will grow by up to {Math.max(
@@ -157,17 +145,22 @@
 		You have found a new planet which unfortunately is not habitable by you. {Math.max(
 			1,
 			(-(planet.spec.habitability ?? 0) * growthRate) / 100
-		).toFixed()}% of your colonists will die per year if you colonize {planet.name}.
+		).toFixed()}% of your colonists will die per year if you colonize {planet.name}
 	{/if}
 {:else if message.type === MessageType.PlanetPopulationDecreased}
-	The population on {planet.name} has decreased from {(
-		message.spec.prevAmount ?? 0
-	).toLocaleString()} to {(message.spec.amount ?? 0).toLocaleString()}.
+	{#if message.spec.amount === message.spec.prevAmount}
+		Your colonists on {planet.name} are suffering under the planet's hostile conditions but for now they
+		are surviving.
+	{:else}
+		The population on {planet.name} has decreased from {(
+			message.spec.prevAmount ?? 0
+		).toLocaleString()} to {(message.spec.amount ?? 0).toLocaleString()}.
+	{/if}
 {:else if message.type === MessageType.PlanetPopulationDecreasedOvercrowding}
 	The population on {planet.name} has decreased by {(-(message.spec.amount ?? 0)).toLocaleString()} due
 	to overcrowding.
 {:else if message.type === MessageType.PlayerTechLevelGainedInvasion}
-	Your colonists invading {planet.name} have picked through the defenders' remains looking for
+	Your colonists invading {planet.name} have picked through the remains of the defenders looking for
 	technology. In the process you have gained a level in {message.spec.field}.
 {:else if message.type === MessageType.FleetScrapped}
 	{#if planet.spec.hasStarbase}
@@ -178,15 +171,15 @@
 		minerals which have been deposited on {planet.name}.
 	{/if}
 	{#if message.spec.cost?.resources}
-		&nbsp;Ultimate Recycling has also made {message.spec.cost?.resources} resources available for immediate
+		&nbsp;Ultimate recycling has also made {message.spec.cost?.resources} resources available for immediate
 		use (less if other ships were scrapped here this year).
 	{/if}
 {:else if message.type === MessageType.PlayerTechLevelGainedScrapFleet}
 	In the process of {message.targetName} being scrapped above {planet.name}, you have gained a level
-	in {message.spec.field}.
+	in {message.spec.field}
 {:else if message.type === MessageType.PlayerTechLevelGainedBattle}
 	Wreckage from the battle that occurred in orbit of {planet.name} has boosted your research in {message
-		.spec.field} by 1 level.
+		.spec.field}.
 {:else if message.type === MessageType.FleetBuilt}
 	<!-- TODO: remove this at some point. These are now fleet messages, not planet messages, but keeping this here so old savdes still target correctly -->
 	Your starbase at {planet.name} has built {message.spec.amount ?? 'a'} new {message.spec.name}s.

@@ -8,7 +8,7 @@ import (
 // Starbases with Packet Throwers can build mineral packets and fling them at other planets.
 type MineralPacket struct {
 	MapObject
-	TargetPlanetNum   int    `json:"targetPlanetNum,omitempty"`
+	TargetPlanetNum   int    `json:"targetPlanetNum"`
 	Cargo             Cargo  `json:"cargo,omitempty"`
 	WarpSpeed         int    `json:"warpSpeed"`
 	SafeWarpSpeed     int    `json:"safeWarpSpeed,omitempty"`
@@ -24,6 +24,9 @@ type MineralPacketDamage struct {
 	DefensesDestroyed int `json:"defensesDestroyed,omitempty"`
 	Uncaught          int `json:"uncaught,omitempty"`
 }
+
+// this mineral packet will decay to nothing before reaching its target
+const MineralPacketDecayToNothing = -1
 
 func newMineralPacket(player *Player, num int, warpSpeed int, safeWarpSpeed int, cargo Cargo, position Vector, targetPlanetNum int) *MineralPacket {
 	packet := MineralPacket{
@@ -129,7 +132,7 @@ func (packet *MineralPacket) movePacket(rules *Rules, player *Player, target *Pl
 // #colonists killed = Max. of (1056 x 250,000 / 1000, 1056 x 100)
 // = Max.of( 264,000, 105600) destroying the colony
 func (packet *MineralPacket) completeMove(rules *Rules, player *Player, planet *Planet, planetPlayer *Player) {
-	damage := packet.getDamage(rules, planet, planetPlayer)
+	damage := packet.getDamage(planet, planetPlayer)
 
 	if damage == (MineralPacketDamage{}) {
 		// caught packet successfully, transfer cargo
@@ -178,7 +181,7 @@ func (packet *MineralPacket) completeMove(rules *Rules, player *Player, planet *
 }
 
 // get the damage a mineral packet will do when it collides with a planet
-func (packet *MineralPacket) getDamage(rules *Rules, planet *Planet, planetPlayer *Player) MineralPacketDamage {
+func (packet *MineralPacket) getDamage(planet *Planet, planetPlayer *Player) MineralPacketDamage {
 	if !planet.Owned() {
 		// unowned planets aren't damaged, but all cargo is uncaught
 		return MineralPacketDamage{Uncaught: packet.Cargo.Total()}
@@ -245,7 +248,7 @@ func (packet *MineralPacket) estimateDamage(rules *Rules, player *Player, target
 		}
 
 		// no decay, so we don't need to bother calculating decay amount
-		if decayRate == 1 {
+		if decayRate == 0 {
 			break
 		}
 
@@ -263,11 +266,11 @@ func (packet *MineralPacket) estimateDamage(rules *Rules, player *Player, target
 
 		// packet out of minerals; return special exit code
 		if packetCopy.Cargo.Total() == 0 {
-			return MineralPacketDamage{Uncaught: -1}
+			return MineralPacketDamage{Uncaught: MineralPacketDecayToNothing}
 		}
 	}
 
-	damage := packetCopy.getDamage(rules, target, planetPlayer)
+	damage := packetCopy.getDamage(target, planetPlayer)
 
 	// clear packet uncaught statistic as we don't care about it (this is a **damage** test function after all)
 	damage.Uncaught = 0
