@@ -29,3 +29,12 @@ func getCloakPercentForCloakUnits(cloakUnits int) int {
 		}
 	}
 }
+
+// get the factor to reduce scan ranges by based on a cloakPercent and
+// a cloak reduction factor (i.e. tachyons)
+func getCloakFactor(cloakPercent int, cloakReductionFactor float64) float64 {
+	if cloakPercent > 0 {
+		return float64(cloakPercent) / 100 * cloakReductionFactor
+	}
+	return 1
+}

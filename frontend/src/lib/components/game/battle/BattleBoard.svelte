@@ -25,7 +25,7 @@
 	<div class="mx-auto">
 		<div class="flex flex-row flex-wrap">
 			<!-- the grid of the board -->
-			<div class="flex flex-col">
+			<div class="flex flex-col md:mt-7">
 				<div
 					class="w-[690px] h-[690px] relative grid grid-cols-10 grid-cols-max grid-rows-max border-2 border-secondary rounded-md gap-0"
 				>
@@ -75,6 +75,8 @@
 							<BattleBoardAction {battle} {action} {phase} />
 						</div>
 					</div>
+				{:else}
+					<div class="text-xl font-semibold text-center">&nbsp</div>
 				{/if}
 				{#if selectedToken}
 					<div class="w-full card bg-base-200 shadow rounded-sm border-2 border-base-300 mb-2">

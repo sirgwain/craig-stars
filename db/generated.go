@@ -301,6 +301,7 @@ func (c *GameConverter) ConvertGamePlayer(source *cs.Player) *Player {
 		dbPlayer.Num = (*source).Num
 		dbPlayer.Ready = (*source).Ready
 		dbPlayer.AIControlled = (*source).AIControlled
+		dbPlayer.AIDifficulty = cs.AIDifficulty((*source).AIDifficulty)
 		dbPlayer.Guest = (*source).Guest
 		dbPlayer.SubmittedTurn = (*source).SubmittedTurn
 		dbPlayer.Color = (*source).Color
@@ -577,6 +578,7 @@ func (c *GameConverter) ConvertPlayer(source Player) cs.Player {
 	csPlayer.Num = source.Num
 	csPlayer.Ready = source.Ready
 	csPlayer.AIControlled = source.AIControlled
+	csPlayer.AIDifficulty = cs.AIDifficulty(source.AIDifficulty)
 	csPlayer.Guest = source.Guest
 	csPlayer.SubmittedTurn = source.SubmittedTurn
 	csPlayer.Color = source.Color

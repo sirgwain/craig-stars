@@ -317,15 +317,79 @@ var Races []cs.Race = []cs.Race{
 	},
 }
 
-func GetRandomRace() cs.Race {
-	return Races[rand.Intn(len(Races)-1)]
+var CheaterRaces []cs.Race = []cs.Race{
+	{
+		Name:       "Waaagh!",
+		PluralName: "Waaagh!",
+		PRT:        cs.JoaT,
+		LRTs:       cs.Bitmask(cs.IFE) | cs.Bitmask(cs.ISB) | cs.Bitmask(cs.OBRM),
+		HabLow: cs.Hab{
+			Temp: 15,
+			Rad:  15,
+		},
+		HabHigh: cs.Hab{
+			Temp: 85,
+			Rad:  85,
+		},
+		ImmuneGrav:    true,
+		GrowthRate:    20,
+		PopEfficiency: 8,
+		FactoryOutput: 13,
+		FactoryCost:   5,
+		NumFactories:  15,
+		MineOutput:    13,
+		MineCost:      2,
+		NumMines:      15,
+		ResearchCost: cs.ResearchCost{
+			Energy:        cs.ResearchCostStandard,
+			Weapons:       cs.ResearchCostLess,
+			Propulsion:    cs.ResearchCostStandard,
+			Construction:  cs.ResearchCostLess,
+			Electronics:   cs.ResearchCostStandard,
+			Biotechnology: cs.ResearchCostExtra,
+		},
+	},
+	{
+		Name:              "Space Ork",
+		PluralName:        "Space Orks",
+		PRT:               cs.HE,
+		LRTs:              cs.Bitmask(cs.IFE) | cs.Bitmask(cs.ISB) | cs.Bitmask(cs.NRSE) | cs.Bitmask(cs.OBRM),
+		ImmuneGrav:        true,
+		ImmuneTemp:        true,
+		ImmuneRad:         true,
+		GrowthRate:        10,
+		PopEfficiency:     10,
+		FactoryOutput:     15,
+		FactoryCost:       6,
+		NumFactories:      15,
+		FactoriesCostLess: true,
+		MineOutput:        12,
+		MineCost:          3,
+		NumMines:          16,
+		ResearchCost: cs.ResearchCost{
+			Energy:        cs.ResearchCostStandard,
+			Weapons:       cs.ResearchCostLess,
+			Propulsion:    cs.ResearchCostExtra,
+			Construction:  cs.ResearchCostLess,
+			Electronics:   cs.ResearchCostExtra,
+			Biotechnology: cs.ResearchCostExtra,
+		},
+	},
 }
 
-func GetRandomRaces(numRaces int) []cs.Race {
-	raceNums := make([]int, len(Races))
+// Get a list of random races with minimal repeats from either the Cheater races or regular races
+func GetRandomRaces(numRaces int, cheater bool) []cs.Race {
+	if cheater {
+		return getRandomRaces(numRaces, CheaterRaces)
+	}
+	return getRandomRaces(numRaces, Races)
+}
+
+func getRandomRaces(numRaces int, racesToPickFrom []cs.Race) []cs.Race {
+	raceNums := make([]int, len(racesToPickFrom))
 	races := make([]cs.Race, numRaces)
 
-	for i := 0; i < len(Races); i++ {
+	for i := 0; i < len(racesToPickFrom); i++ {
 		raceNums[i] = i
 	}
 
@@ -341,7 +405,7 @@ func GetRandomRaces(numRaces int) []cs.Race {
 			count = 0
 			rand.Shuffle(len(raceNums), func(i, j int) { raceNums[i], raceNums[j] = raceNums[j], raceNums[i] })
 		}
-		races[r] = Races[raceNums[count]]
+		races[r] = racesToPickFrom[raceNums[count]]
 		count++
 	}
 

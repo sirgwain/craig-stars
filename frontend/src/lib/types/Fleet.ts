@@ -17,6 +17,8 @@ export type Fleet = {
 	damage?: number;
 	tokens?: ShipToken[];
 	mass?: number;
+	scanRange?: number; // discoverable for allies when scanning
+	scanRangePen?: number;
 	freighter?: boolean;
 	orbitingPlanetNum?: number;
 	starbase?: boolean;
@@ -128,7 +130,8 @@ export type Spec = {
 	scanRange?: number;
 	scanRangePen?: number;
 	repairBonus?: number;
-	torpedoInaccuracyFactor?: number;
+	torpedoBonus?: number;
+	torpedoJamming?: number;
 	initiative?: number;
 	movement?: number;
 	powerRating?: number;
@@ -154,6 +157,26 @@ export type Spec = {
 	hasMassDriver?: boolean;
 	maxPopulation?: number;
 };
+
+export function emptyTransportTasks(): WaypointTransportTasks {
+	return {
+		fuel: {
+			action: WaypointTaskTransportAction.None
+		},
+		ironium: {
+			action: WaypointTaskTransportAction.None
+		},
+		boranium: {
+			action: WaypointTaskTransportAction.None
+		},
+		germanium: {
+			action: WaypointTaskTransportAction.None
+		},
+		colonists: {
+			action: WaypointTaskTransportAction.None
+		}
+	};
+}
 
 export class CommandedFleet implements Fleet {
 	id = 0;

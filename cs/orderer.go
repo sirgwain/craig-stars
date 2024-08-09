@@ -22,6 +22,9 @@ type SplitFleetRequest struct {
 	SourceTokens []ShipToken `json:"sourceTokens,omitempty"`
 	DestTokens   []ShipToken `json:"destTokens,omitempty"`
 
+	// a name for the dest fleet, if it is newly created
+	DestBaseName string `json:"destBaseName,omitempty"`
+
 	// the amount of cargo to transfer from the source fleet to the dest when splitting
 	TransferAmount CargoTransferRequest `json:"transferAmount,omitempty"`
 }
@@ -109,10 +112,14 @@ func (o *orders) UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet
 	}
 
 	planet.PopulateProductionQueueEstimates(rules, player)
+	spec = &planet.Spec
 
 	// update the player spec with the change in resources for this planet
-	player.Spec.ResourcesPerYearResearch = player.Spec.ResourcesPerYearResearch - oldResourcesPerYearResearch + spec.ResourcesPerYearResearch
-	player.Spec.ResourcesPerYearResearchEstimated = player.Spec.ResourcesPerYearResearchEstimated - oldResourcesPerYearResearchEstimatedLeftover + spec.ResourcesPerYearResearchEstimatedLeftover
+	// if we turned on/off Contribute Only Leftover Resources to Research, the amount this planet contributes to research goes up
+	planetResearchDiff := spec.ResourcesPerYearResearch - oldResourcesPerYearResearch
+	planetLeftoverDiff := spec.ResourcesPerYearResearchEstimatedLeftover - oldResourcesPerYearResearchEstimatedLeftover
+	player.Spec.ResourcesPerYearResearch = player.Spec.ResourcesPerYearResearch + planetResearchDiff
+	player.Spec.ResourcesPerYearResearchEstimated = player.Spec.ResourcesPerYearResearchEstimated + planetResearchDiff + planetLeftoverDiff
 
 	planet.MarkDirty()
 
@@ -129,6 +136,7 @@ func (o *orders) UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet
 func (o *orders) UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrders) {
 	// copy user modifiable things to the fleet fleet
 	fleet.RepeatOrders = orders.RepeatOrders
+	fleet.BattlePlanNum = orders.BattlePlanNum
 	wp0 := &fleet.Waypoints[0]
 	newWP0 := orders.Waypoints[0]
 
@@ -150,9 +158,8 @@ func (o *orders) UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrd
 	if len(fleet.Waypoints) > 1 {
 		fleet.Heading = (fleet.Waypoints[1].Position.Subtract(fleet.Position)).Normalized()
 	}
-	
+
 	fleet.computeFuelUsage(player)
-	fleet.MarkDirty()
 
 	log.Info().
 		Int64("GameID", player.GameID).
@@ -202,8 +209,6 @@ func (o *orders) TransferFleetCargo(rules *Rules, player, destPlayer *Player, so
 
 	source.Spec = ComputeFleetSpec(rules, player, source)
 	dest.Spec = ComputeFleetSpec(rules, destPlayer, dest)
-	source.MarkDirty()
-	dest.MarkDirty()
 
 	log.Info().
 		Int64("GameID", player.GameID).
@@ -245,8 +250,6 @@ func (o *orders) TransferPlanetCargo(rules *Rules, player *Player, source *Fleet
 	starbaseSpec := dest.Spec.PlanetStarbaseSpec
 	dest.Spec = computePlanetSpec(rules, player, dest)
 	dest.Spec.PlanetStarbaseSpec = starbaseSpec
-
-	source.MarkDirty()
 	dest.MarkDirty()
 
 	log.Info().
@@ -297,9 +300,6 @@ func (o *orders) TransferSalvageCargo(rules *Rules, player *Player, source *Flee
 	discover := newDiscoverer(player)
 	discover.discoverSalvage(dest)
 
-	source.MarkDirty()
-	dest.MarkDirty()
-
 	log.Info().
 		Int64("GameID", player.GameID).
 		Int("PlayerNum", player.Num).
@@ -328,8 +328,8 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 		t.Damage *= float64(t.QuantityDamaged)
 		tokensByDesign[token.DesignNum] = &t
 	}
-	if request.Dest != nil {
-		for _, token := range request.Dest.Tokens {
+	if dest != nil {
+		for _, token := range dest.Tokens {
 			if t, found := tokensByDesign[token.DesignNum]; found {
 				t.Quantity += token.Quantity
 				t.QuantityDamaged += token.QuantityDamaged
@@ -385,12 +385,16 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 		// create a new fleet
 		// now create the new fleet
 		fleetNum := player.getNextFleetNum(playerFleets)
-		fleet := newFleet(player, fleetNum, source.BaseName, source.Waypoints)
+		baseName := source.BaseName
+		if request.DestBaseName != "" {
+			baseName = request.DestBaseName
+		}
+		fleet := newFleet(player, fleetNum, baseName, source.Waypoints)
 		fleet.OrbitingPlanetNum = source.OrbitingPlanetNum
 		fleet.Heading = source.Heading
 		fleet.WarpSpeed = source.WarpSpeed
 		fleet.PreviousPosition = source.PreviousPosition
-		fleet.battlePlan = source.battlePlan
+		fleet.BattlePlanNum = source.BattlePlanNum
 
 		// create a slice of empty tokens we will populate
 		fleet.Tokens = make([]ShipToken, len(source.Tokens))
@@ -436,9 +440,6 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 		dest.Delete = true
 	}
 
-	source.MarkDirty()
-	dest.MarkDirty()
-
 	log.Info().
 		Int64("GameID", player.GameID).
 		Int("PlayerNum", player.Num).
@@ -481,8 +482,6 @@ func (o *orders) SplitAll(rules *Rules, player *Player, playerFleets []*Fleet, s
 		}
 		index--
 	}
-
-	source.MarkDirty()
 
 	log.Info().
 		Int64("GameID", player.GameID).
@@ -583,7 +582,7 @@ func (o *orders) splitFleetTokens(rules *Rules, player *Player, playerFleets []*
 	fleet.Heading = source.Heading
 	fleet.WarpSpeed = source.WarpSpeed
 	fleet.PreviousPosition = source.PreviousPosition
-	fleet.battlePlan = source.battlePlan
+	fleet.BattlePlanNum = source.BattlePlanNum
 	fleet.Tokens = tokens
 
 	// the fleet has some percentage of fuel fullness
@@ -715,7 +714,6 @@ func (o *orders) Merge(rules *Rules, player *Player, fleets []*Fleet) (*Fleet, e
 		Msg("merged fleet")
 
 	fleet.Spec = ComputeFleetSpec(rules, player, fleet)
-	fleet.MarkDirty()
 
 	return fleet, nil
 }

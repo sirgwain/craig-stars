@@ -156,6 +156,36 @@ func TestShipToken_applyOvergateDamage(t *testing.T) {
 			want: tokenDamage{},
 		},
 		{
+			name: "one token overmass",
+			fields: fields{
+				design:   design,
+				Quantity: 1,
+			},
+			args: args{
+				dist:           100,
+				safeRange:      100,
+				safeSourceMass: mass/2,
+				safeDestMass:   mass/2,
+				maxMassFactor:  5,
+			},
+			want: tokenDamage{damage: 44},
+		},
+		{
+			name: "two token overmass",
+			fields: fields{
+				design:   design,
+				Quantity: 2,
+			},
+			args: args{
+				dist:           100,
+				safeRange:      100,
+				safeSourceMass: mass/2,
+				safeDestMass:   mass/2,
+				maxMassFactor:  5,
+			},
+			want: tokenDamage{damage: 44},
+		},
+		{
 			name: "going over range by 2x should give 100 total damage, destroying the damaged token and leaving one behind with 50 damage",
 			fields: fields{
 				design:   design,
@@ -185,7 +215,7 @@ func TestShipToken_applyOvergateDamage(t *testing.T) {
 				safeDestMass:   mass,
 				maxMassFactor:  5,
 			},
-			want: tokenDamage{damage: 100, shipsDestroyed: 1},
+			want: tokenDamage{damage: 50, shipsDestroyed: 1},
 		},
 		{
 			name: "100% damage is 4x over safe range (maxes out at 98%)",

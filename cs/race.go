@@ -596,10 +596,16 @@ func (r *Race) GetPlanetHabitability(hab Hab) int {
 func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 	prtSpec := rules.PRTSpecs[PRT(race.PRT)]
 	spec := RaceSpec{
-		HabCenter:           race.HabCenter(),
-		StartingTechLevels:  prtSpec.StartingTechLevels,
-		StartingPlanets:     prtSpec.StartingPlanets,
-		TechCostOffset:      prtSpec.TechCostOffset,
+		HabCenter:          race.HabCenter(),
+		StartingTechLevels: prtSpec.StartingTechLevels,
+		StartingPlanets:    prtSpec.StartingPlanets,
+		TechCostOffset: TechCostOffset{
+			Engine:           prtSpec.TechCostOffset.Engine,
+			BeamWeapon:       prtSpec.TechCostOffset.BeamWeapon,
+			Torpedo:          prtSpec.TechCostOffset.Torpedo,
+			Bomb:             prtSpec.TechCostOffset.Bomb,
+			PlanetaryDefense: prtSpec.TechCostOffset.PlanetaryDefense,
+		},
 		MaxPopulationOffset: prtSpec.MaxPopulationOffset,
 		ScannerSpec: ScannerSpec{
 			ScanRangeFactor: 1,
@@ -668,10 +674,10 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		// WM
 		DiscoverDesignOnScan: prtSpec.DiscoverDesignOnScan,
 		InvasionAttackBonus:  prtSpec.InvasionAttackBonus,
+		MovementBonus:        prtSpec.MovementBonus,
 
 		// AR
 		CanRemoteMineOwnPlanets: prtSpec.CanRemoteMineOwnPlanets,
-		MovementBonus:           prtSpec.MovementBonus,
 		StarbaseCostFactor:      prtSpec.StarbaseCostFactor,
 		InnateMining:            prtSpec.InnateMining,
 		InnateResources:         prtSpec.InnateResources,
@@ -749,8 +755,19 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		spec.ShieldStrengthFactor += lrtSpec.ShieldStrengthFactorOffset
 		spec.ShieldRegenerationRate += lrtSpec.ShieldRegenerationRateOffset
 		spec.ArmorStrengthFactor += lrtSpec.ArmorStrengthFactorOffset
+
+		// add any LRT tech cost offsets
+		spec.TechCostOffset.Engine += lrtSpec.TechCostOffset.Engine
+		spec.TechCostOffset.BeamWeapon += lrtSpec.TechCostOffset.BeamWeapon
+		spec.TechCostOffset.Torpedo += lrtSpec.TechCostOffset.Torpedo
+		spec.TechCostOffset.Bomb += lrtSpec.TechCostOffset.Bomb
+		spec.TechCostOffset.PlanetaryDefense += lrtSpec.TechCostOffset.PlanetaryDefense
+
+		// CE
 		spec.EngineFailureRate += lrtSpec.EngineFailureRateOffset
-		spec.EngineReliableSpeed += lrtSpec.EngineReliableSpeed
+		if lrtSpec.EngineReliableSpeed != 0 {
+			spec.EngineReliableSpeed = MinInt(spec.EngineReliableSpeed, lrtSpec.EngineReliableSpeed)
+		}
 
 		spec.StartingPlanets[0].StartingFleets = append(spec.StartingPlanets[0].StartingFleets, lrtSpec.StartingFleets...)
 
@@ -773,8 +790,8 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		QueueItemTypeAutoFactories:          {Germanium: rules.FactoryCostGermanium + factoryGermaniumOffset, Resources: race.FactoryCost},
 		QueueItemTypeMineralAlchemy:         {Resources: rules.MineralAlchemyCost + spec.MineralAlchemyCostOffset},
 		QueueItemTypeAutoMineralAlchemy:     {Resources: rules.MineralAlchemyCost + spec.MineralAlchemyCostOffset},
-		QueueItemTypeDefenses:               rules.DefenseCost,
-		QueueItemTypeAutoDefenses:           rules.DefenseCost,
+		QueueItemTypeDefenses:               rules.DefenseCost.MultiplyFloat64(1 + spec.TechCostOffset.PlanetaryDefense),
+		QueueItemTypeAutoDefenses:           rules.DefenseCost.MultiplyFloat64(1 + spec.TechCostOffset.PlanetaryDefense),
 		QueueItemTypeTerraformEnvironment:   rules.TerraformCost.Add(spec.TerraformCostOffset),
 		QueueItemTypeAutoMaxTerraform:       rules.TerraformCost.Add(spec.TerraformCostOffset),
 		QueueItemTypeAutoMinTerraform:       rules.TerraformCost.Add(spec.TerraformCostOffset),

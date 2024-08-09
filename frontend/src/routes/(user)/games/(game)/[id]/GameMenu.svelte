@@ -92,58 +92,69 @@
 					<Icon src={Bars3} size="24" />
 				</div>
 			</label>
-			<ul tabindex="0" class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-300 w-52">
-				<li>
-					<DarkModeToggler />
-				</li>
-				{#if !$player.submittedTurn}
-					<li class="md:hidden menu-title">
-						<span>Commands</span>
-					</li>
-					<li class="md:hidden"><a href={`/games/${$game.id}/research`}>Research</a></li>
-					<li class="md:hidden"><a href={`/games/${$game.id}/designer`}>Ship Designer</a></li>
-					<li class="md:hidden"><a href={`/games/${$game.id}/battle-plans`}>Battle Plans</a></li>
-					<li class="md:hidden">
-						<a href={`/games/${$game.id}/production-plans`}>Production Plans</a>
-					</li>
-					<li class="md:hidden">
-						<a href={`/games/${$game.id}/transport-plans`}>Transport Plans</a>
-					</li>
+			<div
+				tabindex="0"
+				class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-300 w-[22rem] md:w-auto"
+			>
+				<div class="flex flex-row justify-between">
+					<ul class="mt-11">
+						{#if !$player.submittedTurn}
+							<li class="md:hidden menu-title">
+								<span>Commands</span>
+							</li>
+							<li class="md:hidden"><a href={`/games/${$game.id}/research`}>Research</a></li>
+							<li class="md:hidden"><a href={`/games/${$game.id}/designer`}>Ship Designer</a></li>
+							<li class="md:hidden"><a href={`/games/${$game.id}/relations`}>Relations</a></li>
+							<li class="md:hidden">
+								<a href={`/games/${$game.id}/battle-plans`}>Battle Plans</a>
+							</li>
+							<li class="md:hidden">
+								<a href={`/games/${$game.id}/production-plans`}>Production Plans</a>
+							</li>
+							<li class="md:hidden">
+								<a href={`/games/${$game.id}/transport-plans`}>Transport Plans</a>
+							</li>
 
-					<li class="md:hidden menu-title">
-						<span>Reports</span>
-					</li>
-					<li class="md:hidden"><a href={`/games/${$game.id}/players`}>Players</a></li>
-					<li class="md:hidden"><a href={`/games/${$game.id}/planets`}>Planets</a></li>
-					<li class="md:hidden"><a href={`/games/${$game.id}/fleets`}>Fleets</a></li>
-					<li class="md:hidden"><a href={`/games/${$game.id}/designs`}>Designs</a></li>
-					<li class="md:hidden"><a href={`/games/${$game.id}/messages`}>Messages</a></li>
-					<li class="md:hidden"><a href={`/games/${$game.id}/battles`}>Battles</a></li>
-				{/if}
-
-				<li class="md:hidden menu-title">
-					<span>Game</span>
-				</li>
-				<li>
-					<a href={`/games/${$game.id}/race`} class="justify-between">Race</a>
-				</li>
-				<li>
-					<a href={`/games/${$game.id}/techs`} class="justify-between">Techs</a>
-				</li>
-				{#if $me.isAdmin()}
-					<li><div class="divider" /></li>
-					<li>
-						<a href={`/admin/games`} class="justify-between">All Games</a>
-					</li>
-					<li>
-						<a href={`/admin/users`} class="justify-between">Users</a>
-					</li>
-				{/if}
-				<li><div class="divider" /></li>
-				<li><a href="/auth/logout">Logout, {$me.username}</a></li>
-				<li><div class="divider" /></li>
-				<li class="text-center">version {PKG.version}</li>
-			</ul>
+							<li class="md:hidden menu-title">
+								<span>Reports</span>
+							</li>
+							<li class="md:hidden"><a href={`/games/${$game.id}/players`}>Players</a></li>
+							<li class="md:hidden"><a href={`/games/${$game.id}/planets`}>Planets</a></li>
+							<li class="md:hidden"><a href={`/games/${$game.id}/fleets`}>Fleets</a></li>
+							<li class="md:hidden"><a href={`/games/${$game.id}/designs`}>Designs</a></li>
+							<li class="md:hidden"><a href={`/games/${$game.id}/messages`}>Messages</a></li>
+							<li class="md:hidden"><a href={`/games/${$game.id}/battles`}>Battles</a></li>
+						{/if}
+					</ul>
+					<ul>
+						<li>
+							<DarkModeToggler />
+						</li>
+						<li class="md:hidden menu-title">
+							<span>Game</span>
+						</li>
+						<li>
+							<a href={`/games/${$game.id}/race`} class="justify-between">Race</a>
+						</li>
+						<li>
+							<a href={`/games/${$game.id}/techs`} class="justify-between">Techs</a>
+						</li>
+						{#if $me.isAdmin()}
+							<li><div class="divider" /></li>
+							<li>
+								<a href={`/admin/games`} class="justify-between">All Games</a>
+							</li>
+							<li>
+								<a href={`/admin/users`} class="justify-between">Users</a>
+							</li>
+						{/if}
+						<li><div class="divider" /></li>
+						<li><a href="/auth/logout">Logout, {$me.username}</a></li>
+						<li><div class="divider" /></li>
+						<li class="text-center">version {PKG.version}</li>
+					</ul>
+				</div>
+			</div>
 		</div>
 	</div>
 </div>

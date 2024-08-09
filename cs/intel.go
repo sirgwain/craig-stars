@@ -18,34 +18,53 @@ type discoverer interface {
 	discoverPlanet(rules *Rules, planet *Planet, penScanned bool) error
 	discoverPlanetStarbase(planet *Planet) error
 	discoverPlanetCargo(planet *Planet) error
+	discoverPlanetScanner(planet *Planet) error
 	discoverPlanetTerraformability(planetNum int) error
 	discoverFleet(fleet *Fleet)
 	discoverFleetCargo(fleet *Fleet)
+	discoverFleetScanner(fleet *Fleet)
 	discoverMineField(mineField *MineField)
 	discoverMineralPacket(rules *Rules, mineralPacket *MineralPacket, packetPlayer *Player, target *Planet)
+	discoverMineralPacketScanner(mineralPacket *MineralPacket)
 	discoverSalvage(salvage *Salvage)
 	discoverWormhole(wormhole *Wormhole)
 	discoverWormholeLink(wormhole1, wormhole2 *Wormhole)
 	forgetWormhole(num int)
 	discoverMysteryTrader(mineField *MysteryTrader)
 	discoverDesign(design *ShipDesign, discoverSlots bool)
-
-	getPlanetIntel(num int) *PlanetIntel
-	getWormholeIntel(num int) *WormholeIntel
-	getMysteryTraderIntel(num int) *MysteryTraderIntel
-	getMineFieldIntel(playerNum, num int) *MineFieldIntel
-	getMineralPacketIntel(playerNum, num int) *MineralPacketIntel
-	getFleetIntel(playerNum, num int) *FleetIntel
-	getShipDesignIntel(playerNum, num int) *ShipDesignIntel
-	getSalvageIntel(num int) *SalvageIntel
 }
 
 type discover struct {
 	player *Player
 }
 
+// A discoverer of discoverers. This implements the discover interface and
+// is used to support discovering for a player and all of their allies when scanning, invading, etc
+type discovererWithAllies struct {
+	playerDiscoverer discover
+	allyDiscoverers  []discover
+}
+
 func newDiscoverer(player *Player) discoverer {
-	return &discover{player: player}
+	return &discover{player}
+}
+
+func newDiscovererWithAllies(player *Player, players []*Player) discoverer {
+	// find any players we share maps with
+	mapSharePlayers := make([]discover, 0, len(players))
+	for i, relation := range player.Relations {
+		if i == player.Num-1 {
+			continue
+		}
+		if relation.Relation == PlayerRelationFriend && relation.ShareMap {
+			mapSharePlayers = append(mapSharePlayers, discover{players[i]})
+		}
+	}
+
+	return &discovererWithAllies{
+		playerDiscoverer: discover{player},
+		allyDiscoverers:  mapSharePlayers,
+	}
 }
 
 type Intel struct {
@@ -101,15 +120,19 @@ type FleetIntel struct {
 	Cargo             Cargo       `json:"cargo,omitempty"`
 	CargoDiscovered   bool        `json:"cargoDiscovered,omitempty"`
 	Freighter         bool        `json:"freighter,omitempty"`
+	ScanRange         int         `json:"scanRange,omitempty"`
+	ScanRangePen      int         `json:"scanRangePen,omitempty"`
 	Tokens            []ShipToken `json:"tokens,omitempty"`
 }
 
 type MineralPacketIntel struct {
 	MapObjectIntel
-	WarpSpeed       int    `json:"warpSpeed,omitempty"`
+	WarpSpeed       int    `json:"warpSpeed"`
 	Heading         Vector `json:"heading"`
 	Cargo           Cargo  `json:"cargo,omitempty"`
 	TargetPlanetNum int    `json:"targetPlanetNum,omitempty"`
+	ScanRange       int    `json:"scanRange,omitempty"`
+	ScanRangePen    int    `json:"scanRangePen,omitempty"`
 }
 
 type SalvageIntel struct {
@@ -175,8 +198,8 @@ func (d *ShipDesignIntel) String() string {
 }
 
 // create a new FleetIntel object by key
-func newFleetIntel(playerNum int, num int) FleetIntel {
-	return FleetIntel{
+func newFleetIntel(playerNum int, num int) *FleetIntel {
+	return &FleetIntel{
 		MapObjectIntel: MapObjectIntel{
 			Type: MapObjectTypeFleet,
 			Intel: Intel{
@@ -280,7 +303,7 @@ func (d *discover) discoverPlanet(rules *Rules, planet *Planet, penScanned bool)
 
 	// scanning a planet tells you who owns it, and whether it has a starbase
 	// but you don't get hab/pop unlesss you own it
-	intel.PlayerNum = planet.PlayerNum	
+	intel.PlayerNum = planet.PlayerNum
 	intel.Spec.HasStarbase = planet.Spec.HasStarbase
 	intel.Spec.HasStargate = planet.Spec.HasStargate
 	intel.Spec.HasMassDriver = planet.Spec.HasMassDriver
@@ -382,6 +405,25 @@ func (d *discover) discoverPlanetCargo(planet *Planet) error {
 	return nil
 }
 
+func (d *discover) discoverPlanetScanner(planet *Planet) error {
+
+	player := d.player
+	var intel *PlanetIntel
+	planetIndex := planet.Num - 1
+
+	if planetIndex < 0 || planetIndex >= len(player.PlanetIntels) {
+		return fmt.Errorf("player %s cannot discover planet %s, planetIndex %d out of range", player, planet, planetIndex)
+	}
+
+	intel = &player.PlanetIntels[planetIndex]
+
+	intel.Spec.Scanner = planet.Spec.Scanner
+	intel.Spec.ScanRange = planet.Spec.ScanRange
+	intel.Spec.ScanRangePen = planet.Spec.ScanRangePen
+
+	return nil
+}
+
 func (d *discover) discoverPlanetTerraformability(planetNum int) error {
 	player := d.player
 	var intel *PlanetIntel
@@ -408,7 +450,19 @@ func (d *discover) discoverPlanetTerraformability(planetNum int) error {
 // discover a fleet and add it to the player's fleet intel
 func (d *discover) discoverFleet(fleet *Fleet) {
 	player := d.player
-	intel := newFleetIntel(fleet.PlayerNum, fleet.Num)
+	intel := player.getFleetIntel(fleet.PlayerNum, fleet.Num)
+	if intel == nil {
+		// discover this new mineField
+		intel = newFleetIntel(fleet.PlayerNum, fleet.Num)
+		player.FleetIntels = append(player.FleetIntels, *intel)
+		intel = &player.FleetIntels[len(player.FleetIntels)-1]
+		log.Debug().
+			Int64("GameID", player.GameID).
+			Int("Player", player.Num).
+			Int("FleetPlayer", fleet.PlayerNum).
+			Int("Fleet", fleet.Num).
+			Msgf("player discovered fleet")
+	}
 
 	intel.Name = fleet.Name
 	intel.Position = fleet.Position
@@ -419,22 +473,31 @@ func (d *discover) discoverFleet(fleet *Fleet) {
 	intel.Freighter = fleet.Spec.CargoCapacity > 0
 	intel.Tokens = fleet.Tokens
 
-	player.FleetIntels = append(player.FleetIntels, intel)
 }
 
 // discover cargo for an existing fleet
 func (d *discover) discoverFleetCargo(fleet *Fleet) {
-	existingIntel := d.getFleetIntel(fleet.PlayerNum, fleet.Num)
+	player := d.player
+	existingIntel := player.getFleetIntel(fleet.PlayerNum, fleet.Num)
 	if existingIntel != nil {
 		existingIntel.Cargo = fleet.Cargo
 		existingIntel.CargoDiscovered = true
 	}
 }
 
+func (d *discover) discoverFleetScanner(fleet *Fleet) {
+	player := d.player
+	existingIntel := player.getFleetIntel(fleet.PlayerNum, fleet.Num)
+	if existingIntel != nil {
+		existingIntel.ScanRange = fleet.Spec.ScanRange
+		existingIntel.ScanRangePen = fleet.Spec.ScanRangePen
+	}
+}
+
 // discover a salvage and add it to the player's salvage intel
 func (d *discover) discoverSalvage(salvage *Salvage) {
 	player := d.player
-	intel := d.getSalvageIntel(salvage.Num)
+	intel := player.getSalvageIntel(salvage.Num)
 	if intel == nil {
 		// discover this new wormhole
 		player.SalvageIntels = append(player.SalvageIntels, *newSalvageIntel(salvage.PlayerNum, salvage.Num))
@@ -458,7 +521,7 @@ func (d *discover) discoverSalvage(salvage *Salvage) {
 // discover a mineField and add it to the player's mineField intel
 func (d *discover) discoverMineField(mineField *MineField) {
 	player := d.player
-	intel := d.getMineFieldIntel(mineField.PlayerNum, mineField.Num)
+	intel := player.getMineFieldIntel(mineField.PlayerNum, mineField.Num)
 	if intel == nil {
 		// discover this new mineField
 		intel = newMineFieldIntel(mineField.PlayerNum, mineField.Num)
@@ -482,7 +545,7 @@ func (d *discover) discoverMineField(mineField *MineField) {
 // discover a mineralPacket and add it to the player's mineralPacket intel
 func (d *discover) discoverMineralPacket(rules *Rules, mineralPacket *MineralPacket, packetPlayer *Player, target *Planet) {
 	player := d.player
-	intel := d.getMineralPacketIntel(mineralPacket.PlayerNum, mineralPacket.Num)
+	intel := player.getMineralPacketIntel(mineralPacket.PlayerNum, mineralPacket.Num)
 	if intel == nil {
 		// discover this new mineralPacket
 		intel = newMineralPacketIntel(mineralPacket.PlayerNum, mineralPacket.Num)
@@ -498,10 +561,10 @@ func (d *discover) discoverMineralPacket(rules *Rules, mineralPacket *MineralPac
 
 	if player.Num != mineralPacket.PlayerNum {
 		if target.PlayerNum == player.Num {
-			damage := mineralPacket.getDamage(rules, target, player)
-			messager.mineralPacketDiscoveredTargettingPlayer(player, mineralPacket, packetPlayer, target, damage)
+			damage := mineralPacket.estimateDamage(rules, packetPlayer, target, player)
+			messager.mineralPacketDiscoveredTargettingPlayer(player, mineralPacket, target, damage)
 		} else {
-			messager.mineralPacketDiscovered(player, mineralPacket, packetPlayer, target)
+			messager.mineralPacketDiscovered(player, mineralPacket, target)
 		}
 	}
 
@@ -513,11 +576,20 @@ func (d *discover) discoverMineralPacket(rules *Rules, mineralPacket *MineralPac
 	intel.TargetPlanetNum = mineralPacket.TargetPlanetNum
 }
 
+func (d *discover) discoverMineralPacketScanner(mineralPacket *MineralPacket) {
+	player := d.player
+	existingIntel := player.getMineralPacketIntel(mineralPacket.PlayerNum, mineralPacket.Num)
+	if existingIntel != nil {
+		existingIntel.ScanRange = mineralPacket.ScanRange
+		existingIntel.ScanRangePen = mineralPacket.ScanRangePen
+	}
+}
+
 // discover a player's design. This is a noop if we already know about
 // the design and aren't discovering slots
 func (d *discover) discoverDesign(design *ShipDesign, discoverSlots bool) {
 	player := d.player
-	intel := d.getShipDesignIntel(design.PlayerNum, design.Num)
+	intel := player.getShipDesignIntel(design.PlayerNum, design.Num)
 	if intel == nil {
 		// create a new intel for this design
 		intel = &ShipDesignIntel{
@@ -575,7 +647,7 @@ func (d *discover) discoverDesign(design *ShipDesign, discoverSlots bool) {
 // discover a wormhole and add it to the player's wormhole intel
 func (d *discover) discoverWormhole(wormhole *Wormhole) {
 	player := d.player
-	intel := d.getWormholeIntel(wormhole.Num)
+	intel := player.getWormholeIntel(wormhole.Num)
 	if intel == nil {
 		// discover this new wormhole
 		player.WormholeIntels = append(player.WormholeIntels, *newWormholeIntel(wormhole.Num))
@@ -594,7 +666,7 @@ func (d *discover) discoverWormhole(wormhole *Wormhole) {
 
 func (d *discover) discoverWormholeLink(wormhole1, wormhole2 *Wormhole) {
 	player := d.player
-	intel1 := d.getWormholeIntel(wormhole1.Num)
+	intel1 := player.getWormholeIntel(wormhole1.Num)
 	if intel1 == nil {
 		// discover this new wormhole
 		player.WormholeIntels = append(player.WormholeIntels, *newWormholeIntel(wormhole1.Num))
@@ -606,7 +678,7 @@ func (d *discover) discoverWormholeLink(wormhole1, wormhole2 *Wormhole) {
 			Msgf("player discovered wormhole1 link")
 	}
 
-	intel2 := d.getWormholeIntel(wormhole2.Num)
+	intel2 := player.getWormholeIntel(wormhole2.Num)
 	if intel2 == nil {
 		// discover this new wormhole
 		player.WormholeIntels = append(player.WormholeIntels, *newWormholeIntel(wormhole2.Num))
@@ -632,7 +704,7 @@ func (d *discover) discoverWormholeLink(wormhole1, wormhole2 *Wormhole) {
 // forget about a wormhole
 func (d *discover) forgetWormhole(num int) {
 	player := d.player
-	intel := d.getWormholeIntel(num)
+	intel := player.getWormholeIntel(num)
 
 	if intel == nil {
 		// no wormhole to forget
@@ -651,7 +723,7 @@ func (d *discover) forgetWormhole(num int) {
 		Msgf("player forgot wormhole")
 
 		// if we knew the destination, remove the link
-	intelLink := d.getWormholeIntel(dest)
+	intelLink := player.getWormholeIntel(dest)
 	if intelLink != nil {
 		intelLink.DestinationNum = None
 	}
@@ -660,7 +732,7 @@ func (d *discover) forgetWormhole(num int) {
 // discover a mysteryTrader and add it to the player's mysteryTrader intel
 func (d *discover) discoverMysteryTrader(mysteryTrader *MysteryTrader) {
 	player := d.player
-	intel := d.getMysteryTraderIntel(mysteryTrader.Num)
+	intel := player.getMysteryTraderIntel(mysteryTrader.Num)
 	if intel == nil {
 		// discover this new mysteryTrader
 		player.MysteryTraderIntels = append(player.MysteryTraderIntels, *newMysteryTraderIntel(mysteryTrader.Num))
@@ -702,80 +774,186 @@ func (d *discover) discoverPlayerScores(player *Player) {
 	copy(intel.ScoreHistory, player.ScoreHistory)
 }
 
-func (d *discover) getPlanetIntel(num int) *PlanetIntel {
-	return &d.player.PlanetIntels[num-1]
+func (d *discovererWithAllies) discoverPlayer(player *Player) {
+	d.playerDiscoverer.discoverPlayer(player)
+	for _, allyDiscoverer := range d.allyDiscoverers {
+		if allyDiscoverer.player.Num != player.Num {
+			allyDiscoverer.discoverPlayer(player)
+		}
+	}
 }
-
-func (d *discover) getWormholeIntel(num int) *WormholeIntel {
-	for i := range d.player.WormholeIntels {
-		intel := &d.player.WormholeIntels[i]
-		if intel.Num == num {
-			return intel
+func (d *discovererWithAllies) discoverPlayerScores(player *Player) {
+	d.playerDiscoverer.discoverPlayerScores(player)
+	for _, allyDiscoverer := range d.allyDiscoverers {
+		if allyDiscoverer.player.Num != player.Num {
+			allyDiscoverer.discoverPlayerScores(player)
+		}
+	}
+}
+func (d *discovererWithAllies) discoverPlanet(rules *Rules, planet *Planet, penScanned bool) error {
+	if err := d.playerDiscoverer.discoverPlanet(rules, planet, penScanned); err != nil {
+		return err
+	}
+	for _, allyDiscoverer := range d.allyDiscoverers {
+		if allyDiscoverer.player.Num != planet.PlayerNum {
+			if err := allyDiscoverer.discoverPlanet(rules, planet, penScanned); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
 }
 
-func (d *discover) getMysteryTraderIntel(num int) *MysteryTraderIntel {
-	for i := range d.player.MysteryTraderIntels {
-		intel := &d.player.MysteryTraderIntels[i]
-		if intel.Num == num {
-			return intel
+func (d *discovererWithAllies) discoverPlanetStarbase(planet *Planet) error {
+	if err := d.playerDiscoverer.discoverPlanetStarbase(planet); err != nil {
+		return err
+	}
+	for _, allyDiscoverer := range d.allyDiscoverers {
+		if allyDiscoverer.player.Num != planet.PlayerNum {
+			if err := allyDiscoverer.discoverPlanetStarbase(planet); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
 }
 
-func (d *discover) getMineFieldIntel(playerNum, num int) *MineFieldIntel {
-	for i := range d.player.MineFieldIntels {
-		intel := &d.player.MineFieldIntels[i]
-		if intel.PlayerNum == playerNum && intel.Num == num {
-			return intel
+func (d *discovererWithAllies) discoverPlanetCargo(planet *Planet) error {
+	if err := d.playerDiscoverer.discoverPlanetCargo(planet); err != nil {
+		return err
+	}
+	for _, allyDiscoverer := range d.allyDiscoverers {
+		if allyDiscoverer.player.Num != planet.PlayerNum {
+			if err := allyDiscoverer.discoverPlanetCargo(planet); err != nil {
+				return err
+			}
 		}
 	}
-
 	return nil
 }
 
-func (d *discover) getMineralPacketIntel(playerNum, num int) *MineralPacketIntel {
-	for i := range d.player.MineralPacketIntels {
-		intel := &d.player.MineralPacketIntels[i]
-		if intel.PlayerNum == playerNum && intel.Num == num {
-			return intel
+func (d *discovererWithAllies) discoverPlanetScanner(planet *Planet) error {
+	if err := d.playerDiscoverer.discoverPlanetScanner(planet); err != nil {
+		return err
+	}
+	for _, allyDiscoverer := range d.allyDiscoverers {
+		if allyDiscoverer.player.Num != planet.PlayerNum {
+			if err := allyDiscoverer.discoverPlanetScanner(planet); err != nil {
+				return err
+			}
 		}
 	}
-
 	return nil
 }
 
-func (d *discover) getFleetIntel(playerNum, num int) *FleetIntel {
-	for i := range d.player.FleetIntels {
-		intel := &d.player.FleetIntels[i]
-		if intel.PlayerNum == playerNum && intel.Num == num {
-			return intel
+func (d *discovererWithAllies) discoverPlanetTerraformability(planetNum int) error {
+	if err := d.playerDiscoverer.discoverPlanetTerraformability(planetNum); err != nil {
+		return err
+	}
+	for _, allyDiscoverer := range d.allyDiscoverers {
+		if err := allyDiscoverer.discoverPlanetTerraformability(planetNum); err != nil {
+			return err
 		}
 	}
-
 	return nil
 }
 
-func (d *discover) getShipDesignIntel(playerNum, num int) *ShipDesignIntel {
-	for i := range d.player.ShipDesignIntels {
-		intel := &d.player.ShipDesignIntels[i]
-		if intel.PlayerNum == playerNum && intel.Num == num {
-			return intel
+func (d *discovererWithAllies) discoverFleet(fleet *Fleet) {
+	d.playerDiscoverer.discoverFleet(fleet)
+	for _, allyDiscoverer := range d.allyDiscoverers {
+		if allyDiscoverer.player.Num != fleet.PlayerNum {
+			allyDiscoverer.discoverFleet(fleet)
 		}
 	}
-
-	return nil
 }
 
-func (d *discover) getSalvageIntel(num int) *SalvageIntel {
-	for i := range d.player.SalvageIntels {
-		intel := &d.player.SalvageIntels[i]
-		if intel.Num == num {
-			return intel
+func (d *discovererWithAllies) discoverFleetCargo(fleet *Fleet) {
+	d.playerDiscoverer.discoverFleetCargo(fleet)
+	for _, allyDiscoverer := range d.allyDiscoverers {
+		if allyDiscoverer.player.Num != fleet.PlayerNum {
+			allyDiscoverer.discoverFleetCargo(fleet)
 		}
 	}
-	return nil
+}
+
+func (d *discovererWithAllies) discoverFleetScanner(fleet *Fleet) {
+	d.playerDiscoverer.discoverFleetScanner(fleet)
+	for _, allyDiscoverer := range d.allyDiscoverers {
+		if allyDiscoverer.player.Num != fleet.PlayerNum {
+			allyDiscoverer.discoverFleetScanner(fleet)
+		}
+	}
+}
+
+func (d *discovererWithAllies) discoverMineField(mineField *MineField) {
+	d.playerDiscoverer.discoverMineField(mineField)
+	for _, allyDiscoverer := range d.allyDiscoverers {
+		if allyDiscoverer.player.Num != mineField.PlayerNum {
+			allyDiscoverer.discoverMineField(mineField)
+		}
+	}
+}
+
+func (d *discovererWithAllies) discoverMineralPacket(rules *Rules, mineralPacket *MineralPacket, packetPlayer *Player, target *Planet) {
+	d.playerDiscoverer.discoverMineralPacket(rules, mineralPacket, packetPlayer, target)
+	for _, allyDiscoverer := range d.allyDiscoverers {
+		if allyDiscoverer.player.Num != mineralPacket.PlayerNum {
+			allyDiscoverer.discoverMineralPacket(rules, mineralPacket, packetPlayer, target)
+		}
+	}
+}
+
+func (d *discovererWithAllies) discoverMineralPacketScanner(mineralPacket *MineralPacket) {
+	d.playerDiscoverer.discoverMineralPacketScanner(mineralPacket)
+	for _, allyDiscoverer := range d.allyDiscoverers {
+		if allyDiscoverer.player.Num != mineralPacket.PlayerNum {
+			allyDiscoverer.discoverMineralPacketScanner(mineralPacket)
+		}
+	}
+}
+
+func (d *discovererWithAllies) discoverSalvage(salvage *Salvage) {
+	d.playerDiscoverer.discoverSalvage(salvage)
+	for _, allyDiscoverer := range d.allyDiscoverers {
+		if allyDiscoverer.player.Num != salvage.PlayerNum {
+			allyDiscoverer.discoverSalvage(salvage)
+		}
+	}
+}
+
+func (d *discovererWithAllies) discoverWormhole(wormhole *Wormhole) {
+	d.playerDiscoverer.discoverWormhole(wormhole)
+	for _, allyDiscoverer := range d.allyDiscoverers {
+		allyDiscoverer.discoverWormhole(wormhole)
+	}
+}
+
+func (d *discovererWithAllies) discoverWormholeLink(wormhole1, wormhole2 *Wormhole) {
+	d.playerDiscoverer.discoverWormholeLink(wormhole1, wormhole2)
+	for _, allyDiscoverer := range d.allyDiscoverers {
+		allyDiscoverer.discoverWormholeLink(wormhole1, wormhole2)
+	}
+}
+
+func (d *discovererWithAllies) forgetWormhole(num int) {
+	d.playerDiscoverer.forgetWormhole(num)
+	for _, allyDiscoverer := range d.allyDiscoverers {
+		allyDiscoverer.forgetWormhole(num)
+	}
+}
+
+func (d *discovererWithAllies) discoverMysteryTrader(mysterTrader *MysteryTrader) {
+	d.playerDiscoverer.discoverMysteryTrader(mysterTrader)
+	for _, allyDiscoverer := range d.allyDiscoverers {
+		allyDiscoverer.discoverMysteryTrader(mysterTrader)
+	}
+}
+
+func (d *discovererWithAllies) discoverDesign(design *ShipDesign, discoverSlots bool) {
+	d.playerDiscoverer.discoverDesign(design, discoverSlots)
+	for _, allyDiscoverer := range d.allyDiscoverers {
+		if allyDiscoverer.player.Num != design.PlayerNum {
+			allyDiscoverer.discoverDesign(design, discoverSlots)
+		}
+	}
 }

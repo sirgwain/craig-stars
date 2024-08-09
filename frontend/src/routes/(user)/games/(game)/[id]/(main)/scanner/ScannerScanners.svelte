@@ -22,7 +22,7 @@
 			const scannersByPosition = new Map<string, Scanner>();
 
 			$universe.planets
-				.filter((p) => p.scanner)
+				.filter((p) => p.playerNum == $player.num && p.spec?.scanner)
 				.forEach((planet) =>
 					scannersByPosition.set(positionKey(planet), {
 						position: planet.position,
@@ -32,7 +32,11 @@
 				);
 
 			$universe.fleets
-				.filter((fleet) => fleet.spec?.scanner)
+				.filter(
+					(fleet) =>
+						fleet.playerNum == $player.num &&
+						((fleet.spec?.scanRange ?? 0) > 0 || (fleet.spec?.scanRangePen ?? 0) > 0)
+				)
 				.forEach((fleet) => {
 					const key = positionKey(fleet);
 					const scanner = {
@@ -50,7 +54,11 @@
 				});
 
 			$universe.mineralPackets
-				.filter((packet) => packet.scanRange != NoScanner || packet.scanRangePen != NoScanner)
+				.filter(
+					(packet) =>
+						packet.playerNum == $player.num &&
+						(packet.scanRange != NoScanner || packet.scanRangePen != NoScanner)
+				)
 				.forEach((packet) => {
 					const key = positionKey(packet);
 					const scanner = {
@@ -67,12 +75,69 @@
 					}
 				});
 
+			if ($settings.showAllyScanners) {
+				$universe.planets
+					.filter((p) => $player.isSharingMap(p.playerNum) && p.spec?.scanner)
+					.forEach((planet) =>
+						scannersByPosition.set(positionKey(planet), {
+							position: planet.position,
+							scanRange: planet.spec?.scanRange ?? 0,
+							scanRangePen: planet.spec?.scanRangePen ?? 0
+						})
+					);
+
+				// find ally's scanners
+				$universe.fleets
+					.filter(
+						(fleet) =>
+							$player.isSharingMap(fleet.playerNum) &&
+							((fleet.scanRange ?? 0) > 0 || (fleet.scanRangePen ?? 0) > 0)
+					)
+					.forEach((fleet) => {
+						const key = positionKey(fleet);
+						const scanner = {
+							position: fleet.position,
+							scanRange: fleet.scanRange ?? 0,
+							scanRangePen: fleet.scanRangePen ?? 0
+						};
+						const existing = scannersByPosition.get(key);
+						if (existing) {
+							existing.scanRange = Math.max(existing.scanRange, scanner.scanRange);
+							existing.scanRangePen = Math.max(existing.scanRangePen, scanner.scanRangePen);
+						} else {
+							scannersByPosition.set(key, scanner);
+						}
+					});
+
+				$universe.mineralPackets
+					.filter(
+						(packet) =>
+							$player.isSharingMap(packet.playerNum) &&
+							(packet.scanRange != NoScanner || packet.scanRangePen != NoScanner)
+					)
+					.forEach((packet) => {
+						const key = positionKey(packet);
+						const scanner = {
+							position: packet.position,
+							scanRange: packet.scanRange,
+							scanRangePen: packet.scanRangePen
+						};
+						const existing = scannersByPosition.get(key);
+						if (existing) {
+							existing.scanRange = Math.max(existing.scanRange, scanner.scanRange);
+							existing.scanRangePen = Math.max(existing.scanRangePen, scanner.scanRangePen);
+						} else {
+							scannersByPosition.set(key, scanner);
+						}
+					});
+			}
+
 			scanners = [];
 			scanners = Array.from(scannersByPosition.values());
 		}
 	}
 
-	$: scannerScale = ($settings.scannerPercent / 100.0)
+	$: scannerScale = $settings.scannerPercent / 100.0;
 </script>
 
 {#if $settings.showScanners}

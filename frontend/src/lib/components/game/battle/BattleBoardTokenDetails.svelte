@@ -20,8 +20,12 @@
 	$: design = token && designFinder.getDesign(token.playerNum, token.designNum);
 	$: raceName = token && playerFinder.getPlayerIntel(token.playerNum)?.racePluralName;
 	$: tokenState = token && battle.getTokenForPhase(token.num, phase);
-	$: armor = design?.spec.armor ?? 0;
-	$: shields = design?.spec.shields ?? 0;
+	$: armor = design?.spec?.armor ?? 0;
+	$: totalArmor = armor * (tokenState?.quantity ?? 0);
+	$: currentArmor = token
+		? armor * (tokenState?.quantity ?? 0) -
+			(tokenState?.damage ?? 0) * (tokenState?.quantityDamaged ?? 0)
+		: 0;
 </script>
 
 <div class="w-full">
@@ -41,8 +45,8 @@
 				<div class="flex flex-col">
 					<div>
 						{design?.name}
-						{#if (token.quantity ?? 0) > 1}
-							x{token.quantity}
+						{#if (tokenState.quantity ?? 0) > 1}
+							x{tokenState.quantity}
 						{/if}
 						<Icon src={QuestionMarkCircle} size="16" class=" cursor-help inline-block" />
 					</div>
@@ -67,7 +71,7 @@
 		</div>
 		<div class="flex justify-between">
 			<div>
-				Armor: {armor}dp
+				Armor: {currentArmor.toFixed(0)}/{totalArmor}dp
 			</div>
 			{#if tokenState.destroyedPhase && phase >= tokenState.destroyedPhase}
 				<div class="text-error">Destroyed</div>
@@ -78,7 +82,7 @@
 			{/if}
 		</div>
 		<div>
-			Shields: {shields ?? 'none'}
+			Shields: {tokenState.stackShields ?? 'none'}
 		</div>
 		<div>
 			Tactic: {startCase(token.tactic)}

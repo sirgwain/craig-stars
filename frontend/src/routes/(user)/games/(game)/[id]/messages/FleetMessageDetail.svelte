@@ -30,7 +30,7 @@
 		{:else}
 			killing {bombing.colonistsKilled ?? 0} colonists, and destroying {bombing.minesDestroyed ?? 0}
 			mines,
-			{bombing.factoriesDestroyed ?? 0} factories and {bombing.defensesDestroyed ?? 0} defenses.
+			{bombing.factoriesDestroyed ?? 0} factories, and {bombing.defensesDestroyed ?? 0} defenses.
 
 			{#if absSum(bombing.unterraformAmount ?? {}) > 0}
 				Your bombers have retro-bombed the planet, undoing {absSum(
@@ -43,11 +43,15 @@
 		Your fleet {message.targetName} has bombed {$universe.getPlayerName(
 			message.spec.targetPlayerNum
 		)} planet
-		{message.spec.targetName}
+		{message.spec.targetName}.
 	{/if}
 {:else if message.type === MessageType.FleetBuilt}
+	{#if message.spec.amount === 1}
+	Your starbase at {message.spec.targetName} has built a new {message.spec.name}.
+	{:else}
 	Your starbase at {message.spec.targetName} has built {message.spec.amount ?? 'a'} new {message
-		.spec.name}s.
+		.spec.name} ships.
+	{/if}
 {:else if message.type === MessageType.FleetDieoff}
 	Due to the rigors of warp acceleration, {(message.spec.amount ?? 0) * -100} of your colonists on {message.targetName}
 	have died.
@@ -69,12 +73,12 @@
 	{/if}
 {:else if message.type === MessageType.FleetRemoteMined}
 	{message.targetName} has remote mined {message.spec.targetName}, extracting {message.spec.mineral
-		?.ironium ?? 0}kT of ironium, {message.spec.mineral?.boranium ?? 0}kT of boranium, and {message
-		.spec.mineral?.germanium ?? 0}kT of germanium."
+		?.ironium ?? 0}kT of Ironium, {message.spec.mineral?.boranium ?? 0}kT of Boranium, and {message
+		.spec.mineral?.germanium ?? 0}kT of Germanium.
 {:else if message.type === MessageType.FleetTransferGiven}
 	{message.targetName} has successfully been given to {$universe.getPlayerName(
 		message.spec.destPlayerNum
-	)}
+	)}.
 {:else if message.type === MessageType.FleetScrapped}
 	{message.targetName} has been dismantled. The scrap was left in deep space.
 {:else if message.type === MessageType.FleetTransferInvalidPlayer}
@@ -87,14 +91,14 @@
 {:else if message.type === MessageType.FleetTransferInvalidColonists}
 	You couldn't give {message.targetName} away because there were some of your colonists on board.
 {:else if message.type === MessageType.FleetTransferInvalidGiveRefused}
-	{$universe.getPlayerName(message.spec.destPlayerNum)} snub your attempted gift and refuse the fleet
-	{message.targetName}. Are you sure they your allies?
+	{$universe.getPlayerName(message.spec.destPlayerNum)} snubbed your attempted gift and refused your offer of
+	{message.targetName}. Are you sure they're still your allies?
 {:else if message.type === MessageType.FleetTransferInvalidReceiveRefused}
 	{$universe.getPlayerName(message.spec.sourcePlayerNum)} has attempted to gift you {message.targetName},
 	but you have refused their offer. If you wish to receive gifts from this player in the future,
-	make sure you are allies.
+	make sure to set them as allies.
 {:else if message.type === MessageType.FleetTransferReceived}
-	{$universe.getPlayerName(message.spec.sourcePlayerNum)} has given you {message.targetName}
+	{$universe.getPlayerName(message.spec.sourcePlayerNum)} has given you {message.targetName}.
 {:else}
 	<!-- Fallback for unknown message types -->
 	<FallbackMessageDetail {message} />

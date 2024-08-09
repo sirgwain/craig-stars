@@ -49,10 +49,12 @@ export type Spec = {
 	scanRange?: number;
 	scanRangePen?: number;
 	repairBonus?: number;
-	torpedoInaccuracyFactor?: number;
+	torpedoBonus?: number;
 	torpedoJamming?: number;
 	initiative?: number;
 	movement?: number;
+	movementFull?: number;
+	movementBonus?: number;
 	powerRating?: number;
 	bomber?: boolean;
 	bombs?: Bomb[];

@@ -31,6 +31,9 @@ type BattleRecordToken struct {
 	DesignNum        int             `json:"designNum,omitempty"`
 	Position         BattleVector    `json:"position,omitempty"`
 	Initiative       int             `json:"initiative,omitempty"`
+	Mass             int             `json:"mass,omitempty"`
+	Armor            int             `json:"armor,omitempty"`
+	StackShields     int             `json:"stackShields,omitempty"`
 	Movement         int             `json:"movement,omitempty"`
 	StartingQuantity int             `json:"startingQuantity,omitempty"`
 	Tactic           BattleTactic    `json:"tactic,omitempty"`

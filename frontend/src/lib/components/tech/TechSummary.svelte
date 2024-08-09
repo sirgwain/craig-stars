@@ -65,9 +65,11 @@
 					{/if}
 					<div class="w-full">
 						{#if player}
-							<a href={`/games/${player.gameId}/techs/${kebabCase(tech.name)}`}>{tech.name}</a>
+							<a href={`/games/${player.gameId}/techs/${kebabCase(tech.name.replaceAll("'", ''))}`}
+								>{tech.name}</a
+							>
 						{:else}
-							<a href="/techs/{kebabCase(tech.name)}">{tech.name}</a>
+							<a href="/techs/{kebabCase(tech.name.replaceAll("'", ''))}">{tech.name}</a>
 						{/if}
 					</div>
 				</div>
@@ -93,7 +95,11 @@
 				<div class="flex flex-col flex-1">
 					<div class="flex flex-row gap-2">
 						<!-- cost -->
-						<Cost cost={tech.cost} />
+						{#if player}
+							<Cost cost={player.getTechCost(tech)} />
+						{:else}
+							<Cost cost={tech.cost} />
+						{/if}
 
 						{#if hullComponent}
 							<div class="flex justify-between gap-2">

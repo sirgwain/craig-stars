@@ -2,8 +2,9 @@
 	import { clickOutside } from '$lib/clickOutside';
 	import { onScannerContextPopup } from '$lib/components/game/tooltips/ScannerContextPopup.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
+	import { clamp } from '$lib/services/Math';
 	import { totalCargo } from '$lib/types/Cargo';
-	import { WaypointTask, idleFleetsFilter, type Fleet, type Waypoint } from '$lib/types/Fleet';
+	import { WaypointTask, type Waypoint } from '$lib/types/Fleet';
 	import {
 		MapObjectType,
 		None,
@@ -30,6 +31,7 @@
 	import ScannerMineFieldPattern from './ScannerMineFieldPattern.svelte';
 	import ScannerMineFields from './ScannerMineFields.svelte';
 	import ScannerMineralPackets from './ScannerMineralPackets.svelte';
+	import ScannerMysteryTraders from './ScannerMysteryTraders.svelte';
 	import ScannerNames from './ScannerNames.svelte';
 	import ScannerPacketDests from './ScannerPacketDests.svelte';
 	import ScannerPlanets from './ScannerPlanets.svelte';
@@ -40,9 +42,6 @@
 	import ScannerWormholeLinks from './ScannerWormholeLinks.svelte';
 	import ScannerWormholes from './ScannerWormholes.svelte';
 	import SelectedMapObject from './SelectedMapObject.svelte';
-	import ScannerMysteryTrader from './ScannerMysteryTrader.svelte';
-	import ScannerMysteryTraders from './ScannerMysteryTraders.svelte';
-	import { clamp } from '$lib/services/Math';
 
 	const {
 		game,
@@ -80,6 +79,7 @@
 	let zoomEnabled = true;
 	let zooming = false;
 	let showLocator = false;
+	let shouldAddWaypoint = false;
 
 	// our map scales for .75 to 10x, but the icons for the planets and fleets are 2x min
 	const minZoom = 0.75;
@@ -127,8 +127,6 @@
 			enableDragAndZoom();
 		}
 	}
-
-	$: setPacketDest = $settings.setPacketDest;
 
 	$: {
 		if ($settings.addWaypoint && zoomEnabled) {
@@ -185,6 +183,29 @@
 		scaleY = scaleLinear().range(yRange()).domain([0, $game.area.y]);
 	}
 
+	function handleKeyDown(e: KeyboardEvent) {
+		// add a waypoint if we are currently commanding a fleet and we didn't just click
+		// on the fleet
+		shouldAddWaypoint = !!$commandedFleet && e.shiftKey;
+
+		switch (e.key) {
+			case '+':
+			case '=':
+				zoomViewport(clamp($scale + 1, minZoom, maxZoom));
+				break;
+			case '-':
+			case '_':
+				zoomViewport(clamp($scale - 1, minZoom, maxZoom));
+				break;
+		}
+	}
+
+	function handleKeyUp(e: KeyboardEvent) {
+		// add a waypoint if we are currently commanding a fleet and we didn't just click
+		// on the fleet
+		shouldAddWaypoint = !!$commandedFleet && e.shiftKey;
+	}
+
 	function showTargetLocation() {
 		showLocator = true;
 		setTimeout(() => (showLocator = false), 500);
@@ -224,6 +245,13 @@
 			select(root)
 				.call(zoomBehavior.translateTo, scaled.x, scaled.y)
 				.call(zoomBehavior.scaleTo, localScale);
+		}
+	}
+
+	// zoom the viewport to a specific scale
+	function zoomViewport(scaleTo: number) {
+		if (root) {
+			select(root).call(zoomBehavior.scaleTo, scaleTo);
 		}
 	}
 
@@ -296,17 +324,13 @@
 		}
 		pointerDown = true;
 
-		// add a waypoint if we are currently commanding a fleet and we didn't just click
-		// on the fleet
-		const shouldAddWaypoint = $commandedFleet && (event.shiftKey || $settings.addWaypoint);
-
 		if (found) {
-			if (shouldAddWaypoint && (await addWaypoint(found, position))) {
+			if ((shouldAddWaypoint || $settings.addWaypoint) && (await addWaypoint(found, position))) {
 			} else {
 				mapObjectSelected(found);
 			}
 		} else {
-			if (shouldAddWaypoint) {
+			if (shouldAddWaypoint || $settings.addWaypoint) {
 				addWaypoint(found, position);
 			}
 		}
@@ -576,7 +600,7 @@
 	 * @param mo
 	 */
 	function mapObjectSelected(mo: MapObject) {
-		if (setPacketDest) {
+		if ($settings.setPacketDest) {
 			if (mo.type != MapObjectType.Planet) {
 				return;
 			} else {
@@ -585,7 +609,14 @@
 				if (!$commandedPlanet?.spec.hasMassDriver) {
 					return;
 				}
-				$commandedPlanet.packetTargetNum = mo.num;
+
+				if (mapObjectEqual(mo, $commandedPlanet)) {
+					// clear dest
+					$commandedPlanet.packetTargetNum = None;
+				} else {
+					$commandedPlanet.packetTargetNum = mo.num;
+				}
+
 				updatePlanetOrders($commandedPlanet);
 				return;
 			}
@@ -661,10 +692,13 @@
 	}
 </script>
 
-<svelte:window on:resize={handleResize} />
+<svelte:window on:resize={handleResize} on:keydown={handleKeyDown} on:keyup={handleKeyUp} />
 
 <div
 	class:cursor-grab={waypointHighlighted}
+	class:cursor-cell={shouldAddWaypoint ||
+		(!!$commandedFleet && $settings.addWaypoint) ||
+		$settings.setPacketDest}
 	class={`grow bg-black overflow-hidden p-[${padding}px] select-none`}
 	use:clickOutside={disableAddWaypointMode}
 >

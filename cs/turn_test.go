@@ -2,7 +2,6 @@ package cs
 
 import (
 	"math"
-	"math/rand"
 	"slices"
 	"testing"
 
@@ -292,7 +291,7 @@ func Test_turn_grow(t *testing.T) {
 	planet4 := game.Planets[3]
 	planet1.setPopulation(100_000)
 	planet2.setPopulation(100_000)
-	planet3.setPopulation(100)       // last turn with us
+	planet3.setPopulation(100)       // planets never die, hold strong little guys!
 	planet4.setPopulation(2_400_000) // should lose 4%
 
 	turn := turn{
@@ -305,8 +304,7 @@ func Test_turn_grow(t *testing.T) {
 	// one planet should grow, another should not, the other should die off completely
 	assert.Equal(t, 115_000, planet1.population())
 	assert.Equal(t, 95_500, planet2.population())
-	assert.Equal(t, 0, planet3.population())
-	assert.Equal(t, false, planet3.Owned())
+	assert.Equal(t, 100, planet3.population())
 	assert.Equal(t, 2_304_000, planet4.population())
 }
 
@@ -762,14 +760,15 @@ func Test_turn_permaform(t *testing.T) {
 	}
 	turn.game.Universe.buildMaps(game.Players)
 
-	// 100% chance to permaform
-	player.Race.Spec.PermaformChance = 1
+	// 10% chance to permaform
+	player.Race.Spec.PermaformChance = .1
 	player.Race.Spec.PermaformPopulation = 0
 
 	// mock the random number generator to return temp as the hab to permaform
-	mockRand := MockRand{}
-	mockRand.int63Result = int64(Temp) << 32 // rand.Intn calls this int63 and >> 32 the result
-	game.Rules.random = rand.New(mockRand)
+	rng := testRandom{}
+	rng.addFloats(.1) // permaform chance
+	rng.addInts(1)    // permaform temp
+	game.Rules.random = &rng
 
 	turn.permaform()
 
@@ -1069,7 +1068,7 @@ func Test_turn_fleetRepair(t *testing.T) {
 	player.Designs = append(player.Designs, starbaseDesign)
 	starbase.Spec = ComputeFleetSpec(&rules, player, &starbase)
 	starbase.Tokens[0].QuantityDamaged = 1
-	starbase.Tokens[0].Damage = 100
+	starbase.Tokens[0].Damage = 400
 	game.Starbases = append(game.Starbases, &starbase)
 	planet.Starbase = &starbase
 
@@ -1088,7 +1087,9 @@ func Test_turn_fleetRepair(t *testing.T) {
 
 	// should repair fleet and starbase
 	assert.Equal(t, 9.0, fleet.Tokens[0].Damage)
-	assert.Equal(t, 50.0, starbase.Tokens[0].Damage)
+	assert.Equal(t, 1, fleet.Tokens[0].QuantityDamaged)
+	assert.Equal(t, 350.0, starbase.Tokens[0].Damage)
+	assert.Equal(t, 1, starbase.Tokens[0].QuantityDamaged)
 
 }
 

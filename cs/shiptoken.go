@@ -53,7 +53,7 @@ func (st *ShipToken) applyOvergateDamage(dist float64, safeRange int, safeSource
 
 	// apply damage as a percentage of armor to all tokens
 	armor := st.design.Spec.Armor
-	newDamage := int(math.Round(totalDamageFactor * float64(st.Quantity*armor)))
+	newDamage := int(math.Round(totalDamageFactor * float64(armor)))
 	st.QuantityDamaged = st.Quantity
 	st.Damage += float64(newDamage)
 

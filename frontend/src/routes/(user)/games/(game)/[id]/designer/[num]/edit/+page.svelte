@@ -6,10 +6,10 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
 
-	const { game, universe, updateDesign } = getGameContext();
+	const { game, universe, player, updateDesign } = getGameContext();
 	let num = parseInt($page.params.num);
 
-	$: design = $universe.designs.find((d) => d.num === num);
+	$: design = $universe.designs.find((d) => d.playerNum == $player.num && d.num === num);
 	$: hull = design && $techs.getHull(design.hull);
 
 	let error = '';

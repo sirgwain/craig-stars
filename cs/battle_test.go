@@ -141,192 +141,63 @@ func testPrivateer(player *Player, quantity int) *Fleet {
 
 }
 
-func Test_battle_regenerateShields(t *testing.T) {
+func Test_battle_getBestFleeMoves(t *testing.T) {
 	type args struct {
-		player *Player
-		token  battleToken
+		token   *battleToken
+		weapons []*battleWeaponSlot
 	}
-	tests := []struct {
-		name        string
-		args        args
-		wantShields int
-	}{
-		{
-			name: "no regen",
-			args: args{
-				player: testPlayer().WithNum(1),
-				token: battleToken{
-					BattleRecordToken: BattleRecordToken{
-						PlayerNum: 1,
-					},
-					stackShields:      50,
-					totalStackShields: 100,
-				},
+
+	// generate a fleeing token at a position with 10dp
+	fleeingToken := func(position BattleVector) *battleToken {
+		return &battleToken{
+			BattleRecordToken: BattleRecordToken{Position: position, PlayerNum: 1},
+			ShipToken:         &ShipToken{Quantity: 1},
+			armor:             10,
+		}
+	}
+
+	// generate an enemy weapon at a position with a single laser
+	enemyWeapon := func(position BattleVector) *battleWeaponSlot {
+		return &battleWeaponSlot{
+			token: &battleToken{
+				BattleRecordToken: BattleRecordToken{Position: position, PlayerNum: 2, Tactic: BattleTacticMaximizeDamage, AttackWho: BattleAttackWhoEveryone, PrimaryTarget: BattleTargetAny},
+				ShipToken:         &ShipToken{Quantity: 1},
+				player:            testPlayer().WithNum(2),
+				attributes:        battleTokenAttributeArmed,
 			},
-			wantShields: 50,
-		},
-		{
-			name: "regen",
-			args: args{
-				player: NewPlayer(1, NewRace().WithLRT(RS).WithSpec(&rules)).WithNum(1),
-				token: battleToken{
-					BattleRecordToken: BattleRecordToken{
-						PlayerNum: 1,
-					},
-					stackShields:      50,
-					totalStackShields: 100,
-				},
-			},
-			wantShields: 60,
-		},
-		{
-			name: "no regen when shields gone",
-			args: args{
-				player: NewPlayer(1, NewRace().WithLRT(RS).WithSpec(&rules)).WithNum(1),
-				token: battleToken{
-					BattleRecordToken: BattleRecordToken{
-						PlayerNum: 1,
-					},
-					stackShields:      0,
-					totalStackShields: 100,
-				},
-			},
-			wantShields: 0,
-		},
+			weaponType:   battleWeaponTypeBeam,
+			power:        10,
+			weaponRange:  1,
+			slotQuantity: 1,
+		}
 	}
-	for _, tt := range tests {
 
-		t.Run(tt.name, func(t *testing.T) {
-			battle := battle{
-				players: map[int]*Player{tt.args.player.Num: tt.args.player},
-			}
-			battle.regenerateShields(&tt.args.token)
-
-			got := tt.args.token.stackShields
-			if got != tt.wantShields {
-				t.Errorf("battle.regenerateShields() = %v, want %v", got, tt.wantShields)
-			}
-
-		})
-	}
-}
-
-func Test_battle_willTarget(t *testing.T) {
-
-	type args struct {
-		target BattleTarget
-		token  battleToken
-	}
 	tests := []struct {
 		name string
 		args args
-		want bool
-	}{
-		// if our token has armed/starbase attributes, it should only target armed or starbases
-		{args: args{BattleTargetAny, battleToken{}}, want: true},
-		{args: args{BattleTargetStarbase, battleToken{attributes: battleTokenAttributeArmed | battleTokenAttributeStarbase}}, want: true},
-		{args: args{BattleTargetArmedShips, battleToken{attributes: battleTokenAttributeArmed | battleTokenAttributeStarbase}}, want: true},
-		{args: args{BattleTargetNone, battleToken{attributes: battleTokenAttributeArmed | battleTokenAttributeStarbase}}, want: false},
-		{args: args{BattleTargetBombersFreighters, battleToken{attributes: battleTokenAttributeArmed | battleTokenAttributeStarbase}}, want: false},
-		{args: args{BattleTargetUnarmedShips, battleToken{attributes: battleTokenAttributeArmed | battleTokenAttributeStarbase}}, want: false},
-		{args: args{BattleTargetFuelTransports, battleToken{attributes: battleTokenAttributeArmed | battleTokenAttributeStarbase}}, want: false},
-		{args: args{BattleTargetFreighters, battleToken{attributes: battleTokenAttributeArmed | battleTokenAttributeStarbase}}, want: false},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			b := &battle{}
-			if got := b.willTarget(tt.args.target, &tt.args.token); got != tt.want {
-				t.Errorf("battle.willTarget() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func Test_battleToken_getDistanceAway(t *testing.T) {
-
-	type args struct {
-		position BattleVector
-	}
-	tests := []struct {
-		name string
-		bt   battleToken
-		args args
-		want int
-	}{
-		{"no distance", battleToken{BattleRecordToken: BattleRecordToken{Position: BattleVector{0, 0}}}, args{BattleVector{0, 0}}, 0},
-		{"x distance greatest", battleToken{BattleRecordToken: BattleRecordToken{Position: BattleVector{2, 1}}}, args{BattleVector{4, 2}}, 2},
-		{"y distance greatest", battleToken{BattleRecordToken: BattleRecordToken{Position: BattleVector{1, 2}}}, args{BattleVector{2, 5}}, 3},
-		{"negative distance (token behind)", battleToken{BattleRecordToken: BattleRecordToken{Position: BattleVector{1, 1}}}, args{BattleVector{0, 0}}, 1},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.bt.getDistanceAway(tt.args.position); got != tt.want {
-				t.Errorf("battleToken.getDistanceAway() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func Test_battleWeaponSlot_isInRangePosition(t *testing.T) {
-	type args struct {
-		position BattleVector
-	}
-	tests := []struct {
-		name   string
-		weapon battleWeaponSlot
-		args   args
-		want   bool
-	}{
-		{"no distance, in range", battleWeaponSlot{token: &battleToken{BattleRecordToken: BattleRecordToken{Position: BattleVector{0, 0}}}}, args{BattleVector{0, 0}}, true},
-		{"distance 1, in range", battleWeaponSlot{token: &battleToken{BattleRecordToken: BattleRecordToken{Position: BattleVector{0, 0}}}, weaponRange: 1}, args{BattleVector{1, 1}}, true},
-		{"distance 2, out of range", battleWeaponSlot{token: &battleToken{BattleRecordToken: BattleRecordToken{Position: BattleVector{0, 0}}}, weaponRange: 1}, args{BattleVector{1, 2}}, false},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.weapon.isInRangePosition(tt.args.position); got != tt.want {
-				t.Errorf("battleWeaponSlot.isInRangePosition() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func Test_battle_getBestMove(t *testing.T) {
-	type args struct {
-		token *battleToken
-	}
-	tests := []struct {
-		name string
-		args args
-		want BattleVector
+		want []BattleVector
 	}{
 		{
-			name: "token at 0,0 move towards target at 1,0",
+			name: "token at 1,4 move randomly 1st option",
 			args: args{
-				token: &battleToken{
-					BattleRecordToken: BattleRecordToken{Position: BattleVector{0, 0}},
-					moveTarget:        &battleToken{BattleRecordToken: BattleRecordToken{Position: BattleVector{1, 0}}}},
+				token: fleeingToken(BattleVector{1, 4}),
 			},
-			want: BattleVector{1, 0},
+			// randomly pick from all moves
+			want: []BattleVector{{0, 3}, {0, 4}, {0, 5}, {1, 3}, {1, 4}, {1, 5}, {2, 3}, {2, 4}, {2, 5}},
 		},
 		{
-			name: "token at 3,3 move away from targetedBy at 3,3",
+			name: "token at 1,4 move away from surrounding weapons",
 			args: args{
-				token: &battleToken{
-					BattleRecordToken: BattleRecordToken{Position: BattleVector{3, 3}, Tactic: BattleTacticDisengage},
-					targetedBy:        []*battleToken{{BattleRecordToken: BattleRecordToken{Position: BattleVector{3, 3}}}}},
+				token: fleeingToken(BattleVector{1, 4}),
+				// make three weapons adjacent so we have to move straight back
+				weapons: []*battleWeaponSlot{
+					enemyWeapon(BattleVector{1, 5}),
+					enemyWeapon(BattleVector{2, 4}),
+					enemyWeapon(BattleVector{1, 3}),
+				},
 			},
-			want: BattleVector{4, 4},
+			want: []BattleVector{{0, 3}, {0, 5}},
 		},
-		// this depends on a random number. TODO: mock the random
-		// {
-		// 	name: "token at 8,5 move away from targetedBy at 1,4",
-		// 	args: args{
-		// 		token: &battleToken{
-		// 			BattleRecordToken: BattleRecordToken{Position: BattleVector{8, 5}, Tactic: BattleTacticDisengage},
-		// 			targetedBy:        []*battleToken{{BattleRecordToken: BattleRecordToken{Position: BattleVector{1, 4}}}}},
-		// 	},
-		// 	want: BattleVector{7, 5},
-		// },
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -334,7 +205,231 @@ func Test_battle_getBestMove(t *testing.T) {
 				tokens: []*battleToken{tt.args.token},
 				rules:  &rules,
 			}
-			if got := b.getBestMove(tt.args.token); !reflect.DeepEqual(got, tt.want) {
+
+			// run away and record the new position
+			if got := b.getBestFleeMoves(tt.args.token, tt.args.weapons); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("battle.getBestMove() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_battle_getBestAttackMoves(t *testing.T) {
+	type args struct {
+		token   *battleToken
+		enemies []*battleToken
+	}
+
+	laser := battleWeaponSlot{
+		weaponType:   battleWeaponTypeBeam,
+		power:        10,
+		weaponRange:  1,
+		slotQuantity: 1,
+	}
+
+	// generate a fleeing token at a position with 10dp
+	attackingToken := func(position BattleVector, tactic BattleTactic, weapon battleWeaponSlot) *battleToken {
+		player := testPlayer().WithNum(1)
+		token := battleToken{
+			BattleRecordToken: BattleRecordToken{Position: position, PlayerNum: player.Num, Tactic: tactic, AttackWho: BattleAttackWhoEveryone, PrimaryTarget: BattleTargetAny, Movement: 4},
+			ShipToken:         &ShipToken{Quantity: 1},
+			player:            player,
+			attributes:        battleTokenAttributeArmed,
+			armor:             100,
+			cost:              Cost{1, 1, 1, 1},
+		}
+
+		// put our token in the weapon passed in
+		weapon.token = &token
+		token.weaponSlots = append(token.weaponSlots, &weapon)
+
+		return &token
+	}
+
+	// generate an enemy weapon at a position with a single laser
+	enemyToken := func(position BattleVector, weapon *battleWeaponSlot) *battleToken {
+		player := testPlayer().WithNum(2)
+		token := battleToken{
+			BattleRecordToken: BattleRecordToken{Position: position, PlayerNum: player.Num, Tactic: BattleTacticMaximizeDamage, AttackWho: BattleAttackWhoEveryone, PrimaryTarget: BattleTargetAny, Movement: 4},
+			ShipToken:         &ShipToken{Quantity: 1},
+			player:            testPlayer().WithNum(2),
+			attributes:        battleTokenAttributeArmed,
+			armor:             100,
+			cost:              Cost{1, 1, 1, 1},
+		}
+
+		// if this enemy has a weapon, assign it now
+		if weapon != nil {
+			tokenWeapon := *weapon
+			tokenWeapon.token = &token
+			token.weaponSlots = append(token.weaponSlots, &tokenWeapon)
+		}
+
+		return &token
+	}
+
+	tests := []struct {
+		name string
+		args args
+		want []BattleVector
+	}{
+		{
+			// attacker should move over, or over and up/down
+			// * * * *
+			// A * * T
+			// * * * *
+			name: "move towards enemy",
+			args: args{
+				token: attackingToken(BattleVector{0, 1}, BattleTacticMaximizeDamage, laser),
+				// make three weapons adjacent so we have to move straight back
+				enemies: []*battleToken{
+					enemyToken(BattleVector{4, 1}, nil),
+				},
+			},
+			want: []BattleVector{{1, 0}, {1, 1}, {1, 2}},
+		},
+		{
+			// attacker should move over, or over and down
+			// A * * *
+			// * * * *
+			// * * * T
+			name: "move towards enemy right or right/down",
+			args: args{
+				token: attackingToken(BattleVector{0, 0}, BattleTacticMaximizeDamage, laser),
+				// make three weapons adjacent so we have to move straight back
+				enemies: []*battleToken{
+					enemyToken(BattleVector{3, 2}, nil),
+				},
+			},
+			want: []BattleVector{{1, 0}, {1, 1}},
+		},
+		{
+			// attacker should move on top to maximize damage
+			// A T * *
+			// * * * *
+			// * * * *
+			name: "maximize beam damage one target",
+			args: args{
+				token: attackingToken(BattleVector{0, 0}, BattleTacticMaximizeDamage, laser),
+				// make three weapons adjacent so we have to move straight back
+				enemies: []*battleToken{
+					enemyToken(BattleVector{1, 0}, nil),
+				},
+			},
+			want: []BattleVector{{1, 0}},
+		},
+		{
+			// attacker should move to cause the most damage vs damage taken
+			// the board will have two tokens, a strong and a weak one
+			// * S * *
+			// A W * *
+			// * * * *
+			name: "maximize damage ratio strong and weak target",
+			args: args{
+				token: attackingToken(BattleVector{0, 1}, BattleTacticMaximizeDamageRatio, laser),
+				// make three weapons adjacent so we have to move straight back
+				enemies: []*battleToken{
+					// strong 100 power beamer
+					enemyToken(BattleVector{1, 0}, &battleWeaponSlot{weaponType: battleWeaponTypeBeam, power: 100, slotQuantity: 1, weaponRange: 1}),
+					// weak 10 power beamer
+					enemyToken(BattleVector{1, 1}, &laser),
+				},
+			},
+			want: []BattleVector{{1, 2}}, // best damage ratio, and towards center
+		},
+		{
+			// attacker has torpedos and wants to stay out of range of those lasers
+			// it should move back
+			// * * 1 *
+			// * A * *
+			// * * 2 *
+			name: "maximize damage ratio, prefer no damage",
+			args: args{
+				token: attackingToken(BattleVector{1, 1}, BattleTacticMaximizeDamageRatio, battleWeaponSlot{weaponType: battleWeaponTypeTorpedo, power: 10, accuracy: 1, slotQuantity: 3, weaponRange: 2}),
+				// make three weapons adjacent so we have to move straight back
+				enemies: []*battleToken{
+					enemyToken(BattleVector{2, 0}, &laser),
+					// put two tokens here
+					enemyToken(BattleVector{2, 2}, &laser),
+					enemyToken(BattleVector{2, 2}, &laser),
+				},
+			},
+			want: []BattleVector{{0, 0}, {0, 1}, {0, 2}},
+		},
+		{
+			// attacker has torpedos and wants to stay out of range of those lasers
+			// it should move back but stay near the center if possible
+			// * * 1 *
+			// * A * *
+			// * * 2 *
+			name: "maximize damage ratio, prefer no damage, start in center (5,5)",
+			args: args{
+				token: attackingToken(BattleVector{5, 5}, BattleTacticMaximizeDamageRatio, battleWeaponSlot{weaponType: battleWeaponTypeTorpedo, power: 10, accuracy: 1, slotQuantity: 3, weaponRange: 2}),
+				// make three weapons adjacent so we have to move straight back
+				enemies: []*battleToken{
+					enemyToken(BattleVector{6, 4}, &laser),
+					// put two tokens here
+					enemyToken(BattleVector{6, 6}, &laser),
+					enemyToken(BattleVector{6, 6}, &laser),
+				},
+			},
+			want: []BattleVector{{4, 4}, {4, 5}}, // we pick the 0 damageTaken options that keep us near center
+		},
+		{
+			// attacker wants to cause the largest difference in damage
+			// the board will have three tokens, one up and right, and 2 down and right (one unarmed)
+			// we will have a powerful beam that can burn through multiple tokens so we'll move to the
+			// 2 token space to attack them both and only take damage from one
+			// * 1 * *
+			// A * * *
+			// * 2 * *
+			name: "maximize net damage",
+			args: args{
+				token: attackingToken(BattleVector{0, 1}, BattleTacticMaximizeNetDamage, battleWeaponSlot{weaponType: battleWeaponTypeBeam, power: 20, slotQuantity: 1, weaponRange: 1}),
+				// make three weapons adjacent so we have to move straight back
+				enemies: []*battleToken{
+					enemyToken(BattleVector{1, 0}, &laser),
+					// tokens at this spot
+					enemyToken(BattleVector{1, 2}, nil),
+					enemyToken(BattleVector{1, 2}, &laser),
+				},
+			},
+			want: []BattleVector{{1, 2}}, // best net damage, move to two token square
+		},
+		{
+			// attacker has torpedos and wants to stay out of range of those lasers
+			// it should move back
+			// * * L *
+			// * A * *
+			// * * L *
+			name: "minimize damage to self",
+			args: args{
+				token: attackingToken(BattleVector{1, 1}, BattleTacticMinimizeDamageToSelf, battleWeaponSlot{weaponType: battleWeaponTypeTorpedo, power: 10, accuracy: 1, slotQuantity: 2, weaponRange: 2}),
+				// make three weapons adjacent so we have to move straight back
+				enemies: []*battleToken{
+					enemyToken(BattleVector{2, 0}, &laser),
+					enemyToken(BattleVector{2, 2}, &laser),
+				},
+			},
+			want: []BattleVector{{0, 0}, {0, 1}, {0, 2}}, // min damage, move out of range
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			b := &battle{
+				tokens: append([]*battleToken{tt.args.token}, tt.args.enemies...),
+				rules:  &rules,
+			}
+
+			// build a list of weapons on the board
+			weapons := append([]*battleWeaponSlot{}, tt.args.token.weaponSlots...)
+			for _, token := range tt.args.enemies {
+				weapons = append(weapons, token.weaponSlots...)
+			}
+
+			b.findTargets()
+			// run away and record the new position
+			if got := b.getBestAttackMoves(tt.args.token, weapons); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("battle.getBestMove() = %v, want %v", got, tt.want)
 			}
 		})
@@ -367,11 +462,9 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 1, // 1 beam weapon
-						},
-						power:       10,
-						weaponRange: 1,
+						slotQuantity: 1, // 1 beam weapon
+						power:        10,
+						weaponRange:  1,
 					},
 					shipQuantity: 1,
 				},
@@ -391,11 +484,9 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 1, // 1 beam weapon
-						},
-						power:       30,
-						weaponRange: 1,
+						slotQuantity: 1, // 1 beam weapon
+						power:        30,
+						weaponRange:  1,
 					},
 					shipQuantity: 1,
 				},
@@ -417,11 +508,9 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 1, // 1 beam weapon
-						},
-						power:       10,
-						weaponRange: 2,
+						slotQuantity: 1, // 1 beam weapon
+						power:        10,
+						weaponRange:  2,
 					},
 					shipQuantity: 1,
 					position:     BattleVector{2, 0}, // 1 away from target
@@ -445,11 +534,9 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 2, // 2 beam weapons
-						},
-						power:       15, // 10 damage per beam
-						weaponRange: 2,
+						slotQuantity: 2,  // 2 beam weapons
+						power:        15, // 15 damage per beam
+						weaponRange:  2,
 					},
 					shipQuantity: 1, // one ship in the attacker stack
 				},
@@ -469,10 +556,8 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 2, // 2 beam weapons
-						},
-						power: 10,
+						slotQuantity: 2, // 2 beam weapons
+						power:        10,
 					},
 					shipQuantity: 2, // 2 ships in attacker stack
 				},
@@ -492,10 +577,8 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 2, // 2 beam weapons
-						},
-						power: 10,
+						slotQuantity: 2, // 2 beam weapons
+						power:        10,
 					},
 					shipQuantity: 1, // 1 ships in attacker stack
 				},
@@ -526,10 +609,8 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 2, // 2 beam weapons
-						},
-						power: 10,
+						slotQuantity: 2, // 2 beam weapons
+						power:        10,
 					},
 					shipQuantity: 1, // 1 ships in attacker stack
 				},
@@ -564,10 +645,8 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 1,
-						},
-						power: 10,
+						slotQuantity: 1,
+						power:        10,
 					},
 					shipQuantity: 1,
 				},
@@ -589,10 +668,8 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 1,
-						},
-						power: 100,
+						slotQuantity: 1,
+						power:        100,
 					},
 					shipQuantity: 1,
 				},
@@ -622,9 +699,7 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 1,
-						},
+						slotQuantity:   1,
 						power:          10,
 						hitsAllTargets: true,
 					},
@@ -719,11 +794,9 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 1, // 1 torpedo
-						},
-						power:    10,
-						accuracy: 1,
+						slotQuantity: 1, // 1 torpedo
+						power:        10,
+						accuracy:     1,
 					},
 					shipQuantity: 1,
 				},
@@ -743,11 +816,9 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 1, // 1 torpedo
-						},
-						power:    10,
-						accuracy: 1,
+						slotQuantity: 1, // 1 torpedo
+						power:        10,
+						accuracy:     1,
 					},
 					shipQuantity: 1,
 				},
@@ -770,11 +841,9 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 1, // 1 torpedo
-						},
-						power:    30,
-						accuracy: 1,
+						slotQuantity: 1, // 1 torpedo
+						power:        30,
+						accuracy:     1,
 					},
 					shipQuantity: 1,
 				},
@@ -794,11 +863,9 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 2, // 2 torpedos
-						},
-						power:    15, // 15 damage per torpedo
-						accuracy: 1,
+						slotQuantity: 2,  // 2 torpedos
+						power:        15, // 15 damage per torpedo
+						accuracy:     1,
 					},
 					shipQuantity: 1, // one ship in the attacker stack
 				},
@@ -818,9 +885,7 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 2, // 2 torpedos
-						},
+						slotQuantity:       2,  // 2 torpedos
 						power:              10, // 15 damage per torpedo
 						accuracy:           1,
 						capitalShipMissile: true,
@@ -844,11 +909,9 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 2, // 2 torpedos
-						},
-						power:    10,
-						accuracy: 1,
+						slotQuantity: 2, // 2 torpedos
+						power:        10,
+						accuracy:     1,
 					},
 					shipQuantity: 2, // 2 ships in attacker stack
 				},
@@ -868,11 +931,9 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 2, // 2 torpedos
-						},
-						power:    300, // 600 damage total
-						accuracy: 1,
+						slotQuantity: 2,   // 2 torpedos
+						power:        300, // 600 damage total
+						accuracy:     1,
 					},
 					shipQuantity: 1,
 				},
@@ -895,11 +956,9 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slot: ShipDesignSlot{
-							Quantity: 1,
-						},
-						power:    10,
-						accuracy: 1,
+						slotQuantity: 1,
+						power:        10,
+						accuracy:     1,
 					},
 					shipQuantity: 1,
 				},
@@ -991,10 +1050,10 @@ func Test_battle_runBattle1(t *testing.T) {
 func Test_battle_runBattle2(t *testing.T) {
 	player1 := NewPlayer(0, NewRace()).WithNum(1)
 	player2 := NewPlayer(0, NewRace()).WithNum(2)
-	player1.Name = AINames[0] + "s"
-	player2.Name = AINames[1] + "s"
-	player1.Race.PluralName = AINames[0] + "s"
-	player2.Race.PluralName = AINames[1] + "s"
+	player1.Name = AINames[0][1]
+	player2.Name = AINames[1][1]
+	player1.Race.PluralName = AINames[0][1]
+	player2.Race.PluralName = AINames[1][1]
 	player1.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationEnemy}}
 	player2.Relations = []PlayerRelationship{{Relation: PlayerRelationEnemy}, {Relation: PlayerRelationFriend}}
 	player1.PlayerIntels.PlayerIntels = []PlayerIntel{{Num: player1.Num}, {Num: player2.Num}}
@@ -1102,7 +1161,7 @@ func Test_battle_runBattle2(t *testing.T) {
 	assert.Less(t, 5, len(record.ActionsPerRound))
 }
 
-func Test_updateBestPositions(t *testing.T) {
+func Test_updateMovesWithCenterPreference(t *testing.T) {
 	type args struct {
 		better      bool
 		newPosition BattleVector
@@ -1151,8 +1210,165 @@ func Test_updateBestPositions(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := updateBestMoves(tt.args.better, tt.args.newPosition, tt.args.bestMoves); !reflect.DeepEqual(got, tt.want) {
+			if got := updateMovesWithCenterPreference(tt.args.better, tt.args.newPosition, tt.args.bestMoves); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("updateBestPositions() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_getBattleMovement(t *testing.T) {
+	type args struct {
+		idealEngineSpeed int
+		mass             int
+		numEngines       int
+		movementBonus    int
+	}
+	tests := []struct {
+		name string
+		args args
+		want int
+	}{
+		{"Destroyer + Trans Galactic Drive + thruster", args{idealEngineSpeed: 9, mass: 244, numEngines: 1, movementBonus: 1}, 5},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := getBattleMovement(tt.args.idealEngineSpeed, tt.args.movementBonus, tt.args.mass, tt.args.numEngines); got != tt.want {
+				t.Errorf("getBattleMovement() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_battle_buildMovementOrder(t *testing.T) {
+	tokenMovement2Mass1 := &battleToken{
+		ShipToken: &ShipToken{},
+		BattleRecordToken: BattleRecordToken{
+			PlayerNum: 1,
+			Num:       1,
+			Movement:  2,
+			Mass:      1,
+		},
+	}
+	tokenMovement4Mass1 := &battleToken{
+		ShipToken: &ShipToken{},
+		BattleRecordToken: BattleRecordToken{
+			PlayerNum: 2,
+			Num:       2,
+			Movement:  4,
+			Mass:      1,
+		},
+	}
+	tokenMovement4Mass2 := &battleToken{
+		ShipToken: &ShipToken{},
+		BattleRecordToken: BattleRecordToken{
+			PlayerNum: 3,
+			Num:       3,
+			Movement:  4,
+			Mass:      2,
+		},
+	}
+	tokenMovement5Mass2 := &battleToken{
+		ShipToken: &ShipToken{},
+		BattleRecordToken: BattleRecordToken{
+			PlayerNum: 4,
+			Num:       4,
+			Movement:  5,
+			Mass:      2,
+		},
+	}
+
+	tokenMovement6Mass190 := &battleToken{
+		ShipToken: &ShipToken{},
+		BattleRecordToken: BattleRecordToken{
+			PlayerNum: 5,
+			Num:       5,
+			Movement:  6,
+			Mass:      190,
+		},
+	}
+	tokenMovement4Mass22 := &battleToken{
+		ShipToken: &ShipToken{},
+		BattleRecordToken: BattleRecordToken{
+			PlayerNum: 6,
+			Num:       6,
+			Movement:  4,
+			Mass:      22,
+		},
+	}
+	tokenMovement4Mass41 := &battleToken{
+		ShipToken: &ShipToken{},
+		BattleRecordToken: BattleRecordToken{
+			PlayerNum: 6,
+			Num:       7,
+			Movement:  4,
+			Mass:      41,
+		},
+	}
+
+	type args struct {
+		tokens []*battleToken
+	}
+	tests := []struct {
+		name          string
+		args          args
+		wantMoveOrder [4][]*battleToken
+	}{
+		{name: "one token, move 2", args: args{[]*battleToken{tokenMovement2Mass1}},
+			wantMoveOrder: [4][]*battleToken{
+				{tokenMovement2Mass1},
+				nil,
+				{tokenMovement2Mass1},
+				nil,
+			},
+		},
+		{name: "two tokens, same mass, different movements", args: args{[]*battleToken{tokenMovement2Mass1, tokenMovement4Mass1}},
+			wantMoveOrder: [4][]*battleToken{
+				{tokenMovement2Mass1, tokenMovement4Mass1},
+				{tokenMovement4Mass1},
+				{tokenMovement2Mass1, tokenMovement4Mass1},
+				{tokenMovement4Mass1},
+			},
+		},
+		// higher mass moves first
+		{name: "two tokens, diff mass, same movement", args: args{[]*battleToken{tokenMovement4Mass1, tokenMovement4Mass2}},
+			wantMoveOrder: [4][]*battleToken{
+				{tokenMovement4Mass2, tokenMovement4Mass1},
+				{tokenMovement4Mass2, tokenMovement4Mass1},
+				{tokenMovement4Mass2, tokenMovement4Mass1},
+				{tokenMovement4Mass2, tokenMovement4Mass1},
+			},
+		},
+		// higher move/mass moves twice
+		{name: "two tokens, one higher move/mass", args: args{[]*battleToken{tokenMovement4Mass1, tokenMovement5Mass2}},
+			wantMoveOrder: [4][]*battleToken{
+				{tokenMovement5Mass2, tokenMovement5Mass2, tokenMovement4Mass1},
+				{tokenMovement5Mass2, tokenMovement4Mass1},
+				{tokenMovement5Mass2, tokenMovement4Mass1},
+				{tokenMovement5Mass2, tokenMovement4Mass1},
+			},
+		},
+		// higher mass should move twice, then other tokens move
+		{name: "three tokens", args: args{[]*battleToken{tokenMovement6Mass190, tokenMovement4Mass22, tokenMovement4Mass41}},
+			wantMoveOrder: [4][]*battleToken{
+				{tokenMovement6Mass190, tokenMovement6Mass190, tokenMovement4Mass41, tokenMovement4Mass22},
+				{tokenMovement6Mass190, tokenMovement4Mass41, tokenMovement4Mass22},
+				{tokenMovement6Mass190, tokenMovement6Mass190, tokenMovement4Mass41, tokenMovement4Mass22},
+				{tokenMovement6Mass190, tokenMovement4Mass41, tokenMovement4Mass22},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			b := &battle{rules: &rules}
+			if gotMoveOrder := b.buildMovementOrder(tt.args.tokens); !reflect.DeepEqual(gotMoveOrder, tt.wantMoveOrder) {
+				for _, r := range gotMoveOrder {
+					for _, t := range r {
+						s := t.String()
+						_ = s
+					}
+				}
+				t.Errorf("battle.buildMovementOrder() = %v, want %v", gotMoveOrder, tt.wantMoveOrder)
 			}
 		})
 	}

@@ -6,6 +6,7 @@
 	import { CSError, addError } from '$lib/services/Errors';
 	import type { ProductionPlan } from '$lib/types/Player';
 	import ProductionPlanEditor from '../ProductionPlanEditor.svelte';
+	import { notify } from '$lib/services/Notifications';
 
 	const { game, player, universe, createProductionPlan } = getGameContext();
 
@@ -24,6 +25,7 @@
 			if (plan && $game) {
 				// save to server
 				await createProductionPlan(plan);
+				notify(`Saved ${plan.name}`);
 				goto(
 					`/games/${$game.id}/production-plans/${
 						$player.productionPlans[$player.productionPlans.length - 1].num

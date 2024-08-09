@@ -10,8 +10,6 @@
 	import { getContext } from 'svelte';
 	import type { Writable } from 'svelte/store';
 	import MapObjectScaler from './MapObjectScaler.svelte';
-	import { ownedBy } from '$lib/types/MapObject';
-	import { minus, normalized } from '$lib/types/Vector';
 
 	const { settings, player } = getGameContext();
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');

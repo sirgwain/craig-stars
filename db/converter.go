@@ -218,6 +218,7 @@ type Converter interface {
 	// goverter:map . MapObject | ExtendPlanetMapObject
 	// goverter:map . PlanetOrders
 	// goverter:ignore Starbase
+	// goverter:ignore Dirty
 	ConvertPlanet(source *Planet) *cs.Planet
 
 	// goverter:autoMap MapObject.GameDBObject
@@ -241,7 +242,6 @@ type Converter interface {
 	// goverter:autoMap GameDBObject
 	// goverter:ignore CanDelete
 	ConvertGameShipDesign(source *cs.ShipDesign) *ShipDesign
-	// goverter:ignore Dirty
 	// goverter:ignore Delete
 	// goverter:map . GameDBObject
 	ConvertShipDesign(source *ShipDesign) *cs.ShipDesign
@@ -257,7 +257,6 @@ type Converter interface {
 	// goverter:map . GameDBObject
 	// goverter:map . Position
 	// goverter:map Type | MapObjectTypeWormhole
-	// goverter:ignore Dirty
 	// goverter:ignore Delete
 	// goverter:ignore PlayerNum
 	wormHoleMapObject(source Wormhole) cs.MapObject

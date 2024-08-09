@@ -27,6 +27,7 @@ type Planet struct {
 	Spec                 PlanetSpec `json:"spec,omitempty"`
 	RandomArtifact       bool       `json:"-"`
 	Starbase             *Fleet     `json:"-"`
+	Dirty                bool       `json:"-"`
 	bonusResources       int
 }
 
@@ -92,7 +93,11 @@ func (item *ProductionQueueItem) String() string {
 }
 
 func NewPlanet() *Planet {
-	return &Planet{MapObject: MapObject{Type: MapObjectTypePlanet, Dirty: true, PlayerNum: Unowned}}
+	return &Planet{MapObject: MapObject{Type: MapObjectTypePlanet, PlayerNum: Unowned}, Dirty: true}
+}
+
+func (p *Planet) MarkDirty() {
+	p.Dirty = true
 }
 
 func (p *Planet) withPosition(position Vector) *Planet {
@@ -258,13 +263,13 @@ func (p *Planet) randomize(rules *Rules) {
 	if limiter < 18 {
 		if limiter >= 9 {
 			mineralType := MineralTypes[rules.random.Intn(len(MineralTypes))]
-			value := 1 + rules.random.Intn(rules.MinStartingMineralConcentration) - 1
+			value := 1 + rules.random.Intn(rules.MinStartingMineralConcentration)
 			p.MineralConcentration.Set(mineralType, value)
 		} else {
 			limiter++
 			for limiter < 16 {
 				mineralType := MineralTypes[rules.random.Intn(len(MineralTypes))]
-				value := 1 + rules.random.Intn(rules.MinStartingMineralConcentration) - 1
+				value := 1 + rules.random.Intn(rules.MinStartingMineralConcentration)
 				p.MineralConcentration.Set(mineralType, value)
 
 				limiter *= 2
@@ -282,7 +287,7 @@ func (p *Planet) randomize(rules *Rules) {
 	}
 
 	// check if this planet has a random artifact
-	if rules.RandomEventChances[RandomEventAncientArtifact] > rules.random.Float64() {
+	if rules.RandomEventChances[RandomEventAncientArtifact] >= rules.random.Float64() {
 		p.RandomArtifact = true
 	}
 }
@@ -527,6 +532,7 @@ func computePlanetStarbaseSpec(rules *Rules, player *Player, planet *Planet) Pla
 func (spec *PlanetSpec) computeResourcesPerYearAvailable(player *Player, planet *Planet) {
 	if planet.ContributesOnlyLeftoverToResearch {
 		spec.ResourcesPerYearAvailable = spec.ResourcesPerYear
+		spec.ResourcesPerYearResearch = 0
 	} else {
 		spec.ResourcesPerYearResearch = int(float64(spec.ResourcesPerYear) * float64(player.ResearchAmount) / 100.0)
 		spec.ResourcesPerYearAvailable = spec.ResourcesPerYear - spec.ResourcesPerYearResearch
@@ -612,7 +618,7 @@ func (planet *Planet) mine(rules *Rules) {
 
 // grow pop on this planet (or starbase)
 func (planet *Planet) grow(player *Player) {
-	planet.setPopulation(planet.population() + planet.Spec.GrowthAmount)
+	planet.setPopulation(MaxInt(100, planet.population() + planet.Spec.GrowthAmount))
 
 	if player.Race.Spec.InnateMining {
 		productivePop := planet.productivePopulation(planet.population(), planet.Spec.MaxPopulation)

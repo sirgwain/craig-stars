@@ -236,6 +236,7 @@ func Test_computeFleetSpec(t *testing.T) {
 				ScanRangePen:   NoScanner,
 				SpaceDock:      UnlimitedSpaceDock,
 				EstimatedRange: Infinite,
+				ReduceCloaking: 1,
 			},
 			Purposes: map[ShipDesignPurpose]bool{},
 		}},
@@ -256,13 +257,14 @@ func Test_computeFleetSpec(t *testing.T) {
 			},
 		}}, FleetSpec{
 			ShipDesignSpec: ShipDesignSpec{
-				Cost:         Cost{16, 2, 7, 19},
-				FuelCapacity: 300,
-				ScanRange:    66,
-				ScanRangePen: 30,
-				Scanner:      true,
-				Mass:         20,
-				Armor:        20,
+				Cost:           Cost{16, 2, 7, 19},
+				FuelCapacity:   300,
+				ReduceCloaking: 1,
+				ScanRange:      66,
+				ScanRangePen:   30,
+				Scanner:        true,
+				Mass:           20,
+				Armor:          20,
 				Engine: Engine{
 					IdealSpeed:   QuickJump5.IdealSpeed,
 					FreeSpeed:    QuickJump5.FreeSpeed,
@@ -294,18 +296,19 @@ func Test_computeFleetSpec(t *testing.T) {
 			},
 		}}, FleetSpec{
 			ShipDesignSpec: ShipDesignSpec{
-				Starbase:      true,
-				Cost:          Cost{122, 263, 236, 752},
-				Mass:          48,
-				Armor:         500,
-				Shields:       400,
-				SpaceDock:     UnlimitedSpaceDock,
-				RepairBonus:   .15,
-				MineSweep:     640,
-				Scanner:       true,
-				ScanRangePen:  NoScanner,
-				HasWeapons:    true,
-				MaxPopulation: 1_000_000,
+				Starbase:       true,
+				Cost:           Cost{122, 263, 236, 752},
+				Mass:           48,
+				Armor:          500,
+				Shields:        400,
+				SpaceDock:      UnlimitedSpaceDock,
+				RepairBonus:    .15,
+				MineSweep:      640,
+				ReduceCloaking: 1,
+				Scanner:        true,
+				ScanRangePen:   NoScanner,
+				HasWeapons:     true,
+				MaxPopulation:  1_000_000,
 			},
 			Purposes:         map[ShipDesignPurpose]bool{},
 			MassEmpty:        48,
@@ -330,15 +333,16 @@ func Test_computeFleetSpec(t *testing.T) {
 			},
 		}}, FleetSpec{
 			ShipDesignSpec: ShipDesignSpec{
-				Cost:         Cost{12, 2, 9, 20},
-				FuelCapacity: 50,
-				ScanRange:    66,
-				ScanRangePen: 30,
-				Scanner:      true,
-				Mass:         19,
-				Armor:        20,
-				CloakUnits:   70,
-				CloakPercent: 35,
+				Cost:           Cost{12, 2, 9, 20},
+				FuelCapacity:   50,
+				ReduceCloaking: 1,
+				ScanRange:      66,
+				ScanRangePen:   30,
+				Scanner:        true,
+				Mass:           19,
+				Armor:          20,
+				CloakUnits:     70,
+				CloakPercent:   35,
 				Engine: Engine{
 					IdealSpeed:   QuickJump5.IdealSpeed,
 					FreeSpeed:    QuickJump5.FreeSpeed,
@@ -367,15 +371,16 @@ func Test_computeFleetSpec(t *testing.T) {
 			},
 		}}, FleetSpec{
 			ShipDesignSpec: ShipDesignSpec{
-				Cost:         Cost{12, 2, 9, 20}.MultiplyInt(2),
-				FuelCapacity: 50 * 2,
-				ScanRange:    66,
-				ScanRangePen: 30,
-				Scanner:      true,
-				Mass:         19 * 2,
-				Armor:        20 * 2,
-				CloakUnits:   70,
-				CloakPercent: 35, // still 35%
+				Cost:           Cost{12, 2, 9, 20}.MultiplyInt(2),
+				FuelCapacity:   50 * 2,
+				ReduceCloaking: 1,
+				ScanRange:      66,
+				ScanRangePen:   30,
+				Scanner:        true,
+				Mass:           19 * 2,
+				Armor:          20 * 2,
+				CloakUnits:     70,
+				CloakPercent:   35, // still 35%
 				Engine: Engine{
 					IdealSpeed:   QuickJump5.IdealSpeed,
 					FreeSpeed:    QuickJump5.FreeSpeed,
@@ -404,13 +409,14 @@ func Test_computeFleetSpec(t *testing.T) {
 			},
 		}}, FleetSpec{
 			ShipDesignSpec: ShipDesignSpec{
-				Cost:         Cost{},
-				FuelCapacity: 0,
-				ScanRange:    66,
-				ScanRangePen: 30,
-				Scanner:      true,
-				Mass:         0,
-				Armor:        0,
+				Cost:           Cost{},
+				FuelCapacity:   0,
+				ReduceCloaking: 1,
+				ScanRange:      66,
+				ScanRangePen:   30,
+				Scanner:        true,
+				Mass:           0,
+				Armor:          0,
 				Engine: Engine{
 					IdealSpeed:   QuickJump5.IdealSpeed,
 					FreeSpeed:    QuickJump5.FreeSpeed,
@@ -439,13 +445,14 @@ func Test_computeFleetSpec(t *testing.T) {
 			},
 		}}, FleetSpec{
 			ShipDesignSpec: ShipDesignSpec{
-				Cost:         Cost{22, 45, 10, 43},
-				FuelCapacity: 120,
-				Mass:         112,
-				Armor:        50,
-				Scanner:      true,
-				ScanRangePen: NoScanner,
-				Bomber:       true,
+				Cost:           Cost{22, 45, 10, 43},
+				FuelCapacity:   120,
+				Mass:           112,
+				Armor:          50,
+				ReduceCloaking: 1,
+				Scanner:        true,
+				ScanRangePen:   NoScanner,
+				Bomber:         true,
 				Bombs: []Bomb{
 					{Quantity: 2, KillRate: .6, MinKillRate: 300, StructureDestroyRate: .2},
 				},
@@ -476,13 +483,14 @@ func Test_computeFleetSpec(t *testing.T) {
 			},
 		}}, FleetSpec{
 			ShipDesignSpec: ShipDesignSpec{
-				Cost:         Cost{22, 45, 10, 43}.MultiplyInt(2),
-				FuelCapacity: 120 * 2,
-				Mass:         112 * 2,
-				Armor:        50 * 2,
-				Scanner:      true,
-				ScanRangePen: NoScanner,
-				Bomber:       true,
+				Cost:           Cost{22, 45, 10, 43}.MultiplyInt(2),
+				FuelCapacity:   120 * 2,
+				Mass:           112 * 2,
+				Armor:          50 * 2,
+				ReduceCloaking: 1,
+				Scanner:        true,
+				ScanRangePen:   NoScanner,
+				Bomber:         true,
 				Bombs: []Bomb{
 					{Quantity: 4, KillRate: .6, MinKillRate: 300, StructureDestroyRate: .2},
 				},
@@ -516,13 +524,14 @@ func Test_computeFleetSpec(t *testing.T) {
 			},
 		}}, FleetSpec{
 			ShipDesignSpec: ShipDesignSpec{
-				Cost:         Cost{348, 782, 228, 1392},
-				FuelCapacity: 1500,
-				Mass:         1764,
-				Armor:        900,
-				Scanner:      true,
-				ScanRangePen: NoScanner,
-				Bomber:       true,
+				Cost:           Cost{348, 782, 228, 1392},
+				FuelCapacity:   1500,
+				Mass:           1764,
+				Armor:          900,
+				ReduceCloaking: 1,
+				Scanner:        true,
+				ScanRangePen:   NoScanner,
+				Bomber:         true,
 				Bombs: []Bomb{
 					{Quantity: 8, KillRate: 2.5, MinKillRate: 300, StructureDestroyRate: 1},
 					{Quantity: 8, KillRate: .3, StructureDestroyRate: 2.8},
@@ -599,17 +608,77 @@ func TestFleet_moveFleet(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			player := tt.args.player
 			universe := Universe{Fleets: []*Fleet{tt.fleet}}
 			if tt.args.planet != nil {
 				universe.Planets = []*Planet{tt.args.planet}
 			}
-			universe.buildMaps([]*Player{tt.args.player})
+			universe.buildMaps([]*Player{player})
 
 			tt.fleet.moveFleet(&rules, &universe, newTestPlayerGetter(player))
 
 			assert.Equal(t, tt.want.position, tt.fleet.Position)
 			assert.Equal(t, tt.want.position, tt.fleet.Waypoints[0].Position)
 			assert.Equal(t, tt.want.fuelUsed, tt.fleet.Spec.FuelCapacity-tt.fleet.Fuel)
+		})
+	}
+}
+
+func TestFleet_moveFleetEngineFailure(t *testing.T) {
+
+	player := NewPlayer(1, NewRace().WithLRT(CE).WithSpec(&rules))
+	playerWithoutCE := NewPlayer(1, NewRace().WithSpec(&rules))
+
+	type args struct {
+		player *Player
+		random rng
+	}
+	type want struct {
+		position Vector
+	}
+	tests := []struct {
+		name  string
+		fleet *Fleet
+		args  args
+		want  want
+	}{
+		{
+			"move without engine failure",
+			testLongRangeScout(player).withWaypoints(NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{50, 0}, 6)),
+			args{player, newFloat64Random(0)},
+			want{Vector{36, 0}},
+		},
+		{
+			"move without engine failure high speed",
+			testLongRangeScout(player).withWaypoints(NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{50, 0}, 7)),
+			args{player, newFloat64Random(.2)}, // engine failure occurs 10% of the time, < 10/100
+			want{Vector{49, 0}},
+		},
+		{
+			"move with engine failure",
+			testLongRangeScout(player).withWaypoints(NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{50, 0}, 7)),
+			args{player, newFloat64Random(.1)}, // engine failure at 10/100
+			want{Vector{0, 0}},
+		},
+		{
+			"move without engine failure, no CE",
+			testLongRangeScout(playerWithoutCE).withWaypoints(NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{50, 0}, 7)),
+			args{playerWithoutCE, newFloat64Random(.1)},
+			want{Vector{49, 0}},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			player := tt.args.player
+			universe := Universe{Fleets: []*Fleet{tt.fleet}}
+			universe.buildMaps([]*Player{player})
+
+			rules := NewRules()
+			rules.random = tt.args.random
+
+			tt.fleet.moveFleet(&rules, &universe, newTestPlayerGetter(player))
+
+			assert.Equal(t, tt.want.position, tt.fleet.Position)
 		})
 	}
 }

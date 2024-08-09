@@ -1,6 +1,5 @@
 package cs
 
-
 type PRTSpec struct {
 	PRT                              PRT              `json:"prt,omitempty"`
 	PointCost                        int              `json:"pointCost,omitempty"`
@@ -199,7 +198,7 @@ func heSpec() PRTSpec {
 	spec := defaultPRTSpec()
 
 	spec.StartingPlanets[0].StartingFleets = []StartingFleet{
-		{"Deep Space Probe", StartingFleetHullScout, 0, ShipDesignPurposeScout},
+		{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
 		{"Spore Cloud", StartingFleetHullMiniColonyShip, 0, ShipDesignPurposeColonizer},
 		{"Spore Cloud", StartingFleetHullMiniColonyShip, 0, ShipDesignPurposeColonizer},
 		{"Spore Cloud", StartingFleetHullMiniColonyShip, 0, ShipDesignPurposeColonizer},
@@ -298,9 +297,9 @@ func isSpec() PRTSpec {
 
 	spec.TechCostOffset = TechCostOffset{
 		PlanetaryDefense: -.4, // defenses cost 40% less
-		BeamWeapon:       .25, // weapons cost 25% less
-		Torpedo:          .25, // weapons cost 25% less
-		Bomb:             .25, // weapons cost 25% less
+		BeamWeapon:       .25, // weapons cost 25% more
+		Torpedo:          .25, // weapons cost 25% more
+		Bomb:             .25, // weapons cost 25% more
 	}
 
 	spec.FreighterGrowthFactor = .5
@@ -342,14 +341,14 @@ func ppSpec() PRTSpec {
 
 	spec.StartingPlanets = []StartingPlanet{
 		// one homeworld, 20k people, no hab penalty
-		{Population: 25000, HabPenaltyFactor: 0, HasMassDriver: true, StarbaseHull: SpaceStation.Name, StarbaseDesignName: "Starbase",
+		{Population: 20000, HabPenaltyFactor: 0, HasMassDriver: true, StarbaseHull: SpaceStation.Name, StarbaseDesignName: "Starbase",
 			StartingFleets: []StartingFleet{
 				{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
 				{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
 				{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
 			},
 		},
-		// on extra world where hab varies by 1/2 of the range
+		// extra world where hab varies by 1/2 of the range
 		{
 			Population: 10000, HabPenaltyFactor: 1, HasMassDriver: true, StarbaseHull: OrbitalFort.Name, StarbaseDesignName: "Accelerator Platform",
 			StartingFleets: []StartingFleet{
@@ -365,8 +364,8 @@ func ppSpec() PRTSpec {
 	spec.PacketBuiltInScanner = true
 	spec.DetectPacketDestinationStarbases = true
 	spec.DetectAllPackets = true
-	spec.PacketTerraformChance = .5   // 50% per 100kT uncaught
-	spec.PacketPermaformChance = .001 // .1% per 100kT uncaught
+	spec.PacketTerraformChance = .5  // 50% per 100kT uncaught
+	spec.PacketPermaformChance = .001 // 0.1% per 100kT uncaught
 
 	return spec
 }
@@ -381,7 +380,7 @@ func itSpec() PRTSpec {
 
 	spec.StartingPlanets = []StartingPlanet{
 		// one homeworld, 20k people, no hab penalty
-		{Population: 25000, HabPenaltyFactor: 0, HasStargate: true, StarbaseHull: SpaceStation.Name, StarbaseDesignName: "Starbase",
+		{Population: 20000, HabPenaltyFactor: 0, HasStargate: true, StarbaseHull: SpaceStation.Name, StarbaseDesignName: "Starbase",
 			StartingFleets: []StartingFleet{
 				{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
 				{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
@@ -389,7 +388,7 @@ func itSpec() PRTSpec {
 				{"Stalwart Defender", StartingFleetHullDestroyer, 0, ShipDesignPurposeFighter},
 			},
 		},
-		// on extra world where hab varies by 1/2 of the range
+		// extra world where hab varies by 1/2 of the range
 		{
 			Population: 10000, HabPenaltyFactor: 1, HasStargate: true, StarbaseHull: OrbitalFort.Name, StarbaseDesignName: "Accelerator Platform",
 			StartingFleets: []StartingFleet{
@@ -498,7 +497,7 @@ func grSpec() LRTSpec {
 
 func urSpec() LRTSpec {
 	return LRTSpec{
-		// UR gives us 45% of scrapped minerals and resources, versus 1/3 for races without UR
+		// UR gives us 45%/90% of scrapped minerals, versus 33%/80% for races without UR
 		ScrapMineralOffset:           .45 - (1.0 / 3),
 		ScrapMineralOffsetStarbase:   .9 - (1.0 / 3),
 		ScrapResourcesOffset:         .35,

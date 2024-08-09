@@ -55,7 +55,8 @@
 			{`doing ${action.damageDoneArmor} damage to armor`}
 		{:else if action.damageDoneArmor}
 			{`doing ${action.damageDoneShields} damage to shields`}
-		{:else}
+		{/if}
+		{#if action.torpedoMisses}
 			{`but ${action.torpedoMisses ?? 0} torpedo${
 				(action.torpedoMisses ?? 0) > 1 ? 's' : ''
 			} missed`}

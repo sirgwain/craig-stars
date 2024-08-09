@@ -2,12 +2,10 @@
 	import Cost from '$lib/components/game/Cost.svelte';
 	import Hull from '$lib/components/game/design/Hull.svelte';
 	import TechAvatar from '$lib/components/tech/TechAvatar.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
+	import { total } from '$lib/types/Cost';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import DesignStats from '../DesignStats.svelte';
-
-	const { game, player, universe, settings } = getGameContext();
 
 	export let design: ShipDesign;
 
@@ -34,7 +32,7 @@
 {#if 'spec' in design}
 	<div class="flex flex-col">
 		<div class="flex flex-col sm:flex-row gap-1 justify-between">
-			{#if design.playerNum == $player.num}
+			{#if design.spec.cost && total(design.spec.cost)}
 				<div class="mx-2">
 					<div>Cost of one {design.name}</div>
 					<Cost cost={design.spec.cost} />

@@ -11,11 +11,11 @@
 	import CostComponent from '$lib/components/game/Cost.svelte';
 	import ProductionQueueItemLine from '$lib/components/game/ProductionQueueItemLine.svelte';
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
-	import { quantityModifier } from '$lib/quantityModifier';
+	import QuantityModifierButtons from '$lib/components/QuantityModifierButtons.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { NeverBuilt, getProductionEstimates } from '$lib/services/Producer';
 	import { techs } from '$lib/services/Stores';
-	import { divide, multiply, total, type Cost } from '$lib/types/Cost';
+	import { divide, multiply, type Cost } from '$lib/types/Cost';
 	import { CommandedPlanet } from '$lib/types/Planet';
 	import type { ProductionPlan } from '$lib/types/Player';
 	import type { ProductionQueueItem } from '$lib/types/Production';
@@ -33,6 +33,7 @@
 	import hotkeys from 'hotkeys-js';
 	import { clamp } from 'lodash-es';
 	import { createEventDispatcher, onMount } from 'svelte';
+	import type { ChangeEventHandler } from 'svelte/elements';
 
 	const { game, player, universe } = getGameContext();
 	const dispatch = createEventDispatcher<ProductionQueueEvent>();
@@ -57,6 +58,9 @@
 
 	$: updatedPlanet = Object.assign(new CommandedPlanet(), planet);
 
+	// keep track of the quantity modifier
+	let quantityModifer = 1;
+
 	function availableItemSelected(type: ProductionQueueItem) {
 		selectedAvailableItem = type;
 		selectedAvailableItemCost = $player.getItemCost(
@@ -79,9 +83,15 @@
 		);
 	}
 
+	const contributesOnlyLeftoverToResearchChecked: ChangeEventHandler<HTMLInputElement> = (e) => {
+		contributesOnlyLeftoverToResearch = e.currentTarget.checked;
+		updateQueueEstimates();
+	};
+
 	function updateQueueEstimates() {
 		// get updated production queue estimates
 		updatedPlanet.productionQueue = [...queueItems];
+		updatedPlanet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
 		const itemEstimates = getProductionEstimates(
 			$game.rules,
 			$techs,
@@ -107,6 +117,50 @@
 			$player.getItemCost(selectedQueueItem, $universe, $techs, planet),
 			selectedQueueItem?.quantity
 		);
+
+		for (let i = 0; i < availableItems.length; i++) {
+			availableItems[i].yearsToBuildOne = updatedPlanet.getYearsToBuildOne(
+				availableItems[i],
+				$game.rules,
+				$techs,
+				$player,
+				$universe
+			);
+
+			if (selectedAvailableItem == availableItems[i]) {
+				selectedAvailableItem = availableItems[i];
+			}
+		}
+		availableItems = [...availableItems];
+
+		for (let i = 0; i < availableShipDesigns.length; i++) {
+			availableShipDesigns[i].yearsToBuildOne = updatedPlanet.getYearsToBuildOne(
+				availableShipDesigns[i],
+				$game.rules,
+				$techs,
+				$player,
+				$universe
+			);
+			if (selectedAvailableItem == availableShipDesigns[i]) {
+				selectedAvailableItem = availableShipDesigns[i];
+			}
+		}
+		availableShipDesigns = [...availableShipDesigns];
+
+		for (let i = 0; i < availableStarbaseDesigns.length; i++) {
+			availableStarbaseDesigns[i].yearsToBuildOne = updatedPlanet.getYearsToBuildOne(
+				availableStarbaseDesigns[i],
+				$game.rules,
+				$techs,
+				$player,
+				$universe
+			);
+
+			if (selectedAvailableItem == availableStarbaseDesigns[i]) {
+				selectedAvailableItem = availableStarbaseDesigns[i];
+			}
+		}
+		availableStarbaseDesigns = [...availableStarbaseDesigns];
 	}
 
 	function getPercentComplete(item: ProductionQueueItem): number {
@@ -142,7 +196,7 @@
 		const max = isAuto(item.type)
 			? 5000
 			: planet.getMaxBuildable($techs, $player, maxPopulation, item.type, amountInQueue);
-		const quantity = clamp(quantityModifier(e), 0, max);
+		const quantity = clamp(quantityModifer, 0, max);
 		if (quantity == 0) {
 			// don't add something we can't build any more of
 			return;
@@ -211,7 +265,7 @@
 
 	function removeItem(e: MouseEvent) {
 		if (queueItems && selectedQueueItem) {
-			selectedQueueItem.quantity -= quantityModifier(e);
+			selectedQueueItem.quantity -= quantityModifer;
 			selectedQueueItem.quantity = Math.max(0, selectedQueueItem.quantity);
 			queueItems = queueItems;
 			if (selectedQueueItem.quantity <= 0) {
@@ -347,6 +401,7 @@
 	});
 
 	function resetQueue() {
+		contributesOnlyLeftoverToResearch = planet.contributesOnlyLeftoverToResearch;
 		queueItems = [...planet.productionQueue?.map((item) => ({ ...item }) as ProductionQueueItem)];
 		availableItems = planet.getAvailableProductionQueueItems(
 			planet,
@@ -490,7 +545,7 @@
 						</div>
 					</div>
 				</div>
-				<div class="flex-none h-full mx-0.5 md:w-32 px-1">
+				<div class="flex-none h-full mx-0.5 md:w-34 px-1">
 					<div class="flex-row flex-none gap-y-2">
 						<button
 							on:click={(e) => addAvailableItem(e)}
@@ -551,6 +606,9 @@
 								<option value={plan.num}>{plan.name}</option>
 							{/each}
 						</select>
+						<div class="flex flex-col sm:flex-row justify-between mt-2 gap-1 mx-1">
+							<QuantityModifierButtons bind:modifier={quantityModifer} />
+						</div>
 					</div>
 				</div>
 				<div class="flex-1 h-full bg-base-100 py-1">
@@ -614,7 +672,8 @@
 				<div class="w-1/2 mr-14">
 					<label>
 						<input
-							bind:checked={contributesOnlyLeftoverToResearch}
+							checked={contributesOnlyLeftoverToResearch}
+							on:change={contributesOnlyLeftoverToResearchChecked}
 							class="checkbox checkbox-xs"
 							type="checkbox"
 						/> Contributes Only Leftover to Research

@@ -17,7 +17,6 @@ type ShipDesign struct {
 	PlayerNum         int               `json:"playerNum"`
 	OriginalPlayerNum int               `json:"originalPlayerNum"`
 	Name              string            `json:"name"`
-	Dirty             bool              `json:"-"`
 	Version           int               `json:"version"`
 	Hull              string            `json:"hull"`
 	HullSetNumber     int               `json:"hullSetNumber"`
@@ -50,12 +49,14 @@ type ShipDesignSpec struct {
 	ScanRangePen              int                   `json:"scanRangePen,omitempty"`
 	InnateScanRangePenFactor  float64               `json:"innateScanRangePenFactor,omitempty"`
 	RepairBonus               float64               `json:"repairBonus,omitempty"`
-	TorpedoInaccuracyFactor   float64               `json:"torpedoInaccuracyFactor,omitempty"`
 	TorpedoJamming            float64               `json:"torpedoJamming,omitempty"`
+	TorpedoBonus              float64               `json:"torpedoBonus,omitempty"`
 	BeamBonus                 float64               `json:"beamBonus,omitempty"`
 	BeamDefense               float64               `json:"beamDefense,omitempty"`
 	Initiative                int                   `json:"initiative,omitempty"`
+	MovementBonus             int                   `json:"movementBonus,omitempty"`
 	Movement                  int                   `json:"movement,omitempty"`
+	MovementFull              int                   `json:"movementFull,omitempty"`
 	ReduceMovement            int                   `json:"reduceMovement,omitempty"`
 	PowerRating               int                   `json:"powerRating,omitempty"`
 	Bomber                    bool                  `json:"bomber,omitempty"`
@@ -133,7 +134,7 @@ const (
 )
 
 func NewShipDesign(player *Player, num int) *ShipDesign {
-	return &ShipDesign{PlayerNum: player.Num, Num: num, Dirty: true, Slots: []ShipDesignSlot{}}
+	return &ShipDesign{PlayerNum: player.Num, Num: num, Slots: []ShipDesignSlot{}}
 }
 
 func (sd *ShipDesign) WithName(name string) *ShipDesign {
@@ -162,10 +163,6 @@ func (sd *ShipDesign) WithHullSetNumber(num int) *ShipDesign {
 func (sd *ShipDesign) WithSpec(rules *Rules, player *Player) *ShipDesign {
 	sd.Spec = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, sd)
 	return sd
-}
-
-func (sd *ShipDesign) MarkDirty() {
-	sd.Dirty = true
 }
 
 // validate that this ship design is available to the player
@@ -248,6 +245,11 @@ func (d *ShipDesign) SlotsEqual(other *ShipDesign) bool {
 	return true
 }
 
+// get the movement for this ship design, based on cargoMass
+func (d *ShipDesign) getMovement(cargoMass int) int {
+	return getBattleMovement(d.Spec.Engine.IdealSpeed, d.Spec.MovementBonus, d.Spec.Mass+cargoMass, d.Spec.NumEngines)
+}
+
 func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design *ShipDesign) ShipDesignSpec {
 	hull := rules.techs.GetHull(design.Hull)
 	spec := ShipDesignSpec{
@@ -255,12 +257,11 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		Armor:                    hull.Armor,
 		FuelCapacity:             hull.FuelCapacity,
 		FuelGeneration:           hull.FuelGeneration,
-		Cost:                     hull.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec),
+		Cost:                     hull.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset),
 		TechLevel:                hull.Requirements.TechLevel,
 		CargoCapacity:            hull.CargoCapacity,
 		CloakUnits:               raceSpec.BuiltInCloakUnits,
 		Initiative:               hull.Initiative,
-		TorpedoInaccuracyFactor:  1,
 		ImmuneToOwnDetonation:    hull.ImmuneToOwnDetonation,
 		RepairBonus:              hull.RepairBonus,
 		ScanRange:                0, // by default, all ships non-pen scan ships in their radius
@@ -272,7 +273,10 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		InnateScanRangePenFactor: hull.InnateScanRangePenFactor,
 	}
 
-	torpedoJammingFactor := 1.0
+	// count the number of each type of battle computer we have
+	torpedoBonusesByCount := map[float64]int{}
+	torpedoJammersByCount := map[float64]int{}
+
 	numTachyonDetectors := 0
 
 	// rating calcs
@@ -302,7 +306,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 				}
 				spec.MineSweep += slot.Quantity * component.Power * ((component.Range + hull.RangeBonus) * component.Range) * gattlingMultiplier
 			}
-			spec.Cost = spec.Cost.Add(component.Tech.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec).MultiplyInt(slot.Quantity))
+			spec.Cost = spec.Cost.Add(component.Tech.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(slot.Quantity))
 			spec.TechLevel = spec.TechLevel.Max(component.Requirements.TechLevel)
 
 			spec.Mass += component.Mass * slot.Quantity
@@ -313,7 +317,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 			spec.FuelGeneration += component.FuelGeneration * slot.Quantity
 			spec.Colonizer = spec.Colonizer || component.ColonizationModule || component.OrbitalConstructionModule
 			spec.Initiative += component.InitiativeBonus
-			spec.Movement += component.MovementBonus * slot.Quantity
+			spec.MovementBonus += component.MovementBonus * slot.Quantity
 			spec.ReduceMovement = MaxInt(spec.ReduceMovement, component.ReduceMovement) // these don't stack
 			spec.MiningRate += component.MiningRate * slot.Quantity
 			spec.TerraformRate += component.TerraformRate * slot.Quantity
@@ -334,17 +338,19 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 				spec.MineLayingRateByMineType[component.MineFieldType] += int(float64(component.MineLayingRate) * float64(slot.Quantity) * (1 + hull.MineLayingBonus))
 			}
 
-			// i.e. two .3f battle computers is (1 -.3) * (1 - .3) or (.7 * .7) or it decreases innaccuracy by 49%
-			// so a 75% accurate torpedo would be 100 - (100 - 75) * .49 = 100 - 12.25 or 88% accurate
-			// a 75% accurate torpedo with two 30% comps and one 50% comp would be
-			// 100 - (100 - 75) * .7 * .7 * .5 = 94% accurate
-			// if TorpedoInnaccuracyDecrease is 1 (default), it's just 75%
-			spec.TorpedoInaccuracyFactor *= float64(math.Pow((1 - float64(component.TorpedoBonus)), float64(slot.Quantity)))
-			torpedoJammingFactor *= float64(math.Pow((1 - float64(component.TorpedoJamming)), float64(slot.Quantity)))
+			// count battle computers
+			if component.TorpedoBonus > 0 {
+				torpedoBonusesByCount[component.TorpedoBonus] += slot.Quantity
+			}
 
-			// beam bonuses
-			spec.BeamBonus += component.BeamBonus * float64(slot.Quantity)
-			spec.BeamDefense += component.BeamDefense * float64(slot.Quantity)
+			// count jammers
+			if component.TorpedoJamming > 0 {
+				torpedoJammersByCount[component.TorpedoJamming] += slot.Quantity
+			}
+
+			// beam bonuses (capacitors are capped at 2.55x; beam deflectors are unlimited)
+			spec.BeamBonus += math.Min(math.Pow(1+component.BeamBonus, float64(slot.Quantity))-1, 1.55)
+			spec.BeamDefense += math.Pow(1+component.BeamDefense, float64(slot.Quantity))-1
 
 			// if this slot has a bomb, this design is a bomber
 			if component.HullSlotType == HullSlotTypeBomb || component.MinKillRate > 0 || component.KillRate > 0 || component.StructureDestroyRate > 0 || component.UnterraformRate > 0 {
@@ -374,7 +380,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 				switch component.Category {
 				case TechCategoryBeamWeapon:
 					// beams contribute to the rating based on range, but sappers
-					// are 1/3rd rated
+					// are 1/3rd rated to compensate for high power
 					rating := component.Power * slot.Quantity * (component.Range + 3) / 4
 					if component.DamageShieldsOnly {
 						rating /= 3
@@ -402,7 +408,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 
 			// mass drivers
 			if component.PacketSpeed > 0 {
-				// if we already have a massdriver at this speed, add an additional mass driver to up
+				// if we already have a mass driver at this speed, add an additional mass driver to up
 				// our speed
 				if spec.BasePacketSpeed == component.PacketSpeed {
 					spec.AdditionalMassDrivers++
@@ -434,27 +440,65 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		spec.Cost = spec.Cost.MultiplyFloat64(raceSpec.StarbaseCostFactor)
 	}
 
-	spec.TorpedoJamming = 1 - torpedoJammingFactor
-
 	// determine the safe speed for this design
 	spec.SafePacketSpeed = spec.BasePacketSpeed + spec.AdditionalMassDrivers
 
-	// figure out the cloak as a percentage after we specd our cloak units
+	// figure out the cloak as a percentage after we spend our cloak units
 	spec.CloakPercent = getCloakPercentForCloakUnits(spec.CloakUnits)
 	spec.CloakPercentFullCargo = getCloakPercentForCloakUnits(int(math.Round(float64(spec.CloakUnits) * float64(spec.Mass) / float64(spec.Mass+spec.CargoCapacity))))
 
 	if numTachyonDetectors > 0 {
 		// 95% ^ (SQRT(#_of_detectors) = Reduction factor for other player's cloaking (Capped at 81% or 17TDs)
-		spec.ReduceCloaking = math.Pow((100.0-float64(rules.TachyonCloakReduction))/100, math.Sqrt(float64(numTachyonDetectors)))
+		spec.ReduceCloaking = math.Min(math.Pow((100.0-float64(rules.TachyonCloakReduction))/100, math.Sqrt(float64(numTachyonDetectors))), 0.81)
+	} else {
+		spec.ReduceCloaking = 1
+	}
+
+	if len(torpedoBonusesByCount) > 0 {
+		spec.TorpedoBonus = 1
+		for torpedoBonus, count := range torpedoBonusesByCount {
+			// for 3 Battle Computer 30s, this calc is 1-(.7^3) or 65%
+			bonus := 1 - math.Pow(1-torpedoBonus, float64(count))
+
+			// if there are multiple battle computer slots all adding together, they are added like
+			// 1−((1−BC20Bonus)×(1−BC30Bonus)×(1−BC50Bonus))
+			spec.TorpedoBonus *= 1 - bonus
+		}
+
+		// the final bonus is the above sum inverted
+		spec.TorpedoBonus = 1 - spec.TorpedoBonus
+
+		// golang, why you be like this? nobody wants 1-.2^1 to be .199999994
+		spec.TorpedoBonus = roundFloat(spec.TorpedoBonus, 4)
+	}
+
+	if len(torpedoJammersByCount) > 0 {
+		spec.TorpedoJamming = 1
+		for torpedoJammer, count := range torpedoJammersByCount {
+			// for 3 Jammer 10s, this calc is 1-(.9^3) or 65%
+			jammer := 1 - math.Pow(1-torpedoJammer, float64(count))
+
+			// if there are multiple battle computer slots all adding together, they are added like
+			// 1−((1−Jammer10)×(1−Jammer20)×(1−Jammer30))
+			spec.TorpedoJamming *= 1 - jammer
+		}
+
+		// the final jammer is the above sum inverted
+		spec.TorpedoJamming = 1 - spec.TorpedoJamming
+
+		// golang, why you be like this? nobody wants 1-.2^1 to be .199999994
+		spec.TorpedoJamming = math.Min(.95, roundFloat(spec.TorpedoJamming, 4))
 	}
 
 	if spec.NumEngines > 0 {
 		// Movement = IdealEngineSpeed - 2 - Mass / 70 / NumEngines + NumManeuveringJets + 2*NumOverThrusters
 		// we added any MovementBonus components above
 		// we round up the slightest bit, and we can't go below 2, or above 10
-		spec.Movement = Clamp((spec.Engine.IdealSpeed-2)-spec.Mass/70/spec.NumEngines+spec.Movement+raceSpec.MovementBonus, 2, 10)
+		spec.Movement = getBattleMovement(spec.Engine.IdealSpeed, spec.MovementBonus, spec.Mass, spec.NumEngines)
+		spec.MovementFull = getBattleMovement(spec.Engine.IdealSpeed, spec.MovementBonus, spec.Mass+spec.CargoCapacity, spec.NumEngines)
 	} else {
 		spec.Movement = 0
+		spec.MovementFull = 0
 	}
 
 	beamPower = int(float64(beamPower) * (1 + spec.BeamBonus))
@@ -518,7 +562,7 @@ func (spec *ShipDesignSpec) computeScanRanges(rules *Rules, scannerSpec ScannerS
 
 		if component.ScanRangePen != NoScanner {
 			if spec.ScanRangePen == NoScanner {
-				spec.ScanRangePen = component.ScanRangePen
+				spec.ScanRangePen = int((math.Pow(float64(component.ScanRangePen), 4)) * float64(slot.Quantity))
 			} else {
 				spec.ScanRangePen += int((math.Pow(float64(component.ScanRangePen), 4)) * float64(slot.Quantity))
 			}

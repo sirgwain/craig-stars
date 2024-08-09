@@ -107,8 +107,8 @@ func (u *Universe) buildMaps(players []*Player) error {
 			u.battlePlansByNum[playerBattlePlanNum{PlayerNum: p.Num, Num: plan.Num}] = plan
 		}
 
-		// create a discoverer for this player
-		p.discoverer = newDiscoverer(p)
+		// create a discoverer for this player and any allies they share maps with
+		p.discoverer = newDiscovererWithAllies(p, players)
 	}
 
 	u.fleetsByNum = make(map[playerObject]*Fleet, len(u.Fleets))
@@ -276,6 +276,9 @@ func (u *Universe) getShipDesign(playerNum int, num int) *ShipDesign {
 
 // Get a planet by num
 func (u *Universe) getPlanet(num int) *Planet {
+	if num < 1 || num > len(u.Planets) {
+		return nil
+	}
 	return u.Planets[num-1]
 }
 
@@ -352,7 +355,6 @@ func (u *Universe) getCargoHolder(mapObjectType MapObjectType, num int, playerNu
 func (u *Universe) updateTokenCounts() {
 	for _, design := range u.designsByNum {
 		design.Spec.NumInstances = 0
-		design.MarkDirty()
 	}
 	for _, fleet := range append(u.Fleets, u.Starbases...) {
 		if fleet.Delete {
@@ -368,7 +370,6 @@ func (u *Universe) updateTokenCounts() {
 // mark a fleet as deleted and remove it from the universe
 func (u *Universe) deleteFleet(fleet *Fleet) {
 	fleet.Delete = true
-	fleet.MarkDirty()
 
 	delete(u.fleetsByNum, playerObjectKey(fleet.PlayerNum, fleet.Num))
 
@@ -385,7 +386,6 @@ func (u *Universe) deleteFleet(fleet *Fleet) {
 // mark a starbase as deleted and remove it from the universe
 func (u *Universe) deleteStarbase(starbase *Fleet) {
 	starbase.Delete = true
-	starbase.MarkDirty()
 
 	u.removeMapObjectAtPosition(starbase, starbase.Position)
 
@@ -399,8 +399,6 @@ func (u *Universe) deleteStarbase(starbase *Fleet) {
 
 // move a fleet from one position to another
 func (u *Universe) moveFleet(fleet *Fleet, originalPosition Vector) {
-	fleet.MarkDirty()
-
 	// upadte mapobjects position
 	u.updateMapObjectAtPosition(fleet, originalPosition, fleet.Position)
 }
@@ -410,7 +408,16 @@ func (u *Universe) addFleet(fleet *Fleet) error {
 
 	u.fleetsByNum[playerObjectKey(fleet.PlayerNum, fleet.Num)] = fleet
 
-	fleet.battlePlan = u.battlePlansByNum[playerBattlePlanNum{fleet.PlayerNum, fleet.BattlePlanNum}]
+	if battlePlan, ok := u.battlePlansByNum[playerBattlePlanNum{fleet.PlayerNum, fleet.BattlePlanNum}]; ok {
+		fleet.battlePlan = battlePlan
+	} else {
+		// use the default battle plan if we couldn't find one for some reason, but log a warning
+		log.Warn().
+			Int64("GameID", fleet.GameID).
+			Int("Player", fleet.PlayerNum).
+			Msgf("Unable to find battle plan %d for fleet %v", fleet.BattlePlanNum, fleet)
+		fleet.battlePlan = u.battlePlansByNum[playerBattlePlanNum{fleet.PlayerNum, 0}]
+	}
 
 	// inject the design into this
 	for i := range fleet.Tokens {
@@ -444,7 +451,6 @@ func (u *Universe) addStarbase(starbase *Fleet) error {
 
 // move a wormhole from one position to another
 func (u *Universe) moveWormhole(wormhole *Wormhole, originalPosition Vector) {
-	wormhole.MarkDirty()
 	u.updateMapObjectAtPosition(wormhole, originalPosition, wormhole.Position)
 }
 

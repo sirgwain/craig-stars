@@ -25,21 +25,21 @@ func Test_getScanners(t *testing.T) {
 		want []scanner
 	}{
 		{"Single Planet", args{planets: []*Planet{NewPlanet().WithPlayerNum(1).WithScanner(true)}}, []scanner{
-			{RangeSquared: 150 * 150, RangePenSquared: 0},
+			{RangeSquared: 150 * 150, RangePenSquared: 0, CloakReductionFactor: 1},
 		}},
 		{"Single Long Range Scout", args{fleets: []*Fleet{testLongRangeScout(player).withPlayerNum(1)}}, []scanner{
-			{RangeSquared: 66 * 66, RangePenSquared: 30 * 30},
+			{RangeSquared: 66 * 66, RangePenSquared: 30 * 30, CloakReductionFactor: 1},
 		}},
 		{"Planet and Scout same position", args{planets: []*Planet{NewPlanet().WithPlayerNum(1).WithScanner(true)}, fleets: []*Fleet{testLongRangeScout(player).withPlayerNum(1)}}, []scanner{
-			{RangeSquared: 150 * 150, RangePenSquared: 30 * 30},
+			{RangeSquared: 150 * 150, RangePenSquared: 30 * 30, CloakReductionFactor: 1},
 		}},
 		{"Planet and Scout, diff position", args{planets: []*Planet{NewPlanet().WithPlayerNum(1).WithScanner(true)}, fleets: []*Fleet{testLongRangeScout(player).withPlayerNum(1).withPosition(Vector{1, 1})}}, []scanner{
-			{RangeSquared: 150 * 150, RangePenSquared: 0},
-			{RangeSquared: 66 * 66, RangePenSquared: 30 * 30, Position: Vector{1, 1}},
+			{RangeSquared: 150 * 150, RangePenSquared: 0, CloakReductionFactor: 1},
+			{RangeSquared: 66 * 66, RangePenSquared: 30 * 30, Position: Vector{1, 1}, CloakReductionFactor: 1},
 		}},
 		{"Planet and two fleets, diff position", args{planets: []*Planet{NewPlanet().WithPlayerNum(1).WithScanner(true)}, fleets: []*Fleet{testLongRangeScout(player).withPlayerNum(1).withPosition(Vector{1, 1}), testSmallFreighter(player).withPlayerNum(1).withPosition(Vector{1, 1})}}, []scanner{
-			{RangeSquared: 150 * 150, RangePenSquared: 0},
-			{RangeSquared: 66 * 66, RangePenSquared: 30 * 30, Position: Vector{1, 1}},
+			{RangeSquared: 150 * 150, RangePenSquared: 0, CloakReductionFactor: 1},
+			{RangeSquared: 66 * 66, RangePenSquared: 30 * 30, Position: Vector{1, 1}, CloakReductionFactor: 1},
 		}},
 	}
 	for _, tt := range tests {
@@ -76,8 +76,8 @@ func Test_getStargateScanners(t *testing.T) {
 	}{
 		{"Single Planet, starbase with no gate", args{planet: NewPlanet(), player: NewPlayer(1, NewRace().WithSpec(&rules))}, []scanner{}},
 		{"Single Planet, starbase with 100/250 gate, not IT", args{planet: NewPlanet(), player: NewPlayer(1, NewRace().WithSpec(&rules)), stargate: &Stargate100_250}, []scanner{}},
-		{"Single Planet, starbase with 100/250 gate, IT", args{planet: NewPlanet(), player: NewPlayer(1, NewRace().WithPRT(IT).WithSpec(&rules)), stargate: &Stargate100_250}, []scanner{{RangePenSquared: 250 * 250}}},
-		{"Single Planet, starbase with 100/any gate, IT", args{planet: NewPlanet(), player: NewPlayer(1, NewRace().WithPRT(IT).WithSpec(&rules)), stargate: &Stargate100_Any}, []scanner{{RangePenSquared: math.MaxInt16 * math.MaxInt16}}},
+		{"Single Planet, starbase with 100/250 gate, IT", args{planet: NewPlanet(), player: NewPlayer(1, NewRace().WithPRT(IT).WithSpec(&rules)), stargate: &Stargate100_250}, []scanner{{RangePenSquared: 250 * 250, CloakReductionFactor: 1}}},
+		{"Single Planet, starbase with 100/any gate, IT", args{planet: NewPlanet(), player: NewPlayer(1, NewRace().WithPRT(IT).WithSpec(&rules)), stargate: &Stargate100_Any}, []scanner{{RangePenSquared: math.MaxInt16 * math.MaxInt16, CloakReductionFactor: 1}}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -323,6 +323,75 @@ func Test_scanWormholes(t *testing.T) {
 				t.Errorf("scanWormholes() = \n%v, want \n%v", got, tt.want)
 			}
 
+		})
+	}
+}
+
+func Test_playerScan_fleetInScannerRange(t *testing.T) {
+	type args struct {
+		fleetCloak    int
+		fleetPosition Vector
+		scanner       scanner
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "on top of each other",
+			args: args{fleetPosition: Vector{}, scanner: scanner{Position: Vector{}, RangeSquared: 0, CloakReductionFactor: 1}},
+			want: true,
+		},
+		{
+			name: "too far away",
+			args: args{fleetPosition: Vector{1, 0}, scanner: scanner{Position: Vector{}, RangeSquared: 0, CloakReductionFactor: 1}},
+			want: false,
+		},
+		{
+			name: "far but in scan range",
+			args: args{fleetPosition: Vector{10, 0}, scanner: scanner{Position: Vector{}, RangeSquared: 100, CloakReductionFactor: 1}},
+			want: true,
+		},
+		{
+			name: "far but in pen scan range",
+			args: args{fleetPosition: Vector{10, 0}, scanner: scanner{Position: Vector{}, RangePenSquared: 100, CloakReductionFactor: 1}},
+			want: true,
+		},
+		{
+			name: "cloaked",
+			args: args{fleetPosition: Vector{10, 0}, fleetCloak: 50, scanner: scanner{Position: Vector{}, RangePenSquared: 100, CloakReductionFactor: 1}},
+			want: false,
+		},
+		{
+			name: "cloaked but in range",
+			args: args{fleetPosition: Vector{5, 0}, fleetCloak: 50, scanner: scanner{Position: Vector{}, RangePenSquared: 100, CloakReductionFactor: 1}},
+			want: true,
+		},
+		{
+			name: "cloaked with tachyon scanner",
+			// 1 tachyon + 55% cloak is 52.25% effective cloaking
+			args: args{fleetPosition: Vector{math.Sqrt(52.2), 0}, fleetCloak: 55, scanner: scanner{Position: Vector{}, RangePenSquared: 100, CloakReductionFactor: math.Pow(.95, math.Sqrt(1))}},
+			want: true,
+		},
+		{
+			name: "cloaked with tachyon scanner, JUST out of range",
+			// 1 tachyon + 55% cloak is 52.25% effective cloaking
+			args: args{fleetPosition: Vector{math.Sqrt(52.3), 0}, fleetCloak: 55, scanner: scanner{Position: Vector{}, RangePenSquared: 100, CloakReductionFactor: math.Pow(.95, math.Sqrt(1))}},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			scan := playerScan{}
+			player := testPlayer()
+			fleet := newFleet(player, 1, "fleet", []Waypoint{NewPositionWaypoint(Vector{}, 0)})
+			fleet.Spec.CloakPercent = tt.args.fleetCloak
+			fleet.Position = tt.args.fleetPosition
+
+			if got := scan.fleetInScannerRange(&fleet, tt.args.scanner); got != tt.want {
+				t.Errorf("playerScan.fleetInScannerRange() = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }

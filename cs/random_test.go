@@ -8,16 +8,26 @@ type testRandom struct {
 	intsToReturn   []int
 }
 
-func newIntRandom(intsToReturn []int) *testRandom {
+func newIntRandom(intsToReturn ...int) *testRandom {
 	return &testRandom{
 		intsToReturn: intsToReturn,
 	}
 }
 
-func newFloat64Random(floatsToReturn []float64) *testRandom {
+func newFloat64Random(floatsToReturn ...float64) *testRandom {
 	return &testRandom{
 		floatsToReturn: floatsToReturn,
 	}
+}
+
+func (t *testRandom) addInts(values ...int) *testRandom {
+	t.intsToReturn = append(t.intsToReturn, values...)
+	return t
+}
+
+func (t *testRandom) addFloats(values ...float64) *testRandom {
+	t.floatsToReturn = append(t.floatsToReturn, values...)
+	return t
 }
 
 func (t *testRandom) Float64() float64 {

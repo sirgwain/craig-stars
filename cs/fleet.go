@@ -232,7 +232,6 @@ func newFleet(player *Player, num int, name string, waypoints []Waypoint) Fleet 
 		MapObject: MapObject{
 			Type:      MapObjectTypeFleet,
 			PlayerNum: player.Num,
-			Dirty:     true,
 			Num:       num,
 			Name:      fmt.Sprintf("%s #%d", name, num),
 			Position:  waypoints[0].Position,
@@ -253,7 +252,6 @@ func newFleetForDesign(player *Player, design *ShipDesign, quantity, num int, na
 		MapObject: MapObject{
 			Type:      MapObjectTypeFleet,
 			PlayerNum: player.Num,
-			Dirty:     true,
 			Num:       num,
 			Name:      fmt.Sprintf("%s #%d", name, num),
 			Position:  waypoints[0].Position,
@@ -275,7 +273,6 @@ func newFleetForToken(player *Player, num int, token ShipToken, waypoints []Wayp
 		MapObject: MapObject{
 			Type:      MapObjectTypeFleet,
 			PlayerNum: player.Num,
-			Dirty:     true,
 			Num:       num,
 			Name:      fmt.Sprintf("%s #%d", token.design.Name, num),
 			Position:  waypoints[0].Position,
@@ -463,8 +460,9 @@ func (f *Fleet) InjectDesigns(designs []*ShipDesign) error {
 func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 	spec := FleetSpec{
 		ShipDesignSpec: ShipDesignSpec{
-			ScanRangePen: NoScanner,
-			SpaceDock:    UnlimitedSpaceDock,
+			ScanRangePen:   NoScanner,
+			SpaceDock:      UnlimitedSpaceDock,
+			ReduceCloaking: 1,
 		},
 		Purposes: map[ShipDesignPurpose]bool{},
 	}
@@ -595,7 +593,7 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 		}
 
 		// choose the best tachyon detector ship
-		spec.ReduceCloaking = math.Max(spec.ReduceCloaking, token.design.Spec.ReduceCloaking)
+		spec.ReduceCloaking = math.Min(spec.ReduceCloaking, token.design.Spec.ReduceCloaking)
 
 		spec.CanStealFleetCargo = spec.CanStealFleetCargo || token.design.Spec.CanStealFleetCargo
 		spec.CanStealPlanetCargo = spec.CanStealPlanetCargo || token.design.Spec.CanStealPlanetCargo
@@ -802,7 +800,7 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 	dist = math.Min(totalDist, dist)
 
 	// check for CE engine failure
-	if player.Race.Spec.EngineFailureRate > 0 && wp1.WarpSpeed > player.Race.Spec.EngineReliableSpeed && player.Race.Spec.EngineFailureRate >= rules.random.Float64() {
+	if player.Race.Spec.EngineFailureRate > 0 && wp1.WarpSpeed > player.Race.Spec.EngineReliableSpeed && rules.random.Float64() <= player.Race.Spec.EngineFailureRate {
 		messager.fleetEngineFailure(player, fleet)
 		return
 	}
@@ -1185,7 +1183,6 @@ func (fleet *Fleet) completeMove(mapObjectGetter mapObjectGetter, player *Player
 // colonize a planet
 // TODO: return an error and stop colonization
 func (fleet *Fleet) colonizePlanet(rules *Rules, player *Player, planet *Planet) {
-	planet.MarkDirty()
 	planet.PlayerNum = player.Num
 	planet.ProductionQueue = []ProductionQueueItem{}
 	planet.Cargo = planet.Cargo.Add(fleet.Cargo)
@@ -1470,7 +1467,6 @@ func (fleet *Fleet) repairFleet(rules *Rules, player *Player, orbiting *Planet) 
 				Msgf("fleet token repaired")
 
 		}
-		fleet.MarkDirty()
 	}
 }
 

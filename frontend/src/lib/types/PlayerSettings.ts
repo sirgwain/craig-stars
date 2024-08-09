@@ -19,6 +19,7 @@ export class PlayerSettings {
 	showPlanetNames = false;
 	showFleetTokenCounts = false;
 	showScanners = true;
+	showAllyScanners = true;
 	showMineFields = true;
 	showIdleFleetsOnly = false;
 	showMessagePane = false;
@@ -31,6 +32,8 @@ export class PlayerSettings {
 	showAllPlanets = false;
 	sortFleetsKey = 'name';
 	sortFleetsDescending = false;
+	sortBattlesKey = 'num';
+	sortBattlesDescending = false;
 
 	constructor(public gameId = 0, public playerNum = 0) {}
 

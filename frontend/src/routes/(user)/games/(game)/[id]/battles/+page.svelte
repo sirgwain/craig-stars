@@ -5,54 +5,35 @@
 	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
-	import {
-		getNumShips,
-		getOurDead,
-		getOurShips,
-		getTheirDead,
-		getTheirShips
-	} from '$lib/types/Battle';
+	import { type BattleRecordDetails } from '$lib/types/Battle';
+	import { Check } from '@steeze-ui/heroicons';
+	import { Icon } from '@steeze-ui/svelte-icon';
 
-	const { game, player, universe, gotoBattle } = getGameContext();
-
-	type BattleRow = {
-		num: number;
-		location: string;
-		numPlayers: number;
-		numShips: number;
-		ours: number;
-		theirs: number;
-		ourDead: number;
-		theirDead: number;
-		oursLeft: number;
-		theirsLeft: number;
-	};
+	const { game, player, universe, settings, gotoBattle } = getGameContext();
 
 	// filterable battles
-	let filteredBattles: BattleRow[] = [];
+	let filteredBattles: BattleRecordDetails[] = [];
 	let search = '';
-	$: allies = new Set($player.getAllies());
 
-	$: battleRows = $universe.battles.map((b) => ({
-		num: b.num,
-		location: $universe.getBattleLocation(b),
-		numPlayers: Object.keys(b.stats?.numShipsByPlayer ?? {}).length,
-		numShips: getNumShips(b),
-		ours: getOurShips(b, allies),
-		theirs: getTheirDead(b, allies),
-		ourDead: getOurDead(b, allies),
-		theirDead: getTheirDead(b, allies),
-		oursLeft: getOurShips(b, allies) - getOurDead(b, allies),
-		theirsLeft: getTheirShips(b, allies) - getTheirDead(b, allies)
-	}));
+	$: battleRows = $universe.getBattles(
+		$settings.sortBattlesKey,
+		$settings.sortBattlesDescending,
+		$player
+	);
 
 	$: filteredBattles =
 		battleRows.filter((i) => i.location.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? [];
 
-	const columns: TableColumn<BattleRow>[] = [
+
+	const columns: TableColumn<BattleRecordDetails>[] = [
 		{
 			key: 'location',
 			title: 'Location'
+		},
+		{
+			key: 'present',
+			title: 'Present',
+			hidden: $player.getAllies().length === 1 // hide if we're only friends with ourself
 		},
 		{
 			key: 'numPlayers',
@@ -88,9 +69,14 @@
 		}
 	];
 
-	function gotoTarget(row: BattleRow) {
+	function gotoTarget(row: BattleRecordDetails) {
 		gotoBattle(row.num);
 		goto(`/games/${$game.id}`);
+	}
+
+	function onSorted(column: TableColumn<BattleRecordDetails>, sortDescending: boolean) {
+		$settings.sortBattlesDescending = sortDescending;
+		$settings.sortBattlesKey = column.key;
 	}
 </script>
 
@@ -107,14 +93,22 @@
 	<Table
 		{columns}
 		rows={filteredBattles}
+		externalSortAndFilter={true}
 		classes={{
 			table: 'table table-zebra table-compact table-auto w-full',
-			td: 'first:table-cell nth-child(2):table-cell hidden sm:table-cell',
-			th: 'first:table-cell nth-child(2):table-cell hidden sm:table-cell'
+			td: 'first:table-cell hidden sm:table-cell',
+			th: 'first:table-cell hidden sm:table-cell'
 		}}
 	>
-		<span slot="head" let:isSorted let:sortDescending let:column>
-			<SortableTableHeader {column} {isSorted} {sortDescending} />
+		<span slot="head" let:column>
+			<SortableTableHeader
+				{column}
+				isSorted={$settings.sortBattlesKey === column.key}
+				sortDescending={$settings.sortBattlesDescending}
+				on:sorted={(e) => {
+					onSorted(column, e.detail.sortDescending);
+				}}
+			/>
 		</span>
 
 		<span slot="cell" let:column let:row let:cell>
@@ -129,6 +123,10 @@
 						title="goto">Goto</button
 					>
 				</div>
+			{:else if column.key == 'present'}
+				{#if row.present}
+					<Icon src={Check} size="24" class="stroke-success" />
+				{/if}
 			{:else}
 				{cell ?? ''}
 			{/if}

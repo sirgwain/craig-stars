@@ -40,6 +40,7 @@
 		commandedMapObjectKey,
 		selectedMapObject,
 		selectedWaypoint,
+		currentSelectedWaypointIndex,
 		splitAll
 	} = getGameContext();
 
@@ -49,9 +50,12 @@
 
 	const { open } = carouselContext;
 
-	let carousel: HTMLDivElement | undefined;
+	export let isOpen: boolean = $open;
+	$: isOpen = $open;
 
+	let carousel: HTMLDivElement | undefined;
 	let activeNav = '#summary';
+	let activeWaypointIndex: number | undefined;
 
 	const onNavClicked: MouseEventHandler<HTMLAnchorElement> = (e) => {
 		const a = e.currentTarget;
@@ -139,6 +143,14 @@
 		}
 	});
 
+	const unsubscribecurrentSelectedWaypointIndex = currentSelectedWaypointIndex.subscribe((i) => {
+		// if there is a new currentlySelectedWaypointIndex and it's not the first one, show the waypoints tile
+		if (i != -1 && i !== 0 && activeWaypointIndex !== i) {
+			activeNav = '#fleet-waypoints-tile';
+			activeWaypointIndex = i;
+		}
+	});
+
 	// wait until the DOM is updated before calling scrollTo
 	afterUpdate(() => {
 		scrollTo(activeNav);
@@ -147,6 +159,7 @@
 	onDestroy(() => {
 		unsuscribeCommandedMapObjectKey();
 		unsuscribeSelectedMapObject();
+		unsubscribecurrentSelectedWaypointIndex();
 	});
 </script>
 

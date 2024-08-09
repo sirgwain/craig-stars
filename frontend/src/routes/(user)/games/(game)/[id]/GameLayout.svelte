@@ -14,6 +14,7 @@
 	import { createEventDispatcher } from 'svelte';
 	import GameMenu from './GameMenu.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
+	import NotificationToast from '$lib/components/NotificationToast.svelte';
 
 	let id = parseInt($page.params.id);
 	const { game } = getGameContext();
@@ -30,6 +31,7 @@
 		<GameMenu on:submit-turn={onSubmitTurn} />
 	</header>
 	<ErrorToast />
+	<NotificationToast />
 	<LoadingModal text={$loadingModalText} />
 	<slot>Game</slot>
 </main>

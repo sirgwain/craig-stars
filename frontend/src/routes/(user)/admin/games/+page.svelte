@@ -11,6 +11,10 @@
 
 	const columns: TableColumn<Game>[] = [
 		{
+			key: 'id',
+			title: 'Num'
+		},
+		{
 			key: 'name',
 			title: 'Name'
 		},
@@ -79,8 +83,8 @@
 		rows={filteredGames}
 		classes={{
 			table: 'table table-compact table-auto w-full',
-			td: 'first:table-cell nth-child(2):table-cell hidden sm:table-cell',
-			th: 'first:table-cell nth-child(2):table-cell hidden sm:table-cell'
+			td: 'first:table-cell [&:nth-child(2)]:table-cell [&:nth-child(3)]:table-cell hidden sm:table-cell',
+			th: 'first:table-cell [&:nth-child(2)]:table-cell [&:nth-child(3)]:table-cell hidden sm:table-cell'
 		}}
 	>
 		<span slot="head" let:isSorted let:sortDescending let:column>

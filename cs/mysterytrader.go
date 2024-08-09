@@ -69,7 +69,6 @@ func newMysteryTrader(position Vector, num int, warpSpeed int, destination Vecto
 			Type:     MapObjectTypeMysteryTrader,
 			Position: position,
 			Num:      num,
-			Dirty:    true,
 		},
 		WarpSpeed:     warpSpeed,
 		Destination:   destination,

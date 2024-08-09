@@ -38,6 +38,7 @@ func (ug *universeGenerator) Generate() (*Universe, error) {
 
 	for _, player := range ug.players {
 		player.Race.Spec = computeRaceSpec(&player.Race, &ug.Rules)
+		player.discoverer = newDiscovererWithAllies(player, ug.players)
 	}
 
 	ug.universe = NewUniverse(&ug.Rules)
@@ -193,12 +194,18 @@ func (ug *universeGenerator) generateWormholes() error {
 
 func (ug *universeGenerator) generateAIPlayers() {
 	names := AINames
+	cheaterNames := AICheaterNames
 	ug.Rules.random.Shuffle(len(names), func(i, j int) { names[i], names[j] = names[j], names[i] })
+	ug.Rules.random.Shuffle(len(cheaterNames), func(i, j int) { cheaterNames[i], cheaterNames[j] = cheaterNames[j], cheaterNames[i] })
 	for index, player := range ug.players {
 		if player.AIControlled {
+
 			name := names[index%len(names)]
-			player.Race.Name = name
-			player.Race.PluralName = name + "s"
+			if player.AIDifficulty == AIDifficultyCheater {
+				name = cheaterNames[index%len(cheaterNames)]
+			}
+			player.Race.Name = name[0]
+			player.Race.PluralName = name[1]
 		}
 	}
 }
