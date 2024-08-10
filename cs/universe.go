@@ -695,8 +695,6 @@ func (u *Universe) addMysteryTrader(mysteryTrader *MysteryTrader) {
 
 // move a fleet from one position to another
 func (u *Universe) moveMysteryTrader(mysteryTrader *MysteryTrader, originalPosition Vector) {
-	mysteryTrader.MarkDirty()
-
 	// upadte mapobjects position
 	u.updateMapObjectAtPosition(mysteryTrader, originalPosition, mysteryTrader.Position)
 }

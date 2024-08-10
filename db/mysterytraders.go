@@ -10,28 +10,27 @@ import (
 )
 
 type MysteryTrader struct {
-	ID            int64                    `json:"id,omitempty"`
-	GameID        int64                    `json:"gameId,omitempty"`
-	CreatedAt     time.Time                `json:"createdAt,omitempty"`
-	UpdatedAt     time.Time                `json:"updatedAt,omitempty"`
-	X             float64                  `json:"x,omitempty"`
-	Y             float64                  `json:"y,omitempty"`
-	Name          string                   `json:"name,omitempty"`
-	Num           int                      `json:"num,omitempty"`
-	Tags          *Tags                    `json:"tags,omitempty"`
-	HeadingX      float64                  `json:"headingX,omitempty"`
-	HeadingY      float64                  `json:"headingY,omitempty"`
-	WarpSpeed     int                      `json:"warpSpeed,omitempty"`
-	RequestedBoon int                      `json:"requestedBoon,omitempty"`
-	DestinationX  float64                  `json:"destinationX,omitempty"`
-	DestinationY  float64                  `json:"destinationY,omitempty"`
-	RewardType    *MysteryTraderRewardType `json:"rewardType,omitempty"`
-	Spec          *MysteryTraderSpec       `json:"spec,omitempty"`
+	ID            int64                      `json:"id,omitempty"`
+	GameID        int64                      `json:"gameId,omitempty"`
+	CreatedAt     time.Time                  `json:"createdAt,omitempty"`
+	UpdatedAt     time.Time                  `json:"updatedAt,omitempty"`
+	X             float64                    `json:"x,omitempty"`
+	Y             float64                    `json:"y,omitempty"`
+	Name          string                     `json:"name,omitempty"`
+	Num           int                        `json:"num,omitempty"`
+	Tags          *Tags                      `json:"tags,omitempty"`
+	HeadingX      float64                    `json:"headingX,omitempty"`
+	HeadingY      float64                    `json:"headingY,omitempty"`
+	WarpSpeed     int                        `json:"warpSpeed,omitempty"`
+	RequestedBoon int                        `json:"requestedBoon,omitempty"`
+	DestinationX  float64                    `json:"destinationX,omitempty"`
+	DestinationY  float64                    `json:"destinationY,omitempty"`
+	RewardType    cs.MysteryTraderRewardType `json:"rewardType,omitempty"`
+	Spec          *MysteryTraderSpec         `json:"spec,omitempty"`
 }
 
 // we json serialize these types with custom Scan/Value methods
 type MysteryTraderSpec cs.MysteryTraderSpec
-type MysteryTraderRewardType cs.MysteryTraderRewardType
 
 // db serializer to serialize this to JSON
 func (item *MysteryTraderSpec) Value() (driver.Value, error) {
@@ -40,16 +39,6 @@ func (item *MysteryTraderSpec) Value() (driver.Value, error) {
 
 // db deserializer to read this from JSON
 func (item *MysteryTraderSpec) Scan(src interface{}) error {
-	return scanJSON(src, item)
-}
-
-// db serializer to serialize this to JSON
-func (item *MysteryTraderRewardType) Value() (driver.Value, error) {
-	return valueJSON(item)
-}
-
-// db deserializer to read this from JSON
-func (item *MysteryTraderRewardType) Scan(src interface{}) error {
 	return scanJSON(src, item)
 }
 
@@ -101,6 +90,10 @@ func (c *client) createMysteryTrader(mysteryTrader *cs.MysteryTrader) error {
 		headingX,
 		headingY,
 		warpSpeed,
+		requestedBoon,
+		destinationX,
+		destinationY,
+		rewardType,
 		spec
 	)
 	VALUES (
@@ -115,6 +108,10 @@ func (c *client) createMysteryTrader(mysteryTrader *cs.MysteryTrader) error {
 		:headingX,
 		:headingY,
 		:warpSpeed,
+		:requestedBoon,
+		:destinationX,
+		:destinationY,
+		:rewardType,
 		:spec
 	)
 	`, item)
@@ -149,6 +146,10 @@ func (c *client) updateMysteryTrader(mysteryTrader *cs.MysteryTrader) error {
 		headingX = :headingX,
 		headingY = :headingY,
 		warpSpeed = :warpSpeed,
+		requestedBoon = :requestedBoon,
+		destinationX = :destinationX,
+		destinationY = :destinationY,
+		rewardType = :rewardType,
 		spec = :spec
 	WHERE id = :id
 	`, item); err != nil {

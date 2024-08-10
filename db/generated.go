@@ -231,7 +231,7 @@ func (c *GameConverter) ConvertGameMysteryTrader(source *cs.MysteryTrader) *Myst
 		dbMysteryTrader.RequestedBoon = (*source).RequestedBoon
 		dbMysteryTrader.DestinationX = (*source).Destination.X
 		dbMysteryTrader.DestinationY = (*source).Destination.Y
-		dbMysteryTrader.RewardType = GameMysteryTraderRewardTypeToMysteryTraderRewardType((*source).RewardType)
+		dbMysteryTrader.RewardType = cs.MysteryTraderRewardType((*source).RewardType)
 		dbMysteryTrader.Spec = GameMysteryTraderSpecToMysteryTraderSpec((*source).Spec)
 		pDbMysteryTrader = &dbMysteryTrader
 	}
@@ -537,7 +537,7 @@ func (c *GameConverter) ConvertMysteryTrader(source *MysteryTrader) *cs.MysteryT
 		csMysteryTrader.WarpSpeed = (*source).WarpSpeed
 		csMysteryTrader.Destination = ExtendMysteryTraderDestination((*source))
 		csMysteryTrader.RequestedBoon = (*source).RequestedBoon
-		csMysteryTrader.RewardType = MysteryTraderRewardTypeToGameMysteryTraderRewardType((*source).RewardType)
+		csMysteryTrader.RewardType = cs.MysteryTraderRewardType((*source).RewardType)
 		csMysteryTrader.Heading = ExtendMysteryTraderHeading((*source))
 		csMysteryTrader.Spec = MysteryTraderSpecToGameMysteryTraderSpec((*source).Spec)
 		pCsMysteryTrader = &csMysteryTrader

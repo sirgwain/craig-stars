@@ -21,15 +21,14 @@ func Test_generateMysteryTrader(t *testing.T) {
 	}{
 		{"no mystery trader, too early", args{&testRandom{}, &Game{Year: 2400}, 1}, nil},
 		{"no mystery trader, odd year", args{&testRandom{}, &Game{Year: 2441}, 1}, nil},
-		{"no mystery trader, random chance failed", args{newIntRandom([]int{0, 1}), &Game{Year: 2440}, 1}, nil},
+		{"no mystery trader, random chance failed", args{newIntRandom(0, 1), &Game{Year: 2440}, 1}, nil},
 		{
 			"mystery trader, random always returns 0",
-			args{newIntRandom([]int{}), &Game{Year: 2440}, 1},
+			args{newIntRandom(), &Game{Year: 2440}, 1},
 			&MysteryTrader{
 				MapObject: MapObject{
 					Type:     MapObjectTypeMysteryTrader,
 					Num:      1,
-					Dirty:    true,
 					Position: Vector{X: 380, Y: 20},
 				},
 				WarpSpeed:     7,
