@@ -14,7 +14,6 @@
 	const scale = getContext<Writable<number>>('scale');
 
 	export let mysteryTrader: MysteryTrader;
-	export let color = '#00FFFF';
 
 	let angle = 0;
 
@@ -36,8 +35,8 @@
 
 <!-- ScannerMysteryTrader -->
 <polygon
+	class="fill-mystery-trader"
 	points={`0,0 0,${size} ${size},${size}`}
-	fill={color}
 	transform={`translate(${$xGet(mysteryTrader)} ${$yGet(mysteryTrader)}) rotate(${angle}) translate(${-size / 2} ${
 		-size / 2
 	})`}

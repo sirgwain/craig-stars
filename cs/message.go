@@ -60,7 +60,7 @@ type PlayerMessageSpecComet struct {
 }
 
 type PlayerMessageSpecMysteryTrader struct {
-	MysteryTraderReward `json:"mysteryTraderReward,omitempty"`
+	MysteryTraderReward
 }
 
 type PlayerMessageTargetType string
@@ -202,6 +202,11 @@ func newMineralPacketMessage(messageType PlayerMessageType, target *MineralPacke
 	return PlayerMessage{Type: messageType, Target: Target[PlayerMessageTargetType]{TargetType: TargetMineralPacket, TargetName: target.Name, TargetPlayerNum: target.PlayerNum, TargetNum: target.Num}}
 }
 
+// create a new message targeting a planet
+func newMysteryTraderMessage(messageType PlayerMessageType, target *MysteryTrader) PlayerMessage {
+	return PlayerMessage{Type: messageType, Target: Target[PlayerMessageTargetType]{TargetType: TargetMysteryTrader, TargetNum: target.Num}}
+}
+
 // create a new message targeting a battle with the Name field as the location of the battle
 func newBattleMessage(messageType PlayerMessageType, planet *Planet, battle *BattleRecord) PlayerMessage {
 	planetNum := None
@@ -212,11 +217,6 @@ func newBattleMessage(messageType PlayerMessageType, planet *Planet, battle *Bat
 	}
 
 	return PlayerMessage{Type: messageType, Target: Target[PlayerMessageTargetType]{TargetType: targetType, TargetNum: planetNum}, BattleNum: battle.Num}
-}
-
-// create a new message targeting a planet
-func newMysteryTraderMessage(messageType PlayerMessageType, target *MysteryTrader) PlayerMessage {
-	return PlayerMessage{Type: messageType, Target: Target[PlayerMessageTargetType]{TargetType: TargetMysteryTrader, TargetNum: target.Num}}
 }
 
 // use a spec in this message. spec.Name must be specified because the message details

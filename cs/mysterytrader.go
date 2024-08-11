@@ -60,8 +60,8 @@ var Rewards = [15]MysteryTraderRewardType{
 }
 
 type MysteryTraderReward struct {
-	Type       MysteryTraderRewardType `json:"type,omitempty"`
-	TechLevels TechLevel               `json:"techLevels,omitempty"`
+	Type       MysteryTraderRewardType `json:"type"`
+	TechLevels TechLevel               `json:"techLevels"`
 	Tech       string                  `json:"tech,omitempty"`
 }
 

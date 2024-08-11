@@ -157,7 +157,7 @@ type MysteryTraderIntel struct {
 	MapObjectIntel
 	WarpSpeed     int    `json:"warpSpeed,omitempty"`
 	Heading       Vector `json:"heading"`
-	RequestedBoon int    `json:"requestedBoon,omitempty"`
+	RequestedBoon int    `json:"requestedBoon"`
 }
 
 type PlayerIntel struct {

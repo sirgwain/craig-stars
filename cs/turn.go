@@ -2168,12 +2168,12 @@ func (t *turn) mysteryTraderMeet() {
 
 				if reward.Type == MysteryTraderRewardNone {
 					// fleet wasn't absorbed, move on
-					player.Messages = append(player.Messages, newMysteryTraderMessage(PlayerMessageMysteryTraderMetWithoutReward, mt))
+					player.Messages = append(player.Messages, newMysteryTraderMessage(PlayerMessageMysteryTraderMetWithoutReward, mt).withSpec(PlayerMessageSpec{}.withTargetFleet(fleet)))
 					continue
 				}
 
 				// player got a reward
-				player.Messages = append(player.Messages, newMysteryTraderMessage(PlayerMessageMysteryTraderMetWithReward, mt).withSpec(PlayerMessageSpec{MysteryTrader: &PlayerMessageSpecMysteryTrader{reward}}))
+				player.Messages = append(player.Messages, newMysteryTraderMessage(PlayerMessageMysteryTraderMetWithReward, mt).withSpec(PlayerMessageSpec{MysteryTrader: &PlayerMessageSpecMysteryTrader{reward}}.withTargetFleet(fleet)))
 
 				switch reward.Type {
 				case MysteryTraderRewardResearch:
