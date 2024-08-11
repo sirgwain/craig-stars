@@ -760,6 +760,20 @@ func (t *turn) packetMove(builtThisTurn bool) {
 }
 
 func (t *turn) mysteryTraderSpawn() {
+	if !t.game.RandomEvents {
+		// no mystery traders if no random events
+		return
+	}
+
+	if len(t.game.MysteryTraders) >= t.game.Rules.MysteryTraderRules.MaxMysteryTraders {
+		log.Debug().
+			Int64("GameID", t.game.ID).
+			Str("Name", t.game.Name).
+			Int("Year", t.game.Year).
+			Msgf("Max MysteryTraders reached, not generating")
+
+		return
+	}
 
 	mt := generateMysteryTrader(&t.game.Rules, t.game.Game, t.game.getNextMysteryTraderNum())
 	if mt != nil {
@@ -777,6 +791,7 @@ func (t *turn) mysteryTraderSpawn() {
 			Int("Year", t.game.Year).
 			Int("MysteryTrader", mt.Num).
 			Str("Position", mt.Position.String()).
+			Str("Destination", mt.Destination.String()).
 			Msgf("MysteryTrader spawned")
 	}
 }

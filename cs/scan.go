@@ -53,7 +53,7 @@ func (scan *playerScan) scan() error {
 	scan.scanMineralPackets(scanners)
 	scan.scanSalvages(scanners)
 	scan.scanWormholes(scanners)
-	scan.scanMysteryTraders(scanners)
+	scan.scanMysteryTraders()
 
 	// scan ally objects
 	scan.discoverAllies()
@@ -269,18 +269,13 @@ func (scan *playerScan) scanWormholes(scanners []scanner) {
 }
 
 // scan Mystery Traders
-func (scan *playerScan) scanMysteryTraders(scanners []scanner) {
+func (scan *playerScan) scanMysteryTraders() {
 	for _, mysteryTrader := range scan.universe.MysteryTraders {
 		if mysteryTrader.Delete {
 			continue
 		}
-		for _, scanner := range scanners {
-			// we only care about regular scanners for mysteryTraders
-			if float64(scanner.RangeSquared) >= scanner.Position.DistanceSquaredTo(mysteryTrader.Position) {
-				scan.discoverer.discoverMysteryTrader(mysteryTrader)
-				break
-			}
-		}
+		// every player discovers mystery traders
+		scan.discoverer.discoverMysteryTrader(mysteryTrader)
 	}
 }
 

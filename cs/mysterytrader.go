@@ -1,6 +1,9 @@
 package cs
 
-import "math"
+import (
+	"fmt"
+	"math"
+)
 
 // The mystery trader travels through space and gives a boon to any player that gives it a fleet
 // full of minerals
@@ -69,9 +72,11 @@ func newMysteryTrader(position Vector, num int, warpSpeed int, destination Vecto
 			Type:     MapObjectTypeMysteryTrader,
 			Position: position,
 			Num:      num,
+			Name:     fmt.Sprintf("Mystery Trader #%d", num),
 		},
 		WarpSpeed:     warpSpeed,
 		Destination:   destination,
+		Heading:       (destination.Subtract(position)).Normalized(),
 		RequestedBoon: requestedBoon,
 		RewardType:    reward,
 	}
@@ -103,38 +108,50 @@ func generateMysteryTrader(rules *Rules, game *Game, num int) *MysteryTrader {
 	// determine speed
 	warp := mtRules.MinWarp + rules.random.Intn(mtRules.MaxWarp-mtRules.MinWarp)
 
-	// make two sets of coords
-	// edgeCords is an x/y that will determine where we start on the edge
-	edgeCords := []int{
+	// we want two sets of coords, a random set somewhere on the x/y range
+	// and whatever our edge coords are
+	var randomXYCoords, yEdgeCoords, xEdgeCoords [2]int
+
+	randomXYCoords = [2]int{
 		20 + rules.random.Intn(int(game.Area.X)-39),
 		20 + rules.random.Intn(int(game.Area.Y)-39),
 	}
 
-	// coord from the top of the map to the other
-	crossMapCoords := []int{
-		20,
-		400 + int(game.Area.Y) - 20,
+	xEdgeCoords = [2]int{
+		-20,
+		int(game.Area.X) + 20,
 	}
 
-	// swap top-to-bottom for left-to-right
+	yEdgeCoords = [2]int{
+		-20,
+		int(game.Area.Y) + 20,
+	}
+
+	// our position/dest always uses one edge coord, one random coord
+	// the edge coord is either 0 or the max size, based on some randomness
+	var position, destination Vector
 	if rules.random.Intn(2) == 0 {
-		crossMapCoords = []int{
-			400 + int(game.Area.X) - 20,
-			20,
-		}
+		position.X = float64(randomXYCoords[0])
+		position.Y = float64(yEdgeCoords[rules.random.Intn(2)])
+	} else {
+		position.X = float64(xEdgeCoords[rules.random.Intn(2)])
+		position.Y = float64(randomXYCoords[1])
 	}
 
-	position := Vector{
-		X: float64(edgeCords[0]),
-		Y: float64(crossMapCoords[1]),
+	// set our destination to maximize the chances it goes through the universe
+	if position.X > game.Area.X/2 {
+		destination.X = -20
+	} else {
+		destination.X = game.Area.X + 20
 	}
 
-	destination := Vector{
-		X: float64(crossMapCoords[0]),
-		Y: float64(edgeCords[1]),
+	if position.Y > game.Area.Y/2 {
+		destination.Y = -20
+	} else {
+		destination.Y = game.Area.Y + 20
 	}
 
-	// swap position/destination
+	// swap position/destination at random
 	if rules.random.Intn(2) == 0 {
 		position, destination = destination, position
 	}

@@ -388,6 +388,7 @@ func (p *Player) clearTransientIntel() {
 	p.MineFieldIntels = []MineFieldIntel{}
 	p.SalvageIntels = []SalvageIntel{}
 	p.MineralPacketIntels = []MineralPacketIntel{}
+	p.MysteryTraderIntels = []MysteryTraderIntel{}
 }
 
 // for reports that stick around, increment the report age
