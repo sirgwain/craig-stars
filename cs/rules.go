@@ -97,7 +97,6 @@ const (
 	RandomEventMineralDeposit  RandomEvent = "MineralDeposit"
 	RandomEventPlanetaryChange RandomEvent = "PlanetaryChange"
 	RandomEventAncientArtifact RandomEvent = "AncientArtifact"
-	RandomEventMysteryTrader   RandomEvent = "MysteryTrader"
 )
 
 type CometSize string
@@ -214,7 +213,6 @@ func NewRulesWithSeed(seed int64) Rules {
 			RandomEventMineralDeposit:  .05,
 			RandomEventPlanetaryChange: .05,
 			RandomEventAncientArtifact: .33, // 1 in 3 planets have random artifacts
-			RandomEventMysteryTrader:   .05,
 		},
 		RandomCometMinYear:            10,
 		RandomCometMinYearPlayerWorld: 20,

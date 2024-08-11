@@ -25,17 +25,7 @@ func Test_generateMysteryTrader(t *testing.T) {
 		{
 			"mystery trader, random always returns 0",
 			args{newIntRandom(), &Game{Year: 2440}, 1},
-			&MysteryTrader{
-				MapObject: MapObject{
-					Type:     MapObjectTypeMysteryTrader,
-					Num:      1,
-					Position: Vector{X: 380, Y: 20},
-				},
-				WarpSpeed:     7,
-				Destination:   Vector{X: 20, Y: 20},
-				RequestedBoon: 5000,
-				RewardType:    MysteryTraderRewardResearch,
-			},
+			newMysteryTrader(Vector{X: -20, Y: 20}, 1, 7, Vector{X: 20, Y: -20}, 5000, MysteryTraderRewardResearch),
 		},
 	}
 	for _, tt := range tests {

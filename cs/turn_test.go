@@ -25,6 +25,8 @@ func (m MockRand) Int63() int64 {
 func createSingleUnitGame() *FullGame {
 	client := NewGamer()
 	game := client.CreateGame(1, *NewGameSettings())
+	game.RandomEvents = false // don't allow random events in tests unless configured
+	game.Area, _ = game.Rules.GetArea(game.Size)
 	game.Rules.ResetSeed(0) // keep the same seed for tests
 	player := client.NewPlayer(1, *NewRace(), &game.Rules).withSpec(&game.Rules)
 	player.Num = 1
@@ -73,6 +75,8 @@ func createSingleUnitGame() *FullGame {
 func createTwoPlayerGame() *FullGame {
 	client := NewGamer()
 	game := client.CreateGame(1, *NewGameSettings())
+	game.RandomEvents = false // don't allow random events in tests unless configured
+	game.Area, _ = game.Rules.GetArea(game.Size)
 	game.Rules.ResetSeed(0) // keep the same seed for tests
 	player1 := client.NewPlayer(1, *NewRace(), &game.Rules).withSpec(&game.Rules)
 	player1.Num = 1
@@ -150,6 +154,7 @@ func createTwoPlayerGame() *FullGame {
 func Test_generateTurn(t *testing.T) {
 	client := NewGamer()
 	game := client.CreateGame(1, *NewGameSettings())
+	game.Area, _ = game.Rules.GetArea(game.Size)
 	player := client.NewPlayer(1, *NewRace(), &game.Rules)
 	players := []*Player{player}
 	player.AIControlled = true
@@ -180,6 +185,7 @@ func Test_generateTurn(t *testing.T) {
 func Test_generateTurns(t *testing.T) {
 	client := NewGamer()
 	game := client.CreateGame(1, *NewGameSettings())
+	game.Area, _ = game.Rules.GetArea(game.Size)
 	player := client.NewPlayer(1, *NewRace(), &game.Rules)
 	player.AIControlled = true
 	player.Num = 1
@@ -1967,6 +1973,7 @@ func Test_turn_fleetPatrolKillPatrolAgain(t *testing.T) {
 
 func Test_turn_mysteryTraderSpawn(t *testing.T) {
 	game := createSingleUnitGame()
+	game.RandomEvents = true
 	game.Rules.random = &testRandom{} // test random always rolls 0 by default
 	game.Year = game.Year + game.Rules.MysteryTraderRules.MinYear
 
@@ -1986,6 +1993,7 @@ func Test_turn_mysteryTraderSpawn(t *testing.T) {
 
 func Test_turn_mysteryTraderMove(t *testing.T) {
 	game := createSingleUnitGame()
+	game.RandomEvents = true
 	game.Rules.random = &testRandom{} // test random always rolls 0 by default
 	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardResearch))
 	mt := game.MysteryTraders[0]
@@ -2005,6 +2013,7 @@ func Test_turn_mysteryTraderMove(t *testing.T) {
 
 func Test_turn_mysteryTraderMeetNoReward(t *testing.T) {
 	game := createSingleUnitGame()
+	game.RandomEvents = true
 	game.Rules.random = &testRandom{} // test random always rolls 0 by default
 	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardResearch))
 	mt := game.MysteryTraders[0]
@@ -2032,6 +2041,7 @@ func Test_turn_mysteryTraderMeetNoReward(t *testing.T) {
 
 func Test_turn_mysteryTraderMeetReward(t *testing.T) {
 	game := createSingleUnitGame()
+	game.RandomEvents = true
 	game.Rules.random = &testRandom{} // test random always rolls 0 by default
 	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardResearch))
 	mt := game.MysteryTraders[0]
