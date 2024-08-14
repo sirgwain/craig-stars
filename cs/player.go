@@ -593,7 +593,7 @@ func (p *Player) defaultPlans() PlayerPlans {
 	defaultProductionPlan := ProductionPlan{
 		Num:  0,
 		Name: "Default",
-		Items: []
+		Items: [],
 	}
 
 	if !p.Race.Spec.Instaforming && !(p.Race.ImmuneGrav && p.Race.ImmuneTemp && p.Race.ImmuneRad) {
