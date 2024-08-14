@@ -2161,10 +2161,10 @@ func (t *turn) mysteryTraderMeet() {
 		}
 
 		for _, mo := range mapObjectsAtPosition {
-			if fleet, ok := mo.(*Fleet); ok && !fleet.Delete {
+			if fleet, ok := mo.(*Fleet); ok && !fleet.Delete && fleet.Waypoints[0].TargetType == MapObjectTypeMysteryTrader && fleet.Waypoints[0].TargetNum == mt.Num {
 
 				player := t.game.getPlayer(fleet.PlayerNum)
-				reward := mt.meet(&t.game.Rules, fleet, player)
+				reward := mt.meet(&t.game.Rules, t.game.Game, fleet, player)
 
 				if reward.Type == MysteryTraderRewardNone {
 					// fleet wasn't absorbed, move on
@@ -2187,6 +2187,33 @@ func (t *turn) mysteryTraderMeet() {
 						Int("Player", player.Num).
 						Str("TechLevel", fmt.Sprintf("%v", reward.TechLevels)).
 						Msgf("gained tech levels from mysteryTrader")
+				case MysteryTraderRewardLifeboat:
+					// player gets a ship
+
+				case MysteryTraderRewardEngine:
+					fallthrough
+				case MysteryTraderRewardBomb:
+					fallthrough
+				case MysteryTraderRewardArmor:
+					fallthrough
+				case MysteryTraderRewardShield:
+					fallthrough
+				case MysteryTraderRewardElectrical:
+					fallthrough
+				case MysteryTraderRewardMechanical:
+					fallthrough
+				case MysteryTraderRewardTorpedo:
+					fallthrough
+				case MysteryTraderRewardMineRobot:
+					fallthrough
+				case MysteryTraderRewardShipHull:
+					fallthrough
+				case MysteryTraderRewardBeamWeapon:
+					fallthrough
+				case MysteryTraderRewardGenesis:
+					fallthrough
+				case MysteryTraderRewardJumpGate:
+					// MT awarded tech
 				}
 
 				// remove the absorbed fleet from the universe

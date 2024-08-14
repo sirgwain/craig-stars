@@ -37,7 +37,7 @@ const (
 	MysteryTraderRewardShipHull   MysteryTraderRewardType = "ShipHull"
 	MysteryTraderRewardBeamWeapon MysteryTraderRewardType = "BeamWeapon"
 	MysteryTraderRewardGenesis    MysteryTraderRewardType = "Genesis"
-	MysteryTraderRewardJumpgate   MysteryTraderRewardType = "Jumpgate"
+	MysteryTraderRewardJumpGate   MysteryTraderRewardType = "JumpGate"
 	MysteryTraderRewardLifeboat   MysteryTraderRewardType = "Lifeboat"
 )
 
@@ -55,14 +55,46 @@ var Rewards = [15]MysteryTraderRewardType{
 	MysteryTraderRewardMineRobot,
 	MysteryTraderRewardShipHull,
 	MysteryTraderRewardGenesis,
-	MysteryTraderRewardJumpgate,
+	MysteryTraderRewardJumpGate,
 	MysteryTraderRewardLifeboat,
+}
+
+func (t MysteryTraderRewardType) Category() TechCategory {
+	switch t {
+	case MysteryTraderRewardEngine:
+		return TechCategoryEngine
+	case MysteryTraderRewardBomb:
+		return TechCategoryBomb
+	case MysteryTraderRewardArmor:
+		return TechCategoryArmor
+	case MysteryTraderRewardShield:
+		return TechCategoryShield
+	case MysteryTraderRewardElectrical:
+		return TechCategoryElectrical
+	case MysteryTraderRewardMechanical:
+		return TechCategoryMechanical
+	case MysteryTraderRewardTorpedo:
+		return TechCategoryTorpedo
+	case MysteryTraderRewardMineRobot:
+		return TechCategoryMineRobot
+	case MysteryTraderRewardShipHull:
+		return TechCategoryShipHull
+	case MysteryTraderRewardBeamWeapon:
+		return TechCategoryBeamWeapon
+	case MysteryTraderRewardGenesis:
+		return TechCategoryPlanetary
+	case MysteryTraderRewardJumpGate:
+		return TechCategoryMechanical
+	}
+	return TechCategoryNone
 }
 
 type MysteryTraderReward struct {
 	Type       MysteryTraderRewardType `json:"type"`
 	TechLevels TechLevel               `json:"techLevels"`
 	Tech       string                  `json:"tech,omitempty"`
+	Ship       ShipDesign              `json:"ship,omitempty"`
+	ShipCount  int                     `json:"shipCount,omitempty"`
 }
 
 // create a new mysterytrader object
@@ -106,7 +138,7 @@ func generateMysteryTrader(rules *Rules, game *Game, num int) *MysteryTrader {
 	// We made it this far, WE HAVE A MYSTERY TRADER!
 
 	// determine speed
-	warp := mtRules.MinWarp + rules.random.Intn(mtRules.MaxWarp-mtRules.MinWarp)
+	warpSpeed := mtRules.MinWarp + rules.random.Intn(mtRules.MaxWarp-mtRules.MinWarp)
 
 	// we want two sets of coords, a random set somewhere on the x/y range
 	// and whatever our edge coords are
@@ -156,10 +188,72 @@ func generateMysteryTrader(rules *Rules, game *Game, num int) *MysteryTrader {
 		position, destination = destination, position
 	}
 
-	// TODO: populate reward
+	// generate a random reward type
+	reward := generateMysteryTraderReward(rules, game.Year, warpSpeed)
+
+	return newMysteryTrader(position, num, warpSpeed, destination, mtRules.RequestedBoon, reward)
+}
+
+// generate a random mystery trader reward based on the year of the game and speed of the MT
+// early game is more likely to be research (or 1/6th chance of a ship)
+func generateMysteryTraderReward(rules *Rules, year int, warpSpeed int) MysteryTraderRewardType {
+	turn := year - rules.StartingYear
+
+	var chance int
+	if turn < 100 {
+		// before year 100, we weight towards research rewards
+		chance = 5
+	} else if turn < 250 {
+		// year 100 to 250, weight a little more towards random components
+		chance = 3
+	} else {
+		// after year 250, it's a toss up if we go the research path vs random component
+		chance = 2
+	}
+
+	// faster mystery traders have more of a chance for good rewards
+	if warpSpeed <= 9 {
+		chance++
+	} else if warpSpeed >= 11 {
+		chance--
+	}
+
+	// default to research
 	reward := MysteryTraderRewardResearch
 
-	return newMysteryTrader(position, num, warp, destination, mtRules.RequestedBoon, reward)
+	if rules.random.Intn(10) < chance {
+		// roll a 10 sided die, if it's less than our starting chance
+		// 5 out of 6 traders will have research, the others will give a ship
+		if rules.random.Intn(6) == 5 {
+			reward = MysteryTraderRewardLifeboat
+		} else {
+			reward = MysteryTraderRewardResearch
+		}
+	} else {
+		// we made it to the good stuff!
+		// grab a random reward from the list, skipping the first one "None"
+		randomReward := Rewards[rules.random.Intn(len(Rewards)-1)+1]
+		if randomReward == MysteryTraderRewardTorpedo ||
+			randomReward == MysteryTraderRewardBeamWeapon ||
+			randomReward == MysteryTraderRewardGenesis ||
+			randomReward == MysteryTraderRewardJumpGate {
+
+			// the first random reward was something cool, make them roll again
+			randomReward = Rewards[rules.random.Intn(len(Rewards)-1)+1]
+
+			if turn < 120 && randomReward == MysteryTraderRewardBeamWeapon ||
+				turn < 150 && randomReward == MysteryTraderRewardGenesis ||
+				turn < 180 && randomReward == MysteryTraderRewardJumpGate {
+				// we are too early for one of these good rewards. Half the time we just give research
+				if rules.random.Intn(2) > 0 {
+					randomReward = MysteryTraderRewardResearch
+				}
+			}
+		}
+		reward = randomReward
+	}
+
+	return reward
 }
 
 // move a mystery trader
@@ -185,14 +279,14 @@ func (mt *MysteryTrader) move() {
 }
 
 // meet a mystery trader and recieve a reward!
-func (mt *MysteryTrader) meet(rules *Rules, fleet *Fleet, player *Player) MysteryTraderReward {
+func (mt *MysteryTrader) meet(rules *Rules, game *Game, fleet *Fleet, player *Player) MysteryTraderReward {
 	gift := fleet.Cargo.ToMineral().Total()
 	if fleet.Cargo.ToMineral().Total() >= mt.RequestedBoon {
 		// it's a major award!
 
 		switch mt.RewardType {
-		// give the player tech levels
 		case MysteryTraderRewardResearch:
+			// give the player tech levels
 			numLevels := player.TechLevels.Sum()
 			levels := TechLevel{}
 
@@ -217,9 +311,119 @@ func (mt *MysteryTrader) meet(rules *Rules, fleet *Fleet, player *Player) Myster
 				Type:       MysteryTraderRewardResearch,
 				TechLevels: levels,
 			}
+		case MysteryTraderRewardJumpGate:
+			// player gets a jump gate
+			return MysteryTraderReward{
+				Type: MysteryTraderRewardJumpGate,
+				Tech: JumpGate.Name,
+			}
+		case MysteryTraderRewardGenesis:
+			// player gets a genesis device
+			return MysteryTraderReward{
+				Type: MysteryTraderRewardGenesis,
+				Tech: GenesisDevice.Name,
+			}
+		case MysteryTraderRewardLifeboat:
+			ship, count := getRandomLifeboat(rules.random, game.Year-rules.StartingYear)
+			return MysteryTraderReward{
+				Type:      MysteryTraderRewardLifeboat,
+				Ship:      ship,
+				ShipCount: count,
+			}
+		default:
+			// give them a hull component or hull
+			tech := getRandomMysteryTraderTech(rules.random, mt.RewardType)
+			if tech != nil {
+				return MysteryTraderReward{
+					Type: mt.RewardType,
+					Tech: tech.Name,
+				}
+			}
 		}
+
 	}
 	return MysteryTraderReward{}
+}
+
+// get a random lifeboat design the player will be given
+func getRandomLifeboat(rng rng, turn int) (ShipDesign, int) {
+
+	// figure out which ships the player doesn't already have
+	ships := []ShipDesign{
+		MysteryTraderScout,
+		MysteryTraderProbe,
+		MysteryTraderLifeboat,
+	}
+
+	count := 1
+	if rng.Intn(3) == 0 {
+		count = 2
+	}
+
+	if turn > 100 && rng.Intn(2) > 0 {
+		// after turn 100, return probes and lifeboats
+		return ships[1+rng.Intn(len(ships)-1)], count
+	} else {
+		return ships[rng.Intn(len(ships))], count
+	}
+}
+
+// get a random mystery trader tech
+// currently there is no "random" to it, because we only have one tech of each category
+// but there *could be*
+func getRandomMysteryTraderTech(rng rng, reward MysteryTraderRewardType) *Tech {
+	if reward == MysteryTraderRewardGenesis || reward == MysteryTraderRewardJumpGate || reward == MysteryTraderRewardLifeboat {
+		// these rewards never return a random tech
+		return nil
+	}
+
+	techsByCategory := make(map[TechCategory][]Tech, len(TechCategories))
+
+	for _, tech := range MysteryTraderRandomTechs {
+		techsByCategory[tech.Category] = append(techsByCategory[tech.Category], tech)
+	}
+
+	category := reward.Category()
+	if category == TechCategoryNone {
+		return nil
+	}
+
+	if len(techsByCategory[category]) == 0 {
+		return nil
+	}
+
+	// pick a random tech to aware for this category
+	return &techsByCategory[category][rng.Intn(len(techsByCategory[category]))]
+}
+
+// a list of all Mystery Trader Techs
+var MysteryTraderTechs = []Tech{
+	HushABoom.Tech,
+	EnigmaPulsar.Tech,
+	MegaPolyShell.Tech,
+	LangstonShell.Tech,
+	MultiFunctionPod.Tech,
+	AntiMatterTorpedo.Tech,
+	MultiContainedMunition.Tech,
+	AlienMiner.Tech,
+	MultiCargoPod.Tech,
+	MiniMorph.Tech,
+	JumpGate.Tech,
+	GenesisDevice.Tech,
+}
+
+// a list of mystery trader techs that can be randomly
+var MysteryTraderRandomTechs = []Tech{
+	HushABoom.Tech,
+	EnigmaPulsar.Tech,
+	MegaPolyShell.Tech,
+	LangstonShell.Tech,
+	MultiFunctionPod.Tech,
+	AntiMatterTorpedo.Tech,
+	MultiContainedMunition.Tech,
+	AlienMiner.Tech,
+	MultiCargoPod.Tech,
+	MiniMorph.Tech,
 }
 
 var HushABoom = TechHullComponent{Tech: NewTechWithOrigin("Hush-a-Boom", NewCost(1, 2, 0, 2), TechRequirements{Acquirable: true, TechLevel: TechLevel{Weapons: 12, Electronics: 12, Biotechnology: 12}}, 75, TechCategoryBomb, OriginMysteryTrader),
@@ -348,6 +552,55 @@ var MiniMorph = TechHull{Tech: NewTechWithOrigin("Mini Morph", NewCost(30, 8, 8,
 		{Position: Vector{-1, 1}, Type: HullSlotTypeGeneral, Capacity: 2},
 	},
 }
-var GenesisDevice = TechPlanetary{Tech: NewTechWithOrigin("Genesis Device", NewCost(10, 10, 70, 100), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 20, Weapons: 10, Propulsion: 10, Construction: 20, Electronics: 10, Biotechnology: 20}}, 45, TechCategoryPlanetaryDefense, OriginMysteryTrader),
+var GenesisDevice = TechPlanetary{Tech: NewTechWithOrigin("Genesis Device", NewCost(10, 10, 70, 100), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 20, Weapons: 10, Propulsion: 10, Construction: 20, Electronics: 10, Biotechnology: 20}}, 45, TechCategoryPlanetary, OriginMysteryTrader),
 	ResetPlanet: true,
+}
+
+var MysteryTraderScout = ShipDesign{
+	Hull:         MiniMorph.Name,
+	Name:         "M.T. Scout",
+	MysterTrader: true,
+	Slots: []ShipDesignSlot{
+		{HullComponent: EnigmaPulsar.Name, HullSlotIndex: 1, Quantity: 2},
+		{HullComponent: LangstonShell.Name, HullSlotIndex: 2, Quantity: 3},
+		{HullComponent: MultiCargoPod.Name, HullSlotIndex: 3, Quantity: 1},
+		{HullComponent: MultiFunctionPod.Name, HullSlotIndex: 4, Quantity: 1},
+		{HullComponent: JumpGate.Name, HullSlotIndex: 5, Quantity: 1},
+		{HullComponent: AntiMatterTorpedo.Name, HullSlotIndex: 6, Quantity: 2},
+		{HullComponent: AntiMatterTorpedo.Name, HullSlotIndex: 7, Quantity: 2},
+	},
+}
+
+var MysteryTraderProbe = ShipDesign{
+	Hull:         MiniMorph.Name,
+	Name:         "M.T. Probe",
+	MysterTrader: true,
+	Slots: []ShipDesignSlot{
+		{HullComponent: EnigmaPulsar.Name, HullSlotIndex: 1, Quantity: 2},
+		{HullComponent: MegaPolyShell.Name, HullSlotIndex: 2, Quantity: 3},
+		{HullComponent: MultiCargoPod.Name, HullSlotIndex: 3, Quantity: 1},
+		{HullComponent: MultiFunctionPod.Name, HullSlotIndex: 4, Quantity: 1},
+		{HullComponent: JumpGate.Name, HullSlotIndex: 5, Quantity: 1},
+		{HullComponent: AntiMatterTorpedo.Name, HullSlotIndex: 6, Quantity: 2},
+		{HullComponent: AntiMatterTorpedo.Name, HullSlotIndex: 7, Quantity: 2},
+	},
+}
+
+var MysteryTraderLifeboat = ShipDesign{
+	Hull:         Nubian.Name,
+	Name:         "M.T. Lifeboat",
+	MysterTrader: true,
+	Slots: []ShipDesignSlot{
+		{HullComponent: EnigmaPulsar.Name, HullSlotIndex: 1, Quantity: 3},
+		{HullComponent: MegaPolyShell.Name, HullSlotIndex: 2, Quantity: 3},
+		{HullComponent: MegaPolyShell.Name, HullSlotIndex: 3, Quantity: 3},
+		{HullComponent: LangstonShell.Name, HullSlotIndex: 4, Quantity: 3},
+		{HullComponent: LangstonShell.Name, HullSlotIndex: 5, Quantity: 3},
+		{HullComponent: MultiContainedMunition.Name, HullSlotIndex: 6, Quantity: 3},
+		{HullComponent: MultiContainedMunition.Name, HullSlotIndex: 7, Quantity: 3},
+		{HullComponent: MultiContainedMunition.Name, HullSlotIndex: 8, Quantity: 3},
+		{HullComponent: MultiCargoPod.Name, HullSlotIndex: 9, Quantity: 3},
+		{HullComponent: MultiFunctionPod.Name, HullSlotIndex: 10, Quantity: 3},
+		{HullComponent: MultiFunctionPod.Name, HullSlotIndex: 11, Quantity: 3},
+	},
 }

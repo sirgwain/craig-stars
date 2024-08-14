@@ -8,6 +8,7 @@ import (
 type TechCategory string
 
 const (
+	TechCategoryNone             TechCategory = ""
 	TechCategoryArmor            TechCategory = "Armor"
 	TechCategoryBeamWeapon       TechCategory = "BeamWeapon"
 	TechCategoryBomb             TechCategory = "Bomb"
@@ -27,6 +28,27 @@ const (
 	TechCategoryTerraforming     TechCategory = "Terraforming"
 	TechCategoryTorpedo          TechCategory = "Torpedo"
 )
+
+var TechCategories = []TechCategory{
+	TechCategoryArmor,
+	TechCategoryBeamWeapon,
+	TechCategoryBomb,
+	TechCategoryElectrical,
+	TechCategoryEngine,
+	TechCategoryMechanical,
+	TechCategoryMineLayer,
+	TechCategoryMineRobot,
+	TechCategoryOrbital,
+	TechCategoryPlanetary,
+	TechCategoryPlanetaryScanner,
+	TechCategoryPlanetaryDefense,
+	TechCategoryScanner,
+	TechCategoryShield,
+	TechCategoryShipHull,
+	TechCategoryStarbaseHull,
+	TechCategoryTerraforming,
+	TechCategoryTorpedo,
+}
 
 const (
 	OriginNone          string = ""

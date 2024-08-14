@@ -381,6 +381,16 @@ func NewFleetWaypoint(position Vector, num int, playerNum int, name string, warp
 	}
 }
 
+func NewMysteryTraderWaypoint(mt *MysteryTrader, warpSpeed int) Waypoint {
+	return Waypoint{
+		Position:   mt.Position,
+		TargetType: mt.Type,
+		TargetNum:  mt.Num,
+		TargetName: mt.Name,
+		WarpSpeed:  warpSpeed,
+	}
+}
+
 func NewPositionWaypoint(position Vector, warpSpeed int) Waypoint {
 	return Waypoint{
 		Position:        position,

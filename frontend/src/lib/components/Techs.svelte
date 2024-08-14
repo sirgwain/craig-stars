@@ -37,6 +37,7 @@
 		MineLayer: [],
 		MineRobot: [],
 		Orbital: [],
+		Planetary: [],
 		PlanetaryScanner: [],
 		PlanetaryDefense: [],
 		Scanner: [],
@@ -58,6 +59,7 @@
 			MineLayer: [],
 			MineRobot: [],
 			Orbital: [],
+			Planetary: [],
 			PlanetaryScanner: [],
 			PlanetaryDefense: [],
 			Scanner: [],
@@ -131,7 +133,7 @@
 {/if}
 
 {#each eu(TechCategory).getKeys() as category}
-	{#if techsByCategory[category].length > 0}
+	{#if techsByCategory[category]?.length > 0}
 		<a id={kebabCase(category)} href={`#${kebabCase(category)}`}
 			><SectionHeader title={startCase(category)} /></a
 		>

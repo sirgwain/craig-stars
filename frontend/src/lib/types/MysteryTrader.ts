@@ -22,7 +22,7 @@ export const MysteryTraderRewardTypes = {
 	ShipHull: 'ShipHull',
 	BeamWeapon: 'BeamWeapon',
 	Genesis: 'Genesis',
-	Jumpgate: 'Jumpgate',
+	JumpGate: 'JumpGate',
 	Lifeboat: 'Lifeboat'
 } as const;
 
@@ -30,6 +30,7 @@ export type MysteryTraderReward = {
 	type: MysteryTraderRewardType;
 	techLevels: TechLevel;
 	tech?: string;
+	ship?: string;
 };
 
 export function isHullComponent(type: MysteryTraderRewardType): boolean {

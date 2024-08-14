@@ -15,6 +15,7 @@ export type ShipDesign = {
 	hull: string;
 	hullSetNumber: number;
 	cannotDelete?: boolean;
+	mysteryTrader?: boolean;
 	slots: ShipDesignSlot[];
 	purpose?: string;
 	reportAge?: number;

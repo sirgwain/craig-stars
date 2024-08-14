@@ -21,6 +21,7 @@ type ShipDesign struct {
 	Hull              string            `json:"hull"`
 	HullSetNumber     int               `json:"hullSetNumber"`
 	CannotDelete      bool              `json:"cannotDelete,omitempty"`
+	MysterTrader      bool              `json:"mysterTrader,omitempty"`
 	Slots             []ShipDesignSlot  `json:"slots"`
 	Purpose           ShipDesignPurpose `json:"purpose,omitempty"`
 	Spec              ShipDesignSpec    `json:"spec"`
@@ -350,7 +351,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 
 			// beam bonuses (capacitors are capped at 2.55x; beam deflectors are unlimited)
 			spec.BeamBonus += math.Min(math.Pow(1+component.BeamBonus, float64(slot.Quantity))-1, 1.55)
-			spec.BeamDefense += math.Pow(1+component.BeamDefense, float64(slot.Quantity))-1
+			spec.BeamDefense += math.Pow(1+component.BeamDefense, float64(slot.Quantity)) - 1
 
 			// if this slot has a bomb, this design is a bomber
 			if component.HullSlotType == HullSlotTypeBomb || component.MinKillRate > 0 || component.KillRate > 0 || component.StructureDestroyRate > 0 || component.UnterraformRate > 0 {

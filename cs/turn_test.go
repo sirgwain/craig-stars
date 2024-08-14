@@ -1974,7 +1974,7 @@ func Test_turn_fleetPatrolKillPatrolAgain(t *testing.T) {
 func Test_turn_mysteryTraderSpawn(t *testing.T) {
 	game := createSingleUnitGame()
 	game.RandomEvents = true
-	game.Rules.random = &testRandom{} // test random always rolls 0 by default
+	game.Rules.random = newIntRandom() // test random always rolls 0 by default
 	game.Year = game.Year + game.Rules.MysteryTraderRules.MinYear
 
 	turn := turn{
@@ -2024,6 +2024,7 @@ func Test_turn_mysteryTraderMeetNoReward(t *testing.T) {
 
 	// meet up
 	fleet.Position = mt.Position
+	fleet.Waypoints[0] = NewMysteryTraderWaypoint(mt, 5)
 
 	turn := turn{
 		game: game,
@@ -2053,6 +2054,7 @@ func Test_turn_mysteryTraderMeetReward(t *testing.T) {
 	// meet up
 	fleet.Position = mt.Position
 	fleet.Cargo = Cargo{5000, 0, 0, 0}
+	fleet.Waypoints[0] = NewMysteryTraderWaypoint(mt, 5)
 
 	turn := turn{
 		game: game,
