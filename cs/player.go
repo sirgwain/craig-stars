@@ -654,7 +654,7 @@ func (p *Player) defaultPlans() PlayerPlans {
 				PrimaryTarget:	 BattleTargetUnarmedShips,
 				SecondaryTarget: BattleTargetNone,
 				Tactic:		 BattleTacticDisengageIfChallenged,
-				AttackWho:	 BattleAttackWhoEnemiesAndNeutrals
+				AttackWho:	 BattleAttackWhoEnemiesAndNeutrals,
 			},
 			{
 				Num:		 4,
