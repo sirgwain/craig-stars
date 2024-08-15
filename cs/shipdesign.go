@@ -273,9 +273,11 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		InnateScanRangePenFactor: hull.InnateScanRangePenFactor,
 	}
 
-	// count the number of each type of battle computer we have
+	// count the number of each type of battle component we have
 	torpedoBonusesByCount := map[float64]int{}
 	torpedoJammersByCount := map[float64]int{}
+	beamBoostersByCount := map[float64]int{}
+	beamDeflectorsByCount := map[float64]int{}
 
 	numTachyonDetectors := 0
 
@@ -338,19 +340,19 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 				spec.MineLayingRateByMineType[component.MineFieldType] += int(float64(component.MineLayingRate) * float64(slot.Quantity) * (1 + hull.MineLayingBonus))
 			}
 
-			// count battle computers
+			// count battle computers, jammers, capacitors & deflectors
 			if component.TorpedoBonus > 0 {
 				torpedoBonusesByCount[component.TorpedoBonus] += slot.Quantity
 			}
-
-			// count jammers
 			if component.TorpedoJamming > 0 {
 				torpedoJammersByCount[component.TorpedoJamming] += slot.Quantity
 			}
-
-			// beam bonuses (capacitors are capped at 2.55x; beam deflectors are unlimited)
-			spec.BeamBonus += math.Min(math.Pow(1+component.BeamBonus, float64(slot.Quantity))-1, 1.55)
-			spec.BeamDefense += math.Pow(1+component.BeamDefense, float64(slot.Quantity))-1
+			if component.BeamBonus > 0 {
+				beamBoostersByCount[component.BeamBonus] += slot.Quantity
+			}
+			if component.BeamDefense > 0 {
+				beamDeflectorsByCount[component.BeamDefense] += slot.Quantity
+			}
 
 			// if this slot has a bomb, this design is a bomber
 			if component.HullSlotType == HullSlotTypeBomb || component.MinKillRate > 0 {
@@ -398,7 +400,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 			if component.ReduceCloaking {
 				numTachyonDetectors++
 			}
-			// cargo and space doc that are built into the hull
+			// cargo and space dock that are built into the hull
 			// the space dock assumes that there is only one slot like that
 			// it won't add them up
 
@@ -454,13 +456,14 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		spec.ReduceCloaking = 1
 	}
 
+	// Calculate final bonuses for computing, jamming, capacitating & jamming
 	if len(torpedoBonusesByCount) > 0 {
 		spec.TorpedoBonus = 1
 		for torpedoBonus, count := range torpedoBonusesByCount {
 			// for 3 Battle Computer 30s, this calc is 1-(.7^3) or 65%
 			bonus := 1 - math.Pow(1-torpedoBonus, float64(count))
 
-			// if there are multiple battle computer slots all adding together, they are added like
+			// if there are multiple battle computer slots all working together, they multiply together
 			// 1−((1−BC20Bonus)×(1−BC30Bonus)×(1−BC50Bonus))
 			spec.TorpedoBonus *= 1 - bonus
 		}
@@ -475,10 +478,10 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 	if len(torpedoJammersByCount) > 0 {
 		spec.TorpedoJamming = 1
 		for torpedoJammer, count := range torpedoJammersByCount {
-			// for 3 Jammer 10s, this calc is 1-(.9^3) or 65%
+			// for 3 Jammer 10s, this calc is 1-(.9^3) or 27.1%
 			jammer := 1 - math.Pow(1-torpedoJammer, float64(count))
 
-			// if there are multiple battle computer slots all adding together, they are added like
+			// if there are multiple jammer slots all working together, they multiply together
 			// 1−((1−Jammer10)×(1−Jammer20)×(1−Jammer30))
 			spec.TorpedoJamming *= 1 - jammer
 		}
@@ -488,6 +491,34 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 
 		// golang, why you be like this? nobody wants 1-.2^1 to be .199999994
 		spec.TorpedoJamming = math.Min(.95, roundFloat(spec.TorpedoJamming, 4))
+	}
+
+	if len(beamBoostersByCount) > 0 {
+		spec.BeamBonus = 1
+		for beamBonus, count := range beamBoostersByCount {
+			// for 3 flux caps, this calc is 1-(1.2^3) for 1.728x beam damage
+			bonus := math.Pow(1+beamBonus, float64(count))
+
+			// multiple beam boosters stack multiplicatively
+			spec.BeamBonus *= bonus
+		}
+
+		// Return final % bonus, rounded to 4 decimal places and capped at 155% base damage
+		spec.BeamBonus = math.Min(roundFloat(1-spec.BeamBonus, 4), 1.55)
+	}
+
+	if len(beamDeflectorsByCount) > 0 {
+		spec.BeamDefense = 1
+		for beamDefense, count := range beamDeflectorsByCount {
+			// for 3 deflectors, this calc is 1-(0.9^3) for 0.729x beam damage taken
+			bonus := math.Pow(1-beamDefense, float64(count))
+
+			// multiple beam deflectors stack multiplicatively
+			spec.BeamDefense *= bonus
+		}
+
+		// Return final % dmg reduction, rounded to 4 decimal places
+		spec.BeamDefense = roundFloat(1-spec.BeamDefense, 4)
 	}
 
 	if spec.NumEngines > 0 {
