@@ -712,7 +712,7 @@ func (p *Player) defaultPlans() PlayerPlans {
 				Num:  4,
 				Name: "Unload Colonists",
 				Tasks: WaypointTransportTasks{
-					Colonists: WaypointTransportTask{Action: TransportActionLoadAll},
+					Colonists: WaypointTransportTask{Action: TransportActionUnloadAll},
 				},
 			},
 		},
