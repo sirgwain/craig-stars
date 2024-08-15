@@ -37,7 +37,7 @@
 
 	$: filteredPlanets = $settings.showAllPlanets
 		? $universe
-			.getPlanets($settings.sortPlanetsKey, $settings.sortPlanetsDescending)
+				.getPlanets($settings.sortPlanetsKey, $settings.sortPlanetsDescending)
 				.filter(
 					(i) =>
 						i.name.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
@@ -196,16 +196,16 @@
 	<Table
 		{columns}
 		rows={filteredPlanets}
+		externalSortAndFilter={true}
 		classes={{
 			table: 'table table-zebra table-compact table-auto w-full'
 		}}
 	>
-		<div slot="head" let:isSorted let:sortDescending let:column>
+		<div slot="head" let:column>
 			<SortableTableHeader
 				{column}
-				isSorted={isSorted || $settings.sortPlanetsKey === column.key}
-				sortDescending={sortDescending ||
-					($settings.sortPlanetsKey === column.key && $settings.sortPlanetsDescending)}
+				isSorted={$settings.sortPlanetsKey === column.key}
+				sortDescending={$settings.sortPlanetsDescending}
 				on:sorted={(e) => {
 					onSorted(column, e.detail.sortDescending);
 				}}

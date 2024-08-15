@@ -209,6 +209,11 @@ func (t *turn) scrapFleet(fleet *Fleet) {
 						planetPlayer.TechLevels.Set(field, planetPlayer.TechLevels.Get(field)+1)
 						messager.playerTechGainedScrappedFleet(planetPlayer, planet, fleet.Name, field)
 
+						techsGained := t.game.TechStore.GetTechsJustGained(player, field)
+						for _, tech := range techsGained {
+							messager.playerTechGained(player, field, tech)
+						}
+
 						log.Debug().
 							Int64("GameID", t.game.ID).
 							Int("Player", planetPlayer.Num).
@@ -530,19 +535,21 @@ func (t *turn) fleetTransferCargo(fleet *Fleet, transferAmount int, cargoType Ca
 			}
 			defender := t.game.getPlayer(planet.PlayerNum)
 
-			invadePlanet(&t.game.Rules, planet, fleet, defender, player, transferAmount*100)
+			invadePlanet(&t.game.Rules, t.game.TechStore, planet, fleet, defender, player, transferAmount*100)
 			fleet.Cargo.Colonists -= transferAmount
-			fleet.MarkDirty()
-			planet.MarkDirty()
+
 		} else if transferAmount < 0 && !dest.canLoad(fleet.PlayerNum) {
 			// can't load from things we don't own
 			messager.fleetTransportInvalid(player, fleet, dest, cargoType, transferAmount)
 			return fmt.Errorf("can't load from planet we don't own")
 		} else {
 			fleet.transferToDest(dest, cargoType, transferAmount)
-			fleet.MarkDirty()
-			dest.MarkDirty()
 			messager.fleetTransportedCargo(player, fleet, dest, cargoType, transferAmount)
+
+			// mark this planet for saving, it could be unowned and would miss this
+			if planet, ok := dest.(*Planet); ok {
+				planet.MarkDirty()
+			}
 		}
 	}
 	return nil
@@ -942,7 +949,6 @@ func (t *turn) fleetRadiatingEngineDieoff() {
 		if deathRate > 0 {
 			killed := MaxInt(1, int(deathRate*float64(fleet.Cargo.Colonists)))
 			fleet.Cargo.Colonists = MaxInt(0, fleet.Cargo.Colonists-killed)
-			fleet.MarkDirty()
 
 			// Message the player
 			messager.fleetRadiatingEngineDieoff(player, fleet, killed*100)
@@ -981,7 +987,6 @@ func (t *turn) fleetReproduce() {
 		growthFactor := player.Race.Spec.FreighterGrowthFactor
 		growth := MaxInt(1, int(growthFactor*float64(player.Race.GrowthRate)/100.0*float64(fleet.Cargo.Colonists)))
 		fleet.Cargo.Colonists = fleet.Cargo.Colonists + growth
-		fleet.MarkDirty()
 		over := MaxInt(0, fleet.Cargo.Total()-fleet.Spec.CargoCapacity)
 		if over > 0 {
 			// remove excess colonists
@@ -989,7 +994,6 @@ func (t *turn) fleetReproduce() {
 			if planet != nil && planet.OwnedBy(fleet.PlayerNum) {
 				// add colonists to the planet this fleet is orbiting
 				planet.Cargo.Colonists = planet.Cargo.Colonists + over
-				planet.MarkDirty()
 			}
 		}
 
@@ -1028,7 +1032,6 @@ func (t *turn) fleetDieoff() {
 		deathFactor := player.Race.Spec.FreighterGrowthFactor
 		death := MinInt(-1, int(deathFactor*float64(fleet.Cargo.Colonists)))
 		fleet.Cargo.Colonists = fleet.Cargo.Colonists + death
-		fleet.MarkDirty()
 
 		// Message the player
 		messager.fleetDieOff(player, fleet, death)
@@ -1076,13 +1079,18 @@ func (t *turn) decayPackets() {
 		// update the decay amount based on this distance traveled this turn
 		decayRate := packet.getPacketDecayRate(&t.game.Rules, &player.Race) * (packet.distanceTravelled / float64(packet.WarpSpeed*packet.WarpSpeed))
 
-		//loop through all 3 mineral types and reduce each one in turn
-		for _, minType := range [3]CargoType{Ironium, Boranium, Germanium} {
-			mineral := float64(packet.Cargo.GetAmount(minType))
-			decayAmount := MaxInt(int(decayRate*mineral), int(float64(t.game.Rules.PacketMinDecay)*float64(player.Race.Spec.PacketDecayFactor)))
-			packet.Cargo.SubtractAmount(minType, decayAmount)
+		// skip calcs if no decay
+		if decayRate == 0 {
+			continue
 		}
 
+		// loop through all 3 mineral types and reduce each one in turn
+		for _, minType := range [3]CargoType{Ironium, Boranium, Germanium} {
+			mineral := float64(packet.Cargo.GetAmount(minType))
+			decayAmount := MaxInt(int(decayRate*mineral), int(float64(t.game.Rules.PacketMinDecay)*player.Race.Spec.PacketDecayFactor))
+			packet.Cargo.SubtractAmount(minType, decayAmount)
+			packet.Cargo = packet.Cargo.MinZero()
+		}
 		log.Debug().
 			Int64("GameID", packet.GameID).
 			Int("Player", packet.PlayerNum).
@@ -1090,15 +1098,15 @@ func (t *turn) decayPackets() {
 			Str("Cargo", packet.Cargo.PrettyString()).
 			Msgf("decayed packet")
 
-		if (packet.Cargo == Cargo{}) {
+		// delete empty packets
+		if packet.Cargo.Total() == 0 {
 			t.game.deletePacket(packet)
+			log.Debug().
+				Int64("GameID", packet.GameID).
+				Int("Player", packet.PlayerNum).
+				Str("Packet", packet.Name).
+				Msgf("deleted salvage")
 		}
-
-		log.Debug().
-			Int64("GameID", packet.GameID).
-			Int("Player", packet.PlayerNum).
-			Str("Packet", packet.Name).
-			Msgf("deleted salvage")
 	}
 }
 
@@ -1198,7 +1206,7 @@ func (t *turn) fleetRemoteMineAR() {
 			continue
 		}
 
-		wp0 := fleet.Waypoints[0]
+		wp0 := &fleet.Waypoints[0]
 		if wp0.Task == WaypointTaskRemoteMining {
 			player := t.game.getPlayer(fleet.PlayerNum)
 			planet := t.game.getOrbitingPlanet(fleet)
@@ -1227,7 +1235,7 @@ func (t *turn) fleetRemoteMine() {
 			continue
 		}
 
-		wp0 := fleet.Waypoints[0]
+		wp0 := &fleet.Waypoints[0]
 		if wp0.Task == WaypointTaskRemoteMining {
 			player := t.game.getPlayer(fleet.PlayerNum)
 			planet := t.game.getOrbitingPlanet(fleet)
@@ -1235,6 +1243,7 @@ func (t *turn) fleetRemoteMine() {
 			// can't remote mine deep space
 			if planet == nil {
 				messager.fleetRemoteMineDeepSpace(player, fleet)
+				wp0.Task = WaypointTaskNone
 				continue
 			}
 
@@ -1332,7 +1341,6 @@ func (t *turn) planetProduction() error {
 				}
 				design.Spec.NumBuilt += token.Quantity
 				design.Spec.NumInstances += token.Quantity
-				design.MarkDirty()
 
 				fleet, err := t.buildFleet(player, planet, token.ShipToken, token.tags)
 				if err != nil {
@@ -1357,7 +1365,6 @@ func (t *turn) planetProduction() error {
 			if result.scanner {
 				planet.Scanner = true
 				planet.Spec = computePlanetSpec(&t.game.Rules, player, planet)
-				planet.MarkDirty()
 				messager.planetBuiltScanner(player, planet, planet.Spec.Scanner)
 			}
 
@@ -1507,20 +1514,18 @@ func (t *turn) playerResearch() {
 			if planet.RandomArtifact && planet.Owned() {
 				// score, we got a new artifact, but only once
 				planet.RandomArtifact = false
-				planet.MarkDirty()
 
 				// figure out which field we research
 				player := t.game.getPlayer(planet.PlayerNum)
 				bonusRange := t.game.Rules.RandomArtifactResearchBonusRange
 				amount := t.game.Rules.random.Intn(bonusRange[1]-bonusRange[0]) + bonusRange[0]
 				field := TechFields[t.game.Rules.random.Intn(len(TechFields))]
+				messager.planetBonusResearchArtifact(player, planet, amount, field)
 
 				// research the field this random artifact came in
 				r.researchField(player, field, amount, onLevelGained)
 				stealableResearchResources.Set(field, stealableResearchResources.Get(field)+amount)
 				player.ResearchSpentLastYear += amount
-
-				messager.planetBonusResearchArtifact(player, planet, amount, field)
 
 				log.Debug().
 					Int64("GameID", t.game.ID).
@@ -1666,7 +1671,6 @@ func (t *turn) planetGrow() {
 			player := t.game.getPlayer(planet.PlayerNum)
 			prevPop := planet.population()
 			planet.grow(player)
-			planet.MarkDirty()
 
 			// tell players about dieing colonists
 			if planet.Spec.GrowthAmount < 0 {
@@ -1717,7 +1721,6 @@ func (t *turn) fleetRefuel() {
 		if fleet.Spec.FuelGeneration > 0 {
 			fleet.Fuel = Clamp(fleet.Fuel+fleet.Spec.FuelGeneration, 0, fleet.Spec.FuelCapacity)
 			fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed, fleet.Spec.CargoCapacity)
-			fleet.MarkDirty()
 			log.Debug().
 				Int64("GameID", t.game.ID).
 				Int("Player", fleet.PlayerNum).
@@ -1737,7 +1740,6 @@ func (t *turn) fleetRefuel() {
 		if planetPlayer.IsFriend(fleet.PlayerNum) {
 			fleet.Fuel = fleet.Spec.FuelCapacity
 			fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed, fleet.Spec.CargoCapacity)
-			fleet.MarkDirty()
 
 			log.Debug().
 				Int64("GameID", t.game.ID).
@@ -1931,14 +1933,12 @@ func (t *turn) fleetBattle() {
 						player := t.game.getPlayer(fleet.PlayerNum)
 						if player.Race.Spec.LivesOnStarbases {
 							planet.emptyPlanet()
-							planet.MarkDirty()
 							messager.planetDiedOff(player, planet)
 						}
 						// remove this starbase from the planet
 						t.game.deleteStarbase(fleet)
 						planet.Starbase = nil
 						planet.Spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(&t.game.Rules, player, planet)
-						planet.MarkDirty()
 					} else {
 						t.game.deleteFleet(fleet)
 					}
@@ -1983,7 +1983,6 @@ func (t *turn) fleetBattle() {
 					t.game.createSalvage(record.Position, salvageOwner, salvageMinerals.ToCargo())
 				} else {
 					planet.Cargo = planet.Cargo.AddMineral(salvageMinerals)
-					planet.MarkDirty()
 				}
 			}
 
@@ -2035,6 +2034,10 @@ func (t *turn) fleetBattle() {
 					player.techLevelGained = true
 					player.TechLevels.Set(field, player.TechLevels.Get(field)+1)
 					messager.playerTechGainedBattle(player, planet, record, field)
+					techsGained := t.game.TechStore.GetTechsJustGained(player, field)
+					for _, tech := range techsGained {
+						messager.playerTechGained(player, field, tech)
+					}
 
 					log.Debug().
 						Int64("GameID", t.game.ID).
@@ -2106,7 +2109,6 @@ func (t *turn) decayMines() {
 			continue
 		}
 		mineField.Spec = computeMinefieldSpec(&t.game.Rules, player, mineField, t.game.Universe.numPlanetsWithin(mineField.Position, mineField.Radius()))
-		mineField.MarkDirty()
 
 		log.Debug().
 			Int64("GameID", t.game.ID).
@@ -2163,7 +2165,6 @@ func (t *turn) fleetLayMines() {
 
 				// TODO (performance): the radius will be computed in the spec as well. hmmmm
 				mineField.Spec = computeMinefieldSpec(&t.game.Rules, player, mineField, t.game.Universe.numPlanetsWithin(mineField.Position, mineField.Radius()))
-				mineField.MarkDirty()
 
 				log.Debug().
 					Int64("GameID", t.game.ID).
@@ -2275,7 +2276,6 @@ func (t *turn) fleetTransferOwner() {
 						// rev the version and append it to the name
 						newDesign.Version++
 						newDesign.Name = fmt.Sprintf("%s v%d", newName, newDesign.Version)
-						newDesign.MarkDirty()
 						targetPlayerDesign = &newDesign
 						targetPlayer.Designs = append(targetPlayer.Designs, targetPlayerDesign)
 					}
@@ -2288,7 +2288,6 @@ func (t *turn) fleetTransferOwner() {
 					newDesign.OriginalPlayerNum = player.Num
 					newDesign.PlayerNum = targetPlayer.Num
 					newDesign.Num = num
-					newDesign.MarkDirty()
 					targetPlayerDesign = &newDesign
 					targetPlayer.Designs = append(targetPlayer.Designs, targetPlayerDesign)
 				}
@@ -2384,16 +2383,15 @@ func (t *turn) fleetSweepMines() {
 					}
 
 					mineField.Spec.Radius = mineField.Radius()
-					mineField.MarkDirty()
 				}
 			}
 		}
 	}
 
-	// compute specs for any dirty minefields
-	// computing minefield specs is intensive because we have to count planets
+	// TOOD: performance
+	// computing minefield specs is intensive because we have to count planets within the minefield
 	for _, mineField := range t.game.MineFields {
-		if mineField.Dirty && !mineField.Delete {
+		if !mineField.Delete {
 			mineFieldPlayer := t.game.getPlayer(mineField.PlayerNum)
 			mineField.Spec = computeMinefieldSpec(&t.game.Rules, mineFieldPlayer, mineField, t.game.Universe.numPlanetsWithin(mineField.Position, mineField.Radius()))
 		}

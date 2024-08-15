@@ -127,8 +127,6 @@
 		}
 	}
 
-	$: setPacketDest = $settings.setPacketDest;
-
 	$: {
 		if ($settings.addWaypoint && zoomEnabled) {
 			disableDragAndZoom();
@@ -188,6 +186,17 @@
 		// add a waypoint if we are currently commanding a fleet and we didn't just click
 		// on the fleet
 		shouldAddWaypoint = !!$commandedFleet && e.shiftKey;
+
+		switch (e.key) {
+			case '+':
+			case '=':
+				zoomViewport(clamp($scale + 1, minZoom, maxZoom));
+				break;
+			case '-':
+			case '_':
+				zoomViewport(clamp($scale - 1, minZoom, maxZoom));
+				break;
+		}
 	}
 
 	function handleKeyUp(e: KeyboardEvent) {
@@ -235,6 +244,13 @@
 			select(root)
 				.call(zoomBehavior.translateTo, scaled.x, scaled.y)
 				.call(zoomBehavior.scaleTo, localScale);
+		}
+	}
+
+	// zoom the viewport to a specific scale
+	function zoomViewport(scaleTo: number) {
+		if (root) {
+			select(root).call(zoomBehavior.scaleTo, scaleTo);
 		}
 	}
 
@@ -583,7 +599,7 @@
 	 * @param mo
 	 */
 	function mapObjectSelected(mo: MapObject) {
-		if (setPacketDest) {
+		if ($settings.setPacketDest) {
 			if (mo.type != MapObjectType.Planet) {
 				return;
 			} else {
@@ -592,7 +608,14 @@
 				if (!$commandedPlanet?.spec.hasMassDriver) {
 					return;
 				}
-				$commandedPlanet.packetTargetNum = mo.num;
+
+				if (mapObjectEqual(mo, $commandedPlanet)) {
+					// clear dest
+					$commandedPlanet.packetTargetNum = None;
+				} else {
+					$commandedPlanet.packetTargetNum = mo.num;
+				}
+
 				updatePlanetOrders($commandedPlanet);
 				return;
 			}
@@ -672,7 +695,9 @@
 
 <div
 	class:cursor-grab={waypointHighlighted}
-	class:cursor-cell={shouldAddWaypoint || (!!$commandedFleet && $settings.addWaypoint)}
+	class:cursor-cell={shouldAddWaypoint ||
+		(!!$commandedFleet && $settings.addWaypoint) ||
+		$settings.setPacketDest}
 	class={`grow bg-black overflow-hidden p-[${padding}px] select-none`}
 	use:clickOutside={disableAddWaypointMode}
 >

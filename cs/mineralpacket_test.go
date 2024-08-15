@@ -57,21 +57,22 @@ func TestMineralPacket_completeMoveEmptyPlanet(t *testing.T) {
 	player := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1).withSpec(&rules)
 	planet := NewPlanet().withPosition(Vector{20, 0}).WithNum(1)
 
-	packet := newMineralPacket(player, 1, 5, 5, Cargo{100, 0, 0, 0}, Vector{}, planet.Num)
+	packet := newMineralPacket(player, 1, 5, 5, Cargo{300, 0, 0, 0}, Vector{}, planet.Num)
 
 	packet.movePacket(&rules, player, planet, nil)
-	assert.Equal(t, planet.Cargo, packet.Cargo)
+	assert.Equal(t, planet.Cargo, Cargo{Ironium: 100})
 	assert.True(t, packet.Delete)
 }
 
 func TestMineralPacket_completeMoveUncaught(t *testing.T) {
 	player := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1).withSpec(&rules)
-	planet := NewPlanet().withPosition(Vector{20, 0}).WithNum(1).WithPlayerNum(1).WithCargo(Cargo{Colonists: 100})
+	planet := NewPlanet().withPosition(Vector{20, 0}).WithNum(1).WithPlayerNum(1).WithCargo(Cargo{Colonists: 10000})
 
-	packet := newMineralPacket(player, 1, 5, 5, Cargo{100, 0, 0, 0}, Vector{}, planet.Num)
+	packet := newMineralPacket(player, 1, 5, 5, Cargo{480, 0, 0, 0}, Vector{}, planet.Num)
 
+	// 7500 colonists killed by 480kT undefended
 	packet.movePacket(&rules, player, planet, player)
-	assert.Equal(t, planet.Cargo, Cargo{Ironium: 100, Colonists: 84})
+	assert.Equal(t, planet.Cargo, Cargo{Ironium: 160, Colonists: 9250})
 	assert.True(t, packet.Delete)
 
 }
@@ -83,7 +84,7 @@ func TestMineralPacket_completeMoveUncaughtAR(t *testing.T) {
 	packet := newMineralPacket(player, 1, 5, 5, Cargo{100, 0, 0, 0}, Vector{}, planet.Num)
 
 	packet.movePacket(&rules, player, planet, player)
-	assert.Equal(t, planet.Cargo, Cargo{Ironium: 100, Colonists: 100})
+	assert.Equal(t, planet.Cargo, Cargo{Ironium: 33, Colonists: 100})
 	assert.True(t, packet.Delete)
 
 }
@@ -156,33 +157,47 @@ func TestMineralPacket_estimateDamage(t *testing.T) {
 		want   MineralPacketDamage
 	}{
 		{
-			`1 yr away; no decay/dmg`,
+			`1 yr away; no decay`,
 			fields{WarpSpeed: 5, SafeWarpSpeed: 5},
 			args{
 				race:              NewRace().WithSpec(&rules),
-				planetDriverSpeed: 5,
+				planetDriverSpeed: 0,
 				planetPosition:    Vector{25, 0},
 				planetDefCoverage: 0,
 				targetRace:        NewRace().WithSpec(&rules),
 				planetPop:         1000000,
 				mass:              Cargo{Ironium: 10, Boranium: 10, Germanium: 10},
 			},
-			MineralPacketDamage{},
+			MineralPacketDamage{Killed: 4700},
 		},
 		{
-			`3 lvls overwarp + 1 yr travel w/ min decay (100 dmg)`,
+			`1 yr away; vanishing packet`,
+			fields{WarpSpeed: 6, SafeWarpSpeed: 5},
+			args{
+				race:              NewRace().WithSpec(&rules),
+				planetDriverSpeed: 0,
+				planetPosition:    Vector{25, 0},
+				planetDefCoverage: 0,
+				targetRace:        NewRace().WithSpec(&rules),
+				planetPop:         1000000,
+				mass:              Cargo{Ironium: 10, Boranium: 10, Germanium: 10},
+			},
+			MineralPacketDamage{Uncaught: MineralPacketDecayToNothing},
+		},
+		{
+			`3 lvls overwarp + 1 yr travel with min decay (300 dmg)`,
 			fields{WarpSpeed: 10, SafeWarpSpeed: 7},
 			args{
-				race:              NewRace().WithSpec(&rules).WithPRT(PP),
+				race:              NewRace().WithPRT(PP).WithSpec(&rules),
 				planetDriverSpeed: 0,
 				planetPosition:    Vector{60, 80},
 				// 60^2 + 80^2 = 100^2
 				planetDefCoverage: 0,
 				targetRace:        NewRace().WithSpec(&rules),
-				planetPop:         1000000,
-				mass:              Cargo{Ironium: 11, Boranium: 11, Germanium: 211},
+				planetPop:         100000,
+				mass:              Cargo{Ironium: 5, Boranium: 5, Germanium: 640},
 			},
-			MineralPacketDamage{Killed: 100000, DefensesDestroyed: 5},
+			MineralPacketDamage{Killed: 30000, DefensesDestroyed: 10},
 		},
 		{
 			`3 lvls overwarp + 0.33 yr travel (25.2 dmg)`,
@@ -196,7 +211,7 @@ func TestMineralPacket_estimateDamage(t *testing.T) {
 				planetPop:         1000000,
 				mass:              Cargo{Germanium: 75},
 			},
-			MineralPacketDamage{Killed: 25200},
+			MineralPacketDamage{Killed: 25200, DefensesDestroyed: 1},
 		},
 		{
 			`3 lvls overwarp + 3.25 yr travel (70 dmg)`,

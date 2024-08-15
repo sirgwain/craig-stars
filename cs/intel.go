@@ -127,7 +127,7 @@ type FleetIntel struct {
 
 type MineralPacketIntel struct {
 	MapObjectIntel
-	WarpSpeed       int    `json:"warpSpeed,omitempty"`
+	WarpSpeed       int    `json:"warpSpeed"`
 	Heading         Vector `json:"heading"`
 	Cargo           Cargo  `json:"cargo,omitempty"`
 	TargetPlanetNum int    `json:"targetPlanetNum,omitempty"`
@@ -560,10 +560,10 @@ func (d *discover) discoverMineralPacket(rules *Rules, mineralPacket *MineralPac
 
 	if player.Num != mineralPacket.PlayerNum {
 		if target.PlayerNum == player.Num {
-			damage := mineralPacket.getDamage(rules, target, player)
-			messager.mineralPacketDiscoveredTargettingPlayer(player, mineralPacket, packetPlayer, target, damage)
+			damage := mineralPacket.estimateDamage(rules, packetPlayer, target, player)
+			messager.mineralPacketDiscoveredTargettingPlayer(player, mineralPacket, target, damage)
 		} else {
-			messager.mineralPacketDiscovered(player, mineralPacket, packetPlayer, target)
+			messager.mineralPacketDiscovered(player, mineralPacket, target)
 		}
 	}
 
