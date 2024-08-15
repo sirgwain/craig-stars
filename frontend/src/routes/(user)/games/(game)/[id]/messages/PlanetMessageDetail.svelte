@@ -1,14 +1,13 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { MessageType, type Message, CometSize } from '$lib/types/Message';
-	import type { Planet, getQueueItemShortName } from '$lib/types/Planet';
+	import { totalMinerals } from '$lib/types/Cost';
+	import { absSum } from '$lib/types/Hab';
+	import { CometSize, MessageType, type Message } from '$lib/types/Message';
+	import type { Planet } from '$lib/types/Planet';
 	import type { PlayerIntel } from '$lib/types/Player';
+	import { UnlimitedSpaceDock } from '$lib/types/Tech';
 	import { startCase } from 'lodash-es';
 	import FallbackMessageDetail from './FallbackMessageDetail.svelte';
-	import { totalMinerals } from '$lib/types/Cost';
-	import { UnlimitedSpaceDock } from '$lib/types/Tech';
-	import { absSum } from '$lib/types/Hab';
-	import { text } from '@sveltejs/kit';
 
 	const { game, player, universe, settings } = getGameContext();
 
@@ -172,8 +171,8 @@
 	The population on {planet.name} has decreased by {(-(message.spec.amount ?? 0)).toLocaleString()} due
 	to overcrowding.
 {:else if message.type === MessageType.PlayerTechLevelGainedInvasion}
-	Your colonists invading {planet.name} have picked through the defenders' remains looking for
-	technology. In the process you have gained a level in {message.spec.field}.
+	Your colonists invading {planet.name} have picked through the defenders' remains looking for technology.
+	In the process you have gained a level in {message.spec.field}.
 {:else if message.type === MessageType.FleetScrapped}
 	{#if planet.spec.hasStarbase}
 		{message.spec.targetName} has been dismantled for {totalMinerals(message.spec.cost)}kT of
