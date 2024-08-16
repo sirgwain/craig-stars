@@ -589,23 +589,34 @@ func (p *Player) defaultRelationships(players []*Player, aiFormsAlliances bool) 
 func (p *Player) defaultPlans() PlayerPlans {
 
 	// AR races don't build factories or mines
+	// CA & tri-immune races don't do terraforming
 	defaultProductionPlan := ProductionPlan{
 		Num:  0,
 		Name: "Default",
-		Items: []ProductionPlanItem{
-			{Type: QueueItemTypeAutoMinTerraform, Quantity: 1},
-		},
+		Items: []ProductionPlanItem{},
+	}
+
+	if !p.Race.Spec.Instaforming && !(p.Race.ImmuneGrav && p.Race.ImmuneTemp && p.Race.ImmuneRad) {
+		defaultProductionPlan.Items = append(defaultProductionPlan.Items,
+			ProductionPlanItem{Type: QueueItemTypeAutoMinTerraform, Quantity: 1},
+		)
 	}
 
 	if !p.Race.Spec.InnateResources {
 		defaultProductionPlan.Items = append(defaultProductionPlan.Items,
-			ProductionPlanItem{Type: QueueItemTypeAutoFactories, Quantity: 100},
+			ProductionPlanItem{Type: QueueItemTypeAutoFactories, Quantity: 250},
 		)
 	}
 
 	if !p.Race.Spec.InnateMining {
 		defaultProductionPlan.Items = append(defaultProductionPlan.Items,
-			ProductionPlanItem{Type: QueueItemTypeAutoMines, Quantity: 100},
+			ProductionPlanItem{Type: QueueItemTypeAutoMines, Quantity: 250},
+		)
+	}
+
+	if !p.Race.Spec.Instaforming && !(p.Race.ImmuneGrav && p.Race.ImmuneTemp && p.Race.ImmuneRad) {
+		defaultProductionPlan.Items = append(defaultProductionPlan.Items,
+			ProductionPlanItem{Type: QueueItemTypeAutoMaxTerraform, Quantity: 1},
 		)
 	}
 
@@ -621,11 +632,43 @@ func (p *Player) defaultPlans() PlayerPlans {
 				Tactic:          BattleTacticMaximizeDamageRatio,
 				AttackWho:       BattleAttackWhoEnemiesAndNeutrals,
 			},
+			{
+				Num:		 1,
+				Name: 		 "KillStarbase",
+				PrimaryTarget:	 BattleTargetStarbase,
+				SecondaryTarget: BattleTargetArmedShips,
+				Tactic:		 BattleTacticMaximizeDamageRatio,
+				AttackWho:	 BattleAttackWhoEnemiesAndNeutrals,
+			},
+			{
+				Num:		 2,
+				Name: 		 "Max Defense",
+				PrimaryTarget:	 BattleTargetArmedShips,
+				SecondaryTarget: BattleTargetBombersFreighters,
+				Tactic:		 BattleTacticMaximizeNetDamage,
+				AttackWho:	 BattleAttackWhoEnemiesAndNeutrals,
+			},
+			{
+				Num:		 3,
+				Name: 		 "Sniper",
+				PrimaryTarget:	 BattleTargetUnarmedShips,
+				SecondaryTarget: BattleTargetNone,
+				Tactic:		 BattleTacticDisengageIfChallenged,
+				AttackWho:	 BattleAttackWhoEnemiesAndNeutrals,
+			},
+			{
+				Num:		 4,
+				Name:		 "Chicken",
+				PrimaryTarget:	 BattleTargetAny,
+				SecondaryTarget: BattleTargetNone,
+				Tactic:		 BattleTacticDisengage,
+				AttackWho:	 BattleAttackWhoEnemiesAndNeutrals,	
+			},
 		},
 		TransportPlans: []TransportPlan{
 			{
 				Num:  0,
-				Name: "Default",
+				Name: "Clear All",
 			},
 			{
 				Num:  1,
@@ -650,7 +693,7 @@ func (p *Player) defaultPlans() PlayerPlans {
 			},
 			{
 				Num:  2,
-				Name: "Wait For",
+				Name: "Wait Load",
 				Tasks: WaypointTransportTasks{
 					Fuel:      WaypointTransportTask{Action: TransportActionLoadOptimal},
 					Ironium:   WaypointTransportTask{Action: TransportActionWaitForPercent, Amount: 100},
