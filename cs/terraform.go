@@ -337,7 +337,7 @@ func (t *terraform) getBestUnterraform(planet *Planet, player, terraformer *Play
 	return farthest
 }
 
-// Terraform a planet a specified amount for 1 hab type (capped at player's terraforming capability)
+// Terraform a planet a specified amount for the specified hab type (capped at player's terraforming capability)
 //
 // Positive amount means increase, negative amount means decrease
 func (t *terraform) TerraformHab(planet *Planet, terraformer *Player, habType HabType, amount int) TerraformResult {

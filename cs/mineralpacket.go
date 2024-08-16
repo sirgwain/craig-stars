@@ -283,12 +283,14 @@ func (packet *MineralPacket) estimateDamage(rules *Rules, player *Player, target
 // Check if an uncaught PP packet will terraform the target planet's environment  (50% chance/100kT)
 func (packet *MineralPacket) checkTerraform(rules *Rules, player *Player, planet *Planet, uncaught float64) {
 	if player.Race.Spec.PacketTerraformChance > 0 {
+		terraformer := NewTerraformer()
+		t := terraform{}
+
 		// Evaluate each mineral type separately
 		for i, minType := range [3]CargoType{Ironium, Boranium, Germanium} {
 			mineral := int(math.Ceil(float64(packet.Cargo.GetAmount(minType)) * uncaught))
 			habType := HabType(i)
 			direction := 0
-			counter := 0
 			result := TerraformResult{}
 
 			// no mineral = no terraforming
@@ -299,21 +301,27 @@ func (packet *MineralPacket) checkTerraform(rules *Rules, player *Player, planet
 			for uncaughtCheck := player.Race.Spec.PacketPermaTerraformSizeUnit; uncaughtCheck <= mineral; uncaughtCheck += player.Race.Spec.PacketPermaTerraformSizeUnit {
 				terraformChance := player.Race.Spec.PacketTerraformChance * math.Min(float64((mineral-uncaughtCheck)/player.Race.Spec.PacketPermaTerraformSizeUnit), 1)
 				if terraformChance >= rules.random.Float64() {
-					terraformer := NewTerraformer()
-					if planet.BaseHab.Get(habType) < player.Race.HabCenter().Get(habType) {
-						direction = 1
+					if AbsInt(direction) >= t.getTerraformAbility(player).Get(habType) {
+						// if we can't terraform hab any further, skip any remaining checks for brevity
+						// TerraformHab already caps the result at the player's terraforming ability anyways; this just saves computing power
+						continue
+					} else if planet.Hab.Get(habType)+direction < player.Race.HabCenter().Get(habType) {
+						// planet hab below ideal; need to raise it
+						direction += 1
+					} else if planet.Hab.Get(habType)+direction > player.Race.HabCenter().Get(habType) {
+						// planet hab above ideal; need to lower it
+						direction -= 1
 					} else {
-						direction = -1
+						// planet hab already ideal; no further changes needed
+						continue
 					}
-
-					// Terraform & keep track of result (for messages)
-					result = terraformer.TerraformHab(planet, player, habType, direction)
-					counter += result.Direction
 				}
 			}
 
+			// Terraform & keep track of result (for messages)
+			result = terraformer.TerraformHab(planet, player, habType, direction)
 			if result.Terraformed() {
-				messager.planetPacketTerraform(player, planet, result.Type, counter)
+				messager.planetPacketTerraform(player, planet, result.Type, direction)
 			}
 		}
 	}
@@ -322,12 +330,14 @@ func (packet *MineralPacket) checkTerraform(rules *Rules, player *Player, planet
 // Check if an uncaught PP packet will permanently alter the target planet's environment (0.1% chance/100kT)
 func (packet *MineralPacket) checkPermaform(rules *Rules, player *Player, planet *Planet, uncaught float64) {
 	if player.Race.Spec.PacketPermaformChance > 0 && player.Race.Spec.PacketPermaTerraformSizeUnit > 0 {
+		terraformer := NewTerraformer()
+
 		// Evaluate each mineral type separately
 		for i, minType := range [3]CargoType{Ironium, Boranium, Germanium} {
 			mineral := int(math.Ceil(float64(packet.Cargo.GetAmount(minType)) * uncaught))
 			habType := HabType(i)
 			result := TerraformResult{}
-			counter := 0
+			direction := 0
 
 			// no mineral = no calcs needed
 			if mineral == 0 {
@@ -338,14 +348,17 @@ func (packet *MineralPacket) checkPermaform(rules *Rules, player *Player, planet
 				permaformChance := player.Race.Spec.PacketPermaformChance * math.Min(float64((mineral-uncaughtCheck)/player.Race.Spec.PacketPermaTerraformSizeUnit), 1)
 				if permaformChance >= float64(rules.random.Float64()) {
 					// Permaform & keep track of result
-					terraformer := NewTerraformer()
 					result = terraformer.PermaformOneStep(planet, player, habType)
-					counter += result.Direction
+					direction += result.Direction
+					if !result.Terraformed() {
+						// BaseHab already perfect; skip remaining checks
+						continue
+					}
 				}
 			}
 
 			if result.Terraformed() {
-				messager.planetPacketPermaform(player, planet, result.Type, counter)
+				messager.planetPacketPermaform(player, planet, habType, direction)
 			}
 		}
 	}

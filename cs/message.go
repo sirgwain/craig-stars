@@ -887,7 +887,7 @@ func (m *messageClient) planetPacketPermaform(player *Player, planet *Planet, ha
 	case Rad:
 		newValueText = radString(newValue)
 	}
-	text := fmt.Sprintf("Your mineral packet has permanently %s the %s on %s to %s.", changeText, habType, planet.Name, newValueText)
+	text := fmt.Sprintf("Your mineral packet hitting %s has permanently %s its %s to %s.", planet.Name, changeText, habType, newValueText)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetPacketPermaform, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetPlanet, TargetNum: planet.Num}})
 }
 
