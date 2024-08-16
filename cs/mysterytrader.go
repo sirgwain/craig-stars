@@ -41,7 +41,7 @@ const (
 	MysteryTraderRewardLifeboat   MysteryTraderRewardType = "Lifeboat"
 )
 
-var Rewards = [15]MysteryTraderRewardType{
+var MysteryTraderRewards = []MysteryTraderRewardType{
 	MysteryTraderRewardNone,
 	MysteryTraderRewardResearch,
 	MysteryTraderRewardEngine,
@@ -57,6 +57,49 @@ var Rewards = [15]MysteryTraderRewardType{
 	MysteryTraderRewardGenesis,
 	MysteryTraderRewardJumpGate,
 	MysteryTraderRewardLifeboat,
+}
+
+var MysteryTraderRewardParts = []MysteryTraderRewardType{
+	MysteryTraderRewardEngine,
+	MysteryTraderRewardBomb,
+	MysteryTraderRewardArmor,
+	MysteryTraderRewardShield,
+	MysteryTraderRewardElectrical,
+	MysteryTraderRewardMechanical,
+	MysteryTraderRewardTorpedo,
+	MysteryTraderRewardBeamWeapon,
+	MysteryTraderRewardMineRobot,
+	MysteryTraderRewardShipHull,
+}
+
+func (t MysteryTraderRewardType) IsPart() bool {
+	switch t {
+	case MysteryTraderRewardEngine:
+		fallthrough
+	case MysteryTraderRewardBomb:
+		fallthrough
+	case MysteryTraderRewardArmor:
+		fallthrough
+	case MysteryTraderRewardShield:
+		fallthrough
+	case MysteryTraderRewardElectrical:
+		fallthrough
+	case MysteryTraderRewardMechanical:
+		fallthrough
+	case MysteryTraderRewardTorpedo:
+		fallthrough
+	case MysteryTraderRewardMineRobot:
+		fallthrough
+	case MysteryTraderRewardShipHull:
+		fallthrough
+	case MysteryTraderRewardBeamWeapon:
+		fallthrough
+	case MysteryTraderRewardGenesis:
+		fallthrough
+	case MysteryTraderRewardJumpGate:
+		return true
+	}
+	return false
 }
 
 func (t MysteryTraderRewardType) Category() TechCategory {
@@ -87,6 +130,47 @@ func (t MysteryTraderRewardType) Category() TechCategory {
 		return TechCategoryMechanical
 	}
 	return TechCategoryNone
+}
+
+// MysteryTraderRewardTypeForTech converts a mystery trader tech into a reward type
+// we use this if we give the player a random part, we want them to know what type of
+// reward it is
+func MysteryTraderRewardTypeForTech(tech *Tech) MysteryTraderRewardType {
+	if tech.Origin != OriginMysteryTrader {
+		// not a MT part
+		return MysteryTraderRewardNone
+	}
+
+	// jump gate is mechanical, but it's special
+	if tech.Name == JumpGate.Name {
+		return MysteryTraderRewardJumpGate
+	}
+
+	switch tech.Category {
+	case TechCategoryEngine:
+		return MysteryTraderRewardEngine
+	case TechCategoryBomb:
+		return MysteryTraderRewardBomb
+	case TechCategoryArmor:
+		return MysteryTraderRewardArmor
+	case TechCategoryShield:
+		return MysteryTraderRewardShield
+	case TechCategoryElectrical:
+		return MysteryTraderRewardElectrical
+	case TechCategoryMechanical:
+		return MysteryTraderRewardMechanical
+	case TechCategoryTorpedo:
+		return MysteryTraderRewardTorpedo
+	case TechCategoryMineRobot:
+		return MysteryTraderRewardMineRobot
+	case TechCategoryShipHull:
+		return MysteryTraderRewardShipHull
+	case TechCategoryBeamWeapon:
+		return MysteryTraderRewardBeamWeapon
+	case TechCategoryPlanetary:
+		return MysteryTraderRewardGenesis
+	}
+	return MysteryTraderRewardNone
 }
 
 type MysteryTraderReward struct {
@@ -232,14 +316,14 @@ func generateMysteryTraderReward(rules *Rules, year int, warpSpeed int) MysteryT
 	} else {
 		// we made it to the good stuff!
 		// grab a random reward from the list, skipping the first one "None"
-		randomReward := Rewards[rules.random.Intn(len(Rewards)-1)+1]
+		randomReward := MysteryTraderRewards[rules.random.Intn(len(MysteryTraderRewards)-1)+1]
 		if randomReward == MysteryTraderRewardTorpedo ||
 			randomReward == MysteryTraderRewardBeamWeapon ||
 			randomReward == MysteryTraderRewardGenesis ||
 			randomReward == MysteryTraderRewardJumpGate {
 
 			// the first random reward was something cool, make them roll again
-			randomReward = Rewards[rules.random.Intn(len(Rewards)-1)+1]
+			randomReward = MysteryTraderRewards[rules.random.Intn(len(MysteryTraderRewards)-1)+1]
 
 			if turn < 120 && randomReward == MysteryTraderRewardBeamWeapon ||
 				turn < 150 && randomReward == MysteryTraderRewardGenesis ||
@@ -283,34 +367,30 @@ func (mt *MysteryTrader) meet(rules *Rules, game *Game, fleet *Fleet, player *Pl
 	gift := fleet.Cargo.ToMineral().Total()
 	if fleet.Cargo.ToMineral().Total() >= mt.RequestedBoon {
 		// it's a major award!
+		rewardType := mt.RewardType
 
-		switch mt.RewardType {
-		case MysteryTraderRewardResearch:
-			// give the player tech levels
-			numLevels := player.TechLevels.Sum()
-			levels := TechLevel{}
-
-			for _, techLevelReward := range rules.MysteryTraderRules.TechBoon {
-				if numLevels <= techLevelReward.TechLevels {
-					// player tech level count is below threshold for this reward, grant some random levels
-					for _, reward := range techLevelReward.Rewards {
-						if gift <= reward.MineralsGiven {
-							// minerals given is below this threshold, give this number of levels
-							for i := 0; i < reward.Reward; i++ {
-								availableFields := levels.LearnableTechFields(rules)
-								field := availableFields[rules.random.Intn(len(availableFields))]
-								levels.Set(field, levels.Get(field)+1)
-							}
-							break
-						}
-					}
-					break
+		if rewardType == MysteryTraderRewardResearch && player.TechLevels.Min() == rules.MaxTechLevel {
+			// player is maxed on tech, give them a part
+			rewardType = MysteryTraderRewardParts[rules.random.Intn(len(MysteryTraderRewardParts))]
+		}
+		if rewardType.IsPart() {
+			// the player gets a part, make sure they don't have them all
+			tech, reward := getMysteryTraderPart(rules.random, player, rewardType)
+			if tech != nil {
+				// we found a tech for the player
+				return MysteryTraderReward{
+					Type: reward,
+					Tech: tech.Name,
 				}
 			}
-			return MysteryTraderReward{
-				Type:       MysteryTraderRewardResearch,
-				TechLevels: levels,
-			}
+			// couldn't find a tech, so we get a different reward
+			rewardType = reward
+		}
+
+		switch rewardType {
+		case MysteryTraderRewardResearch:
+			// give the player tech levels
+			return mt.getTechLevelReward(rules, player, gift)
 		case MysteryTraderRewardJumpGate:
 			// player gets a jump gate
 			return MysteryTraderReward{
@@ -330,19 +410,38 @@ func (mt *MysteryTrader) meet(rules *Rules, game *Game, fleet *Fleet, player *Pl
 				Ship:      ship,
 				ShipCount: count,
 			}
-		default:
-			// give them a hull component or hull
-			tech := getRandomMysteryTraderTech(rules.random, mt.RewardType)
-			if tech != nil {
-				return MysteryTraderReward{
-					Type: mt.RewardType,
-					Tech: tech.Name,
-				}
-			}
 		}
 
 	}
 	return MysteryTraderReward{}
+}
+
+// getTechLevelReward returns MysteryTraderReward awarding tech levels for a player
+func (mt *MysteryTrader) getTechLevelReward(rules *Rules, player *Player, gift int) MysteryTraderReward {
+	numLevels := player.TechLevels.Sum()
+	levels := TechLevel{}
+
+	for _, techLevelReward := range rules.MysteryTraderRules.TechBoon {
+		if numLevels <= techLevelReward.TechLevels {
+			// player tech level count is below threshold for this reward, grant some random levels
+			for _, reward := range techLevelReward.Rewards {
+				if gift <= reward.MineralsGiven {
+					// minerals given is below this threshold, give this number of levels
+					for i := 0; i < reward.Reward; i++ {
+						availableFields := levels.LearnableTechFields(rules)
+						field := availableFields[rules.random.Intn(len(availableFields))]
+						levels.Set(field, levels.Get(field)+1)
+					}
+					break
+				}
+			}
+			break
+		}
+	}
+	return MysteryTraderReward{
+		Type:       MysteryTraderRewardResearch,
+		TechLevels: levels,
+	}
 }
 
 // get a random lifeboat design the player will be given
@@ -371,29 +470,48 @@ func getRandomLifeboat(rng rng, turn int) (ShipDesign, int) {
 // get a random mystery trader tech
 // currently there is no "random" to it, because we only have one tech of each category
 // but there *could be*
-func getRandomMysteryTraderTech(rng rng, reward MysteryTraderRewardType) *Tech {
-	if reward == MysteryTraderRewardGenesis || reward == MysteryTraderRewardJumpGate || reward == MysteryTraderRewardLifeboat {
-		// these rewards never return a random tech
-		return nil
+func getMysteryTraderPart(rng rng, player *Player, reward MysteryTraderRewardType) (*Tech, MysteryTraderRewardType) {
+
+	// jump gate and genesis device are special, not categories
+	// if the player doesn't already have them and the MT is offering it, give it
+	if reward == MysteryTraderRewardJumpGate && !player.HasAquiredTech(&JumpGate.Tech) {
+		return &JumpGate.Tech, reward
+	}
+
+	if reward == MysteryTraderRewardGenesis && !player.HasAquiredTech(&GenesisDevice.Tech) {
+		return &GenesisDevice.Tech, reward
 	}
 
 	techsByCategory := make(map[TechCategory][]Tech, len(TechCategories))
 
+	// for the initial check, don't include the jump gate and genesis device
+	// in the techs the player can get. Those are more rare
 	for _, tech := range MysteryTraderRandomTechs {
 		techsByCategory[tech.Category] = append(techsByCategory[tech.Category], tech)
 	}
 
 	category := reward.Category()
-	if category == TechCategoryNone {
-		return nil
+	if category == TechCategoryNone || len(techsByCategory[category]) == 0 {
+		// no techs for this category, they get ships
+		return nil, MysteryTraderRewardLifeboat
 	}
 
-	if len(techsByCategory[category]) == 0 {
-		return nil
+	tech := &techsByCategory[category][rng.Intn(len(techsByCategory[category]))]
+	if player.HasAquiredTech(tech) {
+		// the player already has this tech, get a new random one from all techs (including jump gate and genesis device)
+		for i := 0; i < 25; i++ {
+			tech = &MysteryTraderTechs[rng.Intn(len(MysteryTraderTechs))]
+			if !player.HasAquiredTech(tech) {
+				return tech, MysteryTraderRewardTypeForTech(tech)
+			}
+		}
+
+		// couldn't find a tech the player didn't already have, they get ships
+		return nil, MysteryTraderRewardLifeboat
 	}
 
 	// pick a random tech to aware for this category
-	return &techsByCategory[category][rng.Intn(len(techsByCategory[category]))]
+	return tech, reward
 }
 
 // a list of all Mystery Trader Techs

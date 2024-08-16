@@ -89,7 +89,9 @@ func (t *turn) generateTurn() error {
 	t.randomPlanetaryChange()
 	t.fleetBattle()
 	t.fleetBomb()
-	t.mysteryTraderMeet()
+	if err := t.mysteryTraderMeet(); err != nil {
+		return err
+	}
 	t.mysteryTraderSpawn()
 
 	// wp1 tasks
@@ -2151,7 +2153,7 @@ func (t *turn) fleetBomb() {
 	}
 }
 
-func (t *turn) mysteryTraderMeet() {
+func (t *turn) mysteryTraderMeet() error {
 
 	for _, mt := range t.game.MysteryTraders {
 
@@ -2189,31 +2191,13 @@ func (t *turn) mysteryTraderMeet() {
 						Msgf("gained tech levels from mysteryTrader")
 				case MysteryTraderRewardLifeboat:
 					// player gets a ship
-
-				case MysteryTraderRewardEngine:
-					fallthrough
-				case MysteryTraderRewardBomb:
-					fallthrough
-				case MysteryTraderRewardArmor:
-					fallthrough
-				case MysteryTraderRewardShield:
-					fallthrough
-				case MysteryTraderRewardElectrical:
-					fallthrough
-				case MysteryTraderRewardMechanical:
-					fallthrough
-				case MysteryTraderRewardTorpedo:
-					fallthrough
-				case MysteryTraderRewardMineRobot:
-					fallthrough
-				case MysteryTraderRewardShipHull:
-					fallthrough
-				case MysteryTraderRewardBeamWeapon:
-					fallthrough
-				case MysteryTraderRewardGenesis:
-					fallthrough
-				case MysteryTraderRewardJumpGate:
+				default:
 					// MT awarded tech
+					mtTech := t.game.GetTech(reward.Tech)
+					if mtTech == nil {
+						return fmt.Errorf("mystery trader %d awarded unknown tech %s", mt.Num, reward.Tech)
+					}
+					player.AcquiredTechs = append(player.AcquiredTechs, reward.Tech)
 				}
 
 				// remove the absorbed fleet from the universe
@@ -2221,6 +2205,7 @@ func (t *turn) mysteryTraderMeet() {
 			}
 		}
 	}
+	return nil
 }
 
 // decay MineFields and remove any minefields that are too small

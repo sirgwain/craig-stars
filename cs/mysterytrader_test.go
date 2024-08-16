@@ -138,8 +138,8 @@ func TestMysteryTrader_meet(t *testing.T) {
 			fields: fields{5000, MysteryTraderRewardLifeboat, TechLevel{}, &testRandom{}},
 			args:   args{&rules, &Game{Year: 2500}, testGalleon(player).withCargo(Cargo{Ironium: 5000})},
 			want: MysteryTraderReward{
-				Type: MysteryTraderRewardLifeboat,
-				Ship: MysteryTraderScout,
+				Type:      MysteryTraderRewardLifeboat,
+				Ship:      MysteryTraderScout,
 				ShipCount: 2,
 			},
 		},
@@ -195,25 +195,31 @@ func Test_generateMysteryTraderReward(t *testing.T) {
 func Test_getRandomMysteryTraderTech(t *testing.T) {
 	type args struct {
 		rng    rng
+		player *Player
 		reward MysteryTraderRewardType
 	}
 	tests := []struct {
-		name string
-		args args
-		want *Tech
+		name           string
+		args           args
+		want           *Tech
+		wantRewardType MysteryTraderRewardType
 	}{
-		{"get engine", args{newIntRandom(), MysteryTraderRewardEngine}, &EnigmaPulsar.Tech},
-		{"get armor", args{newIntRandom(), MysteryTraderRewardArmor}, &MegaPolyShell.Tech},
-		{"get torpedo", args{newIntRandom(), MysteryTraderRewardTorpedo}, &AntiMatterTorpedo.Tech},
-		{"get minimorph", args{newIntRandom(), MysteryTraderRewardShipHull}, &MiniMorph.Tech},
-		{"lifeboat is special, not ever awarded randomly by category", args{newIntRandom(), MysteryTraderRewardLifeboat}, nil},
-		{"genesis is special, not ever awarded randomly by category", args{newIntRandom(), MysteryTraderRewardGenesis}, nil},
-		{"jumpgate is special, not ever awarded randomly by category", args{newIntRandom(), MysteryTraderRewardJumpGate}, nil},
+		{"get engine", args{newIntRandom(), testPlayer(), MysteryTraderRewardEngine}, &EnigmaPulsar.Tech, MysteryTraderRewardEngine},
+		{"get armor", args{newIntRandom(), testPlayer(), MysteryTraderRewardArmor}, &MegaPolyShell.Tech, MysteryTraderRewardArmor},
+		{"get torpedo", args{newIntRandom(), testPlayer(), MysteryTraderRewardTorpedo}, &AntiMatterTorpedo.Tech, MysteryTraderRewardTorpedo},
+		{"get minimorph", args{newIntRandom(), testPlayer(), MysteryTraderRewardShipHull}, &MiniMorph.Tech, MysteryTraderRewardShipHull},
+		{"lifeboat is special, not ever awarded randomly by category", args{newIntRandom(), testPlayer(), MysteryTraderRewardLifeboat}, nil, MysteryTraderRewardLifeboat},
+		{"genesis is special, not ever awarded randomly by category", args{newIntRandom(), testPlayer(), MysteryTraderRewardGenesis}, &GenesisDevice.Tech, MysteryTraderRewardGenesis},
+		{"jumpgate is special, not ever awarded randomly by category", args{newIntRandom(), testPlayer(), MysteryTraderRewardJumpGate}, &JumpGate.Tech, MysteryTraderRewardJumpGate},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := getRandomMysteryTraderTech(tt.args.rng, tt.args.reward); !reflect.DeepEqual(got, tt.want) {
+			got, gotRewardType := getMysteryTraderPart(tt.args.rng, tt.args.player, tt.args.reward)
+			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("getMysteryTraderTech() = %v, want %v", got, tt.want)
+			}
+			if gotRewardType != tt.wantRewardType {
+				t.Errorf("getMysteryTraderTech() rewardType = %v, want rewardType %v", gotRewardType, tt.wantRewardType)
 			}
 		})
 	}

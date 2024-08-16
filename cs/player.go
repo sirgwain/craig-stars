@@ -517,6 +517,14 @@ func (p *Player) HasTech(tech *Tech) bool {
 	return p.CanLearnTech(tech) && p.TechLevels.HasRequiredLevels(tech.Requirements.TechLevel)
 }
 
+// HasAquiredTech returns true if the player has acquired a tech from a different origin
+func (p *Player) HasAquiredTech(tech *Tech) bool {
+	if tech.Origin == OriginNone {
+		return true
+	}
+	return slices.Contains(p.AcquiredTechs, tech.Name)
+}
+
 func (p *Player) CanLearnTech(tech *Tech) bool {
 	requirements := tech.Requirements
 	if len(requirements.PRTsRequired) != 0 && !slices.Contains(requirements.PRTsRequired, p.Race.PRT) {
