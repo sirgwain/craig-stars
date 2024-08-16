@@ -29,7 +29,10 @@
 				return 'New technologies initially cost twice as much to build. As soon as you exceed all of the tech requirements by one level, the cost drops back to normal. Miniaturization (the lowering of production costs at higher tech levels) occurs at 5% per level, up to 80%. (Without this trait, miniaturization occurs at 4% per level and caps at 75%.)';
 			case LRT.RS:
 				return 'All shields are 40% stronger than their listed rating. Shields regenerate 10% of their maximum strength after each round of battle until destroyed. However, any armor components added to your ships will only have 50% of their rated strength. (The base armor granted by ship & starbase hulls is unaffected, as is any bonus armor granted by certain special components.)';
+			case LRT.MA:
+				return 'You will be able to turn resources into minerals more efficiently. One instance of mineral alchemy will use 25 resources (instead of 100) to produce 1kT of each mineral.';
 			case LRT.CE:
+				return 'Engines cost you 50% less to build, but aren’t entirely reliable. When attempting to travel at speeds above warp 6, there is a 10% chance the engines will refuse to engage. Your starting Propulsion tech level will be increased by 1.';
 			default:
 				return lrt.toString();
 		}

@@ -48,8 +48,9 @@ func Test_invadePlanet(t *testing.T) {
 				PlanetOrders: PlanetOrders{
 					ProductionQueue: []ProductionQueueItem{
 						{Type: QueueItemTypeAutoMinTerraform, Quantity: 1},
-						{Type: QueueItemTypeAutoFactories, Quantity: 100},
-						{Type: QueueItemTypeAutoMines, Quantity: 100},
+						{Type: QueueItemTypeAutoFactories, Quantity: 250},
+						{Type: QueueItemTypeAutoMines, Quantity: 250},
+						{Type: QueueItemTypeAutoMaxTerraform, Quantity: 1},
 					},
 				},
 			},
