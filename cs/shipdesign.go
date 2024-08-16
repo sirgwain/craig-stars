@@ -493,8 +493,9 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		spec.TorpedoJamming = math.Min(.95, roundFloat(spec.TorpedoJamming, 4))
 	}
 
+	// beam bonus defaults to 1
+	spec.BeamBonus = 1
 	if len(beamBoostersByCount) > 0 {
-		spec.BeamBonus = 1
 		for beamBonus, count := range beamBoostersByCount {
 			// for 3 flux caps, this calc is 1-(1.2^3) for 1.728x beam damage
 			bonus := math.Pow(1+beamBonus, float64(count))
@@ -504,7 +505,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		}
 
 		// Return final % bonus, rounded to 4 decimal places and capped at 155% base damage
-		spec.BeamBonus = math.Min(roundFloat(1-spec.BeamBonus, 4), 1.55)
+		spec.BeamBonus = math.Min(roundFloat(spec.BeamBonus, 4), 2.55)
 	}
 
 	if len(beamDeflectorsByCount) > 0 {
@@ -518,7 +519,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		}
 
 		// Return final % dmg reduction, rounded to 4 decimal places
-		spec.BeamDefense = roundFloat(1-spec.BeamDefense, 4)
+		spec.BeamDefense = roundFloat(spec.BeamDefense, 4)
 	}
 
 	if spec.NumEngines > 0 {
@@ -532,7 +533,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		spec.MovementFull = 0
 	}
 
-	beamPower = int(float64(beamPower) * (1 + spec.BeamBonus))
+	beamPower = int(float64(beamPower) * (spec.BeamBonus))
 	if beamPower > 0 {
 		// starbases don't move, but for the beam power calcs
 		// assume they have a movement of "2" which is the lowest possible
