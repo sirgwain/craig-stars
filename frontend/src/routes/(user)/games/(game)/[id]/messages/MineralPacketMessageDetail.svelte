@@ -44,21 +44,21 @@
 	{#if damage}
 		<!-- start with safe conditions, we have a catcher, we live on a starbase, etc -->
 		{#if target?.spec.hasStarbase && (target.spec.safePacketSpeed ?? 0) >= mineralPacket.warpSpeed}
-			Thankfully, your starbase's mass driver is more than capable of safely catching this packet.
+			Fortunately, your starbase's mass driver is more than capable of safely catching this packet.
 			Huzzah!
-		{:else if $player.race.spec?.livesOnStarbases}
-			Thankfully, your race lives on starbases and will be unaffected by the ensuing collision.
 		{:else if damage.uncaught == MineralPacketDecayToNothing}
-			Thankfully, this packet will decay into nothingness before it reaches you.
+			Fortunately, this packet will decay into nothingness before it reaches you.
+		{:else if $player.race.spec?.livesOnStarbases}
+			Though this packet will strike the planet, your race lives on starbases and will be unaffected by the ensuing collision.
 		{:else if (damage.killed ?? 0) > 0 || (damage.defensesDestroyed ?? 0) > 0}
 			<!-- uh oh, this packet will damage us. report how much and when -->
 			{#if target?.spec.hasStarbase}
 				{#if (damage.killed ?? 0) >= (target?.spec.population ?? 0)}
-					Your starbase does not have a powerful enough mass driver to safelt catch this packet. The
+					Your starbase does not have a powerful enough mass driver to safely catch this packet. The
 					entire planet will be annihilated when it strikes in {eta} years.
 				{:else}
 					Your starbase does not have a powerful enough mass driver to safely catch this packet.
-					Approximately {damage.defensesDestroyed ?? 0} defenses will be destroyed and {damage.killed}
+					Approximately {damage.defensesDestroyed ?? 0} defenses will be destroyed and {damage.killed ?? 0}
 					colonists will be killed when it strikes in {eta} years.
 				{/if}
 			{:else if (damage.killed ?? 0) >= (target?.spec.population ?? 0)}
@@ -66,11 +66,11 @@
 				annihilated when it strikes in {eta} years.
 			{:else}
 				You have no starbase with a mass driver to catch this packet. Approximately {damage.defensesDestroyed ??
-					0} defenses will be destroyed and {damage.killed}
+					0} defenses will be destroyed and {damage.killed ?? 0}
 				colonists will be killed when it strikes in {eta} years.
 			{/if}
 		{:else}
-			Thankfully, this packet will cause no damage. Hurrah!
+			Fortunately, this packet will cause no damage. Hurrah!
 		{/if}
 	{/if}
 {:else}
