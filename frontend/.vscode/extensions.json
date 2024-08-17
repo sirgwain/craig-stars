@@ -4,5 +4,6 @@
         "svelte.svelte-vscode",
         "bradlc.vscode-tailwindcss",
         "fivethree.vscode-svelte-snippets",
+        "vitest.explorer",
     ]
 }
