@@ -520,12 +520,12 @@ func computePlayerSpec(player *Player, rules *Rules, planets []*Planet) PlayerSp
 
 // return true if the player currently has this tech
 func (p *Player) HasTech(tech *Tech) bool {
-	return p.CanLearnTech(tech) && p.TechLevels.HasRequiredLevels(tech.Requirements.TechLevel) && (tech.Origin == OriginNone || p.HasAquiredTech(tech))
+	return p.CanLearnTech(tech) && p.TechLevels.HasRequiredLevels(tech.Requirements.TechLevel) && (!tech.Requirements.Acquirable || p.HasAcquiredTech(tech))
 }
 
-// HasAquiredTech returns true if the player has acquired a tech from a different origin
-func (p *Player) HasAquiredTech(tech *Tech) bool {
-	if tech.Origin == OriginNone {
+// HasAcquiredTech returns true if the player has acquired a tech from a different origin
+func (p *Player) HasAcquiredTech(tech *Tech) bool {
+	if !tech.Requirements.Acquirable {
 		return true
 	}
 	return p.AcquiredTechs[tech.Name]

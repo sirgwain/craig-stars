@@ -40,6 +40,29 @@ func TestPlayer_HasTech(t *testing.T) {
 	}
 }
 
+func TestPlayer_HasAcquiredTech(t *testing.T) {
+
+	type args struct {
+		player *Player
+		tech   *Tech
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{"Player hasn't acquired MT tech", args{NewPlayer(1, NewRace()), &MiniMorph.Tech}, false},
+		{"Player has acquired mt tech", args{NewPlayer(1, NewRace()).WithAcquiredTech(MiniMorph.Name), &MiniMorph.Tech}, true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.args.player.HasAcquiredTech(tt.args.tech); got != tt.want {
+				t.Errorf("Player.HasTech() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestPlayer_CanLearnTech(t *testing.T) {
 
 	type args struct {

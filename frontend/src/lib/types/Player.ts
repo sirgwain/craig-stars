@@ -281,12 +281,12 @@ export class Player implements PlayerResponse, CostFinder {
 		return (
 			canLearnTech(this, tech) &&
 			hasRequiredLevels(this.techLevels, tech.requirements) &&
-			((tech.origin ?? '') === '' || this.hasAcquiredTech(tech))
+			(!tech.requirements.acquirable || this.hasAcquiredTech(tech))
 		);
 	}
 
 	hasAcquiredTech(tech: Tech): boolean {
-		if ((tech.origin ?? '') === '') {
+		if (!tech.requirements.acquirable) {
 			return true;
 		}
 		return !!this.acquiredTechs[tech.name];

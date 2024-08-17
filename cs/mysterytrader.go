@@ -474,11 +474,11 @@ func getMysteryTraderPart(rng rng, player *Player, reward MysteryTraderRewardTyp
 
 	// jump gate and genesis device are special, not categories
 	// if the player doesn't already have them and the MT is offering it, give it
-	if reward == MysteryTraderRewardJumpGate && !player.HasAquiredTech(&JumpGate.Tech) {
+	if reward == MysteryTraderRewardJumpGate && !player.HasAcquiredTech(&JumpGate.Tech) {
 		return &JumpGate.Tech, reward
 	}
 
-	if reward == MysteryTraderRewardGenesis && !player.HasAquiredTech(&GenesisDevice.Tech) {
+	if reward == MysteryTraderRewardGenesis && !player.HasAcquiredTech(&GenesisDevice.Tech) {
 		return &GenesisDevice.Tech, reward
 	}
 
@@ -497,11 +497,11 @@ func getMysteryTraderPart(rng rng, player *Player, reward MysteryTraderRewardTyp
 	}
 
 	tech := &techsByCategory[category][rng.Intn(len(techsByCategory[category]))]
-	if player.HasAquiredTech(tech) {
+	if player.HasAcquiredTech(tech) {
 		// the player already has this tech, get a new random one from all techs (including jump gate and genesis device)
 		for i := 0; i < 25; i++ {
 			tech = &MysteryTraderTechs[rng.Intn(len(MysteryTraderTechs))]
-			if !player.HasAquiredTech(tech) {
+			if !player.HasAcquiredTech(tech) {
 				return tech, MysteryTraderRewardTypeForTech(tech)
 			}
 		}
