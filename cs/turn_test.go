@@ -754,6 +754,7 @@ func Test_turn_permaform(t *testing.T) {
 	player := game.Players[0]
 	planet := game.Planets[0]
 	planet.Hab = Hab{49, 49, 49}
+	planet.BaseHab = Hab{49, 49, 49}
 
 	turn := turn{
 		game: game,

@@ -382,6 +382,10 @@ func (t *terraform) TerraformOneStep(planet *Planet, player *Player, terraformer
 		bestHab = t.getBestUnterraform(planet, player, terraformer)
 	}
 
+	if terraformer == nil {
+		terraformer = player
+	}
+
 	if bestHab != nil {
 		direction := 0
 		habType := *bestHab
