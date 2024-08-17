@@ -1994,7 +1994,7 @@ func Test_turn_mysteryTraderSpawn(t *testing.T) {
 func Test_turn_mysteryTraderMove(t *testing.T) {
 	game := createSingleUnitGame()
 	game.RandomEvents = true
-	game.Rules.random = &testRandom{} // test random always rolls 0 by default
+	game.Rules.random = newIntRandom(1) // test random that returns 1 so we don't change course
 	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardResearch))
 	mt := game.MysteryTraders[0]
 
@@ -2006,9 +2006,74 @@ func Test_turn_mysteryTraderMove(t *testing.T) {
 	// move to place
 	turn.mysteryTraderMove()
 
-	// should have consumed that waypoint and moved to the space
+	// should have moved to our location
 	assert.Equal(t, Vector{49, 0}, mt.Position)
 	assert.Equal(t, 1, len(game.getMapObjectsAtPosition(mt.Position)))
+}
+
+func Test_turn_mysteryTraderMoveChangeCourse(t *testing.T) {
+	game := createSingleUnitGame()
+	game.RandomEvents = true
+	game.Rules.random = newIntRandom(0) // test random that returns 0 so we change course
+	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardResearch))
+	mt := game.MysteryTraders[0]
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// move to place
+	turn.mysteryTraderMove()
+
+	// should have changed course, so we won't move along the previous path
+	assert.NotEqual(t, Vector{49, 0}, mt.Position)
+	player := game.Players[0]
+	assert.Equal(t, 1, len(player.Messages))
+	assert.Equal(t, PlayerMessageMysteryTraderChangedCourse, player.Messages[0].Type)
+}
+
+func Test_turn_mysteryTraderFinished(t *testing.T) {
+	game := createSingleUnitGame()
+	game.RandomEvents = true
+	game.Rules.random = newIntRandom(1, 1) // test random that returns 1 so we don't change course or go again
+	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{49, 0}, 5000, MysteryTraderRewardResearch))
+	mt := game.MysteryTraders[0]
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// move to place
+	turn.mysteryTraderMove()
+
+	// should have changed course, so we won't move along the previous path
+	assert.Equal(t, Vector{49, 0}, mt.Position)
+	assert.True(t, mt.Delete)
+}
+
+func Test_turn_mysteryTraderAgain(t *testing.T) {
+	game := createSingleUnitGame()
+	game.RandomEvents = true
+	game.Rules.random = newIntRandom(1, 0) // test random that returns 1 so we don't change course or go again
+	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{49, 0}, 5000, MysteryTraderRewardResearch))
+	mt := game.MysteryTraders[0]
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// move to place
+	turn.mysteryTraderMove()
+
+	// should have changed course, so we won't move along the previous path
+	assert.Equal(t, Vector{49, 0}, mt.Position)
+	player := game.Players[0]
+	assert.Equal(t, 1, len(player.Messages))
+	assert.Equal(t, PlayerMessageMysteryTraderAgain, player.Messages[0].Type)
+	assert.NotEqual(t, Vector{49, 0}, mt.Destination)
 }
 
 func Test_turn_mysteryTraderMeetNoReward(t *testing.T) {

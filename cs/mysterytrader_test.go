@@ -50,10 +50,9 @@ func TestMysteryTrader_move(t *testing.T) {
 		name         string
 		fields       fields
 		wantPosition Vector
-		wantDelete   bool
 	}{
-		{name: "move simple", fields: fields{7, Vector{}, Vector{100, 0}}, wantPosition: Vector{49, 0}, wantDelete: false},
-		{name: "move done", fields: fields{7, Vector{}, Vector{45, 0}}, wantPosition: Vector{45, 0}, wantDelete: true},
+		{name: "move simple", fields: fields{7, Vector{}, Vector{100, 0}}, wantPosition: Vector{49, 0}},
+		{name: "move done", fields: fields{7, Vector{}, Vector{45, 0}}, wantPosition: Vector{45, 0}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -61,7 +60,6 @@ func TestMysteryTrader_move(t *testing.T) {
 			mt.move()
 
 			assert.Equal(t, tt.wantPosition, mt.Position)
-			assert.Equal(t, tt.wantDelete, mt.Delete)
 		})
 	}
 }

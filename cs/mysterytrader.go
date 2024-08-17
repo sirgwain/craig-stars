@@ -216,7 +216,7 @@ func generateMysteryTrader(rules *Rules, game *Game, num int) *MysteryTrader {
 	}
 
 	// every turn has a different chance of generating a random number generator
-	chance := mtRules.Chances[rules.random.Intn(len(mtRules.Chances))]
+	chance := mtRules.ChanceSpawn[rules.random.Intn(len(mtRules.ChanceSpawn))]
 	if rules.random.Intn(chance) != 0 {
 		return nil
 	}
@@ -226,37 +226,11 @@ func generateMysteryTrader(rules *Rules, game *Game, num int) *MysteryTrader {
 	// determine speed
 	warpSpeed := mtRules.MinWarp + rules.random.Intn(mtRules.MaxWarp-mtRules.MinWarp)
 
-	// we want two sets of coords, a random set somewhere on the x/y range
-	// and whatever our edge coords are
-	var randomXYCoords, yEdgeCoords, xEdgeCoords [2]int
-
-	randomXYCoords = [2]int{
-		20 + rules.random.Intn(int(game.Area.X)-39),
-		20 + rules.random.Intn(int(game.Area.Y)-39),
-	}
-
-	xEdgeCoords = [2]int{
-		-20,
-		int(game.Area.X) + 20,
-	}
-
-	yEdgeCoords = [2]int{
-		-20,
-		int(game.Area.Y) + 20,
-	}
-
-	// our position/dest always uses one edge coord, one random coord
-	// the edge coord is either 0 or the max size, based on some randomness
-	var position, destination Vector
-	if rules.random.Intn(2) == 0 {
-		position.X = float64(randomXYCoords[0])
-		position.Y = float64(yEdgeCoords[rules.random.Intn(2)])
-	} else {
-		position.X = float64(xEdgeCoords[rules.random.Intn(2)])
-		position.Y = float64(randomXYCoords[1])
-	}
+	// determine where on the edge of the map we start
+	position := generateRandomMysteryTraderCoords(rules, game)
 
 	// set our destination to maximize the chances it goes through the universe
+	var destination Vector
 	if position.X > game.Area.X/2 {
 		destination.X = -20
 	} else {
@@ -278,6 +252,39 @@ func generateMysteryTrader(rules *Rules, game *Game, num int) *MysteryTrader {
 	reward := generateMysteryTraderReward(rules, game.Year, warpSpeed)
 
 	return newMysteryTrader(position, num, warpSpeed, destination, mtRules.RequestedBoon, reward)
+}
+
+// generateRandomMysteryTraderCoords gets random coords on the edge of the universe
+func generateRandomMysteryTraderCoords(rules *Rules, game *Game) (coords Vector) {
+	// we want two sets of coords, a random set somewhere on the x/y range
+	// and whatever our edge coords are
+	var randomXYCoords, yEdgeCoords, xEdgeCoords [2]int
+
+	randomXYCoords = [2]int{
+		20 + rules.random.Intn(int(game.Area.X)-39),
+		20 + rules.random.Intn(int(game.Area.Y)-39),
+	}
+
+	xEdgeCoords = [2]int{
+		-20,
+		int(game.Area.X) + 20,
+	}
+
+	yEdgeCoords = [2]int{
+		-20,
+		int(game.Area.Y) + 20,
+	}
+
+	// our position/dest always uses one edge coord, one random coord
+	// the edge coord is either 0 or the max size, based on some randomness
+	if rules.random.Intn(2) == 0 {
+		coords.X = float64(randomXYCoords[0])
+		coords.Y = float64(yEdgeCoords[rules.random.Intn(2)])
+	} else {
+		coords.X = float64(xEdgeCoords[rules.random.Intn(2)])
+		coords.Y = float64(randomXYCoords[1])
+	}
+	return coords
 }
 
 // generate a random mystery trader reward based on the year of the game and speed of the MT
@@ -355,13 +362,50 @@ func (mt *MysteryTrader) move() {
 
 	if totalDist == dist {
 		mt.Position = mt.Destination
-		mt.Delete = true
 	} else {
 		// move along the heading...
 		mt.Heading = (mt.Destination.Subtract(mt.Position)).Normalized()
 		mt.Position = mt.Position.Add(mt.Heading.Scale(dist))
 		mt.Position = mt.Position.Round()
 	}
+}
+
+func (mt *MysteryTrader) change(rules *Rules, game *Game) bool {
+	if mt.WarpSpeed > rules.MysteryTraderRules.MaxWarp {
+		return false
+	}
+
+	if rules.random.Intn(rules.MysteryTraderRules.ChanceCourseChange) > 0 {
+		return false
+	}
+
+	// course change!
+	mt.WarpSpeed++
+	if rules.random.Intn(rules.MysteryTraderRules.ChanceSpeedUpOnly) == 0 {
+		// speed up only
+		return true
+	}
+
+	// point the MT at a new location
+	mt.Destination = generateRandomMysteryTraderCoords(rules, game)
+
+	return true
+}
+
+func (mt *MysteryTrader) again(rules *Rules, game *Game, numHumanPlayers int) bool {
+	if len(mt.PlayersRewarded) == numHumanPlayers || rules.random.Intn(rules.MysteryTraderRules.ChanceAgain) > 0 {
+		// we've given to all human players or we aren't going again
+		return false
+	}
+
+	if mt.WarpSpeed-2 >= rules.MysteryTraderRules.MinWarp {
+		// slow it down
+		mt.WarpSpeed -= 2
+	}
+
+	// point the MT at a new location
+	mt.Destination = generateRandomMysteryTraderCoords(rules, game)
+	return true
 }
 
 func (mt *MysteryTrader) rewardedPlayer(num int) bool {
@@ -376,6 +420,10 @@ func (mt *MysteryTrader) meet(rules *Rules, game *Game, fleet *Fleet, player *Pl
 		rewardType := mt.RewardType
 
 		if rewardType == MysteryTraderRewardResearch && player.TechLevels.Min() == rules.MaxTechLevel {
+			if rules.random.Intn(rules.MysteryTraderRules.ChanceMaxTechGetsPart) > 0 {
+				// player gets nothing
+				return MysteryTraderReward{}
+			}
 			// player is maxed on tech, give them a part
 			rewardType = MysteryTraderRewardParts[rules.random.Intn(len(MysteryTraderRewardParts))]
 		}

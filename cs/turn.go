@@ -799,24 +799,61 @@ func (t *turn) mysteryTraderSpawn() {
 }
 
 func (t *turn) mysteryTraderMove() {
-	for _, mysteryTrader := range t.game.MysteryTraders {
-		if mysteryTrader.Delete {
+	for _, mt := range t.game.MysteryTraders {
+		if mt.Delete {
 			continue
 		}
 
-		originalPosition := mysteryTrader.Position
-		mysteryTrader.move()
-		t.game.moveMysteryTrader(mysteryTrader, originalPosition)
+		// check for a course change
+		if mt.change(&t.game.Rules, t.game.Game) {
+			for _, player := range t.game.Players {
+				player.Messages = append(player.Messages, newMysteryTraderMessage(PlayerMessageMysteryTraderChangedCourse, mt))
+			}
+			log.Debug().
+				Int64("GameID", t.game.ID).
+				Str("Name", t.game.Name).
+				Int("Year", t.game.Year).
+				Int("MysteryTrader", mt.Num).
+				Msgf("mysteryTrader changed course")
+		}
+
+		originalPosition := mt.Position
+		mt.move()
+		t.game.moveMysteryTrader(mt, originalPosition)
 
 		log.Debug().
 			Int64("GameID", t.game.ID).
 			Str("Name", t.game.Name).
 			Int("Year", t.game.Year).
-			Int("MysteryTrader", mysteryTrader.Num).
-			Int("WarpSpeed", mysteryTrader.WarpSpeed).
+			Int("MysteryTrader", mt.Num).
+			Int("WarpSpeed", mt.WarpSpeed).
 			Str("Start", originalPosition.String()).
-			Str("End", mysteryTrader.Position.String()).
+			Str("End", mt.Position.String()).
 			Msgf("moved mysteryTrader")
+
+		if mt.Position == mt.Destination {
+			if mt.again(&t.game.Rules, t.game.Game, t.game.GetNumHumanPlayers()) {
+				for _, player := range t.game.Players {
+					player.Messages = append(player.Messages, newMysteryTraderMessage(PlayerMessageMysteryTraderAgain, mt))
+				}
+				log.Debug().
+					Int64("GameID", t.game.ID).
+					Str("Name", t.game.Name).
+					Int("Year", t.game.Year).
+					Int("MysteryTrader", mt.Num).
+					Msgf("mysteryTrader going again")
+			} else {
+				log.Debug().
+					Int64("GameID", t.game.ID).
+					Str("Name", t.game.Name).
+					Int("Year", t.game.Year).
+					Int("MysteryTrader", mt.Num).
+					Msgf("mysteryTrader finished")
+
+				// all done, bye bye trader
+				mt.Delete = true
+			}
+		}
 	}
 }
 
