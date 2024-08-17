@@ -2190,14 +2190,22 @@ func (t *turn) mysteryTraderMeet() error {
 						Str("TechLevel", fmt.Sprintf("%v", reward.TechLevels)).
 						Msgf("gained tech levels from mysteryTrader")
 				case MysteryTraderRewardLifeboat:
-					// player gets a ship
+					// TODO: player gets a ship
 				default:
 					// MT awarded tech
 					mtTech := t.game.GetTech(reward.Tech)
 					if mtTech == nil {
 						return fmt.Errorf("mystery trader %d awarded unknown tech %s", mt.Num, reward.Tech)
 					}
-					player.AcquiredTechs = append(player.AcquiredTechs, reward.Tech)
+					if _, ok := player.AcquiredTechs[reward.Tech]; ok {
+						log.Warn().
+							Int64("GameID", t.game.ID).
+							Int("MysteryTrader", mt.Num).
+							Int("Player", player.Num).
+							Str("Tech", reward.Tech).
+							Msgf("player already has tech awarded by mysteryTrader")
+					}
+					player.AcquiredTechs[reward.Tech] = true
 				}
 
 				// remove the absorbed fleet from the universe

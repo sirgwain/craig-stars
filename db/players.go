@@ -87,7 +87,7 @@ type TransportPlans []cs.TransportPlan
 type PlayerRelationships []cs.PlayerRelationship
 type PlayerMessages []cs.PlayerMessage
 type PlayerScores []cs.PlayerScore
-type AcquiredTechs []string
+type AcquiredTechs map[string]bool
 type BattleRecords []cs.BattleRecord
 type PlayerIntels []cs.PlayerIntel
 type ScoreIntels []cs.ScoreIntel
@@ -431,6 +431,7 @@ func (c *client) getPlayerWithDesigns(where string, args ...interface{}) ([]cs.P
 		p.race AS 'player.race',
 		p.stats AS 'player.stats',
 		p.scoreHistory AS 'player.scoreHistory',
+		p.acquiredTechs AS 'player.acquiredTechs',
 		p.achievedVictoryConditions AS 'player.achievedVictoryConditions',
 		p.victor AS 'player.victor',
 		p.spec AS 'player.spec',
@@ -555,6 +556,7 @@ func (c *client) GetPlayerForGame(gameID, userID int64) (*cs.Player, error) {
 	race,
 	stats,
 	scoreHistory,
+	acquiredTechs,
 	achievedVictoryConditions,
 	victor,
 	spec
@@ -663,6 +665,7 @@ func (c *client) GetLightPlayerForGame(gameID, userID int64) (*cs.Player, error)
 	relations,
 	stats,
 	scoreHistory,
+	acquiredTechs,
 	achievedVictoryConditions,
 	victor,
 	spec
@@ -861,6 +864,7 @@ func (c *client) CreatePlayer(player *cs.Player) error {
 		race,
 		stats,
 		scoreHistory,
+		acquiredTechs,
 		achievedVictoryConditions,
 		victor,
 		spec
@@ -915,6 +919,7 @@ func (c *client) CreatePlayer(player *cs.Player) error {
 		:race,
 		:stats,
 		:scoreHistory,
+		:acquiredTechs,
 		:achievedVictoryConditions,
 		:victor,
 		:spec
@@ -1130,6 +1135,7 @@ func (c *client) UpdatePlayer(player *cs.Player) error {
 		race = :race,
 		stats = :stats,
 		scoreHistory = :scoreHistory,
+		acquiredTechs = :acquiredTechs,
 		achievedVictoryConditions = :achievedVictoryConditions,
 		victor = :victor,
 		spec = :spec

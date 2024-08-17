@@ -432,6 +432,7 @@ func (c *GameConverter) ConvertGameShipDesign(source *cs.ShipDesign) *ShipDesign
 		dbShipDesign.CannotDelete = (*source).CannotDelete
 		dbShipDesign.Slots = GameShipDesignSlotsToShipDesignSlots((*source).Slots)
 		dbShipDesign.Purpose = cs.ShipDesignPurpose((*source).Purpose)
+		dbShipDesign.MysteryTrader = BoolToNullBool((*source).MysteryTrader)
 		dbShipDesign.Spec = GameShipDesignSpecToShipDesignSpec((*source).Spec)
 		pDbShipDesign = &dbShipDesign
 	}
@@ -668,6 +669,7 @@ func (c *GameConverter) ConvertShipDesign(source *ShipDesign) *cs.ShipDesign {
 		csShipDesign.Hull = (*source).Hull
 		csShipDesign.HullSetNumber = (*source).HullSetNumber
 		csShipDesign.CannotDelete = (*source).CannotDelete
+		csShipDesign.MysteryTrader = NullBoolToBool((*source).MysteryTrader)
 		csShipDesign.Slots = ShipDesignSlotsToGameShipDesignSlots((*source).Slots)
 		csShipDesign.Purpose = cs.ShipDesignPurpose((*source).Purpose)
 		csShipDesign.Spec = ShipDesignSpecToGameShipDesignSpec((*source).Spec)

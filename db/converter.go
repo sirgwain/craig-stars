@@ -452,15 +452,15 @@ func GamePlayerScoresToPlayerScores(source []cs.PlayerScore) *PlayerScores {
 	return (*PlayerScores)(&source)
 }
 
-func AcquiredTechsToGameAcquiredTechs(source *AcquiredTechs) []string {
+func AcquiredTechsToGameAcquiredTechs(source *AcquiredTechs) map[string]bool {
 	// return an empty slice for nil
 	if source == nil {
-		return []string{}
+		return map[string]bool{}
 	}
-	return ([]string)(*source)
+	return (map[string]bool)(*source)
 }
 
-func GameAcquiredTechsToAcquiredTechs(source []string) *AcquiredTechs {
+func GameAcquiredTechsToAcquiredTechs(source map[string]bool) *AcquiredTechs {
 	return (*AcquiredTechs)(&source)
 }
 

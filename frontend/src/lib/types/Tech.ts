@@ -10,6 +10,7 @@ export const UnlimitedSpaceDock = -1;
 export const NoScanner = -1;
 export const NoGate = -1;
 export const InfinteGate = 2147483647;
+export const OriginMysteryTrader = 'MysteryTrader';
 
 export type TechStore = {
 	engines: TechEngine[];
@@ -31,6 +32,7 @@ export type Tech = {
 	requirements: TechRequirements;
 	ranking?: number;
 	category: TechCategory;
+	origin?: string;
 };
 
 export type TechPlanetaryScanner = {
@@ -213,6 +215,7 @@ export type TechRequirements = {
 	prtsDenied?: PRT[];
 	hullsAllowed?: string[];
 	hullsDenied?: string[];
+	acquirable?: boolean;
 } & TechLevel;
 
 /**

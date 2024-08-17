@@ -675,9 +675,9 @@ var GenesisDevice = TechPlanetary{Tech: NewTechWithOrigin("Genesis Device", NewC
 }
 
 var MysteryTraderScout = ShipDesign{
-	Hull:         MiniMorph.Name,
-	Name:         "M.T. Scout",
-	MysterTrader: true,
+	Hull:          MiniMorph.Name,
+	Name:          "M.T. Scout",
+	MysteryTrader: true,
 	Slots: []ShipDesignSlot{
 		{HullComponent: EnigmaPulsar.Name, HullSlotIndex: 1, Quantity: 2},
 		{HullComponent: LangstonShell.Name, HullSlotIndex: 2, Quantity: 3},
@@ -690,9 +690,9 @@ var MysteryTraderScout = ShipDesign{
 }
 
 var MysteryTraderProbe = ShipDesign{
-	Hull:         MiniMorph.Name,
-	Name:         "M.T. Probe",
-	MysterTrader: true,
+	Hull:          MiniMorph.Name,
+	Name:          "M.T. Probe",
+	MysteryTrader: true,
 	Slots: []ShipDesignSlot{
 		{HullComponent: EnigmaPulsar.Name, HullSlotIndex: 1, Quantity: 2},
 		{HullComponent: MegaPolyShell.Name, HullSlotIndex: 2, Quantity: 3},
@@ -705,9 +705,9 @@ var MysteryTraderProbe = ShipDesign{
 }
 
 var MysteryTraderLifeboat = ShipDesign{
-	Hull:         Nubian.Name,
-	Name:         "M.T. Lifeboat",
-	MysterTrader: true,
+	Hull:          Nubian.Name,
+	Name:          "M.T. Lifeboat",
+	MysteryTrader: true,
 	Slots: []ShipDesignSlot{
 		{HullComponent: EnigmaPulsar.Name, HullSlotIndex: 1, Quantity: 3},
 		{HullComponent: MegaPolyShell.Name, HullSlotIndex: 2, Quantity: 3},

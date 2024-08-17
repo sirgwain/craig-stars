@@ -21,7 +21,7 @@ type ShipDesign struct {
 	Hull              string            `json:"hull"`
 	HullSetNumber     int               `json:"hullSetNumber"`
 	CannotDelete      bool              `json:"cannotDelete,omitempty"`
-	MysterTrader      bool              `json:"mysterTrader,omitempty"`
+	MysteryTrader     bool              `json:"mysterTrader,omitempty"`
 	Slots             []ShipDesignSlot  `json:"slots"`
 	Purpose           ShipDesignPurpose `json:"purpose,omitempty"`
 	Spec              ShipDesignSpec    `json:"spec"`

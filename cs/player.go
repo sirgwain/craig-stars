@@ -33,7 +33,7 @@ type Player struct {
 	Messages                  []PlayerMessage      `json:"messages,omitempty"`
 	Designs                   []*ShipDesign        `json:"designs,omitempty"`
 	ScoreHistory              []PlayerScore        `json:"scoreHistory"`
-	AcquiredTechs             []string             `json:"acquiredTechs,omitempty"`
+	AcquiredTechs             map[string]bool      `json:"acquiredTechs,omitempty"`
 	AchievedVictoryConditions Bitmask              `json:"achievedVictoryConditions,omitempty"`
 	Victor                    bool                 `json:"victor"`
 	Stats                     *PlayerStats         `json:"stats,omitempty"`
@@ -239,6 +239,7 @@ func NewPlayer(userID int64, race *Race) *Player {
 			ResearchAmount:    15,
 			NextResearchField: NextResearchFieldLowestField,
 		},
+		AcquiredTechs: map[string]bool{},
 	}
 
 	// start with a base discoverer
@@ -274,6 +275,11 @@ func (p *Player) WithResearching(field TechField) *Player {
 
 func (p *Player) WithNextResearchField(field NextResearchField) *Player {
 	p.NextResearchField = field
+	return p
+}
+
+func (p *Player) WithAcquiredTech(techName string) *Player {
+	p.AcquiredTechs[techName] = true
 	return p
 }
 
@@ -514,7 +520,7 @@ func computePlayerSpec(player *Player, rules *Rules, planets []*Planet) PlayerSp
 
 // return true if the player currently has this tech
 func (p *Player) HasTech(tech *Tech) bool {
-	return p.CanLearnTech(tech) && p.TechLevels.HasRequiredLevels(tech.Requirements.TechLevel)
+	return p.CanLearnTech(tech) && p.TechLevels.HasRequiredLevels(tech.Requirements.TechLevel) && (tech.Origin == OriginNone || p.HasAquiredTech(tech))
 }
 
 // HasAquiredTech returns true if the player has acquired a tech from a different origin
@@ -522,7 +528,7 @@ func (p *Player) HasAquiredTech(tech *Tech) bool {
 	if tech.Origin == OriginNone {
 		return true
 	}
-	return slices.Contains(p.AcquiredTechs, tech.Name)
+	return p.AcquiredTechs[tech.Name]
 }
 
 func (p *Player) CanLearnTech(tech *Tech) bool {
@@ -601,8 +607,8 @@ func (p *Player) defaultPlans() PlayerPlans {
 	// AR races don't build factories or mines
 	// CA & tri-immune races don't do terraforming
 	defaultProductionPlan := ProductionPlan{
-		Num:  0,
-		Name: "Default",
+		Num:   0,
+		Name:  "Default",
 		Items: []ProductionPlanItem{},
 	}
 
@@ -643,36 +649,36 @@ func (p *Player) defaultPlans() PlayerPlans {
 				AttackWho:       BattleAttackWhoEnemiesAndNeutrals,
 			},
 			{
-				Num:		 1,
-				Name: 		 "KillStarbase",
-				PrimaryTarget:	 BattleTargetStarbase,
+				Num:             1,
+				Name:            "KillStarbase",
+				PrimaryTarget:   BattleTargetStarbase,
 				SecondaryTarget: BattleTargetArmedShips,
-				Tactic:		 BattleTacticMaximizeDamageRatio,
-				AttackWho:	 BattleAttackWhoEnemiesAndNeutrals,
+				Tactic:          BattleTacticMaximizeDamageRatio,
+				AttackWho:       BattleAttackWhoEnemiesAndNeutrals,
 			},
 			{
-				Num:		 2,
-				Name: 		 "Max Defense",
-				PrimaryTarget:	 BattleTargetArmedShips,
+				Num:             2,
+				Name:            "Max Defense",
+				PrimaryTarget:   BattleTargetArmedShips,
 				SecondaryTarget: BattleTargetBombersFreighters,
-				Tactic:		 BattleTacticMaximizeNetDamage,
-				AttackWho:	 BattleAttackWhoEnemiesAndNeutrals,
+				Tactic:          BattleTacticMaximizeNetDamage,
+				AttackWho:       BattleAttackWhoEnemiesAndNeutrals,
 			},
 			{
-				Num:		 3,
-				Name: 		 "Sniper",
-				PrimaryTarget:	 BattleTargetUnarmedShips,
+				Num:             3,
+				Name:            "Sniper",
+				PrimaryTarget:   BattleTargetUnarmedShips,
 				SecondaryTarget: BattleTargetNone,
-				Tactic:		 BattleTacticDisengageIfChallenged,
-				AttackWho:	 BattleAttackWhoEnemiesAndNeutrals,
+				Tactic:          BattleTacticDisengageIfChallenged,
+				AttackWho:       BattleAttackWhoEnemiesAndNeutrals,
 			},
 			{
-				Num:		 4,
-				Name:		 "Chicken",
-				PrimaryTarget:	 BattleTargetAny,
+				Num:             4,
+				Name:            "Chicken",
+				PrimaryTarget:   BattleTargetAny,
 				SecondaryTarget: BattleTargetNone,
-				Tactic:		 BattleTacticDisengage,
-				AttackWho:	 BattleAttackWhoEnemiesAndNeutrals,	
+				Tactic:          BattleTacticDisengage,
+				AttackWho:       BattleAttackWhoEnemiesAndNeutrals,
 			},
 		},
 		TransportPlans: []TransportPlan{

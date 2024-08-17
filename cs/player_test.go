@@ -28,6 +28,8 @@ func TestPlayer_HasTech(t *testing.T) {
 		{"Player is missing tech levels for the TransGalacticDrive", args{NewPlayer(1, NewRace()), &TransGalacticDrive.Tech}, false},
 		{"Player has tech levels for the TransGalacticDrive", args{NewPlayer(1, NewRace()).WithTechLevels(TechLevel{Propulsion: 9}), &TransGalacticDrive.Tech}, true},
 		{"Only players with IFE can learn the FuelMizer", args{NewPlayer(1, NewRace()), &FuelMizer.Tech}, false},
+		{"Player hasn't acquired MT tech", args{NewPlayer(1, NewRace()).WithTechLevels(TechLevel{26, 26, 26, 26, 26, 26}), &MiniMorph.Tech}, false},
+		{"Player has acquired mt tech", args{NewPlayer(1, NewRace()).WithTechLevels(TechLevel{26, 26, 26, 26, 26, 26}).WithAcquiredTech(MiniMorph.Name), &MiniMorph.Tech}, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -233,5 +235,3 @@ func TestPlayer_GetResearchCost(t *testing.T) {
 		})
 	}
 }
-
-
