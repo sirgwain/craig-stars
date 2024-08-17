@@ -77,9 +77,10 @@ func Test_generateRandomMysteryTraderDestination(t *testing.T) {
 		args       args
 		wantCoords Vector
 	}{
-		// we are before the x axis, so we want a random number on the dest y, but across the board 
+		// we are before the x axis, so we want a random number on the dest y, but across the board
 		{"from -20, 20", args{newIntRandom(0, 200), Vector{400, 400}, Vector{-20, 20}}, Vector{420, 220}},
 		{"from 20, -20", args{newIntRandom(200, 0), Vector{400, 400}, Vector{20, -20}}, Vector{220, 420}},
+		{"from 100, 200", args{newIntRandom(0, 0), Vector{400, 400}, Vector{100, 200}}, Vector{420, 20}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

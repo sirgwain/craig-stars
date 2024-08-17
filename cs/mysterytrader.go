@@ -278,7 +278,7 @@ func generateRandomMysteryTraderCoords(rules *Rules, game *Game) (coords Vector)
 func generateRandomMysteryTraderDestination(rules *Rules, game *Game, position Vector) (destination Vector) {
 
 	// start with a random dest
-	destination = Vector{
+	randCoords := Vector{
 		float64(20 + rules.random.Intn(int(game.Area.X)-39)),
 		float64(20 + rules.random.Intn(int(game.Area.Y)-39)),
 	}
@@ -294,19 +294,23 @@ func generateRandomMysteryTraderDestination(rules *Rules, game *Game, position V
 		int(game.Area.Y) + 20,
 	}
 
-	if position.X <= 0 {
-		// we are on the x axis left edge, so our dest should be right side x (and a random y)
-		destination.X = float64(xEdgeCoords[1])
-	} else if position.X >= game.Area.X {
-		// we are on the x axis right edge, so our dest should be left side x (and a random y)
-		destination.X = float64(xEdgeCoords[0])
-	} else if position.Y <= 0 {
-		// we are on the y axis top edge, so our dest should be the bottom side y (and a random x)
-		destination.Y = float64(yEdgeCoords[1])
-	} else {
-		// we are on the y axis bottom edge, so our dest should be the top side y (and a random x)
-		destination.Y = float64(yEdgeCoords[0])
+	// make destinations on each side of the map, with the other coord being random on the other axis
+	// i.e. right is the far right edge of the map, and some random point on the Y
+	left := Vector{float64(xEdgeCoords[0]), randCoords.Y}
+	right := Vector{float64(xEdgeCoords[1]), randCoords.Y}
+	top := Vector{randCoords.X, float64(yEdgeCoords[0])}
+	bottom := Vector{randCoords.X, float64(yEdgeCoords[1])}
+
+	// find the edge that is farthest from our current point and go there
+	maxDist := -1.
+	for _, dest := range [4]Vector{left, right, top, bottom} {
+		dist := position.DistanceSquaredTo(dest)
+		if dist > maxDist {
+			maxDist = dist
+			destination = dest
+		}
 	}
+
 	return destination
 }
 
