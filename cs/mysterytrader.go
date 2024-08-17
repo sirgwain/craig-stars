@@ -228,20 +228,7 @@ func generateMysteryTrader(rules *Rules, game *Game, num int) *MysteryTrader {
 
 	// determine where on the edge of the map we start
 	position := generateRandomMysteryTraderCoords(rules, game)
-
-	// set our destination to maximize the chances it goes through the universe
-	var destination Vector
-	if position.X > game.Area.X/2 {
-		destination.X = -20
-	} else {
-		destination.X = game.Area.X + 20
-	}
-
-	if position.Y > game.Area.Y/2 {
-		destination.Y = -20
-	} else {
-		destination.Y = game.Area.Y + 20
-	}
+	destination := generateRandomMysteryTraderDestination(rules, game, position)
 
 	// swap position/destination at random
 	if rules.random.Intn(2) == 0 {
@@ -285,6 +272,42 @@ func generateRandomMysteryTraderCoords(rules *Rules, game *Game) (coords Vector)
 		coords.Y = float64(randomXYCoords[1])
 	}
 	return coords
+}
+
+// generateRandomMysteryDestination gets random coords on the edge of the universe
+func generateRandomMysteryTraderDestination(rules *Rules, game *Game, position Vector) (destination Vector) {
+
+	// start with a random dest
+	destination = Vector{
+		float64(20 + rules.random.Intn(int(game.Area.X)-39)),
+		float64(20 + rules.random.Intn(int(game.Area.Y)-39)),
+	}
+
+	var yEdgeCoords, xEdgeCoords [2]int
+	xEdgeCoords = [2]int{
+		-20,
+		int(game.Area.X) + 20,
+	}
+
+	yEdgeCoords = [2]int{
+		-20,
+		int(game.Area.Y) + 20,
+	}
+
+	if position.X <= 0 {
+		// we are on the x axis left edge, so our dest should be right side x (and a random y)
+		destination.X = float64(xEdgeCoords[1])
+	} else if position.X >= game.Area.X {
+		// we are on the x axis right edge, so our dest should be left side x (and a random y)
+		destination.X = float64(xEdgeCoords[0])
+	} else if position.Y <= 0 {
+		// we are on the y axis top edge, so our dest should be the bottom side y (and a random x)
+		destination.Y = float64(yEdgeCoords[1])
+	} else {
+		// we are on the y axis bottom edge, so our dest should be the top side y (and a random x)
+		destination.Y = float64(yEdgeCoords[0])
+	}
+	return destination
 }
 
 // generate a random mystery trader reward based on the year of the game and speed of the MT
@@ -387,7 +410,7 @@ func (mt *MysteryTrader) change(rules *Rules, game *Game) bool {
 	}
 
 	// point the MT at a new location
-	mt.Destination = generateRandomMysteryTraderCoords(rules, game)
+	mt.Destination = generateRandomMysteryTraderDestination(rules, game, mt.Position)
 
 	return true
 }
@@ -404,7 +427,7 @@ func (mt *MysteryTrader) again(rules *Rules, game *Game, numHumanPlayers int) bo
 	}
 
 	// point the MT at a new location
-	mt.Destination = generateRandomMysteryTraderCoords(rules, game)
+	mt.Destination = generateRandomMysteryTraderDestination(rules, game, mt.Position)
 	return true
 }
 

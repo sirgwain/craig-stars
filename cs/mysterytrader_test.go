@@ -40,6 +40,58 @@ func Test_generateMysteryTrader(t *testing.T) {
 	}
 }
 
+func Test_generateRandomMysteryTraderCoords(t *testing.T) {
+	type args struct {
+		rng  *testRandom
+		area Vector
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantCoords Vector
+	}{
+		{"Base", args{newIntRandom(), Vector{400, 400}}, Vector{20, -20}},
+		{"120, -20", args{newIntRandom(100), Vector{400, 400}}, Vector{120, -20}},
+		{"-20, 120", args{newIntRandom(0, 100, 1), Vector{400, 400}}, Vector{-20, 120}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rules := NewRules()
+			rules.random = tt.args.rng
+			game := Game{Area: tt.args.area}
+			if gotCoords := generateRandomMysteryTraderCoords(&rules, &game); !reflect.DeepEqual(gotCoords, tt.wantCoords) {
+				t.Errorf("generateRandomMysteryTraderCoords() = %v, want %v", gotCoords, tt.wantCoords)
+			}
+		})
+	}
+}
+
+func Test_generateRandomMysteryTraderDestination(t *testing.T) {
+	type args struct {
+		rng      *testRandom
+		area     Vector
+		position Vector
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantCoords Vector
+	}{
+		// we are before the x axis, so we want a random number on the dest y, but across the board 
+		{"from -20, 20", args{newIntRandom(0, 200), Vector{400, 400}, Vector{-20, 20}}, Vector{420, 220}},
+		{"from 20, -20", args{newIntRandom(200, 0), Vector{400, 400}, Vector{20, -20}}, Vector{220, 420}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rules := NewRules()
+			rules.random = tt.args.rng
+			game := Game{Area: tt.args.area}
+			if gotCoords := generateRandomMysteryTraderDestination(&rules, &game, tt.args.position); !reflect.DeepEqual(gotCoords, tt.wantCoords) {
+				t.Errorf("generateRandomMysteryTraderCoords() = %v, want %v", gotCoords, tt.wantCoords)
+			}
+		})
+	}
+}
 func TestMysteryTrader_move(t *testing.T) {
 	type fields struct {
 		warpSpeed   int
