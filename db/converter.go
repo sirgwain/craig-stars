@@ -90,6 +90,8 @@ var c Converter
 // goverter:extend GameWormholeSpecToWormholeSpec
 // goverter:extend MysteryTraderSpecToGameMysteryTraderSpec
 // goverter:extend GameMysteryTraderSpecToMysteryTraderSpec
+// goverter:extend MysteryTraderPlayersRewardedToGameMysteryTraderPlayersRewarded
+// goverter:extend GameMysteryTraderPlayersRewardedToMysteryTraderPlayersRewarded
 // goverter:enum no
 type Converter interface {
 	// goverter:map . DBObject
@@ -707,6 +709,18 @@ func MysteryTraderSpecToGameMysteryTraderSpec(source *MysteryTraderSpec) cs.Myst
 
 func GameMysteryTraderSpecToMysteryTraderSpec(source cs.MysteryTraderSpec) *MysteryTraderSpec {
 	return (*MysteryTraderSpec)(&source)
+}
+
+func MysteryTraderPlayersRewardedToGameMysteryTraderPlayersRewarded(source *MysteryTraderPlayersRewarded) map[int]bool {
+	// return an empty slice for nil
+	if source == nil {
+		return map[int]bool{}
+	}
+	return (map[int]bool)(*source)
+}
+
+func GameMysteryTraderPlayersRewardedToMysteryTraderPlayersRewarded(source map[int]bool) *MysteryTraderPlayersRewarded {
+	return (*MysteryTraderPlayersRewarded)(&source)
 }
 
 func ExtendResearchCost(source Race) cs.ResearchCost {

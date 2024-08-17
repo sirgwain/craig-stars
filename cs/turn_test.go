@@ -2069,3 +2069,137 @@ func Test_turn_mysteryTraderMeetReward(t *testing.T) {
 	assert.Equal(t, PlayerMessageMysteryTraderMetWithReward, player.Messages[0].Type)
 	assert.Equal(t, TechLevel{Energy: 6}, player.TechLevels)
 }
+
+func Test_turn_mysteryTraderMeetRewardTech(t *testing.T) {
+	game := createSingleUnitGame()
+	game.RandomEvents = true
+	game.Rules.random = &testRandom{} // test random always rolls 0 by default
+	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardTorpedo))
+	mt := game.MysteryTraders[0]
+
+	fleet := game.Fleets[0]
+	player := game.Players[0]
+
+	// meet up
+	fleet.Position = mt.Position
+	fleet.Cargo = Cargo{5000, 0, 0, 0}
+	fleet.Waypoints[0] = NewMysteryTraderWaypoint(mt, 5)
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// meet mystery trader
+	turn.mysteryTraderMeet()
+
+	// fleet should be deleted, player gained tech
+	assert.Equal(t, true, fleet.Delete)
+	assert.Equal(t, PlayerMessageMysteryTraderMetWithReward, player.Messages[0].Type)
+	assert.True(t, player.HasAcquiredTech(&AntiMatterTorpedo.Tech))
+}
+
+func Test_turn_mysteryTraderMeetRewardTechAlreadyAcquired(t *testing.T) {
+	game := createSingleUnitGame()
+	game.RandomEvents = true
+	game.Rules.random = &testRandom{} // test random always rolls 0 by default
+	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardTorpedo))
+	mt := game.MysteryTraders[0]
+
+	fleet := game.Fleets[0]
+
+	// make this player already own the tech the MT is giving
+	player := game.Players[0]
+	player.AcquiredTechs[AntiMatterTorpedo.Name] = true
+
+	// meet up
+	fleet.Position = mt.Position
+	fleet.Cargo = Cargo{5000, 0, 0, 0}
+	fleet.Waypoints[0] = NewMysteryTraderWaypoint(mt, 5)
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// meet mystery trader
+	turn.mysteryTraderMeet()
+
+	// fleet should be deleted, player gained an additional tech
+	assert.Equal(t, true, fleet.Delete)
+	assert.Equal(t, PlayerMessageMysteryTraderMetWithReward, player.Messages[0].Type)
+	assert.Equal(t, 2, len(player.AcquiredTechs), "player should have acquired an additional tech. message is: %v", player.Messages[0])
+}
+
+func Test_turn_mysteryTraderMeetRewardShip(t *testing.T) {
+	game := createSingleUnitGame()
+	game.RandomEvents = true
+	game.Rules.random = newIntRandom()
+	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardLifeboat))
+	mt := game.MysteryTraders[0]
+
+	fleet := game.Fleets[0]
+	player := game.Players[0]
+	player.TechLevels = TechLevel{}
+
+	// meet up
+	fleet.Position = mt.Position
+	fleet.Cargo = Cargo{5000, 0, 0, 0}
+	fleet.Waypoints[0] = NewMysteryTraderWaypoint(mt, 5)
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// meet mystery trader
+	turn.mysteryTraderMeet()
+
+	// fleet should be deleted, player gained tech
+	assert.Equal(t, true, fleet.Delete)
+	assert.Equal(t, PlayerMessageMysteryTraderMetWithReward, player.Messages[0].Type)
+	assert.True(t, player.Messages[0].Spec.MysteryTrader.Ship.Name != "")
+	assert.True(t, player.Messages[0].Spec.MysteryTrader.ShipCount != 0)
+
+	// old fleet gone, new fleet should be a mystery trader design
+	assert.Equal(t, 2, len(game.Fleets))
+	assert.Equal(t, 2, len(player.Designs))
+	rewardFleet := game.Fleets[1]
+	design := player.Designs[1]
+	assert.True(t, rewardFleet.Tokens[0].design.MysteryTrader)
+	assert.True(t, rewardFleet.Tokens[0].Quantity > 0)
+	assert.True(t, design.MysteryTrader)
+
+}
+
+func Test_turn_mysteryTraderMeetAlreadyRewarded(t *testing.T) {
+	game := createSingleUnitGame()
+	game.RandomEvents = true
+	game.Rules.random = &testRandom{} // test random always rolls 0 by default
+	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardTorpedo))
+	mt := game.MysteryTraders[0]
+
+	fleet := game.Fleets[0]
+	player := game.Players[0]
+
+	// the player has already met this trader
+	mt.PlayersRewarded[player.Num] = true
+
+	// meet up
+	fleet.Position = mt.Position
+	fleet.Cargo = Cargo{5000, 0, 0, 0}
+	fleet.Waypoints[0] = NewMysteryTraderWaypoint(mt, 5)
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// meet mystery trader
+	turn.mysteryTraderMeet()
+
+	// fleet should be deleted, player gained tech
+	assert.Equal(t, PlayerMessageMysteryTraderAlreadyRewarded, player.Messages[0].Type)
+	assert.False(t, fleet.Delete)
+	assert.False(t, player.HasAcquiredTech(&AntiMatterTorpedo.Tech))
+}

@@ -97,9 +97,8 @@ func (u *Universe) buildMaps(players []*Player) error {
 	u.battlePlansByNum = make(map[playerBattlePlanNum]*BattlePlan, numBattlePlans)
 
 	for _, p := range players {
-		for i := range p.Designs {
-			design := p.Designs[i]
-			u.designsByNum[playerObjectKey(design.PlayerNum, design.Num)] = design
+		for _, design := range p.Designs {
+			u.addDesign(design)
 		}
 
 		for i := range p.BattlePlans {
@@ -365,6 +364,11 @@ func (u *Universe) updateTokenCounts() {
 			design.Spec.NumInstances += token.Quantity
 		}
 	}
+}
+
+// add a design to the universe maps
+func (u *Universe) addDesign(design *ShipDesign) {
+	u.designsByNum[playerObjectKey(design.PlayerNum, design.Num)] = design
 }
 
 // mark a fleet as deleted and remove it from the universe

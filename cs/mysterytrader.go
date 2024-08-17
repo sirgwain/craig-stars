@@ -10,12 +10,13 @@ import (
 // TODO: not yet implemented
 type MysteryTrader struct {
 	MapObject
-	WarpSpeed     int                     `json:"warpSpeed,omitempty"`
-	Destination   Vector                  `json:"destination"`
-	RequestedBoon int                     `json:"requestedBoon,omitempty"`
-	RewardType    MysteryTraderRewardType `json:"rewardType"`
-	Heading       Vector                  `json:"heading,omitempty"`
-	Spec          MysteryTraderSpec       `json:"spec,omitempty"`
+	WarpSpeed       int                     `json:"warpSpeed,omitempty"`
+	Destination     Vector                  `json:"destination"`
+	RequestedBoon   int                     `json:"requestedBoon,omitempty"`
+	RewardType      MysteryTraderRewardType `json:"rewardType"`
+	Heading         Vector                  `json:"heading,omitempty"`
+	PlayersRewarded map[int]bool            `json:"playersRewarded"`
+	Spec            MysteryTraderSpec       `json:"spec,omitempty"`
 }
 
 type MysteryTraderSpec struct {
@@ -190,11 +191,12 @@ func newMysteryTrader(position Vector, num int, warpSpeed int, destination Vecto
 			Num:      num,
 			Name:     fmt.Sprintf("Mystery Trader #%d", num),
 		},
-		WarpSpeed:     warpSpeed,
-		Destination:   destination,
-		Heading:       (destination.Subtract(position)).Normalized(),
-		RequestedBoon: requestedBoon,
-		RewardType:    reward,
+		WarpSpeed:       warpSpeed,
+		Destination:     destination,
+		Heading:         (destination.Subtract(position)).Normalized(),
+		PlayersRewarded: map[int]bool{},
+		RequestedBoon:   requestedBoon,
+		RewardType:      reward,
 	}
 }
 
@@ -360,6 +362,10 @@ func (mt *MysteryTrader) move() {
 		mt.Position = mt.Position.Add(mt.Heading.Scale(dist))
 		mt.Position = mt.Position.Round()
 	}
+}
+
+func (mt *MysteryTrader) rewardedPlayer(num int) bool {
+	return mt.PlayersRewarded[num]
 }
 
 // meet a mystery trader and recieve a reward!

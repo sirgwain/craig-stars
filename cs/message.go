@@ -61,6 +61,7 @@ type PlayerMessageSpecComet struct {
 
 type PlayerMessageSpecMysteryTrader struct {
 	MysteryTraderReward
+	FleetNum int `json:"fleetNum" bson:"fleet_num"`
 }
 
 type PlayerMessageTargetType string
@@ -176,6 +177,7 @@ const (
 	PlayerMessageMysteryTraderAgain
 	PlayerMessageMysteryTraderMetWithReward
 	PlayerMessageMysteryTraderMetWithoutReward
+	PlayerMessageMysteryTraderAlreadyRewarded
 )
 
 func newMessage(messageType PlayerMessageType) PlayerMessage {

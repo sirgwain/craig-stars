@@ -31,6 +31,7 @@ export type MysteryTraderReward = {
 	techLevels: TechLevel;
 	tech?: string;
 	ship?: string;
+	shipCount?: number;
 };
 
 export function isHullComponent(type: MysteryTraderRewardType): boolean {

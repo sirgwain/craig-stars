@@ -34,7 +34,7 @@ export type PlayerMessageSpec = {
 	bombing?: BombingResult;
 	mineral?: Mineral;
 	mineralPacketDamage?: MineralPacketDamage;
-	mysteryTrader?: MysteryTraderReward;
+	mysteryTrader?: MysteryTraderReward & { fleetNum?: number };
 } & Target;
 
 export type BombingResult = {
@@ -192,7 +192,8 @@ export enum MessageType {
 	MysteryTraderChangedCourse,
 	MysteryTraderAgain,
 	MysteryTraderMetWithReward,
-	MysteryTraderMetWithoutReward
+	MysteryTraderMetWithoutReward,
+	MysteryTraderAlreadyRewarded
 }
 
 // get the next visible message taking into account filters

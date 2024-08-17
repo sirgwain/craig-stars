@@ -1400,6 +1400,9 @@ func (t *turn) planetProduction() error {
 				design.Spec.NumBuilt += token.Quantity
 				design.Spec.NumInstances += token.Quantity
 
+				player.Stats.FleetsBuilt++
+				player.Stats.TokensBuilt += token.Quantity
+
 				fleet, err := t.buildFleet(player, planet, token.ShipToken, token.tags)
 				if err != nil {
 					return err
@@ -1448,18 +1451,12 @@ func (t *turn) planetProduction() error {
 
 // build a fleet with some number of tokens
 func (t *turn) buildFleet(player *Player, planet *Planet, token ShipToken, tags Tags) (*Fleet, error) {
-	player.Stats.FleetsBuilt++
-	player.Stats.TokensBuilt += token.Quantity
-
-	playerFleets := t.game.getFleets(player.Num)
-	fleetNum := player.getNextFleetNum(playerFleets)
-	fleet := newFleetForToken(player, fleetNum, token, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, token.design.Spec.Engine.IdealSpeed)})
-	fleet.Position = planet.Position
-	fleet.Spec = ComputeFleetSpec(&t.game.Rules, player, &fleet)
-	fleet.Fuel = fleet.Spec.FuelCapacity
-	fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed, fleet.Spec.CargoCapacity)
+	fleet, err := t.addFleet(player, planet.Position, token, tags)
+	if err != nil {
+		return nil, err
+	}
+	fleet.Waypoints[0] = NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, token.design.Spec.Engine.IdealSpeed)
 	fleet.OrbitingPlanetNum = planet.Num
-	fleet.Tags = tags
 
 	log.Debug().
 		Int64("GameID", t.game.ID).
@@ -1467,6 +1464,20 @@ func (t *turn) buildFleet(player *Player, planet *Planet, token ShipToken, tags 
 		Str("Planet", planet.Name).
 		Str("Fleet", fleet.Name).
 		Msgf("fleet built")
+
+	return fleet, nil
+}
+
+// add a new fleet to the universe
+func (t *turn) addFleet(player *Player, position Vector, token ShipToken, tags Tags) (*Fleet, error) {
+	playerFleets := t.game.getFleets(player.Num)
+	fleetNum := player.getNextFleetNum(playerFleets)
+	fleet := newFleetForToken(player, fleetNum, token, []Waypoint{NewPositionWaypoint(position, token.design.Spec.Engine.IdealSpeed)})
+	fleet.Position = position
+	fleet.Spec = ComputeFleetSpec(&t.game.Rules, player, &fleet)
+	fleet.Fuel = fleet.Spec.FuelCapacity
+	fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed, fleet.Spec.CargoCapacity)
+	fleet.Tags = tags
 
 	t.game.Fleets = append(t.game.Fleets, &fleet)
 	if err := t.game.Universe.addFleet(&fleet); err != nil {
@@ -2166,6 +2177,13 @@ func (t *turn) mysteryTraderMeet() error {
 			if fleet, ok := mo.(*Fleet); ok && !fleet.Delete && fleet.Waypoints[0].TargetType == MapObjectTypeMysteryTrader && fleet.Waypoints[0].TargetNum == mt.Num {
 
 				player := t.game.getPlayer(fleet.PlayerNum)
+
+				if mt.rewardedPlayer(player.Num) {
+					// the same mystery trader can't give the same player a reward twice
+					player.Messages = append(player.Messages, newMysteryTraderMessage(PlayerMessageMysteryTraderAlreadyRewarded, mt).withSpec(PlayerMessageSpec{}.withTargetFleet(fleet)))
+					continue
+				}
+
 				reward := mt.meet(&t.game.Rules, t.game.Game, fleet, player)
 
 				if reward.Type == MysteryTraderRewardNone {
@@ -2174,23 +2192,66 @@ func (t *turn) mysteryTraderMeet() error {
 					continue
 				}
 
-				// player got a reward
-				player.Messages = append(player.Messages, newMysteryTraderMessage(PlayerMessageMysteryTraderMetWithReward, mt).withSpec(PlayerMessageSpec{MysteryTrader: &PlayerMessageSpecMysteryTrader{reward}}.withTargetFleet(fleet)))
+				// record that this mystery trader awarded this player
+				mt.PlayersRewarded[player.Num] = true
 
+				// player got a reward
 				switch reward.Type {
 				case MysteryTraderRewardResearch:
 					// tech levels!
 					// we gained a level!
 					player.techLevelGained = true
 					player.TechLevels = player.TechLevels.Add(reward.TechLevels)
+					player.Messages = append(player.Messages, newMysteryTraderMessage(PlayerMessageMysteryTraderMetWithReward, mt).withSpec(PlayerMessageSpec{MysteryTrader: &PlayerMessageSpecMysteryTrader{reward, 0}}.withTargetFleet(fleet)))
+
 					log.Debug().
 						Int64("GameID", t.game.ID).
 						Int("MysteryTrader", mt.Num).
 						Int("Player", player.Num).
 						Str("TechLevel", fmt.Sprintf("%v", reward.TechLevels)).
 						Msgf("gained tech levels from mysteryTrader")
+
 				case MysteryTraderRewardLifeboat:
-					// TODO: player gets a ship
+					design := player.GetDesignByName(reward.Ship.Name)
+					if design != nil && !design.MysteryTrader {
+						// uh oh, the player has their own design named the same as the mystery trader, they get nothing
+						log.Debug().
+							Int64("GameID", t.game.ID).
+							Int("MysteryTrader", mt.Num).
+							Int("Player", player.Num).
+							Str("Ship", reward.Ship.Name).
+							Msgf("player had design with same name as mysteryTrader design")
+						player.Messages = append(player.Messages, newMysteryTraderMessage(PlayerMessageMysteryTraderMetWithoutReward, mt).withSpec(PlayerMessageSpec{MysteryTrader: &PlayerMessageSpecMysteryTrader{reward, 0}}.withTargetFleet(fleet)))
+						continue
+					}
+					if design == nil {
+						// give the player a new design
+						design = &reward.Ship
+						num := player.GetNextDesignNum(player.Designs)
+						design.PlayerNum = player.Num
+						design.Num = num
+						design.GameDBObject = GameDBObject{}
+						design.Spec = ComputeShipDesignSpec(&t.game.Rules, player.TechLevels, player.Race.Spec, design)
+						player.Designs = append(player.Designs, design)
+						t.game.addDesign(design)
+					}
+					token := ShipToken{design: design, DesignNum: design.Num, Quantity: reward.ShipCount}
+					design.Spec.NumInstances += token.Quantity
+					rewardFleet, err := t.addFleet(player, fleet.Position, token, Tags{})
+					if err != nil {
+						return err
+					}
+
+					player.Messages = append(player.Messages, newMysteryTraderMessage(PlayerMessageMysteryTraderMetWithReward, mt).withSpec(PlayerMessageSpec{MysteryTrader: &PlayerMessageSpecMysteryTrader{reward, rewardFleet.Num}}.withTargetFleet(fleet)))
+
+					log.Debug().
+						Int64("GameID", t.game.ID).
+						Int("Player", rewardFleet.PlayerNum).
+						Str("Position", rewardFleet.Position.String()).
+						Str("Fleet", rewardFleet.Name).
+						Int("ShipCount", reward.ShipCount).
+						Msgf("new fleet created from mysteryTrader reward")
+
 				default:
 					// MT awarded tech
 					mtTech := t.game.GetTech(reward.Tech)
@@ -2206,6 +2267,7 @@ func (t *turn) mysteryTraderMeet() error {
 							Msgf("player already has tech awarded by mysteryTrader")
 					}
 					player.AcquiredTechs[reward.Tech] = true
+					player.Messages = append(player.Messages, newMysteryTraderMessage(PlayerMessageMysteryTraderMetWithReward, mt).withSpec(PlayerMessageSpec{MysteryTrader: &PlayerMessageSpecMysteryTrader{reward, 0}}.withTargetFleet(fleet)))
 				}
 
 				// remove the absorbed fleet from the universe
