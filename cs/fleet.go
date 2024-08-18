@@ -605,6 +605,7 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 		// choose the best tachyon detector ship
 		spec.ReduceCloaking = math.Min(spec.ReduceCloaking, token.design.Spec.ReduceCloaking)
 
+		spec.CanJump = spec.CanJump || token.design.Spec.CanJump
 		spec.CanStealFleetCargo = spec.CanStealFleetCargo || token.design.Spec.CanStealFleetCargo
 		spec.CanStealPlanetCargo = spec.CanStealPlanetCargo || token.design.Spec.CanStealPlanetCargo
 
@@ -925,37 +926,53 @@ func (fleet *Fleet) gateFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 	totalDist := fleet.Position.DistanceTo(wp1.Position)
 	fleet.PreviousPosition = &Vector{fleet.Position.X, fleet.Position.Y}
 
-	// if we got here, both source and dest have stargates
-	sourcePlanet := mapObjectGetter.getPlanet(fleet.OrbitingPlanetNum)
+	var sourceStargate, destStargate PlanetStarbaseSpec
+
+	// if we got here, both source and dest have stargates (unless we're using a jumpgate)
 	destPlanet := mapObjectGetter.getPlanet(wp1.TargetNum)
 
-	if sourcePlanet == nil || !sourcePlanet.Spec.HasStargate {
-		messager.fleetStargateInvalidSource(player, fleet, wp0)
-		return
-	}
 	if destPlanet == nil || !destPlanet.Spec.HasStargate {
 		messager.fleetStargateInvalidDest(player, fleet, wp0, wp1)
 		return
 	}
 
-	sourcePlanetPlayer := playerGetter.getPlayer(sourcePlanet.PlayerNum)
 	destPlanetPlayer := playerGetter.getPlayer(destPlanet.PlayerNum)
 
-	if !sourcePlanetPlayer.IsFriend(player.Num) {
-		messager.fleetStargateInvalidSourceOwner(player, fleet, wp0, wp1)
-		return
-	}
 	if !destPlanetPlayer.IsFriend(player.Num) {
 		messager.fleetStargateInvalidDestOwner(player, fleet, wp0, wp1)
 		return
 	}
-	if fleet.Cargo.Colonists > 0 && !sourcePlanet.OwnedBy(player.Num) && !player.Race.Spec.CanGateCargo {
+
+	destStargate = destPlanet.Spec.PlanetStarbaseSpec
+
+	// jumpgate fleets don't use the source planet, only the dest
+	var sourcePlanet *Planet
+	if fleet.Spec.CanJump {
+		sourceStargate = destStargate
+	} else {
+		sourcePlanet = mapObjectGetter.getPlanet(fleet.OrbitingPlanetNum)
+
+		if sourcePlanet == nil || !sourcePlanet.Spec.HasStargate {
+			messager.fleetStargateInvalidSource(player, fleet, wp0)
+			return
+		}
+
+		sourcePlanetPlayer := playerGetter.getPlayer(sourcePlanet.PlayerNum)
+		if sourcePlanetPlayer != nil && !sourcePlanetPlayer.IsFriend(player.Num) {
+			messager.fleetStargateInvalidSourceOwner(player, fleet, wp0, wp1)
+			return
+		}
+
+		sourceStargate = sourcePlanet.Spec.PlanetStarbaseSpec
+	}
+
+	// can't gate colonists unless we're IT
+	// can't dump colonists into space or on a world we don't own
+	// ships with jump gates can gate cargo (amazing)
+	if !fleet.Spec.CanJump && !player.Race.Spec.CanGateCargo && fleet.Cargo.Colonists > 0 && (sourcePlanet == nil || !sourcePlanet.OwnedBy(player.Num)) {
 		messager.fleetStargateInvalidColonists(player, fleet, wp0, wp1)
 		return
 	}
-
-	sourceStargate := sourcePlanet.Spec
-	destStargate := destPlanet.Spec
 
 	// only the source gate matters for range
 	minSafeRange := sourceStargate.SafeRange
@@ -975,8 +992,8 @@ func (fleet *Fleet) gateFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 		}
 	}
 
-	// dump cargo if we aren't IT
-	if fleet.Cargo.Total() > 0 && !player.Race.Spec.CanGateCargo {
+	// dump cargo if we aren't IT or using a jump gate
+	if !fleet.Spec.CanJump && fleet.Cargo.Total() > 0 && !player.Race.Spec.CanGateCargo {
 		messager.fleetStargateDumpedCargo(player, fleet, wp0, wp1, fleet.Cargo)
 		sourcePlanet.Cargo = sourcePlanet.Cargo.Add(fleet.Cargo)
 		fleet.Cargo = Cargo{}
@@ -996,7 +1013,7 @@ func (fleet *Fleet) gateFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 }
 
 // applyOvergatePenalty applies damage (if any) to each token that overgated
-func (fleet *Fleet) applyOvergatePenalty(player *Player, rules *Rules, distance float64, wp0, wp1 Waypoint, sourceStargate, destStargate PlanetSpec) {
+func (fleet *Fleet) applyOvergatePenalty(player *Player, rules *Rules, distance float64, wp0, wp1 Waypoint, sourceStargate, destStargate PlanetStarbaseSpec) {
 	var totalDamage, shipsLostToDamage, shipsLostToTheVoid, startingShips int
 	for i := range fleet.Tokens {
 		token := &fleet.Tokens[i]

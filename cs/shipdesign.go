@@ -35,69 +35,70 @@ type ShipDesignSlot struct {
 }
 
 type ShipDesignSpec struct {
-	HullType                  TechHullType          `json:"hullType,omitempty"`
-	Engine                    Engine                `json:"engine,omitempty"`
-	NumEngines                int                   `json:"numEngines,omitempty"`
-	Cost                      Cost                  `json:"cost,omitempty"`
-	TechLevel                 TechLevel             `json:"techLevel,omitempty"`
-	Mass                      int                   `json:"mass,omitempty"`
+	AdditionalMassDrivers     int                   `json:"additionalMassDrivers,omitempty"`
 	Armor                     int                   `json:"armor,omitempty"`
-	FuelCapacity              int                   `json:"fuelCapacity,omitempty"`
-	FuelGeneration            int                   `json:"fuelGeneration,omitempty"`
-	CargoCapacity             int                   `json:"cargoCapacity,omitempty"`
-	CloakUnits                int                   `json:"cloakUnits,omitempty"`
-	ScanRange                 int                   `json:"scanRange,omitempty"`
-	ScanRangePen              int                   `json:"scanRangePen,omitempty"`
-	InnateScanRangePenFactor  float64               `json:"innateScanRangePenFactor,omitempty"`
-	RepairBonus               float64               `json:"repairBonus,omitempty"`
-	TorpedoJamming            float64               `json:"torpedoJamming,omitempty"`
-	TorpedoBonus              float64               `json:"torpedoBonus,omitempty"`
+	BasePacketSpeed           int                   `json:"basePacketSpeed,omitempty"`
 	BeamBonus                 float64               `json:"beamBonus,omitempty"`
 	BeamDefense               float64               `json:"beamDefense,omitempty"`
-	Initiative                int                   `json:"initiative,omitempty"`
-	MovementBonus             int                   `json:"movementBonus,omitempty"`
-	Movement                  int                   `json:"movement,omitempty"`
-	MovementFull              int                   `json:"movementFull,omitempty"`
-	ReduceMovement            int                   `json:"reduceMovement,omitempty"`
-	PowerRating               int                   `json:"powerRating,omitempty"`
 	Bomber                    bool                  `json:"bomber,omitempty"`
 	Bombs                     []Bomb                `json:"bombs,omitempty"`
-	SmartBombs                []Bomb                `json:"smartBombs,omitempty"`
-	RetroBombs                []Bomb                `json:"retroBombs,omitempty"`
-	Scanner                   bool                  `json:"scanner,omitempty"`
-	ImmuneToOwnDetonation     bool                  `json:"immuneToOwnDetonation,omitempty"`
-	MineLayingRateByMineType  map[MineFieldType]int `json:"mineLayingRateByMineType,omitempty"`
-	Shields                   int                   `json:"shields,omitempty"`
-	Colonizer                 bool                  `json:"colonizer,omitempty"`
-	Starbase                  bool                  `json:"starbase,omitempty"`
+	CanJump                   bool                  `json:"canJump,omitempty"`
 	CanLayMines               bool                  `json:"canLayMines,omitempty"`
-	SpaceDock                 int                   `json:"spaceDock,omitempty"`
-	MiningRate                int                   `json:"miningRate,omitempty"`
-	TerraformRate             int                   `json:"terraformRate,omitempty"`
-	MineSweep                 int                   `json:"mineSweep,omitempty"`
-	CloakPercent              int                   `json:"cloakPercent,omitempty"`
-	CloakPercentFullCargo     int                   `json:"cloakPercentFullCargo,omitempty"`
-	ReduceCloaking            float64               `json:"reduceCloaking,omitempty"`
 	CanStealFleetCargo        bool                  `json:"canStealFleetCargo,omitempty"`
 	CanStealPlanetCargo       bool                  `json:"canStealPlanetCargo,omitempty"`
-	OrbitalConstructionModule bool                  `json:"orbitalConstructionModule,omitempty"`
-	HasWeapons                bool                  `json:"hasWeapons,omitempty"`
-	WeaponSlots               []ShipDesignSlot      `json:"weaponSlots,omitempty"`
-	Stargate                  string                `json:"stargate,omitempty"`
-	SafeHullMass              int                   `json:"safeHullMass,omitempty"`
-	SafeRange                 int                   `json:"safeRange,omitempty"`
-	MaxHullMass               int                   `json:"maxHullMass,omitempty"`
-	MaxRange                  int                   `json:"maxRange,omitempty"`
-	MassDriver                string                `json:"massDriver,omitempty"`
-	SafePacketSpeed           int                   `json:"safePacketSpeed,omitempty"`
-	BasePacketSpeed           int                   `json:"basePacketSpeed,omitempty"`
-	AdditionalMassDrivers     int                   `json:"additionalMassDrivers,omitempty"`
-	MaxPopulation             int                   `json:"maxPopulation,omitempty"`
-	Radiating                 bool                  `json:"radiating,omitempty"`
-	NumInstances              int                   `json:"numInstances,omitempty"`
-	NumBuilt                  int                   `json:"numBuilt,omitempty"`
+	CargoCapacity             int                   `json:"cargoCapacity,omitempty"`
+	CloakPercent              int                   `json:"cloakPercent,omitempty"`
+	CloakPercentFullCargo     int                   `json:"cloakPercentFullCargo,omitempty"`
+	CloakUnits                int                   `json:"cloakUnits,omitempty"`
+	Colonizer                 bool                  `json:"colonizer,omitempty"`
+	Cost                      Cost                  `json:"cost,omitempty"`
+	Engine                    Engine                `json:"engine,omitempty"`
 	EstimatedRange            int                   `json:"estimatedRange,omitempty"`
 	EstimatedRangeFull        int                   `json:"estimatedRangeFull,omitempty"`
+	FuelCapacity              int                   `json:"fuelCapacity,omitempty"`
+	FuelGeneration            int                   `json:"fuelGeneration,omitempty"`
+	HasWeapons                bool                  `json:"hasWeapons,omitempty"`
+	HullType                  TechHullType          `json:"hullType,omitempty"`
+	ImmuneToOwnDetonation     bool                  `json:"immuneToOwnDetonation,omitempty"`
+	Initiative                int                   `json:"initiative,omitempty"`
+	InnateScanRangePenFactor  float64               `json:"innateScanRangePenFactor,omitempty"`
+	Mass                      int                   `json:"mass,omitempty"`
+	MassDriver                string                `json:"massDriver,omitempty"`
+	MaxHullMass               int                   `json:"maxHullMass,omitempty"`
+	MaxPopulation             int                   `json:"maxPopulation,omitempty"`
+	MaxRange                  int                   `json:"maxRange,omitempty"`
+	MineLayingRateByMineType  map[MineFieldType]int `json:"mineLayingRateByMineType,omitempty"`
+	MineSweep                 int                   `json:"mineSweep,omitempty"`
+	MiningRate                int                   `json:"miningRate,omitempty"`
+	Movement                  int                   `json:"movement,omitempty"`
+	MovementBonus             int                   `json:"movementBonus,omitempty"`
+	MovementFull              int                   `json:"movementFull,omitempty"`
+	NumBuilt                  int                   `json:"numBuilt,omitempty"`
+	NumEngines                int                   `json:"numEngines,omitempty"`
+	NumInstances              int                   `json:"numInstances,omitempty"`
+	OrbitalConstructionModule bool                  `json:"orbitalConstructionModule,omitempty"`
+	PowerRating               int                   `json:"powerRating,omitempty"`
+	Radiating                 bool                  `json:"radiating,omitempty"`
+	ReduceCloaking            float64               `json:"reduceCloaking,omitempty"`
+	ReduceMovement            int                   `json:"reduceMovement,omitempty"`
+	RepairBonus               float64               `json:"repairBonus,omitempty"`
+	RetroBombs                []Bomb                `json:"retroBombs,omitempty"`
+	SafeHullMass              int                   `json:"safeHullMass,omitempty"`
+	SafePacketSpeed           int                   `json:"safePacketSpeed,omitempty"`
+	SafeRange                 int                   `json:"safeRange,omitempty"`
+	Scanner                   bool                  `json:"scanner,omitempty"`
+	ScanRange                 int                   `json:"scanRange,omitempty"`
+	ScanRangePen              int                   `json:"scanRangePen,omitempty"`
+	Shields                   int                   `json:"shields,omitempty"`
+	SmartBombs                []Bomb                `json:"smartBombs,omitempty"`
+	SpaceDock                 int                   `json:"spaceDock,omitempty"`
+	Starbase                  bool                  `json:"starbase,omitempty"`
+	Stargate                  string                `json:"stargate,omitempty"`
+	TechLevel                 TechLevel             `json:"techLevel,omitempty"`
+	TerraformRate             int                   `json:"terraformRate,omitempty"`
+	TorpedoBonus              float64               `json:"torpedoBonus,omitempty"`
+	TorpedoJamming            float64               `json:"torpedoJamming,omitempty"`
+	WeaponSlots               []ShipDesignSlot      `json:"weaponSlots,omitempty"`
 }
 
 type MineLayingRateByMineType struct {
@@ -327,6 +328,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 			spec.OrbitalConstructionModule = spec.OrbitalConstructionModule || component.OrbitalConstructionModule
 			spec.CanStealFleetCargo = spec.CanStealFleetCargo || component.CanStealFleetCargo
 			spec.CanStealPlanetCargo = spec.CanStealPlanetCargo || component.CanStealPlanetCargo
+			spec.CanJump = spec.CanJump || component.CanJump
 			spec.Radiating = spec.Radiating || component.Radiating
 
 			// Add this mine type to the layers this design has
