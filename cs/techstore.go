@@ -21,6 +21,7 @@ type TechStore struct {
 	PlanetaryScanners        []TechPlanetaryScanner                `json:"planetaryScanners"`
 	Terraforms               []TechTerraform                       `json:"terraforms"`
 	Defenses                 []TechDefense                         `json:"defenses"`
+	Planetaries              []TechPlanetary                       `json:"planetaries"`
 	HullComponents           []TechHullComponent                   `json:"hullComponents"`
 	Hulls                    []TechHull                            `json:"hulls,omitempty"`
 	techs                    []*Tech                               `json:"-"`
@@ -29,7 +30,7 @@ type TechStore struct {
 	hullsByName              map[string]*TechHull                  `json:"-"`
 	hullsByType              map[TechHullType][]*TechHull          `json:"-"`
 	enginesByName            map[string]*TechEngine                `json:"-"`
-	hullComponetnsByCategory map[TechCategory][]*TechHullComponent `json:"-"`
+	hullComponentsByCategory map[TechCategory][]*TechHullComponent `json:"-"`
 }
 
 // simple static tech store
@@ -38,6 +39,7 @@ var StaticTechStore = TechStore{
 	PlanetaryScanners: TechPlanetaryScanners(),
 	Terraforms:        TechTerraforms(),
 	Defenses:          TechDefenses(),
+	Planetaries:       TechPlanetaries(),
 	HullComponents:    TechHullComponents(),
 	Hulls:             TechHulls(),
 }
@@ -79,13 +81,14 @@ func (store *TechStore) Init() {
 		len(store.PlanetaryScanners)+
 		len(store.Terraforms)+
 		len(store.Defenses)+
+		len(store.Planetaries)+
 		len(store.HullComponents)+
 		len(store.Hulls))
 	store.techsByName = make(map[string]interface{}, len(store.techs))
 	store.hullsByName = make(map[string]*TechHull, len(store.Hulls))
 	store.enginesByName = make(map[string]*TechEngine, len(store.Engines))
 	store.hullComponentsByName = make(map[string]*TechHullComponent, len(store.Engines)+len(store.HullComponents))
-	store.hullComponetnsByCategory = map[TechCategory][]*TechHullComponent{}
+	store.hullComponentsByCategory = map[TechCategory][]*TechHullComponent{}
 
 	// we have 11 hull types. if this changes, we should update this make, but it's just for performance
 	store.hullsByType = make(map[TechHullType][]*TechHull, 11)
@@ -122,10 +125,10 @@ func (store *TechStore) Init() {
 		store.techsByName[name] = tech
 		store.hullComponentsByName[name] = tech
 
-		if _, ok := store.hullComponetnsByCategory[tech.Category]; !ok {
-			store.hullComponetnsByCategory[tech.Category] = []*TechHullComponent{}
+		if _, ok := store.hullComponentsByCategory[tech.Category]; !ok {
+			store.hullComponentsByCategory[tech.Category] = []*TechHullComponent{}
 		}
-		store.hullComponetnsByCategory[tech.Category] = append(store.hullComponetnsByCategory[tech.Category], tech)
+		store.hullComponentsByCategory[tech.Category] = append(store.hullComponentsByCategory[tech.Category], tech)
 	}
 
 	for i := range store.PlanetaryScanners {
@@ -148,6 +151,14 @@ func (store *TechStore) Init() {
 		store.techs = append(store.techs, &tech.Tech)
 		store.techsByName[name] = tech
 	}
+
+	for i := range store.Planetaries {
+		tech := &store.Planetaries[i]
+		name := store.transformName(tech.Name)
+		store.techs = append(store.techs, &tech.Tech)
+		store.techsByName[name] = tech
+	}
+
 }
 
 func (store *TechStore) GetTech(name string) interface{} {
@@ -182,10 +193,10 @@ func (store *TechStore) GetTechsJustGained(player *Player, field TechField) []*T
 
 // get all techs by category
 func (store *TechStore) GetHullComponentsByCategory(category TechCategory) []TechHullComponent {
-	techs := []TechHullComponent{}
-	for _, tech := range store.HullComponents {
+	techs := make([]TechHullComponent, 0, len(store.hullComponentsByCategory[category]))
+	for _, tech := range store.hullComponentsByCategory[category] {
 		if tech.Category == category {
-			techs = append(techs, tech)
+			techs = append(techs, *tech)
 		}
 	}
 
@@ -883,58 +894,58 @@ var RadiationTerraform15 = TechTerraform{Tech: NewTech("Radiation Terraform ±15
 
 // TechPlanetaryScanners
 
-var Viewer50 = TechPlanetaryScanner{Tech: NewTech("Viewer 50", NewCost(10, 10, 70, 100), TechRequirements{PRTsDenied: []PRT{AR}}, 0, TechCategoryPlanetaryScanner),
+var Viewer50 = TechPlanetaryScanner{TechPlanetary: TechPlanetary{Tech: NewTech("Viewer 50", NewCost(10, 10, 70, 100), TechRequirements{PRTsDenied: []PRT{AR}}, 0, TechCategoryPlanetaryScanner)},
 	ScanRange:    50,
 	ScanRangePen: 0,
 }
-var Viewer90 = TechPlanetaryScanner{Tech: NewTech("Viewer 90", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Electronics: 1}, PRTsDenied: []PRT{AR}}, 1, TechCategoryPlanetaryScanner),
+var Viewer90 = TechPlanetaryScanner{TechPlanetary: TechPlanetary{Tech: NewTech("Viewer 90", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Electronics: 1}, PRTsDenied: []PRT{AR}}, 1, TechCategoryPlanetaryScanner)},
 	ScanRange:    90,
 	ScanRangePen: 0,
 }
-var Scoper150 = TechPlanetaryScanner{Tech: NewTech("Scoper 150", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Electronics: 3}, PRTsDenied: []PRT{AR}}, 30, TechCategoryPlanetaryScanner),
+var Scoper150 = TechPlanetaryScanner{TechPlanetary: TechPlanetary{Tech: NewTech("Scoper 150", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Electronics: 3}, PRTsDenied: []PRT{AR}}, 30, TechCategoryPlanetaryScanner)},
 	ScanRange:    150,
 	ScanRangePen: 0,
 }
-var Scoper220 = TechPlanetaryScanner{Tech: NewTech("Scoper 220", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Electronics: 6}, PRTsDenied: []PRT{AR}}, 40, TechCategoryPlanetaryScanner),
+var Scoper220 = TechPlanetaryScanner{TechPlanetary: TechPlanetary{Tech: NewTech("Scoper 220", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Electronics: 6}, PRTsDenied: []PRT{AR}}, 40, TechCategoryPlanetaryScanner)},
 	ScanRange:    220,
 	ScanRangePen: 0,
 }
-var Scoper280 = TechPlanetaryScanner{Tech: NewTech("Scoper 280", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Electronics: 8}, PRTsDenied: []PRT{AR}}, 50, TechCategoryPlanetaryScanner),
+var Scoper280 = TechPlanetaryScanner{TechPlanetary: TechPlanetary{Tech: NewTech("Scoper 280", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Electronics: 8}, PRTsDenied: []PRT{AR}}, 50, TechCategoryPlanetaryScanner)},
 	ScanRange:    280,
 	ScanRangePen: 0,
 }
-var Snooper320X = TechPlanetaryScanner{Tech: NewTech("Snooper 320X", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Energy: 3, Electronics: 10, Biotechnology: 3}, PRTsDenied: []PRT{AR}, LRTsDenied: NAS}, 60, TechCategoryPlanetaryScanner),
+var Snooper320X = TechPlanetaryScanner{TechPlanetary: TechPlanetary{Tech: NewTech("Snooper 320X", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Energy: 3, Electronics: 10, Biotechnology: 3}, PRTsDenied: []PRT{AR}, LRTsDenied: NAS}, 60, TechCategoryPlanetaryScanner)},
 	ScanRange:    320,
 	ScanRangePen: 160,
 }
-var Snooper400X = TechPlanetaryScanner{Tech: NewTech("Snooper 400X", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Energy: 4, Electronics: 13, Biotechnology: 6}, PRTsDenied: []PRT{AR}, LRTsDenied: NAS}, 70, TechCategoryPlanetaryScanner),
+var Snooper400X = TechPlanetaryScanner{TechPlanetary: TechPlanetary{Tech: NewTech("Snooper 400X", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Energy: 4, Electronics: 13, Biotechnology: 6}, PRTsDenied: []PRT{AR}, LRTsDenied: NAS}, 70, TechCategoryPlanetaryScanner)},
 	ScanRange:    400,
 	ScanRangePen: 200,
 }
-var Snooper500X = TechPlanetaryScanner{Tech: NewTech("Snooper 500X", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Energy: 5, Electronics: 16, Biotechnology: 7}, PRTsDenied: []PRT{AR}, LRTsDenied: NAS}, 80, TechCategoryPlanetaryScanner),
+var Snooper500X = TechPlanetaryScanner{TechPlanetary: TechPlanetary{Tech: NewTech("Snooper 500X", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Energy: 5, Electronics: 16, Biotechnology: 7}, PRTsDenied: []PRT{AR}, LRTsDenied: NAS}, 80, TechCategoryPlanetaryScanner)},
 	ScanRange:    500,
 	ScanRangePen: 250,
 }
-var Snooper620X = TechPlanetaryScanner{Tech: NewTech("Snooper 620X", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Energy: 7, Electronics: 23, Biotechnology: 9}, PRTsDenied: []PRT{AR}, LRTsDenied: NAS}, 90, TechCategoryPlanetaryScanner),
+var Snooper620X = TechPlanetaryScanner{TechPlanetary: TechPlanetary{Tech: NewTech("Snooper 620X", NewCost(10, 10, 70, 100), TechRequirements{TechLevel: TechLevel{Energy: 7, Electronics: 23, Biotechnology: 9}, PRTsDenied: []PRT{AR}, LRTsDenied: NAS}, 90, TechCategoryPlanetaryScanner)},
 	ScanRange:    620,
 	ScanRangePen: 310,
 }
 
 // TechDefenses
 
-var SDI = TechDefense{Tech: NewTech("SDI", NewCost(5, 5, 5, 15), TechRequirements{PRTsDenied: []PRT{AR}}, 0, TechCategoryPlanetaryDefense),
+var SDI = TechDefense{TechPlanetary: TechPlanetary{Tech: NewTech("SDI", NewCost(5, 5, 5, 15), TechRequirements{PRTsDenied: []PRT{AR}}, 0, TechCategoryPlanetaryDefense)},
 	Defense: Defense{DefenseCoverage: .99},
 }
-var MissileBattery = TechDefense{Tech: NewTech("Missile Battery", NewCost(5, 5, 5, 15), TechRequirements{TechLevel: TechLevel{Energy: 5}, PRTsDenied: []PRT{AR}}, 10, TechCategoryPlanetaryDefense),
+var MissileBattery = TechDefense{TechPlanetary: TechPlanetary{Tech: NewTech("Missile Battery", NewCost(5, 5, 5, 15), TechRequirements{TechLevel: TechLevel{Energy: 5}, PRTsDenied: []PRT{AR}}, 10, TechCategoryPlanetaryDefense)},
 	Defense: Defense{DefenseCoverage: 1.99},
 }
-var LaserBattery = TechDefense{Tech: NewTech("Laser Battery", NewCost(5, 5, 5, 15), TechRequirements{TechLevel: TechLevel{Energy: 10}, PRTsDenied: []PRT{AR}}, 20, TechCategoryPlanetaryDefense),
+var LaserBattery = TechDefense{TechPlanetary: TechPlanetary{Tech: NewTech("Laser Battery", NewCost(5, 5, 5, 15), TechRequirements{TechLevel: TechLevel{Energy: 10}, PRTsDenied: []PRT{AR}}, 20, TechCategoryPlanetaryDefense)},
 	Defense: Defense{DefenseCoverage: 2.39},
 }
-var PlanetaryShield = TechDefense{Tech: NewTech("Planetary Shield", NewCost(5, 5, 5, 15), TechRequirements{TechLevel: TechLevel{Energy: 16}, PRTsDenied: []PRT{AR}}, 30, TechCategoryPlanetaryDefense),
+var PlanetaryShield = TechDefense{TechPlanetary: TechPlanetary{Tech: NewTech("Planetary Shield", NewCost(5, 5, 5, 15), TechRequirements{TechLevel: TechLevel{Energy: 16}, PRTsDenied: []PRT{AR}}, 30, TechCategoryPlanetaryDefense)},
 	Defense: Defense{DefenseCoverage: 2.99},
 }
-var NeutronShield = TechDefense{Tech: NewTech("Neutron Shield", NewCost(5, 5, 5, 15), TechRequirements{TechLevel: TechLevel{Energy: 23}, PRTsDenied: []PRT{AR}}, 40, TechCategoryPlanetaryDefense),
+var NeutronShield = TechDefense{TechPlanetary: TechPlanetary{Tech: NewTech("Neutron Shield", NewCost(5, 5, 5, 15), TechRequirements{TechLevel: TechLevel{Energy: 23}, PRTsDenied: []PRT{AR}}, 40, TechCategoryPlanetaryDefense)},
 	Defense: Defense{DefenseCoverage: 3.79},
 }
 
@@ -2599,6 +2610,7 @@ func TechEngines() []TechEngine {
 		AlphaDrive8,
 		TransGalacticDrive,
 		Interspace10,
+		EnigmaPulsar,
 		TransStar10,
 		RadiatingHydroRamScoop,
 		SubGalacticFuelScoop,
@@ -2631,6 +2643,13 @@ func TechTerraforms() []TechTerraform {
 		RadiationTerraform7,
 		RadiationTerraform11,
 		RadiationTerraform15,
+	}
+}
+
+func TechPlanetaries() []TechPlanetary {
+
+	return []TechPlanetary{
+		GenesisDevice,
 	}
 }
 
@@ -2693,6 +2712,7 @@ func TechHulls() []TechHull {
 		SuperMineLayer,
 		Nubian,
 		MetaMorph,
+		MiniMorph,
 		OrbitalFort,
 		SpaceDock,
 		SpaceStation,
@@ -2726,6 +2746,7 @@ func TechHullComponents() []TechHullComponent {
 		RoboMiniMiner,
 		RoboSuperMiner,
 		RoboUltraMiner,
+		AlienMiner,
 		OrbitalAdjuster,
 		LadyFingerBomb,
 		BlackCatBomb,
@@ -2735,6 +2756,7 @@ func TechHullComponents() []TechHullComponent {
 		LBU17Bomb,
 		LBU32Bomb,
 		LBU74Bomb,
+		HushABoom,
 		RetroBomb,
 		SmartBomb,
 		NeutronBomb,
@@ -2766,12 +2788,14 @@ func TechHullComponents() []TechHullComponent {
 		FieldedKelarium,
 		DepletedNeutronium,
 		Neutronium,
+		MegaPolyShell,
 		Valanium,
 		Superlatanium,
 		TransportCloaking,
 		StealthCloak,
 		SuperStealthCloak,
 		UltraStealthCloak,
+		MultiFunctionPod,
 		BattleComputer,
 		BattleSuperComputer,
 		BattleNexus,
@@ -2798,10 +2822,12 @@ func TechHullComponents() []TechHullComponent {
 		OrbitalConstructionModule,
 		CargoPod,
 		SuperCargoPod,
+		MultiCargoPod,
 		FuelTank,
 		SuperFuelTank,
 		ManeuveringJet,
 		Overthruster,
+		JumpGate,
 		BeamDeflector,
 		Laser,
 		XRayLaser,
@@ -2821,6 +2847,7 @@ func TechHullComponents() []TechHullComponent {
 		MyopicDisruptor,
 		Blunderbuss,
 		Disruptor,
+		MultiContainedMunition,
 		SyncroSapper,
 		MegaDisruptor,
 		BigMuthaCannon,
@@ -2833,6 +2860,7 @@ func TechHullComponents() []TechHullComponent {
 		RhoTorpedo,
 		UpsilonTorpedo,
 		OmegaTorpedo,
+		AntiMatterTorpedo,
 		JihadMissile,
 		JuggernautMissile,
 		DoomsdayMissile,
@@ -2843,6 +2871,7 @@ func TechHullComponents() []TechHullComponent {
 		CrobySharmor,
 		ShadowShield,
 		BearNeutrinoBarrier,
+		LangstonShell,
 		GorillaDelagator,
 		ElephantHideFortress,
 		CompletePhaseShield,

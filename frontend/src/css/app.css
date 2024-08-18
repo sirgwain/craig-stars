@@ -136,6 +136,14 @@
 	.fill-ally-current {
 		@apply fill-gray-500;
 	}
+
+	.fill-mystery-trader {
+		@apply fill-[#00FFFF]
+	}
+
+	.text-mystery-trader {
+		@apply text-[#00FFFF]
+	}
 }
 
 .scanner-wormhole {

@@ -97,9 +97,8 @@ func (u *Universe) buildMaps(players []*Player) error {
 	u.battlePlansByNum = make(map[playerBattlePlanNum]*BattlePlan, numBattlePlans)
 
 	for _, p := range players {
-		for i := range p.Designs {
-			design := p.Designs[i]
-			u.designsByNum[playerObjectKey(design.PlayerNum, design.Num)] = design
+		for _, design := range p.Designs {
+			u.addDesign(design)
 		}
 
 		for i := range p.BattlePlans {
@@ -367,6 +366,11 @@ func (u *Universe) updateTokenCounts() {
 	}
 }
 
+// add a design to the universe maps
+func (u *Universe) addDesign(design *ShipDesign) {
+	u.designsByNum[playerObjectKey(design.PlayerNum, design.Num)] = design
+}
+
 // mark a fleet as deleted and remove it from the universe
 func (u *Universe) deleteFleet(fleet *Fleet) {
 	fleet.Delete = true
@@ -627,7 +631,7 @@ func (u *Universe) removeMapObjectAtPosition(mo interface{}, position Vector) {
 	}
 }
 
-// get the next design number to use
+// get the next mineField number to use
 func (u *Universe) getNextMineFieldNum() int {
 	num := 0
 	for _, mineField := range u.MineFields {
@@ -676,4 +680,40 @@ func (u *Universe) fleetsWithin(position Vector, radius float64) []*Fleet {
 		}
 	}
 	return fleetsWithin
+}
+
+// get the next mysteryTrader number to use
+func (u *Universe) getNextMysteryTraderNum() int {
+	num := 0
+	for _, mysteryTrader := range u.MysteryTraders {
+		num = MaxInt(num, mysteryTrader.Num)
+	}
+	return num + 1
+}
+
+func (u *Universe) addMysteryTrader(mysteryTrader *MysteryTrader) {
+	u.MysteryTraders = append(u.MysteryTraders, mysteryTrader)
+	u.mysteryTradersByNum[mysteryTrader.Num] = mysteryTrader
+	u.addMapObjectByPosition(mysteryTrader, mysteryTrader.Position)
+}
+
+// move a fleet from one position to another
+func (u *Universe) moveMysteryTrader(mysteryTrader *MysteryTrader, originalPosition Vector) {
+	// upadte mapobjects position
+	u.updateMapObjectAtPosition(mysteryTrader, originalPosition, mysteryTrader.Position)
+}
+
+// mark a mysteryTrader as deleted and remove it from the universe
+func (u *Universe) deleteMysteryTrader(mysteryTrader *MysteryTrader) {
+	mysteryTrader.Delete = true
+
+	delete(u.mysteryTradersByNum, mysteryTrader.Num)
+	u.removeMapObjectAtPosition(mysteryTrader, mysteryTrader.Position)
+
+	log.Debug().
+		Int64("GameID", mysteryTrader.GameID).
+		Int("Player", mysteryTrader.PlayerNum).
+		Str("MysteryTrader", mysteryTrader.Name).
+		Msgf("deleted mysteryTrader")
+
 }

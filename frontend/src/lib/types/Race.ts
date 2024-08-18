@@ -371,6 +371,12 @@ export const humanoid = (): Race => ({
 				germanium: 70,
 				resources: 100
 			},
+			[QueueItemTypes.GenesisDevice]: {
+				ironium: 0,
+				boranium: 0,
+				germanium: 0,
+				resources: 5000
+			},
 			[QueueItemTypes.TerraformEnvironment]: {
 				resources: 100
 			}

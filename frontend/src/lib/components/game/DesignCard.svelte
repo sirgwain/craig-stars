@@ -78,7 +78,7 @@
 						<Icon src={Trash} size="24" class="hover:stroke-accent" />
 					</button>
 				{/if}
-				{#if design.originalPlayerNum == None}
+				{#if design.originalPlayerNum == None && !design.mysteryTrader}
 					<a class="btn btn-outline btn-secondary joint-item" href={copyhref}>Copy</a>
 					<!-- cannotDelete = true is for designs that are reserved for the system -->
 					{#if !design.spec?.numInstances && !design.cannotDelete}

@@ -8,6 +8,7 @@
 	import { MapObjectType } from '$lib/types/MapObject';
 	import type { MineField } from '$lib/types/MineField';
 	import type { MineralPacket } from '$lib/types/MineralPacket';
+	import type { MysteryTrader } from '$lib/types/MysteryTrader';
 	import type { Planet } from '$lib/types/Planet';
 	import type { Salvage } from '$lib/types/Salvage';
 	import type { Wormhole } from '$lib/types/Wormhole';
@@ -15,6 +16,7 @@
 	import FleetSummary from './FleetSummary.svelte';
 	import MineFieldSummary from './MineFieldSummary.svelte';
 	import MineralPacketSummary from './MineralPacketSummary.svelte';
+	import MysteryTraderSummary from './MysteryTraderSummary.svelte';
 	import PlanetSummary from './PlanetSummary.svelte';
 	import SalvageSummary from './SalvageSummary.svelte';
 	import UnknownSummary from './UnknownSummary.svelte';
@@ -58,6 +60,10 @@
 	$: selectedWormhole =
 		$selectedMapObject?.type == MapObjectType.Wormhole
 			? ($selectedMapObject as Wormhole)
+			: undefined;
+	$: selectedMysteryTrader =
+		$selectedMapObject?.type == MapObjectType.MysteryTrader
+			? ($selectedMapObject as MysteryTrader)
 			: undefined;
 </script>
 
@@ -112,6 +118,8 @@
 			<SalvageSummary salvage={selectedSalvage} />
 		{:else if selectedWormhole}
 			<WormholeSummary wormhole={selectedWormhole} />
+		{:else if selectedMysteryTrader}
+			<MysteryTraderSummary mysteryTrader={selectedMysteryTrader} />
 		{:else}
 			<UnknownSummary />
 		{/if}

@@ -217,6 +217,41 @@ func testRemoteTerraformer(player *Player) *Fleet {
 	return fleet
 }
 
+func testGatePrivateer(player *Player, quantity int) *Fleet {
+	fleet := &Fleet{
+		MapObject: MapObject{
+			Type:      MapObjectTypeFleet,
+			PlayerNum: player.Num,
+			Num:       1,
+		},
+		BaseName: "Gate Privateer",
+		Tokens: []ShipToken{
+			{
+				Quantity:  quantity,
+				DesignNum: 1,
+				design: NewShipDesign(player, 1).
+					WithName("Gate Privateer").
+					WithHull(Privateer.Name).
+					WithSlots([]ShipDesignSlot{
+						{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+						{HullComponent: JumpGate.Name, HullSlotIndex: 3, Quantity: 1},
+					}).
+					WithSpec(&rules, player)},
+		},
+		battlePlan:        &player.BattlePlans[0],
+		OrbitingPlanetNum: None,
+		FleetOrders: FleetOrders{
+			Waypoints: []Waypoint{
+				NewPositionWaypoint(Vector{}, 5),
+			},
+		},
+	}
+
+	fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
+	fleet.Fuel = fleet.Spec.FuelCapacity
+	return fleet
+}
+
 func Test_computeFleetSpec(t *testing.T) {
 	starterHumanoidPlayer := NewPlayer(1, NewRace().WithSpec(&rules)).WithTechLevels(TechLevel{3, 3, 3, 3, 3, 3})
 	starterHumanoidPlayer.Race.Spec = computeRaceSpec(&starterHumanoidPlayer.Race, &rules)
@@ -717,16 +752,43 @@ func TestFleet_gateFleet(t *testing.T) {
 		orbitingPlanetNum int
 	}
 	tests := []struct {
-		name  string
-		fleet *Fleet
-		args  args
-		want  want
+		name        string
+		fleet       *Fleet
+		args        args
+		want        want
+		wantMessage bool
 	}{
 		{
 			name: "gate between planets",
 			fleet: testLongRangeScout(player).
 				withOrbitingPlanetNum(sourcePlanet.Num).
 				withWaypoints(NewPlanetWaypoint(Vector{0, 0}, 1, "planet 1", 5), NewPlanetWaypoint(Vector{50, 0}, 2, "planet 2", StargateWarpSpeed)),
+			args: args{player: player, players: []*Player{player}, planets: []*Planet{sourcePlanet, destPlanet}},
+			want: want{position: Vector{50, 0}, orbitingPlanetNum: destPlanet.Num},
+		},
+		{
+			name: "gate fail, no source",
+			fleet: testLongRangeScout(player).
+				withPosition(Vector{200, 0}).
+				withWaypoints(NewPositionWaypoint(Vector{200, 0}, 5), NewPlanetWaypoint(Vector{50, 0}, 2, "planet 2", StargateWarpSpeed)),
+			args:        args{player: player, players: []*Player{player}, planets: []*Planet{sourcePlanet, destPlanet}},
+			want:        want{position: Vector{200, 0}},
+			wantMessage: true,
+		},
+		{
+			name: "gate fail, no dest",
+			fleet: testLongRangeScout(player).
+				withWaypoints(NewPlanetWaypoint(Vector{0, 0}, 1, "planet 1", 5), NewPositionWaypoint(Vector{200, 0}, StargateWarpSpeed)),
+			args:        args{player: player, players: []*Player{player}, planets: []*Planet{sourcePlanet, destPlanet}},
+			want:        want{position: Vector{0, 0}},
+			wantMessage: true,
+		},
+		{
+			name: "jump gate",
+			fleet: testGatePrivateer(player, 1).
+				withPosition(Vector{200, 0}).
+				withCargo(Cargo{10, 10, 10, 10}). // jumpgates allow cargo, sweet!
+				withWaypoints(NewPositionWaypoint(Vector{200, 0}, 5), NewPlanetWaypoint(Vector{50, 0}, 2, "planet 2", StargateWarpSpeed)),
 			args: args{player: player, players: []*Player{player}, planets: []*Planet{sourcePlanet, destPlanet}},
 			want: want{position: Vector{50, 0}, orbitingPlanetNum: destPlanet.Num},
 		},
@@ -746,6 +808,9 @@ func TestFleet_gateFleet(t *testing.T) {
 			}
 			if tt.fleet.OrbitingPlanetNum != tt.want.orbitingPlanetNum {
 				t.Errorf("Fleet.gateFleet() OrbitingPlanetNum = %v, want %v", tt.fleet.OrbitingPlanetNum, tt.want.orbitingPlanetNum)
+			}
+			if tt.wantMessage && len(player.Messages) == 0 {
+				t.Errorf("Fleet.gateFleet() wantMessages, got none")
 			}
 
 		})

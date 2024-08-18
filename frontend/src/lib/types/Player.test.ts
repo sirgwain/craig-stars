@@ -64,6 +64,29 @@ const smartBomb: TechHullComponent = {
 	smart: true
 };
 
+const multiFunctionPod: TechHullComponent = {
+	name: 'Multi-Function Pod',
+	cost: {
+		ironium: 5,
+		germanium: 5,
+		resources: 15
+	},
+	requirements: {
+		energy: 11,
+		propulsion: 11,
+		electronics: 11,
+		acquirable: true
+	},
+	ranking: 35,
+	category: TechCategory.Electrical,
+	origin: 'MysteryTrader',
+	hullSlotType: 64,
+	mass: 2,
+	cloakUnits: 60,
+	torpedoJamming: 0.1,
+	movementBonus: 1
+};
+
 export const baseStationDesign: ShipDesign = {
 	num: 1,
 	playerNum: 1,
@@ -196,6 +219,23 @@ describe('player test', () => {
 		// SD can learn speed trap
 		player.race.prt = PRT.SD;
 		expect(canLearnTech(player, speedTrap20)).toBe(true);
+	});
+
+	it('checks has tech', () => {
+		const player = new Player();
+		player.techLevels.propulsion = 2;
+		expect(player.hasTech(fuelMizer)).toBe(false);
+
+		// make it available
+		player.race.lrts = LRT.IFE;
+		expect(player.hasTech(fuelMizer)).toBe(true);
+
+		// player doesn't have MT tech until acquired
+		player.techLevels = { energy: 11, propulsion: 11, electronics: 11 };
+		expect(player.hasTech(multiFunctionPod)).toBe(false);
+
+		player.acquiredTechs[multiFunctionPod.name] = true;
+		expect(player.hasTech(multiFunctionPod)).toBe(true);
 	});
 
 	it('getTerraformAbility', () => {

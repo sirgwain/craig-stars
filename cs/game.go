@@ -363,24 +363,35 @@ func (fg *FullGame) getPlayer(playerNum int) *Player {
 }
 
 func (fg *FullGame) GetNumAIPlayers() int {
-	numAIs := 0
+	count := 0
 	for _, player := range fg.Players {
 		if player.AIControlled {
-			numAIs++
+			count++
 		}
 	}
-	return numAIs
+	return count
 }
 
 func (fg *FullGame) GetNumCheaterAIPlayers() int {
-	numAIs := 0
+	count := 0
 	for _, player := range fg.Players {
 		if player.AIControlled && player.AIDifficulty == AIDifficultyCheater {
-			numAIs++
+			count++
 		}
 	}
-	return numAIs
+	return count
 }
+
+func (fg *FullGame) GetNumHumanPlayers() int {
+	count := 0
+	for _, player := range fg.Players {
+		if !player.AIControlled {
+			count++
+		}
+	}
+	return count
+}
+
 
 // compute all the various "specs" in the game. Called before and after turn generation
 func (g *FullGame) computeSpecs() error {

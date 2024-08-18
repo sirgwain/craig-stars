@@ -1358,3 +1358,49 @@
 .hull-death-star-3 {
 	background: url(/images/starbases.png) -256px -192px;
 }
+
+/* Mystery Trader Techs */
+
+.hush-a-boom {
+	background: url(/images/techs06.png) -384px -128px;
+}
+
+.enigma-pulsar {
+	background: url(/images/techs04.png) -320px -64px;
+}
+
+.mega-poly-shell {
+	background: url(/images/techs04.png) -384px -64px;
+}
+
+.langston-shell {
+	background: url(/images/techs06.png) -448px -128px;
+}
+
+.multi-function-pod {
+	background: url(/images/techs06.png) -320px -192px;
+}
+
+.anti-matter-torpedo {
+	background: url(/images/techs04.png) -256px -64px;
+}
+
+.jump-gate {
+	background: url(/images/techs07.png) 0px -128px;
+}
+
+.genesis-device {
+	background: url(/images/techs06.png) -448px -64px;
+}
+
+.multi-contained-munition {
+	background: url(/images/techs04.png) -448px -64px;
+}
+
+.alien-miner {
+	background: url(/images/techs06.png) -320px -128px;
+}
+
+.multi-cargo-pod {
+	background: url(/images/techs04.png) -384px -128px;
+}

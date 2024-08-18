@@ -39,6 +39,8 @@ var c Converter
 // goverter:extend GamePlayerMessagesToPlayerMessages
 // goverter:extend PlayerScoresToGamePlayerScores
 // goverter:extend GamePlayerScoresToPlayerScores
+// goverter:extend AcquiredTechsToGameAcquiredTechs
+// goverter:extend GameAcquiredTechsToAcquiredTechs
 // goverter:extend BattleRecordsToGameBattleRecords
 // goverter:extend GameBattleRecordsToBattleRecords
 // goverter:extend PlayerIntelsToGamePlayerIntels
@@ -88,6 +90,8 @@ var c Converter
 // goverter:extend GameWormholeSpecToWormholeSpec
 // goverter:extend MysteryTraderSpecToGameMysteryTraderSpec
 // goverter:extend GameMysteryTraderSpecToMysteryTraderSpec
+// goverter:extend MysteryTraderPlayersRewardedToGameMysteryTraderPlayersRewarded
+// goverter:extend GameMysteryTraderPlayersRewardedToMysteryTraderPlayersRewarded
 // goverter:enum no
 type Converter interface {
 	// goverter:map . DBObject
@@ -262,10 +266,13 @@ type Converter interface {
 	// goverter:autoMap MapObject
 	// goverter:map Heading.X HeadingX
 	// goverter:map Heading.Y HeadingY
+	// goverter:map Destination.X DestinationX
+	// goverter:map Destination.Y DestinationY
 	ConvertGameMysteryTrader(source *cs.MysteryTrader) *MysteryTrader
 
 	// goverter:map . MapObject | ExtendMysteryTraderMapObject
 	// goverter:map . Heading | ExtendMysteryTraderHeading
+	// goverter:map . Destination | ExtendMysteryTraderDestination
 	ConvertMysteryTrader(source *MysteryTrader) *cs.MysteryTrader
 
 	// goverter:autoMap MapObject.GameDBObject
@@ -445,6 +452,18 @@ func PlayerScoresToGamePlayerScores(source *PlayerScores) []cs.PlayerScore {
 
 func GamePlayerScoresToPlayerScores(source []cs.PlayerScore) *PlayerScores {
 	return (*PlayerScores)(&source)
+}
+
+func AcquiredTechsToGameAcquiredTechs(source *AcquiredTechs) map[string]bool {
+	// return an empty slice for nil
+	if source == nil {
+		return map[string]bool{}
+	}
+	return (map[string]bool)(*source)
+}
+
+func GameAcquiredTechsToAcquiredTechs(source map[string]bool) *AcquiredTechs {
+	return (*AcquiredTechs)(&source)
 }
 
 func BattleRecordsToGameBattleRecords(source *BattleRecords) []cs.BattleRecord {
@@ -692,6 +711,18 @@ func GameMysteryTraderSpecToMysteryTraderSpec(source cs.MysteryTraderSpec) *Myst
 	return (*MysteryTraderSpec)(&source)
 }
 
+func MysteryTraderPlayersRewardedToGameMysteryTraderPlayersRewarded(source *MysteryTraderPlayersRewarded) map[int]bool {
+	// return an empty slice for nil
+	if source == nil {
+		return map[int]bool{}
+	}
+	return (map[int]bool)(*source)
+}
+
+func GameMysteryTraderPlayersRewardedToMysteryTraderPlayersRewarded(source map[int]bool) *MysteryTraderPlayersRewarded {
+	return (*MysteryTraderPlayersRewarded)(&source)
+}
+
 func ExtendResearchCost(source Race) cs.ResearchCost {
 	return cs.ResearchCost{
 		Energy:        source.ResearchCostEnergy,
@@ -889,6 +920,13 @@ func ExtendMysteryTraderHeading(source MysteryTrader) cs.Vector {
 	return cs.Vector{
 		X: source.HeadingX,
 		Y: source.HeadingY,
+	}
+}
+
+func ExtendMysteryTraderDestination(source MysteryTrader) cs.Vector {
+	return cs.Vector{
+		X: source.DestinationX,
+		Y: source.DestinationY,
 	}
 }
 
