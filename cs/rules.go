@@ -278,8 +278,8 @@ func NewRulesWithSeed(seed int64) Rules {
 		RandomMineralDepositBonusRange:   [2]int{20, 50},
 		RandomArtifactResearchBonusRange: [2]int{120, 400},
 		MysteryTraderRules: MysteryTraderRules{
-			ChanceSpawn:      []int{1}, // force it
-			// ChanceSpawn:           []int{7, 7, 7, 7, 7, 7, 7, 4, 4, 3, 2}, // randomly pick a random chance to spawn an MT. It's not the same every turn
+			// ChanceSpawn:      []int{1}, // force it
+			ChanceSpawn:           []int{7, 7, 7, 7, 7, 7, 7, 4, 4, 3, 2}, // randomly pick a random chance to spawn an MT. It's not the same every turn
 			ChanceMaxTechGetsPart: 5,                                      // 1 in 5 chance a player with max tech gets a part if they get a research trader
 			ChanceCourseChange:    20,                                     // 1 in 20 chance the MT speeds up/changes course
 			ChanceSpeedUpOnly:     3,                                      // if change course, 1 in 3 chance it's speed up only
