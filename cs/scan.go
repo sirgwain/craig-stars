@@ -461,21 +461,31 @@ func (scan *playerScan) getScanners() []scanner {
 	// build a list of scanners for this player
 	scanners := []scanner{}
 	for _, planet := range scan.universe.Planets {
-		if planet.PlayerNum == scan.player.Num && planet.Scanner {
-			scanner := scanner{
+		if planet.PlayerNum == scan.player.Num {
+			// planets we own without scanners act as range 0 scanners
+			planetaryScanner := scanner{
 				Position:             planet.Position,
-				RangeSquared:         planet.Spec.ScanRange * planet.Spec.ScanRange,
-				RangePenSquared:      planet.Spec.ScanRangePen * planet.Spec.ScanRangePen,
+				RangeSquared:         0,
+				RangePenSquared:      0,
 				CloakReductionFactor: 1,
 			}
 
+			if planet.Scanner {
+				// update this scanner to use the planetary scanner stats
+				planetaryScanner = scanner{
+					Position:             planet.Position,
+					RangeSquared:         planet.Spec.ScanRange * planet.Spec.ScanRange,
+					RangePenSquared:      planet.Spec.ScanRangePen * planet.Spec.ScanRangePen,
+					CloakReductionFactor: 1,
+				}
+			}
 			// use the fleet scanner if it's better
 			if fleetScanner, ok := scanningFleetsByPosition[planet.Position]; ok {
-				scanner.RangeSquared = MaxInt(scanner.RangeSquared, fleetScanner.RangeSquared)
-				scanner.RangePenSquared = MaxInt(scanner.RangePenSquared, fleetScanner.RangePenSquared)
-				scanner.CloakReductionFactor = math.Min(scanner.CloakReductionFactor, fleetScanner.CloakReductionFactor)
+				planetaryScanner.RangeSquared = MaxInt(planetaryScanner.RangeSquared, fleetScanner.RangeSquared)
+				planetaryScanner.RangePenSquared = MaxInt(planetaryScanner.RangePenSquared, fleetScanner.RangePenSquared)
+				planetaryScanner.CloakReductionFactor = math.Min(planetaryScanner.CloakReductionFactor, fleetScanner.CloakReductionFactor)
 			}
-			scanners = append(scanners, scanner)
+			scanners = append(scanners, planetaryScanner)
 		}
 	}
 
