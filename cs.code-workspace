@@ -13,6 +13,13 @@
   ],
   "settings": {
     "testing.automaticallyOpenPeekView": "never",
-    "typescript.tsdk": "frontend/node_modules/typescript/lib"
+    "typescript.tsdk": "frontend/node_modules/typescript/lib",
+    "goStructTagAutogen.generation": {
+      "template": "json:\"{{camel}}\"",
+      "json": {
+        "cases": ["camel"],
+        "options": ["omitempty", "-"]
+      },
+    }
   }
 }
