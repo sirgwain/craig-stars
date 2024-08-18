@@ -751,7 +751,7 @@ var MiniMorph = TechHull{Tech: NewTechWithOrigin("Mini Morph", NewCost(30, 8, 8,
 		{Position: Vector{-1, 1}, Type: HullSlotTypeGeneral, Capacity: 2},
 	},
 }
-var GenesisDevice = TechPlanetary{Tech: NewTechWithOrigin("Genesis Device", NewCost(10, 10, 70, 100), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 20, Weapons: 10, Propulsion: 10, Construction: 20, Electronics: 10, Biotechnology: 20}}, 45, TechCategoryPlanetary, OriginMysteryTrader),
+var GenesisDevice = TechPlanetary{Tech: NewTechWithOrigin("Genesis Device", NewCost(0, 0, 0, 5000), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 20, Weapons: 10, Propulsion: 10, Construction: 20, Electronics: 10, Biotechnology: 20}}, 45, TechCategoryPlanetary, OriginMysteryTrader),
 	ResetPlanet: true,
 }
 

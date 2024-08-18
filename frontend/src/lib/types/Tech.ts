@@ -11,12 +11,14 @@ export const NoScanner = -1;
 export const NoGate = -1;
 export const InfinteGate = 2147483647;
 export const OriginMysteryTrader = 'MysteryTrader';
+export const GenesisDevice = 'Genesis Device';
 
 export type TechStore = {
 	engines: TechEngine[];
 	planetaryScanners: TechPlanetaryScanner[];
 	terraforms: TechTerraform[];
 	defenses: TechDefense[];
+	planetaries: TechPlanetary[];
 	hullComponents: TechHullComponent[];
 	hulls: TechHull[];
 };
@@ -34,6 +36,10 @@ export type Tech = {
 	category: TechCategory;
 	origin?: string;
 };
+
+export type TechPlanetary = {
+	resetPlanet?: boolean;
+} & Tech;
 
 export type TechPlanetaryScanner = {
 	scanRange: number;

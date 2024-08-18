@@ -193,7 +193,8 @@ export enum MessageType {
 	MysteryTraderAgain,
 	MysteryTraderMetWithReward,
 	MysteryTraderMetWithoutReward,
-	MysteryTraderAlreadyRewarded
+	MysteryTraderAlreadyRewarded,
+	PlanetBuiltGensisDevice
 }
 
 // get the next visible message taking into account filters

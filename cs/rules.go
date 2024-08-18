@@ -154,6 +154,7 @@ type MysteryTraderRules struct {
 	MaxWarp               int                          `json:"maxWarp,omitempty"`
 	MaxMysteryTraders     int                          `json:"maxMysteryTraders,omitempty"`
 	RequestedBoon         int                          `json:"requestedBoon,omitempty"`
+	GenesisDeviceCost     Cost                         `json:"genesisDeviceCost"`
 	TechBoon              []MysteryTraderTechBoonRules `json:"techBoon,omitempty"`
 }
 
@@ -289,6 +290,7 @@ func NewRulesWithSeed(seed int64) Rules {
 			MaxWarp:               13,                                     // the fastes warp a mystery trader will go
 			MaxMysteryTraders:     5,                                      // the maximum number of mystery traders spawned in a universe at one time
 			RequestedBoon:         5000,                                   // how many minerals a player must give the MT to get a reward
+			GenesisDeviceCost:     Cost{0, 0, 0, 5000},                    // no miniaturization, always costs this much
 			TechBoon: []MysteryTraderTechBoonRules{
 				{
 					TechLevels: 59,

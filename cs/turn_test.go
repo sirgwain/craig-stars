@@ -2268,3 +2268,34 @@ func Test_turn_mysteryTraderMeetAlreadyRewarded(t *testing.T) {
 	assert.False(t, fleet.Delete)
 	assert.False(t, player.HasAcquiredTech(&AntiMatterTorpedo.Tech))
 }
+
+func Test_turn_buildMysteryTraderGenesisDevice(t *testing.T) {
+	game := createSingleUnitGame()
+	planet := game.Planets[0]
+	game.Rules.MysteryTraderRules.GenesisDeviceCost = Cost{0, 0, 0, 100}
+
+	// build a genesis device
+	planet.ProductionQueue = append(planet.ProductionQueue, ProductionQueueItem{Type: QueueItemTypeGenesisDevice, Quantity: 1})
+	planet.Cargo = Mineral{1000, 1000, 1000}.ToCargo()
+	planet.setPopulation(1_000_000)
+	planet.Defenses = 100
+	planet.Mines = 1000
+	planet.Factories = 1000
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// generate a turn to build a starbase
+	turn.generateTurn()
+
+	// should have an upgraded starbase at the planet, and the other should be
+	// marked for deletion
+	assert.Equal(t, None, planet.PlayerNum)
+	assert.Equal(t, 0, planet.Mines)
+	assert.Equal(t, 0, planet.Factories)
+	assert.Equal(t, 0, planet.Defenses)
+	assert.Equal(t, 0, planet.population())
+}
+

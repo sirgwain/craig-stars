@@ -23,7 +23,8 @@ export const QueueItemTypes = {
 	MixedMineralPacket: 'MixedMineralPacket',
 	ShipToken: 'ShipToken',
 	Starbase: 'Starbase',
-	PlanetaryScanner: 'PlanetaryScanner'
+	PlanetaryScanner: 'PlanetaryScanner',
+	GenesisDevice: 'GenesisDevice'
 } as const;
 
 export const stringToQueueItemType = (value: string): QueueItemType => {
@@ -108,6 +109,8 @@ export function getFullName(item: ProductionQueueItem, designFinder: DesignFinde
 			return 'Mixed Mineral Packet (Auto)';
 		case QueueItemTypes.PlanetaryScanner:
 			return 'Planetary Scanner';
+		case QueueItemTypes.GenesisDevice:
+			return 'Genesis Device';
 		default:
 			return item.type.toString();
 	}

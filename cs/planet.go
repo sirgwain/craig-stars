@@ -604,6 +604,8 @@ func (planet *Planet) maxBuildable(player *Player, t QueueItemType) int {
 			return 0
 		}
 		return 1
+	case QueueItemTypeGenesisDevice:
+		return 1
 	}
 	// default to infinite
 	return Infinite

@@ -787,6 +787,7 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		QueueItemTypeAutoMines:              {Resources: race.MineCost},
 		QueueItemTypeFactory:                {Germanium: rules.FactoryCostGermanium + factoryGermaniumOffset, Resources: race.FactoryCost},
 		QueueItemTypePlanetaryScanner:       rules.PlanetaryScannerCost,
+		QueueItemTypeGenesisDevice:          rules.MysteryTraderRules.GenesisDeviceCost,
 		QueueItemTypeAutoFactories:          {Germanium: rules.FactoryCostGermanium + factoryGermaniumOffset, Resources: race.FactoryCost},
 		QueueItemTypeMineralAlchemy:         {Resources: rules.MineralAlchemyCost + spec.MineralAlchemyCostOffset},
 		QueueItemTypeAutoMineralAlchemy:     {Resources: rules.MineralAlchemyCost + spec.MineralAlchemyCostOffset},

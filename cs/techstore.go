@@ -21,6 +21,7 @@ type TechStore struct {
 	PlanetaryScanners        []TechPlanetaryScanner                `json:"planetaryScanners"`
 	Terraforms               []TechTerraform                       `json:"terraforms"`
 	Defenses                 []TechDefense                         `json:"defenses"`
+	Planetaries              []TechPlanetary                       `json:"planetaries"`
 	HullComponents           []TechHullComponent                   `json:"hullComponents"`
 	Hulls                    []TechHull                            `json:"hulls,omitempty"`
 	techs                    []*Tech                               `json:"-"`
@@ -38,6 +39,7 @@ var StaticTechStore = TechStore{
 	PlanetaryScanners: TechPlanetaryScanners(),
 	Terraforms:        TechTerraforms(),
 	Defenses:          TechDefenses(),
+	Planetaries:       TechPlanetaries(),
 	HullComponents:    TechHullComponents(),
 	Hulls:             TechHulls(),
 }
@@ -79,6 +81,7 @@ func (store *TechStore) Init() {
 		len(store.PlanetaryScanners)+
 		len(store.Terraforms)+
 		len(store.Defenses)+
+		len(store.Planetaries)+
 		len(store.HullComponents)+
 		len(store.Hulls))
 	store.techsByName = make(map[string]interface{}, len(store.techs))
@@ -148,6 +151,14 @@ func (store *TechStore) Init() {
 		store.techs = append(store.techs, &tech.Tech)
 		store.techsByName[name] = tech
 	}
+
+	for i := range store.Planetaries {
+		tech := &store.Planetaries[i]
+		name := store.transformName(tech.Name)
+		store.techs = append(store.techs, &tech.Tech)
+		store.techsByName[name] = tech
+	}
+
 }
 
 func (store *TechStore) GetTech(name string) interface{} {
@@ -2632,6 +2643,13 @@ func TechTerraforms() []TechTerraform {
 		RadiationTerraform7,
 		RadiationTerraform11,
 		RadiationTerraform15,
+	}
+}
+
+func TechPlanetaries() []TechPlanetary {
+
+	return []TechPlanetary{
+		GenesisDevice,
 	}
 }
 

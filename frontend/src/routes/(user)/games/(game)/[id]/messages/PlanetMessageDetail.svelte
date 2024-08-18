@@ -65,6 +65,8 @@
 	{:else}
 		You have built {message.spec.amount ?? 0} factories on {planet.name}.
 	{/if}
+{:else if message.type === MessageType.PlanetBuiltGensisDevice}
+	Strong fundamental forces have rebirthed {planet.name}.
 {:else if message.type === MessageType.PlanetBuiltMineralAlchemy}
 	Your scientists on {planet.name} have transmuted common materials into {message.spec.amount ??
 		0}kT each of Ironium, Boranium and Germanium.

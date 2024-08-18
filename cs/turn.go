@@ -1465,6 +1465,21 @@ func (t *turn) planetProduction() error {
 				planet.Spec = computePlanetSpec(&t.game.Rules, player, planet)
 				messager.planetBuiltScanner(player, planet, planet.Spec.Scanner)
 			}
+			if result.reset {
+				// exciting! planet was reset with a genesis device!
+				planetCopy := *planet
+				planet.emptyPlanet()
+				planet.Mines = 0
+				planet.Factories = 0
+				planet.randomize(&t.game.Rules)
+				planet.RandomArtifact = false // no random artifact on genesis device
+				if player.Race.Spec.LivesOnStarbases {
+					planet.PlayerNum = player.Num
+					planet.Starbase = planetCopy.Starbase
+				}
+				planet.Spec = computePlanetSpec(&t.game.Rules, player, planet)
+				messager.planetBuiltGenesisDevice(player, planet)
+			}
 
 			// log what we actually did
 			for _, itemBuilt := range result.itemsBuilt {

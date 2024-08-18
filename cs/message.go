@@ -178,6 +178,7 @@ const (
 	PlayerMessageMysteryTraderMetWithReward
 	PlayerMessageMysteryTraderMetWithoutReward
 	PlayerMessageMysteryTraderAlreadyRewarded
+	PlayerMessagePlanetBuiltGenesisDevice
 )
 
 func newMessage(messageType PlayerMessageType) PlayerMessage {
@@ -755,6 +756,10 @@ func (m *messageClient) planetBuiltMines(player *Player, planet *Planet, numBuil
 func (m *messageClient) planetBuiltScanner(player *Player, planet *Planet, scanner string) {
 	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetBuiltScanner, planet).
 		withSpec(PlayerMessageSpec{Name: scanner}))
+}
+
+func (m *messageClient) planetBuiltGenesisDevice(player *Player, planet *Planet) {
+	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetBuiltGenesisDevice, planet))
 }
 
 func (m *messageClient) planetBuiltStarbase(player *Player, planet *Planet, fleet *Fleet) {
