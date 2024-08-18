@@ -2289,6 +2289,8 @@ func (t *turn) mysteryTraderMeet() error {
 					}
 					token := ShipToken{design: design, DesignNum: design.Num, Quantity: reward.ShipCount}
 					design.Spec.NumInstances += token.Quantity
+					design.Spec.NumBuilt += token.Quantity
+	
 					rewardFleet, err := t.addFleet(player, fleet.Position, token, Tags{})
 					if err != nil {
 						return err

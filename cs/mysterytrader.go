@@ -432,6 +432,7 @@ func (mt *MysteryTrader) again(rules *Rules, game *Game, numHumanPlayers int) bo
 
 	// point the MT at a new location
 	mt.Destination = generateRandomMysteryTraderDestination(rules, game, mt.Position)
+	mt.Heading = (mt.Destination.Subtract(mt.Position)).Normalized()
 	return true
 }
 

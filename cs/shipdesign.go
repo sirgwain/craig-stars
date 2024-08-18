@@ -21,7 +21,7 @@ type ShipDesign struct {
 	Hull              string            `json:"hull"`
 	HullSetNumber     int               `json:"hullSetNumber"`
 	CannotDelete      bool              `json:"cannotDelete,omitempty"`
-	MysteryTrader     bool              `json:"mysterTrader,omitempty"`
+	MysteryTrader     bool              `json:"mysteryTrader,omitempty"`
 	Slots             []ShipDesignSlot  `json:"slots"`
 	Purpose           ShipDesignPurpose `json:"purpose,omitempty"`
 	Spec              ShipDesignSpec    `json:"spec"`
@@ -175,6 +175,9 @@ func (sd *ShipDesign) Validate(rules *Rules, player *Player) error {
 	hull := rules.techs.GetHull(sd.Hull)
 	if hull == nil {
 		return fmt.Errorf("hull %s not found", sd.Hull)
+	}
+	if !player.HasTech(&hull.Tech) {
+		return fmt.Errorf("hull %s is not available to player", hull.Name)
 	}
 
 	for _, slot := range sd.Slots {

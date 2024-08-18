@@ -942,10 +942,10 @@ func (d *discovererWithAllies) forgetWormhole(num int) {
 	}
 }
 
-func (d *discovererWithAllies) discoverMysteryTrader(mysterTrader *MysteryTrader) {
-	d.playerDiscoverer.discoverMysteryTrader(mysterTrader)
+func (d *discovererWithAllies) discoverMysteryTrader(mysteryTrader *MysteryTrader) {
+	d.playerDiscoverer.discoverMysteryTrader(mysteryTrader)
 	for _, allyDiscoverer := range d.allyDiscoverers {
-		allyDiscoverer.discoverMysteryTrader(mysterTrader)
+		allyDiscoverer.discoverMysteryTrader(mysteryTrader)
 	}
 }
 

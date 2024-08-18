@@ -658,6 +658,18 @@ func (scan *playerScan) updateFleetTargets() {
 					// fleets move, make sure our position updates
 					wp.Position = target.Position
 				}
+			case MapObjectTypeMysteryTrader:
+				target := scan.player.getMysteryTraderIntel(wp.TargetNum)
+				if target == nil {
+					messager.fleetTargetLost(scan.player, fleet, wp.TargetName, wp.TargetType)
+					wp.TargetType = MapObjectTypeNone
+					wp.TargetPlayerNum = None
+					wp.TargetNum = None
+					wp.TargetName = ""
+				} else {
+					// fleets move, make sure our position updates
+					wp.Position = target.Position
+				}
 
 			case MapObjectTypeSalvage:
 				target := scan.player.getSalvageIntel(wp.TargetNum)
