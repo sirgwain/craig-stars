@@ -2546,6 +2546,7 @@ var UltraStation = TechHull{Tech: NewTech("Ultra Station", NewCost(120, 80, 300,
 	SpaceDockSlotSize:        Vector{1, 1},
 	Armor:                    1000,
 	Initiative:               16,
+	RangeBonus:               1,
 	Starbase:                 true,
 	RepairBonus:              .15,       // 20% total repair rate
 	InnateScanRangePenFactor: .5,        // AR races get half innate scanning range for pen scanning
@@ -2576,6 +2577,7 @@ var DeathStar = TechHull{Tech: NewTech("Death Star", NewCost(120, 80, 350, 750),
 	SpaceDockSlotSize:        Vector{1, 1},
 	Armor:                    1500,
 	Initiative:               18,
+	RangeBonus:               1,
 	Starbase:                 true,
 	RepairBonus:              .15,       // 20% total repair rate
 	InnateScanRangePenFactor: .5,        // AR races get half innate scanning range for pen scanning
