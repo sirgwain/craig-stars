@@ -369,3 +369,19 @@ func Test_production_produceMineralPackets(t *testing.T) {
 	assert.Equal(t, Cargo{40, 40, 40, 0}, result.packets[0])
 	assert.Equal(t, 0, len(planet.ProductionQueue))
 }
+
+func Test_production_produceScanner(t *testing.T) {
+	player, planet := newTestPlayerPlanet()
+
+	// build a scanner
+	planet.ProductionQueue = []ProductionQueueItem{{Type: QueueItemTypePlanetaryScanner, Quantity: 1}}
+	planet.Cargo = Cargo{1000, 1000, 1000, 100_000}
+	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 1000, MaxPopulation: 1_000_000}
+	planet.Scanner = false
+
+	// should build 1 mine, leaving empty queue
+	producer := newProducer(planet, player)
+	producer.produce()
+	assert.True(t, planet.Scanner)
+	assert.Equal(t, 0, len(planet.ProductionQueue))
+}

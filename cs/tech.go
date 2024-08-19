@@ -8,6 +8,7 @@ import (
 type TechCategory string
 
 const (
+	TechCategoryNone             TechCategory = ""
 	TechCategoryArmor            TechCategory = "Armor"
 	TechCategoryBeamWeapon       TechCategory = "BeamWeapon"
 	TechCategoryBomb             TechCategory = "Bomb"
@@ -17,6 +18,7 @@ const (
 	TechCategoryMineLayer        TechCategory = "MineLayer"
 	TechCategoryMineRobot        TechCategory = "MineRobot"
 	TechCategoryOrbital          TechCategory = "Orbital"
+	TechCategoryPlanetary        TechCategory = "Planetary"
 	TechCategoryPlanetaryScanner TechCategory = "PlanetaryScanner"
 	TechCategoryPlanetaryDefense TechCategory = "PlanetaryDefense"
 	TechCategoryScanner          TechCategory = "Scanner"
@@ -27,12 +29,39 @@ const (
 	TechCategoryTorpedo          TechCategory = "Torpedo"
 )
 
+var TechCategories = []TechCategory{
+	TechCategoryArmor,
+	TechCategoryBeamWeapon,
+	TechCategoryBomb,
+	TechCategoryElectrical,
+	TechCategoryEngine,
+	TechCategoryMechanical,
+	TechCategoryMineLayer,
+	TechCategoryMineRobot,
+	TechCategoryOrbital,
+	TechCategoryPlanetary,
+	TechCategoryPlanetaryScanner,
+	TechCategoryPlanetaryDefense,
+	TechCategoryScanner,
+	TechCategoryShield,
+	TechCategoryShipHull,
+	TechCategoryStarbaseHull,
+	TechCategoryTerraforming,
+	TechCategoryTorpedo,
+}
+
+const (
+	OriginNone          string = ""
+	OriginMysteryTrader string = "MysteryTrader"
+)
+
 type Tech struct {
 	Name         string           `json:"name"`
 	Cost         Cost             `json:"cost"`
 	Requirements TechRequirements `json:"requirements" `
 	Ranking      int              `json:"ranking,omitempty"`
 	Category     TechCategory     `json:"category,omitempty"`
+	Origin       string           `json:"origin,omitempty"`
 }
 
 type TechRequirements struct {
@@ -43,6 +72,7 @@ type TechRequirements struct {
 	PRTsRequired []PRT    `json:"prtsRequired,omitempty"`
 	HullsAllowed []string `json:"hullsAllowed,omitempty"`
 	HullsDenied  []string `json:"hullsDenied,omitempty"`
+	Acquirable   bool     `json:"acquirable,omitempty"`
 }
 
 type TechHullComponent struct {
@@ -94,6 +124,7 @@ type TechHullComponent struct {
 	DamageShieldsOnly         bool          `json:"damageShieldsOnly,omitempty"`
 	Accuracy                  int           `json:"accuracy,omitempty"`
 	CapitalShipMissile        bool          `json:"capitalShipMissile,omitempty"`
+	CanJump                   bool          `json:"canJump,omitempty"`
 }
 
 type Engine struct {
@@ -248,8 +279,13 @@ func (hst HullSlotType) String() string {
 	}
 }
 
-type TechPlanetaryScanner struct {
+type TechPlanetary struct {
 	Tech
+	ResetPlanet bool `json:"resetPlanet,omitempty"`
+}
+
+type TechPlanetaryScanner struct {
+	TechPlanetary
 	ScanRange    int `json:"scanRange,omitempty"`
 	ScanRangePen int `json:"scanRangePen,omitempty"`
 }
@@ -259,7 +295,7 @@ type Defense struct {
 }
 
 type TechDefense struct {
-	Tech
+	TechPlanetary
 	Defense
 }
 
@@ -300,6 +336,12 @@ func NewTech(name string, cost Cost, requirements TechRequirements, ranking int,
 		Ranking:      ranking,
 		Category:     category,
 	}
+}
+
+func NewTechWithOrigin(name string, cost Cost, requirements TechRequirements, ranking int, category TechCategory, origin string) Tech {
+	t := NewTech(name, cost, requirements, ranking, category)
+	t.Origin = origin
+	return t
 }
 
 func (t *Tech) String() string                 { return t.Name }

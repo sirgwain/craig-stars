@@ -1,8 +1,9 @@
 import { goto } from '$app/navigation';
+import { getScannerTarget } from '$lib/types/Battle';
 import type { CargoTransferRequest } from '$lib/types/Cargo';
 import { CommandedFleet, type Fleet, type ShipToken, type Waypoint } from '$lib/types/Fleet';
 import type { Game, GameSettings } from '$lib/types/Game';
-import { MapObjectType, None, equal, ownedBy, type MapObject, key } from '$lib/types/MapObject';
+import { MapObjectType, None, equal, key, type MapObject } from '$lib/types/MapObject';
 import {
 	MessageTargetType,
 	MessageType,
@@ -27,8 +28,8 @@ import {
 	get,
 	writable,
 	type Readable,
-	type Writable,
-	type Unsubscriber
+	type Unsubscriber,
+	type Writable
 } from 'svelte/store';
 import { BattlePlanService } from './BattlePlanService';
 import { DesignService } from './DesignService';
@@ -41,7 +42,6 @@ import { PlayerService } from './PlayerService';
 import { ProductionPlanService } from './ProductionPlanService';
 import { TransportPlanService } from './TransportPlanService';
 import { Universe } from './Universe';
-import { getScannerTarget } from '$lib/types/Battle';
 
 export const playerFinderKey = Symbol();
 export const designFinderKey = Symbol();
@@ -289,14 +289,39 @@ export function createGameContext(fg: FullGame): GameContext {
 
 		if (message.type === MessageType.PlayerGainTechLevel) {
 			goto(`/games/${gameId}/research`);
+			return;
 		}
 
 		if (message.type === MessageType.BattleReports) {
 			goto(`/games/${gameId}/battles`);
+			return;
 		}
 
 		if (message.type === MessageType.PlayerTechGained && message.spec.techGained) {
 			goto(`/games/${gameId}/techs/${kebabCase(message.spec.techGained)}`);
+			return;
+		}
+
+		if (
+			message.type === MessageType.MysteryTraderMetWithReward &&
+			message.spec.mysteryTrader?.tech
+		) {
+			goto(`/games/${gameId}/techs/${kebabCase(message.spec.mysteryTrader?.tech)}`);
+			return;
+		}
+
+		// the MT gave us a fleet, command it
+		if (
+			message.type === MessageType.MysteryTraderMetWithReward &&
+			message.spec.mysteryTrader?.fleetNum
+		) {
+			const fleet = universe.getFleet(playerNum, message.spec.mysteryTrader?.fleetNum);
+			if (fleet) {
+				gotoTargetFleet(fleet, playerNum, universe);
+				zoomToMapObject(fleet);
+				goto(`/games/${gameId}`);
+				return;
+			}
 		}
 
 		if (message.targetNum) {
@@ -309,35 +334,9 @@ export function createGameContext(fg: FullGame): GameContext {
 				if (target) {
 					// if this is a fleet that we own, select the planet before we command the fleet
 					if (target.type == MapObjectType.Fleet) {
-						if (target.playerNum == playerNum) {
-							commandMapObject(target);
-							const orbitingPlanetNum = (target as Fleet).orbitingPlanetNum;
-							if (orbitingPlanetNum && orbitingPlanetNum != None) {
-								const orbiting = universe.getPlanet(orbitingPlanetNum);
-								if (orbiting) {
-									selectMapObject(orbiting);
-								}
-							}
-						} else {
-							selectMapObject(target);
-						}
+						gotoTargetFleet(target, playerNum, universe);
 					} else if (target.type == MapObjectType.Planet) {
-						if (target.playerNum == playerNum) {
-							commandMapObject(target);
-							if (targetTarget) {
-								selectMapObject(targetTarget);
-							} else {
-								// select the planet as well if we don't have another target
-								// it's weird in the UI to go to a planet that sends a message
-								// and see another planet selected
-								selectMapObject(target);
-							}
-						} else {
-							selectMapObject(target);
-							if (targetTarget && targetTarget.playerNum == playerNum) {
-								commandMapObject(targetTarget);
-							}
-						}
+						gotoTargetPlanet(target, targetTarget, playerNum);
 					} else {
 						selectMapObject(target);
 					}
@@ -346,6 +345,48 @@ export function createGameContext(fg: FullGame): GameContext {
 					zoomToMapObject(target);
 					goto(`/games/${gameId}`);
 				}
+			}
+		}
+	}
+
+	// command/select logic for a goto of a fleet
+	// will select the planet the fleet is orbiting if it has one
+	function gotoTargetFleet(target: MapObject, playerNum: number, universe: Universe) {
+		if (target.playerNum == playerNum) {
+			commandMapObject(target);
+			const orbitingPlanetNum = (target as Fleet).orbitingPlanetNum;
+			if (orbitingPlanetNum && orbitingPlanetNum != None) {
+				const orbiting = universe.getPlanet(orbitingPlanetNum);
+				if (orbiting) {
+					selectMapObject(orbiting);
+				}
+			}
+		} else {
+			selectMapObject(target);
+		}
+	}
+
+	// command/select logic for a goto of a planet
+	// will select an additional target if specified, otherwise selects the planet
+	function gotoTargetPlanet(
+		target: MapObject,
+		targetTarget: MapObject | undefined,
+		playerNum: number
+	) {
+		if (target.playerNum == playerNum) {
+			commandMapObject(target);
+			if (targetTarget) {
+				selectMapObject(targetTarget);
+			} else {
+				// select the planet as well if we don't have another target
+				// it's weird in the UI to go to a planet that sends a message
+				// and see another planet selected
+				selectMapObject(target);
+			}
+		} else {
+			selectMapObject(target);
+			if (targetTarget && targetTarget.playerNum == playerNum) {
+				commandMapObject(targetTarget);
 			}
 		}
 	}

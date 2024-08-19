@@ -270,6 +270,9 @@ function addPlanetaryInstallations(
 		case QueueItemTypes.PlanetaryScanner:
 			planet.scanner = true;
 			break;
+		case QueueItemTypes.GenesisDevice:
+			// TODO: what does a reset do to production queue estimates?
+			break;
 
 		case QueueItemTypes.AutoMinTerraform:
 		case QueueItemTypes.AutoMaxTerraform:

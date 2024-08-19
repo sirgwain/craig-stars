@@ -33,6 +33,7 @@ type Player struct {
 	Messages                  []PlayerMessage      `json:"messages,omitempty"`
 	Designs                   []*ShipDesign        `json:"designs,omitempty"`
 	ScoreHistory              []PlayerScore        `json:"scoreHistory"`
+	AcquiredTechs             map[string]bool      `json:"acquiredTechs,omitempty"`
 	AchievedVictoryConditions Bitmask              `json:"achievedVictoryConditions,omitempty"`
 	Victor                    bool                 `json:"victor"`
 	Stats                     *PlayerStats         `json:"stats,omitempty"`
@@ -162,13 +163,10 @@ const (
 	BattleTacticDisengage BattleTactic = "Disengage"
 	// MaximizeDamage until we are damaged, then disengage
 	BattleTacticDisengageIfChallenged BattleTactic = "DisengageIfChallenged"
-	// If in range of enemy weapons, move away. Only fire if cornered or if at a safe range
+	// If in range of enemy weapons, move away. Only fire if cornered or if from a safe range
 	BattleTacticMinimizeDamageToSelf BattleTactic = "MinimizeDamageToSelf"
-	// Get in range of all weapons then try to maximize damage dealt/damage taken
 	BattleTacticMaximizeNetDamage    BattleTactic = "MaximizeNetDamage"
-	// Get in range of at least 1 weapon, then tey to maximize damage dealt/damage taken
 	BattleTacticMaximizeDamageRatio  BattleTactic = "MaximizeDamageRatio"
-	// Do as much damage as possible; survivability is for losers
 	BattleTacticMaximizeDamage       BattleTactic = "MaximizeDamage"
 )
 
@@ -241,6 +239,7 @@ func NewPlayer(userID int64, race *Race) *Player {
 			ResearchAmount:    15,
 			NextResearchField: NextResearchFieldLowestField,
 		},
+		AcquiredTechs: map[string]bool{},
 	}
 
 	// start with a base discoverer
@@ -276,6 +275,11 @@ func (p *Player) WithResearching(field TechField) *Player {
 
 func (p *Player) WithNextResearchField(field NextResearchField) *Player {
 	p.NextResearchField = field
+	return p
+}
+
+func (p *Player) WithAcquiredTech(techName string) *Player {
+	p.AcquiredTechs[techName] = true
 	return p
 }
 
@@ -390,6 +394,7 @@ func (p *Player) clearTransientIntel() {
 	p.MineFieldIntels = []MineFieldIntel{}
 	p.SalvageIntels = []SalvageIntel{}
 	p.MineralPacketIntels = []MineralPacketIntel{}
+	p.MysteryTraderIntels = []MysteryTraderIntel{}
 }
 
 // for reports that stick around, increment the report age
@@ -515,7 +520,15 @@ func computePlayerSpec(player *Player, rules *Rules, planets []*Planet) PlayerSp
 
 // return true if the player currently has this tech
 func (p *Player) HasTech(tech *Tech) bool {
-	return p.CanLearnTech(tech) && p.TechLevels.HasRequiredLevels(tech.Requirements.TechLevel)
+	return p.CanLearnTech(tech) && p.TechLevels.HasRequiredLevels(tech.Requirements.TechLevel) && (!tech.Requirements.Acquirable || p.HasAcquiredTech(tech))
+}
+
+// HasAcquiredTech returns true if the player has acquired a tech from a different origin
+func (p *Player) HasAcquiredTech(tech *Tech) bool {
+	if !tech.Requirements.Acquirable {
+		return true
+	}
+	return p.AcquiredTechs[tech.Name]
 }
 
 func (p *Player) CanLearnTech(tech *Tech) bool {
@@ -592,23 +605,34 @@ func (p *Player) defaultRelationships(players []*Player, aiFormsAlliances bool) 
 func (p *Player) defaultPlans() PlayerPlans {
 
 	// AR races don't build factories or mines
+	// CA & tri-immune races don't do terraforming
 	defaultProductionPlan := ProductionPlan{
-		Num:  0,
-		Name: "Default",
-		Items: []ProductionPlanItem{
-			{Type: QueueItemTypeAutoMinTerraform, Quantity: 1},
-		},
+		Num:   0,
+		Name:  "Default",
+		Items: []ProductionPlanItem{},
+	}
+
+	if !p.Race.Spec.Instaforming && !(p.Race.ImmuneGrav && p.Race.ImmuneTemp && p.Race.ImmuneRad) {
+		defaultProductionPlan.Items = append(defaultProductionPlan.Items,
+			ProductionPlanItem{Type: QueueItemTypeAutoMinTerraform, Quantity: 1},
+		)
 	}
 
 	if !p.Race.Spec.InnateResources {
 		defaultProductionPlan.Items = append(defaultProductionPlan.Items,
-			ProductionPlanItem{Type: QueueItemTypeAutoFactories, Quantity: 100},
+			ProductionPlanItem{Type: QueueItemTypeAutoFactories, Quantity: 250},
 		)
 	}
 
 	if !p.Race.Spec.InnateMining {
 		defaultProductionPlan.Items = append(defaultProductionPlan.Items,
-			ProductionPlanItem{Type: QueueItemTypeAutoMines, Quantity: 100},
+			ProductionPlanItem{Type: QueueItemTypeAutoMines, Quantity: 250},
+		)
+	}
+
+	if !p.Race.Spec.Instaforming && !(p.Race.ImmuneGrav && p.Race.ImmuneTemp && p.Race.ImmuneRad) {
+		defaultProductionPlan.Items = append(defaultProductionPlan.Items,
+			ProductionPlanItem{Type: QueueItemTypeAutoMaxTerraform, Quantity: 1},
 		)
 	}
 
@@ -624,11 +648,43 @@ func (p *Player) defaultPlans() PlayerPlans {
 				Tactic:          BattleTacticMaximizeDamageRatio,
 				AttackWho:       BattleAttackWhoEnemiesAndNeutrals,
 			},
+			{
+				Num:             1,
+				Name:            "KillStarbase",
+				PrimaryTarget:   BattleTargetStarbase,
+				SecondaryTarget: BattleTargetArmedShips,
+				Tactic:          BattleTacticMaximizeDamageRatio,
+				AttackWho:       BattleAttackWhoEnemiesAndNeutrals,
+			},
+			{
+				Num:             2,
+				Name:            "Max Defense",
+				PrimaryTarget:   BattleTargetArmedShips,
+				SecondaryTarget: BattleTargetBombersFreighters,
+				Tactic:          BattleTacticMaximizeNetDamage,
+				AttackWho:       BattleAttackWhoEnemiesAndNeutrals,
+			},
+			{
+				Num:             3,
+				Name:            "Sniper",
+				PrimaryTarget:   BattleTargetUnarmedShips,
+				SecondaryTarget: BattleTargetNone,
+				Tactic:          BattleTacticDisengageIfChallenged,
+				AttackWho:       BattleAttackWhoEnemiesAndNeutrals,
+			},
+			{
+				Num:             4,
+				Name:            "Chicken",
+				PrimaryTarget:   BattleTargetAny,
+				SecondaryTarget: BattleTargetNone,
+				Tactic:          BattleTacticDisengage,
+				AttackWho:       BattleAttackWhoEnemiesAndNeutrals,
+			},
 		},
 		TransportPlans: []TransportPlan{
 			{
 				Num:  0,
-				Name: "Clear",
+				Name: "Clear All",
 			},
 			{
 				Num:  1,

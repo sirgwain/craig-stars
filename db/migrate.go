@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"embed"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 	"time"
@@ -15,7 +14,7 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/sqlite3"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
-	_ "github.com/mattn/go-sqlite3"
+	mattnsqlite3 "github.com/mattn/go-sqlite3"
 )
 
 //go:embed schema/users/*.sql
@@ -135,23 +134,49 @@ func (c *dbConn) mustBackup(filename string, version uint) string {
 	ts := time.Now().UTC().Format(time.RFC3339)
 	backup := fmt.Sprintf("%s.%d.%s", filename, version, strings.Replace(ts, ":", "", -1))
 
-	log.Info().Msgf("backing up %s -> %s", filename, backup)
-	if err := c.copyFile(filename, backup); err != nil {
-		log.Fatal().Err(err).Msgf("backup %s -> %s", filename, backup)
+	// register a connect hook so we can get the sqlite3 connection for backup
+	// code from here: https://github.com/mattn/go-sqlite3/blob/master/_example/hook/hook.go
+	register := "sqlite3_backup_" + filename
+	sqlite3conn := []*mattnsqlite3.SQLiteConn{}
+	sql.Register(register, &mattnsqlite3.SQLiteDriver{
+		ConnectHook: func(conn *mattnsqlite3.SQLiteConn) error {
+			sqlite3conn = append(sqlite3conn, conn)
+			return nil
+		},
+	})
+
+	// connect to the source
+	srcDb, err := sql.Open(register, filename)
+	if err != nil {
+		log.Fatal().Err(err).Msgf("failed to connect to %s to backup", filename)
 	}
+	defer srcDb.Close()
+	srcDb.Ping()
+
+	// connect to the dest
+	destDb, err := sql.Open(register, backup)
+	if err != nil {
+		log.Fatal().Err(err).Msgf("failed to connect to %s to backup", backup)
+	}
+	defer destDb.Close()
+	destDb.Ping()
+
+	// perform the backup
+	bk, err := sqlite3conn[1].Backup("main", sqlite3conn[0], "main")
+	if err != nil {
+		log.Fatal().Err(err).Msgf("failed to backup %s", backup)
+	}
+
+	_, err = bk.Step(-1)
+	if err != nil {
+		log.Fatal().Err(err).Msgf("failed backup step %s", backup)
+	}
+
+	if err := bk.Finish(); err != nil {
+		log.Fatal().Err(err).Msgf("failed backup finish %s", backup)
+	}
+
+	log.Info().Msgf("backed up database %s -> %s", filename, backup)
+
 	return backup
-}
-
-// copy a file from one place to another
-func (c *dbConn) copyFile(sourceFile, destinationFile string) error {
-	input, err := ioutil.ReadFile(sourceFile)
-	if err != nil {
-		return err
-	}
-
-	err = ioutil.WriteFile(destinationFile, input, 0644)
-	if err != nil {
-		return err
-	}
-	return nil
 }

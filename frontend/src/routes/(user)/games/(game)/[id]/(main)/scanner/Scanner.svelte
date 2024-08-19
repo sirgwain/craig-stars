@@ -31,6 +31,7 @@
 	import ScannerMineFieldPattern from './ScannerMineFieldPattern.svelte';
 	import ScannerMineFields from './ScannerMineFields.svelte';
 	import ScannerMineralPackets from './ScannerMineralPackets.svelte';
+	import ScannerMysteryTraders from './ScannerMysteryTraders.svelte';
 	import ScannerNames from './ScannerNames.svelte';
 	import ScannerPacketDests from './ScannerPacketDests.svelte';
 	import ScannerPlanets from './ScannerPlanets.svelte';
@@ -724,6 +725,7 @@
 				<ScannerMineralPackets />
 				<ScannerWormholes />
 				<ScannerFleets />
+				<ScannerMysteryTraders />
 				<ScannerWarpLine />
 				<ScannerWormholeLinks />
 				<ScannerSalvages />

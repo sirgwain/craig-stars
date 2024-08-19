@@ -78,4 +78,8 @@
 			</div>
 		{/if}
 	{/each}
+
+	{#if (tech.origin ?? '') != ''}
+		<div>The origin of this part is unknown.</div>
+	{/if}
 </div>

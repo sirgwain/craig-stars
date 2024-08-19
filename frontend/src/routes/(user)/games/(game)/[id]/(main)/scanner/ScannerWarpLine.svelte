@@ -34,7 +34,11 @@
 			const heading = mo.heading ?? { x: 0, y: 0 };
 			const warpSpeed = mo.warpSpeed ?? 0;
 			const distPerLy = warpSpeed * warpSpeed;
-			color = $universe.getPlayerColor(mo.playerNum);
+			if (mo.playerNum) {
+				color = $universe.getPlayerColor(mo.playerNum);
+			} else if (mo.type == MapObjectType.MysteryTrader) {
+				color = '#00FFFF'
+			}
 
 			if (warpSpeed) {
 				const coords = [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5].map((dist: number) => ({

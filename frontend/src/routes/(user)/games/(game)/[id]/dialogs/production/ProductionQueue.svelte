@@ -21,6 +21,7 @@
 	import type { ProductionQueueItem } from '$lib/types/Production';
 	import { getFullName, isAuto } from '$lib/types/QueueItemType';
 	import { getPlanetHabitability } from '$lib/types/Race';
+	import { GenesisDevice } from '$lib/types/Tech';
 	import {
 		ArrowLongDown,
 		ArrowLongLeft,
@@ -403,11 +404,13 @@
 	function resetQueue() {
 		contributesOnlyLeftoverToResearch = planet.contributesOnlyLeftoverToResearch;
 		queueItems = [...planet.productionQueue?.map((item) => ({ ...item }) as ProductionQueueItem)];
+		const genesisDevice = $techs.getTech(GenesisDevice);
 		availableItems = planet.getAvailableProductionQueueItems(
 			planet,
 			$player.race.spec?.innateMining,
 			$player.race.spec?.innateResources,
-			$player.race.spec?.livesOnStarbases
+			$player.race.spec?.livesOnStarbases,
+			genesisDevice && $player.hasTech(genesisDevice)
 		);
 		availableShipDesigns = planet.getAvailableProductionQueueShipDesigns(planet, $universe.designs);
 		availableStarbaseDesigns = planet.getAvailableProductionQueueStarbaseDesigns(

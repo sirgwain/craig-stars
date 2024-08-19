@@ -5,6 +5,7 @@
 	export type Results = {
 		planets: Planet[];
 		fleets: Fleet[];
+		mysteryTraders: MysteryTrader[];
 	};
 
 	export type SearchResultsEvent = {
@@ -19,6 +20,7 @@
 	import hotkeys from 'hotkeys-js';
 	import { createEventDispatcher, onMount } from 'svelte';
 	import MineralMini from '$lib/components/game/MineralMini.svelte';
+	import type { MysteryTrader } from '$lib/types/MysteryTrader';
 
 	const { game, player, universe, settings, commandMapObject, selectMapObject, zoomToMapObject } =
 		getGameContext();
@@ -35,19 +37,26 @@
 			? results.planets[selectedItemIndex]
 			: selectedItemIndex < results.planets.length + results.fleets.length
 				? results.fleets[selectedItemIndex - results.planets.length]
-				: undefined;
+				: selectedItemIndex <
+					  results.planets.length + results.fleets.length + results.mysteryTraders.length
+					? results.mysteryTraders[
+							selectedItemIndex - results.planets.length + results.fleets.length
+						]
+					: undefined;
 
 	function getResults(search: string): Results {
 		if (search == '') {
 			return {
 				planets: [],
-				fleets: []
+				fleets: [],
+				mysteryTraders: []
 			};
 		}
 		const terms = search.split(' ');
 
 		const planets = $universe.getPlanets($settings.sortPlanetsKey, $settings.sortPlanetsDescending);
 		const fleets = $universe.getFleets($settings.sortFleetsKey, $settings.sortFleetsDescending);
+		const mysteryTraders = $universe.mysteryTraders;
 
 		// return true if a mapboject name or player matches a search term
 		const termSearch = (term: string, mo: MapObject): boolean =>
@@ -62,7 +71,12 @@
 				planets.filter((i) => terms.every((term) => termSearch(term, i))).slice(0, maxResults) ??
 				[],
 			fleets:
-				fleets.filter((i) => terms.every((term) => termSearch(term, i))).slice(0, maxResults) ?? []
+				fleets.filter((i) => terms.every((term) => termSearch(term, i))).slice(0, maxResults) ?? [],
+
+			mysteryTraders:
+				mysteryTraders
+					.filter((i) => terms.every((term) => termSearch(term, i)))
+					.slice(0, maxResults) ?? []
 		};
 	}
 
@@ -79,7 +93,7 @@
 
 	function selectNext() {
 		selectedItemIndex = Math.min(
-			results.planets.length + results.fleets.length,
+			results.planets.length + results.fleets.length + results.mysteryTraders.length,
 			selectedItemIndex + 1
 		);
 	}
@@ -100,23 +114,16 @@
 				ok();
 				event.preventDefault();
 				break;
+			case 'Escape':
+				cancel();
+				event.preventDefault();
+				break;
 		}
 	}
 
 	let searchInput: HTMLInputElement | undefined;
 	onMount(() => {
-		const originalScope = hotkeys.getScope();
-		const scope = 'search';
-		hotkeys('Esc', cancel);
-		hotkeys.setScope(scope);
-
 		searchInput?.focus();
-
-		return () => {
-			hotkeys.unbind('Esc', cancel);
-			hotkeys.deleteScope(scope);
-			hotkeys.setScope(originalScope);
-		};
 	});
 	// when search chnages, update our search results
 	$: results = getResults(search);
@@ -222,6 +229,25 @@
 									>{$universe.getPlayerName(fleet.playerNum)}</span
 								>
 								{fleet.name}</button
+							>
+						</li>
+					{/each}
+				</ul>
+			{/if}
+			{#if results.mysteryTraders.length > 0}
+				<h3 class="text-2xl font-bold mb-1">Mystery Traders</h3>
+				<ul class="mx-1">
+					{#each results.mysteryTraders as mysterytrader, index}
+						<!-- svelte-ignore a11y-mouse-events-have-key-events -->
+						<li
+							class="rounded-lg px-2"
+							class:bg-primary={selectedItemIndex ==
+								results.planets.length + results.fleets.length + index}
+							on:mouseover={(e) =>
+								(selectedItemIndex = results.planets.length + results.fleets.length + index)}
+						>
+							<button class="text-xl text-left w-full" on:click={ok}>
+								<span class="text-mystery-trader"> {mysterytrader.name}</span></button
 							>
 						</li>
 					{/each}

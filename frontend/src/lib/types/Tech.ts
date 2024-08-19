@@ -10,12 +10,15 @@ export const UnlimitedSpaceDock = -1;
 export const NoScanner = -1;
 export const NoGate = -1;
 export const InfinteGate = 2147483647;
+export const OriginMysteryTrader = 'MysteryTrader';
+export const GenesisDevice = 'Genesis Device';
 
 export type TechStore = {
 	engines: TechEngine[];
 	planetaryScanners: TechPlanetaryScanner[];
 	terraforms: TechTerraform[];
 	defenses: TechDefense[];
+	planetaries: TechPlanetary[];
 	hullComponents: TechHullComponent[];
 	hulls: TechHull[];
 };
@@ -31,7 +34,12 @@ export type Tech = {
 	requirements: TechRequirements;
 	ranking?: number;
 	category: TechCategory;
+	origin?: string;
 };
+
+export type TechPlanetary = {
+	resetPlanet?: boolean;
+} & Tech;
 
 export type TechPlanetaryScanner = {
 	scanRange: number;
@@ -195,6 +203,7 @@ export enum TechCategory {
 	MineLayer = 'MineLayer',
 	MineRobot = 'MineRobot',
 	Orbital = 'Orbital',
+	Planetary = 'Planetary',
 	PlanetaryScanner = 'PlanetaryScanner',
 	PlanetaryDefense = 'PlanetaryDefense',
 	Scanner = 'Scanner',
@@ -212,6 +221,7 @@ export type TechRequirements = {
 	prtsDenied?: PRT[];
 	hullsAllowed?: string[];
 	hullsDenied?: string[];
+	acquirable?: boolean;
 } & TechLevel;
 
 /**
@@ -234,6 +244,7 @@ export const isHullComponent = (category: TechCategory): boolean => {
 		case TechCategory.Torpedo:
 		case TechCategory.Shield:
 			return true;
+		case TechCategory.Planetary:
 		case TechCategory.PlanetaryScanner:
 		case TechCategory.PlanetaryDefense:
 		case TechCategory.ShipHull:

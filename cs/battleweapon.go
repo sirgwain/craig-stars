@@ -89,7 +89,7 @@ func newBattleWeaponSlot(token *battleToken, slot ShipDesignSlot, hc *TechHullCo
 
 	if hc.Category == TechCategoryBeamWeapon {
 		weaponSlot.weaponType = battleWeaponTypeBeam
-		weaponSlot.power = int(float64(weaponSlot.power) * (1 + beamBonus))
+		weaponSlot.power = int(float64(weaponSlot.power) * (beamBonus))
 	} else if hc.Category == TechCategoryTorpedo {
 		weaponSlot.weaponType = battleWeaponTypeTorpedo
 	}

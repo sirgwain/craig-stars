@@ -21,6 +21,7 @@ type ShipDesign struct {
 	Hull              string            `json:"hull"`
 	HullSetNumber     int               `json:"hullSetNumber"`
 	CannotDelete      bool              `json:"cannotDelete,omitempty"`
+	MysteryTrader     bool              `json:"mysteryTrader,omitempty"`
 	Slots             []ShipDesignSlot  `json:"slots"`
 	Purpose           ShipDesignPurpose `json:"purpose,omitempty"`
 	Spec              ShipDesignSpec    `json:"spec"`
@@ -34,69 +35,70 @@ type ShipDesignSlot struct {
 }
 
 type ShipDesignSpec struct {
-	HullType                  TechHullType          `json:"hullType,omitempty"`
-	Engine                    Engine                `json:"engine,omitempty"`
-	NumEngines                int                   `json:"numEngines,omitempty"`
-	Cost                      Cost                  `json:"cost,omitempty"`
-	TechLevel                 TechLevel             `json:"techLevel,omitempty"`
-	Mass                      int                   `json:"mass,omitempty"`
+	AdditionalMassDrivers     int                   `json:"additionalMassDrivers,omitempty"`
 	Armor                     int                   `json:"armor,omitempty"`
-	FuelCapacity              int                   `json:"fuelCapacity,omitempty"`
-	FuelGeneration            int                   `json:"fuelGeneration,omitempty"`
-	CargoCapacity             int                   `json:"cargoCapacity,omitempty"`
-	CloakUnits                int                   `json:"cloakUnits,omitempty"`
-	ScanRange                 int                   `json:"scanRange,omitempty"`
-	ScanRangePen              int                   `json:"scanRangePen,omitempty"`
-	InnateScanRangePenFactor  float64               `json:"innateScanRangePenFactor,omitempty"`
-	RepairBonus               float64               `json:"repairBonus,omitempty"`
-	TorpedoJamming            float64               `json:"torpedoJamming,omitempty"`
-	TorpedoBonus              float64               `json:"torpedoBonus,omitempty"`
+	BasePacketSpeed           int                   `json:"basePacketSpeed,omitempty"`
 	BeamBonus                 float64               `json:"beamBonus,omitempty"`
 	BeamDefense               float64               `json:"beamDefense,omitempty"`
-	Initiative                int                   `json:"initiative,omitempty"`
-	MovementBonus             int                   `json:"movementBonus,omitempty"`
-	Movement                  int                   `json:"movement,omitempty"`
-	MovementFull              int                   `json:"movementFull,omitempty"`
-	ReduceMovement            int                   `json:"reduceMovement,omitempty"`
-	PowerRating               int                   `json:"powerRating,omitempty"`
 	Bomber                    bool                  `json:"bomber,omitempty"`
 	Bombs                     []Bomb                `json:"bombs,omitempty"`
-	SmartBombs                []Bomb                `json:"smartBombs,omitempty"`
-	RetroBombs                []Bomb                `json:"retroBombs,omitempty"`
-	Scanner                   bool                  `json:"scanner,omitempty"`
-	ImmuneToOwnDetonation     bool                  `json:"immuneToOwnDetonation,omitempty"`
-	MineLayingRateByMineType  map[MineFieldType]int `json:"mineLayingRateByMineType,omitempty"`
-	Shields                   int                   `json:"shields,omitempty"`
-	Colonizer                 bool                  `json:"colonizer,omitempty"`
-	Starbase                  bool                  `json:"starbase,omitempty"`
+	CanJump                   bool                  `json:"canJump,omitempty"`
 	CanLayMines               bool                  `json:"canLayMines,omitempty"`
-	SpaceDock                 int                   `json:"spaceDock,omitempty"`
-	MiningRate                int                   `json:"miningRate,omitempty"`
-	TerraformRate             int                   `json:"terraformRate,omitempty"`
-	MineSweep                 int                   `json:"mineSweep,omitempty"`
-	CloakPercent              int                   `json:"cloakPercent,omitempty"`
-	CloakPercentFullCargo     int                   `json:"cloakPercentFullCargo,omitempty"`
-	ReduceCloaking            float64               `json:"reduceCloaking,omitempty"`
 	CanStealFleetCargo        bool                  `json:"canStealFleetCargo,omitempty"`
 	CanStealPlanetCargo       bool                  `json:"canStealPlanetCargo,omitempty"`
-	OrbitalConstructionModule bool                  `json:"orbitalConstructionModule,omitempty"`
-	HasWeapons                bool                  `json:"hasWeapons,omitempty"`
-	WeaponSlots               []ShipDesignSlot      `json:"weaponSlots,omitempty"`
-	Stargate                  string                `json:"stargate,omitempty"`
-	SafeHullMass              int                   `json:"safeHullMass,omitempty"`
-	SafeRange                 int                   `json:"safeRange,omitempty"`
-	MaxHullMass               int                   `json:"maxHullMass,omitempty"`
-	MaxRange                  int                   `json:"maxRange,omitempty"`
-	MassDriver                string                `json:"massDriver,omitempty"`
-	SafePacketSpeed           int                   `json:"safePacketSpeed,omitempty"`
-	BasePacketSpeed           int                   `json:"basePacketSpeed,omitempty"`
-	AdditionalMassDrivers     int                   `json:"additionalMassDrivers,omitempty"`
-	MaxPopulation             int                   `json:"maxPopulation,omitempty"`
-	Radiating                 bool                  `json:"radiating,omitempty"`
-	NumInstances              int                   `json:"numInstances,omitempty"`
-	NumBuilt                  int                   `json:"numBuilt,omitempty"`
+	CargoCapacity             int                   `json:"cargoCapacity,omitempty"`
+	CloakPercent              int                   `json:"cloakPercent,omitempty"`
+	CloakPercentFullCargo     int                   `json:"cloakPercentFullCargo,omitempty"`
+	CloakUnits                int                   `json:"cloakUnits,omitempty"`
+	Colonizer                 bool                  `json:"colonizer,omitempty"`
+	Cost                      Cost                  `json:"cost,omitempty"`
+	Engine                    Engine                `json:"engine,omitempty"`
 	EstimatedRange            int                   `json:"estimatedRange,omitempty"`
 	EstimatedRangeFull        int                   `json:"estimatedRangeFull,omitempty"`
+	FuelCapacity              int                   `json:"fuelCapacity,omitempty"`
+	FuelGeneration            int                   `json:"fuelGeneration,omitempty"`
+	HasWeapons                bool                  `json:"hasWeapons,omitempty"`
+	HullType                  TechHullType          `json:"hullType,omitempty"`
+	ImmuneToOwnDetonation     bool                  `json:"immuneToOwnDetonation,omitempty"`
+	Initiative                int                   `json:"initiative,omitempty"`
+	InnateScanRangePenFactor  float64               `json:"innateScanRangePenFactor,omitempty"`
+	Mass                      int                   `json:"mass,omitempty"`
+	MassDriver                string                `json:"massDriver,omitempty"`
+	MaxHullMass               int                   `json:"maxHullMass,omitempty"`
+	MaxPopulation             int                   `json:"maxPopulation,omitempty"`
+	MaxRange                  int                   `json:"maxRange,omitempty"`
+	MineLayingRateByMineType  map[MineFieldType]int `json:"mineLayingRateByMineType,omitempty"`
+	MineSweep                 int                   `json:"mineSweep,omitempty"`
+	MiningRate                int                   `json:"miningRate,omitempty"`
+	Movement                  int                   `json:"movement,omitempty"`
+	MovementBonus             int                   `json:"movementBonus,omitempty"`
+	MovementFull              int                   `json:"movementFull,omitempty"`
+	NumBuilt                  int                   `json:"numBuilt,omitempty"`
+	NumEngines                int                   `json:"numEngines,omitempty"`
+	NumInstances              int                   `json:"numInstances,omitempty"`
+	OrbitalConstructionModule bool                  `json:"orbitalConstructionModule,omitempty"`
+	PowerRating               int                   `json:"powerRating,omitempty"`
+	Radiating                 bool                  `json:"radiating,omitempty"`
+	ReduceCloaking            float64               `json:"reduceCloaking,omitempty"`
+	ReduceMovement            int                   `json:"reduceMovement,omitempty"`
+	RepairBonus               float64               `json:"repairBonus,omitempty"`
+	RetroBombs                []Bomb                `json:"retroBombs,omitempty"`
+	SafeHullMass              int                   `json:"safeHullMass,omitempty"`
+	SafePacketSpeed           int                   `json:"safePacketSpeed,omitempty"`
+	SafeRange                 int                   `json:"safeRange,omitempty"`
+	Scanner                   bool                  `json:"scanner,omitempty"`
+	ScanRange                 int                   `json:"scanRange,omitempty"`
+	ScanRangePen              int                   `json:"scanRangePen,omitempty"`
+	Shields                   int                   `json:"shields,omitempty"`
+	SmartBombs                []Bomb                `json:"smartBombs,omitempty"`
+	SpaceDock                 int                   `json:"spaceDock,omitempty"`
+	Starbase                  bool                  `json:"starbase,omitempty"`
+	Stargate                  string                `json:"stargate,omitempty"`
+	TechLevel                 TechLevel             `json:"techLevel,omitempty"`
+	TerraformRate             int                   `json:"terraformRate,omitempty"`
+	TorpedoBonus              float64               `json:"torpedoBonus,omitempty"`
+	TorpedoJamming            float64               `json:"torpedoJamming,omitempty"`
+	WeaponSlots               []ShipDesignSlot      `json:"weaponSlots,omitempty"`
 }
 
 type MineLayingRateByMineType struct {
@@ -173,6 +175,9 @@ func (sd *ShipDesign) Validate(rules *Rules, player *Player) error {
 	hull := rules.techs.GetHull(sd.Hull)
 	if hull == nil {
 		return fmt.Errorf("hull %s not found", sd.Hull)
+	}
+	if !player.HasTech(&hull.Tech) {
+		return fmt.Errorf("hull %s is not available to player", hull.Name)
 	}
 
 	for _, slot := range sd.Slots {
@@ -273,9 +278,11 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		InnateScanRangePenFactor: hull.InnateScanRangePenFactor,
 	}
 
-	// count the number of each type of battle computer we have
+	// count the number of each type of battle component we have
 	torpedoBonusesByCount := map[float64]int{}
 	torpedoJammersByCount := map[float64]int{}
+	beamBoostersByCount := map[float64]int{}
+	beamDeflectorsByCount := map[float64]int{}
 
 	numTachyonDetectors := 0
 
@@ -324,6 +331,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 			spec.OrbitalConstructionModule = spec.OrbitalConstructionModule || component.OrbitalConstructionModule
 			spec.CanStealFleetCargo = spec.CanStealFleetCargo || component.CanStealFleetCargo
 			spec.CanStealPlanetCargo = spec.CanStealPlanetCargo || component.CanStealPlanetCargo
+			spec.CanJump = spec.CanJump || component.CanJump
 			spec.Radiating = spec.Radiating || component.Radiating
 
 			// Add this mine type to the layers this design has
@@ -338,22 +346,22 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 				spec.MineLayingRateByMineType[component.MineFieldType] += int(float64(component.MineLayingRate) * float64(slot.Quantity) * (1 + hull.MineLayingBonus))
 			}
 
-			// count battle computers
+			// count battle computers, jammers, capacitors & deflectors
 			if component.TorpedoBonus > 0 {
 				torpedoBonusesByCount[component.TorpedoBonus] += slot.Quantity
 			}
-
-			// count jammers
 			if component.TorpedoJamming > 0 {
 				torpedoJammersByCount[component.TorpedoJamming] += slot.Quantity
 			}
-
-			// beam bonuses (capacitors are capped at 2.55x; beam deflectors are unlimited)
-			spec.BeamBonus += math.Min(math.Pow(1+component.BeamBonus, float64(slot.Quantity))-1, 1.55)
-			spec.BeamDefense += math.Pow(1+component.BeamDefense, float64(slot.Quantity))-1
+			if component.BeamBonus > 0 {
+				beamBoostersByCount[component.BeamBonus] += slot.Quantity
+			}
+			if component.BeamDefense > 0 {
+				beamDeflectorsByCount[component.BeamDefense] += slot.Quantity
+			}
 
 			// if this slot has a bomb, this design is a bomber
-			if component.HullSlotType == HullSlotTypeBomb || component.MinKillRate > 0 {
+			if component.HullSlotType == HullSlotTypeBomb || component.MinKillRate > 0 || component.KillRate > 0 || component.StructureDestroyRate > 0 || component.UnterraformRate > 0 {
 				spec.Bomber = true
 				bomb := Bomb{
 					Quantity:             slot.Quantity,
@@ -398,7 +406,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 			if component.ReduceCloaking {
 				numTachyonDetectors++
 			}
-			// cargo and space doc that are built into the hull
+			// cargo and space dock that are built into the hull
 			// the space dock assumes that there is only one slot like that
 			// it won't add them up
 
@@ -454,13 +462,14 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		spec.ReduceCloaking = 1
 	}
 
+	// Calculate final bonuses for computing, jamming, capacitating & jamming
 	if len(torpedoBonusesByCount) > 0 {
 		spec.TorpedoBonus = 1
 		for torpedoBonus, count := range torpedoBonusesByCount {
 			// for 3 Battle Computer 30s, this calc is 1-(.7^3) or 65%
 			bonus := 1 - math.Pow(1-torpedoBonus, float64(count))
 
-			// if there are multiple battle computer slots all adding together, they are added like
+			// if there are multiple battle computer slots all working together, they multiply together
 			// 1−((1−BC20Bonus)×(1−BC30Bonus)×(1−BC50Bonus))
 			spec.TorpedoBonus *= 1 - bonus
 		}
@@ -475,10 +484,10 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 	if len(torpedoJammersByCount) > 0 {
 		spec.TorpedoJamming = 1
 		for torpedoJammer, count := range torpedoJammersByCount {
-			// for 3 Jammer 10s, this calc is 1-(.9^3) or 65%
+			// for 3 Jammer 10s, this calc is 1-(.9^3) or 27.1%
 			jammer := 1 - math.Pow(1-torpedoJammer, float64(count))
 
-			// if there are multiple battle computer slots all adding together, they are added like
+			// if there are multiple jammer slots all working together, they multiply together
 			// 1−((1−Jammer10)×(1−Jammer20)×(1−Jammer30))
 			spec.TorpedoJamming *= 1 - jammer
 		}
@@ -488,6 +497,35 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 
 		// golang, why you be like this? nobody wants 1-.2^1 to be .199999994
 		spec.TorpedoJamming = math.Min(.95, roundFloat(spec.TorpedoJamming, 4))
+	}
+
+	// beam bonus defaults to 1
+	spec.BeamBonus = 1
+	if len(beamBoostersByCount) > 0 {
+		for beamBonus, count := range beamBoostersByCount {
+			// for 3 flux caps, this calc is 1-(1.2^3) for 1.728x beam damage
+			bonus := math.Pow(1+beamBonus, float64(count))
+
+			// multiple beam boosters stack multiplicatively
+			spec.BeamBonus *= bonus
+		}
+
+		// Return final % bonus, rounded to 4 decimal places and capped at 155% base damage
+		spec.BeamBonus = math.Min(roundFloat(spec.BeamBonus, 4), 2.55)
+	}
+
+	if len(beamDeflectorsByCount) > 0 {
+		spec.BeamDefense = 1
+		for beamDefense, count := range beamDeflectorsByCount {
+			// for 3 deflectors, this calc is 1-(0.9^3) for 0.729x beam damage taken
+			bonus := math.Pow(1-beamDefense, float64(count))
+
+			// multiple beam deflectors stack multiplicatively
+			spec.BeamDefense *= bonus
+		}
+
+		// Return final % dmg reduction, rounded to 4 decimal places
+		spec.BeamDefense = roundFloat(spec.BeamDefense, 4)
 	}
 
 	if spec.NumEngines > 0 {
@@ -501,7 +539,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		spec.MovementFull = 0
 	}
 
-	beamPower = int(float64(beamPower) * (1 + spec.BeamBonus))
+	beamPower = int(float64(beamPower) * (spec.BeamBonus))
 	if beamPower > 0 {
 		// starbases don't move, but for the beam power calcs
 		// assume they have a movement of "2" which is the lowest possible

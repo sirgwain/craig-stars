@@ -87,6 +87,7 @@ const (
 	QueueItemTypeShipToken              QueueItemType = "ShipToken"
 	QueueItemTypeStarbase               QueueItemType = "Starbase"
 	QueueItemTypePlanetaryScanner       QueueItemType = "PlanetaryScanner"
+	QueueItemTypeGenesisDevice          QueueItemType = "GenesisDevice"
 )
 
 // true if this is an auto type
@@ -143,6 +144,7 @@ type productionResult struct {
 	tokens            []builtShip
 	packets           []Cargo
 	scanner           bool
+	reset             bool
 	starbase          *ShipDesign
 	alchemy           Mineral
 	mines             int
@@ -349,6 +351,8 @@ func (p *production) addPlanetaryInstallations(item ProductionQueueItem, numBuil
 		fallthrough
 	case QueueItemTypeDefenses:
 		p.planet.Defenses += numBuilt
+	case QueueItemTypePlanetaryScanner:
+		p.planet.Scanner = true
 	}
 }
 
@@ -448,5 +452,7 @@ func (p *production) updateProductionResult(item ProductionQueueItem, numBuilt i
 		result.starbase = item.design
 	case QueueItemTypePlanetaryScanner:
 		result.scanner = true
+	case QueueItemTypeGenesisDevice:
+		result.reset = true
 	}
 }

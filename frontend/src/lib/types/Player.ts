@@ -67,6 +67,7 @@ export type PlayerResponse = {
 	researchSpentLastYear?: number;
 	achievedVictoryConditions?: number;
 	relations: PlayerRelationship[];
+	acquiredTechs?: Record<string, boolean>;
 	spec: PlayerSpec;
 } & PlayerOrders &
 	PlayerMessages &
@@ -213,6 +214,7 @@ export class Player implements PlayerResponse, CostFinder {
 	transportPlans: TransportPlan[] = [];
 	messages: Message[] = [];
 	relations: PlayerRelationship[] = [];
+	acquiredTechs: Record<string, boolean> = {};
 	spec: PlayerSpec = {};
 
 	constructor(data?: PlayerResponse) {
@@ -276,7 +278,18 @@ export class Player implements PlayerResponse, CostFinder {
 	}
 
 	hasTech(tech: Tech): boolean {
-		return canLearnTech(this, tech) && hasRequiredLevels(this.techLevels, tech.requirements);
+		return (
+			canLearnTech(this, tech) &&
+			hasRequiredLevels(this.techLevels, tech.requirements) &&
+			(!tech.requirements.acquirable || this.hasAcquiredTech(tech))
+		);
+	}
+
+	hasAcquiredTech(tech: Tech): boolean {
+		if (!tech.requirements.acquirable) {
+			return true;
+		}
+		return !!this.acquiredTechs[tech.name];
 	}
 
 	getAllies(): number[] {
@@ -467,7 +480,7 @@ export class Player implements PlayerResponse, CostFinder {
 	}
 }
 
-export function canLearnTech(player: PlayerResponse, tech: Tech): boolean {
+export function canLearnTech(player: Player, tech: Tech): boolean {
 	const requirements = tech.requirements;
 	if (
 		requirements.prtsRequired?.length &&
@@ -483,6 +496,10 @@ export function canLearnTech(player: PlayerResponse, tech: Tech): boolean {
 		return false;
 	}
 	if (requirements.lrtsDenied && (player.race.lrts & requirements.lrtsDenied) > 0) {
+		return false;
+	}
+
+	if (!player.hasAcquiredTech(tech)) {
 		return false;
 	}
 	return true;

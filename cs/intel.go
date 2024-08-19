@@ -155,8 +155,9 @@ type WormholeIntel struct {
 
 type MysteryTraderIntel struct {
 	MapObjectIntel
-	WarpSpeed int    `json:"warpSpeed,omitempty"`
-	Heading   Vector `json:"heading"`
+	WarpSpeed     int    `json:"warpSpeed,omitempty"`
+	Heading       Vector `json:"heading"`
+	RequestedBoon int    `json:"requestedBoon"`
 }
 
 type PlayerIntel struct {
@@ -747,6 +748,7 @@ func (d *discover) discoverMysteryTrader(mysteryTrader *MysteryTrader) {
 	intel.Position = mysteryTrader.Position
 	intel.Heading = mysteryTrader.Heading
 	intel.WarpSpeed = mysteryTrader.WarpSpeed
+	intel.RequestedBoon = mysteryTrader.RequestedBoon
 }
 
 // discover a player's race
@@ -940,10 +942,10 @@ func (d *discovererWithAllies) forgetWormhole(num int) {
 	}
 }
 
-func (d *discovererWithAllies) discoverMysteryTrader(mysterTrader *MysteryTrader) {
-	d.playerDiscoverer.discoverMysteryTrader(mysterTrader)
+func (d *discovererWithAllies) discoverMysteryTrader(mysteryTrader *MysteryTrader) {
+	d.playerDiscoverer.discoverMysteryTrader(mysteryTrader)
 	for _, allyDiscoverer := range d.allyDiscoverers {
-		allyDiscoverer.discoverMysteryTrader(mysterTrader)
+		allyDiscoverer.discoverMysteryTrader(mysteryTrader)
 	}
 }
 
