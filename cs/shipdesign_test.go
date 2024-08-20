@@ -590,7 +590,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 						Quantity:             1,
 						KillRate:             .6,
 						MinKillRate:          300,
-						StructureDestroyRate: .2,
+						StructureDestroyRate: 2,
 					},
 				},
 			},

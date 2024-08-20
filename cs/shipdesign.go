@@ -379,7 +379,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 				}
 
 				// bombs add to rating
-				bombsPower += int((bomb.KillRate+bomb.StructureDestroyRate)*10) * slot.Quantity * 2
+				bombsPower += int((bomb.KillRate*10+bomb.StructureDestroyRate)) * slot.Quantity * 2
 			}
 
 			if component.Power > 0 {
