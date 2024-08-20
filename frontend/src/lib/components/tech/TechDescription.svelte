@@ -184,7 +184,9 @@
 					);
 
 					if ((hullComponent.cloakUnits ?? 0) > 0) {
-						descriptions.push(`It also provides ${hullComponent.cloakUnits}% cloaking.`);
+						descriptions.push(
+							`It also provides ${Math.floor(getCloakPercentForCloakUnits(hullComponent.cloakUnits ?? 0))}% cloaking.`
+						);
 					}
 				}
 
@@ -362,7 +364,6 @@
 
 				if (hullComponent.scanner) {
 					if ((hullComponent.scanRange ?? 0) == 0) {
-						hullComponent.typ
 						// special case for bat scanner
 						descriptions.push(
 							'Enemy fleets cannot be detected by this scanner unless they are at the same location as this ship.'

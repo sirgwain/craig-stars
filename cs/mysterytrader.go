@@ -627,7 +627,7 @@ var MysteryTraderRandomTechs = []Tech{
 }
 
 var HushABoom = TechHullComponent{Tech: NewTechWithOrigin("Hush-a-Boom", NewCost(1, 2, 0, 2), TechRequirements{Acquirable: true, TechLevel: TechLevel{Weapons: 12, Electronics: 12, Biotechnology: 12}}, 75, TechCategoryBomb, OriginMysteryTrader),
-	Mass:                 45,
+	Mass:                 5,
 	KillRate:             3,
 	StructureDestroyRate: 2.0,
 	HullSlotType:         HullSlotTypeBomb,

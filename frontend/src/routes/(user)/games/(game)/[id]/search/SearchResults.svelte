@@ -1,5 +1,5 @@
 <script lang="ts" context="module">
-	import type { Fleet } from '$lib/types/Fleet';
+	import { type Fleet } from '$lib/types/Fleet';
 	import { Unexplored, type Planet } from '$lib/types/Planet';
 
 	export type Results = {
@@ -16,7 +16,7 @@
 
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { None, owned, ownedBy, type MapObject } from '$lib/types/MapObject';
+	import { getMapObjectName, None, owned, ownedBy, type MapObject } from '$lib/types/MapObject';
 	import hotkeys from 'hotkeys-js';
 	import { createEventDispatcher, onMount } from 'svelte';
 	import MineralMini from '$lib/components/game/MineralMini.svelte';
@@ -228,8 +228,8 @@
 								<span style={`color: ${$universe.getPlayerColor(fleet.playerNum)}`}
 									>{$universe.getPlayerName(fleet.playerNum)}</span
 								>
-								{fleet.name}</button
-							>
+								{getMapObjectName(fleet)}
+							</button>
 						</li>
 					{/each}
 				</ul>

@@ -1,8 +1,9 @@
 <script lang="ts">
-	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
+	import { type CommandedFleet, type Fleet } from '$lib/types/Fleet';
 	import hotkeys from 'hotkeys-js';
 	import { createEventDispatcher, onMount } from 'svelte';
 	import type { MergeFleetsEvent } from './MergeFleetsDialog.svelte';
+	import { getMapObjectName } from '$lib/types/MapObject';
 
 	const dispatch = createEventDispatcher<MergeFleetsEvent>();
 
@@ -68,7 +69,7 @@
 							class:bg-primary-focus={selectedFleetIndexes.indexOf(index) != -1}
 						>
 							<button class="w-full text-left" type="button" on:click={() => select(index)}>
-								{otherFleet.name}{(otherFleet.waypoints?.length ?? 0) > 1 ? '*' : ''}
+								{getMapObjectName(otherFleet)}
 							</button>
 						</li>
 					{/if}

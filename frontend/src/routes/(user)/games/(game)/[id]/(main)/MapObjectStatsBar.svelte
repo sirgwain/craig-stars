@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { equal, type MapObject } from '$lib/types/MapObject';
+	import { equal, getMapObjectName, type MapObject } from '$lib/types/MapObject';
 	import { distance } from '$lib/types/Vector';
 
 	const { highlightedMapObject, selectedMapObject, commandedMapObject } = getGameContext();
@@ -32,11 +32,11 @@
 			X: {to.position.x}, Y: {to.position.y}
 		</div>
 		<div>
-			{to.name}
+			{getMapObjectName(to)}
 		</div>
 		{#if from && dist}
 			<div>
-				{dist.toFixed(1)} ly from {from.name}
+				{dist.toFixed(1)} ly from {getMapObjectName(from)}
 			</div>
 		{/if}
 	{/if}

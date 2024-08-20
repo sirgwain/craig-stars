@@ -2,7 +2,7 @@ import type { DesignFinder, Universe } from '$lib/services/Universe';
 import { get as pluck } from 'lodash-es';
 import { totalCargo, type Cargo } from './Cargo';
 import type { Cost } from './Cost';
-import { MapObjectType, None, type MovingMapObject, ownedBy } from './MapObject';
+import { MapObjectType, None, type MovingMapObject, ownedBy, type MapObject } from './MapObject';
 import type { MessageTargetType } from './Message';
 import type { ShipDesign } from './ShipDesign';
 import type { Engine } from './Tech';
@@ -397,6 +397,19 @@ export const getDestination = (fleet: Fleet, universe: Universe) => {
 	}
 	return '--';
 };
+
+export function getTokenCount(mo: MapObject) {
+	if (mo.type == MapObjectType.Fleet) {
+		const fleet = mo as Fleet;
+		return fleet.tokens ? fleet.tokens.reduce((count, t) => count + t.quantity, 0) : 0;
+	}
+	return 0;
+}
+
+export function hasDestination(mo: MapObject): boolean {
+	const fleet = mo.type == MapObjectType.Fleet ? (mo as Fleet) : undefined;
+	return (fleet?.waypoints?.length ?? 0) > 1;
+}
 
 // fleetsSortBy returns a sortBy function for fleets by key. This is used by the fleets report page
 // and sorting when cycling through Fleets

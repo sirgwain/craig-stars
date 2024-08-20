@@ -125,6 +125,12 @@ func (scan *playerScan) scanPlanets(scanners []scanner, cargoScanners []scanner,
 			}
 			scan.discoverer.discoverPlanetTerraformability(planet.Num)
 		}
+		// TODO: another fix for planets we don't own still being ours in intel
+		if intel.PlayerNum == scan.player.Num && planet.PlayerNum != scan.player.Num {
+			// we think we own this planet, but we don't. Remove ownership info
+			scan.discoverer.clearPlanetOwnerIntel(planet)
+		}
+
 	}
 
 	return nil
@@ -194,7 +200,7 @@ func (scan *playerScan) scanFleets(scanners []scanner, cargoScanners []scanner) 
 	for _, fleet := range fleetsToScan {
 		scan.discoveredPlayers[fleet.PlayerNum] = true
 
-		scan.discoverer.discoverFleet(fleet)
+		scan.discoverer.discoverFleet(fleet, false)
 
 		for _, token := range fleet.Tokens {
 			scan.discoverer.discoverDesign(token.design, scan.player.Race.Spec.DiscoverDesignOnScan)
@@ -378,10 +384,10 @@ func (scan *playerScan) discoverAllies() error {
 
 		// discover this ally's fleets/designs
 		for _, fleet := range scan.universe.Fleets {
-			if fleet.PlayerNum != player.Num {
+			if fleet.PlayerNum != player.Num || fleet.Delete {
 				continue
 			}
-			scan.discoverer.discoverFleet(fleet)
+			scan.discoverer.discoverFleet(fleet, true)
 			scan.discoverer.discoverFleetCargo(fleet)
 			scan.discoverer.discoverFleetScanner(fleet)
 		}

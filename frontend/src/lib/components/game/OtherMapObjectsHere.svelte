@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { CommandedFleet, Target } from '$lib/types/Fleet';
-	import { MapObjectType, equal, type MapObject } from '$lib/types/MapObject';
+	import { type CommandedFleet, type Target } from '$lib/types/Fleet';
+	import { MapObjectType, equal, getMapObjectName, type MapObject } from '$lib/types/MapObject';
 	import { flatten, keys } from 'lodash-es';
 	import { createEventDispatcher } from 'svelte';
 
@@ -70,7 +70,7 @@
 							: ''}
 						selected={isTarget(mo)}
 						value={index + (otherMapObjectsHere[MapObjectType.Planet]?.length ?? 0)}
-						>{mo.name}</option
+						>{getMapObjectName(mo)}</option
 					>
 				{/if}
 			{/each}

@@ -537,9 +537,17 @@ func (t *turn) fleetTransferCargo(fleet *Fleet, transferAmount int, cargoType Ca
 				return fmt.Errorf("can't invade planet with starbase")
 			}
 			defender := t.game.getPlayer(planet.PlayerNum)
+			// during invasion, even if the player loses the planet, they discover the invader
+			defender.discoverer.discoverFleet(fleet, false)
 
 			invadePlanet(&t.game.Rules, t.game.TechStore, planet, fleet, defender, player, transferAmount*100)
 			fleet.Cargo.Colonists -= transferAmount
+
+			if planet.Num != defender.Num {
+				// the planet was lost, but we should discover the owner at least
+				defender.discoverer.clearPlanetOwnerIntel(planet)
+				defender.discoverer.discoverPlanet(&t.game.Rules, planet, false)
+			}
 
 		} else if transferAmount < 0 && !dest.canLoad(fleet.PlayerNum) {
 			// can't load from things we don't own
@@ -2074,7 +2082,7 @@ func (t *turn) fleetBattle() {
 						if fleet.PlayerNum == player.Num {
 							continue
 						}
-						player.discoverer.discoverFleet(fleet)
+						player.discoverer.discoverFleet(fleet, false)
 					}
 				}
 
@@ -2195,15 +2203,28 @@ func (t *turn) fleetBomb() {
 			if fleet, ok := mo.(*Fleet); ok {
 				fleetPlayer := t.game.getPlayer(fleet.PlayerNum)
 				willBomb := fleet.willAttack(fleetPlayer, planet.PlayerNum)
-				if !fleet.Delete && fleet.Spec.Bomber && willBomb {
+				if fleet.Delete || fleet.OwnedBy(planetPlayer.Num) {
+					continue
+				}
+				if fleet.Spec.Bomber && willBomb {
 					enemyBombers = append(enemyBombers, fleet)
 				}
+
+				// in case our planet is destroyed by this bomber, discover any fleets in orbit
+				planetPlayer.discoverer.discoverFleet(fleet, false)
 			}
 		}
 
 		if len(enemyBombers) > 0 {
 			// see if this planet has enemy bomber fleets, and if so, bomb it
 			bomber.bombPlanet(planet, planetPlayer, enemyBombers, t.game)
+
+			if planet.PlayerNum != planetPlayer.Num {
+				// the planet is lost, reset our intel
+				// the planet was lost, but we should discover the owner at least
+				planetPlayer.discoverer.clearPlanetOwnerIntel(planet)
+				planetPlayer.discoverer.discoverPlanet(&t.game.Rules, planet, false)
+			}
 		}
 	}
 }
@@ -2282,7 +2303,7 @@ func (t *turn) mysteryTraderMeet() error {
 					token := ShipToken{design: design, DesignNum: design.Num, Quantity: reward.ShipCount}
 					design.Spec.NumInstances += token.Quantity
 					design.Spec.NumBuilt += token.Quantity
-	
+
 					rewardFleet, err := t.addFleet(player, fleet.Position, token, Tags{})
 					if err != nil {
 						return err
