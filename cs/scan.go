@@ -200,11 +200,11 @@ func (scan *playerScan) scanFleets(scanners []scanner, cargoScanners []scanner) 
 	for _, fleet := range fleetsToScan {
 		scan.discoveredPlayers[fleet.PlayerNum] = true
 
-		scan.discoverer.discoverFleet(fleet, false)
-
 		for _, token := range fleet.Tokens {
 			scan.discoverer.discoverDesign(token.design, scan.player.Race.Spec.DiscoverDesignOnScan)
 		}
+
+		scan.discoverer.discoverFleet(fleet, false)
 	}
 
 	for _, fleet := range fleetsToCargoScan {
@@ -382,6 +382,13 @@ func (scan *playerScan) discoverAllies() error {
 			}
 		}
 
+		// discover any in use designs
+		for _, design := range player.Designs {
+			if design.Spec.NumInstances > 0 {
+				scan.discoverer.discoverDesign(design, true)
+			}
+		}
+		
 		// discover this ally's fleets/designs
 		for _, fleet := range scan.universe.Fleets {
 			if fleet.PlayerNum != player.Num || fleet.Delete {
@@ -390,13 +397,6 @@ func (scan *playerScan) discoverAllies() error {
 			scan.discoverer.discoverFleet(fleet, true)
 			scan.discoverer.discoverFleetCargo(fleet)
 			scan.discoverer.discoverFleetScanner(fleet)
-		}
-
-		// discover any in use designs
-		for _, design := range player.Designs {
-			if design.Spec.NumInstances > 0 {
-				scan.discoverer.discoverDesign(design, true)
-			}
 		}
 
 		for _, mf := range scan.universe.MineFields {

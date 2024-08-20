@@ -497,9 +497,15 @@ func (d *discover) discoverFleet(fleet *Fleet, discoverName bool) {
 			Msgf("player discovered fleet")
 	}
 
+	intel.BaseName = fleet.Tokens[0].design.Hull
+	intel.Name = fmt.Sprintf("%s #%d", fleet.Tokens[0].design.Hull, fleet.Num)
+
 	// we don't learn the fleet name, just the name of the first design in the fleet
-	intel.BaseName = fleet.Tokens[0].design.Name
-	intel.Name = fmt.Sprintf("%s #%d", fleet.Tokens[0].design.Name, fleet.Num)
+	designIntel := d.player.getShipDesignIntel(fleet.PlayerNum, fleet.Tokens[0].DesignNum)
+	if designIntel != nil {
+		intel.BaseName = designIntel.Name
+		intel.Name = designIntel.Name
+	}
 
 	if discoverName {
 		// ally's tell us the names of their fleets

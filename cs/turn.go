@@ -538,6 +538,9 @@ func (t *turn) fleetTransferCargo(fleet *Fleet, transferAmount int, cargoType Ca
 			}
 			defender := t.game.getPlayer(planet.PlayerNum)
 			// during invasion, even if the player loses the planet, they discover the invader
+			for _, token := range fleet.Tokens {
+				defender.discoverer.discoverDesign(token.design, defender.Race.Spec.DiscoverDesignOnScan)
+			}
 			defender.discoverer.discoverFleet(fleet, false)
 
 			invadePlanet(&t.game.Rules, t.game.TechStore, planet, fleet, defender, player, transferAmount*100)
@@ -2003,19 +2006,17 @@ func (t *turn) fleetBattle() {
 			// someone wants to fight, run the battle!
 			record := battler.runBattle()
 
-			// every player should discover all designs in a battle as if they were penscanned.
-			designsToDiscover := map[playerObject]*ShipDesign{}
+			// first discover each other and the planet
 			for _, player := range playersAtPosition {
-				discoverer := player.discoverer
 
 				// discover other players at the battle
 				for _, otherplayer := range playersAtPosition {
-					discoverer.discoverPlayer(otherplayer)
+					player.discoverer.discoverPlayer(otherplayer)
 				}
 
 				// discover parts of this planet's starbase
 				if planet != nil {
-					discoverer.discoverPlanet(&t.game.Rules, planet, false)
+					player.discoverer.discoverPlanet(&t.game.Rules, planet, false)
 				}
 
 			}
@@ -2034,6 +2035,9 @@ func (t *turn) fleetBattle() {
 			}
 			salvageMinerals := destroyedCost.MultiplyFloat64(t.game.Rules.SalvageFromBattleFactor).ToMineral()
 
+			// every player should discover all designs in a battle as if they were penscanned.
+			designsToDiscover := map[playerObject]*ShipDesign{}
+			fleetsToDiscover := map[playerObject]*Fleet{}
 			survivingPlayers := make(map[int]bool, len(playersAtPosition))
 			for _, fleet := range fleets {
 				updatedTokens := make([]ShipToken, 0, len(fleet.Tokens))
@@ -2077,13 +2081,8 @@ func (t *turn) fleetBattle() {
 				} else {
 					// this player survived
 					survivingPlayers[fleet.PlayerNum] = true
-					// all players discover each remaining fleet in the battle
-					for _, player := range playersAtPosition {
-						if fleet.PlayerNum == player.Num {
-							continue
-						}
-						player.discoverer.discoverFleet(fleet, false)
-					}
+					// every player discovers the remaining fleets after a battle
+					fleetsToDiscover[playerObjectKey(fleet.PlayerNum, fleet.Num)] = fleet
 				}
 
 				// recompute the spec of this fleet and make sure we don't have extra fuel sitting around
@@ -2099,20 +2098,30 @@ func (t *turn) fleetBattle() {
 				}
 			}
 
-			if salvageMinerals.Total() > 0 {
-				if planet == nil {
-					t.game.createSalvage(record.Position, salvageOwner, salvageMinerals.ToCargo())
-				} else {
-					planet.Cargo = planet.Cargo.AddMineral(salvageMinerals)
-				}
-			}
-
-			// discover all enemy designs
+			// discover all alien designs
 			for _, design := range designsToDiscover {
 				for _, player := range playersAtPosition {
 					if player.Num != design.PlayerNum {
 						player.discoverer.discoverDesign(design, true)
 					}
+				}
+			}
+
+			for _, fleet := range fleetsToDiscover {
+				// all players discover each remaining fleet in the battle
+				for _, player := range playersAtPosition {
+					if fleet.PlayerNum == player.Num {
+						continue
+					}
+					player.discoverer.discoverFleet(fleet, false)
+				}
+			}
+
+			if salvageMinerals.Total() > 0 {
+				if planet == nil {
+					t.game.createSalvage(record.Position, salvageOwner, salvageMinerals.ToCargo())
+				} else {
+					planet.Cargo = planet.Cargo.AddMineral(salvageMinerals)
 				}
 			}
 
@@ -2211,6 +2220,9 @@ func (t *turn) fleetBomb() {
 				}
 
 				// in case our planet is destroyed by this bomber, discover any fleets in orbit
+				for _, token := range fleet.Tokens {
+					planetPlayer.discoverer.discoverDesign(token.design, planetPlayer.Race.Spec.DiscoverDesignOnScan)
+				}
 				planetPlayer.discoverer.discoverFleet(fleet, false)
 			}
 		}
