@@ -504,7 +504,7 @@ func (d *discover) discoverFleet(fleet *Fleet, discoverName bool) {
 	designIntel := d.player.getShipDesignIntel(fleet.PlayerNum, fleet.Tokens[0].DesignNum)
 	if designIntel != nil {
 		intel.BaseName = designIntel.Name
-		intel.Name = designIntel.Name
+		intel.Name = fmt.Sprintf("%s #%d", designIntel.Name, fleet.Num)
 	}
 
 	if discoverName {
