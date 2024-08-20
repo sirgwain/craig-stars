@@ -144,6 +144,33 @@
 	.text-mystery-trader {
 		@apply text-[#00FFFF]
 	}
+
+	.stroke-orbit {
+		@apply stroke-[#FFFFFF]
+	}
+	.stroke-orbit-enemies {
+		@apply stroke-[#FF0000]
+	}
+	.stroke-orbit-friends-and-enemies {
+		@apply stroke-[#FF00FF]
+	}
+	.stroke-orbit-friends {
+		@apply stroke-[#FFFF00]
+	}
+
+	.fill-orbit {
+		@apply fill-[#FFFFFF]
+	}
+	.fill-orbit-enemies {
+		@apply fill-[#FF0000]
+	}
+	.fill-orbit-friends-and-enemies {
+		@apply fill-[#eb2eeb]
+	}
+	.fill-orbit-friends {
+		@apply fill-[#FFFF00]
+	}	
+
 }
 
 .scanner-wormhole {

@@ -10,6 +10,7 @@
 	import MapObjectScaler from './MapObjectScaler.svelte';
 	import { type Fleet, idleFleetsFilter } from '$lib/types/Fleet';
 	import { find } from 'lodash-es';
+	import { getEnemiesAndFriends } from './Scanner';
 
 	const { settings } = getGameContext();
 	const { game, player, universe } = getGameContext();
@@ -27,7 +28,7 @@
 	$: hasStargate = planet.spec?.hasStargate;
 
 	$: radius = owned(planet) ? (commanded ? 6 : 3) : commanded ? 4 : 2;
-	$: strokeWidth = commanded ? 1 : .5;
+	$: strokeWidth = commanded ? 1 : 0.5;
 	$: ringRadius = radius * 2.5;
 	$: ringWidth = commanded ? 2 : 1.5;
 
@@ -67,33 +68,22 @@
 	$: {
 		// if anything is orbiting our planet, put a ring on it
 		if (orbitingFleets?.length > 0) {
-			let ringColor = '#FFFFFF';
-			let strokeDashArray = '';
-			const playerNums = new Set<number>(orbitingFleets.map((f) => f.playerNum));
-			if (playerNums.size == 1) {
-				if (orbitingFleets[0].playerNum === $player.num) {
-					ringColor = '#FFFFFF';
-				} else if ($player.isEnemy(orbitingFleets[0].playerNum)) {
-					ringColor = '#FF0000';
-				} else {
-					ringColor = '#FFFF00';
-				}
-			} else {
-				const enemies = find(playerNums, (n: number) => $player.isEnemy(n));
-				const friends = find(playerNums, (n: number) => $player.isFriendOrNeutral(n));
+			const { enemies, friends } = getEnemiesAndFriends(orbitingFleets, $player);
 
-				if (friends && !enemies) {
-					ringColor = '#FFFF00';
-				} else if (!friends && enemies) {
-					ringColor = '#FF0000';
-				} else {
-					ringColor = '#FF00FF';
-				}
+			let ringColor = 'stroke-orbit';
+			let strokeDashArray = '';
+
+			if (friends && !enemies) {
+				ringColor = 'stroke-orbit-friends';
+			} else if (!friends && enemies) {
+				ringColor = 'stroke-orbit-enemies';
+			} else if (friends && enemies) {
+				ringColor = 'stroke-orbit-friends-and-enemies';
 				strokeDashArray = '10 6';
 			}
 
 			ringProps = {
-				stroke: ringColor,
+				class: ringColor,
 				'stroke-dasharray': strokeDashArray,
 				'stroke-width': ringWidth,
 				r: ringRadius,
