@@ -117,8 +117,12 @@
 				event.preventDefault();
 				break;
 			case 'Escape':
-				cancel();
-				event.preventDefault();
+				if ($settings.searchQuery != '') {
+					$settings.searchQuery = '';
+				} else {
+					cancel();
+					event.preventDefault();
+				}
 				break;
 		}
 	}
