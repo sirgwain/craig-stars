@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { idleFleetsFilter, type Fleet } from '$lib/types/Fleet';
+	import { filterFleet } from '$lib/types/Filter';
+	import { type Fleet } from '$lib/types/Fleet';
 	import { MapObjectType } from '$lib/types/MapObject';
 	import type { Planet } from '$lib/types/Planet';
 	import type { LayerCake } from 'layercake';
-	import { find } from 'lodash-es';
 	import { getContext } from 'svelte';
 	import type { Writable } from 'svelte/store';
 	import { getEnemiesAndFriends } from './Scanner';
@@ -22,7 +22,7 @@
 
 	$: orbitingTokens = orbitingFleets
 		.map((of) => of as Fleet)
-		.filter((f: Fleet) => idleFleetsFilter(f, $settings.showIdleFleetsOnly))
+		.filter((f: Fleet) => filterFleet($player, f, $settings))
 		.reduce(
 			(count, f) =>
 				count + (f.tokens ? f.tokens.reduce((tokenCount, t) => tokenCount + t.quantity, 0) : 0),

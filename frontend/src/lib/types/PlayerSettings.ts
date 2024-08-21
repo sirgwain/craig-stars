@@ -1,3 +1,4 @@
+import type { FilterOptions } from './Filter';
 import type { MessageType } from './Message';
 
 export enum PlanetViewState {
@@ -12,7 +13,7 @@ export enum PlanetViewState {
 	None
 }
 
-export class PlayerSettings {
+export class PlayerSettings implements FilterOptions {
 	planetViewState = PlanetViewState.Normal;
 	addWaypoint = false;
 	setPacketDest = false;
@@ -21,7 +22,6 @@ export class PlayerSettings {
 	showScanners = true;
 	showAllyScanners = true;
 	showMineFields = true;
-	showIdleFleetsOnly = false;
 	showMessagePane = false;
 	scannerPercent = 100;
 	mineralScale = 5000;
@@ -34,8 +34,21 @@ export class PlayerSettings {
 	sortFleetsDescending = false;
 	sortBattlesKey = 'num';
 	sortBattlesDescending = false;
+	searchQuery = '';
 
-	constructor(public gameId = 0, public playerNum = 0) {}
+	// filters
+	showIdleFleetsOnly = false;
+	filterMyDesigns = false;
+	filterAllyDesigns = false;
+	filterEnemyDesigns = false;
+	filterDesigns = [];
+	filterAllyShipClasses = [];
+	filterEnemyShipClasses = [];
+
+	constructor(
+		public gameId = 0,
+		public playerNum = 0
+	) {}
 
 	get key(): string {
 		return PlayerSettings.key(this.gameId, this.playerNum);

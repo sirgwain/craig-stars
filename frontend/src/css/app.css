@@ -138,39 +138,51 @@
 	}
 
 	.fill-mystery-trader {
-		@apply fill-[#00FFFF]
+		@apply fill-[#00FFFF];
 	}
 
 	.text-mystery-trader {
-		@apply text-[#00FFFF]
+		@apply text-[#00FFFF];
 	}
 
 	.stroke-orbit {
-		@apply stroke-[#FFFFFF]
+		@apply stroke-[#FFFFFF];
 	}
 	.stroke-orbit-enemies {
-		@apply stroke-[#FF0000]
+		@apply stroke-[#FF0000];
 	}
 	.stroke-orbit-friends-and-enemies {
-		@apply stroke-[#FF00FF]
+		@apply stroke-[#FF00FF];
 	}
 	.stroke-orbit-friends {
-		@apply stroke-[#FFFF00]
+		@apply stroke-[#FFFF00];
 	}
 
 	.fill-orbit {
-		@apply fill-[#FFFFFF]
+		@apply fill-[#FFFFFF];
 	}
 	.fill-orbit-enemies {
-		@apply fill-[#FF0000]
+		@apply fill-[#FF0000];
 	}
 	.fill-orbit-friends-and-enemies {
-		@apply fill-[#eb2eeb]
+		@apply fill-[#eb2eeb];
 	}
 	.fill-orbit-friends {
-		@apply fill-[#FFFF00]
-	}	
+		@apply fill-[#FFFF00];
+	}
 
+	.fill-fleet-owned {
+		@apply fill-[#0000FF];
+	}
+	.fill-fleet-neutral {
+		@apply fill-base-content;
+	}
+	.fill-fleet-enemy {
+		@apply fill-[#FF0000];
+	}
+	.fill-fleet-ally {
+		@apply fill-[#FFFF00];
+	}
 }
 
 .scanner-wormhole {

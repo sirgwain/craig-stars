@@ -158,6 +158,8 @@ export type Spec = {
 	maxPopulation?: number;
 };
 
+
+
 export function emptyTransportTasks(): WaypointTransportTasks {
 	return {
 		fuel: {

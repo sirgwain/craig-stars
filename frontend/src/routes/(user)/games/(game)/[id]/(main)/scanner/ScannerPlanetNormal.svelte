@@ -11,6 +11,7 @@
 	import { type Fleet, idleFleetsFilter } from '$lib/types/Fleet';
 	import { find } from 'lodash-es';
 	import { getEnemiesAndFriends } from './Scanner';
+	import { filterFleet } from '$lib/types/Filter';
 
 	const { settings } = getGameContext();
 	const { game, player, universe } = getGameContext();
@@ -39,7 +40,7 @@
 	$: orbitingFleets = $universe
 		.getMapObjectsByPosition(planet)
 		.filter((mo) => mo.type === MapObjectType.Fleet)
-		.filter((f) => idleFleetsFilter(f as Fleet, $settings.showIdleFleetsOnly));
+		.filter((f) => filterFleet($player, f as Fleet, $settings));
 
 	// setup props for planet circle
 	$: {

@@ -15,20 +15,19 @@
 </script>
 
 <script lang="ts">
+	import MineralMini from '$lib/components/game/MineralMini.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { getMapObjectName, None, owned, ownedBy, type MapObject } from '$lib/types/MapObject';
-	import hotkeys from 'hotkeys-js';
-	import { createEventDispatcher, onMount } from 'svelte';
-	import MineralMini from '$lib/components/game/MineralMini.svelte';
 	import type { MysteryTrader } from '$lib/types/MysteryTrader';
+	import { createEventDispatcher, onMount } from 'svelte';
 
 	const { game, player, universe, settings, commandMapObject, selectMapObject, zoomToMapObject } =
 		getGameContext();
 	const dispatch = createEventDispatcher<SearchResultsEvent>();
 
-	export let maxResults = 10;
-
-	let search = '';
+	export let maxPlanetResults = 10;
+	export let maxFleetResults = 10;
+	export let maxMiscResults = 10;
 
 	// the currently selected item
 	$: selectedItemIndex = 0;
@@ -68,15 +67,18 @@
 		selectedItemIndex = 0;
 		return {
 			planets:
-				planets.filter((i) => terms.every((term) => termSearch(term, i))).slice(0, maxResults) ??
-				[],
+				planets
+					.filter((i) => terms.every((term) => termSearch(term, i)))
+					.slice(0, maxPlanetResults) ?? [],
 			fleets:
-				fleets.filter((i) => terms.every((term) => termSearch(term, i))).slice(0, maxResults) ?? [],
+				fleets
+					.filter((i) => terms.every((term) => termSearch(term, i)))
+					.slice(0, maxFleetResults) ?? [],
 
 			mysteryTraders:
 				mysteryTraders
 					.filter((i) => terms.every((term) => termSearch(term, i)))
-					.slice(0, maxResults) ?? []
+					.slice(0, maxMiscResults) ?? []
 		};
 	}
 
@@ -126,7 +128,7 @@
 		searchInput?.focus();
 	});
 	// when search chnages, update our search results
-	$: results = getResults(search);
+	$: results = getResults($settings.searchQuery);
 </script>
 
 <div class="flex flex-col gap-1 h-full pb-2">
@@ -140,7 +142,7 @@
 		autocapitalize="off"
 		spellcheck="false"
 		bind:this={searchInput}
-		bind:value={search}
+		bind:value={$settings.searchQuery}
 		on:keydown={onSearchKeyDown}
 	/>
 	<div class="h-full">
