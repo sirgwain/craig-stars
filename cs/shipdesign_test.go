@@ -724,10 +724,7 @@ func TestShipDesign_SlotsEqual(t *testing.T) {
 			source := &ShipDesign{
 				Slots: tt.args.sourceSlots,
 			}
-			other := &ShipDesign{
-				Slots: tt.args.otherSlots,
-			}
-			if got := source.SlotsEqual(other); got != tt.want {
+			if got := source.SlotsEqual(tt.args.otherSlots); got != tt.want {
 				t.Errorf("ShipDesign.SlotsEqual() = %v, want %v", got, tt.want)
 			}
 		})

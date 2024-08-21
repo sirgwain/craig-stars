@@ -664,6 +664,31 @@ func (d *discover) discoverDesign(design *ShipDesign, discoverSlots bool) {
 			Msgf("player discovered design")
 	}
 
+	if intel.Hull != design.Hull ||
+		intel.HullSetNumber != design.HullSetNumber ||
+		intel.Spec.Mass != design.Spec.Mass ||
+		(len(intel.Slots) != 0 && !design.SlotsEqual(intel.Slots)) {
+
+		// we discovered a design with this number already, but this is a new design
+		// rediscover it
+		intel.Name = design.Hull
+		intel.PlayerNum = design.PlayerNum
+		intel.Num = design.Num
+		intel.Hull = design.Hull
+		intel.HullSetNumber = design.HullSetNumber
+		intel.Spec = ShipDesignSpec{
+			Mass: design.Spec.Mass,
+		}
+		intel.Slots = []ShipDesignSlot{}
+		log.Debug().
+			Int64("GameID", player.GameID).
+			Int("Player", player.Num).
+			Int("ShipDesignPlayer", design.PlayerNum).
+			Int("ShipDesign", design.Num).
+			Msgf("player rediscovered design")
+
+	}
+
 	// discover slots if we haven't already and this scanner discovers them
 	if discoverSlots && len(intel.Slots) == 0 {
 		intel.Slots = make([]ShipDesignSlot, len(design.Slots))

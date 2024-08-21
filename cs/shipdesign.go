@@ -238,12 +238,12 @@ func (sd *ShipDesign) Validate(rules *Rules, player *Player) error {
 }
 
 // compare two ship design's slots and return true if they are equal
-func (d *ShipDesign) SlotsEqual(other *ShipDesign) bool {
-	if len(d.Slots) != len(other.Slots) {
+func (d *ShipDesign) SlotsEqual(otherSlots []ShipDesignSlot) bool {
+	if len(d.Slots) != len(otherSlots) {
 		return false
 	}
 	for i, v := range d.Slots {
-		if v != other.Slots[i] {
+		if v != otherSlots[i] {
 			return false
 		}
 	}

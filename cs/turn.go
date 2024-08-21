@@ -2522,7 +2522,7 @@ func (t *turn) fleetTransferOwner() {
 				newName := fmt.Sprintf("%s %s", player.Race.PluralName, design.Name)
 				targetPlayerDesign := targetPlayer.GetDesignByName(newName)
 				if targetPlayerDesign != nil {
-					if !targetPlayerDesign.SlotsEqual(design) {
+					if !targetPlayerDesign.SlotsEqual(design.Slots) {
 						// uh oh, design has been updated since the last time it was transferred to us...
 						// create a new design for the target player
 						num := targetPlayer.GetNextDesignNum(targetPlayer.Designs)
