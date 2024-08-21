@@ -690,9 +690,12 @@ func (d *discover) discoverDesign(design *ShipDesign, discoverSlots bool) {
 	}
 
 	// discover slots if we haven't already and this scanner discovers them
-	if discoverSlots && len(intel.Slots) == 0 {
-		intel.Slots = make([]ShipDesignSlot, len(design.Slots))
-		copy(intel.Slots, design.Slots)
+	if discoverSlots {
+		if len(intel.Slots) == 0 {
+			// our first time discovering slots
+			intel.Slots = make([]ShipDesignSlot, len(design.Slots))
+			copy(intel.Slots, design.Slots)
+		}
 
 		// if we discovered slots, also discover the name
 		intel.Name = design.Name
@@ -706,6 +709,12 @@ func (d *discover) discoverDesign(design *ShipDesign, discoverSlots bool) {
 		intel.Spec.Movement = design.Spec.Movement
 		intel.Spec.Initiative = design.Spec.Initiative
 		intel.Spec.CloakPercent = design.Spec.CloakPercent
+		intel.Spec.BeamBonus = design.Spec.BeamBonus
+		intel.Spec.BeamDefense = design.Spec.BeamDefense
+		intel.Spec.TorpedoBonus = design.Spec.TorpedoBonus
+		intel.Spec.TorpedoJamming = design.Spec.TorpedoJamming
+		intel.Spec.ReduceCloaking = design.Spec.ReduceCloaking
+		intel.Spec.ReduceMovement = design.Spec.ReduceMovement
 
 		log.Debug().
 			Int64("GameID", player.GameID).

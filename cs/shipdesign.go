@@ -323,7 +323,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 			spec.FuelCapacity += component.FuelBonus * slot.Quantity
 			spec.FuelGeneration += component.FuelGeneration * slot.Quantity
 			spec.Colonizer = spec.Colonizer || component.ColonizationModule || component.OrbitalConstructionModule
-			spec.Initiative += component.InitiativeBonus
+			spec.Initiative += component.InitiativeBonus * slot.Quantity
 			spec.MovementBonus += component.MovementBonus * slot.Quantity
 			spec.ReduceMovement = MaxInt(spec.ReduceMovement, component.ReduceMovement) // these don't stack
 			spec.MiningRate += component.MiningRate * slot.Quantity
@@ -379,7 +379,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 				}
 
 				// bombs add to rating
-				bombsPower += int((bomb.KillRate*10+bomb.StructureDestroyRate)) * slot.Quantity * 2
+				bombsPower += int((bomb.KillRate*10 + bomb.StructureDestroyRate)) * slot.Quantity * 2
 			}
 
 			if component.Power > 0 {

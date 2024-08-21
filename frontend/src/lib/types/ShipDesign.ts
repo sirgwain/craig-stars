@@ -38,6 +38,8 @@ export type Bomb = {
 
 export type Spec = {
 	armor?: number;
+	beamBonus?: number;
+	beamDefense?: number;	
 	bomber?: boolean;
 	bombs?: Bomb[];
 	canJump?: boolean;
