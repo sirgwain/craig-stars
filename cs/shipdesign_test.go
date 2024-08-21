@@ -383,7 +383,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				ScanRange:      0,
 				ScanRangePen:   NoScanner,
 				TorpedoBonus:   .8244,
-				Initiative:     13,
+				Initiative:     19,
 				Movement:       5,
 				MovementFull:   5,
 				PowerRating:    255,
