@@ -115,7 +115,8 @@
 			dest.cargo &&
 			totalCargo(dest.cargo) + transferAmount.absoluteCargoSize() > destCargoCapacity
 		) {
-			let overload = totalCargo(dest.cargo) + transferAmount.absoluteCargoSize() - destCargoCapacity;
+			let overload =
+				totalCargo(dest.cargo) + transferAmount.absoluteCargoSize() - destCargoCapacity;
 
 			let key: keyof Cargo;
 			for (key in emptyCargo()) {

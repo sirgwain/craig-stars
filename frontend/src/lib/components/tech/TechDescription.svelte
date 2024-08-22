@@ -184,7 +184,9 @@
 					);
 
 					if ((hullComponent.cloakUnits ?? 0) > 0) {
-						descriptions.push(`It also provides ${hullComponent.cloakUnits}% cloaking.`);
+						descriptions.push(
+							`It also provides ${Math.floor(getCloakPercentForCloakUnits(hullComponent.cloakUnits ?? 0))}% cloaking.`
+						);
 					}
 				}
 

@@ -537,9 +537,20 @@ func (t *turn) fleetTransferCargo(fleet *Fleet, transferAmount int, cargoType Ca
 				return fmt.Errorf("can't invade planet with starbase")
 			}
 			defender := t.game.getPlayer(planet.PlayerNum)
+			// during invasion, even if the player loses the planet, they discover the invader
+			for _, token := range fleet.Tokens {
+				defender.discoverer.discoverDesign(token.design, defender.Race.Spec.DiscoverDesignOnScan)
+			}
+			defender.discoverer.discoverFleet(fleet, false)
 
 			invadePlanet(&t.game.Rules, t.game.TechStore, planet, fleet, defender, player, transferAmount*100)
 			fleet.Cargo.Colonists -= transferAmount
+
+			if planet.Num != defender.Num {
+				// the planet was lost, but we should discover the owner at least
+				defender.discoverer.clearPlanetOwnerIntel(planet)
+				defender.discoverer.discoverPlanet(&t.game.Rules, planet, false)
+			}
 
 		} else if transferAmount < 0 && !dest.canLoad(fleet.PlayerNum) {
 			// can't load from things we don't own
@@ -1995,19 +2006,17 @@ func (t *turn) fleetBattle() {
 			// someone wants to fight, run the battle!
 			record := battler.runBattle()
 
-			// every player should discover all designs in a battle as if they were penscanned.
-			designsToDiscover := map[playerObject]*ShipDesign{}
+			// first discover each other and the planet
 			for _, player := range playersAtPosition {
-				discoverer := player.discoverer
 
 				// discover other players at the battle
 				for _, otherplayer := range playersAtPosition {
-					discoverer.discoverPlayer(otherplayer)
+					player.discoverer.discoverPlayer(otherplayer)
 				}
 
 				// discover parts of this planet's starbase
 				if planet != nil {
-					discoverer.discoverPlanet(&t.game.Rules, planet, false)
+					player.discoverer.discoverPlanet(&t.game.Rules, planet, false)
 				}
 
 			}
@@ -2026,6 +2035,9 @@ func (t *turn) fleetBattle() {
 			}
 			salvageMinerals := destroyedCost.MultiplyFloat64(t.game.Rules.SalvageFromBattleFactor).ToMineral()
 
+			// every player should discover all designs in a battle as if they were penscanned.
+			designsToDiscover := map[playerObject]*ShipDesign{}
+			fleetsToDiscover := map[playerObject]*Fleet{}
 			survivingPlayers := make(map[int]bool, len(playersAtPosition))
 			for _, fleet := range fleets {
 				updatedTokens := make([]ShipToken, 0, len(fleet.Tokens))
@@ -2069,13 +2081,8 @@ func (t *turn) fleetBattle() {
 				} else {
 					// this player survived
 					survivingPlayers[fleet.PlayerNum] = true
-					// all players discover each remaining fleet in the battle
-					for _, player := range playersAtPosition {
-						if fleet.PlayerNum == player.Num {
-							continue
-						}
-						player.discoverer.discoverFleet(fleet)
-					}
+					// every player discovers the remaining fleets after a battle
+					fleetsToDiscover[playerObjectKey(fleet.PlayerNum, fleet.Num)] = fleet
 				}
 
 				// recompute the spec of this fleet and make sure we don't have extra fuel sitting around
@@ -2091,20 +2098,30 @@ func (t *turn) fleetBattle() {
 				}
 			}
 
-			if salvageMinerals.Total() > 0 {
-				if planet == nil {
-					t.game.createSalvage(record.Position, salvageOwner, salvageMinerals.ToCargo())
-				} else {
-					planet.Cargo = planet.Cargo.AddMineral(salvageMinerals)
-				}
-			}
-
-			// discover all enemy designs
+			// discover all alien designs
 			for _, design := range designsToDiscover {
 				for _, player := range playersAtPosition {
 					if player.Num != design.PlayerNum {
 						player.discoverer.discoverDesign(design, true)
 					}
+				}
+			}
+
+			for _, fleet := range fleetsToDiscover {
+				// all players discover each remaining fleet in the battle
+				for _, player := range playersAtPosition {
+					if fleet.PlayerNum == player.Num {
+						continue
+					}
+					player.discoverer.discoverFleet(fleet, false)
+				}
+			}
+
+			if salvageMinerals.Total() > 0 {
+				if planet == nil {
+					t.game.createSalvage(record.Position, salvageOwner, salvageMinerals.ToCargo())
+				} else {
+					planet.Cargo = planet.Cargo.AddMineral(salvageMinerals)
 				}
 			}
 
@@ -2195,15 +2212,31 @@ func (t *turn) fleetBomb() {
 			if fleet, ok := mo.(*Fleet); ok {
 				fleetPlayer := t.game.getPlayer(fleet.PlayerNum)
 				willBomb := fleet.willAttack(fleetPlayer, planet.PlayerNum)
-				if !fleet.Delete && fleet.Spec.Bomber && willBomb {
+				if fleet.Delete || fleet.OwnedBy(planetPlayer.Num) {
+					continue
+				}
+				if fleet.Spec.Bomber && willBomb {
 					enemyBombers = append(enemyBombers, fleet)
 				}
+
+				// in case our planet is destroyed by this bomber, discover any fleets in orbit
+				for _, token := range fleet.Tokens {
+					planetPlayer.discoverer.discoverDesign(token.design, planetPlayer.Race.Spec.DiscoverDesignOnScan)
+				}
+				planetPlayer.discoverer.discoverFleet(fleet, false)
 			}
 		}
 
 		if len(enemyBombers) > 0 {
 			// see if this planet has enemy bomber fleets, and if so, bomb it
 			bomber.bombPlanet(planet, planetPlayer, enemyBombers, t.game)
+
+			if planet.PlayerNum != planetPlayer.Num {
+				// the planet is lost, reset our intel
+				// the planet was lost, but we should discover the owner at least
+				planetPlayer.discoverer.clearPlanetOwnerIntel(planet)
+				planetPlayer.discoverer.discoverPlanet(&t.game.Rules, planet, false)
+			}
 		}
 	}
 }
@@ -2282,7 +2315,7 @@ func (t *turn) mysteryTraderMeet() error {
 					token := ShipToken{design: design, DesignNum: design.Num, Quantity: reward.ShipCount}
 					design.Spec.NumInstances += token.Quantity
 					design.Spec.NumBuilt += token.Quantity
-	
+
 					rewardFleet, err := t.addFleet(player, fleet.Position, token, Tags{})
 					if err != nil {
 						return err
@@ -2489,7 +2522,7 @@ func (t *turn) fleetTransferOwner() {
 				newName := fmt.Sprintf("%s %s", player.Race.PluralName, design.Name)
 				targetPlayerDesign := targetPlayer.GetDesignByName(newName)
 				if targetPlayerDesign != nil {
-					if !targetPlayerDesign.SlotsEqual(design) {
+					if !targetPlayerDesign.SlotsEqual(design.Slots) {
 						// uh oh, design has been updated since the last time it was transferred to us...
 						// create a new design for the target player
 						num := targetPlayer.GetNextDesignNum(targetPlayer.Designs)

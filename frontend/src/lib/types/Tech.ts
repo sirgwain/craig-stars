@@ -292,7 +292,7 @@ export function getSmartDefenseCoverage(
 
 export function getCloakPercentForCloakUnits(cloakUnits: number): number {
 	if (cloakUnits <= 100) {
-		return cloakUnits / 2 + 0.5;
+		return cloakUnits / 2;
 	} else {
 		cloakUnits = cloakUnits - 100;
 		if (cloakUnits <= 200) {
@@ -327,3 +327,4 @@ export function getBestTerraform(
 		.filter((t) => player.hasTech(t) && t.habType == habType)
 		.sort((a, b) => (b.ranking ?? 0) - (a.ranking ?? 0))[0];
 }
+

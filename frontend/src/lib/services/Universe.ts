@@ -241,6 +241,10 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 		return this.designs.find((d) => d.playerNum === playerNum && d.num === num);
 	}
 
+	getDesigns(playerNum: number): ShipDesign[] {
+		return this.designs.filter((d) => d.playerNum === playerNum);
+	}
+
 	getMyDesign(num: number | undefined): ShipDesign | undefined {
 		return this.designs.find((d) => d.playerNum === this.playerNum && d.num === num);
 	}

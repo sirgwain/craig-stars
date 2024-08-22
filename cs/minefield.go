@@ -236,7 +236,7 @@ func checkForMineFieldCollision(rules *Rules, playerGetter playerGetter, mapObje
 			collision := segmentIntersectsCircle(from, to, mineField.Position, mineField.Spec.Radius)
 			if collision == -1 {
 				// miss! phew, that was close!
-				return distance
+				continue
 			} else {
 				// we are travelling through this minefield, for each light year we go through, check for a hit
 				// collision is 0 to 1, which is the percent of our travel segment that is NOT in the field.

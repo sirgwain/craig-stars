@@ -230,7 +230,7 @@ func Test_bomb_getStructuresDestroyed(t *testing.T) {
 			args: args{
 				defenseCoverage: 0.0,
 				bombs: []Bomb{
-					{Quantity: 10, StructureDestroyRate: 1},
+					{Quantity: 10, StructureDestroyRate: 10},
 				},
 			},
 			want: 100,
@@ -240,8 +240,8 @@ func Test_bomb_getStructuresDestroyed(t *testing.T) {
 			args: args{
 				defenseCoverage: .9792,
 				bombs: []Bomb{
-					{Quantity: 10, StructureDestroyRate: 1},
-					{Quantity: 5, StructureDestroyRate: .6},
+					{Quantity: 10, StructureDestroyRate: 10},
+					{Quantity: 5, StructureDestroyRate: 6},
 				},
 			},
 			want: 66,

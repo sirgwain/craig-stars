@@ -489,7 +489,7 @@ func Test_computeFleetSpec(t *testing.T) {
 				ScanRangePen:   NoScanner,
 				Bomber:         true,
 				Bombs: []Bomb{
-					{Quantity: 2, KillRate: .6, MinKillRate: 300, StructureDestroyRate: .2},
+					{Quantity: 2, KillRate: .6, MinKillRate: 300, StructureDestroyRate: 2},
 				},
 				Engine: Engine{
 					IdealSpeed:   QuickJump5.IdealSpeed,
@@ -527,7 +527,7 @@ func Test_computeFleetSpec(t *testing.T) {
 				ScanRangePen:   NoScanner,
 				Bomber:         true,
 				Bombs: []Bomb{
-					{Quantity: 4, KillRate: .6, MinKillRate: 300, StructureDestroyRate: .2},
+					{Quantity: 4, KillRate: .6, MinKillRate: 300, StructureDestroyRate: 2},
 				},
 				Engine: Engine{
 					IdealSpeed:   QuickJump5.IdealSpeed,
@@ -568,8 +568,8 @@ func Test_computeFleetSpec(t *testing.T) {
 				ScanRangePen:   NoScanner,
 				Bomber:         true,
 				Bombs: []Bomb{
-					{Quantity: 8, KillRate: 2.5, MinKillRate: 300, StructureDestroyRate: 1},
-					{Quantity: 8, KillRate: .3, StructureDestroyRate: 2.8},
+					{Quantity: 8, KillRate: 2.5, MinKillRate: 300, StructureDestroyRate: 10},
+					{Quantity: 8, KillRate: .3, StructureDestroyRate: 28},
 				},
 				SmartBombs: []Bomb{
 					{Quantity: 8, KillRate: 2.2},

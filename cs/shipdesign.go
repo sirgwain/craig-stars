@@ -238,12 +238,12 @@ func (sd *ShipDesign) Validate(rules *Rules, player *Player) error {
 }
 
 // compare two ship design's slots and return true if they are equal
-func (d *ShipDesign) SlotsEqual(other *ShipDesign) bool {
-	if len(d.Slots) != len(other.Slots) {
+func (d *ShipDesign) SlotsEqual(otherSlots []ShipDesignSlot) bool {
+	if len(d.Slots) != len(otherSlots) {
 		return false
 	}
 	for i, v := range d.Slots {
-		if v != other.Slots[i] {
+		if v != otherSlots[i] {
 			return false
 		}
 	}
@@ -323,7 +323,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 			spec.FuelCapacity += component.FuelBonus * slot.Quantity
 			spec.FuelGeneration += component.FuelGeneration * slot.Quantity
 			spec.Colonizer = spec.Colonizer || component.ColonizationModule || component.OrbitalConstructionModule
-			spec.Initiative += component.InitiativeBonus
+			spec.Initiative += component.InitiativeBonus * slot.Quantity
 			spec.MovementBonus += component.MovementBonus * slot.Quantity
 			spec.ReduceMovement = MaxInt(spec.ReduceMovement, component.ReduceMovement) // these don't stack
 			spec.MiningRate += component.MiningRate * slot.Quantity
@@ -379,7 +379,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 				}
 
 				// bombs add to rating
-				bombsPower += int((bomb.KillRate+bomb.StructureDestroyRate)*10) * slot.Quantity * 2
+				bombsPower += int((bomb.KillRate*10 + bomb.StructureDestroyRate)) * slot.Quantity * 2
 			}
 
 			if component.Power > 0 {

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { carouselKey, createCarouselContext } from '$lib/services/CarouselContext';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { equal } from '$lib/types/MapObject';
+	import { equal, getMapObjectName } from '$lib/types/MapObject';
 	import { ChevronDown, ChevronUp } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { afterUpdate, createEventDispatcher, onDestroy, setContext } from 'svelte';
@@ -346,9 +346,9 @@
 	<div class="flex flex-row items-center">
 		<div class="flex-1 text-center text-lg font-semibold text-secondary">
 			{#if $commandedFleet && equal($selectedMapObject, $universe.getPlanet($commandedFleet.orbitingPlanetNum))}
-				{$commandedFleet?.name ?? ''}
+				{getMapObjectName($commandedFleet)}
 			{:else}
-				{$selectedMapObject?.name ?? 'Command Pane'}
+				{getMapObjectName($selectedMapObject) ?? 'Command Pane'}
 			{/if}
 		</div>
 		{#if $open}

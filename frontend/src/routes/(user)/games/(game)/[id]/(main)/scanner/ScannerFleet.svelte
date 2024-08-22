@@ -10,6 +10,7 @@
 	import { getContext } from 'svelte';
 	import type { Writable } from 'svelte/store';
 	import MapObjectScaler from './MapObjectScaler.svelte';
+	import { ownedBy } from '$lib/types/MapObject';
 
 	const { settings, player } = getGameContext();
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
@@ -32,6 +33,12 @@
 	function getTokenCount(fleet: Fleet): number {
 		return fleet.tokens ? fleet.tokens.reduce((count, t) => count + t.quantity, 0) : 0;
 	}
+
+	$: textColor = ownedBy(fleet, $player.num)
+		? 'fill-orbit'
+		: $player.isFriend(fleet.playerNum)
+			? 'fill-orbit-friends'
+			: 'fill-orbit-enemies';
 </script>
 
 <!-- ScannerFleet -->
@@ -43,7 +50,7 @@
 	/>
 	{#if $settings.showFleetTokenCounts}
 		<!-- position the text below the fleet -->
-		<text transform={`translate(0 ${size * 2.5})`} text-anchor="middle" class="fill-white"
+		<text transform={`translate(0 ${size * 2.5})`} text-anchor="middle" class={textColor}
 			>{getTokenCount(fleet)}</text
 		>
 	{/if}

@@ -4,8 +4,8 @@
 	import Starbase from '$lib/components/icons/Starbase.svelte';
 	import { getCarouselContext } from '$lib/services/CarouselContext';
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { Fleet } from '$lib/types/Fleet';
-	import { MapObjectType } from '$lib/types/MapObject';
+	import { type Fleet } from '$lib/types/Fleet';
+	import { getMapObjectName, MapObjectType } from '$lib/types/MapObject';
 	import type { MineField } from '$lib/types/MineField';
 	import type { MineralPacket } from '$lib/types/MineralPacket';
 	import type { MysteryTrader } from '$lib/types/MysteryTrader';
@@ -77,10 +77,10 @@
 						class="w-full"
 						on:click={carouselContext?.onDisclosureClicked}
 					>
-						{$selectedMapObject?.name ?? ''}
+						{getMapObjectName($selectedMapObject)}
 					</button>
 				{:else}
-					{$selectedMapObject?.name ?? ''}
+					{getMapObjectName($selectedMapObject)}
 				{/if}
 			</div>
 			<div>

@@ -1117,7 +1117,7 @@ var LadyFingerBomb = TechHullComponent{Tech: NewTech("Lady Finger Bomb", NewCost
 
 	Mass:                 40,
 	MinKillRate:          300,
-	StructureDestroyRate: .2,
+	StructureDestroyRate: 2,
 	KillRate:             .6,
 	HullSlotType:         HullSlotTypeBomb,
 }
@@ -1125,7 +1125,7 @@ var BlackCatBomb = TechHullComponent{Tech: NewTech("Black Cat Bomb", NewCost(1, 
 
 	Mass:                 45,
 	MinKillRate:          300,
-	StructureDestroyRate: .4,
+	StructureDestroyRate: 4,
 	KillRate:             .9,
 	HullSlotType:         HullSlotTypeBomb,
 }
@@ -1133,7 +1133,7 @@ var M70Bomb = TechHullComponent{Tech: NewTech("M-70 Bomb", NewCost(1, 24, 0, 9),
 
 	Mass:                 50,
 	MinKillRate:          300,
-	StructureDestroyRate: .6,
+	StructureDestroyRate: 6,
 	KillRate:             1.2,
 	HullSlotType:         HullSlotTypeBomb,
 }
@@ -1141,7 +1141,7 @@ var M80Bomb = TechHullComponent{Tech: NewTech("M-80 Bomb", NewCost(1, 25, 0, 12)
 
 	Mass:                 55,
 	MinKillRate:          300,
-	StructureDestroyRate: .7,
+	StructureDestroyRate: 7,
 	KillRate:             1.7,
 	HullSlotType:         HullSlotTypeBomb,
 }
@@ -1149,28 +1149,28 @@ var CherryBomb = TechHullComponent{Tech: NewTech("Cherry Bomb", NewCost(1, 25, 0
 
 	Mass:                 52,
 	MinKillRate:          300,
-	StructureDestroyRate: 1.0,
+	StructureDestroyRate: 10,
 	KillRate:             2.5,
 	HullSlotType:         HullSlotTypeBomb,
 }
 var LBU17Bomb = TechHullComponent{Tech: NewTech("LBU-17 Bomb", NewCost(1, 15, 15, 7), TechRequirements{TechLevel: TechLevel{Weapons: 5, Electronics: 8}}, 50, TechCategoryBomb),
 
 	Mass:                 30,
-	StructureDestroyRate: 1.6,
+	StructureDestroyRate: 16,
 	KillRate:             .2,
 	HullSlotType:         HullSlotTypeBomb,
 }
 var LBU32Bomb = TechHullComponent{Tech: NewTech("LBU-32 Bomb", NewCost(1, 24, 15, 10), TechRequirements{TechLevel: TechLevel{Weapons: 10, Electronics: 10}}, 60, TechCategoryBomb),
 
 	Mass:                 35,
-	StructureDestroyRate: 2.8,
+	StructureDestroyRate: 28,
 	KillRate:             .3,
 	HullSlotType:         HullSlotTypeBomb,
 }
 var LBU74Bomb = TechHullComponent{Tech: NewTech("LBU-74 Bomb", NewCost(1, 33, 12, 14), TechRequirements{TechLevel: TechLevel{Weapons: 15, Electronics: 12}}, 70, TechCategoryBomb),
 
 	Mass:                 45,
-	StructureDestroyRate: 4.5,
+	StructureDestroyRate: 45,
 	KillRate:             .4,
 	HullSlotType:         HullSlotTypeBomb,
 }
@@ -2546,6 +2546,7 @@ var UltraStation = TechHull{Tech: NewTech("Ultra Station", NewCost(120, 80, 300,
 	SpaceDockSlotSize:        Vector{1, 1},
 	Armor:                    1000,
 	Initiative:               16,
+	RangeBonus:               1,
 	Starbase:                 true,
 	RepairBonus:              .15,       // 20% total repair rate
 	InnateScanRangePenFactor: .5,        // AR races get half innate scanning range for pen scanning
@@ -2576,6 +2577,7 @@ var DeathStar = TechHull{Tech: NewTech("Death Star", NewCost(120, 80, 350, 750),
 	SpaceDockSlotSize:        Vector{1, 1},
 	Armor:                    1500,
 	Initiative:               18,
+	RangeBonus:               1,
 	Starbase:                 true,
 	RepairBonus:              .15,       // 20% total repair rate
 	InnateScanRangePenFactor: .5,        // AR races get half innate scanning range for pen scanning

@@ -16,11 +16,12 @@ type discoverer interface {
 	discoverPlayer(player *Player)
 	discoverPlayerScores(player *Player)
 	discoverPlanet(rules *Rules, planet *Planet, penScanned bool) error
+	clearPlanetOwnerIntel(planet *Planet) error
 	discoverPlanetStarbase(planet *Planet) error
 	discoverPlanetCargo(planet *Planet) error
 	discoverPlanetScanner(planet *Planet) error
 	discoverPlanetTerraformability(planetNum int) error
-	discoverFleet(fleet *Fleet)
+	discoverFleet(fleet *Fleet, discoverName bool)
 	discoverFleetCargo(fleet *Fleet)
 	discoverFleetScanner(fleet *Fleet)
 	discoverMineField(mineField *MineField)
@@ -113,6 +114,7 @@ type ShipDesignIntel struct {
 type FleetIntel struct {
 	MapObjectIntel
 	PlanetIntelID     int64       `json:"-,omitempty"` // for starbase fleets that are owned by a planet
+	BaseName          string      `json:"baseName,omitempty"`
 	Heading           Vector      `json:"heading,omitempty"`
 	OrbitingPlanetNum int         `json:"orbitingPlanetNum,omitempty"`
 	WarpSpeed         int         `json:"warpSpeed,omitempty"`
@@ -311,8 +313,6 @@ func (d *discover) discoverPlanet(rules *Rules, planet *Planet, penScanned bool)
 	ownedByPlayer := planet.PlayerNum != Unowned && player.Num == planet.PlayerNum
 
 	if penScanned || ownedByPlayer {
-		intel.PlayerNum = planet.PlayerNum
-
 		if !ownedByPlayer && intel.ReportAge == ReportAgeUnexplored {
 			// let the player know we discovered a new planet
 			messager.planetDiscovered(player, planet)
@@ -359,6 +359,39 @@ func (d *discover) discoverPlanet(rules *Rules, planet *Planet, penScanned bool)
 			intel.Spec.Population = MaxInt(0, int(float64(planet.population())*(1-randomPopulationError)))
 		}
 	}
+	return nil
+}
+
+// discover only the planet owner, but nothing else about a planet
+func (d *discover) clearPlanetOwnerIntel(planet *Planet) error {
+
+	player := d.player
+	var intel *PlanetIntel
+	planetIndex := planet.Num - 1
+
+	if planetIndex < 0 || planetIndex >= len(player.PlanetIntels) {
+		return fmt.Errorf("player %s cannot discover planet %s, planetIndex %d out of range", player, planet, planetIndex)
+	}
+
+	intel = &player.PlanetIntels[planetIndex]
+
+	// if we've been invaded, reset our planet knowledge as if it was
+	// unowned, but we maintain knowledge of hab
+	intel.PlayerNum = Unowned
+	intel.Spec.Population = 0
+	intel.Spec.HasStarbase = false
+	intel.Spec.HasStargate = false
+	intel.Spec.HasMassDriver = false
+	intel.Spec.StarbaseDesignName = ""
+	intel.Spec.StarbaseDesignNum = 0
+	intel.ReportAge = 0
+
+	log.Debug().
+		Int64("GameID", player.GameID).
+		Int("Player", player.Num).
+		Int("Planet", planet.Num).
+		Msgf("player cleared planet owner intel")
+
 	return nil
 }
 
@@ -448,7 +481,7 @@ func (d *discover) discoverPlanetTerraformability(planetNum int) error {
 }
 
 // discover a fleet and add it to the player's fleet intel
-func (d *discover) discoverFleet(fleet *Fleet) {
+func (d *discover) discoverFleet(fleet *Fleet, discoverName bool) {
 	player := d.player
 	intel := player.getFleetIntel(fleet.PlayerNum, fleet.Num)
 	if intel == nil {
@@ -464,7 +497,21 @@ func (d *discover) discoverFleet(fleet *Fleet) {
 			Msgf("player discovered fleet")
 	}
 
-	intel.Name = fleet.Name
+	intel.BaseName = fleet.Tokens[0].design.Hull
+	intel.Name = fmt.Sprintf("%s #%d", fleet.Tokens[0].design.Hull, fleet.Num)
+
+	// we don't learn the fleet name, just the name of the first design in the fleet
+	designIntel := d.player.getShipDesignIntel(fleet.PlayerNum, fleet.Tokens[0].DesignNum)
+	if designIntel != nil {
+		intel.BaseName = designIntel.Name
+		intel.Name = fmt.Sprintf("%s #%d", designIntel.Name, fleet.Num)
+	}
+
+	if discoverName {
+		// ally's tell us the names of their fleets
+		intel.BaseName = fleet.BaseName
+		intel.Name = fleet.Name
+	}
 	intel.Position = fleet.Position
 	intel.OrbitingPlanetNum = fleet.OrbitingPlanetNum
 	intel.Heading = fleet.Heading
@@ -617,10 +664,38 @@ func (d *discover) discoverDesign(design *ShipDesign, discoverSlots bool) {
 			Msgf("player discovered design")
 	}
 
+	if intel.Hull != design.Hull ||
+		intel.HullSetNumber != design.HullSetNumber ||
+		intel.Spec.Mass != design.Spec.Mass ||
+		(len(intel.Slots) != 0 && !design.SlotsEqual(intel.Slots)) {
+
+		// we discovered a design with this number already, but this is a new design
+		// rediscover it
+		intel.Name = design.Hull
+		intel.PlayerNum = design.PlayerNum
+		intel.Num = design.Num
+		intel.Hull = design.Hull
+		intel.HullSetNumber = design.HullSetNumber
+		intel.Spec = ShipDesignSpec{
+			Mass: design.Spec.Mass,
+		}
+		intel.Slots = []ShipDesignSlot{}
+		log.Debug().
+			Int64("GameID", player.GameID).
+			Int("Player", player.Num).
+			Int("ShipDesignPlayer", design.PlayerNum).
+			Int("ShipDesign", design.Num).
+			Msgf("player rediscovered design")
+
+	}
+
 	// discover slots if we haven't already and this scanner discovers them
-	if discoverSlots && len(intel.Slots) == 0 {
-		intel.Slots = make([]ShipDesignSlot, len(design.Slots))
-		copy(intel.Slots, design.Slots)
+	if discoverSlots {
+		if len(intel.Slots) == 0 {
+			// our first time discovering slots
+			intel.Slots = make([]ShipDesignSlot, len(design.Slots))
+			copy(intel.Slots, design.Slots)
+		}
 
 		// if we discovered slots, also discover the name
 		intel.Name = design.Name
@@ -634,6 +709,12 @@ func (d *discover) discoverDesign(design *ShipDesign, discoverSlots bool) {
 		intel.Spec.Movement = design.Spec.Movement
 		intel.Spec.Initiative = design.Spec.Initiative
 		intel.Spec.CloakPercent = design.Spec.CloakPercent
+		intel.Spec.BeamBonus = design.Spec.BeamBonus
+		intel.Spec.BeamDefense = design.Spec.BeamDefense
+		intel.Spec.TorpedoBonus = design.Spec.TorpedoBonus
+		intel.Spec.TorpedoJamming = design.Spec.TorpedoJamming
+		intel.Spec.ReduceCloaking = design.Spec.ReduceCloaking
+		intel.Spec.ReduceMovement = design.Spec.ReduceMovement
 
 		log.Debug().
 			Int64("GameID", player.GameID).
@@ -804,6 +885,20 @@ func (d *discovererWithAllies) discoverPlanet(rules *Rules, planet *Planet, penS
 	return nil
 }
 
+func (d *discovererWithAllies) clearPlanetOwnerIntel(planet *Planet) error {
+	if err := d.playerDiscoverer.clearPlanetOwnerIntel(planet); err != nil {
+		return err
+	}
+	for _, allyDiscoverer := range d.allyDiscoverers {
+		if allyDiscoverer.player.Num != planet.PlayerNum {
+			if err := allyDiscoverer.clearPlanetOwnerIntel(planet); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 func (d *discovererWithAllies) discoverPlanetStarbase(planet *Planet) error {
 	if err := d.playerDiscoverer.discoverPlanetStarbase(planet); err != nil {
 		return err
@@ -858,11 +953,11 @@ func (d *discovererWithAllies) discoverPlanetTerraformability(planetNum int) err
 	return nil
 }
 
-func (d *discovererWithAllies) discoverFleet(fleet *Fleet) {
-	d.playerDiscoverer.discoverFleet(fleet)
+func (d *discovererWithAllies) discoverFleet(fleet *Fleet, discoverName bool) {
+	d.playerDiscoverer.discoverFleet(fleet, discoverName)
 	for _, allyDiscoverer := range d.allyDiscoverers {
 		if allyDiscoverer.player.Num != fleet.PlayerNum {
-			allyDiscoverer.discoverFleet(fleet)
+			allyDiscoverer.discoverFleet(fleet, discoverName)
 		}
 	}
 }
