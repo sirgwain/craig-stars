@@ -18,7 +18,7 @@
 	<svelte:fragment slot="crumbs">
 		<li><a href={`/games/${$game.id}/designs`}>Designs</a></li>
 		<li>
-			<a href={`/games/${$game.id}/designs/${playerNum}`}>{$universe.getPlayerName(playerNum)}</a>
+			<a href={`/games/${$game.id}/designs/${playerNum}`}>{$universe.getPlayerPluralName(playerNum)}</a>
 		</li>
 		<li>{design?.name ?? 'not found'}</li>
 	</svelte:fragment>

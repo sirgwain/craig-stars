@@ -61,7 +61,7 @@
 		const termSearch = (term: string, mo: MapObject): boolean =>
 			mo.name.toLowerCase().indexOf(term.toLowerCase()) != -1 ||
 			(mo.playerNum != None &&
-				$universe.getPlayerName(mo.playerNum).toLowerCase().indexOf(term.toLowerCase()) != -1);
+				$universe.getPlayerPluralName(mo.playerNum).toLowerCase().indexOf(term.toLowerCase()) != -1);
 
 		// reset the selected item when the search is updated
 		selectedItemIndex = 0;
@@ -165,7 +165,7 @@
 								<div class="flex flex-row gap-1">
 									{#if planet.playerNum != None}
 										<span style={`color: ${$universe.getPlayerColor(planet.playerNum)}`}
-											>{$universe.getPlayerName(planet.playerNum)}</span
+											>{$universe.getPlayerPluralName(planet.playerNum)}</span
 										>
 										{planet.name}
 									{:else}
@@ -232,7 +232,7 @@
 						>
 							<button class="text-xl text-left w-full" on:click={ok}>
 								<span style={`color: ${$universe.getPlayerColor(fleet.playerNum)}`}
-									>{$universe.getPlayerName(fleet.playerNum)}</span
+									>{$universe.getPlayerPluralName(fleet.playerNum)}</span
 								>
 								{getMapObjectName(fleet)}
 							</button>

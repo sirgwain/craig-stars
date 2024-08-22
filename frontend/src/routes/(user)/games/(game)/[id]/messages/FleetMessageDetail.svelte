@@ -17,12 +17,12 @@
 	{@const bombing = message.spec.bombing}
 	{#if bombing}
 		{#if bombing.numBombers == 1}
-			Your fleet {message.targetName} has bombed {$universe.getPlayerName(
+			Your fleet {message.targetName} has bombed {$universe.getPlayerPluralName(
 				message.spec.targetPlayerNum
 			)} planet
 			{message.spec.targetName}
 		{:else}
-			Your fleets have bombed the {$universe.getPlayerName(message.spec.targetPlayerNum)} planet
+			Your fleets have bombed the {$universe.getPlayerPluralName(message.spec.targetPlayerNum)} planet
 			{message.spec.targetName}
 		{/if}
 		{#if bombing.planetEmptied}
@@ -40,7 +40,7 @@
 		{/if}
 	{:else}
 		<!-- Generic message, no bombing data (unexpected) -->
-		Your fleet {message.targetName} has bombed {$universe.getPlayerName(
+		Your fleet {message.targetName} has bombed {$universe.getPlayerPluralName(
 			message.spec.targetPlayerNum
 		)} planet
 		{message.spec.targetName}.
@@ -76,7 +76,7 @@
 		?.ironium ?? 0}kT of Ironium, {message.spec.mineral?.boranium ?? 0}kT of Boranium, and {message
 		.spec.mineral?.germanium ?? 0}kT of Germanium.
 {:else if message.type === MessageType.FleetTransferGiven}
-	{message.targetName} has successfully been given to {$universe.getPlayerName(
+	{message.targetName} has successfully been given to {$universe.getPlayerPluralName(
 		message.spec.destPlayerNum
 	)}.
 {:else if message.type === MessageType.FleetScrapped}
@@ -86,19 +86,19 @@
 	{#if message.spec.destPlayerNum == undefined || message.spec.destPlayerNum == None || message.spec.destPlayerNum < 0 || message.spec.destPlayerNum >= $game.players.length}
 		You cannot give {message.targetName} away. No player to transfer to was specified.
 	{:else}
-		You cannot give {message.targetName} to {$universe.getPlayerName(message.spec.destPlayerNum)}.
+		You cannot give {message.targetName} to {$universe.getPlayerPluralName(message.spec.destPlayerNum)}.
 	{/if}
 {:else if message.type === MessageType.FleetTransferInvalidColonists}
 	You couldn't give {message.targetName} away because there were some of your colonists on board.
 {:else if message.type === MessageType.FleetTransferInvalidGiveRefused}
-	{$universe.getPlayerName(message.spec.destPlayerNum)} snubbed your attempted gift and refused your offer of
+	{$universe.getPlayerPluralName(message.spec.destPlayerNum)} snubbed your attempted gift and refused your offer of
 	{message.targetName}. Are you sure they're still your allies?
 {:else if message.type === MessageType.FleetTransferInvalidReceiveRefused}
-	{$universe.getPlayerName(message.spec.sourcePlayerNum)} has attempted to gift you {message.targetName},
+	{$universe.getPlayerPluralName(message.spec.sourcePlayerNum)} has attempted to gift you {message.targetName},
 	but you have refused their offer. If you wish to receive gifts from this player in the future,
 	make sure to set them as allies.
 {:else if message.type === MessageType.FleetTransferReceived}
-	{$universe.getPlayerName(message.spec.sourcePlayerNum)} has given you {message.targetName}.
+	{$universe.getPlayerPluralName(message.spec.sourcePlayerNum)} has given you {message.targetName}.
 {:else}
 	<!-- Fallback for unknown message types -->
 	<FallbackMessageDetail {message} />

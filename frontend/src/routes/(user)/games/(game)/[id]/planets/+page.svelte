@@ -41,7 +41,7 @@
 				.filter(
 					(i) =>
 						i.name.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
-						$universe.getPlayerName(i.playerNum)?.toLowerCase().indexOf(search.toLowerCase()) != -1
+						$universe.getPlayerPluralName(i.playerNum)?.toLowerCase().indexOf(search.toLowerCase()) != -1
 				) ?? []
 		: $universe
 				.getMyPlanets($settings.sortPlanetsKey, $settings.sortPlanetsDescending)
@@ -58,7 +58,7 @@
 			title: 'Owner',
 			hidden: !$settings.showAllPlanets,
 			sortBy: (a, b) =>
-				$universe.getPlayerName(a.playerNum)?.localeCompare($universe.getPlayerName(b.playerNum))
+				$universe.getPlayerPluralName(a.playerNum)?.localeCompare($universe.getPlayerPluralName(b.playerNum))
 		},
 		{
 			key: 'reportAge',
@@ -217,7 +217,7 @@
 				<button class="cs-link text-xl text-left" on:click={() => selectPlanet(row)}>{cell}</button>
 			{:else if column.key == 'owner'}
 				<span style={`color: ${$universe.getPlayerColor(row.playerNum)};`}>
-					{owned(row) ? $universe.getPlayerName(row.playerNum) ?? '' : ''}
+					{owned(row) ? $universe.getPlayerPluralName(row.playerNum) ?? '' : ''}
 				</span>
 			{:else if column.key == 'reportAge'}
 				{#if row.reportAge == 0 || row.reportAge === undefined}

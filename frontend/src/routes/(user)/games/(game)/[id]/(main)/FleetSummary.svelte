@@ -79,7 +79,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="text-center">{$universe.getPlayerName(fleet.playerNum)}</div>
+		<div class="text-center">{$universe.getPlayerPluralName(fleet.playerNum)}</div>
 	</div>
 	<div class="flex flex-col grow">
 		<div class="flex flex-row">

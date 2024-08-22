@@ -13,7 +13,7 @@
 <Breadcrumb>
 	<svelte:fragment slot="crumbs">
 		<li><a href={`/games/${$game.id}/designs`}>Designs</a></li>
-		<li>{$universe.getPlayerName(playerNum)}</li>
+		<li>{$universe.getPlayerPluralName(playerNum)}</li>
 	</svelte:fragment>
 </Breadcrumb>
 

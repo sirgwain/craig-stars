@@ -34,7 +34,7 @@
 				/>
 			</div>
 		</div>
-		<div class="text-center">{$universe.getPlayerName(mineField.playerNum)}</div>
+		<div class="text-center">{$universe.getPlayerPluralName(mineField.playerNum)}</div>
 	</div>
 
 	<div class="flex flex-col grow">

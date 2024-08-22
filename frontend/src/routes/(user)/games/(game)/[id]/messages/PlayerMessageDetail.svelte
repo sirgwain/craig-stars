@@ -28,7 +28,7 @@
 	{#if message.targetPlayerNum == $player.num}
 		You are dead. All your planets have been overrun and your spaceships defeated.
 	{:else}
-		All traces of the {$universe.getPlayerName(message.targetPlayerNum)} have been eliminated from the
+		All traces of the {$universe.getPlayerPluralName(message.targetPlayerNum)} have been eliminated from the
 		galaxy. May they rest in peace.
 	{/if}
 {:else if message.type === MessageType.PlayerTechLevelGainedBattle}

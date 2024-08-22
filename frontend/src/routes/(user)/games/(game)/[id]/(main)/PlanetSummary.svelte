@@ -132,7 +132,7 @@
 			<div>
 				{#if planet.reportAge != Unexplored && planet.playerNum != $player.num && planet.playerNum != None}
 					<span style={`color: ${$universe.getPlayerColor(planet.playerNum)}`}
-						>{$universe.getPlayerName(planet.playerNum)}</span
+						>{$universe.getPlayerPluralName(planet.playerNum)}</span
 					>
 				{/if}
 			</div>
