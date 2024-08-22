@@ -293,8 +293,8 @@
 					descriptions.push(
 						`This module has a ${
 							hullComponent.torpedoJamming * 100
-						}% chance of deflecting incoming torpedos. Deflected torpedoes will still reduce shields (if any) by 1/8 the damage value.
-						If an enemy ship has computers this will act to offset their effects.`
+						}% chance of deflecting incoming torpedos. If an enemy ship has computers this will act to offset their effects. 
+						Deflected torpedoes will still reduce shields (if any) by 1/8 the damage value.`
 					);
 				}
 

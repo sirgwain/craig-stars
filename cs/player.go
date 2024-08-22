@@ -607,16 +607,13 @@ func (p *Player) defaultPlans() PlayerPlans {
 	// AR races don't build factories or mines
 	// CA & tri-immune races don't do terraforming
 	defaultProductionPlan := ProductionPlan{
-		Num:   0,
-		Name:  "Default",
-		Items: []ProductionPlanItem{},
+		Num:                               0,
+		Name:                              "Default",
+		Items:                             []ProductionPlanItem{},
+		ContributesOnlyLeftoverToResearch: false,
 	}
 
-	if !p.Race.Spec.Instaforming && !(p.Race.ImmuneGrav && p.Race.ImmuneTemp && p.Race.ImmuneRad) {
-		defaultProductionPlan.Items = append(defaultProductionPlan.Items,
-			ProductionPlanItem{Type: QueueItemTypeAutoMinTerraform, Quantity: 1},
-		)
-	}
+	// no min terraforming as _usually_ it's faster to build factories first (or at least for lower-value reds where the pop loss actually matters)
 
 	if !p.Race.Spec.InnateResources {
 		defaultProductionPlan.Items = append(defaultProductionPlan.Items,
@@ -632,7 +629,7 @@ func (p *Player) defaultPlans() PlayerPlans {
 
 	if !p.Race.Spec.Instaforming && !(p.Race.ImmuneGrav && p.Race.ImmuneTemp && p.Race.ImmuneRad) {
 		defaultProductionPlan.Items = append(defaultProductionPlan.Items,
-			ProductionPlanItem{Type: QueueItemTypeAutoMaxTerraform, Quantity: 1},
+			ProductionPlanItem{Type: QueueItemTypeAutoMaxTerraform, Quantity: 10},
 		)
 	}
 
