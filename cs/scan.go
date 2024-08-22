@@ -126,7 +126,7 @@ func (scan *playerScan) scanPlanets(scanners []scanner, cargoScanners []scanner,
 			scan.discoverer.discoverPlanetTerraformability(planet.Num)
 		}
 		// TODO: another fix for planets we don't own still being ours in intel
-		if intel.PlayerNum == scan.player.Num && planet.PlayerNum != scan.player.Num {
+		if (intel.PlayerNum == scan.player.Num && planet.PlayerNum != scan.player.Num) || (intel.PlayerNum == Unowned && intel.Spec.Population > 0) {
 			// we think we own this planet, but we don't. Remove ownership info
 			scan.discoverer.clearPlanetOwnerIntel(planet)
 		}
