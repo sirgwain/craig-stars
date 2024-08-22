@@ -616,7 +616,7 @@ func (p *Player) defaultPlans() PlayerPlans {
 		Num:                               0,
 		Name:                              "Default",
 		Items:                             []ProductionPlanItem{},
-		ContributesOnlyLeftoverToResearch: false,
+		ContributesOnlyLeftoverToResearch: true,
 	}
 
 	// no min terraforming as _usually_ it's faster to build factories first (or at least for lower-value reds where the pop loss actually matters)
