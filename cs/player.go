@@ -198,15 +198,21 @@ type ProductionPlanItem struct {
 }
 
 // Apply a production plan to a planet
-func (plan *ProductionPlan) Apply(planet *Planet) {
-	planet.ProductionQueue = make([]ProductionQueueItem, len(plan.Items))
+func (plan *ProductionPlan) ToQueueItems() []ProductionQueueItem {
+	queue := make([]ProductionQueueItem, len(plan.Items))
 	for i, item := range plan.Items {
-		planet.ProductionQueue[i] = ProductionQueueItem{
+		queue[i] = ProductionQueueItem{
 			Type:      item.Type,
 			Quantity:  item.Quantity,
 			DesignNum: item.DesignNum,
 		}
 	}
+	return queue
+}
+
+// Apply a production plan to a planet
+func (plan *ProductionPlan) Apply(planet *Planet) {
+	planet.ProductionQueue = plan.ToQueueItems()
 	planet.ContributesOnlyLeftoverToResearch = plan.ContributesOnlyLeftoverToResearch
 }
 
