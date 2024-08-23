@@ -769,7 +769,7 @@ func Test_turn_permaform(t *testing.T) {
 
 	// 10% chance to permaform
 	player.Race.Spec.PermaformChance = .1
-	player.Race.Spec.PermaformPopulation = 0
+	player.Race.Spec.PermaformPopulation = 100
 
 	// mock the random number generator to return temp as the hab to permaform
 	rng := testRandom{}
