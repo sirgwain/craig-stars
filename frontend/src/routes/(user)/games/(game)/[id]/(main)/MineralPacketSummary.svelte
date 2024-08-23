@@ -17,7 +17,7 @@
 				<div class="mapobject-avatar mineral-packet bg-black" />
 			</div>
 		</div>
-		<div class="text-center">{$universe.getPlayerName(mineralPacket.playerNum)}</div>
+		<div class="text-center">{$universe.getPlayerPluralName(mineralPacket.playerNum)}</div>
 	</div>
 
 	<div class="flex flex-col grow">

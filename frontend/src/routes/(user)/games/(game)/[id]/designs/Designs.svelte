@@ -28,7 +28,7 @@
 				(i) =>
 					i.name.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
 					i.hull.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
-					$universe.getPlayerName(i.playerNum).toLowerCase().indexOf(search.toLowerCase()) != -1
+					$universe.getPlayerPluralName(i.playerNum).toLowerCase().indexOf(search.toLowerCase()) != -1
 			) ?? [];
 
 	const columns: TableColumn<ShipDesign>[] = [
@@ -133,7 +133,7 @@
 				{/if}
 			{:else if column.key === 'playerNum'}
 				<a href={`/games/${$game.id}/designs/${row.playerNum}`} class="cs-link">
-					{$universe.getPlayerName(row.playerNum)}
+					{$universe.getPlayerPluralName(row.playerNum)}
 				</a>
 			{:else if column.key === 'mass'}
 				{row.spec.mass ?? ''}

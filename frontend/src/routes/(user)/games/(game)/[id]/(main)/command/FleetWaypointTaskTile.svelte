@@ -241,7 +241,7 @@
 				<option value={undefined}>None</option>
 				{#each $game.players as otherPlayer}
 					{#if otherPlayer.num != $player.num}
-						<option value={otherPlayer.num}>{$universe.getPlayerName(otherPlayer.num)}</option>
+						<option value={otherPlayer.num}>{$universe.getPlayerPluralName(otherPlayer.num)}</option>
 					{/if}
 				{/each}
 			</select>

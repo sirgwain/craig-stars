@@ -28,13 +28,13 @@
 	{#if message.targetPlayerNum == $player.num}
 		You are dead. All your planets have been overrun and your spaceships defeated.
 	{:else}
-		All traces of the {$universe.getPlayerName(message.targetPlayerNum)} have been eliminated from the
-		galaxy. May they rest in peace.
+		All traces of the {$universe.getPlayerPluralName(message.targetPlayerNum)} have been eliminated from
+		the galaxy. May they rest in peace.
 	{/if}
 {:else if message.type === MessageType.PlayerTechLevelGainedBattle}
 	{@const battle = $universe.getBattle(message.battleNum)}
-	Wreckage from the battle that occurred at ({battle?.position.x ?? 0}, {battle?.position.y ?? 0}) has
-	boosted your research in {message.spec.field} by 1 level.
+	Wreckage from the battle that occurred at ({battle?.position.x ?? 0}, {battle?.position.y ?? 0})
+	has boosted your research in {message.spec.field} by 1 level.
 {:else}
 	<FallbackMessageDetail {message} />
 {/if}

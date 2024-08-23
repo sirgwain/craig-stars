@@ -27,7 +27,7 @@
 	{@const bombing = message.spec.bombing}
 	{#if bombing}
 		{#if bombing.numBombers == 1}
-			{$universe.getPlayerName(message.spec.targetPlayerNum)}
+			{$universe.getPlayerPluralName(message.spec.targetPlayerNum)}
 			{message.spec.targetName} has bombed your planet {planet.name}
 			{#if message.spec.bombing?.planetEmptied}
 				killing off all colonists.
@@ -43,7 +43,7 @@
 				{/if}
 			{/if}
 		{:else}
-			{$universe.getPlayerName(message.spec.targetPlayerNum)}
+			{$universe.getPlayerPluralName(message.spec.targetPlayerNum)}
 			{message.spec.targetName} has bombed your planet {planet.name} killing off all colonists.
 		{/if}
 	{:else}

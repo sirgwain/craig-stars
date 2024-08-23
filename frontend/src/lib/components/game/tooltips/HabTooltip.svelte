@@ -10,7 +10,7 @@
 
 <script lang="ts">
 	import { getHabValue, getHabValueString, withHabValue, type HabType, add, habTypeString } from '$lib/types/Hab';
-	import { getPlanetHabitability } from '$lib/types/Race';
+	import { getPlanetHabitability, isImmune } from '$lib/types/Race';
 
 	export let player: Player;
 	export let planet: Planet;
@@ -22,34 +22,40 @@
 	const terraformedHabString = getHabValueString(habType, terraformedHab);
 	const habLowString = getHabValueString(habType, getHabValue(player.race.habLow, habType));
 	const habHighString = getHabValueString(habType, getHabValue(player.race.habHigh, habType));
+	const habCenter = getHabValue(player.race.spec?.habCenter, habType)
 	const habAfterTerraforming = add(planet.hab ?? {}, withHabValue(habType, terraformedHab));
 	const habitabilityAfterTerraforming = getPlanetHabitability(player.race, habAfterTerraforming);
 </script>
 
 <div class="flex flex-col sm:w-[26rem] m-auto">
 	<div>
-		{habTypeString(habType)} is currently
-		<span class="font-semibold">{getHabValueString(habType, getHabValue(planet.hab, habType))}</span
-		>. Your colonists prefer planets where {habTypeString(habType)}
-		is between <span class="font-semibold">{habLowString}</span> and
-		<span class="font-semibold">{habHighString}</span>
+		{#if isImmune(player.race, habType)}
+			{habTypeString(habType)} is currently
+			<span class="font-semibold">{getHabValueString(habType, getHabValue(planet.hab, habType))}</span>.
+			Your colonists are immune to the effects of {habTypeString(habType)}.
+		{:else}
+			{habTypeString(habType)} is currently
+			<span class="font-semibold">{getHabValueString(habType, getHabValue(planet.hab, habType))}</span>.
+			Your colonists prefer planets where {habTypeString(habType)} is between
+			<span class="font-semibold">{habLowString}</span> and
+			<span class="font-semibold">{habHighString}</span>.
 
-		{#if terraformedHab != 0}
-			<div>
-				You currently possess the technology to modify the {habTypeString(habType)} on
-				<span class="font-semibold">{planet.name}</span>
-				within the range of within the range of
-				<span class="font-semibold"
-					>{currentHab <= terraformedHab ? habString : terraformedHabString}</span
-				>
-				to
-				<span class="font-semibold"
-					>{currentHab > terraformedHab ? habString : terraformedHabString}</span
-				>. If you were to terraform <span class="font-semibold">{habTypeString(habType)}</span> to
-				<span class="font-semibold">{terraformedHabString}</span>, the planet's value would improve
-				to
-				<span class="font-semibold">{habitabilityAfterTerraforming.toFixed()}%</span>
-			</div>
+			{#if currentHab != habCenter}
+				This value is currently {currentHab < habCenter ? habCenter - currentHab : currentHab - habCenter}%
+				away from the ideal value for your race ({getHabValueString(habType, habCenter)}).
+
+				{#if terraformedHab != 0}
+					You currently possess the technology to modify the {habTypeString(habType)} on
+					<span class="font-semibold">{planet.name}</span> within the range of
+					<span class="font-semibold">{currentHab <= terraformedHab ? habString : terraformedHabString}</span>
+					to <span class="font-semibold">{currentHab > terraformedHab ? habString : terraformedHabString}</span>.
+					If you were to terraform <span class="font-semibold">{habTypeString(habType)}</span> to
+					<span class="font-semibold">{terraformedHabString}</span>, the planet's value would improve to
+					<span class="font-semibold">{habitabilityAfterTerraforming.toFixed()}%</span>.
+				{/if}
+			{:else}
+				This value is perfect for your race.
+			{/if}
 		{/if}
 	</div>
 </div>
