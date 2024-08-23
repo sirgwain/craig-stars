@@ -23,15 +23,16 @@
 	<div>
 		<span class="font-semibold">{planetName}</span> generates
 		<span class="font-semibold">{resourcesPerYear}</span>
-		resources each year. <span class="font-semibold">{resourcesPerYearResearch ?? 'None'}</span> of these
-		resources have been alloocated to research. 
+		resources each year. <span class="font-semibold">{resourcesPerYearResearch ?? 'None'}</span> of
+		these resources have been alloocated to research.
 		{#if resourcesPerYearResearch != 0}
-			That leaves <span class="font-semibold">{resourcesPerYearAvailable}</span> resources avaliable for use by the planet.
+			That leaves <span class="font-semibold">{resourcesPerYearAvailable}</span> resources avaliable
+			for use by the planet.
 		{/if}
-		
+
 		{#if innateResources}
-			Your resources at this planet will increase with population, habitability and <span class="font-semibold"
-				>Energy</span
+			Your resources at this planet will increase with population, habitability and <span
+				class="font-semibold">Energy</span
 			> tech.
 		{/if}
 
