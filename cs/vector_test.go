@@ -38,6 +38,22 @@ func Test_segmentIntersectsCircle(t *testing.T) {
 			expectedValue: 0.5,
 		},
 		{
+			name:          "segment is 1/4 in circle",
+			segmentFrom:   Vector{X: -1.25, Y: 0},
+			segmentTo:     Vector{X: -.25, Y: 0},
+			circleCenter:  Vector{X: 0, Y: 0},
+			circleRadius:  0.5,
+			expectedValue: 0.75,
+		},
+		{
+			name:          "segment is 3/4 out of circle",
+			segmentFrom:   Vector{X: .25, Y: 0},
+			segmentTo:     Vector{X: 1.25, Y: 0},
+			circleCenter:  Vector{X: 0, Y: 0},
+			circleRadius:  0.5,
+			expectedValue: 0.25,
+		},
+		{
 			name:          "Segment does not intersect circle",
 			segmentFrom:   Vector{X: 0, Y: 0},
 			segmentTo:     Vector{X: 1, Y: 0},

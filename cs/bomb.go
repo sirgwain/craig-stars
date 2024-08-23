@@ -421,7 +421,7 @@ func (b *bomb) getStructuresDestroyed(defenseCoverage float64, bombs []Bomb) int
 	// calculate the StructureDestroyRate for all these bombs
 	var structuresDestroyed float64 = 0
 	for _, bomb := range bombs {
-		structuresDestroyed += bomb.StructureDestroyRate * 10.0 * float64(bomb.Quantity)
+		structuresDestroyed += bomb.StructureDestroyRate * float64(bomb.Quantity)
 	}
 
 	// this will destroy some number of structures that are allocated proportionally

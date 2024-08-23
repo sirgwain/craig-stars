@@ -1277,6 +1277,15 @@ func Test_battle_buildMovementOrder(t *testing.T) {
 			Mass:      2,
 		},
 	}
+	tokenMovement3Mass1 := &battleToken{
+		ShipToken: &ShipToken{},
+		BattleRecordToken: BattleRecordToken{
+			PlayerNum: 4,
+			Num:       4,
+			Movement:  3,
+			Mass:      1,
+		},
+	}
 
 	tokenMovement6Mass190 := &battleToken{
 		ShipToken: &ShipToken{},
@@ -1346,6 +1355,15 @@ func Test_battle_buildMovementOrder(t *testing.T) {
 				{tokenMovement5Mass2, tokenMovement4Mass1},
 				{tokenMovement5Mass2, tokenMovement4Mass1},
 				{tokenMovement5Mass2, tokenMovement4Mass1},
+			},
+		},
+		// higher move/mass moves first
+		{name: "two tokens, move3-mass1 and move5-mass2", args: args{[]*battleToken{tokenMovement3Mass1, tokenMovement5Mass2}},
+			wantMoveOrder: [4][]*battleToken{
+				{tokenMovement5Mass2, tokenMovement5Mass2, tokenMovement3Mass1},
+				{tokenMovement5Mass2, tokenMovement3Mass1},
+				{tokenMovement5Mass2},
+				{tokenMovement5Mass2, tokenMovement3Mass1},
 			},
 		},
 		// higher mass should move twice, then other tokens move

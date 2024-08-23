@@ -27,7 +27,7 @@
 	{#each $player.relations as relation, index}
 		{#if $player.num != index + 1}
 			<!-- content here -->
-			<SectionHeader>{$universe.getPlayerName(index + 1)}</SectionHeader>
+			<SectionHeader>{$universe.getPlayerPluralName(index + 1)}</SectionHeader>
 			<div class="form-control">
 				<label class="label cursor-pointer">
 					<span class="label-text">Friend</span>

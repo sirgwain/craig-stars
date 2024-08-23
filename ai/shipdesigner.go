@@ -75,7 +75,7 @@ func (ai *aiPlayer) designShip(name string, purpose cs.ShipDesignPurpose, fleetP
 	updated.Name = fmt.Sprintf("%s v%d", name, updated.Version+1)
 
 	// if our existing design is equivalent, or higher rated, return it
-	if found && existing.SlotsEqual(updated) || (existing != nil && existing.Spec.PowerRating != 0 && existing.Spec.PowerRating >= updated.Spec.PowerRating) {
+	if found && existing.SlotsEqual(updated.Slots) || (existing != nil && existing.Spec.PowerRating != 0 && existing.Spec.PowerRating >= updated.Spec.PowerRating) {
 		return existing, nil
 	}
 

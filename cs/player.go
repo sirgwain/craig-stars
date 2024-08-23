@@ -198,15 +198,21 @@ type ProductionPlanItem struct {
 }
 
 // Apply a production plan to a planet
-func (plan *ProductionPlan) Apply(planet *Planet) {
-	planet.ProductionQueue = make([]ProductionQueueItem, len(plan.Items))
+func (plan *ProductionPlan) ToQueueItems() []ProductionQueueItem {
+	queue := make([]ProductionQueueItem, len(plan.Items))
 	for i, item := range plan.Items {
-		planet.ProductionQueue[i] = ProductionQueueItem{
+		queue[i] = ProductionQueueItem{
 			Type:      item.Type,
 			Quantity:  item.Quantity,
 			DesignNum: item.DesignNum,
 		}
 	}
+	return queue
+}
+
+// Apply a production plan to a planet
+func (plan *ProductionPlan) Apply(planet *Planet) {
+	planet.ProductionQueue = plan.ToQueueItems()
 	planet.ContributesOnlyLeftoverToResearch = plan.ContributesOnlyLeftoverToResearch
 }
 
@@ -607,16 +613,13 @@ func (p *Player) defaultPlans() PlayerPlans {
 	// AR races don't build factories or mines
 	// CA & tri-immune races don't do terraforming
 	defaultProductionPlan := ProductionPlan{
-		Num:   0,
-		Name:  "Default",
-		Items: []ProductionPlanItem{},
+		Num:                               0,
+		Name:                              "Default",
+		Items:                             []ProductionPlanItem{},
+		ContributesOnlyLeftoverToResearch: true,
 	}
 
-	if !p.Race.Spec.Instaforming && !(p.Race.ImmuneGrav && p.Race.ImmuneTemp && p.Race.ImmuneRad) {
-		defaultProductionPlan.Items = append(defaultProductionPlan.Items,
-			ProductionPlanItem{Type: QueueItemTypeAutoMinTerraform, Quantity: 1},
-		)
-	}
+	// no min terraforming as _usually_ it's faster to build factories first (or at least for lower-value reds where the pop loss actually matters)
 
 	if !p.Race.Spec.InnateResources {
 		defaultProductionPlan.Items = append(defaultProductionPlan.Items,
@@ -632,7 +635,7 @@ func (p *Player) defaultPlans() PlayerPlans {
 
 	if !p.Race.Spec.Instaforming && !(p.Race.ImmuneGrav && p.Race.ImmuneTemp && p.Race.ImmuneRad) {
 		defaultProductionPlan.Items = append(defaultProductionPlan.Items,
-			ProductionPlanItem{Type: QueueItemTypeAutoMaxTerraform, Quantity: 1},
+			ProductionPlanItem{Type: QueueItemTypeAutoMaxTerraform, Quantity: 10},
 		)
 	}
 

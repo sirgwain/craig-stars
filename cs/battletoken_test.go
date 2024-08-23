@@ -1,6 +1,8 @@
 package cs
 
-import "testing"
+import (
+	"testing"
+)
 
 func Test_battleToken_getDistanceAway(t *testing.T) {
 
@@ -60,7 +62,7 @@ func Test_battleToken_willTarget(t *testing.T) {
 
 func Test_battleToken_regenerateShields(t *testing.T) {
 	type args struct {
-		token  battleToken
+		token battleToken
 	}
 	tests := []struct {
 		name        string
@@ -74,7 +76,7 @@ func Test_battleToken_regenerateShields(t *testing.T) {
 					BattleRecordToken: BattleRecordToken{
 						PlayerNum: 1,
 					},
-					player: testPlayer().WithNum(1),
+					player:            testPlayer().WithNum(1),
 					stackShields:      50,
 					totalStackShields: 100,
 				},
@@ -88,7 +90,7 @@ func Test_battleToken_regenerateShields(t *testing.T) {
 					BattleRecordToken: BattleRecordToken{
 						PlayerNum: 1,
 					},
-					player: NewPlayer(1, NewRace().WithLRT(RS).WithSpec(&rules)).WithNum(1),
+					player:            NewPlayer(1, NewRace().WithLRT(RS).WithSpec(&rules)).WithNum(1),
 					stackShields:      50,
 					totalStackShields: 100,
 				},
@@ -102,7 +104,7 @@ func Test_battleToken_regenerateShields(t *testing.T) {
 					BattleRecordToken: BattleRecordToken{
 						PlayerNum: 1,
 					},
-					player: NewPlayer(1, NewRace().WithLRT(RS).WithSpec(&rules)).WithNum(1),
+					player:            NewPlayer(1, NewRace().WithLRT(RS).WithSpec(&rules)).WithNum(1),
 					stackShields:      0,
 					totalStackShields: 100,
 				},
@@ -120,6 +122,31 @@ func Test_battleToken_regenerateShields(t *testing.T) {
 				t.Errorf("battle.regenerateShields() = %v, want %v", got, tt.wantShields)
 			}
 
+		})
+	}
+}
+
+func Test_getCargoPerShip(t *testing.T) {
+	type args struct {
+		fleetCargo         int
+		fleetCargoCapacity int
+		tokenCargoCapacity int
+	}
+	tests := []struct {
+		name string
+		args args
+		want int
+	}{
+		{"no cargo", args{fleetCargo: 0, fleetCargoCapacity: 0, tokenCargoCapacity: 0}, 0},
+		{"full fleet one ship", args{fleetCargo: 10, fleetCargoCapacity: 10, tokenCargoCapacity: 10}, 10},
+		{"fleet is full, has more cargo than a single ship fits", args{fleetCargo: 100, fleetCargoCapacity: 100, tokenCargoCapacity: 10}, 10},
+		{"fleet is half full, ship should be half full", args{fleetCargo: 50, fleetCargoCapacity: 100, tokenCargoCapacity: 10}, 5},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := getCargoPerShip(tt.args.fleetCargo, tt.args.fleetCargoCapacity, tt.args.tokenCargoCapacity); got != tt.want {
+				t.Errorf("getCargoPerShip() = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }

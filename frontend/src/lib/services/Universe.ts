@@ -44,9 +44,9 @@ export interface CostFinder {
 export interface PlayerFinder {
 	getPlayerIntel(num: number): PlayerIntel | undefined;
 	getPlayerName(playerNum: number | undefined): string;
+	getPlayerPluralName(playerNum: number | undefined): string;
 	getPlayerColor(playerNum: number | undefined): string;
 }
-
 const sortByNum = (a: MapObject, b: MapObject) => a.num - b.num;
 
 function addtoDict(mo: MapObject, dict: Record<string, MapObject[]>) {
@@ -175,6 +175,14 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 	getPlayerName(playerNum: number | undefined): string {
 		if (playerNum && playerNum > 0 && playerNum <= this.players.length) {
 			const intel = this.players[playerNum - 1];
+			return intel.raceName ?? intel.name;
+		}
+		return 'unknown';
+	}
+
+	getPlayerPluralName(playerNum: number | undefined): string {
+		if (playerNum && playerNum > 0 && playerNum <= this.players.length) {
+			const intel = this.players[playerNum - 1];
 			return intel.racePluralName ?? intel.name;
 		}
 		return 'unknown';
@@ -239,6 +247,10 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 
 	getDesign(playerNum: number, num: number): ShipDesign | undefined {
 		return this.designs.find((d) => d.playerNum === playerNum && d.num === num);
+	}
+
+	getDesigns(playerNum: number): ShipDesign[] {
+		return this.designs.filter((d) => d.playerNum === playerNum);
 	}
 
 	getMyDesign(num: number | undefined): ShipDesign | undefined {

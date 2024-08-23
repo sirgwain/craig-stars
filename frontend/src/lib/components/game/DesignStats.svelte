@@ -26,8 +26,8 @@
 				<div class="font-semibold mr-5">Est Range</div>
 				<div>Infinite</div>
 			{:else if spec.cargoCapacity}
-				<div class="font-semibold mr-5">Est Range (with cargo)</div>
-				<div>
+				<div class="font-semibold mr-5">Est Range (w/cargo)</div>
+				<div class="text-right">
 					{spec.estimatedRange ?? 0}ly ({spec.estimatedRangeFull ?? 0}ly)
 				</div>
 			{:else}
@@ -64,7 +64,7 @@
 		{#if spec.cargoCapacity}
 			<div class="flex justify-between">
 				<div class="font-semibold mr-5">Cloak (with cargo)</div>
-				<div>{spec.cloakPercent ?? 0}% ({spec.cloakPercentFullCargo ?? 0}%)</div>
+				<div class="">{spec.cloakPercent ?? 0}% ({spec.cloakPercentFullCargo ?? 0}%)</div>
 			</div>
 		{:else}
 			<div class="flex justify-between">
@@ -73,10 +73,22 @@
 			</div>
 		{/if}
 	{/if}
-	{#if spec.torpedoJamming}
+	{#if spec.torpedoBonus || spec.torpedoJamming}
 		<div class="flex justify-between">
-			<div class="font-semibold mr-5">Torpedo Jamming</div>
-			<div>{((spec.torpedoJamming ?? 0) * 100).toFixed()}%</div>
+			<div class="font-semibold mr-5">Torpedo Bonus/Jamming</div>
+			<div>
+				{((spec.torpedoBonus ?? 0) * 100).toFixed()}%/{(
+					(spec.torpedoJamming ?? 0) * 100
+				).toFixed()}%
+			</div>
+		</div>
+	{/if}
+	{#if (spec.beamBonus && spec.beamBonus !== 1) || (spec.beamDefense && spec.beamDefense !== 1)}
+		<div class="flex justify-between">
+			<div class="font-semibold mr-5">Beam Bonus/Defense</div>
+			<div>
+				x{(spec.beamBonus ?? 1).toFixed(1)}/x{(spec.beamDefense ?? 1).toFixed(1)}
+			</div>
 		</div>
 	{/if}
 	<div class="flex justify-between">

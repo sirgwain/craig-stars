@@ -86,7 +86,7 @@
 
 	<div class="flex-none">
 		<ul class="menu menu-horizontal">
-			<li class="hidden sm:block">
+			<li class="hidden lg:block">
 				<div class="w-full px-1">
 					<input
 						class="input input-sm input-bordered w-16 pr-0 pl-1"

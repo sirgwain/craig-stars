@@ -26,7 +26,7 @@
 		getPlayerIntel(num: number): PlayerIntel | undefined {
 			return this.player.playerIntels?.find((p) => p.num == num);
 		}
-		getPlayerName(playerNum: number | undefined): string {
+		getPlayerPluralName(playerNum: number | undefined): string {
 			return (
 				this.player.playerIntels?.find((p) => p.num == playerNum)?.name ?? 'Player ' + playerNum
 			);

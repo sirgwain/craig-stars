@@ -110,6 +110,19 @@ func newBattleToken(num int, position BattleVector, cargoMass int, token *ShipTo
 	return &battleToken
 }
 
+// getCargoPerShip returns the amount of cargo a single ship in a stack is carrying
+func getCargoPerShip(fleetCargo, fleetCargoCapacity, tokenCargoCapacity int) int {
+	// add cargo from the fleet to each token
+	cargoMass := 0
+	if fleetCargo > 0 && tokenCargoCapacity > 0 {
+		// see how much this ship's cargo capacity is compared to the fleet total
+		shipCargoPercent := float64(tokenCargoCapacity) / float64(fleetCargoCapacity)
+		cargoMass = int(float64(fleetCargo) * shipCargoPercent)
+	}
+
+	return cargoMass
+}
+
 // convert hulltype to BattleTokenAttributes
 func getBattleTokenAttributes(hullType TechHullType, hasWeapons bool) battleTokenAttribute {
 	attributes := battleTokenAttributeUnarmed

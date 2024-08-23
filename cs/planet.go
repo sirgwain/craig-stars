@@ -366,7 +366,7 @@ func (p *Planet) innateMines(player *Player, population int) int {
 	return 0
 }
 
-// Get the number of innate mines this player would have on this planet
+// Get the innate scanning distance this player would have on this planet
 func (p *Planet) innateScanner(player *Player, population int) int {
 	if player.Race.Spec.InnateScanner {
 		return int(math.Sqrt(float64(population) * float64(player.Race.Spec.InnatePopulationFactor)))
