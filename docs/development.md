@@ -35,7 +35,7 @@ If you don't already have it, you'll also need to install [go-sqlite3](https://g
 
 For Linux/Mac, you can simply install the latest version of the GCC compilers using whatever package software you installed previously.
 
-However, on Windows, you'll need to install a Linux-like development interface ([Cygwin](https://cygwin.com/) and [MinGW](https://www.mingw-w64.org/) are both great options) to install & build the latest GCC version.
+However, on Windows, you'll need to install a Linux-like development interface (use MinGW - Cygwin64 WILL NOT WORK) to install & build the latest GCC version.
 
 Once that's done, enter `go install github.com/mattn/gosqlite3` into your computer's native terminal (or the terminal in VS Code) to install the driver.
 
