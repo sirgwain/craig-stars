@@ -1,6 +1,5 @@
 <script lang="ts" context="module">
-	import type { Planet } from '$lib/types/Planet';
-	export type MineralTooltipProps = {
+		export type MineralTooltipProps = {
 		mineralType: string;
 		surfaceAmount: number;
 		concentration: number;

@@ -114,7 +114,6 @@
 		{
 			key: 'defense',
 			title: 'Defense',
-			hidden: $settings.showAllPlanets,
 			sortBy: planetsSortBy('defense')
 		},
 		{
