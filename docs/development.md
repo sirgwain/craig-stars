@@ -46,23 +46,15 @@ You will need art assets, and those can be downloaded from [https://craig-stars.
 Finally, go to your terminal and enter the following commands:
 
 ```bash
-make build
-```
-
-Install air for automatic server restarts while developing: 
-
-```bash
 go install github.com/air-verse/air@latest
-```
-
-Launch the frontend and backend at the same time with `make`
-```bash
+make build
 make dev
 ```
 
+(Installing air is only required once, so you can skip the first line on subsequent builds.)
 **Note** On first launch, this will create an empty database with a single `admin` user, password `admin`.
 
-Enter `npm run preview` to view the localhost link (localhost:XXXX) representing the application being hosted locally on your machine. Go to that site to see a live reloading frontend proxied to the go server on port `:8080`. Updating go code will relaunch the backend automatically, while updating frontend code will do a hot reload with sveltekit/vite. (For obvious reasons, this only lasts while the terminal is actually _open_; closing it will close the program.)
+If done correctly, it should give a localhost link (http://localhost:XXXX/) representing the application being hosted locally on your machine. Go to that site to see a live reloading frontend proxied to the go server on port `:8080`. Updating go code will relaunch the backend automatically, while updating frontend code will do a hot reload with sveltekit/vite. (For obvious reasons, this only lasts while the terminal is actually _open_; closing it will close the program.)
 
 # Visual Studio Code 
 [VS Code](https://code.visualstudio.com) is highly recommended for development. `craig-stars` comes with a [cs.code-workspace](/cs.code-workspace) file that can be opened with VS Code in order to use front end and backend plugins without issue in the same repo. It also comes with a built in terminal, debugging support, and about a thousand other bells and whistles useful for general software development. 
@@ -119,3 +111,6 @@ You probably aren't running the backend. Open a new terminal tab and type `air` 
 "When I run air, my computer complains about undefined Sqlite Drivers!"
 
 See [Getting started](#Getting Started).
+
+"Make is refusing to follow the instructions in the makefile!"
+If worse comes to worst, try executing the instructions one by one (so do the instructions for make build, then make dev, etc etc). 
