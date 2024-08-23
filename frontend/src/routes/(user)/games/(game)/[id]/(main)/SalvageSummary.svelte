@@ -15,7 +15,7 @@
 				<div class="mapobject-avatar salvage bg-black" />
 			</div>
 		</div>
-		<div class="text-center">{$universe.getPlayerName(salvage.playerNum)}</div>
+		<div class="text-center">{$universe.getPlayerPluralName(salvage.playerNum)}</div>
 	</div>
 
 	<div class="flex flex-col grow">

@@ -4,10 +4,11 @@
 	import Starbase from '$lib/components/icons/Starbase.svelte';
 	import { getCarouselContext } from '$lib/services/CarouselContext';
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { Fleet } from '$lib/types/Fleet';
-	import { MapObjectType } from '$lib/types/MapObject';
+	import { type Fleet } from '$lib/types/Fleet';
+	import { getMapObjectName, MapObjectType } from '$lib/types/MapObject';
 	import type { MineField } from '$lib/types/MineField';
 	import type { MineralPacket } from '$lib/types/MineralPacket';
+	import type { MysteryTrader } from '$lib/types/MysteryTrader';
 	import type { Planet } from '$lib/types/Planet';
 	import type { Salvage } from '$lib/types/Salvage';
 	import type { Wormhole } from '$lib/types/Wormhole';
@@ -15,6 +16,7 @@
 	import FleetSummary from './FleetSummary.svelte';
 	import MineFieldSummary from './MineFieldSummary.svelte';
 	import MineralPacketSummary from './MineralPacketSummary.svelte';
+	import MysteryTraderSummary from './MysteryTraderSummary.svelte';
 	import PlanetSummary from './PlanetSummary.svelte';
 	import SalvageSummary from './SalvageSummary.svelte';
 	import UnknownSummary from './UnknownSummary.svelte';
@@ -59,6 +61,10 @@
 		$selectedMapObject?.type == MapObjectType.Wormhole
 			? ($selectedMapObject as Wormhole)
 			: undefined;
+	$: selectedMysteryTrader =
+		$selectedMapObject?.type == MapObjectType.MysteryTrader
+			? ($selectedMapObject as MysteryTrader)
+			: undefined;
 </script>
 
 <div class="card bg-base-200 shadow rounded-sm border-2 border-base-300 w-full">
@@ -71,10 +77,10 @@
 						class="w-full"
 						on:click={carouselContext?.onDisclosureClicked}
 					>
-						{$selectedMapObject?.name ?? ''}
+						{getMapObjectName($selectedMapObject)}
 					</button>
 				{:else}
-					{$selectedMapObject?.name ?? ''}
+					{getMapObjectName($selectedMapObject)}
 				{/if}
 			</div>
 			<div>
@@ -112,6 +118,8 @@
 			<SalvageSummary salvage={selectedSalvage} />
 		{:else if selectedWormhole}
 			<WormholeSummary wormhole={selectedWormhole} />
+		{:else if selectedMysteryTrader}
+			<MysteryTraderSummary mysteryTrader={selectedMysteryTrader} />
 		{:else}
 			<UnknownSummary />
 		{/if}

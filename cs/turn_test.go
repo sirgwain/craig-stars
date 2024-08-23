@@ -25,6 +25,8 @@ func (m MockRand) Int63() int64 {
 func createSingleUnitGame() *FullGame {
 	client := NewGamer()
 	game := client.CreateGame(1, *NewGameSettings())
+	game.RandomEvents = false // don't allow random events in tests unless configured
+	game.Area, _ = game.Rules.GetArea(game.Size)
 	game.Rules.ResetSeed(0) // keep the same seed for tests
 	player := client.NewPlayer(1, *NewRace(), &game.Rules).withSpec(&game.Rules)
 	player.Num = 1
@@ -73,6 +75,8 @@ func createSingleUnitGame() *FullGame {
 func createTwoPlayerGame() *FullGame {
 	client := NewGamer()
 	game := client.CreateGame(1, *NewGameSettings())
+	game.RandomEvents = false // don't allow random events in tests unless configured
+	game.Area, _ = game.Rules.GetArea(game.Size)
 	game.Rules.ResetSeed(0) // keep the same seed for tests
 	player1 := client.NewPlayer(1, *NewRace(), &game.Rules).withSpec(&game.Rules)
 	player1.Num = 1
@@ -150,6 +154,7 @@ func createTwoPlayerGame() *FullGame {
 func Test_generateTurn(t *testing.T) {
 	client := NewGamer()
 	game := client.CreateGame(1, *NewGameSettings())
+	game.Area, _ = game.Rules.GetArea(game.Size)
 	player := client.NewPlayer(1, *NewRace(), &game.Rules)
 	players := []*Player{player}
 	player.AIControlled = true
@@ -180,6 +185,7 @@ func Test_generateTurn(t *testing.T) {
 func Test_generateTurns(t *testing.T) {
 	client := NewGamer()
 	game := client.CreateGame(1, *NewGameSettings())
+	game.Area, _ = game.Rules.GetArea(game.Size)
 	player := client.NewPlayer(1, *NewRace(), &game.Rules)
 	player.AIControlled = true
 	player.Num = 1
@@ -1965,3 +1971,328 @@ func Test_turn_fleetPatrolKillPatrolAgain(t *testing.T) {
 	assert.Equal(t, fleet3.PlayerNum, fleet1.Waypoints[1].TargetPlayerNum)
 	assert.Equal(t, fleet3.Num, fleet1.Waypoints[1].TargetNum)
 }
+
+func Test_turn_mysteryTraderSpawn(t *testing.T) {
+	game := createSingleUnitGame()
+	game.RandomEvents = true
+	game.Rules.random = newIntRandom() // test random always rolls 0 by default
+	game.Year = game.Year + game.Rules.MysteryTraderRules.MinYear
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// move to place
+	turn.mysteryTraderSpawn()
+
+	// should have consumed that waypoint and moved to the space
+	assert.Equal(t, 1, len(game.MysteryTraders))
+	mt := game.MysteryTraders[0]
+	assert.Equal(t, 1, len(game.getMapObjectsAtPosition(mt.Position)))
+}
+
+func Test_turn_mysteryTraderMove(t *testing.T) {
+	game := createSingleUnitGame()
+	game.RandomEvents = true
+	game.Rules.random = newIntRandom(1) // test random that returns 1 so we don't change course
+	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardResearch))
+	mt := game.MysteryTraders[0]
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// move to place
+	turn.mysteryTraderMove()
+
+	// should have moved to our location
+	assert.Equal(t, Vector{49, 0}, mt.Position)
+	assert.Equal(t, 1, len(game.getMapObjectsAtPosition(mt.Position)))
+}
+
+func Test_turn_mysteryTraderMoveChangeCourse(t *testing.T) {
+	game := createSingleUnitGame()
+	game.RandomEvents = true
+	game.Rules.random = newIntRandom(0) // test random that returns 0 so we change course
+	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardResearch))
+	mt := game.MysteryTraders[0]
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// move to place
+	turn.mysteryTraderMove()
+
+	// should have changed course, so we won't move along the previous path
+	assert.NotEqual(t, Vector{49, 0}, mt.Position)
+	player := game.Players[0]
+	assert.Equal(t, 1, len(player.Messages))
+	assert.Equal(t, PlayerMessageMysteryTraderChangedCourse, player.Messages[0].Type)
+}
+
+func Test_turn_mysteryTraderFinished(t *testing.T) {
+	game := createSingleUnitGame()
+	game.RandomEvents = true
+	game.Rules.random = newIntRandom(1, 1) // test random that returns 1 so we don't change course or go again
+	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{49, 0}, 5000, MysteryTraderRewardResearch))
+	mt := game.MysteryTraders[0]
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// move to place
+	turn.mysteryTraderMove()
+
+	// should have changed course, so we won't move along the previous path
+	assert.Equal(t, Vector{49, 0}, mt.Position)
+	assert.True(t, mt.Delete)
+}
+
+func Test_turn_mysteryTraderAgain(t *testing.T) {
+	game := createSingleUnitGame()
+	game.RandomEvents = true
+	game.Rules.random = newIntRandom(1, 0) // test random that returns 1 so we don't change course or go again
+	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{49, 0}, 5000, MysteryTraderRewardResearch))
+	mt := game.MysteryTraders[0]
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// move to place
+	turn.mysteryTraderMove()
+
+	// should have changed course, so we won't move along the previous path
+	assert.Equal(t, Vector{49, 0}, mt.Position)
+	player := game.Players[0]
+	assert.Equal(t, 1, len(player.Messages))
+	assert.Equal(t, PlayerMessageMysteryTraderAgain, player.Messages[0].Type)
+	assert.NotEqual(t, Vector{49, 0}, mt.Destination)
+}
+
+func Test_turn_mysteryTraderMeetNoReward(t *testing.T) {
+	game := createSingleUnitGame()
+	game.RandomEvents = true
+	game.Rules.random = &testRandom{} // test random always rolls 0 by default
+	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardResearch))
+	mt := game.MysteryTraders[0]
+
+	fleet := game.Fleets[0]
+	player := game.Players[0]
+	player.TechLevels = TechLevel{}
+
+	// meet up
+	fleet.Position = mt.Position
+	fleet.Waypoints[0] = NewMysteryTraderWaypoint(mt, 5)
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// meet mystery trader
+	turn.mysteryTraderMeet()
+
+	// fleet should be left alone
+	assert.Equal(t, false, fleet.Delete)
+	assert.Equal(t, PlayerMessageMysteryTraderMetWithoutReward, player.Messages[0].Type)
+	assert.Equal(t, TechLevel{}, player.TechLevels)
+}
+
+func Test_turn_mysteryTraderMeetReward(t *testing.T) {
+	game := createSingleUnitGame()
+	game.RandomEvents = true
+	game.Rules.random = &testRandom{} // test random always rolls 0 by default
+	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardResearch))
+	mt := game.MysteryTraders[0]
+
+	fleet := game.Fleets[0]
+	player := game.Players[0]
+	player.TechLevels = TechLevel{}
+
+	// meet up
+	fleet.Position = mt.Position
+	fleet.Cargo = Cargo{5000, 0, 0, 0}
+	fleet.Waypoints[0] = NewMysteryTraderWaypoint(mt, 5)
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// meet mystery trader
+	turn.mysteryTraderMeet()
+
+	// fleet should be deleted, player gained tech
+	assert.Equal(t, true, fleet.Delete)
+	assert.Equal(t, PlayerMessageMysteryTraderMetWithReward, player.Messages[0].Type)
+	assert.Equal(t, TechLevel{Energy: 6}, player.TechLevels)
+}
+
+func Test_turn_mysteryTraderMeetRewardTech(t *testing.T) {
+	game := createSingleUnitGame()
+	game.RandomEvents = true
+	game.Rules.random = &testRandom{} // test random always rolls 0 by default
+	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardTorpedo))
+	mt := game.MysteryTraders[0]
+
+	fleet := game.Fleets[0]
+	player := game.Players[0]
+
+	// meet up
+	fleet.Position = mt.Position
+	fleet.Cargo = Cargo{5000, 0, 0, 0}
+	fleet.Waypoints[0] = NewMysteryTraderWaypoint(mt, 5)
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// meet mystery trader
+	turn.mysteryTraderMeet()
+
+	// fleet should be deleted, player gained tech
+	assert.Equal(t, true, fleet.Delete)
+	assert.Equal(t, PlayerMessageMysteryTraderMetWithReward, player.Messages[0].Type)
+	assert.True(t, player.HasAcquiredTech(&AntiMatterTorpedo.Tech))
+}
+
+func Test_turn_mysteryTraderMeetRewardTechAlreadyAcquired(t *testing.T) {
+	game := createSingleUnitGame()
+	game.RandomEvents = true
+	game.Rules.random = &testRandom{} // test random always rolls 0 by default
+	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardTorpedo))
+	mt := game.MysteryTraders[0]
+
+	fleet := game.Fleets[0]
+
+	// make this player already own the tech the MT is giving
+	player := game.Players[0]
+	player.AcquiredTechs[AntiMatterTorpedo.Name] = true
+
+	// meet up
+	fleet.Position = mt.Position
+	fleet.Cargo = Cargo{5000, 0, 0, 0}
+	fleet.Waypoints[0] = NewMysteryTraderWaypoint(mt, 5)
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// meet mystery trader
+	turn.mysteryTraderMeet()
+
+	// fleet should be deleted, player gained an additional tech
+	assert.Equal(t, true, fleet.Delete)
+	assert.Equal(t, PlayerMessageMysteryTraderMetWithReward, player.Messages[0].Type)
+	assert.Equal(t, 2, len(player.AcquiredTechs), "player should have acquired an additional tech. message is: %v", player.Messages[0])
+}
+
+func Test_turn_mysteryTraderMeetRewardShip(t *testing.T) {
+	game := createSingleUnitGame()
+	game.RandomEvents = true
+	game.Rules.random = newIntRandom()
+	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardLifeboat))
+	mt := game.MysteryTraders[0]
+
+	fleet := game.Fleets[0]
+	player := game.Players[0]
+	player.TechLevels = TechLevel{}
+
+	// meet up
+	fleet.Position = mt.Position
+	fleet.Cargo = Cargo{5000, 0, 0, 0}
+	fleet.Waypoints[0] = NewMysteryTraderWaypoint(mt, 5)
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// meet mystery trader
+	turn.mysteryTraderMeet()
+
+	// fleet should be deleted, player gained tech
+	assert.Equal(t, true, fleet.Delete)
+	assert.Equal(t, PlayerMessageMysteryTraderMetWithReward, player.Messages[0].Type)
+	assert.True(t, player.Messages[0].Spec.MysteryTrader.Ship.Name != "")
+	assert.True(t, player.Messages[0].Spec.MysteryTrader.ShipCount != 0)
+
+	// old fleet gone, new fleet should be a mystery trader design
+	assert.Equal(t, 2, len(game.Fleets))
+	assert.Equal(t, 2, len(player.Designs))
+	rewardFleet := game.Fleets[1]
+	design := player.Designs[1]
+	assert.True(t, rewardFleet.Tokens[0].design.MysteryTrader)
+	assert.True(t, rewardFleet.Tokens[0].Quantity > 0)
+	assert.True(t, design.MysteryTrader)
+
+}
+
+func Test_turn_mysteryTraderMeetAlreadyRewarded(t *testing.T) {
+	game := createSingleUnitGame()
+	game.RandomEvents = true
+	game.Rules.random = &testRandom{} // test random always rolls 0 by default
+	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardTorpedo))
+	mt := game.MysteryTraders[0]
+
+	fleet := game.Fleets[0]
+	player := game.Players[0]
+
+	// the player has already met this trader
+	mt.PlayersRewarded[player.Num] = true
+
+	// meet up
+	fleet.Position = mt.Position
+	fleet.Cargo = Cargo{5000, 0, 0, 0}
+	fleet.Waypoints[0] = NewMysteryTraderWaypoint(mt, 5)
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// meet mystery trader
+	turn.mysteryTraderMeet()
+
+	// fleet should be deleted, player gained tech
+	assert.Equal(t, PlayerMessageMysteryTraderAlreadyRewarded, player.Messages[0].Type)
+	assert.False(t, fleet.Delete)
+	assert.False(t, player.HasAcquiredTech(&AntiMatterTorpedo.Tech))
+}
+
+func Test_turn_buildMysteryTraderGenesisDevice(t *testing.T) {
+	game := createSingleUnitGame()
+	planet := game.Planets[0]
+	game.Rules.MysteryTraderRules.GenesisDeviceCost = Cost{0, 0, 0, 100}
+
+	// build a genesis device
+	planet.ProductionQueue = append(planet.ProductionQueue, ProductionQueueItem{Type: QueueItemTypeGenesisDevice, Quantity: 1})
+	planet.Cargo = Mineral{1000, 1000, 1000}.ToCargo()
+	planet.setPopulation(1_000_000)
+	planet.Defenses = 100
+	planet.Mines = 1000
+	planet.Factories = 1000
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// generate a turn to build a starbase
+	turn.generateTurn()
+
+	// should have an upgraded starbase at the planet, and the other should be
+	// marked for deletion
+	// TODO: not sure how to test this. Random number gen I guess...
+}
+

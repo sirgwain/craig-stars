@@ -261,6 +261,8 @@ export class CommandedPlanet implements Planet {
 			case QueueItemTypes.PlanetaryScanner:
 				// only one scanner per planet, assuming the race can build scanners...
 				return Math.max(0, (this.scanner || race.spec?.innateScanner ? 0 : 1) - amountInQueue);
+			case QueueItemTypes.GenesisDevice:
+				return 1;
 			case QueueItemTypes.ShipToken:
 				return Number.MAX_SAFE_INTEGER - amountInQueue;
 			case QueueItemTypes.Starbase:
@@ -491,7 +493,8 @@ export class CommandedPlanet implements Planet {
 		planet: Planet,
 		innateMining: boolean | undefined,
 		innateResources: boolean | undefined,
-		livesOnStarbases: boolean | undefined
+		livesOnStarbases: boolean | undefined,
+		genesisDevice: boolean | undefined
 	): ProductionQueueItem[] {
 		const items: ProductionQueueItem[] = [];
 
@@ -509,6 +512,9 @@ export class CommandedPlanet implements Planet {
 
 		if (!planet.scanner) {
 			items.push(fromQueueItemType(QueueItemTypes.PlanetaryScanner));
+		}
+		if (genesisDevice) {
+			items.push(fromQueueItemType(QueueItemTypes.GenesisDevice));
 		}
 
 		if (planet.spec.canTerraform) {
@@ -622,8 +628,8 @@ export interface PlanetSpec {
 	resourcesPerYearResearch?: number;
 	resourcesPerYearResearchEstimatedLeftover?: number;
 	defense: string;
-	defenseCoverage: number;
-	defenseCoverageSmart: number;
+	defenseCoverage?: number;
+	defenseCoverageSmart?: number;
 	scanner: string;
 	scanRange: number;
 	scanRangePen: number;

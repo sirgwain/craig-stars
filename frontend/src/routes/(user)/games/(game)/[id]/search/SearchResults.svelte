@@ -1,10 +1,11 @@
 <script lang="ts" context="module">
-	import type { Fleet } from '$lib/types/Fleet';
+	import { type Fleet } from '$lib/types/Fleet';
 	import { Unexplored, type Planet } from '$lib/types/Planet';
 
 	export type Results = {
 		planets: Planet[];
 		fleets: Fleet[];
+		mysteryTraders: MysteryTrader[];
 	};
 
 	export type SearchResultsEvent = {
@@ -14,19 +15,19 @@
 </script>
 
 <script lang="ts">
-	import { getGameContext } from '$lib/services/GameContext';
-	import { None, owned, ownedBy, type MapObject } from '$lib/types/MapObject';
-	import hotkeys from 'hotkeys-js';
-	import { createEventDispatcher, onMount } from 'svelte';
 	import MineralMini from '$lib/components/game/MineralMini.svelte';
+	import { getGameContext } from '$lib/services/GameContext';
+	import { getMapObjectName, None, owned, ownedBy, type MapObject } from '$lib/types/MapObject';
+	import type { MysteryTrader } from '$lib/types/MysteryTrader';
+	import { createEventDispatcher, onMount } from 'svelte';
 
 	const { game, player, universe, settings, commandMapObject, selectMapObject, zoomToMapObject } =
 		getGameContext();
 	const dispatch = createEventDispatcher<SearchResultsEvent>();
 
-	export let maxResults = 10;
-
-	let search = '';
+	export let maxPlanetResults = 10;
+	export let maxFleetResults = 10;
+	export let maxMiscResults = 10;
 
 	// the currently selected item
 	$: selectedItemIndex = 0;
@@ -35,34 +36,49 @@
 			? results.planets[selectedItemIndex]
 			: selectedItemIndex < results.planets.length + results.fleets.length
 				? results.fleets[selectedItemIndex - results.planets.length]
-				: undefined;
+				: selectedItemIndex <
+					  results.planets.length + results.fleets.length + results.mysteryTraders.length
+					? results.mysteryTraders[
+							selectedItemIndex - results.planets.length + results.fleets.length
+						]
+					: undefined;
 
 	function getResults(search: string): Results {
 		if (search == '') {
 			return {
 				planets: [],
-				fleets: []
+				fleets: [],
+				mysteryTraders: []
 			};
 		}
 		const terms = search.split(' ');
 
 		const planets = $universe.getPlanets($settings.sortPlanetsKey, $settings.sortPlanetsDescending);
 		const fleets = $universe.getFleets($settings.sortFleetsKey, $settings.sortFleetsDescending);
+		const mysteryTraders = $universe.mysteryTraders;
 
 		// return true if a mapboject name or player matches a search term
 		const termSearch = (term: string, mo: MapObject): boolean =>
 			mo.name.toLowerCase().indexOf(term.toLowerCase()) != -1 ||
 			(mo.playerNum != None &&
-				$universe.getPlayerName(mo.playerNum).toLowerCase().indexOf(term.toLowerCase()) != -1);
+				$universe.getPlayerPluralName(mo.playerNum).toLowerCase().indexOf(term.toLowerCase()) != -1);
 
 		// reset the selected item when the search is updated
 		selectedItemIndex = 0;
 		return {
 			planets:
-				planets.filter((i) => terms.every((term) => termSearch(term, i))).slice(0, maxResults) ??
-				[],
+				planets
+					.filter((i) => terms.every((term) => termSearch(term, i)))
+					.slice(0, maxPlanetResults) ?? [],
 			fleets:
-				fleets.filter((i) => terms.every((term) => termSearch(term, i))).slice(0, maxResults) ?? []
+				fleets
+					.filter((i) => terms.every((term) => termSearch(term, i)))
+					.slice(0, maxFleetResults) ?? [],
+
+			mysteryTraders:
+				mysteryTraders
+					.filter((i) => terms.every((term) => termSearch(term, i)))
+					.slice(0, maxMiscResults) ?? []
 		};
 	}
 
@@ -79,7 +95,7 @@
 
 	function selectNext() {
 		selectedItemIndex = Math.min(
-			results.planets.length + results.fleets.length,
+			results.planets.length + results.fleets.length + results.mysteryTraders.length,
 			selectedItemIndex + 1
 		);
 	}
@@ -100,26 +116,23 @@
 				ok();
 				event.preventDefault();
 				break;
+			case 'Escape':
+				if ($settings.searchQuery != '') {
+					$settings.searchQuery = '';
+				} else {
+					cancel();
+					event.preventDefault();
+				}
+				break;
 		}
 	}
 
 	let searchInput: HTMLInputElement | undefined;
 	onMount(() => {
-		const originalScope = hotkeys.getScope();
-		const scope = 'search';
-		hotkeys('Esc', cancel);
-		hotkeys.setScope(scope);
-
 		searchInput?.focus();
-
-		return () => {
-			hotkeys.unbind('Esc', cancel);
-			hotkeys.deleteScope(scope);
-			hotkeys.setScope(originalScope);
-		};
 	});
 	// when search chnages, update our search results
-	$: results = getResults(search);
+	$: results = getResults($settings.searchQuery);
 </script>
 
 <div class="flex flex-col gap-1 h-full pb-2">
@@ -133,7 +146,7 @@
 		autocapitalize="off"
 		spellcheck="false"
 		bind:this={searchInput}
-		bind:value={search}
+		bind:value={$settings.searchQuery}
 		on:keydown={onSearchKeyDown}
 	/>
 	<div class="h-full">
@@ -152,7 +165,7 @@
 								<div class="flex flex-row gap-1">
 									{#if planet.playerNum != None}
 										<span style={`color: ${$universe.getPlayerColor(planet.playerNum)}`}
-											>{$universe.getPlayerName(planet.playerNum)}</span
+											>{$universe.getPlayerPluralName(planet.playerNum)}</span
 										>
 										{planet.name}
 									{:else}
@@ -219,9 +232,28 @@
 						>
 							<button class="text-xl text-left w-full" on:click={ok}>
 								<span style={`color: ${$universe.getPlayerColor(fleet.playerNum)}`}
-									>{$universe.getPlayerName(fleet.playerNum)}</span
+									>{$universe.getPlayerPluralName(fleet.playerNum)}</span
 								>
-								{fleet.name}</button
+								{getMapObjectName(fleet)}
+							</button>
+						</li>
+					{/each}
+				</ul>
+			{/if}
+			{#if results.mysteryTraders.length > 0}
+				<h3 class="text-2xl font-bold mb-1">Mystery Traders</h3>
+				<ul class="mx-1">
+					{#each results.mysteryTraders as mysterytrader, index}
+						<!-- svelte-ignore a11y-mouse-events-have-key-events -->
+						<li
+							class="rounded-lg px-2"
+							class:bg-primary={selectedItemIndex ==
+								results.planets.length + results.fleets.length + index}
+							on:mouseover={(e) =>
+								(selectedItemIndex = results.planets.length + results.fleets.length + index)}
+						>
+							<button class="text-xl text-left w-full" on:click={ok}>
+								<span class="text-mystery-trader"> {mysterytrader.name}</span></button
 							>
 						</li>
 					{/each}

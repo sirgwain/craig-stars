@@ -2,11 +2,16 @@
 	import FactoriesTooltip from '$lib/components/game/tooltips/FactoriesTooltip.svelte';
 	import MineralTooltip from '$lib/components/game/tooltips/MineralTooltip.svelte';
 	import ResourcesTooltip from '$lib/components/game/tooltips/ResourcesTooltip.svelte';
-	import Tooltip from '$lib/components/game/tooltips/Tooltip.svelte';
 </script>
 
 <h1 class="text-xl">Mineral Tooltip</h1>
-<MineralTooltip mineralType="Ironium" surfaceAmount={1248} concentration={114} miningRate={52} />
+<MineralTooltip
+	mineralType="Ironium"
+	surfaceAmount={1248}
+	concentration={114}
+	miningRate={52}
+	homeworld={false}
+/>
 
 <h1 class="text-xl">Factories Tooltip</h1>
 <FactoriesTooltip

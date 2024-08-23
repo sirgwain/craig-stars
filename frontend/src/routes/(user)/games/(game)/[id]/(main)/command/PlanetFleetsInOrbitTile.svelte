@@ -9,6 +9,7 @@
 	import { createEventDispatcher, onDestroy } from 'svelte';
 	import type { CargoTransferDialogEvent } from '../../dialogs/cargo/CargoTranfserDialog.svelte';
 	import CommandTile from './CommandTile.svelte';
+	import { getMapObjectName } from '$lib/types/MapObject';
 
 	const dispatch = createEventDispatcher<CargoTransferDialogEvent>();
 
@@ -55,7 +56,7 @@
 		class="select select-outline select-secondary select-sm py-0 text-sm"
 	>
 		{#each fleetsInOrbit as fleet, index}
-			<option value={index}>{fleet.name}</option>
+			<option value={index}>{getMapObjectName(fleet)}</option>
 		{/each}
 	</select>
 

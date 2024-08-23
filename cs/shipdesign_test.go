@@ -383,7 +383,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				ScanRange:      0,
 				ScanRangePen:   NoScanner,
 				TorpedoBonus:   .8244,
-				Initiative:     13,
+				Initiative:     19,
 				Movement:       5,
 				MovementFull:   5,
 				PowerRating:    255,
@@ -590,7 +590,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 						Quantity:             1,
 						KillRate:             .6,
 						MinKillRate:          300,
-						StructureDestroyRate: .2,
+						StructureDestroyRate: 2,
 					},
 				},
 			},
@@ -724,10 +724,7 @@ func TestShipDesign_SlotsEqual(t *testing.T) {
 			source := &ShipDesign{
 				Slots: tt.args.sourceSlots,
 			}
-			other := &ShipDesign{
-				Slots: tt.args.otherSlots,
-			}
-			if got := source.SlotsEqual(other); got != tt.want {
+			if got := source.SlotsEqual(tt.args.otherSlots); got != tt.want {
 				t.Errorf("ShipDesign.SlotsEqual() = %v, want %v", got, tt.want)
 			}
 		})

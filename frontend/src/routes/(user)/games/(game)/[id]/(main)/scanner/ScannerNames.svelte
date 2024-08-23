@@ -25,7 +25,7 @@
 {#each $universe.planets as planet}
 	{#if $highlightedMapObject == planet || $selectedMapObject == planet || $objectScale >= 5}
 		<div
-			class="absolute w-32 text-center ml-[-4rem] mt-2 pointer-events-none z-20 text-white"
+			class="absolute w-32 text-center ml-[-4rem] mt-2 pointer-events-none z-10 text-white"
 			style={fillStyle(transform.applyX($xGet(planet)), transform.applyY($yGet(planet)))}
 		>
 			<span class="select-none">{planet.name}</span>

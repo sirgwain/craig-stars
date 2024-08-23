@@ -27,7 +27,7 @@
 	{@const bombing = message.spec.bombing}
 	{#if bombing}
 		{#if bombing.numBombers == 1}
-			{$universe.getPlayerName(message.spec.targetPlayerNum)}
+			{$universe.getPlayerPluralName(message.spec.targetPlayerNum)}
 			{message.spec.targetName} has bombed your planet {planet.name}
 			{#if message.spec.bombing?.planetEmptied}
 				killing off all colonists.
@@ -43,7 +43,7 @@
 				{/if}
 			{/if}
 		{:else}
-			{$universe.getPlayerName(message.spec.targetPlayerNum)}
+			{$universe.getPlayerPluralName(message.spec.targetPlayerNum)}
 			{message.spec.targetName} has bombed your planet {planet.name} killing off all colonists.
 		{/if}
 	{:else}
@@ -65,6 +65,8 @@
 	{:else}
 		You have built {message.spec.amount ?? 0} factories on {planet.name}.
 	{/if}
+{:else if message.type === MessageType.PlanetBuiltGensisDevice}
+	Strong fundamental forces have rebirthed {planet.name}.
 {:else if message.type === MessageType.PlanetBuiltMineralAlchemy}
 	Your scientists on {planet.name} have transmuted common materials into {message.spec.amount ??
 		0}kT each of Ironium, Boranium and Germanium.
@@ -75,7 +77,7 @@
 		You have built {message.spec.amount ?? 0} mines on {planet.name}.
 	{/if}
 {:else if message.type === MessageType.PlanetBuiltInvalidItem}
-	You have attempted to build {startCase(message.spec.queueItemType)} on {planet.name}, but {planet.name}
+	You have attempted to build a {message.spec.queueItemType?.toLowerCase()} on {planet.name}, but {planet.name}
 	is unable to build any of these.
 {:else if message.type === MessageType.PlanetBuiltInvalidMineralPacketNoMassDriver}
 	You have attempted to build a mineral packet on {planet.name}, but you have no Starbase equipped

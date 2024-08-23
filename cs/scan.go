@@ -53,7 +53,7 @@ func (scan *playerScan) scan() error {
 	scan.scanMineralPackets(scanners)
 	scan.scanSalvages(scanners)
 	scan.scanWormholes(scanners)
-	scan.scanMysteryTraders(scanners)
+	scan.scanMysteryTraders()
 
 	// scan ally objects
 	scan.discoverAllies()
@@ -125,6 +125,12 @@ func (scan *playerScan) scanPlanets(scanners []scanner, cargoScanners []scanner,
 			}
 			scan.discoverer.discoverPlanetTerraformability(planet.Num)
 		}
+		// TODO: another fix for planets we don't own still being ours in intel
+		if (intel.PlayerNum == scan.player.Num && planet.PlayerNum != scan.player.Num) || (intel.PlayerNum == Unowned && intel.Spec.Population > 0) {
+			// we think we own this planet, but we don't. Remove ownership info
+			scan.discoverer.clearPlanetOwnerIntel(planet)
+		}
+
 	}
 
 	return nil
@@ -194,11 +200,11 @@ func (scan *playerScan) scanFleets(scanners []scanner, cargoScanners []scanner) 
 	for _, fleet := range fleetsToScan {
 		scan.discoveredPlayers[fleet.PlayerNum] = true
 
-		scan.discoverer.discoverFleet(fleet)
-
 		for _, token := range fleet.Tokens {
 			scan.discoverer.discoverDesign(token.design, scan.player.Race.Spec.DiscoverDesignOnScan)
 		}
+
+		scan.discoverer.discoverFleet(fleet, false)
 	}
 
 	for _, fleet := range fleetsToCargoScan {
@@ -269,18 +275,13 @@ func (scan *playerScan) scanWormholes(scanners []scanner) {
 }
 
 // scan Mystery Traders
-func (scan *playerScan) scanMysteryTraders(scanners []scanner) {
+func (scan *playerScan) scanMysteryTraders() {
 	for _, mysteryTrader := range scan.universe.MysteryTraders {
 		if mysteryTrader.Delete {
 			continue
 		}
-		for _, scanner := range scanners {
-			// we only care about regular scanners for mysteryTraders
-			if float64(scanner.RangeSquared) >= scanner.Position.DistanceSquaredTo(mysteryTrader.Position) {
-				scan.discoverer.discoverMysteryTrader(mysteryTrader)
-				break
-			}
-		}
+		// every player discovers mystery traders
+		scan.discoverer.discoverMysteryTrader(mysteryTrader)
 	}
 }
 
@@ -381,21 +382,21 @@ func (scan *playerScan) discoverAllies() error {
 			}
 		}
 
-		// discover this ally's fleets/designs
-		for _, fleet := range scan.universe.Fleets {
-			if fleet.PlayerNum != player.Num {
-				continue
-			}
-			scan.discoverer.discoverFleet(fleet)
-			scan.discoverer.discoverFleetCargo(fleet)
-			scan.discoverer.discoverFleetScanner(fleet)
-		}
-
 		// discover any in use designs
 		for _, design := range player.Designs {
 			if design.Spec.NumInstances > 0 {
 				scan.discoverer.discoverDesign(design, true)
 			}
+		}
+		
+		// discover this ally's fleets/designs
+		for _, fleet := range scan.universe.Fleets {
+			if fleet.PlayerNum != player.Num || fleet.Delete {
+				continue
+			}
+			scan.discoverer.discoverFleet(fleet, true)
+			scan.discoverer.discoverFleetCargo(fleet)
+			scan.discoverer.discoverFleetScanner(fleet)
 		}
 
 		for _, mf := range scan.universe.MineFields {
@@ -466,21 +467,31 @@ func (scan *playerScan) getScanners() []scanner {
 	// build a list of scanners for this player
 	scanners := []scanner{}
 	for _, planet := range scan.universe.Planets {
-		if planet.PlayerNum == scan.player.Num && planet.Scanner {
-			scanner := scanner{
+		if planet.PlayerNum == scan.player.Num {
+			// planets we own without scanners act as range 0 scanners
+			planetaryScanner := scanner{
 				Position:             planet.Position,
-				RangeSquared:         planet.Spec.ScanRange * planet.Spec.ScanRange,
-				RangePenSquared:      planet.Spec.ScanRangePen * planet.Spec.ScanRangePen,
+				RangeSquared:         0,
+				RangePenSquared:      0,
 				CloakReductionFactor: 1,
 			}
 
+			if planet.Scanner {
+				// update this scanner to use the planetary scanner stats
+				planetaryScanner = scanner{
+					Position:             planet.Position,
+					RangeSquared:         planet.Spec.ScanRange * planet.Spec.ScanRange,
+					RangePenSquared:      planet.Spec.ScanRangePen * planet.Spec.ScanRangePen,
+					CloakReductionFactor: 1,
+				}
+			}
 			// use the fleet scanner if it's better
 			if fleetScanner, ok := scanningFleetsByPosition[planet.Position]; ok {
-				scanner.RangeSquared = MaxInt(scanner.RangeSquared, fleetScanner.RangeSquared)
-				scanner.RangePenSquared = MaxInt(scanner.RangePenSquared, fleetScanner.RangePenSquared)
-				scanner.CloakReductionFactor = math.Min(scanner.CloakReductionFactor, fleetScanner.CloakReductionFactor)
+				planetaryScanner.RangeSquared = MaxInt(planetaryScanner.RangeSquared, fleetScanner.RangeSquared)
+				planetaryScanner.RangePenSquared = MaxInt(planetaryScanner.RangePenSquared, fleetScanner.RangePenSquared)
+				planetaryScanner.CloakReductionFactor = math.Min(planetaryScanner.CloakReductionFactor, fleetScanner.CloakReductionFactor)
 			}
-			scanners = append(scanners, scanner)
+			scanners = append(scanners, planetaryScanner)
 		}
 	}
 
@@ -653,6 +664,18 @@ func (scan *playerScan) updateFleetTargets() {
 			switch wp.TargetType {
 			case MapObjectTypeFleet:
 				target := scan.player.getFleetIntel(wp.TargetPlayerNum, wp.TargetNum)
+				if target == nil {
+					messager.fleetTargetLost(scan.player, fleet, wp.TargetName, wp.TargetType)
+					wp.TargetType = MapObjectTypeNone
+					wp.TargetPlayerNum = None
+					wp.TargetNum = None
+					wp.TargetName = ""
+				} else {
+					// fleets move, make sure our position updates
+					wp.Position = target.Position
+				}
+			case MapObjectTypeMysteryTrader:
+				target := scan.player.getMysteryTraderIntel(wp.TargetNum)
 				if target == nil {
 					messager.fleetTargetLost(scan.player, fleet, wp.TargetName, wp.TargetType)
 					wp.TargetType = MapObjectTypeNone

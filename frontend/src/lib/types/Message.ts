@@ -5,9 +5,10 @@ import type { Hab } from './Hab';
 import { MapObjectType } from './MapObject';
 import type { Mineral } from './Mineral';
 import type { MineralPacketDamage } from './MineralPacket';
+import type { MysteryTraderReward } from './MysteryTrader';
 import type { PlayerSettings } from './PlayerSettings';
 import type { QueueItemType } from './QueueItemType';
-import type { TechField } from './TechLevel';
+import type { TechField, TechLevel } from './TechLevel';
 
 export type Message = {
 	type: MessageType;
@@ -33,6 +34,7 @@ export type PlayerMessageSpec = {
 	bombing?: BombingResult;
 	mineral?: Mineral;
 	mineralPacketDamage?: MineralPacketDamage;
+	mysteryTrader?: MysteryTraderReward & { fleetNum?: number };
 } & Target;
 
 export type BombingResult = {
@@ -185,7 +187,14 @@ export enum MessageType {
 	PlayerTechLevelGainedBattle,
 	FleetDieoff,
 	BattleAlly,
-	BattleReports
+	BattleReports,
+	MysteryTraderDiscovered,
+	MysteryTraderChangedCourse,
+	MysteryTraderAgain,
+	MysteryTraderMetWithReward,
+	MysteryTraderMetWithoutReward,
+	MysteryTraderAlreadyRewarded,
+	PlanetBuiltGensisDevice
 }
 
 // get the next visible message taking into account filters

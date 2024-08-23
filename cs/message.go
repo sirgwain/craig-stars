@@ -30,24 +30,25 @@ type PlayerMessage struct {
 type PlayerMessageSpec struct {
 	// the thing being targeted by the message target, i.e. the planet for a fleet bombed a planet message
 	Target[MapObjectType]
-	Amount              int                     `json:"amount,omitempty"`
-	Amount2             int                     `json:"amount2,omitempty"`
-	PrevAmount          int                     `json:"prevAmount,omitempty"`
-	SourcePlayerNum     int                     `json:"sourcePlayerNum,omitempty"`
-	DestPlayerNum       int                     `json:"destPlayerNum,omitempty"`
-	Name                string                  `json:"name,omitempty"`
-	Cost                *Cost                   `json:"cost,omitempty"`
-	Mineral             *Mineral                `json:"mineral,omitempty"`
-	Cargo               *Cargo                  `json:"cargo,omitempty"`
-	QueueItemType       QueueItemType           `json:"queueItemType,omitempty"`
-	Field               TechField               `json:"field,omitempty"`
-	NextField           TechField               `json:"nextField,omitempty"`
-	TechGained          string                  `json:"techGained,omitempty"`
-	LostTargetType      MapObjectType           `json:"lostTargetType,omitempty"`
-	Battle              BattleRecordStats       `json:"battle,omitempty"`
-	Comet               *PlayerMessageSpecComet `json:"comet,omitempty"`
-	Bombing             *BombingResult          `json:"bombing,omitempty"`
-	MineralPacketDamage *MineralPacketDamage    `json:"mineralPacketDamage,omitempty"`
+	Amount              int                             `json:"amount,omitempty"`
+	Amount2             int                             `json:"amount2,omitempty"`
+	PrevAmount          int                             `json:"prevAmount,omitempty"`
+	SourcePlayerNum     int                             `json:"sourcePlayerNum,omitempty"`
+	DestPlayerNum       int                             `json:"destPlayerNum,omitempty"`
+	Name                string                          `json:"name,omitempty"`
+	Cost                *Cost                           `json:"cost,omitempty"`
+	Mineral             *Mineral                        `json:"mineral,omitempty"`
+	Cargo               *Cargo                          `json:"cargo,omitempty"`
+	QueueItemType       QueueItemType                   `json:"queueItemType,omitempty"`
+	Field               TechField                       `json:"field,omitempty"`
+	NextField           TechField                       `json:"nextField,omitempty"`
+	TechGained          string                          `json:"techGained,omitempty"`
+	LostTargetType      MapObjectType                   `json:"lostTargetType,omitempty"`
+	Battle              BattleRecordStats               `json:"battle,omitempty"`
+	Comet               *PlayerMessageSpecComet         `json:"comet,omitempty"`
+	Bombing             *BombingResult                  `json:"bombing,omitempty"`
+	MineralPacketDamage *MineralPacketDamage            `json:"mineralPacketDamage,omitempty"`
+	MysteryTrader       *PlayerMessageSpecMysteryTrader `json:"mysteryTrader,omitempty"`
 }
 
 type PlayerMessageSpecComet struct {
@@ -56,6 +57,11 @@ type PlayerMessageSpecComet struct {
 	MineralConcentrationIncreased Mineral   `json:"mineralConcentrationIncreased,omitempty"`
 	HabChanged                    Hab       `json:"habChanged,omitempty"`
 	ColonistsKilled               int       `json:"colonistsKilled,omitempty"`
+}
+
+type PlayerMessageSpecMysteryTrader struct {
+	MysteryTraderReward
+	FleetNum int `json:"fleetNum" bson:"fleet_num"`
 }
 
 type PlayerMessageTargetType string
@@ -166,6 +172,13 @@ const (
 	PlayerMessageFleetDieoff
 	PlayerMessageBattleAlly
 	PlayerMessageBattleReports
+	PlayerMessageMysteryTraderDiscovered
+	PlayerMessageMysteryTraderChangedCourse
+	PlayerMessageMysteryTraderAgain
+	PlayerMessageMysteryTraderMetWithReward
+	PlayerMessageMysteryTraderMetWithoutReward
+	PlayerMessageMysteryTraderAlreadyRewarded
+	PlayerMessagePlanetBuiltGenesisDevice
 )
 
 func newMessage(messageType PlayerMessageType) PlayerMessage {
@@ -190,6 +203,11 @@ func newMineFieldMessage(messageType PlayerMessageType, target *MineField) Playe
 // create a new message targeting a minefield
 func newMineralPacketMessage(messageType PlayerMessageType, target *MineralPacket) PlayerMessage {
 	return PlayerMessage{Type: messageType, Target: Target[PlayerMessageTargetType]{TargetType: TargetMineralPacket, TargetName: target.Name, TargetPlayerNum: target.PlayerNum, TargetNum: target.Num}}
+}
+
+// create a new message targeting a planet
+func newMysteryTraderMessage(messageType PlayerMessageType, target *MysteryTrader) PlayerMessage {
+	return PlayerMessage{Type: messageType, Target: Target[PlayerMessageTargetType]{TargetType: TargetMysteryTrader, TargetNum: target.Num}}
 }
 
 // create a new message targeting a battle with the Name field as the location of the battle
@@ -737,6 +755,10 @@ func (m *messageClient) planetBuiltMines(player *Player, planet *Planet, numBuil
 func (m *messageClient) planetBuiltScanner(player *Player, planet *Planet, scanner string) {
 	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetBuiltScanner, planet).
 		withSpec(PlayerMessageSpec{Name: scanner}))
+}
+
+func (m *messageClient) planetBuiltGenesisDevice(player *Player, planet *Planet) {
+	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetBuiltGenesisDevice, planet))
 }
 
 func (m *messageClient) planetBuiltStarbase(player *Player, planet *Planet, fleet *Fleet) {

@@ -19,11 +19,17 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import { showPopup } from '$lib/services/Stores';
-	import { MapObjectType, None, ownedBy, type MapObject } from '$lib/types/MapObject';
+	import { type Fleet } from '$lib/types/Fleet';
+	import {
+		getMapObjectName,
+		MapObjectType,
+		None,
+		ownedBy,
+		type MapObject
+	} from '$lib/types/MapObject';
 	import { flatten, keys } from 'lodash-es';
 	import { createEventDispatcher } from 'svelte';
 	import type { PopupEvent } from './Popup.svelte';
-	import type { Fleet } from '$lib/types/Fleet';
 
 	const { player, universe, commandMapObject, selectMapObject } = getGameContext();
 	const dispatch = createEventDispatcher<PopupEvent>();
@@ -39,13 +45,6 @@
 		)
 	);
 
-	function getTokenCount(mo: MapObject) {
-		if (mo.type == MapObjectType.Fleet) {
-			const fleet = mo as Fleet;
-			return fleet.tokens ? fleet.tokens.reduce((count, t) => count + t.quantity, 0) : 0;
-		}
-		return 0;
-	}
 
 	function gotoTarget(mo: MapObject) {
 		if (ownedBy(mo, $player.num)) {
@@ -55,11 +54,6 @@
 		}
 		selectMapObject(mo);
 		dispatch('close');
-	}
-
-	function hasDestination(mo: MapObject): boolean {
-		const fleet = mo.type == MapObjectType.Fleet ? (mo as Fleet) : undefined;
-		return (fleet?.waypoints?.length ?? 0) > 1;
 	}
 </script>
 
@@ -95,8 +89,7 @@
 					>
 						<button
 							class="py-1 pl-0.5 w-full text-left hover:text-accent"
-							on:click={() => gotoTarget(mo)}
-							>{mo.name} ({getTokenCount(mo)}){hasDestination(mo) ? '*' : ''}</button
+							on:click={() => gotoTarget(mo)}>{getMapObjectName(mo)}</button
 						>
 					</li>
 				{/each}

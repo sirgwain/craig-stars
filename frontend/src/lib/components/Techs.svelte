@@ -18,6 +18,7 @@
 		...techStore.engines,
 		...techStore.planetaryScanners,
 		...techStore.defenses,
+		...techStore.planetaries,
 		...techStore.hullComponents,
 		...techStore.hulls,
 		...techStore.terraforms
@@ -37,6 +38,7 @@
 		MineLayer: [],
 		MineRobot: [],
 		Orbital: [],
+		Planetary: [],
 		PlanetaryScanner: [],
 		PlanetaryDefense: [],
 		Scanner: [],
@@ -58,6 +60,7 @@
 			MineLayer: [],
 			MineRobot: [],
 			Orbital: [],
+			Planetary: [],
 			PlanetaryScanner: [],
 			PlanetaryDefense: [],
 			Scanner: [],
@@ -96,6 +99,7 @@
 			techs = techs.concat(techStore.engines);
 			techs = techs.concat(techStore.planetaryScanners);
 			techs = techs.concat(techStore.defenses);
+			techs = techs.concat(techStore.planetaries);
 			techs = techs.concat(techStore.hullComponents);
 			techs = techs.concat(techStore.hulls);
 			techs = techs.concat(techStore.terraforms);
@@ -131,7 +135,7 @@
 {/if}
 
 {#each eu(TechCategory).getKeys() as category}
-	{#if techsByCategory[category].length > 0}
+	{#if techsByCategory[category]?.length > 0}
 		<a id={kebabCase(category)} href={`#${kebabCase(category)}`}
 			><SectionHeader title={startCase(category)} /></a
 		>

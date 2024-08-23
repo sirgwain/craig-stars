@@ -4,7 +4,7 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
 	import { totalCargo } from '$lib/types/Cargo';
-	import { WaypointTask, type Waypoint } from '$lib/types/Fleet';
+	import { WaypointTask, type Fleet, type Waypoint } from '$lib/types/Fleet';
 	import {
 		MapObjectType,
 		None,
@@ -31,6 +31,7 @@
 	import ScannerMineFieldPattern from './ScannerMineFieldPattern.svelte';
 	import ScannerMineFields from './ScannerMineFields.svelte';
 	import ScannerMineralPackets from './ScannerMineralPackets.svelte';
+	import ScannerMysteryTraders from './ScannerMysteryTraders.svelte';
 	import ScannerNames from './ScannerNames.svelte';
 	import ScannerPacketDests from './ScannerPacketDests.svelte';
 	import ScannerPlanets from './ScannerPlanets.svelte';
@@ -41,6 +42,7 @@
 	import ScannerWormholeLinks from './ScannerWormholeLinks.svelte';
 	import ScannerWormholes from './ScannerWormholes.svelte';
 	import SelectedMapObject from './SelectedMapObject.svelte';
+	import { filterFleet } from '$lib/types/Filter';
 
 	const {
 		game,
@@ -321,6 +323,12 @@
 			// we only care about the first button
 			return;
 		}
+
+		if (found?.type == MapObjectType.Fleet && !filterFleet($player, found as Fleet, $settings)) {
+			// this object we clicked is filtered out, don't do anything
+			return
+		}
+
 		pointerDown = true;
 
 		if (found) {
@@ -724,6 +732,7 @@
 				<ScannerMineralPackets />
 				<ScannerWormholes />
 				<ScannerFleets />
+				<ScannerMysteryTraders />
 				<ScannerWarpLine />
 				<ScannerWormholeLinks />
 				<ScannerSalvages />

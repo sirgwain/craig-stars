@@ -26,3 +26,27 @@ func TestTechStore_GetBestScanner(t *testing.T) {
 		})
 	}
 }
+
+func TestTechStore_GetHullComponentsByCategory(t *testing.T) {
+	type args struct {
+		category TechCategory
+	}
+	tests := []struct {
+		name string
+		args args
+		want TechHullComponent
+	}{
+		{"first shield", args{TechCategoryShield}, MoleSkinShield},
+		{"first armor", args{TechCategoryArmor}, Tritanium},
+		{"first beam", args{TechCategoryBeamWeapon}, Laser},
+		{"first torpedo", args{TechCategoryTorpedo}, AlphaTorpedo},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			store := NewTechStore()
+			if got := store.GetHullComponentsByCategory(tt.args.category)[0]; !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("TechStore.GetHullComponentsByCategory() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

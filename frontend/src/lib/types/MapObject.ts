@@ -1,3 +1,4 @@
+import { getTokenCount, hasDestination, type Fleet } from './Fleet';
 import type { Vector } from './Vector';
 
 export const None = 0;
@@ -32,6 +33,19 @@ export enum MapObjectType {
 	Salvage = 'Salvage',
 	MineralPacket = 'MineralPacket',
 	PositionWaypoint = 'PositionWaypoint'
+}
+
+export function getMapObjectName(mo: MapObject | Fleet | undefined): string {
+	if (!mo) {
+		return '';
+	}
+
+	// for fleets, we want the name to indicate if it has ships
+	if ('tokens' in mo) {
+		const numShips = getTokenCount(mo);
+		return `${mo.name} ${numShips > 1 ? `(${numShips})` : ''}${hasDestination(mo) ? '*' : ''}`;
+	}
+	return mo.name;
 }
 
 /**

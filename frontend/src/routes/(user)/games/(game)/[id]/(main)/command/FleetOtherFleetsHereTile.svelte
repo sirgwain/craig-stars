@@ -1,10 +1,11 @@
 <script lang="ts">
-	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
+	import { type CommandedFleet, type Fleet } from '$lib/types/Fleet';
 	import { createEventDispatcher, onDestroy } from 'svelte';
 	import CommandTile from './CommandTile.svelte';
 	import type { CargoTransferDialogEvent } from '../../dialogs/cargo/CargoTranfserDialog.svelte';
 	import type { SplitFleetDialogEvent } from '../../dialogs/split/SplitFleetDialog.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
+	import { getMapObjectName } from '$lib/types/MapObject';
 
 	const dispatch = createEventDispatcher<SplitFleetDialogEvent & CargoTransferDialogEvent>();
 
@@ -57,7 +58,7 @@
 			class="select select-outline select-secondary select-sm py-0 text-sm"
 		>
 			{#each fleetsInOrbit as fleet, index}
-				<option value={index}>{fleet.name}</option>
+				<option value={index}>{getMapObjectName(fleet)}</option>
 			{/each}
 		</select>
 

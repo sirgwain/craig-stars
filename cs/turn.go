@@ -89,7 +89,10 @@ func (t *turn) generateTurn() error {
 	t.randomPlanetaryChange()
 	t.fleetBattle()
 	t.fleetBomb()
-	t.mysteryTraderMeet()
+	if err := t.mysteryTraderMeet(); err != nil {
+		return err
+	}
+	t.mysteryTraderSpawn()
 
 	// wp1 tasks
 	t.fleetRemoteMine()
@@ -534,9 +537,20 @@ func (t *turn) fleetTransferCargo(fleet *Fleet, transferAmount int, cargoType Ca
 				return fmt.Errorf("can't invade planet with starbase")
 			}
 			defender := t.game.getPlayer(planet.PlayerNum)
+			// during invasion, even if the player loses the planet, they discover the invader
+			for _, token := range fleet.Tokens {
+				defender.discoverer.discoverDesign(token.design, defender.Race.Spec.DiscoverDesignOnScan)
+			}
+			defender.discoverer.discoverFleet(fleet, false)
 
 			invadePlanet(&t.game.Rules, t.game.TechStore, planet, fleet, defender, player, transferAmount*100)
 			fleet.Cargo.Colonists -= transferAmount
+
+			if planet.Num != defender.Num {
+				// the planet was lost, but we should discover the owner at least
+				defender.discoverer.clearPlanetOwnerIntel(planet)
+				defender.discoverer.discoverPlanet(&t.game.Rules, planet, false)
+			}
 
 		} else if transferAmount < 0 && !dest.canLoad(fleet.PlayerNum) {
 			// can't load from things we don't own
@@ -758,8 +772,100 @@ func (t *turn) packetMove(builtThisTurn bool) {
 	}
 }
 
-func (t *turn) mysteryTraderMove() {
+func (t *turn) mysteryTraderSpawn() {
+	if !t.game.RandomEvents {
+		// no mystery traders if no random events
+		return
+	}
 
+	if len(t.game.MysteryTraders) >= t.game.Rules.MysteryTraderRules.MaxMysteryTraders {
+		log.Debug().
+			Int64("GameID", t.game.ID).
+			Str("Name", t.game.Name).
+			Int("Year", t.game.Year).
+			Msgf("Max MysteryTraders reached, not generating")
+
+		return
+	}
+
+	mt := generateMysteryTrader(&t.game.Rules, t.game.Game, t.game.getNextMysteryTraderNum())
+	if mt != nil {
+		// a mystery trader has spawned!
+		t.game.addMysteryTrader(mt)
+
+		// tell all the players
+		for _, player := range t.game.Players {
+			player.Messages = append(player.Messages, newMysteryTraderMessage(PlayerMessageMysteryTraderDiscovered, mt))
+		}
+
+		log.Debug().
+			Int64("GameID", t.game.ID).
+			Str("Name", t.game.Name).
+			Int("Year", t.game.Year).
+			Int("MysteryTrader", mt.Num).
+			Str("Position", mt.Position.String()).
+			Str("Destination", mt.Destination.String()).
+			Msgf("MysteryTrader spawned")
+	}
+}
+
+func (t *turn) mysteryTraderMove() {
+	for _, mt := range t.game.MysteryTraders {
+		if mt.Delete {
+			continue
+		}
+
+		// check for a course change
+		if mt.change(&t.game.Rules, t.game.Game) {
+			for _, player := range t.game.Players {
+				player.Messages = append(player.Messages, newMysteryTraderMessage(PlayerMessageMysteryTraderChangedCourse, mt))
+			}
+			log.Debug().
+				Int64("GameID", t.game.ID).
+				Str("Name", t.game.Name).
+				Int("Year", t.game.Year).
+				Int("MysteryTrader", mt.Num).
+				Msgf("mysteryTrader changed course")
+		}
+
+		originalPosition := mt.Position
+		mt.move()
+		t.game.moveMysteryTrader(mt, originalPosition)
+
+		log.Debug().
+			Int64("GameID", t.game.ID).
+			Str("Name", t.game.Name).
+			Int("Year", t.game.Year).
+			Int("MysteryTrader", mt.Num).
+			Int("WarpSpeed", mt.WarpSpeed).
+			Str("Start", originalPosition.String()).
+			Str("End", mt.Position.String()).
+			Msgf("moved mysteryTrader")
+
+		if mt.Position == mt.Destination {
+			if mt.again(&t.game.Rules, t.game.Game, t.game.GetNumHumanPlayers()) {
+				for _, player := range t.game.Players {
+					player.Messages = append(player.Messages, newMysteryTraderMessage(PlayerMessageMysteryTraderAgain, mt))
+				}
+				log.Debug().
+					Int64("GameID", t.game.ID).
+					Str("Name", t.game.Name).
+					Int("Year", t.game.Year).
+					Int("MysteryTrader", mt.Num).
+					Msgf("mysteryTrader going again")
+			} else {
+				log.Debug().
+					Int64("GameID", t.game.ID).
+					Str("Name", t.game.Name).
+					Int("Year", t.game.Year).
+					Int("MysteryTrader", mt.Num).
+					Msgf("mysteryTrader finished")
+
+				// all done, bye bye trader
+				mt.Delete = true
+			}
+		}
+	}
 }
 
 func (t *turn) fleetMove() {
@@ -1342,6 +1448,9 @@ func (t *turn) planetProduction() error {
 				design.Spec.NumBuilt += token.Quantity
 				design.Spec.NumInstances += token.Quantity
 
+				player.Stats.FleetsBuilt++
+				player.Stats.TokensBuilt += token.Quantity
+
 				fleet, err := t.buildFleet(player, planet, token.ShipToken, token.tags)
 				if err != nil {
 					return err
@@ -1367,6 +1476,13 @@ func (t *turn) planetProduction() error {
 				planet.Spec = computePlanetSpec(&t.game.Rules, player, planet)
 				messager.planetBuiltScanner(player, planet, planet.Spec.Scanner)
 			}
+			if result.reset {
+				// exciting! planet was reset with a genesis device!
+				planet.randomize(&t.game.Rules)
+				planet.RandomArtifact = false // no random artifact on genesis device
+				planet.Spec = computePlanetSpec(&t.game.Rules, player, planet)
+				messager.planetBuiltGenesisDevice(player, planet)
+			}
 
 			// log what we actually did
 			for _, itemBuilt := range result.itemsBuilt {
@@ -1390,18 +1506,12 @@ func (t *turn) planetProduction() error {
 
 // build a fleet with some number of tokens
 func (t *turn) buildFleet(player *Player, planet *Planet, token ShipToken, tags Tags) (*Fleet, error) {
-	player.Stats.FleetsBuilt++
-	player.Stats.TokensBuilt += token.Quantity
-
-	playerFleets := t.game.getFleets(player.Num)
-	fleetNum := player.getNextFleetNum(playerFleets)
-	fleet := newFleetForToken(player, fleetNum, token, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, token.design.Spec.Engine.IdealSpeed)})
-	fleet.Position = planet.Position
-	fleet.Spec = ComputeFleetSpec(&t.game.Rules, player, &fleet)
-	fleet.Fuel = fleet.Spec.FuelCapacity
-	fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed, fleet.Spec.CargoCapacity)
+	fleet, err := t.addFleet(player, planet.Position, token, tags)
+	if err != nil {
+		return nil, err
+	}
+	fleet.Waypoints[0] = NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, token.design.Spec.Engine.IdealSpeed)
 	fleet.OrbitingPlanetNum = planet.Num
-	fleet.Tags = tags
 
 	log.Debug().
 		Int64("GameID", t.game.ID).
@@ -1409,6 +1519,20 @@ func (t *turn) buildFleet(player *Player, planet *Planet, token ShipToken, tags 
 		Str("Planet", planet.Name).
 		Str("Fleet", fleet.Name).
 		Msgf("fleet built")
+
+	return fleet, nil
+}
+
+// add a new fleet to the universe
+func (t *turn) addFleet(player *Player, position Vector, token ShipToken, tags Tags) (*Fleet, error) {
+	playerFleets := t.game.getFleets(player.Num)
+	fleetNum := player.getNextFleetNum(playerFleets)
+	fleet := newFleetForToken(player, fleetNum, token, []Waypoint{NewPositionWaypoint(position, token.design.Spec.Engine.IdealSpeed)})
+	fleet.Position = position
+	fleet.Spec = ComputeFleetSpec(&t.game.Rules, player, &fleet)
+	fleet.Fuel = fleet.Spec.FuelCapacity
+	fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed, fleet.Spec.CargoCapacity)
+	fleet.Tags = tags
 
 	t.game.Fleets = append(t.game.Fleets, &fleet)
 	if err := t.game.Universe.addFleet(&fleet); err != nil {
@@ -1882,19 +2006,17 @@ func (t *turn) fleetBattle() {
 			// someone wants to fight, run the battle!
 			record := battler.runBattle()
 
-			// every player should discover all designs in a battle as if they were penscanned.
-			designsToDiscover := map[playerObject]*ShipDesign{}
+			// first discover each other and the planet
 			for _, player := range playersAtPosition {
-				discoverer := player.discoverer
 
 				// discover other players at the battle
 				for _, otherplayer := range playersAtPosition {
-					discoverer.discoverPlayer(otherplayer)
+					player.discoverer.discoverPlayer(otherplayer)
 				}
 
 				// discover parts of this planet's starbase
 				if planet != nil {
-					discoverer.discoverPlanet(&t.game.Rules, planet, false)
+					player.discoverer.discoverPlanet(&t.game.Rules, planet, false)
 				}
 
 			}
@@ -1913,6 +2035,9 @@ func (t *turn) fleetBattle() {
 			}
 			salvageMinerals := destroyedCost.MultiplyFloat64(t.game.Rules.SalvageFromBattleFactor).ToMineral()
 
+			// every player should discover all designs in a battle as if they were penscanned.
+			designsToDiscover := map[playerObject]*ShipDesign{}
+			fleetsToDiscover := map[playerObject]*Fleet{}
 			survivingPlayers := make(map[int]bool, len(playersAtPosition))
 			for _, fleet := range fleets {
 				updatedTokens := make([]ShipToken, 0, len(fleet.Tokens))
@@ -1956,13 +2081,8 @@ func (t *turn) fleetBattle() {
 				} else {
 					// this player survived
 					survivingPlayers[fleet.PlayerNum] = true
-					// all players discover each remaining fleet in the battle
-					for _, player := range playersAtPosition {
-						if fleet.PlayerNum == player.Num {
-							continue
-						}
-						player.discoverer.discoverFleet(fleet)
-					}
+					// every player discovers the remaining fleets after a battle
+					fleetsToDiscover[playerObjectKey(fleet.PlayerNum, fleet.Num)] = fleet
 				}
 
 				// recompute the spec of this fleet and make sure we don't have extra fuel sitting around
@@ -1978,20 +2098,30 @@ func (t *turn) fleetBattle() {
 				}
 			}
 
-			if salvageMinerals.Total() > 0 {
-				if planet == nil {
-					t.game.createSalvage(record.Position, salvageOwner, salvageMinerals.ToCargo())
-				} else {
-					planet.Cargo = planet.Cargo.AddMineral(salvageMinerals)
-				}
-			}
-
-			// discover all enemy designs
+			// discover all alien designs
 			for _, design := range designsToDiscover {
 				for _, player := range playersAtPosition {
 					if player.Num != design.PlayerNum {
 						player.discoverer.discoverDesign(design, true)
 					}
+				}
+			}
+
+			for _, fleet := range fleetsToDiscover {
+				// all players discover each remaining fleet in the battle
+				for _, player := range playersAtPosition {
+					if fleet.PlayerNum == player.Num {
+						continue
+					}
+					player.discoverer.discoverFleet(fleet, false)
+				}
+			}
+
+			if salvageMinerals.Total() > 0 {
+				if planet == nil {
+					t.game.createSalvage(record.Position, salvageOwner, salvageMinerals.ToCargo())
+				} else {
+					planet.Cargo = planet.Cargo.AddMineral(salvageMinerals)
 				}
 			}
 
@@ -2082,21 +2212,149 @@ func (t *turn) fleetBomb() {
 			if fleet, ok := mo.(*Fleet); ok {
 				fleetPlayer := t.game.getPlayer(fleet.PlayerNum)
 				willBomb := fleet.willAttack(fleetPlayer, planet.PlayerNum)
-				if !fleet.Delete && fleet.Spec.Bomber && willBomb {
+				if fleet.Delete || fleet.OwnedBy(planetPlayer.Num) {
+					continue
+				}
+				if fleet.Spec.Bomber && willBomb {
 					enemyBombers = append(enemyBombers, fleet)
 				}
+
+				// in case our planet is destroyed by this bomber, discover any fleets in orbit
+				for _, token := range fleet.Tokens {
+					planetPlayer.discoverer.discoverDesign(token.design, planetPlayer.Race.Spec.DiscoverDesignOnScan)
+				}
+				planetPlayer.discoverer.discoverFleet(fleet, false)
 			}
 		}
 
 		if len(enemyBombers) > 0 {
 			// see if this planet has enemy bomber fleets, and if so, bomb it
 			bomber.bombPlanet(planet, planetPlayer, enemyBombers, t.game)
+
+			if planet.PlayerNum != planetPlayer.Num {
+				// the planet is lost, reset our intel
+				// the planet was lost, but we should discover the owner at least
+				planetPlayer.discoverer.clearPlanetOwnerIntel(planet)
+				planetPlayer.discoverer.discoverPlanet(&t.game.Rules, planet, false)
+			}
 		}
 	}
 }
 
-func (t *turn) mysteryTraderMeet() {
+func (t *turn) mysteryTraderMeet() error {
 
+	for _, mt := range t.game.MysteryTraders {
+
+		mapObjectsAtPosition := t.game.mapObjectsByPosition[mt.Position]
+		if len(mapObjectsAtPosition) <= 1 {
+			continue
+		}
+
+		for _, mo := range mapObjectsAtPosition {
+			if fleet, ok := mo.(*Fleet); ok && !fleet.Delete && fleet.Waypoints[0].TargetType == MapObjectTypeMysteryTrader && fleet.Waypoints[0].TargetNum == mt.Num {
+
+				player := t.game.getPlayer(fleet.PlayerNum)
+
+				if mt.rewardedPlayer(player.Num) {
+					// the same mystery trader can't give the same player a reward twice
+					player.Messages = append(player.Messages, newMysteryTraderMessage(PlayerMessageMysteryTraderAlreadyRewarded, mt).withSpec(PlayerMessageSpec{}.withTargetFleet(fleet)))
+					continue
+				}
+
+				reward := mt.meet(&t.game.Rules, t.game.Game, fleet, player)
+
+				if reward.Type == MysteryTraderRewardNone {
+					// fleet wasn't absorbed, move on
+					player.Messages = append(player.Messages, newMysteryTraderMessage(PlayerMessageMysteryTraderMetWithoutReward, mt).withSpec(PlayerMessageSpec{}.withTargetFleet(fleet)))
+					continue
+				}
+
+				// record that this mystery trader awarded this player
+				mt.PlayersRewarded[player.Num] = true
+
+				// player got a reward
+				switch reward.Type {
+				case MysteryTraderRewardResearch:
+					// tech levels!
+					// we gained a level!
+					player.techLevelGained = true
+					player.TechLevels = player.TechLevels.Add(reward.TechLevels)
+					player.Messages = append(player.Messages, newMysteryTraderMessage(PlayerMessageMysteryTraderMetWithReward, mt).withSpec(PlayerMessageSpec{MysteryTrader: &PlayerMessageSpecMysteryTrader{reward, 0}}.withTargetFleet(fleet)))
+
+					log.Debug().
+						Int64("GameID", t.game.ID).
+						Int("MysteryTrader", mt.Num).
+						Int("Player", player.Num).
+						Str("TechLevel", fmt.Sprintf("%v", reward.TechLevels)).
+						Msgf("gained tech levels from mysteryTrader")
+
+				case MysteryTraderRewardLifeboat:
+					design := player.GetDesignByName(reward.Ship.Name)
+					if design != nil && !design.MysteryTrader {
+						// uh oh, the player has their own design named the same as the mystery trader, they get nothing
+						log.Debug().
+							Int64("GameID", t.game.ID).
+							Int("MysteryTrader", mt.Num).
+							Int("Player", player.Num).
+							Str("Ship", reward.Ship.Name).
+							Msgf("player had design with same name as mysteryTrader design")
+						player.Messages = append(player.Messages, newMysteryTraderMessage(PlayerMessageMysteryTraderMetWithoutReward, mt).withSpec(PlayerMessageSpec{MysteryTrader: &PlayerMessageSpecMysteryTrader{reward, 0}}.withTargetFleet(fleet)))
+						continue
+					}
+					if design == nil {
+						// give the player a new design
+						design = &reward.Ship
+						num := player.GetNextDesignNum(player.Designs)
+						design.PlayerNum = player.Num
+						design.Num = num
+						design.GameDBObject = GameDBObject{}
+						design.Spec = ComputeShipDesignSpec(&t.game.Rules, player.TechLevels, player.Race.Spec, design)
+						player.Designs = append(player.Designs, design)
+						t.game.addDesign(design)
+					}
+					token := ShipToken{design: design, DesignNum: design.Num, Quantity: reward.ShipCount}
+					design.Spec.NumInstances += token.Quantity
+					design.Spec.NumBuilt += token.Quantity
+
+					rewardFleet, err := t.addFleet(player, fleet.Position, token, Tags{})
+					if err != nil {
+						return err
+					}
+
+					player.Messages = append(player.Messages, newMysteryTraderMessage(PlayerMessageMysteryTraderMetWithReward, mt).withSpec(PlayerMessageSpec{MysteryTrader: &PlayerMessageSpecMysteryTrader{reward, rewardFleet.Num}}.withTargetFleet(fleet)))
+
+					log.Debug().
+						Int64("GameID", t.game.ID).
+						Int("Player", rewardFleet.PlayerNum).
+						Str("Position", rewardFleet.Position.String()).
+						Str("Fleet", rewardFleet.Name).
+						Int("ShipCount", reward.ShipCount).
+						Msgf("new fleet created from mysteryTrader reward")
+
+				default:
+					// MT awarded tech
+					mtTech := t.game.GetTech(reward.Tech)
+					if mtTech == nil {
+						return fmt.Errorf("mystery trader %d awarded unknown tech %s", mt.Num, reward.Tech)
+					}
+					if _, ok := player.AcquiredTechs[reward.Tech]; ok {
+						log.Warn().
+							Int64("GameID", t.game.ID).
+							Int("MysteryTrader", mt.Num).
+							Int("Player", player.Num).
+							Str("Tech", reward.Tech).
+							Msgf("player already has tech awarded by mysteryTrader")
+					}
+					player.AcquiredTechs[reward.Tech] = true
+					player.Messages = append(player.Messages, newMysteryTraderMessage(PlayerMessageMysteryTraderMetWithReward, mt).withSpec(PlayerMessageSpec{MysteryTrader: &PlayerMessageSpecMysteryTrader{reward, 0}}.withTargetFleet(fleet)))
+				}
+
+				// remove the absorbed fleet from the universe
+				t.game.deleteFleet(fleet)
+			}
+		}
+	}
+	return nil
 }
 
 // decay MineFields and remove any minefields that are too small
@@ -2264,7 +2522,7 @@ func (t *turn) fleetTransferOwner() {
 				newName := fmt.Sprintf("%s %s", player.Race.PluralName, design.Name)
 				targetPlayerDesign := targetPlayer.GetDesignByName(newName)
 				if targetPlayerDesign != nil {
-					if !targetPlayerDesign.SlotsEqual(design) {
+					if !targetPlayerDesign.SlotsEqual(design.Slots) {
 						// uh oh, design has been updated since the last time it was transferred to us...
 						// create a new design for the target player
 						num := targetPlayer.GetNextDesignNum(targetPlayer.Designs)

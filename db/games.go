@@ -295,6 +295,12 @@ func (c *client) GetFullGame(id int64) (*cs.FullGame, error) {
 	}
 	universe.MineralPackets = mineralPackets
 
+	mysteryTraders, err := c.getMysteryTradersForGame(game.ID)
+	if err != nil {
+		return nil, fmt.Errorf("load mysteryTraders for game %w", err)
+	}
+	universe.MysteryTraders = mysteryTraders
+
 	// TODO: allow rules overrides, but for now, always use standard rules
 	game.Rules = cs.NewRules()
 

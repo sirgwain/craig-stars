@@ -228,6 +228,11 @@ func (c *GameConverter) ConvertGameMysteryTrader(source *cs.MysteryTrader) *Myst
 		dbMysteryTrader.HeadingX = (*source).Heading.X
 		dbMysteryTrader.HeadingY = (*source).Heading.Y
 		dbMysteryTrader.WarpSpeed = (*source).WarpSpeed
+		dbMysteryTrader.RequestedBoon = (*source).RequestedBoon
+		dbMysteryTrader.DestinationX = (*source).Destination.X
+		dbMysteryTrader.DestinationY = (*source).Destination.Y
+		dbMysteryTrader.RewardType = cs.MysteryTraderRewardType((*source).RewardType)
+		dbMysteryTrader.PlayersRewarded = GameMysteryTraderPlayersRewardedToMysteryTraderPlayersRewarded((*source).PlayersRewarded)
 		dbMysteryTrader.Spec = GameMysteryTraderSpecToMysteryTraderSpec((*source).Spec)
 		pDbMysteryTrader = &dbMysteryTrader
 	}
@@ -338,6 +343,7 @@ func (c *GameConverter) ConvertGamePlayer(source *cs.Player) *Player {
 		dbPlayer.Race = GameRaceToPlayerRace((*source).Race)
 		dbPlayer.Stats = GamePlayerStatsToPlayerStats((*source).Stats)
 		dbPlayer.ScoreHistory = GamePlayerScoresToPlayerScores((*source).ScoreHistory)
+		dbPlayer.AcquiredTechs = GameAcquiredTechsToAcquiredTechs((*source).AcquiredTechs)
 		dbPlayer.AchievedVictoryConditions = cs.Bitmask((*source).AchievedVictoryConditions)
 		dbPlayer.Victor = (*source).Victor
 		dbPlayer.Spec = GamePlayerSpecToPlayerSpec((*source).Spec)
@@ -427,6 +433,7 @@ func (c *GameConverter) ConvertGameShipDesign(source *cs.ShipDesign) *ShipDesign
 		dbShipDesign.CannotDelete = (*source).CannotDelete
 		dbShipDesign.Slots = GameShipDesignSlotsToShipDesignSlots((*source).Slots)
 		dbShipDesign.Purpose = cs.ShipDesignPurpose((*source).Purpose)
+		dbShipDesign.MysteryTrader = BoolToNullBool((*source).MysteryTrader)
 		dbShipDesign.Spec = GameShipDesignSpecToShipDesignSpec((*source).Spec)
 		pDbShipDesign = &dbShipDesign
 	}
@@ -529,8 +536,12 @@ func (c *GameConverter) ConvertMysteryTrader(source *MysteryTrader) *cs.MysteryT
 	if source != nil {
 		var csMysteryTrader cs.MysteryTrader
 		csMysteryTrader.MapObject = ExtendMysteryTraderMapObject((*source))
-		csMysteryTrader.Heading = ExtendMysteryTraderHeading((*source))
 		csMysteryTrader.WarpSpeed = (*source).WarpSpeed
+		csMysteryTrader.Destination = ExtendMysteryTraderDestination((*source))
+		csMysteryTrader.RequestedBoon = (*source).RequestedBoon
+		csMysteryTrader.RewardType = cs.MysteryTraderRewardType((*source).RewardType)
+		csMysteryTrader.Heading = ExtendMysteryTraderHeading((*source))
+		csMysteryTrader.PlayersRewarded = MysteryTraderPlayersRewardedToGameMysteryTraderPlayersRewarded((*source).PlayersRewarded)
 		csMysteryTrader.Spec = MysteryTraderSpecToGameMysteryTraderSpec((*source).Spec)
 		pCsMysteryTrader = &csMysteryTrader
 	}
@@ -582,6 +593,7 @@ func (c *GameConverter) ConvertPlayer(source Player) cs.Player {
 	csPlayer.Relations = PlayerRelationshipsToGamePlayerRelationships(source.Relations)
 	csPlayer.Messages = PlayerMessagesToGamePlayerMessages(source.Messages)
 	csPlayer.ScoreHistory = PlayerScoresToGamePlayerScores(source.ScoreHistory)
+	csPlayer.AcquiredTechs = AcquiredTechsToGameAcquiredTechs(source.AcquiredTechs)
 	csPlayer.AchievedVictoryConditions = cs.Bitmask(source.AchievedVictoryConditions)
 	csPlayer.Victor = source.Victor
 	csPlayer.Stats = PlayerStatsToGamePlayerStats(source.Stats)
@@ -659,6 +671,7 @@ func (c *GameConverter) ConvertShipDesign(source *ShipDesign) *cs.ShipDesign {
 		csShipDesign.Hull = (*source).Hull
 		csShipDesign.HullSetNumber = (*source).HullSetNumber
 		csShipDesign.CannotDelete = (*source).CannotDelete
+		csShipDesign.MysteryTrader = NullBoolToBool((*source).MysteryTrader)
 		csShipDesign.Slots = ShipDesignSlotsToGameShipDesignSlots((*source).Slots)
 		csShipDesign.Purpose = cs.ShipDesignPurpose((*source).Purpose)
 		csShipDesign.Spec = ShipDesignSpecToGameShipDesignSpec((*source).Spec)

@@ -6,7 +6,8 @@ import type {
 	TechDefense,
 	TechHullComponent,
 	TechHull,
-	Tech
+	Tech,
+	TechPlanetary
 } from '$lib/types/Tech';
 import techjson from '$lib/ssr/techs.json';
 import { kebabCase } from 'lodash-es';
@@ -17,6 +18,7 @@ export class TechService implements TechStore {
 	planetaryScanners: TechPlanetaryScanner[] = [];
 	terraforms: TechTerraform[] = [];
 	defenses: TechDefense[] = [];
+	planetaries: TechPlanetary[] = [];
 	hullComponents: TechHullComponent[] = [];
 	hulls: TechHull[] = [];
 
@@ -49,6 +51,7 @@ export class TechService implements TechStore {
 		this.planetaryScanners = store.planetaryScanners ?? [];
 		this.terraforms = store.terraforms ?? [];
 		this.defenses = store.defenses ?? [];
+		this.planetaries = store.planetaries ?? [];
 		this.hullComponents = (store.engines ?? []).concat(store.hullComponents ?? []);
 		this.hulls = store.hulls ?? [];
 
@@ -56,6 +59,7 @@ export class TechService implements TechStore {
 		this.techs = this.techs.concat(store.engines);
 		this.techs = this.techs.concat(store.planetaryScanners);
 		this.techs = this.techs.concat(store.defenses);
+		this.techs = this.techs.concat(store.planetaries);
 		this.techs = this.techs.concat(store.hullComponents);
 		this.techs = this.techs.concat(store.hulls);
 		this.techs = this.techs.concat(store.terraforms);

@@ -25,7 +25,7 @@
 			You have <span class="font-semibold">{factories} Factories</span> on
 			<span class="font-semibold">{planetName}</span>. You may build up to
 			<span class="font-semibold">{maxPossibleFactories} Factories</span>; however, your colonists
-			are currently capable of operating only <span class="font-semibold">{maxFactories}</span> of them
+			are currently capable of operating only <span class="font-semibold">{maxFactories}</span> of them.
 		{/if}
 	</div>
 </div>
