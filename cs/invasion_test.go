@@ -7,6 +7,7 @@ import (
 )
 
 func Test_invadePlanet(t *testing.T) {
+	defaultPlan := NewPlayer(0, NewRace()).defaultPlans().ProductionPlans[0]
 	type args struct {
 		planet           *Planet
 		fleet            *Fleet
@@ -46,12 +47,8 @@ func Test_invadePlanet(t *testing.T) {
 				MapObject: MapObject{Name: "Brin", PlayerNum: 2},
 				Cargo:     Cargo{}.WithPopulation(900), Mines: 100, Factories: 100,
 				PlanetOrders: PlanetOrders{
-					ProductionQueue: []ProductionQueueItem{
-						{Type: QueueItemTypeAutoMinTerraform, Quantity: 1},
-						{Type: QueueItemTypeAutoFactories, Quantity: 250},
-						{Type: QueueItemTypeAutoMines, Quantity: 250},
-						{Type: QueueItemTypeAutoMaxTerraform, Quantity: 1},
-					},
+					ProductionQueue:                   defaultPlan.ToQueueItems(),
+					ContributesOnlyLeftoverToResearch: defaultPlan.ContributesOnlyLeftoverToResearch,
 				},
 			},
 		},
