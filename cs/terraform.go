@@ -4,13 +4,13 @@ import "math"
 
 // The Terraformer interface handles terraforming planets
 type Terraformer interface {
-	PermaformOneStep(planet *Planet, player *Player, habType HabType) TerraformResult
-	TerraformOneStep(planet *Planet, player *Player, terraformer *Player, reverse bool) TerraformResult
 	GetBestTerraform(planet *Planet, player *Player, terraformer *Player) *HabType
-	getTerraformAmount(hab Hab, baseHab Hab, player, terraformer *Player) Hab
-	getMinTerraformAmount(hab Hab, baseHab Hab, player *Player, terraformer *Player) Hab
 	TerraformHab(planet *Planet, terraformer *Player, habType HabType, amount int) TerraformResult
 	PermaformHab(planet *Planet, planetPlayer *Player, habType HabType, amount int) TerraformResult
+	PermaformOneStep(planet *Planet, player *Player, habType HabType) TerraformResult
+	TerraformOneStep(planet *Planet, player *Player, terraformer *Player, reverse bool) TerraformResult
+	getTerraformAmount(hab Hab, baseHab Hab, player, terraformer *Player) Hab
+	getMinTerraformAmount(hab Hab, baseHab Hab, player *Player, terraformer *Player) Hab
 }
 
 type TerraformResult struct {
