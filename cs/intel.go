@@ -345,6 +345,10 @@ func (d *discover) discoverPlanet(rules *Rules, planet *Planet, penScanned bool)
 		intel.Spec.HasMassDriver = planet.Spec.HasMassDriver
 		intel.Spec.HasStargate = planet.Spec.HasStargate
 
+		// discover defense coverage
+		intel.Spec.DefenseCoverage = planet.Spec.DefenseCoverage
+		intel.Spec.DefenseCoverageSmart = planet.Spec.DefenseCoverageSmart
+
 		// these should never be nil...
 		if !ownedByPlayer && planet.Spec.HasStarbase && planet.Starbase != nil && planet.Starbase.Tokens[0].design != nil {
 			design := planet.Starbase.Tokens[0].design

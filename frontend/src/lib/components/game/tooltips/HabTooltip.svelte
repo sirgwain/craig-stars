@@ -22,7 +22,7 @@
 	const terraformedHabString = getHabValueString(habType, terraformedHab);
 	const habLowString = getHabValueString(habType, getHabValue(player.race.habLow, habType));
 	const habHighString = getHabValueString(habType, getHabValue(player.race.habHigh, habType));
-	const habCenter = getHabValue(player.race.spec.habCenter, habType)
+	const habCenter = getHabValue(player.race.spec?.habCenter, habType)
 	const habAfterTerraforming = add(planet.hab ?? {}, withHabValue(habType, terraformedHab));
 	const habitabilityAfterTerraforming = getPlanetHabitability(player.race, habAfterTerraforming);
 </script>
@@ -42,7 +42,7 @@
 
 			{#if currentHab != habCenter}
 				This value is currently {currentHab < habCenter ? habCenter - currentHab : currentHab - habCenter}%
-				away from the ideal value for your race ({getHabValueString(habCenter)}).
+				away from the ideal value for your race ({getHabValueString(habType, habCenter)}).
 
 				{#if terraformedHab != 0}
 					You currently possess the technology to modify the {habTypeString(habType)} on
