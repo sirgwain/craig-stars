@@ -628,8 +628,8 @@ export interface PlanetSpec {
 	resourcesPerYearResearch?: number;
 	resourcesPerYearResearchEstimatedLeftover?: number;
 	defense: string;
-	defenseCoverage: number;
-	defenseCoverageSmart: number;
+	defenseCoverage?: number;
+	defenseCoverageSmart?: number;
 	scanner: string;
 	scanRange: number;
 	scanRangePen: number;

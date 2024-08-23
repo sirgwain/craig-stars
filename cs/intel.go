@@ -99,6 +99,7 @@ type PlanetIntel struct {
 	CargoDiscovered               bool        `json:"cargoDiscovered,omitempty"`
 	PlanetHabitability            int         `json:"planetHabitability,omitempty"`
 	PlanetHabitabilityTerraformed int         `json:"planetHabitabilityTerraformed,omitempty"`
+	Homeworld                     bool        `json:"homeworld,omitempty"`
 	Spec                          PlanetSpec  `json:"spec,omitempty"`
 }
 
@@ -328,6 +329,7 @@ func (d *discover) discoverPlanet(rules *Rules, planet *Planet, penScanned bool)
 		intel.Hab = planet.Hab
 		intel.BaseHab = planet.BaseHab
 		intel.MineralConcentration = planet.MineralConcentration
+		intel.Homeworld = planet.Homeworld
 		intel.Spec.Habitability = player.Race.GetPlanetHabitability(intel.Hab)
 
 		// terraforming
