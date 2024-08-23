@@ -47,10 +47,10 @@
 	{/if}
 {:else if message.type === MessageType.FleetBuilt}
 	{#if message.spec.amount === 1}
-	Your starbase at {message.spec.targetName} has built a new {message.spec.name}.
+		Your starbase at {message.spec.targetName} has built a new {message.spec.name}.
 	{:else}
-	Your starbase at {message.spec.targetName} has built {message.spec.amount ?? 'a'} new {message
-		.spec.name} ships.
+		Your starbase at {message.spec.targetName} has built {message.spec.amount ?? 'a'} new {message
+			.spec.name} ships.
 	{/if}
 {:else if message.type === MessageType.FleetDieoff}
 	Due to the rigors of warp acceleration, {(message.spec.amount ?? 0) * -100} of your colonists on {message.targetName}
@@ -86,12 +86,15 @@
 	{#if message.spec.destPlayerNum == undefined || message.spec.destPlayerNum == None || message.spec.destPlayerNum < 0 || message.spec.destPlayerNum >= $game.players.length}
 		You cannot give {message.targetName} away. No player to transfer to was specified.
 	{:else}
-		You cannot give {message.targetName} to {$universe.getPlayerPluralName(message.spec.destPlayerNum)}.
+		You cannot give {message.targetName} to {$universe.getPlayerPluralName(
+			message.spec.destPlayerNum
+		)}.
 	{/if}
 {:else if message.type === MessageType.FleetTransferInvalidColonists}
 	You couldn't give {message.targetName} away because there were some of your colonists on board.
 {:else if message.type === MessageType.FleetTransferInvalidGiveRefused}
-	{$universe.getPlayerPluralName(message.spec.destPlayerNum)} snubbed your attempted gift and refused your offer of
+	{$universe.getPlayerPluralName(message.spec.destPlayerNum)} snubbed your attempted gift and refused
+	your offer of
 	{message.targetName}. Are you sure they're still your allies?
 {:else if message.type === MessageType.FleetTransferInvalidReceiveRefused}
 	{$universe.getPlayerPluralName(message.spec.sourcePlayerNum)} has attempted to gift you {message.targetName},
