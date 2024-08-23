@@ -47,7 +47,6 @@ export interface PlayerFinder {
 	getPlayerPluralName(playerNum: number | undefined): string;
 	getPlayerColor(playerNum: number | undefined): string;
 }
-Math.round
 const sortByNum = (a: MapObject, b: MapObject) => a.num - b.num;
 
 function addtoDict(mo: MapObject, dict: Record<string, MapObject[]>) {
