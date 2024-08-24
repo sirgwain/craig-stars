@@ -1,36 +1,28 @@
 <script lang="ts">
-	import { Service } from '$lib/services/Service';
+	import { assets } from '$app/paths';
 	import type { Race } from '$lib/types/Race';
+	import { loadWasm, type CS } from '$lib/wasm';
 	import { User } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
+	import { onMount } from 'svelte';
 
 	export let race: Race;
 	export let points: number;
 
+	let cs: CS | undefined;
+
+	onMount(async () => {
+		cs = await loadWasm();
+	});
+
 	// update points from the server anytime things change
-	const computeRacePoints = async () => {
-		const body = JSON.stringify(race);
-		const response = await fetch(`/api/races/points`, {
-			method: 'POST',
-			headers: {
-				accept: 'application/json'
-			},
-			body
-		});
-
-		if (!response.ok) {
-			await Service.throwError(response);
+	const computeRacePoints = async (race: Race) => {
+		if (cs) {
+			points = await cs.calculateRacePoints(race);
 		}
-
-		const result = (await response.json()) as { points: number };
-		points = result.points;
 	};
 
-	$: {
-		if (race) {
-			computeRacePoints();
-		}
-	}
+	$: race && cs && computeRacePoints(race);
 </script>
 
 <div class="sticky top-[4rem] z-10">
@@ -40,7 +32,9 @@
 				<div class="stat-title">Points</div>
 				<div class="stat-figure"><Icon class="w-8 h-8" src={User} /></div>
 				<div class="stat-value" class:text-error={points < 0} class:text-success={points >= 0}>
-					{points}
+					{#if cs}
+						{points}
+					{/if}
 				</div>
 				<div class="stat-desc pt-1" />
 			</div>

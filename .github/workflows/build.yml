@@ -30,6 +30,7 @@ jobs:
       - run: go test ./...          
       - run: mkdir -p dist/
       - run: go mod tidy && CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -ldflags='-s -w -extldflags "-static"' -o dist/craig-stars main.go
+      - run: make build_wasm
 
       # build the frontend (slow)
       - uses: actions/setup-node@v3
