@@ -298,8 +298,14 @@ func (packet *MineralPacket) checkTerraform(rules *Rules, player *Player, planet
 				continue
 			}
 
-			for uncaughtCheck := player.Race.Spec.PacketPermaTerraformSizeUnit; uncaughtCheck <= mineral; uncaughtCheck += player.Race.Spec.PacketPermaTerraformSizeUnit {
-				terraformChance := player.Race.Spec.PacketTerraformChance * math.Min(float64((mineral-uncaughtCheck)/player.Race.Spec.PacketPermaTerraformSizeUnit), 1)
+			// Example math: 250kT packet with chance C per 100kT
+			// Loop 1 has chance c * min((250-0)/100, 1) = c * min(2.5, 1) = c
+			// Loop 2 has chance c * min((250-100)/100, 1) = c * min(1.5, 1) = c
+			// Loop 3 has chance c * min((250-200)/100, 1) = c * min(0.5, 1) = 0.5c
+			// Loop 4 fails to execute as uncaughtCheck is now 300 and is larger than mineral
+			for uncaughtCheck := 0; uncaughtCheck < mineral; uncaughtCheck += player.Race.Spec.PacketPermaTerraformSizeUnit {
+				terraformChance := player.Race.Spec.PacketTerraformChance * math.Min(
+				float64((mineral-uncaughtCheck)/player.Race.Spec.PacketPermaTerraformSizeUnit), 1)
 				if terraformChance >= rules.random.Float64() {
 					if AbsInt(direction) >= t.getTerraformAbility(player).Get(habType) {
 						// if we can't terraform hab any further, skip any remaining checks for brevity
@@ -344,8 +350,14 @@ func (packet *MineralPacket) checkPermaform(rules *Rules, player *Player, planet
 				continue
 			}
 
-			for uncaughtCheck := player.Race.Spec.PacketPermaTerraformSizeUnit; uncaughtCheck <= mineral; uncaughtCheck += player.Race.Spec.PacketPermaTerraformSizeUnit {
-				permaformChance := player.Race.Spec.PacketPermaformChance * math.Min(float64((mineral-uncaughtCheck)/player.Race.Spec.PacketPermaTerraformSizeUnit), 1)
+			// Example math: 250kT packet with chance C per 100kT
+			// Loop 1 has chance c * min((250-0)/100, 1) = c * min(2.5, 1) = c
+			// Loop 2 has chance c * min((250-100)/100, 1) = c * min(1.5, 1) = c
+			// Loop 3 has chance c * min((250-200)/100, 1) = c * min(0.5, 1) = 0.5c
+			// Loop 4 fails to execute as uncaughtCheck is now 300 and is larger than mineral
+			for uncaughtCheck := 0; uncaughtCheck < mineral; uncaughtCheck += player.Race.Spec.PacketPermaTerraformSizeUnit {
+				permaformChance := player.Race.Spec.PacketPermaformChance * math.Min(
+				float64((mineral-uncaughtCheck)/player.Race.Spec.PacketPermaTerraformSizeUnit), 1)
 				if permaformChance >= float64(rules.random.Float64()) {
 					// Permaform & keep track of result
 					result = terraformer.PermaformOneStep(planet, player, habType)
