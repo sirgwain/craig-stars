@@ -182,7 +182,7 @@ func (mineField *MineField) damageFleet(player *Player, fleet *Fleet, fleetPlaye
 
 }
 
-// When a minefield is collided with, reduce it's number of mines
+// When a minefield is collided with, reduce its number of mines
 func (mineField *MineField) reduceMineFieldOnImpact() {
 	numMines := mineField.NumMines
 	if numMines <= 10 {

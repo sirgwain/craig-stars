@@ -5,9 +5,7 @@ import (
 	"math"
 )
 
-// The mystery trader travels through space and gives a boon to any player that gives it a fleet
-// full of minerals
-// TODO: not yet implemented
+// The mystery trader travels through space and gives a boon to any player that gives it a fleet full of minerals
 type MysteryTrader struct {
 	MapObject
 	WarpSpeed       int                     `json:"warpSpeed,omitempty"`
