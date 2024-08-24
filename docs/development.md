@@ -49,6 +49,7 @@ Finally, go to your terminal and enter the following commands:
 go install github.com/air-verse/air@latest
 make build
 make dev
+go run main.go serve --debug
 ```
 
 (Installing air is only required once, so you can skip the first line on subsequent builds.)
