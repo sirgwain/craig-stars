@@ -28,14 +28,12 @@ Icons are either hand crafted, taken from the original Stars! files or from the 
 
 From there, you can install `make` and `node.js` (which includes npm) fairly easily. **Note**: make sure you install the **LTS** version of node.
 
-After cloning the repo, build `craig-stars` locally once. This will build the frontend and then the backend. 
-
-### Installing go-sqlite3
-If you don't already have it, you'll also need to install [go-sqlite3](https://github.com/mattn/go-sqlite3) for things to work. However, this itself requires the [GCC compiler collection](https://gcc.gnu.org/) to function. 
+#### Installing GCC
+`craig-stars` relies on the [go-sqlite3](https://github.com/mattn/go-sqlite3) for database engine. However, this itself requires the [GNU compiler collection](https://gcc.gnu.org/) to function. 
 
 For Linux/Mac, you can simply install the latest version of the GCC compilers using whatever package software you installed previously.
 
-However, on Windows, you'll need to install a Linux-like development interface (use [MinGW](https://www.mingw-w64.org/) - Cygwin64 WILL NOT WORK) to install & build the latest GCC version.
+However, on Windows, you'll need to install a Linux-like development interface (use [MinGW64](https://www.mingw-w64.org/) - Cygwin64 WILL NOT WORK) to install & build the latest GCC version.
 
 Once that's done, enter `go install github.com/mattn/gosqlite3` into your computer's native terminal (or the terminal in VS Code) to install the driver.
 
