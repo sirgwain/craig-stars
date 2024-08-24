@@ -26,7 +26,7 @@ Icons are either hand crafted, taken from the original Stars! files or from the 
 # Getting Started
 **Note**: The following instructions assume you have `go`, `make` and `npm` installled. `go` can be installed from [their website](https://go.dev/dl/]), while the easiest way to install the other 2 is to use a package manager: [chocolatey](https://chocolatey.org/install) for Windows, [Homebrew](https://brew.sh/) or apt-get/yum for Linux.
 
-From there, you can install `make` and `node.js` (which includes npm) fairly easily. NOTE: If `node.js` doesn't co-operate after being installed, try uninstalling it and re-installing the **LTS** version from their website instead.
+From there, you can install `make` and `node.js` (which includes npm) fairly easily. **Note**: make sure you install the **LTS** version of node.
 
 After cloning the repo, build `craig-stars` locally once. This will build the frontend and then the backend. 
 
