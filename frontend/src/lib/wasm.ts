@@ -13,20 +13,13 @@ export async function loadWasm(): Promise<CS> {
 	}
 
 	// after loading the wasm module, __go_wasm__ will be replaced with our module
+	// it will contain our cs methods along with a ready boolean
+	type Bridge = {
+		__ready__?: boolean;
+	};
+
 	// @ts-expect-error
 	const bridge = __go_wasm__ as CSWasm & Bridge;
-
-	function wrapper(goFunc: Function) {
-		return (...args: any[]) => {
-			const result = goFunc.apply(undefined, args);
-			if (result.error instanceof Error) {
-				throw result.error;
-			}
-			return result.result;
-		};
-	}
-
-	bridge.__wrapper__ = wrapper;
 
 	// load the wasm and start it up
 	const csWasmUrl = new URL('$lib/wasm/cs.wasm', import.meta.url).href;
@@ -53,18 +46,16 @@ export async function loadWasm(): Promise<CS> {
 	return new CSWasmWrapper(bridge);
 }
 
+// our wasm calls actually take json strings as params for easier serializing between go/typescript
+// this type represents the actual cs.wasm calls
 type CSWasm = {
 	calculateRacePoints: (raceJson: string) => Promise<number>;
 };
 
+// create a wrapper to serialize requests and responses to/from JSON
 class CSWasmWrapper implements CS {
 	constructor(private wasm: CSWasm) {}
 	calculateRacePoints(race: Race): Promise<number> {
 		return this.wasm.calculateRacePoints(JSON.stringify(race));
 	}
 }
-
-type Bridge = {
-	__ready__: boolean;
-	__wrapper__: (goFunc: Function) => any;
-};
