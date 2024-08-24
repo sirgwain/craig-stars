@@ -28,7 +28,7 @@ Icons are either hand crafted, taken from the original Stars! files or from the 
 
 From there, you can install `make` and `node.js` (which includes npm) fairly easily. NOTE: If `node.js` doesn't co-operate after being installed, try uninstalling it and re-installing the **LTS** version from their website instead.
 
-After cloning the repo (easily done with Github Desktop), build `craig-stars` locally once. This will build the frontend and then the backend. The backend embeds the frontend resources into its binary to support a single binary deployment. 
+After cloning the repo, build `craig-stars` locally once. This will build the frontend and then the backend. 
 
 ### Installing go-sqlite3
 If you don't already have it, you'll also need to install [go-sqlite3](https://github.com/mattn/go-sqlite3) for things to work. However, this itself requires the [GCC compiler collection](https://gcc.gnu.org/) to function. 
