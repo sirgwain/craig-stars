@@ -46,10 +46,8 @@ You will need art assets, and those can be downloaded from [https://craig-stars.
 Finally, go to your terminal and enter the following commands:
 
 ```bash
-go install github.com/air-verse/air@latest
 make build
 make dev
-go run main.go serve --debug
 ```
 
 (Installing air is only required once, so you can skip the first line on subsequent builds.)
