@@ -10,8 +10,8 @@ const pkg = JSON.parse(json);
 const config: UserConfig = {
 	plugins: [sveltekit()],
 	define: {
-		PKG: pkg
-	},
+        PKG: pkg
+    },
 	test: {
 		include: ['src/**/*.{test,spec}.{js,ts}'],
 		environment: 'jsdom',
@@ -27,8 +27,7 @@ const config: UserConfig = {
 	},
 	optimizeDeps: {
 		include: ['fuzzy']
-	},
-	assetsInclude: ['**/*.wasm']
+	}
 };
 
 export default config;

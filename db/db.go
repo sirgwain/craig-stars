@@ -215,10 +215,10 @@ func (conn *dbConn) BeginTransaction() (Client, error) {
 	return newTransactionClient(tx), nil
 }
 
-func (conn *dbConn) Rollback(c Client) error {
+func (conn *dbConn) Rollback(c Client) error {	
 	return c.rollback()
 }
-func (conn *dbConn) Commit(c Client) error {
+func (conn *dbConn) Commit(c Client) error {	
 	return c.commit()
 }
 

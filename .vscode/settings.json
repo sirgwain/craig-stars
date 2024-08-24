@@ -1,13 +1,5 @@
 {
-    // without these, vscode complains even though 
-    // the actual build works fine
-    "go.toolsEnvVars": {
-        "CGO_ENABLED": 1,
-        "GOOS": "",
-        "GOARCH": "",
-    },  
-
     "files.exclude": {
-        "frontend": true,
+        "frontend": true
     },
 }
