@@ -1,3 +1,5 @@
+//go:build !wasi && !wasm
+
 package server
 
 import (
@@ -292,7 +294,6 @@ func (s *server) deleteShipDesign(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	
 	// split the player fleets into fleets and starbases
 	fleets := make([]*cs.Fleet, 0, len(leftoverPlayerFleets))
 	starbases := make([]*cs.Fleet, 0)
