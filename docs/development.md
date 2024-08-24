@@ -26,7 +26,7 @@ Icons are either hand crafted or from the wonderful [game-icons.net](https://gam
 # Getting Started
 **Note**: The following instructions assume you have `make`, `go`, and `npm` installled.
 
-After cloning the repo, build `craig-stars` locally once. This will build the frontend and then the backend. The backend embeds the frontend resources into its binary to support a single binary deployment. 
+After cloning the repo, build `craig-stars` locally once. This will build the frontend and then the backend. 
 
 ## Assets
 You will need art assets, and those can be downloaded from [https://craig-stars.net/images/images.zip](https://craig-stars.net/images/images.zip). Copy these images into the `frontend/static/images` folder.
