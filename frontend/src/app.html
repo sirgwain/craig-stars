@@ -1,45 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
 
-		<link rel="icon" href="%sveltekit.assets%/favicon.svg" />
-		<link rel="mask-icon" href="%sveltekit.assets%/favicon.svg" color="#000000">
-		<link rel="apple-touch-icon" href="%sveltekit.assets%/favicon.png">
-		<link rel="manifest" href="%sveltekit.assets%/manifest.json">
+<head>
+	<meta charset="utf-8" />
 
-		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-		<meta name="apple-mobile-web-app-capable" content="yes" />
-		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+	<link rel="icon" href="%sveltekit.assets%/favicon.svg" />
+	<link rel="mask-icon" href="%sveltekit.assets%/favicon.svg" color="#000000">
+	<link rel="apple-touch-icon" href="%sveltekit.assets%/favicon.png">
+	<link rel="manifest" href="%sveltekit.assets%/manifest.json">
 
-		<script>
-			const darkTheme = 'business'
-			const lightTheme = 'emerald'
-			// On page load or when changing themes, best to add inline in `head` to avoid FOUC
-			if (localStorage.theme === darkTheme || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-				document.documentElement.dataset.theme = darkTheme
-				document.documentElement.className = "dark"
-			} else {
-				document.documentElement.dataset.theme = lightTheme
-				document.documentElement.className = "light"
-			}
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-			// First we get the viewport height and we multiple it by 1% to get a value for a vh unit
+	<script>
+		const darkTheme = 'business'
+		const lightTheme = 'emerald'
+		// On page load or when changing themes, best to add inline in `head` to avoid FOUC
+		if (localStorage.theme === darkTheme || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+			document.documentElement.dataset.theme = darkTheme
+			document.documentElement.className = "dark"
+		} else {
+			document.documentElement.dataset.theme = lightTheme
+			document.documentElement.className = "light"
+		}
+
+		// First we get the viewport height and we multiple it by 1% to get a value for a vh unit
+		let vh = window.innerHeight * 0.01;
+		// Then we set the value in the --vh custom property to the root of the document
+		document.documentElement.style.setProperty('--vh', `${vh}px`);
+
+		// We listen to the resize event
+		window.addEventListener('resize', () => {
+			// We execute the same script as before
 			let vh = window.innerHeight * 0.01;
-			// Then we set the value in the --vh custom property to the root of the document
 			document.documentElement.style.setProperty('--vh', `${vh}px`);
+		});
 
-			// We listen to the resize event
-			window.addEventListener('resize', () => {
-				// We execute the same script as before
-				let vh = window.innerHeight * 0.01;
-				document.documentElement.style.setProperty('--vh', `${vh}px`);
-			});
+	</script>
+	%sveltekit.head%
+</head>
 
-		</script>
-		%sveltekit.head%
-	</head>
-	<body class="antialiased touch-manipulation">
-		<div>%sveltekit.body%</div>
-	</body>
+<body class="antialiased touch-manipulation">
+	<div>%sveltekit.body%</div>
+</body>
+
 </html>
