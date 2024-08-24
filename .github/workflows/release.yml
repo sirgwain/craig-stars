@@ -4,31 +4,31 @@ on:
   workflow_run:
     workflows: [Build]
     branches: [develop]
-    types: 
-    - completed
+    types:
+      - completed
 
 jobs:
   # cut a new tag
   tag:
-    if:  ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     permissions:
-        contents: write
+      contents: write
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: '0'
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
 
-    - name: Bump version and push tag
-      uses: anothrNick/github-tag-action@v1
-      id: bump
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        WITH_V: true
-        DEFAULT_BUMP: "patch"
+      - name: Bump version and push tag
+        uses: anothrNick/github-tag-action@v1
+        id: bump
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WITH_V: true
+          DEFAULT_BUMP: 'patch'
     outputs:
       version: ${{ steps.bump.outputs.new_tag }}
-    
+
   build:
     if: github.repository == 'sirgwain/craig-stars'
     strategy:
@@ -46,27 +46,15 @@ jobs:
         id: buildTime
         run: echo "buildTime=`date +'%y.%m.%d %H:%M:%S'`" >> $GITHUB_OUTPUT
 
-      # build the frontend (this is slow)
-      - uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json        
-      - run: npm install
-        working-directory: ./frontend
-      - run: jq ".version = \"${{ needs.tag.outputs.version }}\"" package.json > package.json.tmp && mv package.json.tmp package.json
-        working-directory: ./frontend
-      - run: npm run build
-        working-directory: ./frontend
-      - run: mkdir -p dist/
-      - run: tar -cvf ./dist/frontend.tgz -C frontend/build .
-
-      # build the binary (this embeds the frontend built above for local runs)
+      # build the backend and wasm
       - uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go-version }}
           check-latest: true
-          cache: true    
+          cache: true
+      # build the cs.wasm/wasm_exec.js into frontend/src/lib/wasm
+      # this will be picked up by the frontend build below
+      - run: make build_wasm
       - run: mkdir -p dist/
       - run: |
           go mod tidy && \
@@ -78,13 +66,27 @@ jobs:
           -o dist/craig-stars main.go
       - run: tar -cvf ./dist/craig-stars.tgz -C ./dist ./craig-stars
 
+      # build the frontend (this is slow)
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm install
+        working-directory: ./frontend
+      - run: jq ".version = \"${{ needs.tag.outputs.version }}\"" package.json > package.json.tmp && mv package.json.tmp package.json
+        working-directory: ./frontend
+      - run: npm run build
+        working-directory: ./frontend
+      - run: mkdir -p dist/
+      - run: tar -cvf ./dist/frontend.tgz -C frontend/build .
+
       # upload the dist folder to github's artifacts
       - uses: actions/upload-artifact@v3
         with:
           name: dist-artifacts
           path: ./dist/*.tgz
           retention-days: 1
-
 
   release:
     if: github.repository == 'sirgwain/craig-stars'
@@ -121,4 +123,3 @@ jobs:
       - run: gh workflow run --repo sirgwain/craig-stars-ops deploy.yml
         env:
           GH_TOKEN: ${{ secrets.CRAIG_STARS_OPS_DEPLOY }}
-        

@@ -6,7 +6,6 @@ import (
 	"context"
 	"crypto/sha1"
 	"fmt"
-	"io/fs"
 	"net/http"
 	"os"
 	"os/signal"
@@ -65,12 +64,6 @@ func Start(config config.Config) error {
 	dbConn := db.NewConn()
 	if err := dbConn.Connect(&config); err != nil {
 		return fmt.Errorf("failed to connect to database %v", err)
-	}
-
-	// static resources
-	sub, err := fs.Sub(assets, "frontend/build")
-	if err != nil {
-		panic(err)
 	}
 
 	// create a server
@@ -423,8 +416,6 @@ func Start(config config.Config) error {
 	authRoutes, avaRoutes := service.Handlers()
 	r.Mount("/api/auth", authRoutes)  // add auth handlers
 	r.Mount("/api/avatar", avaRoutes) // add avatar handler
-
-	r.Handle("/*", http.FileServer(http.FS(sub)))
 
 	// The HTTP Server
 	httpServer := &http.Server{Addr: config.Address, Handler: r}
