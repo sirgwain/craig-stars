@@ -26,32 +26,37 @@ Icons are either hand crafted, taken from the original Stars! files or from the 
 # Getting Started
 **Note**: The following instructions assume you have `go`, `make` and `npm` installled. `go` can be installed from [their website](https://go.dev/dl/]), while the easiest way to install the other 2 is to use a package manager: [chocolatey](https://chocolatey.org/install) for Windows, [Homebrew](https://brew.sh/) or apt-get/yum for Linux.
 
-From there, you can install `make` and `node.js` (which includes npm) fairly easily. **Note**: make sure you install the **LTS** version of node.
+From there, you can install `make` and `node.js` (which includes npm) fairly easily. **Note**: make sure you install the **LTS** version of node. 
 
-#### Installing GCC
-`craig-stars` relies on the [go-sqlite3](https://github.com/mattn/go-sqlite3) for database engine. However, this itself requires the [GNU compiler collection](https://gcc.gnu.org/) to function. 
+#### GCC
+Additionally, the [go-sqlite3](https://github.com/mattn/go-sqlite3) package `craig-stars` relies on for databasing itself requires the [GNU compiler collection](https://gcc.gnu.org/) to run. You **will** need GCC installed and built to run `craig-stars` locally!
 
-For Linux/Mac, you can simply install the latest version of the GCC compilers using whatever package software you installed previously.
-
-However, on Windows, you'll need to install a Linux-like development interface (use [MinGW64](https://www.mingw-w64.org/) - Cygwin64 WILL NOT WORK) to install & build the latest GCC version.
-
-Once that's done, enter `go install github.com/mattn/gosqlite3` into your computer's native terminal (or the terminal in VS Code) to install the driver.
+On Linux/Mac, you can simply download the latest version of the GCC compilers using whatever package software you installed previously and build it from there. However, on Windows, you'll need to install a Linux-like development interface (use [MinGW64](https://www.mingw-w64.org/) - Cygwin64 has been known to cause issues) to install/build the latest GCC version due to file type restrictions.
 
 ## Assets
 You will need art assets, and those can be downloaded from [https://craig-stars.net/images/images.zip](https://craig-stars.net/images/images.zip). Copy these images into the `frontend/static/images` folder (or make a new folder if it doesn't already exist).
 
+## Installing Air
+[Air](https://github.com/air-verse/air) is a Go utility that aids in automatic server restarting. While modifying the frontend code will trigger a hot reload of the local program (allowing for immediate confirmation of changes in real time), changes to the `golang` backend are only reflected the _next_ time the program is launched (requiring you to kill and restart the program each time). `Air` merely automates this "kill and restart" process by shutting down and reloading the server every time changes are detected. 
+
+Installing air is ** not required** to run `craig-stars` locally, but can be helpful if you plan on frequently making changes to the backend and want real time confirmation. 
+
+To install air, enter the following code into your terminal:
+```bash
+go install github.con/air-verse/air@latest
+```
+
 ## Building and Running
-Finally, go to your terminal and enter the following commands:
+After performing all that, go to your terminal and enter the following commands:
 
 ```bash
 make build
 make dev
 ```
 
-(Installing air is only required once, so you can skip the first line on subsequent builds.)
 **Note** On first launch, this will create an empty database with a single `admin` user, password `admin`.
 
-If done correctly, it should give a localhost link (http://localhost:XXXX/) representing the application being hosted locally on your machine. Go to that site to see a live reloading frontend proxied to the go server on port `:8080`. Updating go code will relaunch the backend automatically, while updating frontend code will do a hot reload with sveltekit/vite.
+If done correctly, it should give a localhost link (http://localhost:XXXX/) representing the application being hosted locally on your machine. Go to that site to see a live reloading frontend proxied to the go server on port `:8080`. Updating go code will relaunch the backend automatically (via air), while updating frontend code will do a hot reload with sveltekit/vite.
 
 # Visual Studio Code 
 [VS Code](https://code.visualstudio.com) is highly recommended for development. `craig-stars` comes with a [cs.code-workspace](/cs.code-workspace) file that can be opened with VS Code in order to use front end and backend plugins without issue in the same repo. It also comes with a built in terminal, debugging support, and about a thousand other bells and whistles useful for general software development. 
