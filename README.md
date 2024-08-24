@@ -4,8 +4,7 @@
 
 An open-source, web based Stars! clone.
 
-[![Build Status](https://github.com/sirgwain/craig-stars/actions/workflows/
-build.yml/badge.svg)](https://github.com/sirgwain/craig-stars/actions/workflows/build.yml)]
+[![Build Status](https://github.com/sirgwain/craig-stars/actions/workflows/build.yml/badge.svg)](https://github.com/sirgwain/craig-stars/actions/workflows/build.yml)
 
 ## About
 
