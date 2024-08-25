@@ -12,11 +12,11 @@
 	import ProductionQueueItemLine from '$lib/components/game/ProductionQueueItemLine.svelte';
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import QuantityModifierButtons from '$lib/components/QuantityModifierButtons.svelte';
+	import { addError, CSError } from '$lib/services/Errors';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { NeverBuilt, getProductionEstimates } from '$lib/services/Producer';
 	import { techs } from '$lib/services/Stores';
 	import { divide, multiply, type Cost } from '$lib/types/Cost';
-	import { CommandedPlanet } from '$lib/types/Planet';
+	import { CommandedPlanet, NeverBuilt } from '$lib/types/Planet';
 	import type { ProductionPlan } from '$lib/types/Player';
 	import type { ProductionQueueItem } from '$lib/types/Production';
 	import { getFullName, isAuto } from '$lib/types/QueueItemType';
@@ -36,7 +36,7 @@
 	import { createEventDispatcher, onMount } from 'svelte';
 	import type { ChangeEventHandler } from 'svelte/elements';
 
-	const { game, player, universe } = getGameContext();
+	const { cs, game, player, universe } = getGameContext();
 	const dispatch = createEventDispatcher<ProductionQueueEvent>();
 
 	export let planet: CommandedPlanet;
@@ -93,16 +93,18 @@
 		// get updated production queue estimates
 		updatedPlanet.productionQueue = [...queueItems];
 		updatedPlanet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
-		const itemEstimates = getProductionEstimates(
-			$game.rules,
-			$techs,
-			$player,
+		const planetWithEstimates = cs.estimateProduction(
 			updatedPlanet,
-			$universe
+			$player,
+			$universe.getMyDesigns()
 		);
+		if (!planetWithEstimates.productionQueue) {
+			addError(new CSError(undefined, 'unable to estimate production', 0));
+			return;
+		}
 
 		for (let i = 0; i < queueItems.length; i++) {
-			const estimate = itemEstimates[i];
+			const estimate = planetWithEstimates.productionQueue[i];
 			Object.assign(queueItems[i], {
 				yearsToBuildOne: estimate.yearsToBuildOne,
 				yearsToBuildAll: estimate.yearsToBuildAll,
@@ -122,10 +124,9 @@
 		for (let i = 0; i < availableItems.length; i++) {
 			availableItems[i].yearsToBuildOne = updatedPlanet.getYearsToBuildOne(
 				availableItems[i],
-				$game.rules,
-				$techs,
+				cs,
 				$player,
-				$universe
+				$universe.getMyDesigns()
 			);
 
 			if (selectedAvailableItem == availableItems[i]) {
@@ -137,10 +138,9 @@
 		for (let i = 0; i < availableShipDesigns.length; i++) {
 			availableShipDesigns[i].yearsToBuildOne = updatedPlanet.getYearsToBuildOne(
 				availableShipDesigns[i],
-				$game.rules,
-				$techs,
+				cs,
 				$player,
-				$universe
+				$universe.getMyDesigns()
 			);
 			if (selectedAvailableItem == availableShipDesigns[i]) {
 				selectedAvailableItem = availableShipDesigns[i];
@@ -151,10 +151,9 @@
 		for (let i = 0; i < availableStarbaseDesigns.length; i++) {
 			availableStarbaseDesigns[i].yearsToBuildOne = updatedPlanet.getYearsToBuildOne(
 				availableStarbaseDesigns[i],
-				$game.rules,
-				$techs,
+				cs,
 				$player,
-				$universe
+				$universe.getMyDesigns()
 			);
 
 			if (selectedAvailableItem == availableStarbaseDesigns[i]) {

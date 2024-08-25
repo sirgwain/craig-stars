@@ -8,7 +8,7 @@
 	import CommandTile from './CommandTile.svelte';
 
 	const dispatch = createEventDispatcher<ProductionQueueDialogEvent>();
-	const { game, player, universe, updatePlanetOrders } = getGameContext();
+	const { cs, game, player, universe, updatePlanetOrders } = getGameContext();
 
 	export let planet: CommandedPlanet;
 
@@ -19,7 +19,7 @@
 		}
 	};
 
-	$: queueItems = planet.updateProductionQueueEstimates($game.rules, $techs, $player, $universe);
+	$: queueItems = planet.updateProductionQueueEstimates(cs, $player, $universe.getMyDesigns());
 </script>
 
 <CommandTile title="Production">

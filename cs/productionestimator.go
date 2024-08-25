@@ -1,6 +1,8 @@
 package cs
 
-import "math"
+import (
+	"math"
+)
 
 // The CompletionEstimator is used for populating completion estimates in a planet's production queue
 type CompletionEstimator interface {
@@ -114,11 +116,11 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 			last := item.YearsToBuildAll
 			if last == Infinite {
 				if item.Type.IsAuto() {
-					if itemBuilt.numBuilt >= item.Quantity || (itemBuilt.numBuilt >= maxBuildable) {
+					if itemBuilt.numBuilt >= item.Quantity || (maxBuildable != Infinite && itemBuilt.numBuilt >= maxBuildable) {
 						item.YearsToBuildAll = year
 					}
 				} else {
-					if numBuiltSoFar >= item.Quantity || (itemBuilt.numBuilt >= maxBuildable) {
+					if numBuiltSoFar >= item.Quantity || (maxBuildable != Infinite && itemBuilt.numBuilt >= maxBuildable) {
 						item.YearsToBuildAll = year
 					}
 				}

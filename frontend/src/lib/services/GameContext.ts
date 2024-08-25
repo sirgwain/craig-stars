@@ -42,12 +42,14 @@ import { PlayerService } from './PlayerService';
 import { ProductionPlanService } from './ProductionPlanService';
 import { TransportPlanService } from './TransportPlanService';
 import { Universe } from './Universe';
+import type { CS } from '$lib/wasm';
 
 export const playerFinderKey = Symbol();
 export const designFinderKey = Symbol();
 export const gameKey = Symbol();
 
 export type GameContext = {
+	cs: CS;
 	game: Readable<FullGame>;
 	player: Readable<Player>;
 	universe: Readable<Universe>;
@@ -130,7 +132,7 @@ export type GameContext = {
 export const getGameContext = () => getContext<GameContext>(gameKey);
 
 // update the game context after a load
-export function createGameContext(fg: FullGame): GameContext {
+export function createGameContext(cs: CS, fg: FullGame): GameContext {	
 	const gameId = fg.id;
 	const unsubscribers: Unsubscriber[] = [];
 
@@ -907,6 +909,7 @@ export function createGameContext(fg: FullGame): GameContext {
 	}
 
 	return {
+		cs,
 		game,
 		player,
 		universe,
