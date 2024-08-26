@@ -95,6 +95,7 @@ type TechCostOffset struct {
 	Torpedo          float64 `json:"torpedo,omitempty"`
 	Bomb             float64 `json:"bomb,omitempty"`
 	PlanetaryDefense float64 `json:"planetaryDefense,omitempty"`
+	Stargate									float64	`json:stargate,omitempty`
 }
 
 type StartingPlanet struct {
@@ -397,6 +398,9 @@ func itSpec() PRTSpec {
 		},
 	}
 
+	spec.TechCostOffset = TechCostOffset {
+		Stargate: -0.25 // stargates cost 25% less
+	}
 	spec.CanGateCargo = true
 	spec.CanDetectStargatePlanets = true
 	spec.ShipsVanishInVoid = false
