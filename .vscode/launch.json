@@ -21,12 +21,13 @@
             "args": ["-d", "serve", "--generate-test-game"]
         },
         {
-            "name": "list users",
+            "name": "generate wasm serializers",
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceFolder}/main.go",
-            "args": ["-d", "list", "users"]
+            "program": "${workspaceFolder}/wasm/generator/main.go",
+            "cwd": "${workspaceFolder}",
+            "args": ["./cs", "wasm/wasm/converter.go"]
         },
         {
             "name": "migrate",

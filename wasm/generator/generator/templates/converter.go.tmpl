@@ -1,0 +1,89 @@
+//go:build wasi || wasm
+
+package wasm
+
+import (
+	"syscall/js"
+	"time"
+
+	"github.com/sirgwain/craig-stars/cs"
+)
+
+func GetInt[T ~uint | ~uint32 | ~uint64 | ~int | ~int32 | ~int64](o js.Value, key string) T {
+	var result T
+	val := o.Get(key)
+	if !val.IsUndefined() {
+		result = T(val.Int())
+	}
+	return result
+}
+
+func GetBool(o js.Value, key string) bool {
+	var result bool
+	val := o.Get(key)
+	if !val.IsUndefined() {
+		result = val.Bool()
+	}
+	return result
+}
+
+func GetString(o js.Value, key string) string {
+	var result string
+	val := o.Get(key)
+	if !val.IsUndefined() {
+		result = val.String()
+	}
+	return result
+}
+
+func GetTime(o js.Value, key string) (time.Time, error) {
+	var result time.Time
+	val := o.Get(key)
+	if !val.IsUndefined() {
+		// time assumes json string has quotes
+		if err := result.UnmarshalJSON([]byte("\"" + val.String() + "\"")); err != nil {
+			return result, err
+		}
+	}
+	return result, nil
+
+}
+{{- range .Serializers}}
+
+func Get{{.Name}}(o js.Value) {{$.Pkg}}.{{.Name}} {
+	obj := {{$.Pkg}}.{{.Name}}{}
+{{- range .Fields}}
+{{- if .Ignore }}
+{{- continue }}
+{{- end }}
+{{- if and .IsBasicType .PackageType }}
+{{- /* basic types that are in our packet are enums, cast them */}}
+	{{- if eq .JSType JSString }}
+	obj.{{.Name}} = {{$.Pkg}}.{{.ObjectType}}(GetString(o, "{{.JsonName}}"))
+	{{- else if eq .JSType JSBool }}
+	obj.{{.Name}} = {{$.Pkg}}.{{.ObjectType}}(GetBool(o, "{{.JsonName}}"))
+	{{- else if eq .JSType JSInt }}
+	obj.{{.Name}} = {{$.Pkg}}.{{.ObjectType}}(GetInt[{{.BasicType}}](o, "{{.JsonName}}"))
+	{{- end}}
+{{- else if and .PackageType (not .IsBasicType) }}
+	{{- if eq .JsonName "" }}
+	obj.{{.Name}} = Get{{ .ObjectType }}(o)
+	{{- else }}
+	obj.{{.Name}} = Get{{ .ObjectType }}(o.Get("{{.JsonName}}"))
+	{{- end}}
+{{- else }}
+	{{- if eq .JSType JSString }}
+	obj.{{.Name}} = GetString(o, "{{.JsonName}}")
+	{{- else if eq .JSType JSBool }}
+	obj.{{.Name}} = GetBool(o, "{{.JsonName}}")
+	{{- else if eq .JSType JSInt }}
+	obj.{{.Name}} = GetInt[{{.ObjectType}}](o, "{{.JsonName}}")
+	{{- else if eq .JSType JSTime }}	
+	obj.{{.Name}}, _ = GetTime(o, "{{.JsonName}}")
+	{{- end }}
+{{- end }}
+{{- end }}
+	return obj
+}
+
+{{- end}}
