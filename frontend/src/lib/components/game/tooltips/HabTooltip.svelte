@@ -41,30 +41,36 @@
 <div class="flex flex-col sm:w-[26rem] m-auto">
 	<div>
 		{#if isImmune(player.race, habType)}
-			{habTypeString(habType)} is currently
-			<span class="font-semibold"
-				>{getHabValueString(habType, getHabValue(planet.hab, habType))}</span
-			>.<br />
-			Your colonists are immune to the effects of {habTypeString(habType)}.
-		{:else}
-			{habTypeString(habType)} is currently
-			<span class="font-semibold"
-				>{getHabValueString(habType, getHabValue(planet.hab, habType))}</span
-			>.<br />
-			Your colonists prefer planets where {habTypeString(habType)} is between
-			<span class="font-semibold">{habLowString}</span> and
-			<span class="font-semibold">{habHighString}</span>.
-
-			{#if currentHab != habCenter}
-				<br />
-				This value is currently
+			<p>
+				{habTypeString(habType)} is currently
 				<span class="font-semibold"
-					>{currentHab < habCenter ? habCenter - currentHab : currentHab - habCenter}%</span
+					>{getHabValueString(habType, getHabValue(planet.hab, habType))}</span
+				>. Your colonists are immune to the effects of {habTypeString(habType)}.
+			</p>
+		{:else if currentHab == habCenter}
+			<p>
+				{habTypeString(habType)} is currently
+				<span class="font-semibold"
+					>{getHabValueString(habType, getHabValue(planet.hab, habType))}</span
 				>
-				away from the ideal value for your race ({getHabValueString(habType, habCenter)}).
+				(perfect). Your colonists prefer planets where {habTypeString(habType)} is between
+				<span class="font-semibold">{habLowString}</span> and
+				<span class="font-semibold">{habHighString}</span>.
+			</p>
+		{:else}
+			<p>
+				{habTypeString(habType)} is currently
+				<span class="font-semibold"
+					>{getHabValueString(habType, getHabValue(planet.hab, habType))}
+					({currentHab < habCenter ? habCenter - currentHab : currentHab - habCenter}%</span
+				>
+				away from ideal). Your colonists prefer planets where {habTypeString(habType)} is between
+				<span class="font-semibold">{habLowString}</span> and
+				<span class="font-semibold">{habHighString}</span>.
+			</p>
 
-				{#if terraformedHab != 0}
-					<br />
+			{#if terraformedHab != 0}
+				<p>
 					You currently possess the technology to modify the {habTypeString(habType)} on
 					<span class="font-semibold">{planet.name}</span> within the range of
 					<span class="font-semibold"
@@ -79,9 +85,7 @@
 					<span class="font-semibold">{terraformedHabString}</span>, the planet's value would
 					improve to
 					<span class="font-semibold">{habitabilityAfterTerraforming.toFixed()}%</span>.
-				{/if}
-			{:else}
-				This value is perfect for your race.
+				</p>
 			{/if}
 		{/if}
 	</div>
