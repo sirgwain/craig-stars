@@ -43,7 +43,7 @@ Installing air is **not required** to run `craig-stars` locally, but can be help
 
 To install air, enter the following code into your terminal:
 ```bash
-go install github.con/air-verse/air@latest
+go install github.com/air-verse/air@latest
 ```
 
 ## Building and Running
