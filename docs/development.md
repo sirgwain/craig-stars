@@ -39,7 +39,7 @@ You will need art assets, and those can be downloaded from [https://craig-stars.
 ## Installing Air
 [Air](https://github.com/air-verse/air) is a Go utility that aids in automatic server restarting. While modifying the frontend code will trigger a hot reload of the local program (allowing for immediate confirmation of changes in real time), changes to the `golang` backend are only reflected the _next_ time the program is launched (requiring you to kill and restart the program each time). `Air` merely automates this "kill and restart" process by shutting down and reloading the server every time changes are detected. 
 
-Installing air is ** not required** to run `craig-stars` locally, but can be helpful if you plan on frequently making changes to the backend and want real time confirmation. 
+Installing air is **not required** to run `craig-stars` locally, but can be helpful if you plan on frequently making changes to the backend and want real time confirmation. 
 
 To install air, enter the following code into your terminal:
 ```bash
