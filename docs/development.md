@@ -56,7 +56,7 @@ make dev
 
 **Note** On first launch, this will create an empty database with a single `admin` user, password `admin`.
 
-If done correctly, it should give a localhost link (http://localhost:XXXX/) representing the application being hosted locally on your machine. Go to that site to see a live reloading frontend proxied to the go server on port `:8080`. Updating go code will relaunch the backend automatically (via air), while updating frontend code will do a hot reload with sveltekit/vite.
+If done correctly, it should give a localhost link (http://localhost:5173/) representing the application being hosted locally on your machine. Go to that site to see a live reloading frontend proxied to the go server on port `:8080`. Updating go code will relaunch the backend automatically (via air), while updating frontend code will do a hot reload with sveltekit/vite.
 
 # Visual Studio Code 
 [VS Code](https://code.visualstudio.com) is highly recommended for development. `craig-stars` comes with a [cs.code-workspace](/cs.code-workspace) file that can be opened with VS Code in order to use front end and backend plugins without issue in the same repo. It also comes with a built in terminal, debugging support, and about a thousand other bells and whistles useful for general software development. 
