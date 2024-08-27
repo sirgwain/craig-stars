@@ -28,7 +28,7 @@ Icons are either hand crafted, taken from the original Stars! files or from the 
 
 From there, you can install `make` and `node.js` (which includes npm) fairly easily. **Note**: make sure you install the **LTS** version of node. 
 
-#### GCC
+### GCC
 Additionally, the [go-sqlite3](https://github.com/mattn/go-sqlite3) package `craig-stars` relies on for databasing itself requires the [GNU compiler collection](https://gcc.gnu.org/) to run. You **will** need GCC installed and built to run `craig-stars` locally!
 
 On Linux/Mac, you can simply download the latest version of the GCC compilers using whatever package software you installed previously and build it from there. However, on Windows, you'll need to install a Linux-like development interface (use [MinGW64](https://www.mingw-w64.org/) - Cygwin64 has been known to cause issues) to install/build the latest GCC version due to file type restrictions.
