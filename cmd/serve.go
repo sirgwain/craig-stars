@@ -1,3 +1,5 @@
+//go:build !wasi && !wasm
+
 package cmd
 
 import (
@@ -77,14 +79,14 @@ func generateTestGame(config config.Config) error {
 		WithHost(ai.Races[9]).
 		WithAIPlayerRace(ai.Races[0], cs.AIDifficultyNormal, 1). // HE
 		// WithAIPlayerRace(ai.Races[1], cs.AIDifficultyNormal, 2). // SS
-		 WithAIPlayerRace(ai.Races[2], cs.AIDifficultyNormal, 3), // WM
-		// WithAIPlayerRace(ai.Races[3], cs.AIDifficultyNormal, 1), // CA
-		// WithAIPlayerRace(ai.Races[4], cs.AIDifficultyNormal, 2). // IS
-		// WithAIPlayerRace(ai.Races[5], cs.AIDifficultyNormal, 3). // SD
-		// WithAIPlayerRace(ai.Races[6], cs.AIDifficultyNormal, 1). // PP
-		// WithAIPlayerRace(ai.Races[7], cs.AIDifficultyNormal, 2). // IT
-		// WithAIPlayerRace(ai.Races[8], cs.AIDifficultyNormal, 3). // AR
-		// WithAIPlayerRace(ai.Races[9], cs.AIDifficultyNormal, 3), // JoaT
+		WithAIPlayerRace(ai.Races[2], cs.AIDifficultyNormal, 3), // WM
+	// WithAIPlayerRace(ai.Races[3], cs.AIDifficultyNormal, 1), // CA
+	// WithAIPlayerRace(ai.Races[4], cs.AIDifficultyNormal, 2). // IS
+	// WithAIPlayerRace(ai.Races[5], cs.AIDifficultyNormal, 3). // SD
+	// WithAIPlayerRace(ai.Races[6], cs.AIDifficultyNormal, 1). // PP
+	// WithAIPlayerRace(ai.Races[7], cs.AIDifficultyNormal, 2). // IT
+	// WithAIPlayerRace(ai.Races[8], cs.AIDifficultyNormal, 3). // AR
+	// WithAIPlayerRace(ai.Races[9], cs.AIDifficultyNormal, 3), // JoaT
 	)
 
 	if err != nil {
