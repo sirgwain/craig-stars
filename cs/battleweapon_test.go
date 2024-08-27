@@ -165,7 +165,7 @@ func Test_battleWeaponSlot_getAccuracy(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			weapon := &battleWeaponSlot{
 				accuracy:     tt.fields.accuracy,
-				torpedoBonus: tt.fields.torpedoBonus,
+				TorpedoBonus: tt.fields.torpedoBonus,
 			}
 			if got := weapon.getAccuracy(tt.args.torpedoJamming); got != tt.want {
 				t.Errorf("battleWeaponSlot.getAccuracy() = %v, want %v", got, tt.want)
@@ -501,7 +501,7 @@ func Test_battleWeaponSlot_getEstimatedTorpedoDamageToTarget(t *testing.T) {
 				weaponType:   battleWeaponTypeTorpedo,
 				power:        tt.fields.weaponPower,
 				accuracy:     tt.fields.accuracy,
-				torpedoBonus: tt.fields.torpedoBonus,
+				TorpedoBonus: tt.fields.torpedoBonus,
 			}
 
 			target := &battleToken{

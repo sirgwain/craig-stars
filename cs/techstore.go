@@ -400,6 +400,7 @@ func (store *TechStore) GetBestFuelTank(player *Player) *TechHullComponent {
 	return bestTech
 }
 
+// get the best cargo pod for a player
 func (store *TechStore) GetBestCargoPod(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
@@ -412,7 +413,7 @@ func (store *TechStore) GetBestCargoPod(player *Player) *TechHullComponent {
 	return bestTech
 }
 
-// get the best fuel tank for a player
+// get the best colony module for a player
 func (store *TechStore) GetBestColonizationModule(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
@@ -425,12 +426,12 @@ func (store *TechStore) GetBestColonizationModule(player *Player) *TechHullCompo
 	return bestTech
 }
 
-// get the best player's battle computer
+// get the best battle computer for a player
 func (store *TechStore) GetBestBattleComputer(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
-		if tech.InitiativeBonus > 0 && tech.torpedoInaccuracyMulti > 0 && player.HasTech(&tech.Tech) {
+		if tech.InitiativeBonus > 0 && tech.TorpedoBonus > 0 && player.HasTech(&tech.Tech) {
 			// techs are sorted by rank, so the latest is the best
 			bestTech = tech
 		}
@@ -438,7 +439,7 @@ func (store *TechStore) GetBestBattleComputer(player *Player) *TechHullComponent
 	return bestTech
 }
 
-// get the best player's mining robot
+// get the best mining robot for a player
 func (store *TechStore) GetBestMiningRobot(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
@@ -451,7 +452,7 @@ func (store *TechStore) GetBestMiningRobot(player *Player) *TechHullComponent {
 	return bestTech
 }
 
-// get the player's best mine layer by type
+// get the best mine layer for a player by type
 func (store *TechStore) GetBestMineLayer(player *Player, mineFieldType MineFieldType) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
@@ -464,7 +465,7 @@ func (store *TechStore) GetBestMineLayer(player *Player, mineFieldType MineField
 	return bestTech
 }
 
-// get the player's best packet thrower
+// get the best packet thrower for a player
 func (store *TechStore) GetBestPacketThrower(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
@@ -477,7 +478,7 @@ func (store *TechStore) GetBestPacketThrower(player *Player) *TechHullComponent 
 	return bestTech
 }
 
-// get the player's best packet thrower
+// get the best stargate for a player
 func (store *TechStore) GetBestStargate(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
@@ -1437,21 +1438,21 @@ var BattleComputer = TechHullComponent{Tech: NewTech("Battle Computer", NewCost(
 
 	Mass:                   1,
 	InitiativeBonus:        1,
-	torpedoInaccuracyMulti: .8,
+	TorpedoBonus:           .8,
 	HullSlotType:           HullSlotTypeElectrical,
 }
 var BattleSuperComputer = TechHullComponent{Tech: NewTech("Battle Super Computer", NewCost(0, 0, 25, 14), TechRequirements{TechLevel: TechLevel{Energy: 5, Electronics: 11}}, 50, TechCategoryElectrical),
 
 	Mass:                   1,
 	InitiativeBonus:        2,
-	torpedoInaccuracyMulti: .7,
+	TorpedoBonus:           .7,
 	HullSlotType:           HullSlotTypeElectrical,
 }
 var BattleNexus = TechHullComponent{Tech: NewTech("Battle Nexus", NewCost(0, 0, 30, 15), TechRequirements{TechLevel: TechLevel{Energy: 10, Electronics: 19}}, 60, TechCategoryElectrical),
 
 	Mass:                   1,
 	InitiativeBonus:        3,
-	torpedoInaccuracyMulti: .5,
+	TorpedoBonus:           .5,
 	HullSlotType:           HullSlotTypeElectrical,
 }
 var Jammer10 = TechHullComponent{Tech: NewTech("Jammer 10", NewCost(0, 0, 2, 6), TechRequirements{TechLevel: TechLevel{Energy: 2, Electronics: 6}, PRTsRequired: []PRT{IS}}, 70, TechCategoryElectrical),

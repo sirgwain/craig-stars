@@ -605,6 +605,7 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 			Torpedo:          prtSpec.TechCostOffset.Torpedo,
 			Bomb:             prtSpec.TechCostOffset.Bomb,
 			PlanetaryDefense: prtSpec.TechCostOffset.PlanetaryDefense,
+			Stargate:         prtSpec.TechCostOffset.Stargate,
 		},
 		MaxPopulationOffset: prtSpec.MaxPopulationOffset,
 		ScannerSpec: ScannerSpec{
