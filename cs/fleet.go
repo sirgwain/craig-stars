@@ -1119,7 +1119,7 @@ func (fleet *Fleet) getFuelCost(player *Player, warpSpeed int, distance float64,
 
 	// compute each ship stack separately
 	for _, token := range fleet.Tokens {
-		// figure out this ship stack's mass as well as it's proportion of the cargo
+		// figure out this ship stack's mass as well as its proportion of the cargo
 		mass := token.design.Spec.Mass * token.Quantity
 		fleetCargo := fleet.Cargo.Total()
 		stackCapacity := token.design.Spec.CargoCapacity * token.Quantity

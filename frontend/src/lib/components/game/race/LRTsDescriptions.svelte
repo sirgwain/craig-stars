@@ -10,7 +10,7 @@
 			case LRT.TT:
 				return 'You will gain access to additional terraforming technologies by researching Biotechnology, starting with a 3% adjustment to all 3 environmental attributes and reaching a maximum of 30%. Terraforming requires 30% fewer resources.'
 			case LRT.ARM:
-				return 'Gives you three additional mining hulls and two new robots. You will start the game with two Midget Miners.';
+				return 'Gives you three additional mining hulls and two new robots, allowing for the creation of cheap, efficient and lightweight remote miners. You will start the game with two Midget Miners.';
 			case LRT.ISB:
 				return 'Gives you two new starbase designs. The Space Dock is a cheap starbase with a small space dock that can refuel ships and build small to medium sized vessels. The Ultra-Station is much larger and better fortified than a standard Starbase. Your starbases are automatically cloaked by 20% and cost 20% less to build.';
 			case LRT.GR:

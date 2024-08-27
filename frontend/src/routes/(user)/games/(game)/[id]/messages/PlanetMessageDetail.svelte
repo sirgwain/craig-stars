@@ -143,22 +143,28 @@
 {:else if [MessageType.PlanetDiscovery, MessageType.PlanetDiscoveryHabitable, MessageType.PlanetDiscoveryTerraformable, MessageType.PlanetDiscoveryUninhabitable].indexOf(message.type) != -1}
 	{#if owner}
 		You have found a planet occupied by someone else. {planet.name} is currently owned by the {owner.racePluralName}.
+	{:else if $player.race.spec?.instaforming && ((planet.spec.terraformedHabitability && planet.spec.terraformedHabitability > 0) || 
+	(planet.spec.habitability && planet.spec.habitability > 0))}
+		You have found a new habitable planet. Your colonists will grow by up to {Math.max(
+			1,
+			((planet.spec.terraformedHabitability ?? (planet.spec.habitability ?? 0)) * growthRate) / 100
+			).toFixed(2)}% per year if you colonize {planet.name}.
 	{:else if planet.spec.habitability && planet.spec.habitability > 0}
 		You have found a new habitable planet. Your colonists will grow by up to {Math.max(
 			1,
 			(planet.spec.habitability * growthRate) / 100
-		).toFixed()}% per year if you colonize {planet.name}.
+		).toFixed(2)}% per year if you colonize {planet.name}.
 	{:else if planet.spec.terraformedHabitability && planet.spec.terraformedHabitability > 0}
 		You have found a new planet which you have the ability to make habitable. With terraforming,
 		your colonists will grow by up to {Math.max(
 			1,
 			(planet.spec.terraformedHabitability * growthRate) / 100
-		).toFixed()}% per year if you colonize {planet.name}.
+		).toFixed(2)}% per year if you colonize {planet.name}.
 	{:else}
 		You have found a new planet which unfortunately is not habitable by you. {Math.max(
 			1,
-			(-(planet.spec.habitability ?? 0) * growthRate) / 100
-		).toFixed()}% of your colonists will die per year if you colonize {planet.name}.
+			-(planet.spec.habitability ?? 0) / 10
+		).toFixed(2)}% of your colonists will die per year if you colonize {planet.name}.
 	{/if}
 {:else if message.type === MessageType.PlanetPopulationDecreased}
 	{#if message.spec.amount === message.spec.prevAmount}
@@ -170,7 +176,7 @@
 		).toLocaleString()} to {(message.spec.amount ?? 0).toLocaleString()}.
 	{/if}
 {:else if message.type === MessageType.PlanetPopulationDecreasedOvercrowding}
-	The population on {planet.name} has decreased by {(-(message.spec.amount ?? 0)).toLocaleString()} due
+	The population on {planet.name} has decreased by {(-(message.spec.amount ?? 0)).toLocaleString()} colonists due
 	to overcrowding.
 {:else if message.type === MessageType.PlayerTechLevelGainedInvasion}
 	Your colonists invading {planet.name} have picked through the defenders' remains looking for technology.
