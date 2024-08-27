@@ -4,7 +4,11 @@ import (
 	"bytes"
 	"embed"
 	"fmt"
-	"html/template"
+	"slices"
+	"strings"
+	"text/template"
+
+	"github.com/Masterminds/sprig/v3"
 )
 
 var funcMap = template.FuncMap{
@@ -22,12 +26,15 @@ var converterTemplate embed.FS
 
 func RenderSerializer(pkg string, serializers []Serializer) (string, error) {
 
+	// alphabetize the serializers
+	slices.SortFunc(serializers, func(a, b Serializer) int { return strings.Compare(a.Name, b.Name) })
+
 	tmpl, err := converterTemplate.ReadFile("templates/converter.go.tmpl")
 	if err != nil {
 		return "", fmt.Errorf("failed to load embedded template %v", err)
 	}
 
-	t := template.Must(template.New("serializerTemplate").Funcs(funcMap).Parse(string(tmpl)))
+	t := template.Must(template.New("serializerTemplate").Funcs(sprig.FuncMap()).Funcs(funcMap).Parse(string(tmpl)))
 
 	var out bytes.Buffer
 	t.Execute(&out, map[string]interface{}{

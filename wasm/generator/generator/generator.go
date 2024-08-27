@@ -20,15 +20,23 @@ type Serializer struct {
 }
 
 type Field struct {
-	Name        string
-	JsonName    string
-	JSType      JSType
-	ObjectType  string
-	OmitEmpty   bool
-	BasicType   string
-	IsBasicType bool
-	PackageType bool
-	Ignore      bool
+	Name           string
+	JsonName       string
+	GoType         string
+	JSType         JSType
+	ObjectType     string
+	BasicType      string
+	MapKeyType     string
+	MapValueType   string
+	MapValueJSType JSType
+	Map            bool
+	OmitEmpty      bool
+	Basic          bool
+	PackageType    bool
+	Pointer        bool
+	Slice          bool
+	Array          bool
+	Ignore         bool
 }
 
 func (t JSType) String() string {

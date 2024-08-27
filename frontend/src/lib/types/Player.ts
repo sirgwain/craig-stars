@@ -215,6 +215,7 @@ export class Player implements PlayerResponse, CostFinder {
 	messages: Message[] = [];
 	relations: PlayerRelationship[] = [];
 	acquiredTechs: Record<string, boolean> = {};
+	designs?: ShipDesign[] = [];
 	spec: PlayerSpec = {};
 
 	constructor(data?: PlayerResponse) {

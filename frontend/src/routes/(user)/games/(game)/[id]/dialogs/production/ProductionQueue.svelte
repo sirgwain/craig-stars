@@ -122,13 +122,14 @@
 		);
 
 		for (let i = 0; i < availableItems.length; i++) {
-			availableItems[i].yearsToBuildOne = updatedPlanet.getYearsToBuildOne(
-				availableItems[i],
-				cs,
-				$player,
-				$universe.getMyDesigns()
-			);
-
+			if (!availableItems[i].yearsToBuildOne) {
+				availableItems[i].yearsToBuildOne = updatedPlanet.getYearsToBuildOne(
+					availableItems[i],
+					cs,
+					$player,
+					$universe.getMyDesigns()
+				);
+			}
 			if (selectedAvailableItem == availableItems[i]) {
 				selectedAvailableItem = availableItems[i];
 			}
@@ -136,12 +137,14 @@
 		availableItems = [...availableItems];
 
 		for (let i = 0; i < availableShipDesigns.length; i++) {
-			availableShipDesigns[i].yearsToBuildOne = updatedPlanet.getYearsToBuildOne(
-				availableShipDesigns[i],
-				cs,
-				$player,
-				$universe.getMyDesigns()
-			);
+			if (!availableShipDesigns[i].yearsToBuildOne) {
+				availableShipDesigns[i].yearsToBuildOne = updatedPlanet.getYearsToBuildOne(
+					availableShipDesigns[i],
+					cs,
+					$player,
+					$universe.getMyDesigns()
+				);
+			}
 			if (selectedAvailableItem == availableShipDesigns[i]) {
 				selectedAvailableItem = availableShipDesigns[i];
 			}
@@ -149,12 +152,14 @@
 		availableShipDesigns = [...availableShipDesigns];
 
 		for (let i = 0; i < availableStarbaseDesigns.length; i++) {
-			availableStarbaseDesigns[i].yearsToBuildOne = updatedPlanet.getYearsToBuildOne(
-				availableStarbaseDesigns[i],
-				cs,
-				$player,
-				$universe.getMyDesigns()
-			);
+			if (!availableStarbaseDesigns[i].yearsToBuildOne) {
+				availableStarbaseDesigns[i].yearsToBuildOne = updatedPlanet.getYearsToBuildOne(
+					availableStarbaseDesigns[i],
+					cs,
+					$player,
+					$universe.getMyDesigns()
+				);
+			}
 
 			if (selectedAvailableItem == availableStarbaseDesigns[i]) {
 				selectedAvailableItem = availableStarbaseDesigns[i];

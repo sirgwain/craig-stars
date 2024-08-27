@@ -66,31 +66,34 @@ func estimateProduction(this js.Value, args []js.Value) interface{} {
 		return wasm.NewError(fmt.Errorf("number of arguments doesn't match"))
 	}
 
-	planetJson := args[0].String()
-	planet := &cs.Planet{}
-	json.Unmarshal([]byte(planetJson), &planet)
+	planet := wasm.GetPlanet(args[0])
+	player := wasm.GetPlayer(args[1])
 
-	playerJson := args[1].String()
-	player := &cs.Player{}
-	json.Unmarshal([]byte(playerJson), &player)
+	if planet.Spec.HasStarbase {
+		planet.Starbase = &cs.Fleet{
+			Tokens: []cs.ShipToken{
+				{Quantity: 1, DesignNum: planet.Spec.StarbaseDesignNum},
+			},
+		}
+	}
 
 	// make sure if we have a starbase, it has a design so we can compute
 	// upgrade costs
-	if err := planet.PopulateStarbaseDesign(player); err != nil {
+	if err := planet.PopulateStarbaseDesign(&player); err != nil {
 		return wasm.NewError(fmt.Errorf("failed to populate starbase with player design. %v", err))
 	}
 
-	if err := planet.PopulateProductionQueueDesigns(player); err != nil {
+	if err := planet.PopulateProductionQueueDesigns(&player); err != nil {
 		return wasm.NewError(fmt.Errorf("failed to populate production queue designs. %v", err))
 	}
 
-	planet.PopulateProductionQueueEstimates(&rules, player)
+	planet.PopulateProductionQueueEstimates(&rules, &player)
 
 	result, err := json.MarshalIndent(planet, "", "  ")
 	if err != nil {
 		return wasm.NewError(fmt.Errorf("failed to serialize result to json %v\n", err))
 	}
-	log.Debug().Msgf("estimatied production of %s for player %s\n%s", planet.Name, player.Name, result)
+	log.Debug().Msgf("estimatied production of %s for player %s\n", planet.Name, player.Name)
 
 	return js.ValueOf(string(result))
 }

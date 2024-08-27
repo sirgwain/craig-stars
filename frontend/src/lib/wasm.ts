@@ -69,7 +69,7 @@ type CSWasm = {
 	calculateRacePoints: (race: Race) => number;
 	enableDebug: () => void;
 	setRules: (rulesJson: string) => void;
-	estimateProduction: (planetJson: string, playerJson: string) => string;
+	estimateProduction: (planet: Planet, player: Player & { designs?: ShipDesign[] }) => string;
 };
 
 // create a wrapper to serialize requests and responses to/from JSON
@@ -85,14 +85,8 @@ class CSWasmWrapper implements CS {
 	}
 
 	estimateProduction(planet: Planet, player: Player, designs: ShipDesign[]): Planet {
-		const playerWithDesigns = {
-			...player,
-			designs: designs
-		};
-		const resultJson = this.wasm.estimateProduction(
-			JSON.stringify(planet),
-			JSON.stringify(playerWithDesigns)
-		);
+		player.designs = designs;
+		const resultJson = this.wasm.estimateProduction(planet, player);
 
 		try {
 			return JSON.parse(resultJson) as Planet;

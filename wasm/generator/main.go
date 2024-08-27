@@ -42,12 +42,49 @@ func main() {
 
 	// TODO: do them all, eventually
 	typesToCheck := map[string]bool{
-		"DBObject":     true,
-		"Hab":          true,
-		"Race":         true,
-		"ResearchCost": true,
-		"TechLevel":    true,
-		"Cost":         true,
+		"DBObject":            true,
+		"GameDBObject":        true,
+		"MapObject":           true,
+		"Hab":                 true,
+		"Race":                true,
+		"ResearchCost":        true,
+		"TechLevel":           true,
+		"Cost":                true,
+		"Mineral":             true,
+		"Cargo":               true,
+		"Planet":              true,
+		"PlanetOrders":        true,
+		"ProductionQueueItem": true,
+		"PlanetSpec":          true,
+		"PlanetStarbaseSpec":  true,
+		"Player":              true,
+		"PlayerOrders":        true,
+		"PlayerPlans":         true,
+		"ProductionPlan":      true,
+		"BattlePlan":          true,
+		"TransportPlan":       true,
+		"PlayerIntels":        true,
+		"BattleRecord":        true,
+		"PlayerIntel":         true,
+		"ScoreIntel":          true,
+		"PlanetIntel":         true,
+		"FleetIntel":          true,
+		"ShipDesignIntel":     true,
+		"MineralPacketIntel":  true,
+		"MineFieldIntel":      true,
+		"WormholeIntel":       true,
+		"MysteryTraderIntel":  true,
+		"SalvageIntel":        true,
+		"PlayerRelationship":  true,
+		"PlayerMessage":       true,
+		"PlayerScore":         true,
+		"PlayerStats":         true,
+		"PlayerSpec":          true,
+		"ShipDesign":          true,
+		"ShipDesignSlot":      true,
+		"ShipDesignSpec":      true,
+		"Bomb":                true,
+		"Engine":              true,
 	}
 
 	serializers := []generator.Serializer{}
@@ -77,36 +114,69 @@ func main() {
 						field := t.Field(i)
 						fieldName := field.Name()
 						fieldType := field.Type()
+
+						// if this is basic int/float, etc get that type
 						basicType := getBasicType(fieldType)
+						basic := basicType != ""
+
+						// if this is a slice or named type, get the underlying type
 						underlyingType := getUnderlyingType(fieldType)
-						jsonName, omitEmpty := getJsonTag(t.Tag(i))
+
+						// get the json tag name, whether it is omitted
+						// or whether it is ignored
+						jsonName, omitEmpty, ignore := getJsonTag(t.Tag(i))
 						if jsonName != "" {
 							hasJsonFields = true
 						}
-						fmt.Printf("  Field: %s, Type: %s, Underlying: %s, Tag: %s\n",
-							fieldName,
-							strings.ReplaceAll(fieldType.String(), pkg.PkgPath+".", ""),
-							underlyingType,
-							jsonName,
-						)
+						// fmt.Printf("  Field: %s, Type: %s, Underlying: %s, Tag: %s\n",
+						// 	fieldName,
+						// 	strings.ReplaceAll(fieldType.String(), pkg.PkgPath+".", ""),
+						// 	underlyingType,
+						// 	jsonName,
+						// )
 
 						packageType := false
 						fullFieldType := fieldType.String()
-						if strings.Index(fullFieldType, pkg.ID) == 0 {
+						if strings.Contains(fullFieldType, pkg.ID) {
 							// this is a type internal to our package
 							packageType = true
 						}
 
+						jsType := getJsType(fieldType)
+						slice := isSlice(fieldType)
+						array := isArray(fieldType)
+
+						isMap, mapKeyType, mapValueType := getMapInfo(fieldType)
+						mapValueJSType := generator.JSString
+						if isMap {
+							mapValueJSType = generator.JSTypeFromBasicType(mapValueType)
+						}
+
+						// determine if the type or underlying types
+						// are pointers
+						pointer := isPointer(fieldType)
+						if slice || array {
+							pointer = strings.Index(fullFieldType, "[]*") == 0
+						}
+
 						fields[i] = generator.Field{
-							Name:        fieldName,
-							JsonName:    jsonName,
-							ObjectType:  underlyingType,
-							OmitEmpty:   omitEmpty,
-							JSType:      getJsType(fieldType),
-							BasicType:   basicType,
-							IsBasicType: basicType != "",
-							PackageType: packageType,
-							Ignore:      (basicType == "") && packageType && !typesToCheck[underlyingType],
+							Name:           fieldName,
+							JsonName:       jsonName,
+							GoType:         fullFieldType,
+							ObjectType:     underlyingType,
+							JSType:         jsType,
+							OmitEmpty:      omitEmpty,
+							Pointer:        pointer,
+							Slice:          slice,
+							Array:          array,
+							BasicType:      basicType,
+							Basic:          basic,
+							PackageType:    packageType,
+							Map:            isMap,
+							MapKeyType:     mapKeyType,
+							MapValueType:   mapValueType,
+							MapValueJSType: mapValueJSType,
+							Ignore:         !field.Exported() || ignore || (!basic && packageType && !typesToCheck[underlyingType]),
 						}
 					}
 				case *types.Interface:
@@ -215,13 +285,13 @@ func getUnderlyingType(t types.Type) string {
 	case *types.Basic:
 		return v.Name()
 	case *types.Slice:
-		return "[] " + getUnderlyingType(v.Elem())
+		return getUnderlyingType(v.Elem())
 	case *types.Array:
-		return fmt.Sprintf("[%d]%s", v.Len(), getUnderlyingType(v.Elem()))
+		return getUnderlyingType(v.Elem())
 	case *types.Map:
 		return fmt.Sprintf("map[%s]%s", getUnderlyingType(v.Key()), getUnderlyingType(v.Elem()))
 	case *types.Pointer:
-		return "*" + getUnderlyingType(v.Elem())
+		return getUnderlyingType(v.Elem())
 	case *types.Struct:
 		return "struct"
 	case *types.Named:
@@ -231,16 +301,51 @@ func getUnderlyingType(t types.Type) string {
 	}
 }
 
+func getMapInfo(t types.Type) (isMap bool, keyType, valueType string) {
+	v, ok := t.(*types.Map)
+	if !ok {
+		return false, "", ""
+	}
+	return ok, getUnderlyingType(v.Key()), getUnderlyingType(v.Elem())
+}
+
+func isPointer(t types.Type) bool {
+	t, ok := t.(*types.Pointer)
+	return ok
+}
+
+func isSlice(t types.Type) bool {
+	t, ok := t.(*types.Slice)
+	return ok
+}
+
+func isArray(t types.Type) bool {
+	t, ok := t.(*types.Array)
+	return ok
+}
+
+// getBasicType returns the basic type, i.e. int, float, int32
+// or the basic underlying type for slices/pointers
+// if not a basic type, it returns an empty string
 func getBasicType(t types.Type) string {
-	t, ok := t.Underlying().(*types.Basic)
-	if ok {
-		return t.String()
+	switch v := t.Underlying().(type) {
+	case *types.Slice:
+		return getBasicType(v.Elem())
+	case *types.Array:
+		return getBasicType(v.Elem())
+	case *types.Pointer:
+		return getBasicType(v.Elem())
+	case *types.Basic:
+		return v.Name()
 	}
 	return ""
 }
 
 // get a jsonName and omitEmpty from a tag
-func getJsonTag(tag string) (name string, omitEmpty bool) {
+func getJsonTag(tag string) (name string, omitEmpty bool, ignore bool) {
+	if strings.Contains(tag, "json:\"-\"") {
+		return "", false, true
+	}
 	regex := regexp.MustCompile("json:\"(?P<jsonName>[a-zA-Z0-9]+)(?P<omitEmpty>.*)\"")
 	matches := regex.FindStringSubmatch(tag)
 	if len(matches) == 3 {
@@ -248,7 +353,7 @@ func getJsonTag(tag string) (name string, omitEmpty bool) {
 		omitEmpty = matches[2] == ",omitempty"
 	}
 
-	return name, omitEmpty
+	return name, omitEmpty, false
 }
 
 func getJsType(t types.Type) generator.JSType {
@@ -266,6 +371,10 @@ func getJsType(t types.Type) generator.JSType {
 			}
 			fmt.Printf("found unknown named type %s\n", fullName)
 		}
+	case *types.Array:
+		return generator.JSArray
+	case *types.Slice:
+		return generator.JSArray
 	case *types.Struct:
 		return generator.JSObject
 	}

@@ -26,7 +26,7 @@ type Planet struct {
 	Scanner              bool       `json:"scanner,omitempty"`
 	Spec                 PlanetSpec `json:"spec,omitempty"`
 	RandomArtifact       bool       `json:"-"`
-	Starbase             *Fleet     `json:"starbase,omitempty"`
+	Starbase             *Fleet     `json:"-"`
 	Dirty                bool       `json:"-"`
 	bonusResources       int
 }
