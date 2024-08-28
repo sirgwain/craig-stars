@@ -173,7 +173,7 @@ type builtShip struct {
 // produce all items in the production queue
 func (p *production) produce() productionResult {
 	planet := p.planet
-
+	// player := p.player
 	costCalculator := NewCostCalculator()
 	productionResult := productionResult{}
 	available := Cost{Resources: planet.Spec.ResourcesPerYearAvailable}.AddCargoMinerals(planet.Cargo)
@@ -183,14 +183,16 @@ func (p *production) produce() productionResult {
 		maxBuildable := planet.maxBuildable(p.player, item.Type)
 		var cost Cost
 		if item.Type == QueueItemTypeStarbase && planet.Spec.HasStarbase {
-			cost = costCalculator.StarbaseUpgradeCost(planet.Starbase.Tokens[0].design, item.design)
-		} else {
+			//cost = costCalculator.StarbaseUpgradeCost(&game.Rules, player.TechLevels, player.Race.Spec, planet.Starbase.Tokens[0].design, item.design)
+		} else if (item.Type == QueueItemTypeStarbase || item.Type == QueueItemTypeShipToken) {
+			//cost = costCalculator.GetDesignCost(&game.Rules, player.TechLevels, player.Race.Spec, item.design)
+		}
 			var err error
 			cost, err = costCalculator.CostOfOne(p.player, item)
 			if err != nil {
 				// return nil, err
 			}
-		}
+		
 
 		// Infinite is the constant int of -1, but for our purposes we want a very large number
 		if maxBuildable == Infinite {
@@ -315,8 +317,8 @@ func (p *production) produce() productionResult {
 				break
 			}
 		}
+	
 	}
-
 	// replace the queue with what's leftover
 	planet.ProductionQueue = newQueue
 	planet.Cargo = Cargo{available.Ironium, available.Boranium, available.Germanium, planet.Cargo.Colonists}

@@ -33,8 +33,8 @@ func (c Cost) GetAmount(costType int) int {
 	return 0
 }
 
-func (c Cost) AddInt(costType int, amount int) Cost {
-	switch costType {
+func (c Cost) AddInt(ResourceType int, amount int) Cost {
+	switch ResourceType {
 	case 0:
 		c.Ironium += amount
 	case 1:
@@ -195,17 +195,26 @@ func (a Cost) DivideByMineral(b Mineral) float64 {
 	return math.Min(newIronium, math.Min(newBoranium, newGermanium))
 }
 
-// Divide cost by integer, truncating the result
-func (c Cost) DivideByInt(divisor int) Cost {
+// Divide cost by an integer, either truncating or rounding up the result
+func (c Cost) DivideByInt(divisor int, roundUp bool) Cost {
 	if divisor == 0 {
 		return Cost{int(math.Inf(1)), int(math.Inf(1)), int(math.Inf(1)), int(math.Inf(1))}
 	}
 
-	return Cost{
-		Ironium:   c.Ironium / divisor,
-		Boranium:  c.Boranium / divisor,
-		Germanium: c.Germanium / divisor,
-		Resources: c.Resources / divisor,
+	if roundUp {
+		return Cost{
+			Ironium:   c.Ironium/divisor + c.Ironium%divisor,
+			Boranium:  c.Boranium/divisor + c.Boranium%divisor,
+			Germanium: c.Germanium/divisor + c.Germanium%divisor,
+			Resources: c.Resources/divisor + c.Resources%divisor,
+		}
+	} else {
+		return Cost{
+			Ironium:   c.Ironium / divisor,
+			Boranium:  c.Boranium / divisor,
+			Germanium: c.Germanium / divisor,
+			Resources: c.Resources / divisor,
+		}
 	}
 }
 
@@ -252,5 +261,3 @@ func (available Cost) NumBuildable(cost Cost) int {
 		buildable.Resources,
 	)
 }
-
-func (c Cost) MaxCost(other Cost)

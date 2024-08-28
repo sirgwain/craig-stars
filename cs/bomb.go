@@ -328,7 +328,7 @@ func (b *bomb) retroBombPlanet(planet *Planet, defender *Player, attacker *Playe
 	}
 }
 
-// getUnterraformAmount gets the amount we should unterraform with retro bombs
+// Get the amount we should unterraform with retro bombs
 func (b *bomb) getUnterraformAmount(retroBombAmount int, baseHab, hab Hab) Hab {
 	unterraformAmount := Hab{}
 	for i := 0; i < retroBombAmount; i++ {
@@ -415,8 +415,8 @@ func (b *bomb) getMinColonistsKilledForBombs(population int, defenseCoverage flo
 // of its factories, mines, and defenses.  If there had been 350 mines,
 // 550 factories, and 100 defenses, the losses would be 140 mines, 220
 // factories, and 40 defenses.
-//
-// getStructuresDestroyed calculates the structures destroyed using the StructureDestroyRate of bombs
+
+// Calculates the structures destroyed using the StructureDestroyRate of bombs
 func (b *bomb) getStructuresDestroyed(defenseCoverage float64, bombs []Bomb) int {
 	// calculate the StructureDestroyRate for all these bombs
 	var structuresDestroyed float64 = 0
@@ -461,6 +461,8 @@ func (b *bomb) getStructuresDestroyed(defenseCoverage float64, bombs []Bomb) int
 //	= 8.37% of planetary pop will be killed.
 //
 // ============================================================================
+
+// Get number of colonists killed via smart bombs
 func (b *bomb) getColonistsKilledWithSmartBombs(population int, defenseCoverageSmart float64, bombs []Bomb) float64 {
 	smartKillRate := 0.0
 	for _, bomb := range bombs {
