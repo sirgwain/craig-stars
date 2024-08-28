@@ -418,16 +418,16 @@ func (t *Tech) GetPlayerCost(techLevels TechLevel, spec MiniaturizationSpec, cos
 		cost = cost.MultiplyFloat64(1 + costOffset.Bomb)
 	case TechCategoryTorpedo:
 		cost = cost.MultiplyFloat64(1 + costOffset.Torpedo)
-	//case TechCategoryOrbital && {some way to check if item is gate}
+		//case TechCategoryOrbital && {some way to check if item is gate}
 		//	cost = cost.MultiplyFloat64(1 + costOffset.Stargate)
 
 	}
 
 	return Cost{
-		int(math.Ceil(float64(cost.Ironium) * miniaturizationFactor)),
-		int(math.Ceil(float64(cost.Boranium) * miniaturizationFactor)),
-		int(math.Ceil(float64(cost.Germanium) * miniaturizationFactor)),
-		int(math.Ceil(float64(cost.Resources) * miniaturizationFactor)),
+		int(roundHalfDown(float64(cost.Ironium) * miniaturizationFactor)),
+		int(roundHalfDown(float64(cost.Boranium) * miniaturizationFactor)),
+		int(roundHalfDown(float64(cost.Germanium) * miniaturizationFactor)),
+		int(roundHalfDown(float64(cost.Resources) * miniaturizationFactor)),
 	}
 
 	// if we are at level 26, a beginner tech would cost (26 * .04)

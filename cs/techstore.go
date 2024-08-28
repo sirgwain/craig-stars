@@ -2500,7 +2500,7 @@ var SpaceDock = TechHull{Tech: NewTech("Space Dock", NewCost(20, 5, 25, 100), Te
 	Initiative:            12,
 	RangeBonus:            1,
 	Starbase:              true,
-	RepairBonus:           .03,     // 8% total repair rate
+	RepairBonus:           .15,     // 20% total repair rate
 	MaxPopulation:         500_000, // AR races can have a pop of up to 500k on this base
 	Slots: []TechHullSlot{
 		{Position: Vector{-1, -1}, Type: HullSlotTypeOrbitalElectrical, Capacity: 1},

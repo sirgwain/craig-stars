@@ -13,10 +13,16 @@ func roundToNearest100(value int) int {
 }
 
 func roundFloat(val float64, precision uint) float64 {
-    ratio := math.Pow(10, float64(precision))
-    return math.Round(val*ratio) / ratio
+	ratio := math.Pow(10, float64(precision))
+	return math.Round(val*ratio) / ratio
 }
 
+func roundHalfDown(x float64) float64 {
+	if x > 0 {
+		return math.Floor(x + 0.5)
+	}
+	return math.Ceil(x - 0.5)
+}
 
 func Clamp(value, min, max int) int {
 	if value < min {
@@ -78,4 +84,17 @@ func AbsInt(num int) int {
 		return -num
 	}
 	return num
+}
+
+// return the absolutely greater of 2 integers
+// (ie: the one furthest away from 0)
+func MaxAbsInt(nums ...int) int {
+	result := math.MinInt
+	for _, value := range nums {
+		if AbsInt(value) > AbsInt(result) {
+			result = value
+		}
+	}
+
+	return result
 }
