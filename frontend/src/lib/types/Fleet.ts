@@ -12,12 +12,6 @@ import { distance, type Vector } from './Vector';
 import { range } from 'd3-array';
 import type { Planet } from './Planet';
 
-const {
-	player,
-	universe,
-	settings,
-} = getGameContext()
-
 export type Fleet = {
 	playerNum: number; // override mapObject fleets always have a player.
 	planetNum?: number;
@@ -254,7 +248,7 @@ export class CommandedFleet implements Fleet {
 
 	// get the highest useful speed less than or equal to a given warp speed
 	// needed to reach the destination
-	getMinimalWarp(origin: MapObject | undefined, destination: MapObject | undefined, idealSpeed: number): number {
+	getMinimalWarp(player: Player, origin: MapObject | undefined, destination: MapObject | undefined, idealSpeed: number): number {
 		let speed = idealSpeed;
 		const freeSpeed = this.spec?.engine?.freeSpeed ?? 1;
 		const dist = distance(destination?.position ?? this.position, origin?.position);
@@ -280,19 +274,19 @@ export class CommandedFleet implements Fleet {
 				const sourceSafeHullMass = originPlanet.spec.safeHullMass ?? 0;
 				const sourceSafeRange = originPlanet.spec.safeRange ?? 0;
 				const destStargateSafe =
-					(totalCargo(this.cargo) == 0 || $player.race.spec?.canGateCargo) &&
+					(totalCargo(this.cargo) == 0 || player.race.spec?.canGateCargo) &&
 					owned(targetPlanet) &&
 					player.isFriend(targetPlanet.playerNum ?? 0) &&
 					destSafeRange >= dist &&
 					Math.max(
-						...this.tokens.map((t) => $universe.getMyDesign(t.designNum)?.spec.mass ?? 0)
+						...this.tokens.map((t) => universe.getMyDesign(t.designNum)?.spec.mass ?? 0)
 					) < destSafeHullMass;
 				const sourceStargateSafe =
-					(totalCargo(this.cargo) == 0 || $player.race.spec?.canGateCargo) &&
+					(totalCargo(this.cargo) == 0 || player.race.spec?.canGateCargo) &&
 					owned(originPlanet) &&
 					sourceSafeRange >= dist &&
 					Math.max(
-						...this.tokens.map((t) => $universe.getMyDesign(t.designNum)?.spec.mass ?? 0)
+						...this.tokens.map((t) => universe.getMyDesign(t.designNum)?.spec.mass ?? 0)
 					) < sourceSafeHullMass;
 				stargate = !!destStargateSafe && !!sourceStargateSafe;
 			}
@@ -302,7 +296,7 @@ export class CommandedFleet implements Fleet {
 				const destSafeRange = targetPlanet.spec.safeRange ?? 0;
 				const destStargateSafe =
 					owned(targetPlanet) &&
-					$player.isFriend(targetPlanet.playerNum ?? 0) &&
+					player.isFriend(targetPlanet.playerNum ?? 0) &&
 					destSafeRange >= dist &&
 					Math.max(
 						...this.tokens.map((t) => universe.getMyDesign(t.designNum)?.spec.mass ?? 0)
@@ -319,7 +313,7 @@ export class CommandedFleet implements Fleet {
 	}
 
 	// get the max warp we have fuel for to make it to the destination 
-	getMaxWarp(origin: MapObject | undefined, destination: MapObject | undefined, designFinder: DesignFinder, fuelEfficiencyOffset: number): number {
+	getMaxWarp(player: Player, origin: MapObject | undefined, destination: MapObject | undefined, designFinder: DesignFinder, fuelEfficiencyOffset: number): number {
 		// start at one above free speed
 		const freeSpeed = this.spec?.engine?.freeSpeed ?? 1;
 		let speed: number;
@@ -348,7 +342,7 @@ export class CommandedFleet implements Fleet {
 		}
 
 		// don't go faster than we need
-		return this.getMinimalWarp(origin, destination, speed);
+		return this.getMinimalWarp(player, origin, destination, speed);
 	}
 }
 
