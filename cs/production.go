@@ -13,7 +13,7 @@ type producer interface {
 }
 
 // create a new planet production object
-func newProducer(planet *Planet, player *Player) producer {
+func newProducer(rules *Rules, planet *Planet, player *Player) producer {
 	return &production{
 		rules:     Rules,
 		planet:    planet,
@@ -24,6 +24,7 @@ func newProducer(planet *Planet, player *Player) producer {
 }
 
 type production struct {
+	rules     *Rules
 	planet    *Planet
 	player    *Player
 	estimator CompletionEstimator
