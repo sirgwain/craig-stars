@@ -15,6 +15,7 @@ type producer interface {
 // create a new planet production object
 func newProducer(planet *Planet, player *Player) producer {
 	return &production{
+		rules:     Rules,
 		planet:    planet,
 		player:    player,
 		estimator: NewCompletionEstimator(),
@@ -183,11 +184,9 @@ func (p *production) produce() productionResult {
 		maxBuildable := planet.maxBuildable(p.player, item.Type)
 		var cost Cost
 		if item.Type == QueueItemTypeStarbase && planet.Spec.HasStarbase {
-			// TODO @sirgwain: Figure out how to pass rules to starbase cost function 
-			// I am 90% sure if I do it I'll do a crap job of it and you'll have to redo it later - M
-			// cost = costCalculator.StarbaseUpgradeCost(&game.Rules, p.player.TechLevels, p. player.Race.Spec, planet.Starbase.Tokens[0].design, item.design)
+			 cost = costCalculator.StarbaseUpgradeCost(p.Rules, p.player.TechLevels, p. player.Race.Spec, planet.Starbase.Tokens[0].design, item.design)
 		} else if (item.Type == QueueItemTypeStarbase || item.Type == QueueItemTypeShipToken) {
-			// cost = costCalculator.GetDesignCost(&game.Rules, p.player.TechLevels, p.player.Race.Spec, item.design)
+			 cost = costCalculator.GetDesignCost(p.Rules, p.player.TechLevels, p.player.Race.Spec, item.design)
 		}
 			var err error
 			cost, err = costCalculator.CostOfOne(p.player, item)
