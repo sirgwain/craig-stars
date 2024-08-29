@@ -59,7 +59,7 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 
 	// keep track of items built so we know how many auto items are completed
 	numBuilt := make([]int, len(planet.ProductionQueue))
-	producer := newProducer(&planet, player)
+	producer := newProducer(rules, &planet, player)
 	for year := 1; year <= 100; year++ {
 		// mine for minerals
 		planet.mine(rules)
