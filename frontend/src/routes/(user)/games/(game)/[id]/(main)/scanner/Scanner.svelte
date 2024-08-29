@@ -3,7 +3,6 @@
 	import { onScannerContextPopup } from '$lib/components/game/tooltips/ScannerContextPopup.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
-	import { totalCargo } from '$lib/types/Cargo';
 	import { WaypointTask, type Fleet, type Waypoint } from '$lib/types/Fleet';
 	import {
 		MapObjectType,
@@ -385,9 +384,34 @@
 
 			if (waypointIndex > 0) {
 				const previousWaypoint = $commandedFleet.waypoints[waypointIndex - 1];
-				const dist = distance(mo?.position ?? position, previousWaypoint.position);
+				let previous_mo : MapObject | undefined
+				$universe.getMapObjectsByPosition(previousWaypoint.position)
+				.forEach(obj => {
+					if (obj.type == 'Planet') {
+						previous_mo = obj
+					}
+				});
+				const colonizing =
+					$commandedFleet.spec.colonizer &&
+					$commandedFleet.cargo.colonists &&
+					mo &&
+					mo.type === MapObjectType.Planet &&
+					!owned(mo) &&
+					((mo as Planet).spec.terraformedHabitability ?? 0) > 0;
 
-				warpSpeed = $commandedFleet.getMinimalWarp(dist, previousWaypoint.warpSpeed);
+				if (colonizing || $settings.fastestWaypoint || 
+				((mo as Planet).spec.dockCapacity ?? 0) != 0) {
+					warpSpeed = $commandedFleet.getMaxWarp(
+						previous_mo,
+						mo,
+						$universe, 
+						$player.race.spec?.fuelEfficiencyOffset ?? 0);
+				} else {
+					warpSpeed = $commandedFleet.getMinimalWarp(
+						previous_mo,
+						mo, 
+						previousWaypoint.warpSpeed);
+				}
 			}
 
 			if (positionWaypoint || !mo) {
@@ -419,9 +443,36 @@
 					? $selectedWaypoint?.warpSpeed
 					: $commandedFleet.spec?.engine?.idealSpeed ?? 5;
 				const dist = distance(mo?.position ?? position, previousWaypoint.position);
-
-				warpSpeed = $commandedFleet.getMinimalWarp(dist, warpSpeed);
-				$selectedWaypoint.warpSpeed = warpSpeed;
+				const colonizing =
+					$commandedFleet.spec.colonizer &&
+					$commandedFleet.cargo.colonists &&
+					mo &&
+					mo.type === MapObjectType.Planet &&
+					!owned(mo) &&
+					((mo as Planet).spec.terraformedHabitability ?? 0) > 0;
+				
+				let previous_mo : MapObject | undefined
+				$universe.getMapObjectsByPosition(previousWaypoint.position)
+				.forEach(obj => {
+					if (obj.type == 'Planet') {
+						previous_mo = obj
+					}
+				});
+				
+				if (colonizing || $settings.fastestWaypoint || 
+				((mo as Planet).spec.dockCapacity ?? 0) != 0) {
+					warpSpeed = $commandedFleet.getMaxWarp(
+						previous_mo,
+						mo, 
+						$universe, 
+						$player.race.spec?.fuelEfficiencyOffset ?? 0);
+				} else {
+					warpSpeed = $commandedFleet.getMinimalWarp(
+						previous_mo,
+						mo, 
+						previousWaypoint.warpSpeed);
+				}
+			$selectedWaypoint.warpSpeed = warpSpeed;
 			}
 
 			updateFleetOrders($commandedFleet);
@@ -466,8 +517,6 @@
 			return false;
 		}
 
-		const dist = distance(mo?.position ?? position, currentWaypoint.position);
-
 		const colonizing =
 			$commandedFleet.spec.colonizer &&
 			$commandedFleet.cargo.colonists &&
@@ -475,32 +524,6 @@
 			mo.type === MapObjectType.Planet &&
 			!owned(mo) &&
 			((mo as Planet).spec.terraformedHabitability ?? 0) > 0;
-
-		// use a stargate automatically if it's safe and in range
-		const orbiting = $universe.getPlanet($commandedFleet.orbitingPlanetNum);
-		const targetPlanet = mo?.type == MapObjectType.Planet ? (mo as Planet) : undefined;
-		let stargate = false;
-		if (orbiting && targetPlanet) {
-			const destSafeHullMass = targetPlanet.spec.safeHullMass ?? 0;
-			const destSafeRange = targetPlanet.spec.safeRange ?? 0;
-			const sourceSafeHullMass = orbiting.spec.safeHullMass ?? 0;
-			const sourceSafeRange = orbiting.spec.safeRange ?? 0;
-			const destStargateSafe =
-				(totalCargo($commandedFleet.cargo) == 0 || $player.race.spec?.canGateCargo) &&
-				owned(targetPlanet) &&
-				destSafeRange >= dist &&
-				Math.max(
-					...$commandedFleet.tokens.map((t) => $universe.getMyDesign(t.designNum)?.spec.mass ?? 0)
-				) < destSafeHullMass;
-			const sourceStargateSafe =
-				(totalCargo($commandedFleet.cargo) == 0 || $player.race.spec?.canGateCargo) &&
-				owned(orbiting) &&
-				sourceSafeRange >= dist &&
-				Math.max(
-					...$commandedFleet.tokens.map((t) => $universe.getMyDesign(t.designNum)?.spec.mass ?? 0)
-				) < sourceSafeHullMass;
-			stargate = !!destStargateSafe && !!sourceStargateSafe;
-		}
 
 		// if the last waypoint warp is higher than the default engine speed, use it
 		// otherwise use the default engine speed
@@ -512,22 +535,31 @@
 				? $selectedWaypoint?.warpSpeed
 				: engineIdealSpeed;
 
+		let currentPlanet_mo : MapObject | undefined
+		$universe.getMapObjectsByPosition(currentWaypoint.position)
+			.forEach(obj => {
+				if (obj.type == 'Planet') {
+					currentPlanet_mo = obj
+				}
+			});
+		
 		// if colonizing, we want the max possible warp
-		if (colonizing) {
+		if (colonizing || $settings.fastestWaypoint || 
+			((mo as Planet).spec.dockCapacity != 0)) {
 			warpSpeed = $commandedFleet.getMaxWarp(
-				dist,
+				currentPlanet_mo,
+				mo,
 				$universe,
 				$player.race.spec?.fuelEfficiencyOffset ?? 0
 			);
 		} else {
 			// use the minimal warp based on our ideal speed
-			warpSpeed = $commandedFleet.getMinimalWarp(dist, warpSpeed);
+			warpSpeed = $commandedFleet.getMinimalWarp(
+				currentPlanet_mo,
+				mo, 
+				warpSpeed);
 		}
 
-		// use a stargate if it's safe
-		if (stargate) {
-			warpSpeed = StargateWarpSpeed;
-		}
 		const task = $selectedWaypoint?.task ?? WaypointTask.None;
 		const transportTasks = $selectedWaypoint?.transportTasks ?? {
 			fuel: {},

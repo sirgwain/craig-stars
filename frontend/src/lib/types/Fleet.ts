@@ -1,12 +1,22 @@
-import type { DesignFinder, Universe } from '$lib/services/Universe';
+import type { Universe, DesignFinder } from '$lib/services/Universe';
+import { getGameContext } from '$lib/services/GameContext';
 import { get as pluck } from 'lodash-es';
 import { totalCargo, type Cargo } from './Cargo';
 import type { Cost } from './Cost';
-import { MapObjectType, None, type MovingMapObject, ownedBy, type MapObject } from './MapObject';
+import { MapObjectType, None, type MovingMapObject, owned, ownedBy, type MapObject, StargateWarpSpeed } from './MapObject';
 import type { MessageTargetType } from './Message';
 import type { ShipDesign } from './ShipDesign';
 import type { Engine } from './Tech';
-import type { Vector } from './Vector';
+import type { Player } from './Player'
+import { distance, type Vector } from './Vector';
+import { range } from 'd3-array';
+import type { Planet } from './Planet';
+
+const {
+	player,
+	universe,
+	settings,
+} = getGameContext()
 
 export type Fleet = {
 	playerNum: number; // override mapObject fleets always have a player.
@@ -155,6 +165,7 @@ export type Spec = {
 	hasWeapons?: boolean;
 	hasStargate?: boolean;
 	hasMassDriver?: boolean;
+	canJump?: boolean; // TODO: actually implement this 
 	maxPopulation?: number;
 };
 
@@ -241,27 +252,78 @@ export class CommandedFleet implements Fleet {
 		return fuelCost;
 	}
 
-	getMinimalWarp(dist: number, idealSpeed: number): number {
+	// get the highest useful speed less than or equal to a given warp speed
+	// needed to reach the destination
+	getMinimalWarp(origin: MapObject | undefined, destination: MapObject | undefined, idealSpeed: number): number {
 		let speed = idealSpeed;
 		const freeSpeed = this.spec?.engine?.freeSpeed ?? 1;
-
+		const dist = distance(destination?.position ?? this.position, origin?.position);
 		const yearsAtIdealSpeed = dist / (idealSpeed * idealSpeed);
 		for (let i = idealSpeed; i > freeSpeed; i--) {
 			const yearsAtSpeed = dist / (i * i);
-			// it takes the same time to go slower, so go slower
+			// if it takes the same time to go slower, go slower
 			if (Math.ceil(yearsAtIdealSpeed) == Math.ceil(yearsAtSpeed)) {
 				speed = i;
 			}
 		}
 
+		// use a stargate automatically if it's safe and in range 
+		// TODO: Fix importing issues
+		const originPlanet = origin?.type == MapObjectType.Planet ? (origin as Planet) : undefined;
+		const targetPlanet = destination?.type == MapObjectType.Planet ? (destination as Planet) : undefined;
+		let stargate = false;
+
+		if (!this.spec.canJump) {
+			if (originPlanet && targetPlanet) {
+				const destSafeHullMass = targetPlanet.spec.safeHullMass ?? 0;
+				const destSafeRange = targetPlanet.spec.safeRange ?? 0;
+				const sourceSafeHullMass = originPlanet.spec.safeHullMass ?? 0;
+				const sourceSafeRange = originPlanet.spec.safeRange ?? 0;
+				const destStargateSafe =
+					(totalCargo(this.cargo) == 0 || $player.race.spec?.canGateCargo) &&
+					owned(targetPlanet) &&
+					player.isFriend(targetPlanet.playerNum ?? 0) &&
+					destSafeRange >= dist &&
+					Math.max(
+						...this.tokens.map((t) => $universe.getMyDesign(t.designNum)?.spec.mass ?? 0)
+					) < destSafeHullMass;
+				const sourceStargateSafe =
+					(totalCargo(this.cargo) == 0 || $player.race.spec?.canGateCargo) &&
+					owned(originPlanet) &&
+					sourceSafeRange >= dist &&
+					Math.max(
+						...this.tokens.map((t) => $universe.getMyDesign(t.designNum)?.spec.mass ?? 0)
+					) < sourceSafeHullMass;
+				stargate = !!destStargateSafe && !!sourceStargateSafe;
+			}
+		} else {
+			if (targetPlanet) {
+				const destSafeHullMass = targetPlanet.spec.safeHullMass ?? 0;
+				const destSafeRange = targetPlanet.spec.safeRange ?? 0;
+				const destStargateSafe =
+					owned(targetPlanet) &&
+					$player.isFriend(targetPlanet.playerNum ?? 0) &&
+					destSafeRange >= dist &&
+					Math.max(
+						...this.tokens.map((t) => universe.getMyDesign(t.designNum)?.spec.mass ?? 0)
+					) < destSafeHullMass;
+				stargate = !!destStargateSafe
+			}
+		}
+
+		if (stargate) {
+			speed = StargateWarpSpeed;
+		}
+
 		return speed;
 	}
 
-	// get the max warp we have fuel for to make it to the dest
-	getMaxWarp(dist: number, designFinder: DesignFinder, fuelEfficiencyOffset: number): number {
+	// get the max warp we have fuel for to make it to the destination 
+	getMaxWarp(origin: MapObject | undefined, destination: MapObject | undefined, designFinder: DesignFinder, fuelEfficiencyOffset: number): number {
 		// start at one above free speed
 		const freeSpeed = this.spec?.engine?.freeSpeed ?? 1;
 		let speed: number;
+		let dist = distance(destination?.position ?? this.position, origin?.position);
 		for (speed = freeSpeed + 1; speed < 9; speed++) {
 			const fuelUsed = this.getFuelCost(
 				designFinder,
@@ -286,7 +348,7 @@ export class CommandedFleet implements Fleet {
 		}
 
 		// don't go faster than we need
-		return this.getMinimalWarp(dist, speed);
+		return this.getMinimalWarp(origin, destination, speed);
 	}
 }
 
