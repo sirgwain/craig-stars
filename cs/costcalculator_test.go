@@ -159,7 +159,7 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 			want: Cost{
 				Ironium:   0,
 				Boranium:  150,
-				Germanium: 0,
+				Germanium: 9,
 				Resources: 83,
 			},
 		},

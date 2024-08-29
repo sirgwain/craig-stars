@@ -43,7 +43,6 @@ func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 		newHullCost := rules.techs.GetHull(newDesign.Hull).Tech.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(10 * rules.StarbaseComponentCostReduction)
 		cost = cost.Add(newHullCost).Minus(oldHullCost)
 	}
-
 	// iterate through both designs' slots and tally up items in each
 	for i := 0; i < MaxInt(len(design.Slots), len(newDesign.Slots)); i++ {
 		// don't wanna index arrays out of bounds!
@@ -72,7 +71,6 @@ func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 			} else {
 				// More copies of item in original design (or item doesn't exist on new base)
 				// Add extras to old base list
-				oldComponentsByCategory[item.Tech.Category] = append(oldComponentsByCategory[item.Tech.Category], item)
 				oldComponents[item] = (oldQuantity - newQuantity)
 				delete(newComponents, item)
 			}
@@ -163,7 +161,8 @@ func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 						credit = credit.AddInt(costType, -(10*newCostInt - adjCost))
 
 						// Add on category specific rebate
-						adjCost = MinInt(2*newCostInt, adjCost-(sameCategoryRebate-differentCategoryRebate))
+						categoryRebate := sameCategoryRebate-differentCategoryRebate
+						adjCost = MinInt(2*newCostInt, adjCost - categoryRebate)
 
 						cost = cost.AddInt(costType, adjCost)
 					}

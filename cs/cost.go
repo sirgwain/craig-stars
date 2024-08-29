@@ -202,11 +202,24 @@ func (c Cost) DivideByInt(divisor int, roundUp bool) Cost {
 	}
 
 	if roundUp {
+		var I, B, G, R int
+		if c.Ironium%divisor > 0 {
+			I = 1
+		}
+		if c.Boranium%divisor > 0 {
+			B = 1
+		}
+		if c.Germanium%divisor > 0 {
+			G = 1
+		}
+		if c.Resources%divisor > 0 {
+			R = 1
+		}
 		return Cost{
-			Ironium:   c.Ironium/divisor + c.Ironium%divisor,
-			Boranium:  c.Boranium/divisor + c.Boranium%divisor,
-			Germanium: c.Germanium/divisor + c.Germanium%divisor,
-			Resources: c.Resources/divisor + c.Resources%divisor,
+			Ironium:   c.Ironium/divisor + I,
+			Boranium:  c.Boranium/divisor + B,
+			Germanium: c.Germanium/divisor + G,
+			Resources: c.Resources/divisor + R,
 		}
 	} else {
 		return Cost{
