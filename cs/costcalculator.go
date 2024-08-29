@@ -22,7 +22,7 @@ type costCalculate struct {
 
 // get the upgrade cost for replacing a starbase with another
 //
-// Takes into account part replacement costs
+// Takes into account part replacement costs and minimum costs 
 func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design, newDesign *ShipDesign) Cost {
 	if design.SlotsEqual(newDesign.Slots) && design.Hull == newDesign.Hull {
 		// Exact same base; no calcs needed
@@ -31,9 +31,10 @@ func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 
 	credit := Cost{}
 	cost := Cost{}
+	minCost := Cost{}
 	oldComponents := map[*TechHullComponent]int{} // Maps hull component to quantity
 	newComponents := map[*TechHullComponent]int{}
-	oldComponentsByCategory := map[TechCategory][]*TechHullComponent{}
+	oldComponentsByCategory := map[TechCategory][]*TechHullComponent{} // Maps component category to hull components
 	newComponentsByCategory := map[TechCategory][]*TechHullComponent{}
 
 	// Firstly, if the hulls are different, add (newHullCost - 0.5*OldHullCost)
@@ -41,6 +42,7 @@ func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 	if design.Hull != newDesign.Hull {
 		oldHullCost := rules.techs.GetHull(design.Hull).Tech.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(5 * rules.StarbaseComponentCostReduction)
 		newHullCost := rules.techs.GetHull(newDesign.Hull).Tech.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(10 * rules.StarbaseComponentCostReduction)
+		minCost = minCost.Add(newHullCost).Minus(oldHullCost)
 		cost = cost.Add(newHullCost).Minus(oldHullCost)
 	}
 	// iterate through both designs' slots and tally up items in each
@@ -102,8 +104,8 @@ func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 	// Now, all that's left is the cost calcs
 
 	// Get categories present in either map type so we don't have to iterate over every single tachCategory
-
-	categories := oldComponentsByCategory
+	categories := map[TechCategory][]*TechHullComponent{}
+	maps.Copy(categories, oldComponentsByCategory)
 	maps.Copy(categories, newComponentsByCategory)
 
 	// Tally up costs per category
@@ -127,64 +129,41 @@ func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 			}
 		}
 
-		if len(oldComponentsByCategory[category]) > 0 {
-			if len(newComponentsByCategory[category]) > 0 {
-				// Category present in both bases
-				// Apply lower (70%) rebate to credit tally (up to 70% of the actual item value)
-				// Apply difference between 2 discounts (10%) to this item category only, up to 10% of the original item value
-				// Costs here are multiplied by factor of 10 to be divided later on
+		// Apply lower (70%) rebate to credit tally (up to 70% of the actual item value)
+		// Apply difference between 2 discounts (10%) to this item category only, up to 10% of the original item value
+		// Costs here are multiplied by factor of 10 to be divided later on
 
-				// Compute costs for each resource type separately (I/B/G/R)
-				for costType := 0; costType < 4; costType++ {
-					// extract float values for items
-					oldCostInt := oldCost.GetAmount(costType)
-					newCostInt := newCost.GetAmount(costType)
-					if oldCostInt == 0 && newCostInt == 0 {
-						continue
-					}
-
-					sameCategoryRebate := oldCostInt * 8
-					differentCategoryRebate := oldCostInt * 7
-
-					if oldCostInt == 0 {
-						cost = cost.AddInt(costType, newCostInt*10)
-					} else if newCostInt == 0 {
-						credit = credit.AddInt(costType, differentCategoryRebate)
-					} else {
-						// Add global rebate to credit tally
-						credit = credit.AddInt(costType, differentCategoryRebate)
-
-						// Consume global credit tally to reduce price from 100% to 30%
-						// If this turns credit negative, no problem!
-						// We add it to Cost at the end anyways
-						adjCost := 3 * newCostInt
-						credit = credit.AddInt(costType, -(10*newCostInt - adjCost))
-
-						// Add on category specific rebate
-						categoryRebate := sameCategoryRebate-differentCategoryRebate
-						adjCost = MinInt(2*newCostInt, adjCost - categoryRebate)
-
-						cost = cost.AddInt(costType, adjCost)
-					}
-				}
-			} else {
-				// category present in old but not new design; add to global credit tally
-				credit = credit.Add(oldCost.MultiplyInt(7))
-			}
-		} else {
-			if len(newComponentsByCategory[category]) > 0 {
-				// item category present in new but not old design; add to global cost tally
-				cost = cost.Add(newCost.MultiplyInt(10))
-			} else {
-				// item category not present in either design
-				// Should never happen because we only iterate over
-				// categories present in either map, but shouldn't matter either way
+		// Compute costs for each resource type separately (I/B/G/R)
+		for costType := 0; costType < 4; costType++ {
+			// extract float values for items
+			oldCostInt := oldCost.GetAmount(costType)
+			newCostInt := newCost.GetAmount(costType)
+			if oldCostInt == 0 && newCostInt == 0 {
 				continue
 			}
+
+			sameCategoryRebate := oldCostInt * 8
+			differentCategoryRebate := oldCostInt * 7
+
+			// Add global rebate to credit tally
+			credit = credit.AddInt(costType, differentCategoryRebate)
+
+			// Consume global credit tally to reduce new item price from 100% to 30%
+			// If this turns credit negative, no problem!
+			// We add it to Cost at the end anyways
+			adjCost := 3 * newCostInt
+			credit = credit.AddInt(costType, -(10*newCostInt - adjCost))
+
+			// Add on category specific rebate
+			categoryRebate := sameCategoryRebate-differentCategoryRebate
+			adjCost = MaxInt(2*newCostInt, adjCost - categoryRebate) 
+			cost = cost.AddInt(costType, adjCost)
+			minCost = minCost.AddInt(costType, adjCost)
 		}
 	}
-
-	return cost.Minus(credit).DivideByInt(10*rules.StarbaseComponentCostReduction, true).MinZero()
+	cost = cost.Minus(credit).MinZero()
+	cost = cost.Max(minCost, -1).DivideByInt(10*rules.StarbaseComponentCostReduction, true)
+	return cost
 }
 
 // Get the cost of one item in a production queue, for a player

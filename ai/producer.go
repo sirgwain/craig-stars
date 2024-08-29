@@ -337,6 +337,8 @@ func (ai *aiPlayer) getYearsToBuildStarbase(planet *cs.Planet, design *cs.ShipDe
 		cost = design.Spec.Cost
 		if err != nil {
 			return math.MaxInt, fmt.Errorf("calculate starbase cost %w", err)
+		} else {
+			return int(math.Ceil(cost.Divide(yearlyAvailableToSpend))), nil
 		}
 	}
 

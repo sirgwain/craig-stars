@@ -19,8 +19,8 @@ func NewCost(
 	return Cost{ironium, boranium, germanium, resources}
 }
 
-func (c Cost) GetAmount(costType int) int {
-	switch costType {
+func (c Cost) GetAmount(resourceType int) int {
+	switch resourceType {
 	case 0:
 		return c.Ironium
 	case 1:
@@ -33,8 +33,8 @@ func (c Cost) GetAmount(costType int) int {
 	return 0
 }
 
-func (c Cost) AddInt(ResourceType int, amount int) Cost {
-	switch ResourceType {
+func (c Cost) AddInt(resourceType int, amount int) Cost {
+	switch resourceType {
 	case 0:
 		c.Ironium += amount
 	case 1:
@@ -229,6 +229,30 @@ func (c Cost) DivideByInt(divisor int, roundUp bool) Cost {
 			Resources: c.Resources / divisor,
 		}
 	}
+}
+
+// Return greater of 2 cost structs for the specified ResourceType;
+// anything outside of range (0-3) evaluates it for all ResourceTypes separately
+func (c Cost) Max(other Cost, resourceType int) Cost {
+	a := Cost{}
+	if 3 >= resourceType && resourceType >= 0 {
+		switch resourceType {
+		case 0:
+			a.Ironium = MaxInt(c.Ironium, other.Ironium)
+		case 1:
+			a.Boranium = MaxInt(c.Boranium, other.Boranium)
+		case 2:
+			a.Germanium = MaxInt(c.Germanium, other.Germanium)
+		case 3:
+			a.Resources = MaxInt(c.Resources, other.Resources)
+		} 
+	} else {
+		a.Ironium = MaxInt(c.Ironium, other.Ironium)
+		a.Boranium = MaxInt(c.Boranium, other.Boranium)
+		a.Germanium = MaxInt(c.Germanium, other.Germanium)
+		a.Resources = MaxInt(c.Resources, other.Resources)
+	}
+	return a
 }
 
 func (c Cost) Negate() Cost {
