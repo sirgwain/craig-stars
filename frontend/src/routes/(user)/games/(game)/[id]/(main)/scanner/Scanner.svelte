@@ -399,17 +399,23 @@
 					!owned(mo) &&
 					((mo as Planet).spec.terraformedHabitability ?? 0) > 0;
 
+				const maxFleetMass = Math.max(
+					...$commandedFleet.tokens.map((t) => $universe.getMyDesign(t.designNum)?.spec.mass ?? 0)
+				);
 				if (colonizing || $settings.fastestWaypoint || 
 				((mo as Planet).spec.dockCapacity ?? 0) != 0) {
 					warpSpeed = $commandedFleet.getMaxWarp(
+						$player,
 						previous_mo,
 						mo,
 						$universe, 
 						$player.race.spec?.fuelEfficiencyOffset ?? 0);
 				} else {
 					warpSpeed = $commandedFleet.getMinimalWarp(
+						$player,
 						previous_mo,
 						mo, 
+						maxFleetMass,
 						previousWaypoint.warpSpeed);
 				}
 			}
@@ -459,23 +465,28 @@
 					}
 				});
 				
+				const maxFleetMass = Math.max(
+					...$commandedFleet.tokens.map((t) => $universe.getMyDesign(t.designNum)?.spec.mass ?? 0)
+				);
 				if (colonizing || $settings.fastestWaypoint || 
 				((mo as Planet).spec.dockCapacity ?? 0) != 0) {
 					warpSpeed = $commandedFleet.getMaxWarp(
+						$player,
 						previous_mo,
-						mo, 
+						mo,
 						$universe, 
 						$player.race.spec?.fuelEfficiencyOffset ?? 0);
 				} else {
 					warpSpeed = $commandedFleet.getMinimalWarp(
+						$player,
 						previous_mo,
 						mo, 
+						maxFleetMass,
 						previousWaypoint.warpSpeed);
 				}
 			$selectedWaypoint.warpSpeed = warpSpeed;
 			}
-
-			updateFleetOrders($commandedFleet);
+		updateFleetOrders($commandedFleet);
 		}
 	}
 
@@ -544,20 +555,24 @@
 			});
 		
 		// if colonizing, we want the max possible warp
+		const maxFleetMass = Math.max(
+			...$commandedFleet.tokens.map((t) => $universe.getMyDesign(t.designNum)?.spec.mass ?? 0)
+		);
 		if (colonizing || $settings.fastestWaypoint || 
-			((mo as Planet).spec.dockCapacity != 0)) {
+		((mo as Planet).spec.dockCapacity ?? 0) != 0) {
 			warpSpeed = $commandedFleet.getMaxWarp(
+				$player,
 				currentPlanet_mo,
 				mo,
-				$universe,
-				$player.race.spec?.fuelEfficiencyOffset ?? 0
-			);
+				$universe, 
+				$player.race.spec?.fuelEfficiencyOffset ?? 0);
 		} else {
-			// use the minimal warp based on our ideal speed
 			warpSpeed = $commandedFleet.getMinimalWarp(
+				$player,
 				currentPlanet_mo,
 				mo, 
-				warpSpeed);
+				maxFleetMass,
+				currentWaypoint.warpSpeed);
 		}
 
 		const task = $selectedWaypoint?.task ?? WaypointTask.None;
