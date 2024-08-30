@@ -288,7 +288,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 			Int64("GameID", rules.GameID).
 			Int("Num", design.Num).
 			Int("Player Num", design.PlayerNum).
-			Str("Design Name", design.Name).
+			Int("Design Num", design.Num).
 			Msgf("GetDesignCost returned error: %s", err)
 	}
 	// count the number of each type of battle component we have
