@@ -502,8 +502,12 @@ func fillStarbaseSlots(techStore *TechStore, starbase *ShipDesign, race *Race, s
 	placedStargate := false
 	for index, slot := range hull.Slots {
 		switch slot.Type {
+		case HullSlotTypeGeneral: // No starbases currently have GP slots, but if they did,x
+			fallthrough
 		case HullSlotTypeWeapon:
 			starbase.Slots = append(starbase.Slots, ShipDesignSlot{beamWeapon.Name, index + 1, int(math.Round(float64(slot.Capacity) / 2))})
+		case HullSlotTypeShieldArmor:
+			fallthrough
 		case HullSlotTypeShield:
 			starbase.Slots = append(starbase.Slots, ShipDesignSlot{shield.Name, index + 1, int(math.Round(float64(slot.Capacity) / 2))})
 		case HullSlotTypeOrbital:

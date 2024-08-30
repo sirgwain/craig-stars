@@ -332,17 +332,15 @@ func (ai *aiPlayer) getYearsToBuildStarbase(planet *cs.Planet, design *cs.ShipDe
 	var cost cs.Cost
 	if planet.Spec.HasStarbase {
 		existingStarbase := ai.GetDesign(planet.Starbase.Tokens[0].DesignNum)
-		cost = costCalculator.StarbaseUpgradeCost(&ai.game.Rules, ai.Player.TechLevels, ai.Player.Race.Spec, existingStarbase, design)
+		cost, err = costCalculator.StarbaseUpgradeCost(&ai.game.Rules, ai.Player.TechLevels, ai.Player.Race.Spec, existingStarbase, design)
 	} else {
 		cost = design.Spec.Cost
-		if err != nil {
-			return math.MaxInt, fmt.Errorf("calculate starbase cost %w", err)
-		} else {
-			return int(math.Ceil(cost.Divide(yearlyAvailableToSpend))), nil
-		}
 	}
+	if err != nil {
+		return math.MaxInt, fmt.Errorf("calculate starbase cost %w", err)
+	} 
 
-	// if we can complete this soon, queue it
+	// calculate how long it take to build 
 	yearsToBuild := completionEstimator.GetYearsToBuildOne(item, cost, planet.Spec.MiningOutput, yearlyAvailableToSpend)
 	// log.Debug().
 	// 	Int64("GameID", ai.GameID).

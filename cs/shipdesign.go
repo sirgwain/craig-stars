@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"slices"
+
+	"github.com/rs/zerolog/log"
 )
 
 // Fleets are made up of ships, and each ship has a design. Players start with designs created
@@ -263,7 +265,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		Armor:                    hull.Armor,
 		FuelCapacity:             hull.FuelCapacity,
 		FuelGeneration:           hull.FuelGeneration,
-		Cost:                     c.GetDesignCost(rules, techLevels, raceSpec, design),
+		Cost:                     Cost{}, // will assign cost later; needs error handling
 		TechLevel:                hull.Requirements.TechLevel,
 		CargoCapacity:            hull.CargoCapacity,
 		CloakUnits:               raceSpec.BuiltInCloakUnits,
@@ -279,6 +281,16 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		InnateScanRangePenFactor: hull.InnateScanRangePenFactor,
 	}
 
+	var err error
+	spec.Cost, err = c.GetDesignCost(rules, techLevels, raceSpec, design)
+	if err != nil {
+		log.Warn().
+			Int64("GameID", rules.GameID).
+			Int("Num", design.Num).
+			Int("Player Num", design.PlayerNum).
+			Str("Design Name", design.Name).
+			Msgf("GetDesignCost returned error: %s", err)
+	}
 	// count the number of each type of battle component we have
 	torpedoBonusesByCount := map[float64]int{}
 	torpedoJammersByCount := map[float64]int{}

@@ -16,10 +16,39 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 		newDesignSlots      []ShipDesignSlot
 	}
 	tests := []struct {
-		name string
-		args args
-		want Cost
+		name     string
+		args     args
+		want     Cost
+		wanterr  bool
 	}{
+		{
+			name: "Invalid station",
+			args: args{
+				techLevels:          TechLevel{0, 0, 0, 0, 0, 0},
+				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
+				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0},
+				oldDesignHull:       "NotAStation",
+				newDesignHull:       SpaceStation.Name,
+				oldDesignSlots:      []ShipDesignSlot{},
+				newDesignSlots:      []ShipDesignSlot{},
+			},
+			want: Cost{}, wanterr: true,
+		},
+		{
+			name: "Invalid parts",
+			args: args{
+				techLevels:          TechLevel{0, 0, 0, 0, 0, 0},
+				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
+				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0},
+				oldDesignHull:       SpaceStation.Name,
+				newDesignHull:       SpaceStation.Name,
+				oldDesignSlots:      []ShipDesignSlot{
+					{HullComponent: "pew pew laser gun", HullSlotIndex: 2, Quantity: 1},
+				},
+				newDesignSlots:      []ShipDesignSlot{},
+			},
+			want: Cost{}, wanterr: true,
+		},
 		{
 			name: "Identical Bases",
 			args: args{
@@ -31,10 +60,25 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 				oldDesignSlots:      []ShipDesignSlot{},
 				newDesignSlots:      []ShipDesignSlot{},
 			},
-			want: Cost{},
+			want: Cost{}, wanterr: false,
 		},
 		{
-			name: "Adding weapon",
+			name: "Items on former base not on latter",
+			args: args{
+				techLevels:          TechLevel{0, 13, 0, 0, 0, 0},
+				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
+				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0},
+				oldDesignHull:       SpaceStation.Name,
+				newDesignHull:       SpaceStation.Name,
+				oldDesignSlots:      []ShipDesignSlot{
+					{HullComponent: Bludgeon.Name, HullSlotIndex: 2, Quantity: 1},
+				},
+				newDesignSlots:      []ShipDesignSlot{},
+			},
+			want: Cost{}, wanterr: false,
+		},
+		{
+			name: "Adding weapons",
 			args: args{
 				techLevels:          TechLevel{0, 20, 0, 0, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
@@ -42,7 +86,7 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 				oldDesignHull:       SpaceStation.Name,
 				newDesignHull:       SpaceStation.Name,
 				oldDesignSlots:      []ShipDesignSlot{},
-				newDesignSlots: []ShipDesignSlot{
+				newDesignSlots:      []ShipDesignSlot{
 					{HullComponent: Disruptor.Name, HullSlotIndex: 2, Quantity: 1},
 					{HullComponent: Disruptor.Name, HullSlotIndex: 4, Quantity: 1},
 				},
@@ -52,7 +96,7 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 				Boranium:  16,
 				Germanium: 0,
 				Resources: 20,
-			},
+			}, wanterr: false,
 		},
 		{
 			name: "Adding single orbital",
@@ -72,7 +116,7 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 				Boranium:  20,
 				Germanium: 20,
 				Resources: 200,
-			},
+			}, wanterr: false,
 		},
 		{
 			name: "Hull swap",
@@ -90,7 +134,7 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 				Boranium:  80,
 				Germanium: 242,
 				Resources: 580,
-			},
+			}, wanterr: false,
 		},
 		{
 			name: "Hull Swap + added components",
@@ -111,7 +155,33 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 				Boranium:  160,
 				Germanium: 242,
 				Resources: 680,
+			}, wanterr: false,
+		},
+		{
+			name: "Min Price Floor - same category",
+			args: args{
+				techLevels:          TechLevel{0, 22, 0, 0, 0, 0},
+				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
+				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0},
+				oldDesignHull:       SpaceStation.Name,
+				newDesignHull:       SpaceStation.Name,
+				oldDesignSlots:      []ShipDesignSlot{
+					{HullComponent: SyncroSapper.Name, HullSlotIndex: 2, Quantity: 16},
+					{HullComponent: SyncroSapper.Name, HullSlotIndex: 4, Quantity: 16},
+					// Some amount of G, much much resources
+				},
+				newDesignSlots: []ShipDesignSlot{
+					{HullComponent: MegaDisruptor.Name, HullSlotIndex: 2, Quantity: 10},
+					// 150B, 165R
+					// Boranium should stay same since not being reduced
+				},
 			},
+			want: Cost{
+				Ironium:   0,
+				Boranium:  150,
+				Germanium: 0,
+				Resources: 33,
+			}, wanterr: false,
 		},
 		{
 			name: "Component Swap (different categories)",
@@ -123,7 +193,7 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 				newDesignHull:       SpaceStation.Name,
 				oldDesignSlots: []ShipDesignSlot{
 					{HullComponent: UpsilonTorpedo.Name, HullSlotIndex: 2, Quantity: 16},
-					// 320, 112B, 72G, 120R
+					// 320I, 112B, 72G, 120R
 				},
 				newDesignSlots: []ShipDesignSlot{
 					{HullComponent: SyncroSapper.Name, HullSlotIndex: 2, Quantity: 12},
@@ -135,7 +205,7 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 				Boranium:  0,
 				Germanium: 15,
 				Resources: 36,
-			},
+			}, wanterr: false,
 		},
 		{
 			name: "Component Swap (same categories)",
@@ -161,7 +231,7 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 				Boranium:  150,
 				Germanium: 9,
 				Resources: 83,
-			},
+			}, wanterr: false,
 		},
 	}
 	for _, tt := range tests {
@@ -176,8 +246,11 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 			newDesign := NewShipDesign(player, 1).
 				WithHull(tt.args.newDesignHull).
 				WithSlots(tt.args.newDesignSlots)
-			if got := p.StarbaseUpgradeCost(&rules, tt.args.techLevels, player.Race.Spec, design, newDesign); got != tt.want {
-				t.Errorf("costCalculate.StarbaseUpgradeCost() = %v, want %v", got, tt.want)
+			got, err := p.StarbaseUpgradeCost(&rules, tt.args.techLevels, player.Race.Spec, design, newDesign)
+			if (err != nil) != tt.wanterr {
+				t.Errorf("costCalculate.StarbaseUpgradeCost() errored unexpectedly; err = %v", err)
+			} else if got != tt.want {
+				t.Errorf("costCalculate.StarbaseUpgradeCost() returned incorrect cost %v, want %v", got, tt.want)
 			}
 		})
 	}

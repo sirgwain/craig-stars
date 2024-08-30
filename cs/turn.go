@@ -1408,7 +1408,7 @@ func (t *turn) planetProduction() error {
 	for _, planet := range t.game.Planets {
 		if planet.Owned() {
 			player := t.game.Players[planet.PlayerNum-1]
-			producer := newProducer(t.game.Rules, planet, player)
+			producer := newProducer(&t.game.Rules, planet, player)
 			result := producer.produce()
 
 			// add any invalid messages we encountered

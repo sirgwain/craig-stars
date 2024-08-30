@@ -15,7 +15,7 @@ type producer interface {
 // create a new planet production object
 func newProducer(rules *Rules, planet *Planet, player *Player) producer {
 	return &production{
-		rules:     Rules,
+		rules:     rules,
 		planet:    planet,
 		player:    player,
 		estimator: NewCompletionEstimator(),
@@ -183,17 +183,18 @@ func (p *production) produce() productionResult {
 	for itemIndex := range planet.ProductionQueue {
 		item := planet.ProductionQueue[itemIndex]
 		maxBuildable := planet.maxBuildable(p.player, item.Type)
+		var err error
 		var cost Cost
 		if item.Type == QueueItemTypeStarbase && planet.Spec.HasStarbase {
-			 cost = costCalculator.StarbaseUpgradeCost(p.Rules, p.player.TechLevels, p. player.Race.Spec, planet.Starbase.Tokens[0].design, item.design)
+			 cost, err = costCalculator.StarbaseUpgradeCost(p.rules, p.player.TechLevels, p. player.Race.Spec, planet.Starbase.Tokens[0].design, item.design)
 		} else if (item.Type == QueueItemTypeStarbase || item.Type == QueueItemTypeShipToken) {
-			 cost = costCalculator.GetDesignCost(p.Rules, p.player.TechLevels, p.player.Race.Spec, item.design)
-		}
-			var err error
+			 cost, err = costCalculator.GetDesignCost(p.rules, p.player.TechLevels, p.player.Race.Spec, item.design)
+		} else {
 			cost, err = costCalculator.CostOfOne(p.player, item)
 			if err != nil {
 				// return nil, err
 			}
+		}
 		
 
 		// Infinite is the constant int of -1, but for our purposes we want a very large number

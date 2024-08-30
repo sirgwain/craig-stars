@@ -162,6 +162,9 @@ func (s *server) getStarbaseUpgradeCost(w http.ResponseWriter, r *http.Request) 
 	}
 
 	calculator := cs.NewCostCalculator()
-	cost := calculator.StarbaseUpgradeCost(&rules, player.TechLevels, player.Race.Spec, upgradeRequest.Design, upgradeRequest.NewDesign)
+	cost, err := calculator.StarbaseUpgradeCost(&rules, player.TechLevels, player.Race.Spec, upgradeRequest.Design, upgradeRequest.NewDesign)
+	if err != nil {
+		render.Render(w, r, ErrBadRequest(err))
+	}
 	rest.RenderJSON(w, cost)
 }
