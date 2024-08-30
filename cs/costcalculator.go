@@ -48,10 +48,10 @@ func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 	}
 
 	// If the hulls are different, add (newHullCost - 0.5*OldHullCost)
-	// Multiplied by 10*componentCostReduction for rounding purposes
+	// Multiplied by 1000 * componentCostReduction for rounding purposes
 	if design.Hull != newDesign.Hull {
-		oldHullCost := oldHull.Tech.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(5 * rules.StarbaseComponentCostReduction)
-		newHullCost := newHull.Tech.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(10 * rules.StarbaseComponentCostReduction)
+		oldHullCost := oldHull.Tech.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(500 * rules.StarbaseComponentCostReduction)
+		newHullCost := newHull.Tech.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(1000 * rules.StarbaseComponentCostReduction)
 		cost = cost.Add(newHullCost).Minus(oldHullCost)
 	}
 
@@ -103,12 +103,12 @@ func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 		// We can just tally up all our costs for the new stuff and be done for the day
 		for item, qty := range newComponents {
 			if item.Tech.Category == "Orbital" {
-				cost = cost.Add(item.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(qty).MultiplyInt(10 * rules.StarbaseComponentCostReduction))
+				cost = cost.Add(item.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(qty).MultiplyInt(1000 * rules.StarbaseComponentCostReduction))
 			} else {
-				cost = cost.Add(item.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(qty).MultiplyInt(10))
+				cost = cost.Add(item.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(qty).MultiplyInt(1000))
 			}
 		}
-		return cost.DivideByInt(10*rules.StarbaseComponentCostReduction, true), nil
+		return cost.DivideByInt(int(1000*float64(rules.StarbaseComponentCostReduction)/raceSpec.StarbaseCostFactor), true), nil
 	} else {
 		// Loop through any remaining items from old base and add to category list
 		for item := range oldComponents {
@@ -128,23 +128,23 @@ func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 	maps.Copy(categories, newComponentsByCategory)
 
 	// Tally up costs per category
-	// We multiply everything by 2x here (and by 10x in the following step) & divide by 20 later to minimize rounding errors
+	// We multiply everything by 200x here (and by 10x in the following step) & divide by 2000 later to minimize rounding errors
 	for category := range categories {
 		oldCost := Cost{}
 		newCost := Cost{}
 
 		for _, oldItem := range oldComponentsByCategory[category] {
 			if category == "Orbital" {
-				oldCost = oldCost.Add(oldItem.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(oldComponents[oldItem]).MultiplyInt(rules.StarbaseComponentCostReduction))
+				oldCost = oldCost.Add(oldItem.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(oldComponents[oldItem]*100*rules.StarbaseComponentCostReduction))
 			} else {
-				oldCost = oldCost.Add(oldItem.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(oldComponents[oldItem]))
+				oldCost = oldCost.Add(oldItem.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(oldComponents[oldItem]*100))
 			}
 		}
 		for _, newItem := range newComponentsByCategory[category] {
 			if category == "Orbital" {
-				newCost = newCost.Add(newItem.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(newComponents[newItem]).MultiplyInt(rules.StarbaseComponentCostReduction))
+				newCost = newCost.Add(newItem.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(newComponents[newItem]*100*rules.StarbaseComponentCostReduction))
 			} else {
-				newCost = newCost.Add(newItem.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(newComponents[newItem]))
+				newCost = newCost.Add(newItem.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(newComponents[newItem]*100))
 			}
 		}
 
@@ -181,7 +181,7 @@ func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 		}
 	}
 	cost = cost.Minus(credit).MinZero()
-	cost = cost.Max(minCost, -1).DivideByInt(10*rules.StarbaseComponentCostReduction, true)
+	cost = cost.Max(minCost, -1).DivideByInt(int(1000*float64(rules.StarbaseComponentCostReduction)/raceSpec.StarbaseCostFactor), true)
 	return cost, nil
 }
 
