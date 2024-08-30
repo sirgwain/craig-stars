@@ -456,9 +456,9 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 	}
 
 	// ISB gives some special starbase bonuses
+	// Discount is already handled in cost function 
 	if hull.Starbase {
 		spec.CloakUnits += raceSpec.BuiltInCloakUnits
-		spec.Cost = spec.Cost.MultiplyFloat64(raceSpec.StarbaseCostFactor)
 	}
 
 	// determine the safe speed for this design
