@@ -206,8 +206,10 @@ func (p *costCalculate) GetDesignCost(rules *Rules, techLevels TechLevel, raceSp
 		return Cost{}, fmt.Errorf("Hull design %s not found in tech store", design.Hull)
 	}
 
-	cost := Cost{}
-	costOrbital := hull.Tech.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(10)
+	cost := hull.Tech.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(1000)
+	if design.Spec.Starbase {
+		// multiply by cost factor because we divide by it later
+		cost = cost.MultiplyInt(rules.StarbaseComponentCostReduction)
 
 	// iterate through slots and tally prices up
 	for _, slot := range design.Slots {
@@ -216,14 +218,15 @@ func (p *costCalculate) GetDesignCost(rules *Rules, techLevels TechLevel, raceSp
 			return Cost{}, fmt.Errorf("Component %s in design slots not found in tech store", slot.HullComponent)
 		}
 		if design.Spec.Starbase && item.Category == "Orbital" {
-			costOrbital = costOrbital.Add(item.Tech.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(10 * rules.StarbaseComponentCostReduction))
+			cost = cost.Add(item.Tech.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(1000 * rules.StarbaseComponentCostReduction))
 		} else {
-			cost = cost.Add(item.Tech.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(10 * rules.StarbaseComponentCostReduction))
+			cost = costOrbital.Add(item.Tech.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(1000))
 		}
 	}
 
 	if design.Spec.Starbase {
-		cost = cost.DivideByInt(10*rules.StarbaseComponentCostReduction, true)
+		return cost.DivideByInt(int(roundHalfDown(1000*float64(rules.StarbaseComponentCostReduction)/raceSpec.StarbaseCostFactor)), true), nil
+	} else {
+		return cost.DivideByInt(1000, true), nil
 	}
-	return cost.Add(costOrbital), nil
 }
