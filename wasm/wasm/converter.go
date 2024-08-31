@@ -458,6 +458,7 @@ func SetEngine(o js.Value, obj *cs.Engine) {
 	o.Set("idealSpeed", obj.IdealSpeed)
 	o.Set("freeSpeed", obj.FreeSpeed)
 	o.Set("maxSafeSpeed", obj.MaxSafeSpeed)
+	// FuelUsage fuelUsage Array ignored
 }
 
 func GetFleet(o js.Value) cs.Fleet {

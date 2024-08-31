@@ -346,6 +346,7 @@ func Set{{.Name}}(o js.Value, obj *{{$.Pkg}}.{{.Name}}) {
 		{{- else if eq .Type "Slice" }}
 			{{- include "GenSetPackageSlice" . | trim | nindent 4 -}}
 		{{- else if eq .Type "Array" }}
+				// {{.Name}} {{.JsonName}} {{ .Type }} ignored
 		{{- else if eq .Type "Map" }}
 			{{- include "GenSetMap" . | trim | nindent 4 -}}
 		{{- else  }}
