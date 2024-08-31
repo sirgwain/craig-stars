@@ -3,7 +3,6 @@ package generator
 import (
 	"bytes"
 	"embed"
-	"fmt"
 	"slices"
 	"strings"
 	"text/template"
@@ -11,36 +10,42 @@ import (
 	"github.com/Masterminds/sprig/v3"
 )
 
-var funcMap = template.FuncMap{
-	"JSString": func() JSType { return JSString },
-	"JSBool":   func() JSType { return JSBool },
-	"JSInt":    func() JSType { return JSInt },
-	"JSFloat":  func() JSType { return JSFloat },
-	"JSObject": func() JSType { return JSObject },
-	"JSArray":  func() JSType { return JSArray },
-	"JSTime":   func() JSType { return JSTime },
-}
-
-//go:embed templates/converter.go.tmpl
-var converterTemplate embed.FS
+//go:embed templates/*
+var templatesFS embed.FS
 
 func RenderSerializer(pkg string, serializers []Serializer) (string, error) {
 
 	// alphabetize the serializers
 	slices.SortFunc(serializers, func(a, b Serializer) int { return strings.Compare(a.Name, b.Name) })
 
-	tmpl, err := converterTemplate.ReadFile("templates/converter.go.tmpl")
-	if err != nil {
-		return "", fmt.Errorf("failed to load embedded template %v", err)
-	}
-
-	t := template.Must(template.New("serializerTemplate").Funcs(sprig.FuncMap()).Funcs(funcMap).Parse(string(tmpl)))
+	t := template.New("")
+	t = template.Must(t.
+		Funcs(sprig.FuncMap()).
+		Funcs(template.FuncMap{
+			"include": func(name string, data interface{}) string {
+				result, _ := includeTemplate(t, name, data)
+				return result
+			},
+		}).
+		ParseFS(templatesFS, "templates/*"))
 
 	var out bytes.Buffer
-	t.Execute(&out, map[string]interface{}{
+	if err := t.ExecuteTemplate(&out, "converter.go.tmpl", map[string]interface{}{
 		"Pkg":         pkg,
 		"Serializers": serializers,
-	})
+	}); err != nil {
+		return "", err
+	}
 
 	return out.String(), nil
+}
+
+// Define a custom function to include templates
+func includeTemplate(tmpl *template.Template, name string, data interface{}) (string, error) {
+	var result strings.Builder
+	err := tmpl.ExecuteTemplate(&result, name, data)
+	if err != nil {
+		return "", err
+	}
+	return result.String(), nil
 }

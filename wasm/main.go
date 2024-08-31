@@ -69,6 +69,7 @@ func estimateProduction(this js.Value, args []js.Value) interface{} {
 	planet := wasm.GetPlanet(args[0])
 	player := wasm.GetPlayer(args[1])
 
+	// setup the starbase
 	if planet.Spec.HasStarbase {
 		planet.Starbase = &cs.Fleet{
 			Tokens: []cs.ShipToken{

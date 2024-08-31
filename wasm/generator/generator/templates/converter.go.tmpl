@@ -3,6 +3,8 @@
 package wasm
 
 import (
+	"fmt"
+	"strconv"
 	"syscall/js"
 	"time"
 
@@ -18,13 +20,22 @@ func GetInt[T ~uint | ~uint32 | ~uint64 | ~int | ~int32 | ~int64](o js.Value, ke
 	return result
 }
 
+func GetFloat[T ~float32 | ~float64](o js.Value, key string) T {
+	var result T
+	val := o.Get(key)
+	if !val.IsUndefined() {
+		result = T(val.Float())
+	}
+	return result
+}
+
 func GetIntArray[T ~uint | ~uint32 | ~uint64 | ~int | ~int32 | ~int64](o js.Value, key string) []T {
-	items := make([]T, o.Length())
+	val := o.Get(key)
+	items := make([]T, val.Length())
 	for i := 0; i < len(items); i++ {
-		items[i] = T(o.Index(i).Int())
+		items[i] = T(val.Index(i).Int())
 	}
 	return items
-
 }
 
 func GetBool(o js.Value, key string) bool {
@@ -55,99 +66,166 @@ func GetTime(o js.Value, key string) (time.Time, error) {
 		}
 	}
 	return result, nil
-
 }
+
+// GetSlice populates an array with a getter function
+func GetSlice[T any](o js.Value, getter func(o js.Value) T) []T {
+	if o.IsUndefined() || o.IsNull() {
+		return nil
+	}
+
+	items := make([]T, o.Length())
+	for i := 0; i < len(items); i++ {
+		items[i] = getter(o.Index(i))
+	}
+	return items
+}
+
+// GetSliceSlice populates a 2d array
+func GetSliceSlice[T any](o js.Value, getter func(o js.Value) T) [][]T {
+	if o.IsUndefined() || o.IsNull() {
+		return nil
+	}
+
+	items := make([][]T, o.Length())
+	for i := 0; i < len(items); i++ {
+		items[i] = GetSlice(o.Index(i), getter)
+	}
+	return items
+}
+
+{{- define "GetBasic" }}
+	{{- if eq .Type "BasicString" }}
+		{{.GoType}}(GetString({{ .Obj | default "o" }}, {{.Key}}))
+	{{- else if eq .Type "BasicBool" }}
+		{{.GoType}}(GetBool({{ .Obj | default "o" }}, {{.Key}}))
+	{{- else if eq .Type "BasicInt" }}
+		GetInt[{{.GoType}}]({{ .Obj | default "o" }}, {{.Key}})
+	{{- else if eq .Type "BasicFloat" }}
+		GetFloat[{{.GoType}}]({{ .Obj | default "o" }}, {{.Key}})
+	{{- end }}
+{{- end }}
+
+{{- define "GetBasicVar" }}
+	{{- $context := dict "Type" .Type "GoType" .GoType "Key" (quote .JsonName) }}
+	obj.{{.Name}} = {{ include "GetBasic" $context | trim -}}
+{{- end }}
+
+{{- define "GetPackageObject" }}
+	{{- /* package types that aren't basic types need to call the getter for that type */}}
+	{{- if eq .JsonName "" }}
+		obj.{{.Name}} = Get{{.TypeName}}(o)
+	{{- else }}
+		{{- if .Pointer }}
+			{{ .JsonName }}Val := o.Get("{{.JsonName}}")
+			if !{{ .JsonName }}Val.IsUndefined() {
+				{{ .JsonName }} := Get{{.ValueType.TypeName}}({{ .JsonName }}Val)
+				obj.{{.Name}} = &{{ .JsonName }}
+			}
+		{{- else }}
+			obj.{{.Name}} = Get{{.TypeName}}(o.Get("{{.JsonName}}"))
+		{{- end }}
+	{{- end }}
+{{- end }}
+
+{{- define "GetPackageSlice" }}
+	{{- /* package slices come as slices to pointers or just slices or sometimes slices to slices... ugh */}}
+	{{- if eq .ValueType.Type "Slice" }}
+		{{- /* slice slice */}}
+		obj.{{.Name}} = GetSliceSlice(o.Get("{{.JsonName}}"), Get{{.ValueType.TypeName}})
+	{{- else }}
+		{{- if .ValueType.Pointer }}
+			{{.JsonName}} := GetSlice(o.Get("{{.JsonName}}"), Get{{.ValueType.TypeName}})
+			obj.{{.Name}} = make([]{{.ValueType.GoType}}, len({{.JsonName}}))
+			for i := range {{.JsonName}} {
+				obj.{{.Name}}[i] = &{{.JsonName}}[i]
+			}
+		{{- else }}
+			obj.{{.Name}} = GetSlice(o.Get("{{.JsonName}}"), Get{{.ValueType.TypeName}})
+		{{- end }}
+	{{- end }}
+{{- end }}
+
+{{- define "GetArray" }}
+	{{- if eq .ValueType.Type "BasicInt" }}
+		if !o.Get("{{.JsonName}}").IsUndefined() && o.Get("{{.JsonName}}").Length() != 0 {
+			obj.{{.Name}} = [{{.ArrayLength}}]{{.ValueType.GoType}}(GetIntArray[{{.ValueType.GoType}}](o, "{{.JsonName}}"))
+		}
+	{{- else }}
+		unknown type {{.Name}} {{.GoType}}
+	{{- end }}
+{{- end }}
+
+{{- define "GetMap" }}
+	{{- /* maps are weird. We have to get the Object.Keys from the js object, then set each key as a type */}}
+	{{.JsonName}}Obj := o.Get("{{.JsonName}}")
+	if !{{.JsonName}}Obj.IsUndefined() {
+		{{.JsonName}} := make(map[{{.KeyType.GoType}}]{{.ValueType.GoType}})
+		{{.JsonName}}Keys := js.Global().Get("Object").Call("keys", {{.JsonName}}Obj)
+		for i := 0; i < {{.JsonName}}Keys.Length(); i++ {
+		{{- if eq .KeyType.Type "BasicString" }}
+			key := {{.KeyType.GoType}}({{.JsonName}}Keys.Index(i).String())
+		{{- else if eq .KeyType.Type "BasicInt" }}
+			key, _ := strconv.Atoi({{.JsonName}}Keys.Index(i).String())
+		{{- else if eq .KeyType.Type "Named" }}
+			key := {{.KeyType.GoType}}({{.JsonName}}Keys.Index(i).String())
+		{{- end }}
+		{{- if .ValueType.IsBasic }}
+			{{- $key := printf "%sObj" .JsonName }}
+			{{- $context := dict "Type" .ValueType.Type "GoType" .ValueType.GoType "Key" "fmt.Sprintf(\"%v\", key)" "Obj" $key }}
+			{{.JsonName}}[key] = {{ include "GetBasic" $context | trim -}}
+		{{- end }}
+		}
+		obj.{{.Name}} = {{.JsonName}}
+	}
+{{- end }}
+
+{{- define "GetNamedType" }}
+	{{- if eq .GoType "string" }}
+		obj.{{.Name}} = {{.GoType}}(GetString(o, "{{.JsonName}}"))
+	{{- else if eq .GoType "int" }}
+		obj.{{.Name}} = {{.GoType}}(GetInt[{{.GoType}}](o, "{{.JsonName}}"))
+	{{- else }}
+		unknown type {{.Name}} {{.GoType}}
+	{{- end }}
+{{- end }}
+
+{{- define "GetOtherType" }}
+	{{- if eq .FullType "time.Time" }}
+		obj.{{.Name}}, _ = GetTime(o, "{{.JsonName}}")
+	{{- else }}
+		unknown type {{.Name}} {{.GoType}}
+	{{- end }}
+{{- end }}
+
 {{- /* Create Get functions for each of our serializer types */}}
 {{- range .Serializers}}
 
 func Get{{.Name}}(o js.Value) {{$.Pkg}}.{{.Name}} {
 	obj := {{$.Pkg}}.{{.Name}}{}
-{{- range .Fields}}
-{{- if .Ignore }}
-{{- continue }}
-{{- end }}
-{{- if and .Basic .PackageType }}
-{{- /* basic types that are in our packet are enums, cast them */}}
-	{{- if eq .JSType JSString }}
-	obj.{{.Name}} = {{$.Pkg}}.{{.ObjectType}}(GetString(o, "{{.JsonName}}"))
-	{{- else if eq .JSType JSBool }}
-	obj.{{.Name}} = {{$.Pkg}}.{{.ObjectType}}(GetBool(o, "{{.JsonName}}"))
-	{{- else if eq .JSType JSInt }}
-	obj.{{.Name}} = {{$.Pkg}}.{{.ObjectType}}(GetInt[{{.BasicType}}](o, "{{.JsonName}}"))
-	{{- end}}
-{{- else if and .PackageType (not .Basic) }}
-{{- /* package types that aren't basic types need to call the getter for that type */}}
-	{{- if eq .JsonName "" }}
-	obj.{{.Name}} = Get{{ .ObjectType }}(o)
-	{{- else if eq .JSType JSArray }}
-	{{- if .Pointer }}
-	obj.{{.Name}} = Get{{ .ObjectType }}PointerArray(o.Get("{{.JsonName}}"))
-	{{- else }}
-	obj.{{.Name}} = Get{{ .ObjectType }}Array(o.Get("{{.JsonName}}"))
-	{{- end }}
-	{{- else }}
-	{{- if .Pointer }}
-	{{ .JsonName }} := Get{{ .ObjectType }}(o.Get("{{.JsonName}}"))
-	obj.{{.Name}} = &{{ .JsonName }}
-	{{- else }}
-	obj.{{.Name}} = Get{{ .ObjectType }}(o.Get("{{.JsonName}}"))
-	{{- end }}
-	{{- end}}
-{{- else if .Map }}
-{{- /* maps are weird. We have to get the Object.Keys from the js object, then set each key as a type */}}
-	{{.JsonName}} := make(map[{{.MapKeyType}}]{{.MapValueType}})
-	{{.JsonName}}Obj := o.Get("{{.JsonName}}")
-	{{.JsonName}}Keys := js.Global().Get("Object").Call("keys", {{.JsonName}}Obj)
-	for i := 0; i < {{.JsonName}}Keys.Length(); i++ {
-		key := {{.JsonName}}Keys.Index(i).String()
-		{{- if eq .MapValueJSType JSString }}
-		{{.JsonName}}[key] = GetString({{.JsonName}}Obj, key)
-		{{- else if eq .MapValueJSType JSBool }}
-		{{.JsonName}}[key] = GetBool({{.JsonName}}Obj, key)
-		{{- else if eq .MapValueJSType JSInt }}
-		{{.JsonName}}[key] = GetInt[{{.MapValueType}}]({{.JsonName}}Obj, key)
+	{{- range .Fields}}	
+		{{- if .Ignore }}
+			{{- continue }}
 		{{- end }}
-	}
-	obj.{{.Name}} = {{.JsonName}}
-{{- else }}
-{{- /* If we got here it's a basic type that isn't in the package, or a map */}}
-	{{- if eq .JSType JSString }}
-	obj.{{.Name}} = GetString(o, "{{.JsonName}}")
-	{{- else if eq .JSType JSBool }}
-	obj.{{.Name}} = GetBool(o, "{{.JsonName}}")
-	{{- else if eq .JSType JSInt }}
-	obj.{{.Name}} = GetInt[{{.ObjectType}}](o, "{{.JsonName}}")
-	{{- else if eq .JSType JSTime }}	
-	obj.{{.Name}}, _ = GetTime(o, "{{.JsonName}}")
+	
+		{{- /* package types that aren't basic types need to call the getter for that type */}}
+		{{- if .Type.IsBasic }}
+			{{- include "GetBasicVar" . | trim | nindent 4 -}}
+		{{- else if eq .Type "Object" }}
+			{{- include "GetPackageObject" . | trim | nindent 4 -}}
+		{{- else if eq .Type "Named" }}
+			{{- include "GetNamedType" . | trim | nindent 4 -}}
+		{{- else if eq .Type "Slice" }}
+			{{- include "GetPackageSlice" . | trim | nindent 4 -}}
+		{{- else if eq .Type "Array" }}
+			{{- include "GetArray" . | trim | nindent 4 -}}
+		{{- else if eq .Type "Map" }}
+			{{- include "GetMap" . | nindent 2 -}}
+		{{- else  }}
+			{{- include "GetOtherType" . | trim | nindent 4 -}}
+		{{- end }}
 	{{- end }}
-{{- end }}
-{{- end }}
 	return obj
 }
-
-func Get{{.Name}}Array(o js.Value) []{{$.Pkg}}.{{.Name}} {
-	if o.IsUndefined() || o.IsNull() {
-		return nil
-	}
-
-	items := make([]{{$.Pkg}}.{{.Name}}, o.Length())	
-	for i := 0; i < len(items); i++ {
-		items[i] = Get{{.Name}}(o.Index(i))
-	}
-	return items
-}
-
-func Get{{.Name}}PointerArray(o js.Value) []*{{$.Pkg}}.{{.Name}} {
-	if o.IsUndefined() || o.IsNull() {
-		return nil
-	}
-
-	items := make([]*{{$.Pkg}}.{{.Name}}, o.Length())
-	for i := 0; i < len(items); i++ {
-		item := Get{{.Name}}(o.Index(i))
-		items[i] = &item
-	}
-	return items
-}
-
 {{- end}}
+

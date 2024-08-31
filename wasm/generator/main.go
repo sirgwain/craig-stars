@@ -7,11 +7,14 @@ import (
 	"go/importer"
 	"go/token"
 	"go/types"
+	"log"
 	"os"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/sirgwain/craig-stars/wasm/generator/generator"
+	"golang.org/x/exp/maps"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -42,55 +45,91 @@ func main() {
 
 	// TODO: do them all, eventually
 	typesToCheck := map[string]bool{
-		"DBObject":            true,
-		"GameDBObject":        true,
-		"MapObject":           true,
-		"Hab":                 true,
-		"Race":                true,
-		"ResearchCost":        true,
-		"TechLevel":           true,
-		"Cost":                true,
-		"Mineral":             true,
-		"Cargo":               true,
-		"Planet":              true,
-		"PlanetOrders":        true,
-		"ProductionQueueItem": true,
-		"PlanetSpec":          true,
-		"PlanetStarbaseSpec":  true,
-		"Player":              true,
-		"PlayerOrders":        true,
-		"PlayerPlans":         true,
-		"ProductionPlan":      true,
-		"BattlePlan":          true,
-		"TransportPlan":       true,
-		"PlayerIntels":        true,
-		"BattleRecord":        true,
-		"PlayerIntel":         true,
-		"ScoreIntel":          true,
-		"PlanetIntel":         true,
-		"FleetIntel":          true,
-		"ShipDesignIntel":     true,
-		"MineralPacketIntel":  true,
-		"MineFieldIntel":      true,
-		"WormholeIntel":       true,
-		"MysteryTraderIntel":  true,
-		"SalvageIntel":        true,
-		"PlayerRelationship":  true,
-		"PlayerMessage":       true,
-		"PlayerScore":         true,
-		"PlayerStats":         true,
-		"PlayerSpec":          true,
-		"ShipDesign":          true,
-		"ShipDesignSlot":      true,
-		"ShipDesignSpec":      true,
-		"Bomb":                true,
-		"Engine":              true,
+		"BattlePlan":                     true,
+		"BattleRecord":                   true,
+		"BattleRecordToken":              true,
+		"BattleRecordTokenAction":        true,
+		"BattleRecordDestroyedToken":     true,
+		"BattleRecordStats":              true,
+		"BattleVector":                   true,
+		"Bomb":                           true,
+		"BombingResult":                  true,
+		"Cargo":                          true,
+		"Cost":                           true,
+		"Defense":                        true,
+		"DBObject":                       true,
+		"Engine":                         true,
+		"Fleet":                          true,
+		"FleetIntel":                     true,
+		"FleetOrders":                    true,
+		"FleetSpec":                      true,
+		"GameDBObject":                   true,
+		"Hab":                            true,
+		"Intel":                          true,
+		"MapObject":                      true,
+		"MapObjectIntel":                 true,
+		"MineField":                      true,
+		"MineFieldIntel":                 true,
+		"MineFieldOrders":                true,
+		"MineFieldSpec":                  true,
+		"Mineral":                        true,
+		"MineralPacketDamage":            true,
+		"MineralPacketIntel":             true,
+		"MysteryTrader":                  true,
+		"MysteryTraderSpec":              true,
+		"MysteryTraderIntel":             true,
+		"MysteryTraderReward":            true,
+		"Planet":                         true,
+		"PlanetIntel":                    true,
+		"PlanetOrders":                   true,
+		"PlanetSpec":                     true,
+		"PlanetStarbaseSpec":             true,
+		"Player":                         true,
+		"PlayerIntel":                    true,
+		"PlayerIntels":                   true,
+		"PlayerMessage":                  true,
+		"PlayerMessageSpec":              true,
+		"PlayerMessageSpecComet":         true,
+		"PlayerMessageSpecMysteryTrader": true,
+		"PlayerOrders":                   true,
+		"PlayerPlans":                    true,
+		"PlayerRelationship":             true,
+		"PlayerScore":                    true,
+		"PlayerSpec":                     true,
+		"PlayerStats":                    true,
+		"ProductionPlan":                 true,
+		"ProductionQueueItem":            true,
+		"Race":                           true,
+		"ResearchCost":                   true,
+		"SalvageIntel":                   true,
+		"ScoreIntel":                     true,
+		"ShipDesign":                     true,
+		"ShipDesignIntel":                true,
+		"ShipDesignSlot":                 true,
+		"ShipDesignSpec":                 true,
+		"ShipToken":                      true,
+		"TechLevel":                      true,
+		"Tech":                           true,
+		"TechDefense":                    true,
+		"TechPlanetary":                  true,
+		"TechPlanetaryScanner":           true,
+		"TransportPlan":                  true,
+		"Vector":                         true,
+		"Waypoint":                       true,
+		"WaypointTransportTask":          true,
+		"WaypointTransportTasks":         true,
+		"WormholeIntel":                  true,
 	}
 
 	serializers := []generator.Serializer{}
 
-	// Iterate over types in the package
-	for _, obj := range info.Defs {
+	// sort all the types we loaded by their names
+	keys := maps.Keys(info.Defs)
+	slices.SortFunc(keys, func(a, b *ast.Ident) int { return strings.Compare(b.Name, a.Name) })
+
+	// for each type, load a serializer if it has json fields
+	for _, key := range keys {
+		obj := info.Defs[key]
 		if obj == nil {
 			continue
 		}
@@ -103,114 +142,59 @@ func main() {
 			if ok := typesToCheck[tn.Name()]; !ok {
 				continue
 			}
+
 			if named, ok := tn.Type().(*types.Named); ok {
-				hasJsonFields := false
 				var fields []generator.Field
 				switch t := named.Underlying().(type) {
 				case *types.Struct:
-					fmt.Printf("Type: %s\n", tn.Name())
 					fields = make([]generator.Field, t.NumFields())
 					for i := 0; i < t.NumFields(); i++ {
 						field := t.Field(i)
 						fieldName := field.Name()
-						fieldType := field.Type()
-
-						// if this is basic int/float, etc get that type
-						basicType := getBasicType(fieldType)
-						basic := basicType != ""
-
-						// if this is a slice or named type, get the underlying type
-						underlyingType := getUnderlyingType(fieldType)
-
 						// get the json tag name, whether it is omitted
 						// or whether it is ignored
 						jsonName, omitEmpty, ignore := getJsonTag(t.Tag(i))
-						if jsonName != "" {
-							hasJsonFields = true
-						}
-						// fmt.Printf("  Field: %s, Type: %s, Underlying: %s, Tag: %s\n",
-						// 	fieldName,
-						// 	strings.ReplaceAll(fieldType.String(), pkg.PkgPath+".", ""),
-						// 	underlyingType,
-						// 	jsonName,
-						// )
 
-						packageType := false
-						fullFieldType := fieldType.String()
-						if strings.Contains(fullFieldType, pkg.ID) {
-							// this is a type internal to our package
-							packageType = true
+						if !field.Exported() {
+							fields[i] = generator.Field{
+								Name:   fieldName,
+								Ignore: true,
+							}
+							continue
 						}
-
-						jsType := getJsType(fieldType)
-						slice := isSlice(fieldType)
-						array := isArray(fieldType)
-
-						isMap, mapKeyType, mapValueType := getMapInfo(fieldType)
-						mapValueJSType := generator.JSString
-						if isMap {
-							mapValueJSType = generator.JSTypeFromBasicType(mapValueType)
-						}
-
-						// determine if the type or underlying types
-						// are pointers
-						pointer := isPointer(fieldType)
-						if slice || array {
-							pointer = strings.Index(fullFieldType, "[]*") == 0
-						}
+						fieldType := getTypeInfo(field.Type(), pkg)
+						ignore = !field.Exported() || ignore || (!fieldType.Type.IsBasic() && fieldType.Package && !typesToCheck[fieldType.TypeName])
 
 						fields[i] = generator.Field{
-							Name:           fieldName,
-							JsonName:       jsonName,
-							GoType:         fullFieldType,
-							ObjectType:     underlyingType,
-							JSType:         jsType,
-							OmitEmpty:      omitEmpty,
-							Pointer:        pointer,
-							Slice:          slice,
-							Array:          array,
-							BasicType:      basicType,
-							Basic:          basic,
-							PackageType:    packageType,
-							Map:            isMap,
-							MapKeyType:     mapKeyType,
-							MapValueType:   mapValueType,
-							MapValueJSType: mapValueJSType,
-							Ignore:         !field.Exported() || ignore || (!basic && packageType && !typesToCheck[underlyingType]),
+							FieldType: *fieldType,
+							Name:      fieldName,
+							JsonName:  jsonName,
+							OmitEmpty: omitEmpty,
+							Ignore:    ignore,
 						}
 					}
-				case *types.Interface:
-					// ignore
-				case *types.Basic:
-					fmt.Printf("Type: %s => %v\n", tn.Name(), named.Underlying())
 				}
 
-				if hasJsonFields {
-					serializers = append(serializers, generator.Serializer{
-						Name:   tn.Name(),
-						Fields: fields,
-					})
-				}
+				serializers = append(serializers, generator.Serializer{
+					Name:   tn.Name(),
+					Fields: fields,
+				})
+
 			}
 		}
 	}
 
-	fmt.Printf("found %d serialzers\n", len(serializers))
-
 	for _, s := range serializers {
 		fmt.Printf("  %s:\n", s.Name)
 		for _, f := range s.Fields {
-			fmt.Printf("    %s: json: %s, jsType: %v\n", f.Name, f.JsonName, f.JSType)
+			fmt.Printf("    %s: json: %s, type: %v\n", f.Name, f.JsonName, f.Type)
 		}
 	}
 
 	out, err := generator.RenderSerializer(pkg.Name, serializers)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-
-	fmt.Printf("\n\nConverter code\n\n")
-	fmt.Print(out)
 
 	if len(args) == 2 {
 		outfile := args[1]
@@ -223,15 +207,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-
-		// err = format.Node(w, fset, f)
-		// if err != nil {
-		// 	fmt.Printf("Error formating file %s", err)
-		// 	return
-		// }
-		// w.Flush()
 	}
-
 }
 
 func loadPackage(path string) (*packages.Package, error) {
@@ -280,63 +256,104 @@ func getPackageInfo(pkg packages.Package) (*types.Info, error) {
 	return info, nil
 }
 
-func getUnderlyingType(t types.Type) string {
+// getTypeInfo returns a generator.FieldType from a go/types field Variable
+func getTypeInfo(fieldType types.Type, pkg *packages.Package) *generator.FieldType {
+	fullType := fieldType.String()
+
+	// is this type defined in the package we're scanning?
+	isPackageType := strings.Contains(fullType, pkg.ID)
+
+	// get the actual go type used in  generation, like int or []cs.Planet
+	goType := getGoType(fieldType, pkg)
+	typeName := goType
+
+	var underlyingType *generator.FieldType
+	var keyType *generator.FieldType
+	var valueType *generator.FieldType
+	var isPointer bool
+	var arrayLength int64
+
+	underlyingName := fieldType.Underlying().String()
+	isStruct := strings.Index(underlyingName, "struct") == 0
+
+	// if the underlying type differs, fill it in
+	if !isStruct && fieldType.Underlying().String() != fullType {
+		underlyingType = getTypeInfo(fieldType.Underlying(), pkg)
+	}
+
+	var generatorType generator.GeneratorType
+
+	switch t := fieldType.(type) {
+	case *types.Basic:
+		generatorType = generator.GeneratorTypeFromBasicType(goType)
+	case *types.Pointer:
+		isPointer = true
+		valueType = getTypeInfo(t.Elem(), pkg)
+		typeName = valueType.TypeName
+		generatorType = valueType.Type
+	case *types.Named:
+		if isPackageType {
+			if isStruct {
+				generatorType = generator.GeneratorTypeObject
+				typeName = t.Obj().Name()
+			} else {
+				generatorType = generator.GeneratorTypeNamed
+			}
+		}
+	case *types.Map:
+		generatorType = generator.GeneratorTypeMap
+		keyType = getTypeInfo(t.Key(), pkg)
+		valueType = getTypeInfo(t.Elem(), pkg)
+	case *types.Array:
+		generatorType = generator.GeneratorTypeArray
+		valueType = getTypeInfo(t.Elem(), pkg)
+		typeName = valueType.TypeName
+		arrayLength = t.Len()
+	case *types.Slice:
+		generatorType = generator.GeneratorTypeSlice
+		valueType = getTypeInfo(t.Elem(), pkg)
+		typeName = valueType.TypeName
+	}
+
+	return &generator.FieldType{
+		TypeName:       typeName,
+		FullType:       fullType,
+		GoType:         goType,
+		Type:           generatorType,
+		Package:        isPackageType,
+		Pointer:        isPointer,
+		UnderlyingType: underlyingType,
+		KeyType:        keyType,
+		ValueType:      valueType,
+		ArrayLength:    arrayLength,
+	}
+
+}
+
+func getGoType(t types.Type, pkg *packages.Package) string {
+	fullType := t.String()
+	pkgPrefix := ""
+	if strings.Contains(fullType, pkg.ID) {
+		pkgPrefix = pkg.Name + "."
+	}
+
 	switch v := t.(type) {
 	case *types.Basic:
-		return v.Name()
+		return pkgPrefix + v.Name()
 	case *types.Slice:
-		return getUnderlyingType(v.Elem())
+		return fmt.Sprintf("[]%s", getGoType(v.Elem(), pkg))
 	case *types.Array:
-		return getUnderlyingType(v.Elem())
+		return fmt.Sprintf("[%d]%s", v.Len(), getGoType(v.Elem(), pkg))
 	case *types.Map:
-		return fmt.Sprintf("map[%s]%s", getUnderlyingType(v.Key()), getUnderlyingType(v.Elem()))
+		return fmt.Sprintf("map[%s]%s", getGoType(v.Key(), pkg), getGoType(v.Elem(), pkg))
 	case *types.Pointer:
-		return getUnderlyingType(v.Elem())
+		return fmt.Sprintf("*%s", getGoType(v.Elem(), pkg))
 	case *types.Struct:
 		return "struct"
 	case *types.Named:
-		return v.Obj().Name()
+		return pkgPrefix + v.Obj().Name()
 	default:
-		return "unknown"
-	}
-}
-
-func getMapInfo(t types.Type) (isMap bool, keyType, valueType string) {
-	v, ok := t.(*types.Map)
-	if !ok {
-		return false, "", ""
-	}
-	return ok, getUnderlyingType(v.Key()), getUnderlyingType(v.Elem())
-}
-
-func isPointer(t types.Type) bool {
-	t, ok := t.(*types.Pointer)
-	return ok
-}
-
-func isSlice(t types.Type) bool {
-	t, ok := t.(*types.Slice)
-	return ok
-}
-
-func isArray(t types.Type) bool {
-	t, ok := t.(*types.Array)
-	return ok
-}
-
-// getBasicType returns the basic type, i.e. int, float, int32
-// or the basic underlying type for slices/pointers
-// if not a basic type, it returns an empty string
-func getBasicType(t types.Type) string {
-	switch v := t.Underlying().(type) {
-	case *types.Slice:
-		return getBasicType(v.Elem())
-	case *types.Array:
-		return getBasicType(v.Elem())
-	case *types.Pointer:
-		return getBasicType(v.Elem())
-	case *types.Basic:
-		return v.Name()
+		log.Fatalf("unknown type %#v", v)
 	}
 	return ""
 }
@@ -354,30 +371,4 @@ func getJsonTag(tag string) (name string, omitEmpty bool, ignore bool) {
 	}
 
 	return name, omitEmpty, false
-}
-
-func getJsType(t types.Type) generator.JSType {
-	switch v := t.(type) {
-	case *types.Basic:
-		return generator.JSTypeFromBasicType(v.Name())
-	case *types.Named:
-		fullName := v.String()
-		switch fullName {
-		case "time.Time":
-			return generator.JSTime
-		default:
-			if basic, ok := v.Underlying().(*types.Basic); ok {
-				return generator.JSTypeFromBasicType(basic.Name())
-			}
-			fmt.Printf("found unknown named type %s\n", fullName)
-		}
-	case *types.Array:
-		return generator.JSArray
-	case *types.Slice:
-		return generator.JSArray
-	case *types.Struct:
-		return generator.JSObject
-	}
-
-	return generator.JSString
 }
