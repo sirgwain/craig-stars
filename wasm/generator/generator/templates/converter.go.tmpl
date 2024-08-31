@@ -138,6 +138,8 @@ func SetSliceSlice[T any](o js.Value, items [][]T, setter func(o js.Value, item 
 		GetInt[{{.GoType}}]({{ .Obj | default "o" }}, {{.Key}})
 	{{- else if eq .Type "BasicFloat" }}
 		GetFloat[{{.GoType}}]({{ .Obj | default "o" }}, {{.Key}})
+	{{- else }}
+		// unknown basic type {{.Name}} {{.KeyType.Type}} {{.KeyType.GoType}}
 	{{- end }}
 {{- end }}
 
@@ -237,11 +239,15 @@ func SetSliceSlice[T any](o js.Value, items [][]T, setter func(o js.Value, item 
 			key, _ := strconv.Atoi({{.JsonName}}Keys.Index(i).String())
 		{{- else if eq .KeyType.Type "Named" }}
 			key := {{.KeyType.GoType}}({{.JsonName}}Keys.Index(i).String())
+		{{- else }}
+			// unknown key type {{.Name}} {{.KeyType.Type}} {{.KeyType.GoType}}
 		{{- end }}
 		{{- if .ValueType.IsBasic }}
 			{{- $key := printf "%sObj" .JsonName }}
 			{{- $context := dict "Type" .ValueType.Type "GoType" .ValueType.GoType "Key" "fmt.Sprintf(\"%v\", key)" "Obj" $key }}
 			{{.JsonName}}[key] = {{ include "GenGetBasic" $context | trim -}}
+		{{- else }}
+			// unknown type {{.Name}} {{.ValueType.Type}} {{.ValueType.GoType}}
 		{{- end }}
 		}
 		obj.{{.Name}} = {{.JsonName}}
