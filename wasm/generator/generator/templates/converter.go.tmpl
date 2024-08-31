@@ -300,9 +300,11 @@ func SetSliceSlice[T any](o js.Value, items [][]T, setter func(o js.Value, item 
 
 func Get{{.Name}}(o js.Value) {{$.Pkg}}.{{.Name}} {
 	obj := {{$.Pkg}}.{{.Name}}{}
-	{{- range .Fields}}	
-	// {{.Name}} {{.JsonName}} {{ .Type }} ignore: {{.Ignore}}
+	{{- range .Fields}}
 		{{- if .Ignore }}
+			{{- if .Exported }}
+				// {{.Name}} {{.JsonName}} {{ .Type }} ignored
+			{{- end }}
 			{{- continue }}
 		{{- end }}
 	
@@ -328,8 +330,10 @@ func Get{{.Name}}(o js.Value) {{$.Pkg}}.{{.Name}} {
 
 func Set{{.Name}}(o js.Value, obj *{{$.Pkg}}.{{.Name}}) {
 	{{- range .Fields}}	
-	// {{.Name}} {{.JsonName}} {{ .Type }} ignore: {{.Ignore}}
 		{{- if .Ignore }}
+			{{- if .Exported }}
+				// {{.Name}} {{.JsonName}} {{ .Type }} ignored
+			{{- end }}
 			{{- continue }}
 		{{- end }}
 		{{- /* package types that aren't basic types need to call the getter for that type */}}

@@ -45,6 +45,7 @@ type Field struct {
 	JsonName  string
 	OmitEmpty bool
 	Ignore    bool
+	Exported  bool
 }
 
 // TODO: make a TypeType with struct, map, basic, named (type name mapping to a basic or map type)

@@ -99,6 +99,7 @@ func main() {
 		"PlayerSpec":                     true,
 		"PlayerStats":                    true,
 		"ProductionPlan":                 true,
+		"ProductionPlanItem":             true,
 		"ProductionQueueItem":            true,
 		"QueueItemCompletionEstimate":    true,
 		"Race":                           true,
@@ -173,6 +174,7 @@ func main() {
 							JsonName:  jsonName,
 							OmitEmpty: omitEmpty,
 							Ignore:    ignore,
+							Exported:  field.Exported(),
 						}
 					}
 				}
