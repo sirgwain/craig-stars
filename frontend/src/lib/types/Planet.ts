@@ -272,12 +272,12 @@ export class CommandedPlanet implements Planet {
 	}
 
 	// update the production queue estimates for the planet's production queue
-	public updateProductionQueueEstimates(
+	public async updateProductionQueueEstimates(
 		cs: CS,
 		player: Player,
 		designs: ShipDesign[]
-	): ProductionQueueItem[] {
-		const planetWithEstimates = cs.estimateProduction(this, player, designs);
+	): Promise<ProductionQueueItem[]> {
+		const planetWithEstimates = await cs.estimateProduction(this);
 		if (planetWithEstimates.productionQueue?.length !== this.productionQueue.length) {
 			throw Error("failed to estimate production queue. items don't match up");
 		}
@@ -557,15 +557,15 @@ export class CommandedPlanet implements Planet {
 	}
 
 	// get the estimated years to build one item
-	public getYearsToBuildOne(
+	public async getYearsToBuildOne(
 		item: ProductionQueueItem,
 		cs: CS,
 		player: Player,
 		designs: ShipDesign[]
-	): number {
+	): Promise<number> {
 		const planetCopy = cloneDeep(this);
 		planetCopy.productionQueue = [item];
-		const planetWithEstimates = cs.estimateProduction(planetCopy, player, designs);
+		const planetWithEstimates = await cs.estimateProduction(planetCopy);
 		return planetWithEstimates.productionQueue?.length == 1
 			? planetWithEstimates.productionQueue[0].yearsToBuildOne ?? NeverBuilt
 			: NeverBuilt;

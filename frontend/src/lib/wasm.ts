@@ -8,8 +8,10 @@ import type { ShipDesign } from './types/ShipDesign';
 export type CS = {
 	enableDebug: () => void;
 	setRules: (rules: Rules) => void;
+	setPlayer: (player: Player) => void;
+	setDesigns: (designs: ShipDesign[]) => void;
 	calculateRacePoints: (race: Race) => number;
-	estimateProduction: (planet: Planet, player: Player, designs: ShipDesign[]) => Planet;
+	estimateProduction: (planet: Planet) => Promise<Planet>;
 };
 
 // load a wasm module and returns a wrapper for executing functions
@@ -69,7 +71,9 @@ type CSWasm = {
 	calculateRacePoints: (race: Race) => number;
 	enableDebug: () => void;
 	setRules: (rulesJson: string) => void;
-	estimateProduction: (planet: Planet, player: Player & { designs?: ShipDesign[] }) => string;
+	setPlayer: (player: Player) => void;
+	setDesigns: (designs: ShipDesign[]) => void;
+	estimateProduction: (planet: Planet) => Promise<Planet>;
 };
 
 // create a wrapper to serialize requests and responses to/from JSON
@@ -84,16 +88,16 @@ class CSWasmWrapper implements CS {
 		this.wasm.setRules(JSON.stringify(rules));
 	}
 
-	estimateProduction(planet: Planet, player: Player, designs: ShipDesign[]): Planet {
-		player.designs = designs;
-		const resultJson = this.wasm.estimateProduction(planet, player);
+	setPlayer(player: Player) {
+		this.wasm.setPlayer(player);
+	}
 
-		try {
-			return JSON.parse(resultJson) as Planet;
-		} catch {
-			console.error('failed to estimateProduction: ', resultJson);
-			throw new Error('failed to estimateProduction: ' + resultJson);
-		}
+	setDesigns(designs: ShipDesign[]) {
+		this.wasm.setDesigns(designs);
+	}
+
+	async estimateProduction(planet: Planet): Promise<Planet> {
+		return await this.wasm.estimateProduction(planet);
 	}
 	calculateRacePoints(race: Race): number {
 		return this.wasm.calculateRacePoints(race);

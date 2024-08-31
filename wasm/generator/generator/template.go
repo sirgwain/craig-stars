@@ -3,6 +3,7 @@ package generator
 import (
 	"bytes"
 	"embed"
+	"log"
 	"slices"
 	"strings"
 	"text/template"
@@ -23,7 +24,10 @@ func RenderSerializer(pkg string, serializers []Serializer) (string, error) {
 		Funcs(sprig.FuncMap()).
 		Funcs(template.FuncMap{
 			"include": func(name string, data interface{}) string {
-				result, _ := includeTemplate(t, name, data)
+				result, err := includeTemplate(t, name, data)
+				if err != nil {
+					log.Fatalf("failed to include %s %v", name, err)
+				}
 				return result
 			},
 		}).

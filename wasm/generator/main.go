@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"go/ast"
+	"go/format"
 	"go/importer"
 	"go/token"
 	"go/types"
@@ -99,6 +100,7 @@ func main() {
 		"PlayerStats":                    true,
 		"ProductionPlan":                 true,
 		"ProductionQueueItem":            true,
+		"QueueItemCompletionEstimate":    true,
 		"Race":                           true,
 		"ResearchCost":                   true,
 		"SalvageIntel":                   true,
@@ -163,7 +165,7 @@ func main() {
 							continue
 						}
 						fieldType := getTypeInfo(field.Type(), pkg)
-						ignore = !field.Exported() || ignore || (!fieldType.Type.IsBasic() && fieldType.Package && !typesToCheck[fieldType.TypeName])
+						ignore = !field.Exported() || ignore || (!fieldType.Type.IsBasic() && fieldType.Type != generator.GeneratorTypeNamed && fieldType.Package && !typesToCheck[fieldType.TypeName])
 
 						fields[i] = generator.Field{
 							FieldType: *fieldType,
@@ -196,6 +198,12 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// format it so it looks nice
+	formattedSource, err := formatGoSource(out)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	if len(args) == 2 {
 		outfile := args[1]
 		f, err := os.OpenFile(outfile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
@@ -203,11 +211,26 @@ func main() {
 			panic(err)
 		}
 		defer f.Close()
-		_, err = f.Write([]byte(out))
+		_, err = f.Write(formattedSource)
 		if err != nil {
 			panic(err)
 		}
 	}
+}
+
+// formatGoSource formats the go source we generate to make it look pretty
+func formatGoSource(source string) ([]byte, error) {
+	// Convert the source string to a byte slice
+	sourceBytes := []byte(source)
+
+	// Format the source code
+	formattedBytes, err := format.Source(sourceBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert the formatted bytes back to a string
+	return formattedBytes, nil
 }
 
 func loadPackage(path string) (*packages.Package, error) {

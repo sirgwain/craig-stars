@@ -68,6 +68,11 @@ func GetTime(o js.Value, key string) (time.Time, error) {
 	return result, nil
 }
 
+func SetTime(o js.Value, key string, time time.Time) {
+    json, _ := time.MarshalJSON()
+    o.Set(key, string(json))
+}
+
 // GetSlice populates an array with a getter function
 func GetSlice[T any](o js.Value, getter func(o js.Value) T) []T {
 	if o.IsUndefined() || o.IsNull() {
@@ -79,6 +84,26 @@ func GetSlice[T any](o js.Value, getter func(o js.Value) T) []T {
 		items[i] = getter(o.Index(i))
 	}
 	return items
+}
+
+// SetSlice sets a jsarray with items using a setter function
+func SetSlice[T any](o js.Value, items []T, setter func(o js.Value, item *T)) {
+
+	for i := 0; i < len(items); i++ {
+        oItem := js.ValueOf(map[string]any{})
+        setter(oItem, &items[i])
+		o.SetIndex(i, oItem)
+	}
+}
+
+// SetPointerSlice sets a jsarray with pointer items using a setter function
+func SetPointerSlice[T any](o js.Value, items []*T, setter func(o js.Value, item *T)) {
+
+	for i := 0; i < len(items); i++ {
+		oItem := js.ValueOf(map[string]any{})
+		setter(oItem, items[i])
+		o.SetIndex(i, oItem)
+	}
 }
 
 // GetSliceSlice populates a 2d array
@@ -94,7 +119,17 @@ func GetSliceSlice[T any](o js.Value, getter func(o js.Value) T) [][]T {
 	return items
 }
 
-{{- define "GetBasic" }}
+// SetSliceSlice sets a 2d jsarray with items using a setter function
+func SetSliceSlice[T any](o js.Value, items [][]T, setter func(o js.Value, item *T)) {
+
+	for i := 0; i < len(items); i++ {
+		oItem := js.ValueOf([]any{})
+		SetSlice(oItem, items[i], setter)
+		o.SetIndex(i, oItem)
+	}
+}
+
+{{- define "GenGetBasic" }}
 	{{- if eq .Type "BasicString" }}
 		{{.GoType}}(GetString({{ .Obj | default "o" }}, {{.Key}}))
 	{{- else if eq .Type "BasicBool" }}
@@ -106,12 +141,16 @@ func GetSliceSlice[T any](o js.Value, getter func(o js.Value) T) [][]T {
 	{{- end }}
 {{- end }}
 
-{{- define "GetBasicVar" }}
-	{{- $context := dict "Type" .Type "GoType" .GoType "Key" (quote .JsonName) }}
-	obj.{{.Name}} = {{ include "GetBasic" $context | trim -}}
+{{- define "GenSetBasic" }}
+	o.Set("{{.JsonName}}", obj.{{.Name}})
 {{- end }}
 
-{{- define "GetPackageObject" }}
+{{- define "GenGetBasicVar" }}
+	{{- $context := dict "Type" .Type "GoType" .GoType "Key" (quote .JsonName) }}
+	obj.{{.Name}} = {{ include "GenGetBasic" $context | trim -}}
+{{- end }}
+
+{{- define "GenGetPackageObject" }}
 	{{- /* package types that aren't basic types need to call the getter for that type */}}
 	{{- if eq .JsonName "" }}
 		obj.{{.Name}} = Get{{.TypeName}}(o)
@@ -128,7 +167,20 @@ func GetSliceSlice[T any](o js.Value, getter func(o js.Value) T) [][]T {
 	{{- end }}
 {{- end }}
 
-{{- define "GetPackageSlice" }}
+{{- define "GenSetPackageObject" }}
+	{{- if eq .JsonName "" }}
+		Set{{.TypeName}}(o, &obj.{{.Name}})
+	{{- else }}
+		o.Set("{{.JsonName}}", map[string]any{})
+		{{- if .Pointer }}
+		Set{{.TypeName}}(o.Get("{{.JsonName}}"), obj.{{.Name}})
+		{{- else }}
+		Set{{.TypeName}}(o.Get("{{.JsonName}}"), &obj.{{.Name}})
+		{{- end }}
+	{{- end }}
+{{- end }}
+
+{{- define "GenGetPackageSlice" }}
 	{{- /* package slices come as slices to pointers or just slices or sometimes slices to slices... ugh */}}
 	{{- if eq .ValueType.Type "Slice" }}
 		{{- /* slice slice */}}
@@ -146,7 +198,23 @@ func GetSliceSlice[T any](o js.Value, getter func(o js.Value) T) [][]T {
 	{{- end }}
 {{- end }}
 
-{{- define "GetArray" }}
+{{- define "GenSetPackageSlice" }}
+	{{- /* package slices come as slices to pointers or just slices or sometimes slices to slices... ugh */}}
+	{{- if eq .ValueType.Type "Slice" }}
+		{{- /* slice slice */}}
+		o.Set("{{.JsonName}}", []any{})
+		SetSliceSlice(o.Get("{{.JsonName}}"), obj.{{.Name}}, Set{{.ValueType.TypeName}})
+	{{- else }}
+		o.Set("{{.JsonName}}", []any{})
+		{{- if .ValueType.Pointer }}
+			SetPointerSlice(o.Get("{{.JsonName}}"), obj.{{.Name}}, Set{{.ValueType.TypeName}})
+		{{- else }}
+			SetSlice(o.Get("{{.JsonName}}"), obj.{{.Name}}, Set{{.ValueType.TypeName}})
+		{{- end }}
+	{{- end }}
+{{- end }}
+
+{{- define "GenGetArray" }}
 	{{- if eq .ValueType.Type "BasicInt" }}
 		if !o.Get("{{.JsonName}}").IsUndefined() && o.Get("{{.JsonName}}").Length() != 0 {
 			obj.{{.Name}} = [{{.ArrayLength}}]{{.ValueType.GoType}}(GetIntArray[{{.ValueType.GoType}}](o, "{{.JsonName}}"))
@@ -156,7 +224,7 @@ func GetSliceSlice[T any](o js.Value, getter func(o js.Value) T) [][]T {
 	{{- end }}
 {{- end }}
 
-{{- define "GetMap" }}
+{{- define "GenGetMap" }}
 	{{- /* maps are weird. We have to get the Object.Keys from the js object, then set each key as a type */}}
 	{{.JsonName}}Obj := o.Get("{{.JsonName}}")
 	if !{{.JsonName}}Obj.IsUndefined() {
@@ -173,26 +241,55 @@ func GetSliceSlice[T any](o js.Value, getter func(o js.Value) T) [][]T {
 		{{- if .ValueType.IsBasic }}
 			{{- $key := printf "%sObj" .JsonName }}
 			{{- $context := dict "Type" .ValueType.Type "GoType" .ValueType.GoType "Key" "fmt.Sprintf(\"%v\", key)" "Obj" $key }}
-			{{.JsonName}}[key] = {{ include "GetBasic" $context | trim -}}
+			{{.JsonName}}[key] = {{ include "GenGetBasic" $context | trim -}}
 		{{- end }}
 		}
 		obj.{{.Name}} = {{.JsonName}}
 	}
 {{- end }}
 
-{{- define "GetNamedType" }}
-	{{- if eq .GoType "string" }}
+{{- define "GenSetMap" }}
+	{{- /* setting maps is easier, just create a new object and set each key */}}
+	{{.JsonName}}Map := js.ValueOf(map[string]any{})
+	for key, value := range obj.{{.Name}} {
+	{{- if .ValueType.IsBasic }}
+		{{.JsonName}}Map.Set(fmt.Sprintf("%v", key), {{.ValueType.GoType}}(value))
+	{{- end }}
+	}
+	o.Set("{{.JsonName}}", {{.JsonName}}Map)
+{{- end }}
+
+{{- define "GenGetNamedType" }}
+	{{- if eq .UnderlyingType.GoType "string" }}
 		obj.{{.Name}} = {{.GoType}}(GetString(o, "{{.JsonName}}"))
-	{{- else if eq .GoType "int" }}
+	{{- else if eq .UnderlyingType.GoType "int" }}
 		obj.{{.Name}} = {{.GoType}}(GetInt[{{.GoType}}](o, "{{.JsonName}}"))
+	{{- else if eq .UnderlyingType.GoType "uint32" }}
+		obj.{{.Name}} = {{.GoType}}(GetInt[{{.GoType}}](o, "{{.JsonName}}"))
+	{{- else }}
+		// unknown type {{.Name}} {{.GoType}} {{.UnderlyingType.GoType}}
+	{{- end }}
+{{- end }}
+
+{{- define "GenSetNamedType" }}
+	{{- if .UnderlyingType.IsBasic }}
+		o.Set("{{.JsonName}}", {{.UnderlyingType.GoType}}(obj.{{.Name}}))
+	{{- else }}
+		// unknown type {{.Name}} {{.GoType}} {{.UnderlyingType.GoType}}
+	{{- end }}
+{{- end }}
+
+{{- define "GenGetOtherType" }}
+	{{- if eq .FullType "time.Time" }}
+		obj.{{.Name}}, _ = GetTime(o, "{{.JsonName}}")
 	{{- else }}
 		unknown type {{.Name}} {{.GoType}}
 	{{- end }}
 {{- end }}
 
-{{- define "GetOtherType" }}
+{{- define "GenSetOtherType" }}
 	{{- if eq .FullType "time.Time" }}
-		obj.{{.Name}}, _ = GetTime(o, "{{.JsonName}}")
+		SetTime(o, "{{.JsonName}}", obj.{{.Name}})
 	{{- else }}
 		unknown type {{.Name}} {{.GoType}}
 	{{- end }}
@@ -204,28 +301,53 @@ func GetSliceSlice[T any](o js.Value, getter func(o js.Value) T) [][]T {
 func Get{{.Name}}(o js.Value) {{$.Pkg}}.{{.Name}} {
 	obj := {{$.Pkg}}.{{.Name}}{}
 	{{- range .Fields}}	
+	// {{.Name}} {{.JsonName}} {{ .Type }} ignore: {{.Ignore}}
 		{{- if .Ignore }}
 			{{- continue }}
 		{{- end }}
 	
 		{{- /* package types that aren't basic types need to call the getter for that type */}}
 		{{- if .Type.IsBasic }}
-			{{- include "GetBasicVar" . | trim | nindent 4 -}}
+			{{- include "GenGetBasicVar" . | trim | nindent 4 -}}
 		{{- else if eq .Type "Object" }}
-			{{- include "GetPackageObject" . | trim | nindent 4 -}}
+			{{- include "GenGetPackageObject" . | trim | nindent 4 -}}
 		{{- else if eq .Type "Named" }}
-			{{- include "GetNamedType" . | trim | nindent 4 -}}
+			{{- include "GenGetNamedType" . | trim | nindent 4 -}}
 		{{- else if eq .Type "Slice" }}
-			{{- include "GetPackageSlice" . | trim | nindent 4 -}}
+			{{- include "GenGetPackageSlice" . | trim | nindent 4 -}}
 		{{- else if eq .Type "Array" }}
-			{{- include "GetArray" . | trim | nindent 4 -}}
+			{{- include "GenGetArray" . | trim | nindent 4 -}}
 		{{- else if eq .Type "Map" }}
-			{{- include "GetMap" . | nindent 2 -}}
+			{{- include "GenGetMap" . | nindent 2 -}}
 		{{- else  }}
-			{{- include "GetOtherType" . | trim | nindent 4 -}}
+			{{- include "GenGetOtherType" . | trim | nindent 4 -}}
 		{{- end }}
 	{{- end }}
 	return obj
+}
+
+func Set{{.Name}}(o js.Value, obj *{{$.Pkg}}.{{.Name}}) {
+	{{- range .Fields}}	
+	// {{.Name}} {{.JsonName}} {{ .Type }} ignore: {{.Ignore}}
+		{{- if .Ignore }}
+			{{- continue }}
+		{{- end }}
+		{{- /* package types that aren't basic types need to call the getter for that type */}}
+		{{- if .Type.IsBasic }}		
+			{{- include "GenSetBasic" . | trim | nindent 4 -}}
+		{{- else if eq .Type "Object" }}
+			{{- include "GenSetPackageObject" . | trim | nindent 4 -}}
+		{{- else if eq .Type "Named" }}
+			{{- include "GenSetNamedType" . | trim | nindent 4 -}}
+		{{- else if eq .Type "Slice" }}
+			{{- include "GenSetPackageSlice" . | trim | nindent 4 -}}
+		{{- else if eq .Type "Array" }}
+		{{- else if eq .Type "Map" }}
+			{{- include "GenSetMap" . | trim | nindent 4 -}}
+		{{- else  }}
+			{{- include "GenSetOtherType" . | trim | nindent 4 -}}
+		{{- end }}
+	{{- end }}
 }
 {{- end}}
 

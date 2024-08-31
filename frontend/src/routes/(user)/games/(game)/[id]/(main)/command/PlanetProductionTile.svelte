@@ -1,8 +1,8 @@
 <script lang="ts">
 	import ProductionQueueItemLine from '$lib/components/game/ProductionQueueItemLine.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { techs } from '$lib/services/Stores';
 	import type { CommandedPlanet } from '$lib/types/Planet';
+	import type { ProductionQueueItem } from '$lib/types/Production';
 	import { createEventDispatcher } from 'svelte';
 	import type { ProductionQueueDialogEvent } from '../../dialogs/production/ProductionQueueDialog.svelte';
 	import CommandTile from './CommandTile.svelte';
@@ -11,6 +11,7 @@
 	const { cs, game, player, universe, updatePlanetOrders } = getGameContext();
 
 	export let planet: CommandedPlanet;
+	let queueItems: ProductionQueueItem[] | undefined = undefined;
 
 	const clear = async () => {
 		if (planet && confirm('Are you sure you want to clear the planet production queue?')) {
@@ -19,18 +20,24 @@
 		}
 	};
 
-	$: queueItems = planet.updateProductionQueueEstimates(cs, $player, $universe.getMyDesigns());
+	$: {
+		planet
+			.updateProductionQueueEstimates(cs, $player, $universe.getMyDesigns())
+			.then((p) => (queueItems = planet.productionQueue));
+	}
 </script>
 
 <CommandTile title="Production">
 	<div class="bg-base-100 h-20 overflow-y-auto">
 		{#if planet.productionQueue}
 			<ul class="w-full h-full">
-				{#each queueItems as queueItem, index}
-					<li class="pl-1 cursor-default">
-						<ProductionQueueItemLine item={queueItem} {index} shortName={true} />
-					</li>
-				{/each}
+				{#if queueItems}
+					{#each queueItems as queueItem, index}
+						<li class="pl-1 cursor-default">
+							<ProductionQueueItemLine item={queueItem} {index} shortName={true} />
+						</li>
+					{/each}
+				{/if}
 			</ul>
 		{/if}
 	</div>
