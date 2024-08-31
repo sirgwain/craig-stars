@@ -109,6 +109,7 @@
 
 				if (hullComponent.category == TechCategory.Shield && (hullComponent.armor ?? 0) > 0) {
 					// if this is a shield with armor, it sounds cooler to make the armor a description
+					// this also makes it clearer that they aren't affected by shield/armor % bonuses like RS 
 					descriptions.push(
 						`This shield also contains an armor component which will absorb ${hullComponent.armor} damage points.`
 					);
@@ -154,7 +155,7 @@
 					);
 				}
 				if (hullComponent.damageShieldsOnly) {
-					descriptions.push(`This weapon will only damage shields. It has no effect on armor.`);
+					descriptions.push(`This weapon will only damage shields. It has no effect on armor and cannot sweep mines.`);
 				}
 
 				if ((hullComponent.killRate ?? 0) > 0 && !hullComponent.orbitalConstructionModule) {
@@ -164,11 +165,11 @@
 					);
 					if ((hullComponent.minKillRate ?? 0) > 0) {
 						descriptions.push(
-							`If a planet has no defenses, this bomb is guaranteed to kill at least ${hullComponent.minKillRate} colonists.`
+							`If a planet has no defenses, this bomb is guaranteed to kill at least ${hullComponent.minKillRate} colonists each year.`
 						);
 					}
 					if (!hullComponent.structureDestroyRate) {
-						descriptions.push("This bomb will not damage a planet's mines or factories.");
+						descriptions.push("This bomb will not damage a planet's mines, factories or defenses.");
 					}
 				}
 
@@ -192,7 +193,7 @@
 
 				if ((hullComponent.structureDestroyRate ?? 0) > 0) {
 					descriptions.push(
-						`This bomb will destroy approximately ${hullComponent.structureDestroyRate} of a planet's mines, factories, and/or defenses each year.`
+						`This bomb will destroy approximately ${hullComponent.structureDestroyRate} of a planet's mines, factories, and/or defenses each year (proportional to installation count).`
 					);
 				}
 
@@ -223,41 +224,45 @@
 				}
 
 				if ((hullComponent.fuelBonus ?? 0) > 0) {
-					descriptions.push(`This part acts as a ${hullComponent.fuelBonus}mg fuel tank.`);
+					descriptions.push(`This part increases the ship's fuel capacity by ${hullComponent.fuelBonus}mg.`);
 				}
 
 				if ((hullComponent.fuelRegenerationRate ?? 0) > 0) {
 					descriptions.push(
-						`This part generates ${hullComponent.fuelRegenerationRate}mg of fuel every year.`
+						`This part generates ${hullComponent.fuelRegenerationRate}mg of fuel each year.`
 					);
 				}
 
 				if (hullComponent.colonizationModule) {
 					descriptions.push(
-						'This pod allows a ship to colonize a planet and will dismantle the ship upon arrival and convert it into supplies for the colonists.'
+						'This pod allows a ship to colonize an uninhabited planet. Upon arrival, the pod will dismantle it and any other ships in the fleet into supplies for the colonists. 
+						The fleet must have orders set to "Colonize", and at least one ship in it must be carrying colonists.'
 					);
 				}
 
 				if (hullComponent.orbitalConstructionModule) {
 					descriptions.push(
-						'This module contains an empty orbital hull which can be deployed in orbit of an uninhabited planet.'
+						'This pod contains an empty orbital hull which can be deployed in orbit of an uninhabited planet to colonize it, scrapping all ships in the fleet in the progress. 
+						The fleet must have orders set to "Colonize", and at least one ship in it must be carrying colonists.'
+
 					);
 					if ((hullComponent.minKillRate ?? 0) > 0) {
 						descriptions.push(
-							`This pod also contains viral weapons capable of killing ${hullComponent.minKillRate} enemy colonists per attack.`
+							`This pod also contains viral weapons capable of killing ${hullComponent.minKillRate} enemy colonists per year.`
 						);
 					}
 				}
 
 				if ((hullComponent.cargoBonus ?? 0) > 0) {
 					descriptions.push(
-						`This pod increases the cargo capacity of the ship by ${hullComponent.cargoBonus}kT.`
+						`This part increases the ship's cargo capacity by ${hullComponent.cargoBonus}kT.`
 					);
 				}
 
 				if ((hullComponent.movementBonus ?? 0) > 0) {
 					descriptions.push(
-						`Increases speed in battle by ${hullComponent.movementBonus} square of movement.`
+						`Increases speed in battle by ${hullComponent.movementBonus} 
+						{hullComponent.movementBonus <=1 ? square : squares} of movement.`
 					);
 				}
 
@@ -356,7 +361,7 @@
 
 				if ((hullComponent.packetSpeed ?? 0) > 0) {
 					stats.push({ label: 'Warp', text: `${hullComponent.packetSpeed}` });
-					descriptions.push('Allows planets to fling mineral packets at other planets .');
+					descriptions.push('Allows planets to fling mineral packets at other planets.');
 					warnings.push(
 						'Warning: The receiving planet must have a mass driver at least as capable or it will take damage.'
 					);
@@ -364,10 +369,9 @@
 
 				if (hullComponent.scanner) {
 					if ((hullComponent.scanRange ?? 0) == 0) {
-						hullComponent.typ
 						// special case for bat scanner
 						descriptions.push(
-							'Enemy fleets cannot be detected by this scanner unless they are at the same location as this ship.'
+							'Enemy fleets cannot be detected by this scanner unless they are at the same position as this ship.'
 						);
 					} else {
 						descriptions.push(
@@ -378,8 +382,7 @@
 					if (!hullComponent.scanRangePen) {
 						// we have no pen scan, but we are a normal scanner, we can still scan planets we orbit
 						descriptions.push(
-							"This scanner is capable of determining a planet's environment and composition while in orbit of the planet."
-						);
+							"This scanner is capable of determining a planet's environment and composition while orbiting it. It will also spot enemy fleets attempting to hide behind planets at the same location."
 					}
 
 					if ((hullComponent.scanRangePen ?? 0) > 0) {
@@ -398,7 +401,7 @@
 							target = 'fleets and planets';
 						}
 						descriptions.push(
-							`This scanner is also capable of penetrating the defenses of enemy ${target} allowing you to steal their cargo.`
+							`This scanner is also capable of penetrating the defenses of enemy ${target} allowing you to view and steal their cargo.`
 						);
 					}
 				}

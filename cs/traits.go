@@ -71,7 +71,6 @@ type LRTSpec struct {
 	ScanRangeFactorOffset         float64         `json:"scanRangeFactorOffset,omitempty"`
 	FuelEfficiencyOffset          float64         `json:"fuelEfficiencyOffset,omitempty"`
 	MaxPopulationOffset           float64         `json:"maxPopulationOffset,omitempty"`
-	TerraformCostOffset           Cost            `json:"terraformCostOffset,omitempty"`
 	MineralAlchemyCostOffset      int             `json:"mineralAlchemyCostOffset,omitempty"`
 	ScrapMineralOffset            float64         `json:"scrapMineralOffset,omitempty"`
 	ScrapMineralOffsetStarbase    float64         `json:"scrapMineralOffsetStarbase,omitempty"`
@@ -95,6 +94,7 @@ type TechCostOffset struct {
 	Torpedo          float64 `json:"torpedo,omitempty"`
 	Bomb             float64 `json:"bomb,omitempty"`
 	PlanetaryDefense float64 `json:"planetaryDefense,omitempty"`
+	Terraforming     float64 `json:"terraforming,omitempty"`
 }
 
 type StartingPlanet struct {
@@ -105,6 +105,7 @@ type StartingPlanet struct {
 	StarbaseDesignName string          `json:"starbaseDesignName,omitempty"`
 	StarbaseHull       string          `json:"starbaseHull,omitempty"`
 	StartingFleets     []StartingFleet `json:"startingFleets,omitempty"`
+	Homeworld          bool            `json:"homeworld,omitempty"`
 }
 
 type StartingFleet struct {
@@ -139,7 +140,7 @@ const (
 
 func defaultPRTSpec() PRTSpec {
 	return PRTSpec{
-		StartingPlanets: []StartingPlanet{{Population: 25000, StarbaseHull: SpaceStation.Name, StarbaseDesignName: "Starbase"}},
+		StartingPlanets: []StartingPlanet{{Population: 25000, StarbaseHull: SpaceStation.Name, StarbaseDesignName: "Starbase"}, Homeworld: true},
 
 		PointCost:                        66,
 		MineralsPerSingleMineralPacket:   100,
@@ -346,14 +347,14 @@ func ppSpec() PRTSpec {
 				{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
 				{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
 				{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
-			},
+			}, Homeworld: true,
 		},
 		// extra world where hab varies by 1/2 of the range
 		{
 			Population: 10000, HabPenaltyFactor: 1, HasMassDriver: true, StarbaseHull: OrbitalFort.Name, StarbaseDesignName: "Accelerator Platform",
 			StartingFleets: []StartingFleet{
 				{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
-			},
+			}, Homeworld: false,
 		},
 	}
 	spec.MineralsPerSingleMineralPacket = 70
@@ -386,14 +387,14 @@ func itSpec() PRTSpec {
 				{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
 				{"Swashbuckler", StartingFleetHullPrivateer, 0, ShipDesignPurposeArmedFreighter},
 				{"Stalwart Defender", StartingFleetHullDestroyer, 0, ShipDesignPurposeFighter},
-			},
+			}, Homeworld: true,
 		},
 		// extra world where hab varies by 1/2 of the range
 		{
 			Population: 10000, HabPenaltyFactor: 1, HasStargate: true, StarbaseHull: OrbitalFort.Name, StarbaseDesignName: "Accelerator Platform",
 			StartingFleets: []StartingFleet{
 				{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
-			},
+			}, Homeworld: false,
 		},
 	}
 
@@ -467,7 +468,9 @@ func ifeSpec() LRTSpec {
 
 func ttSpec() LRTSpec {
 	return LRTSpec{
-		TerraformCostOffset: Cost{Resources: -30},
+		TechCostOffset: TechCostOffset{
+			TerraformCostOffset: -.3 // terraformint costs 30% less
+		}
 	}
 }
 
@@ -499,7 +502,7 @@ func urSpec() LRTSpec {
 	return LRTSpec{
 		// UR gives us 45%/90% of scrapped minerals, versus 33%/80% for races without UR
 		ScrapMineralOffset:           .45 - (1.0 / 3),
-		ScrapMineralOffsetStarbase:   .9 - (1.0 / 3),
+		ScrapMineralOffsetStarbase:   .9 - (10 / 8)
 		ScrapResourcesOffset:         .35,
 		ScrapResourcesOffsetStarbase: .7,
 	}

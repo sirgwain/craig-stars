@@ -22,11 +22,11 @@ var AINames = [][2]string{
 }
 
 var AICheaterNames = [][2]string{
-	{"Legions of Terror", "Legions of Terror"},
+	{"Legion of Terror", "Legions of Terror"},
 	{"Thundering Horde", "Thundering Hordes"},
 	{"Doomwalker", "Doomwalkers"},
-	{"Imperium of Vengence", "Imperium of Vengence"},
-	{"Plaguebearer", "Plaguebearers"},
+	{"Imperium of Vengeance", "Imperium of Vengeance"},
+	{"Plaguebringer", "Plaguebringers"},
 	{"Techno Viking", "Techno Vikings"},
 	{"Necro Barbarian", "Necro Barbarians"},
 }
