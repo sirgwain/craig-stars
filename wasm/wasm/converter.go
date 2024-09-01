@@ -169,13 +169,13 @@ func GetBattlePlan(o js.Value) cs.BattlePlan {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.Num = getInt[int](o)
-	obj.Name = string(getString(o))
+	obj.Num = getInt[int](o.Get("num"))
+	obj.Name = string(getString(o.Get("name")))
 	obj.PrimaryTarget = GetBattleTarget(o.Get("primaryTarget"))
 	obj.SecondaryTarget = GetBattleTarget(o.Get("secondaryTarget"))
 	obj.Tactic = GetBattleTactic(o.Get("tactic"))
 	obj.AttackWho = GetBattleAttackWho(o.Get("attackWho"))
-	obj.DumpCargo = getBool(o)
+	obj.DumpCargo = getBool(o.Get("dumpCargo"))
 	return obj
 }
 
@@ -187,8 +187,8 @@ func GetBattleRecord(o js.Value) cs.BattleRecord {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.Num = getInt[int](o)
-	obj.PlanetNum = getInt[int](o)
+	obj.Num = getInt[int](o.Get("num"))
+	obj.PlanetNum = getInt[int](o.Get("planetNum"))
 	obj.Position = GetVector(o.Get("position"))
 	obj.Tokens = GetSlice(o.Get("tokens"), GetBattleRecordToken)
 	obj.ActionsPerRound = GetSliceSlice(o.Get("actionsPerRound"), GetBattleRecordTokenAction)
@@ -205,10 +205,10 @@ func GetBattleRecordDestroyedToken(o js.Value) cs.BattleRecordDestroyedToken {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.Num = getInt[int](o)
-	obj.PlayerNum = getInt[int](o)
-	obj.DesignNum = getInt[int](o)
-	obj.Quantity = getInt[int](o)
+	obj.Num = getInt[int](o.Get("num"))
+	obj.PlayerNum = getInt[int](o.Get("playerNum"))
+	obj.DesignNum = getInt[int](o.Get("designNum"))
+	obj.Quantity = getInt[int](o.Get("quantity"))
 	return obj
 }
 
@@ -220,7 +220,7 @@ func GetBattleRecordStats(o js.Value) cs.BattleRecordStats {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.NumPlayers = getInt[int](o)
+	obj.NumPlayers = getInt[int](o.Get("numPlayers"))
 	obj.NumShipsByPlayer = GetMap[map[int]int, int, int](o.Get("numShipsByPlayer"), getInt, getInt)
 	obj.ShipsDestroyedByPlayer = GetMap[map[int]int, int, int](o.Get("shipsDestroyedByPlayer"), getInt, getInt)
 	obj.DamageTakenByPlayer = GetMap[map[int]int, int, int](o.Get("damageTakenByPlayer"), getInt, getInt)
@@ -236,16 +236,16 @@ func GetBattleRecordToken(o js.Value) cs.BattleRecordToken {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.Num = getInt[int](o)
-	obj.PlayerNum = getInt[int](o)
-	obj.DesignNum = getInt[int](o)
+	obj.Num = getInt[int](o.Get("num"))
+	obj.PlayerNum = getInt[int](o.Get("playerNum"))
+	obj.DesignNum = getInt[int](o.Get("designNum"))
 	obj.Position = GetBattleVector(o.Get("position"))
-	obj.Initiative = getInt[int](o)
-	obj.Mass = getInt[int](o)
-	obj.Armor = getInt[int](o)
-	obj.StackShields = getInt[int](o)
-	obj.Movement = getInt[int](o)
-	obj.StartingQuantity = getInt[int](o)
+	obj.Initiative = getInt[int](o.Get("initiative"))
+	obj.Mass = getInt[int](o.Get("mass"))
+	obj.Armor = getInt[int](o.Get("armor"))
+	obj.StackShields = getInt[int](o.Get("stackShields"))
+	obj.Movement = getInt[int](o.Get("movement"))
+	obj.StartingQuantity = getInt[int](o.Get("startingQuantity"))
 	obj.Tactic = GetBattleTactic(o.Get("tactic"))
 	obj.PrimaryTarget = GetBattleTarget(o.Get("primaryTarget"))
 	obj.SecondaryTarget = GetBattleTarget(o.Get("secondaryTarget"))
@@ -262,18 +262,18 @@ func GetBattleRecordTokenAction(o js.Value) cs.BattleRecordTokenAction {
 		return obj
 	}
 	obj.Type = GetBattleRecordTokenActionType(o.Get("type"))
-	obj.TokenNum = getInt[int](o)
-	obj.Round = getInt[int](o)
+	obj.TokenNum = getInt[int](o.Get("tokenNum"))
+	obj.Round = getInt[int](o.Get("round"))
 	obj.From = GetBattleVector(o.Get("from"))
 	obj.To = GetBattleVector(o.Get("to"))
-	obj.Slot = getInt[int](o)
-	obj.TargetNum = getInt[int](o)
+	obj.Slot = getInt[int](o.Get("slot"))
+	obj.TargetNum = getInt[int](o.Get("targetNum"))
 	obj.Target = getPointer(GetShipToken(o.Get("target")))
-	obj.TokensDestroyed = getInt[int](o)
-	obj.DamageDoneShields = getInt[int](o)
-	obj.DamageDoneArmor = getInt[int](o)
-	obj.TorpedoHits = getInt[int](o)
-	obj.TorpedoMisses = getInt[int](o)
+	obj.TokensDestroyed = getInt[int](o.Get("tokensDestroyed"))
+	obj.DamageDoneShields = getInt[int](o.Get("damageDoneShields"))
+	obj.DamageDoneArmor = getInt[int](o.Get("damageDoneArmor"))
+	obj.TorpedoHits = getInt[int](o.Get("torpedoHits"))
+	obj.TorpedoMisses = getInt[int](o.Get("torpedoMisses"))
 	return obj
 }
 
@@ -321,8 +321,8 @@ func GetBattleVector(o js.Value) cs.BattleVector {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.X = getInt[int](o)
-	obj.Y = getInt[int](o)
+	obj.X = getInt[int](o.Get("x"))
+	obj.Y = getInt[int](o.Get("y"))
 	return obj
 }
 
@@ -346,11 +346,11 @@ func GetBomb(o js.Value) cs.Bomb {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.Quantity = getInt[int](o)
-	obj.KillRate = getFloat[float64](o)
-	obj.MinKillRate = getInt[int](o)
-	obj.StructureDestroyRate = getFloat[float64](o)
-	obj.UnterraformRate = getInt[int](o)
+	obj.Quantity = getInt[int](o.Get("quantity"))
+	obj.KillRate = getFloat[float64](o.Get("killRate"))
+	obj.MinKillRate = getInt[int](o.Get("minKillRate"))
+	obj.StructureDestroyRate = getFloat[float64](o.Get("structureDestroyRate"))
+	obj.UnterraformRate = getInt[int](o.Get("unterraformRate"))
 	return obj
 }
 
@@ -362,14 +362,14 @@ func GetBombingResult(o js.Value) cs.BombingResult {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.BomberName = string(getString(o))
-	obj.NumBombers = getInt[int](o)
-	obj.ColonistsKilled = getInt[int](o)
-	obj.MinesDestroyed = getInt[int](o)
-	obj.FactoriesDestroyed = getInt[int](o)
-	obj.DefensesDestroyed = getInt[int](o)
+	obj.BomberName = string(getString(o.Get("bomberName")))
+	obj.NumBombers = getInt[int](o.Get("numBombers"))
+	obj.ColonistsKilled = getInt[int](o.Get("colonistsKilled"))
+	obj.MinesDestroyed = getInt[int](o.Get("minesDestroyed"))
+	obj.FactoriesDestroyed = getInt[int](o.Get("factoriesDestroyed"))
+	obj.DefensesDestroyed = getInt[int](o.Get("defensesDestroyed"))
 	obj.UnterraformAmount = GetHab(o.Get("unterraformAmount"))
-	obj.PlanetEmptied = getBool(o)
+	obj.PlanetEmptied = getBool(o.Get("planetEmptied"))
 	return obj
 }
 
@@ -381,10 +381,10 @@ func GetCargo(o js.Value) cs.Cargo {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.Ironium = getInt[int](o)
-	obj.Boranium = getInt[int](o)
-	obj.Germanium = getInt[int](o)
-	obj.Colonists = getInt[int](o)
+	obj.Ironium = getInt[int](o.Get("ironium"))
+	obj.Boranium = getInt[int](o.Get("boranium"))
+	obj.Germanium = getInt[int](o.Get("germanium"))
+	obj.Colonists = getInt[int](o.Get("colonists"))
 	return obj
 }
 
@@ -420,17 +420,17 @@ func GetCometStats(o js.Value) cs.CometStats {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.AllMinerals = getInt[int](o)
-	obj.AllRandomMinerals = getInt[int](o)
-	obj.BonusMinerals = getInt[int](o)
-	obj.BonusRandomMinerals = getInt[int](o)
-	obj.BonusMinConcentration = getInt[int](o)
-	obj.BonusRandomConcentration = getInt[int](o)
-	obj.BonusAffectsMinerals = getInt[int](o)
-	obj.MinTerraform = getInt[int](o)
-	obj.RandomTerraform = getInt[int](o)
-	obj.AffectsHabs = getInt[int](o)
-	obj.PopKilledPercent = getFloat[float64](o)
+	obj.AllMinerals = getInt[int](o.Get("minMinerals"))
+	obj.AllRandomMinerals = getInt[int](o.Get("randomMinerals"))
+	obj.BonusMinerals = getInt[int](o.Get("bonusMinerals"))
+	obj.BonusRandomMinerals = getInt[int](o.Get("bonusRandomMinerals"))
+	obj.BonusMinConcentration = getInt[int](o.Get("minConcentrationBonus"))
+	obj.BonusRandomConcentration = getInt[int](o.Get("randomConcentrationBonus"))
+	obj.BonusAffectsMinerals = getInt[int](o.Get("affectsMinerals"))
+	obj.MinTerraform = getInt[int](o.Get("minTerraform"))
+	obj.RandomTerraform = getInt[int](o.Get("randomTerraform"))
+	obj.AffectsHabs = getInt[int](o.Get("affectsHabs"))
+	obj.PopKilledPercent = getFloat[float64](o.Get("popKilledPercent"))
 	return obj
 }
 
@@ -442,10 +442,10 @@ func GetCost(o js.Value) cs.Cost {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.Ironium = getInt[int](o)
-	obj.Boranium = getInt[int](o)
-	obj.Germanium = getInt[int](o)
-	obj.Resources = getInt[int](o)
+	obj.Ironium = getInt[int](o.Get("ironium"))
+	obj.Boranium = getInt[int](o.Get("boranium"))
+	obj.Germanium = getInt[int](o.Get("germanium"))
+	obj.Resources = getInt[int](o.Get("resources"))
 	return obj
 }
 
@@ -457,7 +457,7 @@ func GetDBObject(o js.Value) cs.DBObject {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.ID = getInt[int64](o)
+	obj.ID = getInt[int64](o.Get("id"))
 	obj.CreatedAt = getTime(o.Get("createdAt"))
 	obj.UpdatedAt = getTime(o.Get("updatedAt"))
 	return obj
@@ -471,7 +471,7 @@ func GetDefense(o js.Value) cs.Defense {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.DefenseCoverage = getFloat[float64](o)
+	obj.DefenseCoverage = getFloat[float64](o.Get("defenseCoverage"))
 	return obj
 }
 
@@ -495,9 +495,9 @@ func GetEngine(o js.Value) cs.Engine {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.IdealSpeed = getInt[int](o)
-	obj.FreeSpeed = getInt[int](o)
-	obj.MaxSafeSpeed = getInt[int](o)
+	obj.IdealSpeed = getInt[int](o.Get("idealSpeed"))
+	obj.FreeSpeed = getInt[int](o.Get("freeSpeed"))
+	obj.MaxSafeSpeed = getInt[int](o.Get("maxSafeSpeed"))
 	obj.FuelUsage = [11]int(GetSlice[int](o.Get("fuelUsage"), getInt))
 	return obj
 }
@@ -510,17 +510,17 @@ func GetFleet(o js.Value) cs.Fleet {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.PlanetNum = getInt[int](o)
-	obj.BaseName = string(getString(o))
+	obj.PlanetNum = getInt[int](o.Get("planetNum"))
+	obj.BaseName = string(getString(o.Get("baseName")))
 	obj.Cargo = GetCargo(o.Get("cargo"))
-	obj.Fuel = getInt[int](o)
-	obj.Age = getInt[int](o)
+	obj.Fuel = getInt[int](o.Get("fuel"))
+	obj.Age = getInt[int](o.Get("age"))
 	obj.Tokens = GetSlice(o.Get("tokens"), GetShipToken)
 	obj.Heading = GetVector(o.Get("heading"))
-	obj.WarpSpeed = getInt[int](o)
+	obj.WarpSpeed = getInt[int](o.Get("warpSpeed"))
 	obj.PreviousPosition = getPointer(GetVector(o.Get("previousPosition")))
-	obj.OrbitingPlanetNum = getInt[int](o)
-	obj.Starbase = getBool(o)
+	obj.OrbitingPlanetNum = getInt[int](o.Get("orbitingPlanetNum"))
+	obj.Starbase = getBool(o.Get("starbase"))
 	obj.Spec = GetFleetSpec(o.Get("spec"))
 	return obj
 }
@@ -535,16 +535,16 @@ func GetFleetIntel(o js.Value) cs.FleetIntel {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.BaseName = string(getString(o))
+	obj.BaseName = string(getString(o.Get("baseName")))
 	obj.Heading = GetVector(o.Get("heading"))
-	obj.OrbitingPlanetNum = getInt[int](o)
-	obj.WarpSpeed = getInt[int](o)
-	obj.Mass = getInt[int](o)
+	obj.OrbitingPlanetNum = getInt[int](o.Get("orbitingPlanetNum"))
+	obj.WarpSpeed = getInt[int](o.Get("warpSpeed"))
+	obj.Mass = getInt[int](o.Get("mass"))
 	obj.Cargo = GetCargo(o.Get("cargo"))
-	obj.CargoDiscovered = getBool(o)
-	obj.Freighter = getBool(o)
-	obj.ScanRange = getInt[int](o)
-	obj.ScanRangePen = getInt[int](o)
+	obj.CargoDiscovered = getBool(o.Get("cargoDiscovered"))
+	obj.Freighter = getBool(o.Get("freighter"))
+	obj.ScanRange = getInt[int](o.Get("scanRange"))
+	obj.ScanRangePen = getInt[int](o.Get("scanRangePen"))
 	obj.Tokens = GetSlice(o.Get("tokens"), GetShipToken)
 	return obj
 }
@@ -559,8 +559,8 @@ func GetFleetOrders(o js.Value) cs.FleetOrders {
 		return obj
 	}
 	obj.Waypoints = GetSlice(o.Get("waypoints"), GetWaypoint)
-	obj.RepeatOrders = getBool(o)
-	obj.BattlePlanNum = getInt[int](o)
+	obj.RepeatOrders = getBool(o.Get("repeatOrders"))
+	obj.BattlePlanNum = getInt[int](o.Get("battlePlanNum"))
 	obj.Purpose = GetFleetPurpose(o.Get("purpose"))
 	return obj
 }
@@ -585,19 +585,19 @@ func GetFleetSpec(o js.Value) cs.FleetSpec {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.BaseCloakedCargo = getInt[int](o)
-	obj.BasePacketSpeed = getInt[int](o)
-	obj.HasMassDriver = getBool(o)
-	obj.HasStargate = getBool(o)
-	obj.MassDriver = string(getString(o))
-	obj.MassEmpty = getInt[int](o)
-	obj.MaxHullMass = getInt[int](o)
-	obj.MaxRange = getInt[int](o)
+	obj.BaseCloakedCargo = getInt[int](o.Get("baseCloakedCargo"))
+	obj.BasePacketSpeed = getInt[int](o.Get("basePacketSpeed"))
+	obj.HasMassDriver = getBool(o.Get("hasMassDriver"))
+	obj.HasStargate = getBool(o.Get("hasStargate"))
+	obj.MassDriver = string(getString(o.Get("massDriver")))
+	obj.MassEmpty = getInt[int](o.Get("massEmpty"))
+	obj.MaxHullMass = getInt[int](o.Get("maxHullMass"))
+	obj.MaxRange = getInt[int](o.Get("maxRange"))
 	obj.Purposes = GetMap[map[cs.ShipDesignPurpose]bool, cs.ShipDesignPurpose, bool](o.Get("purposes"), GetShipDesignPurpose, getBool)
-	obj.SafeHullMass = getInt[int](o)
-	obj.SafeRange = getInt[int](o)
-	obj.Stargate = string(getString(o))
-	obj.TotalShips = getInt[int](o)
+	obj.SafeHullMass = getInt[int](o.Get("safeHullMass"))
+	obj.SafeRange = getInt[int](o.Get("safeRange"))
+	obj.Stargate = string(getString(o.Get("stargate")))
+	obj.TotalShips = getInt[int](o.Get("totalShips"))
 	return obj
 }
 
@@ -610,8 +610,8 @@ func GetGameDBObject(o js.Value) cs.GameDBObject {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.ID = getInt[int64](o)
-	obj.GameID = getInt[int64](o)
+	obj.ID = getInt[int64](o.Get("id"))
+	obj.GameID = getInt[int64](o.Get("gameId"))
 	obj.CreatedAt = getTime(o.Get("createdAt"))
 	obj.UpdatedAt = getTime(o.Get("updatedAt"))
 	return obj
@@ -649,9 +649,9 @@ func GetHab(o js.Value) cs.Hab {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.Grav = getInt[int](o)
-	obj.Temp = getInt[int](o)
-	obj.Rad = getInt[int](o)
+	obj.Grav = getInt[int](o.Get("grav"))
+	obj.Temp = getInt[int](o.Get("temp"))
+	obj.Rad = getInt[int](o.Get("rad"))
 	return obj
 }
 
@@ -687,10 +687,10 @@ func GetIntel(o js.Value) cs.Intel {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.Name = string(getString(o))
-	obj.Num = getInt[int](o)
-	obj.PlayerNum = getInt[int](o)
-	obj.ReportAge = getInt[int](o)
+	obj.Name = string(getString(o.Get("name")))
+	obj.Num = getInt[int](o.Get("num"))
+	obj.PlayerNum = getInt[int](o.Get("playerNum"))
+	obj.ReportAge = getInt[int](o.Get("reportAge"))
 	return obj
 }
 
@@ -716,32 +716,32 @@ func GetLRTSpec(o js.Value) cs.LRTSpec {
 	}
 	obj.LRT = GetLRT(o.Get("lrt"))
 	obj.StartingFleets = GetSlice(o.Get("startingFleets"), GetStartingFleet)
-	obj.PointCost = getInt[int](o)
+	obj.PointCost = getInt[int](o.Get("pointCost"))
 	obj.StartingTechLevels = GetTechLevel(o.Get("startingTechLevels"))
 	obj.TechCostOffset = GetTechCostOffset(o.Get("techCostOffset"))
-	obj.NewTechCostFactorOffset = getFloat[float64](o)
-	obj.MiniaturizationMax = getFloat[float64](o)
-	obj.MiniaturizationPerLevel = getFloat[float64](o)
-	obj.NoAdvancedScanners = getBool(o)
-	obj.ScanRangeFactorOffset = getFloat[float64](o)
-	obj.FuelEfficiencyOffset = getFloat[float64](o)
-	obj.MaxPopulationOffset = getFloat[float64](o)
+	obj.NewTechCostFactorOffset = getFloat[float64](o.Get("newTechCostFactorOffset"))
+	obj.MiniaturizationMax = getFloat[float64](o.Get("miniaturizationMax"))
+	obj.MiniaturizationPerLevel = getFloat[float64](o.Get("miniaturizationPerLevel"))
+	obj.NoAdvancedScanners = getBool(o.Get("noAdvancedScanners"))
+	obj.ScanRangeFactorOffset = getFloat[float64](o.Get("scanRangeFactorOffset"))
+	obj.FuelEfficiencyOffset = getFloat[float64](o.Get("fuelEfficiencyOffset"))
+	obj.MaxPopulationOffset = getFloat[float64](o.Get("maxPopulationOffset"))
 	obj.TerraformCostOffset = GetCost(o.Get("terraformCostOffset"))
-	obj.MineralAlchemyCostOffset = getInt[int](o)
-	obj.ScrapMineralOffset = getFloat[float64](o)
-	obj.ScrapMineralOffsetStarbase = getFloat[float64](o)
-	obj.ScrapResourcesOffset = getFloat[float64](o)
-	obj.ScrapResourcesOffsetStarbase = getFloat[float64](o)
-	obj.StartingPopulationFactorDelta = getFloat[float64](o)
-	obj.StarbaseBuiltInCloakUnits = getInt[int](o)
-	obj.StarbaseCostFactorOffset = getFloat[float64](o)
-	obj.ResearchFactorOffset = getFloat[float64](o)
-	obj.ResearchSplashDamage = getFloat[float64](o)
-	obj.ShieldStrengthFactorOffset = getFloat[float64](o)
-	obj.ShieldRegenerationRateOffset = getFloat[float64](o)
-	obj.ArmorStrengthFactorOffset = getFloat[float64](o)
-	obj.EngineFailureRateOffset = getFloat[float64](o)
-	obj.EngineReliableSpeed = getInt[int](o)
+	obj.MineralAlchemyCostOffset = getInt[int](o.Get("mineralAlchemyCostOffset"))
+	obj.ScrapMineralOffset = getFloat[float64](o.Get("scrapMineralOffset"))
+	obj.ScrapMineralOffsetStarbase = getFloat[float64](o.Get("scrapMineralOffsetStarbase"))
+	obj.ScrapResourcesOffset = getFloat[float64](o.Get("scrapResourcesOffset"))
+	obj.ScrapResourcesOffsetStarbase = getFloat[float64](o.Get("scrapResourcesOffsetStarbase"))
+	obj.StartingPopulationFactorDelta = getFloat[float64](o.Get("startingPopulationFactorDelta"))
+	obj.StarbaseBuiltInCloakUnits = getInt[int](o.Get("starbaseBuiltInCloakUnits"))
+	obj.StarbaseCostFactorOffset = getFloat[float64](o.Get("starbaseCostFactorOffset"))
+	obj.ResearchFactorOffset = getFloat[float64](o.Get("researchFactorOffset"))
+	obj.ResearchSplashDamage = getFloat[float64](o.Get("researchSplashDamage"))
+	obj.ShieldStrengthFactorOffset = getFloat[float64](o.Get("shieldStrengthFactorOffset"))
+	obj.ShieldRegenerationRateOffset = getFloat[float64](o.Get("shieldRegenerationRateOffset"))
+	obj.ArmorStrengthFactorOffset = getFloat[float64](o.Get("armorStrengthFactorOffset"))
+	obj.EngineFailureRateOffset = getFloat[float64](o.Get("engineFailureRateOffset"))
+	obj.EngineReliableSpeed = getInt[int](o.Get("engineReliableSpeed"))
 	return obj
 }
 
@@ -755,9 +755,9 @@ func GetMapObject(o js.Value) cs.MapObject {
 	}
 	obj.Type = GetMapObjectType(o.Get("type"))
 	obj.Position = GetVector(o.Get("position"))
-	obj.Num = getInt[int](o)
-	obj.PlayerNum = getInt[int](o)
-	obj.Name = string(getString(o))
+	obj.Num = getInt[int](o.Get("num"))
+	obj.PlayerNum = getInt[int](o.Get("playerNum"))
+	obj.Name = string(getString(o.Get("name")))
 	obj.Tags = GetTags(o.Get("tags"))
 	return obj
 }
@@ -799,7 +799,7 @@ func GetMineField(o js.Value) cs.MineField {
 		return obj
 	}
 	obj.MineFieldType = GetMineFieldType(o.Get("mineFieldType"))
-	obj.NumMines = getInt[int](o)
+	obj.NumMines = getInt[int](o.Get("numMines"))
 	obj.Spec = GetMineFieldSpec(o.Get("spec"))
 	return obj
 }
@@ -814,7 +814,7 @@ func GetMineFieldIntel(o js.Value) cs.MineFieldIntel {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.NumMines = getInt[int](o)
+	obj.NumMines = getInt[int](o.Get("numMines"))
 	obj.MineFieldType = GetMineFieldType(o.Get("mineFieldType"))
 	obj.Spec = GetMineFieldSpec(o.Get("spec"))
 	return obj
@@ -829,7 +829,7 @@ func GetMineFieldOrders(o js.Value) cs.MineFieldOrders {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.Detonate = getBool(o)
+	obj.Detonate = getBool(o.Get("detonate"))
 	return obj
 }
 
@@ -841,8 +841,8 @@ func GetMineFieldSpec(o js.Value) cs.MineFieldSpec {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.Radius = getFloat[float64](o)
-	obj.DecayRate = getInt[int](o)
+	obj.Radius = getFloat[float64](o.Get("radius"))
+	obj.DecayRate = getInt[int](o.Get("decayRate"))
 	return obj
 }
 
@@ -854,15 +854,15 @@ func GetMineFieldStats(o js.Value) cs.MineFieldStats {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.MinDamagePerFleetRS = getInt[int](o)
-	obj.DamagePerEngineRS = getInt[int](o)
-	obj.MaxSpeed = getInt[int](o)
-	obj.ChanceOfHit = getFloat[float64](o)
-	obj.MinDamagePerFleet = getInt[int](o)
-	obj.DamagePerEngine = getInt[int](o)
-	obj.SweepFactor = getFloat[float64](o)
-	obj.MinDecay = getInt[int](o)
-	obj.CanDetonate = getBool(o)
+	obj.MinDamagePerFleetRS = getInt[int](o.Get("minDamagePerFleetRS"))
+	obj.DamagePerEngineRS = getInt[int](o.Get("damagePerEngineRS"))
+	obj.MaxSpeed = getInt[int](o.Get("maxSpeed"))
+	obj.ChanceOfHit = getFloat[float64](o.Get("chanceOfHit"))
+	obj.MinDamagePerFleet = getInt[int](o.Get("minDamagePerFleet"))
+	obj.DamagePerEngine = getInt[int](o.Get("damagePerEngine"))
+	obj.SweepFactor = getFloat[float64](o.Get("sweepFactor"))
+	obj.MinDecay = getInt[int](o.Get("minDecay"))
+	obj.CanDetonate = getBool(o.Get("canDetonate"))
 	return obj
 }
 
@@ -886,9 +886,9 @@ func GetMineral(o js.Value) cs.Mineral {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.Ironium = getInt[int](o)
-	obj.Boranium = getInt[int](o)
-	obj.Germanium = getInt[int](o)
+	obj.Ironium = getInt[int](o.Get("ironium"))
+	obj.Boranium = getInt[int](o.Get("boranium"))
+	obj.Germanium = getInt[int](o.Get("germanium"))
 	return obj
 }
 
@@ -900,9 +900,9 @@ func GetMineralPacketDamage(o js.Value) cs.MineralPacketDamage {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.Killed = getInt[int](o)
-	obj.DefensesDestroyed = getInt[int](o)
-	obj.Uncaught = getInt[int](o)
+	obj.Killed = getInt[int](o.Get("killed"))
+	obj.DefensesDestroyed = getInt[int](o.Get("defensesDestroyed"))
+	obj.Uncaught = getInt[int](o.Get("uncaught"))
 	return obj
 }
 
@@ -914,12 +914,12 @@ func GetMineralPacketIntel(o js.Value) cs.MineralPacketIntel {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.WarpSpeed = getInt[int](o)
+	obj.WarpSpeed = getInt[int](o.Get("warpSpeed"))
 	obj.Heading = GetVector(o.Get("heading"))
 	obj.Cargo = GetCargo(o.Get("cargo"))
-	obj.TargetPlanetNum = getInt[int](o)
-	obj.ScanRange = getInt[int](o)
-	obj.ScanRangePen = getInt[int](o)
+	obj.TargetPlanetNum = getInt[int](o.Get("targetPlanetNum"))
+	obj.ScanRange = getInt[int](o.Get("scanRange"))
+	obj.ScanRangePen = getInt[int](o.Get("scanRangePen"))
 	return obj
 }
 
@@ -944,9 +944,9 @@ func GetMiniaturizationSpec(o js.Value) cs.MiniaturizationSpec {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.NewTechCostFactor = getFloat[float64](o)
-	obj.MiniaturizationMax = getFloat[float64](o)
-	obj.MiniaturizationPerLevel = getFloat[float64](o)
+	obj.NewTechCostFactor = getFloat[float64](o.Get("newTechCostFactor"))
+	obj.MiniaturizationMax = getFloat[float64](o.Get("miniaturizationMax"))
+	obj.MiniaturizationPerLevel = getFloat[float64](o.Get("miniaturizationPerLevel"))
 	return obj
 }
 
@@ -958,9 +958,9 @@ func GetMysteryTrader(o js.Value) cs.MysteryTrader {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.WarpSpeed = getInt[int](o)
+	obj.WarpSpeed = getInt[int](o.Get("warpSpeed"))
 	obj.Destination = GetVector(o.Get("destination"))
-	obj.RequestedBoon = getInt[int](o)
+	obj.RequestedBoon = getInt[int](o.Get("requestedBoon"))
 	obj.RewardType = GetMysteryTraderRewardType(o.Get("rewardType"))
 	obj.Heading = GetVector(o.Get("heading"))
 	obj.PlayersRewarded = GetMap[map[int]bool, int, bool](o.Get("playersRewarded"), getInt, getBool)
@@ -977,9 +977,9 @@ func GetMysteryTraderIntel(o js.Value) cs.MysteryTraderIntel {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.WarpSpeed = getInt[int](o)
+	obj.WarpSpeed = getInt[int](o.Get("warpSpeed"))
 	obj.Heading = GetVector(o.Get("heading"))
-	obj.RequestedBoon = getInt[int](o)
+	obj.RequestedBoon = getInt[int](o.Get("requestedBoon"))
 	return obj
 }
 
@@ -994,9 +994,9 @@ func GetMysteryTraderReward(o js.Value) cs.MysteryTraderReward {
 	}
 	obj.Type = GetMysteryTraderRewardType(o.Get("type"))
 	obj.TechLevels = GetTechLevel(o.Get("techLevels"))
-	obj.Tech = string(getString(o))
+	obj.Tech = string(getString(o.Get("tech")))
 	obj.Ship = GetShipDesign(o.Get("ship"))
-	obj.ShipCount = getInt[int](o)
+	obj.ShipCount = getInt[int](o.Get("shipCount"))
 	return obj
 }
 
@@ -1021,16 +1021,16 @@ func GetMysteryTraderRules(o js.Value) cs.MysteryTraderRules {
 		return obj
 	}
 	obj.ChanceSpawn = GetSlice[int](o.Get("chanceSpawn"), getInt)
-	obj.ChanceMaxTechGetsPart = getInt[int](o)
-	obj.ChanceCourseChange = getInt[int](o)
-	obj.ChanceSpeedUpOnly = getInt[int](o)
-	obj.ChanceAgain = getInt[int](o)
-	obj.MinYear = getInt[int](o)
-	obj.EvenYearOnly = getBool(o)
-	obj.MinWarp = getInt[int](o)
-	obj.MaxWarp = getInt[int](o)
-	obj.MaxMysteryTraders = getInt[int](o)
-	obj.RequestedBoon = getInt[int](o)
+	obj.ChanceMaxTechGetsPart = getInt[int](o.Get("chanceMaxTechGetsPart"))
+	obj.ChanceCourseChange = getInt[int](o.Get("chanceCourseChange"))
+	obj.ChanceSpeedUpOnly = getInt[int](o.Get("chanceSpeedUpOnly"))
+	obj.ChanceAgain = getInt[int](o.Get("chanceAgain"))
+	obj.MinYear = getInt[int](o.Get("minYear"))
+	obj.EvenYearOnly = getBool(o.Get("evenYearOnly"))
+	obj.MinWarp = getInt[int](o.Get("minWarp"))
+	obj.MaxWarp = getInt[int](o.Get("maxWarp"))
+	obj.MaxMysteryTraders = getInt[int](o.Get("maxMysteryTraders"))
+	obj.RequestedBoon = getInt[int](o.Get("requestedBoon"))
 	obj.GenesisDeviceCost = GetCost(o.Get("genesisDeviceCost"))
 	obj.TechBoon = GetSlice(o.Get("techBoon"), GetMysteryTraderTechBoonRules)
 	return obj
@@ -1055,8 +1055,8 @@ func GetMysteryTraderTechBoonMineralsReward(o js.Value) cs.MysteryTraderTechBoon
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.MineralsGiven = getInt[int](o)
-	obj.Reward = getInt[int](o)
+	obj.MineralsGiven = getInt[int](o.Get("mineralsGiven"))
+	obj.Reward = getInt[int](o.Get("reward"))
 	return obj
 }
 
@@ -1068,7 +1068,7 @@ func GetMysteryTraderTechBoonRules(o js.Value) cs.MysteryTraderTechBoonRules {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.TechLevels = getInt[int](o)
+	obj.TechLevels = getInt[int](o.Get("techLevels"))
 	obj.Rewards = GetSlice(o.Get("rewards"), GetMysteryTraderTechBoonMineralsReward)
 	return obj
 }
@@ -1118,60 +1118,60 @@ func GetPRTSpec(o js.Value) cs.PRTSpec {
 		return obj
 	}
 	obj.PRT = GetPRT(o.Get("prt"))
-	obj.PointCost = getInt[int](o)
+	obj.PointCost = getInt[int](o.Get("pointCost"))
 	obj.StartingTechLevels = GetTechLevel(o.Get("startingTechLevels"))
 	obj.StartingPlanets = GetSlice(o.Get("startingPlanets"), GetStartingPlanet)
 	obj.TechCostOffset = GetTechCostOffset(o.Get("techCostOffset"))
-	obj.MineralsPerSingleMineralPacket = getInt[int](o)
-	obj.MineralsPerMixedMineralPacket = getInt[int](o)
-	obj.PacketResourceCost = getInt[int](o)
-	obj.PacketMineralCostFactor = getFloat[float64](o)
-	obj.PacketReceiverFactor = getFloat[float64](o)
-	obj.PacketDecayFactor = getFloat[float64](o)
-	obj.PacketOverSafeWarpPenalty = getInt[int](o)
-	obj.PacketBuiltInScanner = getBool(o)
-	obj.DetectPacketDestinationStarbases = getBool(o)
-	obj.DetectAllPackets = getBool(o)
-	obj.PacketTerraformChance = getFloat[float64](o)
-	obj.PacketPermaformChance = getFloat[float64](o)
-	obj.PacketPermaTerraformSizeUnit = getInt[int](o)
-	obj.CanGateCargo = getBool(o)
-	obj.CanDetectStargatePlanets = getBool(o)
-	obj.ShipsVanishInVoid = getBool(o)
-	obj.BuiltInScannerMultiplier = getInt[int](o)
-	obj.TechsCostExtraLevel = getInt[int](o)
-	obj.FreighterGrowthFactor = getFloat[float64](o)
-	obj.GrowthFactor = getFloat[float64](o)
-	obj.MaxPopulationOffset = getFloat[float64](o)
-	obj.BuiltInCloakUnits = getInt[int](o)
+	obj.MineralsPerSingleMineralPacket = getInt[int](o.Get("mineralsPerSingleMineralPacket"))
+	obj.MineralsPerMixedMineralPacket = getInt[int](o.Get("mineralsPerMixedMineralPacket"))
+	obj.PacketResourceCost = getInt[int](o.Get("packetResourceCost"))
+	obj.PacketMineralCostFactor = getFloat[float64](o.Get("packetMineralCostFactor"))
+	obj.PacketReceiverFactor = getFloat[float64](o.Get("packetReceiverFactor"))
+	obj.PacketDecayFactor = getFloat[float64](o.Get("packetDecayFactor"))
+	obj.PacketOverSafeWarpPenalty = getInt[int](o.Get("packetOverSafeWarpPenalty"))
+	obj.PacketBuiltInScanner = getBool(o.Get("packetBuiltInScanner"))
+	obj.DetectPacketDestinationStarbases = getBool(o.Get("detectPacketDestinationStarbases"))
+	obj.DetectAllPackets = getBool(o.Get("detectAllPackets"))
+	obj.PacketTerraformChance = getFloat[float64](o.Get("packetTerraformChance"))
+	obj.PacketPermaformChance = getFloat[float64](o.Get("packetPermaformChance"))
+	obj.PacketPermaTerraformSizeUnit = getInt[int](o.Get("packetPermaTerraformSizeUnit"))
+	obj.CanGateCargo = getBool(o.Get("canGateCargo"))
+	obj.CanDetectStargatePlanets = getBool(o.Get("canDetectStargatePlanets"))
+	obj.ShipsVanishInVoid = getBool(o.Get("shipsVanishInVoid"))
+	obj.BuiltInScannerMultiplier = getInt[int](o.Get("builtInScannerMultiplier"))
+	obj.TechsCostExtraLevel = getInt[int](o.Get("techsCostExtraLevel"))
+	obj.FreighterGrowthFactor = getFloat[float64](o.Get("freighterGrowthFactor"))
+	obj.GrowthFactor = getFloat[float64](o.Get("growthFactor"))
+	obj.MaxPopulationOffset = getFloat[float64](o.Get("maxPopulationOffset"))
+	obj.BuiltInCloakUnits = getInt[int](o.Get("builtInCloakUnits"))
 	obj.StealsResearch = GetStealsResearch(o.Get("stealsResearch"))
-	obj.FreeCargoCloaking = getBool(o)
-	obj.MineFieldsAreScanners = getBool(o)
-	obj.MineFieldRateMoveFactor = getFloat[float64](o)
-	obj.MineFieldSafeWarpBonus = getInt[int](o)
-	obj.MineFieldMinDecayFactor = getFloat[float64](o)
-	obj.MineFieldBaseDecayRate = getFloat[float64](o)
-	obj.MineFieldPlanetDecayRate = getFloat[float64](o)
-	obj.MineFieldMaxDecayRate = getFloat[float64](o)
-	obj.CanDetonateMineFields = getBool(o)
-	obj.MineFieldDetonateDecayRate = getFloat[float64](o)
-	obj.DiscoverDesignOnScan = getBool(o)
-	obj.CanRemoteMineOwnPlanets = getBool(o)
-	obj.InvasionAttackBonus = getFloat[float64](o)
-	obj.InvasionDefendBonus = getFloat[float64](o)
-	obj.MovementBonus = getInt[int](o)
-	obj.Instaforming = getBool(o)
-	obj.PermaformChance = getFloat[float64](o)
-	obj.PermaformPopulation = getInt[int](o)
-	obj.RepairFactor = getFloat[float64](o)
-	obj.StarbaseRepairFactor = getFloat[float64](o)
-	obj.StarbaseCostFactor = getFloat[float64](o)
-	obj.InnateMining = getBool(o)
-	obj.InnateResources = getBool(o)
-	obj.InnateScanner = getBool(o)
-	obj.InnatePopulationFactor = getFloat[float64](o)
-	obj.CanBuildDefenses = getBool(o)
-	obj.LivesOnStarbases = getBool(o)
+	obj.FreeCargoCloaking = getBool(o.Get("freeCargoCloaking"))
+	obj.MineFieldsAreScanners = getBool(o.Get("mineFieldsAreScanners"))
+	obj.MineFieldRateMoveFactor = getFloat[float64](o.Get("mineFieldRateMoveFactor"))
+	obj.MineFieldSafeWarpBonus = getInt[int](o.Get("mineFieldSafeWarpBonus"))
+	obj.MineFieldMinDecayFactor = getFloat[float64](o.Get("mineFieldMinDecayFactor"))
+	obj.MineFieldBaseDecayRate = getFloat[float64](o.Get("mineFieldBaseDecayRate"))
+	obj.MineFieldPlanetDecayRate = getFloat[float64](o.Get("mineFieldPlanetDecayRate"))
+	obj.MineFieldMaxDecayRate = getFloat[float64](o.Get("mineFieldMaxDecayRate"))
+	obj.CanDetonateMineFields = getBool(o.Get("canDetonateMineFields"))
+	obj.MineFieldDetonateDecayRate = getFloat[float64](o.Get("mineFieldDetonateDecayRate"))
+	obj.DiscoverDesignOnScan = getBool(o.Get("discoverDesignOnScan"))
+	obj.CanRemoteMineOwnPlanets = getBool(o.Get("canRemoteMineOwnPlanets"))
+	obj.InvasionAttackBonus = getFloat[float64](o.Get("invasionAttackBonus"))
+	obj.InvasionDefendBonus = getFloat[float64](o.Get("invasionDefendBonus"))
+	obj.MovementBonus = getInt[int](o.Get("movementBonus"))
+	obj.Instaforming = getBool(o.Get("instaforming"))
+	obj.PermaformChance = getFloat[float64](o.Get("permaformChance"))
+	obj.PermaformPopulation = getInt[int](o.Get("permaformPopulation"))
+	obj.RepairFactor = getFloat[float64](o.Get("repairFactor"))
+	obj.StarbaseRepairFactor = getFloat[float64](o.Get("starbaseRepairFactor"))
+	obj.StarbaseCostFactor = getFloat[float64](o.Get("starbaseCostFactor"))
+	obj.InnateMining = getBool(o.Get("innateMining"))
+	obj.InnateResources = getBool(o.Get("innateResources"))
+	obj.InnateScanner = getBool(o.Get("innateScanner"))
+	obj.InnatePopulationFactor = getFloat[float64](o.Get("innatePopulationFactor"))
+	obj.CanBuildDefenses = getBool(o.Get("canBuildDefenses"))
+	obj.LivesOnStarbases = getBool(o.Get("livesOnStarbases"))
 	return obj
 }
 
@@ -1189,11 +1189,11 @@ func GetPlanet(o js.Value) cs.Planet {
 	obj.MineralConcentration = GetMineral(o.Get("mineralConcentration"))
 	obj.MineYears = GetMineral(o.Get("mineYears"))
 	obj.Cargo = GetCargo(o.Get("cargo"))
-	obj.Mines = getInt[int](o)
-	obj.Factories = getInt[int](o)
-	obj.Defenses = getInt[int](o)
-	obj.Homeworld = getBool(o)
-	obj.Scanner = getBool(o)
+	obj.Mines = getInt[int](o.Get("mines"))
+	obj.Factories = getInt[int](o.Get("factories"))
+	obj.Defenses = getInt[int](o.Get("defenses"))
+	obj.Homeworld = getBool(o.Get("homeworld"))
+	obj.Scanner = getBool(o.Get("scanner"))
 	obj.Spec = GetPlanetSpec(o.Get("spec"))
 	return obj
 }
@@ -1216,10 +1216,10 @@ func GetPlanetIntel(o js.Value) cs.PlanetIntel {
 	obj.MineralConcentration = GetMineral(o.Get("mineralConcentration"))
 	obj.Starbase = getPointer(GetFleetIntel(o.Get("starbase")))
 	obj.Cargo = GetCargo(o.Get("cargo"))
-	obj.CargoDiscovered = getBool(o)
-	obj.PlanetHabitability = getInt[int](o)
-	obj.PlanetHabitabilityTerraformed = getInt[int](o)
-	obj.Homeworld = getBool(o)
+	obj.CargoDiscovered = getBool(o.Get("cargoDiscovered"))
+	obj.PlanetHabitability = getInt[int](o.Get("planetHabitability"))
+	obj.PlanetHabitabilityTerraformed = getInt[int](o.Get("planetHabitabilityTerraformed"))
+	obj.Homeworld = getBool(o.Get("homeworld"))
 	obj.Spec = GetPlanetSpec(o.Get("spec"))
 	return obj
 }
@@ -1233,13 +1233,13 @@ func GetPlanetOrders(o js.Value) cs.PlanetOrders {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.ContributesOnlyLeftoverToResearch = getBool(o)
+	obj.ContributesOnlyLeftoverToResearch = getBool(o.Get("contributesOnlyLeftoverToResearch"))
 	obj.ProductionQueue = GetSlice(o.Get("productionQueue"), GetProductionQueueItem)
 	obj.RouteTargetType = GetMapObjectType(o.Get("routeTargetType"))
-	obj.RouteTargetNum = getInt[int](o)
-	obj.RouteTargetPlayerNum = getInt[int](o)
-	obj.PacketTargetNum = getInt[int](o)
-	obj.PacketSpeed = getInt[int](o)
+	obj.RouteTargetNum = getInt[int](o.Get("routeTargetNum"))
+	obj.RouteTargetPlayerNum = getInt[int](o.Get("routeTargetPlayerNum"))
+	obj.PacketTargetNum = getInt[int](o.Get("packetTargetNum"))
+	obj.PacketSpeed = getInt[int](o.Get("packetSpeed"))
 	return obj
 }
 
@@ -1251,32 +1251,32 @@ func GetPlanetSpec(o js.Value) cs.PlanetSpec {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.CanTerraform = getBool(o)
-	obj.Defense = string(getString(o))
-	obj.DefenseCoverage = getFloat[float64](o)
-	obj.DefenseCoverageSmart = getFloat[float64](o)
-	obj.GrowthAmount = getInt[int](o)
-	obj.Habitability = getInt[int](o)
-	obj.MaxDefenses = getInt[int](o)
-	obj.MaxFactories = getInt[int](o)
-	obj.MaxMines = getInt[int](o)
-	obj.MaxPopulation = getInt[int](o)
-	obj.MaxPossibleFactories = getInt[int](o)
-	obj.MaxPossibleMines = getInt[int](o)
+	obj.CanTerraform = getBool(o.Get("canTerraform"))
+	obj.Defense = string(getString(o.Get("defense")))
+	obj.DefenseCoverage = getFloat[float64](o.Get("defenseCoverage"))
+	obj.DefenseCoverageSmart = getFloat[float64](o.Get("defenseCoverageSmart"))
+	obj.GrowthAmount = getInt[int](o.Get("growthAmount"))
+	obj.Habitability = getInt[int](o.Get("habitability"))
+	obj.MaxDefenses = getInt[int](o.Get("maxDefenses"))
+	obj.MaxFactories = getInt[int](o.Get("maxFactories"))
+	obj.MaxMines = getInt[int](o.Get("maxMines"))
+	obj.MaxPopulation = getInt[int](o.Get("maxPopulation"))
+	obj.MaxPossibleFactories = getInt[int](o.Get("maxPossibleFactories"))
+	obj.MaxPossibleMines = getInt[int](o.Get("maxPossibleMines"))
 	obj.MiningOutput = GetMineral(o.Get("miningOutput"))
-	obj.Population = getInt[int](o)
-	obj.PopulationDensity = getFloat[float64](o)
-	obj.ResourcesPerYear = getInt[int](o)
-	obj.ResourcesPerYearAvailable = getInt[int](o)
-	obj.ResourcesPerYearResearch = getInt[int](o)
-	obj.ResourcesPerYearResearchEstimatedLeftover = getInt[int](o)
-	obj.Scanner = string(getString(o))
-	obj.ScanRange = getInt[int](o)
-	obj.ScanRangePen = getInt[int](o)
+	obj.Population = getInt[int](o.Get("population"))
+	obj.PopulationDensity = getFloat[float64](o.Get("populationDensity"))
+	obj.ResourcesPerYear = getInt[int](o.Get("resourcesPerYear"))
+	obj.ResourcesPerYearAvailable = getInt[int](o.Get("resourcesPerYearAvailable"))
+	obj.ResourcesPerYearResearch = getInt[int](o.Get("resourcesPerYearResearch"))
+	obj.ResourcesPerYearResearchEstimatedLeftover = getInt[int](o.Get("resourcesPerYearResearchEstimatedLeftover"))
+	obj.Scanner = string(getString(o.Get("scanner")))
+	obj.ScanRange = getInt[int](o.Get("scanRange"))
+	obj.ScanRangePen = getInt[int](o.Get("scanRangePen"))
 	obj.TerraformAmount = GetHab(o.Get("terraformAmount"))
 	obj.MinTerraformAmount = GetHab(o.Get("minTerraformAmount"))
-	obj.TerraformedHabitability = getInt[int](o)
-	obj.Contested = getBool(o)
+	obj.TerraformedHabitability = getInt[int](o.Get("terraformedHabitability"))
+	obj.Contested = getBool(o.Get("contested"))
 	return obj
 }
 
@@ -1289,20 +1289,20 @@ func GetPlanetStarbaseSpec(o js.Value) cs.PlanetStarbaseSpec {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.HasMassDriver = getBool(o)
-	obj.HasStarbase = getBool(o)
-	obj.HasStargate = getBool(o)
-	obj.StarbaseDesignName = string(getString(o))
-	obj.StarbaseDesignNum = getInt[int](o)
-	obj.DockCapacity = getInt[int](o)
-	obj.BasePacketSpeed = getInt[int](o)
-	obj.SafePacketSpeed = getInt[int](o)
-	obj.SafeHullMass = getInt[int](o)
-	obj.SafeRange = getInt[int](o)
-	obj.MaxRange = getInt[int](o)
-	obj.MaxHullMass = getInt[int](o)
-	obj.Stargate = string(getString(o))
-	obj.MassDriver = string(getString(o))
+	obj.HasMassDriver = getBool(o.Get("hasMassDriver"))
+	obj.HasStarbase = getBool(o.Get("hasStarbase"))
+	obj.HasStargate = getBool(o.Get("hasStargate"))
+	obj.StarbaseDesignName = string(getString(o.Get("starbaseDesignName")))
+	obj.StarbaseDesignNum = getInt[int](o.Get("starbaseDesignNum"))
+	obj.DockCapacity = getInt[int](o.Get("dockCapacity"))
+	obj.BasePacketSpeed = getInt[int](o.Get("basePacketSpeed"))
+	obj.SafePacketSpeed = getInt[int](o.Get("safePacketSpeed"))
+	obj.SafeHullMass = getInt[int](o.Get("safeHullMass"))
+	obj.SafeRange = getInt[int](o.Get("safeRange"))
+	obj.MaxRange = getInt[int](o.Get("maxRange"))
+	obj.MaxHullMass = getInt[int](o.Get("maxHullMass"))
+	obj.Stargate = string(getString(o.Get("stargate")))
+	obj.MassDriver = string(getString(o.Get("massDriver")))
 	return obj
 }
 
@@ -1314,27 +1314,27 @@ func GetPlayer(o js.Value) cs.Player {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.UserID = getInt[int64](o)
-	obj.Name = string(getString(o))
-	obj.Num = getInt[int](o)
-	obj.Ready = getBool(o)
-	obj.AIControlled = getBool(o)
+	obj.UserID = getInt[int64](o.Get("userId"))
+	obj.Name = string(getString(o.Get("name")))
+	obj.Num = getInt[int](o.Get("num"))
+	obj.Ready = getBool(o.Get("ready"))
+	obj.AIControlled = getBool(o.Get("aiControlled"))
 	obj.AIDifficulty = GetAIDifficulty(o.Get("aiDifficulty"))
-	obj.Guest = getBool(o)
-	obj.SubmittedTurn = getBool(o)
-	obj.Color = string(getString(o))
-	obj.DefaultHullSet = getInt[int](o)
+	obj.Guest = getBool(o.Get("guest"))
+	obj.SubmittedTurn = getBool(o.Get("submittedTurn"))
+	obj.Color = string(getString(o.Get("color")))
+	obj.DefaultHullSet = getInt[int](o.Get("defaultHullSet"))
 	obj.Race = GetRace(o.Get("race"))
 	obj.TechLevels = GetTechLevel(o.Get("techLevels"))
 	obj.TechLevelsSpent = GetTechLevel(o.Get("techLevelsSpent"))
-	obj.ResearchSpentLastYear = getInt[int](o)
+	obj.ResearchSpentLastYear = getInt[int](o.Get("researchSpentLastYear"))
 	obj.Relations = GetSlice(o.Get("relations"), GetPlayerRelationship)
 	obj.Messages = GetSlice(o.Get("messages"), GetPlayerMessage)
 	obj.Designs = GetPointerSlice(o.Get("designs"), GetShipDesign)
 	obj.ScoreHistory = GetSlice(o.Get("scoreHistory"), GetPlayerScore)
 	obj.AcquiredTechs = GetMap[map[string]bool, string, bool](o.Get("acquiredTechs"), getString, getBool)
 	obj.AchievedVictoryConditions = GetBitmask(o.Get("achievedVictoryConditions"))
-	obj.Victor = getBool(o)
+	obj.Victor = getBool(o.Get("victor"))
 	obj.Stats = getPointer(GetPlayerStats(o.Get("stats")))
 	obj.Spec = GetPlayerSpec(o.Get("spec"))
 	return obj
@@ -1352,12 +1352,12 @@ func GetPlayerIntel(o js.Value) cs.PlayerIntel {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.Name = string(getString(o))
-	obj.Num = getInt[int](o)
-	obj.Color = string(getString(o))
-	obj.Seen = getBool(o)
-	obj.RaceName = string(getString(o))
-	obj.RacePluralName = string(getString(o))
+	obj.Name = string(getString(o.Get("name")))
+	obj.Num = getInt[int](o.Get("num"))
+	obj.Color = string(getString(o.Get("color")))
+	obj.Seen = getBool(o.Get("seen"))
+	obj.RaceName = string(getString(o.Get("raceName")))
+	obj.RacePluralName = string(getString(o.Get("racePluralName")))
 	return obj
 }
 
@@ -1393,8 +1393,8 @@ func GetPlayerMessage(o js.Value) cs.PlayerMessage {
 		return obj
 	}
 	obj.Type = GetPlayerMessageType(o.Get("type"))
-	obj.Text = string(getString(o))
-	obj.BattleNum = getInt[int](o)
+	obj.Text = string(getString(o.Get("text")))
+	obj.BattleNum = getInt[int](o.Get("battleNum"))
 	obj.Spec = GetPlayerMessageSpec(o.Get("spec"))
 	return obj
 }
@@ -1408,19 +1408,19 @@ func GetPlayerMessageSpec(o js.Value) cs.PlayerMessageSpec {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.Amount = getInt[int](o)
-	obj.Amount2 = getInt[int](o)
-	obj.PrevAmount = getInt[int](o)
-	obj.SourcePlayerNum = getInt[int](o)
-	obj.DestPlayerNum = getInt[int](o)
-	obj.Name = string(getString(o))
+	obj.Amount = getInt[int](o.Get("amount"))
+	obj.Amount2 = getInt[int](o.Get("amount2"))
+	obj.PrevAmount = getInt[int](o.Get("prevAmount"))
+	obj.SourcePlayerNum = getInt[int](o.Get("sourcePlayerNum"))
+	obj.DestPlayerNum = getInt[int](o.Get("destPlayerNum"))
+	obj.Name = string(getString(o.Get("name")))
 	obj.Cost = getPointer(GetCost(o.Get("cost")))
 	obj.Mineral = getPointer(GetMineral(o.Get("mineral")))
 	obj.Cargo = getPointer(GetCargo(o.Get("cargo")))
 	obj.QueueItemType = GetQueueItemType(o.Get("queueItemType"))
 	obj.Field = GetTechField(o.Get("field"))
 	obj.NextField = GetTechField(o.Get("nextField"))
-	obj.TechGained = string(getString(o))
+	obj.TechGained = string(getString(o.Get("techGained")))
 	obj.LostTargetType = GetMapObjectType(o.Get("lostTargetType"))
 	obj.Battle = GetBattleRecordStats(o.Get("battle"))
 	obj.Comet = getPointer(GetPlayerMessageSpecComet(o.Get("comet")))
@@ -1443,7 +1443,7 @@ func GetPlayerMessageSpecComet(o js.Value) cs.PlayerMessageSpecComet {
 	obj.MineralsAdded = GetMineral(o.Get("mineralsAdded"))
 	obj.MineralConcentrationIncreased = GetMineral(o.Get("mineralConcentrationIncreased"))
 	obj.HabChanged = GetHab(o.Get("habChanged"))
-	obj.ColonistsKilled = getInt[int](o)
+	obj.ColonistsKilled = getInt[int](o.Get("colonistsKilled"))
 	return obj
 }
 
@@ -1455,7 +1455,7 @@ func GetPlayerMessageSpecMysteryTrader(o js.Value) cs.PlayerMessageSpecMysteryTr
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.FleetNum = getInt[int](o)
+	obj.FleetNum = getInt[int](o.Get("fleetNum"))
 	return obj
 }
 
@@ -1494,7 +1494,7 @@ func GetPlayerOrders(o js.Value) cs.PlayerOrders {
 	}
 	obj.Researching = GetTechField(o.Get("researching"))
 	obj.NextResearchField = GetNextResearchField(o.Get("nextResearchField"))
-	obj.ResearchAmount = getInt[int](o)
+	obj.ResearchAmount = getInt[int](o.Get("researchAmount"))
 	return obj
 }
 
@@ -1545,7 +1545,7 @@ func GetPlayerRelationship(o js.Value) cs.PlayerRelationship {
 		return obj
 	}
 	obj.Relation = GetPlayerRelation(o.Get("relation"))
-	obj.ShareMap = getBool(o)
+	obj.ShareMap = getBool(o.Get("shareMap"))
 	return obj
 }
 
@@ -1557,15 +1557,15 @@ func GetPlayerScore(o js.Value) cs.PlayerScore {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.Planets = getInt[int](o)
-	obj.Starbases = getInt[int](o)
-	obj.UnarmedShips = getInt[int](o)
-	obj.EscortShips = getInt[int](o)
-	obj.CapitalShips = getInt[int](o)
-	obj.TechLevels = getInt[int](o)
-	obj.Resources = getInt[int](o)
-	obj.Score = getInt[int](o)
-	obj.Rank = getInt[int](o)
+	obj.Planets = getInt[int](o.Get("planets"))
+	obj.Starbases = getInt[int](o.Get("starbases"))
+	obj.UnarmedShips = getInt[int](o.Get("unarmedShips"))
+	obj.EscortShips = getInt[int](o.Get("escortShips"))
+	obj.CapitalShips = getInt[int](o.Get("capitalShips"))
+	obj.TechLevels = getInt[int](o.Get("techLevels"))
+	obj.Resources = getInt[int](o.Get("resources"))
+	obj.Score = getInt[int](o.Get("score"))
+	obj.Rank = getInt[int](o.Get("rank"))
 	obj.AchievedVictoryConditions = GetBitmask(o.Get("achievedVictoryConditions"))
 	return obj
 }
@@ -1581,10 +1581,10 @@ func GetPlayerSpec(o js.Value) cs.PlayerSpec {
 	obj.PlanetaryScanner = GetTechPlanetaryScanner(o.Get("planetaryScanner"))
 	obj.Defense = GetTechDefense(o.Get("defense"))
 	obj.Terraform = GetMap[map[cs.TerraformHabType]*cs.TechTerraform, cs.TerraformHabType, *cs.TechTerraform](o.Get("terraform"), GetTerraformHabType, func(o js.Value) *cs.TechTerraform { return getPointer(GetTechTerraform(o)) })
-	obj.ResourcesPerYear = getInt[int](o)
-	obj.ResourcesPerYearResearch = getInt[int](o)
-	obj.ResourcesPerYearResearchEstimated = getInt[int](o)
-	obj.CurrentResearchCost = getInt[int](o)
+	obj.ResourcesPerYear = getInt[int](o.Get("resourcesPerYear"))
+	obj.ResourcesPerYearResearch = getInt[int](o.Get("resourcesPerYearResearch"))
+	obj.ResourcesPerYearResearchEstimated = getInt[int](o.Get("resourcesPerYearResearchEstimated"))
+	obj.CurrentResearchCost = getInt[int](o.Get("currentResearchCost"))
 	return obj
 }
 
@@ -1596,10 +1596,10 @@ func GetPlayerStats(o js.Value) cs.PlayerStats {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.FleetsBuilt = getInt[int](o)
-	obj.StarbasesBuilt = getInt[int](o)
-	obj.TokensBuilt = getInt[int](o)
-	obj.PlanetsColonized = getInt[int](o)
+	obj.FleetsBuilt = getInt[int](o.Get("fleetsBuilt"))
+	obj.StarbasesBuilt = getInt[int](o.Get("starbasesBuilt"))
+	obj.TokensBuilt = getInt[int](o.Get("tokensBuilt"))
+	obj.PlanetsColonized = getInt[int](o.Get("planetsColonized"))
 	return obj
 }
 
@@ -1611,10 +1611,10 @@ func GetProductionPlan(o js.Value) cs.ProductionPlan {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.Num = getInt[int](o)
-	obj.Name = string(getString(o))
+	obj.Num = getInt[int](o.Get("num"))
+	obj.Name = string(getString(o.Get("name")))
 	obj.Items = GetSlice(o.Get("items"), GetProductionPlanItem)
-	obj.ContributesOnlyLeftoverToResearch = getBool(o)
+	obj.ContributesOnlyLeftoverToResearch = getBool(o.Get("contributesOnlyLeftoverToResearch"))
 	return obj
 }
 
@@ -1627,8 +1627,8 @@ func GetProductionPlanItem(o js.Value) cs.ProductionPlanItem {
 		return obj
 	}
 	obj.Type = GetQueueItemType(o.Get("type"))
-	obj.DesignNum = getInt[int](o)
-	obj.Quantity = getInt[int](o)
+	obj.DesignNum = getInt[int](o.Get("designNum"))
+	obj.Quantity = getInt[int](o.Get("quantity"))
 	return obj
 }
 
@@ -1641,8 +1641,8 @@ func GetProductionQueueItem(o js.Value) cs.ProductionQueueItem {
 		return obj
 	}
 	obj.Type = GetQueueItemType(o.Get("type"))
-	obj.DesignNum = getInt[int](o)
-	obj.Quantity = getInt[int](o)
+	obj.DesignNum = getInt[int](o.Get("designNum"))
+	obj.Quantity = getInt[int](o.Get("quantity"))
 	obj.Allocated = GetCost(o.Get("allocated"))
 	obj.Tags = GetTags(o.Get("tags"))
 	return obj
@@ -1657,10 +1657,10 @@ func GetQueueItemCompletionEstimate(o js.Value) cs.QueueItemCompletionEstimate {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.Skipped = getBool(o)
-	obj.YearsToBuildOne = getInt[int](o)
-	obj.YearsToBuildAll = getInt[int](o)
-	obj.YearsToSkipAuto = getInt[int](o)
+	obj.Skipped = getBool(o.Get("skipped"))
+	obj.YearsToBuildOne = getInt[int](o.Get("yearsToBuildOne"))
+	obj.YearsToBuildAll = getInt[int](o.Get("yearsToBuildAll"))
+	obj.YearsToSkipAuto = getInt[int](o.Get("yearsToSkipAuto"))
 	return obj
 }
 
@@ -1684,28 +1684,28 @@ func GetRace(o js.Value) cs.Race {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.UserID = getInt[int64](o)
-	obj.Name = string(getString(o))
-	obj.PluralName = string(getString(o))
+	obj.UserID = getInt[int64](o.Get("userId"))
+	obj.Name = string(getString(o.Get("name")))
+	obj.PluralName = string(getString(o.Get("pluralName")))
 	obj.SpendLeftoverPointsOn = GetSpendLeftoverPointsOn(o.Get("spendLeftoverPointsOn"))
 	obj.PRT = GetPRT(o.Get("prt"))
 	obj.LRTs = GetBitmask(o.Get("lrts"))
 	obj.HabLow = GetHab(o.Get("habLow"))
 	obj.HabHigh = GetHab(o.Get("habHigh"))
-	obj.GrowthRate = getInt[int](o)
-	obj.PopEfficiency = getInt[int](o)
-	obj.FactoryOutput = getInt[int](o)
-	obj.FactoryCost = getInt[int](o)
-	obj.NumFactories = getInt[int](o)
-	obj.FactoriesCostLess = getBool(o)
-	obj.ImmuneGrav = getBool(o)
-	obj.ImmuneTemp = getBool(o)
-	obj.ImmuneRad = getBool(o)
-	obj.MineOutput = getInt[int](o)
-	obj.MineCost = getInt[int](o)
-	obj.NumMines = getInt[int](o)
+	obj.GrowthRate = getInt[int](o.Get("growthRate"))
+	obj.PopEfficiency = getInt[int](o.Get("popEfficiency"))
+	obj.FactoryOutput = getInt[int](o.Get("factoryOutput"))
+	obj.FactoryCost = getInt[int](o.Get("factoryCost"))
+	obj.NumFactories = getInt[int](o.Get("numFactories"))
+	obj.FactoriesCostLess = getBool(o.Get("factoriesCostLess"))
+	obj.ImmuneGrav = getBool(o.Get("immuneGrav"))
+	obj.ImmuneTemp = getBool(o.Get("immuneTemp"))
+	obj.ImmuneRad = getBool(o.Get("immuneRad"))
+	obj.MineOutput = getInt[int](o.Get("mineOutput"))
+	obj.MineCost = getInt[int](o.Get("mineCost"))
+	obj.NumMines = getInt[int](o.Get("numMines"))
 	obj.ResearchCost = GetResearchCost(o.Get("researchCost"))
-	obj.TechsStartHigh = getBool(o)
+	obj.TechsStartHigh = getBool(o.Get("techsStartHigh"))
 	obj.Spec = GetRaceSpec(o.Get("spec"))
 	return obj
 }
@@ -1724,71 +1724,71 @@ func GetRaceSpec(o js.Value) cs.RaceSpec {
 	obj.StartingTechLevels = GetTechLevel(o.Get("startingTechLevels"))
 	obj.StartingPlanets = GetSlice(o.Get("startingPlanets"), GetStartingPlanet)
 	obj.TechCostOffset = GetTechCostOffset(o.Get("techCostOffset"))
-	obj.MineralsPerSingleMineralPacket = getInt[int](o)
-	obj.MineralsPerMixedMineralPacket = getInt[int](o)
-	obj.PacketResourceCost = getInt[int](o)
-	obj.PacketMineralCostFactor = getFloat[float64](o)
-	obj.PacketReceiverFactor = getFloat[float64](o)
-	obj.PacketDecayFactor = getFloat[float64](o)
-	obj.PacketOverSafeWarpPenalty = getInt[int](o)
-	obj.PacketBuiltInScanner = getBool(o)
-	obj.DetectPacketDestinationStarbases = getBool(o)
-	obj.DetectAllPackets = getBool(o)
-	obj.PacketTerraformChance = getFloat[float64](o)
-	obj.PacketPermaformChance = getFloat[float64](o)
-	obj.PacketPermaTerraformSizeUnit = getInt[int](o)
-	obj.CanGateCargo = getBool(o)
-	obj.CanDetectStargatePlanets = getBool(o)
-	obj.ShipsVanishInVoid = getBool(o)
-	obj.TechsCostExtraLevel = getInt[int](o)
-	obj.FreighterGrowthFactor = getFloat[float64](o)
-	obj.GrowthFactor = getFloat[float64](o)
-	obj.MaxPopulationOffset = getFloat[float64](o)
-	obj.BuiltInCloakUnits = getInt[int](o)
+	obj.MineralsPerSingleMineralPacket = getInt[int](o.Get("mineralsPerSingleMineralPacket"))
+	obj.MineralsPerMixedMineralPacket = getInt[int](o.Get("mineralsPerMixedMineralPacket"))
+	obj.PacketResourceCost = getInt[int](o.Get("packetResourceCost"))
+	obj.PacketMineralCostFactor = getFloat[float64](o.Get("packetMineralCostFactor"))
+	obj.PacketReceiverFactor = getFloat[float64](o.Get("packetReceiverFactor"))
+	obj.PacketDecayFactor = getFloat[float64](o.Get("packetDecayFactor"))
+	obj.PacketOverSafeWarpPenalty = getInt[int](o.Get("packetOverSafeWarpPenalty"))
+	obj.PacketBuiltInScanner = getBool(o.Get("packetBuiltInScanner"))
+	obj.DetectPacketDestinationStarbases = getBool(o.Get("detectPacketDestinationStarbases"))
+	obj.DetectAllPackets = getBool(o.Get("detectAllPackets"))
+	obj.PacketTerraformChance = getFloat[float64](o.Get("packetTerraformChance"))
+	obj.PacketPermaformChance = getFloat[float64](o.Get("packetPermaformChance"))
+	obj.PacketPermaTerraformSizeUnit = getInt[int](o.Get("packetPermaTerraformSizeUnit"))
+	obj.CanGateCargo = getBool(o.Get("canGateCargo"))
+	obj.CanDetectStargatePlanets = getBool(o.Get("canDetectStargatePlanets"))
+	obj.ShipsVanishInVoid = getBool(o.Get("shipsVanishInVoid"))
+	obj.TechsCostExtraLevel = getInt[int](o.Get("techsCostExtraLevel"))
+	obj.FreighterGrowthFactor = getFloat[float64](o.Get("freighterGrowthFactor"))
+	obj.GrowthFactor = getFloat[float64](o.Get("growthFactor"))
+	obj.MaxPopulationOffset = getFloat[float64](o.Get("maxPopulationOffset"))
+	obj.BuiltInCloakUnits = getInt[int](o.Get("builtInCloakUnits"))
 	obj.StealsResearch = GetStealsResearch(o.Get("stealsResearch"))
-	obj.FreeCargoCloaking = getBool(o)
-	obj.MineFieldsAreScanners = getBool(o)
-	obj.MineFieldRateMoveFactor = getFloat[float64](o)
-	obj.MineFieldSafeWarpBonus = getInt[int](o)
-	obj.MineFieldMinDecayFactor = getFloat[float64](o)
-	obj.MineFieldBaseDecayRate = getFloat[float64](o)
-	obj.MineFieldPlanetDecayRate = getFloat[float64](o)
-	obj.MineFieldMaxDecayRate = getFloat[float64](o)
-	obj.CanDetonateMineFields = getBool(o)
-	obj.MineFieldDetonateDecayRate = getFloat[float64](o)
-	obj.DiscoverDesignOnScan = getBool(o)
-	obj.CanRemoteMineOwnPlanets = getBool(o)
-	obj.InvasionAttackBonus = getFloat[float64](o)
-	obj.InvasionDefendBonus = getFloat[float64](o)
-	obj.MovementBonus = getInt[int](o)
-	obj.Instaforming = getBool(o)
-	obj.PermaformChance = getFloat[float64](o)
-	obj.PermaformPopulation = getInt[int](o)
-	obj.RepairFactor = getFloat[float64](o)
-	obj.StarbaseRepairFactor = getFloat[float64](o)
-	obj.InnateMining = getBool(o)
-	obj.InnateResources = getBool(o)
-	obj.InnateScanner = getBool(o)
-	obj.InnatePopulationFactor = getFloat[float64](o)
-	obj.CanBuildDefenses = getBool(o)
-	obj.LivesOnStarbases = getBool(o)
-	obj.FuelEfficiencyOffset = getFloat[float64](o)
+	obj.FreeCargoCloaking = getBool(o.Get("freeCargoCloaking"))
+	obj.MineFieldsAreScanners = getBool(o.Get("mineFieldsAreScanners"))
+	obj.MineFieldRateMoveFactor = getFloat[float64](o.Get("mineFieldRateMoveFactor"))
+	obj.MineFieldSafeWarpBonus = getInt[int](o.Get("mineFieldSafeWarpBonus"))
+	obj.MineFieldMinDecayFactor = getFloat[float64](o.Get("mineFieldMinDecayFactor"))
+	obj.MineFieldBaseDecayRate = getFloat[float64](o.Get("mineFieldBaseDecayRate"))
+	obj.MineFieldPlanetDecayRate = getFloat[float64](o.Get("mineFieldPlanetDecayRate"))
+	obj.MineFieldMaxDecayRate = getFloat[float64](o.Get("mineFieldMaxDecayRate"))
+	obj.CanDetonateMineFields = getBool(o.Get("canDetonateMineFields"))
+	obj.MineFieldDetonateDecayRate = getFloat[float64](o.Get("mineFieldDetonateDecayRate"))
+	obj.DiscoverDesignOnScan = getBool(o.Get("discoverDesignOnScan"))
+	obj.CanRemoteMineOwnPlanets = getBool(o.Get("canRemoteMineOwnPlanets"))
+	obj.InvasionAttackBonus = getFloat[float64](o.Get("invasionAttackBonus"))
+	obj.InvasionDefendBonus = getFloat[float64](o.Get("invasionDefendBonus"))
+	obj.MovementBonus = getInt[int](o.Get("movementBonus"))
+	obj.Instaforming = getBool(o.Get("instaforming"))
+	obj.PermaformChance = getFloat[float64](o.Get("permaformChance"))
+	obj.PermaformPopulation = getInt[int](o.Get("permaformPopulation"))
+	obj.RepairFactor = getFloat[float64](o.Get("repairFactor"))
+	obj.StarbaseRepairFactor = getFloat[float64](o.Get("starbaseRepairFactor"))
+	obj.InnateMining = getBool(o.Get("innateMining"))
+	obj.InnateResources = getBool(o.Get("innateResources"))
+	obj.InnateScanner = getBool(o.Get("innateScanner"))
+	obj.InnatePopulationFactor = getFloat[float64](o.Get("innatePopulationFactor"))
+	obj.CanBuildDefenses = getBool(o.Get("canBuildDefenses"))
+	obj.LivesOnStarbases = getBool(o.Get("livesOnStarbases"))
+	obj.FuelEfficiencyOffset = getFloat[float64](o.Get("fuelEfficiencyOffset"))
 	obj.TerraformCostOffset = GetCost(o.Get("terraformCostOffset"))
-	obj.MineralAlchemyCostOffset = getInt[int](o)
-	obj.ScrapMineralOffset = getFloat[float64](o)
-	obj.ScrapMineralOffsetStarbase = getFloat[float64](o)
-	obj.ScrapResourcesOffset = getFloat[float64](o)
-	obj.ScrapResourcesOffsetStarbase = getFloat[float64](o)
-	obj.StartingPopulationFactor = getFloat[float64](o)
-	obj.StarbaseBuiltInCloakUnits = getInt[int](o)
-	obj.StarbaseCostFactor = getFloat[float64](o)
-	obj.ResearchFactor = getFloat[float64](o)
-	obj.ResearchSplashDamage = getFloat[float64](o)
-	obj.ArmorStrengthFactor = getFloat[float64](o)
-	obj.ShieldStrengthFactor = getFloat[float64](o)
-	obj.ShieldRegenerationRate = getFloat[float64](o)
-	obj.EngineFailureRate = getFloat[float64](o)
-	obj.EngineReliableSpeed = getInt[int](o)
+	obj.MineralAlchemyCostOffset = getInt[int](o.Get("mineralAlchemyCostOffset"))
+	obj.ScrapMineralOffset = getFloat[float64](o.Get("scrapMineralOffset"))
+	obj.ScrapMineralOffsetStarbase = getFloat[float64](o.Get("scrapMineralOffsetStarbase"))
+	obj.ScrapResourcesOffset = getFloat[float64](o.Get("scrapResourcesOffset"))
+	obj.ScrapResourcesOffsetStarbase = getFloat[float64](o.Get("scrapResourcesOffsetStarbase"))
+	obj.StartingPopulationFactor = getFloat[float64](o.Get("startingPopulationFactor"))
+	obj.StarbaseBuiltInCloakUnits = getInt[int](o.Get("starbaseBuiltInCloakUnits"))
+	obj.StarbaseCostFactor = getFloat[float64](o.Get("starbaseCostFactor"))
+	obj.ResearchFactor = getFloat[float64](o.Get("researchFactor"))
+	obj.ResearchSplashDamage = getFloat[float64](o.Get("researchSplashDamage"))
+	obj.ArmorStrengthFactor = getFloat[float64](o.Get("armorStrengthFactor"))
+	obj.ShieldStrengthFactor = getFloat[float64](o.Get("shieldStrengthFactor"))
+	obj.ShieldRegenerationRate = getFloat[float64](o.Get("shieldRegenerationRate"))
+	obj.EngineFailureRate = getFloat[float64](o.Get("engineFailureRate"))
+	obj.EngineReliableSpeed = getInt[int](o.Get("engineReliableSpeed"))
 	return obj
 }
 
@@ -1879,82 +1879,82 @@ func GetRules(o js.Value) cs.Rules {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.ID = getInt[int64](o)
+	obj.ID = getInt[int64](o.Get("id"))
 	obj.CreatedAt = getTime(o.Get("createdAt"))
 	obj.UpdatedAt = getTime(o.Get("updatedAt"))
-	obj.GameID = getInt[int64](o)
-	obj.TachyonCloakReduction = getInt[int](o)
-	obj.MaxPopulation = getInt[int](o)
-	obj.MinMaxPopulationPercent = getFloat[float64](o)
-	obj.PopulationOvercrowdDieoffRate = getFloat[float64](o)
-	obj.PopulationOvercrowdDieoffRateMax = getFloat[float64](o)
-	obj.PopulationScannerError = getFloat[float64](o)
-	obj.SmartDefenseCoverageFactor = getFloat[float64](o)
-	obj.InvasionDefenseCoverageFactor = getFloat[float64](o)
-	obj.NumBattleRounds = getInt[int](o)
-	obj.MovesToRunAway = getInt[int](o)
-	obj.BeamRangeDropoff = getFloat[float64](o)
-	obj.TorpedoSplashDamage = getFloat[float64](o)
-	obj.SalvageDecayRate = getFloat[float64](o)
-	obj.SalvageDecayMin = getInt[int](o)
-	obj.MineFieldCloak = getInt[int](o)
-	obj.StargateMaxRangeFactor = getInt[int](o)
-	obj.StargateMaxHullMassFactor = getInt[int](o)
-	obj.FleetSafeSpeedExplosionChance = getFloat[float64](o)
+	obj.GameID = getInt[int64](o.Get("gameId"))
+	obj.TachyonCloakReduction = getInt[int](o.Get("tachyonCloakReduction"))
+	obj.MaxPopulation = getInt[int](o.Get("maxPopulation"))
+	obj.MinMaxPopulationPercent = getFloat[float64](o.Get("minMaxPopulationPercent"))
+	obj.PopulationOvercrowdDieoffRate = getFloat[float64](o.Get("populationOvercrowdDieoffRate"))
+	obj.PopulationOvercrowdDieoffRateMax = getFloat[float64](o.Get("populationOvercrowdDieoffRateMax"))
+	obj.PopulationScannerError = getFloat[float64](o.Get("populationScannerError"))
+	obj.SmartDefenseCoverageFactor = getFloat[float64](o.Get("smartDefenseCoverageFactor"))
+	obj.InvasionDefenseCoverageFactor = getFloat[float64](o.Get("invasionDefenseCoverageFactor"))
+	obj.NumBattleRounds = getInt[int](o.Get("numBattleRounds"))
+	obj.MovesToRunAway = getInt[int](o.Get("movesToRunAway"))
+	obj.BeamRangeDropoff = getFloat[float64](o.Get("beamRangeDropoff"))
+	obj.TorpedoSplashDamage = getFloat[float64](o.Get("torpedoSplashDamage"))
+	obj.SalvageDecayRate = getFloat[float64](o.Get("salvageDecayRate"))
+	obj.SalvageDecayMin = getInt[int](o.Get("salvageDecayMin"))
+	obj.MineFieldCloak = getInt[int](o.Get("mineFieldCloak"))
+	obj.StargateMaxRangeFactor = getInt[int](o.Get("stargateMaxRangeFactor"))
+	obj.StargateMaxHullMassFactor = getInt[int](o.Get("stargateMaxHullMassFactor"))
+	obj.FleetSafeSpeedExplosionChance = getFloat[float64](o.Get("fleetSafeSpeedExplosionChance"))
 	obj.RandomEventChances = GetMap[map[cs.RandomEvent]float64, cs.RandomEvent, float64](o.Get("randomEventChances"), GetRandomEvent, getFloat)
 	obj.RandomMineralDepositBonusRange = [2]int(GetSlice[int](o.Get("randomMineralDepositBonusRange"), getInt))
 	obj.RandomArtifactResearchBonusRange = [2]int(GetSlice[int](o.Get("randomArtifactResearchBonusRange"), getInt))
-	obj.RandomCometMinYear = getInt[int](o)
-	obj.RandomCometMinYearPlayerWorld = getInt[int](o)
+	obj.RandomCometMinYear = getInt[int](o.Get("randomCometMinYear"))
+	obj.RandomCometMinYearPlayerWorld = getInt[int](o.Get("randomCometMinYearPlayerWorld"))
 	obj.MysteryTraderRules = GetMysteryTraderRules(o.Get("mysteryTraderRules"))
 	obj.CometStatsBySize = GetMap[map[cs.CometSize]cs.CometStats, cs.CometSize, cs.CometStats](o.Get("cometStatsBySize"), GetCometSize, GetCometStats)
-	obj.WormholeCloak = getInt[int](o)
-	obj.WormholeMinPlanetDistance = getInt[int](o)
+	obj.WormholeCloak = getInt[int](o.Get("wormholeCloak"))
+	obj.WormholeMinPlanetDistance = getInt[int](o.Get("wormholeMinDistance"))
 	obj.WormholeStatsByStability = GetMap[map[cs.WormholeStability]cs.WormholeStats, cs.WormholeStability, cs.WormholeStats](o.Get("wormholeStatsByStability"), GetWormholeStability, GetWormholeStats)
 	obj.WormholePairsForSize = GetMap[map[cs.Size]int, cs.Size, int](o.Get("wormholePairsForSize"), GetSize, getInt)
 	obj.MineFieldStatsByType = GetMap[map[cs.MineFieldType]cs.MineFieldStats, cs.MineFieldType, cs.MineFieldStats](o.Get("mineFieldStatsByType"), GetMineFieldType, GetMineFieldStats)
 	obj.RepairRates = GetMap[map[cs.RepairRate]float64, cs.RepairRate, float64](o.Get("repairRates"), GetRepairRate, getFloat)
-	obj.MaxPlayers = getInt[int](o)
-	obj.StartingYear = getInt[int](o)
-	obj.ShowPublicScoresAfterYears = getInt[int](o)
-	obj.PlanetMinDistance = getInt[int](o)
-	obj.MaxExtraWorldDistance = getInt[int](o)
-	obj.MinExtraWorldDistance = getInt[int](o)
-	obj.MinHomeworldMineralConcentration = getInt[int](o)
-	obj.MinExtraPlanetMineralConcentration = getInt[int](o)
-	obj.MinHab = getInt[int](o)
-	obj.MaxHab = getInt[int](o)
-	obj.MinMineralConcentration = getInt[int](o)
-	obj.MaxMineralConcentration = getInt[int](o)
-	obj.MinStartingMineralConcentration = getInt[int](o)
-	obj.MaxStartingMineralConcentration = getInt[int](o)
-	obj.HighRadMineralConcentrationBonusThreshold = getInt[int](o)
-	obj.RadiatingImmune = getInt[int](o)
-	obj.MaxStartingMineralSurface = getInt[int](o)
-	obj.MinStartingMineralSurface = getInt[int](o)
-	obj.MineralDecayFactor = getInt[int](o)
-	obj.RemoteMiningMineOutput = getInt[int](o)
-	obj.StartingMines = getInt[int](o)
-	obj.StartingFactories = getInt[int](o)
-	obj.StartingDefenses = getInt[int](o)
-	obj.RaceStartingPoints = getInt[int](o)
-	obj.ScrapMineralAmount = getFloat[float64](o)
-	obj.ScrapResourceAmount = getFloat[float64](o)
-	obj.FactoryCostGermanium = getInt[int](o)
+	obj.MaxPlayers = getInt[int](o.Get("maxPlayers"))
+	obj.StartingYear = getInt[int](o.Get("startingYear"))
+	obj.ShowPublicScoresAfterYears = getInt[int](o.Get("showPublicScoresAfterYears"))
+	obj.PlanetMinDistance = getInt[int](o.Get("planetMinDistance"))
+	obj.MaxExtraWorldDistance = getInt[int](o.Get("maxExtraWorldDistance"))
+	obj.MinExtraWorldDistance = getInt[int](o.Get("minExtraWorldDistance"))
+	obj.MinHomeworldMineralConcentration = getInt[int](o.Get("minHomeworldMineralConcentration"))
+	obj.MinExtraPlanetMineralConcentration = getInt[int](o.Get("minExtraPlanetMineralConcentration"))
+	obj.MinHab = getInt[int](o.Get("minHab"))
+	obj.MaxHab = getInt[int](o.Get("maxHab"))
+	obj.MinMineralConcentration = getInt[int](o.Get("minMineralConcentration"))
+	obj.MaxMineralConcentration = getInt[int](o.Get("maxMineralConcentration"))
+	obj.MinStartingMineralConcentration = getInt[int](o.Get("minStartingMineralConcentration"))
+	obj.MaxStartingMineralConcentration = getInt[int](o.Get("maxStartingMineralConcentration"))
+	obj.HighRadMineralConcentrationBonusThreshold = getInt[int](o.Get("highRadGermaniumBonusThreshold"))
+	obj.RadiatingImmune = getInt[int](o.Get("radiatingImmune"))
+	obj.MaxStartingMineralSurface = getInt[int](o.Get("maxStartingMineralSurface"))
+	obj.MinStartingMineralSurface = getInt[int](o.Get("minStartingMineralSurface"))
+	obj.MineralDecayFactor = getInt[int](o.Get("mineralDecayFactor"))
+	obj.RemoteMiningMineOutput = getInt[int](o.Get("remoteMiningMineOutput"))
+	obj.StartingMines = getInt[int](o.Get("startingMines"))
+	obj.StartingFactories = getInt[int](o.Get("startingFactories"))
+	obj.StartingDefenses = getInt[int](o.Get("startingDefenses"))
+	obj.RaceStartingPoints = getInt[int](o.Get("raceStartingPoints"))
+	obj.ScrapMineralAmount = getFloat[float64](o.Get("scrapMineralAmount"))
+	obj.ScrapResourceAmount = getFloat[float64](o.Get("scrapResourceAmount"))
+	obj.FactoryCostGermanium = getInt[int](o.Get("factoryCostGermanium"))
 	obj.DefenseCost = GetCost(o.Get("defenseCost"))
-	obj.MineralAlchemyCost = getInt[int](o)
+	obj.MineralAlchemyCost = getInt[int](o.Get("mineralAlchemyCost"))
 	obj.PlanetaryScannerCost = GetCost(o.Get("planetaryScannerCost"))
 	obj.TerraformCost = GetCost(o.Get("terraformCost"))
-	obj.StarbaseComponentCostFactor = getFloat[float64](o)
-	obj.SalvageFromBattleFactor = getFloat[float64](o)
-	obj.TechTradeChance = getFloat[float64](o)
+	obj.StarbaseComponentCostFactor = getFloat[float64](o.Get("starbaseComponentCostFactor"))
+	obj.SalvageFromBattleFactor = getFloat[float64](o.Get("salvageFromBattleFactor"))
+	obj.TechTradeChance = getFloat[float64](o.Get("techTradeChance"))
 	obj.PacketDecayRate = GetMap[map[int]float64, int, float64](o.Get("packetDecayRate"), getInt, getFloat)
-	obj.PacketMinDecay = getInt[int](o)
-	obj.MaxTechLevel = getInt[int](o)
+	obj.PacketMinDecay = getInt[int](o.Get("packetMinDecay"))
+	obj.MaxTechLevel = getInt[int](o.Get("maxTechLevel"))
 	obj.TechBaseCost = GetSlice[int](o.Get("techBaseCost"), getInt)
 	obj.PRTSpecs = GetMap[map[cs.PRT]cs.PRTSpec, cs.PRT, cs.PRTSpec](o.Get("prtSpecs"), GetPRT, GetPRTSpec)
 	obj.LRTSpecs = GetMap[map[cs.LRT]cs.LRTSpec, cs.LRT, cs.LRTSpec](o.Get("lrtSpecs"), GetLRT, GetLRTSpec)
-	obj.TechsID = getInt[int64](o)
+	obj.TechsID = getInt[int64](o.Get("techsId"))
 	return obj
 }
 
@@ -1979,9 +1979,9 @@ func GetScannerSpec(o js.Value) cs.ScannerSpec {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.BuiltInScannerMultiplier = getInt[int](o)
-	obj.NoAdvancedScanners = getBool(o)
-	obj.ScanRangeFactor = getFloat[float64](o)
+	obj.BuiltInScannerMultiplier = getInt[int](o.Get("builtInScannerMultiplier"))
+	obj.NoAdvancedScanners = getBool(o.Get("noAdvancedScanners"))
+	obj.ScanRangeFactor = getFloat[float64](o.Get("scanRangeFactor"))
 	return obj
 }
 
@@ -2005,15 +2005,15 @@ func GetShipDesign(o js.Value) cs.ShipDesign {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.Num = getInt[int](o)
-	obj.PlayerNum = getInt[int](o)
-	obj.OriginalPlayerNum = getInt[int](o)
-	obj.Name = string(getString(o))
-	obj.Version = getInt[int](o)
-	obj.Hull = string(getString(o))
-	obj.HullSetNumber = getInt[int](o)
-	obj.CannotDelete = getBool(o)
-	obj.MysteryTrader = getBool(o)
+	obj.Num = getInt[int](o.Get("num"))
+	obj.PlayerNum = getInt[int](o.Get("playerNum"))
+	obj.OriginalPlayerNum = getInt[int](o.Get("originalPlayerNum"))
+	obj.Name = string(getString(o.Get("name")))
+	obj.Version = getInt[int](o.Get("version"))
+	obj.Hull = string(getString(o.Get("hull")))
+	obj.HullSetNumber = getInt[int](o.Get("hullSetNumber"))
+	obj.CannotDelete = getBool(o.Get("cannotDelete"))
+	obj.MysteryTrader = getBool(o.Get("mysteryTrader"))
 	obj.Slots = GetSlice(o.Get("slots"), GetShipDesignSlot)
 	obj.Purpose = GetShipDesignPurpose(o.Get("purpose"))
 	obj.Spec = GetShipDesignSpec(o.Get("spec"))
@@ -2030,9 +2030,9 @@ func GetShipDesignIntel(o js.Value) cs.ShipDesignIntel {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.Hull = string(getString(o))
-	obj.HullSetNumber = getInt[int](o)
-	obj.Version = getInt[int](o)
+	obj.Hull = string(getString(o.Get("hull")))
+	obj.HullSetNumber = getInt[int](o.Get("hullSetNumber"))
+	obj.Version = getInt[int](o.Get("version"))
 	obj.Slots = GetSlice(o.Get("slots"), GetShipDesignSlot)
 	obj.Spec = GetShipDesignSpec(o.Get("spec"))
 	return obj
@@ -2059,9 +2059,9 @@ func GetShipDesignSlot(o js.Value) cs.ShipDesignSlot {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.HullComponent = string(getString(o))
-	obj.HullSlotIndex = getInt[int](o)
-	obj.Quantity = getInt[int](o)
+	obj.HullComponent = string(getString(o.Get("hullComponent")))
+	obj.HullSlotIndex = getInt[int](o.Get("hullSlotIndex"))
+	obj.Quantity = getInt[int](o.Get("quantity"))
 	return obj
 }
 
@@ -2073,69 +2073,69 @@ func GetShipDesignSpec(o js.Value) cs.ShipDesignSpec {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.AdditionalMassDrivers = getInt[int](o)
-	obj.Armor = getInt[int](o)
-	obj.BasePacketSpeed = getInt[int](o)
-	obj.BeamBonus = getFloat[float64](o)
-	obj.BeamDefense = getFloat[float64](o)
-	obj.Bomber = getBool(o)
+	obj.AdditionalMassDrivers = getInt[int](o.Get("additionalMassDrivers"))
+	obj.Armor = getInt[int](o.Get("armor"))
+	obj.BasePacketSpeed = getInt[int](o.Get("basePacketSpeed"))
+	obj.BeamBonus = getFloat[float64](o.Get("beamBonus"))
+	obj.BeamDefense = getFloat[float64](o.Get("beamDefense"))
+	obj.Bomber = getBool(o.Get("bomber"))
 	obj.Bombs = GetSlice(o.Get("bombs"), GetBomb)
-	obj.CanJump = getBool(o)
-	obj.CanLayMines = getBool(o)
-	obj.CanStealFleetCargo = getBool(o)
-	obj.CanStealPlanetCargo = getBool(o)
-	obj.CargoCapacity = getInt[int](o)
-	obj.CloakPercent = getInt[int](o)
-	obj.CloakPercentFullCargo = getInt[int](o)
-	obj.CloakUnits = getInt[int](o)
-	obj.Colonizer = getBool(o)
+	obj.CanJump = getBool(o.Get("canJump"))
+	obj.CanLayMines = getBool(o.Get("canLayMines"))
+	obj.CanStealFleetCargo = getBool(o.Get("canStealFleetCargo"))
+	obj.CanStealPlanetCargo = getBool(o.Get("canStealPlanetCargo"))
+	obj.CargoCapacity = getInt[int](o.Get("cargoCapacity"))
+	obj.CloakPercent = getInt[int](o.Get("cloakPercent"))
+	obj.CloakPercentFullCargo = getInt[int](o.Get("cloakPercentFullCargo"))
+	obj.CloakUnits = getInt[int](o.Get("cloakUnits"))
+	obj.Colonizer = getBool(o.Get("colonizer"))
 	obj.Cost = GetCost(o.Get("cost"))
 	obj.Engine = GetEngine(o.Get("engine"))
-	obj.EstimatedRange = getInt[int](o)
-	obj.EstimatedRangeFull = getInt[int](o)
-	obj.FuelCapacity = getInt[int](o)
-	obj.FuelGeneration = getInt[int](o)
-	obj.HasWeapons = getBool(o)
+	obj.EstimatedRange = getInt[int](o.Get("estimatedRange"))
+	obj.EstimatedRangeFull = getInt[int](o.Get("estimatedRangeFull"))
+	obj.FuelCapacity = getInt[int](o.Get("fuelCapacity"))
+	obj.FuelGeneration = getInt[int](o.Get("fuelGeneration"))
+	obj.HasWeapons = getBool(o.Get("hasWeapons"))
 	obj.HullType = GetTechHullType(o.Get("hullType"))
-	obj.ImmuneToOwnDetonation = getBool(o)
-	obj.Initiative = getInt[int](o)
-	obj.InnateScanRangePenFactor = getFloat[float64](o)
-	obj.Mass = getInt[int](o)
-	obj.MassDriver = string(getString(o))
-	obj.MaxHullMass = getInt[int](o)
-	obj.MaxPopulation = getInt[int](o)
-	obj.MaxRange = getInt[int](o)
+	obj.ImmuneToOwnDetonation = getBool(o.Get("immuneToOwnDetonation"))
+	obj.Initiative = getInt[int](o.Get("initiative"))
+	obj.InnateScanRangePenFactor = getFloat[float64](o.Get("innateScanRangePenFactor"))
+	obj.Mass = getInt[int](o.Get("mass"))
+	obj.MassDriver = string(getString(o.Get("massDriver")))
+	obj.MaxHullMass = getInt[int](o.Get("maxHullMass"))
+	obj.MaxPopulation = getInt[int](o.Get("maxPopulation"))
+	obj.MaxRange = getInt[int](o.Get("maxRange"))
 	obj.MineLayingRateByMineType = GetMap[map[cs.MineFieldType]int, cs.MineFieldType, int](o.Get("mineLayingRateByMineType"), GetMineFieldType, getInt)
-	obj.MineSweep = getInt[int](o)
-	obj.MiningRate = getInt[int](o)
-	obj.Movement = getInt[int](o)
-	obj.MovementBonus = getInt[int](o)
-	obj.MovementFull = getInt[int](o)
-	obj.NumBuilt = getInt[int](o)
-	obj.NumEngines = getInt[int](o)
-	obj.NumInstances = getInt[int](o)
-	obj.OrbitalConstructionModule = getBool(o)
-	obj.PowerRating = getInt[int](o)
-	obj.Radiating = getBool(o)
-	obj.ReduceCloaking = getFloat[float64](o)
-	obj.ReduceMovement = getInt[int](o)
-	obj.RepairBonus = getFloat[float64](o)
+	obj.MineSweep = getInt[int](o.Get("mineSweep"))
+	obj.MiningRate = getInt[int](o.Get("miningRate"))
+	obj.Movement = getInt[int](o.Get("movement"))
+	obj.MovementBonus = getInt[int](o.Get("movementBonus"))
+	obj.MovementFull = getInt[int](o.Get("movementFull"))
+	obj.NumBuilt = getInt[int](o.Get("numBuilt"))
+	obj.NumEngines = getInt[int](o.Get("numEngines"))
+	obj.NumInstances = getInt[int](o.Get("numInstances"))
+	obj.OrbitalConstructionModule = getBool(o.Get("orbitalConstructionModule"))
+	obj.PowerRating = getInt[int](o.Get("powerRating"))
+	obj.Radiating = getBool(o.Get("radiating"))
+	obj.ReduceCloaking = getFloat[float64](o.Get("reduceCloaking"))
+	obj.ReduceMovement = getInt[int](o.Get("reduceMovement"))
+	obj.RepairBonus = getFloat[float64](o.Get("repairBonus"))
 	obj.RetroBombs = GetSlice(o.Get("retroBombs"), GetBomb)
-	obj.SafeHullMass = getInt[int](o)
-	obj.SafePacketSpeed = getInt[int](o)
-	obj.SafeRange = getInt[int](o)
-	obj.Scanner = getBool(o)
-	obj.ScanRange = getInt[int](o)
-	obj.ScanRangePen = getInt[int](o)
-	obj.Shields = getInt[int](o)
+	obj.SafeHullMass = getInt[int](o.Get("safeHullMass"))
+	obj.SafePacketSpeed = getInt[int](o.Get("safePacketSpeed"))
+	obj.SafeRange = getInt[int](o.Get("safeRange"))
+	obj.Scanner = getBool(o.Get("scanner"))
+	obj.ScanRange = getInt[int](o.Get("scanRange"))
+	obj.ScanRangePen = getInt[int](o.Get("scanRangePen"))
+	obj.Shields = getInt[int](o.Get("shields"))
 	obj.SmartBombs = GetSlice(o.Get("smartBombs"), GetBomb)
-	obj.SpaceDock = getInt[int](o)
-	obj.Starbase = getBool(o)
-	obj.Stargate = string(getString(o))
+	obj.SpaceDock = getInt[int](o.Get("spaceDock"))
+	obj.Starbase = getBool(o.Get("starbase"))
+	obj.Stargate = string(getString(o.Get("stargate")))
 	obj.TechLevel = GetTechLevel(o.Get("techLevel"))
-	obj.TerraformRate = getInt[int](o)
-	obj.TorpedoBonus = getFloat[float64](o)
-	obj.TorpedoJamming = getFloat[float64](o)
+	obj.TerraformRate = getInt[int](o.Get("terraformRate"))
+	obj.TorpedoBonus = getFloat[float64](o.Get("torpedoBonus"))
+	obj.TorpedoJamming = getFloat[float64](o.Get("torpedoJamming"))
 	obj.WeaponSlots = GetSlice(o.Get("weaponSlots"), GetShipDesignSlot)
 	return obj
 }
@@ -2148,10 +2148,10 @@ func GetShipToken(o js.Value) cs.ShipToken {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.DesignNum = getInt[int](o)
-	obj.Quantity = getInt[int](o)
-	obj.Damage = getFloat[float64](o)
-	obj.QuantityDamaged = getInt[int](o)
+	obj.DesignNum = getInt[int](o.Get("designNum"))
+	obj.Quantity = getInt[int](o.Get("quantity"))
+	obj.Damage = getFloat[float64](o.Get("damage"))
+	obj.QuantityDamaged = getInt[int](o.Get("quantityDamaged"))
 	return obj
 }
 
@@ -2187,9 +2187,9 @@ func GetStartingFleet(o js.Value) cs.StartingFleet {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.Name = string(getString(o))
+	obj.Name = string(getString(o.Get("name")))
 	obj.HullName = GetStartingFleetHull(o.Get("hullName"))
-	obj.HullSetNumber = getInt[uint](o)
+	obj.HullSetNumber = getInt[uint](o.Get("hullSetNumber"))
 	obj.Purpose = GetShipDesignPurpose(o.Get("purpose"))
 	return obj
 }
@@ -2214,12 +2214,12 @@ func GetStartingPlanet(o js.Value) cs.StartingPlanet {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.Population = getInt[int](o)
-	obj.HabPenaltyFactor = getFloat[float64](o)
-	obj.HasStargate = getBool(o)
-	obj.HasMassDriver = getBool(o)
-	obj.StarbaseDesignName = string(getString(o))
-	obj.StarbaseHull = string(getString(o))
+	obj.Population = getInt[int](o.Get("population"))
+	obj.HabPenaltyFactor = getFloat[float64](o.Get("habPenaltyFactor"))
+	obj.HasStargate = getBool(o.Get("hasStargate"))
+	obj.HasMassDriver = getBool(o.Get("hasMassDriver"))
+	obj.StarbaseDesignName = string(getString(o.Get("starbaseDesignName")))
+	obj.StarbaseHull = string(getString(o.Get("starbaseHull")))
 	obj.StartingFleets = GetSlice(o.Get("startingFleets"), GetStartingFleet)
 	return obj
 }
@@ -2232,12 +2232,12 @@ func GetStealsResearch(o js.Value) cs.StealsResearch {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.Energy = getFloat[float64](o)
-	obj.Weapons = getFloat[float64](o)
-	obj.Propulsion = getFloat[float64](o)
-	obj.Construction = getFloat[float64](o)
-	obj.Electronics = getFloat[float64](o)
-	obj.Biotechnology = getFloat[float64](o)
+	obj.Energy = getFloat[float64](o.Get("energy"))
+	obj.Weapons = getFloat[float64](o.Get("weapons"))
+	obj.Propulsion = getFloat[float64](o.Get("propulsion"))
+	obj.Construction = getFloat[float64](o.Get("construction"))
+	obj.Electronics = getFloat[float64](o.Get("electronics"))
+	obj.Biotechnology = getFloat[float64](o.Get("biotechnology"))
 	return obj
 }
 
@@ -2261,12 +2261,12 @@ func GetTech(o js.Value) cs.Tech {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.Name = string(getString(o))
+	obj.Name = string(getString(o.Get("name")))
 	obj.Cost = GetCost(o.Get("cost"))
 	obj.Requirements = GetTechRequirements(o.Get("requirements"))
-	obj.Ranking = getInt[int](o)
+	obj.Ranking = getInt[int](o.Get("ranking"))
 	obj.Category = GetTechCategory(o.Get("category"))
-	obj.Origin = string(getString(o))
+	obj.Origin = string(getString(o.Get("origin")))
 	return obj
 }
 
@@ -2290,11 +2290,11 @@ func GetTechCostOffset(o js.Value) cs.TechCostOffset {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.Engine = getFloat[float64](o)
-	obj.BeamWeapon = getFloat[float64](o)
-	obj.Torpedo = getFloat[float64](o)
-	obj.Bomb = getFloat[float64](o)
-	obj.PlanetaryDefense = getFloat[float64](o)
+	obj.Engine = getFloat[float64](o.Get("engine"))
+	obj.BeamWeapon = getFloat[float64](o.Get("beamWeapon"))
+	obj.Torpedo = getFloat[float64](o.Get("torpedo"))
+	obj.Bomb = getFloat[float64](o.Get("bomb"))
+	obj.PlanetaryDefense = getFloat[float64](o.Get("planetaryDefense"))
 	return obj
 }
 
@@ -2343,12 +2343,12 @@ func GetTechLevel(o js.Value) cs.TechLevel {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.Energy = getInt[int](o)
-	obj.Weapons = getInt[int](o)
-	obj.Propulsion = getInt[int](o)
-	obj.Construction = getInt[int](o)
-	obj.Electronics = getInt[int](o)
-	obj.Biotechnology = getInt[int](o)
+	obj.Energy = getInt[int](o.Get("energy"))
+	obj.Weapons = getInt[int](o.Get("weapons"))
+	obj.Propulsion = getInt[int](o.Get("propulsion"))
+	obj.Construction = getInt[int](o.Get("construction"))
+	obj.Electronics = getInt[int](o.Get("electronics"))
+	obj.Biotechnology = getInt[int](o.Get("biotechnology"))
 	return obj
 }
 
@@ -2360,7 +2360,7 @@ func GetTechPlanetary(o js.Value) cs.TechPlanetary {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.ResetPlanet = getBool(o)
+	obj.ResetPlanet = getBool(o.Get("resetPlanet"))
 	return obj
 }
 
@@ -2373,8 +2373,8 @@ func GetTechPlanetaryScanner(o js.Value) cs.TechPlanetaryScanner {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.ScanRange = getInt[int](o)
-	obj.ScanRangePen = getInt[int](o)
+	obj.ScanRange = getInt[int](o.Get("scanRange"))
+	obj.ScanRangePen = getInt[int](o.Get("scanRangePen"))
 	return obj
 }
 
@@ -2393,7 +2393,7 @@ func GetTechRequirements(o js.Value) cs.TechRequirements {
 	obj.PRTsRequired = GetSlice[cs.PRT](o.Get("prtsRequired"), GetPRT)
 	obj.HullsAllowed = GetSlice[string](o.Get("hullsAllowed"), getString)
 	obj.HullsDenied = GetSlice[string](o.Get("hullsDenied"), getString)
-	obj.Acquirable = getBool(o)
+	obj.Acquirable = getBool(o.Get("acquirable"))
 	return obj
 }
 
@@ -2406,7 +2406,7 @@ func GetTechTerraform(o js.Value) cs.TechTerraform {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.Ability = getInt[int](o)
+	obj.Ability = getInt[int](o.Get("ability"))
 	obj.HabType = GetTerraformHabType(o.Get("habType"))
 	return obj
 }
@@ -2432,8 +2432,8 @@ func GetTransportPlan(o js.Value) cs.TransportPlan {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.Num = getInt[int](o)
-	obj.Name = string(getString(o))
+	obj.Num = getInt[int](o.Get("num"))
+	obj.Name = string(getString(o.Get("name")))
 	obj.Tasks = GetWaypointTransportTasks(o.Get("tasks"))
 	return obj
 }
@@ -2458,8 +2458,8 @@ func GetVector(o js.Value) cs.Vector {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.X = getFloat[float64](o)
-	obj.Y = getFloat[float64](o)
+	obj.X = getFloat[float64](o.Get("x"))
+	obj.Y = getFloat[float64](o.Get("y"))
 	return obj
 }
 
@@ -2484,20 +2484,20 @@ func GetWaypoint(o js.Value) cs.Waypoint {
 		return obj
 	}
 	obj.Position = GetVector(o.Get("position"))
-	obj.WarpSpeed = getInt[int](o)
-	obj.EstFuelUsage = getInt[int](o)
+	obj.WarpSpeed = getInt[int](o.Get("warpSpeed"))
+	obj.EstFuelUsage = getInt[int](o.Get("estFuelUsage"))
 	obj.Task = GetWaypointTask(o.Get("task"))
 	obj.TransportTasks = GetWaypointTransportTasks(o.Get("transportTasks"))
-	obj.WaitAtWaypoint = getBool(o)
-	obj.LayMineFieldDuration = getInt[int](o)
-	obj.PatrolRange = getInt[int](o)
-	obj.PatrolWarpSpeed = getInt[int](o)
+	obj.WaitAtWaypoint = getBool(o.Get("waitAtWaypoint"))
+	obj.LayMineFieldDuration = getInt[int](o.Get("layMineFieldDuration"))
+	obj.PatrolRange = getInt[int](o.Get("patrolRange"))
+	obj.PatrolWarpSpeed = getInt[int](o.Get("patrolWarpSpeed"))
 	obj.TargetType = GetMapObjectType(o.Get("targetType"))
-	obj.TargetNum = getInt[int](o)
-	obj.TargetPlayerNum = getInt[int](o)
-	obj.TargetName = string(getString(o))
-	obj.TransferToPlayer = getInt[int](o)
-	obj.PartiallyComplete = getBool(o)
+	obj.TargetNum = getInt[int](o.Get("targetNum"))
+	obj.TargetPlayerNum = getInt[int](o.Get("targetPlayerNum"))
+	obj.TargetName = string(getString(o.Get("targetName")))
+	obj.TransferToPlayer = getInt[int](o.Get("transferToPlayer"))
+	obj.PartiallyComplete = getBool(o.Get("partiallyComplete"))
 	return obj
 }
 
@@ -2533,7 +2533,7 @@ func GetWaypointTransportTask(o js.Value) cs.WaypointTransportTask {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.Amount = getInt[int](o)
+	obj.Amount = getInt[int](o.Get("amount"))
 	obj.Action = GetWaypointTaskTransportAction(o.Get("action"))
 	return obj
 }
@@ -2562,7 +2562,7 @@ func GetWormholeIntel(o js.Value) cs.WormholeIntel {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.DestinationNum = getInt[int](o)
+	obj.DestinationNum = getInt[int](o.Get("destinationNum"))
 	obj.Stability = GetWormholeStability(o.Get("stability"))
 	return obj
 }
@@ -2588,9 +2588,9 @@ func GetWormholeStats(o js.Value) cs.WormholeStats {
 	if o.IsUndefined() {
 		return obj
 	}
-	obj.YearsToDegrade = getInt[int](o)
-	obj.ChanceToJump = getFloat[float64](o)
-	obj.JiggleDistance = getInt[int](o)
+	obj.YearsToDegrade = getInt[int](o.Get("yearsToDegrade"))
+	obj.ChanceToJump = getFloat[float64](o.Get("chanceToJump"))
+	obj.JiggleDistance = getInt[int](o.Get("jiggleDistance"))
 	return obj
 }
 
