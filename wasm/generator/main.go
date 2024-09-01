@@ -46,89 +46,107 @@ func main() {
 
 	// TODO: do them all, eventually
 	typesToCheck := map[string]bool{
-		"BattlePlan":                     true,
-		"BattleRecord":                   true,
-		"BattleRecordToken":              true,
-		"BattleRecordTokenAction":        true,
-		"BattleRecordDestroyedToken":     true,
-		"BattleRecordStats":              true,
-		"BattleVector":                   true,
-		"Bomb":                           true,
-		"BombingResult":                  true,
-		"Cargo":                          true,
-		"Cost":                           true,
-		"Defense":                        true,
-		"DBObject":                       true,
-		"Engine":                         true,
-		"Fleet":                          true,
-		"FleetIntel":                     true,
-		"FleetOrders":                    true,
-		"FleetSpec":                      true,
-		"GameDBObject":                   true,
-		"Hab":                            true,
-		"Intel":                          true,
-		"MapObject":                      true,
-		"MapObjectIntel":                 true,
-		"MineField":                      true,
-		"MineFieldIntel":                 true,
-		"MineFieldOrders":                true,
-		"MineFieldSpec":                  true,
-		"Mineral":                        true,
-		"MineralPacketDamage":            true,
-		"MineralPacketIntel":             true,
-		"MysteryTrader":                  true,
-		"MysteryTraderSpec":              true,
-		"MysteryTraderIntel":             true,
-		"MysteryTraderReward":            true,
-		"Planet":                         true,
-		"PlanetIntel":                    true,
-		"PlanetOrders":                   true,
-		"PlanetSpec":                     true,
-		"PlanetStarbaseSpec":             true,
-		"Player":                         true,
-		"PlayerIntel":                    true,
-		"PlayerIntels":                   true,
-		"PlayerMessage":                  true,
-		"PlayerMessageSpec":              true,
-		"PlayerMessageSpecComet":         true,
-		"PlayerMessageSpecMysteryTrader": true,
-		"PlayerOrders":                   true,
-		"PlayerPlans":                    true,
-		"PlayerRelationship":             true,
-		"PlayerScore":                    true,
-		"PlayerSpec":                     true,
-		"PlayerStats":                    true,
-		"ProductionPlan":                 true,
-		"ProductionPlanItem":             true,
-		"ProductionQueueItem":            true,
-		"QueueItemCompletionEstimate":    true,
-		"Race":                           true,
-		"ResearchCost":                   true,
-		"SalvageIntel":                   true,
-		"ScoreIntel":                     true,
-		"ShipDesign":                     true,
-		"ShipDesignIntel":                true,
-		"ShipDesignSlot":                 true,
-		"ShipDesignSpec":                 true,
-		"ShipToken":                      true,
-		"TechLevel":                      true,
-		"Tech":                           true,
-		"TechDefense":                    true,
-		"TechPlanetary":                  true,
-		"TechPlanetaryScanner":           true,
-		"TransportPlan":                  true,
-		"Vector":                         true,
-		"Waypoint":                       true,
-		"WaypointTransportTask":          true,
-		"WaypointTransportTasks":         true,
-		"WormholeIntel":                  true,
+		"BattlePlan":                          true,
+		"BattleRecord":                        true,
+		"BattleRecordToken":                   true,
+		"BattleRecordTokenAction":             true,
+		"BattleRecordDestroyedToken":          true,
+		"BattleRecordStats":                   true,
+		"BattleVector":                        true,
+		"Bomb":                                true,
+		"BombingResult":                       true,
+		"Cargo":                               true,
+		"CometStats":                          true,
+		"Cost":                                true,
+		"Defense":                             true,
+		"DBObject":                            true,
+		"Engine":                              true,
+		"Fleet":                               true,
+		"FleetIntel":                          true,
+		"FleetOrders":                         true,
+		"FleetSpec":                           true,
+		"GameDBObject":                        true,
+		"Hab":                                 true,
+		"Intel":                               true,
+		"MapObject":                           true,
+		"MapObjectIntel":                      true,
+		"MineField":                           true,
+		"MineFieldIntel":                      true,
+		"MineFieldOrders":                     true,
+		"MineFieldSpec":                       true,
+		"MineFieldStats":                      true,
+		"Mineral":                             true,
+		"MineralPacketDamage":                 true,
+		"MineralPacketIntel":                  true,
+		"MiniaturizationSpec":                 true,
+		"MysteryTrader":                       true,
+		"MysteryTraderSpec":                   true,
+		"MysteryTraderIntel":                  true,
+		"MysteryTraderReward":                 true,
+		"MysteryTraderRules":                  true,
+		"MysteryTraderTechBoonRules":          true,
+		"MysteryTraderTechBoonMineralsReward": true,
+		"Planet":                              true,
+		"PlanetIntel":                         true,
+		"PlanetOrders":                        true,
+		"PlanetSpec":                          true,
+		"PlanetStarbaseSpec":                  true,
+		"Player":                              true,
+		"PlayerIntel":                         true,
+		"PlayerIntels":                        true,
+		"PlayerMessage":                       true,
+		"PlayerMessageSpec":                   true,
+		"PlayerMessageSpecComet":              true,
+		"PlayerMessageSpecMysteryTrader":      true,
+		"PlayerOrders":                        true,
+		"PlayerPlans":                         true,
+		"PlayerRelationship":                  true,
+		"PlayerScore":                         true,
+		"PlayerSpec":                          true,
+		"PlayerStats":                         true,
+		"ProductionPlan":                      true,
+		"ProductionPlanItem":                  true,
+		"ProductionQueueItem":                 true,
+		"PRTSpec":                             true,
+		"LRTSpec":                             true,
+		"QueueItemCompletionEstimate":         true,
+		"Race":                                true,
+		"RaceSpec":                            true,
+		"ResearchCost":                        true,
+		"Rules":                               true,
+		"SalvageIntel":                        true,
+		"ScannerSpec":                         true,
+		"ScoreIntel":                          true,
+		"ShipDesign":                          true,
+		"ShipDesignIntel":                     true,
+		"ShipDesignSlot":                      true,
+		"ShipDesignSpec":                      true,
+		"ShipToken":                           true,
+		"StartingPlanet":                      true,
+		"StartingFleet":                       true,
+		"StealsResearch":                      true,
+		"TechLevel":                           true,
+		"Tech":                                true,
+		"TechCostOffset":                      true,
+		"TechDefense":                         true,
+		"TechPlanetary":                       true,
+		"TechPlanetaryScanner":                true,
+		"TechRequirements":                    true,
+		"TechTerraform":                       true,
+		"TransportPlan":                       true,
+		"Vector":                              true,
+		"Waypoint":                            true,
+		"WaypointTransportTask":               true,
+		"WaypointTransportTasks":              true,
+		"WormholeIntel":                       true,
+		"WormholeStats":                       true,
 	}
 
 	serializers := []generator.Serializer{}
 
 	// sort all the types we loaded by their names
 	keys := maps.Keys(info.Defs)
-	slices.SortFunc(keys, func(a, b *ast.Ident) int { return strings.Compare(b.Name, a.Name) })
+	slices.SortFunc(keys, func(a, b *ast.Ident) int { return strings.Compare(a.Name, b.Name) })
 
 	// for each type, load a serializer if it has json fields
 	for _, key := range keys {
@@ -142,12 +160,17 @@ func main() {
 				continue
 			}
 
-			if ok := typesToCheck[tn.Name()]; !ok {
-				continue
-			}
-
 			if named, ok := tn.Type().(*types.Named); ok {
+				if _, ok := named.Underlying().(*types.Interface); ok {
+					continue
+				}
 				var fields []generator.Field
+				serializerType := getTypeInfo(named.Obj().Type(), pkg)
+
+				if ok := typesToCheck[tn.Name()]; !ok && serializerType.Type == generator.GeneratorTypeObject {
+					continue
+				}
+
 				switch t := named.Underlying().(type) {
 				case *types.Struct:
 					fields = make([]generator.Field, t.NumFields())
@@ -166,7 +189,7 @@ func main() {
 							continue
 						}
 						fieldType := getTypeInfo(field.Type(), pkg)
-						ignore = !field.Exported() || ignore || (!fieldType.Type.IsBasic() && fieldType.Type != generator.GeneratorTypeNamed && fieldType.Package && !typesToCheck[fieldType.TypeName])
+						ignore = !field.Exported() || ignore || (fieldType.Type == generator.GeneratorTypeObject && !typesToCheck[fieldType.TypeName])
 
 						fields[i] = generator.Field{
 							FieldType: *fieldType,
@@ -181,6 +204,7 @@ func main() {
 
 				serializers = append(serializers, generator.Serializer{
 					Name:   tn.Name(),
+					Type:   *serializerType,
 					Fields: fields,
 				})
 
@@ -203,7 +227,10 @@ func main() {
 	// format it so it looks nice
 	formattedSource, err := formatGoSource(out)
 	if err != nil {
-		log.Fatal(err)
+		for i, line := range strings.Split(out, "\n") {
+			println(fmt.Sprintf("%d: %s", i, line))
+		}
+		log.Fatalf("failed to format source %v", err)
 	}
 
 	if len(args) == 2 {
@@ -323,6 +350,7 @@ func getTypeInfo(fieldType types.Type, pkg *packages.Package) *generator.FieldTy
 				typeName = t.Obj().Name()
 			} else {
 				generatorType = generator.GeneratorTypeNamed
+				typeName = t.Obj().Name()
 			}
 		}
 	case *types.Map:
@@ -385,7 +413,7 @@ func getGoType(t types.Type, pkg *packages.Package) string {
 
 // get a jsonName and omitEmpty from a tag
 func getJsonTag(tag string) (name string, omitEmpty bool, ignore bool) {
-	if strings.Contains(tag, "json:\"-\"") {
+	if !strings.Contains(tag, "json:") || strings.Contains(tag, "json:\"-\"") {
 		return "", false, true
 	}
 	regex := regexp.MustCompile("json:\"(?P<jsonName>[a-zA-Z0-9]+)(?P<omitEmpty>.*)\"")

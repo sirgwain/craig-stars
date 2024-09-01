@@ -26,6 +26,7 @@ func (t GeneratorType) IsBasic() bool {
 
 type Serializer struct {
 	Name   string
+	Type   FieldType
 	Fields []Field
 }
 
