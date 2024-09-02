@@ -370,8 +370,8 @@ func (weapon *battleWeaponSlot) getBeamDamageToTargetAtDistance(damage int, targ
 // get the accuracy of a torpedo against a target
 func (weapon *battleWeaponSlot) getAccuracy(torpedoJamming float64) float64 {
 	if torpedoJamming >= weapon.torpedoBonus {
-		return weapon.accuracy * (1 - (torpedoJamming - weapon.torpedoBonus))
+		return weapon.accuracy * (1 - (torpedoJamming - weapon.TorpedoBonus))
 	} else {
-		return weapon.accuracy + (1-(weapon.accuracy))*(weapon.torpedoBonus-torpedoJamming)
+		return weapon.accuracy + (1-(weapon.accuracy))*(weapon.TorpedoBonus-torpedoJamming)
 	}
 }
