@@ -181,6 +181,10 @@ func main() {
 						// or whether it is ignored
 						jsonName, omitEmpty, ignore := getJsonTag(t.Tag(i))
 
+						// don't ignore embedded fields
+						if ignore && field.Embedded() {
+							ignore = false
+						}
 						if !field.Exported() {
 							fields[i] = generator.Field{
 								Name:   fieldName,

@@ -4,6 +4,7 @@ package wasm
 
 import (
 	"fmt"
+	"strconv"
 	"syscall/js"
 	"time"
 
@@ -15,7 +16,7 @@ func getPointer[T any](val T) *T {
 }
 
 func getInt[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~int | ~int8 | ~int16 | ~int32 | ~int64](o js.Value) T {
-	if o.IsUndefined() {
+	if o.IsUndefined() || o.IsNull() {
 		return 0
 	}
 
@@ -23,7 +24,7 @@ func getInt[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~int | ~int8 | ~int
 }
 
 func getFloat[T ~float32 | ~float64](o js.Value) T {
-	if o.IsUndefined() {
+	if o.IsUndefined() || o.IsNull() {
 		return 0
 	}
 
@@ -31,14 +32,14 @@ func getFloat[T ~float32 | ~float64](o js.Value) T {
 }
 
 func getBool(o js.Value) bool {
-	if o.IsUndefined() {
+	if o.IsUndefined() || o.IsNull() {
 		return false
 	}
 	return o.Bool()
 }
 
 func getString(o js.Value) string {
-	if o.IsUndefined() {
+	if o.IsUndefined() || o.IsNull() {
 		return ""
 	}
 	return o.String()
@@ -70,6 +71,13 @@ func GetSlice[T any](o js.Value, getter func(o js.Value) T) []T {
 		items[i] = getter(o.Index(i))
 	}
 	return items
+}
+
+// SetBasicSlice sets a jsarray with basic items
+func SetBasicSlice[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~int | ~int8 | ~int16 | ~int32 | ~int64 | ~string | ~bool | ~float32 | ~float64](o js.Value, items []T) {
+	for i := 0; i < len(items); i++ {
+		o.SetIndex(i, js.ValueOf(items[i]))
+	}
 }
 
 // SetSlice sets a jsarray with items using a setter function
@@ -128,18 +136,31 @@ func SetSliceSlice[T any](o js.Value, items [][]T, setter func(o js.Value, item 
 	}
 }
 
-func GetMap[M ~map[K]V, K comparable, V any](o js.Value, keyGetter func(o js.Value) K, valueGetter func(o js.Value) V) M {
+func GetIntMap[M ~map[K]V, K ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~int | ~int8 | ~int16 | ~int32 | ~int64, V any](o js.Value, valueGetter func(o js.Value) V) M {
 	result := make(M)
 	if !o.IsUndefined() {
 		resultKeys := js.Global().Get("Object").Call("keys", o)
 		for i := 0; i < resultKeys.Length(); i++ {
-			key := keyGetter(o)
-			result[key] = valueGetter(o.Get(fmt.Sprintf("%v", key)))
+			keyString := getString(resultKeys.Index(i))
+			intConv, _ := strconv.Atoi(keyString)
+			key := K(intConv)
+			result[key] = valueGetter(o.Get(fmt.Sprintf("%v", keyString)))
 		}
 	}
 	return result
 }
 
+func GetStringMap[M ~map[K]V, K ~string, V any](o js.Value, valueGetter func(o js.Value) V) M {
+	result := make(M)
+	if !o.IsUndefined() {
+		resultKeys := js.Global().Get("Object").Call("keys", o)
+		for i := 0; i < resultKeys.Length(); i++ {
+			key := K(getString(resultKeys.Index(i)))
+			result[key] = valueGetter(o.Get(fmt.Sprintf("%v", key)))
+		}
+	}
+	return result
+}
 
 {{- /* 
 	Render a function like 
@@ -166,7 +187,7 @@ func GetMap[M ~map[K]V, K comparable, V any](o js.Value, keyGetter func(o js.Val
 
 	getInt[int](o.Get("grav")) 
 */}}
-{{- define "GetBasicValue" }}
+{{- define "GetBasic" }}
 	{{- $type := .type }}
 	{{- $goType := default $type.GoType .goType }}
 	{{- $jsObj := default "o" .jsObj }}
@@ -187,7 +208,7 @@ func GetMap[M ~map[K]V, K comparable, V any](o js.Value, keyGetter func(o js.Val
 	{{- end }}
 {{- end }}
 
-{{- define "GetSliceValue" }}
+{{- define "GetSlice" }}
 	{{- $type := .type }}
 	{{- $valueType := $type.ValueType }}
 	{{- $jsObj := default "o" .jsObj}}
@@ -215,17 +236,23 @@ func GetMap[M ~map[K]V, K comparable, V any](o js.Value, keyGetter func(o js.Val
 	{{- end }}
 {{- end }}
 
-{{- define "GetMapValue" }}
+{{- define "GetMap" }}
 	{{- $type := .type }}
 	{{- $keyType := default $type.KeyType .keyType }}
 	{{- $valueType := default $type.ValueType .valueType }}
 	{{- $jsObj := default "o" .jsObj}}
 	{{- $valueGetter := printf "Get%s" $valueType.TypeName }}
-	{{- $keyGetter := printf "Get%s" $keyType.TypeName }}
+	{{- $mapFunc := printf "GetStringMap" }}
 
-	{{- if $keyType.IsBasic }}
-		{{- $keyGetter = include "GetBasicGetter" (dict "type" $keyType) | trim}}
+	{{- if eq $keyType.Type "BasicInt"}}
+		{{- $mapFunc = "GetIntMap"}}
 	{{- end }}
+	{{- if $keyType.UnderlyingType }}
+		{{- if eq $keyType.UnderlyingType.Type "BasicInt" }}
+			{{- $mapFunc = "GetIntMap"}}
+		{{- end }}
+	{{- end }}
+
 	{{- if $valueType.IsBasic }}
 		{{- $valueGetter = include "GetBasicGetter" (dict "type" $valueType) | trim }}
 	{{- end }}
@@ -234,7 +261,88 @@ func GetMap[M ~map[K]V, K comparable, V any](o js.Value, keyGetter func(o js.Val
 		{{- $valueGetter = printf "func(o js.Value) %s { return getPointer(%s(o)) }" $valueType.GoType $valueGetter }}
 	{{- end }}
 
-	GetMap[{{$type.GoType}}, {{$keyType.GoType}}, {{$valueType.GoType}}]({{$jsObj}}, {{$keyGetter}}, {{$valueGetter}})
+	{{$mapFunc}}[{{$type.GoType}}, {{$keyType.GoType}}, {{$valueType.GoType}}]({{$jsObj}}, {{$valueGetter}})
+{{- end }}
+
+{{- define "SetObject" }}
+	{{- if eq .JsonName "" }}
+		Set{{.TypeName}}(o, &obj.{{.Name}})
+	{{- else }}
+		o.Set("{{.JsonName}}", map[string]any{})
+		{{- if .Pointer }}
+		Set{{.TypeName}}(o.Get("{{.JsonName}}"), obj.{{.Name}})
+		{{- else }}
+		Set{{.TypeName}}(o.Get("{{.JsonName}}"), &obj.{{.Name}})
+		{{- end }}
+	{{- end }}
+{{- end }}
+
+{{- define "SetNamedType" }}
+	{{- if .UnderlyingType.IsBasic }}
+		o.Set("{{.JsonName}}", {{.UnderlyingType.GoType}}(obj.{{.Name}}))
+	{{- else if eq .UnderlyingType.Type "Map" }}
+		{{- $context := dict "Name" .Name "JsonName" .JsonName "KeyType" .UnderlyingType.KeyType "ValueType" .UnderlyingType.ValueType  }}
+		{{- include "SetMap" $context | trim }}
+	{{- else }}
+		// unknown named type {{.Name}} {{.GoType}} {{.UnderlyingType.GoType}}
+	{{- end }}
+{{- end }}
+
+{{- define "SetSlice" }}
+	{{- if .ValueType.Package }}
+		{{- /* package slices come as slices to pointers or just slices or sometimes slices to slices... ugh */}}
+		{{- if eq .ValueType.Type "Slice" }}
+			{{- /* slice slice */}}
+			o.Set("{{.JsonName}}", []any{})
+			SetSliceSlice(o.Get("{{.JsonName}}"), obj.{{.Name}}, Set{{.ValueType.TypeName}})
+		{{- else if eq .ValueType.Type "Object" }}
+			o.Set("{{.JsonName}}", []any{})
+			{{- if .ValueType.Pointer }}
+				SetPointerSlice(o.Get("{{.JsonName}}"), obj.{{.Name}}, Set{{.ValueType.TypeName}})
+			{{- else }}
+				SetSlice(o.Get("{{.JsonName}}"), obj.{{.Name}}, Set{{.ValueType.TypeName}})
+			{{- end }}
+		{{- else if eq .ValueType.Type "Named" }}
+			SetBasicSlice[{{.ValueType.GoType}}](o.Get("{{.JsonName}}"), obj.{{.Name}})
+		{{- else }}
+			// unknonwn slice type {{.ValueType.TypeName}} {{.ValueType.GoType}} {{.ValueType.Type}}
+		{{- end }}
+	{{- else }}
+		{{- if eq .ValueType.Type "BasicInt" }}
+			o.Set("{{.JsonName}}", obj.{{.Name}})
+		{{- end }}
+	{{- end }}
+{{- end }}
+
+{{- define "SetMap" }}
+	{{- /* setting maps is easier, just create a new object and set each key */}}
+	{{.JsonName}}Map := js.ValueOf(map[string]any{})
+	for key, value := range obj.{{.Name}} {
+	{{- if .ValueType.IsBasic }}
+		{{.JsonName}}Map.Set(fmt.Sprintf("%v", key), value)
+	{{- else if eq .ValueType.Type "Named" }}
+		{{.JsonName}}Map.Set(fmt.Sprintf("%v", key), value)
+	{{- else if eq .ValueType.Type "Object" }}
+		valueObj := js.ValueOf(map[string]any{})
+		{{- if .ValueType.Pointer }}
+			Set{{.ValueType.TypeName}}(valueObj, value)
+		{{- else }}
+			Set{{.ValueType.TypeName}}(valueObj, &value)
+		{{- end }}
+		{{.JsonName}}Map.Set(fmt.Sprintf("%v", key), valueObj)
+	{{- else }}
+		// unknown map type {{.Name}} {{.Type}} {{.GoType}}
+	{{- end }}
+	}
+	o.Set("{{.JsonName}}", {{.JsonName}}Map)
+{{- end }}
+
+{{- define "SetOtherType" }}
+	{{- if eq .FullType "time.Time" }}
+		SetTime(o, "{{.JsonName}}", obj.{{.Name}})
+	{{- else }}
+		unknown other type {{.Name}} {{.GoType}}
+	{{- end }}
 {{- end }}
 
 {{- /* 
@@ -248,7 +356,7 @@ func GetMap[M ~map[K]V, K comparable, V any](o js.Value, keyGetter func(o js.Val
 	{{- $type := .type }}
 	{{- $jsObj := default "o" .jsObj}}
 	{{- if $type.IsBasic }}
-		{{ include "GetBasicValue" . }}
+		{{ include "GetBasic" . }}
 	{{- else if eq $type.Type "Object" }}
 		{{- if $type.Pointer }}
 			getPointer(Get{{$type.TypeName}}({{$jsObj}}))
@@ -256,11 +364,11 @@ func GetMap[M ~map[K]V, K comparable, V any](o js.Value, keyGetter func(o js.Val
 			Get{{$type.TypeName}}({{$jsObj}})
 		{{- end }}
 	{{- else if eq $type.Type "Slice" }}
-		{{ include "GetSliceValue" . }}
+		{{ include "GetSlice" . }}
 	{{- else if eq $type.Type "Array" }}
-		{{$type.GoType}}({{- include "GetSliceValue" . | trim}})
+		{{$type.GoType}}({{- include "GetSlice" . | trim}})
 	{{- else if eq $type.Type "Map" }}
-		{{ include "GetMapValue" . }}
+		{{ include "GetMap" . }}
 	{{- else if eq $type.Type "Named" }}
 		Get{{$type.TypeName}}({{$jsObj}})
 	{{- else if eq $type.FullType "time.Time" }}
@@ -275,7 +383,7 @@ func GetMap[M ~map[K]V, K comparable, V any](o js.Value, keyGetter func(o js.Val
 
 func Get{{.Name}}(o js.Value) {{$.Pkg}}.{{.Name}} {
 	var obj {{$.Pkg}}.{{.Name}}
-	if o.IsUndefined() {
+	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
 	{{- if eq .Type.Type "Object" }}
@@ -300,10 +408,10 @@ func Get{{.Name}}(o js.Value) {{$.Pkg}}.{{.Name}} {
 	{{- else if eq .Type.Type "Named" }}
 		{{- if .Type.UnderlyingType.IsBasic }}
 			{{- $context := dict "type" .Type.UnderlyingType "goType" .Type.GoType }}
-			obj = {{ include "GetBasicValue" $context | trim }}
+			obj = {{ include "GetBasic" $context | trim }}
 		{{- else if eq .Type.UnderlyingType.Type "Map" }}
 			{{- $context := dict "type" .Type.UnderlyingType "goType" .Type.GoType }}
-			obj = {{ include "GetMapValue" $context | trim }}
+			obj = {{ include "GetMap" $context | trim }}
 		{{- else }}
 			// unknown named underlying type {{.Type.UnderlyingType.GoType}} {{.Type.UnderlyingType.Type}}
 		{{- end }}
@@ -311,16 +419,36 @@ func Get{{.Name}}(o js.Value) {{$.Pkg}}.{{.Name}} {
 	return obj
 }
 
+{{- /* we don't create setter functions for named types, they don't really work */}}
+{{- if eq .Type.Type "Object" }}
 func Set{{.Name}}(o js.Value, obj *{{$.Pkg}}.{{.Name}}) {
 	{{- range .Fields}}	
 		{{- if .Ignore }}
-			{{- if .Exported }}
+			{{- if and .Exported (ne .JsonName "") }}
 				// {{.Name}} {{.JsonName}} {{ .Type }} ignored
 			{{- end }}
 			{{- continue }}
 		{{- end }}
+
+		{{- if .Type.IsBasic }}
+			{{- /* Basics are just a simple set */}}
+			o.Set("{{.JsonName}}", obj.{{.Name}})
+		{{- else if eq .Type "Object" }}
+			{{- include "SetObject" . | trim | nindent 4 -}}
+		{{- else if eq .Type "Named" }}
+			{{- include "SetNamedType" . | trim | nindent 4 -}}
+		{{- else if eq .Type "Slice" }}
+			{{- include "SetSlice" . | trim | nindent 4 -}}
+		{{- else if eq .Type "Array" }}
+			{{- include "SetSlice" . | trim | nindent 4 -}}
+		{{- else if eq .Type "Map" }}
+			{{- include "SetMap" . | trim | nindent 4 -}}
+		{{- else  }}
+			{{- include "SetOtherType" . | trim | nindent 4 -}}
+		{{- end }}
 	{{- end }}
 }
+{{- end}}
 
 {{- end}}
 
