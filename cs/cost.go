@@ -1,6 +1,9 @@
 package cs
 
-import "math"
+import (
+	"fmt"
+	"math"
+)
 
 // A Cost represents minerals and resources required to build something, i.e. a mine, factory, or ship
 type Cost struct {
@@ -39,7 +42,7 @@ func (c Cost) GetAmount(costType CostType) int {
 	case Resources:
 		return c.Resources
 	}
-	panic("GetAmount called with invalid CostType " + string(costType))
+	panic(fmt.Sprintf("GetAmount called with invalid CostType %s", costType))
 }
 
 func (c Cost) AddInt(costType CostType, amount int) Cost {
@@ -53,7 +56,7 @@ func (c Cost) AddInt(costType CostType, amount int) Cost {
 	case Resources:
 		c.Resources += amount
 	default:
-		panic("AddInt called with invalid CostType " + string(costType))
+		panic(fmt.Sprintf("AddInt called with invalid CostType %s", costType))
 	}
 	return c
 }
@@ -213,24 +216,24 @@ func (c Cost) DivideByInt(divisor int, roundUp bool) Cost {
 	}
 
 	if roundUp {
-		var I, B, G, R int
+		var ironium, boranium, germanium, resources int
 		if c.Ironium%divisor > 0 {
-			I = 1
+			ironium = 1
 		}
 		if c.Boranium%divisor > 0 {
-			B = 1
+			boranium = 1
 		}
 		if c.Germanium%divisor > 0 {
-			G = 1
+			germanium = 1
 		}
 		if c.Resources%divisor > 0 {
-			R = 1
+			resources = 1
 		}
 		return Cost{
-			Ironium:   c.Ironium/divisor + I,
-			Boranium:  c.Boranium/divisor + B,
-			Germanium: c.Germanium/divisor + G,
-			Resources: c.Resources/divisor + R,
+			Ironium:   c.Ironium/divisor + ironium,
+			Boranium:  c.Boranium/divisor + boranium,
+			Germanium: c.Germanium/divisor + germanium,
+			Resources: c.Resources/divisor + resources,
 		}
 	} else {
 		return Cost{
