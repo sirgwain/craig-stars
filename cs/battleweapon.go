@@ -44,7 +44,7 @@ type battleWeaponSlot struct {
 	accuracy float64
 
 	// the accuracy bonus to the torpedo
-	TorpedoBonus float64
+	torpedoBonus float64
 
 	// the initiative of the weapon
 	initiative int
