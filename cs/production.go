@@ -19,7 +19,6 @@ func newProducer(rules *Rules, planet *Planet, player *Player) producer {
 		planet:    planet,
 		player:    player,
 		estimator: NewCompletionEstimator(),
-		
 	}
 }
 
@@ -186,33 +185,34 @@ func (p *production) produce() productionResult {
 		var err error
 		var cost Cost
 		if item.Type == QueueItemTypeStarbase && planet.Spec.HasStarbase {
-			cost, err = costCalculator.StarbaseUpgradeCost(p.rules, p.player.TechLevels, p. player.Race.Spec, planet.Starbase.Tokens[0].design, item.design)
+			cost, err = costCalculator.StarbaseUpgradeCost(p.rules, p.player.TechLevels, p.player.Race.Spec, planet.Starbase.Tokens[0].design, item.design)
 			if err != nil {
 				log.Warn().
 					Int64("GameID", p.rules.GameID).
-					Int("Num", design.Num).
+					Int("Num", item.design.Num).
 					Int("Player Num", p.player.Num).
 					Int("Old Design Num", planet.Starbase.Tokens[0].design.Num).
 					Int("New Design Num", item.design.Num).
 					Msgf("StarbaseUpgradeCost returned error: %s", err)
 			}
-		} else if (item.Type == QueueItemTypeStarbase || item.Type == QueueItemTypeShipToken) {
+		} else if item.Type == QueueItemTypeStarbase || item.Type == QueueItemTypeShipToken {
 			cost, err = costCalculator.GetDesignCost(p.rules, p.player.TechLevels, p.player.Race.Spec, item.design)
 			if err != nil {
 				log.Warn().
 					Int64("GameID", p.rules.GameID).
-					Int("Num", design.Num).
+					Int("Num", item.design.Num).
 					Int("Player Num", p.player.Num).
 					Int("Design Num", item.design.Num).
 					Msgf("GetDesignCost returned error: %s", err)
+			}
 		} else {
 			cost, err = costCalculator.CostOfOne(p.player, item)
 			if err != nil {
 				log.Warn().
 					Int64("GameID", p.rules.GameID).
-					Int("Num", design.Num).
+					Int("Num", item.design.Num).
 					Int("Player Num", p.player.Num).
-					Str("Item Type", item.Type).
+					Str("Item Type", string(item.Type)).
 					Int("Item Quantity", item.Quantity).
 					Msgf("CostOfOnr returned error: %s", err)
 			}
@@ -341,7 +341,7 @@ func (p *production) produce() productionResult {
 				break
 			}
 		}
-	
+
 	}
 	// replace the queue with what's leftover
 	planet.ProductionQueue = newQueue

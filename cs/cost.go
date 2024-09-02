@@ -10,6 +10,15 @@ type Cost struct {
 	Resources int `json:"resources,omitempty"`
 }
 
+type CostType = ResourceType
+
+var CostTypes = [4]CostType{
+	Ironium,
+	Boranium,
+	Germanium,
+	Resources,
+}
+
 func NewCost(
 	ironium int,
 	boranium int,
@@ -19,30 +28,32 @@ func NewCost(
 	return Cost{ironium, boranium, germanium, resources}
 }
 
-func (c Cost) GetAmount(resourceType int) int {
-	switch resourceType {
-	case 0:
+func (c Cost) GetAmount(costType CostType) int {
+	switch costType {
+	case Ironium:
 		return c.Ironium
-	case 1:
+	case Boranium:
 		return c.Boranium
-	case 2:
+	case Germanium:
 		return c.Germanium
-	case 3:
+	case Resources:
 		return c.Resources
 	}
-	return 0
+	panic("GetAmount called with invalid CostType " + string(costType))
 }
 
-func (c Cost) AddInt(resourceType int, amount int) Cost {
-	switch resourceType {
-	case 0:
+func (c Cost) AddInt(costType CostType, amount int) Cost {
+	switch costType {
+	case Ironium:
 		c.Ironium += amount
-	case 1:
+	case Boranium:
 		c.Boranium += amount
-	case 2:
+	case Germanium:
 		c.Germanium += amount
-	case 3:
+	case Resources:
 		c.Resources += amount
+	default:
+		panic("AddInt called with invalid CostType " + string(costType))
 	}
 	return c
 }
@@ -231,28 +242,14 @@ func (c Cost) DivideByInt(divisor int, roundUp bool) Cost {
 	}
 }
 
-// Return greater of 2 cost structs for the specified ResourceType;
-// anything outside of range (0-3) evaluates it for all ResourceTypes separately
-func (c Cost) Max(other Cost, resourceType int) Cost {
-	a := Cost{}
-	if 3 >= resourceType && resourceType >= 0 {
-		switch resourceType {
-		case 0:
-			a.Ironium = MaxInt(c.Ironium, other.Ironium)
-		case 1:
-			a.Boranium = MaxInt(c.Boranium, other.Boranium)
-		case 2:
-			a.Germanium = MaxInt(c.Germanium, other.Germanium)
-		case 3:
-			a.Resources = MaxInt(c.Resources, other.Resources)
-		} 
-	} else {
-		a.Ironium = MaxInt(c.Ironium, other.Ironium)
-		a.Boranium = MaxInt(c.Boranium, other.Boranium)
-		a.Germanium = MaxInt(c.Germanium, other.Germanium)
-		a.Resources = MaxInt(c.Resources, other.Resources)
+// Return greater of 2 cost structs for all ResourceTypes separately
+func (c Cost) Max(other Cost) Cost {
+	return Cost{
+		Ironium:   MaxInt(c.Ironium, other.Ironium),
+		Boranium:  MaxInt(c.Boranium, other.Boranium),
+		Germanium: MaxInt(c.Germanium, other.Germanium),
+		Resources: MaxInt(c.Resources, other.Resources),
 	}
-	return a
 }
 
 func (c Cost) Negate() Cost {
