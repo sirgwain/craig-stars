@@ -221,7 +221,7 @@ func (p *costCalculate) GetDesignCost(rules *Rules, techLevels TechLevel, raceSp
 			return Cost{}, fmt.Errorf("component %s in design slots not found in tech store", slot.HullComponent)
 		}
 		hcCost := item.Tech.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(slot.Quantity)
-		if design.Spec.Starbase && item.Category == "Orbital" {
+		if design.Spec.Starbase && item.Category == TechCategoryOrbital {
 			cost = cost.Add(hcCost.MultiplyInt(1000 * rules.StarbaseComponentCostReduction))
 		} else {
 			cost = cost.Add(hcCost.MultiplyInt(1000))
