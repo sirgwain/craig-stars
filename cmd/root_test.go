@@ -1,3 +1,5 @@
+//go:build !wasi && !wasm
+
 package cmd
 
 import (

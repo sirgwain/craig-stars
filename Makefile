@@ -22,6 +22,14 @@ build_server:
 	-X 'github.com/sirgwain/craig-stars/cmd.buildTime=${BUILDTIME}'" \
 	main.go
 
+build_wasm:
+	mkdir -p frontend/src/lib/wasm
+	GOOS=js GOARCH=wasm \
+	go build \
+	-o frontend/src/lib/wasm/cs.wasm \
+	wasm/main.go
+	cp $(shell go env GOROOT)/misc/wasm/wasm_exec.js ./frontend/src/lib/wasm/wasm_exec.js
+
 # use docker to build an amd64 image for linux deployment
 build_docker:
 	docker build -f builder.Dockerfile --platform linux/amd64 . -t craig-stars-builder

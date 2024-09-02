@@ -1,3 +1,5 @@
+//go:build !wasi && !wasm
+
 package cmd
 
 import (
@@ -54,7 +56,6 @@ func Execute() {
 	rootCmd.SetVersionTemplate(fmt.Sprintf("version: {{ .Version }}\nbuild: %s (%s)", commit, buildTime))
 	err := rootCmd.Execute()
 	if err != nil {
-		dbRollback()
 		os.Exit(1)
 	}
 }
