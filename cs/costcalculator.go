@@ -203,7 +203,7 @@ func (p *costCalculate) CostOfOne(player *Player, item ProductionQueueItem) (Cos
 // Get cost of a given ship or new starbase design
 func (p *costCalculate) GetDesignCost(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design *ShipDesign) (Cost, error) {
 
-	hull := rules.techs.GetHullComponent(design.Hull)
+	hull := rules.techs.GetHull(design.Hull)
 	if hull == nil {
 		return Cost{}, fmt.Errorf("hull design %s not found in tech store", design.Hull)
 	}
