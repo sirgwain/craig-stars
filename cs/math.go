@@ -17,6 +17,7 @@ func roundFloat(val float64, precision uint) float64 {
 	return math.Round(val*ratio) / ratio
 }
 
+// round a float to nearest whole number, rounding halves down
 func roundHalfDown(x float64) float64 {
 	if x > 0 {
 		return math.Floor(x + 0.5)

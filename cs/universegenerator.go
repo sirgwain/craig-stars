@@ -477,7 +477,7 @@ func (ug *universeGenerator) getStartingStarbaseDesigns(techStore *TechStore, pl
 }
 
 // Player starting starbases are all the same, regardless of starting tech level
-// They get half filled with the starter beam, shield, and armor
+// They get half filled with the starter beam & shield
 func fillStarbaseSlots(techStore *TechStore, starbase *ShipDesign, race *Race, startingPlanet StartingPlanet) {
 	hull := techStore.GetHull(starbase.Hull)
 	beamWeapon := techStore.GetHullComponentsByCategory(TechCategoryBeamWeapon)[0]
@@ -502,7 +502,7 @@ func fillStarbaseSlots(techStore *TechStore, starbase *ShipDesign, race *Race, s
 	placedStargate := false
 	for index, slot := range hull.Slots {
 		switch slot.Type {
-		case HullSlotTypeGeneral: // No starbases currently have GP slots, but if they did,x
+		case HullSlotTypeGeneral: // No starting starbases (or any starbase) currently have GP slots, but this is a precaution if they did
 			fallthrough
 		case HullSlotTypeWeapon:
 			starbase.Slots = append(starbase.Slots, ShipDesignSlot{beamWeapon.Name, index + 1, int(math.Round(float64(slot.Capacity) / 2))})

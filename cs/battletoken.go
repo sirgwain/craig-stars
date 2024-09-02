@@ -84,7 +84,7 @@ func newBattleToken(num int, position BattleVector, cargoMass int, token *ShipTo
 		maxRange := 0
 		for _, slot := range token.design.Spec.WeaponSlots {
 			weapon := techFinder.GetHullComponent(slot.HullComponent)
-			bws := newBattleWeaponSlot(&battleToken, slot, weapon, hull.RangeBonus, token.design.Spec.TorpedoBonus, token.design.Spec.BeamBonus)
+			bws := newBattleWeaponSlot(&battleToken, slot, weapon, hull.RangeBonus, token.design.Spec.torpedoBonus, token.design.Spec.BeamBonus)
 			weaponSlots = append(weaponSlots, bws)
 			minRange = MinInt(minRange, bws.weaponRange)
 			maxRange = MaxInt(maxRange, bws.weaponRange)

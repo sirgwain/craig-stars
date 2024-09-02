@@ -1438,14 +1438,14 @@ var BattleComputer = TechHullComponent{Tech: NewTech("Battle Computer", NewCost(
 
 	Mass:                   1,
 	InitiativeBonus:        1,
-	TorpedoBonus:           .8,
+	TorpedoBonus:           .2,
 	HullSlotType:           HullSlotTypeElectrical,
 }
 var BattleSuperComputer = TechHullComponent{Tech: NewTech("Battle Super Computer", NewCost(0, 0, 25, 14), TechRequirements{TechLevel: TechLevel{Energy: 5, Electronics: 11}}, 50, TechCategoryElectrical),
 
 	Mass:                   1,
 	InitiativeBonus:        2,
-	TorpedoBonus:           .7,
+	TorpedoBonus:           .3,
 	HullSlotType:           HullSlotTypeElectrical,
 }
 var BattleNexus = TechHullComponent{Tech: NewTech("Battle Nexus", NewCost(0, 0, 30, 15), TechRequirements{TechLevel: TechLevel{Energy: 10, Electronics: 19}}, 60, TechCategoryElectrical),
@@ -1964,7 +1964,7 @@ var WolverineDiffuseShield = TechHullComponent{Tech: NewTech("Wolverine Diffuse 
 	Shield:       60,
 	HullSlotType: HullSlotTypeShield,
 }
-var CrobySharmor = TechHullComponent{Tech: NewTech("Croby Sharmor", NewCost(7, 0, 4, 15), TechRequirements{TechLevel: TechLevel{Energy: 7, Construction: 4}, PRTsRequired: []PRT{IS}}, 40, TechCategoryShield),
+var CrobySharmor = TechHullComponent{Tech: NewTech("Croby Sharmor", NewCost(7, 0, 4, 15), TechRequirements{TechLevel: TechLevel{Energy: 7, Construction: 4}, PRTsRequired: []PRT{IS}}, 60, TechCategoryShield),
 
 	Mass:         10,
 	Shield:       60,
@@ -1978,7 +1978,7 @@ var ShadowShield = TechHullComponent{Tech: NewTech("Shadow Shield", NewCost(3, 0
 	CloakUnits:   70,
 	HullSlotType: HullSlotTypeShield,
 }
-var BearNeutrinoBarrier = TechHullComponent{Tech: NewTech("Bear Neutrino Barrier", NewCost(4, 0, 4, 8), TechRequirements{TechLevel: TechLevel{Energy: 10}}, 60, TechCategoryShield),
+var BearNeutrinoBarrier = TechHullComponent{Tech: NewTech("Bear Neutrino Barrier", NewCost(4, 0, 4, 8), TechRequirements{TechLevel: TechLevel{Energy: 10}}, 40, TechCategoryShield),
 
 	Mass:         1,
 	Shield:       100,

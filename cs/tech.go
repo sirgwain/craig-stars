@@ -101,7 +101,7 @@ type TechHullComponent struct {
 	CanStealPlanetCargo       bool          `json:"canStealPlanetCargo,omitempty"`
 	Armor                     int           `json:"armor,omitempty"`
 	Shield                    int           `json:"shield,omitempty"`
-	TorpedoBonus              float64       `json:"torpedoInaccuracyMulti,omitempty"`
+	TorpedoBonus              float64       `json:"torpedoBonus,omitempty"`
 	InitiativeBonus           int           `json:"initiativeBonus,omitempty"`
 	BeamBonus                 float64       `json:"beamBonus,omitempty"`
 	ReduceMovement            int           `json:"reduceMovement,omitempty"`
