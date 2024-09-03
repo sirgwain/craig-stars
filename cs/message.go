@@ -374,10 +374,11 @@ func (m *messageClient) fleetGeneratedFuel(player *Player, fleet *Fleet, fuelGen
 			break
 		}
 	}
+	var text string
 	if hasRamScoop {
-		text := fmt.Sprintf("%s's ramscoops have produced %dmg of fuel from interstellar hydrogen.", fleet.Name, fuelGenerated)
+		text = fmt.Sprintf("%s's ramscoops have produced %dmg of fuel from interstellar hydrogen.", fleet.Name, fuelGenerated)
 	} else {
-		text := fmt.Sprintf("%s's engines have produced %dmg of fuel from interstellar hydrogen.", fleet.Name, fuelGenerated)
+		text = fmt.Sprintf("%s's engines have produced %dmg of fuel from interstellar hydrogen.", fleet.Name, fuelGenerated)
 	}
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetGeneratedFuel, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum}})
 }
@@ -835,7 +836,7 @@ func (m *messageClient) planetEmptied(player *Player, planet *Planet) {
 }
 
 func (m *messageClient) planetInstaform(player *Player, planet *Planet, terraformAmount Hab) {
-	text := fmt.Sprintf("Your race has instantly terraformed %s up to optimal conditions. Its value is now %d%.", planet.Name, planet.value)
+	text := fmt.Sprintf("Your race has instantly terraformed %s up to optimal conditions. Its value is now %d%.", planet.Name, planet.Spec.Habitability)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetInstaform, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetPlanet, TargetNum: planet.Num}})
 }
 

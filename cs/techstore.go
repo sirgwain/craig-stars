@@ -211,7 +211,7 @@ func (store *TechStore) GetBestPlanetaryScanner(player *Player) *TechPlanetarySc
 	for i := range store.PlanetaryScanners {
 		tech := &store.PlanetaryScanners[i]
 		if player.HasTech(&tech.Tech) {
-			if tech.Rating > bestTech.Rating {
+			if tech.Tech.Rating > bestTech.Tech.Rating {
 				bestTech = tech
 			}
 		}
@@ -225,7 +225,7 @@ func (store *TechStore) GetBestDefense(player *Player) *TechDefense {
 	for i := range store.Defenses {
 		tech := &store.Defenses[i]
 		if player.HasTech(&tech.Tech) {
-			if tech.Rating > bestTech.Rating {
+			if tech.Tech.Rating > bestTech.Tech.Rating {
 				bestTech = tech
 			}
 		}
@@ -238,7 +238,7 @@ func (store *TechStore) GetBestTerraform(player *Player, terraformHabType Terraf
 	for i := range store.Terraforms {
 		tech := &store.Terraforms[i]
 		if tech.HabType == terraformHabType && player.HasTech(&tech.Tech) {
-			if tech.Rating > bestTech.Rating {
+			if tech.Tech.Rating > bestTech.Tech.Rating {
 				bestTech = tech
 			}
 		}
@@ -485,7 +485,7 @@ func (store *TechStore) GetBestBattleComputer(player *Player) *TechHullComponent
 	return bestTech
 }
 
-// get the best player's mining robot
+// get the player's best mining robot
 func (store *TechStore) GetBestMiningRobot(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
@@ -1638,7 +1638,7 @@ var ColonizationModule = TechHullComponent{Tech: NewTech("Colonization Module", 
 	ColonizationModule: true,
 	HullSlotType:       HullSlotTypeMechanical,
 }
-var OrbitalConstructionModule = TechHullComponent{Tech: NewTech("Orbital Construction Module", NewCost(20, 15, 15, 20), TechRequirements{TechLevel: TechLevel{}, PRTsRequired: []PRT{AR}, HullsAllowed: []str{ColonyShip.Name}}, 10, TechCategoryMechanical),
+var OrbitalConstructionModule = TechHullComponent{Tech: NewTech("Orbital Construction Module", NewCost(20, 15, 15, 20), TechRequirements{TechLevel: TechLevel{}, PRTsRequired: []PRT{AR}, HullsAllowed: []string{ColonyShip.Name}}, 10, TechCategoryMechanical),
 
 	Mass:                      50,
 	MinKillRate:               2000,
