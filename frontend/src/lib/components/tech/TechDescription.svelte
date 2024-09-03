@@ -235,15 +235,15 @@
 
 				if (hullComponent.colonizationModule) {
 					descriptions.push(
-						'This pod allows a ship to colonize an uninhabited planet. Upon arrival, the pod will dismantle it and any other ships in the fleet into supplies for the colonists. 
-						The fleet must have orders set to "Colonize", and at least one ship in it must be carrying colonists.'
+						`This pod allows a ship to colonize an uninhabited planet. Upon arrival, the pod will dismantle it and any other ships in the fleet into supplies for the colonists. 
+						The fleet must have orders set to "Colonize", and at least one ship in it must be carrying colonists.`
 					);
 				}
 
 				if (hullComponent.orbitalConstructionModule) {
 					descriptions.push(
-						'This pod contains an empty orbital hull which can be deployed in orbit of an uninhabited planet to colonize it, scrapping all ships in the fleet in the progress. 
-						The fleet must have orders set to "Colonize", and at least one ship in it must be carrying colonists.'
+						`This pod contains an empty orbital hull which can be deployed in orbit of an uninhabited planet to colonize it, scrapping all ships in the fleet in the progress. 
+						The fleet must have orders set to "Colonize", and at least one ship in it must be carrying colonists.`
 
 					);
 					if ((hullComponent.minKillRate ?? 0) > 0) {
@@ -383,6 +383,7 @@
 						// we have no pen scan, but we are a normal scanner, we can still scan planets we orbit
 						descriptions.push(
 							"This scanner is capable of determining a planet's environment and composition while orbiting it. It will also spot enemy fleets attempting to hide behind planets at the same location."
+						);
 					}
 
 					if ((hullComponent.scanRangePen ?? 0) > 0) {

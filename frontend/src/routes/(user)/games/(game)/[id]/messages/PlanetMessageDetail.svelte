@@ -37,13 +37,20 @@
 				killing {bombing.colonistsKilled ?? 0} colonists, and destroying {bombing.minesDestroyed ??
 					0} mines,
 				{bombing.factoriesDestroyed ?? 0} factories and {bombing.defensesDestroyed ?? 0} defenses.
+			{/if}
 
 			{#if absSum(bombing.unterraformAmount ?? {}) > 0}
-				The {bombing.numBombers == 0 ? bomber has : bombers have} also retro-bombed the planet, undoing {absSum(
+				{#if bombing.numBombers ?? 0 > 1}
+					The bombers have also retro-bombed the planet, undoing {absSum(
+						bombing.unterraformAmount ?? {}
+					)}% of its terraforming.
+				{:else}
+					The bomber has also retro-bombed the planet, undoing {absSum(
 						bombing.unterraformAmount ?? {}
 					)}% of its terraforming.
 				{/if}
 			{/if}
+		{/if}
 	{:else}
 		<!-- Generic message, no bombing data (unexpected) -->
 		Bombers have bombed planet ${planet.name}.
