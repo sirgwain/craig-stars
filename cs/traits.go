@@ -469,7 +469,7 @@ func ifeSpec() LRTSpec {
 func ttSpec() LRTSpec {
 	return LRTSpec{
 		TechCostOffset: TechCostOffset{
-			TerraformCostOffset: -.3, // terraforming costs 30% less
+			Terraforming: -.3, // terraforming costs 30% less
 		}
 	}
 }
