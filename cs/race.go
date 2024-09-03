@@ -795,7 +795,7 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		QueueItemTypeAutoDefenses:           rules.DefenseCost.MultiplyFloat64(1 + spec.TechCostOffset.PlanetaryDefense),
 		QueueItemTypeTerraformEnvironment:   rules.TerraformCost.MultiplyFloat64(1 + spec.TechCostOffset.Terraforming),
 		QueueItemTypeAutoMaxTerraform:       rules.TerraformCost.MultiplyFloat64(1 + spec.TechCostOffset.Terraforming),
-		QueueItemTypeAutoMinTerraform:       rrules.TerraformCost.MultiplyFloat64(1 + spec.TechCostOffset.Terraforming),
+		QueueItemTypeAutoMinTerraform:       rules.TerraformCost.MultiplyFloat64(1 + spec.TechCostOffset.Terraforming),
 		QueueItemTypeIroniumMineralPacket:   {Resources: spec.PacketResourceCost, Ironium: int(float64(spec.MineralsPerSingleMineralPacket) * spec.PacketMineralCostFactor)},
 		QueueItemTypeBoraniumMineralPacket:  {Resources: spec.PacketResourceCost, Boranium: int(float64(spec.MineralsPerSingleMineralPacket) * spec.PacketMineralCostFactor)},
 		QueueItemTypeGermaniumMineralPacket: {Resources: spec.PacketResourceCost, Germanium: int(float64(spec.MineralsPerSingleMineralPacket) * spec.PacketMineralCostFactor)},
