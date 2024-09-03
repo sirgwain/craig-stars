@@ -469,7 +469,7 @@ func ifeSpec() LRTSpec {
 func ttSpec() LRTSpec {
 	return LRTSpec{
 		TechCostOffset: TechCostOffset{
-			TerraformCostOffset: -.3 // terraformint costs 30% less
+			TerraformCostOffset: -.3, // terraforming costs 30% less
 		}
 	}
 }
@@ -502,7 +502,7 @@ func urSpec() LRTSpec {
 	return LRTSpec{
 		// UR gives us 45%/90% of scrapped minerals, versus 33%/80% for races without UR
 		ScrapMineralOffset:           .45 - (1.0 / 3),
-		ScrapMineralOffsetStarbase:   .9 - (10 / 8)
+		ScrapMineralOffsetStarbase:   .9 - (10 / 8),
 		ScrapResourcesOffset:         .35,
 		ScrapResourcesOffsetStarbase: .7,
 	}

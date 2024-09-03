@@ -253,8 +253,8 @@ func (store *TechStore) GetBestBattleEngine(player *Player, hull *TechHull, purp
 		tech := &store.Engines[i]
 		if player.HasTech(&tech.Tech) {
 			// if this tech is not allowed on our hull (like the Settler's Delight on normal ships) skip it
-			if (len(tech.Requirements.HullsAllowed) > 0 && !slices.Contains(tech.Requirements.HullsAllowed, hull.Name)) 
-				|| (len(tech.Requirements.HullsDenied) > 0 && slices.Contains(tech.Requirements.HullsDenied, hull.Name)) {
+			if (len(tech.Requirements.HullsAllowed) > 0 && !slices.Contains(tech.Requirements.HullsAllowed, hull.Name)) ||
+			(len(tech.Requirements.HullsDenied) > 0 && slices.Contains(tech.Requirements.HullsDenied, hull.Name)) {
 				continue
 			}
 			// if engine has higher ideal speed than the current selection, use it
@@ -275,8 +275,8 @@ func (store *TechStore) GetBestEngine(player *Player, hull *TechHull, purpose Fl
 		tech := &store.Engines[i]
 		if player.HasTech(&tech.Tech) {
 			// if this tech is not allowed on our hull (like the Settler's Delight on normal ships) skip it
-			if (len(tech.Requirements.HullsAllowed) > 0 && !slices.Contains(tech.Requirements.HullsAllowed, hull.Name)) 
-				|| (len(tech.Requirements.HullsDenied) > 0 && slices.Contains(tech.Requirements.HullsDenied, hull.Name)) {
+			if (len(tech.Requirements.HullsAllowed) > 0 && !slices.Contains(tech.Requirements.HullsAllowed, hull.Name)) ||
+			(len(tech.Requirements.HullsDenied) > 0 && slices.Contains(tech.Requirements.HullsDenied, hull.Name)) {
 				continue
 			}
 
@@ -333,14 +333,14 @@ func (store *TechStore) GetBestSapper(player *Player) *TechHullComponent {
 			}
 		}
 	}
-	// Use a regular beam if it's at least as strong
+	// Use a regular beam if it's at least as strong/cheap
 	// than our best sapper (since they can damage armor)
 	// This is never possible in vanilla Stars!, but maybe for mods
-	if store.GetBestBeamWeapon(player).Power >= bestTech.Power
-		&& store.GetBestBeamWeapon(player).Cost.Resources <= bestTech.Cost.Resources
-		&& store.GetBestBeamWeapon(player).Range >= bestTech.Range {
-		
-		bestTech = store.GetBestBeamWeapon(player)
+	bestBeam := store.GetBestBeamWeapon(player)
+	if bestBeam.Power >= bestTech.Power &&
+	bestBeam.Cost.Resources <= bestTech.Cost.Resources &&
+	bestBeam.Range >= bestTech.Range {
+		bestTech = bestBeam
 	}
 	return bestTech
 }
