@@ -7,7 +7,7 @@ import (
 
 func (ai *aiPlayer) invade() error {
 
-	// make ure our invasions are valid
+	// make sure our invasions are valid
 	for _, fleet := range ai.Fleets {
 		if fleet.Purpose != cs.FleetPurposeInvader {
 			continue
@@ -19,7 +19,7 @@ func (ai *aiPlayer) invade() error {
 
 		target := ai.getPlanetIntel(fleet.Waypoints[1].TargetNum)
 
-		// if this planet is no longer owned by a player, or it suddenly has a starbase, or it's pop has grown out
+		// if this planet is no longer owned by a player, or it suddenly has a starbase, or its pop has grown out
 		// of the threshold where we would invade, return to the nearest starbase
 		if !target.Owned() || target.Spec.HasStarbase || target.Spec.Population > int(ai.config.invasionFactor*float64(fleet.Cargo.Colonists*100)) {
 			fleet.Purpose = cs.FleetPurposeNone
