@@ -140,7 +140,7 @@ const (
 
 func defaultPRTSpec() PRTSpec {
 	return PRTSpec{
-		StartingPlanets: []StartingPlanet{{Population: 25000, StarbaseHull: SpaceStation.Name, StarbaseDesignName: "Starbase"}, Homeworld: true},
+		StartingPlanets: []StartingPlanet{{Population: 25000, StarbaseHull: SpaceStation.Name, StarbaseDesignName: "Starbase", Homeworld: true},},
 
 		PointCost:                        66,
 		MineralsPerSingleMineralPacket:   100,
