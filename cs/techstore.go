@@ -337,9 +337,10 @@ func (store *TechStore) GetBestSapper(player *Player) *TechHullComponent {
 	// than our best sapper (since they can damage armor)
 	// This is never possible in vanilla Stars!, but maybe for mods
 	bestBeam := store.GetBestBeamWeapon(player)
-	if bestBeam.Power >= bestTech.Power &&
+	if bestTech == nil || 
+	(bestBeam.Power >= bestTech.Power &&
 	bestBeam.Cost.Resources <= bestTech.Cost.Resources &&
-	bestBeam.Range >= bestTech.Range {
+	bestBeam.Range >= bestTech.Range) {
 		bestTech = bestBeam
 	}
 	return bestTech
