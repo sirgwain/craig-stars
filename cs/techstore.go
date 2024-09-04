@@ -286,7 +286,7 @@ func (store *TechStore) GetBestEngine(player *Player, hull *TechHull, purpose Fl
 				continue
 			}
 
-			if tech.Ranking > bestTech.Ranking {
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
 				bestTech = tech
 			}
 		}
@@ -300,7 +300,7 @@ func (store *TechStore) GetBestScanner(player *Player) *TechHullComponent {
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if tech.Scanner && (tech.ScanRange >= 0 || tech.ScanRangePen >= 0) && player.HasTech(&tech.Tech) {
-			if tech.Ranking > bestTech.Ranking {
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
 				bestTech = tech
 			}
 		}
@@ -314,7 +314,7 @@ func (store *TechStore) GetBestBeamWeapon(player *Player) *TechHullComponent {
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if tech.Category == TechCategoryBeamWeapon && tech.Power > 0 && !tech.DamageShieldsOnly && player.HasTech(&tech.Tech) {
-			if tech.Ranking > bestTech.Ranking {
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
 				bestTech = tech
 			}
 		}
@@ -328,7 +328,7 @@ func (store *TechStore) GetBestSapper(player *Player) *TechHullComponent {
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if tech.Category == TechCategoryBeamWeapon && tech.Power > 0 && tech.DamageShieldsOnly && player.HasTech(&tech.Tech) {
-			if tech.Ranking > bestTech.Ranking {
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
 				bestTech = tech
 			}
 		}
@@ -351,7 +351,7 @@ func (store *TechStore) GetBestArmor(player *Player) *TechHullComponent {
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if tech.Category == TechCategoryArmor && player.HasTech(&tech.Tech) {
-			if tech.Ranking > bestTech.Ranking {
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
 				bestTech = tech
 			}
 		}
@@ -365,7 +365,7 @@ func (store *TechStore) GetBestShield(player *Player) *TechHullComponent {
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if tech.Category == TechCategoryShield && player.HasTech(&tech.Tech) {
-			if tech.Ranking > bestTech.Ranking {
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
 				bestTech = tech
 			}
 		}
@@ -379,7 +379,7 @@ func (store *TechStore) GetBestTorpedo(player *Player) *TechHullComponent {
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if tech.Category == TechCategoryTorpedo && tech.Power > 0 && player.HasTech(&tech.Tech) {
-			if tech.Ranking > bestTech.Ranking {
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
 				bestTech = tech
 			}
 		}
@@ -393,7 +393,7 @@ func (store *TechStore) GetBestBomb(player *Player) *TechHullComponent {
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if tech.Category == TechCategoryBomb && tech.MinKillRate > 0 && tech.StructureDestroyRate > 0 && player.HasTech(&tech.Tech) {
-			if tech.Ranking > bestTech.Ranking {
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
 				bestTech = tech
 			}
 		}
@@ -407,7 +407,7 @@ func (store *TechStore) GetBestStructureBomb(player *Player) *TechHullComponent 
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if tech.Category == TechCategoryBomb && tech.MinKillRate == 0 && tech.StructureDestroyRate > 0 && player.HasTech(&tech.Tech) {
-				if tech.Ranking > bestTech.Ranking {
+				if bestTech == nil || tech.Ranking > bestTech.Ranking {
 				bestTech = tech
 			}
 		}
@@ -421,7 +421,7 @@ func (store *TechStore) GetBestSmartBomb(player *Player) *TechHullComponent {
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if tech.Category == TechCategoryBomb && tech.MinKillRate == 0 && tech.StructureDestroyRate == 0 && tech.KillRate > 0 && player.HasTech(&tech.Tech) {
-			if tech.Ranking > bestTech.Ranking {
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
 				bestTech = tech
 			}
 		}
@@ -435,7 +435,7 @@ func (store *TechStore) GetBestFuelTank(player *Player) *TechHullComponent {
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if (tech.FuelBonus > 0) && player.HasTech(&tech.Tech) {
-			if tech.Ranking > bestTech.Ranking {
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
 				bestTech = tech
 			}
 		}
@@ -449,7 +449,7 @@ func (store *TechStore) GetBestCargoPod(player *Player) *TechHullComponent {
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if (tech.CargoBonus > 0) && player.HasTech(&tech.Tech) {
-			if tech.Ranking > bestTech.Ranking {
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
 				bestTech = tech
 			}
 		}
@@ -463,7 +463,7 @@ func (store *TechStore) GetBestColonizationModule(player *Player) *TechHullCompo
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if (tech.ColonizationModule || tech.OrbitalConstructionModule) && player.HasTech(&tech.Tech) {
-			if tech.Ranking > bestTech.Ranking {
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
 				bestTech = tech
 			}
 		}
@@ -477,7 +477,7 @@ func (store *TechStore) GetBestBattleComputer(player *Player) *TechHullComponent
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if tech.InitiativeBonus > 0 && tech.TorpedoBonus > 0 && player.HasTech(&tech.Tech) {
-			if tech.Ranking > bestTech.Ranking {
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
 				bestTech = tech
 			}
 		}
@@ -491,7 +491,7 @@ func (store *TechStore) GetBestMiningRobot(player *Player) *TechHullComponent {
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if tech.Category == TechCategoryMineRobot && tech.MiningRate > 0 && player.HasTech(&tech.Tech) {
-			if tech.Ranking > bestTech.Ranking {
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
 				bestTech = tech
 			}
 		}
@@ -505,7 +505,7 @@ func (store *TechStore) GetBestMineLayer(player *Player, mineFieldType MineField
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if tech.Category == TechCategoryMineLayer && tech.MineFieldType == mineFieldType && player.HasTech(&tech.Tech) {
-			if tech.Ranking > bestTech.Ranking {
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
 				bestTech = tech
 			}
 		}
@@ -519,7 +519,7 @@ func (store *TechStore) GetBestPacketThrower(player *Player) *TechHullComponent 
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if tech.Category == TechCategoryOrbital && tech.PacketSpeed > 0 && player.HasTech(&tech.Tech) {
-			if tech.Ranking > bestTech.Ranking {
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
 				bestTech = tech
 			}
 		}
@@ -533,7 +533,7 @@ func (store *TechStore) GetBestStargate(player *Player) *TechHullComponent {
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if tech.Category == TechCategoryOrbital && tech.SafeRange != 0 && player.HasTech(&tech.Tech) {
-			if tech.Ranking > bestTech.Ranking {
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
 				bestTech = tech
 			}
 		}
