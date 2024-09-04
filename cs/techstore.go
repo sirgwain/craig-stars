@@ -211,7 +211,7 @@ func (store *TechStore) GetBestPlanetaryScanner(player *Player) *TechPlanetarySc
 	for i := range store.PlanetaryScanners {
 		tech := &store.PlanetaryScanners[i]
 		if player.HasTech(&tech.Tech) {
-			if tech.Tech.Ranking > bestTech.Tech.Ranking {
+			if bestTech == nil || tech.Tech.Ranking > bestTech.Tech.Ranking {
 				bestTech = tech
 			}
 		}
@@ -225,7 +225,7 @@ func (store *TechStore) GetBestDefense(player *Player) *TechDefense {
 	for i := range store.Defenses {
 		tech := &store.Defenses[i]
 		if player.HasTech(&tech.Tech) {
-			if tech.Tech.Ranking > bestTech.Tech.Ranking {
+			if bestTech == nil || tech.Tech.Ranking > bestTech.Tech.Ranking {
 				bestTech = tech
 			}
 		}
@@ -238,7 +238,7 @@ func (store *TechStore) GetBestTerraform(player *Player, terraformHabType Terraf
 	for i := range store.Terraforms {
 		tech := &store.Terraforms[i]
 		if tech.HabType == terraformHabType && player.HasTech(&tech.Tech) {
-			if tech.Tech.Ranking > bestTech.Tech.Ranking {
+			if bestTech == nil || tech.Tech.Ranking > bestTech.Tech.Ranking {
 				bestTech = tech
 			}
 		}
@@ -259,8 +259,9 @@ func (store *TechStore) GetBestBattleEngine(player *Player, hull *TechHull) *Tec
 			}
 			// if engine has higher ideal speed than the current selection, use it
 			// ties are broken by the part's ranking (which leans towards cost & fuel efficiency)
-			if tech.Engine.IdealSpeed > bestTech.Engine.IdealSpeed ||
-			(tech.Engine.IdealSpeed == bestTech.Engine.IdealSpeed && tech.TechHullComponent.Ranking > bestTech.TechHullComponent.Ranking) {
+			if bestTech == nil || 
+			(tech.Engine.IdealSpeed > bestTech.Engine.IdealSpeed ||
+			(tech.Engine.IdealSpeed == bestTech.Engine.IdealSpeed && tech.TechHullComponent.Ranking > bestTech.TechHullComponent.Ranking)) {
 				bestTech = tech
 			}
 		}
