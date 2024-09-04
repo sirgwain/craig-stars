@@ -207,7 +207,6 @@ func (p *Planet) reset() {
 	p.BaseHab = Hab{}
 	p.TerraformedAmount = Hab{}
 	p.MineralConcentration = Mineral{}
-	p.Cargo = Cargo{}
 	p.ProductionQueue = []ProductionQueueItem{}
 	p.MineYears = Mineral{}
 }
