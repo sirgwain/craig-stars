@@ -15,7 +15,7 @@ export type CS = {
 };
 
 // load a wasm module and returns a wrapper for executing functions
-export async function loadWasm(rules?: Rules): Promise<CS> {
+export async function loadWasm(): Promise<CS> {
 	// @ts-expect-error
 	if (typeof __go_wasm__ == 'undefined') {
 		// @ts-expect-error
@@ -54,9 +54,6 @@ export async function loadWasm(rules?: Rules): Promise<CS> {
 
 	// all done, ready to execute!
 	const cs = new CSWasmWrapper(bridge);
-	if (rules) {
-		cs.setRules(rules);
-	}
 
 	if (PKG.version == '0.0.0-develop') {
 		cs.enableDebug();
@@ -70,7 +67,7 @@ export async function loadWasm(rules?: Rules): Promise<CS> {
 type CSWasm = {
 	calculateRacePoints: (race: Race) => number;
 	enableDebug: () => void;
-	setRules: (rulesJson: string) => void;
+	setRules: (rules: Rules) => void;
 	setPlayer: (player: Player) => void;
 	setDesigns: (designs: ShipDesign[]) => void;
 	estimateProduction: (planet: Planet) => Promise<Planet>;
@@ -85,7 +82,7 @@ class CSWasmWrapper implements CS {
 	}
 
 	setRules(rules: Rules) {
-		this.wasm.setRules(JSON.stringify(rules));
+		this.wasm.setRules(rules);
 	}
 
 	setPlayer(player: Player) {

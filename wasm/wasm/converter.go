@@ -257,10 +257,10 @@ func GetBattleRecordStats(o js.Value) cs.BattleRecordStats {
 		return obj
 	}
 	obj.NumPlayers = getInt[int](o.Get("numPlayers"))
-	obj.NumShipsByPlayer = GetIntMap[map[int]int, int, int](o.Get("numShipsByPlayer"), getInt)
-	obj.ShipsDestroyedByPlayer = GetIntMap[map[int]int, int, int](o.Get("shipsDestroyedByPlayer"), getInt)
-	obj.DamageTakenByPlayer = GetIntMap[map[int]int, int, int](o.Get("damageTakenByPlayer"), getInt)
-	obj.CargoLostByPlayer = GetIntMap[map[int]cs.Cargo, int, cs.Cargo](o.Get("cargoLostByPlayer"), GetCargo)
+	obj.NumShipsByPlayer = GetIntMap[map[int]int](o.Get("numShipsByPlayer"), getInt)
+	obj.ShipsDestroyedByPlayer = GetIntMap[map[int]int](o.Get("shipsDestroyedByPlayer"), getInt)
+	obj.DamageTakenByPlayer = GetIntMap[map[int]int](o.Get("damageTakenByPlayer"), getInt)
+	obj.CargoLostByPlayer = GetIntMap[map[int]cs.Cargo](o.Get("cargoLostByPlayer"), GetCargo)
 	return obj
 }
 func SetBattleRecordStats(o js.Value, obj *cs.BattleRecordStats) {
@@ -727,7 +727,7 @@ func GetFleetSpec(o js.Value) cs.FleetSpec {
 	obj.MassEmpty = getInt[int](o.Get("massEmpty"))
 	obj.MaxHullMass = getInt[int](o.Get("maxHullMass"))
 	obj.MaxRange = getInt[int](o.Get("maxRange"))
-	obj.Purposes = GetStringMap[map[cs.ShipDesignPurpose]bool, cs.ShipDesignPurpose, bool](o.Get("purposes"), getBool)
+	obj.Purposes = GetStringMap[map[cs.ShipDesignPurpose]bool](o.Get("purposes"), getBool)
 	obj.SafeHullMass = getInt[int](o.Get("safeHullMass"))
 	obj.SafeRange = getInt[int](o.Get("safeRange"))
 	obj.Stargate = string(getString(o.Get("stargate")))
@@ -1174,7 +1174,7 @@ func GetMysteryTrader(o js.Value) cs.MysteryTrader {
 	obj.RequestedBoon = getInt[int](o.Get("requestedBoon"))
 	obj.RewardType = GetMysteryTraderRewardType(o.Get("rewardType"))
 	obj.Heading = GetVector(o.Get("heading"))
-	obj.PlayersRewarded = GetIntMap[map[int]bool, int, bool](o.Get("playersRewarded"), getBool)
+	obj.PlayersRewarded = GetIntMap[map[int]bool](o.Get("playersRewarded"), getBool)
 	obj.Spec = GetMysteryTraderSpec(o.Get("spec"))
 	return obj
 }
@@ -1714,7 +1714,7 @@ func GetPlayer(o js.Value) cs.Player {
 	obj.Messages = GetSlice(o.Get("messages"), GetPlayerMessage)
 	obj.Designs = GetPointerSlice(o.Get("designs"), GetShipDesign)
 	obj.ScoreHistory = GetSlice(o.Get("scoreHistory"), GetPlayerScore)
-	obj.AcquiredTechs = GetStringMap[map[string]bool, string, bool](o.Get("acquiredTechs"), getBool)
+	obj.AcquiredTechs = GetStringMap[map[string]bool](o.Get("acquiredTechs"), getBool)
 	obj.AchievedVictoryConditions = GetBitmask(o.Get("achievedVictoryConditions"))
 	obj.Victor = getBool(o.Get("victor"))
 	obj.Stats = getPointer(GetPlayerStats(o.Get("stats")))
@@ -2066,7 +2066,7 @@ func GetPlayerSpec(o js.Value) cs.PlayerSpec {
 	}
 	obj.PlanetaryScanner = GetTechPlanetaryScanner(o.Get("planetaryScanner"))
 	obj.Defense = GetTechDefense(o.Get("defense"))
-	obj.Terraform = GetStringMap[map[cs.TerraformHabType]*cs.TechTerraform, cs.TerraformHabType, *cs.TechTerraform](o.Get("terraform"), func(o js.Value) *cs.TechTerraform { return getPointer(GetTechTerraform(o)) })
+	obj.Terraform = GetStringMap[map[cs.TerraformHabType]*cs.TechTerraform](o.Get("terraform"), func(o js.Value) *cs.TechTerraform { return getPointer(GetTechTerraform(o)) })
 	obj.ResourcesPerYear = getInt[int](o.Get("resourcesPerYear"))
 	obj.ResourcesPerYearResearch = getInt[int](o.Get("resourcesPerYearResearch"))
 	obj.ResourcesPerYearResearchEstimated = getInt[int](o.Get("resourcesPerYearResearchEstimated"))
@@ -2268,7 +2268,7 @@ func GetRaceSpec(o js.Value) cs.RaceSpec {
 	obj.MiniaturizationSpec = GetMiniaturizationSpec(o)
 	obj.ScannerSpec = GetScannerSpec(o)
 	obj.HabCenter = GetHab(o.Get("habCenter"))
-	obj.Costs = GetStringMap[map[cs.QueueItemType]cs.Cost, cs.QueueItemType, cs.Cost](o.Get("costs"), GetCost)
+	obj.Costs = GetStringMap[map[cs.QueueItemType]cs.Cost](o.Get("costs"), GetCost)
 	obj.StartingTechLevels = GetTechLevel(o.Get("startingTechLevels"))
 	obj.StartingPlanets = GetSlice(o.Get("startingPlanets"), GetStartingPlanet)
 	obj.TechCostOffset = GetTechCostOffset(o.Get("techCostOffset"))
@@ -2520,19 +2520,19 @@ func GetRules(o js.Value) cs.Rules {
 	obj.StargateMaxRangeFactor = getInt[int](o.Get("stargateMaxRangeFactor"))
 	obj.StargateMaxHullMassFactor = getInt[int](o.Get("stargateMaxHullMassFactor"))
 	obj.FleetSafeSpeedExplosionChance = getFloat[float64](o.Get("fleetSafeSpeedExplosionChance"))
-	obj.RandomEventChances = GetStringMap[map[cs.RandomEvent]float64, cs.RandomEvent, float64](o.Get("randomEventChances"), getFloat)
+	obj.RandomEventChances = GetStringMap[map[cs.RandomEvent]float64](o.Get("randomEventChances"), getFloat)
 	obj.RandomMineralDepositBonusRange = [2]int(GetSlice[int](o.Get("randomMineralDepositBonusRange"), getInt))
 	obj.RandomArtifactResearchBonusRange = [2]int(GetSlice[int](o.Get("randomArtifactResearchBonusRange"), getInt))
 	obj.RandomCometMinYear = getInt[int](o.Get("randomCometMinYear"))
 	obj.RandomCometMinYearPlayerWorld = getInt[int](o.Get("randomCometMinYearPlayerWorld"))
 	obj.MysteryTraderRules = GetMysteryTraderRules(o.Get("mysteryTraderRules"))
-	obj.CometStatsBySize = GetStringMap[map[cs.CometSize]cs.CometStats, cs.CometSize, cs.CometStats](o.Get("cometStatsBySize"), GetCometStats)
+	obj.CometStatsBySize = GetStringMap[map[cs.CometSize]cs.CometStats](o.Get("cometStatsBySize"), GetCometStats)
 	obj.WormholeCloak = getInt[int](o.Get("wormholeCloak"))
 	obj.WormholeMinPlanetDistance = getInt[int](o.Get("wormholeMinDistance"))
-	obj.WormholeStatsByStability = GetStringMap[map[cs.WormholeStability]cs.WormholeStats, cs.WormholeStability, cs.WormholeStats](o.Get("wormholeStatsByStability"), GetWormholeStats)
-	obj.WormholePairsForSize = GetStringMap[map[cs.Size]int, cs.Size, int](o.Get("wormholePairsForSize"), getInt)
-	obj.MineFieldStatsByType = GetStringMap[map[cs.MineFieldType]cs.MineFieldStats, cs.MineFieldType, cs.MineFieldStats](o.Get("mineFieldStatsByType"), GetMineFieldStats)
-	obj.RepairRates = GetStringMap[map[cs.RepairRate]float64, cs.RepairRate, float64](o.Get("repairRates"), getFloat)
+	obj.WormholeStatsByStability = GetStringMap[map[cs.WormholeStability]cs.WormholeStats](o.Get("wormholeStatsByStability"), GetWormholeStats)
+	obj.WormholePairsForSize = GetStringMap[map[cs.Size]int](o.Get("wormholePairsForSize"), getInt)
+	obj.MineFieldStatsByType = GetStringMap[map[cs.MineFieldType]cs.MineFieldStats](o.Get("mineFieldStatsByType"), GetMineFieldStats)
+	obj.RepairRates = GetStringMap[map[cs.RepairRate]float64](o.Get("repairRates"), getFloat)
 	obj.MaxPlayers = getInt[int](o.Get("maxPlayers"))
 	obj.StartingYear = getInt[int](o.Get("startingYear"))
 	obj.ShowPublicScoresAfterYears = getInt[int](o.Get("showPublicScoresAfterYears"))
@@ -2567,12 +2567,12 @@ func GetRules(o js.Value) cs.Rules {
 	obj.StarbaseComponentCostFactor = getFloat[float64](o.Get("starbaseComponentCostFactor"))
 	obj.SalvageFromBattleFactor = getFloat[float64](o.Get("salvageFromBattleFactor"))
 	obj.TechTradeChance = getFloat[float64](o.Get("techTradeChance"))
-	obj.PacketDecayRate = GetIntMap[map[int]float64, int, float64](o.Get("packetDecayRate"), getFloat)
+	obj.PacketDecayRate = GetIntMap[map[int]float64](o.Get("packetDecayRate"), getFloat)
 	obj.PacketMinDecay = getInt[int](o.Get("packetMinDecay"))
 	obj.MaxTechLevel = getInt[int](o.Get("maxTechLevel"))
 	obj.TechBaseCost = GetSlice[int](o.Get("techBaseCost"), getInt)
-	obj.PRTSpecs = GetStringMap[map[cs.PRT]cs.PRTSpec, cs.PRT, cs.PRTSpec](o.Get("prtSpecs"), GetPRTSpec)
-	obj.LRTSpecs = GetIntMap[map[cs.LRT]cs.LRTSpec, cs.LRT, cs.LRTSpec](o.Get("lrtSpecs"), GetLRTSpec)
+	obj.PRTSpecs = GetStringMap[map[cs.PRT]cs.PRTSpec](o.Get("prtSpecs"), GetPRTSpec)
+	obj.LRTSpecs = GetIntMap[map[cs.LRT]cs.LRTSpec](o.Get("lrtSpecs"), GetLRTSpec)
 	obj.TechsID = getInt[int64](o.Get("techsId"))
 	return obj
 }
@@ -2873,7 +2873,7 @@ func GetShipDesignSpec(o js.Value) cs.ShipDesignSpec {
 	obj.MaxHullMass = getInt[int](o.Get("maxHullMass"))
 	obj.MaxPopulation = getInt[int](o.Get("maxPopulation"))
 	obj.MaxRange = getInt[int](o.Get("maxRange"))
-	obj.MineLayingRateByMineType = GetStringMap[map[cs.MineFieldType]int, cs.MineFieldType, int](o.Get("mineLayingRateByMineType"), getInt)
+	obj.MineLayingRateByMineType = GetStringMap[map[cs.MineFieldType]int](o.Get("mineLayingRateByMineType"), getInt)
 	obj.MineSweep = getInt[int](o.Get("mineSweep"))
 	obj.MiningRate = getInt[int](o.Get("miningRate"))
 	obj.Movement = getInt[int](o.Get("movement"))
@@ -3100,7 +3100,7 @@ func GetTags(o js.Value) cs.Tags {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj = GetStringMap[map[string]string, string, string](o, getString)
+	obj = GetStringMap[map[string]string](o, getString)
 	return obj
 }
 
@@ -3262,7 +3262,8 @@ func SetTechRequirements(o js.Value, obj *cs.TechRequirements) {
 	o.Set("lrtsRequired", uint32(obj.LRTsRequired))
 	o.Set("lrtsDenied", uint32(obj.LRTsDenied))
 	SetBasicSlice[cs.PRT](o.Get("prtsRequired"), obj.PRTsRequired)
-
+	o.Set("hullsAllowed", obj.HullsAllowed)
+	o.Set("hullsDenied", obj.HullsDenied)
 	o.Set("acquirable", obj.Acquirable)
 }
 

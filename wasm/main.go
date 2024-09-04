@@ -3,7 +3,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"syscall/js"
@@ -44,13 +43,8 @@ func setRules(_ js.Value, args []js.Value) interface{} {
 		return wasm.NewError(fmt.Errorf("setRules: number of arguments doesn't match"))
 	}
 
-	rulesJson := args[0].String()
-	instanceRules := &cs.Rules{}
-	json.Unmarshal([]byte(rulesJson), &instanceRules)
+	ctx.rules = wasm.GetRules(args[0])
 
-	ctx.rules = *instanceRules
-
-	log.Debug().Msgf("setting rules override")
 	return js.Undefined()
 }
 

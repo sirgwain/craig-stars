@@ -227,11 +227,13 @@ func GetStringMap[M ~map[K]V, K ~string, V any](o js.Value, valueGetter func(o j
 		{{- else if eq $valueType.Type "Named" }}
 			GetSlice[{{$valueType.GoType}}]({{$jsObj}}, Get{{$valueType.TypeName}})
 		{{- else }}
-			unknonwnslicetype_{{$valueType.TypeName}}_{{$valueType.GoType}}_{{$valueType.Type}}
+			unknownpackageslicetype_{{$valueType.TypeName}}_{{$valueType.GoType}}_{{$valueType.Type}}
 		{{- end }}
 	{{- else }}
 		{{- if $valueType.IsBasic }}
 			GetSlice[{{$valueType.GoType}}]({{$jsObj}}, {{ include "GetBasicGetter" (dict "type" $valueType) | trim}})
+		{{- else }}
+			unknownslicetype_{{$valueType.TypeName}}_{{$valueType.GoType}}_{{$valueType.Type}}
 		{{- end }}
 	{{- end }}
 {{- end }}
@@ -261,7 +263,7 @@ func GetStringMap[M ~map[K]V, K ~string, V any](o js.Value, valueGetter func(o j
 		{{- $valueGetter = printf "func(o js.Value) %s { return getPointer(%s(o)) }" $valueType.GoType $valueGetter }}
 	{{- end }}
 
-	{{$mapFunc}}[{{$type.GoType}}, {{$keyType.GoType}}, {{$valueType.GoType}}]({{$jsObj}}, {{$valueGetter}})
+	{{$mapFunc}}[{{$type.GoType}}]({{$jsObj}}, {{$valueGetter}})
 {{- end }}
 
 {{- define "SetObject" }}
@@ -305,11 +307,13 @@ func GetStringMap[M ~map[K]V, K ~string, V any](o js.Value, valueGetter func(o j
 		{{- else if eq .ValueType.Type "Named" }}
 			SetBasicSlice[{{.ValueType.GoType}}](o.Get("{{.JsonName}}"), obj.{{.Name}})
 		{{- else }}
-			// unknonwn slice type {{.ValueType.TypeName}} {{.ValueType.GoType}} {{.ValueType.Type}}
+			// unknown package slice type {{.ValueType.TypeName}} {{.ValueType.GoType}} {{.ValueType.Type}}
 		{{- end }}
 	{{- else }}
-		{{- if eq .ValueType.Type "BasicInt" }}
+		{{- if .ValueType.IsBasic }}
 			o.Set("{{.JsonName}}", obj.{{.Name}})
+		{{- else }}
+			// unknown slice type {{.ValueType.Type}} {{.Name}} {{.JsonName}} {{.GoType}}
 		{{- end }}
 	{{- end }}
 {{- end }}
@@ -341,7 +345,7 @@ func GetStringMap[M ~map[K]V, K ~string, V any](o js.Value, valueGetter func(o j
 	{{- if eq .FullType "time.Time" }}
 		SetTime(o, "{{.JsonName}}", obj.{{.Name}})
 	{{- else }}
-		unknown other type {{.Name}} {{.GoType}}
+		// unknown other type {{.Name}} {{.GoType}}
 	{{- end }}
 {{- end }}
 

@@ -134,6 +134,7 @@ export const getGameContext = () => getContext<GameContext>(gameKey);
 // update the game context after a load
 export function createGameContext(cs: CS, fg: FullGame): GameContext {
 	// setup initial wasm state
+	cs.setRules(fg.rules);
 	cs.setPlayer(fg.player);
 	cs.setDesigns(fg.universe.getMyDesigns());
 
