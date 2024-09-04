@@ -302,8 +302,10 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 			var playerPlanet *Planet
 			farthestDistance := float64(math.MinInt)
 			closestDistance := math.MaxFloat64
-			if startingPlanet.Homeworld && (homeworld == nil || !homeworld.Homeworld) { // second condition checks if we already have a homeworld
-			
+
+			if !startingPlanet.Homeworld && homeworld == nil {
+				return fmt.Errorf("First planet in startingPlanets not homeworld, exiting")
+			} else if startingPlanet.Homeworld && homeworld == nil { // first planet is homeworld & we have no other
 				// homeworld should be distant from other players
 				for _, planet := range ug.universe.Planets {
 					if planet.Owned() {
