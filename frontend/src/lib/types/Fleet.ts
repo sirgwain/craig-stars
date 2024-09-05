@@ -288,13 +288,13 @@ export class CommandedFleet implements Fleet {
 				const destStargateSafe =
 					(totalCargo(this.cargo) == 0 || player.race.spec?.canGateCargo) &&
 					owned(targetPlanet) &&
-					(player.isFriend(targetPlanet.playerNum ?? 0) &&
+					player.isFriend(targetPlanet.playerNum ?? 0) &&
 					destSafeRange >= dist &&
 					maxFleetMass < destSafeHullMass;
 				const sourceStargateSafe =
 					(totalCargo(this.cargo) == 0 || player.race.spec?.canGateCargo) &&
 					owned(originPlanet) &&
-					(player.isFriend(targetPlanet.playerNum ?? 0) &&
+					player.isFriend(targetPlanet.playerNum ?? 0) &&
 					sourceSafeRange >= dist &&
 					maxFleetMass < sourceSafeHullMass;
 				stargate = !!destStargateSafe && !!sourceStargateSafe;
@@ -305,7 +305,7 @@ export class CommandedFleet implements Fleet {
 				const destSafeRange = targetPlanet.spec.safeRange ?? 0;
 				const destStargateSafe =
 					owned(targetPlanet) &&
-					(player.isFriend(targetPlanet.playerNum ?? 0) &&
+					player.isFriend(targetPlanet.playerNum ?? 0) &&
 					destSafeRange >= dist &&
 					maxFleetMass < destSafeHullMass;
 				stargate = !!destStargateSafe;

@@ -4,7 +4,7 @@ import { CommandedFleet, moveDamagedTokens, type ShipToken } from './Fleet';
 describe('Fleet test', () => {
 	const fleet = new CommandedFleet();
 	it('returns minimal speeds for distances', () => {
-		// TODO: Fix tests to pass mapObjects to functions
+		// TODO @sirgwain: Fix tests to pass mapObjects to functions (IDK how)
 		// one year to go 49 ly
 		expect(fleet.getMinimalWarp(49, 7)).toBe(7);
 		// two years at warp 7, two at warp 6 or warp 5, pick warp 5
@@ -43,5 +43,4 @@ describe('ShipToken moveDamagedTokens test', () => {
 		expect(srcToken).toEqual({ designNum: 1, quantity: 1, quantityDamaged: 0, damage: 0 });
 		expect(destToken).toEqual({ designNum: 1, quantity: 1, quantityDamaged: 2, damage: 7.5 });
 	});
-
 });
