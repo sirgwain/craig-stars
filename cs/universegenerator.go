@@ -279,7 +279,7 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 	if ug.MaxMinerals {
 		homeworldMinConc = Mineral{100, 100, 100}
 	}
-	
+
 	homeworldSurfaceMinerals := Mineral{
 		Ironium:   rules.MinStartingMineralSurface + random.Intn(rules.MaxStartingMineralSurface),
 		Boranium:  rules.MinStartingMineralSurface + random.Intn(rules.MaxStartingMineralSurface),
@@ -298,20 +298,23 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 		var homeworld *Planet
 
 		for _, startingPlanet := range player.Race.Spec.StartingPlanets {
+
+			if !startingPlanet.Homeworld && homeworld == nil {
+				return fmt.Errorf("first planet in startingPlanets not homeworld, exiting")
+			}
+
 			// find a playerPlanet that is a min distance from other homeworlds
 			var playerPlanet *Planet
 			farthestDistance := float64(math.MinInt)
 			closestDistance := math.MaxFloat64
 
-			if !startingPlanet.Homeworld && homeworld == nil {
-				return fmt.Errorf("First planet in startingPlanets not homeworld, exiting")
-			} else if startingPlanet.Homeworld && homeworld == nil { // first planet is homeworld & we have no other
+			if startingPlanet.Homeworld && homeworld == nil { // planet is homeworld & we have no other
 				// homeworld should be distant from other players
 				for _, planet := range ug.universe.Planets {
 					if planet.Owned() {
 						continue
 					}
-					
+
 					// if we can't find a planet within tolerances, pick the farthest one
 					shortedDistanceToPlanets := planet.shortestDistanceToPlanets(&ownedPlanets)
 					if shortedDistanceToPlanets >= farthestDistance {
@@ -324,7 +327,7 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 					}
 				}
 				homeworld = playerPlanet
-			
+
 			} else {
 				// extra planets are close to the homeworld
 				for _, planet := range ug.universe.Planets {
@@ -344,7 +347,7 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 					}
 				}
 			}
-			
+
 			if playerPlanet == nil {
 				return fmt.Errorf("find homeworld for player %v among %d planets, minDistance: %0.1f", player, len(ug.universe.Planets), minPlayerDistance)
 			}
