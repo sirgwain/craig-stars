@@ -342,7 +342,7 @@ export class CommandedFleet implements Fleet {
 				dist,
 				this.spec.cargoCapacity ?? 0
 			);
-			if (fuelUsed > this.fuel) {
+			if (fuelUsed > this.fuel) || speed > this.spec?.engine?.maxSafeSpeed ?? 9 {
 				speed--;
 				break;
 			}
@@ -357,7 +357,7 @@ export class CommandedFleet implements Fleet {
 			speed = idealSpeed;
 		}
 
-		// don't go faster than we need
+		// don't go faster than we need & use stargate if possible 
 		return this.getMinimalWarp(player, origin, destination, maxFleetMass, speed);
 	}
 }
