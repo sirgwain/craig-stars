@@ -3,6 +3,7 @@ package cs
 import (
 	"fmt"
 	"math"
+	"strings" // only needed for jank temporary solution
 )
 
 type TechCategory string
@@ -418,9 +419,10 @@ func (t *Tech) GetPlayerCost(techLevels TechLevel, spec MiniaturizationSpec, cos
 		cost = cost.MultiplyFloat64(1 + costOffset.Bomb)
 	case TechCategoryTorpedo:
 		cost = cost.MultiplyFloat64(1 + costOffset.Torpedo)
-		//case TechCategoryOrbital && {some way to check if item is gate}
-		//	cost = cost.MultiplyFloat64(1 + costOffset.Stargate)
-
+	case TechCategoryOrbital:
+		if strings.Contains(t.Name, "Stargate") {
+			cost = cost.MultiplyFloat64(1 + costOffset.Stargate)
+		}
 	}
 
 	return Cost{
