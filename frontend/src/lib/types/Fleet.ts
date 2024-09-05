@@ -314,6 +314,8 @@ export class CommandedFleet implements Fleet {
 
 		if (stargate) {
 			speed = StargateWarpSpeed;
+		} else if (speed > (this.spec.engine.maxSafeSpeed ?? 9)) {
+			speed = this.spec.engine.maxSafeSpeed ?? 9;
 		}
 
 		return speed;
@@ -342,18 +344,25 @@ export class CommandedFleet implements Fleet {
 				dist,
 				this.spec.cargoCapacity ?? 0
 			);
-			if (fuelUsed > this.fuel) || speed > this.spec?.engine?.maxSafeSpeed ?? 9 {
+			if (fuelUsed > this.fuel || speed > (this.spec?.engine?.maxSafeSpeed ?? 9)) {
 				speed--;
 				break;
 			}
 		}
 
-		const idealSpeed = this.spec?.engine?.idealSpeed ?? 1;
+		const idealSpeed = this.spec?.engine?.idealSpeed ?? 5;
+		const idealFuelUsed = this.getFuelCost(
+			designFinder,
+			fuelEfficiencyOffset,
+			idealSpeed,
+			dist,
+			this.spec.cargoCapacity ?? 0
+		);
 
 		// if we are using a ramscoop, make sure we at least go the ideal
-		// speed of the engine. If we run out, oh well, it'll drop to
-		// the free speed
-		if (freeSpeed > 1 && speed < idealSpeed) {
+		// speed of the engine if we can. If we run out,
+		// it'll drop to the free speed
+		if (freeSpeed > 1 && speed < idealSpeed && idealFuelUsed > this.fuel) {
 			speed = idealSpeed;
 		}
 
