@@ -363,6 +363,52 @@
 		waypointJustAdded = false;
 	}
 
+	function calculateWaypointSpeed(previous_mo: MapObject | undefined, mo: MapObject | undefined, previousWaypointSpeed: number | undefined): number {
+		if ($commandedFleet == undefined) {
+			return previousWaypointSpeed ?? 5
+		}
+		
+		const colonizing =
+			$commandedFleet.spec.colonizer &&
+			$commandedFleet.cargo.colonists &&
+			mo &&
+			mo.type === MapObjectType.Planet &&
+			!owned(mo) &&
+			((mo as Planet).spec.terraformedHabitability ?? 0) > 0;
+
+		const engineIdealSpeed = $commandedFleet.spec?.engine?.idealSpeed ?? 5
+		let warpSpeed =
+			previousWaypointSpeed &&
+			previousWaypointSpeed != StargateWarpSpeed &&
+			previousWaypointSpeed > engineIdealSpeed
+				? previousWaypointSpeed
+				: engineIdealSpeed;
+		
+		// get highest mass of the fleet ships (for stargates) 
+		const maxFleetMass = Math.max(
+			...$commandedFleet.tokens.map((t) => $universe.getMyDesign(t.designNum)?.spec.mass ?? 0)
+		);
+
+		// if colonizing or if the destination has a starbase, we want the max possible warp
+		if (colonizing || $settings.fastestWaypoint || 
+		((mo as Planet).spec.dockCapacity ?? 0) != 0) {
+			warpSpeed = $commandedFleet.getMaxWarp(
+				$player,
+				previous_mo,
+				mo,
+				$universe, 
+				$player.race.spec?.fuelEfficiencyOffset ?? 0);
+		} else {
+			warpSpeed = $commandedFleet.getMinimalWarp(
+				$player,
+				previous_mo,
+				mo, 
+				maxFleetMass,
+				warpSpeed);
+		}
+		return warpSpeed
+	}
+
 	// move the selected waypoint around snapping to targets
 	function dragWaypointMove(position: Vector, mo: MapObject | undefined) {
 		if ($selectedWaypoint && $currentSelectedWaypointIndex && $commandedFleet) {
@@ -377,10 +423,9 @@
 				}
 			}
 
-			let warpSpeed = $selectedWaypoint?.warpSpeed;
-
 			// update the ideal speed
 			let waypointIndex = $currentSelectedWaypointIndex;
+			let warpSpeed = $selectedWaypoint?.warpSpeed
 
 			if (waypointIndex > 0) {
 				const previousWaypoint = $commandedFleet.waypoints[waypointIndex - 1];
@@ -391,35 +436,9 @@
 						previous_mo = obj
 					}
 				});
-				const colonizing =
-					$commandedFleet.spec.colonizer &&
-					$commandedFleet.cargo.colonists &&
-					mo &&
-					mo.type === MapObjectType.Planet &&
-					!owned(mo) &&
-					((mo as Planet).spec.terraformedHabitability ?? 0) > 0;
-
-				const maxFleetMass = Math.max(
-					...$commandedFleet.tokens.map((t) => $universe.getMyDesign(t.designNum)?.spec.mass ?? 0)
-				);
-				if (colonizing || $settings.fastestWaypoint || 
-				((mo as Planet).spec.dockCapacity ?? 0) != 0) {
-					warpSpeed = $commandedFleet.getMaxWarp(
-						$player,
-						previous_mo,
-						mo,
-						$universe, 
-						$player.race.spec?.fuelEfficiencyOffset ?? 0);
-				} else {
-					warpSpeed = $commandedFleet.getMinimalWarp(
-						$player,
-						previous_mo,
-						mo, 
-						maxFleetMass,
-						previousWaypoint.warpSpeed);
-				}
+				warpSpeed = calculateWaypointSpeed(previous_mo, mo, warpSpeed)
 			}
-
+			
 			if (positionWaypoint || !mo) {
 				$selectedWaypoint.position = position;
 				$selectedWaypoint.warpSpeed = warpSpeed;
@@ -446,17 +465,6 @@
 			if (waypointIndex > 0) {
 				const previousWaypoint = $commandedFleet.waypoints[waypointIndex - 1];
 				let warpSpeed = $selectedWaypoint?.warpSpeed
-					? $selectedWaypoint?.warpSpeed
-					: $commandedFleet.spec?.engine?.idealSpeed ?? 5;
-				const dist = distance(mo?.position ?? position, previousWaypoint.position);
-				const colonizing =
-					$commandedFleet.spec.colonizer &&
-					$commandedFleet.cargo.colonists &&
-					mo &&
-					mo.type === MapObjectType.Planet &&
-					!owned(mo) &&
-					((mo as Planet).spec.terraformedHabitability ?? 0) > 0;
-				
 				let previous_mo : MapObject | undefined
 				$universe.getMapObjectsByPosition(previousWaypoint.position)
 				.forEach(obj => {
@@ -464,34 +472,15 @@
 						previous_mo = obj
 					}
 				});
-				
-				const maxFleetMass = Math.max(
-					...$commandedFleet.tokens.map((t) => $universe.getMyDesign(t.designNum)?.spec.mass ?? 0)
-				);
-				if (colonizing || $settings.fastestWaypoint || 
-				((mo as Planet).spec.dockCapacity ?? 0) != 0) {
-					warpSpeed = $commandedFleet.getMaxWarp(
-						$player,
-						previous_mo,
-						mo,
-						$universe, 
-						$player.race.spec?.fuelEfficiencyOffset ?? 0);
-				} else {
-					warpSpeed = $commandedFleet.getMinimalWarp(
-						$player,
-						previous_mo,
-						mo, 
-						maxFleetMass,
-						previousWaypoint.warpSpeed);
-				}
-			$selectedWaypoint.warpSpeed = warpSpeed;
+
+				warpSpeed = calculateWaypointSpeed(previous_mo, mo, warpSpeed)
+				$selectedWaypoint.warpSpeed = warpSpeed;
 			}
 		updateFleetOrders($commandedFleet);
 		}
 	}
 
-	// disable add waypoint mode when the user clicks outside the
-	// scanner
+	// disable add waypoint mode when the user clicks outside the scanner
 	function disableAddWaypointMode(event: MouseEvent) {
 		// ignore clicks on the add-waypoint toolbar button
 		const elem = event.target as Element;
@@ -528,24 +517,6 @@
 			return false;
 		}
 
-		const colonizing =
-			$commandedFleet.spec.colonizer &&
-			$commandedFleet.cargo.colonists &&
-			mo &&
-			mo.type === MapObjectType.Planet &&
-			!owned(mo) &&
-			((mo as Planet).spec.terraformedHabitability ?? 0) > 0;
-
-		// if the last waypoint warp is higher than the default engine speed, use it
-		// otherwise use the default engine speed
-		const engineIdealSpeed = $commandedFleet.spec?.engine?.idealSpeed ?? 5;
-		let warpSpeed =
-			$selectedWaypoint?.warpSpeed &&
-			$selectedWaypoint.warpSpeed != StargateWarpSpeed &&
-			$selectedWaypoint?.warpSpeed > engineIdealSpeed
-				? $selectedWaypoint?.warpSpeed
-				: engineIdealSpeed;
-
 		let currentPlanet_mo : MapObject | undefined
 		$universe.getMapObjectsByPosition(currentWaypoint.position)
 			.forEach(obj => {
@@ -553,27 +524,9 @@
 					currentPlanet_mo = obj
 				}
 			});
-		
-		// if colonizing, we want the max possible warp
-		const maxFleetMass = Math.max(
-			...$commandedFleet.tokens.map((t) => $universe.getMyDesign(t.designNum)?.spec.mass ?? 0)
-		);
-		if (colonizing || $settings.fastestWaypoint || 
-		((mo as Planet).spec.dockCapacity ?? 0) != 0) {
-			warpSpeed = $commandedFleet.getMaxWarp(
-				$player,
-				currentPlanet_mo,
-				mo,
-				$universe, 
-				$player.race.spec?.fuelEfficiencyOffset ?? 0);
-		} else {
-			warpSpeed = $commandedFleet.getMinimalWarp(
-				$player,
-				currentPlanet_mo,
-				mo, 
-				maxFleetMass,
-				currentWaypoint.warpSpeed);
-		}
+
+		let warpSpeed = $selectedWaypoint?.warpSpeed;
+		warpSpeed = calculateWaypointSpeed(currentPlanet_mo, mo, warpSpeed);
 
 		const task = $selectedWaypoint?.task ?? WaypointTask.None;
 		const transportTasks = $selectedWaypoint?.transportTasks ?? {
@@ -603,6 +556,14 @@
 				transportTasks: transportTasks
 			};
 			$commandedFleet.waypoints.splice(waypointIndex + 1, 0, wp);
+
+			const colonizing =
+			$commandedFleet.spec.colonizer &&
+			$commandedFleet.cargo.colonists &&
+			mo &&
+			mo.type === MapObjectType.Planet &&
+			!owned(mo) &&
+			((mo as Planet).spec.terraformedHabitability ?? 0) > 0;
 
 			const remoteMining =
 				$commandedFleet.spec.miningRate &&
