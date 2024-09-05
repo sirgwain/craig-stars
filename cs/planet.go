@@ -2,9 +2,8 @@ package cs
 
 import (
 	"fmt"
-	"math"
-
 	"github.com/rs/zerolog/log"
+	"math"
 )
 
 // Planets are the only static and constant MapObject. They don't move and they can't be destroyed.
@@ -246,10 +245,16 @@ func (p *Planet) randomize(rules *Rules) {
 	p.TerraformedAmount = Hab{}
 
 	// create minconc from min to max (31 to 121)
+	//p.MineralConcentration = Mineral{
+	//	Ironium:   rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration-rules.MinStartingMineralConcentration),
+	//	Boranium:  rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration-rules.MinStartingMineralConcentration),
+	//	Germanium: rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration-rules.MinStartingMineralConcentration),
+	//}
+
 	p.MineralConcentration = Mineral{
-		Ironium:   rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration-rules.MinStartingMineralConcentration),
-		Boranium:  rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration-rules.MinStartingMineralConcentration),
-		Germanium: rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration-rules.MinStartingMineralConcentration),
+		Ironium:   modifiedNormalRandom(rules.random),
+		Boranium:  modifiedNormalRandom(rules.random),
+		Germanium: modifiedNormalRandom(rules.random),
 	}
 
 	// limit at least one mineral
@@ -620,7 +625,7 @@ func (planet *Planet) mine(rules *Rules) {
 
 // grow pop on this planet (or starbase)
 func (planet *Planet) grow(player *Player) {
-	planet.setPopulation(MaxInt(100, planet.population() + planet.Spec.GrowthAmount))
+	planet.setPopulation(MaxInt(100, planet.population()+planet.Spec.GrowthAmount))
 
 	if player.Race.Spec.InnateMining {
 		productivePop := planet.productivePopulation(planet.population(), planet.Spec.MaxPopulation)
