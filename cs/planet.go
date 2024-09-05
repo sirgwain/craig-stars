@@ -252,9 +252,9 @@ func (p *Planet) randomize(rules *Rules) {
 	//}
 
 	p.MineralConcentration = Mineral{
-		Ironium:   modifiedNormalRandom(rules.random),
-		Boranium:  modifiedNormalRandom(rules.random),
-		Germanium: modifiedNormalRandom(rules.random),
+		Ironium:   randomMineralConcentration(rules.random),
+		Boranium:  randomMineralConcentration(rules.random),
+		Germanium: randomMineralConcentration(rules.random),
 	}
 
 	// limit at least one mineral

@@ -20,9 +20,6 @@ type rng interface {
 	Shuffle(n int, swap func(i, j int))
 }
 
-var modifiedNormalDistribution [126]float64
-var initialized = false
-
 func normalDistribution(μ float64, σ float64, x float64) float64 {
 	var eNum = -math.Pow(x-μ, 2)
 	var eDen = 2 * math.Pow(σ, 2)
@@ -30,36 +27,21 @@ func normalDistribution(μ float64, σ float64, x float64) float64 {
 	return math.Exp(eNum/eDen) / math.Sqrt(2*math.Pi*math.Pow(σ, 2))
 }
 
-func initRandom() {
-	maxY := 0.0
+func randomMineralConcentrationPDF(μ float64, σ float64, x int) float64 {
+	maxY := normalDistribution(μ, σ, μ)
 
-	for i := range modifiedNormalDistribution {
-		modifiedNormalDistribution[i] = normalDistribution(80, 20, float64(i))
-
-		if modifiedNormalDistribution[i] > maxY {
-			maxY = modifiedNormalDistribution[i]
-		}
-	}
-
-	for i, v := range modifiedNormalDistribution {
-		modifiedNormalDistribution[i] = v / maxY
-	}
-
-	for i := 0; i < 30; i++ {
-		modifiedNormalDistribution[i] = 0.6
+	if x < 30 {
+		return 0.6
+	} else {
+		return normalDistribution(μ, σ, float64(x)) / maxY
 	}
 }
 
-func modifiedNormalRandom(random rng) int {
-	if !initialized {
-		initRandom()
-		initialized = true
-	}
-
+func randomMineralConcentration(random rng) int {
 	var x int
 	var y float64
 
-	for x, y = random.Intn(126), random.Float64(); modifiedNormalDistribution[x] < y; x, y = random.Intn(126), random.Float64() {
+	for x, y = random.Intn(126), random.Float64(); randomMineralConcentrationPDF(80, 20, x) < y; x, y = random.Intn(126), random.Float64() {
 	}
 
 	return x
