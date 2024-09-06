@@ -254,11 +254,21 @@ func (p *Planet) randomize(rules *Rules) {
 // Randomize a planet's mineral concentration within bounds set in Rules
 func randomizeMinerals(rules *Rules, rad int) Mineral {
 
-	// create minconc from min to max (31 to 121)
+	// These two variables are the shape of the normal distribution
+	// based on comparing it with Stars! output
+	mean := 80.0
+	variance := 20.0
+
+	// These two are the min and max of the minerals to be returned,
+	// They clamp the results
+	mMin := rules.MinStartingMineralConcentration
+	mMax := rules.MaxStartingMineralConcentration
+
+	// creates a mineral concentration
 	minConc := Mineral{
-		Ironium:   rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration-rules.MinStartingMineralConcentration),
-		Boranium:  rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration-rules.MinStartingMineralConcentration),
-		Germanium: rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration-rules.MinStartingMineralConcentration),
+		Ironium:   NormalSample(rules.random, mean, variance, mMax),
+		Boranium:  NormalSample(rules.random, mean, variance, mMax),
+		Germanium: NormalSample(rules.random, mean, variance, mMax),
 	}
 
 	// limit at least one mineral
@@ -295,6 +305,10 @@ func randomizeMinerals(rules *Rules, rad int) Mineral {
 		}
 	}
 
+	minConc.Ironium = Clamp(minConc.Ironium, mMin, mMax)
+	minConc.Boranium = Clamp(minConc.Boranium, mMin, mMax)
+	minConc.Germanium = Clamp(minConc.Germanium, mMin, mMax)
+
 	return minConc
 }
 
@@ -303,8 +317,8 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 
 	log.Debug().Msgf("Assigning %s to %s as homeworld", p, player)
 
-	p.Homeworld = startingPlanet.Homeworld 
-	
+	p.Homeworld = startingPlanet.Homeworld
+
 	p.RandomArtifact = false // no random artifacts on the homeworld
 	p.PlayerNum = player.Num
 
@@ -627,7 +641,7 @@ func (planet *Planet) mine(rules *Rules) {
 
 // grow pop on this planet (or starbase)
 func (planet *Planet) grow(player *Player) {
-	planet.setPopulation(MaxInt(100, planet.population() + planet.Spec.GrowthAmount))
+	planet.setPopulation(MaxInt(100, planet.population()+planet.Spec.GrowthAmount))
 
 	if player.Race.Spec.InnateMining {
 		productivePop := planet.productivePopulation(planet.population(), planet.Spec.MaxPopulation)
