@@ -415,6 +415,8 @@ func (t *Tech) GetPlayerCost(techLevels TechLevel, spec MiniaturizationSpec, cos
 		cost = cost.MultiplyFloat64(1 + costOffset.Bomb)
 	case TechCategoryTorpedo:
 		cost = cost.MultiplyFloat64(1 + costOffset.Torpedo)
+	case TechCategoryTerraforming:
+		cost = cost.MultiplyFloat64(1 + costOffset.Terraforming)
 	}
 
 	return Cost{
