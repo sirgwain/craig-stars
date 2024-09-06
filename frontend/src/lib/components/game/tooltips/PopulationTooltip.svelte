@@ -1,5 +1,6 @@
 <script lang="ts" context="module">
 	import { Unexplored, type Planet } from '$lib/types/Planet';
+	import { roundToNearest100 } from '$lib/services/Math'
 	import type { Player } from '$lib/types/Player';
 	export type PopulationTooltipProps = {
 		playerFinder: PlayerFinder;
@@ -68,7 +69,7 @@
 			<p>The <span class="font-semibold">{playerFinder.getPlayerName(planet.playerNum)}</span>
 			population on
 			<span class="font-semibold">{planet.name}</span> is approximately
-			<span class="font-semibold">{(planet.spec.population ?? 0).toLocaleString()}</span></p>
+			<span class="font-semibold">{roundToNearest100((planet.spec.population ?? 0)).toLocaleString()}</span>.</p>
 			{#if (planet.spec.habitability ?? 0) > 0}
 				<p>If you were to colonize <span class="font-semibold">{planet.name}</span>, it would support
 				up to <span class="font-semibold">{planet.spec.maxPopulation?.toLocaleString()}</span>
