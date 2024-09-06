@@ -20,28 +20,38 @@ type rng interface {
 	Shuffle(n int, swap func(i, j int))
 }
 
-func normalDistribution(μ float64, σ float64, x float64) float64 {
-	var eNum = -math.Pow(x-μ, 2)
-	var eDen = 2 * math.Pow(σ, 2)
+// GaussianPdf is a gaussian probability distribution function, please refer to the PDF on the sidebar
+// https://en.wikipedia.org/wiki/Normal_distribution
+// mean is where the distribution is set,
+// variance is related to standard deviation - it is set by users based on values
+func GaussianPdf(mean float64, variance float64, x float64) float64 {
+	var eNum = -math.Pow(x-mean, 2)
+	var eDen = 2 * math.Pow(variance, 2)
 
-	return math.Exp(eNum/eDen) / math.Sqrt(2*math.Pi*math.Pow(σ, 2))
+	return math.Exp(eNum/eDen) / math.Sqrt(2*math.Pi*math.Pow(variance, 2))
 }
 
-func randomMineralConcentrationPDF(μ float64, σ float64, x int) float64 {
-	maxY := normalDistribution(μ, σ, μ)
+// NormalizedGaussianPdf returns a normalized result, where it is 1.0 on the mean
+func NormalizedGaussianPdf(mean float64, variance float64, x int) float64 {
+	// samples the mean as it is the highest value
+	maxY := GaussianPdf(mean, variance, mean)
 
-	if x < 30 {
-		return 0.6
-	} else {
-		return normalDistribution(μ, σ, float64(x)) / maxY
-	}
+	// normalizes the result
+	return GaussianPdf(mean, variance, float64(x)) / maxY
 }
 
-func randomMineralConcentration(random rng) int {
-	var x int
-	var y float64
+// NormalSample uses a rejection sampling algorithm to generate a random distribution equal to the normal distribution
+// It works by generating and x and y, then looking up a value of y' from the distribution, and if y' < y then it
+// accepts the value of x, otherwise it regenerates it until it finds one
+func NormalSample(random rng, mean float64, variance float64, max int) int {
+	x := random.Intn(max)
+	y := random.Float64()
+	y0 := NormalizedGaussianPdf(mean, variance, x)
 
-	for x, y = random.Intn(126), random.Float64(); randomMineralConcentrationPDF(80, 20, x) < y; x, y = random.Intn(126), random.Float64() {
+	for y0 < y {
+		x = random.Intn(max)
+		y = random.Float64()
+		y0 = NormalizedGaussianPdf(mean, variance, x)
 	}
 
 	return x

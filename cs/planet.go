@@ -244,17 +244,21 @@ func (p *Planet) randomize(rules *Rules) {
 	p.BaseHab = p.Hab
 	p.TerraformedAmount = Hab{}
 
-	// create minconc from min to max (31 to 121)
-	//p.MineralConcentration = Mineral{
-	//	Ironium:   rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration-rules.MinStartingMineralConcentration),
-	//	Boranium:  rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration-rules.MinStartingMineralConcentration),
-	//	Germanium: rules.MinStartingMineralConcentration + rules.random.Intn(rules.MaxStartingMineralConcentration-rules.MinStartingMineralConcentration),
-	//}
+	// These two variables are the shape of the normal distribution
+	// based on comparing it with Stars! output
+	mean := 80.0
+	variance := 20.0
 
+	// These two are the min and max of the minerals to be returned,
+	// They clamp the results
+	mMin := 1
+	mMax := 126
+
+	// creates a mineral concentration
 	p.MineralConcentration = Mineral{
-		Ironium:   randomMineralConcentration(rules.random),
-		Boranium:  randomMineralConcentration(rules.random),
-		Germanium: randomMineralConcentration(rules.random),
+		Ironium:   NormalSample(rules.random, mean, variance, mMax),
+		Boranium:  NormalSample(rules.random, mean, variance, mMax),
+		Germanium: NormalSample(rules.random, mean, variance, mMax),
 	}
 
 	// limit at least one mineral
@@ -290,6 +294,10 @@ func (p *Planet) randomize(rules *Rules) {
 			Germanium: p.MineralConcentration.Germanium + rules.random.Intn(99-MinInt(p.MineralConcentration.Germanium, 98))/2,
 		}
 	}
+
+	p.MineralConcentration.Ironium = Clamp(p.MineralConcentration.Ironium, mMin, mMax)
+	p.MineralConcentration.Boranium = Clamp(p.MineralConcentration.Boranium, mMin, mMax)
+	p.MineralConcentration.Germanium = Clamp(p.MineralConcentration.Germanium, mMin, mMax)
 
 	// check if this planet has a random artifact
 	if rules.RandomEventChances[RandomEventAncientArtifact] >= rules.random.Float64() {
