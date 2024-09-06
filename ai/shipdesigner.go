@@ -60,7 +60,10 @@ func (ai *aiPlayer) designShip(name string, purpose cs.ShipDesignPurpose, fleetP
 	updated = cs.DesignShip(ai.techStore, hull, name, ai.Player, ai.GetNextDesignNum(ai.Designs), ai.DefaultHullSet, purpose, fleetPurpose)
 	updated.HullSetNumber = ai.DefaultHullSet
 	updated.Purpose = purpose
-	updated.Spec = cs.ComputeShipDesignSpec(&ai.game.Rules, ai.TechLevels, ai.Race.Spec, updated)
+	updated.Spec, err = cs.ComputeShipDesignSpec(&ai.game.Rules, ai.TechLevels, ai.Race.Spec, updated)
+	if err != nil {
+		return existing, fmt.Errorf("ComputeShipDesignSpec returned error %w", err)
+	}
 
 	// if we tried to build a bomber with no bombs, ignore it
 	if purpose == cs.ShipDesignPurposeBomber && !updated.Spec.Bomber {

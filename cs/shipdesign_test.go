@@ -201,6 +201,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 		name string
 		args args
 		want ShipDesignSpec
+		wanterr bool
 	}{
 		{name: "Humanoid Starter Long Range Scout",
 			args: args{
@@ -233,7 +234,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				MovementFull:       4,
 				EstimatedRange:     2272,
 				EstimatedRangeFull: 2272,
-			},
+			}, wanterr: false,
 		},
 		{name: "Humanoid Starter Armed Probe",
 			args: args{
@@ -276,7 +277,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 						Quantity:      1,
 					},
 				},
-			},
+			}, wanterr: false,
 		},
 		{name: "Humanoid Starter Teamster",
 			args: args{
@@ -310,7 +311,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				MovementFull:       2,
 				EstimatedRange:     1041,
 				EstimatedRangeFull: 394,
-			},
+			}, wanterr: false,
 		},
 		{name: "RS Shielded Destroyer",
 			args: args{
@@ -355,7 +356,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				},
 				EstimatedRange:     419,
 				EstimatedRangeFull: 419,
-			},
+			}, wanterr: false,
 		},
 		{name: "Battleship with multiple battle computers",
 			args: args{
@@ -395,7 +396,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				},
 				EstimatedRange:     1497,
 				EstimatedRangeFull: 1497,
-			},
+			}, wanterr: false,
 		},
 		{name: "Battleship with multiple jammers",
 			args: args{
@@ -435,7 +436,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				},
 				EstimatedRange:     1497,
 				EstimatedRangeFull: 1497,
-			},
+			}, wanterr: false,
 		},
 		{name: "Battleship with multiple deflectors",
 			args: args{
@@ -475,7 +476,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				},
 				EstimatedRange:     1497,
 				EstimatedRangeFull: 1497,
-			},
+			}, wanterr: false,
 		},
 		{name: "Battleship with multiple capacitors",
 			args: args{
@@ -514,7 +515,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				},
 				EstimatedRange:     1505,
 				EstimatedRangeFull: 1505,
-			},
+			}, wanterr: false,
 		},
 		{name: "Battleship with max capacitors",
 			args: args{
@@ -553,7 +554,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				},
 				EstimatedRange:     1497,
 				EstimatedRangeFull: 1497,
-			},
+			}, wanterr: false,
 		},
 		{name: "Mini Bomber",
 			args: args{
@@ -593,7 +594,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 						StructureDestroyRate: 2,
 					},
 				},
-			},
+			}, wanterr: false,
 		},
 		{name: "PP Starbase",
 			args: args{
@@ -640,12 +641,29 @@ func TestComputeShipDesignSpec(t *testing.T) {
 					{HullComponent: Laser.Name, HullSlotIndex: 8, Quantity: 8},
 					{HullComponent: Laser.Name, HullSlotIndex: 10, Quantity: 8},
 				},
-			},
+			}, wanterr: false,
+		},
+		{
+			name: "Incorrect components on PP starbase",
+			args: args{
+				techLevels: TechLevel{4, 0, 0, 0, 0, 0},
+				raceSpec:   pps.Spec,
+				design: NewShipDesign(player, 1).
+					WithHull(SpaceStation.Name).
+					WithSlots([]ShipDesignSlot{
+						{HullComponent: "BANANA!!!!!!!!", HullSlotIndex: 10, Quantity: 8},
+					}),
+			}, 
+			want: ShipDesignSpec{}, // doesn't matter since want value ignored if error desired
+			wanterr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := ComputeShipDesignSpec(&rules, tt.args.techLevels, tt.args.raceSpec, tt.args.design); !test.CompareAsJSON(t, got, tt.want) {
+			got, err := ComputeShipDesignSpec(&rules, tt.args.techLevels, tt.args.raceSpec, tt.args.design)
+			if tt.wanterr && err != nil {
+				t.Errorf("ComputeShipDesignSpec() did not error when expected")
+			} else if !test.CompareAsJSON(t, got, tt.want) {
 				t.Errorf("ComputeShipDesignSpec() = %v, want %v", got, tt.want)
 			}
 		})

@@ -1367,11 +1367,11 @@ func TestFleet_getFuelGeneration(t *testing.T) {
 	player := NewPlayer(1, NewRace().WithSpec(&rules)).withSpec(&rules)
 	fuelMizerScout := testLongRangeScout(player)
 	fuelMizerScout.Tokens[0].design.Slots[0].HullComponent = FuelMizer.Name
-	fuelMizerScout.Tokens[0].design.Spec = ComputeShipDesignSpec(&rules, player.TechLevels, player.Race.Spec, fuelMizerScout.Tokens[0].design)
+	fuelMizerScout.Tokens[0].design.Spec, _ = ComputeShipDesignSpec(&rules, player.TechLevels, player.Race.Spec, fuelMizerScout.Tokens[0].design)
 	fuelMizerScout.Spec = ComputeFleetSpec(&rules, player, fuelMizerScout)
 	fuelMizerScoutX2 := testLongRangeScout(player)
 	fuelMizerScoutX2.Tokens[0].design.Slots[0].HullComponent = FuelMizer.Name
-	fuelMizerScoutX2.Tokens[0].design.Spec = ComputeShipDesignSpec(&rules, player.TechLevels, player.Race.Spec, fuelMizerScoutX2.Tokens[0].design)
+	fuelMizerScoutX2.Tokens[0].design.Spec, _ = ComputeShipDesignSpec(&rules, player.TechLevels, player.Race.Spec, fuelMizerScoutX2.Tokens[0].design)
 	fuelMizerScoutX2.Tokens[0].Quantity = 2
 	fuelMizerScoutX2.Spec = ComputeFleetSpec(&rules, player, fuelMizerScoutX2)
 

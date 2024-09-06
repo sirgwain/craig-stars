@@ -226,7 +226,8 @@ func (ug *universeGenerator) generatePlayerPlans() {
 }
 
 // generate designs for each player
-func (ug *universeGenerator) generatePlayerShipDesigns() {
+func (ug *universeGenerator) generatePlayerShipDesigns() error {
+	var err error
 	for _, player := range ug.players {
 		designNames := mapset.NewSet[string]()
 		num := 1
@@ -241,7 +242,10 @@ func (ug *universeGenerator) generatePlayerShipDesigns() {
 				design := DesignShip(techStore, hull, startingFleet.Name, player, num, player.DefaultHullSet, startingFleet.Purpose, FleetPurposeFromShipDesignPurpose(startingFleet.Purpose))
 				design.HullSetNumber = int(startingFleet.HullSetNumber)
 				design.Purpose = startingFleet.Purpose
-				design.Spec = ComputeShipDesignSpec(&ug.Rules, player.TechLevels, player.Race.Spec, design)
+				design.Spec, err = ComputeShipDesignSpec(&ug.Rules, player.TechLevels, player.Race.Spec, design)
+				if err != nil {
+					return fmt.Errorf("ComputeShipDesignSpec returned error %w", err)
+				}
 				player.Designs = append(player.Designs, design)
 				designNames.Add(design.Name)
 				num++
@@ -252,11 +256,14 @@ func (ug *universeGenerator) generatePlayerShipDesigns() {
 
 		for i := range starbaseDesigns {
 			design := &starbaseDesigns[i]
-			design.Spec = ComputeShipDesignSpec(&ug.Rules, player.TechLevels, player.Race.Spec, design)
+			design.Spec, err = ComputeShipDesignSpec(&ug.Rules, player.TechLevels, player.Race.Spec, design)
+			if err != nil {
+				return fmt.Errorf("ComputeShipDesignSpec returned error %w", err)
+			}
 			player.Designs = append(player.Designs, design)
 		}
 	}
-
+	return nil
 }
 
 // have each player discover all the planets in the universe

@@ -183,7 +183,8 @@ func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 		}
 	}
 	cost = cost.Minus(credit).MinZero()
-	cost = cost.Max(minCost).DivideByInt(int(roundHalfDown(1000*float64(rules.StarbaseComponentCostReduction)/raceSpec.StarbaseCostFactor)), true)
+	divisor := int(roundHalfDown(1000*float64(rules.StarbaseComponentCostReduction)/raceSpec.StarbaseCostFactor))
+	cost = cost.Max(minCost).DivideByInt(divisor, true)
 	return cost, nil
 }
 

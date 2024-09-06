@@ -91,7 +91,7 @@ func Test_getStargateScanners(t *testing.T) {
 			if tt.args.stargate != nil {
 				design := starbase.Tokens[0].design
 				design.Slots = append(design.Slots, ShipDesignSlot{HullComponent: tt.args.stargate.Name, HullSlotIndex: 1, Quantity: 1})
-				design.Spec = ComputeShipDesignSpec(&rules, player.TechLevels, player.Race.Spec, design)
+				design.Spec, _ = ComputeShipDesignSpec(&rules, player.TechLevels, player.Race.Spec, design)
 				starbase.Spec = ComputeFleetSpec(&rules, player, starbase)
 			}
 			planet.Starbase = starbase
@@ -224,7 +224,7 @@ func Test_scanPlanetWithStargates(t *testing.T) {
 	starbase1 := testSpaceStation(player1, planet1)
 	design1 := starbase1.Tokens[0].design
 	design1.Slots = append(design1.Slots, ShipDesignSlot{HullComponent: Stargate100_250.Name, HullSlotIndex: 1, Quantity: 1})
-	design1.Spec = ComputeShipDesignSpec(&rules, player1.TechLevels, player1.Race.Spec, design1)
+	design1.Spec, _ = ComputeShipDesignSpec(&rules, player1.TechLevels, player1.Race.Spec, design1)
 	starbase1.Spec = ComputeFleetSpec(&rules, player1, starbase1)
 
 	planet1.Starbase = starbase1
@@ -237,7 +237,7 @@ func Test_scanPlanetWithStargates(t *testing.T) {
 	starbase2 := testSpaceStation(player2, planet2)
 	design2 := starbase2.Tokens[0].design
 	design2.Slots = append(design2.Slots, ShipDesignSlot{HullComponent: Stargate100_250.Name, HullSlotIndex: 1, Quantity: 1})
-	design2.Spec = ComputeShipDesignSpec(&rules, player2.TechLevels, player2.Race.Spec, design2)
+	design2.Spec, _ = ComputeShipDesignSpec(&rules, player2.TechLevels, player2.Race.Spec, design2)
 	starbase2.Spec = ComputeFleetSpec(&rules, player2, starbase1)
 
 	planet2.Starbase = starbase1

@@ -165,7 +165,16 @@ func (sd *ShipDesign) WithHullSetNumber(num int) *ShipDesign {
 
 // Compute the spec for this ShipDesign. This function is mostly for universe generation and tests
 func (sd *ShipDesign) WithSpec(rules *Rules, player *Player) *ShipDesign {
-	sd.Spec = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, sd)
+	var err error
+	sd.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, sd)
+	if err != nil {
+		log.Error().
+			Int64("GameID", rules.GameID).
+			Int("Num", sd.Num).
+			Int("Player Num", player.Num).
+			Int("Design Num", sd.Num).
+			Msgf("ComputeShipDesignSpec returned error: %s", err)
+	}
 	return sd
 }
 
@@ -257,7 +266,7 @@ func (d *ShipDesign) getMovement(cargoMass int) int {
 	return getBattleMovement(d.Spec.Engine.IdealSpeed, d.Spec.MovementBonus, d.Spec.Mass+cargoMass, d.Spec.NumEngines)
 }
 
-func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design *ShipDesign) ShipDesignSpec {
+func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design *ShipDesign) (ShipDesignSpec, error) {
 	hull := rules.techs.GetHull(design.Hull)
 	c := NewCostCalculator()
 	spec := ShipDesignSpec{
@@ -265,7 +274,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		Armor:                    hull.Armor,
 		FuelCapacity:             hull.FuelCapacity,
 		FuelGeneration:           hull.FuelGeneration,
-		Cost:                     Cost{}, // will assign cost later; needs error handling
+		Cost:                     Cost{}, // will assign cost later with error handling
 		TechLevel:                hull.Requirements.TechLevel,
 		CargoCapacity:            hull.CargoCapacity,
 		CloakUnits:               raceSpec.BuiltInCloakUnits,
@@ -284,13 +293,15 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 	var err error
 	spec.Cost, err = c.GetDesignCost(rules, techLevels, raceSpec, design)
 	if err != nil {
-		log.Warn().
+		log.Error().
+			Err(err).
 			Int64("GameID", rules.GameID).
 			Int("Num", design.Num).
-			Int("Player Num", design.PlayerNum).
 			Int("Design Num", design.Num).
 			Msgf("GetDesignCost returned error: %s", err)
+		return ShipDesignSpec{}, fmt.Errorf("computeShipDesignSpec failed to get design cost; error %s", err)
 	}
+
 	// count the number of each type of battle component we have
 	torpedoBonusesByCount := map[float64]int{}
 	torpedoJammersByCount := map[float64]int{}
@@ -579,7 +590,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 			spec.EstimatedRangeFull = int(float64(spec.FuelCapacity) / float64(fuelCostFor1klyFull) * 1000)
 		}
 	}
-	return spec
+	return spec, nil
 }
 
 // Compute the scan ranges for this ship design The formula is: (scanner1**4 + scanner2**4 + ...
