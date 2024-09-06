@@ -278,13 +278,13 @@ func randomizeMinerals(rules *Rules, rad int) Mineral {
 	if limiter < 18 {
 		if limiter >= 9 {
 			mineralType := MineralTypes[rules.random.Intn(len(MineralTypes))]
-			value := 1 + rules.random.Intn(rules.MinStartingMineralConcentration)
+			value := 1 + rules.random.Intn(rules.LimitMineralConcentration)
 			minConc.Set(mineralType, value)
 		} else {
 			limiter++
 			for limiter < 16 {
 				mineralType := MineralTypes[rules.random.Intn(len(MineralTypes))]
-				value := 1 + rules.random.Intn(rules.MinStartingMineralConcentration)
+				value := 1 + rules.random.Intn(rules.LimitMineralConcentration)
 				minConc.Set(mineralType, value)
 
 				limiter *= 2
