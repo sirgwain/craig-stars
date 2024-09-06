@@ -63,6 +63,7 @@ export type PlayerResponse = {
 	submittedTurn?: boolean;
 	techLevels: TechLevel;
 	techLevelsSpent: TechLevel;
+	designs?: ShipDesign[];
 	researchSpentLastYear?: number;
 	achievedVictoryConditions?: number;
 	relations: PlayerRelationship[];
@@ -214,7 +215,6 @@ export class Player implements PlayerResponse, CostFinder {
 	messages: Message[] = [];
 	relations: PlayerRelationship[] = [];
 	acquiredTechs: Record<string, boolean> = {};
-	designs?: ShipDesign[] = [];
 	spec: PlayerSpec = {};
 
 	constructor(data?: PlayerResponse) {
