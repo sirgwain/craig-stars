@@ -1309,3 +1309,14 @@ func (race *Race) getPlanetHabForHabIndex(iterIndex int, habType HabType, loopIn
 
 	return planetHab, terraformOffset
 }
+
+// get leftover points for a race and the type of points to spend it on 
+func (race *Race) ComputeLeftoverRacePoints(startingPoints int) (int, SpendLeftoverPointsOn) {
+	points := race.ComputeRacePoints(startingPoints)
+	if points < 0 {
+		points = 0
+	} else if points > 50 {
+		points = 50
+	}
+	return points, race.SpendLeftoverPointsOn
+}

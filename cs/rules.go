@@ -69,7 +69,9 @@ type Rules struct {
 	StartingMines                             int                                 `json:"startingMines"`
 	StartingFactories                         int                                 `json:"startingFactories"`
 	StartingDefenses                          int                                 `json:"startingDefenses"`
+	ExtraPlanetStartingFactories              int                                 `json:"extraPlanetStartingFactories"`
 	RaceStartingPoints                        int                                 `json:"raceStartingPoints"`
+	RaceLeftoverPointsPerItem                 map[SpendLeftoverPointsOn]int       `json:"raceLeftoverPointsPerItem"`
 	ScrapMineralAmount                        float64                             `json:"scrapMineralAmount"`
 	ScrapResourceAmount                       float64                             `json:"scrapResourceAmount"`
 	FactoryCostGermanium                      int                                 `json:"factoryCostGermanium"`
@@ -472,7 +474,15 @@ func NewRulesWithSeed(seed int64) Rules {
 		StartingMines:                             10,
 		StartingFactories:                         10,
 		StartingDefenses:                          10,
+		ExtraPlanetStartingFactories:              4,
 		RaceStartingPoints:                        1650,
+		RaceLeftoverPointsPerItem:                 map[SpendLeftoverPointsOn]int{
+			SpendLeftoverPointsOnMines: 2,
+			SpendLeftoverPointsOnFactories: 5,
+			SpendLeftoverPointsOnDefenses: 10,
+			SpendLeftoverPointsOnMineralConcentrations: 3,
+			SpendLeftoverPointsOnSurfaceMinerals: 10, // special case - indicates kT per point leftover
+		},
 		ScrapMineralAmount:                        0.333333343,
 		ScrapResourceAmount:                       0.0,
 		FactoryCostGermanium:                      4,

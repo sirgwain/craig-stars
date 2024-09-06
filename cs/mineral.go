@@ -58,6 +58,19 @@ func (h *Mineral) Set(mineralType MineralType, value int) *Mineral {
 	return h
 }
 
+func (m Mineral) GetAmount(mineralType MineralType) int {
+	var amt int
+	switch mineralType {
+	case MineralType(Ironium):
+		amt = m.Ironium
+	case MineralType(Boranium):
+		amt = m.Boranium
+	case MineralType(Germanium):
+		amt = m.Germanium
+	}
+	return amt
+}
+
 func (m Mineral) Total() int {
 	return m.Ironium + m.Boranium + m.Germanium
 }
@@ -140,17 +153,50 @@ func (m Mineral) Clamp(min, max int) Mineral {
 	}
 }
 
-func (c Mineral) GreatestType() CargoType {
-	if c.Ironium >= c.Boranium && c.Ironium >= c.Germanium {
-		return Ironium
+func (m Mineral) GreatestType() MineralType {
+	if m.Ironium >= m.Boranium && m.Ironium >= m.Germanium {
+		return MineralType(Ironium)
 	}
 
-	if c.Boranium >= c.Ironium && c.Boranium >= c.Germanium {
-		return Boranium
+	if m.Boranium >= m.Ironium && m.Boranium >= m.Germanium {
+		return MineralType(Boranium)
 	}
 
-	if c.Germanium >= c.Ironium && c.Germanium >= c.Boranium {
-		return Germanium
+	if m.Germanium >= m.Ironium && m.Germanium >= m.Boranium {
+		return MineralType(Germanium)
+	}
+
+	return None
+}
+
+// returns 2nd lowest/highest mineral type
+func (m Mineral) MiddleType() MineralType {
+	if MineralType(Boranium) != m.GreatestType() && MineralType(Boranium) != m.LowestType() {
+		return MineralType(Boranium)
+	}	
+	
+	if MineralType(Germanium) != m.GreatestType() && MineralType(Germanium) != m.LowestType() {
+		return MineralType(Germanium)
+	}
+
+	if MineralType(Ironium) != m.GreatestType() && MineralType(Ironium) != m.LowestType() {
+		return MineralType(Ironium)
+	}
+
+	return None
+}
+
+func (m Mineral) LowestType() MineralType {
+	if m.Germanium <= m.Ironium && m.Germanium <= m.Boranium {
+		return MineralType(Germanium)
+	}
+
+	if m.Boranium <= m.Ironium && m.Boranium <= m.Germanium {
+		return MineralType(Boranium)
+	}
+
+	if m.Ironium <= m.Germanium && m.Ironium <= m.Boranium {
+		return MineralType(Ironium)
 	}
 
 	return None

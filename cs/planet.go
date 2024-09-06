@@ -308,7 +308,7 @@ func randomizeMinerals(rules *Rules, rad int) Mineral {
 	return minConc
 }
 
-// Initialize a planet to be a homeworld for a payer with ideal hab, starting mineral concentration, etc
+// Initialize a planet to be a homeworld for a player with ideal hab, starting mineral concentration, etc
 func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet StartingPlanet, concentration Mineral, surface Mineral) {
 
 	log.Debug().Msgf("Assigning %s to %s as homeworld", p, player)

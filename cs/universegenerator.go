@@ -297,6 +297,7 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 		minPlayerDistance := float64(area.X+area.Y) / 2.0 / float64(len(ug.players)+1)
 		fleetNum := 1
 		var homeworld *Planet
+		extraPoints, pointsType := player.Race.ComputeLeftoverRacePoints(rules.RaceStartingPoints)
 
 		for _, startingPlanet := range player.Race.Spec.StartingPlanets {
 
@@ -364,9 +365,60 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 
 			// make a new starter world
 			playerPlanet.initStartingWorld(player, &ug.Rules, startingPlanet, homeworldMinConc, surface)
-			if !startingPlanet.Homeworld && !ug.MaxMinerals {
-				// starting planets start with different mincons
-				playerPlanet.MineralConcentration = randomizeMinerals(rules, playerPlanet.Hab.Rad)
+			if startingPlanet.Homeworld {
+				pointsThreshold := rules.RaceLeftoverPointsPerItem
+				switch pointsType {
+				case SpendLeftoverPointsOnDefenses:
+					if !player.Race.Spec.LivesOnStarbases && extraPoints > pointsThreshold[pointsType] {
+						playerPlanet.Defenses += extraPoints / pointsThreshold[pointsType]
+						extraPoints -= extraPoints / pointsThreshold[pointsType]
+					}
+					fallthrough
+				case SpendLeftoverPointsOnFactories:
+					if !player.Race.Spec.InnateResources && extraPoints > pointsThreshold[pointsType] {
+						playerPlanet.Factories += extraPoints / pointsThreshold[pointsType]
+						extraPoints -= extraPoints / pointsThreshold[pointsType]
+					}
+					fallthrough
+				case SpendLeftoverPointsOnMines:
+					if !player.Race.Spec.InnateMining && extraPoints > pointsThreshold[pointsType] {
+						playerPlanet.Mines += extraPoints / pointsThreshold[pointsType]
+						extraPoints -= extraPoints / pointsThreshold[pointsType]
+					}
+					fallthrough
+				case SpendLeftoverPointsOnMineralConcentrations:
+					// example situation: 25 unspent points; HW has 40I, 30B and 35G concs
+					// first we bump up B by 6 up to 36, using 18 pts
+					// then we bump up G by 2 up to 37, using 6 points
+					// the remaining 1 point goes into surface minerals (since 1 < 3)
+					for extraPoints > pointsThreshold[pointsType] {
+						conc := playerPlanet.MineralConcentration
+						lowestType := conc.LowestType()
+						diff := conc.GetAmount(conc.MiddleType()) - conc.GetAmount(lowestType)
+						amtToAdd := MinInt(extraPoints/pointsThreshold[pointsType], diff+1)
+						playerPlanet.MineralConcentration.Set(lowestType, conc.GetAmount(lowestType)+amtToAdd)
+						extraPoints -= pointsThreshold[pointsType] * amtToAdd
+					}
+					fallthrough
+				default:
+					// example situation: 10 points; world with 300I, 400B, 350G
+					// first we add 60kT of I, using 6 pts
+					// then we alternate between G and I for the remaining 4 pts
+					for extraPoints > 0 {
+						min := playerPlanet.getCargo().ToMineral()
+						lowestType := min.LowestType()
+						diff := min.GetAmount(min.MiddleType()) - min.GetAmount(lowestType)
+						amtToAdd := MinInt(extraPoints, diff+1)
+						playerPlanet.Cargo.AddAmount(CargoType(int(lowestType)), amtToAdd*10)
+						extraPoints -= amtToAdd
+					}
+				}
+			} else {
+				// starting planets start with different mincons & facts
+				playerPlanet.Factories = rules.ExtraPlanetStartingFactories
+				if !ug.MaxMinerals {
+					playerPlanet.MineralConcentration = randomizeMinerals(rules, playerPlanet.Hab.Rad)
+				}
 			}
 
 			// add a starbase to this planet
