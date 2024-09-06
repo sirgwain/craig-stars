@@ -24,11 +24,12 @@ Usage : generator [options] <package> <outfile>
 Examples:
 generate source for serializing js.Value to/from structs in a package`
 
+// source generator for generating syscall/js Getters and Setters for package structs and named types
 func main() {
 	flag.Parse()
-
+	
 	args := flag.Args()
-
+	
 	if len(args) < 1 {
 		fmt.Println(cmdUsage)
 		return
