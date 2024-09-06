@@ -245,10 +245,6 @@ func (p *Planet) randomize(rules *Rules) {
 	p.TerraformedAmount = Hab{}
 	p.MineralConcentration = randomizeMinerals(rules, p.Hab.Rad)
 
-	// check if this planet has a random artifact
-	if rules.RandomEventChances[RandomEventAncientArtifact] >= rules.random.Float64() {
-		p.RandomArtifact = true
-	}
 }
 
 // Randomize a planet's mineral concentration within bounds set in Rules
@@ -266,9 +262,9 @@ func randomizeMinerals(rules *Rules, rad int) Mineral {
 
 	// creates a mineral concentration
 	minConc := Mineral{
-		Ironium:   NormalSample(rules.random, mean, variance, mMax),
-		Boranium:  NormalSample(rules.random, mean, variance, mMax),
-		Germanium: NormalSample(rules.random, mean, variance, mMax),
+		Ironium:   1 + NormalSample(rules.random, mean, variance, mMax),
+		Boranium:  1 + NormalSample(rules.random, mean, variance, mMax),
+		Germanium: 1 + NormalSample(rules.random, mean, variance, mMax),
 	}
 
 	// limit at least one mineral

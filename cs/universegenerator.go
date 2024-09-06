@@ -142,8 +142,9 @@ func (ug *universeGenerator) generatePlanets() error {
 		if ug.MaxMinerals {
 			planet.MineralConcentration = Mineral{100, 100, 100}
 		}
-		if !ug.RandomEvents {
-			planet.RandomArtifact = false
+		if ug.RandomEvents && rules.RandomEventChances[RandomEventAncientArtifact] >= rules.random.Float64() {
+			// check if this planet has a random artifact
+			planet.RandomArtifact = true
 		}
 
 		ug.universe.Planets[i] = planet

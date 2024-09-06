@@ -460,7 +460,7 @@ func NewRulesWithSeed(seed int64) Rules {
 		MaxMineralConcentration:                   200,
 		MinHab:                                    1,
 		MaxHab:                                    99,
-		MinStartingMineralConcentration:           31,
+		MinStartingMineralConcentration:           1,
 		MaxStartingMineralConcentration:           121,
 		HighRadMineralConcentrationBonusThreshold: 90,
 		MaxStartingMineralSurface:                 1000,
