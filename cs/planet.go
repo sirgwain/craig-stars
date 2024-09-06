@@ -305,6 +305,10 @@ func randomizeMinerals(rules *Rules, rad int) Mineral {
 		}
 	}
 
+	minConc.Ironium = Clamp(minConc.Ironium, mMin, mMax)
+	minConc.Boranium = Clamp(minConc.Boranium, mMin, mMax)
+	minConc.Germanium = Clamp(minConc.Germanium, mMin, mMax)
+
 	return minConc
 }
 
@@ -637,7 +641,7 @@ func (planet *Planet) mine(rules *Rules) {
 
 // grow pop on this planet (or starbase)
 func (planet *Planet) grow(player *Player) {
-	planet.setPopulation(MaxInt(100, planet.population() + planet.Spec.GrowthAmount))
+	planet.setPopulation(MaxInt(100, planet.population()+planet.Spec.GrowthAmount))
 
 	if player.Race.Spec.InnateMining {
 		productivePop := planet.productivePopulation(planet.population(), planet.Spec.MaxPopulation)
