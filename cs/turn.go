@@ -1409,7 +1409,10 @@ func (t *turn) planetProduction() error {
 		if planet.Owned() {
 			player := t.game.Players[planet.PlayerNum-1]
 			producer := newProducer(&t.game.Rules, planet, player)
-			result := producer.produce()
+			result, err := producer.produce()
+			if err != nil {
+				return err
+			}
 
 			// add any invalid messages we encountered
 			if len(result.messages) > 0 {

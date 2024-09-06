@@ -111,7 +111,10 @@ func (o *orders) UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet
 		}
 	}
 
-	planet.PopulateProductionQueueEstimates(rules, player)
+	if err := planet.PopulateProductionQueueEstimates(rules, player); err != nil {
+		return fmt.Errorf("planet %s unable to populate queue estimates %w", planet.Name, err)
+	}
+
 	spec = &planet.Spec
 
 	// update the player spec with the change in resources for this planet

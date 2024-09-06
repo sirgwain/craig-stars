@@ -432,7 +432,9 @@ func (g *FullGame) computeSpecs() error {
 			if err := planet.PopulateProductionQueueDesigns(player); err != nil {
 				return fmt.Errorf("planet %s unable to populate queue designs %w", planet.Name, err)
 			}
-			planet.PopulateProductionQueueEstimates(rules, player)
+			if err := planet.PopulateProductionQueueEstimates(rules, player); err != nil {
+				return fmt.Errorf("planet %s unable to populate queue estimates %w", planet.Name, err)
+			}
 
 			planet.MarkDirty()
 		}

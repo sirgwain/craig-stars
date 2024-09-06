@@ -153,7 +153,8 @@ func Test_production_produce6(t *testing.T) {
 
 	// should build 1 factories, 10 mines and have leftover for research
 	producer := newProducer(&rules, planet, player)
-	result := producer.produce()
+	result, err := producer.produce()
+	assert.Nil(t, err)
 	assert.Equal(t, 10, planet.Factories)
 	assert.Equal(t, 10, planet.Mines)
 	assert.Equal(t, 2, len(planet.ProductionQueue))
@@ -320,9 +321,10 @@ func Test_production_produceStarbaseUpgrade(t *testing.T) {
 
 	// should build nothing, but queue up a mine partially done
 	producer := newProducer(&rules, planet, player)
-	result := producer.produce()
+	result, err := producer.produce()
 
 	// we should have built a starbase
+	assert.Nil(t, err)
 	assert.Equal(t, len(result.itemsBuilt), 1)
 	assert.Equal(t, result.itemsBuilt[0].queueItemType, QueueItemTypeStarbase)
 	assert.Equal(t, result.starbase, starbaseDesign2)
@@ -364,7 +366,8 @@ func Test_production_produceMineralPackets(t *testing.T) {
 
 	// should build 5 mine, leaving the auto build in the queu
 	producer := newProducer(&rules, planet, player)
-	result := producer.produce()
+	result, err := producer.produce()
+	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result.packets))
 	assert.Equal(t, Cargo{40, 40, 40, 0}, result.packets[0])
 	assert.Equal(t, 0, len(planet.ProductionQueue))

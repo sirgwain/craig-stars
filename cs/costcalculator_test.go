@@ -26,7 +26,7 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 			args: args{
 				techLevels:          TechLevel{0, 0, 0, 0, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
-				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0},
+				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0, 0},
 				oldDesignHull:       "NotAStation",
 				newDesignHull:       SpaceStation.Name,
 				oldDesignSlots:      []ShipDesignSlot{},
@@ -39,7 +39,7 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 			args: args{
 				techLevels:          TechLevel{0, 0, 0, 0, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
-				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0},
+				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0, 0},
 				oldDesignHull:       SpaceStation.Name,
 				newDesignHull:       SpaceStation.Name,
 				oldDesignSlots:      []ShipDesignSlot{
@@ -54,7 +54,7 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 			args: args{
 				techLevels:          TechLevel{0, 0, 0, 0, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
-				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0},
+				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0, 0},
 				oldDesignHull:       SpaceStation.Name,
 				newDesignHull:       SpaceStation.Name,
 				oldDesignSlots:      []ShipDesignSlot{},
@@ -67,7 +67,7 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 			args: args{
 				techLevels:          TechLevel{0, 13, 0, 0, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
-				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0},
+				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0, 0},
 				oldDesignHull:       SpaceStation.Name,
 				newDesignHull:       SpaceStation.Name,
 				oldDesignSlots:      []ShipDesignSlot{
@@ -82,7 +82,7 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 			args: args{
 				techLevels:          TechLevel{0, 20, 0, 0, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
-				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0},
+				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0, 0},
 				oldDesignHull:       SpaceStation.Name,
 				newDesignHull:       SpaceStation.Name,
 				oldDesignSlots:      []ShipDesignSlot{},
@@ -103,7 +103,7 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 			args: args{
 				techLevels:          TechLevel{0, 0, 5, 5, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
-				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0},
+				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0, 0},
 				oldDesignHull:       SpaceStation.Name,
 				newDesignHull:       SpaceStation.Name,
 				oldDesignSlots:      []ShipDesignSlot{},
@@ -123,7 +123,7 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 			args: args{
 				techLevels:          TechLevel{0, 20, 0, 0, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
-				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0},
+				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0, 0},
 				oldDesignHull:       OrbitalFort.Name,
 				newDesignHull:       SpaceStation.Name,
 				oldDesignSlots:      []ShipDesignSlot{},
@@ -141,7 +141,7 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 			args: args{
 				techLevels:          TechLevel{0, 20, 0, 0, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
-				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0},
+				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0, 0},
 				oldDesignHull:       OrbitalFort.Name,
 				newDesignHull:       SpaceStation.Name,
 				oldDesignSlots:      []ShipDesignSlot{},
@@ -162,7 +162,7 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 			args: args{
 				techLevels:          TechLevel{0, 22, 0, 0, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
-				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0},
+				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0, 0},
 				oldDesignHull:       SpaceStation.Name,
 				newDesignHull:       SpaceStation.Name,
 				oldDesignSlots:      []ShipDesignSlot{
@@ -188,7 +188,7 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 			args: args{
 				techLevels:          TechLevel{22, 22, 22, 10, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
-				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0},
+				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0, 0},
 				oldDesignHull:       SpaceStation.Name,
 				newDesignHull:       SpaceStation.Name,
 				oldDesignSlots: []ShipDesignSlot{
@@ -212,7 +212,7 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 			args: args{
 				techLevels:          TechLevel{22, 22, 22, 22, 21, 22},
 				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
-				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0},
+				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0, 0},
 				oldDesignHull:       SpaceStation.Name,
 				newDesignHull:       SpaceStation.Name,
 				oldDesignSlots: []ShipDesignSlot{
