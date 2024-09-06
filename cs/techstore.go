@@ -176,10 +176,12 @@ func (store *TechStore) GetHullsByType(techHullType TechHullType) []*TechHull {
 	return store.hullsByType[techHullType]
 }
 
+// get hull component from name 
 func (store *TechStore) GetHullComponent(name string) *TechHullComponent {
 	return store.hullComponentsByName[store.transformName(name)]
 }
 
+// get all techs learned in the last tech level 
 func (store *TechStore) GetTechsJustGained(player *Player, field TechField) []*Tech {
 	techs := []*Tech{}
 	for _, tech := range store.techs {
@@ -190,7 +192,7 @@ func (store *TechStore) GetTechsJustGained(player *Player, field TechField) []*T
 	return techs
 }
 
-// get all techs by category
+// get all techs sorted by category
 func (store *TechStore) GetHullComponentsByCategory(category TechCategory) []TechHullComponent {
 	techs := make([]TechHullComponent, 0, len(store.hullComponentsByCategory[category]))
 	for _, tech := range store.hullComponentsByCategory[category] {
@@ -202,199 +204,241 @@ func (store *TechStore) GetHullComponentsByCategory(category TechCategory) []Tec
 	return techs
 }
 
-// get the best planetary scanner for a player
+// get the player's best planetary scanner
 func (store *TechStore) GetBestPlanetaryScanner(player *Player) *TechPlanetaryScanner {
 	bestTech := &store.PlanetaryScanners[0]
 	for i := range store.PlanetaryScanners {
 		tech := &store.PlanetaryScanners[i]
 		if player.HasTech(&tech.Tech) {
-			bestTech = tech
+			if bestTech == nil || tech.Tech.Ranking > bestTech.Tech.Ranking {
+				bestTech = tech
+			}
 		}
 	}
 	return bestTech
 }
 
-// get the best defense for a player
+// get the player's best defense
 func (store *TechStore) GetBestDefense(player *Player) *TechDefense {
 	bestTech := &store.Defenses[0]
 	for i := range store.Defenses {
 		tech := &store.Defenses[i]
 		if player.HasTech(&tech.Tech) {
-			bestTech = tech
+			if bestTech == nil || tech.Tech.Ranking > bestTech.Tech.Ranking {
+				bestTech = tech
+			}
 		}
 	}
 	return bestTech
 }
 
-// get the best terraform for a player
+// get the player's best terraform
 func (store *TechStore) GetBestTerraform(player *Player, terraformHabType TerraformHabType) (bestTech *TechTerraform) {
 	for i := range store.Terraforms {
 		tech := &store.Terraforms[i]
 		if tech.HabType == terraformHabType && player.HasTech(&tech.Tech) {
-			bestTech = tech
+			if bestTech == nil || tech.Tech.Ranking > bestTech.Tech.Ranking {
+				bestTech = tech
+			}
 		}
 	}
 	return bestTech
 }
 
-// get the best engine for a player
+// get the player's best battle engine 
+func (store *TechStore) GetBestBattleEngine(player *Player, hull *TechHull) *TechEngine {
+	bestTech := &store.Engines[1] // start from QJ5 instead of SD
+	for i := range store.Engines {
+		tech := &store.Engines[i]
+		if player.HasTech(&tech.Tech) {
+			// if this tech is not allowed on our hull (like the Settler's Delight on normal ships) skip it
+			if (len(tech.Requirements.HullsAllowed) > 0 && !slices.Contains(tech.Requirements.HullsAllowed, hull.Name)) ||
+			(len(tech.Requirements.HullsDenied) > 0 && slices.Contains(tech.Requirements.HullsDenied, hull.Name)) {
+				continue
+			}
+			// if engine has higher ideal speed than the current selection, use it
+			// ties are broken by the part's ranking (which leans towards cost & fuel efficiency)
+			if bestTech == nil || 
+			(tech.Engine.IdealSpeed > bestTech.Engine.IdealSpeed ||
+			(tech.Engine.IdealSpeed == bestTech.Engine.IdealSpeed && tech.TechHullComponent.Ranking > bestTech.TechHullComponent.Ranking)) {
+				bestTech = tech
+			}
+		}
+	}
+	return bestTech
+}
+
+// get the player's best engine
 func (store *TechStore) GetBestEngine(player *Player, hull *TechHull, purpose FleetPurpose) *TechEngine {
 	bestTech := &store.Engines[0]
 	for i := range store.Engines {
 		tech := &store.Engines[i]
 		if player.HasTech(&tech.Tech) {
-			// if this tech is only allowed on certain hulls (like the Settler's Delight and the mini colony ship), use it for those
-			if len(tech.Requirements.HullsAllowed) > 0 {
-				if slices.Contains(tech.Requirements.HullsAllowed, hull.Name) {
-					bestTech = tech
-					break
-				}
-				// skip it otherwise
+			// if this tech is not allowed on our hull (like the Settler's Delight on normal ships) skip it
+			if (len(tech.Requirements.HullsAllowed) > 0 && !slices.Contains(tech.Requirements.HullsAllowed, hull.Name)) ||
+			(len(tech.Requirements.HullsDenied) > 0 && slices.Contains(tech.Requirements.HullsDenied, hull.Name)) {
 				continue
 			}
 
-			// skip this tech if it's not allowed on this hull
-			if len(tech.Requirements.HullsDenied) > 0 && slices.Contains(tech.Requirements.HullsDenied, hull.Name) {
+			// colony ships don't want radiating engines if we would lose colonists from it 
+			if (purpose == FleetPurposeColonizer || purpose == FleetPurposeColonistFreighter) && tech.Radiating &&
+				!(player.Race.ImmuneRad || player.Race.Spec.HabCenter.Rad >= 85) {
 				continue
 			}
 
-			// colony ships don't want radiating engines
-			if (purpose == FleetPurposeColonizer || purpose == FleetPurposeColonistFreighter) && tech.Radiating {
-				continue
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
+				bestTech = tech
 			}
-
-			// techs are sorted by rank, so the latest is the best
-			bestTech = tech
 		}
 	}
 	return bestTech
 }
 
-// get the best scanner for a player
+// get the player's best scanner
 func (store *TechStore) GetBestScanner(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if tech.Scanner && (tech.ScanRange >= 0 || tech.ScanRangePen >= 0) && player.HasTech(&tech.Tech) {
-			// techs are sorted by rank, so the latest is the best
-			bestTech = tech
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
+				bestTech = tech
+			}
 		}
 	}
 	return bestTech
 }
 
-// get the best beam weapon for a player
+// get the player's best non-sapper beam weapon
 func (store *TechStore) GetBestBeamWeapon(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if tech.Category == TechCategoryBeamWeapon && tech.Power > 0 && !tech.DamageShieldsOnly && player.HasTech(&tech.Tech) {
-			// techs are sorted by rank, so the latest is the best
-			bestTech = tech
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
+				bestTech = tech
+			}
 		}
 	}
 	return bestTech
 }
 
-// get the best sapper for a player
+// get the player's best sapper or shield-breaking beam weapon
 func (store *TechStore) GetBestSapper(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if tech.Category == TechCategoryBeamWeapon && tech.Power > 0 && tech.DamageShieldsOnly && player.HasTech(&tech.Tech) {
-			// techs are sorted by rank, so the latest is the best
-			bestTech = tech
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
+				bestTech = tech
+			}
 		}
+	}
+	// Use a regular beam if it's at least as strong/cheap
+	// than our best sapper (since they can damage armor)
+	// This is never possible in vanilla Stars!, but maybe for mods
+	bestBeam := store.GetBestBeamWeapon(player)
+	if bestTech == nil || 
+	(bestBeam.Power >= bestTech.Power &&
+	bestBeam.Cost.Resources <= bestTech.Cost.Resources &&
+	bestBeam.Range >= bestTech.Range) {
+		bestTech = bestBeam
 	}
 	return bestTech
 }
 
-// get the best armor for a player
+// get the player's best armor
 func (store *TechStore) GetBestArmor(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if tech.Category == TechCategoryArmor && player.HasTech(&tech.Tech) {
-			// techs are sorted by rank, so the latest is the best
-			bestTech = tech
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
+				bestTech = tech
+			}
 		}
 	}
 	return bestTech
 }
 
-// get the best shield for a player
+// get the player's best shield
 func (store *TechStore) GetBestShield(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if tech.Category == TechCategoryShield && player.HasTech(&tech.Tech) {
-			// techs are sorted by rank, so the latest is the best
-			bestTech = tech
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
+				bestTech = tech
+			}
 		}
 	}
 	return bestTech
 }
 
-// get the best torpedo for a player
+// get the player's best torpedo
 func (store *TechStore) GetBestTorpedo(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if tech.Category == TechCategoryTorpedo && tech.Power > 0 && player.HasTech(&tech.Tech) {
-			// techs are sorted by rank, so the latest is the best
-			bestTech = tech
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
+				bestTech = tech
+			}
 		}
 	}
 	return bestTech
 }
 
-// get the best regular bomb for a player
+// get the player's best regular bomb
 func (store *TechStore) GetBestBomb(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if tech.Category == TechCategoryBomb && tech.MinKillRate > 0 && tech.StructureDestroyRate > 0 && player.HasTech(&tech.Tech) {
-			// techs are sorted by rank, so the latest is the best
-			bestTech = tech
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
+				bestTech = tech
+			}
 		}
 	}
 	return bestTech
 }
 
-// get the best regular structure only bomb for a player
+// get the player's best regular structure only bomb
 func (store *TechStore) GetBestStructureBomb(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if tech.Category == TechCategoryBomb && tech.MinKillRate == 0 && tech.StructureDestroyRate > 0 && player.HasTech(&tech.Tech) {
-			// techs are sorted by rank, so the latest is the best
-			bestTech = tech
+				if bestTech == nil || tech.Ranking > bestTech.Ranking {
+				bestTech = tech
+			}
 		}
 	}
 	return bestTech
 }
 
-// get the best smart bomb for a player
+// get the player's best smart bomb
 func (store *TechStore) GetBestSmartBomb(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if tech.Category == TechCategoryBomb && tech.MinKillRate == 0 && tech.StructureDestroyRate == 0 && tech.KillRate > 0 && player.HasTech(&tech.Tech) {
-			// techs are sorted by rank, so the latest is the best
-			bestTech = tech
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
+				bestTech = tech
+			}
 		}
 	}
 	return bestTech
 }
 
-// get the best fuel tank for a player
+// get the player's best fuel tank
 func (store *TechStore) GetBestFuelTank(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if (tech.FuelBonus > 0) && player.HasTech(&tech.Tech) {
-			// techs are sorted by rank, so the latest is the best
-			bestTech = tech
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
+				bestTech = tech
+			}
 		}
 	}
 	return bestTech
@@ -406,8 +450,9 @@ func (store *TechStore) GetBestCargoPod(player *Player) *TechHullComponent {
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if (tech.CargoBonus > 0) && player.HasTech(&tech.Tech) {
-			// techs are sorted by rank, so the latest is the best
-			bestTech = tech
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
+				bestTech = tech
+			}
 		}
 	}
 	return bestTech
@@ -419,8 +464,9 @@ func (store *TechStore) GetBestColonizationModule(player *Player) *TechHullCompo
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if (tech.ColonizationModule || tech.OrbitalConstructionModule) && player.HasTech(&tech.Tech) {
-			// techs are sorted by rank, so the latest is the best
-			bestTech = tech
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
+				bestTech = tech
+			}
 		}
 	}
 	return bestTech
@@ -432,8 +478,9 @@ func (store *TechStore) GetBestBattleComputer(player *Player) *TechHullComponent
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if tech.InitiativeBonus > 0 && tech.TorpedoBonus > 0 && player.HasTech(&tech.Tech) {
-			// techs are sorted by rank, so the latest is the best
-			bestTech = tech
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
+				bestTech = tech
+			}
 		}
 	}
 	return bestTech
@@ -444,9 +491,10 @@ func (store *TechStore) GetBestMiningRobot(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
-		if tech.Category == TechCategoryMineRobot && player.HasTech(&tech.Tech) {
-			// techs are sorted by rank, so the latest is the best
-			bestTech = tech
+		if tech.Category == TechCategoryMineRobot && tech.MiningRate > 0 && player.HasTech(&tech.Tech) {
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
+				bestTech = tech
+			}
 		}
 	}
 	return bestTech
@@ -458,8 +506,9 @@ func (store *TechStore) GetBestMineLayer(player *Player, mineFieldType MineField
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if tech.Category == TechCategoryMineLayer && tech.MineFieldType == mineFieldType && player.HasTech(&tech.Tech) {
-			// techs are sorted by rank, so the latest is the best
-			bestTech = tech
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
+				bestTech = tech
+			}
 		}
 	}
 	return bestTech
@@ -471,8 +520,9 @@ func (store *TechStore) GetBestPacketThrower(player *Player) *TechHullComponent 
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if tech.Category == TechCategoryOrbital && tech.PacketSpeed > 0 && player.HasTech(&tech.Tech) {
-			// techs are sorted by rank, so the latest is the best
-			bestTech = tech
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
+				bestTech = tech
+			}
 		}
 	}
 	return bestTech
@@ -484,8 +534,9 @@ func (store *TechStore) GetBestStargate(player *Player) *TechHullComponent {
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if tech.Category == TechCategoryOrbital && tech.SafeRange != 0 && player.HasTech(&tech.Tech) {
-			// techs are sorted by rank, so the latest is the best
-			bestTech = tech
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
+				bestTech = tech
+			}
 		}
 	}
 	return bestTech
@@ -493,7 +544,8 @@ func (store *TechStore) GetBestStargate(player *Player) *TechHullComponent {
 
 // TechEngines
 var SettlersDelight = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Settler's Delight", NewCost(1, 0, 1, 2), TechRequirements{PRTsRequired: []PRT{HE}, HullsAllowed: []string{MiniColonyShip.Name}}, 10, TechCategoryEngine), Mass: 2, HullSlotType: HullSlotTypeEngine},
+	TechHullComponent: TechHullComponent{Tech: NewTech("Settler's Delight", NewCost(1, 0, 1, 2), TechRequirements{PRTsRequired: []PRT{HE}, HullsAllowed: []string{MiniColonyShip.Name}}, 69, TechCategoryEngine), Mass: 2, HullSlotType: HullSlotTypeEngine},
+	// better than Radram, AD8 and Mizer (mainly due to sheer cheapness)
 	Engine: Engine{
 		IdealSpeed:   6,
 		FreeSpeed:    6,
@@ -514,7 +566,7 @@ var SettlersDelight = TechEngine{
 	},
 }
 var QuickJump5 = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Quick Jump 5", NewCost(3, 0, 1, 3), TechRequirements{}, 20, TechCategoryEngine), Mass: 4, HullSlotType: HullSlotTypeEngine},
+	TechHullComponent: TechHullComponent{Tech: NewTech("Quick Jump 5", NewCost(3, 0, 1, 3), TechRequirements{}, 10, TechCategoryEngine), Mass: 4, HullSlotType: HullSlotTypeEngine},
 	Engine: Engine{
 		IdealSpeed:   5,
 		FreeSpeed:    1,
@@ -556,7 +608,8 @@ var LongHump6 = TechEngine{
 	},
 }
 var FuelMizer = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Fuel Mizer", NewCost(8, 0, 0, 11), TechRequirements{TechLevel: TechLevel{Propulsion: 2}, LRTsRequired: IFE}, 40, TechCategoryEngine), Mass: 6, HullSlotType: HullSlotTypeEngine},
+	TechHullComponent: TechHullComponent{Tech: NewTech("Fuel Mizer", NewCost(8, 0, 0, 11), TechRequirements{TechLevel: TechLevel{Propulsion: 2}, LRTsRequired: IFE}, 65, TechCategoryEngine), Mass: 6, HullSlotType: HullSlotTypeEngine},
+	// higher rating than Radram & AD8; beaten out by TGD & prop 8/9 scoops
 	Engine: Engine{
 		IdealSpeed:   6,
 		FreeSpeed:    4,
@@ -662,7 +715,7 @@ var Interspace10 = TechEngine{
 	},
 }
 var TransStar10 = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Trans-Star 10", NewCost(3, 0, 3, 10), TechRequirements{TechLevel: TechLevel{Propulsion: 23}}, 90, TechCategoryEngine), Mass: 5, HullSlotType: HullSlotTypeEngine},
+	TechHullComponent: TechHullComponent{Tech: NewTech("Trans-Star 10", NewCost(3, 0, 3, 10), TechRequirements{TechLevel: TechLevel{Propulsion: 23}}, 130, TechCategoryEngine), Mass: 5, HullSlotType: HullSlotTypeEngine},
 	Engine: Engine{
 		IdealSpeed:   10,
 		FreeSpeed:    1,
@@ -683,7 +736,7 @@ var TransStar10 = TechEngine{
 	},
 }
 var RadiatingHydroRamScoop = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Radiating Hydro-Ram Scoop", NewCost(3, 2, 9, 8), TechRequirements{TechLevel: TechLevel{Energy: 2, Propulsion: 6}, LRTsDenied: NRSE}, 100, TechCategoryEngine), Mass: 10, HullSlotType: HullSlotTypeEngine, Radiating: true},
+	TechHullComponent: TechHullComponent{Tech: NewTech("Radiating Hydro-Ram Scoop", NewCost(3, 2, 9, 8), TechRequirements{TechLevel: TechLevel{Energy: 2, Propulsion: 6}, LRTsDenied: NRSE}, 61, TechCategoryEngine), Mass: 10, HullSlotType: HullSlotTypeEngine, Radiating: true},
 	Engine: Engine{
 		IdealSpeed:   6,
 		FreeSpeed:    6,
@@ -704,7 +757,7 @@ var RadiatingHydroRamScoop = TechEngine{
 	},
 }
 var SubGalacticFuelScoop = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Sub-Galactic Fuel Scoop", NewCost(4, 4, 7, 12), TechRequirements{TechLevel: TechLevel{Energy: 2, Propulsion: 8}, LRTsDenied: NRSE}, 110, TechCategoryEngine), Mass: 20, HullSlotType: HullSlotTypeEngine},
+	TechHullComponent: TechHullComponent{Tech: NewTech("Sub-Galactic Fuel Scoop", NewCost(4, 4, 7, 12), TechRequirements{TechLevel: TechLevel{Energy: 2, Propulsion: 8}, LRTsDenied: NRSE}, 90, TechCategoryEngine), Mass: 20, HullSlotType: HullSlotTypeEngine},
 	Engine: Engine{
 		IdealSpeed:   7,
 		FreeSpeed:    5,
@@ -725,7 +778,7 @@ var SubGalacticFuelScoop = TechEngine{
 	},
 }
 var TransGalacticFuelScoop = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTech("Trans-Galactic Fuel Scoop", NewCost(5, 4, 12, 18), TechRequirements{TechLevel: TechLevel{Energy: 3, Propulsion: 9}, LRTsDenied: NRSE}, 120, TechCategoryEngine), Mass: 19, HullSlotType: HullSlotTypeEngine},
+	TechHullComponent: TechHullComponent{Tech: NewTech("Trans-Galactic Fuel Scoop", NewCost(5, 4, 12, 18), TechRequirements{TechLevel: TechLevel{Energy: 3, Propulsion: 9}, LRTsDenied: NRSE}, 100, TechCategoryEngine), Mass: 19, HullSlotType: HullSlotTypeEngine},
 	Engine: Engine{
 		IdealSpeed:   8,
 		FreeSpeed:    6,
@@ -811,35 +864,35 @@ var GalaxyScoop = TechEngine{
 
 // TechTerraforms
 
-var TotalTerraform3 = TechTerraform{Tech: NewTech("Total Terraform ±3", NewCost(0, 0, 0, 70), TechRequirements{TechLevel: TechLevel{}, LRTsRequired: TT}, 0, TechCategoryTerraforming),
+var TotalTerraform3 = TechTerraform{Tech: NewTech("Total Terraform ±3", NewCost(0, 0, 0, 100), TechRequirements{TechLevel: TechLevel{}, LRTsRequired: TT}, 0, TechCategoryTerraforming),
 	Ability: 3,
 	HabType: TerraformHabTypeAll,
 }
-var TotalTerraform5 = TechTerraform{Tech: NewTech("Total Terraform ±5", NewCost(0, 0, 0, 70), TechRequirements{TechLevel: TechLevel{Biotechnology: 3}, LRTsRequired: TT}, 10, TechCategoryTerraforming),
+var TotalTerraform5 = TechTerraform{Tech: NewTech("Total Terraform ±5", NewCost(0, 0, 0, 100), TechRequirements{TechLevel: TechLevel{Biotechnology: 3}, LRTsRequired: TT}, 10, TechCategoryTerraforming),
 	Ability: 5,
 	HabType: TerraformHabTypeAll,
 }
-var TotalTerraform7 = TechTerraform{Tech: NewTech("Total Terraform ±7", NewCost(0, 0, 0, 70), TechRequirements{TechLevel: TechLevel{Biotechnology: 6}, LRTsRequired: TT}, 20, TechCategoryTerraforming),
+var TotalTerraform7 = TechTerraform{Tech: NewTech("Total Terraform ±7", NewCost(0, 0, 0, 100), TechRequirements{TechLevel: TechLevel{Biotechnology: 6}, LRTsRequired: TT}, 20, TechCategoryTerraforming),
 	Ability: 7,
 	HabType: TerraformHabTypeAll,
 }
-var TotalTerraform10 = TechTerraform{Tech: NewTech("Total Terraform ±10", NewCost(0, 0, 0, 70), TechRequirements{TechLevel: TechLevel{Biotechnology: 9}, LRTsRequired: TT}, 30, TechCategoryTerraforming),
+var TotalTerraform10 = TechTerraform{Tech: NewTech("Total Terraform ±10", NewCost(0, 0, 0, 100), TechRequirements{TechLevel: TechLevel{Biotechnology: 9}, LRTsRequired: TT}, 30, TechCategoryTerraforming),
 	Ability: 10,
 	HabType: TerraformHabTypeAll,
 }
-var TotalTerraform15 = TechTerraform{Tech: NewTech("Total Terraform ±15", NewCost(0, 0, 0, 70), TechRequirements{TechLevel: TechLevel{Biotechnology: 13}, LRTsRequired: TT}, 40, TechCategoryTerraforming),
+var TotalTerraform15 = TechTerraform{Tech: NewTech("Total Terraform ±15", NewCost(0, 0, 0, 100), TechRequirements{TechLevel: TechLevel{Biotechnology: 13}, LRTsRequired: TT}, 40, TechCategoryTerraforming),
 	Ability: 15,
 	HabType: TerraformHabTypeAll,
 }
-var TotalTerraform20 = TechTerraform{Tech: NewTech("Total Terraform ±20", NewCost(0, 0, 0, 70), TechRequirements{TechLevel: TechLevel{Biotechnology: 17}, LRTsRequired: TT}, 50, TechCategoryTerraforming),
+var TotalTerraform20 = TechTerraform{Tech: NewTech("Total Terraform ±20", NewCost(0, 0, 0, 100), TechRequirements{TechLevel: TechLevel{Biotechnology: 17}, LRTsRequired: TT}, 50, TechCategoryTerraforming),
 	Ability: 20,
 	HabType: TerraformHabTypeAll,
 }
-var TotalTerraform25 = TechTerraform{Tech: NewTech("Total Terraform ±25", NewCost(0, 0, 0, 70), TechRequirements{TechLevel: TechLevel{Biotechnology: 22}, LRTsRequired: TT}, 60, TechCategoryTerraforming),
+var TotalTerraform25 = TechTerraform{Tech: NewTech("Total Terraform ±25", NewCost(0, 0, 0, 100), TechRequirements{TechLevel: TechLevel{Biotechnology: 22}, LRTsRequired: TT}, 60, TechCategoryTerraforming),
 	Ability: 25,
 	HabType: TerraformHabTypeAll,
 }
-var TotalTerraform30 = TechTerraform{Tech: NewTech("Total Terraform ±30", NewCost(0, 0, 0, 70), TechRequirements{TechLevel: TechLevel{Biotechnology: 25}, LRTsRequired: TT}, 70, TechCategoryTerraforming),
+var TotalTerraform30 = TechTerraform{Tech: NewTech("Total Terraform ±30", NewCost(0, 0, 0, 100), TechRequirements{TechLevel: TechLevel{Biotechnology: 25}, LRTsRequired: TT}, 70, TechCategoryTerraforming),
 	Ability: 30,
 	HabType: TerraformHabTypeAll,
 }
@@ -961,7 +1014,7 @@ var Stargate100_250 = TechHullComponent{Tech: NewTech("Stargate 100-250", NewCos
 	HullSlotType: HullSlotTypeOrbital,
 }
 
-var StargateAny_300 = TechHullComponent{Tech: NewTech("Stargate any-300", NewCost(50, 20, 20, 250), TechRequirements{TechLevel: TechLevel{Propulsion: 6, Construction: 10}, PRTsRequired: []PRT{IT}, PRTsDenied: []PRT{HE}}, 10, TechCategoryOrbital),
+var StargateAny_300 = TechHullComponent{Tech: NewTech("Stargate any-300", NewCost(50, 20, 20, 250), TechRequirements{TechLevel: TechLevel{Propulsion: 6, Construction: 10}, PRTsRequired: []PRT{IT}, PRTsDenied: []PRT{HE}}, 30, TechCategoryOrbital),
 
 	Mass:         0,
 	SafeHullMass: InfiniteGate,
@@ -971,7 +1024,7 @@ var StargateAny_300 = TechHullComponent{Tech: NewTech("Stargate any-300", NewCos
 	HullSlotType: HullSlotTypeOrbital,
 }
 
-var Stargate150_600 = TechHullComponent{Tech: NewTech("Stargate 150-600", NewCost(50, 20, 20, 500), TechRequirements{TechLevel: TechLevel{Propulsion: 11, Construction: 7}, PRTsDenied: []PRT{HE}}, 20, TechCategoryOrbital),
+var Stargate150_600 = TechHullComponent{Tech: NewTech("Stargate 150-600", NewCost(50, 20, 20, 500), TechRequirements{TechLevel: TechLevel{Propulsion: 11, Construction: 7}, PRTsDenied: []PRT{HE}}, 10, TechCategoryOrbital),
 
 	Mass:         0,
 	SafeHullMass: 150,
@@ -980,7 +1033,7 @@ var Stargate150_600 = TechHullComponent{Tech: NewTech("Stargate 150-600", NewCos
 	MaxRange:     3000,
 	HullSlotType: HullSlotTypeOrbital,
 }
-var Stargate300_500 = TechHullComponent{Tech: NewTech("Stargate 300-500", NewCost(50, 20, 20, 600), TechRequirements{TechLevel: TechLevel{Propulsion: 9, Construction: 13}, PRTsDenied: []PRT{HE}}, 30, TechCategoryOrbital),
+var Stargate300_500 = TechHullComponent{Tech: NewTech("Stargate 300-500", NewCost(50, 20, 20, 600), TechRequirements{TechLevel: TechLevel{Propulsion: 9, Construction: 13}, PRTsDenied: []PRT{HE}}, 20, TechCategoryOrbital),
 
 	Mass:         0,
 	SafeHullMass: 300,
@@ -1100,7 +1153,7 @@ var RoboSuperMiner = TechHullComponent{Tech: NewTech("Robo-Super-Miner", NewCost
 	MiningRate:   27,
 	HullSlotType: HullSlotTypeMining,
 }
-var RoboUltraMiner = TechHullComponent{Tech: NewTech("Robo-Ultra-Miner", NewCost(14, 0, 4, 100), TechRequirements{TechLevel: TechLevel{Construction: 15, Electronics: 8}, LRTsRequired: ARM, LRTsDenied: OBRM}, 60, TechCategoryMineRobot),
+var RoboUltraMiner = TechHullComponent{Tech: NewTech("Robo-Ultra-Miner", NewCost(14, 0, 4, 50), TechRequirements{TechLevel: TechLevel{Construction: 15, Electronics: 8}, LRTsRequired: ARM, LRTsDenied: OBRM}, 60, TechCategoryMineRobot),
 
 	Mass:         80,
 	MiningRate:   25,
@@ -1586,7 +1639,7 @@ var ColonizationModule = TechHullComponent{Tech: NewTech("Colonization Module", 
 	ColonizationModule: true,
 	HullSlotType:       HullSlotTypeMechanical,
 }
-var OrbitalConstructionModule = TechHullComponent{Tech: NewTech("Orbital Construction Module", NewCost(20, 15, 15, 20), TechRequirements{TechLevel: TechLevel{}, PRTsRequired: []PRT{AR}}, 10, TechCategoryMechanical),
+var OrbitalConstructionModule = TechHullComponent{Tech: NewTech("Orbital Construction Module", NewCost(20, 15, 15, 20), TechRequirements{TechLevel: TechLevel{}, PRTsRequired: []PRT{AR}, HullsAllowed: []string{ColonyShip.Name}}, 10, TechCategoryMechanical),
 
 	Mass:                      50,
 	MinKillRate:               2000,

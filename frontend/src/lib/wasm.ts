@@ -1,7 +1,16 @@
 import type { Race } from '$lib/types/Race';
+import { type Planet } from './types/Planet';
+import type { Player } from './types/Player';
+import type { Rules } from './types/Rules';
+import type { ShipDesign } from './types/ShipDesign';
 
 export type CS = {
-	calculateRacePoints: (race: Race) => Promise<number>;
+	enableDebug: () => void;
+	setRules: (rules: Rules) => void;
+	setPlayer: (player: Player) => void;
+	setDesigns: (designs: ShipDesign[]) => void;
+	calculateRacePoints: (race: Race) => number;
+	estimateProduction: (planet: Planet) => Planet;
 };
 
 // load a wasm module and returns a wrapper for executing functions
@@ -43,19 +52,39 @@ export async function loadWasm(): Promise<CS> {
 	}
 
 	// all done, ready to execute!
-	return new CSWasmWrapper(bridge);
-}
+	const cs = new CSWasmWrapper(bridge);
 
-// our wasm calls actually take json strings as params for easier serializing between go/typescript
-// this type represents the actual cs.wasm calls
-type CSWasm = {
-	calculateRacePoints: (raceJson: string) => Promise<number>;
-};
+	if (PKG.version == '0.0.0-develop') {
+		cs.enableDebug();
+	}
+
+	return cs;
+}
 
 // create a wrapper to serialize requests and responses to/from JSON
 class CSWasmWrapper implements CS {
-	constructor(private wasm: CSWasm) {}
-	calculateRacePoints(race: Race): Promise<number> {
-		return this.wasm.calculateRacePoints(JSON.stringify(race));
+	constructor(private wasm: CS) {}
+
+	async enableDebug() {
+		this.wasm.enableDebug();
+	}
+
+	setRules(rules: Rules) {
+		this.wasm.setRules(rules);
+	}
+
+	setPlayer(player: Player) {
+		this.wasm.setPlayer(player);
+	}
+
+	setDesigns(designs: ShipDesign[]) {
+		this.wasm.setDesigns(designs);
+	}
+
+	estimateProduction(planet: Planet): Planet {
+		return this.wasm.estimateProduction(planet);
+	}
+	calculateRacePoints(race: Race): number {
+		return this.wasm.calculateRacePoints(race);
 	}
 }

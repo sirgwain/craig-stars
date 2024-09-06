@@ -142,8 +142,9 @@ func (ug *universeGenerator) generatePlanets() error {
 		if ug.MaxMinerals {
 			planet.MineralConcentration = Mineral{100, 100, 100}
 		}
-		if !ug.RandomEvents {
-			planet.RandomArtifact = false
+		if ug.RandomEvents && rules.RandomEventChances[RandomEventAncientArtifact] >= rules.random.Float64() {
+			// check if this planet has a random artifact
+			planet.RandomArtifact = true
 		}
 
 		ug.universe.Planets[i] = planet
@@ -297,32 +298,18 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 		fleetNum := 1
 		var homeworld *Planet
 
-		for startingPlanetIndex, startingPlanet := range player.Race.Spec.StartingPlanets {
+		for _, startingPlanet := range player.Race.Spec.StartingPlanets {
+
+			if !startingPlanet.Homeworld && homeworld == nil {
+				return fmt.Errorf("first planet in startingPlanets not homeworld, exiting")
+			}
+
 			// find a playerPlanet that is a min distance from other homeworlds
 			var playerPlanet *Planet
 			farthestDistance := float64(math.MinInt)
 			closestDistance := math.MaxFloat64
-			if startingPlanetIndex > 0 {
 
-				// extra planets are close to the homeworld
-				for _, planet := range ug.universe.Planets {
-					if planet.Owned() {
-						continue
-					}
-
-					// if we can't find a planet within tolerances, pick the closest one
-					distToHomeworld := planet.Position.DistanceSquaredTo(homeworld.Position)
-					if distToHomeworld <= closestDistance {
-						closestDistance = distToHomeworld
-						playerPlanet = planet
-					}
-					if distToHomeworld <= float64(rules.MaxExtraWorldDistance*rules.MaxExtraWorldDistance) && distToHomeworld >= float64(rules.MinExtraWorldDistance*rules.MinExtraWorldDistance) {
-						playerPlanet = planet
-						break
-					}
-				}
-
-			} else {
+			if startingPlanet.Homeworld && homeworld == nil { // planet is homeworld & we have no other
 				// homeworld should be distant from other players
 				for _, planet := range ug.universe.Planets {
 					if planet.Owned() {
@@ -340,8 +327,26 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 						break
 					}
 				}
-
 				homeworld = playerPlanet
+
+			} else {
+				// extra planets are close to the homeworld
+				for _, planet := range ug.universe.Planets {
+					if planet.Owned() {
+						continue
+					}
+
+					// if we can't find a planet within tolerances, pick the closest one
+					distToHomeworld := planet.Position.DistanceSquaredTo(homeworld.Position)
+					if distToHomeworld <= closestDistance {
+						closestDistance = distToHomeworld
+						playerPlanet = planet
+					}
+					if distToHomeworld <= float64(rules.MaxExtraWorldDistance*rules.MaxExtraWorldDistance) && distToHomeworld >= float64(rules.MinExtraWorldDistance*rules.MinExtraWorldDistance) {
+						playerPlanet = planet
+						break
+					}
+				}
 			}
 
 			if playerPlanet == nil {
@@ -350,30 +355,36 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 
 			ownedPlanets = append(ownedPlanets, playerPlanet)
 
-			// our starting planet starts with default fleets
-			surfaceMinerals := homeworldSurfaceMinerals
-			if startingPlanetIndex != 0 {
-				surfaceMinerals = extraWorldSurfaceMinerals
+			var surface Mineral
+			if startingPlanet.Homeworld {
+				surface = homeworldSurfaceMinerals
+			} else {
+				surface = extraWorldSurfaceMinerals
 			}
 
 			// make a new starter world
-			playerPlanet.initStartingWorld(player, &ug.Rules, startingPlanet, homeworldMinConc, surfaceMinerals)
+			playerPlanet.initStartingWorld(player, &ug.Rules, startingPlanet, homeworldMinConc, surface)
+			if !startingPlanet.Homeworld && !ug.MaxMinerals {
+				// starting planets start with different mincons
+				playerPlanet.MineralConcentration = randomizeMinerals(rules, playerPlanet.Hab.Rad)
+			}
 
-			// add a starbase to this homewrold
+			// add a starbase to this planet
 			if startingPlanet.StarbaseDesignName != "" {
 				if err := ug.buildStarbase(player, playerPlanet, startingPlanet.StarbaseDesignName); err != nil {
 					return err
 				}
 			}
 
-			// tell theplayer about the homeworld
-			messager.planetHomeworld(player, playerPlanet)
+			// tell the player about their homeworld
+			if startingPlanet.Homeworld {
+				messager.planetHomeworld(player, playerPlanet)
+			}
 
 			// generate some fleets on the homeworld
 			if err := ug.generatePlayerFleets(player, playerPlanet, &fleetNum, startingPlanet.StartingFleets); err != nil {
 				return err
 			}
-
 		}
 	}
 

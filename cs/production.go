@@ -426,12 +426,14 @@ func (p *production) getNumBuilt(item ProductionQueueItem, cost, availableToSpen
 	availableToSpend = availableToSpend.Add(item.Allocated)
 	item.Allocated = Cost{}
 
-	if (cost != Cost{}) {
-		// figure out how many we can build
-		// and make sure we only build up to the quantity, and we don't build more than the planet supports
-		numBuilt = MaxInt(0, MinInt(item.Quantity, maxBuildable, availableToSpend.NumBuildable(cost)))
-		spent = cost.MultiplyInt(numBuilt)
+	if cost == (Cost{}) {
+		return MinInt(item.Quantity, maxBuildable), Cost{}
 	}
+
+	// figure out how many we can build
+	// and make sure we only build up to the quantity, and we don't build more than the planet supports
+	numBuilt = MaxInt(0, MinInt(item.Quantity, maxBuildable, availableToSpend.NumBuildable(cost)))
+	spent = cost.MultiplyInt(numBuilt)
 
 	return numBuilt, spent
 }

@@ -35,6 +35,11 @@ export enum MapObjectType {
 	PositionWaypoint = 'PositionWaypoint'
 }
 
+/**
+ * Get default name for a mapObject or fleet
+ * @param mo The MapObject or fleet to check
+ * @returns String containing name of object/fleet
+ */
 export function getMapObjectName(mo: MapObject | Fleet | undefined): string {
 	if (!mo) {
 		return '';
@@ -43,7 +48,13 @@ export function getMapObjectName(mo: MapObject | Fleet | undefined): string {
 	// for fleets, we want the name to indicate if it has ships
 	if ('tokens' in mo) {
 		const numShips = getTokenCount(mo);
-		return `${mo.name} ${numShips > 1 ? `(${numShips})` : ''}${hasDestination(mo) ? '*' : ''}`;
+		const numTokens = mo.tokens?.length;
+		let name = mo.name;
+		if ((numTokens ?? 0) > 1) {
+			const fleetNumIndex = name.lastIndexOf(' #');
+			name = name.substring(0, fleetNumIndex).concat('+', name.slice(fleetNumIndex));
+		}
+		return `${name}${numShips > 1 ? ` (${numShips})` : ''}${hasDestination(mo) ? '*' : ''}`;
 	}
 	return mo.name;
 }

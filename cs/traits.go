@@ -71,7 +71,6 @@ type LRTSpec struct {
 	ScanRangeFactorOffset         float64         `json:"scanRangeFactorOffset,omitempty"`
 	FuelEfficiencyOffset          float64         `json:"fuelEfficiencyOffset,omitempty"`
 	MaxPopulationOffset           float64         `json:"maxPopulationOffset,omitempty"`
-	TerraformCostOffset           Cost            `json:"terraformCostOffset,omitempty"`
 	MineralAlchemyCostOffset      int             `json:"mineralAlchemyCostOffset,omitempty"`
 	ScrapMineralOffset            float64         `json:"scrapMineralOffset,omitempty"`
 	ScrapMineralOffsetStarbase    float64         `json:"scrapMineralOffsetStarbase,omitempty"`
@@ -96,6 +95,7 @@ type TechCostOffset struct {
 	Bomb             float64 `json:"bomb,omitempty"`
 	PlanetaryDefense float64 `json:"planetaryDefense,omitempty"`
 	Stargate         float64 `json:"stargate,omitempty"`
+	Terraforming     float64 `json:"terraforming,omitempty"`
 }
 
 type StartingPlanet struct {
@@ -141,8 +141,7 @@ const (
 
 func defaultPRTSpec() PRTSpec {
 	return PRTSpec{
-		StartingPlanets: []StartingPlanet{{Population: 25000, StarbaseHull: SpaceStation.Name, StarbaseDesignName: "Starbase", Homeworld: true}},
-
+		StartingPlanets:                  []StartingPlanet{{Population: 25000, StarbaseHull: SpaceStation.Name, StarbaseDesignName: "Starbase", Homeworld: true}},
 		PointCost:                        66,
 		MineralsPerSingleMineralPacket:   100,
 		MineralsPerMixedMineralPacket:    40,
@@ -472,7 +471,9 @@ func ifeSpec() LRTSpec {
 
 func ttSpec() LRTSpec {
 	return LRTSpec{
-		TerraformCostOffset: Cost{Resources: -30},
+		TechCostOffset: TechCostOffset{
+			Terraforming: -.3, // terraforming costs 30% less
+		},
 	}
 }
 
@@ -503,6 +504,7 @@ func grSpec() LRTSpec {
 func urSpec() LRTSpec {
 	return LRTSpec{
 		// UR gives us 45%/90% of scrapped minerals, versus 33%/80% for races without UR
+		// TODO: Rework scrapping in non-jank way
 		ScrapMineralOffset:           .45 - (1.0 / 3),
 		ScrapMineralOffsetStarbase:   .9 - (1.0 / 3),
 		ScrapResourcesOffset:         .35,

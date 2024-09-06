@@ -9,8 +9,8 @@ BUILDTIME=$$(date +'%y.%m.%d %H:%M:%S')
 build: build_frontend tidy vendor generate build_server
 
 build_frontend:
-	cd frontend; npm install
-	cd frontend; npm run build
+	cd frontend && npm install
+	cd frontend && npm run build
 
 build_server:
 	mkdir -p dist
@@ -40,7 +40,7 @@ generate:
 
 test:
 	go test ./...
-	cd frontend; npm run test
+	cd frontend && npm run test
 
 clean:
 	go clean
@@ -57,7 +57,7 @@ vendor:
 	go mod vendor
 
 dev_frontend:
-	cd frontend; npm run dev
+	cd frontend && npm run dev
 
 dev_backend:
 	air

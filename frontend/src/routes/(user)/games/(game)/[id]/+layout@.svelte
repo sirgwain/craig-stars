@@ -16,6 +16,7 @@
 	import { get } from 'svelte/store';
 	import GameLayout from './GameLayout.svelte';
 	import { goto } from '$app/navigation';
+	import { loadWasm } from '$lib/wasm';
 
 	let id = parseInt($page.params.id);
 
@@ -31,9 +32,11 @@
 		try {
 			setLoadingModalText('Loading game...');
 
+			
 			// on mount, load the game and setup the context used by the rest of the children
 			const loaded = await GameService.loadFullGame(id);
-			context = createGameContext(loaded);
+			const cs = await loadWasm()
+			context = createGameContext(cs, loaded);
 
 			hotkeys.setScope('root');
 		} catch (e) {

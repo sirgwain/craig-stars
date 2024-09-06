@@ -1,4 +1,5 @@
 //go:build wasi || wasm
+//go:generate go run github.com/sirgwain/craig-stars/wasm/generator ../../cs ./converter.go
 // code heavily inspired by golang-wasm
 package wasm
 

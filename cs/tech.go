@@ -423,6 +423,8 @@ func (t *Tech) GetPlayerCost(techLevels TechLevel, spec MiniaturizationSpec, cos
 		if strings.Contains(t.Name, "Stargate") {
 			cost = cost.MultiplyFloat64(1 + costOffset.Stargate)
 		}
+	case TechCategoryTerraforming:
+		cost = cost.MultiplyFloat64(1 + costOffset.Terraforming)
 	}
 
 	return Cost{
