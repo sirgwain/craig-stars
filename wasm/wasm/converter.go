@@ -871,7 +871,6 @@ func GetLRTSpec(o js.Value) cs.LRTSpec {
 	obj.ScanRangeFactorOffset = getFloat[float64](o.Get("scanRangeFactorOffset"))
 	obj.FuelEfficiencyOffset = getFloat[float64](o.Get("fuelEfficiencyOffset"))
 	obj.MaxPopulationOffset = getFloat[float64](o.Get("maxPopulationOffset"))
-	obj.TerraformCostOffset = GetCost(o.Get("terraformCostOffset"))
 	obj.MineralAlchemyCostOffset = getInt[int](o.Get("mineralAlchemyCostOffset"))
 	obj.ScrapMineralOffset = getFloat[float64](o.Get("scrapMineralOffset"))
 	obj.ScrapMineralOffsetStarbase = getFloat[float64](o.Get("scrapMineralOffsetStarbase"))
@@ -905,8 +904,6 @@ func SetLRTSpec(o js.Value, obj *cs.LRTSpec) {
 	o.Set("scanRangeFactorOffset", obj.ScanRangeFactorOffset)
 	o.Set("fuelEfficiencyOffset", obj.FuelEfficiencyOffset)
 	o.Set("maxPopulationOffset", obj.MaxPopulationOffset)
-	o.Set("terraformCostOffset", map[string]any{})
-	SetCost(o.Get("terraformCostOffset"), &obj.TerraformCostOffset)
 	o.Set("mineralAlchemyCostOffset", obj.MineralAlchemyCostOffset)
 	o.Set("scrapMineralOffset", obj.ScrapMineralOffset)
 	o.Set("scrapMineralOffsetStarbase", obj.ScrapMineralOffsetStarbase)
@@ -2323,7 +2320,6 @@ func GetRaceSpec(o js.Value) cs.RaceSpec {
 	obj.CanBuildDefenses = getBool(o.Get("canBuildDefenses"))
 	obj.LivesOnStarbases = getBool(o.Get("livesOnStarbases"))
 	obj.FuelEfficiencyOffset = getFloat[float64](o.Get("fuelEfficiencyOffset"))
-	obj.TerraformCostOffset = GetCost(o.Get("terraformCostOffset"))
 	obj.MineralAlchemyCostOffset = getInt[int](o.Get("mineralAlchemyCostOffset"))
 	obj.ScrapMineralOffset = getFloat[float64](o.Get("scrapMineralOffset"))
 	obj.ScrapMineralOffsetStarbase = getFloat[float64](o.Get("scrapMineralOffsetStarbase"))
@@ -2409,8 +2405,6 @@ func SetRaceSpec(o js.Value, obj *cs.RaceSpec) {
 	o.Set("canBuildDefenses", obj.CanBuildDefenses)
 	o.Set("livesOnStarbases", obj.LivesOnStarbases)
 	o.Set("fuelEfficiencyOffset", obj.FuelEfficiencyOffset)
-	o.Set("terraformCostOffset", map[string]any{})
-	SetCost(o.Get("terraformCostOffset"), &obj.TerraformCostOffset)
 	o.Set("mineralAlchemyCostOffset", obj.MineralAlchemyCostOffset)
 	o.Set("scrapMineralOffset", obj.ScrapMineralOffset)
 	o.Set("scrapMineralOffsetStarbase", obj.ScrapMineralOffsetStarbase)
@@ -3062,6 +3056,7 @@ func GetStartingPlanet(o js.Value) cs.StartingPlanet {
 	obj.StarbaseDesignName = string(getString(o.Get("starbaseDesignName")))
 	obj.StarbaseHull = string(getString(o.Get("starbaseHull")))
 	obj.StartingFleets = GetSlice(o.Get("startingFleets"), GetStartingFleet)
+	obj.Homeworld = getBool(o.Get("homeworld"))
 	return obj
 }
 func SetStartingPlanet(o js.Value, obj *cs.StartingPlanet) {
@@ -3073,6 +3068,7 @@ func SetStartingPlanet(o js.Value, obj *cs.StartingPlanet) {
 	o.Set("starbaseHull", obj.StarbaseHull)
 	o.Set("startingFleets", []any{})
 	SetSlice(o.Get("startingFleets"), obj.StartingFleets, SetStartingFleet)
+	o.Set("homeworld", obj.Homeworld)
 }
 
 func GetStealsResearch(o js.Value) cs.StealsResearch {
@@ -3149,6 +3145,7 @@ func GetTechCostOffset(o js.Value) cs.TechCostOffset {
 	obj.Torpedo = getFloat[float64](o.Get("torpedo"))
 	obj.Bomb = getFloat[float64](o.Get("bomb"))
 	obj.PlanetaryDefense = getFloat[float64](o.Get("planetaryDefense"))
+	obj.Terraforming = getFloat[float64](o.Get("terraforming"))
 	return obj
 }
 func SetTechCostOffset(o js.Value, obj *cs.TechCostOffset) {
@@ -3157,6 +3154,7 @@ func SetTechCostOffset(o js.Value, obj *cs.TechCostOffset) {
 	o.Set("torpedo", obj.Torpedo)
 	o.Set("bomb", obj.Bomb)
 	o.Set("planetaryDefense", obj.PlanetaryDefense)
+	o.Set("terraforming", obj.Terraforming)
 }
 
 func GetTechDefense(o js.Value) cs.TechDefense {
