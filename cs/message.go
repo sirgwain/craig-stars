@@ -367,7 +367,19 @@ func (m *messageClient) fleetExceededSafeSpeed(player *Player, fleet *Fleet, exp
 }
 
 func (m *messageClient) fleetGeneratedFuel(player *Player, fleet *Fleet, fuelGenerated int) {
-	text := fmt.Sprintf("%s's ram scoops have produced %dmg of fuel from interstellar hydrogen.", fleet.Name, fuelGenerated)
+	hasRamScoop := false
+	for _, token := range fleet.Tokens {
+		if token.design.Spec.Engine.FreeSpeed > 1 {
+			hasRamScoop = true
+			break
+		}
+	}
+	var text string
+	if hasRamScoop {
+		text = fmt.Sprintf("%s's ramscoops have produced %dmg of fuel from interstellar hydrogen.", fleet.Name, fuelGenerated)
+	} else {
+		text = fmt.Sprintf("%s's engines have produced %dmg of fuel from interstellar hydrogen.", fleet.Name, fuelGenerated)
+	}
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetGeneratedFuel, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum}})
 }
 
@@ -824,7 +836,7 @@ func (m *messageClient) planetEmptied(player *Player, planet *Planet) {
 }
 
 func (m *messageClient) planetInstaform(player *Player, planet *Planet, terraformAmount Hab) {
-	text := fmt.Sprintf("Your race has instantly terraformed %s up to optimal conditions.", planet.Name)
+	text := fmt.Sprintf("Your race has instantly terraformed %s up to optimal conditions. Its value is now %d", planet.Name, planet.Spec.Habitability) + "%."
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetInstaform, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetPlanet, TargetNum: planet.Num}})
 }
 
@@ -836,19 +848,19 @@ func (m *messageClient) planetInvaded(player *Player, planet *Planet, fleet *Fle
 	if player.Num == fleet.PlayerNum {
 		if successful {
 			// we invaded and won
-			text = p.Sprintf("Your troops have successfully wrested planet %s from %s control killing off all their colonists.", fleet.Name, planet.Name, planetOwner)
+			text = p.Sprintf("Your troops beaming down from %s have successfully wrested %s from %s control, killing off all their colonists with only %d causalties.", fleet.Name, planet.Name, planetOwner, attackersKilled)
 		} else {
 			// we invaded and lost
-			text = p.Sprintf("Your troops tried to invade %s, but all of your colonists were massacred by the %s. Your valiant fighters managed to kill %d of their colonists in return.", fleet.Name, planet.Name, planetOwner, defendersKilled)
+			text = p.Sprintf("Your troops beaming down from %s tried to invade %s, but all of them were massacred by the %s. Your valiant fighters managed to kill %d of their colonists in return.", fleet.Name, planet.Name, planetOwner, defendersKilled)
 		}
 		player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetInvadedPlanet, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetPlanet, TargetNum: planet.Num}})
 	} else {
 		if successful {
 			// we were invaded, and lost
-			text = p.Sprintf("%s %s has successfully invaded %s, killing off all of your colonists.", fleetOwner, fleet.Name, planet.Name)
+			text = p.Sprintf("%s %s has successfully invaded %s and wrested it from your control. Your colonists managed to defeat %d of their invaders before being overrun.", fleetOwner, fleet.Name, planet.Name, attackersKilled)
 		} else {
 			// we were invaded, and lost
-			text = p.Sprintf("%s %s tried to invade %s, but your colonists were able to fend them off. You lost %d colonists in the process.", fleetOwner, fleet.Name, planet.Name, defendersKilled)
+			text = p.Sprintf("%s %s tried to invade %s, but your troops were able to fend them off. You lost %d colonists in the process.", fleetOwner, fleet.Name, planet.Name, defendersKilled)
 		}
 		player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetInvaded, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetPlanet, TargetNum: planet.Num}})
 	}
