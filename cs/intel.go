@@ -114,7 +114,6 @@ type ShipDesignIntel struct {
 
 type FleetIntel struct {
 	MapObjectIntel
-	PlanetIntelID     int64       `json:"-,omitempty"` // for starbase fleets that are owned by a planet
 	BaseName          string      `json:"baseName,omitempty"`
 	Heading           Vector      `json:"heading,omitempty"`
 	OrbitingPlanetNum int         `json:"orbitingPlanetNum,omitempty"`

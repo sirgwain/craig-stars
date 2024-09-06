@@ -2,6 +2,8 @@ package cs
 
 import (
 	"testing"
+
+	"github.com/sirgwain/craig-stars/test"
 )
 
 func Test_getCloakPercentForCloakUnits(t *testing.T) {
@@ -41,11 +43,12 @@ func Test_getCloakFactor(t *testing.T) {
 	}{
 		{"none", args{cloakPercent: 0, cloakReductionFactor: 1}, 1},
 		{"55% cloak", args{cloakPercent: 55, cloakReductionFactor: 1}, .55},
-		{"55% cloak, one tachyon", args{cloakPercent: 55, cloakReductionFactor: .95}, .5225},
+		{"75% cloak wormhole", args{cloakPercent: 75, cloakReductionFactor: 1}, .75},
+		{"75% cloak wormhole, one tachyon", args{cloakPercent: 75, cloakReductionFactor: .95}, .7125},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := getCloakFactor(tt.args.cloakPercent, tt.args.cloakReductionFactor); got != tt.want {
+			if got := getCloakFactor(tt.args.cloakPercent, tt.args.cloakReductionFactor); !test.WithinTolerance(got, tt.want, .0001) {
 				t.Errorf("getCloakFactor() = %v, want %v", got, tt.want)
 			}
 		})

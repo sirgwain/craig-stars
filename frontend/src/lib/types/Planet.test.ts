@@ -6,7 +6,6 @@ import { QueueItemTypes } from './QueueItemType';
 import { humanoid } from './Race';
 import { defaultRules } from './Rules';
 import type { TechStore } from './Tech';
-import { NeverBuilt } from '$lib/services/Producer';
 
 describe('Planet test', () => {
 	const techStore = techjson as TechStore;

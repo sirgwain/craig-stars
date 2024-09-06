@@ -11,11 +11,11 @@
 
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { NeverBuilt } from '$lib/services/Producer';
 	import type { ProductionQueueItem } from '$lib/types/Production';
 	import { getFullName, getShortName, isAuto } from '$lib/types/QueueItemType';
 	import { createEventDispatcher } from 'svelte';
 	import { onShipDesignTooltip } from './tooltips/ShipDesignTooltip.svelte';
+	import { NeverBuilt } from '$lib/types/Planet';
 
 	const dispatch = createEventDispatcher<QueueItemClickedEvent>();
 	const { universe } = getGameContext();

@@ -1,24 +1,24 @@
+import { roundToNearest100 } from '$lib/services/Math';
+import { getMinTerraformAmount, getTerraformAmount } from '$lib/services/Terraformer';
 import type { DesignFinder } from '$lib/services/Universe';
+import type { CS } from '$lib/wasm';
 import { cloneDeep, sortBy, startCase } from 'lodash-es';
 import { addMineral, type Cargo } from './Cargo';
-import { divide, minus, minZero, type Cost } from './Cost';
-import { absSum, getHabValue, getLargest, withHabValue, type Hab, add } from './Hab';
-import { Infinite, MapObjectType, None, type MapObject } from './MapObject';
-import { totalMinerals, type Mineral, addInt } from './Mineral';
-import type { ShipDesign } from './ShipDesign';
-import { UnlimitedSpaceDock, type TechStore, type Tech } from './Tech';
-import type { Vector } from './Vector';
-import { getPlanetHabitability, type Race } from './Race';
-import { roundToNearest100 } from '$lib/services/Math';
-import type { Rules } from './Rules';
-import type { Player } from './Player';
 import type { Fleet } from './Fleet';
-import { type QueueItemType, QueueItemTypes } from './QueueItemType';
+import { absSum, add, getHabValue, getLargest, withHabValue, type Hab } from './Hab';
+import { MapObjectType, None, type MapObject } from './MapObject';
+import { addInt, totalMinerals, type Mineral } from './Mineral';
+import type { Player } from './Player';
 import type { ProductionQueueItem } from './Production';
-import { getMinTerraformAmount, getTerraformAmount } from '$lib/services/Terraformer';
-import { NeverBuilt, getProductionEstimates } from '$lib/services/Producer';
+import { QueueItemTypes, type QueueItemType } from './QueueItemType';
+import { getPlanetHabitability, type Race } from './Race';
+import type { Rules } from './Rules';
+import type { ShipDesign } from './ShipDesign';
+import { UnlimitedSpaceDock, type TechStore } from './Tech';
+import type { Vector } from './Vector';
 
 export const Unexplored = -1;
+export const NeverBuilt = -1;
 
 export type Planet = {
 	hab?: Hab;
@@ -33,6 +33,7 @@ export type Planet = {
 	homeworld?: boolean;
 	scanner?: boolean;
 	reportAge: number;
+	starbase?: Fleet;
 
 	spec: PlanetSpec;
 } & MapObject &
@@ -271,23 +272,20 @@ export class CommandedPlanet implements Planet {
 	}
 
 	// update the production queue estimates for the planet's production queue
-	public updateProductionQueueEstimates(
-		rules: Rules,
-		techStore: TechStore,
-		player: Player,
-		designFinder: DesignFinder
-	): ProductionQueueItem[] {
-		const itemEstimates = getProductionEstimates(rules, techStore, player, this, designFinder);
+	public updateProductionQueueEstimates(cs: CS): ProductionQueueItem[] {
+		const planetWithEstimates = cs.estimateProduction(this);
+		if (planetWithEstimates.productionQueue?.length !== this.productionQueue.length) {
+			throw Error("failed to estimate production queue. items don't match up");
+		}
 
 		for (let i = 0; i < this.productionQueue.length; i++) {
-			const estimate = itemEstimates[i];
+			const estimate = planetWithEstimates.productionQueue[i];
 			Object.assign(this.productionQueue[i], {
 				yearsToBuildOne: estimate.yearsToBuildOne,
 				yearsToBuildAll: estimate.yearsToBuildAll,
 				yearsToSkipAuto: estimate.yearsToSkipAuto
 			});
 		}
-
 		return this.productionQueue;
 	}
 
@@ -555,25 +553,13 @@ export class CommandedPlanet implements Planet {
 	}
 
 	// get the estimated years to build one item
-	public getYearsToBuildOne(
-		item: ProductionQueueItem,
-		rules: Rules,
-		techStore: TechStore,
-		player: Player,
-		designFinder: DesignFinder
-	): number {
+	public getYearsToBuildOne(item: ProductionQueueItem, cs: CS): number {
 		const planetCopy = cloneDeep(this);
 		planetCopy.productionQueue = [item];
-
-		const itemEstimates = getProductionEstimates(
-			rules,
-			techStore,
-			player,
-			planetCopy,
-			designFinder
-		);
-
-		return itemEstimates[0].yearsToBuildOne ?? NeverBuilt;
+		const planetWithEstimates = cs.estimateProduction(planetCopy);
+		return planetWithEstimates.productionQueue?.length == 1
+			? planetWithEstimates.productionQueue[0].yearsToBuildOne ?? NeverBuilt
+			: NeverBuilt;
 	}
 }
 
