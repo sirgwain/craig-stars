@@ -20,11 +20,7 @@
 		}
 	};
 
-	$: {
-		planet
-			.updateProductionQueueEstimates(cs, $player, $universe.getMyDesigns())
-			.then((p) => (queueItems = planet.productionQueue));
-	}
+	$: queueItems = planet.updateProductionQueueEstimates(cs);
 </script>
 
 <CommandTile title="Production">

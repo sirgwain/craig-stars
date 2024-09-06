@@ -89,11 +89,11 @@
 		updateQueueEstimates();
 	};
 
-	async function updateQueueEstimates() {
+	function updateQueueEstimates() {
 		// get updated production queue estimates
 		updatedPlanet.productionQueue = [...queueItems];
 		updatedPlanet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
-		const planetWithEstimates = await cs.estimateProduction(updatedPlanet);
+		const planetWithEstimates = cs.estimateProduction(updatedPlanet);
 		if (!planetWithEstimates.productionQueue) {
 			addError(new CSError(undefined, 'unable to estimate production', 0));
 			return;
@@ -117,73 +117,39 @@
 			selectedQueueItem?.quantity
 		);
 
-		const availableItemsPromises = [];
 		for (let i = 0; i < availableItems.length; i++) {
 			const item = availableItems[i];
 			if (!item.yearsToBuildOne) {
-				availableItemsPromises.push(
-					(async function () {
-						item.yearsToBuildOne = await updatedPlanet.getYearsToBuildOne(
-							item,
-							cs,
-							$player,
-							$universe.getMyDesigns()
-						);
-					})()
-				);
+				item.yearsToBuildOne = updatedPlanet.getYearsToBuildOne(item, cs);
 			}
 			if (selectedAvailableItem == item) {
 				selectedAvailableItem = item;
 			}
 		}
-		Promise.all(availableItemsPromises).then(() => (availableItems = [...availableItems]));
+		availableItems = [...availableItems];
 
-		const availableShipDesignsPromises = [];
 		for (let i = 0; i < availableShipDesigns.length; i++) {
 			const item = availableShipDesigns[i];
 			if (!item.yearsToBuildOne) {
-				availableShipDesignsPromises.push(
-					(async function () {
-						item.yearsToBuildOne = await updatedPlanet.getYearsToBuildOne(
-							item,
-							cs,
-							$player,
-							$universe.getMyDesigns()
-						);
-					})()
-				);
+				item.yearsToBuildOne = updatedPlanet.getYearsToBuildOne(item, cs);
 			}
 			if (selectedAvailableItem == item) {
 				selectedAvailableItem = item;
 			}
 		}
-		Promise.all(availableShipDesignsPromises).then(
-			() => (availableShipDesigns = [...availableShipDesigns])
-		);
+		availableShipDesigns = [...availableShipDesigns];
 
-		const availableStarbaseDesignsPromises = [];
 		for (let i = 0; i < availableStarbaseDesigns.length; i++) {
 			const item = availableStarbaseDesigns[i];
 			if (!item.yearsToBuildOne) {
-				availableStarbaseDesignsPromises.push(
-					(async function () {
-						item.yearsToBuildOne = await updatedPlanet.getYearsToBuildOne(
-							item,
-							cs,
-							$player,
-							$universe.getMyDesigns()
-						);
-					})()
-				);
+				item.yearsToBuildOne = updatedPlanet.getYearsToBuildOne(item, cs);
 			}
 
 			if (selectedAvailableItem == item) {
 				selectedAvailableItem = item;
 			}
 		}
-		Promise.all(availableStarbaseDesignsPromises).then(
-			() => (availableStarbaseDesigns = [...availableStarbaseDesigns])
-		);
+		availableStarbaseDesigns = [...availableStarbaseDesigns];
 	}
 
 	function getPercentComplete(item: ProductionQueueItem): number {

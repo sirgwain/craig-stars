@@ -101,7 +101,6 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 		this.wormholes = data.wormholes ?? [];
 		this.mysteryTraders = data.mysteryTraders ?? [];
 
-		this.starbases.forEach((sb) => (this.planets[(sb.planetNum ?? 1) - 1].starbase = sb));
 		this.resetMapObjectsByPosition();
 		return this;
 	}

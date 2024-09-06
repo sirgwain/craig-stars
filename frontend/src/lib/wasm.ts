@@ -1,5 +1,4 @@
 import type { Race } from '$lib/types/Race';
-import type { Fleet } from './types/Fleet';
 import { type Planet } from './types/Planet';
 import type { Player } from './types/Player';
 import type { Rules } from './types/Rules';
@@ -11,7 +10,7 @@ export type CS = {
 	setPlayer: (player: Player) => void;
 	setDesigns: (designs: ShipDesign[]) => void;
 	calculateRacePoints: (race: Race) => number;
-	estimateProduction: (planet: Planet) => Promise<Planet>;
+	estimateProduction: (planet: Planet) => Planet;
 };
 
 // load a wasm module and returns a wrapper for executing functions
@@ -62,20 +61,9 @@ export async function loadWasm(): Promise<CS> {
 	return cs;
 }
 
-// our wasm calls actually take json strings as params for easier serializing between go/typescript
-// this type represents the actual cs.wasm calls
-type CSWasm = {
-	calculateRacePoints: (race: Race) => number;
-	enableDebug: () => void;
-	setRules: (rules: Rules) => void;
-	setPlayer: (player: Player) => void;
-	setDesigns: (designs: ShipDesign[]) => void;
-	estimateProduction: (planet: Planet) => Promise<Planet>;
-};
-
 // create a wrapper to serialize requests and responses to/from JSON
 class CSWasmWrapper implements CS {
-	constructor(private wasm: CSWasm) {}
+	constructor(private wasm: CS) {}
 
 	async enableDebug() {
 		this.wasm.enableDebug();
@@ -93,8 +81,8 @@ class CSWasmWrapper implements CS {
 		this.wasm.setDesigns(designs);
 	}
 
-	async estimateProduction(planet: Planet): Promise<Planet> {
-		return await this.wasm.estimateProduction(planet);
+	estimateProduction(planet: Planet): Planet {
+		return this.wasm.estimateProduction(planet);
 	}
 	calculateRacePoints(race: Race): number {
 		return this.wasm.calculateRacePoints(race);
