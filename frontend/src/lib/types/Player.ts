@@ -63,7 +63,6 @@ export type PlayerResponse = {
 	submittedTurn?: boolean;
 	techLevels: TechLevel;
 	techLevelsSpent: TechLevel;
-	designs?: ShipDesign[];
 	researchSpentLastYear?: number;
 	achievedVictoryConditions?: number;
 	relations: PlayerRelationship[];
