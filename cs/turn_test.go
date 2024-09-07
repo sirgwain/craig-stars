@@ -783,6 +783,34 @@ func Test_turn_permaform(t *testing.T) {
 	assert.Equal(t, Hab{49, 50, 49}, planet.Hab)
 }
 
+func Test_turn_permaformNone(t *testing.T) {
+	game := createSingleUnitGame()
+
+	player := game.Players[0]
+	planet := game.Planets[0]
+	planet.Hab = Hab{49, 49, 49}
+	planet.BaseHab = Hab{49, 49, 49}
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// 10% chance to permaform
+	player.Race.Spec.PermaformChance = .1
+	player.Race.Spec.PermaformPopulation = 100
+
+	// mock the random number generator to return temp as the hab to permaform
+	rng := testRandom{}
+	rng.addFloats(.2) // no permaform
+	game.Rules.random = &rng
+
+	turn.permaform()
+
+	// should have permaformed the planet temp in one direction
+	assert.Equal(t, Hab{49, 49, 49}, planet.Hab)
+}
+
 func Test_turn_fleetRemoteMine(t *testing.T) {
 
 	type fields struct {
