@@ -61,11 +61,11 @@ func (h *Mineral) Set(mineralType MineralType, value int) *Mineral {
 func (m Mineral) GetAmount(mineralType MineralType) int {
 	var amt int
 	switch mineralType {
-	case MineralType(Ironium):
+	case Ironium:
 		amt = m.Ironium
-	case MineralType(Boranium):
+	case Boranium:
 		amt = m.Boranium
-	case MineralType(Germanium):
+	case Germanium:
 		amt = m.Germanium
 	}
 	return amt
@@ -155,15 +155,15 @@ func (m Mineral) Clamp(min, max int) Mineral {
 
 func (m Mineral) GreatestType() MineralType {
 	if m.Ironium >= m.Boranium && m.Ironium >= m.Germanium {
-		return MineralType(Ironium)
+		return Ironium
 	}
 
 	if m.Boranium >= m.Ironium && m.Boranium >= m.Germanium {
-		return MineralType(Boranium)
+		return Boranium
 	}
 
 	if m.Germanium >= m.Ironium && m.Germanium >= m.Boranium {
-		return MineralType(Germanium)
+		return Germanium
 	}
 
 	return None
@@ -171,16 +171,16 @@ func (m Mineral) GreatestType() MineralType {
 
 // returns 2nd lowest/highest mineral type
 func (m Mineral) MiddleType() MineralType {
-	if MineralType(Boranium) != m.GreatestType() && MineralType(Boranium) != m.LowestType() {
-		return MineralType(Boranium)
-	}	
-	
-	if MineralType(Germanium) != m.GreatestType() && MineralType(Germanium) != m.LowestType() {
-		return MineralType(Germanium)
+	if Boranium != m.GreatestType() && Boranium != m.LowestType() {
+		return Boranium
 	}
 
-	if MineralType(Ironium) != m.GreatestType() && MineralType(Ironium) != m.LowestType() {
-		return MineralType(Ironium)
+	if Germanium != m.GreatestType() && Germanium != m.LowestType() {
+		return Germanium
+	}
+
+	if Ironium != m.GreatestType() && Ironium != m.LowestType() {
+		return Ironium
 	}
 
 	return None
@@ -188,15 +188,15 @@ func (m Mineral) MiddleType() MineralType {
 
 func (m Mineral) LowestType() MineralType {
 	if m.Germanium <= m.Ironium && m.Germanium <= m.Boranium {
-		return MineralType(Germanium)
+		return Germanium
 	}
 
 	if m.Boranium <= m.Ironium && m.Boranium <= m.Germanium {
-		return MineralType(Boranium)
+		return Boranium
 	}
 
 	if m.Ironium <= m.Germanium && m.Ironium <= m.Boranium {
-		return MineralType(Ironium)
+		return Ironium
 	}
 
 	return None
