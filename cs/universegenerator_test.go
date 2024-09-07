@@ -47,9 +47,11 @@ func Test_getStartingStarbaseDesigns(t *testing.T) {
 		{HullComponent: Laser.Name, HullSlotIndex: 2, Quantity: 8},
 		{HullComponent: MoleSkinShield.Name, HullSlotIndex: 3, Quantity: 8},
 		{HullComponent: Laser.Name, HullSlotIndex: 4, Quantity: 8},
+		{HullComponent: MoleSkinShield.Name, HullSlotIndex: 5, Quantity: 8},
 		{HullComponent: MoleSkinShield.Name, HullSlotIndex: 6, Quantity: 8},
 		{HullComponent: Laser.Name, HullSlotIndex: 8, Quantity: 8},
 		{HullComponent: Laser.Name, HullSlotIndex: 10, Quantity: 8},
+		{HullComponent: MoleSkinShield.Name, HullSlotIndex: 12, Quantity: 8},
 	}
 
 	type args struct {

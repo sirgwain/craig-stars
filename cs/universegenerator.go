@@ -85,7 +85,9 @@ func (ug *universeGenerator) Generate() (*Universe, error) {
 			if err := planet.PopulateProductionQueueDesigns(player); err != nil {
 				return nil, fmt.Errorf("%s failed to populate queue designs: %w", planet, err)
 			}
-			planet.PopulateProductionQueueEstimates(&ug.Rules, player)
+			if err := planet.PopulateProductionQueueEstimates(&ug.Rules, player); err != nil {
+				return nil, fmt.Errorf("planet %s unable to populate queue estimates %w", planet.Name, err)
+			}
 		}
 	}
 
@@ -224,7 +226,8 @@ func (ug *universeGenerator) generatePlayerPlans() {
 }
 
 // generate designs for each player
-func (ug *universeGenerator) generatePlayerShipDesigns() {
+func (ug *universeGenerator) generatePlayerShipDesigns() error {
+	var err error
 	for _, player := range ug.players {
 		designNames := mapset.NewSet[string]()
 		num := 1
@@ -239,7 +242,10 @@ func (ug *universeGenerator) generatePlayerShipDesigns() {
 				design := DesignShip(techStore, hull, startingFleet.Name, player, num, player.DefaultHullSet, startingFleet.Purpose, FleetPurposeFromShipDesignPurpose(startingFleet.Purpose))
 				design.HullSetNumber = int(startingFleet.HullSetNumber)
 				design.Purpose = startingFleet.Purpose
-				design.Spec = ComputeShipDesignSpec(&ug.Rules, player.TechLevels, player.Race.Spec, design)
+				design.Spec, err = ComputeShipDesignSpec(&ug.Rules, player.TechLevels, player.Race.Spec, design)
+				if err != nil {
+					return fmt.Errorf("ComputeShipDesignSpec returned error %w", err)
+				}
 				player.Designs = append(player.Designs, design)
 				designNames.Add(design.Name)
 				num++
@@ -250,11 +256,14 @@ func (ug *universeGenerator) generatePlayerShipDesigns() {
 
 		for i := range starbaseDesigns {
 			design := &starbaseDesigns[i]
-			design.Spec = ComputeShipDesignSpec(&ug.Rules, player.TechLevels, player.Race.Spec, design)
+			design.Spec, err = ComputeShipDesignSpec(&ug.Rules, player.TechLevels, player.Race.Spec, design)
+			if err != nil {
+				return fmt.Errorf("ComputeShipDesignSpec returned error %w", err)
+			}
 			player.Designs = append(player.Designs, design)
 		}
 	}
-
+	return nil
 }
 
 // have each player discover all the planets in the universe
@@ -488,7 +497,7 @@ func (ug *universeGenerator) getStartingStarbaseDesigns(techStore *TechStore, pl
 }
 
 // Player starting starbases are all the same, regardless of starting tech level
-// They get half filled with the starter beam, shield, and armor
+// They get half filled with the starter beam & shield
 func fillStarbaseSlots(techStore *TechStore, starbase *ShipDesign, race *Race, startingPlanet StartingPlanet) {
 	hull := techStore.GetHull(starbase.Hull)
 	beamWeapon := techStore.GetHullComponentsByCategory(TechCategoryBeamWeapon)[0]
@@ -513,8 +522,12 @@ func fillStarbaseSlots(techStore *TechStore, starbase *ShipDesign, race *Race, s
 	placedStargate := false
 	for index, slot := range hull.Slots {
 		switch slot.Type {
+		case HullSlotTypeGeneral: // No starting starbases (or any starbase) currently have GP slots, but this is a precaution if they did
+			fallthrough
 		case HullSlotTypeWeapon:
 			starbase.Slots = append(starbase.Slots, ShipDesignSlot{beamWeapon.Name, index + 1, int(math.Round(float64(slot.Capacity) / 2))})
+		case HullSlotTypeShieldArmor:
+			fallthrough
 		case HullSlotTypeShield:
 			starbase.Slots = append(starbase.Slots, ShipDesignSlot{shield.Name, index + 1, int(math.Round(float64(slot.Capacity) / 2))})
 		case HullSlotTypeOrbital:

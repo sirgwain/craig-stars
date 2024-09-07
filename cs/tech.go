@@ -3,6 +3,7 @@ package cs
 import (
 	"fmt"
 	"math"
+	"strings" // only needed for jank temporary solution
 )
 
 type TechCategory string
@@ -62,6 +63,7 @@ type Tech struct {
 	Ranking      int              `json:"ranking,omitempty"`
 	Category     TechCategory     `json:"category,omitempty"`
 	Origin       string           `json:"origin,omitempty"`
+	Tags         Tags             `json:"tags"`
 }
 
 type TechRequirements struct {
@@ -352,6 +354,7 @@ func (t *TechPlanetaryScanner) String() string { return t.Name }
 func (t *TechDefense) String() string          { return t.Name }
 func (t *TechTerraform) String() string        { return t.Name }
 
+// Get baseline cost for this technology given a player's tech levels, minaturization stats & racial cost modifiers
 func (t *Tech) GetPlayerCost(techLevels TechLevel, spec MiniaturizationSpec, costOffset TechCostOffset) Cost {
 	// figure out miniaturization
 	// this is 4% per level above the required tech we have.
@@ -362,7 +365,7 @@ func (t *Tech) GetPlayerCost(techLevels TechLevel, spec MiniaturizationSpec, cos
 	levelDiff := TechLevel{-1, -1, -1, -1, -1, -1}
 
 	// From the diff between the player level and the requirements, find the lowest difference
-	// i.e. 1 energey level in the example above
+	// i.e. 1 energy level in the example above
 	numTechLevelsAboveRequired := math.MaxInt
 	if t.Requirements.Energy > 0 {
 		levelDiff.Energy = techLevels.Energy - t.Requirements.Energy
@@ -405,6 +408,7 @@ func (t *Tech) GetPlayerCost(techLevels TechLevel, spec MiniaturizationSpec, cos
 	}
 
 	// apply any tech cost offsets
+	// TODO: Implement IT 25% gate discount in actually less janky way
 	cost := t.Cost
 	switch t.Category {
 	case TechCategoryEngine:
@@ -415,15 +419,19 @@ func (t *Tech) GetPlayerCost(techLevels TechLevel, spec MiniaturizationSpec, cos
 		cost = cost.MultiplyFloat64(1 + costOffset.Bomb)
 	case TechCategoryTorpedo:
 		cost = cost.MultiplyFloat64(1 + costOffset.Torpedo)
+	case TechCategoryOrbital:
+		if strings.Contains(t.Name, "Stargate") {
+			cost = cost.MultiplyFloat64(1 + costOffset.Stargate)
+		}
 	case TechCategoryTerraforming:
 		cost = cost.MultiplyFloat64(1 + costOffset.Terraforming)
 	}
 
 	return Cost{
-		int(math.Ceil(float64(cost.Ironium) * miniaturizationFactor)),
-		int(math.Ceil(float64(cost.Boranium) * miniaturizationFactor)),
-		int(math.Ceil(float64(cost.Germanium) * miniaturizationFactor)),
-		int(math.Ceil(float64(cost.Resources) * miniaturizationFactor)),
+		int(roundHalfDown(float64(cost.Ironium) * miniaturizationFactor)),
+		int(roundHalfDown(float64(cost.Boranium) * miniaturizationFactor)),
+		int(roundHalfDown(float64(cost.Germanium) * miniaturizationFactor)),
+		int(roundHalfDown(float64(cost.Resources) * miniaturizationFactor)),
 	}
 
 	// if we are at level 26, a beginner tech would cost (26 * .04)

@@ -173,7 +173,7 @@ func (b *bomb) normalBombPlanet(planet *Planet, defender *Player, attacker *Play
 	// figure out the killRate and minKill for this fleet's bombs
 	defenseCoverage := planet.Spec.DefenseCoverage
 	killRateColonistsKilled := roundToNearest100f(b.getColonistsKilledForBombs(planet.population(), defenseCoverage, bombs))
-	minColonistsKilled := roundToNearest100(b.getMinColonistsKilledForBombs(planet.population(), defenseCoverage, bombs))
+	minColonistsKilled := roundToNearest100(b.getMinColonistsKilledForBombs(defenseCoverage, bombs))
 
 	killed := MaxInt(killRateColonistsKilled, minColonistsKilled)
 	leftoverPopulation := MaxInt(0, planet.population()-killed)
@@ -368,7 +368,7 @@ func (b *bomb) getColonistsKilledForBombs(population int, defenseCoverage float6
 }
 
 // Get minimum colonists killed using the MinKillRate of a bomb
-func (b *bomb) getMinColonistsKilledForBombs(population int, defenseCoverage float64, bombs []Bomb) int {
+func (b *bomb) getMinColonistsKilledForBombs(defenseCoverage float64, bombs []Bomb) int {
 	// calculate the minKill for all these bombs
 	minKill := 0
 	for _, bomb := range bombs {
@@ -415,8 +415,8 @@ func (b *bomb) getMinColonistsKilledForBombs(population int, defenseCoverage flo
 // of its factories, mines, and defenses.  If there had been 350 mines,
 // 550 factories, and 100 defenses, the losses would be 140 mines, 220
 // factories, and 40 defenses.
-//
-// getStructuresDestroyed calculates the structures destroyed using the StructureDestroyRate of bombs
+
+// getStructuresDestroyed gets the structures destroyed using the StructureDestroyRate of a bomb
 func (b *bomb) getStructuresDestroyed(defenseCoverage float64, bombs []Bomb) int {
 	// calculate the StructureDestroyRate for all these bombs
 	var structuresDestroyed float64 = 0
@@ -461,6 +461,8 @@ func (b *bomb) getStructuresDestroyed(defenseCoverage float64, bombs []Bomb) int
 //	= 8.37% of planetary pop will be killed.
 //
 // ============================================================================
+
+// Get number of colonists killed via smart bombs
 func (b *bomb) getColonistsKilledWithSmartBombs(population int, defenseCoverageSmart float64, bombs []Bomb) float64 {
 	smartKillRate := 0.0
 	for _, bomb := range bombs {

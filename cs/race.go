@@ -604,6 +604,7 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 			Torpedo:          prtSpec.TechCostOffset.Torpedo,
 			Bomb:             prtSpec.TechCostOffset.Bomb,
 			PlanetaryDefense: prtSpec.TechCostOffset.PlanetaryDefense,
+			Stargate:         prtSpec.TechCostOffset.Stargate,
 			Terraforming:     prtSpec.TechCostOffset.Terraforming,
 		},
 		MaxPopulationOffset: prtSpec.MaxPopulationOffset,
@@ -719,8 +720,8 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 	}
 
 	// the PRT max pop serves as a multiplier to any LRTs
-	// i.e. HE has a .5 growth offset, so with OBRM it's .55
-	// i.e. JoaT has a 1.1 growth offset, so with OBRM it's 1.32
+	// i.e. HE has a .5 growth offset, so with OBRM it's .550
+	// i.e. JoaT has a 1.2 growth offset, so with OBRM it's 1.32
 	baseMaxPop := 1 + spec.MaxPopulationOffset
 	for _, lrt := range LRTs {
 		if !race.HasLRT(lrt) {

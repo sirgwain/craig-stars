@@ -10,7 +10,7 @@ type CompletionEstimator interface {
 	GetYearsToBuildOne(item ProductionQueueItem, cost Cost, mineralsOnHand Mineral, yearlyAvailableToSpend Cost) int
 
 	// get a ProductionQueue with estimates filled in
-	GetProductionWithEstimates(rules *Rules, player *Player, planet Planet) ([]ProductionQueueItem, int)
+	GetProductionWithEstimates(rules *Rules, player *Player, planet Planet) ([]ProductionQueueItem, int, error)
 }
 
 type completionEstimate struct {
@@ -42,7 +42,7 @@ func (e *completionEstimate) GetYearsToBuildOne(item ProductionQueueItem, cost C
 // For each year of growth, it checks what was built. If an item was built for the first time
 // it records the year. If the item completed building, it records the last year
 // when all items are complete or 100 years have passed, iit returns
-func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Player, planet Planet) (items []ProductionQueueItem, leftoverResourcesForResearch int) {
+func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Player, planet Planet) (items []ProductionQueueItem, leftoverResourcesForResearch int, err error) {
 
 	// copy the queue so we can update it
 	items = make([]ProductionQueueItem, len(planet.ProductionQueue))
@@ -61,7 +61,7 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 
 	// keep track of items built so we know how many auto items are completed
 	numBuilt := make([]int, len(planet.ProductionQueue))
-	producer := newProducer(&planet, player)
+	producer := newProducer(rules, &planet, player)
 	for year := 1; year <= 100; year++ {
 		// mine for minerals
 		planet.mine(rules)
@@ -69,7 +69,10 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 		//remoteMine()
 
 		// build!
-		result := producer.produce()
+		result, err := producer.produce()
+		if err != nil {
+			return nil, 0, err
+		}
 
 		if year == 1 {
 			leftoverResourcesForResearch = result.leftoverResources
@@ -142,5 +145,5 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 		}
 	}
 
-	return items, leftoverResourcesForResearch
+	return items, leftoverResourcesForResearch, nil
 }

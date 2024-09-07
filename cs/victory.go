@@ -59,7 +59,7 @@ func (v *victory) checkForVictor(player *Player) error {
 		v.checkOwnPlanets(player, score)
 	}
 	if v.game.VictoryConditions.Conditions&Bitmask(VictoryConditionAttainTechLevels) > 0 {
-		v.checkAttainTechLevels(player, score)
+		v.checkAttainTechLevels(player)
 	}
 	if v.game.VictoryConditions.Conditions&Bitmask(VictoryConditionExceedsScore) > 0 {
 		v.checkExceedScore(player, score)
@@ -68,7 +68,7 @@ func (v *victory) checkForVictor(player *Player) error {
 		v.checkExceedSecondPlaceScore(player, score)
 	}
 	if v.game.VictoryConditions.Conditions&Bitmask(VictoryConditionProductionCapacity) > 0 {
-		v.checkProductionCapacity(player, score)
+		v.checkProductionCapacity(player)
 	}
 	if v.game.VictoryConditions.Conditions&Bitmask(VictoryConditionOwnCapitalShips) > 0 {
 		v.checkOwnCapitalShips(player, score)
@@ -101,7 +101,7 @@ func (v *victory) checkOwnPlanets(player *Player, score PlayerScore) {
 	}
 }
 
-func (v *victory) checkAttainTechLevels(player *Player, score PlayerScore) {
+func (v *victory) checkAttainTechLevels(player *Player) {
 	numAttained := 0
 	for _, field := range TechFields {
 		if player.TechLevels.Get(field) >= v.game.VictoryConditions.AttainTechLevel {
@@ -137,7 +137,7 @@ func (v *victory) checkExceedSecondPlaceScore(player *Player, score PlayerScore)
 	}
 }
 
-func (v *victory) checkProductionCapacity(player *Player, score PlayerScore) {
+func (v *victory) checkProductionCapacity(player *Player) {
 	productionCapacity := 0
 	for _, planet := range v.game.Planets {
 		if planet.PlayerNum == player.Num {

@@ -992,7 +992,7 @@ func Test_turn_fleetSweepMines(t *testing.T) {
 
 	// upgrade a mine sweeper weapon
 	fleet.Tokens[0].design.Slots[1].HullComponent = GatlingNeutrinoCannon.Name
-	fleet.Tokens[0].design.Spec = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, fleet.Tokens[0].design)
+	fleet.Tokens[0].design.Spec, _ = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, fleet.Tokens[0].design)
 	fleet.Spec = ComputeFleetSpec(rules, player, fleet)
 
 	// sweep mines
@@ -1202,7 +1202,7 @@ func Test_turn_fleetRadiatingEngineDieoff(t *testing.T) {
 
 	// add a radiating hydro ramscoop
 	design.Slots[0].HullComponent = RadiatingHydroRamScoop.Name
-	design.Spec = ComputeShipDesignSpec(&rules, player.TechLevels, player.Race.Spec, design)
+	design.Spec, _ = ComputeShipDesignSpec(&rules, player.TechLevels, player.Race.Spec, design)
 	fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
 
 	// generate turn to simulate die off
