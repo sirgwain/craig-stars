@@ -75,17 +75,16 @@
 	{/if}
 	<!-- Remote Mining messages -->
 {:else if message.type === MessageType.FleetRemoteMined}
+	{@const minerals = {
+		ironium: message.spec.mineral?.ironium ?? 0,
+		boranium: message.spec.mineral?.boranium ?? 0,
+		germanium: message.spec.mineral?.germanium ?? 0
+	}}
 	{message.targetName} has remote mined {message.spec.targetName}, extracting {andCommaList(
 		[
-			(message.spec.mineral?.ironium ?? 0) > 0
-				? `${message.spec.mineral?.ironium ?? 0} kT of Ironium`
-				: '',
-			(message.spec.mineral?.boranium ?? 0) > 0
-				? `${message.spec.mineral?.boranium ?? 0} kT of Boranium`
-				: '',
-			(message.spec.mineral?.germanium ?? 0) > 0
-				? `${message.spec.mineral?.germanium ?? 0} kT of Germanium`
-				: ''
+			minerals.ironium > 0 ? `${minerals.ironium} kT of Ironium` : '',
+			minerals.boranium > 0 ? `${minerals.boranium} kT of Boranium` : '',
+			minerals.germanium > 0 ? `${minerals.germanium} kT of Germanium` : ''
 		],
 		'no minerals.'
 	)}
