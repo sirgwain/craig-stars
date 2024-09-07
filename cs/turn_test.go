@@ -257,7 +257,7 @@ func Test_generateTurns(t *testing.T) {
 	assert.Greater(t, universe.Planets[0].population(), player.Race.Spec.StartingPlanets[0].Population)
 
 	// should have built factories
-	assert.Greater(t, universe.Planets[0].Factories, game.Rules.StartingFactories)
+	assert.Greater(t, universe.Planets[0].Factories, player.Race.Spec.StartingPlanets[0].Factories)
 
 	// no victor
 	assert.False(t, player.Victor)

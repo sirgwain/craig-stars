@@ -423,8 +423,6 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 					}
 				}
 			} else {
-				// starting planets start with different mincons & facts
-				playerPlanet.Factories = rules.ExtraPlanetStartingFactories
 				if !ug.MaxMinerals {
 					playerPlanet.MineralConcentration = randomizeMinerals(rules, playerPlanet.Hab.Rad)
 				}

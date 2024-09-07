@@ -351,12 +351,12 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 		p.Mines = p.innateMines(player, p.population())
 		p.Factories = 0
 	} else {
-		p.Mines = rules.StartingMines
-		p.Factories = rules.StartingFactories
+		p.Mines = startingPlanet.Mines
+		p.Factories = startingPlanet.Factories
 	}
 
 	if raceSpec.CanBuildDefenses {
-		p.Defenses = rules.StartingDefenses
+		p.Defenses = startingPlanet.Defenses
 	} else {
 		p.Defenses = 0
 	}
