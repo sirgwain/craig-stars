@@ -176,12 +176,12 @@ func (store *TechStore) GetHullsByType(techHullType TechHullType) []*TechHull {
 	return store.hullsByType[techHullType]
 }
 
-// get hull component from name 
+// get hull component from name
 func (store *TechStore) GetHullComponent(name string) *TechHullComponent {
 	return store.hullComponentsByName[store.transformName(name)]
 }
 
-// get all techs learned in the last tech level 
+// get all techs learned in the last tech level
 func (store *TechStore) GetTechsJustGained(player *Player, field TechField) []*Tech {
 	techs := []*Tech{}
 	for _, tech := range store.techs {
@@ -245,7 +245,7 @@ func (store *TechStore) GetBestTerraform(player *Player, terraformHabType Terraf
 	return bestTech
 }
 
-// get the player's best battle engine 
+// get the player's best battle engine
 func (store *TechStore) GetBestBattleEngine(player *Player, hull *TechHull) *TechEngine {
 	bestTech := &store.Engines[1] // start from QJ5 instead of SD
 	for i := range store.Engines {
@@ -253,14 +253,14 @@ func (store *TechStore) GetBestBattleEngine(player *Player, hull *TechHull) *Tec
 		if player.HasTech(&tech.Tech) {
 			// if this tech is not allowed on our hull (like the Settler's Delight on normal ships) skip it
 			if (len(tech.Requirements.HullsAllowed) > 0 && !slices.Contains(tech.Requirements.HullsAllowed, hull.Name)) ||
-			(len(tech.Requirements.HullsDenied) > 0 && slices.Contains(tech.Requirements.HullsDenied, hull.Name)) {
+				(len(tech.Requirements.HullsDenied) > 0 && slices.Contains(tech.Requirements.HullsDenied, hull.Name)) {
 				continue
 			}
 			// if engine has higher ideal speed than the current selection, use it
 			// ties are broken by the part's ranking (which leans towards cost & fuel efficiency)
-			if bestTech == nil || 
-			(tech.Engine.IdealSpeed > bestTech.Engine.IdealSpeed ||
-			(tech.Engine.IdealSpeed == bestTech.Engine.IdealSpeed && tech.TechHullComponent.Ranking > bestTech.TechHullComponent.Ranking)) {
+			if bestTech == nil ||
+				(tech.Engine.IdealSpeed > bestTech.Engine.IdealSpeed ||
+					(tech.Engine.IdealSpeed == bestTech.Engine.IdealSpeed && tech.TechHullComponent.Ranking > bestTech.TechHullComponent.Ranking)) {
 				bestTech = tech
 			}
 		}
@@ -270,17 +270,17 @@ func (store *TechStore) GetBestBattleEngine(player *Player, hull *TechHull) *Tec
 
 // get the player's best engine
 func (store *TechStore) GetBestEngine(player *Player, hull *TechHull, purpose FleetPurpose) *TechEngine {
-	bestTech := &store.Engines[0]
+	var bestTech *TechEngine
 	for i := range store.Engines {
 		tech := &store.Engines[i]
 		if player.HasTech(&tech.Tech) {
 			// if this tech is not allowed on our hull (like the Settler's Delight on normal ships) skip it
 			if (len(tech.Requirements.HullsAllowed) > 0 && !slices.Contains(tech.Requirements.HullsAllowed, hull.Name)) ||
-			(len(tech.Requirements.HullsDenied) > 0 && slices.Contains(tech.Requirements.HullsDenied, hull.Name)) {
+				(len(tech.Requirements.HullsDenied) > 0 && slices.Contains(tech.Requirements.HullsDenied, hull.Name)) {
 				continue
 			}
 
-			// colony ships don't want radiating engines if we would lose colonists from it 
+			// colony ships don't want radiating engines if we would lose colonists from it
 			if (purpose == FleetPurposeColonizer || purpose == FleetPurposeColonistFreighter) && tech.Radiating &&
 				!(player.Race.ImmuneRad || player.Race.Spec.HabCenter.Rad >= 85) {
 				continue
@@ -337,10 +337,10 @@ func (store *TechStore) GetBestSapper(player *Player) *TechHullComponent {
 	// than our best sapper (since they can damage armor)
 	// This is never possible in vanilla Stars!, but maybe for mods
 	bestBeam := store.GetBestBeamWeapon(player)
-	if bestTech == nil || 
-	(bestBeam.Power >= bestTech.Power &&
-	bestBeam.Cost.Resources <= bestTech.Cost.Resources &&
-	bestBeam.Range >= bestTech.Range) {
+	if bestTech == nil ||
+		(bestBeam.Power >= bestTech.Power &&
+			bestBeam.Cost.Resources <= bestTech.Cost.Resources &&
+			bestBeam.Range >= bestTech.Range) {
 		bestTech = bestBeam
 	}
 	return bestTech
@@ -408,7 +408,7 @@ func (store *TechStore) GetBestStructureBomb(player *Player) *TechHullComponent 
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if tech.Category == TechCategoryBomb && tech.MinKillRate == 0 && tech.StructureDestroyRate > 0 && player.HasTech(&tech.Tech) {
-				if bestTech == nil || tech.Ranking > bestTech.Ranking {
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
 				bestTech = tech
 			}
 		}
