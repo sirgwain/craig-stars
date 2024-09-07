@@ -49,7 +49,7 @@ type battleWeaponSlot struct {
 	// the initiative of the weapon
 	initiative int
 
-	// gattling guns hit all targets in range
+	// gatling guns hit all targets in range
 	hitsAllTargets bool
 
 	// capital ships missiles do double damage after shields are gone

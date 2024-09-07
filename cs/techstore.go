@@ -13,7 +13,7 @@ const NoGate = -1
 const InfiniteGate = math.MaxInt32
 const Infinite = -1
 
-// The TechStore contains all techs in the game. Eventually these will be user modifyable and
+// The TechStore contains all techs in the game. Eventually these will be user modifiable and
 // referenced per game, but for now all games use the StaticTechStore, which contains the default Stars!
 // techs.
 type TechStore struct {
@@ -61,6 +61,7 @@ type TechFinder interface {
 	GetHullsByType(techHullType TechHullType) []*TechHull
 	GetHullComponent(name string) *TechHullComponent
 	GetHullComponentsByCategory(category TechCategory) []TechHullComponent
+	GetBestComponentWithTags(slotTypes HullSlotType, tags []string, allTags bool) *TechHullComponent
 }
 
 func NewTechStore() TechFinder {
@@ -203,6 +204,51 @@ func (store *TechStore) GetHullComponentsByCategory(category TechCategory) []Tec
 	}
 
 	return techs
+}
+
+// get all techs in the specified hull slot type(s)
+//
+// To check multiple hullSlotTypes, bitwise OR them together before passing through
+func (store *TechStore) GetHullComponentsByHullSlotType(slots HullSlotType) []TechHullComponent {
+	techs := make([]TechHullComponent, 0, len(store.HullComponents))
+	for _, hst := range store.HullComponents {
+		if hst.HullSlotType&slots > 0 {
+			techs = append(techs, hst)
+		}
+	}
+
+	return techs
+}
+
+// get best TechHullComponent for the specified hullSlotTypes (bitmasked together)
+// that also contains the specified tag(s)
+//
+// allTags determines the search style - normally it defaults to "OR" (ie parts only need to match >=1 tag), but
+// setting it to true requires ALL listed tags to match for a part to be considered
+func (store *TechStore) GetBestComponentWithTags(hullSlotType HullSlotType, tags []string, allTags bool) *TechHullComponent {
+	var bestTech *TechHullComponent
+
+	// get list of components for the techHullTypes we can use
+	var comps []TechHullComponent = store.GetHullComponentsByHullSlotType(hullSlotType)
+
+	for _, hc := range comps {
+		var match bool
+
+		if allTags {
+			// need all tags to match for it to work
+			// we set match to true and break as soon as a single tag is missing
+			match = hc.Tags.hasAllTags(tags)
+		} else {
+			// need only 1 tag to match
+			// we assume match is false and break as soon as a single tag matches
+			match = hc.Tags.hasOneTag(tags)
+		}
+
+		if match && (bestTech == nil || hc.Ranking > bestTech.Ranking) {
+			bestTech = &hc
+		}
+	}
+	return bestTech
 }
 
 // get the player's best planetary scanner
@@ -1753,7 +1799,7 @@ var MiniGun = TechHullComponent{Tech: NewTech("Mini Gun", NewCost(0, 6, 0, 6), T
 
 	Mass:           3,
 	Initiative:     12,
-	Gattling:       true,
+	Gatling:        true,
 	Power:          16,
 	HitsAllTargets: true,
 	HullSlotType:   HullSlotTypeWeapon,
@@ -1810,7 +1856,7 @@ var GatlingGun = TechHullComponent{Tech: NewTech("Gatling Gun", NewCost(0, 20, 0
 
 	Mass:           3,
 	Initiative:     12,
-	Gattling:       true,
+	Gatling:        true,
 	Power:          31,
 	HitsAllTargets: true,
 	HullSlotType:   HullSlotTypeWeapon,
@@ -1861,7 +1907,7 @@ var GatlingNeutrinoCannon = TechHullComponent{Tech: NewTech("Gatling Neutrino Ca
 
 	Mass:           3,
 	Initiative:     13,
-	Gattling:       true,
+	Gatling:        true,
 	Power:          80,
 	HitsAllTargets: true,
 	HullSlotType:   HullSlotTypeWeapon,
@@ -1912,7 +1958,7 @@ var BigMuthaCannon = TechHullComponent{Tech: NewTech("Big Mutha Cannon", NewCost
 
 	Mass:           3,
 	Initiative:     13,
-	Gattling:       true,
+	Gatling:        true,
 	Power:          204,
 	HitsAllTargets: true,
 	HullSlotType:   HullSlotTypeWeapon,

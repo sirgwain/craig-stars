@@ -305,13 +305,13 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 
 			if component.Category == TechCategoryBeamWeapon && component.Power > 0 && (component.Range+hull.RangeBonus) > 0 {
 				// mine sweep is power * (range)^2
-				gattlingMultiplier := 1
-				if component.Gattling {
-					// gattlings are 4x more mine-sweepery (all gatlings have range of 2)
+				gatlingMultiplier := 1
+				if component.Gatling {
+					// gatlings are 4x more mine-sweepery (all gatlings have range of 2)
 					// lol, 4x, get it?
-					gattlingMultiplier = component.Range * component.Range
+					gatlingMultiplier = component.Range * component.Range
 				}
-				spec.MineSweep += slot.Quantity * component.Power * ((component.Range + hull.RangeBonus) * component.Range) * gattlingMultiplier
+				spec.MineSweep += slot.Quantity * component.Power * ((component.Range + hull.RangeBonus) * component.Range) * gatlingMultiplier
 			}
 			spec.Cost = spec.Cost.Add(component.Tech.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(slot.Quantity))
 			spec.TechLevel = spec.TechLevel.Max(component.Requirements.TechLevel)

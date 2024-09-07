@@ -75,7 +75,7 @@
 			power: 16,
 			range: 2,
 			initiative: 12,
-			gattling: true,
+			gatling: true,
 			hitsAllTargets: true
 		},
 		{

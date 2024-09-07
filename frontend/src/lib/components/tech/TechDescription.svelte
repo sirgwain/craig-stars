@@ -147,7 +147,7 @@
 				if (hullComponent.hitsAllTargets) {
 					descriptions.push(`This weapon hits all targets in range each time it is fired.`);
 				}
-				if (hullComponent.gattling) {
+				if (hullComponent.gatling) {
 					descriptions.push(
 						`This weapon also makes an excellent mine sweeper, capable of sweeping ${
 							(hullComponent.power ?? 0) * Math.pow(hullComponent.range ?? 0, 4)

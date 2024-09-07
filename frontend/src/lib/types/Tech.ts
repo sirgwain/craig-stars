@@ -107,7 +107,7 @@ export type TechHullComponent = {
 	power?: number;
 	range?: number;
 	initiative?: number;
-	gattling?: boolean;
+	gatling?: boolean;
 	hitsAllTargets?: boolean;
 	damageShieldsOnly?: boolean;
 	accuracy?: number;
@@ -327,4 +327,3 @@ export function getBestTerraform(
 		.filter((t) => player.hasTech(t) && t.habType == habType)
 		.sort((a, b) => (b.ranking ?? 0) - (a.ranking ?? 0))[0];
 }
-

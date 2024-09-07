@@ -3,6 +3,7 @@ package cs
 import (
 	"fmt"
 	"math"
+	"slices"
 )
 
 type TechCategory string
@@ -62,7 +63,78 @@ type Tech struct {
 	Ranking      int              `json:"ranking,omitempty"`
 	Category     TechCategory     `json:"category,omitempty"`
 	Origin       string           `json:"origin,omitempty"`
+	Tags         TechTags         `json:"tags,omitempty"`
 }
+
+type TechTags map[string]bool
+
+// returns true if tt contains the specified tag
+func (tt TechTags) hasTag(tag string) bool {
+	return tt[tag]
+}
+
+// returns true if tt has ALL of the specified tags
+func (tt TechTags) hasAllTags(tags []string) bool {
+	for _, tag := range tags {
+		if !tt.hasTag(tag) {
+			return false
+		}
+	}
+	return true
+}
+
+// returns true if tt has AT LEAST 1 of the specified tags
+func (tt TechTags) hasOneTag(tags []string) bool {
+	for _, tag := range tags {
+		if tt.hasTag(tag) {
+			return true
+		}
+	}
+	return false
+}
+
+// returns slice of all tags in tt, sorted alphabetically
+func (tt TechTags) GetTags() []string {
+	var list []string
+	for k, v := range tt {
+		if v {
+			list = append(list, k)
+		}
+	}
+	slices.Sort(list)
+	return list
+}
+
+type TechTag string
+
+const (
+	TechTagArmor          string = "Armor"
+	TechTagTorpedoBonus   string = "Battle Computer"
+	TechTagCapacitor      string = "Beam Capacitor"
+	TechTagDeflector      string = "Beam Deflector"
+	TechTagBeamWeapon     string = "Beam Weapon"
+	TechTagMissile        string = "Capital Ship Missile"
+	TechTagCargoPod       string = "Cargo Pod"
+	TechTagCloak          string = "Cloak"
+	TechTagColonyModule   string = "Colony Module"
+	TechTagEngine         string = "Engine"
+	TechTagFreighter      string = "Freighter"
+	TechTagFuelPod        string = "Fuel Pod"
+	TechTagGatling        string = "Gatling"
+	TechTagJammer         string = "Jammer"
+	TechTagMassDriver     string = "Mass Driver"
+	TechTagManeuveringJet string = "Maneuvering Jet"
+	TechTagMineLayer      string = "Mine Layer"
+	TechTagMiningRobot    string = "Remote Mining Robot"
+	TechTagRamscoop       string = "Ramscoop"
+	TechTagTerraformRobot string = "Orbital Terraforming Module"
+	TechTagScanner        string = "Scanner"
+	TechTagShield         string = "Shield"
+	TechTagSapper         string = "Shield Sapper"
+	TechTagStargate       string = "Stargate"
+	TechTagTerraforming   string = "Terraforming"
+	TechTagTorpedo        string = "Torpedo"
+)
 
 type TechRequirements struct {
 	TechLevel
@@ -119,7 +191,7 @@ type TechHullComponent struct {
 	Power                     int           `json:"power,omitempty"`
 	Range                     int           `json:"range,omitempty"`
 	Initiative                int           `json:"initiative,omitempty"`
-	Gattling                  bool          `json:"gattling,omitempty"`
+	Gatling                   bool          `json:"gatling,omitempty"`
 	HitsAllTargets            bool          `json:"hitsAllTargets,omitempty"`
 	DamageShieldsOnly         bool          `json:"damageShieldsOnly,omitempty"`
 	Accuracy                  int           `json:"accuracy,omitempty"`
