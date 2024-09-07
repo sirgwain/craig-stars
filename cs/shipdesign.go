@@ -267,7 +267,11 @@ func (d *ShipDesign) getMovement(cargoMass int) int {
 }
 
 func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design *ShipDesign) (ShipDesignSpec, error) {
+	
 	hull := rules.techs.GetHull(design.Hull)
+	if hull == nil {
+		return ShipDesignSpec{}, fmt.Errorf("computeShipDesignSpec failed to find hull %s in techstore", design.hull)
+	}
 	c := NewCostCalculator()
 	spec := ShipDesignSpec{
 		Mass:                     hull.Mass,
