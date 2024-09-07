@@ -312,7 +312,7 @@ func (packet *MineralPacket) checkTerraform(rules *Rules, player *Player, planet
 				// Loop 3 has chance 0.5 * min((250-200)/100, 1) = 0.5 * min(0.5, 1) = 0.25
 				// Loop 4 fails to execute as uncaughtCheck (300) is now larger than mineral (250)
 
-				if terraformChance >= rules.random.Float64() {
+				if rules.random.Float64() <= terraformChance {
 					if AbsInt(direction) >= t.getTerraformAbility(player).Get(habType) {
 						// if we can't terraform hab any further, skip any remaining checks for brevity
 						// TerraformHab already caps the result at the player's terraforming ability anyways; this just saves computing power

@@ -266,7 +266,7 @@ func TestMineralPacket_checkTerraform(t *testing.T) {
 	}{
 		{
 			"already perfect",
-			fields{terraformChance: 0.5},
+			fields{terraformChance: 0.25},
 			args{
 				planetHab: Hab{50, 50, 50},
 				Terraform: &TechTerraform{Ability: 30, HabType: TerraformHabTypeAll},
@@ -277,7 +277,7 @@ func TestMineralPacket_checkTerraform(t *testing.T) {
 		},
 		{
 			"cannot terraform fully",
-			fields{terraformChance: 0.5},
+			fields{terraformChance: 0.25},
 			args{
 				planetHab: Hab{1, 1, 1},
 				Terraform: &TechTerraform{Ability: 10, HabType: TerraformHabTypeAll},
@@ -287,35 +287,35 @@ func TestMineralPacket_checkTerraform(t *testing.T) {
 			Hab{11, 11, 11},
 		},
 		{
-			"half a check for half minerals, terraform the 1st and 3rd hab based on random generator",
-			fields{terraformChance: 0.5},
-			args{
-				planetHab: Hab{1, 1, 1},
-				Terraform: &TechTerraform{Ability: 10, HabType: TerraformHabTypeAll},
-				mass:      Cargo{50, 50, 50, 0},          // half a check
-				random:    newFloat64Random(0.1, .3, .1), // lower than 0.5/2; first terraforms, second doesn't, third does
-			},
-			Hab{2, 1, 2},
-		},
-		{
 			"super packet, super terraform",
-			fields{terraformChance: 0.5},
+			fields{terraformChance: 0.25},
 			args{
 				planetHab: Hab{1, 1, 1},
 				Terraform: &TechTerraform{Ability: 10, HabType: TerraformHabTypeAll},
 				mass:      Cargo{300, 0, 0, 0},       // terraform grav up to three times
-				random:    newFloat64Random(0, 1, 0), // 1st check terraforms, second doesn't, third does
+				random:    newFloat64Random(0, .3, 0), // 1st check terraforms, second doesn't, third does
 			},
 			Hab{3, 1, 1},
 		},
 		{
+			"half a check for half minerals, terraform the 1st and 3rd hab based on random generator",
+			fields{terraformChance: 0.25},
+			args{
+				planetHab: Hab{1, 1, 1},
+				Terraform: &TechTerraform{Ability: 10, HabType: TerraformHabTypeAll},
+				mass:      Cargo{50, 50, 50, 0},          // half a check
+				random:    newFloat64Random(0.125, .126, .125), // lower than 0.25/2; first terraforms, second doesn't, third does
+			},
+			Hab{2, 1, 2},
+		},
+		{
 			"failed check - too low minerals",
-			fields{terraformChance: 0.5},
+			fields{terraformChance: 0.3},
 			args{
 				planetHab: Hab{1, 1, 1},
 				Terraform: &TechTerraform{Ability: 10, HabType: TerraformHabTypeAll},
 				mass:      Cargo{0, 0, 33, 0},    // 1/3 a check
-				random:    newFloat64Random(0.3), // greater than 0.5/3; check fails
+				random:    newFloat64Random(0.1), // greater than 0.5/3; check fails
 			},
 			Hab{1, 1, 1},
 		},
