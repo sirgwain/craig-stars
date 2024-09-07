@@ -1767,9 +1767,12 @@ func (t *turn) permaform() {
 	for _, planet := range t.game.Planets {
 		if planet.Owned() {
 			player := t.game.Players[planet.PlayerNum-1]
+			if player.Race.Spec.PermaformChance == 0 || player.Race.Spec.PermaformPopulation == 0 {
+				continue
+			}
 			adjustedPermaformChance := player.Race.Spec.PermaformChance
 			if planet.population() <= player.Race.Spec.PermaformPopulation {
-				adjustedPermaformChance *= 1.0 - float64(player.Race.Spec.PermaformPopulation-planet.population())/float64(player.Race.Spec.PermaformPopulation)
+				adjustedPermaformChance *= float64(planet.population() / player.Race.Spec.PermaformPopulation)
 			}
 
 			if adjustedPermaformChance >= t.game.Rules.random.Float64() {
