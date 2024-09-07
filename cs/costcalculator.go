@@ -210,27 +210,29 @@ func (p *costCalculate) GetDesignCost(rules *Rules, techLevels TechLevel, raceSp
 	}
 
 	cost := hull.Tech.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(1000)
-	if design.Spec.Starbase {
+	if hull.Type == TechHullTypeStarbase {
 		// multiply by cost factor because we divide by it later
 		cost = cost.MultiplyInt(rules.StarbaseComponentCostReduction)
 	}
 
 	// iterate through slots and tally prices up
+	tally := Cost{}
 	for _, slot := range design.Slots {
 		item := rules.techs.GetHullComponent(slot.HullComponent)
 		if item == nil {
 			return Cost{}, fmt.Errorf("component %s in design slots not found in tech store", slot.HullComponent)
 		}
 		hcCost := item.Tech.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(slot.Quantity)
-		if design.Spec.Starbase && item.Category == TechCategoryOrbital {
-			cost = cost.Add(hcCost.MultiplyInt(1000 * rules.StarbaseComponentCostReduction))
+		if hull.Type == TechHullTypeStarbase && item.Category == TechCategoryOrbital {
+			tally = tally.Add(hcCost.MultiplyInt(rules.StarbaseComponentCostReduction))
 		} else {
-			cost = cost.Add(hcCost.MultiplyInt(1000))
+			tally = tally.Add(hcCost)
 		}
 	}
+	cost = cost.Add(tally.MultiplyInt(1000))
 
 	var divisor int = 1000
-	if design.Spec.Starbase {
+	if hull.Type == TechHullTypeStarbase {
 		divisor = int(roundHalfDown(1000 * float64(rules.StarbaseComponentCostReduction) / raceSpec.StarbaseCostFactor))
 	}
 	return cost.DivideByInt(divisor, true), nil
