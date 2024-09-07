@@ -501,6 +501,20 @@ func (store *TechStore) GetBestMiningRobot(player *Player) *TechHullComponent {
 	return bestTech
 }
 
+// get the player's best orbital terraforming robot
+func (store *TechStore) GetBestTerraformRobot(player *Player) *TechHullComponent {
+	var bestTech *TechHullComponent
+	for i := range store.HullComponents {
+		tech := &store.HullComponents[i]
+		if tech.Category == TechCategoryMineRobot && tech.TerraformRate > 0 && player.HasTech(&tech.Tech) {
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
+				bestTech = tech
+			}
+		}
+	}
+	return bestTech
+}
+
 // get the player's best mine layer by type
 func (store *TechStore) GetBestMineLayer(player *Player, mineFieldType MineFieldType) *TechHullComponent {
 	var bestTech *TechHullComponent
@@ -1160,7 +1174,7 @@ var RoboUltraMiner = TechHullComponent{Tech: NewTech("Robo-Ultra-Miner", NewCost
 	MiningRate:   25,
 	HullSlotType: HullSlotTypeMining,
 }
-var OrbitalAdjuster = TechHullComponent{Tech: NewTech("Orbital Adjuster", NewCost(25, 25, 25, 50), TechRequirements{TechLevel: TechLevel{Biotechnology: 6}, PRTsRequired: []PRT{CA}}, 70, TechCategoryMineRobot),
+var OrbitalAdjuster = TechHullComponent{Tech: NewTech("Orbital Adjuster", NewCost(25, 25, 25, 50), TechRequirements{TechLevel: TechLevel{Biotechnology: 6}, PRTsRequired: []PRT{CA}}, 0, TechCategoryMineRobot),
 
 	Mass:          80,
 	CloakUnits:    25,
