@@ -304,14 +304,14 @@ func (packet *MineralPacket) checkTerraform(rules *Rules, player *Player, planet
 				// if packet has less minerals remaining than 1 check size unit, reduce the packet chance accordingly
 				// this ensures that smaller packets can still terraform planets (albeit at a proportionally reduced rate)
 				terraformChance := player.Race.Spec.PacketTerraformChance * math.Min(
-				float64((mineral-uncaughtCheck)/player.Race.Spec.PacketPermaTerraformSizeUnit), 1)
-				
+					float64(mineral-uncaughtCheck)/float64(player.Race.Spec.PacketPermaTerraformSizeUnit), 1)
+
 				// Example math: 250kT packet with 50% chance per 100kT
 				// Loop 1 has chance 0.5 * min((250-0)/100, 1) = 0.5 * min(2.5, 1) = 0.5
 				// Loop 2 has chance 0.5 * min((250-100)/100, 1) = 0.5 * min(1.5, 1) = 0.5
 				// Loop 3 has chance 0.5 * min((250-200)/100, 1) = 0.5 * min(0.5, 1) = 0.25
 				// Loop 4 fails to execute as uncaughtCheck (300) is now larger than mineral (250)
-				
+
 				if terraformChance >= rules.random.Float64() {
 					if AbsInt(direction) >= t.getTerraformAbility(player).Get(habType) {
 						// if we can't terraform hab any further, skip any remaining checks for brevity
@@ -362,7 +362,7 @@ func (packet *MineralPacket) checkPermaform(rules *Rules, player *Player, planet
 				// if packet has less minerals remaining than 1 check size unit, reduce the packet chance accordingly
 				// this ensures that smaller packets can still terraform planets (albeit at a proportionally reduced rate)
 				permaformChance := player.Race.Spec.PacketPermaformChance * math.Min(
-				float64((mineral-uncaughtCheck)/player.Race.Spec.PacketPermaTerraformSizeUnit), 1)
+					float64((mineral-uncaughtCheck)/player.Race.Spec.PacketPermaTerraformSizeUnit), 1)
 
 				if permaformChance >= float64(rules.random.Float64()) {
 					// Permaform & keep track of result
