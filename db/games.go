@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 )
 
@@ -246,7 +247,8 @@ func (c *client) GetFullGame(id int64) (*cs.FullGame, error) {
 		return nil, fmt.Errorf("load players for game %w", err)
 	}
 
-	universe := cs.NewUniverse(&game.Rules)
+	universeLogger := log.With().Int64("GameID", game.ID).Str("GameName", game.Name).Logger()
+	universe := cs.NewUniverse(universeLogger, &game.Rules)
 
 	planets, err := c.getPlanetsForGame(game.ID)
 	if err != nil {

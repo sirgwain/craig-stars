@@ -3,8 +3,6 @@ package cs
 import (
 	"fmt"
 	"math"
-
-	"github.com/rs/zerolog/log"
 )
 
 // A user can have multiple races stored in the database. Each time a game is created, a Race is copied
@@ -79,8 +77,7 @@ func (rc ResearchCost) Get(field TechField) ResearchCostLevel {
 		return rc.Biotechnology
 	}
 
-	log.Error().Msgf("invalid field %s to get ResearchCost", field)
-	return ResearchCostStandard
+	panic(fmt.Sprintf("invalid field %s to get ResearchCost", field))
 }
 
 type RaceSpec struct {
@@ -1311,7 +1308,7 @@ func (race *Race) getPlanetHabForHabIndex(iterIndex int, habType HabType, loopIn
 	return planetHab, terraformOffset
 }
 
-// get leftover points for a race and the type of points to spend it on 
+// get leftover points for a race and the type of points to spend it on
 func (race *Race) ComputeLeftoverRacePoints(startingPoints int) (int, SpendLeftoverPointsOn) {
 	points := race.ComputeRacePoints(startingPoints)
 	if points < 0 {

@@ -6,8 +6,6 @@ import (
 	"strings"
 
 	"slices"
-
-	"github.com/rs/zerolog/log"
 )
 
 // Fleets are made up of ships, and each ship has a design. Players start with designs created
@@ -168,12 +166,7 @@ func (sd *ShipDesign) WithSpec(rules *Rules, player *Player) *ShipDesign {
 	var err error
 	sd.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, sd)
 	if err != nil {
-		log.Error().
-			Err(err).
-			Int("Num", sd.Num).
-			Int("PlayerNum", player.Num).
-			Str("Name", sd.Name).
-			Msg("ComputeShipDesignSpec returned error")
+		panic(fmt.Sprintf("failed to ComputeShipDesignSpec %v", err))
 	}
 	return sd
 }
@@ -297,13 +290,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 	var err error
 	spec.Cost, err = c.GetDesignCost(rules, techLevels, raceSpec, design)
 	if err != nil {
-		log.Error().
-			Err(err).
-			Int64("GameID", rules.GameID).
-			Int("Num", design.Num).
-			Int("Design Num", design.Num).
-			Msgf("GetDesignCost returned error: %s", err)
-		return ShipDesignSpec{}, fmt.Errorf("computeShipDesignSpec failed to get design cost; error %s", err)
+		return ShipDesignSpec{}, fmt.Errorf("failed to get design cost %w", err)
 	}
 
 	// count the number of each type of battle component we have

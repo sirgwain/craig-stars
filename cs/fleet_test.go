@@ -650,7 +650,7 @@ func TestFleet_moveFleet(t *testing.T) {
 			}
 			universe.buildMaps([]*Player{player})
 
-			tt.fleet.moveFleet(&rules, &universe, newTestPlayerGetter(player))
+			tt.fleet.moveFleet(testLogger, &rules, &universe, newTestPlayerGetter(player))
 
 			assert.Equal(t, tt.want.position, tt.fleet.Position)
 			assert.Equal(t, tt.want.position, tt.fleet.Waypoints[0].Position)
@@ -711,7 +711,7 @@ func TestFleet_moveFleetEngineFailure(t *testing.T) {
 			rules := NewRules()
 			rules.random = tt.args.random
 
-			tt.fleet.moveFleet(&rules, &universe, newTestPlayerGetter(player))
+			tt.fleet.moveFleet(testLogger, &rules, &universe, newTestPlayerGetter(player))
 
 			assert.Equal(t, tt.want.position, tt.fleet.Position)
 		})
@@ -1291,7 +1291,7 @@ func TestFleet_repairFleet(t *testing.T) {
 				tt.args.fleet.OrbitingPlanetNum = tt.args.planet.Num
 			}
 
-			tt.args.fleet.repairFleet(&rules, &p, tt.args.planet)
+			tt.args.fleet.repairFleet(testLogger, &rules, &p, tt.args.planet)
 
 			for i := range tt.args.fleet.Tokens {
 				token := tt.args.fleet.Tokens[i]
@@ -1329,7 +1329,7 @@ func TestFleet_repairStarbase(t *testing.T) {
 			starbase.Tokens[0].Damage = tt.args.damage
 			starbase.Tokens[0].design.Spec.Armor = tt.args.armor
 
-			starbase.repairStarbase(&rules, player)
+			starbase.repairStarbase(testLogger, &rules, player)
 
 			if starbase.Tokens[0].Damage != tt.want {
 				t.Errorf("Fleet.repairStarbase() got = %v, want %v", starbase.Tokens[0].Damage, tt.want)

@@ -217,7 +217,8 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 			return err
 		}
 
-		universe := cs.NewUniverse(&game.Rules)
+		universeLogger := log.With().Int64("GameID", game.ID).Str("GameName", game.Name).Logger()
+		universe := cs.NewUniverse(universeLogger, &game.Rules)
 		fullGame = &cs.FullGame{
 			Game:      game,
 			Universe:  &universe,

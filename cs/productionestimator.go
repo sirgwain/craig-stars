@@ -2,6 +2,8 @@ package cs
 
 import (
 	"math"
+
+	"github.com/rs/zerolog/log"
 )
 
 // The CompletionEstimator is used for populating completion estimates in a planet's production queue
@@ -61,7 +63,7 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 
 	// keep track of items built so we know how many auto items are completed
 	numBuilt := make([]int, len(planet.ProductionQueue))
-	producer := newProducer(rules, &planet, player)
+	producer := newProducer(log.Logger, rules, &planet, player)
 	for year := 1; year <= 100; year++ {
 		// mine for minerals
 		planet.mine(rules)

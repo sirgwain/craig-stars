@@ -300,7 +300,7 @@ func (o *orders) TransferSalvageCargo(rules *Rules, player *Player, source *Flee
 	source.Spec = ComputeFleetSpec(rules, player, source)
 
 	// make our player aware of this salvage
-	discover := newDiscoverer(player)
+	discover := newDiscoverer(log.Logger, player)
 	discover.discoverSalvage(dest)
 
 	log.Info().

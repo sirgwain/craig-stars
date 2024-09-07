@@ -3,8 +3,6 @@ package cs
 import (
 	"fmt"
 	"math"
-
-	"github.com/rs/zerolog/log"
 )
 
 // Planets are the only static and constant MapObject. They don't move and they can't be destroyed.
@@ -312,9 +310,6 @@ func randomizeMinerals(rules *Rules, rad int) Mineral {
 
 // Initialize a planet to be a homeworld for a player with ideal hab, starting mineral concentration, etc
 func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet StartingPlanet, concentration Mineral, surface Mineral) {
-
-	log.Debug().Msgf("Assigning %s to %s as homeworld", p, player)
-
 	p.Homeworld = startingPlanet.Homeworld
 
 	p.RandomArtifact = false // no random artifacts on the homeworld

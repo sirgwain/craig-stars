@@ -5,8 +5,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"time"
-
-	"github.com/rs/zerolog/log"
 )
 
 type Tags map[string]string
@@ -392,7 +390,6 @@ func (fg *FullGame) GetNumHumanPlayers() int {
 	return count
 }
 
-
 // compute all the various "specs" in the game. Called before and after turn generation
 func (g *FullGame) computeSpecs() error {
 
@@ -402,7 +399,6 @@ func (g *FullGame) computeSpecs() error {
 	for _, player := range g.Players {
 		player.Race.Spec = computeRaceSpec(&player.Race, rules)
 		player.Spec = computePlayerSpec(player, rules, g.Planets)
-		log.Debug().Msgf("computing specs for %v %s", player, player.Race.PluralName)
 
 		for _, design := range player.Designs {
 			if design.OriginalPlayerNum != None {

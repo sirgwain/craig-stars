@@ -3,8 +3,6 @@ package cs
 import (
 	"math"
 	"sort"
-
-	"github.com/rs/zerolog/log"
 )
 
 type battleWeaponType int
@@ -155,7 +153,6 @@ func (weapon *battleWeaponSlot) getAttractiveness(target *battleToken) float64 {
 
 	cost := target.cost
 	attractiveNess := float64(cost.Boranium+cost.Resources) / float64(defense)
-	log.Debug().Msgf("weapon %s attractiveness to %s = %f", weapon.slot.HullComponent, target.designName, attractiveNess)
 	return attractiveNess
 }
 
