@@ -292,7 +292,7 @@ func Test_computeFleetSpec(t *testing.T) {
 			},
 		}}, FleetSpec{
 			ShipDesignSpec: ShipDesignSpec{
-				Cost:           Cost{16, 2, 7, 19},
+				Cost:           Cost{15, 2, 7, 19},
 				FuelCapacity:   300,
 				ReduceCloaking: 1,
 				ScanRange:      66,
@@ -332,7 +332,7 @@ func Test_computeFleetSpec(t *testing.T) {
 		}}, FleetSpec{
 			ShipDesignSpec: ShipDesignSpec{
 				Starbase:       true,
-				Cost:           Cost{122, 263, 236, 752},
+				Cost:           Cost{114, 150, 228, 624},
 				Mass:           48,
 				Armor:          500,
 				Shields:        400,
@@ -480,7 +480,7 @@ func Test_computeFleetSpec(t *testing.T) {
 			},
 		}}, FleetSpec{
 			ShipDesignSpec: ShipDesignSpec{
-				Cost:           Cost{22, 45, 10, 43},
+				Cost:           Cost{22, 43, 9, 42},
 				FuelCapacity:   120,
 				Mass:           112,
 				Armor:          50,
@@ -518,7 +518,7 @@ func Test_computeFleetSpec(t *testing.T) {
 			},
 		}}, FleetSpec{
 			ShipDesignSpec: ShipDesignSpec{
-				Cost:           Cost{22, 45, 10, 43}.MultiplyInt(2),
+				Cost:           Cost{22, 43, 9, 42}.MultiplyInt(2),
 				FuelCapacity:   120 * 2,
 				Mass:           112 * 2,
 				Armor:          50 * 2,
@@ -1367,11 +1367,11 @@ func TestFleet_getFuelGeneration(t *testing.T) {
 	player := NewPlayer(1, NewRace().WithSpec(&rules)).withSpec(&rules)
 	fuelMizerScout := testLongRangeScout(player)
 	fuelMizerScout.Tokens[0].design.Slots[0].HullComponent = FuelMizer.Name
-	fuelMizerScout.Tokens[0].design.Spec = ComputeShipDesignSpec(&rules, player.TechLevels, player.Race.Spec, fuelMizerScout.Tokens[0].design)
+	fuelMizerScout.Tokens[0].design.Spec, _ = ComputeShipDesignSpec(&rules, player.TechLevels, player.Race.Spec, fuelMizerScout.Tokens[0].design)
 	fuelMizerScout.Spec = ComputeFleetSpec(&rules, player, fuelMizerScout)
 	fuelMizerScoutX2 := testLongRangeScout(player)
 	fuelMizerScoutX2.Tokens[0].design.Slots[0].HullComponent = FuelMizer.Name
-	fuelMizerScoutX2.Tokens[0].design.Spec = ComputeShipDesignSpec(&rules, player.TechLevels, player.Race.Spec, fuelMizerScoutX2.Tokens[0].design)
+	fuelMizerScoutX2.Tokens[0].design.Spec, _ = ComputeShipDesignSpec(&rules, player.TechLevels, player.Race.Spec, fuelMizerScoutX2.Tokens[0].design)
 	fuelMizerScoutX2.Tokens[0].Quantity = 2
 	fuelMizerScoutX2.Spec = ComputeFleetSpec(&rules, player, fuelMizerScoutX2)
 

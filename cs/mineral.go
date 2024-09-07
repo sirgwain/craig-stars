@@ -12,12 +12,12 @@ type Mineral struct {
 	Germanium int `json:"germanium,omitempty"`
 }
 
-type MineralType int
+type MineralType = ResourceType
 
 var MineralTypes = [3]MineralType{
-	MineralType(Ironium),
-	MineralType(Boranium),
-	MineralType(Germanium),
+	Ironium,
+	Boranium,
+	Germanium,
 }
 
 func NewMineral(values [3]int) Mineral {
@@ -48,11 +48,11 @@ func (c Mineral) PrettyString() string {
 
 func (h *Mineral) Set(mineralType MineralType, value int) *Mineral {
 	switch mineralType {
-	case MineralType(Ironium):
+	case Ironium:
 		h.Ironium = value
-	case MineralType(Boranium):
+	case Boranium:
 		h.Boranium = value
-	case MineralType(Germanium):
+	case Germanium:
 		h.Germanium = value
 	}
 	return h

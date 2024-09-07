@@ -13,9 +13,8 @@ const NoGate = -1
 const InfiniteGate = math.MaxInt32
 const Infinite = -1
 
-// The TechStore contains all techs in the game. Eventually these will be user modifyable and
-// referenced per game, but for now all games use the StaticTechStore, which contains the default Stars!
-// techs.
+// The TechStore contains all techs in the game. Eventually these will be user modifiable and
+// referenced per game, but for now all games use the StaticTechStore, which contains the default Stars! techs.
 type TechStore struct {
 	Engines                  []TechEngine                          `json:"engines"`
 	PlanetaryScanners        []TechPlanetaryScanner                `json:"planetaryScanners"`
@@ -445,7 +444,7 @@ func (store *TechStore) GetBestFuelTank(player *Player) *TechHullComponent {
 	return bestTech
 }
 
-// get the player's best cargo pod
+// get the best cargo pod for a player
 func (store *TechStore) GetBestCargoPod(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
@@ -459,7 +458,7 @@ func (store *TechStore) GetBestCargoPod(player *Player) *TechHullComponent {
 	return bestTech
 }
 
-// get the player's best colonization module
+// get the best colony module for a player
 func (store *TechStore) GetBestColonizationModule(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
@@ -473,7 +472,7 @@ func (store *TechStore) GetBestColonizationModule(player *Player) *TechHullCompo
 	return bestTech
 }
 
-// get the player's best battle computer
+// get the best battle computer for a player
 func (store *TechStore) GetBestBattleComputer(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
@@ -557,7 +556,7 @@ func (store *TechStore) GetBestMineLayer(player *Player, mineFieldType MineField
 	return bestTech
 }
 
-// get the player's best packet thrower
+// get the best packet thrower for a player
 func (store *TechStore) GetBestPacketThrower(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
@@ -571,7 +570,7 @@ func (store *TechStore) GetBestPacketThrower(player *Player) *TechHullComponent 
 	return bestTech
 }
 
-// get the player's best stargate
+// get the best stargate for a player
 func (store *TechStore) GetBestStargate(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
@@ -1532,24 +1531,24 @@ var UltraStealthCloak = TechHullComponent{Tech: NewTech("Ultra-Stealth Cloak", N
 }
 var BattleComputer = TechHullComponent{Tech: NewTech("Battle Computer", NewCost(0, 0, 15, 6), TechRequirements{TechLevel: TechLevel{}}, 40, TechCategoryElectrical),
 
-	Mass:            1,
-	InitiativeBonus: 1,
-	TorpedoBonus:    .2,
-	HullSlotType:    HullSlotTypeElectrical,
+	Mass:                   1,
+	InitiativeBonus:        1,
+	TorpedoBonus:           .2,
+	HullSlotType:           HullSlotTypeElectrical,
 }
 var BattleSuperComputer = TechHullComponent{Tech: NewTech("Battle Super Computer", NewCost(0, 0, 25, 14), TechRequirements{TechLevel: TechLevel{Energy: 5, Electronics: 11}}, 50, TechCategoryElectrical),
 
-	Mass:            1,
-	InitiativeBonus: 2,
-	TorpedoBonus:    .3,
-	HullSlotType:    HullSlotTypeElectrical,
+	Mass:                   1,
+	InitiativeBonus:        2,
+	TorpedoBonus:           .3,
+	HullSlotType:           HullSlotTypeElectrical,
 }
 var BattleNexus = TechHullComponent{Tech: NewTech("Battle Nexus", NewCost(0, 0, 30, 15), TechRequirements{TechLevel: TechLevel{Energy: 10, Electronics: 19}}, 60, TechCategoryElectrical),
 
-	Mass:            1,
-	InitiativeBonus: 3,
-	TorpedoBonus:    .5,
-	HullSlotType:    HullSlotTypeElectrical,
+	Mass:                   1,
+	InitiativeBonus:        3,
+	TorpedoBonus:           .5,
+	HullSlotType:           HullSlotTypeElectrical,
 }
 var Jammer10 = TechHullComponent{Tech: NewTech("Jammer 10", NewCost(0, 0, 2, 6), TechRequirements{TechLevel: TechLevel{Energy: 2, Electronics: 6}, PRTsRequired: []PRT{IS}}, 70, TechCategoryElectrical),
 
@@ -2060,7 +2059,7 @@ var WolverineDiffuseShield = TechHullComponent{Tech: NewTech("Wolverine Diffuse 
 	Shield:       60,
 	HullSlotType: HullSlotTypeShield,
 }
-var CrobySharmor = TechHullComponent{Tech: NewTech("Croby Sharmor", NewCost(7, 0, 4, 15), TechRequirements{TechLevel: TechLevel{Energy: 7, Construction: 4}, PRTsRequired: []PRT{IS}}, 40, TechCategoryShield),
+var CrobySharmor = TechHullComponent{Tech: NewTech("Croby Sharmor", NewCost(7, 0, 4, 15), TechRequirements{TechLevel: TechLevel{Energy: 7, Construction: 4}, PRTsRequired: []PRT{IS}}, 60, TechCategoryShield),
 
 	Mass:         10,
 	Shield:       60,
@@ -2074,7 +2073,7 @@ var ShadowShield = TechHullComponent{Tech: NewTech("Shadow Shield", NewCost(3, 0
 	CloakUnits:   70,
 	HullSlotType: HullSlotTypeShield,
 }
-var BearNeutrinoBarrier = TechHullComponent{Tech: NewTech("Bear Neutrino Barrier", NewCost(4, 0, 4, 8), TechRequirements{TechLevel: TechLevel{Energy: 10}}, 60, TechCategoryShield),
+var BearNeutrinoBarrier = TechHullComponent{Tech: NewTech("Bear Neutrino Barrier", NewCost(4, 0, 4, 8), TechRequirements{TechLevel: TechLevel{Energy: 10}}, 40, TechCategoryShield),
 
 	Mass:         1,
 	Shield:       100,
@@ -2596,7 +2595,7 @@ var SpaceDock = TechHull{Tech: NewTech("Space Dock", NewCost(20, 5, 25, 100), Te
 	Initiative:            12,
 	RangeBonus:            1,
 	Starbase:              true,
-	RepairBonus:           .03,     // 8% total repair rate
+	RepairBonus:           .15,     // 20% total repair rate
 	MaxPopulation:         500_000, // AR races can have a pop of up to 500k on this base
 	Slots: []TechHullSlot{
 		{Position: Vector{-1, -1}, Type: HullSlotTypeOrbitalElectrical, Capacity: 1},

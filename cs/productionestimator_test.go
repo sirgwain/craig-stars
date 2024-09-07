@@ -441,7 +441,10 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 			planet.Spec = computePlanetSpec(&rules, player, planet)
 			planet.ProductionQueue = tt.args.items
 
-			got, gotLeftover := e.GetProductionWithEstimates(&rules, player, *planet)
+			got, gotLeftover, err := e.GetProductionWithEstimates(&rules, player, *planet)
+			if err != nil {
+				t.Errorf("PopulateCompletionEstimates() returned error")
+			}
 			if !test.CompareAsJSON(t, got, tt.want) {
 				t.Errorf("PopulateCompletionEstimates() = \n%v, want \n%v", got, tt.want)
 			}

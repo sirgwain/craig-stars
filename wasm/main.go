@@ -44,6 +44,8 @@ func setRules(_ js.Value, args []js.Value) interface{} {
 	}
 
 	ctx.rules = wasm.GetRules(args[0])
+	// TODO: support loaded tech stores eventually
+	ctx.rules.SetTechStore(&cs.StaticTechStore)
 
 	return js.Undefined()
 }

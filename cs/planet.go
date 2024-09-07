@@ -196,10 +196,12 @@ func (p *Planet) PopulateProductionQueueDesigns(player *Player) error {
 }
 
 // populate the costs of each item in the planet production queue
-func (p *Planet) PopulateProductionQueueEstimates(rules *Rules, player *Player) {
+func (p *Planet) PopulateProductionQueueEstimates(rules *Rules, player *Player) error {
 	// populate completion estimates
 	completionEstimator := NewCompletionEstimator()
-	p.ProductionQueue, p.Spec.ResourcesPerYearResearchEstimatedLeftover = completionEstimator.GetProductionWithEstimates(rules, player, *p)
+	var err error
+	p.ProductionQueue, p.Spec.ResourcesPerYearResearchEstimatedLeftover, err = completionEstimator.GetProductionWithEstimates(rules, player, *p)
+	return err
 }
 
 func (p *Planet) reset() {

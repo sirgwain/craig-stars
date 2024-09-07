@@ -201,6 +201,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 		name string
 		args args
 		want ShipDesignSpec
+		wanterr bool
 	}{
 		{name: "Humanoid Starter Long Range Scout",
 			args: args{
@@ -218,7 +219,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				HullType:           TechHullTypeScout,
 				Engine:             LongHump6.Engine,
 				NumEngines:         1,
-				Cost:               Cost{18, 2, 7, 22},
+				Cost:               Cost{17, 2, 7, 22},
 				TechLevel:          TechLevel{Propulsion: 3, Electronics: 1},
 				Mass:               25,
 				Armor:              20,
@@ -233,7 +234,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				MovementFull:       4,
 				EstimatedRange:     2272,
 				EstimatedRangeFull: 2272,
-			},
+			}, wanterr: false,
 		},
 		{name: "Humanoid Starter Armed Probe",
 			args: args{
@@ -276,7 +277,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 						Quantity:      1,
 					},
 				},
-			},
+			}, wanterr: false,
 		},
 		{name: "Humanoid Starter Teamster",
 			args: args{
@@ -294,7 +295,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				HullType:           TechHullTypeFreighter,
 				Engine:             LongHump6.Engine,
 				NumEngines:         1,
-				Cost:               Cost{37, 0, 20, 63},
+				Cost:               Cost{36, 0, 20, 63},
 				TechLevel:          TechLevel{Propulsion: 3, Construction: 3},
 				Mass:               128,
 				Armor:              125,
@@ -310,7 +311,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				MovementFull:       2,
 				EstimatedRange:     1041,
 				EstimatedRangeFull: 394,
-			},
+			}, wanterr: false,
 		},
 		{name: "RS Shielded Destroyer",
 			args: args{
@@ -331,7 +332,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				HullType:       TechHullTypeFighter,
 				Engine:         LongHump6.Engine,
 				NumEngines:     1,
-				Cost:           Cost{34, 12, 24, 70},
+				Cost:           Cost{33, 11, 23, 67},
 				TechLevel:      TechLevel{Propulsion: 3, Construction: 3},
 				Mass:           127,
 				Armor:          225, // 200 + 50/2 for the RS armor negative
@@ -355,7 +356,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				},
 				EstimatedRange:     419,
 				EstimatedRangeFull: 419,
-			},
+			}, wanterr: false,
 		},
 		{name: "Battleship with multiple battle computers",
 			args: args{
@@ -374,7 +375,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				HullType:       TechHullTypeFighter,
 				Engine:         TransGalacticFuelScoop.Engine,
 				NumEngines:     4,
-				Cost:           Cost{100, 32, 76, 168},
+				Cost:           Cost{98, 28, 76, 168},
 				TechLevel:      TechLevel{Energy: 5, Weapons: 12, Propulsion: 9, Construction: 13, Electronics: 11},
 				Mass:           374,
 				Armor:          2000,
@@ -395,7 +396,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				},
 				EstimatedRange:     1497,
 				EstimatedRangeFull: 1497,
-			},
+			}, wanterr: false,
 		},
 		{name: "Battleship with multiple jammers",
 			args: args{
@@ -414,7 +415,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				HullType:       TechHullTypeFighter,
 				Engine:         TransGalacticFuelScoop.Engine,
 				NumEngines:     4,
-				Cost:           Cost{103, 32, 43, 174},
+				Cost:           Cost{98, 28, 43, 171},
 				TechLevel:      TechLevel{Energy: 4, Weapons: 12, Propulsion: 9, Construction: 13, Electronics: 10},
 				Mass:           374,
 				Armor:          2000,
@@ -435,7 +436,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				},
 				EstimatedRange:     1497,
 				EstimatedRangeFull: 1497,
-			},
+			}, wanterr: false,
 		},
 		{name: "Battleship with multiple deflectors",
 			args: args{
@@ -454,7 +455,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				HullType:       TechHullTypeFighter,
 				Engine:         TransGalacticFuelScoop.Engine,
 				NumEngines:     4,
-				Cost:           Cost{100, 32, 52, 156},
+				Cost:           Cost{98, 28, 52, 156},
 				TechLevel:      TechLevel{Energy: 6, Weapons: 12, Propulsion: 9, Construction: 13, Electronics: 6},
 				Mass:           374,
 				Armor:          2000,
@@ -475,7 +476,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				},
 				EstimatedRange:     1497,
 				EstimatedRangeFull: 1497,
-			},
+			}, wanterr: false,
 		},
 		{name: "Battleship with multiple capacitors",
 			args: args{
@@ -494,7 +495,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				HullType:       TechHullTypeFighter,
 				Engine:         TransGalacticFuelScoop.Engine,
 				NumEngines:     4,
-				Cost:           Cost{100, 32, 45, 153},
+				Cost:           Cost{98, 28, 44, 150},
 				TechLevel:      TechLevel{Energy: 14, Weapons: 12, Propulsion: 9, Construction: 13, Electronics: 8},
 				Mass:           372,
 				Armor:          2000,
@@ -514,7 +515,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				},
 				EstimatedRange:     1505,
 				EstimatedRangeFull: 1505,
-			},
+			}, wanterr: false,
 		},
 		{name: "Battleship with max capacitors",
 			args: args{
@@ -533,7 +534,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				HullType:       TechHullTypeFighter,
 				Engine:         TransGalacticFuelScoop.Engine,
 				NumEngines:     4,
-				Cost:           Cost{100, 32, 64, 162},
+				Cost:           Cost{98, 28, 58, 162},
 				TechLevel:      TechLevel{Energy: 14, Weapons: 12, Propulsion: 9, Construction: 13, Electronics: 8},
 				Mass:           374,
 				Armor:          2000,
@@ -553,7 +554,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				},
 				EstimatedRange:     1497,
 				EstimatedRangeFull: 1497,
-			},
+			}, wanterr: false,
 		},
 		{name: "Mini Bomber",
 			args: args{
@@ -570,7 +571,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				HullType:           TechHullTypeBomber,
 				Engine:             AlphaDrive8.Engine,
 				NumEngines:         1,
-				Cost:               Cost{34, 25, 12, 63},
+				Cost:               Cost{34, 24, 11, 62},
 				TechLevel:          TechLevel{Weapons: 2, Propulsion: 7, Construction: 1},
 				Mass:               85,
 				Armor:              50,
@@ -593,7 +594,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 						StructureDestroyRate: 2,
 					},
 				},
-			},
+			}, wanterr: false,
 		},
 		{name: "PP Starbase",
 			args: args{
@@ -613,7 +614,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 			},
 			want: ShipDesignSpec{
 				HullType:        TechHullTypeStarbase,
-				Cost:            Cost{160, 292, 286, 894},
+				Cost:            Cost{152, 196, 278, 782},
 				TechLevel:       TechLevel{Energy: 4},
 				Engine:          Engine{},
 				Mass:            48,
@@ -640,12 +641,29 @@ func TestComputeShipDesignSpec(t *testing.T) {
 					{HullComponent: Laser.Name, HullSlotIndex: 8, Quantity: 8},
 					{HullComponent: Laser.Name, HullSlotIndex: 10, Quantity: 8},
 				},
-			},
+			}, wanterr: false,
+		},
+		{
+			name: "Incorrect components on PP starbase",
+			args: args{
+				techLevels: TechLevel{4, 0, 0, 0, 0, 0},
+				raceSpec:   pps.Spec,
+				design: NewShipDesign(player, 1).
+					WithHull(SpaceStation.Name).
+					WithSlots([]ShipDesignSlot{
+						{HullComponent: "BANANA!!!!!!!!", HullSlotIndex: 10, Quantity: 8},
+					}),
+			}, 
+			want: ShipDesignSpec{}, // doesn't matter since want value ignored if error desired
+			wanterr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := ComputeShipDesignSpec(&rules, tt.args.techLevels, tt.args.raceSpec, tt.args.design); !test.CompareAsJSON(t, got, tt.want) {
+			got, err := ComputeShipDesignSpec(&rules, tt.args.techLevels, tt.args.raceSpec, tt.args.design)
+			if tt.wanterr && err == nil {
+				t.Errorf("ComputeShipDesignSpec() did not error when expected")
+			} else if !test.CompareAsJSON(t, got, tt.want) {
 				t.Errorf("ComputeShipDesignSpec() = %v, want %v", got, tt.want)
 			}
 		})

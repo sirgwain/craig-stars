@@ -325,7 +325,6 @@ func (ai *aiPlayer) getYearsToBuildStarbase(planet *cs.Planet, design *cs.ShipDe
 	yearlyAvailableToSpend := cs.FromMineralAndResources(planet.Spec.MiningOutput, planet.Spec.ResourcesPerYearAvailable)
 	costCalculator := cs.NewCostCalculator()
 	completionEstimator := cs.NewCompletionEstimator()
-
 	item := cs.ProductionQueueItem{Type: cs.QueueItemTypeStarbase, Quantity: 1, DesignNum: design.Num}
 	item.SetDesign(design)
 
@@ -333,15 +332,15 @@ func (ai *aiPlayer) getYearsToBuildStarbase(planet *cs.Planet, design *cs.ShipDe
 	var cost cs.Cost
 	if planet.Spec.HasStarbase {
 		existingStarbase := ai.GetDesign(planet.Starbase.Tokens[0].DesignNum)
-		cost = costCalculator.StarbaseUpgradeCost(existingStarbase, design)
+		cost, err = costCalculator.StarbaseUpgradeCost(&ai.game.Rules, ai.Player.TechLevels, ai.Player.Race.Spec, existingStarbase, design)
 	} else {
-		cost, err = costCalculator.CostOfOne(ai.Player, item)
-		if err != nil {
-			return math.MaxInt, fmt.Errorf("calculate starbase cost %w", err)
-		}
+		cost, err = costCalculator.GetDesignCost(&ai.game.Rules, ai.Player.TechLevels, ai.Player.Race.Spec, design)
 	}
+	if err != nil {
+		return math.MaxInt, fmt.Errorf("calculate starbase cost %w", err)
+	} 
 
-	// if we can complete this soon, queue it
+	// calculate how long it take to build 
 	yearsToBuild := completionEstimator.GetYearsToBuildOne(item, cost, planet.Spec.MiningOutput, yearlyAvailableToSpend)
 	// log.Debug().
 	// 	Int64("GameID", ai.GameID).

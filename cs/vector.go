@@ -70,7 +70,7 @@ func (v Vector) Round() Vector {
 // This returns what percent of the segment is NOT in the circle, or -1 if it doesn't
 // intersect
 // Who would have thought the godot developers would write a perfect function for determining if we collide with a minefield
-// while moving through space? 
+// while moving through space?
 // https://github.com/godotengine/godot/blob/4.1.2-stable/core/math/geometry_2d.h#L217
 func segmentIntersectsCircle(segmentFrom, segmentTo, circlePosition Vector, circleRadius float64) float64 {
 	lineVec := segmentTo.Subtract(segmentFrom)
@@ -87,7 +87,7 @@ func segmentIntersectsCircle(segmentFrom, segmentTo, circlePosition Vector, circ
 	sqrtterm := b*b - 4*a*c
 
 	// If the term we intend to square root is less than 0 then the answer won't be real,
-	// so it definitely won't be t in the range 0 to 1.
+	// so it definitely won't be in the range 0 to 1.
 	if sqrtterm < 0 {
 		return -1
 	}

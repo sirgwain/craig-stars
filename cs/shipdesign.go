@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"slices"
+
+	"github.com/rs/zerolog/log"
 )
 
 // Fleets are made up of ships, and each ship has a design. Players start with designs created
@@ -163,7 +165,16 @@ func (sd *ShipDesign) WithHullSetNumber(num int) *ShipDesign {
 
 // Compute the spec for this ShipDesign. This function is mostly for universe generation and tests
 func (sd *ShipDesign) WithSpec(rules *Rules, player *Player) *ShipDesign {
-	sd.Spec = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, sd)
+	var err error
+	sd.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, sd)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Int("Num", sd.Num).
+			Int("PlayerNum", player.Num).
+			Str("Name", sd.Name).
+			Msg("ComputeShipDesignSpec returned error")
+	}
 	return sd
 }
 
@@ -255,14 +266,19 @@ func (d *ShipDesign) getMovement(cargoMass int) int {
 	return getBattleMovement(d.Spec.Engine.IdealSpeed, d.Spec.MovementBonus, d.Spec.Mass+cargoMass, d.Spec.NumEngines)
 }
 
-func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design *ShipDesign) ShipDesignSpec {
+func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design *ShipDesign) (ShipDesignSpec, error) {
+
 	hull := rules.techs.GetHull(design.Hull)
+	if hull == nil {
+		return ShipDesignSpec{}, fmt.Errorf("failed to find hull %s in techstore", design.Hull)
+	}
+	c := NewCostCalculator()
 	spec := ShipDesignSpec{
 		Mass:                     hull.Mass,
 		Armor:                    hull.Armor,
 		FuelCapacity:             hull.FuelCapacity,
 		FuelGeneration:           hull.FuelGeneration,
-		Cost:                     hull.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset),
+		Cost:                     Cost{}, // will assign cost later with error handling
 		TechLevel:                hull.Requirements.TechLevel,
 		CargoCapacity:            hull.CargoCapacity,
 		CloakUnits:               raceSpec.BuiltInCloakUnits,
@@ -276,6 +292,18 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		MaxPopulation:            hull.MaxPopulation,
 		HullType:                 hull.Type,
 		InnateScanRangePenFactor: hull.InnateScanRangePenFactor,
+	}
+
+	var err error
+	spec.Cost, err = c.GetDesignCost(rules, techLevels, raceSpec, design)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Int64("GameID", rules.GameID).
+			Int("Num", design.Num).
+			Int("Design Num", design.Num).
+			Msgf("GetDesignCost returned error: %s", err)
+		return ShipDesignSpec{}, fmt.Errorf("computeShipDesignSpec failed to get design cost; error %s", err)
 	}
 
 	// count the number of each type of battle component we have
@@ -313,7 +341,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 				}
 				spec.MineSweep += slot.Quantity * component.Power * ((component.Range + hull.RangeBonus) * component.Range) * gattlingMultiplier
 			}
-			spec.Cost = spec.Cost.Add(component.Tech.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(slot.Quantity))
+
 			spec.TechLevel = spec.TechLevel.Max(component.Requirements.TechLevel)
 
 			spec.Mass += component.Mass * slot.Quantity
@@ -443,9 +471,9 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 	}
 
 	// ISB gives some special starbase bonuses
+	// Discount is already handled in cost function
 	if hull.Starbase {
 		spec.CloakUnits += raceSpec.BuiltInCloakUnits
-		spec.Cost = spec.Cost.MultiplyFloat64(raceSpec.StarbaseCostFactor)
 	}
 
 	// determine the safe speed for this design
@@ -566,7 +594,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 			spec.EstimatedRangeFull = int(float64(spec.FuelCapacity) / float64(fuelCostFor1klyFull) * 1000)
 		}
 	}
-	return spec
+	return spec, nil
 }
 
 // Compute the scan ranges for this ship design The formula is: (scanner1**4 + scanner2**4 + ...
