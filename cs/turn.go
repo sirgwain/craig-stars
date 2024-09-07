@@ -1408,8 +1408,11 @@ func (t *turn) planetProduction() error {
 	for _, planet := range t.game.Planets {
 		if planet.Owned() {
 			player := t.game.Players[planet.PlayerNum-1]
-			producer := newProducer(planet, player)
-			result := producer.produce()
+			producer := newProducer(&t.game.Rules, planet, player)
+			result, err := producer.produce()
+			if err != nil {
+				return err
+			}
 
 			// add any invalid messages we encountered
 			if len(result.messages) > 0 {
@@ -1590,7 +1593,7 @@ func (t *turn) buildMineralPacket(player *Player, planet *Planet, cargo Cargo, t
 	return packet
 }
 
-func (t *turn) playerResearch() {
+func (t *turn) playerResearch() error {
 	r := NewResearcher(&t.game.Rules)
 
 	// figure out how much each player can spend on research this turn
@@ -1719,12 +1722,16 @@ func (t *turn) playerResearch() {
 
 		// update design spec
 		for i := range player.Designs {
+			var err error
 			design := player.Designs[i]
 
-			// store the numBuilt/numInstances because they spec resets them to 0
+			// store the numBuilt/numInstances because the spec resets them to 0
 			numBuilt := design.Spec.NumBuilt
 			numInstances := design.Spec.NumInstances
-			design.Spec = ComputeShipDesignSpec(&t.game.Rules, player.TechLevels, player.Race.Spec, design)
+			design.Spec, err = ComputeShipDesignSpec(&t.game.Rules, player.TechLevels, player.Race.Spec, design)
+			if err != nil {
+				return fmt.Errorf("ComputeShipDesignSpec returned error %w", err)
+			}
 			design.Spec.NumBuilt = numBuilt
 			design.Spec.NumInstances = numInstances
 		}
@@ -1749,7 +1756,7 @@ func (t *turn) playerResearch() {
 		}
 		fleet.Spec = ComputeFleetSpec(&t.game.Rules, t.game.Players[fleet.PlayerNum-1], fleet)
 	}
-
+	return nil
 }
 
 // for each planet, randomly check if the owner permaforms it
@@ -2311,7 +2318,12 @@ func (t *turn) mysteryTraderMeet() error {
 						design.PlayerNum = player.Num
 						design.Num = num
 						design.GameDBObject = GameDBObject{}
-						design.Spec = ComputeShipDesignSpec(&t.game.Rules, player.TechLevels, player.Race.Spec, design)
+
+						var err error
+						design.Spec, err = ComputeShipDesignSpec(&t.game.Rules, player.TechLevels, player.Race.Spec, design)
+						if err != nil {
+							return fmt.Errorf("ComputeShipDesignSpec returned error %w", err)
+						}
 						player.Designs = append(player.Designs, design)
 						t.game.addDesign(design)
 					}

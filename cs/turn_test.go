@@ -257,7 +257,7 @@ func Test_generateTurns(t *testing.T) {
 	assert.Greater(t, universe.Planets[0].population(), player.Race.Spec.StartingPlanets[0].Population)
 
 	// should have built factories
-	assert.Greater(t, universe.Planets[0].Factories, game.Rules.StartingFactories)
+	assert.Greater(t, universe.Planets[0].Factories, player.Race.Spec.StartingPlanets[0].Factories)
 
 	// no victor
 	assert.False(t, player.Victor)
@@ -993,7 +993,7 @@ func Test_turn_fleetSweepMines(t *testing.T) {
 
 	// upgrade a mine sweeper weapon
 	fleet.Tokens[0].design.Slots[1].HullComponent = GatlingNeutrinoCannon.Name
-	fleet.Tokens[0].design.Spec = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, fleet.Tokens[0].design)
+	fleet.Tokens[0].design.Spec, _ = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, fleet.Tokens[0].design)
 	fleet.Spec = ComputeFleetSpec(rules, player, fleet)
 
 	// sweep mines
@@ -1203,7 +1203,7 @@ func Test_turn_fleetRadiatingEngineDieoff(t *testing.T) {
 
 	// add a radiating hydro ramscoop
 	design.Slots[0].HullComponent = RadiatingHydroRamScoop.Name
-	design.Spec = ComputeShipDesignSpec(&rules, player.TechLevels, player.Race.Spec, design)
+	design.Spec, _ = ComputeShipDesignSpec(&rules, player.TechLevels, player.Race.Spec, design)
 	fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
 
 	// generate turn to simulate die off

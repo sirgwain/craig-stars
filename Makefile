@@ -9,8 +9,8 @@ BUILDTIME=$$(date +'%y.%m.%d %H:%M:%S')
 build: build_frontend tidy vendor generate build_server
 
 build_frontend:
-	cd frontend; npm install
-	cd frontend; npm run build
+	cd frontend && npm install
+	cd frontend && npm run build
 
 build_server:
 	mkdir -p dist
@@ -22,6 +22,14 @@ build_server:
 	-X 'github.com/sirgwain/craig-stars/cmd.buildTime=${BUILDTIME}'" \
 	main.go
 
+build_wasm:
+	mkdir -p frontend/src/lib/wasm
+	GOOS=js GOARCH=wasm \
+	go build \
+	-o frontend/src/lib/wasm/cs.wasm \
+	wasm/main.go
+	cp $(shell go env GOROOT)/misc/wasm/wasm_exec.js ./frontend/src/lib/wasm/wasm_exec.js
+
 # use docker to build an amd64 image for linux deployment
 build_docker:
 	docker build -f builder.Dockerfile --platform linux/amd64 . -t craig-stars-builder
@@ -32,7 +40,7 @@ generate:
 
 test:
 	go test ./...
-	cd frontend; npm run test
+	cd frontend && npm run test
 
 clean:
 	go clean
@@ -49,7 +57,7 @@ vendor:
 	go mod vendor
 
 dev_frontend:
-	cd frontend; npm run dev
+	cd frontend && npm run dev
 
 dev_backend:
 	air

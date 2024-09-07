@@ -9,12 +9,13 @@ import (
 
 // The producer interface performs planetary production
 type producer interface {
-	produce() productionResult
+	produce() (productionResult, error)
 }
 
 // create a new planet production object
-func newProducer(planet *Planet, player *Player) producer {
+func newProducer(rules *Rules, planet *Planet, player *Player) producer {
 	return &production{
+		rules:     rules,
 		planet:    planet,
 		player:    player,
 		estimator: NewCompletionEstimator(),
@@ -22,6 +23,7 @@ func newProducer(planet *Planet, player *Player) producer {
 }
 
 type production struct {
+	rules     *Rules
 	planet    *Planet
 	player    *Player
 	estimator CompletionEstimator
@@ -171,24 +173,54 @@ type builtShip struct {
 }
 
 // produce all items in the production queue
-func (p *production) produce() productionResult {
+func (p *production) produce() (productionResult, error) {
 	planet := p.planet
-
 	costCalculator := NewCostCalculator()
-	productionResult := productionResult{}
+	result := productionResult{}
 	available := Cost{Resources: planet.Spec.ResourcesPerYearAvailable}.AddCargoMinerals(planet.Cargo)
 	newQueue := []ProductionQueueItem{}
 	for itemIndex := range planet.ProductionQueue {
 		item := planet.ProductionQueue[itemIndex]
 		maxBuildable := planet.maxBuildable(p.player, item.Type)
+		var err error
 		var cost Cost
 		if item.Type == QueueItemTypeStarbase && planet.Spec.HasStarbase {
-			cost = costCalculator.StarbaseUpgradeCost(planet.Starbase.Tokens[0].design, item.design)
+			cost, err = costCalculator.StarbaseUpgradeCost(p.rules, p.player.TechLevels, p.player.Race.Spec, planet.Starbase.Tokens[0].design, item.design)
+			if err != nil {
+				log.Error().
+					Err(err).
+					Int64("GameID", p.rules.GameID).
+					Int("Num", item.design.Num).
+					Int("Player Num", p.player.Num).
+					Int("Old Design Num", planet.Starbase.Tokens[0].design.Num).
+					Int("New Design Num", item.design.Num).
+					Msgf("StarbaseUpgradeCost returned error: %s", err)
+				return productionResult{}, fmt.Errorf("failed to compute starbase upgrade cost")
+			}
+		} else if item.Type == QueueItemTypeStarbase || item.Type == QueueItemTypeShipToken {
+			cost, err = costCalculator.GetDesignCost(p.rules, p.player.TechLevels, p.player.Race.Spec, item.design)
+			if err != nil {
+				log.Error().
+					Err(err).
+					Int64("GameID", p.rules.GameID).
+					Int("Num", item.design.Num).
+					Int("Player Num", p.player.Num).
+					Int("Design Num", item.design.Num).
+					Msgf("GetDesignCost returned error: %s", err)
+				return productionResult{}, fmt.Errorf("failed to get design cost")
+			}
 		} else {
-			var err error
 			cost, err = costCalculator.CostOfOne(p.player, item)
 			if err != nil {
-				// return nil, err
+				log.Error().
+					Err(err).
+					Int64("GameID", p.rules.GameID).
+					Int("Num", item.design.Num).
+					Int("Player Num", p.player.Num).
+					Str("Item Type", string(item.Type)).
+					Int("Item Quantity", item.Quantity).
+					Msgf("CostOfOnr returned error: %s", err)
+				return productionResult{}, fmt.Errorf("failed to compute cost of %s", item.Type)
 			}
 		}
 
@@ -200,12 +232,12 @@ func (p *production) produce() productionResult {
 		// check for auto items we should skip
 		// we skip auto items if we can't build any more because we don't have the minerals
 		if item.Type.IsAuto() && (maxBuildable <= 0 || available.DivideByMineral(cost.ToMineral()) < 1) {
-			productionResult.itemsBuilt = append(productionResult.itemsBuilt, itemBuilt{index: item.index, skipped: true})
+			result.itemsBuilt = append(result.itemsBuilt, itemBuilt{index: item.index, skipped: true})
 			newQueue = append(newQueue, item)
 
 			// we skipped the last item in the queue, so we're done
 			if itemIndex == len(planet.ProductionQueue)-1 {
-				productionResult.completed = true
+				result.completed = true
 			}
 			continue
 		}
@@ -213,8 +245,8 @@ func (p *production) produce() productionResult {
 		// make sure this item is buildable, and if not, send the player a message and move on.
 		if message, valid := p.validateItem(item, maxBuildable, planet); !valid {
 			// skip this item and remove it from the queue
-			productionResult.messages = append(productionResult.messages, message)
-			productionResult.itemsBuilt = append(productionResult.itemsBuilt, itemBuilt{index: item.index, never: true})
+			result.messages = append(result.messages, message)
+			result.itemsBuilt = append(result.itemsBuilt, itemBuilt{index: item.index, never: true})
 			continue
 		}
 
@@ -234,15 +266,15 @@ func (p *production) produce() productionResult {
 			p.addPlanetaryInstallations(item, numBuilt)
 
 			if item.Type.IsTerraform() {
-				productionResult.terraformResults = append(productionResult.terraformResults, p.terraformPlanet(numBuilt)...)
+				result.terraformResults = append(result.terraformResults, p.terraformPlanet(numBuilt)...)
 			}
 
-			p.updateProductionResult(item, numBuilt, cost, &productionResult)
+			p.updateProductionResult(item, numBuilt, cost, &result)
 
 			// if we built mineral alchemy, add it back in to our available amount
-			available = available.Add(productionResult.alchemy.ToCost())
+			available = available.Add(result.alchemy.ToCost())
 
-			productionResult.itemsBuilt = append(productionResult.itemsBuilt, itemBuilt{index: item.index, queueItemType: item.Type, designNum: item.DesignNum, numBuilt: numBuilt})
+			result.itemsBuilt = append(result.itemsBuilt, itemBuilt{index: item.index, queueItemType: item.Type, designNum: item.DesignNum, numBuilt: numBuilt})
 
 			// planets are ending up with negative minerals. Trying to figure out why...
 			if available.MinZero() != available {
@@ -252,7 +284,7 @@ func (p *production) produce() productionResult {
 					Str("Name", planet.Name).
 					Str("Cargo", fmt.Sprintf("%+v", planet.Cargo)).
 					Str("ProductionQueue", fmt.Sprintf("%+v", planet.ProductionQueue)).
-					Str("itemResult", fmt.Sprintf("%+v", productionResult)).
+					Str("itemResult", fmt.Sprintf("%+v", result)).
 					Msgf("available minerals and resources went negative - available: %+v", available)
 				available = available.MinZero()
 			}
@@ -260,7 +292,7 @@ func (p *production) produce() productionResult {
 
 		if itemIndex == len(planet.ProductionQueue)-1 && (numBuilt >= item.Quantity || numBuilt >= maxBuildable) {
 			// we built all of the last item in the queue, we're all done
-			productionResult.completed = true
+			result.completed = true
 			if item.Type.IsAuto() {
 				// append the unfinished queue back to the end of our remaining items
 				newQueue = append(newQueue, planet.ProductionQueue[itemIndex:]...)
@@ -315,8 +347,8 @@ func (p *production) produce() productionResult {
 				break
 			}
 		}
-	}
 
+	}
 	// replace the queue with what's leftover
 	planet.ProductionQueue = newQueue
 	planet.Cargo = Cargo{available.Ironium, available.Boranium, available.Germanium, planet.Cargo.Colonists}
@@ -326,14 +358,14 @@ func (p *production) produce() productionResult {
 			Int64("ID", planet.ID).
 			Str("Name", planet.Name).
 			Str("Cargo", fmt.Sprintf("%+v", planet.Cargo)).
-			Str("productionResult", fmt.Sprintf("%+v", productionResult)).
+			Str("productionResult", fmt.Sprintf("%+v", result)).
 			Msgf("planet cargo was negative after production: %s", planet.Cargo.PrettyString())
 		// planet.Cargo = planet.Cargo.MinZero()
 	}
 
 	// any leftover resources go back to the player for research
-	productionResult.leftoverResources = available.Resources
-	return productionResult
+	result.leftoverResources = available.Resources
+	return result, nil
 }
 
 // for things that are built on the planet (mines, factories, etc) add them
@@ -400,12 +432,14 @@ func (p *production) getNumBuilt(item ProductionQueueItem, cost, availableToSpen
 	availableToSpend = availableToSpend.Add(item.Allocated)
 	item.Allocated = Cost{}
 
-	if (cost != Cost{}) {
-		// figure out how many we can build
-		// and make sure we only build up to the quantity, and we don't build more than the planet supports
-		numBuilt = MaxInt(0, MinInt(item.Quantity, maxBuildable, availableToSpend.NumBuildable(cost)))
-		spent = cost.MultiplyInt(numBuilt)
+	if cost == (Cost{}) {
+		return MinInt(item.Quantity, maxBuildable), Cost{}
 	}
+
+	// figure out how many we can build
+	// and make sure we only build up to the quantity, and we don't build more than the planet supports
+	numBuilt = MaxInt(0, MinInt(item.Quantity, maxBuildable, availableToSpend.NumBuildable(cost)))
+	spent = cost.MultiplyInt(numBuilt)
 
 	return numBuilt, spent
 }
@@ -444,7 +478,7 @@ func (p *production) updateProductionResult(item ProductionQueueItem, numBuilt i
 	case QueueItemTypeGermaniumMineralPacket:
 		// add this packet cargo to the production result
 		// so it can be added as packets to the universe later
-		cargo := cost.MultiplyInt(numBuilt).ToCargo()
+		cargo := cost.MultiplyFloat64(1 / p.player.Race.Spec.PacketMineralCostFactor).MultiplyInt(numBuilt).ToCargo()
 		result.packets = append(result.packets, cargo)
 	case QueueItemTypeShipToken:
 		result.tokens = append(result.tokens, builtShip{ShipToken: ShipToken{Quantity: numBuilt, design: item.design, DesignNum: item.DesignNum}, tags: item.Tags})

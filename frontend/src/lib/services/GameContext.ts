@@ -42,12 +42,14 @@ import { PlayerService } from './PlayerService';
 import { ProductionPlanService } from './ProductionPlanService';
 import { TransportPlanService } from './TransportPlanService';
 import { Universe } from './Universe';
+import type { CS } from '$lib/wasm';
 
 export const playerFinderKey = Symbol();
 export const designFinderKey = Symbol();
 export const gameKey = Symbol();
 
 export type GameContext = {
+	cs: CS;
 	game: Readable<FullGame>;
 	player: Readable<Player>;
 	universe: Readable<Universe>;
@@ -130,7 +132,12 @@ export type GameContext = {
 export const getGameContext = () => getContext<GameContext>(gameKey);
 
 // update the game context after a load
-export function createGameContext(fg: FullGame): GameContext {
+export function createGameContext(cs: CS, fg: FullGame): GameContext {
+	// setup initial wasm state
+	cs.setRules(fg.rules);
+	cs.setPlayer(fg.player);
+	cs.setDesigns(fg.universe.getMyDesigns());
+
 	const gameId = fg.id;
 	const unsubscribers: Unsubscriber[] = [];
 
@@ -180,6 +187,9 @@ export function createGameContext(fg: FullGame): GameContext {
 		settings.subscribe((value) => {
 			value.beforeSave();
 			localStorage.setItem(value.key, JSON.stringify(value));
+		}),
+		player.subscribe((value) => {
+			cs.setPlayer(value);
 		})
 	);
 
@@ -766,14 +776,20 @@ export function createGameContext(fg: FullGame): GameContext {
 	async function createDesign(design: ShipDesign): Promise<ShipDesign> {
 		// update this design
 		design = await DesignService.create(gameId, design);
-		universe.set(get(universe).addDesign(design));
+		const u = get(universe);
+		u.addDesign(design);
+		cs.setDesigns(u.getMyDesigns());
+		universe.set(u);
 		return design;
 	}
 
 	async function updateDesign(design: ShipDesign): Promise<void> {
 		// update this design
 		design = await DesignService.update(gameId, design);
-		universe.set(get(universe).updateDesign(design));
+		const u = get(universe);
+		u.updateDesign(design);
+		cs.setDesigns(u.getMyDesigns());
+		universe.set(u);
 	}
 
 	async function deleteDesign(num: number): Promise<void> {
@@ -787,6 +803,7 @@ export function createGameContext(fg: FullGame): GameContext {
 		u.resetMyMapObjectsByPosition();
 
 		u.designs = u.designs.filter((d) => d.num != num);
+		cs.setDesigns(u.getMyDesigns());
 		universe.set(u);
 
 		// reset our view to the homeworld, in case the commanded fleet had our deleted design
@@ -907,6 +924,7 @@ export function createGameContext(fg: FullGame): GameContext {
 	}
 
 	return {
+		cs,
 		game,
 		player,
 		universe,

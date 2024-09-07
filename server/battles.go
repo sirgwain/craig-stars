@@ -1,8 +1,11 @@
+//go:build !wasi && !wasm
+
 package server
 
 import (
 	"net/http"
 
+	"github.com/go-chi/render"
 	"github.com/go-pkgz/rest"
 	"github.com/sirgwain/craig-stars/cs"
 )
@@ -238,6 +241,10 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 			},
 		}}
 
-	record := cs.RunTestBattle([]*cs.Player{player1, player2}, fleets)
+	record, err := cs.RunTestBattle([]*cs.Player{player1, player2}, fleets)
+	if err != nil {
+		render.Render(w, r, ErrBadRequest(err))
+		return
+	}
 	rest.RenderJSON(w, rest.JSON{"player": player1, "battle": record, "fleets": fleets})
 }

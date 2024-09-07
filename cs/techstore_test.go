@@ -50,3 +50,26 @@ func TestTechStore_GetHullComponentsByCategory(t *testing.T) {
 		})
 	}
 }
+
+func TestTechStore_GetBestEngine(t *testing.T) {
+	type args struct {
+		player  *Player
+		hull    *TechHull
+		purpose FleetPurpose
+	}
+	tests := []struct {
+		name string
+		args args
+		want *TechEngine
+	}{
+		{"Base scout", args{testPlayer(), &Scout, FleetPurposeScout}, &QuickJump5},
+		{"Mini Colonizer", args{NewPlayer(0, NewRace().WithPRT(HE).WithSpec(&rules)).withSpec(&rules), &MiniColonyShip, FleetPurposeColonizer}, &SettlersDelight},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := StaticTechStore.GetBestEngine(tt.args.player, tt.args.hull, tt.args.purpose); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("TechStore.GetBestEngine() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

@@ -47,7 +47,7 @@ func (st *ShipToken) applyMineDamage(damage int) tokenDamage {
 // Apply damage (if any) to each token that overgated
 func (st *ShipToken) applyOvergateDamage(dist float64, safeRange int, safeSourceMass int, safeDestMass int, maxMassFactor int) tokenDamage {
 	rangeDamageFactor := st.getStargateRangeDamageFactor(dist, safeRange)
-	massDamageFactor := st.getStargateMassDamageFactor(dist, safeSourceMass, safeDestMass, maxMassFactor)
+	massDamageFactor := st.getStargateMassDamageFactor(safeSourceMass, safeDestMass, maxMassFactor)
 
 	totalDamageFactor := math.Min(0.98, massDamageFactor+(1.0-massDamageFactor)*rangeDamageFactor)
 
@@ -84,7 +84,7 @@ func (t *ShipToken) getStargateRangeDamageFactor(dist float64, safeRange int) fl
 	return rangeDamageFactor
 }
 
-func (t *ShipToken) getStargateMassDamageFactor(dist float64, safeSourceMass int, safeDestMass int, maxMassFactor int) float64 {
+func (t *ShipToken) getStargateMassDamageFactor(safeSourceMass int, safeDestMass int, maxMassFactor int) float64 {
 	mass := t.design.Spec.Mass
 	sourceMassDamageFactor := 1.0
 	destMassDamageFactor := 1.0

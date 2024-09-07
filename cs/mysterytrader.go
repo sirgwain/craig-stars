@@ -5,9 +5,7 @@ import (
 	"math"
 )
 
-// The mystery trader travels through space and gives a boon to any player that gives it a fleet
-// full of minerals
-// TODO: not yet implemented
+// The mystery trader travels through space and gives a boon to any player that gives it a fleet full of minerals
 type MysteryTrader struct {
 	MapObject
 	WarpSpeed       int                     `json:"warpSpeed,omitempty"`
@@ -659,7 +657,7 @@ var EnigmaPulsar = TechEngine{
 		},
 	},
 }
-var MegaPolyShell = TechHullComponent{Tech: NewTechWithOrigin("Mega Poly Shell", NewCost(14, 5, 5, 52), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 14, Construction: 14, Electronics: 14, Biotechnology: 6}}, 95, TechCategoryArmor, OriginMysteryTrader),
+var MegaPolyShell = TechHullComponent{Tech: NewTechWithOrigin("Mega Poly Shell", NewCost(14, 5, 5, 52), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 14, Construction: 14, Electronics: 14, Biotechnology: 6}}, 105, TechCategoryArmor, OriginMysteryTrader),
 
 	Mass:           20,
 	Shield:         100,
@@ -671,7 +669,7 @@ var MegaPolyShell = TechHullComponent{Tech: NewTechWithOrigin("Mega Poly Shell",
 	ScanRangePen:   40,
 	HullSlotType:   HullSlotTypeShield,
 }
-var LangstonShell = TechHullComponent{Tech: NewTechWithOrigin("Langston Shell", NewCost(6, 1, 4, 12), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 12, Propulsion: 9, Electronics: 9}}, 65, TechCategoryShield, OriginMysteryTrader),
+var LangstonShell = TechHullComponent{Tech: NewTechWithOrigin("Langston Shell", NewCost(6, 1, 4, 12), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 12, Propulsion: 9, Electronics: 9}}, 75, TechCategoryShield, OriginMysteryTrader),
 
 	Mass:           10,
 	Shield:         125,
@@ -691,7 +689,7 @@ var MultiFunctionPod = TechHullComponent{Tech: NewTechWithOrigin("Multi-Function
 	MovementBonus:  1,
 	HullSlotType:   HullSlotTypeElectrical,
 }
-var AntiMatterTorpedo = TechHullComponent{Tech: NewTechWithOrigin("Anti Matter Torpedo", NewCost(3, 8, 1, 50), TechRequirements{Acquirable: true, TechLevel: TechLevel{Weapons: 11, Propulsion: 12, Biotechnology: 21}}, 65, TechCategoryTorpedo, OriginMysteryTrader),
+var AntiMatterTorpedo = TechHullComponent{Tech: NewTechWithOrigin("Anti Matter Torpedo", NewCost(3, 8, 1, 50), TechRequirements{Acquirable: true, TechLevel: TechLevel{Weapons: 11, Propulsion: 12, Biotechnology: 21}}, 85, TechCategoryTorpedo, OriginMysteryTrader),
 
 	Mass:         8,
 	Initiative:   0,
@@ -705,7 +703,7 @@ var JumpGate = TechHullComponent{Tech: NewTechWithOrigin("Jump Gate", NewCost(0,
 	CanJump:      true, // TODO: add support for this
 	HullSlotType: HullSlotTypeMechanical,
 }
-var MultiContainedMunition = TechHullComponent{Tech: NewTechWithOrigin("Multi Contained Munition", NewCost(5, 32, 5, 32), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 21, Weapons: 21, Electronics: 16, Biotechnology: 12}}, 175, TechCategoryBeamWeapon, OriginMysteryTrader),
+var MultiContainedMunition = TechHullComponent{Tech: NewTechWithOrigin("Multi Contained Munition", NewCost(5, 32, 5, 32), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 21, Weapons: 21, Electronics: 16, Biotechnology: 12}}, 195, TechCategoryBeamWeapon, OriginMysteryTrader),
 	Mass:                 8,
 	Initiative:           6,
 	Power:                140,
@@ -720,7 +718,7 @@ var MultiContainedMunition = TechHullComponent{Tech: NewTechWithOrigin("Multi Co
 	MineLayingRate:       40,
 	HullSlotType:         HullSlotTypeWeapon,
 }
-var AlienMiner = TechHullComponent{Tech: NewTechWithOrigin("Alien Miner", NewCost(4, 0, 1, 10), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 5, Construction: 10, Electronics: 5, Biotechnology: 5}}, 55, TechCategoryMineRobot, OriginMysteryTrader),
+var AlienMiner = TechHullComponent{Tech: NewTechWithOrigin("Alien Miner", NewCost(4, 0, 1, 10), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 5, Construction: 10, Electronics: 5, Biotechnology: 5}}, 155, TechCategoryMineRobot, OriginMysteryTrader),
 
 	Mass:           20,
 	MiningRate:     10,

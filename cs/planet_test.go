@@ -286,43 +286,27 @@ func TestPlanet_randomize(t *testing.T) {
 	}{
 		{
 			name: "planet gen with all 0 rng",
-			args: args{newIntRandom().addFloats(.50)},
+			args: args{newIntRandom()},
 			want: Planet{
 				MapObject:            MapObject{Type: MapObjectTypePlanet, PlayerNum: Unowned},
 				Dirty:                true,
 				Hab:                  Hab{1, 1, 1},
 				BaseHab:              Hab{1, 1, 1},
-				MineralConcentration: Mineral{1, 31, 31},
+				MineralConcentration: Mineral{1, 1, 1},
 				PlanetOrders: PlanetOrders{
 					ProductionQueue: []ProductionQueueItem{},
 				},
 			},
 		},
 		{
-			name: "planet with random artifact",
-			args: args{newIntRandom().addFloats(.33)},
+			name: "planet gen random minerals",
+			args: args{newIntRandom()},
 			want: Planet{
 				MapObject:            MapObject{Type: MapObjectTypePlanet, PlayerNum: Unowned},
 				Dirty:                true,
 				Hab:                  Hab{1, 1, 1},
 				BaseHab:              Hab{1, 1, 1},
-				MineralConcentration: Mineral{1, 31, 31},
-				RandomArtifact:       true,
-				PlanetOrders: PlanetOrders{
-					ProductionQueue: []ProductionQueueItem{},
-				},
-			},
-		},
-		{
-			name: "planet with no random artifact",
-			args: args{newIntRandom().addFloats(.50)},
-			want: Planet{
-				MapObject:            MapObject{Type: MapObjectTypePlanet, PlayerNum: Unowned},
-				Dirty:                true,
-				Hab:                  Hab{1, 1, 1},
-				BaseHab:              Hab{1, 1, 1},
-				MineralConcentration: Mineral{1, 31, 31},
-				RandomArtifact:       false,
+				MineralConcentration: Mineral{1, 1, 1},
 				PlanetOrders: PlanetOrders{
 					ProductionQueue: []ProductionQueueItem{},
 				},

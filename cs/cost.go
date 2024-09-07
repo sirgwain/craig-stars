@@ -1,6 +1,9 @@
 package cs
 
-import "math"
+import (
+	"fmt"
+	"math"
+)
 
 // A Cost represents minerals and resources required to build something, i.e. a mine, factory, or ship
 type Cost struct {
@@ -8,6 +11,15 @@ type Cost struct {
 	Boranium  int `json:"boranium,omitempty"`
 	Germanium int `json:"germanium,omitempty"`
 	Resources int `json:"resources,omitempty"`
+}
+
+type CostType = ResourceType
+
+var CostTypes = [4]CostType{
+	Ironium,
+	Boranium,
+	Germanium,
+	Resources,
 }
 
 func NewCost(
@@ -19,6 +31,35 @@ func NewCost(
 	return Cost{ironium, boranium, germanium, resources}
 }
 
+func (c Cost) GetAmount(costType CostType) int {
+	switch costType {
+	case Ironium:
+		return c.Ironium
+	case Boranium:
+		return c.Boranium
+	case Germanium:
+		return c.Germanium
+	case Resources:
+		return c.Resources
+	}
+	panic(fmt.Sprintf("GetAmount called with invalid CostType %s", costType))
+}
+
+func (c Cost) AddInt(costType CostType, amount int) Cost {
+	switch costType {
+	case Ironium:
+		c.Ironium += amount
+	case Boranium:
+		c.Boranium += amount
+	case Germanium:
+		c.Germanium += amount
+	case Resources:
+		c.Resources += amount
+	default:
+		panic(fmt.Sprintf("AddInt called with invalid CostType %s", costType))
+	}
+	return c
+}
 func FromMineralAndResources(m Mineral, resources int) Cost {
 	return Cost{
 		Ironium:   m.Ironium,
@@ -166,6 +207,52 @@ func (a Cost) DivideByMineral(b Mineral) float64 {
 	}
 
 	return math.Min(newIronium, math.Min(newBoranium, newGermanium))
+}
+
+// Divide cost by an integer, either truncating or rounding up the result
+func (c Cost) DivideByInt(divisor int, roundUp bool) Cost {
+	if divisor == 0 {
+		return Cost{int(math.Inf(1)), int(math.Inf(1)), int(math.Inf(1)), int(math.Inf(1))}
+	}
+
+	if roundUp {
+		var ironium, boranium, germanium, resources int
+		if c.Ironium%divisor > 0 {
+			ironium = 1
+		}
+		if c.Boranium%divisor > 0 {
+			boranium = 1
+		}
+		if c.Germanium%divisor > 0 {
+			germanium = 1
+		}
+		if c.Resources%divisor > 0 {
+			resources = 1
+		}
+		return Cost{
+			Ironium:   c.Ironium/divisor + ironium,
+			Boranium:  c.Boranium/divisor + boranium,
+			Germanium: c.Germanium/divisor + germanium,
+			Resources: c.Resources/divisor + resources,
+		}
+	} else {
+		return Cost{
+			Ironium:   c.Ironium / divisor,
+			Boranium:  c.Boranium / divisor,
+			Germanium: c.Germanium / divisor,
+			Resources: c.Resources / divisor,
+		}
+	}
+}
+
+// Return greater of 2 cost structs for all ResourceTypes separately
+func (c Cost) Max(other Cost) Cost {
+	return Cost{
+		Ironium:   MaxInt(c.Ironium, other.Ironium),
+		Boranium:  MaxInt(c.Boranium, other.Boranium),
+		Germanium: MaxInt(c.Germanium, other.Germanium),
+		Resources: MaxInt(c.Resources, other.Resources),
+	}
 }
 
 func (c Cost) Negate() Cost {

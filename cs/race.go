@@ -140,7 +140,6 @@ type RaceSpec struct {
 	CanBuildDefenses                 bool                   `json:"canBuildDefenses,omitempty"`
 	LivesOnStarbases                 bool                   `json:"livesOnStarbases,omitempty"`
 	FuelEfficiencyOffset             float64                `json:"fuelEfficiencyOffset,omitempty"`
-	TerraformCostOffset              Cost                   `json:"terraformCostOffset,omitempty"`
 	MineralAlchemyCostOffset         int                    `json:"mineralAlchemyCostOffset,omitempty"`
 	ScrapMineralOffset               float64                `json:"scrapMineralOffset,omitempty"`
 	ScrapMineralOffsetStarbase       float64                `json:"scrapMineralOffsetStarbase,omitempty"`
@@ -605,6 +604,8 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 			Torpedo:          prtSpec.TechCostOffset.Torpedo,
 			Bomb:             prtSpec.TechCostOffset.Bomb,
 			PlanetaryDefense: prtSpec.TechCostOffset.PlanetaryDefense,
+			Stargate:         prtSpec.TechCostOffset.Stargate,
+			Terraforming:     prtSpec.TechCostOffset.Terraforming,
 		},
 		MaxPopulationOffset: prtSpec.MaxPopulationOffset,
 		ScannerSpec: ScannerSpec{
@@ -719,8 +720,8 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 	}
 
 	// the PRT max pop serves as a multiplier to any LRTs
-	// i.e. HE has a .5 growth offset, so with OBRM it's 550
-	// i.e. JoaT has a 1.1 growth offset, so with OBRM it's 1.312
+	// i.e. HE has a .5 growth offset, so with OBRM it's .550
+	// i.e. JoaT has a 1.2 growth offset, so with OBRM it's 1.32
 	baseMaxPop := 1 + spec.MaxPopulationOffset
 	for _, lrt := range LRTs {
 		if !race.HasLRT(lrt) {
@@ -736,7 +737,6 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		spec.StartingTechLevels.Biotechnology += lrtSpec.StartingTechLevels.Biotechnology
 
 		spec.NewTechCostFactor += lrtSpec.NewTechCostFactorOffset
-		spec.TerraformCostOffset = spec.TerraformCostOffset.Add(lrtSpec.TerraformCostOffset)
 		spec.MiniaturizationMax += lrtSpec.MiniaturizationMax
 		spec.MiniaturizationPerLevel += lrtSpec.MiniaturizationPerLevel
 		spec.ScanRangeFactor += lrtSpec.ScanRangeFactorOffset
@@ -756,12 +756,13 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		spec.ShieldRegenerationRate += lrtSpec.ShieldRegenerationRateOffset
 		spec.ArmorStrengthFactor += lrtSpec.ArmorStrengthFactorOffset
 
-		// add any LRT tech cost offsets
+		// add any racial tech cost offsets together
 		spec.TechCostOffset.Engine += lrtSpec.TechCostOffset.Engine
 		spec.TechCostOffset.BeamWeapon += lrtSpec.TechCostOffset.BeamWeapon
 		spec.TechCostOffset.Torpedo += lrtSpec.TechCostOffset.Torpedo
 		spec.TechCostOffset.Bomb += lrtSpec.TechCostOffset.Bomb
 		spec.TechCostOffset.PlanetaryDefense += lrtSpec.TechCostOffset.PlanetaryDefense
+		spec.TechCostOffset.Terraforming += lrtSpec.TechCostOffset.Terraforming
 
 		// CE
 		spec.EngineFailureRate += lrtSpec.EngineFailureRateOffset
@@ -793,9 +794,9 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		QueueItemTypeAutoMineralAlchemy:     {Resources: rules.MineralAlchemyCost + spec.MineralAlchemyCostOffset},
 		QueueItemTypeDefenses:               rules.DefenseCost.MultiplyFloat64(1 + spec.TechCostOffset.PlanetaryDefense),
 		QueueItemTypeAutoDefenses:           rules.DefenseCost.MultiplyFloat64(1 + spec.TechCostOffset.PlanetaryDefense),
-		QueueItemTypeTerraformEnvironment:   rules.TerraformCost.Add(spec.TerraformCostOffset),
-		QueueItemTypeAutoMaxTerraform:       rules.TerraformCost.Add(spec.TerraformCostOffset),
-		QueueItemTypeAutoMinTerraform:       rules.TerraformCost.Add(spec.TerraformCostOffset),
+		QueueItemTypeTerraformEnvironment:   rules.TerraformCost.MultiplyFloat64(1 + spec.TechCostOffset.Terraforming),
+		QueueItemTypeAutoMaxTerraform:       rules.TerraformCost.MultiplyFloat64(1 + spec.TechCostOffset.Terraforming),
+		QueueItemTypeAutoMinTerraform:       rules.TerraformCost.MultiplyFloat64(1 + spec.TechCostOffset.Terraforming),
 		QueueItemTypeIroniumMineralPacket:   {Resources: spec.PacketResourceCost, Ironium: int(float64(spec.MineralsPerSingleMineralPacket) * spec.PacketMineralCostFactor)},
 		QueueItemTypeBoraniumMineralPacket:  {Resources: spec.PacketResourceCost, Boranium: int(float64(spec.MineralsPerSingleMineralPacket) * spec.PacketMineralCostFactor)},
 		QueueItemTypeGermaniumMineralPacket: {Resources: spec.PacketResourceCost, Germanium: int(float64(spec.MineralsPerSingleMineralPacket) * spec.PacketMineralCostFactor)},
@@ -1308,4 +1309,15 @@ func (race *Race) getPlanetHabForHabIndex(iterIndex int, habType HabType, loopIn
 	}
 
 	return planetHab, terraformOffset
+}
+
+// get leftover points for a race and the type of points to spend it on 
+func (race *Race) ComputeLeftoverRacePoints(startingPoints int) (int, SpendLeftoverPointsOn) {
+	points := race.ComputeRacePoints(startingPoints)
+	if points < 0 {
+		points = 0
+	} else if points > 50 {
+		points = 50
+	}
+	return points, race.SpendLeftoverPointsOn
 }

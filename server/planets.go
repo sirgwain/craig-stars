@@ -1,3 +1,5 @@
+//go:build !wasi && !wasm
+
 package server
 
 import (
@@ -21,7 +23,7 @@ type planetProductionEstimateRequest struct {
 	Player *cs.Player `json:"player,omitempty"`
 }
 
-type stabaseUpgradeRequest struct {
+type starbaseUpgradeRequest struct {
 	Design    *cs.ShipDesign `json:"design,omitempty"`
 	NewDesign *cs.ShipDesign `json:"newDesign,omitempty"`
 }
@@ -34,7 +36,7 @@ func (req *planetProductionEstimateRequest) Bind(r *http.Request) error {
 	return nil
 }
 
-func (req *stabaseUpgradeRequest) Bind(r *http.Request) error {
+func (req *starbaseUpgradeRequest) Bind(r *http.Request) error {
 	return nil
 }
 
@@ -153,14 +155,18 @@ func (s *server) getPlanetProductionEstimate(w http.ResponseWriter, r *http.Requ
 
 // get an estimate for production completion based on a planet's production queue items
 func (s *server) getStarbaseUpgradeCost(w http.ResponseWriter, r *http.Request) {
-
-	upgradeRequest := stabaseUpgradeRequest{}
+	rules := s.contextGame(r).Game.Rules
+	player := s.contextPlayer(r)
+	upgradeRequest := starbaseUpgradeRequest{}
 	if err := render.Bind(r, &upgradeRequest); err != nil {
 		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
 
 	calculator := cs.NewCostCalculator()
-	cost := calculator.StarbaseUpgradeCost(upgradeRequest.Design, upgradeRequest.NewDesign)
+	cost, err := calculator.StarbaseUpgradeCost(&rules, player.TechLevels, player.Race.Spec, upgradeRequest.Design, upgradeRequest.NewDesign)
+	if err != nil {
+		render.Render(w, r, ErrBadRequest(err))
+	}
 	rest.RenderJSON(w, cost)
 }

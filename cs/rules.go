@@ -59,16 +59,15 @@ type Rules struct {
 	MaxMineralConcentration                   int                                 `json:"maxMineralConcentration"`
 	MinStartingMineralConcentration           int                                 `json:"minStartingMineralConcentration"`
 	MaxStartingMineralConcentration           int                                 `json:"maxStartingMineralConcentration"`
+	LimitMineralConcentration                 int                                 `json:"limitMineralConcentration"`
 	HighRadMineralConcentrationBonusThreshold int                                 `json:"highRadGermaniumBonusThreshold"`
 	RadiatingImmune                           int                                 `json:"radiatingImmune"`
 	MaxStartingMineralSurface                 int                                 `json:"maxStartingMineralSurface"`
 	MinStartingMineralSurface                 int                                 `json:"minStartingMineralSurface"`
 	MineralDecayFactor                        int                                 `json:"mineralDecayFactor"`
 	RemoteMiningMineOutput                    int                                 `json:"remoteMiningMineOutput"`
-	StartingMines                             int                                 `json:"startingMines"`
-	StartingFactories                         int                                 `json:"startingFactories"`
-	StartingDefenses                          int                                 `json:"startingDefenses"`
 	RaceStartingPoints                        int                                 `json:"raceStartingPoints"`
+	RaceLeftoverPointsPerItem                 map[SpendLeftoverPointsOn]int       `json:"raceLeftoverPointsPerItem"`
 	ScrapMineralAmount                        float64                             `json:"scrapMineralAmount"`
 	ScrapResourceAmount                       float64                             `json:"scrapResourceAmount"`
 	FactoryCostGermanium                      int                                 `json:"factoryCostGermanium"`
@@ -76,7 +75,7 @@ type Rules struct {
 	MineralAlchemyCost                        int                                 `json:"mineralAlchemyCost"`
 	PlanetaryScannerCost                      Cost                                `json:"planetaryScannerCost"`
 	TerraformCost                             Cost                                `json:"terraformCost"`
-	StarbaseComponentCostFactor               float64                             `json:"starbaseComponentCostFactor"`
+	StarbaseComponentCostReduction            int                                 `json:"starbaseComponentCostReduction"`
 	SalvageFromBattleFactor                   float64                             `json:"salvageFromBattleFactor"`
 	TechTradeChance                           float64                             `json:"techTradeChance"`
 	PacketDecayRate                           map[int]float64                     `json:"packetDecayRate"`
@@ -460,20 +459,25 @@ func NewRulesWithSeed(seed int64) Rules {
 		MaxMineralConcentration:                   200,
 		MinHab:                                    1,
 		MaxHab:                                    99,
-		MinStartingMineralConcentration:           31,
+		MinStartingMineralConcentration:           1,
 		MaxStartingMineralConcentration:           121,
+		LimitMineralConcentration:                 30,
 		HighRadMineralConcentrationBonusThreshold: 90,
 		MaxStartingMineralSurface:                 1000,
 		MinStartingMineralSurface:                 300,
 		MineralDecayFactor:                        1_500_000,
 		RemoteMiningMineOutput:                    10,
-		StartingMines:                             10,
-		StartingFactories:                         10,
-		StartingDefenses:                          10,
 		RaceStartingPoints:                        1650,
-		ScrapMineralAmount:                        0.333333343,
-		ScrapResourceAmount:                       0.0,
-		FactoryCostGermanium:                      4,
+		RaceLeftoverPointsPerItem: map[SpendLeftoverPointsOn]int{
+			SpendLeftoverPointsOnMines:                 2,
+			SpendLeftoverPointsOnFactories:             5,
+			SpendLeftoverPointsOnDefenses:              10,
+			SpendLeftoverPointsOnMineralConcentrations: 3,
+			SpendLeftoverPointsOnSurfaceMinerals:       10, // special case - indicates kT per point leftover
+		},
+		ScrapMineralAmount:   0.333333343,
+		ScrapResourceAmount:  0.0,
+		FactoryCostGermanium: 4,
 		DefenseCost: Cost{
 			Ironium:   5,
 			Boranium:  5,
@@ -493,8 +497,8 @@ func NewRulesWithSeed(seed int64) Rules {
 			Germanium: 0,
 			Resources: 100,
 		},
-		StarbaseComponentCostFactor: 0.5,
-		SalvageFromBattleFactor:     .3,
+		StarbaseComponentCostReduction: 2, // 2x cheaper by default
+		SalvageFromBattleFactor:        .3,
 		PacketDecayRate: map[int]float64{
 			1: 0.1,
 			2: 0.25,

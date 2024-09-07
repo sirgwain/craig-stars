@@ -236,7 +236,7 @@ func (packet *MineralPacket) estimateDamage(rules *Rules, player *Player, target
 	totalDist := packet.Position.DistanceTo(target.Position)
 	eta := int(math.Ceil(totalDist / spd))
 
-	//save copy of packet so we don't alter the original
+	// save copy of packet so we don't alter the original
 	packetCopy := *packet
 
 	for i := 0; i < eta; i++ {

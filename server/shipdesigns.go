@@ -1,3 +1,5 @@
+//go:build !wasi && !wasm
+
 package server
 
 import (
@@ -99,7 +101,12 @@ func (s *server) createShipDesign(w http.ResponseWriter, r *http.Request) {
 	design.PlayerNum = player.Num
 	design.GameID = player.GameID
 	design.Num = player.GetNextDesignNum(designs)
-	design.Spec = cs.ComputeShipDesignSpec(&game.Rules, player.TechLevels, player.Race.Spec, design.ShipDesign)
+	design.Spec, err = cs.ComputeShipDesignSpec(&game.Rules, player.TechLevels, player.Race.Spec, design.ShipDesign)
+	if err != nil {
+		log.Error().Err(err).Int64("ID", player.ID).Str("DesignName", design.Name).Msg("Compute ship design spec")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
 
 	if err := db.CreateShipDesign(design.ShipDesign); err != nil {
 		log.Error().Err(err).Int64("ID", player.ID).Str("DesignName", design.Name).Msg("save new player design")
@@ -156,9 +163,16 @@ func (s *server) updateShipDesign(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// validate
+	var err error
 	design.PlayerNum = player.Num
 	design.GameID = player.GameID
-	design.Spec = cs.ComputeShipDesignSpec(&game.Rules, player.TechLevels, player.Race.Spec, design.ShipDesign)
+	design.Spec, err = cs.ComputeShipDesignSpec(&game.Rules, player.TechLevels, player.Race.Spec, design.ShipDesign)
+	if err != nil {
+		log.Error().Err(err).Int64("ID", player.ID).Str("DesignName", design.Name).Msg("compute ship design spec")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
 
 	if err := design.Validate(&game.Rules, player); err != nil {
 		log.Error().Err(err).Int64("ID", player.ID).Str("DesignName", design.Name).Msg("validate player design")
@@ -292,7 +306,6 @@ func (s *server) deleteShipDesign(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	
 	// split the player fleets into fleets and starbases
 	fleets := make([]*cs.Fleet, 0, len(leftoverPlayerFleets))
 	starbases := make([]*cs.Fleet, 0)
@@ -312,12 +325,18 @@ func (s *server) computeShipDesignSpec(w http.ResponseWriter, r *http.Request) {
 	player := s.contextPlayer(r)
 
 	design := shipDesignRequest{}
-	if err := render.Bind(r, &design); err != nil {
+	var err error
+	if err = render.Bind(r, &design); err != nil {
 		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
 
-	design.Spec = cs.ComputeShipDesignSpec(&game.Rules, player.TechLevels, player.Race.Spec, design.ShipDesign)
+	design.Spec, err = cs.ComputeShipDesignSpec(&game.Rules, player.TechLevels, player.Race.Spec, design.ShipDesign)
+	if err != nil {
+		log.Error().Err(err).Int64("ID", player.ID).Str("DesignName", design.Name).Msg("compute ship design spec")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
 
 	rest.RenderJSON(w, design.Spec)
 }

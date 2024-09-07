@@ -1,6 +1,7 @@
 package cs
 
 import (
+	"fmt"
 	"math"
 	"sort"
 
@@ -910,7 +911,7 @@ func (b *battle) fireTorpedo(weapon *battleWeaponSlot, targets []*battleToken) {
 }
 
 // Function to allow server to run test battles
-func RunTestBattle(players []*Player, fleets []*Fleet) *BattleRecord {
+func RunTestBattle(players []*Player, fleets []*Fleet) (*BattleRecord, error) {
 	rules := NewRules()
 
 	playersByNum := map[int]*Player{}
@@ -923,7 +924,11 @@ func RunTestBattle(players []*Player, fleets []*Fleet) *BattleRecord {
 		player.Spec = computePlayerSpec(player, &rules, []*Planet{})
 
 		for _, design := range player.Designs {
-			design.Spec = ComputeShipDesignSpec(&rules, player.TechLevels, player.Race.Spec, design)
+			var err error
+			design.Spec, err = ComputeShipDesignSpec(&rules, player.TechLevels, player.Race.Spec, design)
+			if err != nil {
+				return nil, fmt.Errorf("ComputeShipDesignSpec returned error %w", err)
+			}
 			designsByNum[playerObjectKey(design.PlayerNum, design.Num)] = design
 		}
 
@@ -959,5 +964,5 @@ func RunTestBattle(players []*Player, fleets []*Fleet) *BattleRecord {
 		}
 	}
 
-	return record
+	return record, nil
 }

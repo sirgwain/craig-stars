@@ -24,3 +24,4 @@ dist/
 
 ansible/
 frontend/static/images/
+frontend/src/lib/wasm/
