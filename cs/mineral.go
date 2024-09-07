@@ -153,7 +153,7 @@ func (m Mineral) Clamp(min, max int) Mineral {
 	}
 }
 
-func (m Mineral) GreatestType() MineralType {
+func (m Mineral) HighestType() MineralType {
 	if m.Ironium >= m.Boranium && m.Ironium >= m.Germanium {
 		return Ironium
 	}
@@ -171,15 +171,15 @@ func (m Mineral) GreatestType() MineralType {
 
 // returns 2nd lowest/highest mineral type
 func (m Mineral) MiddleType() MineralType {
-	if Boranium != m.GreatestType() && Boranium != m.LowestType() {
+	if Boranium != m.HighestType() && Boranium != m.LowestType() {
 		return Boranium
 	}
 
-	if Germanium != m.GreatestType() && Germanium != m.LowestType() {
+	if Germanium != m.HighestType() && Germanium != m.LowestType() {
 		return Germanium
 	}
 
-	if Ironium != m.GreatestType() && Ironium != m.LowestType() {
+	if Ironium != m.HighestType() && Ironium != m.LowestType() {
 		return Ironium
 	}
 
