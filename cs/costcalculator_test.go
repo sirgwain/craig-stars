@@ -17,10 +17,10 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 		starbaseCostFactor  float64
 	}
 	tests := []struct {
-		name     string
-		args     args
-		want     Cost
-		wanterr  bool
+		name    string
+		args    args
+		want    Cost
+		wanterr bool
 	}{
 		{
 			name: "Invalid station",
@@ -44,11 +44,11 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0, 0},
 				oldDesignHull:       SpaceStation.Name,
 				newDesignHull:       SpaceStation.Name,
-				oldDesignSlots:      []ShipDesignSlot{
+				oldDesignSlots: []ShipDesignSlot{
 					{HullComponent: "pew pew laser gun", HullSlotIndex: 2, Quantity: 1},
 				},
-				newDesignSlots:      []ShipDesignSlot{},
-				starbaseCostFactor:  1,
+				newDesignSlots:     []ShipDesignSlot{},
+				starbaseCostFactor: 1,
 			},
 			want: Cost{}, wanterr: true,
 		},
@@ -74,11 +74,11 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0, 0},
 				oldDesignHull:       SpaceStation.Name,
 				newDesignHull:       SpaceStation.Name,
-				oldDesignSlots:      []ShipDesignSlot{
+				oldDesignSlots: []ShipDesignSlot{
 					{HullComponent: Bludgeon.Name, HullSlotIndex: 2, Quantity: 1},
 				},
-				newDesignSlots:      []ShipDesignSlot{},
-				starbaseCostFactor:  1,
+				newDesignSlots:     []ShipDesignSlot{},
+				starbaseCostFactor: 1,
 			},
 			want: Cost{}, wanterr: false,
 		},
@@ -91,11 +91,11 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 				oldDesignHull:       SpaceStation.Name,
 				newDesignHull:       SpaceStation.Name,
 				oldDesignSlots:      []ShipDesignSlot{},
-				newDesignSlots:      []ShipDesignSlot{
+				newDesignSlots: []ShipDesignSlot{
 					{HullComponent: Disruptor.Name, HullSlotIndex: 2, Quantity: 1},
 					{HullComponent: Disruptor.Name, HullSlotIndex: 4, Quantity: 1},
 				},
-				starbaseCostFactor:  1,
+				starbaseCostFactor: 1,
 			},
 			want: Cost{
 				Ironium:   0,
@@ -116,7 +116,7 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 				newDesignSlots: []ShipDesignSlot{
 					{HullComponent: Stargate100_250.Name, HullSlotIndex: 1, Quantity: 1},
 				},
-				starbaseCostFactor:  1,
+				starbaseCostFactor: 1,
 			},
 			want: Cost{
 				Ironium:   50,
@@ -157,7 +157,7 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 					{HullComponent: Disruptor.Name, HullSlotIndex: 2, Quantity: 10},
 					// 80B, 100R
 				},
-				starbaseCostFactor:  1,
+				starbaseCostFactor: 1,
 			},
 			want: Cost{
 				Ironium:   114,
@@ -174,7 +174,7 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0, 0},
 				oldDesignHull:       SpaceStation.Name,
 				newDesignHull:       SpaceStation.Name,
-				oldDesignSlots:      []ShipDesignSlot{
+				oldDesignSlots: []ShipDesignSlot{
 					{HullComponent: SyncroSapper.Name, HullSlotIndex: 2, Quantity: 16},
 					{HullComponent: SyncroSapper.Name, HullSlotIndex: 4, Quantity: 16},
 					// Some amount of G, much much resources
@@ -184,7 +184,7 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 					// 150B, 165R
 					// Boranium should stay same since not being reduced
 				},
-				starbaseCostFactor:  1,
+				starbaseCostFactor: 1,
 			},
 			want: Cost{
 				Ironium:   0,
@@ -209,7 +209,7 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 					{HullComponent: SyncroSapper.Name, HullSlotIndex: 2, Quantity: 12},
 					// 48G, 120R
 				},
-				starbaseCostFactor:  1,
+				starbaseCostFactor: 1,
 			},
 			want: Cost{
 				Ironium:   0,
@@ -236,7 +236,7 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 					{HullComponent: BattleNexus.Name, HullSlotIndex: 1, Quantity: 2},
 					// 28G, 14R
 				},
-				starbaseCostFactor:  1,
+				starbaseCostFactor: 1,
 			},
 			want: Cost{
 				Ironium:   0,
@@ -263,7 +263,7 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 					{HullComponent: BattleNexus.Name, HullSlotIndex: 1, Quantity: 2},
 					// 28G, 14R
 				},
-				starbaseCostFactor:  0.8,
+				starbaseCostFactor: 0.8,
 			},
 			want: Cost{
 				Ironium:   0,
@@ -291,6 +291,120 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 				t.Errorf("costCalculate.StarbaseUpgradeCost() errored unexpectedly; err = %v", err)
 			} else if got != tt.want {
 				t.Errorf("costCalculate.StarbaseUpgradeCost() returned incorrect cost %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_costCalculate_GetDesignCost(t *testing.T) {
+	type args struct {
+		techLevels          TechLevel
+		miniaturizationSpec MiniaturizationSpec
+		techCostOffset      TechCostOffset
+		slots               []ShipDesignSlot
+		hull                string
+		starbaseCostFactor  float64
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    Cost
+		wantErr bool
+	}{
+		{
+			name: "BB w/ weapons",
+			args: args{
+				techLevels:          TechLevel{0, 20, 0, 13, 0, 0},
+				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
+				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0, 0},
+				slots: []ShipDesignSlot{
+					{HullComponent: Disruptor.Name, HullSlotIndex: 2, Quantity: 1},
+					{HullComponent: Disruptor.Name, HullSlotIndex: 4, Quantity: 1},
+				},
+				hull:               Battleship.Name,
+				starbaseCostFactor: 1,
+			},
+			want: Cost{
+				Ironium:   120,
+				Boranium:  56,
+				Germanium: 20,
+				Resources: 265,
+			}, wantErr: false,
+		},
+		{
+			name: "base w/ weapons",
+			args: args{
+				techLevels:          TechLevel{0, 20, 0, 13, 0, 0},
+				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
+				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0, 0},
+				slots: []ShipDesignSlot{
+					{HullComponent: Disruptor.Name, HullSlotIndex: 2, Quantity: 1},
+					{HullComponent: Disruptor.Name, HullSlotIndex: 4, Quantity: 1},
+				},
+				hull:               SpaceStation.Name,
+				starbaseCostFactor: 1,
+			},
+			want: Cost{
+				Ironium:   120,
+				Boranium:  96,
+				Germanium: 250,
+				Resources: 620,
+			}, wantErr: false,
+		},
+		{
+			name: "base w/ weapons, ISB",
+			args: args{
+				techLevels:          TechLevel{0, 20, 0, 13, 0, 0},
+				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
+				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0, 0},
+				slots: []ShipDesignSlot{
+					{HullComponent: Disruptor.Name, HullSlotIndex: 2, Quantity: 1},
+					{HullComponent: Disruptor.Name, HullSlotIndex: 4, Quantity: 1},
+				},
+				hull:               SpaceStation.Name,
+				starbaseCostFactor: 0.8,
+			},
+			want: Cost{
+				Ironium:   96,
+				Boranium:  77,
+				Germanium: 200,
+				Resources: 496,
+			}, wantErr: false,
+		},
+		{
+			name: "BANANA BOAT (invalid components)",
+			args: args{
+				techLevels:          TechLevel{0, 20, 0, 13, 0, 0},
+				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
+				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0, 0},
+				slots: []ShipDesignSlot{
+					{HullComponent: "SUNDAE", HullSlotIndex: 2, Quantity: 1},
+					{HullComponent: "MARASCHINO CHERRY", HullSlotIndex: 4, Quantity: 1},
+				},
+				hull:               "BANANA BOAT",
+				starbaseCostFactor: 1,
+			},
+			want:    Cost{}, // return value ignored due to error
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		c := NewCostCalculator()
+		t.Run(tt.name, func(t *testing.T) {
+			player := NewPlayer(1, NewRace().WithSpec(&rules))
+			player.TechLevels = tt.args.techLevels
+			player.Race.Spec.MiniaturizationSpec = tt.args.miniaturizationSpec
+			player.Race.Spec.StarbaseCostFactor = tt.args.starbaseCostFactor
+			player.Race.Spec.TechCostOffset = tt.args.techCostOffset
+			design := NewShipDesign(player, 1).
+				WithHull(tt.args.hull).
+				WithSlots(tt.args.slots)
+			got, err := c.GetDesignCost(&rules, player.TechLevels, player.Race.Spec, design)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("costCalculate.GetDesignCost() errored unexpectedly; err = %v", err)
+			}
+			if got != tt.want {
+				t.Errorf("costCalculate.GetDesignCost() = %v, want %v", got, tt.want)
 			}
 		})
 	}

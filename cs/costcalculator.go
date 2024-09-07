@@ -183,7 +183,7 @@ func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 		}
 	}
 	cost = cost.Minus(credit).MinZero()
-	divisor := int(roundHalfDown(1000*float64(rules.StarbaseComponentCostReduction)/raceSpec.StarbaseCostFactor))
+	divisor := int(roundHalfDown(1000 * float64(rules.StarbaseComponentCostReduction) / raceSpec.StarbaseCostFactor))
 	cost = cost.Max(minCost).DivideByInt(divisor, true)
 	return cost, nil
 }
@@ -229,9 +229,9 @@ func (p *costCalculate) GetDesignCost(rules *Rules, techLevels TechLevel, raceSp
 		}
 	}
 
+	var divisor int = 1000
 	if design.Spec.Starbase {
-		return cost.DivideByInt(int(roundHalfDown(1000*float64(rules.StarbaseComponentCostReduction)/raceSpec.StarbaseCostFactor)), true), nil
-	} else {
-		return cost.DivideByInt(1000, true), nil
+		divisor = int(roundHalfDown(1000 * float64(rules.StarbaseComponentCostReduction) / raceSpec.StarbaseCostFactor))
 	}
+	return cost.DivideByInt(divisor, true), nil
 }
