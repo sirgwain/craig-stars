@@ -310,7 +310,7 @@ func randomizeMinerals(rules *Rules, rad int) Mineral {
 	return minConc
 }
 
-// Initialize a planet to be a homeworld for a payer with ideal hab, starting mineral concentration, etc
+// Initialize a planet to be a homeworld for a player with ideal hab, starting mineral concentration, etc
 func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet StartingPlanet, concentration Mineral, surface Mineral) {
 
 	log.Debug().Msgf("Assigning %s to %s as homeworld", p, player)
@@ -351,12 +351,12 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 		p.Mines = p.innateMines(player, p.population())
 		p.Factories = 0
 	} else {
-		p.Mines = rules.StartingMines
-		p.Factories = rules.StartingFactories
+		p.Mines = startingPlanet.Mines
+		p.Factories = startingPlanet.Factories
 	}
 
 	if raceSpec.CanBuildDefenses {
-		p.Defenses = rules.StartingDefenses
+		p.Defenses = startingPlanet.Defenses
 	} else {
 		p.Defenses = 0
 	}

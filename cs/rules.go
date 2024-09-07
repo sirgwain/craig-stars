@@ -66,10 +66,8 @@ type Rules struct {
 	MinStartingMineralSurface                 int                                 `json:"minStartingMineralSurface"`
 	MineralDecayFactor                        int                                 `json:"mineralDecayFactor"`
 	RemoteMiningMineOutput                    int                                 `json:"remoteMiningMineOutput"`
-	StartingMines                             int                                 `json:"startingMines"`
-	StartingFactories                         int                                 `json:"startingFactories"`
-	StartingDefenses                          int                                 `json:"startingDefenses"`
 	RaceStartingPoints                        int                                 `json:"raceStartingPoints"`
+	RaceLeftoverPointsPerItem                 map[SpendLeftoverPointsOn]int       `json:"raceLeftoverPointsPerItem"`
 	ScrapMineralAmount                        float64                             `json:"scrapMineralAmount"`
 	ScrapResourceAmount                       float64                             `json:"scrapResourceAmount"`
 	FactoryCostGermanium                      int                                 `json:"factoryCostGermanium"`
@@ -469,13 +467,17 @@ func NewRulesWithSeed(seed int64) Rules {
 		MinStartingMineralSurface:                 300,
 		MineralDecayFactor:                        1_500_000,
 		RemoteMiningMineOutput:                    10,
-		StartingMines:                             10,
-		StartingFactories:                         10,
-		StartingDefenses:                          10,
 		RaceStartingPoints:                        1650,
-		ScrapMineralAmount:                        0.333333343,
-		ScrapResourceAmount:                       0.0,
-		FactoryCostGermanium:                      4,
+		RaceLeftoverPointsPerItem: map[SpendLeftoverPointsOn]int{
+			SpendLeftoverPointsOnMines:                 2,
+			SpendLeftoverPointsOnFactories:             5,
+			SpendLeftoverPointsOnDefenses:              10,
+			SpendLeftoverPointsOnMineralConcentrations: 3,
+			SpendLeftoverPointsOnSurfaceMinerals:       10, // special case - indicates kT per point leftover
+		},
+		ScrapMineralAmount:   0.333333343,
+		ScrapResourceAmount:  0.0,
+		FactoryCostGermanium: 4,
 		DefenseCost: Cost{
 			Ironium:   5,
 			Boranium:  5,

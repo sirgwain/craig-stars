@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { andCommaList } from '$lib/andCommandList';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { absSum } from '$lib/types/Hab';
 	import { None } from '$lib/types/MapObject';
@@ -17,12 +18,13 @@
 	{@const bombing = message.spec.bombing}
 	{#if bombing}
 		{#if bombing.numBombers == 1}
-			Your fleet {message.targetName} has bombed {$universe.getPlayerPluralName(
+			Your fleet {message.targetName} has bombed the {$universe.getPlayerPluralName(
 				message.spec.targetPlayerNum
-			)} planet
+			)} settlement on
 			{message.spec.targetName}
 		{:else}
-			Your fleets have bombed the {$universe.getPlayerPluralName(message.spec.targetPlayerNum)} planet
+			Your fleets have bombed the {$universe.getPlayerPluralName(message.spec.targetPlayerNum)} settlement
+			on
 			{message.spec.targetName}
 		{/if}
 		{#if bombing.planetEmptied}
@@ -59,7 +61,7 @@
 	<!-- Overwarp -->
 	<FleetEngineStrainMessageDetail {message} />
 {:else if message.type === MessageType.FleetPatrolTargeted}
-	Your patrolling {message.targetName} has targeted {message.spec.targetName} for intercept.
+	Your patrolling {message.targetName} has targeted {message.spec.targetName} to intercept.
 {:else if message.type === MessageType.FleetRadiatingEngineDieoff}
 	<!-- Colonist dieoff from engine radiation -->
 	Engine radiation has killed {(message.spec.amount ?? 0) * -100} colonists traveling in {message.targetName}.
@@ -71,10 +73,21 @@
 		Breeding activities on {message.targetName} have overflowed living space. {message.spec.amount2}
 		colonists have been beamed down to {message.spec.targetName}.
 	{/if}
+	<!-- Remote Mining messages -->
 {:else if message.type === MessageType.FleetRemoteMined}
-	{message.targetName} has remote mined {message.spec.targetName}, extracting {message.spec.mineral
-		?.ironium ?? 0}kT of Ironium, {message.spec.mineral?.boranium ?? 0}kT of Boranium, and {message
-		.spec.mineral?.germanium ?? 0}kT of Germanium.
+	{@const minerals = {
+		ironium: message.spec.mineral?.ironium ?? 0,
+		boranium: message.spec.mineral?.boranium ?? 0,
+		germanium: message.spec.mineral?.germanium ?? 0
+	}}
+	{message.targetName} has remote mined {message.spec.targetName} extracting {andCommaList(
+		[
+			minerals.ironium > 0 ? `${minerals.ironium} kT of Ironium` : '',
+			minerals.boranium > 0 ? `${minerals.boranium} kT of Boranium` : '',
+			minerals.germanium > 0 ? `${minerals.germanium} kT of Germanium` : ''
+		],
+		'no minerals.'
+	)}
 {:else if message.type === MessageType.FleetTransferGiven}
 	{message.targetName} has successfully been given to {$universe.getPlayerPluralName(
 		message.spec.destPlayerNum
