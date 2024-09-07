@@ -487,6 +487,34 @@ func (store *TechStore) GetBestBattleComputer(player *Player) *TechHullComponent
 	return bestTech
 }
 
+// get the player's best beam capacitor
+func (store *TechStore) GetBestBeamCapacitor(player *Player) *TechHullComponent {
+	var bestTech *TechHullComponent
+	for i := range store.HullComponents {
+		tech := &store.HullComponents[i]
+		if tech.BeamBonus > 0 && player.HasTech(&tech.Tech) {
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
+				bestTech = tech
+			}
+		}
+	}
+	return bestTech
+}
+
+// get the player's best beam deflector
+func (store *TechStore) GetBestBeamDeflector(player *Player) *TechHullComponent {
+	var bestTech *TechHullComponent
+	for i := range store.HullComponents {
+		tech := &store.HullComponents[i]
+		if tech.BeamDefense > 0 && player.HasTech(&tech.Tech) {
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
+				bestTech = tech
+			}
+		}
+	}
+	return bestTech
+}
+
 // get the player's best mining robot
 func (store *TechStore) GetBestMiningRobot(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
