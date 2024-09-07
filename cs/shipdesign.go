@@ -169,11 +169,11 @@ func (sd *ShipDesign) WithSpec(rules *Rules, player *Player) *ShipDesign {
 	sd.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, sd)
 	if err != nil {
 		log.Error().
-			Int64("GameID", rules.GameID).
+			Err(err).
 			Int("Num", sd.Num).
-			Int("Player Num", player.Num).
-			Int("Design Num", sd.Num).
-			Msgf("ComputeShipDesignSpec returned error: %s", err)
+			Int("PlayerNum", player.Num).
+			Str("Name", sd.Name).
+			Msg("ComputeShipDesignSpec returned error")
 	}
 	return sd
 }
@@ -267,7 +267,7 @@ func (d *ShipDesign) getMovement(cargoMass int) int {
 }
 
 func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design *ShipDesign) (ShipDesignSpec, error) {
-	
+
 	hull := rules.techs.GetHull(design.Hull)
 	if hull == nil {
 		return ShipDesignSpec{}, fmt.Errorf("failed to find hull %s in techstore", design.Hull)
@@ -471,7 +471,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 	}
 
 	// ISB gives some special starbase bonuses
-	// Discount is already handled in cost function 
+	// Discount is already handled in cost function
 	if hull.Starbase {
 		spec.CloakUnits += raceSpec.BuiltInCloakUnits
 	}
