@@ -80,7 +80,7 @@
 		boranium: message.spec.mineral?.boranium ?? 0,
 		germanium: message.spec.mineral?.germanium ?? 0
 	}}
-	{message.targetName} has remote mined {message.spec.targetName}, extracting {andCommaList(
+	{message.targetName} has remote mined {message.spec.targetName} extracting {andCommaList(
 		[
 			minerals.ironium > 0 ? `${minerals.ironium} kT of Ironium` : '',
 			minerals.boranium > 0 ? `${minerals.boranium} kT of Boranium` : '',
