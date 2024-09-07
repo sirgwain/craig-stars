@@ -5,6 +5,7 @@ import (
 	"math"
 
 	mapset "github.com/deckarep/golang-set/v2"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
@@ -19,12 +20,15 @@ type universeGenerator struct {
 	universe Universe
 	players  []*Player
 	area     Vector
+	log      zerolog.Logger
 }
 
 func NewUniverseGenerator(game *Game, players []*Player) UniverseGenerator {
+	genLogger := log.With().Int64("GameID", game.ID).Str("GameName", game.Name).Logger()
 	return &universeGenerator{
 		Game:    game,
 		players: players,
+		log:     genLogger,
 	}
 }
 
@@ -34,14 +38,14 @@ func (ug *universeGenerator) Area() Vector {
 
 // Generate a new universe using a UniverseGenerator
 func (ug *universeGenerator) Generate() (*Universe, error) {
-	log.Debug().Msgf("%s: Generating universe", ug.Size)
+	ug.log.Debug().Msgf("%s: Generating universe", ug.Size)
 
 	for _, player := range ug.players {
 		player.Race.Spec = computeRaceSpec(&player.Race, &ug.Rules)
-		player.discoverer = newDiscovererWithAllies(player, ug.players)
+		player.discoverer = newDiscovererWithAllies(ug.log, player, ug.players)
 	}
 
-	ug.universe = NewUniverse(&ug.Rules)
+	ug.universe = NewUniverse(ug.log, &ug.Rules)
 	area, err := ug.Rules.GetArea(ug.Size)
 	if err != nil {
 		return nil, err
@@ -109,7 +113,7 @@ func (ug *universeGenerator) generatePlanets() error {
 		return err
 	}
 
-	log.Debug().Msgf("Generating %d planets in universe size %0.0fx%0.0f for ", numPlanets, ug.area.X, ug.area.Y)
+	ug.log.Debug().Msgf("Generating %d planets in universe size %0.0fx%0.0f for ", numPlanets, ug.area.X, ug.area.Y)
 
 	names := planetNames
 	rules := &ug.Rules
@@ -184,7 +188,7 @@ func (ug *universeGenerator) generateWormholes() error {
 			companion = wormholes[i-1]
 		}
 		wormhole := ug.universe.createWormhole(&ug.Rules, position, stability, companion)
-		log.Debug().Msgf("generated Wormhole at (%0.0f, %0.0f)", wormhole.Position.X, wormhole.Position.Y)
+		ug.log.Debug().Msgf("generated Wormhole at (%0.0f, %0.0f)", wormhole.Position.X, wormhole.Position.Y)
 
 		wormholePositions[i] = wormhole.Position
 		wormholes[i] = wormhole
@@ -373,6 +377,7 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 			}
 
 			// make a new starter world
+			ug.log.Debug().Msgf("Assigning %s to %s as homeworld", playerPlanet, player)
 			playerPlanet.initStartingWorld(player, &ug.Rules, startingPlanet, homeworldMinConc, surface)
 			if startingPlanet.Homeworld {
 				pointsThreshold := rules.RaceLeftoverPointsPerItem

@@ -4,7 +4,9 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/rs/zerolog"
@@ -20,17 +22,34 @@ var (
 	buildTime string = time.Now().Format(time.RFC3339)
 )
 
-var debug bool
+var logFile string
 
 // prerun method for enabling debug logging
-func debugPreRun(cmd *cobra.Command, args []string) {
+func logPreRun(cmd *cobra.Command, args []string) error {
 	// enable debug mode if configured
-	if debug {
-		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.DateTime})
-		zerolog.SetGlobalLevel(zerolog.DebugLevel)
-		log.Debug().Msg("Debug logging enabled")
+	var writer io.Writer
+	writer = zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.DateTime}
+	if logFile != "" {
+		if err := os.MkdirAll(filepath.Dir(logFile), 0755); err != nil {
+			return fmt.Errorf("failed to create log dir %s %w", filepath.Base(logFile), err)
+		}
+		logFileWriter, err := os.OpenFile(
+			logFile,
+			os.O_APPEND|os.O_CREATE|os.O_WRONLY,
+			0664,
+		)
+		if err != nil {
+			return fmt.Errorf("failed to create log file %s %w", logFile, err)
+		}
+
+		// make a file and console writer
+		writer = io.MultiWriter(writer, logFileWriter)
 	}
+	log.Logger = log.Output(writer)
+	zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	log.Debug().Msg("Debug logging enabled")
 	log.Info().Msgf(fmt.Sprintf("version: %s, build: %s (%s)", semver, commit, buildTime))
+	return nil
 }
 
 // rootCmd represents the base command when called without any subcommands
@@ -42,7 +61,7 @@ var rootCmd = &cobra.Command{
 craig-stars will start a webserver for playing the game, or act as a
 CLI for interacting with the server resources such as users.
 `,
-	PersistentPreRun: debugPreRun,
+	PersistentPreRunE: logPreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Show usage
 		cmd.Help()
@@ -62,5 +81,5 @@ func Execute() {
 
 func init() {
 	// all commands have debug mode
-	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "Debug logging")
+	rootCmd.PersistentFlags().StringVarP(&logFile, "log", "", "", "log file to send structured logs to")
 }

@@ -99,7 +99,7 @@ func Test_checkForMineFieldCollision_Hit(t *testing.T) {
 	dest := NewPositionWaypoint(Vector{20, 0}, 9)
 	dist := float64(dest.WarpSpeed * dest.WarpSpeed)
 
-	actualDist := checkForMineFieldCollision(&rules, newTestPlayerGetter(fleetPlayer, mineFieldPlayer), u, fleet, dest, dist)
+	actualDist := checkForMineFieldCollision(testLogger, &rules, newTestPlayerGetter(fleetPlayer, mineFieldPlayer), u, fleet, dest, dist)
 
 	// we should come to a dead stop, ship destroyed
 	assert.Equal(t, 5.0, actualDist)
@@ -127,7 +127,7 @@ func Test_checkForMineFieldCollision_Miss(t *testing.T) {
 	dest := NewPositionWaypoint(Vector{20, 0}, 4)
 	dist := float64(dest.WarpSpeed * dest.WarpSpeed)
 
-	actualDist := checkForMineFieldCollision(&rules, newTestPlayerGetter(fleetPlayer, mineFieldPlayer), u, fleet, dest, dist)
+	actualDist := checkForMineFieldCollision(testLogger, &rules, newTestPlayerGetter(fleetPlayer, mineFieldPlayer), u, fleet, dest, dist)
 
 	// we should come to a dead stop, ship destroyed
 	assert.Equal(t, 16.0, actualDist)

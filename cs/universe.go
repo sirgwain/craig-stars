@@ -5,7 +5,7 @@ import (
 
 	"slices"
 
-	"github.com/rs/zerolog/log"
+	"github.com/rs/zerolog"
 )
 
 // The Universe represents all the objects that occupy space in the game universe.
@@ -29,9 +29,11 @@ type Universe struct {
 	salvagesByPosition   map[Vector]*Salvage
 	mysteryTradersByNum  map[int]*MysteryTrader
 	wormholesByNum       map[int]*Wormhole
+	log                  zerolog.Logger
 }
 
-func NewUniverse(rules *Rules) Universe {
+func NewUniverse(log zerolog.Logger, rules *Rules) Universe {
+
 	return Universe{
 		battlePlansByNum:     make(map[playerBattlePlanNum]*BattlePlan),
 		mapObjectsByPosition: make(map[Vector][]interface{}),
@@ -43,6 +45,7 @@ func NewUniverse(rules *Rules) Universe {
 		salvagesByPosition:   make(map[Vector]*Salvage),
 		wormholesByNum:       make(map[int]*Wormhole),
 		mysteryTradersByNum:  make(map[int]*MysteryTrader),
+		log:                  log,
 	}
 }
 
@@ -107,7 +110,7 @@ func (u *Universe) buildMaps(players []*Player) error {
 		}
 
 		// create a discoverer for this player and any allies they share maps with
-		p.discoverer = newDiscovererWithAllies(p, players)
+		p.discoverer = newDiscovererWithAllies(u.log, p, players)
 	}
 
 	u.fleetsByNum = make(map[playerObject]*Fleet, len(u.Fleets))
@@ -379,8 +382,7 @@ func (u *Universe) deleteFleet(fleet *Fleet) {
 
 	u.removeMapObjectAtPosition(fleet, fleet.Position)
 
-	log.Debug().
-		Int64("GameID", fleet.GameID).
+	u.log.Debug().
 		Int("Player", fleet.PlayerNum).
 		Str("Fleet", fleet.Name).
 		Msgf("deleted fleet")
@@ -393,8 +395,7 @@ func (u *Universe) deleteStarbase(starbase *Fleet) {
 
 	u.removeMapObjectAtPosition(starbase, starbase.Position)
 
-	log.Debug().
-		Int64("GameID", starbase.GameID).
+	u.log.Debug().
 		Int("Player", starbase.PlayerNum).
 		Str("Starbase", starbase.Name).
 		Msgf("deleted starbase")
@@ -416,8 +417,7 @@ func (u *Universe) addFleet(fleet *Fleet) error {
 		fleet.battlePlan = battlePlan
 	} else {
 		// use the default battle plan if we couldn't find one for some reason, but log a warning
-		log.Warn().
-			Int64("GameID", fleet.GameID).
+		u.log.Warn().
 			Int("Player", fleet.PlayerNum).
 			Msgf("Unable to find battle plan %d for fleet %v", fleet.BattlePlanNum, fleet)
 		fleet.battlePlan = u.battlePlansByNum[playerBattlePlanNum{fleet.PlayerNum, 0}]
@@ -465,8 +465,7 @@ func (u *Universe) deleteWormhole(wormhole *Wormhole) {
 	delete(u.wormholesByNum, wormhole.Num)
 	u.removeMapObjectAtPosition(wormhole, wormhole.Position)
 
-	log.Debug().
-		Int64("GameID", wormhole.GameID).
+	u.log.Debug().
 		Int("Player", wormhole.PlayerNum).
 		Str("Wormhole", wormhole.Name).
 		Msgf("deleted wormhole")
@@ -609,7 +608,7 @@ func (u *Universe) updateMapObjectAtPosition(mo interface{}, originalPosition, n
 		}
 		u.mapObjectsByPosition[originalPosition] = updatedMos
 	} else {
-		log.Warn().Msgf("tried to update position of %s from %v to %v, no mapobjects were found at %v", mo, originalPosition, newPosition, originalPosition)
+		u.log.Warn().Msgf("tried to update position of %s from %v to %v, no mapobjects were found at %v", mo, originalPosition, newPosition, originalPosition)
 	}
 
 	// add the new object to the list
@@ -624,10 +623,10 @@ func (u *Universe) removeMapObjectAtPosition(mo interface{}, position Vector) {
 		if index >= 0 && index < len(mos) {
 			u.mapObjectsByPosition[position] = slices.Delete(mos, index, index+1)
 		} else {
-			log.Warn().Msgf("tried to remove mapobject %s at position %v but index %d of position out of range", mo, position, index)
+			u.log.Warn().Msgf("tried to remove mapobject %s at position %v but index %d of position out of range", mo, position, index)
 		}
 	} else {
-		log.Warn().Msgf("tried to to remove mapobject %s at position %v, no mapobjects were found at %v", mo, position, position)
+		u.log.Warn().Msgf("tried to to remove mapobject %s at position %v, no mapobjects were found at %v", mo, position, position)
 	}
 }
 
@@ -653,8 +652,7 @@ func (u *Universe) deleteMineField(mineField *MineField) {
 	delete(u.mineFieldsByNum, playerObjectKey(mineField.PlayerNum, mineField.Num))
 	u.removeMapObjectAtPosition(mineField, mineField.Position)
 
-	log.Debug().
-		Int64("GameID", mineField.GameID).
+	u.log.Debug().
 		Int("Player", mineField.PlayerNum).
 		Str("MineField", mineField.Name).
 		Msgf("deleted mineField")
@@ -710,8 +708,7 @@ func (u *Universe) deleteMysteryTrader(mysteryTrader *MysteryTrader) {
 	delete(u.mysteryTradersByNum, mysteryTrader.Num)
 	u.removeMapObjectAtPosition(mysteryTrader, mysteryTrader.Position)
 
-	log.Debug().
-		Int64("GameID", mysteryTrader.GameID).
+	u.log.Debug().
 		Int("Player", mysteryTrader.PlayerNum).
 		Str("MysteryTrader", mysteryTrader.Name).
 		Msgf("deleted mysteryTrader")

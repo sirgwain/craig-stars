@@ -15,7 +15,7 @@ func Test_discover_discoverWormhole1(t *testing.T) {
 	wormhole1.DestinationNum = wormhole2.Num
 	wormhole2.DestinationNum = wormhole1.Num
 
-	d := newDiscoverer(player)
+	d := newDiscoverer(testLogger, player)
 	d.discoverWormhole(wormhole1)
 	assert.Equal(t, 1, len(player.WormholeIntels))
 	assert.Equal(t, 1, player.WormholeIntels[0].Num)
@@ -33,7 +33,7 @@ func Test_discover_discoverWormhole2(t *testing.T) {
 	wormhole2.DestinationNum = wormhole1.Num
 
 	// discover both wormholes
-	d := newDiscoverer(player)
+	d := newDiscoverer(testLogger, player)
 	d.discoverWormhole(wormhole1)
 	d.discoverWormhole(wormhole2)
 	d.discoverWormholeLink(wormhole1, wormhole2)
@@ -54,7 +54,7 @@ func Test_discover_forgetWormhole1(t *testing.T) {
 	wormhole1.DestinationNum = wormhole2.Num
 	wormhole2.DestinationNum = wormhole1.Num
 
-	d := newDiscoverer(player)
+	d := newDiscoverer(testLogger, player)
 	d.discoverWormhole(wormhole1)
 	assert.Equal(t, 1, len(player.WormholeIntels))
 	assert.Equal(t, 1, player.WormholeIntels[0].Num)
@@ -73,7 +73,7 @@ func Test_discover_forgetWormhole2(t *testing.T) {
 	wormhole2.DestinationNum = wormhole1.Num
 
 	// discover both wormholes so we know the link
-	d := newDiscoverer(player)
+	d := newDiscoverer(testLogger, player)
 
 	// should do nothing
 	d.forgetWormhole(wormhole1.Num)

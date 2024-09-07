@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/rs/zerolog/log"
+	"github.com/rs/zerolog"
 )
 
 type MineFieldType string
@@ -107,7 +107,7 @@ func (mineField *MineField) getDecayRate(rules *Rules, player *Player, numPlanet
 
 // damage a fleet that hit this minefield
 // https://wiki.starsautohost.org/wiki/Guts_of_Minefields
-func (mineField *MineField) damageFleet(player *Player, fleet *Fleet, fleetPlayer *Player, stats MineFieldStats) {
+func (mineField *MineField) damageFleet(log zerolog.Logger, player *Player, fleet *Fleet, fleetPlayer *Player, stats MineFieldStats) {
 	hasRamScoop := false
 	for _, token := range fleet.Tokens {
 		if token.design.Spec.Engine.FreeSpeed > 1 {
@@ -171,7 +171,6 @@ func (mineField *MineField) damageFleet(player *Player, fleet *Fleet, fleetPlaye
 	}
 
 	log.Debug().
-		Int64("GameID", mineField.GameID).
 		Int("Player", mineField.PlayerNum).
 		Str("MineField", mineField.Name).
 		Str("Fleet", fleet.Name).
@@ -210,7 +209,7 @@ func (mineField *MineField) sweep(rules *Rules, fleet *Fleet, fleetPlayer *Playe
 }
 
 // / Check for mine field collisions. If we collide with one, do damage and stop the fleet
-func checkForMineFieldCollision(rules *Rules, playerGetter playerGetter, mapObjectGetter mapObjectGetter, fleet *Fleet, dest Waypoint, distance float64) float64 {
+func checkForMineFieldCollision(log zerolog.Logger, rules *Rules, playerGetter playerGetter, mapObjectGetter mapObjectGetter, fleet *Fleet, dest Waypoint, distance float64) float64 {
 	fleetPlayer := playerGetter.getPlayer(fleet.PlayerNum)
 	safeWarpBonus := fleetPlayer.Race.Spec.MineFieldSafeWarpBonus
 
@@ -261,7 +260,7 @@ func checkForMineFieldCollision(rules *Rules, playerGetter playerGetter, mapObje
 						actualDistanceTravelled := lightYearsBeforeField + float64(checkNum)
 						mineFieldPlayer := playerGetter.getPlayer(mineField.PlayerNum)
 
-						mineField.damageFleet(mineFieldPlayer, fleet, fleetPlayer, stats)
+						mineField.damageFleet(log, mineFieldPlayer, fleet, fleetPlayer, stats)
 						mineField.reduceMineFieldOnImpact()
 						if mineFieldPlayer.Race.Spec.MineFieldsAreScanners {
 							// SD races discover the exact fleet makeup

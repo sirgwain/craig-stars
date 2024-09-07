@@ -3,7 +3,7 @@ package cs
 import (
 	"math"
 
-	"github.com/rs/zerolog/log"
+	"github.com/rs/zerolog"
 )
 
 type Bomb struct {
@@ -28,6 +28,7 @@ type BombingResult struct {
 
 type bomb struct {
 	rules *Rules
+	log   zerolog.Logger
 }
 
 // Bombers orbiting enemy planets will Bomb planets
@@ -58,8 +59,8 @@ type bomber interface {
 	bombPlanet(planet *Planet, planetOwner *Player, enemyBombers []*Fleet, pg playerGetter)
 }
 
-func NewBomber(rules *Rules) bomber {
-	return &bomb{rules: rules}
+func NewBomber(log zerolog.Logger, rules *Rules) bomber {
+	return &bomb{rules: rules, log: log}
 }
 
 // add two bombing results and return the total
@@ -204,8 +205,7 @@ func (b *bomb) normalBombPlanet(planet *Planet, defender *Player, attacker *Play
 	// update planet spec
 	planet.Spec = computePlanetSpec(b.rules, defender, planet)
 
-	log.Debug().
-		Int64("GameID", planet.GameID).
+	b.log.Debug().
 		Int("Player", attacker.Num).
 		Str("Planet", planet.Name).
 		Str("Fleet", fleets[0].Name).
@@ -257,8 +257,7 @@ func (b *bomb) smartBombPlanet(planet *Planet, defender *Player, attacker *Playe
 	// update planet spec
 	planet.Spec = computePlanetSpec(b.rules, defender, planet)
 
-	log.Debug().
-		Int64("GameID", planet.GameID).
+	b.log.Debug().
 		Int("Player", attacker.Num).
 		Str("Planet", planet.Name).
 		Str("Fleet", fleets[0].Name).
@@ -310,8 +309,7 @@ func (b *bomb) retroBombPlanet(planet *Planet, defender *Player, attacker *Playe
 	// update planet spec
 	planet.Spec = computePlanetSpec(b.rules, defender, planet)
 
-	log.Debug().
-		Int64("GameID", planet.GameID).
+	b.log.Debug().
 		Int("Player", attacker.Num).
 		Str("Planet", planet.Name).
 		Int("PlanetPlayer", planet.PlayerNum).

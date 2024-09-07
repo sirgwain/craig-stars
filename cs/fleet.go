@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/rs/zerolog/log"
+	"github.com/rs/zerolog"
 )
 
 // warpspeed for using a stargate vs moving with warp drive
@@ -791,7 +791,7 @@ func (fleet *Fleet) removeEmptyTokens() {
 }
 
 // move a fleet through space, check for minefields, use fuel, etc
-func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, playerGetter playerGetter) {
+func (fleet *Fleet) moveFleet(log zerolog.Logger, rules *Rules, mapObjectGetter mapObjectGetter, playerGetter playerGetter) {
 	player := playerGetter.getPlayer(fleet.PlayerNum)
 	wp0 := fleet.Waypoints[0]
 	wp1 := fleet.Waypoints[1]
@@ -826,7 +826,7 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 		dist = dist * distanceFactor
 
 		// collide with minefields on route, but don't hit a minefield if we run out of fuel beforehand
-		dist = checkForMineFieldCollision(rules, playerGetter, mapObjectGetter, fleet, wp1, dist)
+		dist = checkForMineFieldCollision(log, rules, playerGetter, mapObjectGetter, fleet, wp1, dist)
 
 		// remove any tokens destroyed by minefields and return if the fleet is gone
 		fleet.removeEmptyTokens()
@@ -846,7 +846,7 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 		fuelGenerated = fleet.getFuelGeneration(wp1.WarpSpeed, remainingDistanceTravelled)
 	} else {
 		// collide with minefields on route, but don't hit a minefield if we run out of fuel beforehand
-		actualDist := checkForMineFieldCollision(rules, playerGetter, mapObjectGetter, fleet, wp1, dist)
+		actualDist := checkForMineFieldCollision(log, rules, playerGetter, mapObjectGetter, fleet, wp1, dist)
 
 		// remove any tokens destroyed by minefields and return if the fleet is gone
 		fleet.removeEmptyTokens()
@@ -1427,7 +1427,7 @@ func (fleet *Fleet) getCargoUnloadAmount(dest cargoHolder, cargoType CargoType, 
 }
 
 // Repair a fleet. This changes based on where the fleet is
-func (fleet *Fleet) repairFleet(rules *Rules, player *Player, orbiting *Planet) {
+func (fleet *Fleet) repairFleet(log zerolog.Logger, rules *Rules, player *Player, orbiting *Planet) {
 	needsRepair := false
 	for _, token := range fleet.Tokens {
 		if token.QuantityDamaged > 0 {
@@ -1484,7 +1484,6 @@ func (fleet *Fleet) repairFleet(rules *Rules, player *Player, orbiting *Planet) 
 			}
 
 			log.Debug().
-				Int64("GameID", fleet.GameID).
 				Int("Player", fleet.PlayerNum).
 				Str("Fleet", fleet.Name).
 				Str("Token", token.design.Name).
@@ -1498,7 +1497,7 @@ func (fleet *Fleet) repairFleet(rules *Rules, player *Player, orbiting *Planet) 
 }
 
 // Repair a starbase
-func (fleet *Fleet) repairStarbase(rules *Rules, player *Player) {
+func (fleet *Fleet) repairStarbase(log zerolog.Logger, rules *Rules, player *Player) {
 	repairRate := rules.RepairRates[RepairRateStarbase]
 	token := &fleet.Tokens[0]
 
@@ -1509,7 +1508,6 @@ func (fleet *Fleet) repairStarbase(rules *Rules, player *Player) {
 	token.Damage = math.Max(0, fleet.Tokens[0].Damage-float64(repairAmount))
 
 	log.Debug().
-		Int64("GameID", fleet.GameID).
 		Int("Player", fleet.PlayerNum).
 		Str("Fleet", fleet.Name).
 		Str("Token", token.design.Name).

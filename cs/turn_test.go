@@ -5,12 +5,14 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 )
 
 // many functions require a copy of the current game's rules.
 // for testing, create a standard rules var every test can use
 var rules = NewRules()
+var testLogger = log.With().Bool("TestMode", true).Logger()
 
 type MockRand struct {
 	int63Result int64
@@ -57,7 +59,7 @@ func createSingleUnitGame() *FullGame {
 
 	players := []*Player{player}
 
-	universe := NewUniverse(&game.Rules)
+	universe := NewUniverse(testLogger, &game.Rules)
 	universe.Planets = append(universe.Planets, planet)
 	universe.Fleets = append(universe.Fleets, fleet)
 
@@ -136,7 +138,7 @@ func createTwoPlayerGame() *FullGame {
 
 	players := []*Player{player1, player2}
 
-	universe := NewUniverse(&game.Rules)
+	universe := NewUniverse(testLogger, &game.Rules)
 	universe.Planets = append(universe.Planets, planet1, planet2)
 	universe.Fleets = append(universe.Fleets, fleet1, fleet2)
 
@@ -1309,7 +1311,7 @@ func Test_turn_detonateMines(t *testing.T) {
 				player.PlayerIntels.PlayerIntels = player.defaultPlayerIntels(tt.args.players)
 			}
 
-			universe := NewUniverse(&game.Rules)
+			universe := NewUniverse(testLogger, &game.Rules)
 			universe.Fleets = []*Fleet{tt.args.fleet}
 			universe.MineFields = []*MineField{tt.args.mineField}
 
@@ -1792,7 +1794,7 @@ func Test_turn_fleetBattle3Players(t *testing.T) {
 
 	players := []*Player{player1, player2, player3}
 
-	universe := NewUniverse(&game.Rules)
+	universe := NewUniverse(testLogger, &game.Rules)
 	universe.Fleets = append(universe.Fleets, fleet1, fleet2, fleet3)
 
 	universe.buildMaps(players)
@@ -2323,4 +2325,3 @@ func Test_turn_buildMysteryTraderGenesisDevice(t *testing.T) {
 	// marked for deletion
 	// TODO: not sure how to test this. Random number gen I guess...
 }
-

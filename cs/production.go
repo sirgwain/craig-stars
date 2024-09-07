@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/rs/zerolog/log"
+	"github.com/rs/zerolog"
 )
 
 // The producer interface performs planetary production
@@ -13,8 +13,15 @@ type producer interface {
 }
 
 // create a new planet production object
-func newProducer(rules *Rules, planet *Planet, player *Player) producer {
+func newProducer(log zerolog.Logger, rules *Rules, planet *Planet, player *Player) producer {
+	producerLogger := log.With().
+		Int("Num", planet.Num).
+		Str("Name", planet.Name).
+		Int("PlayerNum", player.Num).
+		Str("PlayerName", player.Race.PluralName).
+		Logger()
 	return &production{
+		log:       producerLogger,
 		rules:     rules,
 		planet:    planet,
 		player:    player,
@@ -23,6 +30,7 @@ func newProducer(rules *Rules, planet *Planet, player *Player) producer {
 }
 
 type production struct {
+	log       zerolog.Logger
 	rules     *Rules
 	planet    *Planet
 	player    *Player
@@ -187,39 +195,31 @@ func (p *production) produce() (productionResult, error) {
 		if item.Type == QueueItemTypeStarbase && planet.Spec.HasStarbase {
 			cost, err = costCalculator.StarbaseUpgradeCost(p.rules, p.player.TechLevels, p.player.Race.Spec, planet.Starbase.Tokens[0].design, item.design)
 			if err != nil {
-				log.Error().
+				p.log.Error().
 					Err(err).
-					Int64("GameID", p.rules.GameID).
-					Int("Num", item.design.Num).
-					Int("Player Num", p.player.Num).
-					Int("Old Design Num", planet.Starbase.Tokens[0].design.Num).
-					Int("New Design Num", item.design.Num).
-					Msgf("StarbaseUpgradeCost returned error: %s", err)
+					Int("DesignNum", item.design.Num).
+					Int("OldDesignNum", planet.Starbase.Tokens[0].design.Num).
+					Msgf("StarbaseUpgradeCost returned error: %v", err)
 				return productionResult{}, fmt.Errorf("failed to compute starbase upgrade cost")
 			}
 		} else if item.Type == QueueItemTypeStarbase || item.Type == QueueItemTypeShipToken {
 			cost, err = costCalculator.GetDesignCost(p.rules, p.player.TechLevels, p.player.Race.Spec, item.design)
 			if err != nil {
-				log.Error().
+				p.log.Error().
 					Err(err).
-					Int64("GameID", p.rules.GameID).
-					Int("Num", item.design.Num).
-					Int("Player Num", p.player.Num).
-					Int("Design Num", item.design.Num).
-					Msgf("GetDesignCost returned error: %s", err)
+					Int("DesigNum", item.design.Num).
+					Msgf("GetDesignCost returned error: %v", err)
 				return productionResult{}, fmt.Errorf("failed to get design cost")
 			}
 		} else {
 			cost, err = costCalculator.CostOfOne(p.player, item)
 			if err != nil {
-				log.Error().
+				p.log.Error().
 					Err(err).
-					Int64("GameID", p.rules.GameID).
-					Int("Num", item.design.Num).
-					Int("Player Num", p.player.Num).
-					Str("Item Type", string(item.Type)).
-					Int("Item Quantity", item.Quantity).
-					Msgf("CostOfOnr returned error: %s", err)
+					Int("DesignNum", item.design.Num).
+					Str("ItemType", string(item.Type)).
+					Int("ItemQuantity", item.Quantity).
+					Msgf("CostOfOne returned error: %v", err)
 				return productionResult{}, fmt.Errorf("failed to compute cost of %s", item.Type)
 			}
 		}
@@ -278,10 +278,7 @@ func (p *production) produce() (productionResult, error) {
 
 			// planets are ending up with negative minerals. Trying to figure out why...
 			if available.MinZero() != available {
-				log.Warn().
-					Int64("GameID", planet.GameID).
-					Int64("ID", planet.ID).
-					Str("Name", planet.Name).
+				p.log.Warn().
 					Str("Cargo", fmt.Sprintf("%+v", planet.Cargo)).
 					Str("ProductionQueue", fmt.Sprintf("%+v", planet.ProductionQueue)).
 					Str("itemResult", fmt.Sprintf("%+v", result)).
@@ -353,10 +350,7 @@ func (p *production) produce() (productionResult, error) {
 	planet.ProductionQueue = newQueue
 	planet.Cargo = Cargo{available.Ironium, available.Boranium, available.Germanium, planet.Cargo.Colonists}
 	if planet.Cargo.MinZero() != planet.Cargo {
-		log.Warn().
-			Int64("GameID", planet.GameID).
-			Int64("ID", planet.ID).
-			Str("Name", planet.Name).
+		p.log.Warn().
 			Str("Cargo", fmt.Sprintf("%+v", planet.Cargo)).
 			Str("productionResult", fmt.Sprintf("%+v", result)).
 			Msgf("planet cargo was negative after production: %s", planet.Cargo.PrettyString())
