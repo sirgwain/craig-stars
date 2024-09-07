@@ -270,7 +270,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 	
 	hull := rules.techs.GetHull(design.Hull)
 	if hull == nil {
-		return ShipDesignSpec{}, fmt.Errorf("computeShipDesignSpec failed to find hull %s in techstore", design.hull)
+		return ShipDesignSpec{}, fmt.Errorf("failed to find hull %s in techstore", design.Hull)
 	}
 	c := NewCostCalculator()
 	spec := ShipDesignSpec{

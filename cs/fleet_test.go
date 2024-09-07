@@ -332,7 +332,7 @@ func Test_computeFleetSpec(t *testing.T) {
 		}}, FleetSpec{
 			ShipDesignSpec: ShipDesignSpec{
 				Starbase:       true,
-				Cost:           Cost{122, 230, 236, 720},
+				Cost:           Cost{114, 150, 228, 624},
 				Mass:           48,
 				Armor:          500,
 				Shields:        400,

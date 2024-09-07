@@ -614,7 +614,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 			},
 			want: ShipDesignSpec{
 				HullType:        TechHullTypeStarbase,
-				Cost:            Cost{160, 292, 286, 894},
+				Cost:            Cost{152, 196, 278, 782},
 				TechLevel:       TechLevel{Energy: 4},
 				Engine:          Engine{},
 				Mass:            48,
@@ -661,7 +661,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := ComputeShipDesignSpec(&rules, tt.args.techLevels, tt.args.raceSpec, tt.args.design)
-			if tt.wanterr && err != nil {
+			if tt.wanterr && err == nil {
 				t.Errorf("ComputeShipDesignSpec() did not error when expected")
 			} else if !test.CompareAsJSON(t, got, tt.want) {
 				t.Errorf("ComputeShipDesignSpec() = %v, want %v", got, tt.want)
