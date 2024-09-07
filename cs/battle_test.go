@@ -1224,12 +1224,12 @@ func Test_battle_runBattleError(t *testing.T) {
 				},
 			},
 		},
-		// player2's teamster
+		// player2's ~~teamster~~ BANANA
 		{
 			MapObject: MapObject{
 				PlayerNum: player2.Num,
 			},
-			BaseName: "Teamster+",
+			BaseName: "Banana+",
 			Tokens: []ShipToken{
 				{
 					Quantity:  5,
@@ -1244,7 +1244,7 @@ func Test_battle_runBattleError(t *testing.T) {
 	}
 
 	_, err := RunTestBattle([]*Player{player1, player2}, fleets)
-	// should return error due to incorrect spec on teamster from nonexistent parts
+	// should return error due to incorrect spec on teamster from nonexistent hull/parts
 	assert.Error(t, err)
 }
 
