@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { andCommaList } from '$lib/andCommandList';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { absSum } from '$lib/types/Hab';
 	import { None } from '$lib/types/MapObject';
@@ -22,7 +23,8 @@
 			)} settlement on
 			{message.spec.targetName}
 		{:else}
-			Your fleets have bombed the {$universe.getPlayerPluralName(message.spec.targetPlayerNum)} settlement on
+			Your fleets have bombed the {$universe.getPlayerPluralName(message.spec.targetPlayerNum)} settlement
+			on
 			{message.spec.targetName}
 		{/if}
 		{#if bombing.planetEmptied}
@@ -73,36 +75,20 @@
 	{/if}
 	<!-- Remote Mining messages -->
 {:else if message.type === MessageType.FleetRemoteMined}
-	{message.targetName} has remote mined {message.spec.targetName}, extracting
-	{#if (message.spec.mineral?.ironium ?? 0) > 0}
-		{#if (message.spec.mineral?.boranium ?? 0) > 0}
-			{#if (message.spec.mineral?.germanium ?? 0) > 0}
-				{message.spec.mineral?.ironium ?? 0}kT of Ironium,
-				{message.spec.mineral?.boranium ?? 0}kT of Boranium, and
-				{message.spec.mineral?.germanium ?? 0}kT of Germanium.
-			{:else}
-				{message.spec.mineral?.ironium ?? 0}kT of Ironium and
-				{message.spec.mineral?.boranium ?? 0}kT of Boranium.
-			{/if}
-		{:else if (message.spec.mineral?.germanium ?? 0) > 0}
-			{message.spec.mineral?.ironium ?? 0}kT of Ironium and
-			{message.spec.mineral?.germanium ?? 0}kT of Germanium.
-		{:else}
-			{message.spec.mineral?.ironium ?? 0}kT of Ironium.
-		{/if}
-	{:else}
-		{#if (message.spec.mineral?.boranium ?? 0) > 0}
-			{#if (message.spec.mineral?.germanium ?? 0) > 0}
-				{message.spec.mineral?.boranium ?? 0}kT of Boranium and
-				{message.spec.mineral?.germanium ?? 0}kT of Germanium.
-			{:else}
-				{message.spec.mineral?.boranium ?? 0}kT of Boranium.
-			{/if}
-		{:else if (message.spec.mineral?.germanium ?? 0) > 0}
-			{message.spec.mineral?.germanium ?? 0}kT of Germanium.
-		{:else}
-			no minerals.
-		{/if}
+	{message.targetName} has remote mined {message.spec.targetName}, extracting {andCommaList(
+		[
+			(message.spec.mineral?.ironium ?? 0) > 0
+				? `${message.spec.mineral?.ironium ?? 0} kT of Ironium`
+				: '',
+			(message.spec.mineral?.boranium ?? 0) > 0
+				? `${message.spec.mineral?.boranium ?? 0} kT of Boranium`
+				: '',
+			(message.spec.mineral?.germanium ?? 0) > 0
+				? `${message.spec.mineral?.germanium ?? 0} kT of Germanium`
+				: ''
+		],
+		'no minerals.'
+	)}
 {:else if message.type === MessageType.FleetTransferGiven}
 	{message.targetName} has successfully been given to {$universe.getPlayerPluralName(
 		message.spec.destPlayerNum
