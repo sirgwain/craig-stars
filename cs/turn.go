@@ -2566,7 +2566,10 @@ func (t *turn) fleetSweepMines() {
 				// sweep mines
 				if fleet.willAttack(fleetPlayer, mineField.PlayerNum) && isPointInCircle(fleet.Position, mineField.Position, mineField.Radius()) {
 					mineFieldPlayer := t.game.getPlayer(mineField.PlayerNum)
-					mineField.sweep(&t.game.Rules, fleet, fleetPlayer, mineFieldPlayer)
+					numSwept := mineField.sweep(&t.game.Rules, fleet.Position, fleet.Spec.MineSweep)
+
+					messager.fleetMineFieldSwept(fleetPlayer, fleet, mineField, numSwept)
+					messager.fleetMineFieldSwept(mineFieldPlayer, fleet, mineField, numSwept)
 
 					t.log.Debug().
 						Int("Player", fleet.PlayerNum).

@@ -213,14 +213,31 @@ func (mineField *MineField) reduceMineFieldOnImpact() {
 	mineField.NumMines = numMines
 }
 
-func (mineField *MineField) sweep(rules *Rules, fleet *Fleet, fleetPlayer *Player, mineFieldPlayer *Player) {
+func (mineField *MineField) sweep(rules *Rules, fleetPosition Vector, mineSweep int) int {
+
+	// we can only sweep up to our position in the minefield, so figure out how far we are from the center
+	// and subtract that from the radius to determine the edge amount
+	//		***
+	// 	   *****
+	// 	  *******
+	// 	 *F**C**** // fleet is 1 from the edge, 3 from the center
+	// 	  *******
+	// 	   *****
+	// 	    ***
+	//
+	radius := mineField.Radius()
+	distFromCenter := fleetPosition.DistanceTo(mineField.Position)
+	distFromEdge := mineField.Radius() - distFromCenter
+
+	// radius of a minefield is sqrt(numMines) so we can sweet our dist^2 in mines
+	sweepableMines := mineField.NumMines - int(math.Ceil((radius-distFromEdge)*(radius-distFromEdge)))
+
 	old := mineField.NumMines
-	mineField.NumMines -= int(float64(fleet.Spec.MineSweep) * rules.MineFieldStatsByType[mineField.MineFieldType].SweepFactor)
+	mineField.NumMines -= MinInt(sweepableMines, int(float64(mineSweep)*rules.MineFieldStatsByType[mineField.MineFieldType].SweepFactor))
 	mineField.NumMines = MaxInt(mineField.NumMines, 0)
 
 	numSwept := old - mineField.NumMines
-	messager.fleetMineFieldSwept(fleetPlayer, fleet, mineField, numSwept)
-	messager.fleetMineFieldSwept(mineFieldPlayer, fleet, mineField, numSwept)
+	return numSwept
 }
 
 // / Check for mine field collisions. If we collide with one, do damage and stop the fleet
