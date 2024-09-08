@@ -361,6 +361,12 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 		this.resetMyMapObjectsByPosition();
 	}
 
+	updateMineField(mineField: MineField) {
+		this.mineFields[mineField.num - 1] = mineField;
+		this.resetMapObjectsByPosition();
+		this.resetMyMapObjectsByPosition();
+	}
+
 	updateSalvages(salvages: Salvage[]) {
 		this.salvages = salvages;
 		this.resetMapObjectsByPosition();

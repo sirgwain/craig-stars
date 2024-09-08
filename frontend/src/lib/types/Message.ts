@@ -3,6 +3,7 @@ import type { Cost } from './Cost';
 import type { Target } from './Fleet';
 import type { Hab } from './Hab';
 import { MapObjectType } from './MapObject';
+import type { MineFieldDamage } from './MineField';
 import type { Mineral } from './Mineral';
 import type { MineralPacketDamage } from './MineralPacket';
 import type { MysteryTraderReward } from './MysteryTrader';
@@ -34,6 +35,7 @@ export type PlayerMessageSpec = {
 	bombing?: BombingResult;
 	mineral?: Mineral;
 	mineralPacketDamage?: MineralPacketDamage;
+	mineFieldDamage?: MineFieldDamage;
 	mysteryTrader?: MysteryTraderReward & { fleetNum?: number };
 } & Target;
 

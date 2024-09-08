@@ -196,6 +196,7 @@
 				<option value={4}>for 4 years</option>
 				<option value={5}>for 5 years</option>
 			</select>
+			<p class="text-warning">This fleet can lay {fleet.getTotalMinesLaidPerYear()} mines per year.</p>
 		{:else if $selectedWaypoint?.task === WaypointTask.Patrol}
 			<div class="flex justify-between my-1">
 				<div class="my-auto text-tile-item-title">Intercept</div>
@@ -241,7 +242,8 @@
 				<option value={undefined}>None</option>
 				{#each $game.players as otherPlayer}
 					{#if otherPlayer.num != $player.num}
-						<option value={otherPlayer.num}>{$universe.getPlayerPluralName(otherPlayer.num)}</option>
+						<option value={otherPlayer.num}>{$universe.getPlayerPluralName(otherPlayer.num)}</option
+						>
 					{/if}
 				{/each}
 			</select>

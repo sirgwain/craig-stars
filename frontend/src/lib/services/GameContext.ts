@@ -43,6 +43,8 @@ import { ProductionPlanService } from './ProductionPlanService';
 import { TransportPlanService } from './TransportPlanService';
 import { Universe } from './Universe';
 import type { CS } from '$lib/wasm';
+import type { MineField } from '$lib/types/MineField';
+import { MineFieldService } from './MineFieldService';
 
 export const playerFinderKey = Symbol();
 export const designFinderKey = Symbol();
@@ -111,6 +113,7 @@ export type GameContext = {
 	updateFleetOrders: (fleet: CommandedFleet) => Promise<void>;
 	renameFleet: (fleet: CommandedFleet, name: string) => Promise<void>;
 	updatePlanetOrders: (planet: CommandedPlanet) => Promise<void>;
+	updateMineFieldOrders: (mineField: MineField) => Promise<void>;
 	transferCargo: (
 		fleet: CommandedFleet,
 		dest: Fleet | Planet | Salvage,
@@ -642,6 +645,22 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		universe.set(u);
 	}
 
+	// after a mineField is updated from the server, update the mineField in the universe, reset any commanded/selected
+	// state and trigger reactivity
+	function updateMineField(mineField: MineField, updatedMineField: MineField) {
+		mineField = Object.assign(mineField, updatedMineField);
+		const u = get(universe);
+		u.updateMineField(mineField);
+
+		// if we were selecting this mineField, reselect it to trigger reactivity
+		if (equal(get(selectedMapObject), mineField)) {
+			selectMapObject(mineField);
+		}
+
+		// trigger reactivity
+		universe.set(u);
+	}
+
 	// load the status of a game, but not all the universe data
 	async function loadStatus(): Promise<void> {
 		const result = await GameService.loadGame(gameId);
@@ -828,6 +847,11 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		updatePlanet(planet, resp.planet);
 	}
 
+	async function updateMineFieldOrders(mineField: MineField): Promise<void> {
+		const updatedMineField = await MineFieldService.updateMineFieldOrders(mineField);
+		updateMineField(mineField, updatedMineField);
+	}
+
 	async function transferCargo(
 		fleet: CommandedFleet,
 		dest: Fleet | Planet | Salvage,
@@ -981,6 +1005,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		updateFleetOrders,
 		renameFleet,
 		updatePlanetOrders,
+		updateMineFieldOrders,
 		transferCargo,
 		split,
 		splitAll,

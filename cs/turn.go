@@ -881,7 +881,57 @@ func (t *turn) moveFleet(fleet *Fleet) {
 		// yeah, gate!
 		fleet.gateFleet(&t.game.Rules, t.game.Universe, t.game)
 	} else {
-		fleet.moveFleet(t.log, &t.game.Rules, t.game.Universe, t.game)
+		interrupted := fleet.moveFleet(&t.game.Rules, t.game.Universe, t.game)
+		if interrupted != nil {
+			switch interrupted.reason {
+			case fleetMoveInterruptedHitMineField:
+				// damage the fleet in the minefield
+				mineField := interrupted.mineField
+				mineFieldPlayer := t.game.getPlayer(mineField.PlayerNum)
+				stats := t.game.Rules.MineFieldStatsByType[mineField.MineFieldType]
+
+				damage := mineField.damageFleet(fleet, player, stats)
+				mineField.reduceMineFieldOnImpact()
+				if mineFieldPlayer.Race.Spec.MineFieldsAreScanners {
+					// SD races discover the exact fleet makeup
+					for _, token := range fleet.Tokens {
+						// SD races discover the exact fleet makeup
+						mineFieldPlayer.discoverer.discoverDesign(token.design, true)
+					}
+				}
+
+				// tell the fleet owner and the mineField owner the fleet was hit
+				messager.fleetMineFieldHit(player, fleet, mineField, damage)
+				if mineField.PlayerNum != player.Num {
+					messager.fleetMineFieldHit(mineFieldPlayer, fleet, mineField, damage)
+				}
+
+				log.Debug().
+					Int("Player", mineField.PlayerNum).
+					Str("MineField", mineField.Name).
+					Str("Fleet", fleet.Name).
+					Int("FleetPlayer", fleet.PlayerNum).
+					Int("TotalDamage", damage.Damage).
+					Int("ShipsDestroyed", damage.ShipsDestroyed).
+					Bool("FleetDestroyed", damage.FleetDestroyed).
+					Msgf("minefield damaged fleet")
+
+			}
+		} else {
+			// check for exploded ships from overwarp
+			explodedShips := fleet.applyOverwarpPenalty(&t.game.Rules)
+			// tell the player they lost ships
+			if explodedShips > 0 {
+				t.log.Debug().
+					Int("Player", fleet.PlayerNum).
+					Str("Fleet", fleet.Name).
+					Int("ExplodedShips", explodedShips).
+					Int("Warp", wp1.WarpSpeed).
+					Msgf("fleet ships exploded due to unsafe warp")
+
+				messager.fleetExceededSafeSpeed(player, fleet, explodedShips)
+			}
+		}
 	}
 
 	t.log.Debug().
@@ -893,45 +943,16 @@ func (t *turn) moveFleet(fleet *Fleet) {
 		Str("End", fleet.Position.String()).
 		Msgf("moved fleet")
 
-	// check for exploded ships
-	explodedShips := 0
-	updatedTokens := make([]ShipToken, 0, len(fleet.Tokens))
-	for tokenIndex := range fleet.Tokens {
-		token := &fleet.Tokens[tokenIndex]
-		if wp1.WarpSpeed > token.design.Spec.Engine.MaxSafeSpeed && wp1.WarpSpeed != StargateWarpSpeed {
-			// explode some fleets if you go too fast
-			for shipIndex := 0; shipIndex < token.Quantity; shipIndex++ {
-				if t.game.Rules.FleetSafeSpeedExplosionChance > t.game.Rules.random.Float64() {
-					explodedShips++
-					token.Quantity--
-				}
-			}
-			if token.Quantity > 0 {
-				updatedTokens = append(updatedTokens, *token)
-			}
-		} else {
-			updatedTokens = append(updatedTokens, *token)
-		}
-	}
-
-	// tell the player they lost ships
-	if explodedShips > 0 {
-		t.log.Debug().
-			Int("Player", fleet.PlayerNum).
-			Str("Fleet", fleet.Name).
-			Int("ExplodedShips", explodedShips).
-			Int("Warp", wp1.WarpSpeed).
-			Msgf("fleet ships exploded due to unsafe warp")
-
-		messager.fleetExceededSafeSpeed(player, fleet, explodedShips)
-	}
-	fleet.Tokens = updatedTokens
-
 	// update the game dictionaries with this fleet's new position
 	t.game.moveFleet(fleet, originalPosition)
 
 	// make sure we have tokens left after move
+	fleet.removeEmptyTokens()
 	if len(fleet.Tokens) == 0 {
+		t.log.Debug().
+			Int("Player", fleet.PlayerNum).
+			Str("Fleet", fleet.Name).
+			Msgf("deleted fleet after move")
 		t.game.deleteFleet(fleet)
 		return
 	}
@@ -1180,11 +1201,41 @@ func (t *turn) detonateMines() {
 			continue
 		}
 
-		player := t.game.getPlayer(mineField.PlayerNum)
+		mineFieldPlayer := t.game.getPlayer(mineField.PlayerNum)
 		fleetsWithin := t.game.fleetsWithin(mineField.Position, mineField.Spec.Radius)
 		for _, fleet := range fleetsWithin {
 			fleetPlayer := t.game.getPlayer(fleet.PlayerNum)
-			mineField.damageFleet(t.log, player, fleet, fleetPlayer, stats)
+			damage := mineField.damageFleet(fleet, fleetPlayer, stats)
+
+			if mineFieldPlayer.Race.Spec.MineFieldsAreScanners {
+				// SD races discover the exact fleet makeup
+				for _, token := range fleet.Tokens {
+					// SD races discover the exact fleet makeup
+					mineFieldPlayer.discoverer.discoverDesign(token.design, true)
+				}
+			}
+
+			messager.fleetMineFieldHit(fleetPlayer, fleet, mineField, damage)
+			if mineField.PlayerNum != fleetPlayer.Num {
+				messager.fleetMineFieldHit(mineFieldPlayer, fleet, mineField, damage)
+			}
+
+			// clear out any destroyed tokens
+			fleet.removeEmptyTokens()
+
+			log.Debug().
+				Int("Player", mineField.PlayerNum).
+				Str("MineField", mineField.Name).
+				Str("Fleet", fleet.Name).
+				Int("FleetPlayer", fleet.PlayerNum).
+				Int("TotalDamage", damage.Damage).
+				Int("ShipsDestroyed", damage.ShipsDestroyed).
+				Bool("FleetDestroyed", damage.FleetDestroyed).
+				Msgf("minefield detonation damaged fleet")
+
+			if damage.FleetDestroyed {
+				t.game.deleteFleet(fleet)
+			}
 		}
 
 		t.log.Debug().

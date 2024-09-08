@@ -1,6 +1,7 @@
 package cs
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -99,12 +100,11 @@ func Test_checkForMineFieldCollision_Hit(t *testing.T) {
 	dest := NewPositionWaypoint(Vector{20, 0}, 9)
 	dist := float64(dest.WarpSpeed * dest.WarpSpeed)
 
-	actualDist := checkForMineFieldCollision(testLogger, &rules, newTestPlayerGetter(fleetPlayer, mineFieldPlayer), u, fleet, dest, dist)
+	mineFieldHit, actualDist := checkForMineFieldCollision(&rules, newTestPlayerGetter(fleetPlayer, mineFieldPlayer), u, fleet, dest, dist)
 
 	// we should come to a dead stop, ship destroyed
 	assert.Equal(t, 5.0, actualDist)
-	assert.Equal(t, 500.0, fleet.Tokens[0].Damage)
-	assert.Equal(t, 0, fleet.Tokens[0].Quantity)
+	assert.Equal(t, mineField, mineFieldHit)
 
 }
 
@@ -127,13 +127,11 @@ func Test_checkForMineFieldCollision_Miss(t *testing.T) {
 	dest := NewPositionWaypoint(Vector{20, 0}, 4)
 	dist := float64(dest.WarpSpeed * dest.WarpSpeed)
 
-	actualDist := checkForMineFieldCollision(testLogger, &rules, newTestPlayerGetter(fleetPlayer, mineFieldPlayer), u, fleet, dest, dist)
+	mineFieldHit, actualDist := checkForMineFieldCollision(&rules, newTestPlayerGetter(fleetPlayer, mineFieldPlayer), u, fleet, dest, dist)
 
 	// we should come to a dead stop, ship destroyed
+	assert.Nil(t, mineFieldHit)
 	assert.Equal(t, 16.0, actualDist)
-	assert.Equal(t, 0.0, fleet.Tokens[0].Damage)
-	assert.Equal(t, 1, fleet.Tokens[0].Quantity)
-
 }
 
 func TestMineField_moveTowardsMineLayer(t *testing.T) {
@@ -187,6 +185,49 @@ func TestMineField_moveTowardsMineLayer(t *testing.T) {
 				t.Errorf("MineField.moveTowardsMineLayer() = %v, want %v", mineField.Position, tt.want)
 			}
 
+		})
+	}
+}
+
+func TestMineField_damageFleet(t *testing.T) {
+	mineFieldPlayer := testPlayer().WithNum(1)
+	fleetPlayer := testPlayer().WithNum(2)
+	type args struct {
+		fleet       *Fleet
+		fleetPlayer *Player
+		stats       MineFieldStats
+	}
+	tests := []struct {
+		name     string
+		detonate bool
+		args     args
+		want     MineFieldDamage
+	}{
+		{
+			name:     "destroy scout",
+			detonate: false,
+			args:     args{testLongRangeScout(fleetPlayer), fleetPlayer, rules.MineFieldStatsByType[MineFieldTypeStandard]},
+			want:     MineFieldDamage{Damage: 500, ShipsDestroyed: 1, FleetDestroyed: true},
+		},
+		{
+			name:     "destroy big fleet",
+			detonate: false,
+			args:     args{testLongRangeScoutWithQuantity(fleetPlayer, 100), fleetPlayer, rules.MineFieldStatsByType[MineFieldTypeStandard]},
+			want:     MineFieldDamage{Damage: 10000, ShipsDestroyed: 100, FleetDestroyed: true},
+		},
+		{
+			name:     "damage stalwart defender",
+			detonate: false,
+			args:     args{testStalwartDefenderWithQuantity(fleetPlayer, 10), fleetPlayer, rules.MineFieldStatsByType[MineFieldTypeStandard]},
+			want:     MineFieldDamage{Damage: 1000, ShipsDestroyed: 3, FleetDestroyed: false},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mineField := newMineField(mineFieldPlayer, MineFieldTypeStandard, 1000, 1, Vector{})
+			if got := mineField.damageFleet(tt.args.fleet, tt.args.fleetPlayer, tt.args.stats); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("MineField.damageFleet() = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }

@@ -45,7 +45,6 @@
 		)
 	);
 
-
 	function gotoTarget(mo: MapObject) {
 		if (ownedBy(mo, $player.num)) {
 			if (mo.type === MapObjectType.Planet || mo.type === MapObjectType.Fleet) {
@@ -109,8 +108,10 @@
 					>
 						<button
 							class="py-1 pl-0.5 w-full text-left hover:text-accent"
-							on:click={() => gotoTarget(mo)}>{mo.name}</button
+							on:click={() => gotoTarget(mo)}
 						>
+							{mo.name}
+						</button>
 					</li>
 				{/each}
 			</ul>

@@ -61,6 +61,21 @@ func (c *client) GetMineField(id int64) (*cs.MineField, error) {
 	return mineField, nil
 }
 
+func (c *client) GetMineFieldByNum(gameID int64, playerNum int, num int) (*cs.MineField, error) {
+
+	item := MineField{}
+	if err := c.reader.Get(&item, `SELECT * FROM mineFields WHERE gameId = ? AND playerNum = ? AND num = ?`, gameID, playerNum, num); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	mineField := c.converter.ConvertMineField(&item)
+	return mineField, nil
+
+}
+
 func (c *client) GetMineFieldsForPlayer(gameID int64, playerNum int) ([]*cs.MineField, error) {
 
 	items := []MineField{}

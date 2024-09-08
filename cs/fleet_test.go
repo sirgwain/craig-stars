@@ -650,7 +650,7 @@ func TestFleet_moveFleet(t *testing.T) {
 			}
 			universe.buildMaps([]*Player{player})
 
-			tt.fleet.moveFleet(testLogger, &rules, &universe, newTestPlayerGetter(player))
+			tt.fleet.moveFleet(&rules, &universe, newTestPlayerGetter(player))
 
 			assert.Equal(t, tt.want.position, tt.fleet.Position)
 			assert.Equal(t, tt.want.position, tt.fleet.Waypoints[0].Position)
@@ -711,7 +711,7 @@ func TestFleet_moveFleetEngineFailure(t *testing.T) {
 			rules := NewRules()
 			rules.random = tt.args.random
 
-			tt.fleet.moveFleet(testLogger, &rules, &universe, newTestPlayerGetter(player))
+			tt.fleet.moveFleet(&rules, &universe, newTestPlayerGetter(player))
 
 			assert.Equal(t, tt.want.position, tt.fleet.Position)
 		})
