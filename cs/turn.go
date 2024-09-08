@@ -1207,7 +1207,12 @@ func (t *turn) detonateMines() {
 			fleetPlayer := t.game.getPlayer(fleet.PlayerNum)
 			damage := mineField.damageFleet(fleet, fleetPlayer, stats)
 
-			if mineFieldPlayer.Race.Spec.MineFieldsAreScanners {
+			if damage == (MineFieldDamage{}) {
+				// no damage, probably immune
+				continue
+			}
+
+			if mineFieldPlayer.Race.Spec.MineFieldsAreScanners && mineFieldPlayer.Num != fleet.PlayerNum {
 				// SD races discover the exact fleet makeup
 				for _, token := range fleet.Tokens {
 					// SD races discover the exact fleet makeup
@@ -1237,6 +1242,9 @@ func (t *turn) detonateMines() {
 				t.game.deleteFleet(fleet)
 			}
 		}
+
+		// reduce minefield after detonation
+		mineField.NumMines -= mineField.NumMines / 4
 
 		t.log.Debug().
 			Int("Player", mineField.PlayerNum).

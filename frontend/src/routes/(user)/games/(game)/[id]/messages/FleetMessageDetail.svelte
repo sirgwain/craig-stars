@@ -68,9 +68,9 @@
 		{#if message.targetPlayerNum === $player.num}
 			<!-- our fleet was hit -->
 			{#if damage.fleetDestroyed}
-				{message.spec.name} has been annihilated in a {mineFieldOwner} mine field at {mineFieldPosition}.
+				{message.targetName} has been annihilated in a {mineFieldOwner} mine field at {mineFieldPosition}.
 			{:else}
-				{message.spec.name} has been stopped in a {mineFieldOwner} mine field at {mineFieldPosition}.
+				{message.targetName} has been stopped in a {mineFieldOwner} mine field at {mineFieldPosition}.
 				{#if (damage.shipsDestroyed ?? 0) > 0}
 					Your fleet has taken {damage.damage ?? 0} damage points and {damage.shipsDestroyed} ships were
 					destroyed.
@@ -81,9 +81,9 @@
 		{:else}
 			<!-- our minefield hit someone else's fleet -->
 			{#if damage.fleetDestroyed}
-				{message.spec.name} has been annihilated in your mine field at {mineFieldPosition}.
+				{message.targetName} has been annihilated in your mine field at {mineFieldPosition}.
 			{:else}
-				{message.spec.name} has been stopped in your mine field at {mineFieldPosition}.
+				{message.targetName} has been stopped in your mine field at {mineFieldPosition}.
 				{#if (damage.shipsDestroyed ?? 0) > 0}
 					Your mines have inflicted {damage.damage ?? 0} damage points and destroyed {damage.shipsDestroyed}
 					ships.
@@ -100,17 +100,17 @@
 	{@const mineFieldPosition = `(${message.spec.targetPosition.x}, ${message.spec.targetPosition.y})`}
 	{#if message.targetPlayerNum === $player.num}
 		<!-- our fleet swept -->
-		{message.spec.name} has has swept {message.spec.amount} mines from a mine field at {mineFieldPosition}
+		{message.targetName} has has swept {message.spec.amount} mines from a mine field at {mineFieldPosition}
 	{:else}
 		<!-- our minefield was swept by fleet -->
-		{message.spec.name} has has swept {message.spec.amount} mines from your mine field at {mineFieldPosition}
+		{message.targetName} has has swept {message.spec.amount} mines from your mine field at {mineFieldPosition}
 	{/if}
 {:else if message.type === MessageType.FleetLaidMines}
 	{@const mineField = $universe.getMineField(message.spec.targetPlayerNum, message.spec.targetNum)}
 	{#if mineField?.numMines === message.spec.amount}
-		{message.spec.name} has has dispensed {message.spec.amount} mines.
+		{message.targetName} has has dispensed {message.spec.amount} mines.
 	{:else}
-		{message.spec.name} has increased {mineField?.name} by {message.spec.amount} mines.
+		{message.targetName} has increased {mineField?.name} by {message.spec.amount} mines.
 	{/if}
 {:else if message.type === MessageType.FleetPatrolTargeted}
 	Your patrolling {message.targetName} has targeted {message.spec.targetName} to intercept.

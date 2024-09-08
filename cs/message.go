@@ -405,7 +405,7 @@ func (m *messageClient) fleetMinesLaidFailed(player *Player, fleet *Fleet) {
 
 func (m *messageClient) fleetMinesLaid(player *Player, fleet *Fleet, mineField *MineField, numMinesLaid int) {
 	player.Messages = append(player.Messages, newFleetMessage(
-		PlayerMessageFleetMineFieldSweptMines, fleet).withSpec(PlayerMessageSpec{Amount: numMinesLaid}.withTargetMinefield(mineField)))
+		PlayerMessageFleetLaidMines, fleet).withSpec(PlayerMessageSpec{Amount: numMinesLaid}.withTargetMinefield(mineField)))
 }
 
 func (m *messageClient) fleetOutOfFuel(player *Player, fleet *Fleet, warpSpeed int) {
