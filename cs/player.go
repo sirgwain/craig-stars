@@ -598,6 +598,7 @@ func (p *Player) defaultRelationships(players []*Player, aiFormsAlliances bool) 
 		} else if aiFormsAlliances && p.AIControlled && otherPlayer.AIControlled {
 			// team up! destroy all humans!
 			relationship.Relation = PlayerRelationFriend
+			relationship.ShareMap = true
 		} else if otherPlayer.AIControlled || p.AIControlled {
 			// AI is always the enemy
 			relationship.Relation = PlayerRelationEnemy
