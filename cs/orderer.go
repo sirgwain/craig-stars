@@ -35,7 +35,7 @@ type Orderer interface {
 	UpdatePlayerOrders(player *Player, playerPlanets []*Planet, order PlayerOrders, rules *Rules)
 	UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet, orders PlanetOrders) error
 	UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrders)
-	UpdateMineFieldOrders(player *Player, minefield *MineField, orders MineFieldOrders)
+	UpdateMineFieldOrders(player *Player, minefield *MineField, orders MineFieldOrders) error
 	TransferFleetCargo(rules *Rules, player, destPlayer *Player, source, dest *Fleet, transferAmount CargoTransferRequest) error
 	TransferPlanetCargo(rules *Rules, player *Player, source *Fleet, dest *Planet, transferAmount CargoTransferRequest) error
 	TransferSalvageCargo(rules *Rules, player *Player, source *Fleet, dest *Salvage, nextSalvageNum int, transferAmount CargoTransferRequest) (*Salvage, error)
@@ -173,8 +173,16 @@ func (o *orders) UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrd
 
 }
 
-func (o *orders) UpdateMineFieldOrders(player *Player, minefield *MineField, orders MineFieldOrders) {
+func (o *orders) UpdateMineFieldOrders(player *Player, minefield *MineField, orders MineFieldOrders) error {
+	if !player.Race.Spec.CanDetonateMineFields {
+		return fmt.Errorf("%s cannot detonate minefields", player.Race.PluralName)
+	}
+	if !minefield.MineFieldType.CanDetonate() {
+		return fmt.Errorf("%s minefields cannot detonate", minefield.MineFieldType)
+	}
+
 	minefield.MineFieldOrders = orders
+	return nil
 }
 
 // transfer cargo from a fleet to/from a fleet

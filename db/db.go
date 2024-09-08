@@ -140,6 +140,7 @@ type Client interface {
 	GetFleetsOrbitingPlanet(gameID int64, planetNum int) ([]*cs.Fleet, error)
 
 	GetMineField(id int64) (*cs.MineField, error)
+	GetMineFieldByNum(gameID int64, playerNum int, num int) (*cs.MineField, error)
 	GetMineFieldsForPlayer(gameID int64, playerNum int) ([]*cs.MineField, error)
 	UpdateMineField(fleet *cs.MineField) error
 

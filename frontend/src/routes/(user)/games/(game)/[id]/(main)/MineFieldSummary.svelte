@@ -8,8 +8,10 @@
 	import { MineFieldTypes, type MineField } from '$lib/types/MineField';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
+	import { min } from 'date-fns';
+	import type { ChangeEventHandler } from 'svelte/elements';
 
-	const { game, player, universe } = getGameContext();
+	const { game, player, universe, updateMineFieldOrders } = getGameContext();
 
 	export let mineField: MineField;
 
@@ -20,11 +22,17 @@
 			text: 'Numbers in parenthesis are for fleets containing a ship with ram scoop engines. Note that the chance of hitting a mine goes up the % listed for EACH warp you exceed the safe speed.'
 		});
 	}
+
+	// update the minefield to detonate on the server
+	const mineFieldDetonateChecked: ChangeEventHandler<HTMLInputElement> = async (e) => {
+		mineField.detonate = e.currentTarget.checked;
+		await updateMineFieldOrders(mineField);
+	};
 </script>
 
 <div class="flex flex-row min-h-[11rem]">
 	<div class="flex flex-col">
-		<div class="avatar ">
+		<div class="avatar">
 			<div class="border-2 border-neutral mr-2 p-2 bg-black">
 				<div
 					class:standard-mine-field={mineField.mineFieldType === MineFieldTypes.Standard}
@@ -93,6 +101,18 @@
 					{mineField.spec.decayRate} / year
 				</div>
 			</div>
+			{#if mineField.spec.canDetonate}
+				<div class="flex flex-row mt-2">
+					<label>
+						<input
+							checked={mineField.detonate}
+							on:change={mineFieldDetonateChecked}
+							class="checkbox checkbox-xs"
+							type="checkbox"
+						/> Detonate
+					</label>
+				</div>
+			{/if}
 		{/if}
 	</div>
 </div>

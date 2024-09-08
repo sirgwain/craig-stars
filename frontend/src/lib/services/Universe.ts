@@ -340,6 +340,10 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 		return this.mysteryTraders.find((mt) => mt.num === num);
 	}
 
+	getMineField(playerNum: number | undefined, num: number | undefined) {
+		return this.mineFields.find((f) => f.playerNum === playerNum && f.num === num);
+	}
+
 	addFleets(fleets: Fleet[]) {
 		this.fleets = [...fleets, ...this.fleets];
 		this.resetMapObjectsByPosition();
@@ -357,6 +361,12 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 
 	updatePlanet(planet: Planet) {
 		this.planets[planet.num - 1] = planet;
+		this.resetMapObjectsByPosition();
+		this.resetMyMapObjectsByPosition();
+	}
+
+	updateMineField(mineField: MineField) {
+		this.mineFields[mineField.num - 1] = mineField;
 		this.resetMapObjectsByPosition();
 		this.resetMyMapObjectsByPosition();
 	}

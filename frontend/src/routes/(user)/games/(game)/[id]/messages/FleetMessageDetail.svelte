@@ -7,7 +7,7 @@
 	import FallbackMessageDetail from './FallbackMessageDetail.svelte';
 	import FleetEngineStrainMessageDetail from './FleetEngineStrainMessageDetail.svelte';
 
-	const { game, universe } = getGameContext();
+	const { game, universe, player } = getGameContext();
 
 	export let message: Message;
 </script>
@@ -60,6 +60,58 @@
 {:else if message.type === MessageType.FleetExceededSafeSpeed}
 	<!-- Overwarp -->
 	<FleetEngineStrainMessageDetail {message} />
+{:else if message.type === MessageType.FleetMineFieldHit}
+	{@const damage = message.spec.mineFieldDamage}
+	{@const mineFieldOwner = $universe.getPlayerPluralName(message.spec.targetPlayerNum)}
+	{@const mineFieldPosition = `(${message.spec.targetPosition.x}, ${message.spec.targetPosition.y})`}
+	{#if damage}
+		{#if message.targetPlayerNum === $player.num}
+			<!-- our fleet was hit -->
+			{#if damage.fleetDestroyed}
+				{message.targetName} has been annihilated in a {mineFieldOwner} mine field at {mineFieldPosition}.
+			{:else}
+				{message.targetName} has been stopped in a {mineFieldOwner} mine field at {mineFieldPosition}.
+				{#if (damage.shipsDestroyed ?? 0) > 0}
+					Your fleet has taken {damage.damage ?? 0} damage points and {damage.shipsDestroyed} ships were
+					destroyed.
+				{:else if (damage.damage ?? 0) > 0}
+					Your fleet has taken {damage.damage ?? 0} damage points but none of your ships were destroyed.
+				{/if}
+			{/if}
+		{:else}
+			<!-- our minefield hit someone else's fleet -->
+			{#if damage.fleetDestroyed}
+				{message.targetName} has been annihilated in your mine field at {mineFieldPosition}.
+			{:else}
+				{message.targetName} has been stopped in your mine field at {mineFieldPosition}.
+				{#if (damage.shipsDestroyed ?? 0) > 0}
+					Your mines have inflicted {damage.damage ?? 0} damage points and destroyed {damage.shipsDestroyed}
+					ships.
+				{:else if (damage.damage ?? 0) > 0}
+					Your mines have inflicted {damage.damage ?? 0} damage points, but you didn't manage to destroy
+					any ships.
+				{/if}
+			{/if}
+		{/if}
+	{:else}
+		Unknown damage was done
+	{/if}
+{:else if message.type === MessageType.FleetMineFieldSweptMines}
+	{@const mineFieldPosition = `(${message.spec.targetPosition.x}, ${message.spec.targetPosition.y})`}
+	{#if message.targetPlayerNum === $player.num}
+		<!-- our fleet swept -->
+		{message.targetName} has has swept {message.spec.amount} mines from a mine field at {mineFieldPosition}
+	{:else}
+		<!-- our minefield was swept by fleet -->
+		{message.targetName} has has swept {message.spec.amount} mines from your mine field at {mineFieldPosition}
+	{/if}
+{:else if message.type === MessageType.FleetLaidMines}
+	{@const mineField = $universe.getMineField(message.spec.targetPlayerNum, message.spec.targetNum)}
+	{#if mineField?.numMines === message.spec.amount}
+		{message.targetName} has has dispensed {message.spec.amount} mines.
+	{:else}
+		{message.targetName} has increased {mineField?.name} by {message.spec.amount} mines.
+	{/if}
 {:else if message.type === MessageType.FleetPatrolTargeted}
 	Your patrolling {message.targetName} has targeted {message.spec.targetName} to intercept.
 {:else if message.type === MessageType.FleetRadiatingEngineDieoff}
@@ -88,12 +140,12 @@
 		],
 		'no minerals.'
 	)}
+{:else if message.type === MessageType.FleetScrapped}
+	{message.targetName} has been dismantled. The scrap was left in deep space.
 {:else if message.type === MessageType.FleetTransferGiven}
 	{message.targetName} has successfully been given to {$universe.getPlayerPluralName(
 		message.spec.destPlayerNum
 	)}.
-{:else if message.type === MessageType.FleetScrapped}
-	{message.targetName} has been dismantled. The scrap was left in deep space.
 {:else if message.type === MessageType.FleetTransferInvalidPlayer}
 	<!-- Fleet Transfers -->
 	{#if message.spec.destPlayerNum == undefined || message.spec.destPlayerNum == None || message.spec.destPlayerNum < 0 || message.spec.destPlayerNum >= $game.players.length}
