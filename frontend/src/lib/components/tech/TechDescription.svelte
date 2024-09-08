@@ -281,7 +281,7 @@
 								(hullComponent.torpedoBonus ?? 0) * 100
 							}% and increases your initiative by ${
 								hullComponent.initiativeBonus
-							}. If an enemy ship has jammers it act to offset their effects.`
+							}. If an enemy ship has jammers this will act to offset their effects.`
 						);
 					} else if ((hullComponent.initiativeBonus ?? 0) > 0) {
 						descriptions.push(
