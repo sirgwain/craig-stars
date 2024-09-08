@@ -124,7 +124,7 @@ const (
 	PlayerMessageFleetInvadedPlanet
 	PlayerMessageBattle
 	PlayerMessageFleetTransferredCargo
-	PlayerMessageFleetSweptMines
+	PlayerMessageFleetMineFieldSweptMines
 	PlayerMessageFleetLaidMines
 	PlayerMessageFleetMineFieldHit
 	PlayerMessageFleetDumpedCargo
@@ -195,11 +195,6 @@ func newPlanetMessage(messageType PlayerMessageType, target *Planet) PlayerMessa
 // create a new message targeting a fleet
 func newFleetMessage(messageType PlayerMessageType, target *Fleet) PlayerMessage {
 	return PlayerMessage{Type: messageType, Target: Target[PlayerMessageTargetType]{TargetType: TargetFleet, TargetName: target.Name, TargetPlayerNum: target.PlayerNum, TargetNum: target.Num}}
-}
-
-// create a new message targeting a minefield
-func newMineFieldMessage(messageType PlayerMessageType, target *MineField) PlayerMessage {
-	return PlayerMessage{Type: messageType, Target: Target[PlayerMessageTargetType]{TargetType: TargetMineField, TargetName: target.Name, TargetPlayerNum: target.PlayerNum, TargetNum: target.Num}}
 }
 
 // create a new message targeting a minefield
@@ -394,35 +389,13 @@ func (m *messageClient) fleetMerged(player *Player, fleet *Fleet, mergedInto *Fl
 }
 
 func (m *messageClient) fleetMineFieldHit(player *Player, fleet *Fleet, mineField *MineField, mineFieldDamage MineFieldDamage) {
-
-	player.Messages = append(player.Messages, PlayerMessage{
-		Type:   PlayerMessageFleetMineFieldHit,
-		Target: Target[PlayerMessageTargetType]{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num},
-	}.withSpec(PlayerMessageSpec{MineFieldDamage: &mineFieldDamage}.withTargetMinefield(mineField)))
+	player.Messages = append(player.Messages, newFleetMessage(
+		PlayerMessageFleetMineFieldHit, fleet).withSpec(PlayerMessageSpec{MineFieldDamage: &mineFieldDamage}.withTargetMinefield(mineField)))
 }
 
 func (m *messageClient) fleetMineFieldSwept(player *Player, fleet *Fleet, mineField *MineField, numMinesSwept int) {
-	var text string
-
-	if fleet.PlayerNum == player.Num {
-		text = fmt.Sprintf("%s has swept %d mines from a mine field at %v.", fleet.Name, numMinesSwept, mineField.Position)
-	} else {
-		text = fmt.Sprintf("Someone has swept %d mines from your mine field at %v.", numMinesSwept, mineField.Position)
-	}
-
-	// this will be removed if the mines are gone, so target the fleet
-	if mineField.NumMines <= 10 {
-		if fleet.PlayerNum == player.Num {
-			player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetSweptMines, fleet).
-				withSpec(PlayerMessageSpec{Amount: numMinesSwept}.withTargetMinefield(mineField)).
-				withText(text))
-		}
-	} else {
-		player.Messages = append(player.Messages, newMineFieldMessage(PlayerMessageFleetSweptMines, mineField).
-			withSpec(PlayerMessageSpec{Amount: numMinesSwept}).
-			withText(text))
-	}
-
+	player.Messages = append(player.Messages, newFleetMessage(
+		PlayerMessageFleetMineFieldSweptMines, fleet).withSpec(PlayerMessageSpec{Amount: numMinesSwept}.withTargetMinefield(mineField)))
 }
 
 func (m *messageClient) fleetMinesLaidFailed(player *Player, fleet *Fleet) {
@@ -431,13 +404,8 @@ func (m *messageClient) fleetMinesLaidFailed(player *Player, fleet *Fleet) {
 }
 
 func (m *messageClient) fleetMinesLaid(player *Player, fleet *Fleet, mineField *MineField, numMinesLaid int) {
-	var text string
-	if mineField.NumMines == numMinesLaid {
-		text = fmt.Sprintf("%s has dispensed %d mines.", fleet.Name, numMinesLaid)
-	} else {
-		text = fmt.Sprintf("%s has increased a minefield by %d mines.", fleet.Name, numMinesLaid)
-	}
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetLaidMines, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num}})
+	player.Messages = append(player.Messages, newFleetMessage(
+		PlayerMessageFleetMineFieldSweptMines, fleet).withSpec(PlayerMessageSpec{Amount: numMinesLaid}.withTargetMinefield(mineField)))
 }
 
 func (m *messageClient) fleetOutOfFuel(player *Player, fleet *Fleet, warpSpeed int) {

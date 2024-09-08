@@ -140,7 +140,7 @@ export enum MessageType {
 	FleetInvadedPlanet,
 	Battle,
 	FleetTransferredCargo,
-	FleetSweptMines,
+	FleetMineFieldSweptMines,
 	FleetLaidMines,
 	FleetMineFieldHit,
 	FleetDumpedCargo,

@@ -340,6 +340,10 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 		return this.mysteryTraders.find((mt) => mt.num === num);
 	}
 
+	getMineField(playerNum: number | undefined, num: number | undefined) {
+		return this.mineFields.find((f) => f.playerNum === playerNum && f.num === num);
+	}
+
 	addFleets(fleets: Fleet[]) {
 		this.fleets = [...fleets, ...this.fleets];
 		this.resetMapObjectsByPosition();
