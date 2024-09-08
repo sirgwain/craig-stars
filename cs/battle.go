@@ -1,9 +1,11 @@
 package cs
 
 import (
+	"fmt"
 	"math"
 	"sort"
 
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
@@ -162,6 +164,7 @@ type battle struct {
 	board    [battleWidth][battleHeight]int // the number of tokens in each square
 	record   *BattleRecord
 	rules    *Rules
+	log      zerolog.Logger
 }
 
 var positionsByPlayer = []BattleVector{
@@ -198,9 +201,10 @@ func getBattleMovement(idealEngineSpeed, movementBonus, mass, numEngines int) in
 // BuildBattle builds a battle recording with all the battle tokens for a list of fleets that contains more than one player.
 // We'll use this to determine if a battle should take place at this location.
 // Also, any players that have a potential battle will discover each other's designs.
-func newBattler(rules *Rules, techFinder TechFinder, battleNum int, players map[int]*Player, fleets []*Fleet, planet *Planet) battler {
+func newBattler(log zerolog.Logger, rules *Rules, techFinder TechFinder, battleNum int, players map[int]*Player, fleets []*Fleet, planet *Planet) battler {
+	battleLogger := log.With().Int("Battle", battleNum).Logger()
 	if len(fleets) == 0 {
-		log.Error().Msg("Can't build battle with no fleets.")
+		battleLogger.Error().Msg("Can't build battle with no fleets.")
 		return nil
 	}
 
@@ -214,7 +218,7 @@ func newBattler(rules *Rules, techFinder TechFinder, battleNum int, players map[
 	playerStartingPositions := make(map[int]BattleVector)
 	for i, num := range sortedPlayerNums {
 		if i >= len(positionsByPlayer) {
-			log.Warn().Msg("Oh noes! We have a battle with more players than we have positions for...")
+			battleLogger.Warn().Msg("Oh noes! We have a battle with more players than we have positions for...")
 		}
 		playerStartingPositions[num] = positionsByPlayer[i%len(positionsByPlayer)]
 	}
@@ -279,6 +283,7 @@ func newBattler(rules *Rules, techFinder TechFinder, battleNum int, players map[
 		record:   newBattleRecord(battleNum, planetNum, fleets[0].Position, tokenRecords),
 		players:  players,
 		rules:    rules,
+		log:      battleLogger,
 	}
 
 	return battle
@@ -310,9 +315,9 @@ func (b *battle) findTargets() bool {
 // runBattle runs a battle!
 func (b *battle) runBattle() *BattleRecord {
 	if b.planet != nil {
-		log.Info().Msgf("Running a battle at %s involving %d players and %d tokens.", b.planet.Name, len(b.players), len(b.tokens))
+		b.log.Info().Msgf("Running a battle at %s involving %d players and %d tokens.", b.planet.Name, len(b.players), len(b.tokens))
 	} else {
-		log.Info().Msgf("Running a battle at (%.2f, %.2f) involving %d players and %d tokens.", b.position.X, b.position.Y, len(b.players), len(b.tokens))
+		b.log.Info().Msgf("Running a battle at (%.2f, %.2f) involving %d players and %d tokens.", b.position.X, b.position.Y, len(b.players), len(b.tokens))
 	}
 
 	// movement order is set at the start of battle and doesn't change
@@ -586,7 +591,7 @@ func (b *battle) getBestAttackMoves(token *battleToken, weapons []*battleWeaponS
 				damageRatio = float64(damageDone) / float64(damageTaken)
 			}
 
-			// log.Debug().Msgf("moving to %#v, damageDone: %d, damageTaken: %d, netDamage: %d, damageRatio: %f", newPosition, damageDone, damageTaken, damageDone-damageTaken, damageRatio)
+			// b.log.Debug().Msgf("moving to %#v, damageDone: %d, damageTaken: %d, netDamage: %d, damageRatio: %f", newPosition, damageDone, damageTaken, damageDone-damageTaken, damageRatio)
 
 			switch token.Tactic {
 			case BattleTacticMaximizeDamageRatio:
@@ -662,7 +667,7 @@ func (b *battle) getBestFleeMoves(token *battleToken, weapons []*battleWeaponSlo
 
 			// figure out damage taken from all weapons targeting us if we moved to this square
 			damageTaken := b.getEstimatedDamageForWeapons(weapons, token, newPosition)
-			// log.Debug().Msgf("moving to %#v causes %d damage", newPosition, damageTaken)
+			// b.log.Debug().Msgf("moving to %#v causes %d damage", newPosition, damageTaken)
 
 			// if this move is the same as our previous one, add it to our possible list
 			if damageTaken == lowestDamage {
@@ -705,7 +710,7 @@ func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot, targets []*battleToken
 	// get the damage for this volley
 	attacker := weapon.token
 	damage := weapon.power * weapon.slotQuantity * attacker.Quantity
-	log.Debug().Msgf("%v is to firing %vx%d at %d targets for a total of %v damage", weapon.token, weapon.slot.HullComponent, weapon.slotQuantity*attacker.Quantity, len(targets), damage)
+	b.log.Debug().Msgf("%v is to firing %vx%d at %d targets for a total of %v damage", weapon.token, weapon.slot.HullComponent, weapon.slotQuantity*attacker.Quantity, len(targets), damage)
 
 	for _, target := range targets {
 		if !target.isStillInBattle() {
@@ -727,7 +732,7 @@ func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot, targets []*battleToken
 
 		// check the damage against this target
 		bwd := weapon.getBeamDamageToTarget(damage, target, b.rules.BeamRangeDropoff)
-		log.Debug().Msgf("%v fired a %vx%d at %v (shields: %v, armor: %v, %v@%v damage) for %v damage", weapon.token, weapon.slot.HullComponent, weapon.slotQuantity*weapon.token.Quantity, target, target.totalStackShields, target.armor, target.Quantity, target.Damage, bwd.armorDamage)
+		b.log.Debug().Msgf("%v fired a %vx%d at %v (shields: %v, armor: %v, %v@%v damage) for %v damage", weapon.token, weapon.slot.HullComponent, weapon.slotQuantity*weapon.token.Quantity, target, target.totalStackShields, target.armor, target.Quantity, target.Damage, bwd.armorDamage)
 
 		// update stack shields
 		target.stackShields -= bwd.shieldDamage
@@ -742,7 +747,7 @@ func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot, targets []*battleToken
 			target.quantityDestroyed += bwd.numDestroyed
 			b.board[target.Position.Y][target.Position.X] -= bwd.numDestroyed
 			target.destroyed = true
-			log.Debug().Msgf("%v %v did %v shield damage and %v armor damage (leftoverDamage %d) and completely destroyed %v", weapon.token, weapon.slot.HullComponent, bwd.shieldDamage, bwd.armorDamage, bwd.leftover, target)
+			b.log.Debug().Msgf("%v %v did %v shield damage and %v armor damage (leftoverDamage %d) and completely destroyed %v", weapon.token, weapon.slot.HullComponent, bwd.shieldDamage, bwd.armorDamage, bwd.leftover, target)
 
 			// record one round of beam fire per target
 			b.record.recordBeamFire(b.round, weapon.token, weapon.token.Position, target.Position, weapon.slot.HullSlotIndex, *target, bwd.shieldDamage, bwd.armorDamage, bwd.numDestroyed)
@@ -760,7 +765,7 @@ func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot, targets []*battleToken
 		target.Damage = bwd.damage
 		target.QuantityDamaged = bwd.quantityDamaged
 
-		log.Debug().Msgf("%v destroyed %v ships (leftoverDamage %d), leaving %v damaged %v@%v damage", weapon.token, bwd.numDestroyed, bwd.leftover, target, target.Quantity, target.Damage)
+		b.log.Debug().Msgf("%v destroyed %v ships (leftoverDamage %d), leaving %v damaged %v@%v damage", weapon.token, bwd.numDestroyed, bwd.leftover, target, target.Quantity, target.Damage)
 		target.damaged = true
 
 		// record one round of beam fire per target
@@ -778,7 +783,7 @@ func (b *battle) fireTorpedo(weapon *battleWeaponSlot, targets []*battleToken) {
 	damage := weapon.power
 	numTorpedos := weapon.slotQuantity * attacker.Quantity
 
-	log.Debug().Msgf("%s is attempting to fire at %d targets with %d torpedos at %.2f%% accuracy for %d damage each",
+	b.log.Debug().Msgf("%s is attempting to fire at %d targets with %d torpedos at %.2f%% accuracy for %d damage each",
 		weapon.token, len(targets), numTorpedos, (weapon.getAccuracy(0))*100.0, damage)
 
 	// fire each torpedo at each target until it's destroyed or we're out of torpedos
@@ -869,11 +874,11 @@ func (b *battle) fireTorpedo(weapon *battleWeaponSlot, targets []*battleToken) {
 					if target.Quantity <= 0 {
 						// record that we destroyed this token
 						target.destroyed = true
-						log.Debug().Msgf("%v torpedo number %v hit %v, did %v shield damage and %v armor damage and completely destroyed %v", weapon.token, torpedoNum, target, actualShieldDamage, armorDamage, target)
+						b.log.Debug().Msgf("%v torpedo number %v hit %v, did %v shield damage and %v armor damage and completely destroyed %v", weapon.token, torpedoNum, target, actualShieldDamage, armorDamage, target)
 						shipsDestroyed++
 					}
 				} else {
-					log.Debug().Msgf("%v torpedo number %v hit %v, did %v shield damage and %v armor damage (%v accumulated damage so far)", weapon.token, torpedoNum, target, actualShieldDamage, armorDamage, shipDamage)
+					b.log.Debug().Msgf("%v torpedo number %v hit %v, did %v shield damage and %v armor damage (%v accumulated damage so far)", weapon.token, torpedoNum, target, actualShieldDamage, armorDamage, shipDamage)
 				}
 			} else {
 				misses++
@@ -885,7 +890,7 @@ func (b *battle) fireTorpedo(weapon *battleWeaponSlot, targets []*battleToken) {
 					actualShieldDamage = target.stackShields
 				}
 				target.stackShields = int(math.Max(0, float64(target.stackShields-shieldDamage)))
-				log.Debug().Msgf("%s torpedo number %d missed %s, did %d damage to shields leaving %d shields", weapon.token, torpedoNum, target, shieldDamage, target.stackShields)
+				b.log.Debug().Msgf("%s torpedo number %d missed %s, did %d damage to shields leaving %d shields", weapon.token, torpedoNum, target, shieldDamage, target.stackShields)
 
 				totalShieldDamage += actualShieldDamage
 			}
@@ -902,7 +907,7 @@ func (b *battle) fireTorpedo(weapon *battleWeaponSlot, targets []*battleToken) {
 			}
 			target.Damage = (shipDamage + previousDamage) / float64(target.Quantity)
 			target.QuantityDamaged = target.Quantity
-			log.Debug().Msgf("%s had %d hits and %d misses to %v for %v total damage leaving %d@%v", weapon.token, hits, misses, target, totalArmorDamage+totalShieldDamage, target.QuantityDamaged, target.Damage)
+			b.log.Debug().Msgf("%s had %d hits and %d misses to %v for %v total damage leaving %d@%v", weapon.token, hits, misses, target, totalArmorDamage+totalShieldDamage, target.QuantityDamaged, target.Damage)
 
 		}
 		b.record.recordTorpedoFire(b.round, weapon.token, weapon.token.Position, target.Position, weapon.slot.HullSlotIndex, target, totalShieldDamage, totalArmorDamage, shipsDestroyed, hits, misses)
@@ -910,7 +915,7 @@ func (b *battle) fireTorpedo(weapon *battleWeaponSlot, targets []*battleToken) {
 }
 
 // Function to allow server to run test battles
-func RunTestBattle(players []*Player, fleets []*Fleet) *BattleRecord {
+func RunTestBattle(players []*Player, fleets []*Fleet) (*BattleRecord, error) {
 	rules := NewRules()
 
 	playersByNum := map[int]*Player{}
@@ -923,7 +928,11 @@ func RunTestBattle(players []*Player, fleets []*Fleet) *BattleRecord {
 		player.Spec = computePlayerSpec(player, &rules, []*Planet{})
 
 		for _, design := range player.Designs {
-			design.Spec = ComputeShipDesignSpec(&rules, player.TechLevels, player.Race.Spec, design)
+			var err error
+			design.Spec, err = ComputeShipDesignSpec(&rules, player.TechLevels, player.Race.Spec, design)
+			if err != nil {
+				return nil, fmt.Errorf("ComputeShipDesignSpec returned error %w", err)
+			}
 			designsByNum[playerObjectKey(design.PlayerNum, design.Num)] = design
 		}
 
@@ -943,7 +952,7 @@ func RunTestBattle(players []*Player, fleets []*Fleet) *BattleRecord {
 		fleet.battlePlan = battlePlansByNum[playerBattlePlanNum{fleet.PlayerNum, fleet.BattlePlanNum}]
 	}
 
-	battler := newBattler(&rules, &StaticTechStore, 1, playersByNum, fleets, nil)
+	battler := newBattler(log.Logger, &rules, &StaticTechStore, 1, playersByNum, fleets, nil)
 	record := battler.runBattle()
 	for _, player := range players {
 
@@ -959,5 +968,5 @@ func RunTestBattle(players []*Player, fleets []*Fleet) *BattleRecord {
 		}
 	}
 
-	return record
+	return record, nil
 }

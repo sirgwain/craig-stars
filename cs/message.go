@@ -697,7 +697,6 @@ func (m *messageClient) fleetTransportedCargo(player *Player, fleet *Fleet, dest
 func (m *messageClient) fleetTransportInvalid(player *Player, fleet *Fleet, dest cargoHolder, cargoType CargoType, transferAmount int) {
 	text := fmt.Sprintf("%s attempted to load %dkT of %v from %s, but you do not own %s. The order has been canceled.", fleet.Name, -transferAmount, cargoType, dest.getMapObject().Name, dest.getMapObject().Name)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetTransportInvalid, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum}})
-
 }
 
 func (m *messageClient) fleetTargetLost(player *Player, fleet *Fleet, targetName string, targetType MapObjectType) {
@@ -922,7 +921,7 @@ func (m *messageClient) planetPacketPermaform(player *Player, planet *Planet, ha
 	case Rad:
 		newValueText = radString(newValue)
 	}
-	text := fmt.Sprintf("Your mineral packet has permanently %s the %s on %s to %s.", changeText, habType, planet.Name, newValueText)
+	text := fmt.Sprintf("Your mineral packet hitting %s has permanently %s its %s to %s.", planet.Name, changeText, habType, newValueText)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetPacketPermaform, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetPlanet, TargetNum: planet.Num}})
 }
 

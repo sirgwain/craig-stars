@@ -489,7 +489,7 @@ func GetCargoType(o js.Value) cs.CargoType {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj = getInt[cs.CargoType](o)
+	obj = getInt[cs.ResourceType](o)
 	return obj
 }
 
@@ -550,6 +550,15 @@ func SetCost(o js.Value, obj *cs.Cost) {
 	o.Set("boranium", obj.Boranium)
 	o.Set("germanium", obj.Germanium)
 	o.Set("resources", obj.Resources)
+}
+
+func GetCostType(o js.Value) cs.CostType {
+	var obj cs.CostType
+	if o.IsUndefined() || o.IsNull() {
+		return obj
+	}
+	obj = getInt[cs.ResourceType](o)
+	return obj
 }
 
 func GetDBObject(o js.Value) cs.DBObject {
@@ -1142,7 +1151,7 @@ func GetMineralType(o js.Value) cs.MineralType {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj = getInt[cs.MineralType](o)
+	obj = getInt[cs.ResourceType](o)
 	return obj
 }
 
@@ -2489,6 +2498,15 @@ func GetResearchCostLevel(o js.Value) cs.ResearchCostLevel {
 	return obj
 }
 
+func GetResourceType(o js.Value) cs.ResourceType {
+	var obj cs.ResourceType
+	if o.IsUndefined() || o.IsNull() {
+		return obj
+	}
+	obj = getInt[cs.ResourceType](o)
+	return obj
+}
+
 func GetRules(o js.Value) cs.Rules {
 	var obj cs.Rules
 	if o.IsUndefined() || o.IsNull() {
@@ -2543,16 +2561,15 @@ func GetRules(o js.Value) cs.Rules {
 	obj.MaxMineralConcentration = getInt[int](o.Get("maxMineralConcentration"))
 	obj.MinStartingMineralConcentration = getInt[int](o.Get("minStartingMineralConcentration"))
 	obj.MaxStartingMineralConcentration = getInt[int](o.Get("maxStartingMineralConcentration"))
+	obj.LimitMineralConcentration = getInt[int](o.Get("limitMineralConcentration"))
 	obj.HighRadMineralConcentrationBonusThreshold = getInt[int](o.Get("highRadGermaniumBonusThreshold"))
 	obj.RadiatingImmune = getInt[int](o.Get("radiatingImmune"))
 	obj.MaxStartingMineralSurface = getInt[int](o.Get("maxStartingMineralSurface"))
 	obj.MinStartingMineralSurface = getInt[int](o.Get("minStartingMineralSurface"))
 	obj.MineralDecayFactor = getInt[int](o.Get("mineralDecayFactor"))
 	obj.RemoteMiningMineOutput = getInt[int](o.Get("remoteMiningMineOutput"))
-	obj.StartingMines = getInt[int](o.Get("startingMines"))
-	obj.StartingFactories = getInt[int](o.Get("startingFactories"))
-	obj.StartingDefenses = getInt[int](o.Get("startingDefenses"))
 	obj.RaceStartingPoints = getInt[int](o.Get("raceStartingPoints"))
+	obj.RaceLeftoverPointsPerItem = GetStringMap[map[cs.SpendLeftoverPointsOn]int](o.Get("raceLeftoverPointsPerItem"), getInt)
 	obj.ScrapMineralAmount = getFloat[float64](o.Get("scrapMineralAmount"))
 	obj.ScrapResourceAmount = getFloat[float64](o.Get("scrapResourceAmount"))
 	obj.FactoryCostGermanium = getInt[int](o.Get("factoryCostGermanium"))
@@ -2560,7 +2577,7 @@ func GetRules(o js.Value) cs.Rules {
 	obj.MineralAlchemyCost = getInt[int](o.Get("mineralAlchemyCost"))
 	obj.PlanetaryScannerCost = GetCost(o.Get("planetaryScannerCost"))
 	obj.TerraformCost = GetCost(o.Get("terraformCost"))
-	obj.StarbaseComponentCostFactor = getFloat[float64](o.Get("starbaseComponentCostFactor"))
+	obj.StarbaseComponentCostReduction = getInt[int](o.Get("starbaseComponentCostReduction"))
 	obj.SalvageFromBattleFactor = getFloat[float64](o.Get("salvageFromBattleFactor"))
 	obj.TechTradeChance = getFloat[float64](o.Get("techTradeChance"))
 	obj.PacketDecayRate = GetIntMap[map[int]float64](o.Get("packetDecayRate"), getFloat)
@@ -2653,16 +2670,19 @@ func SetRules(o js.Value, obj *cs.Rules) {
 	o.Set("maxMineralConcentration", obj.MaxMineralConcentration)
 	o.Set("minStartingMineralConcentration", obj.MinStartingMineralConcentration)
 	o.Set("maxStartingMineralConcentration", obj.MaxStartingMineralConcentration)
+	o.Set("limitMineralConcentration", obj.LimitMineralConcentration)
 	o.Set("highRadGermaniumBonusThreshold", obj.HighRadMineralConcentrationBonusThreshold)
 	o.Set("radiatingImmune", obj.RadiatingImmune)
 	o.Set("maxStartingMineralSurface", obj.MaxStartingMineralSurface)
 	o.Set("minStartingMineralSurface", obj.MinStartingMineralSurface)
 	o.Set("mineralDecayFactor", obj.MineralDecayFactor)
 	o.Set("remoteMiningMineOutput", obj.RemoteMiningMineOutput)
-	o.Set("startingMines", obj.StartingMines)
-	o.Set("startingFactories", obj.StartingFactories)
-	o.Set("startingDefenses", obj.StartingDefenses)
 	o.Set("raceStartingPoints", obj.RaceStartingPoints)
+	raceLeftoverPointsPerItemMap := js.ValueOf(map[string]any{})
+	for key, value := range obj.RaceLeftoverPointsPerItem {
+		raceLeftoverPointsPerItemMap.Set(fmt.Sprintf("%v", key), value)
+	}
+	o.Set("raceLeftoverPointsPerItem", raceLeftoverPointsPerItemMap)
 	o.Set("scrapMineralAmount", obj.ScrapMineralAmount)
 	o.Set("scrapResourceAmount", obj.ScrapResourceAmount)
 	o.Set("factoryCostGermanium", obj.FactoryCostGermanium)
@@ -2673,7 +2693,7 @@ func SetRules(o js.Value, obj *cs.Rules) {
 	SetCost(o.Get("planetaryScannerCost"), &obj.PlanetaryScannerCost)
 	o.Set("terraformCost", map[string]any{})
 	SetCost(o.Get("terraformCost"), &obj.TerraformCost)
-	o.Set("starbaseComponentCostFactor", obj.StarbaseComponentCostFactor)
+	o.Set("starbaseComponentCostReduction", obj.StarbaseComponentCostReduction)
 	o.Set("salvageFromBattleFactor", obj.SalvageFromBattleFactor)
 	o.Set("techTradeChance", obj.TechTradeChance)
 	packetDecayRateMap := js.ValueOf(map[string]any{})
@@ -3050,6 +3070,9 @@ func GetStartingPlanet(o js.Value) cs.StartingPlanet {
 		return obj
 	}
 	obj.Population = getInt[int](o.Get("population"))
+	obj.Mines = getInt[int](o.Get("mines"))
+	obj.Factories = getInt[int](o.Get("factories"))
+	obj.Defenses = getInt[int](o.Get("defenses"))
 	obj.HabPenaltyFactor = getFloat[float64](o.Get("habPenaltyFactor"))
 	obj.HasStargate = getBool(o.Get("hasStargate"))
 	obj.HasMassDriver = getBool(o.Get("hasMassDriver"))
@@ -3061,6 +3084,9 @@ func GetStartingPlanet(o js.Value) cs.StartingPlanet {
 }
 func SetStartingPlanet(o js.Value, obj *cs.StartingPlanet) {
 	o.Set("population", obj.Population)
+	o.Set("mines", obj.Mines)
+	o.Set("factories", obj.Factories)
+	o.Set("defenses", obj.Defenses)
 	o.Set("habPenaltyFactor", obj.HabPenaltyFactor)
 	o.Set("hasStargate", obj.HasStargate)
 	o.Set("hasMassDriver", obj.HasMassDriver)
@@ -3113,6 +3139,7 @@ func GetTech(o js.Value) cs.Tech {
 	obj.Ranking = getInt[int](o.Get("ranking"))
 	obj.Category = GetTechCategory(o.Get("category"))
 	obj.Origin = string(getString(o.Get("origin")))
+	obj.Tags = GetTags(o.Get("tags"))
 	return obj
 }
 func SetTech(o js.Value, obj *cs.Tech) {
@@ -3124,6 +3151,11 @@ func SetTech(o js.Value, obj *cs.Tech) {
 	o.Set("ranking", obj.Ranking)
 	o.Set("category", string(obj.Category))
 	o.Set("origin", obj.Origin)
+	tagsMap := js.ValueOf(map[string]any{})
+	for key, value := range obj.Tags {
+		tagsMap.Set(fmt.Sprintf("%v", key), value)
+	}
+	o.Set("tags", tagsMap)
 }
 
 func GetTechCategory(o js.Value) cs.TechCategory {
@@ -3145,6 +3177,7 @@ func GetTechCostOffset(o js.Value) cs.TechCostOffset {
 	obj.Torpedo = getFloat[float64](o.Get("torpedo"))
 	obj.Bomb = getFloat[float64](o.Get("bomb"))
 	obj.PlanetaryDefense = getFloat[float64](o.Get("planetaryDefense"))
+	obj.Stargate = getFloat[float64](o.Get("stargate"))
 	obj.Terraforming = getFloat[float64](o.Get("terraforming"))
 	return obj
 }
@@ -3154,6 +3187,7 @@ func SetTechCostOffset(o js.Value, obj *cs.TechCostOffset) {
 	o.Set("torpedo", obj.Torpedo)
 	o.Set("bomb", obj.Bomb)
 	o.Set("planetaryDefense", obj.PlanetaryDefense)
+	o.Set("stargate", obj.Stargate)
 	o.Set("terraforming", obj.Terraforming)
 }
 

@@ -16,7 +16,7 @@ func Test_production_produce(t *testing.T) {
 	planet.Mines = 0
 
 	// should build 1 mine, leaving empty queue
-	producer := newProducer(planet, player)
+	producer := newProducer(testLogger, &rules, planet, player)
 	producer.produce()
 	assert.Equal(t, 1, planet.Mines)
 	assert.Equal(t, 0, len(planet.ProductionQueue))
@@ -29,7 +29,7 @@ func Test_production_produce(t *testing.T) {
 	player.Messages = []PlayerMessage{}
 
 	// should build 5 mine, leaving the auto build in the queu
-	producer = newProducer(planet, player)
+	producer = newProducer(testLogger, &rules, planet, player)
 	producer.produce()
 	assert.Equal(t, 5, planet.Mines)
 	assert.Equal(t, 1, len(planet.ProductionQueue))
@@ -48,7 +48,7 @@ func Test_production_produce2(t *testing.T) {
 	player.Messages = []PlayerMessage{}
 
 	// should build 5 mine, leaving the auto build in the queu
-	producer := newProducer(planet, player)
+	producer := newProducer(testLogger, &rules, planet, player)
 	producer.produce()
 	assert.Equal(t, 5, planet.Factories)
 	assert.Equal(t, 1, len(planet.ProductionQueue))
@@ -75,7 +75,7 @@ func Test_production_produce3(t *testing.T) {
 	player.Messages = []PlayerMessage{}
 
 	// should build 2 factories and 5 mines, leaving the auto builds in the queue
-	producer := newProducer(planet, player)
+	producer := newProducer(testLogger, &rules, planet, player)
 	producer.produce()
 	assert.Equal(t, 2, planet.Factories)
 	assert.Equal(t, 5, planet.Mines)
@@ -100,7 +100,7 @@ func Test_production_produce4(t *testing.T) {
 	player.Messages = []PlayerMessage{}
 
 	// should build 2 factories, 1 mine and one partial mine, leaving the auto builds in the queue
-	producer := newProducer(planet, player)
+	producer := newProducer(testLogger, &rules, planet, player)
 	producer.produce()
 	assert.Equal(t, 2, planet.Factories)
 	assert.Equal(t, 1, planet.Mines)
@@ -129,7 +129,7 @@ func Test_production_produce5(t *testing.T) {
 	player.Messages = []PlayerMessage{}
 
 	// should end up with 100 defenses and the auto defenses still in the queue
-	producer := newProducer(planet, player)
+	producer := newProducer(testLogger, &rules, planet, player)
 	producer.produce()
 	assert.Equal(t, 100, planet.Defenses)
 	assert.Equal(t, 1, len(planet.ProductionQueue))
@@ -152,8 +152,9 @@ func Test_production_produce6(t *testing.T) {
 	player.Messages = []PlayerMessage{}
 
 	// should build 1 factories, 10 mines and have leftover for research
-	producer := newProducer(planet, player)
-	result := producer.produce()
+	producer := newProducer(testLogger, &rules, planet, player)
+	result, err := producer.produce()
+	assert.Nil(t, err)
 	assert.Equal(t, 10, planet.Factories)
 	assert.Equal(t, 10, planet.Mines)
 	assert.Equal(t, 2, len(planet.ProductionQueue))
@@ -179,7 +180,7 @@ func Test_production_produce7(t *testing.T) {
 	player.Messages = []PlayerMessage{}
 
 	// should build nothing, but queue up a mine partially done
-	producer := newProducer(planet, player)
+	producer := newProducer(testLogger, &rules, planet, player)
 	producer.produce()
 	assert.Equal(t, 0, planet.Factories)
 	assert.Equal(t, 0, planet.Mines)
@@ -212,7 +213,7 @@ func Test_production_produce8(t *testing.T) {
 	planet.Spec = computePlanetSpec(&rules, player, planet)
 
 	// should build nothing, but queue up a mine partially done
-	producer := newProducer(planet, player)
+	producer := newProducer(testLogger, &rules, planet, player)
 	producer.produce()
 	assert.Equal(t, 20, planet.Factories)
 	assert.Equal(t, 11, planet.Mines)
@@ -249,7 +250,7 @@ func Test_production_produce9(t *testing.T) {
 	planet.Spec = computePlanetSpec(&rules, player, planet)
 
 	// should build nothing, but queue up a mine partially done
-	producer := newProducer(planet, player)
+	producer := newProducer(testLogger, &rules, planet, player)
 	producer.produce()
 
 	// don't go negative
@@ -278,7 +279,7 @@ func Test_production_produce10(t *testing.T) {
 	planet.Factories = planet.Spec.MaxFactories
 
 	// should build nothing, but queue up a mine partially done
-	producer := newProducer(planet, player)
+	producer := newProducer(testLogger, &rules, planet, player)
 	producer.produce()
 
 	// we should build mines/factories accounting for future growth
@@ -319,10 +320,11 @@ func Test_production_produceStarbaseUpgrade(t *testing.T) {
 	planet.Spec = computePlanetSpec(&rules, player, planet)
 
 	// should build nothing, but queue up a mine partially done
-	producer := newProducer(planet, player)
-	result := producer.produce()
+	producer := newProducer(testLogger, &rules, planet, player)
+	result, err := producer.produce()
 
 	// we should have built a starbase
+	assert.Nil(t, err)
 	assert.Equal(t, len(result.itemsBuilt), 1)
 	assert.Equal(t, result.itemsBuilt[0].queueItemType, QueueItemTypeStarbase)
 	assert.Equal(t, result.starbase, starbaseDesign2)
@@ -345,7 +347,7 @@ func Test_production_produceTerraform(t *testing.T) {
 	player.Messages = []PlayerMessage{}
 
 	// build 5 terraform steps, make planet better, log some messages
-	producer := newProducer(planet, player)
+	producer := newProducer(testLogger, &rules, planet, player)
 	producer.produce()
 	assert.Equal(t, Hab{42, 42, 41}, planet.Hab)
 	assert.Equal(t, 0, len(planet.ProductionQueue))
@@ -363,8 +365,9 @@ func Test_production_produceMineralPackets(t *testing.T) {
 	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 100, PlanetStarbaseSpec: PlanetStarbaseSpec{HasMassDriver: true, SafePacketSpeed: 6, BasePacketSpeed: 6}}
 
 	// should build 5 mine, leaving the auto build in the queu
-	producer := newProducer(planet, player)
-	result := producer.produce()
+	producer := newProducer(testLogger, &rules, planet, player)
+	result, err := producer.produce()
+	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result.packets))
 	assert.Equal(t, Cargo{40, 40, 40, 0}, result.packets[0])
 	assert.Equal(t, 0, len(planet.ProductionQueue))
@@ -380,7 +383,7 @@ func Test_production_produceScanner(t *testing.T) {
 	planet.Scanner = false
 
 	// should build 1 mine, leaving empty queue
-	producer := newProducer(planet, player)
+	producer := newProducer(testLogger, &rules, planet, player)
 	producer.produce()
 	assert.True(t, planet.Scanner)
 	assert.Equal(t, 0, len(planet.ProductionQueue))

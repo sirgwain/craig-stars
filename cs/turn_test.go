@@ -5,12 +5,14 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 )
 
 // many functions require a copy of the current game's rules.
 // for testing, create a standard rules var every test can use
 var rules = NewRules()
+var testLogger = log.With().Bool("TestMode", true).Logger()
 
 type MockRand struct {
 	int63Result int64
@@ -57,7 +59,7 @@ func createSingleUnitGame() *FullGame {
 
 	players := []*Player{player}
 
-	universe := NewUniverse(&game.Rules)
+	universe := NewUniverse(testLogger, &game.Rules)
 	universe.Planets = append(universe.Planets, planet)
 	universe.Fleets = append(universe.Fleets, fleet)
 
@@ -136,7 +138,7 @@ func createTwoPlayerGame() *FullGame {
 
 	players := []*Player{player1, player2}
 
-	universe := NewUniverse(&game.Rules)
+	universe := NewUniverse(testLogger, &game.Rules)
 	universe.Planets = append(universe.Planets, planet1, planet2)
 	universe.Fleets = append(universe.Fleets, fleet1, fleet2)
 
@@ -257,7 +259,7 @@ func Test_generateTurns(t *testing.T) {
 	assert.Greater(t, universe.Planets[0].population(), player.Race.Spec.StartingPlanets[0].Population)
 
 	// should have built factories
-	assert.Greater(t, universe.Planets[0].Factories, game.Rules.StartingFactories)
+	assert.Greater(t, universe.Planets[0].Factories, player.Race.Spec.StartingPlanets[0].Factories)
 
 	// no victor
 	assert.False(t, player.Victor)
@@ -760,6 +762,7 @@ func Test_turn_permaform(t *testing.T) {
 	player := game.Players[0]
 	planet := game.Planets[0]
 	planet.Hab = Hab{49, 49, 49}
+	planet.BaseHab = Hab{49, 49, 49}
 
 	turn := turn{
 		game: game,
@@ -768,7 +771,7 @@ func Test_turn_permaform(t *testing.T) {
 
 	// 10% chance to permaform
 	player.Race.Spec.PermaformChance = .1
-	player.Race.Spec.PermaformPopulation = 0
+	player.Race.Spec.PermaformPopulation = 100
 
 	// mock the random number generator to return temp as the hab to permaform
 	rng := testRandom{}
@@ -780,6 +783,34 @@ func Test_turn_permaform(t *testing.T) {
 
 	// should have permaformed the planet temp in one direction
 	assert.Equal(t, Hab{49, 50, 49}, planet.Hab)
+}
+
+func Test_turn_permaformNone(t *testing.T) {
+	game := createSingleUnitGame()
+
+	player := game.Players[0]
+	planet := game.Planets[0]
+	planet.Hab = Hab{49, 49, 49}
+	planet.BaseHab = Hab{49, 49, 49}
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// 10% chance to permaform
+	player.Race.Spec.PermaformChance = .1
+	player.Race.Spec.PermaformPopulation = 100
+
+	// mock the random number generator to return temp as the hab to permaform
+	rng := testRandom{}
+	rng.addFloats(.2) // no permaform
+	game.Rules.random = &rng
+
+	turn.permaform()
+
+	// should have permaformed the planet temp in one direction
+	assert.Equal(t, Hab{49, 49, 49}, planet.Hab)
 }
 
 func Test_turn_fleetRemoteMine(t *testing.T) {
@@ -992,7 +1023,7 @@ func Test_turn_fleetSweepMines(t *testing.T) {
 
 	// upgrade a mine sweeper weapon
 	fleet.Tokens[0].design.Slots[1].HullComponent = GatlingNeutrinoCannon.Name
-	fleet.Tokens[0].design.Spec = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, fleet.Tokens[0].design)
+	fleet.Tokens[0].design.Spec, _ = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, fleet.Tokens[0].design)
 	fleet.Spec = ComputeFleetSpec(rules, player, fleet)
 
 	// sweep mines
@@ -1202,7 +1233,7 @@ func Test_turn_fleetRadiatingEngineDieoff(t *testing.T) {
 
 	// add a radiating hydro ramscoop
 	design.Slots[0].HullComponent = RadiatingHydroRamScoop.Name
-	design.Spec = ComputeShipDesignSpec(&rules, player.TechLevels, player.Race.Spec, design)
+	design.Spec, _ = ComputeShipDesignSpec(&rules, player.TechLevels, player.Race.Spec, design)
 	fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
 
 	// generate turn to simulate die off
@@ -1280,7 +1311,7 @@ func Test_turn_detonateMines(t *testing.T) {
 				player.PlayerIntels.PlayerIntels = player.defaultPlayerIntels(tt.args.players)
 			}
 
-			universe := NewUniverse(&game.Rules)
+			universe := NewUniverse(testLogger, &game.Rules)
 			universe.Fleets = []*Fleet{tt.args.fleet}
 			universe.MineFields = []*MineField{tt.args.mineField}
 
@@ -1763,7 +1794,7 @@ func Test_turn_fleetBattle3Players(t *testing.T) {
 
 	players := []*Player{player1, player2, player3}
 
-	universe := NewUniverse(&game.Rules)
+	universe := NewUniverse(testLogger, &game.Rules)
 	universe.Fleets = append(universe.Fleets, fleet1, fleet2, fleet3)
 
 	universe.buildMaps(players)
@@ -2294,4 +2325,3 @@ func Test_turn_buildMysteryTraderGenesisDevice(t *testing.T) {
 	// marked for deletion
 	// TODO: not sure how to test this. Random number gen I guess...
 }
-

@@ -3,8 +3,6 @@ package cs
 import (
 	"fmt"
 	"math"
-
-	"github.com/rs/zerolog/log"
 )
 
 // Planets are the only static and constant MapObject. They don't move and they can't be destroyed.
@@ -196,10 +194,12 @@ func (p *Planet) PopulateProductionQueueDesigns(player *Player) error {
 }
 
 // populate the costs of each item in the planet production queue
-func (p *Planet) PopulateProductionQueueEstimates(rules *Rules, player *Player) {
+func (p *Planet) PopulateProductionQueueEstimates(rules *Rules, player *Player) error {
 	// populate completion estimates
 	completionEstimator := NewCompletionEstimator()
-	p.ProductionQueue, p.Spec.ResourcesPerYearResearchEstimatedLeftover = completionEstimator.GetProductionWithEstimates(rules, player, *p)
+	var err error
+	p.ProductionQueue, p.Spec.ResourcesPerYearResearchEstimatedLeftover, err = completionEstimator.GetProductionWithEstimates(rules, player, *p)
+	return err
 }
 
 func (p *Planet) reset() {
@@ -310,9 +310,6 @@ func randomizeMinerals(rules *Rules, rad int) Mineral {
 
 // Initialize a planet to be a homeworld for a player with ideal hab, starting mineral concentration, etc
 func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet StartingPlanet, concentration Mineral, surface Mineral) {
-
-	log.Debug().Msgf("Assigning %s to %s as homeworld", p, player)
-
 	p.Homeworld = startingPlanet.Homeworld
 
 	p.RandomArtifact = false // no random artifacts on the homeworld
@@ -349,12 +346,12 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 		p.Mines = p.innateMines(player, p.population())
 		p.Factories = 0
 	} else {
-		p.Mines = rules.StartingMines
-		p.Factories = rules.StartingFactories
+		p.Mines = startingPlanet.Mines
+		p.Factories = startingPlanet.Factories
 	}
 
 	if raceSpec.CanBuildDefenses {
-		p.Defenses = rules.StartingDefenses
+		p.Defenses = startingPlanet.Defenses
 	} else {
 		p.Defenses = 0
 	}

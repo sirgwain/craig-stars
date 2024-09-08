@@ -111,7 +111,10 @@ func (o *orders) UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet
 		}
 	}
 
-	planet.PopulateProductionQueueEstimates(rules, player)
+	if err := planet.PopulateProductionQueueEstimates(rules, player); err != nil {
+		return fmt.Errorf("planet %s unable to populate queue estimates %w", planet.Name, err)
+	}
+
 	spec = &planet.Spec
 
 	// update the player spec with the change in resources for this planet
@@ -297,7 +300,7 @@ func (o *orders) TransferSalvageCargo(rules *Rules, player *Player, source *Flee
 	source.Spec = ComputeFleetSpec(rules, player, source)
 
 	// make our player aware of this salvage
-	discover := newDiscoverer(player)
+	discover := newDiscoverer(log.Logger, player)
 	discover.discoverSalvage(dest)
 
 	log.Info().

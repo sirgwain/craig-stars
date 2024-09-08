@@ -3,7 +3,7 @@ package cs
 import (
 	"math"
 
-	"github.com/rs/zerolog/log"
+	"github.com/rs/zerolog"
 )
 
 type Bomb struct {
@@ -28,6 +28,7 @@ type BombingResult struct {
 
 type bomb struct {
 	rules *Rules
+	log   zerolog.Logger
 }
 
 // Bombers orbiting enemy planets will Bomb planets
@@ -58,8 +59,8 @@ type bomber interface {
 	bombPlanet(planet *Planet, planetOwner *Player, enemyBombers []*Fleet, pg playerGetter)
 }
 
-func NewBomber(rules *Rules) bomber {
-	return &bomb{rules: rules}
+func NewBomber(log zerolog.Logger, rules *Rules) bomber {
+	return &bomb{rules: rules, log: log}
 }
 
 // add two bombing results and return the total
@@ -173,7 +174,7 @@ func (b *bomb) normalBombPlanet(planet *Planet, defender *Player, attacker *Play
 	// figure out the killRate and minKill for this fleet's bombs
 	defenseCoverage := planet.Spec.DefenseCoverage
 	killRateColonistsKilled := roundToNearest100f(b.getColonistsKilledForBombs(planet.population(), defenseCoverage, bombs))
-	minColonistsKilled := roundToNearest100(b.getMinColonistsKilledForBombs(planet.population(), defenseCoverage, bombs))
+	minColonistsKilled := roundToNearest100(b.getMinColonistsKilledForBombs(defenseCoverage, bombs))
 
 	killed := MaxInt(killRateColonistsKilled, minColonistsKilled)
 	leftoverPopulation := MaxInt(0, planet.population()-killed)
@@ -204,8 +205,7 @@ func (b *bomb) normalBombPlanet(planet *Planet, defender *Player, attacker *Play
 	// update planet spec
 	planet.Spec = computePlanetSpec(b.rules, defender, planet)
 
-	log.Debug().
-		Int64("GameID", planet.GameID).
+	b.log.Debug().
 		Int("Player", attacker.Num).
 		Str("Planet", planet.Name).
 		Str("Fleet", fleets[0].Name).
@@ -257,8 +257,7 @@ func (b *bomb) smartBombPlanet(planet *Planet, defender *Player, attacker *Playe
 	// update planet spec
 	planet.Spec = computePlanetSpec(b.rules, defender, planet)
 
-	log.Debug().
-		Int64("GameID", planet.GameID).
+	b.log.Debug().
 		Int("Player", attacker.Num).
 		Str("Planet", planet.Name).
 		Str("Fleet", fleets[0].Name).
@@ -310,8 +309,7 @@ func (b *bomb) retroBombPlanet(planet *Planet, defender *Player, attacker *Playe
 	// update planet spec
 	planet.Spec = computePlanetSpec(b.rules, defender, planet)
 
-	log.Debug().
-		Int64("GameID", planet.GameID).
+	b.log.Debug().
 		Int("Player", attacker.Num).
 		Str("Planet", planet.Name).
 		Int("PlanetPlayer", planet.PlayerNum).
@@ -368,7 +366,7 @@ func (b *bomb) getColonistsKilledForBombs(population int, defenseCoverage float6
 }
 
 // Get minimum colonists killed using the MinKillRate of a bomb
-func (b *bomb) getMinColonistsKilledForBombs(population int, defenseCoverage float64, bombs []Bomb) int {
+func (b *bomb) getMinColonistsKilledForBombs(defenseCoverage float64, bombs []Bomb) int {
 	// calculate the minKill for all these bombs
 	minKill := 0
 	for _, bomb := range bombs {
@@ -415,8 +413,8 @@ func (b *bomb) getMinColonistsKilledForBombs(population int, defenseCoverage flo
 // of its factories, mines, and defenses.  If there had been 350 mines,
 // 550 factories, and 100 defenses, the losses would be 140 mines, 220
 // factories, and 40 defenses.
-//
-// getStructuresDestroyed calculates the structures destroyed using the StructureDestroyRate of bombs
+
+// getStructuresDestroyed gets the structures destroyed using the StructureDestroyRate of a bomb
 func (b *bomb) getStructuresDestroyed(defenseCoverage float64, bombs []Bomb) int {
 	// calculate the StructureDestroyRate for all these bombs
 	var structuresDestroyed float64 = 0
@@ -461,6 +459,8 @@ func (b *bomb) getStructuresDestroyed(defenseCoverage float64, bombs []Bomb) int
 //	= 8.37% of planetary pop will be killed.
 //
 // ============================================================================
+
+// Get number of colonists killed via smart bombs
 func (b *bomb) getColonistsKilledWithSmartBombs(population int, defenseCoverageSmart float64, bombs []Bomb) float64 {
 	smartKillRate := 0.0
 	for _, bomb := range bombs {

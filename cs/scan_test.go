@@ -53,7 +53,7 @@ func Test_getScanners(t *testing.T) {
 				Fleets:         tt.args.fleets,
 				MineralPackets: tt.args.mineralPackets,
 				MineFields:     tt.args.mineFields,
-			}, &rules, player, []*Player{player}, make(map[int]bool), newDiscoverer(player)}
+			}, &rules, player, []*Player{player}, make(map[int]bool), newDiscoverer(testLogger, player)}
 			if got := scan.getScanners(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("getScanners() = \n%v, want \n%v", got, tt.want)
 			}
@@ -91,7 +91,7 @@ func Test_getStargateScanners(t *testing.T) {
 			if tt.args.stargate != nil {
 				design := starbase.Tokens[0].design
 				design.Slots = append(design.Slots, ShipDesignSlot{HullComponent: tt.args.stargate.Name, HullSlotIndex: 1, Quantity: 1})
-				design.Spec = ComputeShipDesignSpec(&rules, player.TechLevels, player.Race.Spec, design)
+				design.Spec, _ = ComputeShipDesignSpec(&rules, player.TechLevels, player.Race.Spec, design)
 				starbase.Spec = ComputeFleetSpec(&rules, player, starbase)
 			}
 			planet.Starbase = starbase
@@ -100,7 +100,7 @@ func Test_getStargateScanners(t *testing.T) {
 
 			scan := playerScan{&Universe{
 				Planets: []*Planet{planet},
-			}, &rules, player, []*Player{player}, make(map[int]bool), newDiscoverer(player)}
+			}, &rules, player, []*Player{player}, make(map[int]bool), newDiscoverer(testLogger, player)}
 			if got := scan.getStarGateScanners(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("getScanners() = \n%v, want \n%v", got, tt.want)
 			}
@@ -224,7 +224,7 @@ func Test_scanPlanetWithStargates(t *testing.T) {
 	starbase1 := testSpaceStation(player1, planet1)
 	design1 := starbase1.Tokens[0].design
 	design1.Slots = append(design1.Slots, ShipDesignSlot{HullComponent: Stargate100_250.Name, HullSlotIndex: 1, Quantity: 1})
-	design1.Spec = ComputeShipDesignSpec(&rules, player1.TechLevels, player1.Race.Spec, design1)
+	design1.Spec, _ = ComputeShipDesignSpec(&rules, player1.TechLevels, player1.Race.Spec, design1)
 	starbase1.Spec = ComputeFleetSpec(&rules, player1, starbase1)
 
 	planet1.Starbase = starbase1
@@ -237,13 +237,13 @@ func Test_scanPlanetWithStargates(t *testing.T) {
 	starbase2 := testSpaceStation(player2, planet2)
 	design2 := starbase2.Tokens[0].design
 	design2.Slots = append(design2.Slots, ShipDesignSlot{HullComponent: Stargate100_250.Name, HullSlotIndex: 1, Quantity: 1})
-	design2.Spec = ComputeShipDesignSpec(&rules, player2.TechLevels, player2.Race.Spec, design2)
+	design2.Spec, _ = ComputeShipDesignSpec(&rules, player2.TechLevels, player2.Race.Spec, design2)
 	starbase2.Spec = ComputeFleetSpec(&rules, player2, starbase1)
 
 	planet2.Starbase = starbase1
 	planet2.Spec = computePlanetSpec(&rules, player2, planet2)
 
-	scan := playerScan{game.Universe, &rules, player1, game.Players, make(map[int]bool), newDiscoverer(player1)}
+	scan := playerScan{game.Universe, &rules, player1, game.Players, make(map[int]bool), newDiscoverer(testLogger, player1)}
 
 	// first test a faraway planet
 	planet2.Position = Vector{500, 500}
@@ -309,12 +309,12 @@ func Test_scanWormholes(t *testing.T) {
 
 			players := []*Player{player}
 
-			universe := NewUniverse(&rules)
+			universe := NewUniverse(testLogger, &rules)
 			universe.Wormholes = tt.fields.wormholes
 			universe.buildMaps(players)
 
 			// make a new scanner
-			discoverer := newDiscoverer(player)
+			discoverer := newDiscoverer(testLogger, player)
 			scan := playerScan{&universe, &rules, player, players, make(map[int]bool, len(player.PlayerIntels.PlayerIntels)), discoverer}
 			scan.scanWormholes(tt.args.scanners)
 

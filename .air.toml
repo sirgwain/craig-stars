@@ -2,7 +2,7 @@ root = "."
 testdata_dir = "testdata"
 
 [build]
-  args_bin = ["-d", "serve"]
+  args_bin = ["--log", "tmp/logfile.log", "serve"]
   bin = "./dist/craig-stars"
   cmd = "make build_wasm && go build -buildvcs=false -o ./dist/craig-stars ."
   delay = 1000

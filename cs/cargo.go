@@ -13,15 +13,14 @@ type Cargo struct {
 	Colonists int `json:"colonists,omitempty"`
 }
 
-type CargoType int
+type CargoType = ResourceType
 
-const (
-	Ironium CargoType = iota
-	Boranium
-	Germanium
-	Colonists
-	Fuel
-)
+var CargoTypes = [4]CargoType{
+	Ironium,
+	Boranium,
+	Germanium,
+	Colonists,
+}
 
 func (c CargoType) String() string {
 	switch c {
