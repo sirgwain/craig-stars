@@ -867,7 +867,7 @@ func (m *messageClient) planetInvaded(player *Player, planet *Planet, fleet *Fle
 }
 
 func (m *messageClient) planetInvadeEmpty(player *Player, planet *Planet, fleet *Fleet) {
-	text := fmt.Sprintf("%s has orders to invade %s, but the planet is uninhabited. The order has been canceled.", fleet.Name, planet.Name)
+	text := fmt.Sprintf("%s has orders to beam colonists to %s, but the planet is uninhabited. The order has been canceled.", fleet.Name, planet.Name)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetPlanet, TargetNum: planet.Num}})
 }
 func (m *messageClient) planetInvadeStarbase(player *Player, planet *Planet, fleet *Fleet) {
