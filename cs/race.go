@@ -77,7 +77,9 @@ func (rc ResearchCost) Get(field TechField) ResearchCostLevel {
 		return rc.Biotechnology
 	}
 
-	panic(fmt.Sprintf("invalid field %s to get ResearchCost", field))
+	// this is crashing some games. not sure what's up
+	return ResearchCostStandard
+	//panic(fmt.Sprintf("invalid field %s to get ResearchCost", field))
 }
 
 type RaceSpec struct {
