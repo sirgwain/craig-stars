@@ -28,7 +28,7 @@ var ctx = state{
 }
 var debug = false
 
-func enableDebug(this js.Value, args []js.Value) interface{} {
+func enableDebug(args []js.Value) interface{} {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.DateTime, NoColor: true})
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	debug = true
@@ -38,7 +38,7 @@ func enableDebug(this js.Value, args []js.Value) interface{} {
 
 // set the rules used by this wasm instance
 // rules default to a standard ruleset, but are overloaded during game load
-func setRules(_ js.Value, args []js.Value) interface{} {
+func setRules(args []js.Value) interface{} {
 	if len(args) != 1 {
 		return wasm.NewError(fmt.Errorf("setRules: number of arguments doesn't match"))
 	}
@@ -51,7 +51,7 @@ func setRules(_ js.Value, args []js.Value) interface{} {
 }
 
 // setPlayer sets or updates the current player for this wasm instance
-func setPlayer(_ js.Value, args []js.Value) interface{} {
+func setPlayer(args []js.Value) interface{} {
 	if len(args) != 1 {
 		return wasm.NewError(fmt.Errorf("setPlayer: number of arguments doesn't match"))
 	}
@@ -65,7 +65,7 @@ func setPlayer(_ js.Value, args []js.Value) interface{} {
 }
 
 // setDesigns sets or updates the current player's designs for this wasm instance
-func setDesigns(_ js.Value, args []js.Value) interface{} {
+func setDesigns(args []js.Value) interface{} {
 	if len(args) != 1 {
 		return wasm.NewError(fmt.Errorf("setDesigns: number of arguments doesn't match"))
 	}
@@ -82,7 +82,7 @@ func setDesigns(_ js.Value, args []js.Value) interface{} {
 
 // wasm wrapper for calculating race points
 // takes one argument, the race
-func calculateRacePoints(_ js.Value, args []js.Value) interface{} {
+func calculateRacePoints(args []js.Value) interface{} {
 	if len(args) != 1 {
 		return wasm.NewError(fmt.Errorf("number of arguments doesn't match"))
 	}
@@ -94,9 +94,29 @@ func calculateRacePoints(_ js.Value, args []js.Value) interface{} {
 	return js.ValueOf(points)
 }
 
+// wasm wrapper for calculating race points
+// takes one argument, the race
+func computeShipDesignSpec(args []js.Value) interface{} {
+	if len(args) != 1 {
+		return wasm.NewError(fmt.Errorf("number of arguments doesn't match"))
+	}
+
+	design := wasm.GetShipDesign(args[0])
+	spec, err := cs.ComputeShipDesignSpec(&ctx.rules, ctx.player.TechLevels, ctx.player.Race.Spec, &design)
+	if err != nil {
+		return wasm.NewError(fmt.Errorf("invalid design %v", err))
+	}
+	log.Debug().Msgf("computed spec for design %s", design.Name)
+
+	o := js.ValueOf(map[string]any{})
+	wasm.SetShipDesignSpec(o, &spec)
+
+	return o
+}
+
 // wasm wrapper for estimating planet production
 // takes 1 arguments: planet, player (with designs)
-func estimateProduction(_ js.Value, args []js.Value) interface{} {
+func estimateProduction(args []js.Value) interface{} {
 	if len(args) != 1 {
 		return wasm.NewError(fmt.Errorf("number of arguments doesn't match"))
 	}
@@ -134,12 +154,13 @@ func main() {
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 
-	wasm.ExposeFunction("setRules", js.FuncOf(setRules))
-	wasm.ExposeFunction("setPlayer", js.FuncOf(setPlayer))
-	wasm.ExposeFunction("setDesigns", js.FuncOf(setDesigns))
-	wasm.ExposeFunction("enableDebug", js.FuncOf(enableDebug))
-	wasm.ExposeFunction("calculateRacePoints", js.FuncOf(calculateRacePoints))
-	wasm.ExposeFunction("estimateProduction", js.FuncOf(estimateProduction))
+	wasm.ExposeFunction("setRules", setRules)
+	wasm.ExposeFunction("setPlayer", setPlayer)
+	wasm.ExposeFunction("setDesigns", setDesigns)
+	wasm.ExposeFunction("enableDebug", enableDebug)
+	wasm.ExposeFunction("calculateRacePoints", calculateRacePoints)
+	wasm.ExposeFunction("computeShipDesignSpec", computeShipDesignSpec)
+	wasm.ExposeFunction("estimateProduction", estimateProduction)
 	wasm.Ready()
 
 	// fmt.Println("wasm initialized")

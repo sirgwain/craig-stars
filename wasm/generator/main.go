@@ -27,9 +27,9 @@ generate source for serializing js.Value to/from structs in a package`
 // source generator for generating syscall/js Getters and Setters for package structs and named types
 func main() {
 	flag.Parse()
-	
+
 	args := flag.Args()
-	
+
 	if len(args) < 1 {
 		fmt.Println(cmdUsage)
 		return
@@ -53,12 +53,14 @@ func main() {
 		"BattleRecordTokenAction":             true,
 		"BattleRecordDestroyedToken":          true,
 		"BattleRecordStats":                   true,
+		"BattleRules":                         true,
 		"BattleVector":                        true,
 		"Bomb":                                true,
 		"BombingResult":                       true,
 		"Cargo":                               true,
 		"CometStats":                          true,
 		"Cost":                                true,
+		"CostRules":                           true,
 		"Defense":                             true,
 		"DBObject":                            true,
 		"Engine":                              true,
@@ -135,6 +137,7 @@ func main() {
 		"TechRequirements":                    true,
 		"TechTerraform":                       true,
 		"TransportPlan":                       true,
+		"UniverseGenerationRules":             true,
 		"Vector":                              true,
 		"Waypoint":                            true,
 		"WaypointTransportTask":               true,

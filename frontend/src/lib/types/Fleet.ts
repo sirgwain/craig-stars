@@ -47,7 +47,7 @@ export type ShipToken = {
 
 export type Target = {
 	targetType?: MapObjectType | MessageTargetType;
-	targetPosition: Vector;
+	targetPosition?: Vector;
 	targetPlayerNum?: number;
 	targetNum?: number;
 	targetName?: string;

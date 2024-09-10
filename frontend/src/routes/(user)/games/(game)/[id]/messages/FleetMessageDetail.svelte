@@ -63,7 +63,7 @@
 {:else if message.type === MessageType.FleetMineFieldHit}
 	{@const damage = message.spec.mineFieldDamage}
 	{@const mineFieldOwner = $universe.getPlayerPluralName(message.spec.targetPlayerNum)}
-	{@const mineFieldPosition = `(${message.spec.targetPosition.x}, ${message.spec.targetPosition.y})`}
+	{@const mineFieldPosition = `(${message.spec.targetPosition?.x ?? 0}, ${message.spec.targetPosition?.y ?? 0})`}
 	{#if damage}
 		{#if message.targetPlayerNum === $player.num}
 			<!-- our fleet was hit -->
@@ -97,7 +97,7 @@
 		Unknown damage was done
 	{/if}
 {:else if message.type === MessageType.FleetMineFieldSweptMines}
-	{@const mineFieldPosition = `(${message.spec.targetPosition.x}, ${message.spec.targetPosition.y})`}
+	{@const mineFieldPosition = `(${message.spec.targetPosition?.x ?? 0}, ${message.spec.targetPosition?.y || 0})`}
 	{#if message.targetPlayerNum === $player.num}
 		<!-- our fleet swept -->
 		{message.targetName} has has swept {message.spec.amount} mines from a mine field at {mineFieldPosition}
