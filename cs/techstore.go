@@ -60,7 +60,7 @@ type TechFinder interface {
 	GetHullsByType(techHullType TechHullType) []*TechHull
 	GetHullComponent(name string) *TechHullComponent
 	GetHullComponentsByCategory(category TechCategory) []TechHullComponent
-	GetBestComponentWithTags(slotTypes HullSlotType, tags []string, allTags bool) *TechHullComponent
+	GetBestComponentWithTags(player *Player, slotTypes HullSlotType, allTags bool, tags ...TechTag) *TechHullComponent
 }
 
 func NewTechStore() TechFinder {
@@ -219,12 +219,12 @@ func (store *TechStore) GetHullComponentsByHullSlotType(slots HullSlotType) []Te
 	return techs
 }
 
-// get best TechHullComponent for the specified hullSlotTypes (bitmasked together)
-// that also contains the specified tag(s)
+// get best TechHullComponent for the specified hullSlotType(s) that also contains the specified tag(s).
+// Multiple slots can be checked at once by bitwise XORing them beforehand
 //
-// allTags determines the search style - normally it defaults to "OR" (ie parts only need to match >=1 tag), but
-// setting it to true requires ALL listed tags to match for a part to be considered
-func (store *TechStore) GetBestComponentWithTags(hullSlotType HullSlotType, tags []string, allTags bool) *TechHullComponent {
+// allTags determines the search style - normally it defaults to "OR" (parts only need to match >=1 tag),
+// but setting it to "true" requires ALL listed tags to match for a part to be considered
+func (store *TechStore) GetBestComponentWithTags(player *Player, hullSlotType HullSlotType, allTags bool, tags ...TechTag) *TechHullComponent {
 	var bestTech *TechHullComponent
 
 	// get list of components for the techHullTypes we can use
@@ -236,14 +236,14 @@ func (store *TechStore) GetBestComponentWithTags(hullSlotType HullSlotType, tags
 		if allTags {
 			// need all tags to match for it to work
 			// we set match to true and break as soon as a single tag is missing
-			match = hc.Tags.hasAllTags(tags)
+			match = hc.Tags.hasAllTags(tags...)
 		} else {
 			// need only 1 tag to match
 			// we assume match is false and break as soon as a single tag matches
-			match = hc.Tags.hasOneTag(tags)
+			match = hc.Tags.hasOneTag(tags...)
 		}
 
-		if match && (bestTech == nil || hc.Ranking > bestTech.Ranking) {
+		if match && player.HasTech(&hc.Tech) && (bestTech == nil || hc.Ranking > bestTech.Ranking) {
 			bestTech = &hc
 		}
 	}
@@ -420,12 +420,39 @@ func (store *TechStore) GetBestShield(player *Player) *TechHullComponent {
 	return bestTech
 }
 
-// get the player's best torpedo
+// get the player's best torpedo weapon or capital ship missile
 func (store *TechStore) GetBestTorpedo(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
-		if tech.Category == TechCategoryTorpedo && tech.Power > 0 && player.HasTech(&tech.Tech) {
+		if tech.Category == TechCategoryTorpedo && tech.Power > 0 && !tech.CapitalShipMissile && player.HasTech(&tech.Tech) {
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
+				bestTech = tech
+			}
+		}
+	}
+	// Use a capital ship missile if it is strictly better than our best torpedo
+	// For this to happen, the torp must be at least twice as cost effective than the missile
+	// in terms of average damage (since lategame ships have high jamming)
+	// Not likely in vanilla, but maybe in mods?
+	bestMissile := store.GetBestMissile(player)
+	if bestTech == nil && bestMissile != nil {
+		if minType := bestMissile.Cost.ToMineral().HighestType(); (bestMissile.Power*bestMissile.Accuracy*2)/(bestTech.Power*bestTech.Accuracy) >
+			(bestMissile.Cost.ToMineral().GetAmount(minType) /
+				bestTech.Cost.ToMineral().GetAmount(minType)) {
+			bestTech = bestMissile
+		}
+	}
+
+	return bestTech
+}
+
+// get the player's best capital ship missile
+func (store *TechStore) GetBestMissile(player *Player) *TechHullComponent {
+	var bestTech *TechHullComponent
+	for i := range store.HullComponents {
+		tech := &store.HullComponents[i]
+		if tech.Category == TechCategoryTorpedo && tech.Power > 0 && tech.CapitalShipMissile && player.HasTech(&tech.Tech) {
 			if bestTech == nil || tech.Ranking > bestTech.Ranking {
 				bestTech = tech
 			}
@@ -490,7 +517,7 @@ func (store *TechStore) GetBestFuelTank(player *Player) *TechHullComponent {
 	return bestTech
 }
 
-// get the best cargo pod for a player
+// get the player's best cargo pod
 func (store *TechStore) GetBestCargoPod(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
@@ -504,7 +531,7 @@ func (store *TechStore) GetBestCargoPod(player *Player) *TechHullComponent {
 	return bestTech
 }
 
-// get the best colony module for a player
+// get the player's best colony module
 func (store *TechStore) GetBestColonizationModule(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
@@ -518,12 +545,26 @@ func (store *TechStore) GetBestColonizationModule(player *Player) *TechHullCompo
 	return bestTech
 }
 
-// get the best battle computer for a player
+// get the player's best battle computer
 func (store *TechStore) GetBestBattleComputer(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
-		if tech.InitiativeBonus > 0 && tech.TorpedoBonus > 0 && player.HasTech(&tech.Tech) {
+		if tech.TorpedoBonus > 0 && player.HasTech(&tech.Tech) {
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
+				bestTech = tech
+			}
+		}
+	}
+	return bestTech
+}
+
+// get the player's best torpedo jammer
+func (store *TechStore) GetBestJammer(player *Player) *TechHullComponent {
+	var bestTech *TechHullComponent
+	for i := range store.HullComponents {
+		tech := &store.HullComponents[i]
+		if tech.TorpedoJamming > 0 && player.HasTech(&tech.Tech) {
 			if bestTech == nil || tech.Ranking > bestTech.Ranking {
 				bestTech = tech
 			}
@@ -552,6 +593,21 @@ func (store *TechStore) GetBestBeamDeflector(player *Player) *TechHullComponent 
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if tech.BeamDefense > 0 && player.HasTech(&tech.Tech) {
+			if bestTech == nil || tech.Ranking > bestTech.Ranking {
+				bestTech = tech
+			}
+		}
+	}
+	return bestTech
+}
+
+// get the player's best cloaking apparatus
+func (store *TechStore) GetBestCloak(player *Player) *TechHullComponent {
+	var bestTech *TechHullComponent
+	for i := range store.HullComponents {
+		tech := &store.HullComponents[i]
+		if tech.CloakUnits > 0 && tech.TerraformRate <= 0 && player.HasTech(&tech.Tech) {
+			// Yes OAs have cloaking,
 			if bestTech == nil || tech.Ranking > bestTech.Ranking {
 				bestTech = tech
 			}
@@ -1577,24 +1633,24 @@ var UltraStealthCloak = TechHullComponent{Tech: NewTech("Ultra-Stealth Cloak", N
 }
 var BattleComputer = TechHullComponent{Tech: NewTech("Battle Computer", NewCost(0, 0, 15, 6), TechRequirements{TechLevel: TechLevel{}}, 40, TechCategoryElectrical),
 
-	Mass:                   1,
-	InitiativeBonus:        1,
-	TorpedoBonus:           .2,
-	HullSlotType:           HullSlotTypeElectrical,
+	Mass:            1,
+	InitiativeBonus: 1,
+	TorpedoBonus:    .2,
+	HullSlotType:    HullSlotTypeElectrical,
 }
 var BattleSuperComputer = TechHullComponent{Tech: NewTech("Battle Super Computer", NewCost(0, 0, 25, 14), TechRequirements{TechLevel: TechLevel{Energy: 5, Electronics: 11}}, 50, TechCategoryElectrical),
 
-	Mass:                   1,
-	InitiativeBonus:        2,
-	TorpedoBonus:           .3,
-	HullSlotType:           HullSlotTypeElectrical,
+	Mass:            1,
+	InitiativeBonus: 2,
+	TorpedoBonus:    .3,
+	HullSlotType:    HullSlotTypeElectrical,
 }
 var BattleNexus = TechHullComponent{Tech: NewTech("Battle Nexus", NewCost(0, 0, 30, 15), TechRequirements{TechLevel: TechLevel{Energy: 10, Electronics: 19}}, 60, TechCategoryElectrical),
 
-	Mass:                   1,
-	InitiativeBonus:        3,
-	TorpedoBonus:           .5,
-	HullSlotType:           HullSlotTypeElectrical,
+	Mass:            1,
+	InitiativeBonus: 3,
+	TorpedoBonus:    .5,
+	HullSlotType:    HullSlotTypeElectrical,
 }
 var Jammer10 = TechHullComponent{Tech: NewTech("Jammer 10", NewCost(0, 0, 2, 6), TechRequirements{TechLevel: TechLevel{Energy: 2, Electronics: 6}, PRTsRequired: []PRT{IS}}, 70, TechCategoryElectrical),
 
@@ -2046,7 +2102,7 @@ var OmegaTorpedo = TechHullComponent{Tech: NewTech("Omega Torpedo", NewCost(52, 
 	HullSlotType: HullSlotTypeWeapon,
 	Range:        5,
 }
-var JihadMissile = TechHullComponent{Tech: NewTech("Jihad Missile", NewCost(37, 13, 9, 13), TechRequirements{TechLevel: TechLevel{Weapons: 12, Propulsion: 6}}, 70, TechCategoryTorpedo),
+var JihadMissile = TechHullComponent{Tech: NewTech("Jihad Missile", NewCost(37, 13, 9, 13), TechRequirements{TechLevel: TechLevel{Weapons: 12, Propulsion: 6}}, 0, TechCategoryTorpedo),
 
 	Mass:               35,
 	Accuracy:           20,
@@ -2055,7 +2111,7 @@ var JihadMissile = TechHullComponent{Tech: NewTech("Jihad Missile", NewCost(37, 
 	HullSlotType:       HullSlotTypeWeapon,
 	Range:              5,
 }
-var JuggernautMissile = TechHullComponent{Tech: NewTech("Juggernaut Missile", NewCost(48, 16, 11, 16), TechRequirements{TechLevel: TechLevel{Weapons: 16, Propulsion: 8}}, 80, TechCategoryTorpedo),
+var JuggernautMissile = TechHullComponent{Tech: NewTech("Juggernaut Missile", NewCost(48, 16, 11, 16), TechRequirements{TechLevel: TechLevel{Weapons: 16, Propulsion: 8}}, 10, TechCategoryTorpedo),
 
 	Mass:               35,
 	Initiative:         1,
@@ -2066,7 +2122,7 @@ var JuggernautMissile = TechHullComponent{Tech: NewTech("Juggernaut Missile", Ne
 	Range:              5,
 }
 
-var DoomsdayMissile = TechHullComponent{Tech: NewTech("Doomsday Missile", NewCost(60, 20, 13, 20), TechRequirements{TechLevel: TechLevel{Weapons: 20, Propulsion: 10}}, 90, TechCategoryTorpedo),
+var DoomsdayMissile = TechHullComponent{Tech: NewTech("Doomsday Missile", NewCost(60, 20, 13, 20), TechRequirements{TechLevel: TechLevel{Weapons: 20, Propulsion: 10}}, 20, TechCategoryTorpedo),
 
 	Mass:               35,
 	Initiative:         2,
@@ -2077,7 +2133,7 @@ var DoomsdayMissile = TechHullComponent{Tech: NewTech("Doomsday Missile", NewCos
 	Range:              6,
 }
 
-var ArmageddonMissile = TechHullComponent{Tech: NewTech("Armageddon Missile", NewCost(67, 23, 16, 24), TechRequirements{TechLevel: TechLevel{Weapons: 24, Propulsion: 10}}, 100, TechCategoryTorpedo),
+var ArmageddonMissile = TechHullComponent{Tech: NewTech("Armageddon Missile", NewCost(67, 23, 16, 24), TechRequirements{TechLevel: TechLevel{Weapons: 24, Propulsion: 10}}, 30, TechCategoryTorpedo, TechTagTorpedo, TechTagMissile),
 
 	Mass:               35,
 	Initiative:         3,
@@ -2371,7 +2427,7 @@ var Galleon = TechHull{Tech: NewTech("Galleon", NewCost(70, 5, 5, 105), TechRequ
 		{Position: Vector{-0.5, 1.5}, Type: HullSlotTypeShieldArmor, Capacity: 2},
 		{Position: Vector{0.5, -1.5}, Type: HullSlotTypeGeneral, Capacity: 3},
 		{Position: Vector{0.5, 1.5}, Type: HullSlotTypeGeneral, Capacity: 3},
-		{Position: Vector{1, -0.5}, Type: HullSlotTypeMineElectricalMechanical, Capacity: 2},
+		{Position: Vector{1, -0.5}, Type: HullSlotTypeElectricalMechanical, Capacity: 2},
 		{Position: Vector{1, 0.5}, Type: HullSlotTypeMineElectricalMechanical, Capacity: 2},
 		{Position: Vector{2, 0}, Type: HullSlotTypeScanner, Capacity: 2},
 	},

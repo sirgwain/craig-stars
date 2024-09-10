@@ -243,7 +243,10 @@ func (ug *universeGenerator) generatePlayerShipDesigns() error {
 				}
 				techStore := ug.Rules.techs
 				hull := techStore.GetHull(string(startingFleet.HullName))
-				design := DesignShip(techStore, hull, startingFleet.Name, player, num, player.DefaultHullSet, startingFleet.Purpose, FleetPurposeFromShipDesignPurpose(startingFleet.Purpose))
+				design, err := DesignShip(techStore, hull, startingFleet.Name, player, num, player.DefaultHullSet, startingFleet.Purpose, FleetPurposeFromShipDesignPurpose(startingFleet.Purpose))
+				if err != nil {
+					return fmt.Errorf("DesignShip returned error %w", err)
+				}
 				design.HullSetNumber = int(startingFleet.HullSetNumber)
 				design.Purpose = startingFleet.Purpose
 				design.Spec, err = ComputeShipDesignSpec(&ug.Rules, player.TechLevels, player.Race.Spec, design)

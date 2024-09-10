@@ -25,6 +25,7 @@ type Rules struct {
 	NumBattleRounds                           int                                 `json:"numBattleRounds"`
 	MovesToRunAway                            int                                 `json:"movesToRunAway"`
 	BeamRangeDropoff                          float64                             `json:"beamRangeDropoff"`
+	BeamBonusCap                              float64                             `json:"BeamBonusCap"`
 	TorpedoSplashDamage                       float64                             `json:"torpedoSplashDamage"`
 	SalvageDecayRate                          float64                             `json:"salvageDecayRate"`
 	SalvageDecayMin                           int                                 `json:"salvageDecayMin"`
@@ -203,6 +204,7 @@ func NewRulesWithSeed(seed int64) Rules {
 		NumBattleRounds:                  16,
 		MovesToRunAway:                   7,
 		BeamRangeDropoff:                 0.1,
+		BeamBonusCap:                     2.55, // 2.55x damage max from caps 
 		TorpedoSplashDamage:              0.125,
 		SalvageDecayRate:                 0.1,
 		SalvageDecayMin:                  10,

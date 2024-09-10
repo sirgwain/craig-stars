@@ -113,9 +113,10 @@ const (
 	ShipDesignPurposeBomber                ShipDesignPurpose = "Bomber"
 	ShipDesignPurposeStructureBomber       ShipDesignPurpose = "StructureBomber"
 	ShipDesignPurposeSmartBomber           ShipDesignPurpose = "SmartBomber"
-	ShipDesignPurposeFighter               ShipDesignPurpose = "Fighter"
-	ShipDesignPurposeFighterScout          ShipDesignPurpose = "FighterScout"
-	ShipDesignPurposeCapitalShip           ShipDesignPurpose = "CapitalShip"
+	ShipDesignPurposeStartingFighter       ShipDesignPurpose = "Starting Fighter" // basically only used for starting designs
+	ShipDesignPurposeFighterScout          ShipDesignPurpose = "FighterScout"     // armed scouts
+	ShipDesignPurposeTorpedoShip           ShipDesignPurpose = "TorpedoShip"      // warships
+	ShipDesignPurposeBeamShip              ShipDesignPurpose = "BeamShip"
 	ShipDesignPurposeFreighter             ShipDesignPurpose = "Freighter"
 	ShipDesignPurposeColonistFreighter     ShipDesignPurpose = "ColonistFreighter"
 	ShipDesignPurposeFuelFreighter         ShipDesignPurpose = "FuelFreighter"
@@ -523,10 +524,15 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 
 			// multiple beam boosters stack multiplicatively
 			spec.BeamBonus *= bonus
+
+			if spec.BeamBonus > rules.BeamBonusCap {
+				// save a bit of computing power by breaking early if over cap
+				break
+			}
 		}
 
-		// Return final % bonus, rounded to 4 decimal places and capped at 155% base damage
-		spec.BeamBonus = math.Min(roundFloat(spec.BeamBonus, 4), 2.55)
+		// Return final % bonus, rounded to 4 decimal places and capped at 2.55x base damage
+		spec.BeamBonus = math.Min(roundFloat(spec.BeamBonus, 4), rules.BeamBonusCap)
 	}
 
 	if len(beamDeflectorsByCount) > 0 {
@@ -560,7 +566,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		// assume they have a movement of "2" which is the lowest possible
 		movement := Clamp(spec.Movement, 2, 10)
 
-		// a movement of 1 1/2 int the UI (i.e. 6) doesn't impact your beam
+		// a movement of 1 1/2 in the UI (i.e. 6) doesn't impact your beam
 		// power rating. Anything less reduces your beam power, anything higher increases it
 		beamPower += (beamPower * (movement - 6)) / 10
 	}
@@ -584,8 +590,9 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 	return spec, nil
 }
 
-// Compute the scan ranges for this ship design The formula is: (scanner1**4 + scanner2**4 + ...
-// + scannerN**4)**(.25)
+// Compute the scan ranges for this ship design
+// Formula: (scanner1^4 + scanner2^4 + ...
+// + scannerN^4)^(.25)
 func (spec *ShipDesignSpec) computeScanRanges(rules *Rules, scannerSpec ScannerSpec, techLevels TechLevel, design *ShipDesign, hull *TechHull) {
 	spec.ScanRange = 0
 	spec.ScanRangePen = NoScanner
@@ -636,14 +643,15 @@ func (spec *ShipDesignSpec) computeScanRanges(rules *Rules, scannerSpec ScannerS
 	spec.Scanner = spec.ScanRange != NoScanner || spec.ScanRangePen != NoScanner
 }
 
-func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Player, num int, hullSetNumber int, purpose ShipDesignPurpose, fleetPurpose FleetPurpose) *ShipDesign {
+func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num int, hullSetNumber int, purpose ShipDesignPurpose, fleetPurpose FleetPurpose) (*ShipDesign, error) {
 
+	techStore := rules.techs
 	design := NewShipDesign(player, num).WithName(name).WithHull(hull.Name)
 	design.Purpose = purpose
 
 	// fuel depots are empty
 	if purpose == ShipDesignPurposeFuelDepot {
-		return design
+		return design, nil
 	}
 
 	battleEngine := techStore.GetBestBattleEngine(player, hull)
@@ -652,14 +660,19 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 	fuelTank := techStore.GetBestFuelTank(player)
 	cargoPod := techStore.GetBestCargoPod(player)
 	beamWeapon := techStore.GetBestBeamWeapon(player)
+	sapper := techStore.GetBestSapper(player)
 	torpedo := techStore.GetBestTorpedo(player)
 	bomb := techStore.GetBestBomb(player)
 	smartBomb := techStore.GetBestSmartBomb(player)
 	structureBomb := techStore.GetBestStructureBomb(player)
 	shield := techStore.GetBestShield(player)
 	armor := techStore.GetBestArmor(player)
+	cloak := techStore.GetBestCloak(player)
 	colonizationModule := techStore.GetBestColonizationModule(player)
 	battleComputer := techStore.GetBestBattleComputer(player)
+	beamCapacitor := techStore.GetBestBeamCapacitor(player)
+	beamDeflector := techStore.GetBestBeamDeflector(player)
+	jammer := techStore.GetBestJammer(player)
 	miningRobot := techStore.GetBestMiningRobot(player)
 	terraformRobot := techStore.GetBestTerraformRobot(player)
 	standardMineLayer := techStore.GetBestMineLayer(player, MineFieldTypeStandard)
@@ -671,6 +684,7 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 	numColonizationModules := 0
 	numScanners := 0
 	numBeamWeapons := 0
+	numSappers := 0
 	numTorpedos := 0
 	numArmors := 0
 	numShields := 0
@@ -678,6 +692,15 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 	numCargoPods := 0
 	numPacketThrowers := 0
 	numStargates := 0
+	numComputers := 0 // counts computers and capacitors together
+	numJammers := 0
+	numDeflectors := 0
+	beamBonusTracker := 1.0
+
+	mechSlots := []ShipDesignSlot{}
+	elecMechSlots := []ShipDesignSlot{} // we do these last on warships due to move calcs
+	ehullSlots := []int{}
+	emhullSlots := []int{}
 
 	for i, hullSlot := range hull.Slots {
 		slot := ShipDesignSlot{HullSlotIndex: i + 1}
@@ -698,27 +721,36 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 
 		switch hullSlot.Type {
 		case HullSlotTypeEngine:
-			if purpose == ShipDesignPurposeFighter {
+			switch purpose {
+			case ShipDesignPurposeStartingFighter, ShipDesignPurposeBeamShip, ShipDesignPurposeFighterScout, ShipDesignPurposeTorpedoShip:
 				// need them battleships to be speedy!
 				slot.HullComponent = battleEngine.Name
-			} else {
+			default:
 				slot.HullComponent = engine.Name
 			}
 		case HullSlotTypeScanner:
-			numScanners++
+			numScanners += slot.Quantity
 			slot.HullComponent = scanner.Name
 		case HullSlotTypeWeapon:
-			if purpose == ShipDesignPurposeFighterScout {
+			switch purpose {
+			case ShipDesignPurposeFighterScout, ShipDesignPurposeBeamShip:
+				if numSappers*2 > numBeamWeapons*3 {
+					slot.HullComponent = sapper.Name
+					numSappers += slot.Quantity
+				}
 				slot.HullComponent = beamWeapon.Name
-				numBeamWeapons++
-			} else {
+				numBeamWeapons += slot.Quantity
+			case ShipDesignPurposeStartingFighter:
 				if numTorpedos > numBeamWeapons {
 					slot.HullComponent = beamWeapon.Name
-					numBeamWeapons++ // TODO: Split fighters into 2 classes
+					numBeamWeapons += slot.Quantity
 				} else {
 					slot.HullComponent = torpedo.Name
-					numTorpedos++
+					numTorpedos += slot.Quantity
 				}
+			case ShipDesignPurposeTorpedoShip, ShipDesignPurposeStarbase, ShipDesignPurposeStarbaseHalf, ShipDesignPurposeStarbaseQuarter:
+				slot.HullComponent = torpedo.Name
+				numTorpedos += slot.Quantity
 			}
 		case HullSlotTypeBomb:
 			// fill the bomb slot based on the type of bomber we want
@@ -738,31 +770,33 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 				}
 			}
 		case HullSlotTypeShieldArmor:
-			// fuel freighters stay fast and loose
-			if purpose == ShipDesignPurposeFuelFreighter {
+			// Freighters stay fast and loose
+			if purpose == ShipDesignPurposeFuelFreighter || purpose == ShipDesignPurposeFreighter || purpose == ShipDesignPurposeColonistFreighter {
 				continue
 			}
 
-			// if we are choosing shield or armor, pick armor first, then shield
-			if numArmors > numShields {
-				slot.HullComponent = shield.Name
-			} else {
+			// if we are choosing shield or armor, pick shield first, then armor
+			if numShields >= numArmors {
 				slot.HullComponent = armor.Name
+				numShields += slot.Quantity
+			} else {
+				slot.HullComponent = shield.Name
+				numArmors += slot.Quantity
 			}
 		case HullSlotTypeArmor:
-			// fuel freighters stay fast and loose
-			if purpose == ShipDesignPurposeFuelFreighter {
+			// Freighters stay fast and loose (cuz if they fight they're most likely dead already)
+			if purpose == ShipDesignPurposeFuelFreighter || purpose == ShipDesignPurposeFreighter || purpose == ShipDesignPurposeColonistFreighter {
 				continue
 			}
 			slot.HullComponent = armor.Name
-			numArmors++
+			numArmors += slot.Quantity
 		case HullSlotTypeShield:
-			// fuel freighters stay fast and loose
-			if purpose == ShipDesignPurposeFuelFreighter {
+			// Freighters stay fast and loose
+			if purpose == ShipDesignPurposeFuelFreighter || purpose == ShipDesignPurposeFreighter || purpose == ShipDesignPurposeColonistFreighter {
 				continue
 			}
 			slot.HullComponent = shield.Name
-			numShields++
+			numShields += slot.Quantity
 		case HullSlotTypeMining:
 			if purpose == ShipDesignPurposeTerraformer {
 				if terraformRobot != nil {
@@ -785,7 +819,29 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 				}
 			}
 		case HullSlotTypeOrbital:
-			fallthrough
+			switch purpose {
+			case ShipDesignPurposePacketThrower:
+				if packetThrower != nil {
+					slot.HullComponent = packetThrower.Name
+					numPacketThrowers++
+					break
+				}
+			case ShipDesignPurposeStargater:
+				if stargate != nil {
+					slot.HullComponent = stargate.Name
+					numStargates++
+					break
+				}
+			default:
+				// packet throwers for defense, then stargates
+				if numPacketThrowers == 0 && packetThrower != nil {
+					slot.HullComponent = packetThrower.Name
+					numPacketThrowers++
+				} else if numStargates == 0 && stargate != nil {
+					slot.HullComponent = stargate.Name
+					numStargates++
+				}
+			}
 		case HullSlotTypeOrbitalElectrical:
 			// if this starbase is designed for stargates or packet throwers, fill those
 			// first. By default add packet throwers, then stargates, then electrical items
@@ -818,56 +874,96 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 			// spare orbital slots left; use electrical items instead
 			fallthrough
 		case HullSlotTypeElectrical:
-			// TODO: add in jammers, stealth, etc
 			switch purpose {
-			case ShipDesignPurposeCapitalShip:
-				fallthrough
-			case ShipDesignPurposeFighter:
-				fallthrough
-			case ShipDesignPurposeFighterScout:
-				fallthrough
-			default:
+			case ShipDesignPurposeStartingFighter:
 				slot.HullComponent = battleComputer.Name
+				numComputers += slot.Quantity
+			case ShipDesignPurposeTorpedoShip, ShipDesignPurposeStarbase, ShipDesignPurposeStarbaseHalf, ShipDesignPurposeStarbaseQuarter:
+				if numComputers <= MinInt(numJammers, 8) { // more than 8 computers? Seriously?
+					slot.HullComponent = battleComputer.Name
+					numComputers += slot.Quantity
+				}
+				fallthrough
+			case ShipDesignPurposeBeamShip, ShipDesignPurposeFighterScout:
+				if numComputers <= numJammers && beamCapacitor != nil &&
+					beamBonusTracker <= 2.55 {
+					slot.HullComponent = beamCapacitor.Name
+					slot.Quantity = 0
+					for beamBonusTracker <= 2.55 && slot.Quantity <= hullSlot.Capacity {
+						// add capacitors 1 by 1 and see if we hit the bonus cap
+						numComputers += 1
+						slot.Quantity += 1
+						beamBonusTracker *= 1 + beamCapacitor.BeamBonus
+					}
+				}
+				fallthrough
+			case ShipDesignPurposeFuelFreighter, ShipDesignPurposeFreighter, ShipDesignPurposeColonistFreighter:
+				// see if we can tack on a cargo pod; otherwise cloak
+				slot.HullComponent = techStore.GetBestComponentWithTags(player, HullSlotTypeElectrical, false, TechTagFuelPod, TechTagCargoPod).Name
+				if slot.HullComponent == "nil" && cloak != nil {
+					slot.HullComponent = cloak.Name
+				}
+			default:
+				if numJammers <= MinInt(9) && jammer != nil { // more than 9 jammers is a waste
+					slot.HullComponent = jammer.Name
+					numJammers += slot.Quantity
+				} else {
+					// see if we have any elec maneuvering jets; otherwise might as well slap on more jammers
+					slot.HullComponent = techStore.GetBestComponentWithTags(player, HullSlotTypeElectrical, true, TechTagManeuveringJet).Name
+					if slot.HullComponent == "" {
+						slot.HullComponent = jammer.Name
+						numJammers += slot.Quantity
+					}
+				}
 			}
 		case HullSlotTypeMechanical:
 			switch purpose {
-			case ShipDesignPurposeCapitalShip, ShipDesignPurposeFighter, ShipDesignPurposeFighterScout:
-				fallthrough
+			case ShipDesignPurposeTorpedoShip, ShipDesignPurposeBeamShip, ShipDesignPurposeFighterScout:
+				mechSlots = append(mechSlots, slot) // will come back to it later once the rest of the ship's parts have been placed
+				ehullSlots = append(ehullSlots, i)
 			case ShipDesignPurposeFuelFreighter:
 				slot.HullComponent = fuelTank.Name
-				numFuelTanks++
-			case ShipDesignPurposeFreighter:
-				fallthrough
-			case ShipDesignPurposeColonistFreighter:
-				// add cargo pods to freighters if we have a ramscoop
-				if engine.FreeSpeed > 1 && cargoPod != nil {
-					slot.HullComponent = cargoPod.Name
-					numCargoPods++
-				}
+				numFuelTanks += slot.Quantity
 			case ShipDesignPurposeColonizer:
 				if colonizationModule != nil && numColonizationModules == 0 {
 					numColonizationModules++
 					slot.HullComponent = colonizationModule.Name
-					slot.Quantity = 1 // we only need 1 colonization module
+					slot.Quantity = 1 // we only ever need 1 colonization module; extras a are waste
 				} else {
-					// balance fuel and cargo, fuel firsts
+					// balance fuel and cargo, fuel first
 					if numFuelTanks > numCargoPods {
 						slot.HullComponent = cargoPod.Name
-						numCargoPods++
+						numCargoPods += slot.Quantity
 					} else {
 						slot.HullComponent = fuelTank.Name
-						numFuelTanks++
+						numFuelTanks += slot.Quantity
 					}
 				}
+			case ShipDesignPurposeFreighter:
+				fallthrough
+			case ShipDesignPurposeColonistFreighter:
+				// add cargo pods to freighters if we have a ramscoop (up to 2 extra)
+				if engine.FreeSpeed > 1 && cargoPod != nil && numCargoPods < 2+numFuelTanks {
+					slot.HullComponent = cargoPod.Name
+					numCargoPods += slot.Quantity
+					break
+				}
+				fallthrough
 			default:
 				slot.HullComponent = fuelTank.Name
-				numFuelTanks++
+				numFuelTanks += slot.Quantity
 			}
 		case HullSlotTypeScannerElectricalMechanical:
 			switch purpose {
+			case ShipDesignPurposeTorpedoShip, ShipDesignPurposeBeamShip, ShipDesignPurposeFighterScout:
+				elecMechSlots = append(elecMechSlots, slot) // will come back to it later once the rest of the ship's parts have been placed
+				emhullSlots = append(emhullSlots, i)
+			case ShipDesignPurposeStartingFighter:
+				slot.HullComponent = battleComputer.Name
+				numComputers += slot.Quantity
 			case ShipDesignPurposeFuelFreighter:
 				slot.HullComponent = fuelTank.Name
-				numFuelTanks++
+				numFuelTanks += slot.Quantity
 			case ShipDesignPurposeFreighter:
 				fallthrough
 			case ShipDesignPurposeColonistFreighter:
@@ -875,10 +971,10 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 				// up to 2 more than fuel tanks (because we still need _some_ fuel)
 				if engine.FreeSpeed > 1 && cargoPod != nil && numCargoPods+2 > numFuelTanks {
 					slot.HullComponent = cargoPod.Name
-					numCargoPods++
+					numCargoPods += slot.Quantity
 				} else {
 					slot.HullComponent = fuelTank.Name
-					numFuelTanks++
+					numFuelTanks += slot.Quantity
 				}
 			case ShipDesignPurposeColonizer:
 				if colonizationModule != nil && numColonizationModules == 0 {
@@ -889,82 +985,141 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 					// balance fuel and cargo, fuel first
 					if numFuelTanks > numCargoPods && cargoPod != nil {
 						slot.HullComponent = cargoPod.Name
-						numCargoPods++
+						numCargoPods += slot.Quantity
 					} else {
 						slot.HullComponent = fuelTank.Name
-						numFuelTanks++
+						numFuelTanks += slot.Quantity
 					}
 				}
 			default:
 				if numScanners == 0 {
-					numScanners++
 					slot.HullComponent = scanner.Name
+					numScanners += slot.Quantity
 				} else {
 					// can always use more fuel
 					slot.HullComponent = fuelTank.Name
-					numFuelTanks++
+					numFuelTanks += slot.Quantity
 				}
 			}
-
-		case HullSlotTypeArmorScannerElectricalMechanical:
+		case HullSlotTypeShieldElectricalMechanical:
 			switch purpose {
+			case ShipDesignPurposeTorpedoShip, ShipDesignPurposeBeamShip, ShipDesignPurposeFighterScout:
+				elecMechSlots = append(elecMechSlots, slot) // will come back to it later once the rest of the ship's parts have been placed
+				emhullSlots = append(emhullSlots, i)
+			case ShipDesignPurposeStartingFighter:
+				slot.HullComponent = battleComputer.Name
+				numComputers += slot.Quantity
 			case ShipDesignPurposeFuelFreighter:
 				slot.HullComponent = fuelTank.Name
-				numFuelTanks++
+				numFuelTanks += slot.Quantity
+			case ShipDesignPurposeFreighter:
+				fallthrough
+			case ShipDesignPurposeColonistFreighter:
+				// add cargo pods to freighters if we have a ramscoop
+				// up to 2 more than fuel tanks (because we still need _some_ fuel)
+				if engine.FreeSpeed > 1 && cargoPod != nil && numCargoPods+2 > numFuelTanks {
+					slot.HullComponent = cargoPod.Name
+					numCargoPods += slot.Quantity
+				} else {
+					slot.HullComponent = fuelTank.Name
+					numFuelTanks += slot.Quantity
+				}
 			case ShipDesignPurposeColonizer:
 				if colonizationModule != nil && numColonizationModules == 0 {
 					numColonizationModules++
 					slot.HullComponent = colonizationModule.Name
 					slot.Quantity = 1 // we only need 1 colonization module
-				} else { // balance fuel and cargo, fuel firsts
+				} else {
+					// balance fuel and cargo, fuel first
 					if numFuelTanks > numCargoPods && cargoPod != nil {
 						slot.HullComponent = cargoPod.Name
-						numCargoPods++
+						numCargoPods += slot.Quantity
 					} else {
 						slot.HullComponent = fuelTank.Name
-						numFuelTanks++
+						numFuelTanks += slot.Quantity
 					}
 				}
 			default:
 				if numScanners == 0 {
 					slot.HullComponent = scanner.Name
-					numScanners++
+					numScanners += slot.Quantity
+				} else {
+					// can always use more fuel
+					slot.HullComponent = fuelTank.Name
+					numFuelTanks += slot.Quantity
+				}
+			}
+		case HullSlotTypeArmorScannerElectricalMechanical:
+			switch purpose {
+			case ShipDesignPurposeStartingFighter:
+				slot.HullComponent = battleComputer.Name
+				numComputers += slot.Quantity
+			case ShipDesignPurposeTorpedoShip, ShipDesignPurposeBeamShip:
+				elecMechSlots = append(elecMechSlots, slot) // will come back to it later once the rest of the ship's parts have been placed
+			case ShipDesignPurposeFuelFreighter:
+				slot.HullComponent = fuelTank.Name
+				numFuelTanks += slot.Quantity
+			case ShipDesignPurposeColonizer:
+				if colonizationModule != nil && numColonizationModules == 0 {
+					numColonizationModules++
+					slot.HullComponent = colonizationModule.Name
+					slot.Quantity = 1 // we only need 1 colonization module
+				} else { // balance fuel and cargo, fuel first
+					if numFuelTanks > numCargoPods && cargoPod != nil {
+						slot.HullComponent = cargoPod.Name
+						numCargoPods += slot.Quantity
+					} else {
+						slot.HullComponent = fuelTank.Name
+						numFuelTanks += slot.Quantity
+					}
+				}
+			default:
+				if numScanners == 0 {
+					slot.HullComponent = scanner.Name
+					numScanners += slot.Quantity
 				} else {
 					slot.HullComponent = fuelTank.Name
-					numFuelTanks++
+					numFuelTanks += slot.Quantity
 				}
 			}
 
 		case HullSlotTypeGeneral:
 			switch purpose {
+			case ShipDesignPurposeBeamShip:
+				if numSappers*2 > numBeamWeapons*3 {
+					slot.HullComponent = sapper.Name
+					numSappers += slot.Quantity
+				}
+				slot.HullComponent = beamWeapon.Name
+				numBeamWeapons += slot.Quantity
 			case ShipDesignPurposeFuelFreighter:
 				slot.HullComponent = fuelTank.Name
-				numFuelTanks++
+				numFuelTanks += slot.Quantity
 			case ShipDesignPurposeColonizer:
 				// balance fuel and cargo, fuel firsts
 				if numFuelTanks > numCargoPods && cargoPod != nil {
 					slot.HullComponent = cargoPod.Name
-					numCargoPods++
+					numCargoPods += slot.Quantity
 				} else {
 					slot.HullComponent = fuelTank.Name
-					numFuelTanks++
+					numFuelTanks += slot.Quantity
 				}
-			case ShipDesignPurposeFighter:
+			case ShipDesignPurposeStartingFighter:
 				fallthrough
 			case ShipDesignPurposeFighterScout:
 				if numScanners == 0 {
 					slot.HullComponent = scanner.Name
-					numScanners++
+					numScanners += slot.Quantity
 				} else {
 					slot.HullComponent = beamWeapon.Name
 				}
 			default:
 				if numScanners == 0 {
 					slot.HullComponent = scanner.Name
-					numScanners++
+					numScanners += slot.Quantity
 				} else {
 					slot.HullComponent = fuelTank.Name
-					numFuelTanks++
+					numFuelTanks += slot.Quantity
 				}
 			}
 		}
@@ -975,5 +1130,103 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 		}
 	}
 
-	return design
+	if len(mechSlots) > 0 {
+		// we have spare mech slots on our warships; time to add stuff
+
+		// First, check if we have a good maneuvering jet to use
+
+		var move, targetMove int
+		var err error
+		if purpose == ShipDesignPurposeBeamShip {
+			targetMove = 9 // 2 1/4 move guarantees a shot on the enemy by round 2
+		} else if purpose == ShipDesignPurposeFighterScout {
+			targetMove = 8 // 2 move is probably more than enough for your avg everyday scout or scout catcher
+		} else {
+			targetMove = 6 // 1 1/2 move isn't great on a missile boat, but it's serviceable
+		}
+		bestJet := techStore.GetBestComponentWithTags(player, HullSlotTypeMechanical, true, TechTagManeuveringJet)
+
+		for _, slot := range mechSlots {
+			design.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
+			if err != nil {
+				return &ShipDesign{}, fmt.Errorf("Failed to compute ship design spec when designing ship; error %w", err)
+			}
+			move = design.getMovement(0)
+			if move < targetMove && bestJet != nil {
+				slot.HullComponent = bestJet.Name
+			} else {
+				mechJammer := techStore.GetBestComponentWithTags(player, HullSlotTypeMechanical, true, TechTagJammer)
+				if 1-(1-design.Spec.TorpedoJamming)*math.Pow((1-mechJammer.TorpedoJamming), float64(len(elecMechSlots))) < 0.6 && mechJammer != nil {
+					// we still desperately need more jamming after dedicating all our elec/mech slots into jammers; put a few on
+					slot.HullComponent = mechJammer.Name
+					numJammers += slot.Quantity
+				} else if numDeflectors < numJammers {
+					deflector := techStore.GetBestComponentWithTags(player, HullSlotTypeMechanical, true, TechTagDeflector)
+					if deflector == nil && bestJet != nil && move < 10 {
+						// we literally cannot put anything else but jets in our mech slot; might as well sneak a bit more move out
+						slot.HullComponent = bestJet.Name
+					} else if deflector != nil {
+						slot.HullComponent = deflector.Name
+						numDeflectors += slot.Quantity
+					}
+				}
+			}
+			// we filled it, add it
+			if slot.HullComponent != "" {
+				design.Slots = append(design.Slots, slot)
+			}
+		}
+
+		for i, slot := range elecMechSlots {
+			design.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
+			if err != nil {
+				return &ShipDesign{}, fmt.Errorf("Failed to compute ship design spec when designing ship; error %w", err)
+			}
+			move = design.getMovement(0)
+			if move < targetMove && bestJet != nil {
+				slot.HullComponent = bestJet.Name
+			} else {
+				jammer := techStore.GetBestComponentWithTags(player, HullSlotTypeElectricalMechanical, true, TechTagJammer)
+				if 1-(1-design.Spec.TorpedoJamming)*math.Pow((1-jammer.TorpedoJamming), float64(len(elecMechSlots))) < 0.8 && jammer != nil {
+					// we still need more jamming
+					slot.HullComponent = jammer.Name
+					numJammers += slot.Quantity
+				} else {
+					deflector := techStore.GetBestComponentWithTags(player, HullSlotTypeElectricalMechanical, true, TechTagDeflector)
+					if deflector == nil && bestJet != nil && move < 10 {
+						// we literally cannot put anything else but jets in our mech slot; might as well sneak a bit more move out
+						slot.HullComponent = bestJet.Name
+					} else if deflector != nil {
+						slot.HullComponent = deflector.Name
+						numDeflectors += slot.Quantity
+					} else {
+						if design.Purpose == ShipDesignPurposeTorpedoShip {
+							slot.HullComponent = battleComputer.Name
+						} else if design.Purpose == ShipDesignPurposeBeamShip && design.Spec.BeamBonus < rules.BeamBonusCap {
+							beamCapacitor = techStore.GetBestComponentWithTags(player, HullSlotTypeElectricalMechanical, true, TechTagCapacitor)
+							if beamCapacitor != nil {
+								slot.HullComponent = beamCapacitor.Name
+								slot.Quantity = 0
+								for design.Spec.BeamBonus <= 2.55 && slot.Quantity <= hull.Slots[emhullSlots[i]].Capacity {
+									// add capacitors 1 by 1 and see if we hit the bonus cap
+									numComputers += 1
+									slot.Quantity += 1
+									beamBonusTracker *= 1 + beamCapacitor.BeamBonus
+								}
+							}
+						} else if jammer != nil { // literally all we have left of use is jammers
+							slot.HullComponent = jammer.Name
+						}
+					}
+				}
+			}
+
+			// we filled it, add it
+			if slot.HullComponent != "" {
+				design.Slots = append(design.Slots, slot)
+			}
+		}
+	}
+
+	return design, nil
 }

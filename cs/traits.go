@@ -420,7 +420,7 @@ func itSpec() PRTSpec {
 				{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
 				{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
 				{"Swashbuckler", StartingFleetHullPrivateer, 0, ShipDesignPurposeArmedFreighter},
-				{"Stalwart Defender", StartingFleetHullDestroyer, 0, ShipDesignPurposeFighter},
+				{"Stalwart Defender", StartingFleetHullDestroyer, 0, ShipDesignPurposeStartingFighter},
 			}, Homeworld: true,
 		},
 		// extra world where hab varies by 1/2 of the range
@@ -494,7 +494,7 @@ func joatSpec() PRTSpec {
 		{"Teamster", StartingFleetHullMediumFreighter, 0, ShipDesignPurposeFreighter},
 		{"Cotton Picker", StartingFleetHullMiniMiner, 0, ShipDesignPurposeMiner},
 		{"Armed Probe", StartingFleetHullScout, 1, ShipDesignPurposeFighterScout},
-		{"Stalwart Defender", StartingFleetHullDestroyer, 0, ShipDesignPurposeFighter},
+		{"Stalwart Defender", StartingFleetHullDestroyer, 0, ShipDesignPurposeStartingFighter},
 	}
 
 	spec.MaxPopulationOffset = .2

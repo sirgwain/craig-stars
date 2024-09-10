@@ -196,11 +196,13 @@ func FleetPurposeFromShipDesignPurpose(purpose ShipDesignPurpose) FleetPurpose {
 	case ShipDesignPurposeStructureBomber:
 		return FleetPurposeBomber
 
-	case ShipDesignPurposeFighter:
+	case ShipDesignPurposeStartingFighter:
 		fallthrough
 	case ShipDesignPurposeFighterScout:
 		return FleetPurposeFighter
-	case ShipDesignPurposeCapitalShip:
+	case ShipDesignPurposeTorpedoShip:
+		fallthrough
+	case ShipDesignPurposeBeamShip:
 		return FleetPurposeCapitalShip
 
 	case ShipDesignPurposeFreighter:

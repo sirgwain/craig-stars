@@ -67,17 +67,52 @@ type Tech struct {
 	Tags         TechTags         `json:"tags,omitempty"`
 }
 
-type TechTags map[string]bool
+type TechTags map[TechTag]bool
 
-// returns true if tt contains the specified tag
-func (tt TechTags) hasTag(tag string) bool {
-	return tt[tag]
+type TechTag string
+
+const (
+	TechTagArmor          TechTag = "Armor"
+	TechTagTorpedoBonus   TechTag = "Accuracy Bonus"
+	TechTagCapacitor      TechTag = "Beam Capacitor"
+	TechTagDeflector      TechTag = "Beam Deflector"
+	TechTagBeamWeapon     TechTag = "Beam Weapon"
+	TechTagMissile        TechTag = "Capital Ship Missile"
+	TechTagCargoPod       TechTag = "Cargo Pod"
+	TechTagCloak          TechTag = "Cloak"
+	TechTagColonyModule   TechTag = "Colony Module"
+	TechTagEngine         TechTag = "Engine"
+	TechTagFuelPod        TechTag = "Fuel Pod"
+	TechTagGatling        TechTag = "Gatling"
+	TechTagInitiative     TechTag = "Initiative Bonus"
+	TechTagJammer         TechTag = "Torpedo Jammer"
+	TechTagMassDriver     TechTag = "Mass Driver"
+	TechTagManeuveringJet TechTag = "Maneuvering Jet"
+	TechTagMineLayer      TechTag = "Mine Layer"
+	TechTagMiningRobot    TechTag = "Remote Mining Robot"
+	TechTagRamscoop       TechTag = "Ramscoop"
+	TechTagTerraformRobot TechTag = "Orbital Terraforming Module"
+	TechTagScanner        TechTag = "Scanner"
+	TechTagShield         TechTag = "Shield"
+	TechTagSapper         TechTag = "Shield Sapper"
+	TechTagStargate       TechTag = "Stargate"
+	TechTagTerraforming   TechTag = "Terraforming"
+	TechTagTorpedo        TechTag = "Torpedo"
+)
+
+// Create a new techTags map from a list of TechTag items
+func newTechTags(tags ...TechTag) TechTags {
+	var newMap TechTags
+	for _, t := range tags {
+		newMap[t] = true
+	}
+	return newMap
 }
 
 // returns true if tt has ALL of the specified tags
-func (tt TechTags) hasAllTags(tags []string) bool {
+func (tt TechTags) hasAllTags(tags ...TechTag) bool {
 	for _, tag := range tags {
-		if !tt.hasTag(tag) {
+		if !tt[tag] {
 			return false
 		}
 	}
@@ -85,9 +120,9 @@ func (tt TechTags) hasAllTags(tags []string) bool {
 }
 
 // returns true if tt has AT LEAST 1 of the specified tags
-func (tt TechTags) hasOneTag(tags []string) bool {
+func (tt TechTags) hasOneTag(tags ...TechTag) bool {
 	for _, tag := range tags {
-		if tt.hasTag(tag) {
+		if tt[tag] {
 			return true
 		}
 	}
@@ -99,43 +134,12 @@ func (tt TechTags) GetTags() []string {
 	var list []string
 	for k, v := range tt {
 		if v {
-			list = append(list, k)
+			list = append(list, string(k))
 		}
 	}
 	slices.Sort(list)
 	return list
 }
-
-type TechTag string
-
-const (
-	TechTagArmor          string = "Armor"
-	TechTagTorpedoBonus   string = "Battle Computer"
-	TechTagCapacitor      string = "Beam Capacitor"
-	TechTagDeflector      string = "Beam Deflector"
-	TechTagBeamWeapon     string = "Beam Weapon"
-	TechTagMissile        string = "Capital Ship Missile"
-	TechTagCargoPod       string = "Cargo Pod"
-	TechTagCloak          string = "Cloak"
-	TechTagColonyModule   string = "Colony Module"
-	TechTagEngine         string = "Engine"
-	TechTagFreighter      string = "Freighter"
-	TechTagFuelPod        string = "Fuel Pod"
-	TechTagGatling        string = "Gatling"
-	TechTagJammer         string = "Jammer"
-	TechTagMassDriver     string = "Mass Driver"
-	TechTagManeuveringJet string = "Maneuvering Jet"
-	TechTagMineLayer      string = "Mine Layer"
-	TechTagMiningRobot    string = "Remote Mining Robot"
-	TechTagRamscoop       string = "Ramscoop"
-	TechTagTerraformRobot string = "Orbital Terraforming Module"
-	TechTagScanner        string = "Scanner"
-	TechTagShield         string = "Shield"
-	TechTagSapper         string = "Shield Sapper"
-	TechTagStargate       string = "Stargate"
-	TechTagTerraforming   string = "Terraforming"
-	TechTagTorpedo        string = "Torpedo"
-)
 
 type TechRequirements struct {
 	TechLevel
@@ -291,6 +295,7 @@ const (
 	HullSlotTypeOrbital
 	HullSlotTypeMineLayer
 
+	HullSlotTypeElectricalMechanical             = HullSlotTypeElectrical | HullSlotTypeMechanical
 	HullSlotTypeOrbitalElectrical                = HullSlotTypeOrbital | HullSlotTypeElectrical
 	HullSlotTypeShieldElectricalMechanical       = HullSlotTypeShield | HullSlotTypeElectrical | HullSlotTypeMechanical
 	HullSlotTypeScannerElectricalMechanical      = HullSlotTypeScanner | HullSlotTypeElectrical | HullSlotTypeMechanical
@@ -401,18 +406,19 @@ func FromHabType(habType HabType) TerraformHabType {
 	}
 }
 
-func NewTech(name string, cost Cost, requirements TechRequirements, ranking int, category TechCategory) Tech {
+func NewTech(name string, cost Cost, requirements TechRequirements, ranking int, category TechCategory, tags ...TechTag) Tech {
 	return Tech{
 		Name:         name,
 		Cost:         cost,
 		Requirements: requirements,
 		Ranking:      ranking,
 		Category:     category,
+		Tags:         newTechTags(tags...),
 	}
 }
 
-func NewTechWithOrigin(name string, cost Cost, requirements TechRequirements, ranking int, category TechCategory, origin string) Tech {
-	t := NewTech(name, cost, requirements, ranking, category)
+func NewTechWithOrigin(name string, cost Cost, requirements TechRequirements, ranking int, category TechCategory, origin string, tags ...TechTag) Tech {
+	t := NewTech(name, cost, requirements, ranking, category, tags...)
 	t.Origin = origin
 	return t
 }

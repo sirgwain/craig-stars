@@ -1,6 +1,7 @@
 package ai
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/sirgwain/craig-stars/cs"
@@ -98,9 +99,10 @@ func NewAIPlayer(game *cs.Game, techStore *cs.TechStore, player *cs.Player, play
 				cs.ShipDesignPurposeBomber:                "Bomber",
 				cs.ShipDesignPurposeStructureBomber:       "Structure Bomber",
 				cs.ShipDesignPurposeSmartBomber:           "Smart Bomber",
-				cs.ShipDesignPurposeFighter:               "Stalwart Defender",
+				cs.ShipDesignPurposeStartingFighter:       "Stalwart Defender",
 				cs.ShipDesignPurposeFighterScout:          "Armed Probe",
-				cs.ShipDesignPurposeCapitalShip:           "Warship",
+				cs.ShipDesignPurposeTorpedoShip:           "Missiler",
+				cs.ShipDesignPurposeBeamShip:              "Beamer",
 				cs.ShipDesignPurposeFreighter:             "Teamster",
 				cs.ShipDesignPurposeColonistFreighter:     "Colonist Freighter",
 				cs.ShipDesignPurposeFuelFreighter:         "Fuel Freighter",
@@ -152,8 +154,30 @@ func NewAIPlayer(game *cs.Game, techStore *cs.TechStore, player *cs.Player, play
 	return &aiPlayer
 }
 
+// choose whether to use beamers or torps in combat for the AI
+func (ai *aiPlayer) bestWarship() (cs.ShipDesignPurpose, error) {
+	beamDesign := ai.designsByPurpose[cs.ShipDesignPurposeBeamShip]
+	torpDesign := ai.designsByPurpose[cs.ShipDesignPurposeTorpedoShip]
+	var err error
+	beamDesign.Spec, err = cs.ComputeShipDesignSpec(&ai.game.Rules, ai.TechLevels, ai.Race.Spec, beamDesign)
+	if err != nil {
+		return cs.ShipDesignPurposeNone, fmt.Errorf("ComputeShipDesignSpec returned error %w for design %s", err, beamDesign.Name)
+	}
+
+	torpDesign.Spec, err = cs.ComputeShipDesignSpec(&ai.game.Rules, ai.TechLevels, ai.Race.Spec, torpDesign)
+	if err != nil {
+		return cs.ShipDesignPurposeNone, fmt.Errorf("ComputeShipDesignSpec returned error %w for design %s", err, torpDesign.Name)
+	}
+
+	if beamDesign.Spec.PowerRating > torpDesign.Spec.PowerRating {
+		return cs.ShipDesignPurposeBeamShip, nil
+	}
+
+	return cs.ShipDesignPurposeTorpedoShip, nil
+}
+
 // build maps used for quick lookups for various player objects
-func (ai *aiPlayer) buildMaps() {
+func (ai *aiPlayer) buildMaps() error {
 	ai.planetsByNum = make(map[int]*cs.Planet, len(ai.Planets))
 	for _, planet := range ai.Planets {
 		ai.planetsByNum[planet.Num] = planet
@@ -181,6 +205,11 @@ func (ai *aiPlayer) buildMaps() {
 		} else {
 			ai.designsByPurpose[design.Purpose] = design
 		}
+	}
+
+	bestWarshipPurpose, err := ai.bestWarship()
+	if err != nil {
+		return fmt.Errorf("Could not decide on whether using beams or torps when building maps; spec calc errored %w", err)
 	}
 
 	ai.fleetsByPurpose = map[cs.FleetPurpose]fleet{
@@ -228,17 +257,18 @@ func (ai *aiPlayer) buildMaps() {
 			ships: []fleetShip{
 				{
 					purpose:  cs.ShipDesignPurposeBomber,
-					quantity: 5,
+					quantity: cs.MinInt(5*(cs.MaxInt((ai.game.Year-25)/5, 1)), 40), // adds 5 ships every 5 years after 25, up to 40 at max
 				},
 				{
-					purpose:  cs.ShipDesignPurposeFighter,
-					quantity: 5,
+					purpose:  bestWarshipPurpose,
+					quantity: cs.MinInt(5*(cs.MaxInt((ai.game.Year-25)/5, 1)), 50), // adds 5 ships every 5 years after 25, up to 50 at max
 				},
 			},
 		},
 	}
 
 	ai.targetedPlanets = make(map[int][]*cs.FleetIntel)
+	return nil
 }
 
 // process an AI player's turn
