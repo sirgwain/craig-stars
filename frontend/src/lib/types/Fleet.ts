@@ -263,8 +263,9 @@ export class CommandedFleet implements Fleet {
 	): number {
 		let speed = idealSpeed;
 		const freeSpeed = this.spec?.engine?.freeSpeed ?? 1;
-		const dist = distance(destination?.position ?? this.position, origin?.position);
+		const dist = distance(destination?.position ?? this.position, origin?.position) - 0.9 ;
 		const yearsAtIdealSpeed = dist / (idealSpeed * idealSpeed);
+		// start checking 1 warp speed below our maximum assigned speed
 		for (let i = idealSpeed; i > freeSpeed; i--) {
 			const yearsAtSpeed = dist / (i * i);
 			// if it takes the same time to go slower, go slower
@@ -279,7 +280,7 @@ export class CommandedFleet implements Fleet {
 			destination?.type == MapObjectType.Planet ? (destination as Planet) : undefined;
 		let stargate = false;
 
-		if (!this.spec.canJump) {
+		if (!this.spec?.canJump?) {
 			if (originPlanet && targetPlanet) {
 				const destSafeHullMass = targetPlanet.spec.safeHullMass ?? 0;
 				const destSafeRange = targetPlanet.spec.safeRange ?? 0;
