@@ -108,7 +108,7 @@ func newTechTags(tags ...TechTag) TechTags {
 	var newMap TechTags
 	for _, t := range tags {
 		newMap[t] = true
-	
+	}
 	return newMap
 }
 
