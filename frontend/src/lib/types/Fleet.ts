@@ -314,8 +314,8 @@ export class CommandedFleet implements Fleet {
 
 		if (stargate) {
 			speed = StargateWarpSpeed;
-		} else if (speed > (this.spec.engine.maxSafeSpeed ?? 9)) {
-			speed = this.spec.engine.maxSafeSpeed ?? 9;
+		} else if (speed > (this.spec?.engine?.maxSafeSpeed ?? 9)) {
+			speed = this.spec?.engine?.maxSafeSpeed ?? 9;
 		}
 
 		return speed;
