@@ -57,7 +57,7 @@ func (ai *aiPlayer) designShip(name string, purpose cs.ShipDesignPurpose, fleetP
 		return existing, nil
 	}
 
-	updated, err = cs.DesignShip(&ai.game.Rules, ai.techStore, hull, name, ai.Player, ai.GetNextDesignNum(ai.Designs), ai.DefaultHullSet, purpose, fleetPurpose)
+	updated, err = cs.DesignShip(&ai.game.Rules, hull, name, ai.Player, ai.GetNextDesignNum(ai.Designs), ai.DefaultHullSet, purpose, fleetPurpose)
 	if err != nil {
 		return existing, fmt.Errorf("cs.DesignShip returned error %w", err)
 	}

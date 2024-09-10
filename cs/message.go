@@ -818,6 +818,10 @@ func (m *messageClient) planetDiscovered(player *Player, planet *Planet) {
 	terraformer := NewTerraformer()
 	terraformAmount := terraformer.getTerraformAmount(planet.Hab, planet.BaseHab, player, player)
 	habTerraformed := player.Race.GetPlanetHabitability(planet.Hab.Add(terraformAmount))
+ 
+	if player.Race.Spec.Instaforming {
+		hab = habTerraformed // CAs instantly terraform any planet they inhabit, so referring to "hab after terraforming" is a bit disingenuous 
+	}
 
 	if hab >= 0 {
 		messageType = PlayerMessagePlanetDiscoveryHabitable

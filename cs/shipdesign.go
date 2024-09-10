@@ -671,7 +671,6 @@ func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num i
 	colonizationModule := techStore.GetBestColonizationModule(player)
 	battleComputer := techStore.GetBestBattleComputer(player)
 	beamCapacitor := techStore.GetBestBeamCapacitor(player)
-	beamDeflector := techStore.GetBestBeamDeflector(player)
 	jammer := techStore.GetBestJammer(player)
 	miningRobot := techStore.GetBestMiningRobot(player)
 	terraformRobot := techStore.GetBestTerraformRobot(player)
@@ -699,7 +698,7 @@ func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num i
 
 	mechSlots := []ShipDesignSlot{}
 	elecMechSlots := []ShipDesignSlot{} // we do these last on warships due to move calcs
-	ehullSlots := []int{}
+	mhullSlots := []int{}
 	emhullSlots := []int{}
 
 	for i, hullSlot := range hull.Slots {
@@ -899,7 +898,7 @@ func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num i
 				fallthrough
 			case ShipDesignPurposeFuelFreighter, ShipDesignPurposeFreighter, ShipDesignPurposeColonistFreighter:
 				// see if we can tack on a cargo pod; otherwise cloak
-				slot.HullComponent = techStore.GetBestComponentWithTags(player, HullSlotTypeElectrical, false, TechTagFuelPod, TechTagCargoPod).Name
+				slot.HullComponent = techStore.GetBestComponentWithTags(player, HullSlotTypeElectrical, false, TechTagFuelTank, TechTagCargoPod).Name
 				if slot.HullComponent == "nil" && cloak != nil {
 					slot.HullComponent = cloak.Name
 				}
@@ -920,7 +919,7 @@ func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num i
 			switch purpose {
 			case ShipDesignPurposeTorpedoShip, ShipDesignPurposeBeamShip, ShipDesignPurposeFighterScout:
 				mechSlots = append(mechSlots, slot) // will come back to it later once the rest of the ship's parts have been placed
-				ehullSlots = append(ehullSlots, i)
+				mhullSlots = append(mhullSlots, i)
 			case ShipDesignPurposeFuelFreighter:
 				slot.HullComponent = fuelTank.Name
 				numFuelTanks += slot.Quantity
@@ -1130,11 +1129,12 @@ func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num i
 		}
 	}
 
-	if len(mechSlots) > 0 {
+	
+	for i, slot := range mechSlots {
 		// we have spare mech slots on our warships; time to add stuff
-
+		
 		// First, check if we have a good maneuvering jet to use
-
+		
 		var move, targetMove int
 		var err error
 		if purpose == ShipDesignPurposeBeamShip {
@@ -1144,87 +1144,114 @@ func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num i
 		} else {
 			targetMove = 6 // 1 1/2 move isn't great on a missile boat, but it's serviceable
 		}
+		design.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
+		if err != nil {
+			return &ShipDesign{}, fmt.Errorf("failed to compute ship design spec when designing ship; error %w", err)
+		}
+		move = design.getMovement(0)
 		bestJet := techStore.GetBestComponentWithTags(player, HullSlotTypeMechanical, true, TechTagManeuveringJet)
-
-		for _, slot := range mechSlots {
-			design.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
-			if err != nil {
-				return &ShipDesign{}, fmt.Errorf("Failed to compute ship design spec when designing ship; error %w", err)
-			}
-			move = design.getMovement(0)
-			if move < targetMove && bestJet != nil {
-				slot.HullComponent = bestJet.Name
+		if move < targetMove && bestJet != nil {
+			slot.HullComponent = bestJet.Name
+		} else {
+			jammer := techStore.GetBestComponentWithTags(player, HullSlotTypeMechanical, true, TechTagJammer)
+			if 1-(1-design.Spec.TorpedoJamming)*math.Pow((1-jammer.TorpedoJamming), float64(len(mechSlots))) <= MinFloat64(design.Spec.BeamDefense, 0.9) && jammer != nil {	
+				// need more jammers than deflectors
+				slot.HullComponent = jammer.Name
+				numJammers += slot.Quantity
 			} else {
-				mechJammer := techStore.GetBestComponentWithTags(player, HullSlotTypeMechanical, true, TechTagJammer)
-				if 1-(1-design.Spec.TorpedoJamming)*math.Pow((1-mechJammer.TorpedoJamming), float64(len(elecMechSlots))) < 0.6 && mechJammer != nil {
-					// we still desperately need more jamming after dedicating all our elec/mech slots into jammers; put a few on
-					slot.HullComponent = mechJammer.Name
-					numJammers += slot.Quantity
-				} else if numDeflectors < numJammers {
-					deflector := techStore.GetBestComponentWithTags(player, HullSlotTypeMechanical, true, TechTagDeflector)
-					if deflector == nil && bestJet != nil && move < 10 {
-						// we literally cannot put anything else but jets in our mech slot; might as well sneak a bit more move out
-						slot.HullComponent = bestJet.Name
-					} else if deflector != nil {
-						slot.HullComponent = deflector.Name
-						numDeflectors += slot.Quantity
+				deflector := techStore.GetBestComponentWithTags(player, HullSlotTypeMechanical, true, TechTagBeamDefense)
+				if deflector == nil && bestJet != nil && move < 10 {
+					// we literally cannot put much else useful but jets in our mech only slot; might as well sneak a bit more move out
+					slot.HullComponent = bestJet.Name
+				} else if deflector != nil {
+					slot.HullComponent = deflector.Name
+					numDeflectors += slot.Quantity
+				} else {
+					if design.Purpose == ShipDesignPurposeTorpedoShip {
+						slot.HullComponent = battleComputer.Name
+					} else if design.Purpose == ShipDesignPurposeBeamShip && design.Spec.BeamBonus < rules.BeamBonusCap {
+						beamCapacitor = techStore.GetBestComponentWithTags(player, HullSlotTypeMechanical, true, TechTagBeamBonus)
+						if beamCapacitor != nil {
+							slot.HullComponent = beamCapacitor.Name
+							slot.Quantity = 0
+							for design.Spec.BeamBonus <= 2.55 && slot.Quantity <= hull.Slots[mhullSlots[i]].Capacity {
+								// add capacitors 1 by 1 and see if we hit the bonus cap
+								numComputers += 1
+								slot.Quantity += 1
+								design.Spec.BeamBonus *= 1 + beamCapacitor.BeamBonus
+							}
+						}
+					} else if jammer != nil { // literally all we have left of use is jammers
+						slot.HullComponent = jammer.Name
 					}
 				}
 			}
-			// we filled it, add it
-			if slot.HullComponent != "" {
-				design.Slots = append(design.Slots, slot)
+		}
+		
+		// we filled it, add it
+		if slot.HullComponent != "" {
+			design.Slots = append(design.Slots, slot)
+		}
+	}
+
+	for i, slot := range elecMechSlots {
+		var move, targetMove int
+		var err error
+		if purpose == ShipDesignPurposeBeamShip {
+			targetMove = 9 // 2 1/4 move guarantees a shot on the enemy by round 2
+		} else if purpose == ShipDesignPurposeFighterScout {
+			targetMove = 8 // 2 move is probably more than enough for your avg everyday scout or scout catcher
+		} else {
+			targetMove = 6 // 1 1/2 move isn't great on a missile boat, but it's serviceable
+		}
+
+		design.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
+		if err != nil {
+			return &ShipDesign{}, fmt.Errorf("Failed to compute ship design spec when designing ship; error %w", err)
+		}
+		move = design.getMovement(0)
+		bestJet := techStore.GetBestComponentWithTags(player, HullSlotTypeElectricalMechanical, true, TechTagManeuveringJet)
+		if move < targetMove && bestJet != nil {
+			slot.HullComponent = bestJet.Name
+		} else {
+			jammer := techStore.GetBestComponentWithTags(player, HullSlotTypeElectricalMechanical, true, TechTagJammer)
+			if 1-(1-design.Spec.TorpedoJamming)*math.Pow((1-jammer.TorpedoJamming), float64(len(mechSlots))) <= MinFloat64(design.Spec.BeamDefense, 0.9) && jammer != nil {	
+				// need more jammers than deflectors
+				slot.HullComponent = jammer.Name
+				numJammers += slot.Quantity
+			} else {
+				deflector := techStore.GetBestComponentWithTags(player, HullSlotTypeElectricalMechanical, true, TechTagBeamDefense)
+				if deflector == nil && bestJet != nil && move < 10 {
+					// we literally cannot put anything else useful but jets in our mech slot; might as well sneak a bit more move out
+					slot.HullComponent = bestJet.Name
+				} else if deflector != nil {
+					slot.HullComponent = deflector.Name
+					numDeflectors += slot.Quantity
+				} else {
+					if design.Purpose == ShipDesignPurposeTorpedoShip {
+						slot.HullComponent = battleComputer.Name
+					} else if design.Purpose == ShipDesignPurposeBeamShip && design.Spec.BeamBonus < rules.BeamBonusCap {
+						beamCapacitor = techStore.GetBestComponentWithTags(player, HullSlotTypeElectricalMechanical, true, TechTagBeamBonus)
+						if beamCapacitor != nil {
+							slot.HullComponent = beamCapacitor.Name
+							slot.Quantity = 0
+							for design.Spec.BeamBonus <= 2.55 && slot.Quantity <= hull.Slots[emhullSlots[i]].Capacity {
+								// add capacitors 1 by 1 and see if we hit the bonus cap
+								numComputers += 1
+								slot.Quantity += 1
+								design.Spec.BeamBonus *= 1 + beamCapacitor.BeamBonus
+							}
+						}
+					} else if jammer != nil { // literally all we have left of use is jammers
+						slot.HullComponent = jammer.Name
+					}
+				}
 			}
 		}
 
-		for i, slot := range elecMechSlots {
-			design.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
-			if err != nil {
-				return &ShipDesign{}, fmt.Errorf("Failed to compute ship design spec when designing ship; error %w", err)
-			}
-			move = design.getMovement(0)
-			if move < targetMove && bestJet != nil {
-				slot.HullComponent = bestJet.Name
-			} else {
-				jammer := techStore.GetBestComponentWithTags(player, HullSlotTypeElectricalMechanical, true, TechTagJammer)
-				if 1-(1-design.Spec.TorpedoJamming)*math.Pow((1-jammer.TorpedoJamming), float64(len(elecMechSlots))) < 0.8 && jammer != nil {
-					// we still need more jamming
-					slot.HullComponent = jammer.Name
-					numJammers += slot.Quantity
-				} else {
-					deflector := techStore.GetBestComponentWithTags(player, HullSlotTypeElectricalMechanical, true, TechTagDeflector)
-					if deflector == nil && bestJet != nil && move < 10 {
-						// we literally cannot put anything else but jets in our mech slot; might as well sneak a bit more move out
-						slot.HullComponent = bestJet.Name
-					} else if deflector != nil {
-						slot.HullComponent = deflector.Name
-						numDeflectors += slot.Quantity
-					} else {
-						if design.Purpose == ShipDesignPurposeTorpedoShip {
-							slot.HullComponent = battleComputer.Name
-						} else if design.Purpose == ShipDesignPurposeBeamShip && design.Spec.BeamBonus < rules.BeamBonusCap {
-							beamCapacitor = techStore.GetBestComponentWithTags(player, HullSlotTypeElectricalMechanical, true, TechTagCapacitor)
-							if beamCapacitor != nil {
-								slot.HullComponent = beamCapacitor.Name
-								slot.Quantity = 0
-								for design.Spec.BeamBonus <= 2.55 && slot.Quantity <= hull.Slots[emhullSlots[i]].Capacity {
-									// add capacitors 1 by 1 and see if we hit the bonus cap
-									numComputers += 1
-									slot.Quantity += 1
-									beamBonusTracker *= 1 + beamCapacitor.BeamBonus
-								}
-							}
-						} else if jammer != nil { // literally all we have left of use is jammers
-							slot.HullComponent = jammer.Name
-						}
-					}
-				}
-			}
-
-			// we filled it, add it
-			if slot.HullComponent != "" {
-				design.Slots = append(design.Slots, slot)
-			}
+		// we filled it, add it
+		if slot.HullComponent != "" {
+			design.Slots = append(design.Slots, slot)
 		}
 	}
 

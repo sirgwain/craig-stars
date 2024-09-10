@@ -74,28 +74,31 @@ type TechTag string
 const (
 	TechTagArmor          TechTag = "Armor"
 	TechTagTorpedoBonus   TechTag = "Accuracy Bonus"
-	TechTagCapacitor      TechTag = "Beam Capacitor"
-	TechTagDeflector      TechTag = "Beam Deflector"
+	TechTagBeamBonus      TechTag = "Beam Bonus"
+	TechTagBeamDefense    TechTag = "Beam Defense"
 	TechTagBeamWeapon     TechTag = "Beam Weapon"
+	TechTagBomb           TechTag = "Bomb"
 	TechTagMissile        TechTag = "Capital Ship Missile"
 	TechTagCargoPod       TechTag = "Cargo Pod"
 	TechTagCloak          TechTag = "Cloak"
 	TechTagColonyModule   TechTag = "Colony Module"
 	TechTagEngine         TechTag = "Engine"
-	TechTagFuelPod        TechTag = "Fuel Pod"
+	TechTagFuelTank       TechTag = "Fuel Tank"
 	TechTagGatling        TechTag = "Gatling"
 	TechTagInitiative     TechTag = "Initiative Bonus"
 	TechTagJammer         TechTag = "Torpedo Jammer"
 	TechTagMassDriver     TechTag = "Mass Driver"
 	TechTagManeuveringJet TechTag = "Maneuvering Jet"
 	TechTagMineLayer      TechTag = "Mine Layer"
-	TechTagMiningRobot    TechTag = "Remote Mining Robot"
+	TechTagMineRobot      TechTag = "Remote Mining Robot"
 	TechTagRamscoop       TechTag = "Ramscoop"
 	TechTagTerraformRobot TechTag = "Orbital Terraforming Module"
 	TechTagScanner        TechTag = "Scanner"
+	TechTagSmartBomb      TechTag = "Smart Bomb"
 	TechTagShield         TechTag = "Shield"
 	TechTagSapper         TechTag = "Shield Sapper"
 	TechTagStargate       TechTag = "Stargate"
+	TechTagStructureBomb  TechTag = "Structure Bomb"
 	TechTagTerraforming   TechTag = "Terraforming"
 	TechTagTorpedo        TechTag = "Torpedo"
 )
@@ -105,7 +108,7 @@ func newTechTags(tags ...TechTag) TechTags {
 	var newMap TechTags
 	for _, t := range tags {
 		newMap[t] = true
-	}
+	
 	return newMap
 }
 

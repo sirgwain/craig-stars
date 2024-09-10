@@ -1245,7 +1245,7 @@ func Test_battle_runBattleError(t *testing.T) {
 	}
 
 	_, err := RunTestBattle([]*Player{player1, player2}, fleets)
-	// should return error due to incorrect spec on teamster from nonexistent hull/parts
+	// should return error due to incorrect spec on teamster from completely bananas parts
 	assert.Error(t, err)
 }
 
