@@ -223,8 +223,9 @@ export class Player implements PlayerResponse, CostFinder {
 		}
 	}
 
-	isFriend(playerNum: number): boolean {
+	isFriend(playerNum: number | undefined): boolean {
 		return (
+			playerNum != undefined &&
 			playerNum > 0 &&
 			playerNum <= this.relations.length &&
 			this.relations[playerNum - 1].relation === PlayerRelation.Friend

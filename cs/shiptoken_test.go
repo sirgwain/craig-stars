@@ -186,6 +186,21 @@ func TestShipToken_applyOvergateDamage(t *testing.T) {
 			want: tokenDamage{damage: 44},
 		},
 		{
+			name: "going over range by a little will not cause damage due to rounding",
+			fields: fields{
+				design:   design,
+				Quantity: 1,
+			},
+			args: args{
+				dist:           305,
+				safeRange:      300,
+				safeSourceMass: mass,
+				safeDestMass:   mass,
+				maxMassFactor:  5,
+			},
+			want: tokenDamage{damage: 0},
+		},		
+		{
 			name: "going over range by 2x should give 100 total damage, destroying the damaged token and leaving one behind with 50 damage",
 			fields: fields{
 				design:   design,

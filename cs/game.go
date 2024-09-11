@@ -5,8 +5,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"time"
-
-	"github.com/rs/zerolog/log"
 )
 
 type Tags map[string]string
@@ -392,7 +390,6 @@ func (fg *FullGame) GetNumHumanPlayers() int {
 	return count
 }
 
-
 // compute all the various "specs" in the game. Called before and after turn generation
 func (g *FullGame) computeSpecs() error {
 
@@ -402,7 +399,6 @@ func (g *FullGame) computeSpecs() error {
 	for _, player := range g.Players {
 		player.Race.Spec = computeRaceSpec(&player.Race, rules)
 		player.Spec = computePlayerSpec(player, rules, g.Planets)
-		log.Debug().Msgf("computing specs for %v %s", player, player.Race.PluralName)
 
 		for _, design := range player.Designs {
 			if design.OriginalPlayerNum != None {
@@ -410,7 +406,11 @@ func (g *FullGame) computeSpecs() error {
 				continue
 			}
 			numBuilt := design.Spec.NumBuilt
-			design.Spec = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
+			var err error
+			design.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
+			if err != nil {
+				return fmt.Errorf("ComputeShipDesignSpec returned error %w", err)
+			}
 			design.Spec.NumBuilt = numBuilt
 		}
 	}
@@ -432,7 +432,9 @@ func (g *FullGame) computeSpecs() error {
 			if err := planet.PopulateProductionQueueDesigns(player); err != nil {
 				return fmt.Errorf("planet %s unable to populate queue designs %w", planet.Name, err)
 			}
-			planet.PopulateProductionQueueEstimates(rules, player)
+			if err := planet.PopulateProductionQueueEstimates(rules, player); err != nil {
+				return fmt.Errorf("planet %s unable to populate queue estimates %w", planet.Name, err)
+			}
 
 			planet.MarkDirty()
 		}

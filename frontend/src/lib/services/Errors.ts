@@ -4,10 +4,14 @@ export type ErrorResponse = { status?: string; error: string };
 
 export const errors = writable<CSError[]>([]);
 
-export function addError(err: CSError | undefined) {
+export function addError(err: CSError | string | undefined) {
 	if (err) {
 		const errs = get(errors);
-		errors.update(() => [...errs, err]);
+		if (typeof err === 'string') {
+			errors.update(() => [...errs, new CSError(undefined, err, 0)]);
+		} else {
+			errors.update(() => [...errs, err]);
+		}
 	}
 }
 

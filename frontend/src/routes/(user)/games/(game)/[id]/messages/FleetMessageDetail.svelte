@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { andCommaList } from '$lib/andCommandList';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { absSum } from '$lib/types/Hab';
 	import { None } from '$lib/types/MapObject';
@@ -6,7 +7,7 @@
 	import FallbackMessageDetail from './FallbackMessageDetail.svelte';
 	import FleetEngineStrainMessageDetail from './FleetEngineStrainMessageDetail.svelte';
 
-	const { game, universe } = getGameContext();
+	const { game, universe, player } = getGameContext();
 
 	export let message: Message;
 </script>
@@ -17,12 +18,13 @@
 	{@const bombing = message.spec.bombing}
 	{#if bombing}
 		{#if bombing.numBombers == 1}
-			Your fleet {message.targetName} has bombed {$universe.getPlayerPluralName(
+			Your fleet {message.targetName} has bombed the {$universe.getPlayerPluralName(
 				message.spec.targetPlayerNum
-			)} planet
+			)} settlement on
 			{message.spec.targetName}
 		{:else}
-			Your fleets have bombed the {$universe.getPlayerPluralName(message.spec.targetPlayerNum)} planet
+			Your fleets have bombed the {$universe.getPlayerPluralName(message.spec.targetPlayerNum)} settlement
+			on
 			{message.spec.targetName}
 		{/if}
 		{#if bombing.planetEmptied}
@@ -58,8 +60,60 @@
 {:else if message.type === MessageType.FleetExceededSafeSpeed}
 	<!-- Overwarp -->
 	<FleetEngineStrainMessageDetail {message} />
+{:else if message.type === MessageType.FleetMineFieldHit}
+	{@const damage = message.spec.mineFieldDamage}
+	{@const mineFieldOwner = $universe.getPlayerPluralName(message.spec.targetPlayerNum)}
+	{@const mineFieldPosition = `(${message.spec.targetPosition?.x ?? 0}, ${message.spec.targetPosition?.y ?? 0})`}
+	{#if damage}
+		{#if message.targetPlayerNum === $player.num}
+			<!-- our fleet was hit -->
+			{#if damage.fleetDestroyed}
+				{message.targetName} has been annihilated in a {mineFieldOwner} mine field at {mineFieldPosition}.
+			{:else}
+				{message.targetName} has been stopped in a {mineFieldOwner} mine field at {mineFieldPosition}.
+				{#if (damage.shipsDestroyed ?? 0) > 0}
+					Your fleet has taken {damage.damage ?? 0} damage points and {damage.shipsDestroyed} ships were
+					destroyed.
+				{:else if (damage.damage ?? 0) > 0}
+					Your fleet has taken {damage.damage ?? 0} damage points but none of your ships were destroyed.
+				{/if}
+			{/if}
+		{:else}
+			<!-- our minefield hit someone else's fleet -->
+			{#if damage.fleetDestroyed}
+				{message.targetName} has been annihilated in your mine field at {mineFieldPosition}.
+			{:else}
+				{message.targetName} has been stopped in your mine field at {mineFieldPosition}.
+				{#if (damage.shipsDestroyed ?? 0) > 0}
+					Your mines have inflicted {damage.damage ?? 0} damage points and destroyed {damage.shipsDestroyed}
+					ships.
+				{:else if (damage.damage ?? 0) > 0}
+					Your mines have inflicted {damage.damage ?? 0} damage points, but you didn't manage to destroy
+					any ships.
+				{/if}
+			{/if}
+		{/if}
+	{:else}
+		Unknown damage was done
+	{/if}
+{:else if message.type === MessageType.FleetMineFieldSweptMines}
+	{@const mineFieldPosition = `(${message.spec.targetPosition?.x ?? 0}, ${message.spec.targetPosition?.y || 0})`}
+	{#if message.targetPlayerNum === $player.num}
+		<!-- our fleet swept -->
+		{message.targetName} has has swept {message.spec.amount} mines from a mine field at {mineFieldPosition}
+	{:else}
+		<!-- our minefield was swept by fleet -->
+		{message.targetName} has has swept {message.spec.amount} mines from your mine field at {mineFieldPosition}
+	{/if}
+{:else if message.type === MessageType.FleetLaidMines}
+	{@const mineField = $universe.getMineField(message.spec.targetPlayerNum, message.spec.targetNum)}
+	{#if mineField?.numMines === message.spec.amount}
+		{message.targetName} has has dispensed {message.spec.amount} mines.
+	{:else}
+		{message.targetName} has increased {mineField?.name} by {message.spec.amount} mines.
+	{/if}
 {:else if message.type === MessageType.FleetPatrolTargeted}
-	Your patrolling {message.targetName} has targeted {message.spec.targetName} for intercept.
+	Your patrolling {message.targetName} has targeted {message.spec.targetName} to intercept.
 {:else if message.type === MessageType.FleetRadiatingEngineDieoff}
 	<!-- Colonist dieoff from engine radiation -->
 	Engine radiation has killed {(message.spec.amount ?? 0) * -100} colonists traveling in {message.targetName}.
@@ -71,16 +125,27 @@
 		Breeding activities on {message.targetName} have overflowed living space. {message.spec.amount2}
 		colonists have been beamed down to {message.spec.targetName}.
 	{/if}
+	<!-- Remote Mining messages -->
 {:else if message.type === MessageType.FleetRemoteMined}
-	{message.targetName} has remote mined {message.spec.targetName}, extracting {message.spec.mineral
-		?.ironium ?? 0}kT of Ironium, {message.spec.mineral?.boranium ?? 0}kT of Boranium, and {message
-		.spec.mineral?.germanium ?? 0}kT of Germanium.
+	{@const minerals = {
+		ironium: message.spec.mineral?.ironium ?? 0,
+		boranium: message.spec.mineral?.boranium ?? 0,
+		germanium: message.spec.mineral?.germanium ?? 0
+	}}
+	{message.targetName} has remote mined {message.spec.targetName} extracting {andCommaList(
+		[
+			minerals.ironium > 0 ? `${minerals.ironium} kT of Ironium` : '',
+			minerals.boranium > 0 ? `${minerals.boranium} kT of Boranium` : '',
+			minerals.germanium > 0 ? `${minerals.germanium} kT of Germanium` : ''
+		],
+		'no minerals.'
+	)}
+{:else if message.type === MessageType.FleetScrapped}
+	{message.targetName} has been dismantled. The scrap was left in deep space.
 {:else if message.type === MessageType.FleetTransferGiven}
 	{message.targetName} has successfully been given to {$universe.getPlayerPluralName(
 		message.spec.destPlayerNum
 	)}.
-{:else if message.type === MessageType.FleetScrapped}
-	{message.targetName} has been dismantled. The scrap was left in deep space.
 {:else if message.type === MessageType.FleetTransferInvalidPlayer}
 	<!-- Fleet Transfers -->
 	{#if message.spec.destPlayerNum == undefined || message.spec.destPlayerNum == None || message.spec.destPlayerNum < 0 || message.spec.destPlayerNum >= $game.players.length}

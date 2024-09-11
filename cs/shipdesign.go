@@ -163,7 +163,11 @@ func (sd *ShipDesign) WithHullSetNumber(num int) *ShipDesign {
 
 // Compute the spec for this ShipDesign. This function is mostly for universe generation and tests
 func (sd *ShipDesign) WithSpec(rules *Rules, player *Player) *ShipDesign {
-	sd.Spec = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, sd)
+	var err error
+	sd.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, sd)
+	if err != nil {
+		panic(fmt.Sprintf("failed to ComputeShipDesignSpec %v", err))
+	}
 	return sd
 }
 
@@ -255,14 +259,19 @@ func (d *ShipDesign) getMovement(cargoMass int) int {
 	return getBattleMovement(d.Spec.Engine.IdealSpeed, d.Spec.MovementBonus, d.Spec.Mass+cargoMass, d.Spec.NumEngines)
 }
 
-func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design *ShipDesign) ShipDesignSpec {
+func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design *ShipDesign) (ShipDesignSpec, error) {
+
 	hull := rules.techs.GetHull(design.Hull)
+	if hull == nil {
+		return ShipDesignSpec{}, fmt.Errorf("failed to find hull %s in techstore", design.Hull)
+	}
+	c := NewCostCalculator()
 	spec := ShipDesignSpec{
 		Mass:                     hull.Mass,
 		Armor:                    hull.Armor,
 		FuelCapacity:             hull.FuelCapacity,
 		FuelGeneration:           hull.FuelGeneration,
-		Cost:                     hull.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset),
+		Cost:                     Cost{}, // will assign cost later with error handling
 		TechLevel:                hull.Requirements.TechLevel,
 		CargoCapacity:            hull.CargoCapacity,
 		CloakUnits:               raceSpec.BuiltInCloakUnits,
@@ -276,6 +285,12 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		MaxPopulation:            hull.MaxPopulation,
 		HullType:                 hull.Type,
 		InnateScanRangePenFactor: hull.InnateScanRangePenFactor,
+	}
+
+	var err error
+	spec.Cost, err = c.GetDesignCost(rules, techLevels, raceSpec, design)
+	if err != nil {
+		return ShipDesignSpec{}, fmt.Errorf("failed to get design cost %w", err)
 	}
 
 	// count the number of each type of battle component we have
@@ -313,7 +328,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 				}
 				spec.MineSweep += slot.Quantity * component.Power * ((component.Range + hull.RangeBonus) * component.Range) * gattlingMultiplier
 			}
-			spec.Cost = spec.Cost.Add(component.Tech.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(slot.Quantity))
+
 			spec.TechLevel = spec.TechLevel.Max(component.Requirements.TechLevel)
 
 			spec.Mass += component.Mass * slot.Quantity
@@ -443,9 +458,9 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 	}
 
 	// ISB gives some special starbase bonuses
+	// Discount is already handled in cost function
 	if hull.Starbase {
 		spec.CloakUnits += raceSpec.BuiltInCloakUnits
-		spec.Cost = spec.Cost.MultiplyFloat64(raceSpec.StarbaseCostFactor)
 	}
 
 	// determine the safe speed for this design
@@ -566,7 +581,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 			spec.EstimatedRangeFull = int(float64(spec.FuelCapacity) / float64(fuelCostFor1klyFull) * 1000)
 		}
 	}
-	return spec
+	return spec, nil
 }
 
 // Compute the scan ranges for this ship design The formula is: (scanner1**4 + scanner2**4 + ...
@@ -631,6 +646,7 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 		return design
 	}
 
+	battleEngine := techStore.GetBestBattleEngine(player, hull)
 	engine := techStore.GetBestEngine(player, hull, fleetPurpose)
 	scanner := techStore.GetBestScanner(player)
 	fuelTank := techStore.GetBestFuelTank(player)
@@ -645,6 +661,7 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 	colonizationModule := techStore.GetBestColonizationModule(player)
 	battleComputer := techStore.GetBestBattleComputer(player)
 	miningRobot := techStore.GetBestMiningRobot(player)
+	terraformRobot := techStore.GetBestTerraformRobot(player)
 	standardMineLayer := techStore.GetBestMineLayer(player, MineFieldTypeStandard)
 	heavyMineLayer := techStore.GetBestMineLayer(player, MineFieldTypeHeavy)
 	speedMineLayer := techStore.GetBestMineLayer(player, MineFieldTypeSpeedBump)
@@ -681,17 +698,27 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 
 		switch hullSlot.Type {
 		case HullSlotTypeEngine:
-			slot.HullComponent = engine.Name
+			if purpose == ShipDesignPurposeFighter {
+				// need them battleships to be speedy!
+				slot.HullComponent = battleEngine.Name
+			} else {
+				slot.HullComponent = engine.Name
+			}
 		case HullSlotTypeScanner:
 			numScanners++
 			slot.HullComponent = scanner.Name
 		case HullSlotTypeWeapon:
-			if numTorpedos > numBeamWeapons {
+			if purpose == ShipDesignPurposeFighterScout {
 				slot.HullComponent = beamWeapon.Name
 				numBeamWeapons++
 			} else {
-				slot.HullComponent = torpedo.Name
-				numTorpedos++
+				if numTorpedos > numBeamWeapons {
+					slot.HullComponent = beamWeapon.Name
+					numBeamWeapons++ // TODO: Split fighters into 2 classes
+				} else {
+					slot.HullComponent = torpedo.Name
+					numTorpedos++
+				}
 			}
 		case HullSlotTypeBomb:
 			// fill the bomb slot based on the type of bomber we want
@@ -716,7 +743,7 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 				continue
 			}
 
-			// if we are choosing shield or armor, pick  armor first, then shield
+			// if we are choosing shield or armor, pick armor first, then shield
 			if numArmors > numShields {
 				slot.HullComponent = shield.Name
 			} else {
@@ -737,8 +764,14 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 			slot.HullComponent = shield.Name
 			numShields++
 		case HullSlotTypeMining:
-			if miningRobot != nil {
-				slot.HullComponent = miningRobot.Name
+			if purpose == ShipDesignPurposeTerraformer {
+				if terraformRobot != nil {
+					slot.HullComponent = terraformRobot.Name
+				}
+			} else if purpose == ShipDesignPurposeMiner {
+				if miningRobot != nil {
+					slot.HullComponent = miningRobot.Name
+				}
 			}
 		case HullSlotTypeMineLayer:
 			switch purpose {
@@ -755,31 +788,35 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 			fallthrough
 		case HullSlotTypeOrbitalElectrical:
 			// if this starbase is designed for stargates or packet throwers, fill those
-			// first. By default add packet throwers, then stargates, then battle computers
+			// first. By default add packet throwers, then stargates, then electrical items
+
 			switch purpose {
 			case ShipDesignPurposePacketThrower:
 				if packetThrower != nil {
 					slot.HullComponent = packetThrower.Name
 					numPacketThrowers++
+					break
 				}
 			case ShipDesignPurposeStargater:
 				if stargate != nil {
-					slot.HullComponent = packetThrower.Name
+					slot.HullComponent = stargate.Name
 					numStargates++
+					break
 				}
 			default:
 				// packet throwers for defense, then stargates
 				if numPacketThrowers == 0 && packetThrower != nil {
 					slot.HullComponent = packetThrower.Name
 					numPacketThrowers++
+					break
 				} else if numStargates == 0 && stargate != nil {
 					slot.HullComponent = stargate.Name
 					numStargates++
-				}
-				if slot.HullComponent == "" && hullSlot.Type == HullSlotTypeOrbitalElectrical {
-					slot.HullComponent = battleComputer.Name
+					break
 				}
 			}
+			// spare orbital slots left; use electrical items instead
+			fallthrough
 		case HullSlotTypeElectrical:
 			// TODO: add in jammers, stealth, etc
 			switch purpose {
@@ -794,6 +831,8 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 			}
 		case HullSlotTypeMechanical:
 			switch purpose {
+			case ShipDesignPurposeCapitalShip, ShipDesignPurposeFighter, ShipDesignPurposeFighterScout:
+				fallthrough
 			case ShipDesignPurposeFuelFreighter:
 				slot.HullComponent = fuelTank.Name
 				numFuelTanks++
@@ -833,7 +872,8 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 				fallthrough
 			case ShipDesignPurposeColonistFreighter:
 				// add cargo pods to freighters if we have a ramscoop
-				if engine.FreeSpeed > 1 && cargoPod != nil {
+				// up to 2 more than fuel tanks (because we still need _some_ fuel)
+				if engine.FreeSpeed > 1 && cargoPod != nil && numCargoPods+2 > numFuelTanks {
 					slot.HullComponent = cargoPod.Name
 					numCargoPods++
 				} else {
@@ -846,7 +886,7 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 					slot.HullComponent = colonizationModule.Name
 					slot.Quantity = 1 // we only need 1 colonization module
 				} else {
-					// balance fuel and cargo, fuel firsts
+					// balance fuel and cargo, fuel first
 					if numFuelTanks > numCargoPods && cargoPod != nil {
 						slot.HullComponent = cargoPod.Name
 						numCargoPods++
@@ -860,7 +900,7 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 					numScanners++
 					slot.HullComponent = scanner.Name
 				} else {
-					// can always use more
+					// can always use more fuel
 					slot.HullComponent = fuelTank.Name
 					numFuelTanks++
 				}

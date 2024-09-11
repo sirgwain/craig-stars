@@ -1,7 +1,18 @@
 import type { Race } from '$lib/types/Race';
+import { addError } from './services/Errors';
+import { type Planet } from './types/Planet';
+import type { Player } from './types/Player';
+import type { Rules } from './types/Rules';
+import type { ShipDesign, Spec as ShipDesignSpec } from './types/ShipDesign';
 
 export type CS = {
-	calculateRacePoints: (race: Race) => Promise<number>;
+	enableDebug: () => void;
+	setRules: (rules: Rules) => void;
+	setPlayer: (player: Player) => void;
+	setDesigns: (designs: ShipDesign[]) => void;
+	calculateRacePoints: (race: Race) => number | undefined;
+	computeShipDesignSpec: (design: ShipDesign) => ShipDesignSpec | undefined;
+	estimateProduction: (planet: Planet) => Planet | undefined;
 };
 
 // load a wasm module and returns a wrapper for executing functions
@@ -43,19 +54,71 @@ export async function loadWasm(): Promise<CS> {
 	}
 
 	// all done, ready to execute!
-	return new CSWasmWrapper(bridge);
-}
+	const cs = new CSWasmWrapper(bridge);
 
-// our wasm calls actually take json strings as params for easier serializing between go/typescript
-// this type represents the actual cs.wasm calls
-type CSWasm = {
-	calculateRacePoints: (raceJson: string) => Promise<number>;
-};
+	if (PKG.version == '0.0.0-develop') {
+		cs.enableDebug();
+	}
+
+	return cs;
+}
 
 // create a wrapper to serialize requests and responses to/from JSON
 class CSWasmWrapper implements CS {
-	constructor(private wasm: CSWasm) {}
-	calculateRacePoints(race: Race): Promise<number> {
-		return this.wasm.calculateRacePoints(JSON.stringify(race));
+	constructor(private wasm: CS) {}
+
+	// checkError checks if the wasm code threw an error and if so adds it as a notification
+	// and return true
+	checkError(): boolean {
+		if ('wasmError' in window) {
+			addError(`${window['wasmError']}`);
+			delete window.wasmError;
+			return true;
+		}
+		return false;
+	}
+
+	async enableDebug() {
+		this.wasm.enableDebug();
+		this.checkError();
+	}
+
+	setRules(rules: Rules) {
+		this.wasm.setRules(rules);
+		this.checkError();
+	}
+
+	setPlayer(player: Player) {
+		this.wasm.setPlayer(player);
+		this.checkError();
+	}
+
+	setDesigns(designs: ShipDesign[]) {
+		this.wasm.setDesigns(designs);
+		this.checkError();
+	}
+
+	estimateProduction(planet: Planet): Planet | undefined {
+		const result = this.wasm.estimateProduction(planet);
+		if (this.checkError()) {
+			return undefined;
+		}
+		return result;
+	}
+
+	computeShipDesignSpec(design: ShipDesign): ShipDesignSpec | undefined {
+		const result = this.wasm.computeShipDesignSpec(design);
+		if (this.checkError()) {
+			return undefined;
+		}
+		return result;
+	}
+
+	calculateRacePoints(race: Race): number | undefined {
+		const result = this.wasm.calculateRacePoints(race);
+		if (this.checkError()) {
+			return undefined;
+		}
+		return result;
 	}
 }

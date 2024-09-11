@@ -35,7 +35,7 @@ type Orderer interface {
 	UpdatePlayerOrders(player *Player, playerPlanets []*Planet, order PlayerOrders, rules *Rules)
 	UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet, orders PlanetOrders) error
 	UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrders)
-	UpdateMineFieldOrders(player *Player, minefield *MineField, orders MineFieldOrders)
+	UpdateMineFieldOrders(player *Player, minefield *MineField, orders MineFieldOrders) error
 	TransferFleetCargo(rules *Rules, player, destPlayer *Player, source, dest *Fleet, transferAmount CargoTransferRequest) error
 	TransferPlanetCargo(rules *Rules, player *Player, source *Fleet, dest *Planet, transferAmount CargoTransferRequest) error
 	TransferSalvageCargo(rules *Rules, player *Player, source *Fleet, dest *Salvage, nextSalvageNum int, transferAmount CargoTransferRequest) (*Salvage, error)
@@ -111,7 +111,10 @@ func (o *orders) UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet
 		}
 	}
 
-	planet.PopulateProductionQueueEstimates(rules, player)
+	if err := planet.PopulateProductionQueueEstimates(rules, player); err != nil {
+		return fmt.Errorf("planet %s unable to populate queue estimates %w", planet.Name, err)
+	}
+
 	spec = &planet.Spec
 
 	// update the player spec with the change in resources for this planet
@@ -170,8 +173,16 @@ func (o *orders) UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrd
 
 }
 
-func (o *orders) UpdateMineFieldOrders(player *Player, minefield *MineField, orders MineFieldOrders) {
+func (o *orders) UpdateMineFieldOrders(player *Player, minefield *MineField, orders MineFieldOrders) error {
+	if !player.Race.Spec.CanDetonateMineFields {
+		return fmt.Errorf("%s cannot detonate minefields", player.Race.PluralName)
+	}
+	if !minefield.MineFieldType.CanDetonate() {
+		return fmt.Errorf("%s minefields cannot detonate", minefield.MineFieldType)
+	}
+
 	minefield.MineFieldOrders = orders
+	return nil
 }
 
 // transfer cargo from a fleet to/from a fleet
@@ -297,7 +308,7 @@ func (o *orders) TransferSalvageCargo(rules *Rules, player *Player, source *Flee
 	source.Spec = ComputeFleetSpec(rules, player, source)
 
 	// make our player aware of this salvage
-	discover := newDiscoverer(player)
+	discover := newDiscoverer(log.Logger, player)
 	discover.discoverSalvage(dest)
 
 	log.Info().

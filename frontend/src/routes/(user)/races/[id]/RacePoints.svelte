@@ -18,7 +18,7 @@
 	// update points from the server anytime things change
 	const computeRacePoints = async (race: Race) => {
 		if (cs) {
-			points = await cs.calculateRacePoints(race);
+			points = cs.calculateRacePoints(race) ?? 0;
 		}
 	};
 

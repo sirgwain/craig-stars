@@ -542,7 +542,7 @@
 				position: position,
 				warpSpeed: warpSpeed,
 				task: task,
-				transportTasks: transportTasks
+				transportTasks: transportTasks,
 			});
 		} else {
 			const wp: Waypoint = {

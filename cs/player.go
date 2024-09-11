@@ -6,6 +6,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/rs/zerolog/log"
 )
 
 // A Player contains all intel, messages, tech levels, and research orders for a single empire in the game.
@@ -249,7 +251,7 @@ func NewPlayer(userID int64, race *Race) *Player {
 	}
 
 	// start with a base discoverer
-	player.discoverer = newDiscoverer(player)
+	player.discoverer = newDiscoverer(log.Logger, player)
 	player.PlayerPlans = player.defaultPlans()
 	return player
 }
@@ -596,6 +598,7 @@ func (p *Player) defaultRelationships(players []*Player, aiFormsAlliances bool) 
 		} else if aiFormsAlliances && p.AIControlled && otherPlayer.AIControlled {
 			// team up! destroy all humans!
 			relationship.Relation = PlayerRelationFriend
+			relationship.ShareMap = true
 		} else if otherPlayer.AIControlled || p.AIControlled {
 			// AI is always the enemy
 			relationship.Relation = PlayerRelationEnemy

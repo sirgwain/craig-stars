@@ -28,7 +28,7 @@ func TestRace_GetPlanetHabitability(t *testing.T) {
 }
 
 func TestRace_ComputeRacePoints(t *testing.T) {
-	startingPoints := 1650 // defind in rules
+	startingPoints := 1650 // defined in rules
 
 	immuneInsectoids := Insectoids()
 	tests := []struct {

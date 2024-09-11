@@ -3,8 +3,6 @@ package cs
 import (
 	"math"
 	"sort"
-
-	"github.com/rs/zerolog/log"
 )
 
 type battleWeaponType int
@@ -155,7 +153,6 @@ func (weapon *battleWeaponSlot) getAttractiveness(target *battleToken) float64 {
 
 	cost := target.cost
 	attractiveNess := float64(cost.Boranium+cost.Resources) / float64(defense)
-	log.Debug().Msgf("weapon %s attractiveness to %s = %f", weapon.slot.HullComponent, target.designName, attractiveNess)
 	return attractiveNess
 }
 
@@ -212,7 +209,7 @@ func (weapon *battleWeaponSlot) getTargetsInRange() []*battleToken {
 	return tokensInRange
 }
 
-// get the accuracy of a torpedo against a target
+// get the damage of a beam weapon against a target
 func (weapon *battleWeaponSlot) getDamage(dist int, beamDefense, beamDropoff float64) int {
 	if weapon.weaponType == battleWeaponTypeTorpedo {
 		return weapon.power
@@ -224,6 +221,8 @@ func (weapon *battleWeaponSlot) getDamage(dist int, beamDefense, beamDropoff flo
 	return int(math.Ceil(float64(weapon.power) * (1 - beamDefense)))
 }
 
+// get the estimated damage of a torpedo to a target
+// based on average accuracy
 func (weapon *battleWeaponSlot) getEstimatedTorpedoDamageToTarget(target *battleToken) battleWeaponDamage {
 	numTorpedos := weapon.slotQuantity * weapon.token.Quantity
 	accuracy := weapon.getAccuracy(target.torpedoJamming)

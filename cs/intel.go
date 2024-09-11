@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/rs/zerolog/log"
+	"github.com/rs/zerolog"
 )
 
 const ReportAgeUnexplored = -1
@@ -36,6 +36,7 @@ type discoverer interface {
 }
 
 type discover struct {
+	log    zerolog.Logger
 	player *Player
 }
 
@@ -46,11 +47,12 @@ type discovererWithAllies struct {
 	allyDiscoverers  []discover
 }
 
-func newDiscoverer(player *Player) discoverer {
-	return &discover{player}
+func newDiscoverer(log zerolog.Logger, player *Player) discoverer {
+	discoverLogger := log.With().Int("Player", player.Num).Logger()
+	return &discover{discoverLogger, player}
 }
 
-func newDiscovererWithAllies(player *Player, players []*Player) discoverer {
+func newDiscovererWithAllies(log zerolog.Logger, player *Player, players []*Player) discoverer {
 	// find any players we share maps with
 	mapSharePlayers := make([]discover, 0, len(players))
 	for i, relation := range player.Relations {
@@ -58,12 +60,13 @@ func newDiscovererWithAllies(player *Player, players []*Player) discoverer {
 			continue
 		}
 		if relation.Relation == PlayerRelationFriend && relation.ShareMap {
-			mapSharePlayers = append(mapSharePlayers, discover{players[i]})
+			discoverLogger := log.With().Int("Player", players[i].Num).Logger()
+			mapSharePlayers = append(mapSharePlayers, discover{discoverLogger, players[i]})
 		}
 	}
 
 	return &discovererWithAllies{
-		playerDiscoverer: discover{player},
+		playerDiscoverer: discover{log, player},
 		allyDiscoverers:  mapSharePlayers,
 	}
 }
@@ -114,7 +117,6 @@ type ShipDesignIntel struct {
 
 type FleetIntel struct {
 	MapObjectIntel
-	PlanetIntelID     int64       `json:"-,omitempty"` // for starbase fleets that are owned by a planet
 	BaseName          string      `json:"baseName,omitempty"`
 	Heading           Vector      `json:"heading,omitempty"`
 	OrbitingPlanetNum int         `json:"orbitingPlanetNum,omitempty"`
@@ -317,9 +319,7 @@ func (d *discover) discoverPlanet(rules *Rules, planet *Planet, penScanned bool)
 		if !ownedByPlayer && intel.ReportAge == ReportAgeUnexplored {
 			// let the player know we discovered a new planet
 			messager.planetDiscovered(player, planet)
-			log.Debug().
-				Int64("GameID", player.GameID).
-				Int("Player", player.Num).
+			d.log.Debug().
 				Int("Planet", planet.Num).
 				Msgf("player discovered planet")
 		}
@@ -392,9 +392,7 @@ func (d *discover) clearPlanetOwnerIntel(planet *Planet) error {
 	intel.Spec.StarbaseDesignNum = 0
 	intel.ReportAge = 0
 
-	log.Debug().
-		Int64("GameID", player.GameID).
-		Int("Player", player.Num).
+	d.log.Debug().
 		Int("Planet", planet.Num).
 		Msgf("player cleared planet owner intel")
 
@@ -495,9 +493,7 @@ func (d *discover) discoverFleet(fleet *Fleet, discoverName bool) {
 		intel = newFleetIntel(fleet.PlayerNum, fleet.Num)
 		player.FleetIntels = append(player.FleetIntels, *intel)
 		intel = &player.FleetIntels[len(player.FleetIntels)-1]
-		log.Debug().
-			Int64("GameID", player.GameID).
-			Int("Player", player.Num).
+		d.log.Debug().
 			Int("FleetPlayer", fleet.PlayerNum).
 			Int("Fleet", fleet.Num).
 			Msgf("player discovered fleet")
@@ -556,9 +552,7 @@ func (d *discover) discoverSalvage(salvage *Salvage) {
 		player.SalvageIntels = append(player.SalvageIntels, *newSalvageIntel(salvage.PlayerNum, salvage.Num))
 		intel = &player.SalvageIntels[len(player.SalvageIntels)-1]
 
-		log.Debug().
-			Int64("GameID", player.GameID).
-			Int("Player", player.Num).
+		d.log.Debug().
 			Int("SalvagePlayer", salvage.PlayerNum).
 			Int("Salvage", salvage.Num).
 			Msgf("player discovered salvage")
@@ -580,9 +574,7 @@ func (d *discover) discoverMineField(mineField *MineField) {
 		intel = newMineFieldIntel(mineField.PlayerNum, mineField.Num)
 		player.MineFieldIntels = append(player.MineFieldIntels, *intel)
 		intel = &player.MineFieldIntels[len(player.MineFieldIntels)-1]
-		log.Debug().
-			Int64("GameID", player.GameID).
-			Int("Player", player.Num).
+		d.log.Debug().
 			Int("MineFieldPlayer", mineField.PlayerNum).
 			Int("MineField", mineField.Num).
 			Msgf("player discovered minefield")
@@ -604,9 +596,7 @@ func (d *discover) discoverMineralPacket(rules *Rules, mineralPacket *MineralPac
 		intel = newMineralPacketIntel(mineralPacket.PlayerNum, mineralPacket.Num)
 		player.MineralPacketIntels = append(player.MineralPacketIntels, *intel)
 		intel = &player.MineralPacketIntels[len(player.MineralPacketIntels)-1]
-		log.Debug().
-			Int64("GameID", player.GameID).
-			Int("Player", player.Num).
+		d.log.Debug().
 			Int("MineralPacketPlayer", mineralPacket.PlayerNum).
 			Int("MineralPacket", mineralPacket.Num).
 			Msgf("player discovered mineral packet")
@@ -662,9 +652,7 @@ func (d *discover) discoverDesign(design *ShipDesign, discoverSlots bool) {
 		player.ShipDesignIntels = append(player.ShipDesignIntels, *intel)
 		intel = &player.ShipDesignIntels[len(player.ShipDesignIntels)-1]
 
-		log.Debug().
-			Int64("GameID", player.GameID).
-			Int("Player", player.Num).
+		d.log.Debug().
 			Int("ShipDesignPlayer", design.PlayerNum).
 			Int("ShipDesign", design.Num).
 			Msgf("player discovered design")
@@ -686,9 +674,7 @@ func (d *discover) discoverDesign(design *ShipDesign, discoverSlots bool) {
 			Mass: design.Spec.Mass,
 		}
 		intel.Slots = []ShipDesignSlot{}
-		log.Debug().
-			Int64("GameID", player.GameID).
-			Int("Player", player.Num).
+		d.log.Debug().
 			Int("ShipDesignPlayer", design.PlayerNum).
 			Int("ShipDesign", design.Num).
 			Msgf("player rediscovered design")
@@ -722,9 +708,7 @@ func (d *discover) discoverDesign(design *ShipDesign, discoverSlots bool) {
 		intel.Spec.ReduceCloaking = design.Spec.ReduceCloaking
 		intel.Spec.ReduceMovement = design.Spec.ReduceMovement
 
-		log.Debug().
-			Int64("GameID", player.GameID).
-			Int("Player", player.Num).
+		d.log.Debug().
 			Int("ShipDesignPlayer", design.PlayerNum).
 			Int("ShipDesign", design.Num).
 			Msgf("player discovered design slots")
@@ -739,9 +723,7 @@ func (d *discover) discoverWormhole(wormhole *Wormhole) {
 		// discover this new wormhole
 		player.WormholeIntels = append(player.WormholeIntels, *newWormholeIntel(wormhole.Num))
 		intel = &player.WormholeIntels[len(player.WormholeIntels)-1]
-		log.Debug().
-			Int64("GameID", player.GameID).
-			Int("Player", player.Num).
+		d.log.Debug().
 			Int("Wormhole", wormhole.Num).
 			Msgf("player discovered wormhole")
 	}
@@ -758,9 +740,7 @@ func (d *discover) discoverWormholeLink(wormhole1, wormhole2 *Wormhole) {
 		// discover this new wormhole
 		player.WormholeIntels = append(player.WormholeIntels, *newWormholeIntel(wormhole1.Num))
 		intel1 = &player.WormholeIntels[len(player.WormholeIntels)-1]
-		log.Debug().
-			Int64("GameID", player.GameID).
-			Int("Player", player.Num).
+		d.log.Debug().
 			Int("Wormhole1", wormhole1.Num).
 			Msgf("player discovered wormhole1 link")
 	}
@@ -770,9 +750,7 @@ func (d *discover) discoverWormholeLink(wormhole1, wormhole2 *Wormhole) {
 		// discover this new wormhole
 		player.WormholeIntels = append(player.WormholeIntels, *newWormholeIntel(wormhole2.Num))
 		intel2 = &player.WormholeIntels[len(player.WormholeIntels)-1]
-		log.Debug().
-			Int64("GameID", player.GameID).
-			Int("Player", player.Num).
+		d.log.Debug().
 			Int("Wormhole2", wormhole1.Num).
 			Msgf("player discovered wormhole2 link")
 	}
@@ -803,9 +781,7 @@ func (d *discover) forgetWormhole(num int) {
 
 	// forget this wormhole
 	player.WormholeIntels = slices.DeleteFunc(player.WormholeIntels, func(w WormholeIntel) bool { return w.Num == num })
-	log.Debug().
-		Int64("GameID", player.GameID).
-		Int("Player", player.Num).
+	d.log.Debug().
 		Int("Wormhole", num).
 		Msgf("player forgot wormhole")
 
@@ -824,9 +800,7 @@ func (d *discover) discoverMysteryTrader(mysteryTrader *MysteryTrader) {
 		// discover this new mysteryTrader
 		player.MysteryTraderIntels = append(player.MysteryTraderIntels, *newMysteryTraderIntel(mysteryTrader.Num))
 		intel = &player.MysteryTraderIntels[len(player.MysteryTraderIntels)-1]
-		log.Debug().
-			Int64("GameID", player.GameID).
-			Int("Player", player.Num).
+		d.log.Debug().
 			Int("MysteryTrader", mysteryTrader.Num).
 			Msgf("player discovered mysteryTrader")
 	}
@@ -843,7 +817,7 @@ func (d *discover) discoverPlayer(player *Player) {
 	intel := &d.player.PlayerIntels.PlayerIntels[player.Num-1]
 
 	if !intel.Seen {
-		log.Debug().Msgf("player %s discovered %s", d.player.Name, player.Name)
+		d.log.Debug().Msgf("player %s discovered %s", d.player.Name, player.Name)
 		messager.playerDiscovered(d.player, player)
 		intel.Seen = true
 		intel.Name = player.Name

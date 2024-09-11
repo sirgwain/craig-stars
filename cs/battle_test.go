@@ -4,10 +4,15 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 )
 
 func testStalwartDefender(player *Player) *Fleet {
+	return testStalwartDefenderWithQuantity(player, 1)
+}
+
+func testStalwartDefenderWithQuantity(player *Player, quantity int) *Fleet {
 	fleet := &Fleet{
 		MapObject: MapObject{
 			PlayerNum: player.Num,
@@ -16,7 +21,7 @@ func testStalwartDefender(player *Player) *Fleet {
 		Tokens: []ShipToken{
 			{
 				DesignNum: 1,
-				Quantity:  1,
+				Quantity:  quantity,
 				design: NewShipDesign(player, 1).
 					WithHull(Destroyer.Name).
 					WithSlots([]ShipDesignSlot{
@@ -1037,7 +1042,7 @@ func Test_battle_runBattle1(t *testing.T) {
 		}
 	}
 
-	battle := newBattler(&rules, &StaticTechStore, 1, map[int]*Player{1: player1, 2: player2}, fleets, nil)
+	battle := newBattler(log.Logger, &rules, &StaticTechStore, 1, map[int]*Player{1: player1, 2: player2}, fleets, nil)
 
 	record := battle.runBattle()
 
@@ -1156,9 +1161,96 @@ func Test_battle_runBattle2(t *testing.T) {
 			},
 		}}
 
-	record := RunTestBattle([]*Player{player1, player2}, fleets)
+	record, _ := RunTestBattle([]*Player{player1, player2}, fleets)
 	// ran some number of turns
 	assert.Less(t, 5, len(record.ActionsPerRound))
+}
+
+func Test_battle_runBattleError(t *testing.T) {
+	player1 := NewPlayer(0, NewRace()).WithNum(1)
+	player2 := NewPlayer(0, NewRace()).WithNum(2)
+	player1.Name = AINames[0][1]
+	player2.Name = AINames[1][1]
+	player1.Race.PluralName = AINames[0][1]
+	player2.Race.PluralName = AINames[1][1]
+	player1.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationEnemy}}
+	player2.Relations = []PlayerRelationship{{Relation: PlayerRelationEnemy}, {Relation: PlayerRelationFriend}}
+	player1.PlayerIntels.PlayerIntels = []PlayerIntel{{Num: player1.Num}, {Num: player2.Num}}
+	player2.PlayerIntels.PlayerIntels = []PlayerIntel{{Num: player1.Num}, {Num: player2.Num}}
+
+	player1.Designs = append(player1.Designs,
+		NewShipDesign(player1, 1).
+			WithName("Battle Cruiser").
+			WithHull(BattleCruiser.Name).
+			WithSlots([]ShipDesignSlot{
+				{HullComponent: TransStar10.Name, HullSlotIndex: 1, Quantity: 2},
+				{HullComponent: Overthruster.Name, HullSlotIndex: 2, Quantity: 2},
+				{HullComponent: BattleSuperComputer.Name, HullSlotIndex: 3, Quantity: 2},
+				{HullComponent: ColloidalPhaser.Name, HullSlotIndex: 4, Quantity: 3},
+				{HullComponent: DeltaTorpedo.Name, HullSlotIndex: 5, Quantity: 3},
+				{HullComponent: Overthruster.Name, HullSlotIndex: 6, Quantity: 3},
+				{HullComponent: GorillaDelagator.Name, HullSlotIndex: 7, Quantity: 4},
+			}),
+	)
+
+	player2.Designs = append(player2.Designs,
+		NewShipDesign(player2, 1).
+			WithName("BANANA BOAT").
+			WithHull("Banana Ship").
+			WithSlots([]ShipDesignSlot{
+				{HullComponent: "Ice Cream", HullSlotIndex: 1, Quantity: 1},
+				{HullComponent: "Chocolate", HullSlotIndex: 2, Quantity: 1},
+				{HullComponent: "Hot Fudge", HullSlotIndex: 3, Quantity: 1},
+			}),
+		NewShipDesign(player2, 2).
+			WithName("Jammed&Fluxed Defender").
+			WithHull(Destroyer.Name).
+			WithSlots([]ShipDesignSlot{
+				{HullComponent: TransStar10.Name, HullSlotIndex: 1, Quantity: 1},
+				{HullComponent: ColloidalPhaser.Name, HullSlotIndex: 2, Quantity: 1},
+				{HullComponent: ColloidalPhaser.Name, HullSlotIndex: 3, Quantity: 1},
+				{HullComponent: RhinoScanner.Name, HullSlotIndex: 4, Quantity: 1},
+				{HullComponent: Superlatanium.Name, HullSlotIndex: 5, Quantity: 1},
+				{HullComponent: Jammer30.Name, HullSlotIndex: 6, Quantity: 1},
+				{HullComponent: FluxCapacitor.Name, HullSlotIndex: 7, Quantity: 1},
+			}),
+	)
+
+	fleets := []*Fleet{
+		{
+			MapObject: MapObject{
+				PlayerNum: player1.Num,
+			},
+			BaseName: "Battle Cruiser",
+			Tokens: []ShipToken{
+				{
+					DesignNum: player1.Designs[0].Num,
+					Quantity:  2,
+				},
+			},
+		},
+		// player2's ~~teamster~~ BANANA
+		{
+			MapObject: MapObject{
+				PlayerNum: player2.Num,
+			},
+			BaseName: "Banana+",
+			Tokens: []ShipToken{
+				{
+					Quantity:  5,
+					DesignNum: player2.Designs[0].Num,
+				},
+				{
+					Quantity:  2,
+					DesignNum: player2.Designs[1].Num,
+				},
+			},
+		},
+	}
+
+	_, err := RunTestBattle([]*Player{player1, player2}, fleets)
+	// should return error due to incorrect spec on teamster from nonexistent hull/parts
+	assert.Error(t, err)
 }
 
 func Test_updateMovesWithCenterPreference(t *testing.T) {

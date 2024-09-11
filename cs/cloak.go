@@ -34,7 +34,7 @@ func getCloakPercentForCloakUnits(cloakUnits int) int {
 // a cloak reduction factor (i.e. tachyons)
 func getCloakFactor(cloakPercent int, cloakReductionFactor float64) float64 {
 	if cloakPercent > 0 {
-		return float64(cloakPercent) / 100 * cloakReductionFactor
+		return 1-float64(cloakPercent) / 100 * cloakReductionFactor
 	}
 	return 1
 }

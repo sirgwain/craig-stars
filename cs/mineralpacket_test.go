@@ -157,7 +157,7 @@ func TestMineralPacket_estimateDamage(t *testing.T) {
 		want   MineralPacketDamage
 	}{
 		{
-			`1 yr away; no decay`,
+			"1 yr away; no decay",
 			fields{WarpSpeed: 5, SafeWarpSpeed: 5},
 			args{
 				race:              NewRace().WithSpec(&rules),
@@ -171,7 +171,7 @@ func TestMineralPacket_estimateDamage(t *testing.T) {
 			MineralPacketDamage{Killed: 4700},
 		},
 		{
-			`1 yr away; vanishing packet`,
+			"1 yr away; vanishing packet",
 			fields{WarpSpeed: 6, SafeWarpSpeed: 5},
 			args{
 				race:              NewRace().WithSpec(&rules),
@@ -185,7 +185,7 @@ func TestMineralPacket_estimateDamage(t *testing.T) {
 			MineralPacketDamage{Uncaught: MineralPacketDecayToNothing},
 		},
 		{
-			`3 lvls overwarp + 1 yr travel with min decay (300 dmg)`,
+			"3 lvls overwarp + 1 yr travel with min decay (300 dmg)",
 			fields{WarpSpeed: 10, SafeWarpSpeed: 7},
 			args{
 				race:              NewRace().WithPRT(PP).WithSpec(&rules),
@@ -200,7 +200,7 @@ func TestMineralPacket_estimateDamage(t *testing.T) {
 			MineralPacketDamage{Killed: 30000, DefensesDestroyed: 10},
 		},
 		{
-			`3 lvls overwarp + 0.33 yr travel (25.2 dmg)`,
+			"3 lvls overwarp + 0.33 yr travel (25.2 dmg)",
 			fields{WarpSpeed: 8, SafeWarpSpeed: 5},
 			args{
 				race:              NewRace().WithSpec(&rules),
@@ -214,7 +214,7 @@ func TestMineralPacket_estimateDamage(t *testing.T) {
 			MineralPacketDamage{Killed: 25200, DefensesDestroyed: 1},
 		},
 		{
-			`3 lvls overwarp + 3.25 yr travel (70 dmg)`,
+			"3 lvls overwarp + 3.25 yr travel (70 dmg)",
 			fields{WarpSpeed: 6, SafeWarpSpeed: 3},
 			args{
 				race:              NewRace().WithSpec(&rules),
@@ -246,4 +246,101 @@ func TestMineralPacket_estimateDamage(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestMineralPacket_checkTerraform(t *testing.T) {
+	type fields struct {
+		terraformChance float64
+	}
+	type args struct {
+		planetHab Hab
+		Terraform *TechTerraform
+		mass      Cargo
+		random    rng
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   Hab
+	}{
+		{
+			"already perfect",
+			fields{terraformChance: 0.25},
+			args{
+				planetHab: Hab{50, 50, 50},
+				Terraform: &TechTerraform{Ability: 30, HabType: TerraformHabTypeAll},
+				mass:      Cargo{100, 100, 100, 0},
+				random:    newFloat64Random(0),
+			},
+			Hab{50, 50, 50},
+		},
+		{
+			"cannot terraform fully",
+			fields{terraformChance: 0.25},
+			args{
+				planetHab: Hab{1, 1, 1},
+				Terraform: &TechTerraform{Ability: 10, HabType: TerraformHabTypeAll},
+				mass:      Cargo{11000, 11000, 11000, 0},
+				random:    newFloat64Random(0),
+			},
+			Hab{11, 11, 11},
+		},
+		{
+			"super packet, super terraform",
+			fields{terraformChance: 0.25},
+			args{
+				planetHab: Hab{1, 1, 1},
+				Terraform: &TechTerraform{Ability: 10, HabType: TerraformHabTypeAll},
+				mass:      Cargo{300, 0, 0, 0},       // terraform grav up to three times
+				random:    newFloat64Random(0, .3, 0), // 1st check terraforms, second doesn't, third does
+			},
+			Hab{3, 1, 1},
+		},
+		{
+			"half a check for half minerals, terraform the 1st and 3rd hab based on random generator",
+			fields{terraformChance: 0.25},
+			args{
+				planetHab: Hab{1, 1, 1},
+				Terraform: &TechTerraform{Ability: 10, HabType: TerraformHabTypeAll},
+				mass:      Cargo{50, 50, 50, 0},          // half a check
+				random:    newFloat64Random(0.125, .126, .125), // lower than 0.25/2; first terraforms, second doesn't, third does
+			},
+			Hab{2, 1, 2},
+		},
+		{
+			"failed check - too low minerals",
+			fields{terraformChance: 0.3},
+			args{
+				planetHab: Hab{1, 1, 1},
+				Terraform: &TechTerraform{Ability: 10, HabType: TerraformHabTypeAll},
+				mass:      Cargo{0, 0, 33, 0},    // 1/3 a check
+				random:    newFloat64Random(0.1), // greater than 0.5/3; check fails
+			},
+			Hab{1, 1, 1},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rulesCopy := rules
+			rulesCopy.random = tt.args.random
+
+			player := NewPlayer(1, NewRace().WithSpec(&rulesCopy).WithPRT(PP)).withSpec(&rulesCopy)
+			player.Spec.Terraform[TerraformHabTypeAll] = tt.args.Terraform
+			player.Race.Spec.PacketTerraformChance = tt.fields.terraformChance
+			player.Race.Spec.HabCenter = Hab{50, 50, 50}
+
+			planet := NewPlanet()
+			planet.Hab = tt.args.planetHab
+			planet.BaseHab = planet.Hab
+
+			packet := newMineralPacket(player, 1, 5, 5, tt.args.mass, Vector{0, 0}, 1)
+			packet.checkTerraform(&rulesCopy, player, planet, 1)
+
+			if got := planet.Hab; got != tt.want {
+				t.Errorf("MineralPacket.checkTerraform() = %v, want %v;", got, tt.want)
+			}
+		})
+	}
+
 }

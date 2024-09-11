@@ -4,18 +4,18 @@
 	import Hull from '$lib/components/game/design/Hull.svelte';
 	import TechAvatar from '$lib/components/tech/TechAvatar.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { DesignService } from '$lib/services/DesignService';
 	import { techs } from '$lib/services/Stores';
 	import { canLearnTech } from '$lib/types/Player';
 	import type { ShipDesign, ShipDesignSlot, Spec } from '$lib/types/ShipDesign';
 	import {
 		HullSlotType,
 		canFillSlot,
+		hullAllowed,
 		type HullSlot,
 		type TechHull,
-		type TechHullComponent,
-		hullAllowed
+		type TechHullComponent
 	} from '$lib/types/Tech';
+	import { hasRequiredLevels } from '$lib/types/TechLevel';
 	import { ChevronLeft, ChevronRight, QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { createEventDispatcher, onMount } from 'svelte';
@@ -24,9 +24,8 @@
 	import DesignStats from '../DesignStats.svelte';
 	import { onTechTooltip } from '../tooltips/TechTooltip.svelte';
 	import { shipDesignerContext } from './ShipDesignerContext';
-	import { hasRequiredLevels } from '$lib/types/TechLevel';
 
-	const { game, player, universe } = getGameContext();
+	const { cs, game, player, universe } = getGameContext();
 	const dispatch = createEventDispatcher();
 
 	export let hull: TechHull;
@@ -41,7 +40,11 @@
 	// only show hull components that actually fit on this hull
 	let validHullSlotTypes = hull.slots.reduce((type, slot) => type | +slot.type, HullSlotType.None);
 
-	$: design && DesignService.computeSpec($game.id, design).then((s) => (designSpec = s));
+	$: {
+		if (design) {
+			designSpec = cs.computeShipDesignSpec(design) ?? ({} as Spec);
+		}
+	}
 	$: selectedComponent =
 		$shipDesignerContext.selectedHullComponent ??
 		($shipDesignerContext.selectedShipDesignSlot?.hullComponent

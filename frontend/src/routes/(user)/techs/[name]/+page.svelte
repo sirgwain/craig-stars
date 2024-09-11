@@ -4,13 +4,26 @@
 	import TechHullSummary from '$lib/components/game/design/Hull.svelte';
 	import TechSummary from '$lib/components/tech/TechSummary.svelte';
 	import { Service } from '$lib/services/Service';
+	import techjson from '$lib/ssr/techs.json';
 
-	import { TechCategory, type Tech, type TechHull } from '$lib/types/Tech';
+	import { TechCategory, type Tech, type TechHull, type TechStore } from '$lib/types/Tech';
 	import { startCase } from 'lodash-es';
 	import { onMount } from 'svelte';
 
+	// for ssr, we start with techs from a json file
+	let techStore: TechStore = techjson as TechStore;
+	let techs: Tech[] = [
+		...techStore.engines,
+		...techStore.planetaryScanners,
+		...techStore.defenses,
+		...techStore.planetaries,
+		...techStore.hullComponents,
+		...techStore.hulls,
+		...techStore.terraforms
+	];
+
 	let nameSlug = $page.params.name;
-	let tech: Tech;
+	let tech = techs.find((t) => t.name === startCase(nameSlug));
 
 	$: hull = tech as TechHull;
 
@@ -34,7 +47,7 @@
 	<svelte:fragment slot="crumbs">
 		<li><a href={`/techs`}>Techs</a></li>
 		<li>{tech?.name ?? '<unknown>'}</li>
-		</svelte:fragment>
+	</svelte:fragment>
 </Breadcrumb>
 
 {#if tech}

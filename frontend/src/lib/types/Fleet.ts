@@ -1,24 +1,23 @@
-import type { Universe, DesignFinder } from '$lib/services/Universe';
-import { getGameContext } from '$lib/services/GameContext';
+import type { DesignFinder, Universe } from '$lib/services/Universe';
 import { get as pluck } from 'lodash-es';
 import { totalCargo, type Cargo } from './Cargo';
 import type { Cost } from './Cost';
 import {
 	MapObjectType,
 	None,
-	type MovingMapObject,
 	owned,
 	ownedBy,
+	StargateWarpSpeed,
 	type MapObject,
-	StargateWarpSpeed
+	type MovingMapObject
 } from './MapObject';
 import type { MessageTargetType } from './Message';
+import type { MineFieldType } from './MineField';
+import type { Planet } from './Planet';
+import type { Player } from './Player';
 import type { ShipDesign } from './ShipDesign';
 import type { Engine } from './Tech';
-import type { Player } from './Player';
 import { distance, type Vector } from './Vector';
-import { range } from 'd3-array';
-import type { Planet } from './Planet';
 
 export type Fleet = {
 	playerNum: number; // override mapObject fleets always have a player.
@@ -58,6 +57,7 @@ export type ShipToken = {
 
 export type Target = {
 	targetType?: MapObjectType | MessageTargetType;
+	targetPosition?: Vector;
 	targetPlayerNum?: number;
 	targetNum?: number;
 	targetName?: string;
@@ -124,7 +124,7 @@ export type Spec = {
 	armor: number;
 	fuelCapacity: number;
 	immuneToOwnDetonation: boolean;
-	mineLayingRateByMineType?: null;
+	mineLayingRateByMineType?: Record<MineFieldType, number>;
 	weaponSlots?: null;
 	purposes?: any;
 	totalShips: number;
@@ -369,6 +369,17 @@ export class CommandedFleet implements Fleet {
 
 		// don't go faster than we need & use stargate if possible 
 		return this.getMinimalWarp(player, origin, destination, maxFleetMass, speed);
+	}
+
+	/**
+	 *
+	 * @returns The total number of mines laid per year for all types of minefields this fleet can lay
+	 */
+	getTotalMinesLaidPerYear() {
+		if (this.spec.mineLayingRateByMineType) {
+			return Object.values(this.spec.mineLayingRateByMineType).reduce((count, n) => count + n, 0);
+		}
+		return 0;
 	}
 }
 

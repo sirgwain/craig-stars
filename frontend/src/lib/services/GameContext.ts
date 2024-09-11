@@ -42,12 +42,16 @@ import { PlayerService } from './PlayerService';
 import { ProductionPlanService } from './ProductionPlanService';
 import { TransportPlanService } from './TransportPlanService';
 import { Universe } from './Universe';
+import type { CS } from '$lib/wasm';
+import type { MineField } from '$lib/types/MineField';
+import { MineFieldService } from './MineFieldService';
 
 export const playerFinderKey = Symbol();
 export const designFinderKey = Symbol();
 export const gameKey = Symbol();
 
 export type GameContext = {
+	cs: CS;
 	game: Readable<FullGame>;
 	player: Readable<Player>;
 	universe: Readable<Universe>;
@@ -109,6 +113,7 @@ export type GameContext = {
 	updateFleetOrders: (fleet: CommandedFleet) => Promise<void>;
 	renameFleet: (fleet: CommandedFleet, name: string) => Promise<void>;
 	updatePlanetOrders: (planet: CommandedPlanet) => Promise<void>;
+	updateMineFieldOrders: (mineField: MineField) => Promise<void>;
 	transferCargo: (
 		fleet: CommandedFleet,
 		dest: Fleet | Planet | Salvage,
@@ -130,7 +135,12 @@ export type GameContext = {
 export const getGameContext = () => getContext<GameContext>(gameKey);
 
 // update the game context after a load
-export function createGameContext(fg: FullGame): GameContext {
+export function createGameContext(cs: CS, fg: FullGame): GameContext {
+	// setup initial wasm state
+	cs.setRules(fg.rules);
+	cs.setPlayer(fg.player);
+	cs.setDesigns(fg.universe.getMyDesigns());
+
 	const gameId = fg.id;
 	const unsubscribers: Unsubscriber[] = [];
 
@@ -180,6 +190,9 @@ export function createGameContext(fg: FullGame): GameContext {
 		settings.subscribe((value) => {
 			value.beforeSave();
 			localStorage.setItem(value.key, JSON.stringify(value));
+		}),
+		player.subscribe((value) => {
+			cs.setPlayer(value);
 		})
 	);
 
@@ -466,7 +479,8 @@ export function createGameContext(fg: FullGame): GameContext {
 				if (fleet.orbitingPlanetNum && fleet.orbitingPlanetNum != None) {
 					const planet = u.getMapObject({
 						targetType: MapObjectType.Planet,
-						targetNum: fleet.orbitingPlanetNum
+						targetNum: fleet.orbitingPlanetNum,
+						targetPosition: fleet.position,
 					});
 					if (planet) {
 						selectMapObject(planet);
@@ -503,7 +517,8 @@ export function createGameContext(fg: FullGame): GameContext {
 				if (fleet.orbitingPlanetNum && fleet.orbitingPlanetNum != None) {
 					const planet = u.getMapObject({
 						targetType: MapObjectType.Planet,
-						targetNum: fleet.orbitingPlanetNum
+						targetNum: fleet.orbitingPlanetNum,
+						targetPosition: fleet.position,
 					});
 					if (planet) {
 						selectMapObject(planet);
@@ -626,6 +641,22 @@ export function createGameContext(fg: FullGame): GameContext {
 		// if we were selecting this planet, reselect it to trigger reactivity
 		if (equal(get(selectedMapObject), planet)) {
 			selectMapObject(planet);
+		}
+
+		// trigger reactivity
+		universe.set(u);
+	}
+
+	// after a mineField is updated from the server, update the mineField in the universe, reset any commanded/selected
+	// state and trigger reactivity
+	function updateMineField(mineField: MineField, updatedMineField: MineField) {
+		mineField = Object.assign(mineField, updatedMineField);
+		const u = get(universe);
+		u.updateMineField(mineField);
+
+		// if we were selecting this mineField, reselect it to trigger reactivity
+		if (equal(get(selectedMapObject), mineField)) {
+			selectMapObject(mineField);
 		}
 
 		// trigger reactivity
@@ -766,14 +797,20 @@ export function createGameContext(fg: FullGame): GameContext {
 	async function createDesign(design: ShipDesign): Promise<ShipDesign> {
 		// update this design
 		design = await DesignService.create(gameId, design);
-		universe.set(get(universe).addDesign(design));
+		const u = get(universe);
+		u.addDesign(design);
+		cs.setDesigns(u.getMyDesigns());
+		universe.set(u);
 		return design;
 	}
 
 	async function updateDesign(design: ShipDesign): Promise<void> {
 		// update this design
 		design = await DesignService.update(gameId, design);
-		universe.set(get(universe).updateDesign(design));
+		const u = get(universe);
+		u.updateDesign(design);
+		cs.setDesigns(u.getMyDesigns());
+		universe.set(u);
 	}
 
 	async function deleteDesign(num: number): Promise<void> {
@@ -787,6 +824,7 @@ export function createGameContext(fg: FullGame): GameContext {
 		u.resetMyMapObjectsByPosition();
 
 		u.designs = u.designs.filter((d) => d.num != num);
+		cs.setDesigns(u.getMyDesigns());
 		universe.set(u);
 
 		// reset our view to the homeworld, in case the commanded fleet had our deleted design
@@ -809,6 +847,11 @@ export function createGameContext(fg: FullGame): GameContext {
 		// changing the planet orders changes the player's spec
 		updatePlayer(resp.player);
 		updatePlanet(planet, resp.planet);
+	}
+
+	async function updateMineFieldOrders(mineField: MineField): Promise<void> {
+		const updatedMineField = await MineFieldService.updateMineFieldOrders(mineField);
+		updateMineField(mineField, updatedMineField);
 	}
 
 	async function transferCargo(
@@ -907,6 +950,7 @@ export function createGameContext(fg: FullGame): GameContext {
 	}
 
 	return {
+		cs,
 		game,
 		player,
 		universe,
@@ -963,6 +1007,7 @@ export function createGameContext(fg: FullGame): GameContext {
 		updateFleetOrders,
 		renameFleet,
 		updatePlanetOrders,
+		updateMineFieldOrders,
 		transferCargo,
 		split,
 		splitAll,

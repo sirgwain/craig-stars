@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/rs/zerolog/log"
+	"github.com/rs/zerolog"
 )
 
 // warpspeed for using a stargate vs moving with warp drive
@@ -225,6 +225,18 @@ func FleetPurposeFromShipDesignPurpose(purpose ShipDesignPurpose) FleetPurpose {
 		return FleetPurposeMineLayer
 	}
 	return FleetPurposeNone
+}
+
+type fleetMoveInterruptedReason int
+
+const (
+	fleetMoveInterruptedEngineFailure = iota
+	fleetMoveInterruptedHitMineField
+)
+
+type fleetMoveInterrupted struct {
+	reason    fleetMoveInterruptedReason
+	mineField *MineField
 }
 
 func newFleet(player *Player, num int, name string, waypoints []Waypoint) Fleet {
@@ -791,7 +803,7 @@ func (fleet *Fleet) removeEmptyTokens() {
 }
 
 // move a fleet through space, check for minefields, use fuel, etc
-func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, playerGetter playerGetter) {
+func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, playerGetter playerGetter) (interrupted *fleetMoveInterrupted) {
 	player := playerGetter.getPlayer(fleet.PlayerNum)
 	wp0 := fleet.Waypoints[0]
 	wp1 := fleet.Waypoints[1]
@@ -813,7 +825,7 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 	// check for CE engine failure
 	if player.Race.Spec.EngineFailureRate > 0 && wp1.WarpSpeed > player.Race.Spec.EngineReliableSpeed && rules.random.Float64() <= player.Race.Spec.EngineFailureRate {
 		messager.fleetEngineFailure(player, fleet)
-		return
+		return &fleetMoveInterrupted{reason: fleetMoveInterruptedEngineFailure}
 	}
 
 	// get the cost for the fleet
@@ -824,40 +836,40 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 		// if this distance would have cost us 10 fuel but we have 6 left, only travel 60% of the distance.
 		distanceFactor := float64(fleet.Fuel) / float64(fuelCost)
 		dist = dist * distanceFactor
+		fuelCost = fleet.Fuel
 
 		// collide with minefields on route, but don't hit a minefield if we run out of fuel beforehand
-		dist = checkForMineFieldCollision(rules, playerGetter, mapObjectGetter, fleet, wp1, dist)
-
-		// remove any tokens destroyed by minefields and return if the fleet is gone
-		fleet.removeEmptyTokens()
-		if len(fleet.Tokens) == 0 {
-			return
+		hitMineField, actualDist := checkForMineFieldCollision(rules, playerGetter, mapObjectGetter, fleet, wp1, dist)
+		if hitMineField != nil {
+			interrupted = &fleetMoveInterrupted{reason: fleetMoveInterruptedHitMineField, mineField: hitMineField}
 		}
 
-		fleet.Fuel = 0
-		wp1.WarpSpeed = fleet.Spec.Engine.FreeSpeed
-		fleet.Waypoints[1] = wp1
-		messager.fleetOutOfFuel(player, fleet, wp1.WarpSpeed)
+		// we hit a minefield before we ran out of fuel
+		if actualDist != dist {
+			dist = actualDist
+			fuelCost = fleet.GetFuelCost(player, wp1.WarpSpeed, dist)
+		} else {
+			wp1.WarpSpeed = fleet.Spec.Engine.FreeSpeed
+			fleet.Waypoints[1] = wp1
+			messager.fleetOutOfFuel(player, fleet, wp1.WarpSpeed)
+			// if we ran out of fuel 60% of the way to our normal distance, the remaining 40% of our time
+			// was spent travelling at fuel generation speeds:
+			remainingDistanceTravelled := (1 - distanceFactor) * float64(wp1.WarpSpeed*wp1.WarpSpeed)
+			dist += remainingDistanceTravelled
+			fuelGenerated = fleet.getFuelGeneration(wp1.WarpSpeed, remainingDistanceTravelled)
+		}
 
-		// if we ran out of fuel 60% of the way to our normal distance, the remaining 40% of our time
-		// was spent travelling at fuel generation speeds:
-		remainingDistanceTravelled := (1 - distanceFactor) * float64(wp1.WarpSpeed*wp1.WarpSpeed)
-		dist += remainingDistanceTravelled
-		fuelGenerated = fleet.getFuelGeneration(wp1.WarpSpeed, remainingDistanceTravelled)
+		fleet.Fuel -= fuelCost
 	} else {
 		// collide with minefields on route, but don't hit a minefield if we run out of fuel beforehand
-		actualDist := checkForMineFieldCollision(rules, playerGetter, mapObjectGetter, fleet, wp1, dist)
-
-		// remove any tokens destroyed by minefields and return if the fleet is gone
-		fleet.removeEmptyTokens()
-		if len(fleet.Tokens) == 0 {
-			return
+		hitMineField, actualDist := checkForMineFieldCollision(rules, playerGetter, mapObjectGetter, fleet, wp1, dist)
+		if hitMineField != nil {
+			interrupted = &fleetMoveInterrupted{reason: fleetMoveInterruptedHitMineField, mineField: hitMineField}
 		}
 
 		if actualDist != dist {
 			dist = actualDist
 			fuelCost = fleet.GetFuelCost(player, wp1.WarpSpeed, dist)
-			// we hit a minefield, update fuel usage
 		}
 
 		fleet.Fuel -= fuelCost
@@ -916,6 +928,7 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 			}
 		}
 	}
+	return interrupted
 }
 
 // GateFleet moves the fleet the cool way, with stargates!
@@ -1010,6 +1023,30 @@ func (fleet *Fleet) gateFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 
 	// we survived, warp it!
 	fleet.completeMove(mapObjectGetter, player, wp0, wp1)
+}
+
+// if the fleet went over safe warp, explode some ships
+func (fleet *Fleet) applyOverwarpPenalty(rules *Rules) int {
+	if len(fleet.Waypoints) <= 1 {
+		return 0
+	}
+	wp1 := &fleet.Waypoints[1]
+	// check for exploded ships
+	explodedShips := 0
+	for tokenIndex := range fleet.Tokens {
+		token := &fleet.Tokens[tokenIndex]
+		if wp1.WarpSpeed > token.design.Spec.Engine.MaxSafeSpeed && wp1.WarpSpeed != StargateWarpSpeed {
+			// explode some fleets if you go too fast
+			for shipIndex := 0; shipIndex < token.Quantity; shipIndex++ {
+				if rules.FleetSafeSpeedExplosionChance > rules.random.Float64() {
+					explodedShips++
+					token.Quantity--
+				}
+			}
+		}
+	}
+
+	return explodedShips
 }
 
 // applyOvergatePenalty applies damage (if any) to each token that overgated
@@ -1427,7 +1464,7 @@ func (fleet *Fleet) getCargoUnloadAmount(dest cargoHolder, cargoType CargoType, 
 }
 
 // Repair a fleet. This changes based on where the fleet is
-func (fleet *Fleet) repairFleet(rules *Rules, player *Player, orbiting *Planet) {
+func (fleet *Fleet) repairFleet(log zerolog.Logger, rules *Rules, player *Player, orbiting *Planet) {
 	needsRepair := false
 	for _, token := range fleet.Tokens {
 		if token.QuantityDamaged > 0 {
@@ -1484,7 +1521,6 @@ func (fleet *Fleet) repairFleet(rules *Rules, player *Player, orbiting *Planet) 
 			}
 
 			log.Debug().
-				Int64("GameID", fleet.GameID).
 				Int("Player", fleet.PlayerNum).
 				Str("Fleet", fleet.Name).
 				Str("Token", token.design.Name).
@@ -1498,7 +1534,7 @@ func (fleet *Fleet) repairFleet(rules *Rules, player *Player, orbiting *Planet) 
 }
 
 // Repair a starbase
-func (fleet *Fleet) repairStarbase(rules *Rules, player *Player) {
+func (fleet *Fleet) repairStarbase(log zerolog.Logger, rules *Rules, player *Player) {
 	repairRate := rules.RepairRates[RepairRateStarbase]
 	token := &fleet.Tokens[0]
 
@@ -1509,7 +1545,6 @@ func (fleet *Fleet) repairStarbase(rules *Rules, player *Player) {
 	token.Damage = math.Max(0, fleet.Tokens[0].Damage-float64(repairAmount))
 
 	log.Debug().
-		Int64("GameID", fleet.GameID).
 		Int("Player", fleet.PlayerNum).
 		Str("Fleet", fleet.Name).
 		Str("Token", token.design.Name).
