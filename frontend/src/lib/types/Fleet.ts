@@ -280,7 +280,7 @@ export class CommandedFleet implements Fleet {
 			destination?.type == MapObjectType.Planet ? (destination as Planet) : undefined;
 		let stargate = false;
 
-		if (!this.spec?.canJump?) {
+		if (!this.spec?.canJump) {
 			if (originPlanet && targetPlanet) {
 				const destSafeHullMass = targetPlanet.spec.safeHullMass ?? 0;
 				const destSafeRange = targetPlanet.spec.safeRange ?? 0;
