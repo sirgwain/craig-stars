@@ -516,7 +516,7 @@
 		// However, the fleet owner only knows who they set as a friend themselves.
 		// So we are assuming / trusting that the friendship has been reciprocated.
 		// Also, every player is friend to themselves.
-		let refuel = targetPlanet && targetPlanet.spec.hasStarbase && $player.isFriend(mo.playerNum)
+		let refuel = targetPlanet && targetPlanet.spec.hasStarbase && $player.isFriend(mo?.playerNum)
 		
 		// if colonizing or will refuel, we want the max possible warp
 		if (colonizing || refuel) {
@@ -548,7 +548,7 @@
 				position: position,
 				warpSpeed: warpSpeed,
 				task: task,
-				transportTasks: transportTasks
+				transportTasks: transportTasks,
 			});
 		} else {
 			const wp: Waypoint = {

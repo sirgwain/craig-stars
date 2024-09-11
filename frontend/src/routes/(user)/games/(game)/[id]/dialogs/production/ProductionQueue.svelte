@@ -94,7 +94,7 @@
 		updatedPlanet.productionQueue = [...queueItems];
 		updatedPlanet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
 		const planetWithEstimates = cs.estimateProduction(updatedPlanet);
-		if (!planetWithEstimates.productionQueue) {
+		if (!planetWithEstimates?.productionQueue) {
 			addError(new CSError(undefined, 'unable to estimate production', 0));
 			return;
 		}

@@ -378,6 +378,20 @@ func GetBattleRecordTokenActionType(o js.Value) cs.BattleRecordTokenActionType {
 	return obj
 }
 
+func GetBattleRules(o js.Value) cs.BattleRules {
+	var obj cs.BattleRules
+	if o.IsUndefined() || o.IsNull() {
+		return obj
+	}
+	obj.BeamRangeDropoff = getFloat[float64](o.Get("beamRangeDropoff"))
+	obj.NumBattleRounds = getInt[int](o.Get("numBattleRounds"))
+	return obj
+}
+func SetBattleRules(o js.Value, obj *cs.BattleRules) {
+	o.Set("beamRangeDropoff", obj.BeamRangeDropoff)
+	o.Set("numBattleRounds", obj.NumBattleRounds)
+}
+
 func GetBattleTactic(o js.Value) cs.BattleTactic {
 	var obj cs.BattleTactic
 	if o.IsUndefined() || o.IsNull() {
@@ -552,6 +566,36 @@ func SetCost(o js.Value, obj *cs.Cost) {
 	o.Set("resources", obj.Resources)
 }
 
+func GetCostRules(o js.Value) cs.CostRules {
+	var obj cs.CostRules
+	if o.IsUndefined() || o.IsNull() {
+		return obj
+	}
+	obj.DefenseCost = GetCost(o.Get("defenseCost"))
+	obj.FactoryCostGermanium = getInt[int](o.Get("factoryCostGermanium"))
+	obj.MineralAlchemyCost = getInt[int](o.Get("mineralAlchemyCost"))
+	obj.PlanetaryScannerCost = GetCost(o.Get("planetaryScannerCost"))
+	obj.StarbaseComponentCostReduction = getInt[int](o.Get("starbaseComponentCostReduction"))
+	obj.TerraformCost = GetCost(o.Get("terraformCost"))
+	obj.TechBaseCost = GetSlice[int](o.Get("techBaseCost"), getInt)
+	return obj
+}
+func SetCostRules(o js.Value, obj *cs.CostRules) {
+	o.Set("defenseCost", map[string]any{})
+	SetCost(o.Get("defenseCost"), &obj.DefenseCost)
+	o.Set("factoryCostGermanium", obj.FactoryCostGermanium)
+	o.Set("mineralAlchemyCost", obj.MineralAlchemyCost)
+	o.Set("planetaryScannerCost", map[string]any{})
+	SetCost(o.Get("planetaryScannerCost"), &obj.PlanetaryScannerCost)
+	o.Set("starbaseComponentCostReduction", obj.StarbaseComponentCostReduction)
+	o.Set("terraformCost", map[string]any{})
+	SetCost(o.Get("terraformCost"), &obj.TerraformCost)
+	if len(obj.TechBaseCost) > 0 {
+		o.Set("techBaseCost", map[string]any{})
+		SetBasicSlice[int](o.Get("techBaseCost"), obj.TechBaseCost)
+	}
+}
+
 func GetCostType(o js.Value) cs.CostType {
 	var obj cs.CostType
 	if o.IsUndefined() || o.IsNull() {
@@ -606,14 +650,23 @@ func GetEngine(o js.Value) cs.Engine {
 	obj.IdealSpeed = getInt[int](o.Get("idealSpeed"))
 	obj.FreeSpeed = getInt[int](o.Get("freeSpeed"))
 	obj.MaxSafeSpeed = getInt[int](o.Get("maxSafeSpeed"))
-	obj.FuelUsage = [11]int(GetSlice[int](o.Get("fuelUsage"), getInt))
+	fuelUsage := GetSlice[int](o.Get("fuelUsage"), getInt)
+	if len(fuelUsage) == 11 {
+		obj.FuelUsage = [11]int(fuelUsage)
+	}
 	return obj
 }
 func SetEngine(o js.Value, obj *cs.Engine) {
 	o.Set("idealSpeed", obj.IdealSpeed)
 	o.Set("freeSpeed", obj.FreeSpeed)
 	o.Set("maxSafeSpeed", obj.MaxSafeSpeed)
-	o.Set("fuelUsage", obj.FuelUsage)
+	if len(obj.FuelUsage) > 0 {
+		o.Set("fuelUsage", map[string]any{})
+		fuelUsageObj := o.Get("fuelUsage")
+		for i := 0; i < len(obj.FuelUsage); i++ {
+			fuelUsageObj.SetIndex(i, js.ValueOf(obj.FuelUsage[i]))
+		}
+	}
 }
 
 func GetFleet(o js.Value) cs.Fleet {
@@ -1044,11 +1097,13 @@ func GetMineFieldSpec(o js.Value) cs.MineFieldSpec {
 	}
 	obj.Radius = getFloat[float64](o.Get("radius"))
 	obj.DecayRate = getInt[int](o.Get("decayRate"))
+	obj.CanDetonate = getBool(o.Get("canDetonate"))
 	return obj
 }
 func SetMineFieldSpec(o js.Value, obj *cs.MineFieldSpec) {
 	o.Set("radius", obj.Radius)
 	o.Set("decayRate", obj.DecayRate)
+	o.Set("canDetonate", obj.CanDetonate)
 }
 
 func GetMineFieldStats(o js.Value) cs.MineFieldStats {
@@ -1275,7 +1330,10 @@ func GetMysteryTraderRules(o js.Value) cs.MysteryTraderRules {
 	return obj
 }
 func SetMysteryTraderRules(o js.Value, obj *cs.MysteryTraderRules) {
-	o.Set("chanceSpawn", obj.ChanceSpawn)
+	if len(obj.ChanceSpawn) > 0 {
+		o.Set("chanceSpawn", map[string]any{})
+		SetBasicSlice[int](o.Get("chanceSpawn"), obj.ChanceSpawn)
+	}
 	o.Set("chanceMaxTechGetsPart", obj.ChanceMaxTechGetsPart)
 	o.Set("chanceCourseChange", obj.ChanceCourseChange)
 	o.Set("chanceSpeedUpOnly", obj.ChanceSpeedUpOnly)
@@ -1882,6 +1940,7 @@ func GetPlayerMessageSpec(o js.Value) cs.PlayerMessageSpec {
 	obj.Comet = getPointer(GetPlayerMessageSpecComet(o.Get("comet")))
 	obj.Bombing = getPointer(GetBombingResult(o.Get("bombing")))
 	obj.MineralPacketDamage = getPointer(GetMineralPacketDamage(o.Get("mineralPacketDamage")))
+	// MineFieldDamage mineFieldDamage Object ignored
 	obj.MysteryTrader = getPointer(GetPlayerMessageSpecMysteryTrader(o.Get("mysteryTrader")))
 	return obj
 }
@@ -1911,6 +1970,7 @@ func SetPlayerMessageSpec(o js.Value, obj *cs.PlayerMessageSpec) {
 	SetBombingResult(o.Get("bombing"), obj.Bombing)
 	o.Set("mineralPacketDamage", map[string]any{})
 	SetMineralPacketDamage(o.Get("mineralPacketDamage"), obj.MineralPacketDamage)
+	// MineFieldDamage mineFieldDamage Object ignored
 	o.Set("mysteryTrader", map[string]any{})
 	SetPlayerMessageSpecMysteryTrader(o.Get("mysteryTrader"), obj.MysteryTrader)
 }
@@ -2512,117 +2572,73 @@ func GetRules(o js.Value) cs.Rules {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
+	obj.CostRules = GetCostRules(o)
+	obj.BattleRules = GetBattleRules(o)
+	obj.UniverseGenerationRules = GetUniverseGenerationRules(o)
 	obj.ID = getInt[int64](o.Get("id"))
 	obj.CreatedAt = getTime(o.Get("createdAt"))
 	obj.UpdatedAt = getTime(o.Get("updatedAt"))
 	obj.GameID = getInt[int64](o.Get("gameId"))
-	obj.TachyonCloakReduction = getInt[int](o.Get("tachyonCloakReduction"))
+	obj.CometStatsBySize = GetStringMap[map[cs.CometSize]cs.CometStats](o.Get("cometStatsBySize"), GetCometStats)
+	obj.FleetSafeSpeedExplosionChance = getFloat[float64](o.Get("fleetSafeSpeedExplosionChance"))
+	obj.InvasionDefenseCoverageFactor = getFloat[float64](o.Get("invasionDefenseCoverageFactor"))
+	obj.LRTSpecs = GetIntMap[map[cs.LRT]cs.LRTSpec](o.Get("lrtSpecs"), GetLRTSpec)
 	obj.MaxPopulation = getInt[int](o.Get("maxPopulation"))
+	obj.MaxTechLevel = getInt[int](o.Get("maxTechLevel"))
+	obj.MineFieldCloak = getInt[int](o.Get("mineFieldCloak"))
+	obj.MineFieldStatsByType = GetStringMap[map[cs.MineFieldType]cs.MineFieldStats](o.Get("mineFieldStatsByType"), GetMineFieldStats)
+	obj.MineralDecayFactor = getInt[int](o.Get("mineralDecayFactor"))
 	obj.MinMaxPopulationPercent = getFloat[float64](o.Get("minMaxPopulationPercent"))
+	obj.MovesToRunAway = getInt[int](o.Get("movesToRunAway"))
+	obj.MysteryTraderRules = GetMysteryTraderRules(o.Get("mysteryTraderRules"))
+	obj.PacketDecayRate = GetIntMap[map[int]float64](o.Get("packetDecayRate"), getFloat)
+	obj.PacketMinDecay = getInt[int](o.Get("packetMinDecay"))
+	obj.PlanetMinDistance = getInt[int](o.Get("planetMinDistance"))
 	obj.PopulationOvercrowdDieoffRate = getFloat[float64](o.Get("populationOvercrowdDieoffRate"))
 	obj.PopulationOvercrowdDieoffRateMax = getFloat[float64](o.Get("populationOvercrowdDieoffRateMax"))
 	obj.PopulationScannerError = getFloat[float64](o.Get("populationScannerError"))
-	obj.SmartDefenseCoverageFactor = getFloat[float64](o.Get("smartDefenseCoverageFactor"))
-	obj.InvasionDefenseCoverageFactor = getFloat[float64](o.Get("invasionDefenseCoverageFactor"))
-	obj.NumBattleRounds = getInt[int](o.Get("numBattleRounds"))
-	obj.MovesToRunAway = getInt[int](o.Get("movesToRunAway"))
-	obj.BeamRangeDropoff = getFloat[float64](o.Get("beamRangeDropoff"))
-	obj.TorpedoSplashDamage = getFloat[float64](o.Get("torpedoSplashDamage"))
-	obj.SalvageDecayRate = getFloat[float64](o.Get("salvageDecayRate"))
-	obj.SalvageDecayMin = getInt[int](o.Get("salvageDecayMin"))
-	obj.MineFieldCloak = getInt[int](o.Get("mineFieldCloak"))
-	obj.StargateMaxRangeFactor = getInt[int](o.Get("stargateMaxRangeFactor"))
-	obj.StargateMaxHullMassFactor = getInt[int](o.Get("stargateMaxHullMassFactor"))
-	obj.FleetSafeSpeedExplosionChance = getFloat[float64](o.Get("fleetSafeSpeedExplosionChance"))
-	obj.RandomEventChances = GetStringMap[map[cs.RandomEvent]float64](o.Get("randomEventChances"), getFloat)
-	obj.RandomMineralDepositBonusRange = [2]int(GetSlice[int](o.Get("randomMineralDepositBonusRange"), getInt))
-	obj.RandomArtifactResearchBonusRange = [2]int(GetSlice[int](o.Get("randomArtifactResearchBonusRange"), getInt))
+	obj.PRTSpecs = GetStringMap[map[cs.PRT]cs.PRTSpec](o.Get("prtSpecs"), GetPRTSpec)
+	obj.RaceStartingPoints = getInt[int](o.Get("raceStartingPoints"))
+	obj.RadiatingImmune = getInt[int](o.Get("radiatingImmune"))
+	randomArtifactResearchBonusRange := GetSlice[int](o.Get("randomArtifactResearchBonusRange"), getInt)
+	if len(randomArtifactResearchBonusRange) == 2 {
+		obj.RandomArtifactResearchBonusRange = [2]int(randomArtifactResearchBonusRange)
+	}
 	obj.RandomCometMinYear = getInt[int](o.Get("randomCometMinYear"))
 	obj.RandomCometMinYearPlayerWorld = getInt[int](o.Get("randomCometMinYearPlayerWorld"))
-	obj.MysteryTraderRules = GetMysteryTraderRules(o.Get("mysteryTraderRules"))
-	obj.CometStatsBySize = GetStringMap[map[cs.CometSize]cs.CometStats](o.Get("cometStatsBySize"), GetCometStats)
-	obj.WormholeCloak = getInt[int](o.Get("wormholeCloak"))
-	obj.WormholeMinPlanetDistance = getInt[int](o.Get("wormholeMinDistance"))
-	obj.WormholeStatsByStability = GetStringMap[map[cs.WormholeStability]cs.WormholeStats](o.Get("wormholeStatsByStability"), GetWormholeStats)
-	obj.WormholePairsForSize = GetStringMap[map[cs.Size]int](o.Get("wormholePairsForSize"), getInt)
-	obj.MineFieldStatsByType = GetStringMap[map[cs.MineFieldType]cs.MineFieldStats](o.Get("mineFieldStatsByType"), GetMineFieldStats)
-	obj.RepairRates = GetStringMap[map[cs.RepairRate]float64](o.Get("repairRates"), getFloat)
-	obj.MaxPlayers = getInt[int](o.Get("maxPlayers"))
-	obj.StartingYear = getInt[int](o.Get("startingYear"))
-	obj.ShowPublicScoresAfterYears = getInt[int](o.Get("showPublicScoresAfterYears"))
-	obj.PlanetMinDistance = getInt[int](o.Get("planetMinDistance"))
-	obj.MaxExtraWorldDistance = getInt[int](o.Get("maxExtraWorldDistance"))
-	obj.MinExtraWorldDistance = getInt[int](o.Get("minExtraWorldDistance"))
-	obj.MinHomeworldMineralConcentration = getInt[int](o.Get("minHomeworldMineralConcentration"))
-	obj.MinExtraPlanetMineralConcentration = getInt[int](o.Get("minExtraPlanetMineralConcentration"))
-	obj.MinHab = getInt[int](o.Get("minHab"))
-	obj.MaxHab = getInt[int](o.Get("maxHab"))
-	obj.MinMineralConcentration = getInt[int](o.Get("minMineralConcentration"))
-	obj.MaxMineralConcentration = getInt[int](o.Get("maxMineralConcentration"))
-	obj.MinStartingMineralConcentration = getInt[int](o.Get("minStartingMineralConcentration"))
-	obj.MaxStartingMineralConcentration = getInt[int](o.Get("maxStartingMineralConcentration"))
-	obj.LimitMineralConcentration = getInt[int](o.Get("limitMineralConcentration"))
-	obj.HighRadMineralConcentrationBonusThreshold = getInt[int](o.Get("highRadGermaniumBonusThreshold"))
-	obj.RadiatingImmune = getInt[int](o.Get("radiatingImmune"))
-	obj.MaxStartingMineralSurface = getInt[int](o.Get("maxStartingMineralSurface"))
-	obj.MinStartingMineralSurface = getInt[int](o.Get("minStartingMineralSurface"))
-	obj.MineralDecayFactor = getInt[int](o.Get("mineralDecayFactor"))
+	obj.RandomEventChances = GetStringMap[map[cs.RandomEvent]float64](o.Get("randomEventChances"), getFloat)
+	randomMineralDepositBonusRange := GetSlice[int](o.Get("randomMineralDepositBonusRange"), getInt)
+	if len(randomMineralDepositBonusRange) == 2 {
+		obj.RandomMineralDepositBonusRange = [2]int(randomMineralDepositBonusRange)
+	}
 	obj.RemoteMiningMineOutput = getInt[int](o.Get("remoteMiningMineOutput"))
-	obj.RaceStartingPoints = getInt[int](o.Get("raceStartingPoints"))
-	obj.RaceLeftoverPointsPerItem = GetStringMap[map[cs.SpendLeftoverPointsOn]int](o.Get("raceLeftoverPointsPerItem"), getInt)
+	obj.RepairRates = GetStringMap[map[cs.RepairRate]float64](o.Get("repairRates"), getFloat)
+	obj.SalvageDecayMin = getInt[int](o.Get("salvageDecayMin"))
+	obj.SalvageDecayRate = getFloat[float64](o.Get("salvageDecayRate"))
+	obj.SalvageFromBattleFactor = getFloat[float64](o.Get("salvageFromBattleFactor"))
 	obj.ScrapMineralAmount = getFloat[float64](o.Get("scrapMineralAmount"))
 	obj.ScrapResourceAmount = getFloat[float64](o.Get("scrapResourceAmount"))
-	obj.FactoryCostGermanium = getInt[int](o.Get("factoryCostGermanium"))
-	obj.DefenseCost = GetCost(o.Get("defenseCost"))
-	obj.MineralAlchemyCost = getInt[int](o.Get("mineralAlchemyCost"))
-	obj.PlanetaryScannerCost = GetCost(o.Get("planetaryScannerCost"))
-	obj.TerraformCost = GetCost(o.Get("terraformCost"))
-	obj.StarbaseComponentCostReduction = getInt[int](o.Get("starbaseComponentCostReduction"))
-	obj.SalvageFromBattleFactor = getFloat[float64](o.Get("salvageFromBattleFactor"))
-	obj.TechTradeChance = getFloat[float64](o.Get("techTradeChance"))
-	obj.PacketDecayRate = GetIntMap[map[int]float64](o.Get("packetDecayRate"), getFloat)
-	obj.PacketMinDecay = getInt[int](o.Get("packetMinDecay"))
-	obj.MaxTechLevel = getInt[int](o.Get("maxTechLevel"))
-	obj.TechBaseCost = GetSlice[int](o.Get("techBaseCost"), getInt)
-	obj.PRTSpecs = GetStringMap[map[cs.PRT]cs.PRTSpec](o.Get("prtSpecs"), GetPRTSpec)
-	obj.LRTSpecs = GetIntMap[map[cs.LRT]cs.LRTSpec](o.Get("lrtSpecs"), GetLRTSpec)
+	obj.ShowPublicScoresAfterYears = getInt[int](o.Get("showPublicScoresAfterYears"))
+	obj.SmartDefenseCoverageFactor = getFloat[float64](o.Get("smartDefenseCoverageFactor"))
+	obj.StargateMaxHullMassFactor = getInt[int](o.Get("stargateMaxHullMassFactor"))
+	obj.StargateMaxRangeFactor = getInt[int](o.Get("stargateMaxRangeFactor"))
+	obj.TachyonCloakReduction = getInt[int](o.Get("tachyonCloakReduction"))
 	obj.TechsID = getInt[int64](o.Get("techsId"))
+	obj.TechTradeChance = getFloat[float64](o.Get("techTradeChance"))
+	obj.TorpedoSplashDamage = getFloat[float64](o.Get("torpedoSplashDamage"))
+	obj.WormholeCloak = getInt[int](o.Get("wormholeCloak"))
+	obj.WormholePairsForSize = GetStringMap[map[cs.Size]int](o.Get("wormholePairsForSize"), getInt)
+	obj.WormholeStatsByStability = GetStringMap[map[cs.WormholeStability]cs.WormholeStats](o.Get("wormholeStatsByStability"), GetWormholeStats)
 	return obj
 }
 func SetRules(o js.Value, obj *cs.Rules) {
+	SetCostRules(o, &obj.CostRules)
+	SetBattleRules(o, &obj.BattleRules)
+	SetUniverseGenerationRules(o, &obj.UniverseGenerationRules)
 	o.Set("id", obj.ID)
 	SetTime(o, "createdAt", obj.CreatedAt)
 	SetTime(o, "updatedAt", obj.UpdatedAt)
 	o.Set("gameId", obj.GameID)
-	o.Set("tachyonCloakReduction", obj.TachyonCloakReduction)
-	o.Set("maxPopulation", obj.MaxPopulation)
-	o.Set("minMaxPopulationPercent", obj.MinMaxPopulationPercent)
-	o.Set("populationOvercrowdDieoffRate", obj.PopulationOvercrowdDieoffRate)
-	o.Set("populationOvercrowdDieoffRateMax", obj.PopulationOvercrowdDieoffRateMax)
-	o.Set("populationScannerError", obj.PopulationScannerError)
-	o.Set("smartDefenseCoverageFactor", obj.SmartDefenseCoverageFactor)
-	o.Set("invasionDefenseCoverageFactor", obj.InvasionDefenseCoverageFactor)
-	o.Set("numBattleRounds", obj.NumBattleRounds)
-	o.Set("movesToRunAway", obj.MovesToRunAway)
-	o.Set("beamRangeDropoff", obj.BeamRangeDropoff)
-	o.Set("torpedoSplashDamage", obj.TorpedoSplashDamage)
-	o.Set("salvageDecayRate", obj.SalvageDecayRate)
-	o.Set("salvageDecayMin", obj.SalvageDecayMin)
-	o.Set("mineFieldCloak", obj.MineFieldCloak)
-	o.Set("stargateMaxRangeFactor", obj.StargateMaxRangeFactor)
-	o.Set("stargateMaxHullMassFactor", obj.StargateMaxHullMassFactor)
-	o.Set("fleetSafeSpeedExplosionChance", obj.FleetSafeSpeedExplosionChance)
-	randomEventChancesMap := js.ValueOf(map[string]any{})
-	for key, value := range obj.RandomEventChances {
-		randomEventChancesMap.Set(fmt.Sprintf("%v", key), value)
-	}
-	o.Set("randomEventChances", randomEventChancesMap)
-	o.Set("randomMineralDepositBonusRange", obj.RandomMineralDepositBonusRange)
-	o.Set("randomArtifactResearchBonusRange", obj.RandomArtifactResearchBonusRange)
-	o.Set("randomCometMinYear", obj.RandomCometMinYear)
-	o.Set("randomCometMinYearPlayerWorld", obj.RandomCometMinYearPlayerWorld)
-	o.Set("mysteryTraderRules", map[string]any{})
-	SetMysteryTraderRules(o.Get("mysteryTraderRules"), &obj.MysteryTraderRules)
 	cometStatsBySizeMap := js.ValueOf(map[string]any{})
 	for key, value := range obj.CometStatsBySize {
 		valueObj := js.ValueOf(map[string]any{})
@@ -2630,87 +2646,8 @@ func SetRules(o js.Value, obj *cs.Rules) {
 		cometStatsBySizeMap.Set(fmt.Sprintf("%v", key), valueObj)
 	}
 	o.Set("cometStatsBySize", cometStatsBySizeMap)
-	o.Set("wormholeCloak", obj.WormholeCloak)
-	o.Set("wormholeMinDistance", obj.WormholeMinPlanetDistance)
-	wormholeStatsByStabilityMap := js.ValueOf(map[string]any{})
-	for key, value := range obj.WormholeStatsByStability {
-		valueObj := js.ValueOf(map[string]any{})
-		SetWormholeStats(valueObj, &value)
-		wormholeStatsByStabilityMap.Set(fmt.Sprintf("%v", key), valueObj)
-	}
-	o.Set("wormholeStatsByStability", wormholeStatsByStabilityMap)
-	wormholePairsForSizeMap := js.ValueOf(map[string]any{})
-	for key, value := range obj.WormholePairsForSize {
-		wormholePairsForSizeMap.Set(fmt.Sprintf("%v", key), value)
-	}
-	o.Set("wormholePairsForSize", wormholePairsForSizeMap)
-	mineFieldStatsByTypeMap := js.ValueOf(map[string]any{})
-	for key, value := range obj.MineFieldStatsByType {
-		valueObj := js.ValueOf(map[string]any{})
-		SetMineFieldStats(valueObj, &value)
-		mineFieldStatsByTypeMap.Set(fmt.Sprintf("%v", key), valueObj)
-	}
-	o.Set("mineFieldStatsByType", mineFieldStatsByTypeMap)
-	repairRatesMap := js.ValueOf(map[string]any{})
-	for key, value := range obj.RepairRates {
-		repairRatesMap.Set(fmt.Sprintf("%v", key), value)
-	}
-	o.Set("repairRates", repairRatesMap)
-	o.Set("maxPlayers", obj.MaxPlayers)
-	o.Set("startingYear", obj.StartingYear)
-	o.Set("showPublicScoresAfterYears", obj.ShowPublicScoresAfterYears)
-	o.Set("planetMinDistance", obj.PlanetMinDistance)
-	o.Set("maxExtraWorldDistance", obj.MaxExtraWorldDistance)
-	o.Set("minExtraWorldDistance", obj.MinExtraWorldDistance)
-	o.Set("minHomeworldMineralConcentration", obj.MinHomeworldMineralConcentration)
-	o.Set("minExtraPlanetMineralConcentration", obj.MinExtraPlanetMineralConcentration)
-	o.Set("minHab", obj.MinHab)
-	o.Set("maxHab", obj.MaxHab)
-	o.Set("minMineralConcentration", obj.MinMineralConcentration)
-	o.Set("maxMineralConcentration", obj.MaxMineralConcentration)
-	o.Set("minStartingMineralConcentration", obj.MinStartingMineralConcentration)
-	o.Set("maxStartingMineralConcentration", obj.MaxStartingMineralConcentration)
-	o.Set("limitMineralConcentration", obj.LimitMineralConcentration)
-	o.Set("highRadGermaniumBonusThreshold", obj.HighRadMineralConcentrationBonusThreshold)
-	o.Set("radiatingImmune", obj.RadiatingImmune)
-	o.Set("maxStartingMineralSurface", obj.MaxStartingMineralSurface)
-	o.Set("minStartingMineralSurface", obj.MinStartingMineralSurface)
-	o.Set("mineralDecayFactor", obj.MineralDecayFactor)
-	o.Set("remoteMiningMineOutput", obj.RemoteMiningMineOutput)
-	o.Set("raceStartingPoints", obj.RaceStartingPoints)
-	raceLeftoverPointsPerItemMap := js.ValueOf(map[string]any{})
-	for key, value := range obj.RaceLeftoverPointsPerItem {
-		raceLeftoverPointsPerItemMap.Set(fmt.Sprintf("%v", key), value)
-	}
-	o.Set("raceLeftoverPointsPerItem", raceLeftoverPointsPerItemMap)
-	o.Set("scrapMineralAmount", obj.ScrapMineralAmount)
-	o.Set("scrapResourceAmount", obj.ScrapResourceAmount)
-	o.Set("factoryCostGermanium", obj.FactoryCostGermanium)
-	o.Set("defenseCost", map[string]any{})
-	SetCost(o.Get("defenseCost"), &obj.DefenseCost)
-	o.Set("mineralAlchemyCost", obj.MineralAlchemyCost)
-	o.Set("planetaryScannerCost", map[string]any{})
-	SetCost(o.Get("planetaryScannerCost"), &obj.PlanetaryScannerCost)
-	o.Set("terraformCost", map[string]any{})
-	SetCost(o.Get("terraformCost"), &obj.TerraformCost)
-	o.Set("starbaseComponentCostReduction", obj.StarbaseComponentCostReduction)
-	o.Set("salvageFromBattleFactor", obj.SalvageFromBattleFactor)
-	o.Set("techTradeChance", obj.TechTradeChance)
-	packetDecayRateMap := js.ValueOf(map[string]any{})
-	for key, value := range obj.PacketDecayRate {
-		packetDecayRateMap.Set(fmt.Sprintf("%v", key), value)
-	}
-	o.Set("packetDecayRate", packetDecayRateMap)
-	o.Set("packetMinDecay", obj.PacketMinDecay)
-	o.Set("maxTechLevel", obj.MaxTechLevel)
-	o.Set("techBaseCost", obj.TechBaseCost)
-	prtSpecsMap := js.ValueOf(map[string]any{})
-	for key, value := range obj.PRTSpecs {
-		valueObj := js.ValueOf(map[string]any{})
-		SetPRTSpec(valueObj, &value)
-		prtSpecsMap.Set(fmt.Sprintf("%v", key), valueObj)
-	}
-	o.Set("prtSpecs", prtSpecsMap)
+	o.Set("fleetSafeSpeedExplosionChance", obj.FleetSafeSpeedExplosionChance)
+	o.Set("invasionDefenseCoverageFactor", obj.InvasionDefenseCoverageFactor)
 	lrtSpecsMap := js.ValueOf(map[string]any{})
 	for key, value := range obj.LRTSpecs {
 		valueObj := js.ValueOf(map[string]any{})
@@ -2718,7 +2655,93 @@ func SetRules(o js.Value, obj *cs.Rules) {
 		lrtSpecsMap.Set(fmt.Sprintf("%v", key), valueObj)
 	}
 	o.Set("lrtSpecs", lrtSpecsMap)
+	o.Set("maxPopulation", obj.MaxPopulation)
+	o.Set("maxTechLevel", obj.MaxTechLevel)
+	o.Set("mineFieldCloak", obj.MineFieldCloak)
+	mineFieldStatsByTypeMap := js.ValueOf(map[string]any{})
+	for key, value := range obj.MineFieldStatsByType {
+		valueObj := js.ValueOf(map[string]any{})
+		SetMineFieldStats(valueObj, &value)
+		mineFieldStatsByTypeMap.Set(fmt.Sprintf("%v", key), valueObj)
+	}
+	o.Set("mineFieldStatsByType", mineFieldStatsByTypeMap)
+	o.Set("mineralDecayFactor", obj.MineralDecayFactor)
+	o.Set("minMaxPopulationPercent", obj.MinMaxPopulationPercent)
+	o.Set("movesToRunAway", obj.MovesToRunAway)
+	o.Set("mysteryTraderRules", map[string]any{})
+	SetMysteryTraderRules(o.Get("mysteryTraderRules"), &obj.MysteryTraderRules)
+	packetDecayRateMap := js.ValueOf(map[string]any{})
+	for key, value := range obj.PacketDecayRate {
+		packetDecayRateMap.Set(fmt.Sprintf("%v", key), value)
+	}
+	o.Set("packetDecayRate", packetDecayRateMap)
+	o.Set("packetMinDecay", obj.PacketMinDecay)
+	o.Set("planetMinDistance", obj.PlanetMinDistance)
+	o.Set("populationOvercrowdDieoffRate", obj.PopulationOvercrowdDieoffRate)
+	o.Set("populationOvercrowdDieoffRateMax", obj.PopulationOvercrowdDieoffRateMax)
+	o.Set("populationScannerError", obj.PopulationScannerError)
+	prtSpecsMap := js.ValueOf(map[string]any{})
+	for key, value := range obj.PRTSpecs {
+		valueObj := js.ValueOf(map[string]any{})
+		SetPRTSpec(valueObj, &value)
+		prtSpecsMap.Set(fmt.Sprintf("%v", key), valueObj)
+	}
+	o.Set("prtSpecs", prtSpecsMap)
+	o.Set("raceStartingPoints", obj.RaceStartingPoints)
+	o.Set("radiatingImmune", obj.RadiatingImmune)
+	if len(obj.RandomArtifactResearchBonusRange) > 0 {
+		o.Set("randomArtifactResearchBonusRange", map[string]any{})
+		randomArtifactResearchBonusRangeObj := o.Get("randomArtifactResearchBonusRange")
+		for i := 0; i < len(obj.RandomArtifactResearchBonusRange); i++ {
+			randomArtifactResearchBonusRangeObj.SetIndex(i, js.ValueOf(obj.RandomArtifactResearchBonusRange[i]))
+		}
+	}
+	o.Set("randomCometMinYear", obj.RandomCometMinYear)
+	o.Set("randomCometMinYearPlayerWorld", obj.RandomCometMinYearPlayerWorld)
+	randomEventChancesMap := js.ValueOf(map[string]any{})
+	for key, value := range obj.RandomEventChances {
+		randomEventChancesMap.Set(fmt.Sprintf("%v", key), value)
+	}
+	o.Set("randomEventChances", randomEventChancesMap)
+	if len(obj.RandomMineralDepositBonusRange) > 0 {
+		o.Set("randomMineralDepositBonusRange", map[string]any{})
+		randomMineralDepositBonusRangeObj := o.Get("randomMineralDepositBonusRange")
+		for i := 0; i < len(obj.RandomMineralDepositBonusRange); i++ {
+			randomMineralDepositBonusRangeObj.SetIndex(i, js.ValueOf(obj.RandomMineralDepositBonusRange[i]))
+		}
+	}
+	o.Set("remoteMiningMineOutput", obj.RemoteMiningMineOutput)
+	repairRatesMap := js.ValueOf(map[string]any{})
+	for key, value := range obj.RepairRates {
+		repairRatesMap.Set(fmt.Sprintf("%v", key), value)
+	}
+	o.Set("repairRates", repairRatesMap)
+	o.Set("salvageDecayMin", obj.SalvageDecayMin)
+	o.Set("salvageDecayRate", obj.SalvageDecayRate)
+	o.Set("salvageFromBattleFactor", obj.SalvageFromBattleFactor)
+	o.Set("scrapMineralAmount", obj.ScrapMineralAmount)
+	o.Set("scrapResourceAmount", obj.ScrapResourceAmount)
+	o.Set("showPublicScoresAfterYears", obj.ShowPublicScoresAfterYears)
+	o.Set("smartDefenseCoverageFactor", obj.SmartDefenseCoverageFactor)
+	o.Set("stargateMaxHullMassFactor", obj.StargateMaxHullMassFactor)
+	o.Set("stargateMaxRangeFactor", obj.StargateMaxRangeFactor)
+	o.Set("tachyonCloakReduction", obj.TachyonCloakReduction)
 	o.Set("techsId", obj.TechsID)
+	o.Set("techTradeChance", obj.TechTradeChance)
+	o.Set("torpedoSplashDamage", obj.TorpedoSplashDamage)
+	o.Set("wormholeCloak", obj.WormholeCloak)
+	wormholePairsForSizeMap := js.ValueOf(map[string]any{})
+	for key, value := range obj.WormholePairsForSize {
+		wormholePairsForSizeMap.Set(fmt.Sprintf("%v", key), value)
+	}
+	o.Set("wormholePairsForSize", wormholePairsForSizeMap)
+	wormholeStatsByStabilityMap := js.ValueOf(map[string]any{})
+	for key, value := range obj.WormholeStatsByStability {
+		valueObj := js.ValueOf(map[string]any{})
+		SetWormholeStats(valueObj, &value)
+		wormholeStatsByStabilityMap.Set(fmt.Sprintf("%v", key), valueObj)
+	}
+	o.Set("wormholeStatsByStability", wormholeStatsByStabilityMap)
 }
 
 func GetSalvageIntel(o js.Value) cs.SalvageIntel {
@@ -3292,12 +3315,24 @@ func GetTechRequirements(o js.Value) cs.TechRequirements {
 }
 func SetTechRequirements(o js.Value, obj *cs.TechRequirements) {
 	SetTechLevel(o, &obj.TechLevel)
-	SetBasicSlice[cs.PRT](o.Get("prtsDenied"), obj.PRTsDenied)
+	if len(obj.PRTsDenied) > 0 {
+		o.Set("prtsDenied", map[string]any{})
+		SetBasicSlice[cs.PRT](o.Get("prtsDenied"), obj.PRTsDenied)
+	}
 	o.Set("lrtsRequired", uint32(obj.LRTsRequired))
 	o.Set("lrtsDenied", uint32(obj.LRTsDenied))
-	SetBasicSlice[cs.PRT](o.Get("prtsRequired"), obj.PRTsRequired)
-	o.Set("hullsAllowed", obj.HullsAllowed)
-	o.Set("hullsDenied", obj.HullsDenied)
+	if len(obj.PRTsRequired) > 0 {
+		o.Set("prtsRequired", map[string]any{})
+		SetBasicSlice[cs.PRT](o.Get("prtsRequired"), obj.PRTsRequired)
+	}
+	if len(obj.HullsAllowed) > 0 {
+		o.Set("hullsAllowed", map[string]any{})
+		SetBasicSlice[string](o.Get("hullsAllowed"), obj.HullsAllowed)
+	}
+	if len(obj.HullsDenied) > 0 {
+		o.Set("hullsDenied", map[string]any{})
+		SetBasicSlice[string](o.Get("hullsDenied"), obj.HullsDenied)
+	}
 	o.Set("acquirable", obj.Acquirable)
 }
 
@@ -3341,6 +3376,54 @@ func SetTransportPlan(o js.Value, obj *cs.TransportPlan) {
 	o.Set("name", obj.Name)
 	o.Set("tasks", map[string]any{})
 	SetWaypointTransportTasks(o.Get("tasks"), &obj.Tasks)
+}
+
+func GetUniverseGenerationRules(o js.Value) cs.UniverseGenerationRules {
+	var obj cs.UniverseGenerationRules
+	if o.IsUndefined() || o.IsNull() {
+		return obj
+	}
+	obj.HighRadMineralConcentrationBonusThreshold = getInt[int](o.Get("highRadGermaniumBonusThreshold"))
+	obj.LimitMineralConcentration = getInt[int](o.Get("limitMineralConcentration"))
+	obj.MaxExtraWorldDistance = getInt[int](o.Get("maxExtraWorldDistance"))
+	obj.MaxHab = getInt[int](o.Get("maxHab"))
+	obj.MaxMineralConcentration = getInt[int](o.Get("maxMineralConcentration"))
+	obj.MaxStartingMineralConcentration = getInt[int](o.Get("maxStartingMineralConcentration"))
+	obj.MaxStartingMineralSurface = getInt[int](o.Get("maxStartingMineralSurface"))
+	obj.MinExtraPlanetMineralConcentration = getInt[int](o.Get("minExtraPlanetMineralConcentration"))
+	obj.MinExtraWorldDistance = getInt[int](o.Get("minExtraWorldDistance"))
+	obj.MinHab = getInt[int](o.Get("minHab"))
+	obj.MinHomeworldMineralConcentration = getInt[int](o.Get("minHomeworldMineralConcentration"))
+	obj.MinMineralConcentration = getInt[int](o.Get("minMineralConcentration"))
+	obj.MinStartingMineralConcentration = getInt[int](o.Get("minStartingMineralConcentration"))
+	obj.MinStartingMineralSurface = getInt[int](o.Get("minStartingMineralSurface"))
+	obj.RaceLeftoverPointsPerItem = GetStringMap[map[cs.SpendLeftoverPointsOn]int](o.Get("raceLeftoverPointsPerItem"), getInt)
+	obj.StartingYear = getInt[int](o.Get("startingYear"))
+	obj.WormholeMinPlanetDistance = getInt[int](o.Get("wormholeMinDistance"))
+	return obj
+}
+func SetUniverseGenerationRules(o js.Value, obj *cs.UniverseGenerationRules) {
+	o.Set("highRadGermaniumBonusThreshold", obj.HighRadMineralConcentrationBonusThreshold)
+	o.Set("limitMineralConcentration", obj.LimitMineralConcentration)
+	o.Set("maxExtraWorldDistance", obj.MaxExtraWorldDistance)
+	o.Set("maxHab", obj.MaxHab)
+	o.Set("maxMineralConcentration", obj.MaxMineralConcentration)
+	o.Set("maxStartingMineralConcentration", obj.MaxStartingMineralConcentration)
+	o.Set("maxStartingMineralSurface", obj.MaxStartingMineralSurface)
+	o.Set("minExtraPlanetMineralConcentration", obj.MinExtraPlanetMineralConcentration)
+	o.Set("minExtraWorldDistance", obj.MinExtraWorldDistance)
+	o.Set("minHab", obj.MinHab)
+	o.Set("minHomeworldMineralConcentration", obj.MinHomeworldMineralConcentration)
+	o.Set("minMineralConcentration", obj.MinMineralConcentration)
+	o.Set("minStartingMineralConcentration", obj.MinStartingMineralConcentration)
+	o.Set("minStartingMineralSurface", obj.MinStartingMineralSurface)
+	raceLeftoverPointsPerItemMap := js.ValueOf(map[string]any{})
+	for key, value := range obj.RaceLeftoverPointsPerItem {
+		raceLeftoverPointsPerItemMap.Set(fmt.Sprintf("%v", key), value)
+	}
+	o.Set("raceLeftoverPointsPerItem", raceLeftoverPointsPerItemMap)
+	o.Set("startingYear", obj.StartingYear)
+	o.Set("wormholeMinDistance", obj.WormholeMinPlanetDistance)
 }
 
 func GetUserRole(o js.Value) cs.UserRole {

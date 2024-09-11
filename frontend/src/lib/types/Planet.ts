@@ -274,7 +274,7 @@ export class CommandedPlanet implements Planet {
 	// update the production queue estimates for the planet's production queue
 	public updateProductionQueueEstimates(cs: CS): ProductionQueueItem[] {
 		const planetWithEstimates = cs.estimateProduction(this);
-		if (planetWithEstimates.productionQueue?.length !== this.productionQueue.length) {
+		if (planetWithEstimates?.productionQueue?.length !== this.productionQueue.length) {
 			throw Error("failed to estimate production queue. items don't match up");
 		}
 
@@ -557,7 +557,7 @@ export class CommandedPlanet implements Planet {
 		const planetCopy = cloneDeep(this);
 		planetCopy.productionQueue = [item];
 		const planetWithEstimates = cs.estimateProduction(planetCopy);
-		return planetWithEstimates.productionQueue?.length == 1
+		return planetWithEstimates?.productionQueue?.length == 1
 			? planetWithEstimates.productionQueue[0].yearsToBuildOne ?? NeverBuilt
 			: NeverBuilt;
 	}
