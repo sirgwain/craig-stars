@@ -60,7 +60,7 @@ type TechFinder interface {
 	GetHullsByType(techHullType TechHullType) []*TechHull
 	GetHullComponent(name string) *TechHullComponent
 	GetHullComponentsByCategory(category TechCategory) []TechHullComponent
-	GetBestComponentWithTags(player *Player, slotTypes HullSlotType, allTags bool, tags ...TechTag) *TechHullComponent
+	GetBestComponentWithTags(player *Player, hull *TechHull, slotTypes HullSlotType, allTags bool, light bool, tags ...TechTag) *TechHullComponent
 }
 
 func NewTechStore() TechFinder {
@@ -219,31 +219,60 @@ func (store *TechStore) GetHullComponentsByHullSlotType(slots HullSlotType) []Te
 	return techs
 }
 
-// get best TechHullComponent for the specified hullSlotType(s) that also contains the specified tag(s).
-// Multiple slots can be checked at once by bitwise XORing them beforehand
-//
-// allTags determines the search style - normally it defaults to "OR" (parts only need to match >=1 tag),
-// but setting it to "true" requires ALL listed tags to match for a part to be considered
-func (store *TechStore) GetBestComponentWithTags(player *Player, hullSlotType HullSlotType, allTags bool, tags ...TechTag) *TechHullComponent {
+/*
+	get best TechHullComponent for the specified hullSlotType(s) that also contains the specified tag(s).
+
+	allTags determines the search style - normally it defaults to "OR" (parts only need to match >=1 tag),
+	but setting it to "true" requires ALL listed tags to match for a part to be considered.
+
+	light merely determines if we care about armor/shield weight - 
+	if true, it will de-prioritize armor items above 30kT if other alternatives exist
+*/
+func (store *TechStore) GetBestComponentWithTags(player *Player, hull *TechHull, hullSlotType HullSlotType, allTags bool, light bool, tags ...TechTag) *TechHullComponent {
 	var bestTech *TechHullComponent
+	var match bool
 
 	// get list of components for the techHullTypes we can use
 	var comps []TechHullComponent = store.GetHullComponentsByHullSlotType(hullSlotType)
 
 	for _, hc := range comps {
-		var match bool
+		if (len(hc.Tech.Requirements.HullsAllowed) > 0 && !slices.Contains(hc.Tech.Requirements.HullsAllowed, hull.Name)) ||
+		(len(hc.Tech.Requirements.HullsDenied) > 0 && slices.Contains(hc.Tech.Requirements.HullsDenied, hull.Name)) {
+			// we cannot use this part; skip to the next item 
+			continue
+		}
 
 		if allTags {
 			// need all tags to match for it to work
 			// we set match to true and break as soon as a single tag is missing
-			match = hc.Tags.hasAllTags(tags...)
+			// or has its corresponding field be worse than our current item's
+
+			match = true
+			for _, tag := range tags {
+				if !hc.Tags[tag] {
+					// don't have tag; break
+					match = false
+					break
+				} else if hc.CompareFieldsByTag(player, bestTech, tag, light) { // we do have tag; check if it's better or not
+					// new part worse than current part; break
+					match = false
+				}
+			}
 		} else {
 			// need only 1 tag to match
-			// we assume match is false and break as soon as a single tag matches
-			match = hc.Tags.hasOneTag(tags...)
+			// we set match to false and break as soon as a single tag matches 
+			// and is better than our current item
+
+			match = false
+			for _, tag := range tags {
+				if hc.Tags[tag] && hc.CompareFieldsByTag(player, bestTech, tag, light) { // editor's note: this has a nil check in line 1 of function
+					// we have tag and it's better than what 
+					match = true
+				}
+			}
 		}
 
-		if match && player.HasTech(&hc.Tech) && (bestTech == nil || hc.Ranking > bestTech.Ranking) {
+		if match && player.HasTech(&hc.Tech) {
 			bestTech = &hc
 		}
 	}
@@ -412,47 +441,6 @@ func (store *TechStore) GetBestShield(player *Player) *TechHullComponent {
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if tech.Category == TechCategoryShield && player.HasTech(&tech.Tech) {
-			if bestTech == nil || tech.Ranking > bestTech.Ranking {
-				bestTech = tech
-			}
-		}
-	}
-	return bestTech
-}
-
-// get the player's best torpedo weapon or capital ship missile
-func (store *TechStore) GetBestTorpedo(player *Player) *TechHullComponent {
-	var bestTech *TechHullComponent
-	for i := range store.HullComponents {
-		tech := &store.HullComponents[i]
-		if tech.Category == TechCategoryTorpedo && tech.Power > 0 && !tech.CapitalShipMissile && player.HasTech(&tech.Tech) {
-			if bestTech == nil || tech.Ranking > bestTech.Ranking {
-				bestTech = tech
-			}
-		}
-	}
-	// Use a capital ship missile if it is strictly better than our best torpedo
-	// For this to happen, the torp must be at least twice as cost effective than the missile
-	// in terms of average damage (since lategame ships have high jamming)
-	// Not likely in vanilla, but maybe in mods?
-	bestMissile := store.GetBestMissile(player)
-	if bestTech == nil && bestMissile != nil {
-		if minType := bestMissile.Cost.ToMineral().HighestType(); (bestMissile.Power*bestMissile.Accuracy*2)/(bestTech.Power*bestTech.Accuracy) >
-			(bestMissile.Cost.ToMineral().GetAmount(minType) /
-				bestTech.Cost.ToMineral().GetAmount(minType)) {
-			bestTech = bestMissile
-		}
-	}
-
-	return bestTech
-}
-
-// get the player's best capital ship missile
-func (store *TechStore) GetBestMissile(player *Player) *TechHullComponent {
-	var bestTech *TechHullComponent
-	for i := range store.HullComponents {
-		tech := &store.HullComponents[i]
-		if tech.Category == TechCategoryTorpedo && tech.Power > 0 && tech.CapitalShipMissile && player.HasTech(&tech.Tech) {
 			if bestTech == nil || tech.Ranking > bestTech.Ranking {
 				bestTech = tech
 			}
@@ -664,20 +652,6 @@ func (store *TechStore) GetBestPacketThrower(player *Player) *TechHullComponent 
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
 		if tech.Category == TechCategoryOrbital && tech.PacketSpeed > 0 && player.HasTech(&tech.Tech) {
-			if bestTech == nil || tech.Ranking > bestTech.Ranking {
-				bestTech = tech
-			}
-		}
-	}
-	return bestTech
-}
-
-// get the best stargate for a player
-func (store *TechStore) GetBestStargate(player *Player) *TechHullComponent {
-	var bestTech *TechHullComponent
-	for i := range store.HullComponents {
-		tech := &store.HullComponents[i]
-		if tech.Category == TechCategoryOrbital && tech.SafeRange != 0 && player.HasTech(&tech.Tech) {
 			if bestTech == nil || tech.Ranking > bestTech.Ranking {
 				bestTech = tech
 			}
@@ -1267,43 +1241,43 @@ var UltraDriver13 = TechHullComponent{Tech: NewTech("Ultra Driver 13", NewCost(2
 	PacketSpeed:  13,
 	HullSlotType: HullSlotTypeOrbital,
 }
-var RoboMidgetMiner = TechHullComponent{Tech: NewTech("Robo-Midget-Miner", NewCost(14, 0, 4, 50), TechRequirements{TechLevel: TechLevel{}, LRTsRequired: ARM}, 10, TechCategoryMineRobot, TechTagMineRobot),
+var RoboMidgetMiner = TechHullComponent{Tech: NewTech("Robo-Midget-Miner", NewCost(14, 0, 4, 50), TechRequirements{TechLevel: TechLevel{}, LRTsRequired: ARM}, 10, TechCategoryMineRobot, TechTagMiningRobot),
 
 	Mass:         80,
 	MiningRate:   5,
 	HullSlotType: HullSlotTypeMining,
 }
-var RoboMiniMiner = TechHullComponent{Tech: NewTech("Robo-Mini-Miner", NewCost(30, 0, 7, 100), TechRequirements{TechLevel: TechLevel{Construction: 2, Electronics: 1}}, 20, TechCategoryMineRobot, TechTagMineRobot),
+var RoboMiniMiner = TechHullComponent{Tech: NewTech("Robo-Mini-Miner", NewCost(30, 0, 7, 100), TechRequirements{TechLevel: TechLevel{Construction: 2, Electronics: 1}}, 20, TechCategoryMineRobot, TechTagMiningRobot),
 
 	Mass:         240,
 	MiningRate:   4,
 	HullSlotType: HullSlotTypeMining,
 }
-var RoboMiner = TechHullComponent{Tech: NewTech("Robo-Miner", NewCost(30, 0, 7, 100), TechRequirements{TechLevel: TechLevel{Construction: 4, Electronics: 2}, LRTsDenied: OBRM}, 30, TechCategoryMineRobot, TechTagMineRobot),
+var RoboMiner = TechHullComponent{Tech: NewTech("Robo-Miner", NewCost(30, 0, 7, 100), TechRequirements{TechLevel: TechLevel{Construction: 4, Electronics: 2}, LRTsDenied: OBRM}, 30, TechCategoryMineRobot, TechTagMiningRobot),
 
 	Mass:         240,
 	MiningRate:   12,
 	HullSlotType: HullSlotTypeMining,
 }
-var RoboMaxiMiner = TechHullComponent{Tech: NewTech("Robo-Maxi-Miner", NewCost(30, 0, 7, 100), TechRequirements{TechLevel: TechLevel{Construction: 7, Electronics: 4}, LRTsDenied: OBRM}, 40, TechCategoryMineRobot, TechTagMineRobot),
+var RoboMaxiMiner = TechHullComponent{Tech: NewTech("Robo-Maxi-Miner", NewCost(30, 0, 7, 100), TechRequirements{TechLevel: TechLevel{Construction: 7, Electronics: 4}, LRTsDenied: OBRM}, 40, TechCategoryMineRobot, TechTagMiningRobot),
 
 	Mass:         240,
 	MiningRate:   18,
 	HullSlotType: HullSlotTypeMining,
 }
-var RoboSuperMiner = TechHullComponent{Tech: NewTech("Robo-Super-Miner", NewCost(30, 0, 7, 100), TechRequirements{TechLevel: TechLevel{Construction: 12, Electronics: 6}, LRTsDenied: OBRM}, 50, TechCategoryMineRobot, TechTagMineRobot),
+var RoboSuperMiner = TechHullComponent{Tech: NewTech("Robo-Super-Miner", NewCost(30, 0, 7, 100), TechRequirements{TechLevel: TechLevel{Construction: 12, Electronics: 6}, LRTsDenied: OBRM}, 50, TechCategoryMineRobot, TechTagMiningRobot),
 
 	Mass:         240,
 	MiningRate:   27,
 	HullSlotType: HullSlotTypeMining,
 }
-var RoboUltraMiner = TechHullComponent{Tech: NewTech("Robo-Ultra-Miner", NewCost(14, 0, 4, 50), TechRequirements{TechLevel: TechLevel{Construction: 15, Electronics: 8}, LRTsRequired: ARM, LRTsDenied: OBRM}, 60, TechCategoryMineRobot, TechTagMineRobot),
+var RoboUltraMiner = TechHullComponent{Tech: NewTech("Robo-Ultra-Miner", NewCost(14, 0, 4, 50), TechRequirements{TechLevel: TechLevel{Construction: 15, Electronics: 8}, LRTsRequired: ARM, LRTsDenied: OBRM}, 60, TechCategoryMineRobot, TechTagMiningRobot),
 
 	Mass:         80,
 	MiningRate:   25,
 	HullSlotType: HullSlotTypeMining,
 }
-var OrbitalAdjuster = TechHullComponent{Tech: NewTech("Orbital Adjuster", NewCost(25, 25, 25, 50), TechRequirements{TechLevel: TechLevel{Biotechnology: 6}, PRTsRequired: []PRT{CA}}, 0, TechCategoryMineRobot, TechTagTerraformRobot),
+var OrbitalAdjuster = TechHullComponent{Tech: NewTech("Orbital Adjuster", NewCost(25, 25, 25, 50), TechRequirements{TechLevel: TechLevel{Biotechnology: 6}, PRTsRequired: []PRT{CA}}, 0, TechCategoryMineRobot, TechTagTerraformingRobot),
 
 	Mass:          80,
 	CloakUnits:    25,
@@ -1350,21 +1324,21 @@ var CherryBomb = TechHullComponent{Tech: NewTech("Cherry Bomb", NewCost(1, 25, 0
 	KillRate:             2.5,
 	HullSlotType:         HullSlotTypeBomb,
 }
-var LBU17Bomb = TechHullComponent{Tech: NewTech("LBU-17 Bomb", NewCost(1, 15, 15, 7), TechRequirements{TechLevel: TechLevel{Weapons: 5, Electronics: 8}}, 50, TechCategoryBomb, TechTagBomb, TechTagStructureBomb),
+var LBU17Bomb = TechHullComponent{Tech: NewTech("LBU-17 Bomb", NewCost(1, 15, 15, 7), TechRequirements{TechLevel: TechLevel{Weapons: 5, Electronics: 8}}, 50, TechCategoryBomb, TechTagStructureBomb),
 
 	Mass:                 30,
 	StructureDestroyRate: 16,
 	KillRate:             .2,
 	HullSlotType:         HullSlotTypeBomb,
 }
-var LBU32Bomb = TechHullComponent{Tech: NewTech("LBU-32 Bomb", NewCost(1, 24, 15, 10), TechRequirements{TechLevel: TechLevel{Weapons: 10, Electronics: 10}}, 60, TechCategoryBomb, TechTagBomb, TechTagStructureBomb),
+var LBU32Bomb = TechHullComponent{Tech: NewTech("LBU-32 Bomb", NewCost(1, 24, 15, 10), TechRequirements{TechLevel: TechLevel{Weapons: 10, Electronics: 10}}, 60, TechCategoryBomb, TechTagStructureBomb),
 
 	Mass:                 35,
 	StructureDestroyRate: 28,
 	KillRate:             .3,
 	HullSlotType:         HullSlotTypeBomb,
 }
-var LBU74Bomb = TechHullComponent{Tech: NewTech("LBU-74 Bomb", NewCost(1, 33, 12, 14), TechRequirements{TechLevel: TechLevel{Weapons: 15, Electronics: 12}}, 70, TechCategoryBomb, TechTagBomb, TechTagStructureBomb),
+var LBU74Bomb = TechHullComponent{Tech: NewTech("LBU-74 Bomb", NewCost(1, 33, 12, 14), TechRequirements{TechLevel: TechLevel{Weapons: 15, Electronics: 12}}, 70, TechCategoryBomb, TechTagStructureBomb),
 
 	Mass:                 45,
 	StructureDestroyRate: 45,
@@ -1377,35 +1351,35 @@ var RetroBomb = TechHullComponent{Tech: NewTech("Retro Bomb", NewCost(15, 15, 10
 	UnterraformRate: 1,
 	HullSlotType:    HullSlotTypeBomb,
 }
-var SmartBomb = TechHullComponent{Tech: NewTech("Smart Bomb", NewCost(1, 22, 0, 27), TechRequirements{TechLevel: TechLevel{Weapons: 5, Biotechnology: 7}, PRTsDenied: []PRT{IS}}, 90, TechCategoryBomb, TechTagBomb, TechTagSmartBomb),
+var SmartBomb = TechHullComponent{Tech: NewTech("Smart Bomb", NewCost(1, 22, 0, 27), TechRequirements{TechLevel: TechLevel{Weapons: 5, Biotechnology: 7}, PRTsDenied: []PRT{IS}}, 90, TechCategoryBomb, TechTagSmartBomb),
 
 	Mass:         50,
 	Smart:        true,
 	KillRate:     1.3,
 	HullSlotType: HullSlotTypeBomb,
 }
-var NeutronBomb = TechHullComponent{Tech: NewTech("Neutron Bomb", NewCost(1, 30, 0, 30), TechRequirements{TechLevel: TechLevel{Weapons: 10, Biotechnology: 10}, PRTsDenied: []PRT{IS}}, 110, TechCategoryBomb, TechTagBomb, TechTagSmartBomb),
+var NeutronBomb = TechHullComponent{Tech: NewTech("Neutron Bomb", NewCost(1, 30, 0, 30), TechRequirements{TechLevel: TechLevel{Weapons: 10, Biotechnology: 10}, PRTsDenied: []PRT{IS}}, 110, TechCategoryBomb, TechTagSmartBomb),
 
 	Mass:         57,
 	Smart:        true,
 	KillRate:     2.2,
 	HullSlotType: HullSlotTypeBomb,
 }
-var EnrichedNeutronBomb = TechHullComponent{Tech: NewTech("Enriched Neutron Bomb", NewCost(1, 36, 0, 25), TechRequirements{TechLevel: TechLevel{Weapons: 15, Biotechnology: 12}, PRTsDenied: []PRT{IS}}, 120, TechCategoryBomb, TechTagBomb, TechTagSmartBomb),
+var EnrichedNeutronBomb = TechHullComponent{Tech: NewTech("Enriched Neutron Bomb", NewCost(1, 36, 0, 25), TechRequirements{TechLevel: TechLevel{Weapons: 15, Biotechnology: 12}, PRTsDenied: []PRT{IS}}, 120, TechCategoryBomb, TechTagSmartBomb),
 
 	Mass:         64,
 	Smart:        true,
 	KillRate:     3.5,
 	HullSlotType: HullSlotTypeBomb,
 }
-var PeerlessBomb = TechHullComponent{Tech: NewTech("Peerless Bomb", NewCost(1, 33, 0, 32), TechRequirements{TechLevel: TechLevel{Weapons: 22, Biotechnology: 15}, PRTsDenied: []PRT{IS}}, 130, TechCategoryBomb, TechTagBomb, TechTagSmartBomb),
+var PeerlessBomb = TechHullComponent{Tech: NewTech("Peerless Bomb", NewCost(1, 33, 0, 32), TechRequirements{TechLevel: TechLevel{Weapons: 22, Biotechnology: 15}, PRTsDenied: []PRT{IS}}, 130, TechCategoryBomb, TechTagSmartBomb),
 
 	Mass:         55,
 	Smart:        true,
 	KillRate:     5.0,
 	HullSlotType: HullSlotTypeBomb,
 }
-var AnnihilatorBomb = TechHullComponent{Tech: NewTech("Annihilator Bomb", NewCost(1, 30, 0, 28), TechRequirements{TechLevel: TechLevel{Weapons: 26, Biotechnology: 17}, PRTsDenied: []PRT{IS}}, 140, TechCategoryBomb, TechTagBomb, TechTagSmartBomb),
+var AnnihilatorBomb = TechHullComponent{Tech: NewTech("Annihilator Bomb", NewCost(1, 30, 0, 28), TechRequirements{TechLevel: TechLevel{Weapons: 26, Biotechnology: 17}, PRTsDenied: []PRT{IS}}, 140, TechCategoryBomb, TechTagSmartBomb),
 
 	Mass:         50,
 	Smart:        true,
@@ -1575,7 +1549,7 @@ var Kelarium = TechHullComponent{Tech: NewTech("Kelarium", NewCost(9, 1, 0, 25),
 	Armor:        180,
 	HullSlotType: HullSlotTypeArmor,
 }
-var FieldedKelarium = TechHullComponent{Tech: NewTech("Fielded Kelarium", NewCost(10, 0, 2, 28), TechRequirements{TechLevel: TechLevel{Energy: 4, Construction: 10}, PRTsRequired: []PRT{IS}}, 70, TechCategoryArmor, TechTagArmor),
+var FieldedKelarium = TechHullComponent{Tech: NewTech("Fielded Kelarium", NewCost(10, 0, 2, 28), TechRequirements{TechLevel: TechLevel{Energy: 4, Construction: 10}, PRTsRequired: []PRT{IS}}, 70, TechCategoryArmor, TechTagArmor, TechTagShield),
 
 	Mass:         50,
 	Shield:       50,
@@ -1632,58 +1606,58 @@ var UltraStealthCloak = TechHullComponent{Tech: NewTech("Ultra-Stealth Cloak", N
 	CloakUnits:   540,
 	HullSlotType: HullSlotTypeElectrical,
 }
-var BattleComputer = TechHullComponent{Tech: NewTech("Battle Computer", NewCost(0, 0, 15, 6), TechRequirements{TechLevel: TechLevel{}}, 40, TechCategoryElectrical, TechTagInitiative, TechTagTorpedoBonus),
+var BattleComputer = TechHullComponent{Tech: NewTech("Battle Computer", NewCost(0, 0, 15, 6), TechRequirements{TechLevel: TechLevel{}}, 40, TechCategoryElectrical, TechTagInitiativeBonus, TechTagTorpedoBonus),
 
 	Mass:            1,
 	InitiativeBonus: 1,
 	TorpedoBonus:    .2,
 	HullSlotType:    HullSlotTypeElectrical,
 }
-var BattleSuperComputer = TechHullComponent{Tech: NewTech("Battle Super Computer", NewCost(0, 0, 25, 14), TechRequirements{TechLevel: TechLevel{Energy: 5, Electronics: 11}}, 50, TechCategoryElectrical, TechTagInitiative, TechTagTorpedoBonus),
+var BattleSuperComputer = TechHullComponent{Tech: NewTech("Battle Super Computer", NewCost(0, 0, 25, 14), TechRequirements{TechLevel: TechLevel{Energy: 5, Electronics: 11}}, 50, TechCategoryElectrical, TechTagInitiativeBonus, TechTagTorpedoBonus),
 
 	Mass:            1,
 	InitiativeBonus: 2,
 	TorpedoBonus:    .3,
 	HullSlotType:    HullSlotTypeElectrical,
 }
-var BattleNexus = TechHullComponent{Tech: NewTech("Battle Nexus", NewCost(0, 0, 30, 15), TechRequirements{TechLevel: TechLevel{Energy: 10, Electronics: 19}}, 60, TechCategoryElectrical, TechTagInitiative, TechTagTorpedoBonus),
+var BattleNexus = TechHullComponent{Tech: NewTech("Battle Nexus", NewCost(0, 0, 30, 15), TechRequirements{TechLevel: TechLevel{Energy: 10, Electronics: 19}}, 60, TechCategoryElectrical, TechTagInitiativeBonus, TechTagTorpedoBonus),
 
 	Mass:            1,
 	InitiativeBonus: 3,
 	TorpedoBonus:    .5,
 	HullSlotType:    HullSlotTypeElectrical,
 }
-var Jammer10 = TechHullComponent{Tech: NewTech("Jammer 10", NewCost(0, 0, 2, 6), TechRequirements{TechLevel: TechLevel{Energy: 2, Electronics: 6}, PRTsRequired: []PRT{IS}}, 70, TechCategoryElectrical, TechTagJammer),
+var Jammer10 = TechHullComponent{Tech: NewTech("Jammer 10", NewCost(0, 0, 2, 6), TechRequirements{TechLevel: TechLevel{Energy: 2, Electronics: 6}, PRTsRequired: []PRT{IS}}, 70, TechCategoryElectrical, TechTagTorpedoJammer),
 
 	Mass:           1,
 	TorpedoJamming: .1,
 	HullSlotType:   HullSlotTypeElectrical,
 }
-var Jammer20 = TechHullComponent{Tech: NewTech("Jammer 20", NewCost(1, 0, 5, 20), TechRequirements{TechLevel: TechLevel{Energy: 4, Electronics: 10}}, 80, TechCategoryElectrical, TechTagJammer),
+var Jammer20 = TechHullComponent{Tech: NewTech("Jammer 20", NewCost(1, 0, 5, 20), TechRequirements{TechLevel: TechLevel{Energy: 4, Electronics: 10}}, 80, TechCategoryElectrical, TechTagTorpedoJammer),
 
 	Mass:           1,
 	TorpedoJamming: .2,
 	HullSlotType:   HullSlotTypeElectrical,
 }
-var Jammer30 = TechHullComponent{Tech: NewTech("Jammer 30", NewCost(1, 0, 6, 20), TechRequirements{TechLevel: TechLevel{Energy: 8, Electronics: 16}}, 90, TechCategoryElectrical, TechTagJammer),
+var Jammer30 = TechHullComponent{Tech: NewTech("Jammer 30", NewCost(1, 0, 6, 20), TechRequirements{TechLevel: TechLevel{Energy: 8, Electronics: 16}}, 90, TechCategoryElectrical, TechTagTorpedoJammer),
 
 	Mass:           1,
 	TorpedoJamming: .3,
 	HullSlotType:   HullSlotTypeElectrical,
 }
-var Jammer50 = TechHullComponent{Tech: NewTech("Jammer 50", NewCost(2, 0, 7, 20), TechRequirements{TechLevel: TechLevel{Energy: 16, Electronics: 22}}, 100, TechCategoryElectrical, TechTagJammer),
+var Jammer50 = TechHullComponent{Tech: NewTech("Jammer 50", NewCost(2, 0, 7, 20), TechRequirements{TechLevel: TechLevel{Energy: 16, Electronics: 22}}, 100, TechCategoryElectrical, TechTagTorpedoJammer),
 
 	Mass:           1,
 	TorpedoJamming: .5,
 	HullSlotType:   HullSlotTypeElectrical,
 }
-var EnergyCapacitor = TechHullComponent{Tech: NewTech("Energy Capacitor", NewCost(0, 0, 8, 5), TechRequirements{TechLevel: TechLevel{Energy: 7, Electronics: 4}}, 110, TechCategoryElectrical, TechTagBeamBonus),
+var EnergyCapacitor = TechHullComponent{Tech: NewTech("Energy Capacitor", NewCost(0, 0, 8, 5), TechRequirements{TechLevel: TechLevel{Energy: 7, Electronics: 4}}, 110, TechCategoryElectrical, TechTagBeamCapacitor),
 
 	Mass:         1,
 	BeamBonus:    .1,
 	HullSlotType: HullSlotTypeElectrical,
 }
-var FluxCapacitor = TechHullComponent{Tech: NewTech("Flux Capacitor", NewCost(0, 0, 8, 5), TechRequirements{TechLevel: TechLevel{Energy: 14, Electronics: 8}, PRTsRequired: []PRT{HE}}, 120, TechCategoryElectrical, TechTagBeamBonus),
+var FluxCapacitor = TechHullComponent{Tech: NewTech("Flux Capacitor", NewCost(0, 0, 8, 5), TechRequirements{TechLevel: TechLevel{Energy: 14, Electronics: 8}, PRTsRequired: []PRT{HE}}, 120, TechCategoryElectrical, TechTagBeamCapacitor),
 
 	Mass:         1,
 	BeamBonus:    .2,
@@ -1736,42 +1710,42 @@ var MineDispenser130 = TechHullComponent{Tech: NewTech("Mine Dispenser 130", New
 	MineLayingRate: 130,
 	HullSlotType:   HullSlotTypeMineLayer,
 }
-var HeavyDispenser50 = TechHullComponent{Tech: NewTech("Heavy Dispenser 50", NewCost(2, 20, 5, 50), TechRequirements{TechLevel: TechLevel{Energy: 5, Biotechnology: 3}, PRTsRequired: []PRT{SD}}, 40, TechCategoryMineLayer, TechTagMineLayer),
+var HeavyDispenser50 = TechHullComponent{Tech: NewTech("Heavy Dispenser 50", NewCost(2, 20, 5, 50), TechRequirements{TechLevel: TechLevel{Energy: 5, Biotechnology: 3}, PRTsRequired: []PRT{SD}}, 40, TechCategoryMineLayer, TechTagHeavyMineLayer),
 
 	Mass:           10,
 	MineFieldType:  MineFieldTypeHeavy,
 	MineLayingRate: 50,
 	HullSlotType:   HullSlotTypeMineLayer,
 }
-var HeavyDispenser110 = TechHullComponent{Tech: NewTech("Heavy Dispenser 110", NewCost(2, 20, 5, 50), TechRequirements{TechLevel: TechLevel{Energy: 9, Biotechnology: 5}, PRTsRequired: []PRT{SD}}, 50, TechCategoryMineLayer, TechTagMineLayer),
+var HeavyDispenser110 = TechHullComponent{Tech: NewTech("Heavy Dispenser 110", NewCost(2, 20, 5, 50), TechRequirements{TechLevel: TechLevel{Energy: 9, Biotechnology: 5}, PRTsRequired: []PRT{SD}}, 50, TechCategoryMineLayer, TechTagHeavyMineLayer),
 
 	Mass:           15,
 	MineFieldType:  MineFieldTypeHeavy,
 	MineLayingRate: 110,
 	HullSlotType:   HullSlotTypeMineLayer,
 }
-var HeavyDispenser200 = TechHullComponent{Tech: NewTech("Heavy Dispenser 200", NewCost(2, 45, 5, 90), TechRequirements{TechLevel: TechLevel{Energy: 14, Biotechnology: 7}, PRTsRequired: []PRT{SD}}, 60, TechCategoryMineLayer, TechTagMineLayer),
+var HeavyDispenser200 = TechHullComponent{Tech: NewTech("Heavy Dispenser 200", NewCost(2, 45, 5, 90), TechRequirements{TechLevel: TechLevel{Energy: 14, Biotechnology: 7}, PRTsRequired: []PRT{SD}}, 60, TechCategoryMineLayer, TechTagHeavyMineLayer),
 
 	Mass:           20,
 	MineFieldType:  MineFieldTypeHeavy,
 	MineLayingRate: 200,
 	HullSlotType:   HullSlotTypeMineLayer,
 }
-var SpeedTrap20 = TechHullComponent{Tech: NewTech("Speed Trap 20", NewCost(30, 0, 12, 60), TechRequirements{TechLevel: TechLevel{Propulsion: 2, Biotechnology: 2}, PRTsRequired: []PRT{SD, IS}}, 70, TechCategoryMineLayer, TechTagMineLayer),
+var SpeedTrap20 = TechHullComponent{Tech: NewTech("Speed Trap 20", NewCost(30, 0, 12, 60), TechRequirements{TechLevel: TechLevel{Propulsion: 2, Biotechnology: 2}, PRTsRequired: []PRT{SD, IS}}, 70, TechCategoryMineLayer, TechTagSpeedMineLayer),
 
 	Mass:           100,
 	MineFieldType:  MineFieldTypeSpeedBump,
 	MineLayingRate: 20,
 	HullSlotType:   HullSlotTypeMineLayer,
 }
-var SpeedTrap30 = TechHullComponent{Tech: NewTech("Speed Trap 30", NewCost(32, 0, 14, 72), TechRequirements{TechLevel: TechLevel{Propulsion: 3, Biotechnology: 6}, PRTsRequired: []PRT{SD}}, 80, TechCategoryMineLayer, TechTagMineLayer),
+var SpeedTrap30 = TechHullComponent{Tech: NewTech("Speed Trap 30", NewCost(32, 0, 14, 72), TechRequirements{TechLevel: TechLevel{Propulsion: 3, Biotechnology: 6}, PRTsRequired: []PRT{SD}}, 80, TechCategoryMineLayer, TechTagSpeedMineLayer),
 
 	Mass:           135,
 	MineFieldType:  MineFieldTypeSpeedBump,
 	MineLayingRate: 30,
 	HullSlotType:   HullSlotTypeMineLayer,
 }
-var SpeedTrap50 = TechHullComponent{Tech: NewTech("Speed Trap 50", NewCost(40, 0, 15, 80), TechRequirements{TechLevel: TechLevel{Propulsion: 5, Biotechnology: 11}, PRTsRequired: []PRT{SD}}, 90, TechCategoryMineLayer, TechTagMineLayer),
+var SpeedTrap50 = TechHullComponent{Tech: NewTech("Speed Trap 50", NewCost(40, 0, 15, 80), TechRequirements{TechLevel: TechLevel{Propulsion: 5, Biotechnology: 11}, PRTsRequired: []PRT{SD}}, 90, TechCategoryMineLayer, TechTagSpeedMineLayer),
 
 	Mass:           140,
 	MineFieldType:  MineFieldTypeSpeedBump,
@@ -1827,7 +1801,7 @@ var Overthruster = TechHullComponent{Tech: NewTech("Overthruster", NewCost(10, 0
 	MovementBonus: 2,
 	HullSlotType:  HullSlotTypeMechanical,
 }
-var BeamDeflector = TechHullComponent{Tech: NewTech("Beam Deflector", NewCost(0, 0, 10, 8), TechRequirements{TechLevel: TechLevel{Energy: 6, Weapons: 6, Construction: 6, Electronics: 6}}, 80, TechCategoryMechanical, TechTagBeamDefense),
+var BeamDeflector = TechHullComponent{Tech: NewTech("Beam Deflector", NewCost(0, 0, 10, 8), TechRequirements{TechLevel: TechLevel{Energy: 6, Weapons: 6, Construction: 6, Electronics: 6}}, 80, TechCategoryMechanical, TechTagBeamDeflector),
 
 	Mass:         1,
 	HullSlotType: HullSlotTypeMechanical,
@@ -1852,7 +1826,7 @@ var XRayLaser = TechHullComponent{Tech: NewTech("X-Ray Laser", NewCost(0, 6, 0, 
 	Range: 1,
 }
 
-var MiniGun = TechHullComponent{Tech: NewTech("Mini Gun", NewCost(0, 6, 0, 6), TechRequirements{TechLevel: TechLevel{Weapons: 5}, PRTsRequired: []PRT{IS}}, 20, TechCategoryBeamWeapon, TechTagBeamWeapon, TechTagGatling),
+var MiniGun = TechHullComponent{Tech: NewTech("Mini Gun", NewCost(0, 6, 0, 6), TechRequirements{TechLevel: TechLevel{Weapons: 5}, PRTsRequired: []PRT{IS}}, 20, TechCategoryBeamWeapon, TechTagBeamWeapon, TechTagGatlingGun),
 
 	Mass:           3,
 	Initiative:     12,
@@ -1890,7 +1864,7 @@ var PhaserBazooka = TechHullComponent{Tech: NewTech("Phaser Bazooka", NewCost(0,
 
 	Range: 2,
 }
-var PulsedSapper = TechHullComponent{Tech: NewTech("Pulsed Sapper", NewCost(0, 0, 4, 12), TechRequirements{TechLevel: TechLevel{Energy: 5, Weapons: 9}}, 60, TechCategoryBeamWeapon, TechTagBeamWeapon, TechTagSapper),
+var PulsedSapper = TechHullComponent{Tech: NewTech("Pulsed Sapper", NewCost(0, 0, 4, 12), TechRequirements{TechLevel: TechLevel{Energy: 5, Weapons: 9}}, 60, TechCategoryBeamWeapon, TechTagBeamWeapon, TechTagShieldSapper),
 
 	Mass:              1,
 	Initiative:        14,
@@ -1909,7 +1883,7 @@ var ColloidalPhaser = TechHullComponent{Tech: NewTech("Colloidal Phaser", NewCos
 
 	Range: 3,
 }
-var GatlingGun = TechHullComponent{Tech: NewTech("Gatling Gun", NewCost(0, 20, 0, 13), TechRequirements{TechLevel: TechLevel{Weapons: 11}}, 80, TechCategoryBeamWeapon, TechTagBeamWeapon, TechTagGatling),
+var GatlingGun = TechHullComponent{Tech: NewTech("Gatling Gun", NewCost(0, 20, 0, 13), TechRequirements{TechLevel: TechLevel{Weapons: 11}}, 80, TechCategoryBeamWeapon, TechTagBeamWeapon, TechTagGatlingGun),
 
 	Mass:           3,
 	Initiative:     12,
@@ -1943,7 +1917,7 @@ var MarkIVBlaster = TechHullComponent{Tech: NewTech("Mark IV Blaster", NewCost(0
 	HullSlotType: HullSlotTypeWeapon,
 	Range:        2,
 }
-var PhasedSapper = TechHullComponent{Tech: NewTech("Phased Sapper", NewCost(0, 0, 6, 16), TechRequirements{TechLevel: TechLevel{Energy: 8, Weapons: 15}}, 120, TechCategoryBeamWeapon, TechTagBeamWeapon, TechTagSapper),
+var PhasedSapper = TechHullComponent{Tech: NewTech("Phased Sapper", NewCost(0, 0, 6, 16), TechRequirements{TechLevel: TechLevel{Energy: 8, Weapons: 15}}, 120, TechCategoryBeamWeapon, TechTagBeamWeapon, TechTagShieldSapper),
 
 	Mass:              1,
 	Initiative:        14,
@@ -1960,7 +1934,7 @@ var HeavyBlaster = TechHullComponent{Tech: NewTech("Heavy Blaster", NewCost(0, 2
 	HullSlotType: HullSlotTypeWeapon,
 	Range:        3,
 }
-var GatlingNeutrinoCannon = TechHullComponent{Tech: NewTech("Gatling Neutrino Cannon", NewCost(0, 28, 0, 17), TechRequirements{TechLevel: TechLevel{Weapons: 17}, PRTsRequired: []PRT{WM}}, 140, TechCategoryBeamWeapon, TechTagBeamWeapon, TechTagGatling),
+var GatlingNeutrinoCannon = TechHullComponent{Tech: NewTech("Gatling Neutrino Cannon", NewCost(0, 28, 0, 17), TechRequirements{TechLevel: TechLevel{Weapons: 17}, PRTsRequired: []PRT{WM}}, 140, TechCategoryBeamWeapon, TechTagBeamWeapon, TechTagGatlingGun),
 
 	Mass:           3,
 	Initiative:     13,
@@ -1994,7 +1968,7 @@ var Disruptor = TechHullComponent{Tech: NewTech("Disruptor", NewCost(0, 16, 0, 2
 	HullSlotType: HullSlotTypeWeapon,
 	Range:        2,
 }
-var SyncroSapper = TechHullComponent{Tech: NewTech("Syncro Sapper", NewCost(0, 0, 8, 21), TechRequirements{TechLevel: TechLevel{Energy: 11, Weapons: 21}}, 180, TechCategoryBeamWeapon, TechTagBeamWeapon, TechTagSapper),
+var SyncroSapper = TechHullComponent{Tech: NewTech("Syncro Sapper", NewCost(0, 0, 8, 21), TechRequirements{TechLevel: TechLevel{Energy: 11, Weapons: 21}}, 180, TechCategoryBeamWeapon, TechTagBeamWeapon, TechTagShieldSapper),
 
 	Mass:              1,
 	Initiative:        14,
@@ -2011,7 +1985,7 @@ var MegaDisruptor = TechHullComponent{Tech: NewTech("Mega Disruptor", NewCost(0,
 	HullSlotType: HullSlotTypeWeapon,
 	Range:        3,
 }
-var BigMuthaCannon = TechHullComponent{Tech: NewTech("Big Mutha Cannon", NewCost(0, 36, 0, 23), TechRequirements{TechLevel: TechLevel{Weapons: 23}}, 200, TechCategoryBeamWeapon, TechTagBeamWeapon, TechTagGatling),
+var BigMuthaCannon = TechHullComponent{Tech: NewTech("Big Mutha Cannon", NewCost(0, 36, 0, 23), TechRequirements{TechLevel: TechLevel{Weapons: 23}}, 200, TechCategoryBeamWeapon, TechTagBeamWeapon, TechTagGatlingGun),
 
 	Mass:           3,
 	Initiative:     13,
@@ -2104,7 +2078,7 @@ var OmegaTorpedo = TechHullComponent{Tech: NewTech("Omega Torpedo", NewCost(52, 
 	HullSlotType: HullSlotTypeWeapon,
 	Range:        5,
 }
-var JihadMissile = TechHullComponent{Tech: NewTech("Jihad Missile", NewCost(37, 13, 9, 13), TechRequirements{TechLevel: TechLevel{Weapons: 12, Propulsion: 6}}, 0, TechCategoryTorpedo, TechTagTorpedo, TechTagMissile),
+var JihadMissile = TechHullComponent{Tech: NewTech("Jihad Missile", NewCost(37, 13, 9, 13), TechRequirements{TechLevel: TechLevel{Weapons: 12, Propulsion: 6}}, 0, TechCategoryTorpedo, TechTagTorpedo, TechTagCapitalShipMissile),
 
 	Mass:               35,
 	Accuracy:           20,
@@ -2113,7 +2087,7 @@ var JihadMissile = TechHullComponent{Tech: NewTech("Jihad Missile", NewCost(37, 
 	HullSlotType:       HullSlotTypeWeapon,
 	Range:              5,
 }
-var JuggernautMissile = TechHullComponent{Tech: NewTech("Juggernaut Missile", NewCost(48, 16, 11, 16), TechRequirements{TechLevel: TechLevel{Weapons: 16, Propulsion: 8}}, 10, TechCategoryTorpedo, TechTagTorpedo, TechTagMissile),
+var JuggernautMissile = TechHullComponent{Tech: NewTech("Juggernaut Missile", NewCost(48, 16, 11, 16), TechRequirements{TechLevel: TechLevel{Weapons: 16, Propulsion: 8}}, 10, TechCategoryTorpedo, TechTagTorpedo, TechTagCapitalShipMissile),
 
 	Mass:               35,
 	Initiative:         1,
@@ -2124,7 +2098,7 @@ var JuggernautMissile = TechHullComponent{Tech: NewTech("Juggernaut Missile", Ne
 	Range:              5,
 }
 
-var DoomsdayMissile = TechHullComponent{Tech: NewTech("Doomsday Missile", NewCost(60, 20, 13, 20), TechRequirements{TechLevel: TechLevel{Weapons: 20, Propulsion: 10}}, 20, TechCategoryTorpedo, TechTagTorpedo, TechTagMissile),
+var DoomsdayMissile = TechHullComponent{Tech: NewTech("Doomsday Missile", NewCost(60, 20, 13, 20), TechRequirements{TechLevel: TechLevel{Weapons: 20, Propulsion: 10}}, 20, TechCategoryTorpedo, TechTagTorpedo, TechTagCapitalShipMissile),
 
 	Mass:               35,
 	Initiative:         2,
@@ -2135,7 +2109,7 @@ var DoomsdayMissile = TechHullComponent{Tech: NewTech("Doomsday Missile", NewCos
 	Range:              6,
 }
 
-var ArmageddonMissile = TechHullComponent{Tech: NewTech("Armageddon Missile", NewCost(67, 23, 16, 24), TechRequirements{TechLevel: TechLevel{Weapons: 24, Propulsion: 10}}, 30, TechCategoryTorpedo, TechTagTorpedo, TechTagMissile),
+var ArmageddonMissile = TechHullComponent{Tech: NewTech("Armageddon Missile", NewCost(67, 23, 16, 24), TechRequirements{TechLevel: TechLevel{Weapons: 24, Propulsion: 10}}, 30, TechCategoryTorpedo, TechTagTorpedo, TechTagCapitalShipMissile),
 
 	Mass:               35,
 	Initiative:         3,
@@ -2163,8 +2137,9 @@ var WolverineDiffuseShield = TechHullComponent{Tech: NewTech("Wolverine Diffuse 
 	Shield:       60,
 	HullSlotType: HullSlotTypeShield,
 }
-var CrobySharmor = TechHullComponent{Tech: NewTech("Croby Sharmor", NewCost(7, 0, 4, 15), TechRequirements{TechLevel: TechLevel{Energy: 7, Construction: 4}, PRTsRequired: []PRT{IS}}, 60, TechCategoryShield, TechTagShield),
-
+var CrobySharmor = TechHullComponent{Tech: NewTech("Croby Sharmor", NewCost(7, 0, 4, 15), TechRequirements{TechLevel: TechLevel{Energy: 7, Construction: 4}, PRTsRequired: []PRT{IS}}, 60, TechCategoryShield, TechTagShield, TechTagArmor),
+	// we can mark it as armor because getBestComponentWithTags only searches for items that can be mounted on the provided slots
+	// if it's armor only, croby gets automatically excluded
 	Mass:         10,
 	Shield:       60,
 	Armor:        65,

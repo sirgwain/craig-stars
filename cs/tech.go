@@ -72,35 +72,38 @@ type TechTags map[TechTag]bool
 type TechTag string
 
 const (
-	TechTagArmor          TechTag = "Armor"
-	TechTagTorpedoBonus   TechTag = "Accuracy Bonus"
-	TechTagBeamBonus      TechTag = "Beam Bonus"
-	TechTagBeamDefense    TechTag = "Beam Defense"
-	TechTagBeamWeapon     TechTag = "Beam Weapon"
-	TechTagBomb           TechTag = "Bomb"
-	TechTagMissile        TechTag = "Capital Ship Missile"
-	TechTagCargoPod       TechTag = "Cargo Pod"
-	TechTagCloak          TechTag = "Cloak"
-	TechTagColonyModule   TechTag = "Colony Module"
-	TechTagEngine         TechTag = "Engine"
-	TechTagFuelTank       TechTag = "Fuel Tank"
-	TechTagGatling        TechTag = "Gatling"
-	TechTagInitiative     TechTag = "Initiative Bonus"
-	TechTagJammer         TechTag = "Torpedo Jammer"
-	TechTagMassDriver     TechTag = "Mass Driver"
-	TechTagManeuveringJet TechTag = "Maneuvering Jet"
-	TechTagMineLayer      TechTag = "Mine Layer"
-	TechTagMineRobot      TechTag = "Remote Mining Robot"
-	TechTagRamscoop       TechTag = "Ramscoop"
-	TechTagTerraformRobot TechTag = "Orbital Terraforming Module"
-	TechTagScanner        TechTag = "Scanner"
-	TechTagSmartBomb      TechTag = "Smart Bomb"
-	TechTagShield         TechTag = "Shield"
-	TechTagSapper         TechTag = "Shield Sapper"
-	TechTagStargate       TechTag = "Stargate"
-	TechTagStructureBomb  TechTag = "Structure Bomb"
-	TechTagTerraforming   TechTag = "Terraforming"
-	TechTagTorpedo        TechTag = "Torpedo"
+	TechTagArmor              TechTag = "Armor"
+	TechTagTorpedoBonus       TechTag = "TorpedoBonus"
+	TechTagBeamCapacitor      TechTag = "BeamCapacitor"
+	TechTagBeamDeflector      TechTag = "BeamDeflector"
+	TechTagBeamWeapon         TechTag = "BeamWeapon"
+	TechTagBomb               TechTag = "Bomb"
+	TechTagCapitalShipMissile TechTag = "CapitalShipMissile"
+	TechTagCargoPod           TechTag = "CargoPod"
+	TechTagCloak              TechTag = "Cloak"
+	TechTagColonyModule       TechTag = "ColonyModule"
+	TechTagEngine             TechTag = "Engine"
+	TechTagFuelTank           TechTag = "FuelTank"
+	TechTagGatlingGun         TechTag = "GatlingGun"
+	TechTagHeavyMineLayer     TechTag = "HeavyMineLayer"
+	TechTagInitiativeBonus    TechTag = "InitiativeBonus"
+	TechTagMassDriver         TechTag = "MassDriver"
+	TechTagManeuveringJet     TechTag = "ManeuveringJet"
+	TechTagMineLayer          TechTag = "MineLayer"
+	TechTagMiningRobot        TechTag = "MiningRobot"
+	TechTagPenScanner         TechTag = "PenScanner"
+	TechTagRamscoop           TechTag = "Ramscoop"
+	TechTagTerraformingRobot  TechTag = "TerraformingRobot"
+	TechTagScanner            TechTag = "Scanner"
+	TechTagShield             TechTag = "Shield"
+	TechTagShieldSapper       TechTag = "ShieldSapper"
+	TechTagSmartBomb          TechTag = "SmartBomb"
+	TechTagSpeedMineLayer     TechTag = "SpeedMineLayer"
+	TechTagStargate           TechTag = "Stargate"
+	TechTagStructureBomb      TechTag = "StructureBomb"
+	TechTagTerraforming       TechTag = "Terraforming"
+	TechTagTorpedo            TechTag = "Torpedo"
+	TechTagTorpedoJammer      TechTag = "TorpedoJammer"
 )
 
 // Create a new techTags map from a list of TechTag items
@@ -123,7 +126,7 @@ func (tt TechTags) hasAllTags(tags ...TechTag) bool {
 }
 
 // returns true if tt has AT LEAST 1 of the specified tags
-func (tt TechTags) hasOneTag(tags ...TechTag) bool {
+func (tt TechTags) hasTag(tags ...TechTag) bool {
 	for _, tag := range tags {
 		if tt[tag] {
 			return true
@@ -207,6 +210,164 @@ type TechHullComponent struct {
 	CanJump                   bool          `json:"canJump,omitempty"`
 }
 
+// compare 2 techHullComponents based on a field determined by the specified TechTag
+// Precedence is given to other component in case of tie
+//
+// light denotes to penalize heavy armors/shields in favor of lighter ones
+func (hc *TechHullComponent) CompareFieldsByTag(player *Player, other *TechHullComponent, tag TechTag, light bool) bool {
+	if other == nil {
+		return false
+	} else if hc == nil {
+		return true
+	}
+	switch tag {
+	case TechTagArmor, TechTagShield:
+		var hcArmor, hcShield, otherArmor, otherShield float64
+		if tag == TechTagArmor {
+			hcArmor = float64(hc.Armor) * player.Race.Spec.ArmorStrengthFactor
+			hcShield = float64(hc.Shield) // bonus shield from armor components unaffected by bonuses
+			otherArmor = float64(other.Armor) * player.Race.Spec.ArmorStrengthFactor
+			otherShield = float64(other.Shield)
+		} else {
+			hcArmor = float64(hc.Armor) // bonus armor from shield components unaffected by bonuses
+			hcShield = float64(hc.Shield) * player.Race.Spec.ShieldStrengthFactor
+			otherArmor = float64(other.Armor)
+			otherShield = float64(other.Shield) * player.Race.Spec.ShieldStrengthFactor
+		}
+		if light {
+			return (otherArmor+otherShield)/(1+math.Min(float64(other.Mass-30)/10, 0)) /
+				(hcArmor+hcShield)/(1+math.Min(float64(hc.Mass-30)/10, 0)) >= 
+				getMineralEfficiencyRatio(player, hc, other, true)
+		}
+		return (otherArmor + otherShield) / (hcArmor + hcShield) >= getMineralEfficiencyRatio(player, hc, other, true)
+	case TechTagBeamCapacitor:
+		return other.BeamBonus >= hc.BeamBonus
+	case TechTagBeamDeflector:
+		return other.BeamDefense >= hc.BeamDefense
+	case TechTagScanner:
+		if hc.ScanRangePen > 0 {
+			if other.ScanRangePen > 0 {
+				return other.ScanRangePen >= hc.ScanRangePen
+			} else {
+				// 2nd tech doesn't pen scan; 1st wins by default
+				return false
+			}
+		} else if other.ScanRangePen > 0 {
+			// 1st tech doesn't pen scan; 2nd wins by default
+			return true
+		}
+		return other.ScanRange >= hc.ScanRange
+	case TechTagInitiativeBonus:
+		return float64(other.InitiativeBonus) / float64(hc.InitiativeBonus) >= getMineralEfficiencyRatio(player, hc, other, true)
+		// FOR THE RECORD, this works out to be equivalent to comparing unit prices
+	case TechTagTorpedoJammer:
+		return other.TorpedoJamming >= hc.TorpedoJamming
+	case TechTagBeamWeapon, TechTagShieldSapper, TechTagGatlingGun:
+		return float64(other.Power*other.Range) / float64(hc.Power*hc.Range) >= getMineralEfficiencyRatio(player, hc, other, true)
+	case TechTagTorpedo, TechTagCapitalShipMissile:
+		return hc.GetBestTorpedo(player, other)
+	case TechTagColonyModule:
+		return getMineralEfficiencyRatio(player, hc, other, true) >= 1
+	case TechTagCargoPod:
+		return float64(other.CargoBonus) / float64(hc.CargoBonus) >= getMineralEfficiencyRatio(player, hc, other, true)
+	case TechTagFuelTank:
+		return float64(other.FuelBonus+5*other.FuelGeneration) / float64(hc.FuelBonus+5*hc.FuelGeneration) >= 
+		getMineralEfficiencyRatio(player, hc, other, true)
+	case TechTagMineLayer, TechTagHeavyMineLayer, TechTagSpeedMineLayer:
+		return float64(other.MineLayingRate) / float64(hc.MineLayingRate) >= getMineralEfficiencyRatio(player, hc, other, true)
+	case TechTagBomb, TechTagSmartBomb:
+		return float64(other.KillRate) / float64(hc.KillRate) >= getMineralEfficiencyRatio(player, hc, other, true)
+	case TechTagStructureBomb:
+		return float64(other.StructureDestroyRate) / float64(hc.StructureDestroyRate) >+ getMineralEfficiencyRatio(player, hc, other, true)
+	case TechTagCloak:
+		return float64(other.CloakUnits) / float64(hc.CloakUnits) >+ getMineralEfficiencyRatio(player, hc, other, true)
+	case TechTagManeuveringJet:
+		return float64(other.MovementBonus) / float64(hc.MovementBonus) >+ getMineralEfficiencyRatio(player, hc, other, true)
+	case TechTagMassDriver:
+		return other.PacketSpeed >= hc.PacketSpeed 
+	case TechTagStargate:
+		return hc.GetBestStargate(other)
+	case TechTagTerraformingRobot:
+		return float64(other.TerraformRate) / float64(hc.TerraformRate) >+ getMineralEfficiencyRatio(player, hc, other, true)
+	case TechTagMiningRobot:
+		return float64(other.MiningRate) / float64(hc.MiningRate) >+ getMineralEfficiencyRatio(player, hc, other, false)
+	}
+	return false
+}
+
+// compare 2 stargates and determine which one is better
+// 1st priority mass, 2nd priority distance, 3rd priority ranking
+func (hc *TechHullComponent) GetBestStargate(other *TechHullComponent) bool {
+	if hc.Tags.hasTag(TechTagStargate) {
+		if other.Tags.hasTag(TechTagStargate) && hc != other {
+			if hc.SafeHullMass < other.SafeHullMass {
+				return false
+			} else if hc.SafeHullMass > other.SafeHullMass {
+				return true
+			} else if hc.SafeRange < other.SafeRange { // same safe mass; check safe distance
+				return false
+			} else if hc.SafeRange > other.SafeRange {
+				return true
+			} else if hc.Ranking > other.Ranking { // same distance & range; compare ranking
+				return true
+			}
+		} else if other.Tags.hasTag(TechTagStargate) {
+			// first tech not a stargate; 2nd one wins by default
+			return true
+		}
+	}
+	return false
+}
+
+// return the better of the 2 provided torpedo weapons
+// defaults to 1st if both are equal or either one is null
+func (hc *TechHullComponent) GetBestTorpedo(player *Player, other *TechHullComponent) bool {
+	var hcPower float64
+	var otherPower float64
+	empty := false
+	if hc != nil && hc.Category == TechCategoryTorpedo && hc.Power > 0 && player.HasTech(&hc.Tech) {
+		hcPower = float64(hc.Power * hc.Accuracy)
+		if hc.CapitalShipMissile {
+			hcPower *= 1.5 // cap missiles do more damage than normal torps, but enemies don't always have shields up
+		}
+	} else {
+		empty = true
+	}
+	if other != nil && other.Category == TechCategoryTorpedo && other.Power > 0 && player.HasTech(&other.Tech) {
+		if empty { // first component not a torpedo; 2nd one wins by default
+			return true
+		}
+		otherPower = float64(other.Power * other.Accuracy)
+		if other.CapitalShipMissile {
+			// TODO: Figure out a value multi for cap missiles that makes sense
+			otherPower *= 1.5 // cap missiles do more damage than normal torps, but enemies don't always have shields up
+		}
+	} else {
+		return false // 1st one wins by default
+	}
+
+	// if the 2nd torpedo is more cost efficient (in terms of avg damage/minerals spent) than the new weapon, use it
+	return otherPower/hcPower >= getMineralEfficiencyRatio(player, hc, other, false)
+}
+
+// Returns the ratio of mineral efficiency for the 2 components based on the highest mineral in either one 
+// (numerator/denomiator)
+//
+// resource indicates whether to consider resources in cost analysis 
+func getMineralEfficiencyRatio(player *Player, numerator, denominator *TechHullComponent, resource bool) float64 {
+	if resource {
+		hcCost := numerator.GetPlayerCost(player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset)
+		otherCost := denominator.GetPlayerCost(player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset)
+		minType := hcCost.Max(otherCost).HighestAmount()
+		return float64(hcCost.GetAmount(minType)) / float64(otherCost.GetAmount(minType))
+	}
+
+	hcCost := numerator.GetPlayerCost(player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset).ToMineral()
+	otherCost := denominator.GetPlayerCost(player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset).ToMineral()
+	minType := hcCost.Max(otherCost).HighestType()
+	return float64(hcCost.GetAmount(minType)) / float64(otherCost.GetAmount(minType))
+}
+
 type Engine struct {
 	IdealSpeed   int     `json:"idealSpeed,omitempty"`
 	FreeSpeed    int     `json:"freeSpeed,omitempty"`
@@ -217,6 +378,21 @@ type Engine struct {
 type TechEngine struct {
 	TechHullComponent
 	Engine
+}
+
+// returns the better of the 2 engines 
+func (hc *TechEngine) CompareEngine(player *Player, other *TechEngine, purpose FleetPurpose) *TechEngine {
+	tech := hc.TechHullComponent
+	otherTech := other.TechHullComponent
+	if player.HasTech(&tech.Tech) {
+		// colony ships don't want radiating engines if we would lose colonists from it
+		if !((purpose == FleetPurposeColonizer || purpose == FleetPurposeColonistFreighter) && tech.Radiating &&
+		!(player.Race.ImmuneRad || player.Race.Spec.HabCenter.Rad >= 85)) && 
+		&otherTech == nil || tech.Ranking > otherTech.Ranking {
+			return hc
+		}
+	}
+	return other
 }
 
 type TechHull struct {

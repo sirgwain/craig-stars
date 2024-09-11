@@ -31,6 +31,23 @@ func NewCost(
 	return Cost{ironium, boranium, germanium, resources}
 }
 
+// return the CostType with highest numerical value in a Cost struct 
+func (c Cost) HighestAmount() CostType {
+	if c.Ironium >= c.Boranium && c.Ironium >= c.Germanium && c.Ironium >= c.Resources {
+		return Ironium
+	}
+
+	if c.Boranium >= c.Ironium && c.Boranium >= c.Germanium && c.Boranium >= c.Resources{
+		return Boranium
+	}
+
+	if c.Germanium >= c.Ironium && c.Germanium >= c.Boranium && c.Germanium >= c.Resources{
+		return Germanium
+	}
+
+	return Resources
+}
+
 func (c Cost) GetAmount(costType CostType) int {
 	switch costType {
 	case Ironium:
@@ -60,20 +77,20 @@ func (c Cost) AddInt(costType CostType, amount int) Cost {
 	}
 	return c
 }
-func FromMineralAndResources(m Mineral, resources int) Cost {
+func FromMineralAndResources(c Mineral, resources int) Cost {
 	return Cost{
-		Ironium:   m.Ironium,
-		Boranium:  m.Boranium,
-		Germanium: m.Germanium,
+		Ironium:   c.Ironium,
+		Boranium:  c.Boranium,
+		Germanium: c.Germanium,
 		Resources: resources,
 	}
 }
 
-func FromMineral(m Mineral) Cost {
+func FromMineral(c Mineral) Cost {
 	return Cost{
-		Ironium:   m.Ironium,
-		Boranium:  m.Boranium,
-		Germanium: m.Germanium,
+		Ironium:   c.Ironium,
+		Boranium:  c.Boranium,
+		Germanium: c.Germanium,
 	}
 }
 

@@ -101,8 +101,8 @@ func NewAIPlayer(game *cs.Game, techStore *cs.TechStore, player *cs.Player, play
 				cs.ShipDesignPurposeSmartBomber:           "Smart Bomber",
 				cs.ShipDesignPurposeStartingFighter:       "Stalwart Defender",
 				cs.ShipDesignPurposeFighterScout:          "Armed Probe",
-				cs.ShipDesignPurposeTorpedoShip:           "Missiler",
-				cs.ShipDesignPurposeBeamShip:              "Beamer",
+				cs.ShipDesignPurposeTorpedoFighter:        "Missiler",
+				cs.ShipDesignPurposeBeamFighter:           "Beamer",
 				cs.ShipDesignPurposeFreighter:             "Teamster",
 				cs.ShipDesignPurposeColonistFreighter:     "Colonist Freighter",
 				cs.ShipDesignPurposeFuelFreighter:         "Fuel Freighter",
@@ -156,8 +156,8 @@ func NewAIPlayer(game *cs.Game, techStore *cs.TechStore, player *cs.Player, play
 
 // choose whether to use beamers or torps in combat for the AI
 func (ai *aiPlayer) bestWarship() (cs.ShipDesignPurpose, error) {
-	beamDesign := ai.designsByPurpose[cs.ShipDesignPurposeBeamShip]
-	torpDesign := ai.designsByPurpose[cs.ShipDesignPurposeTorpedoShip]
+	beamDesign := ai.designsByPurpose[cs.ShipDesignPurposeBeamFighter]
+	torpDesign := ai.designsByPurpose[cs.ShipDesignPurposeTorpedoFighter]
 	var err error
 	beamDesign.Spec, err = cs.ComputeShipDesignSpec(&ai.game.Rules, ai.TechLevels, ai.Race.Spec, beamDesign)
 	if err != nil {
@@ -170,10 +170,10 @@ func (ai *aiPlayer) bestWarship() (cs.ShipDesignPurpose, error) {
 	}
 
 	if beamDesign.Spec.PowerRating > torpDesign.Spec.PowerRating {
-		return cs.ShipDesignPurposeBeamShip, nil
+		return cs.ShipDesignPurposeBeamFighter, nil
 	}
 
-	return cs.ShipDesignPurposeTorpedoShip, nil
+	return cs.ShipDesignPurposeTorpedoFighter, nil
 }
 
 // build maps used for quick lookups for various player objects
