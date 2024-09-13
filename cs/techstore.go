@@ -2176,7 +2176,7 @@ var Frigate = TechHull{Tech: NewTech("Frigate", NewCost(4, 2, 4, 12), TechRequir
 	FuelCapacity:   125,
 	Slots: []TechHullSlot{
 		{Position: Vector{-1.5, 0}, Type: HullSlotTypeEngine, Capacity: 1, Required: true},
-		{Position: Vector{1.5, 0}, Type: HullSlotTypeScanner, Capacity: 1},
+		{Position: Vector{1.5, 0}, Type: HullSlotTypeScanner, Capacity: 2},
 		{Position: Vector{0.5, 0}, Type: HullSlotTypeGeneral, Capacity: 3},
 		{Position: Vector{-0.5, 0}, Type: HullSlotTypeShieldArmor, Capacity: 2},
 	},
@@ -2326,7 +2326,7 @@ var Galleon = TechHull{Tech: NewTech("Galleon", NewCost(70, 5, 5, 105), TechRequ
 		{Position: Vector{0.5, -1.5}, Type: HullSlotTypeGeneral, Capacity: 3},
 		{Position: Vector{0.5, 1.5}, Type: HullSlotTypeGeneral, Capacity: 3},
 		{Position: Vector{1, -0.5}, Type: HullSlotTypeMineElectricalMechanical, Capacity: 2},
-		{Position: Vector{1, 0.5}, Type: HullSlotTypeMineElectricalMechanical, Capacity: 2},
+		{Position: Vector{1, 0.5}, Type: HullSlotTypeElectricalMechanical, Capacity: 2},
 		{Position: Vector{2, 0}, Type: HullSlotTypeScanner, Capacity: 2},
 	},
 }
