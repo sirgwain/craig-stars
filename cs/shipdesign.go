@@ -705,8 +705,8 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 				slot.HullComponent = engine.Name
 			}
 		case HullSlotTypeScanner:
-			numScanners++
 			slot.HullComponent = scanner.Name
+			numScanners++
 		case HullSlotTypeWeapon:
 			if purpose == ShipDesignPurposeFighterScout {
 				slot.HullComponent = beamWeapon.Name
@@ -743,11 +743,13 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 				continue
 			}
 
-			// if we are choosing shield or armor, pick armor first, then shield
-			if numArmors > numShields {
-				slot.HullComponent = shield.Name
-			} else {
+			// if we are choosing shield or armor, pick shield first, then armor
+			if numShields > numArmors {
 				slot.HullComponent = armor.Name
+				numArmors += slot.Quantity
+			} else {
+				slot.HullComponent = shield.Name
+				numShields += slot.Quantity
 			}
 		case HullSlotTypeArmor:
 			// fuel freighters stay fast and loose
@@ -835,14 +837,14 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 				fallthrough
 			case ShipDesignPurposeFuelFreighter:
 				slot.HullComponent = fuelTank.Name
-				numFuelTanks++
+				numFuelTanks += slot.Quantity
 			case ShipDesignPurposeFreighter:
 				fallthrough
 			case ShipDesignPurposeColonistFreighter:
 				// add cargo pods to freighters if we have a ramscoop
 				if engine.FreeSpeed > 1 && cargoPod != nil {
 					slot.HullComponent = cargoPod.Name
-					numCargoPods++
+					numCargoPods += slot.Quantity
 				}
 			case ShipDesignPurposeColonizer:
 				if colonizationModule != nil && numColonizationModules == 0 {
@@ -853,21 +855,18 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 					// balance fuel and cargo, fuel firsts
 					if numFuelTanks > numCargoPods {
 						slot.HullComponent = cargoPod.Name
-						numCargoPods++
+						numCargoPods += slot.Quantity
 					} else {
 						slot.HullComponent = fuelTank.Name
-						numFuelTanks++
+						numFuelTanks += slot.Quantity
 					}
 				}
 			default:
 				slot.HullComponent = fuelTank.Name
-				numFuelTanks++
+				numFuelTanks += slot.Quantity
 			}
 		case HullSlotTypeScannerElectricalMechanical:
 			switch purpose {
-			case ShipDesignPurposeFuelFreighter:
-				slot.HullComponent = fuelTank.Name
-				numFuelTanks++
 			case ShipDesignPurposeFreighter:
 				fallthrough
 			case ShipDesignPurposeColonistFreighter:
@@ -875,10 +874,10 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 				// up to 2 more than fuel tanks (because we still need _some_ fuel)
 				if engine.FreeSpeed > 1 && cargoPod != nil && numCargoPods+2 > numFuelTanks {
 					slot.HullComponent = cargoPod.Name
-					numCargoPods++
+					numCargoPods += slot.Quantity
 				} else {
 					slot.HullComponent = fuelTank.Name
-					numFuelTanks++
+					numFuelTanks += slot.Quantity
 				}
 			case ShipDesignPurposeColonizer:
 				if colonizationModule != nil && numColonizationModules == 0 {
@@ -889,20 +888,58 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 					// balance fuel and cargo, fuel first
 					if numFuelTanks > numCargoPods && cargoPod != nil {
 						slot.HullComponent = cargoPod.Name
-						numCargoPods++
+						numCargoPods += slot.Quantity
 					} else {
 						slot.HullComponent = fuelTank.Name
-						numFuelTanks++
+						numFuelTanks += slot.Quantity
+					}
+				}
+			default:
+				// can always use more fuel
+				slot.HullComponent = fuelTank.Name
+				numFuelTanks += slot.Quantity
+				}
+			}
+		case HullSlotTypeScannerElectricalMechanical:
+			switch purpose {
+			case ShipDesignPurposeFuelFreighter:
+				slot.HullComponent = fuelTank.Name
+				numFuelTanks += slot.Quantity
+			case ShipDesignPurposeFreighter:
+				fallthrough
+			case ShipDesignPurposeColonistFreighter:
+				// add cargo pods to freighters if we have a ramscoop
+				// up to 2 more than fuel tanks (because we still need _some_ fuel)
+				if engine.FreeSpeed > 1 && cargoPod != nil && numCargoPods+2 > numFuelTanks {
+					slot.HullComponent = cargoPod.Name
+					numCargoPods += slot.Quantity
+				} else {
+					slot.HullComponent = fuelTank.Name
+					numFuelTanks += slot.Quantity
+				}
+			case ShipDesignPurposeColonizer:
+				if colonizationModule != nil && numColonizationModules == 0 {
+					numColonizationModules++
+					slot.HullComponent = colonizationModule.Name
+					slot.Quantity = 1 // we only need 1 colonization module
+				} else {
+					// balance fuel and cargo, fuel first
+					if numFuelTanks > numCargoPods && cargoPod != nil {
+						slot.HullComponent = cargoPod.Name
+						numCargoPods += slot.Quantity
+					} else {
+						slot.HullComponent = fuelTank.Name
+						numFuelTanks += slot.Quantity
 					}
 				}
 			default:
 				if numScanners == 0 {
-					numScanners++
 					slot.HullComponent = scanner.Name
+					numScanners++
 				} else {
 					// can always use more fuel
 					slot.HullComponent = fuelTank.Name
-					numFuelTanks++
+					numFuelTanks += slot.Quantity
 				}
 			}
 
@@ -910,7 +947,7 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 			switch purpose {
 			case ShipDesignPurposeFuelFreighter:
 				slot.HullComponent = fuelTank.Name
-				numFuelTanks++
+				numFuelTanks += slot.Quantity
 			case ShipDesignPurposeColonizer:
 				if colonizationModule != nil && numColonizationModules == 0 {
 					numColonizationModules++
@@ -919,10 +956,10 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 				} else { // balance fuel and cargo, fuel firsts
 					if numFuelTanks > numCargoPods && cargoPod != nil {
 						slot.HullComponent = cargoPod.Name
-						numCargoPods++
+						numCargoPods += slot.Quantity
 					} else {
 						slot.HullComponent = fuelTank.Name
-						numFuelTanks++
+						numFuelTanks += slot.Quantity
 					}
 				}
 			default:
@@ -931,7 +968,7 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 					numScanners++
 				} else {
 					slot.HullComponent = fuelTank.Name
-					numFuelTanks++
+					numFuelTanks += slot.Quantity
 				}
 			}
 
@@ -939,15 +976,15 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 			switch purpose {
 			case ShipDesignPurposeFuelFreighter:
 				slot.HullComponent = fuelTank.Name
-				numFuelTanks++
+				numFuelTanks += slot.Quantity
 			case ShipDesignPurposeColonizer:
 				// balance fuel and cargo, fuel firsts
 				if numFuelTanks > numCargoPods && cargoPod != nil {
 					slot.HullComponent = cargoPod.Name
-					numCargoPods++
+					numCargoPods += slot.Quantity
 				} else {
 					slot.HullComponent = fuelTank.Name
-					numFuelTanks++
+					numFuelTanks += slot.Quantity
 				}
 			case ShipDesignPurposeFighter:
 				fallthrough
@@ -964,7 +1001,7 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 					numScanners++
 				} else {
 					slot.HullComponent = fuelTank.Name
-					numFuelTanks++
+					numFuelTanks += slot.Quantity
 				}
 			}
 		}
