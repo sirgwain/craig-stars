@@ -2214,7 +2214,7 @@ var Cruiser = TechHull{Tech: NewTech("Cruiser", NewCost(40, 5, 8, 85), TechRequi
 		{Position: Vector{0.5, 0}, Type: HullSlotTypeShieldArmor, Capacity: 2},
 	},
 }
-var BattleCruiser = TechHull{Tech: NewTech("Battle Cruiser", NewCost(55, 8, 12, 120), TechRequirements{TechLevel: TechLevel{Construction: 9}, PRTsRequired: []PRT{WM}}, 90, TechCategoryShipHull),
+var BattleCruiser = TechHull{Tech: NewTech("Battle Cruiser", NewCost(55, 8, 12, 120), TechRequirements{TechLevel: TechLevel{Construction: 10}, PRTsRequired: []PRT{WM}}, 90, TechCategoryShipHull),
 	Type:         TechHullTypeFighter,
 	Mass:         120,
 	Armor:        1000,
