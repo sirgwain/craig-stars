@@ -1694,7 +1694,7 @@ var CargoPod = TechHullComponent{Tech: NewTech("Cargo Pod", NewCost(5, 0, 2, 10)
 	CargoBonus:   50,
 	HullSlotType: HullSlotTypeMechanical,
 }
-var SuperCargoPod = TechHullComponent{Tech: NewTech("Super Cargo Pod", NewCost(8, 0, 2, 15), TechRequirements{TechLevel: TechLevel{Energy: 3, Construction: 8}}, 30, TechCategoryMechanical),
+var SuperCargoPod = TechHullComponent{Tech: NewTech("Super Cargo Pod", NewCost(8, 0, 2, 15), TechRequirements{TechLevel: TechLevel{Energy: 3, Construction: 9}}, 30, TechCategoryMechanical),
 
 	Mass:         7,
 	CargoBonus:   100,
