@@ -512,8 +512,14 @@
 				? $selectedWaypoint?.warpSpeed
 				: engineIdealSpeed;
 
-		// if colonizing, we want the max possible warp
-		if (colonizing) {
+		// Technically the ship will refuel if the planet owner has the fleet owner set as friend.
+		// However, the fleet owner only knows who they set as a friend themselves.
+		// So we are assuming / trusting that the friendship has been reciprocated.
+		// Also, every player is friend to themselves.
+		let refuel = targetPlanet && targetPlanet.spec.hasStarbase && $player.isFriend(mo?.playerNum)
+		
+		// if colonizing or will refuel, we want the max possible warp
+		if (colonizing || refuel) {
 			warpSpeed = $commandedFleet.getMaxWarp(
 				dist,
 				$universe,
@@ -542,7 +548,7 @@
 				position: position,
 				warpSpeed: warpSpeed,
 				task: task,
-				transportTasks: transportTasks
+				transportTasks: transportTasks,
 			});
 		} else {
 			const wp: Waypoint = {

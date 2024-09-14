@@ -479,7 +479,8 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 				if (fleet.orbitingPlanetNum && fleet.orbitingPlanetNum != None) {
 					const planet = u.getMapObject({
 						targetType: MapObjectType.Planet,
-						targetNum: fleet.orbitingPlanetNum
+						targetNum: fleet.orbitingPlanetNum,
+						targetPosition: fleet.position,
 					});
 					if (planet) {
 						selectMapObject(planet);
@@ -516,7 +517,8 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 				if (fleet.orbitingPlanetNum && fleet.orbitingPlanetNum != None) {
 					const planet = u.getMapObject({
 						targetType: MapObjectType.Planet,
-						targetNum: fleet.orbitingPlanetNum
+						targetNum: fleet.orbitingPlanetNum,
+						targetPosition: fleet.position,
 					});
 					if (planet) {
 						selectMapObject(planet);
