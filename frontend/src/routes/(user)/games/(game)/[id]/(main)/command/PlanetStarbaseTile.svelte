@@ -9,6 +9,7 @@
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import { UnlimitedSpaceDock } from '$lib/types/Tech';
 	import CommandTile from './CommandTile.svelte';
+	import type { Rules } from '$lib/types/Rules';
 
 	const { game, player, universe, settings, updatePlanetOrders } = getGameContext();
 
@@ -120,7 +121,7 @@
 						<WarpSpeedGauge
 							bind:value={planet.packetSpeed}
 							min={5}
-							max={(planet.spec.safePacketSpeed ?? 0) + 3}
+							max={(planet.spec.basePacketSpeed ?? 0) + $game.rules.packetMaxOverwarpSpeed}
 							warnSpeed={(planet.spec.safePacketSpeed ?? 0) + 1}
 							dangerSpeed={(planet.spec.safePacketSpeed ?? 0) + 3}
 							on:valuechanged={() => updatePlanetOrdrers()}

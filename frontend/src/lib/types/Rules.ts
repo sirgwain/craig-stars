@@ -74,6 +74,7 @@ export type Rules = {
 	salvageFromBattleFactor: number;
 	techTradeChance: number;
 	packetDecayRate: { [key: number]: number };
+	packetMaxOverwarpSpeed: number;
 	maxTechLevel: number;
 	techBaseCost: number[];
 	techs?: TechStore;
@@ -353,6 +354,7 @@ export const defaultRules: Rules = {
 		'2': 0.25,
 		'3': 0.5
 	},
+	packetMaxOverwarpSpeed: 3,
 	maxTechLevel: 26,
 	techBaseCost: [
 		0, 50, 80, 130, 210, 340, 550, 890, 1440, 2330, 3770, 6100, 9870, 13850, 18040, 22440, 27050,

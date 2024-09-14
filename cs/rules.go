@@ -15,6 +15,7 @@ type Rules struct {
 	UpdatedAt                                 time.Time                           `json:"updatedAt"`
 	GameID                                    int64                               `json:"gameId"`
 	TachyonCloakReduction                     int                                 `json:"tachyonCloakReduction"`
+	TachyonMaxCloakReduction                  int                                 `json:"tachyonMaxCloakReduction"`
 	MaxPopulation                             int                                 `json:"maxPopulation"`
 	MinMaxPopulationPercent                   float64                             `json:"minMaxPopulationPercent"`
 	PopulationOvercrowdDieoffRate             float64                             `json:"populationOvercrowdDieoffRate"`
@@ -80,6 +81,7 @@ type Rules struct {
 	TechTradeChance                           float64                             `json:"techTradeChance"`
 	PacketDecayRate                           map[int]float64                     `json:"packetDecayRate"`
 	PacketMinDecay                            int                                 `json:"packetMinDecay"`
+	PacketMaxOverwarpSpeed                    int                                 `json:"packetMaxOverwarpSpeed"`
 	MaxTechLevel                              int                                 `json:"maxTechLevel"`
 	TechBaseCost                              []int                               `json:"techBaseCost"`
 	PRTSpecs                                  map[PRT]PRTSpec                     `json:"prtSpecs"`
@@ -193,6 +195,7 @@ func NewRulesWithSeed(seed int64) Rules {
 	return Rules{
 		random:                           random,
 		TachyonCloakReduction:            5,
+		TachyonMaxCloakReduction:         19, // cloak reduction caps at (100 - 19)% or 81%
 		MaxPopulation:                    1000000,
 		MinMaxPopulationPercent:          .05,
 		PopulationOvercrowdDieoffRate:    .04, // overcrowded pops die off at 4% per doubling
@@ -504,8 +507,9 @@ func NewRulesWithSeed(seed int64) Rules {
 			2: 0.25,
 			3: 0.5,
 		},
-		PacketMinDecay: 10,
-		MaxTechLevel:   26,
+		PacketMinDecay:         10,
+		PacketMaxOverwarpSpeed: 3,
+		MaxTechLevel:           26,
 		TechBaseCost: []int{
 			0,
 			50,
