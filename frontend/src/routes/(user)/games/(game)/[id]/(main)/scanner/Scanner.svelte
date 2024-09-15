@@ -3,24 +3,22 @@
 	import { onScannerContextPopup } from '$lib/components/game/tooltips/ScannerContextPopup.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
-	import { WaypointTask, type Fleet, type Waypoint } from '$lib/types/Fleet';
+	import { filterFleet } from '$lib/types/Filter';
+	import { type Fleet } from '$lib/types/Fleet';
 	import {
 		MapObjectType,
 		None,
-		StargateWarpSpeed,
 		equal as mapObjectEqual,
-		owned,
 		type MapObject
 	} from '$lib/types/MapObject';
-	import type { Planet } from '$lib/types/Planet';
-	import { distance, emptyVector, equal, type Vector } from '$lib/types/Vector';
+	import { emptyVector, equal, type Vector } from '$lib/types/Vector';
 	import type { ScaleLinear } from 'd3-scale';
 	import { scaleLinear } from 'd3-scale';
 	import { select } from 'd3-selection';
 	import { ZoomTransform, zoom, type D3ZoomEvent, type ZoomBehavior } from 'd3-zoom';
 	import hotkeys from 'hotkeys-js';
 	import { Html, LayerCake, Svg } from 'layercake';
-	import { onDestroy, onMount, setContext } from 'svelte';
+	import { createEventDispatcher, onDestroy, onMount, setContext } from 'svelte';
 	import { derived, writable } from 'svelte/store';
 	import MapObjectQuadTreeFinder, {
 		type FinderEventDetails
@@ -41,7 +39,9 @@
 	import ScannerWormholeLinks from './ScannerWormholeLinks.svelte';
 	import ScannerWormholes from './ScannerWormholes.svelte';
 	import SelectedMapObject from './SelectedMapObject.svelte';
-	import { filterFleet } from '$lib/types/Filter';
+	import type { DeleteWaypointEvent } from '../command/FleetWaypointsTile.svelte';
+
+	const dispatch = createEventDispatcher<DeleteWaypointEvent>();
 
 	const {
 		game,
@@ -80,6 +80,7 @@
 	let zooming = false;
 	let showLocator = false;
 	let shouldAddWaypoint = false;
+	let fastestWaypoint = false;
 
 	// our map scales for .75 to 10x, but the icons for the planets and fleets are 2x min
 	const minZoom = 0.75;
@@ -186,7 +187,8 @@
 	function handleKeyDown(e: KeyboardEvent) {
 		// add a waypoint if we are currently commanding a fleet and we didn't just click
 		// on the fleet
-		shouldAddWaypoint = !!$commandedFleet && e.shiftKey;
+		shouldAddWaypoint = !!$commandedFleet && (e.shiftKey || e.metaKey);
+		fastestWaypoint = !!$commandedFleet && e.metaKey;
 
 		switch (e.key) {
 			case '+':
@@ -203,7 +205,8 @@
 	function handleKeyUp(e: KeyboardEvent) {
 		// add a waypoint if we are currently commanding a fleet and we didn't just click
 		// on the fleet
-		shouldAddWaypoint = !!$commandedFleet && e.shiftKey;
+		shouldAddWaypoint = !!$commandedFleet && (e.shiftKey || e.metaKey);
+		fastestWaypoint = !!$commandedFleet && e.metaKey;
 	}
 
 	function showTargetLocation() {
@@ -325,7 +328,7 @@
 
 		if (found?.type == MapObjectType.Fleet && !filterFleet($player, found as Fleet, $settings)) {
 			// this object we clicked is filtered out, don't do anything
-			return
+			return;
 		}
 
 		pointerDown = true;
@@ -363,52 +366,6 @@
 		waypointJustAdded = false;
 	}
 
-	function calculateWaypointSpeed(previous_mo: MapObject | undefined, mo: MapObject | undefined, previousWaypointSpeed: number | undefined): number {
-		if ($commandedFleet == undefined) {
-			return previousWaypointSpeed ?? 5
-		}
-		
-		const colonizing =
-			$commandedFleet.spec.colonizer &&
-			$commandedFleet.cargo.colonists &&
-			mo &&
-			mo.type === MapObjectType.Planet &&
-			!owned(mo) &&
-			((mo as Planet).spec.terraformedHabitability ?? 0) > 0;
-
-		const engineIdealSpeed = $commandedFleet.spec?.engine?.idealSpeed ?? 5
-		let warpSpeed =
-			previousWaypointSpeed &&
-			previousWaypointSpeed != StargateWarpSpeed &&
-			previousWaypointSpeed > engineIdealSpeed
-				? previousWaypointSpeed
-				: engineIdealSpeed;
-		
-		// get highest mass of the fleet ships (for stargates) 
-		const maxFleetMass = Math.max(
-			...$commandedFleet.tokens.map((t) => $universe.getMyDesign(t.designNum)?.spec.mass ?? 0)
-		);
-
-		// if colonizing or if the destination has a starbase, we want the max possible warp
-		if (colonizing || $settings.fastestWaypoint || 
-		((mo as Planet).spec.dockCapacity ?? 0) != 0) {
-			warpSpeed = $commandedFleet.getMaxWarp(
-				$player,
-				previous_mo,
-				mo,
-				$universe, 
-				$player.race.spec?.fuelEfficiencyOffset ?? 0);
-		} else {
-			warpSpeed = $commandedFleet.getMinimalWarp(
-				$player,
-				previous_mo,
-				mo, 
-				maxFleetMass,
-				warpSpeed);
-		}
-		return warpSpeed
-	}
-
 	// move the selected waypoint around snapping to targets
 	function dragWaypointMove(position: Vector, mo: MapObject | undefined) {
 		if ($selectedWaypoint && $currentSelectedWaypointIndex && $commandedFleet) {
@@ -423,60 +380,68 @@
 				}
 			}
 
-			// update the ideal speed
-			let waypointIndex = $currentSelectedWaypointIndex;
-			let warpSpeed = $selectedWaypoint?.warpSpeed
+			const dest = mo ? { mo: mo } : { position: position ?? emptyVector };
+			const orbiting = $universe.getPlanet($commandedFleet.orbitingPlanetNum);
 
-			if (waypointIndex > 0) {
-				const previousWaypoint = $commandedFleet.waypoints[waypointIndex - 1];
-				let previous_mo : MapObject | undefined
-				$universe.getMapObjectsByPosition(previousWaypoint.position)
-				.forEach(obj => {
-					if (obj.type == 'Planet') {
-						previous_mo = obj
-					}
-				});
-				warpSpeed = calculateWaypointSpeed(previous_mo, mo, warpSpeed)
-			}
-			
-			if (positionWaypoint || !mo) {
-				$selectedWaypoint.position = position;
-				$selectedWaypoint.warpSpeed = warpSpeed;
-				$selectedWaypoint.targetType = MapObjectType.None;
-				$selectedWaypoint.targetNum = None;
-				$selectedWaypoint.targetPlayerNum = None;
-				$selectedWaypoint.targetName = '';
-			} else if (mo) {
-				$selectedWaypoint.position = mo.position;
-				$selectedWaypoint.warpSpeed = warpSpeed;
-				$selectedWaypoint.targetType = mo.type;
-				$selectedWaypoint.targetNum = mo.num;
-				$selectedWaypoint.targetPlayerNum = mo.playerNum;
-				$selectedWaypoint.targetName = mo.name;
+			// get highest mass of the fleet ships (for stargates)
+			const highestShipMass = Math.max(
+				...$commandedFleet.tokens.map((t) => $universe.getMyDesign(t.designNum)?.spec.mass ?? 0)
+			);
+
+			if (
+				$commandedFleet.updateWaypoint(
+					$player,
+					$universe,
+					dest,
+					$currentSelectedWaypointIndex,
+					orbiting,
+					highestShipMass,
+					$settings.fastestWaypoint || fastestWaypoint
+				)
+			) {
+				// trigger reaction
+				$selectedWaypoint = $selectedWaypoint;
 			}
 		}
 	}
 
-	function dragWaypointDone(position: Vector, mo: MapObject | undefined) {
+	async function dragWaypointDone(position: Vector, mo: MapObject | undefined) {
 		// reset waypoint dragging
 		if ($selectedWaypoint && $commandedFleet && draggingWaypoint) {
-			let waypointIndex = $currentSelectedWaypointIndex;
+			const dest = mo ? { mo: mo } : { position: position ?? emptyVector };
+			const orbiting = $universe.getPlanet($commandedFleet.orbitingPlanetNum);
 
-			if (waypointIndex > 0) {
-				const previousWaypoint = $commandedFleet.waypoints[waypointIndex - 1];
-				let warpSpeed = $selectedWaypoint?.warpSpeed
-				let previous_mo : MapObject | undefined
-				$universe.getMapObjectsByPosition(previousWaypoint.position)
-				.forEach(obj => {
-					if (obj.type == 'Planet') {
-						previous_mo = obj
+			// get highest mass of the fleet ships (for stargates)
+			const highestShipMass = Math.max(
+				...$commandedFleet.tokens.map((t) => $universe.getMyDesign(t.designNum)?.spec.mass ?? 0)
+			);
+
+			if (
+				$commandedFleet.updateWaypoint(
+					$player,
+					$universe,
+					dest,
+					$currentSelectedWaypointIndex,
+					orbiting,
+					highestShipMass,
+					$settings.fastestWaypoint || fastestWaypoint
+				)
+			) {
+				await updateFleetOrders($commandedFleet);
+
+				// select the new waypoint
+				selectWaypoint($commandedFleet.waypoints[$currentSelectedWaypointIndex]);
+				if ($selectedWaypoint && $selectedWaypoint.targetType && $selectedWaypoint.targetNum) {
+					const mo = $universe.getMapObject($selectedWaypoint);
+
+					if (mo) {
+						selectMapObject(mo);
 					}
-				});
-
-				warpSpeed = calculateWaypointSpeed(previous_mo, mo, warpSpeed)
-				$selectedWaypoint.warpSpeed = warpSpeed;
+				}
+			} else {
+				// we dragged a waypoint to the previous position, delete it
+				dispatch('delete-waypoint');
 			}
-		updateFleetOrders($commandedFleet);
 		}
 	}
 
@@ -501,103 +466,34 @@
 			return false;
 		}
 
-		let waypointIndex = $currentSelectedWaypointIndex;
-		if (waypointIndex == -1) {
-			waypointIndex = 0;
-		}
-		const currentWaypoint = $commandedFleet.waypoints[waypointIndex];
-		let nextWaypoint = currentWaypoint;
-		if (waypointIndex < $commandedFleet.waypoints.length - 1) {
-			nextWaypoint = $commandedFleet.waypoints[waypointIndex + 1];
-		}
+		const dest = mo ? { mo: mo } : { position: position ?? emptyVector };
+		const orbiting = $universe.getPlanet($commandedFleet.orbitingPlanetNum);
 
-		position = mo ? mo.position : position ?? emptyVector;
-		if (equal(position, currentWaypoint.position) || equal(position, nextWaypoint.position)) {
-			// don't duplicate waypoints
+		// get highest mass of the fleet ships (for stargates)
+		const highestShipMass = Math.max(
+			...$commandedFleet.tokens.map((t) => $universe.getMyDesign(t.designNum)?.spec.mass ?? 0)
+		);
+
+		const newlyAddedWaypointIndex = $commandedFleet.addWaypoint(
+			$player,
+			$universe,
+			dest,
+			$currentSelectedWaypointIndex,
+			orbiting,
+			highestShipMass,
+			$settings.fastestWaypoint || fastestWaypoint
+		);
+
+		if (!newlyAddedWaypointIndex) {
 			return false;
 		}
 
-		let currentPlanet_mo : MapObject | undefined
-		$universe.getMapObjectsByPosition(currentWaypoint.position)
-			.forEach(obj => {
-				if (obj.type == 'Planet') {
-					currentPlanet_mo = obj
-				}
-			});
-
-		let warpSpeed = $selectedWaypoint?.warpSpeed;
-		warpSpeed = calculateWaypointSpeed(currentPlanet_mo, mo, warpSpeed);
-
-		const task = $selectedWaypoint?.task ?? WaypointTask.None;
-		const transportTasks = $selectedWaypoint?.transportTasks ?? {
-			fuel: {},
-			ironium: {},
-			boranium: {},
-			germanium: {},
-			colonists: {}
-		};
-
-		if (!mo) {
-			$commandedFleet.waypoints.splice(waypointIndex + 1, 0, {
-				position: position,
-				warpSpeed: warpSpeed,
-				task: task,
-				transportTasks: transportTasks,
-			});
-		} else {
-			const wp: Waypoint = {
-				position: mo.position,
-				targetName: mo.name,
-				targetPlayerNum: mo.playerNum,
-				targetNum: mo.num,
-				targetType: mo.type,
-				warpSpeed: warpSpeed,
-				task: task,
-				transportTasks: transportTasks
-			};
-			$commandedFleet.waypoints.splice(waypointIndex + 1, 0, wp);
-
-			const colonizing =
-			$commandedFleet.spec.colonizer &&
-			$commandedFleet.cargo.colonists &&
-			mo &&
-			mo.type === MapObjectType.Planet &&
-			!owned(mo) &&
-			((mo as Planet).spec.terraformedHabitability ?? 0) > 0;
-
-			const remoteMining =
-				$commandedFleet.spec.miningRate &&
-				$commandedFleet.spec.miningRate > 0 &&
-				mo.type === MapObjectType.Planet &&
-				(!owned(mo) || $player.race.spec?.canRemoteMineOwnPlanets);
-
-			// if this is a colonizer and the target is a habitable planet
-			if (colonizing) {
-				wp.task = WaypointTask.Colonize;
-				wp.transportTasks = {
-					fuel: {},
-					ironium: {},
-					boranium: {},
-					germanium: {},
-					colonists: {}
-				};
-			} else if (remoteMining) {
-				wp.task = WaypointTask.RemoteMining;
-				wp.transportTasks = {
-					fuel: {},
-					ironium: {},
-					boranium: {},
-					germanium: {},
-					colonists: {}
-				};
-			}
-		}
 		waypointJustAdded = true;
 
 		await updateFleetOrders($commandedFleet);
 
 		// select the new waypoint
-		selectWaypoint($commandedFleet.waypoints[waypointIndex + 1]);
+		selectWaypoint($commandedFleet.waypoints[newlyAddedWaypointIndex]);
 		if ($selectedWaypoint && $selectedWaypoint.targetType && $selectedWaypoint.targetNum) {
 			const mo = $universe.getMapObject($selectedWaypoint);
 

@@ -25,7 +25,7 @@ type ShipDesign struct {
 	Slots             []ShipDesignSlot  `json:"slots"`
 	Purpose           ShipDesignPurpose `json:"purpose,omitempty"`
 	Spec              ShipDesignSpec    `json:"spec"`
-	Delete            bool              // used by the AI to mark a design for deletion
+	Delete            bool              `json:"-"` // used by the AI to mark a design for deletion
 }
 
 type ShipDesignSlot struct {

@@ -17,7 +17,7 @@ import type { Planet } from './Planet';
 import type { Player } from './Player';
 import type { ShipDesign } from './ShipDesign';
 import type { Engine } from './Tech';
-import { distance, type Vector } from './Vector';
+import { distance, equal, type Vector } from './Vector';
 
 export type Fleet = {
 	playerNum: number; // override mapObject fleets always have a player.
@@ -98,6 +98,14 @@ export type WaypointTransportTasks = {
 	colonists: WaypointTransportTask;
 };
 
+export const emptyWaypointTransportTasks = (): WaypointTransportTasks => ({
+	fuel: {},
+	ironium: {},
+	boranium: {},
+	germanium: {},
+	colonists: {}
+});
+
 export type WaypointTransportTask = {
 	action?: WaypointTaskTransportAction;
 	amount?: number;
@@ -123,14 +131,14 @@ export type Spec = {
 	mass: number;
 	armor: number;
 	fuelCapacity: number;
-	immuneToOwnDetonation: boolean;
+	immuneToOwnDetonation?: boolean;
 	mineLayingRateByMineType?: Record<MineFieldType, number>;
 	weaponSlots?: null;
 	purposes?: any;
 	totalShips: number;
 	massEmpty: number;
 	basePacketSpeed: number;
-	safePacketSpeed: number;
+	safePacketSpeed?: number;
 	baseCloakedCargo: number;
 	stargate?: string;
 	massDriver?: string;
@@ -153,8 +161,8 @@ export type Spec = {
 	retroBombs?: number;
 	scanner?: boolean;
 	shields?: number;
-	colonizer?: number;
-	canLayMines?: number;
+	colonizer?: boolean;
+	canLayMines?: boolean;
 	spaceDock?: number;
 	miningRate?: number;
 	terraformRate?: number;
@@ -252,92 +260,268 @@ export class CommandedFleet implements Fleet {
 		return fuelCost;
 	}
 
+	getSelectedWaypointInfo(currentSelectedWaypointIndex: number = -1): {
+		selectedWaypoint: Waypoint;
+		nextWaypoint: Waypoint | undefined;
+		previousWaypoint: Waypoint | undefined;
+		waypointIndex: number;
+	} {
+		// default to the first waypoint if the current selected waypoint index is invalid
+		const index: number =
+			currentSelectedWaypointIndex == -1 || currentSelectedWaypointIndex >= this.waypoints.length
+				? 0
+				: currentSelectedWaypointIndex;
+
+		return {
+			selectedWaypoint: this.waypoints[index],
+			nextWaypoint: index < this.waypoints.length - 1 ? this.waypoints[index + 1] : undefined,
+			previousWaypoint: index > 0 ? this.waypoints[index - 1] : undefined,
+			waypointIndex: index
+		};
+	}
+
+	/**
+	 * Add a waypoint to a destination, returning the index of the newly added waypoint
+	 * @param dest
+	 * @param orbiting
+	 */
+	addWaypoint(
+		player: Player,
+		designFinder: DesignFinder,
+		dest: { mo: MapObject; position?: never } | { mo?: never; position: Vector },
+		currentSelectedWaypointIndex: number,
+		orbiting: Planet | undefined,
+		highestShipMass: number,
+		fastestWaypoint: boolean
+	): number | undefined {
+		const { selectedWaypoint, nextWaypoint, waypointIndex } = this.getSelectedWaypointInfo(
+			currentSelectedWaypointIndex
+		);
+		const mo = dest.mo;
+		const position = dest.position ?? dest.mo.position;
+
+		if (
+			equal(position, selectedWaypoint.position) ||
+			(nextWaypoint && equal(position, nextWaypoint.position))
+		) {
+			// don't add a duplicate waypoint waypoints
+			return;
+		}
+
+		// if our destination is a planet, determine some stuff about it
+		const { warpSpeed, canColonize, canRemoteMine } = this.getWarpSpeed(
+			player,
+			designFinder,
+			dest,
+			orbiting,
+			highestShipMass,
+			fastestWaypoint
+		);
+
+		const task = selectedWaypoint.task ?? WaypointTask.None;
+		const emptyTransportTasks = emptyWaypointTransportTasks();
+		const transportTasks = selectedWaypoint.transportTasks ?? emptyTransportTasks;
+
+		if (mo) {
+			// create a waypoint with a MapObject as a target
+			const wp: Waypoint = {
+				position: mo.position,
+				targetName: mo.name,
+				targetPlayerNum: mo.playerNum,
+				targetNum: mo.num,
+				targetType: mo.type,
+				warpSpeed: warpSpeed,
+				task: task,
+				transportTasks: transportTasks
+			};
+			this.waypoints.splice(waypointIndex + 1, 0, wp);
+
+			// if this is a colonizer and the target is a habitable planet
+			if (canColonize) {
+				wp.task = WaypointTask.Colonize;
+				wp.transportTasks = emptyTransportTasks;
+			} else if (canRemoteMine) {
+				wp.task = WaypointTask.RemoteMining;
+				wp.transportTasks = emptyTransportTasks;
+			}
+		} else {
+			this.waypoints.splice(waypointIndex + 1, 0, {
+				position: dest.position,
+				warpSpeed: warpSpeed,
+				task: task,
+				transportTasks: transportTasks
+			});
+		}
+
+		return waypointIndex + 1;
+	}
+
+	/**
+	 * Add a waypoint to a destination, returning the index of the newly added waypoint
+	 * @param dest
+	 * @param orbiting
+	 */
+	updateWaypoint(
+		player: Player,
+		designFinder: DesignFinder,
+		dest: { mo: MapObject; position?: never } | { mo?: never; position: Vector },
+		currentSelectedWaypointIndex: number,
+		orbiting: Planet | undefined,
+		highestShipMass: number,
+		fastestWaypoint: boolean
+	): boolean {
+		const { selectedWaypoint, previousWaypoint } = this.getSelectedWaypointInfo(
+			currentSelectedWaypointIndex
+		);
+		const mo = dest.mo;
+		const position = dest.position ?? dest.mo.position;
+
+		if (previousWaypoint && equal(position, previousWaypoint.position)) {
+			// don't update a waypoint to be the same as a previous waypoint, this should just delete it
+			return false;
+		}
+
+		// if our destination is a planet, determine some stuff about it
+		const { warpSpeed, canColonize, canRemoteMine } = this.getWarpSpeed(
+			player,
+			designFinder,
+			dest,
+			orbiting,
+			highestShipMass,
+			fastestWaypoint
+		);
+
+		let task = selectedWaypoint.task ?? WaypointTask.None;
+		const emptyTransportTasks = emptyWaypointTransportTasks();
+		const transportTasks = selectedWaypoint.transportTasks ?? emptyTransportTasks;
+
+		// don't update the waypoint to a colonize/remote mine task if we can't do it on this new target
+		if (
+			(task == WaypointTask.Colonize && !canColonize) ||
+			(task == WaypointTask.RemoteMining && !canRemoteMine)
+		) {
+			task = WaypointTask.None;
+		}
+
+		if (mo) {
+			selectedWaypoint.position = mo.position;
+			selectedWaypoint.targetName = mo.name;
+			selectedWaypoint.targetPlayerNum = mo.playerNum;
+			selectedWaypoint.targetNum = mo.num;
+			selectedWaypoint.targetType = mo.type;
+			selectedWaypoint.warpSpeed = warpSpeed;
+			selectedWaypoint.task = task;
+			selectedWaypoint.transportTasks = transportTasks;
+
+			// if this is a colonizer and the target is a habitable planet
+			if (canColonize) {
+				selectedWaypoint.task = WaypointTask.Colonize;
+				selectedWaypoint.transportTasks = emptyTransportTasks;
+			} else if (canRemoteMine) {
+				selectedWaypoint.task = WaypointTask.RemoteMining;
+				selectedWaypoint.transportTasks = emptyTransportTasks;
+			}
+		} else {
+			selectedWaypoint.position = dest.position;
+			selectedWaypoint.targetName = '';
+			selectedWaypoint.targetPlayerNum = None;
+			selectedWaypoint.targetNum = None;
+			selectedWaypoint.targetType = MapObjectType.None;
+			selectedWaypoint.warpSpeed = warpSpeed;
+			selectedWaypoint.task = task;
+			selectedWaypoint.transportTasks = transportTasks;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Get the warpSpeed of a waypoint to a destination. Also return whether we can colonize or remote mine the dest
+	 * @param player
+	 * @param designFinder
+	 * @param dest
+	 * @param orbiting
+	 * @param highestShipMass
+	 * @param fastestWaypoint
+	 * @returns
+	 */
+	getWarpSpeed(
+		player: Player,
+		designFinder: DesignFinder,
+		dest: { mo: MapObject; position?: never } | { mo?: never; position: Vector },
+		orbiting: Planet | undefined,
+		highestShipMass: number,
+		fastestWaypoint: boolean
+	): { warpSpeed: number; canColonize: boolean; canRemoteMine: boolean } {
+		const mo = dest.mo;
+		const position = dest.position ?? dest.mo.position;
+		const dist = Math.floor(distance(this.position, position));
+
+		let canColonize = false;
+		let canRemoteMine = false;
+		let canGate = false;
+		if (mo && mo.type == MapObjectType.Planet) {
+			const target = mo as Planet;
+			canColonize = this.canColonize(target);
+			canRemoteMine = this.canRemoteMine(player, target);
+			canGate = this.canGate(player, orbiting, target, dist, highestShipMass);
+		}
+
+		// set our warp speed to the most fuel efficient based on our engine idealSpeed (7 for Long Hump 7, 8 for Alpha Drive 8, etc)
+		// or the fastest warp we can get there without running out of fuel
+		let warpSpeed = canGate
+			? StargateWarpSpeed // stargate speed if we can gate
+			: canColonize || fastestWaypoint // max speed if configured for that, or colonizing
+				? this.getMaxWarp(
+						designFinder,
+						player.race.spec?.fuelEfficiencyOffset ?? 0,
+						dist,
+						this.spec.engine.freeSpeed ?? 1,
+						this.spec?.engine?.maxSafeSpeed ?? 9
+					)
+				: this.getMinimalWarp(
+						dist,
+						this.spec.engine.idealSpeed ?? 0,
+						this.spec.engine.freeSpeed ?? 1,
+						this.spec?.engine?.maxSafeSpeed ?? 9
+					);
+		return { warpSpeed, canColonize, canRemoteMine };
+	}
+
 	// get the highest useful speed less than or equal to a given warp speed
 	// needed to reach the destination
 	getMinimalWarp(
-		player: Player,
-		origin: MapObject | undefined,
-		destination: MapObject | undefined,
-		maxFleetMass: number,
-		idealSpeed: number
+		dist: number,
+		startSpeed: number,
+		freeSpeed: number,
+		maxSafeSpeed: number
 	): number {
-		let speed = idealSpeed;
-		const freeSpeed = this.spec?.engine?.freeSpeed ?? 1;
-		const dist = distance(destination?.position ?? this.position, origin?.position) - 0.9 ;
-		const yearsAtIdealSpeed = dist / (idealSpeed * idealSpeed);
+		const yearsAtIdealSpeed = Math.ceil(dist / (startSpeed * startSpeed));
+
 		// start checking 1 warp speed below our maximum assigned speed
-		for (let i = idealSpeed; i > freeSpeed; i--) {
-			const yearsAtSpeed = dist / (i * i);
+		let speed = startSpeed;
+		for (let i = startSpeed; i > freeSpeed; i--) {
+			const yearsAtSpeed = Math.ceil(dist / (i * i));
 			// if it takes the same time to go slower, go slower
 			if (Math.ceil(yearsAtIdealSpeed) == Math.ceil(yearsAtSpeed)) {
 				speed = i;
 			}
 		}
 
-		// use a stargate automatically if it's safe and in range
-		const originPlanet = origin?.type == MapObjectType.Planet ? (origin as Planet) : undefined;
-		const targetPlanet =
-			destination?.type == MapObjectType.Planet ? (destination as Planet) : undefined;
-		let stargate = false;
-
-		if (!this.spec?.canJump) {
-			if (originPlanet && targetPlanet) {
-				const destSafeHullMass = targetPlanet.spec.safeHullMass ?? 0;
-				const destSafeRange = targetPlanet.spec.safeRange ?? 0;
-				const sourceSafeHullMass = originPlanet.spec.safeHullMass ?? 0;
-				const sourceSafeRange = originPlanet.spec.safeRange ?? 0;
-				const destStargateSafe =
-					(totalCargo(this.cargo) == 0 || player.race.spec?.canGateCargo) &&
-					owned(targetPlanet) &&
-					player.isFriend(targetPlanet.playerNum ?? 0) &&
-					destSafeRange >= dist &&
-					maxFleetMass < destSafeHullMass;
-				const sourceStargateSafe =
-					(totalCargo(this.cargo) == 0 || player.race.spec?.canGateCargo) &&
-					owned(originPlanet) &&
-					player.isFriend(targetPlanet.playerNum ?? 0) &&
-					sourceSafeRange >= dist &&
-					maxFleetMass < sourceSafeHullMass;
-				stargate = !!destStargateSafe && !!sourceStargateSafe;
-			}
-		} else {
-			if (targetPlanet) {
-				const destSafeHullMass = targetPlanet.spec.safeHullMass ?? 0;
-				const destSafeRange = targetPlanet.spec.safeRange ?? 0;
-				const destStargateSafe =
-					owned(targetPlanet) &&
-					player.isFriend(targetPlanet.playerNum ?? 0) &&
-					destSafeRange >= dist &&
-					maxFleetMass < destSafeHullMass;
-				stargate = !!destStargateSafe;
-			}
-		}
-
-		if (stargate) {
-			speed = StargateWarpSpeed;
-		} else if (speed > (this.spec?.engine?.maxSafeSpeed ?? 9)) {
-			speed = this.spec?.engine?.maxSafeSpeed ?? 9;
-		}
-
-		return speed;
+		return Math.min(maxSafeSpeed, speed);
 	}
 
 	// get the max warp we have fuel for to make it to the destination
 	getMaxWarp(
-		player: Player,
-		origin: MapObject | undefined,
-		destination: MapObject | undefined,
 		designFinder: DesignFinder,
-		fuelEfficiencyOffset: number
+		fuelEfficiencyOffset: number,
+		dist: number,
+		freeSpeed: number,
+		maxSafeSpeed: number
 	): number {
-		// start at one above free speed
-		const freeSpeed = this.spec?.engine?.freeSpeed ?? 1;
+		// start at one above free speed and add to it until we run out of fuel
 		let speed: number;
-		let dist = distance(destination?.position ?? this.position, origin?.position);
-		let maxFleetMass = Math.max(
-			...this.tokens.map((t) => designFinder.getMyDesign(t.designNum) ?.spec.mass ?? 0)
-		);
-		for (speed = freeSpeed + 1; speed < 9; speed++) {
+		for (speed = freeSpeed + 1; speed <= maxSafeSpeed; speed++) {
 			const fuelUsed = this.getFuelCost(
 				designFinder,
 				fuelEfficiencyOffset,
@@ -345,7 +529,8 @@ export class CommandedFleet implements Fleet {
 				dist,
 				this.spec.cargoCapacity ?? 0
 			);
-			if (fuelUsed > this.fuel || speed > (this.spec?.engine?.maxSafeSpeed ?? 9)) {
+			if (fuelUsed > this.fuel || speed > maxSafeSpeed) {
+				// ran out of fuel, go back one speed and we're done
 				speed--;
 				break;
 			}
@@ -367,8 +552,80 @@ export class CommandedFleet implements Fleet {
 			speed = idealSpeed;
 		}
 
-		// don't go faster than we need & use stargate if possible 
-		return this.getMinimalWarp(player, origin, destination, maxFleetMass, speed);
+		// don't go faster than we need
+		return this.getMinimalWarp(dist, speed, freeSpeed, maxSafeSpeed);
+	}
+
+	/**
+	 *
+	 * @param target the target planet to check
+	 * @returns true if this fleet can colonize this planet
+	 */
+	canColonize(target: Planet): boolean {
+		return !!(
+			this.spec.colonizer &&
+			this.cargo.colonists &&
+			!owned(target) &&
+			(target.spec.terraformedHabitability ?? 0) > 0
+		);
+	}
+
+	/**
+	 *
+	 * @param target the target planet to check
+	 * @returns true if this fleet can colonize this planet
+	 */
+	canRemoteMine(player: Player, target: Planet): boolean {
+		return !!(
+			this.spec.miningRate &&
+			this.spec.miningRate > 0 &&
+			(!owned(target) || (ownedBy(target, player.num) && player.race.spec?.canRemoteMineOwnPlanets))
+		);
+	}
+
+	/**
+	 *
+	 * @param player The fleet player
+	 * @param orbiting the planet the fleet is orbiting (or undefined if not orbiting a planet)
+	 * @param targetPlanet the planet the fleet is targeting
+	 * @param dist the distance away of the target planet
+	 * @param highestShipMass the highest mass of any ship in the fleet
+	 * @returns true if the fleet can gate to this planet
+	 */
+	canGate(
+		player: Player,
+		orbiting: Planet | undefined,
+		targetPlanet: Planet,
+		dist: number,
+		highestShipMass: number
+	): boolean {
+		const destSafeHullMass = targetPlanet.spec.safeHullMass ?? 0;
+		const destSafeRange = targetPlanet.spec.safeRange ?? 0;
+		const destStargateSafe =
+			targetPlanet.spec.hasStargate &&
+			owned(targetPlanet) &&
+			player.isFriend(targetPlanet.playerNum ?? 0) &&
+			destSafeRange >= dist &&
+			highestShipMass <= destSafeHullMass;
+
+		if (this.spec?.canJump) {
+			// we have a jump gate installed in our ship, we only care about the destination gate
+			return destStargateSafe;
+		} else {
+			if (!orbiting || !orbiting.spec.hasStargate) {
+				return false;
+			}
+			const canGateCargo = player.race.spec?.canGateCargo;
+			const sourceSafeHullMass = orbiting.spec.safeHullMass ?? 0;
+			const sourceSafeRange = orbiting.spec.safeRange ?? 0;
+			const sourceStargateSafe =
+				(canGateCargo || totalCargo(this.cargo) == 0) &&
+				owned(orbiting) &&
+				player.isFriend(targetPlanet.playerNum ?? 0) &&
+				sourceSafeRange >= dist &&
+				highestShipMass <= sourceSafeHullMass;
+			return !!(destStargateSafe && sourceStargateSafe);
+		}
 	}
 
 	/**
