@@ -308,12 +308,18 @@ export class CommandedFleet implements Fleet {
 			return;
 		}
 
+		let fuelAlreadyAllocated = 0;
+		for (let i = 0; i < waypointIndex; i++) {
+			fuelAlreadyAllocated += this.waypoints[i].estFuelUsage ?? 0;
+		}
+
 		// if our destination is a planet, determine some stuff about it
 		const { warpSpeed, canColonize, canRemoteMine } = this.getWarpSpeed(
 			player,
 			designFinder,
 			dest,
 			orbiting,
+			fuelAlreadyAllocated,
 			highestShipMass,
 			fastestWaypoint
 		);
@@ -370,7 +376,7 @@ export class CommandedFleet implements Fleet {
 		highestShipMass: number,
 		fastestWaypoint: boolean
 	): boolean {
-		const { selectedWaypoint, previousWaypoint } = this.getSelectedWaypointInfo(
+		const { selectedWaypoint, previousWaypoint, waypointIndex } = this.getSelectedWaypointInfo(
 			currentSelectedWaypointIndex
 		);
 		const mo = dest.mo;
@@ -381,12 +387,18 @@ export class CommandedFleet implements Fleet {
 			return false;
 		}
 
+		let fuelAlreadyAllocated = 0;
+		for (let i = 0; i < waypointIndex; i++) {
+			fuelAlreadyAllocated += this.waypoints[i].estFuelUsage ?? 0;
+		}
+
 		// if our destination is a planet, determine some stuff about it
 		const { warpSpeed, canColonize, canRemoteMine } = this.getWarpSpeed(
 			player,
 			designFinder,
 			dest,
 			orbiting,
+			fuelAlreadyAllocated,
 			highestShipMass,
 			fastestWaypoint
 		);
@@ -450,6 +462,7 @@ export class CommandedFleet implements Fleet {
 		designFinder: DesignFinder,
 		dest: { mo: MapObject; position?: never } | { mo?: never; position: Vector },
 		orbiting: Planet | undefined,
+		fuelAlreadyAllocated: number,
 		highestShipMass: number,
 		fastestWaypoint: boolean
 	): { warpSpeed: number; canColonize: boolean; canRemoteMine: boolean } {
@@ -475,11 +488,15 @@ export class CommandedFleet implements Fleet {
 				? this.getMaxWarp(
 						designFinder,
 						player.race.spec?.fuelEfficiencyOffset ?? 0,
+						fuelAlreadyAllocated,
 						dist,
 						this.spec.engine.freeSpeed ?? 1,
 						this.spec?.engine?.maxSafeSpeed ?? 9
 					)
 				: this.getMinimalWarp(
+						designFinder,
+						player.race.spec?.fuelEfficiencyOffset ?? 0,
+						fuelAlreadyAllocated,
 						dist,
 						this.spec.engine.idealSpeed ?? 0,
 						this.spec.engine.freeSpeed ?? 1,
@@ -491,6 +508,9 @@ export class CommandedFleet implements Fleet {
 	// get the highest useful speed less than or equal to a given warp speed
 	// needed to reach the destination
 	getMinimalWarp(
+		designFinder: DesignFinder,
+		fuelEfficiencyOffset: number,
+		fuelAlreadyAllocated: number,
 		dist: number,
 		startSpeed: number,
 		freeSpeed: number,
@@ -508,6 +528,23 @@ export class CommandedFleet implements Fleet {
 			}
 		}
 
+		// start at speed and go backwards if we would run out of fuel at this speed
+		while (speed >= freeSpeed) {
+			const fuelUsed = this.getFuelCost(
+				designFinder,
+				fuelEfficiencyOffset,
+				speed,
+				dist,
+				this.spec.cargoCapacity ?? 0
+			);
+			if (fuelUsed + fuelAlreadyAllocated > this.fuel) {
+				// ran out of fuel, go slower and try again
+				speed--;
+				continue;
+			}
+			break;
+		}
+
 		return Math.min(maxSafeSpeed, speed);
 	}
 
@@ -515,6 +552,7 @@ export class CommandedFleet implements Fleet {
 	getMaxWarp(
 		designFinder: DesignFinder,
 		fuelEfficiencyOffset: number,
+		fuelAlreadyAllocated: number,
 		dist: number,
 		freeSpeed: number,
 		maxSafeSpeed: number
@@ -529,7 +567,7 @@ export class CommandedFleet implements Fleet {
 				dist,
 				this.spec.cargoCapacity ?? 0
 			);
-			if (fuelUsed > this.fuel || speed > maxSafeSpeed) {
+			if (fuelUsed + fuelAlreadyAllocated > this.fuel || speed > maxSafeSpeed) {
 				// ran out of fuel, go back one speed and we're done
 				speed--;
 				break;
@@ -553,7 +591,15 @@ export class CommandedFleet implements Fleet {
 		}
 
 		// don't go faster than we need
-		return this.getMinimalWarp(dist, speed, freeSpeed, maxSafeSpeed);
+		return this.getMinimalWarp(
+			designFinder,
+			fuelEfficiencyOffset,
+			fuelAlreadyAllocated,
+			dist,
+			speed,
+			freeSpeed,
+			maxSafeSpeed
+		);
 	}
 
 	/**
