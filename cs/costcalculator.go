@@ -208,7 +208,8 @@ func (p *costCalculate) GetDesignCost(rules *Rules, techLevels TechLevel, raceSp
 	hull := rules.techs.GetHull(design.Hull)
 	if hull == nil {
 		return Cost{}, fmt.Errorf("hull design %s not found in tech store", design.Hull)
-	} else if hull.Starbase {
+	}
+	if hull.Starbase {
 		starbase = true
 	}
 
