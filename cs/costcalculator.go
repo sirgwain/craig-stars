@@ -204,13 +204,16 @@ func (p *costCalculate) CostOfOne(player *Player, item ProductionQueueItem) (Cos
 // Get cost of a given ship or new starbase design
 func (p *costCalculate) GetDesignCost(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design *ShipDesign) (Cost, error) {
 
+	starbase := false
 	hull := rules.techs.GetHull(design.Hull)
 	if hull == nil {
 		return Cost{}, fmt.Errorf("hull design %s not found in tech store", design.Hull)
+	} else if design.Spec.Starbase {
+		starbase = true
 	}
 
 	cost := hull.Tech.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(1000)
-	if hull.Type == TechHullTypeStarbase {
+	if starbase {
 		// multiply by cost factor because we divide by it later
 		cost = cost.MultiplyInt(rules.StarbaseComponentCostReduction)
 	}
@@ -223,7 +226,7 @@ func (p *costCalculate) GetDesignCost(rules *Rules, techLevels TechLevel, raceSp
 			return Cost{}, fmt.Errorf("component %s in design slots not found in tech store", slot.HullComponent)
 		}
 		hcCost := item.Tech.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(slot.Quantity)
-		if hull.Type == TechHullTypeStarbase && item.Category == TechCategoryOrbital {
+		if starbase && item.Category == TechCategoryOrbital {
 			tally = tally.Add(hcCost.MultiplyInt(rules.StarbaseComponentCostReduction))
 		} else {
 			tally = tally.Add(hcCost)
@@ -232,7 +235,7 @@ func (p *costCalculate) GetDesignCost(rules *Rules, techLevels TechLevel, raceSp
 	cost = cost.Add(tally.MultiplyInt(1000))
 
 	var divisor int = 1000
-	if hull.Type == TechHullTypeStarbase {
+	if starbase {
 		divisor = int(roundHalfDown(1000 * float64(rules.StarbaseComponentCostReduction) / raceSpec.StarbaseCostFactor))
 	}
 	return cost.DivideByInt(divisor, true), nil

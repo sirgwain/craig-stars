@@ -432,7 +432,8 @@ func Test_costCalculate_GetDesignCost(t *testing.T) {
 			player.Race.Spec.TechCostOffset = tt.args.techCostOffset
 			design := NewShipDesign(player, 1).
 				WithHull(tt.args.hull).
-				WithSlots(tt.args.slots)
+				WithSlots(tt.args.slots).
+				WithSpec(&rules, player)
 			got, err := c.GetDesignCost(&rules, player.TechLevels, player.Race.Spec, design)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("costCalculate.GetDesignCost() errored unexpectedly; err = %v", err)
