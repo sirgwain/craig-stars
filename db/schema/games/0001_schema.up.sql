@@ -92,7 +92,6 @@ CREATE TABLE IF NOT EXISTS rules (
   terraformCost TEXT,
   starbaseComponentCostFactor REAL,
   packetDecayRate TEXT,
-  packetMaxOverwarpSpeed INTEGER,
   maxTechLevel INTEGER,
   techBaseCost TEXT,
   prtSpecs TEXT,
