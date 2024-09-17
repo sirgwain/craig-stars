@@ -865,7 +865,7 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 				slot.HullComponent = fuelTank.Name
 				numFuelTanks += slot.Quantity
 			}
-		case HullSlotTypeScannerElectricalMechanical:
+		case HullSlotTypeElectricalMechanical:
 			switch purpose {
 			case ShipDesignPurposeFreighter:
 				fallthrough
