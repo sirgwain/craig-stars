@@ -472,7 +472,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 
 	if numTachyonDetectors > 0 {
 		// 95% ^ (SQRT(#_of_detectors) = reduction factor for other players' cloaks (capped at 81% or 17TDs)
-		spec.ReduceCloaking = math.Min(math.Pow((100.0-float64(rules.TachyonCloakReduction))/100, math.Sqrt(float64(numTachyonDetectors))), float64(100-rules.TachyonMaxCloakReduction)/100)
+		spec.ReduceCloaking = math.Min(math.Pow((100.0-float64(rules.TachyonCloakReduction))/100, math.Sqrt(float64(numTachyonDetectors))), float64(rules.TachyonMaxCloakReduction)/100)
 	} else {
 		spec.ReduceCloaking = 1
 	}
