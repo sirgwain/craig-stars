@@ -85,14 +85,14 @@
 			fleet.getFuelCost(
 				$universe,
 				$player.race.spec?.fuelEfficiencyOffset ?? 0,
-				$selectedWaypoint === wp1 ? $selectedWaypoint.warpSpeed : wp1.warpSpeed ?? 0,
+				$selectedWaypoint === wp1 ? $selectedWaypoint.warpSpeed : (wp1.warpSpeed ?? 0),
 				distance(fleet.waypoints[index].position, wp1.position),
 				fleet.spec.cargoCapacity ?? 0
 			)
 		);
 
-	$: fuelUsageToSelectedWaypoint = fuelUsagePerLeg.reduce((total, wpUsage) => total + wpUsage, 0);
-	$: fuelUsageTotal = fuelUsagePerLeg.reduce((total, wpUsage) => total + wpUsage, 0);
+	// get the total fuel usage, but accounting for fueling stations
+	$: fuelUsageTotal = fleet.getFuelAllocated($player, $universe, fleet.waypoints.length - 1);
 
 	async function onRepeatOrdersChanged(repeatOrders: boolean) {
 		if ($selectedWaypoint) {
@@ -230,7 +230,9 @@
 					{#if $selectedWaypoint.warpSpeed === StargateWarpSpeed}
 						1 year
 					{:else}
-						{Math.ceil(Math.floor(dist) / ($selectedWaypoint.warpSpeed * $selectedWaypoint.warpSpeed))} years
+						{Math.ceil(
+							Math.floor(dist) / ($selectedWaypoint.warpSpeed * $selectedWaypoint.warpSpeed)
+						)} years
 					{/if}
 				</span>
 			</div>
@@ -266,7 +268,9 @@
 			</div>
 			<div class="flex justify-between mt-1">
 				<span class="text-tile-item-title">Travel Time</span>
-				<span>{Math.ceil(Math.floor(dist) / (nextWaypoint.warpSpeed * nextWaypoint.warpSpeed))} years</span>
+				<span
+					>{Math.ceil(Math.floor(dist) / (nextWaypoint.warpSpeed * nextWaypoint.warpSpeed))} years</span
+				>
 			</div>
 			<div class="flex justify-between mt-1">
 				<span class="text-tile-item-title">Total Fuel Usage</span>

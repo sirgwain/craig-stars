@@ -307,11 +307,8 @@ export class CommandedFleet implements Fleet {
 			return;
 		}
 
-		let fuelAlreadyAllocated = 0;
-		for (let i = 0; i <= waypointIndex; i++) {
-			fuelAlreadyAllocated += this.waypoints[i].estFuelUsage ?? 0;
-		}
-
+		// get the fuel allocated up to the last waypoint
+		const fuelAlreadyAllocated = this.getFuelAllocated(player, universe, waypointIndex);
 		const orbiting =
 			selectedWaypoint.targetType === MapObjectType.Planet
 				? universe.getPlanet(selectedWaypoint.targetNum ?? 0)
@@ -397,10 +394,8 @@ export class CommandedFleet implements Fleet {
 			return false;
 		}
 
-		let fuelAlreadyAllocated = 0;
-		for (let i = 0; i < waypointIndex; i++) {
-			fuelAlreadyAllocated += this.waypoints[i].estFuelUsage ?? 0;
-		}
+		// get the fuel allocated up to but not including this waypoint since we're moving it around
+		const fuelAlreadyAllocated = this.getFuelAllocated(player, universe, waypointIndex - 1);
 
 		const orbiting =
 			previousWaypoint.targetType === MapObjectType.Planet
@@ -463,6 +458,32 @@ export class CommandedFleet implements Fleet {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Get the fuel allocated up to a waypoint index accounting for refueling
+	 * @param player
+	 * @param universe
+	 * @param waypointIndex
+	 * @returns
+	 */
+	getFuelAllocated(player: Player, universe: Universe, waypointIndex: number): number {
+		let fuelAlreadyAllocated = 0;
+		for (let i = 0; i <= waypointIndex; i++) {
+			fuelAlreadyAllocated += this.waypoints[i].estFuelUsage ?? 0;
+			console.log(
+				`wp${i} ${this.waypoints[i].targetName} uses ${this.waypoints[i].estFuelUsage} fuel, total: ${fuelAlreadyAllocated}`
+			);
+			const wp = this.waypoints[i];
+			const target =
+				wp.targetType === MapObjectType.Planet ? universe.getPlanet(wp.targetNum ?? 0) : undefined;
+			if (target && this.canFuel(player, target)) {
+				// our previous waypoint was a fuel point, reset already allocated fuel to 0
+				console.log(`wp${i - 1} ${wp.targetName} is a fueling station, reset fuel allocated`);
+				fuelAlreadyAllocated = 0;
+			}
+		}
+		return fuelAlreadyAllocated;
 	}
 
 	/**
