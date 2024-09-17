@@ -287,7 +287,7 @@ func NewRulesWithSeed(seed int64) Rules {
 			WormholeMinPlanetDistance: 30,
 		},
 		TachyonCloakReduction:            5,
-		TachyonMaxCloakReduction:         19, // cloak reduction caps at (100 - 19)% or 81%
+		TachyonMaxCloakReduction:         81, // tachyon detectors cap at 81% cloaking reduction 
 		MaxPopulation:                    1000000,
 		MinMaxPopulationPercent:          .05,
 		PopulationOvercrowdDieoffRate:    .04, // overcrowded pops die off at 4% per doubling
