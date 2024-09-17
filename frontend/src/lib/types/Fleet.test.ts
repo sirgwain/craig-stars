@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CommandedFleet, moveDamagedTokens, type ShipToken } from './Fleet';
-import { None } from './MapObject';
+import { Infinite, None } from './MapObject';
 import { cottonPicker, longRangeScout, santaMaria, TestDesignFinder } from './Mock.test';
 import { CommandedPlanet } from './Planet';
 import { Player, PlayerRelation } from './Player';
@@ -171,6 +171,45 @@ describe('Fleet test', () => {
 		scout.cargo.colonists = 10;
 		expect(scout.canGate(itPlayer, orbiting, target, 100, 100)).toBe(true);
 		scout.cargo.colonists = 0;
+	});
+
+	it('tests canFuel', () => {
+		const scout = new CommandedFleet(longRangeScout);
+
+		// make a new player that is friendly to player 2, not to player 3
+		const player = new Player();
+		player.num = 1;
+		player.relations = [
+			{
+				relation: PlayerRelation.Friend
+			},
+			{
+				relation: PlayerRelation.Friend
+			},
+			{
+				relation: PlayerRelation.Enemy
+			}
+		];
+
+		const target = new CommandedPlanet();
+		target.playerNum = 1;
+		target.spec.dockCapacity = Infinite;
+
+		// can refuel
+		expect(scout.canFuel(player, target)).toBe(true);
+
+		// can refuel, friendly
+		target.playerNum = 2;
+		expect(scout.canFuel(player, target)).toBe(true);
+
+		// can't refuel, unfriendly
+		target.playerNum = 3;
+		expect(scout.canFuel(player, target)).toBe(false);
+
+		// can't refuel, no dock
+		target.playerNum = 1;
+		target.spec.dockCapacity = 0;
+		expect(scout.canFuel(player, target)).toBe(false);
 	});
 
 	it('returns minimal speeds for distances', () => {

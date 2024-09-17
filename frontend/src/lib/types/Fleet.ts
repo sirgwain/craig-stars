@@ -3,6 +3,7 @@ import { get as pluck } from 'lodash-es';
 import { totalCargo, type Cargo } from './Cargo';
 import type { Cost } from './Cost';
 import {
+	Infinite,
 	MapObjectType,
 	None,
 	owned,
@@ -490,18 +491,20 @@ export class CommandedFleet implements Fleet {
 		let canColonize = false;
 		let canRemoteMine = false;
 		let canGate = false;
+		let canFuel = false;
 		if (mo && mo.type == MapObjectType.Planet) {
 			const target = mo as Planet;
 			canColonize = this.canColonize(target);
 			canRemoteMine = this.canRemoteMine(player, target);
 			canGate = this.canGate(player, orbiting, target, dist, highestShipMass);
+			canFuel = this.canFuel(player, target);
 		}
 
 		// set our warp speed to the most fuel efficient based on our engine idealSpeed (7 for Long Hump 7, 8 for Alpha Drive 8, etc)
 		// or the fastest warp we can get there without running out of fuel
 		let warpSpeed = canGate
 			? StargateWarpSpeed // stargate speed if we can gate
-			: canColonize || fastestWaypoint // max speed if configured for that, or colonizing
+			: canFuel || canColonize || fastestWaypoint // max speed if configured for that, or colonizing
 				? this.getMaxWarp(
 						designFinder,
 						player.race.spec?.fuelEfficiencyOffset ?? 0,
@@ -693,6 +696,20 @@ export class CommandedFleet implements Fleet {
 
 	/**
 	 *
+	 * @param player The fleet player
+	 * @param targetPlanet the planet the fleet is targeting
+	 * @returns true if the fleet will refuel at this planet
+	 */
+	canFuel(player: Player, targetPlanet: Planet): boolean {
+		return (
+			owned(targetPlanet) &&
+			player.isFriend(targetPlanet.playerNum) &&
+			(targetPlanet.spec.dockCapacity ?? 0) != 0
+		);
+	}
+
+	/**
+	 *
 	 * @returns The total number of mines laid per year for all types of minefields this fleet can lay
 	 */
 	getTotalMinesLaidPerYear() {
@@ -708,8 +725,8 @@ export function getDamagePercentForToken(token: ShipToken, design: ShipDesign | 
 	const totalArmor = armor * token.quantity;
 	const quantityDamaged =
 		(token.quantityDamaged ?? 0) > (token.quantity ?? 0)
-			? token.quantity ?? 0
-			: token.quantityDamaged ?? 0;
+			? (token.quantity ?? 0)
+			: (token.quantityDamaged ?? 0);
 	const totalDamage = quantityDamaged * (token.damage ?? 0);
 	if (totalArmor > 0 && totalDamage > 0) {
 		return (totalDamage / totalArmor) * 100;
@@ -803,7 +820,7 @@ export const isUnloadAction = (action: WaypointTaskTransportAction) =>
 
 export const getLocation = (fleet: Fleet, universe: Universe) =>
 	fleet.orbitingPlanetNum
-		? universe.getPlanet(fleet.orbitingPlanetNum)?.name ?? 'unknown'
+		? (universe.getPlanet(fleet.orbitingPlanetNum)?.name ?? 'unknown')
 		: `Space: (${fleet.position.x}, ${fleet.position.y})`;
 
 export const getDestination = (fleet: Fleet, universe: Universe) => {
