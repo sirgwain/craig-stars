@@ -381,7 +381,6 @@
 			}
 
 			const dest = mo ? { mo: mo } : { position: position ?? emptyVector };
-			const orbiting = $universe.getPlanet($commandedFleet.orbitingPlanetNum);
 
 			// get highest mass of the fleet ships (for stargates)
 			const highestShipMass = Math.max(
@@ -394,7 +393,6 @@
 					$universe,
 					dest,
 					$currentSelectedWaypointIndex,
-					orbiting,
 					highestShipMass,
 					$settings.fastestWaypoint || fastestWaypoint
 				)
@@ -409,7 +407,6 @@
 		// reset waypoint dragging
 		if ($selectedWaypoint && $commandedFleet && draggingWaypoint) {
 			const dest = mo ? { mo: mo } : { position: position ?? emptyVector };
-			const orbiting = $universe.getPlanet($commandedFleet.orbitingPlanetNum);
 
 			// get highest mass of the fleet ships (for stargates)
 			const highestShipMass = Math.max(
@@ -422,7 +419,6 @@
 					$universe,
 					dest,
 					$currentSelectedWaypointIndex,
-					orbiting,
 					highestShipMass,
 					$settings.fastestWaypoint || fastestWaypoint
 				)
@@ -467,7 +463,6 @@
 		}
 
 		const dest = mo ? { mo: mo } : { position: position ?? emptyVector };
-		const orbiting = $universe.getPlanet($commandedFleet.orbitingPlanetNum);
 
 		// get highest mass of the fleet ships (for stargates)
 		const highestShipMass = Math.max(
@@ -479,7 +474,6 @@
 			$universe,
 			dest,
 			$currentSelectedWaypointIndex,
-			orbiting,
 			highestShipMass,
 			$settings.fastestWaypoint || fastestWaypoint
 		);

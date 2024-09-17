@@ -283,14 +283,13 @@ export class CommandedFleet implements Fleet {
 	/**
 	 * Add a waypoint to a destination, returning the index of the newly added waypoint
 	 * @param dest
-	 * @param orbiting
+	 * @param origin
 	 */
 	addWaypoint(
 		player: Player,
-		designFinder: DesignFinder,
+		universe: Universe,
 		dest: { mo: MapObject; position?: never } | { mo?: never; position: Vector },
 		currentSelectedWaypointIndex: number,
-		orbiting: Planet | undefined,
 		highestShipMass: number,
 		fastestWaypoint: boolean
 	): number | undefined {
@@ -299,7 +298,6 @@ export class CommandedFleet implements Fleet {
 		);
 		const mo = dest.mo;
 		const position = dest.position ?? dest.mo.position;
-
 		if (
 			equal(position, selectedWaypoint.position) ||
 			(nextWaypoint && equal(position, nextWaypoint.position))
@@ -309,16 +307,24 @@ export class CommandedFleet implements Fleet {
 		}
 
 		let fuelAlreadyAllocated = 0;
-		for (let i = 0; i < waypointIndex; i++) {
+		for (let i = 0; i <= waypointIndex; i++) {
 			fuelAlreadyAllocated += this.waypoints[i].estFuelUsage ?? 0;
 		}
+
+		const orbiting =
+			selectedWaypoint.targetType === MapObjectType.Planet
+				? universe.getPlanet(selectedWaypoint.targetNum ?? 0)
+				: undefined;
+
+		const dist = Math.floor(distance(selectedWaypoint.position, position));
 
 		// if our destination is a planet, determine some stuff about it
 		const { warpSpeed, canColonize, canRemoteMine } = this.getWarpSpeed(
 			player,
-			designFinder,
-			dest,
+			universe,
+			dist,
 			orbiting,
+			dest,
 			fuelAlreadyAllocated,
 			highestShipMass,
 			fastestWaypoint
@@ -369,20 +375,23 @@ export class CommandedFleet implements Fleet {
 	 */
 	updateWaypoint(
 		player: Player,
-		designFinder: DesignFinder,
+		universe: Universe,
 		dest: { mo: MapObject; position?: never } | { mo?: never; position: Vector },
 		currentSelectedWaypointIndex: number,
-		orbiting: Planet | undefined,
 		highestShipMass: number,
 		fastestWaypoint: boolean
 	): boolean {
 		const { selectedWaypoint, previousWaypoint, waypointIndex } = this.getSelectedWaypointInfo(
 			currentSelectedWaypointIndex
 		);
+		if (!previousWaypoint) {
+			return false;
+		}
+
 		const mo = dest.mo;
 		const position = dest.position ?? dest.mo.position;
 
-		if (previousWaypoint && equal(position, previousWaypoint.position)) {
+		if (equal(position, previousWaypoint.position)) {
 			// don't update a waypoint to be the same as a previous waypoint, this should just delete it
 			return false;
 		}
@@ -392,12 +401,20 @@ export class CommandedFleet implements Fleet {
 			fuelAlreadyAllocated += this.waypoints[i].estFuelUsage ?? 0;
 		}
 
+		const orbiting =
+			previousWaypoint.targetType === MapObjectType.Planet
+				? universe.getPlanet(previousWaypoint.targetNum ?? 0)
+				: undefined;
+
+		const dist = Math.floor(distance(previousWaypoint?.position, position));
+
 		// if our destination is a planet, determine some stuff about it
 		const { warpSpeed, canColonize, canRemoteMine } = this.getWarpSpeed(
 			player,
-			designFinder,
-			dest,
+			universe,
+			dist,
 			orbiting,
+			dest,
 			fuelAlreadyAllocated,
 			highestShipMass,
 			fastestWaypoint
@@ -460,15 +477,15 @@ export class CommandedFleet implements Fleet {
 	getWarpSpeed(
 		player: Player,
 		designFinder: DesignFinder,
-		dest: { mo: MapObject; position?: never } | { mo?: never; position: Vector },
+		dist: number,
 		orbiting: Planet | undefined,
+		dest: { mo: MapObject; position?: never } | { mo?: never; position: Vector },
 		fuelAlreadyAllocated: number,
 		highestShipMass: number,
 		fastestWaypoint: boolean
 	): { warpSpeed: number; canColonize: boolean; canRemoteMine: boolean } {
 		const mo = dest.mo;
 		const position = dest.position ?? dest.mo.position;
-		const dist = Math.floor(distance(this.position, position));
 
 		let canColonize = false;
 		let canRemoteMine = false;

@@ -121,37 +121,37 @@ describe('Fleet test', () => {
 		target.spec.safeHullMass = 100;
 		target.spec.safeRange = 100;
 
-		// // can gate
-		// expect(scout.canGate(player, orbiting, target, 100, 100)).toBe(true);
+		// can gate
+		expect(scout.canGate(player, orbiting, target, 100, 100)).toBe(true);
 
-		// // can't gate, not orbiting
-		// expect(scout.canGate(player, undefined, target, 100, 100)).toBe(false);
+		// can't gate, not orbiting
+		expect(scout.canGate(player, undefined, target, 100, 100)).toBe(false);
 
-		// // can gate, have jump device
-		// scout.spec.canJump = true;
-		// expect(scout.canGate(player, undefined, target, 100, 100)).toBe(true);
-		// scout.spec.canJump = false;
+		// can gate, have jump device
+		scout.spec.canJump = true;
+		expect(scout.canGate(player, undefined, target, 100, 100)).toBe(true);
+		scout.spec.canJump = false;
 
-		// // can't gate, dest is unfriendly
-		// target.playerNum = 3;
-		// expect(scout.canGate(player, orbiting, target, 100, 100)).toBe(false);
-		// target.playerNum = 1;
+		// can't gate, dest is unfriendly
+		target.playerNum = 3;
+		expect(scout.canGate(player, orbiting, target, 100, 100)).toBe(false);
+		target.playerNum = 1;
 
-		// // can gate, dest is friendly
-		// target.playerNum = 2;
-		// expect(scout.canGate(player, orbiting, target, 100, 100)).toBe(true);
-		// target.playerNum = 1;
+		// can gate, dest is friendly
+		target.playerNum = 2;
+		expect(scout.canGate(player, orbiting, target, 100, 100)).toBe(true);
+		target.playerNum = 1;
 
-		// // can't gate, too far
-		// expect(scout.canGate(player, orbiting, target, 200, 100)).toBe(false);
+		// can't gate, too far
+		expect(scout.canGate(player, orbiting, target, 200, 100)).toBe(false);
 
-		// // can't gate, too heavy
-		// expect(scout.canGate(player, orbiting, target, 100, 200)).toBe(false);
+		// can't gate, too heavy
+		expect(scout.canGate(player, orbiting, target, 100, 200)).toBe(false);
 
-		// // can't gate, have cargo
-		// scout.cargo.colonists = 10;
-		// expect(scout.canGate(player, orbiting, target, 100, 100)).toBe(false);
-		// scout.cargo.colonists = 0;
+		// can't gate, have cargo
+		scout.cargo.colonists = 10;
+		expect(scout.canGate(player, orbiting, target, 100, 100)).toBe(false);
+		scout.cargo.colonists = 0;
 
 		// can gate, have cargo, can gate cargo
 		const itPlayer = new Player();
