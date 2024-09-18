@@ -120,6 +120,7 @@
 					<div class="w-full my-auto">
 						<WarpSpeedGauge
 							bind:value={planet.packetSpeed}
+							isPacket={true}
 							min={5}
 							max={(planet.spec.basePacketSpeed ?? 0) + $game.rules.packetMaxOverwarpSpeed}
 							warnSpeed={(planet.spec.safePacketSpeed ?? 0) + 1}
