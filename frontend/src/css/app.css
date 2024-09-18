@@ -88,6 +88,9 @@
 	.warp-stargate-bar {
 		@apply bg-[#FFFF00];
 	}
+	.warp-packet-bar {
+		@apply bg-[#8F0087];
+	}
 	.grav-bar {
 		@apply bg-[#020085];
 	}
