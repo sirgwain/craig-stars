@@ -333,6 +333,27 @@ func Test_costCalculate_GetDesignCost(t *testing.T) {
 			}, wantErr: false,
 		},
 		{
+			name: "Orbital Fort",
+			args: args{
+				techLevels:          TechLevel{3, 8, 3, 8, 2, 0},
+				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
+				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0, 0},
+				slots: []ShipDesignSlot{
+					{HullComponent: BattleComputer.Name, HullSlotIndex: 1, Quantity: 1},
+					{HullComponent: BetaTorpedo.Name, HullSlotIndex: 2, Quantity: 10},
+					{HullComponent: MoleSkinShield.Name, HullSlotIndex: 3, Quantity: 1},
+				},
+				hull:               OrbitalFort.Name,
+				starbaseCostFactor: 1,
+			},
+			want: Cost{
+				Ironium:   98,
+				Boranium:  30,
+				Germanium: 45,
+				Resources: 75,
+			}, wantErr: false,
+		},
+		{
 			name: "Default Starbase",
 			args: args{
 				techLevels:          TechLevel{0, 0, 0, 0, 0, 0},

@@ -1118,7 +1118,6 @@ func (engine Engine) getFuelCostForEngine(warpSpeed int, mass int, dist float64,
 	// Number of engines doesn't matter. Neither number of ships with the same engine.
 
 	distanceCeiling := math.Ceil(dist) // rounding to next integer gives best graph fit
-	// window.status = 'Actual distance used is ' + Distan + 'ly';
 
 	// IFE is applied to drive specifications, just as the helpfile hints.
 	// Stars! probably does it outside here once per turn per engine to save time.

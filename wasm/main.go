@@ -144,7 +144,7 @@ func estimateProduction(args []js.Value) interface{} {
 
 	planet.PopulateProductionQueueEstimates(&ctx.rules, &ctx.player)
 
-	log.Debug().Msgf("estimatied production of %s\n", planet.Name)
+	log.Debug().Msgf("estimated production of %s\n", planet.Name)
 	o := js.ValueOf(map[string]any{})
 	wasm.SetPlanet(o, &planet)
 	return o
