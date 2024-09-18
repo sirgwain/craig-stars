@@ -90,7 +90,7 @@ describe('Fleet test', () => {
 		expect(remoteMiner.canRemoteMine(arPlayer, ownedBySomeoneElsePlanet)).toBe(false);
 	});
 
-	it('tests canGate', () => {
+	it('tests canJump', () => {
 		const scout = new CommandedFleet(longRangeScout);
 
 		// make a new player that is friendly to player 2, not to player 3
@@ -122,35 +122,35 @@ describe('Fleet test', () => {
 		target.spec.safeRange = 100;
 
 		// can gate
-		expect(scout.canGate(player, orbiting, target, 100, 100)).toBe(true);
+		expect(scout.canJump(player, orbiting, target, 100, 100)).toBe(true);
 
 		// can't gate, not orbiting
-		expect(scout.canGate(player, undefined, target, 100, 100)).toBe(false);
+		expect(scout.canJump(player, undefined, target, 100, 100)).toBe(false);
 
 		// can gate, have jump device
 		scout.spec.canJump = true;
-		expect(scout.canGate(player, undefined, target, 100, 100)).toBe(true);
+		expect(scout.canJump(player, undefined, target, 100, 100)).toBe(true);
 		scout.spec.canJump = false;
 
 		// can't gate, dest is unfriendly
 		target.playerNum = 3;
-		expect(scout.canGate(player, orbiting, target, 100, 100)).toBe(false);
+		expect(scout.canJump(player, orbiting, target, 100, 100)).toBe(false);
 		target.playerNum = 1;
 
 		// can gate, dest is friendly
 		target.playerNum = 2;
-		expect(scout.canGate(player, orbiting, target, 100, 100)).toBe(true);
+		expect(scout.canJump(player, orbiting, target, 100, 100)).toBe(true);
 		target.playerNum = 1;
 
 		// can't gate, too far
-		expect(scout.canGate(player, orbiting, target, 200, 100)).toBe(false);
+		expect(scout.canJump(player, orbiting, target, 200, 100)).toBe(false);
 
 		// can't gate, too heavy
-		expect(scout.canGate(player, orbiting, target, 100, 200)).toBe(false);
+		expect(scout.canJump(player, orbiting, target, 100, 200)).toBe(false);
 
 		// can't gate, have cargo
 		scout.cargo.colonists = 10;
-		expect(scout.canGate(player, orbiting, target, 100, 100)).toBe(false);
+		expect(scout.canJump(player, orbiting, target, 100, 100)).toBe(false);
 		scout.cargo.colonists = 0;
 
 		// can gate, have cargo, can gate cargo
@@ -169,7 +169,7 @@ describe('Fleet test', () => {
 		];
 		itPlayer.race.spec = Object.assign({}, { canGateCargo: true }) as RaceSpec;
 		scout.cargo.colonists = 10;
-		expect(scout.canGate(itPlayer, orbiting, target, 100, 100)).toBe(true);
+		expect(scout.canJump(itPlayer, orbiting, target, 100, 100)).toBe(true);
 		scout.cargo.colonists = 0;
 	});
 

@@ -33,6 +33,9 @@
 	let nextWaypointMO: MapObject | undefined;
 	let waypointRefs: (HTMLLIElement | null)[] = [];
 
+	let fuelUsageTotal = 0;
+	let runOutOfFuel = false;
+
 	$: selectedWaypointPlanet =
 		$selectedWaypoint?.targetType == MapObjectType.Planet && $selectedWaypoint?.targetNum
 			? $universe.getPlanet($selectedWaypoint?.targetNum)
@@ -92,7 +95,21 @@
 		);
 
 	// get the total fuel usage, but accounting for fueling stations
-	$: fuelUsageTotal = fleet.getFuelAllocated($player, $universe, fleet.waypoints.length - 1);
+	// also set our runOutofFuel boolean to update the color on the fuel usage
+	$: {
+		fuelUsageTotal = fuelUsagePerLeg.reduce(
+			(total, wpUsage, i) =>
+				fleet.waypoints[i + 1].targetType === MapObjectType.Planet &&
+				fleet.canFuel($player, $universe.getPlanet(fleet.waypoints[i + 1].targetNum ?? 0))
+					? 0
+					: total + wpUsage,
+			0
+		);
+		runOutOfFuel = fleet.willRunOutOfFuel($player, $universe);
+	}
+
+	// will we run out of fuel at any leg of our journey or the last leg that we are currently updating?
+	// $: runOutOfFuel = fleet.willRunOutOfFuel($player, $universe);
 
 	async function onRepeatOrdersChanged(repeatOrders: boolean) {
 		if ($selectedWaypoint) {
@@ -242,7 +259,7 @@
 			</div>
 			<div class="flex justify-between mt-1">
 				<span class="text-tile-item-title">Total Fuel Usage</span>
-				<span class:text-error={fuelUsageTotal > fleet.fuel}>{fuelUsageTotal}mg</span>
+				<span class:text-error={runOutOfFuel}>{fuelUsageTotal}mg</span>
 			</div>
 
 			<label>
@@ -274,7 +291,7 @@
 			</div>
 			<div class="flex justify-between mt-1">
 				<span class="text-tile-item-title">Total Fuel Usage</span>
-				<span class:text-error={fuelUsageTotal > fleet.fuel}>{fuelUsageTotal}mg</span>
+				<span class:text-error={runOutOfFuel}>{fuelUsageTotal}mg</span>
 			</div>
 			<label>
 				<input

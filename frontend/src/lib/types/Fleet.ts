@@ -471,19 +471,73 @@ export class CommandedFleet implements Fleet {
 		let fuelAlreadyAllocated = 0;
 		for (let i = 0; i <= waypointIndex; i++) {
 			fuelAlreadyAllocated += this.waypoints[i].estFuelUsage ?? 0;
-			console.log(
-				`wp${i} ${this.waypoints[i].targetName} uses ${this.waypoints[i].estFuelUsage} fuel, total: ${fuelAlreadyAllocated}`
-			);
 			const wp = this.waypoints[i];
 			const target =
 				wp.targetType === MapObjectType.Planet ? universe.getPlanet(wp.targetNum ?? 0) : undefined;
 			if (target && this.canFuel(player, target)) {
 				// our previous waypoint was a fuel point, reset already allocated fuel to 0
-				console.log(`wp${i - 1} ${wp.targetName} is a fueling station, reset fuel allocated`);
 				fuelAlreadyAllocated = 0;
 			}
 		}
 		return fuelAlreadyAllocated;
+	}
+
+	/**
+	 * Get the fuel allocated up to a waypoint index accounting for refueling
+	 * @param player
+	 * @param universe
+	 * @param waypointIndex
+	 * @returns
+	 */
+	getFuelLeftover(player: Player, universe: Universe, waypointIndex: number): number {
+		let fuel = this.fuel;
+		for (let i = 0; i <= waypointIndex; i++) {
+			fuel -= this.waypoints[i].estFuelUsage ?? 0;
+			const wp = this.waypoints[i];
+			const target =
+				wp.targetType === MapObjectType.Planet ? universe.getPlanet(wp.targetNum ?? 0) : undefined;
+			if (target && this.canFuel(player, target)) {
+				// our previous waypoint was a fuel point, reset already allocated fuel to 0
+				fuel = this.spec.fuelCapacity;
+			}
+		}
+		return fuel;
+	}
+
+	/**
+	 * Get the fuel allocated up to a waypoint index accounting for refueling
+	 * @param player
+	 * @param universe
+	 * @param waypointIndex
+	 * @returns
+	 */
+	willRunOutOfFuel(player: Player, universe: Universe): boolean {
+		let fuel = this.fuel;
+		for (let i = 0; i < this.waypoints.length; i++) {
+			if (i > 0) {
+				const wp1 = this.waypoints[i];
+				const fuelUsed = this.getFuelCost(
+					universe,
+					player.race.spec?.fuelEfficiencyOffset ?? 0,
+					wp1.warpSpeed ?? 0,
+					distance(this.waypoints[i - 1].position, wp1.position),
+					this.spec.cargoCapacity ?? 0
+				);
+				fuel -= fuelUsed;
+			}
+
+			if (fuel < 0) {
+				return true;
+			}
+			const wp = this.waypoints[i];
+			const target =
+				wp.targetType === MapObjectType.Planet ? universe.getPlanet(wp.targetNum ?? 0) : undefined;
+			if (target && this.canFuel(player, target)) {
+				// our previous waypoint was a fuel point, reset already allocated fuel to 0
+				fuel = this.spec.fuelCapacity;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -511,19 +565,19 @@ export class CommandedFleet implements Fleet {
 
 		let canColonize = false;
 		let canRemoteMine = false;
-		let canGate = false;
+		let canJump = false;
 		let canFuel = false;
 		if (mo && mo.type == MapObjectType.Planet) {
 			const target = mo as Planet;
 			canColonize = this.canColonize(target);
 			canRemoteMine = this.canRemoteMine(player, target);
-			canGate = this.canGate(player, orbiting, target, dist, highestShipMass);
+			canJump = this.canJump(player, orbiting, target, dist, highestShipMass);
 			canFuel = this.canFuel(player, target);
 		}
 
 		// set our warp speed to the most fuel efficient based on our engine idealSpeed (7 for Long Hump 7, 8 for Alpha Drive 8, etc)
 		// or the fastest warp we can get there without running out of fuel
-		let warpSpeed = canGate
+		let warpSpeed = canJump
 			? StargateWarpSpeed // stargate speed if we can gate
 			: canFuel || canColonize || fastestWaypoint // max speed if configured for that, or colonizing
 				? this.getMaxWarp(
@@ -679,7 +733,7 @@ export class CommandedFleet implements Fleet {
 	 * @param highestShipMass the highest mass of any ship in the fleet
 	 * @returns true if the fleet can gate to this planet
 	 */
-	canGate(
+	canJump(
 		player: Player,
 		orbiting: Planet | undefined,
 		targetPlanet: Planet,
@@ -721,8 +775,9 @@ export class CommandedFleet implements Fleet {
 	 * @param targetPlanet the planet the fleet is targeting
 	 * @returns true if the fleet will refuel at this planet
 	 */
-	canFuel(player: Player, targetPlanet: Planet): boolean {
-		return (
+	canFuel(player: Player, targetPlanet: Planet | undefined): boolean {
+		return !!(
+			targetPlanet &&
 			owned(targetPlanet) &&
 			player.isFriend(targetPlanet.playerNum) &&
 			(targetPlanet.spec.dockCapacity ?? 0) != 0
