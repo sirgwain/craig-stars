@@ -41,7 +41,7 @@
 				All {details.theirs ?? 0} enemy forces were destroyed
 			{:else}
 				A single enemy ship was destroyed
-			{/if} by your fleet of {details.ours ?? 0} ${details.ours === 1 ? 'ship' : 'ships'}, which did
+			{/if} by your fleet of {details.ours ?? 0} {details.ours === 1 ? 'ship' : 'ships'}, which did
 			not suffer a single casualty.
 		{:else if details.ourDead === details.ours && details.theirDead === 0}
 			{#if details.ours > 1}
@@ -49,11 +49,11 @@
 			{:else}
 				A single ship was annihilated
 			{/if}
-			by the enemy's {details.theirs ?? 0} ${details.theirs === 1 ? 'vessel' : 'vessels'}, which
+			by the enemy's {details.theirs ?? 0} {details.theirs === 1 ? 'vessel' : 'vessels'}, which
 			suffered no casualties.
 		{:else if details.ourDead > 0 && details.ours && details.theirDead > 0}
 			Both you and the enemy suffered losses during the exchange. You lost {details.ourDead ?? 0} out
-			of {details.ours ?? 0} ${details.ours === 1 ? 'ship' : 'ships'}, while they lost {details.theirDead ??
+			of {details.ours ?? 0} {details.ours === 1 ? 'ship' : 'ships'}, while they lost {details.theirDead ??
 				0} out of {details.theirs ?? 0} ships.
 		{/if}
 	{:else if message.type === MessageType.BattleAlly}
@@ -65,7 +65,7 @@
 				All {details.theirs ?? 0} enemy forces were destroyed
 			{:else}
 				A single enemy ship was destroyed
-			{/if} by their fleet of {details.ours ?? 0} ${details.ours === 1 ? 'ship' : 'ships'}, which
+			{/if} by their fleet of {details.ours ?? 0} {details.ours === 1 ? 'ship' : 'ships'}, which
 			did not suffer a single casualty.
 		{:else if details.ourDead === details.ours && details.theirDead === 0}
 			{#if details.ours > 1}
@@ -73,11 +73,11 @@
 			{:else}
 				A single ally ship was annihilated
 			{/if}
-			by the enemy's {details.theirs ?? 0} ${details.theirs === 1 ? 'vessel' : 'vessels'}, which
+			by the enemy's {details.theirs ?? 0} {details.theirs === 1 ? 'vessel' : 'vessels'}, which
 			suffered no casualties.
 		{:else if details.ourDead > 0 && details.ours && details.theirDead > 0}
 			Both your ally and the enemy suffered losses during the exchange. Your allies lost {details.ourDead ??
-				0} out of {details.ours ?? 0} ${details.ours === 1 ? 'ship' : 'ships'}, while they lost {details.theirDead ??
+				0} out of {details.ours ?? 0} {details.ours === 1 ? 'ship' : 'ships'}, while they lost {details.theirDead ??
 				0} out of {details.theirs ?? 0} ships.
 		{/if}
 	{:else}
