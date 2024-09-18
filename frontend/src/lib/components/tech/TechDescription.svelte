@@ -109,7 +109,7 @@
 
 				if (hullComponent.category == TechCategory.Shield && (hullComponent.armor ?? 0) > 0) {
 					// if this is a shield with armor, it sounds cooler to make the armor a description
-					// this also makes it clearer that they aren't affected by shield/armor % bonuses like RS 
+					// this also makes it clearer that they aren't affected by shield/armor % bonuses like RS
 					descriptions.push(
 						`This shield also contains an armor component which will absorb ${hullComponent.armor} damage points.`
 					);
@@ -155,7 +155,9 @@
 					);
 				}
 				if (hullComponent.damageShieldsOnly) {
-					descriptions.push(`This weapon will only damage shields. It has no effect on armor and cannot sweep mines.`);
+					descriptions.push(
+						`This weapon will only damage shields. It has no effect on armor and cannot sweep mines.`
+					);
 				}
 
 				if ((hullComponent.killRate ?? 0) > 0 && !hullComponent.orbitalConstructionModule) {
@@ -224,7 +226,9 @@
 				}
 
 				if ((hullComponent.fuelBonus ?? 0) > 0) {
-					descriptions.push(`This part increases the ship's fuel capacity by ${hullComponent.fuelBonus}mg.`);
+					descriptions.push(
+						`This part increases the ship's fuel capacity by ${hullComponent.fuelBonus}mg.`
+					);
 				}
 
 				if ((hullComponent.fuelRegenerationRate ?? 0) > 0) {
@@ -244,7 +248,6 @@
 					descriptions.push(
 						`This pod contains an empty orbital hull which can be deployed in orbit of an uninhabited planet to colonize it, scrapping all ships in the fleet in the progress. 
 						The fleet must have orders set to "Colonize", and at least one ship in it must be carrying colonists.`
-
 					);
 					if ((hullComponent.minKillRate ?? 0) > 0) {
 						descriptions.push(
@@ -259,10 +262,10 @@
 					);
 				}
 
-				if ((hullComponent.movementBonus ?? 0) > 0) {
+				if (hullComponent.movementBonus && hullComponent.movementBonus > 0) {
 					descriptions.push(
 						`Increases speed in battle by ${hullComponent.movementBonus} 
-						{hullComponent.movementBonus <=1 ? square : squares} of movement.`
+						${hullComponent.movementBonus === 1 ? 'square' : 'squares'} of movement.`
 					);
 				}
 
