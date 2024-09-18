@@ -1821,7 +1821,9 @@ func (t *turn) fleetRefuel() {
 		if planet == nil {
 			continue
 		}
-		if !planet.Spec.HasStarbase {
+
+		// can only fuel on docks
+		if planet.Spec.DockCapacity == 0 {
 			continue
 		}
 

@@ -596,7 +596,7 @@ export const getQueueItemShortName = (
 	}
 };
 
-export interface PlanetSpec {
+export type PlanetSpec = {
 	habitability?: number;
 	terraformedHabitability?: number;
 	maxMines?: number;
@@ -628,17 +628,24 @@ export interface PlanetSpec {
 	dockCapacity: number;
 
 	hasMassDriver: boolean;
-	massDriver: string;
-	basePacketSpeed?: number;
-	safePacketSpeed?: number;
 
 	hasStargate: boolean;
+} & Stargate &
+	MassDriver;
+
+export type Stargate = {
 	stargate?: string;
 	safeHullMass?: number;
 	safeRange?: number;
 	maxHullMass?: number;
 	maxRange?: number;
-}
+};
+
+export type MassDriver = {
+	massDriver: string;
+	basePacketSpeed?: number;
+	safePacketSpeed?: number;
+};
 
 export function getMineralOutput(planet: Planet, numMines: number, mineOutput: number): Mineral {
 	return {

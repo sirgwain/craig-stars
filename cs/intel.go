@@ -312,6 +312,7 @@ func (d *discover) discoverPlanet(rules *Rules, planet *Planet, penScanned bool)
 	intel.Spec.HasStarbase = planet.Spec.HasStarbase
 	intel.Spec.HasStargate = planet.Spec.HasStargate
 	intel.Spec.HasMassDriver = planet.Spec.HasMassDriver
+	intel.Spec.DockCapacity = planet.Spec.DockCapacity
 
 	ownedByPlayer := planet.PlayerNum != Unowned && player.Num == planet.PlayerNum
 
@@ -344,6 +345,7 @@ func (d *discover) discoverPlanet(rules *Rules, planet *Planet, penScanned bool)
 		intel.Spec.HasStarbase = planet.Spec.HasStarbase
 		intel.Spec.HasMassDriver = planet.Spec.HasMassDriver
 		intel.Spec.HasStargate = planet.Spec.HasStargate
+		intel.Spec.DockCapacity = planet.Spec.DockCapacity
 
 		// discover defense coverage
 		intel.Spec.DefenseCoverage = planet.Spec.DefenseCoverage
@@ -387,6 +389,7 @@ func (d *discover) clearPlanetOwnerIntel(planet *Planet) error {
 	intel.Spec.Population = 0
 	intel.Spec.HasStarbase = false
 	intel.Spec.HasStargate = false
+	intel.Spec.DockCapacity = None
 	intel.Spec.HasMassDriver = false
 	intel.Spec.StarbaseDesignName = ""
 	intel.Spec.StarbaseDesignNum = 0
@@ -415,6 +418,7 @@ func (d *discover) discoverPlanetStarbase(planet *Planet) error {
 	intel.Spec.HasStarbase = planet.Spec.HasStarbase
 	intel.Spec.HasStargate = planet.Spec.HasStargate
 	intel.Spec.HasMassDriver = planet.Spec.HasMassDriver
+	intel.Spec.DockCapacity = planet.Spec.DockCapacity
 
 	return nil
 }

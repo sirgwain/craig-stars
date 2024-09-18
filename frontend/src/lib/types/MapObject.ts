@@ -6,17 +6,20 @@ export const Unknown = -1;
 export const Infinite = -1;
 export const StargateWarpSpeed = 11;
 
-export interface MapObject {
+export type MapObject = {
 	id?: number;
 	createdAt?: string;
 	updatedAt?: string;
 	type: MapObjectType;
 	gameId?: number;
-	position: Vector;
 	name: string;
 	num: number;
 	playerNum: number;
-}
+} & Position;
+
+export type Position = {
+	position: Vector;
+};
 
 export type MovingMapObject = {
 	heading: Vector;
