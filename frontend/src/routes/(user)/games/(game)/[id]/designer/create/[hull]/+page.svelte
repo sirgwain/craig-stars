@@ -40,6 +40,7 @@
 				design.spec = Object.assign({}, copyDesign.spec);
 				design.hullSetNumber = copyDesign.hullSetNumber;
 				design.version = copyDesign.version + 1;
+				design.name = copyDesign.name
 			}
 		}
 	});
