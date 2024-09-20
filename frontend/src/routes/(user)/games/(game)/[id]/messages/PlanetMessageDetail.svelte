@@ -199,7 +199,7 @@
 		use (less if other ships were scrapped here this year).
 	{/if}
 {:else if message.type === MessageType.PlayerTechLevelGainedScrapFleet}
-	In the process of {message.targetName} being scrapped above {planet.name}, you have gained a level
+	In the process of {message.spec.name} being scrapped above {planet.name}, you have gained a level
 	in {message.spec.field}.
 {:else if message.type === MessageType.PlayerTechLevelGainedBattle}
 	Wreckage from the battle that occurred in orbit of {planet.name} has boosted your research in {message
