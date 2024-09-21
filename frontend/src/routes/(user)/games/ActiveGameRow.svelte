@@ -22,9 +22,9 @@
 </div>
 <div class="col-span-3 text-md">
 	{#if showNumSubmitted}
-		{numSubmitted} / {game.numPlayers} Submitted
+		{numSubmitted} / {game.players.length} Submitted
 	{:else}
-		{game.numPlayers}
+		{game.players.length}
 	{/if}
 </div>
 {#if game.hostId == $me.id}

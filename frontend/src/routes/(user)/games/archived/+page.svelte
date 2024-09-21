@@ -131,7 +131,7 @@
 			{:else if column.key == 'hostId'}
 				{row.players.find((p) => p.userId === row.hostId)?.name}
 			{:else if column.key == 'players'}
-				{row.numPlayers}
+				{row.players.length}
 			{:else if column.key == 'action'}
 				{#if row.hostId == $me.id}
 					<div class="col-span-2 flex justify-center join">
