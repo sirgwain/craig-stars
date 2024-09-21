@@ -2482,7 +2482,7 @@ var FuelTransport = TechHull{Tech: NewTech("Fuel Transport", NewCost(10, 0, 5, 5
 		{Position: Vector{0.5, 0}, Type: HullSlotTypeShield, Capacity: 1},
 	},
 }
-var SuperFuelXport = TechHull{Tech: NewTech("Super Fuel Xport", NewCost(20, 0, 8, 70), TechRequirements{TechLevel: TechLevel{Construction: 7}}, 270, TechCategoryShipHull),
+var SuperFuelXport = TechHull{Tech: NewTech("Super-Fuel Xport", NewCost(20, 0, 8, 70), TechRequirements{TechLevel: TechLevel{Construction: 7}}, 270, TechCategoryShipHull),
 	Type:           TechHullTypeFuelTransport,
 	Mass:           111,
 	Armor:          12,
