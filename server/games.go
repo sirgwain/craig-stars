@@ -735,6 +735,56 @@ func (s *server) computeSpecs(w http.ResponseWriter, r *http.Request) {
 	rest.RenderJSON(w, rest.JSON{"game": fg.Game})
 }
 
+func (s *server) archiveGame(w http.ResponseWriter, r *http.Request) {
+	db := s.contextDb(r)
+	user := s.contextUser(r)
+	game := s.contextGame(r)
+	player := s.contextPlayer(r)
+
+	// archive the whole game if the host requests it
+	if user.ID == game.HostID {
+		game.Archived = true
+		if err := db.UpdateGame(&game.Game); err != nil {
+			render.Render(w, r, ErrInternalServerError(fmt.Errorf("archive game in database %v", err)))
+		}
+		log.Debug().Int64("GameID", game.ID).Int64("UserID", user.ID).Msgf("host archived game %s", game.Name)
+
+	} else {
+		// a player can archive their game
+		player.Archived = true
+		if err := db.ArchivePlayer(player.GameID, player.Num, true); err != nil {
+			render.Render(w, r, ErrInternalServerError(fmt.Errorf("archive player in database %v", err)))
+		}
+		log.Debug().Int64("GameID", game.ID).Int64("UserID", user.ID).Msgf("player archived game %s", game.Name)
+	}
+
+	rest.RenderJSON(w, rest.JSON{"game": game})
+}
+
+func (s *server) unArchiveGame(w http.ResponseWriter, r *http.Request) {
+	db := s.contextDb(r)
+	user := s.contextUser(r)
+	game := s.contextGame(r)
+	player := s.contextPlayer(r)
+
+	// archive the whole game if the host requests it
+	if user.ID == game.HostID {
+		game.Archived = false
+		if err := db.UpdateGame(&game.Game); err != nil {
+			render.Render(w, r, ErrInternalServerError(fmt.Errorf("archive game in database %v", err)))
+		}
+		log.Debug().Int64("GameID", game.ID).Int64("UserID", user.ID).Msgf("host unarchived game %s", game.Name)
+	} else {
+		// a player can archive their game
+		if err := db.ArchivePlayer(player.GameID, player.Num, false); err != nil {
+			render.Render(w, r, ErrInternalServerError(fmt.Errorf("archive player in database %v", err)))
+		}
+		log.Debug().Int64("GameID", game.ID).Int64("UserID", user.ID).Msgf("player unarchived game %s", game.Name)
+	}
+
+	rest.RenderJSON(w, rest.JSON{"game": game})
+}
+
 func (s *server) deleteGame(w http.ResponseWriter, r *http.Request) {
 	user := s.contextUser(r)
 	game := s.contextGame(r)

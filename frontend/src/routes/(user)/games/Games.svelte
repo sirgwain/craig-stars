@@ -8,6 +8,7 @@
 	import { onMount } from 'svelte';
 	import ActiveGameRow from './ActiveGameRow.svelte';
 	import SetupGameRow from './SetupGameRow.svelte';
+	import { PlayerService } from '$lib/services/PlayerService';
 
 	let myGames: Game[];
 	let gamesWaitingToStart: Game[];
@@ -15,6 +16,7 @@
 	let newTurnGames: Game[];
 	let singlePlayerGames: Game[];
 	let submittedTurnGames: Game[];
+	let archivedGames: Game[];
 
 	onMount(() => {
 		loadGames();
@@ -25,26 +27,31 @@
 			b.createdAt && a.createdAt ? b.createdAt.localeCompare(a.createdAt) : 0;
 
 		GameService.loadPlayerGames().then((games) => {
-			myGames = games;
+			archivedGames = games.filter(
+				(g) => g.archived || g.players.find((p) => p.userId == $me.id)?.archived
+			);
+			myGames = games.filter(
+				(g) => !(g.archived || g.players.find((p) => p.userId == $me.id)?.archived)
+			);
 			myGames.sort(sorter);
 			// find all multiplayer games where we haven't submitted a turn yet
-			newTurnGames = games
+			newTurnGames = myGames
 				.filter((g) => g.state != GameState.Setup)
 				.filter((g) => !g.players.find((p) => p.userId == $me.id)?.submittedTurn)
 				.filter((g) => g.players.find((p) => p.userId != $me.id && !p.aiControlled));
 
 			// find all games where we've submitted our turn
-			submittedTurnGames = games.filter(
+			submittedTurnGames = myGames.filter(
 				(g) => g.players.find((p) => p.userId == $me.id)?.submittedTurn
 			);
 
 			// find all single player games
-			singlePlayerGames = games.filter(
+			singlePlayerGames = myGames.filter(
 				(g) => !g.players.find((p) => p.userId != $me.id && !p.aiControlled)
 			);
 
 			// find all multiplayer games we are part of in setup
-			gamesWaitingToStart = games
+			gamesWaitingToStart = myGames
 				.filter((g) => g.state == GameState.Setup)
 				.filter((g) => g.players.find((p) => p.userId != $me.id));
 		});
@@ -59,6 +66,18 @@
 	const deleteGame = async (game: Game) => {
 		if (confirm(`Are you sure you want to delete ${game.name}?`)) {
 			await GameService.deleteGame(game.id);
+			await loadGames();
+		}
+	};
+	const archiveGame = async (game: Game) => {
+		if (confirm(`Are you sure you want to archive ${game.name}?`)) {
+			await PlayerService.archiveGame(game.id);
+			await loadGames();
+		}
+	};
+	const unArchiveGame = async (game: Game) => {
+		if (confirm(`Are you sure you want to archive ${game.name}?`)) {
+			await PlayerService.archiveGame(game.id);
 			await loadGames();
 		}
 	};
@@ -88,7 +107,11 @@
 			<div class="col-span-2" />
 
 			{#each newTurnGames as game}
-				<ActiveGameRow {game} on:delete={() => deleteGame(game)} />
+				<ActiveGameRow
+					{game}
+					on:delete={() => deleteGame(game)}
+					on:archive={() => archiveGame(game)}
+				/>
 			{/each}
 		{/if}
 	</div>
@@ -103,7 +126,12 @@
 		<div class="col-span-3 text-secondary">Players</div>
 		<div class="col-span-2" />
 		{#each singlePlayerGames as game}
-			<ActiveGameRow {game} showNumSubmitted={false} on:delete={() => deleteGame(game)} />
+			<ActiveGameRow
+				{game}
+				showNumSubmitted={false}
+				on:delete={() => deleteGame(game)}
+				on:archive={() => archiveGame(game)}
+			/>
 		{/each}
 	</div>
 {/if}
@@ -118,7 +146,11 @@
 		<div class="col-span-2" />
 
 		{#each submittedTurnGames as game}
-			<ActiveGameRow {game} on:delete={() => deleteGame(game)} />
+			<ActiveGameRow
+				{game}
+				on:delete={() => deleteGame(game)}
+				on:archive={() => archiveGame(game)}
+			/>
 		{/each}
 	</div>
 {/if}

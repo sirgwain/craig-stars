@@ -21,6 +21,7 @@ type PlayerStatus struct {
 	SubmittedTurn bool      `json:"submittedTurn,omitempty"`
 	Color         string    `json:"color,omitempty"`
 	Victor        bool      `json:"victor,omitempty"`
+	Archived      bool      `json:"archived,omitempty"`
 }
 
 type Player struct {
@@ -77,6 +78,7 @@ type Player struct {
 	AcquiredTechs                *AcquiredTechs       `json:"acquiredTechs,omitempty"`
 	AchievedVictoryConditions    cs.Bitmask           `json:"achievedVictoryConditions,omitempty"`
 	Victor                       bool                 `json:"victor,omitempty"`
+	Archived                     bool                 `json:"archived,omitempty"`
 	Spec                         *PlayerSpec          `json:"spec,omitempty"`
 }
 
@@ -434,6 +436,7 @@ func (c *client) getPlayerWithDesigns(where string, args ...interface{}) ([]cs.P
 		p.acquiredTechs AS 'player.acquiredTechs',
 		p.achievedVictoryConditions AS 'player.achievedVictoryConditions',
 		p.victor AS 'player.victor',
+		p.archived AS 'player.archived',
 		p.spec AS 'player.spec',
 
 		
@@ -559,6 +562,7 @@ func (c *client) GetPlayerForGame(gameID, userID int64) (*cs.Player, error) {
 	acquiredTechs,
 	achievedVictoryConditions,
 	victor,
+	archived,
 	spec
 	FROM players 
 	WHERE gameId = ? AND userId = ?`, gameID, userID); err != nil {
@@ -668,6 +672,7 @@ func (c *client) GetLightPlayerForGame(gameID, userID int64) (*cs.Player, error)
 	acquiredTechs,
 	achievedVictoryConditions,
 	victor,
+	archived,
 	spec
 	FROM players 
 	WHERE gameId = ? AND userId = ?`, gameID, userID); err != nil {
@@ -867,6 +872,7 @@ func (c *client) CreatePlayer(player *cs.Player) error {
 		acquiredTechs,
 		achievedVictoryConditions,
 		victor,
+		archived,
 		spec
 	)
 	VALUES (
@@ -922,6 +928,7 @@ func (c *client) CreatePlayer(player *cs.Player) error {
 		:acquiredTechs,
 		:achievedVictoryConditions,
 		:victor,
+		:archived,
 		:spec
 	)
 	`, item)
@@ -1024,6 +1031,26 @@ func (c *client) SubmitPlayerTurn(gameID int64, num int, submittedTurn bool) err
 		submittedTurn = :submittedTurn
 	WHERE gameId = :gameID AND num = :num
 	`, submitData{GameID: gameID, Num: num, SubmittedTurn: submittedTurn}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// update an existing player's lightweight fields
+func (c *client) ArchivePlayer(gameID int64, num int, archived bool) error {
+	type submitData struct {
+		GameID   int64 `json:"gameID"`
+		Num      int   `json:"num"`
+		Archived bool  `json:"archived"`
+	}
+
+	if _, err := c.writer.NamedExec(`
+	UPDATE players SET
+		updatedAt = CURRENT_TIMESTAMP,
+		archived = :archived
+	WHERE gameId = :gameID AND num = :num
+	`, submitData{GameID: gameID, Num: num, Archived: archived}); err != nil {
 		return err
 	}
 
@@ -1138,6 +1165,7 @@ func (c *client) UpdatePlayer(player *cs.Player) error {
 		acquiredTechs = :acquiredTechs,
 		achievedVictoryConditions = :achievedVictoryConditions,
 		victor = :victor,
+		archived = :archived,
 		spec = :spec
 	WHERE id = :id
 	`, item); err != nil {

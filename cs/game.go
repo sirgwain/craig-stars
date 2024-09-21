@@ -55,6 +55,7 @@ type Game struct {
 	Area                         Vector            `json:"area,omitempty"`
 	Year                         int               `json:"year,omitempty"`
 	VictorDeclared               bool              `json:"victorDeclared"`
+	Archived                     bool              `json:"archived"`
 }
 
 // A new player in a game, only used during game setup

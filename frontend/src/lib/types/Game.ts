@@ -89,7 +89,7 @@ export enum GameState {
 	GeneratingTurnError = 'GeneratingTurnError'
 }
 
-export interface Game {
+export type Game = {
 	id: number;
 	createdAt: string;
 	updatedAt: string;
@@ -115,9 +115,10 @@ export interface Game {
 	year: number;
 	victoryConditions: VictoryConditions;
 	victorDeclared: boolean;
-	rules: Rules;
+	archived: boolean;
+	rules?: Rules;
 	players: PlayerStatus[];
-}
+};
 
 export type VictoryConditions = {
 	conditions: number;

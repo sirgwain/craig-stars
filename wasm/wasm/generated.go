@@ -1783,6 +1783,7 @@ func GetPlayer(o js.Value) cs.Player {
 	obj.AcquiredTechs = GetStringMap[map[string]bool](o.Get("acquiredTechs"), getBool)
 	obj.AchievedVictoryConditions = GetBitmask(o.Get("achievedVictoryConditions"))
 	obj.Victor = getBool(o.Get("victor"))
+	obj.Archived = getBool(o.Get("archived"))
 	obj.Stats = getPointer(GetPlayerStats(o.Get("stats")))
 	obj.Spec = GetPlayerSpec(o.Get("spec"))
 	return obj
@@ -1824,6 +1825,7 @@ func SetPlayer(o js.Value, obj *cs.Player) {
 	o.Set("acquiredTechs", acquiredTechsMap)
 	o.Set("achievedVictoryConditions", uint32(obj.AchievedVictoryConditions))
 	o.Set("victor", obj.Victor)
+	o.Set("archived", obj.Archived)
 	o.Set("stats", map[string]any{})
 	SetPlayerStats(o.Get("stats"), obj.Stats)
 	o.Set("spec", map[string]any{})
