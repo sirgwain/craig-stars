@@ -44,6 +44,8 @@ export type PlayerStatus = {
 	aiControlled?: boolean;
 	guest?: boolean;
 	submittedTurn?: boolean;
+	victor?: boolean;
+	archived?: boolean;
 };
 
 export type PlayerResponse = {

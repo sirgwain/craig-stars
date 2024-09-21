@@ -72,7 +72,7 @@
 				<SectionHeader>Guest User Games</SectionHeader>
 				<ul>
 					{#each games as game}
-						<li>{game.name} - {game.numPlayers} players</li>
+						<li>{game.name} - {game.players.length} players</li>
 					{/each}
 				</ul>
 			{/if}

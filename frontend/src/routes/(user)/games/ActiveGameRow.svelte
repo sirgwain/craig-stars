@@ -1,7 +1,8 @@
 <script lang="ts">
+	import Archive from '$lib/components/icons/Archive.svelte';
 	import { me } from '$lib/services/Stores';
 	import type { Game } from '$lib/types/Game';
-	import { XMark } from '@steeze-ui/heroicons';
+	import { XMark, ArchiveBox } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { createEventDispatcher } from 'svelte';
 
@@ -21,18 +22,36 @@
 </div>
 <div class="col-span-3 text-md">
 	{#if showNumSubmitted}
-		{numSubmitted} / {game.numPlayers} Submitted
+		{numSubmitted} / {game.players.length} Submitted
 	{:else}
-		{game.numPlayers}
+		{game.players.length}
 	{/if}
 </div>
 {#if game.hostId == $me.id}
-	<div class="col-span-2">
-		<button on:click={() => dispatch('delete')} class="float-right btn btn-error btn-danger btn-sm">
-			<Icon src={XMark} size="16" class="hover:stroke-accent md:hidden" />
-			<span class="hidden md:inline-block">Delete</span></button
+	<div class="col-span-2 flex justify-center join">
+		<button
+			on:click={() => dispatch('archive')}
+			class="btn btn-error btn-sm rounded-l-md"
+			title="Archive Game"
 		>
+			<Archive class="hover:stroke-accent w-4 h-4 stroke-base-content fill-none" />
+		</button>
+		<button
+			on:click={() => dispatch('delete')}
+			class="btn btn-error btn-sm border-l-secondary rounded-r-md"
+			title="Delete Game"
+		>
+			<Icon src={XMark} size="16" class="hover:stroke-accent" />
+		</button>
 	</div>
 {:else}
-	<div class="col-span-2" />
+	<div class="col-span-2 flex justify-center">
+		<button
+			on:click={() => dispatch('archive')}
+			class="btn btn-error btn-sm rounded-md"
+			title="Archive Game"
+		>
+			<Archive class="hover:stroke-accent w-4 h-4 stroke-base-content fill-none" />
+		</button>
+	</div>
 {/if}

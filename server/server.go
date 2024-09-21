@@ -325,6 +325,8 @@ func Start(config config.Config) error {
 					r.Put("/player/relations", server.updatePlayerRelations)
 					r.Post("/submit-turn", server.submitTurn)
 					r.Post("/unsubmit-turn", server.unSubmitTurn)
+					r.Post("/archive-game", server.archiveGame)
+					r.Post("/unarchive-game", server.unArchiveGame)
 					r.Post("/research-cost", server.getResearchCost)
 
 					// ship designs

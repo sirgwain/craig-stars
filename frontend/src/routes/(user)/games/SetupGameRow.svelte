@@ -25,11 +25,14 @@
 </div>
 
 {#if game.hostId == $me.id}
-	<div class="col-span-2">
-		<button on:click={() => dispatch('delete')} class="float-right btn btn-error btn-danger btn-sm">
-			<Icon src={XMark} size="16" class="hover:stroke-accent md:hidden" />
-			<span class="hidden md:inline-block">Delete</span></button
+	<div class="col-span-2 flex justify-center">
+		<button
+			on:click={() => dispatch('delete')}
+			class="btn btn-error btn-sm rounded-md"
+			title="Delete Game"
 		>
+			<Icon src={XMark} size="16" class="hover:stroke-accent" />
+		</button>
 	</div>
 {:else}
 	<div class="col-span-2" />

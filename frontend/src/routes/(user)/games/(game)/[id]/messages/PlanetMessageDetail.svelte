@@ -34,7 +34,7 @@
 			{#if bombing.colonistsKilled == 0 && bombing.minesDestroyed == 0 && bombing.factoriesDestroyed == 0 && bombing.defensesDestroyed == 0}
 				doing no physical damage.
 			{:else}
-				killing {bombing.colonistsKilled ?? 0} colonists, and destroying {bombing.minesDestroyed ??
+				killing {(bombing.colonistsKilled ?? 0).toLocaleString()} colonists, and destroying {bombing.minesDestroyed ??
 					0} mines,
 				{bombing.factoriesDestroyed ?? 0} factories and {bombing.defensesDestroyed ?? 0} defenses.
 			{/if}
