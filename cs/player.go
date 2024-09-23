@@ -247,7 +247,7 @@ func NewPlayer(userID int64, race *Race) *Player {
 		PlayerOrders: PlayerOrders{
 			Researching:       Energy,
 			ResearchAmount:    15,
-			NextResearchField: NextResearchFieldLowestField,
+			NextResearchField: NextResearchFieldSameField,
 		},
 		AcquiredTechs: map[string]bool{},
 	}
