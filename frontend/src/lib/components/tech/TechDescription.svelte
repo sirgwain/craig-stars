@@ -40,6 +40,11 @@
 				stats.push({ label: 'Armor Strength', text: hull.armor.toString() });
 				hull.initiative && stats.push({ label: 'Initiative', text: hull.initiative.toString() });
 
+				if (hull.fuelGeneration && hull.fuelGeneration > 0) {
+					descriptions.push(
+						`This hull will manufacture ${hull.fuelGeneration} units of fuel each year.`
+					);
+				}
 				if (hull.repairBonus && hull.repairBonus > 0) {
 					if (hull.starbase) {
 						descriptions.push(

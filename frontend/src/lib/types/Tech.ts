@@ -115,27 +115,28 @@ export type TechHullComponent = {
 } & Tech;
 
 export type TechHull = {
-	mass?: number;
 	armor: number;
-	fuelCapacity?: number;
+	builtInScanner?: boolean;
 	cargoCapacity?: number;
+	cargoSlotCircle?: boolean;
 	cargoSlotPosition?: Vector;
 	cargoSlotSize?: Vector;
-	cargoSlotCircle?: boolean;
-	slots: HullSlot[];
-	builtInScanner?: boolean;
-	initiative?: number;
-	repairBonus?: number;
-	mineLayingBonus?: number;
+	fuelCapacity?: number;
+	fuelGeneration?: number;
 	immuneToOwnDetonation?: boolean;
-	rangeBonus?: number;
-	starbase?: boolean;
+	initiative?: number;
+	innateScanRangePenFactor?: number;
+	mass?: number;
+	mineLayingBonus?: number;
 	orbitalConstructionHull?: boolean;
+	rangeBonus?: number;
+	repairBonus?: number;
+	slots: HullSlot[];
 	spaceDock?: number;
+	spaceDockSlotCircle?: boolean;
 	spaceDockSlotPosition?: Vector;
 	spaceDockSlotSize?: Vector;
-	spaceDockSlotCircle?: boolean;
-	innateScanRangePenFactor?: number;
+	starbase?: boolean;
 } & Tech;
 
 export type HullSlot = {
@@ -327,4 +328,3 @@ export function getBestTerraform(
 		.filter((t) => player.hasTech(t) && t.habType == habType)
 		.sort((a, b) => (b.ranking ?? 0) - (a.ranking ?? 0))[0];
 }
-
