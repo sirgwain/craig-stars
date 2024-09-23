@@ -56,6 +56,7 @@ export type Spec = {
 	estimatedRange?: number;
 	estimatedRangeFull?: number;
 	fuelCapacity?: number;
+	fuelGeneration?: number;
 	hasWeapons?: boolean;
 	hullType?: string;
 	immuneToOwnDetonation?: boolean;

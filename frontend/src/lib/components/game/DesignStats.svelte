@@ -20,6 +20,12 @@
 		<div class="font-semibold mr-5">Max Fuel</div>
 		<div>{spec.fuelCapacity ?? 0}mg</div>
 	</div>
+	{#if spec.fuelGeneration && spec.fuelGeneration > 0}
+		<div class="flex justify-between">
+			<div class="font-semibold mr-5">Fuel Generation</div>
+			<div>{spec.fuelGeneration ?? 0}mg</div>
+		</div>
+	{/if}
 	{#if spec.estimatedRange}
 		<div class="flex justify-between">
 			{#if spec.estimatedRange == Infinite}

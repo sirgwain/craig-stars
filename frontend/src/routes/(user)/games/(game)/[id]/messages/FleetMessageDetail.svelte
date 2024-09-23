@@ -10,6 +10,11 @@
 	const { game, universe, player } = getGameContext();
 
 	export let message: Message;
+
+	let fleet =
+		message.targetPlayerNum && message.targetNum
+			? $universe.getFleet(message.targetPlayerNum, message.targetNum)
+			: undefined;
 </script>
 
 {#if message.text}
@@ -60,6 +65,16 @@
 {:else if message.type === MessageType.FleetExceededSafeSpeed}
 	<!-- Overwarp -->
 	<FleetEngineStrainMessageDetail {message} />
+{:else if message.type === MessageType.FleetGeneratedFuel}
+	{@const hasRamscoops = !!fleet?.tokens?.find(
+		(t) => ($universe.getDesign(fleet.playerNum, t.designNum)?.spec?.engine.freeSpeed ?? 0) > 1
+	)}
+	{#if hasRamscoops}
+		{message.targetName}'s ramscoops have produced {message.spec.amount}mg of fuel from interstellar
+		hydrogen.
+	{:else}
+		{message.targetName} has generated {message.spec.amount}mg of fuel.
+	{/if}
 {:else if message.type === MessageType.FleetMineFieldHit}
 	{@const damage = message.spec.mineFieldDamage}
 	{@const mineFieldOwner = $universe.getPlayerPluralName(message.spec.targetPlayerNum)}
