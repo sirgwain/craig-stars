@@ -220,13 +220,13 @@ func (store *TechStore) GetHullComponentsByHullSlotType(slots HullSlotType) []Te
 }
 
 /*
-	get best TechHullComponent for the specified hullSlotType(s) that also contains the specified tag(s).
+get best TechHullComponent for the specified hullSlotType(s) that also contains the specified tag(s).
 
-	allTags determines the search style - normally it defaults to "OR" (parts only need to match >=1 tag),
-	but setting it to "true" requires ALL listed tags to match for a part to be considered.
+allTags determines the search style - normally it defaults to "OR" (parts only need to match >=1 tag),
+but setting it to "true" requires ALL listed tags to match for a part to be considered.
 
-	light merely determines if we care about armor/shield weight - 
-	if true, it will de-prioritize armor items above 30kT if other alternatives exist
+light merely determines if we care about armor/shield weight -
+if true, it will de-prioritize armor items above 30kT if other alternatives exist
 */
 func (store *TechStore) GetBestComponentWithTags(player *Player, hull *TechHull, hullSlotType HullSlotType, allTags bool, light bool, tags ...TechTag) *TechHullComponent {
 	var bestTech *TechHullComponent
@@ -236,9 +236,10 @@ func (store *TechStore) GetBestComponentWithTags(player *Player, hull *TechHull,
 	var comps []TechHullComponent = store.GetHullComponentsByHullSlotType(hullSlotType)
 
 	for _, hc := range comps {
-		if (len(hc.Tech.Requirements.HullsAllowed) > 0 && !slices.Contains(hc.Tech.Requirements.HullsAllowed, hull.Name)) ||
-		(len(hc.Tech.Requirements.HullsDenied) > 0 && slices.Contains(hc.Tech.Requirements.HullsDenied, hull.Name)) {
-			// we cannot use this part; skip to the next item 
+		if !player.HasTech(&hc.Tech) ||
+			(len(hc.Tech.Requirements.HullsAllowed) > 0 && !slices.Contains(hc.Tech.Requirements.HullsAllowed, hull.Name)) ||
+			(len(hc.Tech.Requirements.HullsDenied) > 0 && slices.Contains(hc.Tech.Requirements.HullsDenied, hull.Name)) {
+			// we cannot use this part; skip to the next item
 			continue
 		}
 
@@ -260,22 +261,23 @@ func (store *TechStore) GetBestComponentWithTags(player *Player, hull *TechHull,
 			}
 		} else {
 			// need only 1 tag to match
-			// we set match to false and break as soon as a single tag matches 
+			// we set match to false and break as soon as a single tag matches
 			// and is better than our current item
 
 			match = false
 			for _, tag := range tags {
 				if hc.Tags[tag] && hc.CompareFieldsByTag(player, bestTech, tag, light) { // editor's note: this has a nil check in line 1 of function
-					// we have tag and it's better than what 
+					// we have the tag and it's better than what we already have
 					match = true
 				}
 			}
 		}
 
-		if match && player.HasTech(&hc.Tech) {
+		if match {
 			bestTech = &hc
 		}
 	}
+
 	return bestTech
 }
 
@@ -413,9 +415,8 @@ func (store *TechStore) GetBestSapper(player *Player) *TechHullComponent {
 	// This is never possible in vanilla Stars!, but maybe for mods
 	bestBeam := store.GetBestBeamWeapon(player)
 	if bestTech == nil ||
-		(bestBeam.Power >= bestTech.Power &&
-			bestBeam.Cost.Resources <= bestTech.Cost.Resources &&
-			bestBeam.Range >= bestTech.Range) {
+		float64(bestBeam.Power) >= float64(bestTech.Power) &&
+			bestBeam.Range == bestTech.Range {
 		bestTech = bestBeam
 	}
 	return bestTech
@@ -1864,7 +1865,7 @@ var PhaserBazooka = TechHullComponent{Tech: NewTech("Phaser Bazooka", NewCost(0,
 
 	Range: 2,
 }
-var PulsedSapper = TechHullComponent{Tech: NewTech("Pulsed Sapper", NewCost(0, 0, 4, 12), TechRequirements{TechLevel: TechLevel{Energy: 5, Weapons: 9}}, 60, TechCategoryBeamWeapon, TechTagBeamWeapon, TechTagShieldSapper),
+var PulsedSapper = TechHullComponent{Tech: NewTech("Pulsed Sapper", NewCost(0, 0, 4, 12), TechRequirements{TechLevel: TechLevel{Energy: 5, Weapons: 9}}, 60, TechCategoryBeamWeapon, TechTagShieldSapper),
 
 	Mass:              1,
 	Initiative:        14,
@@ -1917,7 +1918,7 @@ var MarkIVBlaster = TechHullComponent{Tech: NewTech("Mark IV Blaster", NewCost(0
 	HullSlotType: HullSlotTypeWeapon,
 	Range:        2,
 }
-var PhasedSapper = TechHullComponent{Tech: NewTech("Phased Sapper", NewCost(0, 0, 6, 16), TechRequirements{TechLevel: TechLevel{Energy: 8, Weapons: 15}}, 120, TechCategoryBeamWeapon, TechTagBeamWeapon, TechTagShieldSapper),
+var PhasedSapper = TechHullComponent{Tech: NewTech("Phased Sapper", NewCost(0, 0, 6, 16), TechRequirements{TechLevel: TechLevel{Energy: 8, Weapons: 15}}, 120, TechCategoryBeamWeapon, TechTagShieldSapper),
 
 	Mass:              1,
 	Initiative:        14,
@@ -1968,7 +1969,7 @@ var Disruptor = TechHullComponent{Tech: NewTech("Disruptor", NewCost(0, 16, 0, 2
 	HullSlotType: HullSlotTypeWeapon,
 	Range:        2,
 }
-var SyncroSapper = TechHullComponent{Tech: NewTech("Syncro Sapper", NewCost(0, 0, 8, 21), TechRequirements{TechLevel: TechLevel{Energy: 11, Weapons: 21}}, 180, TechCategoryBeamWeapon, TechTagBeamWeapon, TechTagShieldSapper),
+var SyncroSapper = TechHullComponent{Tech: NewTech("Syncro Sapper", NewCost(0, 0, 8, 21), TechRequirements{TechLevel: TechLevel{Energy: 11, Weapons: 21}}, 180, TechCategoryBeamWeapon, TechTagShieldSapper),
 
 	Mass:              1,
 	Initiative:        14,

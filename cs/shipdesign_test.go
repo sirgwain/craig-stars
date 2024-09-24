@@ -1,6 +1,7 @@
 package cs
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/sirgwain/craig-stars/test"
@@ -198,9 +199,9 @@ func TestComputeShipDesignSpec(t *testing.T) {
 		design     *ShipDesign
 	}
 	tests := []struct {
-		name string
-		args args
-		want ShipDesignSpec
+		name    string
+		args    args
+		want    ShipDesignSpec
 		wanterr bool
 	}{
 		{name: "Humanoid Starter Long Range Scout",
@@ -653,8 +654,8 @@ func TestComputeShipDesignSpec(t *testing.T) {
 					WithSlots([]ShipDesignSlot{
 						{HullComponent: "BANANA!!!!!!!!", HullSlotIndex: 10, Quantity: 8},
 					}),
-			}, 
-			want: ShipDesignSpec{}, // doesn't matter since want value ignored if error desired
+			},
+			want:    ShipDesignSpec{}, // doesn't matter since want value ignored if error desired
 			wanterr: true,
 		},
 	}
@@ -744,6 +745,59 @@ func TestShipDesign_SlotsEqual(t *testing.T) {
 			}
 			if got := source.SlotsEqual(tt.args.otherSlots); got != tt.want {
 				t.Errorf("ShipDesign.SlotsEqual() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestDesignShip(t *testing.T) {
+	type args struct {
+		hull         *TechHull
+		techLevels   TechLevel
+		race         *Race
+		purpose      ShipDesignPurpose
+		fleetPurpose FleetPurpose
+	}
+	tests := []struct {
+		name      string
+		args      args
+		want []ShipDesignSlot
+		wanterr   bool
+	}{
+		{
+			name: "Humanoid Starter Stalwart Defender",
+			args: args{
+				hull: &Destroyer,
+				techLevels: TechLevel{3, 3, 3, 3, 3, 3},
+				race:       NewRace().WithPRT(JoaT).WithSpec(&rules),
+				purpose: ShipDesignPurposeStartingFighter,
+				fleetPurpose: FleetPurposeScout,
+			},
+			want: []ShipDesignSlot{
+				{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
+				{HullComponent: AlphaTorpedo.Name, HullSlotIndex: 2, Quantity: 1},
+				{HullComponent: XRayLaser.Name, HullSlotIndex: 3, Quantity: 1},
+				{HullComponent: RhinoScanner.Name, HullSlotIndex: 4, Quantity: 1},
+				{HullComponent: Crobmnium.Name, HullSlotIndex: 5, Quantity: 1},
+				{HullComponent: FuelTank.Name, HullSlotIndex: 6, Quantity: 1},
+				{HullComponent: BattleComputer.Name, HullSlotIndex: 7, Quantity: 1},
+			},
+			wanterr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			player := NewPlayer(1, tt.args.race).WithTechLevels(tt.args.techLevels).WithNum(1)
+			got, err := DesignShip(&rules, tt.args.hull, "Test Ship", player, 1, 1, tt.args.purpose, tt.args.fleetPurpose)
+			if (err != nil) != tt.wanterr {
+				if tt.wanterr {
+					t.Errorf("DesignShip() failed to error when expected; returned slots %v instead", got.Slots)
+				} else {
+					t.Errorf("DesignShip() errored unexpectedly; returned error %v", err)
+				}
+			}
+			if !slices.Equal(got.Slots,tt.want) {
+				t.Errorf("ShipDesign from DesignShip() had slots %v, want %v", got.Slots, tt.want)
 			}
 		})
 	}

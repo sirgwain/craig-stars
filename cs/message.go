@@ -839,7 +839,7 @@ func (m *messageClient) planetEmptied(player *Player, planet *Planet) {
 }
 
 func (m *messageClient) planetInstaform(player *Player, planet *Planet, terraformAmount Hab) {
-	text := fmt.Sprintf("Your race has instantly terraformed %s up to optimal conditions. Its value is now %d", planet.Name, planet.Spec.Habitability) + "%."
+	text := fmt.Sprintf("Your race has instantly terraformed %s up to optimal conditions. Its value is now %d.", planet.Name, planet.Spec.Habitability) + "%."
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetInstaform, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetPlanet, TargetNum: planet.Num}})
 }
 

@@ -364,7 +364,7 @@ func Test_production_produceMineralPackets(t *testing.T) {
 	planet.PacketTargetNum = 1
 	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 100, PlanetStarbaseSpec: PlanetStarbaseSpec{HasMassDriver: true, SafePacketSpeed: 6, BasePacketSpeed: 6}}
 
-	// should build 5 mine, leaving the auto build in the queu
+	// should build 5 mine, leaving the auto build in the queue
 	producer := newProducer(testLogger, &rules, planet, player)
 	result, err := producer.produce()
 	assert.Nil(t, err)

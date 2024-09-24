@@ -46,6 +46,7 @@ type Rules struct {
 	WormholePairsForSize                      map[Size]int                        `json:"wormholePairsForSize"`
 	MineFieldStatsByType                      map[MineFieldType]MineFieldStats    `json:"mineFieldStatsByType"`
 	RepairRates                               map[RepairRate]float64              `json:"repairRates"`
+	JammerCap                                 map[bool]float64                    `json:"jammerCap"`
 	MaxPlayers                                int                                 `json:"maxPlayers"`
 	StartingYear                              int                                 `json:"startingYear"`
 	ShowPublicScoresAfterYears                int                                 `json:"showPublicScoresAfterYears"`
@@ -204,7 +205,7 @@ func NewRulesWithSeed(seed int64) Rules {
 		NumBattleRounds:                  16,
 		MovesToRunAway:                   7,
 		BeamRangeDropoff:                 0.1,
-		BeamBonusCap:                     2.55, // 2.55x damage max from caps 
+		BeamBonusCap:                     2.55, // 2.55x damage max from caps
 		TorpedoSplashDamage:              0.125,
 		SalvageDecayRate:                 0.1,
 		SalvageDecayMin:                  10,
@@ -448,6 +449,10 @@ func NewRulesWithSeed(seed int64) Rules {
 			RepairRateOrbiting:          0.03,
 			RepairRateOrbitingOwnPlanet: 0.05,
 			RepairRateStarbase:          0.1,
+		},
+		JammerCap: map[bool]float64{
+			true:  0.75, // starbases have 75% jamming max
+			false: 0.95, // non-starbases (ie fleets) have 95% jamming max
 		},
 		MaxPlayers:                                16,
 		StartingYear:                              2400,
