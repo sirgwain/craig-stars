@@ -1,7 +1,6 @@
 package cs
 
 import (
-	"math"
 	"slices"
 )
 
@@ -27,7 +26,6 @@ const (
 	TechTagManeuveringJet     TechTag = "ManeuveringJet"
 	TechTagMineLayer          TechTag = "MineLayer"
 	TechTagMiningRobot        TechTag = "MiningRobot"
-	TechTagPenScanner         TechTag = "PenScanner"
 	TechTagRamscoop           TechTag = "Ramscoop"
 	TechTagTerraformingRobot  TechTag = "TerraformingRobot"
 	TechTagScanner            TechTag = "Scanner"
@@ -85,32 +83,28 @@ func (tt TechTags) GetTags() []string {
 	return list
 }
 
+// return number of unique tags in tt
+func (tt TechTags) CountTags() int {
+	count := 0
+	for _, v := range tt {
+		if v {
+			count += 1
+		}
+	}
+	return count
+}
+
 // Compare 2 techHullComponents based on a field determined by the specified TechTag
 // Precedence is given to 2nd component in case of tie
 //
-// light denotes whether to penalize heavy armors/shields in favor of lighter ones
-func (hc *TechHullComponent) CompareFieldsByTag(player *Player, other *TechHullComponent, tag TechTag, light bool) bool {
+// NOTE: ONLY WORKS ON NON-COMBAT-FOCUSED PARTS. USE spec.getbestWarshipPart() instead
+func CompareFieldsByTag(player *Player, hc, other *TechHullComponent, tag TechTag) bool {
 	if other == nil {
 		return false
 	} else if hc == nil {
 		return true
 	}
 	switch tag {
-	case TechTagArmor, TechTagShield:
-		var hcArmor, hcShield, otherArmor, otherShield float64
-		hcArmor, hcShield = getActualArmorAmount(float64(hc.Armor), float64(hc.Shield), player.Race.Spec.ArmorStrengthFactor, player.Race.Spec.ShieldStrengthFactor, hc.Category == TechCategoryArmor)
-		otherArmor, otherShield = getActualArmorAmount(float64(other.Armor), float64(other.Shield), player.Race.Spec.ArmorStrengthFactor, player.Race.Spec.ShieldStrengthFactor, other.Category == TechCategoryArmor)
-		if light {
-			return (otherArmor+otherShield)/(1+math.Min(float64(other.Mass-30)/10, 0))/ // 2nd item's total armor/shield value adjusted for weight
-				(hcArmor+hcShield)/(1+math.Min(float64(hc.Mass-30)/10, 0)) >= // 1st item's total armor/shield value adjusted for weight
-				getMineralEfficiencyRatio(player, hc, other, true) // cost efficiency of the 2 items
-		} else {
-			return (otherArmor+otherShield)/(hcArmor+hcShield) >= getMineralEfficiencyRatio(player, hc, other, true)
-		}
-	case TechTagBeamCapacitor:
-		return other.BeamBonus >= hc.BeamBonus
-	case TechTagBeamDeflector:
-		return other.BeamDefense >= hc.BeamDefense
 	case TechTagScanner:
 		if hc.ScanRangePen > 0 {
 			if other.ScanRangePen > 0 {
@@ -124,19 +118,11 @@ func (hc *TechHullComponent) CompareFieldsByTag(player *Player, other *TechHullC
 			return true
 		}
 		return other.ScanRange >= hc.ScanRange
-	case TechTagInitiativeBonus:
-		return float64(other.InitiativeBonus)/float64(hc.InitiativeBonus) >= getMineralEfficiencyRatio(player, hc, other, true)
-		// FOR THE RECORD, this works out to be equivalent to comparing unit prices
-	case TechTagTorpedoJammer:
-		return other.TorpedoJamming >= hc.TorpedoJamming
-	case TechTagBeamWeapon, TechTagShieldSapper, TechTagGatlingGun:
-		return float64(other.Power*other.Range)/float64(hc.Power*hc.Range) >= getMineralEfficiencyRatio(player, hc, other, true)
-	case TechTagTorpedo, TechTagCapitalShipMissile:
-		return hc.GetBestTorpedo(player, other)
 	case TechTagColonyModule:
 		return getMineralEfficiencyRatio(player, hc, other, true) >= 1
 	case TechTagCargoPod:
 		return float64(other.CargoBonus)/float64(hc.CargoBonus) >= getMineralEfficiencyRatio(player, hc, other, true)
+		// FOR THE RECORD, this works out to be equivalent to comparing unit prices
 	case TechTagFuelTank:
 		return float64(other.FuelBonus+5*other.FuelGeneration)/float64(hc.FuelBonus+5*hc.FuelGeneration) >=
 			getMineralEfficiencyRatio(player, hc, other, true)
@@ -145,19 +131,17 @@ func (hc *TechHullComponent) CompareFieldsByTag(player *Player, other *TechHullC
 	case TechTagBomb, TechTagSmartBomb:
 		return float64(other.KillRate)/float64(hc.KillRate) >= getMineralEfficiencyRatio(player, hc, other, true)
 	case TechTagStructureBomb:
-		return float64(other.StructureDestroyRate)/float64(hc.StructureDestroyRate) > +getMineralEfficiencyRatio(player, hc, other, true)
+		return float64(other.StructureDestroyRate)/float64(hc.StructureDestroyRate) > getMineralEfficiencyRatio(player, hc, other, true)
 	case TechTagCloak:
-		return float64(other.CloakUnits)/float64(hc.CloakUnits) > +getMineralEfficiencyRatio(player, hc, other, true)
-	case TechTagManeuveringJet:
-		return float64(other.MovementBonus)/float64(hc.MovementBonus) > +getMineralEfficiencyRatio(player, hc, other, true)
+		return float64(other.CloakUnits) >= float64(hc.CloakUnits) 
 	case TechTagMassDriver:
 		return other.PacketSpeed >= hc.PacketSpeed
 	case TechTagStargate:
 		return hc.GetBestStargate(other)
 	case TechTagTerraformingRobot:
-		return float64(other.TerraformRate)/float64(hc.TerraformRate) > +getMineralEfficiencyRatio(player, hc, other, true)
+		return float64(other.TerraformRate)/float64(hc.TerraformRate) >= getMineralEfficiencyRatio(player, hc, other, true)
 	case TechTagMiningRobot:
-		return float64(other.MiningRate)/float64(hc.MiningRate) > +getMineralEfficiencyRatio(player, hc, other, false)
+		return float64(other.MiningRate)/float64(hc.MiningRate) >= getMineralEfficiencyRatio(player, hc, other, false)
 	}
 	return false
 }

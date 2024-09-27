@@ -230,13 +230,13 @@ func (hc *TechEngine) CompareEngine(player *Player, other *TechEngine, purpose F
 	otherTech := other.TechHullComponent
 	if player.HasTech(&tech.Tech) {
 		// colony ships don't want radiating engines if we would lose colonists from it
-		if !((purpose == FleetPurposeColonizer || purpose == FleetPurposeColonistFreighter) && tech.Radiating &&
-			!(player.Race.ImmuneRad || player.Race.Spec.HabCenter.Rad >= 85)) &&
-			&otherTech == nil || tech.Ranking > otherTech.Ranking {
-			return hc
+		if ((purpose == FleetPurposeColonizer || purpose == FleetPurposeColonistFreighter) && tech.Radiating &&
+			!(player.Race.ImmuneRad || player.Race.Spec.HabCenter.Rad >= 85)) || 
+			otherTech.Ranking > tech.Ranking {
+			return other
 		}
 	}
-	return other
+	return hc
 }
 
 type TechHull struct {

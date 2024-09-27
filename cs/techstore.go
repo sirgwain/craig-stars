@@ -225,8 +225,8 @@ get best TechHullComponent for the specified hullSlotType(s) that also contains 
 allTags determines the search style - normally it defaults to "OR" (parts only need to match >=1 tag),
 but setting it to "true" requires ALL listed tags to match for a part to be considered.
 
-light merely determines if we care about armor/shield weight -
-if true, it will de-prioritize armor items above 30kT if other alternatives exist
+light determines if we care about armor/shield weight -
+if true, it will de-prioritize items above 30kT if other alternatives exist
 */
 func (store *TechStore) GetBestComponentWithTags(player *Player, hull *TechHull, hullSlotType HullSlotType, allTags bool, light bool, tags ...TechTag) *TechHullComponent {
 	var bestTech *TechHullComponent
@@ -254,7 +254,7 @@ func (store *TechStore) GetBestComponentWithTags(player *Player, hull *TechHull,
 					// don't have tag; break
 					match = false
 					break
-				} else if hc.CompareFieldsByTag(player, bestTech, tag, light) { // we do have tag; check if it's better or not
+				} else if CompareFieldsByTag(player, &hc, bestTech, tag) { // we do have tag; check if it's better or not
 					// new part worse than current part; break
 					match = false
 				}
@@ -266,7 +266,7 @@ func (store *TechStore) GetBestComponentWithTags(player *Player, hull *TechHull,
 
 			match = false
 			for _, tag := range tags {
-				if hc.Tags[tag] && hc.CompareFieldsByTag(player, bestTech, tag, light) { // editor's note: this has a nil check in line 1 of function
+				if hc.Tags[tag] && CompareFieldsByTag(player, &hc, bestTech, tag) { // editor's note: this has a nil check in line 1 of function
 					// we have the tag and it's better than what we already have
 					match = true
 				}
@@ -1433,8 +1433,6 @@ var PickPocketScanner = TechHullComponent{Tech: NewTech("Pick Pocket Scanner", N
 	ScanRange:          80,
 }
 var ChameleonScanner = TechHullComponent{Tech: NewTech("Chameleon Scanner", NewCost(4, 6, 4, 25), TechRequirements{TechLevel: TechLevel{Energy: 3, Electronics: 6}, PRTsRequired: []PRT{SS}}, 70, TechCategoryScanner, TechTagScanner, TechTagCloak),
-	// @sirgwain IDK if this should have the tag for cloak or not as it does provide cloak units but isn't a cloak part
-	// esp. since I aim to use techTags to simplify and de-jank component category discount calculations
 	HullSlotType: HullSlotTypeScanner,
 	Mass:         6,
 	ScanRange:    160,
@@ -1443,9 +1441,7 @@ var ChameleonScanner = TechHullComponent{Tech: NewTech("Chameleon Scanner", NewC
 	ScanRangePen: 45,
 }
 var FerretScanner = TechHullComponent{Tech: NewTech("Ferret Scanner", NewCost(2, 0, 8, 36), TechRequirements{TechLevel: TechLevel{Energy: 3, Electronics: 7, Biotechnology: 2}, LRTsDenied: NAS}, 80, TechCategoryScanner, TechTagScanner),
-
 	HullSlotType: HullSlotTypeScanner,
-
 	Mass:         6,
 	ScanRange:    185,
 	Scanner:      true,
@@ -1557,7 +1553,7 @@ var FieldedKelarium = TechHullComponent{Tech: NewTech("Fielded Kelarium", NewCos
 	Armor:        175,
 	HullSlotType: HullSlotTypeArmor,
 }
-var DepletedNeutronium = TechHullComponent{Tech: NewTech("Depleted Neutronium", NewCost(10, 0, 2, 28), TechRequirements{TechLevel: TechLevel{Construction: 10, Electronics: 3}, PRTsRequired: []PRT{SS}}, 80, TechCategoryArmor, TechTagArmor),
+var DepletedNeutronium = TechHullComponent{Tech: NewTech("Depleted Neutronium", NewCost(10, 0, 2, 28), TechRequirements{TechLevel: TechLevel{Construction: 10, Electronics: 3}, PRTsRequired: []PRT{SS}}, 80, TechCategoryArmor, TechTagArmor, TechTagCloak),
 
 	Mass:         50,
 	Armor:        200,
@@ -2139,14 +2135,13 @@ var WolverineDiffuseShield = TechHullComponent{Tech: NewTech("Wolverine Diffuse 
 	HullSlotType: HullSlotTypeShield,
 }
 var CrobySharmor = TechHullComponent{Tech: NewTech("Croby Sharmor", NewCost(7, 0, 4, 15), TechRequirements{TechLevel: TechLevel{Energy: 7, Construction: 4}, PRTsRequired: []PRT{IS}}, 60, TechCategoryShield, TechTagShield, TechTagArmor),
-	// we can mark it as armor because getBestComponentWithTags only searches for items that can be mounted on the provided slots
-	// if it's armor only, croby gets automatically excluded
+
 	Mass:         10,
 	Shield:       60,
 	Armor:        65,
 	HullSlotType: HullSlotTypeShield,
 }
-var ShadowShield = TechHullComponent{Tech: NewTech("Shadow Shield", NewCost(3, 0, 3, 7), TechRequirements{TechLevel: TechLevel{Energy: 7, Electronics: 3}, PRTsRequired: []PRT{SS}}, 50, TechCategoryShield, TechTagShield),
+var ShadowShield = TechHullComponent{Tech: NewTech("Shadow Shield", NewCost(3, 0, 3, 7), TechRequirements{TechLevel: TechLevel{Energy: 7, Electronics: 3}, PRTsRequired: []PRT{SS}}, 50, TechCategoryShield, TechTagShield, TechTagCloak),
 
 	Mass:         2,
 	Shield:       75,

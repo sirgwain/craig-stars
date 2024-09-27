@@ -2,6 +2,7 @@ package cs
 
 import (
 	"fmt"
+	"maps"
 	"math"
 	"strings"
 
@@ -649,6 +650,37 @@ func (spec *ShipDesignSpec) computeScanRanges(rules *Rules, scannerSpec ScannerS
 	spec.Scanner = spec.ScanRange != NoScanner || spec.ScanRangePen != NoScanner
 }
 
+// return the total % amount this TechHullComponent boosts our ship's performance, using its techTags to evaluate bonuses
+func (design *ShipDesign) getComponentStatBonus(rules *Rules, player *Player, hc *TechHullComponent, qty int, light bool) float64 {
+
+	relativeBoost := 1.0 
+	var checkedShield bool
+	for tag := range maps.Keys(hc.Tags) {
+		switch {
+		case (tag == TechTagArmor || tag == TechTagShield) && !checkedShield:
+			hcArmor, hcShield := getActualArmorAmount(float64(hc.Armor), float64(hc.Shield), player.Race.Spec.ArmorStrengthFactor, player.Race.Spec.ShieldStrengthFactor, hc.Category == TechCategoryArmor)
+			relativeBoost *= float64(design.Spec.Armor+design.Spec.Shields)+hcArmor+hcShield/float64(design.Spec.Armor+design.Spec.Shields)
+			if light {
+				relativeBoost = 1 + (relativeBoost- 1) / (1+math.Min(float64(hc.Mass-30)/10, 0)) // apply weight penalty
+			}
+			checkedShield = true
+		case tag == TechTagBeamCapacitor:
+			relativeBoost *= math.Pow(1+hc.BeamBonus, float64(qty))
+		case tag == TechTagBeamDeflector:
+			relativeBoost *= 1/math.Pow(hc.BeamDefense, float64(qty))
+		case tag == TechTagInitiativeBonus:
+			// do nothing lol
+		case tag == TechTagTorpedoJammer:
+			relativeBoost *= design.Spec.getJamIncrease(rules, hc.TorpedoJamming, qty)
+		case tag == TechTagTorpedoBonus:
+			relativeBoost *= 1-(1-design.Spec.TorpedoBonus)*math.Pow(1-hc.TorpedoBonus, float64(qty)) / design.Spec.TorpedoBonus
+
+		// all other cases not listed are either stupid or don't get checked in the actual design functon
+		}
+	}
+	return relativeBoost
+}
+
 // design a ship/starbase for the AI or as a starting fleet using the best parts available to us
 func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num int, hullSetNumber int, purpose ShipDesignPurpose, fleetPurpose FleetPurpose) (*ShipDesign, error) {
 
@@ -933,17 +965,16 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 		}
 	}
 
-	// loop through items in order of increasing flexibility
+	// loop through hull slots in order of increasing flexibility (single item type first, then X/Y)
 	for i := 1; i <= maxNum; i++ {
 		list := hullSlotsByFlexibility[i]
 		if list == nil {
 			// speed it up if empty
 			continue
 		}
-		var elecCounter int = 1 // counter used to decide which parts to add
+		var elecCounter int = 1 // counter used to decide which parts to add; ensures even spread of parts
 		var mechCounter int = 1 // counter used to decide which parts to add
 
-	slotLoop:
 		// extract slot numbers from list so we can loop through them
 		for _, sn := range list {
 			hullSlot := hull.Slots[sn-1]
@@ -967,6 +998,18 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 			scanner := bestPartsBySlot[hst][TechTagScanner]
 			var itemToPlace *TechHullComponent
 
+			var mostNeededItem *TechHullComponent // most needed electrical/mechanical item for this slot
+			if torpedoShip && computer != nil && design.Spec.TorpedoBonus <= math.Min(math.Min(targetComputing, design.Spec.BeamDefense), targetComputing) {
+				mostNeededItem = computer
+			} else if !torpedoShip && capacitor != nil && math.Min(math.Pow(1+capacitor.BeamBonus, float64(slot.Quantity)), rules.BeamBonusCap/design.Spec.BeamBonus) >= // the estimated relative dmg increase of adding beam caps to this slot
+				math.Max(math.Pow(1+deflector.BeamDefense, float64(slot.Quantity)), design.Spec.getJamIncrease(rules, jammer.TorpedoJamming, slot.Quantity)) { // the estimated relative damage taken decrease of adding jammers or deflectors to this slot
+				mostNeededItem = capacitor
+			} else if jammer != nil && design.Spec.TorpedoJamming < math.Min(targetJamming, design.Spec.BeamDefense) {
+				mostNeededItem = jammer
+			} else if deflector != nil {
+				mostNeededItem = deflector
+			}
+
 			// (#) PART PLACEMENT LOGIC
 			if i == 1 {
 				// only 1 part type means we can just check the slot type
@@ -976,8 +1019,6 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 					design.Slots = append(design.Slots, slot)
 					design.Spec.Engine = engine.Engine
 					design.Spec.NumEngines = slot.Quantity
-					design.Spec.Mass += itemToPlace.Mass * slot.Quantity
-					continue slotLoop
 				case hst == HullSlotTypeArmor && armor != nil:
 					itemToPlace = armor
 					slot.Quantity /= qtyMulti
@@ -1022,7 +1063,7 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 						numPacketThrowers++
 					}
 				case hst == HullSlotTypeElectrical:
-					// elec stuff (jammers/comps)
+					// elec stuff (jammers/comps/caps)
 					switch elecCounter {
 					case 1:
 						// add beam caps and computers
@@ -1081,7 +1122,7 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 						itemToPlace = torpedo
 						slot.Quantity /= qtyMulti
 						numWeapons += slot.Quantity
-					} else {
+					} else if !torpedoShip {
 						// add beems to our beem sheep
 						shouldUseSapper := sapper != nil && sapper.Range == beamWeapon.Range &&
 							numWeapons*3 > numSappers // 3:1 beam:sapper ratio
@@ -1112,8 +1153,8 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 					}
 				}
 
+				// add on items based on what we need the most, using rotary counter to ensure an even, unbiased spread
 				switch elecCounter {
-				// add on items based on what we need the most
 				case 1:
 					// jets
 					if jet != nil && !design.Spec.Starbase && design.Spec.Movement < targetMove {
@@ -1124,8 +1165,8 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 				case 2:
 					// computers/capacitors
 					if torpedoShip && computer != nil &&
-						design.Spec.TorpedoBonus <= min(targetComputing, design.Spec.BeamDefense, design.Spec.TorpedoJamming) {
-						// our computing score is the lowest out of jamming/deflecting (ie we need it the most); add one on
+						design.Spec.TorpedoBonus <= math.Min(math.Min(targetComputing, design.Spec.BeamDefense), design.Spec.TorpedoJamming) {
+						// our computing score is the lowest out of jamming/deflecting scores (ie we need it the most); add one on
 						itemToPlace = computer
 						break
 					} else if purpose == ShipDesignPurposeFighterScout && scanner != nil && !scanners {
@@ -1134,17 +1175,15 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 						scanners = true
 						break
 					} else if !torpedoShip && capacitor != nil &&
-						// the estimated relative dmg increase of adding beam caps to this slot
-						math.Min(math.Pow(capacitor.BeamBonus, float64(slot.Quantity)), rules.BeamBonusCap/design.Spec.BeamBonus) >=
-							// the estimated relative damage taken decrease of adding jammers or deflectors to this slot
-							math.Max(math.Pow(1+deflector.BeamDefense, float64(slot.Quantity)), design.Spec.getJamIncrease(rules, jammer.TorpedoJamming, slot.Quantity)) {
+						math.Min(math.Pow(1+capacitor.BeamBonus, float64(slot.Quantity)), rules.BeamBonusCap/design.Spec.BeamBonus) >= // the estimated relative dmg increase of adding beam caps to this slot
+							math.Max(math.Pow(1+deflector.BeamDefense, float64(slot.Quantity)), design.Spec.getJamIncrease(rules, jammer.TorpedoJamming, slot.Quantity)) { // the estimated relative damage taken decrease of adding jammers or deflectors to this slot
 						itemToPlace = capacitor // add it to list; we'll come back for it later
 						break
 					}
 					fallthrough
 				case 3:
 					// jammers
-					if jammer != nil && design.Spec.TorpedoJamming < min(targetJamming, design.Spec.BeamDefense) {
+					if jammer != nil && design.Spec.TorpedoJamming < math.Min(targetJamming, design.Spec.BeamDefense) {
 						itemToPlace = jammer
 						break
 					}
@@ -1156,17 +1195,13 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 						break
 					}
 					fallthrough
-				case 5:
-					// armors
+				case 5, 6:
+					// armors & shields
 					if design.Spec.Armor <= design.Spec.Shields && armor != nil {
 						itemToPlace = armor
 						slot.Quantity /= qtyMulti
 						break
-					}
-					fallthrough
-				case 6:
-					// shields
-					if design.Spec.Shields < design.Spec.Armor && shield != nil {
+					} else if shield != nil {
 						itemToPlace = shield
 						slot.Quantity /= qtyMulti
 						break
@@ -1174,24 +1209,11 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 					fallthrough
 				default:
 					// everything above us failed; slap on either comps/caps, more jammers/deflectors, extra extra shields or a fuel tank as a last resort
-					if torpedoShip && computer != nil &&
-						design.Spec.TorpedoBonus <= min(design.Spec.BeamDefense, design.Spec.TorpedoJamming) {
-						itemToPlace = computer
-						break
-					} else if purpose == ShipDesignPurposeFighterScout && scanner != nil && !scanners {
+					if purpose == ShipDesignPurposeFighterScout && scanner != nil && !scanners {
 						itemToPlace = scanner
 						scanners = true
-						break
-					} else if !torpedoShip && capacitor != nil &&
-						math.Max(math.Pow(capacitor.BeamBonus, float64(slot.Quantity)), rules.BeamBonusCap/design.Spec.BeamBonus) >=
-							math.Max(math.Pow(1+deflector.BeamDefense, float64(slot.Quantity)), design.Spec.getJamIncrease(rules, jammer.TorpedoJamming, slot.Quantity)) {
-						itemToPlace = capacitor
-						break
-					} else if jammer != nil && design.Spec.TorpedoJamming <= math.Max(design.Spec.TorpedoJamming, design.Spec.BeamDefense) {
-						itemToPlace = jammer
-						break
-					} else if deflector != nil {
-						itemToPlace = deflector
+					} else if mostNeededItem != nil {
+						itemToPlace = mostNeededItem
 					} else if shield != nil {
 						itemToPlace = shield
 						slot.Quantity /= qtyMulti
