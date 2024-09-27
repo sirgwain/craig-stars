@@ -19,23 +19,19 @@
 	export let message: Message;
 
 	$: target = $universe.getMapObject(message);
-	$: specTarget = $universe.getMapObject(message.spec);
 	$: owner = target && target.playerNum ? $universe.getPlayerIntel(target.playerNum) : undefined;
 	$: planet = target?.type == MapObjectType.Planet ? (target as Planet) : undefined;
 	$: fleet = target?.type == MapObjectType.Fleet ? (target as Fleet) : undefined;
-	$: mysteryTrader =
-		target?.type == MapObjectType.MysteryTrader ? (target as MysteryTrader) : undefined;
 	$: mineralPacket =
 		target?.type == MapObjectType.MineralPacket ? (target as MineralPacket) : undefined;
-	$: mineField = target?.type == MapObjectType.MineField ? (target as MineField) : undefined;
 </script>
 
 {#if message.type == MessageType.Battle || message.type == MessageType.BattleAlly}
 	<BattleMessageDetail {message} />
 {:else if planet}
 	<PlanetMessageDetail {message} {planet} {owner} />
-{:else if mysteryTrader}
-	<MysteryTraderMessageDetail {message} {mysteryTrader} />
+{:else if message.targetType === MapObjectType.MysteryTrader}
+	<MysteryTraderMessageDetail {message} />
 {:else if mineralPacket && owner}
 	<MineralPacketMessageDetail {message} {mineralPacket} {owner} />
 {:else if message.targetType == MapObjectType.Fleet || fleet}
