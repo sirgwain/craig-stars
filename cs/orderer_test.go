@@ -1249,6 +1249,92 @@ func Test_orders_TransferFleetCargo(t *testing.T) {
 	}
 }
 
+func Test_orders_TransferMineralPacketCargo(t *testing.T) {
+	player := NewPlayer(0, NewRace().WithSpec(&rules)).withSpec(&rules)
+	type args struct {
+		source         *Fleet
+		dest           *MineralPacket
+		transferAmount CargoTransferRequest
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			"transfer 10kT Ironium from mineralPacket",
+			args{
+				source:         testTeamster(player),
+				dest:           newMineralPacket(player, 1, 5, 5, Cargo{Ironium: 10}, Vector{}, 1),
+				transferAmount: CargoTransferRequest{Cargo{Ironium: 10}, 0},
+			},
+			false,
+		},
+		{
+			"fail to transfer 10kT Ironium from mineralPacket",
+			args{
+				source:         testTeamster(player),
+				dest:           newMineralPacket(player, 1, 5, 5, Cargo{Ironium: 5}, Vector{}, 1),
+				transferAmount: CargoTransferRequest{Cargo{Ironium: 10}, 0},
+			},
+			true,
+		},
+		{
+			"fail to transfer 10kT Ironium to mineralPacket",
+			args{
+				source:         testTeamster(player),
+				dest:           newMineralPacket(player, 1, 5, 5, Cargo{Ironium: 5}, Vector{}, 1),
+				transferAmount: CargoTransferRequest{Cargo{Ironium: -10}, 0},
+			},
+			true,
+		},
+		{
+			"transfer 210kT Mixed Minerals from mineralPacket",
+			args{
+				source:         testTeamster(player),
+				dest:           newMineralPacket(player, 1, 5, 5, Cargo{1000, 1000, 1000, 1000}, Vector{}, 1),
+				transferAmount: CargoTransferRequest{Cargo{Ironium: 70, Boranium: 70, Germanium: 70}, 0},
+			},
+			false,
+		},
+		{
+			"fail to transfer 211kT Mixed Minerals from mineralPacket",
+			args{
+				source:         testTeamster(player),
+				dest:           newMineralPacket(player, 1, 5, 5, Cargo{1000, 1000, 1000, 1000}, Vector{}, 1),
+				transferAmount: CargoTransferRequest{Cargo{Ironium: 70, Boranium: 70, Germanium: 70, Colonists: 1}, 0},
+			},
+			true,
+		},
+		{
+			"transfer 4000kT Mixed Cargo from mineralPacket where mineralPacket is out of one mineral",
+			args{
+				source:         testPrivateer(player, 10),
+				dest:           newMineralPacket(player, 1, 5, 5, Cargo{2726 + 366, 4763 + 414, 0, 1601 + 3027}, Vector{}, 1),
+				transferAmount: CargoTransferRequest{Cargo{Ironium: 366, Boranium: 414, Germanium: 193, Colonists: 3027}, 0},
+			},
+			true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			o := &orders{}
+			sourceCargo := tt.args.source.Cargo
+			destCargo := tt.args.dest.Cargo
+			err := o.TransferMineralPacketCargo(&rules, player, tt.args.source, tt.args.dest, tt.args.transferAmount)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("orders.TransferMineralPacketCargo() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			if err == nil {
+				// we should transfer from the dest to the soruce
+				assert.Equal(t, sourceCargo.Add(tt.args.transferAmount.Cargo), tt.args.source.Cargo)
+				assert.Equal(t, destCargo.Subtract(tt.args.transferAmount.Cargo), tt.args.dest.Cargo)
+			}
+		})
+	}
+}
+
 func Test_orders_SplitFleet(t *testing.T) {
 	player := NewPlayer(0, NewRace().WithSpec(&rules)).WithNum(1).withSpec(&rules)
 	scoutDesign := NewShipDesign(player, 1).

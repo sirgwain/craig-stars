@@ -640,7 +640,7 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 			}
 			// log.Debug().Int64("GameID", mineralPacket.GameID).Int64("ID", mineralPacket.ID).Msgf("Deleted mineralPacket %s", mineralPacket.Name)
 		} else {
-			if err := c.updateMineralPacket(mineralPacket); err != nil {
+			if err := c.UpdateMineralPacket(mineralPacket); err != nil {
 				return fmt.Errorf("update mineralPacket %w", err)
 			}
 			// log.Debug().Int64("GameID", mineralPacket.GameID).Int64("ID", mineralPacket.ID).Msgf("Updated mineralPacket %s", mineralPacket.Name)

@@ -1,10 +1,9 @@
 <script lang="ts" context="module">
-	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
-	import type { Planet } from '$lib/types/Planet';
+	import type { CargoTransferTarget, CommandedFleet } from '$lib/types/Fleet';
 
 	export type CargoTransferDialogEventDetails = {
 		src: CommandedFleet;
-		dest?: Fleet | Planet | Salvage | undefined;
+		dest?: CargoTransferTarget;
 	};
 	export type CargoTransferDialogEvent = {
 		'cargo-transfer-dialog'?: CargoTransferDialogEventDetails;
@@ -14,7 +13,7 @@
 
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { newSalvage, type Salvage } from '$lib/types/Salvage';
+	import { newSalvage } from '$lib/types/Salvage';
 	import CargoTransfer, { type TransferCargoEventDetails } from './CargoTransfer.svelte';
 
 	const { transferCargo } = getGameContext();

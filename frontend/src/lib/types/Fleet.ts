@@ -19,6 +19,8 @@ import type { Player } from './Player';
 import type { ShipDesign } from './ShipDesign';
 import type { Engine } from './Tech';
 import { distance, equal, type Vector } from './Vector';
+import type { MineralPacket } from './MineralPacket';
+import type { Salvage } from './Salvage';
 
 export type Fleet = {
 	playerNum: number; // override mapObject fleets always have a player.
@@ -179,6 +181,8 @@ export type Spec = {
 	canJump?: boolean; // TODO: actually implement this
 	maxPopulation?: number;
 };
+
+export type CargoTransferTarget = Fleet | Planet | Salvage | MineralPacket | undefined;
 
 export function emptyTransportTasks(): WaypointTransportTasks {
 	return {
@@ -793,6 +797,34 @@ export class CommandedFleet implements Fleet {
 			return Object.values(this.spec.mineLayingRateByMineType).reduce((count, n) => count + n, 0);
 		}
 		return 0;
+	}
+
+	/**
+	 *
+	 * @param universe
+	 * @returns The target for what we should transfer cargo to, based on wp0
+	 */
+	getCargoTransferTarget(universe: Universe): CargoTransferTarget {
+		const wp0 = this.waypoints[0];
+		if (
+			wp0.targetNum == undefined ||
+			wp0.targetNum == 0 ||
+			wp0.targetType == undefined ||
+			wp0.targetType == MapObjectType.None
+		) {
+			// return some salvage at this position
+			return universe.getSalvageAtPosition(this);
+		}
+		switch (wp0.targetType) {
+			case MapObjectType.Planet:
+				return universe.getPlanet(wp0.targetNum);
+			case MapObjectType.Fleet:
+				return universe.getFleet(wp0.targetPlayerNum ?? 0, wp0.targetNum);
+			case MapObjectType.Salvage:
+				return universe.getSalvageAtPosition(this);
+			case MapObjectType.MineralPacket:
+				return universe.getMineralPacket(wp0.targetPlayerNum ?? 0, wp0.targetNum);
+		}
 	}
 }
 

@@ -12,6 +12,7 @@
 	import SalvageTransfer from './SalvageTransfer.svelte';
 	import TransferButtons from './TransferButtons.svelte';
 	import QuantityModifierButtons from '$lib/components/QuantityModifierButtons.svelte';
+	import MineralPacketTransfer from './MineralPacketTransfer.svelte';
 
 	const { game, player, universe } = getGameContext();
 
@@ -233,6 +234,8 @@
 					<PlanetTransfer cargo={destCargo} transferAmount={negativeCargo(transferAmount)} />
 				{:else if !dest || dest?.type == MapObjectType.Salvage}
 					<SalvageTransfer cargo={destCargo} transferAmount={transferAmount.negative()} />
+				{:else if !dest || dest?.type == MapObjectType.MineralPacket}
+					<MineralPacketTransfer cargo={destCargo} transferAmount={transferAmount.negative()} />
 				{:else if destFleet}
 					<FleetTransfer
 						cargo={destCargo}
