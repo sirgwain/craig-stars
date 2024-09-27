@@ -1107,6 +1107,22 @@ func (c *client) UpdatePlayerSalvageIntels(player *cs.Player) error {
 	return nil
 }
 
+// update a players mineralPacket intels (used after creating a new mineralPacket)
+func (c *client) UpdatePlayerMineralPacketIntels(player *cs.Player) error {
+	item := c.converter.ConvertGamePlayer(player)
+
+	if _, err := c.writer.NamedExec(`
+	UPDATE players SET
+		updatedAt = CURRENT_TIMESTAMP,
+		mineralPacketIntels = :mineralPacketIntels
+	WHERE id = :id
+	`, item); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // helper to update a player using a transaction or DB
 // update an existing player
 func (c *client) UpdatePlayer(player *cs.Player) error {

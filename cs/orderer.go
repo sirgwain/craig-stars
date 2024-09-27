@@ -39,6 +39,7 @@ type Orderer interface {
 	TransferFleetCargo(rules *Rules, player, destPlayer *Player, source, dest *Fleet, transferAmount CargoTransferRequest) error
 	TransferPlanetCargo(rules *Rules, player *Player, source *Fleet, dest *Planet, transferAmount CargoTransferRequest) error
 	TransferSalvageCargo(rules *Rules, player *Player, source *Fleet, dest *Salvage, nextSalvageNum int, transferAmount CargoTransferRequest) (*Salvage, error)
+	TransferMineralPacketCargo(rules *Rules, player *Player, source *Fleet, dest *MineralPacket, transferAmount CargoTransferRequest) error
 	SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet, request SplitFleetRequest) (source, dest *Fleet, err error)
 	SplitAll(rules *Rules, player *Player, playerFleets []*Fleet, source *Fleet) ([]*Fleet, error)
 	Merge(rules *Rules, player *Player, fleets []*Fleet) (*Fleet, error)
@@ -53,6 +54,14 @@ func NewOrderer() Orderer {
 
 func (ctr CargoTransferRequest) Negative() CargoTransferRequest {
 	return CargoTransferRequest{Cargo: ctr.Cargo.Negative(), Fuel: -ctr.Fuel}
+}
+
+func (ctr CargoTransferRequest) HasNegative() bool {
+	return ctr.Ironium < 0 || ctr.Boranium < 0 || ctr.Germanium < 0 || ctr.Fuel < 0 || ctr.Colonists < 0
+}
+
+func (ctr CargoTransferRequest) HasPositive() bool {
+	return ctr.Ironium > 0 || ctr.Boranium > 0 || ctr.Germanium > 0 || ctr.Fuel > 0 || ctr.Colonists > 0
 }
 
 // update a player's orders
@@ -274,6 +283,46 @@ func (o *orders) TransferPlanetCargo(rules *Rules, player *Player, source *Fleet
 		Str("DestCargo", fmt.Sprintf("%v", dest.Cargo)).
 		Str("TransferAmount", fmt.Sprintf("%v", transferAmount)).
 		Msg("transfer planet cargo")
+
+	return nil
+}
+
+// transfer cargo from a planet to/from a mineralPacket
+func (o *orders) TransferMineralPacketCargo(rules *Rules, player *Player, source *Fleet, dest *MineralPacket, transferAmount CargoTransferRequest) error {
+
+	if transferAmount.Total() == 0 {
+		return fmt.Errorf("fleet %s attempted to transfer 0kT of cargo from mineralPacket", source.Name)
+	}
+
+	if source.availableCargoSpace() < transferAmount.Total() {
+		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", source.Name, source.availableCargoSpace(), transferAmount.Total(), dest.Name)
+	}
+
+	if dest != nil && !dest.canTransfer(transferAmount) {
+		return fmt.Errorf("fleet %s cannot transfer %v from %s, the mineralPacket does not have the required cargo", source.Name, transferAmount, dest.Name)
+	}
+
+	if !source.canTransfer(transferAmount.Negative()) {
+		return fmt.Errorf("fleet %s cannot transfer %v to %s, the fleet does not have enough the required cargo", source.Name, transferAmount.Negative(), dest.Name)
+	}
+
+	dest.Cargo = dest.Cargo.Subtract(transferAmount.Cargo)
+
+	// transfer the cargo
+	source.Cargo = source.Cargo.Add(transferAmount.Cargo)
+	source.Spec = ComputeFleetSpec(rules, player, source)
+
+	// make our player aware of this mineral packet's new cargo
+	discover := newDiscoverer(log.Logger, player)
+	discover.discoverMineralPacketCargo(dest)
+
+	log.Info().
+		Int64("GameID", player.GameID).
+		Int("PlayerNum", player.Num).
+		Str("Source", source.Name).
+		Str("Dest", dest.Name).
+		Str("TransferAmount", fmt.Sprintf("%v", transferAmount)).
+		Msg("transfer mineralPacket cargo")
 
 	return nil
 }

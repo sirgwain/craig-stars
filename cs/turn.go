@@ -54,6 +54,7 @@ func (t *turn) generateTurn() error {
 	}
 
 	t.computeSpecs()
+	t.packetInit()
 
 	// wp0 tasks
 	t.fleetInit()
@@ -66,7 +67,6 @@ func (t *turn) generateTurn() error {
 	t.fleetMarkWaypointsProcessed()
 
 	// move stuff through space
-	t.packetInit()
 	t.packetMove(false)
 	t.mysteryTraderMove()
 	t.fleetMove()
@@ -703,6 +703,15 @@ func (t *turn) fleetMarkWaypointsProcessed() {
 func (t *turn) packetInit() {
 	for _, packet := range t.game.MineralPackets {
 		packet.builtThisTurn = false
+
+		if packet.Cargo.Total() == 0 {
+			// this packet was probably snatched away by a player
+			t.log.Debug().
+				Int("Player", packet.PlayerNum).
+				Str("Packet", packet.Name).
+				Msgf("packet empty")
+			t.game.deletePacket(packet)
+		}
 	}
 }
 
@@ -711,6 +720,9 @@ func (t *turn) packetInit() {
 func (t *turn) packetMove(builtThisTurn bool) {
 
 	for _, packet := range t.game.MineralPackets {
+		if packet.Delete {
+			continue
+		}
 		if packet.builtThisTurn != builtThisTurn {
 			continue
 		}
@@ -1116,6 +1128,10 @@ func (t *turn) decaySalvage() {
 // Decay mineral packets in flight
 func (t *turn) decayPackets() {
 	for _, packet := range t.game.MineralPackets {
+		if packet.Delete {
+			continue
+		}
+
 		player := t.game.getPlayer(packet.PlayerNum)
 		// update the decay amount based on this distance traveled this turn
 		decayRate := packet.getPacketDecayRate(&t.game.Rules, &player.Race) * (packet.distanceTravelled / float64(packet.WarpSpeed*packet.WarpSpeed))

@@ -103,7 +103,7 @@ func (ch *Salvage) getFuelCapacity() int {
 
 // salvage can't transfer fuel
 func (ch *Salvage) canTransfer(transferAmount CargoTransferRequest) bool {
-	if transferAmount.Fuel > 0 {
+	if transferAmount.Fuel != 0 || transferAmount.Colonists != 0 {
 		return false
 	}
 	return ch.Cargo.CanTransfer(transferAmount.Cargo)
@@ -123,7 +123,8 @@ func (ch *MineralPacket) getCargo() *Cargo {
 }
 
 func (ch *MineralPacket) getCargoCapacity() int {
-	return Unlimited
+	// can't add to it, only take away
+	return ch.Cargo.Total()
 }
 
 func (ch *MineralPacket) getFuel() int {
@@ -141,8 +142,14 @@ func (ch *MineralPacket) canLoad(playerNum int) bool {
 
 // mineral packets can't transfer fuel
 func (ch *MineralPacket) canTransfer(transferAmount CargoTransferRequest) bool {
-	if transferAmount.Fuel > 0 {
+	if transferAmount.Fuel != 0 || transferAmount.Colonists != 0 {
 		return false
 	}
+
+	// can't receive cargo, only give it away
+	if transferAmount.HasNegative() {
+		return false
+	}
+
 	return ch.Cargo.CanTransfer(transferAmount.Cargo)
 }

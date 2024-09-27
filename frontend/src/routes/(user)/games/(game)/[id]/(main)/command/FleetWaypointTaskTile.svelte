@@ -104,6 +104,7 @@
 					{fleet}
 					otherMapObjectsHere={$universe.getOtherMapObjectsHereByType($selectedWaypoint.position)}
 					target={$selectedWaypoint}
+					position={$selectedWaypoint.position}
 					class="w-36"
 					on:selected={(e) => onTargetChanged(e.detail)}
 				/>

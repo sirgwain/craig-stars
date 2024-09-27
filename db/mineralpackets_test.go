@@ -112,7 +112,7 @@ func TestGetMineralPackets(t *testing.T) {
 
 }
 
-func Test_updateMineralPacket(t *testing.T) {
+func Test_UpdateMineralPacket(t *testing.T) {
 	c := connectTestDB()
 	defer func() { closeTestDB(c) }()
 
@@ -124,7 +124,7 @@ func Test_updateMineralPacket(t *testing.T) {
 	}
 
 	planet.Name = "Test2"
-	if err := c.updateMineralPacket(&planet); err != nil {
+	if err := c.UpdateMineralPacket(&planet); err != nil {
 		t.Errorf("update planet %s", err)
 		return
 	}

@@ -480,7 +480,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 					const planet = u.getMapObject({
 						targetType: MapObjectType.Planet,
 						targetNum: fleet.orbitingPlanetNum,
-						targetPosition: fleet.position,
+						targetPosition: fleet.position
 					});
 					if (planet) {
 						selectMapObject(planet);
@@ -518,7 +518,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 					const planet = u.getMapObject({
 						targetType: MapObjectType.Planet,
 						targetNum: fleet.orbitingPlanetNum,
-						targetPosition: fleet.position,
+						targetPosition: fleet.position
 					});
 					if (planet) {
 						selectMapObject(planet);
@@ -860,6 +860,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		transferAmount: CargoTransferRequest
 	): Promise<void> {
 		const result = await FleetService.transferCargo(fleet, dest, transferAmount);
+		const u = get(universe);
 
 		if (result.dest?.type == MapObjectType.Planet) {
 			const planet = result.dest as Planet;
@@ -871,7 +872,24 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		}
 
 		if (result.salvages) {
-			get(universe).updateSalvages(result.salvages);
+			u.updateSalvages(result.salvages);
+		}
+		if (result.mineralPackets) {
+			u.updateMineralPackets(result.mineralPackets);
+		}
+
+		const smo = get(selectedMapObject);
+		if (smo && smo.type == MapObjectType.Salvage) {
+			const salvage = u.getSalvage(smo.num);
+			if (salvage) {
+				selectMapObject(salvage);
+			}
+		}
+		if (smo && smo.type == MapObjectType.MineralPacket) {
+			const mineralPacket = u.getMineralPacket(smo.playerNum, smo.num);
+			if (mineralPacket) {
+				selectMapObject(mineralPacket);
+			}
 		}
 
 		updateFleet(fleet, result.fleet);
