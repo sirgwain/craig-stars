@@ -28,10 +28,13 @@ func TestShipToken_applyMineDamage(t *testing.T) {
 		damage int
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   tokenDamage
+		name                string
+		fields              fields
+		args                args
+		want                tokenDamage
+		wantQuantity        int
+		wantDamage          float64
+		wantQuantityDamaged int
 	}{
 		{
 			name: "1 ship, do 50 damage, don't destroy ship",
@@ -46,6 +49,26 @@ func TestShipToken_applyMineDamage(t *testing.T) {
 				damage:         50,
 				shipsDestroyed: 0,
 			},
+			wantQuantity:        1,
+			wantQuantityDamaged: 1,
+			wantDamage:          50,
+		},
+		{
+			name: "10 ships, do 850 damage, destroy 8 ships, leave 2 damaged",
+			fields: fields{
+				design:   design,
+				Quantity: 10,
+			},
+			args: args{
+				damage: 850,
+			},
+			want: tokenDamage{
+				damage:         850,
+				shipsDestroyed: 8,
+			},
+			wantQuantity:        2,
+			wantQuantityDamaged: 2,
+			wantDamage:          25,
 		},
 		{
 			name: "2 ships, with 50 damage already, do 75 more damage, destroy ship",
@@ -62,6 +85,9 @@ func TestShipToken_applyMineDamage(t *testing.T) {
 				damage:         75,
 				shipsDestroyed: 1,
 			},
+			wantQuantity:        1,
+			wantQuantityDamaged: 1,
+			wantDamage:          25,
 		},
 		{
 			name: "1 shielded ship, do 50 damage, don't destroy ship",
@@ -76,6 +102,9 @@ func TestShipToken_applyMineDamage(t *testing.T) {
 				damage:         25,
 				shipsDestroyed: 0,
 			},
+			wantQuantity:        1,
+			wantQuantityDamaged: 1,
+			wantDamage:          25,
 		},
 		{
 			name: "take 150 mine damage, our shields absorb 50 and our token  takes the rest",
@@ -90,6 +119,9 @@ func TestShipToken_applyMineDamage(t *testing.T) {
 				damage:         100,
 				shipsDestroyed: 0,
 			},
+			wantQuantity:        1,
+			wantQuantityDamaged: 1,
+			wantDamage:          100,
 		},
 	}
 	for _, tt := range tests {
@@ -102,6 +134,18 @@ func TestShipToken_applyMineDamage(t *testing.T) {
 			}
 			if got := st.applyMineDamage(tt.args.damage); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("ShipToken.ApplyMineDamage() = %v, want %v", got, tt.want)
+			}
+
+			if st.Quantity != tt.wantQuantity {
+				t.Errorf("ShipToken.ApplyMineDamage() token.Quantity = %v, want %v", st.Quantity, tt.wantQuantity)
+			}
+
+			if st.QuantityDamaged != tt.wantQuantityDamaged {
+				t.Errorf("ShipToken.ApplyMineDamage() token.QuantityDamaged = %v, want %v", st.QuantityDamaged, tt.wantQuantityDamaged)
+			}
+
+			if st.Damage != tt.wantDamage {
+				t.Errorf("ShipToken.ApplyMineDamage() token.Damage = %v, want %v", st.Damage, tt.wantDamage)
 			}
 		})
 	}
@@ -135,10 +179,13 @@ func TestShipToken_applyOvergateDamage(t *testing.T) {
 		maxMassFactor  int
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   tokenDamage
+		name                string
+		fields              fields
+		args                args
+		want                tokenDamage
+		wantQuantity        int
+		wantDamage          float64
+		wantQuantityDamaged int
 	}{
 		{
 			name: "no damage",
@@ -153,7 +200,10 @@ func TestShipToken_applyOvergateDamage(t *testing.T) {
 				safeDestMass:   mass,
 				maxMassFactor:  5,
 			},
-			want: tokenDamage{},
+			want:                tokenDamage{},
+			wantQuantity:        1,
+			wantQuantityDamaged: 0,
+			wantDamage:          0,
 		},
 		{
 			name: "one token overmass",
@@ -164,11 +214,14 @@ func TestShipToken_applyOvergateDamage(t *testing.T) {
 			args: args{
 				dist:           100,
 				safeRange:      100,
-				safeSourceMass: mass/2,
-				safeDestMass:   mass/2,
+				safeSourceMass: mass / 2,
+				safeDestMass:   mass / 2,
 				maxMassFactor:  5,
 			},
-			want: tokenDamage{damage: 44},
+			want:                tokenDamage{damage: 44},
+			wantQuantity:        1,
+			wantQuantityDamaged: 1,
+			wantDamage:          44,
 		},
 		{
 			name: "two token overmass",
@@ -179,11 +232,14 @@ func TestShipToken_applyOvergateDamage(t *testing.T) {
 			args: args{
 				dist:           100,
 				safeRange:      100,
-				safeSourceMass: mass/2,
-				safeDestMass:   mass/2,
+				safeSourceMass: mass / 2,
+				safeDestMass:   mass / 2,
 				maxMassFactor:  5,
 			},
-			want: tokenDamage{damage: 44},
+			want:                tokenDamage{damage: 44},
+			wantQuantity:        2,
+			wantQuantityDamaged: 2,
+			wantDamage:          44,
 		},
 		{
 			name: "going over range by a little will not cause damage due to rounding",
@@ -198,13 +254,16 @@ func TestShipToken_applyOvergateDamage(t *testing.T) {
 				safeDestMass:   mass,
 				maxMassFactor:  5,
 			},
-			want: tokenDamage{damage: 0},
-		},		
+			want:                tokenDamage{damage: 0},
+			wantQuantity:        1,
+			wantQuantityDamaged: 0,
+			wantDamage:          0,
+		},
 		{
-			name: "going over range by 2x should give 100 total damage, destroying the damaged token and leaving one behind with 50 damage",
+			name: "going over range by 2x should give 50 total damage, damaging both ship",
 			fields: fields{
 				design:   design,
-				Quantity: 1,
+				Quantity: 2,
 			},
 			args: args{
 				dist:           300,
@@ -213,10 +272,13 @@ func TestShipToken_applyOvergateDamage(t *testing.T) {
 				safeDestMass:   mass,
 				maxMassFactor:  5,
 			},
-			want: tokenDamage{damage: 50},
+			want:                tokenDamage{damage: 50},
+			wantQuantity:        2,
+			wantQuantityDamaged: 2,
+			wantDamage:          50,
 		},
 		{
-			name: "existing damage",
+			name: "existing damage, destroy damaged token",
 			fields: fields{
 				design:          design,
 				Quantity:        2,
@@ -230,10 +292,13 @@ func TestShipToken_applyOvergateDamage(t *testing.T) {
 				safeDestMass:   mass,
 				maxMassFactor:  5,
 			},
-			want: tokenDamage{damage: 50, shipsDestroyed: 1},
+			want:                tokenDamage{damage: 50, shipsDestroyed: 1},
+			wantQuantity:        1,
+			wantQuantityDamaged: 1,
+			wantDamage:          50,
 		},
 		{
-			name: "100% damage is 4x over safe range (maxes out at 98%)",
+			name: "100% damage is 4x over safe range (maxes out at 1 armor point left)",
 			fields: fields{
 				design:   design,
 				Quantity: 1,
@@ -245,11 +310,14 @@ func TestShipToken_applyOvergateDamage(t *testing.T) {
 				safeDestMass:   mass,
 				maxMassFactor:  5,
 			},
-			want: tokenDamage{damage: 98},
+			want:                tokenDamage{damage: 98},
+			wantQuantity:        1,
+			wantQuantityDamaged: 1,
+			wantDamage:          98,
 		},
 		{
 			// i.e. sending a 200kT ship through a 100kT gate source gate with infinite dest gate
-			name: "1/4 damage for doubling allowed mass",
+			name: "25% damage for doubling allowed mass",
 			fields: fields{
 				design:   heavyDesign,
 				Quantity: 1,
@@ -261,11 +329,14 @@ func TestShipToken_applyOvergateDamage(t *testing.T) {
 				safeDestMass:   InfiniteGate,
 				maxMassFactor:  5,
 			},
-			want: tokenDamage{damage: 25},
+			want:                tokenDamage{damage: 25},
+			wantQuantity:        1,
+			wantQuantityDamaged: 1,
+			wantDamage:          25,
 		},
 		{
 			// // i.e. sending a 200kT ship through a 100kT gate source and dest gate
-			name: "1/4 damage on each side for sending a ship through two gates with double mass limits",
+			name: "25% damage on each side for sending a ship through two gates with double mass limits",
 			fields: fields{
 				design:   heavyDesign,
 				Quantity: 1,
@@ -277,11 +348,14 @@ func TestShipToken_applyOvergateDamage(t *testing.T) {
 				safeDestMass:   100,
 				maxMassFactor:  5,
 			},
-			want: tokenDamage{damage: 44}, // armor * (1 - .75 * .75)
+			want:                tokenDamage{damage: 44}, // armor * (1 - .75 * .75)
+			wantQuantity:        1,
+			wantQuantityDamaged: 1,
+			wantDamage:          44,
 		},
 		{
 			// i.e. sending a 200kT ship through a 100kT gate source gate with infinite dest gate
-			name: "1/4 damage for doubling allowed mass, 50% damage for range",
+			name: "25% damage for doubling allowed mass, 50% damage for range",
 			fields: fields{
 				design:   heavyDesign,
 				Quantity: 1,
@@ -293,7 +367,10 @@ func TestShipToken_applyOvergateDamage(t *testing.T) {
 				safeDestMass:   InfiniteGate,
 				maxMassFactor:  5,
 			},
-			want: tokenDamage{damage: 44}, // armor * (1 - .75 * .75)
+			want:                tokenDamage{damage: 44}, // armor * (1 - .75 * .75)
+			wantQuantity:        1,
+			wantQuantityDamaged: 1,
+			wantDamage:          44,
 		},
 	}
 	for _, tt := range tests {
@@ -307,6 +384,18 @@ func TestShipToken_applyOvergateDamage(t *testing.T) {
 			if got := st.applyOvergateDamage(tt.args.dist, tt.args.safeRange, tt.args.safeSourceMass, tt.args.safeDestMass, tt.args.maxMassFactor); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("ShipToken.applyOvergateDamage() = %v, want %v", got, tt.want)
 			}
+			if st.Quantity != tt.wantQuantity {
+				t.Errorf("ShipToken.applyOvergateDamage() token.Quantity = %v, want %v", st.Quantity, tt.wantQuantity)
+			}
+
+			if st.QuantityDamaged != tt.wantQuantityDamaged {
+				t.Errorf("ShipToken.applyOvergateDamage() token.QuantityDamaged = %v, want %v", st.QuantityDamaged, tt.wantQuantityDamaged)
+			}
+
+			if st.Damage != tt.wantDamage {
+				t.Errorf("ShipToken.applyOvergateDamage() token.Damage = %v, want %v", st.Damage, tt.wantDamage)
+			}
+
 		})
 	}
 }

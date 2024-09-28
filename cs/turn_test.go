@@ -706,6 +706,57 @@ func Test_turn_fleetMoveTransportWaitForPercent(t *testing.T) {
 
 }
 
+func Test_turn_fleetMoveStoppedByMineField(t *testing.T) {
+	game := createSingleUnitGame()
+	rules := &game.Rules
+
+	// change the rules so going 4 warp over the limit guarantee's a hit
+	stats := rules.MineFieldStatsByType[MineFieldTypeStandard]
+	stats.MaxSpeed = 5
+	stats.ChanceOfHit = 1
+	stats.MinDecay = 0 // turn off decay
+	rules.MineFieldStatsByType[MineFieldTypeStandard] = stats
+
+	// create a new MineField 20ly away with 10ly radius
+	radius := 10
+	mineFieldPlayer := NewPlayer(2, NewRace().WithSpec(rules)).WithNum(2).withSpec(rules)
+	mineFieldPlayer.Race.Spec.MineFieldBaseDecayRate = 0
+	mineFieldPlayer.Race.Spec.MineFieldMinDecayFactor = 0
+	mineFieldPlayer.Race.Spec.MineFieldMaxDecayRate = 0
+	mineField := newMineField(mineFieldPlayer, MineFieldTypeStandard, radius*radius, 1, Vector{20, 0})
+	mineField.Spec = computeMinefieldSpec(rules, mineFieldPlayer, mineField, 0)
+	// setup initial planet intels so turn generation works
+	mineFieldPlayer.initDefaultPlanetIntels(game.Planets)
+
+	// make sure our player doesn't gain any tech levels since we're checking messages after turn generation
+	player := game.Players[0]
+	player.TechLevels = TechLevel{26, 26, 26, 26, 26, 26}
+
+	game.Players = append(game.Players, mineFieldPlayer)
+	game.MineFields = append(game.MineFields, mineField)
+
+	// move us straight through a minefield
+	fleet := game.Fleets[0]
+	fleet.Waypoints = append(fleet.Waypoints, NewPositionWaypoint(Vector{36, 0}, 6))
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// let's go!!
+	turn.generateTurn()
+
+	// we should have struck the minefield and lost the ship
+	assert.True(t, fleet.Delete)
+	assert.Equal(t, 2, len(game.Players[0].Messages))
+	assert.Equal(t, 2, len(game.Players[1].Messages))
+
+	// the MineField should have lost some mines in the collision
+	assert.Equal(t, 88, mineField.NumMines)
+	assert.Equal(t, Vector{10, 0}, fleet.Position)
+}
+
 func Test_turn_fleetMoveDestroyedByMineField(t *testing.T) {
 	game := createSingleUnitGame()
 	rules := &game.Rules

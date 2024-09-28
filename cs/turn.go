@@ -918,7 +918,7 @@ func (t *turn) moveFleet(fleet *Fleet) {
 					messager.fleetMineFieldHit(mineFieldPlayer, fleet, mineField, damage)
 				}
 
-				log.Debug().
+				t.log.Debug().
 					Int("Player", mineField.PlayerNum).
 					Str("MineField", mineField.Name).
 					Str("Fleet", fleet.Name).
@@ -1244,7 +1244,7 @@ func (t *turn) detonateMines() {
 			// clear out any destroyed tokens
 			fleet.removeEmptyTokens()
 
-			log.Debug().
+			t.log.Debug().
 				Int("Player", mineField.PlayerNum).
 				Str("MineField", mineField.Name).
 				Str("Fleet", fleet.Name).

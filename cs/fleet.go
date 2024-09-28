@@ -892,13 +892,8 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 		fleet.completeMove(mapObjectGetter, player, wp0, wp1)
 	} else {
 		// update what other people see for this fleet's speed and direction
-		if fleet.struckMineField {
-			fleet.WarpSpeed = 0
-			fleet.Heading = Vector{}
-		} else {
-			fleet.WarpSpeed = wp1.WarpSpeed
-			fleet.Heading = (wp1.Position.Subtract(fleet.Position)).Normalized()
-		}
+		fleet.WarpSpeed = wp1.WarpSpeed
+		fleet.Heading = (wp1.Position.Subtract(fleet.Position)).Normalized()
 
 		// move this fleet closer to the next waypoint
 		wp0.TargetType = MapObjectTypeNone
@@ -910,6 +905,11 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 		fleet.Position = fleet.Position.Add(fleet.Heading.Scale(dist))
 		fleet.Position = fleet.Position.Round()
 		wp0.Position = fleet.Position
+
+		if fleet.struckMineField {
+			fleet.WarpSpeed = 0
+			fleet.Heading = Vector{}
+		}
 
 		// don't do any transport in mid space, reset this
 		if wp0.Task == WaypointTaskTransport {
@@ -1072,10 +1072,9 @@ func (fleet *Fleet) applyOvergatePenalty(player *Player, rules *Rules, distance 
 						token.Quantity--
 						i--
 						if token.QuantityDamaged > 0 {
-							// get rid of the damaged ships first and redistribute the damage
-							// i.e. if we have 2 damaged ships with 20 total damage
-							// we get rid of one of them and leave one with 10 damage
-							token.Damage = math.Max(0, token.Damage/float64(token.QuantityDamaged))
+							// get rid of the damaged ships first
+							// if we're out of damaged ships, reset our
+							// token damage to 0
 							token.QuantityDamaged--
 							// can't have damage without damaged ships
 							// I don't think this should ever come up
