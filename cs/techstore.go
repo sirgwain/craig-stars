@@ -16,20 +16,20 @@ const Infinite = -1
 // The TechStore contains all techs in the game. Eventually these will be user modifiable and
 // referenced per game, but for now all games use the StaticTechStore, which contains the default Stars! techs.
 type TechStore struct {
-	Engines                  []TechEngine                          `json:"engines"`
-	PlanetaryScanners        []TechPlanetaryScanner                `json:"planetaryScanners"`
-	Terraforms               []TechTerraform                       `json:"terraforms"`
-	Defenses                 []TechDefense                         `json:"defenses"`
-	Planetaries              []TechPlanetary                       `json:"planetaries"`
-	HullComponents           []TechHullComponent                   `json:"hullComponents"`
-	Hulls                    []TechHull                            `json:"hulls,omitempty"`
-	techs                    []*Tech                               `json:"-"`
-	techsByName              map[string]interface{}                `json:"-"`
-	hullComponentsByName     map[string]*TechHullComponent         `json:"-"`
-	hullsByName              map[string]*TechHull                  `json:"-"`
-	hullsByType              map[TechHullType][]*TechHull          `json:"-"`
-	enginesByName            map[string]*TechEngine                `json:"-"`
-	hullComponentsByCategory map[TechCategory][]*TechHullComponent `json:"-"`
+	Engines                  []TechEngine                         `json:"engines"`
+	PlanetaryScanners        []TechPlanetaryScanner               `json:"planetaryScanners"`
+	Terraforms               []TechTerraform                      `json:"terraforms"`
+	Defenses                 []TechDefense                        `json:"defenses"`
+	Planetaries              []TechPlanetary                      `json:"planetaries"`
+	HullComponents           []TechHullComponent                  `json:"hullComponents"`
+	Hulls                    []TechHull                           `json:"hulls,omitempty"`
+	techs                    []*Tech                              `json:"-"`
+	techsByName              map[string]interface{}               `json:"-"`
+	hullComponentsByName     map[string]*TechHullComponent        `json:"-"`
+	hullsByName              map[string]*TechHull                 `json:"-"`
+	hullsByType              map[TechHullType][]*TechHull         `json:"-"`
+	enginesByName            map[string]*TechEngine               `json:"-"`
+	hullComponentsByCategory map[TechCategory][]TechHullComponent `json:"-"`
 }
 
 // simple static tech store
@@ -60,7 +60,6 @@ type TechFinder interface {
 	GetHullsByType(techHullType TechHullType) []*TechHull
 	GetHullComponent(name string) *TechHullComponent
 	GetHullComponentsByCategory(category TechCategory) []TechHullComponent
-	GetBestComponentWithTags(player *Player, hull *TechHull, slotTypes HullSlotType, allTags bool, light bool, tags ...TechTag) *TechHullComponent
 }
 
 func NewTechStore() TechFinder {
@@ -88,7 +87,7 @@ func (store *TechStore) Init() {
 	store.hullsByName = make(map[string]*TechHull, len(store.Hulls))
 	store.enginesByName = make(map[string]*TechEngine, len(store.Engines))
 	store.hullComponentsByName = make(map[string]*TechHullComponent, len(store.Engines)+len(store.HullComponents))
-	store.hullComponentsByCategory = map[TechCategory][]*TechHullComponent{}
+	store.hullComponentsByCategory = make(map[TechCategory][]TechHullComponent, len(store.Engines)+len(store.HullComponents))
 
 	// we have 11 hull types. if this changes, we should update this make, but it's just for performance
 	store.hullsByType = make(map[TechHullType][]*TechHull, 11)
@@ -116,6 +115,11 @@ func (store *TechStore) Init() {
 		store.techsByName[name] = tech
 		store.enginesByName[name] = tech
 		store.hullComponentsByName[name] = &tech.TechHullComponent
+
+		if _, ok := store.hullComponentsByCategory[tech.Category]; !ok {
+			store.hullComponentsByCategory[tech.Category] = []TechHullComponent{}
+		}
+		store.hullComponentsByCategory[tech.Category] = append(store.hullComponentsByCategory[tech.Category], tech.TechHullComponent)
 	}
 
 	for i := range store.HullComponents {
@@ -126,9 +130,9 @@ func (store *TechStore) Init() {
 		store.hullComponentsByName[name] = tech
 
 		if _, ok := store.hullComponentsByCategory[tech.Category]; !ok {
-			store.hullComponentsByCategory[tech.Category] = []*TechHullComponent{}
+			store.hullComponentsByCategory[tech.Category] = []TechHullComponent{}
 		}
-		store.hullComponentsByCategory[tech.Category] = append(store.hullComponentsByCategory[tech.Category], tech)
+		store.hullComponentsByCategory[tech.Category] = append(store.hullComponentsByCategory[tech.Category], *tech)
 	}
 
 	for i := range store.PlanetaryScanners {
@@ -193,16 +197,10 @@ func (store *TechStore) GetTechsJustGained(player *Player, field TechField) []*T
 	return techs
 }
 
-// get all techs sorted by category
+// get list of all hull components sorted by category
 func (store *TechStore) GetHullComponentsByCategory(category TechCategory) []TechHullComponent {
-	techs := make([]TechHullComponent, 0, len(store.hullComponentsByCategory[category]))
-	for _, tech := range store.hullComponentsByCategory[category] {
-		if tech.Category == category {
-			techs = append(techs, *tech)
-		}
-	}
-
-	return techs
+	a := store.hullComponentsByCategory[category]
+	return a
 }
 
 // get all techs in the specified hull slot type(s)
@@ -215,70 +213,7 @@ func (store *TechStore) GetHullComponentsByHullSlotType(slots HullSlotType) []Te
 			techs = append(techs, hst)
 		}
 	}
-
 	return techs
-}
-
-/*
-get best TechHullComponent for the specified hullSlotType(s) that also contains the specified tag(s).
-
-allTags determines the search style - normally it defaults to "OR" (parts only need to match >=1 tag),
-but setting it to "true" requires ALL listed tags to match for a part to be considered.
-
-light determines if we care about armor/shield weight -
-if true, it will de-prioritize items above 30kT if other alternatives exist
-*/
-func (store *TechStore) GetBestComponentWithTags(player *Player, hull *TechHull, hullSlotType HullSlotType, allTags bool, light bool, tags ...TechTag) *TechHullComponent {
-	var bestTech *TechHullComponent
-	var match bool
-
-	// get list of components for the techHullTypes we can use
-	var comps []TechHullComponent = store.GetHullComponentsByHullSlotType(hullSlotType)
-
-	for _, hc := range comps {
-		if !player.HasTech(&hc.Tech) ||
-			(len(hc.Tech.Requirements.HullsAllowed) > 0 && !slices.Contains(hc.Tech.Requirements.HullsAllowed, hull.Name)) ||
-			(len(hc.Tech.Requirements.HullsDenied) > 0 && slices.Contains(hc.Tech.Requirements.HullsDenied, hull.Name)) {
-			// we cannot use this part; skip to the next item
-			continue
-		}
-
-		if allTags {
-			// need all tags to match for it to work
-			// we set match to true and break as soon as a single tag is missing
-			// or has its corresponding field be worse than our current item's
-
-			match = true
-			for _, tag := range tags {
-				if !hc.Tags[tag] {
-					// don't have tag; break
-					match = false
-					break
-				} else if CompareFieldsByTag(player, &hc, bestTech, tag) { // we do have tag; check if it's better or not
-					// new part worse than current part; break
-					match = false
-				}
-			}
-		} else {
-			// need only 1 tag to match
-			// we set match to false and break as soon as a single tag matches
-			// and is better than our current item
-
-			match = false
-			for _, tag := range tags {
-				if hc.Tags[tag] && CompareFieldsByTag(player, &hc, bestTech, tag) { // editor's note: this has a nil check in line 1 of function
-					// we have the tag and it's better than what we already have
-					match = true
-				}
-			}
-		}
-
-		if match {
-			bestTech = &hc
-		}
-	}
-
-	return bestTech
 }
 
 // get the player's best planetary scanner
@@ -1877,7 +1812,6 @@ var ColloidalPhaser = TechHullComponent{Tech: NewTech("Colloidal Phaser", NewCos
 	Initiative:   5,
 	Power:        26,
 	HullSlotType: HullSlotTypeWeapon,
-
 	Range: 3,
 }
 var GatlingGun = TechHullComponent{Tech: NewTech("Gatling Gun", NewCost(0, 20, 0, 13), TechRequirements{TechLevel: TechLevel{Weapons: 11}}, 80, TechCategoryBeamWeapon, TechTagBeamWeapon, TechTagGatlingGun),
@@ -2306,7 +2240,7 @@ var BattleCruiser = TechHull{Tech: NewTech("Battle Cruiser", NewCost(55, 8, 12, 
 	},
 }
 var Battleship = TechHull{Tech: NewTech("Battleship", NewCost(120, 25, 20, 225), TechRequirements{TechLevel: TechLevel{Construction: 13}}, 100, TechCategoryShipHull),
-	Type:         TechHullTypeFighter,
+	Type:         TechHullTypeCapitalShip,
 	Mass:         222,
 	Armor:        2000,
 	Initiative:   10,
@@ -2326,7 +2260,7 @@ var Battleship = TechHull{Tech: NewTech("Battleship", NewCost(120, 25, 20, 225),
 	},
 }
 var Dreadnought = TechHull{Tech: NewTech("Dreadnought", NewCost(140, 30, 25, 275), TechRequirements{TechLevel: TechLevel{Construction: 16}, PRTsRequired: []PRT{WM}}, 110, TechCategoryShipHull),
-	Type:         TechHullTypeFighter,
+	Type:         TechHullTypeCapitalShip,
 	Mass:         250,
 	Armor:        4500,
 	Initiative:   10,
@@ -2348,7 +2282,9 @@ var Dreadnought = TechHull{Tech: NewTech("Dreadnought", NewCost(140, 30, 25, 275
 	},
 }
 var Privateer = TechHull{Tech: NewTech("Privateer", NewCost(50, 3, 3, 50), TechRequirements{TechLevel: TechLevel{Construction: 4}}, 120, TechCategoryShipHull),
-	Type:              TechHullTypeMultiPurposeFreighter,
+	// @sirgwain It may warrant changing the TechHullType to a regular freighter
+	// privs just don't have nearly enough GP slots to do anything good in combat
+	Type:              TechHullTypeMultiPurposeFreighter, 
 	Mass:              65,
 	Armor:             150,
 	Initiative:        3,
@@ -2601,7 +2537,7 @@ var SuperMineLayer = TechHull{Tech: NewTech("Super Mine Layer", NewCost(20, 3, 9
 	},
 }
 var Nubian = TechHull{Tech: NewTech("Nubian", NewCost(75, 12, 12, 150), TechRequirements{TechLevel: TechLevel{Construction: 26}}, 300, TechCategoryShipHull),
-	Type:         TechHullTypeFighter,
+	Type:         TechHullTypeCapitalShip,
 	FuelCapacity: 5000,
 	Armor:        5000,
 	Initiative:   2,

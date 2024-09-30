@@ -91,7 +91,7 @@ func NewAIPlayer(game *cs.Game, techStore *cs.TechStore, player *cs.Player, play
 			minYearsToBuildFort:              10,  // if we are being threatened and need to throw up a fort, do it even if it takes a bit
 			minYearsToBuildScanner:           1,
 			invasionFactor:                   2,  // we invade if we have 2x the colonists to drop
-			fleetProductionCutoff:            .5, // don't try and build starbases until we have 50% factories/mines built first
+			fleetProductionCutoff:            .5, // don't try and build ships until we have 50% factories/mines built first
 			bomberProductionCutoff:           .9, // don't try and build bombers until we have 90% factories/mines built first
 			namesByPurpose: map[cs.ShipDesignPurpose]string{
 				cs.ShipDesignPurposeScout:                 "Long Range Scout",
@@ -107,7 +107,7 @@ func NewAIPlayer(game *cs.Game, techStore *cs.TechStore, player *cs.Player, play
 				cs.ShipDesignPurposeColonistFreighter:     "Colonist Freighter",
 				cs.ShipDesignPurposeFuelFreighter:         "Fuel Freighter",
 				cs.ShipDesignPurposeMultiPurposeFreighter: "Swashbuckler",
-				cs.ShipDesignPurposeArmedFreighter:        "Armed Freighter",
+				cs.ShipDesignPurposeArmedFreighter:        "Blackbeard",
 				cs.ShipDesignPurposeMiner:                 "Cotton Picker",
 				cs.ShipDesignPurposeTerraformer:           "Change of Heart",
 				cs.ShipDesignPurposeDamageMineLayer:       "Little Hen",
@@ -116,7 +116,7 @@ func NewAIPlayer(game *cs.Game, techStore *cs.TechStore, player *cs.Player, play
 				cs.ShipDesignPurposeStarbaseQuarter:       "Tiny Base",
 				cs.ShipDesignPurposeStarbaseHalf:          "Small Base",
 				cs.ShipDesignPurposePacketThrower:         "Flinger",
-				cs.ShipDesignPurposeStargater:             "Teleporter",
+				cs.ShipDesignPurposeStargater:             "Gateway",
 				cs.ShipDesignPurposeFort:                  "Orbital Fort",
 				cs.ShipDesignPurposeStarterColony:         "Starter Colony",
 				cs.ShipDesignPurposeFuelDepot:             "Fuel Depot",
@@ -169,11 +169,19 @@ func (ai *aiPlayer) bestWarship() (cs.ShipDesignPurpose, error) {
 		return cs.ShipDesignPurposeNone, fmt.Errorf("ComputeShipDesignSpec returned error %w for design %s", err, torpDesign.Name)
 	}
 
-	if beamDesign.Spec.PowerRating > torpDesign.Spec.PowerRating {
+	// if one ship's power rating is overwhelmingly higher than the other's, use it
+	if float64(beamDesign.Spec.PowerRating) > float64(torpDesign.Spec.PowerRating) * 1.5 {
 		return cs.ShipDesignPurposeBeamFighter, nil
+	} else if float64(torpDesign.Spec.PowerRating) > float64(beamDesign.Spec.PowerRating) * 1.5 {
+		return cs.ShipDesignPurposeTorpedoFighter, nil
 	}
 
+	// if the two are relatively equal, alternate between them every 4 years 
+	if ai.game.YearsPassed() % 4 <= 1 { // XX00, XX01... use beams; XX02, XXX3... use torps
+		return cs.ShipDesignPurposeBeamFighter, nil
+	}
 	return cs.ShipDesignPurposeTorpedoFighter, nil
+
 }
 
 // build maps used for quick lookups for various player objects
@@ -209,7 +217,7 @@ func (ai *aiPlayer) buildMaps() error {
 
 	bestWarshipPurpose, err := ai.bestWarship()
 	if err != nil {
-		return fmt.Errorf("Could not decide on whether using beams or torps when building maps; spec calc errored %w", err)
+		return fmt.Errorf("could not decide on whether using beams or torps when building maps; spec calc errored %w", err)
 	}
 
 	ai.fleetsByPurpose = map[cs.FleetPurpose]fleet{

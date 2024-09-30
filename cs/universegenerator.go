@@ -410,8 +410,8 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 					// the remaining 1 point goes into surface minerals (since 1 < 3)
 					for extraPoints > pointsThreshold[pointsType] {
 						conc := playerPlanet.MineralConcentration
-						lowestType := conc.LowestType()
-						diff := conc.GetAmount(conc.MiddleType()) - conc.GetAmount(lowestType)
+						lowestType := conc.HighestType(3)
+						diff := conc.GetAmount(conc.HighestType(2)) - conc.GetAmount(lowestType)
 						amtToAdd := MinInt(extraPoints/pointsThreshold[pointsType], diff+1)
 						playerPlanet.MineralConcentration.Set(lowestType, conc.GetAmount(lowestType)+amtToAdd)
 						extraPoints -= pointsThreshold[pointsType] * amtToAdd
@@ -423,8 +423,8 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 					// then we alternate between G and I for the remaining 4 pts
 					for extraPoints > 0 {
 						min := playerPlanet.getCargo().ToMineral()
-						lowestType := min.LowestType()
-						diff := min.GetAmount(min.MiddleType()) - min.GetAmount(lowestType)
+						lowestType := min.HighestType(3)
+						diff := min.GetAmount(min.HighestType(2)) - min.GetAmount(lowestType)
 						amtToAdd := MinInt(extraPoints, diff+1)
 						playerPlanet.Cargo.AddAmount(CargoType(int(lowestType)), amtToAdd*10)
 						extraPoints -= amtToAdd

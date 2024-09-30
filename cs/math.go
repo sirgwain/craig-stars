@@ -80,6 +80,26 @@ func MinFloat64(nums ...float64) float64 {
 	return result
 }
 
+// raise an integer to the power of another integer (apparently this is the fastYY)
+// 
+// Does not support negative values (we *are* dealing with integers here after all)
+func PowInt(base, exponent int) int {
+    result := 1
+	// According to internet, this is the fastest way to do int exponentiation
+    for {
+        if exponent & 1 == 1 {
+            result *= base
+        }
+        exponent >>= 1
+        if exponent == 0 {
+            break
+        }
+        base *= base
+    }
+
+    return result
+}
+
 func AbsInt(num int) int {
 	if num < 0 {
 		return -num

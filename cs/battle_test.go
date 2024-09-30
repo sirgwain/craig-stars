@@ -882,6 +882,29 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			},
 			want: []want{{damage: 0, quantityDamaged: 0, quantityRemaining: 0}},
 		},
+		{name: "1 ship with 2 jihads hitting unarmored target",
+			args: args{
+				weapon: weapon{
+					weaponSlot: &battleWeaponSlot{
+						slotQuantity:       2, 
+						power:              85,
+						accuracy:           1,
+						capitalShipMissile: true,
+					},
+					shipQuantity: 1, // one ship in the attacker stack
+				},
+				targets: []*battleToken{
+					{
+						ShipToken: &ShipToken{
+							Quantity: 1,
+							design:   &ShipDesign{Name: "defender"},
+						},
+						armor: 350,
+					},
+				},
+			},
+			want: []want{{damage: 340, quantityDamaged: 1, quantityRemaining: 1}},
+		},
 		{name: "two capital missiles, do 10 damage each, take down shields with first hit, double damage with second",
 			args: args{
 				weapon: weapon{

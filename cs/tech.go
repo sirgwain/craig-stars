@@ -129,87 +129,205 @@ type TechHullComponent struct {
 	CanJump                   bool          `json:"canJump,omitempty"`
 }
 
+// Compare 2 TechHullComponents by a field determined by the specified TechTag
+// (alongside cost efficiency in certain cases)
+//
+// Precedence is given to the higher rated component in case of a tie
+func (hc *TechHullComponent) CompareFieldsByTag(player *Player, other *TechHullComponent, tag TechTag, light bool) bool {
+	if other == nil {
+		return false
+	} else if hc == nil {
+		return true
+	}
+	var score, otherScore float64
+	costEff := false // whether to care about mineral efficiency or not
+	// usually only applies for items that make up the bulk of their respective ships' cost
+	// and/or ones with a definitive quantifiable stat we can price
+
+	switch tag {
+	case TechTagArmor, TechTagShield:
+		// get the 2 components' shield values and add them together
+		hcArmor, hcShield := getActualArmorAmount(float64(hc.Armor), float64(hc.Shield), player.Race.Spec, hc.Category == TechCategoryArmor)
+		otherArmor, otherShield := getActualArmorAmount(float64(other.Armor), float64(other.Shield), player.Race.Spec, other.Category == TechCategoryArmor)
+		score = (hcArmor + hcShield)
+		otherScore = (otherArmor + otherShield)
+		// perform weight adjustments
+		if light {
+			score /= 1 + math.Max(float64(hc.Mass-30)/10, 0)
+			otherScore /= 1 + math.Max(float64(other.Mass-30)/10, 0)
+		}
+	case TechTagBeamCapacitor:
+		score = hc.BeamBonus
+		otherScore = other.BeamBonus
+	case TechTagBeamDeflector:
+		score = hc.BeamDefense
+		otherScore = other.BeamDefense
+	case TechTagScanner:
+		if hc.ScanRangePen > 0 {
+			if other.ScanRangePen > 0 {
+				score = float64(hc.ScanRangePen)
+				otherScore = float64(other.ScanRangePen)
+			} else {
+				// 2nd tech doesn't pen scan; 1st wins by default
+				return false
+			}
+		} else if other.ScanRangePen > 0 {
+			// 1st tech doesn't pen scan; 2nd wins by default
+			return true
+		} else {
+			// neither tech can pen scan; just use regular scan ranges
+			score = float64(hc.ScanRange)
+			otherScore = float64(other.ScanRange)
+		}
+	case TechTagInitiativeBonus:
+		score = float64(hc.InitiativeBonus)
+		otherScore = float64(other.InitiativeBonus)
+	case TechTagTorpedoJammer:
+		score = hc.TorpedoJamming
+		otherScore = other.TorpedoJamming
+	case TechTagBeamWeapon, TechTagShieldSapper, TechTagGatlingGun:
+		score = float64(hc.Power) * math.Pow(float64(hc.Range), 2)
+		otherScore = float64(other.Power) * math.Pow(float64(other.Range), 3)
+		costEff = true
+	case TechTagTorpedo, TechTagCapitalShipMissile:
+		return hc.getBestTorpedo(player, other)
+	case TechTagColonyModule:
+		score = 1
+		otherScore = 1
+		costEff = true // literally ALL we care about is cost efficiency
+	case TechTagCargoPod:
+		score = float64(hc.CargoBonus)
+		otherScore = float64(other.CargoBonus)
+		costEff = true
+	case TechTagFuelTank:
+		score = float64(hc.FuelBonus + 5*hc.FuelGeneration)
+		otherScore = float64(other.FuelBonus + 5*other.FuelGeneration)
+		costEff = true
+	case TechTagMineLayer, TechTagHeavyMineLayer, TechTagSpeedMineLayer:
+		otherScore = float64(other.MineLayingRate)
+		score = float64(hc.MineLayingRate)
+		costEff = true
+	case TechTagBomb, TechTagSmartBomb:
+		score = float64(hc.KillRate)
+		otherScore = float64(other.KillRate)
+		costEff = true
+	case TechTagStructureBomb:
+		score = float64(hc.StructureDestroyRate)
+		otherScore = float64(other.StructureDestroyRate)
+		costEff = true
+	case TechTagCloak:
+		score = float64(hc.CloakUnits)
+		otherScore = float64(other.CloakUnits)
+	case TechTagManeuveringJet:
+		score = float64(hc.MovementBonus)
+		otherScore = float64(other.MovementBonus)
+	case TechTagMassDriver:
+		score = float64(hc.PacketSpeed)
+		otherScore = float64(other.PacketSpeed)
+	case TechTagStargate:
+		return hc.getBestStargate(other)
+	case TechTagTerraformingRobot:
+		score = float64(hc.TerraformRate)
+		otherScore = float64(other.TerraformRate)
+		costEff = true
+	case TechTagMiningRobot:
+		return hc.getBestMiningRobot(player, other)
+	}
+
+	scoreRatio := otherScore / score
+	costRatio := 1.0
+	if costEff {
+		costRatio = getCostEfficiencyRatio(player, other, hc, true)
+	}
+	return scoreRatio > costRatio ||
+		scoreRatio == costRatio && other.Ranking > hc.Ranking
+	// FOR THE RECORD, this works out to be equivalent to comparing unit prices
+	// If you don't believe this yourself, do some algebra
+}
+
 // get actual armor/shield value for a tech item given its shield/armor amounts and the multipliers for each
-func getActualArmorAmount(armor, shield float64, armorMulti, shieldMulti float64, isArmor bool) (float64, float64) {
+func getActualArmorAmount(armor, shield float64, raceSpec RaceSpec, isArmor bool) (float64, float64) {
 	// TODO: Fix RS shield effect in a less janky way
 	if isArmor {
-		return armor * armorMulti, shield * shieldMulti
+		return armor * raceSpec.ArmorStrengthFactor, shield * raceSpec.ShieldStrengthFactor
 	} else {
-		return armor, shield * shieldMulti
+		return armor, shield * raceSpec.ShieldStrengthFactor
 	}
+}
+
+// compare 2 mining robots and determine which is more resource efficient (ie higher return on investment)
+func (hc *TechHullComponent) getBestMiningRobot(player *Player, other *TechHullComponent) bool {
+	return float64(other.MiningRate)/float64(hc.MiningRate) > getResourceEfficiencyRatio(player, other, hc) ||
+		(float64(other.MiningRate)/float64(hc.MiningRate) == getResourceEfficiencyRatio(player, other, hc) &&
+			other.Ranking > hc.Ranking)
 }
 
 // compare 2 stargates and determine which one is better
 // 1st priority mass, 2nd priority distance, 3rd priority ranking
-func (hc *TechHullComponent) GetBestStargate(other *TechHullComponent) bool {
-	if hc.Tags.hasTag(TechTagStargate) {
-		if other.Tags.hasTag(TechTagStargate) && hc != other {
-			if hc.SafeHullMass < other.SafeHullMass {
-				return false
-			} else if hc.SafeHullMass > other.SafeHullMass {
-				return true
-			} else if hc.SafeRange < other.SafeRange { // same safe mass; check safe distance
-				return false
-			} else if hc.SafeRange > other.SafeRange {
-				return true
-			} else if hc.Ranking > other.Ranking { // same distance & range; compare ranking
-				return true
-			}
-		} else if other.Tags.hasTag(TechTagStargate) {
-			// first tech not a stargate; 2nd one wins by default
+func (hc *TechHullComponent) getBestStargate(other *TechHullComponent) bool {
+	if hc != other {
+		switch {
+		case hc.SafeHullMass < other.SafeHullMass:
+			return false
+		case hc.SafeHullMass > other.SafeHullMass:
+			return true
+		case hc.SafeRange < other.SafeRange: // same safe mass; check safe distance
+			return false
+		case hc.SafeRange > other.SafeRange:
+			return true
+		case hc.Ranking > other.Ranking: // same distance & range; compare ranking
 			return true
 		}
 	}
 	return false
 }
 
-// return the better of the 2 provided torpedo weapons
-// defaults to 1st if both are equal or either one is null
-func (hc *TechHullComponent) GetBestTorpedo(player *Player, other *TechHullComponent) bool {
+// return the better of the 2 provided torpedo weapons.
+// Defaults to 1st if both are equal or either one is null and breaks ties by item ranking
+func (hc *TechHullComponent) getBestTorpedo(player *Player, other *TechHullComponent) bool {
 	var hcPower float64
 	var otherPower float64
-	empty := false
-	if hc != nil && hc.Category == TechCategoryTorpedo && hc.Power > 0 && player.HasTech(&hc.Tech) {
-		hcPower = float64(hc.Power*hc.Accuracy + 10) // add a bit of accuracy bonus to give torps a fighting chance
-		if hc.CapitalShipMissile {
-			hcPower *= 1.5 // cap missiles do 2x damage on shieldless foes, but enemies don't always have shields up
-		}
-	} else {
-		empty = true
+	capMissileMulti := 1.5
+	// TODO: Figure out a value multi for capital ship missiles that makes sense
+	// missiles do 2x damage on shieldless foes, but enemies don't always have shields down
+
+	hcPower = float64(hc.Power) * float64(hc.Accuracy+10) / 100 // add a bit of accuracy bonus to account for computing vs jamming
+	if hc.CapitalShipMissile {
+		hcPower *= capMissileMulti
 	}
-	if other != nil && other.Category == TechCategoryTorpedo && other.Power > 0 && player.HasTech(&other.Tech) {
-		if empty { // first component not a torpedo; 2nd one wins by default
-			return true
-		}
-		otherPower = float64(other.Power * other.Accuracy)
-		if other.CapitalShipMissile {
-			// TODO: Figure out a value multi for cap missiles that makes sense
-			otherPower *= 1.5 // cap missiles do more damage than normal torps, but enemies don't always have shields up
-		}
-	} else {
-		return false // 1st one wins by default
+	otherPower = float64(other.Power) * float64(other.Accuracy+10) / 100
+	if other.CapitalShipMissile {
+		otherPower *= capMissileMulti
 	}
 
 	// if the 2nd torpedo is more cost efficient (in terms of avg damage/minerals spent) than the new weapon, use it
-	return otherPower/hcPower >= getMineralEfficiencyRatio(player, hc, other, false)
+	return otherPower/hcPower > getCostEfficiencyRatio(player, hc, other, false) ||
+		otherPower/hcPower == getCostEfficiencyRatio(player, hc, other, false) && other.Ranking >= hc.Ranking
 }
 
-// Returns the ratio of mineral efficiency for the 2 components based on the highest mineral in either one
-// (numerator/denomiator)
+// Returns the ratio of mineral efficiency for 2 TechHullComponents by totaling the tech's Cost struct
+// (numeratorTotal / denominatorTotal)
 //
-// resource indicates whether to consider resources in cost analysis
-func getMineralEfficiencyRatio(player *Player, numerator, denominator *TechHullComponent, resource bool) float64 {
-	if resource {
-		hcCost := numerator.GetPlayerCost(player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset)
-		otherCost := denominator.GetPlayerCost(player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset)
-		minType := hcCost.Max(otherCost).HighestAmount()
-		return float64(hcCost.GetAmount(minType)) / float64(otherCost.GetAmount(minType))
+// resource indicates whether to consider resources in cost analysis (if false, only minerals will be tallied)
+func getCostEfficiencyRatio(player *Player, numerator, denominator *TechHullComponent, resource bool) float64 {
+	hcCost := numerator.GetPlayerCost(player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset)
+	otherCost := denominator.GetPlayerCost(player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset)
+	if !resource {
+		// zero out resource costs cuz we don't need em
+		hcCost.Resources = 0
+		otherCost.Resources = 0
 	}
+	return float64(hcCost.Total()) / float64(otherCost.Total())
+}
 
-	hcCost := numerator.GetPlayerCost(player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset).ToMineral()
-	otherCost := denominator.GetPlayerCost(player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset).ToMineral()
-	minType := hcCost.Max(otherCost).HighestType()
-	return float64(hcCost.GetAmount(minType)) / float64(otherCost.GetAmount(minType))
+// Returns the ratio of resource expenditure for 2 TechHullComponents
+// (numeratorTotal / denominatorTotal)
+//
+// resource indicates whether to consider resources in cost analysis (if false, only minerals will be tallied)
+func getResourceEfficiencyRatio(player *Player, numerator, denominator *TechHullComponent) float64 {
+	hcRes := numerator.GetPlayerCost(player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset).Resources
+	otherRes := denominator.GetPlayerCost(player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset).Resources
+	return float64(hcRes) / float64(otherRes)
 }
 
 type Engine struct {
@@ -231,7 +349,7 @@ func (hc *TechEngine) CompareEngine(player *Player, other *TechEngine, purpose F
 	if player.HasTech(&tech.Tech) {
 		// colony ships don't want radiating engines if we would lose colonists from it
 		if ((purpose == FleetPurposeColonizer || purpose == FleetPurposeColonistFreighter) && tech.Radiating &&
-			!(player.Race.ImmuneRad || player.Race.Spec.HabCenter.Rad >= 85)) || 
+			!(player.Race.ImmuneRad || player.Race.Spec.HabCenter.Rad >= 85)) ||
 			otherTech.Ranking > tech.Ranking {
 			return other
 		}
@@ -278,18 +396,18 @@ type TechHullSlot struct {
 type TechHullType string
 
 const (
-	TechHullTypeScout                 TechHullType = "Scout"
-	TechHullTypeColonizer             TechHullType = "Colonizer"
 	TechHullTypeBomber                TechHullType = "Bomber"
+	TechHullTypeColonizer             TechHullType = "Colonizer"
+	TechHullTypeCapitalShip           TechHullType = "CapitalShip" // big, bulky capital ships
 	TechHullTypeFighter               TechHullType = "Fighter"
-	TechHullTypeCapitalShip           TechHullType = "CapitalShip"
 	TechHullTypeFreighter             TechHullType = "Freighter"
-	TechHullTypeMultiPurposeFreighter TechHullType = "MultiPurposeFreighter"
 	TechHullTypeFuelTransport         TechHullType = "FuelTransport"
 	TechHullTypeMiner                 TechHullType = "Miner"
 	TechHullTypeMineLayer             TechHullType = "MineLayer"
-	TechHullTypeStarbase              TechHullType = "Starbase"
+	TechHullTypeMultiPurposeFreighter TechHullType = "MultiPurposeFreighter"
 	TechHullTypeOrbitalFort           TechHullType = "OrbitalFort"
+	TechHullTypeScout                 TechHullType = "Scout"
+	TechHullTypeStarbase              TechHullType = "Starbase"
 )
 
 func (t TechHullType) IsAttackHull() bool {

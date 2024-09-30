@@ -750,6 +750,94 @@ func TestShipDesign_SlotsEqual(t *testing.T) {
 	}
 }
 
+func TestShipDesign_getWarshipPartBonus(t *testing.T) {
+	type args struct {
+		armorMulti  float64
+		shieldMulti float64
+		hc          *TechHullComponent
+		qty         int
+		shield      int
+		armor       int
+		beamBonus   float64
+		jamming     float64
+		computing   float64
+		deflecting  float64
+		starbase    bool
+	}
+	tests := []struct {
+		name string
+		args args
+		want float64
+	}{
+		{
+			name: "1 jammer 50 on blank ship",
+			args: args{
+				armorMulti: 1, shieldMulti: 1,
+				hc:         &Jammer50,
+				qty:        1,
+				shield:     1,
+				armor:      1,
+				beamBonus:  1,
+				jamming:    0,
+				computing:  0,
+				deflecting: 0,
+				starbase:   false,
+			},
+			want: 1,
+		},
+		{
+			name: "12 jammer 50s hitting starbase hardcap",
+			args: args{
+				armorMulti: 1, shieldMulti: 1,
+				hc:         &Jammer50,
+				qty:        12,
+				shield:     1,
+				armor:      1,
+				beamBonus:  1,
+				jamming:    0,
+				computing:  0,
+				deflecting: 0,
+				starbase:   true,
+			},
+			want: 1.95,
+		},
+		{
+			name: "2 battle super comps on 90% computed ship",
+			args: args{
+				armorMulti: 1, shieldMulti: 1,
+				hc:         &Jammer30,
+				qty:        2,
+				shield:     1,
+				armor:      1,
+				beamBonus:  1,
+				jamming:    0,
+				computing:  0.9, // new computing: 1-(0.1*0.49) = 94.9% computing 
+				deflecting: 0,
+				starbase:   false,
+			},
+			want: 1.02579, //
+		},
+	}
+	for _, tt := range tests {
+		player := NewPlayer(1, NewRace())
+		player.Race.Spec.ArmorStrengthFactor = tt.args.armorMulti
+		player.Race.Spec.ShieldStrengthFactor = tt.args.shieldMulti
+		design := NewShipDesign(player, 1).WithHull("Battleship").WithSpec(&rules, player)
+		design.Spec.Shields = tt.args.shield
+		design.Spec.Armor = tt.args.armor
+		design.Spec.TorpedoBonus = tt.args.computing
+		design.Spec.TorpedoJamming = tt.args.jamming
+		design.Spec.BeamBonus = tt.args.beamBonus
+		design.Spec.BeamDefense = tt.args.deflecting
+		design.Spec.Starbase = tt.args.starbase
+		t.Run(tt.name, func(t *testing.T) {
+			if got := design.getWarshipPartBonus(&rules, player, tt.args.hc, tt.args.qty); got != tt.want {
+				t.Errorf("ShipDesign.getWarshipPartBonus() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestDesignShip(t *testing.T) {
 	type args struct {
 		hull         *TechHull
@@ -759,18 +847,18 @@ func TestDesignShip(t *testing.T) {
 		fleetPurpose FleetPurpose
 	}
 	tests := []struct {
-		name      string
-		args      args
-		want []ShipDesignSlot
-		wanterr   bool
+		name    string
+		args    args
+		want    []ShipDesignSlot
+		wanterr bool
 	}{
 		{
 			name: "Humanoid Starter Stalwart Defender",
 			args: args{
-				hull: &Destroyer,
-				techLevels: TechLevel{3, 3, 3, 3, 3, 3},
-				race:       NewRace().WithPRT(JoaT).WithSpec(&rules),
-				purpose: ShipDesignPurposeStartingFighter,
+				hull:         &Destroyer,
+				techLevels:   TechLevel{3, 3, 3, 3, 3, 3},
+				race:         NewRace().WithPRT(JoaT).WithSpec(&rules),
+				purpose:      ShipDesignPurposeStartingFighter,
 				fleetPurpose: FleetPurposeScout,
 			},
 			want: []ShipDesignSlot{
@@ -796,7 +884,7 @@ func TestDesignShip(t *testing.T) {
 					t.Errorf("DesignShip() errored unexpectedly; returned error %v", err)
 				}
 			}
-			if !slices.Equal(got.Slots,tt.want) {
+			if !slices.Equal(got.Slots, tt.want) {
 				t.Errorf("ShipDesign from DesignShip() had slots %v, want %v", got.Slots, tt.want)
 			}
 		})

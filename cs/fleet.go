@@ -188,42 +188,23 @@ func FleetPurposeFromShipDesignPurpose(purpose ShipDesignPurpose) FleetPurpose {
 		return FleetPurposeScout
 	case ShipDesignPurposeColonizer:
 		return FleetPurposeColonizer
-
-	case ShipDesignPurposeBomber:
-		fallthrough
-	case ShipDesignPurposeSmartBomber:
-		fallthrough
-	case ShipDesignPurposeStructureBomber:
+	case ShipDesignPurposeBomber, ShipDesignPurposeSmartBomber, ShipDesignPurposeStructureBomber:
 		return FleetPurposeBomber
-
-	case ShipDesignPurposeStartingFighter:
-		fallthrough
-	case ShipDesignPurposeFighterScout:
+	case ShipDesignPurposeStartingFighter, ShipDesignPurposeFighterScout:
 		return FleetPurposeFighter
-	case ShipDesignPurposeTorpedoFighter:
-		fallthrough
-	case ShipDesignPurposeBeamFighter:
+	case ShipDesignPurposeTorpedoFighter, ShipDesignPurposeBeamFighter:
 		return FleetPurposeCapitalShip
-
-	case ShipDesignPurposeFreighter:
-		fallthrough
-	case ShipDesignPurposeFuelFreighter:
+	case ShipDesignPurposeFreighter, ShipDesignPurposeFuelFreighter, ShipDesignPurposeMultiPurposeFreighter:
 		return FleetPurposeFreighter
-
-	case ShipDesignPurposeMultiPurposeFreighter:
-		fallthrough
 	case ShipDesignPurposeColonistFreighter:
 		return FleetPurposeColonistFreighter
-
 	case ShipDesignPurposeArmedFreighter:
 		return FleetPurposeArmedFreighter
 	case ShipDesignPurposeMiner:
 		return FleetPurposeMiner
 	case ShipDesignPurposeTerraformer:
 		return FleetPurposeTerraformer
-	case ShipDesignPurposeDamageMineLayer:
-		fallthrough
-	case ShipDesignPurposeSpeedMineLayer:
+	case ShipDesignPurposeDamageMineLayer, ShipDesignPurposeSpeedMineLayer:
 		return FleetPurposeMineLayer
 	}
 	return FleetPurposeNone

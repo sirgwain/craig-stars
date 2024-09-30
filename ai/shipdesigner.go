@@ -22,36 +22,32 @@ func (ai *aiPlayer) designShip(name string, purpose cs.ShipDesignPurpose, fleetP
 		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeScout))
 	case cs.ShipDesignPurposeColonizer:
 		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeColonizer))
-	case cs.ShipDesignPurposeFreighter:
-		fallthrough
-	case cs.ShipDesignPurposeColonistFreighter:
-		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeFreighter))
 	case cs.ShipDesignPurposeFuelFreighter:
 		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeFuelTransport))
-		if hull == nil {
-			hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeFreighter))
+		if hull != nil {
+			break
 		}
-	case cs.ShipDesignPurposeStartingFighter:
+		fallthrough
+	case cs.ShipDesignPurposeColonistFreighter, cs.ShipDesignPurposeFreighter:
+		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeFreighter))
+	case cs.ShipDesignPurposeArmedFreighter:
+		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeMultiPurposeFreighter))
+	case cs.ShipDesignPurposeBeamFighter, cs.ShipDesignPurposeTorpedoFighter:
+		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeCapitalShip))
+		if hull != nil {
+			break
+		}
+		fallthrough
+	case cs.ShipDesignPurposeFighterScout, cs.ShipDesignPurposeStartingFighter:
 		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeFighter))
 	case cs.ShipDesignPurposeBomber:
 		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeBomber))
-	case cs.ShipDesignPurposeStarbase:
-		fallthrough
-	case cs.ShipDesignPurposeStarbaseQuarter:
-		fallthrough
-	case cs.ShipDesignPurposeStarbaseHalf:
-		fallthrough
-	case cs.ShipDesignPurposeFuelDepot:
-		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeStarbase))
-	case cs.ShipDesignPurposePacketThrower:
-		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeOrbitalFort))
-	case cs.ShipDesignPurposeStargater:
-		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeOrbitalFort))
-	case cs.ShipDesignPurposeFort:
-		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeOrbitalFort))
-	case cs.ShipDesignPurposeStarterColony:
-		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeStarbase))
-	}
+		case cs.ShipDesignPurposeStarterColony, cs.ShipDesignPurposeStarbase, cs.ShipDesignPurposeStarbaseQuarter,
+			cs.ShipDesignPurposeStarbaseHalf, cs.ShipDesignPurposeFuelDepot:
+			hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeStarbase))
+		case cs.ShipDesignPurposePacketThrower, cs.ShipDesignPurposeStargater, cs.ShipDesignPurposeFort:
+			hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeOrbitalFort))
+		}
 
 	if hull == nil {
 		return existing, nil

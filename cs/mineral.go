@@ -32,30 +32,30 @@ func (m Mineral) String() string {
 	return fmt.Sprintf("Ironium: %d, Boranium: %d, Germanium: %d", m.Ironium, m.Boranium, m.Germanium)
 }
 
-func (c Mineral) PrettyString() string {
+func (m Mineral) PrettyString() string {
 	texts := make([]string, 0, 4)
-	if c.Ironium > 0 {
-		texts = append(texts, fmt.Sprintf("%dkT ironium", c.Ironium))
+	if m.Ironium > 0 {
+		texts = append(texts, fmt.Sprintf("%dkT ironium", m.Ironium))
 	}
-	if c.Boranium > 0 {
-		texts = append(texts, fmt.Sprintf("%dkT boranium", c.Boranium))
+	if m.Boranium > 0 {
+		texts = append(texts, fmt.Sprintf("%dkT boranium", m.Boranium))
 	}
-	if c.Germanium > 0 {
-		texts = append(texts, fmt.Sprintf("%dkT germanium", c.Germanium))
+	if m.Germanium > 0 {
+		texts = append(texts, fmt.Sprintf("%dkT germanium", m.Germanium))
 	}
 	return strings.Join(texts, ", ")
 }
 
-func (h *Mineral) Set(mineralType MineralType, value int) *Mineral {
+func (m *Mineral) Set(mineralType MineralType, value int) *Mineral {
 	switch mineralType {
 	case Ironium:
-		h.Ironium = value
+		m.Ironium = value
 	case Boranium:
-		h.Boranium = value
+		m.Boranium = value
 	case Germanium:
-		h.Germanium = value
+		m.Germanium = value
 	}
-	return h
+	return m
 }
 
 // return higher of 2 Mineral structs for all MineralTypes separately
@@ -162,51 +162,35 @@ func (m Mineral) Clamp(min, max int) Mineral {
 	}
 }
 
-func (m Mineral) HighestType() MineralType {
-	if m.Ironium >= m.Boranium && m.Ironium >= m.Germanium {
-		return Ironium
-	}
 
-	if m.Boranium >= m.Ironium && m.Boranium >= m.Germanium {
-		return Boranium
+// return the Nth highest MineralType in a Mineral struct 
+// (1 = highest, 2 = middle, 3 = lowest)
+// 
+// Ties are broken in order of precendence (I/B/G) 
+func (m Mineral) HighestType(ranking int) MineralType {
+	copy := m // make copy of struct so we can zero out values without affecting the original
+	var highestType MineralType
+	for i := 0; i < ranking; i++ {
+		// get the highest type in the cost struct
+		highestType = copy.GetTypeFromAmount(MaxInt(copy.Ironium, copy.Boranium, copy.Germanium))
+		// For the record, this will never cause GetTypeFromAmount to panic because we are  
+		// comparing the struct's own values against themselves
+		copy.Set(highestType, 0)
 	}
-
-	if m.Germanium >= m.Ironium && m.Germanium >= m.Boranium {
-		return Germanium
-	}
-
-	return None
+	return highestType
 }
 
-// returns 2nd lowest/highest mineral type
-func (m Mineral) MiddleType() MineralType {
-	if Boranium != m.HighestType() && Boranium != m.LowestType() {
+// return the first valid MineralType in a Mineral struct with the given numerical value
+// returns an error if no MineralType with the corresponding value exists
+func (m Mineral) GetTypeFromAmount(amt int) MineralType {
+	switch amt {
+	case m.Ironium:
+		return Ironium
+	case m.Boranium:
 		return Boranium
-	}
-
-	if Germanium != m.HighestType() && Germanium != m.LowestType() {
+	case m.Germanium:
 		return Germanium
 	}
-
-	if Ironium != m.HighestType() && Ironium != m.LowestType() {
-		return Ironium
-	}
-
-	return None
-}
-
-func (m Mineral) LowestType() MineralType {
-	if m.Germanium <= m.Ironium && m.Germanium <= m.Boranium {
-		return Germanium
-	}
-
-	if m.Boranium <= m.Ironium && m.Boranium <= m.Germanium {
-		return Boranium
-	}
-
-	if m.Ironium <= m.Germanium && m.Ironium <= m.Boranium {
-		return Ironium
-	}
-
-	return None
+	panic(fmt.Sprintf("GetTypeFromAmount called with value %v but no corresponding MineralType was found in mineral struct; \nStruct values:\nIronium: %v\nBoranium: %v\nGermanium: %v",
+		amt, m.Ironium, m.Boranium, m.Germanium))
 }

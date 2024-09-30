@@ -632,7 +632,7 @@ var HushABoom = TechHullComponent{Tech: NewTechWithOrigin("Hush-a-Boom", NewCost
 }
 
 var EnigmaPulsar = TechEngine{
-	TechHullComponent: TechHullComponent{Tech: NewTechWithOrigin("Enigma Pulsar", NewCost(12, 15, 11, 40), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 7, Propulsion: 13, Construction: 5, Electronics: 9}}, 205, TechCategoryEngine, OriginMysteryTrader, TechTagEngine),
+	TechHullComponent: TechHullComponent{Tech: NewTechWithOrigin("Enigma Pulsar", NewCost(12, 15, 11, 40), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 7, Propulsion: 13, Construction: 5, Electronics: 9}}, 205, TechCategoryEngine, OriginMysteryTrader, TechTagCloak, TechTagEngine, TechTagManeuveringJet),
 		Mass:          20,
 		HullSlotType:  HullSlotTypeEngine,
 		MovementBonus: 1,
@@ -657,7 +657,7 @@ var EnigmaPulsar = TechEngine{
 		},
 	},
 }
-var MegaPolyShell = TechHullComponent{Tech: NewTechWithOrigin("Mega Poly Shell", NewCost(14, 5, 5, 52), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 14, Construction: 14, Electronics: 14, Biotechnology: 6}}, 105, TechCategoryArmor, OriginMysteryTrader, TechTagShield, TechTagArmor, TechTagScanner, TechTagTorpedoJammer, TechTagCloak),
+var MegaPolyShell = TechHullComponent{Tech: NewTechWithOrigin("Mega Poly Shell", NewCost(14, 5, 5, 52), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 14, Construction: 14, Electronics: 14, Biotechnology: 6}}, 105, TechCategoryArmor, OriginMysteryTrader, TechTagArmor, TechTagCloak, TechTagScanner, TechTagShield, TechTagTorpedoJammer),
 
 	Mass:           20,
 	Shield:         100,
@@ -669,7 +669,7 @@ var MegaPolyShell = TechHullComponent{Tech: NewTechWithOrigin("Mega Poly Shell",
 	ScanRangePen:   40,
 	HullSlotType:   HullSlotTypeShield,
 }
-var LangstonShell = TechHullComponent{Tech: NewTechWithOrigin("Langston Shell", NewCost(6, 1, 4, 12), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 12, Propulsion: 9, Electronics: 9}}, 75, TechCategoryShield, OriginMysteryTrader, TechTagShield, TechTagArmor, TechTagScanner, TechTagTorpedoJammer, TechTagCloak),
+var LangstonShell = TechHullComponent{Tech: NewTechWithOrigin("Langston Shell", NewCost(6, 1, 4, 12), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 12, Propulsion: 9, Electronics: 9}}, 75, TechCategoryShield, OriginMysteryTrader, TechTagArmor, TechTagCloak, TechTagScanner, TechTagShield, TechTagTorpedoJammer),
 
 	Mass:           10,
 	Shield:         125,
@@ -681,7 +681,7 @@ var LangstonShell = TechHullComponent{Tech: NewTechWithOrigin("Langston Shell", 
 	ScanRangePen:   25,
 	HullSlotType:   HullSlotTypeShield,
 }
-var MultiFunctionPod = TechHullComponent{Tech: NewTechWithOrigin("Multi-Function Pod", NewCost(5, 0, 5, 15), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 11, Propulsion: 11, Electronics: 11}}, 35, TechCategoryElectrical, OriginMysteryTrader, TechTagArmor, TechTagTorpedoJammer, TechTagCloak, TechTagManeuveringJet),
+var MultiFunctionPod = TechHullComponent{Tech: NewTechWithOrigin("Multi-Function Pod", NewCost(5, 0, 5, 15), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 11, Propulsion: 11, Electronics: 11}}, 35, TechCategoryElectrical, OriginMysteryTrader, TechTagArmor, TechTagCloak, TechTagManeuveringJet, TechTagTorpedoJammer),
 
 	Mass:           2,
 	CloakUnits:     60,
@@ -703,7 +703,7 @@ var JumpGate = TechHullComponent{Tech: NewTechWithOrigin("Jump Gate", NewCost(0,
 	CanJump:      true, // TODO: add support for this
 	HullSlotType: HullSlotTypeMechanical,
 }
-var MultiContainedMunition = TechHullComponent{Tech: NewTechWithOrigin("Multi Contained Munition", NewCost(5, 32, 5, 32), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 21, Weapons: 21, Electronics: 16, Biotechnology: 12}}, 195, TechCategoryBeamWeapon, OriginMysteryTrader, TechTagBeamWeapon, TechTagTorpedoBonus, TechTagBomb, TechTagCloak, TechTagMineLayer, TechTagTorpedoJammer, TechTagScanner),
+var MultiContainedMunition = TechHullComponent{Tech: NewTechWithOrigin("Multi Contained Munition", NewCost(5, 32, 5, 32), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 21, Weapons: 21, Electronics: 16, Biotechnology: 12}}, 195, TechCategoryBeamWeapon, OriginMysteryTrader, TechTagBeamWeapon, TechTagBomb, TechTagCloak, TechTagMineLayer, TechTagScanner, TechTagTorpedoBonus, TechTagTorpedoJammer),
 	Mass:                 8,
 	Initiative:           6,
 	Power:                140,
@@ -718,7 +718,7 @@ var MultiContainedMunition = TechHullComponent{Tech: NewTechWithOrigin("Multi Co
 	MineLayingRate:       40,
 	HullSlotType:         HullSlotTypeWeapon,
 }
-var AlienMiner = TechHullComponent{Tech: NewTechWithOrigin("Alien Miner", NewCost(4, 0, 1, 10), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 5, Construction: 10, Electronics: 5, Biotechnology: 5}}, 155, TechCategoryMineRobot, OriginMysteryTrader, TechTagMiningRobot, TechTagCloak, TechTagManeuveringJet, TechTagTorpedoJammer),
+var AlienMiner = TechHullComponent{Tech: NewTechWithOrigin("Alien Miner", NewCost(4, 0, 1, 10), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 5, Construction: 10, Electronics: 5, Biotechnology: 5}}, 155, TechCategoryMineRobot, OriginMysteryTrader, TechTagCloak, TechTagManeuveringJet, TechTagMiningRobot, TechTagTorpedoJammer),
 	Mass:           20,
 	MiningRate:     10,
 	CloakUnits:     60,
@@ -726,7 +726,7 @@ var AlienMiner = TechHullComponent{Tech: NewTechWithOrigin("Alien Miner", NewCos
 	MovementBonus:  1,
 	HullSlotType:   HullSlotTypeMining,
 }
-var MultiCargoPod = TechHullComponent{Tech: NewTechWithOrigin("Multi Cargo Pod", NewCost(12, 0, 3, 25), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 5, Construction: 11, Electronics: 5}}, 35, TechCategoryMechanical, OriginMysteryTrader, TechTagCargoPod, TechTagArmor, TechTagCloak),
+var MultiCargoPod = TechHullComponent{Tech: NewTechWithOrigin("Multi Cargo Pod", NewCost(12, 0, 3, 25), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 5, Construction: 11, Electronics: 5}}, 35, TechCategoryMechanical, OriginMysteryTrader, TechTagArmor, TechTagCargoPod, TechTagCloak),
 	Mass:         9,
 	CargoBonus:   250,
 	Armor:        50,

@@ -419,7 +419,7 @@ func itSpec() PRTSpec {
 			StartingFleets: []StartingFleet{
 				{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
 				{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
-				{"Swashbuckler", StartingFleetHullPrivateer, 0, ShipDesignPurposeArmedFreighter},
+				{"Swashbuckler", StartingFleetHullPrivateer, 0, ShipDesignPurposeStartingFighter},
 				{"Stalwart Defender", StartingFleetHullDestroyer, 0, ShipDesignPurposeStartingFighter},
 			}, Homeworld: true,
 		},
@@ -432,7 +432,7 @@ func itSpec() PRTSpec {
 			HabPenaltyFactor:   1,
 			HasStargate:        true,
 			StarbaseHull:       OrbitalFort.Name,
-			StarbaseDesignName: "Accelerator Platform",
+			StarbaseDesignName: "Porthole to Beyond",
 			StartingFleets: []StartingFleet{
 				{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
 			}, Homeworld: false,
@@ -491,7 +491,7 @@ func joatSpec() PRTSpec {
 	spec.StartingPlanets[0].StartingFleets = []StartingFleet{
 		{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
 		{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
-		{"Teamster", StartingFleetHullMediumFreighter, 0, ShipDesignPurposeFreighter},
+		{"Teamster", StartingFleetHullMediumFreighter, 0, ShipDesignPurposeStartingFighter},
 		{"Cotton Picker", StartingFleetHullMiniMiner, 0, ShipDesignPurposeMiner},
 		{"Armed Probe", StartingFleetHullScout, 1, ShipDesignPurposeFighterScout},
 		{"Stalwart Defender", StartingFleetHullDestroyer, 0, ShipDesignPurposeStartingFighter},

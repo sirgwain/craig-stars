@@ -31,21 +31,39 @@ func NewCost(
 	return Cost{ironium, boranium, germanium, resources}
 }
 
-// return the CostType with highest numerical value in a Cost struct 
-func (c Cost) HighestAmount() CostType {
-	if c.Ironium >= c.Boranium && c.Ironium >= c.Germanium && c.Ironium >= c.Resources {
+
+// return the CostType with the Nth highest numerical value in a Cost struct (1 = highest, 2 = 2nd highest, etc etc)
+//
+// Ties are broken by REVERSE order of precendence (I/B/G/R)
+func (c Cost) HighestType(ranking int) CostType {
+	copy := c // make copy of cost struct so we can zero out values without affecting the original
+	var highestType CostType
+	for i := 0; i < MinInt(ranking, 4); i++ {
+		// get the highest type in the cost struct
+		highestType = copy.GetTypeFromAmount(MaxInt(copy.Ironium, copy.Boranium, copy.Germanium, copy.Resources))
+		// For the record, this will never cause GetTypeFromAmount to panic because we are literally
+		// comparing the cost struct's own values against themselves
+		// set it to 0 
+		copy.Set(highestType, 0)
+	}
+	return highestType
+}
+
+// return the first valid CostType in a Cost struct with the given numerical value
+// returns an error if no CostType with the corresponding value exists
+func (c Cost) GetTypeFromAmount(amt int) CostType {
+	switch amt {
+	case c.Ironium:
 		return Ironium
-	}
-
-	if c.Boranium >= c.Ironium && c.Boranium >= c.Germanium && c.Boranium >= c.Resources{
-		return Boranium
-	}
-
-	if c.Germanium >= c.Ironium && c.Germanium >= c.Boranium && c.Germanium >= c.Resources{
+	case c.Germanium:
 		return Germanium
+	case c.Boranium:
+		return Boranium
+	case c.Resources:
+		return Resources
 	}
-
-	return Resources
+	panic(fmt.Sprintf("GetTypeFromAmount called with value %v but no corresponding costType was found in cost struct; \nStruct values:\nIronium: %v\nBoranium: %v\nGermanium: %v\nResources: %v",
+		amt, c.Ironium, c.Boranium, c.Germanium, c.Resources))
 }
 
 func (c Cost) GetAmount(costType CostType) int {
@@ -60,6 +78,22 @@ func (c Cost) GetAmount(costType CostType) int {
 		return c.Resources
 	}
 	panic(fmt.Sprintf("GetAmount called with invalid CostType %s", costType))
+}
+
+func (c Cost) Set(costType CostType, amt int) Cost {
+	switch costType {
+	case Ironium:
+		c.Ironium = amt
+	case Boranium:
+		c.Boranium = amt
+	case Germanium:
+		c.Germanium = amt
+	case Resources:
+		c.Resources = amt
+	default:
+		panic(fmt.Sprintf("SetAmount called with invalid CostType %s", costType))
+	}
+	return c
 }
 
 func (c Cost) AddInt(costType CostType, amount int) Cost {
