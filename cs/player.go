@@ -716,7 +716,7 @@ func (p *Player) defaultPlans() PlayerPlans {
 				},
 			},
 			{
-				Num:  2,
+				Num:  3,
 				Name: "Wait Load",
 				Tasks: WaypointTransportTasks{
 					Fuel:      WaypointTransportTask{Action: TransportActionLoadOptimal},
@@ -726,14 +726,14 @@ func (p *Player) defaultPlans() PlayerPlans {
 				},
 			},
 			{
-				Num:  3,
+				Num:  4,
 				Name: "Load Colonists",
 				Tasks: WaypointTransportTasks{
 					Colonists: WaypointTransportTask{Action: TransportActionLoadAll},
 				},
 			},
 			{
-				Num:  4,
+				Num:  5,
 				Name: "Unload Colonists",
 				Tasks: WaypointTransportTasks{
 					Colonists: WaypointTransportTask{Action: TransportActionUnloadAll},
