@@ -16,7 +16,7 @@ export enum PlanetViewState {
 export class PlayerSettings implements FilterOptions {
 	planetViewState = PlanetViewState.Normal;
 	addWaypoint = false;
-	fastestWaypoint = false; // TODO: Add way to change setting to True  
+	fastestWaypoint = false;
 	setPacketDest = false;
 	showPlanetNames = false;
 	showFleetTokenCounts = false;

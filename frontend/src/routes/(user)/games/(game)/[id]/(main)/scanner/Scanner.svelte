@@ -450,6 +450,7 @@
 		}
 		if ($settings.addWaypoint) {
 			$settings.addWaypoint = false;
+			$settings.fastestWaypoint = false;
 		}
 	}
 
