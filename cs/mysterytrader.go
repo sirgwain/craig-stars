@@ -610,7 +610,7 @@ var MysteryTraderTechs = []Tech{
 	GenesisDevice.Tech,
 }
 
-// a list of mystery trader techs that can be randomly
+// a list of mystery trader techs that can be randomly given
 var MysteryTraderRandomTechs = []Tech{
 	HushABoom.Tech,
 	EnigmaPulsar.Tech,

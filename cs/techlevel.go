@@ -127,6 +127,7 @@ func (tl TechLevel) Minus(tl2 TechLevel) TechLevel {
 	}
 }
 
+// Return greater of 2 TechLevel structs for all fields separately
 func (tl TechLevel) Max(tl2 TechLevel) TechLevel {
 	return TechLevel{
 		Energy:        MaxInt(tl.Energy, tl2.Energy),

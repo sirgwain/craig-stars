@@ -43,6 +43,7 @@ type Player struct {
 	Spec                      PlayerSpec           `json:"spec,omitempty"`
 	leftoverResources         int
 	techLevelGained           bool
+	acquirablePartGained      bool
 	discoverer                discoverer
 }
 

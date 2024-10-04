@@ -1282,27 +1282,30 @@ func (fleet *Fleet) colonizePlanet(rules *Rules, player *Player, planet *Planet)
 //
 // A ship scrapped in space leaves no minerals behind.
 // When a ship design is deleted, all such ships vanish leaving nothing behind. (moral: scrap before you delete!)
-func (fleet *Fleet) getScrapAmount(rules *Rules, player *Player, planet *Planet) Cost {
+func (fleet *Fleet) getScrapAmount(rules *Rules, player *Player, planet *Planet, colonize bool) Cost {
 
 	// create a new cargo instance out of our fleet cost
 	scrappedCost := fleet.Spec.Cost
-
 	scrapMineralFactor := rules.ScrapMineralAmount
 	scrapResourceFactor := rules.ScrapResourceAmount
 	extraResources := 0
 	planetResources := 0
 
-	if planet != nil && planet.OwnedBy(player.Num) {
-		planetResources = planet.Spec.ResourcesPerYear + planet.bonusResources
-		// UR races get resources when scrapping
-		if planet.Spec.HasStarbase {
-			// scrapping over a planet we own with a starbase, calculate bonus minerals and resources
-			scrapMineralFactor += player.Race.Spec.ScrapMineralOffsetStarbase
-			scrapResourceFactor += player.Race.Spec.ScrapResourcesOffsetStarbase
+	if planet != nil {
+		if colonize {
+			scrapMineralFactor = rules.ScrapColonizeAmount
 		} else {
-			// scrapping over a planet we own without a starbase, calculate bonus minerals and resources
-			scrapMineralFactor += player.Race.Spec.ScrapMineralOffset
-			scrapResourceFactor += player.Race.Spec.ScrapResourcesOffset
+			planetResources = planet.Spec.ResourcesPerYear + planet.bonusResources
+			// UR races get resources when scrapping (not colonizing)
+			if planet.Spec.HasStarbase {
+				// scrapping over a planet with a starbase, calculate bonus minerals and resources
+				scrapMineralFactor += player.Race.Spec.ScrapMineralOffsetStarbase
+				scrapResourceFactor += player.Race.Spec.ScrapResourcesOffsetStarbase
+			} else {
+				// scrapping over a planet without a starbase, calculate bonus minerals and resources
+				scrapMineralFactor += player.Race.Spec.ScrapMineralOffset
+				scrapResourceFactor += player.Race.Spec.ScrapResourcesOffset
+			}
 		}
 	}
 
@@ -1311,9 +1314,9 @@ func (fleet *Fleet) getScrapAmount(rules *Rules, player *Player, planet *Planet)
 
 	if scrapResourceFactor > 0 {
 		// Formula for calculating resources: (Current planet production * Extra resources)/(Current planet production + Extra Resources)
-		extraResources = int(float64(fleet.Spec.Cost.Resources)*scrapResourceFactor + .5)
+		extraResources = int(float64(fleet.Spec.Cost.Resources)*scrapResourceFactor + .5) // add 0.5 to round up 
 		extraResources = int(float64(planetResources*extraResources) / float64(planetResources+extraResources))
-		scrappedCost.Resources += extraResources
+		scrappedCost.Resources = extraResources
 	} else {
 		scrappedCost.Resources = 0
 	}
