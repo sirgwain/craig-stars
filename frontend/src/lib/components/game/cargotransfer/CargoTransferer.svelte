@@ -24,10 +24,10 @@
 	export let srcFuelCapacity = src.spec.fuelCapacity ?? 0;
 	export let destCargoCapacity = getCargoCapacity(dest);
 	export let destFuelCapacity = getFuelCapacity(dest);
+	export let quantityModifier = 1;
 
 	let srcCargo = new CargoTransferRequest(src.cargo, src.fuel);
 	let destCargo = new CargoTransferRequest(dest?.cargo, dest && 'fuel' in dest ? dest.fuel : 0);
-	let quantityModifier = 1;
 
 	$: destFleet = dest?.type === MapObjectType.Fleet ? (dest as Fleet) : undefined;
 

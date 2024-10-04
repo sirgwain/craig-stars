@@ -22,11 +22,11 @@
 <script lang="ts">
 	import FleetIcon from '$lib/components/FleetIcon.svelte';
 	import CargoTransferer from '$lib/components/game/cargotransfer/CargoTransferer.svelte';
-	import { quantityModifier } from '$lib/quantityModifier';
 	import { CargoTransferRequest, emptyCargo, totalCargo, type Cargo } from '$lib/types/Cargo';
 	import hotkeys from 'hotkeys-js';
 	import { cloneDeep } from 'lodash-es';
 	import { createEventDispatcher, onMount } from 'svelte';
+	import { clamp } from '$lib/services/Math';
 
 	const dispatch = createEventDispatcher<SplitFleetEvent>();
 	const { game, player, universe } = getGameContext();
@@ -41,6 +41,8 @@
 	let destFuelCapacity: number = dest?.spec?.fuelCapacity ?? 0;
 	let srcCargoCapacity: number = src.spec.cargoCapacity ?? 0;
 	let destCargoCapacity: number = dest?.spec?.cargoCapacity ?? 0;
+	let quantityModifier = 1;
+
 	const totalFuel = src.fuel + (dest?.fuel ?? 0);
 
 	function ok() {
@@ -218,14 +220,14 @@
 							<div class="flex flex-row h-full">
 								<button
 									on:click={(e) => {
-										moveToken(-quantityModifier(e, 0, destTokens[index].quantity), token, index);
+										moveToken(-clamp(quantityModifier, 0, destTokens[index].quantity), token, index);
 									}}
 									class="btn btn-outline btn-xs normal-case btn-secondary inline-block p-1"
 									><Icon src={ArrowLongLeft} size="16" class="hover:stroke-accent inline" />
 								</button>
 								<button
 									on:click={(e) => {
-										moveToken(quantityModifier(e, 0, srcTokens[index].quantity), token, index);
+										moveToken(clamp(quantityModifier, 0, srcTokens[index].quantity), token, index);
 									}}
 									class="btn btn-outline btn-xs normal-case btn-secondary inline-block p-1"
 									><Icon
@@ -266,11 +268,12 @@
 				{src}
 				{dest}
 				showHeader={false}
-				bind:transferAmount
 				{srcCargoCapacity}
 				{srcFuelCapacity}
 				{destCargoCapacity}
 				{destFuelCapacity}
+				bind:transferAmount
+				bind:quantityModifier
 			/>
 		</div>
 		<div class="flex flex-none justify-end pt-2 my-auto">
