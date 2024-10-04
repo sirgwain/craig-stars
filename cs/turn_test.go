@@ -1405,6 +1405,84 @@ func Test_turn_detonateMines(t *testing.T) {
 
 }
 
+func Test_turn_testPacketMoveHitPlanet(t *testing.T) {
+	game := createSingleUnitGame()
+
+	player := game.Players[0]
+	planet := game.Planets[0]
+
+	// create a new packet heading towards the homeworld
+	packetPlayer := NewPlayer(2, NewRace().WithSpec(&rules)).WithNum(2).withSpec(&rules)
+	packet := newMineralPacket(packetPlayer, 1, 7, 7, Cargo{Ironium: 10}, Vector{25, 0}, planet.Num)
+
+	// setup initial planet intels so turn generation works
+	packetPlayer.initDefaultPlanetIntels(game.Planets)
+
+	game.Players = append(game.Players, packetPlayer)
+	game.MineralPackets = append(game.MineralPackets, packet)
+
+	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
+	packetPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// move packet, wipe out planet
+	turn.generateTurn()
+
+	// packet hits, but planet is fine and we recover 1/3rd of the cargo
+	assert.NotEqual(t, 0, planet.population())
+	assert.Equal(t, player.Num, planet.PlayerNum)
+	assert.Equal(t, 10/3, planet.Cargo.Ironium)
+}
+
+func Test_turn_testPacketMoveDeleteStarbase(t *testing.T) {
+	game := createSingleUnitGame()
+
+	player := game.Players[0]
+	planet := game.Planets[0]
+
+	// create a new packet heading towards the homeworld
+	packetPlayer := NewPlayer(2, NewRace().WithSpec(&rules)).WithNum(2).withSpec(&rules)
+	packet := newMineralPacket(packetPlayer, 1, 13, 13, Cargo{Ironium: 1000}, Vector{25, 0}, planet.Num)
+
+	// setup initial planet intels so turn generation works
+	packetPlayer.initDefaultPlanetIntels(game.Planets)
+
+	game.Players = append(game.Players, packetPlayer)
+	game.MineralPackets = append(game.MineralPackets, packet)
+
+	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
+	packetPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
+
+	// create a new starbase
+	starbaseDesign := NewShipDesign(player, 2).WithHull(SpaceStation.Name).WithSpec(&rules, player)
+	starbase := newStarbase(player, planet,
+		starbaseDesign,
+		"Starbase",
+	)
+	player.Designs = append(player.Designs, starbaseDesign)
+	game.Starbases = append(game.Starbases, &starbase)
+	planet.Starbase = &starbase
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// move packet, wipe out planet
+	turn.generateTurn()
+
+	// no pop, no starbase
+	assert.Equal(t, 0, planet.population())
+	assert.Equal(t, None, planet.PlayerNum)
+	assert.Equal(t, true, starbase.Delete)
+	assert.Nil(t, nil, planet.Starbase)
+
+}
+
 func Test_turn_decayPackets(t *testing.T) {
 	game := createSingleUnitGame()
 	player := game.Players[0]

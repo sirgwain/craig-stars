@@ -729,8 +729,10 @@ func (t *turn) packetMove(builtThisTurn bool) {
 		player := t.game.getPlayer(packet.PlayerNum)
 		planet := t.game.getPlanet(int(packet.TargetPlanetNum))
 		var planetPlayer *Player
+		var starbase *Fleet
 		if planet.Owned() {
 			planetPlayer = t.game.getPlayer(planet.PlayerNum)
+			starbase = planet.Starbase
 		}
 
 		packet.movePacket(&t.game.Rules, player, planet, planetPlayer)
@@ -741,6 +743,20 @@ func (t *turn) packetMove(builtThisTurn bool) {
 			Str("Position", packet.Position.String()).
 			Msgf("moved packet")
 
+		if planetPlayer != nil && planet.population() == 0 {
+			// this planet just got killed by a packet
+			if starbase != nil {
+				t.game.deleteStarbase(starbase)
+				planet.Spec.PlanetStarbaseSpec = PlanetStarbaseSpec{}
+
+				t.log.Debug().
+					Int("Player", planetPlayer.Num).
+					Str("Packet", packet.Name).
+					Str("Planet", planet.Name).
+					Msgf("packet wiped out planet, deleting starbase")
+
+			}
+		}
 	}
 }
 
