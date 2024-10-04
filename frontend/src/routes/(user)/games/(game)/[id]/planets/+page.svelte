@@ -36,16 +36,19 @@
 	let showProductionQueueDialog = false;
 
 	$: filteredPlanets = $settings.showAllPlanets
-		? $universe
+		? ($universe
 				.getPlanets($settings.sortPlanetsKey, $settings.sortPlanetsDescending)
 				.filter(
 					(i) =>
 						i.name.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
-						$universe.getPlayerPluralName(i.playerNum)?.toLowerCase().indexOf(search.toLowerCase()) != -1
-				) ?? []
-		: $universe
+						$universe
+							.getPlayerPluralName(i.playerNum)
+							?.toLowerCase()
+							.indexOf(search.toLowerCase()) != -1
+				) ?? [])
+		: ($universe
 				.getMyPlanets($settings.sortPlanetsKey, $settings.sortPlanetsDescending)
-				.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? [];
+				.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? []);
 
 	$: columns = [
 		{
@@ -58,7 +61,9 @@
 			title: 'Owner',
 			hidden: !$settings.showAllPlanets,
 			sortBy: (a, b) =>
-				$universe.getPlayerPluralName(a.playerNum)?.localeCompare($universe.getPlayerPluralName(b.playerNum))
+				$universe
+					.getPlayerPluralName(a.playerNum)
+					?.localeCompare($universe.getPlayerPluralName(b.playerNum))
 		},
 		{
 			key: 'reportAge',
@@ -216,7 +221,7 @@
 				<button class="cs-link text-xl text-left" on:click={() => selectPlanet(row)}>{cell}</button>
 			{:else if column.key == 'owner'}
 				<span style={`color: ${$universe.getPlayerColor(row.playerNum)};`}>
-					{owned(row) ? $universe.getPlayerPluralName(row.playerNum) ?? '' : ''}
+					{owned(row) ? ($universe.getPlayerPluralName(row.playerNum) ?? '') : ''}
 				</span>
 			{:else if column.key == 'reportAge'}
 				{#if row.reportAge == 0 || row.reportAge === undefined}
@@ -257,16 +262,16 @@
 					>
 				{/if}
 			{:else if column.key == 'production'}
-				{#if row.productionQueue?.length}
-					<button
-						on:click={() => onProductionQueueDialog(row)}
-						class="text-base w-32 flex justify-between text-left cursor-pointer"
-					>
+				<button
+					on:click={() => onProductionQueueDialog(row)}
+					class="text-base w-32 flex justify-between text-left cursor-pointer"
+				>
+					{#if row.productionQueue?.length}
 						<ProductionQueueItemLine item={row.productionQueue[0]} index={0} shortName={true} />
-					</button>
-				{:else if ownedBy(row, $player.num)}
-					--- Queue is Empty ---
-				{/if}
+					{:else if ownedBy(row, $player.num)}
+						-- Queue is Empty --
+					{/if}
+				</button>
 			{:else if column.key == 'mines'}
 				{row.mines ?? 0}
 			{:else if column.key == 'factories'}
@@ -274,9 +279,7 @@
 			{:else if column.key == 'defense'}
 				{((row.spec.defenseCoverage ?? 0) * 100).toFixed(1)}%
 			{:else if column.key == 'minerals'}
-				{#if totalMinerals(row.cargo) != 0}
-					<MineralMini mineral={row.cargo} />
-				{/if}
+				<MineralMini mineral={row.cargo} />
 			{:else if column.key == 'miningRate'}
 				<MineralMini mineral={row.spec.miningOutput} />
 			{:else if column.key == 'mineralConcentration'}
