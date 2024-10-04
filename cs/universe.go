@@ -496,13 +496,19 @@ func (u *Universe) createWormhole(rules *Rules, position Vector, stability Wormh
 	return wormhole
 }
 
-// delete a wormhole from the universe
+// find the salvage at a position, or create a new one
 func (u *Universe) createSalvage(position Vector, playerNum int, cargo Cargo) *Salvage {
+	salvage, exists := u.salvagesByPosition[position]
+	// Check for empty salvage, because they are deleted from database, but not mapObjects
+	if exists && (salvage.Cargo != Cargo{}) {
+		salvage.Cargo = salvage.Cargo.Add(cargo)
+		return salvage
+	}
 	num := 1
 	if len(u.Salvages) > 0 {
 		num = u.Salvages[len(u.Salvages)-1].Num + 1
 	}
-	salvage := newSalvage(position, num, playerNum, cargo)
+	salvage = newSalvage(position, num, playerNum, cargo)
 	u.Salvages = append(u.Salvages, salvage)
 	u.salvagesByNum[num] = salvage
 	u.addMapObjectByPosition(salvage, salvage.Position)
