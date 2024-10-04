@@ -258,6 +258,12 @@
 	stroke-width: 0.5;
 }
 
+.starbase-fort {
+	fill: #00007F;
+	stroke: #00002F;
+	stroke-width: 0.5;
+}
+
 .stargate {
 	fill: #008100;
 	stroke: #005c00;
