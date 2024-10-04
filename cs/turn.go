@@ -2594,6 +2594,17 @@ func (t *turn) fleetSweepMines() {
 					mineFieldPlayer := t.game.getPlayer(mineField.PlayerNum)
 					numSwept := mineField.sweep(&t.game.Rules, fleet.Position, fleet.Spec.MineSweep)
 
+					if numSwept == 0 {
+						t.log.Debug().
+							Int("Player", fleet.PlayerNum).
+							Str("Fleet", fleet.Name).
+							Str("MineField", mineField.Name).
+							Int("MineFieldPlayer", mineField.PlayerNum).
+							Int("NumMines", mineField.NumMines).
+							Msgf("no mines swept")
+						continue
+					}
+
 					messager.fleetMineFieldSwept(fleetPlayer, fleet, mineField, numSwept)
 					messager.fleetMineFieldSwept(mineFieldPlayer, fleet, mineField, numSwept)
 
