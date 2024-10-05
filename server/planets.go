@@ -104,8 +104,10 @@ func (s *server) updatePlanetOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	planets, err := dbClient.GetPlanetsForPlayer(game.ID, player.Num)
+
 	orderer := cs.NewOrderer()
-	if err := orderer.UpdatePlanetOrders(&game.Rules, player, existingPlanet, planet.PlanetOrders); err != nil {
+	if err := orderer.UpdatePlanetOrders(&game.Rules, player, existingPlanet, planet.PlanetOrders, planets); err != nil {
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}

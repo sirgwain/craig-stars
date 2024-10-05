@@ -33,7 +33,7 @@ type SplitFleetRequest struct {
 // updating planet and fleet psecs after cargo transfer, splitting and merging fleets, updating research, etc.
 type Orderer interface {
 	UpdatePlayerOrders(player *Player, playerPlanets []*Planet, order PlayerOrders, rules *Rules)
-	UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet, orders PlanetOrders) error
+	UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet, orders PlanetOrders, playerPlanets []*Planet) error
 	UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrders)
 	UpdateMineFieldOrders(player *Player, minefield *MineField, orders MineFieldOrders) error
 	TransferFleetCargo(rules *Rules, player, destPlayer *Player, source, dest *Fleet, transferAmount CargoTransferRequest) error
@@ -93,7 +93,7 @@ func (o *orders) UpdatePlayerOrders(player *Player, playerPlanets []*Planet, ord
 }
 
 // update a planet orders
-func (o *orders) UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet, orders PlanetOrders) error {
+func (o *orders) UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet, orders PlanetOrders, playerPlanets []*Planet) error {
 	planet.PlanetOrders = orders
 
 	// make sure if we have a starbase, it has a design so we can compute
@@ -102,13 +102,7 @@ func (o *orders) UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet
 		return err
 	}
 
-	spec := &planet.Spec
-
-	// update the player spec with new values from this planet
-	oldResourcesPerYearResearch := spec.ResourcesPerYearResearch
-	oldResourcesPerYearResearchEstimatedLeftover := spec.ResourcesPerYearResearchEstimatedLeftover
-
-	spec.computeResourcesPerYearAvailable(player, planet)
+	planet.Spec.computeResourcesPerYearAvailable(player, planet)
 	if err := planet.PopulateProductionQueueDesigns(player); err != nil {
 		return err
 	}
@@ -124,15 +118,17 @@ func (o *orders) UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet
 		return fmt.Errorf("planet %s unable to populate queue estimates %w", planet.Name, err)
 	}
 
-	spec = &planet.Spec
+	// update the current planet in our list of planets
+	for i, playerPlanet := range playerPlanets {
+		if playerPlanet.Num == planet.Num {
+			playerPlanets[i] = planet
+			break
+		}
+	}
 
 	// update the player spec with the change in resources for this planet
 	// if we turned on/off Contribute Only Leftover Resources to Research, the amount this planet contributes to research goes up
-	planetResearchDiff := spec.ResourcesPerYearResearch - oldResourcesPerYearResearch
-	planetLeftoverDiff := spec.ResourcesPerYearResearchEstimatedLeftover - oldResourcesPerYearResearchEstimatedLeftover
-	player.Spec.ResourcesPerYearResearch = player.Spec.ResourcesPerYearResearch + planetResearchDiff
-	player.Spec.ResourcesPerYearResearchEstimated = player.Spec.ResourcesPerYearResearchEstimated + planetResearchDiff + planetLeftoverDiff
-
+	player.Spec.PlayerResearchSpec = computePlayerResearchSpec(player, rules, playerPlanets)
 	planet.MarkDirty()
 
 	log.Info().

@@ -115,13 +115,17 @@ const (
 )
 
 type PlayerSpec struct {
-	PlanetaryScanner                  TechPlanetaryScanner                `json:"planetaryScanner"`
-	Defense                           TechDefense                         `json:"defense"`
-	Terraform                         map[TerraformHabType]*TechTerraform `json:"terraform"`
-	ResourcesPerYear                  int                                 `json:"resourcesPerYear"`
-	ResourcesPerYearResearch          int                                 `json:"resourcesPerYearResearch"`
-	ResourcesPerYearResearchEstimated int                                 `json:"resourcesPerYearResearchEstimated"`
-	CurrentResearchCost               int                                 `json:"currentResearchCost"`
+	PlayerResearchSpec
+	PlanetaryScanner TechPlanetaryScanner                `json:"planetaryScanner"`
+	Defense          TechDefense                         `json:"defense"`
+	Terraform        map[TerraformHabType]*TechTerraform `json:"terraform"`
+}
+
+type PlayerResearchSpec struct {
+	ResourcesPerYear                  int `json:"resourcesPerYear"`
+	ResourcesPerYearResearch          int `json:"resourcesPerYearResearch"`
+	ResourcesPerYearResearchEstimated int `json:"resourcesPerYearResearchEstimated"`
+	CurrentResearchCost               int `json:"currentResearchCost"`
 }
 
 type PlayerScore struct {
@@ -503,7 +507,6 @@ func (p *Player) getSalvageIntel(num int) *SalvageIntel {
 }
 
 func computePlayerSpec(player *Player, rules *Rules, planets []*Planet) PlayerSpec {
-	researcher := NewResearcher(rules)
 	techs := rules.techs
 	spec := PlayerSpec{
 		PlanetaryScanner: *techs.GetBestPlanetaryScanner(player),
@@ -515,6 +518,14 @@ func computePlayerSpec(player *Player, rules *Rules, planets []*Planet) PlayerSp
 			TerraformHabTypeRad:  techs.GetBestTerraform(player, TerraformHabTypeRad),
 		},
 	}
+
+	spec.PlayerResearchSpec = computePlayerResearchSpec(player, rules, planets)
+	return spec
+}
+
+func computePlayerResearchSpec(player *Player, rules *Rules, planets []*Planet) PlayerResearchSpec {
+	researcher := NewResearcher(rules)
+	spec := PlayerResearchSpec{}
 
 	for _, planet := range planets {
 		if planet.OwnedBy(player.Num) {

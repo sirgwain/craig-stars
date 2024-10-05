@@ -70,7 +70,7 @@ func (ai *aiPlayer) produce() error {
 						Msgf("adding %d %s to %s queue", ship.quantity, design.Name, planet.Name)
 
 					ai.addShipToTopOfQueue(planet, fleetMakeup.purpose, design, ship.quantity)
-					if err := ai.client.UpdatePlanetOrders(&ai.game.Rules, ai.Player, planet, planet.PlanetOrders); err != nil {
+					if err := ai.client.UpdatePlanetOrders(&ai.game.Rules, ai.Player, planet, planet.PlanetOrders, ai.Planets); err != nil {
 						return err
 					}
 				}
