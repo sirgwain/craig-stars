@@ -28,7 +28,7 @@
 	export let cs: CS | undefined = undefined;
 
 	let filter = '';
-	let showAll = player !== undefined;
+	let showAll = player === undefined;
 
 	let techsByCategory: Record<TechCategory, Tech[]> = {
 		Armor: [],
