@@ -27,7 +27,7 @@
 		<span class="font-semibold"
 			>{(resourcesPerYearResearch ?? 'None') == 0 ? 'None' : resourcesPerYearResearch}</span
 		>
-		of these resources have been alloocated to research.
+		of these resources have been allocated to research.
 		{#if resourcesPerYearResearch != 0}
 			That leaves <span class="font-semibold">{resourcesPerYearAvailable}</span> resources avaliable
 			for use by the planet.
@@ -38,7 +38,8 @@
 				Your resources at this planet will increase with population, habitability and <span
 					class="font-semibold">Energy</span
 				> tech.
-			</p>{/if}
+			</p>
+		{/if}
 
 		{#if resourcesPerYearResearchEstimated > 0}
 			Planetary production will leave an estimated <span class="font-semibold"
