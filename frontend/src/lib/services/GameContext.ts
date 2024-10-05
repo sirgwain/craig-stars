@@ -862,6 +862,10 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		const result = await FleetService.transferCargo(fleet, dest, transferAmount);
 		const u = get(universe);
 
+		if (result.player) {
+			updatePlayer(result.player);
+		}
+
 		if (result.dest?.type == MapObjectType.Planet) {
 			const planet = result.dest as Planet;
 			updatePlanet(dest as Planet, planet);

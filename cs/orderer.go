@@ -37,7 +37,7 @@ type Orderer interface {
 	UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrders)
 	UpdateMineFieldOrders(player *Player, minefield *MineField, orders MineFieldOrders) error
 	TransferFleetCargo(rules *Rules, player, destPlayer *Player, source, dest *Fleet, transferAmount CargoTransferRequest) error
-	TransferPlanetCargo(rules *Rules, player *Player, source *Fleet, dest *Planet, transferAmount CargoTransferRequest) error
+	TransferPlanetCargo(rules *Rules, player *Player, source *Fleet, dest *Planet, transferAmount CargoTransferRequest, playerPlanets []*Planet) error
 	TransferSalvageCargo(rules *Rules, player *Player, source *Fleet, dest *Salvage, nextSalvageNum int, transferAmount CargoTransferRequest) (*Salvage, error)
 	TransferMineralPacketCargo(rules *Rules, player *Player, source *Fleet, dest *MineralPacket, transferAmount CargoTransferRequest) error
 	SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet, request SplitFleetRequest) (source, dest *Fleet, err error)
@@ -95,28 +95,7 @@ func (o *orders) UpdatePlayerOrders(player *Player, playerPlanets []*Planet, ord
 // update a planet orders
 func (o *orders) UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet, orders PlanetOrders, playerPlanets []*Planet) error {
 	planet.PlanetOrders = orders
-
-	// make sure if we have a starbase, it has a design so we can compute
-	// upgrade costs
-	if err := planet.PopulateStarbaseDesign(player); err != nil {
-		return err
-	}
-
-	planet.Spec.computeResourcesPerYearAvailable(player, planet)
-	if err := planet.PopulateProductionQueueDesigns(player); err != nil {
-		return err
-	}
-
-	// make sure we can actually build this stuff
-	for _, item := range planet.ProductionQueue {
-		if item.design != nil && item.design.OriginalPlayerNum != None {
-			return fmt.Errorf("cannot build %s, it was transferred from another player", item.design.Name)
-		}
-	}
-
-	if err := planet.PopulateProductionQueueEstimates(rules, player); err != nil {
-		return fmt.Errorf("planet %s unable to populate queue estimates %w", planet.Name, err)
-	}
+	o.updatePlanetSpec(rules, player, planet)
 
 	// update the current planet in our list of planets
 	for i, playerPlanet := range playerPlanets {
@@ -136,6 +115,34 @@ func (o *orders) UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet
 		Int("PlayerNum", player.Num).
 		Str("Planet", planet.Name).
 		Msg("update planet orders")
+
+	return nil
+}
+
+// update a planet spec after some change
+func (o *orders) updatePlanetSpec(rules *Rules, player *Player, planet *Planet) error {
+
+	// make sure if we have a starbase, it has a design so we can compute
+	// upgrade costs
+	if err := planet.PopulateStarbaseDesign(player); err != nil {
+		return err
+	}
+
+	planet.Spec = computePlanetSpec(rules, player, planet)
+	if err := planet.PopulateProductionQueueDesigns(player); err != nil {
+		return err
+	}
+
+	// make sure we can actually build this stuff
+	for _, item := range planet.ProductionQueue {
+		if item.design != nil && item.design.OriginalPlayerNum != None {
+			return fmt.Errorf("cannot build %s, it was transferred from another player", item.design.Name)
+		}
+	}
+
+	if err := planet.PopulateProductionQueueEstimates(rules, player); err != nil {
+		return fmt.Errorf("planet %s unable to populate queue estimates %w", planet.Name, err)
+	}
 
 	return nil
 }
@@ -238,7 +245,7 @@ func (o *orders) TransferFleetCargo(rules *Rules, player, destPlayer *Player, so
 }
 
 // transfer cargo from a planet to/from a fleet
-func (o *orders) TransferPlanetCargo(rules *Rules, player *Player, source *Fleet, dest *Planet, transferAmount CargoTransferRequest) error {
+func (o *orders) TransferPlanetCargo(rules *Rules, player *Player, source *Fleet, dest *Planet, transferAmount CargoTransferRequest, playerPlanets []*Planet) error {
 
 	if source.availableCargoSpace() < transferAmount.Total() {
 		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", source.Name, source.availableCargoSpace(), transferAmount.Total(), dest.Name)
@@ -260,12 +267,23 @@ func (o *orders) TransferPlanetCargo(rules *Rules, player *Player, source *Fleet
 	dest.Cargo = dest.Cargo.Subtract(transferAmount.Cargo)
 	source.Spec = ComputeFleetSpec(rules, player, source)
 
-	if dest.Starbase != nil {
-		dest.Starbase.Tokens[0].design = player.GetDesign(dest.Starbase.Tokens[0].DesignNum)
+	// update this planet and the player's research spec
+	if dest.OwnedBy(player.Num) {
+		o.updatePlanetSpec(rules, player, dest)
+
+		// update the current planet in our list of planets
+		for i, playerPlanet := range playerPlanets {
+			if playerPlanet.Num == dest.Num {
+				playerPlanets[i] = dest
+				break
+			}
+		}
+
+		// update the player spec with the change in resources for this planet
+		// if we turned on/off Contribute Only Leftover Resources to Research, the amount this planet contributes to research goes up
+		player.Spec.PlayerResearchSpec = computePlayerResearchSpec(player, rules, playerPlanets)
 	}
-	starbaseSpec := dest.Spec.PlanetStarbaseSpec
-	dest.Spec = computePlanetSpec(rules, player, dest)
-	dest.Spec.PlanetStarbaseSpec = starbaseSpec
+
 	dest.MarkDirty()
 
 	log.Info().

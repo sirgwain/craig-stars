@@ -1098,7 +1098,7 @@ func Test_orders_TransferPlanetCargo(t *testing.T) {
 			o := &orders{}
 			sourceCargo := tt.args.source.Cargo
 			destCargo := tt.args.dest.Cargo
-			err := o.TransferPlanetCargo(&rules, player, tt.args.source, tt.args.dest, tt.args.transferAmount)
+			err := o.TransferPlanetCargo(&rules, player, tt.args.source, tt.args.dest, tt.args.transferAmount, []*Planet{tt.args.dest})
 			if (err != nil) != tt.wantErr {
 				t.Errorf("orders.TransferPlanetCargo() error = %v, wantErr %v", err, tt.wantErr)
 			}

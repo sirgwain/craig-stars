@@ -398,11 +398,10 @@ func (s *server) transferCargo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// the fleet needs designs to compute its spec after
-	// transfering cargo
-	player.Designs, err = db.GetShipDesignsForPlayer(game.ID, player.Num)
+	// load this player but with designs so the update works correctly
+	player, err = db.GetPlayerWithDesignsForGame(game.ID, player.Num)
 	if err != nil {
-		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("get fleets for player")
+		log.Error().Err(err).Int64("ID", player.ID).Msg("loading player from database")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
@@ -471,8 +470,15 @@ func (s *server) transferCargoFleetPlanet(w http.ResponseWriter, r *http.Request
 		player.InjectDesigns([]*cs.Fleet{planet.Starbase})
 	}
 
+	// load all a player's planets so we can recompute research estimates
+	playerPlanets, err := readClient.GetPlanetsForPlayer(game.ID, player.Num)
+	if err != nil {
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
 	orderer := cs.NewOrderer()
-	if err := orderer.TransferPlanetCargo(&game.Rules, player, fleet, planet, transferAmount); err != nil {
+	if err := orderer.TransferPlanetCargo(&game.Rules, player, fleet, planet, transferAmount, playerPlanets); err != nil {
 		log.Error().
 			Int64("GameID", game.ID).
 			Int("Player", player.Num).
@@ -495,6 +501,11 @@ func (s *server) transferCargoFleetPlanet(w http.ResponseWriter, r *http.Request
 		if err := c.UpdateFleet(fleet); err != nil {
 			return err
 		}
+
+		if err := c.UpdatePlayerSpec(player); err != nil {
+			return err
+		}
+
 		return nil
 	}); err != nil {
 		log.Error().Err(err).Int64("PlanetID", planet.ID).Int64("FleetID", fleet.ID).Msg("update planet and fleet in database")
@@ -513,9 +524,9 @@ func (s *server) transferCargoFleetPlanet(w http.ResponseWriter, r *http.Request
 	// success
 	// only return an updated mapobject if we own it
 	if planet.PlayerNum == player.Num {
-		rest.RenderJSON(w, rest.JSON{"fleet": fleet, "dest": planet})
+		rest.RenderJSON(w, rest.JSON{"player": player, "fleet": fleet, "dest": planet})
 	} else {
-		rest.RenderJSON(w, rest.JSON{"fleet": fleet})
+		rest.RenderJSON(w, rest.JSON{"player": player, "fleet": fleet})
 	}
 }
 
