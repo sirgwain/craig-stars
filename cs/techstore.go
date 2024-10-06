@@ -299,7 +299,7 @@ func (store *TechStore) GetBestScanner(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
-		if tech.Scanner && (tech.ScanRange >= 0 || tech.ScanRangePen >= 0) && player.HasTech(&tech.Tech) {
+		if (tech.HullSlotType&HullSlotTypeScanner > 0) && tech.Scanner && (tech.ScanRange >= 0 || tech.ScanRangePen >= 0) && player.HasTech(&tech.Tech) {
 			if bestTech == nil || tech.Ranking > bestTech.Ranking {
 				bestTech = tech
 			}
@@ -1531,24 +1531,24 @@ var UltraStealthCloak = TechHullComponent{Tech: NewTech("Ultra-Stealth Cloak", N
 }
 var BattleComputer = TechHullComponent{Tech: NewTech("Battle Computer", NewCost(0, 0, 15, 6), TechRequirements{TechLevel: TechLevel{}}, 40, TechCategoryElectrical),
 
-	Mass:                   1,
-	InitiativeBonus:        1,
-	TorpedoBonus:           .2,
-	HullSlotType:           HullSlotTypeElectrical,
+	Mass:            1,
+	InitiativeBonus: 1,
+	TorpedoBonus:    .2,
+	HullSlotType:    HullSlotTypeElectrical,
 }
 var BattleSuperComputer = TechHullComponent{Tech: NewTech("Battle Super Computer", NewCost(0, 0, 25, 14), TechRequirements{TechLevel: TechLevel{Energy: 5, Electronics: 11}}, 50, TechCategoryElectrical),
 
-	Mass:                   1,
-	InitiativeBonus:        2,
-	TorpedoBonus:           .3,
-	HullSlotType:           HullSlotTypeElectrical,
+	Mass:            1,
+	InitiativeBonus: 2,
+	TorpedoBonus:    .3,
+	HullSlotType:    HullSlotTypeElectrical,
 }
 var BattleNexus = TechHullComponent{Tech: NewTech("Battle Nexus", NewCost(0, 0, 30, 15), TechRequirements{TechLevel: TechLevel{Energy: 10, Electronics: 19}}, 60, TechCategoryElectrical),
 
-	Mass:                   1,
-	InitiativeBonus:        3,
-	TorpedoBonus:           .5,
-	HullSlotType:           HullSlotTypeElectrical,
+	Mass:            1,
+	InitiativeBonus: 3,
+	TorpedoBonus:    .5,
+	HullSlotType:    HullSlotTypeElectrical,
 }
 var Jammer10 = TechHullComponent{Tech: NewTech("Jammer 10", NewCost(0, 0, 2, 6), TechRequirements{TechLevel: TechLevel{Energy: 2, Electronics: 6}, PRTsRequired: []PRT{IS}}, 70, TechCategoryElectrical),
 

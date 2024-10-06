@@ -327,7 +327,7 @@ func (o *orders) TransferMineralPacketCargo(rules *Rules, player *Player, source
 	source.Spec = ComputeFleetSpec(rules, player, source)
 
 	// make our player aware of this mineral packet's new cargo
-	discover := newDiscoverer(log.Logger, player)
+	discover := newDiscoverer(log.With().Int64("GameID", player.GameID).Logger(), player)
 	discover.discoverMineralPacketCargo(dest)
 
 	log.Info().
@@ -371,7 +371,7 @@ func (o *orders) TransferSalvageCargo(rules *Rules, player *Player, source *Flee
 	source.Spec = ComputeFleetSpec(rules, player, source)
 
 	// make our player aware of this salvage
-	discover := newDiscoverer(log.Logger, player)
+	discover := newDiscoverer(log.With().Int64("GameID", player.GameID).Logger(), player)
 	discover.discoverSalvage(dest)
 
 	log.Info().

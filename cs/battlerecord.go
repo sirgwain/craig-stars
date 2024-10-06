@@ -172,24 +172,22 @@ func (b *BattleRecord) recordNewRound() {
 }
 
 // Record a move
-func (b *BattleRecord) recordMove(round int, token *battleToken, from, to BattleVector) {
+func (b *BattleRecord) recordMove(round int, token *battleToken, from, to BattleVector) BattleRecordTokenAction {
 	action := BattleRecordTokenAction{Type: TokenActionMove, Round: round, TokenNum: token.Num, From: from, To: to}
 	actions := b.ActionsPerRound[len(b.ActionsPerRound)-1]
 	actions = append(actions, action)
 	b.ActionsPerRound[len(b.ActionsPerRound)-1] = actions
-
-	log.Debug().Msgf("Round: %d %s", round, action)
+	return action
 }
 
 // Record a token running away
-func (b *BattleRecord) recordRunAway(round int, token *battleToken) {
+func (b *BattleRecord) recordRunAway(round int, token *battleToken) BattleRecordTokenAction {
 	action := BattleRecordTokenAction{Type: TokenActionRanAway, Round: round, TokenNum: token.Num}
 	actions := b.ActionsPerRound[len(b.ActionsPerRound)-1]
 	actions = append(actions, action)
 	b.ActionsPerRound[len(b.ActionsPerRound)-1] = actions
 
-	log.Debug().Msgf("Round: %d %s", round, action)
-
+	return action
 }
 
 // Record a token firing a beam weapon
