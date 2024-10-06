@@ -2,12 +2,15 @@
 	import { createEventDispatcher } from 'svelte';
 	import { startCase } from 'lodash-es';
 	import { $enum as eu } from 'ts-enum-util';
+	import { Icon } from '@steeze-ui/svelte-icon';
+	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 
 	const dispatch = createEventDispatcher();
 
 	export let name: string;
 	export let value: string | undefined;
 	export let title: string | undefined = undefined;
+	export let tooltip: string | undefined = undefined;
 	export let enumType: any;
 	export let titleClass = 'label-text w-32 text-right';
 	export let required = false;
@@ -33,5 +36,10 @@
 				{/if}
 			{/each}
 		</select>
+		{#if tooltip}
+			<div class="tooltip tooltip-left mx-2" data-tip={tooltip}>
+				<Icon src={QuestionMarkCircle} size="16" class=" cursor-help inline-block" />
+			</div>
+		{/if}
 	</label>
 </div>

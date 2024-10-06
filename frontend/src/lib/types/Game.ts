@@ -32,9 +32,7 @@ export enum PlayerPositions {
 
 export enum GameStartMode {
 	Normal = '', // regular start
-	MidGame = 'MidGame', // further tech levels, pop growth
-	LateGame = 'LateGame',
-	EndGame = 'EndGame'
+	Max = 'Max' // max out all players
 }
 
 export enum NewGamePlayerType {

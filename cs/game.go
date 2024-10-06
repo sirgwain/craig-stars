@@ -159,10 +159,8 @@ const (
 type GameStartMode string
 
 const (
-	GameStartModeNormal   GameStartMode = ""
-	GameStartModeMidGame  GameStartMode = "MidGame"
-	GameStartModeLateGame GameStartMode = "LateGame"
-	GameStartModeEndGame  GameStartMode = "EndGame"
+	GameStartModeNormal GameStartMode = ""
+	GameStartModeMax    GameStartMode = "Max"
 )
 
 type GameState string
