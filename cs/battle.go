@@ -358,8 +358,10 @@ func (b *battle) runBattle() *BattleRecord {
 		}
 	}
 
-	// record destroyed tokens
+	// record destroyed tokens, update damage to ints
 	for _, token := range b.tokens {
+		// after battle make sure damage is an int
+		token.Damage = math.Floor(token.Damage)
 		if token.quantityDestroyed > 0 {
 			b.record.recordDestroyedToken(token, token.quantityDestroyed)
 		}

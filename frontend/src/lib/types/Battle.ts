@@ -24,6 +24,8 @@ export type Token = {
 	armor?: number;
 	stackShields?: number;
 	startingQuantity: number;
+	startingQuantityDamaged: number;
+	startingDamage: number;
 	damage?: number;
 	quantityDamaged?: number;
 	quantity?: number;
@@ -136,7 +138,11 @@ export class Battle implements BattleRecord {
 		Object.assign(this, record);
 		this.totalPhases = sumBy(this.actionsPerRound, (a) => a.length);
 		this.totalRounds = this.actionsPerRound.length;
-		this.tokens.forEach((t) => (t.quantity = t.startingQuantity));
+		this.tokens.forEach((t) => {
+			t.quantity = t.startingQuantity;
+			t.quantityDamaged = t.startingQuantityDamaged ?? 0;
+			t.damage = t.damage ?? 0;
+		});
 		this.buildPhaseTokensForBattle(designFinder);
 		this.tokens.sort((a, b) => a.num - b.num);
 		this.actions = flatten(this.actionsPerRound);
@@ -309,7 +315,7 @@ export function getOurShips(record: BattleRecord, allies: Set<number>): number {
 	let count = 0;
 	allies.forEach(
 		(ally) =>
-			(count += record.stats?.numShipsByPlayer ? record.stats?.numShipsByPlayer[ally] ?? 0 : 0)
+			(count += record.stats?.numShipsByPlayer ? (record.stats?.numShipsByPlayer[ally] ?? 0) : 0)
 	);
 	return count;
 }
@@ -331,7 +337,7 @@ export function getOurDead(record: BattleRecord, allies: Set<number>): number {
 	allies.forEach(
 		(ally) =>
 			(count += record.stats?.shipsDestroyedByPlayer
-				? record.stats?.shipsDestroyedByPlayer[ally] ?? 0
+				? (record.stats?.shipsDestroyedByPlayer[ally] ?? 0)
 				: 0)
 	);
 	return count;
