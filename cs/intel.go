@@ -66,8 +66,9 @@ func newDiscovererWithAllies(log zerolog.Logger, player *Player, players []*Play
 		}
 	}
 
+	discoverLogger := log.With().Int("Player", player.Num).Logger()
 	return &discovererWithAllies{
-		playerDiscoverer: discover{log, player},
+		playerDiscoverer: discover{discoverLogger, player},
 		allyDiscoverers:  mapSharePlayers,
 	}
 }

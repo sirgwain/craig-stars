@@ -26,10 +26,11 @@ func newTurnGenerator(game *FullGame) turnGenerator {
 	turnLogger := log.With().
 		Int64("GameID", game.ID).
 		Str("GameName", game.Name).
-		Int("Year", game.Year).
+		Int("Year", game.Year+1). // log for next turn
 		Logger()
 	t := turn{game, turnLogger}
 
+	t.game.Universe.setLogger(turnLogger)
 	t.game.Universe.buildMaps(game.Players)
 
 	return &t
@@ -1454,9 +1455,9 @@ func (t *turn) planetProduction() error {
 				}
 				messager.fleetBuilt(player, planet, fleet, token.Quantity)
 			}
-			for _, cargo := range result.packets {
+			if result.packets != (Cargo{}) {
 				target := t.game.getPlanet(planet.PacketTargetNum)
-				packet := t.buildMineralPacket(player, planet, cargo, target)
+				packet := t.buildMineralPacket(player, planet, result.packets, target)
 				messager.planetBuiltMineralPacket(player, planet, packet, target.Name)
 			}
 			if result.starbase != nil {

@@ -82,6 +82,12 @@ type playerBattlePlanNum struct {
 	Num       int
 }
 
+// override the universe logger
+// useful for logging turn specific logs
+func (u *Universe) setLogger(log zerolog.Logger) {
+	u.log = log
+}
+
 // build the maps used for the Get functions
 func (u *Universe) buildMaps(players []*Player) error {
 
