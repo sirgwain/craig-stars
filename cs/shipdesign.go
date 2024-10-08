@@ -898,7 +898,6 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 				// can always use more fuel
 				slot.HullComponent = fuelTank.Name
 				numFuelTanks += slot.Quantity
-				}
 			}
 		case HullSlotTypeScannerElectricalMechanical:
 			switch purpose {
@@ -942,7 +941,6 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 					numFuelTanks += slot.Quantity
 				}
 			}
-
 		case HullSlotTypeArmorScannerElectricalMechanical:
 			switch purpose {
 			case ShipDesignPurposeFuelFreighter:
