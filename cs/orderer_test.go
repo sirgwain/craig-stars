@@ -1485,6 +1485,46 @@ func Test_orders_SplitFleet(t *testing.T) {
 			},
 		},
 		{
+			name: "split damaged 2 scout fleet into two fleets",
+			args: args{
+				source: &Fleet{
+					MapObject: MapObject{
+						Type:      MapObjectTypeFleet,
+						Num:       1,
+						PlayerNum: player.Num,
+						Name:      "Fleet #1",
+					},
+					BaseName: "Fleet",
+					FleetOrders: FleetOrders{
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
+					},
+					Tokens: []ShipToken{
+						// one of these scouts has 10 damage
+						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 2, QuantityDamaged: 2, Damage: 10},
+					},
+					Fuel: scoutDesign.Spec.FuelCapacity * 2,
+				},
+				dest: nil,
+				sourceTokens: []ShipToken{
+					{
+						Quantity:        1,
+						DesignNum:       1,
+						QuantityDamaged: 1,
+						Damage:          10,
+					},
+				},
+				// move the damaged token into a new fleet
+				destTokens: []ShipToken{
+					{
+						Quantity:        1,
+						DesignNum:       1,
+						QuantityDamaged: 1,
+						Damage:          10,
+					},
+				},
+			},
+		},
+		{
 			name: "split damaged 3 scout fleet",
 			args: args{
 				source: &Fleet{

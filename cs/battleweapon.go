@@ -59,7 +59,7 @@ type battleWeaponDamage struct {
 	shieldDamage int
 	// the damage inflicted on armor
 	armorDamage int
-	// the new stack damage
+	// the new stack damage, per ship in the stack
 	damage float64
 	// the new stack quantity damaged
 	quantityDamaged int

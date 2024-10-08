@@ -210,8 +210,10 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 			BaseName: "Fleet1",
 			Tokens: []cs.ShipToken{
 				{
-					DesignNum: p1DragonFly.Num,
-					Quantity:  5,
+					DesignNum:       p1DragonFly.Num,
+					Quantity:        5,
+					QuantityDamaged: 5,
+					Damage:          5,
 				},
 				{
 					DesignNum: p1Scout.Num,

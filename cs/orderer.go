@@ -397,41 +397,37 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 
 	// build a map of tokens by design
 	tokensByDesign := map[int]*ShipToken{}
-	for _, token := range request.Source.Tokens {
-		t := token
-		t.Damage *= float64(t.QuantityDamaged)
-		tokensByDesign[token.DesignNum] = &t
+	stackDamageByDesign := map[int]int{}
+	for _, token := range source.Tokens {
+		tokensByDesign[token.DesignNum] = &token
+		stackDamageByDesign[token.DesignNum] += int(token.Damage * float64(token.QuantityDamaged))
 	}
 	if dest != nil {
 		for _, token := range dest.Tokens {
+			stackDamageByDesign[token.DesignNum] += int(token.Damage * float64(token.QuantityDamaged))
 			if t, found := tokensByDesign[token.DesignNum]; found {
 				t.Quantity += token.Quantity
 				t.QuantityDamaged += token.QuantityDamaged
-				t.Damage += token.Damage * float64(token.QuantityDamaged)
 			} else {
-				t := token
-				t.Damage *= float64(t.QuantityDamaged)
-				tokensByDesign[token.DesignNum] = &t
+				tokensByDesign[token.DesignNum] = &token
 			}
 		}
 	}
 
 	// build a map of the split request tokens by design
 	splitTokensByDesign := map[int]*ShipToken{}
+	splitStackDamageByDesign := map[int]int{}
 	for _, token := range request.SourceTokens {
-		t := token
-		t.Damage *= float64(t.QuantityDamaged)
-		splitTokensByDesign[token.DesignNum] = &t
+		splitTokensByDesign[token.DesignNum] = &token
+		splitStackDamageByDesign[token.DesignNum] += int(token.Damage * float64(token.QuantityDamaged))
 	}
 	for _, token := range request.DestTokens {
+		splitStackDamageByDesign[token.DesignNum] += int(token.Damage * float64(token.QuantityDamaged))
 		if t, found := splitTokensByDesign[token.DesignNum]; found {
 			t.Quantity += token.Quantity
 			t.QuantityDamaged += token.QuantityDamaged
-			t.Damage += token.Damage * float64(token.QuantityDamaged)
 		} else {
-			t := token
-			t.Damage *= float64(t.QuantityDamaged)
-			splitTokensByDesign[token.DesignNum] = &t
+			splitTokensByDesign[token.DesignNum] = &token
 		}
 	}
 
@@ -445,7 +441,9 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 			return nil, nil, fmt.Errorf("found token in original fleets but not in split request")
 		}
 
-		if splitToken.Quantity != token.Quantity || splitToken.QuantityDamaged != token.QuantityDamaged || splitToken.Damage != token.Damage {
+		stackDamage := stackDamageByDesign[token.DesignNum]
+		splitStackDamage := splitStackDamageByDesign[token.DesignNum]
+		if splitToken.Quantity != token.Quantity || splitToken.QuantityDamaged != token.QuantityDamaged || stackDamage != splitStackDamage {
 			return nil, nil, fmt.Errorf("token in original fleet has different quantity/damage that token in split request")
 		}
 	}
