@@ -635,7 +635,8 @@ func (p *Player) defaultPlans() PlayerPlans {
 		ContributesOnlyLeftoverToResearch: true,
 	}
 
-	// no min terraforming as _usually_ it's faster to build factories first (or at least for lower-value reds where the pop loss actually matters)
+	// no min terraforming as _usually_ it's faster to build factories first
+	// or at least for lower-value reds where the pop loss actually matters
 
 	if !p.Race.Spec.InnateResources {
 		defaultProductionPlan.Items = append(defaultProductionPlan.Items,
@@ -669,7 +670,7 @@ func (p *Player) defaultPlans() PlayerPlans {
 			},
 			{
 				Num:             1,
-				Name:            "KillStarbase",
+				Name:            "Kill Starbase",
 				PrimaryTarget:   BattleTargetStarbase,
 				SecondaryTarget: BattleTargetArmedShips,
 				Tactic:          BattleTacticMaximizeDamageRatio,
