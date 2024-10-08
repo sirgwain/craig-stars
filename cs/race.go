@@ -595,15 +595,7 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		HabCenter:          race.HabCenter(),
 		StartingTechLevels: prtSpec.StartingTechLevels,
 		StartingPlanets:    prtSpec.StartingPlanets,
-		TechCostOffset: TechCostOffset{
-			Engine:           prtSpec.TechCostOffset.Engine,
-			BeamWeapon:       prtSpec.TechCostOffset.BeamWeapon,
-			Torpedo:          prtSpec.TechCostOffset.Torpedo,
-			Bomb:             prtSpec.TechCostOffset.Bomb,
-			PlanetaryDefense: prtSpec.TechCostOffset.PlanetaryDefense,
-			Stargate:         prtSpec.TechCostOffset.Stargate,
-			Terraforming:     prtSpec.TechCostOffset.Terraforming,
-		},
+		TechCostOffset: prtSpec.TechCostOffset,
 		MaxPopulationOffset: prtSpec.MaxPopulationOffset,
 		ScannerSpec: ScannerSpec{
 			ScanRangeFactor: 1,
@@ -754,12 +746,7 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		spec.ArmorStrengthFactor += lrtSpec.ArmorStrengthFactorOffset
 
 		// add any racial tech cost offsets together
-		spec.TechCostOffset.Engine += lrtSpec.TechCostOffset.Engine
-		spec.TechCostOffset.BeamWeapon += lrtSpec.TechCostOffset.BeamWeapon
-		spec.TechCostOffset.Torpedo += lrtSpec.TechCostOffset.Torpedo
-		spec.TechCostOffset.Bomb += lrtSpec.TechCostOffset.Bomb
-		spec.TechCostOffset.PlanetaryDefense += lrtSpec.TechCostOffset.PlanetaryDefense
-		spec.TechCostOffset.Terraforming += lrtSpec.TechCostOffset.Terraforming
+		spec.TechCostOffset = spec.TechCostOffset.Add(lrtSpec.TechCostOffset)
 
 		// CE
 		spec.EngineFailureRate += lrtSpec.EngineFailureRateOffset
@@ -789,11 +776,11 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		QueueItemTypeAutoFactories:          {Germanium: rules.FactoryCostGermanium + factoryGermaniumOffset, Resources: race.FactoryCost},
 		QueueItemTypeMineralAlchemy:         {Resources: rules.MineralAlchemyCost + spec.MineralAlchemyCostOffset},
 		QueueItemTypeAutoMineralAlchemy:     {Resources: rules.MineralAlchemyCost + spec.MineralAlchemyCostOffset},
-		QueueItemTypeDefenses:               rules.DefenseCost.MultiplyFloat64(1 + spec.TechCostOffset.PlanetaryDefense),
-		QueueItemTypeAutoDefenses:           rules.DefenseCost.MultiplyFloat64(1 + spec.TechCostOffset.PlanetaryDefense),
-		QueueItemTypeTerraformEnvironment:   rules.TerraformCost.MultiplyFloat64(1 + spec.TechCostOffset.Terraforming),
-		QueueItemTypeAutoMaxTerraform:       rules.TerraformCost.MultiplyFloat64(1 + spec.TechCostOffset.Terraforming),
-		QueueItemTypeAutoMinTerraform:       rules.TerraformCost.MultiplyFloat64(1 + spec.TechCostOffset.Terraforming),
+		QueueItemTypeDefenses:               rules.DefenseCost.MultiplyFloat64(1 + spec.TechCostOffset[TechTagDefense]),
+		QueueItemTypeAutoDefenses:           rules.DefenseCost.MultiplyFloat64(1 + spec.TechCostOffset[TechTagDefense]),
+		QueueItemTypeTerraformEnvironment:   rules.TerraformCost.MultiplyFloat64(1 + spec.TechCostOffset[TechTagTerraforming]),
+		QueueItemTypeAutoMaxTerraform:       rules.TerraformCost.MultiplyFloat64(1 + spec.TechCostOffset[TechTagTerraforming]),
+		QueueItemTypeAutoMinTerraform:       rules.TerraformCost.MultiplyFloat64(1 + spec.TechCostOffset[TechTagTerraforming]),
 		QueueItemTypeIroniumMineralPacket:   {Resources: spec.PacketResourceCost, Ironium: int(float64(spec.MineralsPerSingleMineralPacket) * spec.PacketMineralCostFactor)},
 		QueueItemTypeBoraniumMineralPacket:  {Resources: spec.PacketResourceCost, Boranium: int(float64(spec.MineralsPerSingleMineralPacket) * spec.PacketMineralCostFactor)},
 		QueueItemTypeGermaniumMineralPacket: {Resources: spec.PacketResourceCost, Germanium: int(float64(spec.MineralsPerSingleMineralPacket) * spec.PacketMineralCostFactor)},

@@ -1,6 +1,8 @@
 package cs
 
-import "math"
+import (
+	"math"
+)
 
 // population is often updated with floating point math, but we have to convert
 // it back to Colonist Cargo values, which are stored in units of 100 colonists per 1kT of Colonist Cargo
@@ -81,23 +83,23 @@ func MinFloat64(nums ...float64) float64 {
 }
 
 // raise an integer to the power of another integer (apparently this is the fastYY)
-// 
+//
 // Does not support negative values (we *are* dealing with integers here after all)
 func PowInt(base, exponent int) int {
-    result := 1
+	result := 1
 	// According to internet, this is the fastest way to do int exponentiation
-    for {
-        if exponent & 1 == 1 {
-            result *= base
-        }
-        exponent >>= 1
-        if exponent == 0 {
-            break
-        }
-        base *= base
-    }
+	for {
+		if exponent&1 == 1 {
+			result *= base
+		}
+		exponent >>= 1
+		if exponent == 0 {
+			break
+		}
+		base *= base
+	}
 
-    return result
+	return result
 }
 
 func AbsInt(num int) int {

@@ -1,6 +1,8 @@
 package cs
 
-import "testing"
+import (
+	"testing"
+)
 
 func Test_clamp(t *testing.T) {
 	type args struct {

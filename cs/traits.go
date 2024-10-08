@@ -88,14 +88,14 @@ type LRTSpec struct {
 	EngineReliableSpeed           int             `json:"engineReliableSpeed,omitempty"`
 }
 
-type TechCostOffset struct {
-	Engine           float64 `json:"engine,omitempty"`
-	BeamWeapon       float64 `json:"beamWeapon,omitempty"`
-	Torpedo          float64 `json:"torpedo,omitempty"`
-	Bomb             float64 `json:"bomb,omitempty"`
-	PlanetaryDefense float64 `json:"planetaryDefense,omitempty"`
-	Stargate         float64 `json:"stargate,omitempty"`
-	Terraforming     float64 `json:"terraforming,omitempty"`
+type TechCostOffset map[TechTag]float64
+
+
+func (t TechCostOffset) Add(other TechCostOffset) TechCostOffset {
+	for tag, bonus := range t {
+		other[tag] += bonus
+	}
+	return other
 }
 
 type StartingPlanet struct {
@@ -264,9 +264,9 @@ func wmSpec() PRTSpec {
 	}
 
 	spec.TechCostOffset = TechCostOffset{
-		BeamWeapon: -.25,
-		Torpedo:    -.25,
-		Bomb:       -.25,
+		TechTagBeamWeapon: -.25,
+		TechTagTorpedo:    -.25,
+		TechTagBomb:       -.25,
 	}
 	spec.DiscoverDesignOnScan = true
 	spec.InvasionAttackBonus = 1.65
@@ -308,10 +308,10 @@ func isSpec() PRTSpec {
 	}
 
 	spec.TechCostOffset = TechCostOffset{
-		PlanetaryDefense: -.4, // defenses cost 40% less
-		BeamWeapon:       .25, // weapons cost 25% more
-		Torpedo:          .25, // weapons cost 25% more
-		Bomb:             .25, // weapons cost 25% more
+		TechTagDefense: -.4, // defenses cost 40% less
+		TechTagBeamWeapon:       .25, // weapons cost 25% more
+		TechTagTorpedo:          .25, // weapons cost 25% more
+		TechTagBomb:             .25, // weapons cost 25% more
 	}
 
 	spec.FreighterGrowthFactor = .5
@@ -440,7 +440,7 @@ func itSpec() PRTSpec {
 	}
 
 	spec.TechCostOffset = TechCostOffset{
-		Stargate: -0.25, // stargates cost 25% less
+		TechTagStargate: -0.25, // stargates cost 25% less
 	}
 	spec.CanGateCargo = true
 	spec.CanDetectStargatePlanets = true
@@ -513,7 +513,7 @@ func ifeSpec() LRTSpec {
 func ttSpec() LRTSpec {
 	return LRTSpec{
 		TechCostOffset: TechCostOffset{
-			Terraforming: -.3, // terraforming costs 30% less
+			TechTagTerraforming: -.3, // terraforming costs 30% less
 		},
 	}
 }
@@ -603,7 +603,7 @@ func ceSpec() LRTSpec {
 		StartingTechLevels: TechLevel{Propulsion: 1},
 
 		TechCostOffset: TechCostOffset{
-			Engine: -.5, // engines cost 50% less
+			TechTagEngine: -.5, // engines cost 50% less
 		},
 
 		EngineFailureRateOffset: .1,

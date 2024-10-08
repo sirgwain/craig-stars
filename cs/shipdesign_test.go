@@ -1,7 +1,6 @@
 package cs
 
 import (
-	"slices"
 	"testing"
 
 	"github.com/sirgwain/craig-stars/test"
@@ -815,7 +814,7 @@ func TestShipDesign_getWarshipPartBonus(t *testing.T) {
 				deflecting: 0,
 				starbase:   false,
 			},
-			want: 1.02579, //
+			want: 1.02579, // check graph for number lol
 		},
 	}
 	for _, tt := range tests {
@@ -884,7 +883,7 @@ func TestDesignShip(t *testing.T) {
 					t.Errorf("DesignShip() errored unexpectedly; returned error %v", err)
 				}
 			}
-			if !slices.Equal(got.Slots, tt.want) {
+			if !CompareSlicesUnordered(got.Slots, tt.want, true) {
 				t.Errorf("ShipDesign from DesignShip() had slots %v, want %v", got.Slots, tt.want)
 			}
 		})

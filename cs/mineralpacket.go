@@ -345,6 +345,7 @@ func (packet *MineralPacket) checkPermaform(rules *Rules, player *Player, planet
 		terraformer := NewTerraformer()
 
 		// Evaluate each mineral type separately
+	mineralLoop:
 		for i, minType := range [3]CargoType{Ironium, Boranium, Germanium} {
 			mineral := int(math.Ceil(float64(packet.Cargo.GetAmount(minType)) * uncaught))
 			habType := HabType(i)
@@ -370,7 +371,7 @@ func (packet *MineralPacket) checkPermaform(rules *Rules, player *Player, planet
 					direction += result.Direction
 					if !result.Terraformed() {
 						// BaseHab already perfect; skip remaining checks
-						continue
+						continue mineralLoop
 					}
 				}
 			}

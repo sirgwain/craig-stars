@@ -998,7 +998,7 @@ func (m *messageClient) planetTerraform(player *Player, planet *Planet, habType 
 		newValueText = radString(newValue)
 	}
 
-	text := fmt.Sprintf("Your terraforming efforts on %s have %s the %s to %s.", planet.Name, changeText, habType, newValueText)
+	text := fmt.Sprintf("Your terraforming efforts on %s have %s its %s to %s.", planet.Name, changeText, habType, newValueText)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetBuiltTerraform, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetPlanet, TargetNum: planet.Num}})
 }
 
@@ -1022,7 +1022,7 @@ func (m *messageClient) playerTechGained(player *Player, field TechField, tech *
 	case TechCategoryShipHull:
 		fallthrough
 	case TechCategoryStarbaseHull:
-		text = fmt.Sprintf("Your recent breakthrough in %v has also given you the %s hull type. To build ships with this design, go to Commands -> Ship Designer and select Create New Design.", field, tech.Name)
+		text = fmt.Sprintf(`Your recent breakthrough in %v has also given you the %s hull type. To build ships with this design, go to Commands -> Ship Designer and select "Create New Design".`, field, tech.Name)
 	case TechCategoryPlanetaryDefense:
 		text = fmt.Sprintf("Your recent breakthrough in %v has also taught you how to build %s defenses. All existing planetary defenses have been upgraded to the new technology.", field, tech.Name)
 	case TechCategoryPlanetaryScanner:

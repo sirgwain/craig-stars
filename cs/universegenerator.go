@@ -580,7 +580,7 @@ func fillStarbaseSlots(techStore *TechStore, starbase *ShipDesign, race *Race, s
 	placedStargate := false
 	for index, slot := range hull.Slots {
 		switch slot.Type {
-		case HullSlotTypeGeneral: // No starting starbases (or any starbase) currently have GP slots, but this is a precaution if they did
+		case HullSlotTypeGeneral: // No starting starbases (or any starbase) currently have GP slots, but if they did, we have it
 			fallthrough
 		case HullSlotTypeWeapon:
 			starbase.Slots = append(starbase.Slots, ShipDesignSlot{beamWeapon.Name, index + 1, int(math.Round(float64(slot.Capacity) / 2))})

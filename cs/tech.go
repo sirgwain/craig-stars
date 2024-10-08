@@ -3,7 +3,6 @@ package cs
 import (
 	"fmt"
 	"math"
-	"strings" // only needed for jank temporary solution
 )
 
 type TechCategory string
@@ -322,8 +321,6 @@ func getCostEfficiencyRatio(player *Player, numerator, denominator *TechHullComp
 
 // Returns the ratio of resource expenditure for 2 TechHullComponents
 // (numeratorTotal / denominatorTotal)
-//
-// resource indicates whether to consider resources in cost analysis (if false, only minerals will be tallied)
 func getResourceEfficiencyRatio(player *Player, numerator, denominator *TechHullComponent) float64 {
 	hcRes := numerator.GetPlayerCost(player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset).Resources
 	otherRes := denominator.GetPlayerCost(player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset).Resources
@@ -446,6 +443,50 @@ const (
 	HullSlotTypeWeaponShield                     = HullSlotTypeShield | HullSlotTypeWeapon
 	HullSlotTypeGeneral                          = HullSlotTypeScanner | HullSlotTypeMechanical | HullSlotTypeElectrical | HullSlotTypeShield | HullSlotTypeArmor | HullSlotTypeWeapon | HullSlotTypeMineLayer
 )
+
+var HullSlotTypes = []HullSlotType{
+	HullSlotTypeNone,
+	HullSlotTypeEngine,
+	HullSlotTypeScanner,
+	HullSlotTypeMechanical,
+	HullSlotTypeBomb,
+	HullSlotTypeMining,
+	HullSlotTypeElectrical,
+	HullSlotTypeShield,
+	HullSlotTypeArmor,
+	HullSlotTypeCargo,
+	HullSlotTypeSpaceDock,
+	HullSlotTypeWeapon,
+	HullSlotTypeOrbital,
+	HullSlotTypeMineLayer,
+	HullSlotTypeElectricalMechanical,
+	HullSlotTypeOrbitalElectrical,
+	HullSlotTypeShieldElectricalMechanical,
+	HullSlotTypeScannerElectricalMechanical,
+	HullSlotTypeArmorScannerElectricalMechanical,
+	HullSlotTypeMineElectricalMechanical,
+	HullSlotTypeShieldArmor,
+	HullSlotTypeWeaponShield,
+	HullSlotTypeGeneral,
+}
+
+// all single type hull slot types
+var BasicHullSlotTypes = []HullSlotType{
+	HullSlotTypeNone,
+	HullSlotTypeEngine,
+	HullSlotTypeScanner,
+	HullSlotTypeMechanical,
+	HullSlotTypeBomb,
+	HullSlotTypeMining,
+	HullSlotTypeElectrical,
+	HullSlotTypeShield,
+	HullSlotTypeArmor,
+	HullSlotTypeCargo,
+	HullSlotTypeSpaceDock,
+	HullSlotTypeWeapon,
+	HullSlotTypeOrbital,
+	HullSlotTypeMineLayer,
+}
 
 func (hst HullSlotType) String() string {
 	switch hst {
@@ -627,24 +668,17 @@ func (t *Tech) GetPlayerCost(techLevels TechLevel, spec MiniaturizationSpec, cos
 		miniaturizationFactor = 1 - miniaturization
 	}
 
-	// apply any tech cost offsets
-	// TODO: Implement IT 25% gate discount in actually less janky way
+	// planetary items don't get miniaturization
+	if t.Category == TechCategoryPlanetary || t.Category == TechCategoryTerraforming || t.Category == TechCategoryPlanetaryDefense || t.Category == TechCategoryPlanetaryScanner {
+		miniaturizationFactor = 1
+	} 
+
+	// apply any tech cost offsets to our item cost
 	cost := t.Cost
-	switch t.Category {
-	case TechCategoryEngine:
-		cost = cost.MultiplyFloat64(1 + costOffset.Engine)
-	case TechCategoryBeamWeapon:
-		cost = cost.MultiplyFloat64(1 + costOffset.BeamWeapon)
-	case TechCategoryBomb:
-		cost = cost.MultiplyFloat64(1 + costOffset.Bomb)
-	case TechCategoryTorpedo:
-		cost = cost.MultiplyFloat64(1 + costOffset.Torpedo)
-	case TechCategoryOrbital:
-		if strings.Contains(t.Name, "Stargate") {
-			cost = cost.MultiplyFloat64(1 + costOffset.Stargate)
-		}
-	case TechCategoryTerraforming:
-		cost = cost.MultiplyFloat64(1 + costOffset.Terraforming)
+	var highestCostMulti float64
+	for tag := range t.Tags {
+		highestCostMulti = math.Min(1+costOffset[tag], highestCostMulti)
+		// ! IDK whether to implement same category cost reduction stacking as multiplicative or additive
 	}
 
 	return Cost{
