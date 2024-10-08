@@ -1568,7 +1568,7 @@ var Jammer30 = TechHullComponent{Tech: NewTech("Jammer 30", NewCost(1, 0, 6, 20)
 	TorpedoJamming: .3,
 	HullSlotType:   HullSlotTypeElectrical,
 }
-var Jammer50 = TechHullComponent{Tech: NewTech("Jammer 50", NewCost(2, 0, 7, 20), TechRequirements{TechLevel: TechLevel{Energy: 16, Electronics: 22}}, 100, TechCategoryElectrical),
+var Jammer50 = TechHullComponent{Tech: NewTech("Jammer 50", NewCost(2, 0, 7, 20), TechRequirements{TechLevel: TechLevel{Energy: 16, Electronics: 22}, PRTsRequired: []PRT{IS}}, 100, TechCategoryElectrical),
 
 	Mass:           1,
 	TorpedoJamming: .5,
