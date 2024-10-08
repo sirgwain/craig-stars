@@ -984,6 +984,10 @@ func (t *turn) moveFleet(fleet *Fleet) {
 		return
 	}
 
+	// make sure we don't have extra fuel if we lost ships during movement
+	fleet.Spec = ComputeFleetSpec(&t.game.Rules, player, fleet)
+	fleet.reduceFuelToMax()
+
 	// remove the previous waypoint, it's been processed already
 	if fleet.RepeatOrders && !wp0.PartiallyComplete {
 		// if we are supposed to repeat orders,
