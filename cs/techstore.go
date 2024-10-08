@@ -1568,7 +1568,7 @@ var Jammer30 = TechHullComponent{Tech: NewTech("Jammer 30", NewCost(1, 0, 6, 20)
 	TorpedoJamming: .3,
 	HullSlotType:   HullSlotTypeElectrical,
 }
-var Jammer50 = TechHullComponent{Tech: NewTech("Jammer 50", NewCost(2, 0, 7, 20), TechRequirements{TechLevel: TechLevel{Energy: 16, Electronics: 22}}, 100, TechCategoryElectrical),
+var Jammer50 = TechHullComponent{Tech: NewTech("Jammer 50", NewCost(2, 0, 7, 20), TechRequirements{TechLevel: TechLevel{Energy: 16, Electronics: 22}, PRTsRequired: []PRT{IS}}, 100, TechCategoryElectrical),
 
 	Mass:           1,
 	TorpedoJamming: .5,
@@ -1694,7 +1694,7 @@ var CargoPod = TechHullComponent{Tech: NewTech("Cargo Pod", NewCost(5, 0, 2, 10)
 	CargoBonus:   50,
 	HullSlotType: HullSlotTypeMechanical,
 }
-var SuperCargoPod = TechHullComponent{Tech: NewTech("Super Cargo Pod", NewCost(8, 0, 2, 15), TechRequirements{TechLevel: TechLevel{Energy: 3, Construction: 8}}, 30, TechCategoryMechanical),
+var SuperCargoPod = TechHullComponent{Tech: NewTech("Super Cargo Pod", NewCost(8, 0, 2, 15), TechRequirements{TechLevel: TechLevel{Energy: 3, Construction: 9}}, 30, TechCategoryMechanical),
 
 	Mass:         7,
 	CargoBonus:   100,
@@ -2176,7 +2176,7 @@ var Frigate = TechHull{Tech: NewTech("Frigate", NewCost(4, 2, 4, 12), TechRequir
 	FuelCapacity:   125,
 	Slots: []TechHullSlot{
 		{Position: Vector{-1.5, 0}, Type: HullSlotTypeEngine, Capacity: 1, Required: true},
-		{Position: Vector{1.5, 0}, Type: HullSlotTypeScanner, Capacity: 1},
+		{Position: Vector{1.5, 0}, Type: HullSlotTypeScanner, Capacity: 2},
 		{Position: Vector{0.5, 0}, Type: HullSlotTypeGeneral, Capacity: 3},
 		{Position: Vector{-0.5, 0}, Type: HullSlotTypeShieldArmor, Capacity: 2},
 	},
@@ -2214,7 +2214,7 @@ var Cruiser = TechHull{Tech: NewTech("Cruiser", NewCost(40, 5, 8, 85), TechRequi
 		{Position: Vector{0.5, 0}, Type: HullSlotTypeShieldArmor, Capacity: 2},
 	},
 }
-var BattleCruiser = TechHull{Tech: NewTech("Battle Cruiser", NewCost(55, 8, 12, 120), TechRequirements{TechLevel: TechLevel{Construction: 9}, PRTsRequired: []PRT{WM}}, 90, TechCategoryShipHull),
+var BattleCruiser = TechHull{Tech: NewTech("Battle Cruiser", NewCost(55, 8, 12, 120), TechRequirements{TechLevel: TechLevel{Construction: 10}, PRTsRequired: []PRT{WM}}, 90, TechCategoryShipHull),
 	Type:         TechHullTypeFighter,
 	Mass:         120,
 	Armor:        1000,
@@ -2326,7 +2326,7 @@ var Galleon = TechHull{Tech: NewTech("Galleon", NewCost(70, 5, 5, 105), TechRequ
 		{Position: Vector{0.5, -1.5}, Type: HullSlotTypeGeneral, Capacity: 3},
 		{Position: Vector{0.5, 1.5}, Type: HullSlotTypeGeneral, Capacity: 3},
 		{Position: Vector{1, -0.5}, Type: HullSlotTypeMineElectricalMechanical, Capacity: 2},
-		{Position: Vector{1, 0.5}, Type: HullSlotTypeMineElectricalMechanical, Capacity: 2},
+		{Position: Vector{1, 0.5}, Type: HullSlotTypeElectricalMechanical, Capacity: 2},
 		{Position: Vector{2, 0}, Type: HullSlotTypeScanner, Capacity: 2},
 	},
 }
@@ -2482,7 +2482,7 @@ var FuelTransport = TechHull{Tech: NewTech("Fuel Transport", NewCost(10, 0, 5, 5
 		{Position: Vector{0.5, 0}, Type: HullSlotTypeShield, Capacity: 1},
 	},
 }
-var SuperFuelXport = TechHull{Tech: NewTech("Super Fuel Xport", NewCost(20, 0, 8, 70), TechRequirements{TechLevel: TechLevel{Construction: 7}}, 270, TechCategoryShipHull),
+var SuperFuelXport = TechHull{Tech: NewTech("Super-Fuel Xport", NewCost(20, 0, 8, 70), TechRequirements{TechLevel: TechLevel{Construction: 7}}, 270, TechCategoryShipHull),
 	Type:           TechHullTypeFuelTransport,
 	Mass:           111,
 	Armor:          12,
