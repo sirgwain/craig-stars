@@ -622,6 +622,7 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 			MiniaturizationMax:      .75,
 			MiniaturizationPerLevel: .04,
 		},
+		ScrapMineralOffsetStarbase:   .8 - (1.0 / 3),
 
 		// PP
 		MineralsPerSingleMineralPacket:   prtSpec.MineralsPerSingleMineralPacket,
