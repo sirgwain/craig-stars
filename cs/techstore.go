@@ -1605,70 +1605,70 @@ var AntiMatterGenerator = TechHullComponent{Tech: NewTech("Anti-Matter Generator
 	FuelBonus:      200,
 	HullSlotType:   HullSlotTypeElectrical,
 }
-var MineDispenser40 = TechHullComponent{Tech: NewTech("Mine Dispenser 40", NewCost(2, 10, 8, 45), TechRequirements{TechLevel: TechLevel{}, PRTsRequired: []PRT{SD}}, 0, TechCategoryMineLayer),
+var MineDispenser40 = TechHullComponent{Tech: NewTech("Mine Dispenser 40", NewCost(2, 10, 8, 45), TechRequirements{TechLevel: TechLevel{}, PRTsRequired: []PRT{SD}, PRTsDenied: []PRT{WM}}, 0, TechCategoryMineLayer),
 
 	Mass:           25,
 	MineFieldType:  MineFieldTypeStandard,
 	MineLayingRate: 40,
 	HullSlotType:   HullSlotTypeMineLayer,
 }
-var MineDispenser50 = TechHullComponent{Tech: NewTech("Mine Dispenser 50", NewCost(2, 12, 10, 55), TechRequirements{TechLevel: TechLevel{Energy: 2, Biotechnology: 4}}, 10, TechCategoryMineLayer),
+var MineDispenser50 = TechHullComponent{Tech: NewTech("Mine Dispenser 50", NewCost(2, 12, 10, 55), TechRequirements{TechLevel: TechLevel{Energy: 2, Biotechnology: 4}, PRTsDenied: []PRT{WM}}, 10, TechCategoryMineLayer),
 
 	Mass:           30,
 	MineFieldType:  MineFieldTypeStandard,
 	MineLayingRate: 50,
 	HullSlotType:   HullSlotTypeMineLayer,
 }
-var MineDispenser80 = TechHullComponent{Tech: NewTech("Mine Dispenser 80", NewCost(2, 12, 10, 65), TechRequirements{TechLevel: TechLevel{Energy: 3, Biotechnology: 7}, PRTsRequired: []PRT{SD}}, 20, TechCategoryMineLayer),
+var MineDispenser80 = TechHullComponent{Tech: NewTech("Mine Dispenser 80", NewCost(2, 12, 10, 65), TechRequirements{TechLevel: TechLevel{Energy: 3, Biotechnology: 7}, PRTsRequired: []PRT{SD}, PRTsDenied: []PRT{WM}}, 20, TechCategoryMineLayer),
 
 	Mass:           30,
 	MineFieldType:  MineFieldTypeStandard,
 	MineLayingRate: 80,
 	HullSlotType:   HullSlotTypeMineLayer,
 }
-var MineDispenser130 = TechHullComponent{Tech: NewTech("Mine Dispenser 130", NewCost(2, 18, 10, 80), TechRequirements{TechLevel: TechLevel{Energy: 6, Biotechnology: 12}, PRTsRequired: []PRT{SD}}, 30, TechCategoryMineLayer),
+var MineDispenser130 = TechHullComponent{Tech: NewTech("Mine Dispenser 130", NewCost(2, 18, 10, 80), TechRequirements{TechLevel: TechLevel{Energy: 6, Biotechnology: 12}, PRTsRequired: []PRT{SD}, PRTsDenied: []PRT{WM}}, 30, TechCategoryMineLayer),
 
 	Mass:           30,
 	MineFieldType:  MineFieldTypeStandard,
 	MineLayingRate: 130,
 	HullSlotType:   HullSlotTypeMineLayer,
 }
-var HeavyDispenser50 = TechHullComponent{Tech: NewTech("Heavy Dispenser 50", NewCost(2, 20, 5, 50), TechRequirements{TechLevel: TechLevel{Energy: 5, Biotechnology: 3}, PRTsRequired: []PRT{SD}}, 40, TechCategoryMineLayer),
+var HeavyDispenser50 = TechHullComponent{Tech: NewTech("Heavy Dispenser 50", NewCost(2, 20, 5, 50), TechRequirements{TechLevel: TechLevel{Energy: 5, Biotechnology: 3}, PRTsRequired: []PRT{SD}, PRTsDenied: []PRT{WM}}, 40, TechCategoryMineLayer),
 
 	Mass:           10,
 	MineFieldType:  MineFieldTypeHeavy,
 	MineLayingRate: 50,
 	HullSlotType:   HullSlotTypeMineLayer,
 }
-var HeavyDispenser110 = TechHullComponent{Tech: NewTech("Heavy Dispenser 110", NewCost(2, 20, 5, 50), TechRequirements{TechLevel: TechLevel{Energy: 9, Biotechnology: 5}, PRTsRequired: []PRT{SD}}, 50, TechCategoryMineLayer),
+var HeavyDispenser110 = TechHullComponent{Tech: NewTech("Heavy Dispenser 110", NewCost(2, 20, 5, 50), TechRequirements{TechLevel: TechLevel{Energy: 9, Biotechnology: 5}, PRTsRequired: []PRT{SD}, PRTsDenied: []PRT{WM}}, 50, TechCategoryMineLayer),
 
 	Mass:           15,
 	MineFieldType:  MineFieldTypeHeavy,
 	MineLayingRate: 110,
 	HullSlotType:   HullSlotTypeMineLayer,
 }
-var HeavyDispenser200 = TechHullComponent{Tech: NewTech("Heavy Dispenser 200", NewCost(2, 45, 5, 90), TechRequirements{TechLevel: TechLevel{Energy: 14, Biotechnology: 7}, PRTsRequired: []PRT{SD}}, 60, TechCategoryMineLayer),
+var HeavyDispenser200 = TechHullComponent{Tech: NewTech("Heavy Dispenser 200", NewCost(2, 45, 5, 90), TechRequirements{TechLevel: TechLevel{Energy: 14, Biotechnology: 7}, PRTsRequired: []PRT{SD}, PRTsDenied: []PRT{WM}}, 60, TechCategoryMineLayer),
 
 	Mass:           20,
 	MineFieldType:  MineFieldTypeHeavy,
 	MineLayingRate: 200,
 	HullSlotType:   HullSlotTypeMineLayer,
 }
-var SpeedTrap20 = TechHullComponent{Tech: NewTech("Speed Trap 20", NewCost(30, 0, 12, 60), TechRequirements{TechLevel: TechLevel{Propulsion: 2, Biotechnology: 2}, PRTsRequired: []PRT{SD, IS}}, 70, TechCategoryMineLayer),
+var SpeedTrap20 = TechHullComponent{Tech: NewTech("Speed Trap 20", NewCost(30, 0, 12, 60), TechRequirements{TechLevel: TechLevel{Propulsion: 2, Biotechnology: 2}, PRTsRequired: []PRT{SD, IS}, PRTsDenied: []PRT{WM}}, 70, TechCategoryMineLayer),
 
 	Mass:           100,
 	MineFieldType:  MineFieldTypeSpeedBump,
 	MineLayingRate: 20,
 	HullSlotType:   HullSlotTypeMineLayer,
 }
-var SpeedTrap30 = TechHullComponent{Tech: NewTech("Speed Trap 30", NewCost(32, 0, 14, 72), TechRequirements{TechLevel: TechLevel{Propulsion: 3, Biotechnology: 6}, PRTsRequired: []PRT{SD}}, 80, TechCategoryMineLayer),
+var SpeedTrap30 = TechHullComponent{Tech: NewTech("Speed Trap 30", NewCost(32, 0, 14, 72), TechRequirements{TechLevel: TechLevel{Propulsion: 3, Biotechnology: 6}, PRTsRequired: []PRT{SD}, PRTsDenied: []PRT{WM}}, 80, TechCategoryMineLayer),
 
 	Mass:           135,
 	MineFieldType:  MineFieldTypeSpeedBump,
 	MineLayingRate: 30,
 	HullSlotType:   HullSlotTypeMineLayer,
 }
-var SpeedTrap50 = TechHullComponent{Tech: NewTech("Speed Trap 50", NewCost(40, 0, 15, 80), TechRequirements{TechLevel: TechLevel{Propulsion: 5, Biotechnology: 11}, PRTsRequired: []PRT{SD}}, 90, TechCategoryMineLayer),
+var SpeedTrap50 = TechHullComponent{Tech: NewTech("Speed Trap 50", NewCost(40, 0, 15, 80), TechRequirements{TechLevel: TechLevel{Propulsion: 5, Biotechnology: 11}, PRTsRequired: []PRT{SD}, PRTsDenied: []PRT{WM}}, 90, TechCategoryMineLayer),
 
 	Mass:           140,
 	MineFieldType:  MineFieldTypeSpeedBump,
