@@ -329,7 +329,7 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 		return this.planets.find((p) => p.num === num);
 	}
 
-	getFleet(playerNum: number, num: number) {
+	getFleet(playerNum: number | undefined, num: number | undefined) {
 		return this.fleets.find((f) => f.playerNum === playerNum && f.num === num);
 	}
 

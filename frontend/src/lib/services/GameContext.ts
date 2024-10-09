@@ -3,7 +3,7 @@ import { getScannerTarget } from '$lib/types/Battle';
 import type { CargoTransferRequest } from '$lib/types/Cargo';
 import { CommandedFleet, type Fleet, type ShipToken, type Waypoint } from '$lib/types/Fleet';
 import type { Game, GameSettings } from '$lib/types/Game';
-import { MapObjectType, None, equal, key, type MapObject } from '$lib/types/MapObject';
+import { MapObjectType, None, equal, key, ownedBy, type MapObject } from '$lib/types/MapObject';
 import {
 	MessageTargetType,
 	MessageType,
@@ -332,6 +332,20 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 			if (fleet) {
 				gotoTargetFleet(fleet, playerNum, universe);
 				zoomToMapObject(fleet);
+				goto(`/games/${gameId}`);
+				return;
+			}
+		}
+
+		if (message.spec.targetType === MapObjectType.MineField) {
+			const fleet = universe.getFleet(message.targetPlayerNum, message.targetNum);
+			const mf = universe.getMineField(message.spec.targetPlayerNum, message.spec.targetNum);
+			if (fleet && ownedBy(fleet, playerNum)) {
+				commandMapObject(fleet);
+			}
+			if (mf) {
+				selectMapObject(mf);
+				zoomToMapObject(mf);
 				goto(`/games/${gameId}`);
 				return;
 			}

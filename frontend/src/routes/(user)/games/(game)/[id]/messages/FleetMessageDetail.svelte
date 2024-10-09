@@ -125,7 +125,7 @@
 	{#if mineField?.numMines === message.spec.amount}
 		{message.targetName} has has dispensed {message.spec.amount} mines.
 	{:else}
-		{message.targetName} has increased {mineField?.name} by {message.spec.amount} mines.
+		{message.targetName} has increased {message.spec.targetName} by {message.spec.amount} mines.
 	{/if}
 {:else if message.type === MessageType.FleetPatrolTargeted}
 	Your patrolling {message.targetName} has targeted {message.spec.targetName} to intercept.

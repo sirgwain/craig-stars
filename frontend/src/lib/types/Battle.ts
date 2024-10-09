@@ -381,7 +381,7 @@ export function getScannerTarget(battle: BattleRecord, universe: Universe): MapO
 		const myMapObjectsAtPosition = universe.getMyMapObjectsByPosition(battle.position);
 		const mapObjectsAtPosition = universe.getMapObjectsByPosition(battle.position);
 
-		if (myMapObjectsAtPosition.length > 0) {
+		if (myMapObjectsAtPosition?.length > 0) {
 			return myMapObjectsAtPosition[0];
 		} else if (mapObjectsAtPosition) {
 			return mapObjectsAtPosition[0];

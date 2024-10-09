@@ -819,7 +819,7 @@ export class CommandedFleet implements Fleet {
 			case MapObjectType.Planet:
 				return universe.getPlanet(wp0.targetNum);
 			case MapObjectType.Fleet:
-				return universe.getFleet(wp0.targetPlayerNum ?? 0, wp0.targetNum);
+				return universe.getFleet(wp0.targetPlayerNum, wp0.targetNum);
 			case MapObjectType.Salvage:
 				return universe.getSalvageAtPosition(this);
 			case MapObjectType.MineralPacket:
