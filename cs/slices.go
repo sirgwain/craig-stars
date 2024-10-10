@@ -60,7 +60,7 @@ func AppendWithoutDuplicates[T comparable, S ~[]T](slice ...S) S {
 func (mask Bitmask) getBits() []Bitmask {
 	bits := []Bitmask{}
 
-	for num := Bitmask(1); num <= mask; mask <<= 1 {
+	for num := Bitmask(1); num <= mask; num <<= 1 {
 		if num&mask != 0 {
 			bits = append(bits, num)
 		}

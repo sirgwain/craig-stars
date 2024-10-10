@@ -350,9 +350,10 @@ func (store *TechStore) GetBestSapper(player *Player) *TechHullComponent {
 			}
 		}
 	}
+
 	// Use a regular beam if it's at least as strong/cheap
 	// than our best sapper (since they can damage armor)
-	// This is never possible in vanilla Stars!, but maybe for mods
+	// This is only possible in vanilla Stars! if we have no avaliable sappers to use
 	bestBeam := store.GetBestBeamWeapon(player)
 	if bestTech == nil ||
 		float64(bestBeam.Power) >= float64(bestTech.Power) &&

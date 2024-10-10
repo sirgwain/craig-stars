@@ -121,8 +121,12 @@ func TestTechHullComponent_CompareFieldsByTag(t *testing.T) {
 			race = race.WithLRT(RS)
 		}
 		player := NewPlayer(1, race.WithSpec(&rules)).WithTechLevels(TechLevel{26, 26, 26, 26, 26, 26})
+		design := NewShipDesign(player, 1).WithPurpose(ShipDesignPurposeTorpedoFighter)
+		if tt.args.light {
+			design.Purpose = ShipDesignPurposeBeamFighter
+		}
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.args.hc.CompareFieldsByTag(player, tt.args.other, tt.args.tag, tt.args.light); got != tt.want {
+			if got := design.CompareFieldsByTag(player, tt.args.hc, tt.args.other, tt.args.tag); got != tt.want {
 				t.Errorf("TechHullComponent.CompareFieldsByTag() = %v, want %v", got, tt.want)
 			}
 		})

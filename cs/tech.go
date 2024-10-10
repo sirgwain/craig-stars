@@ -128,129 +128,13 @@ type TechHullComponent struct {
 	CanJump                   bool          `json:"canJump,omitempty"`
 }
 
-// Compare 2 TechHullComponents by a field determined by the specified TechTag
-// (alongside cost efficiency in certain cases)
-//
-// Precedence is given to the higher rated component in case of a tie
-func (hc *TechHullComponent) CompareFieldsByTag(player *Player, other *TechHullComponent, tag TechTag, light bool) bool {
-	if other == nil {
-		return false
-	} else if hc == nil {
-		return true
-	}
-	var score, otherScore float64
-	costEff := false // whether to care about mineral efficiency or not
-	// usually only applies for items that make up the bulk of their respective ships' cost
-	// and/or ones with a definitive quantifiable stat we can price
-
-	switch tag {
-	case TechTagArmor, TechTagShield:
-		// get the 2 components' shield values and add them together
-		hcArmor, hcShield := getActualArmorAmount(float64(hc.Armor), float64(hc.Shield), player.Race.Spec, hc.Category == TechCategoryArmor)
-		otherArmor, otherShield := getActualArmorAmount(float64(other.Armor), float64(other.Shield), player.Race.Spec, other.Category == TechCategoryArmor)
-		score = (hcArmor + hcShield)
-		otherScore = (otherArmor + otherShield)
-		// perform weight adjustments
-		if light {
-			score /= 1 + math.Max(float64(hc.Mass-30)/10, 0)
-			otherScore /= 1 + math.Max(float64(other.Mass-30)/10, 0)
-		}
-	case TechTagBeamCapacitor:
-		score = hc.BeamBonus
-		otherScore = other.BeamBonus
-	case TechTagBeamDeflector:
-		score = hc.BeamDefense
-		otherScore = other.BeamDefense
-	case TechTagScanner:
-		if hc.ScanRangePen > 0 {
-			if other.ScanRangePen > 0 {
-				score = float64(hc.ScanRangePen)
-				otherScore = float64(other.ScanRangePen)
-			} else {
-				// 2nd tech doesn't pen scan; 1st wins by default
-				return false
-			}
-		} else if other.ScanRangePen > 0 {
-			// 1st tech doesn't pen scan; 2nd wins by default
-			return true
-		} else {
-			// neither tech can pen scan; just use regular scan ranges
-			score = float64(hc.ScanRange)
-			otherScore = float64(other.ScanRange)
-		}
-	case TechTagInitiativeBonus:
-		score = float64(hc.InitiativeBonus)
-		otherScore = float64(other.InitiativeBonus)
-	case TechTagTorpedoJammer:
-		score = hc.TorpedoJamming
-		otherScore = other.TorpedoJamming
-	case TechTagBeamWeapon, TechTagShieldSapper, TechTagGatlingGun:
-		score = float64(hc.Power) * math.Pow(float64(hc.Range), 2)
-		otherScore = float64(other.Power) * math.Pow(float64(other.Range), 3)
-		costEff = true
-	case TechTagTorpedo, TechTagCapitalShipMissile:
-		return hc.getBestTorpedo(player, other)
-	case TechTagColonyModule:
-		score = 1
-		otherScore = 1
-		costEff = true // literally ALL we care about is cost efficiency
-	case TechTagCargoPod:
-		score = float64(hc.CargoBonus)
-		otherScore = float64(other.CargoBonus)
-		costEff = true
-	case TechTagFuelTank:
-		score = float64(hc.FuelBonus + 5*hc.FuelGeneration)
-		otherScore = float64(other.FuelBonus + 5*other.FuelGeneration)
-		costEff = true
-	case TechTagMineLayer, TechTagHeavyMineLayer, TechTagSpeedMineLayer:
-		otherScore = float64(other.MineLayingRate)
-		score = float64(hc.MineLayingRate)
-		costEff = true
-	case TechTagBomb, TechTagSmartBomb:
-		score = float64(hc.KillRate)
-		otherScore = float64(other.KillRate)
-		costEff = true
-	case TechTagStructureBomb:
-		score = float64(hc.StructureDestroyRate)
-		otherScore = float64(other.StructureDestroyRate)
-		costEff = true
-	case TechTagCloak:
-		score = float64(hc.CloakUnits)
-		otherScore = float64(other.CloakUnits)
-	case TechTagManeuveringJet:
-		score = float64(hc.MovementBonus)
-		otherScore = float64(other.MovementBonus)
-	case TechTagMassDriver:
-		score = float64(hc.PacketSpeed)
-		otherScore = float64(other.PacketSpeed)
-	case TechTagStargate:
-		return hc.getBestStargate(other)
-	case TechTagTerraformingRobot:
-		score = float64(hc.TerraformRate)
-		otherScore = float64(other.TerraformRate)
-		costEff = true
-	case TechTagMiningRobot:
-		return hc.getBestMiningRobot(player, other)
-	}
-
-	scoreRatio := otherScore / score
-	costRatio := 1.0
-	if costEff {
-		costRatio = getCostEfficiencyRatio(player, other, hc, true)
-	}
-	return scoreRatio > costRatio ||
-		scoreRatio == costRatio && other.Ranking > hc.Ranking
-	// FOR THE RECORD, this works out to be equivalent to comparing unit prices
-	// If you don't believe this yourself, do some algebra
-}
-
 // get actual armor/shield value for a tech item given its shield/armor amounts and the multipliers for each
-func getActualArmorAmount(armor, shield float64, raceSpec RaceSpec, isArmor bool) (float64, float64) {
+func getActualArmorAmount(armor, shield float64, qty int, raceSpec RaceSpec, isArmor bool) (float64, float64) {
 	// TODO: Fix RS shield effect in a less janky way
 	if isArmor {
-		return armor * raceSpec.ArmorStrengthFactor, shield * raceSpec.ShieldStrengthFactor
+		return armor * raceSpec.ArmorStrengthFactor * float64(qty), shield * raceSpec.ShieldStrengthFactor * float64(qty)
 	} else {
-		return armor, shield * raceSpec.ShieldStrengthFactor
+		return armor * float64(qty), shield * raceSpec.ShieldStrengthFactor * float64(qty)
 	}
 }
 
@@ -671,14 +555,13 @@ func (t *Tech) GetPlayerCost(techLevels TechLevel, spec MiniaturizationSpec, cos
 	// planetary items don't get miniaturization
 	if t.Category == TechCategoryPlanetary || t.Category == TechCategoryTerraforming || t.Category == TechCategoryPlanetaryDefense || t.Category == TechCategoryPlanetaryScanner {
 		miniaturizationFactor = 1
-	} 
+	}
 
 	// apply any tech cost offsets to our item cost
 	cost := t.Cost
 	var highestCostMulti float64
 	for tag := range t.Tags {
 		highestCostMulti = math.Min(1+costOffset[tag], highestCostMulti)
-		// ! IDK whether to implement same category cost reduction stacking as multiplicative or additive
 	}
 
 	return Cost{
