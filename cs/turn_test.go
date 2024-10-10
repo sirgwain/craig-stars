@@ -1503,7 +1503,8 @@ func Test_turn_decayPackets(t *testing.T) {
 	// move and decay
 	turn.packetMove(false)
 	turn.packetMove(true)
-	turn.decayPackets()
+	turn.decayPackets(false)
+	turn.decayPackets(true)
 
 	// no decay, 50% decay, and half of 50% decay for a newly built overfast packet
 	assert.Equal(t, packetSafe.Cargo, Cargo{100, 100, 100, 0})

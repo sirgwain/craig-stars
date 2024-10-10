@@ -73,7 +73,7 @@ func (t *turn) generateTurn() error {
 	t.fleetDieoff()
 	t.fleetReproduce()
 	t.decaySalvage()
-	t.decayPackets()
+	t.decayPackets(false)
 	t.wormholeJiggle()
 	t.detonateMines()
 	t.planetMine()
@@ -85,6 +85,7 @@ func (t *turn) generateTurn() error {
 	t.permaform()
 	t.planetGrow()
 	t.packetMove(true) // move packets built this turn
+	t.decayPackets(true) // decay packets built this turn
 	t.fleetRefuel()    // refuel after production so fleets will refuel at planets that just built a starbase this turn
 	t.randomCometStrike()
 	t.randomMineralDeposit()
@@ -1145,9 +1146,12 @@ func (t *turn) decaySalvage() {
 }
 
 // Decay mineral packets in flight
-func (t *turn) decayPackets() {
+func (t *turn) decayPackets(builtThisTurn bool) {
 	for _, packet := range t.game.MineralPackets {
 		if packet.Delete {
+			continue
+		}
+		if packet.builtThisTurn != builtThisTurn {
 			continue
 		}
 
