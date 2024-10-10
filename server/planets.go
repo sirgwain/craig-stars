@@ -113,6 +113,7 @@ func (s *server) updatePlanetOrders(w http.ResponseWriter, r *http.Request) {
 
 	orderer := cs.NewOrderer()
 	if err := orderer.UpdatePlanetOrders(&game.Rules, player, existingPlanet, planet.PlanetOrders, planets); err != nil {
+		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Str("Planet", existingPlanet.Name).Msg("update planet orders")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}

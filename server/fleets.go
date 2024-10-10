@@ -231,6 +231,7 @@ func (s *server) split(w http.ResponseWriter, r *http.Request) {
 
 	source, dest, err := orderer.SplitFleet(&game.Rules, player, playerFleets, splitFleetRequest)
 	if err != nil {
+		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("split fleet")
 		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
@@ -314,6 +315,7 @@ func (s *server) splitAll(w http.ResponseWriter, r *http.Request) {
 	orderer := cs.NewOrderer()
 	newFleets, err := orderer.SplitAll(&game.Rules, player, fleets, fleet)
 	if err != nil {
+		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("split all")
 		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
@@ -369,6 +371,7 @@ func (s *server) merge(w http.ResponseWriter, r *http.Request) {
 
 	updatedFleet, err := orderer.Merge(&game.Rules, player, fleets)
 	if err != nil {
+		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("merge")
 		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
@@ -720,6 +723,7 @@ func (s *server) transferCargoFleetFleet(w http.ResponseWriter, r *http.Request,
 
 	orderer := cs.NewOrderer()
 	if err := orderer.TransferFleetCargo(&game.Rules, player, destPlayer, fleet, dest, transferAmount); err != nil {
+		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("transfer fleet cargo")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}

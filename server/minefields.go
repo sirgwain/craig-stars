@@ -69,6 +69,7 @@ func (s *server) mineField(w http.ResponseWriter, r *http.Request) {
 func (s *server) updateMineFieldOrders(w http.ResponseWriter, r *http.Request) {
 	existingMineField := s.contextMineField(r)
 	player := s.contextPlayer(r)
+	game := s.contextGame(r)
 
 	mineField := mineFieldRequest{}
 	if err := render.Bind(r, &mineField); err != nil {
@@ -78,6 +79,7 @@ func (s *server) updateMineFieldOrders(w http.ResponseWriter, r *http.Request) {
 
 	orderer := cs.NewOrderer()
 	if err := orderer.UpdateMineFieldOrders(player, existingMineField, mineField.MineFieldOrders); err != nil {
+		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Str("MineField", existingMineField.Name).Msg("update mineField orders")
 		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
