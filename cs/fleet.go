@@ -648,7 +648,7 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 	}
 
 	// compute the cloaking based on the cloak units and cargo
-	spec.CloakPercent = computeFleetCloakPercent(&spec, fleet.Cargo.Total(), player.Race.Spec.FreeCargoCloaking)
+	spec.CloakPercent = computeFleetCloakPercent(&spec, fleet.Cargo.Total() + spec.BaseCloakedCargo, player.Race.Spec.FreeCargoCloaking)
 
 	if !spec.Starbase {
 		spec.EstimatedRange = fleet.getEstimatedRange(player, spec.Engine.IdealSpeed, spec.CargoCapacity)
