@@ -634,6 +634,10 @@ func (planet *Planet) mine(rules *Rules) {
 
 // grow pop on this planet (or starbase)
 func (planet *Planet) grow(player *Player) {
+	if planet.population() == 0 {
+		// don't grow or reduce if at zero pop, planet is gone
+		return
+	}
 	planet.setPopulation(MaxInt(100, planet.population()+planet.Spec.GrowthAmount))
 
 	if player.Race.Spec.InnateMining {
