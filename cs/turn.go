@@ -26,10 +26,11 @@ func newTurnGenerator(game *FullGame) turnGenerator {
 	turnLogger := log.With().
 		Int64("GameID", game.ID).
 		Str("GameName", game.Name).
-		Int("Year", game.Year).
+		Int("Year", game.Year+1). // log for next turn
 		Logger()
 	t := turn{game, turnLogger}
 
+	t.game.Universe.setLogger(turnLogger)
 	t.game.Universe.buildMaps(game.Players)
 
 	return &t
@@ -49,11 +50,10 @@ func (t *turn) generateTurn() error {
 		player.Messages = []PlayerMessage{}
 		player.BattleRecords = []BattleRecord{}
 		player.leftoverResources = 0
-		player.Race.Spec = computeRaceSpec(&player.Race, &t.game.Rules) // this isn't necessary when the game is complete, but if I add features (like scanner cost) this will pick it up
-		player.Spec = computePlayerSpec(player, &t.game.Rules, t.game.Planets)
 	}
 
 	t.computeSpecs()
+	t.packetInit()
 
 	// wp0 tasks
 	t.fleetInit()
@@ -66,7 +66,6 @@ func (t *turn) generateTurn() error {
 	t.fleetMarkWaypointsProcessed()
 
 	// move stuff through space
-	t.packetInit()
 	t.packetMove(false)
 	t.mysteryTraderMove()
 	t.fleetMove()
@@ -74,7 +73,7 @@ func (t *turn) generateTurn() error {
 	t.fleetDieoff()
 	t.fleetReproduce()
 	t.decaySalvage()
-	t.decayPackets()
+	t.decayPackets(false)
 	t.wormholeJiggle()
 	t.detonateMines()
 	t.planetMine()
@@ -86,6 +85,7 @@ func (t *turn) generateTurn() error {
 	t.permaform()
 	t.planetGrow()
 	t.packetMove(true) // move packets built this turn
+	t.decayPackets(true) // decay packets built this turn
 	t.fleetRefuel()    // refuel after production so fleets will refuel at planets that just built a starbase this turn
 	t.randomCometStrike()
 	t.randomMineralDeposit()
@@ -703,6 +703,15 @@ func (t *turn) fleetMarkWaypointsProcessed() {
 func (t *turn) packetInit() {
 	for _, packet := range t.game.MineralPackets {
 		packet.builtThisTurn = false
+
+		if packet.Cargo.Total() == 0 {
+			// this packet was probably snatched away by a player
+			t.log.Debug().
+				Int("Player", packet.PlayerNum).
+				Str("Packet", packet.Name).
+				Msgf("packet empty")
+			t.game.deletePacket(packet)
+		}
 	}
 }
 
@@ -711,14 +720,19 @@ func (t *turn) packetInit() {
 func (t *turn) packetMove(builtThisTurn bool) {
 
 	for _, packet := range t.game.MineralPackets {
+		if packet.Delete {
+			continue
+		}
 		if packet.builtThisTurn != builtThisTurn {
 			continue
 		}
 		player := t.game.getPlayer(packet.PlayerNum)
 		planet := t.game.getPlanet(int(packet.TargetPlanetNum))
 		var planetPlayer *Player
+		var starbase *Fleet
 		if planet.Owned() {
 			planetPlayer = t.game.getPlayer(planet.PlayerNum)
+			starbase = planet.Starbase
 		}
 
 		packet.movePacket(&t.game.Rules, player, planet, planetPlayer)
@@ -729,6 +743,20 @@ func (t *turn) packetMove(builtThisTurn bool) {
 			Str("Position", packet.Position.String()).
 			Msgf("moved packet")
 
+		if planetPlayer != nil && planet.population() == 0 {
+			// this planet just got killed by a packet
+			if starbase != nil {
+				t.game.deleteStarbase(starbase)
+				planet.Spec.PlanetStarbaseSpec = PlanetStarbaseSpec{}
+
+				t.log.Debug().
+					Int("Player", planetPlayer.Num).
+					Str("Packet", packet.Name).
+					Str("Planet", planet.Name).
+					Msgf("packet wiped out planet, deleting starbase")
+
+			}
+		}
 	}
 }
 
@@ -906,7 +934,7 @@ func (t *turn) moveFleet(fleet *Fleet) {
 					messager.fleetMineFieldHit(mineFieldPlayer, fleet, mineField, damage)
 				}
 
-				log.Debug().
+				t.log.Debug().
 					Int("Player", mineField.PlayerNum).
 					Str("MineField", mineField.Name).
 					Str("Fleet", fleet.Name).
@@ -956,6 +984,10 @@ func (t *turn) moveFleet(fleet *Fleet) {
 		t.game.deleteFleet(fleet)
 		return
 	}
+
+	// make sure we don't have extra fuel if we lost ships during movement
+	fleet.Spec = ComputeFleetSpec(&t.game.Rules, player, fleet)
+	fleet.reduceFuelToMax()
 
 	// remove the previous waypoint, it's been processed already
 	if fleet.RepeatOrders && !wp0.PartiallyComplete {
@@ -1114,8 +1146,15 @@ func (t *turn) decaySalvage() {
 }
 
 // Decay mineral packets in flight
-func (t *turn) decayPackets() {
+func (t *turn) decayPackets(builtThisTurn bool) {
 	for _, packet := range t.game.MineralPackets {
+		if packet.Delete {
+			continue
+		}
+		if packet.builtThisTurn != builtThisTurn {
+			continue
+		}
+
 		player := t.game.getPlayer(packet.PlayerNum)
 		// update the decay amount based on this distance traveled this turn
 		decayRate := packet.getPacketDecayRate(&t.game.Rules, &player.Race) * (packet.distanceTravelled / float64(packet.WarpSpeed*packet.WarpSpeed))
@@ -1228,7 +1267,7 @@ func (t *turn) detonateMines() {
 			// clear out any destroyed tokens
 			fleet.removeEmptyTokens()
 
-			log.Debug().
+			t.log.Debug().
 				Int("Player", mineField.PlayerNum).
 				Str("MineField", mineField.Name).
 				Str("Fleet", fleet.Name).
@@ -1424,9 +1463,9 @@ func (t *turn) planetProduction() error {
 				}
 				messager.fleetBuilt(player, planet, fleet, token.Quantity)
 			}
-			for _, cargo := range result.packets {
+			if result.packets != (Cargo{}) {
 				target := t.game.getPlanet(planet.PacketTargetNum)
-				packet := t.buildMineralPacket(player, planet, cargo, target)
+				packet := t.buildMineralPacket(player, planet, result.packets, target)
 				messager.planetBuiltMineralPacket(player, planet, packet, target.Name)
 			}
 			if result.starbase != nil {
@@ -1821,7 +1860,9 @@ func (t *turn) fleetRefuel() {
 		if planet == nil {
 			continue
 		}
-		if !planet.Spec.HasStarbase {
+
+		// can only fuel on docks
+		if planet.Spec.DockCapacity == 0 {
 			continue
 		}
 
@@ -1961,7 +2002,7 @@ func (t *turn) fleetBattle() {
 			continue
 		}
 
-		battler := newBattler(log.Logger, &t.game.Rules, t.game.Rules.techs, battleNum, playersAtPosition, fleets, planet)
+		battler := newBattler(t.log, &t.game.Rules, t.game.Rules.techs, battleNum, playersAtPosition, fleets, planet)
 
 		if battler.findTargets() {
 			// someone wants to fight, run the battle!
@@ -2407,6 +2448,18 @@ func (t *turn) fleetTransferOwner() {
 			player := t.game.getPlayer(fleet.PlayerNum)
 			targetPlayer := t.game.getPlayer(wp0.TransferToPlayer)
 
+			if targetPlayer == nil {
+				// can't find target player
+				messager.fleetTransferInvalidPlayer(player, fleet)
+				t.log.Error().
+					Int("Player", fleet.PlayerNum).
+					Str("Fleet", fleet.Name).
+					Msgf("tried to transfer fleet player %d, but target player doesn't exist.", wp0.TargetPlayerNum)
+				wp0.Task = WaypointTaskNone
+				wp0.TransferToPlayer = None
+				continue
+			}
+
 			if fleet.Cargo.Colonists > 0 {
 				// can't give colonists
 				messager.fleetTransferInvalidColonists(player, fleet, targetPlayer)
@@ -2415,18 +2468,6 @@ func (t *turn) fleetTransferOwner() {
 					Str("Fleet", fleet.Name).
 					Msgf("transferring fleet %s failed, fleet has colonists", fleet.Name)
 
-				wp0.Task = WaypointTaskNone
-				wp0.TransferToPlayer = None
-				continue
-			}
-
-			if targetPlayer == nil {
-				// can't find target player
-				messager.fleetTransferInvalidPlayer(player, fleet)
-				t.log.Error().
-					Int("Player", fleet.PlayerNum).
-					Str("Fleet", fleet.Name).
-					Msgf("tried to transfer fleet player %d, but target player doesn't exist.", wp0.TargetPlayerNum)
 				wp0.Task = WaypointTaskNone
 				wp0.TransferToPlayer = None
 				continue
@@ -2575,6 +2616,17 @@ func (t *turn) fleetSweepMines() {
 				if fleet.willAttack(fleetPlayer, mineField.PlayerNum) && isPointInCircle(fleet.Position, mineField.Position, mineField.Radius()) {
 					mineFieldPlayer := t.game.getPlayer(mineField.PlayerNum)
 					numSwept := mineField.sweep(&t.game.Rules, fleet.Position, fleet.Spec.MineSweep)
+
+					if numSwept == 0 {
+						t.log.Debug().
+							Int("Player", fleet.PlayerNum).
+							Str("Fleet", fleet.Name).
+							Str("MineField", mineField.Name).
+							Int("MineFieldPlayer", mineField.PlayerNum).
+							Int("NumMines", mineField.NumMines).
+							Msgf("no mines swept")
+						continue
+					}
 
 					messager.fleetMineFieldSwept(fleetPlayer, fleet, mineField, numSwept)
 					messager.fleetMineFieldSwept(mineFieldPlayer, fleet, mineField, numSwept)
@@ -2797,9 +2849,6 @@ func (t *turn) calculateScores() {
 	// Sum up planets
 	for _, planet := range t.game.Planets {
 		if planet.Owned() {
-			// planets might be bombed, or starbases could be destroyed
-			planet.Spec = computePlanetSpec(&t.game.Rules, t.game.getPlayer(planet.PlayerNum), planet)
-
 			score := &scores[planet.PlayerNum-1]
 			score.Planets++
 			if planet.Spec.HasStarbase {

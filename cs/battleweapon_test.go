@@ -232,6 +232,7 @@ func Test_battleWeaponSlot_getBeamDamageToTarget(t *testing.T) {
 		slotQuantity       int
 		weaponRange        int
 		damagesShieldsOnly bool
+		hitsAllTargets     bool
 	}
 	type args struct {
 		damage               int
@@ -273,7 +274,7 @@ func Test_battleWeaponSlot_getBeamDamageToTarget(t *testing.T) {
 			want: battleWeaponDamage{armorDamage: 9, damage: 9, quantityDamaged: 1},
 		},
 		{
-			name:   "1 laser, 1 range away, 1 defelctor, 20dp target, 8 damage done",
+			name:   "1 laser, 1 range away, 1 deflector, 20dp target, 8 damage done",
 			fields: fields{shipQuantity: 1, slotQuantity: 1, weaponRange: 1},
 			args: args{
 				position:      BattleVector{1, 0},
@@ -284,6 +285,19 @@ func Test_battleWeaponSlot_getBeamDamageToTarget(t *testing.T) {
 				beamDefense:   .1,
 			},
 			want: battleWeaponDamage{armorDamage: 8, damage: 8, quantityDamaged: 1},
+		},
+		{
+			name:   "1 gattling, 1 range away, 1 deflector, 20dp target, 9 damage done",
+			fields: fields{shipQuantity: 1, slotQuantity: 1, weaponRange: 1, hitsAllTargets: true},
+			args: args{
+				position:      BattleVector{1, 0},
+				damage:        10,
+				tokenQuantity: 1,
+				armor:         20,
+				shields:       0,
+				beamDefense:   .1,
+			},
+			want: battleWeaponDamage{armorDamage: 9, damage: 9, quantityDamaged: 1},
 		},
 		{
 			name:   "1 laser, 20 shields 20dp target, 10 damage done",
@@ -367,6 +381,7 @@ func Test_battleWeaponSlot_getBeamDamageToTarget(t *testing.T) {
 				weaponType:         battleWeaponTypeBeam,
 				weaponRange:        tt.fields.weaponRange,
 				damagesShieldsOnly: tt.fields.damagesShieldsOnly,
+				hitsAllTargets:     tt.fields.hitsAllTargets,
 			}
 
 			target := &battleToken{

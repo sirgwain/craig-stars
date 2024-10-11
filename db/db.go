@@ -107,11 +107,13 @@ type Client interface {
 	CreatePlayer(player *cs.Player) error
 	UpdatePlayer(player *cs.Player) error
 	SubmitPlayerTurn(gameID int64, num int, submittedTurn bool) error
+	ArchivePlayer(gameID int64, num int, archived bool) error
 	UpdatePlayerOrders(player *cs.Player) error
 	UpdatePlayerRelations(player *cs.Player) error
 	UpdatePlayerSpec(player *cs.Player) error
 	UpdatePlayerPlans(player *cs.Player) error
 	UpdatePlayerSalvageIntels(player *cs.Player) error
+	UpdatePlayerMineralPacketIntels(player *cs.Player) error
 	UpdateLightPlayer(player *cs.Player) error
 	UpdatePlayerUserId(player *cs.Player) error
 	DeletePlayer(id int64) error
@@ -145,8 +147,10 @@ type Client interface {
 	UpdateMineField(fleet *cs.MineField) error
 
 	GetMineralPacket(id int64) (*cs.MineralPacket, error)
+	GetMineralPacketByNum(gameID int64, playerNum int, num int) (*cs.MineralPacket, error)
 	GetMineralPacketsForPlayer(gameID int64, playerNum int) ([]*cs.MineralPacket, error)
-
+	UpdateMineralPacket(mineralPacket *cs.MineralPacket) error
+	
 	GetSalvagesForGame(gameID int64) ([]*cs.Salvage, error)
 	GetSalvagesForPlayer(gameID int64, playerNum int) ([]*cs.Salvage, error)
 	GetSalvageByNum(gameID int64, num int) (*cs.Salvage, error)

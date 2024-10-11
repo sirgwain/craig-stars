@@ -103,7 +103,8 @@
 	<circle {...props} />
 	{#if hasStarbase}
 		<rect
-			class="starbase"
+			class:starbase={planet.spec?.dockCapacity}
+			class:starbase-fort={!planet.spec?.dockCapacity}
 			width={starbaseWidth}
 			height={starbaseWidth}
 			rx={0.5}

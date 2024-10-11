@@ -1,3 +1,4 @@
+import type { Game } from '$lib/types/Game';
 import type { Planet } from '$lib/types/Planet';
 import type { PlayerOrders, PlayerResponse } from '$lib/types/Player';
 import type { TechLevel } from '$lib/types/TechLevel';
@@ -58,6 +59,36 @@ export class PlayerService extends Service {
 			await Service.throwError(response);
 		}
 		return (await response.json()) as PlayerResponse;
+	}
+
+	static async archiveGame(gameId: number): Promise<Game> {
+		const response = await fetch(`/api/games/${gameId}/archive-game`, {
+			method: 'POST',
+			headers: {
+				accept: 'application/json'
+			}
+		});
+
+		if (!response.ok) {
+			await Service.throwError(response);
+		}
+
+		return await response.json();
+	}
+
+	static async unArchiveGame(gameId: number): Promise<Game> {
+		const response = await fetch(`/api/games/${gameId}/unarchive-game`, {
+			method: 'POST',
+			headers: {
+				accept: 'application/json'
+			}
+		});
+
+		if (!response.ok) {
+			await Service.throwError(response);
+		}
+
+		return await response.json();
 	}
 
 	static async submitTurn(gameId: number | string): Promise<TurnGenerationResponse | undefined> {

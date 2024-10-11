@@ -497,7 +497,45 @@ func (ug *universeGenerator) generatePlayerFleets(player *Player, planet *Planet
 }
 
 func (ug *universeGenerator) applyGameStartModeModifier() {
+	switch ug.StartMode {
+	case GameStartModeMax:
+		ug.maxPlayersAndPlanets()
+	}
+}
 
+func (ug *universeGenerator) maxPlayersAndPlanets() {
+	rules := ug.Rules
+	for _, player := range ug.players {
+		// max tech levels, acquire all mt techs
+		player.TechLevels = TechLevel{rules.MaxTechLevel, rules.MaxTechLevel, rules.MaxTechLevel, rules.MaxTechLevel, rules.MaxTechLevel, rules.MaxTechLevel}
+		for _, mtTech := range MysteryTraderTechs {
+			player.AcquiredTechs[mtTech.Name] = true
+		}
+	}
+
+	for _, planet := range ug.universe.Planets {
+		if !planet.Owned() {
+			planet.MineralConcentration = Mineral{rules.MaxMineralConcentration, rules.MaxMineralConcentration, rules.MaxMineralConcentration}
+			continue
+		}
+
+		player := ug.players[planet.PlayerNum-1]
+
+		planet.MineralConcentration = Mineral{rules.MaxMineralConcentration, rules.MaxMineralConcentration, rules.MaxMineralConcentration}
+		planet.Cargo.Ironium = 1_000_000
+		planet.Cargo.Boranium = 1_000_000
+		planet.Cargo.Germanium = 1_000_000
+		planet.setPopulation(planet.getMaxPopulation(&rules, player, player.Race.GetPlanetHabitability(planet.Hab)))
+		if player.Race.Spec.CanBuildDefenses {
+			planet.Defenses = 100
+		}
+		if !player.Race.Spec.InnateMining {
+			planet.Mines = planet.getMaxMines(player, planet.population())
+		}
+		if !player.Race.Spec.InnateResources {
+			planet.Factories = planet.getMaxFactories(player, planet.population())
+		}
+	}
 }
 
 // get the initial starbase designs for a player

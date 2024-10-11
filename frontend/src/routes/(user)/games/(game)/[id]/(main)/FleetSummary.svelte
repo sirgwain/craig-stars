@@ -48,14 +48,8 @@
 	}
 
 	function transfer() {
-		if (fleet.orbitingPlanetNum) {
-			const planet = $universe.getPlanet(fleet.orbitingPlanetNum);
-			dispatch('cargo-transfer-dialog', { src: new CommandedFleet(fleet), dest: planet });
-		} else {
-			// if there is salvage here, transfer to it
-			const salvage = $universe.getSalvageAtPosition(fleet);
-			dispatch('cargo-transfer-dialog', { src: new CommandedFleet(fleet), dest: salvage });
-		}
+		const f = new CommandedFleet(fleet);
+		dispatch('cargo-transfer-dialog', { src: f, dest: f.getCargoTransferTarget($universe) });
 	}
 </script>
 

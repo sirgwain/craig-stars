@@ -11,6 +11,7 @@
 	import { hasRequiredLevels, levelsAbove } from '$lib/types/TechLevel';
 	import ItemTitle from './ItemTitle.svelte';
 	import { isSafari } from '$lib/safariChecker';
+	import type { CS } from '$lib/wasm';
 
 	// for ssr, we start with techs from a json file
 	export let techStore: TechStore = techjson as TechStore;
@@ -24,9 +25,10 @@
 		...techStore.terraforms
 	];
 	export let player: Player | undefined = undefined;
+	export let cs: CS | undefined = undefined;
 
 	let filter = '';
-	let showAll = !player ?? false;
+	let showAll = player === undefined;
 
 	let techsByCategory: Record<TechCategory, Tech[]> = {
 		Armor: [],
@@ -144,7 +146,18 @@
 				{#if showAll || (player && canLearnTech(player, tech) && hasRequiredLevels(player.techLevels, tech.requirements))}
 					<div>
 						<!-- Hide the graph on safari until svelte5 -->
-						<TechSummary {tech} {player} hideGraph={isSafari} />
+						<TechSummary
+							{tech}
+							{player}
+							hideGraph={isSafari}
+							{cs}
+							showResearchCost={!!(
+								player &&
+								cs &&
+								canLearnTech(player, tech) &&
+								!hasRequiredLevels(player.techLevels, tech.requirements)
+							)}
+						/>
 					</div>
 				{/if}
 			{/each}

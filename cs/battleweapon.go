@@ -59,7 +59,7 @@ type battleWeaponDamage struct {
 	shieldDamage int
 	// the damage inflicted on armor
 	armorDamage int
-	// the new stack damage
+	// the new stack damage, per ship in the stack
 	damage float64
 	// the new stack quantity damaged
 	quantityDamaged int
@@ -316,8 +316,13 @@ func (weapon *battleWeaponSlot) getBeamDamageToTarget(damage int, target *battle
 
 // get beam damage to a target adjusted for distance
 func (weapon *battleWeaponSlot) getBeamDamageToTargetAtDistance(damage int, target *battleToken, dist int, beamRangeDropoff float64) battleWeaponDamage {
-	// drain any range/defelctor penalty from beam damage
-	damage = getBeamDamageAtDistance(damage, weapon.weaponRange, dist, target.beamDefense, beamRangeDropoff)
+	if weapon.hitsAllTargets {
+		// no range penalty for gattlings
+		damage = getBeamDamageAtDistance(damage, weapon.weaponRange, 0, target.beamDefense, beamRangeDropoff)
+	} else {
+		// drain any range/defelctor penalty from beam damage
+		damage = getBeamDamageAtDistance(damage, weapon.weaponRange, dist, target.beamDefense, beamRangeDropoff)
+	}
 
 	// sappers only damage shields, can't damage more shields than we have
 	if weapon.damagesShieldsOnly {

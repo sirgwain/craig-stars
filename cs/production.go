@@ -152,7 +152,7 @@ type productionResult struct {
 	itemsBuilt        []itemBuilt
 	leftoverResources int
 	tokens            []builtShip
-	packets           []Cargo
+	packets           Cargo
 	scanner           bool
 	reset             bool
 	starbase          *ShipDesign
@@ -473,7 +473,7 @@ func (p *production) updateProductionResult(item ProductionQueueItem, numBuilt i
 		// add this packet cargo to the production result
 		// so it can be added as packets to the universe later
 		cargo := cost.MultiplyFloat64(1 / p.player.Race.Spec.PacketMineralCostFactor).MultiplyInt(numBuilt).ToCargo()
-		result.packets = append(result.packets, cargo)
+		result.packets = result.packets.Add(cargo)
 	case QueueItemTypeShipToken:
 		result.tokens = append(result.tokens, builtShip{ShipToken: ShipToken{Quantity: numBuilt, design: item.design, DesignNum: item.DesignNum}, tags: item.Tags})
 	case QueueItemTypeStarbase:

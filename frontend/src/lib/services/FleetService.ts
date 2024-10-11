@@ -7,7 +7,9 @@ import {
 	type Waypoint
 } from '$lib/types/Fleet';
 import type { MapObject } from '$lib/types/MapObject';
+import type { MineralPacket } from '$lib/types/MineralPacket';
 import type { Planet } from '$lib/types/Planet';
+import type { PlayerResponse } from '$lib/types/Player';
 import type { Salvage } from '$lib/types/Salvage';
 import { Service } from './Service';
 
@@ -23,7 +25,9 @@ export class FleetOrdersRequest implements FleetOrders {
 type TransferCargoResponse = {
 	fleet: Fleet;
 	dest: MapObject | undefined;
+	player: PlayerResponse | undefined;
 	salvages?: Salvage[];
+	mineralPackets?: MineralPacket[];
 };
 
 type SplitFleetResponse = {

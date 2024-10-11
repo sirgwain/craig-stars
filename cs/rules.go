@@ -30,6 +30,7 @@ type Rules struct {
 	MovesToRunAway                   int                                 `json:"movesToRunAway"`
 	MysteryTraderRules               MysteryTraderRules                  `json:"mysteryTraderRules"`
 	PacketDecayRate                  map[int]float64                     `json:"packetDecayRate"`
+	PacketMaxOverwarpSpeed           int                                 `json:"packetMaxOverwarpSpeed"`
 	PacketMinDecay                   int                                 `json:"packetMinDecay"`
 	PlanetMinDistance                int                                 `json:"planetMinDistance"`
 	PopulationOvercrowdDieoffRate    float64                             `json:"populationOvercrowdDieoffRate"`
@@ -55,6 +56,7 @@ type Rules struct {
 	StargateMaxHullMassFactor        int                                 `json:"stargateMaxHullMassFactor"`
 	StargateMaxRangeFactor           int                                 `json:"stargateMaxRangeFactor"`
 	TachyonCloakReduction            int                                 `json:"tachyonCloakReduction"`
+	TachyonMaxCloakReduction         int                                 `json:"tachyonMaxCloakReduction"`
 	TechsID                          int64                               `json:"techsId"`
 	TechTradeChance                  float64                             `json:"techTradeChance"`
 	TorpedoSplashDamage              float64                             `json:"torpedoSplashDamage"`
@@ -285,6 +287,7 @@ func NewRulesWithSeed(seed int64) Rules {
 			WormholeMinPlanetDistance: 30,
 		},
 		TachyonCloakReduction:            5,
+		TachyonMaxCloakReduction:         81, // tachyon detectors cap at 81% cloaking reduction
 		MaxPopulation:                    1000000,
 		MinMaxPopulationPercent:          .05,
 		PopulationOvercrowdDieoffRate:    .04, // overcrowded pops die off at 4% per doubling
@@ -550,8 +553,9 @@ func NewRulesWithSeed(seed int64) Rules {
 			2: 0.25,
 			3: 0.5,
 		},
-		PacketMinDecay: 10,
-		MaxTechLevel:   26,
+		PacketMaxOverwarpSpeed: 3,
+		PacketMinDecay:         10,
+		MaxTechLevel:           26,
 
 		PRTSpecs: map[PRT]PRTSpec{
 			HE:   heSpec(),

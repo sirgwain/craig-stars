@@ -88,6 +88,9 @@
 	.warp-stargate-bar {
 		@apply bg-[#FFFF00];
 	}
+	.warp-packet-bar {
+		@apply bg-[#8F0087];
+	}
 	.grav-bar {
 		@apply bg-[#020085];
 	}
@@ -252,6 +255,12 @@
 .starbase {
 	fill: #fdfd00;
 	stroke: #7f7f00;
+	stroke-width: 0.5;
+}
+
+.starbase-fort {
+	fill: #00007F;
+	stroke: #00002F;
 	stroke-width: 0.5;
 }
 

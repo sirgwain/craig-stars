@@ -10,6 +10,11 @@
 	const { game, universe, player } = getGameContext();
 
 	export let message: Message;
+
+	let fleet =
+		message.targetPlayerNum && message.targetNum
+			? $universe.getFleet(message.targetPlayerNum, message.targetNum)
+			: undefined;
 </script>
 
 {#if message.text}
@@ -60,6 +65,16 @@
 {:else if message.type === MessageType.FleetExceededSafeSpeed}
 	<!-- Overwarp -->
 	<FleetEngineStrainMessageDetail {message} />
+{:else if message.type === MessageType.FleetGeneratedFuel}
+	{@const hasRamscoops = !!fleet?.tokens?.find(
+		(t) => ($universe.getDesign(fleet.playerNum, t.designNum)?.spec?.engine.freeSpeed ?? 0) > 1
+	)}
+	{#if hasRamscoops}
+		{message.targetName}'s ramscoops have produced {message.spec.amount}mg of fuel from interstellar
+		hydrogen.
+	{:else}
+		{message.targetName} has generated {message.spec.amount}mg of fuel.
+	{/if}
 {:else if message.type === MessageType.FleetMineFieldHit}
 	{@const damage = message.spec.mineFieldDamage}
 	{@const mineFieldOwner = $universe.getPlayerPluralName(message.spec.targetPlayerNum)}
@@ -100,17 +115,17 @@
 	{@const mineFieldPosition = `(${message.spec.targetPosition?.x ?? 0}, ${message.spec.targetPosition?.y || 0})`}
 	{#if message.targetPlayerNum === $player.num}
 		<!-- our fleet swept -->
-		{message.targetName} has has swept {message.spec.amount} mines from a mine field at {mineFieldPosition}
+		{message.targetName} has has swept {message.spec.amount ?? 0} mines from a mine field at {mineFieldPosition}
 	{:else}
 		<!-- our minefield was swept by fleet -->
-		{message.targetName} has has swept {message.spec.amount} mines from your mine field at {mineFieldPosition}
+		{message.targetName} has has swept {message.spec.amount ?? 0} mines from your mine field at {mineFieldPosition}
 	{/if}
 {:else if message.type === MessageType.FleetLaidMines}
 	{@const mineField = $universe.getMineField(message.spec.targetPlayerNum, message.spec.targetNum)}
 	{#if mineField?.numMines === message.spec.amount}
 		{message.targetName} has has dispensed {message.spec.amount} mines.
 	{:else}
-		{message.targetName} has increased {mineField?.name} by {message.spec.amount} mines.
+		{message.targetName} has increased {message.spec.targetName} by {message.spec.amount} mines.
 	{/if}
 {:else if message.type === MessageType.FleetPatrolTargeted}
 	Your patrolling {message.targetName} has targeted {message.spec.targetName} to intercept.
@@ -134,9 +149,9 @@
 	}}
 	{message.targetName} has remote mined {message.spec.targetName} extracting {andCommaList(
 		[
-			minerals.ironium > 0 ? `${minerals.ironium} kT of Ironium` : '',
-			minerals.boranium > 0 ? `${minerals.boranium} kT of Boranium` : '',
-			minerals.germanium > 0 ? `${minerals.germanium} kT of Germanium` : ''
+			minerals.ironium > 0 ? `${minerals.ironium}kT of Ironium` : '',
+			minerals.boranium > 0 ? `${minerals.boranium}kT of Boranium` : '',
+			minerals.germanium > 0 ? `${minerals.germanium}kT of Germanium` : ''
 		],
 		'no minerals.'
 	)}

@@ -4,6 +4,7 @@ import { type Planet } from './types/Planet';
 import type { Player } from './types/Player';
 import type { Rules } from './types/Rules';
 import type { ShipDesign, Spec as ShipDesignSpec } from './types/ShipDesign';
+import type { TechLevel } from './types/TechLevel';
 
 export type CS = {
 	enableDebug: () => void;
@@ -11,6 +12,7 @@ export type CS = {
 	setPlayer: (player: Player) => void;
 	setDesigns: (designs: ShipDesign[]) => void;
 	calculateRacePoints: (race: Race) => number | undefined;
+	getResearchCost: (techLevel: TechLevel) => number | undefined;
 	computeShipDesignSpec: (design: ShipDesign) => ShipDesignSpec | undefined;
 	estimateProduction: (planet: Planet) => Planet | undefined;
 };
@@ -116,6 +118,14 @@ class CSWasmWrapper implements CS {
 
 	calculateRacePoints(race: Race): number | undefined {
 		const result = this.wasm.calculateRacePoints(race);
+		if (this.checkError()) {
+			return undefined;
+		}
+		return result;
+	}
+
+	getResearchCost(techLevel: TechLevel): number | undefined {
+		const result = this.wasm.getResearchCost(techLevel);
 		if (this.checkError()) {
 			return undefined;
 		}

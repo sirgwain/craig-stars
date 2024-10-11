@@ -367,20 +367,9 @@ func (m *messageClient) fleetExceededSafeSpeed(player *Player, fleet *Fleet, exp
 }
 
 func (m *messageClient) fleetGeneratedFuel(player *Player, fleet *Fleet, fuelGenerated int) {
-	hasRamScoop := false
-	for _, token := range fleet.Tokens {
-		if token.design.Spec.Engine.FreeSpeed > 1 {
-			hasRamScoop = true
-			break
-		}
-	}
-	var text string
-	if hasRamScoop {
-		text = fmt.Sprintf("%s's ramscoops have produced %dmg of fuel from interstellar hydrogen.", fleet.Name, fuelGenerated)
-	} else {
-		text = fmt.Sprintf("%s's engines have produced %dmg of fuel from interstellar hydrogen.", fleet.Name, fuelGenerated)
-	}
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetGeneratedFuel, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum}})
+	player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetGeneratedFuel, fleet).withSpec(
+		PlayerMessageSpec{Amount: fuelGenerated},
+	))
 }
 
 func (m *messageClient) fleetMerged(player *Player, fleet *Fleet, mergedInto *Fleet) {

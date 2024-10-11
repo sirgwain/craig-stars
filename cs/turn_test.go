@@ -706,6 +706,57 @@ func Test_turn_fleetMoveTransportWaitForPercent(t *testing.T) {
 
 }
 
+func Test_turn_fleetMoveStoppedByMineField(t *testing.T) {
+	game := createSingleUnitGame()
+	rules := &game.Rules
+
+	// change the rules so going 4 warp over the limit guarantee's a hit
+	stats := rules.MineFieldStatsByType[MineFieldTypeStandard]
+	stats.MaxSpeed = 5
+	stats.ChanceOfHit = 1
+	stats.MinDecay = 0 // turn off decay
+	rules.MineFieldStatsByType[MineFieldTypeStandard] = stats
+
+	// create a new MineField 20ly away with 10ly radius
+	radius := 10
+	mineFieldPlayer := NewPlayer(2, NewRace().WithSpec(rules)).WithNum(2).withSpec(rules)
+	mineFieldPlayer.Race.Spec.MineFieldBaseDecayRate = 0
+	mineFieldPlayer.Race.Spec.MineFieldMinDecayFactor = 0
+	mineFieldPlayer.Race.Spec.MineFieldMaxDecayRate = 0
+	mineField := newMineField(mineFieldPlayer, MineFieldTypeStandard, radius*radius, 1, Vector{20, 0})
+	mineField.Spec = computeMinefieldSpec(rules, mineFieldPlayer, mineField, 0)
+	// setup initial planet intels so turn generation works
+	mineFieldPlayer.initDefaultPlanetIntels(game.Planets)
+
+	// make sure our player doesn't gain any tech levels since we're checking messages after turn generation
+	player := game.Players[0]
+	player.TechLevels = TechLevel{26, 26, 26, 26, 26, 26}
+
+	game.Players = append(game.Players, mineFieldPlayer)
+	game.MineFields = append(game.MineFields, mineField)
+
+	// move us straight through a minefield
+	fleet := game.Fleets[0]
+	fleet.Waypoints = append(fleet.Waypoints, NewPositionWaypoint(Vector{36, 0}, 6))
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// let's go!!
+	turn.generateTurn()
+
+	// we should have struck the minefield and lost the ship
+	assert.True(t, fleet.Delete)
+	assert.Equal(t, 2, len(game.Players[0].Messages))
+	assert.Equal(t, 2, len(game.Players[1].Messages))
+
+	// the MineField should have lost some mines in the collision
+	assert.Equal(t, 88, mineField.NumMines)
+	assert.Equal(t, Vector{10, 0}, fleet.Position)
+}
+
 func Test_turn_fleetMoveDestroyedByMineField(t *testing.T) {
 	game := createSingleUnitGame()
 	rules := &game.Rules
@@ -1354,6 +1405,84 @@ func Test_turn_detonateMines(t *testing.T) {
 
 }
 
+func Test_turn_testPacketMoveHitPlanet(t *testing.T) {
+	game := createSingleUnitGame()
+
+	player := game.Players[0]
+	planet := game.Planets[0]
+
+	// create a new packet heading towards the homeworld
+	packetPlayer := NewPlayer(2, NewRace().WithSpec(&rules)).WithNum(2).withSpec(&rules)
+	packet := newMineralPacket(packetPlayer, 1, 7, 7, Cargo{Ironium: 10}, Vector{25, 0}, planet.Num)
+
+	// setup initial planet intels so turn generation works
+	packetPlayer.initDefaultPlanetIntels(game.Planets)
+
+	game.Players = append(game.Players, packetPlayer)
+	game.MineralPackets = append(game.MineralPackets, packet)
+
+	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
+	packetPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// move packet, wipe out planet
+	turn.generateTurn()
+
+	// packet hits, but planet is fine and we recover 1/3rd of the cargo
+	assert.NotEqual(t, 0, planet.population())
+	assert.Equal(t, player.Num, planet.PlayerNum)
+	assert.Equal(t, 10/3, planet.Cargo.Ironium)
+}
+
+func Test_turn_testPacketMoveDeleteStarbase(t *testing.T) {
+	game := createSingleUnitGame()
+
+	player := game.Players[0]
+	planet := game.Planets[0]
+
+	// create a new packet heading towards the homeworld
+	packetPlayer := NewPlayer(2, NewRace().WithSpec(&rules)).WithNum(2).withSpec(&rules)
+	packet := newMineralPacket(packetPlayer, 1, 13, 13, Cargo{Ironium: 1000}, Vector{25, 0}, planet.Num)
+
+	// setup initial planet intels so turn generation works
+	packetPlayer.initDefaultPlanetIntels(game.Planets)
+
+	game.Players = append(game.Players, packetPlayer)
+	game.MineralPackets = append(game.MineralPackets, packet)
+
+	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
+	packetPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
+
+	// create a new starbase
+	starbaseDesign := NewShipDesign(player, 2).WithHull(SpaceStation.Name).WithSpec(&rules, player)
+	starbase := newStarbase(player, planet,
+		starbaseDesign,
+		"Starbase",
+	)
+	player.Designs = append(player.Designs, starbaseDesign)
+	game.Starbases = append(game.Starbases, &starbase)
+	planet.Starbase = &starbase
+
+	turn := turn{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// move packet, wipe out planet
+	turn.generateTurn()
+
+	// no pop, no starbase
+	assert.Equal(t, 0, planet.population())
+	assert.Equal(t, None, planet.PlayerNum)
+	assert.Equal(t, true, starbase.Delete)
+	assert.Nil(t, nil, planet.Starbase)
+
+}
+
 func Test_turn_decayPackets(t *testing.T) {
 	game := createSingleUnitGame()
 	player := game.Players[0]
@@ -1374,7 +1503,8 @@ func Test_turn_decayPackets(t *testing.T) {
 	// move and decay
 	turn.packetMove(false)
 	turn.packetMove(true)
-	turn.decayPackets()
+	turn.decayPackets(false)
+	turn.decayPackets(true)
 
 	// no decay, 50% decay, and half of 50% decay for a newly built overfast packet
 	assert.Equal(t, packetSafe.Cargo, Cargo{100, 100, 100, 0})

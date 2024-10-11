@@ -23,7 +23,7 @@ func getCloakPercentForCloakUnits(cloakUnits int) int {
 				} else if cloakUnits < 1000 {
 					return 97
 				} else {
-					return 99
+					return 98
 				}
 			}
 		}

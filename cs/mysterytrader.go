@@ -667,7 +667,7 @@ var MegaPolyShell = TechHullComponent{Tech: NewTechWithOrigin("Mega Poly Shell",
 	Scanner:        true,
 	ScanRange:      80,
 	ScanRangePen:   40,
-	HullSlotType:   HullSlotTypeShield,
+	HullSlotType:   HullSlotTypeArmor,
 }
 var LangstonShell = TechHullComponent{Tech: NewTechWithOrigin("Langston Shell", NewCost(6, 1, 4, 12), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 12, Propulsion: 9, Electronics: 9}}, 75, TechCategoryShield, OriginMysteryTrader),
 

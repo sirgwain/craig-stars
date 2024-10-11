@@ -358,8 +358,10 @@ func (b *battle) runBattle() *BattleRecord {
 		}
 	}
 
-	// record destroyed tokens
+	// record destroyed tokens, update damage to ints
 	for _, token := range b.tokens {
+		// after battle make sure damage is an int
+		token.Damage = math.Floor(token.Damage)
 		if token.quantityDestroyed > 0 {
 			b.record.recordDestroyedToken(token, token.quantityDestroyed)
 		}
@@ -445,7 +447,8 @@ func (b *battle) moveToken(token *battleToken, weaponSlots []*battleWeaponSlot) 
 			// we've moved enough to leave the board
 			token.ranAway = true
 			b.board[token.Position.Y][token.Position.X] -= token.Quantity
-			b.record.recordRunAway(b.round, token)
+			action := b.record.recordRunAway(b.round, token)
+			b.log.Debug().Msgf("Round: %d %s", b.round, action)
 			return
 		}
 
@@ -459,7 +462,9 @@ func (b *battle) moveToken(token *battleToken, weaponSlots []*battleWeaponSlot) 
 
 	// update the board after a token moves
 	bestMove := bestMoves[b.rules.random.Intn(len(bestMoves))]
-	b.record.recordMove(b.round, token, token.Position, bestMove)
+	action := b.record.recordMove(b.round, token, token.Position, bestMove)
+	b.log.Debug().Msgf("Round: %d %s", b.round, action)
+
 	token.Position = bestMove
 	b.board[oldPosition.Y][oldPosition.X] -= token.Quantity
 	b.board[token.Position.Y][token.Position.X] += token.Quantity

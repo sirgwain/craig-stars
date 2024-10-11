@@ -22,11 +22,11 @@
 <script lang="ts">
 	import FleetIcon from '$lib/components/FleetIcon.svelte';
 	import CargoTransferer from '$lib/components/game/cargotransfer/CargoTransferer.svelte';
-	import { quantityModifier } from '$lib/quantityModifier';
 	import { CargoTransferRequest, emptyCargo, totalCargo, type Cargo } from '$lib/types/Cargo';
 	import hotkeys from 'hotkeys-js';
 	import { cloneDeep } from 'lodash-es';
 	import { createEventDispatcher, onMount } from 'svelte';
+	import { clamp } from '$lib/services/Math';
 
 	const dispatch = createEventDispatcher<SplitFleetEvent>();
 	const { game, player, universe } = getGameContext();
@@ -41,6 +41,8 @@
 	let destFuelCapacity: number = dest?.spec?.fuelCapacity ?? 0;
 	let srcCargoCapacity: number = src.spec.cargoCapacity ?? 0;
 	let destCargoCapacity: number = dest?.spec?.cargoCapacity ?? 0;
+	let quantityModifier = 1;
+
 	const totalFuel = src.fuel + (dest?.fuel ?? 0);
 
 	function ok() {
@@ -142,7 +144,9 @@
 			dest.num = 0;
 			dest.spec = cloneDeep(src.spec);
 			dest.name = `${dest.baseName}`;
-			dest.tokens = src.tokens.map((t) => Object.assign({}, t, { quantity: 0 }));
+			dest.tokens = src.tokens.map((t) =>
+				Object.assign({}, t, { quantity: 0, quantityDamaged: 0, damage: 0 })
+			);
 			dest.spec.fuelCapacity = 0;
 			dest.spec.cargoCapacity = 0;
 			dest.fuel = 0;
@@ -153,19 +157,23 @@
 		} else {
 			// we have a source and a dest, make the srcTokens and destTokens match up
 			srcTokens = cloneDeep(src.tokens);
-			destTokens = cloneDeep(src.tokens.map((t) => Object.assign({}, t, { quantity: 0 })));
+			destTokens = cloneDeep(
+				src.tokens.map((t) => Object.assign({}, t, { quantity: 0, quantityDamaged: 0, damage: 0 }))
+			);
 
 			dest.tokens?.forEach((token) => {
 				const tokenWithDesignInSrc = srcTokens.find((t) => t.designNum === token.designNum);
 				if (!tokenWithDesignInSrc) {
 					// this token only exists in the destination, so add a 0 quantity copy to the src
-					srcTokens.push(Object.assign({}, token, { quantity: 0 }));
+					srcTokens.push(Object.assign({}, token, { quantity: 0, quantityDamaged: 0, damage: 0 }));
 					destTokens.push(Object.assign({}, token));
 				} else {
 					// this token exists in the src, so update the quantity in the destination
 					const tokenWithDesignInDest = destTokens.find((t) => t.designNum === token.designNum);
 					if (tokenWithDesignInDest) {
 						tokenWithDesignInDest.quantity = token.quantity;
+						tokenWithDesignInDest.quantityDamaged = token.quantityDamaged;
+						tokenWithDesignInDest.damage = token.damage;
 					}
 				}
 			});
@@ -218,14 +226,18 @@
 							<div class="flex flex-row h-full">
 								<button
 									on:click={(e) => {
-										moveToken(-quantityModifier(e, 0, destTokens[index].quantity), token, index);
+										moveToken(
+											-clamp(quantityModifier, 0, destTokens[index].quantity),
+											token,
+											index
+										);
 									}}
 									class="btn btn-outline btn-xs normal-case btn-secondary inline-block p-1"
 									><Icon src={ArrowLongLeft} size="16" class="hover:stroke-accent inline" />
 								</button>
 								<button
 									on:click={(e) => {
-										moveToken(quantityModifier(e, 0, srcTokens[index].quantity), token, index);
+										moveToken(clamp(quantityModifier, 0, srcTokens[index].quantity), token, index);
 									}}
 									class="btn btn-outline btn-xs normal-case btn-secondary inline-block p-1"
 									><Icon
@@ -266,11 +278,12 @@
 				{src}
 				{dest}
 				showHeader={false}
-				bind:transferAmount
 				{srcCargoCapacity}
 				{srcFuelCapacity}
 				{destCargoCapacity}
 				{destFuelCapacity}
+				bind:transferAmount
+				bind:quantityModifier
 			/>
 		</div>
 		<div class="flex flex-none justify-end pt-2 my-auto">

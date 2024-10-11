@@ -26,20 +26,22 @@ type BattleRecordStats struct {
 
 // A token on a battle board
 type BattleRecordToken struct {
-	Num              int             `json:"num,omitempty"`
-	PlayerNum        int             `json:"playerNum,omitempty"`
-	DesignNum        int             `json:"designNum,omitempty"`
-	Position         BattleVector    `json:"position,omitempty"`
-	Initiative       int             `json:"initiative,omitempty"`
-	Mass             int             `json:"mass,omitempty"`
-	Armor            int             `json:"armor,omitempty"`
-	StackShields     int             `json:"stackShields,omitempty"`
-	Movement         int             `json:"movement,omitempty"`
-	StartingQuantity int             `json:"startingQuantity,omitempty"`
-	Tactic           BattleTactic    `json:"tactic,omitempty"`
-	PrimaryTarget    BattleTarget    `json:"primaryTarget,omitempty"`
-	SecondaryTarget  BattleTarget    `json:"secondaryTarget,omitempty"`
-	AttackWho        BattleAttackWho `json:"attackWho,omitempty"`
+	Num                     int             `json:"num,omitempty"`
+	PlayerNum               int             `json:"playerNum,omitempty"`
+	DesignNum               int             `json:"designNum,omitempty"`
+	Position                BattleVector    `json:"position,omitempty"`
+	Initiative              int             `json:"initiative,omitempty"`
+	Mass                    int             `json:"mass,omitempty"`
+	Armor                   int             `json:"armor,omitempty"`
+	StackShields            int             `json:"stackShields,omitempty"`
+	Movement                int             `json:"movement,omitempty"`
+	StartingQuantity        int             `json:"startingQuantity,omitempty"`
+	StartingQuantityDamaged int             `json:"startingQuantityDamaged,omitempty"`
+	StartingDamage          int             `json:"startingDamage,omitempty"`
+	Tactic                  BattleTactic    `json:"tactic,omitempty"`
+	PrimaryTarget           BattleTarget    `json:"primaryTarget,omitempty"`
+	SecondaryTarget         BattleTarget    `json:"secondaryTarget,omitempty"`
+	AttackWho               BattleAttackWho `json:"attackWho,omitempty"`
 }
 
 type BattleRecordDestroyedToken struct {
@@ -172,24 +174,22 @@ func (b *BattleRecord) recordNewRound() {
 }
 
 // Record a move
-func (b *BattleRecord) recordMove(round int, token *battleToken, from, to BattleVector) {
+func (b *BattleRecord) recordMove(round int, token *battleToken, from, to BattleVector) BattleRecordTokenAction {
 	action := BattleRecordTokenAction{Type: TokenActionMove, Round: round, TokenNum: token.Num, From: from, To: to}
 	actions := b.ActionsPerRound[len(b.ActionsPerRound)-1]
 	actions = append(actions, action)
 	b.ActionsPerRound[len(b.ActionsPerRound)-1] = actions
-
-	log.Debug().Msgf("Round: %d %s", round, action)
+	return action
 }
 
 // Record a token running away
-func (b *BattleRecord) recordRunAway(round int, token *battleToken) {
+func (b *BattleRecord) recordRunAway(round int, token *battleToken) BattleRecordTokenAction {
 	action := BattleRecordTokenAction{Type: TokenActionRanAway, Round: round, TokenNum: token.Num}
 	actions := b.ActionsPerRound[len(b.ActionsPerRound)-1]
 	actions = append(actions, action)
 	b.ActionsPerRound[len(b.ActionsPerRound)-1] = actions
 
-	log.Debug().Msgf("Round: %d %s", round, action)
-
+	return action
 }
 
 // Record a token firing a beam weapon

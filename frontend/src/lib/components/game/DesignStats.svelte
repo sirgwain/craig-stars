@@ -20,6 +20,12 @@
 		<div class="font-semibold mr-5">Max Fuel</div>
 		<div>{spec.fuelCapacity ?? 0}mg</div>
 	</div>
+	{#if spec.fuelGeneration && spec.fuelGeneration > 0}
+		<div class="flex justify-between">
+			<div class="font-semibold mr-5">Fuel Generation</div>
+			<div>{spec.fuelGeneration ?? 0}mg</div>
+		</div>
+	{/if}
 	{#if spec.estimatedRange}
 		<div class="flex justify-between">
 			{#if spec.estimatedRange == Infinite}
@@ -79,7 +85,7 @@
 			<div>
 				{((spec.torpedoBonus ?? 0) * 100).toFixed()}%/{(
 					(spec.torpedoJamming ?? 0) * 100
-				).toFixed()}%
+				).toFixed(2)}%
 			</div>
 		</div>
 	{/if}
@@ -87,7 +93,7 @@
 		<div class="flex justify-between">
 			<div class="font-semibold mr-5">Beam Bonus/Defense</div>
 			<div>
-				x{(spec.beamBonus ?? 1).toFixed(1)}/x{(spec.beamDefense ?? 1).toFixed(1)}
+				x{(spec.beamBonus ?? 1).toFixed(2)}/x{(spec.beamDefense ?? 1).toFixed(2)}
 			</div>
 		</div>
 	{/if}

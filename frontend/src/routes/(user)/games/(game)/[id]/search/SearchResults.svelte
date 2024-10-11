@@ -61,7 +61,8 @@
 		const termSearch = (term: string, mo: MapObject): boolean =>
 			mo.name.toLowerCase().indexOf(term.toLowerCase()) != -1 ||
 			(mo.playerNum != None &&
-				$universe.getPlayerPluralName(mo.playerNum).toLowerCase().indexOf(term.toLowerCase()) != -1);
+				$universe.getPlayerPluralName(mo.playerNum).toLowerCase().indexOf(term.toLowerCase()) !=
+					-1);
 
 		// reset the selected item when the search is updated
 		selectedItemIndex = 0;
@@ -148,6 +149,7 @@
 		bind:this={searchInput}
 		bind:value={$settings.searchQuery}
 		on:keydown={onSearchKeyDown}
+		on:focus={() => searchInput?.select()}
 	/>
 	<div class="h-full">
 		<div class="mt-2 w-full h-full bg-base-200 border-2 border-base-300 overflow-y-auto pl-2">

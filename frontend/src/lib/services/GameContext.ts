@@ -3,7 +3,7 @@ import { getScannerTarget } from '$lib/types/Battle';
 import type { CargoTransferRequest } from '$lib/types/Cargo';
 import { CommandedFleet, type Fleet, type ShipToken, type Waypoint } from '$lib/types/Fleet';
 import type { Game, GameSettings } from '$lib/types/Game';
-import { MapObjectType, None, equal, key, type MapObject } from '$lib/types/MapObject';
+import { MapObjectType, None, equal, key, ownedBy, type MapObject } from '$lib/types/MapObject';
 import {
 	MessageTargetType,
 	MessageType,
@@ -337,6 +337,20 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 			}
 		}
 
+		if (message.spec.targetType === MapObjectType.MineField) {
+			const fleet = universe.getFleet(message.targetPlayerNum, message.targetNum);
+			const mf = universe.getMineField(message.spec.targetPlayerNum, message.spec.targetNum);
+			if (fleet && ownedBy(fleet, playerNum)) {
+				commandMapObject(fleet);
+			}
+			if (mf) {
+				selectMapObject(mf);
+				zoomToMapObject(mf);
+				goto(`/games/${gameId}`);
+				return;
+			}
+		}
+
 		if (message.targetNum) {
 			moType = getMapObjectTypeForMessageType(targetType);
 			targetTargetMapObjectType = getMapObjectTypeForMessageType(targetTargetType);
@@ -480,7 +494,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 					const planet = u.getMapObject({
 						targetType: MapObjectType.Planet,
 						targetNum: fleet.orbitingPlanetNum,
-						targetPosition: fleet.position,
+						targetPosition: fleet.position
 					});
 					if (planet) {
 						selectMapObject(planet);
@@ -518,7 +532,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 					const planet = u.getMapObject({
 						targetType: MapObjectType.Planet,
 						targetNum: fleet.orbitingPlanetNum,
-						targetPosition: fleet.position,
+						targetPosition: fleet.position
 					});
 					if (planet) {
 						selectMapObject(planet);
@@ -860,6 +874,11 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		transferAmount: CargoTransferRequest
 	): Promise<void> {
 		const result = await FleetService.transferCargo(fleet, dest, transferAmount);
+		const u = get(universe);
+
+		if (result.player) {
+			updatePlayer(result.player);
+		}
 
 		if (result.dest?.type == MapObjectType.Planet) {
 			const planet = result.dest as Planet;
@@ -871,7 +890,24 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		}
 
 		if (result.salvages) {
-			get(universe).updateSalvages(result.salvages);
+			u.updateSalvages(result.salvages);
+		}
+		if (result.mineralPackets) {
+			u.updateMineralPackets(result.mineralPackets);
+		}
+
+		const smo = get(selectedMapObject);
+		if (smo && smo.type == MapObjectType.Salvage) {
+			const salvage = u.getSalvage(smo.num);
+			if (salvage) {
+				selectMapObject(salvage);
+			}
+		}
+		if (smo && smo.type == MapObjectType.MineralPacket) {
+			const mineralPacket = u.getMineralPacket(smo.playerNum, smo.num);
+			if (mineralPacket) {
+				selectMapObject(mineralPacket);
+			}
 		}
 
 		updateFleet(fleet, result.fleet);

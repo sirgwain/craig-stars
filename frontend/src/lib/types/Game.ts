@@ -32,9 +32,7 @@ export enum PlayerPositions {
 
 export enum GameStartMode {
 	Normal = '', // regular start
-	MidGame = 'MidGame', // further tech levels, pop growth
-	LateGame = 'LateGame',
-	EndGame = 'EndGame'
+	Max = 'Max' // max out all players
 }
 
 export enum NewGamePlayerType {
@@ -89,7 +87,7 @@ export enum GameState {
 	GeneratingTurnError = 'GeneratingTurnError'
 }
 
-export interface Game {
+export type Game = {
 	id: number;
 	createdAt: string;
 	updatedAt: string;
@@ -115,9 +113,10 @@ export interface Game {
 	year: number;
 	victoryConditions: VictoryConditions;
 	victorDeclared: boolean;
-	rules: Rules;
+	archived: boolean;
+	rules?: Rules;
 	players: PlayerStatus[];
-}
+};
 
 export type VictoryConditions = {
 	conditions: number;

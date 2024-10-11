@@ -27,6 +27,7 @@ type discoverer interface {
 	discoverMineField(mineField *MineField)
 	discoverMineralPacket(rules *Rules, mineralPacket *MineralPacket, packetPlayer *Player, target *Planet)
 	discoverMineralPacketScanner(mineralPacket *MineralPacket)
+	discoverMineralPacketCargo(mineralPacket *MineralPacket)
 	discoverSalvage(salvage *Salvage)
 	discoverWormhole(wormhole *Wormhole)
 	discoverWormholeLink(wormhole1, wormhole2 *Wormhole)
@@ -65,8 +66,9 @@ func newDiscovererWithAllies(log zerolog.Logger, player *Player, players []*Play
 		}
 	}
 
+	discoverLogger := log.With().Int("Player", player.Num).Logger()
 	return &discovererWithAllies{
-		playerDiscoverer: discover{log, player},
+		playerDiscoverer: discover{discoverLogger, player},
 		allyDiscoverers:  mapSharePlayers,
 	}
 }
@@ -312,6 +314,7 @@ func (d *discover) discoverPlanet(rules *Rules, planet *Planet, penScanned bool)
 	intel.Spec.HasStarbase = planet.Spec.HasStarbase
 	intel.Spec.HasStargate = planet.Spec.HasStargate
 	intel.Spec.HasMassDriver = planet.Spec.HasMassDriver
+	intel.Spec.DockCapacity = planet.Spec.DockCapacity
 
 	ownedByPlayer := planet.PlayerNum != Unowned && player.Num == planet.PlayerNum
 
@@ -344,6 +347,7 @@ func (d *discover) discoverPlanet(rules *Rules, planet *Planet, penScanned bool)
 		intel.Spec.HasStarbase = planet.Spec.HasStarbase
 		intel.Spec.HasMassDriver = planet.Spec.HasMassDriver
 		intel.Spec.HasStargate = planet.Spec.HasStargate
+		intel.Spec.DockCapacity = planet.Spec.DockCapacity
 
 		// discover defense coverage
 		intel.Spec.DefenseCoverage = planet.Spec.DefenseCoverage
@@ -387,6 +391,7 @@ func (d *discover) clearPlanetOwnerIntel(planet *Planet) error {
 	intel.Spec.Population = 0
 	intel.Spec.HasStarbase = false
 	intel.Spec.HasStargate = false
+	intel.Spec.DockCapacity = None
 	intel.Spec.HasMassDriver = false
 	intel.Spec.StarbaseDesignName = ""
 	intel.Spec.StarbaseDesignNum = 0
@@ -415,6 +420,7 @@ func (d *discover) discoverPlanetStarbase(planet *Planet) error {
 	intel.Spec.HasStarbase = planet.Spec.HasStarbase
 	intel.Spec.HasStargate = planet.Spec.HasStargate
 	intel.Spec.HasMassDriver = planet.Spec.HasMassDriver
+	intel.Spec.DockCapacity = planet.Spec.DockCapacity
 
 	return nil
 }
@@ -625,6 +631,14 @@ func (d *discover) discoverMineralPacketScanner(mineralPacket *MineralPacket) {
 	if existingIntel != nil {
 		existingIntel.ScanRange = mineralPacket.ScanRange
 		existingIntel.ScanRangePen = mineralPacket.ScanRangePen
+	}
+}
+
+func (d *discover) discoverMineralPacketCargo(mineralPacket *MineralPacket) {
+	player := d.player
+	existingIntel := player.getMineralPacketIntel(mineralPacket.PlayerNum, mineralPacket.Num)
+	if existingIntel != nil {
+		existingIntel.Cargo = mineralPacket.Cargo
 	}
 }
 
@@ -983,6 +997,15 @@ func (d *discovererWithAllies) discoverMineralPacketScanner(mineralPacket *Miner
 	for _, allyDiscoverer := range d.allyDiscoverers {
 		if allyDiscoverer.player.Num != mineralPacket.PlayerNum {
 			allyDiscoverer.discoverMineralPacketScanner(mineralPacket)
+		}
+	}
+}
+
+func (d *discovererWithAllies) discoverMineralPacketCargo(mineralPacket *MineralPacket) {
+	d.playerDiscoverer.discoverMineralPacketCargo(mineralPacket)
+	for _, allyDiscoverer := range d.allyDiscoverers {
+		if allyDiscoverer.player.Num != mineralPacket.PlayerNum {
+			allyDiscoverer.discoverMineralPacketCargo(mineralPacket)
 		}
 	}
 }

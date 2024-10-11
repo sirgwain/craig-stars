@@ -8,19 +8,15 @@
 	import { clickOutside } from '$lib/clickOutside';
 	import Habitability from '$lib/components/icons/Habitability.svelte';
 	import MineralConcentration from '$lib/components/icons/MineralConcentration.svelte';
-	import Path from '$lib/components/icons/Path.svelte';
+	import AddWaypoint from '$lib/components/icons/AddWaypoint.svelte';
+	import AddWaypointFast from '$lib/components/icons/AddWaypointFast.svelte';
 	import PlanetWithStarbase from '$lib/components/icons/PlanetWithStarbase.svelte';
 	import Population from '$lib/components/icons/Population.svelte';
 	import SurfaceMinerals from '$lib/components/icons/SurfaceMinerals.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
 	import { PlanetViewState } from '$lib/types/PlayerSettings';
-	import {
-		ArrowLongLeft,
-		ArrowLongRight,
-		Envelope,
-		MagnifyingGlass
-	} from '@steeze-ui/heroicons';
+	import { ArrowLongLeft, ArrowLongRight, Envelope, MagnifyingGlass } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { createEventDispatcher } from 'svelte';
 	import MessagesPane from '../MessagesPane.svelte';
@@ -115,9 +111,28 @@
 					class:fill-accent={$settings.addWaypoint}
 					class:fill-current={!$settings.addWaypoint}
 					class="btn btn-ghost btn-xs h-full border"
-					on:click|preventDefault={() => ($settings.addWaypoint = !$settings.addWaypoint)}
-					><Path class="w-6 h-6" /></a
+					on:click|preventDefault={() => {
+						// 3 state toggle
+						if ($settings.addWaypoint && $settings.fastestWaypoint) {
+							$settings.addWaypoint = $settings.fastestWaypoint = false;
+						} else if ($settings.addWaypoint && !$settings.fastestWaypoint) {
+							$settings.addWaypoint = true;
+							$settings.fastestWaypoint = true;
+						} else if (!$settings.addWaypoint && !$settings.fastestWaypoint) {
+							$settings.addWaypoint = true;
+							$settings.fastestWaypoint = false;
+						} else {
+							// weird state, reset
+							$settings.addWaypoint = $settings.fastestWaypoint = false;
+						}
+					}}
 				>
+					{#if $settings.fastestWaypoint}
+						<AddWaypointFast class="w-6 h-6" />
+					{:else}
+						<AddWaypoint class="w-6 h-6" />
+					{/if}
+				</a>
 			</li>
 
 			<li>

@@ -158,7 +158,7 @@ func (scan *playerScan) scanPlanets(scanners []scanner, cargoScanners []scanner,
 
 // scan this planet
 func (scan *playerScan) scanPlanet(planet *Planet, scanner scanner) (bool, error) {
-	if float64(scanner.RangePenSquared(NoCloakFactor)) >= scanner.Position.DistanceSquaredTo(planet.Position) {
+	if scanner.RangePen != NoScanner && float64(scanner.RangePenSquared(NoCloakFactor)) >= scanner.Position.DistanceSquaredTo(planet.Position) {
 		if planet.Owned() {
 			scan.discoveredPlayers[planet.PlayerNum] = true
 		}
@@ -240,14 +240,14 @@ func (scan *playerScan) fleetInScannerRange(fleet *Fleet, scanner scanner) bool 
 	scanRangePenSqaured := scanner.RangePenSquared(cloakFactor)
 
 	// if we pen scanned this, update the report
-	if scanRangePenSqaured >= distanceSquared {
+	if scanner.RangePen != NoScanner && scanRangePenSqaured >= distanceSquared {
 		// update the fleet report with pen scanners
 		return true
 	}
 
 	// if we aren't orbiting a planet, we can be seen with regular scanners
 	scanRangeSqaured := scanner.RangeSquared(cloakFactor)
-	if !fleet.Orbiting() && scanRangeSqaured >= distanceSquared {
+	if scanner.Range != NoScanner && !fleet.Orbiting() && scanRangeSqaured >= distanceSquared {
 		return true
 	}
 	return false
@@ -259,6 +259,10 @@ func (scan *playerScan) scanWormholes(scanners []scanner) {
 		intel := scan.player.getWormholeIntel(wormhole.Num)
 
 		for _, scanner := range scanners {
+			if scanner.Range == NoScanner {
+				continue
+			}
+
 			// calculate cloak reduction for tachyon detectors if this wormhole is cloaked
 			cloakFactor := getCloakFactor(scan.rules.WormholeCloak, scanner.CloakReductionFactor)
 			if intel != nil {
@@ -285,6 +289,10 @@ func (scan *playerScan) scanWormholes(scanners []scanner) {
 	copy(intels, scan.player.WormholeIntels)
 	for _, intel := range intels {
 		for _, scanner := range scanners {
+			if scanner.Range == NoScanner {
+				continue
+			}
+
 			// if we scanned this wormhole where we last saw it, but it no longer exists in the universe, forget it
 			if scanner.RangeSquared(NoCloakFactor) >= scanner.Position.DistanceSquaredTo(intel.Position) {
 				wormhole := scan.universe.getWormhole(intel.Num)
@@ -330,6 +338,10 @@ func (scan *playerScan) scanMineralPackets(scanners []scanner) {
 		}
 
 		for _, scanner := range scanners {
+			if scanner.Range == NoScanner {
+				continue
+			}
+
 			// we only care about regular scanners for mineral packets
 			if scanner.RangeSquared(NoCloakFactor) >= scanner.Position.DistanceSquaredTo(packet.Position) {
 				scan.discoverer.discoverMineralPacket(scan.rules, packet, packetPlayer, target)
@@ -353,12 +365,16 @@ func (scan *playerScan) scanMineFields(scanners []scanner) {
 		intel := scan.player.getMineFieldIntel(mineField.PlayerNum, mineField.Num)
 
 		for _, scanner := range scanners {
+			if scanner.Range == NoScanner {
+				continue
+			}
+
 			cloakFactor := getCloakFactor(scan.rules.MineFieldCloak, scanner.CloakReductionFactor)
 			if intel != nil {
 				cloakFactor = 1
 			}
 
-			distanceToEdge := math.Max(0, scanner.Position.DistanceTo(mineField.Position) - mineField.Spec.Radius)
+			distanceToEdge := math.Max(0, scanner.Position.DistanceTo(mineField.Position)-mineField.Spec.Radius)
 			scannerRange := float64(scanner.Range) * cloakFactor
 			// we only care about regular scanners for wormholes
 			if scannerRange >= distanceToEdge {
@@ -376,6 +392,10 @@ func (scan *playerScan) scanSalvages(scanners []scanner) {
 			continue
 		}
 		for _, scanner := range scanners {
+			if scanner.Range == NoScanner {
+				continue
+			}
+
 			// we only care about regular scanners for mineral packets
 			if scanner.RangeSquared(NoCloakFactor) >= scanner.Position.DistanceSquaredTo(salvage.Position) {
 				scan.discoverer.discoverSalvage(salvage)

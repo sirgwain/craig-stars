@@ -104,8 +104,16 @@ func (s *server) updatePlanetOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// load all a player's planets so we can recompute research estimates
+	planets, err := dbClient.GetPlanetsForPlayer(game.ID, player.Num)
+	if err != nil {
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
 	orderer := cs.NewOrderer()
-	if err := orderer.UpdatePlanetOrders(&game.Rules, player, existingPlanet, planet.PlanetOrders); err != nil {
+	if err := orderer.UpdatePlanetOrders(&game.Rules, player, existingPlanet, planet.PlanetOrders, planets); err != nil {
+		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Str("Planet", existingPlanet.Name).Msg("update planet orders")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}

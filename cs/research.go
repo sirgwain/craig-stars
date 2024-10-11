@@ -99,6 +99,9 @@ func (r *research) research(player *Player, resourcesToSpend int, onLevelGained 
 		// we gained a level, switch to a new field
 		if levelGained {
 			player.Researching = r.getNextResearchField(player)
+			if player.NextResearchField != NextResearchFieldLowestField {
+				player.NextResearchField = NextResearchFieldSameField
+			}
 			resourcesToSpend = leftoverResources
 			onLevelGained(player, field)
 		} else {

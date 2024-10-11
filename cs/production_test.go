@@ -368,8 +368,7 @@ func Test_production_produceMineralPackets(t *testing.T) {
 	producer := newProducer(testLogger, &rules, planet, player)
 	result, err := producer.produce()
 	assert.Nil(t, err)
-	assert.Equal(t, 1, len(result.packets))
-	assert.Equal(t, Cargo{40, 40, 40, 0}, result.packets[0])
+	assert.Equal(t, Cargo{40, 40, 40, 0}, result.packets)
 	assert.Equal(t, 0, len(planet.ProductionQueue))
 }
 

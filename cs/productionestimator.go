@@ -50,6 +50,10 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 	items = make([]ProductionQueueItem, len(planet.ProductionQueue))
 	copy(items, planet.ProductionQueue)
 
+	if len(items) == 0 {
+		return items, planet.Spec.ResourcesPerYear, nil
+	}
+
 	// reset any estimates
 	for i := range items {
 		planet.ProductionQueue[i].index = i

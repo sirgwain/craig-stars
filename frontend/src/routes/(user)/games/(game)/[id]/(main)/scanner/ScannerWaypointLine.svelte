@@ -2,6 +2,7 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { Fleet, Waypoint } from '$lib/types/Fleet';
 	import { StargateWarpSpeed } from '$lib/types/MapObject';
+	import { distance } from '$lib/types/Vector';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 	import type { Writable } from 'svelte/store';
@@ -29,7 +30,9 @@
 				const wp0 = fleet.waypoints[i - 1];
 				const wp1 = fleet.waypoints[i];
 				const distancePerYear = wp1.warpSpeed * wp1.warpSpeed;
+				const dist = Math.floor(distance(wp0.position, wp1.position));
 				let [x1, y1, x2, y2] = [$xGet(wp0), $yGet(wp0), $xGet(wp1), $yGet(wp1)];
+				let dashOffset = 0;
 
 				if (i === 1) {
 					// move the first coord along the heading a bit so the line starts after our icon
@@ -44,7 +47,7 @@
 						class: commanded ? 'waypoint-line-commanded' : 'waypoint-line',
 						'stroke-width': strokeWidth,
 						'stroke-dasharray':
-							commanded && wp1.warpSpeed != StargateWarpSpeed
+							commanded && wp1.warpSpeed != StargateWarpSpeed && distancePerYear < dist
 								? `${$xScale(distancePerYear) - $xScale(5)} ${$xScale(5)}`
 								: 0
 					}
