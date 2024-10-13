@@ -22,8 +22,8 @@ func Test_getBeamDamageAtDistance(t *testing.T) {
 		{"1 laser, 0 range", args{damage: 10, weaponRange: 1, dist: 0}, 10},
 		{"1 laser, 1 range", args{damage: 10, weaponRange: 1, dist: 1}, 9},
 		{"2 colloidal phasers, 3 range", args{damage: 52, weaponRange: 3, dist: 3}, 47}, // real Stars! is 48...
-		{"1 laser, 0 range, 1 deflector", args{damage: 10, weaponRange: 1, dist: 0, beamDefense: .1}, 9},
-		{"1 laser, 1 range, 1 deflector", args{damage: 10, weaponRange: 1, dist: 1, beamDefense: .1}, 8},
+		{"1 laser, 0 range, 1 deflector", args{damage: 10, weaponRange: 1, dist: 0, beamDefense: .9}, 9},
+		{"1 laser, 1 range, 1 deflector", args{damage: 10, weaponRange: 1, dist: 1, beamDefense: .9}, 8},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -282,7 +282,7 @@ func Test_battleWeaponSlot_getBeamDamageToTarget(t *testing.T) {
 				tokenQuantity: 1,
 				armor:         20,
 				shields:       0,
-				beamDefense:   .1,
+				beamDefense:   .9,
 			},
 			want: battleWeaponDamage{armorDamage: 8, damage: 8, quantityDamaged: 1},
 		},
@@ -295,7 +295,7 @@ func Test_battleWeaponSlot_getBeamDamageToTarget(t *testing.T) {
 				tokenQuantity: 1,
 				armor:         20,
 				shields:       0,
-				beamDefense:   .1,
+				beamDefense:   .9,
 			},
 			want: battleWeaponDamage{armorDamage: 9, damage: 9, quantityDamaged: 1},
 		},

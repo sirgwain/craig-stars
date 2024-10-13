@@ -737,7 +737,7 @@ func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot, targets []*battleToken
 
 		// check the damage against this target
 		bwd := weapon.getBeamDamageToTarget(damage, target, b.rules.BeamRangeDropoff)
-		b.log.Debug().Msgf("%v fired a %vx%d at %v (shields: %v, armor: %v, %v@%v damage) for %v damage", weapon.token, weapon.slot.HullComponent, weapon.slotQuantity*weapon.token.Quantity, target, target.totalStackShields, target.armor, target.Quantity, target.Damage, bwd.armorDamage)
+		b.log.Debug().Msgf("%v fired a %vx%d at %v (shields: %v, armor: %v, beamDefense: %f%%, %v@%v damage) for %v armor damage, %v shield damage", weapon.token, weapon.slot.HullComponent, weapon.slotQuantity*weapon.token.Quantity, target, target.totalStackShields, target.armor, target.beamDefense, target.Quantity, target.Damage, bwd.armorDamage, bwd.shieldDamage)
 
 		// update stack shields
 		target.stackShields -= bwd.shieldDamage

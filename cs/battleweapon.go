@@ -97,10 +97,15 @@ func newBattleWeaponSlot(token *battleToken, slot ShipDesignSlot, hc *TechHullCo
 
 // get beam damage with dropoff and defense included
 func getBeamDamageAtDistance(damage, weaponRange, dist int, beamDefense float64, beamRangeDropoff float64) int {
-	if weaponRange > 0 {
-		return int(math.Round(float64(damage) * (1 - float64(dist)/float64(weaponRange)*beamRangeDropoff) * (1 - beamDefense)))
+	if beamDefense == 0 {
+		// for multiplying damage, treat 0 beam defense as no modifier (i.e. multiply by 1)
+		beamDefense = 1
 	}
-	return int(math.Round(float64(damage) * (1 - beamDefense)))
+
+	if weaponRange > 0 {
+		return int(math.Round(float64(damage) * (1 - float64(dist)/float64(weaponRange)*beamRangeDropoff) * beamDefense))
+	}
+	return int(math.Round(float64(damage) * beamDefense))
 }
 
 // Return true if this weapon slot wiil damage this token
@@ -137,7 +142,13 @@ func (weapon *battleWeaponSlot) getAttractiveness(target *battleToken) float64 {
 	// increase the defense for jammers and beam deflectors
 	switch weapon.weaponType {
 	case battleWeaponTypeBeam:
-		defense = float64((target.armor + target.shields)) * (1 + target.beamDefense)
+		// beamDefense from the token comes in as .9 for "multiply damage by 90%" or 0 for no beam defense
+		// for attractiveness we want to treat it like "this ship has 110% hitpoints" if defense will reduce damage by 10%
+		beamDefense := 1.0
+		if target.beamDefense > 0 {
+			beamDefense = 1 + (1 - target.beamDefense)
+		}
+		defense = float64((target.armor + target.shields)) * beamDefense
 	case battleWeaponTypeTorpedo:
 		accuracy := weapon.getAccuracy(target.torpedoJamming)
 		if target.shields >= target.armor {
