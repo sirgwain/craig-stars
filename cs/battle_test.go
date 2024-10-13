@@ -158,6 +158,7 @@ func Test_battle_getBestFleeMoves(t *testing.T) {
 			BattleRecordToken: BattleRecordToken{Position: position, PlayerNum: 1},
 			ShipToken:         &ShipToken{Quantity: 1},
 			armor:             10,
+			beamDefense:       1,
 		}
 	}
 
@@ -169,6 +170,7 @@ func Test_battle_getBestFleeMoves(t *testing.T) {
 				ShipToken:         &ShipToken{Quantity: 1},
 				player:            testPlayer().WithNum(2),
 				attributes:        battleTokenAttributeArmed,
+				beamDefense:       1,
 			},
 			weaponType:   battleWeaponTypeBeam,
 			power:        10,
@@ -241,6 +243,7 @@ func Test_battle_getBestAttackMoves(t *testing.T) {
 			player:            player,
 			attributes:        battleTokenAttributeArmed,
 			armor:             100,
+			beamDefense:       1,
 			cost:              Cost{1, 1, 1, 1},
 		}
 
@@ -260,6 +263,7 @@ func Test_battle_getBestAttackMoves(t *testing.T) {
 			player:            testPlayer().WithNum(2),
 			attributes:        battleTokenAttributeArmed,
 			armor:             100,
+			beamDefense:       1,
 			cost:              Cost{1, 1, 1, 1},
 		}
 
@@ -479,7 +483,8 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 							Quantity: 1,
 							design:   &ShipDesign{Name: "defender"}, // for logging
 						},
-						armor: 20,
+						armor:       20,
+						beamDefense: 1,
 					},
 				},
 			},
@@ -503,7 +508,8 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 							QuantityDamaged: 1,
 							design:          &ShipDesign{Name: "defender"}, // for logging
 						},
-						armor: 20,
+						armor:       20,
+						beamDefense: 1,
 					},
 				},
 			},
@@ -529,7 +535,8 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 						BattleRecordToken: BattleRecordToken{
 							Position: BattleVector{0, 0},
 						},
-						armor: 20,
+						armor:       20,
+						beamDefense: 1,
 					},
 				},
 			},
@@ -551,7 +558,8 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 							Quantity: 1,
 							design:   &ShipDesign{Name: "defender"},
 						},
-						armor: 20, // 20 armor, will be destroyed
+						armor:       20, // 20 armor, will be destroyed
+						beamDefense: 1,
 					},
 				},
 			},
@@ -572,7 +580,8 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 							Quantity: 2, // two ships in defender
 							design:   &ShipDesign{Name: "defender"},
 						},
-						armor: 30,
+						armor:       30,
+						beamDefense: 1,
 					},
 				},
 			},
@@ -593,14 +602,16 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 							Quantity: 1,
 							design:   &ShipDesign{Name: "defender"},
 						},
-						armor: 10,
+						armor:       10,
+						beamDefense: 1,
 					},
 					{
 						ShipToken: &ShipToken{
 							Quantity: 1,
 							design:   &ShipDesign{Name: "defender"},
 						},
-						armor: 10,
+						armor:       10,
+						beamDefense: 1,
 					},
 				},
 			},
@@ -628,6 +639,7 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 						armor:        10,
 						shields:      10,
 						stackShields: 30,
+						beamDefense:  1,
 					},
 					{
 						ShipToken: &ShipToken{
@@ -637,6 +649,7 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 						armor:        10,
 						shields:      10,
 						stackShields: 30,
+						beamDefense:  1,
 					},
 				},
 			},
@@ -664,6 +677,7 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 						armor:        30,
 						shields:      20,
 						stackShields: 20,
+						beamDefense:  1,
 					},
 				},
 			},
@@ -684,14 +698,16 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 							Quantity: 1,
 							design:   &ShipDesign{Name: "defender1"},
 						},
-						armor: 10,
+						armor:       10,
+						beamDefense: 1,
 					},
 					{
 						ShipToken: &ShipToken{
 							Quantity: 1,
 							design:   &ShipDesign{Name: "defender2"},
 						},
-						armor: 100,
+						armor:       100,
+						beamDefense: 1,
 					},
 				},
 			},
@@ -716,14 +732,16 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 							Quantity: 2,
 							design:   &ShipDesign{Name: "defender1"},
 						},
-						armor: 10,
+						armor:       10,
+						beamDefense: 1,
 					},
 					{
 						ShipToken: &ShipToken{
 							Quantity: 2,
 							design:   &ShipDesign{Name: "defender2"},
 						},
-						armor: 100,
+						armor:       100,
+						beamDefense: 1,
 					},
 				},
 			},
