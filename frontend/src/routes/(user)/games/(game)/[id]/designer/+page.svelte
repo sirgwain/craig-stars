@@ -25,13 +25,15 @@
 
 <Breadcrumb>
 	<svelte:fragment slot="crumbs">
-		<li>Ship Designs</li>
+		<li><div class="hidden sm:block">Ship Designs</div><div class="sm:hidden">Designs</div></li>
 	</svelte:fragment>
 	<div slot="end">
 		<div class="flex flex-row justify-between gap-2 m-2">
 			<TableSearchInput bind:value={search} />
 			<div>
-				<a class="cs-link btn btn-sm" href={`/games/${$game.id}/designer/create`}>Create</a>
+				<a class="cs-link btn btn-sm" href={`/games/${$game.id}/designer/create`}
+					><span class="hidden sm:block">Create</span><span class="sm:hidden">+</span></a
+				>
 			</div>
 		</div>
 	</div>
