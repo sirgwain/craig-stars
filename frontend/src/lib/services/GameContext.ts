@@ -584,10 +584,21 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		} else {
 			// command our first planet
 			const planets = u.getMyPlanets(s.sortPlanetsKey, s.sortPlanetsDescending);
+			const fleets = u.getMyFleets(s.sortFleetsKey, s.sortFleetsDescending);
 			if (planets.length > 0) {
 				commandMapObject(planets[0]);
 				selectMapObject(planets[0]);
 				zoomToMapObject(planets[0]);
+			} else if (fleets.length > 0) {
+				commandMapObject(fleets[0]);
+				selectMapObject(fleets[0]);
+				zoomToMapObject(fleets[0]);
+			} else {
+				const planet = u.getPlanet(1);
+				if (planet) {
+					selectMapObject(planet);
+					zoomToMapObject(planet);
+				}
 			}
 		}
 	}
