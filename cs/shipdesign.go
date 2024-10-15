@@ -693,7 +693,7 @@ func (design *ShipDesign) GetBestComponentWithTags(rules *Rules, player *Player,
 		hasTag := false
 		for _, tag := range tags {
 			// manually cover cases for tags being subsets of other categories so we don't end up with
-			// sapper only BBs
+			// sapper only ships
 			switch tag {
 			case TechTagBomb:
 				hasTag = hc.Tags[TechTagBomb] && !hc.Tags[TechTagStructureBomb] && !hc.Tags[TechTagSmartBomb]
@@ -702,7 +702,7 @@ func (design *ShipDesign) GetBestComponentWithTags(rules *Rules, player *Player,
 			default:
 				hasTag = hc.Tags[tag]
 			}
-			if hasTag && design.CompareFieldsByTag(player, hc, bestTech, tag) { // editor's note: this function has a nil check in line 1 so in the event we only have 1 item type
+			if hasTag && design.CompareFieldsByTag(player, hc, bestTech, tag) { // editor's note: this function has a nil check in line 1
 				// we have the tag and it's better than what we already have; tack it on
 				bestTech = hc
 				break
@@ -836,13 +836,13 @@ func (design *ShipDesign) getMostNeededComponent(rules *Rules, player *Player, h
 	store := rules.techs
 	comps := store.GetHullComponentsByHullSlotType(hullSlotType)
 	var bestTech *TechHullComponent
-	bestBonus := -1.
+	bestBonus := -1.0
 
 	for _, hc := range comps {
 		if !player.HasTech(&hc.Tech) ||
 			(len(hc.Tech.Requirements.HullsAllowed) > 0 && !slices.Contains(hc.Tech.Requirements.HullsAllowed, design.Hull)) ||
 			(len(hc.Tech.Requirements.HullsDenied) > 0 && slices.Contains(hc.Tech.Requirements.HullsDenied, design.Hull)) {
-			// we cannot use this part; skip to the next item
+			// we do not have or cannot use this part; skip to the next item
 			continue
 		}
 
@@ -856,10 +856,10 @@ func (design *ShipDesign) getMostNeededComponent(rules *Rules, player *Player, h
 }
 
 // return the total % amount this TechHullComponent boosts our ship's performance,
-// using a list of TechTags to evaluate bonuses
+// using its TechTags to evaluate individual bonuses
 //
-// Intended to allow for quantitative comparisons of parts from different categories
-// to determine which one is most beneficial for us to use
+// Used to quantitatively assess parts from different categories
+// to determine which one is the most beneficial for us to use
 func (design *ShipDesign) getWarshipPartBonus(rules *Rules, player *Player, hc *TechHullComponent, qty int) float64 {
 	relativeBoost := 1.0
 	checkedShield := false
@@ -870,10 +870,10 @@ func (design *ShipDesign) getWarshipPartBonus(rules *Rules, player *Player, hc *
 		case (tag == TechTagArmor || tag == TechTagShield) && !checkedShield:
 			// grab shield and armor stats
 			hcArmor, hcShield := getActualArmorAmount(float64(hc.Armor), float64(hc.Shield), qty, player.Race.Spec, hc.Category == TechCategoryArmor)
-			oldArmor := math.Max(float64(design.Spec.Armor), 1) // prevents divide by 0 errors
-			oldShield := math.Max(float64(design.Spec.Shields), 1)
-			newArmor := hcArmor*float64(qty) + float64(design.Spec.Armor)
-			newShield := hcShield*float64(qty) + float64(design.Spec.Shields)
+			oldArmor := float64(design.Spec.Armor)
+			oldShield := float64(design.Spec.Shields)
+			newArmor := math.Max(hcArmor*float64(qty)+float64(design.Spec.Armor), 1) // prevents divide by 0 errors
+			newShield := math.Max(hcShield*float64(qty)+float64(design.Spec.Shields), 1)
 
 			// apply score penalties for having too much armor/shield, up to 3x
 			// 20% margin of error before penalty kicks in
@@ -888,45 +888,54 @@ func (design *ShipDesign) getWarshipPartBonus(rules *Rules, player *Player, hc *
 			}
 
 			// wrap up by adding relative armor & shield boosts to get overall relative bonus
-			relativeBoost *= 1 + roundFloat((newArmor+newShield)/(oldArmor+oldShield), 4)
+			relativeBoost *= 1 + (newArmor+newShield)/(oldArmor+oldShield)
 			checkedShield = true // needed to prevent shield/armor parts from double counting themselves
 		case tag == TechTagBeamCapacitor:
 			// new beam bonus / old beam bonus
-			relativeBoost *= roundFloat(math.Min(design.Spec.BeamBonus*math.Pow(1+hc.BeamBonus, float64(qty)),
-				rules.BeamBonusCap)/design.Spec.BeamBonus, 4)
+			relativeBoost *= math.Min(design.Spec.BeamBonus*math.Pow(1+hc.BeamBonus, float64(qty)),
+				rules.BeamBonusCap) / design.Spec.BeamBonus
 		case tag == TechTagBeamDeflector:
-			relativeBoost *= 1 / roundFloat(math.Pow(1-hc.BeamDefense, float64(qty)), 4)
+			relativeBoost *= 1 / math.Pow(1-hc.BeamDefense, float64(qty))
 		case tag == TechTagInitiativeBonus:
 			// do nothing lol
 		case tag == TechTagTorpedoJammer, tag == TechTagTorpedoBonus:
-			relativeBoost *= design.Spec.getJamIncrease(rules, hc.TorpedoJamming, qty, tag == TechTagTorpedoJammer)
+			relativeBoost *= design.Spec.getJamIncrease(rules, hc, qty, tag == TechTagTorpedoJammer)
 
 			// all other cases are either stupidly painful to quantify or don't get checked in the actual design function
 		}
 
 		if design.Purpose.IsBeamShip() && hc.Mass > 30 {
-			relativeBoost = 1 + (1-relativeBoost)*float64(hc.Mass-30)/10
+			// reduce bonus if component is too heavy and we need to go fast
+			relativeBoost = 1 + (1-relativeBoost)/(1+float64(hc.Mass-30)/10)
 		}
 	}
-	return relativeBoost
+	return roundFloat(relativeBoost, 4)
 }
 
 // return relative factor by which a jammer or computer boosts our relative torpedo defense/offense
 //
 // Formula: 1+oldJamming / 1+newJamming (https://www.desmos.com/calculator/ee0yze4hya)
 //
-// jamming determines what field to check against from the spec; true looks at jamming while false checks against computing
-func (spec *ShipDesignSpec) getJamIncrease(rules *Rules, amount float64, qty int, jamming bool) float64 {
-	var oldJam, cap float64
-	if jamming {
-		oldJam = 1 - spec.TorpedoJamming
-		cap = rules.JammerCap[spec.Starbase]
-	} else {
-		oldJam = 1 - spec.TorpedoBonus
+// computing determines what field to check against from the spec; true looks at computing while false checks against jamming
+func (spec *ShipDesignSpec) getJamIncrease(rules *Rules, hc *TechHullComponent, qty int, computing bool) float64 {
+	var oldJam, amount, cap float64
+	if computing {
+		oldJam = spec.TorpedoBonus
 		cap = 1
+		amount = hc.TorpedoBonus
+	} else {
+		oldJam = spec.TorpedoJamming
+		cap = rules.JammerCap[spec.Starbase]
+		amount = hc.TorpedoJamming
 	}
-	newJam := math.Min(1-oldJam*roundFloat(1-math.Pow(1-amount, float64(qty)), 4), cap)
-	return roundFloat((1+newJam)/(1+oldJam), 4) // rounded to 5 decimal places for ease of comparison
+
+	if oldJam == cap {
+		return 1
+	}
+
+	jamMulti := math.Pow(1-amount, float64(qty))
+	newJam := math.Min(1-(1-oldJam)*jamMulti, cap)
+	return roundFloat((1+newJam)/(1+oldJam), 4) // rounded to 4 decimal places for ease of comparison
 }
 
 // design a ship/starbase for the AI or as a starting fleet using the best parts available to us
@@ -1252,7 +1261,7 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 					design.Spec.Engine = engine.Engine
 					design.Spec.NumEngines = slot.Quantity
 				case HullSlotTypeShield:
-					shield, err := design.GetBestComponentWithTags(rules, player, hst,TechTagShield)
+					shield, err := design.GetBestComponentWithTags(rules, player, hst, TechTagShield)
 					if err != nil {
 						return &ShipDesign{}, fmt.Errorf("getBestComponentWithTags failed to get parts for tag %v, error %w", TechTagShield, err)
 					}

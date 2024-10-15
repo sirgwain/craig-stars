@@ -1,7 +1,6 @@
 package cs
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/sirgwain/craig-stars/test"
@@ -853,12 +852,112 @@ func TestShipDesign_getWarshipPartBonus(t *testing.T) {
 		})
 	}
 }
-
-func TestShipDesign_GetBestComponentWithTags(t *testing.T) {
+func TestShipDesign_getJamIncrease(t *testing.T) {
 	type fields struct {
-		techLevels TechLevel
-		race *Race
+		prevJamming float64
+		starbase    bool
+		computing   bool
+	}
+	type args struct {
+		hc  *TechHullComponent
+		qty int
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   float64
+	}{
+		{
+			name: "wrong field being checked",
+			fields: fields{
+				prevJamming: 0,
+				starbase:    false,
+				computing:   true,
+			},
+			args: args{
+				hc:  &Jammer20,
+				qty: 1,
+			},
+			want: 1,
+		},
+		{
+			name: "already at hardcap",
+			fields: fields{
+				prevJamming: 0.75,
+				starbase:    true,
+				computing:   false,
+			},
+			args: args{
+				hc:  &Jammer20,
+				qty: 1,
+			},
+			want: 1,
+		},
+		{
+			name: "jammer 50s hitting starbase hardcap",
+			fields: fields{
+				prevJamming: 0,
+				starbase:    true,
+				computing:   false,
+			},
+			args: args{
+				hc:  &Jammer50,
+				qty: 3,
+			},
+			want: 1.75, // 1.75 / 1
+		},
+		{
+			name: "2 battle super comps on 90% computed ship",
+			fields: fields{
+				prevJamming: 0.9, // new computing: 1-(0.1*0.7^2) = 95.1% computing
+				starbase:    false,
+				computing:   true,
+			},
+
+			args: args{
+				hc:  &BattleSuperComputer,
+				qty: 2,
+			},
+			want: 1.0268, // 1.951 / 1.9
+		},
+		{
+			name: "1 Mega poly shell on 20% jammed ship",
+			fields: fields{
+				prevJamming: 0.2,
+				starbase:    true,
+				computing:   false,
+			},
+
+			args: args{
+				hc:  &MegaPolyShell,
+				qty: 1,
+			},
+			want: 1.1333, // 1.36 / 1.2
+		},
+	}
+	for _, tt := range tests {
+		design := NewShipDesign(testPlayer(), 1).WithHull("Battleship").WithSpec(&rules, testPlayer())
+		if tt.fields.computing {
+			design.Spec.TorpedoBonus = tt.fields.prevJamming
+		} else {
+			design.Spec.TorpedoJamming = tt.fields.prevJamming
+		}
+		design.Spec.Starbase = tt.fields.starbase
+		t.Run(tt.name, func(t *testing.T) {
+			if got := design.Spec.getJamIncrease(&rules, tt.args.hc, tt.args.qty, tt.fields.computing); got != tt.want {
+				t.Errorf("ShipDesign.getWarshipPartBonus() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestShipDesign_GetBestComponentWithTags(t *testing.T) { // TODO: Fix nil pointer runtime panic
+	type fields struct {
+		techLevels    TechLevel
+		race          *Race
 		acquiredParts []string
+		beamShip      bool
 	}
 	type args struct {
 		hullSlotType HullSlotType
@@ -867,7 +966,7 @@ func TestShipDesign_GetBestComponentWithTags(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
-		fields fields
+		fields  fields
 		args    args
 		want    *TechHullComponent
 		wantErr bool
@@ -875,58 +974,92 @@ func TestShipDesign_GetBestComponentWithTags(t *testing.T) {
 		{
 			name: "Best beam with max techs",
 			fields: fields{
-				techLevels:  TechLevel{1,1,26,1,1,1},
-				race: NewRace().WithPRT(WM),
+				techLevels:    TechLevel{1, 1, 26, 1, 1, 1},
+				race:          NewRace().WithPRT(JoaT),
 				acquiredParts: []string{},
+				beamShip:      false,
 			},
 			args: args{
 				hullSlotType: HullSlotTypeWeaponShield,
-				qty: 99,
-				tags: []TechTag{TechTagBeamWeapon},
+				qty:          99,
+				tags:         []TechTag{TechTagBeamWeapon},
 			}, want: &AntiMatterPulverizer, wantErr: false,
 		},
 		{
 			name: "Best shield/armor with tech 14",
 			fields: fields{
-				techLevels:  TechLevel{14,14,14,14,14,14},
-				race: NewRace().WithPRT(IS),
-				acquiredParts: []string{"Mega Poly Shell"},
+				techLevels:    TechLevel{14, 14, 14, 14, 14, 14},
+				race:          NewRace().WithPRT(IS),
+				acquiredParts: []string{"Mega Poly Shell", "Langston Shell", "Multi Cargo Pod"},
+				beamShip:      false,
 			},
 			args: args{
 				hullSlotType: HullSlotTypeGeneral,
-				qty: 99,
-				tags: []TechTag{TechTagShield, TechTagArmor},
+				qty:          1,
+				tags:         []TechTag{TechTagShield, TechTagArmor},
 			}, want: &MegaPolyShell, wantErr: false,
 		},
 		{
-			name: "Bad part",
+			name: "Best light armor",
 			fields: fields{
-				techLevels:  TechLevel{14,14,14,14,14,14},
-				race: NewRace().WithPRT(IS),
-				acquiredParts: []string{"Mega Poly Shell"},
+				techLevels:    TechLevel{12, 12, 12, 12, 12, 14},
+				race:          NewRace().WithPRT(WM),
+				acquiredParts: []string{"Multi Cargo Pod"},
+				beamShip:      true,
 			},
 			args: args{
 				hullSlotType: HullSlotTypeGeneral,
-				qty: 99,
-				tags: []TechTag{TechTagShield, TechTagArmor},
+				qty:          1,
+				tags:         []TechTag{TechTagArmor},
+			}, want: &Organic, wantErr: false,
+		},
+		{
+			name: "Best shield/armor with tech 14 and RS",
+			fields: fields{
+				techLevels:    TechLevel{14, 14, 14, 14, 14, 14},
+				race:          NewRace().WithPRT(IS).WithLRT(RS),
+				acquiredParts: []string{"Mega Poly Shell", "Langston Shell", "Multi Cargo Pod"},
+				beamShip:      false,
+			},
+			args: args{
+				hullSlotType: HullSlotTypeShieldArmor,
+				qty:          1,
+				tags:         []TechTag{TechTagShield, TechTagArmor},
 			}, want: &MegaPolyShell, wantErr: false,
+		},
+		{
+			name: "no matching part",
+			fields: fields{
+				techLevels:    TechLevel{0, 0, 0, 0, 0, 0},
+				race:          NewRace().WithPRT(AR),
+				acquiredParts: []string{},
+				beamShip:      false,
+			},
+			args: args{
+				hullSlotType: HullSlotTypeGeneral,
+				qty:          99,
+				tags:         []TechTag{TechTagMineLayer},
+			}, want: nil, wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			player := NewPlayer(1,tt.fields.race).WithTechLevels(tt.fields.techLevels)
+			player := testPlayer().WithTechLevels(tt.fields.techLevels)
+			player.Race = *tt.fields.race
 			if len(tt.fields.acquiredParts) > 0 {
 				for _, tech := range tt.fields.acquiredParts {
 					player = player.WithAcquiredTech(tech)
 				}
 			}
-			design := NewShipDesign(player, 1)
+			design := NewShipDesign(player, 1).WithHull("Nubian").WithPurpose(ShipDesignPurposeTorpedoFighter)
+			if tt.fields.beamShip {
+				design.Purpose = ShipDesignPurposeBeamFighter
+			}
 			got, err := design.GetBestComponentWithTags(&rules, player, tt.args.hullSlotType, tt.args.tags...)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ShipDesign.GetBestComponentWithTags() errored unexpectedly; error = %v", err, tt.wantErr)
-				return
+				t.Errorf("ShipDesign.GetBestComponentWithTags() errored unexpectedly; error = %v", err)
 			}
-			if !reflect.DeepEqual(got, tt.want) {
+			if got != tt.want {
 				t.Errorf("ShipDesign.GetBestComponentWithTags() = %v, want %v", got.Name, tt.want.Name)
 			}
 		})
