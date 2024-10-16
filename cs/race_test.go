@@ -62,7 +62,7 @@ func Test_computeRaceSpec(t *testing.T) {
 	}{
 		{
 			name: "humanoids w/arm",
-			race: NewRace().WithLRT(ARM),
+			race: NewRace().WithLRT(ARM).WithLRT(UR),
 			want: RaceSpec{
 				Costs: map[QueueItemType]Cost{
 					QueueItemTypeAutoDefenses:       {5, 5, 5, 15},
@@ -145,7 +145,10 @@ func Test_computeRaceSpec(t *testing.T) {
 				PacketResourceCost:             10,
 				RepairFactor:                   1,
 				ResearchFactor:                 1,
-				ScrapMineralOffsetStarbase:		.8 - (1.0 / 3),
+				ScrapMineralOffset:				.45 - (1.0 / 3),
+				ScrapMineralOffsetStarbase:		.9 - (1.0 / 3),
+				ScrapResourcesOffset:			.35,
+				ScrapResourcesOffsetStarbase:	.7,
 				ShieldStrengthFactor:           1,
 				ShipsVanishInVoid:              true,
 				StarbaseCostFactor:             1,
