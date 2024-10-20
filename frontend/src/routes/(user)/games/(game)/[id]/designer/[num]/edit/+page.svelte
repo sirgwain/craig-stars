@@ -39,7 +39,7 @@
 			<li>{design.name == '' ? 'new' : design.name}</li>
 		</svelte:fragment>
 		<div slot="end" class="flex justify-end mb-1">
-			<button class="btn btn-success" type="submit" on:click={(e) => onSave()}>Save</button>
+			<button class="btn btn-success mx-1" type="submit" on:click={(e) => onSave()}>Save</button>
 		</div>
 	</Breadcrumb>
 
