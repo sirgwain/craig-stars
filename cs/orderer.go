@@ -36,6 +36,7 @@ type Orderer interface {
 	UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet, orders PlanetOrders, playerPlanets []*Planet) error
 	UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrders)
 	UpdateMineFieldOrders(player *Player, minefield *MineField, orders MineFieldOrders) error
+	JettisonFleetCargo(player *Player, fleet *Fleet, jettison Cargo) error
 	TransferFleetCargo(rules *Rules, player, destPlayer *Player, source, dest *Fleet, transferAmount CargoTransferRequest) error
 	TransferPlanetCargo(rules *Rules, player *Player, source *Fleet, dest *Planet, transferAmount CargoTransferRequest, playerPlanets []*Planet) error
 	TransferSalvageCargo(rules *Rules, player *Player, source *Fleet, dest *Salvage, nextSalvageNum int, transferAmount CargoTransferRequest) (*Salvage, error)
@@ -57,7 +58,7 @@ func (ctr CargoTransferRequest) Negative() CargoTransferRequest {
 }
 
 func (ctr CargoTransferRequest) HasNegative() bool {
-	return ctr.Ironium < 0 || ctr.Boranium < 0 || ctr.Germanium < 0 || ctr.Fuel < 0 || ctr.Colonists < 0
+	return ctr.Cargo.HasNegative() || ctr.Fuel < 0
 }
 
 func (ctr CargoTransferRequest) HasPositive() bool {
@@ -147,11 +148,43 @@ func (o *orders) updatePlanetSpec(rules *Rules, player *Player, planet *Planet) 
 	return nil
 }
 
+// JettisonFleetCargo will update the fleet jettison cargo
+func (o *orders) JettisonFleetCargo(player *Player, fleet *Fleet, jettison Cargo) error {
+	// do a transfer request to the Jettison
+	// If jettisoning 1kt Ironium jettison will be {Ironium: -1}
+
+	if jettison != (Cargo{}) {
+		// add our jettison cargo to the fleet cargo (jettison is negative if we are transfering to the jettison, positive if transfering from)
+		fleet.Cargo = fleet.Cargo.Add(jettison)
+		if fleet.Cargo.HasNegative() {
+			return fmt.Errorf("fleet does not have the cargo to jettison")
+		}
+
+		// subtract the jettison from the fleet's jettison cargo (jettison is negative if we are transfering to the jettison, positive if transfering from)
+		fleetJettison := fleet.Jettison()
+		fleetJettison.Cargo = fleetJettison.Cargo.Subtract(jettison)
+		if fleetJettison.Cargo.HasNegative() {
+			return fmt.Errorf("jettison cargo cannot be negative")
+		}
+
+		log.Info().
+			Int64("GameID", player.GameID).
+			Int("PlayerNum", player.Num).
+			Str("Fleet", fleet.Name).
+			Str("Cargo", fmt.Sprintf("%v", fleet.Cargo)).
+			Str("Jettison", fmt.Sprintf("%v", jettison)).
+			Msg("jettison cargo")
+	}
+
+	return nil
+}
+
 // update the orders to a fleet
 func (o *orders) UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrders) {
 	// copy user modifiable things to the fleet fleet
 	fleet.RepeatOrders = orders.RepeatOrders
 	fleet.BattlePlanNum = orders.BattlePlanNum
+
 	wp0 := &fleet.Waypoints[0]
 	newWP0 := orders.Waypoints[0]
 

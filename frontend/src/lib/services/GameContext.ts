@@ -116,7 +116,7 @@ export type GameContext = {
 	updateMineFieldOrders: (mineField: MineField) => Promise<void>;
 	transferCargo: (
 		fleet: CommandedFleet,
-		dest: Fleet | Planet | Salvage,
+		dest: Fleet | Planet | Salvage | undefined,
 		transferAmount: CargoTransferRequest
 	) => Promise<void>;
 	split: (
@@ -881,7 +881,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 
 	async function transferCargo(
 		fleet: CommandedFleet,
-		dest: Fleet | Planet | Salvage,
+		dest: Fleet | Planet | Salvage | undefined,
 		transferAmount: CargoTransferRequest
 	): Promise<void> {
 		const result = await FleetService.transferCargo(fleet, dest, transferAmount);

@@ -80,6 +80,8 @@ var c Converter
 // goverter:extend GameShipTokensToShipTokens
 // goverter:extend WaypointsToGameWaypoints
 // goverter:extend GameWaypointsToWaypoints
+// goverter:extend ImmediateCargoTransfersToGameImmediateCargoTransfers
+// goverter:extend GameImmediateCargoTransfersToImmediateCargoTransfers
 // goverter:extend MineFieldSpecToGameMineFieldSpec
 // goverter:extend GameMineFieldSpecToMineFieldSpec
 // goverter:extend ShipDesignSpecToGameShipDesignSpec
@@ -671,6 +673,14 @@ func GameWaypointsToWaypoints(source []cs.Waypoint) *Waypoints {
 	return (*Waypoints)(&source)
 }
 
+func ImmediateCargoTransfersToGameImmediateCargoTransfers(source *ImmediateCargoTransfers) []cs.ImmediateCargoTransfer {
+	return ([]cs.ImmediateCargoTransfer)(*source)
+}
+
+func GameImmediateCargoTransfersToImmediateCargoTransfers(source []cs.ImmediateCargoTransfer) *ImmediateCargoTransfers {
+	return (*ImmediateCargoTransfers)(&source)
+}
+
 func MineFieldSpecToGameMineFieldSpec(source *MineFieldSpec) cs.MineFieldSpec {
 	return (cs.MineFieldSpec)(*source)
 }
@@ -872,11 +882,17 @@ func ExtendFleetMapObject(source Fleet) cs.MapObject {
 }
 
 func ExtendFleetFleetOrders(source Fleet) cs.FleetOrders {
+	// this is a new field, sometimes empty which would be nil
+	immediateCargoTransfers := source.ImmediateCargoTransfers
+	if immediateCargoTransfers == nil {
+		immediateCargoTransfers = &ImmediateCargoTransfers{}
+	}
 	return cs.FleetOrders{
-		BattlePlanNum: source.BattlePlanNum,
-		Waypoints:     *source.Waypoints,
-		RepeatOrders:  source.RepeatOrders,
-		Purpose:       source.Purpose,
+		BattlePlanNum:           source.BattlePlanNum,
+		Waypoints:               *source.Waypoints,
+		ImmediateCargoTransfers: *immediateCargoTransfers,
+		RepeatOrders:            source.RepeatOrders,
+		Purpose:                 source.Purpose,
 	}
 }
 

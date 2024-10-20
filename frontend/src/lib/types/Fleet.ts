@@ -3,7 +3,6 @@ import { get as pluck } from 'lodash-es';
 import { totalCargo, type Cargo } from './Cargo';
 import type { Cost } from './Cost';
 import {
-	Infinite,
 	MapObjectType,
 	None,
 	owned,
@@ -14,13 +13,13 @@ import {
 } from './MapObject';
 import type { MessageTargetType } from './Message';
 import type { MineFieldType } from './MineField';
+import type { MineralPacket } from './MineralPacket';
 import type { Planet } from './Planet';
 import type { Player } from './Player';
+import type { Salvage } from './Salvage';
 import type { ShipDesign } from './ShipDesign';
 import type { Engine } from './Tech';
 import { distance, equal, type Vector } from './Vector';
-import type { MineralPacket } from './MineralPacket';
-import type { Salvage } from './Salvage';
 
 export type Fleet = {
 	playerNum: number; // override mapObject fleets always have a player.
@@ -44,7 +43,12 @@ export type FleetOrders = {
 	waypoints?: Waypoint[];
 	repeatOrders?: boolean;
 	battlePlanNum?: number;
+	immediateCargoTransfers?: ImmedidateCargoTransfer[];
 };
+
+export type ImmedidateCargoTransfer = {
+	cargo: Cargo;
+} & Target;
 
 export type ShipToken = {
 	id?: number;
@@ -223,6 +227,7 @@ export class CommandedFleet implements Fleet {
 	battlePlanNum = 0;
 	tokens: ShipToken[] = [];
 	waypoints: Waypoint[] = [];
+	immediateCargoTransfers: ImmedidateCargoTransfer[] = [];
 	repeatOrders = false;
 	heading = { x: 0, y: 0 };
 	warpSpeed = 0;
@@ -234,6 +239,12 @@ export class CommandedFleet implements Fleet {
 
 	constructor(data?: Fleet) {
 		Object.assign(this, data);
+	}
+
+	getJettison(): ImmedidateCargoTransfer | undefined {
+		return this.immediateCargoTransfers.find(
+			(o) => o.targetType == undefined || o.targetType === MapObjectType.None
+		);
 	}
 
 	getFuelCost(

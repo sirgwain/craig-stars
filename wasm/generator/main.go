@@ -71,6 +71,7 @@ func main() {
 		"GameDBObject":                        true,
 		"Hab":                                 true,
 		"Intel":                               true,
+		"ImmediateCargoTransfer":             true,
 		"MapObject":                           true,
 		"MapObjectIntel":                      true,
 		"MineField":                           true,

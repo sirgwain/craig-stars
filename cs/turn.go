@@ -54,9 +54,10 @@ func (t *turn) generateTurn() error {
 
 	t.computeSpecs()
 	t.packetInit()
-
+	
 	// wp0 tasks
 	t.fleetInit()
+	t.fleetJettisonCargo()
 	t.fleetScrap()
 	t.fleetUnload()
 	t.fleetColonize()
@@ -160,6 +161,51 @@ func (t *turn) fleetInit() {
 			wp0.WaitAtWaypoint = false
 		}
 
+	}
+}
+
+// fleetInit will reset any fleet data before processing
+func (t *turn) fleetJettisonCargo() {
+	for _, fleet := range t.game.Fleets {
+		if fleet.Delete {
+			continue
+		}
+
+		// kill off any colonists jettisoned to deep space. Poor people
+		fleetJettison := fleet.Jettison()
+		jettison := fleetJettison.Cargo.WithCargo(Colonists, 0)
+
+		// clear the fleet jettison for this turn
+		fleetJettison.Cargo = Cargo{}
+
+		// the player jettisoned cargo, create a salvage for it
+		if jettison != (Cargo{}) {
+
+			// dump on a planet if the fleet is orbiting one
+			if fleet.OrbitingPlanetNum != None {
+				planet := t.game.getPlanet(fleet.OrbitingPlanetNum)
+				planet.Cargo = planet.Cargo.Add(jettison)
+				planet.MarkDirty()
+
+				t.log.Debug().
+					Int("Player", fleet.PlayerNum).
+					Str("Planet", planet.Name).
+					Str("Fleet", fleet.Name).
+					Str("Jettison", fmt.Sprintf("%v", jettison)).
+					Msgf("added jettison cargo to planet")
+				continue
+			}
+
+			// create a new salvage for this cargo
+			t.game.createSalvage(fleet.Position, fleet.PlayerNum, jettison)
+
+			t.log.Debug().
+				Int("Player", fleet.PlayerNum).
+				Str("Fleet", fleet.Name).
+				Str("Jettison", fmt.Sprintf("%v", jettison)).
+				Msgf("jettisoned cargo to deep space")
+
+		}
 	}
 }
 
@@ -362,8 +408,11 @@ func (t *turn) fleetUnload() {
 
 			// we tried to load/unload from empty space but we didn't deposit any cargo
 			// into the salvage, so remove this empty salvage
-			if salvage != nil && salvage.Cargo.Total() == 0 {
-				t.game.deleteSalvage(salvage)
+			if salvage != nil {
+				salvage.Cargo.Colonists = 0
+				if salvage.Cargo.Total() == 0 {
+					t.game.deleteSalvage(salvage)
+				}
 			}
 
 		}

@@ -26,9 +26,6 @@
 		show = false;
 
 		if (detail && detail.transferAmount.absoluteSize() > 0) {
-			if (!detail.dest) {
-				detail.dest = newSalvage();
-			}
 			await transferCargo(detail.src, detail.dest, detail.transferAmount);
 		}
 	};

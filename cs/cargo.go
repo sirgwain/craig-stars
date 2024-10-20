@@ -61,6 +61,10 @@ func (c Cargo) HasMinerals() bool {
 	return (c.Ironium + c.Boranium + c.Germanium) > 0
 }
 
+func (c Cargo) HasNegative() bool {
+	return c.Ironium < 0 || c.Boranium < 0 || c.Germanium < 0 || c.Colonists < 0
+}
+
 // return this cargo with a minimum of zero for each value
 func (c Cargo) MinZero() Cargo {
 	return Cargo{

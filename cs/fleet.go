@@ -46,10 +46,19 @@ type Fleet struct {
 }
 
 type FleetOrders struct {
-	Waypoints     []Waypoint   `json:"waypoints"`
-	RepeatOrders  bool         `json:"repeatOrders,omitempty"`
-	BattlePlanNum int          `json:"battlePlanNum,omitempty"`
-	Purpose       FleetPurpose `json:"purpose,omitempty"`
+	Waypoints               []Waypoint               `json:"waypoints"`
+	RepeatOrders            bool                     `json:"repeatOrders,omitempty"`
+	BattlePlanNum           int                      `json:"battlePlanNum,omitempty"`
+	Purpose                 FleetPurpose             `json:"purpose,omitempty"`
+	ImmediateCargoTransfers []ImmediateCargoTransfer `json:"immediateCargoTransfers"`
+}
+
+type ImmediateCargoTransfer struct {
+	TargetType      MapObjectType `json:"targetType,omitempty"`
+	TargetNum       int           `json:"targetNum,omitempty"`
+	TargetPlayerNum int           `json:"targetPlayerNum,omitempty"`
+	TargetName      string        `json:"targetName,omitempty"`
+	Cargo           Cargo         `json:"cargo"`
 }
 
 type FleetSpec struct {
@@ -366,6 +375,21 @@ func (f *Fleet) Idle() bool {
 	return len(f.Waypoints) == 1 && f.Waypoints[0].Task == WaypointTaskNone
 }
 
+// Jettison will return the jettison ImmediateCargoTransfer order
+// A new ImmediateCargoTransfer order will be created if no Jettison order exists
+func (f *Fleet) Jettison() *ImmediateCargoTransfer {
+	for i := range f.ImmediateCargoTransfers {
+		order := &f.ImmediateCargoTransfers[i]
+		if order.TargetType == MapObjectTypeNone {
+			return order
+		}
+	}
+
+	// create a new jettison order and return it
+	f.ImmediateCargoTransfers = append(f.ImmediateCargoTransfers, ImmediateCargoTransfer{})
+	return &f.ImmediateCargoTransfers[len(f.ImmediateCargoTransfers)-1]
+}
+
 func (f *Fleet) Rename(name string) {
 	f.BaseName = name
 	f.Name = fmt.Sprintf("%s #%d", f.BaseName, f.Num)
@@ -648,7 +672,7 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 	}
 
 	// compute the cloaking based on the cloak units and cargo
-	spec.CloakPercent = computeFleetCloakPercent(&spec, fleet.Cargo.Total() + spec.BaseCloakedCargo, player.Race.Spec.FreeCargoCloaking)
+	spec.CloakPercent = computeFleetCloakPercent(&spec, fleet.Cargo.Total()+spec.BaseCloakedCargo, player.Race.Spec.FreeCargoCloaking)
 
 	if !spec.Starbase {
 		spec.EstimatedRange = fleet.getEstimatedRange(player, spec.Engine.IdealSpeed, spec.CargoCapacity)

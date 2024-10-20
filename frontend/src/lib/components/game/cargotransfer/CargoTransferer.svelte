@@ -27,7 +27,10 @@
 	export let quantityModifier = 1;
 
 	let srcCargo = new CargoTransferRequest(src.cargo, src.fuel);
-	let destCargo = new CargoTransferRequest(dest?.cargo, dest && 'fuel' in dest ? dest.fuel : 0);
+	let destCargo = new CargoTransferRequest(
+		dest ? dest.cargo : src.getJettison()?.cargo, // we are either tranfering to a location, or jettisoning
+		dest && 'fuel' in dest ? dest.fuel : 0
+	);
 
 	$: destFleet = dest?.type === MapObjectType.Fleet ? (dest as Fleet) : undefined;
 

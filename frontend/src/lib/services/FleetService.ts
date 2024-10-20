@@ -62,7 +62,7 @@ export class FleetService {
 
 	static async transferCargo(
 		fleet: CommandedFleet,
-		dest: Fleet | Planet | Salvage,
+		dest: Fleet | Planet | Salvage | undefined,
 		transferAmount: Cargo
 	): Promise<TransferCargoResponse> {
 		const url = `/api/games/${fleet.gameId}/fleets/${fleet.num}/transfer-cargo`;

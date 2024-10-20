@@ -103,7 +103,7 @@ func (ch *Salvage) getFuelCapacity() int {
 
 // salvage can't transfer fuel
 func (ch *Salvage) canTransfer(transferAmount CargoTransferRequest) bool {
-	if transferAmount.Fuel != 0 || transferAmount.Colonists != 0 {
+	if transferAmount.Fuel != 0 {
 		return false
 	}
 	return ch.Cargo.CanTransfer(transferAmount.Cargo)

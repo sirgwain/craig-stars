@@ -412,6 +412,8 @@ func (s *server) transferCargo(w http.ResponseWriter, r *http.Request) {
 	fleet.InjectDesigns(player.Designs)
 
 	switch transfer.MO.Type {
+	case cs.MapObjectTypeNone:
+		s.transferCargoFleetJettison(w, r, player, fleet, transfer.TransferAmount)
 	case cs.MapObjectTypePlanet:
 		s.transferCargoFleetPlanet(w, r, &game.Game, player, fleet, transfer.MO.Num, transfer.TransferAmount)
 	case cs.MapObjectTypeFleet:
@@ -531,6 +533,49 @@ func (s *server) transferCargoFleetPlanet(w http.ResponseWriter, r *http.Request
 	} else {
 		rest.RenderJSON(w, rest.JSON{"player": player, "fleet": fleet})
 	}
+}
+
+// transfer cargo from a fleet to/from the fleet's jettison
+func (s *server) transferCargoFleetJettison(w http.ResponseWriter, r *http.Request, player *cs.Player, fleet *cs.Fleet, transferAmount cs.CargoTransferRequest) {
+
+	readClient := s.contextDb(r)
+
+	fullPlayer, err := readClient.GetPlayer(player.ID)
+	if err != nil {
+		log.Error().Err(err).Msg("get player from database")
+		return
+	}
+
+	orderer := cs.NewOrderer()
+	if err := orderer.JettisonFleetCargo(fullPlayer, fleet, transferAmount.Cargo); err != nil {
+		log.Error().Err(err).Msg("transfer cargo")
+		return
+	}
+
+	// wrap this whole thing in a transaction so we don't run into a case where two players load the same mineral packet
+	// at the same time and update it
+	if err := s.db.WrapInTransaction(func(c db.Client) error {
+		if err := c.UpdateFleet(fleet); err != nil {
+			log.Error().Err(err).Msg("update fleet in database")
+			return err
+		}
+
+		log.Info().
+			Int64("GameID", fleet.GameID).
+			Int("Player", fleet.PlayerNum).
+			Str("Fleet", fleet.Name).
+			Str("TransferAmount", fmt.Sprintf("%v", transferAmount)).
+			Msgf("%s jettisoned %v", fleet.Name, transferAmount)
+
+		return nil
+	}); err != nil {
+		log.Error().Err(err).Msg("jettison transfer")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
+
+	// success
+	rest.RenderJSON(w, rest.JSON{"fleet": fleet})
 }
 
 // transfer cargo from a fleet to/from a planet

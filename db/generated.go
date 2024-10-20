@@ -77,6 +77,7 @@ func (c *GameConverter) ConvertGameFleet(source *cs.Fleet) *Fleet {
 		dbFleet.Tags = GameTagsToTags((*source).MapObject.Tags)
 		dbFleet.Tokens = GameShipTokensToShipTokens((*source).Tokens)
 		dbFleet.Waypoints = GameWaypointsToWaypoints((*source).FleetOrders.Waypoints)
+		dbFleet.ImmediateCargoTransfers = GameImmediateCargoTransfersToImmediateCargoTransfers((*source).FleetOrders.ImmediateCargoTransfers)
 		dbFleet.RepeatOrders = (*source).FleetOrders.RepeatOrders
 		dbFleet.PlanetNum = (*source).PlanetNum
 		dbFleet.BaseName = (*source).BaseName

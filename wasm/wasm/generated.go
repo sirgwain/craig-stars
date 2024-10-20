@@ -306,6 +306,8 @@ func GetBattleRecordToken(o js.Value) cs.BattleRecordToken {
 	obj.StackShields = getInt[int](o.Get("stackShields"))
 	obj.Movement = getInt[int](o.Get("movement"))
 	obj.StartingQuantity = getInt[int](o.Get("startingQuantity"))
+	obj.StartingQuantityDamaged = getInt[int](o.Get("startingQuantityDamaged"))
+	obj.StartingDamage = getInt[int](o.Get("startingDamage"))
 	obj.Tactic = GetBattleTactic(o.Get("tactic"))
 	obj.PrimaryTarget = GetBattleTarget(o.Get("primaryTarget"))
 	obj.SecondaryTarget = GetBattleTarget(o.Get("secondaryTarget"))
@@ -324,6 +326,8 @@ func SetBattleRecordToken(o js.Value, obj *cs.BattleRecordToken) {
 	o.Set("stackShields", obj.StackShields)
 	o.Set("movement", obj.Movement)
 	o.Set("startingQuantity", obj.StartingQuantity)
+	o.Set("startingQuantityDamaged", obj.StartingQuantityDamaged)
+	o.Set("startingDamage", obj.StartingDamage)
 	o.Set("tactic", string(obj.Tactic))
 	o.Set("primaryTarget", string(obj.PrimaryTarget))
 	o.Set("secondaryTarget", string(obj.SecondaryTarget))
@@ -758,6 +762,7 @@ func GetFleetOrders(o js.Value) cs.FleetOrders {
 	obj.RepeatOrders = getBool(o.Get("repeatOrders"))
 	obj.BattlePlanNum = getInt[int](o.Get("battlePlanNum"))
 	obj.Purpose = GetFleetPurpose(o.Get("purpose"))
+	obj.ImmediateCargoTransfers = GetSlice(o.Get("immediateCargoTransfers"), GetImmediateCargoTransfer)
 	return obj
 }
 func SetFleetOrders(o js.Value, obj *cs.FleetOrders) {
@@ -766,6 +771,8 @@ func SetFleetOrders(o js.Value, obj *cs.FleetOrders) {
 	o.Set("repeatOrders", obj.RepeatOrders)
 	o.Set("battlePlanNum", obj.BattlePlanNum)
 	o.Set("purpose", string(obj.Purpose))
+	o.Set("immediateCargoTransfers", []any{})
+	SetSlice(o.Get("immediateCargoTransfers"), obj.ImmediateCargoTransfers, SetImmediateCargoTransfer)
 }
 
 func GetFleetPurpose(o js.Value) cs.FleetPurpose {
@@ -887,6 +894,27 @@ func GetHullSlotType(o js.Value) cs.HullSlotType {
 	}
 	obj = getInt[cs.HullSlotType](o)
 	return obj
+}
+
+func GetImmediateCargoTransfer(o js.Value) cs.ImmediateCargoTransfer {
+	var obj cs.ImmediateCargoTransfer
+	if o.IsUndefined() || o.IsNull() {
+		return obj
+	}
+	obj.TargetType = GetMapObjectType(o.Get("targetType"))
+	obj.TargetNum = getInt[int](o.Get("targetNum"))
+	obj.TargetPlayerNum = getInt[int](o.Get("targetPlayerNum"))
+	obj.TargetName = string(getString(o.Get("targetName")))
+	obj.Cargo = GetCargo(o.Get("cargo"))
+	return obj
+}
+func SetImmediateCargoTransfer(o js.Value, obj *cs.ImmediateCargoTransfer) {
+	o.Set("targetType", string(obj.TargetType))
+	o.Set("targetNum", obj.TargetNum)
+	o.Set("targetPlayerNum", obj.TargetPlayerNum)
+	o.Set("targetName", obj.TargetName)
+	o.Set("cargo", map[string]any{})
+	SetCargo(o.Get("cargo"), &obj.Cargo)
 }
 
 func GetIntel(o js.Value) cs.Intel {
@@ -2137,10 +2165,6 @@ func GetPlayerSpec(o js.Value) cs.PlayerSpec {
 	obj.PlanetaryScanner = GetTechPlanetaryScanner(o.Get("planetaryScanner"))
 	obj.Defense = GetTechDefense(o.Get("defense"))
 	obj.Terraform = GetStringMap[map[cs.TerraformHabType]*cs.TechTerraform](o.Get("terraform"), func(o js.Value) *cs.TechTerraform { return getPointer(GetTechTerraform(o)) })
-	obj.ResourcesPerYear = getInt[int](o.Get("resourcesPerYear"))
-	obj.ResourcesPerYearResearch = getInt[int](o.Get("resourcesPerYearResearch"))
-	obj.ResourcesPerYearResearchEstimated = getInt[int](o.Get("resourcesPerYearResearchEstimated"))
-	obj.CurrentResearchCost = getInt[int](o.Get("currentResearchCost"))
 	return obj
 }
 func SetPlayerSpec(o js.Value, obj *cs.PlayerSpec) {
@@ -2155,10 +2179,6 @@ func SetPlayerSpec(o js.Value, obj *cs.PlayerSpec) {
 		terraformMap.Set(fmt.Sprintf("%v", key), valueObj)
 	}
 	o.Set("terraform", terraformMap)
-	o.Set("resourcesPerYear", obj.ResourcesPerYear)
-	o.Set("resourcesPerYearResearch", obj.ResourcesPerYearResearch)
-	o.Set("resourcesPerYearResearchEstimated", obj.ResourcesPerYearResearchEstimated)
-	o.Set("currentResearchCost", obj.CurrentResearchCost)
 }
 
 func GetPlayerStats(o js.Value) cs.PlayerStats {
