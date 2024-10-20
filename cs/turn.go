@@ -84,9 +84,9 @@ func (t *turn) generateTurn() error {
 	t.playerResearch()
 	t.permaform()
 	t.planetGrow()
-	t.packetMove(true) // move packets built this turn
+	t.packetMove(true)   // move packets built this turn
 	t.decayPackets(true) // decay packets built this turn
-	t.fleetRefuel()    // refuel after production so fleets will refuel at planets that just built a starbase this turn
+	t.fleetRefuel()      // refuel after production so fleets will refuel at planets that just built a starbase this turn
 	t.randomCometStrike()
 	t.randomMineralDeposit()
 	t.randomPlanetaryChange()
@@ -1486,6 +1486,13 @@ func (t *turn) planetProduction() error {
 				// exciting! planet was reset with a genesis device!
 				planet.randomize(&t.game.Rules)
 				planet.RandomArtifact = false // no random artifact on genesis device
+				planet.Mines = 0
+				planet.Factories = 0
+				// apply default production queue
+				if len(player.ProductionPlans) > 0 {
+					plan := player.ProductionPlans[0]
+					plan.Apply(planet)
+				}
 				planet.Spec = computePlanetSpec(&t.game.Rules, player, planet)
 				messager.planetBuiltGenesisDevice(player, planet)
 			}
