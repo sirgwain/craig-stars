@@ -37,16 +37,16 @@ export function add(a: Cost, b: Cost | Mineral | undefined): Cost {
 		ironium: (a.ironium ?? 0) + (b?.ironium ?? 0),
 		boranium: (a.boranium ?? 0) + (b?.boranium ?? 0),
 		germanium: (a.germanium ?? 0) + (b?.germanium ?? 0),
-		resources: (a.resources ?? 0) + (b && 'resources' in b ? b.resources ?? 0 : 0)
+		resources: (a.resources ?? 0) + (b && 'resources' in b ? (b.resources ?? 0) : 0)
 	};
 }
 
-export function minus(a: Cost, b: Cost | Mineral): Cost {
+export function subtract(a: Cost, b: Cost | Mineral): Cost {
 	return {
 		ironium: (a.ironium ?? 0) - (b.ironium ?? 0),
 		boranium: (a.boranium ?? 0) - (b.boranium ?? 0),
 		germanium: (a.germanium ?? 0) - (b.germanium ?? 0),
-		resources: (a.resources ?? 0) - ('resources' in b ? b.resources ?? 0 : 0)
+		resources: (a.resources ?? 0) - ('resources' in b ? (b.resources ?? 0) : 0)
 	};
 }
 

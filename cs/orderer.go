@@ -114,6 +114,7 @@ func (o *orders) UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet
 		Int64("GameID", player.GameID).
 		Int("PlayerNum", player.Num).
 		Str("Planet", planet.Name).
+		Interface("Orders", orders).
 		Msg("update planet orders")
 
 	return nil
