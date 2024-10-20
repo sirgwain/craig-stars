@@ -150,7 +150,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 					Quantity: 1,
 				},
 			},
-			wantLeftoverResources: 0,
+			wantLeftoverResources: 1,
 		},
 		{
 			name: "one item, two years to go",

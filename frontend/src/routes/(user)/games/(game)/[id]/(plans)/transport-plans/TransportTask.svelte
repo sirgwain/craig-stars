@@ -19,10 +19,21 @@
 		enumType={WaypointTaskTransportAction}
 		bind:value={action}
 		titleClass="hidden"
-		typeTitle={(value) => (!value || value === WaypointTaskTransportAction.None ? 'None' : startCase(value))}
+		typeTitle={(value) =>
+			!value || value === WaypointTaskTransportAction.None ? 'None' : startCase(value)}
 		showEmpty={true}
 	/>
 </div>
 <div>
-	<NumberInput titleClass="hidden" name={`amount${title}`} bind:value={amount} />
+	<NumberInput
+		titleClass="hidden"
+		name={`amount${title}`}
+		bind:value={amount}
+		disabled={action == undefined ||
+			action === WaypointTaskTransportAction.None ||
+			action === WaypointTaskTransportAction.LoadAll ||
+			action === WaypointTaskTransportAction.UnloadAll ||
+			action === WaypointTaskTransportAction.LoadDunnage ||
+			action === WaypointTaskTransportAction.LoadOptimal}
+	/>
 </div>

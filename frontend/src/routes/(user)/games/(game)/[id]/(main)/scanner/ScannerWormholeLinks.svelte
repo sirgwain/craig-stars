@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { minus, normalized } from '$lib/types/Vector';
+	import { subtract, normalized } from '$lib/types/Vector';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 	import type { Writable } from 'svelte/store';
@@ -39,7 +39,7 @@
 					{ position: target?.position ?? wormhole.position }
 				];
 
-				const heading = normalized(minus(coords[0].position, coords[1].position));
+				const heading = normalized(subtract(coords[0].position, coords[1].position));
 				coords[0].position = {
 					x: (coords[0].position.x ?? 0) - heading.x * 3,
 					y: coords[0].position.y - heading.y * 3

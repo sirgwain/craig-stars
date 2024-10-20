@@ -2,7 +2,7 @@ import { fromHabType } from '$lib/services/Terraformer';
 import type { CostFinder, DesignFinder } from '$lib/services/Universe';
 import type { ProductionQueueItem } from '$lib/types/Production';
 import type { BattleAttackWho, BattleRecord, BattleTactic, BattleTarget } from './Battle';
-import { multiply, type Cost, minus, minZero } from './Cost';
+import { multiply, type Cost, subtract, minZero } from './Cost';
 import type { Fleet, WaypointTransportTasks } from './Fleet';
 import { HabTypes, type Hab } from './Hab';
 import type { Message } from './Message';
@@ -349,7 +349,7 @@ export class Player implements PlayerResponse, CostFinder {
 		updatedDesign: ShipDesign
 	): Cost {
 		// TODO: update this if we update the server side
-		return minZero(minus(updatedDesign.spec?.cost ?? {}, design.spec?.cost ?? {}));
+		return minZero(subtract(updatedDesign.spec?.cost ?? {}, design.spec?.cost ?? {}));
 	}
 
 	// get a player's ability to terraform
