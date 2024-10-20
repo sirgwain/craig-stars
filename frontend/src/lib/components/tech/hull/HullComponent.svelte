@@ -39,6 +39,8 @@
 				return 'Scanner\nElec\nMech';
 			case HullSlotType.ArmorScannerElectricalMechanical:
 				return 'Armor\nScanner\nElec/Mech';
+			case HullSlotType.ElectricalMechanical:
+				return 'Elec\nor\nMech';
 			case HullSlotType.MineElectricalMechanical:
 				return 'Mine\nElec\nMech';
 			case HullSlotType.General:

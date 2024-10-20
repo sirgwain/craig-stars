@@ -161,6 +161,7 @@ export enum HullSlotType {
 	Weapon = 1 << 11,
 	Orbital = 1 << 12,
 	MineLayer = 1 << 13,
+	ElectricalMechanical = HullSlotType.Electrical | HullSlotType.Mechanical,
 	OrbitalElectrical = HullSlotType.Orbital | HullSlotType.Electrical,
 	ShieldElectricalMechanical = HullSlotType.Shield |
 		HullSlotType.Electrical |
