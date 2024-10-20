@@ -657,8 +657,9 @@ export class CommandedFleet implements Fleet {
 		maxSafeSpeed: number
 	): number {
 		// start at one above free speed and add to it until we run out of fuel
-		let speed: number;
-		for (speed = freeSpeed + 1; speed <= maxSafeSpeed; speed++) {
+		let speed = freeSpeed;
+		for (let i = speed + 1; i <= maxSafeSpeed; i++) {
+			speed = i
 			const fuelUsed = this.getFuelCost(
 				designFinder,
 				fuelEfficiencyOffset,
@@ -672,6 +673,8 @@ export class CommandedFleet implements Fleet {
 				break;
 			}
 		}
+
+		console.log("max speed for fuel/safety", speed)
 
 		const idealSpeed = this.spec?.engine?.idealSpeed ?? 5;
 		const idealFuelUsed = this.getFuelCost(
