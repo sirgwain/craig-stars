@@ -146,7 +146,7 @@ import (
 const battleWidth, battleHeight = 10, 10
 
 // The battler interface is the main entrypoint into running battles
-// A batter is created for fleets in the same location in the universe and it is used
+// A battler is created for fleets in the same location in the universe and it is used
 // to check if a battle will occur, and run the battle.
 // Running a battle returns a BattleRecord that is passed along to each player.
 type battler interface {

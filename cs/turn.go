@@ -2035,7 +2035,7 @@ func (t *turn) fleetBattle() {
 				// record it's tech level for tech trading
 				highestTechLevel = highestTechLevel.Max(token.design.Spec.TechLevel)
 			}
-			salvageMinerals := destroyedCost.MultiplyFloat64(t.game.Rules.SalvageFromBattleFactor).ToMineral()
+			salvageMinerals := destroyedCost.MultiplyFloat64(t.game.Rules.SalvageFromBattleFactor, math.Floor).ToMineral()
 
 			// every player should discover all designs in a battle as if they were penscanned.
 			designsToDiscover := map[playerObject]*ShipDesign{}

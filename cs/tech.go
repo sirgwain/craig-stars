@@ -356,6 +356,8 @@ func (t *TechDefense) String() string          { return t.Name }
 func (t *TechTerraform) String() string        { return t.Name }
 
 // Get baseline cost for this technology given a player's tech levels, minaturization stats & racial cost modifiers
+//
+// returns cost values multiplied by 1000 for precision (ie 3 decimal places); divide by 1000 and drop remainder to get actual value
 func (t *Tech) GetPlayerCost(techLevels TechLevel, spec MiniaturizationSpec, costOffset TechCostOffset) Cost {
 	// figure out miniaturization
 	// this is 4% per level above the required tech we have.
@@ -408,32 +410,27 @@ func (t *Tech) GetPlayerCost(techLevels TechLevel, spec MiniaturizationSpec, cos
 		miniaturizationFactor = 1 - miniaturization
 	}
 
-	// apply any tech cost offsets
+	// apply any tech cost offsets, multiplying the item cost by 1000 for precision 
 	// TODO: Implement IT 25% gate discount in actually less janky way
-	cost := t.Cost
+	cost := t.Cost.MultiplyFloat64(miniaturizationFactor, roundHalfDown).MultiplyInt(1000)
 	switch t.Category {
 	case TechCategoryEngine:
-		cost = cost.MultiplyFloat64(1 + costOffset.Engine)
+		cost = cost.MultiplyFloat64(1 + costOffset.Engine, math.Floor)
 	case TechCategoryBeamWeapon:
-		cost = cost.MultiplyFloat64(1 + costOffset.BeamWeapon)
+		cost = cost.MultiplyFloat64(1 + costOffset.BeamWeapon, math.Floor)
 	case TechCategoryBomb:
-		cost = cost.MultiplyFloat64(1 + costOffset.Bomb)
+		cost = cost.MultiplyFloat64(1 + costOffset.Bomb, math.Floor)
 	case TechCategoryTorpedo:
-		cost = cost.MultiplyFloat64(1 + costOffset.Torpedo)
+		cost = cost.MultiplyFloat64(1 + costOffset.Torpedo, math.Floor)
 	case TechCategoryOrbital:
 		if strings.Contains(t.Name, "Stargate") {
-			cost = cost.MultiplyFloat64(1 + costOffset.Stargate)
+			cost = cost.MultiplyFloat64(1 + costOffset.Stargate, math.Floor)
 		}
 	case TechCategoryTerraforming:
-		cost = cost.MultiplyFloat64(1 + costOffset.Terraforming)
+		cost = cost.MultiplyFloat64(1 + costOffset.Terraforming, math.Floor)
 	}
 
-	return Cost{
-		int(roundHalfDown(float64(cost.Ironium) * miniaturizationFactor)),
-		int(roundHalfDown(float64(cost.Boranium) * miniaturizationFactor)),
-		int(roundHalfDown(float64(cost.Germanium) * miniaturizationFactor)),
-		int(roundHalfDown(float64(cost.Resources) * miniaturizationFactor)),
-	}
+	return cost
 
 	// if we are at level 26, a beginner tech would cost (26 * .04)
 	// return cost * (1 - Math.Min(.75, .04 * lowestRequiredDiff));

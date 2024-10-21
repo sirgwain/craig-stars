@@ -1307,7 +1307,7 @@ func (fleet *Fleet) getScrapAmount(rules *Rules, player *Player, planet *Planet)
 	}
 
 	// figure out much cargo and resources we get
-	scrappedCost = scrappedCost.MultiplyFloat64(scrapMineralFactor)
+	scrappedCost = scrappedCost.MultiplyFloat64(scrapMineralFactor, math.Floor)
 
 	if scrapResourceFactor > 0 {
 		// Formula for calculating resources: (Current planet production * Extra resources)/(Current planet production + Extra Resources)
