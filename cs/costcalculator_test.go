@@ -177,7 +177,7 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 				oldDesignSlots: []ShipDesignSlot{
 					{HullComponent: SyncroSapper.Name, HullSlotIndex: 2, Quantity: 16},
 					{HullComponent: SyncroSapper.Name, HullSlotIndex: 4, Quantity: 16},
-					// Some amount of G, much much resources
+					// Lotsa G, much much resources
 				},
 				newDesignSlots: []ShipDesignSlot{
 					{HullComponent: MegaDisruptor.Name, HullSlotIndex: 2, Quantity: 10},
@@ -194,32 +194,32 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 			}, wanterr: false,
 		},
 		{
-			name: "Component Swap (different categories)",
+			name: "Min Price Floor - different categories",
 			args: args{
-				techLevels:          TechLevel{22, 22, 22, 10, 0, 0},
+				techLevels:          TechLevel{26, 26, 26, 26, 26, 26},
 				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
 				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0, 0},
 				oldDesignHull:       SpaceStation.Name,
 				newDesignHull:       SpaceStation.Name,
 				oldDesignSlots: []ShipDesignSlot{
-					{HullComponent: UpsilonTorpedo.Name, HullSlotIndex: 2, Quantity: 16},
-					// 320I, 112B, 72G, 120R
+					{HullComponent: SyncroSapper.Name, HullSlotIndex: 5, Quantity: 12},
+					// 36G, 102R
 				},
 				newDesignSlots: []ShipDesignSlot{
-					{HullComponent: SyncroSapper.Name, HullSlotIndex: 2, Quantity: 12},
-					// 48G, 120R
+					{HullComponent: AntiMatterTorpedo.Name, HullSlotIndex: 2, Quantity: 4},
+					// 4I, 12B, 2G, 80R
 				},
 				starbaseCostFactor: 1,
 			},
 			want: Cost{
-				Ironium:   0,
-				Boranium:  0,
-				Germanium: 15,
-				Resources: 36,
+				Ironium:   4,
+				Boranium:  12,
+				Germanium: 1,
+				Resources: 24,
 			}, wanterr: false,
 		},
 		{
-			name: "Component Swap (same categories)",
+			name: "Both min price floors at once",
 			args: args{
 				techLevels:          TechLevel{22, 22, 22, 22, 21, 22},
 				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
@@ -243,33 +243,6 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 				Boranium:  150,
 				Germanium: 9, // technically 8.4 but gets rounded up to 9
 				Resources: 83,
-			}, wanterr: false,
-		},
-		{
-			name: "ISB Component Swap",
-			args: args{
-				techLevels:          TechLevel{22, 22, 22, 22, 21, 22},
-				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
-				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0, 0},
-				oldDesignHull:       SpaceStation.Name,
-				newDesignHull:       SpaceStation.Name,
-				oldDesignSlots: []ShipDesignSlot{
-					{HullComponent: SyncroSapper.Name, HullSlotIndex: 2, Quantity: 12},
-					// 48G, 120R
-				},
-				newDesignSlots: []ShipDesignSlot{
-					{HullComponent: MegaDisruptor.Name, HullSlotIndex: 2, Quantity: 10},
-					// 150B, 165R
-					{HullComponent: BattleNexus.Name, HullSlotIndex: 1, Quantity: 2},
-					// 28G, 14R
-				},
-				starbaseCostFactor: 0.8,
-			},
-			want: Cost{
-				Ironium:   0,
-				Boranium:  120,
-				Germanium: 7,
-				Resources: 67,
 			}, wanterr: false,
 		},
 	}
@@ -333,24 +306,45 @@ func Test_costCalculate_GetDesignCost(t *testing.T) {
 			}, wantErr: false,
 		},
 		{
-			name: "Orbital Fort",
+			name: "Orbital Fort with torpedoes",
 			args: args{
-				techLevels:          TechLevel{3, 8, 3, 8, 2, 0},
+				techLevels:          TechLevel{0, 9, 5, 0, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
 				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0, 0},
 				slots: []ShipDesignSlot{
-					{HullComponent: BattleComputer.Name, HullSlotIndex: 1, Quantity: 1},
+					{HullComponent: BattleComputer.Name, HullSlotIndex: 1, Quantity: 1}, 
+					// 7.5G, 3R
 					{HullComponent: BetaTorpedo.Name, HullSlotIndex: 2, Quantity: 10},
-					{HullComponent: MoleSkinShield.Name, HullSlotIndex: 3, Quantity: 1},
+					// 75I, 25B, 15G, 25R
 				},
-				hull:               OrbitalFort.Name,
+				hull:               OrbitalFort.Name, 
+				// 12I, 17G, 40R
 				starbaseCostFactor: 1,
 			},
 			want: Cost{
-				Ironium:   98,
-				Boranium:  30,
-				Germanium: 45,
-				Resources: 75,
+				Ironium:   87,
+				Boranium:  25,
+				Germanium: 40,
+				Resources: 68,
+			}, wantErr: false,
+		},
+		{
+			name: "IT/ISB Gate Dock Rounding Check", 
+			args: args{
+				techLevels:          TechLevel{0, 0, 5, 5, 0, 0},
+				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
+				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, -0.25, 0},
+				slots: []ShipDesignSlot{
+					{HullComponent: Stargate100_250.Name, HullSlotIndex: 3, Quantity: 1},
+				},
+				hull:               SpaceDock.Name,
+				starbaseCostFactor: 0.8,
+			},
+			want: Cost{
+				Ironium:   46, // costs EXACTLY 46 ironium, not a hair more
+				Boranium:  16,
+				Germanium: 32,
+				Resources: 197,
 			}, wantErr: false,
 		},
 		{
@@ -406,24 +400,37 @@ func Test_costCalculate_GetDesignCost(t *testing.T) {
 			}, wantErr: false,
 		},
 		{
-			name: "Dock with orbital & goodies; ISB/IT",
+			name: "Empty Dock w/ ISB, 20% miniaturization",
 			args: args{
-				techLevels:          TechLevel{0, 0, 5, 5, 0, 0},
+				techLevels:          TechLevel{0, 0, 0, 9, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
-				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, -0.25, 0},
-				slots: []ShipDesignSlot{
-					{HullComponent: Stargate100_250.Name, HullSlotIndex: 1, Quantity: 1},
-					{HullComponent: Crobmnium.Name, HullSlotIndex: 3, Quantity: 24},
-					{HullComponent: MoleSkinShield.Name, HullSlotIndex: 5, Quantity: 1},
-				},
+				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0, 0},
+				slots: []ShipDesignSlot{},
 				hull:               SpaceDock.Name,
 				starbaseCostFactor: 0.8,
 			},
 			want: Cost{
-				Ironium:   103,
-				Boranium:  16,
-				Germanium: 32,
-				Resources: 314,
+				Ironium:   13,
+				Boranium:  4,
+				Germanium: 16,
+				Resources: 64,
+			}, wantErr: false,
+		},
+		{
+			name: "Empty Dock w/ BET, ISB",
+			args: args{
+				techLevels:          TechLevel{0, 0, 0, 4, 0, 0},
+				miniaturizationSpec: MiniaturizationSpec{2.0, 0.8, 0.05},
+				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0, 0},
+				slots: []ShipDesignSlot{},
+				hull:               SpaceDock.Name,
+				starbaseCostFactor: 0.8,
+			},
+			want: Cost{
+				Ironium:   32,
+				Boranium:  8,
+				Germanium: 40,
+				Resources: 160,
 			}, wantErr: false,
 		},
 		{

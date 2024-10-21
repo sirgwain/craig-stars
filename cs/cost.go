@@ -142,12 +142,15 @@ func (c Cost) MultiplyInt(factor int) Cost {
 	}
 }
 
-func (c Cost) MultiplyFloat64(factor float64) Cost {
+// multiply a Cost struct by a float, using a passed in function to determine rounding method
+//
+// To mimic previous behavior of truncating decimals, simply pass in math.Floor or another similar function
+func (c Cost) MultiplyFloat64(factor float64, roundFunc func (float64) float64) Cost {
 	return Cost{
-		Ironium:   int(float64(c.Ironium) * factor),
-		Boranium:  int(float64(c.Boranium) * factor),
-		Germanium: int(float64(c.Germanium) * factor),
-		Resources: int(float64(c.Resources) * factor),
+		Ironium:   int(roundFunc(float64(c.Ironium) * factor)),
+		Boranium:  int(roundFunc(float64(c.Boranium) * factor)),
+		Germanium: int(roundFunc(float64(c.Germanium) * factor)),
+		Resources: int(roundFunc(float64(c.Resources) * factor)),
 	}
 }
 
