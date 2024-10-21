@@ -115,7 +115,7 @@ func (c Cost) AddCargoMinerals(other Cargo) Cost {
 	}
 }
 
-func (c Cost) Minus(other Cost) Cost {
+func (c Cost) Subtract(other Cost) Cost {
 	return Cost{
 		Ironium:   c.Ironium - other.Ironium,
 		Boranium:  c.Boranium - other.Boranium,
@@ -124,7 +124,7 @@ func (c Cost) Minus(other Cost) Cost {
 	}
 }
 
-func (c Cost) MinusMineral(other Mineral) Cost {
+func (c Cost) SubtractMineral(other Mineral) Cost {
 	return Cost{
 		Ironium:   c.Ironium - other.Ironium,
 		Boranium:  c.Boranium - other.Boranium,

@@ -129,7 +129,7 @@
 	<ItemTitle>Recently Learned Techs</ItemTitle>
 	<div class="grid grid-cols-1 md:grid-cols-2 gap-2">
 		{#each newTechs as tech}
-			<div>
+			<div class="mx-3">
 				<TechSummary {tech} {player} />
 			</div>
 		{/each}
@@ -144,7 +144,7 @@
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-2">
 			{#each sortBy(techsByCategory[category], 'rank') as tech (tech.name)}
 				{#if showAll || (player && canLearnTech(player, tech) && hasRequiredLevels(player.techLevels, tech.requirements))}
-					<div>
+					<div class="mx-3">
 						<!-- Hide the graph on safari until svelte5 -->
 						<TechSummary
 							{tech}

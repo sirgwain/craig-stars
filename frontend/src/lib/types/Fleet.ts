@@ -657,8 +657,9 @@ export class CommandedFleet implements Fleet {
 		maxSafeSpeed: number
 	): number {
 		// start at one above free speed and add to it until we run out of fuel
-		let speed: number;
-		for (speed = freeSpeed + 1; speed <= maxSafeSpeed; speed++) {
+		let speed = freeSpeed;
+		for (let i = speed + 1; i <= maxSafeSpeed; i++) {
+			speed = i
 			const fuelUsed = this.getFuelCost(
 				designFinder,
 				fuelEfficiencyOffset,
@@ -672,6 +673,8 @@ export class CommandedFleet implements Fleet {
 				break;
 			}
 		}
+
+		console.log("max speed for fuel/safety", speed)
 
 		const idealSpeed = this.spec?.engine?.idealSpeed ?? 5;
 		const idealFuelUsed = this.getFuelCost(
@@ -938,6 +941,19 @@ export const getDestination = (fleet: Fleet, universe: Universe) => {
 	return '--';
 };
 
+export const getEta = (fleet: Fleet) => {
+	if (fleet.waypoints?.length && fleet.waypoints?.length > 1) {
+		if (fleet.waypoints[1].warpSpeed === 0) {
+			return -1
+		} else if (fleet.waypoints[1].warpSpeed === StargateWarpSpeed) {
+			return 1
+		} else {
+			return Math.ceil(Math.floor(distance(fleet.waypoints[0].position, fleet.waypoints[1].position)) / (fleet.waypoints[1].warpSpeed * fleet.waypoints[1].warpSpeed))
+		}
+	}
+	return 0;
+};
+
 export function getTokenCount(mo: MapObject) {
 	if (mo.type == MapObjectType.Fleet) {
 		const fleet = mo as Fleet;
@@ -964,6 +980,8 @@ export function fleetsSortBy(
 			return (a, b) => getLocation(a, universe).localeCompare(getLocation(b, universe));
 		case 'destination':
 			return (a, b) => getDestination(a, universe).localeCompare(getDestination(b, universe));
+		case 'eta':
+			return (a, b) => getEta(a) - getEta(b);
 		case 'cargo':
 			return (a, b) => totalCargo(a.cargo) - totalCargo(b.cargo);
 		case 'mass':

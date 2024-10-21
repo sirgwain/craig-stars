@@ -26,7 +26,7 @@
 		<li>Transport Plans</li>
 	</svelte:fragment>
 
-	<div slot="end">
+	<div slot="end" class="flex justify-end mb-1">
 		<a class="cs-link btn btn-sm" href={`/games/${$game.id}/transport-plans/create`}>Create</a>
 	</div>
 </Breadcrumb>

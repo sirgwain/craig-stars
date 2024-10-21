@@ -36,7 +36,7 @@ export function hasRequiredLevels(tl: TechLevel, required: TechLevel): boolean {
 	);
 }
 
-export function minus(tl1: TechLevel, tl2: TechLevel): TechLevel {
+export function subtract(tl1: TechLevel, tl2: TechLevel): TechLevel {
 	return {
 		energy: (tl1.energy ?? 0) - (tl2.energy ?? 0),
 		weapons: (tl1.weapons ?? 0) - (tl2.weapons ?? 0),
