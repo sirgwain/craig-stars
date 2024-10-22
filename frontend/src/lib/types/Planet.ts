@@ -1,12 +1,14 @@
 import { roundToNearest100 } from '$lib/services/Math';
 import { getMinTerraformAmount, getTerraformAmount } from '$lib/services/Terraformer';
 import type { DesignFinder } from '$lib/services/Universe';
+import { NeverBuilt, UnlimitedSpaceDock } from '$lib/types/Constants';
 import type { CS } from '$lib/wasm';
 import { cloneDeep, sortBy, startCase } from 'lodash-es';
 import { addMineral, type Cargo } from './Cargo';
 import type { Fleet } from './Fleet';
 import { absSum, add, getHabValue, getLargest, withHabValue, type Hab } from './Hab';
-import { MapObjectType, None, type MapObject } from './MapObject';
+import { MapObjectType, type MapObject } from './MapObject';
+import { None } from './Constants';
 import { addInt, totalMinerals, type Mineral } from './Mineral';
 import type { Player } from './Player';
 import type { ProductionQueueItem } from './Production';
@@ -14,11 +16,8 @@ import { QueueItemTypes, type QueueItemType } from './QueueItemType';
 import { getPlanetHabitability, type Race } from './Race';
 import type { Rules } from './Rules';
 import type { ShipDesign } from './ShipDesign';
-import { UnlimitedSpaceDock, type TechStore } from './Tech';
+import { type TechStore } from './Tech';
 import type { Vector } from './Vector';
-
-export const Unexplored = -1;
-export const NeverBuilt = -1;
 
 export type Planet = {
 	hab?: Hab;
@@ -558,7 +557,7 @@ export class CommandedPlanet implements Planet {
 		planetCopy.productionQueue = [item];
 		const planetWithEstimates = cs.estimateProduction(planetCopy);
 		return planetWithEstimates?.productionQueue?.length == 1
-			? planetWithEstimates.productionQueue[0].yearsToBuildOne ?? NeverBuilt
+			? (planetWithEstimates.productionQueue[0].yearsToBuildOne ?? NeverBuilt)
 			: NeverBuilt;
 	}
 }
@@ -713,8 +712,8 @@ export function planetsSortBy(key: string): ((a: Planet, b: Planet) => number) |
 				(a.spec.resourcesPerYearAvailable ?? 0) - (b.spec.resourcesPerYearAvailable ?? 0);
 		case 'contributesOnlyLeftoverToResearch':
 			return (a, b) =>
-				(a.contributesOnlyLeftoverToResearch ?? false ? 1 : 0) -
-				(b.contributesOnlyLeftoverToResearch ?? false ? 1 : 0);
+				((a.contributesOnlyLeftoverToResearch ?? false) ? 1 : 0) -
+				((b.contributesOnlyLeftoverToResearch ?? false) ? 1 : 0);
 		default:
 			return (a, b) => a.num - b.num;
 	}

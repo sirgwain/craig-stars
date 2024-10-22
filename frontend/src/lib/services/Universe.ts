@@ -25,6 +25,7 @@ import type { ShipDesign } from '$lib/types/ShipDesign';
 import type { TechStore } from '$lib/types/Tech';
 import type { Vector } from '$lib/types/Vector';
 import type { Wormhole } from '$lib/types/Wormhole';
+import type { CS } from '$lib/wasm';
 import { groupBy, startCase } from 'lodash-es';
 
 export interface DesignFinder {
@@ -34,9 +35,9 @@ export interface DesignFinder {
 
 export interface CostFinder {
 	getItemCost(
+		cs: CS,
 		item: ProductionQueueItem | undefined,
 		designFinder: DesignFinder,
-		techStore: TechStore,
 		planet?: Planet,
 		quantity?: number
 	): Cost;

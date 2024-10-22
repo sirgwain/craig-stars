@@ -16,13 +16,14 @@
 	import { addError, CSError } from '$lib/services/Errors';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
+	import { NeverBuilt } from '$lib/types/Constants';
 	import { divide, multiply, type Cost } from '$lib/types/Cost';
-	import { CommandedPlanet, NeverBuilt } from '$lib/types/Planet';
+	import { CommandedPlanet } from '$lib/types/Planet';
 	import type { ProductionPlan } from '$lib/types/Player';
 	import type { ProductionQueueItem } from '$lib/types/Production';
 	import { getFullName, isAuto } from '$lib/types/QueueItemType';
 	import { getPlanetHabitability } from '$lib/types/Race';
-	import { GenesisDevice } from '$lib/types/Tech';
+	import { GenesisDevice } from '$lib/types/Constants';
 	import {
 		ArrowLongDown,
 		ArrowLongLeft,
@@ -65,21 +66,16 @@
 
 	function availableItemSelected(type: ProductionQueueItem) {
 		selectedAvailableItem = type;
-		selectedAvailableItemCost = $player.getItemCost(
-			selectedAvailableItem,
-			$universe,
-			$techs,
-			planet
-		);
+		selectedAvailableItemCost = $player.getItemCost(cs, selectedAvailableItem, $universe, planet);
 	}
 
 	function queueItemClicked(index: number, item?: ProductionQueueItem) {
 		selectedQueueItemIndex = index;
 		selectedQueueItem = item;
 		selectedQueueItemCost = $player.getItemCost(
+			cs,
 			selectedQueueItem,
 			$universe,
-			$techs,
 			planet,
 			selectedQueueItem?.quantity
 		);
@@ -114,7 +110,7 @@
 
 		selectedQueueItem = queueItems[selectedQueueItemIndex];
 		selectedQueueItemCost = multiply(
-			$player.getItemCost(selectedQueueItem, $universe, $techs, planet),
+			$player.getItemCost(cs, selectedQueueItem, $universe, planet),
 			selectedQueueItem?.quantity
 		);
 
@@ -158,7 +154,7 @@
 			return 0;
 		}
 
-		const costOfOne = $player.getItemCost(item, $universe, $techs, planet, 1);
+		const costOfOne = $player.getItemCost(cs, item, $universe, planet, 1);
 		const percent = divide(item.allocated ?? {}, costOfOne);
 
 		// if we are mineral or resource constrained, report the percent complete based on the lowest.
@@ -188,7 +184,7 @@
 			// don't add something we can't build any more of
 			return;
 		}
-		const cost = $player.getItemCost(item, $universe, $techs, planet) ?? {};
+		const cost = $player.getItemCost(cs, item, $universe, planet) ?? {};
 		if (selectedQueueItem) {
 			if (selectedQueueItem.type == item?.type && selectedQueueItem.designNum == item?.designNum) {
 				selectedQueueItem.quantity += quantity;
@@ -204,9 +200,9 @@
 				selectedQueueItemIndex++;
 				selectedQueueItem = queueItems[selectedQueueItemIndex];
 				selectedQueueItemCost = $player.getItemCost(
+					cs,
 					selectedQueueItem,
 					$universe,
-					$techs,
 					planet,
 					selectedQueueItem?.quantity
 				);
@@ -218,9 +214,9 @@
 				selectedQueueItemIndex = 0;
 				selectedQueueItem = nextItem;
 				selectedQueueItemCost = $player.getItemCost(
+					cs,
 					selectedQueueItem,
 					$universe,
-					$techs,
 					planet,
 					selectedQueueItem?.quantity
 				);
@@ -238,9 +234,9 @@
 				selectedQueueItemIndex++;
 				selectedQueueItem = queueItems[selectedQueueItemIndex];
 				selectedQueueItemCost = $player.getItemCost(
+					cs,
 					selectedQueueItem,
 					$universe,
-					$techs,
 					planet,
 					selectedQueueItem?.quantity
 				);
@@ -261,9 +257,9 @@
 				selectedQueueItem =
 					queueItems[selectedQueueItemIndex > -1 ? selectedQueueItemIndex - 1 : 0];
 				selectedQueueItemCost = $player.getItemCost(
+					cs,
 					selectedQueueItem,
 					$universe,
-					$techs,
 					planet,
 					selectedQueueItem?.quantity
 				);
@@ -410,12 +406,7 @@
 		} else if (availableItems.length > 0) {
 			selectedAvailableItem = availableItems[0];
 		}
-		selectedAvailableItemCost = $player.getItemCost(
-			selectedAvailableItem,
-			$universe,
-			$techs,
-			planet
-		);
+		selectedAvailableItemCost = $player.getItemCost(cs, selectedAvailableItem, $universe, planet);
 		contributesOnlyLeftoverToResearch = planet.contributesOnlyLeftoverToResearch ?? false;
 		updateQueueEstimates();
 	}
@@ -424,9 +415,7 @@
 	$: planet && resetQueue();
 </script>
 
-<div
-	class="flex flex-col h-full bg-base-200 shadow rounded-sm border-2 border-base-300 text-base"
->
+<div class="flex flex-col h-full bg-base-200 shadow rounded-sm border-2 border-base-300 text-base">
 	<div class="text-center"><h2 class="text-lg">{planet.name}</h2></div>
 	<div class="flex-col h-full w-full">
 		<div class="flex flex-col h-full w-full">
@@ -650,8 +639,7 @@
 									{#if selectedQueueItemPercentComplete}
 										<button
 											type="button"
-											on:pointerdown={(e) =>
-												onAllocatedTooltip(e, selectedQueueItem?.allocated)}
+											on:pointerdown={(e) => onAllocatedTooltip(e, selectedQueueItem?.allocated)}
 											>{(selectedQueueItemPercentComplete * 100)?.toFixed()}%<Icon
 												src={QuestionMarkCircle}
 												size="16"

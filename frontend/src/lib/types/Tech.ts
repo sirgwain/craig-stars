@@ -6,13 +6,6 @@ import type { PRT } from './Race';
 import type { TechLevel } from './TechLevel';
 import type { Vector } from './Vector';
 
-export const UnlimitedSpaceDock = -1;
-export const NoScanner = -1;
-export const NoGate = -1;
-export const InfinteGate = 2147483647;
-export const OriginMysteryTrader = 'MysteryTrader';
-export const GenesisDevice = 'Genesis Device';
-
 export type TechStore = {
 	engines: TechEngine[];
 	planetaryScanners: TechPlanetaryScanner[];

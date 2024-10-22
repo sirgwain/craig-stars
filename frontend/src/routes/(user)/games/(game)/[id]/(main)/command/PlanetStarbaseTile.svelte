@@ -4,12 +4,11 @@
 	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
+	import { UnlimitedSpaceDock } from '$lib/types/Constants';
 	import type { Fleet } from '$lib/types/Fleet';
 	import type { CommandedPlanet } from '$lib/types/Planet';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
-	import { UnlimitedSpaceDock } from '$lib/types/Tech';
 	import CommandTile from './CommandTile.svelte';
-	import type { Rules } from '$lib/types/Rules';
 
 	const { game, player, universe, settings, updatePlanetOrders } = getGameContext();
 

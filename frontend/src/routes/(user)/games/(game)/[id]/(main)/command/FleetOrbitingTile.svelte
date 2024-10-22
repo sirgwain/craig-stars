@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { CommandedFleet } from '$lib/types/Fleet';
-	import { None, ownedBy } from '$lib/types/MapObject';
+	import { ownedBy } from '$lib/types/MapObject';
+	import { None } from '$lib/types/Constants';
 	import { createEventDispatcher } from 'svelte';
 	import type { CargoTransferDialogEvent } from '../../dialogs/cargo/CargoTranfserDialog.svelte';
 	import CommandTile from './CommandTile.svelte';

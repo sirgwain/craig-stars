@@ -1,6 +1,7 @@
 <script lang="ts" context="module">
+	import { Unexplored } from '$lib/types/Constants';
 	import { type Fleet } from '$lib/types/Fleet';
-	import { Unexplored, type Planet } from '$lib/types/Planet';
+	import { type Planet } from '$lib/types/Planet';
 
 	export type Results = {
 		planets: Planet[];
@@ -17,7 +18,8 @@
 <script lang="ts">
 	import MineralMini from '$lib/components/game/MineralMini.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { getMapObjectName, None, owned, ownedBy, type MapObject } from '$lib/types/MapObject';
+	import { getMapObjectName, owned, ownedBy, type MapObject } from '$lib/types/MapObject';
+	import { None } from '$lib/types/Constants';
 	import type { MysteryTrader } from '$lib/types/MysteryTrader';
 	import { createEventDispatcher, onMount } from 'svelte';
 

@@ -751,7 +751,7 @@ func (s *server) transferCargoFleetFleet(w http.ResponseWriter, r *http.Request,
 		Str("Fleet", fleet.Name).
 		Str("Planet", dest.Name).
 		Str("TransferAmount", fmt.Sprintf("%v", transferAmount)).
-		Msgf("%s transfered %v to/from Planet %s", fleet.Name, transferAmount, dest.Name)
+		Msgf("%s transfered %v to/from Fleet %s", fleet.Name, transferAmount, dest.Name)
 
 	// success
 	// only return an updated mapobject if we own it

@@ -129,6 +129,30 @@ func computeShipDesignSpec(args []js.Value) interface{} {
 	return o
 }
 
+// wasm wrapper for calculating race points
+// takes one argument, the race
+func starbaseUpgradeCost(args []js.Value) interface{} {
+	if len(args) != 2 {
+		return wasm.NewError(fmt.Errorf("number of arguments doesn't match"))
+	}
+
+	design := wasm.GetShipDesign(args[0])
+	newDesign := wasm.GetShipDesign(args[1])
+
+	costCalculatoor := cs.NewCostCalculator()
+	cost, err := costCalculatoor.StarbaseUpgradeCost(&ctx.rules, ctx.player.TechLevels, ctx.player.Race.Spec, &design, &newDesign)
+	if err != nil {
+		return wasm.NewError(fmt.Errorf("unable to calculate starbase upgrade cost %v", err))
+	}
+
+	log.Debug().Msgf("computed spec for design %s", design.Name)
+
+	o := js.ValueOf(map[string]any{})
+	wasm.SetCost(o, &cost)
+
+	return o
+}
+
 // wasm wrapper for estimating planet production
 // takes 1 arguments: planet, player (with designs)
 func estimateProduction(args []js.Value) interface{} {
@@ -176,6 +200,7 @@ func main() {
 	wasm.ExposeFunction("calculateRacePoints", calculateRacePoints)
 	wasm.ExposeFunction("getResearchCost", getResearchCost)
 	wasm.ExposeFunction("computeShipDesignSpec", computeShipDesignSpec)
+	wasm.ExposeFunction("starbaseUpgradeCost", starbaseUpgradeCost)
 	wasm.ExposeFunction("estimateProduction", estimateProduction)
 	wasm.Ready()
 

@@ -1,8 +1,9 @@
 import { fromHabType } from '$lib/services/Terraformer';
 import type { CostFinder, DesignFinder } from '$lib/services/Universe';
 import type { ProductionQueueItem } from '$lib/types/Production';
+import type { CS } from '$lib/wasm';
 import type { BattleAttackWho, BattleRecord, BattleTactic, BattleTarget } from './Battle';
-import { multiply, type Cost, subtract, minZero } from './Cost';
+import { multiply, type Cost } from './Cost';
 import type { Fleet, WaypointTransportTasks } from './Fleet';
 import { HabTypes, type Hab } from './Hab';
 import type { Message } from './Message';
@@ -306,9 +307,9 @@ export class Player implements PlayerResponse, CostFinder {
 	}
 
 	public getItemCost(
+		cs: CS,
 		item: ProductionQueueItem | undefined,
 		designFinder: DesignFinder,
-		techStore: TechStore,
 		planet?: Planet,
 		quantity = 1
 	): Cost {
@@ -320,10 +321,7 @@ export class Player implements PlayerResponse, CostFinder {
 						if (planet?.spec.hasStarbase) {
 							const starbaseToUpgrade = designFinder.getMyDesign(planet.spec.starbaseDesignNum);
 							if (starbaseToUpgrade && design) {
-								return multiply(
-									this.getStarbaseUpgradeCost(techStore, starbaseToUpgrade, design),
-									quantity
-								);
+								return cs.starbaseUpgradeCost(design, starbaseToUpgrade) ?? {};
 							}
 						}
 						return multiply(design?.spec.cost ?? {}, quantity);
@@ -340,16 +338,6 @@ export class Player implements PlayerResponse, CostFinder {
 			}
 		}
 		return {};
-	}
-
-	// get the cost of upgrading this starbase
-	public getStarbaseUpgradeCost(
-		techStore: TechStore,
-		design: ShipDesign,
-		updatedDesign: ShipDesign
-	): Cost {
-		// TODO: update this if we update the server side
-		return minZero(subtract(updatedDesign.spec?.cost ?? {}, design.spec?.cost ?? {}));
 	}
 
 	// get a player's ability to terraform

@@ -240,6 +240,8 @@ func (o *orders) TransferFleetCargo(rules *Rules, player, destPlayer *Player, so
 		Str("Source", source.Name).
 		Str("Dest", dest.Name).
 		Str("TransferAmount", fmt.Sprintf("%v", transferAmount)).
+		Str("SourceCargo", fmt.Sprintf("%v", source.Cargo)).
+		Str("DestCargo", fmt.Sprintf("%v", dest.Cargo)).
 		Msg("transfer fleet cargo")
 
 	return nil
@@ -290,6 +292,7 @@ func (o *orders) TransferPlanetCargo(rules *Rules, player *Player, source *Fleet
 	log.Info().
 		Int64("GameID", player.GameID).
 		Int("PlayerNum", player.Num).
+		Str("Planet", dest.Name).
 		Str("Source", source.Name).
 		Str("Dest", dest.Name).
 		Str("SourceCargoInitial", fmt.Sprintf("%v", sourceCargoInitial)).

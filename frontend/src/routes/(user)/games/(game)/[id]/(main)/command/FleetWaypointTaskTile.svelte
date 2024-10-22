@@ -1,26 +1,26 @@
 <script lang="ts">
 	import DropdownButton from '$lib/components/DropdownButton.svelte';
-	import OtherMapObjectsHere from '$lib/components/game/OtherMapObjectsHere.svelte';
 	import MineralMini from '$lib/components/game/MineralMini.svelte';
+	import OtherMapObjectsHere from '$lib/components/game/OtherMapObjectsHere.svelte';
+	import WarpSpeedGauge from '$lib/components/game/WarpSpeedGauge.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import {
 		CommandedFleet,
 		emptyTransportTasks,
-		WaypointTask,
-		WaypointTaskTransportAction
+		WaypointTask
 	} from '$lib/types/Fleet';
 	import { MapObjectType, owned, ownedBy, type MapObject } from '$lib/types/MapObject';
-	import { Unexplored, getMineralOutput } from '$lib/types/Planet';
+	import { getMineralOutput } from '$lib/types/Planet';
 	import type { TransportPlan } from '$lib/types/Player';
-	import { startCase } from 'lodash-es';
-	import { $enum as eu } from 'ts-enum-util';
-	import TransportTasksMini from '../../(plans)/transport-plans/TransportTasksMini.svelte';
-	import CommandTile from './CommandTile.svelte';
 	import { PencilSquare } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
+	import { startCase } from 'lodash-es';
 	import { createEventDispatcher } from 'svelte';
+	import { $enum as eu } from 'ts-enum-util';
+	import TransportTasksMini from '../../(plans)/transport-plans/TransportTasksMini.svelte';
 	import type { TransportTasksDialogEvent } from '../../dialogs/transport/TransportTasksDialog.svelte';
-	import WarpSpeedGauge from '$lib/components/game/WarpSpeedGauge.svelte';
+	import CommandTile from './CommandTile.svelte';
+	import { Unexplored } from '$lib/types/Constants';
 
 	const dispatch = createEventDispatcher<TransportTasksDialogEvent>();
 

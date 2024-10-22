@@ -2,7 +2,7 @@
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { getDamagePercentForToken, type CommandedFleet } from '$lib/types/Fleet';
-	import { Infinite } from '$lib/types/MapObject';
+	import { Infinite } from '$lib/types/Constants';
 	import { createEventDispatcher } from 'svelte';
 	import type { MergeFleetsDialogEvent } from '../../dialogs/merge/MergeFleetsDialog.svelte';
 	import type { SplitFleetEvent } from '../../dialogs/split/SplitFleet.svelte';

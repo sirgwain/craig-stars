@@ -2,7 +2,7 @@
 	import { andCommaList } from '$lib/andCommandList';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { absSum } from '$lib/types/Hab';
-	import { None } from '$lib/types/MapObject';
+	import { None } from '$lib/types/Constants';
 	import { MessageType, type Message } from '$lib/types/Message';
 	import FallbackMessageDetail from './FallbackMessageDetail.svelte';
 	import FleetEngineStrainMessageDetail from './FleetEngineStrainMessageDetail.svelte';

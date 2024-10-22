@@ -1,4 +1,5 @@
 <script lang="ts">
+	import PlanetBaseHabPoint from '$lib/components/game/PlanetBaseHabPoint.svelte';
 	import PlanetHabPoint from '$lib/components/game/PlanetHabPoint.svelte';
 	import PlanetHabTerraformLine from '$lib/components/game/PlanetHabTerraformLine.svelte';
 	import type { HabTooltipProps } from '$lib/components/game/tooltips/HabTooltip.svelte';
@@ -9,13 +10,13 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
 	import { showTooltip } from '$lib/services/Stores';
+	import { Unexplored } from '$lib/types/Constants';
 	import { HabTypes, add, getGravString, getRadString, getTempString } from '$lib/types/Hab';
-	import { None } from '$lib/types/MapObject';
-	import { Unexplored, type Planet } from '$lib/types/Planet';
+	import { None } from '$lib/types/Constants';
+	import { type Planet } from '$lib/types/Planet';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import PlanetMineralsGraph from './PlanetMineralsGraph.svelte';
-	import PlanetBaseHabPoint from '$lib/components/game/PlanetBaseHabPoint.svelte';
 
 	const { game, player, universe } = getGameContext();
 

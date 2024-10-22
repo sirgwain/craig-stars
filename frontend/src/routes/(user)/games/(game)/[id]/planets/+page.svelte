@@ -2,19 +2,19 @@
 	import { goto } from '$app/navigation';
 	import MineralMini from '$lib/components/game/MineralMini.svelte';
 	import ProductionQueueItemLine from '$lib/components/game/ProductionQueueItemLine.svelte';
+	import type { PopulationTooltipProps } from '$lib/components/game/tooltips/PopulationTooltip.svelte';
+	import PopulationTooltip from '$lib/components/game/tooltips/PopulationTooltip.svelte';
 	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
 	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
+	import { showTooltip } from '$lib/services/Stores';
+	import { Unexplored } from '$lib/types/Constants';
 	import { owned, ownedBy } from '$lib/types/MapObject';
-	import { totalMinerals } from '$lib/types/Mineral';
-	import { Unexplored, planetsSortBy, type Planet } from '$lib/types/Planet';
+	import { planetsSortBy, type Planet } from '$lib/types/Planet';
 	import { Check } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import ProductionQueueDialog from '../dialogs/production/ProductionQueueDialog.svelte';
-	import PopulationTooltip from '$lib/components/game/tooltips/PopulationTooltip.svelte';
-	import type { PopulationTooltipProps } from '$lib/components/game/tooltips/PopulationTooltip.svelte';
-	import { showTooltip } from '$lib/services/Stores';
 
 	const { game, player, universe, settings, commandMapObject, selectMapObject, zoomToMapObject } =
 		getGameContext();

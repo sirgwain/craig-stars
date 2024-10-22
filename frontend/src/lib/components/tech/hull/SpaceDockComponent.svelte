@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { UnlimitedSpaceDock } from '$lib/types/Tech';
+	import { UnlimitedSpaceDock } from '$lib/types/Constants';
 
 	export let spaceDock: number;
 	export let rounded = false;

@@ -10,7 +10,8 @@
 		canTransferCargo,
 		CommandedFleet
 	} from '$lib/types/Fleet';
-	import { StargateWarpSpeed, ownedBy } from '$lib/types/MapObject';
+	import { ownedBy } from '$lib/types/MapObject';
+	import { StargateWarpSpeed } from '$lib/types/Constants';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import { kebabCase, startCase } from 'lodash-es';
 	import { createEventDispatcher } from 'svelte';

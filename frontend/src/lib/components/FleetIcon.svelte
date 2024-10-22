@@ -4,7 +4,7 @@
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import { kebabCase } from 'lodash-es';
 	import { onShipDesignTooltip } from './game/tooltips/ShipDesignTooltip.svelte';
-	import { None } from '$lib/types/MapObject';
+	import { None } from '$lib/types/Constants';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { NoSymbol, QuestionMarkCircle } from '@steeze-ui/heroicons';
 

@@ -2,25 +2,18 @@ import type { DesignFinder, Universe } from '$lib/services/Universe';
 import { get as pluck } from 'lodash-es';
 import { totalCargo, type Cargo } from './Cargo';
 import type { Cost } from './Cost';
-import {
-	Infinite,
-	MapObjectType,
-	None,
-	owned,
-	ownedBy,
-	StargateWarpSpeed,
-	type MapObject,
-	type MovingMapObject
-} from './MapObject';
+import { MapObjectType, owned, ownedBy, type MapObject, type MovingMapObject } from './MapObject';
+import { StargateWarpSpeed } from './Constants';
+import { None } from './Constants';
 import type { MessageTargetType } from './Message';
 import type { MineFieldType } from './MineField';
+import type { MineralPacket } from './MineralPacket';
 import type { Planet } from './Planet';
 import type { Player } from './Player';
+import type { Salvage } from './Salvage';
 import type { ShipDesign } from './ShipDesign';
 import type { Engine } from './Tech';
 import { distance, equal, type Vector } from './Vector';
-import type { MineralPacket } from './MineralPacket';
-import type { Salvage } from './Salvage';
 
 export type Fleet = {
 	playerNum: number; // override mapObject fleets always have a player.
@@ -659,7 +652,7 @@ export class CommandedFleet implements Fleet {
 		// start at one above free speed and add to it until we run out of fuel
 		let speed = freeSpeed;
 		for (let i = speed + 1; i <= maxSafeSpeed; i++) {
-			speed = i
+			speed = i;
 			const fuelUsed = this.getFuelCost(
 				designFinder,
 				fuelEfficiencyOffset,
@@ -674,7 +667,7 @@ export class CommandedFleet implements Fleet {
 			}
 		}
 
-		console.log("max speed for fuel/safety", speed)
+		console.log('max speed for fuel/safety', speed);
 
 		const idealSpeed = this.spec?.engine?.idealSpeed ?? 5;
 		const idealFuelUsed = this.getFuelCost(
@@ -944,11 +937,14 @@ export const getDestination = (fleet: Fleet, universe: Universe) => {
 export const getEta = (fleet: Fleet) => {
 	if (fleet.waypoints?.length && fleet.waypoints?.length > 1) {
 		if (fleet.waypoints[1].warpSpeed === 0) {
-			return -1
+			return -1;
 		} else if (fleet.waypoints[1].warpSpeed === StargateWarpSpeed) {
-			return 1
+			return 1;
 		} else {
-			return Math.ceil(Math.floor(distance(fleet.waypoints[0].position, fleet.waypoints[1].position)) / (fleet.waypoints[1].warpSpeed * fleet.waypoints[1].warpSpeed))
+			return Math.ceil(
+				Math.floor(distance(fleet.waypoints[0].position, fleet.waypoints[1].position)) /
+					(fleet.waypoints[1].warpSpeed * fleet.waypoints[1].warpSpeed)
+			);
 		}
 	}
 	return 0;

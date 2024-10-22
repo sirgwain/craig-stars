@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { CommandedFleet, moveDamagedTokens, type ShipToken } from './Fleet';
-import { Infinite, None } from './MapObject';
+import { Infinite } from './Constants';
+import { None } from './Constants';
 import { cottonPicker, longRangeScout, santaMaria, TestDesignFinder } from './Mock.test';
 import { CommandedPlanet } from './Planet';
 import { Player, PlayerRelation } from './Player';
