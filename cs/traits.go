@@ -78,7 +78,7 @@ type LRTSpec struct {
 	ScrapResourcesOffsetStarbase  float64         `json:"scrapResourcesOffsetStarbase,omitempty"`
 	StartingPopulationFactorDelta float64         `json:"startingPopulationFactorDelta,omitempty"`
 	StarbaseBuiltInCloakUnits     int             `json:"starbaseBuiltInCloakUnits,omitempty"`
-	StarbaseCostFactorOffset      float64         `json:"starbaseCostFactorOffset,omitempty"`
+	StarbaseCostFactor      float64         `json:"starbaseCostFactor,omitempty"`
 	ResearchFactorOffset          float64         `json:"researchFactorOffset,omitempty"`
 	ResearchSplashDamage          float64         `json:"researchSplashDamage,omitempty"`
 	ShieldStrengthFactorOffset    float64         `json:"shieldStrengthFactorOffset,omitempty"`
@@ -543,7 +543,7 @@ func armSpec() LRTSpec {
 func isbSpec() LRTSpec {
 	return LRTSpec{
 		StarbaseBuiltInCloakUnits: 40,  // 20% built in cloaking
-		StarbaseCostFactorOffset:  -.2, // starbases cost 20% less
+		StarbaseCostFactor:  0.8, // starbases cost 20% less (*0.8)
 	}
 }
 
