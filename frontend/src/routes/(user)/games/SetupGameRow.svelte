@@ -35,5 +35,5 @@
 		</button>
 	</div>
 {:else}
-	<div class="col-span-2" />
+	<div class="col-span-2"></div>
 {/if}

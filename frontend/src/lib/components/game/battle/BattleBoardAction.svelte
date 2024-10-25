@@ -67,4 +67,4 @@
 		destroying {action.tokensDestroyed} ship{action.tokensDestroyed > 1 ? 's' : ''}
 	{/if}
 {/if}
-<div />
+<div></div>

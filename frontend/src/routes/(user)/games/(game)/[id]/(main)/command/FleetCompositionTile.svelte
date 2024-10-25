@@ -56,7 +56,7 @@
 											$universe.getMyDesign(token.designNum)
 										).toFixed()}%`}
 										class="damage-bar h-full absolute opacity-50"
-									/>
+									></div>
 								{/if}
 								<div>
 									{$universe.getDesign($player.num, token.designNum)?.name}

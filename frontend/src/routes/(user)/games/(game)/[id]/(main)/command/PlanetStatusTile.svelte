@@ -65,7 +65,7 @@
 			</div>
 		</div>
 
-		<div class="divider p-0 m-0" />
+		<div class="divider p-0 m-0"></div>
 
 		<div class="flex justify-between cursor-help" on:pointerdown|preventDefault={onScannerPopup}>
 			<div class="text-tile-item-title">Scanner Type</div>
@@ -77,7 +77,7 @@
 		</div>
 
 		{#if $player.race.spec?.canBuildDefenses}
-			<div class="divider p-0 m-0" />
+			<div class="divider p-0 m-0"></div>
 
 			<div class="flex justify-between cursor-help" on:pointerdown|preventDefault={onDefensePoopup}>
 				<div class="text-tile-item-title">Defenses</div>

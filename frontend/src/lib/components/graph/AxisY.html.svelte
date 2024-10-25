@@ -44,7 +44,7 @@
 					class="border-t border-dashed border-base-content"
 					style="top:0;left:{isBandwidth ? $padding.left : 0}px;right:-{$padding.left +
 						$padding.right}px;"
-				/>
+				></div>
 			{/if}
 			<div
 				class="text-base-content"

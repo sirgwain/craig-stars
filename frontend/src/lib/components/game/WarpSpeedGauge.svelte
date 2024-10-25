@@ -135,5 +135,5 @@
 			Warp {value}
 		{/if}
 	</div>
-	<div style={`width: ${percent.toFixed()}%`} class="{color} h-full" />
+	<div style={`width: ${percent.toFixed()}%`} class="{color} h-full"></div>
 </div>

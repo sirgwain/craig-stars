@@ -67,7 +67,7 @@
 					<div>{starbase.damage}%</div>
 				{/if}
 			</div>
-			<div class="divider p-0 m-0" />
+			<div class="divider p-0 m-0"></div>
 		</div>
 		<div>
 			<div

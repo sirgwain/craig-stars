@@ -140,7 +140,7 @@
 							<a href={`/games/${$game.id}/techs`} class="justify-between">Techs</a>
 						</li>
 						{#if $me.isAdmin()}
-							<li><div class="divider" /></li>
+							<li><div class="divider"></div></li>
 							<li>
 								<a href={`/admin/games`} class="justify-between">All Games</a>
 							</li>
@@ -148,9 +148,9 @@
 								<a href={`/admin/users`} class="justify-between">Users</a>
 							</li>
 						{/if}
-						<li><div class="divider" /></li>
+						<li><div class="divider"></div></li>
 						<li><a href="/auth/logout">Logout, {$me.username}</a></li>
-						<li><div class="divider" /></li>
+						<li><div class="divider"></div></li>
 						<li class="text-center">version {PKG.version}</li>
 					</ul>
 				</div>

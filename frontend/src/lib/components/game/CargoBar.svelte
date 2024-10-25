@@ -33,14 +33,14 @@
 	<div
 		style={`left: 0%; width: ${percent.ironium?.toFixed()}%`}
 		class="ironium-bar h-full inline-block"
-	/>
-	<div style={`width: ${percent.boranium?.toFixed()}%`} class="boranium-bar h-full inline-block" />
+	></div>
+	<div style={`width: ${percent.boranium?.toFixed()}%`} class="boranium-bar h-full inline-block"></div>
 	<div
 		style={`width: ${percent.germanium?.toFixed()}%`}
 		class="germanium-bar h-full inline-block"
-	/>
+	></div>
 	<div
 		style={`width: ${percent.colonists?.toFixed()}%`}
 		class="colonists-bar h-full inline-block"
-	/>
+	></div>
 </div>

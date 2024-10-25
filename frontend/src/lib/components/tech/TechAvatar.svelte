@@ -33,6 +33,6 @@
 			type="button"
 			class="w-full h-full"
 			on:pointerdown|preventDefault={(e) => onTechHullTooltip(e, hull)}
-		/>
+		></button>
 	{/if}
 </div>

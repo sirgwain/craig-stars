@@ -111,5 +111,5 @@
 		{value} of {capacity}{unit}
 	</div>
 
-	<div style={`width: ${percent.toFixed()}%`} class="{color} h-full" />
+	<div style={`width: ${percent.toFixed()}%`} class="{color} h-full"></div>
 </div>

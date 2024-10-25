@@ -39,7 +39,7 @@
 					class:heavy-mine-field={mineField.mineFieldType === MineFieldTypes.Heavy}
 					class:speed-bump-mine-field={mineField.mineFieldType === MineFieldTypes.SpeedBump}
 					class="mapobject-avatar bg-black"
-				/>
+				></div>
 			</div>
 		</div>
 		<div class="text-center">{$universe.getPlayerPluralName(mineField.playerNum)}</div>

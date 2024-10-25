@@ -36,7 +36,7 @@
 						{points}
 					{/if}
 				</div>
-				<div class="stat-desc pt-1" />
+				<div class="stat-desc pt-1"></div>
 			</div>
 		</div>
 	</div>

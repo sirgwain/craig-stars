@@ -104,7 +104,7 @@
 			<div class="col-span-5 text-secondary">Name</div>
 			<div class="col-span-2 text-secondary">Year</div>
 			<div class="col-span-3 text-secondary">Players</div>
-			<div class="col-span-2" />
+			<div class="col-span-2"></div>
 
 			{#each newTurnGames as game}
 				<ActiveGameRow
@@ -124,7 +124,7 @@
 		<div class="col-span-5 text-secondary">Name</div>
 		<div class="col-span-2 text-secondary">Year</div>
 		<div class="col-span-3 text-secondary">Players</div>
-		<div class="col-span-2" />
+		<div class="col-span-2"></div>
 		{#each singlePlayerGames as game}
 			<ActiveGameRow
 				{game}
@@ -143,7 +143,7 @@
 		<div class="col-span-5 text-secondary">Name</div>
 		<div class="col-span-2 text-secondary">Year</div>
 		<div class="col-span-3 text-secondary">Players</div>
-		<div class="col-span-2" />
+		<div class="col-span-2"></div>
 
 		{#each submittedTurnGames as game}
 			<ActiveGameRow
@@ -159,7 +159,7 @@
 	<div class="mt-2 grid grid-cols-12 gap-1">
 		<div class="col-span-5 text-secondary">Name</div>
 		<div class="col-span-5 text-secondary">Players</div>
-		<div class="col-span-2" />
+		<div class="col-span-2"></div>
 		{#each gamesWaitingToStart as game}
 			<SetupGameRow {game} on:delete={() => deleteGame(game)} />
 		{/each}
@@ -171,7 +171,7 @@
 	<div class="mt-2 grid grid-cols-12 gap-1">
 		<div class="col-span-5 text-secondary">Name</div>
 		<div class="col-span-5 text-secondary">Players</div>
-		<div class="col-span-2" />
+		<div class="col-span-2"></div>
 
 		{#each openGames as game}
 			<SetupGameRow {game} on:delete={() => deleteGame(game)} />

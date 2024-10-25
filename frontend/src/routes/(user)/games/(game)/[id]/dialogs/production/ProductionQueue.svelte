@@ -493,7 +493,7 @@
 								</li>
 							{/each}
 						</ul>
-						<div class="divider" />
+						<div class="divider"></div>
 						<div class="h-32">
 							{#if selectedAvailableItem && selectedAvailableItemCost}
 								<h3>
@@ -615,7 +615,7 @@
 								{/each}
 							{/if}
 						</ul>
-						<div class="divider" />
+						<div class="divider"></div>
 						<div class="h-32">
 							{#if selectedQueueItem}
 								<h3>

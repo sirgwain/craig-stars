@@ -23,7 +23,7 @@
 						class:grav-bar={habType === HabTypes.Gravity}
 						class:temp-bar={habType === HabTypes.Temperature}
 						class:rad-bar={habType === HabTypes.Radiation}
-					/>
+					></div>
 				{/if}
 			</div>
 		</div>

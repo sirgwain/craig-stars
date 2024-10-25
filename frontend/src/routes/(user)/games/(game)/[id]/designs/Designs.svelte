@@ -115,7 +115,7 @@
 								class="border-2 border-neutral p-2 bg-black"
 								style={`border-color: ${$universe.getPlayerColor(row.playerNum)};`}
 							>
-								<div class="fleet-avatar {icon(row)} bg-black" />
+								<div class="fleet-avatar {icon(row)} bg-black"></div>
 							</div>
 						</div>
 					</button>

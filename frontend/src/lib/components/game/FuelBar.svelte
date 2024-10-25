@@ -64,5 +64,5 @@
 	<div class="font-extrabold text-sm text-center align-middle w-full absolute text-white">
 		{value} of {capacity}mg
 	</div>
-	<div style={`width: ${percent.toFixed()}%`} class="fuel-bar h-full" />
+	<div style={`width: ${percent.toFixed()}%`} class="fuel-bar h-full"></div>
 </div>

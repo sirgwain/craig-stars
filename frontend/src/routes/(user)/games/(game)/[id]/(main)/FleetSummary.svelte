@@ -70,7 +70,7 @@
 						type="button"
 						class="w-full h-full cursor-help"
 						on:pointerdown|preventDefault={(e) => onShipDesignTooltip(e, design)}
-					/>
+					></button>
 				</div>
 			</div>
 		</div>
@@ -151,7 +151,7 @@
 													$universe.getDesign(fleet.playerNum, token.designNum)
 												).toFixed()}%`}
 												class="damage-bar h-full absolute opacity-50"
-											/>
+											></div>
 										{/if}
 
 										<div>

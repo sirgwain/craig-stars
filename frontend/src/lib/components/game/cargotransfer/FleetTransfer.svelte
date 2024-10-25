@@ -42,7 +42,7 @@
 		<CargoBar value={add(cargo, transferAmount)} capacity={cargoCapacity} />
 	</div>
 
-	<div class="col-span-2 mt-10 sm:mt-5" />
+	<div class="col-span-2 mt-10 sm:mt-5"></div>
 
 	<div class="sm:text-right mr-1 h-8">Ironium</div>
 	<div class="my-auto">

@@ -194,7 +194,7 @@
 					class="mt-8 sm:mt-2"
 				/>
 			{:else}
-				<div class="h-8" />
+				<div class="h-8"></div>
 			{/if}
 			<div class="mt-28 h-40 sm:mt-16 sm:h-28 flex flex-col justify-between">
 				<TransferButtons

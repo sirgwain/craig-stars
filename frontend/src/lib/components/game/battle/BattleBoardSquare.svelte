@@ -78,6 +78,6 @@
 					dispatch('selected', tokens[tokenIndex]);
 				}
 			}}
-		/>
+		></button>
 	{/if}
 </div>

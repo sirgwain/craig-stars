@@ -114,24 +114,24 @@
 				style={`left: ${concentrationPercent.ironium?.toFixed()}%;`}
 				class="absolute ironium-concentration w-auto h-full ironium"
 			/>
-			<div style={`width: ${barPercent.ironium?.toFixed()}%`} class="ironium-bar h-full" />
+			<div style={`width: ${barPercent.ironium?.toFixed()}%`} class="ironium-bar h-full"></div>
 		</div>
 		<div class="h-full relative cursor-help" on:pointerdown|preventDefault={onBoraniumTooltip}>
 			<MineralConcentrationPoint
 				style={`left: ${concentrationPercent.boranium?.toFixed()}%;`}
 				class="absolute boranium-concentration w-auto h-full boranium"
 			/>
-			<div style={`width: ${barPercent.boranium?.toFixed()}%`} class="boranium-bar h-full" />
+			<div style={`width: ${barPercent.boranium?.toFixed()}%`} class="boranium-bar h-full"></div>
 		</div>
 		<div class="h-full relative cursor-help" on:pointerdown|preventDefault={onGermaniumTooltip}>
 			<MineralConcentrationPoint
 				style={`left: ${concentrationPercent.germanium?.toFixed()}%;`}
 				class="absolute germanium-concentration  h-full germanium"
 			/>
-			<div style={`width: ${barPercent.germanium?.toFixed()}%`} class="germanium-bar h-full" />
+			<div style={`width: ${barPercent.germanium?.toFixed()}%`} class="germanium-bar h-full"></div>
 		</div>
 	</div>
-	<div class="w-[3rem]" />
+	<div class="w-[3rem]"></div>
 </div>
 <div class="flex flex-row">
 	<div class="text-right flex flex-col justify-evenly w-[5.5rem] pr-1">kT</div>
@@ -140,7 +140,7 @@
 			<div>{division}</div>
 		{/each}
 		<!-- spacer -->
-		<div class="w-[3rem]" />
+		<div class="w-[3rem]"></div>
 	</div>
 </div>
 

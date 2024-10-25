@@ -431,7 +431,7 @@
 		</div>
 	{/each}
 
-	<div class="mt-1" />
+	<div class="mt-1"></div>
 	{#each descriptions as description}
 		<div>{description}</div>
 	{/each}

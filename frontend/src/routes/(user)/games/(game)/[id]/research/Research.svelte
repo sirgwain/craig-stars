@@ -99,10 +99,10 @@
 
 		<div class="grid grid-cols-2">
 			<div class="text-center">
-				Field of Study <div class="divider secondary w-[90%]" />
+				Field of Study <div class="divider secondary w-[90%]"></div>
 			</div>
 			<div class="text-center">
-				Current Level <div class="divider secondary w-[90%]" />
+				Current Level <div class="divider secondary w-[90%]"></div>
 			</div>
 			{#each eu(TechField).getKeys() as field}
 				<div class="form-control">

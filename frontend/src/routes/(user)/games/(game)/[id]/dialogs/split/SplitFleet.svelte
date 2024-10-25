@@ -220,7 +220,7 @@
 				<!-- buttons -->
 				<div class="flex-none flex flex-col">
 					<!-- Keep a 2rem empty header so the buttons line up -->
-					<div class="h-[120px]" />
+					<div class="h-[120px]"></div>
 					<div class="grow p-2 flex flex-col justify-between">
 						{#each srcTokens as token, index}
 							<div class="flex flex-row h-full">

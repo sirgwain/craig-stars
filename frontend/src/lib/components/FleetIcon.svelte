@@ -45,7 +45,7 @@
 				type="button"
 				class="w-full h-full cursor-help"
 				on:pointerdown|preventDefault={(e) => onShipDesignTooltip(e, design)}
-			/>
+			></button>
 		</div>
 	</div>
 </div>

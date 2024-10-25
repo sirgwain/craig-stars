@@ -7,7 +7,7 @@
 
 <div class="grid grid-cols-4 mt-2">
 	<!-- headers -->
-	<div />
+	<div></div>
 	<div class="text-center font-semibold col-span-2">Action</div>
 	<div class="text-center font-semibold">Amount (kT)</div>
 	<TransportTasks

@@ -45,14 +45,14 @@
 			<div
 				class="border-l border-l-base-content"
 				style="left:{$xScale(tick)}%;top: 0px;bottom: 0;"
-			/>
+			></div>
 		{/if}
 		{#if tickMarks === true}
 			<div
 				class="border-l-base-content"
 				style="left:{$xScale(tick) +
 					(isBandwidth ? $xScale.bandwidth() / 2 : 0)}%;height:6px;bottom: -6px;"
-			/>
+			></div>
 		{/if}
 		<div
 			class="tick tick-{i}"
@@ -62,7 +62,7 @@
 		</div>
 	{/each}
 	{#if baseline === true}
-		<div class="border-t border-t-base-content" style="top: 100%;width: 100%;" />
+		<div class="border-t border-t-base-content" style="top: 100%;width: 100%;"></div>
 	{/if}
 </div>
 

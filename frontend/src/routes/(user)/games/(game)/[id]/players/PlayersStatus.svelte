@@ -30,7 +30,7 @@
 			<div
 				class="h-4 w-4 my-auto border border-secondary mx-2"
 				style={`background-color: ${playerStatus.color}`}
-			/>
+			></div>
 			<div class="my-auto">
 				{playerStatus.name}
 			</div>

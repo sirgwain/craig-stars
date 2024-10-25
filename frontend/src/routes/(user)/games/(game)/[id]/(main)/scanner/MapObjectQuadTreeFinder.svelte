@@ -136,4 +136,4 @@
 	on:pointerdown={onPointerDown}
 	on:pointermove={onPointerMove}
 	on:pointerup={onPointerUp}
-/>
+></div>

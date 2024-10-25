@@ -147,7 +147,7 @@
 						<div
 							style={`left: ${habLowPercent.grav.toFixed()}%; width: ${habWidthPercent.grav?.toFixed()}%`}
 							class="absolute grav-bar h-full"
-						/>
+						></div>
 					{/if}
 					<PlanetHabPoint
 						style={`left: ${habPointPercent.grav.toFixed()}%;`}
@@ -183,7 +183,7 @@
 						<div
 							style={`left: ${habLowPercent.temp.toFixed()}%; width: ${habWidthPercent.temp?.toFixed()}%`}
 							class="absolute temp-bar h-full"
-						/>
+						></div>
 					{/if}
 					<PlanetHabPoint
 						style={`left: ${habPointPercent.temp.toFixed()}%;`}
@@ -211,7 +211,7 @@
 						<div
 							style={`left: ${habLowPercent.rad.toFixed()}%; width: ${habWidthPercent.rad?.toFixed()}%`}
 							class="absolute rad-bar h-full"
-						/>
+						></div>
 					{/if}
 					<PlanetHabPoint
 						style={`left: ${habPointPercent.rad.toFixed()}%;`}
@@ -232,7 +232,7 @@
 			<div class="w-[3rem]">{getRadString(planet.hab?.rad ?? 0)}</div>
 		</div>
 
-		<div class="mb-1" />
+		<div class="mb-1"></div>
 
 		<PlanetMineralsGraph {planet} />
 	{/if}

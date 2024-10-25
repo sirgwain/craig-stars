@@ -83,7 +83,7 @@
 			<div>{planet.cargo.germanium ?? 0}kT</div>
 		</div>
 
-		<div class="divider p-0 m-0" />
+		<div class="divider p-0 m-0"></div>
 
 		<div class="flex justify-between cursor-help" on:pointerdown|preventDefault={onMinesTooltip}>
 			<div class="text-tile-item-title">Mines</div>

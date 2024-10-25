@@ -64,4 +64,4 @@
 	{/if}
 </div>
 
-<div class="mb-10" />
+<div class="mb-10"></div>
