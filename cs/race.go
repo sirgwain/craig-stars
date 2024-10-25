@@ -749,7 +749,9 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		spec.ScrapResourcesOffsetStarbase += lrtSpec.ScrapResourcesOffsetStarbase
 		spec.StartingPopulationFactor += lrtSpec.StartingPopulationFactorDelta
 		spec.StarbaseBuiltInCloakUnits += lrtSpec.StarbaseBuiltInCloakUnits
-		spec.StarbaseCostFactor = math.Min(spec.StarbaseCostFactor, lrtSpec.StarbaseCostFactor) // this isn't cumulative
+		if lrtSpec.StarbaseCostFactor > 0 {
+			spec.StarbaseCostFactor = math.Min(spec.StarbaseCostFactor, lrtSpec.StarbaseCostFactor) // this isn't cumulative
+		}
 		spec.ResearchFactor += lrtSpec.ResearchFactorOffset
 		spec.ResearchSplashDamage += lrtSpec.ResearchSplashDamage
 		spec.ShieldStrengthFactor += lrtSpec.ShieldStrengthFactorOffset
