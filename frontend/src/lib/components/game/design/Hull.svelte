@@ -28,7 +28,7 @@
 >
 	{#each hull.slots as slot, index}
 		{@const shipDesignSlot = shipDesignSlots.find((s) => s.hullSlotIndex === index + 1)}
-		{#if index == 1 && cargoCapacity > 0}
+		{#if index === 1 && cargoCapacity > 0}
 			<div
 				class="absolute"
 				style={`left: ${
@@ -44,7 +44,7 @@
 				<CargoComponent capacity={cargoCapacity} />
 			</div>
 		{/if}
-		{#if index == 1 && hull.spaceDock && hull.spaceDock != 0}
+		{#if index === 1 && hull.spaceDock && hull.spaceDock !== 0}
 			<div
 				class="absolute"
 				style={`left: ${
@@ -65,6 +65,8 @@
 			style={`left: ${
 				slot.position.x * componentSize + (containerWidth / 2 - componentSize / 2)
 			}px; top: ${slot.position.y * componentSize + (containerHeight / 2 - componentSize / 2)}px;`}
+			role="link"
+			tabindex="-1"
 			on:contextmenu|preventDefault={(e) =>
 				shipDesignSlot && onTechTooltip(e, $techs.getHullComponent(shipDesignSlot?.hullComponent))}
 		>
@@ -73,7 +75,7 @@
 				type={slot.type}
 				capacity={slot.capacity}
 				required={slot.required}
-				highlighted={highlightedSlots.findIndex((s) => s === slot) != -1}
+				highlighted={highlightedSlots.findIndex((s) => s === slot) !== -1}
 				{highlightedClass}
 				{showTooltips}
 				on:clicked={(e) => {

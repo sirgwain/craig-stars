@@ -129,6 +129,8 @@
 
 <div
 	class="absolute h-full w-full z-10"
+	role="link"
+	tabindex="-1"
 	on:touchstart={onTouchStart}
 	on:touchmove|preventDefault={onTouchMove}
 	on:touchend={onTouchEnd}

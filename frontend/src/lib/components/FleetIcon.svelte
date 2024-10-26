@@ -44,6 +44,7 @@
 			<button
 				type="button"
 				class="w-full h-full cursor-help"
+				aria-label="Opens ship design tooltip"
 				on:pointerdown|preventDefault={(e) => onShipDesignTooltip(e, design)}
 			></button>
 		</div>

@@ -26,11 +26,14 @@
 
 <div
 	class="tech-avatar {icon(tech, hullSetNumber)}"
+	role="link"
+	tabindex="-1"
 	on:contextmenu|preventDefault={(e) => onTechTooltip(e, tech)}
 >
 	{#if hullTooltip && hull}
 		<button
 			type="button"
+			aria-label="Brings up information on technology"
 			class="w-full h-full"
 			on:pointerdown|preventDefault={(e) => onTechHullTooltip(e, hull)}
 		></button>

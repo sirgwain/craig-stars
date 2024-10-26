@@ -108,6 +108,7 @@
 				<div class="flex flex-row">
 					<button
 						class="w-full h-full cursor-help text-left"
+						aria-label="Opens ship design visual"
 						on:pointerdown|preventDefault={(e) => onShipDesignTooltip(e, row)}
 					>
 						<div class="avatar mr-2">

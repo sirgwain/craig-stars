@@ -68,6 +68,7 @@
 				<div class="fleet-avatar {getIcon(fleet)} bg-black">
 					<button
 						type="button"
+						aria-label="Opens ship design tooltip"
 						class="w-full h-full cursor-help"
 						on:pointerdown|preventDefault={(e) => onShipDesignTooltip(e, design)}
 					></button>
@@ -113,7 +114,7 @@
 				<div class="w-32 text-tile-item-title">Next Waypoint:</div>
 				<div>{$universe.getTargetName(fleet.waypoints[1])}</div>
 			</div>
-			{#if fleet.waypoints[1].task != WaypointTask.None}
+			{#if fleet.waypoints[1].task !== WaypointTask.None}
 				<div class="flex flex-row">
 					<div class="w-32 text-tile-item-title">Task:</div>
 					<div>{startCase(fleet.waypoints[1].task)}</div>
@@ -135,7 +136,7 @@
 				Fleet Composition:
 				<div class="bg-base-100 h-16 overflow-y-auto mt-1 w-full md:w-60 font-normal">
 					<ul class="w-full h-full">
-						{#each fleet.tokens as token, index}
+						{#each fleet.tokens as token}
 							<li class="pl-1">
 								<button
 									type="button"
@@ -143,7 +144,7 @@
 									on:pointerdown|preventDefault={(e) =>
 										onShipDesignTooltip(e, $universe.getDesign(fleet.playerNum, token.designNum))}
 								>
-									<div class="flex flex-row justify-between relative">
+									<span class="flex flex-row justify-between relative">
 										{#if (token.damage ?? 0) > 0 && (token.quantityDamaged ?? 0) > 0}
 											<div
 												style={`width: ${getDamagePercentForToken(
@@ -154,13 +155,13 @@
 											></div>
 										{/if}
 
-										<div>
+										<span>
 											{$universe.getDesign(fleet.playerNum, token.designNum)?.name}
-										</div>
-										<div>
+										</span>
+										<span>
 											{token.quantity}
-										</div>
-									</div>
+										</span>
+									</span>
 								</button>
 							</li>
 						{/each}
