@@ -33,6 +33,7 @@
 		"@types/d3-zoom": "^3.0.8",
 		"@types/eslint": "^9.6.0",
 		"@types/golang-wasm-exec": "^1.15.2",
+		"@types/lodash-es": "^4.17.12",
 		"@types/node": "^22.7.9",
 		"autoprefixer": "^10.4.20",
 		"d3-array": "^3.2.4",

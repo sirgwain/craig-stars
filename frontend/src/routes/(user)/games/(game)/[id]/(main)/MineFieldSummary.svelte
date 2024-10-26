@@ -8,7 +8,6 @@
 	import { MineFieldTypes, type MineField } from '$lib/types/MineField';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { min } from 'date-fns';
 	import type { ChangeEventHandler } from 'svelte/elements';
 
 	const { game, player, universe, updateMineFieldOrders } = getGameContext();

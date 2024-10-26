@@ -111,10 +111,10 @@
 	$: assignedClasses = { ...defaultClasses, ...classes };
 </script>
 
-<table class={assignedClasses.table} cellspacing="0">
+<table class={assignedClasses.table} style="border-spacing: 0">
 	<thead class={assignedClasses.thead}>
 		<tr class={assignedClasses.headtr}>
-			{#each columns as column, colIdx}
+			{#each columns as column}
 				{#if !column.hidden}
 					<th
 						scope="col"
@@ -138,9 +138,9 @@
 		</tr>
 	</thead>
 	<tbody class={assignedClasses.tbody}>
-		{#each filteredRows as row, rowIndex}
+		{#each filteredRows as row}
 			<tr class={`${assignedClasses.tr}`}>
-				{#each columns as column, columnIndex}
+				{#each columns as column}
 					{#if !column.hidden}
 						<td class={assignedClasses.td}>
 							{#if $$slots.cell}

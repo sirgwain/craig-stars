@@ -1,6 +1,6 @@
 <script lang="ts">
 	export let primary = 'fill-fleet-owned';
-	export let secondary = 'fill-fleet-neutral';
+	export const secondary = 'fill-fleet-neutral';
 
 	const size = 120;
 	const primaryPositions = [

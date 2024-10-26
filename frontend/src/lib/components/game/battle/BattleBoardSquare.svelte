@@ -70,6 +70,7 @@
 		<button
 			type="button"
 			class="w-full h-full cursor-pointer"
+			aria-label="Selects the token on the board"
 			on:click={() => {
 				if (tokens) {
 					if (selected) {

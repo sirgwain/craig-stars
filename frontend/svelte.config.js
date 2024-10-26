@@ -16,7 +16,12 @@ const config = {
 			fallback: 'index.html'
 		}),
 		prerender: { entries: [] }
-	}
+	},
+	// onwarn: (warning, handler) => {
+	// 	if (warning.code === 'reactive_declaration_non_reactive_property') return;
+	//
+	// 	handler(warning);
+	// }
 };
 
 export default config;

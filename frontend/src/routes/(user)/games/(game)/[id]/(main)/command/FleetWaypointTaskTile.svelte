@@ -134,7 +134,7 @@
 			</div>
 		</div>
 
-		{#if $selectedWaypoint?.task == WaypointTask.Transport}
+		{#if $selectedWaypoint?.task === WaypointTask.Transport}
 			<div class="flex flex-col">
 				<div>
 					<TransportTasksMini transportTasks={$selectedWaypoint.transportTasks} />
@@ -160,7 +160,7 @@
 		{:else if $selectedWaypoint?.task === WaypointTask.RemoteMining}
 			{#if selectedWaypointPlanet}
 				<!-- if this waypoint is owned -->
-				{#if selectedWaypointPlanet.reportAge == Unexplored}
+				{#if selectedWaypointPlanet.reportAge === Unexplored}
 					<span class="text-warning"
 						>Warning: This planet is unexplored. We have no way of knowing if we can mine it.</span
 					>
@@ -242,7 +242,7 @@
 			>
 				<option value={undefined}>None</option>
 				{#each $game.players as otherPlayer}
-					{#if otherPlayer.num != $player.num}
+					{#if otherPlayer.num !== $player.num}
 						<option value={otherPlayer.num}>{$universe.getPlayerPluralName(otherPlayer.num)}</option
 						>
 					{/if}
