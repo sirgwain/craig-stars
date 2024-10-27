@@ -1448,7 +1448,7 @@ var Crobmnium = TechHullComponent{Tech: NewTech("Crobmnium", NewCost(6, 0, 0, 13
 	Armor:        75,
 	HullSlotType: HullSlotTypeArmor,
 }
-var Carbonic = TechHullComponent{Tech: NewTech("Carbonic Armor", NewCost(5, 0, 0, 15), TechRequirements{TechLevel: TechLevel{Biotechnology: 4}}, 30, TechCategoryArmor),
+var Carbonic = TechHullComponent{Tech: NewTech("Carbonic Armor", NewCost(0, 0, 5, 15), TechRequirements{TechLevel: TechLevel{Biotechnology: 4}}, 30, TechCategoryArmor),
 
 	Mass:         25,
 	Armor:        100,
