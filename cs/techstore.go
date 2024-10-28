@@ -1204,7 +1204,7 @@ var RoboUltraMiner = TechHullComponent{Tech: NewTech("Robo-Ultra-Miner", NewCost
 var OrbitalAdjuster = TechHullComponent{Tech: NewTech("Orbital Adjuster", NewCost(25, 25, 25, 50), TechRequirements{TechLevel: TechLevel{Biotechnology: 6}, PRTsRequired: []PRT{CA}}, 0, TechCategoryMineRobot),
 
 	Mass:          80,
-	CloakUnits:    25,
+	CloakUnits:    50,
 	TerraformRate: 1,
 	HullSlotType:  HullSlotTypeMining,
 }
