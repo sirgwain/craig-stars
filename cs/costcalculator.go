@@ -97,14 +97,14 @@ func (c costFloat64) multiply(factor float64) costFloat64 {
 	}
 }
 
-/* func (c costFloat64) divide(divisor float64) costFloat64 {
+func (c costFloat64) divide(divisor float64) costFloat64 {
 	return costFloat64{
 		Ironium:   c.Ironium / divisor,
 		Boranium:  c.Boranium / divisor,
 		Germanium: c.Germanium / divisor,
 		Resources: c.Resources / divisor,
 	}
-}*/
+}
 
 // Return greater of 2 cost structs for all ResourceTypes separately
 func (c costFloat64) max(other costFloat64) costFloat64 {
@@ -216,7 +216,7 @@ func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 				cost = cost.add(item.GetPlayerCostFloat(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).multiply(float64(qty) * rules.StarbaseComponentCostReduction))
 			}
 		}
-		return cost.multiply(rules.StarbaseComponentCostReduction*raceSpec.StarbaseCostFactor).toCost(math.Ceil), nil
+		return cost.multiply(raceSpec.StarbaseCostFactor).toCost(math.Ceil), nil
 	} else {
 		// Loop through any remaining items from old base and add to category list
 		for item := range oldComponents {
@@ -231,8 +231,7 @@ func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 	// Now, all that's left is the cost calcs
 
 	// Get categories present in either map type so we don't have to iterate over every single tachCategory
-	categories := map[TechCategory][]*TechHullComponent{}
-	maps.Copy(categories, oldComponentsByCategory)
+	categories := oldComponentsByCategory
 	maps.Copy(categories, newComponentsByCategory)
 
 	// Tally up costs per category
@@ -255,8 +254,9 @@ func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 			}
 		}
 
-		// Apply lower (70%) rebate to credit tally (up to 70% of the actual item value)
+		// Apply lower (70%) rebate to credit tally (up to 70% of new item value)
 		// Apply difference between 2 discounts (10%) to this item category only, up to 10% of the original item value
+		// (for a total of 80% rebate for same category items)
 
 		// Compute costs for each resource type separately (I/B/G/R)
 		for _, costType := range CostTypes {
