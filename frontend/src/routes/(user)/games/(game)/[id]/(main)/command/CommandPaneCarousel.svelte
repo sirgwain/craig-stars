@@ -222,6 +222,7 @@
 		<div id="fleet-composition-tile" class="carousel-item w-full">
 			<FleetCompositionTile
 				fleet={$commandedFleet}
+				selectedWaypoint={$selectedWaypoint}
 				on:split-all={() => $commandedFleet && splitAll($commandedFleet)}
 				on:split-fleet-dialog={(e) => dispatch('split-fleet-dialog', e?.detail)}
 				on:merge-fleets-dialog={(e) => dispatch('merge-fleets-dialog', e?.detail)}
@@ -242,12 +243,14 @@
 		<div id="fleet-waypoints-tile" class="carousel-item w-full">
 			<FleetWaypointsTile
 				fleet={$commandedFleet}
+				selectedWaypoint={$selectedWaypoint}
 				on:delete-waypoint={(e) => dispatch('delete-waypoint')}
 			/>
 		</div>
 		<div id="fleet-waypoint-task-tile" class="carousel-item w-full">
 			<FleetWaypointTaskTile
 				fleet={$commandedFleet}
+				selectedWaypoint={$selectedWaypoint}
 				on:transport-tasks-dialog={(e) => dispatch('transport-tasks-dialog', e?.detail)}
 			/>
 		</div>
