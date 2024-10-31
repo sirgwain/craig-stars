@@ -2,7 +2,7 @@
 	import { type CommandedFleet, type Fleet } from '$lib/types/Fleet';
 	import { createEventDispatcher, onDestroy } from 'svelte';
 	import CommandTile from './CommandTile.svelte';
-	import type { CargoTransferDialogEvent } from '../../dialogs/cargo/CargoTranfserDialog.svelte';
+	import type { CargoTransferDialogEvent } from '../../dialogs/cargo/CargoTransferDialog.svelte';
 	import type { SplitFleetDialogEvent } from '../../dialogs/split/SplitFleetDialog.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { getMapObjectName } from '$lib/types/MapObject';

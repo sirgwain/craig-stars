@@ -5,7 +5,7 @@
 	import { onMount } from 'svelte';
 	import CargoTranfserDialog, {
 		type CargoTransferDialogEventDetails
-	} from '../dialogs/cargo/CargoTranfserDialog.svelte';
+	} from '../dialogs/cargo/CargoTransferDialog.svelte';
 	import MergeFleetsDialog, {
 		type MergeFleetsDialogEventDetails
 	} from '../dialogs/merge/MergeFleetsDialog.svelte';

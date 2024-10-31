@@ -224,7 +224,7 @@ export type TechRequirements = {
  * @param category The category to check
  * @returns
  */
-export const isHullComponent = (category: TechCategory): boolean => {
+export const isHullComponent = (category: TechCategory | undefined): boolean => {
 	switch (category) {
 		case TechCategory.Armor:
 		case TechCategory.BeamWeapon:

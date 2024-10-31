@@ -6,7 +6,7 @@
 
 	const { game, universe, loadStatus, startPollingStatus, stopPollingStatus } = getGameContext();
 
-	$: settingUp = $game.state === GameState.Setup;
+	let settingUp = $derived($game.state === GameState.Setup);
 
 	onMount(async () => {
 		await loadStatus();

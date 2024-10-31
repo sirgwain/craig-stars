@@ -7,7 +7,7 @@
 	interface Props
 	{
 		tech: Tech | undefined,
-		hullSetNumber: number,
+		hullSetNumber?: number,
 		hullTooltip: boolean
 	}
 

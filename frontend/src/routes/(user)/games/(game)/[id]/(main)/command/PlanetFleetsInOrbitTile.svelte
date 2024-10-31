@@ -7,7 +7,7 @@
 	import { ArrowTopRightOnSquare } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { createEventDispatcher, onDestroy } from 'svelte';
-	import type { CargoTransferDialogEvent } from '../../dialogs/cargo/CargoTranfserDialog.svelte';
+	import type { CargoTransferDialogEvent } from '../../dialogs/cargo/CargoTransferDialog.svelte';
 	import CommandTile from './CommandTile.svelte';
 	import { getMapObjectName } from '$lib/types/MapObject';
 

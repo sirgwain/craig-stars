@@ -24,7 +24,7 @@
 	import { ChevronUp, ChevronDown } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { createEventDispatcher } from 'svelte';
-	import type { CargoTransferDialogEvent } from '../dialogs/cargo/CargoTranfserDialog.svelte';
+	import type { CargoTransferDialogEvent } from '../dialogs/cargo/CargoTransferDialog.svelte';
 
 	const dispatch = createEventDispatcher<CargoTransferDialogEvent>();
 	const { universe, selectNextMapObject, selectedMapObject } = getGameContext();
@@ -43,28 +43,17 @@
 		}
 	}
 
-	$: selectedPlanet =
-		$selectedMapObject?.type == MapObjectType.Planet ? ($selectedMapObject as Planet) : undefined;
-	$: selectedFleet =
-		$selectedMapObject?.type == MapObjectType.Fleet ? ($selectedMapObject as Fleet) : undefined;
-	$: selectedMineField =
-		$selectedMapObject?.type == MapObjectType.MineField
+	let selectedPlanet = $derived($selectedMapObject?.type == MapObjectType.Planet ? ($selectedMapObject as Planet) : undefined);
+	let selectedFleet = $derived($selectedMapObject?.type == MapObjectType.Fleet ? ($selectedMapObject as Fleet) : undefined);
+	let selectedMineField = $derived($selectedMapObject?.type == MapObjectType.MineField
 			? ($selectedMapObject as MineField)
-			: undefined;
-	$: selectedMineralPacket =
-		$selectedMapObject?.type == MapObjectType.MineralPacket
+			: undefined);
+	let selectedMineralPacket = $derived($selectedMapObject?.type == MapObjectType.MineralPacket
 			? ($selectedMapObject as MineralPacket)
-			: undefined;
-	$: selectedSalvage =
-		$selectedMapObject?.type == MapObjectType.Salvage ? ($selectedMapObject as Salvage) : undefined;
-	$: selectedWormhole =
-		$selectedMapObject?.type == MapObjectType.Wormhole
-			? ($selectedMapObject as Wormhole)
-			: undefined;
-	$: selectedMysteryTrader =
-		$selectedMapObject?.type == MapObjectType.MysteryTrader
-			? ($selectedMapObject as MysteryTrader)
-			: undefined;
+			: undefined);
+	let selectedSalvage = $derived($selectedMapObject?.type == MapObjectType.Salvage ? ($selectedMapObject as Salvage) : undefined);
+	let selectedWormhole = $derived($selectedMapObject?.type == MapObjectType.Wormhole ? ($selectedMapObject as Wormhole) : undefined);
+	let selectedMysteryTrader = $derived($selectedMapObject?.type == MapObjectType.MysteryTrader ? ($selectedMapObject as MysteryTrader) : undefined);
 </script>
 
 <div class="card bg-base-200 shadow rounded-sm border-2 border-base-300 w-full">
@@ -75,7 +64,7 @@
 					<button
 						class:cursor-default={!showDisclosure}
 						class="w-full"
-						on:click={carouselContext?.onDisclosureClicked}
+						onclick={() => carouselContext?.onDisclosureClicked}
 					>
 						{getMapObjectName($selectedMapObject)}
 					</button>
@@ -85,15 +74,15 @@
 			</div>
 			<div>
 				{#if selectedPlanet && selectedPlanet.spec.hasStarbase}
-					<button type="button" on:pointerdown|preventDefault={showStarbaseDesign}>
+					<button type="button" onpointerdown={e => { e.preventDefault(); showStarbaseDesign(e); }}>
 						<Starbase class="w-4 h-4 starbase" /></button
 					>
 				{/if}
-				<button type="button" on:pointerdown|preventDefault={selectNextMapObject}>
+				<button type="button" onpointerdown={e => { e.preventDefault(); selectNextMapObject(); }}>
 					<Cycle class="w-4 h-4 fill-base-content hover:stroke-accent" /></button
 				>
 				{#if carouselContext}
-					<button type="button" on:click={carouselContext.onDisclosureClicked}>
+					<button type="button" onclick={_ => carouselContext.onDisclosureClicked()}>
 						{#if $open}
 							<Icon src={ChevronUp} size="16" class="hover:stroke-accent" />
 						{:else}

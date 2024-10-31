@@ -4,7 +4,7 @@
 	import { ownedBy } from '$lib/types/MapObject';
 	import { None } from '$lib/types/Constants';
 	import { createEventDispatcher } from 'svelte';
-	import type { CargoTransferDialogEvent } from '../../dialogs/cargo/CargoTranfserDialog.svelte';
+	import type { CargoTransferDialogEvent } from '../../dialogs/cargo/CargoTransferDialog.svelte';
 	import CommandTile from './CommandTile.svelte';
 
 	const dispatch = createEventDispatcher<CargoTransferDialogEvent>();

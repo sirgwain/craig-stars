@@ -23,29 +23,22 @@
 	import TechDefenseGraph from './TechDefenseGraph.svelte';
 	import TechWarnings from './TechWarnings.svelte';
 
-	export let tech: Tech;
-	export let player: Player | undefined = undefined;
-	export let cs: CS | undefined = undefined;
-	export let showResearchCost = false;
-	export let hideGraph = false;
-
-	let defense: TechDefense;
-	let hullComponent: TechHullComponent;
-	let hull: TechHull;
-	let engine: TechEngine;
-	let researchCost = 0;
-
-	$: tech && isHullComponent(tech.category) && (hullComponent = tech as TechHullComponent);
-	$: tech && tech.category == TechCategory.ShipHull && (hull = tech as TechHull);
-	$: tech && tech.category == TechCategory.Engine && (engine = tech as TechEngine);
-	$: tech && tech.category == TechCategory.PlanetaryDefense && (defense = tech as TechDefense);
-	$: above = player?.hasTech(tech) ? levelsAbove(tech.requirements, player.techLevels) : 0;
-
-	$: {
-		if (showResearchCost && player && cs) {
-			researchCost = cs.getResearchCost(tech.requirements) ?? 0;
-		}
+	interface Props {
+		tech: Tech | undefined;
+		player: Player | undefined;
+		cs: CS | undefined;
+		showResearchCost: boolean;
+		hideGraph: boolean;
 	}
+
+	let { tech, player = undefined, cs = undefined, showResearchCost = false, hideGraph = false }: Props = $props();
+
+	let defense = $derived(tech?.category == TechCategory.PlanetaryDefense ? tech as TechDefense : undefined);
+	let hullComponent = $derived(isHullComponent(tech?.category) ? tech as TechHullComponent : undefined);
+	let hull = $derived(tech?.category == TechCategory.ShipHull ?tech as TechHull : undefined);
+	let engine = $derived(tech?.category == TechCategory.Engine ? tech as TechEngine : undefined);
+	let researchCost = $derived(tech && showResearchCost && player && cs ? cs.getResearchCost(tech.requirements) : 0);
+	let above = $derived(tech && player?.hasTech(tech) ? levelsAbove(tech.requirements, player.techLevels) : 0)
 </script>
 
 {#if tech}
@@ -53,7 +46,7 @@
 		class="card bg-base-200 shadow rounded-sm border-2 border-base-300 max-h-fit min-h-fit w-full h-full"
 	>
 		<div class="card-body p-3 gap-0">
-			<h2 class="text-lg font-semibold text-center mb-1 text-secondary">
+			<div class="text-lg font-semibold text-center mb-1 text-secondary">
 				<div class="indicator w-full">
 					{#if player?.hasTech(tech)}
 						<span class:hidden={!player || above !== 0} class="indicator-item badge badge-accent"
@@ -66,11 +59,11 @@
 								>{tech.name}</a
 							>
 						{:else}
-							<a href="/techs/{kebabCase(tech.name.replaceAll("'", ''))}">{tech.name}</a>
+							<a href="/techs/{kebabCase(tech.name.replaceAll('\'', ''))}">{tech.name}</a>
 						{/if}
 					</div>
 				</div>
-			</h2>
+			</div>
 
 			<div class="flex flex-row gap-2">
 				<div class="flex flex-col flex-initial min-w-[6rem]">
