@@ -221,7 +221,7 @@ func NewRulesWithSeed(seed int64) Rules {
 				Germanium: 70,
 				Resources: 100,
 			},
-			StarbaseComponentCostReduction: 0.5,
+			StarbaseComponentCostReduction: 0.5, // 50% discount on non-orbital components
 			StarbaseHullRefundFactor: 0.5, // 50% of the old base's cost goes towards the new base
 			TechBaseCost: []int{
 				0,

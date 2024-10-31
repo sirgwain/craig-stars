@@ -22,6 +22,86 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 		want    Cost
 		wanterr bool
 	}{
+				{
+			name: "Min Price Floor - same category",
+			args: args{
+				techLevels:          TechLevel{0, 22, 0, 0, 0, 0},
+				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
+				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0, 0},
+				oldDesignHull:       SpaceStation.Name,
+				newDesignHull:       SpaceStation.Name,
+				oldDesignSlots: []ShipDesignSlot{
+					{HullComponent: SyncroSapper.Name, HullSlotIndex: 2, Quantity: 16},
+					{HullComponent: SyncroSapper.Name, HullSlotIndex: 4, Quantity: 16},
+					// Lotsa G, much much resources
+				},
+				newDesignSlots: []ShipDesignSlot{
+					{HullComponent: MegaDisruptor.Name, HullSlotIndex: 2, Quantity: 10},
+					// 150B, 165R
+					// Boranium should stay same since not being reduced;
+					// Resources should drop down to 33 due to 20% minimum
+				},
+				starbaseCostFactor: 1,
+			},
+			want: Cost{
+				Ironium:   0,
+				Boranium:  150,
+				Germanium: 0,
+				Resources: 33,
+			}, wanterr: false,
+		},
+		{
+			name: "Min Price Floor - different categories",
+			args: args{
+				techLevels:          TechLevel{26, 26, 26, 26, 26, 26},
+				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
+				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0, 0},
+				oldDesignHull:       SpaceStation.Name,
+				newDesignHull:       SpaceStation.Name,
+				oldDesignSlots: []ShipDesignSlot{
+					{HullComponent: SyncroSapper.Name, HullSlotIndex: 5, Quantity: 12},
+					// 36G, 102R
+				},
+				newDesignSlots: []ShipDesignSlot{
+					{HullComponent: AntiMatterTorpedo.Name, HullSlotIndex: 2, Quantity: 4},
+					// 4I, 12B, 2G, 80R
+				},
+				starbaseCostFactor: 1,
+			},
+			want: Cost{
+				Ironium:   4,
+				Boranium:  12,
+				Germanium: 1,
+				Resources: 24,
+			}, wanterr: false,
+		},
+		{
+			name: "Both min price floors at once",
+			args: args{
+				techLevels:          TechLevel{22, 22, 22, 22, 21, 22},
+				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
+				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0, 0},
+				oldDesignHull:       SpaceStation.Name,
+				newDesignHull:       SpaceStation.Name,
+				oldDesignSlots: []ShipDesignSlot{
+					{HullComponent: SyncroSapper.Name, HullSlotIndex: 2, Quantity: 12},
+					// 48G, 120R
+				},
+				newDesignSlots: []ShipDesignSlot{
+					{HullComponent: MegaDisruptor.Name, HullSlotIndex: 2, Quantity: 10},
+					// 150B, 165R
+					{HullComponent: BattleNexus.Name, HullSlotIndex: 1, Quantity: 2},
+					// 28G, 14R
+				},
+				starbaseCostFactor: 1,
+			},
+			want: Cost{
+				Ironium:   0,
+				Boranium:  150,
+				Germanium: 9, // technically 8.4 but gets rounded up to 9
+				Resources: 83,
+			}, wanterr: false,
+		},
 		{
 			name: "Invalid station",
 			args: args{
@@ -164,85 +244,6 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 				Boranium:  160,
 				Germanium: 242,
 				Resources: 680,
-			}, wanterr: false,
-		},
-		{
-			name: "Min Price Floor - same category",
-			args: args{
-				techLevels:          TechLevel{0, 22, 0, 0, 0, 0},
-				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
-				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0, 0},
-				oldDesignHull:       SpaceStation.Name,
-				newDesignHull:       SpaceStation.Name,
-				oldDesignSlots: []ShipDesignSlot{
-					{HullComponent: SyncroSapper.Name, HullSlotIndex: 2, Quantity: 16},
-					{HullComponent: SyncroSapper.Name, HullSlotIndex: 4, Quantity: 16},
-					// Lotsa G, much much resources
-				},
-				newDesignSlots: []ShipDesignSlot{
-					{HullComponent: MegaDisruptor.Name, HullSlotIndex: 2, Quantity: 10},
-					// 150B, 165R
-					// Boranium should stay same since not being reduced
-				},
-				starbaseCostFactor: 1,
-			},
-			want: Cost{
-				Ironium:   0,
-				Boranium:  150,
-				Germanium: 0,
-				Resources: 33,
-			}, wanterr: false,
-		},
-		{
-			name: "Min Price Floor - different categories",
-			args: args{
-				techLevels:          TechLevel{26, 26, 26, 26, 26, 26},
-				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
-				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0, 0},
-				oldDesignHull:       SpaceStation.Name,
-				newDesignHull:       SpaceStation.Name,
-				oldDesignSlots: []ShipDesignSlot{
-					{HullComponent: SyncroSapper.Name, HullSlotIndex: 5, Quantity: 12},
-					// 36G, 102R
-				},
-				newDesignSlots: []ShipDesignSlot{
-					{HullComponent: AntiMatterTorpedo.Name, HullSlotIndex: 2, Quantity: 4},
-					// 4I, 12B, 2G, 80R
-				},
-				starbaseCostFactor: 1,
-			},
-			want: Cost{
-				Ironium:   4,
-				Boranium:  12,
-				Germanium: 1,
-				Resources: 24,
-			}, wanterr: false,
-		},
-		{
-			name: "Both min price floors at once",
-			args: args{
-				techLevels:          TechLevel{22, 22, 22, 22, 21, 22},
-				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
-				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0, 0},
-				oldDesignHull:       SpaceStation.Name,
-				newDesignHull:       SpaceStation.Name,
-				oldDesignSlots: []ShipDesignSlot{
-					{HullComponent: SyncroSapper.Name, HullSlotIndex: 2, Quantity: 12},
-					// 48G, 120R
-				},
-				newDesignSlots: []ShipDesignSlot{
-					{HullComponent: MegaDisruptor.Name, HullSlotIndex: 2, Quantity: 10},
-					// 150B, 165R
-					{HullComponent: BattleNexus.Name, HullSlotIndex: 1, Quantity: 2},
-					// 28G, 14R
-				},
-				starbaseCostFactor: 1,
-			},
-			want: Cost{
-				Ironium:   0,
-				Boranium:  150,
-				Germanium: 9, // technically 8.4 but gets rounded up to 9
-				Resources: 83,
 			}, wanterr: false,
 		},
 	}

@@ -2,7 +2,6 @@ package cs
 
 import (
 	"fmt"
-	"maps"
 	"math"
 )
 
@@ -30,6 +29,8 @@ type costFloat64 struct {
 	Resources float64 `json:"resources,omitempty"`
 }
 
+/*
+// extract float value from costFloat64 struct
 func (c costFloat64) getAmount(costType CostType) float64 {
 	switch costType {
 	case Ironium:
@@ -43,6 +44,7 @@ func (c costFloat64) getAmount(costType CostType) float64 {
 	}
 	panic(fmt.Sprintf("GetAmount called with invalid CostType %s", costType))
 }
+*/
 
 // convert a costFloat64 to an int using the specified rounding method
 func (c costFloat64) toCost(roundFunc func(float64) float64) Cost {
@@ -52,22 +54,6 @@ func (c costFloat64) toCost(roundFunc func(float64) float64) Cost {
 		Germanium: int(roundFunc(c.Germanium)),
 		Resources: int(roundFunc(c.Resources)),
 	}
-}
-
-func (c costFloat64) addFloat64(costType CostType, amount float64) costFloat64 {
-	switch costType {
-	case Ironium:
-		c.Ironium += amount
-	case Boranium:
-		c.Boranium += amount
-	case Germanium:
-		c.Germanium += amount
-	case Resources:
-		c.Resources += amount
-	default:
-		panic(fmt.Sprintf("addFloat64 called with invalid CostType %s", costType))
-	}
-	return c
 }
 
 func (c costFloat64) add(other costFloat64) costFloat64 {
@@ -97,15 +83,6 @@ func (c costFloat64) multiply(factor float64) costFloat64 {
 	}
 }
 
-func (c costFloat64) divide(divisor float64) costFloat64 {
-	return costFloat64{
-		Ironium:   c.Ironium / divisor,
-		Boranium:  c.Boranium / divisor,
-		Germanium: c.Germanium / divisor,
-		Resources: c.Resources / divisor,
-	}
-}
-
 // Return greater of 2 cost structs for all ResourceTypes separately
 func (c costFloat64) max(other costFloat64) costFloat64 {
 	return costFloat64{
@@ -115,6 +92,23 @@ func (c costFloat64) max(other costFloat64) costFloat64 {
 		Resources: math.Max(c.Resources, other.Resources),
 	}
 }
+
+/*
+// Return greater of 2 cost structs for all ResourceTypes separately
+func (c costFloat64) min(other costFloat64) costFloat64 {
+	return costFloat64{
+		Ironium:   math.Min(c.Ironium, other.Ironium),
+		Boranium:  math.Min(c.Boranium, other.Boranium),
+		Germanium: math.Min(c.Germanium, other.Germanium),
+		Resources: math.Min(c.Resources, other.Resources),
+	}
+}
+*/
+
+func (c costFloat64) total() float64 {
+	return c.Ironium + c.Boranium + c.Germanium + c.Resources
+}
+
 
 // round a cost struct's values with passed in function
 func (c costFloat64) round(roundFunc func(float64) float64) costFloat64 {
@@ -126,7 +120,6 @@ func (c costFloat64) round(roundFunc func(float64) float64) costFloat64 {
 	}
 }
 
-
 // get the upgrade cost for replacing a starbase with another
 //
 // Takes into account part replacement costs and minimum costs
@@ -136,13 +129,13 @@ func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 		return Cost{}, nil
 	}
 
-	credit := costFloat64{}
 	cost := costFloat64{}
 	minCost := costFloat64{}
 	oldComponents := map[*TechHullComponent]int{} // Maps hull component to quantity
 	newComponents := map[*TechHullComponent]int{}
 	oldComponentsByCategory := map[TechCategory][]*TechHullComponent{} // Maps component category to hull components
 	newComponentsByCategory := map[TechCategory][]*TechHullComponent{}
+	categories := map[TechCategory]bool{}
 
 	// First of all, check to see if the hulls even EXIST in the first place
 	// and return an error if they don't
@@ -167,7 +160,7 @@ func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 		// don't wanna index arrays out of bounds!
 		if i < len(design.Slots) {
 			hc := rules.techs.GetHullComponent(design.Slots[i].HullComponent)
-			if hc != nil {
+			if hc != nil { // todo: reverse conditional to have break go first
 				oldComponents[hc] += design.Slots[i].Quantity
 			} else {
 				return Cost{}, fmt.Errorf("component %s of old design not found in tech store", design.Slots[i].HullComponent)
@@ -184,22 +177,24 @@ func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 	}
 
 	// Iterate through all new parts in list to see if they are present on the old base
-	// to create a list of all unique components
+	// and remove any duplicates we find
 	if len(oldComponents) > 0 && len(newComponents) > 0 {
 		for item, newQuantity := range newComponents {
 			oldQuantity := oldComponents[item]
-			if newQuantity == oldQuantity {
+			switch {
+			case newQuantity == oldQuantity:
 				// same amount of item in both bases; remove from both
 				delete(oldComponents, item)
 				delete(newComponents, item)
-			} else if newQuantity > oldQuantity {
-				// More copies of item in new design; add extras to new base list
+		 	case newQuantity > oldQuantity:
+				// More copies of item in new design; remove duplicates from new base list
 				newComponentsByCategory[item.Tech.Category] = append(newComponentsByCategory[item.Tech.Category], item)
+				categories[item.Tech.Category] = true
 				newComponents[item] = (newQuantity - oldQuantity)
 				delete(oldComponents, item)
-			} else {
+			default:
 				// More copies of item in original design (or item doesn't exist on new base)
-				// add extras to old base list
+				// remove duplicates from old base list
 				oldComponents[item] = (oldQuantity - newQuantity)
 				delete(newComponents, item)
 			}
@@ -216,23 +211,21 @@ func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 				cost = cost.add(item.GetPlayerCostFloat(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).multiply(float64(qty) * rules.StarbaseComponentCostReduction))
 			}
 		}
-		return cost.multiply(raceSpec.StarbaseCostFactor).toCost(math.Ceil), nil
+		return cost.multiply(raceSpec.StarbaseCostFactor).toCost(math.Ceil).MinZero(), nil
 	} else {
 		// Loop through any remaining items from old base and add to category list
+		// everything from the new base is already on, so this ensures everything gets checked
 		for item := range oldComponents {
 			oldComponentsByCategory[item.Tech.Category] = append(oldComponentsByCategory[item.Tech.Category], item)
+			categories[item.Tech.Category] = true
 		}
 	}
 
 	// At this point, we should have 4 maps in total: 2 for each base design
-	// ComponentsUnique contains all components unique to each one mapped to their quantity
-	// ComponentsByCategory contains a list of all categories present in each base,
-	// mapped to a slice of all components on the base for said category
+	// Components contains all components unique to each base mapped to their respective quantities
+	// ComponentsByCategory contains all categories present in each base
+	// mapped to a list of all components of that category on said base
 	// Now, all that's left is the cost calcs
-
-	// Get categories present in either map type so we don't have to iterate over every single tachCategory
-	categories := oldComponentsByCategory
-	maps.Copy(categories, newComponentsByCategory)
 
 	// Tally up costs per category
 	for category := range categories {
@@ -254,38 +247,20 @@ func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 			}
 		}
 
-		// Apply lower (70%) rebate to credit tally (up to 70% of new item value)
-		// Apply difference between 2 discounts (10%) to this item category only, up to 10% of the original item value
-		// (for a total of 80% rebate for same category items)
+		// apply first part of costs to tally (70% of new item cost - 70% of old item cost)
+		// this is the part that can be reduced by normal rebates
+		cost = cost.add(newCost.subtract(oldCost).multiply(0.7))
 
-		// Compute costs for each resource type separately (I/B/G/R)
-		for _, costType := range CostTypes {
-			// extract float values for items
-			oldCostFloat := oldCost.getAmount(costType)
-			newCostFloat := newCost.getAmount(costType)
-			if oldCostFloat == 0 && newCostFloat == 0 {
-				continue
-			}
-
-			differentCategoryRebate := 0.7 * oldCostFloat
-
-			// add global rebate to credit tally
-			credit = credit.addFloat64(costType, differentCategoryRebate)
-
-			// Consume global credit tally to reduce new item price from 100% to 30%
-			// If this turns credit negative, no problem!
-			// We add it to Cost at the end anyways
-			adjCost := 0.3 * newCostFloat
-			credit = credit.addFloat64(costType, -(newCostFloat - adjCost))
-			
-			// add on category specific rebates and tack onto minimum cost 
-			adjCost = math.Max(0.2*newCostFloat, adjCost-0.1*oldCostFloat)
-			cost = cost.addFloat64(costType, adjCost)
-			minCost = minCost.addFloat64(costType, adjCost)
-		}
+		// add on rest of the cost after category specific rebates 
+		// higher of (20% new item cost, 30% new item cost - 10% old item cost)
+		// if no old item exists, you pay 100%
+		adjCost := newCost.multiply(0.2).max(
+			newCost.multiply(0.3).subtract(oldCost.multiply(0.1)))
+		cost = cost.add(adjCost)
+		minCost = minCost.add(adjCost)
 	}
 
-	return cost.subtract(credit).max(minCost).toCost(math.Ceil).MinZero(), nil
+	return cost.max(minCost).multiply(raceSpec.StarbaseCostFactor).toCost(math.Ceil).MinZero(), nil
 }
 
 // Get the cost of one item in a production queue, for a player
@@ -309,7 +284,6 @@ func (p *costCalculate) GetDesignCost(rules *Rules, techLevels TechLevel, raceSp
 		return Cost{}, fmt.Errorf("hull design %s not found in tech store", design.Hull)
 	}
 	starbase := hull.Starbase
-
 
 	cost := hull.Tech.GetPlayerCostFloat(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset)
 
