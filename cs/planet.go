@@ -152,6 +152,13 @@ func (p *Planet) productivePopulation(pop, maxPop int) int {
 	return MinInt(pop, 3*maxPop)
 }
 
+// get the population that will operate installations
+// (it just maxes at max pop)
+func (p *Planet) productiveInstallationPopulation(pop, maxPop int) int {
+	return MinInt(pop, maxPop)
+}
+
+
 func (p *Planet) setPopulation(pop int) {
 	p.Cargo.Colonists = pop / 100
 }
@@ -461,10 +468,13 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	spec.CanTerraform = spec.TerraformAmount.absSum() > 0
 	spec.TerraformedHabitability = race.GetPlanetHabitability(planet.Hab.Add(spec.TerraformAmount))
 
+	// population will generate resources up to 3x max pop, but they can only
+	// operate structures up to max pop
 	productivePop := planet.productivePopulation(spec.Population, spec.MaxPopulation)
+	installationPop := planet.productiveInstallationPopulation(spec.Population, spec.MaxPopulation)
 
 	if !race.Spec.InnateMining {
-		spec.MaxMines = planet.getMaxMines(player, productivePop)
+		spec.MaxMines = planet.getMaxMines(player, installationPop)
 		spec.MaxPossibleMines = spec.MaxPopulation * race.NumMines / 10000
 	} else {
 		spec.MaxMines = planet.Mines
@@ -476,7 +486,7 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 		// compute resources from population
 		resourcesFromPop := productivePop / (race.PopEfficiency * 100)
 
-		spec.MaxFactories = planet.getMaxFactories(player, productivePop)
+		spec.MaxFactories = planet.getMaxFactories(player, installationPop)
 		spec.MaxPossibleFactories = spec.MaxPopulation * race.NumFactories / 10000
 
 		// compute resources from factories
@@ -590,14 +600,14 @@ func (planet *Planet) maxBuildable(player *Player, t QueueItemType) int {
 	switch t {
 	case QueueItemTypeAutoMines:
 		// for autobuild purposes, the maxFactories is next year's pop
-		futurePop := planet.productivePopulation(planet.population()+planet.Spec.GrowthAmount, planet.Spec.MaxPopulation)
+		futurePop := planet.productiveInstallationPopulation(planet.population()+planet.Spec.GrowthAmount, planet.Spec.MaxPopulation)
 		maxMines := planet.getMaxMines(player, futurePop)
 		return MaxInt(0, maxMines-planet.Mines)
 	case QueueItemTypeMine:
 		return MaxInt(0, planet.Spec.MaxPossibleMines-planet.Mines)
 	case QueueItemTypeAutoFactories:
 		// for autobuild purposes, the maxFactories is next year's pop
-		futurePop := planet.productivePopulation(planet.population()+planet.Spec.GrowthAmount, planet.Spec.MaxPopulation)
+		futurePop := planet.productiveInstallationPopulation(planet.population()+planet.Spec.GrowthAmount, planet.Spec.MaxPopulation)
 		maxFactories := planet.getMaxFactories(player, futurePop)
 		return MaxInt(0, maxFactories-planet.Factories)
 	case QueueItemTypeFactory:

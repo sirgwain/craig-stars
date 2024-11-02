@@ -470,7 +470,7 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 		fleet.Heading = source.Heading
 		fleet.WarpSpeed = source.WarpSpeed
 		fleet.PreviousPosition = source.PreviousPosition
-		fleet.BattlePlanNum = source.BattlePlanNum
+		fleet.FleetOrders = source.FleetOrders
 
 		// create a slice of empty tokens we will populate
 		fleet.Tokens = make([]ShipToken, len(source.Tokens))
@@ -660,6 +660,7 @@ func (o *orders) splitFleetTokens(rules *Rules, player *Player, playerFleets []*
 	fleet.PreviousPosition = source.PreviousPosition
 	fleet.BattlePlanNum = source.BattlePlanNum
 	fleet.Tokens = tokens
+	fleet.FleetOrders = source.FleetOrders
 
 	// the fleet has some percentage of fuel fullness
 	fleetFuelFullness := float64(source.Fuel) / float64(source.Spec.FuelCapacity)
