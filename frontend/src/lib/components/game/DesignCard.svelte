@@ -8,7 +8,7 @@
 	import Cost from './Cost.svelte';
 	import DesignStats from './DesignStats.svelte';
 	import { onShipDesignTooltip } from './tooltips/ShipDesignTooltip.svelte';
-	import { None } from '$lib/types/MapObject';
+	import { None } from '$lib/types/Constants';
 
 	const dispatch = createEventDispatcher();
 

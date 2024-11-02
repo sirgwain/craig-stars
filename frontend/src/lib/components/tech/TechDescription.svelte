@@ -3,7 +3,6 @@
 
 	import {
 		getCloakPercentForCloakUnits,
-		InfinteGate,
 		TechCategory,
 		TerraformHabTypes,
 		type Tech,
@@ -12,6 +11,7 @@
 		type TechPlanetaryScanner,
 		type TechTerraform
 	} from '$lib/types/Tech';
+	import { InfinteGate } from '$lib/types/Constants';
 	import { onMount } from 'svelte';
 	import HullComponent from './hull/HullComponent.svelte';
 

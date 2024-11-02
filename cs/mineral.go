@@ -120,7 +120,7 @@ func (m Mineral) AddInt(num int) Mineral {
 }
 
 // subtract two minerals
-func (m Mineral) Minus(m2 Mineral) Mineral {
+func (m Mineral) Subtract(m2 Mineral) Mineral {
 	return Mineral{
 		Ironium:   m.Ironium - m2.Ironium,
 		Boranium:  m.Boranium - m2.Boranium,
@@ -129,7 +129,7 @@ func (m Mineral) Minus(m2 Mineral) Mineral {
 }
 
 // subtract the mineral components of a Cost
-func (m Mineral) MinusCost(m2 Cost) Mineral {
+func (m Mineral) SubtractCost(m2 Cost) Mineral {
 	return Mineral{
 		Ironium:   m.Ironium - m2.Ironium,
 		Boranium:  m.Boranium - m2.Boranium,

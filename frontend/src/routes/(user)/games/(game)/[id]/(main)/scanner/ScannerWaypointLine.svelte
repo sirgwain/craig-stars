@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { Fleet, Waypoint } from '$lib/types/Fleet';
-	import { StargateWarpSpeed } from '$lib/types/MapObject';
+	import { StargateWarpSpeed } from '$lib/types/Constants';
 	import { distance } from '$lib/types/Vector';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';

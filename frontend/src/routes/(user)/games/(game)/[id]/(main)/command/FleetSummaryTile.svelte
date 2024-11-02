@@ -11,8 +11,11 @@
 	let icon = '';
 
 	async function onRename() {
-		const name = prompt('Enter fleet name', fleet.baseName);
-		if (name && name != '') {
+		let name = prompt('Enter fleet name', fleet.baseName);
+		if (!name || name === '') {
+			name = $universe.getMyDesign(fleet.tokens[0].designNum)?.name ?? '';
+		}
+		if (name !== '') {
 			await renameFleet(fleet, name);
 		}
 	}

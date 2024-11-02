@@ -277,6 +277,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		CloakUnits:               raceSpec.BuiltInCloakUnits,
 		Initiative:               hull.Initiative,
 		ImmuneToOwnDetonation:    hull.ImmuneToOwnDetonation,
+		MovementBonus:            raceSpec.MovementBonus,
 		RepairBonus:              hull.RepairBonus,
 		ScanRange:                0, // by default, all ships non-pen scan ships in their radius
 		ScanRangePen:             NoScanner,
@@ -738,33 +739,38 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 				}
 			}
 		case HullSlotTypeShieldArmor:
-			// fuel freighters stay fast and loose
-			if purpose == ShipDesignPurposeFuelFreighter {
+			// freighters gotta stay fast and loose, so no armor for them 
+			switch purpose {
+			case ShipDesignPurposeFuelFreighter:
 				continue
-			}
-
-			// if we are choosing shield or armor, pick shield first, then armor
-			if numShields > numArmors {
-				slot.HullComponent = armor.Name
-				numArmors += slot.Quantity
-			} else {
+			case ShipDesignPurposeColonistFreighter, ShipDesignPurposeColonizer, ShipDesignPurposeFreighter:
 				slot.HullComponent = shield.Name
 				numShields += slot.Quantity
+			default:
+				// if we are choosing shield or armor, pick armor first, then shield
+				// needed to ensure starting ship parity
+				if numShields >= numArmors {
+					slot.HullComponent = armor.Name
+					numArmors += slot.Quantity
+				} else {
+					slot.HullComponent = shield.Name
+					numShields += slot.Quantity
+				}
 			}
 		case HullSlotTypeArmor:
-			// fuel freighters stay fast and loose
+			// fuel freighters stay fast and loose and don't get armor
 			if purpose == ShipDesignPurposeFuelFreighter {
 				continue
 			}
 			slot.HullComponent = armor.Name
-			numArmors++
+			numArmors += slot.Quantity
 		case HullSlotTypeShield:
-			// fuel freighters stay fast and loose
+			// fuel freighters stay fast and loose and don't get armor
 			if purpose == ShipDesignPurposeFuelFreighter {
 				continue
 			}
 			slot.HullComponent = shield.Name
-			numShields++
+			numShields += slot.Quantity
 		case HullSlotTypeMining:
 			if purpose == ShipDesignPurposeTerraformer {
 				if terraformRobot != nil {
@@ -817,7 +823,10 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 					break
 				}
 			}
-			// spare orbital slots left; use electrical items instead
+			// spare orbital slots left; use electrical items instead if possible
+			if hullSlot.Type&HullSlotTypeElectrical == 0 {
+				break
+			}
 			fallthrough
 		case HullSlotTypeElectrical:
 			// TODO: add in jammers, stealth, etc

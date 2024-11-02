@@ -258,7 +258,7 @@ func (p *production) produce() (productionResult, error) {
 		numBuilt, spent := p.getNumBuilt(item, cost, available, maxBuildable)
 
 		// deduct what was built from available
-		available = available.Minus(spent)
+		available = available.Subtract(spent)
 
 		// we built something, record ship buildings/packets for later, add installations and terraform right now
 		if numBuilt > 0 {
@@ -313,10 +313,10 @@ func (p *production) produce() (productionResult, error) {
 						{
 							Type:      item.Type.concreteType(),
 							Quantity:  1,
-							Allocated: Cost{Resources: available.Resources},
+							Allocated: p.allocatePartialBuild(cost, available),
 							index:     -1, // we don't track concrete auto items, we only care about the first fully built auto item
 						}}, newQueue...)
-					available.Resources -= newQueue[0].Allocated.Resources
+					available = available.Subtract(newQueue[0].Allocated)
 
 					if itemIndex < len(planet.ProductionQueue)-1 {
 						// if this isn't the last item, append the unfinished queue back to the end of our remaining items
@@ -332,11 +332,12 @@ func (p *production) produce() (productionResult, error) {
 				break
 			}
 		} else {
+			// if we built any, remove it from the item quantity
 			item.Quantity -= numBuilt
 			if item.Quantity > 0 {
 				// allocate remaining resources to this partially built item
-				item.Allocated.Resources = MinInt(cost.Resources, available.Resources)
-				available.Resources -= item.Allocated.Resources
+				item.Allocated = p.allocatePartialBuild(cost, available)
+				available = available.Subtract(item.Allocated)
 				planet.ProductionQueue[itemIndex] = item
 
 				// keep it in the queue for next time
@@ -354,12 +355,55 @@ func (p *production) produce() (productionResult, error) {
 			Str("Cargo", fmt.Sprintf("%+v", planet.Cargo)).
 			Str("productionResult", fmt.Sprintf("%+v", result)).
 			Msgf("planet cargo was negative after production: %s", planet.Cargo.PrettyString())
+		return result, fmt.Errorf("planet cargo was negative after production")
 		// planet.Cargo = planet.Cargo.MinZero()
 	}
 
 	// any leftover resources go back to the player for research
 	result.leftoverResources = available.Resources
 	return result, nil
+}
+
+// Allocate minerals and resources to the top item on this production queue
+// and return the leftover resources
+//
+// Costs are allocated by lowest percentage (except resources), i.e. if we require
+// Cost(10, 10, 10, 100) and we only have Cost(1, 10, 10, 100)
+// we allocate Cost(1, 1, 1, 100)
+//
+// The min amount we have is 10 percent of the ironium, so we
+// apply 10 percent to each cost amount
+func (p *production) allocatePartialBuild(costPerItem Cost, allocated Cost) Cost {
+	ironiumPerc := 1.0
+	if costPerItem.Ironium > 0 {
+		ironiumPerc = math.Min(1, float64(allocated.Ironium)/float64(costPerItem.Ironium))
+	}
+	boraniumPerc := 1.0
+	if costPerItem.Boranium > 0 {
+		boraniumPerc = math.Min(1, float64(allocated.Boranium)/float64(costPerItem.Boranium))
+	}
+	germaniumPerc := 1.0
+	if costPerItem.Germanium > 0 {
+		germaniumPerc = math.Min(1, float64(allocated.Germanium)/float64(costPerItem.Germanium))
+	}
+	resourcesPerc := 1.0
+	if costPerItem.Resources > 0 {
+		resourcesPerc = math.Min(1, float64(allocated.Resources)/float64(costPerItem.Resources))
+	}
+
+	// figure out the lowest percentage
+	minPerc := MinFloat64(ironiumPerc, boraniumPerc, germaniumPerc, resourcesPerc)
+
+	// allocate the lowest percentage of each cost
+	newAllocated := Cost{
+		int(float64(costPerItem.Ironium) * minPerc),
+		int(float64(costPerItem.Boranium) * minPerc),
+		int(float64(costPerItem.Germanium) * minPerc),
+		int(float64(costPerItem.Resources) * minPerc),
+	}
+
+	// return the amount we allocate to the top queued item
+	return newAllocated
 }
 
 // for things that are built on the planet (mines, factories, etc) add them

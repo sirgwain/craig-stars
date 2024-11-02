@@ -18,7 +18,7 @@ func newTechTrader() techTrader {
 // check for a tech level bonus from a player tech level and some target we scrapped, invaded, etc
 // https://wiki.starsautohost.org/wiki/Guts_of_Tech_Trading
 func (t *techTrade) techLevelGained(rules *Rules, current, target TechLevel) TechField {
-	diff := target.Minus(current).MinZero()
+	diff := target.Subtract(current).MinZero()
 	if diff.Sum() <= 0 {
 		return TechFieldNone
 	}

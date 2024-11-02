@@ -1,10 +1,6 @@
+import { None } from './Constants';
 import { getTokenCount, hasDestination, type Fleet } from './Fleet';
 import type { Vector } from './Vector';
-
-export const None = 0;
-export const Unknown = -1;
-export const Infinite = -1;
-export const StargateWarpSpeed = 11;
 
 export type MapObject = {
 	id?: number;

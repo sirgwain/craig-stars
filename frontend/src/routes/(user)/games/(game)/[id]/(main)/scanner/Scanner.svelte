@@ -5,12 +5,8 @@
 	import { clamp } from '$lib/services/Math';
 	import { filterFleet } from '$lib/types/Filter';
 	import { type Fleet } from '$lib/types/Fleet';
-	import {
-		MapObjectType,
-		None,
-		equal as mapObjectEqual,
-		type MapObject
-	} from '$lib/types/MapObject';
+	import { MapObjectType, equal as mapObjectEqual, type MapObject } from '$lib/types/MapObject';
+	import { None } from '$lib/types/Constants';
 	import { emptyVector, equal, type Vector } from '$lib/types/Vector';
 	import type { ScaleLinear } from 'd3-scale';
 	import { scaleLinear } from 'd3-scale';

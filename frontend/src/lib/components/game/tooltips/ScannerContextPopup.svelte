@@ -20,13 +20,8 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { showPopup } from '$lib/services/Stores';
 	import { type Fleet } from '$lib/types/Fleet';
-	import {
-		getMapObjectName,
-		MapObjectType,
-		None,
-		ownedBy,
-		type MapObject
-	} from '$lib/types/MapObject';
+	import { getMapObjectName, MapObjectType, ownedBy, type MapObject } from '$lib/types/MapObject';
+	import { None } from '$lib/types/Constants';
 	import { flatten, keys } from 'lodash-es';
 	import { createEventDispatcher } from 'svelte';
 	import type { PopupEvent } from './Popup.svelte';

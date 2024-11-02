@@ -2,7 +2,7 @@
 	import { andCommaList } from '$lib/andCommandList';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { absSum } from '$lib/types/Hab';
-	import { None } from '$lib/types/MapObject';
+	import { None } from '$lib/types/Constants';
 	import { MessageType, type Message } from '$lib/types/Message';
 	import FallbackMessageDetail from './FallbackMessageDetail.svelte';
 	import FleetEngineStrainMessageDetail from './FleetEngineStrainMessageDetail.svelte';
@@ -109,7 +109,7 @@
 			{/if}
 		{/if}
 	{:else}
-		Unknown damage was done
+		Unknown damage was done.
 	{/if}
 {:else if message.type === MessageType.FleetMineFieldSweptMines}
 	{@const mineFieldPosition = `(${message.spec.targetPosition?.x ?? 0}, ${message.spec.targetPosition?.y || 0})`}
@@ -131,13 +131,15 @@
 	Your patrolling {message.targetName} has targeted {message.spec.targetName} to intercept.
 {:else if message.type === MessageType.FleetRadiatingEngineDieoff}
 	<!-- Colonist dieoff from engine radiation -->
-	Engine radiation has killed {(message.spec.amount ?? 0) * -100} colonists traveling in {message.targetName}.
+	Engine radiation has killed {(message.spec.amount ?? 0).toLocaleString()} colonists traveling in {message.targetName}.
 {:else if message.type === MessageType.FleetReproduce}
 	{#if !message.spec.amount2 || !message.spec.targetNum}
 		Your colonists in {message.targetName} have made good use of their time increasing their on-board
 		number by {message.spec.amount} colonists.
 	{:else}
-		Breeding activities on {message.targetName} have overflowed living space. {message.spec.amount2}
+		<!-- TODO: actually fix bug non jankily by multiplying message.amount2 by 100 during assignment-->
+		Breeding activities on {message.targetName} have overflowed living space. {message.spec
+			.amount2 * 100}
 		colonists have been beamed down to {message.spec.targetName}.
 	{/if}
 	<!-- Remote Mining messages -->
@@ -147,14 +149,12 @@
 		boranium: message.spec.mineral?.boranium ?? 0,
 		germanium: message.spec.mineral?.germanium ?? 0
 	}}
-	{message.targetName} has remote mined {message.spec.targetName} extracting {andCommaList(
-		[
-			minerals.ironium > 0 ? `${minerals.ironium}kT of Ironium` : '',
-			minerals.boranium > 0 ? `${minerals.boranium}kT of Boranium` : '',
-			minerals.germanium > 0 ? `${minerals.germanium}kT of Germanium` : ''
-		],
-		'no minerals.'
-	)}
+	{message.targetName} has remote mined {message.spec.targetName} extracting {(andCommaList([
+		minerals.ironium > 0 ? `${minerals.ironium}kT of Ironium` : '',
+		minerals.boranium > 0 ? `${minerals.boranium}kT of Boranium` : '',
+		minerals.germanium > 0 ? `${minerals.germanium}kT of Germanium` : ''
+	]) + '.',
+	'no minerals.')}
 {:else if message.type === MessageType.FleetScrapped}
 	{message.targetName} has been dismantled. The scrap was left in deep space.
 {:else if message.type === MessageType.FleetTransferGiven}

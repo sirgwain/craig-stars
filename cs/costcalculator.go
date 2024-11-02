@@ -52,7 +52,7 @@ func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 	if design.Hull != newDesign.Hull {
 		oldHullCost := oldHull.Tech.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(500 * rules.StarbaseComponentCostReduction)
 		newHullCost := newHull.Tech.GetPlayerCost(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).MultiplyInt(1000 * rules.StarbaseComponentCostReduction)
-		cost = cost.Add(newHullCost).Minus(oldHullCost)
+		cost = cost.Add(newHullCost).Subtract(oldHullCost)
 	}
 
 	// Next, iterate through both designs' slots and tally up items in each
@@ -182,7 +182,7 @@ func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 			minCost = minCost.AddInt(costType, adjCost)
 		}
 	}
-	cost = cost.Minus(credit).MinZero()
+	cost = cost.Subtract(credit).MinZero()
 	divisor := int(roundHalfDown(1000 * float64(rules.StarbaseComponentCostReduction) / raceSpec.StarbaseCostFactor))
 	cost = cost.Max(minCost).DivideByInt(divisor, true)
 	return cost, nil

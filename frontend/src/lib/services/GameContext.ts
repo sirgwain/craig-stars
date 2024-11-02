@@ -3,7 +3,8 @@ import { getScannerTarget } from '$lib/types/Battle';
 import type { CargoTransferRequest } from '$lib/types/Cargo';
 import { CommandedFleet, type Fleet, type ShipToken, type Waypoint } from '$lib/types/Fleet';
 import type { Game, GameSettings } from '$lib/types/Game';
-import { MapObjectType, None, equal, key, ownedBy, type MapObject } from '$lib/types/MapObject';
+import { MapObjectType, equal, key, ownedBy, type MapObject } from '$lib/types/MapObject';
+import { None } from '$lib/types/Constants';
 import {
 	MessageTargetType,
 	MessageType,

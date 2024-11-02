@@ -115,6 +115,7 @@ func (o *orders) UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet
 		Int64("GameID", player.GameID).
 		Int("PlayerNum", player.Num).
 		Str("Planet", planet.Name).
+		Interface("Orders", orders).
 		Msg("update planet orders")
 
 	return nil
@@ -272,6 +273,8 @@ func (o *orders) TransferFleetCargo(rules *Rules, player, destPlayer *Player, so
 		Str("Source", source.Name).
 		Str("Dest", dest.Name).
 		Str("TransferAmount", fmt.Sprintf("%v", transferAmount)).
+		Str("SourceCargo", fmt.Sprintf("%v", source.Cargo)).
+		Str("DestCargo", fmt.Sprintf("%v", dest.Cargo)).
 		Msg("transfer fleet cargo")
 
 	return nil
@@ -322,6 +325,7 @@ func (o *orders) TransferPlanetCargo(rules *Rules, player *Player, source *Fleet
 	log.Info().
 		Int64("GameID", player.GameID).
 		Int("PlayerNum", player.Num).
+		Str("Planet", dest.Name).
 		Str("Source", source.Name).
 		Str("Dest", dest.Name).
 		Str("SourceCargoInitial", fmt.Sprintf("%v", sourceCargoInitial)).
@@ -499,7 +503,7 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 		fleet.Heading = source.Heading
 		fleet.WarpSpeed = source.WarpSpeed
 		fleet.PreviousPosition = source.PreviousPosition
-		fleet.BattlePlanNum = source.BattlePlanNum
+		fleet.FleetOrders = source.FleetOrders
 
 		// create a slice of empty tokens we will populate
 		fleet.Tokens = make([]ShipToken, len(source.Tokens))
@@ -689,6 +693,7 @@ func (o *orders) splitFleetTokens(rules *Rules, player *Player, playerFleets []*
 	fleet.PreviousPosition = source.PreviousPosition
 	fleet.BattlePlanNum = source.BattlePlanNum
 	fleet.Tokens = tokens
+	fleet.FleetOrders = source.FleetOrders
 
 	// the fleet has some percentage of fuel fullness
 	fleetFuelFullness := float64(source.Fuel) / float64(source.Spec.FuelCapacity)

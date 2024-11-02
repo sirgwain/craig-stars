@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { getDamagePercentForToken, type CommandedFleet } from '$lib/types/Fleet';
-	import { Infinite } from '$lib/types/MapObject';
+	import { getDamagePercentForToken, type CommandedFleet, type Waypoint } from '$lib/types/Fleet';
+	import { Infinite } from '$lib/types/Constants';
 	import { createEventDispatcher } from 'svelte';
 	import type { MergeFleetsDialogEvent } from '../../dialogs/merge/MergeFleetsDialog.svelte';
 	import type { SplitFleetEvent } from '../../dialogs/split/SplitFleet.svelte';
@@ -12,9 +12,10 @@
 	const dispatch = createEventDispatcher<
 		SplitFleetEvent & SplitFleetDialogEvent & MergeFleetsDialogEvent
 	>();
-	const { player, universe, selectedWaypoint, updateFleetOrders } = getGameContext();
+	const { player, universe, updateFleetOrders } = getGameContext();
 
 	export let fleet: CommandedFleet;
+	export let selectedWaypoint: Waypoint | undefined;
 
 	const split = () => {
 		dispatch('split-fleet-dialog', { src: fleet });
@@ -36,7 +37,7 @@
 	};
 </script>
 
-{#if fleet.waypoints && $selectedWaypoint}
+{#if fleet.waypoints && selectedWaypoint}
 	<CommandTile title="Fleet Composition">
 		<div class="bg-base-100 h-20 overflow-y-auto">
 			<ul class="w-full h-full">

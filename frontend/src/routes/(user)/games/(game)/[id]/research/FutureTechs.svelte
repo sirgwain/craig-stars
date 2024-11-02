@@ -4,7 +4,7 @@
 	import { techs } from '$lib/services/Stores';
 	import { canLearnTech } from '$lib/types/Player';
 	import type { Tech } from '$lib/types/Tech';
-	import { TechField, get, hasRequiredLevels, minus, sum } from '$lib/types/TechLevel';
+	import { TechField, get, hasRequiredLevels, subtract, sum } from '$lib/types/TechLevel';
 
 	type FutureTech = {
 		tech: Tech;
@@ -25,7 +25,7 @@
 				!hasRequiredLevels($player.techLevels, tech.requirements)
 		)
 		.map((tech) => {
-			const distanceToLearn = minus(tech.requirements, $player.techLevels);
+			const distanceToLearn = subtract(tech.requirements, $player.techLevels);
 			// zero out any level differences we have already achieved
 			// i.e. if we are at level 5 for energy and this tech requires 3, distanceToLearn.Energy will equal -2
 			// this makes it zero

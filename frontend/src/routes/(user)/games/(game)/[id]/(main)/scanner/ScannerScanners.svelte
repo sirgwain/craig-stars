@@ -2,7 +2,7 @@
 	import { getGameContext } from '$lib/services/GameContext';
 
 	import { positionKey } from '$lib/types/MapObject';
-	import { NoScanner } from '$lib/types/Tech';
+	import { NoScanner } from '$lib/types/Constants';
 	import type { Vector } from '$lib/types/Vector';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';

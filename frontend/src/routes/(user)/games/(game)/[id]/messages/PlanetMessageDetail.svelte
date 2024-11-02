@@ -1,12 +1,11 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
+	import { UnlimitedSpaceDock } from '$lib/types/Constants';
 	import { totalMinerals } from '$lib/types/Cost';
 	import { absSum } from '$lib/types/Hab';
 	import { CometSize, MessageType, type Message } from '$lib/types/Message';
 	import type { Planet } from '$lib/types/Planet';
 	import type { PlayerIntel } from '$lib/types/Player';
-	import { UnlimitedSpaceDock } from '$lib/types/Tech';
-	import { startCase } from 'lodash-es';
 	import FallbackMessageDetail from './FallbackMessageDetail.svelte';
 
 	const { game, player, universe, settings } = getGameContext();
@@ -71,7 +70,9 @@
 		You have built {message.spec.amount ?? 0} factories on {planet.name}.
 	{/if}
 {:else if message.type === MessageType.PlanetBuiltGensisDevice}
-	Strong fundamental forces have rebirthed {planet.name}. All planetary installations have been wiped clean as its environment shifts drastically and newfound minerals spring forth from the ground.
+	Strong fundamental forces have rebirthed {planet.name}. All planetary installations have been
+	wiped clean as its environment shifts drastically and newfound minerals spring forth from the
+	ground.
 {:else if message.type === MessageType.PlanetBuiltMineralAlchemy}
 	Your scientists on {planet.name} have transmuted common materials into {message.spec.amount ??
 		0}kT each of Ironium, Boranium and Germanium.
@@ -103,7 +104,7 @@
 	{#if message.spec.comet?.size == CometSize.Small}
 		A small comet has crashed into {planet.name} bringing new minerals and altering the planet's environment.
 	{:else if message.spec.comet?.size == CometSize.Medium}
-		A medium-sized comet has crashed into {planet.name} bringing a significant quantity of minerals and 
+		A medium-sized comet has crashed into {planet.name} bringing a significant quantity of minerals and
 		significantly altering the planet's environment.
 	{:else if message.spec.comet?.size == CometSize.Large}
 		A large comet has crashed into {planet.name} bringing a wide variety of new minerals and drastically
@@ -148,12 +149,11 @@
 {:else if [MessageType.PlanetDiscovery, MessageType.PlanetDiscoveryHabitable, MessageType.PlanetDiscoveryTerraformable, MessageType.PlanetDiscoveryUninhabitable].indexOf(message.type) != -1}
 	{#if owner}
 		You have found a planet occupied by someone else. {planet.name} is currently owned by the {owner.racePluralName}.
-	{:else if $player.race.spec?.instaforming && ((planet.spec.terraformedHabitability && planet.spec.terraformedHabitability > 0) || 
-	(planet.spec.habitability && planet.spec.habitability > 0))}
+	{:else if $player.race.spec?.instaforming && ((planet.spec.terraformedHabitability && planet.spec.terraformedHabitability > 0) || (planet.spec.habitability && planet.spec.habitability > 0))}
 		You have found a new habitable planet. Your colonists will grow by up to {Math.max(
 			1,
-			((planet.spec.terraformedHabitability ?? (planet.spec.habitability ?? 0)) * growthRate) / 100
-			).toFixed(2)}% per year if you colonize {planet.name}.
+			((planet.spec.terraformedHabitability ?? planet.spec.habitability ?? 0) * growthRate) / 100
+		).toFixed(2)}% per year if you colonize {planet.name}.
 	{:else if planet.spec.habitability && planet.spec.habitability > 0}
 		You have found a new habitable planet. Your colonists will grow by up to {Math.max(
 			1,
@@ -181,8 +181,8 @@
 		).toLocaleString()} to {(message.spec.amount ?? 0).toLocaleString()}.
 	{/if}
 {:else if message.type === MessageType.PlanetPopulationDecreasedOvercrowding}
-	The population on {planet.name} has decreased by {(-(message.spec.amount ?? 0)).toLocaleString()} colonists due
-	to overcrowding.
+	The population on {planet.name} has decreased by {(-(message.spec.amount ?? 0)).toLocaleString()} colonists
+	due to overcrowding.
 {:else if message.type === MessageType.PlayerTechLevelGainedInvasion}
 	Your colonists invading {planet.name} have picked through the defenders' remains looking for technology.
 	In the process you have gained a level in {message.spec.field}.

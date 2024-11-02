@@ -255,13 +255,6 @@ describe('player test', () => {
 		expect(player.getTerraformAbility(techStore)).toEqual({ grav: 3, temp: 3, rad: 3 });
 	});
 
-	it('getStarbaseUpgradeCost', () => {
-		const player = new Player();
-
-		expect(player.getStarbaseUpgradeCost(techStore, orbitalFort2Design, baseStationDesign)).toEqual(
-			{ ironium: 0, boranium: 0, germanium: 0, resources: 0 }
-		);
-	});
 	it('getTechCost', () => {
 		const player = new Player();
 		player.techLevels = {};

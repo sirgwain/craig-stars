@@ -11,11 +11,11 @@
 
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
+	import { NeverBuilt } from '$lib/types/Constants';
 	import type { ProductionQueueItem } from '$lib/types/Production';
 	import { getFullName, getShortName, isAuto } from '$lib/types/QueueItemType';
 	import { createEventDispatcher } from 'svelte';
 	import { onShipDesignTooltip } from './tooltips/ShipDesignTooltip.svelte';
-	import { NeverBuilt } from '$lib/types/Planet';
 
 	const dispatch = createEventDispatcher<QueueItemClickedEvent>();
 	const { universe } = getGameContext();
@@ -48,7 +48,7 @@
 	class:bg-primary={selected}
 	class="w-full text-left px-1 select-none hover:text-secondary-focus"
 >
-	<div class="flex justify-between ">
+	<div class="flex justify-between">
 		<div>
 			{shortName ? getShortName(item, $universe) : getFullName(item, $universe)}
 		</div>

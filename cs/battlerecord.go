@@ -175,7 +175,11 @@ func (b *BattleRecord) recordNewRound() {
 
 // Record a move
 func (b *BattleRecord) recordMove(round int, token *battleToken, from, to BattleVector) BattleRecordTokenAction {
-	action := BattleRecordTokenAction{Type: TokenActionMove, Round: round, TokenNum: token.Num, From: from, To: to}
+	targetNum := 0
+	if token.moveTarget != nil {
+		targetNum = token.moveTarget.Num
+	}
+	action := BattleRecordTokenAction{Type: TokenActionMove, Round: round, TokenNum: token.Num, From: from, To: to, TargetNum: targetNum}
 	actions := b.ActionsPerRound[len(b.ActionsPerRound)-1]
 	actions = append(actions, action)
 	b.ActionsPerRound[len(b.ActionsPerRound)-1] = actions

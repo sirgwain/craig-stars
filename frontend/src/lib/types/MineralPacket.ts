@@ -14,5 +14,3 @@ export type MineralPacketDamage = {
 	defensesDestroyed?: number;
 	uncaught?: number;
 };
-
-export const MineralPacketDecayToNothing = -1;

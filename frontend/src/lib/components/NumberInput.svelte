@@ -15,6 +15,7 @@
 	export let max: number | undefined = undefined;
 	export let unitLabelClass = 'w-16';
 	export let required = false;
+	export let disabled = false;
 
 	$: !title && (title = startCase(name));
 </script>
@@ -27,6 +28,7 @@
 				<input
 					class={inputClass}
 					type="number"
+					{disabled}
 					{name}
 					{min}
 					{max}
