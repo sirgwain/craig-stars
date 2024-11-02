@@ -149,12 +149,14 @@
 		boranium: message.spec.mineral?.boranium ?? 0,
 		germanium: message.spec.mineral?.germanium ?? 0
 	}}
-	{message.targetName} has remote mined {message.spec.targetName} extracting {(andCommaList([
-		minerals.ironium > 0 ? `${minerals.ironium}kT of Ironium` : '',
-		minerals.boranium > 0 ? `${minerals.boranium}kT of Boranium` : '',
-		minerals.germanium > 0 ? `${minerals.germanium}kT of Germanium` : ''
-	]) + '.',
-	'no minerals.')}
+	{message.targetName} has remote mined {message.spec.targetName} extracting {andCommaList(
+		[
+			minerals.ironium > 0 ? `${minerals.ironium}kT of Ironium` : '',
+			minerals.boranium > 0 ? `${minerals.boranium}kT of Boranium` : '',
+			minerals.germanium > 0 ? `${minerals.germanium}kT of Germanium` : ''
+		],
+		'no minerals'
+	)}.
 {:else if message.type === MessageType.FleetScrapped}
 	{message.targetName} has been dismantled. The scrap was left in deep space.
 {:else if message.type === MessageType.FleetTransferGiven}
