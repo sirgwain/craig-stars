@@ -145,7 +145,7 @@ func starbaseUpgradeCost(args []js.Value) interface{} {
 		return wasm.NewError(fmt.Errorf("unable to calculate starbase upgrade cost %v", err))
 	}
 
-	log.Debug().Msgf("computed spec for design %s", design.Name)
+	log.Debug().Msgf("computed starbase upgrade cost for design %s -> %s %v", design.Name, newDesign.Name, cost)
 
 	o := js.ValueOf(map[string]any{})
 	wasm.SetCost(o, &cost)

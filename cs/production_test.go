@@ -52,7 +52,7 @@ func Test_production_produceAutoFactories(t *testing.T) {
 	producer := newProducer(testLogger, &rules, planet, player)
 	result, err := producer.produce()
 	assert.Nil(t, err)
-	
+
 	assert.Equal(t, 5, planet.Factories)
 	assert.Equal(t, 1, len(planet.ProductionQueue))
 	assert.Equal(t, QueueItemTypeAutoFactories, planet.ProductionQueue[0].Type)
@@ -230,7 +230,7 @@ func Test_production_producePartialFactoryAndMoreAuto(t *testing.T) {
 	assert.Equal(t, QueueItemTypeFactory, planet.ProductionQueue[0].Type)
 	assert.Equal(t, 1, planet.ProductionQueue[0].Quantity)
 	assert.Equal(t, Cost{Germanium: 2, Resources: 7}, planet.ProductionQueue[0].Allocated)
-	
+
 	// auto orders remain empty of allocated resources
 	assert.Equal(t, QueueItemTypeAutoMinTerraform, planet.ProductionQueue[1].Type)
 	assert.Equal(t, 1, planet.ProductionQueue[1].Quantity)
@@ -297,6 +297,57 @@ func Test_production_produceBuildToMinesFactoriesToMax(t *testing.T) {
 	// we should build mines/factories accounting for future growth
 	assert.Equal(t, 115, planet.Mines)
 	assert.Equal(t, 115, planet.Factories)
+
+}
+
+func Test_production_produceColonizerAndPartialFreighters(t *testing.T) {
+	player, planet := newTestPlayerPlanet()
+	player.TechLevels = TechLevel{0, 0, 3, 4, 0, 2}
+	player.Race.PRT = SD
+	player.Race.LRTs = Bitmask(IFE) | Bitmask(ARM) | Bitmask(BET) | Bitmask(RS)
+	player.Race.PopEfficiency = 9
+	player.Race.FactoryOutput = 11
+	player.Race.Spec = computeRaceSpec(&player.Race, &rules)
+	player.Spec = computePlayerSpec(player, &rules, []*Planet{planet})
+
+	// add two designs, a colony ship w/fuel mizer and medium freighter w/fuel mizer
+	player.Designs = append(player.Designs, NewShipDesign(player, 1).
+		WithHull(ColonyShip.Name).
+		WithSlots([]ShipDesignSlot{
+			{HullComponent: FuelMizer.Name, HullSlotIndex: 1, Quantity: 1},
+			{HullComponent: ColonizationModule.Name, HullSlotIndex: 2, Quantity: 1},
+		}).
+		WithSpec(&rules, player))
+
+	player.Designs = append(player.Designs, NewShipDesign(player, 2).
+		WithHull(MediumFreighter.Name).
+		WithSlots([]ShipDesignSlot{
+			{HullComponent: FuelMizer.Name, HullSlotIndex: 1, Quantity: 1},
+			{HullComponent: CargoPod.Name, HullSlotIndex: 2, Quantity: 1},
+		}).
+		WithSpec(&rules, player))
+
+	// add designs plus some auto items
+	planet.ProductionQueue = []ProductionQueueItem{
+		{Type: QueueItemTypeShipToken, Quantity: 1, DesignNum: 1, design: player.Designs[0]},
+		{Type: QueueItemTypeShipToken, Quantity: 2, DesignNum: 2, design: player.Designs[1], Allocated: Cost{Ironium: 40, Germanium: 29, Resources: 75}},
+		{Type: QueueItemTypeAutoMines, Quantity: 250},
+		{Type: QueueItemTypeAutoFactories, Quantity: 250},
+		{Type: QueueItemTypeAutoMaxTerraform, Quantity: 10},
+	}
+	planet.Cargo = Cargo{1000, 1000, 77, 3166}
+	planet.Spec = computePlanetSpec(&rules, player, planet)
+
+	// should build nothing, but queue up a mine partially done
+	producer := newProducer(testLogger, &rules, planet, player)
+	result, err := producer.produce()
+
+	assert.Nil(t, err)
+	assert.Equal(t, 3, len(result.itemsBuilt))
+	assert.Equal(t, 1, result.itemsBuilt[0].designNum)
+	assert.Equal(t, 1, result.itemsBuilt[0].numBuilt)
+	assert.Equal(t, 2, result.itemsBuilt[1].designNum)
+	assert.Equal(t, 2, result.itemsBuilt[1].numBuilt)
 
 }
 

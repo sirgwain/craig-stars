@@ -21,9 +21,9 @@
 	// true if this mapObject is also our current target
 	function isTarget(mo: MapObject) {
 		return (
-			mo.type == target.targetType &&
-			mo.num == target.targetNum &&
-			mo.playerNum == target.targetPlayerNum
+			mo.type === target.targetType &&
+			mo.num === target.targetNum &&
+			(mo.playerNum ?? 0) === (target.targetPlayerNum ?? 0)
 		);
 	}
 

@@ -321,7 +321,7 @@ export class Player implements PlayerResponse, CostFinder {
 						if (planet?.spec.hasStarbase) {
 							const starbaseToUpgrade = designFinder.getMyDesign(planet.spec.starbaseDesignNum);
 							if (starbaseToUpgrade && design) {
-								return cs.starbaseUpgradeCost(design, starbaseToUpgrade) ?? {};
+								return cs.starbaseUpgradeCost(starbaseToUpgrade, design) ?? {};
 							}
 						}
 						return multiply(design?.spec.cost ?? {}, quantity);

@@ -7,7 +7,8 @@
 	import {
 		CommandedFleet,
 		emptyTransportTasks,
-		WaypointTask
+		WaypointTask,
+		type Waypoint
 	} from '$lib/types/Fleet';
 	import { MapObjectType, owned, ownedBy, type MapObject } from '$lib/types/MapObject';
 	import { getMineralOutput } from '$lib/types/Planet';
@@ -24,27 +25,30 @@
 
 	const dispatch = createEventDispatcher<TransportTasksDialogEvent>();
 
-	const { game, player, universe, selectedWaypoint, updateFleetOrders } = getGameContext();
+	const { game, player, universe, updateFleetOrders } = getGameContext();
 
 	export let fleet: CommandedFleet;
+	export let selectedWaypoint: Waypoint | undefined;
 
-	$: selectedWaypointTask = $selectedWaypoint?.task ?? WaypointTask.None;
+	$: selectedWaypointTask = selectedWaypoint?.task ?? WaypointTask.None;
 	$: selectedWaypointPlanet =
-		$selectedWaypoint &&
-		$selectedWaypoint.targetType == MapObjectType.Planet &&
-		$selectedWaypoint.targetNum
-			? $universe.getPlanet($selectedWaypoint.targetNum)
+		selectedWaypoint &&
+		selectedWaypoint.targetType == MapObjectType.Planet &&
+		selectedWaypoint.targetNum
+			? $universe.getPlanet(selectedWaypoint.targetNum)
 			: undefined;
 
+	$: console.log('selectedWaypoint', selectedWaypoint, selectedWaypointPlanet?.name);
+
 	const onSelectedWaypointTaskChange = (task: WaypointTask) => {
-		if ($selectedWaypoint) {
-			$selectedWaypoint.task = task;
+		if (selectedWaypoint) {
+			selectedWaypoint.task = task;
 
 			if (task != WaypointTask.Transport) {
 				// if we aren't doing a transport, reset the transport tasks to blank.
 				// If we don't do this, the user could pick a transport task in the future and assume it defaults to empty
 				// but it will have whatever it last had
-				$selectedWaypoint.transportTasks = emptyTransportTasks();
+				selectedWaypoint.transportTasks = emptyTransportTasks();
 			}
 
 			updateFleetOrders(fleet);
@@ -56,15 +60,15 @@
 	}
 
 	async function onPatrolWarpSpeedChanged(warpSpeed: number) {
-		if ($selectedWaypoint) {
-			$selectedWaypoint.patrolWarpSpeed = warpSpeed;
+		if (selectedWaypoint) {
+			selectedWaypoint.patrolWarpSpeed = warpSpeed;
 			await updateFleetOrders(fleet);
 		}
 	}
 
 	async function onPatrolWarpSpeedDragged(warpSpeed: number) {
-		if ($selectedWaypoint) {
-			$selectedWaypoint.patrolWarpSpeed = warpSpeed;
+		if (selectedWaypoint) {
+			selectedWaypoint.patrolWarpSpeed = warpSpeed;
 		}
 	}
 
@@ -77,34 +81,34 @@
 	}
 
 	function applyTransportPlan(plan: TransportPlan) {
-		if ($selectedWaypoint) {
-			$selectedWaypoint.transportTasks = plan.tasks;
+		if (selectedWaypoint) {
+			selectedWaypoint.transportTasks = plan.tasks;
 
 			updateFleetOrders(fleet);
 		}
 	}
 
 	function onTargetChanged(target: MapObject) {
-		if ($selectedWaypoint) {
-			$selectedWaypoint.targetName = target.name;
-			$selectedWaypoint.targetType = target.type;
-			$selectedWaypoint.targetNum = target.num;
-			$selectedWaypoint.targetPlayerNum = target.playerNum;
+		if (selectedWaypoint) {
+			selectedWaypoint.targetName = target.name;
+			selectedWaypoint.targetType = target.type;
+			selectedWaypoint.targetNum = target.num;
+			selectedWaypoint.targetPlayerNum = target.playerNum;
 			updateFleetOrders(fleet);
 		}
 	}
 </script>
 
-{#if $selectedWaypoint}
+{#if selectedWaypoint}
 	<CommandTile title="Waypoint Task">
 		<div class="flex justify-between">
 			<div class="my-auto text-tile-item-title">Target</div>
 			<div>
 				<OtherMapObjectsHere
 					{fleet}
-					otherMapObjectsHere={$universe.getOtherMapObjectsHereByType($selectedWaypoint.position)}
-					target={$selectedWaypoint}
-					position={$selectedWaypoint.position}
+					otherMapObjectsHere={$universe.getOtherMapObjectsHereByType(selectedWaypoint.position)}
+					target={selectedWaypoint}
+					position={selectedWaypoint.position}
 					class="w-36"
 					on:selected={(e) => onTargetChanged(e.detail)}
 				/>
@@ -134,17 +138,17 @@
 			</div>
 		</div>
 
-		{#if $selectedWaypoint?.task == WaypointTask.Transport}
+		{#if selectedWaypoint?.task == WaypointTask.Transport}
 			<div class="flex flex-col">
 				<div>
-					<TransportTasksMini transportTasks={$selectedWaypoint.transportTasks} />
+					<TransportTasksMini transportTasks={selectedWaypoint.transportTasks} />
 				</div>
 				<div class="ml-auto mt-1 flex flex-row gap-1">
 					<div>
 						<button
 							on:click={() =>
-								$selectedWaypoint &&
-								dispatch('transport-tasks-dialog', { fleet, waypoint: $selectedWaypoint })}
+								selectedWaypoint &&
+								dispatch('transport-tasks-dialog', { fleet, waypoint: selectedWaypoint })}
 							class="btn btn-outline btn-sm normal-case btn-secondary inline-block p-1"
 							><Icon src={PencilSquare} size="16" class="hover:stroke-accent inline" /></button
 						>
@@ -157,7 +161,7 @@
 					/>
 				</div>
 			</div>
-		{:else if $selectedWaypoint?.task === WaypointTask.RemoteMining}
+		{:else if selectedWaypoint?.task === WaypointTask.RemoteMining}
 			{#if selectedWaypointPlanet}
 				<!-- if this waypoint is owned -->
 				{#if selectedWaypointPlanet.reportAge == Unexplored}
@@ -184,10 +188,10 @@
 			{:else}
 				<span class="text-error">Warning: Can only remote mine planets.</span>
 			{/if}
-		{:else if $selectedWaypoint?.task === WaypointTask.LayMineField}
+		{:else if selectedWaypoint?.task === WaypointTask.LayMineField}
 			<select
 				class="select select-outline select-secondary select-sm py-0 text-sm mt-1"
-				bind:value={$selectedWaypoint.layMineFieldDuration}
+				bind:value={selectedWaypoint.layMineFieldDuration}
 				on:change|preventDefault={() => onLayMineFieldDurationChanged()}
 			>
 				<option value={undefined}>Indefinitely</option>
@@ -197,14 +201,16 @@
 				<option value={4}>for 4 years</option>
 				<option value={5}>for 5 years</option>
 			</select>
-			<p class="text-warning">This fleet can lay {fleet.getTotalMinesLaidPerYear()} mines per year.</p>
-		{:else if $selectedWaypoint?.task === WaypointTask.Patrol}
+			<p class="text-warning">
+				This fleet can lay {fleet.getTotalMinesLaidPerYear()} mines per year.
+			</p>
+		{:else if selectedWaypoint?.task === WaypointTask.Patrol}
 			<div class="flex justify-between my-1">
 				<div class="my-auto text-tile-item-title">Intercept</div>
 				<div>
 					<select
 						class="select select-outline select-secondary select-sm py-0 text-sm mt-1"
-						bind:value={$selectedWaypoint.patrolRange}
+						bind:value={selectedWaypoint.patrolRange}
 						on:change|preventDefault={() => onPatrolRangeChanged()}
 					>
 						<option value={50}>within 50 l.y.</option>
@@ -226,7 +232,7 @@
 					<WarpSpeedGauge
 						on:valuechanged={(e) => onPatrolWarpSpeedChanged(e.detail)}
 						on:valuedragged={(e) => onPatrolWarpSpeedDragged(e.detail)}
-						bind:value={$selectedWaypoint.patrolWarpSpeed}
+						bind:value={selectedWaypoint.patrolWarpSpeed}
 						warnSpeed={fleet.spec.engine.maxSafeSpeed
 							? fleet.spec.engine.maxSafeSpeed + 1
 							: undefined}
@@ -234,10 +240,10 @@
 					/>
 				</span>
 			</div>
-		{:else if $selectedWaypoint?.task === WaypointTask.TransferFleet}
+		{:else if selectedWaypoint?.task === WaypointTask.TransferFleet}
 			<select
 				class="select select-outline select-secondary select-sm py-0 text-sm mt-1"
-				bind:value={$selectedWaypoint.transferToPlayer}
+				bind:value={selectedWaypoint.transferToPlayer}
 				on:change|preventDefault={() => onTransferToPlayerChanged()}
 			>
 				<option value={undefined}>None</option>

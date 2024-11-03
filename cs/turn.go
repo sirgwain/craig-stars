@@ -190,6 +190,7 @@ func (t *turn) scrapFleet(fleet *Fleet) {
 		planet.Cargo = planet.Cargo.AddMineral(fleet.Cargo.ToMineral())
 		if planet.OwnedBy(player.Num) {
 			planet.bonusResources += cost.Resources
+			planet.Cargo.Colonists += fleet.Cargo.Colonists
 		}
 
 		// check for tech trade. We do this for every fleet. If it's the player's original ships, it won't lead
@@ -232,6 +233,14 @@ func (t *turn) scrapFleet(fleet *Fleet) {
 		// create salvage
 		t.game.createSalvage(fleet.Position, player.Num, cost.ToCargo())
 	}
+
+	t.log.Debug().
+		Int("Player", fleet.PlayerNum).
+		Str("Planet", planet.Name).
+		Str("Fleet", fleet.Name).
+		Str("Cargo", fmt.Sprintf("%v", fleet.Cargo)).
+		Str("Scrap", fmt.Sprintf("%v", cost)).
+		Msgf("fleet scrapped")
 
 	messager.fleetScrapped(player, fleet, cost, planet)
 	t.game.deleteFleet(fleet)
@@ -1016,17 +1025,18 @@ func (t *turn) fleetRadiatingEngineDieoff() {
 			continue
 		}
 
-		if fleet.Cargo.Colonists == 0 {
+		// no radiation in this fleet or no colonists to kill
+		if !fleet.Spec.Radiating || fleet.Cargo.Colonists == 0 {
 			continue
 		}
 
-		// we're safe, no radiation in this fleet
-		if !fleet.Spec.Radiating {
-			continue
-		}
-
-		// check if this player's freighters reproduce
+		// check if this player's freighters kill off pop
 		player := t.game.getPlayer(fleet.PlayerNum)
+		if player.Race.IsImmune(Rad) {
+			// rad immune races could care less about engine radiation
+			continue
+		}
+
 		habCenter := player.Race.Spec.HabCenter
 		deathRate := math.Max(0, float64(t.game.Rules.RadiatingImmune+1)-float64(habCenter.Rad)) / 2 / 100
 
